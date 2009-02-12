@@ -2126,6 +2126,37 @@ void UpdateAirportsNoise()
 	}
 }
 
+
+/**
+ * Checks if an airport can be removed (no aircraft on it or landing)
+ * @param st Station whose airport is to be removed
+ * @param flags Operation to perform
+ * @return Cost or failure of operation
+ */
+static CommandCost CanRemoveAirport(Station *st, DoCommandFlag flags)
+{
+	const Aircraft *a;
+	FOR_ALL_AIRCRAFT(a) {
+		if (!a->IsNormalAircraft()) continue;
+		if (a->targetairport == st->index && a->state != FLYING)
+			return_cmd_error(STR_ERROR_AIRCRAFT_IN_THE_WAY);
+	}
+
+	CommandCost cost(EXPENSES_CONSTRUCTION);
+
+	TILE_AREA_LOOP(tile_cur, st->airport) {
+		if (!st->TileBelongsToAirport(tile_cur)) continue;
+
+		CommandCost ret = EnsureNoVehicleOnGround(tile_cur);
+		if (ret.Failed()) return ret;
+
+		cost.AddCost(_price[PR_CLEAR_STATION_AIRPORT]);
+	}
+
+	return cost;
+}
+
+
 /**
  * Place an Airport.
  * @param tile tile where airport will be built
@@ -2283,15 +2314,8 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
 		if (ret.Failed()) return ret;
 	}
 
-	tile = st->airport.tile;
-
-	CommandCost cost(EXPENSES_CONSTRUCTION);
-
-	const Aircraft *a;
-	FOR_ALL_AIRCRAFT(a) {
-		if (!a->IsNormalAircraft()) continue;
-		if (a->targetairport == st->index && a->state != FLYING) return CMD_ERROR;
-	}
+	CommandCost cost = CanRemoveAirport(st, flags);
+	if (cost.Failed()) return cost;
 
 	if (flags & DC_EXEC) {
 		const AirportSpec *as = st->airport.GetSpec();
@@ -2301,25 +2325,14 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
 		AirportTileIterator it(st);
 		Town *nearest = AirportGetNearestTown(as, it);
 		nearest->noise_reached -= GetAirportNoiseLevelForTown(as, it, nearest->xy);
-	}
 
-	TILE_AREA_LOOP(tile_cur, st->airport) {
-		if (!st->TileBelongsToAirport(tile_cur)) continue;
-
-		CommandCost ret = EnsureNoVehicleOnGround(tile_cur);
-		if (ret.Failed()) return ret;
-
-		cost.AddCost(_price[PR_CLEAR_STATION_AIRPORT]);
-
-		if (flags & DC_EXEC) {
+		TILE_AREA_LOOP(tile_cur, st->airport) {
 			if (IsHangarTile(tile_cur)) OrderBackup::Reset(tile_cur, false);
 			DeleteAnimatedTile(tile_cur);
 			DoClearSquare(tile_cur);
 			DeleteNewGRFInspectWindow(GSF_AIRPORTTILES, tile_cur);
 		}
-	}
 
-	if (flags & DC_EXEC) {
 		/* Clear the persistent storage. */
 		delete st->airport.psa;
 
