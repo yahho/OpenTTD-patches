@@ -2242,13 +2242,46 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 		return_cmd_error(STR_ERROR_STATION_TOO_SPREAD_OUT);
 	}
 
-	CommandCost cost = CheckFlatLand(airport_area, flags);
+	StationID est = INVALID_STATION;
+	CommandCost cost = CheckFlatLandAirport(airport_area, flags, &est);
 	if (cost.Failed()) return cost;
+
+	Station *st = NULL;
+	ret = FindJoiningStation(est, station_to_join, HasBit(p2, 0), airport_area, &st, STR_ERROR_MUST_DEMOLISH_AIRPORT_FIRST);
+	if (ret.Failed()) return ret;
+
+	/* Distant join */
+	if (st == NULL && distant_join) st = Station::GetIfValid(station_to_join);
+
+	ret = BuildStationPart(&st, flags, reuse, airport_area, (GetAirport(airport_type)->flags & AirportFTAClass::AIRPLANES) ? STATIONNAMING_AIRPORT : STATIONNAMING_HELIPORT);
+	if (ret.Failed()) return ret;
+
+	/* action to be performed */
+	enum {
+		AIRPORT_NEW,      // airport is a new station
+		AIRPORT_ADD,      // add an airport to an existing station
+		AIRPORT_UPGRADE,  // upgrade the airport in a station
+	} action =
+		(est != INVALID_STATION) ? AIRPORT_UPGRADE :
+		(st != NULL) ? AIRPORT_ADD : AIRPORT_NEW;
+
+	if (action == AIRPORT_ADD && st->airport.tile != INVALID_TILE) {
+		return_cmd_error(STR_ERROR_TOO_CLOSE_TO_ANOTHER_AIRPORT);
+	}
 
 	/* The noise level is the noise from the airport and reduce it to account for the distance to the town center. */
 	AirportTileTableIterator iter(as->table[layout], tile);
 	Town *nearest = AirportGetNearestTown(as, iter);
-	uint newnoise_level = GetAirportNoiseLevelForTown(as, iter, nearest->xy);
+	uint newnoise_level = nearest->noise_reached + GetAirportNoiseLevelForTown(as, iter, nearest->xy);
+
+	if (action == AIRPORT_UPGRADE) {
+		const AirportSpec *old_as = st->airport.GetSpec();
+		AirportTileTableIterator old_iter(old_as->table[st->airport.layout], st->airport.tile);
+		Town *old_nearest = AirportGetNearestTown(old_as, old_iter);
+		if (old_nearest == nearest) {
+			newnoise_level -= GetAirportNoiseLevelForTown(old_as, old_iter, nearest->xy);
+		}
+	}
 
 	/* Check if local auth would allow a new airport */
 	StringID authority_refuse_message = STR_NULL;
@@ -2256,11 +2289,11 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 
 	if (_settings_game.economy.station_noise_level) {
 		/* do not allow to build a new airport if this raise the town noise over the maximum allowed by town */
-		if ((nearest->noise_reached + newnoise_level) > nearest->MaxTownNoise()) {
+		if (newnoise_level > nearest->MaxTownNoise()) {
 			authority_refuse_message = STR_ERROR_LOCAL_AUTHORITY_REFUSES_NOISE;
 			authority_refuse_town = nearest;
 		}
-	} else {
+	} else if (action != AIRPORT_UPGRADE) {
 		Town *t = ClosestTownFromTile(tile, UINT_MAX);
 		uint num = 0;
 		const Station *st;
@@ -2278,18 +2311,11 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 		return_cmd_error(authority_refuse_message);
 	}
 
-	Station *st = NULL;
-	ret = FindJoiningStation(INVALID_STATION, station_to_join, HasBit(p2, 0), airport_area, &st);
-	if (ret.Failed()) return ret;
-
-	/* Distant join */
-	if (st == NULL && distant_join) st = Station::GetIfValid(station_to_join);
-
-	ret = BuildStationPart(&st, flags, reuse, airport_area, (GetAirport(airport_type)->flags & AirportFTAClass::AIRPLANES) ? STATIONNAMING_AIRPORT : STATIONNAMING_HELIPORT);
-	if (ret.Failed()) return ret;
-
-	if (st != NULL && st->airport.tile != INVALID_TILE) {
-		return_cmd_error(STR_ERROR_TOO_CLOSE_TO_ANOTHER_AIRPORT);
+	if (action == AIRPORT_UPGRADE) {
+		/* check that the old airport can be removed */
+		CommandCost r = CanRemoveAirport(st, flags);
+		if (r.Failed()) return r;
+		cost.AddCost(r);
 	}
 
 	for (AirportTileTableIterator iter(as->table[layout], tile); iter != INVALID_TILE; ++iter) {
@@ -2297,8 +2323,38 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 	}
 
 	if (flags & DC_EXEC) {
+		if (action == AIRPORT_UPGRADE) {
+			/* delete old airport if upgrading */
+			const AirportSpec *old_as = st->airport.GetSpec();
+			AirportTileTableIterator old_iter(old_as->table[st->airport.layout], st->airport.tile);
+			Town *old_nearest = AirportGetNearestTown(old_as, old_iter);
+
+			if (old_nearest != nearest) {
+				old_nearest->noise_reached -= GetAirportNoiseLevelForTown(old_as, old_iter, old_nearest->xy);
+				if (_settings_game.economy.station_noise_level) {
+					SetWindowDirty(WC_TOWN_VIEW, st->town->index);
+				}
+			}
+
+			TILE_AREA_LOOP(tile_cur, st->airport) {
+				if (IsHangarTile(tile_cur)) OrderBackup::Reset(tile_cur, false);
+				DeleteAnimatedTile(tile_cur);
+				DoClearSquare(tile_cur);
+				DeleteNewGRFInspectWindow(GSF_AIRPORTTILES, tile_cur);
+			}
+
+			for (uint i = 0; i < st->airport.GetNumHangars(); ++i) {
+				DeleteWindowById(
+					WC_VEHICLE_DEPOT, st->airport.GetHangarTile(i)
+				);
+			}
+
+			st->rect.AfterRemoveRect(st, st->airport);
+			st->airport.Clear();
+		}
+
 		/* Always add the noise, so there will be no need to recalculate when option toggles */
-		nearest->noise_reached += newnoise_level;
+		nearest->noise_reached = newnoise_level;
 
 		st->AddFacility(FACIL_AIRPORT, tile);
 		st->airport.type = airport_type;
@@ -2321,12 +2377,16 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 			AirportTileAnimationTrigger(st, iter, AAT_BUILT);
 		}
 
-		UpdateAirplanesOnNewStation(st);
+		if (action != AIRPORT_NEW) UpdateAirplanesOnNewStation(st);
 
-		Company::Get(st->owner)->infrastructure.airport++;
-		DirtyCompanyInfrastructureWindows(st->owner);
+		if (action == AIRPORT_UPGRADE) {
+			UpdateStationSignCoord(st);
+		} else {
+			Company::Get(st->owner)->infrastructure.airport++;
+			DirtyCompanyInfrastructureWindows(st->owner);
+			st->UpdateVirtCoord();
+		}
 
-		st->UpdateVirtCoord();
 		UpdateStationAcceptance(st, false);
 		st->RecomputeIndustriesNear();
 		InvalidateWindowData(WC_SELECT_STATION, 0, 0);
