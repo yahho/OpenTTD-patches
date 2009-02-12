@@ -931,6 +931,48 @@ static CommandCost CheckFlatLandRoadStop(TileArea tile_area, DoCommandFlag flags
 }
 
 /**
+ * Checks if an airport can be built at the given area.
+ * @param tile_area Area to check.
+ * @param flags Operation to perform.
+ * @param station StationID of airport allowed in search area.
+ * @return The cost in case of success, or an error code if it failed.
+ */
+static CommandCost CheckFlatLandAirport(TileArea tile_area, DoCommandFlag flags, StationID *station)
+{
+	CommandCost cost(EXPENSES_CONSTRUCTION);
+	int allowed_z = -1;
+
+	TILE_AREA_LOOP(tile_cur, tile_area) {
+		CommandCost ret = CheckBuildableTile(tile_cur, 0, allowed_z, true);
+		if (ret.Failed()) return ret;
+		cost.AddCost(ret);
+
+		/* if station is set, then allow building on top of an already
+		 * existing airport, either the one in *station if it is not
+		 * INVALID_STATION, or anyone otherwise and store which one
+		 * in *station */
+		if (station != NULL && IsStationTile(tile_cur)) {
+			if (!IsAirport(tile_cur)) {
+				return ClearTile_Station(tile_cur, DC_AUTO); // get error message
+			} else {
+				StationID st = GetStationIndex(tile_cur);
+				if (*station == INVALID_STATION) {
+					*station = st;
+				} else if (*station != st) {
+					return_cmd_error(STR_ERROR_ADJOINS_MORE_THAN_ONE_EXISTING);
+				}
+			}
+		} else {
+			ret = DoCommand(tile_cur, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+			if (ret.Failed()) return ret;
+			cost.AddCost(ret);
+		}
+	}
+
+	return cost;
+}
+
+/**
  * Check whether we can expand the rail part of the given station.
  * @param st the station to expand
  * @param new_ta the current (and if all is fine new) tile area of the rail part of the station
