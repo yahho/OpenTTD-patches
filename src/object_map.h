@@ -24,7 +24,7 @@
 static inline ObjectType GetObjectType(TileIndex t)
 {
 	assert(IsTileType(t, MP_OBJECT));
-	return (ObjectType)_m[t].m5;
+	return (ObjectType)_mc[t].m5;
 }
 
 /**
@@ -36,7 +36,7 @@ static inline ObjectType GetObjectType(TileIndex t)
 static inline ObjectID GetObjectIndex(TileIndex t)
 {
 	assert(IsTileType(t, MP_OBJECT));
-	return _m[t].m2;
+	return _mc[t].m2;
 }
 
 /**
@@ -80,7 +80,7 @@ static inline bool IsOwnedLandTile(TileIndex t)
 static inline bool IsCompanyHQ(TileIndex t)
 {
 	assert(IsTileType(t, MP_OBJECT));
-	return _m[t].m5 == OBJECT_HQ;
+	return _mc[t].m5 == OBJECT_HQ;
 }
 
 /**
@@ -114,7 +114,7 @@ static inline bool IsStatueTile(TileIndex t)
 static inline byte GetObjectRandomBits(TileIndex t)
 {
 	assert(IsTileType(t, MP_OBJECT));
-	return _m[t].m3;
+	return _mc[t].m3;
 }
 
 
@@ -133,12 +133,12 @@ static inline void MakeObject(TileIndex t, ObjectType u, Owner o, ObjectID index
 	SetTileType(t, MP_OBJECT);
 	SetTileOwner(t, o);
 	SetWaterClass(t, wc);
-	_m[t].m2 = index;
-	_m[t].m3 = random;
-	_m[t].m4 = 0;
-	_m[t].m5 = u;
-	SB(_m[t].m6, 2, 4, 0);
-	_me[t].m7 = 0;
+	_mc[t].m2 = index;
+	_mc[t].m3 = random;
+	_mc[t].m4 = 0;
+	_mc[t].m5 = u;
+	SB(_mc[t].m6, 2, 4, 0);
+	_mc[t].m7 = 0;
 }
 
 #endif /* OBJECT_MAP_H */

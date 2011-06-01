@@ -361,7 +361,7 @@ bool CrashLog::WriteSavegame(char *filename, const char *filename_last) const
 {
 	/* If the map array doesn't exist, saving will fail too. If the map got
 	 * initialised, there is a big chance the rest is initialised too. */
-	if (_m == NULL) return false;
+	if (_mth == NULL) return false;
 
 	try {
 		GamelogEmergency();

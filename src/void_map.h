@@ -22,13 +22,13 @@ static inline void MakeVoid(TileIndex t)
 {
 	SetTileType(t, MP_VOID);
 	SetTileHeight(t, 0);
-	_m[t].m1 = 0;
-	_m[t].m2 = 0;
-	_m[t].m3 = 0;
-	_m[t].m4 = 0;
-	_m[t].m5 = 0;
-	_m[t].m6 = 0;
-	_me[t].m7 = 0;
+	_mc[t].m1 = 0;
+	_mc[t].m2 = 0;
+	_mc[t].m3 = 0;
+	_mc[t].m4 = 0;
+	_mc[t].m5 = 0;
+	_mc[t].m6 = 0;
+	_mc[t].m7 = 0;
 }
 
 #endif /* VOID_MAP_H */

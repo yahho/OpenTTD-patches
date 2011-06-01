@@ -31,7 +31,7 @@
 static inline uint TileHeight(TileIndex tile)
 {
 	assert(tile < MapSize());
-	return GB(_m[tile].type_height, 0, 4);
+	return GB(_mth[tile].type_height, 0, 4);
 }
 
 /**
@@ -48,7 +48,7 @@ static inline void SetTileHeight(TileIndex tile, uint height)
 {
 	assert(tile < MapSize());
 	assert(height <= MAX_TILE_HEIGHT);
-	SB(_m[tile].type_height, 0, 4, height);
+	SB(_mth[tile].type_height, 0, 4, height);
 }
 
 /**
@@ -74,7 +74,7 @@ static inline uint TilePixelHeight(TileIndex tile)
 static inline TileType GetTileType(TileIndex tile)
 {
 	assert(tile < MapSize());
-	return (TileType)GB(_m[tile].type_height, 4, 4);
+	return (TileType)GB(_mth[tile].type_height, 4, 4);
 }
 
 /**
@@ -113,7 +113,7 @@ static inline void SetTileType(TileIndex tile, TileType type)
 	 * edges of the map. If _settings_game.construction.freeform_edges is true,
 	 * the upper edges of the map are also VOID tiles. */
 	assert(IsInnerTile(tile) == (type != MP_VOID));
-	SB(_m[tile].type_height, 4, 4, type);
+	SB(_mth[tile].type_height, 4, 4, type);
 }
 
 /**
@@ -159,7 +159,7 @@ static inline Owner GetTileOwner(TileIndex tile)
 	assert(!IsTileType(tile, MP_HOUSE));
 	assert(!IsTileType(tile, MP_INDUSTRY));
 
-	return (Owner)GB(_m[tile].m1, 0, 5);
+	return (Owner)GB(_mc[tile].m1, 0, 5);
 }
 
 /**
@@ -179,7 +179,7 @@ static inline void SetTileOwner(TileIndex tile, Owner owner)
 	assert(!IsTileType(tile, MP_HOUSE));
 	assert(!IsTileType(tile, MP_INDUSTRY));
 
-	SB(_m[tile].m1, 0, 5, owner);
+	SB(_mc[tile].m1, 0, 5, owner);
 }
 
 /**
@@ -204,7 +204,7 @@ static inline void SetTropicZone(TileIndex tile, TropicZone type)
 {
 	assert(tile < MapSize());
 	assert(!IsTileType(tile, MP_VOID) || type == TROPICZONE_NORMAL);
-	SB(_m[tile].m6, 0, 2, type);
+	SB(_mc[tile].m6, 0, 2, type);
 }
 
 /**
@@ -216,7 +216,7 @@ static inline void SetTropicZone(TileIndex tile, TropicZone type)
 static inline TropicZone GetTropicZone(TileIndex tile)
 {
 	assert(tile < MapSize());
-	return (TropicZone)GB(_m[tile].m6, 0, 2);
+	return (TropicZone)GB(_mc[tile].m6, 0, 2);
 }
 
 /**
@@ -228,7 +228,7 @@ static inline TropicZone GetTropicZone(TileIndex tile)
 static inline byte GetAnimationFrame(TileIndex t)
 {
 	assert(IsTileType(t, MP_HOUSE) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) ||IsTileType(t, MP_STATION));
-	return _me[t].m7;
+	return _mc[t].m7;
 }
 
 /**
@@ -240,7 +240,7 @@ static inline byte GetAnimationFrame(TileIndex t)
 static inline void SetAnimationFrame(TileIndex t, byte frame)
 {
 	assert(IsTileType(t, MP_HOUSE) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) ||IsTileType(t, MP_STATION));
-	_me[t].m7 = frame;
+	_mc[t].m7 = frame;
 }
 
 Slope GetTileSlope(TileIndex tile, int *h = NULL);

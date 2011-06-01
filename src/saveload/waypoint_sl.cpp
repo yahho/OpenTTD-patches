@@ -74,10 +74,10 @@ void MoveWaypointsToBaseStations(const SavegameTypeVersion *stv)
 			if (wp->delete_ctr != 0) continue; // The waypoint was deleted
 
 			/* Waypoint indices were not added to the map prior to this. */
-			_m[wp->xy].m2 = (StationID)wp->index;
+			_mc[wp->xy].m2 = (StationID)wp->index;
 
-			if (HasBit(_m[wp->xy].m3, 4)) {
-				wp->spec = StationClass::Get(STAT_CLASS_WAYP)->GetSpec(_m[wp->xy].m4 + 1);
+			if (HasBit(_mc[wp->xy].m3, 4)) {
+				wp->spec = StationClass::Get(STAT_CLASS_WAYP)->GetSpec(_mc[wp->xy].m4 + 1);
 			}
 		}
 	} else {
@@ -110,12 +110,12 @@ void MoveWaypointsToBaseStations(const SavegameTypeVersion *stv)
 		new_wp->string_id = STR_SV_STNAME_WAYPOINT;
 
 		TileIndex t = wp->xy;
-		if (IsTileType(t, MP_RAILWAY) && GetRailTileType(t) == 2 /* RAIL_TILE_WAYPOINT */ && _m[t].m2 == wp->index) {
+		if (IsTileType(t, MP_RAILWAY) && GetRailTileType(t) == 2 /* RAIL_TILE_WAYPOINT */ && _mc[t].m2 == wp->index) {
 			/* The tile might've been reserved! */
-			bool reserved = !IsOTTDSavegameVersionBefore(stv, 100) && HasBit(_m[t].m5, 4);
+			bool reserved = !IsOTTDSavegameVersionBefore(stv, 100) && HasBit(_mc[t].m5, 4);
 
 			/* The tile really has our waypoint, so reassign the map array */
-			MakeRailWaypoint(t, GetTileOwner(t), new_wp->index, (Axis)GB(_m[t].m5, 0, 1), 0, GetRailType(t));
+			MakeRailWaypoint(t, GetTileOwner(t), new_wp->index, (Axis)GB(_mc[t].m5, 0, 1), 0, GetRailType(t));
 			new_wp->facilities |= FACIL_TRAIN;
 			new_wp->owner = GetTileOwner(t);
 

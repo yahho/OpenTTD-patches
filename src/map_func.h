@@ -28,20 +28,20 @@ extern uint _map_tile_mask;
 #define TILE_MASK(x) ((x) & _map_tile_mask)
 
 /**
- * Pointer to the tile-array.
+ * Pointer to the tile type-and-height array.
  *
- * This variable points to the tile-array which contains the tiles of
+ * This variable points to the tile type-and-height array which contains the tiles of
  * the map.
  */
-extern Tile *_m;
+extern TileH *_mth;
 
 /**
- * Pointer to the extended tile-array.
+ * Pointer to the tile contents array.
  *
- * This variable points to the extended tile-array which contains the tiles
+ * This variable points to the tile contents array which contains the tiles
  * of the map.
  */
-extern TileExtended *_me;
+extern TileC *_mc;
 
 void AllocateMap(uint size_x, uint size_y);
 

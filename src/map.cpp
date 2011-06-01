@@ -26,8 +26,8 @@ uint _map_size_y;    ///< Size of the map along the Y
 uint _map_size;      ///< The number of tiles on the map
 uint _map_tile_mask; ///< _map_size - 1 (to mask the mapsize)
 
-Tile *_m = NULL;          ///< Tiles of the map
-TileExtended *_me = NULL; ///< Extended Tiles of the map
+TileH *_mth = NULL; ///< Tile types and heights
+TileC *_mc = NULL;  ///< Tile contents
 
 
 /**
@@ -55,11 +55,11 @@ void AllocateMap(uint size_x, uint size_y)
 	_map_size = size_x * size_y;
 	_map_tile_mask = _map_size - 1;
 
-	free(_m);
-	free(_me);
+	free(_mth);
+	free(_mc);
 
-	_m = CallocT<Tile>(_map_size);
-	_me = CallocT<TileExtended>(_map_size);
+	_mth = CallocT<TileH>(_map_size);
+	_mc = CallocT<TileC>(_map_size);
 }
 
 

@@ -29,7 +29,7 @@ typedef byte StationGfx; ///< Index of station graphics. @see _station_display_d
 static inline StationID GetStationIndex(TileIndex t)
 {
 	assert(IsTileType(t, MP_STATION));
-	return (StationID)_m[t].m2;
+	return (StationID)_mc[t].m2;
 }
 
 
@@ -45,7 +45,7 @@ static const int GFX_TRUCK_BUS_DRIVETHROUGH_OFFSET =  4; ///< The offset for the
 static inline StationType GetStationType(TileIndex t)
 {
 	assert(IsTileType(t, MP_STATION));
-	return (StationType)GB(_m[t].m6, 3, 3);
+	return (StationType)GB(_mc[t].m6, 3, 3);
 }
 
 /**
@@ -69,7 +69,7 @@ static inline RoadStopType GetRoadStopType(TileIndex t)
 static inline StationGfx GetStationGfx(TileIndex t)
 {
 	assert(IsTileType(t, MP_STATION));
-	return _m[t].m5;
+	return _mc[t].m5;
 }
 
 /**
@@ -81,7 +81,7 @@ static inline StationGfx GetStationGfx(TileIndex t)
 static inline void SetStationGfx(TileIndex t, StationGfx gfx)
 {
 	assert(IsTileType(t, MP_STATION));
-	_m[t].m5 = gfx;
+	_mc[t].m5 = gfx;
 }
 
 /**
@@ -394,7 +394,7 @@ static inline bool IsCompatibleTrainStationTile(TileIndex test_tile, TileIndex s
 static inline bool HasStationReservation(TileIndex t)
 {
 	assert(HasStationRail(t));
-	return HasBit(_m[t].m6, 2);
+	return HasBit(_mc[t].m6, 2);
 }
 
 /**
@@ -406,7 +406,7 @@ static inline bool HasStationReservation(TileIndex t)
 static inline void SetRailStationReservation(TileIndex t, bool b)
 {
 	assert(HasStationRail(t));
-	SB(_m[t].m6, 2, 1, b ? 1 : 0);
+	SB(_mc[t].m6, 2, 1, b ? 1 : 0);
 }
 
 /**
@@ -470,7 +470,7 @@ static inline TileIndexDiffC GetDockOffset(TileIndex t)
 static inline bool IsCustomStationSpecIndex(TileIndex t)
 {
 	assert(HasStationTileRail(t));
-	return _m[t].m4 != 0;
+	return _mc[t].m4 != 0;
 }
 
 /**
@@ -482,7 +482,7 @@ static inline bool IsCustomStationSpecIndex(TileIndex t)
 static inline void SetCustomStationSpecIndex(TileIndex t, byte specindex)
 {
 	assert(HasStationTileRail(t));
-	_m[t].m4 = specindex;
+	_mc[t].m4 = specindex;
 }
 
 /**
@@ -494,7 +494,7 @@ static inline void SetCustomStationSpecIndex(TileIndex t, byte specindex)
 static inline uint GetCustomStationSpecIndex(TileIndex t)
 {
 	assert(HasStationTileRail(t));
-	return _m[t].m4;
+	return _mc[t].m4;
 }
 
 /**
@@ -506,7 +506,7 @@ static inline uint GetCustomStationSpecIndex(TileIndex t)
 static inline void SetStationTileRandomBits(TileIndex t, byte random_bits)
 {
 	assert(IsTileType(t, MP_STATION));
-	SB(_m[t].m3, 4, 4, random_bits);
+	SB(_mc[t].m3, 4, 4, random_bits);
 }
 
 /**
@@ -518,7 +518,7 @@ static inline void SetStationTileRandomBits(TileIndex t, byte random_bits)
 static inline byte GetStationTileRandomBits(TileIndex t)
 {
 	assert(IsTileType(t, MP_STATION));
-	return GB(_m[t].m3, 4, 4);
+	return GB(_mc[t].m3, 4, 4);
 }
 
 /**
@@ -535,13 +535,13 @@ static inline void MakeStation(TileIndex t, Owner o, StationID sid, StationType 
 	SetTileType(t, MP_STATION);
 	SetTileOwner(t, o);
 	SetWaterClass(t, wc);
-	_m[t].m2 = sid;
-	_m[t].m3 = 0;
-	_m[t].m4 = 0;
-	_m[t].m5 = section;
-	SB(_m[t].m6, 2, 1, 0);
-	SB(_m[t].m6, 3, 3, st);
-	_me[t].m7 = 0;
+	_mc[t].m2 = sid;
+	_mc[t].m3 = 0;
+	_mc[t].m4 = 0;
+	_mc[t].m5 = section;
+	SB(_mc[t].m6, 2, 1, 0);
+	SB(_mc[t].m6, 3, 3, st);
+	_mc[t].m7 = 0;
 }
 
 /**

@@ -120,7 +120,7 @@ static void GuessWaterClass(TileIndex t, bool allow_invalid)
 
 			case MP_TREES:
 				/* trees on shore */
-				has_water |= (GB(_m[neighbour].m2, 4, 2) == TREE_GROUND_SHORE);
+				has_water |= (GB(_mc[neighbour].m2, 4, 2) == TREE_GROUND_SHORE);
 				break;
 
 			default: break;
@@ -336,7 +336,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (!IsTileType(t, MP_STATION)) continue;
 			if (GetStationType(t) != STATION_RAIL) continue;
-			st = Station::Get(_m[t].m2);
+			st = Station::Get(_mc[t].m2);
 			assert(st->train_station.tile != 0);
 			int dx = TileX(t) - TileX(st->train_station.tile);
 			int dy = TileY(t) - TileY(st->train_station.tile);
@@ -897,19 +897,19 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 			if (IsTileType(t, MP_INDUSTRY)) {
 				switch (GetIndustryGfx(t)) {
 					case GFX_POWERPLANT_SPARKS:
-						_m[t].m3 = GB(_m[t].m1, 2, 5);
+						_mc[t].m3 = GB(_mc[t].m1, 2, 5);
 						break;
 
 					case GFX_OILWELL_ANIMATED_1:
 					case GFX_OILWELL_ANIMATED_2:
 					case GFX_OILWELL_ANIMATED_3:
-						_m[t].m3 = GB(_m[t].m1, 0, 2);
+						_mc[t].m3 = GB(_mc[t].m1, 0, 2);
 						break;
 
 					case GFX_COAL_MINE_TOWER_ANIMATED:
 					case GFX_COPPER_MINE_TOWER_ANIMATED:
 					case GFX_GOLD_MINE_TOWER_ANIMATED:
-						 _m[t].m3 = _m[t].m1;
+						 _mc[t].m3 = _mc[t].m1;
 						 break;
 
 					default: // No animation states to change
@@ -958,7 +958,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	if (IsOTTDSavegameVersionBefore(stv, 52)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsStatueTile(t)) {
-				_m[t].m2 = CalcClosestTownFromTile(t)->index;
+				_mc[t].m2 = CalcClosestTownFromTile(t)->index;
 			}
 		}
 	}
@@ -1190,8 +1190,8 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		/* Increase HouseAnimationFrame from 5 to 7 bits */
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsTileType(t, MP_HOUSE) && GetHouseType(t) >= NEW_HOUSE_OFFSET) {
-				SB(_m[t].m6, 2, 6, GB(_m[t].m6, 3, 5));
-				SB(_m[t].m3, 5, 1, 0);
+				SB(_mc[t].m6, 2, 6, GB(_mc[t].m6, 3, 5));
+				SB(_mc[t].m3, 5, 1, 0);
 			}
 		}
 	}
@@ -1224,7 +1224,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 
 			/* Replace "house construction year" with "house age" */
 			if (IsTileType(t, MP_HOUSE) && IsHouseCompleted(t)) {
-				_m[t].m5 = Clamp(_cur_year - (_m[t].m5 + ORIGINAL_BASE_YEAR), 0, 0xFF);
+				_mc[t].m5 = Clamp(_cur_year - (_mc[t].m5 + ORIGINAL_BASE_YEAR), 0, 0xFF);
 			}
 		}
 	}
@@ -1301,8 +1301,8 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 				/* No towns, so remove all objects! */
 				DoClearSquare(t);
 			} else {
-				uint offset = _m[t].m4;
-				_m[t].m4 = 0;
+				uint offset = _mc[t].m4;
+				_mc[t].m4 = 0;
 
 				if (offset == 0) {
 					/* No offset, so make the object. */
@@ -1320,14 +1320,14 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 					o->location.w    = size;
 					o->location.h    = size;
 					o->build_date    = _date;
-					o->town          = type == OBJECT_STATUE ? Town::Get(_m[t].m2) : CalcClosestTownFromTile(t, UINT_MAX);
-					_m[t].m2 = o->index;
+					o->town          = type == OBJECT_STATUE ? Town::Get(_mc[t].m2) : CalcClosestTownFromTile(t, UINT_MAX);
+					_mc[t].m2 = o->index;
 					Object::IncTypeCount(type);
 				} else {
 					/* We're at an offset, so get the ID from our "root". */
 					TileIndex northern_tile = t - TileXY(GB(offset, 0, 4), GB(offset, 4, 4));
 					assert(IsTileType(northern_tile, MP_OBJECT));
-					_m[t].m2 = _m[northern_tile].m2;
+					_mc[t].m2 = _mc[northern_tile].m2;
 				}
 			}
 		}
@@ -1547,8 +1547,8 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	if (IsOTTDSavegameVersionBefore(stv, 128)) {
 		const Depot *d;
 		FOR_ALL_DEPOTS(d) {
-			_m[d->xy].m2 = d->index;
-			if (IsTileType(d->xy, MP_WATER)) _m[GetOtherShipDepotTile(d->xy)].m2 = d->index;
+			_mc[d->xy].m2 = d->index;
+			if (IsTileType(d->xy, MP_WATER)) _mc[GetOtherShipDepotTile(d->xy)].m2 = d->index;
 		}
 	}
 
@@ -1662,10 +1662,10 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	if (IsOTTDSavegameVersionBefore(stv, 147)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsTileType(t, MP_HOUSE) && GetHouseType(t) >= NEW_HOUSE_OFFSET) {
-				uint per_proc = _me[t].m7;
-				_me[t].m7 = GB(_m[t].m6, 2, 6) | (GB(_m[t].m3, 5, 1) << 6);
-				SB(_m[t].m3, 5, 1, 0);
-				SB(_m[t].m6, 2, 6, min(per_proc, 63));
+				uint per_proc = _mc[t].m7;
+				_mc[t].m7 = GB(_mc[t].m6, 2, 6) | (GB(_mc[t].m3, 5, 1) << 6);
+				SB(_mc[t].m3, 5, 1, 0);
+				SB(_mc[t].m6, 2, 6, min(per_proc, 63));
 			}
 		}
 	}

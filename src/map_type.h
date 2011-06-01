@@ -13,25 +13,25 @@
 #define MAP_TYPE_H
 
 /**
- * Data that is stored per tile. Also used TileExtended for this.
+ * Data that is stored per tile. Also used TileC for this.
  * Look at docs/landscape.html for the exact meaning of the members.
  */
-struct Tile {
+struct TileH {
 	byte   type_height; ///< The type (bits 4..7) and height of the northern corner
+};
+
+/**
+ * Data that is stored per tile. Also used TileH for this.
+ * Look at docs/landscape.html for the exact meaning of the members.
+ */
+struct TileC {
+	byte   m6;          ///< Primarily used for bridges and rainforest/desert
 	byte   m1;          ///< Primarily used for ownership information
 	uint16 m2;          ///< Primarily used for indices to towns, industries and stations
 	byte   m3;          ///< General purpose
 	byte   m4;          ///< General purpose
 	byte   m5;          ///< General purpose
-	byte   m6;          ///< Primarily used for bridges and rainforest/desert
-};
-
-/**
- * Data that is stored per tile. Also used Tile for this.
- * Look at docs/landscape.html for the exact meaning of the members.
- */
-struct TileExtended {
-	byte m7; ///< Primarily used for newgrf support
+	byte   m7;          ///< Primarily used for newgrf support
 };
 
 /**

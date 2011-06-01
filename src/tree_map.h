@@ -74,7 +74,7 @@ enum TreeGround {
 static inline TreeType GetTreeType(TileIndex t)
 {
 	assert(IsTileType(t, MP_TREES));
-	return (TreeType)_m[t].m3;
+	return (TreeType)_mc[t].m3;
 }
 
 /**
@@ -89,7 +89,7 @@ static inline TreeType GetTreeType(TileIndex t)
 static inline TreeGround GetTreeGround(TileIndex t)
 {
 	assert(IsTileType(t, MP_TREES));
-	return (TreeGround)GB(_m[t].m2, 6, 3);
+	return (TreeGround)GB(_mc[t].m2, 6, 3);
 }
 
 /**
@@ -114,7 +114,7 @@ static inline TreeGround GetTreeGround(TileIndex t)
 static inline uint GetTreeDensity(TileIndex t)
 {
 	assert(IsTileType(t, MP_TREES));
-	return GB(_m[t].m2, 4, 2);
+	return GB(_mc[t].m2, 4, 2);
 }
 
 /**
@@ -131,8 +131,8 @@ static inline uint GetTreeDensity(TileIndex t)
 static inline void SetTreeGroundDensity(TileIndex t, TreeGround g, uint d)
 {
 	assert(IsTileType(t, MP_TREES)); // XXX incomplete
-	SB(_m[t].m2, 4, 2, d);
-	SB(_m[t].m2, 6, 3, g);
+	SB(_mc[t].m2, 4, 2, d);
+	SB(_mc[t].m2, 6, 3, g);
 }
 
 /**
@@ -149,7 +149,7 @@ static inline void SetTreeGroundDensity(TileIndex t, TreeGround g, uint d)
 static inline uint GetTreeCount(TileIndex t)
 {
 	assert(IsTileType(t, MP_TREES));
-	return GB(_m[t].m5, 6, 2) + 1;
+	return GB(_mc[t].m5, 6, 2) + 1;
 }
 
 /**
@@ -166,7 +166,7 @@ static inline uint GetTreeCount(TileIndex t)
 static inline void AddTreeCount(TileIndex t, int c)
 {
 	assert(IsTileType(t, MP_TREES)); // XXX incomplete
-	_m[t].m5 += c << 6;
+	_mc[t].m5 += c << 6;
 }
 
 /**
@@ -181,7 +181,7 @@ static inline void AddTreeCount(TileIndex t, int c)
 static inline uint GetTreeGrowth(TileIndex t)
 {
 	assert(IsTileType(t, MP_TREES));
-	return GB(_m[t].m5, 0, 3);
+	return GB(_mc[t].m5, 0, 3);
 }
 
 /**
@@ -196,7 +196,7 @@ static inline uint GetTreeGrowth(TileIndex t)
 static inline void AddTreeGrowth(TileIndex t, int a)
 {
 	assert(IsTileType(t, MP_TREES)); // XXX incomplete
-	_m[t].m5 += a;
+	_mc[t].m5 += a;
 }
 
 /**
@@ -212,7 +212,7 @@ static inline void AddTreeGrowth(TileIndex t, int a)
 static inline void SetTreeGrowth(TileIndex t, uint g)
 {
 	assert(IsTileType(t, MP_TREES)); // XXX incomplete
-	SB(_m[t].m5, 0, 3, g);
+	SB(_mc[t].m5, 0, 3, g);
 }
 
 /**
@@ -226,7 +226,7 @@ static inline void SetTreeGrowth(TileIndex t, uint g)
 static inline uint GetTreeCounter(TileIndex t)
 {
 	assert(IsTileType(t, MP_TREES));
-	return GB(_m[t].m2, 0, 4);
+	return GB(_mc[t].m2, 0, 4);
 }
 
 /**
@@ -241,7 +241,7 @@ static inline uint GetTreeCounter(TileIndex t)
 static inline void AddTreeCounter(TileIndex t, int a)
 {
 	assert(IsTileType(t, MP_TREES)); // XXX incomplete
-	_m[t].m2 += a;
+	_mc[t].m2 += a;
 }
 
 /**
@@ -256,7 +256,7 @@ static inline void AddTreeCounter(TileIndex t, int a)
 static inline void SetTreeCounter(TileIndex t, uint c)
 {
 	assert(IsTileType(t, MP_TREES)); // XXX incomplete
-	SB(_m[t].m2, 0, 4, c);
+	SB(_mc[t].m2, 0, 4, c);
 }
 
 /**
@@ -275,12 +275,12 @@ static inline void MakeTree(TileIndex t, TreeType type, uint count, uint growth,
 {
 	SetTileType(t, MP_TREES);
 	SetTileOwner(t, OWNER_NONE);
-	_m[t].m2 = ground << 6 | density << 4 | 0;
-	_m[t].m3 = type;
-	_m[t].m4 = 0 << 5 | 0 << 2;
-	_m[t].m5 = count << 6 | growth;
-	SB(_m[t].m6, 2, 4, 0);
-	_me[t].m7 = 0;
+	_mc[t].m2 = ground << 6 | density << 4 | 0;
+	_mc[t].m3 = type;
+	_mc[t].m4 = 0 << 5 | 0 << 2;
+	_mc[t].m5 = count << 6 | growth;
+	SB(_mc[t].m6, 2, 4, 0);
+	_mc[t].m7 = 0;
 }
 
 #endif /* TREE_MAP_H */
