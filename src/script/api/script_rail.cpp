@@ -32,7 +32,7 @@
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return (::IsTileType(tile, MP_RAILWAY) && !::IsRailDepot(tile)) ||
+	return (::IsRailwayOrDepotTile(tile) && !::IsRailDepot(tile)) ||
 			(::HasStationTileRail(tile) && !::IsStationTileBlocked(tile)) || ::IsLevelCrossingTile(tile);
 }
 
@@ -404,7 +404,7 @@ static const ScriptRailSignalData _possible_trackdirs[5][NUM_TRACK_DIRECTIONS] =
 /* static */ ScriptRail::SignalType ScriptRail::GetSignalType(TileIndex tile, TileIndex front)
 {
 	if (ScriptMap::DistanceManhattan(tile, front) != 1) return SIGNALTYPE_NONE;
-	if (!::IsTileType(tile, MP_RAILWAY) || !::HasSignals(tile)) return SIGNALTYPE_NONE;
+	if (!::IsRailwayOrDepotTile(tile) || !::HasSignals(tile)) return SIGNALTYPE_NONE;
 
 	int data_index = 2 + (::TileX(front) - ::TileX(tile)) + 2 * (::TileY(front) - ::TileY(tile));
 

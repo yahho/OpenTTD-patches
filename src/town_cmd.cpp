@@ -1126,7 +1126,7 @@ static void GrowTownInTile(TileIndex *tile_ptr, RoadBits cur_rb, DiagDirection t
 		_grow_town_result = GROWTH_SEARCH_STOPPED;
 
 		if (!_settings_game.economy.allow_town_roads && !_generating_world) return;
-		if (!_settings_game.economy.allow_town_level_crossings && IsTileType(tile, MP_RAILWAY)) return;
+		if (!_settings_game.economy.allow_town_level_crossings && IsRailwayOrDepotTile(tile)) return;
 
 		/* Remove hills etc */
 		if (!_settings_game.construction.build_on_slopes || Chance16(1, 6)) LevelTownLand(tile);

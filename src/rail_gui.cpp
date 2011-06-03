@@ -138,7 +138,7 @@ void CcRailDepot(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
 
 	tile += TileOffsByDiagDir(dir);
 
-	if (IsTileType(tile, MP_RAILWAY)) {
+	if (IsRailwayOrDepotTile(tile)) {
 		PlaceExtraDepotRail(tile, _place_depot_extra_dir[dir], _place_depot_extra_track[dir]);
 		PlaceExtraDepotRail(tile, _place_depot_extra_dir[dir + 4], _place_depot_extra_track[dir + 4]);
 		PlaceExtraDepotRail(tile, _place_depot_extra_dir[dir + 8], _place_depot_extra_track[dir + 8]);
@@ -1841,7 +1841,7 @@ static void SetDefaultRailGui()
 		RailType count[RAILTYPE_END];
 		memset(count, 0, sizeof(count));
 		for (TileIndex t = 0; t < MapSize(); t++) {
-			if (IsTileType(t, MP_RAILWAY) || IsLevelCrossingTile(t) || HasStationTileRail(t) ||
+			if (IsRailwayOrDepotTile(t) || IsLevelCrossingTile(t) || HasStationTileRail(t) ||
 					(IsTileType(t, MP_TUNNELBRIDGE) && GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL)) {
 				count[GetRailType(t)]++;
 			}

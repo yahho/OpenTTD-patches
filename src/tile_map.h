@@ -142,6 +142,17 @@ static inline bool IsClearTile(TileIndex tile)
 }
 
 /**
+ * Checks if a tile is railway.
+ *
+ * @param tile The tile to check
+ * @return true If the tile is railway
+ */
+static inline bool IsRailwayOrDepotTile(TileIndex tile)
+{
+	return IsTileType(tile, MP_RAILWAY);
+}
+
+/**
  * Checks if a tile is valid
  *
  * @param tile The tile to check

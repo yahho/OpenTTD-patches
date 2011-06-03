@@ -185,7 +185,7 @@ public:
 		int cost = 0;
 		/* if there is one-way signal in the opposite direction, then it is not our way */
 		CPerfStart perf_cost(Yapf().m_perf_other_cost);
-		if (IsTileType(tile, MP_RAILWAY)) {
+		if (IsRailwayOrDepotTile(tile)) {
 			bool has_signal_against = HasSignalOnTrackdir(tile, ReverseTrackdir(trackdir));
 			bool has_signal_along = HasSignalOnTrackdir(tile, trackdir);
 			if (has_signal_against && !has_signal_along && IsOnewaySignal(tile, TrackdirToTrack(trackdir))) {
@@ -513,7 +513,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			/* Gather the next tile/trackdir/tile_type/rail_type. */
 			TILE next(tf_local.m_new_tile, (Trackdir)FindFirstBit2x64(tf_local.m_new_td_bits));
 
-			if (TrackFollower::DoTrackMasking() && IsTileType(next.tile, MP_RAILWAY)) {
+			if (TrackFollower::DoTrackMasking() && IsRailwayOrDepotTile(next.tile)) {
 				if (HasSignalOnTrackdir(next.tile, next.td) && IsPbsSignal(GetSignalType(next.tile, TrackdirToTrack(next.td)))) {
 					/* Possible safe tile. */
 					end_segment_reason |= ESRB_SAFE_TILE;
@@ -540,7 +540,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			if (segment_cost > s_max_segment_cost) {
 				/* Potentially in the infinite loop (or only very long segment?). We should
 				 * not force it to finish prematurely unless we are on a regular tile. */
-				if (IsTileType(tf->m_new_tile, MP_RAILWAY)) {
+				if (IsRailwayOrDepotTile(tf->m_new_tile)) {
 					end_segment_reason |= ESRB_SEGMENT_TOO_LONG;
 					break;
 				}

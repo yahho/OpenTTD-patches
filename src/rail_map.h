@@ -31,12 +31,12 @@ enum RailTileType {
  * Returns the RailTileType (normal with or without signals,
  * waypoint or depot).
  * @param t the tile to get the information from
- * @pre IsTileType(t, MP_RAILWAY)
+ * @pre IsRailwayOrDepotTile(t)
  * @return the RailTileType
  */
 static inline RailTileType GetRailTileType(TileIndex t)
 {
-	assert(IsTileType(t, MP_RAILWAY));
+	assert(IsRailwayOrDepotTile(t));
 	return (RailTileType)GB(_mc[t].m5, 6, 2);
 }
 
@@ -44,7 +44,7 @@ static inline RailTileType GetRailTileType(TileIndex t)
  * Returns whether this is plain rails, with or without signals. Iow, if this
  * tiles RailTileType is RAIL_TILE_NORMAL or RAIL_TILE_SIGNALS.
  * @param t the tile to get the information from
- * @pre IsTileType(t, MP_RAILWAY)
+ * @pre IsRailwayOrDepotTile(t)
  * @return true if and only if the tile is normal rail (with or without signals)
  */
 static inline bool IsPlainRail(TileIndex t)
@@ -60,14 +60,14 @@ static inline bool IsPlainRail(TileIndex t)
  */
 static inline bool IsPlainRailTile(TileIndex t)
 {
-	return IsTileType(t, MP_RAILWAY) && IsPlainRail(t);
+	return IsRailwayOrDepotTile(t) && IsPlainRail(t);
 }
 
 
 /**
  * Checks if a rail tile has signals.
  * @param t the tile to get the information from
- * @pre IsTileType(t, MP_RAILWAY)
+ * @pre IsRailwayOrDepotTile(t)
  * @return true if and only if the tile has signals
  */
 static inline bool HasSignals(TileIndex t)
@@ -90,7 +90,7 @@ static inline void SetHasSignals(TileIndex tile, bool signals)
 /**
  * Is this rail tile a rail depot?
  * @param t the tile to get the information from
- * @pre IsTileType(t, MP_RAILWAY)
+ * @pre IsRailwayOrDepotTile(t)
  * @return true if and only if the tile is a rail depot
  */
 static inline bool IsRailDepot(TileIndex t)
@@ -105,7 +105,7 @@ static inline bool IsRailDepot(TileIndex t)
  */
 static inline bool IsRailDepotTile(TileIndex t)
 {
-	return IsTileType(t, MP_RAILWAY) && IsRailDepot(t);
+	return IsRailwayOrDepotTile(t) && IsRailDepot(t);
 }
 
 /**
@@ -463,7 +463,7 @@ static inline void SetSignalStateByTrackdir(TileIndex tile, Trackdir trackdir, S
  */
 static inline bool HasPbsSignalOnTrackdir(TileIndex tile, Trackdir td)
 {
-	return IsTileType(tile, MP_RAILWAY) && HasSignalOnTrackdir(tile, td) &&
+	return IsRailwayOrDepotTile(tile) && HasSignalOnTrackdir(tile, td) &&
 			IsPbsSignal(GetSignalType(tile, TrackdirToTrack(td)));
 }
 
@@ -475,7 +475,7 @@ static inline bool HasPbsSignalOnTrackdir(TileIndex tile, Trackdir td)
  */
 static inline bool HasOnewaySignalBlockingTrackdir(TileIndex tile, Trackdir td)
 {
-	return IsTileType(tile, MP_RAILWAY) && HasSignalOnTrackdir(tile, ReverseTrackdir(td)) &&
+	return IsRailwayOrDepotTile(tile) && HasSignalOnTrackdir(tile, ReverseTrackdir(td)) &&
 			!HasSignalOnTrackdir(tile, td) && IsOnewaySignal(tile, TrackdirToTrack(td));
 }
 
