@@ -1189,7 +1189,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	if (IsOTTDSavegameVersionBefore(stv, 91)) {
 		/* Increase HouseAnimationFrame from 5 to 7 bits */
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsTileType(t, MP_HOUSE) && GetHouseType(t) >= NEW_HOUSE_OFFSET) {
+			if (IsHouseTile(t) && GetHouseType(t) >= NEW_HOUSE_OFFSET) {
 				SB(_mc[t].m6, 2, 6, GB(_mc[t].m6, 3, 5));
 				SB(_mc[t].m3, 5, 1, 0);
 			}
@@ -1223,7 +1223,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 			}
 
 			/* Replace "house construction year" with "house age" */
-			if (IsTileType(t, MP_HOUSE) && IsHouseCompleted(t)) {
+			if (IsHouseTile(t) && IsHouseCompleted(t)) {
 				_mc[t].m5 = Clamp(_cur_year - (_mc[t].m5 + ORIGINAL_BASE_YEAR), 0, 0xFF);
 			}
 		}
@@ -1661,7 +1661,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	/* Move the animation frame to the same location (m7) for all objects. */
 	if (IsOTTDSavegameVersionBefore(stv, 147)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsTileType(t, MP_HOUSE) && GetHouseType(t) >= NEW_HOUSE_OFFSET) {
+			if (IsHouseTile(t) && GetHouseType(t) >= NEW_HOUSE_OFFSET) {
 				uint per_proc = _mc[t].m7;
 				_mc[t].m7 = GB(_mc[t].m6, 2, 6) | (GB(_mc[t].m3, 5, 1) << 6);
 				SB(_mc[t].m3, 5, 1, 0);
@@ -2044,7 +2044,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	if (IsOTTDSavegameVersionBefore(stv, 166)) {
 		/* Update cargo acceptance map of towns. */
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (!IsTileType(t, MP_HOUSE)) continue;
+			if (!IsHouseTile(t)) continue;
 			Town::Get(GetTownIndex(t))->cargo_accepted.Add(t);
 		}
 

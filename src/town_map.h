@@ -18,12 +18,12 @@
 /**
  * Get the index of which town this house/street is attached to.
  * @param t the tile
- * @pre IsTileType(t, MP_HOUSE) or IsRoadOrDepotTile(t) but not a road depot
+ * @pre IsHouseTile(t) or IsRoadOrDepotTile(t) but not a road depot
  * @return TownID
  */
 static inline TownID GetTownIndex(TileIndex t)
 {
-	assert(IsTileType(t, MP_HOUSE) || (IsRoadOrDepotTile(t) && !IsRoadDepot(t)));
+	assert(IsHouseTile(t) || (IsRoadOrDepotTile(t) && !IsRoadDepot(t)));
 	return _mc[t].m2;
 }
 
@@ -31,11 +31,11 @@ static inline TownID GetTownIndex(TileIndex t)
  * Set the town index for a road or house tile.
  * @param t the tile
  * @param index the index of the town
- * @pre IsTileType(t, MP_HOUSE) or IsRoadOrDepotTile(t) but not a road depot
+ * @pre IsHouseTile(t) or IsRoadOrDepotTile(t) but not a road depot
  */
 static inline void SetTownIndex(TileIndex t, TownID index)
 {
-	assert(IsTileType(t, MP_HOUSE) || (IsRoadOrDepotTile(t) && !IsRoadDepot(t)));
+	assert(IsHouseTile(t) || (IsRoadOrDepotTile(t) && !IsRoadDepot(t)));
 	_mc[t].m2 = index;
 }
 
@@ -43,19 +43,19 @@ static inline void SetTownIndex(TileIndex t, TownID index)
  * Get the type of this house, which is an index into the house spec array
  * without doing any NewGRF related translations.
  * @param t the tile
- * @pre IsTileType(t, MP_HOUSE)
+ * @pre IsHouseTile(t)
  * @return house type
  */
 static inline HouseID GetCleanHouseType(TileIndex t)
 {
-	assert(IsTileType(t, MP_HOUSE));
+	assert(IsHouseTile(t));
 	return _mc[t].m4 | (GB(_mc[t].m3, 6, 1) << 8);
 }
 
 /**
  * Get the type of this house, which is an index into the house spec array
  * @param t the tile
- * @pre IsTileType(t, MP_HOUSE)
+ * @pre IsHouseTile(t)
  * @return house type
  */
 static inline HouseID GetHouseType(TileIndex t)
@@ -67,11 +67,11 @@ static inline HouseID GetHouseType(TileIndex t)
  * Set the house type.
  * @param t the tile
  * @param house_id the new house type
- * @pre IsTileType(t, MP_HOUSE)
+ * @pre IsHouseTile(t)
  */
 static inline void SetHouseType(TileIndex t, HouseID house_id)
 {
-	assert(IsTileType(t, MP_HOUSE));
+	assert(IsHouseTile(t));
 	_mc[t].m4 = GB(house_id, 0, 8);
 	SB(_mc[t].m3, 6, 1, GB(house_id, 8, 1));
 }
@@ -146,7 +146,7 @@ static inline void SetLiftPosition(TileIndex t, byte pos)
  */
 static inline bool IsHouseCompleted(TileIndex t)
 {
-	assert(IsTileType(t, MP_HOUSE));
+	assert(IsHouseTile(t));
 	return HasBit(_mc[t].m3, 7);
 }
 
@@ -157,7 +157,7 @@ static inline bool IsHouseCompleted(TileIndex t)
  */
 static inline void SetHouseCompleted(TileIndex t, bool status)
 {
-	assert(IsTileType(t, MP_HOUSE));
+	assert(IsHouseTile(t));
 	SB(_mc[t].m3, 7, 1, !!status);
 }
 
@@ -179,24 +179,24 @@ static inline void SetHouseCompleted(TileIndex t, bool status)
  * fool the system by returning the TOWN_HOUSE_COMPLETE (3),
  * thus showing a beautiful complete house.
  * @param t the tile of the house to get the building stage of
- * @pre IsTileType(t, MP_HOUSE)
+ * @pre IsHouseTile(t)
  * @return the building stage of the house
  */
 static inline byte GetHouseBuildingStage(TileIndex t)
 {
-	assert(IsTileType(t, MP_HOUSE));
+	assert(IsHouseTile(t));
 	return IsHouseCompleted(t) ? (byte)TOWN_HOUSE_COMPLETED : GB(_mc[t].m5, 3, 2);
 }
 
 /**
  * Gets the construction stage of a house
  * @param t the tile of the house to get the construction stage of
- * @pre IsTileType(t, MP_HOUSE)
+ * @pre IsHouseTile(t)
  * @return the construction stage of the house
  */
 static inline byte GetHouseConstructionTick(TileIndex t)
 {
-	assert(IsTileType(t, MP_HOUSE));
+	assert(IsHouseTile(t));
 	return IsHouseCompleted(t) ? 0 : GB(_mc[t].m5, 0, 3);
 }
 
@@ -205,11 +205,11 @@ static inline byte GetHouseConstructionTick(TileIndex t)
  * It is working with the whole counter + stage 5 bits, making it
  * easier to work:  the wraparound is automatic.
  * @param t the tile of the house to increment the construction stage of
- * @pre IsTileType(t, MP_HOUSE)
+ * @pre IsHouseTile(t)
  */
 static inline void IncHouseConstructionTick(TileIndex t)
 {
-	assert(IsTileType(t, MP_HOUSE));
+	assert(IsHouseTile(t));
 	AB(_mc[t].m5, 0, 5, 1);
 
 	if (GB(_mc[t].m5, 3, 2) == TOWN_HOUSE_COMPLETED) {
@@ -223,34 +223,34 @@ static inline void IncHouseConstructionTick(TileIndex t)
  * Sets the age of the house to zero.
  * Needs to be called after the house is completed. During construction stages the map space is used otherwise.
  * @param t the tile of this house
- * @pre IsTileType(t, MP_HOUSE) && IsHouseCompleted(t)
+ * @pre IsHouseTile(t) && IsHouseCompleted(t)
  */
 static inline void ResetHouseAge(TileIndex t)
 {
-	assert(IsTileType(t, MP_HOUSE) && IsHouseCompleted(t));
+	assert(IsHouseTile(t) && IsHouseCompleted(t));
 	_mc[t].m5 = 0;
 }
 
 /**
  * Increments the age of the house.
  * @param t the tile of this house
- * @pre IsTileType(t, MP_HOUSE)
+ * @pre IsHouseTile(t)
  */
 static inline void IncrementHouseAge(TileIndex t)
 {
-	assert(IsTileType(t, MP_HOUSE));
+	assert(IsHouseTile(t));
 	if (IsHouseCompleted(t) && _mc[t].m5 < 0xFF) _mc[t].m5++;
 }
 
 /**
  * Get the age of the house
  * @param t the tile of this house
- * @pre IsTileType(t, MP_HOUSE)
+ * @pre IsHouseTile(t)
  * @return year
  */
 static inline Year GetHouseAge(TileIndex t)
 {
-	assert(IsTileType(t, MP_HOUSE));
+	assert(IsHouseTile(t));
 	return IsHouseCompleted(t) ? _mc[t].m5 : 0;
 }
 
@@ -259,11 +259,11 @@ static inline Year GetHouseAge(TileIndex t)
  * This is required for newgrf house
  * @param t      the tile of this house
  * @param random the new random bits
- * @pre IsTileType(t, MP_HOUSE)
+ * @pre IsHouseTile(t)
  */
 static inline void SetHouseRandomBits(TileIndex t, byte random)
 {
-	assert(IsTileType(t, MP_HOUSE));
+	assert(IsHouseTile(t));
 	_mc[t].m1 = random;
 }
 
@@ -271,12 +271,12 @@ static inline void SetHouseRandomBits(TileIndex t, byte random)
  * Get the random bits for this house.
  * This is required for newgrf house
  * @param t the tile of this house
- * @pre IsTileType(t, MP_HOUSE)
+ * @pre IsHouseTile(t)
  * @return random bits
  */
 static inline byte GetHouseRandomBits(TileIndex t)
 {
-	assert(IsTileType(t, MP_HOUSE));
+	assert(IsHouseTile(t));
 	return _mc[t].m1;
 }
 
@@ -285,11 +285,11 @@ static inline byte GetHouseRandomBits(TileIndex t)
  * This is required for newgrf house
  * @param t        the tile of this house
  * @param triggers the activated triggers
- * @pre IsTileType(t, MP_HOUSE)
+ * @pre IsHouseTile(t)
  */
 static inline void SetHouseTriggers(TileIndex t, byte triggers)
 {
-	assert(IsTileType(t, MP_HOUSE));
+	assert(IsHouseTile(t));
 	SB(_mc[t].m3, 0, 5, triggers);
 }
 
@@ -297,24 +297,24 @@ static inline void SetHouseTriggers(TileIndex t, byte triggers)
  * Get the already activated triggers bits for this house.
  * This is required for newgrf house
  * @param t the tile of this house
- * @pre IsTileType(t, MP_HOUSE)
+ * @pre IsHouseTile(t)
  * @return triggers
  */
 static inline byte GetHouseTriggers(TileIndex t)
 {
-	assert(IsTileType(t, MP_HOUSE));
+	assert(IsHouseTile(t));
 	return GB(_mc[t].m3, 0, 5);
 }
 
 /**
  * Get the amount of time remaining before the tile loop processes this tile.
  * @param t the house tile
- * @pre IsTileType(t, MP_HOUSE)
+ * @pre IsHouseTile(t)
  * @return time remaining
  */
 static inline byte GetHouseProcessingTime(TileIndex t)
 {
-	assert(IsTileType(t, MP_HOUSE));
+	assert(IsHouseTile(t));
 	return GB(_mc[t].m6, 2, 6);
 }
 
@@ -322,22 +322,22 @@ static inline byte GetHouseProcessingTime(TileIndex t)
  * Set the amount of time remaining before the tile loop processes this tile.
  * @param t the house tile
  * @param time the time to be set
- * @pre IsTileType(t, MP_HOUSE)
+ * @pre IsHouseTile(t)
  */
 static inline void SetHouseProcessingTime(TileIndex t, byte time)
 {
-	assert(IsTileType(t, MP_HOUSE));
+	assert(IsHouseTile(t));
 	SB(_mc[t].m6, 2, 6, time);
 }
 
 /**
  * Decrease the amount of time remaining before the tile loop processes this tile.
  * @param t the house tile
- * @pre IsTileType(t, MP_HOUSE)
+ * @pre IsHouseTile(t)
  */
 static inline void DecHouseProcessingTime(TileIndex t)
 {
-	assert(IsTileType(t, MP_HOUSE));
+	assert(IsHouseTile(t));
 	_mc[t].m6 -= 1 << 2;
 }
 

@@ -3169,7 +3169,7 @@ void TriggerWatchedCargoCallbacks(Station *st)
 	Rect r = st->GetCatchmentRect();
 	TileArea ta(TileXY(r.left, r.top), TileXY(r.right, r.bottom));
 	TILE_AREA_LOOP(tile, ta) {
-		if (IsTileType(tile, MP_HOUSE)) {
+		if (IsHouseTile(tile)) {
 			WatchedCargoCallback(tile, cargoes);
 		}
 	}

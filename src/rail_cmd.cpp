@@ -2585,7 +2585,7 @@ static void TileLoop_Track(TileIndex tile)
 			TileIndex tile2 = tile + TileOffsByDiagDir(d);
 
 			/* Show fences if it's a house, industry, object, road, tunnelbridge or not owned by us. */
-			if (!IsValidTile(tile2) || IsTileType(tile2, MP_HOUSE) || IsTileType(tile2, MP_INDUSTRY) ||
+			if (!IsValidTile(tile2) || IsHouseTile(tile2) || IsTileType(tile2, MP_INDUSTRY) ||
 					IsRoadOrDepotTile(tile2) || (IsTileType(tile2, MP_OBJECT) && !IsOwnedLand(tile2)) || IsTileType(tile2, MP_TUNNELBRIDGE) || !IsTileOwner(tile2, owner)) {
 				fences |= 1 << d;
 			}

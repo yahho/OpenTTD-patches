@@ -1392,8 +1392,8 @@ static CommandCost CheckIfIndustryTilesAreFree(TileIndex tile, const IndustryTil
 			}
 
 			if ((ind_behav & (INDUSTRYBEH_ONLY_INTOWN | INDUSTRYBEH_TOWN1200_MORE)) || // Tile must be a house
-					((ind_behav & INDUSTRYBEH_ONLY_NEARTOWN) && IsTileType(cur_tile, MP_HOUSE))) { // Tile is allowed to be a house (and it is a house)
-				if (!IsTileType(cur_tile, MP_HOUSE)) {
+					((ind_behav & INDUSTRYBEH_ONLY_NEARTOWN) && IsHouseTile(cur_tile))) { // Tile is allowed to be a house (and it is a house)
+				if (!IsHouseTile(cur_tile)) {
 					return_cmd_error(STR_ERROR_CAN_ONLY_BE_BUILT_IN_TOWNS);
 				}
 

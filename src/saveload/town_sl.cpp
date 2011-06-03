@@ -34,7 +34,7 @@ void RebuildTownCaches()
 	}
 
 	for (TileIndex t = 0; t < MapSize(); t++) {
-		if (!IsTileType(t, MP_HOUSE)) continue;
+		if (!IsHouseTile(t)) continue;
 
 		HouseID house_id = GetHouseType(t);
 		town = Town::GetByTile(t);
@@ -64,7 +64,7 @@ void RebuildTownCaches()
 void UpdateHousesAndTowns()
 {
 	for (TileIndex t = 0; t < MapSize(); t++) {
-		if (!IsTileType(t, MP_HOUSE)) continue;
+		if (!IsHouseTile(t)) continue;
 
 		HouseID house_id = GetCleanHouseType(t);
 		if (!HouseSpec::Get(house_id)->enabled && house_id >= NEW_HOUSE_OFFSET) {
@@ -77,7 +77,7 @@ void UpdateHousesAndTowns()
 
 	/* Check for cases when a NewGRF has set a wrong house substitute type. */
 	for (TileIndex t = 0; t < MapSize(); t++) {
-		if (!IsTileType(t, MP_HOUSE)) continue;
+		if (!IsHouseTile(t)) continue;
 
 		HouseID house_type = GetCleanHouseType(t);
 		TileIndex north_tile = t + GetHouseNorthPart(house_type); // modifies 'house_type'!
@@ -86,23 +86,23 @@ void UpdateHousesAndTowns()
 			bool valid_house = true;
 			if (hs->building_flags & TILE_SIZE_2x1) {
 				TileIndex tile = t + TileDiffXY(1, 0);
-				if (!IsTileType(tile, MP_HOUSE) || GetCleanHouseType(tile) != house_type + 1) valid_house = false;
+				if (!IsHouseTile(tile) || GetCleanHouseType(tile) != house_type + 1) valid_house = false;
 			} else if (hs->building_flags & TILE_SIZE_1x2) {
 				TileIndex tile = t + TileDiffXY(0, 1);
-				if (!IsTileType(tile, MP_HOUSE) || GetCleanHouseType(tile) != house_type + 1) valid_house = false;
+				if (!IsHouseTile(tile) || GetCleanHouseType(tile) != house_type + 1) valid_house = false;
 			} else if (hs->building_flags & TILE_SIZE_2x2) {
 				TileIndex tile = t + TileDiffXY(0, 1);
-				if (!IsTileType(tile, MP_HOUSE) || GetCleanHouseType(tile) != house_type + 1) valid_house = false;
+				if (!IsHouseTile(tile) || GetCleanHouseType(tile) != house_type + 1) valid_house = false;
 				tile = t + TileDiffXY(1, 0);
-				if (!IsTileType(tile, MP_HOUSE) || GetCleanHouseType(tile) != house_type + 2) valid_house = false;
+				if (!IsHouseTile(tile) || GetCleanHouseType(tile) != house_type + 2) valid_house = false;
 				tile = t + TileDiffXY(1, 1);
-				if (!IsTileType(tile, MP_HOUSE) || GetCleanHouseType(tile) != house_type + 3) valid_house = false;
+				if (!IsHouseTile(tile) || GetCleanHouseType(tile) != house_type + 3) valid_house = false;
 			}
 			/* If not all tiles of this house are present remove the house.
 			 * The other tiles will get removed later in this loop because
 			 * their north tile is not the correct type anymore. */
 			if (!valid_house) DoClearSquare(t);
-		} else if (!IsTileType(north_tile, MP_HOUSE) || GetCleanHouseType(north_tile) != house_type) {
+		} else if (!IsHouseTile(north_tile) || GetCleanHouseType(north_tile) != house_type) {
 			/* This tile should be part of a multi-tile building but the
 			 * north tile of this house isn't on the map. */
 			DoClearSquare(t);

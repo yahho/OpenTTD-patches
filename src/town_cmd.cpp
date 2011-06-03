@@ -406,7 +406,7 @@ uint32 GetWorldPopulation()
  */
 static void MakeSingleHouseBigger(TileIndex tile)
 {
-	assert(IsTileType(tile, MP_HOUSE));
+	assert(IsHouseTile(tile));
 
 	/* progress in construction stages */
 	IncHouseConstructionTick(tile);
@@ -705,7 +705,7 @@ static void UpdateTownCargoes(Town *t, TileIndex start, bool update_total = true
 	 * directions as the coverage area of a single station is bigger than just one square. */
 	TileArea area = AcceptanceMatrix::GetAreaForTile(start, 1);
 	TILE_AREA_LOOP(tile, area) {
-		if (!IsTileType(tile, MP_HOUSE) || GetTownIndex(tile) != t->index) continue;
+		if (!IsHouseTile(tile) || GetTownIndex(tile) != t->index) continue;
 
 		AddAcceptedCargo_Town(tile, accepted, &dummy);
 		AddProducedCargo_Town(tile, produced);
@@ -901,7 +901,7 @@ static void LevelTownLand(TileIndex tile)
 	assert(tile < MapSize());
 
 	/* Don't terraform if land is plain or if there's a house there. */
-	if (IsTileType(tile, MP_HOUSE)) return;
+	if (IsHouseTile(tile)) return;
 	Slope tileh = GetTileSlope(tile);
 	if (tileh == SLOPE_FLAT) return;
 
@@ -1158,8 +1158,8 @@ static void GrowTownInTile(TileIndex *tile_ptr, RoadBits cur_rb, DiagDirection t
 					if (target_dir != ReverseDiagDir(source_dir)) return;
 
 					/* Return if neither side of the new road is a house */
-					if (!IsTileType(TileAddByDiagDir(tile, ChangeDiagDir(target_dir, DIAGDIRDIFF_90RIGHT)), MP_HOUSE) &&
-							!IsTileType(TileAddByDiagDir(tile, ChangeDiagDir(target_dir, DIAGDIRDIFF_90LEFT)), MP_HOUSE)) {
+					if (!IsHouseTile(TileAddByDiagDir(tile, ChangeDiagDir(target_dir, DIAGDIRDIFF_90RIGHT))) &&
+							!IsHouseTile(TileAddByDiagDir(tile, ChangeDiagDir(target_dir, DIAGDIRDIFF_90LEFT)))) {
 						return;
 					}
 
@@ -1245,7 +1245,7 @@ static void GrowTownInTile(TileIndex *tile_ptr, RoadBits cur_rb, DiagDirection t
 
 		if (allow_house) {
 			/* Build a house, but not if there already is a house there. */
-			if (!IsTileType(house_tile, MP_HOUSE)) {
+			if (!IsHouseTile(house_tile)) {
 				/* Level the land if possible */
 				if (Chance16(1, 6)) LevelTownLand(house_tile);
 
@@ -1411,7 +1411,7 @@ static bool GrowTown(Town *t)
 		tile = t->xy;
 		for (ptr = _town_coord_mod; ptr != endof(_town_coord_mod); ++ptr) {
 			/* Only work with plain land that not already has a house */
-			if (!IsTileType(tile, MP_HOUSE) && IsTileFlat(tile)) {
+			if (!IsHouseTile(tile) && IsTileFlat(tile)) {
 				if (DoCommand(tile, 0, 0, DC_AUTO | DC_NO_WATER, CMD_LANDSCAPE_CLEAR).Succeeded()) {
 					DoCommand(tile, GenRandomRoadBits(), t->index, DC_EXEC | DC_AUTO, CMD_BUILD_ROAD);
 					cur_company.Restore();
@@ -1997,7 +1997,7 @@ static inline bool CanBuildHouseHere(TileIndex tile, TownID town, bool noslope)
 	if (HasBridgeAbove(tile)) return false;
 
 	/* do not try to build over house owned by another town */
-	if (IsTileType(tile, MP_HOUSE) && GetTownIndex(tile) != town) return false;
+	if (IsHouseTile(tile) && GetTownIndex(tile) != town) return false;
 
 	/* can we clear the land? */
 	return DoCommand(tile, 0, 0, DC_AUTO | DC_NO_WATER, CMD_LANDSCAPE_CLEAR).Succeeded();
@@ -2328,7 +2328,7 @@ static bool BuildTownHouse(Town *t, TileIndex tile)
  */
 static void DoClearTownHouseHelper(TileIndex tile, Town *t, HouseID house)
 {
-	assert(IsTileType(tile, MP_HOUSE));
+	assert(IsHouseTile(tile));
 	DecreaseBuildingCount(t, house);
 	DoClearSquare(tile);
 	DeleteAnimatedTile(tile);
@@ -2365,7 +2365,7 @@ TileIndexDiff GetHouseNorthPart(HouseID &house)
 
 void ClearTownHouse(Town *t, TileIndex tile)
 {
-	assert(IsTileType(tile, MP_HOUSE));
+	assert(IsHouseTile(tile));
 
 	HouseID house = GetHouseType(tile);
 
@@ -2761,7 +2761,7 @@ static bool SearchTileForStatue(TileIndex tile, void *user_data)
 		return true;
 	}
 
-	bool house = IsTileType(tile, MP_HOUSE);
+	bool house = IsHouseTile(tile);
 
 	/* Searching inside the inner circle. */
 	if (statue_data->tile_count <= STATUE_NUMBER_INNER_TILES) {
@@ -3326,7 +3326,7 @@ void TownsYearlyLoop()
 {
 	/* Increment house ages */
 	for (TileIndex t = 0; t < MapSize(); t++) {
-		if (!IsTileType(t, MP_HOUSE)) continue;
+		if (!IsHouseTile(t)) continue;
 		IncrementHouseAge(t);
 	}
 }

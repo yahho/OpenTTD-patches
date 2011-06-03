@@ -164,6 +164,17 @@ static inline bool IsRoadOrDepotTile(TileIndex tile)
 }
 
 /**
+ * Checks if a tile is a house.
+ *
+ * @param tile The tile to check
+ * @return true If the tile is a house
+ */
+static inline bool IsHouseTile(TileIndex tile)
+{
+	return IsTileType(tile, MP_HOUSE);
+}
+
+/**
  * Checks if a tile is valid
  *
  * @param tile The tile to check
@@ -189,7 +200,7 @@ static inline bool IsValidTile(TileIndex tile)
 static inline Owner GetTileOwner(TileIndex tile)
 {
 	assert(IsValidTile(tile));
-	assert(!IsTileType(tile, MP_HOUSE));
+	assert(!IsHouseTile(tile));
 	assert(!IsTileType(tile, MP_INDUSTRY));
 
 	return (Owner)GB(_mc[tile].m1, 0, 5);
@@ -209,7 +220,7 @@ static inline Owner GetTileOwner(TileIndex tile)
 static inline void SetTileOwner(TileIndex tile, Owner owner)
 {
 	assert(IsValidTile(tile));
-	assert(!IsTileType(tile, MP_HOUSE));
+	assert(!IsHouseTile(tile));
 	assert(!IsTileType(tile, MP_INDUSTRY));
 
 	SB(_mc[tile].m1, 0, 5, owner);
@@ -255,12 +266,12 @@ static inline TropicZone GetTropicZone(TileIndex tile)
 /**
  * Get the current animation frame
  * @param t the tile
- * @pre IsTileType(t, MP_HOUSE) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) ||IsTileType(t, MP_STATION)
+ * @pre IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) ||IsTileType(t, MP_STATION)
  * @return frame number
  */
 static inline byte GetAnimationFrame(TileIndex t)
 {
-	assert(IsTileType(t, MP_HOUSE) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) ||IsTileType(t, MP_STATION));
+	assert(IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) ||IsTileType(t, MP_STATION));
 	return _mc[t].m7;
 }
 
@@ -268,11 +279,11 @@ static inline byte GetAnimationFrame(TileIndex t)
  * Set a new animation frame
  * @param t the tile
  * @param frame the new frame number
- * @pre IsTileType(t, MP_HOUSE) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) ||IsTileType(t, MP_STATION)
+ * @pre IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) ||IsTileType(t, MP_STATION)
  */
 static inline void SetAnimationFrame(TileIndex t, byte frame)
 {
-	assert(IsTileType(t, MP_HOUSE) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) ||IsTileType(t, MP_STATION));
+	assert(IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) ||IsTileType(t, MP_STATION));
 	_mc[t].m7 = frame;
 }
 
