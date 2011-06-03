@@ -1037,7 +1037,7 @@ void PlantRandomFarmField(const Industry *i)
  */
 static bool SearchLumberMillTrees(TileIndex tile, void *user_data)
 {
-	if (IsTileType(tile, MP_TREES) && GetTreeGrowth(tile) > 2) { ///< 3 and up means all fully grown trees
+	if (IsTreeTile(tile) && GetTreeGrowth(tile) > 2) { ///< 3 and up means all fully grown trees
 		/* found a tree */
 
 		Backup<CompanyByte> cur_company(_current_company, OWNER_NONE, FILE_LINE);
@@ -1452,7 +1452,7 @@ static bool CheckCanTerraformSurroundingTiles(TileIndex tile, uint height, int i
 	TILE_AREA_LOOP(tile_walk, ta) {
 		uint curh = TileHeight(tile_walk);
 		/* Is the tile clear? */
-		if (!IsClearTile(tile_walk) && (GetTileType(tile_walk) != MP_TREES)) return false;
+		if (!IsClearTile(tile_walk) && !IsTreeTile(tile_walk)) return false;
 
 		/* Don't allow too big of a change if this is the sub-tile check */
 		if (internal != 0 && Delta(curh, height) > 1) return false;

@@ -448,7 +448,7 @@ uint32 GetNearbyTileInformation(TileIndex tile, bool grf_version8)
 	TileType tile_type = GetTileType(tile);
 
 	/* Fake tile type for trees on shore */
-	if (IsTileType(tile, MP_TREES) && GetTreeGround(tile) == TREE_GROUND_SHORE) tile_type = MP_WATER;
+	if (IsTreeTile(tile) && GetTreeGround(tile) == TREE_GROUND_SHORE) tile_type = MP_WATER;
 
 	int z;
 	Slope tileh = GetTilePixelSlope(tile, &z);

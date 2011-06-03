@@ -175,6 +175,17 @@ static inline bool IsHouseTile(TileIndex tile)
 }
 
 /**
+ * Checks if a tile has trees.
+ *
+ * @param tile The tile to check
+ * @return true If the tile has trees
+ */
+static inline bool IsTreeTile(TileIndex tile)
+{
+	return IsTileType(tile, MP_TREES);
+}
+
+/**
  * Checks if a tile is valid
  *
  * @param tile The tile to check

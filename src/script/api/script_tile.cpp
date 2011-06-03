@@ -69,7 +69,7 @@
 	if (!::IsValidTile(tile)) return false;
 
 	return (::IsTileType(tile, MP_WATER) && ::IsCoast(tile)) ||
-		(::IsTileType(tile, MP_TREES) && ::GetTreeGround(tile) == TREE_GROUND_SHORE);
+		(::IsTreeTile(tile) && ::GetTreeGround(tile) == TREE_GROUND_SHORE);
 }
 
 /* static */ bool ScriptTile::IsStationTile(TileIndex tile)
@@ -97,7 +97,7 @@
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return ::IsTileType(tile, MP_TREES);
+	return ::IsTreeTile(tile);
 }
 
 /* static */ bool ScriptTile::IsFarmTile(TileIndex tile)
