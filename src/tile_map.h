@@ -208,6 +208,17 @@ static inline bool IsWaterTile(TileIndex tile)
 }
 
 /**
+ * Checks if a tile is void.
+ *
+ * @param tile The tile to check
+ * @return true If the tile is void
+ */
+static inline bool IsVoidTile(TileIndex tile)
+{
+	return IsTileType(tile, MP_VOID);
+}
+
+/**
  * Checks if a tile is valid
  *
  * @param tile The tile to check
@@ -215,7 +226,7 @@ static inline bool IsWaterTile(TileIndex tile)
  */
 static inline bool IsValidTile(TileIndex tile)
 {
-	return tile < MapSize() && !IsTileType(tile, MP_VOID);
+	return tile < MapSize() && !IsVoidTile(tile);
 }
 
 /**
@@ -280,7 +291,7 @@ static inline bool IsTileOwner(TileIndex tile, Owner owner)
 static inline void SetTropicZone(TileIndex tile, TropicZone type)
 {
 	assert(tile < MapSize());
-	assert(!IsTileType(tile, MP_VOID) || type == TROPICZONE_NORMAL);
+	assert(!IsVoidTile(tile) || type == TROPICZONE_NORMAL);
 	SB(_mc[tile].m6, 0, 2, type);
 }
 

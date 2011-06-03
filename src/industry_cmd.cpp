@@ -1446,7 +1446,7 @@ static CommandCost CheckIfIndustryIsAllowed(TileIndex tile, int type, const Town
 static bool CheckCanTerraformSurroundingTiles(TileIndex tile, uint height, int internal)
 {
 	/* Check if we don't leave the map */
-	if (TileX(tile) == 0 || TileY(tile) == 0 || GetTileType(tile) == MP_VOID) return false;
+	if (TileX(tile) == 0 || TileY(tile) == 0 || IsVoidTile(tile)) return false;
 
 	TileArea ta(tile - TileDiffXY(1, 1), 2, 2);
 	TILE_AREA_LOOP(tile_walk, ta) {
