@@ -136,16 +136,9 @@ public:
 		/* set base cost */
 		if (IsDiagonalTrackdir(trackdir)) {
 			cost += YAPF_TILE_LENGTH;
-			switch (GetTileType(tile)) {
-				case MP_ROAD:
-					/* Increase the cost for level crossings */
-					if (IsLevelCrossing(tile)) {
-						cost += Yapf().PfGetSettings().rail_crossing_penalty;
-					}
-					break;
-
-				default:
-					break;
+			if (IsRoadOrDepotTile(tile) && IsLevelCrossing(tile)) {
+				/* Increase the cost for level crossings */
+				cost += Yapf().PfGetSettings().rail_crossing_penalty;
 			}
 		} else {
 			/* non-diagonal trackdir */

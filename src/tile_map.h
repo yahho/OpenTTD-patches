@@ -153,6 +153,17 @@ static inline bool IsRailwayOrDepotTile(TileIndex tile)
 }
 
 /**
+ * Checks if a tile has a road.
+ *
+ * @param tile The tile to check
+ * @return true If the tile has a road
+ */
+static inline bool IsRoadOrDepotTile(TileIndex tile)
+{
+	return IsTileType(tile, MP_ROAD);
+}
+
+/**
  * Checks if a tile is valid
  *
  * @param tile The tile to check

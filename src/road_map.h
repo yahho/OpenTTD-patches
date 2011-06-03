@@ -29,19 +29,19 @@ enum RoadTileType {
 /**
  * Get the type of the road tile.
  * @param t Tile to query.
- * @pre IsTileType(t, MP_ROAD)
+ * @pre IsRoadOrDepotTile(t)
  * @return The road tile type.
  */
 static inline RoadTileType GetRoadTileType(TileIndex t)
 {
-	assert(IsTileType(t, MP_ROAD));
+	assert(IsRoadOrDepotTile(t));
 	return (RoadTileType)GB(_mc[t].m5, 6, 2);
 }
 
 /**
  * Return whether a tile is a normal road.
  * @param t Tile to query.
- * @pre IsTileType(t, MP_ROAD)
+ * @pre IsRoadOrDepotTile(t)
  * @return True if normal road.
  */
 static inline bool IsNormalRoad(TileIndex t)
@@ -56,13 +56,13 @@ static inline bool IsNormalRoad(TileIndex t)
  */
 static inline bool IsNormalRoadTile(TileIndex t)
 {
-	return IsTileType(t, MP_ROAD) && IsNormalRoad(t);
+	return IsRoadOrDepotTile(t) && IsNormalRoad(t);
 }
 
 /**
  * Return whether a tile is a level crossing.
  * @param t Tile to query.
- * @pre IsTileType(t, MP_ROAD)
+ * @pre IsRoadOrDepotTile(t)
  * @return True if level crossing.
  */
 static inline bool IsLevelCrossing(TileIndex t)
@@ -77,13 +77,13 @@ static inline bool IsLevelCrossing(TileIndex t)
  */
 static inline bool IsLevelCrossingTile(TileIndex t)
 {
-	return IsTileType(t, MP_ROAD) && IsLevelCrossing(t);
+	return IsRoadOrDepotTile(t) && IsLevelCrossing(t);
 }
 
 /**
  * Return whether a tile is a road depot.
  * @param t Tile to query.
- * @pre IsTileType(t, MP_ROAD)
+ * @pre IsRoadOrDepotTile(t)
  * @return True if road depot.
  */
 static inline bool IsRoadDepot(TileIndex t)
@@ -98,7 +98,7 @@ static inline bool IsRoadDepot(TileIndex t)
  */
 static inline bool IsRoadDepotTile(TileIndex t)
 {
-	return IsTileType(t, MP_ROAD) && IsRoadDepot(t);
+	return IsRoadOrDepotTile(t) && IsRoadDepot(t);
 }
 
 /**
@@ -175,7 +175,7 @@ static inline RoadTypes GetRoadTypes(TileIndex t)
  */
 static inline void SetRoadTypes(TileIndex t, RoadTypes rt)
 {
-	assert(IsTileType(t, MP_ROAD) || IsTileType(t, MP_STATION) || IsTileType(t, MP_TUNNELBRIDGE));
+	assert(IsRoadOrDepotTile(t) || IsTileType(t, MP_STATION) || IsTileType(t, MP_TUNNELBRIDGE));
 	SB(_mc[t].m7, 6, 2, rt);
 }
 
@@ -198,7 +198,7 @@ static inline bool HasTileRoadType(TileIndex t, RoadType rt)
  */
 static inline Owner GetRoadOwner(TileIndex t, RoadType rt)
 {
-	assert(IsTileType(t, MP_ROAD) || IsTileType(t, MP_STATION) || IsTileType(t, MP_TUNNELBRIDGE));
+	assert(IsRoadOrDepotTile(t) || IsTileType(t, MP_STATION) || IsTileType(t, MP_TUNNELBRIDGE));
 	switch (rt) {
 		default: NOT_REACHED();
 		case ROADTYPE_ROAD: return (Owner)GB(IsNormalRoadTile(t) ? _mc[t].m1 : _mc[t].m7, 0, 5);
@@ -243,7 +243,7 @@ static inline bool IsRoadOwner(TileIndex t, RoadType rt, Owner o)
 /**
  * Checks if given tile has town owned road
  * @param t tile to check
- * @pre IsTileType(t, MP_ROAD)
+ * @pre IsRoadOrDepotTile(t)
  * @return true iff tile has road and the road is owned by a town
  */
 static inline bool HasTownOwnedRoad(TileIndex t)
