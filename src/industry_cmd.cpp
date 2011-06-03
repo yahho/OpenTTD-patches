@@ -158,7 +158,7 @@ Industry::~Industry()
 
 		/* Remove the farmland and convert it to regular tiles over time. */
 		TILE_AREA_LOOP(tile_cur, ta) {
-			if (IsTileType(tile_cur, MP_CLEAR) && IsClearGround(tile_cur, CLEAR_FIELDS) &&
+			if (IsClearTile(tile_cur) && IsClearGround(tile_cur, CLEAR_FIELDS) &&
 					GetIndustryIndexOfField(tile_cur) == this->index) {
 				SetIndustryIndexOfField(tile_cur, INVALID_INDUSTRY);
 			}
@@ -956,7 +956,7 @@ static void SetupFarmFieldFence(TileIndex tile, int size, byte type, DiagDirecti
 	do {
 		tile = TILE_MASK(tile);
 
-		if (IsTileType(tile, MP_CLEAR) && IsClearGround(tile, CLEAR_FIELDS)) {
+		if (IsClearTile(tile) && IsClearGround(tile, CLEAR_FIELDS)) {
 			byte or_ = type;
 
 			if (or_ == 1 && Chance16(1, 7)) or_ = 2;
@@ -1452,7 +1452,7 @@ static bool CheckCanTerraformSurroundingTiles(TileIndex tile, uint height, int i
 	TILE_AREA_LOOP(tile_walk, ta) {
 		uint curh = TileHeight(tile_walk);
 		/* Is the tile clear? */
-		if ((GetTileType(tile_walk) != MP_CLEAR) && (GetTileType(tile_walk) != MP_TREES)) return false;
+		if (!IsClearTile(tile_walk) && (GetTileType(tile_walk) != MP_TREES)) return false;
 
 		/* Don't allow too big of a change if this is the sub-tile check */
 		if (internal != 0 && Delta(curh, height) > 1) return false;

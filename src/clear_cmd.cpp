@@ -142,28 +142,28 @@ static Foundation GetFoundation_Clear(TileIndex tile, Slope tileh)
 
 static void UpdateFences(TileIndex tile)
 {
-	assert(IsTileType(tile, MP_CLEAR) && IsClearGround(tile, CLEAR_FIELDS));
+	assert(IsClearTile(tile) && IsClearGround(tile, CLEAR_FIELDS));
 	bool dirty = false;
 
-	bool neighbour = (IsTileType(TILE_ADDXY(tile, 1, 0), MP_CLEAR) && IsClearGround(TILE_ADDXY(tile, 1, 0), CLEAR_FIELDS));
+	bool neighbour = (IsClearTile(TILE_ADDXY(tile, 1, 0)) && IsClearGround(TILE_ADDXY(tile, 1, 0), CLEAR_FIELDS));
 	if (!neighbour && GetFence(tile, DIAGDIR_SW) == 0) {
 		SetFence(tile, DIAGDIR_SW, 3);
 		dirty = true;
 	}
 
-	neighbour = (IsTileType(TILE_ADDXY(tile, 0, 1), MP_CLEAR) && IsClearGround(TILE_ADDXY(tile, 0, 1), CLEAR_FIELDS));
+	neighbour = (IsClearTile(TILE_ADDXY(tile, 0, 1)) && IsClearGround(TILE_ADDXY(tile, 0, 1), CLEAR_FIELDS));
 	if (!neighbour && GetFence(tile, DIAGDIR_SE) == 0) {
 		SetFence(tile, DIAGDIR_SE, 3);
 		dirty = true;
 	}
 
-	neighbour = (IsTileType(TILE_ADDXY(tile, -1, 0), MP_CLEAR) && IsClearGround(TILE_ADDXY(tile, -1, 0), CLEAR_FIELDS));
+	neighbour = (IsClearTile(TILE_ADDXY(tile, -1, 0)) && IsClearGround(TILE_ADDXY(tile, -1, 0), CLEAR_FIELDS));
 	if (!neighbour && GetFence(tile, DIAGDIR_NE) == 0) {
 		SetFence(tile, DIAGDIR_NE, 3);
 		dirty = true;
 	}
 
-	neighbour = (IsTileType(TILE_ADDXY(tile, 0, -1), MP_CLEAR) && IsClearGround(TILE_ADDXY(tile, 0, -1), CLEAR_FIELDS));
+	neighbour = (IsClearTile(TILE_ADDXY(tile, 0, -1)) && IsClearGround(TILE_ADDXY(tile, 0, -1), CLEAR_FIELDS));
 	if (!neighbour && GetFence(tile, DIAGDIR_NW) == 0) {
 		SetFence(tile, DIAGDIR_NW, 3);
 		dirty = true;
@@ -321,7 +321,7 @@ void GenerateClearTile()
 	do {
 		IncreaseGeneratingWorldProgress(GWP_ROUGH_ROCKY);
 		tile = RandomTile();
-		if (IsTileType(tile, MP_CLEAR) && !IsClearGround(tile, CLEAR_DESERT)) SetClearGroundDensity(tile, CLEAR_ROUGH, 3);
+		if (IsClearTile(tile) && !IsClearGround(tile, CLEAR_DESERT)) SetClearGroundDensity(tile, CLEAR_ROUGH, 3);
 	} while (--i);
 
 	/* add rocky tiles */
@@ -331,7 +331,7 @@ void GenerateClearTile()
 		tile = RandomTileSeed(r);
 
 		IncreaseGeneratingWorldProgress(GWP_ROUGH_ROCKY);
-		if (IsTileType(tile, MP_CLEAR) && !IsClearGround(tile, CLEAR_DESERT)) {
+		if (IsClearTile(tile) && !IsClearGround(tile, CLEAR_DESERT)) {
 			uint j = GB(r, 16, 4) + 5;
 			for (;;) {
 				TileIndex tile_new;
@@ -340,7 +340,7 @@ void GenerateClearTile()
 				do {
 					if (--j == 0) goto get_out;
 					tile_new = tile + TileOffsByDiagDir((DiagDirection)GB(Random(), 0, 2));
-				} while (!IsTileType(tile_new, MP_CLEAR) || IsClearGround(tile_new, CLEAR_DESERT));
+				} while (!IsClearTile(tile_new) || IsClearGround(tile_new, CLEAR_DESERT));
 				tile = tile_new;
 			}
 get_out:;

@@ -131,6 +131,17 @@ static inline bool IsTileType(TileIndex tile, TileType type)
 }
 
 /**
+ * Checks if a tile is clear.
+ *
+ * @param tile The tile to check
+ * @return true If the tile is clear
+ */
+static inline bool IsClearTile(TileIndex tile)
+{
+	return IsTileType(tile, MP_CLEAR);
+}
+
+/**
  * Checks if a tile is valid
  *
  * @param tile The tile to check

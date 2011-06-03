@@ -1574,7 +1574,7 @@ static CommandCost TownCanBePlacedHere(TileIndex tile)
 	}
 
 	/* Can only build on clear flat areas, possibly with trees. */
-	if ((!IsTileType(tile, MP_CLEAR) && !IsTileType(tile, MP_TREES)) || !IsTileFlat(tile)) {
+	if ((!IsClearTile(tile) && !IsTileType(tile, MP_TREES)) || !IsTileFlat(tile)) {
 		return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
 	}
 
@@ -1774,7 +1774,7 @@ static bool FindFurthestFromWater(TileIndex tile, void *user_data)
 	SpotData *sp = (SpotData*)user_data;
 	uint dist = GetClosestWaterDistance(tile, true);
 
-	if (IsTileType(tile, MP_CLEAR) &&
+	if (IsClearTile(tile) &&
 			IsTileFlat(tile) &&
 			IsTileAlignedToGrid(tile, sp->layout) &&
 			dist > sp->max_dist) {
@@ -1793,7 +1793,7 @@ static bool FindFurthestFromWater(TileIndex tile, void *user_data)
  */
 static bool FindNearestEmptyLand(TileIndex tile, void *user_data)
 {
-	return IsTileType(tile, MP_CLEAR);
+	return IsClearTile(tile);
 }
 
 /**
@@ -2756,7 +2756,7 @@ static bool SearchTileForStatue(TileIndex tile, void *user_data)
 	if (HasBridgeAbove(tile)) return false;
 
 	/* A clear-able open space is always preferred. */
-	if ((IsTileType(tile, MP_CLEAR) || IsTileType(tile, MP_TREES)) && TryClearTile(tile)) {
+	if ((IsClearTile(tile) || IsTileType(tile, MP_TREES)) && TryClearTile(tile)) {
 		statue_data->best_position = tile;
 		return true;
 	}

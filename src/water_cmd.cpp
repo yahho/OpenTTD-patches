@@ -1196,7 +1196,7 @@ void ConvertGroundTilesIntoWaterTiles()
 
 	for (TileIndex tile = 0; tile < MapSize(); ++tile) {
 		Slope slope = GetTileSlope(tile, &z);
-		if (IsTileType(tile, MP_CLEAR) && z == 0) {
+		if (IsClearTile(tile) && z == 0) {
 			/* Make both water for tiles at level 0
 			 * and make shore, as that looks much better
 			 * during the generation. */

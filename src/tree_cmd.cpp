@@ -399,7 +399,7 @@ CommandCost CmdPlantTree(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 					break;
 				}
 
-				if (IsTileType(tile, MP_CLEAR)) {
+				if (IsClearTile(tile)) {
 					/* Remove fields or rocks. Note that the ground will get barrened */
 					switch (GetRawClearGround(tile)) {
 						case CLEAR_FIELDS:
@@ -696,7 +696,7 @@ static void TileLoop_Trees(TileIndex tile)
 						if (!CanPlantTreesOnTile(tile, false)) return;
 
 						/* Don't plant trees, if ground was freshly cleared */
-						if (IsTileType(tile, MP_CLEAR) && GetClearGround(tile) == CLEAR_GRASS && GetClearDensity(tile) != 3) return;
+						if (IsClearTile(tile) && GetClearGround(tile) == CLEAR_GRASS && GetClearDensity(tile) != 3) return;
 
 						PlantTreesOnTile(tile, treetype, 0, 0);
 
