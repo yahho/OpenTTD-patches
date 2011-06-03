@@ -253,7 +253,7 @@ public:
 	inline bool PfDetectDestinationTile(TileIndex tile, Trackdir trackdir)
 	{
 		if (m_dest_station != INVALID_STATION) {
-			return IsTileType(tile, MP_STATION) &&
+			return IsStationTile(tile) &&
 				GetStationIndex(tile) == m_dest_station &&
 				(m_bus ? IsBusStop(tile) : IsTruckStop(tile)) &&
 				(m_non_artic || IsDriveThroughStopTile(tile));

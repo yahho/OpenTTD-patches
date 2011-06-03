@@ -334,7 +334,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 			st->train_station.w = st->train_station.h = 0;
 		}
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (!IsTileType(t, MP_STATION)) continue;
+			if (!IsStationTile(t)) continue;
 			if (GetStationType(t) != STATION_RAIL) continue;
 			st = Station::Get(_mc[t].m2);
 			assert(st->train_station.tile != 0);
@@ -571,7 +571,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	}
 
 	for (TileIndex t = 0; t < map_size; t++) {
-		if (GetTileType(t) == MP_STATION) {
+		if (IsStationTile(t)) {
 			BaseStation *bst = BaseStation::GetByTile(t);
 
 			/* Set up station spread */
@@ -1115,7 +1115,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 			if (!IsTileFlat(t)) continue;
 
 			if (IsTileType(t, MP_WATER) && IsLock(t)) GuessWaterClass(t, false);
-			if (IsTileType(t, MP_STATION) && (IsDock(t) || IsBuoy(t))) GuessWaterClass(t, false);
+			if (IsStationTile(t) && (IsDock(t) || IsBuoy(t))) GuessWaterClass(t, false);
 		}
 	}
 
@@ -1211,7 +1211,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	if (IsOTTDSavegameVersionBefore(stv, 99)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			/* Set newly introduced WaterClass of industry tiles */
-			if (IsTileType(t, MP_STATION) && IsOilRig(t)) {
+			if (IsStationTile(t) && IsOilRig(t)) {
 				GuessWaterClass(t, true);
 			}
 			if (IsTileType(t, MP_INDUSTRY)) {
@@ -1681,7 +1681,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 
 	if (IsOTTDSavegameVersionBefore(stv, 149)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (!IsTileType(t, MP_STATION)) continue;
+			if (!IsStationTile(t)) continue;
 			if (!IsBuoy(t) && !IsOilRig(t) && !(IsDock(t) && IsTileFlat(t))) {
 				SetWaterClass(t, WATER_CLASS_INVALID);
 			}

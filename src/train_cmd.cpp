@@ -1917,7 +1917,7 @@ CommandCost CmdReverseTrainDirection(TileIndex tile, DoCommandFlag flags, uint32
 				while (last->Next() != NULL) last = last->Next();
 
 				/* not a station || different station --> leave the station */
-				if (!IsTileType(last->tile, MP_STATION) || GetStationIndex(last->tile) != GetStationIndex(v->tile)) {
+				if (!IsStationTile(last->tile) || GetStationIndex(last->tile) != GetStationIndex(v->tile)) {
 					v->LeaveStation();
 				}
 			}
@@ -3821,7 +3821,7 @@ static bool TrainLocoHandler(Train *v, bool mode)
 			/* Do not skip waypoints (incl. 'via' stations) when passing through at full speed. */
 			if ((order_type == OT_GOTO_WAYPOINT || order_type == OT_GOTO_STATION) &&
 						(v->current_order.GetNonStopType() & ONSF_NO_STOP_AT_DESTINATION_STATION) &&
-						IsTileType(v->tile, MP_STATION) &&
+						IsStationTile(v->tile) &&
 						v->current_order.GetDestination() == GetStationIndex(v->tile)) {
 				ProcessOrders(v);
 			}

@@ -421,7 +421,7 @@ PBSPositionState CheckWaitingPosition(const Train *v, TileIndex tile, Trackdir t
 
 		if (cb == PBS_CHECK_SAFE) return PBS_FREE;
 		if (state != PBS_FREE) return PBS_BUSY;
-	} else if (!IsTileType(tile, MP_STATION)) {
+	} else if (!IsStationTile(tile)) {
 		/* With PBS_CHECK_FREE, all these should be true. */
 		assert(KillFirstBit(ft.m_new_td_bits) == TRACKDIR_BIT_NONE);
 		assert(IsRailwayOrDepotTile(ft.m_new_tile));

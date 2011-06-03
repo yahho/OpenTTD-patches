@@ -411,7 +411,7 @@ static Order GetOrderCmdFromTile(const Vehicle *v, TileIndex tile)
 		return order;
 	}
 
-	if (IsTileType(tile, MP_STATION)) {
+	if (IsStationTile(tile)) {
 		StationID st_index = GetStationIndex(tile);
 		const Station *st = Station::Get(st_index);
 

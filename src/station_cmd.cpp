@@ -58,12 +58,12 @@
 /**
  * Check whether the given tile is a hangar.
  * @param t the tile to of whether it is a hangar.
- * @pre IsTileType(t, MP_STATION)
+ * @pre IsStationTile(t)
  * @return true if and only if the tile is a hangar.
  */
 bool IsHangar(TileIndex t)
 {
-	assert(IsTileType(t, MP_STATION));
+	assert(IsStationTile(t));
 
 	/* If the tile isn't an airport there's no chance it's a hangar. */
 	if (!IsAirport(t)) return false;
@@ -94,7 +94,7 @@ CommandCost GetStationAround(TileArea ta, StationID closest_station, T **st)
 
 	/* check around to see if there's any stations there */
 	TILE_AREA_LOOP(tile_cur, ta) {
-		if (IsTileType(tile_cur, MP_STATION)) {
+		if (IsStationTile(tile_cur)) {
 			StationID t = GetStationIndex(tile_cur);
 			if (!T::IsValidID(t)) continue;
 
@@ -805,7 +805,7 @@ static CommandCost CheckFlatLandRailStation(TileArea tile_area, DoCommandFlag fl
 		/* if station is set, then we have special handling to allow building on top of already existing stations.
 		 * so station points to INVALID_STATION if we can build on any station.
 		 * Or it points to a station if we're only allowed to build on exactly that station. */
-		if (station != NULL && IsTileType(tile_cur, MP_STATION)) {
+		if (station != NULL && IsStationTile(tile_cur)) {
 			if (!IsRailStation(tile_cur)) {
 				return ClearTile_Station(tile_cur, DC_AUTO); // get error message
 			} else {
@@ -881,7 +881,7 @@ static CommandCost CheckFlatLandRoadStop(TileArea tile_area, DoCommandFlag flags
 		/* If station is set, then we have special handling to allow building on top of already existing stations.
 		 * Station points to INVALID_STATION if we can build on any station.
 		 * Or it points to a station if we're only allowed to build on exactly that station. */
-		if (station != NULL && IsTileType(cur_tile, MP_STATION)) {
+		if (station != NULL && IsStationTile(cur_tile)) {
 			if (!IsRoadStop(cur_tile)) {
 				return ClearTile_Station(cur_tile, DC_AUTO); // Get error message.
 			} else {
@@ -1811,7 +1811,7 @@ CommandCost CmdBuildRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 			Owner road_owner = HasBit(cur_rts, ROADTYPE_ROAD) ? GetRoadOwner(cur_tile, ROADTYPE_ROAD) : _current_company;
 			Owner tram_owner = HasBit(cur_rts, ROADTYPE_TRAM) ? GetRoadOwner(cur_tile, ROADTYPE_TRAM) : _current_company;
 
-			if (IsTileType(cur_tile, MP_STATION) && IsRoadStop(cur_tile)) {
+			if (IsStationTile(cur_tile) && IsRoadStop(cur_tile)) {
 				RemoveRoadStop(cur_tile, flags);
 			}
 
@@ -2015,7 +2015,7 @@ CommandCost CmdRemoveRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 	TILE_AREA_LOOP(cur_tile, roadstop_area) {
 		/* Make sure the specified tile is a road stop of the correct type */
-		if (!IsTileType(cur_tile, MP_STATION) || !IsRoadStop(cur_tile) || (uint32)GetRoadStopType(cur_tile) != GB(p2, 0, 1)) continue;
+		if (!IsStationTile(cur_tile) || !IsRoadStop(cur_tile) || (uint32)GetRoadStopType(cur_tile) != GB(p2, 0, 1)) continue;
 
 		/* Save the stop info before it is removed */
 		bool is_drive_through = IsDriveThroughStopTile(cur_tile);
@@ -3692,7 +3692,7 @@ void FindStationsAroundTiles(const TileArea &location, StationList *stations)
 	for (uint cy = min_y; cy < max_y; cy++) {
 		for (uint cx = min_x; cx < max_x; cx++) {
 			TileIndex cur_tile = TileXY(cx, cy);
-			if (!IsTileType(cur_tile, MP_STATION)) continue;
+			if (!IsStationTile(cur_tile)) continue;
 
 			Station *st = Station::GetByTile(cur_tile);
 			/* st can be NULL in case of waypoints */

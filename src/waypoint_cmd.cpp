@@ -105,7 +105,7 @@ static CommandCost IsValidTileForWaypoint(TileIndex tile, Axis axis, StationID *
 	/* if waypoint is set, then we have special handling to allow building on top of already existing waypoints.
 	 * so waypoint points to INVALID_STATION if we can build on any waypoint.
 	 * Or it points to a waypoint if we're only allowed to build on exactly that waypoint. */
-	if (waypoint != NULL && IsTileType(tile, MP_STATION)) {
+	if (waypoint != NULL && IsStationTile(tile)) {
 		if (!IsRailWaypoint(tile)) {
 			return ClearTile_Station(tile, DC_AUTO); // get error message
 		} else {

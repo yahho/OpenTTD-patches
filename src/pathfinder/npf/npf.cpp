@@ -553,7 +553,7 @@ static int32 NPFFindStationOrTile(AyStar *as, OpenListNode *current)
 
 	if (fstd->station_index == INVALID_STATION && tile == fstd->dest_coords) return AYSTAR_FOUND_END_NODE;
 
-	if (IsTileType(tile, MP_STATION) && GetStationIndex(tile) == fstd->station_index) {
+	if (IsStationTile(tile) && GetStationIndex(tile) == fstd->station_index) {
 		if (fstd->v->type == VEH_TRAIN) return AYSTAR_FOUND_END_NODE;
 
 		assert(fstd->v->type == VEH_ROAD);

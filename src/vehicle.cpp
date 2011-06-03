@@ -1920,11 +1920,11 @@ void Vehicle::DeleteUnreachedImplicitOrders()
 
 /**
  * Prepare everything to begin the loading when arriving at a station.
- * @pre IsTileType(this->tile, MP_STATION) || this->type == VEH_SHIP.
+ * @pre IsStationTile(this->tile) || this->type == VEH_SHIP.
  */
 void Vehicle::BeginLoading()
 {
-	assert(IsTileType(this->tile, MP_STATION) || this->type == VEH_SHIP);
+	assert(IsStationTile(this->tile) || this->type == VEH_SHIP);
 
 	if (this->current_order.IsType(OT_GOTO_STATION) &&
 			this->current_order.GetDestination() == this->last_station_visited) {
@@ -2106,7 +2106,7 @@ void Vehicle::LeaveStation()
 
 	if (this->type == VEH_TRAIN && !(this->vehstatus & VS_CRASHED)) {
 		/* Trigger station animation (trains only) */
-		if (IsTileType(this->tile, MP_STATION)) {
+		if (IsStationTile(this->tile)) {
 			TriggerStationRandomisation(st, this->tile, SRT_TRAIN_DEPARTS);
 			TriggerStationAnimation(st, this->tile, SAT_TRAIN_DEPARTS);
 		}

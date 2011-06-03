@@ -147,7 +147,7 @@ Industry::~Industry()
 				/* MakeWaterKeepingClass() can also handle 'land' */
 				MakeWaterKeepingClass(tile_cur, OWNER_NONE);
 			}
-		} else if (IsTileType(tile_cur, MP_STATION) && IsOilRig(tile_cur)) {
+		} else if (IsStationTile(tile_cur) && IsOilRig(tile_cur)) {
 			DeleteOilRig(tile_cur);
 		}
 	}

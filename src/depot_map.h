@@ -58,7 +58,7 @@ static inline DepotID GetDepotIndex(TileIndex t)
 /**
  * Get the type of vehicles that can use a depot
  * @param t The tile
- * @pre IsRailDepotTile(t) || IsRoadDepotTile(t) || IsShipDepotTile(t) || IsTileType(t, MP_STATION)
+ * @pre IsRailDepotTile(t) || IsRoadDepotTile(t) || IsShipDepotTile(t) || IsStationTile(t)
  * @return the type of vehicles that can use the depot
  */
 static inline VehicleType GetDepotVehicleType(TileIndex t)

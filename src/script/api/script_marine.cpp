@@ -27,14 +27,14 @@
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return ::IsTileType(tile, MP_STATION) && ::IsDock(tile);
+	return ::IsStationTile(tile) && ::IsDock(tile);
 }
 
 /* static */ bool ScriptMarine::IsBuoyTile(TileIndex tile)
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return ::IsTileType(tile, MP_STATION) && ::IsBuoy(tile);
+	return ::IsStationTile(tile) && ::IsBuoy(tile);
 }
 
 /* static */ bool ScriptMarine::IsLockTile(TileIndex tile)

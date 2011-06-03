@@ -186,6 +186,17 @@ static inline bool IsTreeTile(TileIndex tile)
 }
 
 /**
+ * Checks if a tile is a station tile.
+ *
+ * @param tile The tile to check
+ * @return true If the tile is a station tile
+ */
+static inline bool IsStationTile(TileIndex tile)
+{
+	return IsTileType(tile, MP_STATION);
+}
+
+/**
  * Checks if a tile is valid
  *
  * @param tile The tile to check
@@ -277,12 +288,12 @@ static inline TropicZone GetTropicZone(TileIndex tile)
 /**
  * Get the current animation frame
  * @param t the tile
- * @pre IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) ||IsTileType(t, MP_STATION)
+ * @pre IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) || IsStationTile(t)
  * @return frame number
  */
 static inline byte GetAnimationFrame(TileIndex t)
 {
-	assert(IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) ||IsTileType(t, MP_STATION));
+	assert(IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) || IsStationTile(t));
 	return _mc[t].m7;
 }
 
@@ -290,11 +301,11 @@ static inline byte GetAnimationFrame(TileIndex t)
  * Set a new animation frame
  * @param t the tile
  * @param frame the new frame number
- * @pre IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) ||IsTileType(t, MP_STATION)
+ * @pre IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) || IsStationTile(t)
  */
 static inline void SetAnimationFrame(TileIndex t, byte frame)
 {
-	assert(IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) ||IsTileType(t, MP_STATION));
+	assert(IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) || IsStationTile(t));
 	_mc[t].m7 = frame;
 }
 
