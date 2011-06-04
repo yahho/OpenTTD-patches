@@ -293,7 +293,7 @@ CommandCost CmdBuildObject(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 			break;
 
 		case OBJECT_OWNED_LAND:
-			if (IsTileType(tile, MP_OBJECT) &&
+			if (IsObjectTile(tile) &&
 					IsTileOwner(tile, _current_company) &&
 					IsOwnedLand(tile)) {
 				return_cmd_error(STR_ERROR_YOU_ALREADY_OWN_IT);

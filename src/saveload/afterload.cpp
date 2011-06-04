@@ -1295,7 +1295,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	if (IsOTTDSavegameVersionBefore(stv, 147) && Object::GetNumItems() == 0) {
 		/* Make real objects for object tiles. */
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (!IsTileType(t, MP_OBJECT)) continue;
+			if (!IsObjectTile(t)) continue;
 
 			if (Town::GetNumItems() == 0) {
 				/* No towns, so remove all objects! */
@@ -1326,7 +1326,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 				} else {
 					/* We're at an offset, so get the ID from our "root". */
 					TileIndex northern_tile = t - TileXY(GB(offset, 0, 4), GB(offset, 4, 4));
-					assert(IsTileType(northern_tile, MP_OBJECT));
+					assert(IsObjectTile(northern_tile));
 					_mc[t].m2 = _mc[northern_tile].m2;
 				}
 			}

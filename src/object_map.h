@@ -18,24 +18,24 @@
 /**
  * Gets the ObjectType of the given object tile
  * @param t the tile to get the type from.
- * @pre IsTileType(t, MP_OBJECT)
+ * @pre IsObjectTile(t)
  * @return the type.
  */
 static inline ObjectType GetObjectType(TileIndex t)
 {
-	assert(IsTileType(t, MP_OBJECT));
+	assert(IsObjectTile(t));
 	return (ObjectType)_mc[t].m5;
 }
 
 /**
  * Get the index of which object this tile is attached to.
  * @param t the tile
- * @pre IsTileType(t, MP_OBJECT)
+ * @pre IsObjectTile(t)
  * @return The ObjectID of the object.
  */
 static inline ObjectID GetObjectIndex(TileIndex t)
 {
-	assert(IsTileType(t, MP_OBJECT));
+	assert(IsObjectTile(t));
 	return _mc[t].m2;
 }
 
@@ -46,18 +46,18 @@ static inline ObjectID GetObjectIndex(TileIndex t)
  */
 static inline bool IsTransmitterTile(TileIndex t)
 {
-	return IsTileType(t, MP_OBJECT) && GetObjectType(t) == OBJECT_TRANSMITTER;
+	return IsObjectTile(t) && GetObjectType(t) == OBJECT_TRANSMITTER;
 }
 
 /**
  * Is this object tile an 'owned land' tile?
  * @param t the tile to inspect.
- * @pre IsTileType(t, MP_OBJECT)
+ * @pre IsObjectTile(t)
  * @return true if and only if the tile is an 'owned land' tile.
  */
 static inline bool IsOwnedLand(TileIndex t)
 {
-	assert(IsTileType(t, MP_OBJECT));
+	assert(IsObjectTile(t));
 	return GetObjectType(t) == OBJECT_OWNED_LAND;
 }
 
@@ -68,30 +68,30 @@ static inline bool IsOwnedLand(TileIndex t)
  */
 static inline bool IsOwnedLandTile(TileIndex t)
 {
-	return IsTileType(t, MP_OBJECT) && IsOwnedLand(t);
+	return IsObjectTile(t) && IsOwnedLand(t);
 }
 
 /**
  * Is this object tile a HQ tile?
  * @param t the tile to inspect.
- * @pre IsTileType(t, MP_OBJECT)
+ * @pre IsObjectTile(t)
  * @return true if and only if the tile is a HQ tile.
  */
 static inline bool IsCompanyHQ(TileIndex t)
 {
-	assert(IsTileType(t, MP_OBJECT));
+	assert(IsObjectTile(t));
 	return _mc[t].m5 == OBJECT_HQ;
 }
 
 /**
  * Is this object tile a statue?
  * @param t the tile to inspect.
- * @pre IsTileType(t, MP_OBJECT)
+ * @pre IsObjectTile(t)
  * @return true if and only if the tile is a statue.
  */
 static inline bool IsStatue(TileIndex t)
 {
-	assert(IsTileType(t, MP_OBJECT));
+	assert(IsObjectTile(t));
 	return GetObjectType(t) == OBJECT_STATUE;
 }
 
@@ -102,18 +102,18 @@ static inline bool IsStatue(TileIndex t)
  */
 static inline bool IsStatueTile(TileIndex t)
 {
-	return IsTileType(t, MP_OBJECT) && IsStatue(t);
+	return IsObjectTile(t) && IsStatue(t);
 }
 
 /**
  * Get the random bits of this tile.
  * @param t The tile to get the bits for.
- * @pre IsTileType(t, MP_OBJECT)
+ * @pre IsObjectTile(t)
  * @return The random bits.
  */
 static inline byte GetObjectRandomBits(TileIndex t)
 {
-	assert(IsTileType(t, MP_OBJECT));
+	assert(IsObjectTile(t));
 	return _mc[t].m3;
 }
 

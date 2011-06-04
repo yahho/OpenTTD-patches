@@ -59,7 +59,7 @@ void AfterLoadObjects(const SavegameTypeVersion *stv)
 {
 	Object *o;
 	FOR_ALL_OBJECTS(o) {
-		if ((stv != NULL) && IsOTTDSavegameVersionBefore(stv, 148) && !IsTileType(o->location.tile, MP_OBJECT)) {
+		if ((stv != NULL) && IsOTTDSavegameVersionBefore(stv, 148) && !IsObjectTile(o->location.tile)) {
 			/* Due to a small bug stale objects could remain. */
 			delete o;
 		} else {

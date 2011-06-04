@@ -46,7 +46,7 @@ static inline bool IsBridgeTile(TileIndex t)
 static inline bool MayHaveBridgeAbove(TileIndex t)
 {
 	return IsClearTile(t) || IsRailwayOrDepotTile(t) || IsRoadOrDepotTile(t) ||
-			IsWaterTile(t) || IsTunnelBridgeTile(t) || IsTileType(t, MP_OBJECT);
+			IsWaterTile(t) || IsTunnelBridgeTile(t) || IsObjectTile(t);
 }
 
 /**

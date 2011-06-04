@@ -241,6 +241,17 @@ static inline bool IsTunnelBridgeTile(TileIndex tile)
 }
 
 /**
+ * Checks if a tile has an object.
+ *
+ * @param tile The tile to check
+ * @return true If the tile has an object
+ */
+static inline bool IsObjectTile(TileIndex tile)
+{
+	return IsTileType(tile, MP_OBJECT);
+}
+
+/**
  * Checks if a tile is valid
  *
  * @param tile The tile to check
@@ -332,12 +343,12 @@ static inline TropicZone GetTropicZone(TileIndex tile)
 /**
  * Get the current animation frame
  * @param t the tile
- * @pre IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsIndustryTile(t) || IsStationTile(t)
+ * @pre IsHouseTile(t) || IsObjectTile(t) || IsIndustryTile(t) || IsStationTile(t)
  * @return frame number
  */
 static inline byte GetAnimationFrame(TileIndex t)
 {
-	assert(IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsIndustryTile(t) || IsStationTile(t));
+	assert(IsHouseTile(t) || IsObjectTile(t) || IsIndustryTile(t) || IsStationTile(t));
 	return _mc[t].m7;
 }
 
@@ -345,11 +356,11 @@ static inline byte GetAnimationFrame(TileIndex t)
  * Set a new animation frame
  * @param t the tile
  * @param frame the new frame number
- * @pre IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsIndustryTile(t) || IsStationTile(t)
+ * @pre IsHouseTile(t) || IsObjectTile(t) || IsIndustryTile(t) || IsStationTile(t)
  */
 static inline void SetAnimationFrame(TileIndex t, byte frame)
 {
-	assert(IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsIndustryTile(t) || IsStationTile(t));
+	assert(IsHouseTile(t) || IsObjectTile(t) || IsIndustryTile(t) || IsStationTile(t));
 	_mc[t].m7 = frame;
 }
 
