@@ -102,7 +102,7 @@ void BuildObject(ObjectType type, TileIndex tile, CompanyID owner, Town *town, u
 	assert(o->town != NULL);
 
 	TILE_AREA_LOOP(t, ta) {
-		WaterClass wc = (IsWaterTile(t) ? GetWaterClass(t) : WATER_CLASS_INVALID);
+		WaterClass wc = (IsPlainWaterTile(t) ? GetWaterClass(t) : WATER_CLASS_INVALID);
 		/* Update company infrastructure counts for objects build on canals owned by nobody. */
 		if (wc == WATER_CLASS_CANAL && owner != OWNER_NONE && (IsTileOwner(tile, OWNER_NONE) || IsTileOwner(tile, OWNER_WATER))) {
 			Company::Get(owner)->infrastructure.water++;
@@ -220,7 +220,7 @@ CommandCost CmdBuildObject(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 		TILE_AREA_LOOP(t, ta) {
 			if (HasTileWaterGround(t)) {
 				if (!allow_water) return_cmd_error(STR_ERROR_CAN_T_BUILD_ON_WATER);
-				if (!IsWaterTile(t)) {
+				if (!IsPlainWaterTile(t)) {
 					/* Normal water tiles don't have to be cleared. For all other tile types clear
 					 * the tile but leave the water. */
 					cost.AddCost(DoCommand(t, 0, 0, flags & ~DC_NO_WATER & ~DC_EXEC, CMD_LANDSCAPE_CLEAR));
@@ -265,7 +265,7 @@ CommandCost CmdBuildObject(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 			 * execute the commands and don't check for errors, since that's already done. */
 			TILE_AREA_LOOP(t, ta) {
 				if (HasTileWaterGround(t)) {
-					if (!IsWaterTile(t)) {
+					if (!IsPlainWaterTile(t)) {
 						DoCommand(t, 0, 0, (flags & ~DC_NO_WATER) | DC_NO_MODIFY_TOWN_RATING, CMD_LANDSCAPE_CLEAR);
 					}
 				} else {

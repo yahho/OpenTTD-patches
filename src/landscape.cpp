@@ -610,7 +610,7 @@ CommandCost CmdLandscapeClear(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 	bool do_clear = false;
 	/* Test for stuff which results in water when cleared. Then add the cost to also clear the water. */
-	if ((flags & DC_FORCE_CLEAR_TILE) && HasTileWaterClass(tile) && IsTileOnWater(tile) && !IsWaterTile(tile) && !IsCoastTile(tile)) {
+	if ((flags & DC_FORCE_CLEAR_TILE) && HasTileWaterClass(tile) && IsTileOnWater(tile) && !IsPlainWaterTile(tile) && !IsCoastTile(tile)) {
 		if ((flags & DC_AUTO) && GetWaterClass(tile) == WATER_CLASS_CANAL) return_cmd_error(STR_ERROR_MUST_DEMOLISH_CANAL_FIRST);
 		do_clear = true;
 		cost.AddCost(GetWaterClass(tile) == WATER_CLASS_CANAL ? _price[PR_CLEAR_CANAL] : _price[PR_CLEAR_WATER]);
@@ -937,7 +937,7 @@ static void CreateDesertOrRainForest()
 static bool FindSpring(TileIndex tile, void *user_data)
 {
 	int referenceHeight;
-	if (!IsTileFlat(tile, &referenceHeight) || IsWaterTile(tile)) return false;
+	if (!IsTileFlat(tile, &referenceHeight) || IsPlainWaterTile(tile)) return false;
 
 	/* In the tropics rivers start in the rainforest. */
 	if (_settings_game.game_creation.landscape == LT_TROPIC && GetTropicZone(tile) != TROPICZONE_RAINFOREST) return false;
@@ -978,7 +978,7 @@ static bool MakeLake(TileIndex tile, void *user_data)
 
 	for (DiagDirection d = DIAGDIR_BEGIN; d < DIAGDIR_END; d++) {
 		TileIndex t2 = tile + TileOffsByDiagDir(d);
-		if (IsWaterTile(t2)) {
+		if (IsPlainWaterTile(t2)) {
 			MakeRiver(tile, Random());
 			return false;
 		}
@@ -1048,7 +1048,7 @@ static void River_FoundEndNode(AyStar *aystar, OpenListNode *current)
 {
 	for (PathNode *path = &current->path; path != NULL; path = path->parent) {
 		TileIndex tile = path->node.tile;
-		if (!IsWaterTile(tile)) {
+		if (!IsPlainWaterTile(tile)) {
 			MakeRiver(tile, Random());
 			/* Remove desert directly around the river tile. */
 			CircularTileSearch(&tile, 5, RiverModifyDesertZone, NULL);
@@ -1105,7 +1105,7 @@ static void BuildRiver(TileIndex begin, TileIndex end)
 static bool FlowRiver(bool *marks, TileIndex spring, TileIndex begin)
 {
 	uint height = TileHeight(begin);
-	if (IsWaterTile(begin)) return DistanceManhattan(spring, begin) > _settings_game.game_creation.min_river_length;
+	if (IsPlainWaterTile(begin)) return DistanceManhattan(spring, begin) > _settings_game.game_creation.min_river_length;
 
 	MemSetT(marks, 0, MapSize());
 	marks[begin] = true;
@@ -1122,7 +1122,7 @@ static bool FlowRiver(bool *marks, TileIndex spring, TileIndex begin)
 		queue.pop_front();
 
 		uint height2 = TileHeight(end);
-		if (IsTileFlat(end) && (height2 < height || (height2 == height && IsWaterTile(end)))) {
+		if (IsTileFlat(end) && (height2 < height || (height2 == height && IsPlainWaterTile(end)))) {
 			found = true;
 			break;
 		}

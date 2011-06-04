@@ -181,7 +181,7 @@ static inline bool IsRiver(TileIndex t)
  * @param t Tile to query.
  * @return \c true if it is a plain water tile.
  */
-static inline bool IsWaterTile(TileIndex t)
+static inline bool IsPlainWaterTile(TileIndex t)
 {
 	return IsTileType(t, MP_WATER) && IsPlainWater(t);
 }
@@ -475,8 +475,8 @@ static inline void MakeLock(TileIndex t, Owner o, DiagDirection d, WaterClass wc
 	/* Keep the current waterclass and owner for the tiles.
 	 * It allows to restore them after the lock is deleted */
 	MakeLockTile(t, o, LOCK_PART_MIDDLE, d, wc_middle);
-	MakeLockTile(t - delta, IsWaterTile(t - delta) ? GetTileOwner(t - delta) : o, LOCK_PART_LOWER, d, wc_lower);
-	MakeLockTile(t + delta, IsWaterTile(t + delta) ? GetTileOwner(t + delta) : o, LOCK_PART_UPPER, d, wc_upper);
+	MakeLockTile(t - delta, IsPlainWaterTile(t - delta) ? GetTileOwner(t - delta) : o, LOCK_PART_LOWER, d, wc_lower);
+	MakeLockTile(t + delta, IsPlainWaterTile(t + delta) ? GetTileOwner(t + delta) : o, LOCK_PART_UPPER, d, wc_upper);
 }
 
 #endif /* WATER_MAP_H */

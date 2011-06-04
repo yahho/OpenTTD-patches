@@ -835,7 +835,7 @@ static void Disaster_Submarine_Init(DisasterSubType subtype)
 		if (_settings_game.construction.freeform_edges) y += TILE_SIZE;
 		dir = DIR_SE;
 	}
-	if (!IsWaterTile(TileVirtXY(x, y))) return;
+	if (!IsPlainWaterTile(TileVirtXY(x, y))) return;
 
 	DisasterVehicle *v = new DisasterVehicle();
 	InitializeDisasterVehicle(v, x, y, 0, dir, subtype);

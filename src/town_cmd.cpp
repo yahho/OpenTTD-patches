@@ -1068,7 +1068,7 @@ static bool GrowTownWithBridge(const Town *t, const TileIndex tile, const DiagDi
 				return false;
 			}
 			bridge_tile += delta;
-		} while (IsValidTile(bridge_tile) && IsWaterTile(bridge_tile) && !IsSea(bridge_tile));
+		} while (IsValidTile(bridge_tile) && IsPlainWaterTile(bridge_tile) && !IsSea(bridge_tile));
 	} else {
 		do {
 			if (bridge_length++ >= 11) {
@@ -1076,7 +1076,7 @@ static bool GrowTownWithBridge(const Town *t, const TileIndex tile, const DiagDi
 				return false;
 			}
 			bridge_tile += delta;
-		} while (IsValidTile(bridge_tile) && IsWaterTile(bridge_tile));
+		} while (IsValidTile(bridge_tile) && IsPlainWaterTile(bridge_tile));
 	}
 
 	/* no water tiles in between? */
