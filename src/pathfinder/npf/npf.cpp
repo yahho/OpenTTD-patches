@@ -257,7 +257,7 @@ static uint NPFReservedTrackCost(AyStarNode *current)
 
 	if (NPFGetFlag(current, NPF_FLAG_3RD_SIGNAL) || NPFGetFlag(current, NPF_FLAG_LAST_SIGNAL_BLOCK) || ((res & track) == TRACK_BIT_NONE && !TracksOverlap(res | track))) return 0;
 
-	if (IsTileType(tile, MP_TUNNELBRIDGE)) {
+	if (IsTunnelBridgeTile(tile)) {
 		DiagDirection exitdir = TrackdirToExitdir(current->direction);
 		if (GetTunnelBridgeDirection(tile) == ReverseDiagDir(exitdir)) {
 			return  _settings_game.pf.npf.npf_rail_pbs_cross_penalty * (GetTunnelBridgeLength(tile, GetOtherTunnelBridgeEnd(tile)) + 1);
@@ -772,7 +772,7 @@ static inline bool ForceReverse(TileIndex tile, DiagDirection dir, TransportType
 static bool CanEnterTile(TileIndex tile, DiagDirection dir, TransportType type, uint subtype, RailTypes railtypes, Owner owner)
 {
 	/* Check tunnel entries and bridge ramps */
-	if (IsTileType(tile, MP_TUNNELBRIDGE) && GetTunnelBridgeDirection(tile) != dir) return false;
+	if (IsTunnelBridgeTile(tile) && GetTunnelBridgeDirection(tile) != dir) return false;
 
 	/* Test ownership */
 	if (!CanEnterTileOwnerCheck(owner, tile, dir)) return false;
@@ -872,7 +872,7 @@ static void NPFFollowTrack(AyStar *aystar, OpenListNode *current)
 		/* Do not perform any checks that involve src_tile */
 		dst_tile = src_tile + TileOffsByDiagDir(src_exitdir);
 		trackdirbits = GetDriveableTrackdirBits(dst_tile, src_trackdir, type, subtype);
-	} else if (IsTileType(src_tile, MP_TUNNELBRIDGE) && GetTunnelBridgeDirection(src_tile) == src_exitdir) {
+	} else if (IsTunnelBridgeTile(src_tile) && GetTunnelBridgeDirection(src_tile) == src_exitdir) {
 		/* We drive through the wormhole and arrive on the other side */
 		dst_tile = GetOtherTunnelBridgeEnd(src_tile);
 		trackdirbits = TrackdirToTrackdirBits(src_trackdir);

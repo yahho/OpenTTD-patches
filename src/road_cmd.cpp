@@ -204,7 +204,7 @@ static CommandCost RemoveRoad(TileIndex tile, DoCommandFlag flags, RoadBits piec
 		if (rts == RoadTypeToRoadTypes(rt)) return DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
 
 		CommandCost cost(EXPENSES_CONSTRUCTION);
-		if (IsTileType(tile, MP_TUNNELBRIDGE)) {
+		if (IsTunnelBridgeTile(tile)) {
 			/* Removing any roadbit in the bridge axis removes the roadtype (that's the behaviour remove-long-roads needs) */
 			if ((AxisToRoadBits(DiagDirToAxis(GetTunnelBridgeDirection(tile))) & pieces) == ROAD_NONE) return_cmd_error(rt == ROADTYPE_TRAM ? STR_ERROR_THERE_IS_NO_TRAMWAY : STR_ERROR_THERE_IS_NO_ROAD);
 
@@ -703,7 +703,7 @@ do_clear:;
 
 	}
 
-	uint num_pieces = (!need_to_clear && IsTileType(tile, MP_TUNNELBRIDGE)) ?
+	uint num_pieces = (!need_to_clear && IsTunnelBridgeTile(tile)) ?
 			/* There are 2 pieces on *every* tile of the bridge or tunnel */
 			2 * (GetTunnelBridgeLength(GetOtherTunnelBridgeEnd(tile), tile) + 2) :
 			/* Count pieces */
@@ -756,7 +756,7 @@ do_clear:;
 		/* Update company infrastructure count. */
 		Company *c = Company::GetIfValid(GetRoadOwner(tile, rt));
 		if (c != NULL) {
-			if (IsTileType(tile, MP_TUNNELBRIDGE)) num_pieces *= TUNNELBRIDGE_TRACKBIT_FACTOR;
+			if (IsTunnelBridgeTile(tile)) num_pieces *= TUNNELBRIDGE_TRACKBIT_FACTOR;
 			c->infrastructure.road[rt] += num_pieces;
 			DirtyCompanyInfrastructureWindows(c->index);
 		}
@@ -869,7 +869,7 @@ CommandCost CmdBuildLongRoad(TileIndex start_tile, DoCommandFlag flags, uint32 p
 		} else {
 			had_success = true;
 			/* Only pay for the upgrade on one side of the bridges and tunnels */
-			if (IsTileType(tile, MP_TUNNELBRIDGE)) {
+			if (IsTunnelBridgeTile(tile)) {
 				if (IsBridge(tile)) {
 					if (!had_bridge || GetTunnelBridgeDirection(tile) == dir) {
 						cost.AddCost(ret);

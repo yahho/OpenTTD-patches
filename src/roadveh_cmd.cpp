@@ -367,7 +367,7 @@ CommandCost CmdTurnRoadVeh(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 
 	if (IsNormalRoadTile(v->tile) && GetDisallowedRoadDirections(v->tile) != DRD_NONE) return CMD_ERROR;
 
-	if (IsTileType(v->tile, MP_TUNNELBRIDGE) && DirToDiagDir(v->direction) == GetTunnelBridgeDirection(v->tile)) return CMD_ERROR;
+	if (IsTunnelBridgeTile(v->tile) && DirToDiagDir(v->direction) == GetTunnelBridgeDirection(v->tile)) return CMD_ERROR;
 
 	if (flags & DC_EXEC) v->reverse_ctr = 180;
 
@@ -1207,7 +1207,7 @@ again:
 
 		uint32 r = VehicleEnterTile(v, tile, x, y);
 		if (HasBit(r, VETS_CANNOT_ENTER)) {
-			if (!IsTileType(tile, MP_TUNNELBRIDGE)) {
+			if (!IsTunnelBridgeTile(tile)) {
 				v->cur_speed = 0;
 				return false;
 			}

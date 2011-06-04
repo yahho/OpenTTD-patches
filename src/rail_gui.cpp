@@ -1842,7 +1842,7 @@ static void SetDefaultRailGui()
 		memset(count, 0, sizeof(count));
 		for (TileIndex t = 0; t < MapSize(); t++) {
 			if (IsRailwayOrDepotTile(t) || IsLevelCrossingTile(t) || HasStationTileRail(t) ||
-					(IsTileType(t, MP_TUNNELBRIDGE) && GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL)) {
+					(IsTunnelBridgeTile(t) && GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL)) {
 				count[GetRailType(t)]++;
 			}
 		}

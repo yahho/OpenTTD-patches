@@ -285,7 +285,7 @@ static void FindTrainOnPathEnd(FindTrainOnTrackInfo *ftoti)
 	}
 
 	/* Special case for bridges/tunnels: check the other end as well. */
-	if (IsTileType(ftoti->res.tile, MP_TUNNELBRIDGE)) {
+	if (IsTunnelBridgeTile(ftoti->res.tile)) {
 		FindVehicleOnPos(GetOtherTunnelBridgeEnd(ftoti->res.tile), ftoti, FindTrainOnTrackEnum);
 		if (ftoti->best != NULL) return;
 	}

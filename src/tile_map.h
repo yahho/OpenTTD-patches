@@ -230,6 +230,17 @@ static inline bool IsIndustryTile(TileIndex tile)
 }
 
 /**
+ * Checks if a tile is a tunnel or bridge.
+ *
+ * @param tile The tile to check
+ * @return true If the tile is a tunnel or bridge
+ */
+static inline bool IsTunnelBridgeTile(TileIndex tile)
+{
+	return IsTileType(tile, MP_TUNNELBRIDGE);
+}
+
+/**
  * Checks if a tile is valid
  *
  * @param tile The tile to check

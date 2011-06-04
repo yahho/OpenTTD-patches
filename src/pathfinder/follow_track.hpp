@@ -195,7 +195,7 @@ protected:
 		m_tiles_skipped = 0;
 
 		/* extra handling for tunnels and bridges in our direction */
-		if (IsTileType(m_old_tile, MP_TUNNELBRIDGE)) {
+		if (IsTunnelBridgeTile(m_old_tile)) {
 			DiagDirection enterdir = GetTunnelBridgeDirection(m_old_tile);
 			if (enterdir == m_exitdir) {
 				/* we are entering the tunnel / bridge */
@@ -348,7 +348,7 @@ protected:
 		}
 
 		/* tunnel holes and bridge ramps can be entered only from proper direction */
-		if (IsTileType(m_new_tile, MP_TUNNELBRIDGE)) {
+		if (IsTunnelBridgeTile(m_new_tile)) {
 			if (IsTunnel(m_new_tile)) {
 				if (!m_is_tunnel) {
 					DiagDirection tunnel_enterdir = GetTunnelBridgeDirection(m_new_tile);

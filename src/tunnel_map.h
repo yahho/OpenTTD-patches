@@ -18,12 +18,12 @@
 /**
  * Is this a tunnel (entrance)?
  * @param t the tile that might be a tunnel
- * @pre IsTileType(t, MP_TUNNELBRIDGE)
+ * @pre IsTunnelBridgeTile(t)
  * @return true if and only if this tile is a tunnel (entrance)
  */
 static inline bool IsTunnel(TileIndex t)
 {
-	assert(IsTileType(t, MP_TUNNELBRIDGE));
+	assert(IsTunnelBridgeTile(t));
 	return !HasBit(_mc[t].m5, 7);
 }
 
@@ -34,7 +34,7 @@ static inline bool IsTunnel(TileIndex t)
  */
 static inline bool IsTunnelTile(TileIndex t)
 {
-	return IsTileType(t, MP_TUNNELBRIDGE) && IsTunnel(t);
+	return IsTunnelBridgeTile(t) && IsTunnel(t);
 }
 
 TileIndex GetOtherTunnelEnd(TileIndex);

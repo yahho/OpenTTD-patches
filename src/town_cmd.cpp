@@ -1197,7 +1197,7 @@ static void GrowTownInTile(TileIndex *tile_ptr, RoadBits cur_rb, DiagDirection t
 
 		/* Reached a tunnel/bridge? Then continue at the other side of it, unless
 		 * it is the starting tile. Half the time, we stay on this side then.*/
-		if (IsTileType(tile, MP_TUNNELBRIDGE)) {
+		if (IsTunnelBridgeTile(tile)) {
 			if (GetTunnelBridgeTransportType(tile) == TRANSPORT_ROAD && (target_dir != DIAGDIR_END || Chance16(1, 2))) {
 				*tile_ptr = GetOtherTunnelBridgeEnd(tile);
 			}
@@ -1322,7 +1322,7 @@ static int GrowTownAtRoad(Town *t, TileIndex tile)
 			return _grow_town_result;
 		}
 
-		if (IsTileType(tile, MP_TUNNELBRIDGE)) {
+		if (IsTunnelBridgeTile(tile)) {
 			/* Only build in the direction away from the tunnel or bridge. */
 			target_dir = ReverseDiagDir(GetTunnelBridgeDirection(tile));
 		} else {

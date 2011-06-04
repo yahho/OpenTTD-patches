@@ -195,7 +195,7 @@ static inline SpriteID GetPylonBase(TileIndex tile, TileContext context = TCX_NO
  */
 static void AdjustTileh(TileIndex tile, Slope *tileh)
 {
-	if (IsTileType(tile, MP_TUNNELBRIDGE)) {
+	if (IsTunnelBridgeTile(tile)) {
 		if (IsTunnel(tile)) {
 			*tileh = SLOPE_STEEP; // XXX - Hack to make tunnel entrances to always have a pylon
 		} else if (*tileh != SLOPE_FLAT) {
