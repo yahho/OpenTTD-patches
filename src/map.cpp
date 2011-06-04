@@ -378,7 +378,7 @@ uint GetClosestWaterDistance(TileIndex tile, bool water)
 	if (!water) {
 		/* no land found - is this a water-only map? */
 		for (TileIndex t = 0; t < MapSize(); t++) {
-			if (!IsTileType(t, MP_VOID) && !IsTileType(t, MP_WATER)) return 0x1FF;
+			if (!IsTileType(t, MP_VOID) && !IsWaterTile(t)) return 0x1FF;
 		}
 	}
 

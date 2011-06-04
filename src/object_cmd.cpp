@@ -641,12 +641,12 @@ void GenerateObjects()
 	if (_settings_game.construction.freeform_edges && lighthouses_to_build != 0) {
 		uint num_water_tiles = 0;
 		for (uint x = 0; x < MapMaxX(); x++) {
-			if (IsTileType(TileXY(x, 1), MP_WATER)) num_water_tiles++;
-			if (IsTileType(TileXY(x, MapMaxY() - 1), MP_WATER)) num_water_tiles++;
+			if (IsWaterTile(TileXY(x, 1))) num_water_tiles++;
+			if (IsWaterTile(TileXY(x, MapMaxY() - 1))) num_water_tiles++;
 		}
 		for (uint y = 1; y < MapMaxY() - 1; y++) {
-			if (IsTileType(TileXY(1, y), MP_WATER)) num_water_tiles++;
-			if (IsTileType(TileXY(MapMaxX() - 1, y), MP_WATER)) num_water_tiles++;
+			if (IsWaterTile(TileXY(1, y))) num_water_tiles++;
+			if (IsWaterTile(TileXY(MapMaxX() - 1, y))) num_water_tiles++;
 		}
 		/* The -6 is because the top borders are MP_VOID (-2) and all corners
 		 * are counted twice (-4). */
@@ -692,7 +692,7 @@ void GenerateObjects()
 		}
 
 		/* Only build lighthouses at tiles where the border is sea. */
-		if (!IsTileType(tile, MP_WATER)) continue;
+		if (!IsWaterTile(tile)) continue;
 
 		for (int j = 0; j < 19; j++) {
 			int h;

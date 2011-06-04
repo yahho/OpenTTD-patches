@@ -383,7 +383,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	 * walk through the whole map.. */
 	if (IsOTTDSavegameVersionBefore(stv, 4, 3)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsTileType(t, MP_WATER) && GetTileOwner(t) >= MAX_COMPANIES) {
+			if (IsWaterTile(t) && GetTileOwner(t) >= MAX_COMPANIES) {
 				SetTileOwner(t, OWNER_WATER);
 			}
 		}
@@ -1114,7 +1114,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (!IsTileFlat(t)) continue;
 
-			if (IsTileType(t, MP_WATER) && IsLock(t)) GuessWaterClass(t, false);
+			if (IsWaterTile(t) && IsLock(t)) GuessWaterClass(t, false);
 			if (IsStationTile(t) && (IsDock(t) || IsBuoy(t))) GuessWaterClass(t, false);
 		}
 	}
@@ -1122,14 +1122,14 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	if (IsOTTDSavegameVersionBefore(stv, 87)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			/* skip oil rigs at borders! */
-			if ((IsTileType(t, MP_WATER) || IsBuoyTile(t)) &&
+			if ((IsWaterTile(t) || IsBuoyTile(t)) &&
 					(TileX(t) == 0 || TileY(t) == 0 || TileX(t) == MapMaxX() - 1 || TileY(t) == MapMaxY() - 1)) {
 				/* Some version 86 savegames have wrong water class at map borders (under buoy, or after removing buoy).
 				 * This conversion has to be done before buoys with invalid owner are removed. */
 				SetWaterClass(t, WATER_CLASS_SEA);
 			}
 
-			if (IsBuoyTile(t) || IsDriveThroughStopTile(t) || IsTileType(t, MP_WATER)) {
+			if (IsBuoyTile(t) || IsDriveThroughStopTile(t) || IsWaterTile(t)) {
 				Owner o = GetTileOwner(t);
 				if (o < MAX_COMPANIES && !Company::IsValidID(o)) {
 					Backup<CompanyByte> cur_company(_current_company, o, FILE_LINE);
@@ -1548,7 +1548,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		const Depot *d;
 		FOR_ALL_DEPOTS(d) {
 			_mc[d->xy].m2 = d->index;
-			if (IsTileType(d->xy, MP_WATER)) _mc[GetOtherShipDepotTile(d->xy)].m2 = d->index;
+			if (IsWaterTile(d->xy)) _mc[GetOtherShipDepotTile(d->xy)].m2 = d->index;
 		}
 	}
 

@@ -1227,7 +1227,7 @@ static bool CheckFreeformEdges(int32 p1)
 			}
 		}
 		for (uint i = 1; i < MapMaxX(); i++) {
-			if (!IsTileType(TileXY(i, MapMaxY() - 1), MP_WATER) || TileHeight(TileXY(1, MapMaxY())) != 0) {
+			if (!IsWaterTile(TileXY(i, MapMaxY() - 1)) || TileHeight(TileXY(1, MapMaxY())) != 0) {
 				ShowErrorMessage(STR_CONFIG_SETTING_EDGES_NOT_WATER, INVALID_STRING_ID, WL_ERROR);
 				return false;
 			}
@@ -1239,7 +1239,7 @@ static bool CheckFreeformEdges(int32 p1)
 			}
 		}
 		for (uint i = 1; i < MapMaxY(); i++) {
-			if (!IsTileType(TileXY(MapMaxX() - 1, i), MP_WATER) || TileHeight(TileXY(MapMaxX(), i)) != 0) {
+			if (!IsWaterTile(TileXY(MapMaxX() - 1, i)) || TileHeight(TileXY(MapMaxX(), i)) != 0) {
 				ShowErrorMessage(STR_CONFIG_SETTING_EDGES_NOT_WATER, INVALID_STRING_ID, WL_ERROR);
 				return false;
 			}

@@ -250,7 +250,7 @@ uint16 GetAiPurchaseCallbackResult(uint8 feature, CargoID cargo_type, uint8 defa
  */
 void AmbientSoundEffectCallback(TileIndex tile)
 {
-	assert(IsClearTile(tile) || IsTreeTile(tile) || IsTileType(tile, MP_WATER));
+	assert(IsClearTile(tile) || IsTreeTile(tile) || IsWaterTile(tile));
 
 	/* Only run every 1/200-th time. */
 	uint32 r; // Save for later

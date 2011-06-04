@@ -61,14 +61,14 @@
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return ::IsTileType(tile, MP_WATER) && !::IsCoast(tile);
+	return ::IsWaterTile(tile) && !::IsCoast(tile);
 }
 
 /* static */ bool ScriptTile::IsCoastTile(TileIndex tile)
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return (::IsTileType(tile, MP_WATER) && ::IsCoast(tile)) ||
+	return (::IsWaterTile(tile) && ::IsCoast(tile)) ||
 		(::IsTreeTile(tile) && ::GetTreeGround(tile) == TREE_GROUND_SHORE);
 }
 

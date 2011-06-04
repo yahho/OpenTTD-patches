@@ -71,7 +71,7 @@ static const uint8 _flood_from_dirs[] = {
  */
 static inline void MarkTileDirtyIfCanalOrRiver(TileIndex tile)
 {
-	if (IsTileType(tile, MP_WATER) && (IsCanal(tile) || IsRiver(tile))) MarkTileDirtyByTile(tile);
+	if (IsWaterTile(tile) && (IsCanal(tile) || IsRiver(tile))) MarkTileDirtyByTile(tile);
 }
 
 /**
@@ -414,7 +414,7 @@ CommandCost CmdBuildCanal(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 		}
 
 		/* can't make water of water! */
-		if (IsTileType(tile, MP_WATER) && (!IsTileOwner(tile, OWNER_WATER) || wc == WATER_CLASS_SEA)) continue;
+		if (IsWaterTile(tile) && (!IsTileOwner(tile, OWNER_WATER) || wc == WATER_CLASS_SEA)) continue;
 
 		bool water = IsPlainWaterTile(tile);
 		ret = DoCommand(tile, 0, 0, flags | DC_FORCE_CLEAR_TILE, CMD_LANDSCAPE_CLEAR);
@@ -1040,7 +1040,7 @@ FloodingBehaviour GetFloodingBehaviour(TileIndex tile)
  */
 void DoFloodTile(TileIndex target)
 {
-	assert(!IsTileType(target, MP_WATER));
+	assert(!IsWaterTile(target));
 
 	bool flooded = false; // Will be set to true if something is changed.
 
@@ -1152,7 +1152,7 @@ static void DoDryUp(TileIndex tile)
  */
 void TileLoop_Water(TileIndex tile)
 {
-	if (IsTileType(tile, MP_WATER)) AmbientSoundEffect(tile);
+	if (IsWaterTile(tile)) AmbientSoundEffect(tile);
 
 	switch (GetFloodingBehaviour(tile)) {
 		case FLOOD_ACTIVE:
@@ -1160,7 +1160,7 @@ void TileLoop_Water(TileIndex tile)
 				TileIndex dest = tile + TileOffsByDir(dir);
 				if (!IsValidTile(dest)) continue;
 				/* do not try to flood water tiles - increases performance a lot */
-				if (IsTileType(dest, MP_WATER)) continue;
+				if (IsWaterTile(dest)) continue;
 
 				int z_dest;
 				Slope slope_dest = GetFoundationSlope(dest, &z_dest) & ~SLOPE_HALFTILE_MASK & ~SLOPE_STEEP;

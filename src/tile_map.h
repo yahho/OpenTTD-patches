@@ -197,6 +197,17 @@ static inline bool IsStationTile(TileIndex tile)
 }
 
 /**
+ * Checks if a tile has water.
+ *
+ * @param tile The tile to check
+ * @return true If the tile has water
+ */
+static inline bool IsWaterTile(TileIndex tile)
+{
+	return IsTileType(tile, MP_WATER);
+}
+
+/**
  * Checks if a tile is valid
  *
  * @param tile The tile to check

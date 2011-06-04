@@ -1834,7 +1834,7 @@ static Town *CreateRandomTown(uint attempts, uint32 townnameparts, TownSize size
 
 		/* if we tried to place the town on water, slide it over onto
 		 * the nearest likely-looking spot */
-		if (IsTileType(tile, MP_WATER)) {
+		if (IsWaterTile(tile)) {
 			tile = FindNearestGoodCoastalTownSpot(tile, layout);
 			if (tile == INVALID_TILE) continue;
 		}

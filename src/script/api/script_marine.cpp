@@ -20,7 +20,7 @@
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return ::IsTileType(tile, MP_WATER) && ::GetWaterTileType(tile) == WATER_TILE_DEPOT;
+	return ::IsWaterTile(tile) && ::GetWaterTileType(tile) == WATER_TILE_DEPOT;
 }
 
 /* static */ bool ScriptMarine::IsDockTile(TileIndex tile)
@@ -41,14 +41,14 @@
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return ::IsTileType(tile, MP_WATER) && ::GetWaterTileType(tile) == WATER_TILE_LOCK;
+	return ::IsWaterTile(tile) && ::GetWaterTileType(tile) == WATER_TILE_LOCK;
 }
 
 /* static */ bool ScriptMarine::IsCanalTile(TileIndex tile)
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return ::IsTileType(tile, MP_WATER) && ::IsCanal(tile);
+	return ::IsWaterTile(tile) && ::IsCanal(tile);
 }
 
 /* static */ bool ScriptMarine::AreWaterTilesConnected(TileIndex t1, TileIndex t2)
