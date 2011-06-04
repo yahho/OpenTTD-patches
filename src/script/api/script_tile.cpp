@@ -189,7 +189,7 @@
 {
 	if (!::IsValidTile(tile)) return ScriptCompany::COMPANY_INVALID;
 	if (::IsHouseTile(tile)) return ScriptCompany::COMPANY_INVALID;
-	if (::IsTileType(tile, MP_INDUSTRY)) return ScriptCompany::COMPANY_INVALID;
+	if (::IsIndustryTile(tile)) return ScriptCompany::COMPANY_INVALID;
 
 	return ScriptCompany::ResolveCompanyID((ScriptCompany::CompanyID)(byte)::GetTileOwner(tile));
 }

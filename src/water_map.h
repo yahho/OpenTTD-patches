@@ -94,13 +94,13 @@ static inline WaterTileType GetWaterTileType(TileIndex t)
  */
 static inline bool HasTileWaterClass(TileIndex t)
 {
-	return IsWaterTile(t) || IsStationTile(t) || IsTileType(t, MP_INDUSTRY) || IsTileType(t, MP_OBJECT);
+	return IsWaterTile(t) || IsStationTile(t) || IsIndustryTile(t) || IsTileType(t, MP_OBJECT);
 }
 
 /**
  * Get the water class at a tile.
  * @param t Water tile to query.
- * @pre IsWaterTile(t) || IsStationTile(t) || IsTileType(t, MP_INDUSTRY) || IsTileType(t, MP_OBJECT)
+ * @pre IsWaterTile(t) || IsStationTile(t) || IsIndustryTile(t) || IsTileType(t, MP_OBJECT)
  * @return Water class at the tile.
  */
 static inline WaterClass GetWaterClass(TileIndex t)
@@ -113,7 +113,7 @@ static inline WaterClass GetWaterClass(TileIndex t)
  * Set the water class at a tile.
  * @param t  Water tile to change.
  * @param wc New water class.
- * @pre IsWaterTile(t) || IsStationTile(t) || IsTileType(t, MP_INDUSTRY) || IsTileType(t, MP_OBJECT)
+ * @pre IsWaterTile(t) || IsStationTile(t) || IsIndustryTile(t) || IsTileType(t, MP_OBJECT)
  */
 static inline void SetWaterClass(TileIndex t, WaterClass wc)
 {
@@ -124,7 +124,7 @@ static inline void SetWaterClass(TileIndex t, WaterClass wc)
 /**
  * Tests if the tile was built on water.
  * @param t the tile to check
- * @pre IsWaterTile(t) || IsStationTile(t) || IsTileType(t, MP_INDUSTRY) || IsTileType(t, MP_OBJECT)
+ * @pre IsWaterTile(t) || IsStationTile(t) || IsIndustryTile(t) || IsTileType(t, MP_OBJECT)
  * @return true iff on water
  */
 static inline bool IsTileOnWater(TileIndex t)

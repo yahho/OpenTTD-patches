@@ -31,7 +31,7 @@
 
 /* static */ IndustryID ScriptIndustry::GetIndustryID(TileIndex tile)
 {
-	if (!::IsValidTile(tile) || !::IsTileType(tile, MP_INDUSTRY)) return INVALID_INDUSTRY;
+	if (!::IsValidTile(tile) || !::IsIndustryTile(tile)) return INVALID_INDUSTRY;
 	return ::GetIndustryIndex(tile);
 }
 

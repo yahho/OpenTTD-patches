@@ -583,7 +583,7 @@ bool IsWateredTile(TileIndex tile, Direction from)
 				 * Note: There is no easy way to detect the industry of an oilrig tile. */
 				TileIndex src_tile = tile + TileOffsByDir(from);
 				if ((IsStationTile(src_tile) && IsOilRig(src_tile)) ||
-				    (IsTileType(src_tile, MP_INDUSTRY))) return true;
+				    (IsIndustryTile(src_tile))) return true;
 
 				return IsTileOnWater(tile);
 			}
@@ -594,7 +594,7 @@ bool IsWateredTile(TileIndex tile, Direction from)
 			 * Note: There is no easy way to detect the industry of an oilrig tile. */
 			TileIndex src_tile = tile + TileOffsByDir(from);
 			if ((IsStationTile(src_tile) && IsOilRig(src_tile)) ||
-			    (IsTileType(src_tile, MP_INDUSTRY) && GetIndustryIndex(src_tile) == GetIndustryIndex(tile))) return true;
+			    (IsIndustryTile(src_tile) && GetIndustryIndex(src_tile) == GetIndustryIndex(tile))) return true;
 
 			return IsTileOnWater(tile);
 		}

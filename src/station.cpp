@@ -322,7 +322,7 @@ struct RectAndIndustryVector {
 static bool FindIndustryToDeliver(TileIndex ind_tile, void *user_data)
 {
 	/* Only process industry tiles */
-	if (!IsTileType(ind_tile, MP_INDUSTRY)) return false;
+	if (!IsIndustryTile(ind_tile)) return false;
 
 	RectAndIndustryVector *riv = (RectAndIndustryVector *)user_data;
 	Industry *ind = Industry::GetByTile(ind_tile);

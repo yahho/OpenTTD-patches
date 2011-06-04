@@ -440,7 +440,7 @@ static bool DisasterTick_Aircraft(DisasterVehicle *v, uint16 image_override, boo
 		if ((uint)x > MapMaxX() * TILE_SIZE - 1) return true;
 
 		TileIndex tile = TileVirtXY(x, y);
-		if (!IsTileType(tile, MP_INDUSTRY)) return true;
+		if (!IsIndustryTile(tile)) return true;
 
 		IndustryID ind = GetIndustryIndex(tile);
 		v->dest_tile = ind;

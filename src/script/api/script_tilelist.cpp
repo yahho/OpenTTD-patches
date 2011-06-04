@@ -68,7 +68,7 @@ ScriptTileList_IndustryAccepting::ScriptTileList_IndustryAccepting(IndustryID in
 	TILE_AREA_LOOP(cur_tile, ta) {
 		if (!::IsValidTile(cur_tile)) continue;
 		/* Exclude all tiles that belong to this industry */
-		if (::IsTileType(cur_tile, MP_INDUSTRY) && ::GetIndustryIndex(cur_tile) == industry_id) continue;
+		if (::IsIndustryTile(cur_tile) && ::GetIndustryIndex(cur_tile) == industry_id) continue;
 
 		/* Only add the tile if it accepts the cargo (sometimes just 1 tile of an
 		 *  industry triggers the acceptance). */
@@ -104,7 +104,7 @@ ScriptTileList_IndustryProducing::ScriptTileList_IndustryProducing(IndustryID in
 	TILE_AREA_LOOP(cur_tile, ta) {
 		if (!::IsValidTile(cur_tile)) continue;
 		/* Exclude all tiles that belong to this industry */
-		if (::IsTileType(cur_tile, MP_INDUSTRY) && ::GetIndustryIndex(cur_tile) == industry_id) continue;
+		if (::IsIndustryTile(cur_tile) && ::GetIndustryIndex(cur_tile) == industry_id) continue;
 
 		this->AddTile(cur_tile);
 	}

@@ -144,7 +144,7 @@ static int CountMapSquareAround(TileIndex tile, CMSAMatcher cmp)
 static bool CMSAMine(TileIndex tile)
 {
 	/* No industry */
-	if (!IsTileType(tile, MP_INDUSTRY)) return false;
+	if (!IsIndustryTile(tile)) return false;
 
 	const Industry *ind = Industry::GetByTile(tile);
 
@@ -212,7 +212,7 @@ static bool FindNearIndustryName(TileIndex tile, void *user_data)
 {
 	/* All already found industry types */
 	StationNameInformation *sni = (StationNameInformation*)user_data;
-	if (!IsTileType(tile, MP_INDUSTRY)) return false;
+	if (!IsIndustryTile(tile)) return false;
 
 	/* If the station name is undefined it means that it doesn't name a station */
 	IndustryType indtype = GetIndustryType(tile);
@@ -3806,7 +3806,7 @@ void BuildOilRig(TileIndex tile)
 
 	st->string_id = GenerateStationName(st, tile, STATIONNAMING_OILRIG);
 
-	assert(IsTileType(tile, MP_INDUSTRY));
+	assert(IsIndustryTile(tile));
 	DeleteAnimatedTile(tile);
 	MakeOilrig(tile, st->index, GetWaterClass(tile));
 

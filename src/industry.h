@@ -83,13 +83,13 @@ struct Industry : IndustryPool::PoolItem<&_industry_pool> {
 	 */
 	inline bool TileBelongsToIndustry(TileIndex tile) const
 	{
-		return IsTileType(tile, MP_INDUSTRY) && GetIndustryIndex(tile) == this->index;
+		return IsIndustryTile(tile) && GetIndustryIndex(tile) == this->index;
 	}
 
 	/**
 	 * Get the industry of the given tile
 	 * @param tile the tile to get the industry from
-	 * @pre IsTileType(t, MP_INDUSTRY)
+	 * @pre IsIndustryTile(t)
 	 * @return the industry
 	 */
 	static inline Industry *GetByTile(TileIndex tile)

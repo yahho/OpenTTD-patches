@@ -219,6 +219,17 @@ static inline bool IsVoidTile(TileIndex tile)
 }
 
 /**
+ * Checks if a tile is an industry.
+ *
+ * @param tile The tile to check
+ * @return true If the tile is an industry
+ */
+static inline bool IsIndustryTile(TileIndex tile)
+{
+	return IsTileType(tile, MP_INDUSTRY);
+}
+
+/**
  * Checks if a tile is valid
  *
  * @param tile The tile to check
@@ -245,7 +256,7 @@ static inline Owner GetTileOwner(TileIndex tile)
 {
 	assert(IsValidTile(tile));
 	assert(!IsHouseTile(tile));
-	assert(!IsTileType(tile, MP_INDUSTRY));
+	assert(!IsIndustryTile(tile));
 
 	return (Owner)GB(_mc[tile].m1, 0, 5);
 }
@@ -265,7 +276,7 @@ static inline void SetTileOwner(TileIndex tile, Owner owner)
 {
 	assert(IsValidTile(tile));
 	assert(!IsHouseTile(tile));
-	assert(!IsTileType(tile, MP_INDUSTRY));
+	assert(!IsIndustryTile(tile));
 
 	SB(_mc[tile].m1, 0, 5, owner);
 }
@@ -310,12 +321,12 @@ static inline TropicZone GetTropicZone(TileIndex tile)
 /**
  * Get the current animation frame
  * @param t the tile
- * @pre IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) || IsStationTile(t)
+ * @pre IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsIndustryTile(t) || IsStationTile(t)
  * @return frame number
  */
 static inline byte GetAnimationFrame(TileIndex t)
 {
-	assert(IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) || IsStationTile(t));
+	assert(IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsIndustryTile(t) || IsStationTile(t));
 	return _mc[t].m7;
 }
 
@@ -323,11 +334,11 @@ static inline byte GetAnimationFrame(TileIndex t)
  * Set a new animation frame
  * @param t the tile
  * @param frame the new frame number
- * @pre IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) || IsStationTile(t)
+ * @pre IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsIndustryTile(t) || IsStationTile(t)
  */
 static inline void SetAnimationFrame(TileIndex t, byte frame)
 {
-	assert(IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) || IsStationTile(t));
+	assert(IsHouseTile(t) || IsTileType(t, MP_OBJECT) || IsIndustryTile(t) || IsStationTile(t));
 	_mc[t].m7 = frame;
 }
 

@@ -610,7 +610,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 					 * the map
 					 */
 					TileIndex t1 = TILE_ADDXY(t, 0, 1);
-					if (IsTileType(t1, MP_INDUSTRY) &&
+					if (IsIndustryTile(t1) &&
 							GetIndustryGfx(t1) == GFX_OILRIG_1) {
 						/* The internal encoding of oil rigs was changed twice.
 						 * It was 3 (till 2.2) and later 5 (till 5.1).
@@ -894,7 +894,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 
 	if (IsOTTDSavegameVersionBefore(stv, 43)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsTileType(t, MP_INDUSTRY)) {
+			if (IsIndustryTile(t)) {
 				switch (GetIndustryGfx(t)) {
 					case GFX_POWERPLANT_SPARKS:
 						_mc[t].m3 = GB(_mc[t].m1, 2, 5);
@@ -1214,7 +1214,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 			if (IsStationTile(t) && IsOilRig(t)) {
 				GuessWaterClass(t, true);
 			}
-			if (IsTileType(t, MP_INDUSTRY)) {
+			if (IsIndustryTile(t)) {
 				if ((GetIndustrySpec(GetIndustryType(t))->behaviour & INDUSTRYBEH_BUILT_ONWATER) != 0) {
 					GuessWaterClass(t, true);
 				} else {

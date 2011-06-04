@@ -90,12 +90,12 @@ void ResetIndustries()
  * it will return the general type of industry, and not the sprite index
  * as would do GetIndustryGfx.
  * @param tile that is queried
- * @pre IsTileType(tile, MP_INDUSTRY)
+ * @pre IsIndustryTile(tile)
  * @return general type for this industry, as defined in industry.h
  */
 IndustryType GetIndustryType(TileIndex tile)
 {
-	assert(IsTileType(tile, MP_INDUSTRY));
+	assert(IsIndustryTile(tile));
 
 	const Industry *ind = Industry::GetByTile(tile);
 	assert(ind != NULL);
@@ -140,7 +140,7 @@ Industry::~Industry()
 	if (this->location.w == 0) return;
 
 	TILE_AREA_LOOP(tile_cur, this->location) {
-		if (IsTileType(tile_cur, MP_INDUSTRY)) {
+		if (IsIndustryTile(tile_cur)) {
 			if (GetIndustryIndex(tile_cur) == this->index) {
 				DeleteNewGRFInspectWindow(GSF_INDUSTRYTILES, tile_cur);
 
@@ -742,7 +742,7 @@ static void MakeIndustryTileBigger(TileIndex tile)
 		 * station. */
 		TileIndex other = tile + TileDiffXY(0, 1);
 
-		if (IsTileType(other, MP_INDUSTRY) &&
+		if (IsIndustryTile(other) &&
 				GetIndustryGfx(other) == GFX_OILRIG_1 &&
 				GetIndustryIndex(tile) == GetIndustryIndex(other)) {
 			BuildOilRig(tile);
@@ -796,7 +796,7 @@ static void TileLoop_Industry(TileIndex tile)
 	 * an industry that was previously build on water can now be flooded.
 	 * If this happens the tile is no longer an industry tile after
 	 * returning from TileLoop_Water. */
-	if (!IsTileType(tile, MP_INDUSTRY)) return;
+	if (!IsIndustryTile(tile)) return;
 
 	TriggerIndustryTile(tile, INDTILE_TRIGGER_TILE_LOOP);
 
@@ -922,7 +922,7 @@ static void ChangeTileOwner_Industry(TileIndex tile, Owner old_owner, Owner new_
 bool IsTileForestIndustry(TileIndex tile)
 {
 	/* Check for industry tile */
-	if (!IsTileType(tile, MP_INDUSTRY)) return false;
+	if (!IsIndustryTile(tile)) return false;
 
 	const Industry *ind = Industry::GetByTile(tile);
 
