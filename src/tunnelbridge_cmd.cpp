@@ -259,7 +259,7 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 
 			switch (GetTileType(tile)) {
 				case MP_WATER:
-					if (!IsWater(tile) && !IsCoast(tile)) goto not_valid_below;
+					if (!IsPlainWater(tile) && !IsCoast(tile)) goto not_valid_below;
 					break;
 
 				case MP_RAILWAY:

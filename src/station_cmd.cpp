@@ -170,7 +170,7 @@ static bool CMSAMine(TileIndex tile)
  */
 static bool CMSAWater(TileIndex tile)
 {
-	return IsTileType(tile, MP_WATER) && IsWater(tile);
+	return IsTileType(tile, MP_WATER) && IsPlainWater(tile);
 }
 
 /**

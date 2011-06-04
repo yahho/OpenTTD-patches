@@ -80,7 +80,7 @@ RoadBits CleanUpRoadBits(const TileIndex tile, RoadBits org_rb)
 
 				case MP_WATER:
 					/* Check for real water tile */
-					connective = !IsWater(neighbor_tile);
+					connective = !IsPlainWater(neighbor_tile);
 					break;
 
 				/* The definitely not connective ones */

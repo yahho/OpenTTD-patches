@@ -138,7 +138,7 @@ static inline bool IsTileOnWater(TileIndex t)
  * @return \c true if any type of clear water like ocean, river, or canal.
  * @pre IsTileType(t, MP_WATER)
  */
-static inline bool IsWater(TileIndex t)
+static inline bool IsPlainWater(TileIndex t)
 {
 	return GetWaterTileType(t) == WATER_TILE_CLEAR;
 }
@@ -151,7 +151,7 @@ static inline bool IsWater(TileIndex t)
  */
 static inline bool IsSea(TileIndex t)
 {
-	return IsWater(t) && GetWaterClass(t) == WATER_CLASS_SEA;
+	return IsPlainWater(t) && GetWaterClass(t) == WATER_CLASS_SEA;
 }
 
 /**
@@ -162,7 +162,7 @@ static inline bool IsSea(TileIndex t)
  */
 static inline bool IsCanal(TileIndex t)
 {
-	return IsWater(t) && GetWaterClass(t) == WATER_CLASS_CANAL;
+	return IsPlainWater(t) && GetWaterClass(t) == WATER_CLASS_CANAL;
 }
 
 /**
@@ -173,7 +173,7 @@ static inline bool IsCanal(TileIndex t)
  */
 static inline bool IsRiver(TileIndex t)
 {
-	return IsWater(t) && GetWaterClass(t) == WATER_CLASS_RIVER;
+	return IsPlainWater(t) && GetWaterClass(t) == WATER_CLASS_RIVER;
 }
 
 /**
@@ -183,7 +183,7 @@ static inline bool IsRiver(TileIndex t)
  */
 static inline bool IsWaterTile(TileIndex t)
 {
-	return IsTileType(t, MP_WATER) && IsWater(t);
+	return IsTileType(t, MP_WATER) && IsPlainWater(t);
 }
 
 /**
