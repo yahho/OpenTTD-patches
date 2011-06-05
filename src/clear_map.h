@@ -75,6 +75,17 @@ static inline bool IsClearGround(TileIndex t, ClearGround ct)
 	return GetClearGround(t) == ct;
 }
 
+/**
+ * Checks if a tile has fields.
+ *
+ * @param tile The tile to check
+ * @return true If the tile has fields
+ */
+static inline bool IsFieldsTile(TileIndex tile)
+{
+	return IsClearTile(tile) && IsClearGround(tile, CLEAR_FIELDS);
+}
+
 
 /**
  * Get the density of a non-field clear tile.
@@ -167,12 +178,12 @@ static inline void SetClearGroundDensity(TileIndex t, ClearGround type, uint den
 /**
  * Get the field type (production stage) of the field
  * @param t the field to get the type of
- * @pre GetClearGround(t) == CLEAR_FIELDS
+ * @pre IsFieldsTile(t)
  * @return the field type
  */
 static inline uint GetFieldType(TileIndex t)
 {
-	assert(GetClearGround(t) == CLEAR_FIELDS);
+	assert(IsFieldsTile(t));
 	return GB(_mc[t].m3, 0, 4);
 }
 
@@ -180,23 +191,23 @@ static inline uint GetFieldType(TileIndex t)
  * Set the field type (production stage) of the field
  * @param t the field to get the type of
  * @param f the field type
- * @pre GetClearGround(t) == CLEAR_FIELDS
+ * @pre IsFieldsTile(t)
  */
 static inline void SetFieldType(TileIndex t, uint f)
 {
-	assert(GetClearGround(t) == CLEAR_FIELDS); // XXX incomplete
+	assert(IsFieldsTile(t));
 	SB(_mc[t].m3, 0, 4, f);
 }
 
 /**
  * Get the industry (farm) that made the field
  * @param t the field to get creating industry of
- * @pre GetClearGround(t) == CLEAR_FIELDS
+ * @pre IsFieldsTile(t)
  * @return the industry that made the field
  */
 static inline IndustryID GetIndustryIndexOfField(TileIndex t)
 {
-	assert(GetClearGround(t) == CLEAR_FIELDS);
+	assert(IsFieldsTile(t));
 	return(IndustryID) _mc[t].m2;
 }
 
@@ -204,11 +215,11 @@ static inline IndustryID GetIndustryIndexOfField(TileIndex t)
  * Set the industry (farm) that made the field
  * @param t the field to get creating industry of
  * @param i the industry that made the field
- * @pre GetClearGround(t) == CLEAR_FIELDS
+ * @pre IsFieldsTile(t)
  */
 static inline void SetIndustryIndexOfField(TileIndex t, IndustryID i)
 {
-	assert(GetClearGround(t) == CLEAR_FIELDS);
+	assert(IsFieldsTile(t));
 	_mc[t].m2 = i;
 }
 
@@ -217,12 +228,12 @@ static inline void SetIndustryIndexOfField(TileIndex t, IndustryID i)
  * Is there a fence at the given border?
  * @param t the tile to check for fences
  * @param side the border to check
- * @pre IsClearGround(t, CLEAR_FIELDS)
+ * @pre IsFieldsTile(t)
  * @return 0 if there is no fence, otherwise the fence type
  */
 static inline uint GetFence(TileIndex t, DiagDirection side)
 {
-	assert(IsClearGround(t, CLEAR_FIELDS));
+	assert(IsFieldsTile(t));
 	switch (side) {
 		default: NOT_REACHED();
 		case DIAGDIR_SE: return GB(_mc[t].m4, 2, 3);
@@ -237,11 +248,11 @@ static inline uint GetFence(TileIndex t, DiagDirection side)
  * @param t the tile to check for fences
  * @param side the border to check
  * @param h 0 if there is no fence, otherwise the fence type
- * @pre IsClearGround(t, CLEAR_FIELDS)
+ * @pre IsFieldsTile(t)
  */
 static inline void SetFence(TileIndex t, DiagDirection side, uint h)
 {
-	assert(IsClearGround(t, CLEAR_FIELDS));
+	assert(IsFieldsTile(t));
 	switch (side) {
 		default: NOT_REACHED();
 		case DIAGDIR_SE: SB(_mc[t].m4, 2, 3, h); break;

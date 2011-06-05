@@ -142,28 +142,28 @@ static Foundation GetFoundation_Clear(TileIndex tile, Slope tileh)
 
 static void UpdateFences(TileIndex tile)
 {
-	assert(IsClearTile(tile) && IsClearGround(tile, CLEAR_FIELDS));
+	assert(IsFieldsTile(tile));
 	bool dirty = false;
 
-	bool neighbour = (IsClearTile(TILE_ADDXY(tile, 1, 0)) && IsClearGround(TILE_ADDXY(tile, 1, 0), CLEAR_FIELDS));
+	bool neighbour = IsFieldsTile(TILE_ADDXY(tile, 1, 0));
 	if (!neighbour && GetFence(tile, DIAGDIR_SW) == 0) {
 		SetFence(tile, DIAGDIR_SW, 3);
 		dirty = true;
 	}
 
-	neighbour = (IsClearTile(TILE_ADDXY(tile, 0, 1)) && IsClearGround(TILE_ADDXY(tile, 0, 1), CLEAR_FIELDS));
+	neighbour = IsFieldsTile(TILE_ADDXY(tile, 0, 1));
 	if (!neighbour && GetFence(tile, DIAGDIR_SE) == 0) {
 		SetFence(tile, DIAGDIR_SE, 3);
 		dirty = true;
 	}
 
-	neighbour = (IsClearTile(TILE_ADDXY(tile, -1, 0)) && IsClearGround(TILE_ADDXY(tile, -1, 0), CLEAR_FIELDS));
+	neighbour = IsFieldsTile(TILE_ADDXY(tile, -1, 0));
 	if (!neighbour && GetFence(tile, DIAGDIR_NE) == 0) {
 		SetFence(tile, DIAGDIR_NE, 3);
 		dirty = true;
 	}
 
-	neighbour = (IsClearTile(TILE_ADDXY(tile, 0, -1)) && IsClearGround(TILE_ADDXY(tile, 0, -1), CLEAR_FIELDS));
+	neighbour = IsFieldsTile(TILE_ADDXY(tile, 0, -1));
 	if (!neighbour && GetFence(tile, DIAGDIR_NW) == 0) {
 		SetFence(tile, DIAGDIR_NW, 3);
 		dirty = true;

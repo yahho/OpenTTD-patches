@@ -158,7 +158,7 @@ Industry::~Industry()
 
 		/* Remove the farmland and convert it to regular tiles over time. */
 		TILE_AREA_LOOP(tile_cur, ta) {
-			if (IsClearTile(tile_cur) && IsClearGround(tile_cur, CLEAR_FIELDS) &&
+			if (IsFieldsTile(tile_cur) &&
 					GetIndustryIndexOfField(tile_cur) == this->index) {
 				SetIndustryIndexOfField(tile_cur, INVALID_INDUSTRY);
 			}
@@ -956,7 +956,7 @@ static void SetupFarmFieldFence(TileIndex tile, int size, byte type, DiagDirecti
 	do {
 		tile = TILE_MASK(tile);
 
-		if (IsClearTile(tile) && IsClearGround(tile, CLEAR_FIELDS)) {
+		if (IsFieldsTile(tile)) {
 			byte or_ = type;
 
 			if (or_ == 1 && Chance16(1, 7)) or_ = 2;

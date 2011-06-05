@@ -853,7 +853,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		Industry *i;
 
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsClearTile(t) && IsClearGround(t, CLEAR_FIELDS)) {
+			if (IsFieldsTile(t)) {
 				/* remove fields */
 				MakeClear(t, CLEAR_GRASS, 3);
 			}

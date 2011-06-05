@@ -104,7 +104,7 @@
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return (::IsClearTile(tile) && ::IsClearGround(tile, CLEAR_FIELDS));
+	return ::IsFieldsTile(tile);
 }
 
 /* static */ bool ScriptTile::IsRockTile(TileIndex tile)
