@@ -1452,7 +1452,7 @@ static bool CheckCanTerraformSurroundingTiles(TileIndex tile, uint height, int i
 	TILE_AREA_LOOP(tile_walk, ta) {
 		uint curh = TileHeight(tile_walk);
 		/* Is the tile clear? */
-		if (!IsClearTile(tile_walk) && !IsTreeTile(tile_walk)) return false;
+		if (!IsGroundTile(tile_walk)) return false;
 
 		/* Don't allow too big of a change if this is the sub-tile check */
 		if (internal != 0 && Delta(curh, height) > 1) return false;

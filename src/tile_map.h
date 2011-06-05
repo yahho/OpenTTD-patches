@@ -252,6 +252,17 @@ static inline bool IsObjectTile(TileIndex tile)
 }
 
 /**
+ * Checks if a tile is a ground tile.
+ *
+ * @param tile The tile to check
+ * @return true If the tile is a ground tile
+ */
+static inline bool IsGroundTile(TileIndex tile)
+{
+	return IsClearTile(tile) || IsTreeTile(tile);
+}
+
+/**
  * Checks if a tile is valid
  *
  * @param tile The tile to check
