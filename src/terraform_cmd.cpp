@@ -337,7 +337,7 @@ CommandCost CmdTerraformLand(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 			if (indirectly_cleared) {
 				cost = DoCommand(tile, 0, 0, tile_flags, CMD_LANDSCAPE_CLEAR);
 			} else {
-				cost = _tile_type_procs[GetTileType(tile)]->terraform_tile_proc(tile, tile_flags, z_min, tileh);
+				cost = GetTileProcs(tile)->terraform_tile_proc(tile, tile_flags, z_min, tileh);
 			}
 			_generating_world = curr_gen;
 			if (cost.Failed()) {

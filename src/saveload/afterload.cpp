@@ -1430,7 +1430,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 
 		for (uint i = 0; i < _animated_tile_count; /* Nothing */) {
 			/* Remove if tile is not animated */
-			bool remove = _tile_type_procs[GetTileType(_animated_tile_list[i])]->animate_tile_proc == NULL;
+			bool remove = GetTileProcs(_animated_tile_list[i])->animate_tile_proc == NULL;
 
 			/* and remove if duplicate */
 			for (uint j = 0; !remove && j < i; j++) {

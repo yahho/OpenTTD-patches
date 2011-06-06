@@ -1581,7 +1581,7 @@ Direction GetDirectionTowards(const Vehicle *v, int x, int y)
  */
 VehicleEnterTileStatus VehicleEnterTile(Vehicle *v, TileIndex tile, int x, int y)
 {
-	return _tile_type_procs[GetTileType(tile)]->vehicle_enter_tile_proc(v, tile, x, y);
+	return GetTileProcs(tile)->vehicle_enter_tile_proc(v, tile, x, y);
 }
 
 /**

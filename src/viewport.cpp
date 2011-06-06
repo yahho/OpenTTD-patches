@@ -1072,7 +1072,8 @@ static void ViewportAddLandscape()
 		uint y_cur = y;
 
 		do {
-			TileType tt = MP_VOID;
+			extern DrawTileProc DrawTile_Void;
+			DrawTileProc *dtp = DrawTile_Void;
 
 			ti.x = x_cur;
 			ti.y = y_cur;
@@ -1096,7 +1097,7 @@ static void ViewportAddLandscape()
 
 					ti.tile = tile;
 					ti.tileh = GetTilePixelSlope(tile, &ti.z);
-					tt = GetTileType(tile);
+					dtp = GetTileProcs(tile)->draw_tile_proc;
 				}
 			}
 
@@ -1106,14 +1107,14 @@ static void ViewportAddLandscape()
 			_vd.last_foundation_child[0] = NULL;
 			_vd.last_foundation_child[1] = NULL;
 
-			_tile_type_procs[tt]->draw_tile_proc(&ti);
+			dtp(&ti);
 
 			if ((x_cur == (int)MapMaxX() * TILE_SIZE && IsInsideMM(y_cur, 0, MapMaxY() * TILE_SIZE + 1)) ||
 					(y_cur == (int)MapMaxY() * TILE_SIZE && IsInsideMM(x_cur, 0, MapMaxX() * TILE_SIZE + 1))) {
 				TileIndex tile = TileVirtXY(x_cur, y_cur);
 				ti.tile = tile;
 				ti.tileh = GetTilePixelSlope(tile, &ti.z);
-				tt = GetTileType(tile);
+				dtp = GetTileProcs(tile)->draw_tile_proc;
 			}
 			if (ti.tile != INVALID_TILE) DrawTileSelection(&ti);
 

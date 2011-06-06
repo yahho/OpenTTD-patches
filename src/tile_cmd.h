@@ -156,7 +156,12 @@ struct TileTypeProcs {
 	TerraformTileProc *terraform_tile_proc;        ///< Called when a terraforming operation is about to take place
 };
 
-extern const TileTypeProcs * const _tile_type_procs[16];
+static inline const TileTypeProcs *GetTileProcs(TileIndex tile)
+{
+	extern const TileTypeProcs * const _tile_type_procs[16];
+
+	return _tile_type_procs[GetTileType(tile)];
+}
 
 TrackStatus GetTileTrackStatus(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side = INVALID_DIAGDIR);
 VehicleEnterTileStatus VehicleEnterTile(Vehicle *v, TileIndex tile, int x, int y);
@@ -165,7 +170,7 @@ void GetTileDesc(TileIndex tile, TileDesc *td);
 
 static inline void AddAcceptedCargo(TileIndex tile, CargoArray &acceptance, uint32 *always_accepted)
 {
-	AddAcceptedCargoProc *proc = _tile_type_procs[GetTileType(tile)]->add_accepted_cargo_proc;
+	AddAcceptedCargoProc *proc = GetTileProcs(tile)->add_accepted_cargo_proc;
 	if (proc == NULL) return;
 	uint32 dummy = 0; // use dummy bitmask so there don't need to be several 'always_accepted != NULL' checks
 	proc(tile, acceptance, always_accepted == NULL ? &dummy : always_accepted);
@@ -173,21 +178,21 @@ static inline void AddAcceptedCargo(TileIndex tile, CargoArray &acceptance, uint
 
 static inline void AddProducedCargo(TileIndex tile, CargoArray &produced)
 {
-	AddProducedCargoProc *proc = _tile_type_procs[GetTileType(tile)]->add_produced_cargo_proc;
+	AddProducedCargoProc *proc = GetTileProcs(tile)->add_produced_cargo_proc;
 	if (proc == NULL) return;
 	proc(tile, produced);
 }
 
 static inline void AnimateTile(TileIndex tile)
 {
-	AnimateTileProc *proc = _tile_type_procs[GetTileType(tile)]->animate_tile_proc;
+	AnimateTileProc *proc = GetTileProcs(tile)->animate_tile_proc;
 	assert(proc != NULL);
 	proc(tile);
 }
 
 static inline bool ClickTile(TileIndex tile)
 {
-	ClickTileProc *proc = _tile_type_procs[GetTileType(tile)]->click_tile_proc;
+	ClickTileProc *proc = GetTileProcs(tile)->click_tile_proc;
 	if (proc == NULL) return false;
 	return proc(tile);
 }
