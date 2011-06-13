@@ -14,12 +14,42 @@
 #include "../core/bitmath_func.hpp"
 #include "../core/random_func.hpp"
 #include "../fios.h"
-#include "../tile_map.h"
 #include "../station_map.h"
 #include "../town.h"
 #include "../water_map.h"
 
 #include "saveload_buffer.h"
+
+
+enum OldTileType {
+	OLD_MP_CLEAR,           ///< A tile without any structures, i.e. grass, docks, farm fields etc.
+	OLD_MP_RAILWAY,         ///< A railway
+	OLD_MP_ROAD,            ///< A tile with road (or tram tracks)
+	OLD_MP_HOUSE,           ///< A house by a town
+	OLD_MP_TREES,           ///< Tile got trees
+	OLD_MP_STATION,         ///< A tile of a station
+	OLD_MP_WATER,           ///< Water tile
+	OLD_MP_VOID,            ///< Invisible tiles at the SW and SE border
+	OLD_MP_INDUSTRY,        ///< Part of an industry
+	OLD_MP_TUNNELBRIDGE,    ///< Tunnel entry/exit and bridge heads
+	OLD_MP_OBJECT,          ///< Contains objects such as transmitters and owned land
+};
+
+static inline OldTileType GetOldTileType(TileIndex tile)
+{
+	assert(tile < MapSize());
+	return (OldTileType)GB(_mth[tile].type_height, 4, 4);
+}
+
+static inline bool IsOldTileType(TileIndex tile, OldTileType type)
+{
+	return GetOldTileType(tile) == type;
+}
+
+static inline void SetOldTileType(TileIndex tile, OldTileType type)
+{
+	SB(_mth[tile].type_height, 4, 4, type);
+}
 
 
 /**
@@ -32,14 +62,14 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	/* in legacy version 2.1 of the savegame, town owner was unified. */
 	if (IsOTTDSavegameVersionBefore(stv, 2, 1)) {
 		for (TileIndex tile = 0; tile < map_size; tile++) {
-			switch (GetTileType(tile)) {
-				case MP_ROAD:
+			switch (GetOldTileType(tile)) {
+				case OLD_MP_ROAD:
 					if (GB(_mc[tile].m5, 4, 2) == 1 && HasBit(_mc[tile].m3, 7)) {
 						_mc[tile].m3 = OWNER_TOWN;
 					}
 					/* FALL THROUGH */
 
-				case MP_TUNNELBRIDGE:
+				case OLD_MP_TUNNELBRIDGE:
 					if (_mc[tile].m1 & 0x80) SB(_mc[tile].m1, 0, 5, OWNER_TOWN);
 					break;
 
@@ -53,13 +83,13 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	 *  all about ;) */
 	if (IsOTTDSavegameVersionBefore(stv, 6, 1)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			switch (GetTileType(t)) {
-				case MP_HOUSE:
+			switch (GetOldTileType(t)) {
+				case OLD_MP_HOUSE:
 					_mc[t].m4 = _mc[t].m2;
 					_mc[t].m2 = 0;
 					break;
 
-				case MP_ROAD:
+				case OLD_MP_ROAD:
 					_mc[t].m4 |= (_mc[t].m2 << 4);
 					_mc[t].m2 = 0;
 					break;
@@ -73,8 +103,8 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	 *  room for PBS. Now in version 21 move it back :P. */
 	if (IsOTTDSavegameVersionBefore(stv, 21) && !IsOTTDSavegameVersionBefore(stv, 15)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			switch (GetTileType(t)) {
-				case MP_RAILWAY:
+			switch (GetOldTileType(t)) {
+				case OLD_MP_RAILWAY:
 					if (GB(_mc[t].m5, 6, 2) == 1) {
 						/* convert PBS signals to combo-signals */
 						if (HasBit(_mc[t].m2, 2)) SB(_mc[t].m2, 0, 3, 3);
@@ -92,7 +122,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					}
 					break;
 
-				case MP_STATION: // Clear PBS reservation on station
+				case OLD_MP_STATION: // Clear PBS reservation on station
 					ClrBit(_mc[t].m3, 6);
 					break;
 
@@ -103,8 +133,8 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 
 	if (IsOTTDSavegameVersionBefore(stv, 48)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			switch (GetTileType(t)) {
-				case MP_RAILWAY:
+			switch (GetOldTileType(t)) {
+				case OLD_MP_RAILWAY:
 					if (!HasBit(_mc[t].m5, 7)) {
 						/* Swap ground type and signal type for plain rail tiles, so the
 						 * ground type uses the same bits as for depots and waypoints. */
@@ -118,7 +148,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					}
 					break;
 
-				case MP_ROAD:
+				case OLD_MP_ROAD:
 					/* Swap m3 and m4, so the track type for rail crossings is the
 					 * same as for normal rail. */
 					Swap(_mc[t].m3, _mc[t].m4);
@@ -133,7 +163,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	 * space for newhouses grf features. A new byte, m7, was also added. */
 	if (IsOTTDSavegameVersionBefore(stv, 53)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsTileType(t, MP_HOUSE)) {
+			if (IsOldTileType(t, OLD_MP_HOUSE)) {
 				if (GB(_mc[t].m3, 6, 2) != TOWN_HOUSE_COMPLETED) {
 					/* Move the construction stage from m3[7..6] to m5[5..4].
 					 * The construction counter does not have to move. */
@@ -164,7 +194,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	if (IsOTTDSavegameVersionBefore(stv, 64)) {
 		/* copy the signal type/variant and move signal states bits */
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsTileType(t, MP_RAILWAY) && GB(_mc[t].m5, 6, 2) == 1) {
+			if (IsOldTileType(t, OLD_MP_RAILWAY) && GB(_mc[t].m5, 6, 2) == 1) {
 				SB(_mc[t].m4, 4, 4, GB(_mc[t].m2, 4, 4));
 				SB(_mc[t].m2, 7, 1, GB(_mc[t].m2, 3, 1));
 				SB(_mc[t].m2, 4, 3, GB(_mc[t].m2, 0, 3));
@@ -176,14 +206,14 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	if (IsOTTDSavegameVersionBefore(stv, 72)) {
 		/* Locks in very old savegames had OWNER_WATER as owner */
 		for (TileIndex t = 0; t < map_size; t++) {
-			switch (GetTileType(t)) {
+			switch (GetOldTileType(t)) {
 				default: break;
 
-				case MP_WATER:
+				case OLD_MP_WATER:
 					if (GB(_mc[t].m5, 4, 4) == 1 && GB(_mc[t].m1, 0, 5) == OWNER_WATER) SB(_mc[t].m1, 0, 5, OWNER_NONE);
 					break;
 
-				case MP_STATION: {
+				case OLD_MP_STATION: {
 					if (HasBit(_mc[t].m6, 3)) SetBit(_mc[t].m6, 2);
 					byte gfx = _mc[t].m5;
 					int st;
@@ -233,7 +263,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	 * make all grassy/rough land trees have a density of 3. */
 	if (IsOTTDSavegameVersionBefore(stv, 81)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (GetTileType(t) == MP_TREES) {
+			if (GetOldTileType(t) == OLD_MP_TREES) {
 				uint groundType = GB(_mc[t].m2, 4, 2);
 				if (groundType != 2) SB(_mc[t].m2, 6, 2, 3);
 			}
@@ -248,12 +278,12 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		TileIndex t;
 
 		for (t = MapMaxX(); t < map_size - 1; t += MapSizeX()) {
-			_mth[t].type_height = MP_VOID << 4;
+			_mth[t].type_height = OLD_MP_VOID << 4;
 			memset(&_mc[t], 0, sizeof(_mc[t]));
 		}
 
 		for (t = MapSizeX() * MapMaxY(); t < map_size; t++) {
-			_mth[t].type_height = MP_VOID << 4;
+			_mth[t].type_height = OLD_MP_VOID << 4;
 			memset(&_mc[t], 0, sizeof(_mc[t]));
 		}
 	}
@@ -263,15 +293,15 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		bool add_roadtypes = IsOTTDSavegameVersionBefore(stv, 61);
 
 		for (TileIndex t = 0; t < map_size; t++) {
-			switch (GetTileType(t)) {
-				case MP_CLEAR:
-				case MP_RAILWAY:
-				case MP_WATER:
-				case MP_OBJECT:
+			switch (GetOldTileType(t)) {
+				case OLD_MP_CLEAR:
+				case OLD_MP_RAILWAY:
+				case OLD_MP_WATER:
+				case OLD_MP_OBJECT:
 					if (old_bridge) SB(_mc[t].m6, 6, 2, 0);
 					break;
 
-				case MP_ROAD:
+				case OLD_MP_ROAD:
 					if (add_roadtypes) {
 						SB(_mc[t].m5, 6, 2, GB(_mc[t].m5, 4, 2));
 						SB(_mc[t].m7, 6, 2, 1);
@@ -308,7 +338,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					if (old_bridge) SB(_mc[t].m6, 6, 2, 0);
 					break;
 
-				case MP_STATION:
+				case OLD_MP_STATION:
 					if (GB(_mc[t].m6, 4, 2) != 1) break;
 
 					SB(_mc[t].m7, 6, 2, add_roadtypes ? 1 : GB(_mc[t].m3, 0, 3));
@@ -317,7 +347,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					_mc[t].m4 = 0;
 					break;
 
-				case MP_TUNNELBRIDGE: {
+				case OLD_MP_TUNNELBRIDGE: {
 					if (!old_bridge || !HasBit(_mc[t].m5, 7) || !HasBit(_mc[t].m5, 6)) {
 						if (((old_bridge && HasBit(_mc[t].m5, 7)) ? GB(_mc[t].m5, 1, 2) : GB(_mc[t].m5, 2, 2)) == 1) {
 							/* Middle part of "old" bridges */
@@ -342,13 +372,13 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					if (HasBit(_mc[t].m5, 6)) { // middle part
 						if (HasBit(_mc[t].m5, 5)) { // transport route under bridge?
 							if (GB(_mc[t].m5, 3, 2) == 0) {
-								SetTileType(t, MP_RAILWAY);
+								SetOldTileType(t, OLD_MP_RAILWAY);
 								_mc[t].m2 = 0;
 								SB(_mc[t].m3, 4, 4, 0);
 								_mc[t].m5 = axis == AXIS_X ? TRACK_BIT_Y : TRACK_BIT_X;
 								_mc[t].m4 = _mc[t].m7 = 0;
 							} else {
-								SetTileType(t, MP_ROAD);
+								SetOldTileType(t, OLD_MP_ROAD);
 								_mc[t].m2 = INVALID_TOWN;
 								_mc[t].m3 = _mc[t].m4 = 0;
 								SB(_mc[t].m3, 4, 4, OWNER_TOWN);
@@ -356,26 +386,26 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 								_mc[t].m7 = 1 << 6;
 							}
 						} else if (GB(_mc[t].m5, 3, 2) == 0) {
-							SetTileType(t, MP_CLEAR);
+							SetOldTileType(t, OLD_MP_CLEAR);
 							_mc[t].m1 = OWNER_NONE;
 							_mc[t].m2 = 0;
 							_mc[t].m3 = _mc[t].m4 = _mc[t].m7 = 0;
 							_mc[t].m5 = 3;
 						} else if (!IsTileFlat(t)) {
-							SetTileType(t, MP_WATER);
+							SetOldTileType(t, OLD_MP_WATER);
 							SB(_mc[t].m1, 0, 5, OWNER_WATER);
 							SB(_mc[t].m1, 5, 2, WATER_CLASS_SEA);
 							_mc[t].m2 = 0;
 							_mc[t].m3 = _mc[t].m4 = _mc[t].m7 = 0;
 							_mc[t].m5 = 1;
 						} else if (GB(_mc[t].m1, 0, 5) == OWNER_WATER) {
-							SetTileType(t, MP_WATER);
+							SetOldTileType(t, OLD_MP_WATER);
 							SB(_mc[t].m1, 0, 5, OWNER_WATER);
 							SB(_mc[t].m1, 5, 2, WATER_CLASS_SEA);
 							_mc[t].m2 = 0;
 							_mc[t].m3 = _mc[t].m4 = _mc[t].m5 = _mc[t].m7 = 0;
 						} else {
-							SetTileType(t, MP_WATER);
+							SetOldTileType(t, OLD_MP_WATER);
 							SB(_mc[t].m1, 5, 2, WATER_CLASS_CANAL);
 							_mc[t].m2 = 0;
 							_mc[t].m3 = _mc[t].m5 = _mc[t].m7 = 0;
@@ -402,7 +432,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	    Replace the owner for those by OWNER_NONE. */
 	if (IsOTTDSavegameVersionBefore(stv, 82)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsTileType(t, MP_WATER) &&
+			if (IsOldTileType(t, OLD_MP_WATER) &&
 					_mc[t].m5 == 0 &&
 					GB(_mc[t].m1, 0, 5) == OWNER_WATER &&
 					TileHeight(t) != 0) {
@@ -419,7 +449,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	 */
 	if (IsOTTDSavegameVersionBefore(stv, 83)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsTileType(t, MP_WATER) && GB(_mc[t].m5, 4, 4) == 8) {
+			if (IsOldTileType(t, OLD_MP_WATER) && GB(_mc[t].m5, 4, 4) == 8) {
 				_mc[t].m4 = (TileHeight(t) == 0) ? OWNER_WATER : OWNER_NONE;
 			}
 		}
@@ -428,8 +458,8 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	/* The water class was moved/unified. */
 	if (IsOTTDSavegameVersionBefore(stv, 146)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			switch (GetTileType(t)) {
-				case MP_STATION:
+			switch (GetOldTileType(t)) {
+				case OLD_MP_STATION:
 					switch (GB(_mc[t].m6, 3, 3)) {
 						case 4:
 						case 5:
@@ -444,12 +474,12 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					}
 					break;
 
-				case MP_WATER:
+				case OLD_MP_WATER:
 					SB(_mc[t].m1, 5, 2, GB(_mc[t].m3, 0, 2));
 					SB(_mc[t].m3, 0, 2, 0);
 					break;
 
-				case MP_OBJECT:
+				case OLD_MP_OBJECT:
 					SB(_mc[t].m1, 5, 2, WATER_CLASS_INVALID);
 					break;
 
@@ -463,7 +493,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	if (IsOTTDSavegameVersionBefore(stv, 86)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			/* Move river flag and update canals to use water class */
-			if (IsTileType(t, MP_WATER) && GB(_mc[t].m1, 5, 2) != WATER_CLASS_RIVER) {
+			if (IsOldTileType(t, OLD_MP_WATER) && GB(_mc[t].m1, 5, 2) != WATER_CLASS_RIVER) {
 				if (_mc[t].m5 == 0) {
 					if (GB(_mc[t].m1, 0, 5) == OWNER_WATER) {
 						SB(_mc[t].m1, 5, 2, WATER_CLASS_SEA);
@@ -488,8 +518,8 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	 * clear any possible PBS reservations as well. */
 	if (IsOTTDSavegameVersionBefore(stv, 100)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			switch (GetTileType(t)) {
-				case MP_RAILWAY:
+			switch (GetOldTileType(t)) {
+				case OLD_MP_RAILWAY:
 					if (GB(_mc[t].m5, 6, 2) == 1) {
 						/* move the signal variant */
 						SB(_mc[t].m2, 3, 1, HasBit(_mc[t].m2, 2) ? SIG_SEMAPHORE : SIG_ELECTRIC);
@@ -506,15 +536,15 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					}
 					break;
 
-				case MP_ROAD: // Clear PBS reservation on crossing
+				case OLD_MP_ROAD: // Clear PBS reservation on crossing
 					if (GB(_mc[t].m5, 6, 2) == 1) ClrBit(_mc[t].m5, 4);
 					break;
 
-				case MP_STATION: // Clear PBS reservation on station
+				case OLD_MP_STATION: // Clear PBS reservation on station
 					if (GB(_mc[t].m6, 3, 3) == 0 || GB(_mc[t].m6, 3, 3) == 7) ClrBit(_mc[t].m6, 2);
 					break;
 
-				case MP_TUNNELBRIDGE: // Clear PBS reservation on tunnels/bridges
+				case OLD_MP_TUNNELBRIDGE: // Clear PBS reservation on tunnels/bridges
 					if (GB(_mc[t].m5, 2, 2) == 0) ClrBit(_mc[t].m5, 4);
 					break;
 
@@ -527,7 +557,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		for (TileIndex t = 0; t < map_size; t++) {
 			/* Check for HQ bit being set, instead of using map accessor,
 			 * since we've already changed it code-wise */
-			if (IsTileType(t, MP_OBJECT) && HasBit(_mc[t].m5, 7)) {
+			if (IsOldTileType(t, OLD_MP_OBJECT) && HasBit(_mc[t].m5, 7)) {
 				/* Move size and part identification of HQ out of the m5 attribute,
 				 * on new locations */
 				_mc[t].m3 = GB(_mc[t].m5, 0, 5);
@@ -540,14 +570,14 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	 * been swapped (m2 bits 7..6 and 5..4. */
 	if (IsOTTDSavegameVersionBefore(stv, 135)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsTileType(t, MP_CLEAR)) {
+			if (IsOldTileType(t, OLD_MP_CLEAR)) {
 				if (GB(_mc[t].m5, 2, 3) == 4) {
 					SB(_mc[t].m5, 2, 6, 0);
 					SetBit(_mc[t].m3, 4);
 				} else {
 					ClrBit(_mc[t].m3, 4);
 				}
-			} else if (IsTileType(t, MP_TREES)) {
+			} else if (IsOldTileType(t, OLD_MP_TREES)) {
 				uint density = GB(_mc[t].m2, 6, 2);
 				uint ground  = GB(_mc[t].m2, 4, 2);
 				uint counter = GB(_mc[t].m2, 0, 4);
@@ -559,13 +589,13 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	/* Reset tropic zone for VOID tiles, they shall not have any. */
 	if (IsOTTDSavegameVersionBefore(stv, 141)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsTileType(t, MP_VOID)) SB(_mc[t].m6, 0, 2, 0);
+			if (IsOldTileType(t, OLD_MP_VOID)) SB(_mc[t].m6, 0, 2, 0);
 		}
 	}
 
 	if (IsOTTDSavegameVersionBefore(stv, 144)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (!IsTileType(t, MP_OBJECT)) continue;
+			if (!IsOldTileType(t, OLD_MP_OBJECT)) continue;
 
 			/* Reordering/generalisation of the object bits. */
 			bool is_hq = _mc[t].m5 == 4;
@@ -581,16 +611,16 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	if (IsOTTDSavegameVersionBefore(stv, 147)) {
 		/* Move the animation frame to the same location (m7) for all objects. */
 		for (TileIndex t = 0; t < map_size; t++) {
-			switch (GetTileType(t)) {
-				case MP_HOUSE:
+			switch (GetOldTileType(t)) {
+				case OLD_MP_HOUSE:
 					/* This needs GRF knowledge, so it is done in AfterLoadGame */
 					break;
 
-				case MP_INDUSTRY:
+				case OLD_MP_INDUSTRY:
 					Swap(_mc[t].m3, _mc[t].m7);
 					break;
 
-				case MP_OBJECT:
+				case OLD_MP_OBJECT:
 					/* hack: temporarily store offset in m4;
 					 * it will be used (and removed) in AfterLoadGame */
 					_mc[t].m4 = _mc[t].m3;
@@ -611,13 +641,13 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	if (IsOTTDSavegameVersionBefore(stv, 164)) {
 		/* We store 4 fences in the field tiles instead of only SE and SW. */
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (!IsTileType(t, MP_CLEAR) && !IsTileType(t, MP_TREES)) continue;
-			if (IsTileType(t, MP_CLEAR) && !HasBit(_mc[t].m3, 4) && GB(_mc[t].m5, 2, 3) == 3) continue;
+			if (!IsOldTileType(t, OLD_MP_CLEAR) && !IsOldTileType(t, OLD_MP_TREES)) continue;
+			if (IsOldTileType(t, OLD_MP_CLEAR) && !HasBit(_mc[t].m3, 4) && GB(_mc[t].m5, 2, 3) == 3) continue;
 
 			uint fence = GB(_mc[t].m4, 5, 3);
 			if (fence != 0) {
 				TileIndex neighbour = TILE_ADDXY(t, 1, 0);
-				if (IsTileType(neighbour, MP_CLEAR) && !HasBit(_mc[neighbour].m3, 4) && GB(_mc[neighbour].m5, 2, 3) == 3) {
+				if (IsOldTileType(neighbour, OLD_MP_CLEAR) && !HasBit(_mc[neighbour].m3, 4) && GB(_mc[neighbour].m5, 2, 3) == 3) {
 					SB(_mc[neighbour].m3, 5, 3, fence);
 				}
 			}
@@ -625,7 +655,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			fence = GB(_mc[t].m4, 2, 3);
 			if (fence != 0) {
 				TileIndex neighbour = TILE_ADDXY(t, 0, 1);
-				if (IsTileType(neighbour, MP_CLEAR) && !HasBit(_mc[neighbour].m3, 4) && GB(_mc[neighbour].m5, 2, 3) == 3) {
+				if (IsOldTileType(neighbour, OLD_MP_CLEAR) && !HasBit(_mc[neighbour].m3, 4) && GB(_mc[neighbour].m5, 2, 3) == 3) {
 					SB(_mc[neighbour].m6, 2, 3, fence);
 				}
 			}
