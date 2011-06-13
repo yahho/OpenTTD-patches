@@ -13,6 +13,7 @@
 #include "../map_func.h"
 #include "../core/bitmath_func.hpp"
 #include "../fios.h"
+#include "../tile_map.h"
 
 #include "saveload_buffer.h"
 
@@ -23,6 +24,25 @@
 void AfterLoadMap(const SavegameTypeVersion *stv)
 {
 	TileIndex map_size = MapSize();
+
+	/* in version 2.1 of the savegame, town owner was unified. */
+	if (IsSavegameVersionBefore(stv, 2, 1)) {
+		for (TileIndex tile = 0; tile < map_size; tile++) {
+			switch (GetTileType(tile)) {
+				case MP_ROAD:
+					if (GB(_m[tile].m5, 4, 2) == 1 && HasBit(_m[tile].m3, 7)) {
+						_m[tile].m3 = OWNER_TOWN;
+					}
+					/* FALL THROUGH */
+
+				case MP_TUNNELBRIDGE:
+					if (_m[tile].m1 & 0x80) SB(_m[tile].m1, 0, 5, OWNER_TOWN);
+					break;
+
+				default: break;
+			}
+		}
+	}
 }
 
 
