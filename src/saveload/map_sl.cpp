@@ -14,6 +14,8 @@
 #include "../core/bitmath_func.hpp"
 #include "../fios.h"
 #include "../tile_map.h"
+#include "../station_map.h"
+#include "../water_map.h"
 
 #include "saveload_buffer.h"
 
@@ -40,6 +42,60 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					break;
 
 				default: break;
+			}
+		}
+	}
+
+	if (IsSavegameVersionBefore(stv, 72)) {
+		/* Locks in very old savegames had OWNER_WATER as owner */
+		for (TileIndex t = 0; t < map_size; t++) {
+			switch (GetTileType(t)) {
+				default: break;
+
+				case MP_WATER:
+					if (GB(_m[t].m5, 4, 4) == 1 && GB(_m[t].m1, 0, 5) == OWNER_WATER) SB(_m[t].m1, 0, 5, OWNER_NONE);
+					break;
+
+				case MP_STATION: {
+					if (HasBit(_m[t].m6, 3)) SetBit(_m[t].m6, 2);
+					byte gfx = _m[t].m5;
+					int st;
+					if (       IsInsideMM(gfx,   0,   8)) { // Rail station
+						st = 0;
+						_m[t].m5 = gfx - 0;
+					} else if (IsInsideMM(gfx,   8,  67)) { // Airport
+						st = 1;
+						_m[t].m5 = gfx - 8;
+					} else if (IsInsideMM(gfx,  67,  71)) { // Truck
+						st = 2;
+						_m[t].m5 = gfx - 67;
+					} else if (IsInsideMM(gfx,  71,  75)) { // Bus
+						st = 3;
+						_m[t].m5 = gfx - 71;
+					} else if (gfx == 75) {                 // Oil rig
+						st = 4;
+						_m[t].m5 = gfx - 75;
+					} else if (IsInsideMM(gfx,  76,  82)) { // Dock
+						st = 5;
+						_m[t].m5 = gfx - 76;
+					} else if (gfx == 82) {                 // Buoy
+						st = 6;
+						_m[t].m5 = gfx - 82;
+					} else if (IsInsideMM(gfx,  83, 168)) { // Extended airport
+						st = 1;
+						_m[t].m5 = gfx - 83 + 67 - 8;
+					} else if (IsInsideMM(gfx, 168, 170)) { // Drive through truck
+						st = 2;
+						_m[t].m5 = gfx - 168 + GFX_TRUCK_BUS_DRIVETHROUGH_OFFSET;
+					} else if (IsInsideMM(gfx, 170, 172)) { // Drive through bus
+						st = 3;
+						_m[t].m5 = gfx - 170 + GFX_TRUCK_BUS_DRIVETHROUGH_OFFSET;
+					} else {
+						throw SlCorrupt("Invalid station tile");
+					}
+					SB(_m[t].m6, 3, 3, st);
+					break;
+				}
 			}
 		}
 	}

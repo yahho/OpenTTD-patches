@@ -335,7 +335,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		}
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (!IsTileType(t, MP_STATION)) continue;
-			if (_m[t].m5 > 7) continue; // is it a rail station tile?
+			if (GetStationType(t) != STATION_RAIL) continue;
 			st = Station::Get(_m[t].m2);
 			assert(st->train_station.tile != 0);
 			int dx = TileX(t) - TileX(st->train_station.tile);
@@ -568,60 +568,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	FOR_ALL_CARGO_PAYMENTS(cp) {
 		cp->front->cargo_payment = cp;
 		cp->current_station = cp->front->last_station_visited;
-	}
-
-	if (IsSavegameVersionBefore(stv, 72)) {
-		/* Locks in very old savegames had OWNER_WATER as owner */
-		for (TileIndex t = 0; t < MapSize(); t++) {
-			switch (GetTileType(t)) {
-				default: break;
-
-				case MP_WATER:
-					if (GetWaterTileType(t) == WATER_TILE_LOCK && GetTileOwner(t) == OWNER_WATER) SetTileOwner(t, OWNER_NONE);
-					break;
-
-				case MP_STATION: {
-					if (HasBit(_m[t].m6, 3)) SetBit(_m[t].m6, 2);
-					StationGfx gfx = GetStationGfx(t);
-					StationType st;
-					if (       IsInsideMM(gfx,   0,   8)) { // Rail station
-						st = STATION_RAIL;
-						SetStationGfx(t, gfx - 0);
-					} else if (IsInsideMM(gfx,   8,  67)) { // Airport
-						st = STATION_AIRPORT;
-						SetStationGfx(t, gfx - 8);
-					} else if (IsInsideMM(gfx,  67,  71)) { // Truck
-						st = STATION_TRUCK;
-						SetStationGfx(t, gfx - 67);
-					} else if (IsInsideMM(gfx,  71,  75)) { // Bus
-						st = STATION_BUS;
-						SetStationGfx(t, gfx - 71);
-					} else if (gfx == 75) {                 // Oil rig
-						st = STATION_OILRIG;
-						SetStationGfx(t, gfx - 75);
-					} else if (IsInsideMM(gfx,  76,  82)) { // Dock
-						st = STATION_DOCK;
-						SetStationGfx(t, gfx - 76);
-					} else if (gfx == 82) {                 // Buoy
-						st = STATION_BUOY;
-						SetStationGfx(t, gfx - 82);
-					} else if (IsInsideMM(gfx,  83, 168)) { // Extended airport
-						st = STATION_AIRPORT;
-						SetStationGfx(t, gfx - 83 + 67 - 8);
-					} else if (IsInsideMM(gfx, 168, 170)) { // Drive through truck
-						st = STATION_TRUCK;
-						SetStationGfx(t, gfx - 168 + GFX_TRUCK_BUS_DRIVETHROUGH_OFFSET);
-					} else if (IsInsideMM(gfx, 170, 172)) { // Drive through bus
-						st = STATION_BUS;
-						SetStationGfx(t, gfx - 170 + GFX_TRUCK_BUS_DRIVETHROUGH_OFFSET);
-					} else {
-						throw SlCorrupt("Invalid station tile");
-					}
-					SB(_m[t].m6, 3, 3, st);
-					break;
-				}
-			}
-		}
 	}
 
 	for (TileIndex t = 0; t < map_size; t++) {
