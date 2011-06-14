@@ -43,6 +43,25 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			}
 		}
 	}
+
+	/* The void tiles on the southern border used to belong to a wrong class (pre 4.3).
+	 * This problem appears in savegame version 21 too, see r3455. But after loading the
+	 * savegame and saving again, the buggy map array could be converted to new savegame
+	 * version. It didn't show up before r12070. */
+	if (IsSavegameVersionBefore(stv, 87)) {
+		static const Tile voidtile = { MP_VOID << 4, 0, 0, 0, 0, 0, 0 };
+		TileIndex t;
+
+		for (t = MapMaxX(); t < map_size - 1; t += MapSizeX()) {
+			_m[t] = voidtile;
+			_me[t].m7 = 0;
+		}
+
+		for (t = MapSizeX() * MapMaxY(); t < map_size; t++) {
+			_m[t] = voidtile;
+			_me[t].m7 = 0;
+		}
+	}
 }
 
 

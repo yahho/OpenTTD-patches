@@ -553,18 +553,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		throw SlException(STR_ERROR_NO_TOWN_IN_SCENARIO);
 	}
 
-	/* The void tiles on the southern border used to belong to a wrong class (pre 4.3).
-	 * This problem appears in savegame version 21 too, see r3455. But after loading the
-	 * savegame and saving again, the buggy map array could be converted to new savegame
-	 * version. It didn't show up before r12070. */
-	if (IsSavegameVersionBefore(stv, 87)) {
-		uint i;
-
-		for (i = 0; i < MapMaxY(); ++i) MakeVoid(i * MapSizeX() + MapMaxX());
-		for (i = 0; i < MapSizeX(); ++i) MakeVoid(MapSizeX() * MapMaxY() + i);
-	}
-
-
 	/* If Load Scenario / New (Scenario) Game is used,
 	 *  a company does not exist yet. So create one here.
 	 * 1 exception: network-games. Those can have 0 companies
