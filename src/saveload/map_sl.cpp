@@ -167,6 +167,45 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			_me[t].m7 = 0;
 		}
 	}
+
+	if (IsSavegameVersionBefore(stv, 61)) {
+		/* Added the RoadType */
+		bool old_bridge = IsSavegameVersionBefore(stv, 42);
+		for (TileIndex t = 0; t < map_size; t++) {
+			switch (GetTileType(t)) {
+				case MP_ROAD:
+					SB(_m[t].m5, 6, 2, GB(_m[t].m5, 4, 2));
+					switch (GB(_m[t].m5, 6, 2)) {
+						default: throw SlCorrupt("Invalid road tile type");
+						case 0:
+							SB(_m[t].m4, 0, 4, GB(_m[t].m5, 0, 4));
+							SB(_m[t].m4, 4, 4, 0);
+							SB(_m[t].m6, 2, 4, 0);
+							break;
+						case 1:
+							SB(_m[t].m4, 5, 2, GB(_m[t].m5, 2, 2));
+							break;
+						case 2: break;
+					}
+					SB(_me[t].m7, 6, 2, 1);
+					break;
+
+				case MP_STATION:
+					if (GB(_m[t].m6, 4, 2) == 1) SB(_me[t].m7, 6, 2, 1);
+					break;
+
+				case MP_TUNNELBRIDGE:
+					/* Middle part of "old" bridges */
+					if (old_bridge && HasBit(_m[t].m5, 7) && HasBit(_m[t].m5, 6)) break;
+					if (((old_bridge && HasBit(_m[t].m5, 7)) ? GB(_m[t].m5, 1, 2) : GB(_m[t].m5, 2, 2)) == 1) {
+						SB(_me[t].m7, 6, 2, 1);
+					}
+					break;
+
+				default: break;
+			}
+		}
+	}
 }
 
 
