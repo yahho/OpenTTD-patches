@@ -46,6 +46,27 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
+	/* In version 6.1 we put the town index in the map-array. To do this, we need
+	 *  to use m2 (16bit big), so we need to clean m2, and that is where this is
+	 *  all about ;) */
+	if (IsSavegameVersionBefore(stv, 6, 1)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			switch (GetTileType(t)) {
+				case MP_HOUSE:
+					_m[t].m4 = _m[t].m2;
+					_m[t].m2 = 0;
+					break;
+
+				case MP_ROAD:
+					_m[t].m4 |= (_m[t].m2 << 4);
+					_m[t].m2 = 0;
+					break;
+
+				default: break;
+			}
+		}
+	}
+
 	if (IsSavegameVersionBefore(stv, 72)) {
 		/* Locks in very old savegames had OWNER_WATER as owner */
 		for (TileIndex t = 0; t < map_size; t++) {

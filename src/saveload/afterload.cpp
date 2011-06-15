@@ -639,16 +639,12 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		for (TileIndex t = 0; t < map_size; t++) {
 			switch (GetTileType(t)) {
 				case MP_HOUSE:
-					_m[t].m4 = _m[t].m2;
 					SetTownIndex(t, CalcClosestTownFromTile(t)->index);
 					break;
 
 				case MP_ROAD:
-					_m[t].m4 |= (_m[t].m2 << 4);
 					if ((GB(_m[t].m5, 4, 2) == ROAD_TILE_CROSSING ? (Owner)_m[t].m3 : GetTileOwner(t)) == OWNER_TOWN) {
 						SetTownIndex(t, CalcClosestTownFromTile(t)->index);
-					} else {
-						SetTownIndex(t, 0);
 					}
 					break;
 
