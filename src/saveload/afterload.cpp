@@ -643,7 +643,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 					break;
 
 				case MP_ROAD:
-					if ((IsLevelCrossing(t) ? (Owner)_m[t].m4 : GetTileOwner(t)) == OWNER_TOWN) {
+					if (GetRoadOwner(t, ROADTYPE_ROAD) == OWNER_TOWN) {
 						SetTownIndex(t, CalcClosestTownFromTile(t)->index);
 					}
 					break;
@@ -689,68 +689,10 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	}
 
 	if (IsSavegameVersionBefore(stv, 114)) {
-		bool fix_roadtypes = !IsSavegameVersionBefore(stv, 61);
-		bool old_bridge = IsSavegameVersionBefore(stv, 42);
-
 		for (TileIndex t = 0; t < map_size; t++) {
-			switch (GetTileType(t)) {
-				case MP_ROAD:
-					if (fix_roadtypes) SetRoadTypes(t, (RoadTypes)GB(_me[t].m7, 5, 3));
-					SB(_me[t].m7, 5, 1, GB(_m[t].m3, 7, 1)); // snow/desert
-					switch (GetRoadTileType(t)) {
-						default: throw SlCorrupt("Invalid road tile type");
-						case ROAD_TILE_NORMAL:
-							SB(_me[t].m7, 0, 4, GB(_m[t].m3, 0, 4)); // road works
-							SB(_m[t].m6, 3, 3, GB(_m[t].m3, 4, 3));  // ground
-							SB(_m[t].m3, 0, 4, GB(_m[t].m4, 4, 4));  // tram bits
-							SB(_m[t].m3, 4, 4, GB(_m[t].m5, 0, 4));  // tram owner
-							SB(_m[t].m5, 0, 4, GB(_m[t].m4, 0, 4));  // road bits
-							break;
-
-						case ROAD_TILE_CROSSING:
-							SB(_me[t].m7, 0, 5, GB(_m[t].m4, 0, 5)); // road owner
-							SB(_m[t].m6, 3, 3, GB(_m[t].m3, 4, 3));  // ground
-							SB(_m[t].m3, 4, 4, GB(_m[t].m5, 0, 4));  // tram owner
-							SB(_m[t].m5, 0, 1, GB(_m[t].m4, 6, 1));  // road axis
-							SB(_m[t].m5, 5, 1, GB(_m[t].m4, 5, 1));  // crossing state
-							break;
-
-						case ROAD_TILE_DEPOT:
-							break;
-					}
-					if (!IsRoadDepot(t) && !HasTownOwnedRoad(t)) {
-						const Town *town = CalcClosestTownFromTile(t);
-						if (town != NULL) SetTownIndex(t, town->index);
-					}
-					_m[t].m4 = 0;
-					break;
-
-				case MP_STATION:
-					if (!IsRoadStop(t)) break;
-
-					if (fix_roadtypes) SetRoadTypes(t, (RoadTypes)GB(_m[t].m3, 0, 3));
-					SB(_me[t].m7, 0, 5, HasBit(_m[t].m6, 2) ? OWNER_TOWN : GetTileOwner(t));
-					SB(_m[t].m3, 4, 4, _m[t].m1);
-					_m[t].m4 = 0;
-					break;
-
-				case MP_TUNNELBRIDGE:
-					if (old_bridge && IsBridge(t) && HasBit(_m[t].m5, 6)) break;
-					if (((old_bridge && IsBridge(t)) ? (TransportType)GB(_m[t].m5, 1, 2) : GetTunnelBridgeTransportType(t)) == TRANSPORT_ROAD) {
-						if (fix_roadtypes) SetRoadTypes(t, (RoadTypes)GB(_m[t].m3, 0, 3));
-
-						Owner o = GetTileOwner(t);
-						SB(_me[t].m7, 0, 5, o); // road owner
-						SB(_m[t].m3, 4, 4, o == OWNER_NONE ? OWNER_TOWN : o); // tram owner
-					}
-					SB(_m[t].m6, 2, 4, GB(_m[t].m2, 4, 4)); // bridge type
-					SB(_me[t].m7, 5, 1, GB(_m[t].m4, 7, 1)); // snow/desert
-
-					_m[t].m2 = 0;
-					_m[t].m4 = 0;
-					break;
-
-				default: break;
+			if (GetTileType(t) == MP_ROAD && !IsRoadDepot(t) && !HasTownOwnedRoad(t)) {
+				const Town *town = CalcClosestTownFromTile(t);
+				if (town != NULL) SetTownIndex(t, town->index);
 			}
 		}
 	}

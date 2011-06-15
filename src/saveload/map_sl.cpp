@@ -206,6 +206,69 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			}
 		}
 	}
+
+	if (IsSavegameVersionBefore(stv, 114)) {
+		bool fix_roadtypes = !IsSavegameVersionBefore(stv, 61);
+		bool old_bridge = IsSavegameVersionBefore(stv, 42);
+
+		for (TileIndex t = 0; t < map_size; t++) {
+			switch (GetTileType(t)) {
+				case MP_ROAD:
+					if (fix_roadtypes) SB(_me[t].m7, 6, 2, GB(_me[t].m7, 5, 3));
+					SB(_me[t].m7, 5, 1, GB(_m[t].m3, 7, 1)); // snow/desert
+					switch (GB(_m[t].m5, 6, 2)) {
+						default: throw SlCorrupt("Invalid road tile type");
+						case 0:
+							SB(_me[t].m7, 0, 4, GB(_m[t].m3, 0, 4)); // road works
+							SB(_m[t].m6, 3, 3, GB(_m[t].m3, 4, 3));  // ground
+							SB(_m[t].m3, 0, 4, GB(_m[t].m4, 4, 4));  // tram bits
+							SB(_m[t].m3, 4, 4, GB(_m[t].m5, 0, 4));  // tram owner
+							SB(_m[t].m5, 0, 4, GB(_m[t].m4, 0, 4));  // road bits
+							break;
+
+						case 1:
+							SB(_me[t].m7, 0, 5, GB(_m[t].m4, 0, 5)); // road owner
+							SB(_m[t].m6, 3, 3, GB(_m[t].m3, 4, 3));  // ground
+							SB(_m[t].m3, 4, 4, GB(_m[t].m5, 0, 4));  // tram owner
+							SB(_m[t].m5, 0, 1, GB(_m[t].m4, 6, 1));  // road axis
+							SB(_m[t].m5, 5, 1, GB(_m[t].m4, 5, 1));  // crossing state
+							break;
+
+						case 2:
+							break;
+					}
+					_m[t].m4 = 0;
+					break;
+
+				case MP_STATION:
+					if (GB(_m[t].m6, 4, 2) != 1) break;
+
+					if (fix_roadtypes) SB(_me[t].m7, 6, 2, GB(_m[t].m3, 0, 3));
+					SB(_me[t].m7, 0, 5, HasBit(_m[t].m6, 2) ? OWNER_TOWN : (Owner)GB(_m[t].m1, 0, 5));
+					SB(_m[t].m3, 4, 4, _m[t].m1);
+					_m[t].m4 = 0;
+					break;
+
+				case MP_TUNNELBRIDGE:
+					if (old_bridge && HasBit(_m[t].m5, 7) && HasBit(_m[t].m5, 6)) break;
+					if (((old_bridge && HasBit(_m[t].m5, 7)) ? GB(_m[t].m5, 1, 2) : GB(_m[t].m5, 2, 2)) == 1) {
+						if (fix_roadtypes) SB(_me[t].m7, 6, 2, GB(_m[t].m3, 0, 3));
+
+						Owner o = (Owner)GB(_m[t].m1, 0, 5);
+						SB(_me[t].m7, 0, 5, o); // road owner
+						SB(_m[t].m3, 4, 4, o == OWNER_NONE ? OWNER_TOWN : o); // tram owner
+					}
+					SB(_m[t].m6, 2, 4, GB(_m[t].m2, 4, 4)); // bridge type
+					SB(_me[t].m7, 5, 1, GB(_m[t].m4, 7, 1)); // snow/desert
+
+					_m[t].m2 = 0;
+					_m[t].m4 = 0;
+					break;
+
+				default: break;
+			}
+		}
+	}
 }
 
 
