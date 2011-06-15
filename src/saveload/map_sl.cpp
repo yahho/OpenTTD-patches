@@ -67,6 +67,34 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
+	if (IsSavegameVersionBefore(stv, 48)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			switch (GetTileType(t)) {
+				case MP_RAILWAY:
+					if (!HasBit(_m[t].m5, 7)) {
+						/* Swap ground type and signal type for plain rail tiles, so the
+						 * ground type uses the same bits as for depots and waypoints. */
+						uint tmp = GB(_m[t].m4, 0, 4);
+						SB(_m[t].m4, 0, 4, GB(_m[t].m2, 0, 4));
+						SB(_m[t].m2, 0, 4, tmp);
+					} else if (HasBit(_m[t].m5, 2)) {
+						/* Split waypoint and depot rail type and remove the subtype. */
+						ClrBit(_m[t].m5, 2);
+						ClrBit(_m[t].m5, 6);
+					}
+					break;
+
+				case MP_ROAD:
+					/* Swap m3 and m4, so the track type for rail crossings is the
+					 * same as for normal rail. */
+					Swap(_m[t].m3, _m[t].m4);
+					break;
+
+				default: break;
+			}
+		}
+	}
+
 	if (IsSavegameVersionBefore(stv, 72)) {
 		/* Locks in very old savegames had OWNER_WATER as owner */
 		for (TileIndex t = 0; t < map_size; t++) {

@@ -643,7 +643,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 					break;
 
 				case MP_ROAD:
-					if ((GB(_m[t].m5, 4, 2) == ROAD_TILE_CROSSING ? (Owner)_m[t].m3 : GetTileOwner(t)) == OWNER_TOWN) {
+					if ((GB(_m[t].m5, 4, 2) == ROAD_TILE_CROSSING ? (Owner)_m[t].m4 : GetTileOwner(t)) == OWNER_TOWN) {
 						SetTownIndex(t, CalcClosestTownFromTile(t)->index);
 					}
 					break;
@@ -685,34 +685,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		c = Company::GetIfValid(COMPANY_FIRST);
 		if (!_network_dedicated && c != NULL) {
 			c->settings = _settings_client.company;
-		}
-	}
-
-	if (IsSavegameVersionBefore(stv, 48)) {
-		for (TileIndex t = 0; t < map_size; t++) {
-			switch (GetTileType(t)) {
-				case MP_RAILWAY:
-					if (IsPlainRail(t)) {
-						/* Swap ground type and signal type for plain rail tiles, so the
-						 * ground type uses the same bits as for depots and waypoints. */
-						uint tmp = GB(_m[t].m4, 0, 4);
-						SB(_m[t].m4, 0, 4, GB(_m[t].m2, 0, 4));
-						SB(_m[t].m2, 0, 4, tmp);
-					} else if (HasBit(_m[t].m5, 2)) {
-						/* Split waypoint and depot rail type and remove the subtype. */
-						ClrBit(_m[t].m5, 2);
-						ClrBit(_m[t].m5, 6);
-					}
-					break;
-
-				case MP_ROAD:
-					/* Swap m3 and m4, so the track type for rail crossings is the
-					 * same as for normal rail. */
-					Swap(_m[t].m3, _m[t].m4);
-					break;
-
-				default: break;
-			}
 		}
 	}
 
