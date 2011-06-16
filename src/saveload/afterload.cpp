@@ -701,54 +701,8 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		Vehicle *v;
 
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (MayHaveBridgeAbove(t)) ClearBridgeMiddle(t);
-			if (IsBridgeTile(t)) {
-				if (HasBit(_m[t].m5, 6)) { // middle part
-					Axis axis = (Axis)GB(_m[t].m5, 0, 1);
-
-					if (HasBit(_m[t].m5, 5)) { // transport route under bridge?
-						if (GB(_m[t].m5, 3, 2) == TRANSPORT_RAIL) {
-							MakeRailNormal(
-								t,
-								GetTileOwner(t),
-								axis == AXIS_X ? TRACK_BIT_Y : TRACK_BIT_X,
-								GetRailType(t)
-							);
-						} else {
-							TownID town = IsTileOwner(t, OWNER_TOWN) ? ClosestTownFromTile(t, UINT_MAX)->index : 0;
-
-							MakeRoadNormal(
-								t,
-								axis == AXIS_X ? ROAD_Y : ROAD_X,
-								ROADTYPES_ROAD,
-								town,
-								GetTileOwner(t), OWNER_NONE
-							);
-						}
-					} else {
-						if (GB(_m[t].m5, 3, 2) == 0) {
-							MakeClear(t, CLEAR_GRASS, 3);
-						} else {
-							if (!IsTileFlat(t)) {
-								MakeShore(t);
-							} else {
-								if (GetTileOwner(t) == OWNER_WATER) {
-									MakeSea(t);
-								} else {
-									MakeCanal(t, GetTileOwner(t), Random());
-								}
-							}
-						}
-					}
-					SetBridgeMiddle(t, axis);
-				} else { // ramp
-					Axis axis = (Axis)GB(_m[t].m5, 0, 1);
-					uint north_south = GB(_m[t].m5, 5, 1);
-					DiagDirection dir = ReverseDiagDir(XYNSToDiagDir(axis, north_south));
-					TransportType type = (TransportType)GB(_m[t].m5, 1, 2);
-
-					_m[t].m5 = 1 << 7 | type << 2 | dir;
-				}
+			if (IsNormalRoadTile(t) && GetTownIndex(t) == INVALID_TOWN) {
+				SetTownIndex(t, IsTileOwner(t, OWNER_TOWN) ? ClosestTownFromTile(t, UINT_MAX)->index : 0);
 			}
 		}
 

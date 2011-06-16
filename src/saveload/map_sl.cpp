@@ -12,9 +12,11 @@
 #include "../stdafx.h"
 #include "../map_func.h"
 #include "../core/bitmath_func.hpp"
+#include "../core/random_func.hpp"
 #include "../fios.h"
 #include "../tile_map.h"
 #include "../station_map.h"
+#include "../town.h"
 #include "../water_map.h"
 
 #include "saveload_buffer.h"
@@ -266,6 +268,77 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					break;
 
 				default: break;
+			}
+		}
+	}
+
+	if (IsSavegameVersionBefore(stv, 42)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			switch (GetTileType(t)) {
+				case MP_CLEAR:
+				case MP_RAILWAY:
+				case MP_ROAD:
+				case MP_WATER:
+				case MP_TUNNELBRIDGE:
+				case MP_OBJECT:
+					SB(_m[t].m6, 6, 2, 0);
+					break;
+
+				default: break;
+			}
+			if (IsTileType(t, MP_TUNNELBRIDGE) && HasBit(_m[t].m5, 7)) {
+				Axis axis = (Axis)GB(_m[t].m5, 0, 1);
+
+				if (HasBit(_m[t].m5, 6)) { // middle part
+					if (HasBit(_m[t].m5, 5)) { // transport route under bridge?
+						if (GB(_m[t].m5, 3, 2) == 0) {
+							SetTileType(t, MP_RAILWAY);
+							_m[t].m2 = 0;
+							SB(_m[t].m3, 4, 4, 0);
+							_m[t].m5 = axis == AXIS_X ? TRACK_BIT_Y : TRACK_BIT_X;
+							_m[t].m4 = _me[t].m7 = 0;
+						} else {
+							SetTileType(t, MP_ROAD);
+							_m[t].m2 = INVALID_TOWN;
+							_m[t].m3 = _m[t].m4 = 0;
+							SB(_m[t].m3, 4, 4, OWNER_TOWN);
+							_m[t].m5 = axis == AXIS_X ? ROAD_Y : ROAD_X;
+							_me[t].m7 = 1 << 6;
+						}
+					} else if (GB(_m[t].m5, 3, 2) == 0) {
+						SetTileType(t, MP_CLEAR);
+						_m[t].m1 = OWNER_NONE;
+						_m[t].m2 = 0;
+						_m[t].m3 = _m[t].m4 = _me[t].m7 = 0;
+						_m[t].m5 = 3;
+					} else if (!IsTileFlat(t)) {
+						SetTileType(t, MP_WATER);
+						SB(_m[t].m1, 0, 5, OWNER_WATER);
+						SB(_m[t].m1, 5, 2, WATER_CLASS_SEA);
+						_m[t].m2 = 0;
+						_m[t].m3 = _m[t].m4 = _me[t].m7 = 0;
+						_m[t].m5 = 1;
+					} else if (GB(_m[t].m1, 0, 5) == OWNER_WATER) {
+						SetTileType(t, MP_WATER);
+						SB(_m[t].m1, 0, 5, OWNER_WATER);
+						SB(_m[t].m1, 5, 2, WATER_CLASS_SEA);
+						_m[t].m2 = 0;
+						_m[t].m3 = _m[t].m4 = _m[t].m5 = _me[t].m7 = 0;
+					} else {
+						SetTileType(t, MP_WATER);
+						SB(_m[t].m1, 5, 2, WATER_CLASS_CANAL);
+						_m[t].m2 = 0;
+						_m[t].m3 = _m[t].m5 = _me[t].m7 = 0;
+						_m[t].m4 = Random();
+					}
+					SB(_m[t].m6, 2, 6, (1 << 4) << axis);
+				} else { // ramp
+					uint north_south = GB(_m[t].m5, 5, 1);
+					DiagDirection dir = ReverseDiagDir(XYNSToDiagDir(axis, north_south));
+					TransportType type = (TransportType)GB(_m[t].m5, 1, 2);
+
+					_m[t].m5 = 1 << 7 | type << 2 | dir;
+				}
 			}
 		}
 	}
