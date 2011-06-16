@@ -69,6 +69,38 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
+	/* From version 15, we moved a semaphore bit from bit 2 to bit 3 in m4, making
+	 *  room for PBS. Now in version 21 move it back :P. */
+	if (IsSavegameVersionBefore(stv, 21) && !IsSavegameVersionBefore(stv, 15)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			switch (GetTileType(t)) {
+				case MP_RAILWAY:
+					if (GB(_m[t].m5, 6, 2) == 1) {
+						/* convert PBS signals to combo-signals */
+						if (HasBit(_m[t].m2, 2)) SB(_m[t].m2, 0, 3, 3);
+
+						/* move the signal variant back */
+						SB(_m[t].m2, 3, 1, HasBit(_m[t].m2, 3) ? SIG_SEMAPHORE : SIG_ELECTRIC);
+						ClrBit(_m[t].m2, 3);
+					}
+
+					/* Clear PBS reservation on track */
+					if (GB(_m[t].m5, 6, 2) != 3) {
+						SB(_m[t].m4, 4, 4, 0);
+					} else {
+						ClrBit(_m[t].m3, 6);
+					}
+					break;
+
+				case MP_STATION: // Clear PBS reservation on station
+					ClrBit(_m[t].m3, 6);
+					break;
+
+				default: break;
+			}
+		}
+	}
+
 	if (IsSavegameVersionBefore(stv, 48)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			switch (GetTileType(t)) {
