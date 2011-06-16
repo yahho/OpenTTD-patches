@@ -1015,18 +1015,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		_settings_game.difficulty.number_towns++;
 	}
 
-	if (IsSavegameVersionBefore(stv, 64)) {
-		/* copy the signal type/variant and move signal states bits */
-		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsTileType(t, MP_RAILWAY) && HasSignals(t)) {
-				SetSignalStates(t, GB(_m[t].m2, 4, 4));
-				SetSignalVariant(t, INVALID_TRACK, GetSignalVariant(t, TRACK_X));
-				SetSignalType(t, INVALID_TRACK, GetSignalType(t, TRACK_X));
-				ClrBit(_m[t].m2, 7);
-			}
-		}
-	}
-
 	if (IsSavegameVersionBefore(stv, 69)) {
 		/* In some old savegames a bit was cleared when it should not be cleared */
 		RoadVehicle *rv;

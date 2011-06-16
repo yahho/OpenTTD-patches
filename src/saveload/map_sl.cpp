@@ -161,6 +161,18 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
+	if (IsSavegameVersionBefore(stv, 64)) {
+		/* copy the signal type/variant and move signal states bits */
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsTileType(t, MP_RAILWAY) && GB(_m[t].m5, 6, 2) == 1) {
+				SB(_m[t].m4, 4, 4, GB(_m[t].m2, 4, 4));
+				SB(_m[t].m2, 7, 1, GB(_m[t].m2, 3, 1));
+				SB(_m[t].m2, 4, 3, GB(_m[t].m2, 0, 3));
+				ClrBit(_m[t].m2, 7);
+			}
+		}
+	}
+
 	if (IsSavegameVersionBefore(stv, 72)) {
 		/* Locks in very old savegames had OWNER_WATER as owner */
 		for (TileIndex t = 0; t < map_size; t++) {
