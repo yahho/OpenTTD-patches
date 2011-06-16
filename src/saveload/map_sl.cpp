@@ -129,6 +129,38 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
+	/* From version 53, the map array was changed for house tiles to allow
+	 * space for newhouses grf features. A new byte, m7, was also added. */
+	if (IsSavegameVersionBefore(stv, 53)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsTileType(t, MP_HOUSE)) {
+				if (GB(_m[t].m3, 6, 2) != TOWN_HOUSE_COMPLETED) {
+					/* Move the construction stage from m3[7..6] to m5[5..4].
+					 * The construction counter does not have to move. */
+					SB(_m[t].m5, 3, 2, GB(_m[t].m3, 6, 2));
+					SB(_m[t].m3, 6, 2, 0);
+				} else {
+					/* The "lift has destination" bit has been moved from
+					 * m5[7] to m7[0]. */
+					SB(_me[t].m7, 0, 1, HasBit(_m[t].m5, 7));
+					ClrBit(_m[t].m5, 7);
+
+					/* The "lift is moving" bit has been removed, as it does
+					 * the same job as the "lift has destination" bit. */
+					ClrBit(_m[t].m1, 7);
+
+					/* The position of the lift goes from m1[7..0] to m6[7..2],
+					 * making m1 totally free, now. The lift position does not
+					 * have to be a full byte since the maximum value is 36. */
+					SB(_m[t].m6, 2, 6, GB(_m[t].m1, 0, 6 ));
+
+					_m[t].m1 = 0;
+					_m[t].m3 = 0x80;
+				}
+			}
+		}
+	}
+
 	if (IsSavegameVersionBefore(stv, 72)) {
 		/* Locks in very old savegames had OWNER_WATER as owner */
 		for (TileIndex t = 0; t < map_size; t++) {
