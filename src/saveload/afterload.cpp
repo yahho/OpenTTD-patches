@@ -1289,21 +1289,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		}
 	}
 
-	if (IsSavegameVersionBefore(stv, 144)) {
-		for (TileIndex t = 0; t < map_size; t++) {
-			if (!IsTileType(t, MP_OBJECT)) continue;
-
-			/* Reordering/generalisation of the object bits. */
-			ObjectType type = GetObjectType(t);
-			SB(_m[t].m6, 2, 4, type == OBJECT_HQ ? GB(_m[t].m3, 2, 3) : 0);
-			_m[t].m3 = type == OBJECT_HQ ? GB(_m[t].m3, 1, 1) | GB(_m[t].m3, 0, 1) << 4 : 0;
-
-			/* Make sure those bits are clear as well! */
-			_m[t].m4 = 0;
-			_me[t].m7 = 0;
-		}
-	}
-
 	if (IsSavegameVersionBefore(stv, 147) && Object::GetNumItems() == 0) {
 		/* Make real objects for object tiles. */
 		for (TileIndex t = 0; t < map_size; t++) {
