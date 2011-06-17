@@ -1298,11 +1298,8 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 				/* No towns, so remove all objects! */
 				DoClearSquare(t);
 			} else {
-				uint offset = _m[t].m3;
-
-				/* Also move the animation state. */
-				_m[t].m3 = GB(_m[t].m6, 2, 4);
-				SB(_m[t].m6, 2, 4, 0);
+				uint offset = _m[t].m4;
+				_m[t].m4 = 0;
 
 				if (offset == 0) {
 					/* No offset, so make the object. */
