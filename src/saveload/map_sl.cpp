@@ -580,16 +580,32 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	}
 
 	if (IsSavegameVersionBefore(stv, 147)) {
+		/* Move the animation frame to the same location (m7) for all objects. */
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (!IsTileType(t, MP_OBJECT)) continue;
+			switch (GetTileType(t)) {
+				case MP_HOUSE:
+					/* This needs GRF knowledge, so it is done in AfterLoadGame */
+					break;
 
-			/* hack: temporarily store offset in m4;
-			 * it will be used (and removed) in AfterLoadGame */
-			_m[t].m4 = _m[t].m3;
+				case MP_INDUSTRY:
+					Swap(_m[t].m3, _me[t].m7);
+					break;
 
-			/* move the animation state. */
-			_m[t].m3 = GB(_m[t].m6, 2, 4);
-			SB(_m[t].m6, 2, 4, 0);
+				case MP_OBJECT:
+					/* hack: temporarily store offset in m4;
+					 * it will be used (and removed) in AfterLoadGame */
+					_m[t].m4 = _m[t].m3;
+
+					/* move the animation state. */
+					_me[t].m7 = GB(_m[t].m6, 2, 4);
+					SB(_m[t].m6, 2, 4, 0);
+					_m[t].m3 = 0;
+					break;
+
+				default:
+					/* For stations/airports it's already at m7 */
+					break;
+			}
 		}
 	}
 }

@@ -1658,31 +1658,11 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	/* Move the animation frame to the same location (m7) for all objects. */
 	if (IsSavegameVersionBefore(stv, 147)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			switch (GetTileType(t)) {
-				case MP_HOUSE:
-					if (GetHouseType(t) >= NEW_HOUSE_OFFSET) {
-						uint per_proc = _me[t].m7;
-						_me[t].m7 = GB(_m[t].m6, 2, 6) | (GB(_m[t].m3, 5, 1) << 6);
-						SB(_m[t].m3, 5, 1, 0);
-						SB(_m[t].m6, 2, 6, min(per_proc, 63));
-					}
-					break;
-
-				case MP_INDUSTRY: {
-					uint rand = _me[t].m7;
-					_me[t].m7 = _m[t].m3;
-					_m[t].m3 = rand;
-					break;
-				}
-
-				case MP_OBJECT:
-					_me[t].m7 = _m[t].m3;
-					_m[t].m3 = 0;
-					break;
-
-				default:
-					/* For stations/airports it's already at m7 */
-					break;
+			if (IsTileType(t, MP_HOUSE) && GetHouseType(t) >= NEW_HOUSE_OFFSET) {
+				uint per_proc = _me[t].m7;
+				_me[t].m7 = GB(_m[t].m6, 2, 6) | (GB(_m[t].m3, 5, 1) << 6);
+				SB(_m[t].m3, 5, 1, 0);
+				SB(_m[t].m6, 2, 6, min(per_proc, 63));
 			}
 		}
 	}
