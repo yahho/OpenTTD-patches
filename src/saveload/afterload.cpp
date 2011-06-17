@@ -1560,27 +1560,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		}
 	}
 
-	/* The bits for the tree ground and tree density have
-	 * been swapped (m2 bits 7..6 and 5..4. */
-	if (IsSavegameVersionBefore(stv, 135)) {
-		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsTileType(t, MP_CLEAR)) {
-				if (GetRawClearGround(t) == CLEAR_SNOW) {
-					SetClearGroundDensity(t, CLEAR_GRASS, GetClearDensity(t));
-					SetBit(_m[t].m3, 4);
-				} else {
-					ClrBit(_m[t].m3, 4);
-				}
-			}
-			if (IsTileType(t, MP_TREES)) {
-				uint density = GB(_m[t].m2, 6, 2);
-				uint ground = GB(_m[t].m2, 4, 2);
-				uint counter = GB(_m[t].m2, 0, 4);
-				_m[t].m2 = ground << 6 | density << 4 | counter;
-			}
-		}
-	}
-
 	/* Wait counter and load/unload ticks got split. */
 	if (IsSavegameVersionBefore(stv, 136)) {
 		Aircraft *a;
