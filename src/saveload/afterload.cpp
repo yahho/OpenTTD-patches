@@ -1055,20 +1055,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		}
 	}
 
-	/* Before version 81, the density of grass was always stored as zero, and
-	 * grassy trees were always drawn fully grassy. Furthermore, trees on rough
-	 * land used to have zero density, now they have full density. Therefore,
-	 * make all grassy/rough land trees have a density of 3. */
-	if (IsSavegameVersionBefore(stv, 81)) {
-		for (TileIndex t = 0; t < map_size; t++) {
-			if (GetTileType(t) == MP_TREES) {
-				TreeGround groundType = (TreeGround)GB(_m[t].m2, 4, 2);
-				if (groundType != TREE_GROUND_SNOW_DESERT) SB(_m[t].m2, 6, 2, 3);
-			}
-		}
-	}
-
-
 	if (IsSavegameVersionBefore(stv, 93)) {
 		/* Rework of orders. */
 		Order *order;

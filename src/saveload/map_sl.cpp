@@ -227,6 +227,19 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
+	/* Before version 81, the density of grass was always stored as zero, and
+	 * grassy trees were always drawn fully grassy. Furthermore, trees on rough
+	 * land used to have zero density, now they have full density. Therefore,
+	 * make all grassy/rough land trees have a density of 3. */
+	if (IsSavegameVersionBefore(stv, 81)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (GetTileType(t) == MP_TREES) {
+				uint groundType = GB(_m[t].m2, 4, 2);
+				if (groundType != 2) SB(_m[t].m2, 6, 2, 3);
+			}
+		}
+	}
+
 	/* The void tiles on the southern border used to belong to a wrong class (pre 4.3).
 	 * This problem appears in savegame version 21 too, see r3455. But after loading the
 	 * savegame and saving again, the buggy map array could be converted to new savegame
