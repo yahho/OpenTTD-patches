@@ -483,6 +483,46 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			}
 		}
 	}
+
+	/* Move the signal variant back up one bit for PBS. We don't convert the old PBS
+	 * format here, as an old layout wouldn't work properly anyway. To be safe, we
+	 * clear any possible PBS reservations as well. */
+	if (IsSavegameVersionBefore(stv, 100)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			switch (GetTileType(t)) {
+				case MP_RAILWAY:
+					if (GB(_m[t].m5, 6, 2) == 1) {
+						/* move the signal variant */
+						SB(_m[t].m2, 3, 1, HasBit(_m[t].m2, 2) ? SIG_SEMAPHORE : SIG_ELECTRIC);
+						SB(_m[t].m2, 7, 1, HasBit(_m[t].m2, 6) ? SIG_SEMAPHORE : SIG_ELECTRIC);
+						ClrBit(_m[t].m2, 2);
+						ClrBit(_m[t].m2, 6);
+					}
+
+					/* Clear PBS reservation on track */
+					if (GB(_m[t].m5, 6, 2) == 3) {
+						ClrBit(_m[t].m5, 4);
+					} else {
+						SB(_m[t].m2, 8, 4, 0);
+					}
+					break;
+
+				case MP_ROAD: // Clear PBS reservation on crossing
+					if (GB(_m[t].m5, 6, 2) == 1) ClrBit(_m[t].m5, 4);
+					break;
+
+				case MP_STATION: // Clear PBS reservation on station
+					if (GB(_m[t].m6, 3, 3) == 0 || GB(_m[t].m6, 3, 3) == 7) ClrBit(_m[t].m6, 2);
+					break;
+
+				case MP_TUNNELBRIDGE: // Clear PBS reservation on tunnels/bridges
+					if (GB(_m[t].m5, 2, 2) == 0) ClrBit(_m[t].m5, 4);
+					break;
+
+				default: break;
+			}
+		}
+	}
 }
 
 

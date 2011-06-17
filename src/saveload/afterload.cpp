@@ -1229,46 +1229,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		}
 	}
 
-	/* Move the signal variant back up one bit for PBS. We don't convert the old PBS
-	 * format here, as an old layout wouldn't work properly anyway. To be safe, we
-	 * clear any possible PBS reservations as well. */
-	if (IsSavegameVersionBefore(stv, 100)) {
-		for (TileIndex t = 0; t < map_size; t++) {
-			switch (GetTileType(t)) {
-				case MP_RAILWAY:
-					if (HasSignals(t)) {
-						/* move the signal variant */
-						SetSignalVariant(t, TRACK_UPPER, HasBit(_m[t].m2, 2) ? SIG_SEMAPHORE : SIG_ELECTRIC);
-						SetSignalVariant(t, TRACK_LOWER, HasBit(_m[t].m2, 6) ? SIG_SEMAPHORE : SIG_ELECTRIC);
-						ClrBit(_m[t].m2, 2);
-						ClrBit(_m[t].m2, 6);
-					}
-
-					/* Clear PBS reservation on track */
-					if (IsRailDepot(t)) {
-						SetDepotReservation(t, false);
-					} else {
-						SetTrackReservation(t, TRACK_BIT_NONE);
-					}
-					break;
-
-				case MP_ROAD: // Clear PBS reservation on crossing
-					if (IsLevelCrossing(t)) SetCrossingReservation(t, false);
-					break;
-
-				case MP_STATION: // Clear PBS reservation on station
-					if (HasStationRail(t)) SetRailStationReservation(t, false);
-					break;
-
-				case MP_TUNNELBRIDGE: // Clear PBS reservation on tunnels/bridges
-					if (GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL) SetTunnelBridgeReservation(t, false);
-					break;
-
-				default: break;
-			}
-		}
-	}
-
 	/* Reserve all tracks trains are currently on. */
 	if (IsSavegameVersionBefore(stv, 101)) {
 		const Train *t;
