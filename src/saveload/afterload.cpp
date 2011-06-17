@@ -1107,41 +1107,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		}
 	}
 
-	/* The water class was moved/unified. */
-	if (IsSavegameVersionBefore(stv, 146)) {
-		for (TileIndex t = 0; t < map_size; t++) {
-			switch (GetTileType(t)) {
-				case MP_STATION:
-					switch (GetStationType(t)) {
-						case STATION_OILRIG:
-						case STATION_DOCK:
-						case STATION_BUOY:
-							SetWaterClass(t, (WaterClass)GB(_m[t].m3, 0, 2));
-							SB(_m[t].m3, 0, 2, 0);
-							break;
-
-						default:
-							SetWaterClass(t, WATER_CLASS_INVALID);
-							break;
-					}
-					break;
-
-				case MP_WATER:
-					SetWaterClass(t, (WaterClass)GB(_m[t].m3, 0, 2));
-					SB(_m[t].m3, 0, 2, 0);
-					break;
-
-				case MP_OBJECT:
-					SetWaterClass(t, WATER_CLASS_INVALID);
-					break;
-
-				default:
-					/* No water class. */
-					break;
-			}
-		}
-	}
-
 	if (IsSavegameVersionBefore(stv, 86)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			/* Move river flag and update canals to use water class */

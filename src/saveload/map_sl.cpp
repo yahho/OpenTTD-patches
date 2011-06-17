@@ -425,6 +425,41 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			}
 		}
 	}
+
+	/* The water class was moved/unified. */
+	if (IsSavegameVersionBefore(stv, 146)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			switch (GetTileType(t)) {
+				case MP_STATION:
+					switch (GB(_m[t].m6, 3, 3)) {
+						case 4:
+						case 5:
+						case 6:
+							SB(_m[t].m1, 5, 2, GB(_m[t].m3, 0, 2));
+							SB(_m[t].m3, 0, 2, 0);
+							break;
+
+						default:
+							SB(_m[t].m1, 5, 2, WATER_CLASS_INVALID);
+							break;
+					}
+					break;
+
+				case MP_WATER:
+					SB(_m[t].m1, 5, 2, GB(_m[t].m3, 0, 2));
+					SB(_m[t].m3, 0, 2, 0);
+					break;
+
+				case MP_OBJECT:
+					SB(_m[t].m1, 5, 2, WATER_CLASS_INVALID);
+					break;
+
+				default:
+					/* No water class. */
+					break;
+			}
+		}
+	}
 }
 
 
