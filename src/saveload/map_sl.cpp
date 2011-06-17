@@ -523,6 +523,19 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			}
 		}
 	}
+
+	if (IsSavegameVersionBefore(stv, 112)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			/* Check for HQ bit being set, instead of using map accessor,
+			 * since we've already changed it code-wise */
+			if (IsTileType(t, MP_OBJECT) && HasBit(_m[t].m5, 7)) {
+				/* Move size and part identification of HQ out of the m5 attribute,
+				 * on new locations */
+				_m[t].m3 = GB(_m[t].m5, 0, 5);
+				_m[t].m5 = 4;
+			}
+		}
+	}
 }
 
 
