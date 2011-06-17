@@ -1031,19 +1031,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		FOR_ALL_INDUSTRIES(i) i->founder = OWNER_NONE;
 	}
 
-	/* From version 82, old style canals (above sealevel (0), WATER owner) are no longer supported.
-	    Replace the owner for those by OWNER_NONE. */
-	if (IsSavegameVersionBefore(stv, 82)) {
-		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsTileType(t, MP_WATER) &&
-					GetWaterTileType(t) == WATER_TILE_CLEAR &&
-					GetTileOwner(t) == OWNER_WATER &&
-					TileHeight(t) != 0) {
-				SetTileOwner(t, OWNER_NONE);
-			}
-		}
-	}
-
 	/*
 	 * Add the 'previous' owner to the ship depots so we can reset it with
 	 * the correct values when it gets destroyed. This prevents that

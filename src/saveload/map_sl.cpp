@@ -385,6 +385,19 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			}
 		}
 	}
+
+	/* From version 82, old style canals (above sealevel (0), WATER owner) are no longer supported.
+	    Replace the owner for those by OWNER_NONE. */
+	if (IsSavegameVersionBefore(stv, 82)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsTileType(t, MP_WATER) &&
+					_m[t].m5 == 0 &&
+					GB(_m[t].m1, 0, 5) == OWNER_WATER &&
+					TileHeight(t) != 0) {
+				SB(_m[t].m1, 0, 5, OWNER_NONE);
+			}
+		}
+	}
 }
 
 
