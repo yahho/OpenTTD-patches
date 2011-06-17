@@ -460,6 +460,29 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			}
 		}
 	}
+
+	if (IsSavegameVersionBefore(stv, 86)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			/* Move river flag and update canals to use water class */
+			if (IsTileType(t, MP_WATER) && GB(_m[t].m1, 5, 2) != WATER_CLASS_RIVER) {
+				if (_m[t].m5 == 0) {
+					if (GB(_m[t].m1, 0, 5) == OWNER_WATER) {
+						SB(_m[t].m1, 5, 2, WATER_CLASS_SEA);
+						_m[t].m4 = 0;
+					} else {
+						SB(_m[t].m1, 5, 2, WATER_CLASS_CANAL);
+						_m[t].m4 = Random();
+					}
+					_m[t].m2 = 0;
+					_m[t].m3 = _m[t].m5 = _me[t].m7 = 0;
+					SB(_m[t].m6, 2, 4, 0);
+				} else if (GB(_m[t].m5, 4, 4) == 8) {
+					Owner o = (Owner)_m[t].m4; // Original water owner
+					SB(_m[t].m1, 5, 2, o == OWNER_WATER ? WATER_CLASS_SEA : WATER_CLASS_CANAL);
+				}
+			}
+		}
+	}
 }
 
 

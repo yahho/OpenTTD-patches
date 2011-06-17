@@ -1108,25 +1108,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	}
 
 	if (IsSavegameVersionBefore(stv, 86)) {
-		for (TileIndex t = 0; t < map_size; t++) {
-			/* Move river flag and update canals to use water class */
-			if (IsTileType(t, MP_WATER)) {
-				if (GetWaterClass(t) != WATER_CLASS_RIVER) {
-					if (IsWater(t)) {
-						Owner o = GetTileOwner(t);
-						if (o == OWNER_WATER) {
-							MakeSea(t);
-						} else {
-							MakeCanal(t, o, Random());
-						}
-					} else if (IsShipDepot(t)) {
-						Owner o = (Owner)_m[t].m4; // Original water owner
-						SetWaterClass(t, o == OWNER_WATER ? WATER_CLASS_SEA : WATER_CLASS_CANAL);
-					}
-				}
-			}
-		}
-
 		/* Update locks, depots, docks and buoys to have a water class based
 		 * on its neighbouring tiles. Done after river and canal updates to
 		 * ensure neighbours are correct. */
