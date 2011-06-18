@@ -35,6 +35,37 @@
 #include "../table/engines.h"
 #include "../table/townname.h"
 
+enum OldTileType {
+	OLD_MP_CLEAR,           ///< A tile without any structures, i.e. grass, docks, farm fields etc.
+	OLD_MP_RAILWAY,         ///< A railway
+	OLD_MP_ROAD,            ///< A tile with road (or tram tracks)
+	OLD_MP_HOUSE,           ///< A house by a town
+	OLD_MP_TREES,           ///< Tile got trees
+	OLD_MP_STATION,         ///< A tile of a station
+	OLD_MP_WATER,           ///< Water tile
+	OLD_MP_VOID,            ///< Invisible tiles at the SW and SE border
+	OLD_MP_INDUSTRY,        ///< Part of an industry
+	OLD_MP_TUNNELBRIDGE,    ///< Tunnel entry/exit and bridge heads
+	OLD_MP_OBJECT,          ///< Contains objects such as transmitters and owned land
+	OLD_MP_MONORAIL,
+};
+
+static inline OldTileType GetOldTileType(TileIndex tile)
+{
+	assert(tile < MapSize());
+	return (OldTileType)GB(_m[tile].type_height, 4, 4);
+}
+
+static inline bool IsOldTileType(TileIndex tile, OldTileType type)
+{
+	return GetOldTileType(tile) == type;
+}
+
+static inline void SetOldTileType(TileIndex tile, OldTileType type)
+{
+	SB(_m[tile].type_height, 4, 4, type);
+}
+
 static bool _read_ttdpatch_flags;    ///< Have we (tried to) read TTDPatch extra flags?
 static uint16 _old_extra_chunk_nums; ///< Number of extra TTDPatch chunks
 static byte _old_vehicle_multiplier; ///< TTDPatch vehicle multiplier
@@ -46,8 +77,8 @@ static void FixOldMapArray()
 	/* TTO/TTD/TTDP savegames could have buoys at tile 0
 	 * (without assigned station struct) */
 	MemSetT(&_m[0], 0);
-	SetTileType(0, MP_WATER);
-	SetTileOwner(0, OWNER_WATER);
+	SetOldTileType(0, OLD_MP_WATER);
+	SB(_m[0].m1, 0, 5, OWNER_WATER);
 }
 
 static void FixTTDMapArray()
@@ -59,8 +90,8 @@ static void FixTTDMapArray()
 	}
 
 	for (TileIndex t = 0; t < OLD_MAP_SIZE; t++) {
-		switch (GetTileType(t)) {
-			case MP_STATION:
+		switch (GetOldTileType(t)) {
+			case OLD_MP_STATION:
 				_m[t].m4 = 0; // We do not understand this TTDP station mapping (yet)
 				switch (_m[t].m5) {
 					/* We have drive through stops at a totally different place */
@@ -72,7 +103,7 @@ static void FixTTDMapArray()
 				}
 				break;
 
-			case MP_RAILWAY:
+			case OLD_MP_RAILWAY:
 				/* We save presignals different from TTDPatch, convert them */
 				if (GB(_m[t].m5, 6, 2) == 1) { // RAIL_TILE_SIGNALS
 					/* This byte is always zero in TTD for this type of tile */
@@ -85,11 +116,11 @@ static void FixTTDMapArray()
 				_m[t].m4 &= 0xF; // Only keep the lower four bits; upper four is PBS
 				break;
 
-			case MP_WATER:
+			case OLD_MP_WATER:
 				/* if water class == 3, make river there */
 				if (GB(_m[t].m3, 0, 2) == 3) {
-					SetTileType(t, MP_WATER);
-					SetTileOwner(t, OWNER_WATER);
+					SetOldTileType(t, OLD_MP_WATER);
+					SB(_m[t].m1, 0, 5, OWNER_WATER);
 					_m[t].m2 = 0;
 					_m[t].m3 = 2; // WATER_CLASS_RIVER
 					_m[t].m4 = Random();
@@ -109,8 +140,22 @@ static void FixTTDDepots()
 {
 	const Depot *d;
 	FOR_ALL_DEPOTS_FROM(d, 252) {
-		if (!IsDepotTile(d->xy) || GetDepotIndex(d->xy) != d->index) {
-			/** Workaround for SVXConverter bug, depots 252-255 could be invalid */
+		/** Workaround for SVXConverter bug, depots 252-255 could be invalid */
+		bool is_depot;
+		switch (GetOldTileType(d->xy)) {
+			case OLD_MP_RAILWAY:
+				is_depot = GB(_m[d->xy].m5, 6, 2) == 3;
+				break;
+			case OLD_MP_ROAD:
+				is_depot = GB(_m[d->xy].m5, 6, 2) == 2;
+				break;
+			case OLD_MP_WATER:
+				is_depot = GB(_m[d->xy].m5, 4, 4) == 8;
+				break;
+			default:
+				is_depot = false;
+		}
+		if (!is_depot || _m[d->xy].m2 != d->index) {
 			delete d;
 		}
 	}
@@ -197,7 +242,7 @@ void FixOldVehicles(const SavegameTypeVersion *stv)
 			RoadVehicle *rv = RoadVehicle::From(v);
 			if (rv->state != RVSB_IN_DEPOT && rv->state != RVSB_WORMHOLE) {
 				ClrBit(rv->state, 2);
-				if (IsTileType(rv->tile, MP_STATION) && _m[rv->tile].m5 >= 168) {
+				if (IsOldTileType(rv->tile, OLD_MP_STATION) && _m[rv->tile].m5 >= 168) {
 					/* Update the vehicle's road state to show we're in a drive through road stop. */
 					SetBit(rv->state, RVS_IN_DT_ROAD_STOP);
 				}
@@ -223,21 +268,18 @@ void FixOldVehicles(const SavegameTypeVersion *stv)
 static bool FixTTOMapArray()
 {
 	for (TileIndex t = 0; t < OLD_MAP_SIZE; t++) {
-		TileType tt = GetTileType(t);
-		if (tt == 11) {
-			/* TTO has a different way of storing monorail.
-			 * Instead of using bits in m3 it uses a different tile type. */
-			_m[t].m3 = 1; // rail type = monorail (in TTD)
-			SetTileType(t, MP_RAILWAY);
-			_m[t].m2 = 1; // set monorail ground to RAIL_GROUND_GRASS
-			tt = MP_RAILWAY;
-		}
-
-		switch (tt) {
-			case MP_CLEAR:
+		switch (GetOldTileType(t)) {
+			case OLD_MP_CLEAR:
 				break;
 
-			case MP_RAILWAY:
+			case OLD_MP_MONORAIL:
+				/* TTO has a different way of storing monorail.
+				 * Instead of using bits in m3 it uses a different tile type. */
+				_m[t].m3 = 1; // rail type = monorail (in TTD)
+				SetOldTileType(t, OLD_MP_RAILWAY);
+				_m[t].m2 = 1; // set monorail ground to RAIL_GROUND_GRASS
+				/* fall through */
+			case OLD_MP_RAILWAY:
 				switch (GB(_m[t].m5, 6, 2)) {
 					case 0: // RAIL_TILE_NORMAL
 						break;
@@ -256,7 +298,7 @@ static bool FixTTOMapArray()
 				}
 				break;
 
-			case MP_ROAD: // road (depot) or level crossing
+			case OLD_MP_ROAD: // road (depot) or level crossing
 				switch (GB(_m[t].m5, 4, 4)) {
 					case 0: // ROAD_TILE_NORMAL
 						if (_m[t].m2 == 4) _m[t].m2 = 5; // 'small trees' -> ROADSIDE_TREES
@@ -271,32 +313,32 @@ static bool FixTTOMapArray()
 				}
 				break;
 
-			case MP_HOUSE:
+			case OLD_MP_HOUSE:
 				_m[t].m3 = _m[t].m2 & 0xC0;    // construction stage
 				_m[t].m2 &= 0x3F;              // building type
 				if (_m[t].m2 >= 5) _m[t].m2++; // skip "large office block on snow"
 				break;
 
-			case MP_TREES:
+			case OLD_MP_TREES:
 				_m[t].m3 = GB(_m[t].m5, 3, 3); // type of trees
 				_m[t].m5 &= 0xC7;              // number of trees and growth status
 				break;
 
-			case MP_STATION:
+			case OLD_MP_STATION:
 				_m[t].m3 = (_m[t].m5 >= 0x08 && _m[t].m5 <= 0x0F) ? 1 : 0; // monorail -> 1, others 0 (rail, road, airport, dock)
 				if (_m[t].m5 >= 8) _m[t].m5 -= 8; // shift for monorail
 				if (_m[t].m5 >= 0x42) _m[t].m5++; // skip heliport
 				break;
 
-			case MP_WATER:
+			case OLD_MP_WATER:
 				_m[t].m3 = _m[t].m2 = 0;
 				break;
 
-			case MP_VOID:
+			case OLD_MP_VOID:
 				_m[t].m2 = _m[t].m3 = _m[t].m5 = 0;
 				break;
 
-			case MP_INDUSTRY:
+			case OLD_MP_INDUSTRY:
 				_m[t].m3 = 0;
 				switch (_m[t].m5) {
 					case 0x24: // farm silo
@@ -312,7 +354,7 @@ static bool FixTTOMapArray()
 				}
 				break;
 
-			case MP_TUNNELBRIDGE:
+			case OLD_MP_TUNNELBRIDGE:
 				if (HasBit(_m[t].m5, 7)) { // bridge
 					byte m5 = _m[t].m5;
 					_m[t].m5 = m5 & 0xE1; // copy bits 7..5, 1
@@ -332,7 +374,7 @@ static bool FixTTOMapArray()
 				}
 				break;
 
-			case MP_OBJECT:
+			case OLD_MP_OBJECT:
 				_m[t].m2 = 0;
 				_m[t].m3 = 0;
 				break;
