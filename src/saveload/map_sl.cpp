@@ -51,6 +51,29 @@ static inline void SetOldTileType(TileIndex tile, OldTileType type)
 	SB(_mth[tile].type_height, 4, 4, type);
 }
 
+static inline uint OldTileHeight(TileIndex tile)
+{
+	assert(tile < MapSize());
+	return GB(_mth[tile].type_height, 0, 4);
+}
+
+static bool IsOldTileFlat(TileIndex tile)
+{
+	assert(tile < MapSize());
+
+	if (TileX(tile) == MapMaxX() || TileY(tile) == MapMaxY() ||
+			TileX(tile) == 0 || TileY(tile) == 0) {
+		return true;
+	}
+
+	uint h = OldTileHeight(tile);
+	if (OldTileHeight(tile + TileDiffXY(1, 0)) != h) return false;
+	if (OldTileHeight(tile + TileDiffXY(0, 1)) != h) return false;
+	if (OldTileHeight(tile + TileDiffXY(1, 1)) != h) return false;
+
+	return true;
+}
+
 
 /**
  *  Fix map array after loading an old savegame
@@ -391,7 +414,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 							_mc[t].m2 = 0;
 							_mc[t].m3 = _mc[t].m4 = _mc[t].m7 = 0;
 							_mc[t].m5 = 3;
-						} else if (!IsTileFlat(t)) {
+						} else if (!IsOldTileFlat(t)) {
 							SetOldTileType(t, OLD_MP_WATER);
 							SB(_mc[t].m1, 0, 5, OWNER_WATER);
 							SB(_mc[t].m1, 5, 2, WATER_CLASS_SEA);
@@ -435,7 +458,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			if (IsOldTileType(t, OLD_MP_WATER) &&
 					_mc[t].m5 == 0 &&
 					GB(_mc[t].m1, 0, 5) == OWNER_WATER &&
-					TileHeight(t) != 0) {
+					OldTileHeight(t) != 0) {
 				SB(_mc[t].m1, 0, 5, OWNER_NONE);
 			}
 		}
@@ -450,7 +473,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	if (IsOTTDSavegameVersionBefore(stv, 83)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsOldTileType(t, OLD_MP_WATER) && GB(_mc[t].m5, 4, 4) == 8) {
-				_mc[t].m4 = (TileHeight(t) == 0) ? OWNER_WATER : OWNER_NONE;
+				_mc[t].m4 = (OldTileHeight(t) == 0) ? OWNER_WATER : OWNER_NONE;
 			}
 		}
 	}
