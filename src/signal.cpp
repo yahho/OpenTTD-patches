@@ -480,7 +480,7 @@ static SigSegState UpdateSignalsInBuffer(Owner owner)
 		assert(_tbuset.IsEmpty());
 		assert(_tbdset.IsEmpty());
 
-		/* After updating signal, data stored are always MP_RAILWAY with signals.
+		/* After updating signal, data stored are always railway with signals.
 		 * Other situations happen when data are from outside functions -
 		 * modification of railbits (including both rail building and removal),
 		 * train entering/leaving block, train leaving depot...

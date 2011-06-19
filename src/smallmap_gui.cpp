@@ -827,7 +827,7 @@ void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, 
 		} else {
 			ta = TileArea(TileXY(xc, yc), this->zoom, this->zoom);
 		}
-		ta.ClampToMap(); // Clamp to map boundaries (may contain MP_VOID tiles!).
+		ta.ClampToMap(); // Clamp to map boundaries (may contain void tiles!).
 
 		uint32 val = this->GetTileColours(ta);
 		uint8 *val8 = (uint8 *)&val;

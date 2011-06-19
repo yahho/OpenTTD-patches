@@ -29,7 +29,7 @@ static const uint MAX_SNOWLINE_HEIGHT = (MAX_TILE_HEIGHT - 2); ///< Maximum allo
  *
  * Each tile belongs to one type, according whatever is build on it.
  *
- * @note A railway with a crossing street is marked as MP_ROAD.
+ * @note A railway with a crossing street is marked as road.
  */
 enum TileType {
 	MP_CLEAR,               ///< A tile without any structures, i.e. grass, rocks, farm fields etc.

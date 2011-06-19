@@ -139,8 +139,7 @@ static inline void SetTreeGroundDensity(TileIndex t, TreeGround g, uint d)
  * Returns the number of trees on a tile.
  *
  * This function returns the number of trees of a tile (1-4).
- * The tile must be contains at least one tree or be more specific: it must be
- * of type MP_TREES.
+ * The tile must contain at least one tree.
  *
  * @param t The index to get the number of trees
  * @return The number of trees (1-4)

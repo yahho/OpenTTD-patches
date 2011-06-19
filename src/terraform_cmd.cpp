@@ -286,7 +286,7 @@ CommandCost CmdTerraformLand(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 			TileIndex tile = *ti;
 
 			assert(tile < MapSize());
-			/* MP_VOID tiles can be terraformed but as tunnels and bridges
+			/* Void tiles can be terraformed but as tunnels and bridges
 			 * cannot go under / over these tiles they don't need checking. */
 			if (IsVoidTile(tile)) continue;
 

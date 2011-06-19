@@ -55,7 +55,7 @@ static const uint16 DEFAULT_RAINFOREST_TREE_STEPS = 15000; ///< Default number o
 static const uint16 EDITOR_TREE_DIV = 5;                   ///< Game editor tree generation divisor factor.
 
 /**
- * Tests if a tile can be converted to MP_TREES
+ * Tests if a tile can be converted to have trees
  * This is true for clear ground without farms or rocks.
  *
  * @param tile the tile of interest
@@ -646,7 +646,7 @@ static void TileLoop_Trees(TileIndex tile)
 
 	uint treeCounter = GetTreeCounter(tile);
 
-	/* Handle growth of grass (under trees/on MP_TREES tiles) at every 8th processings, like it's done for grass on MP_CLEAR tiles. */
+	/* Handle growth of grass (under trees) at every 8th processings, like it's done for grass on clear tiles. */
 	if ((treeCounter & 7) == 7 && GetTreeGround(tile) == TREE_GROUND_GRASS) {
 		uint density = GetTreeDensity(tile);
 		if (density < 3) {
@@ -715,7 +715,7 @@ static void TileLoop_Trees(TileIndex tile)
 				AddTreeCount(tile, -1);
 				SetTreeGrowth(tile, 3);
 			} else {
-				/* just one tree, change type into MP_CLEAR */
+				/* just one tree, change type into clear */
 				switch (GetTreeGround(tile)) {
 					case TREE_GROUND_SHORE: MakeShore(tile); break;
 					case TREE_GROUND_GRASS: MakeClear(tile, CLEAR_GRASS, GetTreeDensity(tile)); break;

@@ -98,7 +98,7 @@ static inline uint MapSize()
 }
 
 /**
- * Gets the maximum X coordinate within the map, including MP_VOID
+ * Gets the maximum X coordinate within the map, including void tiles
  * @return the maximum X coordinate
  */
 static inline uint MapMaxX()
@@ -107,7 +107,7 @@ static inline uint MapMaxX()
 }
 
 /**
- * Gets the maximum Y coordinate within the map, including MP_VOID
+ * Gets the maximum Y coordinate within the map, including void tiles
  * @return the maximum Y coordinate
  */
 static inline uint MapMaxY()

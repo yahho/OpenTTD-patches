@@ -648,7 +648,7 @@ void GenerateObjects()
 			if (IsWaterTile(TileXY(1, y))) num_water_tiles++;
 			if (IsWaterTile(TileXY(MapMaxX() - 1, y))) num_water_tiles++;
 		}
-		/* The -6 is because the top borders are MP_VOID (-2) and all corners
+		/* The -6 is because the top borders are void (-2) and all corners
 		 * are counted twice (-4). */
 		lighthouses_to_build = lighthouses_to_build * num_water_tiles / (2 * MapMaxY() + 2 * MapMaxX() - 6);
 	}
