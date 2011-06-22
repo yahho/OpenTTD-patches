@@ -126,7 +126,7 @@ static inline void HaltLift(TileIndex t)
  */
 static inline byte GetLiftPosition(TileIndex t)
 {
-	return GB(_mc[t].m6, 2, 6);
+	return GB(_mc[t].m0, 0, 6);
 }
 
 /**
@@ -136,7 +136,7 @@ static inline byte GetLiftPosition(TileIndex t)
  */
 static inline void SetLiftPosition(TileIndex t, byte pos)
 {
-	SB(_mc[t].m6, 2, 6, pos);
+	SB(_mc[t].m0, 0, 6, pos);
 }
 
 /**
@@ -315,7 +315,7 @@ static inline byte GetHouseTriggers(TileIndex t)
 static inline byte GetHouseProcessingTime(TileIndex t)
 {
 	assert(IsHouseTile(t));
-	return GB(_mc[t].m6, 2, 6);
+	return GB(_mc[t].m0, 0, 6);
 }
 
 /**
@@ -327,7 +327,7 @@ static inline byte GetHouseProcessingTime(TileIndex t)
 static inline void SetHouseProcessingTime(TileIndex t, byte time)
 {
 	assert(IsHouseTile(t));
-	SB(_mc[t].m6, 2, 6, time);
+	SB(_mc[t].m0, 0, 6, time);
 }
 
 /**
@@ -338,7 +338,8 @@ static inline void SetHouseProcessingTime(TileIndex t, byte time)
 static inline void DecHouseProcessingTime(TileIndex t)
 {
 	assert(IsHouseTile(t));
-	_mc[t].m6 -= 1 << 2;
+	assert(GetHouseProcessingTime(t) != 0);
+	_mc[t].m0--;
 }
 
 /**
@@ -355,7 +356,7 @@ static inline void MakeHouseTile(TileIndex t, TownID tid, byte counter, byte sta
 {
 	assert(IsClearTile(t));
 
-	SetTileType(t, MP_HOUSE);
+	_mc[t].m0 = 0xC0;
 	_mc[t].m1 = random_bits;
 	_mc[t].m2 = tid;
 	_mc[t].m3 = 0;

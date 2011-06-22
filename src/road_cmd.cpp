@@ -171,13 +171,13 @@ static CommandCost RemoveRoad(TileIndex tile, DoCommandFlag flags, RoadBits piec
 	if (!HasBit(rts, rt)) return_cmd_error(rt == ROADTYPE_TRAM ? STR_ERROR_THERE_IS_NO_TRAMWAY : STR_ERROR_THERE_IS_NO_ROAD);
 
 	switch (GetTileType(tile)) {
-		case MP_ROAD: {
+		case TT_ROAD: {
 			CommandCost ret = EnsureNoVehicleOnGround(tile);
 			if (ret.Failed()) return ret;
 			break;
 		}
 
-		case MP_STATION: {
+		case TT_STATION: {
 			if (!IsDriveThroughStopTile(tile)) return CMD_ERROR;
 
 			CommandCost ret = EnsureNoVehicleOnGround(tile);
@@ -185,7 +185,7 @@ static CommandCost RemoveRoad(TileIndex tile, DoCommandFlag flags, RoadBits piec
 			break;
 		}
 
-		case MP_TUNNELBRIDGE: {
+		case TT_TUNNELBRIDGE_TEMP: {
 			if (GetTunnelBridgeTransportType(tile) != TRANSPORT_ROAD) return CMD_ERROR;
 			CommandCost ret = TunnelBridgeIsFree(tile, GetOtherTunnelBridgeEnd(tile));
 			if (ret.Failed()) return ret;
@@ -504,7 +504,7 @@ CommandCost CmdBuildRoad(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 
 	bool need_to_clear = false;
 	switch (GetTileType(tile)) {
-		case MP_ROAD:
+		case TT_ROAD:
 			switch (GetRoadTileType(tile)) {
 				case ROAD_TILE_NORMAL: {
 					if (HasRoadWorks(tile)) return_cmd_error(STR_ERROR_ROAD_WORKS_IN_PROGRESS);
@@ -569,7 +569,7 @@ CommandCost CmdBuildRoad(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 			}
 			break;
 
-		case MP_RAILWAY: {
+		case TT_RAILWAY: {
 			if (IsSteepSlope(tileh)) {
 				return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
 			}
@@ -628,7 +628,7 @@ CommandCost CmdBuildRoad(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 			return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_ROAD] * (rt == ROADTYPE_ROAD ? 2 : 4));
 		}
 
-		case MP_STATION: {
+		case TT_STATION: {
 			if ((GetAnyRoadBits(tile, rt) & pieces) == pieces) return_cmd_error(STR_ERROR_ALREADY_BUILT);
 			if (!IsDriveThroughStopTile(tile)) goto do_clear;
 
@@ -640,7 +640,7 @@ CommandCost CmdBuildRoad(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 			break;
 		}
 
-		case MP_TUNNELBRIDGE: {
+		case TT_TUNNELBRIDGE_TEMP: {
 			if (GetTunnelBridgeTransportType(tile) != TRANSPORT_ROAD) goto do_clear;
 			/* Only allow building the outern roadbit, so building long roads stops at existing bridges */
 			if (MirrorRoadBits(DiagDirToRoadBits(GetTunnelBridgeDirection(tile))) != pieces) goto do_clear;
@@ -713,7 +713,7 @@ do_clear:;
 
 	if (flags & DC_EXEC) {
 		switch (GetTileType(tile)) {
-			case MP_ROAD: {
+			case TT_ROAD: {
 				RoadTileType rtt = GetRoadTileType(tile);
 				if (existing == ROAD_NONE || rtt == ROAD_TILE_CROSSING) {
 					SetRoadTypes(tile, GetRoadTypes(tile) | RoadTypeToRoadTypes(rt));
@@ -724,7 +724,7 @@ do_clear:;
 				break;
 			}
 
-			case MP_TUNNELBRIDGE: {
+			case TT_TUNNELBRIDGE_TEMP: {
 				TileIndex other_end = GetOtherTunnelBridgeEnd(tile);
 
 				SetRoadTypes(other_end, GetRoadTypes(other_end) | RoadTypeToRoadTypes(rt));
@@ -742,7 +742,7 @@ do_clear:;
 				break;
 			}
 
-			case MP_STATION:
+			case TT_STATION:
 				assert(IsDriveThroughStopTile(tile));
 				SetRoadTypes(tile, GetRoadTypes(tile) | RoadTypeToRoadTypes(rt));
 				SetRoadOwner(tile, rt, company);

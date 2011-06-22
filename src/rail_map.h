@@ -519,26 +519,26 @@ static inline bool IsSnowRailGround(TileIndex t)
 
 static inline void MakeRailNormal(TileIndex t, Owner o, TrackBits b, RailType r)
 {
-	SetTileType(t, MP_RAILWAY);
+	SetTileType(t, TT_RAILWAY);
 	SetTileOwner(t, o);
 	_mc[t].m2 = 0;
 	_mc[t].m3 = r;
 	_mc[t].m4 = 0;
 	_mc[t].m5 = RAIL_TILE_NORMAL << 6 | b;
-	SB(_mc[t].m6, 2, 4, 0);
+	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m7 = 0;
 }
 
 
 static inline void MakeRailDepot(TileIndex t, Owner o, DepotID did, DiagDirection d, RailType r)
 {
-	SetTileType(t, MP_RAILWAY);
+	SetTileType(t, TT_RAILWAY);
 	SetTileOwner(t, o);
 	_mc[t].m2 = did;
 	_mc[t].m3 = r;
 	_mc[t].m4 = 0;
 	_mc[t].m5 = RAIL_TILE_DEPOT << 6 | d;
-	SB(_mc[t].m6, 2, 4, 0);
+	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m7 = 0;
 }
 

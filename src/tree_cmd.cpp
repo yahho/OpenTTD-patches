@@ -65,10 +65,10 @@ static const uint16 EDITOR_TREE_DIV = 5;                   ///< Game editor tree
 static bool CanPlantTreesOnTile(TileIndex tile, bool allow_desert)
 {
 	switch (GetTileType(tile)) {
-		case MP_WATER:
+		case TT_WATER:
 			return !IsBridgeAbove(tile) && IsCoast(tile) && !IsSlopeWithOneCornerRaised(GetTileSlope(tile));
 
-		case MP_CLEAR:
+		case TT_GROUND:
 			return !IsBridgeAbove(tile) && !IsClearGround(tile, CLEAR_FIELDS) && GetRawClearGround(tile) != CLEAR_ROCKS &&
 			       (allow_desert || !IsClearGround(tile, CLEAR_DESERT));
 
@@ -96,11 +96,11 @@ static void PlantTreesOnTile(TileIndex tile, TreeType treetype, uint count, uint
 	uint density = 3;
 
 	switch (GetTileType(tile)) {
-		case MP_WATER:
+		case TT_WATER:
 			ground = TREE_GROUND_SHORE;
 			break;
 
-		case MP_CLEAR:
+		case TT_GROUND:
 			switch (GetClearGround(tile)) {
 				case CLEAR_GRASS:  ground = TREE_GROUND_GRASS;       break;
 				case CLEAR_ROUGH:  ground = TREE_GROUND_ROUGH;       break;
@@ -346,7 +346,7 @@ CommandCost CmdPlantTree(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	TileArea ta(tile, p2);
 	TILE_AREA_LOOP(tile, ta) {
 		switch (GetTileType(tile)) {
-			case MP_TREES:
+			case TT_TREES_TEMP:
 				/* no more space for trees? */
 				if (_game_mode != GM_EDITOR && GetTreeCount(tile) == 4) {
 					msg = STR_ERROR_TREE_ALREADY_HERE;
@@ -368,13 +368,13 @@ CommandCost CmdPlantTree(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 				cost.AddCost(_price[PR_BUILD_TREES] * 2);
 				break;
 
-			case MP_WATER:
+			case TT_WATER:
 				if (!IsCoast(tile) || IsSlopeWithOneCornerRaised(GetTileSlope(tile))) {
 					msg = STR_ERROR_CAN_T_BUILD_ON_WATER;
 					continue;
 				}
 				/* FALL THROUGH */
-			case MP_CLEAR: {
+			case TT_GROUND: {
 				if (IsBridgeAbove(tile)) {
 					msg = STR_ERROR_SITE_UNSUITABLE;
 					continue;

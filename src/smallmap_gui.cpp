@@ -411,24 +411,27 @@ static const AndOr _smallmap_vehicles_andor[] = {
 
 static inline SmallmapTileType GetEffectiveTileType(TileIndex tile)
 {
+	if (IsHouseTile(tile)) return SMTT_HOUSE;
+
 	switch (GetTileType(tile)) {
-		case MP_STATION:  return SMTT_STATION;
-		case MP_RAILWAY:  return SMTT_RAILWAY;
-		case MP_ROAD:     return SMTT_ROAD;
-		case MP_INDUSTRY: return SMTT_INDUSTRY;
-		case MP_HOUSE:    return SMTT_HOUSE;
-		case MP_OBJECT:   return SMTT_OBJECT;
-		case MP_CLEAR:
-		case MP_TREES:    return SMTT_CLEAR;
-		case MP_WATER:    return SMTT_WATER;
-		case MP_VOID:     return SMTT_VOID;
-		case MP_TUNNELBRIDGE:
+		case TT_STATION:  return SMTT_STATION;
+		case TT_RAILWAY:  return SMTT_RAILWAY;
+		case TT_ROAD:     return SMTT_ROAD;
+		case TT_INDUSTRY_TEMP: return SMTT_INDUSTRY;
+		case TT_OBJECT:   return SMTT_OBJECT;
+		case TT_GROUND:
+		case TT_TREES_TEMP:    return SMTT_CLEAR;
+		case TT_WATER:    return SMTT_WATER;
+		case TT_VOID_TEMP:     return SMTT_VOID;
+		case TT_TUNNELBRIDGE_TEMP:
 			switch (GetTunnelBridgeTransportType(tile)) {
 				case TRANSPORT_RAIL: return SMTT_RAILWAY;
 				case TRANSPORT_ROAD: return SMTT_ROAD;
 				default:             return SMTT_WATER;
 			}
+		case TT_MISC:     NOT_REACHED();
 	}
+
 	NOT_REACHED();
 }
 

@@ -20,14 +20,14 @@
  */
 static inline void MakeVoid(TileIndex t)
 {
-	SetTileType(t, MP_VOID);
+	_mc[t].m0 = 0;
+	SetTileType(t, TT_VOID_TEMP);
 	SetTileHeight(t, 0);
 	_mc[t].m1 = 0;
 	_mc[t].m2 = 0;
 	_mc[t].m3 = 0;
 	_mc[t].m4 = 0;
 	_mc[t].m5 = 0;
-	_mc[t].m6 = 0;
 	_mc[t].m7 = 0;
 }
 

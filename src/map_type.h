@@ -17,7 +17,7 @@
  * Look at docs/landscape.html for the exact meaning of the members.
  */
 struct TileH {
-	byte   type_height; ///< The type (bits 4..7) and height of the northern corner
+	byte   type_height; ///< Zone and height of the northern corner
 };
 
 /**
@@ -25,8 +25,8 @@ struct TileH {
  * Look at docs/landscape.html for the exact meaning of the members.
  */
 struct TileC {
-	byte   m6;          ///< Primarily used for bridges and rainforest/desert
-	byte   m1;          ///< Primarily used for ownership information
+	byte   m0;          ///< Primarily used for tile class and bridges
+	byte   m1;          ///< Primarily used for tile class, water class and ownership information
 	uint16 m2;          ///< Primarily used for indices to towns, industries and stations
 	byte   m3;          ///< General purpose
 	byte   m4;          ///< General purpose

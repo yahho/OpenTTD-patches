@@ -55,17 +55,22 @@ extern const TileTypeProcs
  * @see TileType
  */
 extern const TileTypeProcs * const _tile_type_procs[16] = {
-	&_tile_type_clear_procs,        ///< Callback functions for MP_CLEAR tiles
-	&_tile_type_rail_procs,         ///< Callback functions for MP_RAILWAY tiles
-	&_tile_type_road_procs,         ///< Callback functions for MP_ROAD tiles
-	&_tile_type_town_procs,         ///< Callback functions for MP_HOUSE tiles
-	&_tile_type_trees_procs,        ///< Callback functions for MP_TREES tiles
-	&_tile_type_station_procs,      ///< Callback functions for MP_STATION tiles
-	&_tile_type_water_procs,        ///< Callback functions for MP_WATER tiles
-	&_tile_type_void_procs,         ///< Callback functions for MP_VOID tiles
-	&_tile_type_industry_procs,     ///< Callback functions for MP_INDUSTRY tiles
-	&_tile_type_tunnelbridge_procs, ///< Callback functions for MP_TUNNELBRIDGE tiles
-	&_tile_type_object_procs,       ///< Callback functions for MP_OBJECT tiles
+	&_tile_type_clear_procs,        ///< Callback functions for clear tiles
+	&_tile_type_object_procs,       ///< Callback functions for object tiles
+	&_tile_type_water_procs,        ///< Callback functions for water tiles
+	NULL,
+	&_tile_type_rail_procs,         ///< Callback functions for railway tiles
+	&_tile_type_road_procs,         ///< Callback functions for road tiles
+	NULL,
+	&_tile_type_station_procs,      ///< Callback functions for station tiles
+	&_tile_type_industry_procs,     ///< Callback functions for industry tiles
+	&_tile_type_void_procs,         ///< Callback functions for void tiles
+	&_tile_type_trees_procs,        ///< Callback functions for tree tiles
+	&_tile_type_tunnelbridge_procs, ///< Callback functions for tunnel/bridge tiles
+	&_tile_type_town_procs,         ///< Callback functions for house tiles
+	&_tile_type_town_procs,
+	&_tile_type_town_procs,
+	&_tile_type_town_procs,
 };
 
 /** landscape slope => sprite */

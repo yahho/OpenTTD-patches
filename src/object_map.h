@@ -130,14 +130,14 @@ static inline byte GetObjectRandomBits(TileIndex t)
  */
 static inline void MakeObject(TileIndex t, ObjectType u, Owner o, ObjectID index, WaterClass wc, byte random)
 {
-	SetTileType(t, MP_OBJECT);
+	SetTileType(t, TT_OBJECT);
 	SetTileOwner(t, o);
 	SetWaterClass(t, wc);
 	_mc[t].m2 = index;
 	_mc[t].m3 = random;
 	_mc[t].m4 = 0;
 	_mc[t].m5 = u;
-	SB(_mc[t].m6, 2, 4, 0);
+	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m7 = 0;
 }
 

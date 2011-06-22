@@ -258,32 +258,32 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 			}
 
 			switch (GetTileType(tile)) {
-				case MP_WATER:
+				case TT_WATER:
 					if (!IsPlainWater(tile) && !IsCoast(tile)) goto not_valid_below;
 					break;
 
-				case MP_RAILWAY:
+				case TT_RAILWAY:
 					if (!IsPlainRail(tile)) goto not_valid_below;
 					break;
 
-				case MP_ROAD:
+				case TT_ROAD:
 					if (IsRoadDepot(tile)) goto not_valid_below;
 					break;
 
-				case MP_TUNNELBRIDGE:
+				case TT_TUNNELBRIDGE_TEMP:
 					if (IsTunnel(tile)) break;
 					if (direction == DiagDirToAxis(GetTunnelBridgeDirection(tile))) goto not_valid_below;
 					if (z_start < GetBridgeHeight(tile)) goto not_valid_below;
 					break;
 
-				case MP_OBJECT: {
+				case TT_OBJECT: {
 					const ObjectSpec *spec = ObjectSpec::GetByTile(tile);
 					if ((spec->flags & OBJECT_FLAG_ALLOW_UNDER_BRIDGE) == 0) goto not_valid_below;
 					if (GetTileMaxZ(tile) + spec->height > z_start) goto not_valid_below;
 					break;
 				}
 
-				case MP_CLEAR:
+				case TT_GROUND:
 					break;
 
 				default:

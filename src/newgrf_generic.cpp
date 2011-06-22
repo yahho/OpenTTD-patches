@@ -259,8 +259,9 @@ void AmbientSoundEffectCallback(TileIndex tile)
 	/* Prepare resolver object. */
 	GenericResolverObject object(false, CBID_SOUNDS_AMBIENT_EFFECT);
 
-	uint32 param1_v7 = GetTileType(tile) << 28 | Clamp(TileHeight(tile), 0, 15) << 24 | GB(r, 16, 8) << 16 | GetTerrainType(tile);
-	uint32 param1_v8 = GetTileType(tile) << 24 | GetTileZ(tile) << 16 | GB(r, 16, 8) << 8 | (HasTileWaterClass(tile) ? GetWaterClass(tile) : 0) << 3 | GetTerrainType(tile);
+	int oldtype = IsWaterTile(tile) ? 6 : IsTreeTile(tile) ? 4 : 0;
+	uint32 param1_v7 = oldtype << 28 | Clamp(TileHeight(tile), 0, 15) << 24 | GB(r, 16, 8) << 16 | GetTerrainType(tile);
+	uint32 param1_v8 = oldtype << 24 | GetTileZ(tile) << 16 | GB(r, 16, 8) << 8 | (HasTileWaterClass(tile) ? GetWaterClass(tile) : 0) << 3 | GetTerrainType(tile);
 
 	/* Run callback. */
 	const GRFFile *grf_file;

@@ -353,14 +353,14 @@ static inline bool HasTileWaterGround(TileIndex t)
  */
 static inline void MakeShore(TileIndex t)
 {
-	SetTileType(t, MP_WATER);
+	SetTileType(t, TT_WATER);
 	SetTileOwner(t, OWNER_WATER);
 	SetWaterClass(t, WATER_CLASS_SEA);
 	_mc[t].m2 = 0;
 	_mc[t].m3 = 0;
 	_mc[t].m4 = 0;
 	_mc[t].m5 = WBL_TYPE_NORMAL << WBL_TYPE_BEGIN | 1 << WBL_COAST_FLAG;
-	SB(_mc[t].m6, 2, 4, 0);
+	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m7 = 0;
 }
 
@@ -373,14 +373,14 @@ static inline void MakeShore(TileIndex t)
  */
 static inline void MakeWater(TileIndex t, Owner o, WaterClass wc, uint8 random_bits)
 {
-	SetTileType(t, MP_WATER);
+	SetTileType(t, TT_WATER);
 	SetTileOwner(t, o);
 	SetWaterClass(t, wc);
 	_mc[t].m2 = 0;
 	_mc[t].m3 = 0;
 	_mc[t].m4 = random_bits;
 	_mc[t].m5 = WBL_TYPE_NORMAL << WBL_TYPE_BEGIN;
-	SB(_mc[t].m6, 2, 4, 0);
+	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m7 = 0;
 }
 
@@ -426,14 +426,14 @@ static inline void MakeCanal(TileIndex t, Owner o, uint8 random_bits)
  */
 static inline void MakeShipDepot(TileIndex t, Owner o, DepotID did, DepotPart part, Axis a, WaterClass original_water_class)
 {
-	SetTileType(t, MP_WATER);
+	SetTileType(t, TT_WATER);
 	SetTileOwner(t, o);
 	SetWaterClass(t, original_water_class);
 	_mc[t].m2 = did;
 	_mc[t].m3 = 0;
 	_mc[t].m4 = 0;
 	_mc[t].m5 = WBL_TYPE_DEPOT << WBL_TYPE_BEGIN | part << WBL_DEPOT_PART | a << WBL_DEPOT_AXIS;
-	SB(_mc[t].m6, 2, 4, 0);
+	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m7 = 0;
 }
 
@@ -448,14 +448,14 @@ static inline void MakeShipDepot(TileIndex t, Owner o, DepotID did, DepotPart pa
  */
 static inline void MakeLockTile(TileIndex t, Owner o, LockPart part, DiagDirection dir, WaterClass original_water_class)
 {
-	SetTileType(t, MP_WATER);
+	SetTileType(t, TT_WATER);
 	SetTileOwner(t, o);
 	SetWaterClass(t, original_water_class);
 	_mc[t].m2 = 0;
 	_mc[t].m3 = 0;
 	_mc[t].m4 = 0;
 	_mc[t].m5 = WBL_TYPE_LOCK << WBL_TYPE_BEGIN | part << WBL_LOCK_PART_BEGIN | dir << WBL_LOCK_ORIENT_BEGIN;
-	SB(_mc[t].m6, 2, 4, 0);
+	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m7 = 0;
 }
 

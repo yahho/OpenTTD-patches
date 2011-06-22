@@ -275,7 +275,7 @@ static void NPFMarkTile(TileIndex tile)
 #ifndef NO_DEBUG_MESSAGES
 	if (_debug_npf_level < 1 || _networking) return;
 	switch (GetTileType(tile)) {
-		case MP_RAILWAY:
+		case TT_RAILWAY:
 			/* DEBUG: mark visited tiles by mowing the grass under them ;-) */
 			if (!IsRailDepot(tile)) {
 				SetRailGroundType(tile, RAIL_GROUND_BARREN);
@@ -283,7 +283,7 @@ static void NPFMarkTile(TileIndex tile)
 			}
 			break;
 
-		case MP_ROAD:
+		case TT_ROAD:
 			if (!IsRoadDepot(tile)) {
 				SetRoadside(tile, ROADSIDE_BARREN);
 				MarkTileDirtyByTile(tile);
@@ -325,17 +325,17 @@ static int32 NPFRoadPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 
 	/* Determine base length */
 	switch (GetTileType(tile)) {
-		case MP_TUNNELBRIDGE:
+		case TT_TUNNELBRIDGE_TEMP:
 			cost = IsTunnel(tile) ? NPFTunnelCost(current) : NPFBridgeCost(current);
 			break;
 
-		case MP_ROAD:
+		case TT_ROAD:
 			cost = NPF_TILE_LENGTH;
 			/* Increase the cost for level crossings */
 			if (IsLevelCrossing(tile)) cost += _settings_game.pf.npf.npf_crossing_penalty;
 			break;
 
-		case MP_STATION: {
+		case TT_STATION: {
 			cost = NPF_TILE_LENGTH;
 			const RoadStop *rs = RoadStop::GetByTile(tile, GetRoadStopType(tile));
 			if (IsDriveThroughStopTile(tile)) {
@@ -387,19 +387,19 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 
 	/* Determine base length */
 	switch (GetTileType(tile)) {
-		case MP_TUNNELBRIDGE:
+		case TT_TUNNELBRIDGE_TEMP:
 			cost = IsTunnel(tile) ? NPFTunnelCost(current) : NPFBridgeCost(current);
 			break;
 
-		case MP_RAILWAY:
+		case TT_RAILWAY:
 			cost = _trackdir_length[trackdir]; // Should be different for diagonal tracks
 			break;
 
-		case MP_ROAD: // Railway crossing
+		case TT_ROAD: // Railway crossing
 			cost = NPF_TILE_LENGTH;
 			break;
 
-		case MP_STATION:
+		case TT_STATION:
 			/* We give a station tile a penalty. Logically we would only want to give
 			 * station tiles that are not our destination this penalty. This would
 			 * discourage trains to drive through busy stations. But, we can just
@@ -668,7 +668,7 @@ static bool CanEnterTileOwnerCheck(Owner owner, TileIndex tile, DiagDirection en
 	}
 
 	switch (GetTileType(tile)) {
-		case MP_ROAD:
+		case TT_ROAD:
 			/* rail-road crossing : are we looking at the railway part? */
 			if (IsLevelCrossing(tile) &&
 					DiagDirToAxis(enterdir) != GetCrossingRoadAxis(tile)) {
@@ -676,7 +676,7 @@ static bool CanEnterTileOwnerCheck(Owner owner, TileIndex tile, DiagDirection en
 			}
 			break;
 
-		case MP_TUNNELBRIDGE:
+		case TT_TUNNELBRIDGE_TEMP:
 			if (GetTunnelBridgeTransportType(tile) == TRANSPORT_RAIL) {
 				return IsTileOwner(tile, owner);
 			}

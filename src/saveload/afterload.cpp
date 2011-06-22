@@ -99,7 +99,7 @@ static void GuessWaterClass(TileIndex t, bool allow_invalid)
 	for (DiagDirection dir = DIAGDIR_BEGIN; dir < DIAGDIR_END; dir++) {
 		TileIndex neighbour = TileAddByDiagDir(t, dir);
 		switch (GetTileType(neighbour)) {
-			case MP_WATER:
+			case TT_WATER:
 				/* clear water and shipdepots have already a WaterClass associated */
 				if (IsCoast(neighbour)) {
 					has_water = true;
@@ -113,12 +113,12 @@ static void GuessWaterClass(TileIndex t, bool allow_invalid)
 				}
 				break;
 
-			case MP_RAILWAY:
+			case TT_RAILWAY:
 				/* Shore or flooded halftile */
 				has_water |= (GetRailGroundType(neighbour) == RAIL_GROUND_WATER);
 				break;
 
-			case MP_TREES:
+			case TT_TREES_TEMP:
 				/* trees on shore */
 				has_water |= (GB(_mc[neighbour].m2, 4, 2) == TREE_GROUND_SHORE);
 				break;
@@ -637,18 +637,8 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	 *  all about ;) */
 	if (IsOTTDSavegameVersionBefore(stv, 6, 1)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			switch (GetTileType(t)) {
-				case MP_HOUSE:
-					SetTownIndex(t, CalcClosestTownFromTile(t)->index);
-					break;
-
-				case MP_ROAD:
-					if (GetRoadOwner(t, ROADTYPE_ROAD) == OWNER_TOWN) {
-						SetTownIndex(t, CalcClosestTownFromTile(t)->index);
-					}
-					break;
-
-				default: break;
+			if (IsHouseTile(t) || (IsRoadOrDepotTile(t) && GetRoadOwner(t, ROADTYPE_ROAD) == OWNER_TOWN)) {
+				SetTownIndex(t, CalcClosestTownFromTile(t)->index);
 			}
 		}
 	}
@@ -747,18 +737,18 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		/* .. so we convert the entire map from normal to elrail (so maintain "fairness") */
 		for (TileIndex t = 0; t < map_size; t++) {
 			switch (GetTileType(t)) {
-				case MP_RAILWAY:
+				case TT_RAILWAY:
 					break;
 
-				case MP_ROAD:
+				case TT_ROAD:
 					if (!IsLevelCrossing(t)) continue;
 					break;
 
-				case MP_STATION:
+				case TT_STATION:
 					if (!HasStationRail(t)) continue;
 					break;
 
-				case MP_TUNNELBRIDGE:
+				case TT_TUNNELBRIDGE_TEMP:
 					if (GetTunnelBridgeTransportType(t) != TRANSPORT_RAIL) continue;
 					break;
 
@@ -1190,7 +1180,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		/* Increase HouseAnimationFrame from 5 to 7 bits */
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsHouseTile(t) && GetHouseType(t) >= NEW_HOUSE_OFFSET) {
-				SB(_mc[t].m6, 2, 6, GB(_mc[t].m6, 3, 5));
+				SB(_mc[t].m0, 0, 6, GB(_mc[t].m0, 1, 5));
 				SB(_mc[t].m3, 5, 1, 0);
 			}
 		}
@@ -1663,9 +1653,9 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsHouseTile(t) && GetHouseType(t) >= NEW_HOUSE_OFFSET) {
 				uint per_proc = _mc[t].m7;
-				_mc[t].m7 = GB(_mc[t].m6, 2, 6) | (GB(_mc[t].m3, 5, 1) << 6);
+				_mc[t].m7 = GB(_mc[t].m0, 0, 6) | (GB(_mc[t].m3, 5, 1) << 6);
 				SB(_mc[t].m3, 5, 1, 0);
-				SB(_mc[t].m6, 2, 6, min(per_proc, 63));
+				SB(_mc[t].m0, 0, 6, min(per_proc, 63));
 			}
 		}
 	}

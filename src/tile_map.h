@@ -74,7 +74,8 @@ static inline uint TilePixelHeight(TileIndex tile)
 static inline TileType GetTileType(TileIndex tile)
 {
 	assert(tile < MapSize());
-	return (TileType)GB(_mth[tile].type_height, 4, 4);
+	uint type = GB(_mc[tile].m0, 4, 4);
+	return (TileType)type;
 }
 
 /**
@@ -97,9 +98,8 @@ static inline bool IsInnerTile(TileIndex tile)
 /**
  * Set the type of a tile
  *
- * This functions sets the type of a tile. If the void type
- * is selected the tile must be at the south-west or
- * south-east edges of the map and vice versa.
+ * This functions sets the type of a tile. At the south-west or
+ * south-east edges of the map, only void tiles are allowed.
  *
  * @param tile The tile to save the new type
  * @param type The type to save
@@ -109,11 +109,12 @@ static inline bool IsInnerTile(TileIndex tile)
 static inline void SetTileType(TileIndex tile, TileType type)
 {
 	assert(tile < MapSize());
-	/* VOID tiles (and no others) are exactly allowed at the lower left and right
+	assert(type < 12);
+	/* Only void tiles are allowed at the lower left and right
 	 * edges of the map. If _settings_game.construction.freeform_edges is true,
 	 * the upper edges of the map are also VOID tiles. */
-	assert(IsInnerTile(tile) == (type != MP_VOID));
-	SB(_mth[tile].type_height, 4, 4, type);
+	assert(IsInnerTile(tile) || (type == TT_VOID_TEMP));
+	SB(_mc[tile].m0, 4, 4, type);
 }
 
 /**
@@ -138,7 +139,7 @@ static inline bool IsTileType(TileIndex tile, TileType type)
  */
 static inline bool IsClearTile(TileIndex tile)
 {
-	return IsTileType(tile, MP_CLEAR);
+	return IsTileType(tile, TT_GROUND);
 }
 
 /**
@@ -149,7 +150,7 @@ static inline bool IsClearTile(TileIndex tile)
  */
 static inline bool IsRailwayOrDepotTile(TileIndex tile)
 {
-	return IsTileType(tile, MP_RAILWAY);
+	return IsTileType(tile, TT_RAILWAY);
 }
 
 /**
@@ -160,7 +161,7 @@ static inline bool IsRailwayOrDepotTile(TileIndex tile)
  */
 static inline bool IsRoadOrDepotTile(TileIndex tile)
 {
-	return IsTileType(tile, MP_ROAD);
+	return IsTileType(tile, TT_ROAD);
 }
 
 /**
@@ -171,7 +172,7 @@ static inline bool IsRoadOrDepotTile(TileIndex tile)
  */
 static inline bool IsHouseTile(TileIndex tile)
 {
-	return IsTileType(tile, MP_HOUSE);
+	return GB(_mc[tile].m0, 6, 2) == 3;
 }
 
 /**
@@ -182,7 +183,7 @@ static inline bool IsHouseTile(TileIndex tile)
  */
 static inline bool IsTreeTile(TileIndex tile)
 {
-	return IsTileType(tile, MP_TREES);
+	return IsTileType(tile, TT_TREES_TEMP);
 }
 
 /**
@@ -193,7 +194,7 @@ static inline bool IsTreeTile(TileIndex tile)
  */
 static inline bool IsStationTile(TileIndex tile)
 {
-	return IsTileType(tile, MP_STATION);
+	return IsTileType(tile, TT_STATION);
 }
 
 /**
@@ -204,7 +205,7 @@ static inline bool IsStationTile(TileIndex tile)
  */
 static inline bool IsWaterTile(TileIndex tile)
 {
-	return IsTileType(tile, MP_WATER);
+	return IsTileType(tile, TT_WATER);
 }
 
 /**
@@ -215,7 +216,7 @@ static inline bool IsWaterTile(TileIndex tile)
  */
 static inline bool IsVoidTile(TileIndex tile)
 {
-	return IsTileType(tile, MP_VOID);
+	return IsTileType(tile, TT_VOID_TEMP);
 }
 
 /**
@@ -226,7 +227,7 @@ static inline bool IsVoidTile(TileIndex tile)
  */
 static inline bool IsIndustryTile(TileIndex tile)
 {
-	return IsTileType(tile, MP_INDUSTRY);
+	return IsTileType(tile, TT_INDUSTRY_TEMP);
 }
 
 /**
@@ -237,7 +238,7 @@ static inline bool IsIndustryTile(TileIndex tile)
  */
 static inline bool IsTunnelBridgeTile(TileIndex tile)
 {
-	return IsTileType(tile, MP_TUNNELBRIDGE);
+	return IsTileType(tile, TT_TUNNELBRIDGE_TEMP);
 }
 
 /**
@@ -248,7 +249,7 @@ static inline bool IsTunnelBridgeTile(TileIndex tile)
  */
 static inline bool IsObjectTile(TileIndex tile)
 {
-	return IsTileType(tile, MP_OBJECT);
+	return IsTileType(tile, TT_OBJECT);
 }
 
 /**
@@ -336,7 +337,7 @@ static inline void SetTropicZone(TileIndex tile, TropicZone type)
 {
 	assert(tile < MapSize());
 	assert(!IsVoidTile(tile) || type == TROPICZONE_NORMAL);
-	SB(_mc[tile].m6, 0, 2, type);
+	SB(_mth[tile].type_height, 6, 2, type);
 }
 
 /**
@@ -348,7 +349,7 @@ static inline void SetTropicZone(TileIndex tile, TropicZone type)
 static inline TropicZone GetTropicZone(TileIndex tile)
 {
 	assert(tile < MapSize());
-	return (TropicZone)GB(_mc[tile].m6, 0, 2);
+	return (TropicZone)GB(_mth[tile].type_height, 6, 2);
 }
 
 /**

@@ -78,21 +78,21 @@ Town::~Town()
 
 	/* Check no tile is related to us. */
 	for (TileIndex tile = 0; tile < MapSize(); ++tile) {
-		switch (GetTileType(tile)) {
-			case MP_HOUSE:
-				assert(GetTownIndex(tile) != this->index);
-				break;
+		if (IsHouseTile(tile)) {
+			assert(GetTownIndex(tile) != this->index);
+		} else {
+			switch (GetTileType(tile)) {
+				case TT_ROAD:
+					assert(!HasTownOwnedRoad(tile) || GetTownIndex(tile) != this->index);
+					break;
 
-			case MP_ROAD:
-				assert(!HasTownOwnedRoad(tile) || GetTownIndex(tile) != this->index);
-				break;
+				case TT_TUNNELBRIDGE_TEMP:
+					assert(!IsTileOwner(tile, OWNER_TOWN) || ClosestTownFromTile(tile, UINT_MAX) != this);
+					break;
 
-			case MP_TUNNELBRIDGE:
-				assert(!IsTileOwner(tile, OWNER_TOWN) || ClosestTownFromTile(tile, UINT_MAX) != this);
-				break;
-
-			default:
-				break;
+				default:
+					break;
+			}
 		}
 	}
 
@@ -991,14 +991,9 @@ static bool GrowTownWithExtraHouse(Town *t, TileIndex tile)
 		/* Count both void and house tiles for checking whether there
 		 * are enough houses in the area. This to make it likely that
 		 * houses get build up to the edge of the map. */
-		switch (GetTileType(TileAddByDiagDir(tile, dir))) {
-			case MP_HOUSE:
-			case MP_VOID:
-				counter++;
-				break;
-
-			default:
-				break;
+		TileIndex tt = TileAddByDiagDir(tile, dir);
+		if (IsHouseTile(tt) || IsVoidTile(tt)) {
+			counter++;
 		}
 
 		/* If there are enough neighbors stop here */
@@ -2611,43 +2606,43 @@ CommandCost CmdDeleteTown(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 	/* Check all tiles for town ownership. */
 	for (TileIndex tile = 0; tile < MapSize(); ++tile) {
 		bool try_clear = false;
-		switch (GetTileType(tile)) {
-			case MP_ROAD:
-				try_clear = HasTownOwnedRoad(tile) && GetTownIndex(tile) == t->index;
-				break;
+		if (IsHouseTile(tile)) {
+			try_clear = GetTownIndex(tile) == t->index;
+		} else {
+			switch (GetTileType(tile)) {
+				case TT_ROAD:
+					try_clear = HasTownOwnedRoad(tile) && GetTownIndex(tile) == t->index;
+					break;
 
-			case MP_TUNNELBRIDGE:
-				try_clear = IsTileOwner(tile, OWNER_TOWN) && ClosestTownFromTile(tile, UINT_MAX) == t;
-				break;
+				case TT_TUNNELBRIDGE_TEMP:
+					try_clear = IsTileOwner(tile, OWNER_TOWN) && ClosestTownFromTile(tile, UINT_MAX) == t;
+					break;
 
-			case MP_HOUSE:
-				try_clear = GetTownIndex(tile) == t->index;
-				break;
+				case TT_INDUSTRY_TEMP:
+					try_clear = Industry::GetByTile(tile)->town == t;
+					break;
 
-			case MP_INDUSTRY:
-				try_clear = Industry::GetByTile(tile)->town == t;
-				break;
-
-			case MP_OBJECT:
-				if (Town::GetNumItems() == 1) {
-					/* No towns will be left, remove it! */
-					try_clear = true;
-				} else {
-					Object *o = Object::GetByTile(tile);
-					if (o->town == t) {
-						if (GetObjectType(tile) == OBJECT_STATUE) {
-							/* Statue... always remove. */
-							try_clear = true;
-						} else {
-							/* Tell to find a new town. */
-							if (flags & DC_EXEC) o->town = NULL;
+				case TT_OBJECT:
+					if (Town::GetNumItems() == 1) {
+						/* No towns will be left, remove it! */
+						try_clear = true;
+					} else {
+						Object *o = Object::GetByTile(tile);
+						if (o->town == t) {
+							if (GetObjectType(tile) == OBJECT_STATUE) {
+								/* Statue... always remove. */
+								try_clear = true;
+							} else {
+								/* Tell to find a new town. */
+								if (flags & DC_EXEC) o->town = NULL;
+							}
 						}
 					}
-				}
-				break;
+					break;
 
-			default:
-				break;
+				default:
+					break;
+			}
 		}
 		if (try_clear) {
 			CommandCost ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
@@ -3157,35 +3152,31 @@ Town *CalcClosestTownFromTile(TileIndex tile, uint threshold)
  */
 Town *ClosestTownFromTile(TileIndex tile, uint threshold)
 {
-	switch (GetTileType(tile)) {
-		case MP_ROAD:
-			if (IsRoadDepot(tile)) return CalcClosestTownFromTile(tile, threshold);
+	if (IsHouseTile(tile)) {
+		return Town::GetByTile(tile);
+	} else if (IsRoadOrDepotTile(tile)) {
+		if (IsRoadDepot(tile)) return CalcClosestTownFromTile(tile, threshold);
 
-			if (!HasTownOwnedRoad(tile)) {
-				TownID tid = GetTownIndex(tile);
+		if (HasTownOwnedRoad(tile)) return Town::GetByTile(tile);
 
-				if (tid == (TownID)INVALID_TOWN) {
-					/* in the case we are generating "many random towns", this value may be INVALID_TOWN */
-					if (_generating_world) return CalcClosestTownFromTile(tile, threshold);
-					assert(Town::GetNumItems() == 0);
-					return NULL;
-				}
+		TownID tid = GetTownIndex(tile);
 
-				assert(Town::IsValidID(tid));
-				Town *town = Town::Get(tid);
+		if (tid == (TownID)INVALID_TOWN) {
+			/* in the case we are generating "many random towns", this value may be INVALID_TOWN */
+			if (_generating_world) return CalcClosestTownFromTile(tile, threshold);
+			assert(Town::GetNumItems() == 0);
+			return NULL;
+		}
 
-				if (DistanceManhattan(tile, town->xy) >= threshold) town = NULL;
+		assert(Town::IsValidID(tid));
+		Town *town = Town::Get(tid);
 
-				return town;
-			}
-			/* FALL THROUGH */
+		if (DistanceManhattan(tile, town->xy) >= threshold) town = NULL;
 
-		case MP_HOUSE:
-			return Town::GetByTile(tile);
-
-		default:
-			return CalcClosestTownFromTile(tile, threshold);
+		return town;
 	}
+
+	return CalcClosestTownFromTile(tile, threshold);
 }
 
 static bool _town_rating_test = false; ///< If \c true, town rating is in test-mode.

@@ -461,7 +461,7 @@ enum Roadside {
  */
 static inline Roadside GetRoadside(TileIndex tile)
 {
-	return (Roadside)GB(_mc[tile].m6, 3, 3);
+	return (Roadside)_mc[tile].m4;
 }
 
 /**
@@ -471,7 +471,7 @@ static inline Roadside GetRoadside(TileIndex tile)
  */
 static inline void SetRoadside(TileIndex tile, Roadside s)
 {
-	SB(_mc[tile].m6, 3, 3, s);
+	_mc[tile].m4 = s;
 }
 
 /**
@@ -552,13 +552,13 @@ RoadBits GetAnyRoadBits(TileIndex tile, RoadType rt, bool straight_tunnel_bridge
  */
 static inline void MakeRoadNormal(TileIndex t, RoadBits bits, RoadTypes rot, TownID town, Owner road, Owner tram)
 {
-	SetTileType(t, MP_ROAD);
+	SetTileType(t, TT_ROAD);
 	SetTileOwner(t, road);
 	_mc[t].m2 = town;
 	_mc[t].m3 = (HasBit(rot, ROADTYPE_TRAM) ? bits : 0);
 	_mc[t].m4 = 0;
 	_mc[t].m5 = (HasBit(rot, ROADTYPE_ROAD) ? bits : 0) | ROAD_TILE_NORMAL << 6;
-	SB(_mc[t].m6, 2, 4, 0);
+	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m7 = rot << 6;
 	SetRoadOwner(t, ROADTYPE_TRAM, tram);
 }
@@ -576,13 +576,13 @@ static inline void MakeRoadNormal(TileIndex t, RoadBits bits, RoadTypes rot, Tow
  */
 static inline void MakeRoadCrossing(TileIndex t, Owner road, Owner tram, Owner rail, Axis roaddir, RailType rat, RoadTypes rot, uint town)
 {
-	SetTileType(t, MP_ROAD);
+	SetTileType(t, TT_ROAD);
 	SetTileOwner(t, rail);
 	_mc[t].m2 = town;
 	_mc[t].m3 = rat;
 	_mc[t].m4 = 0;
 	_mc[t].m5 = ROAD_TILE_CROSSING << 6 | roaddir;
-	SB(_mc[t].m6, 2, 4, 0);
+	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m7 = rot << 6 | road;
 	SetRoadOwner(t, ROADTYPE_TRAM, tram);
 }
@@ -597,13 +597,13 @@ static inline void MakeRoadCrossing(TileIndex t, Owner road, Owner tram, Owner r
  */
 static inline void MakeRoadDepot(TileIndex t, Owner owner, DepotID did, DiagDirection dir, RoadType rt)
 {
-	SetTileType(t, MP_ROAD);
+	SetTileType(t, TT_ROAD);
 	SetTileOwner(t, owner);
 	_mc[t].m2 = did;
 	_mc[t].m3 = 0;
 	_mc[t].m4 = 0;
 	_mc[t].m5 = ROAD_TILE_DEPOT << 6 | dir;
-	SB(_mc[t].m6, 2, 4, 0);
+	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m7 = RoadTypeToRoadTypes(rt) << 6 | owner;
 	SetRoadOwner(t, ROADTYPE_TRAM, owner);
 }

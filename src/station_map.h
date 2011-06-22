@@ -45,7 +45,7 @@ static const int GFX_TRUCK_BUS_DRIVETHROUGH_OFFSET =  4; ///< The offset for the
 static inline StationType GetStationType(TileIndex t)
 {
 	assert(IsStationTile(t));
-	return (StationType)GB(_mc[t].m6, 3, 3);
+	return (StationType)GB(_mc[t].m0, 1, 3);
 }
 
 /**
@@ -394,7 +394,7 @@ static inline bool IsCompatibleTrainStationTile(TileIndex test_tile, TileIndex s
 static inline bool HasStationReservation(TileIndex t)
 {
 	assert(HasStationRail(t));
-	return HasBit(_mc[t].m6, 2);
+	return HasBit(_mc[t].m0, 0);
 }
 
 /**
@@ -406,7 +406,7 @@ static inline bool HasStationReservation(TileIndex t)
 static inline void SetRailStationReservation(TileIndex t, bool b)
 {
 	assert(HasStationRail(t));
-	SB(_mc[t].m6, 2, 1, b ? 1 : 0);
+	SB(_mc[t].m0, 0, 1, b ? 1 : 0);
 }
 
 /**
@@ -532,15 +532,15 @@ static inline byte GetStationTileRandomBits(TileIndex t)
  */
 static inline void MakeStation(TileIndex t, Owner o, StationID sid, StationType st, byte section, WaterClass wc = WATER_CLASS_INVALID)
 {
-	SetTileType(t, MP_STATION);
+	SetTileType(t, TT_STATION);
 	SetTileOwner(t, o);
 	SetWaterClass(t, wc);
 	_mc[t].m2 = sid;
 	_mc[t].m3 = 0;
 	_mc[t].m4 = 0;
 	_mc[t].m5 = section;
-	SB(_mc[t].m6, 2, 1, 0);
-	SB(_mc[t].m6, 3, 3, st);
+	ClrBit(_mc[t].m0, 0);
+	SB(_mc[t].m0, 1, 3, st);
 	_mc[t].m7 = 0;
 }
 

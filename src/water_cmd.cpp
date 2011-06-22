@@ -548,7 +548,7 @@ static CommandCost ClearTile_Water(TileIndex tile, DoCommandFlag flags)
 bool IsWateredTile(TileIndex tile, Direction from)
 {
 	switch (GetTileType(tile)) {
-		case MP_WATER:
+		case TT_WATER:
 			switch (GetWaterTileType(tile)) {
 				default: NOT_REACHED();
 				case WATER_TILE_DEPOT: case WATER_TILE_CLEAR: return true;
@@ -564,7 +564,7 @@ bool IsWateredTile(TileIndex tile, Direction from)
 					}
 			}
 
-		case MP_RAILWAY:
+		case TT_RAILWAY:
 			if (GetRailGroundType(tile) == RAIL_GROUND_WATER) {
 				assert(IsPlainRail(tile));
 				switch (GetTileSlope(tile)) {
@@ -577,7 +577,7 @@ bool IsWateredTile(TileIndex tile, Direction from)
 			}
 			return false;
 
-		case MP_STATION:
+		case TT_STATION:
 			if (IsOilRig(tile)) {
 				/* Do not draw waterborders inside of industries.
 				 * Note: There is no easy way to detect the industry of an oilrig tile. */
@@ -589,7 +589,7 @@ bool IsWateredTile(TileIndex tile, Direction from)
 			}
 			return (IsDock(tile) && IsTileFlat(tile)) || IsBuoy(tile);
 
-		case MP_INDUSTRY: {
+		case TT_INDUSTRY_TEMP: {
 			/* Do not draw waterborders inside of industries.
 			 * Note: There is no easy way to detect the industry of an oilrig tile. */
 			TileIndex src_tile = tile + TileOffsByDir(from);
@@ -599,11 +599,11 @@ bool IsWateredTile(TileIndex tile, Direction from)
 			return IsTileOnWater(tile);
 		}
 
-		case MP_OBJECT: return IsTileOnWater(tile);
+		case TT_OBJECT: return IsTileOnWater(tile);
 
-		case MP_TUNNELBRIDGE: return GetTunnelBridgeTransportType(tile) == TRANSPORT_WATER && ReverseDiagDir(GetTunnelBridgeDirection(tile)) == DirToDiagDir(from);
+		case TT_TUNNELBRIDGE_TEMP: return GetTunnelBridgeTransportType(tile) == TRANSPORT_WATER && ReverseDiagDir(GetTunnelBridgeDirection(tile)) == DirToDiagDir(from);
 
-		case MP_VOID: return true; // consider map border as water, esp. for rivers
+		case TT_VOID_TEMP: return true; // consider map border as water, esp. for rivers
 
 		default:          return false;
 	}
@@ -1010,24 +1010,24 @@ FloodingBehaviour GetFloodingBehaviour(TileIndex tile)
 	 * FLOOD_NONE:    canals, rivers, everything else
 	 */
 	switch (GetTileType(tile)) {
-		case MP_WATER:
+		case TT_WATER:
 			if (IsCoast(tile)) {
 				Slope tileh = GetTileSlope(tile);
 				return (IsSlopeWithOneCornerRaised(tileh) ? FLOOD_ACTIVE : FLOOD_DRYUP);
 			}
 			/* FALL THROUGH */
-		case MP_STATION:
-		case MP_INDUSTRY:
-		case MP_OBJECT:
+		case TT_STATION:
+		case TT_INDUSTRY_TEMP:
+		case TT_OBJECT:
 			return (GetWaterClass(tile) == WATER_CLASS_SEA) ? FLOOD_ACTIVE : FLOOD_NONE;
 
-		case MP_RAILWAY:
+		case TT_RAILWAY:
 			if (GetRailGroundType(tile) == RAIL_GROUND_WATER) {
 				return (IsSlopeWithOneCornerRaised(GetTileSlope(tile)) ? FLOOD_ACTIVE : FLOOD_DRYUP);
 			}
 			return FLOOD_NONE;
 
-		case MP_TREES:
+		case TT_TREES_TEMP:
 			return (GetTreeGround(tile) == TREE_GROUND_SHORE ? FLOOD_DRYUP : FLOOD_NONE);
 
 		default:
@@ -1050,14 +1050,14 @@ void DoFloodTile(TileIndex target)
 	if (tileh != SLOPE_FLAT) {
 		/* make coast.. */
 		switch (GetTileType(target)) {
-			case MP_RAILWAY: {
+			case TT_RAILWAY: {
 				if (!IsPlainRail(target)) break;
 				FloodVehicles(target);
 				flooded = FloodHalftile(target);
 				break;
 			}
 
-			case MP_TREES:
+			case TT_TREES_TEMP:
 				if (!IsSlopeWithOneCornerRaised(tileh)) {
 					SetTreeGroundDensity(target, TREE_GROUND_SHORE, 3);
 					MarkTileDirtyByTile(target);
@@ -1066,7 +1066,7 @@ void DoFloodTile(TileIndex target)
 				}
 				/* FALL THROUGH */
 
-			case MP_CLEAR:
+			case TT_GROUND:
 				if (DoCommand(target, 0, 0, DC_EXEC, CMD_LANDSCAPE_CLEAR).Succeeded()) {
 					MakeShore(target);
 					MarkTileDirtyByTile(target);
@@ -1108,7 +1108,7 @@ static void DoDryUp(TileIndex tile)
 	Backup<CompanyByte> cur_company(_current_company, OWNER_WATER, FILE_LINE);
 
 	switch (GetTileType(tile)) {
-		case MP_RAILWAY:
+		case TT_RAILWAY:
 			assert(IsPlainRail(tile));
 			assert(GetRailGroundType(tile) == RAIL_GROUND_WATER);
 
@@ -1124,12 +1124,12 @@ static void DoDryUp(TileIndex tile)
 			MarkTileDirtyByTile(tile);
 			break;
 
-		case MP_TREES:
+		case TT_TREES_TEMP:
 			SetTreeGroundDensity(tile, TREE_GROUND_GRASS, 3);
 			MarkTileDirtyByTile(tile);
 			break;
 
-		case MP_WATER:
+		case TT_WATER:
 			assert(IsCoast(tile));
 
 			if (DoCommand(tile, 0, 0, DC_EXEC, CMD_LANDSCAPE_CLEAR).Succeeded()) {

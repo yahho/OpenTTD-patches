@@ -355,7 +355,7 @@ static Order GetOrderCmdFromTile(const Vehicle *v, TileIndex tile)
 
 	/* check depot first */
 	switch (GetTileType(tile)) {
-		case MP_RAILWAY:
+		case TT_RAILWAY:
 			if (v->type == VEH_TRAIN && IsTileOwner(tile, _local_company)) {
 				if (IsRailDepot(tile)) {
 					order.MakeGoToDepot(GetDepotIndex(tile), ODTFB_PART_OF_ORDERS,
@@ -366,7 +366,7 @@ static Order GetOrderCmdFromTile(const Vehicle *v, TileIndex tile)
 			}
 			break;
 
-		case MP_ROAD:
+		case TT_ROAD:
 			if (IsRoadDepot(tile) && v->type == VEH_ROAD && IsTileOwner(tile, _local_company)) {
 				order.MakeGoToDepot(GetDepotIndex(tile), ODTFB_PART_OF_ORDERS,
 						_settings_client.gui.new_nonstop ? ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS : ONSF_STOP_EVERYWHERE);
@@ -375,7 +375,7 @@ static Order GetOrderCmdFromTile(const Vehicle *v, TileIndex tile)
 			}
 			break;
 
-		case MP_STATION:
+		case TT_STATION:
 			if (v->type != VEH_AIRCRAFT) break;
 			if (IsHangar(tile) && IsTileOwner(tile, _local_company)) {
 				order.MakeGoToDepot(GetStationIndex(tile), ODTFB_PART_OF_ORDERS, ONSF_STOP_EVERYWHERE);
@@ -384,7 +384,7 @@ static Order GetOrderCmdFromTile(const Vehicle *v, TileIndex tile)
 			}
 			break;
 
-		case MP_WATER:
+		case TT_WATER:
 			if (v->type != VEH_SHIP) break;
 			if (IsShipDepot(tile) && IsTileOwner(tile, _local_company)) {
 				order.MakeGoToDepot(GetDepotIndex(tile), ODTFB_PART_OF_ORDERS, ONSF_STOP_EVERYWHERE);

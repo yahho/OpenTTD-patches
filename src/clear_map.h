@@ -239,7 +239,7 @@ static inline uint GetFence(TileIndex t, DiagDirection side)
 		case DIAGDIR_SE: return GB(_mc[t].m4, 2, 3);
 		case DIAGDIR_SW: return GB(_mc[t].m4, 5, 3);
 		case DIAGDIR_NE: return GB(_mc[t].m3, 5, 3);
-		case DIAGDIR_NW: return GB(_mc[t].m6, 2, 3);
+		case DIAGDIR_NW: return GB(_mc[t].m7, 0, 3);
 	}
 }
 
@@ -258,7 +258,7 @@ static inline void SetFence(TileIndex t, DiagDirection side, uint h)
 		case DIAGDIR_SE: SB(_mc[t].m4, 2, 3, h); break;
 		case DIAGDIR_SW: SB(_mc[t].m4, 5, 3, h); break;
 		case DIAGDIR_NE: SB(_mc[t].m3, 5, 3, h); break;
-		case DIAGDIR_NW: SB(_mc[t].m6, 2, 3, h); break;
+		case DIAGDIR_NW: SB(_mc[t].m7, 0, 3, h); break;
 	}
 }
 
@@ -273,16 +273,16 @@ static inline void MakeClear(TileIndex t, ClearGround g, uint density)
 {
 	/* If this is a non-bridgeable tile, clear the bridge bits while the rest
 	 * of the tile information is still here. */
-	if (!MayHaveBridgeAbove(t)) SB(_mc[t].m6, 6, 2, 0);
+	if (!MayHaveBridgeAbove(t)) SB(_mc[t].m0, 0, 2, 0);
 
-	SetTileType(t, MP_CLEAR);
+	SetTileType(t, TT_GROUND);
 	_mc[t].m1 = 0;
 	SetTileOwner(t, OWNER_NONE);
 	_mc[t].m2 = 0;
 	_mc[t].m3 = 0;
 	_mc[t].m4 = 0 << 5 | 0 << 2;
 	SetClearGroundDensity(t, g, density); // Sets m5
-	SB(_mc[t].m6, 2, 4, 0); // Other bits are "tropic zone" and "bridge above"
+	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m7 = 0;
 }
 
@@ -295,14 +295,14 @@ static inline void MakeClear(TileIndex t, ClearGround g, uint density)
  */
 static inline void MakeField(TileIndex t, uint field_type, IndustryID industry)
 {
-	SetTileType(t, MP_CLEAR);
+	SetTileType(t, TT_GROUND);
 	_mc[t].m1 = 0;
 	SetTileOwner(t, OWNER_NONE);
 	_mc[t].m2 = industry;
 	_mc[t].m3 = field_type;
 	_mc[t].m4 = 0 << 5 | 0 << 2;
 	SetClearGroundDensity(t, CLEAR_FIELDS, 3);
-	SB(_mc[t].m6, 2, 4, 0);
+	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m7 = 0;
 }
 

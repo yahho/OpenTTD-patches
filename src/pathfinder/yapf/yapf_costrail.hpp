@@ -38,7 +38,7 @@ protected:
 		{
 			tile = INVALID_TILE;
 			td = INVALID_TRACKDIR;
-			tile_type = MP_VOID;
+			tile_type = TT_VOID_TEMP;
 			rail_type = INVALID_RAILTYPE;
 		}
 
@@ -404,7 +404,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 				/* We will end in this pass (depot is possible target) */
 				end_segment_reason |= ESRB_DEPOT;
 
-			} else if (cur.tile_type == MP_STATION && IsRailWaypoint(cur.tile)) {
+			} else if (cur.tile_type == TT_STATION && IsRailWaypoint(cur.tile)) {
 				if (v->current_order.IsType(OT_GOTO_WAYPOINT) &&
 						GetStationIndex(cur.tile) == v->current_order.GetDestination() &&
 						!Waypoint::Get(v->current_order.GetDestination())->IsSingleTile()) {
@@ -449,7 +449,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 				/* We will end in this pass (station is possible target) */
 				end_segment_reason |= ESRB_STATION;
 
-			} else if (TrackFollower::DoTrackMasking() && cur.tile_type == MP_RAILWAY) {
+			} else if (TrackFollower::DoTrackMasking() && cur.tile_type == TT_RAILWAY) {
 				/* Searching for a safe tile? */
 				if (HasSignalOnTrackdir(cur.tile, cur.td) && !IsPbsSignal(GetSignalType(cur.tile, TrackdirToTrack(cur.td)))) {
 					end_segment_reason |= ESRB_SAFE_TILE;

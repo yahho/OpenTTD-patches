@@ -24,20 +24,20 @@
 TrackBits GetReservedTrackbits(TileIndex t)
 {
 	switch (GetTileType(t)) {
-		case MP_RAILWAY:
+		case TT_RAILWAY:
 			if (IsRailDepot(t)) return GetDepotReservationTrackBits(t);
 			if (IsPlainRail(t)) return GetRailReservationTrackBits(t);
 			break;
 
-		case MP_ROAD:
+		case TT_ROAD:
 			if (IsLevelCrossing(t)) return GetCrossingReservationTrackBits(t);
 			break;
 
-		case MP_STATION:
+		case TT_STATION:
 			if (HasStationRail(t)) return GetStationReservationTrackBits(t);
 			break;
 
-		case MP_TUNNELBRIDGE:
+		case TT_TUNNELBRIDGE_TEMP:
 			if (GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL) return GetTunnelBridgeReservationTrackBits(t);
 			break;
 
@@ -87,7 +87,7 @@ bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations)
 	}
 
 	switch (GetTileType(tile)) {
-		case MP_RAILWAY:
+		case TT_RAILWAY:
 			if (IsPlainRail(tile)) return TryReserveTrack(tile, t);
 			if (IsRailDepot(tile)) {
 				if (!HasDepotReservation(tile)) {
@@ -98,7 +98,7 @@ bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations)
 			}
 			break;
 
-		case MP_ROAD:
+		case TT_ROAD:
 			if (IsLevelCrossing(tile) && !HasCrossingReservation(tile)) {
 				SetCrossingReservation(tile, true);
 				BarCrossing(tile);
@@ -107,7 +107,7 @@ bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations)
 			}
 			break;
 
-		case MP_STATION:
+		case TT_STATION:
 			if (HasStationRail(tile) && !HasStationReservation(tile)) {
 				SetRailStationReservation(tile, true);
 				if (trigger_stations && IsRailStation(tile)) TriggerStationRandomisation(NULL, tile, SRT_PATH_RESERVATION);
@@ -116,7 +116,7 @@ bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations)
 			}
 			break;
 
-		case MP_TUNNELBRIDGE:
+		case TT_TUNNELBRIDGE_TEMP:
 			if (GetTunnelBridgeTransportType(tile) == TRANSPORT_RAIL && !GetTunnelBridgeReservationTrackBits(tile)) {
 				SetTunnelBridgeReservation(tile, true);
 				return true;
@@ -143,7 +143,7 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 	}
 
 	switch (GetTileType(tile)) {
-		case MP_RAILWAY:
+		case TT_RAILWAY:
 			if (IsRailDepot(tile)) {
 				SetDepotReservation(tile, false);
 				MarkTileDirtyByTile(tile);
@@ -152,21 +152,21 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 			if (IsPlainRail(tile)) UnreserveTrack(tile, t);
 			break;
 
-		case MP_ROAD:
+		case TT_ROAD:
 			if (IsLevelCrossing(tile)) {
 				SetCrossingReservation(tile, false);
 				UpdateLevelCrossing(tile);
 			}
 			break;
 
-		case MP_STATION:
+		case TT_STATION:
 			if (HasStationRail(tile)) {
 				SetRailStationReservation(tile, false);
 				MarkTileDirtyByTile(tile);
 			}
 			break;
 
-		case MP_TUNNELBRIDGE:
+		case TT_TUNNELBRIDGE_TEMP:
 			if (GetTunnelBridgeTransportType(tile) == TRANSPORT_RAIL) SetTunnelBridgeReservation(tile, false);
 			break;
 

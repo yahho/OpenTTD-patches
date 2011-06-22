@@ -202,10 +202,10 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					 * the same job as the "lift has destination" bit. */
 					ClrBit(_mc[t].m1, 7);
 
-					/* The position of the lift goes from m1[7..0] to m6[7..2],
+					/* The position of the lift goes from m1[7..0] to m0[7..2],
 					 * making m1 totally free, now. The lift position does not
 					 * have to be a full byte since the maximum value is 36. */
-					SB(_mc[t].m6, 2, 6, GB(_mc[t].m1, 0, 6 ));
+					SB(_mc[t].m0, 2, 6, GB(_mc[t].m1, 0, 6 ));
 
 					_mc[t].m1 = 0;
 					_mc[t].m3 = 0x80;
@@ -237,7 +237,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					break;
 
 				case OLD_MP_STATION: {
-					if (HasBit(_mc[t].m6, 3)) SetBit(_mc[t].m6, 2);
+					if (HasBit(_mc[t].m0, 3)) SetBit(_mc[t].m0, 2);
 					byte gfx = _mc[t].m5;
 					int st;
 					if (       IsInsideMM(gfx,   0,   8)) { // Rail station
@@ -273,7 +273,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					} else {
 						throw SlCorrupt("Invalid station tile");
 					}
-					SB(_mc[t].m6, 3, 3, st);
+					SB(_mc[t].m0, 3, 3, st);
 					break;
 				}
 			}
@@ -321,7 +321,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 				case OLD_MP_RAILWAY:
 				case OLD_MP_WATER:
 				case OLD_MP_OBJECT:
-					if (old_bridge) SB(_mc[t].m6, 6, 2, 0);
+					if (old_bridge) SB(_mc[t].m0, 6, 2, 0);
 					break;
 
 				case OLD_MP_ROAD:
@@ -336,19 +336,19 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 						default: throw SlCorrupt("Invalid road tile type");
 						case 0:
 							if (add_roadtypes) {
-								SB(_mc[t].m6, 2, 4, 0);
+								SB(_mc[t].m0, 2, 4, 0);
 							} else {
 								SB(_mc[t].m5, 0, 4, GB(_mc[t].m4, 0, 4)); // road bits
 							}
 							SB(_mc[t].m7, 0, 4, GB(_mc[t].m3, 0, 4)); // road works
-							SB(_mc[t].m6, 3, 3, GB(_mc[t].m3, 4, 3)); // ground
+							SB(_mc[t].m0, 3, 3, GB(_mc[t].m3, 4, 3)); // ground
 							SB(_mc[t].m3, 0, 4, add_roadtypes ? 0 : GB(_mc[t].m4, 4, 4)); // tram bits
 							SB(_mc[t].m3, 4, 4, GB(_mc[t].m5, 0, 4)); // tram owner
 							break;
 
 						case 1:
 							SB(_mc[t].m7, 0, 5, GB(_mc[t].m4, 0, 5)); // road owner
-							SB(_mc[t].m6, 3, 3, GB(_mc[t].m3, 4, 3)); // ground
+							SB(_mc[t].m0, 3, 3, GB(_mc[t].m3, 4, 3)); // ground
 							SB(_mc[t].m3, 4, 4, GB(_mc[t].m5, 0, 4)); // tram owner
 							SB(_mc[t].m5, 0, 1, add_roadtypes ? GB(_mc[t].m5, 3, 1) : GB(_mc[t].m4, 6, 1)); // road axis
 							SB(_mc[t].m5, 5, 1, add_roadtypes ? GB(_mc[t].m5, 2, 1) : GB(_mc[t].m4, 5, 1)); // crossing state
@@ -358,14 +358,14 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 							break;
 					}
 					_mc[t].m4 = 0;
-					if (old_bridge) SB(_mc[t].m6, 6, 2, 0);
+					if (old_bridge) SB(_mc[t].m0, 6, 2, 0);
 					break;
 
 				case OLD_MP_STATION:
-					if (GB(_mc[t].m6, 4, 2) != 1) break;
+					if (GB(_mc[t].m0, 4, 2) != 1) break;
 
 					SB(_mc[t].m7, 6, 2, add_roadtypes ? 1 : GB(_mc[t].m3, 0, 3));
-					SB(_mc[t].m7, 0, 5, HasBit(_mc[t].m6, 2) ? OWNER_TOWN : (Owner)GB(_mc[t].m1, 0, 5));
+					SB(_mc[t].m7, 0, 5, HasBit(_mc[t].m0, 2) ? OWNER_TOWN : (Owner)GB(_mc[t].m1, 0, 5));
 					SB(_mc[t].m3, 4, 4, _mc[t].m1);
 					_mc[t].m4 = 0;
 					break;
@@ -380,12 +380,12 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 							SB(_mc[t].m7, 0, 5, o); // road owner
 							SB(_mc[t].m3, 4, 4, o == OWNER_NONE ? OWNER_TOWN : o); // tram owner
 						}
-						SB(_mc[t].m6, 2, 4, GB(_mc[t].m2, 4, 4)); // bridge type
+						SB(_mc[t].m0, 2, 4, GB(_mc[t].m2, 4, 4)); // bridge type
 						SB(_mc[t].m7, 5, 1, GB(_mc[t].m4, 7, 1)); // snow/desert
 
 						_mc[t].m2 = 0;
 						_mc[t].m4 = 0;
-						if (old_bridge) SB(_mc[t].m6, 6, 2, 0);
+						if (old_bridge) SB(_mc[t].m0, 6, 2, 0);
 					}
 
 					if (!old_bridge || !HasBit(_mc[t].m5, 7)) break;
@@ -434,7 +434,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 							_mc[t].m3 = _mc[t].m5 = _mc[t].m7 = 0;
 							_mc[t].m4 = Random();
 						}
-						SB(_mc[t].m6, 2, 6, (1 << 4) << axis);
+						SB(_mc[t].m0, 2, 6, (1 << 4) << axis);
 					} else { // ramp
 						uint north_south = GB(_mc[t].m5, 5, 1);
 						DiagDirection dir = ReverseDiagDir(XYNSToDiagDir(axis, north_south));
@@ -483,7 +483,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		for (TileIndex t = 0; t < map_size; t++) {
 			switch (GetOldTileType(t)) {
 				case OLD_MP_STATION:
-					switch (GB(_mc[t].m6, 3, 3)) {
+					switch (GB(_mc[t].m0, 3, 3)) {
 						case 4:
 						case 5:
 						case 6:
@@ -527,7 +527,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					}
 					_mc[t].m2 = 0;
 					_mc[t].m3 = _mc[t].m5 = _mc[t].m7 = 0;
-					SB(_mc[t].m6, 2, 4, 0);
+					SB(_mc[t].m0, 2, 4, 0);
 				} else if (GB(_mc[t].m5, 4, 4) == 8) {
 					Owner o = (Owner)_mc[t].m4; // Original water owner
 					SB(_mc[t].m1, 5, 2, o == OWNER_WATER ? WATER_CLASS_SEA : WATER_CLASS_CANAL);
@@ -564,7 +564,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					break;
 
 				case OLD_MP_STATION: // Clear PBS reservation on station
-					if (GB(_mc[t].m6, 3, 3) == 0 || GB(_mc[t].m6, 3, 3) == 7) ClrBit(_mc[t].m6, 2);
+					if (GB(_mc[t].m0, 3, 3) == 0 || GB(_mc[t].m0, 3, 3) == 7) ClrBit(_mc[t].m0, 2);
 					break;
 
 				case OLD_MP_TUNNELBRIDGE: // Clear PBS reservation on tunnels/bridges
@@ -612,7 +612,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	/* Reset tropic zone for VOID tiles, they shall not have any. */
 	if (IsOTTDSavegameVersionBefore(stv, 141)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsOldTileType(t, OLD_MP_VOID)) SB(_mc[t].m6, 0, 2, 0);
+			if (IsOldTileType(t, OLD_MP_VOID)) SB(_mc[t].m0, 0, 2, 0);
 		}
 	}
 
@@ -622,7 +622,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 
 			/* Reordering/generalisation of the object bits. */
 			bool is_hq = _mc[t].m5 == 4;
-			SB(_mc[t].m6, 2, 4, is_hq ? GB(_mc[t].m3, 2, 3) : 0);
+			SB(_mc[t].m0, 2, 4, is_hq ? GB(_mc[t].m3, 2, 3) : 0);
 			_mc[t].m3 = is_hq ? GB(_mc[t].m3, 1, 1) | GB(_mc[t].m3, 0, 1) << 4 : 0;
 
 			/* Make sure those bits are clear as well! */
@@ -649,8 +649,8 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					_mc[t].m4 = _mc[t].m3;
 
 					/* move the animation state. */
-					_mc[t].m7 = GB(_mc[t].m6, 2, 4);
-					SB(_mc[t].m6, 2, 4, 0);
+					_mc[t].m7 = GB(_mc[t].m0, 2, 4);
+					SB(_mc[t].m0, 2, 4, 0);
 					_mc[t].m3 = 0;
 					break;
 
@@ -679,7 +679,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			if (fence != 0) {
 				TileIndex neighbour = TILE_ADDXY(t, 0, 1);
 				if (IsOldTileType(neighbour, OLD_MP_CLEAR) && !HasBit(_mc[neighbour].m3, 4) && GB(_mc[neighbour].m5, 2, 3) == 3) {
-					SB(_mc[neighbour].m6, 2, 3, fence);
+					SB(_mc[neighbour].m0, 2, 3, fence);
 				}
 			}
 
@@ -691,43 +691,61 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	/* Switch to the new map array */
 	if (IsFullSavegameVersionBefore(stv, 1)) {
 		for (TileIndex t = 0; t < map_size; t++) {
+			uint zone = GB(_mc[t].m0, 0, 2);
+
 			switch (GetOldTileType(t)) {
 				case OLD_MP_CLEAR:
+					_mc[t].m7 = GB(_mc[t].m0, 2, 3);
+					_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_GROUND << 4);
 					break;
 
 				case OLD_MP_RAILWAY:
+					_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_RAILWAY << 4);
 					break;
 
 				case OLD_MP_ROAD:
+					_mc[t].m4 = GB(_mc[t].m0, 3, 3);
+					_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_ROAD << 4);
 					break;
 
 				case OLD_MP_HOUSE:
+					_mc[t].m0 = GB(_mc[t].m0, 2, 6) | 0xC0;
 					break;
 
 				case OLD_MP_TREES:
+					_mc[t].m0 = TT_TREES_TEMP << 4;
 					break;
 
 				case OLD_MP_STATION:
+					_mc[t].m0 = GB(_mc[t].m0, 2, 4) | (TT_STATION << 4);
 					break;
 
 				case OLD_MP_WATER:
+					_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_WATER << 4);
 					break;
 
 				case OLD_MP_VOID:
+					_mc[t].m0 = TT_VOID_TEMP << 4;
 					break;
 
 				case OLD_MP_INDUSTRY:
+					_mc[t].m0 = GB(_mc[t].m0, 3, 3) | (GB(_mc[t].m0, 2, 1) << 3) | (TT_INDUSTRY_TEMP << 4);
 					break;
 
 				case OLD_MP_TUNNELBRIDGE:
+					_mc[t].m4 = GB(_mc[t].m0, 2, 4);
+					_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_TUNNELBRIDGE_TEMP << 4);
 					break;
 
 				case OLD_MP_OBJECT:
+					_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_OBJECT << 4);
 					break;
 
 				default:
 					throw SlCorrupt("Invalid tile type");
 			}
+
+			SB(_mth[t].type_height, 4, 4, zone << 2);
 		}
 	}
 }
@@ -909,7 +927,7 @@ static void Save_MAP5(SaveDumper *dumper)
 	}
 }
 
-static void Load_MAP6(LoadBuffer *reader)
+static void Load_MAP0(LoadBuffer *reader)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
@@ -919,28 +937,28 @@ static void Load_MAP6(LoadBuffer *reader)
 			/* 1024, otherwise we overflow on 64x64 maps! */
 			reader->ReadArray(buf, 1024, SLE_UINT8);
 			for (uint j = 0; j != 1024; j++) {
-				_mc[i++].m6 = GB(buf[j], 0, 2);
-				_mc[i++].m6 = GB(buf[j], 2, 2);
-				_mc[i++].m6 = GB(buf[j], 4, 2);
-				_mc[i++].m6 = GB(buf[j], 6, 2);
+				_mc[i++].m0 = GB(buf[j], 0, 2);
+				_mc[i++].m0 = GB(buf[j], 2, 2);
+				_mc[i++].m0 = GB(buf[j], 4, 2);
+				_mc[i++].m0 = GB(buf[j], 6, 2);
 			}
 		}
 	} else {
 		for (TileIndex i = 0; i != size;) {
 			reader->ReadArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
-			for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m6 = buf[j];
+			for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m0 = buf[j];
 		}
 	}
 }
 
-static void Save_MAP6(SaveDumper *dumper)
+static void Save_MAP0(SaveDumper *dumper)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m6;
+		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m0;
 		dumper->WriteArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 	}
 }
@@ -976,6 +994,6 @@ extern const ChunkHandler _map_chunk_handlers[] = {
 	{ 'M3LO', Save_MAP3, Load_MAP3, NULL, NULL,       CH_RIFF },
 	{ 'M3HI', Save_MAP4, Load_MAP4, NULL, NULL,       CH_RIFF },
 	{ 'MAP5', Save_MAP5, Load_MAP5, NULL, NULL,       CH_RIFF },
-	{ 'MAPE', Save_MAP6, Load_MAP6, NULL, NULL,       CH_RIFF },
+	{ 'MAPE', Save_MAP0, Load_MAP0, NULL, NULL,       CH_RIFF },
 	{ 'MAP7', Save_MAP7, Load_MAP7, NULL, NULL,       CH_RIFF | CH_LAST },
 };

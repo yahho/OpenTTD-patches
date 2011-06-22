@@ -420,7 +420,7 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 	TrackBits trackbit = TrackToTrackBits(track);
 
 	switch (GetTileType(tile)) {
-		case MP_RAILWAY: {
+		case TT_RAILWAY: {
 			CommandCost ret = CheckTileOwnership(tile);
 			if (ret.Failed()) return ret;
 
@@ -466,7 +466,7 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 			break;
 		}
 
-		case MP_ROAD: {
+		case TT_ROAD: {
 			/* Level crossings may only be built on these slopes */
 			if (!HasBit(VALID_LEVEL_CROSSING_SLOPES, tileh)) return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
 
@@ -587,7 +587,7 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 	Train *v = NULL;
 
 	switch (GetTileType(tile)) {
-		case MP_ROAD: {
+		case TT_ROAD: {
 			if (!IsLevelCrossing(tile) || GetCrossingRailTrack(tile) != track) return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 
 			if (_current_company != OWNER_WATER) {
@@ -616,7 +616,7 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 			break;
 		}
 
-		case MP_RAILWAY: {
+		case TT_RAILWAY: {
 			/* There are no rails present at depots. */
 			if (!IsPlainRail(tile)) return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 
@@ -1172,7 +1172,7 @@ static bool CheckSignalAutoFill(TileIndex &tile, Trackdir &trackdir, int &signal
 	if (trackdirbits != TRACKDIR_BIT_NONE) return false;
 
 	switch (GetTileType(tile)) {
-		case MP_RAILWAY:
+		case TT_RAILWAY:
 			if (IsRailDepot(tile)) return false;
 			if (!remove && HasSignalOnTrack(tile, TrackdirToTrack(trackdir))) return false;
 			signal_ctr++;
@@ -1183,12 +1183,12 @@ static bool CheckSignalAutoFill(TileIndex &tile, Trackdir &trackdir, int &signal
 			}
 			return true;
 
-		case MP_ROAD:
+		case TT_ROAD:
 			if (!IsLevelCrossing(tile)) return false;
 			signal_ctr += 2;
 			return true;
 
-		case MP_TUNNELBRIDGE: {
+		case TT_TUNNELBRIDGE_TEMP: {
 			TileIndex orig_tile = tile; // backup old value
 
 			if (GetTunnelBridgeTransportType(tile) != TRANSPORT_RAIL) return false;
@@ -1542,19 +1542,19 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 
 		/* Check if there is any track on tile */
 		switch (tt) {
-			case MP_RAILWAY:
+			case TT_RAILWAY:
 				break;
-			case MP_STATION:
+			case TT_STATION:
 				if (!HasStationRail(tile)) continue;
 				break;
-			case MP_ROAD:
+			case TT_ROAD:
 				if (!IsLevelCrossing(tile)) continue;
 				if (RailNoLevelCrossings(totype)) {
 					err.MakeError(STR_ERROR_CROSSING_DISALLOWED);
 					continue;
 				}
 				break;
-			case MP_TUNNELBRIDGE:
+			case TT_TUNNELBRIDGE_TEMP:
 				if (GetTunnelBridgeTransportType(tile) != TRANSPORT_RAIL) continue;
 				break;
 			default: continue;
@@ -1575,7 +1575,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 
 		/* Vehicle on the tile when not converting Rail <-> ElRail */
 
-		if (tt == MP_TUNNELBRIDGE) {
+		if (tt == TT_TUNNELBRIDGE_TEMP) {
 			TileIndex endtile = GetOtherTunnelBridgeEnd(tile);
 
 			/* If both ends of tunnel/bridge are in the range, do not try to convert twice -
@@ -1667,7 +1667,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 			}
 
 			switch (tt) {
-				case MP_RAILWAY:
+				case TT_RAILWAY:
 					switch (GetRailTileType(tile)) {
 						case RAIL_TILE_DEPOT:
 							if (flags & DC_EXEC) {
@@ -1694,11 +1694,11 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 					}
 					break;
 
-				case MP_TUNNELBRIDGE: NOT_REACHED();
+				case TT_TUNNELBRIDGE_TEMP: NOT_REACHED();
 
-				default: // MP_STATION, MP_ROAD
+				default: // TT_STATION, TT_ROAD
 					if (flags & DC_EXEC) {
-						Track track = ((tt == MP_STATION) ? GetRailStationTrack(tile) : GetCrossingRailTrack(tile));
+						Track track = ((tt == TT_STATION) ? GetRailStationTrack(tile) : GetCrossingRailTrack(tile));
 						YapfNotifyTrackLayoutChange(tile, track);
 					}
 

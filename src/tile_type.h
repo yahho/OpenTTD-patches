@@ -32,17 +32,19 @@ static const uint MAX_SNOWLINE_HEIGHT = (MAX_TILE_HEIGHT - 2); ///< Maximum allo
  * @note A railway with a crossing street is marked as road.
  */
 enum TileType {
-	MP_CLEAR,               ///< A tile without any structures, i.e. grass, rocks, farm fields etc.
-	MP_RAILWAY,             ///< A railway
-	MP_ROAD,                ///< A tile with road (or tram tracks)
-	MP_HOUSE,               ///< A house by a town
-	MP_TREES,               ///< Tile got trees
-	MP_STATION,             ///< A tile of a station
-	MP_WATER,               ///< Water tile
-	MP_VOID,                ///< Invisible tiles at the SW and SE border
-	MP_INDUSTRY,            ///< Part of an industry
-	MP_TUNNELBRIDGE,        ///< Tunnel entry/exit and bridge heads
-	MP_OBJECT,              ///< Contains objects such as transmitters and owned land
+	TT_GROUND       =  0,  ///< A tile without any structures, i.e. grass, rocks, farm fields, trees etc.; or void
+	TT_OBJECT       =  1,  ///< Contains objects such as transmitters and owned land
+	TT_WATER        =  2,  ///< Water tile
+	TT_RAILWAY      =  4,  ///< A railway
+	TT_ROAD         =  5,  ///< A tile with road (or tram tracks)
+	TT_MISC         =  6,  ///< Level crossings, aqueducts, tunnels, depots
+	TT_STATION      =  7,  ///< A tile of a station
+	TT_INDUSTRY_TEMP     =  8,
+	TT_VOID_TEMP         =  9,
+	TT_TREES_TEMP        = 10,
+	TT_TUNNELBRIDGE_TEMP = 11,
+	//TT_INDUSTRY   =  8,  ///< Part of an industry
+	//TT_HOUSE      = 12,  ///< A house by a town
 };
 
 /**

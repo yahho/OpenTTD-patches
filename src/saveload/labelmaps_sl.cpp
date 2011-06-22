@@ -51,23 +51,23 @@ void AfterLoadLabelMaps()
 
 		for (TileIndex t = 0; t < MapSize(); t++) {
 			switch (GetTileType(t)) {
-				case MP_RAILWAY:
+				case TT_RAILWAY:
 					SetRailType(t, railtype_conversion_map[GetRailType(t)]);
 					break;
 
-				case MP_ROAD:
+				case TT_ROAD:
 					if (IsLevelCrossing(t)) {
 						SetRailType(t, railtype_conversion_map[GetRailType(t)]);
 					}
 					break;
 
-				case MP_STATION:
+				case TT_STATION:
 					if (HasStationRail(t)) {
 						SetRailType(t, railtype_conversion_map[GetRailType(t)]);
 					}
 					break;
 
-				case MP_TUNNELBRIDGE:
+				case TT_TUNNELBRIDGE_TEMP:
 					if (GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL) {
 						SetRailType(t, railtype_conversion_map[GetRailType(t)]);
 					}

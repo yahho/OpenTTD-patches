@@ -86,7 +86,7 @@ static inline TLG GetTLG(TileIndex t)
 static TrackBits GetRailTrackBitsUniversal(TileIndex t, byte *override)
 {
 	switch (GetTileType(t)) {
-		case MP_RAILWAY:
+		case TT_RAILWAY:
 			if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
 			switch (GetRailTileType(t)) {
 				case RAIL_TILE_NORMAL: case RAIL_TILE_SIGNALS:
@@ -96,7 +96,7 @@ static TrackBits GetRailTrackBitsUniversal(TileIndex t, byte *override)
 			}
 			break;
 
-		case MP_TUNNELBRIDGE:
+		case TT_TUNNELBRIDGE_TEMP:
 			if (GetTunnelBridgeTransportType(t) != TRANSPORT_RAIL) return TRACK_BIT_NONE;
 			if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
 			if (override != NULL && (IsTunnel(t) || GetTunnelBridgeLength(t, GetOtherBridgeEnd(t)) > 0)) {
@@ -104,12 +104,12 @@ static TrackBits GetRailTrackBitsUniversal(TileIndex t, byte *override)
 			}
 			return DiagDirToDiagTrackBits(GetTunnelBridgeDirection(t));
 
-		case MP_ROAD:
+		case TT_ROAD:
 			if (!IsLevelCrossing(t)) return TRACK_BIT_NONE;
 			if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
 			return GetCrossingRailBits(t);
 
-		case MP_STATION:
+		case TT_STATION:
 			if (!HasStationRail(t)) return TRACK_BIT_NONE;
 			if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
 			return TrackToTrackBits(GetRailStationTrack(t));
@@ -562,7 +562,7 @@ void DrawCatenaryOnBridge(const TileInfo *ti)
 void DrawCatenary(const TileInfo *ti)
 {
 	switch (GetTileType(ti->tile)) {
-		case MP_RAILWAY:
+		case TT_RAILWAY:
 			if (IsRailDepot(ti->tile)) {
 				const SortableSpriteStruct *sss = &CatenarySpriteData_Depot[GetRailDepotDirection(ti->tile)];
 
@@ -579,9 +579,9 @@ void DrawCatenary(const TileInfo *ti)
 			}
 			break;
 
-		case MP_TUNNELBRIDGE:
-		case MP_ROAD:
-		case MP_STATION:
+		case TT_TUNNELBRIDGE_TEMP:
+		case TT_ROAD:
+		case TT_STATION:
 			break;
 
 		default: return;

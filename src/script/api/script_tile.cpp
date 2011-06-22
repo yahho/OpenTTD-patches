@@ -26,10 +26,10 @@
 
 	switch (::GetTileType(tile)) {
 		default: return false;
-		case MP_CLEAR: return true;
-		case MP_TREES: return true;
-		case MP_WATER: return IsCoast(tile);
-		case MP_ROAD:
+		case TT_GROUND: return true;
+		case TT_TREES_TEMP: return true;
+		case TT_WATER: return IsCoast(tile);
+		case TT_ROAD:
 			/* Tram bits aren't considered buildable */
 			if (::GetRoadTypes(tile) != ROADTYPES_ROAD) return false;
 			/* Depots and crossings aren't considered buildable */

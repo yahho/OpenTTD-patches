@@ -352,13 +352,13 @@ uint32 GetTerrainType(TileIndex tile, TileContext context)
 		case LT_ARCTIC: {
 			bool has_snow;
 			switch (GetTileType(tile)) {
-				case MP_CLEAR:
+				case TT_GROUND:
 					/* During map generation the snowstate may not be valid yet, as the tileloop may not have run yet. */
 					if (_generating_world) goto genworld;
 					has_snow = IsSnowTile(tile) && GetClearDensity(tile) >= 2;
 					break;
 
-				case MP_RAILWAY: {
+				case TT_RAILWAY: {
 					/* During map generation the snowstate may not be valid yet, as the tileloop may not have run yet. */
 					if (_generating_world) goto genworld; // we do not care about foundations here
 					RailGroundType ground = GetRailGroundType(tile);
@@ -366,13 +366,13 @@ uint32 GetTerrainType(TileIndex tile, TileContext context)
 					break;
 				}
 
-				case MP_ROAD:
+				case TT_ROAD:
 					/* During map generation the snowstate may not be valid yet, as the tileloop may not have run yet. */
 					if (_generating_world) goto genworld; // we do not care about foundations here
 					has_snow = IsOnSnow(tile);
 					break;
 
-				case MP_TREES: {
+				case TT_TREES_TEMP: {
 					/* During map generation the snowstate may not be valid yet, as the tileloop may not have run yet. */
 					if (_generating_world) goto genworld;
 					TreeGround ground = GetTreeGround(tile);
@@ -380,7 +380,7 @@ uint32 GetTerrainType(TileIndex tile, TileContext context)
 					break;
 				}
 
-				case MP_TUNNELBRIDGE:
+				case TT_TUNNELBRIDGE_TEMP:
 					if (context == TCX_ON_BRIDGE) {
 						has_snow = (GetBridgeHeight(tile) > GetSnowLine());
 					} else {
@@ -390,21 +390,16 @@ uint32 GetTerrainType(TileIndex tile, TileContext context)
 					}
 					break;
 
-				case MP_STATION:
-				case MP_HOUSE:
-				case MP_INDUSTRY:
-				case MP_OBJECT:
-					/* These tiles usually have a levelling foundation. So use max Z */
-					has_snow = (GetTileMaxZ(tile) > GetSnowLine());
-					break;
-
-				case MP_VOID:
-				case MP_WATER:
+				case TT_VOID_TEMP:
+				case TT_WATER:
 				genworld:
 					has_snow = (GetTileZ(tile) > GetSnowLine());
 					break;
 
-				default: NOT_REACHED();
+				default: // objects, stations, industries, houses
+					/* These tiles usually have a levelling foundation. So use max Z */
+					has_snow = (GetTileMaxZ(tile) > GetSnowLine());
+					break;
 			}
 			return has_snow ? 4 : 0;
 		}
@@ -448,12 +443,12 @@ uint32 GetNearbyTileInformation(TileIndex tile, bool grf_version8)
 	TileType tile_type = GetTileType(tile);
 
 	/* Fake tile type for trees on shore */
-	if (IsTreeTile(tile) && GetTreeGround(tile) == TREE_GROUND_SHORE) tile_type = MP_WATER;
+	if (IsTreeTile(tile) && GetTreeGround(tile) == TREE_GROUND_SHORE) tile_type = TT_WATER;
 
 	int z;
 	Slope tileh = GetTilePixelSlope(tile, &z);
 	/* Return 0 if the tile is a land tile */
-	byte terrain_type = (HasTileWaterClass(tile) ? (GetWaterClass(tile) + 1) & 3 : 0) << 5 | GetTerrainType(tile) << 2 | (tile_type == MP_WATER ? 1 : 0) << 1;
+	byte terrain_type = (HasTileWaterClass(tile) ? (GetWaterClass(tile) + 1) & 3 : 0) << 5 | GetTerrainType(tile) << 2 | (tile_type == TT_WATER ? 1 : 0) << 1;
 	if (grf_version8) z /= TILE_HEIGHT;
 	return tile_type << 24 | Clamp(z, 0, 0xFF) << 16 | terrain_type << 8 | tileh;
 }

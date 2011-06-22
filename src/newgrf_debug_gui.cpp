@@ -589,15 +589,18 @@ bool IsNewGRFInspectable(GrfSpecFeature feature, uint index)
  */
 GrfSpecFeature GetGrfSpecFeature(TileIndex tile)
 {
+	if (IsHouseTile(tile)) {
+		return GSF_HOUSES;
+	}
+
 	switch (GetTileType(tile)) {
 		default:              return GSF_INVALID;
-		case MP_RAILWAY:      return GSF_RAILTYPES;
-		case MP_ROAD:         return IsLevelCrossing(tile) ? GSF_RAILTYPES : GSF_INVALID;
-		case MP_HOUSE:        return GSF_HOUSES;
-		case MP_INDUSTRY:     return GSF_INDUSTRYTILES;
-		case MP_OBJECT:       return GSF_OBJECTS;
+		case TT_RAILWAY:      return GSF_RAILTYPES;
+		case TT_ROAD:         return IsLevelCrossing(tile) ? GSF_RAILTYPES : GSF_INVALID;
+		case TT_INDUSTRY_TEMP:return GSF_INDUSTRYTILES;
+		case TT_OBJECT:       return GSF_OBJECTS;
 
-		case MP_STATION:
+		case TT_STATION:
 			switch (GetStationType(tile)) {
 				case STATION_RAIL:    return GSF_STATIONS;
 				case STATION_AIRPORT: return GSF_AIRPORTTILES;

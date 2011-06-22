@@ -58,7 +58,7 @@ static inline bool MayHaveBridgeAbove(TileIndex t)
 static inline bool IsBridgeAbove(TileIndex t)
 {
 	assert(MayHaveBridgeAbove(t));
-	return GB(_mc[t].m6, 6, 2) != 0;
+	return GB(_mc[t].m0, 0, 2) != 0;
 }
 
 /**
@@ -80,7 +80,7 @@ static inline bool HasBridgeAbove(TileIndex t)
 static inline BridgeType GetBridgeType(TileIndex t)
 {
 	assert(IsBridgeTile(t));
-	return GB(_mc[t].m6, 2, 4);
+	return _mc[t].m4;
 }
 
 /**
@@ -92,7 +92,7 @@ static inline BridgeType GetBridgeType(TileIndex t)
 static inline Axis GetBridgeAxis(TileIndex t)
 {
 	assert(IsBridgeAbove(t));
-	return (Axis)(GB(_mc[t].m6, 6, 2) - 1);
+	return (Axis)(GB(_mc[t].m0, 0, 2) - 1);
 }
 
 TileIndex GetNorthernBridgeEnd(TileIndex t);
@@ -119,7 +119,7 @@ static inline int GetBridgePixelHeight(TileIndex tile)
 static inline void ClearSingleBridgeMiddle(TileIndex t, Axis a)
 {
 	assert(MayHaveBridgeAbove(t));
-	ClrBit(_mc[t].m6, 6 + a);
+	ClrBit(_mc[t].m0, a);
 }
 
 /**
@@ -142,7 +142,7 @@ static inline void ClearBridgeMiddle(TileIndex t)
 static inline void SetBridgeMiddle(TileIndex t, Axis a)
 {
 	assert(MayHaveBridgeAbove(t));
-	SetBit(_mc[t].m6, 6 + a);
+	SetBit(_mc[t].m0, a);
 }
 
 /**
@@ -157,13 +157,13 @@ static inline void SetBridgeMiddle(TileIndex t, Axis a)
  */
 static inline void MakeBridgeRamp(TileIndex t, Owner o, BridgeType bridgetype, DiagDirection d, TransportType tt, uint rt)
 {
-	SetTileType(t, MP_TUNNELBRIDGE);
+	SetTileType(t, TT_TUNNELBRIDGE_TEMP);
 	SetTileOwner(t, o);
 	_mc[t].m2 = 0;
 	_mc[t].m3 = rt;
-	_mc[t].m4 = 0;
+	_mc[t].m4 = bridgetype;
 	_mc[t].m5 = 1 << 7 | tt << 2 | d;
-	SB(_mc[t].m6, 2, 4, bridgetype);
+	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m7 = 0;
 }
 
