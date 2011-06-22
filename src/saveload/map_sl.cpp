@@ -687,6 +687,49 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			SB(_mc[t].m4, 5, 3, 0);
 		}
 	}
+
+	/* Switch to the new map array */
+	if (IsFullSavegameVersionBefore(stv, 1)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			switch (GetOldTileType(t)) {
+				case OLD_MP_CLEAR:
+					break;
+
+				case OLD_MP_RAILWAY:
+					break;
+
+				case OLD_MP_ROAD:
+					break;
+
+				case OLD_MP_HOUSE:
+					break;
+
+				case OLD_MP_TREES:
+					break;
+
+				case OLD_MP_STATION:
+					break;
+
+				case OLD_MP_WATER:
+					break;
+
+				case OLD_MP_VOID:
+					break;
+
+				case OLD_MP_INDUSTRY:
+					break;
+
+				case OLD_MP_TUNNELBRIDGE:
+					break;
+
+				case OLD_MP_OBJECT:
+					break;
+
+				default:
+					throw SlCorrupt("Invalid tile type");
+			}
+		}
+	}
 }
 
 

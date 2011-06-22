@@ -1770,7 +1770,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		}
 	}
 
-	{
+	if (IsFullSavegameVersionBefore(stv, 1)) {
 		Vehicle *v;
 
 		FOR_ALL_VEHICLES(v) {
