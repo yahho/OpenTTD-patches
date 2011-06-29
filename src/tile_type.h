@@ -48,6 +48,35 @@ enum TileType {
 };
 
 /**
+ * Subtypes of certain tile types.
+ *
+ * Each subtype only makes sense for certain types, normally just one.
+ */
+enum TileSubtype {
+	TT_GROUND_VOID   = 0,  ///< Void tile (TT_GROUND)
+	TT_GROUND_FIELDS = 1,  ///< Fields (TT_GROUND)
+	TT_GROUND_CLEAR  = 2,  ///< Clear (neither fields nor trees) (TT_GROUND)
+	TT_GROUND_TREES  = 3,  ///< Trees (TT_GROUND)
+	TT_TRACK         = 0,  ///< Railway track or normal road (TT_RAILWAY, TT_ROAD)
+	TT_BRIDGE        = 1,  ///< Bridge ramp/bridgehead (TT_RAILWAY, TT_ROAD)
+	TT_MISC_CROSSING = 0,  ///< Level crossing (TT_MISC)
+	TT_MISC_AQUEDUCT = 1,  ///< Aqueduct (TT_MISC)
+	TT_MISC_TUNNEL   = 2,  ///< Tunnel entry (TT_MISC)
+	TT_MISC_DEPOT    = 3,  ///< Railway or road depot (TT_MISC)
+};
+
+/**
+ * Check whether a given tile type has subtypes.
+ *
+ * @param tt The type to check
+ * @return Whether the given type has subtypes
+ */
+static inline bool TileTypeHasSubtypes(TileType tt)
+{
+	return (tt == TT_GROUND) || (tt == TT_RAILWAY) || (tt == TT_ROAD) || (tt == TT_MISC);
+}
+
+/**
  * Additional infos of a tile on a tropic game.
  *
  * The tropiczone is not modified during gameplay. It mainly affects tree growth. (desert tiles are visible though)

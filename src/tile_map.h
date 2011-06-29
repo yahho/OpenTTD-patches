@@ -118,6 +118,37 @@ static inline void SetTileType(TileIndex tile, TileType type)
 }
 
 /**
+ * Get the tile subtype of a given tile.
+ *
+ * @param tile The tile to get the TileSubtype
+ * @return The TileSubtype of the tile
+ * @pre tile < MapSize() and tile type has subtypes
+ */
+static inline TileSubtype GetTileSubtype(TileIndex tile)
+{
+	assert(tile < MapSize());
+	assert(TileTypeHasSubtypes(GetTileType(tile)));
+	uint subtype = GB(_mc[tile].m1, 6, 2);
+	return (TileSubtype)subtype;
+}
+
+/**
+ * Set the type and subtype of a tile.
+ * @param tile The tile to set
+ * @param type The type to set
+ * @param subtype The subtype to set
+ * @pre tile < MapSize() and tile type has subtypes
+ */
+static inline void SetTileTypeSubtype(TileIndex tile, TileType type, TileSubtype subtype)
+{
+	assert(tile < MapSize());
+	assert(type < 8);
+	assert(TileTypeHasSubtypes(type));
+	SB(_mc[tile].m0, 4, 4, type);
+	SB(_mc[tile].m1, 6, 2, subtype);
+}
+
+/**
  * Checks if a tile is a give tiletype.
  *
  * This function checks if a tile got the given tiletype.
@@ -129,6 +160,33 @@ static inline void SetTileType(TileIndex tile, TileType type)
 static inline bool IsTileType(TileIndex tile, TileType type)
 {
 	return GetTileType(tile) == type;
+}
+
+/**
+ * Checks if a tile has a given subtype.
+ *
+ * @param tile The tile to check
+ * @param subtype The subtype to check against
+ * @return whether the tile has the given subtype
+ * @note there is no check to ensure that the given subtype is allowed by the tile's type
+ */
+static inline bool IsTileSubtype(TileIndex tile, TileSubtype subtype)
+{
+	return GetTileSubtype(tile) == subtype;
+}
+
+/**
+ * Checks if a tile has given type and subtype.
+ *
+ * @param tile The tile to check
+ * @param type The type to check against
+ * @param subtype The subtype to check against
+ * @return whether the tile has the given type and subtype
+ */
+static inline bool IsTileTypeSubtype(TileIndex tile, TileType type, TileSubtype subtype)
+{
+	assert(TileTypeHasSubtypes(type));
+	return IsTileType(tile, type) && IsTileSubtype(tile, subtype);
 }
 
 /**
