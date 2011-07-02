@@ -1133,7 +1133,7 @@ static void DoDryUp(TileIndex tile)
 			assert(IsCoast(tile));
 
 			if (DoCommand(tile, 0, 0, DC_EXEC, CMD_LANDSCAPE_CLEAR).Succeeded()) {
-				MakeClear(tile, CLEAR_GRASS, 3);
+				MakeClear(tile, GROUND_GRASS, 3);
 				MarkTileDirtyByTile(tile);
 			}
 			break;

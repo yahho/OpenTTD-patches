@@ -243,7 +243,7 @@ static void FixOwnerOfRailTrack(TileIndex t)
 	}
 
 	/* if it's not a crossing, make it clean land */
-	MakeClear(t, CLEAR_GRASS, 0);
+	MakeClear(t, GROUND_GRASS, 0);
 }
 
 /**
@@ -845,7 +845,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsFieldsTile(t)) {
 				/* remove fields */
-				MakeClear(t, CLEAR_GRASS, 3);
+				MakeClear(t, GROUND_GRASS, 3);
 			}
 		}
 

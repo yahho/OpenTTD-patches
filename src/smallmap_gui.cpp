@@ -532,13 +532,10 @@ static inline uint32 GetSmallMapLinkStatsPixels(TileIndex tile, SmallmapTileType
 
 static const uint32 _vegetation_clear_bits[] = {
 	MKCOLOUR_XXXX(PC_GRASS_LAND), ///< full grass
+	MKCOLOUR_XXXX(PC_GRASS_LAND), ///< shore
 	MKCOLOUR_XXXX(PC_ROUGH_LAND), ///< rough land
 	MKCOLOUR_XXXX(PC_GREY),       ///< rocks
-	MKCOLOUR_XXXX(PC_FIELDS),     ///< fields
-	MKCOLOUR_XXXX(PC_LIGHT_BLUE), ///< snow
 	MKCOLOUR_XXXX(PC_ORANGE),     ///< desert
-	MKCOLOUR_XXXX(PC_GRASS_LAND), ///< unused
-	MKCOLOUR_XXXX(PC_GRASS_LAND), ///< unused
 };
 
 /**
@@ -553,7 +550,15 @@ static inline uint32 GetSmallMapVegetationPixels(TileIndex tile, SmallmapTileTyp
 	switch (t) {
 		case SMTT_CLEAR:
 			if (!IsTreeTile(tile)) {
-				return IsTileSubtype(tile, TT_GROUND_FIELDS) ? MKCOLOUR_XXXX(PC_FIELDS) : (IsClearGround(tile, CLEAR_GRASS) && GetClearDensity(tile) < 3) ? MKCOLOUR_XXXX(PC_BARE_LAND) : _vegetation_clear_bits[GetClearGround(tile)];
+				if (IsTileSubtype(tile, TT_GROUND_FIELDS)) {
+					return MKCOLOUR_XXXX(PC_FIELDS);
+				} else if (IsSnowTile(tile)) {
+					return MKCOLOUR_XXXX(PC_LIGHT_BLUE);
+				} else if (IsClearGround(tile, GROUND_GRASS) && GetClearDensity(tile) < 3) {
+					return MKCOLOUR_XXXX(PC_BARE_LAND);
+				} else {
+					return _vegetation_clear_bits[GetClearGround(tile)];
+				}
 			} else if (GetTreeGround(tile) == TREE_GROUND_SNOW_DESERT || GetTreeGround(tile) == TREE_GROUND_ROUGH_SNOW) {
 				return (_settings_game.game_creation.landscape == LT_ARCTIC) ? MKCOLOUR_XYYX(PC_LIGHT_BLUE, PC_TREES) : MKCOLOUR_XYYX(PC_ORANGE, PC_TREES);
 			}

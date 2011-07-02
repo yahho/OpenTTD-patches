@@ -16,6 +16,7 @@
 #include "../fios.h"
 #include "../station_map.h"
 #include "../town.h"
+#include "../clear_map.h"
 #include "../water_map.h"
 
 #include "saveload_buffer.h"
@@ -700,10 +701,34 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					uint ground = GB(_mc[t].m5, 2, 3);
 					if (ground == 3) {
 						SB(_mc[t].m1, 6, 2, TT_GROUND_FIELDS);
-						_mc[t].m7 = fence_nw;
+						uint counter = GB(_mc[t].m5, 5, 3);
+						SB(_mc[t].m5, 2, 3, fence_nw);
+						SB(_mc[t].m5, 5, 3, GB(_mc[t].m3, 5, 3));
+						SB(_mc[t].m3, 4, 4, GB(_mc[t].m3, 0, 4));
+						SB(_mc[t].m3, 0, 4, counter);
 					} else {
 						SB(_mc[t].m1, 6, 2, TT_GROUND_CLEAR);
+						_mc[t].m4 = GB(_mc[t].m5, 0, 2);
+						if (HasBit(_mc[t].m3, 4)) {
+							switch (ground) {
+								case 1:  ground = GROUND_SNOW_ROUGH; break;
+								case 2:  ground = GROUND_SNOW_ROCKS; break;
+								default: ground = GROUND_SNOW;       break;
+							}
+						} else {
+							switch (ground) {
+								default: ground = GROUND_GRASS;  break;
+								case 1:  ground = GROUND_ROUGH;  break;
+								case 2:  ground = GROUND_ROCKS;  break;
+								case 4:  ground = GROUND_SNOW;   break;
+								case 5:  ground = GROUND_DESERT; break;
+							}
+						}
+						SB(_mc[t].m3, 4, 4, ground);
+						SB(_mc[t].m3, 0, 4, GB(_mc[t].m5, 5, 3));
+						_mc[t].m5 = 0;
 					}
+					_mc[t].m7 = 0;
 					break;
 				}
 

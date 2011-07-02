@@ -493,7 +493,7 @@ void DoClearSquare(TileIndex tile)
 	/* If the tile can have animation and we clear it, delete it from the animated tile list. */
 	if (GetTileProcs(tile)->animate_tile_proc != NULL) DeleteAnimatedTile(tile);
 
-	MakeClear(tile, CLEAR_GRASS, _generating_world ? 3 : 0);
+	MakeClear(tile, GROUND_GRASS, _generating_world ? 3 : 0);
 	MarkTileDirtyByTile(tile);
 }
 
@@ -767,7 +767,7 @@ void InitializeLandscape()
 	for (y = _settings_game.construction.freeform_edges ? 1 : 0; y < maxy; y++) {
 		uint x;
 		for (x = _settings_game.construction.freeform_edges ? 1 : 0; x < maxx; x++) {
-			MakeClear(sizex * y + x, CLEAR_GRASS, 3);
+			MakeClear(sizex * y + x, GROUND_GRASS, 3);
 			SetTileHeight(sizex * y + x, 0);
 			SetTropicZone(sizex * y + x, TROPICZONE_NORMAL);
 			ClearBridgeMiddle(sizex * y + x);
@@ -925,7 +925,7 @@ static void CreateDesertOrRainForest()
 		for (data = _make_desert_or_rainforest_data;
 				data != endof(_make_desert_or_rainforest_data); ++data) {
 			TileIndex t = AddTileIndexDiffCWrap(tile, *data);
-			if (t != INVALID_TILE && IsClearTile(t) && IsClearGround(t, CLEAR_DESERT)) break;
+			if (t != INVALID_TILE && IsClearTile(t) && IsClearGround(t, GROUND_DESERT)) break;
 		}
 		if (data == endof(_make_desert_or_rainforest_data)) {
 			SetTropicZone(tile, TROPICZONE_RAINFOREST);

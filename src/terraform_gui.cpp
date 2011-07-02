@@ -79,7 +79,7 @@ static void GenerateRockyArea(TileIndex end, TileIndex start)
 				if (GetTreeGround(tile) == TREE_GROUND_SHORE) continue;
 				/* FALL THROUGH */
 			case TT_GROUND:
-				MakeClear(tile, CLEAR_ROCKS, 3);
+				MakeClear(tile, GROUND_ROCKS, 3);
 				break;
 
 			default: continue;

@@ -365,7 +365,7 @@ static void GrayscaleToMapHeights(uint img_width, uint img_height, byte *map)
 			}
 			/* Only clear the tiles within the map area. */
 			if (IsInnerTile(tile)) {
-				MakeClear(tile, CLEAR_GRASS, 3);
+				MakeClear(tile, GROUND_GRASS, 3);
 			}
 		}
 	}

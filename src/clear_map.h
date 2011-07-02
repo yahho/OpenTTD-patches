@@ -18,26 +18,17 @@
 /**
  * Ground types. Valid densities in comments after the enum.
  */
-enum ClearGround {
-	CLEAR_GRASS  = 0, ///< 0-3
-	CLEAR_ROUGH  = 1, ///< 3
-	CLEAR_ROCKS  = 2, ///< 3
-	CLEAR_SNOW   = 4, ///< 0-3
-	CLEAR_DESERT = 5, ///< 1,3
+enum Ground {
+	GROUND_GRASS  = 0, ///< 0-3
+	GROUND_SHORE  = 1, ///< 3
+	GROUND_ROUGH  = 2, ///< 3
+	GROUND_ROCKS  = 3, ///< 3
+	GROUND_DESERT = 4, ///< 1,3
+	GROUND_SNOW        =  8, ///< 0-3
+	GROUND_SNOW_ROUGH  = 10, ///< 0-3
+	GROUND_SNOW_ROCKS  = 11, ///< 0-3
 };
 
-
-/**
- * Test if a tile is covered with snow.
- * @param t the tile to check
- * @pre IsTileType(t, TT_GROUND)
- * @return whether the tile is covered with snow.
- */
-static inline bool IsSnowTile(TileIndex t)
-{
-	assert(IsTileType(t, TT_GROUND));
-	return IsTileSubtype(t, TT_GROUND_CLEAR) && HasBit(_mc[t].m3, 4);
-}
 
 /**
  * Check if a tile is empty ground.
@@ -50,28 +41,52 @@ static inline bool IsClearTile(TileIndex t)
 }
 
 /**
- * Get the type of clear tile but never return CLEAR_SNOW.
- * @param t the tile to get the clear ground type of
+ * Get the full ground type of a clear tile.
+ * @param t the tile to get the ground type of
  * @pre IsClearTile(t)
  * @return the ground type
  */
-static inline ClearGround GetRawClearGround(TileIndex t)
+static inline Ground GetFullClearGround(TileIndex t)
 {
 	assert(IsClearTile(t));
-	return (ClearGround)GB(_mc[t].m5, 2, 3);
+	return (Ground)GB(_mc[t].m3, 4, 4);
 }
 
 /**
- * Get the type of clear tile.
+ * Test if a tile is covered with snow.
+ * @param t the tile to check
+ * @pre IsTileType(t, TT_GROUND)
+ * @return whether the tile is covered with snow.
+ */
+static inline bool IsSnowTile(TileIndex t)
+{
+	assert(IsTileType(t, TT_GROUND));
+	return IsTileSubtype(t, TT_GROUND_CLEAR) && (GetFullClearGround(t) >= GROUND_SNOW);
+}
+
+/**
+ * Get the type of clear tile ignoring snow.
  * @param t the tile to get the clear ground type of
  * @pre IsClearTile(t)
  * @return the ground type
  */
-static inline ClearGround GetClearGround(TileIndex t)
+static inline Ground GetRawClearGround(TileIndex t)
 {
 	assert(IsClearTile(t));
-	if (IsSnowTile(t)) return CLEAR_SNOW;
-	return GetRawClearGround(t);
+	return (Ground)(GetFullClearGround(t) & 0x7);
+}
+
+/**
+ * Get the type of clear tile, treating all snow types as equal.
+ * @param t the tile to get the clear ground type of
+ * @pre IsClearTile(t)
+ * @return the ground type
+ */
+static inline Ground GetClearGround(TileIndex t)
+{
+	assert(IsClearTile(t));
+	Ground g = GetFullClearGround(t);
+	return (g >= GROUND_SNOW) ? GROUND_SNOW : g;
 }
 
 /**
@@ -80,10 +95,10 @@ static inline ClearGround GetClearGround(TileIndex t)
  * @param ct the ground type
  * @pre IsClearTile(t)
  */
-static inline bool IsClearGround(TileIndex t, ClearGround ct)
+static inline bool IsClearGround(TileIndex t, Ground g)
 {
 	assert(IsClearTile(t));
-	return GetClearGround(t) == ct;
+	return GetClearGround(t) == g;
 }
 
 /**
@@ -107,7 +122,7 @@ static inline bool IsFieldsTile(TileIndex t)
 static inline uint GetClearDensity(TileIndex t)
 {
 	assert(IsClearTile(t));
-	return GB(_mc[t].m5, 0, 2);
+	return GB(_mc[t].m4, 0, 2);
 }
 
 /**
@@ -119,7 +134,7 @@ static inline uint GetClearDensity(TileIndex t)
 static inline void AddClearDensity(TileIndex t, int d)
 {
 	assert(IsClearTile(t)); // XXX incomplete
-	_mc[t].m5 += d;
+	_mc[t].m4 += d;
 }
 
 /**
@@ -131,7 +146,7 @@ static inline void AddClearDensity(TileIndex t, int d)
 static inline void SetClearDensity(TileIndex t, uint d)
 {
 	assert(IsClearTile(t));
-	SB(_mc[t].m5, 0, 2, d);
+	SB(_mc[t].m4, 0, 2, d);
 }
 
 
@@ -144,7 +159,7 @@ static inline void SetClearDensity(TileIndex t, uint d)
 static inline uint GetClearCounter(TileIndex t)
 {
 	assert(IsClearTile(t) || IsFieldsTile(t));
-	return GB(_mc[t].m5, 5, 3);
+	return GB(_mc[t].m3, 0, 4);
 }
 
 /**
@@ -156,7 +171,7 @@ static inline uint GetClearCounter(TileIndex t)
 static inline void AddClearCounter(TileIndex t, int c)
 {
 	assert(IsClearTile(t) || IsFieldsTile(t)); // XXX incomplete
-	_mc[t].m5 += c << 5;
+	_mc[t].m3 += c;
 }
 
 /**
@@ -168,7 +183,7 @@ static inline void AddClearCounter(TileIndex t, int c)
 static inline void SetClearCounter(TileIndex t, uint c)
 {
 	assert(IsClearTile(t) || IsFieldsTile(t)); // XXX incomplete
-	SB(_mc[t].m5, 5, 3, c);
+	SB(_mc[t].m3, 0, 4, c);
 }
 
 
@@ -179,10 +194,11 @@ static inline void SetClearCounter(TileIndex t, uint c)
  * @param density the density of the ground tile
  * @pre IsClearTile(t)
  */
-static inline void SetClearGroundDensity(TileIndex t, ClearGround type, uint density)
+static inline void SetClearGroundDensity(TileIndex t, Ground g, uint density)
 {
 	assert(IsClearTile(t)); // XXX incomplete
-	_mc[t].m5 = 0 << 5 | type << 2 | density;
+	_mc[t].m3 = g << 4;
+	SB(_mc[t].m4, 0, 2, density);
 }
 
 
@@ -195,7 +211,7 @@ static inline void SetClearGroundDensity(TileIndex t, ClearGround type, uint den
 static inline uint GetFieldType(TileIndex t)
 {
 	assert(IsFieldsTile(t));
-	return GB(_mc[t].m3, 0, 4);
+	return GB(_mc[t].m3, 4, 4);
 }
 
 /**
@@ -207,7 +223,7 @@ static inline uint GetFieldType(TileIndex t)
 static inline void SetFieldType(TileIndex t, uint f)
 {
 	assert(IsFieldsTile(t));
-	SB(_mc[t].m3, 0, 4, f);
+	SB(_mc[t].m3, 4, 4, f);
 }
 
 /**
@@ -249,8 +265,8 @@ static inline uint GetFence(TileIndex t, DiagDirection side)
 		default: NOT_REACHED();
 		case DIAGDIR_SE: return GB(_mc[t].m4, 2, 3);
 		case DIAGDIR_SW: return GB(_mc[t].m4, 5, 3);
-		case DIAGDIR_NE: return GB(_mc[t].m3, 5, 3);
-		case DIAGDIR_NW: return GB(_mc[t].m7, 0, 3);
+		case DIAGDIR_NE: return GB(_mc[t].m5, 5, 3);
+		case DIAGDIR_NW: return GB(_mc[t].m5, 2, 3);
 	}
 }
 
@@ -268,8 +284,8 @@ static inline void SetFence(TileIndex t, DiagDirection side, uint h)
 		default: NOT_REACHED();
 		case DIAGDIR_SE: SB(_mc[t].m4, 2, 3, h); break;
 		case DIAGDIR_SW: SB(_mc[t].m4, 5, 3, h); break;
-		case DIAGDIR_NE: SB(_mc[t].m3, 5, 3, h); break;
-		case DIAGDIR_NW: SB(_mc[t].m7, 0, 3, h); break;
+		case DIAGDIR_NE: SB(_mc[t].m5, 5, 3, h); break;
+		case DIAGDIR_NW: SB(_mc[t].m5, 2, 3, h); break;
 	}
 }
 
@@ -280,7 +296,7 @@ static inline void SetFence(TileIndex t, DiagDirection side, uint h)
  * @param g       the type of ground
  * @param density the density of the grass/snow/desert etc
  */
-static inline void MakeClear(TileIndex t, ClearGround g, uint density)
+static inline void MakeClear(TileIndex t, Ground g, uint density)
 {
 	/* If this is a non-bridgeable tile, clear the bridge bits while the rest
 	 * of the tile information is still here. */
@@ -291,9 +307,9 @@ static inline void MakeClear(TileIndex t, ClearGround g, uint density)
 	_mc[t].m1 = TT_GROUND_CLEAR << 6;
 	SetTileOwner(t, OWNER_NONE);
 	_mc[t].m2 = 0;
-	_mc[t].m3 = 0;
-	_mc[t].m4 = 0 << 5 | 0 << 2;
-	SetClearGroundDensity(t, g, density); // Sets m5
+	_mc[t].m3 = g << 4;
+	_mc[t].m4 = density;
+	_mc[t].m5 = 0;
 	_mc[t].m7 = 0;
 }
 
@@ -311,8 +327,8 @@ static inline void MakeField(TileIndex t, uint field_type, IndustryID industry)
 	_mc[t].m1 = TT_GROUND_FIELDS << 6;
 	SetTileOwner(t, OWNER_NONE);
 	_mc[t].m2 = industry;
-	_mc[t].m3 = field_type;
-	_mc[t].m4 = 0 << 5 | 0 << 2;
+	_mc[t].m3 = field_type << 4;
+	_mc[t].m4 = 0;
 	_mc[t].m5 = 0;
 	_mc[t].m7 = 0;
 }
@@ -325,23 +341,21 @@ static inline void MakeField(TileIndex t, uint field_type, IndustryID industry)
 static inline void MakeSnow(TileIndex t, uint density = 0)
 {
 	if (IsTileSubtype(t, TT_GROUND_FIELDS)) {
-		MakeClear(t, CLEAR_GRASS, density);
+		MakeClear(t, GROUND_SNOW, density);
 	} else {
-		SetClearDensity(t, density);
+		SetClearGroundDensity(t, (Ground)(GetFullClearGround(t) | GROUND_SNOW), density);
 	}
-	SetBit(_mc[t].m3, 4);
 }
 
 /**
  * Clear the snow from a tile and return it to its previous type.
  * @param t the tile to clear of snow
- * @pre GetClearGround(t) == CLEAR_SNOW
+ * @pre IsSnowTile(t)
  */
 static inline void ClearSnow(TileIndex t)
 {
-	assert(GetClearGround(t) == CLEAR_SNOW);
-	ClrBit(_mc[t].m3, 4);
-	SetClearDensity(t, 3);
+	assert(IsSnowTile(t));
+	SetClearGroundDensity(t, (Ground)(GetFullClearGround(t) & ~GROUND_SNOW), 3);
 }
 
 #endif /* CLEAR_MAP_H */
