@@ -747,6 +747,11 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 
 				case OLD_MP_TREES:
 					_mc[t].m0 = TT_TREES_TEMP << 4;
+					_mc[t].m7 = _mc[t].m3;
+					SB(_mc[t].m3, 4, 4, GB(_mc[t].m2, 6, 3));
+					SB(_mc[t].m3, 0, 4, GB(_mc[t].m2, 0, 4));
+					_mc[t].m4 = GB(_mc[t].m2, 4, 2);
+					_mc[t].m2 = 0;
 					break;
 
 				case OLD_MP_STATION:

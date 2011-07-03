@@ -120,7 +120,7 @@ static void GuessWaterClass(TileIndex t, bool allow_invalid)
 
 			case TT_TREES_TEMP:
 				/* trees on shore */
-				has_water |= (GB(_mc[neighbour].m2, 4, 2) == TREE_GROUND_SHORE);
+				has_water |= (GetTreeGround(neighbour) == TREE_GROUND_SHORE);
 				break;
 
 			default: break;

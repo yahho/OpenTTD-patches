@@ -74,7 +74,7 @@ enum TreeGround {
 static inline TreeType GetTreeType(TileIndex t)
 {
 	assert(IsTreeTile(t));
-	return (TreeType)_mc[t].m3;
+	return (TreeType)_mc[t].m7;
 }
 
 /**
@@ -89,7 +89,7 @@ static inline TreeType GetTreeType(TileIndex t)
 static inline TreeGround GetTreeGround(TileIndex t)
 {
 	assert(IsTreeTile(t));
-	return (TreeGround)GB(_mc[t].m2, 6, 3);
+	return (TreeGround)GB(_mc[t].m3, 4, 4);
 }
 
 /**
@@ -114,7 +114,7 @@ static inline TreeGround GetTreeGround(TileIndex t)
 static inline uint GetTreeDensity(TileIndex t)
 {
 	assert(IsTreeTile(t));
-	return GB(_mc[t].m2, 4, 2);
+	return GB(_mc[t].m4, 0, 2);
 }
 
 /**
@@ -131,8 +131,8 @@ static inline uint GetTreeDensity(TileIndex t)
 static inline void SetTreeGroundDensity(TileIndex t, TreeGround g, uint d)
 {
 	assert(IsTreeTile(t)); // XXX incomplete
-	SB(_mc[t].m2, 4, 2, d);
-	SB(_mc[t].m2, 6, 3, g);
+	SB(_mc[t].m3, 4, 4, g);
+	SB(_mc[t].m4, 0, 2, d);
 }
 
 /**
@@ -225,7 +225,7 @@ static inline void SetTreeGrowth(TileIndex t, uint g)
 static inline uint GetTreeCounter(TileIndex t)
 {
 	assert(IsTreeTile(t));
-	return GB(_mc[t].m2, 0, 4);
+	return GB(_mc[t].m3, 0, 4);
 }
 
 /**
@@ -240,7 +240,7 @@ static inline uint GetTreeCounter(TileIndex t)
 static inline void AddTreeCounter(TileIndex t, int a)
 {
 	assert(IsTreeTile(t)); // XXX incomplete
-	_mc[t].m2 += a;
+	_mc[t].m3 += a;
 }
 
 /**
@@ -255,7 +255,7 @@ static inline void AddTreeCounter(TileIndex t, int a)
 static inline void SetTreeCounter(TileIndex t, uint c)
 {
 	assert(IsTreeTile(t)); // XXX incomplete
-	SB(_mc[t].m2, 0, 4, c);
+	SB(_mc[t].m3, 0, 4, c);
 }
 
 /**
@@ -273,13 +273,13 @@ static inline void SetTreeCounter(TileIndex t, uint c)
 static inline void MakeTree(TileIndex t, TreeType type, uint count, uint growth, TreeGround ground, uint density)
 {
 	SetTileType(t, TT_TREES_TEMP);
-	SetTileOwner(t, OWNER_NONE);
-	_mc[t].m2 = ground << 6 | density << 4 | 0;
-	_mc[t].m3 = type;
-	_mc[t].m4 = 0 << 5 | 0 << 2;
-	_mc[t].m5 = count << 6 | growth;
 	SB(_mc[t].m0, 2, 2, 0);
-	_mc[t].m7 = 0;
+	SetTileOwner(t, OWNER_NONE);
+	_mc[t].m2 = 0;
+	_mc[t].m3 = ground << 4;
+	_mc[t].m4 = density;
+	_mc[t].m5 = count << 6 | growth;
+	_mc[t].m7 = type;
 }
 
 #endif /* TREE_MAP_H */
