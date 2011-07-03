@@ -16,6 +16,7 @@
 #include "../fios.h"
 #include "../station_map.h"
 #include "../town.h"
+#include "../landscape_type.h"
 #include "../clear_map.h"
 #include "../water_map.h"
 
@@ -748,7 +749,13 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 				case OLD_MP_TREES:
 					_mc[t].m0 = TT_TREES_TEMP << 4;
 					_mc[t].m7 = _mc[t].m3;
-					SB(_mc[t].m3, 4, 4, GB(_mc[t].m2, 6, 3));
+					switch (GB(_mc[t].m2, 6, 3)) {
+						case 0: _mc[t].m3 = GROUND_GRASS << 4; break;
+						case 1: _mc[t].m3 = GROUND_ROUGH << 4; break;
+						case 2: _mc[t].m3 = _settings_game.game_creation.landscape == LT_TROPIC ? GROUND_DESERT << 4 : GROUND_SNOW << 4; break;
+						case 3: _mc[t].m3 = GROUND_SHORE << 4; break;
+						case 4: _mc[t].m3 = GROUND_SNOW_ROUGH << 4; break;
+					}
 					SB(_mc[t].m3, 0, 4, GB(_mc[t].m2, 0, 4));
 					_mc[t].m4 = GB(_mc[t].m2, 4, 2);
 					_mc[t].m2 = 0;

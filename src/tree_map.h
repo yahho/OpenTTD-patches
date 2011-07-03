@@ -13,6 +13,7 @@
 #define TREE_MAP_H
 
 #include "tile_map.h"
+#include "clear_map.h"
 
 /**
  * List of tree types along all landscape types.
@@ -45,19 +46,6 @@ static const uint TREE_COUNT_RAINFOREST   = TREE_CACTUS     - TREE_RAINFOREST;  
 static const uint TREE_COUNT_SUB_TROPICAL = TREE_TOYLAND    - TREE_SUB_TROPICAL; ///< number of tree types for the 'sub-tropic part' of a sub-tropic map.
 static const uint TREE_COUNT_TOYLAND      = 9;                                   ///< number of tree types on a toyland map.
 
-/**
- * Enumeration for ground types of tiles with trees.
- *
- * This enumeration defines the ground types for tiles with trees on it.
- */
-enum TreeGround {
-	TREE_GROUND_GRASS       = 0, ///< normal grass
-	TREE_GROUND_ROUGH       = 1, ///< some rough tile
-	TREE_GROUND_SNOW_DESERT = 2, ///< a desert or snow tile, depend on landscape
-	TREE_GROUND_SHORE       = 3, ///< shore
-	TREE_GROUND_ROUGH_SNOW  = 4, ///< A snow tile that is rough underneath.
-};
-
 
 /**
  * Returns the treetype of a tile.
@@ -86,10 +74,10 @@ static inline TreeType GetTreeType(TileIndex t)
  * @return The groundtype of the tile
  * @pre IsTreeTile(t)
  */
-static inline TreeGround GetTreeGround(TileIndex t)
+static inline Ground GetTreeGround(TileIndex t)
 {
 	assert(IsTreeTile(t));
-	return (TreeGround)GB(_mc[t].m3, 4, 4);
+	return (Ground)GB(_mc[t].m3, 4, 4);
 }
 
 /**
@@ -128,7 +116,7 @@ static inline uint GetTreeDensity(TileIndex t)
  * @param d The density to save with
  * @pre IsTreeTile(t)
  */
-static inline void SetTreeGroundDensity(TileIndex t, TreeGround g, uint d)
+static inline void SetTreeGroundDensity(TileIndex t, Ground g, uint d)
 {
 	assert(IsTreeTile(t)); // XXX incomplete
 	SB(_mc[t].m3, 4, 4, g);
@@ -270,7 +258,7 @@ static inline void SetTreeCounter(TileIndex t, uint c)
  * @param ground the ground type
  * @param density the density (not the number of trees)
  */
-static inline void MakeTree(TileIndex t, TreeType type, uint count, uint growth, TreeGround ground, uint density)
+static inline void MakeTree(TileIndex t, TreeType type, uint count, uint growth, Ground ground, uint density)
 {
 	SetTileType(t, TT_TREES_TEMP);
 	SB(_mc[t].m0, 2, 2, 0);

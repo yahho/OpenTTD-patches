@@ -92,24 +92,19 @@ static void PlantTreesOnTile(TileIndex tile, TreeType treetype, uint count, uint
 	assert(treetype != TREE_INVALID);
 	assert(CanPlantTreesOnTile(tile, true));
 
-	TreeGround ground;
+	Ground ground;
 	uint density;
 
 	switch (GetTileType(tile)) {
 		case TT_WATER:
-			ground = TREE_GROUND_SHORE;
+			ground = GROUND_SHORE;
 			density = 3;
 			break;
 
 		case TT_GROUND:
 			assert(IsTileSubtype(tile, TT_GROUND_CLEAR));
+			ground = GetFullClearGround(tile);
 			density = GetClearDensity(tile);
-			switch (GetFullClearGround(tile)) {
-				case GROUND_GRASS:      ground = TREE_GROUND_GRASS;       break;
-				case GROUND_ROUGH:      ground = TREE_GROUND_ROUGH;       density = 3; break;
-				case GROUND_SNOW_ROUGH: ground = TREE_GROUND_ROUGH_SNOW;  break;
-				default:                ground = TREE_GROUND_SNOW_DESERT; break;
-			}
 			break;
 
 		default: NOT_REACHED();
@@ -167,13 +162,13 @@ static void PlaceTree(TileIndex tile, uint32 r)
 		PlantTreesOnTile(tile, tree, GB(r, 22, 2), min(GB(r, 16, 3), 6));
 
 		/* Rerandomize ground, if neither snow nor shore */
-		TreeGround ground = GetTreeGround(tile);
-		if (ground != TREE_GROUND_SNOW_DESERT && ground != TREE_GROUND_ROUGH_SNOW && ground != TREE_GROUND_SHORE) {
-			SetTreeGroundDensity(tile, (TreeGround)GB(r, 28, 1), 3);
+		Ground ground = GetTreeGround(tile);
+		if (ground == GROUND_GRASS || ground == GROUND_ROUGH ) {
+			SetTreeGroundDensity(tile, GB(r, 28, 1) ? GROUND_ROUGH : GROUND_GRASS, 3);
 		}
 
 		/* Set the counter to a random start value */
-		SetTreeCounter(tile, (TreeGround)GB(r, 24, 4));
+		SetTreeCounter(tile, (Ground)GB(r, 24, 4));
 	}
 }
 
@@ -460,9 +455,9 @@ struct TreeListEnt : PalSpriteID {
 static void DrawTile_Trees(TileInfo *ti)
 {
 	switch (GetTreeGround(ti->tile)) {
-		case TREE_GROUND_SHORE: DrawShoreTile(ti->tileh); break;
-		case TREE_GROUND_GRASS: DrawClearLandTile(ti, GetTreeDensity(ti->tile)); break;
-		case TREE_GROUND_ROUGH: DrawHillyLandTile(ti); break;
+		case GROUND_SHORE: DrawShoreTile(ti->tileh); break;
+		case GROUND_GRASS: DrawClearLandTile(ti, GetTreeDensity(ti->tile)); break;
+		case GROUND_ROUGH: DrawHillyLandTile(ti); break;
 		default: DrawGroundSprite(_clear_land_sprites_snow_desert[GetTreeDensity(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE); break;
 	}
 
@@ -473,7 +468,7 @@ static void DrawTile_Trees(TileInfo *ti)
 	uint index = GB(tmp, 0, 2) + (GetTreeType(ti->tile) << 2);
 
 	/* different tree styles above one of the grounds */
-	if ((GetTreeGround(ti->tile) == TREE_GROUND_SNOW_DESERT || GetTreeGround(ti->tile) == TREE_GROUND_ROUGH_SNOW) &&
+	if ((GetTreeGround(ti->tile) >= GROUND_SNOW) &&
 			GetTreeDensity(ti->tile) >= 2 &&
 			IsInsideMM(index, TREE_SUB_ARCTIC << 2, TREE_RAINFOREST << 2)) {
 		index += 164 - (TREE_SUB_ARCTIC << 2);
@@ -575,8 +570,8 @@ static void TileLoopTreesDesert(TileIndex tile)
 {
 	switch (GetTropicZone(tile)) {
 		case TROPICZONE_DESERT:
-			if (GetTreeGround(tile) != TREE_GROUND_SNOW_DESERT) {
-				SetTreeGroundDensity(tile, TREE_GROUND_SNOW_DESERT, 3);
+			if (GetTreeGround(tile) != GROUND_DESERT) {
+				SetTreeGroundDensity(tile, GROUND_DESERT, 3);
 				MarkTileDirtyByTile(tile);
 			}
 			break;
@@ -604,16 +599,16 @@ static void TileLoopTreesAlps(TileIndex tile)
 
 	if (k < 0) {
 		switch (GetTreeGround(tile)) {
-			case TREE_GROUND_SNOW_DESERT: SetTreeGroundDensity(tile, TREE_GROUND_GRASS, 3); break;
-			case TREE_GROUND_ROUGH_SNOW:  SetTreeGroundDensity(tile, TREE_GROUND_ROUGH, 3); break;
+			case GROUND_SNOW:       SetTreeGroundDensity(tile, GROUND_GRASS, 3); break;
+			case GROUND_SNOW_ROUGH: SetTreeGroundDensity(tile, GROUND_ROUGH, 3); break;
 			default: return;
 		}
 	} else {
 		uint density = min<uint>(k, 3);
 
-		if (GetTreeGround(tile) != TREE_GROUND_SNOW_DESERT && GetTreeGround(tile) != TREE_GROUND_ROUGH_SNOW) {
-			TreeGround tg = GetTreeGround(tile) == TREE_GROUND_ROUGH ? TREE_GROUND_ROUGH_SNOW : TREE_GROUND_SNOW_DESERT;
-			SetTreeGroundDensity(tile, tg, density);
+		if (GetTreeGround(tile) < GROUND_SNOW) {
+			Ground g = GetTreeGround(tile) == GROUND_ROUGH ? GROUND_SNOW_ROUGH : GROUND_SNOW;
+			SetTreeGroundDensity(tile, g, density);
 		} else if (GetTreeDensity(tile) != density) {
 			SetTreeGroundDensity(tile, GetTreeGround(tile), density);
 		} else {
@@ -631,7 +626,7 @@ static void TileLoopTreesAlps(TileIndex tile)
 
 static void TileLoop_Trees(TileIndex tile)
 {
-	if (GetTreeGround(tile) == TREE_GROUND_SHORE) {
+	if (GetTreeGround(tile) == GROUND_SHORE) {
 		TileLoop_Water(tile);
 	} else {
 		switch (_settings_game.game_creation.landscape) {
@@ -645,10 +640,10 @@ static void TileLoop_Trees(TileIndex tile)
 	uint treeCounter = GetTreeCounter(tile);
 
 	/* Handle growth of grass (under trees) at every 8th processings, like it's done for grass on clear tiles. */
-	if ((treeCounter & 7) == 7 && GetTreeGround(tile) == TREE_GROUND_GRASS) {
+	if ((treeCounter & 7) == 7 && GetTreeGround(tile) == GROUND_GRASS) {
 		uint density = GetTreeDensity(tile);
 		if (density < 3) {
-			SetTreeGroundDensity(tile, TREE_GROUND_GRASS, density + 1);
+			SetTreeGroundDensity(tile, GROUND_GRASS, density + 1);
 			MarkTileDirtyByTile(tile);
 		}
 	}
@@ -714,25 +709,11 @@ static void TileLoop_Trees(TileIndex tile)
 				SetTreeGrowth(tile, 3);
 			} else {
 				/* just one tree, change type into clear */
-				switch (GetTreeGround(tile)) {
-					case TREE_GROUND_SHORE: MakeShore(tile); break;
-					case TREE_GROUND_GRASS: MakeClear(tile, GROUND_GRASS, GetTreeDensity(tile)); break;
-					case TREE_GROUND_ROUGH: MakeClear(tile, GROUND_ROUGH, 3); break;
-					case TREE_GROUND_ROUGH_SNOW: {
-						uint density = GetTreeDensity(tile);
-						MakeClear(tile, GROUND_ROUGH, 3);
-						MakeSnow(tile, density);
-						break;
-					}
-					default: // snow or desert
-						if (_settings_game.game_creation.landscape == LT_TROPIC) {
-							MakeClear(tile, GROUND_DESERT, GetTreeDensity(tile));
-						} else {
-							uint density = GetTreeDensity(tile);
-							MakeClear(tile, GROUND_GRASS, 3);
-							MakeSnow(tile, density);
-						}
-						break;
+				Ground g = GetTreeGround(tile);
+				if (g == GROUND_SHORE) {
+					MakeShore(tile);
+				} else {
+					MakeClear(tile, g, GetTreeDensity(tile));
 				}
 			}
 			break;

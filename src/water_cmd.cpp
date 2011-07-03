@@ -1028,7 +1028,7 @@ FloodingBehaviour GetFloodingBehaviour(TileIndex tile)
 			return FLOOD_NONE;
 
 		case TT_TREES_TEMP:
-			return (GetTreeGround(tile) == TREE_GROUND_SHORE ? FLOOD_DRYUP : FLOOD_NONE);
+			return (GetTreeGround(tile) == GROUND_SHORE ? FLOOD_DRYUP : FLOOD_NONE);
 
 		default:
 			return FLOOD_NONE;
@@ -1059,7 +1059,7 @@ void DoFloodTile(TileIndex target)
 
 			case TT_TREES_TEMP:
 				if (!IsSlopeWithOneCornerRaised(tileh)) {
-					SetTreeGroundDensity(target, TREE_GROUND_SHORE, 3);
+					SetTreeGroundDensity(target, GROUND_SHORE, 3);
 					MarkTileDirtyByTile(target);
 					flooded = true;
 					break;
@@ -1125,7 +1125,7 @@ static void DoDryUp(TileIndex tile)
 			break;
 
 		case TT_TREES_TEMP:
-			SetTreeGroundDensity(tile, TREE_GROUND_GRASS, 3);
+			SetTreeGroundDensity(tile, GROUND_GRASS, 3);
 			MarkTileDirtyByTile(tile);
 			break;
 

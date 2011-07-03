@@ -375,8 +375,8 @@ uint32 GetTerrainType(TileIndex tile, TileContext context)
 				case TT_TREES_TEMP: {
 					/* During map generation the snowstate may not be valid yet, as the tileloop may not have run yet. */
 					if (_generating_world) goto genworld;
-					TreeGround ground = GetTreeGround(tile);
-					has_snow = (ground == TREE_GROUND_SNOW_DESERT || ground == TREE_GROUND_ROUGH_SNOW) && GetTreeDensity(tile) >= 2;
+					Ground ground = GetTreeGround(tile);
+					has_snow = (ground >= GROUND_SNOW) && GetTreeDensity(tile) >= 2;
 					break;
 				}
 
@@ -443,7 +443,7 @@ uint32 GetNearbyTileInformation(TileIndex tile, bool grf_version8)
 	TileType tile_type = GetTileType(tile);
 
 	/* Fake tile type for trees on shore */
-	if (IsTreeTile(tile) && GetTreeGround(tile) == TREE_GROUND_SHORE) tile_type = TT_WATER;
+	if (IsTreeTile(tile) && GetTreeGround(tile) == GROUND_SHORE) tile_type = TT_WATER;
 
 	int z;
 	Slope tileh = GetTilePixelSlope(tile, &z);

@@ -559,8 +559,10 @@ static inline uint32 GetSmallMapVegetationPixels(TileIndex tile, SmallmapTileTyp
 				} else {
 					return _vegetation_clear_bits[GetClearGround(tile)];
 				}
-			} else if (GetTreeGround(tile) == TREE_GROUND_SNOW_DESERT || GetTreeGround(tile) == TREE_GROUND_ROUGH_SNOW) {
-				return (_settings_game.game_creation.landscape == LT_ARCTIC) ? MKCOLOUR_XYYX(PC_LIGHT_BLUE, PC_TREES) : MKCOLOUR_XYYX(PC_ORANGE, PC_TREES);
+			} else if (GetTreeGround(tile) == GROUND_DESERT) {
+				return MKCOLOUR_XYYX(PC_ORANGE, PC_TREES);
+			} else if (GetTreeGround(tile) == GROUND_SNOW || GetTreeGround(tile) == GROUND_SNOW_ROUGH) {
+				return MKCOLOUR_XYYX(PC_LIGHT_BLUE, PC_TREES);
 			}
 			return MKCOLOUR_XYYX(PC_GRASS_LAND, PC_TREES);
 
