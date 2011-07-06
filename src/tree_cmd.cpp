@@ -367,77 +367,79 @@ CommandCost CmdPlantTree(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 				}
 				/* 2x as expensive to add more trees to an existing tile */
 				cost.AddCost(_price[PR_BUILD_TREES] * 2);
-				break;
+				continue;
 
 			case TT_WATER:
 				if (!IsCoast(tile) || IsSlopeWithOneCornerRaised(GetTileSlope(tile))) {
 					msg = STR_ERROR_CAN_T_BUILD_ON_WATER;
 					continue;
 				}
-				/* FALL THROUGH */
-			case TT_GROUND: {
-				if (IsBridgeAbove(tile)) {
-					msg = STR_ERROR_SITE_UNSUITABLE;
-					continue;
-				}
-
-				TreeType treetype = (TreeType)tree_to_plant;
-				/* Be a bit picky about which trees go where. */
-				if (_settings_game.game_creation.landscape == LT_TROPIC && treetype != TREE_INVALID && (
-						/* No cacti outside the desert */
-						(treetype == TREE_CACTUS && GetTropicZone(tile) != TROPICZONE_DESERT) ||
-						/* No rain forest trees outside the rain forest, except in the editor mode where it makes those tiles rain forest tile */
-						(IsInsideMM(treetype, TREE_RAINFOREST, TREE_CACTUS) && GetTropicZone(tile) != TROPICZONE_RAINFOREST && _game_mode != GM_EDITOR) ||
-						/* And no subtropical trees in the desert/rain forest */
-						(IsInsideMM(treetype, TREE_SUB_TROPICAL, TREE_TOYLAND) && GetTropicZone(tile) != TROPICZONE_NORMAL))) {
-					msg = STR_ERROR_TREE_WRONG_TERRAIN_FOR_TREE_TYPE;
-					continue;
-				}
-
-				/* Test tree limit. */
-				if (--limit < 1) {
-					msg = STR_ERROR_TREE_PLANT_LIMIT_REACHED;
-					break;
-				}
-
-				if (IsTileType(tile, TT_GROUND)) {
-					/* Remove fields or rocks. Note that the ground will get barrened */
-					if (IsTileSubtype(tile, TT_GROUND_FIELDS) || GetRawClearGround(tile) == CLEAR_ROCKS) {
-						CommandCost ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
-						if (ret.Failed()) return ret;
-						cost.AddCost(ret);
-					}
-				}
-
-				if (_game_mode != GM_EDITOR && Company::IsValidID(_current_company)) {
-					Town *t = ClosestTownFromTile(tile, _settings_game.economy.dist_local_authority);
-					if (t != NULL) ChangeTownRating(t, RATING_TREE_UP_STEP, RATING_TREE_MAXIMUM, flags);
-				}
-
-				if (flags & DC_EXEC) {
-					if (treetype == TREE_INVALID) {
-						treetype = GetRandomTreeType(tile, GB(Random(), 24, 8));
-						if (treetype == TREE_INVALID) treetype = TREE_CACTUS;
-					}
-
-					/* Plant full grown trees in scenario editor */
-					PlantTreesOnTile(tile, treetype, 0, _game_mode == GM_EDITOR ? 3 : 0);
-					MarkTileDirtyByTile(tile);
-					if (c != NULL) c->tree_limit -= 1 << 16;
-
-					/* When planting rainforest-trees, set tropiczone to rainforest in editor. */
-					if (_game_mode == GM_EDITOR && IsInsideMM(treetype, TREE_RAINFOREST, TREE_CACTUS)) {
-						SetTropicZone(tile, TROPICZONE_RAINFOREST);
-					}
-				}
-				cost.AddCost(_price[PR_BUILD_TREES]);
 				break;
-			}
+
+			case TT_GROUND:
+				break;
 
 			default:
 				msg = STR_ERROR_SITE_UNSUITABLE;
-				break;
+				continue;
 		}
+
+		if (IsBridgeAbove(tile)) {
+			msg = STR_ERROR_SITE_UNSUITABLE;
+			continue;
+		}
+
+		TreeType treetype = (TreeType)tree_to_plant;
+		/* Be a bit picky about which trees go where. */
+		if (_settings_game.game_creation.landscape == LT_TROPIC && treetype != TREE_INVALID && (
+				/* No cacti outside the desert */
+				(treetype == TREE_CACTUS && GetTropicZone(tile) != TROPICZONE_DESERT) ||
+				/* No rain forest trees outside the rain forest, except in the editor mode where it makes those tiles rain forest tile */
+				(IsInsideMM(treetype, TREE_RAINFOREST, TREE_CACTUS) && GetTropicZone(tile) != TROPICZONE_RAINFOREST && _game_mode != GM_EDITOR) ||
+				/* And no subtropical trees in the desert/rain forest */
+				(IsInsideMM(treetype, TREE_SUB_TROPICAL, TREE_TOYLAND) && GetTropicZone(tile) != TROPICZONE_NORMAL))) {
+			msg = STR_ERROR_TREE_WRONG_TERRAIN_FOR_TREE_TYPE;
+			continue;
+		}
+
+		/* Test tree limit. */
+		if (--limit < 1) {
+			msg = STR_ERROR_TREE_PLANT_LIMIT_REACHED;
+			break;
+		}
+
+		if (IsTileType(tile, TT_GROUND)) {
+			/* Remove fields or rocks. Note that the ground will get barrened */
+			if (IsTileSubtype(tile, TT_GROUND_FIELDS) || GetRawClearGround(tile) == CLEAR_ROCKS) {
+				CommandCost ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+				if (ret.Failed()) return ret;
+				cost.AddCost(ret);
+			}
+		}
+
+		if (_game_mode != GM_EDITOR && Company::IsValidID(_current_company)) {
+			Town *t = ClosestTownFromTile(tile, _settings_game.economy.dist_local_authority);
+			if (t != NULL) ChangeTownRating(t, RATING_TREE_UP_STEP, RATING_TREE_MAXIMUM, flags);
+		}
+
+		if (flags & DC_EXEC) {
+			if (treetype == TREE_INVALID) {
+				treetype = GetRandomTreeType(tile, GB(Random(), 24, 8));
+				if (treetype == TREE_INVALID) treetype = TREE_CACTUS;
+			}
+
+			/* Plant full grown trees in scenario editor */
+			PlantTreesOnTile(tile, treetype, 0, _game_mode == GM_EDITOR ? 3 : 0);
+			MarkTileDirtyByTile(tile);
+			if (c != NULL) c->tree_limit -= 1 << 16;
+
+			/* When planting rainforest-trees, set tropiczone to rainforest in editor. */
+			if (_game_mode == GM_EDITOR && IsInsideMM(treetype, TREE_RAINFOREST, TREE_CACTUS)) {
+				SetTropicZone(tile, TROPICZONE_RAINFOREST);
+			}
+		}
+
+		cost.AddCost(_price[PR_BUILD_TREES]);
 
 		/* Tree limit used up? No need to check more. */
 		if (limit < 0) break;
