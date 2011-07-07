@@ -11,17 +11,24 @@
 
 #include "stdafx.h"
 #include "clear_map.h"
+#include "tree_map.h"
 #include "command_func.h"
 #include "landscape.h"
 #include "genworld.h"
 #include "viewport_func.h"
+#include "water_map.h"
 #include "water.h"
+#include "company_base.h"
+#include "company_func.h"
+#include "town.h"
+#include "sound_func.h"
 #include "core/random_func.hpp"
 #include "newgrf_generic.h"
 
 #include "table/strings.h"
 #include "table/sprites.h"
 #include "table/clear_land.h"
+#include "table/tree_land.h"
 
 static CommandCost ClearTile_Clear(TileIndex tile, DoCommandFlag flags)
 {
@@ -56,6 +63,23 @@ static CommandCost ClearTile_Clear(TileIndex tile, DoCommandFlag flags)
 	if (flags & DC_EXEC) DoClearSquare(tile);
 
 	return CommandCost(EXPENSES_CONSTRUCTION, cost);
+}
+
+static CommandCost ClearTile_Trees(TileIndex tile, DoCommandFlag flags)
+{
+	uint num;
+
+	if (Company::IsValidID(_current_company)) {
+		Town *t = ClosestTownFromTile(tile, _settings_game.economy.dist_local_authority);
+		if (t != NULL) ChangeTownRating(t, RATING_TREE_DOWN_STEP, RATING_TREE_MINIMUM, flags);
+	}
+
+	num = GetTreeCount(tile);
+	if (IsInsideMM(GetTreeType(tile), TREE_RAINFOREST, TREE_CACTUS)) num *= 4;
+
+	if (flags & DC_EXEC) DoClearSquare(tile);
+
+	return CommandCost(EXPENSES_CONSTRUCTION, num * _price[PR_CLEAR_TREES]);
 }
 
 void DrawClearLandTile(const TileInfo *ti, byte set)
@@ -146,6 +170,81 @@ static void DrawTile_Clear(TileInfo *ti)
 	DrawBridgeMiddle(ti);
 }
 
+struct TreeListEnt : PalSpriteID {
+	byte x, y;
+};
+
+static void DrawTile_Trees(TileInfo *ti)
+{
+	switch (GetTreeGround(ti->tile)) {
+		case GROUND_SHORE: DrawShoreTile(ti->tileh); break;
+		case GROUND_GRASS: DrawClearLandTile(ti, GetTreeDensity(ti->tile)); break;
+		case GROUND_ROUGH: DrawHillyLandTile(ti); break;
+		default: DrawGroundSprite(_clear_land_sprites_snow_desert[GetTreeDensity(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE); break;
+	}
+
+	/* Do not draw trees when the invisible trees setting is set */
+	if (IsInvisibilitySet(TO_TREES)) return;
+
+	uint tmp = CountBits(ti->tile + ti->x + ti->y);
+	uint index = GB(tmp, 0, 2) + (GetTreeType(ti->tile) << 2);
+
+	/* different tree styles above one of the grounds */
+	if ((GetTreeGround(ti->tile) >= GROUND_SNOW) &&
+			GetTreeDensity(ti->tile) >= 2 &&
+			IsInsideMM(index, TREE_SUB_ARCTIC << 2, TREE_RAINFOREST << 2)) {
+		index += 164 - (TREE_SUB_ARCTIC << 2);
+	}
+
+	assert(index < lengthof(_tree_layout_sprite));
+
+	const PalSpriteID *s = _tree_layout_sprite[index];
+	const TreePos *d = _tree_layout_xy[GB(tmp, 2, 2)];
+
+	/* combine trees into one sprite object */
+	StartSpriteCombine();
+
+	TreeListEnt te[4];
+
+	/* put the trees to draw in a list */
+	uint trees = GetTreeCount(ti->tile);
+
+	for (uint i = 0; i < trees; i++) {
+		SpriteID sprite = s[0].sprite + (i == trees - 1 ? GetTreeGrowth(ti->tile) : 3);
+		PaletteID pal = s[0].pal;
+
+		te[i].sprite = sprite;
+		te[i].pal    = pal;
+		te[i].x = d->x;
+		te[i].y = d->y;
+		s++;
+		d++;
+	}
+
+	/* draw them in a sorted way */
+	int z = ti->z + GetSlopeMaxPixelZ(ti->tileh) / 2;
+
+	for (; trees > 0; trees--) {
+		uint min = te[0].x + te[0].y;
+		uint mi = 0;
+
+		for (uint i = 1; i < trees; i++) {
+			if ((uint)(te[i].x + te[i].y) < min) {
+				min = te[i].x + te[i].y;
+				mi = i;
+			}
+		}
+
+		AddSortableSpriteToDraw(te[mi].sprite, te[mi].pal, ti->x + te[mi].x, ti->y + te[mi].y, 16 - te[mi].x, 16 - te[mi].y, 0x30, z, IsTransparencySet(TO_TREES), -te[mi].x, -te[mi].y);
+
+		/* replace the removed one with the last one */
+		te[mi] = te[trees - 1];
+	}
+
+	EndSpriteCombine();
+}
+
+
 static int GetSlopePixelZ_Clear(TileIndex tile, uint x, uint y)
 {
 	int z;
@@ -224,6 +323,37 @@ static void TileLoopClearAlps(TileIndex tile)
 	MarkTileDirtyByTile(tile);
 }
 
+static void TileLoopTreesAlps(TileIndex tile)
+{
+	int k = GetTileZ(tile) - GetSnowLine() + 1;
+
+	if (k < 0) {
+		switch (GetTreeGround(tile)) {
+			case GROUND_SNOW:       SetTreeGroundDensity(tile, GROUND_GRASS, 3); break;
+			case GROUND_SNOW_ROUGH: SetTreeGroundDensity(tile, GROUND_ROUGH, 3); break;
+			default: return;
+		}
+	} else {
+		uint density = min<uint>(k, 3);
+
+		if (GetTreeGround(tile) < GROUND_SNOW) {
+			Ground g = GetTreeGround(tile) == GROUND_ROUGH ? GROUND_SNOW_ROUGH : GROUND_SNOW;
+			SetTreeGroundDensity(tile, g, density);
+		} else if (GetTreeDensity(tile) != density) {
+			SetTreeGroundDensity(tile, GetTreeGround(tile), density);
+		} else {
+			if (GetTreeDensity(tile) == 3) {
+				uint32 r = Random();
+				if (Chance16I(1, 200, r) && _settings_client.sound.ambient) {
+					SndPlayTileFx((r & 0x80000000) ? SND_39_HEAVY_WIND : SND_34_WIND, tile);
+				}
+			}
+			return;
+		}
+	}
+	MarkTileDirtyByTile(tile);
+}
+
 /**
  * Tests if at least one surrounding tile is desert
  * @param tile tile to check
@@ -265,6 +395,33 @@ static void TileLoopClearDesert(TileIndex tile)
 	}
 
 	MarkTileDirtyByTile(tile);
+}
+
+static void TileLoopTreesDesert(TileIndex tile)
+{
+	switch (GetTropicZone(tile)) {
+		case TROPICZONE_DESERT:
+			if (GetTreeGround(tile) != GROUND_DESERT) {
+				SetTreeGroundDensity(tile, GROUND_DESERT, 3);
+				MarkTileDirtyByTile(tile);
+			}
+			break;
+
+		case TROPICZONE_RAINFOREST: {
+			static const SoundFx forest_sounds[] = {
+				SND_42_LOON_BIRD,
+				SND_43_LION,
+				SND_44_MONKEYS,
+				SND_48_DISTANT_BIRD
+			};
+			uint32 r = Random();
+
+			if (Chance16I(1, 200, r) && _settings_client.sound.ambient) SndPlayTileFx(forest_sounds[GB(r, 16, 2)], tile);
+			break;
+		}
+
+		default: break;
+	}
 }
 
 static void TileLoop_Clear(TileIndex tile)
@@ -328,6 +485,91 @@ static void TileLoop_Clear(TileIndex tile)
 			}
 			break;
 		}
+	}
+
+	MarkTileDirtyByTile(tile);
+}
+
+extern void AddNeighbouringTree(TileIndex tile);
+
+static void TileLoop_Trees(TileIndex tile)
+{
+	if (GetTreeGround(tile) == GROUND_SHORE) {
+		TileLoop_Water(tile);
+	} else {
+		switch (_settings_game.game_creation.landscape) {
+			case LT_TROPIC: TileLoopTreesDesert(tile); break;
+			case LT_ARCTIC: TileLoopTreesAlps(tile);   break;
+		}
+	}
+
+	AmbientSoundEffect(tile);
+
+	uint treeCounter = GetTreeCounter(tile);
+
+	/* Handle growth of grass (under trees) at every 8th processings, like it's done for grass on clear tiles. */
+	if ((treeCounter & 7) == 7 && GetTreeGround(tile) == GROUND_GRASS) {
+		uint density = GetTreeDensity(tile);
+		if (density < 3) {
+			SetTreeGroundDensity(tile, GROUND_GRASS, density + 1);
+			MarkTileDirtyByTile(tile);
+		}
+	}
+	if (GetTreeCounter(tile) < 15) {
+		AddTreeCounter(tile, 1);
+		return;
+	}
+	SetTreeCounter(tile, 0);
+
+	switch (GetTreeGrowth(tile)) {
+		case 3: // regular sized tree
+			if (_settings_game.game_creation.landscape == LT_TROPIC &&
+					GetTreeType(tile) != TREE_CACTUS &&
+					GetTropicZone(tile) == TROPICZONE_DESERT) {
+				AddTreeGrowth(tile, 1);
+			} else {
+				switch (GB(Random(), 0, 3)) {
+					case 0: // start destructing
+						AddTreeGrowth(tile, 1);
+						break;
+
+					case 1: // add a tree
+						if (GetTreeCount(tile) < 4) {
+							AddTreeCount(tile, 1);
+							SetTreeGrowth(tile, 0);
+							break;
+						}
+						/* FALL THROUGH */
+
+					case 2: // add a neighbouring tree
+						AddNeighbouringTree(tile);
+						break;
+
+					default:
+						return;
+				}
+			}
+			break;
+
+		case 6: // final stage of tree destruction
+			if (GetTreeCount(tile) > 1) {
+				/* more than one tree, delete it */
+				AddTreeCount(tile, -1);
+				SetTreeGrowth(tile, 3);
+			} else {
+				/* just one tree, change type into clear */
+				Ground g = GetTreeGround(tile);
+				if (g == GROUND_SHORE) {
+					MakeShore(tile);
+				} else {
+					MakeClear(tile, g, GetTreeDensity(tile));
+				}
+			}
+			break;
+
+		default:
+			AddTreeGrowth(tile, 1);
+			break;
 	}
 
 	MarkTileDirtyByTile(tile);
@@ -400,6 +642,19 @@ static void GetTileDesc_Clear(TileIndex tile, TileDesc *td)
 	td->owner[0] = GetTileOwner(tile);
 }
 
+static void GetTileDesc_Trees(TileIndex tile, TileDesc *td)
+{
+	TreeType tt = GetTreeType(tile);
+
+	if (IsInsideMM(tt, TREE_RAINFOREST, TREE_CACTUS)) {
+		td->str = STR_LAI_TREE_NAME_RAINFOREST;
+	} else {
+		td->str = tt == TREE_CACTUS ? STR_LAI_TREE_NAME_CACTUS_PLANTS : STR_LAI_TREE_NAME_TREES;
+	}
+
+	td->owner[0] = GetTileOwner(tile);
+}
+
 static void ChangeTileOwner_Clear(TileIndex tile, Owner old_owner, Owner new_owner)
 {
 	return;
@@ -425,4 +680,49 @@ extern const TileTypeProcs _tile_type_clear_procs = {
 	NULL,                     ///< vehicle_enter_tile_proc
 	GetFoundation_Clear,      ///< get_foundation_proc
 	TerraformTile_Clear,      ///< terraform_tile_proc
+};
+
+static int GetSlopePixelZ_Trees(TileIndex tile, uint x, uint y)
+{
+	int z;
+	Slope tileh = GetTilePixelSlope(tile, &z);
+
+	return z + GetPartialPixelZ(x & 0xF, y & 0xF, tileh);
+}
+
+static Foundation GetFoundation_Trees(TileIndex tile, Slope tileh)
+{
+	return FOUNDATION_NONE;
+}
+
+static TrackStatus GetTileTrackStatus_Trees(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
+{
+	return 0;
+}
+
+static void ChangeTileOwner_Trees(TileIndex tile, Owner old_owner, Owner new_owner)
+{
+	/* not used */
+}
+
+static CommandCost TerraformTile_Trees(TileIndex tile, DoCommandFlag flags, int z_new, Slope tileh_new)
+{
+	return DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+}
+
+extern const TileTypeProcs _tile_type_trees_procs = {
+	DrawTile_Trees,           // draw_tile_proc
+	GetSlopePixelZ_Trees,     // get_slope_z_proc
+	ClearTile_Trees,          // clear_tile_proc
+	NULL,                     // add_accepted_cargo_proc
+	GetTileDesc_Trees,        // get_tile_desc_proc
+	GetTileTrackStatus_Trees, // get_tile_track_status_proc
+	NULL,                     // click_tile_proc
+	NULL,                     // animate_tile_proc
+	TileLoop_Trees,           // tile_loop_proc
+	ChangeTileOwner_Trees,    // change_tile_owner_proc
+	NULL,                     // add_produced_cargo_proc
+	NULL,                     // vehicle_enter_tile_proc
+	GetFoundation_Trees,      // get_foundation_proc
+	TerraformTile_Trees,      // terraform_tile_proc
 };
