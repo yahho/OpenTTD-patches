@@ -66,31 +66,6 @@ static inline TreeType GetTreeType(TileIndex t)
 }
 
 /**
- * Returns the 'density' of a tile with trees.
- *
- * This function returns the density of a tile which got trees. Note
- * that this value doesn't count the number of trees on a tile, use
- * #GetTreeCount instead. This function instead returns some kind of
- * groundtype of the tile. As the map-array is finite in size and
- * the informations about the trees must be saved somehow other
- * informations about a tile must be saved somewhere encoded in the
- * tile. So this function returns the density of a tile for sub arctic
- * and sub tropical games. This means for sub arctic the type of snowline
- * (0 to 3 for all 4 types of snowtiles) and for sub tropical the value
- * 3 for a desert (and 0 for non-desert). The function name is not read as
- * "get the tree density of a tile" but "get the density of a tile which got trees".
- *
- * @param t The tile to get the 'density'
- * @pre IsTreeTile(t)
- * @see GetTreeCount
- */
-static inline uint GetTreeDensity(TileIndex t)
-{
-	assert(IsTreeTile(t));
-	return GB(_mc[t].m4, 0, 2);
-}
-
-/**
  * Set the density and ground type of a tile with trees.
  *
  * This functions saves the ground type and the density which belongs to it

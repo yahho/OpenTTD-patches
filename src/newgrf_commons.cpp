@@ -355,13 +355,7 @@ uint32 GetTerrainType(TileIndex tile, TileContext context)
 				case TT_GROUND:
 					/* During map generation the snowstate may not be valid yet, as the tileloop may not have run yet. */
 					if (_generating_world) goto genworld;
-
-					if (IsTreeTile(tile)) {
-						has_snow = IsSnowTile(tile) && GetTreeDensity(tile) >= 2;
-					} else {
-						has_snow = IsSnowTile(tile) && GetClearDensity(tile) >= 2;
-					}
-
+					has_snow = IsSnowTile(tile) && GetClearDensity(tile) >= 2;
 					break;
 
 				case TT_RAILWAY: {
