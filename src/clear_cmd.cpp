@@ -285,50 +285,24 @@ static void TileLoopClearAlps(TileIndex tile)
 {
 	int k = GetTileZ(tile) - GetSnowLine() + 1;
 
-	if (k < 0) {
-		/* Below the snow line, do nothing if no snow. */
-		if (!IsSnowTile(tile)) return;
+	if (!IsSnowTile(tile)) {
+		/* No snow, make it if needed, otherwise do nothing. */
+		if (k < 0) return;
+		MakeSnow(tile);
 	} else {
-		/* At or above the snow line, make snow tile if needed. */
-		if (!IsSnowTile(tile)) {
-			MakeSnow(tile);
-			MarkTileDirtyByTile(tile);
-			return;
-		}
-	}
-	/* Update snow density. */
-	uint current_density = GetClearDensity(tile);
-	uint req_density = (k < 0) ? 0u : min((uint)k, 3);
+		/* Update snow density. */
+		uint cur_density = GetClearDensity(tile);
+		uint req_density = (k < 0) ? 0u : min((uint)k, 3);
 
-	if (current_density < req_density) {
-		AddClearDensity(tile, 1);
-	} else if (current_density > req_density) {
-		AddClearDensity(tile, -1);
-	} else {
-		/* Density at the required level. */
-		if (k >= 0) return;
-		ClearSnow(tile);
-	}
-	MarkTileDirtyByTile(tile);
-}
-
-static void TileLoopTreesAlps(TileIndex tile)
-{
-	int k = GetTileZ(tile) - GetSnowLine() + 1;
-
-	if (k < 0) {
-		if (!IsSnowTile(tile)) return;
-		SetClearGroundDensity(tile, GROUND_GRASS, 3, true);
-	} else {
-		uint density = min<uint>(k, 3);
-
-		if (!IsSnowTile(tile)) {
-			Ground g = GetClearGround(tile) == GROUND_ROUGH ? GROUND_SNOW_ROUGH : GROUND_SNOW;
-			SetClearGroundDensity(tile, g, density, true);
-		} else if (GetClearDensity(tile) != density) {
-			SetClearDensity(tile, density);
+		if (cur_density < req_density) {
+			AddClearDensity(tile, 1);
+		} else if (cur_density > req_density) {
+			AddClearDensity(tile, -1);
+		} else if (k < 0) {
+			ClearSnow(tile);
 		} else {
-			if (GetClearDensity(tile) == 3) {
+			/* Density at the required level. */
+			if (IsTileSubtype(tile, TT_GROUND_TREES) && cur_density == 3) {
 				uint32 r = Random();
 				if (Chance16I(1, 200, r) && _settings_client.sound.ambient) {
 					SndPlayTileFx((r & 0x80000000) ? SND_39_HEAVY_WIND : SND_34_WIND, tile);
@@ -337,6 +311,7 @@ static void TileLoopTreesAlps(TileIndex tile)
 			return;
 		}
 	}
+
 	MarkTileDirtyByTile(tile);
 }
 
@@ -481,7 +456,7 @@ static void TileLoop_Clear(TileIndex tile)
 		} else {
 			switch (_settings_game.game_creation.landscape) {
 				case LT_TROPIC: TileLoopTreesDesert(tile); break;
-				case LT_ARCTIC: TileLoopTreesAlps(tile);   break;
+				case LT_ARCTIC: TileLoopClearAlps(tile);   break;
 			}
 		}
 

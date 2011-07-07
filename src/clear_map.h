@@ -369,7 +369,7 @@ static inline void MakeSnow(TileIndex t, uint density = 0)
 	if (IsTileSubtype(t, TT_GROUND_FIELDS)) {
 		MakeClear(t, GROUND_SNOW, density);
 	} else {
-		SetClearGroundDensity(t, (Ground)(GetFullClearGround(t) | GROUND_SNOW), density);
+		SetClearGroundDensity(t, (Ground)(GetFullClearGround(t) | GROUND_SNOW), density, true);
 	}
 }
 
@@ -381,7 +381,7 @@ static inline void MakeSnow(TileIndex t, uint density = 0)
 static inline void ClearSnow(TileIndex t)
 {
 	assert(IsSnowTile(t));
-	SetClearGroundDensity(t, (Ground)(GetFullClearGround(t) & ~GROUND_SNOW), 3);
+	SetClearGroundDensity(t, (Ground)(GetFullClearGround(t) & ~GROUND_SNOW), 3, true);
 }
 
 #endif /* CLEAR_MAP_H */
