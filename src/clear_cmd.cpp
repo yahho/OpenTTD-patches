@@ -682,47 +682,19 @@ extern const TileTypeProcs _tile_type_clear_procs = {
 	TerraformTile_Clear,      ///< terraform_tile_proc
 };
 
-static int GetSlopePixelZ_Trees(TileIndex tile, uint x, uint y)
-{
-	int z;
-	Slope tileh = GetTilePixelSlope(tile, &z);
-
-	return z + GetPartialPixelZ(x & 0xF, y & 0xF, tileh);
-}
-
-static Foundation GetFoundation_Trees(TileIndex tile, Slope tileh)
-{
-	return FOUNDATION_NONE;
-}
-
-static TrackStatus GetTileTrackStatus_Trees(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
-{
-	return 0;
-}
-
-static void ChangeTileOwner_Trees(TileIndex tile, Owner old_owner, Owner new_owner)
-{
-	/* not used */
-}
-
-static CommandCost TerraformTile_Trees(TileIndex tile, DoCommandFlag flags, int z_new, Slope tileh_new)
-{
-	return DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
-}
-
 extern const TileTypeProcs _tile_type_trees_procs = {
 	DrawTile_Trees,           // draw_tile_proc
-	GetSlopePixelZ_Trees,     // get_slope_z_proc
+	GetSlopePixelZ_Clear,     // get_slope_z_proc
 	ClearTile_Trees,          // clear_tile_proc
 	NULL,                     // add_accepted_cargo_proc
 	GetTileDesc_Trees,        // get_tile_desc_proc
-	GetTileTrackStatus_Trees, // get_tile_track_status_proc
+	GetTileTrackStatus_Clear, // get_tile_track_status_proc
 	NULL,                     // click_tile_proc
 	NULL,                     // animate_tile_proc
 	TileLoop_Trees,           // tile_loop_proc
-	ChangeTileOwner_Trees,    // change_tile_owner_proc
+	ChangeTileOwner_Clear,    // change_tile_owner_proc
 	NULL,                     // add_produced_cargo_proc
 	NULL,                     // vehicle_enter_tile_proc
-	GetFoundation_Trees,      // get_foundation_proc
-	TerraformTile_Trees,      // terraform_tile_proc
+	GetFoundation_Clear,      // get_foundation_proc
+	TerraformTile_Clear,      // terraform_tile_proc
 };
