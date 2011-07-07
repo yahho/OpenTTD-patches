@@ -101,17 +101,6 @@ static inline bool IsClearGround(TileIndex t, Ground g)
 	return GetClearGround(t) == g;
 }
 
-/**
- * Checks if a tile has fields.
- *
- * @param tile The tile to check
- * @return true If the tile has fields
- */
-static inline bool IsFieldsTile(TileIndex t)
-{
-	return IsTileTypeSubtype(t, TT_GROUND, TT_GROUND_FIELDS);
-}
-
 
 /**
  * Get the density of a non-field clear tile.
@@ -149,44 +138,6 @@ static inline void SetClearDensity(TileIndex t, uint d)
 	SB(_mc[t].m4, 0, 2, d);
 }
 
-
-/**
- * Get the counter used to advance to the next clear density/field type.
- * @param t the tile to get the counter of
- * @pre IsClearTile(t) || IsFieldsTile(t)
- * @return the value of the counter
- */
-static inline uint GetClearCounter(TileIndex t)
-{
-	assert(IsClearTile(t) || IsFieldsTile(t));
-	return GB(_mc[t].m3, 0, 4);
-}
-
-/**
- * Increments the counter used to advance to the next clear density/field type.
- * @param t the tile to increment the counter of
- * @param c the amount to increment the counter with
- * @pre IsClearTile(t) || IsFieldsTile(t)
- */
-static inline void AddClearCounter(TileIndex t, int c)
-{
-	assert(IsClearTile(t) || IsFieldsTile(t)); // XXX incomplete
-	_mc[t].m3 += c;
-}
-
-/**
- * Sets the counter used to advance to the next clear density/field type.
- * @param t the tile to set the counter of
- * @param c the amount to set the counter to
- * @pre IsClearTile(t) || IsFieldsTile(t)
- */
-static inline void SetClearCounter(TileIndex t, uint c)
-{
-	assert(IsClearTile(t) || IsFieldsTile(t)); // XXX incomplete
-	SB(_mc[t].m3, 0, 4, c);
-}
-
-
 /**
  * Sets ground type and density in one go, also sets the counter to 0
  * @param t       the tile to set the ground type and density for
@@ -201,6 +152,17 @@ static inline void SetClearGroundDensity(TileIndex t, Ground g, uint density)
 	SB(_mc[t].m4, 0, 2, density);
 }
 
+
+/**
+ * Checks if a tile has fields.
+ *
+ * @param tile The tile to check
+ * @return true If the tile has fields
+ */
+static inline bool IsFieldsTile(TileIndex t)
+{
+	return IsTileTypeSubtype(t, TT_GROUND, TT_GROUND_FIELDS);
+}
 
 /**
  * Get the field type (production stage) of the field
@@ -248,6 +210,43 @@ static inline void SetIndustryIndexOfField(TileIndex t, IndustryID i)
 {
 	assert(IsFieldsTile(t));
 	_mc[t].m2 = i;
+}
+
+
+/**
+ * Get the counter used to advance to the next clear density/field type.
+ * @param t the tile to get the counter of
+ * @pre IsClearTile(t) || IsFieldsTile(t)
+ * @return the value of the counter
+ */
+static inline uint GetClearCounter(TileIndex t)
+{
+	assert(IsClearTile(t) || IsFieldsTile(t));
+	return GB(_mc[t].m3, 0, 4);
+}
+
+/**
+ * Increments the counter used to advance to the next clear density/field type.
+ * @param t the tile to increment the counter of
+ * @param c the amount to increment the counter with
+ * @pre IsClearTile(t) || IsFieldsTile(t)
+ */
+static inline void AddClearCounter(TileIndex t, int c)
+{
+	assert(IsClearTile(t) || IsFieldsTile(t)); // XXX incomplete
+	_mc[t].m3 += c;
+}
+
+/**
+ * Sets the counter used to advance to the next clear density/field type.
+ * @param t the tile to set the counter of
+ * @param c the amount to set the counter to
+ * @pre IsClearTile(t) || IsFieldsTile(t)
+ */
+static inline void SetClearCounter(TileIndex t, uint c)
+{
+	assert(IsClearTile(t) || IsFieldsTile(t)); // XXX incomplete
+	SB(_mc[t].m3, 0, 4, c);
 }
 
 
