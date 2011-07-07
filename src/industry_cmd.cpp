@@ -940,21 +940,12 @@ bool IsTileForestIndustry(TileIndex tile)
 
 static const byte _plantfarmfield_type[] = {1, 1, 1, 1, 1, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6};
 
-static bool IsBadFarmFieldTile(TileIndex tile)
+static bool IsValidFarmFieldTile(TileIndex tile, bool allow_fields)
 {
 	switch (GetTileType(tile)) {
-		case MP_CLEAR: return IsClearGround(tile, CLEAR_FIELDS) || IsClearGround(tile, CLEAR_SNOW) || IsClearGround(tile, CLEAR_DESERT);
-		case MP_TREES: return (GetTreeGround(tile) == TREE_GROUND_SHORE);
-		default:       return true;
-	}
-}
-
-static bool IsBadFarmFieldTile2(TileIndex tile)
-{
-	switch (GetTileType(tile)) {
-		case MP_CLEAR: return IsClearGround(tile, CLEAR_SNOW) || IsClearGround(tile, CLEAR_DESERT);
-		case MP_TREES: return (GetTreeGround(tile) == TREE_GROUND_SHORE);
-		default:       return true;
+		case MP_CLEAR: return !IsClearGround(tile, CLEAR_SNOW) && !IsClearGround(tile, CLEAR_DESERT) && (allow_fields || !IsClearGround(tile, CLEAR_FIELDS));
+		case MP_TREES: return GetTreeGround(tile) != TREE_GROUND_SHORE;
+		default:       return false;
 	}
 }
 
@@ -1008,9 +999,9 @@ static void PlantFarmField(TileIndex tile, IndustryID industry)
 	int count = 0;
 	TILE_AREA_LOOP(cur_tile, ta) {
 		assert(cur_tile < MapSize());
-		count += IsBadFarmFieldTile(cur_tile);
+		count += IsValidFarmFieldTile(cur_tile, false);
 	}
-	if (count * 2 >= ta.w * ta.h) return;
+	if (count * 2 < ta.w * ta.h) return;
 
 	/* determine type of field */
 	r = Random();
@@ -1020,7 +1011,7 @@ static void PlantFarmField(TileIndex tile, IndustryID industry)
 	/* make field */
 	TILE_AREA_LOOP(cur_tile, ta) {
 		assert(cur_tile < MapSize());
-		if (!IsBadFarmFieldTile2(cur_tile)) {
+		if (IsValidFarmFieldTile(cur_tile, true)) {
 			MakeField(cur_tile, field_type, industry);
 			SetClearCounter(cur_tile, counter);
 			MarkTileDirtyByTile(cur_tile);
