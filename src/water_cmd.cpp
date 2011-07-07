@@ -1059,7 +1059,7 @@ void DoFloodTile(TileIndex target)
 
 			case TT_GROUND:
 				if (IsTreeTile(target) && !IsSlopeWithOneCornerRaised(tileh)) {
-					SetTreeGroundDensity(target, GROUND_SHORE, 3);
+					SetClearGroundDensity(target, GROUND_SHORE, 3, true);
 					MarkTileDirtyByTile(target);
 					flooded = true;
 					break;
@@ -1123,7 +1123,7 @@ static void DoDryUp(TileIndex tile)
 
 		case TT_GROUND:
 			assert(IsTreeTile(tile));
-			SetTreeGroundDensity(tile, GROUND_GRASS, 3);
+			SetClearGroundDensity(tile, GROUND_GRASS, 3, true);
 			MarkTileDirtyByTile(tile);
 			break;
 

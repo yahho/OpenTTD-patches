@@ -66,24 +66,6 @@ static inline TreeType GetTreeType(TileIndex t)
 }
 
 /**
- * Set the density and ground type of a tile with trees.
- *
- * This functions saves the ground type and the density which belongs to it
- * for a given tile.
- *
- * @param t The tile to set the density and ground type
- * @param g The ground type to save
- * @param d The density to save with
- * @pre IsTreeTile(t)
- */
-static inline void SetTreeGroundDensity(TileIndex t, Ground g, uint d)
-{
-	assert(IsTreeTile(t)); // XXX incomplete
-	SB(_mc[t].m3, 4, 4, g);
-	SB(_mc[t].m4, 0, 2, d);
-}
-
-/**
  * Returns the number of trees on a tile.
  *
  * This function returns the number of trees of a tile (1-4).

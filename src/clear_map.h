@@ -161,16 +161,21 @@ static inline void SetClearDensity(TileIndex t, uint d)
 }
 
 /**
- * Sets ground type and density in one go, also sets the counter to 0
+ * Sets ground type and density in one go, optionally resetting the counter.
  * @param t       the tile to set the ground type and density for
  * @param type    the new ground type of the tile
  * @param density the density of the ground tile
+ * @param keep_counter whether to keep the update counter
  * @pre IsClearTile(t) || IsTreeTile(t)
  */
-static inline void SetClearGroundDensity(TileIndex t, Ground g, uint density)
+static inline void SetClearGroundDensity(TileIndex t, Ground g, uint density, bool keep_counter = false)
 {
 	assert(IsClearTile(t) || IsTreeTile(t));
-	_mc[t].m3 = g << 4;
+	if (keep_counter) {
+		SB(_mc[t].m3, 4, 4, g);
+	} else {
+		_mc[t].m3 = g << 4;
+	}
 	SB(_mc[t].m4, 0, 2, density);
 }
 

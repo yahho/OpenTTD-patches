@@ -322,15 +322,15 @@ static void TileLoopTreesAlps(TileIndex tile)
 
 	if (k < 0) {
 		if (!IsSnowTile(tile)) return;
-		SetTreeGroundDensity(tile, GROUND_GRASS, 3);
+		SetClearGroundDensity(tile, GROUND_GRASS, 3, true);
 	} else {
 		uint density = min<uint>(k, 3);
 
 		if (!IsSnowTile(tile)) {
 			Ground g = GetClearGround(tile) == GROUND_ROUGH ? GROUND_SNOW_ROUGH : GROUND_SNOW;
-			SetTreeGroundDensity(tile, g, density);
+			SetClearGroundDensity(tile, g, density, true);
 		} else if (GetClearDensity(tile) != density) {
-			SetTreeGroundDensity(tile, GetClearGround(tile), density);
+			SetClearDensity(tile, density);
 		} else {
 			if (GetClearDensity(tile) == 3) {
 				uint32 r = Random();
@@ -392,7 +392,7 @@ static void TileLoopTreesDesert(TileIndex tile)
 	switch (GetTropicZone(tile)) {
 		case TROPICZONE_DESERT:
 			if (GetClearGround(tile) != GROUND_DESERT) {
-				SetTreeGroundDensity(tile, GROUND_DESERT, 3);
+				SetClearGroundDensity(tile, GROUND_DESERT, 3, true);
 				MarkTileDirtyByTile(tile);
 			}
 			break;
@@ -495,9 +495,8 @@ static void TileLoop_Clear(TileIndex tile)
 
 		/* Handle growth of grass (under trees) at every 8th processings, like it's done for grass on clear tiles. */
 		if ((treeCounter & 7) == 7 && GetClearGround(tile) == GROUND_GRASS) {
-			uint density = GetClearDensity(tile);
-			if (density < 3) {
-				SetTreeGroundDensity(tile, GROUND_GRASS, density + 1);
+			if (GetClearDensity(tile) < 3) {
+				AddClearDensity(tile, 1);
 				MarkTileDirtyByTile(tile);
 			}
 		}
