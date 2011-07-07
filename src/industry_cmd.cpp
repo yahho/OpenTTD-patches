@@ -944,13 +944,8 @@ static bool IsValidFarmFieldTile(TileIndex tile, bool allow_fields)
 {
 	if (!IsGroundTile(tile)) return false;
 
-	if (IsFieldsTile(tile)) {
-		return allow_fields;
-	} else if (IsClearTile(tile)) {
-		return !IsSnowTile(tile) && !IsClearGround(tile, GROUND_DESERT);
-	} else {
-		return GetTreeGround(tile) != GROUND_SHORE;
-	}
+	return IsFieldsTile(tile) ? allow_fields :
+		!IsSnowTile(tile) && !IsClearGround(tile, GROUND_DESERT) && !IsClearGround(tile, GROUND_SHORE);
 }
 
 static void SetupFarmFieldFence(TileIndex tile, int size, byte type, DiagDirection side)

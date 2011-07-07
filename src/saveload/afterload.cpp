@@ -120,7 +120,7 @@ static void GuessWaterClass(TileIndex t, bool allow_invalid)
 
 			case TT_GROUND:
 				/* trees on shore */
-				has_water |= IsTreeTile(neighbour) && (GetTreeGround(neighbour) == GROUND_SHORE);
+				has_water |= IsTreeTile(neighbour) && (GetClearGround(neighbour) == GROUND_SHORE);
 				break;
 
 			default: break;

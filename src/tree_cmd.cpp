@@ -182,7 +182,7 @@ static void PlaceTree(TileIndex tile, uint32 r)
 		PlantTreesOnTile(tile, tree, GB(r, 22, 2), min(GB(r, 16, 3), 6));
 
 		/* Rerandomize ground, if neither snow nor shore */
-		Ground ground = GetTreeGround(tile);
+		Ground ground = GetClearGround(tile);
 		if (ground == GROUND_GRASS || ground == GROUND_ROUGH ) {
 			SetTreeGroundDensity(tile, GB(r, 28, 1) ? GROUND_ROUGH : GROUND_GRASS, 3);
 		}

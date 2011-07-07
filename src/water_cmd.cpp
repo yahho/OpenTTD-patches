@@ -1028,7 +1028,7 @@ FloodingBehaviour GetFloodingBehaviour(TileIndex tile)
 			return FLOOD_NONE;
 
 		case TT_GROUND:
-			return (IsTreeTile(tile) && GetTreeGround(tile) == GROUND_SHORE ? FLOOD_DRYUP : FLOOD_NONE);
+			return (IsTreeTile(tile) && GetClearGround(tile) == GROUND_SHORE ? FLOOD_DRYUP : FLOOD_NONE);
 
 		default:
 			return FLOOD_NONE;

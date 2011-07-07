@@ -357,8 +357,7 @@ uint32 GetTerrainType(TileIndex tile, TileContext context)
 					if (_generating_world) goto genworld;
 
 					if (IsTreeTile(tile)) {
-						Ground ground = GetTreeGround(tile);
-						has_snow = (ground >= GROUND_SNOW) && GetTreeDensity(tile) >= 2;
+						has_snow = IsSnowTile(tile) && GetTreeDensity(tile) >= 2;
 					} else {
 						has_snow = IsSnowTile(tile) && GetClearDensity(tile) >= 2;
 					}
@@ -442,7 +441,7 @@ uint32 GetNearbyTileInformation(TileIndex tile, bool grf_version8)
 	TileType tile_type = GetTileType(tile);
 
 	/* Fake tile type for trees on shore */
-	if (IsTreeTile(tile) && GetTreeGround(tile) == GROUND_SHORE) tile_type = TT_WATER;
+	if (IsTreeTile(tile) && GetClearGround(tile) == GROUND_SHORE) tile_type = TT_WATER;
 
 	int z;
 	Slope tileh = GetTilePixelSlope(tile, &z);

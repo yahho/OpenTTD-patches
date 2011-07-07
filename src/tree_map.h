@@ -66,21 +66,6 @@ static inline TreeType GetTreeType(TileIndex t)
 }
 
 /**
- * Returns the groundtype for tree tiles.
- *
- * This function returns the groundtype of a tile with trees.
- *
- * @param t The tile to get the groundtype from
- * @return The groundtype of the tile
- * @pre IsTreeTile(t)
- */
-static inline Ground GetTreeGround(TileIndex t)
-{
-	assert(IsTreeTile(t));
-	return (Ground)GB(_mc[t].m3, 4, 4);
-}
-
-/**
  * Returns the 'density' of a tile with trees.
  *
  * This function returns the density of a tile which got trees. Note
