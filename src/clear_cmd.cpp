@@ -58,28 +58,20 @@ static CommandCost ClearTile_Clear(TileIndex tile, DoCommandFlag flags)
 				cost = _price[clear_price_table[GetClearGround(tile)]];
 			}
 			break;
+
+		case TT_GROUND_TREES:
+			if (Company::IsValidID(_current_company)) {
+				Town *t = ClosestTownFromTile(tile, _settings_game.economy.dist_local_authority);
+				if (t != NULL) ChangeTownRating(t, RATING_TREE_DOWN_STEP, RATING_TREE_MINIMUM, flags);
+			}
+			cost = GetTreeCount(tile) * _price[PR_CLEAR_TREES];
+			if (IsInsideMM(GetTreeType(tile), TREE_RAINFOREST, TREE_CACTUS)) cost *= 4;
+			break;
 	}
 
 	if (flags & DC_EXEC) DoClearSquare(tile);
 
 	return CommandCost(EXPENSES_CONSTRUCTION, cost);
-}
-
-static CommandCost ClearTile_Trees(TileIndex tile, DoCommandFlag flags)
-{
-	uint num;
-
-	if (Company::IsValidID(_current_company)) {
-		Town *t = ClosestTownFromTile(tile, _settings_game.economy.dist_local_authority);
-		if (t != NULL) ChangeTownRating(t, RATING_TREE_DOWN_STEP, RATING_TREE_MINIMUM, flags);
-	}
-
-	num = GetTreeCount(tile);
-	if (IsInsideMM(GetTreeType(tile), TREE_RAINFOREST, TREE_CACTUS)) num *= 4;
-
-	if (flags & DC_EXEC) DoClearSquare(tile);
-
-	return CommandCost(EXPENSES_CONSTRUCTION, num * _price[PR_CLEAR_TREES]);
 }
 
 void DrawClearLandTile(const TileInfo *ti, byte set)
@@ -136,56 +128,12 @@ static void DrawClearLandFence(const TileInfo *ti)
 	EndSpriteCombine();
 }
 
-static void DrawTile_Clear(TileInfo *ti)
-{
-	switch (GetTileSubtype(ti->tile)) {
-		default: NOT_REACHED();
-
-		case TT_GROUND_FIELDS:
-			DrawGroundSprite(_clear_land_sprites_farmland[GetFieldType(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
-			DrawClearLandFence(ti);
-			break;
-
-		case TT_GROUND_CLEAR:
-			switch (GetFullClearGround(ti->tile)) {
-				case GROUND_GRASS:
-					DrawClearLandTile(ti, GetClearDensity(ti->tile));
-					break;
-
-				case GROUND_ROUGH:
-					DrawHillyLandTile(ti);
-					break;
-
-				case GROUND_ROCKS:
-					DrawGroundSprite(SPR_FLAT_ROCKY_LAND_1 + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
-					break;
-
-				default:
-					DrawGroundSprite(_clear_land_sprites_snow_desert[GetClearDensity(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
-					break;
-			}
-			break;
-	}
-
-	DrawBridgeMiddle(ti);
-}
-
 struct TreeListEnt : PalSpriteID {
 	byte x, y;
 };
 
-static void DrawTile_Trees(TileInfo *ti)
+static void DrawTrees(TileInfo *ti)
 {
-	switch (GetTreeGround(ti->tile)) {
-		case GROUND_SHORE: DrawShoreTile(ti->tileh); break;
-		case GROUND_GRASS: DrawClearLandTile(ti, GetTreeDensity(ti->tile)); break;
-		case GROUND_ROUGH: DrawHillyLandTile(ti); break;
-		default: DrawGroundSprite(_clear_land_sprites_snow_desert[GetTreeDensity(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE); break;
-	}
-
-	/* Do not draw trees when the invisible trees setting is set */
-	if (IsInvisibilitySet(TO_TREES)) return;
-
 	uint tmp = CountBits(ti->tile + ti->x + ti->y);
 	uint index = GB(tmp, 0, 2) + (GetTreeType(ti->tile) << 2);
 
@@ -242,6 +190,52 @@ static void DrawTile_Trees(TileInfo *ti)
 	}
 
 	EndSpriteCombine();
+}
+
+static void DrawTile_Clear(TileInfo *ti)
+{
+	switch (GetTileSubtype(ti->tile)) {
+		default: NOT_REACHED();
+
+		case TT_GROUND_FIELDS:
+			DrawGroundSprite(_clear_land_sprites_farmland[GetFieldType(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
+			DrawClearLandFence(ti);
+			DrawBridgeMiddle(ti);
+			break;
+
+		case TT_GROUND_CLEAR:
+			switch (GetFullClearGround(ti->tile)) {
+				case GROUND_GRASS:
+					DrawClearLandTile(ti, GetClearDensity(ti->tile));
+					break;
+
+				case GROUND_ROUGH:
+					DrawHillyLandTile(ti);
+					break;
+
+				case GROUND_ROCKS:
+					DrawGroundSprite(SPR_FLAT_ROCKY_LAND_1 + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
+					break;
+
+				default:
+					DrawGroundSprite(_clear_land_sprites_snow_desert[GetClearDensity(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
+					break;
+			}
+			DrawBridgeMiddle(ti);
+			break;
+
+		case TT_GROUND_TREES:
+			switch (GetTreeGround(ti->tile)) {
+				case GROUND_SHORE: DrawShoreTile(ti->tileh); break;
+				case GROUND_GRASS: DrawClearLandTile(ti, GetTreeDensity(ti->tile)); break;
+				case GROUND_ROUGH: DrawHillyLandTile(ti); break;
+				default: DrawGroundSprite(_clear_land_sprites_snow_desert[GetTreeDensity(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE); break;
+			}
+			if (!IsInvisibilitySet(TO_TREES)) {
+				DrawTrees(ti);
+			}
+			break;
+	}
 }
 
 
@@ -424,152 +418,149 @@ static void TileLoopTreesDesert(TileIndex tile)
 	}
 }
 
-static void TileLoop_Clear(TileIndex tile)
-{
-	/* If the tile is at any edge flood it to prevent maps without water. */
-	if (_settings_game.construction.freeform_edges && DistanceFromEdge(tile) == 1) {
-		int z;
-		if (IsTileFlat(tile, &z) && z == 0) {
-			DoFloodTile(tile);
-			MarkTileDirtyByTile(tile);
-			return;
-		}
-	}
-	AmbientSoundEffect(tile);
-
-	switch (_settings_game.game_creation.landscape) {
-		case LT_TROPIC: TileLoopClearDesert(tile); break;
-		case LT_ARCTIC: TileLoopClearAlps(tile);   break;
-	}
-
-	switch (GetTileSubtype(tile)) {
-		default: NOT_REACHED();
-
-		case TT_GROUND_FIELDS:
-			UpdateFences(tile);
-
-			if (_game_mode == GM_EDITOR) return;
-
-			if (GetClearCounter(tile) < 7) {
-				AddClearCounter(tile, 1);
-				return;
-			} else {
-				SetClearCounter(tile, 0);
-			}
-
-			if (GetIndustryIndexOfField(tile) == INVALID_INDUSTRY && GetFieldType(tile) >= 7) {
-				/* This farmfield is no longer farmfield, so make it grass again */
-				MakeClear(tile, GROUND_GRASS, 2);
-			} else {
-				uint field_type = GetFieldType(tile);
-				field_type = (field_type < 8) ? field_type + 1 : 0;
-				SetFieldType(tile, field_type);
-			}
-			break;
-
-		case TT_GROUND_CLEAR: {
-			if (GetClearGround(tile) == GROUND_GRASS) {
-				if (GetClearDensity(tile) == 3) return;
-
-				if (_game_mode != GM_EDITOR) {
-					if (GetClearCounter(tile) < 7) {
-						AddClearCounter(tile, 1);
-						return;
-					} else {
-						SetClearCounter(tile, 0);
-						AddClearDensity(tile, 1);
-					}
-				} else {
-					SetClearGroundDensity(tile, GB(Random(), 0, 8) > 21 ? GROUND_GRASS : GROUND_ROUGH, 3);
-				}
-			}
-			break;
-		}
-	}
-
-	MarkTileDirtyByTile(tile);
-}
-
 extern void AddNeighbouringTree(TileIndex tile);
 
-static void TileLoop_Trees(TileIndex tile)
+static void TileLoop_Clear(TileIndex tile)
 {
-	if (GetTreeGround(tile) == GROUND_SHORE) {
-		TileLoop_Water(tile);
-	} else {
+	if (!IsTreeTile(tile)) {
+		/* If the tile is at any edge flood it to prevent maps without water. */
+		if (_settings_game.construction.freeform_edges && DistanceFromEdge(tile) == 1) {
+			int z;
+			if (IsTileFlat(tile, &z) && z == 0) {
+				DoFloodTile(tile);
+				MarkTileDirtyByTile(tile);
+				return;
+			}
+		}
+		AmbientSoundEffect(tile);
+
 		switch (_settings_game.game_creation.landscape) {
-			case LT_TROPIC: TileLoopTreesDesert(tile); break;
-			case LT_ARCTIC: TileLoopTreesAlps(tile);   break;
+			case LT_TROPIC: TileLoopClearDesert(tile); break;
+			case LT_ARCTIC: TileLoopClearAlps(tile);   break;
 		}
-	}
 
-	AmbientSoundEffect(tile);
+		switch (GetTileSubtype(tile)) {
+			default: NOT_REACHED();
 
-	uint treeCounter = GetTreeCounter(tile);
+			case TT_GROUND_FIELDS:
+				UpdateFences(tile);
 
-	/* Handle growth of grass (under trees) at every 8th processings, like it's done for grass on clear tiles. */
-	if ((treeCounter & 7) == 7 && GetTreeGround(tile) == GROUND_GRASS) {
-		uint density = GetTreeDensity(tile);
-		if (density < 3) {
-			SetTreeGroundDensity(tile, GROUND_GRASS, density + 1);
-			MarkTileDirtyByTile(tile);
-		}
-	}
-	if (GetTreeCounter(tile) < 15) {
-		AddTreeCounter(tile, 1);
-		return;
-	}
-	SetTreeCounter(tile, 0);
+				if (_game_mode == GM_EDITOR) return;
 
-	switch (GetTreeGrowth(tile)) {
-		case 3: // regular sized tree
-			if (_settings_game.game_creation.landscape == LT_TROPIC &&
-					GetTreeType(tile) != TREE_CACTUS &&
-					GetTropicZone(tile) == TROPICZONE_DESERT) {
-				AddTreeGrowth(tile, 1);
-			} else {
-				switch (GB(Random(), 0, 3)) {
-					case 0: // start destructing
-						AddTreeGrowth(tile, 1);
-						break;
-
-					case 1: // add a tree
-						if (GetTreeCount(tile) < 4) {
-							AddTreeCount(tile, 1);
-							SetTreeGrowth(tile, 0);
-							break;
-						}
-						/* FALL THROUGH */
-
-					case 2: // add a neighbouring tree
-						AddNeighbouringTree(tile);
-						break;
-
-					default:
-						return;
-				}
-			}
-			break;
-
-		case 6: // final stage of tree destruction
-			if (GetTreeCount(tile) > 1) {
-				/* more than one tree, delete it */
-				AddTreeCount(tile, -1);
-				SetTreeGrowth(tile, 3);
-			} else {
-				/* just one tree, change type into clear */
-				Ground g = GetTreeGround(tile);
-				if (g == GROUND_SHORE) {
-					MakeShore(tile);
+				if (GetClearCounter(tile) < 7) {
+					AddClearCounter(tile, 1);
+					return;
 				} else {
-					MakeClear(tile, g, GetTreeDensity(tile));
+					SetClearCounter(tile, 0);
 				}
-			}
-			break;
 
-		default:
-			AddTreeGrowth(tile, 1);
-			break;
+				if (GetIndustryIndexOfField(tile) == INVALID_INDUSTRY && GetFieldType(tile) >= 7) {
+					/* This farmfield is no longer farmfield, so make it grass again */
+					MakeClear(tile, GROUND_GRASS, 2);
+				} else {
+					uint field_type = GetFieldType(tile);
+					field_type = (field_type < 8) ? field_type + 1 : 0;
+					SetFieldType(tile, field_type);
+				}
+				break;
+
+			case TT_GROUND_CLEAR: {
+				if (GetClearGround(tile) == GROUND_GRASS) {
+					if (GetClearDensity(tile) == 3) return;
+
+					if (_game_mode != GM_EDITOR) {
+						if (GetClearCounter(tile) < 7) {
+							AddClearCounter(tile, 1);
+							return;
+						} else {
+							SetClearCounter(tile, 0);
+							AddClearDensity(tile, 1);
+						}
+					} else {
+						SetClearGroundDensity(tile, GB(Random(), 0, 8) > 21 ? GROUND_GRASS : GROUND_ROUGH, 3);
+					}
+				}
+				break;
+			}
+		}
+	} else {
+		if (GetTreeGround(tile) == GROUND_SHORE) {
+			TileLoop_Water(tile);
+		} else {
+			switch (_settings_game.game_creation.landscape) {
+				case LT_TROPIC: TileLoopTreesDesert(tile); break;
+				case LT_ARCTIC: TileLoopTreesAlps(tile);   break;
+			}
+		}
+
+		AmbientSoundEffect(tile);
+
+		uint treeCounter = GetTreeCounter(tile);
+
+		/* Handle growth of grass (under trees) at every 8th processings, like it's done for grass on clear tiles. */
+		if ((treeCounter & 7) == 7 && GetTreeGround(tile) == GROUND_GRASS) {
+			uint density = GetTreeDensity(tile);
+			if (density < 3) {
+				SetTreeGroundDensity(tile, GROUND_GRASS, density + 1);
+				MarkTileDirtyByTile(tile);
+			}
+		}
+		if (GetTreeCounter(tile) < 15) {
+			AddTreeCounter(tile, 1);
+			return;
+		}
+		SetTreeCounter(tile, 0);
+
+		switch (GetTreeGrowth(tile)) {
+			case 3: // regular sized tree
+				if (_settings_game.game_creation.landscape == LT_TROPIC &&
+						GetTreeType(tile) != TREE_CACTUS &&
+						GetTropicZone(tile) == TROPICZONE_DESERT) {
+					AddTreeGrowth(tile, 1);
+				} else {
+					switch (GB(Random(), 0, 3)) {
+						case 0: // start destructing
+							AddTreeGrowth(tile, 1);
+							break;
+
+						case 1: // add a tree
+							if (GetTreeCount(tile) < 4) {
+								AddTreeCount(tile, 1);
+								SetTreeGrowth(tile, 0);
+								break;
+							}
+							/* FALL THROUGH */
+
+						case 2: // add a neighbouring tree
+							AddNeighbouringTree(tile);
+							break;
+
+						default:
+							return;
+					}
+				}
+				break;
+
+			case 6: // final stage of tree destruction
+				if (GetTreeCount(tile) > 1) {
+					/* more than one tree, delete it */
+					AddTreeCount(tile, -1);
+					SetTreeGrowth(tile, 3);
+				} else {
+					/* just one tree, change type into clear */
+					Ground g = GetTreeGround(tile);
+					if (g == GROUND_SHORE) {
+						MakeShore(tile);
+					} else {
+						MakeClear(tile, g, GetTreeDensity(tile));
+					}
+				}
+				break;
+
+			default:
+				AddTreeGrowth(tile, 1);
+				break;
+		}
 	}
 
 	MarkTileDirtyByTile(tile);
@@ -630,26 +621,32 @@ static const StringID _clear_land_str[] = {
 
 static void GetTileDesc_Clear(TileIndex tile, TileDesc *td)
 {
-	if (IsTileSubtype(tile, TT_GROUND_FIELDS)) {
-		td->str = STR_LAI_CLEAR_DESCRIPTION_FIELDS;
-	} else if (IsSnowTile(tile)) {
-		td->str = STR_LAI_CLEAR_DESCRIPTION_SNOW_COVERED_LAND;
-	} else if (IsClearGround(tile, GROUND_GRASS) && GetClearDensity(tile) == 0) {
-		td->str = STR_LAI_CLEAR_DESCRIPTION_BARE_LAND;
-	} else {
-		td->str = _clear_land_str[GetClearGround(tile)];
-	}
-	td->owner[0] = GetTileOwner(tile);
-}
+	switch (GetTileSubtype(tile)) {
+		default: NOT_REACHED();
 
-static void GetTileDesc_Trees(TileIndex tile, TileDesc *td)
-{
-	TreeType tt = GetTreeType(tile);
+		case TT_GROUND_FIELDS:
+			td->str = STR_LAI_CLEAR_DESCRIPTION_FIELDS;
+			break;
 
-	if (IsInsideMM(tt, TREE_RAINFOREST, TREE_CACTUS)) {
-		td->str = STR_LAI_TREE_NAME_RAINFOREST;
-	} else {
-		td->str = tt == TREE_CACTUS ? STR_LAI_TREE_NAME_CACTUS_PLANTS : STR_LAI_TREE_NAME_TREES;
+		case TT_GROUND_CLEAR:
+			if (IsSnowTile(tile)) {
+				td->str = STR_LAI_CLEAR_DESCRIPTION_SNOW_COVERED_LAND;
+			} else if (IsClearGround(tile, GROUND_GRASS) && GetClearDensity(tile) == 0) {
+				td->str = STR_LAI_CLEAR_DESCRIPTION_BARE_LAND;
+			} else {
+				td->str = _clear_land_str[GetClearGround(tile)];
+			}
+			break;
+
+		case TT_GROUND_TREES: {
+			TreeType tt = GetTreeType(tile);
+			if (IsInsideMM(tt, TREE_RAINFOREST, TREE_CACTUS)) {
+				td->str = STR_LAI_TREE_NAME_RAINFOREST;
+			} else {
+				td->str = tt == TREE_CACTUS ? STR_LAI_TREE_NAME_CACTUS_PLANTS : STR_LAI_TREE_NAME_TREES;
+			}
+			break;
+		}
 	}
 
 	td->owner[0] = GetTileOwner(tile);
@@ -680,21 +677,4 @@ extern const TileTypeProcs _tile_type_clear_procs = {
 	NULL,                     ///< vehicle_enter_tile_proc
 	GetFoundation_Clear,      ///< get_foundation_proc
 	TerraformTile_Clear,      ///< terraform_tile_proc
-};
-
-extern const TileTypeProcs _tile_type_trees_procs = {
-	DrawTile_Trees,           // draw_tile_proc
-	GetSlopePixelZ_Clear,     // get_slope_z_proc
-	ClearTile_Trees,          // clear_tile_proc
-	NULL,                     // add_accepted_cargo_proc
-	GetTileDesc_Trees,        // get_tile_desc_proc
-	GetTileTrackStatus_Clear, // get_tile_track_status_proc
-	NULL,                     // click_tile_proc
-	NULL,                     // animate_tile_proc
-	TileLoop_Trees,           // tile_loop_proc
-	ChangeTileOwner_Clear,    // change_tile_owner_proc
-	NULL,                     // add_produced_cargo_proc
-	NULL,                     // vehicle_enter_tile_proc
-	GetFoundation_Clear,      // get_foundation_proc
-	TerraformTile_Clear,      // terraform_tile_proc
 };

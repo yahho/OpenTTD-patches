@@ -223,17 +223,6 @@ static inline bool IsHouseTile(TileIndex tile)
 }
 
 /**
- * Checks if a tile has trees.
- *
- * @param tile The tile to check
- * @return true If the tile has trees
- */
-static inline bool IsTreeTile(TileIndex tile)
-{
-	return IsTileType(tile, TT_TREES_TEMP);
-}
-
-/**
  * Checks if a tile is a station tile.
  *
  * @param tile The tile to check
@@ -297,17 +286,6 @@ static inline bool IsTunnelBridgeTile(TileIndex tile)
 static inline bool IsObjectTile(TileIndex tile)
 {
 	return IsTileType(tile, TT_OBJECT);
-}
-
-/**
- * Checks if a tile is a ground tile.
- *
- * @param tile The tile to check
- * @return true If the tile is a ground tile
- */
-static inline bool IsGroundTile(TileIndex tile)
-{
-	return IsTileType(tile, TT_GROUND) || IsTreeTile(tile);
 }
 
 /**

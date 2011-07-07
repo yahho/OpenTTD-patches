@@ -1027,8 +1027,8 @@ FloodingBehaviour GetFloodingBehaviour(TileIndex tile)
 			}
 			return FLOOD_NONE;
 
-		case TT_TREES_TEMP:
-			return (GetTreeGround(tile) == GROUND_SHORE ? FLOOD_DRYUP : FLOOD_NONE);
+		case TT_GROUND:
+			return (IsTreeTile(tile) && GetTreeGround(tile) == GROUND_SHORE ? FLOOD_DRYUP : FLOOD_NONE);
 
 		default:
 			return FLOOD_NONE;
@@ -1057,16 +1057,13 @@ void DoFloodTile(TileIndex target)
 				break;
 			}
 
-			case TT_TREES_TEMP:
-				if (!IsSlopeWithOneCornerRaised(tileh)) {
+			case TT_GROUND:
+				if (IsTreeTile(target) && !IsSlopeWithOneCornerRaised(tileh)) {
 					SetTreeGroundDensity(target, GROUND_SHORE, 3);
 					MarkTileDirtyByTile(target);
 					flooded = true;
 					break;
 				}
-				/* FALL THROUGH */
-
-			case TT_GROUND:
 				if (DoCommand(target, 0, 0, DC_EXEC, CMD_LANDSCAPE_CLEAR).Succeeded()) {
 					MakeShore(target);
 					MarkTileDirtyByTile(target);
@@ -1124,7 +1121,8 @@ static void DoDryUp(TileIndex tile)
 			MarkTileDirtyByTile(tile);
 			break;
 
-		case TT_TREES_TEMP:
+		case TT_GROUND:
+			assert(IsTreeTile(tile));
 			SetTreeGroundDensity(tile, GROUND_GRASS, 3);
 			MarkTileDirtyByTile(tile);
 			break;

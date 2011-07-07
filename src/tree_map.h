@@ -260,7 +260,7 @@ static inline void SetTreeCounter(TileIndex t, uint c)
  */
 static inline void MakeTree(TileIndex t, TreeType type, uint count, uint growth, Ground ground, uint density)
 {
-	SetTileType(t, TT_TREES_TEMP);
+	SetTileTypeSubtype(t, TT_GROUND, TT_GROUND_TREES);
 	SB(_mc[t].m0, 2, 2, 0);
 	SetTileOwner(t, OWNER_NONE);
 	_mc[t].m2 = 0;

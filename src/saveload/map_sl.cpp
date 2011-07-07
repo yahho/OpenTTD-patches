@@ -747,7 +747,8 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					break;
 
 				case OLD_MP_TREES:
-					_mc[t].m0 = TT_TREES_TEMP << 4;
+					_mc[t].m0 = TT_GROUND << 4;
+					SB(_mc[t].m1, 6, 2, TT_GROUND_TREES);
 					_mc[t].m7 = _mc[t].m3;
 					switch (GB(_mc[t].m2, 6, 3)) {
 						case 0: _mc[t].m3 = GROUND_GRASS << 4; break;

@@ -67,7 +67,7 @@ static bool CanPlantTreesOnTile(TileIndex tile, bool allow_desert)
 			return !IsBridgeAbove(tile) && IsCoast(tile) && !IsSlopeWithOneCornerRaised(GetTileSlope(tile));
 
 		case TT_GROUND:
-			return !IsBridgeAbove(tile) && !IsTileSubtype(tile, TT_GROUND_FIELDS) && GetRawClearGround(tile) != GROUND_ROCKS &&
+			return IsTileSubtype(tile, TT_GROUND_CLEAR) && !IsBridgeAbove(tile) && GetRawClearGround(tile) != GROUND_ROCKS &&
 			       (allow_desert || !IsClearGround(tile, GROUND_DESERT));
 
 		default: return false;
@@ -363,7 +363,9 @@ CommandCost CmdPlantTree(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	TileArea ta(tile, p2);
 	TILE_AREA_LOOP(tile, ta) {
 		switch (GetTileType(tile)) {
-			case TT_TREES_TEMP:
+			case TT_GROUND:
+				if (!IsTreeTile(tile)) break;
+
 				/* no more space for trees? */
 				if (_game_mode != GM_EDITOR && GetTreeCount(tile) == 4) {
 					msg = STR_ERROR_TREE_ALREADY_HERE;
@@ -390,9 +392,6 @@ CommandCost CmdPlantTree(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 					msg = STR_ERROR_CAN_T_BUILD_ON_WATER;
 					continue;
 				}
-				break;
-
-			case TT_GROUND:
 				break;
 
 			default:

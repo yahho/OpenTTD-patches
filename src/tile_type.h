@@ -41,7 +41,6 @@ enum TileType {
 	TT_STATION      =  7,  ///< A tile of a station
 	TT_INDUSTRY_TEMP     =  8,
 	TT_VOID_TEMP         =  9,
-	TT_TREES_TEMP        = 10,
 	TT_TUNNELBRIDGE_TEMP = 11,
 	//TT_INDUSTRY   =  8,  ///< Part of an industry
 	//TT_HOUSE      = 12,  ///< A house by a town

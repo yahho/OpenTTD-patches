@@ -31,6 +31,17 @@ enum Ground {
 
 
 /**
+ * Check if a tile is ground (but not void).
+ * @param t the tile to check
+ * @return whether the tile is ground (fields, clear or trees)
+ */
+static inline bool IsGroundTile(TileIndex t)
+{
+	return IsTileType(t, TT_GROUND) && !IsTileSubtype(t, TT_GROUND_VOID);
+}
+
+
+/**
  * Check if a tile is empty ground.
  * @param t the tile to check
  * @return whether the tile is empty ground
@@ -39,6 +50,17 @@ static inline bool IsClearTile(TileIndex t)
 {
 	return IsTileTypeSubtype(t, TT_GROUND, TT_GROUND_CLEAR);
 }
+
+/**
+ * Checks if a tile has trees.
+ * @param t the tile to check
+ * @return whether the tile has trees
+ */
+static inline bool IsTreeTile(TileIndex t)
+{
+	return IsTileTypeSubtype(t, TT_GROUND, TT_GROUND_TREES);
+}
+
 
 /**
  * Get the full ground type of a clear tile.
@@ -55,13 +77,13 @@ static inline Ground GetFullClearGround(TileIndex t)
 /**
  * Test if a tile is covered with snow.
  * @param t the tile to check
- * @pre IsTileType(t, TT_GROUND)
+ * @pre IsGroundTile(t)
  * @return whether the tile is covered with snow.
  */
 static inline bool IsSnowTile(TileIndex t)
 {
-	assert(IsTileType(t, TT_GROUND));
-	return IsTileSubtype(t, TT_GROUND_CLEAR) && (GetFullClearGround(t) >= GROUND_SNOW);
+	assert(IsGroundTile(t));
+	return !IsTileSubtype(t, TT_GROUND_FIELDS) && (GetFullClearGround(t) >= GROUND_SNOW);
 }
 
 /**

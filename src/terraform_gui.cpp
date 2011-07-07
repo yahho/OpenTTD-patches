@@ -74,16 +74,9 @@ static void GenerateRockyArea(TileIndex end, TileIndex start)
 	TileArea ta(start, end);
 
 	TILE_AREA_LOOP(tile, ta) {
-		switch (GetTileType(tile)) {
-			case TT_TREES_TEMP:
-				if (GetTreeGround(tile) == GROUND_SHORE) continue;
-				/* FALL THROUGH */
-			case TT_GROUND:
-				MakeClear(tile, GROUND_ROCKS, 3);
-				break;
-
-			default: continue;
-		}
+		if (!IsGroundTile(tile)) continue;
+		if (IsTreeTile(tile) && GetTreeGround(tile) == GROUND_SHORE) continue;
+		MakeClear(tile, GROUND_ROCKS, 3);
 		MarkTileDirtyByTile(tile);
 		success = true;
 	}

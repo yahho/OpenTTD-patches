@@ -12,6 +12,7 @@
 #ifndef TOWN_MAP_H
 #define TOWN_MAP_H
 
+#include "clear_map.h"
 #include "road_map.h"
 #include "house.h"
 

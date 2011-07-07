@@ -90,7 +90,6 @@ static void DisasterClearSquare(TileIndex tile)
 			}
 			break;
 
-		case TT_TREES_TEMP:
 		case TT_GROUND:
 			DoClearSquare(tile);
 			break;

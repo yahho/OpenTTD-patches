@@ -57,7 +57,7 @@ RoadBits CleanUpRoadBits(const TileIndex tile, RoadBits org_rb)
 
 			switch (GetTileType(neighbor_tile)) {
 				/* Always connective ones */
-				case TT_GROUND: case TT_TREES_TEMP:
+				case TT_GROUND:
 					connective = true;
 					break;
 

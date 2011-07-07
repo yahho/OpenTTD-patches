@@ -118,9 +118,9 @@ static void GuessWaterClass(TileIndex t, bool allow_invalid)
 				has_water |= (GetRailGroundType(neighbour) == RAIL_GROUND_WATER);
 				break;
 
-			case TT_TREES_TEMP:
+			case TT_GROUND:
 				/* trees on shore */
-				has_water |= (GetTreeGround(neighbour) == GROUND_SHORE);
+				has_water |= IsTreeTile(neighbour) && (GetTreeGround(neighbour) == GROUND_SHORE);
 				break;
 
 			default: break;
