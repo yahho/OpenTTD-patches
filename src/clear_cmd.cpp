@@ -377,9 +377,65 @@ static void TileLoopClearDesert(TileIndex tile)
 
 extern void AddNeighbouringTree(TileIndex tile);
 
+static void HandleTreeGrowth(TileIndex tile)
+{
+	switch (GetTreeGrowth(tile)) {
+		case 3: // regular sized tree
+			if (_settings_game.game_creation.landscape == LT_TROPIC &&
+					GetTreeType(tile) != TREE_CACTUS &&
+					GetTropicZone(tile) == TROPICZONE_DESERT) {
+				AddTreeGrowth(tile, 1);
+			} else {
+				switch (GB(Random(), 0, 3)) {
+					case 0: // start destructing
+						AddTreeGrowth(tile, 1);
+						break;
+
+					case 1: // add a tree
+						if (GetTreeCount(tile) < 4) {
+							AddTreeCount(tile, 1);
+							SetTreeGrowth(tile, 0);
+							break;
+						}
+						/* FALL THROUGH */
+
+					case 2: // add a neighbouring tree
+						AddNeighbouringTree(tile);
+						break;
+
+					default:
+						return;
+				}
+			}
+			break;
+
+		case 6: // final stage of tree destruction
+			if (GetTreeCount(tile) > 1) {
+				/* more than one tree, delete it */
+				AddTreeCount(tile, -1);
+				SetTreeGrowth(tile, 3);
+			} else {
+				/* just one tree, change type into clear */
+				Ground g = GetClearGround(tile);
+				if (g == GROUND_SHORE) {
+					MakeShore(tile);
+				} else {
+					MakeClear(tile, g, GetClearDensity(tile));
+				}
+			}
+			break;
+
+		default:
+			AddTreeGrowth(tile, 1);
+			break;
+	}
+}
+
 static void TileLoop_Clear(TileIndex tile)
 {
-	if (!IsTreeTile(tile)) {
+	if (!IsTileSubtype(tile, TT_GROUND_FIELDS) && GetClearGround(tile) == GROUND_SHORE) {
+		TileLoop_Water(tile);
+	} else {
 		/* If the tile is at any edge flood it to prevent maps without water. */
 		if (_settings_game.construction.freeform_edges && DistanceFromEdge(tile) == 1) {
 			int z;
@@ -389,133 +445,74 @@ static void TileLoop_Clear(TileIndex tile)
 				return;
 			}
 		}
-		AmbientSoundEffect(tile);
 
 		switch (_settings_game.game_creation.landscape) {
 			case LT_TROPIC: TileLoopClearDesert(tile); break;
 			case LT_ARCTIC: TileLoopClearAlps(tile);   break;
 		}
+	}
 
-		switch (GetTileSubtype(tile)) {
-			default: NOT_REACHED();
+	AmbientSoundEffect(tile);
 
-			case TT_GROUND_FIELDS:
-				UpdateFences(tile);
+	switch (GetTileSubtype(tile)) {
+		default: NOT_REACHED();
 
-				if (_game_mode == GM_EDITOR) return;
+		case TT_GROUND_FIELDS:
+			UpdateFences(tile);
 
-				if (GetClearCounter(tile) < 7) {
-					AddClearCounter(tile, 1);
-					return;
-				} else {
+			if (_game_mode == GM_EDITOR) return;
+
+			if (GetClearCounter(tile) < 7) {
+				AddClearCounter(tile, 1);
+				return;
+			}
+
+			SetClearCounter(tile, 0);
+
+			if (GetIndustryIndexOfField(tile) == INVALID_INDUSTRY && GetFieldType(tile) >= 7) {
+				/* This farmfield is no longer farmfield, so make it grass again */
+				MakeClear(tile, GROUND_GRASS, 2);
+			} else {
+				uint field_type = GetFieldType(tile);
+				field_type = (field_type < 8) ? field_type + 1 : 0;
+				SetFieldType(tile, field_type);
+			}
+			break;
+
+		case TT_GROUND_CLEAR:
+			if (GetClearGround(tile) == GROUND_GRASS) {
+				if (GetClearDensity(tile) == 3) return;
+
+				if (_game_mode != GM_EDITOR) {
+					if (GetClearCounter(tile) < 7) {
+						AddClearCounter(tile, 1);
+						return;
+					}
 					SetClearCounter(tile, 0);
-				}
-
-				if (GetIndustryIndexOfField(tile) == INVALID_INDUSTRY && GetFieldType(tile) >= 7) {
-					/* This farmfield is no longer farmfield, so make it grass again */
-					MakeClear(tile, GROUND_GRASS, 2);
+					AddClearDensity(tile, 1);
 				} else {
-					uint field_type = GetFieldType(tile);
-					field_type = (field_type < 8) ? field_type + 1 : 0;
-					SetFieldType(tile, field_type);
+					SetClearGroundDensity(tile, GB(Random(), 0, 8) > 21 ? GROUND_GRASS : GROUND_ROUGH, 3);
 				}
-				break;
-
-			case TT_GROUND_CLEAR: {
-				if (GetClearGround(tile) == GROUND_GRASS) {
-					if (GetClearDensity(tile) == 3) return;
-
-					if (_game_mode != GM_EDITOR) {
-						if (GetClearCounter(tile) < 7) {
-							AddClearCounter(tile, 1);
-							return;
-						} else {
-							SetClearCounter(tile, 0);
-							AddClearDensity(tile, 1);
-						}
-					} else {
-						SetClearGroundDensity(tile, GB(Random(), 0, 8) > 21 ? GROUND_GRASS : GROUND_ROUGH, 3);
-					}
-				}
-				break;
 			}
-		}
-	} else {
-		if (GetClearGround(tile) == GROUND_SHORE) {
-			TileLoop_Water(tile);
-		} else {
-			switch (_settings_game.game_creation.landscape) {
-				case LT_TROPIC: TileLoopClearDesert(tile); break;
-				case LT_ARCTIC: TileLoopClearAlps(tile);   break;
-			}
-		}
+			break;
 
-		AmbientSoundEffect(tile);
+		case TT_GROUND_TREES: {
+			uint treeCounter = GetTreeCounter(tile);
 
-		uint treeCounter = GetTreeCounter(tile);
-
-		/* Handle growth of grass (under trees) at every 8th processings, like it's done for grass on clear tiles. */
-		if ((treeCounter & 7) == 7 && GetClearGround(tile) == GROUND_GRASS) {
-			if (GetClearDensity(tile) < 3) {
-				AddClearDensity(tile, 1);
-				MarkTileDirtyByTile(tile);
-			}
-		}
-		if (GetTreeCounter(tile) < 15) {
-			AddTreeCounter(tile, 1);
-			return;
-		}
-		SetTreeCounter(tile, 0);
-
-		switch (GetTreeGrowth(tile)) {
-			case 3: // regular sized tree
-				if (_settings_game.game_creation.landscape == LT_TROPIC &&
-						GetTreeType(tile) != TREE_CACTUS &&
-						GetTropicZone(tile) == TROPICZONE_DESERT) {
-					AddTreeGrowth(tile, 1);
-				} else {
-					switch (GB(Random(), 0, 3)) {
-						case 0: // start destructing
-							AddTreeGrowth(tile, 1);
-							break;
-
-						case 1: // add a tree
-							if (GetTreeCount(tile) < 4) {
-								AddTreeCount(tile, 1);
-								SetTreeGrowth(tile, 0);
-								break;
-							}
-							/* FALL THROUGH */
-
-						case 2: // add a neighbouring tree
-							AddNeighbouringTree(tile);
-							break;
-
-						default:
-							return;
-					}
+			/* Handle growth of grass (under trees) at every 8th processings, like it's done for grass on clear tiles. */
+			if ((treeCounter & 7) == 7 && GetClearGround(tile) == GROUND_GRASS) {
+				if (GetClearDensity(tile) < 3) {
+					AddClearDensity(tile, 1);
+					MarkTileDirtyByTile(tile);
 				}
-				break;
-
-			case 6: // final stage of tree destruction
-				if (GetTreeCount(tile) > 1) {
-					/* more than one tree, delete it */
-					AddTreeCount(tile, -1);
-					SetTreeGrowth(tile, 3);
-				} else {
-					/* just one tree, change type into clear */
-					Ground g = GetClearGround(tile);
-					if (g == GROUND_SHORE) {
-						MakeShore(tile);
-					} else {
-						MakeClear(tile, g, GetClearDensity(tile));
-					}
-				}
-				break;
-
-			default:
-				AddTreeGrowth(tile, 1);
-				break;
+			}
+			if (GetTreeCounter(tile) < 15) {
+				AddTreeCounter(tile, 1);
+				return;
+			}
+			SetTreeCounter(tile, 0);
+			HandleTreeGrowth(tile);
+			break;
 		}
 	}
 
