@@ -184,11 +184,11 @@ static void PlaceTree(TileIndex tile, uint32 r)
 		/* Rerandomize ground, if neither snow nor shore */
 		Ground ground = GetClearGround(tile);
 		if (ground == GROUND_GRASS || ground == GROUND_ROUGH ) {
-			SetClearGroundDensity(tile, GB(r, 28, 1) ? GROUND_ROUGH : GROUND_GRASS, 3, true);
+			SetClearGroundDensity(tile, GB(r, 28, 1) ? GROUND_ROUGH : GROUND_GRASS, 3);
 		}
 
 		/* Set the counter to a random start value */
-		SetTreeCounter(tile, (Ground)GB(r, 24, 4));
+		SetClearCounter(tile, (Ground)GB(r, 24, 4));
 	}
 }
 

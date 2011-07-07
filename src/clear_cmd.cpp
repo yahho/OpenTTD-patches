@@ -497,20 +497,20 @@ static void TileLoop_Clear(TileIndex tile)
 			break;
 
 		case TT_GROUND_TREES: {
-			uint treeCounter = GetTreeCounter(tile);
+			uint counter = GetClearCounter(tile);
 
 			/* Handle growth of grass (under trees) at every 8th processings, like it's done for grass on clear tiles. */
-			if ((treeCounter & 7) == 7 && GetClearGround(tile) == GROUND_GRASS) {
+			if ((counter & 7) == 7 && GetClearGround(tile) == GROUND_GRASS) {
 				if (GetClearDensity(tile) < 3) {
 					AddClearDensity(tile, 1);
 					MarkTileDirtyByTile(tile);
 				}
 			}
-			if (GetTreeCounter(tile) < 15) {
-				AddTreeCounter(tile, 1);
+			if (counter < 15) {
+				AddClearCounter(tile, 1);
 				return;
 			}
-			SetTreeCounter(tile, 0);
+			SetClearCounter(tile, 0);
 			HandleTreeGrowth(tile);
 			break;
 		}

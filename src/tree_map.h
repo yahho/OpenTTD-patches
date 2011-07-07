@@ -145,50 +145,6 @@ static inline void SetTreeGrowth(TileIndex t, uint g)
 }
 
 /**
- * Get the tick counter of a tree tile.
- *
- * Returns the saved tick counter of a given tile.
- *
- * @param t The tile to get the counter value from
- * @pre IsTreeTile(t)
- */
-static inline uint GetTreeCounter(TileIndex t)
-{
-	assert(IsTreeTile(t));
-	return GB(_mc[t].m3, 0, 4);
-}
-
-/**
- * Add a value on the tick counter of a tree-tile
- *
- * This function adds a value on the tick counter of a tree-tile.
- *
- * @param t The tile to add the value on
- * @param a The value to add on the tick counter
- * @pre IsTreeTile(t)
- */
-static inline void AddTreeCounter(TileIndex t, int a)
-{
-	assert(IsTreeTile(t)); // XXX incomplete
-	_mc[t].m3 += a;
-}
-
-/**
- * Set the tick counter for a tree-tile
- *
- * This function sets directly the tick counter for a tree-tile.
- *
- * @param t The tile to set the tick counter
- * @param c The new tick counter value
- * @pre IsTreeTile(t)
- */
-static inline void SetTreeCounter(TileIndex t, uint c)
-{
-	assert(IsTreeTile(t)); // XXX incomplete
-	SB(_mc[t].m3, 0, 4, c);
-}
-
-/**
  * Make a tree-tile.
  *
  * This functions change the tile to a tile with trees and all informations which belongs to it.
