@@ -548,22 +548,30 @@ static inline uint32 GetSmallMapVegetationPixels(TileIndex tile, SmallmapTileTyp
 {
 	switch (t) {
 		case SMTT_CLEAR:
-			if (!IsTreeTile(tile)) {
-				if (IsTileSubtype(tile, TT_GROUND_FIELDS)) {
+			switch (GetTileSubtype(tile)) {
+				default: NOT_REACHED();
+
+				case TT_GROUND_FIELDS:
 					return MKCOLOUR_XXXX(PC_FIELDS);
-				} else if (IsSnowTile(tile)) {
-					return MKCOLOUR_XXXX(PC_LIGHT_BLUE);
-				} else if (IsClearGround(tile, GROUND_GRASS) && GetClearDensity(tile) < 3) {
-					return MKCOLOUR_XXXX(PC_BARE_LAND);
-				} else {
-					return _vegetation_clear_bits[GetClearGround(tile)];
-				}
-			} else if (GetClearGround(tile) == GROUND_DESERT) {
-				return MKCOLOUR_XYYX(PC_ORANGE, PC_TREES);
-			} else if (IsSnowTile(tile)) {
-				return MKCOLOUR_XYYX(PC_LIGHT_BLUE, PC_TREES);
+
+				case TT_GROUND_CLEAR:
+					if (IsSnowTile(tile)) {
+						return MKCOLOUR_XXXX(PC_LIGHT_BLUE);
+					} else if (IsClearGround(tile, GROUND_GRASS) && GetClearDensity(tile) < 3) {
+						return MKCOLOUR_XXXX(PC_BARE_LAND);
+					} else {
+						return _vegetation_clear_bits[GetClearGround(tile)];
+					}
+
+				case TT_GROUND_TREES:
+					if (IsSnowTile(tile)) {
+						return MKCOLOUR_XYYX(PC_LIGHT_BLUE, PC_TREES);
+					} else if (GetClearGround(tile) == GROUND_DESERT) {
+						return MKCOLOUR_XYYX(PC_ORANGE, PC_TREES);
+					} else {
+						return MKCOLOUR_XYYX(PC_GRASS_LAND, PC_TREES);
+					}
 			}
-			return MKCOLOUR_XYYX(PC_GRASS_LAND, PC_TREES);
 
 		case SMTT_INDUSTRY:
 			return IsTileForestIndustry(tile) ? MKCOLOUR_XXXX(PC_GREEN) : MKCOLOUR_XXXX(PC_DARK_RED);
