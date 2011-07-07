@@ -331,58 +331,48 @@ static inline bool NeighbourIsDesert(TileIndex tile)
 static void TileLoopClearDesert(TileIndex tile)
 {
 	/* Expected desert level - 0 if it shouldn't be desert */
-	uint expected = 0;
-	if (GetTropicZone(tile) == TROPICZONE_DESERT) {
-		expected = 3;
-	} else if (NeighbourIsDesert(tile)) {
-		expected = 1;
-	}
+	uint expected = GetTropicZone(tile) == TROPICZONE_DESERT ? 3 :
+		NeighbourIsDesert(tile) ? 1 : 0;
 
-	if (expected > 0 && IsTileSubtype(tile, TT_GROUND_FIELDS)) {
-		MakeClear(tile, GROUND_DESERT, expected);
-	} else {
-		/* Current desert level - 0 if it is not desert */
-		uint current = 0;
-		if (IsTileSubtype(tile, TT_GROUND_CLEAR) && IsClearGround(tile, GROUND_DESERT)) current = GetClearDensity(tile);
+	switch (GetTileSubtype(tile)) {
+		default: NOT_REACHED();
 
-		if (current == expected) return;
+		case TT_GROUND_FIELDS:
+			if (expected == 0) return;
+			MakeClear(tile, GROUND_DESERT, expected);
+			break;
 
-		if (expected == 0) {
-			SetClearGroundDensity(tile, GROUND_GRASS, 3);
-		} else {
-			/* Transition from clear to desert is not smooth (after clearing desert tile) */
-			SetClearGroundDensity(tile, GROUND_DESERT, expected);
+		case TT_GROUND_TREES:
+			if (GetTropicZone(tile) == TROPICZONE_RAINFOREST) {
+				static const SoundFx forest_sounds[] = {
+					SND_42_LOON_BIRD,
+					SND_43_LION,
+					SND_44_MONKEYS,
+					SND_48_DISTANT_BIRD
+				};
+				uint32 r = Random();
+
+				if (Chance16I(1, 200, r) && _settings_client.sound.ambient) SndPlayTileFx(forest_sounds[GB(r, 16, 2)], tile);
+				return;
+			}
+			/* fall through */
+		case TT_GROUND_CLEAR: {
+			/* Current desert level - 0 if it is not desert */
+			uint current = IsClearGround(tile, GROUND_DESERT) ? GetClearDensity(tile) : 0;
+
+			if (current == expected) return;
+
+			if (expected == 0) {
+				SetClearGroundDensity(tile, GROUND_GRASS, 3);
+			} else {
+				/* Transition from clear to desert is not smooth (after clearing desert tile) */
+				SetClearGroundDensity(tile, GROUND_DESERT, expected);
+			}
+			break;
 		}
 	}
 
 	MarkTileDirtyByTile(tile);
-}
-
-static void TileLoopTreesDesert(TileIndex tile)
-{
-	switch (GetTropicZone(tile)) {
-		case TROPICZONE_DESERT:
-			if (GetClearGround(tile) != GROUND_DESERT) {
-				SetClearGroundDensity(tile, GROUND_DESERT, 3, true);
-				MarkTileDirtyByTile(tile);
-			}
-			break;
-
-		case TROPICZONE_RAINFOREST: {
-			static const SoundFx forest_sounds[] = {
-				SND_42_LOON_BIRD,
-				SND_43_LION,
-				SND_44_MONKEYS,
-				SND_48_DISTANT_BIRD
-			};
-			uint32 r = Random();
-
-			if (Chance16I(1, 200, r) && _settings_client.sound.ambient) SndPlayTileFx(forest_sounds[GB(r, 16, 2)], tile);
-			break;
-		}
-
-		default: break;
-	}
 }
 
 extern void AddNeighbouringTree(TileIndex tile);
@@ -455,7 +445,7 @@ static void TileLoop_Clear(TileIndex tile)
 			TileLoop_Water(tile);
 		} else {
 			switch (_settings_game.game_creation.landscape) {
-				case LT_TROPIC: TileLoopTreesDesert(tile); break;
+				case LT_TROPIC: TileLoopClearDesert(tile); break;
 				case LT_ARCTIC: TileLoopClearAlps(tile);   break;
 			}
 		}
