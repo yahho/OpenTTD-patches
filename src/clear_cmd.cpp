@@ -194,18 +194,20 @@ static void DrawTrees(TileInfo *ti)
 static void DrawTile_Clear(TileInfo *ti)
 {
 	switch (GetTileSubtype(ti->tile)) {
-		default: NOT_REACHED();
-
 		case TT_GROUND_FIELDS:
 			DrawGroundSprite(_clear_land_sprites_farmland[GetFieldType(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
 			DrawClearLandFence(ti);
 			DrawBridgeMiddle(ti);
 			break;
 
-		case TT_GROUND_CLEAR:
+		default:
 			switch (GetFullClearGround(ti->tile)) {
 				case GROUND_GRASS:
 					DrawClearLandTile(ti, GetClearDensity(ti->tile));
+					break;
+
+				case GROUND_SHORE:
+					DrawShoreTile(ti->tileh);
 					break;
 
 				case GROUND_ROUGH:
@@ -220,19 +222,13 @@ static void DrawTile_Clear(TileInfo *ti)
 					DrawGroundSprite(_clear_land_sprites_snow_desert[GetClearDensity(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
 					break;
 			}
-			DrawBridgeMiddle(ti);
-			break;
 
-		case TT_GROUND_TREES:
-			switch (GetFullClearGround(ti->tile)) {
-				case GROUND_SHORE: DrawShoreTile(ti->tileh); break;
-				case GROUND_GRASS: DrawClearLandTile(ti, GetClearDensity(ti->tile)); break;
-				case GROUND_ROUGH: DrawHillyLandTile(ti); break;
-				default: DrawGroundSprite(_clear_land_sprites_snow_desert[GetClearDensity(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE); break;
-			}
-			if (!IsInvisibilitySet(TO_TREES)) {
+			if (!IsTileSubtype(ti->tile, TT_GROUND_TREES)) {
+				DrawBridgeMiddle(ti);
+			} else if (!IsInvisibilitySet(TO_TREES)) {
 				DrawTrees(ti);
 			}
+
 			break;
 	}
 }
