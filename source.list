@@ -574,7 +574,6 @@ train_cmd.cpp
 tree_cmd.cpp
 tunnelbridge_cmd.cpp
 vehicle_cmd.cpp
-void_cmd.cpp
 water_cmd.cpp
 waypoint_cmd.cpp
 
@@ -968,7 +967,6 @@ tree_map.h
 tunnel_map.cpp
 tunnel_map.h
 tunnelbridge_map.h
-void_map.h
 water_map.h
 
 # Misc

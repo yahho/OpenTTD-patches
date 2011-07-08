@@ -2563,10 +2563,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\void_cmd.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\water_cmd.cpp"
 				>
 			</File>
@@ -4056,10 +4052,6 @@
 			</File>
 			<File
 				RelativePath=".\..\src\tunnelbridge_map.h"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\void_map.h"
 				>
 			</File>
 			<File

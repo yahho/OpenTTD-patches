@@ -10,7 +10,6 @@
 /** @file afterload.cpp Code updating data after game load */
 
 #include "../stdafx.h"
-#include "../void_map.h"
 #include "../signs_base.h"
 #include "../depot_base.h"
 #include "../fios.h"

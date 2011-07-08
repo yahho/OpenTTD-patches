@@ -317,6 +317,23 @@ static inline void SetFence(TileIndex t, DiagDirection side, uint h)
 
 
 /**
+ * Make a nice void tile ;)
+ * @param t the tile to make void
+ */
+static inline void MakeVoid(TileIndex t)
+{
+	SetTileHeight(t, 0);
+	_mc[t].m0 = TT_GROUND << 4;
+	_mc[t].m1 = TT_GROUND_VOID << 6;
+	_mc[t].m2 = 0;
+	_mc[t].m3 = 0;
+	_mc[t].m4 = 0;
+	_mc[t].m5 = 0;
+	_mc[t].m7 = 0;
+}
+
+
+/**
  * Make a clear tile.
  * @param t       the tile to make a clear tile
  * @param g       the type of ground

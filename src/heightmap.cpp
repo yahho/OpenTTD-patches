@@ -12,7 +12,6 @@
 #include "stdafx.h"
 #include "heightmap.h"
 #include "clear_map.h"
-#include "void_map.h"
 #include "error.h"
 #include "saveload/saveload.h"
 #include "bmp.h"

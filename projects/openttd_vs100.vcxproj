@@ -818,7 +818,6 @@
     <ClCompile Include="..\src\tree_cmd.cpp" />
     <ClCompile Include="..\src\tunnelbridge_cmd.cpp" />
     <ClCompile Include="..\src\vehicle_cmd.cpp" />
-    <ClCompile Include="..\src\void_cmd.cpp" />
     <ClCompile Include="..\src\water_cmd.cpp" />
     <ClCompile Include="..\src\waypoint_cmd.cpp" />
     <ClCompile Include="..\src\saveload\afterload.cpp" />
@@ -1175,7 +1174,6 @@
     <ClCompile Include="..\src\tunnel_map.cpp" />
     <ClInclude Include="..\src\tunnel_map.h" />
     <ClInclude Include="..\src\tunnelbridge_map.h" />
-    <ClInclude Include="..\src\void_map.h" />
     <ClInclude Include="..\src\water_map.h" />
     <ClInclude Include="..\src\misc\array.hpp" />
     <ClInclude Include="..\src\misc\binaryheap.hpp" />

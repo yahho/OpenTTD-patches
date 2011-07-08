@@ -1683,9 +1683,6 @@
     <ClCompile Include="..\src\vehicle_cmd.cpp">
       <Filter>Command handlers</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\void_cmd.cpp">
-      <Filter>Command handlers</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\water_cmd.cpp">
       <Filter>Command handlers</Filter>
     </ClCompile>
@@ -2752,9 +2749,6 @@
       <Filter>Map Accessors</Filter>
     </ClInclude>
     <ClInclude Include="..\src\tunnelbridge_map.h">
-      <Filter>Map Accessors</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\void_map.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
     <ClInclude Include="..\src\water_map.h">
