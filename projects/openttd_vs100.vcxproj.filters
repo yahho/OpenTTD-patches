@@ -1638,6 +1638,9 @@
     <ClCompile Include="..\src\misc_cmd.cpp">
       <Filter>Command handlers</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\misctile_cmd.cpp">
+      <Filter>Command handlers</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\object_cmd.cpp">
       <Filter>Command handlers</Filter>
     </ClCompile>

@@ -803,6 +803,7 @@
     <ClCompile Include="..\src\group_cmd.cpp" />
     <ClCompile Include="..\src\industry_cmd.cpp" />
     <ClCompile Include="..\src\misc_cmd.cpp" />
+    <ClCompile Include="..\src\misctile_cmd.cpp" />
     <ClCompile Include="..\src\object_cmd.cpp" />
     <ClCompile Include="..\src\order_cmd.cpp" />
     <ClCompile Include="..\src\rail_cmd.cpp" />

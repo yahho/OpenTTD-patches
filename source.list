@@ -559,6 +559,7 @@ disaster_cmd.cpp
 group_cmd.cpp
 industry_cmd.cpp
 misc_cmd.cpp
+misctile_cmd.cpp
 object_cmd.cpp
 order_cmd.cpp
 rail_cmd.cpp

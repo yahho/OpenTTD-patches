@@ -2500,6 +2500,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\misctile_cmd.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\object_cmd.cpp"
 				>
 			</File>
