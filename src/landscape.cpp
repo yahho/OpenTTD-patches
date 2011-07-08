@@ -43,7 +43,6 @@ extern const TileTypeProcs
 	_tile_type_town_procs,
 	_tile_type_station_procs,
 	_tile_type_water_procs,
-	_tile_type_void_procs,
 	_tile_type_industry_procs,
 	_tile_type_tunnelbridge_procs,
 	_tile_type_object_procs;
@@ -63,7 +62,7 @@ extern const TileTypeProcs * const _tile_type_procs[16] = {
 	NULL,
 	&_tile_type_station_procs,      ///< Callback functions for station tiles
 	&_tile_type_industry_procs,     ///< Callback functions for industry tiles
-	&_tile_type_void_procs,         ///< Callback functions for void tiles
+	NULL,
 	NULL,
 	&_tile_type_tunnelbridge_procs, ///< Callback functions for tunnel/bridge tiles
 	&_tile_type_town_procs,         ///< Callback functions for house tiles

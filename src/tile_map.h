@@ -113,7 +113,7 @@ static inline void SetTileType(TileIndex tile, TileType type)
 	/* Only void tiles are allowed at the lower left and right
 	 * edges of the map. If _settings_game.construction.freeform_edges is true,
 	 * the upper edges of the map are also VOID tiles. */
-	assert(IsInnerTile(tile) || (type == TT_VOID_TEMP));
+	assert(IsInnerTile(tile) || (type == TT_GROUND));
 	SB(_mc[tile].m0, 4, 4, type);
 }
 
@@ -252,7 +252,7 @@ static inline bool IsWaterTile(TileIndex tile)
  */
 static inline bool IsVoidTile(TileIndex tile)
 {
-	return IsTileType(tile, TT_VOID_TEMP);
+	return IsTileTypeSubtype(tile, TT_GROUND, TT_GROUND_VOID);
 }
 
 /**

@@ -548,6 +548,8 @@ static CommandCost ClearTile_Water(TileIndex tile, DoCommandFlag flags)
 bool IsWateredTile(TileIndex tile, Direction from)
 {
 	switch (GetTileType(tile)) {
+		case TT_GROUND: return IsTileSubtype(tile, TT_GROUND_VOID); // consider map border as water, esp. for rivers
+
 		case TT_WATER:
 			switch (GetWaterTileType(tile)) {
 				default: NOT_REACHED();
@@ -602,8 +604,6 @@ bool IsWateredTile(TileIndex tile, Direction from)
 		case TT_OBJECT: return IsTileOnWater(tile);
 
 		case TT_TUNNELBRIDGE_TEMP: return GetTunnelBridgeTransportType(tile) == TRANSPORT_WATER && ReverseDiagDir(GetTunnelBridgeDirection(tile)) == DirToDiagDir(from);
-
-		case TT_VOID_TEMP: return true; // consider map border as water, esp. for rivers
 
 		default:          return false;
 	}

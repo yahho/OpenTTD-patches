@@ -19,6 +19,7 @@
 #include "engine_base.h"
 #include "date_func.h"
 #include "landscape.h"
+#include "clear_map.h"
 
 /**
  * Return if the tile is a valid tile for a crossing.
@@ -58,7 +59,7 @@ RoadBits CleanUpRoadBits(const TileIndex tile, RoadBits org_rb)
 			switch (GetTileType(neighbor_tile)) {
 				/* Always connective ones */
 				case TT_GROUND:
-					connective = true;
+					connective = IsGroundTile(neighbor_tile);
 					break;
 
 				/* The conditionally connective ones */

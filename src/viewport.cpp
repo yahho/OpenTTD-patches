@@ -46,6 +46,7 @@
 #include "tilehighlight_func.h"
 #include "window_gui.h"
 #include "linkgraph/linkgraph_gui.h"
+#include "clear_func.h"
 
 #include "table/strings.h"
 #include "table/palettes.h"
@@ -1072,8 +1073,7 @@ static void ViewportAddLandscape()
 		uint y_cur = y;
 
 		do {
-			extern DrawTileProc DrawTile_Void;
-			DrawTileProc *dtp = DrawTile_Void;
+			DrawTileProc *dtp = DrawVoidTile;
 
 			ti.x = x_cur;
 			ti.y = y_cur;

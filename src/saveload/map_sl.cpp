@@ -771,7 +771,10 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					break;
 
 				case OLD_MP_VOID:
-					_mc[t].m0 = TT_VOID_TEMP << 4;
+					_mc[t].m0 = TT_GROUND << 4;
+					_mc[t].m1 = TT_GROUND_VOID << 6;
+					_mc[t].m2 = 0;
+					_mc[t].m3 = _mc[t].m4 = _mc[t].m5 = _mc[t].m7 = 0;
 					break;
 
 				case OLD_MP_INDUSTRY:

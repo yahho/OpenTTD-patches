@@ -284,6 +284,7 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 				}
 
 				case TT_GROUND:
+					assert(IsGroundTile(tile));
 					if (!IsTileSubtype(tile, TT_GROUND_TREES)) break;
 					/* fall through */
 				default:

@@ -45,6 +45,9 @@ static CommandCost ClearTile_Clear(TileIndex tile, DoCommandFlag flags)
 	switch (GetTileSubtype(tile)) {
 		default: NOT_REACHED();
 
+		case TT_GROUND_VOID:
+			return_cmd_error(STR_ERROR_OFF_EDGE_OF_MAP);
+
 		case TT_GROUND_FIELDS:
 			cost = _price[PR_CLEAR_FIELDS];
 			break;
@@ -72,6 +75,11 @@ static CommandCost ClearTile_Clear(TileIndex tile, DoCommandFlag flags)
 	if (flags & DC_EXEC) DoClearSquare(tile);
 
 	return CommandCost(EXPENSES_CONSTRUCTION, cost);
+}
+
+void DrawVoidTile(TileInfo *ti)
+{
+	DrawGroundSprite(SPR_SHADOW_CELL, PAL_NONE);
 }
 
 void DrawClearLandTile(const TileInfo *ti, byte set)
@@ -194,6 +202,10 @@ static void DrawTrees(TileInfo *ti)
 static void DrawTile_Clear(TileInfo *ti)
 {
 	switch (GetTileSubtype(ti->tile)) {
+		case TT_GROUND_VOID:
+			DrawVoidTile(ti);
+			return;
+
 		case TT_GROUND_FIELDS:
 			DrawGroundSprite(_clear_land_sprites_farmland[GetFieldType(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
 			DrawClearLandFence(ti);
@@ -236,6 +248,8 @@ static void DrawTile_Clear(TileInfo *ti)
 
 static int GetSlopePixelZ_Clear(TileIndex tile, uint x, uint y)
 {
+	if (IsTileSubtype(tile, TT_GROUND_VOID)) return TilePixelHeight(tile);
+
 	int z;
 	Slope tileh = GetTilePixelSlope(tile, &z);
 
@@ -433,6 +447,8 @@ static void HandleTreeGrowth(TileIndex tile)
 
 static void TileLoop_Clear(TileIndex tile)
 {
+	if (IsTileSubtype(tile, TT_GROUND_VOID)) return;
+
 	if (!IsTileSubtype(tile, TT_GROUND_FIELDS) && GetClearGround(tile) == GROUND_SHORE) {
 		TileLoop_Water(tile);
 	} else {
@@ -577,6 +593,11 @@ static void GetTileDesc_Clear(TileIndex tile, TileDesc *td)
 	switch (GetTileSubtype(tile)) {
 		default: NOT_REACHED();
 
+		case TT_GROUND_VOID:
+			td->str = STR_EMPTY;
+			td->owner[0] = OWNER_NONE;
+			return;
+
 		case TT_GROUND_FIELDS:
 			td->str = STR_LAI_CLEAR_DESCRIPTION_FIELDS;
 			break;
@@ -612,6 +633,8 @@ static void ChangeTileOwner_Clear(TileIndex tile, Owner old_owner, Owner new_own
 
 static CommandCost TerraformTile_Clear(TileIndex tile, DoCommandFlag flags, int z_new, Slope tileh_new)
 {
+	if (IsTileSubtype(tile, TT_GROUND_VOID)) return_cmd_error(STR_ERROR_OFF_EDGE_OF_MAP);
+
 	return DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
 }
 

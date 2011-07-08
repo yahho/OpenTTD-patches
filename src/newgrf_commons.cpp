@@ -354,7 +354,7 @@ uint32 GetTerrainType(TileIndex tile, TileContext context)
 			switch (GetTileType(tile)) {
 				case TT_GROUND:
 					/* During map generation the snowstate may not be valid yet, as the tileloop may not have run yet. */
-					if (_generating_world) goto genworld;
+					if (_generating_world || IsTileSubtype(tile, TT_GROUND_VOID)) goto genworld;
 					has_snow = IsSnowTile(tile) && GetClearDensity(tile) >= 2;
 					break;
 
@@ -382,7 +382,6 @@ uint32 GetTerrainType(TileIndex tile, TileContext context)
 					}
 					break;
 
-				case TT_VOID_TEMP:
 				case TT_WATER:
 				genworld:
 					has_snow = (GetTileZ(tile) > GetSnowLine());

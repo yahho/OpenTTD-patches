@@ -38,7 +38,7 @@ protected:
 		{
 			tile = INVALID_TILE;
 			td = INVALID_TRACKDIR;
-			tile_type = TT_VOID_TEMP;
+			tile_type = TT_GROUND;
 			rail_type = INVALID_RAILTYPE;
 		}
 

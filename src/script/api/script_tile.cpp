@@ -26,7 +26,7 @@
 
 	switch (::GetTileType(tile)) {
 		default: return false;
-		case TT_GROUND: return true;
+		case TT_GROUND: return IsGroundTile(tile);
 		case TT_WATER: return IsCoast(tile);
 		case TT_ROAD:
 			/* Tram bits aren't considered buildable */
