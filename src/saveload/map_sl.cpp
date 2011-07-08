@@ -768,6 +768,8 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 
 				case OLD_MP_WATER:
 					_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_WATER << 4);
+					_mc[t].m3 = _mc[t].m4;
+					_mc[t].m4 = 0;
 					break;
 
 				case OLD_MP_VOID:

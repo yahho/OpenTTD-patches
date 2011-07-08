@@ -332,7 +332,7 @@ static inline byte GetLockPart(TileIndex t)
 static inline byte GetWaterTileRandomBits(TileIndex t)
 {
 	assert(IsWaterTile(t));
-	return _mc[t].m4;
+	return _mc[t].m3;
 }
 
 /**
@@ -377,8 +377,8 @@ static inline void MakeWater(TileIndex t, Owner o, WaterClass wc, uint8 random_b
 	SetTileOwner(t, o);
 	SetWaterClass(t, wc);
 	_mc[t].m2 = 0;
-	_mc[t].m3 = 0;
-	_mc[t].m4 = random_bits;
+	_mc[t].m3 = random_bits;
+	_mc[t].m4 = 0;
 	_mc[t].m5 = WBL_TYPE_NORMAL << WBL_TYPE_BEGIN;
 	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m7 = 0;
