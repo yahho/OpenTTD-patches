@@ -87,14 +87,7 @@ static TrackBits GetRailTrackBitsUniversal(TileIndex t, byte *override)
 {
 	switch (GetTileType(t)) {
 		case TT_RAILWAY:
-			if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
-			switch (GetRailTileType(t)) {
-				case RAIL_TILE_NORMAL: case RAIL_TILE_SIGNALS:
-					return GetTrackBits(t);
-				default:
-					return TRACK_BIT_NONE;
-			}
-			break;
+			return HasCatenary(GetRailType(t)) ? GetTrackBits(t) : TRACK_BIT_NONE;
 
 		case TT_TUNNELBRIDGE_TEMP:
 			if (GetTunnelBridgeTransportType(t) != TRANSPORT_RAIL) return TRACK_BIT_NONE;
@@ -124,7 +117,7 @@ static TrackBits GetRailTrackBitsUniversal(TileIndex t, byte *override)
  */
 static TrackBits MaskWireBits(TileIndex t, TrackBits tracks)
 {
-	if (!IsPlainRailTile(t)) return tracks;
+	if (!IsRailwayTile(t)) return tracks;
 
 	TrackdirBits neighbour_tdb = TRACKDIR_BIT_NONE;
 	for (DiagDirection d = DIAGDIR_BEGIN; d < DIAGDIR_END; d++) {
@@ -378,7 +371,7 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 		if (IsStationTile(neighbour) || IsRoadOrDepotTile(neighbour)) tileh[TS_NEIGHBOUR] = SLOPE_FLAT;
 
 		/* Read the foundations if they are present, and adjust the tileh */
-		if (trackconfig[TS_NEIGHBOUR] != TRACK_BIT_NONE && IsRailwayOrDepotTile(neighbour) && HasCatenary(GetRailType(neighbour))) foundation = GetRailFoundation(tileh[TS_NEIGHBOUR], trackconfig[TS_NEIGHBOUR]);
+		if (trackconfig[TS_NEIGHBOUR] != TRACK_BIT_NONE && (IsRailwayTile(neighbour) || IsRailDepotTile(neighbour)) && HasCatenary(GetRailType(neighbour))) foundation = GetRailFoundation(tileh[TS_NEIGHBOUR], trackconfig[TS_NEIGHBOUR]);
 		if (IsBridgeTile(neighbour)) {
 			foundation = GetBridgeFoundation(tileh[TS_NEIGHBOUR], DiagDirToAxis(GetTunnelBridgeDirection(neighbour)));
 		}
@@ -562,8 +555,8 @@ void DrawCatenaryOnBridge(const TileInfo *ti)
 void DrawCatenary(const TileInfo *ti)
 {
 	switch (GetTileType(ti->tile)) {
-		case TT_RAILWAY:
-			if (IsRailDepot(ti->tile)) {
+		case TT_MISC:
+			if (IsRailDepotTile(ti->tile)) {
 				const SortableSpriteStruct *sss = &CatenarySpriteData_Depot[GetRailDepotDirection(ti->tile)];
 
 				SpriteID wire_base = GetWireBase(ti->tile);
@@ -577,9 +570,10 @@ void DrawCatenary(const TileInfo *ti)
 				);
 				return;
 			}
-			break;
+			return;
 
 		case TT_TUNNELBRIDGE_TEMP:
+		case TT_RAILWAY:
 		case TT_ROAD:
 		case TT_STATION:
 			break;

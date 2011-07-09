@@ -61,6 +61,12 @@ void AfterLoadLabelMaps()
 					}
 					break;
 
+				case TT_MISC:
+					if (IsRailDepotTile(t)) {
+						SetRailType(t, railtype_conversion_map[GetRailType(t)]);
+					}
+					break;
+
 				case TT_STATION:
 					if (HasStationRail(t)) {
 						SetRailType(t, railtype_conversion_map[GetRailType(t)]);

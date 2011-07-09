@@ -195,7 +195,7 @@ static inline bool IsTileTypeSubtype(TileIndex tile, TileType type, TileSubtype 
  * @param tile The tile to check
  * @return true If the tile is railway
  */
-static inline bool IsRailwayOrDepotTile(TileIndex tile)
+static inline bool IsRailwayTile(TileIndex tile)
 {
 	return IsTileType(tile, TT_RAILWAY);
 }

@@ -121,7 +121,7 @@ public:
 
 	inline int SwitchCost(TileIndex tile1, TileIndex tile2, DiagDirection exitdir)
 	{
-		if (IsPlainRailTile(tile1) && IsPlainRailTile(tile2)) {
+		if (IsRailwayTile(tile1) && IsRailwayTile(tile2)) {
 			bool t1 = KillFirstBit(GetTrackBits(tile1) & DiagdirReachesTracks(ReverseDiagDir(exitdir))) != TRACK_BIT_NONE;
 			bool t2 = KillFirstBit(GetTrackBits(tile2) & DiagdirReachesTracks(exitdir)) != TRACK_BIT_NONE;
 			if (t1 && t2) return Yapf().PfGetSettings().rail_doubleslip_penalty;
@@ -178,7 +178,7 @@ public:
 		int cost = 0;
 		/* if there is one-way signal in the opposite direction, then it is not our way */
 		CPerfStart perf_cost(Yapf().m_perf_other_cost);
-		if (IsRailwayOrDepotTile(tile)) {
+		if (IsRailwayTile(tile)) {
 			bool has_signal_against = HasSignalOnTrackdir(tile, ReverseTrackdir(trackdir));
 			bool has_signal_along = HasSignalOnTrackdir(tile, trackdir);
 			if (has_signal_against && !has_signal_along && IsOnewaySignal(tile, TrackdirToTrack(trackdir))) {
@@ -399,7 +399,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			/* Tests for 'potential target' reasons to close the segment. */
 			if (cur.tile == prev.tile) {
 				/* Penalty for reversing in a depot. */
-				assert(IsRailDepot(cur.tile));
+				assert(IsRailDepotTile(cur.tile));
 				segment_cost += Yapf().PfGetSettings().rail_depot_reverse_penalty;
 				/* We will end in this pass (depot is possible target) */
 				end_segment_reason |= ESRB_DEPOT;
@@ -506,7 +506,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			/* Gather the next tile/trackdir/tile_type/rail_type. */
 			TILE next(tf_local.m_new_tile, (Trackdir)FindFirstBit2x64(tf_local.m_new_td_bits));
 
-			if (TrackFollower::DoTrackMasking() && IsRailwayOrDepotTile(next.tile)) {
+			if (TrackFollower::DoTrackMasking() && IsRailwayTile(next.tile)) {
 				if (HasSignalOnTrackdir(next.tile, next.td) && IsPbsSignal(GetSignalType(next.tile, TrackdirToTrack(next.td)))) {
 					/* Possible safe tile. */
 					end_segment_reason |= ESRB_SAFE_TILE;
@@ -533,7 +533,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			if (segment_cost > s_max_segment_cost) {
 				/* Potentially in the infinite loop (or only very long segment?). We should
 				 * not force it to finish prematurely unless we are on a regular tile. */
-				if (IsRailwayOrDepotTile(tf->m_new_tile)) {
+				if (IsRailwayTile(tf->m_new_tile)) {
 					end_segment_reason |= ESRB_SEGMENT_TOO_LONG;
 					break;
 				}

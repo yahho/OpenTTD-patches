@@ -355,14 +355,12 @@ static Order GetOrderCmdFromTile(const Vehicle *v, TileIndex tile)
 
 	/* check depot first */
 	switch (GetTileType(tile)) {
-		case TT_RAILWAY:
-			if (v->type == VEH_TRAIN && IsTileOwner(tile, _local_company)) {
-				if (IsRailDepot(tile)) {
-					order.MakeGoToDepot(GetDepotIndex(tile), ODTFB_PART_OF_ORDERS,
-							_settings_client.gui.new_nonstop ? ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS : ONSF_STOP_EVERYWHERE);
-					if (_ctrl_pressed) order.SetDepotOrderType((OrderDepotTypeFlags)(order.GetDepotOrderType() ^ ODTFB_SERVICE));
-					return order;
-				}
+		case TT_MISC:
+			if (IsRailDepotTile(tile) && v->type == VEH_TRAIN && IsTileOwner(tile, _local_company)) {
+				order.MakeGoToDepot(GetDepotIndex(tile), ODTFB_PART_OF_ORDERS,
+						_settings_client.gui.new_nonstop ? ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS : ONSF_STOP_EVERYWHERE);
+				if (_ctrl_pressed) order.SetDepotOrderType((OrderDepotTypeFlags)(order.GetDepotOrderType() ^ ODTFB_SERVICE));
+				return order;
 			}
 			break;
 

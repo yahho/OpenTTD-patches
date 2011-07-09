@@ -110,12 +110,9 @@ void AfterLoadCompanyStats()
 			case TT_RAILWAY:
 				c = Company::GetIfValid(GetTileOwner(tile));
 				if (c != NULL) {
-					uint pieces = 1;
-					if (IsPlainRail(tile)) {
-						TrackBits bits = GetTrackBits(tile);
-						pieces = CountBits(bits);
-						if (TracksOverlap(bits)) pieces *= pieces;
-					}
+					TrackBits bits = GetTrackBits(tile);
+					uint pieces = CountBits(bits);
+					if (TracksOverlap(bits)) pieces *= pieces;
 					c->infrastructure.rail[GetRailType(tile)] += pieces;
 
 					if (HasSignals(tile)) c->infrastructure.signal += CountBits(GetPresentSignals(tile));
@@ -137,6 +134,14 @@ void AfterLoadCompanyStats()
 				}
 				break;
 			}
+
+			case TT_MISC:
+				assert(IsRailDepotTile(tile));
+				c = Company::GetIfValid(GetTileOwner(tile));
+				if (c != NULL) {
+					c->infrastructure.rail[GetRailType(tile)]++;
+				}
+				break;
 
 			case TT_STATION:
 				c = Company::GetIfValid(GetTileOwner(tile));

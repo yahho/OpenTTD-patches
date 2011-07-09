@@ -568,7 +568,6 @@ bool IsWateredTile(TileIndex tile, Direction from)
 
 		case TT_RAILWAY:
 			if (GetRailGroundType(tile) == RAIL_GROUND_WATER) {
-				assert(IsPlainRail(tile));
 				switch (GetTileSlope(tile)) {
 					case SLOPE_W: return (from == DIR_SE) || (from == DIR_E) || (from == DIR_NE);
 					case SLOPE_S: return (from == DIR_NE) || (from == DIR_N) || (from == DIR_NW);
@@ -1051,7 +1050,6 @@ void DoFloodTile(TileIndex target)
 		/* make coast.. */
 		switch (GetTileType(target)) {
 			case TT_RAILWAY: {
-				if (!IsPlainRail(target)) break;
 				FloodVehicles(target);
 				flooded = FloodHalftile(target);
 				break;
@@ -1106,7 +1104,6 @@ static void DoDryUp(TileIndex tile)
 
 	switch (GetTileType(tile)) {
 		case TT_RAILWAY:
-			assert(IsPlainRail(tile));
 			assert(GetRailGroundType(tile) == RAIL_GROUND_WATER);
 
 			RailGroundType new_ground;

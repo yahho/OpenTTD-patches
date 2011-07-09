@@ -279,21 +279,6 @@ static SigFlags ExploreSegment(Owner owner)
 			case TT_RAILWAY: {
 				if (GetTileOwner(tile) != owner) continue; // do not propagate signals on others' tiles (remove for tracksharing)
 
-				if (IsRailDepot(tile)) {
-					if (enterdir == INVALID_DIAGDIR) { // from 'inside' - train just entered or left the depot
-						if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
-						exitdir = GetRailDepotDirection(tile);
-						tile += TileOffsByDiagDir(exitdir);
-						enterdir = ReverseDiagDir(exitdir);
-						break;
-					} else if (enterdir == GetRailDepotDirection(tile)) { // entered a depot
-						if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
-						continue;
-					} else {
-						continue;
-					}
-				}
-
 				TrackBits tracks = GetTrackBits(tile); // trackbits of tile
 				TrackBits tracks_masked = (TrackBits)(tracks & _enterdir_to_trackbits[enterdir]); // only incidating trackbits
 
@@ -348,6 +333,20 @@ static SigFlags ExploreSegment(Owner owner)
 
 				continue; // continue the while() loop
 				}
+
+			case TT_MISC:
+				if (IsRailDepotTile(tile) && GetTileOwner(tile) == owner) {
+					if (enterdir == INVALID_DIAGDIR) { // from 'inside' - train just entered or left the depot
+						if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
+						exitdir = GetRailDepotDirection(tile);
+						tile += TileOffsByDiagDir(exitdir);
+						enterdir = ReverseDiagDir(exitdir);
+						break;
+					} else if (enterdir == GetRailDepotDirection(tile)) { // entered a depot
+						if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
+					}
+				}
+				continue;
 
 			case TT_STATION:
 				if (!HasStationRail(tile)) continue;
@@ -494,14 +493,14 @@ static SigSegState UpdateSignalsInBuffer(Owner owner)
 				_tbdset.Add(GetOtherTunnelBridgeEnd(tile), INVALID_DIAGDIR);
 				break;
 
+			case TT_MISC:
+				if (!IsRailDepotTile(tile)) goto next_tile;
+				/* 'optimization assert' do not try to update signals in other cases */
+				assert(dir == INVALID_DIAGDIR || dir == GetRailDepotDirection(tile));
+				_tbdset.Add(tile, INVALID_DIAGDIR); // start from depot inside
+				break;
+
 			case TT_RAILWAY:
-				if (IsRailDepot(tile)) {
-					/* 'optimization assert' do not try to update signals in other cases */
-					assert(dir == INVALID_DIAGDIR || dir == GetRailDepotDirection(tile));
-					_tbdset.Add(tile, INVALID_DIAGDIR); // start from depot inside
-					break;
-				}
-				/* FALL THROUGH */
 			case TT_STATION:
 			case TT_ROAD:
 				if ((TrackStatusToTrackBits(GetTileTrackStatus(tile, TRANSPORT_RAIL, 0)) & _enterdir_to_trackbits[dir]) != TRACK_BIT_NONE) {
@@ -512,6 +511,7 @@ static SigSegState UpdateSignalsInBuffer(Owner owner)
 				}
 				/* FALL THROUGH */
 			default:
+			next_tile:
 				/* jump to next tile */
 				tile = tile + TileOffsByDiagDir(dir);
 				dir = ReverseDiagDir(dir);

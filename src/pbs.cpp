@@ -25,12 +25,14 @@ TrackBits GetReservedTrackbits(TileIndex t)
 {
 	switch (GetTileType(t)) {
 		case TT_RAILWAY:
-			if (IsRailDepot(t)) return GetDepotReservationTrackBits(t);
-			if (IsPlainRail(t)) return GetRailReservationTrackBits(t);
-			break;
+			return GetRailReservationTrackBits(t);
 
 		case TT_ROAD:
 			if (IsLevelCrossing(t)) return GetCrossingReservationTrackBits(t);
+			break;
+
+		case TT_MISC:
+			if (IsRailDepotTile(t)) return GetDepotReservationTrackBits(t);
 			break;
 
 		case TT_STATION:
@@ -88,21 +90,21 @@ bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations)
 
 	switch (GetTileType(tile)) {
 		case TT_RAILWAY:
-			if (IsPlainRail(tile)) return TryReserveTrack(tile, t);
-			if (IsRailDepot(tile)) {
-				if (!HasDepotReservation(tile)) {
-					SetDepotReservation(tile, true);
-					MarkTileDirtyByTile(tile); // some GRFs change their appearance when tile is reserved
-					return true;
-				}
-			}
-			break;
+			return TryReserveTrack(tile, t);
 
 		case TT_ROAD:
 			if (IsLevelCrossing(tile) && !HasCrossingReservation(tile)) {
 				SetCrossingReservation(tile, true);
 				BarCrossing(tile);
 				MarkTileDirtyByTile(tile); // crossing barred, make tile dirty
+				return true;
+			}
+			break;
+
+		case TT_MISC:
+			if (IsRailDepotTile(tile) && !HasDepotReservation(tile)) {
+				SetDepotReservation(tile, true);
+				MarkTileDirtyByTile(tile); // some GRFs change their appearance when tile is reserved
 				return true;
 			}
 			break;
@@ -144,18 +146,21 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 
 	switch (GetTileType(tile)) {
 		case TT_RAILWAY:
-			if (IsRailDepot(tile)) {
-				SetDepotReservation(tile, false);
-				MarkTileDirtyByTile(tile);
-				break;
-			}
-			if (IsPlainRail(tile)) UnreserveTrack(tile, t);
+			UnreserveTrack(tile, t);
 			break;
 
 		case TT_ROAD:
 			if (IsLevelCrossing(tile)) {
 				SetCrossingReservation(tile, false);
 				UpdateLevelCrossing(tile);
+			}
+			break;
+
+		case TT_MISC:
+			if (IsRailDepotTile(tile)) {
+				SetDepotReservation(tile, false);
+				MarkTileDirtyByTile(tile);
+				break;
 			}
 			break;
 
@@ -233,7 +238,7 @@ static PBSTileInfo FollowReservation(Owner o, RailTypes rts, TileIndex tile, Tra
 		/* Depot tile? Can't continue. */
 		if (IsRailDepotTile(tile)) break;
 		/* Non-pbs signal? Reservation can't continue. */
-		if (IsRailwayOrDepotTile(tile) && HasSignalOnTrackdir(tile, trackdir) && !IsPbsSignal(GetSignalType(tile, TrackdirToTrack(trackdir)))) break;
+		if (IsRailwayTile(tile) && HasSignalOnTrackdir(tile, trackdir) && !IsPbsSignal(GetSignalType(tile, TrackdirToTrack(trackdir)))) break;
 	}
 
 	return PBSTileInfo(tile, trackdir, false);
@@ -374,7 +379,7 @@ PBSPositionState CheckWaitingPosition(const Train *v, TileIndex tile, Trackdir t
 	if (IsRailDepotTile(tile)) return HasDepotReservation(tile) ? PBS_BUSY : PBS_FREE;
 
 	Track track = TrackdirToTrack(trackdir);
-	if (IsRailwayOrDepotTile(tile) && HasSignalOnTrackdir(tile, trackdir) && !IsPbsSignal(GetSignalType(tile, track))) {
+	if (IsRailwayTile(tile) && HasSignalOnTrackdir(tile, trackdir) && !IsPbsSignal(GetSignalType(tile, track))) {
 		/* For non-pbs signals, stop on the signal tile. */
 		if (cb == PBS_CHECK_SAFE) return PBS_FREE;
 		return HasReservedTrack(tile, track) ? PBS_BUSY : PBS_FREE;
@@ -405,7 +410,7 @@ PBSPositionState CheckWaitingPosition(const Train *v, TileIndex tile, Trackdir t
 
 	if (cb != PBS_CHECK_FREE) {
 		if (KillFirstBit(ft.m_new_td_bits) != TRACKDIR_BIT_NONE) return PBS_UNSAFE;
-		if (!IsRailwayOrDepotTile(ft.m_new_tile)) return PBS_UNSAFE;
+		if (!IsRailwayTile(ft.m_new_tile)) return PBS_UNSAFE;
 
 		Trackdir td = FindFirstTrackdir(ft.m_new_td_bits);
 		if (HasSignalOnTrackdir(ft.m_new_tile, td)) {
@@ -424,7 +429,7 @@ PBSPositionState CheckWaitingPosition(const Train *v, TileIndex tile, Trackdir t
 	} else if (!IsStationTile(tile)) {
 		/* With PBS_CHECK_FREE, all these should be true. */
 		assert(KillFirstBit(ft.m_new_td_bits) == TRACKDIR_BIT_NONE);
-		assert(IsRailwayOrDepotTile(ft.m_new_tile));
+		assert(IsRailwayTile(ft.m_new_tile));
 		assert(HasSignalOnTrack(ft.m_new_tile, TrackdirToTrack(FindFirstTrackdir(ft.m_new_td_bits))));
 		assert(IsPbsSignal(GetSignalType(ft.m_new_tile, TrackdirToTrack(FindFirstTrackdir(ft.m_new_td_bits)))));
 	}

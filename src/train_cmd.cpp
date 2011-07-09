@@ -1844,7 +1844,7 @@ void ReverseTrainDirection(Train *v)
 	if (UpdateSignalsOnSegment(v->tile, dir, v->owner) == SIGSEG_PBS || _settings_game.pf.reserve_paths) {
 		/* If we are currently on a tile with conventional signals, we can't treat the
 		 * current tile as a safe tile or we would enter a PBS block without a reservation. */
-		bool first_tile_okay = !(IsRailwayOrDepotTile(v->tile) &&
+		bool first_tile_okay = !(IsRailwayTile(v->tile) &&
 			HasSignalOnTrackdir(v->tile, v->GetVehicleTrackdir()) &&
 			!IsPbsSignal(GetSignalType(v->tile, FindFirstTrack(v->track))));
 
@@ -2071,7 +2071,7 @@ static void CheckNextTrainTile(Train *v)
 	Trackdir td = v->GetVehicleTrackdir();
 
 	/* On a tile with a red non-pbs signal, don't look ahead. */
-	if (IsRailwayOrDepotTile(v->tile) && HasSignalOnTrackdir(v->tile, td) &&
+	if (IsRailwayTile(v->tile) && HasSignalOnTrackdir(v->tile, td) &&
 			!IsPbsSignal(GetSignalType(v->tile, TrackdirToTrack(td))) &&
 			GetSignalStateByTrackdir(v->tile, td) == SIGNAL_STATE_RED) return;
 
@@ -2244,7 +2244,7 @@ void FreeTrainTrackReservation(const Train *v)
 
 		if (!IsValidTrackdir(td)) break;
 
-		if (IsRailwayOrDepotTile(tile)) {
+		if (IsRailwayTile(tile)) {
 			if (HasSignalOnTrackdir(tile, td) && !IsPbsSignal(GetSignalType(tile, TrackdirToTrack(td)))) {
 				/* Conventional signal along trackdir: remove reservation and stop. */
 				UnreserveRailTrack(tile, TrackdirToTrack(td));
@@ -2327,7 +2327,7 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 		}
 
 		/* Station, depot or waypoint are a possible target. */
-		bool target_seen = ft.m_is_station || (IsRailwayOrDepotTile(ft.m_new_tile) && !IsPlainRail(ft.m_new_tile));
+		bool target_seen = ft.m_is_station || IsRailDepotTile(ft.m_new_tile);
 		if (target_seen || KillFirstBit(ft.m_new_td_bits) != TRACKDIR_BIT_NONE) {
 			/* Choice found or possible target encountered.
 			 * On finding a possible target, we need to stop and let the pathfinder handle the
@@ -2866,7 +2866,7 @@ static inline void AffectSpeedByZChange(Train *v, int old_z)
 
 static bool TrainMovedChangeSignals(TileIndex tile, DiagDirection dir)
 {
-	if (IsRailwayOrDepotTile(tile) &&
+	if (IsRailwayTile(tile) &&
 			GetRailTileType(tile) == RAIL_TILE_SIGNALS) {
 		TrackdirBits tracks = TrackBitsToTrackdirBits(GetTrackBits(tile)) & DiagdirReachesTrackdirs(dir);
 		Trackdir trackdir = FindFirstTrackdir(tracks);
@@ -3154,7 +3154,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				chosen_track = TrackToTrackBits(TrackdirToTrack(chosen_trackdir));
 				assert(chosen_track & (TrackdirBitsToTrackBits(trackdirbits) | GetReservedTrackbits(gp.new_tile)));
 
-				if (v->force_proceed != TFP_NONE && IsPlainRailTile(gp.new_tile) && HasSignals(gp.new_tile)) {
+				if (v->force_proceed != TFP_NONE && IsRailwayTile(gp.new_tile) && HasSignals(gp.new_tile)) {
 					/* For each signal we find decrease the counter by one.
 					 * We start at two, so the first signal we pass decreases
 					 * this to one, then if we reach the next signal it is

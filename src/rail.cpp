@@ -170,6 +170,10 @@ RailType GetTileRailType(TileIndex tile)
 			if (IsLevelCrossing(tile)) return GetRailType(tile);
 			break;
 
+		case TT_MISC:
+			if (IsRailDepotTile(tile)) return GetRailType(tile);
+			break;
+
 		case TT_STATION:
 			if (HasStationRail(tile)) return GetRailType(tile);
 			break;

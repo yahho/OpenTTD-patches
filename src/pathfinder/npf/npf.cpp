@@ -277,10 +277,8 @@ static void NPFMarkTile(TileIndex tile)
 	switch (GetTileType(tile)) {
 		case TT_RAILWAY:
 			/* DEBUG: mark visited tiles by mowing the grass under them ;-) */
-			if (!IsRailDepot(tile)) {
-				SetRailGroundType(tile, RAIL_GROUND_BARREN);
-				MarkTileDirtyByTile(tile);
-			}
+			SetRailGroundType(tile, RAIL_GROUND_BARREN);
+			MarkTileDirtyByTile(tile);
 			break;
 
 		case TT_ROAD:
@@ -447,7 +445,7 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 	/* Determine extra costs */
 
 	/* Check for signals */
-	if (IsRailwayOrDepotTile(tile)) {
+	if (IsRailwayTile(tile)) {
 		if (HasSignalOnTrackdir(tile, trackdir)) {
 			SignalType sigtype = GetSignalType(tile, TrackdirToTrack(trackdir));
 			/* Ordinary track with signals */
@@ -660,7 +658,7 @@ static void NPFSaveTargetData(AyStar *as, OpenListNode *current)
  */
 static bool CanEnterTileOwnerCheck(Owner owner, TileIndex tile, DiagDirection enterdir)
 {
-	if (IsRailwayOrDepotTile(tile) || // Rail tile (also rail depot)
+	if (IsRailwayTile(tile) || IsRailDepotTile(tile) || // Rail tile (also rail depot)
 			HasStationTileRail(tile) ||     // Rail station tile/waypoint
 			IsRoadDepotTile(tile) ||        // Road depot tile
 			IsStandardRoadStopTile(tile)) { // Road station tile (but not drive-through stops)
@@ -926,7 +924,7 @@ static void NPFFollowTrack(AyStar *aystar, OpenListNode *current)
 		DEBUG(npf, 5, "Expanded into trackdir: %d, remaining trackdirs: 0x%X", dst_trackdir, trackdirbits);
 
 		/* Tile with signals? */
-		if (IsRailwayOrDepotTile(dst_tile) && GetRailTileType(dst_tile) == RAIL_TILE_SIGNALS) {
+		if (IsRailwayTile(dst_tile) && GetRailTileType(dst_tile) == RAIL_TILE_SIGNALS) {
 			if (HasSignalOnTrackdir(dst_tile, ReverseTrackdir(dst_trackdir)) && !HasSignalOnTrackdir(dst_tile, dst_trackdir) && IsOnewaySignal(dst_tile, TrackdirToTrack(dst_trackdir))) {
 				/* If there's a one-way signal not pointing towards us, stop going in this direction. */
 				break;

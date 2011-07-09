@@ -58,8 +58,8 @@ ScriptVehicleList_Depot::ScriptVehicleList_Depot(TileIndex tile)
 			dest = GetStationIndex(tile);
 			break;
 
-		case TT_RAILWAY:
-			if (!IsRailDepot(tile)) return;
+		case TT_MISC:
+			if (!IsRailDepotTile(tile)) return;
 			type = VEH_TRAIN;
 			dest = GetDepotIndex(tile);
 			break;

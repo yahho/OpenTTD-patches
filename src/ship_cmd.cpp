@@ -48,7 +48,7 @@ WaterClass GetEffectiveWaterClass(TileIndex tile)
 		assert(GetTunnelBridgeTransportType(tile) == TRANSPORT_WATER);
 		return WATER_CLASS_CANAL;
 	}
-	if (IsRailwayOrDepotTile(tile)) {
+	if (IsRailwayTile(tile)) {
 		assert(GetRailGroundType(tile) == RAIL_GROUND_WATER);
 		return WATER_CLASS_SEA;
 	}

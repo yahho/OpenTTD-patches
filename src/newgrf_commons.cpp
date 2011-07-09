@@ -372,6 +372,14 @@ uint32 GetTerrainType(TileIndex tile, TileContext context)
 					has_snow = IsOnSnow(tile);
 					break;
 
+				case TT_MISC: {
+					assert(IsRailDepotTile(tile));
+					if (_generating_world) goto genworld;
+					RailGroundType ground = GetRailGroundType(tile);
+					has_snow = (ground == RAIL_GROUND_ICE_DESERT || (context == TCX_UPPER_HALFTILE && ground == RAIL_GROUND_HALF_SNOW));
+					break;
+				}
+
 				case TT_TUNNELBRIDGE_TEMP:
 					if (context == TCX_ON_BRIDGE) {
 						has_snow = (GetBridgeHeight(tile) > GetSnowLine());

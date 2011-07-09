@@ -206,7 +206,8 @@ static void InitializeWindowsAndCaches()
  */
 static void FixOwnerOfRailTrack(TileIndex t)
 {
-	assert(!Company::IsValidID(GetTileOwner(t)) && (IsLevelCrossingTile(t) || IsPlainRailTile(t)));
+	assert(!Company::IsValidID(GetTileOwner(t)));
+	assert(IsLevelCrossingTile(t) || IsRailwayTile(t));
 
 	/* remove leftover rail piece from crossing (from very old savegames) */
 	Train *v = NULL, *w;
@@ -743,6 +744,10 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 					if (!IsLevelCrossing(t)) continue;
 					break;
 
+				case TT_MISC:
+					if (!IsRailDepotTile(t)) continue;
+					break;
+
 				case TT_STATION:
 					if (!HasStationRail(t)) continue;
 					break;
@@ -1140,7 +1145,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 				if (IsLevelCrossing(t)) {
 					if (!Company::IsValidID(GetTileOwner(t))) FixOwnerOfRailTrack(t);
 				}
-			} else if (IsPlainRailTile(t)) {
+			} else if (IsRailwayTile(t)) {
 				if (!Company::IsValidID(GetTileOwner(t))) FixOwnerOfRailTrack(t);
 			}
 		}

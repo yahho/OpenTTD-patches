@@ -427,7 +427,9 @@ static inline SmallmapTileType GetEffectiveTileType(TileIndex tile)
 				case TRANSPORT_ROAD: return SMTT_ROAD;
 				default:             return SMTT_WATER;
 			}
-		case TT_MISC:     NOT_REACHED();
+		case TT_MISC:
+			assert(IsRailDepotTile(tile));
+			return SMTT_RAILWAY;
 	}
 
 	NOT_REACHED();

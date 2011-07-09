@@ -39,8 +39,8 @@ static OrderType GetOrderTypeByTile(TileIndex t)
 
 		case TT_WATER:   if (::IsShipDepot(t)) return OT_GOTO_DEPOT; break;
 		case TT_ROAD:    if (::GetRoadTileType(t) == ROAD_TILE_DEPOT) return OT_GOTO_DEPOT; break;
-		case TT_RAILWAY:
-			if (IsRailDepot(t)) return OT_GOTO_DEPOT;
+		case TT_MISC:
+			if (IsRailDepotTile(t)) return OT_GOTO_DEPOT;
 			break;
 	}
 

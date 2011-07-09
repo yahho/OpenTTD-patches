@@ -263,11 +263,14 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 					break;
 
 				case TT_RAILWAY:
-					if (!IsPlainRail(tile)) goto not_valid_below;
 					break;
 
 				case TT_ROAD:
 					if (IsRoadDepot(tile)) goto not_valid_below;
+					break;
+
+				case TT_MISC:
+					if (IsRailDepotTile(tile)) goto not_valid_below;
 					break;
 
 				case TT_TUNNELBRIDGE_TEMP:

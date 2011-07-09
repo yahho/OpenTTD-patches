@@ -110,7 +110,7 @@ void MoveWaypointsToBaseStations(const SavegameTypeVersion *stv)
 		new_wp->string_id = STR_SV_STNAME_WAYPOINT;
 
 		TileIndex t = wp->xy;
-		if (IsRailwayOrDepotTile(t) && GetRailTileType(t) == 2 /* RAIL_TILE_WAYPOINT */ && _mc[t].m2 == wp->index) {
+		if (IsRailwayTile(t) && GetRailTileType(t) == 2 /* RAIL_TILE_WAYPOINT */ && _mc[t].m2 == wp->index) {
 			/* The tile might've been reserved! */
 			bool reserved = !IsOTTDSavegameVersionBefore(stv, 100) && HasBit(_mc[t].m5, 4);
 

@@ -80,7 +80,7 @@ static void DisasterClearSquare(TileIndex tile)
 		cur_company.Restore();
 	} else switch (GetTileType(tile)) {
 		case TT_RAILWAY:
-			if (Company::IsHumanID(GetTileOwner(tile)) && !IsRailDepot(tile)) {
+			if (Company::IsHumanID(GetTileOwner(tile))) {
 				Backup<CompanyByte> cur_company(_current_company, OWNER_WATER, FILE_LINE);
 				DoCommand(tile, 0, 0, DC_EXEC, CMD_LANDSCAPE_CLEAR);
 				cur_company.Restore();
@@ -557,7 +557,7 @@ static bool DisasterTick_Big_Ufo(DisasterVehicle *v)
 		TileIndex tile_org = RandomTile();
 		TileIndex tile = tile_org;
 		do {
-			if (IsPlainRailTile(tile) &&
+			if (IsRailwayTile(tile) &&
 					Company::IsHumanID(GetTileOwner(tile))) {
 				break;
 			}

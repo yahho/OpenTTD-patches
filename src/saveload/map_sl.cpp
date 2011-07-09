@@ -733,9 +733,21 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					break;
 				}
 
-				case OLD_MP_RAILWAY:
+				case OLD_MP_RAILWAY: {
 					_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_RAILWAY << 4);
+					uint ground = GB(_mc[t].m4, 0, 4);
+					switch (GB(_mc[t].m5, 6, 2)) {
+						case 3: // railway depot
+							SB(_mc[t].m0, 4, 4, TT_MISC);
+							SB(_mc[t].m1, 6, 2, TT_MISC_DEPOT);
+							ClrBit(_mc[t].m1, 5);
+							SB(_mc[t].m3, 4, 4, ground);
+							_mc[t].m5 &= 0x13;
+							_mc[t].m4 = _mc[t].m7 = 0;
+							break;
+					}
 					break;
+				}
 
 				case OLD_MP_ROAD:
 					_mc[t].m4 = GB(_mc[t].m0, 3, 3);
