@@ -1899,6 +1899,9 @@
     <ClInclude Include="..\src\table\railtypes.h">
       <Filter>Tables</Filter>
     </ClInclude>
+    <ClCompile Include="..\src\table\road_land.cpp">
+      <Filter>Tables</Filter>
+    </ClCompile>
     <ClInclude Include="..\src\table\road_land.h">
       <Filter>Tables</Filter>
     </ClInclude>

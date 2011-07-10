@@ -37,6 +37,8 @@
 #include "company_gui.h"
 
 #include "table/strings.h"
+#include "table/road_land.h"
+
 
 /**
  * Verify whether a road vehicle is available.
@@ -1097,14 +1099,6 @@ static CommandCost ClearTile_Road(TileIndex tile, DoCommandFlag flags)
 	}
 }
 
-
-struct DrawRoadTileStruct {
-	uint16 image;
-	byte subcoord_x;
-	byte subcoord_y;
-};
-
-#include "table/road_land.h"
 
 /**
  * Get the foundationtype of a RoadBits Slope combination

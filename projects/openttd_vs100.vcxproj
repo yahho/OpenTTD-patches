@@ -890,6 +890,7 @@
     <ClInclude Include="..\src\table\palettes.h" />
     <ClInclude Include="..\src\table\pricebase.h" />
     <ClInclude Include="..\src\table\railtypes.h" />
+    <ClCompile Include="..\src\table\road_land.cpp" />
     <ClInclude Include="..\src\table\road_land.h" />
     <ClInclude Include="..\src\table\roadveh_movement.h" />
     <ClInclude Include="..\src\..\objs\settings\table\settings.h" />
