@@ -752,6 +752,16 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 				case OLD_MP_ROAD:
 					_mc[t].m4 = GB(_mc[t].m0, 3, 3);
 					_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_ROAD << 4);
+					switch (GB(_mc[t].m5, 6, 2)) {
+						case 2: // road depot
+							SB(_mc[t].m0, 4, 4, TT_MISC);
+							SB(_mc[t].m1, 6, 2, TT_MISC_DEPOT);
+							SetBit(_mc[t].m1, 5);
+							_mc[t].m3 = _mc[t].m4 = 0;
+							_mc[t].m5 &= 0x03;
+							_mc[t].m7 &= 0xE0;
+							break;
+					}
 					break;
 
 				case OLD_MP_HOUSE:

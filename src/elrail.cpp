@@ -368,7 +368,7 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 		Foundation foundation = FOUNDATION_NONE;
 
 		/* Station and road crossings are always "flat", so adjust the tileh accordingly */
-		if (IsStationTile(neighbour) || IsRoadOrDepotTile(neighbour)) tileh[TS_NEIGHBOUR] = SLOPE_FLAT;
+		if (IsStationTile(neighbour) || IsRoadOrCrossingTile(neighbour)) tileh[TS_NEIGHBOUR] = SLOPE_FLAT;
 
 		/* Read the foundations if they are present, and adjust the tileh */
 		if (trackconfig[TS_NEIGHBOUR] != TRACK_BIT_NONE && (IsRailwayTile(neighbour) || IsRailDepotTile(neighbour)) && HasCatenary(GetRailType(neighbour))) foundation = GetRailFoundation(tileh[TS_NEIGHBOUR], trackconfig[TS_NEIGHBOUR]);

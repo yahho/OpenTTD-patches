@@ -1327,7 +1327,7 @@ static int GrowTownAtRoad(Town *t, TileIndex tile)
 		}
 		tile = TileAddByDiagDir(tile, target_dir);
 
-		if (IsRoadOrDepotTile(tile) && !IsRoadDepot(tile) && HasTileRoadType(tile, ROADTYPE_ROAD)) {
+		if (IsRoadOrCrossingTile(tile) && HasTileRoadType(tile, ROADTYPE_ROAD)) {
 			/* Don't allow building over roads of other cities */
 			if (IsRoadOwner(tile, ROADTYPE_ROAD, OWNER_TOWN) && Town::GetByTile(tile) != t) {
 				_grow_town_result = GROWTH_SUCCEED;
@@ -3154,9 +3154,7 @@ Town *ClosestTownFromTile(TileIndex tile, uint threshold)
 {
 	if (IsHouseTile(tile)) {
 		return Town::GetByTile(tile);
-	} else if (IsRoadOrDepotTile(tile)) {
-		if (IsRoadDepot(tile)) return CalcClosestTownFromTile(tile, threshold);
-
+	} else if (IsRoadOrCrossingTile(tile)) {
 		if (HasTownOwnedRoad(tile)) return Town::GetByTile(tile);
 
 		TownID tid = GetTownIndex(tile);

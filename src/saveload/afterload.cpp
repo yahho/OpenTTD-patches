@@ -637,7 +637,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	 *  all about ;) */
 	if (IsOTTDSavegameVersionBefore(stv, 6, 1)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsHouseTile(t) || (IsRoadOrDepotTile(t) && GetRoadOwner(t, ROADTYPE_ROAD) == OWNER_TOWN)) {
+			if (IsHouseTile(t) || (IsRoadOrCrossingTile(t) && GetRoadOwner(t, ROADTYPE_ROAD) == OWNER_TOWN)) {
 				SetTownIndex(t, CalcClosestTownFromTile(t)->index);
 			}
 		}
@@ -680,7 +680,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 
 	if (IsOTTDSavegameVersionBefore(stv, 114)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsRoadOrDepotTile(t) && !IsRoadDepot(t) && !HasTownOwnedRoad(t)) {
+			if (IsRoadOrCrossingTile(t) && !HasTownOwnedRoad(t)) {
 				const Town *town = CalcClosestTownFromTile(t);
 				if (town != NULL) SetTownIndex(t, town->index);
 			}
@@ -1135,7 +1135,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 					 * (even if it is owned by active company) */
 					Waypoint::GetByTile(t)->owner = OWNER_NONE;
 				}
-			} else if (IsRoadOrDepotTile(t)) {
+			} else if (IsRoadOrCrossingTile(t)) {
 				/* works for all RoadTileType */
 				for (RoadType rt = ROADTYPE_ROAD; rt < ROADTYPE_END; rt++) {
 					/* update even non-existing road types to update tile owner too */

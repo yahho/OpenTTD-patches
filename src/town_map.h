@@ -19,12 +19,12 @@
 /**
  * Get the index of which town this house/street is attached to.
  * @param t the tile
- * @pre IsHouseTile(t) or IsRoadOrDepotTile(t) but not a road depot
+ * @pre IsHouseTile(t) or IsRoadOrCrossingTile(t)
  * @return TownID
  */
 static inline TownID GetTownIndex(TileIndex t)
 {
-	assert(IsHouseTile(t) || (IsRoadOrDepotTile(t) && !IsRoadDepot(t)));
+	assert(IsHouseTile(t) || IsRoadOrCrossingTile(t));
 	return _mc[t].m2;
 }
 
@@ -32,11 +32,11 @@ static inline TownID GetTownIndex(TileIndex t)
  * Set the town index for a road or house tile.
  * @param t the tile
  * @param index the index of the town
- * @pre IsHouseTile(t) or IsRoadOrDepotTile(t) but not a road depot
+ * @pre IsHouseTile(t) or IsRoadOrCrossingTile(t)
  */
 static inline void SetTownIndex(TileIndex t, TownID index)
 {
-	assert(IsHouseTile(t) || (IsRoadOrDepotTile(t) && !IsRoadDepot(t)));
+	assert(IsHouseTile(t) || IsRoadOrCrossingTile(t));
 	_mc[t].m2 = index;
 }
 

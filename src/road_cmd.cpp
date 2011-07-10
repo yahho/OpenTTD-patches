@@ -201,7 +201,7 @@ static CommandCost RemoveRoad(TileIndex tile, DoCommandFlag flags, RoadBits piec
 	CommandCost ret = CheckAllowRemoveRoad(tile, pieces, GetRoadOwner(tile, rt), rt, flags, town_check);
 	if (ret.Failed()) return ret;
 
-	if (!IsRoadOrDepotTile(tile)) {
+	if (!IsRoadOrCrossingTile(tile)) {
 		/* If it's the last roadtype, just clear the whole tile */
 		if (rts == RoadTypeToRoadTypes(rt)) return DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
 
@@ -384,7 +384,6 @@ static CommandCost RemoveRoad(TileIndex tile, DoCommandFlag flags, RoadBits piec
 		}
 
 		default:
-		case ROAD_TILE_DEPOT:
 			return CMD_ERROR;
 	}
 }
@@ -563,13 +562,15 @@ CommandCost CmdBuildRoad(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 					if (HasTileRoadType(tile, rt)) return_cmd_error(STR_ERROR_ALREADY_BUILT);
 					break;
 
-				case ROAD_TILE_DEPOT:
-					if ((GetAnyRoadBits(tile, rt) & pieces) == pieces) return_cmd_error(STR_ERROR_ALREADY_BUILT);
-					goto do_clear;
-
 				default: NOT_REACHED();
 			}
 			break;
+
+		case TT_MISC:
+			if (IsRoadDepotTile(tile)) {
+				if ((GetAnyRoadBits(tile, rt) & pieces) == pieces) return_cmd_error(STR_ERROR_ALREADY_BUILT);
+			}
+			goto do_clear;
 
 		case TT_RAILWAY: {
 			if (IsSteepSlope(tileh)) {
@@ -678,7 +679,7 @@ do_clear:;
 	}
 
 	if (!need_to_clear) {
-		if (IsRoadOrDepotTile(tile)) {
+		if (IsRoadOrCrossingTile(tile)) {
 			/* Don't put the pieces that already exist */
 			pieces &= ComplementRoadBits(existing);
 
@@ -1022,31 +1023,6 @@ CommandCost CmdBuildRoadDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 	return cost;
 }
 
-static CommandCost RemoveRoadDepot(TileIndex tile, DoCommandFlag flags)
-{
-	if (_current_company != OWNER_WATER) {
-		CommandCost ret = CheckTileOwnership(tile);
-		if (ret.Failed()) return ret;
-	}
-
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Failed()) return ret;
-
-	if (flags & DC_EXEC) {
-		Company *c = Company::GetIfValid(GetTileOwner(tile));
-		if (c != NULL) {
-			/* A road depot has two road bits. */
-			c->infrastructure.road[FIND_FIRST_BIT(GetRoadTypes(tile))] -= 2;
-			DirtyCompanyInfrastructureWindows(c->index);
-		}
-
-		delete Depot::GetByTile(tile);
-		DoClearSquare(tile);
-	}
-
-	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_DEPOT_ROAD]);
-}
-
 static CommandCost ClearTile_Road(TileIndex tile, DoCommandFlag flags)
 {
 	switch (GetRoadTileType(tile)) {
@@ -1090,12 +1066,7 @@ static CommandCost ClearTile_Road(TileIndex tile, DoCommandFlag flags)
 			return ret;
 		}
 
-		default:
-		case ROAD_TILE_DEPOT:
-			if (flags & DC_AUTO) {
-				return_cmd_error(STR_ERROR_BUILDING_MUST_BE_DEMOLISHED);
-			}
-			return RemoveRoadDepot(tile, flags);
+		default: NOT_REACHED();
 	}
 }
 
@@ -1361,44 +1332,9 @@ static void DrawTile_Road(TileInfo *ti)
 			break;
 		}
 
-		default:
-		case ROAD_TILE_DEPOT: {
-			if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
-
-			PaletteID palette = COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile));
-
-			const DrawTileSprites *dts;
-			if (HasTileRoadType(ti->tile, ROADTYPE_TRAM)) {
-				dts =  &_tram_depot[GetRoadDepotDirection(ti->tile)];
-			} else {
-				dts =  &_road_depot[GetRoadDepotDirection(ti->tile)];
-			}
-
-			DrawGroundSprite(dts->ground.sprite, PAL_NONE);
-			DrawOrigTileSeq(ti, dts, TO_BUILDINGS, palette);
-			break;
-		}
+		default: NOT_REACHED();
 	}
 	DrawBridgeMiddle(ti);
-}
-
-/**
- * Draw the road depot sprite.
- * @param x   The x offset to draw at.
- * @param y   The y offset to draw at.
- * @param dir The direction the depot must be facing.
- * @param rt  The road type of the depot to draw.
- */
-void DrawRoadDepotSprite(int x, int y, DiagDirection dir, RoadType rt)
-{
-	PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
-	const DrawTileSprites *dts = (rt == ROADTYPE_TRAM) ? &_tram_depot[dir] : &_road_depot[dir];
-
-	x += 33;
-	y += 17;
-
-	DrawSprite(dts->ground.sprite, PAL_NONE, x, y);
-	DrawOrigTileSeqInGUI(x, y, dts, palette);
 }
 
 /**
@@ -1411,7 +1347,7 @@ void UpdateNearestTownForRoadTiles(bool invalidate)
 	assert(!invalidate || _generating_world);
 
 	for (TileIndex t = 0; t < MapSize(); t++) {
-		if (IsRoadOrDepotTile(t) && !IsRoadDepot(t) && !HasTownOwnedRoad(t)) {
+		if (IsRoadOrCrossingTile(t) && !HasTownOwnedRoad(t)) {
 			TownID tid = (TownID)INVALID_TOWN;
 			if (!invalidate) {
 				const Town *town = CalcClosestTownFromTile(t);
@@ -1482,8 +1418,6 @@ static void TileLoop_Road(TileIndex tile)
 			break;
 	}
 
-	if (IsRoadDepot(tile)) return;
-
 	const Town *t = ClosestTownFromTile(tile, UINT_MAX);
 	if (!HasRoadWorks(tile)) {
 		HouseZonesBits grp = HZB_TOWN_EDGE;
@@ -1550,10 +1484,7 @@ static void TileLoop_Road(TileIndex tile)
 
 static bool ClickTile_Road(TileIndex tile)
 {
-	if (!IsRoadDepot(tile)) return false;
-
-	ShowDepotWindow(tile, VEH_ROAD);
-	return true;
+	return false;
 }
 
 static TrackStatus GetTileTrackStatus_Road(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
@@ -1618,15 +1549,7 @@ static TrackStatus GetTileTrackStatus_Road(TileIndex tile, TransportType mode, u
 					break;
 				}
 
-				default:
-				case ROAD_TILE_DEPOT: {
-					DiagDirection dir = GetRoadDepotDirection(tile);
-
-					if (side != INVALID_DIAGDIR && side != dir) break;
-
-					trackdirbits = TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir));
-					break;
-				}
+				default: NOT_REACHED();
 			}
 			break;
 
@@ -1666,12 +1589,6 @@ static void GetTileDesc_Road(TileIndex tile, TileDesc *td)
 			break;
 		}
 
-		case ROAD_TILE_DEPOT:
-			td->str = STR_LAI_ROAD_DESCRIPTION_ROAD_VEHICLE_DEPOT;
-			road_owner = GetTileOwner(tile); // Tile has only one owner, roadtype does not matter
-			td->build_date = Depot::GetByTile(tile)->build_date;
-			break;
-
 		default: {
 			RoadTypes rts = GetRoadTypes(tile);
 			td->str = (HasBit(rts, ROADTYPE_ROAD) ? _road_tile_strings[GetRoadside(tile)] : STR_LAI_ROAD_DESCRIPTION_TRAMWAY);
@@ -1703,59 +1620,14 @@ static void GetTileDesc_Road(TileIndex tile, TileDesc *td)
 	}
 }
 
-/**
- * Given the direction the road depot is pointing, this is the direction the
- * vehicle should be travelling in in order to enter the depot.
- */
-static const byte _roadveh_enter_depot_dir[4] = {
-	TRACKDIR_X_SW, TRACKDIR_Y_NW, TRACKDIR_X_NE, TRACKDIR_Y_SE
-};
-
 static VehicleEnterTileStatus VehicleEnter_Road(Vehicle *v, TileIndex tile, int x, int y)
 {
-	switch (GetRoadTileType(tile)) {
-		case ROAD_TILE_DEPOT: {
-			if (v->type != VEH_ROAD) break;
-
-			RoadVehicle *rv = RoadVehicle::From(v);
-			if (rv->frame == RVC_DEPOT_STOP_FRAME &&
-					_roadveh_enter_depot_dir[GetRoadDepotDirection(tile)] == rv->state) {
-				rv->state = RVSB_IN_DEPOT;
-				rv->vehstatus |= VS_HIDDEN;
-				rv->direction = ReverseDir(rv->direction);
-				if (rv->Next() == NULL) VehicleEnterDepot(rv->First());
-				rv->tile = tile;
-
-				InvalidateWindowData(WC_VEHICLE_DEPOT, rv->tile);
-				return VETSB_ENTERED_WORMHOLE;
-			}
-			break;
-		}
-
-		default: break;
-	}
 	return VETSB_CONTINUE;
 }
 
 
 static void ChangeTileOwner_Road(TileIndex tile, Owner old_owner, Owner new_owner)
 {
-	if (IsRoadDepot(tile)) {
-		if (GetTileOwner(tile) == old_owner) {
-			if (new_owner == INVALID_OWNER) {
-				DoCommand(tile, 0, 0, DC_EXEC | DC_BANKRUPT, CMD_LANDSCAPE_CLEAR);
-			} else {
-				/* A road depot has two road bits. No need to dirty windows here, we'll redraw the whole screen anyway. */
-				RoadType rt = (RoadType)FIND_FIRST_BIT(GetRoadTypes(tile));
-				Company::Get(old_owner)->infrastructure.road[rt] -= 2;
-				Company::Get(new_owner)->infrastructure.road[rt] += 2;
-
-				SetTileOwner(tile, new_owner);
-			}
-		}
-		return;
-	}
-
 	for (RoadType rt = ROADTYPE_ROAD; rt < ROADTYPE_END; rt++) {
 		/* Update all roadtypes, no matter if they are present */
 		if (GetRoadOwner(tile, rt) == old_owner) {
@@ -1791,10 +1663,6 @@ static CommandCost TerraformTile_Road(TileIndex tile, DoCommandFlag flags, int z
 		switch (GetRoadTileType(tile)) {
 			case ROAD_TILE_CROSSING:
 				if (!IsSteepSlope(tileh_new) && (GetTileMaxZ(tile) == z_new + GetSlopeMaxZ(tileh_new)) && HasBit(VALID_LEVEL_CROSSING_SLOPES, tileh_new)) return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
-				break;
-
-			case ROAD_TILE_DEPOT:
-				if (AutoslopeCheckForEntranceEdge(tile, z_new, tileh_new, GetRoadDepotDirection(tile))) return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
 				break;
 
 			case ROAD_TILE_NORMAL: {

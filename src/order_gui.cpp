@@ -362,10 +362,7 @@ static Order GetOrderCmdFromTile(const Vehicle *v, TileIndex tile)
 				if (_ctrl_pressed) order.SetDepotOrderType((OrderDepotTypeFlags)(order.GetDepotOrderType() ^ ODTFB_SERVICE));
 				return order;
 			}
-			break;
-
-		case TT_ROAD:
-			if (IsRoadDepot(tile) && v->type == VEH_ROAD && IsTileOwner(tile, _local_company)) {
+			if (IsRoadDepotTile(tile) && v->type == VEH_ROAD && IsTileOwner(tile, _local_company)) {
 				order.MakeGoToDepot(GetDepotIndex(tile), ODTFB_PART_OF_ORDERS,
 						_settings_client.gui.new_nonstop ? ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS : ONSF_STOP_EVERYWHERE);
 				if (_ctrl_pressed) order.SetDepotOrderType((OrderDepotTypeFlags)(order.GetDepotOrderType() ^ ODTFB_SERVICE));

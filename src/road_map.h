@@ -23,25 +23,24 @@
 enum RoadTileType {
 	ROAD_TILE_NORMAL,   ///< Normal road
 	ROAD_TILE_CROSSING, ///< Level crossing
-	ROAD_TILE_DEPOT,    ///< Depot (one entrance)
 };
 
 /**
  * Get the type of the road tile.
  * @param t Tile to query.
- * @pre IsRoadOrDepotTile(t)
+ * @pre IsRoadOrCrossingTile(t)
  * @return The road tile type.
  */
 static inline RoadTileType GetRoadTileType(TileIndex t)
 {
-	assert(IsRoadOrDepotTile(t));
+	assert(IsRoadOrCrossingTile(t));
 	return (RoadTileType)GB(_mc[t].m5, 6, 2);
 }
 
 /**
  * Return whether a tile is a normal road.
  * @param t Tile to query.
- * @pre IsRoadOrDepotTile(t)
+ * @pre IsRoadOrCrossingTile(t)
  * @return True if normal road.
  */
 static inline bool IsNormalRoad(TileIndex t)
@@ -56,13 +55,13 @@ static inline bool IsNormalRoad(TileIndex t)
  */
 static inline bool IsNormalRoadTile(TileIndex t)
 {
-	return IsRoadOrDepotTile(t) && IsNormalRoad(t);
+	return IsRoadOrCrossingTile(t) && IsNormalRoad(t);
 }
 
 /**
  * Return whether a tile is a level crossing.
  * @param t Tile to query.
- * @pre IsRoadOrDepotTile(t)
+ * @pre IsRoadOrCrossingTile(t)
  * @return True if level crossing.
  */
 static inline bool IsLevelCrossing(TileIndex t)
@@ -77,18 +76,7 @@ static inline bool IsLevelCrossing(TileIndex t)
  */
 static inline bool IsLevelCrossingTile(TileIndex t)
 {
-	return IsRoadOrDepotTile(t) && IsLevelCrossing(t);
-}
-
-/**
- * Return whether a tile is a road depot.
- * @param t Tile to query.
- * @pre IsRoadOrDepotTile(t)
- * @return True if road depot.
- */
-static inline bool IsRoadDepot(TileIndex t)
-{
-	return GetRoadTileType(t) == ROAD_TILE_DEPOT;
+	return IsRoadOrCrossingTile(t) && IsLevelCrossing(t);
 }
 
 /**
@@ -98,7 +86,7 @@ static inline bool IsRoadDepot(TileIndex t)
  */
 static inline bool IsRoadDepotTile(TileIndex t)
 {
-	return IsRoadOrDepotTile(t) && IsRoadDepot(t);
+	return IsTileTypeSubtype(t, TT_MISC, TT_MISC_DEPOT) && HasBit(_mc[t].m1, 5);
 }
 
 /**
@@ -175,7 +163,7 @@ static inline RoadTypes GetRoadTypes(TileIndex t)
  */
 static inline void SetRoadTypes(TileIndex t, RoadTypes rt)
 {
-	assert(IsRoadOrDepotTile(t) || IsStationTile(t) || IsTunnelBridgeTile(t));
+	assert(IsRoadOrCrossingTile(t) || IsRoadDepotTile(t) || IsStationTile(t) || IsTunnelBridgeTile(t));
 	SB(_mc[t].m7, 6, 2, rt);
 }
 
@@ -198,7 +186,7 @@ static inline bool HasTileRoadType(TileIndex t, RoadType rt)
  */
 static inline Owner GetRoadOwner(TileIndex t, RoadType rt)
 {
-	assert(IsRoadOrDepotTile(t) || IsStationTile(t) || IsTunnelBridgeTile(t));
+	assert(IsRoadOrCrossingTile(t) || IsStationTile(t) || IsTunnelBridgeTile(t));
 	switch (rt) {
 		default: NOT_REACHED();
 		case ROADTYPE_ROAD: return (Owner)GB(IsNormalRoadTile(t) ? _mc[t].m1 : _mc[t].m7, 0, 5);
@@ -219,6 +207,7 @@ static inline Owner GetRoadOwner(TileIndex t, RoadType rt)
  */
 static inline void SetRoadOwner(TileIndex t, RoadType rt, Owner o)
 {
+	assert(IsRoadOrCrossingTile(t) || IsStationTile(t) || IsTunnelBridgeTile(t));
 	switch (rt) {
 		default: NOT_REACHED();
 		case ROADTYPE_ROAD: SB(IsNormalRoadTile(t) ? _mc[t].m1 : _mc[t].m7, 0, 5, o); break;
@@ -243,7 +232,7 @@ static inline bool IsRoadOwner(TileIndex t, RoadType rt, Owner o)
 /**
  * Checks if given tile has town owned road
  * @param t tile to check
- * @pre IsRoadOrDepotTile(t)
+ * @pre IsRoadOrCrossingTile(t)
  * @return true iff tile has road and the road is owned by a town
  */
 static inline bool HasTownOwnedRoad(TileIndex t)
@@ -461,6 +450,7 @@ enum Roadside {
  */
 static inline Roadside GetRoadside(TileIndex tile)
 {
+	assert(IsRoadOrCrossingTile(tile));
 	return (Roadside)_mc[tile].m4;
 }
 
@@ -471,6 +461,7 @@ static inline Roadside GetRoadside(TileIndex tile)
  */
 static inline void SetRoadside(TileIndex tile, Roadside s)
 {
+	assert(IsRoadOrCrossingTile(tile));
 	_mc[tile].m4 = s;
 }
 
@@ -533,7 +524,7 @@ static inline void TerminateRoadWorks(TileIndex t)
  */
 static inline DiagDirection GetRoadDepotDirection(TileIndex t)
 {
-	assert(IsRoadDepot(t));
+	assert(IsRoadDepotTile(t));
 	return (DiagDirection)GB(_mc[t].m5, 0, 2);
 }
 
@@ -597,15 +588,15 @@ static inline void MakeRoadCrossing(TileIndex t, Owner road, Owner tram, Owner r
  */
 static inline void MakeRoadDepot(TileIndex t, Owner owner, DepotID did, DiagDirection dir, RoadType rt)
 {
-	SetTileType(t, TT_ROAD);
+	SetTileTypeSubtype(t, TT_MISC, TT_MISC_DEPOT);
+	SetBit(_mc[t].m1, 5);
+	SB(_mc[t].m0, 2, 2, 0);
 	SetTileOwner(t, owner);
 	_mc[t].m2 = did;
 	_mc[t].m3 = 0;
 	_mc[t].m4 = 0;
-	_mc[t].m5 = ROAD_TILE_DEPOT << 6 | dir;
-	SB(_mc[t].m0, 2, 2, 0);
-	_mc[t].m7 = RoadTypeToRoadTypes(rt) << 6 | owner;
-	SetRoadOwner(t, ROADTYPE_TRAM, owner);
+	_mc[t].m5 = dir;
+	_mc[t].m7 = RoadTypeToRoadTypes(rt) << 6;
 }
 
 #endif /* ROAD_MAP_H */

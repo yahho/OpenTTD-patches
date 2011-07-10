@@ -17,6 +17,7 @@
 #include "vehicle_func.h"
 #include "pbs.h"
 #include "train.h"
+#include "roadveh.h"
 #include "depot_base.h"
 #include "viewport_func.h"
 #include "newgrf_railtype.h"
@@ -31,9 +32,10 @@
 
 #include "table/strings.h"
 #include "table/track_land.h"
+#include "table/road_land.h"
 
 
-static void DrawTile_Misc(TileInfo *ti)
+static void DrawTrainDepot(TileInfo *ti)
 {
 	assert(IsRailDepotTile(ti->tile));
 
@@ -149,10 +151,58 @@ void DrawTrainDepotSprite(int x, int y, int dir, RailType railtype)
 	DrawRailTileSeqInGUI(x, y, dts, offset, 0, palette);
 }
 
+static void DrawRoadDepot(TileInfo *ti)
+{
+	assert(IsRoadDepotTile(ti->tile));
+
+	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
+
+	PaletteID palette = COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile));
+
+	const DrawTileSprites *dts;
+	if (HasTileRoadType(ti->tile, ROADTYPE_TRAM)) {
+		dts =  &_tram_depot[GetRoadDepotDirection(ti->tile)];
+	} else {
+		dts =  &_road_depot[GetRoadDepotDirection(ti->tile)];
+	}
+
+	DrawGroundSprite(dts->ground.sprite, PAL_NONE);
+	DrawOrigTileSeq(ti, dts, TO_BUILDINGS, palette);
+}
+
+/**
+ * Draw the road depot sprite.
+ * @param x   The x offset to draw at.
+ * @param y   The y offset to draw at.
+ * @param dir The direction the depot must be facing.
+ * @param rt  The road type of the depot to draw.
+ */
+void DrawRoadDepotSprite(int x, int y, DiagDirection dir, RoadType rt)
+{
+	PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
+	const DrawTileSprites *dts = (rt == ROADTYPE_TRAM) ? &_tram_depot[dir] : &_road_depot[dir];
+
+	x += 33;
+	y += 17;
+
+	DrawSprite(dts->ground.sprite, PAL_NONE, x, y);
+	DrawOrigTileSeqInGUI(x, y, dts, palette);
+}
+
+static void DrawTile_Misc(TileInfo *ti)
+{
+	assert(IsRailDepotTile(ti->tile) || IsRoadDepotTile(ti->tile));
+
+	if (IsRailDepotTile(ti->tile)) {
+		DrawTrainDepot(ti);
+	} else {
+		DrawRoadDepot(ti);
+	}
+}
 
 static int GetSlopePixelZ_Misc(TileIndex tile, uint x, uint y)
 {
-	assert(IsRailDepotTile(tile));
+	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
 
 	return GetTileMaxPixelZ(tile);
 }
@@ -192,11 +242,34 @@ static CommandCost RemoveTrainDepot(TileIndex tile, DoCommandFlag flags)
 	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_DEPOT_TRAIN]);
 }
 
+static CommandCost RemoveRoadDepot(TileIndex tile, DoCommandFlag flags)
+{
+	if (_current_company != OWNER_WATER) {
+		CommandCost ret = CheckTileOwnership(tile);
+		if (ret.Failed()) return ret;
+	}
+
+	CommandCost ret = EnsureNoVehicleOnGround(tile);
+	if (ret.Failed()) return ret;
+
+	if (flags & DC_EXEC) {
+		Company *c = Company::GetIfValid(GetTileOwner(tile));
+		if (c != NULL) {
+			/* A road depot has two road bits. */
+			c->infrastructure.road[FIND_FIRST_BIT(GetRoadTypes(tile))] -= 2;
+			DirtyCompanyInfrastructureWindows(c->index);
+		}
+
+		delete Depot::GetByTile(tile);
+		DoClearSquare(tile);
+	}
+
+	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_DEPOT_ROAD]);
+}
+
 static CommandCost ClearTile_Misc(TileIndex tile, DoCommandFlag flags)
 {
-	assert(IsRailDepotTile(tile));
-
-	CommandCost cost(EXPENSES_CONSTRUCTION);
+	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
 
 	if (flags & DC_AUTO) {
 		if (!IsTileOwner(tile, _current_company)) {
@@ -205,100 +278,139 @@ static CommandCost ClearTile_Misc(TileIndex tile, DoCommandFlag flags)
 		return_cmd_error(STR_ERROR_BUILDING_MUST_BE_DEMOLISHED);
 	}
 
-	return RemoveTrainDepot(tile, flags);
+	return IsRailDepotTile(tile) ? RemoveTrainDepot(tile, flags) : RemoveRoadDepot(tile, flags);
 }
 
 
 static void GetTileDesc_Misc(TileIndex tile, TileDesc *td)
 {
-	assert(IsRailDepotTile(tile));
+	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
 
 	td->owner[0] = GetTileOwner(tile);
-	td->str = STR_LAI_RAIL_DESCRIPTION_TRAIN_DEPOT;
 	td->build_date = Depot::GetByTile(tile)->build_date;
 
-	const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(tile));
-	SetDParamX(td->dparam, 0, rti->strings.name);
-	td->rail_speed = rti->max_speed;
+	if (IsRailDepotTile(tile)) {
+		td->str = STR_LAI_RAIL_DESCRIPTION_TRAIN_DEPOT;
 
-	if (_settings_game.vehicle.train_acceleration_model != AM_ORIGINAL) {
-		if (td->rail_speed > 0) {
-			td->rail_speed = min(td->rail_speed, 61);
-		} else {
-			td->rail_speed = 61;
+		const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(tile));
+		SetDParamX(td->dparam, 0, rti->strings.name);
+		td->rail_speed = rti->max_speed;
+
+		if (_settings_game.vehicle.train_acceleration_model != AM_ORIGINAL) {
+			if (td->rail_speed > 0) {
+				td->rail_speed = min(td->rail_speed, 61);
+			} else {
+				td->rail_speed = 61;
+			}
 		}
+	} else {
+		td->str = STR_LAI_ROAD_DESCRIPTION_ROAD_VEHICLE_DEPOT;
 	}
 }
 
 
 static TrackStatus GetTileTrackStatus_Misc(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
 {
-	assert(IsRailDepotTile(tile));
+	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
 
-	if (mode != TRANSPORT_RAIL) return 0;
+	DiagDirection dir;
 
-	DiagDirection dir = GetRailDepotDirection(tile);
+	if (IsRailDepotTile(tile)) {
+		if (mode != TRANSPORT_RAIL) return 0;
 
-	TrackBits trackbits = (side == INVALID_DIAGDIR || side == dir) ? DiagDirToDiagTrackBits(dir) : TRACK_BIT_NONE;
+		dir = GetRailDepotDirection(tile);
+	} else {
+		if ((mode != TRANSPORT_ROAD) || ((GetRoadTypes(tile) & sub_mode) == 0)) return 0;
 
-	return CombineTrackStatus(TrackBitsToTrackdirBits(trackbits), TRACKDIR_BIT_NONE);
+		dir = GetRoadDepotDirection(tile);
+	}
+
+	if (side != INVALID_DIAGDIR && side != dir) return 0;
+
+	TrackdirBits trackdirbits = TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir));
+	return CombineTrackStatus(trackdirbits, TRACKDIR_BIT_NONE);
 }
 
 
 static bool ClickTile_Misc(TileIndex tile)
 {
-	assert(IsRailDepotTile(tile));
+	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
 
-	ShowDepotWindow(tile, VEH_TRAIN);
+	ShowDepotWindow(tile, IsRailDepotTile(tile) ? VEH_TRAIN : VEH_ROAD);
 	return true;
 }
 
 
 static void TileLoop_Misc(TileIndex tile)
 {
-	assert(IsRailDepotTile(tile));
+	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
 
-	RailGroundType ground;
+	if (IsRailDepotTile(tile)) {
+		RailGroundType ground;
 
-	switch (_settings_game.game_creation.landscape) {
-		case LT_ARCTIC: {
-			int z;
-			Slope slope = GetTileSlope(tile, &z);
+		switch (_settings_game.game_creation.landscape) {
+			case LT_ARCTIC: {
+				int z;
+				Slope slope = GetTileSlope(tile, &z);
 
-			/* is the depot on a non-flat tile? */
-			if (slope != SLOPE_FLAT) z++;
+				/* is the depot on a non-flat tile? */
+				if (slope != SLOPE_FLAT) z++;
 
-			ground = (z > GetSnowLine()) ? RAIL_GROUND_ICE_DESERT : RAIL_GROUND_GRASS;
-			break;
+				ground = (z > GetSnowLine()) ? RAIL_GROUND_ICE_DESERT : RAIL_GROUND_GRASS;
+				break;
+			}
+
+			case LT_TROPIC:
+				ground = (GetTropicZone(tile) == TROPICZONE_DESERT) ? RAIL_GROUND_ICE_DESERT : RAIL_GROUND_GRASS;
+				break;
+
+			default:
+				ground = RAIL_GROUND_GRASS;
+				break;
 		}
 
-		case LT_TROPIC:
-			ground = (GetTropicZone(tile) == TROPICZONE_DESERT) ? RAIL_GROUND_ICE_DESERT : RAIL_GROUND_GRASS;
-			break;
+		if (ground != GetRailGroundType(tile)) {
+			SetRailGroundType(tile, ground);
+			MarkTileDirtyByTile(tile);
+		}
+	} else {
+		switch (_settings_game.game_creation.landscape) {
+			case LT_ARCTIC:
+				if (IsOnSnow(tile) != (GetTileZ(tile) > GetSnowLine())) {
+					ToggleSnow(tile);
+					MarkTileDirtyByTile(tile);
+				}
+				break;
 
-		default:
-			ground = RAIL_GROUND_GRASS;
-			break;
-	}
-
-	if (ground != GetRailGroundType(tile)) {
-		SetRailGroundType(tile, ground);
-		MarkTileDirtyByTile(tile);
+			case LT_TROPIC:
+				if (GetTropicZone(tile) == TROPICZONE_DESERT && !IsOnDesert(tile)) {
+					ToggleDesert(tile);
+					MarkTileDirtyByTile(tile);
+				}
+				break;
+		}
 	}
 }
 
 
 static void ChangeTileOwner_Misc(TileIndex tile, Owner old_owner, Owner new_owner)
 {
-	assert(IsRailDepotTile(tile));
+	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
 
 	if (!IsTileOwner(tile, old_owner)) return;
 
 	if (new_owner != INVALID_OWNER) {
 		/* Update company infrastructure counts. No need to dirty windows here, we'll redraw the whole screen anyway. */
-		RailType rt = GetRailType(tile);
-		Company::Get(old_owner)->infrastructure.rail[rt]--;
-		Company::Get(new_owner)->infrastructure.rail[rt]++;
+		if (IsRailDepotTile(tile)) {
+			RailType rt = GetRailType(tile);
+			Company::Get(old_owner)->infrastructure.rail[rt]--;
+			Company::Get(new_owner)->infrastructure.rail[rt]++;
+		} else {
+			/* A road depot has two road bits. */
+			RoadType rt = (RoadType)FIND_FIRST_BIT(GetRoadTypes(tile));
+			Company::Get(old_owner)->infrastructure.road[rt] -= 2;
+			Company::Get(new_owner)->infrastructure.road[rt] += 2;
+		}
 
 		SetTileOwner(tile, new_owner);
 	} else {
@@ -334,51 +446,75 @@ int TicksToLeaveDepot(const Train *v)
 	return 0; // make compilers happy
 }
 
+/**
+ * Given the direction the road depot is pointing, this is the direction the
+ * vehicle should be travelling in in order to enter the depot.
+ */
+static const byte _roadveh_enter_depot_dir[4] = {
+	TRACKDIR_X_SW, TRACKDIR_Y_NW, TRACKDIR_X_NE, TRACKDIR_Y_SE
+};
+
 static VehicleEnterTileStatus VehicleEnter_Misc(Vehicle *u, TileIndex tile, int x, int y)
 {
-	assert(IsRailDepotTile(tile));
+	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
 
-	/* this routine applies only to trains in depot tiles */
-	if (u->type != VEH_TRAIN) return VETSB_CONTINUE;
+	if (IsRailDepotTile(tile)) {
+		if (u->type != VEH_TRAIN) return VETSB_CONTINUE;
 
-	Train *v = Train::From(u);
+		Train *v = Train::From(u);
 
-	/* depot direction */
-	DiagDirection dir = GetRailDepotDirection(tile);
+		/* depot direction */
+		DiagDirection dir = GetRailDepotDirection(tile);
 
-	byte fract_coord_x = x & 0xF;
-	byte fract_coord_y = y & 0xF;
+		byte fract_coord_x = x & 0xF;
+		byte fract_coord_y = y & 0xF;
 
-	/* make sure a train is not entering the tile from behind */
-	assert(DistanceFromTileEdge(ReverseDiagDir(dir), fract_coord_x, fract_coord_y) != 0);
+		/* make sure a train is not entering the tile from behind */
+		assert(DistanceFromTileEdge(ReverseDiagDir(dir), fract_coord_x, fract_coord_y) != 0);
 
-	if (v->direction == DiagDirToDir(ReverseDiagDir(dir))) {
-		if (fract_coord_x == _fractcoords_enter_x[dir] && fract_coord_y == _fractcoords_enter_y[dir]) {
-			/* enter the depot */
-			v->track = TRACK_BIT_DEPOT,
-			v->vehstatus |= VS_HIDDEN; // hide it
-			v->direction = ReverseDir(v->direction);
-			if (v->Next() == NULL) VehicleEnterDepot(v->First());
-			v->tile = tile;
+		if (v->direction == DiagDirToDir(ReverseDiagDir(dir))) {
+			if (fract_coord_x == _fractcoords_enter_x[dir] && fract_coord_y == _fractcoords_enter_y[dir]) {
+				/* enter the depot */
+				v->track = TRACK_BIT_DEPOT,
+				v->vehstatus |= VS_HIDDEN; // hide it
+				v->direction = ReverseDir(v->direction);
+				if (v->Next() == NULL) VehicleEnterDepot(v->First());
+				v->tile = tile;
 
-			InvalidateWindowData(WC_VEHICLE_DEPOT, v->tile);
-			return VETSB_ENTERED_WORMHOLE;
-		}
-	} else if (v->direction == DiagDirToDir(dir)) {
-		/* Calculate the point where the following wagon should be activated. */
-		int length = v->CalcNextVehicleOffset();
-
-		byte fract_coord_leave_x = _fractcoords_enter_x[dir] +
-			(length + 1) * _deltacoord_leaveoffset_x[dir];
-		byte fract_coord_leave_y = _fractcoords_enter_y[dir] +
-			(length + 1) * _deltacoord_leaveoffset_y[dir];
-
-		if (fract_coord_x == fract_coord_leave_x && fract_coord_y == fract_coord_leave_y) {
-			/* leave the depot? */
-			if ((v = v->Next()) != NULL) {
-				v->vehstatus &= ~VS_HIDDEN;
-				v->track = (DiagDirToAxis(dir) == AXIS_X ? TRACK_BIT_X : TRACK_BIT_Y);
+				InvalidateWindowData(WC_VEHICLE_DEPOT, v->tile);
+				return VETSB_ENTERED_WORMHOLE;
 			}
+		} else if (v->direction == DiagDirToDir(dir)) {
+			/* Calculate the point where the following wagon should be activated. */
+			int length = v->CalcNextVehicleOffset();
+
+			byte fract_coord_leave_x = _fractcoords_enter_x[dir] +
+				(length + 1) * _deltacoord_leaveoffset_x[dir];
+			byte fract_coord_leave_y = _fractcoords_enter_y[dir] +
+				(length + 1) * _deltacoord_leaveoffset_y[dir];
+
+			if (fract_coord_x == fract_coord_leave_x && fract_coord_y == fract_coord_leave_y) {
+				/* leave the depot? */
+				if ((v = v->Next()) != NULL) {
+					v->vehstatus &= ~VS_HIDDEN;
+					v->track = (DiagDirToAxis(dir) == AXIS_X ? TRACK_BIT_X : TRACK_BIT_Y);
+				}
+			}
+		}
+	} else {
+		if (u->type != VEH_ROAD) return VETSB_CONTINUE;
+
+		RoadVehicle *rv = RoadVehicle::From(u);
+		if (rv->frame == RVC_DEPOT_STOP_FRAME &&
+				_roadveh_enter_depot_dir[GetRoadDepotDirection(tile)] == rv->state) {
+			rv->state = RVSB_IN_DEPOT;
+			rv->vehstatus |= VS_HIDDEN;
+			rv->direction = ReverseDir(rv->direction);
+			if (rv->Next() == NULL) VehicleEnterDepot(rv->First());
+			rv->tile = tile;
+
+			InvalidateWindowData(WC_VEHICLE_DEPOT, rv->tile);
+			return VETSB_ENTERED_WORMHOLE;
 		}
 	}
 
@@ -388,7 +524,7 @@ static VehicleEnterTileStatus VehicleEnter_Misc(Vehicle *u, TileIndex tile, int 
 
 static Foundation GetFoundation_Misc(TileIndex tile, Slope tileh)
 {
-	assert(IsRailDepotTile(tile));
+	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
 
 	return FlatteningFoundation(tileh);
 }
@@ -396,11 +532,18 @@ static Foundation GetFoundation_Misc(TileIndex tile, Slope tileh)
 
 static CommandCost TerraformTile_Misc(TileIndex tile, DoCommandFlag flags, int z_new, Slope tileh_new)
 {
-	assert(IsRailDepotTile(tile));
+	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
 
-	if (_settings_game.construction.build_on_slopes && AutoslopeEnabled() &&
-			AutoslopeCheckForEntranceEdge(tile, z_new, tileh_new, GetRailDepotDirection(tile))) {
-		return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
+	if (IsRailDepotTile(tile)) {
+		if (_settings_game.construction.build_on_slopes && AutoslopeEnabled() &&
+				AutoslopeCheckForEntranceEdge(tile, z_new, tileh_new, GetRailDepotDirection(tile))) {
+			return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
+		}
+	} else {
+		if (_settings_game.construction.build_on_slopes && AutoslopeEnabled() &&
+				AutoslopeCheckForEntranceEdge(tile, z_new, tileh_new, GetRoadDepotDirection(tile))) {
+			return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
+		}
 	}
 
 	return DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);

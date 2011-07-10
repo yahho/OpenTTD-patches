@@ -16,13 +16,32 @@
 
 ScriptDepotList::ScriptDepotList(ScriptTile::TransportType transport_type)
 {
-	::TileType tile_type;
 	switch (transport_type) {
 		default: return;
 
-		case ScriptTile::TRANSPORT_ROAD:  tile_type = ::TT_ROAD; break;
-		case ScriptTile::TRANSPORT_RAIL:  tile_type = ::TT_MISC; break;
-		case ScriptTile::TRANSPORT_WATER: tile_type = ::TT_WATER; break;
+		case ScriptTile::TRANSPORT_ROAD: {
+			const Depot *depot;
+			FOR_ALL_DEPOTS(depot) {
+				if ((::GetTileOwner(depot->xy) == ScriptObject::GetCompany() || ScriptObject::GetCompany() == OWNER_DEITY) && ::IsRoadDepotTile(depot->xy)) this->AddItem(depot->xy);
+			}
+			break;
+		}
+
+		case ScriptTile::TRANSPORT_RAIL: {
+			const Depot *depot;
+			FOR_ALL_DEPOTS(depot) {
+				if ((::GetTileOwner(depot->xy) == ScriptObject::GetCompany() || ScriptObject::GetCompany() == OWNER_DEITY) && ::IsRailDepotTile(depot->xy)) this->AddItem(depot->xy);
+			}
+			break;
+		}
+
+		case ScriptTile::TRANSPORT_WATER: {
+			const Depot *depot;
+			FOR_ALL_DEPOTS(depot) {
+				if ((::GetTileOwner(depot->xy) == ScriptObject::GetCompany() || ScriptObject::GetCompany() == OWNER_DEITY) && ::IsTileType(depot->xy, ::TT_WATER)) this->AddItem(depot->xy);
+			}
+			break;
+		}
 
 		case ScriptTile::TRANSPORT_AIR: {
 			/* Hangars are not seen as real depots by the depot code. */
@@ -36,11 +55,5 @@ ScriptDepotList::ScriptDepotList(ScriptTile::TransportType transport_type)
 			}
 			return;
 		}
-	}
-
-	/* Handle 'standard' depots. */
-	const Depot *depot;
-	FOR_ALL_DEPOTS(depot) {
-		if ((::GetTileOwner(depot->xy) == ScriptObject::GetCompany() || ScriptObject::GetCompany() == OWNER_DEITY) && ::IsTileType(depot->xy, tile_type)) this->AddItem(depot->xy);
 	}
 }

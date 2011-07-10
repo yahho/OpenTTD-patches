@@ -282,10 +282,8 @@ static void NPFMarkTile(TileIndex tile)
 			break;
 
 		case TT_ROAD:
-			if (!IsRoadDepot(tile)) {
-				SetRoadside(tile, ROADSIDE_BARREN);
-				MarkTileDirtyByTile(tile);
-			}
+			SetRoadside(tile, ROADSIDE_BARREN);
+			MarkTileDirtyByTile(tile);
 			break;
 
 		default:

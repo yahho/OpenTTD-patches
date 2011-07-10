@@ -2416,7 +2416,7 @@ static void TileLoop_Track(TileIndex tile)
 			/* Show fences if it's a house, industry, object, road, tunnelbridge or not owned by us. */
 			if (!IsValidTile(tile2) || IsHouseTile(tile2) || IsIndustryTile(tile2) ||
 					(IsTileType(tile2, TT_MISC) && !IsRailDepotTile(tile2)) ||
-					IsRoadOrDepotTile(tile2) || (IsObjectTile(tile2) && !IsOwnedLand(tile2)) || IsTunnelBridgeTile(tile2) || !IsTileOwner(tile2, owner)) {
+					IsRoadOrCrossingTile(tile2) || (IsObjectTile(tile2) && !IsOwnedLand(tile2)) || IsTunnelBridgeTile(tile2) || !IsTileOwner(tile2, owner)) {
 				fences |= 1 << d;
 			}
 		}

@@ -428,8 +428,8 @@ static inline SmallmapTileType GetEffectiveTileType(TileIndex tile)
 				default:             return SMTT_WATER;
 			}
 		case TT_MISC:
-			assert(IsRailDepotTile(tile));
-			return SMTT_RAILWAY;
+			assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
+			return IsRailDepotTile(tile) ? SMTT_RAILWAY : SMTT_ROAD;
 	}
 
 	NOT_REACHED();

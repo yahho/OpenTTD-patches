@@ -864,8 +864,8 @@ static Trackdir RoadFindPathToDest(RoadVehicle *v, TileIndex tile, DiagDirection
 	TrackdirBits red_signals = TrackStatusToRedSignals(ts); // crossing
 	TrackdirBits trackdirs = TrackStatusToTrackdirBits(ts);
 
-	if (IsRoadOrDepotTile(tile)) {
-		if (IsRoadDepot(tile) && (!IsTileOwner(tile, v->owner) || GetRoadDepotDirection(tile) == enterdir || (GetRoadTypes(tile) & v->compatible_roadtypes) == 0)) {
+	if (IsRoadDepotTile(tile)) {
+		if ((!IsTileOwner(tile, v->owner) || GetRoadDepotDirection(tile) == enterdir || (GetRoadTypes(tile) & v->compatible_roadtypes) == 0)) {
 			/* Road depot owned by another company or with the wrong orientation */
 			trackdirs = TRACKDIR_BIT_NONE;
 		}
