@@ -13,6 +13,7 @@
 #include "clear_map.h"
 #include "industry.h"
 #include "station_map.h"
+#include "depot_map.h"
 #include "landscape.h"
 #include "tree_map.h"
 #include "viewport_func.h"
@@ -428,8 +429,8 @@ static inline SmallmapTileType GetEffectiveTileType(TileIndex tile)
 				default:             return SMTT_WATER;
 			}
 		case TT_MISC:
-			assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
-			return IsRailDepotTile(tile) ? SMTT_RAILWAY : SMTT_ROAD;
+			assert(IsGroundDepotTile(tile));
+			return IsRailDepot(tile) ? SMTT_RAILWAY : SMTT_ROAD;
 	}
 
 	NOT_REACHED();

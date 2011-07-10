@@ -16,6 +16,7 @@
 #include "../tunnelbridge_map.h"
 #include "../tunnelbridge.h"
 #include "../station_base.h"
+#include "../depot_map.h"
 
 #include "saveload_buffer.h"
 #include "saveload_error.h"
@@ -136,11 +137,11 @@ void AfterLoadCompanyStats()
 			}
 
 			case TT_MISC:
-				assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
+				assert(IsGroundDepotTile(tile));
 
 				c = Company::GetIfValid(GetTileOwner(tile));
 				if (c != NULL) {
-					if (IsRailDepotTile(tile)) {
+					if (IsRailDepot(tile)) {
 						c->infrastructure.rail[GetRailType(tile)]++;
 					} else {
 						/* Road depots have two road bits. */

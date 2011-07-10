@@ -20,6 +20,7 @@
 #include "newgrf_config.h"
 #include "clear_map.h"
 #include "station_map.h"
+#include "depot_map.h"
 #include "tree_map.h"
 #include "tunnelbridge_map.h"
 #include "newgrf_object.h"
@@ -373,9 +374,9 @@ uint32 GetTerrainType(TileIndex tile, TileContext context)
 					break;
 
 				case TT_MISC: {
-					assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
+					assert(IsGroundDepotTile(tile));
 					if (_generating_world) goto genworld;
-					if (IsRailDepotTile(tile)) {
+					if (IsRailDepot(tile)) {
 						RailGroundType ground = GetRailGroundType(tile);
 						has_snow = (ground == RAIL_GROUND_ICE_DESERT || (context == TCX_UPPER_HALFTILE && ground == RAIL_GROUND_HALF_SNOW));
 					} else {

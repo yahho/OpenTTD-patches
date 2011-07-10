@@ -59,8 +59,8 @@ ScriptVehicleList_Depot::ScriptVehicleList_Depot(TileIndex tile)
 			break;
 
 		case TT_MISC:
-			if (!IsRailDepotTile(tile) && !IsRoadDepotTile(tile)) return;
-			type = IsRailDepotTile(tile) ? VEH_TRAIN : VEH_ROAD;
+			if (!IsGroundDepotTile(tile)) return;
+			type = IsRailDepot(tile) ? VEH_TRAIN : VEH_ROAD;
 			dest = GetDepotIndex(tile);
 			break;
 

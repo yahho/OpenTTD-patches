@@ -191,9 +191,9 @@ void DrawRoadDepotSprite(int x, int y, DiagDirection dir, RoadType rt)
 
 static void DrawTile_Misc(TileInfo *ti)
 {
-	assert(IsRailDepotTile(ti->tile) || IsRoadDepotTile(ti->tile));
+	assert(IsGroundDepotTile(ti->tile));
 
-	if (IsRailDepotTile(ti->tile)) {
+	if (IsRailDepot(ti->tile)) {
 		DrawTrainDepot(ti);
 	} else {
 		DrawRoadDepot(ti);
@@ -202,7 +202,7 @@ static void DrawTile_Misc(TileInfo *ti)
 
 static int GetSlopePixelZ_Misc(TileIndex tile, uint x, uint y)
 {
-	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
+	assert(IsGroundDepotTile(tile));
 
 	return GetTileMaxPixelZ(tile);
 }
@@ -269,7 +269,7 @@ static CommandCost RemoveRoadDepot(TileIndex tile, DoCommandFlag flags)
 
 static CommandCost ClearTile_Misc(TileIndex tile, DoCommandFlag flags)
 {
-	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
+	assert(IsGroundDepotTile(tile));
 
 	if (flags & DC_AUTO) {
 		if (!IsTileOwner(tile, _current_company)) {
@@ -278,18 +278,18 @@ static CommandCost ClearTile_Misc(TileIndex tile, DoCommandFlag flags)
 		return_cmd_error(STR_ERROR_BUILDING_MUST_BE_DEMOLISHED);
 	}
 
-	return IsRailDepotTile(tile) ? RemoveTrainDepot(tile, flags) : RemoveRoadDepot(tile, flags);
+	return IsRailDepot(tile) ? RemoveTrainDepot(tile, flags) : RemoveRoadDepot(tile, flags);
 }
 
 
 static void GetTileDesc_Misc(TileIndex tile, TileDesc *td)
 {
-	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
+	assert(IsGroundDepotTile(tile));
 
 	td->owner[0] = GetTileOwner(tile);
 	td->build_date = Depot::GetByTile(tile)->build_date;
 
-	if (IsRailDepotTile(tile)) {
+	if (IsRailDepot(tile)) {
 		td->str = STR_LAI_RAIL_DESCRIPTION_TRAIN_DEPOT;
 
 		const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(tile));
@@ -311,11 +311,11 @@ static void GetTileDesc_Misc(TileIndex tile, TileDesc *td)
 
 static TrackStatus GetTileTrackStatus_Misc(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
 {
-	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
+	assert(IsGroundDepotTile(tile));
 
 	DiagDirection dir;
 
-	if (IsRailDepotTile(tile)) {
+	if (IsRailDepot(tile)) {
 		if (mode != TRANSPORT_RAIL) return 0;
 
 		dir = GetRailDepotDirection(tile);
@@ -334,18 +334,18 @@ static TrackStatus GetTileTrackStatus_Misc(TileIndex tile, TransportType mode, u
 
 static bool ClickTile_Misc(TileIndex tile)
 {
-	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
+	assert(IsGroundDepotTile(tile));
 
-	ShowDepotWindow(tile, IsRailDepotTile(tile) ? VEH_TRAIN : VEH_ROAD);
+	ShowDepotWindow(tile, IsRailDepot(tile) ? VEH_TRAIN : VEH_ROAD);
 	return true;
 }
 
 
 static void TileLoop_Misc(TileIndex tile)
 {
-	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
+	assert(IsGroundDepotTile(tile));
 
-	if (IsRailDepotTile(tile)) {
+	if (IsRailDepot(tile)) {
 		RailGroundType ground;
 
 		switch (_settings_game.game_creation.landscape) {
@@ -395,13 +395,13 @@ static void TileLoop_Misc(TileIndex tile)
 
 static void ChangeTileOwner_Misc(TileIndex tile, Owner old_owner, Owner new_owner)
 {
-	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
+	assert(IsGroundDepotTile(tile));
 
 	if (!IsTileOwner(tile, old_owner)) return;
 
 	if (new_owner != INVALID_OWNER) {
 		/* Update company infrastructure counts. No need to dirty windows here, we'll redraw the whole screen anyway. */
-		if (IsRailDepotTile(tile)) {
+		if (IsRailDepot(tile)) {
 			RailType rt = GetRailType(tile);
 			Company::Get(old_owner)->infrastructure.rail[rt]--;
 			Company::Get(new_owner)->infrastructure.rail[rt]++;
@@ -456,9 +456,9 @@ static const byte _roadveh_enter_depot_dir[4] = {
 
 static VehicleEnterTileStatus VehicleEnter_Misc(Vehicle *u, TileIndex tile, int x, int y)
 {
-	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
+	assert(IsGroundDepotTile(tile));
 
-	if (IsRailDepotTile(tile)) {
+	if (IsRailDepot(tile)) {
 		if (u->type != VEH_TRAIN) return VETSB_CONTINUE;
 
 		Train *v = Train::From(u);
@@ -524,7 +524,7 @@ static VehicleEnterTileStatus VehicleEnter_Misc(Vehicle *u, TileIndex tile, int 
 
 static Foundation GetFoundation_Misc(TileIndex tile, Slope tileh)
 {
-	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
+	assert(IsGroundDepotTile(tile));
 
 	return FlatteningFoundation(tileh);
 }
@@ -532,9 +532,9 @@ static Foundation GetFoundation_Misc(TileIndex tile, Slope tileh)
 
 static CommandCost TerraformTile_Misc(TileIndex tile, DoCommandFlag flags, int z_new, Slope tileh_new)
 {
-	assert(IsRailDepotTile(tile) || IsRoadDepotTile(tile));
+	assert(IsGroundDepotTile(tile));
 
-	if (IsRailDepotTile(tile)) {
+	if (IsRailDepot(tile)) {
 		if (_settings_game.construction.build_on_slopes && AutoslopeEnabled() &&
 				AutoslopeCheckForEntranceEdge(tile, z_new, tileh_new, GetRailDepotDirection(tile))) {
 			return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
