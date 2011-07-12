@@ -97,8 +97,8 @@ static TrackBits GetRailTrackBitsUniversal(TileIndex t, byte *override)
 			}
 			return DiagDirToDiagTrackBits(GetTunnelBridgeDirection(t));
 
-		case TT_ROAD:
-			if (!IsLevelCrossing(t)) return TRACK_BIT_NONE;
+		case TT_MISC:
+			if (!IsLevelCrossingTile(t)) return TRACK_BIT_NONE;
 			if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
 			return GetCrossingRailBits(t);
 
@@ -368,7 +368,7 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 		Foundation foundation = FOUNDATION_NONE;
 
 		/* Station and road crossings are always "flat", so adjust the tileh accordingly */
-		if (IsStationTile(neighbour) || IsRoadOrCrossingTile(neighbour)) tileh[TS_NEIGHBOUR] = SLOPE_FLAT;
+		if (IsStationTile(neighbour) || IsLevelCrossingTile(neighbour)) tileh[TS_NEIGHBOUR] = SLOPE_FLAT;
 
 		/* Read the foundations if they are present, and adjust the tileh */
 		if (trackconfig[TS_NEIGHBOUR] != TRACK_BIT_NONE && (IsRailwayTile(neighbour) || IsRailDepotTile(neighbour)) && HasCatenary(GetRailType(neighbour))) foundation = GetRailFoundation(tileh[TS_NEIGHBOUR], trackconfig[TS_NEIGHBOUR]);
@@ -556,6 +556,7 @@ void DrawCatenary(const TileInfo *ti)
 {
 	switch (GetTileType(ti->tile)) {
 		case TT_MISC:
+			if (IsLevelCrossingTile(ti->tile)) break;
 			if (IsRailDepotTile(ti->tile)) {
 				const SortableSpriteStruct *sss = &CatenarySpriteData_Depot[GetRailDepotDirection(ti->tile)];
 
@@ -574,7 +575,6 @@ void DrawCatenary(const TileInfo *ti)
 
 		case TT_TUNNELBRIDGE_TEMP:
 		case TT_RAILWAY:
-		case TT_ROAD:
 		case TT_STATION:
 			break;
 

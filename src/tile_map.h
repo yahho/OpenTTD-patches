@@ -206,7 +206,7 @@ static inline bool IsRailwayTile(TileIndex tile)
  * @param tile The tile to check
  * @return true If the tile has a road
  */
-static inline bool IsRoadOrCrossingTile(TileIndex tile)
+static inline bool IsRoadTile(TileIndex tile)
 {
 	return IsTileType(tile, TT_ROAD);
 }

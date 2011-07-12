@@ -82,6 +82,9 @@ Town::~Town()
 			assert(GetTownIndex(tile) != this->index);
 		} else {
 			switch (GetTileType(tile)) {
+				case TT_MISC:
+					if (!IsLevelCrossingTile(tile)) break;
+					/* fall through */
 				case TT_ROAD:
 					assert(!HasTownOwnedRoad(tile) || GetTownIndex(tile) != this->index);
 					break;
@@ -1327,7 +1330,7 @@ static int GrowTownAtRoad(Town *t, TileIndex tile)
 		}
 		tile = TileAddByDiagDir(tile, target_dir);
 
-		if (IsRoadOrCrossingTile(tile) && HasTileRoadType(tile, ROADTYPE_ROAD)) {
+		if ((IsRoadTile(tile) || IsLevelCrossingTile(tile)) && HasTileRoadType(tile, ROADTYPE_ROAD)) {
 			/* Don't allow building over roads of other cities */
 			if (IsRoadOwner(tile, ROADTYPE_ROAD, OWNER_TOWN) && Town::GetByTile(tile) != t) {
 				_grow_town_result = GROWTH_SUCCEED;
@@ -2610,6 +2613,9 @@ CommandCost CmdDeleteTown(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 			try_clear = GetTownIndex(tile) == t->index;
 		} else {
 			switch (GetTileType(tile)) {
+				case TT_MISC:
+					if (!IsLevelCrossingTile(tile)) break;
+					/* fall through */
 				case TT_ROAD:
 					try_clear = HasTownOwnedRoad(tile) && GetTownIndex(tile) == t->index;
 					break;
@@ -3154,7 +3160,7 @@ Town *ClosestTownFromTile(TileIndex tile, uint threshold)
 {
 	if (IsHouseTile(tile)) {
 		return Town::GetByTile(tile);
-	} else if (IsRoadOrCrossingTile(tile)) {
+	} else if (IsRoadTile(tile) || IsLevelCrossingTile(tile)) {
 		if (HasTownOwnedRoad(tile)) return Town::GetByTile(tile);
 
 		TownID tid = GetTownIndex(tile);

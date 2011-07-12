@@ -99,7 +99,7 @@ struct CFollowTrackT
 	{
 		assert(IsTram()); // this function shouldn't be called in other cases
 
-		if (IsNormalRoadTile(tile)) {
+		if (IsRoadTile(tile)) {
 			RoadBits rb = GetRoadBits(tile, ROADTYPE_TRAM);
 			switch (rb) {
 				case ROAD_NW: return DIAGDIR_NW;

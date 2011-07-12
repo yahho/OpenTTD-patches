@@ -335,7 +335,13 @@ static SigFlags ExploreSegment(Owner owner)
 				}
 
 			case TT_MISC:
-				if (IsRailDepotTile(tile) && GetTileOwner(tile) == owner) {
+				if (GetTileOwner(tile) != owner) continue;
+				if (IsLevelCrossingTile(tile)) {
+					if (DiagDirToAxis(enterdir) == GetCrossingRoadAxis(tile)) continue; // different axis
+					if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
+					tile += TileOffsByDiagDir(exitdir);
+					break;
+				} else if (IsRailDepotTile(tile)) {
 					if (enterdir == INVALID_DIAGDIR) { // from 'inside' - train just entered or left the depot
 						if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
 						exitdir = GetRailDepotDirection(tile);
@@ -353,15 +359,6 @@ static SigFlags ExploreSegment(Owner owner)
 				if (GetTileOwner(tile) != owner) continue;
 				if (DiagDirToAxis(enterdir) != GetRailStationAxis(tile)) continue; // different axis
 				if (IsStationTileBlocked(tile)) continue; // 'eye-candy' station tile
-
-				if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
-				tile += TileOffsByDiagDir(exitdir);
-				break;
-
-			case TT_ROAD:
-				if (!IsLevelCrossing(tile)) continue;
-				if (GetTileOwner(tile) != owner) continue;
-				if (DiagDirToAxis(enterdir) == GetCrossingRoadAxis(tile)) continue; // different axis
 
 				if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
 				tile += TileOffsByDiagDir(exitdir);
@@ -494,15 +491,16 @@ static SigSegState UpdateSignalsInBuffer(Owner owner)
 				break;
 
 			case TT_MISC:
-				if (!IsRailDepotTile(tile)) goto next_tile;
-				/* 'optimization assert' do not try to update signals in other cases */
-				assert(dir == INVALID_DIAGDIR || dir == GetRailDepotDirection(tile));
-				_tbdset.Add(tile, INVALID_DIAGDIR); // start from depot inside
-				break;
-
+				if (IsRailDepotTile(tile)) {
+					/* 'optimization assert' do not try to update signals in other cases */
+					assert(dir == INVALID_DIAGDIR || dir == GetRailDepotDirection(tile));
+					_tbdset.Add(tile, INVALID_DIAGDIR); // start from depot inside
+					break;
+				}
+				if (!IsLevelCrossingTile(tile)) goto next_tile;
+				/* fall through */
 			case TT_RAILWAY:
 			case TT_STATION:
-			case TT_ROAD:
 				if ((TrackStatusToTrackBits(GetTileTrackStatus(tile, TRANSPORT_RAIL, 0)) & _enterdir_to_trackbits[dir]) != TRACK_BIT_NONE) {
 					/* only add to set when there is some 'interesting' track */
 					_tbdset.Add(tile, dir);

@@ -14,8 +14,11 @@
 
 #include "direction_type.h"
 #include "road_type.h"
+#include "house.h"
 
 void DrawRoadDepotSprite(int x, int y, DiagDirection dir, RoadType rt);
+void DrawLevelCrossing(TileInfo *ti);
 void UpdateNearestTownForRoadTiles(bool invalidate);
+void UpdateRoadSide(TileIndex tile, HouseZonesBits grp);
 
 #endif /* ROAD_CMD_H */

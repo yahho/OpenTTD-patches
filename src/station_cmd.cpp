@@ -901,9 +901,9 @@ static CommandCost CheckFlatLandRoadStop(TileArea tile_area, DoCommandFlag flags
 				}
 			}
 		} else {
-			bool build_over_road = is_drive_through && IsNormalRoadTile(cur_tile);
+			bool build_over_road = is_drive_through && IsRoadTile(cur_tile);
 			/* Road bits in the wrong direction. */
-			RoadBits rb = IsNormalRoadTile(cur_tile) ? GetAllRoadBits(cur_tile) : ROAD_NONE;
+			RoadBits rb = IsRoadTile(cur_tile) ? GetAllRoadBits(cur_tile) : ROAD_NONE;
 			if (build_over_road && (rb & (axis == AXIS_X ? ROAD_Y : ROAD_X)) != 0) {
 				/* Someone was pedantic and *NEEDED* three fracking different error messages. */
 				switch (CountBits(rb)) {
@@ -919,7 +919,7 @@ static CommandCost CheckFlatLandRoadStop(TileArea tile_area, DoCommandFlag flags
 				}
 			}
 
-			RoadTypes cur_rts = IsNormalRoadTile(cur_tile) ? GetRoadTypes(cur_tile) : ROADTYPES_NONE;
+			RoadTypes cur_rts = IsRoadTile(cur_tile) ? GetRoadTypes(cur_tile) : ROADTYPES_NONE;
 			uint num_roadbits = 0;
 			if (build_over_road) {
 				/* There is a road, check if we can build road+tram stop over it. */
@@ -1839,7 +1839,7 @@ CommandCost CmdBuildRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 				FOR_EACH_SET_ROADTYPE(rt, cur_rts | rts) {
 					Company *c = Company::GetIfValid(rt == ROADTYPE_ROAD ? road_owner : tram_owner);
 					if (c != NULL) {
-						c->infrastructure.road[rt] += 2 - (IsNormalRoadTile(cur_tile) && HasBit(cur_rts, rt) ? CountBits(GetRoadBits(cur_tile, rt)) : 0);
+						c->infrastructure.road[rt] += 2 - (IsRoadTile(cur_tile) && HasBit(cur_rts, rt) ? CountBits(GetRoadBits(cur_tile, rt)) : 0);
 						DirtyCompanyInfrastructureWindows(c->index);
 					}
 				}
@@ -3908,7 +3908,7 @@ static void ChangeTileOwner_Station(TileIndex tile, Owner old_owner, Owner new_o
 		if (IsDriveThroughStopTile(tile)) {
 			/* Remove the drive-through road stop */
 			DoCommand(tile, 1 | 1 << 8, (GetStationType(tile) == STATION_TRUCK) ? ROADSTOP_TRUCK : ROADSTOP_BUS, DC_EXEC | DC_BANKRUPT, CMD_REMOVE_ROAD_STOP);
-			assert(IsRoadOrCrossingTile(tile));
+			assert(IsRoadTile(tile));
 			/* Change owner of tile and all roadtypes */
 			ChangeTileOwner(tile, old_owner, new_owner);
 		} else {

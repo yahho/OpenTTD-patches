@@ -637,7 +637,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	 *  all about ;) */
 	if (IsOTTDSavegameVersionBefore(stv, 6, 1)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsHouseTile(t) || (IsRoadOrCrossingTile(t) && GetRoadOwner(t, ROADTYPE_ROAD) == OWNER_TOWN)) {
+			if (IsHouseTile(t) || ((IsRoadTile(t) || IsLevelCrossingTile(t)) && GetRoadOwner(t, ROADTYPE_ROAD) == OWNER_TOWN)) {
 				SetTownIndex(t, CalcClosestTownFromTile(t)->index);
 			}
 		}
@@ -680,7 +680,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 
 	if (IsOTTDSavegameVersionBefore(stv, 114)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsRoadOrCrossingTile(t) && !HasTownOwnedRoad(t)) {
+			if ((IsRoadTile(t) || IsLevelCrossingTile(t)) && !HasTownOwnedRoad(t)) {
 				const Town *town = CalcClosestTownFromTile(t);
 				if (town != NULL) SetTownIndex(t, town->index);
 			}
@@ -691,7 +691,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		Vehicle *v;
 
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsNormalRoadTile(t) && GetTownIndex(t) == INVALID_TOWN) {
+			if (IsRoadTile(t) && GetTownIndex(t) == INVALID_TOWN) {
 				SetTownIndex(t, IsTileOwner(t, OWNER_TOWN) ? ClosestTownFromTile(t, UINT_MAX)->index : 0);
 			}
 		}
@@ -740,12 +740,8 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 				case TT_RAILWAY:
 					break;
 
-				case TT_ROAD:
-					if (!IsLevelCrossing(t)) continue;
-					break;
-
 				case TT_MISC:
-					if (!IsRailDepotTile(t)) continue;
+					if (!IsLevelCrossingTile(t) && !IsRailDepotTile(t)) continue;
 					break;
 
 				case TT_STATION:
@@ -1135,14 +1131,14 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 					 * (even if it is owned by active company) */
 					Waypoint::GetByTile(t)->owner = OWNER_NONE;
 				}
-			} else if (IsRoadOrCrossingTile(t)) {
+			} else if (IsRoadTile(t) || IsLevelCrossingTile(t)) {
 				/* works for all RoadTileType */
 				for (RoadType rt = ROADTYPE_ROAD; rt < ROADTYPE_END; rt++) {
 					/* update even non-existing road types to update tile owner too */
 					Owner o = GetRoadOwner(t, rt);
 					if (o < MAX_COMPANIES && !Company::IsValidID(o)) SetRoadOwner(t, rt, OWNER_NONE);
 				}
-				if (IsLevelCrossing(t)) {
+				if (IsLevelCrossingTile(t)) {
 					if (!Company::IsValidID(GetTileOwner(t))) FixOwnerOfRailTrack(t);
 				}
 			} else if (IsRailwayTile(t)) {

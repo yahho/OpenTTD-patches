@@ -751,10 +751,18 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 
 				case OLD_MP_ROAD:
 					_mc[t].m4 = GB(_mc[t].m0, 3, 3);
-					_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_ROAD << 4);
+					_mc[t].m0 = GB(_mc[t].m0, 6, 2);
 					switch (GB(_mc[t].m5, 6, 2)) {
+						case 0: // normal road
+							_mc[t].m0 |= (TT_ROAD << 4);
+							SB(_mc[t].m1, 6, 2, TT_TRACK);
+							break;
+						case 1: // level crossing
+							_mc[t].m0 |= (TT_MISC << 4);
+							SB(_mc[t].m1, 6, 2, TT_MISC_CROSSING);
+							break;
 						case 2: // road depot
-							SB(_mc[t].m0, 4, 4, TT_MISC);
+							_mc[t].m0 |= (TT_MISC << 4);
 							SB(_mc[t].m1, 6, 2, TT_MISC_DEPOT);
 							SetBit(_mc[t].m1, 5);
 							_mc[t].m3 = _mc[t].m4 = 0;

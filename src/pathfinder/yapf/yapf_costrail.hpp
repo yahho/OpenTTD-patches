@@ -136,7 +136,7 @@ public:
 		/* set base cost */
 		if (IsDiagonalTrackdir(trackdir)) {
 			cost += YAPF_TILE_LENGTH;
-			if (IsRoadOrCrossingTile(tile) && IsLevelCrossing(tile)) {
+			if (IsLevelCrossingTile(tile)) {
 				/* Increase the cost for level crossings */
 				cost += Yapf().PfGetSettings().rail_crossing_penalty;
 			}

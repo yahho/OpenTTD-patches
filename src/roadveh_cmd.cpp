@@ -365,7 +365,7 @@ CommandCost CmdTurnRoadVeh(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 		return CMD_ERROR;
 	}
 
-	if (IsNormalRoadTile(v->tile) && GetDisallowedRoadDirections(v->tile) != DRD_NONE) return CMD_ERROR;
+	if (IsRoadTile(v->tile) && GetDisallowedRoadDirections(v->tile) != DRD_NONE) return CMD_ERROR;
 
 	if (IsTunnelBridgeTile(v->tile) && DirToDiagDir(v->direction) == GetTunnelBridgeDirection(v->tile)) return CMD_ERROR;
 
@@ -1149,7 +1149,7 @@ again:
 					case TRACKDIR_RVREV_NW: needed = ROAD_SE; break;
 				}
 				if ((v->Previous() != NULL && v->Previous()->tile == tile) ||
-						(v->IsFrontEngine() && IsNormalRoadTile(tile) && !HasRoadWorks(tile) &&
+						(v->IsFrontEngine() && IsRoadTile(tile) && !HasRoadWorks(tile) &&
 							(needed & GetRoadBits(tile, ROADTYPE_TRAM)) != ROAD_NONE)) {
 					/*
 					 * Taking the 'big' corner for trams only happens when:
@@ -1181,7 +1181,7 @@ again:
 					v->cur_speed = 0;
 					return false;
 				}
-			} else if (IsNormalRoadTile(v->tile) && GetDisallowedRoadDirections(v->tile) != DRD_NONE) {
+			} else if (IsRoadTile(v->tile) && GetDisallowedRoadDirections(v->tile) != DRD_NONE) {
 				v->cur_speed = 0;
 				return false;
 			} else {

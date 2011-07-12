@@ -374,13 +374,18 @@ uint32 GetTerrainType(TileIndex tile, TileContext context)
 					break;
 
 				case TT_MISC: {
-					assert(IsGroundDepotTile(tile));
 					if (_generating_world) goto genworld;
-					if (IsRailDepot(tile)) {
-						RailGroundType ground = GetRailGroundType(tile);
-						has_snow = (ground == RAIL_GROUND_ICE_DESERT || (context == TCX_UPPER_HALFTILE && ground == RAIL_GROUND_HALF_SNOW));
-					} else {
-						has_snow = IsOnSnow(tile);
+					switch (GetTileSubtype(tile)) {
+						default: NOT_REACHED();
+						case TT_MISC_CROSSING: has_snow = IsOnSnow(tile); break;
+						case TT_MISC_DEPOT:
+							if (IsRailDepot(tile)) {
+								RailGroundType ground = GetRailGroundType(tile);
+								has_snow = (ground == RAIL_GROUND_ICE_DESERT || (context == TCX_UPPER_HALFTILE && ground == RAIL_GROUND_HALF_SNOW));
+							} else {
+								has_snow = IsOnSnow(tile);
+							}
+							break;
 					}
 					break;
 				}

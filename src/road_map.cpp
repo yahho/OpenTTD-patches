@@ -12,6 +12,7 @@
 #include "stdafx.h"
 #include "station_map.h"
 #include "tunnelbridge_map.h"
+#include "depot_map.h"
 
 
 /**
@@ -36,14 +37,14 @@ RoadBits GetAnyRoadBits(TileIndex tile, RoadType rt, bool straight_tunnel_bridge
 
 	switch (GetTileType(tile)) {
 		case TT_ROAD:
-			switch (GetRoadTileType(tile)) {
-				default:
-				case ROAD_TILE_NORMAL:   return GetRoadBits(tile, rt);
-				case ROAD_TILE_CROSSING: return GetCrossingRoadBits(tile);
-			}
+			return GetRoadBits(tile, rt);
 
 		case TT_MISC:
-			return IsRoadDepotTile(tile) ? DiagDirToRoadBits(GetRoadDepotDirection(tile)) : ROAD_NONE;
+			switch (GetTileSubtype(tile)) {
+				default: NOT_REACHED();
+				case TT_MISC_CROSSING: return GetCrossingRoadBits(tile);
+				case TT_MISC_DEPOT:    return IsRoadDepot(tile) ? DiagDirToRoadBits(GetRoadDepotDirection(tile)) : ROAD_NONE;
+			}
 
 		case TT_STATION:
 			if (!IsRoadStopTile(tile)) return ROAD_NONE;

@@ -58,9 +58,9 @@ protected:
 		if (IsDiagonalTrackdir(trackdir)) {
 			cost += YAPF_TILE_LENGTH;
 			switch (GetTileType(tile)) {
-				case TT_ROAD:
+				case TT_MISC:
 					/* Increase the cost for level crossings */
-					if (IsLevelCrossing(tile)) {
+					if (IsLevelCrossingTile(tile)) {
 						cost += Yapf().PfGetSettings().road_crossing_penalty;
 					}
 					break;

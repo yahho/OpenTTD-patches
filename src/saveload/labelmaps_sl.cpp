@@ -55,14 +55,8 @@ void AfterLoadLabelMaps()
 					SetRailType(t, railtype_conversion_map[GetRailType(t)]);
 					break;
 
-				case TT_ROAD:
-					if (IsLevelCrossing(t)) {
-						SetRailType(t, railtype_conversion_map[GetRailType(t)]);
-					}
-					break;
-
 				case TT_MISC:
-					if (IsRailDepotTile(t)) {
+					if (IsLevelCrossingTile(t) || IsRailDepotTile(t)) {
 						SetRailType(t, railtype_conversion_map[GetRailType(t)]);
 					}
 					break;

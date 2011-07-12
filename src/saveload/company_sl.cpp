@@ -121,32 +121,44 @@ void AfterLoadCompanyStats()
 				break;
 
 			case TT_ROAD: {
-				if (IsLevelCrossing(tile)) {
-					c = Company::GetIfValid(GetTileOwner(tile));
-					if (c != NULL) c->infrastructure.rail[GetRailType(tile)] += LEVELCROSSING_TRACKBIT_FACTOR;
-				}
-
 				/* Iterate all present road types as each can have a different owner. */
 				RoadType rt;
 				FOR_EACH_SET_ROADTYPE(rt, GetRoadTypes(tile)) {
 					c = Company::GetIfValid(GetRoadOwner(tile, rt));
-					/* A level crossing has two road bits. */
-					if (c != NULL) c->infrastructure.road[rt] += IsNormalRoad(tile) ? CountBits(GetRoadBits(tile, rt)) : 2;
+					if (c != NULL) c->infrastructure.road[rt] += CountBits(GetRoadBits(tile, rt));
 				}
 				break;
 			}
 
 			case TT_MISC:
-				assert(IsGroundDepotTile(tile));
+				switch (GetTileSubtype(tile)) {
+					default: NOT_REACHED();
 
-				c = Company::GetIfValid(GetTileOwner(tile));
-				if (c != NULL) {
-					if (IsRailDepot(tile)) {
-						c->infrastructure.rail[GetRailType(tile)]++;
-					} else {
-						/* Road depots have two road bits. */
-						c->infrastructure.road[FIND_FIRST_BIT(GetRoadTypes(tile))] += 2;
+					case TT_MISC_CROSSING: {
+						c = Company::GetIfValid(GetTileOwner(tile));
+						if (c != NULL) c->infrastructure.rail[GetRailType(tile)] += LEVELCROSSING_TRACKBIT_FACTOR;
+
+						/* Iterate all present road types as each can have a different owner. */
+						RoadType rt;
+						FOR_EACH_SET_ROADTYPE(rt, GetRoadTypes(tile)) {
+							c = Company::GetIfValid(GetRoadOwner(tile, rt));
+							/* A level crossing has two road bits. */
+							if (c != NULL) c->infrastructure.road[rt] += 2;
+						}
+						break;
 					}
+
+					case TT_MISC_DEPOT:
+						c = Company::GetIfValid(GetTileOwner(tile));
+						if (c != NULL) {
+							if (IsRailDepot(tile)) {
+								c->infrastructure.rail[GetRailType(tile)]++;
+							} else {
+								/* Road depots have two road bits. */
+								c->infrastructure.road[FIND_FIRST_BIT(GetRoadTypes(tile))] += 2;
+							}
+						}
+						break;
 				}
 				break;
 

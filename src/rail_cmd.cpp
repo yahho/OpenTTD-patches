@@ -470,57 +470,59 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 			CommandCost ret = EnsureNoVehicleOnGround(tile);
 			if (ret.Failed()) return ret;
 
-			if (IsNormalRoad(tile)) {
-				if (HasRoadWorks(tile)) return_cmd_error(STR_ERROR_ROAD_WORKS_IN_PROGRESS);
+			if (HasRoadWorks(tile)) return_cmd_error(STR_ERROR_ROAD_WORKS_IN_PROGRESS);
 
-				if (GetDisallowedRoadDirections(tile) != DRD_NONE) return_cmd_error(STR_ERROR_CROSSING_ON_ONEWAY_ROAD);
+			if (GetDisallowedRoadDirections(tile) != DRD_NONE) return_cmd_error(STR_ERROR_CROSSING_ON_ONEWAY_ROAD);
 
-				if (RailNoLevelCrossings(railtype)) return_cmd_error(STR_ERROR_CROSSING_DISALLOWED);
+			if (RailNoLevelCrossings(railtype)) return_cmd_error(STR_ERROR_CROSSING_DISALLOWED);
 
-				RoadTypes roadtypes = GetRoadTypes(tile);
-				RoadBits road = GetRoadBits(tile, ROADTYPE_ROAD);
-				RoadBits tram = GetRoadBits(tile, ROADTYPE_TRAM);
-				switch (roadtypes) {
-					default: break;
-					case ROADTYPES_TRAM:
-						/* Tram crossings must always have road. */
-						if (flags & DC_EXEC) {
-							SetRoadOwner(tile, ROADTYPE_ROAD, _current_company);
-							Company *c = Company::GetIfValid(_current_company);
-							if (c != NULL) {
-								/* A full diagonal tile has two road bits. */
-								c->infrastructure.road[ROADTYPE_ROAD] += 2;
-								DirtyCompanyInfrastructureWindows(c->index);
-							}
-						}
-						roadtypes |= ROADTYPES_ROAD;
-						break;
-
-					case ROADTYPES_ALL:
-						if (road != tram) return CMD_ERROR;
-						break;
-				}
-
-				road |= tram;
-
-				if ((track == TRACK_X && road == ROAD_Y) ||
-						(track == TRACK_Y && road == ROAD_X)) {
+			RoadTypes roadtypes = GetRoadTypes(tile);
+			RoadBits road = GetRoadBits(tile, ROADTYPE_ROAD);
+			RoadBits tram = GetRoadBits(tile, ROADTYPE_TRAM);
+			switch (roadtypes) {
+				default: break;
+				case ROADTYPES_TRAM:
+					/* Tram crossings must always have road. */
 					if (flags & DC_EXEC) {
-						MakeRoadCrossing(tile, GetRoadOwner(tile, ROADTYPE_ROAD), GetRoadOwner(tile, ROADTYPE_TRAM), _current_company, (track == TRACK_X ? AXIS_Y : AXIS_X), railtype, roadtypes, GetTownIndex(tile));
-						UpdateLevelCrossing(tile, false);
-						Company::Get(_current_company)->infrastructure.rail[railtype] += LEVELCROSSING_TRACKBIT_FACTOR;
-						DirtyCompanyInfrastructureWindows(_current_company);
+						SetRoadOwner(tile, ROADTYPE_ROAD, _current_company);
+						Company *c = Company::GetIfValid(_current_company);
+						if (c != NULL) {
+							/* A full diagonal tile has two road bits. */
+							c->infrastructure.road[ROADTYPE_ROAD] += 2;
+							DirtyCompanyInfrastructureWindows(c->index);
+						}
 					}
+					roadtypes |= ROADTYPES_ROAD;
 					break;
-				}
+
+				case ROADTYPES_ALL:
+					if (road != tram) return CMD_ERROR;
+					break;
 			}
 
-			if (IsLevelCrossing(tile) && GetCrossingRailBits(tile) == trackbit) {
+			road |= tram;
+
+			if ((track == TRACK_X && road == ROAD_Y) ||
+					(track == TRACK_Y && road == ROAD_X)) {
+				if (flags & DC_EXEC) {
+					MakeRoadCrossing(tile, GetRoadOwner(tile, ROADTYPE_ROAD), GetRoadOwner(tile, ROADTYPE_TRAM), _current_company, (track == TRACK_X ? AXIS_Y : AXIS_X), railtype, roadtypes, GetTownIndex(tile));
+					UpdateLevelCrossing(tile, false);
+					Company::Get(_current_company)->infrastructure.rail[railtype] += LEVELCROSSING_TRACKBIT_FACTOR;
+					DirtyCompanyInfrastructureWindows(_current_company);
+				}
+				break;
+			}
+
+			goto try_clear;
+		}
+
+		case TT_MISC:
+			if (IsLevelCrossingTile(tile) && GetCrossingRailBits(tile) == trackbit) {
 				return_cmd_error(STR_ERROR_ALREADY_BUILT);
 			}
 			/* FALL THROUGH */
-		}
 
+		try_clear:
 		default: {
 			/* Will there be flat water on the lower halftile? */
 			bool water_ground = IsWaterTile(tile) && IsSlopeWithOneCornerRaised(tileh);
@@ -584,8 +586,8 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 	Train *v = NULL;
 
 	switch (GetTileType(tile)) {
-		case TT_ROAD: {
-			if (!IsLevelCrossing(tile) || GetCrossingRailTrack(tile) != track) return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
+		case TT_MISC: {
+			if (!IsLevelCrossingTile(tile) || GetCrossingRailTrack(tile) != track) return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 
 			if (_current_company != OWNER_WATER) {
 				CommandCost ret = CheckTileOwnership(tile);
@@ -1176,8 +1178,8 @@ static bool CheckSignalAutoFill(TileIndex &tile, Trackdir &trackdir, int &signal
 			}
 			return true;
 
-		case TT_ROAD:
-			if (!IsLevelCrossing(tile)) return false;
+		case TT_MISC:
+			if (!IsLevelCrossingTile(tile)) return false;
 			signal_ctr += 2;
 			return true;
 
@@ -1538,17 +1540,15 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 			case TT_RAILWAY:
 				break;
 			case TT_MISC:
-				if (!IsRailDepotTile(tile)) continue;
-				break;
-			case TT_STATION:
-				if (!HasStationRail(tile)) continue;
-				break;
-			case TT_ROAD:
-				if (!IsLevelCrossing(tile)) continue;
+				if (IsRailDepotTile(tile)) break;
+				if (!IsLevelCrossingTile(tile)) continue;
 				if (RailNoLevelCrossings(totype)) {
 					err.MakeError(STR_ERROR_CROSSING_DISALLOWED);
 					continue;
 				}
+				break;
+			case TT_STATION:
+				if (!HasStationRail(tile)) continue;
 				break;
 			case TT_TUNNELBRIDGE_TEMP:
 				if (GetTunnelBridgeTransportType(tile) != TRANSPORT_RAIL) continue;
@@ -1675,7 +1675,13 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 					break;
 
 				case TT_MISC:
-					if (IsRailDepotTile(tile)) {
+					if (IsLevelCrossingTile(tile)) {
+						if (flags & DC_EXEC) {
+							Track track = GetCrossingRailTrack(tile);
+							YapfNotifyTrackLayoutChange(tile, track);
+						}
+						cost.AddCost(RailConvertCost(type, totype));
+					} else if (IsRailDepotTile(tile)) {
 						if (flags & DC_EXEC) {
 							/* notify YAPF about the track layout change */
 							YapfNotifyTrackLayoutChange(tile, GetRailDepotTrack(tile));
@@ -1690,9 +1696,9 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 
 				case TT_TUNNELBRIDGE_TEMP: NOT_REACHED();
 
-				default: // TT_STATION, TT_ROAD
+				default: // TT_STATION
 					if (flags & DC_EXEC) {
-						Track track = ((tt == TT_STATION) ? GetRailStationTrack(tile) : GetCrossingRailTrack(tile));
+						Track track = GetRailStationTrack(tile);
 						YapfNotifyTrackLayoutChange(tile, track);
 					}
 
@@ -2416,7 +2422,7 @@ static void TileLoop_Track(TileIndex tile)
 			/* Show fences if it's a house, industry, object, road, tunnelbridge or not owned by us. */
 			if (!IsValidTile(tile2) || IsHouseTile(tile2) || IsIndustryTile(tile2) ||
 					(IsTileType(tile2, TT_MISC) && !IsRailDepotTile(tile2)) ||
-					IsRoadOrCrossingTile(tile2) || (IsObjectTile(tile2) && !IsOwnedLand(tile2)) || IsTunnelBridgeTile(tile2) || !IsTileOwner(tile2, owner)) {
+					IsRoadTile(tile2) || (IsObjectTile(tile2) && !IsOwnedLand(tile2)) || IsTunnelBridgeTile(tile2) || !IsTileOwner(tile2, owner)) {
 				fences |= 1 << d;
 			}
 		}

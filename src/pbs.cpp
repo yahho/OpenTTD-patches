@@ -27,11 +27,8 @@ TrackBits GetReservedTrackbits(TileIndex t)
 		case TT_RAILWAY:
 			return GetRailReservationTrackBits(t);
 
-		case TT_ROAD:
-			if (IsLevelCrossing(t)) return GetCrossingReservationTrackBits(t);
-			break;
-
 		case TT_MISC:
+			if (IsLevelCrossingTile(t)) return GetCrossingReservationTrackBits(t);
 			if (IsRailDepotTile(t)) return GetDepotReservationTrackBits(t);
 			break;
 
@@ -92,16 +89,13 @@ bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations)
 		case TT_RAILWAY:
 			return TryReserveTrack(tile, t);
 
-		case TT_ROAD:
-			if (IsLevelCrossing(tile) && !HasCrossingReservation(tile)) {
+		case TT_MISC:
+			if (IsLevelCrossingTile(tile) && !HasCrossingReservation(tile)) {
 				SetCrossingReservation(tile, true);
 				BarCrossing(tile);
 				MarkTileDirtyByTile(tile); // crossing barred, make tile dirty
 				return true;
 			}
-			break;
-
-		case TT_MISC:
 			if (IsRailDepotTile(tile) && !HasDepotReservation(tile)) {
 				SetDepotReservation(tile, true);
 				MarkTileDirtyByTile(tile); // some GRFs change their appearance when tile is reserved
@@ -149,15 +143,12 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 			UnreserveTrack(tile, t);
 			break;
 
-		case TT_ROAD:
-			if (IsLevelCrossing(tile)) {
+		case TT_MISC:
+			if (IsLevelCrossingTile(tile)) {
 				SetCrossingReservation(tile, false);
 				UpdateLevelCrossing(tile);
 			}
-			break;
-
-		case TT_MISC:
-			if (IsRailDepotTile(tile)) {
+			else if (IsRailDepotTile(tile)) {
 				SetDepotReservation(tile, false);
 				MarkTileDirtyByTile(tile);
 				break;

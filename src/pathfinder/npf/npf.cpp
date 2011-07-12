@@ -281,6 +281,9 @@ static void NPFMarkTile(TileIndex tile)
 			MarkTileDirtyByTile(tile);
 			break;
 
+		case TT_MISC:
+			if (!IsLevelCrossingTile(tile)) break;
+			/* fall through */
 		case TT_ROAD:
 			SetRoadside(tile, ROADSIDE_BARREN);
 			MarkTileDirtyByTile(tile);
@@ -327,8 +330,10 @@ static int32 NPFRoadPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 
 		case TT_ROAD:
 			cost = NPF_TILE_LENGTH;
-			/* Increase the cost for level crossings */
-			if (IsLevelCrossing(tile)) cost += _settings_game.pf.npf.npf_crossing_penalty;
+			break;
+
+		case TT_MISC:
+			if (IsLevelCrossingTile(tile)) cost = NPF_TILE_LENGTH +  _settings_game.pf.npf.npf_crossing_penalty;
 			break;
 
 		case TT_STATION: {
@@ -391,7 +396,7 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 			cost = _trackdir_length[trackdir]; // Should be different for diagonal tracks
 			break;
 
-		case TT_ROAD: // Railway crossing
+		case TT_MISC: // Railway crossing
 			cost = NPF_TILE_LENGTH;
 			break;
 
@@ -664,9 +669,9 @@ static bool CanEnterTileOwnerCheck(Owner owner, TileIndex tile, DiagDirection en
 	}
 
 	switch (GetTileType(tile)) {
-		case TT_ROAD:
+		case TT_MISC:
 			/* rail-road crossing : are we looking at the railway part? */
-			if (IsLevelCrossing(tile) &&
+			if (IsLevelCrossingTile(tile) &&
 					DiagDirToAxis(enterdir) != GetCrossingRoadAxis(tile)) {
 				return IsTileOwner(tile, owner); // Railway needs owner check, while the street is public
 			}
@@ -704,7 +709,7 @@ static DiagDirection GetDepotDirection(TileIndex tile, TransportType type)
 /** Tests if a tile is a road tile with a single tramtrack (tram can reverse) */
 static DiagDirection GetSingleTramBit(TileIndex tile)
 {
-	if (IsNormalRoadTile(tile)) {
+	if (IsRoadTile(tile)) {
 		RoadBits rb = GetRoadBits(tile, ROADTYPE_TRAM);
 		switch (rb) {
 			case ROAD_NW: return DIAGDIR_NW;

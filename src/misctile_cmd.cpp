@@ -24,6 +24,8 @@
 #include "elrail_func.h"
 #include "depot_func.h"
 #include "autoslope.h"
+#include "road_cmd.h"
+#include "town.h"
 #include "company_base.h"
 #include "strings_func.h"
 #include "company_gui.h"
@@ -191,19 +193,25 @@ void DrawRoadDepotSprite(int x, int y, DiagDirection dir, RoadType rt)
 
 static void DrawTile_Misc(TileInfo *ti)
 {
-	assert(IsGroundDepotTile(ti->tile));
+	switch (GetTileSubtype(ti->tile)) {
+		default: NOT_REACHED();
 
-	if (IsRailDepot(ti->tile)) {
-		DrawTrainDepot(ti);
-	} else {
-		DrawRoadDepot(ti);
+		case TT_MISC_CROSSING:
+			DrawLevelCrossing(ti);
+			break;
+
+		case TT_MISC_DEPOT:
+			if (IsRailDepot(ti->tile)) {
+				DrawTrainDepot(ti);
+			} else {
+				DrawRoadDepot(ti);
+			}
+			break;
 	}
 }
 
 static int GetSlopePixelZ_Misc(TileIndex tile, uint x, uint y)
 {
-	assert(IsGroundDepotTile(tile));
-
 	return GetTileMaxPixelZ(tile);
 }
 
@@ -267,74 +275,164 @@ static CommandCost RemoveRoadDepot(TileIndex tile, DoCommandFlag flags)
 	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_DEPOT_ROAD]);
 }
 
+extern CommandCost RemoveRoad(TileIndex tile, DoCommandFlag flags, RoadBits pieces, RoadType rt, bool crossing_check, bool town_check = true);
+
 static CommandCost ClearTile_Misc(TileIndex tile, DoCommandFlag flags)
 {
-	assert(IsGroundDepotTile(tile));
+	switch (GetTileSubtype(tile)) {
+		default: NOT_REACHED();
 
-	if (flags & DC_AUTO) {
-		if (!IsTileOwner(tile, _current_company)) {
-			return_cmd_error(STR_ERROR_AREA_IS_OWNED_BY_ANOTHER);
+		case TT_MISC_CROSSING: {
+			RoadTypes rts = GetRoadTypes(tile);
+			CommandCost ret(EXPENSES_CONSTRUCTION);
+
+			if (flags & DC_AUTO) return_cmd_error(STR_ERROR_MUST_REMOVE_ROAD_FIRST);
+
+			/* Must iterate over the roadtypes in a reverse manner because
+			 * tram tracks must be removed before the road bits. */
+			RoadType rt = ROADTYPE_TRAM;
+			do {
+				if (HasBit(rts, rt)) {
+					CommandCost tmp_ret = RemoveRoad(tile, flags, GetCrossingRoadBits(tile), rt, false);
+					if (tmp_ret.Failed()) return tmp_ret;
+					ret.AddCost(tmp_ret);
+				}
+			} while (rt-- != ROADTYPE_ROAD);
+
+			if (flags & DC_EXEC) {
+				DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+			}
+			return ret;
 		}
-		return_cmd_error(STR_ERROR_BUILDING_MUST_BE_DEMOLISHED);
-	}
 
-	return IsRailDepot(tile) ? RemoveTrainDepot(tile, flags) : RemoveRoadDepot(tile, flags);
+		case TT_MISC_DEPOT:
+			if (flags & DC_AUTO) {
+				if (!IsTileOwner(tile, _current_company)) {
+					return_cmd_error(STR_ERROR_AREA_IS_OWNED_BY_ANOTHER);
+				}
+				return_cmd_error(STR_ERROR_BUILDING_MUST_BE_DEMOLISHED);
+			}
+			return IsRailDepot(tile) ? RemoveTrainDepot(tile, flags) : RemoveRoadDepot(tile, flags);
+	}
 }
 
 
 static void GetTileDesc_Misc(TileIndex tile, TileDesc *td)
 {
-	assert(IsGroundDepotTile(tile));
+	switch (GetTileSubtype(tile)) {
+		default: NOT_REACHED();
 
-	td->owner[0] = GetTileOwner(tile);
-	td->build_date = Depot::GetByTile(tile)->build_date;
+		case TT_MISC_CROSSING: {
+			td->str = STR_LAI_ROAD_DESCRIPTION_ROAD_RAIL_LEVEL_CROSSING;
 
-	if (IsRailDepot(tile)) {
-		td->str = STR_LAI_RAIL_DESCRIPTION_TRAIN_DEPOT;
+			RoadTypes rts = GetRoadTypes(tile);
+			Owner road_owner = HasBit(rts, ROADTYPE_ROAD) ? GetRoadOwner(tile, ROADTYPE_ROAD) : INVALID_OWNER;
+			Owner tram_owner = HasBit(rts, ROADTYPE_TRAM) ? GetRoadOwner(tile, ROADTYPE_TRAM) : INVALID_OWNER;
+			Owner rail_owner = GetTileOwner(tile);
 
-		const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(tile));
-		SetDParamX(td->dparam, 0, rti->strings.name);
-		td->rail_speed = rti->max_speed;
+			td->rail_speed = GetRailTypeInfo(GetRailType(tile))->max_speed;
 
-		if (_settings_game.vehicle.train_acceleration_model != AM_ORIGINAL) {
-			if (td->rail_speed > 0) {
-				td->rail_speed = min(td->rail_speed, 61);
+			Owner first_owner = (road_owner == INVALID_OWNER ? tram_owner : road_owner);
+			bool mixed_owners = (tram_owner != INVALID_OWNER && tram_owner != first_owner) || (rail_owner != INVALID_OWNER && rail_owner != first_owner);
+
+			if (mixed_owners) {
+				/* Multiple owners */
+				td->owner_type[0] = (rail_owner == INVALID_OWNER ? STR_NULL : STR_LAND_AREA_INFORMATION_RAIL_OWNER);
+				td->owner[0] = rail_owner;
+				td->owner_type[1] = (road_owner == INVALID_OWNER ? STR_NULL : STR_LAND_AREA_INFORMATION_ROAD_OWNER);
+				td->owner[1] = road_owner;
+				td->owner_type[2] = (tram_owner == INVALID_OWNER ? STR_NULL : STR_LAND_AREA_INFORMATION_TRAM_OWNER);
+				td->owner[2] = tram_owner;
 			} else {
-				td->rail_speed = 61;
+				/* One to rule them all */
+				td->owner[0] = first_owner;
 			}
+
+			break;
 		}
-	} else {
-		td->str = STR_LAI_ROAD_DESCRIPTION_ROAD_VEHICLE_DEPOT;
+
+		case TT_MISC_DEPOT:
+			td->owner[0] = GetTileOwner(tile);
+			td->build_date = Depot::GetByTile(tile)->build_date;
+
+			if (IsRailDepot(tile)) {
+				td->str = STR_LAI_RAIL_DESCRIPTION_TRAIN_DEPOT;
+
+				const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(tile));
+				SetDParamX(td->dparam, 0, rti->strings.name);
+				td->rail_speed = rti->max_speed;
+
+				if (_settings_game.vehicle.train_acceleration_model != AM_ORIGINAL) {
+					if (td->rail_speed > 0) {
+						td->rail_speed = min(td->rail_speed, 61);
+					} else {
+						td->rail_speed = 61;
+					}
+				}
+			} else {
+				td->str = STR_LAI_ROAD_DESCRIPTION_ROAD_VEHICLE_DEPOT;
+			}
+
+			break;
 	}
 }
 
 
 static TrackStatus GetTileTrackStatus_Misc(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
 {
-	assert(IsGroundDepotTile(tile));
+	switch (GetTileSubtype(tile)) {
+		default: NOT_REACHED();
 
-	DiagDirection dir;
+		case TT_MISC_CROSSING: {
+			TrackdirBits trackdirbits = TRACKDIR_BIT_NONE;
+			TrackdirBits red_signals = TRACKDIR_BIT_NONE; // crossing barred
 
-	if (IsRailDepot(tile)) {
-		if (mode != TRANSPORT_RAIL) return 0;
+			switch (mode) {
+				case TRANSPORT_RAIL:
+					trackdirbits = TrackBitsToTrackdirBits(GetCrossingRailBits(tile));
+					break;
 
-		dir = GetRailDepotDirection(tile);
-	} else {
-		if ((mode != TRANSPORT_ROAD) || ((GetRoadTypes(tile) & sub_mode) == 0)) return 0;
+				case TRANSPORT_ROAD: {
+					if ((GetRoadTypes(tile) & sub_mode) == 0) break;
+					Axis axis = GetCrossingRoadAxis(tile);
 
-		dir = GetRoadDepotDirection(tile);
+					if (side != INVALID_DIAGDIR && axis != DiagDirToAxis(side)) break;
+
+					trackdirbits = TrackBitsToTrackdirBits(AxisToTrackBits(axis));
+					if (IsCrossingBarred(tile)) red_signals = trackdirbits;
+					break;
+				}
+
+				default: break;
+			}
+			return CombineTrackStatus(trackdirbits, red_signals);
+		}
+
+		case TT_MISC_DEPOT: {
+			DiagDirection dir;
+
+			if (IsRailDepot(tile)) {
+				if (mode != TRANSPORT_RAIL) return 0;
+
+				dir = GetRailDepotDirection(tile);
+			} else {
+				if ((mode != TRANSPORT_ROAD) || ((GetRoadTypes(tile) & sub_mode) == 0)) return 0;
+
+				dir = GetRoadDepotDirection(tile);
+			}
+
+			if (side != INVALID_DIAGDIR && side != dir) return 0;
+
+			TrackdirBits trackdirbits = TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir));
+			return CombineTrackStatus(trackdirbits, TRACKDIR_BIT_NONE);
+		}
 	}
-
-	if (side != INVALID_DIAGDIR && side != dir) return 0;
-
-	TrackdirBits trackdirbits = TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir));
-	return CombineTrackStatus(trackdirbits, TRACKDIR_BIT_NONE);
 }
 
 
 static bool ClickTile_Misc(TileIndex tile)
 {
-	assert(IsGroundDepotTile(tile));
+	if (!IsGroundDepotTile(tile)) return false;
 
 	ShowDepotWindow(tile, IsRailDepot(tile) ? VEH_TRAIN : VEH_ROAD);
 	return true;
@@ -343,9 +441,7 @@ static bool ClickTile_Misc(TileIndex tile)
 
 static void TileLoop_Misc(TileIndex tile)
 {
-	assert(IsGroundDepotTile(tile));
-
-	if (IsRailDepot(tile)) {
+	if (IsRailDepotTile(tile)) {
 		RailGroundType ground;
 
 		switch (_settings_game.game_creation.landscape) {
@@ -374,6 +470,8 @@ static void TileLoop_Misc(TileIndex tile)
 			MarkTileDirtyByTile(tile);
 		}
 	} else {
+		assert(IsLevelCrossingTile(tile) || IsRoadDepotTile(tile));
+
 		switch (_settings_game.game_creation.landscape) {
 			case LT_ARCTIC:
 				if (IsOnSnow(tile) != (GetTileZ(tile) > GetSnowLine())) {
@@ -389,32 +487,70 @@ static void TileLoop_Misc(TileIndex tile)
 				}
 				break;
 		}
+
+		if (IsLevelCrossingTile(tile)) {
+			const Town *t = ClosestTownFromTile(tile, UINT_MAX);
+			UpdateRoadSide(tile, t != NULL ? GetTownRadiusGroup(t, tile) : HZB_TOWN_EDGE);
+		}
 	}
 }
 
 
 static void ChangeTileOwner_Misc(TileIndex tile, Owner old_owner, Owner new_owner)
 {
-	assert(IsGroundDepotTile(tile));
+	switch (GetTileSubtype(tile)) {
+		default: NOT_REACHED();
 
-	if (!IsTileOwner(tile, old_owner)) return;
+		case TT_MISC_CROSSING:
+			for (RoadType rt = ROADTYPE_ROAD; rt < ROADTYPE_END; rt++) {
+				/* Update all roadtypes, no matter if they are present */
+				if (GetRoadOwner(tile, rt) == old_owner) {
+					if (HasTileRoadType(tile, rt)) {
+						/* A level crossing has two road bits. No need to dirty windows here, we'll redraw the whole screen anyway. */
+						Company::Get(old_owner)->infrastructure.road[rt] -= 2;
+						if (new_owner != INVALID_OWNER) Company::Get(new_owner)->infrastructure.road[rt] += 2;
+					}
 
-	if (new_owner != INVALID_OWNER) {
-		/* Update company infrastructure counts. No need to dirty windows here, we'll redraw the whole screen anyway. */
-		if (IsRailDepot(tile)) {
-			RailType rt = GetRailType(tile);
-			Company::Get(old_owner)->infrastructure.rail[rt]--;
-			Company::Get(new_owner)->infrastructure.rail[rt]++;
-		} else {
-			/* A road depot has two road bits. */
-			RoadType rt = (RoadType)FIND_FIRST_BIT(GetRoadTypes(tile));
-			Company::Get(old_owner)->infrastructure.road[rt] -= 2;
-			Company::Get(new_owner)->infrastructure.road[rt] += 2;
-		}
+					SetRoadOwner(tile, rt, new_owner == INVALID_OWNER ? OWNER_NONE : new_owner);
+				}
+			}
 
-		SetTileOwner(tile, new_owner);
-	} else {
-		DoCommand(tile, 0, 0, DC_EXEC | DC_BANKRUPT, CMD_LANDSCAPE_CLEAR);
+			if (GetTileOwner(tile) == old_owner) {
+				if (new_owner == INVALID_OWNER) {
+					DoCommand(tile, 0, GetCrossingRailTrack(tile), DC_EXEC | DC_BANKRUPT, CMD_REMOVE_SINGLE_RAIL);
+				} else {
+					/* Update infrastructure counts. No need to dirty windows here, we'll redraw the whole screen anyway. */
+					RailType rt = GetRailType(tile);
+					Company::Get(old_owner)->infrastructure.rail[rt] -= LEVELCROSSING_TRACKBIT_FACTOR;
+					Company::Get(new_owner)->infrastructure.rail[rt] += LEVELCROSSING_TRACKBIT_FACTOR;
+
+					SetTileOwner(tile, new_owner);
+				}
+			}
+
+			break;
+
+		case TT_MISC_DEPOT:
+			if (!IsTileOwner(tile, old_owner)) return;
+
+			if (new_owner != INVALID_OWNER) {
+				/* Update company infrastructure counts. No need to dirty windows here, we'll redraw the whole screen anyway. */
+				if (IsRailDepot(tile)) {
+					RailType rt = GetRailType(tile);
+					Company::Get(old_owner)->infrastructure.rail[rt]--;
+					Company::Get(new_owner)->infrastructure.rail[rt]++;
+				} else {
+					/* A road depot has two road bits. */
+					RoadType rt = (RoadType)FIND_FIRST_BIT(GetRoadTypes(tile));
+					Company::Get(old_owner)->infrastructure.road[rt] -= 2;
+					Company::Get(new_owner)->infrastructure.road[rt] += 2;
+				}
+
+				SetTileOwner(tile, new_owner);
+			} else {
+				DoCommand(tile, 0, 0, DC_EXEC | DC_BANKRUPT, CMD_LANDSCAPE_CLEAR);
+			}
+			break;
 	}
 }
 
@@ -456,7 +592,7 @@ static const byte _roadveh_enter_depot_dir[4] = {
 
 static VehicleEnterTileStatus VehicleEnter_Misc(Vehicle *u, TileIndex tile, int x, int y)
 {
-	assert(IsGroundDepotTile(tile));
+	if (!IsGroundDepotTile(tile)) return VETSB_CONTINUE;
 
 	if (IsRailDepot(tile)) {
 		if (u->type != VEH_TRAIN) return VETSB_CONTINUE;
@@ -524,25 +660,27 @@ static VehicleEnterTileStatus VehicleEnter_Misc(Vehicle *u, TileIndex tile, int 
 
 static Foundation GetFoundation_Misc(TileIndex tile, Slope tileh)
 {
-	assert(IsGroundDepotTile(tile));
-
 	return FlatteningFoundation(tileh);
 }
 
 
 static CommandCost TerraformTile_Misc(TileIndex tile, DoCommandFlag flags, int z_new, Slope tileh_new)
 {
-	assert(IsGroundDepotTile(tile));
+	if (_settings_game.construction.build_on_slopes && AutoslopeEnabled()) {
+		switch (GetTileSubtype(tile)) {
+			default: NOT_REACHED();
 
-	if (IsRailDepot(tile)) {
-		if (_settings_game.construction.build_on_slopes && AutoslopeEnabled() &&
-				AutoslopeCheckForEntranceEdge(tile, z_new, tileh_new, GetRailDepotDirection(tile))) {
-			return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
-		}
-	} else {
-		if (_settings_game.construction.build_on_slopes && AutoslopeEnabled() &&
-				AutoslopeCheckForEntranceEdge(tile, z_new, tileh_new, GetRoadDepotDirection(tile))) {
-			return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
+			case TT_MISC_CROSSING:
+				if (!IsSteepSlope(tileh_new) && (GetTileMaxZ(tile) == z_new + GetSlopeMaxZ(tileh_new)) && HasBit(VALID_LEVEL_CROSSING_SLOPES, tileh_new)) return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
+				break;
+
+			case TT_MISC_DEPOT: {
+				DiagDirection dir = IsRailDepot(tile) ? GetRailDepotDirection(tile) : GetRoadDepotDirection(tile);
+				if (AutoslopeCheckForEntranceEdge(tile, z_new, tileh_new, dir)) {
+					return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
+				}
+				break;
+			}
 		}
 	}
 

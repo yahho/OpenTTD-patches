@@ -25,7 +25,7 @@
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return ::IsRoadOrCrossingTile(tile) ||
+	return ::IsRoadTile(tile) || ::IsLevelCrossingTile(tile) ||
 			IsDriveThroughRoadStationTile(tile);
 }
 
@@ -90,7 +90,7 @@
 	uint dir_1 = (::TileX(t1) == ::TileX(t2)) ? (::TileY(t1) < ::TileY(t2) ? 2 : 0) : (::TileX(t1) < ::TileX(t2) ? 1 : 3);
 	uint dir_2 = 2 ^ dir_1;
 
-	DisallowedRoadDirections drd2 = IsNormalRoadTile(t2) ? GetDisallowedRoadDirections(t2) : DRD_NONE;
+	DisallowedRoadDirections drd2 = IsRoadTile(t2) ? GetDisallowedRoadDirections(t2) : DRD_NONE;
 
 	return HasBit(r1, dir_1) && HasBit(r2, dir_2) && drd2 != DRD_BOTH && drd2 != (dir_1 > dir_2 ? DRD_SOUTHBOUND : DRD_NORTHBOUND);
 }
@@ -372,7 +372,7 @@ static bool NormaliseTileOffset(int32 *tile)
 	existing->size = 0;
 
 	::RoadBits rb = ::ROAD_NONE;
-	if (::IsNormalRoadTile(tile)) {
+	if (::IsRoadTile(tile)) {
 		rb = ::GetAllRoadBits(tile);
 	} else {
 		for (::RoadType rt = ::ROADTYPE_BEGIN; rt < ::ROADTYPE_END; rt++) rb |= ::GetAnyRoadBits(tile, rt);
@@ -402,7 +402,7 @@ static bool NeighbourHasReachableRoad(::RoadTypes rts, TileIndex start_tile, Dia
 			return true;
 
 		case TT_MISC:
-			return IsRoadDepotTile(neighbour_tile);
+			return IsLevelCrossingTile(neighbour_tile) || IsRoadDepotTile(neighbour_tile);
 
 		case TT_STATION:
 			if (::IsDriveThroughStopTile(neighbour_tile)) {

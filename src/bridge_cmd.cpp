@@ -182,7 +182,7 @@ void RemoveBridgeMiddleTiles(TileIndex tile1, TileIndex tile2)
 
 	for (TileIndex t = tile1 + delta; t != tile2; t += delta) {
 		/* do not let trees appear from 'nowhere' after removing bridge */
-		if (IsNormalRoadTile(t) && GetRoadside(t) == ROADSIDE_TREES) {
+		if (IsRoadTile(t) && GetRoadside(t) == ROADSIDE_TREES) {
 			int minz = GetTileMaxZ(t) + 3;
 			if (height < minz) SetRoadside(t, ROADSIDE_PAVED);
 		}
