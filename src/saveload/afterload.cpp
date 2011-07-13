@@ -570,6 +570,13 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		cp->current_station = cp->front->last_station_visited;
 	}
 
+	if (IsOTTDSavegameVersionBefore(stv, 123)) {
+		/* Waypoints became subclasses of stations ... */
+		MoveWaypointsToBaseStations(stv);
+		/* ... and buoys were moved to waypoints. */
+		MoveBuoysToWaypoints();
+	}
+
 	for (TileIndex t = 0; t < map_size; t++) {
 		if (IsStationTile(t)) {
 			BaseStation *bst = BaseStation::GetByTile(t);
@@ -774,13 +781,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	if (IsOTTDSavegameVersionBefore(stv, 16, 1)) {
 		Company *c;
 		FOR_ALL_COMPANIES(c) c->settings.renew_keep_length = false;
-	}
-
-	if (IsOTTDSavegameVersionBefore(stv, 123)) {
-		/* Waypoints became subclasses of stations ... */
-		MoveWaypointsToBaseStations(stv);
-		/* ... and buoys were moved to waypoints. */
-		MoveBuoysToWaypoints();
 	}
 
 	if (IsOTTDSavegameVersionBefore(stv, 25)) {

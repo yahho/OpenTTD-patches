@@ -97,6 +97,8 @@ void MoveWaypointsToBaseStations(const SavegameTypeVersion *stv)
 
 	if (!Waypoint::CanAllocateItem(_old_waypoints.Length())) throw SlException(STR_ERROR_TOO_MANY_STATIONS_LOADING);
 
+	assert(IsOTTDSavegameVersionBefore(stv, 123));
+
 	/* All saveload conversions have been done. Create the new waypoints! */
 	for (OldWaypoint *wp = _old_waypoints.Begin(); wp != _old_waypoints.End(); wp++) {
 		Waypoint *new_wp = new Waypoint(wp->xy);
@@ -110,9 +112,9 @@ void MoveWaypointsToBaseStations(const SavegameTypeVersion *stv)
 		new_wp->string_id = STR_SV_STNAME_WAYPOINT;
 
 		TileIndex t = wp->xy;
-		if (IsRailwayTile(t) && GetRailTileType(t) == 2 /* RAIL_TILE_WAYPOINT */ && _mc[t].m2 == wp->index) {
+		if (IsRailWaypointTile(t) && _mc[t].m2 == wp->index) {
 			/* The tile might've been reserved! */
-			bool reserved = !IsOTTDSavegameVersionBefore(stv, 100) && HasBit(_mc[t].m5, 4);
+			bool reserved = !IsOTTDSavegameVersionBefore(stv, 100) && HasBit(_mc[t].m0, 0);
 
 			/* The tile really has our waypoint, so reassign the map array */
 			MakeRailWaypoint(t, GetTileOwner(t), new_wp->index, (Axis)GB(_mc[t].m5, 0, 1), 0, GetRailType(t));

@@ -737,6 +737,14 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_RAILWAY << 4);
 					uint ground = GB(_mc[t].m4, 0, 4);
 					switch (GB(_mc[t].m5, 6, 2)) {
+						case 2: // old waypoint
+							if (!IsOTTDSavegameVersionBefore(stv, 123)) {
+								throw SlCorrupt("Invalid rail tile type");
+							}
+							/* temporary hack; AfterLoadGame will fix this */
+							_mc[t].m0 = GB(_mc[t].m5, 4, 1) | (STATION_WAYPOINT << 1) | (TT_STATION << 4);
+							break;
+
 						case 3: // railway depot
 							SB(_mc[t].m0, 4, 4, TT_MISC);
 							SB(_mc[t].m1, 6, 2, TT_MISC_DEPOT);
@@ -804,9 +812,14 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					_mc[t].m2 = 0;
 					break;
 
-				case OLD_MP_STATION:
-					_mc[t].m0 = GB(_mc[t].m0, 2, 4) | (TT_STATION << 4);
+				case OLD_MP_STATION: {
+					uint type = GB(_mc[t].m0, 2, 4);
+					if ((type == STATION_WAYPOINT) && IsOTTDSavegameVersionBefore(stv, 123)) {
+						throw SlCorrupt("Invalid station type");
+					}
+					_mc[t].m0 = type | (TT_STATION << 4);
 					break;
+				}
 
 				case OLD_MP_WATER:
 					_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_WATER << 4);
