@@ -234,7 +234,7 @@ static inline void SetDisallowedRoadDirections(TileIndex t, DisallowedRoadDirect
 static inline Axis GetCrossingRoadAxis(TileIndex t)
 {
 	assert(IsLevelCrossingTile(t));
-	return (Axis)GB(_mc[t].m5, 0, 1);
+	return (Axis)GB(_mc[t].m4, 5, 1);
 }
 
 /**
@@ -289,7 +289,7 @@ static inline TrackBits GetCrossingRailBits(TileIndex tile)
 static inline bool HasCrossingReservation(TileIndex t)
 {
 	assert(IsLevelCrossingTile(t));
-	return HasBit(_mc[t].m5, 4);
+	return HasBit(_mc[t].m4, 7);
 }
 
 /**
@@ -301,7 +301,7 @@ static inline bool HasCrossingReservation(TileIndex t)
 static inline void SetCrossingReservation(TileIndex t, bool b)
 {
 	assert(IsLevelCrossingTile(t));
-	SB(_mc[t].m5, 4, 1, b ? 1 : 0);
+	SB(_mc[t].m4, 7, 1, b ? 1 : 0);
 }
 
 /**
@@ -324,7 +324,7 @@ static inline TrackBits GetCrossingReservationTrackBits(TileIndex t)
 static inline bool IsCrossingBarred(TileIndex t)
 {
 	assert(IsLevelCrossingTile(t));
-	return HasBit(_mc[t].m5, 5);
+	return HasBit(_mc[t].m4, 6);
 }
 
 /**
@@ -336,7 +336,7 @@ static inline bool IsCrossingBarred(TileIndex t)
 static inline void SetCrossingBarred(TileIndex t, bool barred)
 {
 	assert(IsLevelCrossingTile(t));
-	SB(_mc[t].m5, 5, 1, barred ? 1 : 0);
+	SB(_mc[t].m4, 6, 1, barred ? 1 : 0);
 }
 
 /**
@@ -521,8 +521,8 @@ static inline void MakeRoadCrossing(TileIndex t, Owner road, Owner tram, Owner r
 	SetTileOwner(t, rail);
 	_mc[t].m2 = town;
 	_mc[t].m3 = rat;
-	_mc[t].m4 = 0;
-	_mc[t].m5 = roaddir;
+	_mc[t].m4 = roaddir << 5;
+	_mc[t].m5 = 0;
 	_mc[t].m7 = rot << 6 | road;
 	SetRoadOwner(t, ROADTYPE_TRAM, tram);
 }

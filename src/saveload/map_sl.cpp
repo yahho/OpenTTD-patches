@@ -762,6 +762,9 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 						case 1: // level crossing
 							_mc[t].m0 |= (TT_MISC << 4);
 							SB(_mc[t].m1, 6, 2, TT_MISC_CROSSING);
+							SB(_mc[t].m4, 5, 1, GB(_mc[t].m5, 0, 1));
+							SB(_mc[t].m4, 6, 1, GB(_mc[t].m5, 5, 1));
+							SB(_mc[t].m4, 7, 1, GB(_mc[t].m5, 4, 1));
 							break;
 
 						case 2: // road depot
