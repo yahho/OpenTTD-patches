@@ -51,7 +51,7 @@ static inline RoadBits GetRoadBits(TileIndex t, RoadType rt)
 	assert(IsRoadTile(t));
 	switch (rt) {
 		default: NOT_REACHED();
-		case ROADTYPE_ROAD: return (RoadBits)GB(_mc[t].m5, 0, 4);
+		case ROADTYPE_ROAD: return (RoadBits)GB(_mc[t].m4, 0, 4);
 		case ROADTYPE_TRAM: return (RoadBits)GB(_mc[t].m4, 4, 4);
 	}
 }
@@ -91,7 +91,7 @@ static inline void SetRoadBits(TileIndex t, RoadBits r, RoadType rt)
 	assert(IsRoadTile(t)); // XXX incomplete
 	switch (rt) {
 		default: NOT_REACHED();
-		case ROADTYPE_ROAD: SB(_mc[t].m5, 0, 4, r); break;
+		case ROADTYPE_ROAD: SB(_mc[t].m4, 0, 4, r); break;
 		case ROADTYPE_TRAM: SB(_mc[t].m4, 4, 4, r); break;
 	}
 }
@@ -143,7 +143,7 @@ static inline Owner GetRoadOwner(TileIndex t, RoadType rt)
 		case ROADTYPE_TRAM: {
 			/* Trams don't need OWNER_TOWN, and remapping OWNER_NONE
 			 * to OWNER_TOWN makes it use one bit less */
-			Owner o = (Owner)GB(_mc[t].m3, 4, 4);
+			Owner o = (Owner)(IsStationTile(t) || IsTunnelBridgeTile(t) ? GB(_mc[t].m3, 4, 4) : GB(_mc[t].m5, 0, 4));
 			return o == OWNER_TOWN ? OWNER_NONE : o;
 		}
 	}
@@ -161,7 +161,14 @@ static inline void SetRoadOwner(TileIndex t, RoadType rt, Owner o)
 	switch (rt) {
 		default: NOT_REACHED();
 		case ROADTYPE_ROAD: SB(IsRoadTile(t) ? _mc[t].m1 : _mc[t].m7, 0, 5, o); break;
-		case ROADTYPE_TRAM: SB(_mc[t].m3, 4, 4, o == OWNER_NONE ? OWNER_TOWN : o); break;
+		case ROADTYPE_TRAM:
+			if (o == OWNER_NONE) o = OWNER_TOWN;
+			if (IsStationTile(t) || IsTunnelBridgeTile(t)) {
+				SB(_mc[t].m3, 4, 4, o);
+			} else {
+				SB(_mc[t].m5, 0, 4, o);
+			}
+			break;
 	}
 }
 
@@ -210,7 +217,7 @@ template <> struct EnumPropsT<DisallowedRoadDirections> : MakeEnumPropsT<Disallo
 static inline DisallowedRoadDirections GetDisallowedRoadDirections(TileIndex t)
 {
 	assert(IsRoadTile(t));
-	return (DisallowedRoadDirections)GB(_mc[t].m5, 4, 2);
+	return (DisallowedRoadDirections)GB(_mc[t].m3, 6, 2);
 }
 
 /**
@@ -222,7 +229,7 @@ static inline void SetDisallowedRoadDirections(TileIndex t, DisallowedRoadDirect
 {
 	assert(IsRoadTile(t));
 	assert(drd < DRD_END);
-	SB(_mc[t].m5, 4, 2, drd);
+	SB(_mc[t].m3, 6, 2, drd);
 }
 
 /**
@@ -400,7 +407,7 @@ enum Roadside {
 static inline Roadside GetRoadside(TileIndex tile)
 {
 	assert(IsRoadTile(tile) || IsLevelCrossingTile(tile));
-	return (Roadside)GB(_mc[tile].m4, 0, 3);
+	return (Roadside)GB(_mc[tile].m5, 4, 3);
 }
 
 /**
@@ -411,7 +418,7 @@ static inline Roadside GetRoadside(TileIndex tile)
 static inline void SetRoadside(TileIndex tile, Roadside s)
 {
 	assert(IsRoadTile(tile) || IsLevelCrossingTile(tile));
-	SB(_mc[tile].m4, 0, 3, s);
+	SB(_mc[tile].m5, 4, 3, s);
 }
 
 /**
@@ -497,8 +504,8 @@ static inline void MakeRoadNormal(TileIndex t, RoadBits bits, RoadTypes rot, Tow
 	SetTileOwner(t, road);
 	_mc[t].m2 = town;
 	_mc[t].m3 = 0;
-	_mc[t].m4 = (HasBit(rot, ROADTYPE_TRAM) ? bits : 0) << 4;
-	_mc[t].m5 = (HasBit(rot, ROADTYPE_ROAD) ? bits : 0);
+	_mc[t].m4 = (HasBit(rot, ROADTYPE_ROAD) ? bits : 0) | ((HasBit(rot, ROADTYPE_TRAM) ? bits : 0) << 4);
+	_mc[t].m5 = 0;
 	_mc[t].m7 = rot << 6;
 	SetRoadOwner(t, ROADTYPE_TRAM, tram);
 }

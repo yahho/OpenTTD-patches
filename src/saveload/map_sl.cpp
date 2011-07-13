@@ -749,15 +749,19 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					break;
 				}
 
-				case OLD_MP_ROAD:
-					_mc[t].m4 = GB(_mc[t].m0, 3, 3);
+				case OLD_MP_ROAD: {
+					uint roadside = GB(_mc[t].m0, 3, 3);
 					_mc[t].m0 = GB(_mc[t].m0, 6, 2);
 					switch (GB(_mc[t].m5, 6, 2)) {
-						case 0: // normal road
+						case 0: { // normal road
 							_mc[t].m0 |= (TT_ROAD << 4);
 							SB(_mc[t].m1, 6, 2, TT_TRACK);
-							SB(_mc[t].m4, 4, 4, GB(_mc[t].m3, 0, 4));
+							_mc[t].m4 = GB(_mc[t].m5, 0, 4) | (GB(_mc[t].m3, 0, 4) << 4);
+							SB(_mc[t].m5, 0, 4, GB(_mc[t].m3, 4, 4));
+							_mc[t].m3 = GB(_mc[t].m5, 4, 2) << 6;
+							SB(_mc[t].m5, 4, 4, roadside);
 							break;
+						}
 
 						case 1: // level crossing
 							_mc[t].m0 |= (TT_MISC << 4);
@@ -765,6 +769,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 							SB(_mc[t].m4, 5, 1, GB(_mc[t].m5, 0, 1));
 							SB(_mc[t].m4, 6, 1, GB(_mc[t].m5, 5, 1));
 							SB(_mc[t].m4, 7, 1, GB(_mc[t].m5, 4, 1));
+							_mc[t].m5 = GB(_mc[t].m3, 4, 4) | (roadside << 4);
 							break;
 
 						case 2: // road depot
@@ -777,6 +782,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 							break;
 					}
 					break;
+				}
 
 				case OLD_MP_HOUSE:
 					_mc[t].m0 = GB(_mc[t].m0, 2, 6) | 0xC0;
