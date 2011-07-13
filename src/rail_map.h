@@ -20,25 +20,6 @@
 #include "signal_type.h"
 
 
-/** Different types of Rail-related tiles */
-enum RailTileType {
-	RAIL_TILE_NORMAL   = 0, ///< Normal rail tile without signals
-	RAIL_TILE_SIGNALS  = 1, ///< Normal rail tile with signals
-};
-
-/**
- * Returns the RailTileType (normal with or without signals)
- * @param t the tile to get the information from
- * @pre IsRailwayTile(t)
- * @return the RailTileType
- */
-static inline RailTileType GetRailTileType(TileIndex t)
-{
-	assert(IsRailwayTile(t));
-	return (RailTileType)GB(_mc[t].m5, 6, 2);
-}
-
-
 /**
  * Checks if a rail tile has signals.
  * @param t the tile to get the information from
@@ -47,7 +28,9 @@ static inline RailTileType GetRailTileType(TileIndex t)
  */
 static inline bool HasSignals(TileIndex t)
 {
-	return GetRailTileType(t) == RAIL_TILE_SIGNALS;
+	assert(IsRailwayTile(t));
+	assert(!HasBit(_mc[t].m5, 7));
+	return HasBit(_mc[t].m5, 6);
 }
 
 /**
@@ -263,14 +246,14 @@ static inline bool IsPbsSignal(SignalType s)
 
 static inline SignalType GetSignalType(TileIndex t, Track track)
 {
-	assert(GetRailTileType(t) == RAIL_TILE_SIGNALS);
+	assert(HasSignals(t));
 	byte pos = (track == TRACK_LOWER || track == TRACK_RIGHT) ? 4 : 0;
 	return (SignalType)GB(_mc[t].m2, pos, 3);
 }
 
 static inline void SetSignalType(TileIndex t, Track track, SignalType s)
 {
-	assert(GetRailTileType(t) == RAIL_TILE_SIGNALS);
+	assert(HasSignals(t));
 	byte pos = (track == TRACK_LOWER || track == TRACK_RIGHT) ? 4 : 0;
 	SB(_mc[t].m2, pos, 3, s);
 	if (track == INVALID_TRACK) SB(_mc[t].m2, 4, 3, s);
@@ -384,7 +367,7 @@ static inline bool IsSignalPresent(TileIndex t, byte signalbit)
 static inline bool HasSignalOnTrack(TileIndex tile, Track track)
 {
 	assert(IsValidTrack(track));
-	return GetRailTileType(tile) == RAIL_TILE_SIGNALS && (GetPresentSignals(tile) & SignalOnTrack(track)) != 0;
+	return HasSignals(tile) && (GetPresentSignals(tile) & SignalOnTrack(track)) != 0;
 }
 
 /**
@@ -397,7 +380,7 @@ static inline bool HasSignalOnTrack(TileIndex tile, Track track)
 static inline bool HasSignalOnTrackdir(TileIndex tile, Trackdir trackdir)
 {
 	assert (IsValidTrackdir(trackdir));
-	return GetRailTileType(tile) == RAIL_TILE_SIGNALS && GetPresentSignals(tile) & SignalAlongTrackdir(trackdir);
+	return HasSignals(tile) && GetPresentSignals(tile) & SignalAlongTrackdir(trackdir);
 }
 
 /**
@@ -495,11 +478,11 @@ static inline void MakeRailNormal(TileIndex t, Owner o, TrackBits b, RailType r)
 {
 	SetTileType(t, TT_RAILWAY);
 	SetTileOwner(t, o);
+	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m2 = 0;
 	_mc[t].m3 = r;
 	_mc[t].m4 = 0;
-	_mc[t].m5 = RAIL_TILE_NORMAL << 6 | b;
-	SB(_mc[t].m0, 2, 2, 0);
+	_mc[t].m5 = b;
 	_mc[t].m7 = 0;
 }
 

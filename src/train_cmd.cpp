@@ -2866,8 +2866,7 @@ static inline void AffectSpeedByZChange(Train *v, int old_z)
 
 static bool TrainMovedChangeSignals(TileIndex tile, DiagDirection dir)
 {
-	if (IsRailwayTile(tile) &&
-			GetRailTileType(tile) == RAIL_TILE_SIGNALS) {
+	if (IsRailwayTile(tile) && HasSignals(tile)) {
 		TrackdirBits tracks = TrackBitsToTrackdirBits(GetTrackBits(tile)) & DiagdirReachesTrackdirs(dir);
 		Trackdir trackdir = FindFirstTrackdir(tracks);
 		if (UpdateSignalsOnSegment(tile,  TrackdirToExitdir(trackdir), GetTileOwner(tile)) == SIGSEG_PBS && HasSignalOnTrackdir(tile, trackdir)) {

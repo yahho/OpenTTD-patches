@@ -83,7 +83,7 @@ Axis GetAxisForNewWaypoint(TileIndex tile)
 	if (IsRailWaypointTile(tile)) return GetRailStationAxis(tile);
 
 	/* Non-plain rail type, no valid axis for waypoints. */
-	if (!IsRailwayTile(tile) || GetRailTileType(tile) != RAIL_TILE_NORMAL) return INVALID_AXIS;
+	if (!IsRailwayTile(tile) || HasSignals(tile)) return INVALID_AXIS;
 
 	switch (GetTrackBits(tile)) {
 		case TRACK_BIT_X: return AXIS_X;
