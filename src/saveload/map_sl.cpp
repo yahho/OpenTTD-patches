@@ -737,6 +737,17 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_RAILWAY << 4);
 					uint ground = GB(_mc[t].m4, 0, 4);
 					switch (GB(_mc[t].m5, 6, 2)) {
+						case 0: // track without signals
+							SB(_mc[t].m3, 4, 4, ground);
+							_mc[t].m4 = _mc[t].m7 = 0;
+							break;
+
+						case 1: // track with signals
+							_mc[t].m7 = GB(_mc[t].m4, 4, 2) | (GB(_mc[t].m3, 4, 2) << 2) | (GB(_mc[t].m2, 4, 3) << 4) | (GB(_mc[t].m2, 7, 1) << 7);
+							_mc[t].m4 = GB(_mc[t].m4, 6, 2) | (GB(_mc[t].m3, 6, 2) << 2) | (GB(_mc[t].m2, 0, 3) << 4) | (GB(_mc[t].m2, 3, 1) << 7);
+							SB(_mc[t].m3, 4, 4, ground);
+							break;
+
 						case 2: // old waypoint
 							if (!IsOTTDSavegameVersionBefore(stv, 123)) {
 								throw SlCorrupt("Invalid rail tile type");

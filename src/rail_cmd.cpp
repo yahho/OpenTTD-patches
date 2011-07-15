@@ -1013,7 +1013,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 		return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 	}
 	/* Protect against invalid signal copying */
-	if (p2 != 0 && (p2 & SignalOnTrack(track)) == 0) return CMD_ERROR;
+	if (p2 > 3) return CMD_ERROR;
 
 	CommandCost ret = CheckTileOwnership(tile);
 	if (ret.Failed()) return ret;
@@ -1065,19 +1065,18 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 		if (!HasSignals(tile)) {
 			/* there are no signals at all on this tile yet */
 			SetHasSignals(tile, true);
-			SetSignalStates(tile, 0xF); // all signals are on
-			SetPresentSignals(tile, 0); // no signals built by default
+			InitSignals(tile);
 			SetSignalType(tile, track, sigtype);
 			SetSignalVariant(tile, track, sigvar);
 		}
 
 		/* Subtract old signal infrastructure count. */
-		Company::Get(GetTileOwner(tile))->infrastructure.signal -= CountBits(GetPresentSignals(tile));
+		Company::Get(GetTileOwner(tile))->infrastructure.signal -= CountBits(GetPresentSignals(tile, track));
 
 		if (p2 == 0) {
 			if (!HasSignalOnTrack(tile, track)) {
 				/* build new signals */
-				SetPresentSignals(tile, GetPresentSignals(tile) | (IsPbsSignal(sigtype) ? KillFirstBit(SignalOnTrack(track)) : SignalOnTrack(track)));
+				SetPresentSignals(tile, track, IsPbsSignal(sigtype) ? 1 : 3);
 				SetSignalType(tile, track, sigtype);
 				SetSignalVariant(tile, track, sigvar);
 				while (num_dir_cycle-- > 0) CycleSignalSide(tile, track);
@@ -1093,8 +1092,8 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 						/* convert the present signal to the chosen type and variant */
 						SetSignalType(tile, track, sigtype);
 						SetSignalVariant(tile, track, sigvar);
-						if (IsPbsSignal(sigtype) && (GetPresentSignals(tile) & SignalOnTrack(track)) == SignalOnTrack(track)) {
-							SetPresentSignals(tile, (GetPresentSignals(tile) & ~SignalOnTrack(track)) | KillFirstBit(SignalOnTrack(track)));
+						if (IsPbsSignal(sigtype) && (GetPresentSignals(tile, track) == 3)) {
+							SetPresentSignals(tile, track, 1);
 						}
 					}
 
@@ -1105,8 +1104,8 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 					if (sigtype < cycle_start || sigtype > cycle_stop) sigtype = cycle_start;
 
 					SetSignalType(tile, track, sigtype);
-					if (IsPbsSignal(sigtype) && (GetPresentSignals(tile) & SignalOnTrack(track)) == SignalOnTrack(track)) {
-						SetPresentSignals(tile, (GetPresentSignals(tile) & ~SignalOnTrack(track)) | KillFirstBit(SignalOnTrack(track)));
+					if (IsPbsSignal(sigtype) && GetPresentSignals(tile, track) == 3) {
+						SetPresentSignals(tile, track, 1);
 					}
 				} else {
 					/* cycle the signal side: both -> left -> right -> both -> ... */
@@ -1118,19 +1117,20 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 		} else {
 			/* If CmdBuildManySignals is called with copying signals, just copy the
 			 * direction of the first signal given as parameter by CmdBuildManySignals */
-			SetPresentSignals(tile, (GetPresentSignals(tile) & ~SignalOnTrack(track)) | (p2 & SignalOnTrack(track)));
+			SetPresentSignals(tile, track, p2);
 			SetSignalVariant(tile, track, sigvar);
 			SetSignalType(tile, track, sigtype);
 		}
 
 		/* Add new signal infrastructure count. */
-		Company::Get(GetTileOwner(tile))->infrastructure.signal += CountBits(GetPresentSignals(tile));
+		Company::Get(GetTileOwner(tile))->infrastructure.signal += CountBits(GetPresentSignals(tile, track));
 		DirtyCompanyInfrastructureWindows(GetTileOwner(tile));
 
 		if (IsPbsSignal(sigtype)) {
 			/* PBS signals should show red unless they are on reserved tiles without a train. */
-			uint mask = GetPresentSignals(tile) & SignalOnTrack(track);
-			SetSignalStates(tile, (GetSignalStates(tile) & ~mask) | ((HasBit(GetRailReservationTrackBits(tile), track) && EnsureNoVehicleOnGround(tile).Succeeded() ? UINT_MAX : 0) & mask));
+			uint mask = GetPresentSignals(tile, track);
+			uint state = GetSignalStates(tile, track);
+			SetSignalStates(tile, track, HasBit(GetRailReservationTrackBits(tile), track) && EnsureNoTrainOnTrack(tile, track).Succeeded() ? (state | mask) : (state & ~mask));
 		}
 		MarkTileDirtyByTile(tile);
 		AddTrackToSignalBuffer(tile, track, _current_company);
@@ -1257,7 +1257,7 @@ static CommandCost CmdSignalTrackHelper(TileIndex tile, DoCommandFlag flags, uin
 	byte signals;
 	/* copy the signal-style of the first rail-piece if existing */
 	if (HasSignalOnTrack(tile, track)) {
-		signals = GetPresentSignals(tile) & SignalOnTrack(track);
+		signals = GetPresentSignals(tile, track);
 		assert(signals != 0);
 
 		/* copy signal/semaphores style (independent of CTRL) */
@@ -1267,12 +1267,11 @@ static CommandCost CmdSignalTrackHelper(TileIndex tile, DoCommandFlag flags, uin
 		/* Don't but copy entry or exit-signal type */
 		if (sigtype == SIGTYPE_ENTRY || sigtype == SIGTYPE_EXIT) sigtype = SIGTYPE_NORMAL;
 	} else { // no signals exist, drag a two-way signal stretch
-		signals = IsPbsSignal(sigtype) ? SignalAlongTrackdir(trackdir) : SignalOnTrack(track);
+		signals = IsPbsSignal(sigtype) ? SignalBit(trackdir) : 3;
 	}
 
-	byte signal_dir = 0;
-	if (signals & SignalAlongTrackdir(trackdir))   SetBit(signal_dir, 0);
-	if (signals & SignalAgainstTrackdir(trackdir)) SetBit(signal_dir, 1);
+	bool along   = (signals & SignalBit(trackdir)) != 0;
+	bool against = (signals & SignalBit(ReverseTrackdir(trackdir))) != 0;
 
 	/* signal_ctr         - amount of tiles already processed
 	 * last_used_ctr      - amount of tiles before previously placed signal
@@ -1304,8 +1303,8 @@ static CommandCost CmdSignalTrackHelper(TileIndex tile, DoCommandFlag flags, uin
 
 			/* Pick the correct orientation for the track direction */
 			signals = 0;
-			if (HasBit(signal_dir, 0)) signals |= SignalAlongTrackdir(trackdir);
-			if (HasBit(signal_dir, 1)) signals |= SignalAgainstTrackdir(trackdir);
+			if (along)   signals |= SignalBit(trackdir);
+			if (against) signals |= SignalBit(ReverseTrackdir(trackdir));
 
 			/* Test tiles in between for suitability as well if minimising gaps. */
 			bool test_only = !remove && minimise_gaps && signal_ctr < (last_used_ctr + signal_density);
@@ -1323,8 +1322,8 @@ static CommandCost CmdSignalTrackHelper(TileIndex tile, DoCommandFlag flags, uin
 
 				/* Pick the correct orientation for the track direction. */
 				signals = 0;
-				if (HasBit(signal_dir, 0)) signals |= SignalAlongTrackdir(last_suitable_trackdir);
-				if (HasBit(signal_dir, 1)) signals |= SignalAgainstTrackdir(last_suitable_trackdir);
+				if (along)   signals |= SignalBit(last_suitable_trackdir);
+				if (against) signals |= SignalBit(ReverseTrackdir(last_suitable_trackdir));
 
 				ret = DoCommand(last_suitable_tile, p1, signals, flags, remove ? CMD_REMOVE_SIGNALS : CMD_BUILD_SIGNALS);
 			}
@@ -1440,16 +1439,14 @@ CommandCost CmdRemoveSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1
 				}
 			}
 		}
-		Company::Get(GetTileOwner(tile))->infrastructure.signal -= CountBits(GetPresentSignals(tile));
-		SetPresentSignals(tile, GetPresentSignals(tile) & ~SignalOnTrack(track));
-		Company::Get(GetTileOwner(tile))->infrastructure.signal += CountBits(GetPresentSignals(tile));
+		Company::Get(GetTileOwner(tile))->infrastructure.signal -= CountBits(GetPresentSignals(tile, track));
+		SetPresentSignals(tile, track, 0);
 		DirtyCompanyInfrastructureWindows(GetTileOwner(tile));
 
 		/* removed last signal from tile? */
-		if (GetPresentSignals(tile) == 0) {
-			SetSignalStates(tile, 0);
+		if (GetPresentSignals(tile, TRACK_UPPER) == 0 && GetPresentSignals(tile, TRACK_LOWER) == 0) {
+			ClearSignals(tile, INVALID_TRACK);
 			SetHasSignals(tile, false);
-			SetSignalVariant(tile, INVALID_TRACK, SIG_ELECTRIC); // remove any possible semaphores
 		}
 
 		AddTrackToSignalBuffer(tile, track, GetTileOwner(tile));
@@ -2218,34 +2215,32 @@ static void DrawSingleSignal(TileIndex tile, const RailtypeInfo *rti, Trackdir t
 {
 	static const struct {
 		Point pos[2];        // signal position (left side, right side)
-		uint signalbit;      // signal bit
 		SignalOffsets image; // offset from base signal sprite
 	} SignalData[] = {
-		{ { {11,  3}, {11, 13} }, 3, SIGNAL_TO_NORTHEAST }, // TRACKDIR_X_NE
-		{ { { 3,  4}, {13,  4} }, 3, SIGNAL_TO_SOUTHEAST }, // TRACKDIR_Y_SE
-		{ { { 1,  0}, {10,  4} }, 3, SIGNAL_TO_EAST      }, // TRACKDIR_UPPER_E
-		{ { {11,  4}, {14, 14} }, 1, SIGNAL_TO_EAST      }, // TRACKDIR_LOWER_E
-		{ { { 8,  5}, {14,  1} }, 2, SIGNAL_TO_SOUTH     }, // TRACKDIR_LEFT_S
-		{ { { 1, 14}, { 4,  6} }, 0, SIGNAL_TO_SOUTH     }, // TRACKDIR_RIGHT_S
-		{ { { 0,  0}, { 0,  0} }, 0, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_NE
-		{ { { 0,  0}, { 0,  0} }, 0, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_SE
-		{ { { 4, 13}, { 4,  3} }, 2, SIGNAL_TO_SOUTHWEST }, // TRACKDIR_X_SW
-		{ { {11, 13}, { 3, 11} }, 2, SIGNAL_TO_NORTHWEST }, // TRACKDIR_Y_NW
-		{ { { 3, 10}, { 0,  1} }, 2, SIGNAL_TO_WEST      }, // TRACKDIR_UPPER_W
-		{ { {14, 14}, { 5, 12} }, 0, SIGNAL_TO_WEST      }, // TRACKDIR_LOWER_W
-		{ { {14,  1}, {12, 10} }, 3, SIGNAL_TO_NORTH     }, // TRACKDIR_LEFT_N
-		{ { { 9, 11}, { 1, 14} }, 1, SIGNAL_TO_NORTH     }, // TRACKDIR_RIGHT_N
-	//	{ { { 0,  0}, { 0,  0} }, 0, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_SW
-	//	{ { { 0,  0}, { 0,  0} }, 0, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_NW
+		{ { {11,  3}, {11, 13} }, SIGNAL_TO_NORTHEAST }, // TRACKDIR_X_NE
+		{ { { 3,  4}, {13,  4} }, SIGNAL_TO_SOUTHEAST }, // TRACKDIR_Y_SE
+		{ { { 1,  0}, {10,  4} }, SIGNAL_TO_EAST      }, // TRACKDIR_UPPER_E
+		{ { {11,  4}, {14, 14} }, SIGNAL_TO_EAST      }, // TRACKDIR_LOWER_E
+		{ { { 8,  5}, {14,  1} }, SIGNAL_TO_SOUTH     }, // TRACKDIR_LEFT_S
+		{ { { 1, 14}, { 4,  6} }, SIGNAL_TO_SOUTH     }, // TRACKDIR_RIGHT_S
+		{ { { 0,  0}, { 0,  0} }, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_NE
+		{ { { 0,  0}, { 0,  0} }, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_SE
+		{ { { 4, 13}, { 4,  3} }, SIGNAL_TO_SOUTHWEST }, // TRACKDIR_X_SW
+		{ { {11, 13}, { 3, 11} }, SIGNAL_TO_NORTHWEST }, // TRACKDIR_Y_NW
+		{ { { 3, 10}, { 0,  1} }, SIGNAL_TO_WEST      }, // TRACKDIR_UPPER_W
+		{ { {14, 14}, { 5, 12} }, SIGNAL_TO_WEST      }, // TRACKDIR_LOWER_W
+		{ { {14,  1}, {12, 10} }, SIGNAL_TO_NORTH     }, // TRACKDIR_LEFT_N
+		{ { { 9, 11}, { 1, 14} }, SIGNAL_TO_NORTH     }, // TRACKDIR_RIGHT_N
+	//	{ { { 0,  0}, { 0,  0} }, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_SW
+	//	{ { { 0,  0}, { 0,  0} }, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_NW
 	};
 
-	uint signalbit = SignalData[trackdir].signalbit;
-	if (!IsSignalPresent(tile, signalbit)) return;
+	if (!HasSignalOnTrackdir(tile, trackdir)) return;
 
 	Track track = TrackdirToTrack(trackdir);
 	SignalType type       = GetSignalType(tile, track);
 	SignalVariant variant = GetSignalVariant(tile, track);
-	SignalState condition = GetSingleSignalState(tile, signalbit);
+	SignalState condition = GetSignalStateByTrackdir(tile, trackdir);
 
 	SpriteID sprite = GetCustomSignalSprite(rti, tile, type, variant, condition);
 	SignalOffsets image = SignalData[trackdir].image;
@@ -2472,21 +2467,32 @@ static TrackStatus GetTileTrackStatus_Track(TileIndex tile, TransportType mode, 
 	TrackdirBits red_signals = TRACKDIR_BIT_NONE;
 
 	if (HasSignals(tile)) {
-		byte a = GetPresentSignals(tile);
-		uint b = GetSignalStates(tile);
+		uint a, b;
 
-		b &= a;
-
+		a = GetPresentSignals(tile, TRACK_UPPER);
 		/* When signals are not present (in neither direction),
 		 * we pretend them to be green. Otherwise, it depends on
 		 * the signal type. For signals that are only active from
 		 * one side, we set the missing signals explicitly to
 		 * `green'. Otherwise, they implicitly become `red'. */
-		if (!IsOnewaySignal(tile, TRACK_UPPER) || (a & SignalOnTrack(TRACK_UPPER)) == 0) b |= ~a & SignalOnTrack(TRACK_UPPER);
-		if (!IsOnewaySignal(tile, TRACK_LOWER) || (a & SignalOnTrack(TRACK_LOWER)) == 0) b |= ~a & SignalOnTrack(TRACK_LOWER);
+		if (a == 0) {
+			b = 3;
+		} else {
+			b = GetSignalStates(tile, TRACK_UPPER) & a;
+			if (!IsOnewaySignal(tile, TRACK_UPPER)) b |= ~a;
+		}
 
-		if ((b & 0x8) == 0) red_signals |= (TRACKDIR_BIT_LEFT_N | TRACKDIR_BIT_X_NE | TRACKDIR_BIT_Y_SE | TRACKDIR_BIT_UPPER_E);
-		if ((b & 0x4) == 0) red_signals |= (TRACKDIR_BIT_LEFT_S | TRACKDIR_BIT_X_SW | TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_UPPER_W);
+		if ((b & 0x2) == 0) red_signals |= (TRACKDIR_BIT_LEFT_N | TRACKDIR_BIT_X_NE | TRACKDIR_BIT_Y_SE | TRACKDIR_BIT_UPPER_E);
+		if ((b & 0x1) == 0) red_signals |= (TRACKDIR_BIT_LEFT_S | TRACKDIR_BIT_X_SW | TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_UPPER_W);
+
+		a = GetPresentSignals(tile, TRACK_LOWER);
+		if (a == 0) {
+			b = 3;
+		} else {
+			b = GetSignalStates(tile, TRACK_LOWER) & a;
+			if (!IsOnewaySignal(tile, TRACK_LOWER)) b |= ~a;
+		}
+
 		if ((b & 0x2) == 0) red_signals |= (TRACKDIR_BIT_RIGHT_N | TRACKDIR_BIT_LOWER_E);
 		if ((b & 0x1) == 0) red_signals |= (TRACKDIR_BIT_RIGHT_S | TRACKDIR_BIT_LOWER_W);
 	}
@@ -2588,7 +2594,7 @@ static void ChangeTileOwner_Track(TileIndex tile, Owner old_owner, Owner new_own
 		Company::Get(new_owner)->infrastructure.rail[rt] += num_pieces;
 
 		if (HasSignals(tile)) {
-			uint num_sigs = CountBits(GetPresentSignals(tile));
+			uint num_sigs = CountBits(GetPresentSignals(tile, TRACK_UPPER)) + CountBits(GetPresentSignals(tile, TRACK_LOWER));
 			Company::Get(old_owner)->infrastructure.signal -= num_sigs;
 			Company::Get(new_owner)->infrastructure.signal += num_sigs;
 		}
