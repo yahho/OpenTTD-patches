@@ -2266,35 +2266,41 @@ static uint GetSafeSlopePixelZ(uint x, uint y, Track track)
 	return GetSlopePixelZ(x, y);
 }
 
-static void DrawSingleSignal(TileIndex tile, const RailtypeInfo *rti, Track track, SignalState condition, SignalOffsets image, uint pos)
+static void DrawSingleSignal(TileIndex tile, const RailtypeInfo *rti, Trackdir trackdir)
 {
-	bool side;
-	switch (_settings_game.construction.train_signal_side) {
-		case 0:  side = false;                                 break; // left
-		case 2:  side = true;                                  break; // right
-		default: side = _settings_game.vehicle.road_side != 0; break; // driving side
-	}
-	static const Point SignalPositions[2][12] = {
-		{ // Signals on the left side
-		/*  LEFT      LEFT      RIGHT     RIGHT     UPPER     UPPER */
-			{ 8,  5}, {14,  1}, { 1, 14}, { 9, 11}, { 1,  0}, { 3, 10},
-		/*  LOWER     LOWER     X         X         Y         Y     */
-			{11,  4}, {14, 14}, {11,  3}, { 4, 13}, { 3,  4}, {11, 13}
-		}, { // Signals on the right side
-		/*  LEFT      LEFT      RIGHT     RIGHT     UPPER     UPPER */
-			{14,  1}, {12, 10}, { 4,  6}, { 1, 14}, {10,  4}, { 0,  1},
-		/*  LOWER     LOWER     X         X         Y         Y     */
-			{14, 14}, { 5, 12}, {11, 13}, { 4,  3}, {13,  4}, { 3, 11}
-		}
+	static const struct {
+		Point pos[2];        // signal position (left side, right side)
+		uint signalbit;      // signal bit
+		SignalOffsets image; // offset from base signal sprite
+	} SignalData[] = {
+		{ { {11,  3}, {11, 13} }, 3, SIGNAL_TO_NORTHEAST }, // TRACKDIR_X_NE
+		{ { { 3,  4}, {13,  4} }, 3, SIGNAL_TO_SOUTHEAST }, // TRACKDIR_Y_SE
+		{ { { 1,  0}, {10,  4} }, 3, SIGNAL_TO_EAST      }, // TRACKDIR_UPPER_E
+		{ { {11,  4}, {14, 14} }, 1, SIGNAL_TO_EAST      }, // TRACKDIR_LOWER_E
+		{ { { 8,  5}, {14,  1} }, 2, SIGNAL_TO_SOUTH     }, // TRACKDIR_LEFT_S
+		{ { { 1, 14}, { 4,  6} }, 0, SIGNAL_TO_SOUTH     }, // TRACKDIR_RIGHT_S
+		{ { { 0,  0}, { 0,  0} }, 0, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_NE
+		{ { { 0,  0}, { 0,  0} }, 0, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_SE
+		{ { { 4, 13}, { 4,  3} }, 2, SIGNAL_TO_SOUTHWEST }, // TRACKDIR_X_SW
+		{ { {11, 13}, { 3, 11} }, 2, SIGNAL_TO_NORTHWEST }, // TRACKDIR_Y_NW
+		{ { { 3, 10}, { 0,  1} }, 2, SIGNAL_TO_WEST      }, // TRACKDIR_UPPER_W
+		{ { {14, 14}, { 5, 12} }, 0, SIGNAL_TO_WEST      }, // TRACKDIR_LOWER_W
+		{ { {14,  1}, {12, 10} }, 3, SIGNAL_TO_NORTH     }, // TRACKDIR_LEFT_N
+		{ { { 9, 11}, { 1, 14} }, 1, SIGNAL_TO_NORTH     }, // TRACKDIR_RIGHT_N
+	//	{ { { 0,  0}, { 0,  0} }, 0, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_SW
+	//	{ { { 0,  0}, { 0,  0} }, 0, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_NW
 	};
 
-	uint x = TileX(tile) * TILE_SIZE + SignalPositions[side][pos].x;
-	uint y = TileY(tile) * TILE_SIZE + SignalPositions[side][pos].y;
+	uint signalbit = SignalData[trackdir].signalbit;
+	if (!IsSignalPresent(tile, signalbit)) return;
 
+	Track track = TrackdirToTrack(trackdir);
 	SignalType type       = GetSignalType(tile, track);
 	SignalVariant variant = GetSignalVariant(tile, track);
+	SignalState condition = GetSingleSignalState(tile, signalbit);
 
 	SpriteID sprite = GetCustomSignalSprite(rti, tile, type, variant, condition);
+	SignalOffsets image = SignalData[trackdir].image;
 	if (sprite != 0) {
 		sprite += image;
 	} else {
@@ -2303,35 +2309,42 @@ static void DrawSingleSignal(TileIndex tile, const RailtypeInfo *rti, Track trac
 		sprite += type * 16 + variant * 64 + image * 2 + condition + (type > SIGTYPE_LAST_NOPBS ? 64 : 0);
 	}
 
+	bool side;
+	switch (_settings_game.construction.train_signal_side) {
+		case 0:  side = false;                                 break; // left
+		case 2:  side = true;                                  break; // right
+		default: side = _settings_game.vehicle.road_side != 0; break; // driving side
+	}
+	uint x = TileX(tile) * TILE_SIZE + SignalData[trackdir].pos[side].x;
+	uint y = TileY(tile) * TILE_SIZE + SignalData[trackdir].pos[side].y;
+
 	AddSortableSpriteToDraw(sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ(x, y, track));
 }
 
 static void DrawSignals(TileIndex tile, TrackBits rails, const RailtypeInfo *rti)
 {
-#define MAYBE_DRAW_SIGNAL(x, y, z, t) if (IsSignalPresent(tile, x)) DrawSingleSignal(tile, rti, t, GetSingleSignalState(tile, x), y, z)
-
 	if (rails & TRACK_BIT_Y) {
-		MAYBE_DRAW_SIGNAL(3, SIGNAL_TO_NORTHWEST, 10, TRACK_Y);
-		MAYBE_DRAW_SIGNAL(2, SIGNAL_TO_SOUTHEAST, 11, TRACK_Y);
+		DrawSingleSignal(tile, rti, TRACKDIR_Y_SE);
+		DrawSingleSignal(tile, rti, TRACKDIR_Y_NW);
 	} else if (rails & TRACK_BIT_X) {
-		MAYBE_DRAW_SIGNAL(3, SIGNAL_TO_SOUTHWEST, 8, TRACK_X);
-		MAYBE_DRAW_SIGNAL(2, SIGNAL_TO_NORTHEAST, 9, TRACK_X);
+		DrawSingleSignal(tile, rti, TRACKDIR_X_NE);
+		DrawSingleSignal(tile, rti, TRACKDIR_X_SW);
 	} else {
 		if (rails & TRACK_BIT_LEFT) {
-			MAYBE_DRAW_SIGNAL(2, SIGNAL_TO_SOUTH, 0, TRACK_LEFT);
-			MAYBE_DRAW_SIGNAL(3, SIGNAL_TO_NORTH, 1, TRACK_LEFT);
+			DrawSingleSignal(tile, rti, TRACKDIR_LEFT_S);
+			DrawSingleSignal(tile, rti, TRACKDIR_LEFT_N);
 		}
 		if (rails & TRACK_BIT_RIGHT) {
-			MAYBE_DRAW_SIGNAL(0, SIGNAL_TO_SOUTH, 2, TRACK_RIGHT);
-			MAYBE_DRAW_SIGNAL(1, SIGNAL_TO_NORTH, 3, TRACK_RIGHT);
+			DrawSingleSignal(tile, rti, TRACKDIR_RIGHT_S);
+			DrawSingleSignal(tile, rti, TRACKDIR_RIGHT_N);
 		}
 		if (rails & TRACK_BIT_UPPER) {
-			MAYBE_DRAW_SIGNAL(3, SIGNAL_TO_EAST, 4, TRACK_UPPER);
-			MAYBE_DRAW_SIGNAL(2, SIGNAL_TO_WEST, 5, TRACK_UPPER);
+			DrawSingleSignal(tile, rti, TRACKDIR_UPPER_E);
+			DrawSingleSignal(tile, rti, TRACKDIR_UPPER_W);
 		}
 		if (rails & TRACK_BIT_LOWER) {
-			MAYBE_DRAW_SIGNAL(1, SIGNAL_TO_EAST, 6, TRACK_LOWER);
-			MAYBE_DRAW_SIGNAL(0, SIGNAL_TO_WEST, 7, TRACK_LOWER);
+			DrawSingleSignal(tile, rti, TRACKDIR_LOWER_E);
+			DrawSingleSignal(tile, rti, TRACKDIR_LOWER_W);
 		}
 	}
 }
