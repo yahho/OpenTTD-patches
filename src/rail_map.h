@@ -59,7 +59,7 @@ static inline void SetRailType(TileIndex t, RailType r)
 static inline TrackBits GetTrackBits(TileIndex tile)
 {
 	assert(IsRailwayTile(tile));
-	return (TrackBits)GB(_mc[tile].m5, 0, 6);
+	return (TrackBits)GB(_mc[tile].m2, 0, 6);
 }
 
 /**
@@ -70,7 +70,7 @@ static inline TrackBits GetTrackBits(TileIndex tile)
 static inline void SetTrackBits(TileIndex t, TrackBits b)
 {
 	assert(IsRailwayTile(t));
-	SB(_mc[t].m5, 0, 6, b);
+	SB(_mc[t].m2, 0, 6, b);
 }
 
 /**
@@ -476,10 +476,10 @@ static inline void MakeRailNormal(TileIndex t, Owner o, TrackBits b, RailType r)
 	SetTileType(t, TT_RAILWAY);
 	SetTileOwner(t, o);
 	SB(_mc[t].m0, 2, 2, 0);
-	_mc[t].m2 = 0;
+	_mc[t].m2 = b;
 	_mc[t].m3 = r;
 	_mc[t].m4 = 0;
-	_mc[t].m5 = b;
+	_mc[t].m5 = 0;
 	_mc[t].m7 = 0;
 }
 
