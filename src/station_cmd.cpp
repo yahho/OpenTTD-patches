@@ -819,8 +819,7 @@ static CommandCost CheckFlatLandRailStation(TileArea tile_area, DoCommandFlag fl
 		} else {
 			/* Rail type is only valid when building a railway station; if station to
 			 * build isn't a rail station it's INVALID_RAILTYPE. */
-			if (rt != INVALID_RAILTYPE &&
-					IsRailwayTile(tile_cur) && !HasSignals(tile_cur) &&
+			if (rt != INVALID_RAILTYPE && IsRailwayTile(tile_cur) &&
 					HasPowerOnRail(GetRailType(tile_cur), rt)) {
 				/* Allow overbuilding if the tile:
 				 *  - has rail, but no signals
@@ -832,7 +831,7 @@ static CommandCost CheckFlatLandRailStation(TileArea tile_area, DoCommandFlag fl
 				Track track = RemoveFirstTrack(&tracks);
 				Track expected_track = HasBit(invalid_dirs, DIAGDIR_NE) ? TRACK_X : TRACK_Y;
 
-				if (tracks == TRACK_BIT_NONE && track == expected_track) {
+				if (tracks == TRACK_BIT_NONE && track == expected_track && !HasSignalOnTrack(tile_cur, track)) {
 					/* Check for trains having a reservation for this tile. */
 					if (HasBit(GetRailReservationTrackBits(tile_cur), track)) {
 						Train *v = GetTrainForReservation(tile_cur, track);

@@ -404,7 +404,7 @@ static const ScriptRailSignalData _possible_trackdirs[5][NUM_TRACK_DIRECTIONS] =
 /* static */ ScriptRail::SignalType ScriptRail::GetSignalType(TileIndex tile, TileIndex front)
 {
 	if (ScriptMap::DistanceManhattan(tile, front) != 1) return SIGNALTYPE_NONE;
-	if (!::IsRailwayTile(tile) || !::HasSignals(tile)) return SIGNALTYPE_NONE;
+	if (!::IsRailwayTile(tile)) return SIGNALTYPE_NONE;
 
 	int data_index = 2 + (::TileX(front) - ::TileX(tile)) + 2 * (::TileY(front) - ::TileY(tile));
 

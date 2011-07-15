@@ -230,7 +230,7 @@ static CommandCost CheckTrackCombination(TileIndex tile, TrackBits to_build, uin
 	}
 
 	/* Let's see if we may build this */
-	if ((flags & DC_NO_RAIL_OVERLAP) || HasSignals(tile)) {
+	if ((flags & DC_NO_RAIL_OVERLAP) || HasSignalOnTrack(tile, TRACK_UPPER) || HasSignalOnTrack(tile, TRACK_LOWER)) {
 		/* If we are not allowed to overlap (flag is on for ai companies or we have
 		 * signals on the tile), check that */
 		if (future != TRACK_BIT_HORZ && future != TRACK_BIT_VERT) {
@@ -1062,14 +1062,6 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 			if (v != NULL) FreeTrainTrackReservation(v);
 		}
 
-		if (!HasSignals(tile)) {
-			/* there are no signals at all on this tile yet */
-			SetHasSignals(tile, true);
-			InitSignals(tile);
-			SetSignalType(tile, track, sigtype);
-			SetSignalVariant(tile, track, sigvar);
-		}
-
 		/* Subtract old signal infrastructure count. */
 		Company::Get(GetTileOwner(tile))->infrastructure.signal -= CountBits(GetPresentSignals(tile, track));
 
@@ -1078,6 +1070,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 				/* build new signals */
 				SetPresentSignals(tile, track, IsPbsSignal(sigtype) ? 1 : 3);
 				SetSignalType(tile, track, sigtype);
+				SetSignalStates(tile, track, 3);
 				SetSignalVariant(tile, track, sigvar);
 				while (num_dir_cycle-- > 0) CycleSignalSide(tile, track);
 			} else {
@@ -1115,6 +1108,11 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 				}
 			}
 		} else {
+			if (!HasSignalOnTrack(tile, track)) {
+				/* there are no signals at all on this track yet */
+				SetSignalStates(tile, track, 3);
+			}
+
 			/* If CmdBuildManySignals is called with copying signals, just copy the
 			 * direction of the first signal given as parameter by CmdBuildManySignals */
 			SetPresentSignals(tile, track, p2);
@@ -1440,14 +1438,8 @@ CommandCost CmdRemoveSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1
 			}
 		}
 		Company::Get(GetTileOwner(tile))->infrastructure.signal -= CountBits(GetPresentSignals(tile, track));
-		SetPresentSignals(tile, track, 0);
+		ClearSignals(tile, track);
 		DirtyCompanyInfrastructureWindows(GetTileOwner(tile));
-
-		/* removed last signal from tile? */
-		if (GetPresentSignals(tile, TRACK_UPPER) == 0 && GetPresentSignals(tile, TRACK_LOWER) == 0) {
-			ClearSignals(tile, INVALID_TRACK);
-			SetHasSignals(tile, false);
-		}
 
 		AddTrackToSignalBuffer(tile, track, GetTileOwner(tile));
 		YapfNotifyTrackLayoutChange(tile, track);
@@ -2306,7 +2298,7 @@ static void DrawTile_Track(TileInfo *ti)
 
 	if (HasCatenaryDrawn(GetRailType(ti->tile))) DrawCatenary(ti);
 
-	if (HasSignals(ti->tile)) DrawSignals(ti->tile, rails, rti);
+	DrawSignals(ti->tile, rails, rti);
 
 	DrawBridgeMiddle(ti);
 }
@@ -2466,36 +2458,34 @@ static TrackStatus GetTileTrackStatus_Track(TileIndex tile, TransportType mode, 
 	TrackBits trackbits = GetTrackBits(tile);
 	TrackdirBits red_signals = TRACKDIR_BIT_NONE;
 
-	if (HasSignals(tile)) {
-		uint a, b;
+	uint a, b;
 
-		a = GetPresentSignals(tile, TRACK_UPPER);
-		/* When signals are not present (in neither direction),
-		 * we pretend them to be green. Otherwise, it depends on
-		 * the signal type. For signals that are only active from
-		 * one side, we set the missing signals explicitly to
-		 * `green'. Otherwise, they implicitly become `red'. */
-		if (a == 0) {
-			b = 3;
-		} else {
-			b = GetSignalStates(tile, TRACK_UPPER) & a;
-			if (!IsOnewaySignal(tile, TRACK_UPPER)) b |= ~a;
-		}
-
-		if ((b & 0x2) == 0) red_signals |= (TRACKDIR_BIT_LEFT_N | TRACKDIR_BIT_X_NE | TRACKDIR_BIT_Y_SE | TRACKDIR_BIT_UPPER_E);
-		if ((b & 0x1) == 0) red_signals |= (TRACKDIR_BIT_LEFT_S | TRACKDIR_BIT_X_SW | TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_UPPER_W);
-
-		a = GetPresentSignals(tile, TRACK_LOWER);
-		if (a == 0) {
-			b = 3;
-		} else {
-			b = GetSignalStates(tile, TRACK_LOWER) & a;
-			if (!IsOnewaySignal(tile, TRACK_LOWER)) b |= ~a;
-		}
-
-		if ((b & 0x2) == 0) red_signals |= (TRACKDIR_BIT_RIGHT_N | TRACKDIR_BIT_LOWER_E);
-		if ((b & 0x1) == 0) red_signals |= (TRACKDIR_BIT_RIGHT_S | TRACKDIR_BIT_LOWER_W);
+	a = GetPresentSignals(tile, TRACK_UPPER);
+	/* When signals are not present (in neither direction),
+	 * we pretend them to be green. Otherwise, it depends on
+	 * the signal type. For signals that are only active from
+	 * one side, we set the missing signals explicitly to
+	 * `green'. Otherwise, they implicitly become `red'. */
+	if (a == 0) {
+		b = 3;
+	} else {
+		b = GetSignalStates(tile, TRACK_UPPER) & a;
+		if (!IsOnewaySignal(tile, TRACK_UPPER)) b |= ~a;
 	}
+
+	if ((b & 0x2) == 0) red_signals |= (TRACKDIR_BIT_LEFT_N | TRACKDIR_BIT_X_NE | TRACKDIR_BIT_Y_SE | TRACKDIR_BIT_UPPER_E);
+	if ((b & 0x1) == 0) red_signals |= (TRACKDIR_BIT_LEFT_S | TRACKDIR_BIT_X_SW | TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_UPPER_W);
+
+	a = GetPresentSignals(tile, TRACK_LOWER);
+	if (a == 0) {
+		b = 3;
+	} else {
+		b = GetSignalStates(tile, TRACK_LOWER) & a;
+		if (!IsOnewaySignal(tile, TRACK_LOWER)) b |= ~a;
+	}
+
+	if ((b & 0x2) == 0) red_signals |= (TRACKDIR_BIT_RIGHT_N | TRACKDIR_BIT_LOWER_E);
+	if ((b & 0x1) == 0) red_signals |= (TRACKDIR_BIT_RIGHT_S | TRACKDIR_BIT_LOWER_W);
 
 	return CombineTrackStatus(TrackBitsToTrackdirBits(trackbits), red_signals);
 }
@@ -2507,76 +2497,71 @@ static bool ClickTile_Track(TileIndex tile)
 
 static void GetTileDesc_Track(TileIndex tile, TileDesc *td)
 {
+	static const StringID signal_type[6][6] = {
+		{
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_SIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_PRESIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_EXITSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_COMBOSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_PBSSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_NOENTRYSIGNALS
+		},
+		{
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_PRESIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRESIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_EXITSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_COMBOSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_PBSSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_NOENTRYSIGNALS
+		},
+		{
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_EXITSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_EXITSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXITSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXIT_COMBOSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXIT_PBSSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXIT_NOENTRYSIGNALS
+		},
+		{
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_COMBOSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_COMBOSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXIT_COMBOSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_COMBOSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_COMBO_PBSSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_COMBO_NOENTRYSIGNALS
+		},
+		{
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_PBSSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_PBSSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXIT_PBSSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_COMBO_PBSSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PBSSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PBS_NOENTRYSIGNALS
+		},
+		{
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_NOENTRYSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_NOENTRYSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXIT_NOENTRYSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_COMBO_NOENTRYSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PBS_NOENTRYSIGNALS,
+			STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NOENTRYSIGNALS
+		}
+	};
+
 	const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(tile));
 	td->rail_speed = rti->max_speed;
 	td->owner[0] = GetTileOwner(tile);
 	SetDParamX(td->dparam, 0, rti->strings.name);
 
-
-	if (!HasSignals(tile)) {
-		td->str = STR_LAI_RAIL_DESCRIPTION_TRACK;
+	if (HasSignalOnTrack(tile, TRACK_UPPER)) {
+		SignalType primary = GetSignalType(tile, TRACK_UPPER);
+		SignalType secondary = HasSignalOnTrack(tile, TRACK_LOWER) ? GetSignalType(tile, TRACK_LOWER) : primary;
+		td->str = signal_type[secondary][primary];
+	} else if (HasSignalOnTrack(tile, TRACK_LOWER)) {
+		SignalType signal = GetSignalType(tile, TRACK_LOWER);
+		td->str = signal_type[signal][signal];
 	} else {
-		static const StringID signal_type[6][6] = {
-			{
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_SIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_PRESIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_EXITSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_COMBOSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_PBSSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_NOENTRYSIGNALS
-			},
-			{
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_PRESIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRESIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_EXITSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_COMBOSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_PBSSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_NOENTRYSIGNALS
-			},
-			{
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_EXITSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_EXITSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXITSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXIT_COMBOSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXIT_PBSSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXIT_NOENTRYSIGNALS
-			},
-			{
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_COMBOSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_COMBOSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXIT_COMBOSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_COMBOSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_COMBO_PBSSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_COMBO_NOENTRYSIGNALS
-			},
-			{
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_PBSSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_PBSSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXIT_PBSSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_COMBO_PBSSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PBSSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PBS_NOENTRYSIGNALS
-			},
-			{
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_NOENTRYSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_NOENTRYSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXIT_NOENTRYSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_COMBO_NOENTRYSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PBS_NOENTRYSIGNALS,
-				STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NOENTRYSIGNALS
-			}
-		};
-
-		SignalType primary_signal;
-		SignalType secondary_signal;
-		if (HasSignalOnTrack(tile, TRACK_UPPER)) {
-			primary_signal = GetSignalType(tile, TRACK_UPPER);
-			secondary_signal = HasSignalOnTrack(tile, TRACK_LOWER) ? GetSignalType(tile, TRACK_LOWER) : primary_signal;
-		} else {
-			secondary_signal = primary_signal = GetSignalType(tile, TRACK_LOWER);
-		}
-
-		td->str = signal_type[secondary_signal][primary_signal];
+		td->str = STR_LAI_RAIL_DESCRIPTION_TRACK;
 	}
 }
 
@@ -2593,11 +2578,9 @@ static void ChangeTileOwner_Track(TileIndex tile, Owner old_owner, Owner new_own
 		Company::Get(old_owner)->infrastructure.rail[rt] -= num_pieces;
 		Company::Get(new_owner)->infrastructure.rail[rt] += num_pieces;
 
-		if (HasSignals(tile)) {
-			uint num_sigs = CountBits(GetPresentSignals(tile, TRACK_UPPER)) + CountBits(GetPresentSignals(tile, TRACK_LOWER));
-			Company::Get(old_owner)->infrastructure.signal -= num_sigs;
-			Company::Get(new_owner)->infrastructure.signal += num_sigs;
-		}
+		uint num_sigs = CountBits(GetPresentSignals(tile, TRACK_UPPER)) + CountBits(GetPresentSignals(tile, TRACK_LOWER));
+		Company::Get(old_owner)->infrastructure.signal -= num_sigs;
+		Company::Get(new_owner)->infrastructure.signal += num_sigs;
 
 		SetTileOwner(tile, new_owner);
 	} else {

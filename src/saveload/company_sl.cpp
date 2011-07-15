@@ -116,7 +116,7 @@ void AfterLoadCompanyStats()
 					if (TracksOverlap(bits)) pieces *= pieces;
 					c->infrastructure.rail[GetRailType(tile)] += pieces;
 
-					if (HasSignals(tile)) c->infrastructure.signal += CountBits(GetPresentSignals(tile, TRACK_UPPER)) + CountBits(GetPresentSignals(tile, TRACK_LOWER));
+					c->infrastructure.signal += CountBits(GetPresentSignals(tile, TRACK_UPPER)) + CountBits(GetPresentSignals(tile, TRACK_LOWER));
 				}
 				break;
 

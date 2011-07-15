@@ -588,7 +588,7 @@ CommandCost CmdBuildRoad(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 				return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
 			}
 
-			if (HasSignals(tile)) goto do_clear;
+			if (HasSignalOnTrack(tile, TRACK_UPPER)) goto do_clear;
 
 			if (RailNoLevelCrossings(GetRailType(tile))) {
 				return_cmd_error(STR_ERROR_CROSSING_DISALLOWED);

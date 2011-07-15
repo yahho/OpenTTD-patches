@@ -927,11 +927,9 @@ static void NPFFollowTrack(AyStar *aystar, OpenListNode *current)
 		DEBUG(npf, 5, "Expanded into trackdir: %d, remaining trackdirs: 0x%X", dst_trackdir, trackdirbits);
 
 		/* Tile with signals? */
-		if (IsRailwayTile(dst_tile) && HasSignals(dst_tile)) {
-			if (HasSignalOnTrackdir(dst_tile, ReverseTrackdir(dst_trackdir)) && !HasSignalOnTrackdir(dst_tile, dst_trackdir) && IsOnewaySignal(dst_tile, TrackdirToTrack(dst_trackdir))) {
-				/* If there's a one-way signal not pointing towards us, stop going in this direction. */
-				break;
-			}
+		if (IsRailwayTile(dst_tile) && HasSignalOnTrackdir(dst_tile, ReverseTrackdir(dst_trackdir)) && !HasSignalOnTrackdir(dst_tile, dst_trackdir) && IsOnewaySignal(dst_tile, TrackdirToTrack(dst_trackdir))) {
+			/* If there's a one-way signal not pointing towards us, stop going in this direction. */
+			break;
 		}
 		{
 			/* We've found ourselves a neighbour :-) */

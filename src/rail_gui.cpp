@@ -107,7 +107,7 @@ static void GenericPlaceRail(TileIndex tile, int cmd)
  */
 static void PlaceExtraDepotRail(TileIndex tile, DiagDirection dir, Track track)
 {
-	if (HasSignals(tile)) return;
+	if (HasSignalOnTrack(tile, TRACK_UPPER) || HasSignalOnTrack(tile, TRACK_LOWER)) return;
 	if ((GetTrackBits(tile) & DiagdirReachesTracks(dir)) == 0) return;
 
 	DoCommandP(tile, _cur_railtype, track, CMD_BUILD_SINGLE_RAIL);

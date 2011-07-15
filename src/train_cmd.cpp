@@ -2866,15 +2866,17 @@ static inline void AffectSpeedByZChange(Train *v, int old_z)
 
 static bool TrainMovedChangeSignals(TileIndex tile, DiagDirection dir)
 {
-	if (IsRailwayTile(tile) && HasSignals(tile)) {
-		TrackdirBits tracks = TrackBitsToTrackdirBits(GetTrackBits(tile)) & DiagdirReachesTrackdirs(dir);
-		Trackdir trackdir = FindFirstTrackdir(tracks);
-		if (UpdateSignalsOnSegment(tile,  TrackdirToExitdir(trackdir), GetTileOwner(tile)) == SIGSEG_PBS && HasSignalOnTrackdir(tile, trackdir)) {
-			/* A PBS block with a non-PBS signal facing us? */
-			if (!IsPbsSignal(GetSignalType(tile, TrackdirToTrack(trackdir)))) return true;
-		}
-	}
-	return false;
+	if (!IsRailwayTile(tile)) return false;
+
+	TrackdirBits tracks = TrackBitsToTrackdirBits(GetTrackBits(tile)) & DiagdirReachesTrackdirs(dir);
+	Trackdir trackdir = FindFirstTrackdir(tracks);
+	Track track = TrackdirToTrack(trackdir);
+
+	return HasSignalOnTrack(tile, track) &&
+		UpdateSignalsOnSegment(tile, TrackdirToExitdir(trackdir), GetTileOwner(tile)) == SIGSEG_PBS &&
+		HasSignalOnTrackdir(tile, trackdir) &&
+		/* A PBS block with a non-PBS signal facing us? */
+		!IsPbsSignal(GetSignalType(tile, track));
 }
 
 /** Tries to reserve track under whole train consist. */
@@ -3153,14 +3155,14 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				chosen_track = TrackToTrackBits(TrackdirToTrack(chosen_trackdir));
 				assert(chosen_track & (TrackdirBitsToTrackBits(trackdirbits) | GetReservedTrackbits(gp.new_tile)));
 
-				if (v->force_proceed != TFP_NONE && IsRailwayTile(gp.new_tile) && HasSignals(gp.new_tile)) {
+				if (v->force_proceed != TFP_NONE && IsRailwayTile(gp.new_tile)) {
 					/* For each signal we find decrease the counter by one.
 					 * We start at two, so the first signal we pass decreases
 					 * this to one, then if we reach the next signal it is
 					 * decreased to zero and we won't pass that new signal. */
-					assert(trackdirbits == TrackdirToTrackdirBits(chosen_trackdir));
-					if (GetSignalType(gp.new_tile, TrackdirToTrack(chosen_trackdir)) != SIGTYPE_PBS ||
-							!HasSignalOnTrackdir(gp.new_tile, ReverseTrackdir(chosen_trackdir))) {
+					Track track = TrackdirToTrack(chosen_trackdir);
+					if (HasSignalOnTrack(gp.new_tile, track) && (GetSignalType(gp.new_tile, track) != SIGTYPE_PBS ||
+							!HasSignalOnTrackdir(gp.new_tile, ReverseTrackdir(chosen_trackdir)))) {
 						/* However, we do not want to be stopped by PBS signals
 						 * entered via the back. */
 						v->force_proceed = (v->force_proceed == TFP_SIGNAL) ? TFP_STUCK : TFP_NONE;

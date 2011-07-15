@@ -21,31 +21,6 @@
 
 
 /**
- * Checks if a rail tile has signals.
- * @param t the tile to get the information from
- * @pre IsRailwayTile(t)
- * @return true if and only if the tile has signals
- */
-static inline bool HasSignals(TileIndex t)
-{
-	assert(IsRailwayTile(t));
-	assert(!HasBit(_mc[t].m5, 7));
-	return HasBit(_mc[t].m5, 6);
-}
-
-/**
- * Add/remove the 'has signal' bit from the RailTileType
- * @param tile the tile to add/remove the signals to/from
- * @param signals whether the rail tile should have signals or not
- * @pre IsRailwayTile(tile)
- */
-static inline void SetHasSignals(TileIndex tile, bool signals)
-{
-	assert(IsRailwayTile(tile));
-	SB(_mc[tile].m5, 6, 1, signals);
-}
-
-/**
  * Is this tile rail tile and a rail depot?
  * @param t the tile to get the information from
  * @return true if and only if the tile is a rail depot
@@ -245,6 +220,52 @@ static inline byte *SignalByte(TileIndex t, Track track)
 	return (track == TRACK_LOWER || track == TRACK_RIGHT) ? &_mc[t].m7 : &_mc[t].m4;
 }
 
+/**
+ * Clear signals on a track
+ * @param tile  the tile to clear the signals from
+ * @param track the track to clear the signals from
+ */
+static inline void ClearSignals(TileIndex tile, Track track)
+{
+	if (track == INVALID_TRACK) {
+		_mc[tile].m4 = _mc[tile].m7 = 0;
+	} else {
+		*SignalByte(tile, track) = 0;
+	}
+}
+
+/**
+ * Set whether the given signals are present (Along/AgainstTrackDir)
+ * @param tile    the tile to set the present signals for
+ * @param track   the track to set the present signals for
+ * @param signals the signals that have to be present
+ */
+static inline void SetPresentSignals(TileIndex tile, Track track, uint signals)
+{
+	SB(*SignalByte(tile, track), 2, 2, signals);
+}
+
+/**
+ * Get whether the given signals are present (Along/AgainstTrackDir)
+ * @param tile the tile to get the present signals for
+ * @param track the track to get the present signals for
+ * @return the signals that are present
+ */
+static inline uint GetPresentSignals(TileIndex tile, Track track)
+{
+	return GB(*SignalByte(tile, track), 2, 2);
+}
+
+/**
+ * Checks for the presence of signals (either way) on the given track on the
+ * given rail tile.
+ */
+static inline bool HasSignalOnTrack(TileIndex tile, Track track)
+{
+	assert(IsValidTrack(track));
+	return GetPresentSignals(tile, track) != 0;
+}
+
 static inline bool IsPbsSignal(SignalType s)
 {
 	return s == SIGTYPE_PBS || s == SIGTYPE_PBS_ONEWAY;
@@ -252,13 +273,13 @@ static inline bool IsPbsSignal(SignalType s)
 
 static inline SignalType GetSignalType(TileIndex t, Track track)
 {
-	assert(HasSignals(t));
+	assert(HasSignalOnTrack(t, track));
 	return (SignalType)GB(*SignalByte(t, track), 4, 3);
 }
 
 static inline void SetSignalType(TileIndex t, Track track, SignalType s)
 {
-	assert(HasSignals(t));
+	assert(HasSignalOnTrack(t, track));
 	if (track == INVALID_TRACK) {
 		SB(_mc[t].m4, 4, 3, s);
 		SB(_mc[t].m7, 4, 3, s);
@@ -329,28 +350,6 @@ static inline uint GetSignalStates(TileIndex tile, Track track)
 }
 
 /**
- * Set whether the given signals are present (Along/AgainstTrackDir)
- * @param tile    the tile to set the present signals for
- * @param track   the track to set the present signals for
- * @param signals the signals that have to be present
- */
-static inline void SetPresentSignals(TileIndex tile, Track track, uint signals)
-{
-	SB(*SignalByte(tile, track), 2, 2, signals);
-}
-
-/**
- * Get whether the given signals are present (Along/AgainstTrackDir)
- * @param tile the tile to get the present signals for
- * @param track the track to get the present signals for
- * @return the signals that are present
- */
-static inline uint GetPresentSignals(TileIndex tile, Track track)
-{
-	return GB(*SignalByte(tile, track), 2, 2);
-}
-
-/**
  * Check if the given trackdir is stored in the high bit of its track
  * @param trackdir the trackdir to check
  * @return whether the trackdir data is stored in the high bit
@@ -373,16 +372,6 @@ static inline uint SignalBit(Trackdir trackdir)
 }
 
 /**
- * Checks for the presence of signals (either way) on the given track on the
- * given rail tile.
- */
-static inline bool HasSignalOnTrack(TileIndex tile, Track track)
-{
-	assert(IsValidTrack(track));
-	return HasSignals(tile) && GetPresentSignals(tile, track) != 0;
-}
-
-/**
  * Checks for the presence of signals along the given trackdir on the given
  * rail tile.
  *
@@ -392,8 +381,7 @@ static inline bool HasSignalOnTrack(TileIndex tile, Track track)
 static inline bool HasSignalOnTrackdir(TileIndex tile, Trackdir trackdir)
 {
 	assert (IsValidTrackdir(trackdir));
-	return HasSignals(tile) &&
-		(*SignalByte(tile, TrackdirToTrack(trackdir)) & (IsSignalHighBit(trackdir) ? 0x08 : 0x04)) != 0;
+	return (*SignalByte(tile, TrackdirToTrack(trackdir)) & (IsSignalHighBit(trackdir) ? 0x08 : 0x04)) != 0;
 }
 
 /**
@@ -443,30 +431,6 @@ static inline bool HasOnewaySignalBlockingTrackdir(TileIndex tile, Trackdir td)
 {
 	return IsRailwayTile(tile) && HasSignalOnTrackdir(tile, ReverseTrackdir(td)) &&
 			!HasSignalOnTrackdir(tile, td) && IsOnewaySignal(tile, TrackdirToTrack(td));
-}
-
-
-/**
- * Initialise signals on a tile; set them to none present but all green
- * @param tile the tile to initialise
- */
-static inline void InitSignals(TileIndex tile)
-{
-	_mc[tile].m4 = _mc[tile].m7 = 0x03;
-}
-
-/**
- * Clear signals on a track
- * @param tile  the tile to clear the signals from
- * @param track the track to clear the signals from
- */
-static inline void ClearSignals(TileIndex tile, Track track)
-{
-	if (track == INVALID_TRACK) {
-		_mc[tile].m4 = _mc[tile].m7 = 0;
-	} else {
-		*SignalByte(tile, track) = 0;
-	}
 }
 
 
