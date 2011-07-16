@@ -694,10 +694,18 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			uint zone = GB(_mc[t].m0, 0, 2);
 
 			switch (GetOldTileType(t)) {
-				case OLD_MP_CLEAR:
-					_mc[t].m7 = GB(_mc[t].m0, 2, 3);
+				case OLD_MP_CLEAR: {
+					uint fence_nw = GB(_mc[t].m0, 2, 3);
 					_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_GROUND << 4);
+					uint ground = GB(_mc[t].m5, 2, 3);
+					if (ground == 3) {
+						SB(_mc[t].m1, 6, 2, TT_GROUND_FIELDS);
+						_mc[t].m7 = fence_nw;
+					} else {
+						SB(_mc[t].m1, 6, 2, TT_GROUND_CLEAR);
+					}
 					break;
+				}
 
 				case OLD_MP_RAILWAY:
 					_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_RAILWAY << 4);

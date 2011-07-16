@@ -1769,7 +1769,7 @@ static bool FindFurthestFromWater(TileIndex tile, void *user_data)
 	SpotData *sp = (SpotData*)user_data;
 	uint dist = GetClosestWaterDistance(tile, true);
 
-	if (IsTileType(tile, TT_GROUND) &&
+	if (IsGroundTile(tile) &&
 			IsTileFlat(tile) &&
 			IsTileAlignedToGrid(tile, sp->layout) &&
 			dist > sp->max_dist) {
@@ -1788,7 +1788,7 @@ static bool FindFurthestFromWater(TileIndex tile, void *user_data)
  */
 static bool FindNearestEmptyLand(TileIndex tile, void *user_data)
 {
-	return IsTileType(tile, TT_GROUND);
+	return IsGroundTile(tile);
 }
 
 /**

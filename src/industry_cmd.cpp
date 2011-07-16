@@ -943,7 +943,7 @@ static const byte _plantfarmfield_type[] = {1, 1, 1, 1, 1, 3, 3, 4, 4, 4, 5, 5, 
 static bool IsValidFarmFieldTile(TileIndex tile, bool allow_fields)
 {
 	switch (GetTileType(tile)) {
-		case TT_GROUND: return !IsClearGround(tile, CLEAR_SNOW) && !IsClearGround(tile, CLEAR_DESERT) && (allow_fields || !IsClearGround(tile, CLEAR_FIELDS));
+		case TT_GROUND: return IsTileSubtype(tile, TT_GROUND_FIELDS) ? allow_fields : !IsClearGround(tile, CLEAR_SNOW) && !IsClearGround(tile, CLEAR_DESERT);
 		case TT_TREES_TEMP: return GetTreeGround(tile) != TREE_GROUND_SHORE;
 		default:       return false;
 	}

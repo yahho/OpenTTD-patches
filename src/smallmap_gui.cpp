@@ -553,7 +553,7 @@ static inline uint32 GetSmallMapVegetationPixels(TileIndex tile, SmallmapTileTyp
 	switch (t) {
 		case SMTT_CLEAR:
 			if (!IsTreeTile(tile)) {
-				return (IsClearGround(tile, CLEAR_GRASS) && GetClearDensity(tile) < 3) ? MKCOLOUR_XXXX(PC_BARE_LAND) : _vegetation_clear_bits[GetClearGround(tile)];
+				return IsTileSubtype(tile, TT_GROUND_FIELDS) ? MKCOLOUR_XXXX(PC_FIELDS) : (IsClearGround(tile, CLEAR_GRASS) && GetClearDensity(tile) < 3) ? MKCOLOUR_XXXX(PC_BARE_LAND) : _vegetation_clear_bits[GetClearGround(tile)];
 			} else if (GetTreeGround(tile) == TREE_GROUND_SNOW_DESERT || GetTreeGround(tile) == TREE_GROUND_ROUGH_SNOW) {
 				return (_settings_game.game_creation.landscape == LT_ARCTIC) ? MKCOLOUR_XYYX(PC_LIGHT_BLUE, PC_TREES) : MKCOLOUR_XYYX(PC_ORANGE, PC_TREES);
 			}

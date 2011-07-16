@@ -69,7 +69,7 @@ static bool CanPlantTreesOnTile(TileIndex tile, bool allow_desert)
 			return !IsBridgeAbove(tile) && IsCoast(tile) && !IsSlopeWithOneCornerRaised(GetTileSlope(tile));
 
 		case TT_GROUND:
-			return !IsBridgeAbove(tile) && !IsClearGround(tile, CLEAR_FIELDS) && GetRawClearGround(tile) != CLEAR_ROCKS &&
+			return !IsBridgeAbove(tile) && !IsTileSubtype(tile, TT_GROUND_FIELDS) && GetRawClearGround(tile) != CLEAR_ROCKS &&
 			       (allow_desert || !IsClearGround(tile, CLEAR_DESERT));
 
 		default: return false;
@@ -101,6 +101,7 @@ static void PlantTreesOnTile(TileIndex tile, TreeType treetype, uint count, uint
 			break;
 
 		case TT_GROUND:
+			assert(IsTileSubtype(tile, TT_GROUND_CLEAR));
 			switch (GetClearGround(tile)) {
 				case CLEAR_GRASS:  ground = TREE_GROUND_GRASS;       break;
 				case CLEAR_ROUGH:  ground = TREE_GROUND_ROUGH;       break;
@@ -401,16 +402,10 @@ CommandCost CmdPlantTree(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 
 				if (IsTileType(tile, TT_GROUND)) {
 					/* Remove fields or rocks. Note that the ground will get barrened */
-					switch (GetRawClearGround(tile)) {
-						case CLEAR_FIELDS:
-						case CLEAR_ROCKS: {
-							CommandCost ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
-							if (ret.Failed()) return ret;
-							cost.AddCost(ret);
-							break;
-						}
-
-						default: break;
+					if (IsTileSubtype(tile, TT_GROUND_FIELDS) || GetRawClearGround(tile) == CLEAR_ROCKS) {
+						CommandCost ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+						if (ret.Failed()) return ret;
+						cost.AddCost(ret);
 					}
 				}
 
@@ -696,7 +691,7 @@ static void TileLoop_Trees(TileIndex tile)
 						if (!CanPlantTreesOnTile(tile, false)) return;
 
 						/* Don't plant trees, if ground was freshly cleared */
-						if (IsTileType(tile, TT_GROUND) && GetClearGround(tile) == CLEAR_GRASS && GetClearDensity(tile) != 3) return;
+						if (IsClearTile(tile) && GetClearGround(tile) == CLEAR_GRASS && GetClearDensity(tile) != 3) return;
 
 						PlantTreesOnTile(tile, treetype, 0, 0);
 

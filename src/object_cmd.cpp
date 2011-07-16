@@ -659,7 +659,7 @@ void GenerateObjects()
 		TileIndex tile = RandomTile();
 
 		int h;
-		if (IsTileType(tile, TT_GROUND) && IsTileFlat(tile, &h) && h >= 4 && !IsBridgeAbove(tile)) {
+		if (IsGroundTile(tile) && IsTileFlat(tile, &h) && h >= 4 && !IsBridgeAbove(tile)) {
 			TileIndex t = tile;
 			if (CircularTileSearch(&t, 9, HasTransmitter, NULL)) continue;
 
@@ -696,7 +696,7 @@ void GenerateObjects()
 
 		for (int j = 0; j < 19; j++) {
 			int h;
-			if (IsTileType(tile, TT_GROUND) && IsTileFlat(tile, &h) && h <= 2 && !IsBridgeAbove(tile)) {
+			if (IsGroundTile(tile) && IsTileFlat(tile, &h) && h <= 2 && !IsBridgeAbove(tile)) {
 				BuildObject(OBJECT_LIGHTHOUSE, tile);
 				IncreaseGeneratingWorldProgress(GWP_OBJECT);
 				lighthouses_to_build--;
