@@ -925,7 +925,7 @@ static void CreateDesertOrRainForest()
 		for (data = _make_desert_or_rainforest_data;
 				data != endof(_make_desert_or_rainforest_data); ++data) {
 			TileIndex t = AddTileIndexDiffCWrap(tile, *data);
-			if (t != INVALID_TILE && IsClearTile(t) && IsClearGround(t, CLEAR_DESERT)) break;
+			if (t != INVALID_TILE && IsTileType(t, TT_GROUND) && IsClearGround(t, CLEAR_DESERT)) break;
 		}
 		if (data == endof(_make_desert_or_rainforest_data)) {
 			SetTropicZone(tile, TROPICZONE_RAINFOREST);

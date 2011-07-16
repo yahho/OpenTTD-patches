@@ -190,17 +190,6 @@ static inline bool IsTileTypeSubtype(TileIndex tile, TileType type, TileSubtype 
 }
 
 /**
- * Checks if a tile is clear.
- *
- * @param tile The tile to check
- * @return true If the tile is clear
- */
-static inline bool IsClearTile(TileIndex tile)
-{
-	return IsTileType(tile, TT_GROUND);
-}
-
-/**
  * Checks if a tile is railway.
  *
  * @param tile The tile to check
@@ -318,7 +307,7 @@ static inline bool IsObjectTile(TileIndex tile)
  */
 static inline bool IsGroundTile(TileIndex tile)
 {
-	return IsClearTile(tile) || IsTreeTile(tile);
+	return IsTileType(tile, TT_GROUND) || IsTreeTile(tile);
 }
 
 /**

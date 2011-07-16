@@ -111,28 +111,28 @@
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return (::IsClearTile(tile) && ::GetRawClearGround(tile) == ::CLEAR_ROCKS);
+	return (::IsTileType(tile, TT_GROUND) && ::GetRawClearGround(tile) == ::CLEAR_ROCKS);
 }
 
 /* static */ bool ScriptTile::IsRoughTile(TileIndex tile)
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return (::IsClearTile(tile) && ::GetRawClearGround(tile) == ::CLEAR_ROUGH);
+	return (::IsTileType(tile, TT_GROUND) && ::GetRawClearGround(tile) == ::CLEAR_ROUGH);
 }
 
 /* static */ bool ScriptTile::IsSnowTile(TileIndex tile)
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return (::IsClearTile(tile) && ::IsSnowTile(tile));
+	return (::IsTileType(tile, TT_GROUND) && ::IsSnowTile(tile));
 }
 
 /* static */ bool ScriptTile::IsDesertTile(TileIndex tile)
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return (::IsClearTile(tile) && ::IsClearGround(tile, CLEAR_DESERT));
+	return (::IsTileType(tile, TT_GROUND) && ::IsClearGround(tile, CLEAR_DESERT));
 }
 
 /* static */ ScriptTile::TerrainType ScriptTile::GetTerrainType(TileIndex tile)

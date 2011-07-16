@@ -350,11 +350,11 @@ static inline void DecHouseProcessingTime(TileIndex t)
  * @param stage of construction (used for drawing)
  * @param type of house.  Index into house specs array
  * @param random_bits required for newgrf houses
- * @pre IsClearTile(t)
+ * @pre IsTileType(t, TT_GROUND)
  */
 static inline void MakeHouseTile(TileIndex t, TownID tid, byte counter, byte stage, HouseID type, byte random_bits)
 {
-	assert(IsClearTile(t));
+	assert(IsTileType(t, TT_GROUND));
 
 	_mc[t].m0 = 0xC0;
 	_mc[t].m1 = random_bits;

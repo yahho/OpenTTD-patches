@@ -321,7 +321,7 @@ void GenerateClearTile()
 	do {
 		IncreaseGeneratingWorldProgress(GWP_ROUGH_ROCKY);
 		tile = RandomTile();
-		if (IsClearTile(tile) && !IsClearGround(tile, CLEAR_DESERT)) SetClearGroundDensity(tile, CLEAR_ROUGH, 3);
+		if (IsTileType(tile, TT_GROUND) && !IsClearGround(tile, CLEAR_DESERT)) SetClearGroundDensity(tile, CLEAR_ROUGH, 3);
 	} while (--i);
 
 	/* add rocky tiles */
@@ -331,7 +331,7 @@ void GenerateClearTile()
 		tile = RandomTileSeed(r);
 
 		IncreaseGeneratingWorldProgress(GWP_ROUGH_ROCKY);
-		if (IsClearTile(tile) && !IsClearGround(tile, CLEAR_DESERT)) {
+		if (IsTileType(tile, TT_GROUND) && !IsClearGround(tile, CLEAR_DESERT)) {
 			uint j = GB(r, 16, 4) + 5;
 			for (;;) {
 				TileIndex tile_new;
@@ -340,7 +340,7 @@ void GenerateClearTile()
 				do {
 					if (--j == 0) goto get_out;
 					tile_new = tile + TileOffsByDiagDir((DiagDirection)GB(Random(), 0, 2));
-				} while (!IsClearTile(tile_new) || IsClearGround(tile_new, CLEAR_DESERT));
+				} while (!IsTileType(tile_new, TT_GROUND) || IsClearGround(tile_new, CLEAR_DESERT));
 				tile = tile_new;
 			}
 get_out:;
