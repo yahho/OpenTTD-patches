@@ -20,6 +20,28 @@
 #include "signal_type.h"
 
 
+/*
+ * Check if a tile is normal rail.
+ *
+ * @param t the tile to check
+ * @return whether the tile is normal rail
+ */
+static inline bool IsNormalRailTile(TileIndex t)
+{
+	return IsTileTypeSubtype(t, TT_RAILWAY, TT_TRACK);
+}
+
+/*
+ * Check if a tile has a rail bridgehead.
+ *
+ * @param t the tile to check
+ * @return whether the tile has a rail bridgehead
+ */
+static inline bool IsRailBridgeTile(TileIndex t)
+{
+	return IsTileTypeSubtype(t, TT_RAILWAY, TT_BRIDGE);
+}
+
 /**
  * Is this tile rail tile and a rail depot?
  * @param t the tile to get the information from

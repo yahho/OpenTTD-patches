@@ -12,8 +12,32 @@
 #ifndef BRIDGE_MAP_H
 #define BRIDGE_MAP_H
 
+#include "rail_map.h"
 #include "road_map.h"
 #include "bridge.h"
+
+/**
+ * Check if a tile has an aqueduct.
+ *
+ * @param t the tile to check
+ * @return whether the tile has an aqueduct
+ */
+static inline bool IsAqueductTile(TileIndex t)
+{
+	return IsTileTypeSubtype(t, TT_MISC, TT_MISC_AQUEDUCT);
+}
+
+/**
+ * Check if a tile has a bridgehead.
+ *
+ * @param t the tile to check
+ * @return whether the tile has a bridge head (rail, road or aqueduct)
+ */
+static inline bool IsBridgeHeadTile(TileIndex t)
+{
+	return IsRailBridgeTile(t) || IsRoadBridgeTile(t) || IsAqueductTile(t);
+}
+
 
 /**
  * Checks if this is a bridge, instead of a tunnel
