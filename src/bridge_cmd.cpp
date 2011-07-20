@@ -532,3 +532,17 @@ void DrawBridgeGround(TileInfo *ti)
 		}
 	}
 }
+
+const PalSpriteID *GetBridgeRampSprite(int index, int offset, Slope slope, DiagDirection dir)
+{
+	/* as the lower 3 bits are used for other stuff, make sure they are clear */
+	assert((offset & 0x07) == 0x00);
+
+	if (slope == SLOPE_FLAT) offset += 4; // sloped bridge head
+
+	/* HACK Wizardry to convert the bridge ramp direction into a sprite offset */
+	offset += (6 - dir) % 4;
+
+	/* Table number BRIDGE_PIECE_HEAD always refers to the bridge heads for any bridge type */
+	return offset + GetBridgeSpriteTable(index, BRIDGE_PIECE_HEAD);
+}
