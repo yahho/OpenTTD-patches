@@ -1614,6 +1614,9 @@
     <ClCompile Include="..\src\autoreplace_cmd.cpp">
       <Filter>Command handlers</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\bridge_cmd.cpp">
+      <Filter>Command handlers</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\clear_cmd.cpp">
       <Filter>Command handlers</Filter>
     </ClCompile>

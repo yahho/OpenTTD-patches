@@ -795,6 +795,7 @@
     <ClInclude Include="..\src\widgets\waypoint_widget.h" />
     <ClCompile Include="..\src\aircraft_cmd.cpp" />
     <ClCompile Include="..\src\autoreplace_cmd.cpp" />
+    <ClCompile Include="..\src\bridge_cmd.cpp" />
     <ClCompile Include="..\src\clear_cmd.cpp" />
     <ClCompile Include="..\src\company_cmd.cpp" />
     <ClCompile Include="..\src\depot_cmd.cpp" />

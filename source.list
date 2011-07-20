@@ -551,6 +551,7 @@ widgets/waypoint_widget.h
 # Command handlers
 aircraft_cmd.cpp
 autoreplace_cmd.cpp
+bridge_cmd.cpp
 clear_cmd.cpp
 company_cmd.cpp
 depot_cmd.cpp
