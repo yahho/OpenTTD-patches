@@ -92,4 +92,6 @@ int CalcBridgeLenCostFactor(int x);
 
 void ResetBridges();
 
+CommandCost CheckBridgeSlope(DiagDirection dir, Slope *tileh, int *z);
+
 #endif /* BRIDGE_H */

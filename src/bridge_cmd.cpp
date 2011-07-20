@@ -138,6 +138,33 @@ CommandCost CheckBridgeAvailability(BridgeType bridge_type, uint bridge_len, DoC
 	return_cmd_error(STR_ERROR_BRIDGE_TOO_LONG);
 }
 
+/**
+ * Determines the foundation for a bridge head, and tests if the resulting slope is valid.
+ *
+ * @param dir Diagonal direction the bridge ramp will be facing
+ * @param tileh Slope of the tile under the bridge head; returns slope on top of foundation
+ * @param z TileZ corresponding to tileh, gets modified as well
+ * @return Error or cost for bridge foundation
+ */
+CommandCost CheckBridgeSlope(DiagDirection dir, Slope *tileh, int *z)
+{
+	static const Slope inclined[DIAGDIR_END] = {
+		SLOPE_SW,     ///< DIAGDIR_NE
+		SLOPE_NW,     ///< DIAGDIR_SE
+		SLOPE_NE,     ///< DIAGDIR_SW
+		SLOPE_SE,     ///< DIAGDIR_NW
+	};
+
+	Foundation f = GetBridgeFoundation(*tileh, DiagDirToAxis(dir));
+	*z += ApplyFoundationToSlope(f, tileh);
+
+	if ((*tileh != SLOPE_FLAT) && (*tileh != inclined[dir])) return CMD_ERROR;
+
+	if (f == FOUNDATION_NONE) return CommandCost();
+
+	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
+}
+
 
 static inline const PalSpriteID *GetBridgeSpriteTable(int index, BridgePieces table)
 {
