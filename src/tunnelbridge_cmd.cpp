@@ -713,7 +713,6 @@ static CommandCost DoClearBridge(TileIndex tile, DoCommandFlag flags)
 	if (ret.Failed()) return ret;
 
 	DiagDirection direction = GetTunnelBridgeDirection(tile);
-	TileIndexDiff delta = TileOffsByDiagDir(direction);
 
 	Town *t = NULL;
 	if (IsTileOwner(tile, OWNER_TOWN) && _game_mode != GM_EDITOR) {
@@ -738,7 +737,6 @@ static CommandCost DoClearBridge(TileIndex tile, DoCommandFlag flags)
 		/* read this value before actual removal of bridge */
 		bool rail = GetTunnelBridgeTransportType(tile) == TRANSPORT_RAIL;
 		Owner owner = GetTileOwner(tile);
-		int height = GetBridgeHeight(tile);
 		Train *v = NULL;
 
 		if (rail && HasTunnelBridgeReservation(tile)) {
@@ -764,17 +762,9 @@ static CommandCost DoClearBridge(TileIndex tile, DoCommandFlag flags)
 		}
 		DirtyCompanyInfrastructureWindows(owner);
 
+		RemoveBridgeMiddleTiles(tile, endtile);
 		DoClearSquare(tile);
 		DoClearSquare(endtile);
-		for (TileIndex c = tile + delta; c != endtile; c += delta) {
-			/* do not let trees appear from 'nowhere' after removing bridge */
-			if (IsNormalRoadTile(c) && GetRoadside(c) == ROADSIDE_TREES) {
-				int minz = GetTileMaxZ(c) + 3;
-				if (height < minz) SetRoadside(c, ROADSIDE_PAVED);
-			}
-			ClearBridgeMiddle(c);
-			MarkTileDirtyByTile(c);
-		}
 
 		if (rail) {
 			/* cannot use INVALID_DIAGDIR for signal update because the bridge doesn't exist anymore */

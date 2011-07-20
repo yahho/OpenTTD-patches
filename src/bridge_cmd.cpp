@@ -165,6 +165,32 @@ CommandCost CheckBridgeSlope(DiagDirection dir, Slope *tileh, int *z)
 	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
 }
 
+/**
+ * Clear middle bridge tiles
+ *
+ * @param tile1 Bridge start tile
+ * @param tile2 Bridge end tile
+ */
+void RemoveBridgeMiddleTiles(TileIndex tile1, TileIndex tile2)
+{
+	/* Call this function before clearing the endpoints. */
+	assert(IsBridgeTile(tile1));
+	assert(IsBridgeTile(tile2));
+
+	TileIndexDiff delta = TileOffsByDiagDir(GetTunnelBridgeDirection(tile1));
+	int height = GetBridgeHeight(tile1);
+
+	for (TileIndex t = tile1 + delta; t != tile2; t += delta) {
+		/* do not let trees appear from 'nowhere' after removing bridge */
+		if (IsNormalRoadTile(t) && GetRoadside(t) == ROADSIDE_TREES) {
+			int minz = GetTileMaxZ(t) + 3;
+			if (height < minz) SetRoadside(t, ROADSIDE_PAVED);
+		}
+		ClearBridgeMiddle(t);
+		MarkTileDirtyByTile(t);
+	}
+}
+
 
 static inline const PalSpriteID *GetBridgeSpriteTable(int index, BridgePieces table)
 {

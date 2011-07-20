@@ -106,4 +106,6 @@ static inline void MarkBridgeTilesDirty(TileIndex start, TileIndex end, DiagDire
 	MarkTileDirtyByTile(end);
 }
 
+void RemoveBridgeMiddleTiles(TileIndex tile1, TileIndex tile2);
+
 #endif /* BRIDGE_H */
