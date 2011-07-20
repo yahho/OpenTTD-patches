@@ -60,6 +60,20 @@ Foundation GetBridgeFoundation(Slope tileh, Axis axis);
 bool HasBridgeFlatRamp(Slope tileh, Axis axis);
 
 /**
+ * Get the height increase for a bridge ramp
+ * @param dir Bridge direction
+ * @param x x within the tile
+ * @param y y within the tile
+ */
+static inline int GetBridgePartialPixelZ(DiagDirection dir, uint x, uint y)
+{
+	assert(x < TILE_SIZE);
+	assert(y < TILE_SIZE);
+
+	return DistanceFromTileEdge(ReverseDiagDir(dir), x, y) / 2 + 1;
+}
+
+/**
  * Get the specification of a bridge type.
  * @param i The type of bridge to get the specification for.
  * @return The specification.

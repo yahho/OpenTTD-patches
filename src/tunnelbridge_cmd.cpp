@@ -1497,12 +1497,7 @@ static int GetSlopePixelZ_TunnelBridge(TileIndex tile, uint x, uint y)
 
 		/* On the bridge ramp? */
 		if (5 <= pos && pos <= 10) {
-			int delta;
-
-			if (tileh != SLOPE_FLAT) return z + TILE_HEIGHT;
-
-			delta = DistanceFromTileEdge(ReverseDiagDir(dir), x, y) / 2;
-			return z + 1 + delta;
+			return z + ((tileh == SLOPE_FLAT) ? GetBridgePartialPixelZ(dir, x, y) : TILE_HEIGHT);
 		}
 	}
 
