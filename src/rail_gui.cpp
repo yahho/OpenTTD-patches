@@ -138,7 +138,7 @@ void CcRailDepot(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
 
 	tile += TileOffsByDiagDir(dir);
 
-	if (IsRailwayTile(tile)) {
+	if (IsNormalRailTile(tile)) {
 		PlaceExtraDepotRail(tile, _place_depot_extra_dir[dir], _place_depot_extra_track[dir]);
 		PlaceExtraDepotRail(tile, _place_depot_extra_dir[dir + 4], _place_depot_extra_track[dir + 4]);
 		PlaceExtraDepotRail(tile, _place_depot_extra_dir[dir + 8], _place_depot_extra_track[dir + 8]);
@@ -259,7 +259,7 @@ static void GenericPlaceSignals(TileIndex tile)
  */
 static void PlaceRail_Bridge(TileIndex tile, Window *w)
 {
-	if (IsBridgeTile(tile)) {
+	if (IsBridgeTile(tile) || IsBridgeHeadTile(tile)) {
 		TileIndex other_tile = GetOtherTunnelBridgeEnd(tile);
 		Point pt = {0, 0};
 		w->OnPlaceMouseUp(VPM_X_OR_Y, DDSP_BUILD_BRIDGE, pt, other_tile, tile);

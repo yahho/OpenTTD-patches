@@ -37,12 +37,16 @@ RoadBits GetAnyRoadBits(TileIndex tile, RoadType rt, bool straight_tunnel_bridge
 
 	switch (GetTileType(tile)) {
 		case TT_ROAD:
-			return GetRoadBits(tile, rt);
+			if (IsTileSubtype(tile, TT_TRACK)) return GetRoadBits(tile, rt);
+			return straight_tunnel_bridge_entrance ?
+					AxisToRoadBits(DiagDirToAxis(GetTunnelBridgeDirection(tile))) :
+					DiagDirToRoadBits(ReverseDiagDir(GetTunnelBridgeDirection(tile)));
 
 		case TT_MISC:
 			switch (GetTileSubtype(tile)) {
 				default: NOT_REACHED();
 				case TT_MISC_CROSSING: return GetCrossingRoadBits(tile);
+				case TT_MISC_AQUEDUCT: return ROAD_NONE;
 				case TT_MISC_DEPOT:    return IsRoadDepot(tile) ? DiagDirToRoadBits(GetRoadDepotDirection(tile)) : ROAD_NONE;
 			}
 

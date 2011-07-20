@@ -557,7 +557,7 @@ static bool DisasterTick_Big_Ufo(DisasterVehicle *v)
 		TileIndex tile_org = RandomTile();
 		TileIndex tile = tile_org;
 		do {
-			if (IsRailwayTile(tile) &&
+			if (IsNormalRailTile(tile) &&
 					Company::IsHumanID(GetTileOwner(tile))) {
 				break;
 			}

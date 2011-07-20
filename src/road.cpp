@@ -30,7 +30,7 @@
  */
 static bool IsPossibleCrossing(const TileIndex tile, Axis ax)
 {
-	return (IsRailwayTile(tile) && !HasSignalOnTrack(tile, TRACK_UPPER) &&
+	return (IsNormalRailTile(tile) && !HasSignalOnTrack(tile, TRACK_UPPER) &&
 		GetTrackBits(tile) == (ax == AXIS_X ? TRACK_BIT_Y : TRACK_BIT_X) &&
 		GetFoundationSlope(tile) == SLOPE_FLAT);
 }
@@ -76,7 +76,7 @@ RoadBits CleanUpRoadBits(const TileIndex tile, RoadBits org_rb)
 				}
 
 				case TT_RAILWAY:
-					connective = IsPossibleCrossing(neighbor_tile, DiagDirToAxis(dir));
+					connective = IsTileSubtype(neighbor_tile, TT_TRACK) && IsPossibleCrossing(neighbor_tile, DiagDirToAxis(dir));
 					break;
 
 				case TT_WATER:

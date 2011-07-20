@@ -216,7 +216,7 @@ static CommandCost EnsureNoTrainOnTrack(TileIndex tile, Track track)
  */
 static CommandCost CheckTrackCombination(TileIndex tile, TrackBits to_build, uint flags)
 {
-	if (!IsRailwayTile(tile)) return_cmd_error(STR_ERROR_IMPOSSIBLE_TRACK_COMBINATION);
+	if (!IsNormalRailTile(tile)) return_cmd_error(STR_ERROR_IMPOSSIBLE_TRACK_COMBINATION);
 
 	/* So, we have a tile with tracks on it (and possibly signals). Let's see
 	 * what tracks first */
@@ -420,6 +420,8 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 
 	switch (GetTileType(tile)) {
 		case TT_RAILWAY: {
+			if (!IsTileSubtype(tile, TT_TRACK)) goto try_clear;
+
 			CommandCost ret = CheckTileOwnership(tile);
 			if (ret.Failed()) return ret;
 
@@ -464,6 +466,8 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 		}
 
 		case TT_ROAD: {
+			if (!IsTileSubtype(tile, TT_TRACK)) goto try_clear;
+
 			/* Level crossings may only be built on these slopes */
 			if (!HasBit(VALID_LEVEL_CROSSING_SLOPES, tileh)) return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
 
@@ -616,6 +620,8 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 		}
 
 		case TT_RAILWAY: {
+			if (!IsTileSubtype(tile, TT_TRACK)) return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
+
 			if (_current_company != OWNER_WATER) {
 				CommandCost ret = CheckTileOwnership(tile);
 				if (ret.Failed()) return ret;
@@ -710,7 +716,7 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
  */
 bool FloodHalftile(TileIndex t)
 {
-	assert(IsRailwayTile(t));
+	assert(IsNormalRailTile(t));
 
 	bool flooded = false;
 	if (GetRailGroundType(t) == RAIL_GROUND_WATER) return flooded;
@@ -1008,7 +1014,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 	if (cycle_start > cycle_stop || cycle_stop > SIGTYPE_LAST) return CMD_ERROR;
 
 	/* You can only build signals on plain rail tiles, and the selected track must exist */
-	if (!ValParamTrackOrientation(track) || !IsRailwayTile(tile) ||
+	if (!ValParamTrackOrientation(track) || !IsNormalRailTile(tile) ||
 			!HasTrack(tile, track)) {
 		return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 	}
@@ -1167,6 +1173,7 @@ static bool CheckSignalAutoFill(TileIndex &tile, Trackdir &trackdir, int &signal
 
 	switch (GetTileType(tile)) {
 		case TT_RAILWAY:
+			if (!IsTileSubtype(tile, TT_TRACK)) goto bridge;
 			if (!remove && HasSignalOnTrack(tile, TrackdirToTrack(trackdir))) return false;
 			signal_ctr++;
 			if (IsDiagonalTrackdir(trackdir)) {
@@ -1182,9 +1189,10 @@ static bool CheckSignalAutoFill(TileIndex &tile, Trackdir &trackdir, int &signal
 			return true;
 
 		case TT_TUNNELBRIDGE_TEMP: {
+			if (GetTunnelBridgeTransportType(tile) != TRANSPORT_RAIL) return false;
+		bridge:
 			TileIndex orig_tile = tile; // backup old value
 
-			if (GetTunnelBridgeTransportType(tile) != TRANSPORT_RAIL) return false;
 			if (GetTunnelBridgeDirection(tile) != TrackdirToExitdir(trackdir)) return false;
 
 			/* Skip to end of tunnel or bridge
@@ -1233,7 +1241,7 @@ static CommandCost CmdSignalTrackHelper(TileIndex tile, DoCommandFlag flags, uin
 	TileIndex end_tile = p1;
 	if (signal_density == 0 || signal_density > 20) return CMD_ERROR;
 
-	if (!IsRailwayTile(tile)) return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
+	if (!IsNormalRailTile(tile)) return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 
 	/* for vertical/horizontal tracks, double the given signals density
 	 * since the original amount will be too dense (shorter tracks) */
@@ -1406,7 +1414,7 @@ CommandCost CmdRemoveSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1
 {
 	Track track = Extract<Track, 0, 3>(p1);
 
-	if (!ValParamTrackOrientation(track) || !IsRailwayTile(tile) || !HasTrack(tile, track)) {
+	if (!ValParamTrackOrientation(track) || !IsNormalRailTile(tile) || !HasTrack(tile, track)) {
 		return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 	}
 	if (!HasSignalOnTrack(tile, track)) {
@@ -1522,10 +1530,8 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 	TileArea ta(tile, p1);
 	TileIterator *iter = HasBit(p2, 4) ? (TileIterator *)new DiagonalTileIterator(tile, p1) : new OrthogonalTileIterator(ta);
 	for (; (tile = *iter) != INVALID_TILE; ++(*iter)) {
-		TileType tt = GetTileType(tile);
-
 		/* Check if there is any track on tile */
-		switch (tt) {
+		switch (GetTileType(tile)) {
 			case TT_RAILWAY:
 				break;
 			case TT_MISC:
@@ -1560,7 +1566,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 
 		/* Vehicle on the tile when not converting Rail <-> ElRail */
 
-		if (tt == TT_TUNNELBRIDGE_TEMP) {
+		if (IsTunnelBridgeTile(tile) || IsRailBridgeTile(tile)) {
 			TileIndex endtile = GetOtherTunnelBridgeEnd(tile);
 
 			/* If both ends of tunnel/bridge are in the range, do not try to convert twice -
@@ -1601,7 +1607,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 				YapfNotifyTrackLayoutChange(tile, track);
 				YapfNotifyTrackLayoutChange(endtile, track);
 
-				if (IsBridge(tile)) {
+				if (IsBridgeTile(tile) || IsBridgeHeadTile(tile)) {
 					MarkBridgeTilesDirty(tile, endtile, GetTunnelBridgeDirection(tile));
 				} else {
 					MarkTileDirtyByTile(tile);
@@ -1635,7 +1641,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 				if (!IsRailStationTile(tile) || !IsStationTileBlocked(tile)) {
 					Company *c = Company::Get(GetTileOwner(tile));
 					uint num_pieces = IsLevelCrossingTile(tile) ? LEVELCROSSING_TRACKBIT_FACTOR : 1;
-					if (IsRailwayTile(tile)) {
+					if (IsNormalRailTile(tile)) {
 						TrackBits bits = GetTrackBits(tile);
 						num_pieces = CountBits(bits);
 						if (TracksOverlap(bits)) num_pieces *= num_pieces;
@@ -1651,7 +1657,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 				FindVehicleOnPos(tile, &affected_trains, &UpdateTrainPowerProc);
 			}
 
-			switch (tt) {
+			switch (GetTileType(tile)) {
 				case TT_RAILWAY:
 					if (flags & DC_EXEC) {
 						/* notify YAPF about the track layout change */
@@ -2409,7 +2415,8 @@ static void TileLoop_Track(TileIndex tile)
 			/* Show fences if it's a house, industry, object, road, tunnelbridge or not owned by us. */
 			if (!IsValidTile(tile2) || IsHouseTile(tile2) || IsIndustryTile(tile2) ||
 					(IsTileType(tile2, TT_MISC) && !IsRailDepotTile(tile2)) ||
-					IsRoadTile(tile2) || (IsObjectTile(tile2) && !IsOwnedLand(tile2)) || IsTunnelBridgeTile(tile2) || !IsTileOwner(tile2, owner)) {
+					IsRoadTile(tile2) || IsRailBridgeTile(tile2) ||
+					(IsObjectTile(tile2) && !IsOwnedLand(tile2)) || IsTunnelBridgeTile(tile2) || !IsTileOwner(tile2, owner)) {
 				fences |= 1 << d;
 			}
 		}

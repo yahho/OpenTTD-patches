@@ -25,7 +25,7 @@
 /* static */ bool ScriptBridge::IsBridgeTile(TileIndex tile)
 {
 	if (!::IsValidTile(tile)) return false;
-	return ::IsBridgeTile(tile);
+	return ::IsBridgeTile(tile) || ::IsBridgeHeadTile(tile);
 }
 
 /* static */ BridgeID ScriptBridge::GetBridgeID(TileIndex tile)

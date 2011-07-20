@@ -26,7 +26,7 @@ static TileIndex GetBridgeEnd(TileIndex tile, DiagDirection dir)
 	dir = ReverseDiagDir(dir);
 	do {
 		tile += delta;
-	} while (!IsBridgeTile(tile) || GetTunnelBridgeDirection(tile) != dir);
+	} while (!(IsBridgeTile(tile) || IsBridgeHeadTile(tile)) || GetTunnelBridgeDirection(tile) != dir);
 
 	return tile;
 }
@@ -58,7 +58,7 @@ TileIndex GetSouthernBridgeEnd(TileIndex t)
  */
 TileIndex GetOtherBridgeEnd(TileIndex tile)
 {
-	assert(IsBridgeTile(tile));
+	assert(IsBridgeTile(tile) || IsBridgeHeadTile(tile));
 	return GetBridgeEnd(tile, GetTunnelBridgeDirection(tile));
 }
 

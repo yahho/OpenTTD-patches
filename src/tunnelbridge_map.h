@@ -22,12 +22,12 @@
  * Tunnel: Get the direction facing into the tunnel
  * Bridge: Get the direction pointing onto the bridge
  * @param t The tile to analyze
- * @pre IsTunnelBridgeTile(t)
+ * @pre IsTunnelBridgeTile(t) || IsBridgeHeadTile(t)
  * @return the above mentioned direction
  */
 static inline DiagDirection GetTunnelBridgeDirection(TileIndex t)
 {
-	assert(IsTunnelBridgeTile(t));
+	assert(IsTunnelBridgeTile(t) || IsBridgeHeadTile(t));
 	return (DiagDirection)GB(_mc[t].m5, 0, 2);
 }
 
@@ -35,25 +35,33 @@ static inline DiagDirection GetTunnelBridgeDirection(TileIndex t)
  * Tunnel: Get the transport type of the tunnel (road or rail)
  * Bridge: Get the transport type of the bridge's ramp
  * @param t The tile to analyze
- * @pre IsTunnelBridgeTile(t)
+ * @pre IsTunnelBridgeTile(t) || IsBridgeHeadTile(t)
  * @return the transport type in the tunnel/bridge
  */
 static inline TransportType GetTunnelBridgeTransportType(TileIndex t)
 {
-	assert(IsTunnelBridgeTile(t));
-	return (TransportType)GB(_mc[t].m5, 2, 2);
+	if (IsTunnelBridgeTile(t)) {
+		return (TransportType)GB(_mc[t].m5, 2, 2);
+	} else if (IsRailBridgeTile(t)) {
+		return TRANSPORT_RAIL;
+	} else if (IsRoadBridgeTile(t)) {
+		return TRANSPORT_ROAD;
+	} else {
+		assert(IsAqueductTile(t));
+		return TRANSPORT_WATER;
+	}
 }
 
 /**
  * Tunnel: Is this tunnel entrance in a snowy or desert area?
  * Bridge: Does the bridge ramp lie in a snow or desert area?
  * @param t The tile to analyze
- * @pre IsTunnelBridgeTile(t)
+ * @pre IsTunnelBridgeTile(t) || IsBridgeHeadTile(t)
  * @return true if and only if the tile is in a snowy/desert area
  */
 static inline bool HasTunnelBridgeSnowOrDesert(TileIndex t)
 {
-	assert(IsTunnelBridgeTile(t));
+	assert(IsTunnelBridgeTile(t) || IsBridgeHeadTile(t));
 	return HasBit(_mc[t].m7, 5);
 }
 
@@ -63,56 +71,60 @@ static inline bool HasTunnelBridgeSnowOrDesert(TileIndex t)
  * @param t the tunnel entrance / bridge ramp tile
  * @param snow_or_desert is the entrance/ramp in snow or desert (true), when
  *                       not in snow and not in desert false
- * @pre IsTunnelBridgeTile(t)
+ * @pre IsTunnelBridgeTile(t) || IsBridgeHeadTile(t)
  */
 static inline void SetTunnelBridgeSnowOrDesert(TileIndex t, bool snow_or_desert)
 {
-	assert(IsTunnelBridgeTile(t));
+	assert(IsTunnelBridgeTile(t) || IsBridgeHeadTile(t));
 	SB(_mc[t].m7, 5, 1, snow_or_desert);
 }
 
 /**
  * Determines type of the wormhole and returns its other end
  * @param t one end
- * @pre IsTunnelBridgeTile(t)
+ * @pre IsTunnelBridgeTile(t) || IsBridgeHeadTile(t)
  * @return other end
  */
 static inline TileIndex GetOtherTunnelBridgeEnd(TileIndex t)
 {
-	assert(IsTunnelBridgeTile(t));
-	return IsTunnel(t) ? GetOtherTunnelEnd(t) : GetOtherBridgeEnd(t);
+	assert(IsTunnelBridgeTile(t) || IsBridgeHeadTile(t));
+	return IsTunnelTile(t) ? GetOtherTunnelEnd(t) : GetOtherBridgeEnd(t);
 }
 
 
 /**
  * Get the reservation state of the rail tunnel/bridge
- * @pre IsTunnelBridgeTile(t) && GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL
+ * @pre (IsTunnelBridgeTile(t) && GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL) || IsRailBridgeTile(t)
  * @param t the tile
  * @return reservation state
  */
 static inline bool HasTunnelBridgeReservation(TileIndex t)
 {
-	assert(IsTunnelBridgeTile(t));
-	assert(GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL);
+	if (!IsRailBridgeTile(t)) {
+		assert(IsTunnelBridgeTile(t));
+		assert(GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL);
+	}
 	return HasBit(_mc[t].m5, 4);
 }
 
 /**
  * Set the reservation state of the rail tunnel/bridge
- * @pre IsTunnelBridgeTile(t) && GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL
+ * @pre (IsTunnelBridgeTile(t) && GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL) || IsRailBridgeTile(t)
  * @param t the tile
  * @param b the reservation state
  */
 static inline void SetTunnelBridgeReservation(TileIndex t, bool b)
 {
-	assert(IsTunnelBridgeTile(t));
-	assert(GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL);
+	if (!IsRailBridgeTile(t)) {
+		assert(IsTunnelBridgeTile(t));
+		assert(GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL);
+	}
 	SB(_mc[t].m5, 4, 1, b ? 1 : 0);
 }
 
 /**
  * Get the reserved track bits for a rail tunnel/bridge
- * @pre IsTunnelBridgeTile(t) && GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL
+ * @pre (IsTunnelBridgeTile(t) && GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL) || IsRailBridgeTile(t)
  * @param t the tile
  * @return reserved track bits
  */

@@ -567,7 +567,7 @@ bool IsWateredTile(TileIndex tile, Direction from)
 			}
 
 		case TT_RAILWAY:
-			if (GetRailGroundType(tile) == RAIL_GROUND_WATER) {
+			if (IsTileSubtype(tile, TT_TRACK) && GetRailGroundType(tile) == RAIL_GROUND_WATER) {
 				switch (GetTileSlope(tile)) {
 					case SLOPE_W: return (from == DIR_SE) || (from == DIR_E) || (from == DIR_NE);
 					case SLOPE_S: return (from == DIR_NE) || (from == DIR_N) || (from == DIR_NW);
@@ -577,6 +577,9 @@ bool IsWateredTile(TileIndex tile, Direction from)
 				}
 			}
 			return false;
+
+		case TT_MISC:
+			return IsTileSubtype(tile, TT_MISC_AQUEDUCT) && ReverseDiagDir(GetTunnelBridgeDirection(tile)) == DirToDiagDir(from);
 
 		case TT_STATION:
 			if (IsOilRig(tile)) {
@@ -984,7 +987,7 @@ static void FloodVehicles(TileIndex tile)
 		return;
 	}
 
-	if (!IsBridgeTile(tile)) {
+	if (!IsBridgeTile(tile) && !IsBridgeHeadTile(tile)) {
 		FindVehicleOnPos(tile, &z, &FloodVehicleProc);
 		return;
 	}
@@ -1021,7 +1024,7 @@ FloodingBehaviour GetFloodingBehaviour(TileIndex tile)
 			return (GetWaterClass(tile) == WATER_CLASS_SEA) ? FLOOD_ACTIVE : FLOOD_NONE;
 
 		case TT_RAILWAY:
-			if (GetRailGroundType(tile) == RAIL_GROUND_WATER) {
+			if (IsTileSubtype(tile, TT_TRACK) && GetRailGroundType(tile) == RAIL_GROUND_WATER) {
 				return (IsSlopeWithOneCornerRaised(GetTileSlope(tile)) ? FLOOD_ACTIVE : FLOOD_DRYUP);
 			}
 			return FLOOD_NONE;
@@ -1049,11 +1052,12 @@ void DoFloodTile(TileIndex target)
 	if (tileh != SLOPE_FLAT) {
 		/* make coast.. */
 		switch (GetTileType(target)) {
-			case TT_RAILWAY: {
-				FloodVehicles(target);
-				flooded = FloodHalftile(target);
+			case TT_RAILWAY:
+				if (IsTileSubtype(target, TT_TRACK)) {
+					FloodVehicles(target);
+					flooded = FloodHalftile(target);
+				}
 				break;
-			}
 
 			case TT_GROUND:
 				if (IsTreeTile(target) && !IsSlopeWithOneCornerRaised(tileh)) {
@@ -1104,6 +1108,7 @@ static void DoDryUp(TileIndex tile)
 
 	switch (GetTileType(tile)) {
 		case TT_RAILWAY:
+			assert(IsTileSubtype(tile, TT_TRACK));
 			assert(GetRailGroundType(tile) == RAIL_GROUND_WATER);
 
 			RailGroundType new_ground;

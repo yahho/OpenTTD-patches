@@ -737,6 +737,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					uint ground = GB(_mc[t].m4, 0, 4);
 					if (!HasBit(_mc[t].m5, 7)) { // track
 						_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_RAILWAY << 4);
+						SB(_mc[t].m1, 6, 2, TT_TRACK);
 						if (HasBit(_mc[t].m5, 6)) { // with signals
 							_mc[t].m7 = GB(_mc[t].m4, 4, 2) | (GB(_mc[t].m3, 4, 2) << 2) | (GB(_mc[t].m2, 4, 3) << 4) | (GB(_mc[t].m2, 7, 1) << 7);
 							_mc[t].m4 = GB(_mc[t].m4, 6, 2) | (GB(_mc[t].m3, 6, 2) << 2) | (GB(_mc[t].m2, 0, 3) << 4) | (GB(_mc[t].m2, 3, 1) << 7);

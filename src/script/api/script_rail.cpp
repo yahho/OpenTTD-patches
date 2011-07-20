@@ -32,7 +32,7 @@
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return ::IsRailwayTile(tile) ||
+	return ::IsNormalRailTile(tile) ||
 			(::HasStationTileRail(tile) && !::IsStationTileBlocked(tile)) || ::IsLevelCrossingTile(tile);
 }
 
@@ -249,7 +249,7 @@
 {
 	EnforcePrecondition(false, ScriptObject::GetCompany() != OWNER_DEITY);
 	EnforcePrecondition(false, ::IsValidTile(tile));
-	EnforcePrecondition(false, ::IsRailwayTile(tile) || ::IsLevelCrossingTile(tile));
+	EnforcePrecondition(false, ::IsNormalRailTile(tile) || ::IsLevelCrossingTile(tile));
 	EnforcePrecondition(false, GetRailTracks(tile) & rail_track);
 	EnforcePrecondition(false, KillFirstBit((uint)rail_track) == 0);
 
@@ -404,7 +404,7 @@ static const ScriptRailSignalData _possible_trackdirs[5][NUM_TRACK_DIRECTIONS] =
 /* static */ ScriptRail::SignalType ScriptRail::GetSignalType(TileIndex tile, TileIndex front)
 {
 	if (ScriptMap::DistanceManhattan(tile, front) != 1) return SIGNALTYPE_NONE;
-	if (!::IsRailwayTile(tile)) return SIGNALTYPE_NONE;
+	if (!::IsNormalRailTile(tile)) return SIGNALTYPE_NONE;
 
 	int data_index = 2 + (::TileX(front) - ::TileX(tile)) + 2 * (::TileY(front) - ::TileY(tile));
 
@@ -435,7 +435,7 @@ static bool IsValidSignalType(int signal_type)
 {
 	EnforcePrecondition(false, ScriptObject::GetCompany() != OWNER_DEITY);
 	EnforcePrecondition(false, ScriptMap::DistanceManhattan(tile, front) == 1)
-	EnforcePrecondition(false, ::IsRailwayTile(tile));
+	EnforcePrecondition(false, ::IsNormalRailTile(tile));
 	EnforcePrecondition(false, ::IsValidSignalType(signal));
 
 	Track track = INVALID_TRACK;

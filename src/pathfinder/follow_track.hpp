@@ -195,14 +195,14 @@ protected:
 		m_tiles_skipped = 0;
 
 		/* extra handling for tunnels and bridges in our direction */
-		if (IsTunnelBridgeTile(m_old_tile)) {
+		if (IsTunnelBridgeTile(m_old_tile) || IsBridgeHeadTile(m_old_tile)) {
 			DiagDirection enterdir = GetTunnelBridgeDirection(m_old_tile);
 			if (enterdir == m_exitdir) {
 				/* we are entering the tunnel / bridge */
-				if (IsTunnel(m_old_tile)) {
+				if (IsTunnelTile(m_old_tile)) {
 					m_is_tunnel = true;
 					m_new_tile = GetOtherTunnelEnd(m_old_tile);
-				} else { // IsBridge(m_old_tile)
+				} else {
 					m_is_bridge = true;
 					m_new_tile = GetOtherBridgeEnd(m_old_tile);
 				}
@@ -230,7 +230,7 @@ protected:
 	inline bool QueryNewTileTrackStatus()
 	{
 		CPerfStart perf(*m_pPerf);
-		if (IsRailTT() && IsRailwayTile(m_new_tile)) {
+		if (IsRailTT() && IsNormalRailTile(m_new_tile)) {
 			m_new_td_bits = (TrackdirBits)(GetTrackBits(m_new_tile) * 0x101);
 		} else {
 			m_new_td_bits = TrackStatusToTrackdirBits(GetTileTrackStatus(m_new_tile, TT(), IsRoadTT() && m_veh != NULL ? RoadVehicle::From(m_veh)->compatible_roadtypes : 0));
@@ -348,8 +348,8 @@ protected:
 		}
 
 		/* tunnel holes and bridge ramps can be entered only from proper direction */
-		if (IsTunnelBridgeTile(m_new_tile)) {
-			if (IsTunnel(m_new_tile)) {
+		if (IsTunnelBridgeTile(m_new_tile) || IsBridgeHeadTile(m_new_tile)) {
+			if (IsTunnelTile(m_new_tile)) {
 				if (!m_is_tunnel) {
 					DiagDirection tunnel_enterdir = GetTunnelBridgeDirection(m_new_tile);
 					if (tunnel_enterdir != m_exitdir) {
@@ -357,7 +357,7 @@ protected:
 						return false;
 					}
 				}
-			} else { // IsBridge(m_new_tile)
+			} else {
 				if (!m_is_bridge) {
 					DiagDirection ramp_enderdir = GetTunnelBridgeDirection(m_new_tile);
 					if (ramp_enderdir != m_exitdir) {
@@ -444,7 +444,7 @@ public:
 		int max_speed = INT_MAX; // no limit
 
 		/* Check for on-bridge speed limit */
-		if (!IsWaterTT() && IsBridgeTile(m_old_tile)) {
+		if (!IsWaterTT() && (IsBridgeTile(m_old_tile) || IsBridgeHeadTile(m_old_tile))) {
 			int spd = GetBridgeSpec(GetBridgeType(m_old_tile))->speed;
 			if (IsRoadTT()) spd *= 2;
 			if (max_speed > spd) max_speed = spd;

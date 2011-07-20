@@ -114,7 +114,7 @@ static void GuessWaterClass(TileIndex t, bool allow_invalid)
 
 			case TT_RAILWAY:
 				/* Shore or flooded halftile */
-				has_water |= (GetRailGroundType(neighbour) == RAIL_GROUND_WATER);
+				has_water |= IsTileSubtype(neighbour, TT_TRACK) && (GetRailGroundType(neighbour) == RAIL_GROUND_WATER);
 				break;
 
 			case TT_GROUND:
@@ -207,7 +207,7 @@ static void InitializeWindowsAndCaches()
 static void FixOwnerOfRailTrack(TileIndex t)
 {
 	assert(!Company::IsValidID(GetTileOwner(t)));
-	assert(IsLevelCrossingTile(t) || IsRailwayTile(t));
+	assert(IsLevelCrossingTile(t) || IsNormalRailTile(t));
 
 	/* remove leftover rail piece from crossing (from very old savegames) */
 	Train *v = NULL, *w;
@@ -705,7 +705,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 
 		FOR_ALL_VEHICLES(v) {
 			if (!v->IsGroundVehicle()) continue;
-			if (IsBridgeTile(v->tile)) {
+			if (IsBridgeTile(v->tile) || IsBridgeHeadTile(v->tile)) {
 				DiagDirection dir = GetTunnelBridgeDirection(v->tile);
 
 				if (dir != DirToDiagDir(v->direction)) continue;
@@ -1141,7 +1141,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 				if (IsLevelCrossingTile(t)) {
 					if (!Company::IsValidID(GetTileOwner(t))) FixOwnerOfRailTrack(t);
 				}
-			} else if (IsRailwayTile(t)) {
+			} else if (IsNormalRailTile(t)) {
 				if (!Company::IsValidID(GetTileOwner(t))) FixOwnerOfRailTrack(t);
 			}
 		}
@@ -1885,7 +1885,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 					continue;
 			}
 
-			if (IsBridgeTile(v->tile) && TileVirtXY(v->x_pos, v->y_pos) == v->tile) {
+			if ((IsBridgeTile(v->tile) || IsBridgeHeadTile(v->tile)) && TileVirtXY(v->x_pos, v->y_pos) == v->tile) {
 				/* In old versions, z_pos was 1 unit lower on bridge heads.
 				 * However, this invalid state could be converted to new savegames
 				 * by loading and saving the game in a new version. */

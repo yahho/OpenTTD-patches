@@ -23,7 +23,7 @@ struct CYapfCostBase {
 	inline static bool stSlopeCost(TileIndex tile, Trackdir td)
 	{
 		if (IsDiagonalTrackdir(td)) {
-			if (IsBridgeTile(tile)) {
+			if (IsBridgeTile(tile) || IsBridgeHeadTile(tile)) {
 				/* it is bridge ramp, check if we are entering the bridge */
 				if (GetTunnelBridgeDirection(tile) != TrackdirToExitdir(td)) return false; // no, we are leaving it, no penalty
 				/* we are entering the bridge */

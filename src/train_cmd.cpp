@@ -1542,7 +1542,7 @@ static void UpdateStatusAfterSwap(Train *v)
 		 * when we shouldn't have. Check if this is the case. */
 		if (TileVirtXY(v->x_pos, v->y_pos) == v->tile) {
 			VehicleEnterTile(v, v->tile, v->x_pos, v->y_pos);
-			if (v->track != TRACK_BIT_WORMHOLE && IsBridgeTile(v->tile)) {
+			if (v->track != TRACK_BIT_WORMHOLE && (IsBridgeTile(v->tile) || IsRailBridgeTile(v->tile))) {
 				/* We have just left the wormhole, possibly set the
 				 * "goingdown" bit. UpdateInclination() can be used
 				 * because we are at the border of the tile. */
@@ -1839,12 +1839,12 @@ void ReverseTrainDirection(Train *v)
 	/* TrainExitDir does not always produce the desired dir for depots and
 	 * tunnels/bridges that is needed for UpdateSignalsOnSegment. */
 	DiagDirection dir = TrainExitDir(v->direction, v->track);
-	if (IsRailDepotTile(v->tile) || IsTunnelBridgeTile(v->tile)) dir = INVALID_DIAGDIR;
+	if (IsRailDepotTile(v->tile) || IsTunnelBridgeTile(v->tile) || IsRailBridgeTile(v->tile)) dir = INVALID_DIAGDIR;
 
 	if (UpdateSignalsOnSegment(v->tile, dir, v->owner) == SIGSEG_PBS || _settings_game.pf.reserve_paths) {
 		/* If we are currently on a tile with conventional signals, we can't treat the
 		 * current tile as a safe tile or we would enter a PBS block without a reservation. */
-		bool first_tile_okay = !(IsRailwayTile(v->tile) &&
+		bool first_tile_okay = !(IsNormalRailTile(v->tile) &&
 			HasSignalOnTrackdir(v->tile, v->GetVehicleTrackdir()) &&
 			!IsPbsSignal(GetSignalType(v->tile, FindFirstTrack(v->track))));
 
@@ -2071,7 +2071,7 @@ static void CheckNextTrainTile(Train *v)
 	Trackdir td = v->GetVehicleTrackdir();
 
 	/* On a tile with a red non-pbs signal, don't look ahead. */
-	if (IsRailwayTile(v->tile) && HasSignalOnTrackdir(v->tile, td) &&
+	if (IsNormalRailTile(v->tile) && HasSignalOnTrackdir(v->tile, td) &&
 			!IsPbsSignal(GetSignalType(v->tile, TrackdirToTrack(td))) &&
 			GetSignalStateByTrackdir(v->tile, td) == SIGNAL_STATE_RED) return;
 
@@ -2182,7 +2182,7 @@ static void ClearPathReservation(const Train *v, TileIndex tile, Trackdir track_
 {
 	DiagDirection dir = TrackdirToExitdir(track_dir);
 
-	if (IsTunnelBridgeTile(tile)) {
+	if (IsTunnelBridgeTile(tile) || IsRailBridgeTile(tile)) {
 		/* Are we just leaving a tunnel/bridge? */
 		if (GetTunnelBridgeDirection(tile) == ReverseDiagDir(dir)) {
 			TileIndex end = GetOtherTunnelBridgeEnd(tile);
@@ -2221,7 +2221,7 @@ void FreeTrainTrackReservation(const Train *v)
 
 	TileIndex tile = v->tile;
 	Trackdir  td = v->GetVehicleTrackdir();
-	bool      free_tile = !(IsRailStationTile(v->tile) || IsTunnelBridgeTile(v->tile));
+	bool      free_tile = !(IsRailStationTile(v->tile) || IsTunnelBridgeTile(v->tile) || IsRailBridgeTile(v->tile));
 	StationID station_id = IsRailStationTile(v->tile) ? GetStationIndex(v->tile) : INVALID_STATION;
 
 	/* Can't be holding a reservation if we enter a depot. */
@@ -2244,7 +2244,7 @@ void FreeTrainTrackReservation(const Train *v)
 
 		if (!IsValidTrackdir(td)) break;
 
-		if (IsRailwayTile(tile)) {
+		if (IsNormalRailTile(tile)) {
 			if (HasSignalOnTrackdir(tile, td) && !IsPbsSignal(GetSignalType(tile, TrackdirToTrack(td)))) {
 				/* Conventional signal along trackdir: remove reservation and stop. */
 				UnreserveRailTrack(tile, TrackdirToTrack(td));
@@ -2866,7 +2866,7 @@ static inline void AffectSpeedByZChange(Train *v, int old_z)
 
 static bool TrainMovedChangeSignals(TileIndex tile, DiagDirection dir)
 {
-	if (!IsRailwayTile(tile)) return false;
+	if (!IsNormalRailTile(tile)) return false;
 
 	TrackdirBits tracks = TrackBitsToTrackdirBits(GetTrackBits(tile)) & DiagdirReachesTrackdirs(dir);
 	Trackdir trackdir = FindFirstTrackdir(tracks);
@@ -2913,7 +2913,7 @@ uint Train::Crash(bool flooded)
 		if (!HasBit(this->flags, VRF_TRAIN_STUCK)) FreeTrainTrackReservation(this);
 		for (const Train *v = this; v != NULL; v = v->Next()) {
 			ClearPathReservation(v, v->tile, v->GetVehicleTrackdir());
-			if (IsTunnelBridgeTile(v->tile)) {
+			if (IsTunnelBridgeTile(v->tile) || IsRailBridgeTile(v->tile)) {
 				/* ClearPathReservation will not free the wormhole exit
 				 * if the train has just entered the wormhole. */
 				SetTunnelBridgeReservation(GetOtherTunnelBridgeEnd(v->tile), false);
@@ -3155,7 +3155,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				chosen_track = TrackToTrackBits(TrackdirToTrack(chosen_trackdir));
 				assert(chosen_track & (TrackdirBitsToTrackBits(trackdirbits) | GetReservedTrackbits(gp.new_tile)));
 
-				if (v->force_proceed != TFP_NONE && IsRailwayTile(gp.new_tile)) {
+				if (v->force_proceed != TFP_NONE && IsNormalRailTile(gp.new_tile)) {
 					/* For each signal we find decrease the counter by one.
 					 * We start at two, so the first signal we pass decreases
 					 * this to one, then if we reach the next signal it is
@@ -3458,7 +3458,7 @@ static void DeleteLastWagon(Train *v)
 	if (IsLevelCrossingTile(tile)) UpdateLevelCrossing(tile);
 
 	/* Update signals */
-	if (IsTunnelBridgeTile(tile) || IsRailDepotTile(tile)) {
+	if (IsTunnelBridgeTile(tile) || IsRailBridgeTile(tile) || IsRailDepotTile(tile)) {
 		UpdateSignalsOnSegment(tile, INVALID_DIAGDIR, owner);
 	} else {
 		SetSignalsOnBothDir(tile, track, owner);
@@ -3602,7 +3602,7 @@ static bool TrainCanLeaveTile(const Train *v)
 	TileIndex tile = v->tile;
 
 	/* entering a tunnel/bridge? */
-	if (IsTunnelBridgeTile(tile)) {
+	if (IsTunnelBridgeTile(tile) || IsRailBridgeTile(tile)) {
 		DiagDirection dir = GetTunnelBridgeDirection(tile);
 		if (DiagDirToDir(dir) == v->direction) return false;
 	}
@@ -3736,7 +3736,7 @@ static bool TrainLocoHandler(Train *v, bool mode)
 		 * might not be marked as wanting a reservation, e.g.
 		 * when an overlength train gets turned around in a station. */
 		DiagDirection dir = TrainExitDir(v->direction, v->track);
-		if (IsRailDepotTile(v->tile) || IsTunnelBridgeTile(v->tile)) dir = INVALID_DIAGDIR;
+		if (IsRailDepotTile(v->tile) || IsTunnelBridgeTile(v->tile) || IsRailBridgeTile(v->tile)) dir = INVALID_DIAGDIR;
 
 		if (UpdateSignalsOnSegment(v->tile, dir, v->owner) == SIGSEG_PBS || _settings_game.pf.reserve_paths) {
 			TryPathReserve(v, true, true);

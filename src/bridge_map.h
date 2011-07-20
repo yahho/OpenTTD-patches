@@ -100,12 +100,12 @@ static inline bool HasBridgeAbove(TileIndex t)
 /**
  * Determines the type of bridge on a tile
  * @param t The tile to analyze
- * @pre IsBridgeTile(t)
+ * @pre IsBridgeTile(t) || IsBridgeHeadTile(t)
  * @return The bridge type
  */
 static inline BridgeType GetBridgeType(TileIndex t)
 {
-	assert(IsBridgeTile(t));
+	assert(IsBridgeTile(t) || IsBridgeHeadTile(t));
 	return _mc[t].m4;
 }
 

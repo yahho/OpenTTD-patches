@@ -33,6 +33,7 @@
 #include "company_base.h"
 #include "tunnelbridge_map.h"
 #include "zoom_func.h"
+#include "bridge_map.h"
 
 #include "table/strings.h"
 
@@ -44,11 +45,11 @@
 WaterClass GetEffectiveWaterClass(TileIndex tile)
 {
 	if (HasTileWaterClass(tile)) return GetWaterClass(tile);
-	if (IsTunnelBridgeTile(tile)) {
+	if (IsTunnelBridgeTile(tile) || IsAqueductTile(tile)) {
 		assert(GetTunnelBridgeTransportType(tile) == TRANSPORT_WATER);
 		return WATER_CLASS_CANAL;
 	}
-	if (IsRailwayTile(tile)) {
+	if (IsNormalRailTile(tile)) {
 		assert(GetRailGroundType(tile) == RAIL_GROUND_WATER);
 		return WATER_CLASS_SEA;
 	}

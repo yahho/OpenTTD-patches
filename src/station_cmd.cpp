@@ -819,7 +819,7 @@ static CommandCost CheckFlatLandRailStation(TileArea tile_area, DoCommandFlag fl
 		} else {
 			/* Rail type is only valid when building a railway station; if station to
 			 * build isn't a rail station it's INVALID_RAILTYPE. */
-			if (rt != INVALID_RAILTYPE && IsRailwayTile(tile_cur) &&
+			if (rt != INVALID_RAILTYPE && IsNormalRailTile(tile_cur) &&
 					HasPowerOnRail(GetRailType(tile_cur), rt)) {
 				/* Allow overbuilding if the tile:
 				 *  - has rail, but no signals
@@ -900,7 +900,7 @@ static CommandCost CheckFlatLandRoadStop(TileArea tile_area, DoCommandFlag flags
 				}
 			}
 		} else {
-			bool build_over_road = is_drive_through && IsRoadTile(cur_tile);
+			bool build_over_road = is_drive_through && IsNormalRoadTile(cur_tile);
 			/* Road bits in the wrong direction. */
 			RoadBits rb = IsRoadTile(cur_tile) ? GetAllRoadBits(cur_tile) : ROAD_NONE;
 			if (build_over_road && (rb & (axis == AXIS_X ? ROAD_Y : ROAD_X)) != 0) {
@@ -3907,7 +3907,7 @@ static void ChangeTileOwner_Station(TileIndex tile, Owner old_owner, Owner new_o
 		if (IsDriveThroughStopTile(tile)) {
 			/* Remove the drive-through road stop */
 			DoCommand(tile, 1 | 1 << 8, (GetStationType(tile) == STATION_TRUCK) ? ROADSTOP_TRUCK : ROADSTOP_BUS, DC_EXEC | DC_BANKRUPT, CMD_REMOVE_ROAD_STOP);
-			assert(IsRoadTile(tile));
+			assert(IsNormalRoadTile(tile));
 			/* Change owner of tile and all roadtypes */
 			ChangeTileOwner(tile, old_owner, new_owner);
 		} else {

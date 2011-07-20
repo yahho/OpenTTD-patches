@@ -110,25 +110,52 @@ void AfterLoadCompanyStats()
 		switch (GetTileType(tile)) {
 			case TT_RAILWAY:
 				c = Company::GetIfValid(GetTileOwner(tile));
-				if (c != NULL) {
+				if (c == NULL) break;
+
+				if (IsTileSubtype(tile, TT_TRACK)) {
 					TrackBits bits = GetTrackBits(tile);
 					uint pieces = CountBits(bits);
 					if (TracksOverlap(bits)) pieces *= pieces;
 					c->infrastructure.rail[GetRailType(tile)] += pieces;
 
 					c->infrastructure.signal += CountBits(GetPresentSignals(tile, TRACK_UPPER)) + CountBits(GetPresentSignals(tile, TRACK_LOWER));
+				} else {
+					/* Only count the bridge if we're on the northern end tile. */
+					TileIndex other_end = GetOtherBridgeEnd(tile);
+					if (tile < other_end) {
+						/* Count each bridge TUNNELBRIDGE_TRACKBIT_FACTOR times to simulate
+						 * the higher structural maintenance needs, and don't forget the end tiles. */
+						uint len = (GetTunnelBridgeLength(tile, other_end) + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
+						c->infrastructure.rail[GetRailType(tile)] += len;
+					}
 				}
 				break;
 
-			case TT_ROAD: {
-				/* Iterate all present road types as each can have a different owner. */
-				RoadType rt;
-				FOR_EACH_SET_ROADTYPE(rt, GetRoadTypes(tile)) {
-					c = Company::GetIfValid(GetRoadOwner(tile, rt));
-					if (c != NULL) c->infrastructure.road[rt] += CountBits(GetRoadBits(tile, rt));
+			case TT_ROAD:
+				if (IsTileSubtype(tile, TT_TRACK)) {
+					/* Iterate all present road types as each can have a different owner. */
+					RoadType rt;
+					FOR_EACH_SET_ROADTYPE(rt, GetRoadTypes(tile)) {
+						c = Company::GetIfValid(GetRoadOwner(tile, rt));
+						if (c != NULL) c->infrastructure.road[rt] += CountBits(GetRoadBits(tile, rt));
+					}
+				} else {
+					/* Only count the bridge if we're on the northern end tile. */
+					TileIndex other_end = GetOtherBridgeEnd(tile);
+					if (tile < other_end) {
+						/* Count each bridge TUNNELBRIDGE_TRACKBIT_FACTOR times to simulate
+						 * the higher structural maintenance needs, and don't forget the end tiles. */
+						uint len = (GetTunnelBridgeLength(tile, other_end) + 2) * 2 * TUNNELBRIDGE_TRACKBIT_FACTOR;
+
+						/* Iterate all present road types as each can have a different owner. */
+						RoadType rt;
+						FOR_EACH_SET_ROADTYPE(rt, GetRoadTypes(tile)) {
+							c = Company::GetIfValid(GetRoadOwner(tile, rt));
+							if (c != NULL) c->infrastructure.road[rt] += len;
+						}
+					}
 				}
 				break;
-			}
 
 			case TT_MISC:
 				switch (GetTileSubtype(tile)) {
@@ -147,6 +174,20 @@ void AfterLoadCompanyStats()
 						}
 						break;
 					}
+
+					case TT_MISC_AQUEDUCT:
+						c = Company::GetIfValid(GetTileOwner(tile));
+						if (c != NULL) {
+							/* Only count the bridge if we're on the northern end tile. */
+							TileIndex other_end = GetOtherTunnelBridgeEnd(tile);
+							if (tile < other_end) {
+								/* Count each bridge TUNNELBRIDGE_TRACKBIT_FACTOR times to simulate
+								 * the higher structural maintenance needs, and don't forget the end tiles. */
+								uint len = (GetTunnelBridgeLength(tile, other_end) + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
+								c->infrastructure.water += len;
+							}
+						}
+						break;
 
 					case TT_MISC_DEPOT:
 						c = Company::GetIfValid(GetTileOwner(tile));
