@@ -14,16 +14,34 @@
 
 #include "stdafx.h"
 #include "bridge.h"
+#include "tunnelbridge.h"
+#include "tunnelbridge_map.h"
 #include "bridge_map.h"
 #include "landscape.h"
 #include "slope_func.h"
 #include "command_func.h"
 #include "date_func.h"
+#include "economy_func.h"
+#include "rail_map.h"
+#include "road_map.h"
+#include "water_map.h"
+#include "viewport_func.h"
+#include "transparency.h"
+#include "rail.h"
+#include "elrail_func.h"
+#include "clear_func.h"
+#include "water.h"
+
+#include "newgrf_commons.h"
+#include "newgrf_railtype.h"
 
 #include "table/sprites.h"
 #include "table/strings.h"
 #include "table/bridge_land.h"
 
+
+/** Z position of the bridge sprites relative to bridge height (downwards) */
+static const int BRIDGE_Z_START = 3;
 
 BridgeSpec _bridge[MAX_BRIDGES]; ///< The specification of all bridges.
 
@@ -118,4 +136,328 @@ CommandCost CheckBridgeAvailability(BridgeType bridge_type, uint bridge_len, DoC
 	if (b->min_length > bridge_len) return CMD_ERROR;
 	if (bridge_len <= max) return CommandCost();
 	return_cmd_error(STR_ERROR_BRIDGE_TOO_LONG);
+}
+
+
+static inline const PalSpriteID *GetBridgeSpriteTable(int index, BridgePieces table)
+{
+	const BridgeSpec *bridge = GetBridgeSpec(index);
+	assert(table < BRIDGE_PIECE_INVALID);
+	if (bridge->sprite_table == NULL || bridge->sprite_table[table] == NULL) {
+		return _bridge_sprite_table[index][table];
+	} else {
+		return bridge->sprite_table[table];
+	}
+}
+
+/**
+ * Draw a single pillar sprite.
+ * @param psid      Pillarsprite
+ * @param x         Pillar X
+ * @param y         Pillar Y
+ * @param z         Pillar Z
+ * @param w         Bounding box size in X direction
+ * @param h         Bounding box size in Y direction
+ * @param subsprite Optional subsprite for drawing halfpillars
+ */
+static inline void DrawPillar(const PalSpriteID *psid, int x, int y, int z, int w, int h, const SubSprite *subsprite)
+{
+	static const int PILLAR_Z_OFFSET = TILE_HEIGHT - BRIDGE_Z_START; ///< Start offset of pillar wrt. bridge (downwards)
+	AddSortableSpriteToDraw(psid->sprite, psid->pal, x, y, w, h, BB_HEIGHT_UNDER_BRIDGE - PILLAR_Z_OFFSET, z, IsTransparencySet(TO_BRIDGES), 0, 0, -PILLAR_Z_OFFSET, subsprite);
+}
+
+/**
+ * Draw two bridge pillars (north and south).
+ * @param z_bottom Bottom Z
+ * @param z_top    Top Z
+ * @param psid     Pillarsprite
+ * @param x        Pillar X
+ * @param y        Pillar Y
+ * @param w        Bounding box size in X direction
+ * @param h        Bounding box size in Y direction
+ * @return Reached Z at the bottom
+ */
+static int DrawPillarColumn(int z_bottom, int z_top, const PalSpriteID *psid, int x, int y, int w, int h)
+{
+	int cur_z;
+	for (cur_z = z_top; cur_z >= z_bottom; cur_z -= TILE_HEIGHT) {
+		DrawPillar(psid, x, y, cur_z, w, h, NULL);
+	}
+	return cur_z;
+}
+
+/**
+ * Draws the pillars under high bridges.
+ *
+ * @param psid Image and palette of a bridge pillar.
+ * @param ti #TileInfo of current bridge-middle-tile.
+ * @param axis Orientation of bridge.
+ * @param drawfarpillar Whether to draw the pillar at the back
+ * @param x Sprite X position of front pillar.
+ * @param y Sprite Y position of front pillar.
+ * @param z_bridge Absolute height of bridge bottom.
+ */
+static void DrawBridgePillars(const PalSpriteID *psid, const TileInfo *ti, Axis axis, bool drawfarpillar, int x, int y, int z_bridge)
+{
+	static const int bounding_box_size[2]  = {16, 2}; ///< bounding box size of pillars along bridge direction
+	static const int back_pillar_offset[2] = { 0, 9}; ///< sprite position offset of back facing pillar
+
+	static const int INF = 1000; ///< big number compared to sprite size
+	static const SubSprite half_pillar_sub_sprite[2][2] = {
+		{ {  -14, -INF, INF, INF }, { -INF, -INF, -15, INF } }, // X axis, north and south
+		{ { -INF, -INF,  15, INF }, {   16, -INF, INF, INF } }, // Y axis, north and south
+	};
+
+	if (psid->sprite == 0) return;
+
+	/* Determine ground height under pillars */
+	DiagDirection south_dir = AxisToDiagDir(axis);
+	int z_front_north = ti->z;
+	int z_back_north = ti->z;
+	int z_front_south = ti->z;
+	int z_back_south = ti->z;
+	GetSlopePixelZOnEdge(ti->tileh, south_dir, &z_front_south, &z_back_south);
+	GetSlopePixelZOnEdge(ti->tileh, ReverseDiagDir(south_dir), &z_front_north, &z_back_north);
+
+	/* Shared height of pillars */
+	int z_front = max(z_front_north, z_front_south);
+	int z_back = max(z_back_north, z_back_south);
+
+	/* x and y size of bounding-box of pillars */
+	int w = bounding_box_size[axis];
+	int h = bounding_box_size[OtherAxis(axis)];
+	/* sprite position of back facing pillar */
+	int x_back = x - back_pillar_offset[axis];
+	int y_back = y - back_pillar_offset[OtherAxis(axis)];
+
+	/* Draw front pillars */
+	int bottom_z = DrawPillarColumn(z_front, z_bridge, psid, x, y, w, h);
+	if (z_front_north < z_front) DrawPillar(psid, x, y, bottom_z, w, h, &half_pillar_sub_sprite[axis][0]);
+	if (z_front_south < z_front) DrawPillar(psid, x, y, bottom_z, w, h, &half_pillar_sub_sprite[axis][1]);
+
+	/* Draw back pillars, skip top two parts, which are hidden by the bridge */
+	int z_bridge_back = z_bridge - 2 * (int)TILE_HEIGHT;
+	if (drawfarpillar && (z_back_north <= z_bridge_back || z_back_south <= z_bridge_back)) {
+		bottom_z = DrawPillarColumn(z_back, z_bridge_back, psid, x_back, y_back, w, h);
+		if (z_back_north < z_back) DrawPillar(psid, x_back, y_back, bottom_z, w, h, &half_pillar_sub_sprite[axis][0]);
+		if (z_back_south < z_back) DrawPillar(psid, x_back, y_back, bottom_z, w, h, &half_pillar_sub_sprite[axis][1]);
+	}
+}
+
+/**
+ * Compute bridge piece. Computes the bridge piece to display depending on the position inside the bridge.
+ * bridges pieces sequence (middle parts).
+ * Note that it is not covering the bridge heads, which are always referenced by the same sprite table.
+ * bridge len 1: BRIDGE_PIECE_NORTH
+ * bridge len 2: BRIDGE_PIECE_NORTH  BRIDGE_PIECE_SOUTH
+ * bridge len 3: BRIDGE_PIECE_NORTH  BRIDGE_PIECE_MIDDLE_ODD   BRIDGE_PIECE_SOUTH
+ * bridge len 4: BRIDGE_PIECE_NORTH  BRIDGE_PIECE_INNER_NORTH  BRIDGE_PIECE_INNER_SOUTH  BRIDGE_PIECE_SOUTH
+ * bridge len 5: BRIDGE_PIECE_NORTH  BRIDGE_PIECE_INNER_NORTH  BRIDGE_PIECE_MIDDLE_EVEN  BRIDGE_PIECE_INNER_SOUTH  BRIDGE_PIECE_SOUTH
+ * bridge len 6: BRIDGE_PIECE_NORTH  BRIDGE_PIECE_INNER_NORTH  BRIDGE_PIECE_INNER_SOUTH  BRIDGE_PIECE_INNER_NORTH  BRIDGE_PIECE_INNER_SOUTH  BRIDGE_PIECE_SOUTH
+ * bridge len 7: BRIDGE_PIECE_NORTH  BRIDGE_PIECE_INNER_NORTH  BRIDGE_PIECE_INNER_SOUTH  BRIDGE_PIECE_MIDDLE_ODD   BRIDGE_PIECE_INNER_NORTH  BRIDGE_PIECE_INNER_SOUTH  BRIDGE_PIECE_SOUTH
+ * #0 - always as first, #1 - always as last (if len>1)
+ * #2,#3 are to pair in order
+ * for odd bridges: #5 is going in the bridge middle if on even position, #4 on odd (counting from 0)
+ * @param north Northernmost tile of bridge
+ * @param south Southernmost tile of bridge
+ * @return Index of bridge piece
+ */
+static BridgePieces CalcBridgePiece(uint north, uint south)
+{
+	if (north == 1) {
+		return BRIDGE_PIECE_NORTH;
+	} else if (south == 1) {
+		return BRIDGE_PIECE_SOUTH;
+	} else if (north < south) {
+		return north & 1 ? BRIDGE_PIECE_INNER_SOUTH : BRIDGE_PIECE_INNER_NORTH;
+	} else if (north > south) {
+		return south & 1 ? BRIDGE_PIECE_INNER_NORTH : BRIDGE_PIECE_INNER_SOUTH;
+	} else {
+		return north & 1 ? BRIDGE_PIECE_MIDDLE_EVEN : BRIDGE_PIECE_MIDDLE_ODD;
+	}
+}
+
+/**
+ * Draws the trambits over an already drawn (lower end) of a bridge.
+ * @param x       the x of the bridge
+ * @param y       the y of the bridge
+ * @param z       the z of the bridge
+ * @param offset  number representing whether to level or sloped and the direction
+ * @param overlay do we want to still see the road?
+ * @param head    are we drawing bridge head?
+ */
+void DrawBridgeTramBits(int x, int y, int z, int offset, bool overlay, bool head)
+{
+	static const SpriteID tram_offsets[2][6] = { { 107, 108, 109, 110, 111, 112 }, { 4, 5, 15, 16, 17, 18 } };
+	static const SpriteID back_offsets[6]    =   {  95,  96,  99, 102, 100, 101 };
+	static const SpriteID front_offsets[6]   =   {  97,  98, 103, 106, 104, 105 };
+
+	static const uint size_x[6] = {  1, 16, 16,  1, 16,  1 };
+	static const uint size_y[6] = { 16,  1,  1, 16,  1, 16 };
+	static const uint front_bb_offset_x[6] = { 15,  0,  0, 15,  0, 15 };
+	static const uint front_bb_offset_y[6] = {  0, 15, 15,  0, 15,  0 };
+
+	/* The sprites under the vehicles are drawn as SpriteCombine. StartSpriteCombine() has already been called
+	 * The bounding boxes here are the same as for bridge front/roof */
+	if (head || !IsInvisibilitySet(TO_BRIDGES)) {
+		AddSortableSpriteToDraw(SPR_TRAMWAY_BASE + tram_offsets[overlay][offset], PAL_NONE,
+			x, y, size_x[offset], size_y[offset], 0x28, z,
+			!head && IsTransparencySet(TO_BRIDGES));
+	}
+
+	/* Do not draw catenary if it is set invisible */
+	if (!IsInvisibilitySet(TO_CATENARY)) {
+		AddSortableSpriteToDraw(SPR_TRAMWAY_BASE + back_offsets[offset], PAL_NONE,
+			x, y, size_x[offset], size_y[offset], 0x28, z,
+			IsTransparencySet(TO_CATENARY));
+	}
+
+	/* Start a new SpriteCombine for the front part */
+	EndSpriteCombine();
+	StartSpriteCombine();
+
+	/* For sloped sprites the bounding box needs to be higher, as the pylons stop on a higher point */
+	if (!IsInvisibilitySet(TO_CATENARY)) {
+		AddSortableSpriteToDraw(SPR_TRAMWAY_BASE + front_offsets[offset], PAL_NONE,
+			x, y, size_x[offset] + front_bb_offset_x[offset], size_y[offset] + front_bb_offset_y[offset], 0x28, z,
+			IsTransparencySet(TO_CATENARY), front_bb_offset_x[offset], front_bb_offset_y[offset]);
+	}
+}
+
+/**
+ * Draw the middle bits of a bridge.
+ * @param ti Tile information of the tile to draw it on.
+ */
+void DrawBridgeMiddle(const TileInfo *ti)
+{
+	/* Sectional view of bridge bounding boxes:
+	 *
+	 *  1           2                                1,2 = SpriteCombine of Bridge front/(back&floor) and TramCatenary
+	 *  1           2                                  3 = empty helper BB
+	 *  1     7     2                                4,5 = pillars under higher bridges
+	 *  1 6 88888 6 2                                  6 = elrail-pylons
+	 *  1 6 88888 6 2                                  7 = elrail-wire
+	 *  1 6 88888 6 2  <- TILE_HEIGHT                  8 = rail-vehicle on bridge
+	 *  3333333333333  <- BB_Z_SEPARATOR
+	 *                 <- unused
+	 *    4       5    <- BB_HEIGHT_UNDER_BRIDGE
+	 *    4       5
+	 *    4       5
+	 *
+	 */
+
+	if (!IsBridgeAbove(ti->tile)) return;
+
+	TileIndex rampnorth = GetNorthernBridgeEnd(ti->tile);
+	TileIndex rampsouth = GetSouthernBridgeEnd(ti->tile);
+	TransportType transport_type = GetTunnelBridgeTransportType(rampsouth);
+
+	Axis axis = GetBridgeAxis(ti->tile);
+	BridgePieces piece = CalcBridgePiece(
+		GetTunnelBridgeLength(ti->tile, rampnorth) + 1,
+		GetTunnelBridgeLength(ti->tile, rampsouth) + 1
+	);
+
+	const PalSpriteID *psid;
+	bool drawfarpillar;
+	if (transport_type != TRANSPORT_WATER) {
+		BridgeType type =  GetBridgeType(rampsouth);
+		drawfarpillar = !HasBit(GetBridgeSpec(type)->flags, 0);
+
+		uint base_offset;
+		if (transport_type == TRANSPORT_RAIL) {
+			base_offset = GetRailTypeInfo(GetRailType(rampsouth))->bridge_offset;
+		} else {
+			base_offset = 8;
+		}
+
+		psid = base_offset + GetBridgeSpriteTable(type, piece);
+	} else {
+		drawfarpillar = true;
+		psid = _aqueduct_sprites;
+	}
+
+	if (axis != AXIS_X) psid += 4;
+
+	int x = ti->x;
+	int y = ti->y;
+	uint bridge_z = GetBridgePixelHeight(rampsouth);
+	int z = bridge_z - BRIDGE_Z_START;
+
+	/* Add a bounding box that separates the bridge from things below it. */
+	AddSortableSpriteToDraw(SPR_EMPTY_BOUNDING_BOX, PAL_NONE, x, y, 16, 16, 1, bridge_z - TILE_HEIGHT + BB_Z_SEPARATOR);
+
+	/* Draw Trambits as SpriteCombine */
+	if (transport_type == TRANSPORT_ROAD || transport_type == TRANSPORT_RAIL) StartSpriteCombine();
+
+	/* Draw floor and far part of bridge*/
+	if (!IsInvisibilitySet(TO_BRIDGES)) {
+		if (axis == AXIS_X) {
+			AddSortableSpriteToDraw(psid->sprite, psid->pal, x, y, 16, 1, 0x28, z, IsTransparencySet(TO_BRIDGES), 0, 0, BRIDGE_Z_START);
+		} else {
+			AddSortableSpriteToDraw(psid->sprite, psid->pal, x, y, 1, 16, 0x28, z, IsTransparencySet(TO_BRIDGES), 0, 0, BRIDGE_Z_START);
+		}
+	}
+
+	psid++;
+
+	if (transport_type == TRANSPORT_ROAD) {
+		RoadTypes rts = GetRoadTypes(rampsouth);
+
+		if (HasBit(rts, ROADTYPE_TRAM)) {
+			/* DrawBridgeTramBits() calls EndSpriteCombine() and StartSpriteCombine() */
+			DrawBridgeTramBits(x, y, bridge_z, axis ^ 1, HasBit(rts, ROADTYPE_ROAD), false);
+		} else {
+			EndSpriteCombine();
+			StartSpriteCombine();
+		}
+	} else if (transport_type == TRANSPORT_RAIL) {
+		const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(rampsouth));
+		if (rti->UsesOverlay() && !IsInvisibilitySet(TO_BRIDGES)) {
+			SpriteID surface = GetCustomRailSprite(rti, rampsouth, RTSG_BRIDGE, TCX_ON_BRIDGE);
+			if (surface != 0) {
+				AddSortableSpriteToDraw(surface + axis, PAL_NONE, x, y, 16, 16, 0, bridge_z, IsTransparencySet(TO_BRIDGES));
+			}
+		}
+		EndSpriteCombine();
+
+		if (HasCatenaryDrawn(GetRailType(rampsouth))) {
+			DrawCatenaryOnBridge(ti);
+		}
+	}
+
+	/* draw roof, the component of the bridge which is logically between the vehicle and the camera */
+	if (!IsInvisibilitySet(TO_BRIDGES)) {
+		if (axis == AXIS_X) {
+			y += 12;
+			if (psid->sprite & SPRITE_MASK) AddSortableSpriteToDraw(psid->sprite, psid->pal, x, y, 16, 4, 0x28, z, IsTransparencySet(TO_BRIDGES), 0, 3, BRIDGE_Z_START);
+		} else {
+			x += 12;
+			if (psid->sprite & SPRITE_MASK) AddSortableSpriteToDraw(psid->sprite, psid->pal, x, y, 4, 16, 0x28, z, IsTransparencySet(TO_BRIDGES), 3, 0, BRIDGE_Z_START);
+		}
+	}
+
+	/* Draw TramFront as SpriteCombine */
+	if (transport_type == TRANSPORT_ROAD) EndSpriteCombine();
+
+	/* Do not draw anything more if bridges are invisible */
+	if (IsInvisibilitySet(TO_BRIDGES)) return;
+
+	psid++;
+	if (ti->z + 5 == z) {
+		/* draw poles below for small bridges */
+		if (psid->sprite != 0) {
+			SpriteID image = psid->sprite;
+			SpriteID pal   = psid->pal;
+			if (IsTransparencySet(TO_BRIDGES)) {
+				SetBit(image, PALETTE_MODIFIER_TRANSPARENT);
+				pal = PALETTE_TO_TRANSPARENT;
+			}
+
+			DrawGroundSpriteAt(image, pal, x - ti->x, y - ti->y, z - ti->z);
+		}
+	} else {
+		/* draw pillars below for high bridges */
+		DrawBridgePillars(psid, ti, axis, drawfarpillar, x, y, z);
+	}
 }
