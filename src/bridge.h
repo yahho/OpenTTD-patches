@@ -87,6 +87,7 @@ static inline const BridgeSpec *GetBridgeSpec(BridgeType i)
 
 void DrawBridgeTramBits(int x, int y, int z, int offset, bool overlay, bool head);
 void DrawBridgeMiddle(const TileInfo *ti);
+void DrawBridgeGround(TileInfo *ti);
 
 CommandCost CheckBridgeAvailability(BridgeType bridge_type, uint bridge_len, DoCommandFlag flags = DC_NONE);
 int CalcBridgeLenCostFactor(int x);

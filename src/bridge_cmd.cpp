@@ -514,3 +514,21 @@ void DrawBridgeMiddle(const TileInfo *ti)
 		DrawBridgePillars(psid, ti, axis, drawfarpillar, x, y, z);
 	}
 }
+
+void DrawBridgeGround(TileInfo *ti)
+{
+	DiagDirection dir = GetTunnelBridgeDirection(ti->tile);
+
+	DrawFoundation(ti, GetBridgeFoundation(ti->tileh, DiagDirToAxis(dir)));
+
+	if (HasTunnelBridgeSnowOrDesert(ti->tile)) {
+		DrawGroundSprite(SPR_FLAT_SNOW_DESERT_TILE + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
+	} else {
+		TileIndex next = ti->tile + TileOffsByDiagDir(dir);
+		if (ti->tileh != SLOPE_FLAT && ti->z == 0 && HasTileWaterClass(next) && GetWaterClass(next) == WATER_CLASS_SEA) {
+			DrawShoreTile(ti->tileh);
+		} else {
+			DrawClearLandTile(ti, 3);
+		}
+	}
+}

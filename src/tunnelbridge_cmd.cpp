@@ -910,9 +910,10 @@ static void DrawTile_TunnelBridge(TileInfo *ti)
 
 		DrawBridgeMiddle(ti);
 	} else { // IsBridge(ti->tile)
+		DrawBridgeGround(ti);
+
 		const PalSpriteID *psid;
 		int base_offset;
-		bool ice = HasTunnelBridgeSnowOrDesert(ti->tile);
 
 		if (transport_type == TRANSPORT_RAIL) {
 			base_offset = GetRailTypeInfo(GetRailType(ti->tile))->bridge_offset;
@@ -924,8 +925,6 @@ static void DrawTile_TunnelBridge(TileInfo *ti)
 		/* as the lower 3 bits are used for other stuff, make sure they are clear */
 		assert( (base_offset & 0x07) == 0x00);
 
-		DrawFoundation(ti, GetBridgeFoundation(ti->tileh, DiagDirToAxis(tunnelbridge_direction)));
-
 		/* HACK Wizardry to convert the bridge ramp direction into a sprite offset */
 		base_offset += (6 - tunnelbridge_direction) % 4;
 
@@ -936,17 +935,6 @@ static void DrawTile_TunnelBridge(TileInfo *ti)
 			psid = &GetBridgeSpriteTable(GetBridgeType(ti->tile), BRIDGE_PIECE_HEAD)[base_offset];
 		} else {
 			psid = _aqueduct_sprites + base_offset;
-		}
-
-		if (!ice) {
-			TileIndex next = ti->tile + TileOffsByDiagDir(tunnelbridge_direction);
-			if (ti->tileh != SLOPE_FLAT && ti->z == 0 && HasTileWaterClass(next) && GetWaterClass(next) == WATER_CLASS_SEA) {
-				DrawShoreTile(ti->tileh);
-			} else {
-				DrawClearLandTile(ti, 3);
-			}
-		} else {
-			DrawGroundSprite(SPR_FLAT_SNOW_DESERT_TILE + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
 		}
 
 		/* draw ramp */
