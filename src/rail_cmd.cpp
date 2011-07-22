@@ -1574,11 +1574,63 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 			continue;
 		}
 
-		SmallVector<Train *, 2> vehicles_affected;
+		/* Vehicle on the tile when not converting Rail <-> ElRail */
 
-		/* Vehicle on the tile when not converting Rail <-> ElRail
-		 * Tunnels and bridges have special check later */
-		if (tt != MP_TUNNELBRIDGE) {
+		if (tt == MP_TUNNELBRIDGE) {
+			TileIndex endtile = GetOtherTunnelBridgeEnd(tile);
+
+			/* If both ends of tunnel/bridge are in the range, do not try to convert twice -
+			 * it would cause assert because of different test and exec runs */
+			if (endtile < tile && TileX(endtile) >= TileX(ta.tile) && TileX(endtile) < TileX(ta.tile) + ta.w &&
+					TileY(endtile) >= TileY(ta.tile) && TileY(endtile) < TileY(ta.tile) + ta.h) continue;
+
+			/* When not converting rail <-> el. rail, any vehicle cannot be in tunnel/bridge */
+			if (!IsCompatibleRail(GetRailType(tile), totype)) {
+				CommandCost ret = TunnelBridgeIsFree(tile, endtile);
+				if (ret.Failed()) {
+					err = ret;
+					continue;
+				}
+			}
+
+			if (flags & DC_EXEC) {
+				Track track = DiagDirToDiagTrack(GetTunnelBridgeDirection(tile));
+				Train *affected = NULL;
+
+				if (HasTunnelBridgeReservation(tile)) {
+					affected = FindUnpoweredReservationTrain(tile, track, totype);
+				}
+
+				/* Update the company infrastructure counters. */
+				uint num_pieces = (GetTunnelBridgeLength(tile, endtile) + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
+				Company *c = Company::Get(GetTileOwner(tile));
+				c->infrastructure.rail[GetRailType(tile)] -= num_pieces;
+				c->infrastructure.rail[totype] += num_pieces;
+				DirtyCompanyInfrastructureWindows(c->index);
+
+				SetRailType(tile, totype);
+				SetRailType(endtile, totype);
+
+				FindVehicleOnPos(tile, &affected_trains, &UpdateTrainPowerProc);
+				FindVehicleOnPos(endtile, &affected_trains, &UpdateTrainPowerProc);
+
+				YapfNotifyTrackLayoutChange(tile, track);
+				YapfNotifyTrackLayoutChange(endtile, track);
+
+				MarkTileDirtyByTile(tile);
+				MarkTileDirtyByTile(endtile);
+
+				if (IsBridge(tile)) {
+					TileIndexDiff delta = TileOffsByDiagDir(GetTunnelBridgeDirection(tile));
+					TileIndex t = tile + delta;
+					for (; t != endtile; t += delta) MarkTileDirtyByTile(t); // TODO encapsulate this into a function
+				}
+
+				if (affected != NULL) TryPathReserve(affected, true);
+			}
+
+			cost.AddCost((GetTunnelBridgeLength(tile, endtile) + 2) * RailConvertCost(type, totype));
+		} else {
 			if (!IsCompatibleRail(type, totype)) {
 				CommandCost ret = EnsureNoVehicleOnGround(tile);
 				if (ret.Failed()) {
@@ -1586,6 +1638,9 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 					continue;
 				}
 			}
+
+			SmallVector<Train *, 2> vehicles_affected;
+
 			if (flags & DC_EXEC) { // we can safely convert, too
 				TrackBits reserved = GetReservedTrackbits(tile);
 				Track     track;
@@ -1613,102 +1668,50 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 				/* update power of train on this tile */
 				FindVehicleOnPos(tile, &affected_trains, &UpdateTrainPowerProc);
 			}
-		}
 
-		switch (tt) {
-			case MP_RAILWAY:
-				switch (GetRailTileType(tile)) {
-					case RAIL_TILE_DEPOT:
-						if (flags & DC_EXEC) {
-							/* notify YAPF about the track layout change */
-							YapfNotifyTrackLayoutChange(tile, GetRailDepotTrack(tile));
+			switch (tt) {
+				case MP_RAILWAY:
+					switch (GetRailTileType(tile)) {
+						case RAIL_TILE_DEPOT:
+							if (flags & DC_EXEC) {
+								/* notify YAPF about the track layout change */
+								YapfNotifyTrackLayoutChange(tile, GetRailDepotTrack(tile));
 
-							/* Update build vehicle window related to this depot */
-							InvalidateWindowData(WC_VEHICLE_DEPOT, tile);
-							InvalidateWindowData(WC_BUILD_VEHICLE, tile);
-						}
-						cost.AddCost(RailConvertCost(type, totype));
-						break;
-
-					default: // RAIL_TILE_NORMAL, RAIL_TILE_SIGNALS
-						if (flags & DC_EXEC) {
-							/* notify YAPF about the track layout change */
-							TrackBits tracks = GetTrackBits(tile);
-							while (tracks != TRACK_BIT_NONE) {
-								YapfNotifyTrackLayoutChange(tile, RemoveFirstTrack(&tracks));
+								/* Update build vehicle window related to this depot */
+								InvalidateWindowData(WC_VEHICLE_DEPOT, tile);
+								InvalidateWindowData(WC_BUILD_VEHICLE, tile);
 							}
-						}
-						cost.AddCost(RailConvertCost(type, totype) * CountBits(GetTrackBits(tile)));
-						break;
-				}
-				break;
+							cost.AddCost(RailConvertCost(type, totype));
+							break;
 
-			case MP_TUNNELBRIDGE: {
-				TileIndex endtile = GetOtherTunnelBridgeEnd(tile);
-
-				/* If both ends of tunnel/bridge are in the range, do not try to convert twice -
-				 * it would cause assert because of different test and exec runs */
-				if (endtile < tile && TileX(endtile) >= TileX(ta.tile) && TileX(endtile) < TileX(ta.tile) + ta.w &&
-						TileY(endtile) >= TileY(ta.tile) && TileY(endtile) < TileY(ta.tile) + ta.h) continue;
-
-				/* When not converting rail <-> el. rail, any vehicle cannot be in tunnel/bridge */
-				if (!IsCompatibleRail(GetRailType(tile), totype)) {
-					CommandCost ret = TunnelBridgeIsFree(tile, endtile);
-					if (ret.Failed()) {
-						err = ret;
-						continue;
+						default: // RAIL_TILE_NORMAL, RAIL_TILE_SIGNALS
+							if (flags & DC_EXEC) {
+								/* notify YAPF about the track layout change */
+								TrackBits tracks = GetTrackBits(tile);
+								while (tracks != TRACK_BIT_NONE) {
+									YapfNotifyTrackLayoutChange(tile, RemoveFirstTrack(&tracks));
+								}
+							}
+							cost.AddCost(RailConvertCost(type, totype) * CountBits(GetTrackBits(tile)));
+							break;
 					}
-				}
+					break;
 
-				if (flags & DC_EXEC) {
-					Track track = DiagDirToDiagTrack(GetTunnelBridgeDirection(tile));
-					if (HasTunnelBridgeReservation(tile)) {
-						Train *v = FindUnpoweredReservationTrain(tile, track, totype);
-						if (v != NULL) *vehicles_affected.Append() = v;
+				case MP_TUNNELBRIDGE: NOT_REACHED();
+
+				default: // MP_STATION, MP_ROAD
+					if (flags & DC_EXEC) {
+						Track track = ((tt == MP_STATION) ? GetRailStationTrack(tile) : GetCrossingRailTrack(tile));
+						YapfNotifyTrackLayoutChange(tile, track);
 					}
 
-					/* Update the company infrastructure counters. */
-					uint num_pieces = (GetTunnelBridgeLength(tile, endtile) + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
-					Company *c = Company::Get(GetTileOwner(tile));
-					c->infrastructure.rail[GetRailType(tile)] -= num_pieces;
-					c->infrastructure.rail[totype] += num_pieces;
-					DirtyCompanyInfrastructureWindows(c->index);
-
-					SetRailType(tile, totype);
-					SetRailType(endtile, totype);
-
-					FindVehicleOnPos(tile, &affected_trains, &UpdateTrainPowerProc);
-					FindVehicleOnPos(endtile, &affected_trains, &UpdateTrainPowerProc);
-
-					YapfNotifyTrackLayoutChange(tile, track);
-					YapfNotifyTrackLayoutChange(endtile, track);
-
-					MarkTileDirtyByTile(tile);
-					MarkTileDirtyByTile(endtile);
-
-					if (IsBridge(tile)) {
-						TileIndexDiff delta = TileOffsByDiagDir(GetTunnelBridgeDirection(tile));
-						TileIndex t = tile + delta;
-						for (; t != endtile; t += delta) MarkTileDirtyByTile(t); // TODO encapsulate this into a function
-					}
-				}
-
-				cost.AddCost((GetTunnelBridgeLength(tile, endtile) + 2) * RailConvertCost(type, totype));
-				break;
+					cost.AddCost(RailConvertCost(type, totype));
+					break;
 			}
 
-			default: // MP_STATION, MP_ROAD
-				if (flags & DC_EXEC) {
-					Track track = ((tt == MP_STATION) ? GetRailStationTrack(tile) : GetCrossingRailTrack(tile));
-					YapfNotifyTrackLayoutChange(tile, track);
-				}
-
-				cost.AddCost(RailConvertCost(type, totype));
-				break;
-		}
-
-		for (uint i = 0; i < vehicles_affected.Length(); ++i) {
-			TryPathReserve(vehicles_affected[i], true);
+			for (uint i = 0; i < vehicles_affected.Length(); ++i) {
+				TryPathReserve(vehicles_affected[i], true);
+			}
 		}
 	}
 
