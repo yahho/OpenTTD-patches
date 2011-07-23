@@ -1720,39 +1720,88 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 
 static CommandCost ClearTile_Track(TileIndex tile, DoCommandFlag flags)
 {
-	CommandCost cost(EXPENSES_CONSTRUCTION);
-
 	if (flags & DC_AUTO) {
 		if (!IsTileOwner(tile, _current_company)) {
 			return_cmd_error(STR_ERROR_AREA_IS_OWNED_BY_ANOTHER);
+		} else if (IsTileSubtype(tile, TT_BRIDGE)) {
+			return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+		} else {
+			return_cmd_error(STR_ERROR_MUST_REMOVE_RAILROAD_TRACK);
 		}
-		return_cmd_error(STR_ERROR_MUST_REMOVE_RAILROAD_TRACK);
 	}
 
-	Slope tileh = GetTileSlope(tile);
-	/* Is there flat water on the lower halftile that gets cleared expensively? */
-	bool water_ground = (GetRailGroundType(tile) == RAIL_GROUND_WATER && IsSlopeWithOneCornerRaised(tileh));
+	if (IsTileSubtype(tile, TT_TRACK)) {
+		CommandCost cost(EXPENSES_CONSTRUCTION);
 
-	TrackBits tracks = GetTrackBits(tile);
-	while (tracks != TRACK_BIT_NONE) {
-		Track track = RemoveFirstTrack(&tracks);
-		CommandCost ret = DoCommand(tile, 0, track, flags, CMD_REMOVE_SINGLE_RAIL);
+		Slope tileh = GetTileSlope(tile);
+		/* Is there flat water on the lower halftile that gets cleared expensively? */
+		bool water_ground = (GetRailGroundType(tile) == RAIL_GROUND_WATER && IsSlopeWithOneCornerRaised(tileh));
+
+		TrackBits tracks = GetTrackBits(tile);
+		while (tracks != TRACK_BIT_NONE) {
+			Track track = RemoveFirstTrack(&tracks);
+			CommandCost ret = DoCommand(tile, 0, track, flags, CMD_REMOVE_SINGLE_RAIL);
+			if (ret.Failed()) return ret;
+			cost.AddCost(ret);
+		}
+
+		/* When bankrupting, don't make water dirty, there could be a ship on lower halftile.
+		 * Same holds for non-companies clearing the tile, e.g. disasters. */
+		if (water_ground && !(flags & DC_BANKRUPT) && Company::IsValidID(_current_company)) {
+			CommandCost ret = EnsureNoVehicleOnGround(tile);
+			if (ret.Failed()) return ret;
+
+			/* The track was removed, and left a coast tile. Now also clear the water. */
+			if (flags & DC_EXEC) DoClearSquare(tile);
+			cost.AddCost(_price[PR_CLEAR_WATER]);
+		}
+
+		return cost;
+	} else {
+		if (_current_company != OWNER_WATER && _game_mode != GM_EDITOR) {
+			CommandCost ret = CheckOwnership(GetTileOwner(tile));
+			if (ret.Failed()) return ret;
+		}
+
+		TileIndex endtile = GetOtherBridgeEnd(tile);
+
+		CommandCost ret = TunnelBridgeIsFree(tile, endtile);
 		if (ret.Failed()) return ret;
-		cost.AddCost(ret);
+
+		uint len = GetTunnelBridgeLength(tile, endtile) + 2; // Don't forget the end tiles.
+
+		if (flags & DC_EXEC) {
+			/* read this value before actual removal of bridge */
+			DiagDirection direction = GetTunnelBridgeDirection(tile);
+			Track track = DiagDirToDiagTrack(direction);
+
+			Train *v = NULL;
+			if (HasTunnelBridgeReservation(tile)) {
+				v = GetTrainForReservation(tile, track);
+				if (v != NULL) FreeTrainTrackReservation(v);
+			}
+
+			/* Update company infrastructure counts. */
+			Owner owner = GetTileOwner(tile);
+			if (Company::IsValidID(owner)) Company::Get(owner)->infrastructure.rail[GetRailType(tile)] -= len * TUNNELBRIDGE_TRACKBIT_FACTOR;
+			DirtyCompanyInfrastructureWindows(owner);
+
+			RemoveBridgeMiddleTiles(tile, endtile);
+			DoClearSquare(tile);
+			DoClearSquare(endtile);
+
+			/* cannot use INVALID_DIAGDIR for signal update because the bridge doesn't exist anymore */
+			AddSideToSignalBuffer(tile,    ReverseDiagDir(direction), owner);
+			AddSideToSignalBuffer(endtile, direction,                 owner);
+
+			YapfNotifyTrackLayoutChange(tile,    track);
+			YapfNotifyTrackLayoutChange(endtile, track);
+
+			if (v != NULL) TryPathReserve(v, true);
+		}
+
+		return CommandCost(EXPENSES_CONSTRUCTION, len * _price[PR_CLEAR_BRIDGE]);
 	}
-
-	/* When bankrupting, don't make water dirty, there could be a ship on lower halftile.
-	 * Same holds for non-companies clearing the tile, e.g. disasters. */
-	if (water_ground && !(flags & DC_BANKRUPT) && Company::IsValidID(_current_company)) {
-		CommandCost ret = EnsureNoVehicleOnGround(tile);
-		if (ret.Failed()) return ret;
-
-		/* The track was removed, and left a coast tile. Now also clear the water. */
-		if (flags & DC_EXEC) DoClearSquare(tile);
-		cost.AddCost(_price[PR_CLEAR_WATER]);
-	}
-
-	return cost;
 }
 
 
@@ -2294,17 +2343,66 @@ static void DrawTile_Track(TileInfo *ti)
 {
 	const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
 
-	_drawtile_track_palette = COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile));
+	if (IsTileSubtype(ti->tile, TT_TRACK)) {
+		_drawtile_track_palette = COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile));
 
-	TrackBits rails = GetTrackBits(ti->tile);
+		TrackBits rails = GetTrackBits(ti->tile);
 
-	DrawTrackBits(ti, rails);
+		DrawTrackBits(ti, rails);
 
-	if (HasBit(_display_opt, DO_FULL_DETAIL)) DrawTrackDetails(ti, rti);
+		if (HasBit(_display_opt, DO_FULL_DETAIL)) DrawTrackDetails(ti, rti);
 
-	if (HasCatenaryDrawn(GetRailType(ti->tile))) DrawCatenary(ti);
+		if (HasCatenaryDrawn(GetRailType(ti->tile))) DrawCatenary(ti);
 
-	DrawSignals(ti->tile, rails, rti);
+		DrawSignals(ti->tile, rails, rti);
+	} else {
+		DrawBridgeGround(ti);
+
+		/* draw ramp */
+
+		DiagDirection dir = GetTunnelBridgeDirection(ti->tile);
+
+		assert(rti->bridge_offset != 8); // This one is used for roads
+		const PalSpriteID *psid = GetBridgeRampSprite(GetBridgeType(ti->tile), rti->bridge_offset, ti->tileh, dir);
+
+		/* Draw PBS Reservation as SpriteCombine */
+		StartSpriteCombine();
+
+		/* HACK set the height of the BB of a sloped ramp to 1 so a vehicle on
+		 * it doesn't disappear behind it
+		 */
+		/* Bridge heads are drawn solid no matter how invisibility/transparency is set */
+		AddSortableSpriteToDraw(psid->sprite, psid->pal, ti->x, ti->y, 16, 16, ti->tileh == SLOPE_FLAT ? 0 : 8, ti->z);
+
+		if (rti->UsesOverlay()) {
+			SpriteID surface = GetCustomRailSprite(rti, ti->tile, RTSG_BRIDGE);
+			if (surface != 0) {
+				if (HasBridgeFlatRamp(ti->tileh, DiagDirToAxis(dir))) {
+					AddSortableSpriteToDraw(surface + ((DiagDirToAxis(dir) == AXIS_X) ? RTBO_X : RTBO_Y), PAL_NONE, ti->x, ti->y, 16, 16, 0, ti->z + 8);
+				} else {
+					AddSortableSpriteToDraw(surface + RTBO_SLOPE + dir, PAL_NONE, ti->x, ti->y, 16, 16, 8, ti->z);
+				}
+			}
+			/* Don't fallback to non-overlay sprite -- the spec states that
+			 * if an overlay is present then the bridge surface must be
+			 * present. */
+		}
+
+		/* PBS debugging, draw reserved tracks darker */
+		if (_game_mode != GM_MENU &&_settings_client.gui.show_track_reservation && HasTunnelBridgeReservation(ti->tile)) {
+			if (HasBridgeFlatRamp(ti->tileh, DiagDirToAxis(dir))) {
+				AddSortableSpriteToDraw(DiagDirToAxis(dir) == AXIS_X ? rti->base_sprites.single_x : rti->base_sprites.single_y, PALETTE_CRASH, ti->x, ti->y, 16, 16, 0, ti->z + 8);
+			} else {
+				AddSortableSpriteToDraw(rti->base_sprites.single_sloped + dir, PALETTE_CRASH, ti->x, ti->y, 16, 16, 8, ti->z);
+			}
+		}
+
+		EndSpriteCombine();
+
+		if (HasCatenaryDrawn(GetRailType(ti->tile))) {
+			DrawCatenary(ti);
+		}
+	}
 
 	DrawBridgeMiddle(ti);
 }
@@ -2313,19 +2411,57 @@ static int GetSlopePixelZ_Track(TileIndex tile, uint x, uint y)
 {
 	int z;
 	Slope tileh = GetTilePixelSlope(tile, &z);
-	if (tileh == SLOPE_FLAT) return z;
 
-	z += ApplyPixelFoundationToSlope(GetRailFoundation(tileh, GetTrackBits(tile)), &tileh);
-	return z + GetPartialPixelZ(x & 0xF, y & 0xF, tileh);
+	if (IsTileSubtype(tile, TT_TRACK)) {
+		if (tileh == SLOPE_FLAT) return z;
+		z += ApplyPixelFoundationToSlope(GetRailFoundation(tileh, GetTrackBits(tile)), &tileh);
+		return z + GetPartialPixelZ(x & 0xF, y & 0xF, tileh);
+	} else {
+		x &= 0xF;
+		y &= 0xF;
+
+		DiagDirection dir = GetTunnelBridgeDirection(tile);
+
+		z += ApplyPixelFoundationToSlope(GetBridgeFoundation(tileh, DiagDirToAxis(dir)), &tileh);
+
+		/* On the bridge ramp? */
+		uint pos = (DiagDirToAxis(dir) == AXIS_X ? y : x);
+		if (5 <= pos && pos <= 10) {
+			return z + ((tileh == SLOPE_FLAT) ? GetBridgePartialPixelZ(dir, x, y) : TILE_HEIGHT);
+		}
+
+		return z + GetPartialPixelZ(x, y, tileh);
+	}
 }
 
 static Foundation GetFoundation_Track(TileIndex tile, Slope tileh)
 {
-	return GetRailFoundation(tileh, GetTrackBits(tile));
+	return IsTileSubtype(tile, TT_TRACK) ? GetRailFoundation(tileh, GetTrackBits(tile)) : GetBridgeFoundation(tileh, DiagDirToAxis(GetTunnelBridgeDirection(tile)));
 }
 
 static void TileLoop_Track(TileIndex tile)
 {
+	if (IsTileSubtype(tile, TT_BRIDGE)) {
+		bool snow_or_desert = HasTunnelBridgeSnowOrDesert(tile);
+		switch (_settings_game.game_creation.landscape) {
+			default: return;
+
+			case LT_ARCTIC:
+				/* As long as we do not have a snow density, we want to use the density
+				 * from the entry edge. For bridges this is the highest point.
+				 * (Independent of foundations) */
+				if (snow_or_desert == (GetTileMaxZ(tile) > GetSnowLine())) return;
+				break;
+
+			case LT_TROPIC:
+				if (GetTropicZone(tile) != TROPICZONE_DESERT || snow_or_desert) return;
+				break;
+		}
+		SetTunnelBridgeSnowOrDesert(tile, !snow_or_desert);
+		MarkTileDirtyByTile(tile);
+		return;
+	}
+
 	RailGroundType old_ground = GetRailGroundType(tile);
 	RailGroundType new_ground;
 
@@ -2447,6 +2583,14 @@ set_ground:
 
 static TrackStatus GetTileTrackStatus_Track(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
 {
+	if (IsTileSubtype(tile, TT_BRIDGE)) {
+		if (mode != TRANSPORT_RAIL) return 0;
+
+		DiagDirection dir = GetTunnelBridgeDirection(tile);
+		if (side != INVALID_DIAGDIR && side != ReverseDiagDir(dir)) return 0;
+		return CombineTrackStatus(TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir)), TRACKDIR_BIT_NONE);
+	}
+
 	/* Case of half tile slope with water. */
 	if (mode == TRANSPORT_WATER && GetRailGroundType(tile) == RAIL_GROUND_WATER && IsSlopeWithOneCornerRaised(GetTileSlope(tile))) {
 		TrackBits tb = GetTrackBits(tile);
@@ -2558,17 +2702,28 @@ static void GetTileDesc_Track(TileIndex tile, TileDesc *td)
 	const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(tile));
 	td->rail_speed = rti->max_speed;
 	td->owner[0] = GetTileOwner(tile);
-	SetDParamX(td->dparam, 0, rti->strings.name);
 
-	if (HasSignalOnTrack(tile, TRACK_UPPER)) {
-		SignalType primary = GetSignalType(tile, TRACK_UPPER);
-		SignalType secondary = HasSignalOnTrack(tile, TRACK_LOWER) ? GetSignalType(tile, TRACK_LOWER) : primary;
-		td->str = signal_type[secondary][primary];
-	} else if (HasSignalOnTrack(tile, TRACK_LOWER)) {
-		SignalType signal = GetSignalType(tile, TRACK_LOWER);
-		td->str = signal_type[signal][signal];
+	if (IsTileSubtype(tile, TT_TRACK)) {
+		SetDParamX(td->dparam, 0, rti->strings.name);
+
+		if (HasSignalOnTrack(tile, TRACK_UPPER)) {
+			SignalType primary = GetSignalType(tile, TRACK_UPPER);
+			SignalType secondary = HasSignalOnTrack(tile, TRACK_LOWER) ? GetSignalType(tile, TRACK_LOWER) : primary;
+			td->str = signal_type[secondary][primary];
+		} else if (HasSignalOnTrack(tile, TRACK_LOWER)) {
+			SignalType signal = GetSignalType(tile, TRACK_LOWER);
+			td->str = signal_type[signal][signal];
+		} else {
+			td->str = STR_LAI_RAIL_DESCRIPTION_TRACK;
+		}
 	} else {
-		td->str = STR_LAI_RAIL_DESCRIPTION_TRACK;
+		const BridgeSpec *spec = GetBridgeSpec(GetBridgeType(tile));
+		td->str = spec->transport_name[TRANSPORT_RAIL];
+
+		uint16 spd = spec->speed;
+		if (td->rail_speed == 0 || spd < td->rail_speed) {
+			td->rail_speed = spd;
+		}
 	}
 }
 
@@ -2578,16 +2733,26 @@ static void ChangeTileOwner_Track(TileIndex tile, Owner old_owner, Owner new_own
 
 	if (new_owner != INVALID_OWNER) {
 		/* Update company infrastructure counts. No need to dirty windows here, we'll redraw the whole screen anyway. */
-		TrackBits bits = GetTrackBits(tile);
-		uint num_pieces = CountBits(bits);
-		if (TracksOverlap(bits)) num_pieces *= num_pieces;
+		uint num_pieces;
+
+		if (IsTileSubtype(tile, TT_TRACK)) {
+			TrackBits bits = GetTrackBits(tile);
+			num_pieces = CountBits(bits);
+			if (TracksOverlap(bits)) num_pieces *= num_pieces;
+
+			uint num_sigs = CountBits(GetPresentSignals(tile, TRACK_UPPER)) + CountBits(GetPresentSignals(tile, TRACK_LOWER));
+			Company::Get(old_owner)->infrastructure.signal -= num_sigs;
+			Company::Get(new_owner)->infrastructure.signal += num_sigs;
+		} else {
+			TileIndex other_end = GetOtherBridgeEnd(tile);
+			/* Set number of pieces to zero if it's the southern tile as we
+			 * don't want to update the infrastructure counts twice. */
+			num_pieces = tile < other_end ? (GetTunnelBridgeLength(tile, other_end) + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR : 0;
+		}
+
 		RailType rt = GetRailType(tile);
 		Company::Get(old_owner)->infrastructure.rail[rt] -= num_pieces;
 		Company::Get(new_owner)->infrastructure.rail[rt] += num_pieces;
-
-		uint num_sigs = CountBits(GetPresentSignals(tile, TRACK_UPPER)) + CountBits(GetPresentSignals(tile, TRACK_LOWER));
-		Company::Get(old_owner)->infrastructure.signal -= num_sigs;
-		Company::Get(new_owner)->infrastructure.signal += num_sigs;
 
 		SetTileOwner(tile, new_owner);
 	} else {
@@ -2599,8 +2764,46 @@ static void ChangeTileOwner_Track(TileIndex tile, Owner old_owner, Owner new_own
  * Tile callback routine when vehicle enters tile
  * @see vehicle_enter_tile_proc
  */
-static VehicleEnterTileStatus VehicleEnter_Track(Vehicle *u, TileIndex tile, int x, int y)
+static VehicleEnterTileStatus VehicleEnter_Track(Vehicle *v, TileIndex tile, int x, int y)
 {
+	if (IsTileSubtype(tile, TT_TRACK)) return VETSB_CONTINUE;
+
+	assert(abs((int)(GetSlopePixelZ(x, y) - v->z_pos)) < 3);
+
+	/* Direction into the wormhole */
+	const DiagDirection dir = GetTunnelBridgeDirection(tile);
+	/* Direction of the vehicle */
+	const DiagDirection vdir = DirToDiagDir(v->direction);
+	/* New position of the vehicle on the tile */
+	byte pos = (DiagDirToAxis(vdir) == AXIS_X ? x : y) & TILE_UNIT_MASK;
+	/* Number of units moved by the vehicle since entering the tile */
+	byte frame = (vdir == DIAGDIR_NE || vdir == DIAGDIR_NW) ? TILE_SIZE - 1 - pos : pos;
+
+	assert(v->type == VEH_TRAIN);
+
+	/* modify speed of vehicle */
+	uint16 spd = GetBridgeSpec(GetBridgeType(tile))->speed;
+	Vehicle *first = v->First();
+	first->cur_speed = min(first->cur_speed, spd);
+
+	if (vdir == dir) {
+		/* Vehicle enters bridge at the last frame inside this tile. */
+		if (frame != TILE_SIZE - 1) return VETSB_CONTINUE;
+		v->tile = GetOtherBridgeEnd(tile);
+		Train *t = Train::From(v);
+		t->track = TRACK_BIT_WORMHOLE;
+		ClrBit(t->gv_flags, GVF_GOINGUP_BIT);
+		ClrBit(t->gv_flags, GVF_GOINGDOWN_BIT);
+		return VETSB_ENTERED_WORMHOLE;
+	} else if (vdir == ReverseDiagDir(dir)) {
+		v->tile = tile;
+		Train *t = Train::From(v);
+		if (t->track == TRACK_BIT_WORMHOLE) {
+			t->track = DiagDirToDiagTrackBits(vdir);
+			return VETSB_ENTERED_WORMHOLE;
+		}
+	}
+
 	return VETSB_CONTINUE;
 }
 
@@ -2667,42 +2870,57 @@ static CommandCost TerraformTile_Track(TileIndex tile, DoCommandFlag flags, int 
 	int z_old;
 	Slope tileh_old = GetTileSlope(tile, &z_old);
 
-	TrackBits rail_bits = GetTrackBits(tile);
-	/* Is there flat water on the lower halftile that must be cleared expensively? */
-	bool was_water = (GetRailGroundType(tile) == RAIL_GROUND_WATER && IsSlopeWithOneCornerRaised(tileh_old));
+	if (IsTileSubtype(tile, TT_TRACK)) {
+		TrackBits rail_bits = GetTrackBits(tile);
+		/* Is there flat water on the lower halftile that must be cleared expensively? */
+		bool was_water = (GetRailGroundType(tile) == RAIL_GROUND_WATER && IsSlopeWithOneCornerRaised(tileh_old));
 
-	/* Allow clearing the water only if there is no ship */
-	if (was_water && HasVehicleOnPos(tile, NULL, &EnsureNoShipProc)) return_cmd_error(STR_ERROR_SHIP_IN_THE_WAY);
+		/* Allow clearing the water only if there is no ship */
+		if (was_water && HasVehicleOnPos(tile, NULL, &EnsureNoShipProc)) return_cmd_error(STR_ERROR_SHIP_IN_THE_WAY);
 
-	/* First test autoslope. However if it succeeds we still have to test the rest, because non-autoslope terraforming is cheaper. */
-	CommandCost autoslope_result = TestAutoslopeOnRailTile(tile, flags, z_old, tileh_old, z_new, tileh_new, rail_bits);
+		/* First test autoslope. However if it succeeds we still have to test the rest, because non-autoslope terraforming is cheaper. */
+		CommandCost autoslope_result = TestAutoslopeOnRailTile(tile, flags, z_old, tileh_old, z_new, tileh_new, rail_bits);
 
-	/* When there is only a single horizontal/vertical track, one corner can be terraformed. */
-	Corner allowed_corner;
-	switch (rail_bits) {
-		case TRACK_BIT_RIGHT: allowed_corner = CORNER_W; break;
-		case TRACK_BIT_UPPER: allowed_corner = CORNER_S; break;
-		case TRACK_BIT_LEFT:  allowed_corner = CORNER_E; break;
-		case TRACK_BIT_LOWER: allowed_corner = CORNER_N; break;
-		default: return autoslope_result;
+		/* When there is only a single horizontal/vertical track, one corner can be terraformed. */
+		Corner allowed_corner;
+		switch (rail_bits) {
+			case TRACK_BIT_RIGHT: allowed_corner = CORNER_W; break;
+			case TRACK_BIT_UPPER: allowed_corner = CORNER_S; break;
+			case TRACK_BIT_LEFT:  allowed_corner = CORNER_E; break;
+			case TRACK_BIT_LOWER: allowed_corner = CORNER_N; break;
+			default: return autoslope_result;
+		}
+
+		Foundation f_old = GetRailFoundation(tileh_old, rail_bits);
+
+		/* Do not allow terraforming if allowed_corner is part of anti-zig-zag foundations */
+		if (tileh_old != SLOPE_NS && tileh_old != SLOPE_EW && IsSpecialRailFoundation(f_old)) return autoslope_result;
+
+		/* Everything is valid, which only changes allowed_corner */
+		for (Corner corner = (Corner)0; corner < CORNER_END; corner = (Corner)(corner + 1)) {
+			if (allowed_corner == corner) continue;
+			if (z_old + GetSlopeZInCorner(tileh_old, corner) != z_new + GetSlopePixelZInCorner(tileh_new, corner)) return autoslope_result;
+		}
+
+		/* Make the ground dirty */
+		if ((flags & DC_EXEC) != 0) SetRailGroundType(tile, RAIL_GROUND_BARREN);
+
+		/* allow terraforming */
+		return CommandCost(EXPENSES_CONSTRUCTION, was_water ? _price[PR_CLEAR_WATER] : (Money)0);
+	} else {
+		if (_settings_game.construction.build_on_slopes && AutoslopeEnabled()) {
+			DiagDirection direction = GetTunnelBridgeDirection(tile);
+
+			/* Check if new slope is valid for bridges in general (so we can safely call GetBridgeFoundation()) */
+			CheckBridgeSlope(direction, &tileh_old, &z_old);
+			CommandCost res = CheckBridgeSlope(direction, &tileh_new, &z_new);
+
+			/* Surface slope is valid and remains unchanged? */
+			if (res.Succeeded() && (z_old == z_new) && (tileh_old == tileh_new)) return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
+		}
+
+		return DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
 	}
-
-	Foundation f_old = GetRailFoundation(tileh_old, rail_bits);
-
-	/* Do not allow terraforming if allowed_corner is part of anti-zig-zag foundations */
-	if (tileh_old != SLOPE_NS && tileh_old != SLOPE_EW && IsSpecialRailFoundation(f_old)) return autoslope_result;
-
-	/* Everything is valid, which only changes allowed_corner */
-	for (Corner corner = (Corner)0; corner < CORNER_END; corner = (Corner)(corner + 1)) {
-		if (allowed_corner == corner) continue;
-		if (z_old + GetSlopeZInCorner(tileh_old, corner) != z_new + GetSlopePixelZInCorner(tileh_new, corner)) return autoslope_result;
-	}
-
-	/* Make the ground dirty */
-	if ((flags & DC_EXEC) != 0) SetRailGroundType(tile, RAIL_GROUND_BARREN);
-
-	/* allow terraforming */
-	return CommandCost(EXPENSES_CONSTRUCTION, was_water ? _price[PR_CLEAR_WATER] : (Money)0);
 }
 
 
