@@ -388,9 +388,7 @@ CommandCost RemoveRoad(TileIndex tile, DoCommandFlag flags, RoadBits pieces, Roa
 					}
 
 					/* Mark tiles dirty that have been repaved */
-					TileIndexDiff delta = TileOffsByDiagDir(GetTunnelBridgeDirection(tile));
-					for (TileIndex t = tile; t != other_end; t += delta) MarkTileDirtyByTile(t);
-					MarkTileDirtyByTile(other_end);
+					MarkBridgeTilesDirty(tile, other_end, GetTunnelBridgeDirection(tile));
 				}
 				return cost;
 			}
@@ -788,9 +786,7 @@ do_clear:;
 					SetRoadOwner(tile, rt, company);
 
 					/* Mark tiles dirty that have been repaved */
-					TileIndexDiff delta = TileOffsByDiagDir(GetTunnelBridgeDirection(tile));
-					for (TileIndex t = tile; t != other_end; t += delta) MarkTileDirtyByTile(t);
-					MarkTileDirtyByTile(other_end);
+					MarkBridgeTilesDirty(tile, other_end, GetTunnelBridgeDirection(tile));
 				}
 				break;
 
@@ -1100,21 +1096,92 @@ CommandCost CmdBuildRoadDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 
 static CommandCost ClearTile_Road(TileIndex tile, DoCommandFlag flags)
 {
-	RoadBits b = GetAllRoadBits(tile);
+	if (IsTileSubtype(tile, TT_TRACK)) {
+		RoadBits b = GetAllRoadBits(tile);
 
-	/* Clear the road if only one piece is on the tile OR we are not using the DC_AUTO flag */
-	if ((HasExactlyOneBit(b) && GetRoadBits(tile, ROADTYPE_TRAM) == ROAD_NONE) || !(flags & DC_AUTO)) {
-		CommandCost ret(EXPENSES_CONSTRUCTION);
-		RoadType rt;
-		FOR_EACH_SET_ROADTYPE(rt, GetRoadTypes(tile)) {
-			CommandCost tmp_ret = RemoveRoad(tile, flags, GetRoadBits(tile, rt), rt, true);
-			if (tmp_ret.Failed()) return tmp_ret;
-			ret.AddCost(tmp_ret);
+		/* Clear the road if only one piece is on the tile OR we are not using the DC_AUTO flag */
+		if ((HasExactlyOneBit(b) && GetRoadBits(tile, ROADTYPE_TRAM) == ROAD_NONE) || !(flags & DC_AUTO)) {
+			CommandCost ret(EXPENSES_CONSTRUCTION);
+			RoadType rt;
+			FOR_EACH_SET_ROADTYPE(rt, GetRoadTypes(tile)) {
+				CommandCost tmp_ret = RemoveRoad(tile, flags, GetRoadBits(tile, rt), rt, true);
+				if (tmp_ret.Failed()) return tmp_ret;
+				ret.AddCost(tmp_ret);
+			}
+			return ret;
 		}
-		return ret;
-	}
 
-	return_cmd_error(STR_ERROR_MUST_REMOVE_ROAD_FIRST);
+		return_cmd_error(STR_ERROR_MUST_REMOVE_ROAD_FIRST);
+	} else {
+		if (flags & DC_AUTO) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+
+		/* Floods can remove anything as well as the scenario editor */
+
+		if (_current_company != OWNER_WATER && _game_mode != GM_EDITOR) {
+			RoadTypes rts = GetRoadTypes(tile);
+			Owner road_owner = _current_company;
+			if (HasBit(rts, ROADTYPE_ROAD)) road_owner = GetRoadOwner(tile, ROADTYPE_ROAD);
+
+			/* We can remove unowned road and if the town allows it */
+			if (road_owner == OWNER_TOWN && _current_company != OWNER_TOWN && !(_settings_game.construction.extra_dynamite || _cheats.magic_bulldozer.value)) {
+				/* Town does not allow */
+				CommandCost ret = CheckTileOwnership(tile);
+				if (ret.Failed()) return ret;
+			} else {
+				if (road_owner != OWNER_NONE && road_owner != OWNER_TOWN) {
+					CommandCost ret = CheckOwnership(road_owner, tile);
+					if (ret.Failed()) return ret;
+				}
+
+				if (HasBit(rts, ROADTYPE_TRAM)) {
+					Owner tram_owner = GetRoadOwner(tile, ROADTYPE_TRAM);
+					if (tram_owner != OWNER_NONE) {
+						CommandCost ret = CheckOwnership(tram_owner, tile);
+						if (ret.Failed()) return ret;
+					}
+				}
+			}
+		}
+
+		TileIndex endtile = GetOtherBridgeEnd(tile);
+
+		CommandCost ret = TunnelBridgeIsFree(tile, endtile);
+		if (ret.Failed()) return ret;
+
+		if (IsTileOwner(tile, OWNER_TOWN) && _game_mode != GM_EDITOR) {
+			Town *t = ClosestTownFromTile(tile, UINT_MAX); // town penalty rating
+
+			/* Check if you are allowed to remove the bridge owned by a town
+			 * Removal depends on difficulty settings */
+			CommandCost ret = CheckforTownRating(flags, t, TUNNELBRIDGE_REMOVE);
+			if (ret.Failed()) return ret;
+
+			/* checks if the owner is town then decrease town rating by RATING_TUNNEL_BRIDGE_DOWN_STEP until
+			 * you have a "Poor" (0) town rating */
+			ChangeTownRating(t, RATING_TUNNEL_BRIDGE_DOWN_STEP, RATING_TUNNEL_BRIDGE_MINIMUM, flags);
+		}
+
+		uint len = GetTunnelBridgeLength(tile, endtile) + 2; // Don't forget the end tiles.
+
+		if (flags & DC_EXEC) {
+			/* Update company infrastructure counts. */
+			RoadType rt;
+			FOR_EACH_SET_ROADTYPE(rt, GetRoadTypes(tile)) {
+				Company *c = Company::GetIfValid(GetRoadOwner(tile, rt));
+				if (c != NULL) {
+					/* A full diagonal road tile has two road bits. */
+					c->infrastructure.road[rt] -= len * 2 * TUNNELBRIDGE_TRACKBIT_FACTOR;
+					DirtyCompanyInfrastructureWindows(c->index);
+				}
+			}
+
+			RemoveBridgeMiddleTiles(tile, endtile);
+			DoClearSquare(tile);
+			DoClearSquare(endtile);
+		}
+
+		return CommandCost(EXPENSES_CONSTRUCTION, len * _price[PR_CLEAR_BRIDGE]);
+	}
 }
 
 
@@ -1310,7 +1377,44 @@ static void DrawRoadBits(TileInfo *ti)
 /** Tile callback function for rendering a road tile to the screen */
 static void DrawTile_Road(TileInfo *ti)
 {
-	DrawRoadBits(ti);
+	if (IsTileSubtype(ti->tile, TT_TRACK)) {
+		DrawRoadBits(ti);
+	} else {
+		DrawBridgeGround(ti);
+
+		/* draw ramp */
+
+		DiagDirection dir = GetTunnelBridgeDirection(ti->tile);
+
+		const PalSpriteID *psid = GetBridgeRampSprite(GetBridgeType(ti->tile), 8, ti->tileh, dir);
+
+		/* Draw Trambits as SpriteCombine */
+		StartSpriteCombine();
+
+		/* HACK set the height of the BB of a sloped ramp to 1 so a vehicle on
+		 * it doesn't disappear behind it
+		 */
+		/* Bridge heads are drawn solid no matter how invisibility/transparency is set */
+		AddSortableSpriteToDraw(psid->sprite, psid->pal, ti->x, ti->y, 16, 16, ti->tileh == SLOPE_FLAT ? 0 : 8, ti->z);
+
+		RoadTypes rts = GetRoadTypes(ti->tile);
+
+		if (HasBit(rts, ROADTYPE_TRAM)) {
+			uint offset = dir;
+			int z = ti->z;
+			if (ti->tileh != SLOPE_FLAT) {
+				offset = (offset + 1) & 1;
+				z += TILE_HEIGHT;
+			} else {
+				offset += 2;
+			}
+			/* DrawBridgeTramBits() calls EndSpriteCombine() and StartSpriteCombine() */
+			DrawBridgeTramBits(ti->x, ti->y, z, offset, HasBit(rts, ROADTYPE_ROAD), true);
+		}
+
+		EndSpriteCombine();
+	}
+
 	DrawBridgeMiddle(ti);
 }
 
@@ -1406,16 +1510,32 @@ static int GetSlopePixelZ_Road(TileIndex tile, uint x, uint y)
 {
 	int z;
 	Slope tileh = GetTilePixelSlope(tile, &z);
-	if (tileh == SLOPE_FLAT) return z;
 
-	Foundation f = GetRoadFoundation(tileh, GetAllRoadBits(tile));
-	z += ApplyPixelFoundationToSlope(f, &tileh);
-	return z + GetPartialPixelZ(x & 0xF, y & 0xF, tileh);
+	if (IsTileSubtype(tile, TT_TRACK)) {
+		if (tileh == SLOPE_FLAT) return z;
+		z += ApplyPixelFoundationToSlope(GetRoadFoundation(tileh, GetAllRoadBits(tile)), &tileh);
+		return z + GetPartialPixelZ(x & 0xF, y & 0xF, tileh);
+	} else {
+		x &= 0xF;
+		y &= 0xF;
+
+		DiagDirection dir = GetTunnelBridgeDirection(tile);
+
+		z += ApplyPixelFoundationToSlope(GetBridgeFoundation(tileh, DiagDirToAxis(dir)), &tileh);
+
+		/* On the bridge ramp? */
+		uint pos = (DiagDirToAxis(dir) == AXIS_X ? y : x);
+		if (5 <= pos && pos <= 10) {
+			return z + ((tileh == SLOPE_FLAT) ? GetBridgePartialPixelZ(dir, x, y) : TILE_HEIGHT);
+		}
+
+		return z + GetPartialPixelZ(x, y, tileh);
+	}
 }
 
 static Foundation GetFoundation_Road(TileIndex tile, Slope tileh)
 {
-	return GetRoadFoundation(tileh, GetAllRoadBits(tile));
+	return IsTileSubtype(tile, TT_TRACK) ? GetRoadFoundation(tileh, GetAllRoadBits(tile)) : GetBridgeFoundation(tileh, DiagDirToAxis(GetTunnelBridgeDirection(tile)));
 }
 
 static const Roadside _town_road_types[][2] = {
@@ -1460,6 +1580,27 @@ void UpdateRoadSide(TileIndex tile, HouseZonesBits grp)
 
 static void TileLoop_Road(TileIndex tile)
 {
+	if (IsTileSubtype(tile, TT_BRIDGE)) {
+		bool snow_or_desert = HasTunnelBridgeSnowOrDesert(tile);
+		switch (_settings_game.game_creation.landscape) {
+			default: return;
+
+			case LT_ARCTIC:
+				/* As long as we do not have a snow density, we want to use the density
+				 * from the entry edge. For bridges this is the highest point.
+				 * (Independent of foundations) */
+				if (snow_or_desert == (GetTileMaxZ(tile) > GetSnowLine())) return;
+				break;
+
+			case LT_TROPIC:
+				if (GetTropicZone(tile) != TROPICZONE_DESERT || snow_or_desert) return;
+				break;
+		}
+		SetTunnelBridgeSnowOrDesert(tile, !snow_or_desert);
+		MarkTileDirtyByTile(tile);
+		return;
+	}
+
 	switch (_settings_game.game_creation.landscape) {
 		case LT_ARCTIC:
 			if (IsOnSnow(tile) != (GetTileZ(tile) > GetSnowLine())) {
@@ -1551,20 +1692,31 @@ static TrackStatus GetTileTrackStatus_Road(TileIndex tile, TransportType mode, u
 		TRACKDIR_BIT_MASK,                           // ROAD_ALL
 	};
 
-	TrackdirBits trackdirbits = TRACKDIR_BIT_NONE;
+	TrackdirBits trackdirbits;
 
-	if ((GetRoadTypes(tile) & sub_mode) == 0) return 0;
+	if (IsTileSubtype(tile, TT_TRACK)) {
+		static const uint drd_mask[DRD_END] = { 0xFFFF, 0xFF00, 0xFF, 0x0 };
 
-	const uint drd_mask[DRD_END] = { 0xFFFF, 0xFF00, 0xFF, 0x0 };
-	RoadType rt = (RoadType)FindFirstBit(sub_mode);
-	RoadBits bits = GetRoadBits(tile, rt);
+		if ((GetRoadTypes(tile) & sub_mode) == 0) return 0;
 
-	/* no roadbit at this side of tile, return 0 */
-	if (side != INVALID_DIAGDIR && (DiagDirToRoadBits(side) & bits) == 0) return 0;
+		RoadType rt = (RoadType)FindFirstBit(sub_mode);
+		RoadBits bits = GetRoadBits(tile, rt);
 
-	if (!HasRoadWorks(tile)) {
-		trackdirbits = road_trackdirbits[bits];
-		if (rt == ROADTYPE_ROAD) trackdirbits &= (TrackdirBits)drd_mask[GetDisallowedRoadDirections(tile)];
+		/* no roadbit at this side of tile, return 0 */
+		if (side != INVALID_DIAGDIR && (DiagDirToRoadBits(side) & bits) == 0) return 0;
+
+		if (HasRoadWorks(tile)) {
+			trackdirbits = TRACKDIR_BIT_NONE;
+		} else {
+			trackdirbits = road_trackdirbits[bits];
+			if (rt == ROADTYPE_ROAD) trackdirbits &= (TrackdirBits)drd_mask[GetDisallowedRoadDirections(tile)];
+		}
+	} else {
+		if (mode != TRANSPORT_ROAD || ((GetRoadTypes(tile) & sub_mode) == 0)) return 0;
+
+		DiagDirection dir = GetTunnelBridgeDirection(tile);
+		if (side != INVALID_DIAGDIR && side != ReverseDiagDir(dir)) return 0;
+		trackdirbits = TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir));
 	}
 
 	return CombineTrackStatus(trackdirbits, TRACKDIR_BIT_NONE);
@@ -1583,76 +1735,169 @@ static const StringID _road_tile_strings[] = {
 
 static void GetTileDesc_Road(TileIndex tile, TileDesc *td)
 {
-	Owner road_owner = INVALID_OWNER;
-	Owner tram_owner = INVALID_OWNER;
-
 	RoadTypes rts = GetRoadTypes(tile);
-	td->str = (HasBit(rts, ROADTYPE_ROAD) ? _road_tile_strings[GetRoadside(tile)] : STR_LAI_ROAD_DESCRIPTION_TRAMWAY);
-	if (HasBit(rts, ROADTYPE_ROAD)) road_owner = GetRoadOwner(tile, ROADTYPE_ROAD);
+
+	Owner tram_owner = INVALID_OWNER;
 	if (HasBit(rts, ROADTYPE_TRAM)) tram_owner = GetRoadOwner(tile, ROADTYPE_TRAM);
 
-	/* Now we have to discover, if the tile has only one owner or many:
-	 *   - Find a first_owner of the tile. (Currently road or tram must be present, but this will break when the third type becomes available)
-	 *   - Compare the found owner with the other owners, and test if they differ.
-	 * Note: If road exists it will be the first_owner.
-	 */
-	Owner first_owner = (road_owner == INVALID_OWNER ? tram_owner : road_owner);
-	bool mixed_owners = (tram_owner != INVALID_OWNER && tram_owner != first_owner);
+	if (IsTileSubtype(tile, TT_TRACK)) {
+		if (!HasBit(rts, ROADTYPE_ROAD)) {
+			td->str = STR_LAI_ROAD_DESCRIPTION_TRAMWAY;
+			td->owner[0] = tram_owner;
+			return;
+		}
+		td->str = _road_tile_strings[GetRoadside(tile)];
+	} else {
+		td->str = GetBridgeSpec(GetBridgeType(tile))->transport_name[TRANSPORT_ROAD];
+		if (!HasBit(rts, ROADTYPE_ROAD)) {
+			td->owner[0] = tram_owner;
+			return;
+		}
+	}
 
-	if (mixed_owners) {
-		/* Multiple owners */
-		td->owner_type[0] = (road_owner == INVALID_OWNER ? STR_NULL : STR_LAND_AREA_INFORMATION_ROAD_OWNER);
+	/* So the tile at least has a road; check if it has both road and tram */
+	Owner road_owner = GetRoadOwner(tile, ROADTYPE_ROAD);
+
+	if (HasBit(rts, ROADTYPE_TRAM)) {
+		td->owner_type[0] = STR_LAND_AREA_INFORMATION_ROAD_OWNER;
 		td->owner[0] = road_owner;
-		td->owner_type[1] = (tram_owner == INVALID_OWNER ? STR_NULL : STR_LAND_AREA_INFORMATION_TRAM_OWNER);
+		td->owner_type[1] = STR_LAND_AREA_INFORMATION_TRAM_OWNER;
 		td->owner[1] = tram_owner;
 	} else {
 		/* One to rule them all */
-		td->owner[0] = first_owner;
+		td->owner[0] = road_owner;
 	}
 }
 
 static VehicleEnterTileStatus VehicleEnter_Road(Vehicle *v, TileIndex tile, int x, int y)
 {
+	if (IsTileSubtype(tile, TT_TRACK)) return VETSB_CONTINUE;
+
+	assert(abs((int)(GetSlopePixelZ(x, y) - v->z_pos)) < 3);
+
+	/* Direction into the wormhole */
+	const DiagDirection dir = GetTunnelBridgeDirection(tile);
+	/* Direction of the vehicle */
+	const DiagDirection vdir = DirToDiagDir(v->direction);
+	/* New position of the vehicle on the tile */
+	byte pos = (DiagDirToAxis(vdir) == AXIS_X ? x : y) & TILE_UNIT_MASK;
+	/* Number of units moved by the vehicle since entering the tile */
+	byte frame = (vdir == DIAGDIR_NE || vdir == DIAGDIR_NW) ? TILE_SIZE - 1 - pos : pos;
+
+	assert(v->type == VEH_ROAD);
+
+	/* modify speed of vehicle */
+	uint16 spd = GetBridgeSpec(GetBridgeType(tile))->speed * 2;
+	Vehicle *first = v->First();
+	first->cur_speed = min(first->cur_speed, spd);
+
+	if (vdir == dir) {
+		/* Vehicle enters bridge at the last frame inside this tile. */
+		if (frame != TILE_SIZE - 1) return VETSB_CONTINUE;
+		v->tile = GetOtherBridgeEnd(tile);
+		RoadVehicle *rv = RoadVehicle::From(v);
+		rv->state = RVSB_WORMHOLE;
+		/* There are no slopes inside bridges / tunnels. */
+		ClrBit(rv->gv_flags, GVF_GOINGUP_BIT);
+		ClrBit(rv->gv_flags, GVF_GOINGDOWN_BIT);
+		return VETSB_ENTERED_WORMHOLE;
+	} else if (vdir == ReverseDiagDir(dir)) {
+		v->tile = tile;
+		RoadVehicle *rv = RoadVehicle::From(v);
+		if (rv->state == RVSB_WORMHOLE) {
+			rv->state = DiagDirToDiagTrackdir(vdir);
+			rv->frame = 0;
+			return VETSB_ENTERED_WORMHOLE;
+		}
+	}
+
 	return VETSB_CONTINUE;
 }
 
 
 static void ChangeTileOwner_Road(TileIndex tile, Owner old_owner, Owner new_owner)
 {
-	for (RoadType rt = ROADTYPE_ROAD; rt < ROADTYPE_END; rt++) {
-		/* Update all roadtypes, no matter if they are present */
-		if (GetRoadOwner(tile, rt) == old_owner) {
-			if (HasTileRoadType(tile, rt)) {
-				/* No need to dirty windows here, we'll redraw the whole screen anyway. */
-				uint num_bits = CountBits(GetRoadBits(tile, rt));
-				Company::Get(old_owner)->infrastructure.road[rt] -= num_bits;
-				if (new_owner != INVALID_OWNER) Company::Get(new_owner)->infrastructure.road[rt] += num_bits;
-			}
+	Company *oldc = Company::Get(old_owner);
 
-			SetRoadOwner(tile, rt, new_owner == INVALID_OWNER ? OWNER_NONE : new_owner);
+	Company *newc;
+	if (new_owner != INVALID_OWNER) {
+		newc = Company::Get(new_owner);
+	} else {
+		new_owner = OWNER_NONE;
+		newc = NULL;
+	}
+
+	if (IsTileSubtype(tile, TT_TRACK)) {
+		for (RoadType rt = ROADTYPE_ROAD; rt < ROADTYPE_END; rt++) {
+			/* Update all roadtypes, no matter if they are present */
+			if (GetRoadOwner(tile, rt) == old_owner) {
+				if (HasTileRoadType(tile, rt)) {
+					/* No need to dirty windows here, we'll redraw the whole screen anyway. */
+					uint num_bits = CountBits(GetRoadBits(tile, rt));
+					oldc->infrastructure.road[rt] -= num_bits;
+					if (newc != NULL) newc->infrastructure.road[rt] += num_bits;
+				}
+
+				SetRoadOwner(tile, rt, new_owner);
+			}
 		}
+	} else {
+		TileIndex other_end = GetOtherBridgeEnd(tile);
+		/* Set number of pieces to zero if it's the southern tile as we
+		 * don't want to update the infrastructure counts twice. */
+		uint num_pieces = tile < other_end ? (GetTunnelBridgeLength(tile, other_end) + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR * 2 : 0;
+
+		for (RoadType rt = ROADTYPE_ROAD; rt < ROADTYPE_END; rt++) {
+			/* Update all roadtypes, no matter if they are present */
+			if (GetRoadOwner(tile, rt) == old_owner) {
+				if (HasBit(GetRoadTypes(tile), rt)) {
+					/* Update company infrastructure counts. A full diagonal road tile has two road bits.
+					 * No need to dirty windows here, we'll redraw the whole screen anyway. */
+					oldc->infrastructure.road[rt] -= num_pieces;
+					if (newc != NULL) newc->infrastructure.road[rt] += num_pieces;
+				}
+
+				SetRoadOwner(tile, rt, new_owner);
+			}
+		}
+
+		if (IsTileOwner(tile, old_owner)) SetTileOwner(tile, new_owner);
 	}
 }
 
 static CommandCost TerraformTile_Road(TileIndex tile, DoCommandFlag flags, int z_new, Slope tileh_new)
 {
 	if (_settings_game.construction.build_on_slopes && AutoslopeEnabled()) {
-		RoadBits bits = GetAllRoadBits(tile);
-		RoadBits bits_copy = bits;
-		/* Check if the slope-road_bits combination is valid at all, i.e. it is safe to call GetRoadFoundation(). */
-		if (CheckRoadSlope(tileh_new, &bits_copy, ROAD_NONE, ROAD_NONE).Succeeded()) {
-			/* CheckRoadSlope() sometimes changes the road_bits, if it does not agree with them. */
-			if (bits == bits_copy) {
-				int z_old;
-				Slope tileh_old = GetTileSlope(tile, &z_old);
+		if (IsTileSubtype(tile, TT_TRACK)) {
+			RoadBits bits = GetAllRoadBits(tile);
+			RoadBits bits_copy = bits;
+			/* Check if the slope-road_bits combination is valid at all, i.e. it is safe to call GetRoadFoundation(). */
+			if (CheckRoadSlope(tileh_new, &bits_copy, ROAD_NONE, ROAD_NONE).Succeeded()) {
+				/* CheckRoadSlope() sometimes changes the road_bits, if it does not agree with them. */
+				if (bits == bits_copy) {
+					int z_old;
+					Slope tileh_old = GetTileSlope(tile, &z_old);
 
-				/* Get the slope on top of the foundation */
-				z_old += ApplyFoundationToSlope(GetRoadFoundation(tileh_old, bits), &tileh_old);
-				z_new += ApplyFoundationToSlope(GetRoadFoundation(tileh_new, bits), &tileh_new);
+					/* Get the slope on top of the foundation */
+					z_old += ApplyFoundationToSlope(GetRoadFoundation(tileh_old, bits), &tileh_old);
+					z_new += ApplyFoundationToSlope(GetRoadFoundation(tileh_new, bits), &tileh_new);
 
-				/* The surface slope must not be changed */
-				if ((z_old == z_new) && (tileh_old == tileh_new)) return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
+					/* The surface slope must not be changed */
+					if ((z_old == z_new) && (tileh_old == tileh_new)) return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
+				}
 			}
+		} else {
+			int z_old;
+			Slope tileh_old = GetTileSlope(tile, &z_old);
+
+			DiagDirection direction = GetTunnelBridgeDirection(tile);
+
+			/* Check if new slope is valid for bridges in general (so we can safely call GetBridgeFoundation()) */
+			CheckBridgeSlope(direction, &tileh_old, &z_old);
+			CommandCost res = CheckBridgeSlope(direction, &tileh_new, &z_new);
+
+			/* Surface slope is valid and remains unchanged? */
+			if (res.Succeeded() && (z_old == z_new) && (tileh_old == tileh_new)) return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
 		}
 	}
 
