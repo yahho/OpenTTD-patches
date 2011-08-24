@@ -26,6 +26,9 @@
 #include "autoslope.h"
 #include "road_cmd.h"
 #include "town.h"
+#include "tunnelbridge_map.h"
+#include "tunnelbridge.h"
+#include "ship.h"
 #include "company_base.h"
 #include "strings_func.h"
 #include "company_gui.h"
@@ -200,6 +203,11 @@ static void DrawTile_Misc(TileInfo *ti)
 			DrawLevelCrossing(ti);
 			break;
 
+		case TT_MISC_AQUEDUCT:
+			DrawAqueductRamp(ti);
+			DrawBridgeMiddle(ti);
+			break;
+
 		case TT_MISC_DEPOT:
 			if (IsRailDepot(ti->tile)) {
 				DrawTrainDepot(ti);
@@ -212,7 +220,27 @@ static void DrawTile_Misc(TileInfo *ti)
 
 static int GetSlopePixelZ_Misc(TileIndex tile, uint x, uint y)
 {
-	return GetTileMaxPixelZ(tile);
+	if (!IsTileSubtype(tile, TT_MISC_AQUEDUCT)) {
+		return GetTileMaxPixelZ(tile);
+	} else {
+		int z;
+		Slope tileh = GetTilePixelSlope(tile, &z);
+
+		x &= 0xF;
+		y &= 0xF;
+
+		DiagDirection dir = GetTunnelBridgeDirection(tile);
+
+		z += ApplyPixelFoundationToSlope(GetBridgeFoundation(tileh, DiagDirToAxis(dir)), &tileh);
+
+		/* On the bridge ramp? */
+		uint pos = (DiagDirToAxis(dir) == AXIS_X ? y : x);
+		if (5 <= pos && pos <= 10) {
+			return z + ((tileh == SLOPE_FLAT) ? GetBridgePartialPixelZ(dir, x, y) : TILE_HEIGHT);
+		}
+
+		return z + GetPartialPixelZ(x, y, tileh);
+	}
 }
 
 
@@ -305,6 +333,38 @@ static CommandCost ClearTile_Misc(TileIndex tile, DoCommandFlag flags)
 			return ret;
 		}
 
+		case TT_MISC_AQUEDUCT: {
+			if (flags & DC_AUTO) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+
+			if (_current_company != OWNER_WATER && _game_mode != GM_EDITOR) {
+				Owner owner = GetTileOwner(tile);
+				if (owner != OWNER_NONE) {
+					CommandCost ret = CheckOwnership(owner);
+					if (ret.Failed()) return ret;
+				}
+			}
+
+			TileIndex endtile = GetOtherBridgeEnd(tile);
+
+			CommandCost ret = TunnelBridgeIsFree(tile, endtile);
+			if (ret.Failed()) return ret;
+
+			uint len = GetTunnelBridgeLength(tile, endtile) + 2; // Don't forget the end tiles.
+
+			if (flags & DC_EXEC) {
+				/* Update company infrastructure counts. */
+				Owner owner = GetTileOwner(tile);
+				if (Company::IsValidID(owner)) Company::Get(owner)->infrastructure.water -= len * TUNNELBRIDGE_TRACKBIT_FACTOR;
+				DirtyCompanyInfrastructureWindows(owner);
+
+				RemoveBridgeMiddleTiles(tile, endtile);
+				DoClearSquare(tile);
+				DoClearSquare(endtile);
+			}
+
+			return CommandCost(EXPENSES_CONSTRUCTION, len * _price[PR_CLEAR_AQUEDUCT]);
+		}
+
 		case TT_MISC_DEPOT:
 			if (flags & DC_AUTO) {
 				if (!IsTileOwner(tile, _current_company)) {
@@ -350,6 +410,11 @@ static void GetTileDesc_Misc(TileIndex tile, TileDesc *td)
 
 			break;
 		}
+
+		case TT_MISC_AQUEDUCT:
+			td->str = STR_LAI_BRIDGE_DESCRIPTION_AQUEDUCT;
+			td->owner[0] = GetTileOwner(tile);
+			break;
 
 		case TT_MISC_DEPOT:
 			td->owner[0] = GetTileOwner(tile);
@@ -408,6 +473,14 @@ static TrackStatus GetTileTrackStatus_Misc(TileIndex tile, TransportType mode, u
 			return CombineTrackStatus(trackdirbits, red_signals);
 		}
 
+		case TT_MISC_AQUEDUCT: {
+			if (mode != TRANSPORT_WATER) return 0;
+
+			DiagDirection dir = GetTunnelBridgeDirection(tile);
+			if (side != INVALID_DIAGDIR && side != ReverseDiagDir(dir)) return 0;
+			return CombineTrackStatus(TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir)), TRACKDIR_BIT_NONE);
+		}
+
 		case TT_MISC_DEPOT: {
 			DiagDirection dir;
 
@@ -441,56 +514,86 @@ static bool ClickTile_Misc(TileIndex tile)
 
 static void TileLoop_Misc(TileIndex tile)
 {
-	if (IsRailDepotTile(tile)) {
-		RailGroundType ground;
+	switch (GetTileSubtype(tile)) {
+		default: NOT_REACHED();
 
-		switch (_settings_game.game_creation.landscape) {
-			case LT_ARCTIC: {
-				int z;
-				Slope slope = GetTileSlope(tile, &z);
+		case TT_MISC_DEPOT:
+			if (IsRailDepot(tile)) {
+				RailGroundType ground;
 
-				/* is the depot on a non-flat tile? */
-				if (slope != SLOPE_FLAT) z++;
+				switch (_settings_game.game_creation.landscape) {
+					case LT_ARCTIC: {
+						int z;
+						Slope slope = GetTileSlope(tile, &z);
 
-				ground = (z > GetSnowLine()) ? RAIL_GROUND_ICE_DESERT : RAIL_GROUND_GRASS;
+						/* is the depot on a non-flat tile? */
+						if (slope != SLOPE_FLAT) z++;
+
+						ground = (z > GetSnowLine()) ? RAIL_GROUND_ICE_DESERT : RAIL_GROUND_GRASS;
+						break;
+					}
+
+					case LT_TROPIC:
+						ground = (GetTropicZone(tile) == TROPICZONE_DESERT) ? RAIL_GROUND_ICE_DESERT : RAIL_GROUND_GRASS;
+						break;
+
+					default:
+						ground = RAIL_GROUND_GRASS;
+						break;
+				}
+
+				if (ground != GetRailGroundType(tile)) {
+					SetRailGroundType(tile, ground);
+					MarkTileDirtyByTile(tile);
+				}
+
 				break;
 			}
+			/* else IsRoadDepot(tile) */
+			/* fall through */
+		case TT_MISC_CROSSING:
+			switch (_settings_game.game_creation.landscape) {
+				case LT_ARCTIC:
+					if (IsOnSnow(tile) != (GetTileZ(tile) > GetSnowLine())) {
+						ToggleSnow(tile);
+						MarkTileDirtyByTile(tile);
+					}
+					break;
 
-			case LT_TROPIC:
-				ground = (GetTropicZone(tile) == TROPICZONE_DESERT) ? RAIL_GROUND_ICE_DESERT : RAIL_GROUND_GRASS;
-				break;
+				case LT_TROPIC:
+					if (GetTropicZone(tile) == TROPICZONE_DESERT && !IsOnDesert(tile)) {
+						ToggleDesert(tile);
+						MarkTileDirtyByTile(tile);
+					}
+					break;
+			}
 
-			default:
-				ground = RAIL_GROUND_GRASS;
-				break;
-		}
+			if (IsLevelCrossingTile(tile)) {
+				const Town *t = ClosestTownFromTile(tile, UINT_MAX);
+				UpdateRoadSide(tile, t != NULL ? GetTownRadiusGroup(t, tile) : HZB_TOWN_EDGE);
+			}
 
-		if (ground != GetRailGroundType(tile)) {
-			SetRailGroundType(tile, ground);
+			break;
+
+		case TT_MISC_AQUEDUCT: {
+			bool snow_or_desert = HasTunnelBridgeSnowOrDesert(tile);
+			switch (_settings_game.game_creation.landscape) {
+				default: return;
+
+				case LT_ARCTIC:
+					/* As long as we do not have a snow density, we want to use the density
+					 * from the entry edge. For bridges this is the highest point.
+					 * (Independent of foundations) */
+					if (snow_or_desert == (GetTileMaxZ(tile) > GetSnowLine())) return;
+					break;
+
+				case LT_TROPIC:
+					if (GetTropicZone(tile) != TROPICZONE_DESERT || snow_or_desert) return;
+					break;
+			}
+			SetTunnelBridgeSnowOrDesert(tile, !snow_or_desert);
 			MarkTileDirtyByTile(tile);
-		}
-	} else {
-		assert(IsLevelCrossingTile(tile) || IsRoadDepotTile(tile));
-
-		switch (_settings_game.game_creation.landscape) {
-			case LT_ARCTIC:
-				if (IsOnSnow(tile) != (GetTileZ(tile) > GetSnowLine())) {
-					ToggleSnow(tile);
-					MarkTileDirtyByTile(tile);
-				}
-				break;
-
-			case LT_TROPIC:
-				if (GetTropicZone(tile) == TROPICZONE_DESERT && !IsOnDesert(tile)) {
-					ToggleDesert(tile);
-					MarkTileDirtyByTile(tile);
-				}
-				break;
-		}
-
-		if (IsLevelCrossingTile(tile)) {
-			const Town *t = ClosestTownFromTile(tile, UINT_MAX);
-			UpdateRoadSide(tile, t != NULL ? GetTownRadiusGroup(t, tile) : HZB_TOWN_EDGE);
+			break;
 		}
 	}
 }
@@ -529,6 +632,26 @@ static void ChangeTileOwner_Misc(TileIndex tile, Owner old_owner, Owner new_owne
 			}
 
 			break;
+
+		case TT_MISC_AQUEDUCT: {
+			if (!IsTileOwner(tile, old_owner)) return;
+
+			TileIndex other_end = GetOtherTunnelBridgeEnd(tile);
+			/* Set number of pieces to zero if it's the southern tile as we
+			 * don't want to update the infrastructure counts twice. */
+			uint num_pieces = tile < other_end ? (GetTunnelBridgeLength(tile, other_end) + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR : 0;
+
+			/* Update company infrastructure counts.
+			 * No need to dirty windows here, we'll redraw the whole screen anyway. */
+			Company::Get(old_owner)->infrastructure.water -= num_pieces;
+			if (new_owner != INVALID_OWNER) {
+				Company::Get(new_owner)->infrastructure.water += num_pieces;
+				SetTileOwner(tile, new_owner);
+			} else {
+				SetTileOwner(tile, OWNER_NONE);
+			}
+			break;
+		}
 
 		case TT_MISC_DEPOT:
 			if (!IsTileOwner(tile, old_owner)) return;
@@ -592,66 +715,103 @@ static const byte _roadveh_enter_depot_dir[4] = {
 
 static VehicleEnterTileStatus VehicleEnter_Misc(Vehicle *u, TileIndex tile, int x, int y)
 {
-	if (!IsGroundDepotTile(tile)) return VETSB_CONTINUE;
+	switch (GetTileSubtype(tile)) {
+		default: break;
 
-	if (IsRailDepot(tile)) {
-		if (u->type != VEH_TRAIN) return VETSB_CONTINUE;
+		case TT_MISC_AQUEDUCT: {
+			assert(abs((int)(GetSlopePixelZ(x, y) - u->z_pos)) < 3);
 
-		Train *v = Train::From(u);
+			/* Direction into the wormhole */
+			const DiagDirection dir = GetTunnelBridgeDirection(tile);
+			/* Direction of the vehicle */
+			const DiagDirection vdir = DirToDiagDir(u->direction);
+			/* New position of the vehicle on the tile */
+			byte pos = (DiagDirToAxis(vdir) == AXIS_X ? x : y) & TILE_UNIT_MASK;
+			/* Number of units moved by the vehicle since entering the tile */
+			byte frame = (vdir == DIAGDIR_NE || vdir == DIAGDIR_NW) ? TILE_SIZE - 1 - pos : pos;
 
-		/* depot direction */
-		DiagDirection dir = GetRailDepotDirection(tile);
+			assert(u->type == VEH_SHIP);
 
-		byte fract_coord_x = x & 0xF;
-		byte fract_coord_y = y & 0xF;
-
-		/* make sure a train is not entering the tile from behind */
-		assert(DistanceFromTileEdge(ReverseDiagDir(dir), fract_coord_x, fract_coord_y) != 0);
-
-		if (v->direction == DiagDirToDir(ReverseDiagDir(dir))) {
-			if (fract_coord_x == _fractcoords_enter_x[dir] && fract_coord_y == _fractcoords_enter_y[dir]) {
-				/* enter the depot */
-				v->track = TRACK_BIT_DEPOT,
-				v->vehstatus |= VS_HIDDEN; // hide it
-				v->direction = ReverseDir(v->direction);
-				if (v->Next() == NULL) VehicleEnterDepot(v->First());
-				v->tile = tile;
-
-				InvalidateWindowData(WC_VEHICLE_DEPOT, v->tile);
+			if (vdir == dir) {
+				/* Vehicle enters bridge at the last frame inside this tile. */
+				if (frame != TILE_SIZE - 1) return VETSB_CONTINUE;
+				u->tile = GetOtherBridgeEnd(tile);
+				Ship::From(u)->state = TRACK_BIT_WORMHOLE;
 				return VETSB_ENTERED_WORMHOLE;
-			}
-		} else if (v->direction == DiagDirToDir(dir)) {
-			/* Calculate the point where the following wagon should be activated. */
-			int length = v->CalcNextVehicleOffset();
-
-			byte fract_coord_leave_x = _fractcoords_enter_x[dir] +
-				(length + 1) * _deltacoord_leaveoffset_x[dir];
-			byte fract_coord_leave_y = _fractcoords_enter_y[dir] +
-				(length + 1) * _deltacoord_leaveoffset_y[dir];
-
-			if (fract_coord_x == fract_coord_leave_x && fract_coord_y == fract_coord_leave_y) {
-				/* leave the depot? */
-				if ((v = v->Next()) != NULL) {
-					v->vehstatus &= ~VS_HIDDEN;
-					v->track = (DiagDirToAxis(dir) == AXIS_X ? TRACK_BIT_X : TRACK_BIT_Y);
+			} else if (vdir == ReverseDiagDir(dir)) {
+				u->tile = tile;
+				Ship *ship = Ship::From(u);
+				if (ship->state == TRACK_BIT_WORMHOLE) {
+					ship->state = DiagDirToDiagTrackBits(vdir);
+					return VETSB_ENTERED_WORMHOLE;
 				}
 			}
-		}
-	} else {
-		if (u->type != VEH_ROAD) return VETSB_CONTINUE;
 
-		RoadVehicle *rv = RoadVehicle::From(u);
-		if (rv->frame == RVC_DEPOT_STOP_FRAME &&
-				_roadveh_enter_depot_dir[GetRoadDepotDirection(tile)] == rv->state) {
-			rv->state = RVSB_IN_DEPOT;
-			rv->vehstatus |= VS_HIDDEN;
-			rv->direction = ReverseDir(rv->direction);
-			if (rv->Next() == NULL) VehicleEnterDepot(rv->First());
-			rv->tile = tile;
-
-			InvalidateWindowData(WC_VEHICLE_DEPOT, rv->tile);
-			return VETSB_ENTERED_WORMHOLE;
+			break;
 		}
+
+		case TT_MISC_DEPOT:
+			if (IsRailDepot(tile)) {
+				if (u->type != VEH_TRAIN) return VETSB_CONTINUE;
+
+				Train *v = Train::From(u);
+
+				/* depot direction */
+				DiagDirection dir = GetRailDepotDirection(tile);
+
+				byte fract_coord_x = x & 0xF;
+				byte fract_coord_y = y & 0xF;
+
+				/* make sure a train is not entering the tile from behind */
+				assert(DistanceFromTileEdge(ReverseDiagDir(dir), fract_coord_x, fract_coord_y) != 0);
+
+				if (v->direction == DiagDirToDir(ReverseDiagDir(dir))) {
+					if (fract_coord_x == _fractcoords_enter_x[dir] && fract_coord_y == _fractcoords_enter_y[dir]) {
+						/* enter the depot */
+						v->track = TRACK_BIT_DEPOT,
+						v->vehstatus |= VS_HIDDEN; // hide it
+						v->direction = ReverseDir(v->direction);
+						if (v->Next() == NULL) VehicleEnterDepot(v->First());
+						v->tile = tile;
+
+						InvalidateWindowData(WC_VEHICLE_DEPOT, v->tile);
+						return VETSB_ENTERED_WORMHOLE;
+					}
+				} else if (v->direction == DiagDirToDir(dir)) {
+					/* Calculate the point where the following wagon should be activated. */
+					int length = v->CalcNextVehicleOffset();
+
+					byte fract_coord_leave_x = _fractcoords_enter_x[dir] +
+						(length + 1) * _deltacoord_leaveoffset_x[dir];
+					byte fract_coord_leave_y = _fractcoords_enter_y[dir] +
+						(length + 1) * _deltacoord_leaveoffset_y[dir];
+
+					if (fract_coord_x == fract_coord_leave_x && fract_coord_y == fract_coord_leave_y) {
+						/* leave the depot? */
+						if ((v = v->Next()) != NULL) {
+							v->vehstatus &= ~VS_HIDDEN;
+							v->track = (DiagDirToAxis(dir) == AXIS_X ? TRACK_BIT_X : TRACK_BIT_Y);
+						}
+					}
+				}
+			} else {
+				if (u->type != VEH_ROAD) return VETSB_CONTINUE;
+
+				RoadVehicle *rv = RoadVehicle::From(u);
+				if (rv->frame == RVC_DEPOT_STOP_FRAME &&
+						_roadveh_enter_depot_dir[GetRoadDepotDirection(tile)] == rv->state) {
+					rv->state = RVSB_IN_DEPOT;
+					rv->vehstatus |= VS_HIDDEN;
+					rv->direction = ReverseDir(rv->direction);
+					if (rv->Next() == NULL) VehicleEnterDepot(rv->First());
+					rv->tile = tile;
+
+					InvalidateWindowData(WC_VEHICLE_DEPOT, rv->tile);
+					return VETSB_ENTERED_WORMHOLE;
+				}
+			}
+
+			break;
 	}
 
 	return VETSB_CONTINUE;
@@ -660,7 +820,7 @@ static VehicleEnterTileStatus VehicleEnter_Misc(Vehicle *u, TileIndex tile, int 
 
 static Foundation GetFoundation_Misc(TileIndex tile, Slope tileh)
 {
-	return FlatteningFoundation(tileh);
+	return IsTileSubtype(tile, TT_MISC_AQUEDUCT) ? GetBridgeFoundation(tileh, DiagDirToAxis(GetTunnelBridgeDirection(tile))) : FlatteningFoundation(tileh);
 }
 
 
@@ -672,6 +832,9 @@ static CommandCost TerraformTile_Misc(TileIndex tile, DoCommandFlag flags, int z
 
 			case TT_MISC_CROSSING:
 				if (!IsSteepSlope(tileh_new) && (GetTileMaxZ(tile) == z_new + GetSlopeMaxZ(tileh_new)) && HasBit(VALID_LEVEL_CROSSING_SLOPES, tileh_new)) return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
+				break;
+
+			case TT_MISC_AQUEDUCT:
 				break;
 
 			case TT_MISC_DEPOT: {

@@ -546,3 +546,21 @@ const PalSpriteID *GetBridgeRampSprite(int index, int offset, Slope slope, DiagD
 	/* Table number BRIDGE_PIECE_HEAD always refers to the bridge heads for any bridge type */
 	return offset + GetBridgeSpriteTable(index, BRIDGE_PIECE_HEAD);
 }
+
+void DrawAqueductRamp(TileInfo *ti)
+{
+	DrawBridgeGround(ti);
+
+	assert(ti->tileh != SLOPE_FLAT);
+
+	DiagDirection dir = GetTunnelBridgeDirection(ti->tile);
+
+	/* HACK Wizardry to convert the bridge ramp direction into a sprite offset */
+	const PalSpriteID *psid = _aqueduct_sprites + 8 + (6 - dir) % 4;
+
+	/* HACK set the height of the BB of a sloped ramp to 1 so a vehicle on
+	 * it doesn't disappear behind it
+	 */
+	/* Bridge heads are drawn solid no matter how invisibility/transparency is set */
+	AddSortableSpriteToDraw(psid->sprite, psid->pal, ti->x, ti->y, 16, 16, 8, ti->z);
+}

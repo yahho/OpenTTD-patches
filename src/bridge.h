@@ -89,6 +89,7 @@ void DrawBridgeTramBits(int x, int y, int z, int offset, bool overlay, bool head
 void DrawBridgeMiddle(const TileInfo *ti);
 void DrawBridgeGround(TileInfo *ti);
 const PalSpriteID *GetBridgeRampSprite(int index, int offset, Slope slope, DiagDirection dir);
+void DrawAqueductRamp(TileInfo *ti);
 
 CommandCost CheckBridgeAvailability(BridgeType bridge_type, uint bridge_len, DoCommandFlag flags = DC_NONE);
 int CalcBridgeLenCostFactor(int x);
