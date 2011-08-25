@@ -1607,7 +1607,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 				YapfNotifyTrackLayoutChange(tile, track);
 				YapfNotifyTrackLayoutChange(endtile, track);
 
-				if (IsBridgeTile(tile) || IsBridgeHeadTile(tile)) {
+				if (IsBridgeHeadTile(tile)) {
 					MarkBridgeTilesDirty(tile, endtile, GetTunnelBridgeDirection(tile));
 				} else {
 					MarkTileDirtyByTile(tile);

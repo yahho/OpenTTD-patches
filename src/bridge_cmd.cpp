@@ -174,8 +174,8 @@ CommandCost CheckBridgeSlope(DiagDirection dir, Slope *tileh, int *z)
 void RemoveBridgeMiddleTiles(TileIndex tile1, TileIndex tile2)
 {
 	/* Call this function before clearing the endpoints. */
-	assert(IsBridgeTile(tile1) || IsBridgeHeadTile(tile1));
-	assert(IsBridgeTile(tile2) || IsBridgeHeadTile(tile2));
+	assert(IsBridgeHeadTile(tile1));
+	assert(IsBridgeHeadTile(tile2));
 
 	TileIndexDiff delta = TileOffsByDiagDir(GetTunnelBridgeDirection(tile1));
 	int height = GetBridgeHeight(tile1);

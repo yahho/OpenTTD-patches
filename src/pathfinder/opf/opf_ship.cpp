@@ -50,12 +50,9 @@ static bool ShipTrackFollower(TileIndex tile, TrackPathFinder *pfs, uint length)
 
 static void TPFModeShip(TrackPathFinder *tpf, TileIndex tile, DiagDirection direction)
 {
-	if (IsTunnelBridgeTile(tile) || IsBridgeHeadTile(tile)) {
-		/* wrong track type */
-		if (GetTunnelBridgeTransportType(tile) != TRANSPORT_WATER) return;
-
+	if (IsAqueductTile(tile)) {
 		DiagDirection dir = GetTunnelBridgeDirection(tile);
-		/* entering tunnel / bridge? */
+		/* entering aqueduct? */
 		if (dir == direction) {
 			TileIndex endtile = GetOtherTunnelBridgeEnd(tile);
 

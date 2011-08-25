@@ -426,12 +426,13 @@ static inline SmallmapTileType GetEffectiveTileType(TileIndex tile)
 			switch (GetTunnelBridgeTransportType(tile)) {
 				case TRANSPORT_RAIL: return SMTT_RAILWAY;
 				case TRANSPORT_ROAD: return SMTT_ROAD;
-				default:             return SMTT_WATER;
+				default: NOT_REACHED();
 			}
 		case TT_MISC:
 			switch (GetTileSubtype(tile)) {
 				default: NOT_REACHED();
 				case TT_MISC_CROSSING: return SMTT_ROAD;
+				case TT_MISC_AQUEDUCT: return SMTT_WATER;
 				case TT_MISC_DEPOT:
 					return IsRailDepot(tile) ? SMTT_RAILWAY : SMTT_ROAD;
 			}

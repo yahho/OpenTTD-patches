@@ -239,12 +239,8 @@ CommandCost RemoveRoad(TileIndex tile, DoCommandFlag flags, RoadBits pieces, Roa
 				}
 
 				/* Mark tiles dirty that have been repaved */
-				if (IsBridge(tile)) {
-					MarkBridgeTilesDirty(tile, other_end, GetTunnelBridgeDirection(tile));
-				} else {
-					MarkTileDirtyByTile(tile);
-					MarkTileDirtyByTile(other_end);
-				}
+				MarkTileDirtyByTile(tile);
+				MarkTileDirtyByTile(other_end);
 			}
 			return cost;
 		}
@@ -799,12 +795,8 @@ do_clear:;
 				SetRoadOwner(tile, rt, company);
 
 				/* Mark tiles dirty that have been repaved */
-				if (IsBridge(tile)) {
-					MarkBridgeTilesDirty(tile, other_end, GetTunnelBridgeDirection(tile));
-				} else {
-					MarkTileDirtyByTile(other_end);
-					MarkTileDirtyByTile(tile);
-				}
+				MarkTileDirtyByTile(other_end);
+				MarkTileDirtyByTile(tile);
 				break;
 			}
 
@@ -943,18 +935,16 @@ CommandCost CmdBuildLongRoad(TileIndex start_tile, DoCommandFlag flags, uint32 p
 		} else {
 			had_success = true;
 			/* Only pay for the upgrade on one side of the bridges and tunnels */
-			if (IsTunnelBridgeTile(tile) || IsRoadBridgeTile(tile)) {
-				if (IsTunnelTile(tile)) {
-					if (!had_tunnel || GetTunnelBridgeDirection(tile) == dir) {
-						cost.AddCost(ret);
-					}
-					had_tunnel = true;
-				} else {
-					if (!had_bridge || GetTunnelBridgeDirection(tile) == dir) {
-						cost.AddCost(ret);
-					}
-					had_bridge = true;
+			if (IsTunnelBridgeTile(tile)) {
+				if (!had_tunnel || GetTunnelBridgeDirection(tile) == dir) {
+					cost.AddCost(ret);
 				}
+				had_tunnel = true;
+			} else if (IsRoadBridgeTile(tile)) {
+				if (!had_bridge || GetTunnelBridgeDirection(tile) == dir) {
+					cost.AddCost(ret);
+				}
+				had_bridge = true;
 			} else {
 				cost.AddCost(ret);
 			}

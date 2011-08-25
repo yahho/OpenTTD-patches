@@ -159,8 +159,7 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 	Owner owner;
 	bool is_new_owner;
-	if ((IsBridgeTile(tile_start) || IsBridgeHeadTile(tile_start)) &&
-			(IsBridgeTile(tile_end) || IsBridgeHeadTile(tile_end)) &&
+	if (IsBridgeHeadTile(tile_start) && IsBridgeHeadTile(tile_end) &&
 			GetOtherBridgeEnd(tile_start) == tile_end &&
 			GetTunnelBridgeTransportType(tile_start) == transport_type) {
 		/* Replace a current bridge. */
@@ -275,9 +274,6 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 					break;
 
 				case TT_TUNNELBRIDGE_TEMP:
-					if (IsTunnel(tile)) break;
-					if (direction == DiagDirToAxis(GetTunnelBridgeDirection(tile))) goto not_valid_below;
-					if (z_start < GetBridgeHeight(tile)) goto not_valid_below;
 					break;
 
 				case TT_OBJECT: {
@@ -328,7 +324,7 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 				break;
 
 			case TRANSPORT_ROAD: {
-				RoadTypes prev_roadtypes = (IsBridgeTile(tile_start) || IsRoadBridgeTile(tile_start)) ? GetRoadTypes(tile_start) : ROADTYPES_NONE;
+				RoadTypes prev_roadtypes = IsRoadBridgeTile(tile_start) ? GetRoadTypes(tile_start) : ROADTYPES_NONE;
 				if (is_new_owner) {
 					/* Also give unowned present roadtypes to new owner */
 					if (HasBit(prev_roadtypes, ROADTYPE_ROAD) && GetRoadOwner(tile_start, ROADTYPE_ROAD) == OWNER_NONE) ClrBit(prev_roadtypes, ROADTYPE_ROAD);

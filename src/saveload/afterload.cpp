@@ -705,7 +705,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 
 		FOR_ALL_VEHICLES(v) {
 			if (!v->IsGroundVehicle()) continue;
-			if (IsBridgeTile(v->tile) || IsBridgeHeadTile(v->tile)) {
+			if (IsBridgeHeadTile(v->tile)) {
 				DiagDirection dir = GetTunnelBridgeDirection(v->tile);
 
 				if (dir != DirToDiagDir(v->direction)) continue;
@@ -1885,7 +1885,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 					continue;
 			}
 
-			if ((IsBridgeTile(v->tile) || IsBridgeHeadTile(v->tile)) && TileVirtXY(v->x_pos, v->y_pos) == v->tile) {
+			if (IsBridgeHeadTile(v->tile) && TileVirtXY(v->x_pos, v->y_pos) == v->tile) {
 				/* In old versions, z_pos was 1 unit lower on bridge heads.
 				 * However, this invalid state could be converted to new savegames
 				 * by loading and saving the game in a new version. */

@@ -845,8 +845,29 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					break;
 
 				case OLD_MP_TUNNELBRIDGE:
-					_mc[t].m4 = GB(_mc[t].m0, 2, 4);
-					_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_TUNNELBRIDGE_TEMP << 4);
+					if (HasBit(_mc[t].m5, 7)) { // bridge
+						uint type = GB(_mc[t].m0, 2, 4);
+						switch (GB(_mc[t].m5, 2, 2)) {
+							case 0: // rail
+								_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_RAILWAY << 4);
+								SB(_mc[t].m1, 6, 2, TT_BRIDGE);
+								_mc[t].m4 = type;
+								break;
+							case 1: // road
+								_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_ROAD << 4);
+								SB(_mc[t].m1, 6, 2, TT_BRIDGE);
+								_mc[t].m4 = type;
+								break;
+							case 2: // aqueduct
+								_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_MISC << 4);
+								SB(_mc[t].m1, 6, 2, TT_MISC_AQUEDUCT);
+								break;
+							default:
+								throw SlCorrupt("Invalid bridge transport type");
+						}
+					} else { // tunnel
+						_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_TUNNELBRIDGE_TEMP << 4);
+					}
 					break;
 
 				case OLD_MP_OBJECT:

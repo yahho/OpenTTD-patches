@@ -97,7 +97,7 @@ static TrackBits GetRailTrackBitsUniversal(TileIndex t, byte *override)
 		case TT_TUNNELBRIDGE_TEMP:
 			if (GetTunnelBridgeTransportType(t) != TRANSPORT_RAIL) return TRACK_BIT_NONE;
 			if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
-			if (override != NULL && (IsTunnel(t) || GetTunnelBridgeLength(t, GetOtherBridgeEnd(t)) > 0)) {
+			if (override != NULL) {
 				*override = 1 << GetTunnelBridgeDirection(t);
 			}
 			return DiagDirToDiagTrackBits(GetTunnelBridgeDirection(t));
@@ -343,7 +343,7 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 		for (uint k = 0; k < NUM_TRACKS_AT_PCP; k++) {
 			/* Next to us, we have a bridge head, don't worry about that one, if it shows away from us */
 			if (TrackSourceTile[i][k] == TS_NEIGHBOUR &&
-			    (IsBridgeTile(neighbour) || IsRailBridgeTile(neighbour)) &&
+			    IsRailBridgeTile(neighbour) &&
 			    GetTunnelBridgeDirection(neighbour) == ReverseDiagDir(i)) {
 				continue;
 			}
@@ -377,7 +377,7 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 
 		/* Read the foundations if they are present, and adjust the tileh */
 		if (trackconfig[TS_NEIGHBOUR] != TRACK_BIT_NONE && (IsNormalRailTile(neighbour) || IsRailDepotTile(neighbour)) && HasCatenary(GetRailType(neighbour))) foundation = GetRailFoundation(tileh[TS_NEIGHBOUR], trackconfig[TS_NEIGHBOUR]);
-		if (IsBridgeTile(neighbour) || IsRailBridgeTile(neighbour)) {
+		if (IsRailBridgeTile(neighbour)) {
 			foundation = GetBridgeFoundation(tileh[TS_NEIGHBOUR], DiagDirToAxis(GetTunnelBridgeDirection(neighbour)));
 		}
 

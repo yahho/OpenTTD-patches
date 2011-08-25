@@ -327,11 +327,11 @@ static int32 NPFRoadPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 	/* Determine base length */
 	switch (GetTileType(tile)) {
 		case TT_TUNNELBRIDGE_TEMP:
-			cost = IsTunnel(tile) ? NPFTunnelCost(current) : NPFBridgeCost(current);
+			cost = NPFTunnelCost(current);
 			break;
 
 		case TT_ROAD:
-			cost = NPF_TILE_LENGTH;
+			cost = IsTileSubtype(tile, TT_BRIDGE) ? NPFBridgeCost(current) : NPF_TILE_LENGTH;
 			break;
 
 		case TT_MISC:
@@ -391,7 +391,7 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 	/* Determine base length */
 	switch (GetTileType(tile)) {
 		case TT_TUNNELBRIDGE_TEMP:
-			cost = IsTunnel(tile) ? NPFTunnelCost(current) : NPFBridgeCost(current);
+			cost = NPFTunnelCost(current);
 			break;
 
 		case TT_RAILWAY:

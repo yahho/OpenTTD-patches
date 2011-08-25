@@ -348,22 +348,20 @@ protected:
 		}
 
 		/* tunnel holes and bridge ramps can be entered only from proper direction */
-		if (IsTunnelBridgeTile(m_new_tile) || IsBridgeHeadTile(m_new_tile)) {
-			if (IsTunnelTile(m_new_tile)) {
-				if (!m_is_tunnel) {
-					DiagDirection tunnel_enterdir = GetTunnelBridgeDirection(m_new_tile);
-					if (tunnel_enterdir != m_exitdir) {
-						m_err = EC_NO_WAY;
-						return false;
-					}
+		if (IsTunnelBridgeTile(m_new_tile)) {
+			if (!m_is_tunnel) {
+				DiagDirection tunnel_enterdir = GetTunnelBridgeDirection(m_new_tile);
+				if (tunnel_enterdir != m_exitdir) {
+					m_err = EC_NO_WAY;
+					return false;
 				}
-			} else {
-				if (!m_is_bridge) {
-					DiagDirection ramp_enderdir = GetTunnelBridgeDirection(m_new_tile);
-					if (ramp_enderdir != m_exitdir) {
-						m_err = EC_NO_WAY;
-						return false;
-					}
+			}
+		} else if (IsBridgeHeadTile(m_new_tile)) {
+			if (!m_is_bridge) {
+				DiagDirection ramp_enderdir = GetTunnelBridgeDirection(m_new_tile);
+				if (ramp_enderdir != m_exitdir) {
+					m_err = EC_NO_WAY;
+					return false;
 				}
 			}
 		}
@@ -444,7 +442,7 @@ public:
 		int max_speed = INT_MAX; // no limit
 
 		/* Check for on-bridge speed limit */
-		if (!IsWaterTT() && (IsBridgeTile(m_old_tile) || IsBridgeHeadTile(m_old_tile))) {
+		if (!IsWaterTT() && IsBridgeHeadTile(m_old_tile)) {
 			int spd = GetBridgeSpec(GetBridgeType(m_old_tile))->speed;
 			if (IsRoadTT()) spd *= 2;
 			if (max_speed > spd) max_speed = spd;

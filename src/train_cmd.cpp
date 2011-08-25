@@ -1542,7 +1542,7 @@ static void UpdateStatusAfterSwap(Train *v)
 		 * when we shouldn't have. Check if this is the case. */
 		if (TileVirtXY(v->x_pos, v->y_pos) == v->tile) {
 			VehicleEnterTile(v, v->tile, v->x_pos, v->y_pos);
-			if (v->track != TRACK_BIT_WORMHOLE && (IsBridgeTile(v->tile) || IsRailBridgeTile(v->tile))) {
+			if (v->track != TRACK_BIT_WORMHOLE && IsRailBridgeTile(v->tile)) {
 				/* We have just left the wormhole, possibly set the
 				 * "goingdown" bit. UpdateInclination() can be used
 				 * because we are at the border of the tile. */

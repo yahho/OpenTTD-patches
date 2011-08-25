@@ -415,13 +415,9 @@ uint32 GetTerrainType(TileIndex tile, TileContext context)
 				}
 
 				case TT_TUNNELBRIDGE_TEMP:
-					if (context == TCX_ON_BRIDGE) {
-						has_snow = (GetBridgeHeight(tile) > GetSnowLine());
-					} else {
-						/* During map generation the snowstate may not be valid yet, as the tileloop may not have run yet. */
-						if (_generating_world) goto genworld; // we do not care about foundations here
-						has_snow = HasTunnelBridgeSnowOrDesert(tile);
-					}
+					/* During map generation the snowstate may not be valid yet, as the tileloop may not have run yet. */
+					if (_generating_world) goto genworld; // we do not care about foundations here
+					has_snow = HasTunnelBridgeSnowOrDesert(tile);
 					break;
 
 				case TT_WATER:

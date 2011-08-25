@@ -605,8 +605,6 @@ bool IsWateredTile(TileIndex tile, Direction from)
 
 		case TT_OBJECT: return IsTileOnWater(tile);
 
-		case TT_TUNNELBRIDGE_TEMP: return GetTunnelBridgeTransportType(tile) == TRANSPORT_WATER && ReverseDiagDir(GetTunnelBridgeDirection(tile)) == DirToDiagDir(from);
-
 		default:          return false;
 	}
 }
@@ -987,7 +985,7 @@ static void FloodVehicles(TileIndex tile)
 		return;
 	}
 
-	if (!IsBridgeTile(tile) && !IsBridgeHeadTile(tile)) {
+	if (!IsBridgeHeadTile(tile)) {
 		FindVehicleOnPos(tile, &z, &FloodVehicleProc);
 		return;
 	}

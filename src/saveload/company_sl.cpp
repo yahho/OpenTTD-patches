@@ -258,36 +258,24 @@ void AfterLoadCompanyStats()
 				break;
 
 			case TT_TUNNELBRIDGE_TEMP: {
-				/* Only count the tunnel/bridge if we're on the northern end tile. */
-				TileIndex other_end = GetOtherTunnelBridgeEnd(tile);
+				/* Only count the tunnel if we're on the northern end tile. */
+				TileIndex other_end = GetOtherTunnelEnd(tile);
 				if (tile < other_end) {
-					/* Count each tunnel/bridge TUNNELBRIDGE_TRACKBIT_FACTOR times to simulate
+					/* Count each tunnel TUNNELBRIDGE_TRACKBIT_FACTOR times to simulate
 					 * the higher structural maintenance needs, and don't forget the end tiles. */
 					uint len = (GetTunnelBridgeLength(tile, other_end) + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
 
-					switch (GetTunnelBridgeTransportType(tile)) {
-						case TRANSPORT_RAIL:
-							c = Company::GetIfValid(GetTileOwner(tile));
-							if (c != NULL) c->infrastructure.rail[GetRailType(tile)] += len;
-							break;
-
-						case TRANSPORT_ROAD: {
-							/* Iterate all present road types as each can have a different owner. */
-							RoadType rt;
-							FOR_EACH_SET_ROADTYPE(rt, GetRoadTypes(tile)) {
-								c = Company::GetIfValid(GetRoadOwner(tile, rt));
-								if (c != NULL) c->infrastructure.road[rt] += len * 2; // A full diagonal road has two road bits.
-							}
-							break;
+					if (GetTunnelBridgeTransportType(tile) == TRANSPORT_RAIL) {
+						c = Company::GetIfValid(GetTileOwner(tile));
+						if (c != NULL) c->infrastructure.rail[GetRailType(tile)] += len;
+					} else {
+						assert(GetTunnelBridgeTransportType(tile) == TRANSPORT_ROAD);
+						/* Iterate all present road types as each can have a different owner. */
+						RoadType rt;
+						FOR_EACH_SET_ROADTYPE(rt, GetRoadTypes(tile)) {
+							c = Company::GetIfValid(GetRoadOwner(tile, rt));
+							if (c != NULL) c->infrastructure.road[rt] += len * 2; // A full diagonal road has two road bits.
 						}
-
-						case TRANSPORT_WATER:
-							c = Company::GetIfValid(GetTileOwner(tile));
-							if (c != NULL) c->infrastructure.water += len;
-							break;
-
-						default:
-							break;
 					}
 				}
 				break;
