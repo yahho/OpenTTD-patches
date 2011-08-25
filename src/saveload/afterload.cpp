@@ -756,7 +756,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 					break;
 
 				case TT_TUNNELBRIDGE_TEMP:
-					if (GetTunnelBridgeTransportType(t) != TRANSPORT_RAIL) continue;
+					if (GetTunnelTransportType(t) != TRANSPORT_RAIL) continue;
 					break;
 
 				default:

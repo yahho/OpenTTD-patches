@@ -95,7 +95,7 @@ static TrackBits GetRailTrackBitsUniversal(TileIndex t, byte *override)
 			return DiagDirToDiagTrackBits(GetTunnelBridgeDirection(t));
 
 		case TT_TUNNELBRIDGE_TEMP:
-			if (GetTunnelBridgeTransportType(t) != TRANSPORT_RAIL) return TRACK_BIT_NONE;
+			if (GetTunnelTransportType(t) != TRANSPORT_RAIL) return TRACK_BIT_NONE;
 			if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
 			if (override != NULL) {
 				*override = 1 << GetTunnelBridgeDirection(t);

@@ -37,7 +37,7 @@ TrackBits GetReservedTrackbits(TileIndex t)
 			break;
 
 		case TT_TUNNELBRIDGE_TEMP:
-			if (GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL) return GetTunnelBridgeReservationTrackBits(t);
+			if (GetTunnelTransportType(t) == TRANSPORT_RAIL) return GetTunnelBridgeReservationTrackBits(t);
 			break;
 
 		default:
@@ -118,7 +118,7 @@ bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations)
 			break;
 
 		case TT_TUNNELBRIDGE_TEMP:
-			if (GetTunnelBridgeTransportType(tile) == TRANSPORT_RAIL && !GetTunnelBridgeReservationTrackBits(tile)) {
+			if (GetTunnelTransportType(tile) == TRANSPORT_RAIL && !GetTunnelBridgeReservationTrackBits(tile)) {
 				SetTunnelBridgeReservation(tile, true);
 				return true;
 			}
@@ -168,7 +168,7 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 			break;
 
 		case TT_TUNNELBRIDGE_TEMP:
-			if (GetTunnelBridgeTransportType(tile) == TRANSPORT_RAIL) SetTunnelBridgeReservation(tile, false);
+			if (GetTunnelTransportType(tile) == TRANSPORT_RAIL) SetTunnelBridgeReservation(tile, false);
 			break;
 
 		default:

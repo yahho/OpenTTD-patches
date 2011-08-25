@@ -1189,7 +1189,7 @@ static bool CheckSignalAutoFill(TileIndex &tile, Trackdir &trackdir, int &signal
 			return true;
 
 		case TT_TUNNELBRIDGE_TEMP: {
-			if (GetTunnelBridgeTransportType(tile) != TRANSPORT_RAIL) return false;
+			if (GetTunnelTransportType(tile) != TRANSPORT_RAIL) return false;
 		bridge:
 			TileIndex orig_tile = tile; // backup old value
 
@@ -1546,7 +1546,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 				if (!HasStationRail(tile)) continue;
 				break;
 			case TT_TUNNELBRIDGE_TEMP:
-				if (GetTunnelBridgeTransportType(tile) != TRANSPORT_RAIL) continue;
+				if (GetTunnelTransportType(tile) != TRANSPORT_RAIL) continue;
 				break;
 			default: continue;
 		}

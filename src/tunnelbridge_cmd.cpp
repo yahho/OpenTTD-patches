@@ -567,7 +567,7 @@ static CommandCost ClearTile_TunnelBridge(TileIndex tile, DoCommandFlag flags)
 	if (flags & DC_AUTO) return_cmd_error(STR_ERROR_MUST_DEMOLISH_TUNNEL_FIRST);
 
 	if (_current_company != OWNER_WATER && _game_mode != GM_EDITOR) {
-		if (GetTunnelBridgeTransportType(tile) == TRANSPORT_RAIL) {
+		if (GetTunnelTransportType(tile) == TRANSPORT_RAIL) {
 			CommandCost ret = CheckOwnership(GetTileOwner(tile));
 			if (ret.Failed()) return ret;
 		} else {
@@ -620,7 +620,7 @@ static CommandCost ClearTile_TunnelBridge(TileIndex tile, DoCommandFlag flags)
 	uint len = GetTunnelBridgeLength(tile, endtile) + 2; // Don't forget the end tiles.
 
 	if (flags & DC_EXEC) {
-		if (GetTunnelBridgeTransportType(tile) == TRANSPORT_RAIL) {
+		if (GetTunnelTransportType(tile) == TRANSPORT_RAIL) {
 			/* We first need to request values before calling DoClearSquare */
 			DiagDirection dir = GetTunnelBridgeDirection(tile);
 			Track track = DiagDirToDiagTrack(dir);
@@ -673,7 +673,7 @@ static CommandCost ClearTile_TunnelBridge(TileIndex tile, DoCommandFlag flags)
  */
 static void DrawTile_TunnelBridge(TileInfo *ti)
 {
-	TransportType transport_type = GetTunnelBridgeTransportType(ti->tile);
+	TransportType transport_type = GetTunnelTransportType(ti->tile);
 	DiagDirection tunnelbridge_direction = GetTunnelBridgeDirection(ti->tile);
 
 	assert(IsTunnel(ti->tile));
@@ -797,7 +797,7 @@ static Foundation GetFoundation_TunnelBridge(TileIndex tile, Slope tileh)
 
 static void GetTileDesc_TunnelBridge(TileIndex tile, TileDesc *td)
 {
-	TransportType tt = GetTunnelBridgeTransportType(tile);
+	TransportType tt = GetTunnelTransportType(tile);
 
 	assert(IsTunnel(tile));
 
@@ -861,7 +861,7 @@ static void TileLoop_TunnelBridge(TileIndex tile)
 
 static TrackStatus GetTileTrackStatus_TunnelBridge(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
 {
-	TransportType transport_type = GetTunnelBridgeTransportType(tile);
+	TransportType transport_type = GetTunnelTransportType(tile);
 	if (transport_type != mode || (transport_type == TRANSPORT_ROAD && (GetRoadTypes(tile) & sub_mode) == 0)) return 0;
 
 	DiagDirection dir = GetTunnelBridgeDirection(tile);
@@ -894,7 +894,7 @@ static void ChangeTileOwner_TunnelBridge(TileIndex tile, Owner old_owner, Owner 
 
 	/* Update company infrastructure counts for rail and water as well.
 	 * No need to dirty windows here, we'll redraw the whole screen anyway. */
-	TransportType tt = GetTunnelBridgeTransportType(tile);
+	TransportType tt = GetTunnelTransportType(tile);
 	Company *old = Company::Get(old_owner);
 	if (tt == TRANSPORT_RAIL) {
 		old->infrastructure.rail[GetRailType(tile)] -= num_pieces;

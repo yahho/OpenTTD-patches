@@ -40,8 +40,8 @@ static inline DiagDirection GetTunnelBridgeDirection(TileIndex t)
  */
 static inline TransportType GetTunnelBridgeTransportType(TileIndex t)
 {
-	if (IsTunnelBridgeTile(t)) {
-		return (TransportType)GB(_mc[t].m5, 2, 2);
+	if (IsTunnelTile(t)) {
+		return GetTunnelTransportType(t);
 	} else if (IsRailBridgeTile(t)) {
 		return TRANSPORT_RAIL;
 	} else if (IsRoadBridgeTile(t)) {
@@ -94,37 +94,37 @@ static inline TileIndex GetOtherTunnelBridgeEnd(TileIndex t)
 
 /**
  * Get the reservation state of the rail tunnel/bridge
- * @pre (IsTunnelBridgeTile(t) && GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL) || IsRailBridgeTile(t)
+ * @pre (IsTunnelTile(t) && GetTunnelTransportType(t) == TRANSPORT_RAIL) || IsRailBridgeTile(t)
  * @param t the tile
  * @return reservation state
  */
 static inline bool HasTunnelBridgeReservation(TileIndex t)
 {
 	if (!IsRailBridgeTile(t)) {
-		assert(IsTunnelBridgeTile(t));
-		assert(GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL);
+		assert(IsTunnelTile(t));
+		assert(GetTunnelTransportType(t) == TRANSPORT_RAIL);
 	}
 	return HasBit(_mc[t].m5, 4);
 }
 
 /**
  * Set the reservation state of the rail tunnel/bridge
- * @pre (IsTunnelBridgeTile(t) && GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL) || IsRailBridgeTile(t)
+ * @pre (IsTunnelTile(t) && GetTunnelTransportType(t) == TRANSPORT_RAIL) || IsRailBridgeTile(t)
  * @param t the tile
  * @param b the reservation state
  */
 static inline void SetTunnelBridgeReservation(TileIndex t, bool b)
 {
 	if (!IsRailBridgeTile(t)) {
-		assert(IsTunnelBridgeTile(t));
-		assert(GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL);
+		assert(IsTunnelTile(t));
+		assert(GetTunnelTransportType(t) == TRANSPORT_RAIL);
 	}
 	SB(_mc[t].m5, 4, 1, b ? 1 : 0);
 }
 
 /**
  * Get the reserved track bits for a rail tunnel/bridge
- * @pre (IsTunnelBridgeTile(t) && GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL) || IsRailBridgeTile(t)
+ * @pre (IsTunnelTile(t) && GetTunnelTransportType(t) == TRANSPORT_RAIL) || IsRailBridgeTile(t)
  * @param t the tile
  * @return reserved track bits
  */

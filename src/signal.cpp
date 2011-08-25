@@ -388,7 +388,7 @@ static SigFlags ExploreSegment(Owner owner)
 
 			case TT_TUNNELBRIDGE_TEMP: {
 				if (GetTileOwner(tile) != owner) continue;
-				if (GetTunnelBridgeTransportType(tile) != TRANSPORT_RAIL) continue;
+				if (GetTunnelTransportType(tile) != TRANSPORT_RAIL) continue;
 				DiagDirection dir = GetTunnelBridgeDirection(tile);
 
 				if (enterdir == INVALID_DIAGDIR) { // incoming from the wormhole
@@ -510,7 +510,7 @@ static SigSegState UpdateSignalsInBuffer(Owner owner)
 
 			case TT_TUNNELBRIDGE_TEMP:
 				/* 'optimization assert' - do not try to update signals when it is not needed */
-				assert(GetTunnelBridgeTransportType(tile) == TRANSPORT_RAIL);
+				assert(GetTunnelTransportType(tile) == TRANSPORT_RAIL);
 			bridge_head:
 				assert(dir == INVALID_DIAGDIR || dir == ReverseDiagDir(GetTunnelBridgeDirection(tile)));
 				_tbdset.Add(tile, INVALID_DIAGDIR);  // we can safely start from wormhole centre

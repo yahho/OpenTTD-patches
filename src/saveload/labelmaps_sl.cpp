@@ -68,7 +68,7 @@ void AfterLoadLabelMaps()
 					break;
 
 				case TT_TUNNELBRIDGE_TEMP:
-					if (GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL) {
+					if (GetTunnelTransportType(t) == TRANSPORT_RAIL) {
 						SetRailType(t, railtype_conversion_map[GetRailType(t)]);
 					}
 					break;

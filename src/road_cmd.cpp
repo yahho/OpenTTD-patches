@@ -191,7 +191,7 @@ CommandCost RemoveRoad(TileIndex tile, DoCommandFlag flags, RoadBits pieces, Roa
 		}
 
 		case TT_TUNNELBRIDGE_TEMP: {
-			if (GetTunnelBridgeTransportType(tile) != TRANSPORT_ROAD) return CMD_ERROR;
+			if (GetTunnelTransportType(tile) != TRANSPORT_ROAD) return CMD_ERROR;
 			CommandCost ret = TunnelBridgeIsFree(tile, GetOtherTunnelBridgeEnd(tile));
 			if (ret.Failed()) return ret;
 			break;
@@ -693,7 +693,7 @@ CommandCost CmdBuildRoad(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 		}
 
 		case TT_TUNNELBRIDGE_TEMP: {
-			if (GetTunnelBridgeTransportType(tile) != TRANSPORT_ROAD) goto do_clear;
+			if (GetTunnelTransportType(tile) != TRANSPORT_ROAD) goto do_clear;
 			/* Only allow building the outern roadbit, so building long roads stops at existing bridges */
 			if (MirrorRoadBits(DiagDirToRoadBits(GetTunnelBridgeDirection(tile))) != pieces) goto do_clear;
 			if (HasTileRoadType(tile, rt)) return_cmd_error(STR_ERROR_ALREADY_BUILT);

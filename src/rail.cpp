@@ -153,7 +153,7 @@ RailType GetTileRailType(TileIndex tile)
 			break;
 
 		case TT_TUNNELBRIDGE_TEMP:
-			if (GetTunnelBridgeTransportType(tile) == TRANSPORT_RAIL) return GetRailType(tile);
+			if (GetTunnelTransportType(tile) == TRANSPORT_RAIL) return GetRailType(tile);
 			break;
 
 		default:

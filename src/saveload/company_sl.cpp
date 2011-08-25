@@ -265,11 +265,11 @@ void AfterLoadCompanyStats()
 					 * the higher structural maintenance needs, and don't forget the end tiles. */
 					uint len = (GetTunnelBridgeLength(tile, other_end) + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
 
-					if (GetTunnelBridgeTransportType(tile) == TRANSPORT_RAIL) {
+					if (GetTunnelTransportType(tile) == TRANSPORT_RAIL) {
 						c = Company::GetIfValid(GetTileOwner(tile));
 						if (c != NULL) c->infrastructure.rail[GetRailType(tile)] += len;
 					} else {
-						assert(GetTunnelBridgeTransportType(tile) == TRANSPORT_ROAD);
+						assert(GetTunnelTransportType(tile) == TRANSPORT_ROAD);
 						/* Iterate all present road types as each can have a different owner. */
 						RoadType rt;
 						FOR_EACH_SET_ROADTYPE(rt, GetRoadTypes(tile)) {

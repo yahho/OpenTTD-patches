@@ -37,6 +37,18 @@ static inline bool IsTunnelTile(TileIndex t)
 	return IsTunnelBridgeTile(t) && IsTunnel(t);
 }
 
+/**
+ * Get the transport type of the tunnel (road or rail)
+ * @param t The tile to analyze
+ * @pre IsTunnelTile(t)
+ * @return the transport type in the tunnel
+ */
+static inline TransportType GetTunnelTransportType(TileIndex t)
+{
+	assert(IsTunnelTile(t));
+	return (TransportType)GB(_mc[t].m5, 2, 2);
+}
+
 TileIndex GetOtherTunnelEnd(TileIndex);
 bool IsTunnelInWay(TileIndex, int z);
 bool IsTunnelInWayDir(TileIndex tile, int z, DiagDirection dir);

@@ -423,7 +423,7 @@ static inline SmallmapTileType GetEffectiveTileType(TileIndex tile)
 		case TT_GROUND:   return IsTileSubtype(tile, TT_GROUND_VOID) ? SMTT_VOID : SMTT_CLEAR;
 		case TT_WATER:    return SMTT_WATER;
 		case TT_TUNNELBRIDGE_TEMP:
-			switch (GetTunnelBridgeTransportType(tile)) {
+			switch (GetTunnelTransportType(tile)) {
 				case TRANSPORT_RAIL: return SMTT_RAILWAY;
 				case TRANSPORT_ROAD: return SMTT_ROAD;
 				default: NOT_REACHED();

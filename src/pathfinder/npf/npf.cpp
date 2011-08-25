@@ -683,7 +683,7 @@ static bool CanEnterTileOwnerCheck(Owner owner, TileIndex tile, DiagDirection en
 			break;
 
 		case TT_TUNNELBRIDGE_TEMP:
-			if (GetTunnelBridgeTransportType(tile) == TRANSPORT_RAIL) {
+			if (GetTunnelTransportType(tile) == TRANSPORT_RAIL) {
 				return IsTileOwner(tile, owner);
 			}
 			break;
