@@ -867,6 +867,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 						}
 					} else { // tunnel
 						_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_TUNNELBRIDGE_TEMP << 4);
+						SB(_mc[t].m5, 6, 2, GB(_mc[t].m5, 2, 2));
 					}
 					break;
 

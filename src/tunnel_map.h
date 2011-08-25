@@ -46,7 +46,7 @@ static inline bool IsTunnelTile(TileIndex t)
 static inline TransportType GetTunnelTransportType(TileIndex t)
 {
 	assert(IsTunnelTile(t));
-	return (TransportType)GB(_mc[t].m5, 2, 2);
+	return (TransportType)GB(_mc[t].m5, 6, 2);
 }
 
 TileIndex GetOtherTunnelEnd(TileIndex);
@@ -67,7 +67,7 @@ static inline void MakeRoadTunnel(TileIndex t, Owner o, DiagDirection d, RoadTyp
 	_mc[t].m2 = 0;
 	_mc[t].m3 = 0;
 	_mc[t].m4 = 0;
-	_mc[t].m5 = TRANSPORT_ROAD << 2 | d;
+	_mc[t].m5 = (TRANSPORT_ROAD << 6) | d;
 	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m7 = 0;
 	SetRoadOwner(t, ROADTYPE_ROAD, o);
@@ -89,7 +89,7 @@ static inline void MakeRailTunnel(TileIndex t, Owner o, DiagDirection d, RailTyp
 	_mc[t].m2 = 0;
 	_mc[t].m3 = r;
 	_mc[t].m4 = 0;
-	_mc[t].m5 = TRANSPORT_RAIL << 2 | d;
+	_mc[t].m5 = (TRANSPORT_RAIL << 6) | d;
 	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m7 = 0;
 }
