@@ -76,6 +76,30 @@ static inline bool HasBridgeAbove(TileIndex t)
 }
 
 /**
+ * Determines the type of rail bridge on a tile
+ * @param t The tile to analyze
+ * @pre IsRailBridgeTile(t)
+ * @return The bridge type
+ */
+static inline BridgeType GetRailBridgeType(TileIndex t)
+{
+	assert(IsRailBridgeTile(t));
+	return _mc[t].m4;
+}
+
+/**
+ * Determines the type of road bridge on a tile
+ * @param t The tile to analyze
+ * @pre IsRoadBridgeTile(t)
+ * @return The bridge type
+ */
+static inline BridgeType GetRoadBridgeType(TileIndex t)
+{
+	assert(IsRoadBridgeTile(t));
+	return _mc[t].m4;
+}
+
+/**
  * Determines the type of bridge on a tile
  * @param t The tile to analyze
  * @pre IsBridgeHeadTile(t)
@@ -83,8 +107,8 @@ static inline bool HasBridgeAbove(TileIndex t)
  */
 static inline BridgeType GetBridgeType(TileIndex t)
 {
-	assert(IsBridgeHeadTile(t));
-	return _mc[t].m4;
+	return IsRailwayTile(t) ? GetRailBridgeType(t) :
+		IsRoadTile(t) ? GetRoadBridgeType(t) : 0;
 }
 
 /**

@@ -182,7 +182,7 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 
 				/* You must own all of the roadtypes if downgrading. */
 				if (!(flags & DC_QUERY_COST) &&
-						GetBridgeSpec(bridge_type)->speed < GetBridgeSpec(GetBridgeType(tile_start))->speed &&
+						GetBridgeSpec(bridge_type)->speed < GetBridgeSpec(GetRoadBridgeType(tile_start))->speed &&
 						_game_mode != GM_EDITOR) {
 					if (owner_road == OWNER_TOWN) {
 						Town *t = ClosestTownFromTile(tile_start, UINT_MAX);

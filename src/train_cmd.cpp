@@ -407,7 +407,7 @@ int Train::GetCurrentMaxSpeed() const
 
 		/* Vehicle is on the middle part of a bridge. */
 		if (u->track == TRACK_BIT_WORMHOLE && !(u->vehstatus & VS_HIDDEN)) {
-			max_speed = min(max_speed, GetBridgeSpec(GetBridgeType(u->tile))->speed);
+			max_speed = min(max_speed, GetBridgeSpec(GetRailBridgeType(u->tile))->speed);
 		}
 	}
 

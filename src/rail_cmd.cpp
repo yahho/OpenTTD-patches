@@ -2363,7 +2363,7 @@ static void DrawTile_Track(TileInfo *ti)
 		DiagDirection dir = GetTunnelBridgeDirection(ti->tile);
 
 		assert(rti->bridge_offset != 8); // This one is used for roads
-		const PalSpriteID *psid = GetBridgeRampSprite(GetBridgeType(ti->tile), rti->bridge_offset, ti->tileh, dir);
+		const PalSpriteID *psid = GetBridgeRampSprite(GetRailBridgeType(ti->tile), rti->bridge_offset, ti->tileh, dir);
 
 		/* Draw PBS Reservation as SpriteCombine */
 		StartSpriteCombine();
@@ -2717,7 +2717,7 @@ static void GetTileDesc_Track(TileIndex tile, TileDesc *td)
 			td->str = STR_LAI_RAIL_DESCRIPTION_TRACK;
 		}
 	} else {
-		const BridgeSpec *spec = GetBridgeSpec(GetBridgeType(tile));
+		const BridgeSpec *spec = GetBridgeSpec(GetRailBridgeType(tile));
 		td->str = spec->transport_name[TRANSPORT_RAIL];
 
 		uint16 spd = spec->speed;
@@ -2782,7 +2782,7 @@ static VehicleEnterTileStatus VehicleEnter_Track(Vehicle *v, TileIndex tile, int
 	assert(v->type == VEH_TRAIN);
 
 	/* modify speed of vehicle */
-	uint16 spd = GetBridgeSpec(GetBridgeType(tile))->speed;
+	uint16 spd = GetBridgeSpec(GetRailBridgeType(tile))->speed;
 	Vehicle *first = v->First();
 	first->cur_speed = min(first->cur_speed, spd);
 

@@ -1376,7 +1376,7 @@ static void DrawTile_Road(TileInfo *ti)
 
 		DiagDirection dir = GetTunnelBridgeDirection(ti->tile);
 
-		const PalSpriteID *psid = GetBridgeRampSprite(GetBridgeType(ti->tile), 8, ti->tileh, dir);
+		const PalSpriteID *psid = GetBridgeRampSprite(GetRoadBridgeType(ti->tile), 8, ti->tileh, dir);
 
 		/* Draw Trambits as SpriteCombine */
 		StartSpriteCombine();
@@ -1738,7 +1738,7 @@ static void GetTileDesc_Road(TileIndex tile, TileDesc *td)
 		}
 		td->str = _road_tile_strings[GetRoadside(tile)];
 	} else {
-		td->str = GetBridgeSpec(GetBridgeType(tile))->transport_name[TRANSPORT_ROAD];
+		td->str = GetBridgeSpec(GetRoadBridgeType(tile))->transport_name[TRANSPORT_ROAD];
 		if (!HasBit(rts, ROADTYPE_ROAD)) {
 			td->owner[0] = tram_owner;
 			return;
@@ -1777,7 +1777,7 @@ static VehicleEnterTileStatus VehicleEnter_Road(Vehicle *v, TileIndex tile, int 
 	assert(v->type == VEH_ROAD);
 
 	/* modify speed of vehicle */
-	uint16 spd = GetBridgeSpec(GetBridgeType(tile))->speed * 2;
+	uint16 spd = GetBridgeSpec(GetRoadBridgeType(tile))->speed * 2;
 	Vehicle *first = v->First();
 	first->cur_speed = min(first->cur_speed, spd);
 
