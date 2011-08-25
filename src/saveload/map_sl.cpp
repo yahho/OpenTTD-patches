@@ -851,13 +851,13 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 							case 0: // rail
 								_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_RAILWAY << 4);
 								SB(_mc[t].m1, 6, 2, TT_BRIDGE);
-								_mc[t].m4 = type;
+								SB(_mc[t].m2, 12, 4, type);
 								break;
 							case 1: // road
 								_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_ROAD << 4);
 								SB(_mc[t].m1, 6, 2, TT_BRIDGE);
 								if (HasBit(_mc[t].m7, 6)) SB(_mc[t].m1, 0, 5, GB(_mc[t].m7, 0, 5));
-								_mc[t].m4 = type;
+								SB(_mc[t].m7, 0, 4, type);
 								break;
 							case 2: // aqueduct
 								_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_MISC << 4);

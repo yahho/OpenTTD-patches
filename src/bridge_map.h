@@ -84,7 +84,7 @@ static inline bool HasBridgeAbove(TileIndex t)
 static inline BridgeType GetRailBridgeType(TileIndex t)
 {
 	assert(IsRailBridgeTile(t));
-	return _mc[t].m4;
+	return GB(_mc[t].m2, 12, 4);
 }
 
 /**
@@ -96,7 +96,7 @@ static inline BridgeType GetRailBridgeType(TileIndex t)
 static inline BridgeType GetRoadBridgeType(TileIndex t)
 {
 	assert(IsRoadBridgeTile(t));
-	return _mc[t].m4;
+	return GB(_mc[t].m7, 0, 4);
 }
 
 /**
@@ -177,17 +177,16 @@ static inline void SetBridgeMiddle(TileIndex t, Axis a)
  * Generic part to make a bridge ramp for both roads and rails.
  * @param t          the tile to make a bridge ramp
  * @param o          the new owner of the bridge ramp
- * @param bridgetype the type of bridge this bridge ramp belongs to
  * @param d          the direction this ramp must be facing
  * @param rt         the road or rail type
  * @note this function should not be called directly.
  */
-static inline void MakeBridgeRamp(TileIndex t, Owner o, BridgeType bridgetype, DiagDirection d, uint rt)
+static inline void MakeBridgeRamp(TileIndex t, Owner o, DiagDirection d, uint rt)
 {
 	SetTileOwner(t, o);
 	_mc[t].m2 = 0;
 	_mc[t].m3 = rt;
-	_mc[t].m4 = bridgetype;
+	_mc[t].m4 = 0;
 	_mc[t].m5 = d;
 	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m7 = 0;
@@ -205,7 +204,8 @@ static inline void MakeBridgeRamp(TileIndex t, Owner o, BridgeType bridgetype, D
 static inline void MakeRoadBridgeRamp(TileIndex t, Owner owner_road, Owner owner_tram, BridgeType bridgetype, DiagDirection d, RoadTypes r)
 {
 	SetTileTypeSubtype(t, TT_ROAD, TT_BRIDGE);
-	MakeBridgeRamp(t, owner_road, bridgetype, d, 0);
+	MakeBridgeRamp(t, owner_road, d, 0);
+	SB(_mc[t].m7, 0, 4, bridgetype);
 	if (owner_tram != OWNER_TOWN) SetRoadOwner(t, ROADTYPE_TRAM, owner_tram);
 	SetRoadTypes(t, r);
 }
@@ -221,7 +221,8 @@ static inline void MakeRoadBridgeRamp(TileIndex t, Owner owner_road, Owner owner
 static inline void MakeRailBridgeRamp(TileIndex t, Owner o, BridgeType bridgetype, DiagDirection d, RailType r)
 {
 	SetTileTypeSubtype(t, TT_RAILWAY, TT_BRIDGE);
-	MakeBridgeRamp(t, o, bridgetype, d, r);
+	MakeBridgeRamp(t, o, d, r);
+	SB(_mc[t].m2, 12, 4, bridgetype);
 }
 
 /**
@@ -233,7 +234,7 @@ static inline void MakeRailBridgeRamp(TileIndex t, Owner o, BridgeType bridgetyp
 static inline void MakeAqueductBridgeRamp(TileIndex t, Owner o, DiagDirection d)
 {
 	SetTileTypeSubtype(t, TT_MISC, TT_MISC_AQUEDUCT);
-	MakeBridgeRamp(t, o, 0, d, 0);
+	MakeBridgeRamp(t, o, d, 0);
 }
 
 #endif /* BRIDGE_MAP_H */
