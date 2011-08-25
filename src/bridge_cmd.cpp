@@ -403,7 +403,6 @@ void DrawBridgeMiddle(const TileInfo *ti)
 
 	TileIndex rampnorth = GetNorthernBridgeEnd(ti->tile);
 	TileIndex rampsouth = GetSouthernBridgeEnd(ti->tile);
-	TransportType transport_type = GetTunnelBridgeTransportType(rampsouth);
 
 	Axis axis = GetBridgeAxis(ti->tile);
 	BridgePieces piece = CalcBridgePiece(
@@ -411,23 +410,33 @@ void DrawBridgeMiddle(const TileInfo *ti)
 		GetTunnelBridgeLength(ti->tile, rampsouth) + 1
 	);
 
+	TransportType transport_type;
 	const PalSpriteID *psid;
 	bool drawfarpillar;
-	if (transport_type != TRANSPORT_WATER) {
-		BridgeType type =  GetBridgeType(rampsouth);
-		drawfarpillar = !HasBit(GetBridgeSpec(type)->flags, 0);
 
+	if (IsTileType(rampsouth, TT_MISC)) {
+		assert(IsAqueductTile(rampsouth));
+		transport_type = TRANSPORT_WATER;
+		psid = _aqueduct_sprites;
+		drawfarpillar = true;
+	} else {
+		assert(IsTileSubtype(rampsouth, TT_BRIDGE));
+
+		BridgeType type;
 		uint base_offset;
-		if (transport_type == TRANSPORT_RAIL) {
+
+		if (IsRailwayTile(rampsouth)) {
+			transport_type = TRANSPORT_RAIL;
+			type = GetRailBridgeType(rampsouth);
 			base_offset = GetRailTypeInfo(GetRailType(rampsouth))->bridge_offset;
 		} else {
+			transport_type = TRANSPORT_ROAD;
+			type = GetRoadBridgeType(rampsouth);
 			base_offset = 8;
 		}
 
 		psid = base_offset + GetBridgeSpriteTable(type, piece);
-	} else {
-		drawfarpillar = true;
-		psid = _aqueduct_sprites;
+		drawfarpillar = !HasBit(GetBridgeSpec(type)->flags, 0);
 	}
 
 	if (axis != AXIS_X) psid += 4;
