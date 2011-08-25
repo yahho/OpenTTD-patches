@@ -40,28 +40,6 @@ static inline bool IsBridgeHeadTile(TileIndex t)
 
 
 /**
- * Checks if this is a bridge, instead of a tunnel
- * @param t The tile to analyze
- * @pre IsTunnelBridgeTile(t)
- * @return true if the structure is a bridge one
- */
-static inline bool IsBridge(TileIndex t)
-{
-	assert(IsTunnelBridgeTile(t));
-	return HasBit(_mc[t].m5, 7);
-}
-
-/**
- * checks if there is a bridge on this tile
- * @param t The tile to analyze
- * @return true if a bridge is present
- */
-static inline bool IsBridgeTile(TileIndex t)
-{
-	return IsTunnelBridgeTile(t) && IsBridge(t);
-}
-
-/**
  * checks for the possibility that a bridge may be on this tile
  * These are in fact all the tile types on which a bridge can be found
  * @param t The tile to analyze
