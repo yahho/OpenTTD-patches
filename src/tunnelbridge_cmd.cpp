@@ -555,40 +555,6 @@ CommandCost CmdBuildTunnel(TileIndex start_tile, DoCommandFlag flags, uint32 p1,
 
 
 /**
- * Are we allowed to remove the tunnel at \a tile?
- * @param tile End point of the tunnel.
- * @return A succeeded command if the tunnel may be removed, a failed command otherwise.
- */
-static inline CommandCost CheckAllowRemoveTunnel(TileIndex tile)
-{
-	/* Floods can remove anything as well as the scenario editor */
-	if (_current_company == OWNER_WATER || _game_mode == GM_EDITOR) return CommandCost();
-
-	if (GetTunnelBridgeTransportType(tile) == TRANSPORT_RAIL) {
-		return CheckOwnership(GetTileOwner(tile));
-	} else {
-		RoadTypes rts = GetRoadTypes(tile);
-		Owner road_owner = _current_company;
-		Owner tram_owner = _current_company;
-
-		if (HasBit(rts, ROADTYPE_ROAD)) road_owner = GetRoadOwner(tile, ROADTYPE_ROAD);
-		if (HasBit(rts, ROADTYPE_TRAM)) tram_owner = GetRoadOwner(tile, ROADTYPE_TRAM);
-
-		/* We can remove unowned road and if the town allows it */
-		if (road_owner == OWNER_TOWN && !(_settings_game.construction.extra_dynamite || _cheats.magic_bulldozer.value)) {
-			return CheckTileOwnership(tile);
-		}
-		if (road_owner == OWNER_NONE || road_owner == OWNER_TOWN) road_owner = _current_company;
-		if (tram_owner == OWNER_NONE) tram_owner = _current_company;
-
-		CommandCost ret = CheckOwnership(road_owner, tile);
-		if (ret.Succeeded()) ret = CheckOwnership(tram_owner, tile);
-		return ret;
-	}
-}
-
-
-/**
  * Remove a tunnel from the game.
  * @param tile Tile containing one of the endpoints.
  * @param flags Command flags.
@@ -600,12 +566,37 @@ static CommandCost ClearTile_TunnelBridge(TileIndex tile, DoCommandFlag flags)
 
 	if (flags & DC_AUTO) return_cmd_error(STR_ERROR_MUST_DEMOLISH_TUNNEL_FIRST);
 
-	CommandCost ret = CheckAllowRemoveTunnel(tile);
-	if (ret.Failed()) return ret;
+	if (_current_company != OWNER_WATER && _game_mode != GM_EDITOR) {
+		if (GetTunnelBridgeTransportType(tile) == TRANSPORT_RAIL) {
+			CommandCost ret = CheckOwnership(GetTileOwner(tile));
+			if (ret.Failed()) return ret;
+		} else {
+			RoadTypes rts = GetRoadTypes(tile);
+			Owner road_owner = _current_company;
+			Owner tram_owner = _current_company;
+
+			if (HasBit(rts, ROADTYPE_ROAD)) road_owner = GetRoadOwner(tile, ROADTYPE_ROAD);
+			if (HasBit(rts, ROADTYPE_TRAM)) tram_owner = GetRoadOwner(tile, ROADTYPE_TRAM);
+
+			/* We can remove unowned road and if the town allows it */
+			if (road_owner == OWNER_TOWN && !(_settings_game.construction.extra_dynamite || _cheats.magic_bulldozer.value)) {
+				CommandCost ret = CheckTileOwnership(tile);
+				if (ret.Failed()) return ret;
+			} else {
+				if (road_owner == OWNER_NONE || road_owner == OWNER_TOWN) road_owner = _current_company;
+				if (tram_owner == OWNER_NONE) tram_owner = _current_company;
+
+				CommandCost ret = CheckOwnership(road_owner, tile);
+				if (ret.Failed()) return ret;
+				ret = CheckOwnership(tram_owner, tile);
+				if (ret.Failed()) return ret;
+			}
+		}
+	}
 
 	TileIndex endtile = GetOtherTunnelEnd(tile);
 
-	ret = TunnelBridgeIsFree(tile, endtile);
+	CommandCost ret = TunnelBridgeIsFree(tile, endtile);
 	if (ret.Failed()) return ret;
 
 	_build_tunnel_endtile = endtile;
