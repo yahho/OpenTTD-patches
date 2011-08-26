@@ -748,15 +748,21 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 					break;
 
 				case TT_MISC:
-					if (!IsLevelCrossingTile(t) && !IsRailDepotTile(t)) continue;
+					switch (GetTileSubtype(t)) {
+						default: NOT_REACHED();
+						case TT_MISC_CROSSING: break;
+						case TT_MISC_AQUEDUCT: continue;
+						case TT_MISC_TUNNEL:
+							if (GetTunnelTransportType(t) != TRANSPORT_RAIL) continue;
+							break;
+						case TT_MISC_DEPOT:
+							if (!IsRailDepot(t)) continue;
+							break;
+					}
 					break;
 
 				case TT_STATION:
 					if (!HasStationRail(t)) continue;
-					break;
-
-				case TT_TUNNELBRIDGE_TEMP:
-					if (GetTunnelTransportType(t) != TRANSPORT_RAIL) continue;
 					break;
 
 				default:

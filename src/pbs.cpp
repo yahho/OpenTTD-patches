@@ -28,16 +28,21 @@ TrackBits GetReservedTrackbits(TileIndex t)
 			return IsTileSubtype(t, TT_BRIDGE) ? GetTunnelBridgeReservationTrackBits(t) : GetRailReservationTrackBits(t);
 
 		case TT_MISC:
-			if (IsLevelCrossingTile(t)) return GetCrossingReservationTrackBits(t);
-			if (IsRailDepotTile(t)) return GetDepotReservationTrackBits(t);
+			switch (GetTileSubtype(t)) {
+				case TT_MISC_CROSSING: return GetCrossingReservationTrackBits(t);
+				case TT_MISC_TUNNEL:
+					if (GetTunnelTransportType(t) == TRANSPORT_RAIL) return GetTunnelBridgeReservationTrackBits(t);
+					break;
+				case TT_MISC_DEPOT:
+					if (IsRailDepot(t)) return GetDepotReservationTrackBits(t);
+					break;
+				default:
+					break;
+			}
 			break;
 
 		case TT_STATION:
 			if (HasStationRail(t)) return GetStationReservationTrackBits(t);
-			break;
-
-		case TT_TUNNELBRIDGE_TEMP:
-			if (GetTunnelTransportType(t) == TRANSPORT_RAIL) return GetTunnelBridgeReservationTrackBits(t);
 			break;
 
 		default:
@@ -95,16 +100,30 @@ bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations)
 			break;
 
 		case TT_MISC:
-			if (IsLevelCrossingTile(tile) && !HasCrossingReservation(tile)) {
-				SetCrossingReservation(tile, true);
-				BarCrossing(tile);
-				MarkTileDirtyByTile(tile); // crossing barred, make tile dirty
-				return true;
-			}
-			if (IsRailDepotTile(tile) && !HasDepotReservation(tile)) {
-				SetDepotReservation(tile, true);
-				MarkTileDirtyByTile(tile); // some GRFs change their appearance when tile is reserved
-				return true;
+			switch (GetTileSubtype(tile)) {
+				case TT_MISC_CROSSING:
+					if (HasCrossingReservation(tile)) break;
+					SetCrossingReservation(tile, true);
+					BarCrossing(tile);
+					MarkTileDirtyByTile(tile); // crossing barred, make tile dirty
+					return true;
+
+				case TT_MISC_TUNNEL:
+					if (GetTunnelTransportType(tile) == TRANSPORT_RAIL && !GetTunnelBridgeReservationTrackBits(tile)) {
+						SetTunnelBridgeReservation(tile, true);
+						return true;
+					}
+					break;
+
+				case TT_MISC_DEPOT:
+					if (IsRailDepotTile(tile) && !HasDepotReservation(tile)) {
+						SetDepotReservation(tile, true);
+						MarkTileDirtyByTile(tile); // some GRFs change their appearance when tile is reserved
+						return true;
+					}
+					break;
+
+				default: break;
 			}
 			break;
 
@@ -113,13 +132,6 @@ bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations)
 				SetRailStationReservation(tile, true);
 				if (trigger_stations && IsRailStation(tile)) TriggerStationRandomisation(NULL, tile, SRT_PATH_RESERVATION);
 				MarkTileDirtyByTile(tile); // some GRFs need redraw after reserving track
-				return true;
-			}
-			break;
-
-		case TT_TUNNELBRIDGE_TEMP:
-			if (GetTunnelTransportType(tile) == TRANSPORT_RAIL && !GetTunnelBridgeReservationTrackBits(tile)) {
-				SetTunnelBridgeReservation(tile, true);
 				return true;
 			}
 			break;
@@ -149,14 +161,25 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 			break;
 
 		case TT_MISC:
-			if (IsLevelCrossingTile(tile)) {
-				SetCrossingReservation(tile, false);
-				UpdateLevelCrossing(tile);
-			}
-			else if (IsRailDepotTile(tile)) {
-				SetDepotReservation(tile, false);
-				MarkTileDirtyByTile(tile);
-				break;
+			switch (GetTileSubtype(tile)) {
+				case TT_MISC_CROSSING:
+					SetCrossingReservation(tile, false);
+					UpdateLevelCrossing(tile);
+					break;
+
+				case TT_MISC_TUNNEL:
+					if (GetTunnelTransportType(tile) == TRANSPORT_RAIL) SetTunnelBridgeReservation(tile, false);
+					break;
+
+				case TT_MISC_DEPOT:
+					if (IsRailDepot(tile)) {
+						SetDepotReservation(tile, false);
+						MarkTileDirtyByTile(tile);
+					}
+					break;
+
+				default:
+					break;
 			}
 			break;
 
@@ -165,10 +188,6 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 				SetRailStationReservation(tile, false);
 				MarkTileDirtyByTile(tile);
 			}
-			break;
-
-		case TT_TUNNELBRIDGE_TEMP:
-			if (GetTunnelTransportType(tile) == TRANSPORT_RAIL) SetTunnelBridgeReservation(tile, false);
 			break;
 
 		default:
@@ -286,7 +305,7 @@ static void FindTrainOnPathEnd(FindTrainOnTrackInfo *ftoti)
 	}
 
 	/* Special case for bridges/tunnels: check the other end as well. */
-	if (IsTunnelBridgeTile(ftoti->res.tile) || IsRailBridgeTile(ftoti->res.tile)) {
+	if (IsTunnelTile(ftoti->res.tile) || IsRailBridgeTile(ftoti->res.tile)) {
 		FindVehicleOnPos(GetOtherTunnelBridgeEnd(ftoti->res.tile), ftoti, FindTrainOnTrackEnum);
 		if (ftoti->best != NULL) return;
 	}

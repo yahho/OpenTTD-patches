@@ -873,7 +873,8 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 								throw SlCorrupt("Invalid bridge transport type");
 						}
 					} else { // tunnel
-						_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_TUNNELBRIDGE_TEMP << 4);
+						_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_MISC << 4);
+						SB(_mc[t].m1, 6, 2, TT_MISC_TUNNEL);
 						uint tram = GB(_mc[t].m3, 4, 4);
 						SB(_mc[t].m3, 6, 2, GB(_mc[t].m5, 0, 2));
 						SB(_mc[t].m5, 6, 2, GB(_mc[t].m5, 2, 2));

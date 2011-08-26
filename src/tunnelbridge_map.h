@@ -22,12 +22,12 @@
  * Tunnel: Get the direction facing into the tunnel
  * Bridge: Get the direction pointing onto the bridge
  * @param t The tile to analyze
- * @pre IsTunnelBridgeTile(t) || IsBridgeHeadTile(t)
+ * @pre IsTunnelTile(t) || IsBridgeHeadTile(t)
  * @return the above mentioned direction
  */
 static inline DiagDirection GetTunnelBridgeDirection(TileIndex t)
 {
-	assert(IsTunnelBridgeTile(t) || IsBridgeHeadTile(t));
+	assert(IsTunnelTile(t) || IsBridgeHeadTile(t));
 	return (DiagDirection)GB(_mc[t].m3, 6, 2);
 }
 
@@ -35,7 +35,7 @@ static inline DiagDirection GetTunnelBridgeDirection(TileIndex t)
  * Tunnel: Get the transport type of the tunnel (road or rail)
  * Bridge: Get the transport type of the bridge's ramp
  * @param t The tile to analyze
- * @pre IsTunnelBridgeTile(t) || IsBridgeHeadTile(t)
+ * @pre IsTunnelTile(t) || IsBridgeHeadTile(t)
  * @return the transport type in the tunnel/bridge
  */
 static inline TransportType GetTunnelBridgeTransportType(TileIndex t)
@@ -56,12 +56,12 @@ static inline TransportType GetTunnelBridgeTransportType(TileIndex t)
  * Tunnel: Is this tunnel entrance in a snowy or desert area?
  * Bridge: Does the bridge ramp lie in a snow or desert area?
  * @param t The tile to analyze
- * @pre IsTunnelBridgeTile(t) || IsBridgeHeadTile(t)
+ * @pre IsTunnelTile(t) || IsBridgeHeadTile(t)
  * @return true if and only if the tile is in a snowy/desert area
  */
 static inline bool HasTunnelBridgeSnowOrDesert(TileIndex t)
 {
-	assert(IsTunnelBridgeTile(t) || IsBridgeHeadTile(t));
+	assert(IsTunnelTile(t) || IsBridgeHeadTile(t));
 	return HasBit(_mc[t].m7, 5);
 }
 
@@ -71,23 +71,23 @@ static inline bool HasTunnelBridgeSnowOrDesert(TileIndex t)
  * @param t the tunnel entrance / bridge ramp tile
  * @param snow_or_desert is the entrance/ramp in snow or desert (true), when
  *                       not in snow and not in desert false
- * @pre IsTunnelBridgeTile(t) || IsBridgeHeadTile(t)
+ * @pre IsTunnelTile(t) || IsBridgeHeadTile(t)
  */
 static inline void SetTunnelBridgeSnowOrDesert(TileIndex t, bool snow_or_desert)
 {
-	assert(IsTunnelBridgeTile(t) || IsBridgeHeadTile(t));
+	assert(IsTunnelTile(t) || IsBridgeHeadTile(t));
 	SB(_mc[t].m7, 5, 1, snow_or_desert);
 }
 
 /**
  * Determines type of the wormhole and returns its other end
  * @param t one end
- * @pre IsTunnelBridgeTile(t) || IsBridgeHeadTile(t)
+ * @pre IsTunnelTile(t) || IsBridgeHeadTile(t)
  * @return other end
  */
 static inline TileIndex GetOtherTunnelBridgeEnd(TileIndex t)
 {
-	assert(IsTunnelBridgeTile(t) || IsBridgeHeadTile(t));
+	assert(IsTunnelTile(t) || IsBridgeHeadTile(t));
 	return IsTunnelTile(t) ? GetOtherTunnelEnd(t) : GetOtherBridgeEnd(t);
 }
 

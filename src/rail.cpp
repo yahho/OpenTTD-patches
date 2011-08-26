@@ -145,15 +145,11 @@ RailType GetTileRailType(TileIndex tile)
 			return GetRailType(tile);
 
 		case TT_MISC:
-			if (IsLevelCrossingTile(tile) || IsRailDepotTile(tile)) return GetRailType(tile);
+			if (IsLevelCrossingTile(tile) || (IsTunnelTile(tile) && GetTunnelTransportType(tile) == TRANSPORT_RAIL) || IsRailDepotTile(tile)) return GetRailType(tile);
 			break;
 
 		case TT_STATION:
 			if (HasStationRail(tile)) return GetRailType(tile);
-			break;
-
-		case TT_TUNNELBRIDGE_TEMP:
-			if (GetTunnelTransportType(tile) == TRANSPORT_RAIL) return GetRailType(tile);
 			break;
 
 		default:

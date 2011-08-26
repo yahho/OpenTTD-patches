@@ -135,7 +135,7 @@ static inline RoadTypes GetRoadTypes(TileIndex t)
  */
 static inline void SetRoadTypes(TileIndex t, RoadTypes rt)
 {
-	assert(IsRoadTile(t) || IsLevelCrossingTile(t) || IsRoadDepotTile(t) || IsStationTile(t) || IsTunnelBridgeTile(t));
+	assert(IsRoadTile(t) || IsLevelCrossingTile(t) || IsTunnelTile(t) || IsRoadDepotTile(t) || IsStationTile(t));
 	SB(_mc[t].m7, 6, 2, rt);
 }
 
@@ -158,7 +158,7 @@ static inline bool HasTileRoadType(TileIndex t, RoadType rt)
  */
 static inline Owner GetRoadOwner(TileIndex t, RoadType rt)
 {
-	assert(IsRoadTile(t) || IsLevelCrossingTile(t) || IsStationTile(t) || IsTunnelBridgeTile(t));
+	assert(IsRoadTile(t) || IsLevelCrossingTile(t) || IsTunnelTile(t) || IsStationTile(t));
 	switch (rt) {
 		default: NOT_REACHED();
 		case ROADTYPE_ROAD: return (Owner)GB(IsRoadTile(t) ? _mc[t].m1 : _mc[t].m7, 0, 5);
@@ -179,7 +179,7 @@ static inline Owner GetRoadOwner(TileIndex t, RoadType rt)
  */
 static inline void SetRoadOwner(TileIndex t, RoadType rt, Owner o)
 {
-	assert(IsRoadTile(t) || IsLevelCrossingTile(t) || IsStationTile(t) || IsTunnelBridgeTile(t));
+	assert(IsRoadTile(t) || IsLevelCrossingTile(t) || IsTunnelTile(t) || IsStationTile(t));
 	switch (rt) {
 		default: NOT_REACHED();
 		case ROADTYPE_ROAD: SB(IsRoadTile(t) ? _mc[t].m1 : _mc[t].m7, 0, 5, o); break;

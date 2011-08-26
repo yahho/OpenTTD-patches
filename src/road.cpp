@@ -62,7 +62,6 @@ RoadBits CleanUpRoadBits(const TileIndex tile, RoadBits org_rb)
 					break;
 
 				/* The conditionally connective ones */
-				case TT_TUNNELBRIDGE_TEMP:
 				case TT_STATION:
 				case TT_MISC:
 				case TT_ROAD: {

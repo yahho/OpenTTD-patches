@@ -83,14 +83,14 @@ Town::~Town()
 		} else {
 			switch (GetTileType(tile)) {
 				case TT_MISC:
+					if (IsTunnelTile(tile)) {
+						assert(!IsTileOwner(tile, OWNER_TOWN) || ClosestTownFromTile(tile, UINT_MAX) != this);
+						break;
+					}
 					if (!IsLevelCrossingTile(tile)) break;
 					/* fall through */
 				case TT_ROAD:
 					assert(!HasTownOwnedRoad(tile) || GetTownIndex(tile) != this->index);
-					break;
-
-				case TT_TUNNELBRIDGE_TEMP:
-					assert(!IsTileOwner(tile, OWNER_TOWN) || ClosestTownFromTile(tile, UINT_MAX) != this);
 					break;
 
 				default:
@@ -1195,7 +1195,7 @@ static void GrowTownInTile(TileIndex *tile_ptr, RoadBits cur_rb, DiagDirection t
 
 		/* Reached a tunnel/bridge? Then continue at the other side of it, unless
 		 * it is the starting tile. Half the time, we stay on this side then.*/
-		if (IsRoadBridgeTile(tile) || (IsTunnelBridgeTile(tile) && GetTunnelTransportType(tile) == TRANSPORT_ROAD)) {
+		if (IsRoadBridgeTile(tile) || (IsTunnelTile(tile) && GetTunnelTransportType(tile) == TRANSPORT_ROAD)) {
 			if (target_dir != DIAGDIR_END || Chance16(1, 2)) {
 				*tile_ptr = GetOtherTunnelBridgeEnd(tile);
 			}
@@ -1320,7 +1320,7 @@ static int GrowTownAtRoad(Town *t, TileIndex tile)
 			return _grow_town_result;
 		}
 
-		if (IsTunnelBridgeTile(tile) || IsRoadBridgeTile(tile)) {
+		if (IsTunnelTile(tile) || IsRoadBridgeTile(tile)) {
 			/* Only build in the direction away from the tunnel or bridge. */
 			target_dir = ReverseDiagDir(GetTunnelBridgeDirection(tile));
 		} else {
@@ -2614,14 +2614,14 @@ CommandCost CmdDeleteTown(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 		} else {
 			switch (GetTileType(tile)) {
 				case TT_MISC:
+					if (IsTunnelTile(tile)) {
+						try_clear = IsTileOwner(tile, OWNER_TOWN) && ClosestTownFromTile(tile, UINT_MAX) == t;
+						break;
+					}
 					if (!IsLevelCrossingTile(tile)) break;
 					/* fall through */
 				case TT_ROAD:
 					try_clear = HasTownOwnedRoad(tile) && GetTownIndex(tile) == t->index;
-					break;
-
-				case TT_TUNNELBRIDGE_TEMP:
-					try_clear = IsTileOwner(tile, OWNER_TOWN) && ClosestTownFromTile(tile, UINT_MAX) == t;
 					break;
 
 				case TT_INDUSTRY_TEMP:

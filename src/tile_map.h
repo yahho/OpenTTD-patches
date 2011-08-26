@@ -267,14 +267,14 @@ static inline bool IsIndustryTile(TileIndex tile)
 }
 
 /**
- * Checks if a tile is a tunnel or bridge.
+ * Checks if a tile is a tunnel (entrance).
  *
  * @param tile The tile to check
- * @return true If the tile is a tunnel or bridge
+ * @return true If the tile is a tunnel (entrance)
  */
-static inline bool IsTunnelBridgeTile(TileIndex tile)
+static inline bool IsTunnelTile(TileIndex tile)
 {
-	return IsTileType(tile, TT_TUNNELBRIDGE_TEMP);
+	return IsTileTypeSubtype(tile, TT_MISC, TT_MISC_TUNNEL);
 }
 
 /**

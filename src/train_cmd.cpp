@@ -1839,7 +1839,7 @@ void ReverseTrainDirection(Train *v)
 	/* TrainExitDir does not always produce the desired dir for depots and
 	 * tunnels/bridges that is needed for UpdateSignalsOnSegment. */
 	DiagDirection dir = TrainExitDir(v->direction, v->track);
-	if (IsRailDepotTile(v->tile) || IsTunnelBridgeTile(v->tile) || IsRailBridgeTile(v->tile)) dir = INVALID_DIAGDIR;
+	if (IsRailDepotTile(v->tile) || IsTunnelTile(v->tile) || IsRailBridgeTile(v->tile)) dir = INVALID_DIAGDIR;
 
 	if (UpdateSignalsOnSegment(v->tile, dir, v->owner) == SIGSEG_PBS || _settings_game.pf.reserve_paths) {
 		/* If we are currently on a tile with conventional signals, we can't treat the
@@ -2182,7 +2182,7 @@ static void ClearPathReservation(const Train *v, TileIndex tile, Trackdir track_
 {
 	DiagDirection dir = TrackdirToExitdir(track_dir);
 
-	if (IsTunnelBridgeTile(tile) || IsRailBridgeTile(tile)) {
+	if (IsTunnelTile(tile) || IsRailBridgeTile(tile)) {
 		/* Are we just leaving a tunnel/bridge? */
 		if (GetTunnelBridgeDirection(tile) == ReverseDiagDir(dir)) {
 			TileIndex end = GetOtherTunnelBridgeEnd(tile);
@@ -2221,7 +2221,7 @@ void FreeTrainTrackReservation(const Train *v)
 
 	TileIndex tile = v->tile;
 	Trackdir  td = v->GetVehicleTrackdir();
-	bool      free_tile = !(IsRailStationTile(v->tile) || IsTunnelBridgeTile(v->tile) || IsRailBridgeTile(v->tile));
+	bool      free_tile = !(IsRailStationTile(v->tile) || IsTunnelTile(v->tile) || IsRailBridgeTile(v->tile));
 	StationID station_id = IsRailStationTile(v->tile) ? GetStationIndex(v->tile) : INVALID_STATION;
 
 	/* Can't be holding a reservation if we enter a depot. */
@@ -2913,7 +2913,7 @@ uint Train::Crash(bool flooded)
 		if (!HasBit(this->flags, VRF_TRAIN_STUCK)) FreeTrainTrackReservation(this);
 		for (const Train *v = this; v != NULL; v = v->Next()) {
 			ClearPathReservation(v, v->tile, v->GetVehicleTrackdir());
-			if (IsTunnelBridgeTile(v->tile) || IsRailBridgeTile(v->tile)) {
+			if (IsTunnelTile(v->tile) || IsRailBridgeTile(v->tile)) {
 				/* ClearPathReservation will not free the wormhole exit
 				 * if the train has just entered the wormhole. */
 				SetTunnelBridgeReservation(GetOtherTunnelBridgeEnd(v->tile), false);
@@ -3218,7 +3218,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					if (prev->track == TRACK_BIT_WORMHOLE) {
 						/* Vehicles entering tunnels enter the wormhole earlier than for bridges.
 						 * However, just choose the track into the wormhole. */
-						assert(IsTunnel(prev->tile));
+						assert(IsTunnelTile(prev->tile));
 						chosen_track = TrackdirBitsToTrackBits(trackdirbits);
 					} else {
 						chosen_track = prev->track;
@@ -3458,7 +3458,7 @@ static void DeleteLastWagon(Train *v)
 	if (IsLevelCrossingTile(tile)) UpdateLevelCrossing(tile);
 
 	/* Update signals */
-	if (IsTunnelBridgeTile(tile) || IsRailBridgeTile(tile) || IsRailDepotTile(tile)) {
+	if (IsTunnelTile(tile) || IsRailBridgeTile(tile) || IsRailDepotTile(tile)) {
 		UpdateSignalsOnSegment(tile, INVALID_DIAGDIR, owner);
 	} else {
 		SetSignalsOnBothDir(tile, track, owner);
@@ -3602,7 +3602,7 @@ static bool TrainCanLeaveTile(const Train *v)
 	TileIndex tile = v->tile;
 
 	/* entering a tunnel/bridge? */
-	if (IsTunnelBridgeTile(tile) || IsRailBridgeTile(tile)) {
+	if (IsTunnelTile(tile) || IsRailBridgeTile(tile)) {
 		DiagDirection dir = GetTunnelBridgeDirection(tile);
 		if (DiagDirToDir(dir) == v->direction) return false;
 	}
@@ -3736,7 +3736,7 @@ static bool TrainLocoHandler(Train *v, bool mode)
 		 * might not be marked as wanting a reservation, e.g.
 		 * when an overlength train gets turned around in a station. */
 		DiagDirection dir = TrainExitDir(v->direction, v->track);
-		if (IsRailDepotTile(v->tile) || IsTunnelBridgeTile(v->tile) || IsRailBridgeTile(v->tile)) dir = INVALID_DIAGDIR;
+		if (IsRailDepotTile(v->tile) || IsTunnelTile(v->tile) || IsRailBridgeTile(v->tile)) dir = INVALID_DIAGDIR;
 
 		if (UpdateSignalsOnSegment(v->tile, dir, v->owner) == SIGSEG_PBS || _settings_game.pf.reserve_paths) {
 			TryPathReserve(v, true, true);

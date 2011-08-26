@@ -1184,13 +1184,13 @@ static bool CheckSignalAutoFill(TileIndex &tile, Trackdir &trackdir, int &signal
 			return true;
 
 		case TT_MISC:
-			if (!IsLevelCrossingTile(tile)) return false;
-			signal_ctr += 2;
-			return true;
+			if (IsLevelCrossingTile(tile)) {
+				signal_ctr += 2;
+				return true;
+			} else if (!IsTunnelTile(tile)) return false;
 
-		case TT_TUNNELBRIDGE_TEMP: {
 			if (GetTunnelTransportType(tile) != TRANSPORT_RAIL) return false;
-		bridge:
+		bridge:;{
 			TileIndex orig_tile = tile; // backup old value
 
 			if (GetTunnelBridgeDirection(tile) != TrackdirToExitdir(trackdir)) return false;
@@ -1535,18 +1535,24 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 			case TT_RAILWAY:
 				break;
 			case TT_MISC:
-				if (IsRailDepotTile(tile)) break;
-				if (!IsLevelCrossingTile(tile)) continue;
-				if (RailNoLevelCrossings(totype)) {
-					err.MakeError(STR_ERROR_CROSSING_DISALLOWED);
-					continue;
+				switch (GetTileSubtype(tile)) {
+					default: continue;
+					case TT_MISC_CROSSING:
+						if (RailNoLevelCrossings(totype)) {
+							err.MakeError(STR_ERROR_CROSSING_DISALLOWED);
+							continue;
+						}
+						break;
+					case TT_MISC_TUNNEL:
+						if (GetTunnelTransportType(tile) != TRANSPORT_RAIL) continue;
+						break;
+					case TT_MISC_DEPOT:
+						if (!IsRailDepot(tile)) continue;
+						break;
 				}
 				break;
 			case TT_STATION:
 				if (!HasStationRail(tile)) continue;
-				break;
-			case TT_TUNNELBRIDGE_TEMP:
-				if (GetTunnelTransportType(tile) != TRANSPORT_RAIL) continue;
 				break;
 			default: continue;
 		}
@@ -1566,7 +1572,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 
 		/* Vehicle on the tile when not converting Rail <-> ElRail */
 
-		if (IsTunnelBridgeTile(tile) || IsRailBridgeTile(tile)) {
+		if (IsTunnelTile(tile) || IsRailBridgeTile(tile)) {
 			TileIndex endtile = GetOtherTunnelBridgeEnd(tile);
 
 			/* If both ends of tunnel/bridge are in the range, do not try to convert twice -
@@ -1688,8 +1694,6 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 						cost.AddCost(RailConvertCost(type, totype));
 					}
 					break;
-
-				case TT_TUNNELBRIDGE_TEMP: NOT_REACHED();
 
 				default: // TT_STATION
 					if (flags & DC_EXEC) {
@@ -2552,7 +2556,7 @@ static void TileLoop_Track(TileIndex tile)
 			if (!IsValidTile(tile2) || IsHouseTile(tile2) || IsIndustryTile(tile2) ||
 					(IsTileType(tile2, TT_MISC) && !IsRailDepotTile(tile2)) ||
 					IsRoadTile(tile2) || IsRailBridgeTile(tile2) ||
-					(IsObjectTile(tile2) && !IsOwnedLand(tile2)) || IsTunnelBridgeTile(tile2) || !IsTileOwner(tile2, owner)) {
+					(IsObjectTile(tile2) && !IsOwnedLand(tile2)) || !IsTileOwner(tile2, owner)) {
 				fences |= 1 << d;
 			}
 		}

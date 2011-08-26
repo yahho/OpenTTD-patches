@@ -402,6 +402,11 @@ uint32 GetTerrainType(TileIndex tile, TileContext context)
 								has_snow = HasTunnelBridgeSnowOrDesert(tile);
 							}
 							break;
+						case TT_MISC_TUNNEL:
+							/* During map generation the snowstate may not be valid yet, as the tileloop may not have run yet. */
+							if (_generating_world) goto genworld; // we do not care about foundations here
+							has_snow = HasTunnelBridgeSnowOrDesert(tile);
+							break;
 						case TT_MISC_DEPOT:
 							if (IsRailDepot(tile)) {
 								RailGroundType ground = GetRailGroundType(tile);
@@ -413,12 +418,6 @@ uint32 GetTerrainType(TileIndex tile, TileContext context)
 					}
 					break;
 				}
-
-				case TT_TUNNELBRIDGE_TEMP:
-					/* During map generation the snowstate may not be valid yet, as the tileloop may not have run yet. */
-					if (_generating_world) goto genworld; // we do not care about foundations here
-					has_snow = HasTunnelBridgeSnowOrDesert(tile);
-					break;
 
 				case TT_WATER:
 				genworld:

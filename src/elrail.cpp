@@ -64,6 +64,7 @@
 #include "elrail_func.h"
 #include "company_base.h"
 #include "newgrf_railtype.h"
+#include "depot_map.h"
 
 #include "table/elrail_data.h"
 
@@ -94,18 +95,22 @@ static TrackBits GetRailTrackBitsUniversal(TileIndex t, byte *override)
 			}
 			return DiagDirToDiagTrackBits(GetTunnelBridgeDirection(t));
 
-		case TT_TUNNELBRIDGE_TEMP:
-			if (GetTunnelTransportType(t) != TRANSPORT_RAIL) return TRACK_BIT_NONE;
-			if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
-			if (override != NULL) {
-				*override = 1 << GetTunnelBridgeDirection(t);
-			}
-			return DiagDirToDiagTrackBits(GetTunnelBridgeDirection(t));
-
 		case TT_MISC:
-			if (!IsLevelCrossingTile(t)) return TRACK_BIT_NONE;
-			if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
-			return GetCrossingRailBits(t);
+			switch (GetTileSubtype(t)) {
+				default: return TRACK_BIT_NONE;
+
+				case TT_MISC_CROSSING:
+					if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
+					return GetCrossingRailBits(t);
+
+				case TT_MISC_TUNNEL:
+					if (GetTunnelTransportType(t) != TRANSPORT_RAIL) return TRACK_BIT_NONE;
+					if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
+					if (override != NULL) {
+						*override = 1 << GetTunnelBridgeDirection(t);
+					}
+					return DiagDirToDiagTrackBits(GetTunnelBridgeDirection(t));
+			}
 
 		case TT_STATION:
 			if (!HasStationRail(t)) return TRACK_BIT_NONE;
@@ -195,7 +200,7 @@ static void AdjustTileh(TileIndex tile, Slope *tileh)
 {
 	if (IsTunnelTile(tile)) {
 		*tileh = SLOPE_STEEP; // XXX - Hack to make tunnel entrances to always have a pylon
-	} else if (IsTunnelBridgeTile(tile) || IsRailBridgeTile(tile)) {
+	} else if (IsRailBridgeTile(tile)) {
 		if (*tileh != SLOPE_FLAT) {
 			*tileh = SLOPE_FLAT;
 		} else {
@@ -561,24 +566,30 @@ void DrawCatenary(const TileInfo *ti)
 {
 	switch (GetTileType(ti->tile)) {
 		case TT_MISC:
-			if (IsLevelCrossingTile(ti->tile)) break;
-			if (IsRailDepotTile(ti->tile)) {
-				const SortableSpriteStruct *sss = &CatenarySpriteData_Depot[GetRailDepotDirection(ti->tile)];
+			switch (GetTileSubtype(ti->tile)) {
+				default: return;
 
-				SpriteID wire_base = GetWireBase(ti->tile);
+				case TT_MISC_DEPOT: {
+					if (!IsRailDepot(ti->tile)) return;
+					const SortableSpriteStruct *sss = &CatenarySpriteData_Depot[GetRailDepotDirection(ti->tile)];
+					SpriteID wire_base = GetWireBase(ti->tile);
 
-				/* This wire is not visible with the default depot sprites */
-				AddSortableSpriteToDraw(
-					wire_base + sss->image_offset, PAL_NONE, ti->x + sss->x_offset, ti->y + sss->y_offset,
-					sss->x_size, sss->y_size, sss->z_size,
-					GetTileMaxPixelZ(ti->tile) + sss->z_offset,
-					IsTransparencySet(TO_CATENARY)
-				);
-				return;
+					/* This wire is not visible with the default depot sprites */
+					AddSortableSpriteToDraw(
+						wire_base + sss->image_offset, PAL_NONE, ti->x + sss->x_offset, ti->y + sss->y_offset,
+						sss->x_size, sss->y_size, sss->z_size,
+						GetTileMaxPixelZ(ti->tile) + sss->z_offset,
+						IsTransparencySet(TO_CATENARY)
+					);
+					return;
+				}
+
+				case TT_MISC_CROSSING:
+				case TT_MISC_TUNNEL:
+					break;
 			}
-			return;
+			break;
 
-		case TT_TUNNELBRIDGE_TEMP:
 		case TT_RAILWAY:
 		case TT_STATION:
 			break;

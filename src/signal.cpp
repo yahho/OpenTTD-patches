@@ -17,6 +17,7 @@
 #include "viewport_func.h"
 #include "train.h"
 #include "company_base.h"
+#include "depot_map.h"
 
 
 /** these are the maximums used for updating signal blocks */
@@ -358,23 +359,49 @@ static SigFlags ExploreSegment(Owner owner)
 
 			case TT_MISC:
 				if (GetTileOwner(tile) != owner) continue;
-				if (IsLevelCrossingTile(tile)) {
-					if (DiagDirToAxis(enterdir) == GetCrossingRoadAxis(tile)) continue; // different axis
-					if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
-					tile += TileOffsByDiagDir(exitdir);
-					break;
-				} else if (IsRailDepotTile(tile)) {
-					if (enterdir == INVALID_DIAGDIR) { // from 'inside' - train just entered or left the depot
+
+				switch (GetTileSubtype(tile)) {
+					default: continue;
+
+					case TT_MISC_CROSSING:
+						if (DiagDirToAxis(enterdir) == GetCrossingRoadAxis(tile)) continue; // different axis
 						if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
-						exitdir = GetRailDepotDirection(tile);
 						tile += TileOffsByDiagDir(exitdir);
-						enterdir = ReverseDiagDir(exitdir);
 						break;
-					} else if (enterdir == GetRailDepotDirection(tile)) { // entered a depot
-						if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
+
+					case TT_MISC_TUNNEL: {
+						if (GetTunnelTransportType(tile) != TRANSPORT_RAIL) continue;
+						DiagDirection dir = GetTunnelBridgeDirection(tile);
+
+						if (enterdir == INVALID_DIAGDIR) { // incoming from the wormhole
+							if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
+							enterdir = dir;
+							exitdir = ReverseDiagDir(dir);
+							tile += TileOffsByDiagDir(exitdir); // just skip to next tile
+						} else { // NOT incoming from the wormhole!
+							if (ReverseDiagDir(enterdir) != dir) continue;
+							if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
+							tile = GetOtherTunnelBridgeEnd(tile); // just skip to exit tile
+							enterdir = INVALID_DIAGDIR;
+							exitdir = INVALID_DIAGDIR;
+						}
+						break;
 					}
+
+					case TT_MISC_DEPOT:
+						if (!IsRailDepot(tile)) continue;
+						if (enterdir == INVALID_DIAGDIR) { // from 'inside' - train just entered or left the depot
+							if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
+							exitdir = GetRailDepotDirection(tile);
+							tile += TileOffsByDiagDir(exitdir);
+							enterdir = ReverseDiagDir(exitdir);
+							break;
+						} else if (enterdir == GetRailDepotDirection(tile)) { // entered a depot
+							if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
+						}
+						continue;
 				}
-				continue;
+				break;
 
 			case TT_STATION:
 				if (!HasStationRail(tile)) continue;
@@ -384,26 +411,6 @@ static SigFlags ExploreSegment(Owner owner)
 
 				if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
 				tile += TileOffsByDiagDir(exitdir);
-				break;
-
-			case TT_TUNNELBRIDGE_TEMP: {
-				if (GetTileOwner(tile) != owner) continue;
-				if (GetTunnelTransportType(tile) != TRANSPORT_RAIL) continue;
-				DiagDirection dir = GetTunnelBridgeDirection(tile);
-
-				if (enterdir == INVALID_DIAGDIR) { // incoming from the wormhole
-					if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
-					enterdir = dir;
-					exitdir = ReverseDiagDir(dir);
-					tile += TileOffsByDiagDir(exitdir); // just skip to next tile
-				} else { // NOT incoming from the wormhole!
-					if (ReverseDiagDir(enterdir) != dir) continue;
-					if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
-					tile = GetOtherTunnelBridgeEnd(tile); // just skip to exit tile
-					enterdir = INVALID_DIAGDIR;
-					exitdir = INVALID_DIAGDIR;
-				}
-				}
 				break;
 
 			default:
@@ -506,11 +513,6 @@ static SigSegState UpdateSignalsInBuffer(Owner owner)
 		switch (GetTileType(tile)) {
 			case TT_RAILWAY:
 				if (IsTileSubtype(tile, TT_TRACK)) goto check_track;
-				goto bridge_head;
-
-			case TT_TUNNELBRIDGE_TEMP:
-				/* 'optimization assert' - do not try to update signals when it is not needed */
-				assert(GetTunnelTransportType(tile) == TRANSPORT_RAIL);
 			bridge_head:
 				assert(dir == INVALID_DIAGDIR || dir == ReverseDiagDir(GetTunnelBridgeDirection(tile)));
 				_tbdset.Add(tile, INVALID_DIAGDIR);  // we can safely start from wormhole centre
@@ -518,6 +520,11 @@ static SigSegState UpdateSignalsInBuffer(Owner owner)
 				break;
 
 			case TT_MISC:
+				if (IsTunnelTile(tile)) {
+					/* 'optimization assert' - do not try to update signals when it is not needed */
+					assert(GetTunnelTransportType(tile) == TRANSPORT_RAIL);
+					goto bridge_head;
+				}
 				if (IsRailDepotTile(tile)) {
 					/* 'optimization assert' do not try to update signals in other cases */
 					assert(dir == INVALID_DIAGDIR || dir == GetRailDepotDirection(tile));
