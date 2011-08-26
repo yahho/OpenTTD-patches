@@ -377,6 +377,45 @@ static inline TropicZone GetTropicZone(TileIndex tile)
 	return (TropicZone)GB(_mth[tile].type_height, 6, 2);
 }
 
+/** Check if a tile has snow/desert. */
+#define IsOnDesert IsOnSnow
+/**
+ * Check if a tile has snow/desert.
+ * @param t The tile to query.
+ * @return True if the tile has snow/desert.
+ */
+static inline bool IsOnSnow(TileIndex t)
+{
+	return HasBit(_mc[t].m3, 4);
+}
+
+/** Set whether a tile has snow/desert. */
+#define SetDesert SetSnow
+/**
+ * Set whether a tile has snow/desert.
+ * @param t The tile to set.
+ * @param set Whether to set snow/desert.
+ */
+static inline void SetSnow(TileIndex t, bool set)
+{
+	if (set) {
+		SetBit(_mc[t].m3, 4);
+	} else {
+		ClrBit(_mc[t].m3, 4);
+	}
+}
+
+/** Toggle the snow/desert state of a tile. */
+#define ToggleDesert ToggleSnow
+/**
+ * Toggle the snow/desert state of a tile.
+ * @param t The tile to change.
+ */
+static inline void ToggleSnow(TileIndex t)
+{
+	ToggleBit(_mc[t].m3, 4);
+}
+
 /**
  * Get the current animation frame
  * @param t the tile

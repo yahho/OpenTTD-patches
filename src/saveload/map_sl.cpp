@@ -772,7 +772,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 							SB(_mc[t].m1, 6, 2, TT_TRACK);
 							_mc[t].m4 = GB(_mc[t].m5, 0, 4) | (GB(_mc[t].m3, 0, 4) << 4);
 							SB(_mc[t].m5, 0, 4, GB(_mc[t].m3, 4, 4));
-							_mc[t].m3 = GB(_mc[t].m5, 4, 2) << 6;
+							_mc[t].m3 = (GB(_mc[t].m5, 4, 2) << 6) | (GB(_mc[t].m7, 5, 1) << 4);
 							SB(_mc[t].m5, 4, 4, roadside);
 							break;
 						}
@@ -780,6 +780,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 						case 1: // level crossing
 							_mc[t].m0 |= (TT_MISC << 4);
 							SB(_mc[t].m1, 6, 2, TT_MISC_CROSSING);
+							SB(_mc[t].m3, 4, 4, GB(_mc[t].m7, 5, 1));
 							SB(_mc[t].m4, 5, 1, GB(_mc[t].m5, 0, 1));
 							SB(_mc[t].m4, 6, 1, GB(_mc[t].m5, 5, 1));
 							SB(_mc[t].m4, 7, 1, GB(_mc[t].m5, 4, 1));
@@ -790,7 +791,8 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 							_mc[t].m0 |= (TT_MISC << 4);
 							SB(_mc[t].m1, 6, 2, TT_MISC_DEPOT);
 							SetBit(_mc[t].m1, 5);
-							_mc[t].m3 = _mc[t].m4 = 0;
+							_mc[t].m3 = GB(_mc[t].m7, 5, 1) << 4;
+							_mc[t].m4 = 0;
 							_mc[t].m5 &= 0x03;
 							_mc[t].m7 &= 0xE0;
 							break;
