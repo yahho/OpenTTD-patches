@@ -856,6 +856,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 								_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_RAILWAY << 4);
 								SB(_mc[t].m1, 6, 2, TT_BRIDGE);
 								SB(_mc[t].m2, 12, 4, type);
+								SB(_mc[t].m3, 4, 2, GB(_mc[t].m7, 5, 1));
 								SB(_mc[t].m3, 6, 2, GB(_mc[t].m5, 0, 2));
 								break;
 							case 1: { // road
@@ -863,14 +864,14 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 								SB(_mc[t].m1, 6, 2, TT_BRIDGE);
 								if (HasBit(_mc[t].m7, 6)) SB(_mc[t].m1, 0, 5, GB(_mc[t].m7, 0, 5));
 								uint tram = GB(_mc[t].m3, 4, 4);
-								_mc[t].m3 = GB(_mc[t].m5, 0, 2) << 6;
+								_mc[t].m3 = (GB(_mc[t].m5, 0, 2) << 6) | (GB(_mc[t].m7, 5, 1) << 4);
 								_mc[t].m5 = tram;
 								SB(_mc[t].m7, 0, 4, type);
 								} break;
 							case 2: // aqueduct
 								_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_MISC << 4);
 								SB(_mc[t].m1, 6, 2, TT_MISC_AQUEDUCT);
-								_mc[t].m3 = GB(_mc[t].m5, 0, 2) << 6;
+								_mc[t].m3 = (GB(_mc[t].m5, 0, 2) << 6) | (GB(_mc[t].m7, 5, 1) << 4);
 								_mc[t].m5 = 0;
 								break;
 							default:
@@ -880,6 +881,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 						_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_MISC << 4);
 						SB(_mc[t].m1, 6, 2, TT_MISC_TUNNEL);
 						uint tram = GB(_mc[t].m3, 4, 4);
+						SB(_mc[t].m3, 4, 2, GB(_mc[t].m7, 5, 1));
 						SB(_mc[t].m3, 6, 2, GB(_mc[t].m5, 0, 2));
 						SB(_mc[t].m5, 6, 2, GB(_mc[t].m5, 2, 2));
 						SB(_mc[t].m5, 0, 4, tram);
