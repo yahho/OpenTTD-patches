@@ -2611,6 +2611,8 @@ CommandCost CmdDeleteTown(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 		bool try_clear = false;
 		if (IsHouseTile(tile)) {
 			try_clear = GetTownIndex(tile) == t->index;
+		} else if (IsIndustryTile(tile)) {
+			try_clear = Industry::GetByTile(tile)->town == t;
 		} else {
 			switch (GetTileType(tile)) {
 				case TT_MISC:
@@ -2622,10 +2624,6 @@ CommandCost CmdDeleteTown(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 					/* fall through */
 				case TT_ROAD:
 					try_clear = HasTownOwnedRoad(tile) && GetTownIndex(tile) == t->index;
-					break;
-
-				case TT_INDUSTRY_TEMP:
-					try_clear = Industry::GetByTile(tile)->town == t;
 					break;
 
 				case TT_OBJECT:

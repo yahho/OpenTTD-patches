@@ -39,7 +39,6 @@ enum TileType {
 	TT_ROAD         =  5,  ///< A tile with road (or tram tracks)
 	TT_MISC         =  6,  ///< Level crossings, aqueducts, tunnels, depots
 	TT_STATION      =  7,  ///< A tile of a station
-	TT_INDUSTRY_TEMP     =  8,
 	//TT_INDUSTRY   =  8,  ///< Part of an industry
 	//TT_HOUSE      = 12,  ///< A house by a town
 };

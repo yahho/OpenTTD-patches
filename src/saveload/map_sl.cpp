@@ -841,7 +841,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					break;
 
 				case OLD_MP_INDUSTRY:
-					_mc[t].m0 = GB(_mc[t].m0, 3, 3) | (GB(_mc[t].m0, 2, 1) << 3) | (TT_INDUSTRY_TEMP << 4);
+					_mc[t].m0 = GB(_mc[t].m0, 3, 3) | (GB(_mc[t].m0, 2, 1) << 3) | 0x80;
 					break;
 
 				case OLD_MP_TUNNELBRIDGE:

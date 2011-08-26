@@ -61,9 +61,9 @@ extern const TileTypeProcs * const _tile_type_procs[16] = {
 	&_tile_type_misc_procs,         ///< Callback functions for misc tiles
 	&_tile_type_station_procs,      ///< Callback functions for station tiles
 	&_tile_type_industry_procs,     ///< Callback functions for industry tiles
-	NULL,
-	NULL,
-	NULL,
+	&_tile_type_industry_procs,
+	&_tile_type_industry_procs,
+	&_tile_type_industry_procs,
 	&_tile_type_town_procs,         ///< Callback functions for house tiles
 	&_tile_type_town_procs,
 	&_tile_type_town_procs,

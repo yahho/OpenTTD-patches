@@ -280,7 +280,7 @@ static inline void SetIndustryTriggers(TileIndex tile, byte triggers)
  */
 static inline void MakeIndustry(TileIndex t, IndustryID index, IndustryGfx gfx, uint8 random, WaterClass wc)
 {
-	SetTileType(t, TT_INDUSTRY_TEMP);
+	_mc[t].m0 = 0x80;
 	_mc[t].m1 = 0;
 	_mc[t].m2 = index;
 	SetIndustryRandomBits(t, random); // m3

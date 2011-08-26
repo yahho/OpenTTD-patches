@@ -547,6 +547,16 @@ static CommandCost ClearTile_Water(TileIndex tile, DoCommandFlag flags)
  */
 bool IsWateredTile(TileIndex tile, Direction from)
 {
+	if (IsIndustryTile(tile)) {
+		/* Do not draw waterborders inside of industries.
+		 * Note: There is no easy way to detect the industry of an oilrig tile. */
+		TileIndex src_tile = tile + TileOffsByDir(from);
+		if ((IsStationTile(src_tile) && IsOilRig(src_tile)) ||
+		    (IsIndustryTile(src_tile) && GetIndustryIndex(src_tile) == GetIndustryIndex(tile))) return true;
+
+		return IsTileOnWater(tile);
+	}
+
 	switch (GetTileType(tile)) {
 		case TT_GROUND: return IsTileSubtype(tile, TT_GROUND_VOID); // consider map border as water, esp. for rivers
 
@@ -592,16 +602,6 @@ bool IsWateredTile(TileIndex tile, Direction from)
 				return IsTileOnWater(tile);
 			}
 			return (IsDock(tile) && IsTileFlat(tile)) || IsBuoy(tile);
-
-		case TT_INDUSTRY_TEMP: {
-			/* Do not draw waterborders inside of industries.
-			 * Note: There is no easy way to detect the industry of an oilrig tile. */
-			TileIndex src_tile = tile + TileOffsByDir(from);
-			if ((IsStationTile(src_tile) && IsOilRig(src_tile)) ||
-			    (IsIndustryTile(src_tile) && GetIndustryIndex(src_tile) == GetIndustryIndex(tile))) return true;
-
-			return IsTileOnWater(tile);
-		}
 
 		case TT_OBJECT: return IsTileOnWater(tile);
 
@@ -1009,6 +1009,10 @@ FloodingBehaviour GetFloodingBehaviour(TileIndex tile)
 	 * FLOOD_PASSIVE: (not used)
 	 * FLOOD_NONE:    canals, rivers, everything else
 	 */
+	if (IsIndustryTile(tile)) {
+		return (GetWaterClass(tile) == WATER_CLASS_SEA) ? FLOOD_ACTIVE : FLOOD_NONE;
+	}
+
 	switch (GetTileType(tile)) {
 		case TT_WATER:
 			if (IsCoast(tile)) {
@@ -1017,7 +1021,6 @@ FloodingBehaviour GetFloodingBehaviour(TileIndex tile)
 			}
 			/* FALL THROUGH */
 		case TT_STATION:
-		case TT_INDUSTRY_TEMP:
 		case TT_OBJECT:
 			return (GetWaterClass(tile) == WATER_CLASS_SEA) ? FLOOD_ACTIVE : FLOOD_NONE;
 

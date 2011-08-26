@@ -109,7 +109,7 @@ static inline bool IsInnerTile(TileIndex tile)
 static inline void SetTileType(TileIndex tile, TileType type)
 {
 	assert(tile < MapSize());
-	assert(type < 12);
+	assert(type < 8);
 	/* Only void tiles are allowed at the lower left and right
 	 * edges of the map. If _settings_game.construction.freeform_edges is true,
 	 * the upper edges of the map are also VOID tiles. */
@@ -263,7 +263,7 @@ static inline bool IsVoidTile(TileIndex tile)
  */
 static inline bool IsIndustryTile(TileIndex tile)
 {
-	return IsTileType(tile, TT_INDUSTRY_TEMP);
+	return GB(_mc[tile].m0, 6, 2) == 2;
 }
 
 /**

@@ -412,13 +412,13 @@ static const AndOr _smallmap_vehicles_andor[] = {
 
 static inline SmallmapTileType GetEffectiveTileType(TileIndex tile)
 {
-	if (IsHouseTile(tile)) return SMTT_HOUSE;
+	if (IsHouseTile(tile))    return SMTT_HOUSE;
+	if (IsIndustryTile(tile)) return SMTT_INDUSTRY;
 
 	switch (GetTileType(tile)) {
 		case TT_STATION:  return SMTT_STATION;
 		case TT_RAILWAY:  return SMTT_RAILWAY;
 		case TT_ROAD:     return SMTT_ROAD;
-		case TT_INDUSTRY_TEMP: return SMTT_INDUSTRY;
 		case TT_OBJECT:   return SMTT_OBJECT;
 		case TT_GROUND:   return IsTileSubtype(tile, TT_GROUND_VOID) ? SMTT_VOID : SMTT_CLEAR;
 		case TT_WATER:    return SMTT_WATER;
