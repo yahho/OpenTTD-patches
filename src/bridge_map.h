@@ -185,9 +185,9 @@ static inline void MakeBridgeRamp(TileIndex t, Owner o, DiagDirection d, uint rt
 {
 	SetTileOwner(t, o);
 	_mc[t].m2 = 0;
-	_mc[t].m3 = rt;
+	_mc[t].m3 = (d << 6) | rt;
 	_mc[t].m4 = 0;
-	_mc[t].m5 = d;
+	_mc[t].m5 = 0;
 	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m7 = 0;
 }

@@ -165,7 +165,7 @@ static inline Owner GetRoadOwner(TileIndex t, RoadType rt)
 		case ROADTYPE_TRAM: {
 			/* Trams don't need OWNER_TOWN, and remapping OWNER_NONE
 			 * to OWNER_TOWN makes it use one bit less */
-			Owner o = (Owner)(IsStationTile(t) || IsTunnelBridgeTile(t) || IsRoadBridgeTile(t) ? GB(_mc[t].m3, 4, 4) : GB(_mc[t].m5, 0, 4));
+			Owner o = (Owner)(IsStationTile(t) ? GB(_mc[t].m3, 4, 4) : GB(_mc[t].m5, 0, 4));
 			return o == OWNER_TOWN ? OWNER_NONE : o;
 		}
 	}
@@ -185,7 +185,7 @@ static inline void SetRoadOwner(TileIndex t, RoadType rt, Owner o)
 		case ROADTYPE_ROAD: SB(IsRoadTile(t) ? _mc[t].m1 : _mc[t].m7, 0, 5, o); break;
 		case ROADTYPE_TRAM:
 			if (o == OWNER_NONE) o = OWNER_TOWN;
-			if (IsStationTile(t) || IsTunnelBridgeTile(t) || IsRoadBridgeTile(t)) {
+			if (IsStationTile(t)) {
 				SB(_mc[t].m3, 4, 4, o);
 			} else {
 				SB(_mc[t].m5, 0, 4, o);

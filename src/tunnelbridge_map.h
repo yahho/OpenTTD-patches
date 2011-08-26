@@ -28,7 +28,7 @@
 static inline DiagDirection GetTunnelBridgeDirection(TileIndex t)
 {
 	assert(IsTunnelBridgeTile(t) || IsBridgeHeadTile(t));
-	return (DiagDirection)GB(_mc[t].m5, 0, 2);
+	return (DiagDirection)GB(_mc[t].m3, 6, 2);
 }
 
 /**
