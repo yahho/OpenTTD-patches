@@ -1572,34 +1572,15 @@ void UpdateRoadSide(TileIndex tile, HouseZonesBits grp)
 
 static void TileLoop_Road(TileIndex tile)
 {
-	if (IsTileSubtype(tile, TT_BRIDGE)) {
-		bool snow_or_desert = IsOnSnow(tile);
-		switch (_settings_game.game_creation.landscape) {
-			default: return;
-
-			case LT_ARCTIC:
-				/* As long as we do not have a snow density, we want to use the density
-				 * from the entry edge. For bridges this is the highest point.
-				 * (Independent of foundations) */
-				if (snow_or_desert == (GetTileMaxZ(tile) > GetSnowLine())) return;
-				break;
-
-			case LT_TROPIC:
-				if (GetTropicZone(tile) != TROPICZONE_DESERT || snow_or_desert) return;
-				break;
-		}
-		ToggleSnow(tile);
-		MarkTileDirtyByTile(tile);
-		return;
-	}
-
 	switch (_settings_game.game_creation.landscape) {
-		case LT_ARCTIC:
-			if (IsOnSnow(tile) != (GetTileZ(tile) > GetSnowLine())) {
+		case LT_ARCTIC: {
+			int z = IsTileSubtype(tile, TT_TRACK) ? GetTileZ(tile) : GetTileMaxZ(tile);
+			if (IsOnSnow(tile) != (z > GetSnowLine())) {
 				ToggleSnow(tile);
 				MarkTileDirtyByTile(tile);
 			}
 			break;
+		}
 
 		case LT_TROPIC:
 			if (GetTropicZone(tile) == TROPICZONE_DESERT && !IsOnDesert(tile)) {
@@ -1608,6 +1589,8 @@ static void TileLoop_Road(TileIndex tile)
 			}
 			break;
 	}
+
+	if (!IsTileSubtype(tile, TT_TRACK)) return;
 
 	const Town *t = ClosestTownFromTile(tile, UINT_MAX);
 	if (!HasRoadWorks(tile)) {
