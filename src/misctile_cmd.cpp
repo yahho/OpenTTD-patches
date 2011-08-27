@@ -797,113 +797,27 @@ static bool ClickTile_Misc(TileIndex tile)
 
 static void TileLoop_Misc(TileIndex tile)
 {
-	switch (GetTileSubtype(tile)) {
-		default: NOT_REACHED();
-
-		case TT_MISC_DEPOT:
-			if (IsRailDepot(tile)) {
-				bool ground;
-
-				switch (_settings_game.game_creation.landscape) {
-					case LT_ARCTIC: {
-						int z;
-						Slope slope = GetTileSlope(tile, &z);
-
-						/* is the depot on a non-flat tile? */
-						if (slope != SLOPE_FLAT) z++;
-
-						ground = z > GetSnowLine();
-						break;
-					}
-
-					case LT_TROPIC:
-						ground = GetTropicZone(tile) == TROPICZONE_DESERT;
-						break;
-
-					default:
-						ground = false;
-						break;
-				}
-
-				if (ground != IsOnSnow(tile)) {
-					ToggleSnow(tile);
-					MarkTileDirtyByTile(tile);
-				}
-
-				break;
+	switch (_settings_game.game_creation.landscape) {
+		case LT_ARCTIC: {
+			int z = IsTileSubtype(tile, TT_MISC_AQUEDUCT) ? GetTileMaxZ(tile) : GetTileZ(tile);
+			if (IsOnSnow(tile) != (z > GetSnowLine())) {
+				ToggleSnow(tile);
+				MarkTileDirtyByTile(tile);
 			}
-			/* else IsRoadDepot(tile) */
-			/* fall through */
-		case TT_MISC_CROSSING:
-			switch (_settings_game.game_creation.landscape) {
-				case LT_ARCTIC:
-					if (IsOnSnow(tile) != (GetTileZ(tile) > GetSnowLine())) {
-						ToggleSnow(tile);
-						MarkTileDirtyByTile(tile);
-					}
-					break;
-
-				case LT_TROPIC:
-					if (GetTropicZone(tile) == TROPICZONE_DESERT && !IsOnDesert(tile)) {
-						ToggleDesert(tile);
-						MarkTileDirtyByTile(tile);
-					}
-					break;
-			}
-
-			if (IsLevelCrossingTile(tile)) {
-				const Town *t = ClosestTownFromTile(tile, UINT_MAX);
-				UpdateRoadSide(tile, t != NULL ? GetTownRadiusGroup(t, tile) : HZB_TOWN_EDGE);
-			}
-
-			break;
-
-		case TT_MISC_AQUEDUCT: {
-			bool snow_or_desert = IsOnSnow(tile);
-			switch (_settings_game.game_creation.landscape) {
-				default: return;
-
-				case LT_ARCTIC:
-					/* As long as we do not have a snow density, we want to use the density
-					 * from the entry edge. For bridges this is the highest point.
-					 * (Independent of foundations) */
-					if (snow_or_desert == (GetTileMaxZ(tile) > GetSnowLine())) return;
-					break;
-
-				case LT_TROPIC:
-					if (GetTropicZone(tile) != TROPICZONE_DESERT || snow_or_desert) return;
-					break;
-			}
-			ToggleSnow(tile);
-			MarkTileDirtyByTile(tile);
 			break;
 		}
 
-		case TT_MISC_TUNNEL: {
-			bool snow_or_desert = IsOnSnow(tile);
-			switch (_settings_game.game_creation.landscape) {
-				case LT_ARCTIC: {
-					/* As long as we do not have a snow density, we want to use the density
-					 * from the entry edge. For tunnels this is the lowest point.
-					 * (Independent of foundations) */
-					if (snow_or_desert != (GetTileZ(tile) > GetSnowLine())) {
-						ToggleSnow(tile);
-						MarkTileDirtyByTile(tile);
-					}
-					break;
-				}
-
-				case LT_TROPIC:
-					if (GetTropicZone(tile) == TROPICZONE_DESERT && !snow_or_desert) {
-						SetSnow(tile, true);
-						MarkTileDirtyByTile(tile);
-					}
-					break;
-
-				default:
-					break;
+		case LT_TROPIC:
+			if (GetTropicZone(tile) == TROPICZONE_DESERT && !IsOnDesert(tile)) {
+				SetDesert(tile, true);
+				MarkTileDirtyByTile(tile);
 			}
-		}
+			break;
+	}
+
+	if (IsTileSubtype(tile, TT_MISC_CROSSING)) {
+		const Town *t = ClosestTownFromTile(tile, UINT_MAX);
+		UpdateRoadSide(tile, t != NULL ? GetTownRadiusGroup(t, tile) : HZB_TOWN_EDGE);
 	}
 }
 
