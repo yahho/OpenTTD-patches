@@ -365,54 +365,26 @@ uint32 GetTerrainType(TileIndex tile, TileContext context)
 						if (_generating_world) goto genworld; // we do not care about foundations here
 						RailGroundType ground = GetRailGroundType(tile);
 						has_snow = (ground == RAIL_GROUND_ICE_DESERT || (context == TCX_UPPER_HALFTILE && ground == RAIL_GROUND_HALF_SNOW));
-					} else if (context == TCX_ON_BRIDGE) {
-						has_snow = (GetBridgeHeight(tile) > GetSnowLine());
-					} else {
-						/* During map generation the snowstate may not be valid yet, as the tileloop may not have run yet. */
-						if (_generating_world) goto genworld; // we do not care about foundations here
-						has_snow = IsOnSnow(tile);
+						break;
 					}
+				bridge:
+					if (context == TCX_ON_BRIDGE) {
+						has_snow = (GetBridgeHeight(tile) > GetSnowLine());
+						break;
+					}
+				bitcheck:
+					/* During map generation the snowstate may not be valid yet, as the tileloop may not have run yet. */
+					if (_generating_world) goto genworld; // we do not care about foundations here
+					has_snow = IsOnSnow(tile);
 					break;
 
 				case TT_ROAD:
-					if (IsTileSubtype(tile, TT_TRACK)) {
-						/* During map generation the snowstate may not be valid yet, as the tileloop may not have run yet. */
-						if (_generating_world) goto genworld; // we do not care about foundations here
-						has_snow = IsOnSnow(tile);
-					} else if (context == TCX_ON_BRIDGE) {
-						has_snow = (GetBridgeHeight(tile) > GetSnowLine());
-					} else {
-						/* During map generation the snowstate may not be valid yet, as the tileloop may not have run yet. */
-						if (_generating_world) goto genworld; // we do not care about foundations here
-						has_snow = IsOnSnow(tile);
-					}
-					break;
+					if (IsTileSubtype(tile, TT_BRIDGE)) goto bridge;
+					goto bitcheck;
 
-				case TT_MISC: {
-					if (_generating_world) goto genworld;
-					switch (GetTileSubtype(tile)) {
-						default: NOT_REACHED();
-						case TT_MISC_CROSSING: has_snow = IsOnSnow(tile); break;
-						case TT_MISC_AQUEDUCT:
-							if (context == TCX_ON_BRIDGE) {
-								has_snow = (GetBridgeHeight(tile) > GetSnowLine());
-							} else {
-								/* During map generation the snowstate may not be valid yet, as the tileloop may not have run yet. */
-								if (_generating_world) goto genworld; // we do not care about foundations here
-								has_snow = IsOnSnow(tile);
-							}
-							break;
-						case TT_MISC_TUNNEL:
-							/* During map generation the snowstate may not be valid yet, as the tileloop may not have run yet. */
-							if (_generating_world) goto genworld; // we do not care about foundations here
-							has_snow = IsOnSnow(tile);
-							break;
-						case TT_MISC_DEPOT:
-							has_snow = IsOnSnow(tile);
-							break;
-					}
-					break;
-				}
+				case TT_MISC:
+					if (IsTileSubtype(tile, TT_MISC_AQUEDUCT)) goto bridge;
+					goto bitcheck;
 
 				case TT_WATER:
 				genworld:
