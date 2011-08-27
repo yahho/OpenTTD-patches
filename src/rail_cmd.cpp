@@ -2446,7 +2446,7 @@ static Foundation GetFoundation_Track(TileIndex tile, Slope tileh)
 static void TileLoop_Track(TileIndex tile)
 {
 	if (IsTileSubtype(tile, TT_BRIDGE)) {
-		bool snow_or_desert = HasTunnelBridgeSnowOrDesert(tile);
+		bool snow_or_desert = IsOnSnow(tile);
 		switch (_settings_game.game_creation.landscape) {
 			default: return;
 
@@ -2461,7 +2461,7 @@ static void TileLoop_Track(TileIndex tile)
 				if (GetTropicZone(tile) != TROPICZONE_DESERT || snow_or_desert) return;
 				break;
 		}
-		SetTunnelBridgeSnowOrDesert(tile, !snow_or_desert);
+		ToggleSnow(tile);
 		MarkTileDirtyByTile(tile);
 		return;
 	}

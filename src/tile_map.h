@@ -386,6 +386,8 @@ static inline TropicZone GetTropicZone(TileIndex tile)
  */
 static inline bool IsOnSnow(TileIndex t)
 {
+	assert((IsRailwayTile(t) && !IsTileSubtype(t, TT_TRACK)) ||
+		IsRoadTile(t) || (IsTileType(t, TT_MISC) && (!IsTileSubtype(t, TT_MISC_DEPOT) || HasBit(_mc[t].m1, 5))));
 	return HasBit(_mc[t].m3, 4);
 }
 
@@ -398,6 +400,8 @@ static inline bool IsOnSnow(TileIndex t)
  */
 static inline void SetSnow(TileIndex t, bool set)
 {
+	assert((IsRailwayTile(t) && !IsTileSubtype(t, TT_TRACK)) ||
+		IsRoadTile(t) || (IsTileType(t, TT_MISC) && (!IsTileSubtype(t, TT_MISC_DEPOT) || HasBit(_mc[t].m1, 5))));
 	if (set) {
 		SetBit(_mc[t].m3, 4);
 	} else {
@@ -413,6 +417,8 @@ static inline void SetSnow(TileIndex t, bool set)
  */
 static inline void ToggleSnow(TileIndex t)
 {
+	assert((IsRailwayTile(t) && !IsTileSubtype(t, TT_TRACK)) ||
+		IsRoadTile(t) || (IsTileType(t, TT_MISC) && (!IsTileSubtype(t, TT_MISC_DEPOT) || HasBit(_mc[t].m1, 5))));
 	ToggleBit(_mc[t].m3, 4);
 }
 

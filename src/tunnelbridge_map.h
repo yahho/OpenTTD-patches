@@ -53,33 +53,6 @@ static inline TransportType GetTunnelBridgeTransportType(TileIndex t)
 }
 
 /**
- * Tunnel: Is this tunnel entrance in a snowy or desert area?
- * Bridge: Does the bridge ramp lie in a snow or desert area?
- * @param t The tile to analyze
- * @pre IsTunnelTile(t) || IsBridgeHeadTile(t)
- * @return true if and only if the tile is in a snowy/desert area
- */
-static inline bool HasTunnelBridgeSnowOrDesert(TileIndex t)
-{
-	assert(IsTunnelTile(t) || IsBridgeHeadTile(t));
-	return HasBit(_mc[t].m3, 4);
-}
-
-/**
- * Tunnel: Places this tunnel entrance in a snowy or desert area, or takes it out of there.
- * Bridge: Sets whether the bridge ramp lies in a snow or desert area.
- * @param t the tunnel entrance / bridge ramp tile
- * @param snow_or_desert is the entrance/ramp in snow or desert (true), when
- *                       not in snow and not in desert false
- * @pre IsTunnelTile(t) || IsBridgeHeadTile(t)
- */
-static inline void SetTunnelBridgeSnowOrDesert(TileIndex t, bool snow_or_desert)
-{
-	assert(IsTunnelTile(t) || IsBridgeHeadTile(t));
-	SB(_mc[t].m3, 4, 1, snow_or_desert);
-}
-
-/**
  * Determines type of the wormhole and returns its other end
  * @param t one end
  * @pre IsTunnelTile(t) || IsBridgeHeadTile(t)

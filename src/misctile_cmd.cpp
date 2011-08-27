@@ -88,7 +88,7 @@ static void DrawTunnel(TileInfo *ti)
 		image = SPR_TUNNEL_ENTRY_REAR_ROAD;
 	}
 
-	if (HasTunnelBridgeSnowOrDesert(ti->tile)) image += railtype_overlay != 0 ? 8 : 32;
+	if (IsOnSnow(ti->tile)) image += railtype_overlay != 0 ? 8 : 32;
 
 	image += tunnelbridge_direction * 2;
 	DrawGroundSprite(image, PAL_NONE);
@@ -859,7 +859,7 @@ static void TileLoop_Misc(TileIndex tile)
 			break;
 
 		case TT_MISC_AQUEDUCT: {
-			bool snow_or_desert = HasTunnelBridgeSnowOrDesert(tile);
+			bool snow_or_desert = IsOnSnow(tile);
 			switch (_settings_game.game_creation.landscape) {
 				default: return;
 
@@ -874,20 +874,20 @@ static void TileLoop_Misc(TileIndex tile)
 					if (GetTropicZone(tile) != TROPICZONE_DESERT || snow_or_desert) return;
 					break;
 			}
-			SetTunnelBridgeSnowOrDesert(tile, !snow_or_desert);
+			ToggleSnow(tile);
 			MarkTileDirtyByTile(tile);
 			break;
 		}
 
 		case TT_MISC_TUNNEL: {
-			bool snow_or_desert = HasTunnelBridgeSnowOrDesert(tile);
+			bool snow_or_desert = IsOnSnow(tile);
 			switch (_settings_game.game_creation.landscape) {
 				case LT_ARCTIC: {
 					/* As long as we do not have a snow density, we want to use the density
 					 * from the entry edge. For tunnels this is the lowest point.
 					 * (Independent of foundations) */
 					if (snow_or_desert != (GetTileZ(tile) > GetSnowLine())) {
-						SetTunnelBridgeSnowOrDesert(tile, !snow_or_desert);
+						ToggleSnow(tile);
 						MarkTileDirtyByTile(tile);
 					}
 					break;
@@ -895,7 +895,7 @@ static void TileLoop_Misc(TileIndex tile)
 
 				case LT_TROPIC:
 					if (GetTropicZone(tile) == TROPICZONE_DESERT && !snow_or_desert) {
-						SetTunnelBridgeSnowOrDesert(tile, true);
+						SetSnow(tile, true);
 						MarkTileDirtyByTile(tile);
 					}
 					break;

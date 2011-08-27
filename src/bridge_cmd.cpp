@@ -530,7 +530,7 @@ void DrawBridgeGround(TileInfo *ti)
 
 	DrawFoundation(ti, GetBridgeFoundation(ti->tileh, DiagDirToAxis(dir)));
 
-	if (HasTunnelBridgeSnowOrDesert(ti->tile)) {
+	if (IsOnSnow(ti->tile)) {
 		DrawGroundSprite(SPR_FLAT_SNOW_DESERT_TILE + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
 	} else {
 		TileIndex next = ti->tile + TileOffsByDiagDir(dir);
