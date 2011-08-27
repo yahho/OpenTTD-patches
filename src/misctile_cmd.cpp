@@ -179,7 +179,7 @@ static void DrawTrainDepot(TileInfo *ti)
 
 	/* adjust ground tile for desert
 	 * don't adjust for snow, because snow in depots looks weird */
-	if (IsSnowRailGround(ti->tile) && _settings_game.game_creation.landscape == LT_TROPIC) {
+	if (IsOnSnow(ti->tile) && _settings_game.game_creation.landscape == LT_TROPIC) {
 		if (image != SPR_FLAT_GRASS_TILE) {
 			image += rti->snow_offset; // tile with tracks
 		} else {
@@ -802,7 +802,7 @@ static void TileLoop_Misc(TileIndex tile)
 
 		case TT_MISC_DEPOT:
 			if (IsRailDepot(tile)) {
-				RailGroundType ground;
+				bool ground;
 
 				switch (_settings_game.game_creation.landscape) {
 					case LT_ARCTIC: {
@@ -812,21 +812,21 @@ static void TileLoop_Misc(TileIndex tile)
 						/* is the depot on a non-flat tile? */
 						if (slope != SLOPE_FLAT) z++;
 
-						ground = (z > GetSnowLine()) ? RAIL_GROUND_ICE_DESERT : RAIL_GROUND_GRASS;
+						ground = z > GetSnowLine();
 						break;
 					}
 
 					case LT_TROPIC:
-						ground = (GetTropicZone(tile) == TROPICZONE_DESERT) ? RAIL_GROUND_ICE_DESERT : RAIL_GROUND_GRASS;
+						ground = GetTropicZone(tile) == TROPICZONE_DESERT;
 						break;
 
 					default:
-						ground = RAIL_GROUND_GRASS;
+						ground = false;
 						break;
 				}
 
-				if (ground != GetRailGroundType(tile)) {
-					SetRailGroundType(tile, ground);
+				if (ground != IsOnSnow(tile)) {
+					ToggleSnow(tile);
 					MarkTileDirtyByTile(tile);
 				}
 

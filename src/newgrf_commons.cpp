@@ -408,12 +408,7 @@ uint32 GetTerrainType(TileIndex tile, TileContext context)
 							has_snow = IsOnSnow(tile);
 							break;
 						case TT_MISC_DEPOT:
-							if (IsRailDepot(tile)) {
-								RailGroundType ground = GetRailGroundType(tile);
-								has_snow = (ground == RAIL_GROUND_ICE_DESERT || (context == TCX_UPPER_HALFTILE && ground == RAIL_GROUND_HALF_SNOW));
-							} else {
-								has_snow = IsOnSnow(tile);
-							}
+							has_snow = IsOnSnow(tile);
 							break;
 					}
 					break;

@@ -750,7 +750,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 						_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_MISC << 4);
 						SB(_mc[t].m1, 6, 2, TT_MISC_DEPOT);
 						ClrBit(_mc[t].m1, 5);
-						SB(_mc[t].m3, 4, 4, ground);
+						SB(_mc[t].m3, 4, 4, ground == 12 ? 1 : 0);
 						_mc[t].m5 &= 0x13;
 						_mc[t].m4 = _mc[t].m7 = 0;
 					} else { // old waypoint

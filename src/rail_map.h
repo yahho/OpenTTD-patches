@@ -479,17 +479,14 @@ enum RailGroundType {
 
 static inline void SetRailGroundType(TileIndex t, RailGroundType rgt)
 {
+	assert(IsNormalRailTile(t));
 	SB(_mc[t].m3, 4, 4, rgt);
 }
 
 static inline RailGroundType GetRailGroundType(TileIndex t)
 {
+	assert(IsNormalRailTile(t));
 	return (RailGroundType)GB(_mc[t].m3, 4, 4);
-}
-
-static inline bool IsSnowRailGround(TileIndex t)
-{
-	return GetRailGroundType(t) == RAIL_GROUND_ICE_DESERT;
 }
 
 
