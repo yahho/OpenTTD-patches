@@ -1524,7 +1524,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 	TrainList affected_trains;
 
 	CommandCost cost(EXPENSES_CONSTRUCTION);
-	CommandCost error = CommandCost(STR_ERROR_NO_SUITABLE_RAILROAD_TRACK); // by default, there is no track to convert.
+	CommandCost err = CommandCost(STR_ERROR_NO_SUITABLE_RAILROAD_TRACK); // by default, there is no track to convert.
 	TileArea ta(tile, p1);
 	TileIterator *iter = HasBit(p2, 4) ? (TileIterator *)new DiagonalTileIterator(tile, p1) : new OrthogonalTileIterator(ta);
 	for (; (tile = *iter) != INVALID_TILE; ++(*iter)) {
@@ -1540,7 +1540,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 			case MP_ROAD:
 				if (!IsLevelCrossing(tile)) continue;
 				if (RailNoLevelCrossings(totype)) {
-					error.MakeError(STR_ERROR_CROSSING_DISALLOWED);
+					err.MakeError(STR_ERROR_CROSSING_DISALLOWED);
 					continue;
 				}
 				break;
@@ -1559,7 +1559,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 		/* Trying to convert other's rail */
 		CommandCost ret = CheckTileOwnership(tile);
 		if (ret.Failed()) {
-			error = ret;
+			err = ret;
 			continue;
 		}
 
@@ -1571,7 +1571,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 			if (!IsCompatibleRail(type, totype)) {
 				CommandCost ret = EnsureNoVehicleOnGround(tile);
 				if (ret.Failed()) {
-					error = ret;
+					err = ret;
 					continue;
 				}
 			}
@@ -1648,7 +1648,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 				if (!IsCompatibleRail(GetRailType(tile), totype)) {
 					CommandCost ret = TunnelBridgeIsFree(tile, endtile);
 					if (ret.Failed()) {
-						error = ret;
+						err = ret;
 						continue;
 					}
 				}
@@ -1717,7 +1717,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 	}
 
 	delete iter;
-	return (cost.GetCost() == 0) ? error : cost;
+	return (cost.GetCost() == 0) ? err : cost;
 }
 
 static CommandCost RemoveTrainDepot(TileIndex tile, DoCommandFlag flags)
