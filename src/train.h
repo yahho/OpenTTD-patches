@@ -166,7 +166,7 @@ struct Train FINAL : public GroundVehicle<Train, VEH_TRAIN> {
 	 */
 	inline RailType GetTrackRailType() const
 	{
-		return GetRailType(this->tile);
+		return GetRailType(this->tile, TrackBitsToTrack(this->track));
 	}
 
 protected: // These functions should not be called outside acceleration code.

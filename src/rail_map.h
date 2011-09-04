@@ -57,9 +57,13 @@ static inline bool IsRailDepotTile(TileIndex t)
  * @param t the tile to get the rail type from
  * @return the rail type of the tile
  */
-static inline RailType GetRailType(TileIndex t)
+static inline RailType GetRailType(TileIndex t, Track track = INVALID_TRACK)
 {
-	return (RailType)GB(_mc[t].m3, 0, 4);
+	if (IsNormalRailTile(t) && (track == TRACK_LOWER || track == TRACK_RIGHT)) {
+		return (RailType)GB(_mc[t].m5, 0, 4);
+	} else {
+		return (RailType)GB(_mc[t].m3, 0, 4);
+	}
 }
 
 /**
@@ -67,9 +71,26 @@ static inline RailType GetRailType(TileIndex t)
  * @param t the tile to set the rail type of
  * @param r the new rail type for the tile
  */
-static inline void SetRailType(TileIndex t, RailType r)
+static inline void SetRailType(TileIndex t, RailType r, Track track = INVALID_TRACK)
 {
-	SB(_mc[t].m3, 0, 4, r);
+	if (!IsNormalRailTile(t)) {
+		assert(track == INVALID_TRACK);
+		SB(_mc[t].m3, 0, 4, r);
+	} else {
+		switch (track) {
+			case INVALID_TRACK:
+				SB(_mc[t].m3, 0, 4, r);
+				SB(_mc[t].m5, 0, 4, r);
+				break;
+			case TRACK_LOWER:
+			case TRACK_RIGHT:
+				SB(_mc[t].m5, 0, 4, r);
+				break;
+			default:
+				SB(_mc[t].m3, 0, 4, r);
+				break;
+		}
+	}
 }
 
 
@@ -456,7 +477,7 @@ static inline bool HasOnewaySignalBlockingTrackdir(TileIndex tile, Trackdir td)
 }
 
 
-RailType GetTileRailType(TileIndex tile);
+RailType GetTileRailType(TileIndex tile, Track track = INVALID_TRACK);
 
 /** The ground 'under' the rail */
 enum RailGroundType {
@@ -498,7 +519,7 @@ static inline void MakeRailNormal(TileIndex t, Owner o, TrackBits b, RailType r)
 	_mc[t].m2 = b;
 	_mc[t].m3 = r;
 	_mc[t].m4 = 0;
-	_mc[t].m5 = 0;
+	_mc[t].m5 = r;
 	_mc[t].m7 = 0;
 }
 

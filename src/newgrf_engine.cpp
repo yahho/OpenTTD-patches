@@ -616,8 +616,9 @@ static uint32 VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *object,
 
 		case 0x4A: {
 			if (v->type != VEH_TRAIN) return 0;
-			RailType rt = GetTileRailType(v->tile);
-			return (HasPowerOnRail(Train::From(v)->railtype, rt) ? 0x100 : 0) | GetReverseRailTypeTranslation(rt, object->ro->grffile);
+			Train *t = Train::From(v);
+			RailType rt = t->GetTrackRailType();
+			return (HasPowerOnRail(t->railtype, rt) ? 0x100 : 0) | GetReverseRailTypeTranslation(rt, object->ro->grffile);
 		}
 
 		case 0x4B: // Long date of last service

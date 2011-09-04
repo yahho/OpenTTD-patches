@@ -339,7 +339,17 @@ protected:
 
 		/* rail transport is possible only on compatible rail types */
 		if (IsRailTT()) {
-			RailType rail_type = GetTileRailType(m_new_tile);
+			RailType rail_type;
+			if (IsNormalRailTile(m_new_tile)) {
+				TrackBits tracks = GetTrackBits(m_new_tile) & DiagdirReachesTracks(m_exitdir);
+				if (tracks == TRACK_BIT_NONE) {
+					m_err = EC_NO_WAY;
+					return false;
+				}
+				rail_type = GetRailType(m_new_tile, FindFirstTrack(tracks));
+			} else {
+				rail_type = GetTileRailType(m_new_tile);
+			}
 			if (!HasBit(m_railtypes, rail_type)) {
 				/* incompatible rail type */
 				m_err = EC_RAIL_TYPE;
@@ -449,7 +459,7 @@ public:
 		}
 		/* Check for speed limit imposed by railtype */
 		if (IsRailTT()) {
-			uint16 rail_speed = GetRailTypeInfo(GetRailType(m_old_tile))->max_speed;
+			uint16 rail_speed = GetRailTypeInfo(GetRailType(m_old_tile, TrackdirToTrack(m_old_td)))->max_speed;
 			if (rail_speed > 0) max_speed = min(max_speed, rail_speed);
 		}
 

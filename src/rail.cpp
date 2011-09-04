@@ -138,11 +138,11 @@ extern const TrackdirBits _uphill_trackdirs[] = {
 /**
  * Return the rail type of tile, or INVALID_RAILTYPE if this is no rail tile.
  */
-RailType GetTileRailType(TileIndex tile)
+RailType GetTileRailType(TileIndex tile, Track track)
 {
 	switch (GetTileType(tile)) {
 		case TT_RAILWAY:
-			return GetRailType(tile);
+			return GetRailType(tile, track);
 
 		case TT_MISC:
 			if (IsLevelCrossingTile(tile) || (IsTunnelTile(tile) && GetTunnelTransportType(tile) == TRANSPORT_RAIL) || IsRailDepotTile(tile)) return GetRailType(tile);

@@ -2823,10 +2823,10 @@ static void TrainEnterStation(Train *v, StationID station)
 }
 
 /* Check if the vehicle is compatible with the specified tile */
-static inline bool CheckCompatibleRail(const Train *v, TileIndex tile)
+static inline bool CheckCompatibleRail(const Train *v, TileIndex tile, Track track = INVALID_TRACK)
 {
 	return IsTileOwner(tile, v->owner) &&
-			(!v->IsFrontEngine() || HasBit(v->compatible_railtypes, GetRailType(tile)));
+			(!v->IsFrontEngine() || HasBit(v->compatible_railtypes, GetRailType(tile, track)));
 }
 
 /** Data structure for storing engine speed changes of an acceleration type. */
@@ -3144,7 +3144,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 
 			/* Check if the new tile constrains tracks that are compatible
 			 * with the current train, if not, bail out. */
-			if (!CheckCompatibleRail(v, gp.new_tile)) goto invalid_rail;
+			if (!CheckCompatibleRail(v, gp.new_tile, TrackdirToTrack(FindFirstTrackdir(trackdirbits)))) goto invalid_rail;
 
 			TrackBits chosen_track;
 			if (prev == NULL) {
@@ -3269,14 +3269,15 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				/* Clear any track reservation when the last vehicle leaves the tile */
 				if (v->Next() == NULL) ClearPathReservation(v, v->tile, v->GetVehicleTrackdir());
 
+				RailType old_rt = v->GetTrackRailType();
+
 				v->tile = gp.new_tile;
-
-				if (GetTileRailType(gp.new_tile) != GetTileRailType(gp.old_tile)) {
-					v->First()->ConsistChanged(true);
-				}
-
 				v->track = chosen_track;
 				assert(v->track);
+
+				if (GetTileRailType(gp.new_tile, track) != old_rt) {
+					v->First()->ConsistChanged(true);
+				}
 			}
 
 			/* We need to update signal status, but after the vehicle position hash
@@ -3687,7 +3688,7 @@ static bool TrainCheckIfLineEnds(Train *v, bool reverse)
 	}
 
 	/* no suitable trackbits at all || unusable rail (wrong type or owner) */
-	if (trackdirbits == TRACKDIR_BIT_NONE || !CheckCompatibleRail(v, tile)) {
+	if (trackdirbits == TRACKDIR_BIT_NONE || !CheckCompatibleRail(v, tile, TrackdirToTrack(FindFirstTrackdir(trackdirbits)))) {
 		return TrainApproachingLineEnd(v, false, reverse);
 	}
 

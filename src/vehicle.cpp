@@ -2573,7 +2573,7 @@ void Vehicle::ShowVisualEffect() const
 				IsDepotTile(v->tile) ||
 				IsTunnelTile(v->tile) ||
 				(v->type == VEH_TRAIN &&
-				!HasPowerOnRail(Train::From(v)->railtype, GetTileRailType(v->tile)))) {
+				!HasPowerOnRail(Train::From(v)->railtype, Train::From(v)->GetTrackRailType()))) {
 			continue;
 		}
 

@@ -901,6 +901,15 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			SB(_mth[t].type_height, 4, 4, zone << 2);
 		}
 	}
+
+	/* Add second railtype to rail tiles */
+	if (IsFullSavegameVersionBefore(stv, 3)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsTileTypeSubtype(t, TT_RAILWAY, TT_TRACK)) {
+				SB(_mc[t].m5, 0, 4, GB(_mc[t].m3, 0, 4));
+			}
+		}
+	}
 }
 
 

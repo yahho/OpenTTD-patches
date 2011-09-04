@@ -47,7 +47,7 @@ protected:
 			this->tile = tile;
 			this->td = td;
 			this->tile_type = GetTileType(tile);
-			this->rail_type = GetTileRailType(tile);
+			this->rail_type = GetTileRailType(tile, TrackdirToTrack(td));
 		}
 
 		TILE(const TILE &src)

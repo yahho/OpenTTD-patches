@@ -49,6 +49,7 @@ enum TrackBits {
 	TRACK_BIT_CROSS   = TRACK_BIT_X     | TRACK_BIT_Y,                      ///< X-Y-axis cross
 	TRACK_BIT_HORZ    = TRACK_BIT_UPPER | TRACK_BIT_LOWER,                  ///< Upper and lower track
 	TRACK_BIT_VERT    = TRACK_BIT_LEFT  | TRACK_BIT_RIGHT,                  ///< Left and right track
+	TRACK_BIT_LOWER_RIGHT = TRACK_BIT_LOWER | TRACK_BIT_RIGHT,              ///< Lower and right track
 	TRACK_BIT_3WAY_NE = TRACK_BIT_X     | TRACK_BIT_UPPER | TRACK_BIT_RIGHT,///< "Arrow" to the north-east
 	TRACK_BIT_3WAY_SE = TRACK_BIT_Y     | TRACK_BIT_LOWER | TRACK_BIT_RIGHT,///< "Arrow" to the south-east
 	TRACK_BIT_3WAY_SW = TRACK_BIT_X     | TRACK_BIT_LOWER | TRACK_BIT_LEFT, ///< "Arrow" to the south-west
