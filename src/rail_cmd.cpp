@@ -1950,26 +1950,10 @@ static inline void DrawTrackSprite(SpriteID sprite, PaletteID pal, const TileInf
 	DrawGroundSprite(sprite, pal, NULL, 0, (ti->tileh & s) ? -8 : 0);
 }
 
-static void DrawTrackBitsOverlay(TileInfo *ti, TrackBits track, const RailtypeInfo *rti)
+static void DrawTrackGround(TileInfo *ti, RailGroundType rgt, bool has_track)
 {
-	RailGroundType rgt = GetRailGroundType(ti->tile);
-	Foundation f = GetRailFoundation(ti->tileh, track);
-	Corner halftile_corner = CORNER_INVALID;
-
-	if (IsNonContinuousFoundation(f)) {
-		/* Save halftile corner */
-		halftile_corner = (f == FOUNDATION_STEEP_BOTH ? GetHighestSlopeCorner(ti->tileh) : GetHalftileFoundationCorner(f));
-		/* Draw lower part first */
-		track &= ~CornerToTrackBits(halftile_corner);
-		f = (f == FOUNDATION_STEEP_BOTH ? FOUNDATION_STEEP_LOWER : FOUNDATION_NONE);
-	}
-
-	DrawFoundation(ti, f);
-	/* DrawFoundation modifies ti */
-
-	/* Draw ground */
 	if (rgt == RAIL_GROUND_WATER) {
-		if (track != TRACK_BIT_NONE || IsSteepSlope(ti->tileh)) {
+		if (has_track || IsSteepSlope(ti->tileh)) {
 			/* three-corner-raised slope or steep slope with track on upper part */
 			DrawShoreTile(ti->tileh);
 		} else {
@@ -1989,7 +1973,10 @@ static void DrawTrackBitsOverlay(TileInfo *ti, TrackBits track, const RailtypeIn
 
 		DrawGroundSprite(image, PAL_NONE);
 	}
+}
 
+static void DrawTrackBitsOverlay(TileInfo *ti, TrackBits track, const RailtypeInfo *rti)
+{
 	SpriteID overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY);
 	SpriteID ground = GetCustomRailSprite(rti, ti->tile, RTSG_GROUND);
 	TrackBits pbs = _settings_client.gui.show_track_reservation ? GetRailReservationTrackBits(ti->tile) : TRACK_BIT_NONE;
@@ -2058,137 +2045,55 @@ static void DrawTrackBitsOverlay(TileInfo *ti, TrackBits track, const RailtypeIn
 		if (pbs & TRACK_BIT_RIGHT) DrawTrackSprite(overlay + RTO_E, PALETTE_CRASH, ti, SLOPE_E);
 		if (pbs & TRACK_BIT_LEFT)  DrawTrackSprite(overlay + RTO_W, PALETTE_CRASH, ti, SLOPE_W);
 	}
-
-	if (IsValidCorner(halftile_corner)) {
-		DrawFoundation(ti, HalftileFoundation(halftile_corner));
-		overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY, TCX_UPPER_HALFTILE);
-		ground = GetCustomRailSprite(rti, ti->tile, RTSG_GROUND, TCX_UPPER_HALFTILE);
-
-		/* Draw higher halftile-overlay: Use the sloped sprites with three corners raised. They probably best fit the lightning. */
-		Slope fake_slope = SlopeWithThreeCornersRaised(OppositeCorner(halftile_corner));
-
-		SpriteID image;
-		switch (rgt) {
-			case RAIL_GROUND_BARREN:     image = SPR_FLAT_BARE_LAND;  break;
-			case RAIL_GROUND_ICE_DESERT:
-			case RAIL_GROUND_HALF_SNOW:  image = SPR_FLAT_SNOW_DESERT_TILE; break;
-			default:                     image = SPR_FLAT_GRASS_TILE; break;
-		}
-
-		image += SlopeToSpriteOffset(fake_slope);
-
-		DrawGroundSprite(image, PAL_NONE, &(_halftile_sub_sprite[halftile_corner]));
-
-		track = CornerToTrackBits(halftile_corner);
-
-		int offset;
-		switch (track) {
-			default: NOT_REACHED();
-			case TRACK_BIT_UPPER: offset = RTO_N; break;
-			case TRACK_BIT_LOWER: offset = RTO_S; break;
-			case TRACK_BIT_RIGHT: offset = RTO_E; break;
-			case TRACK_BIT_LEFT:  offset = RTO_W; break;
-		}
-
-		DrawTrackSprite(ground + offset, PAL_NONE, ti, fake_slope);
-		if (_settings_client.gui.show_track_reservation && HasReservedTracks(ti->tile, track)) {
-			DrawTrackSprite(overlay + offset, PALETTE_CRASH, ti, fake_slope);
-		}
-	}
 }
 
-/**
- * Draw ground sprite and track bits
- * @param ti TileInfo
- * @param track TrackBits to draw
- */
-static void DrawTrackBits(TileInfo *ti, TrackBits track)
+static void DrawTrackBitsNonOverlay(TileInfo *ti, TrackBits track, const RailtypeInfo *rti, RailGroundType rgt)
 {
-	const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
-
-	if (rti->UsesOverlay()) {
-		DrawTrackBitsOverlay(ti, track, rti);
-		return;
-	}
-
-	RailGroundType rgt = GetRailGroundType(ti->tile);
-	Foundation f = GetRailFoundation(ti->tileh, track);
-	Corner halftile_corner = CORNER_INVALID;
-
-	if (IsNonContinuousFoundation(f)) {
-		/* Save halftile corner */
-		halftile_corner = (f == FOUNDATION_STEEP_BOTH ? GetHighestSlopeCorner(ti->tileh) : GetHalftileFoundationCorner(f));
-		/* Draw lower part first */
-		track &= ~CornerToTrackBits(halftile_corner);
-		f = (f == FOUNDATION_STEEP_BOTH ? FOUNDATION_STEEP_LOWER : FOUNDATION_NONE);
-	}
-
-	DrawFoundation(ti, f);
-	/* DrawFoundation modifies ti */
-
 	SpriteID image;
 	PaletteID pal = PAL_NONE;
 	const SubSprite *sub = NULL;
 	bool junction = false;
 
-	/* Select the sprite to use. */
-	if (track == 0) {
-		/* Clear ground (only track on halftile foundation) */
-		if (rgt == RAIL_GROUND_WATER) {
-			if (IsSteepSlope(ti->tileh)) {
-				DrawShoreTile(ti->tileh);
-				image = 0;
-			} else {
-				image = SPR_FLAT_WATER_TILE;
-			}
-		} else {
-			switch (rgt) {
-				case RAIL_GROUND_BARREN:     image = SPR_FLAT_BARE_LAND;  break;
-				case RAIL_GROUND_ICE_DESERT: image = SPR_FLAT_SNOW_DESERT_TILE; break;
-				default:                     image = SPR_FLAT_GRASS_TILE; break;
-			}
-			image += SlopeToSpriteOffset(ti->tileh);
-		}
+	if (track == TRACK_BIT_NONE) return;
+
+	if (ti->tileh != SLOPE_FLAT) {
+		/* track on non-flat ground */
+		image = _track_sloped_sprites[ti->tileh - 1] + rti->base_sprites.track_y;
 	} else {
-		if (ti->tileh != SLOPE_FLAT) {
-			/* track on non-flat ground */
-			image = _track_sloped_sprites[ti->tileh - 1] + rti->base_sprites.track_y;
-		} else {
-			/* track on flat ground */
-			(image = rti->base_sprites.track_y, track == TRACK_BIT_Y) ||
-			(image++,                           track == TRACK_BIT_X) ||
-			(image++,                           track == TRACK_BIT_UPPER) ||
-			(image++,                           track == TRACK_BIT_LOWER) ||
-			(image++,                           track == TRACK_BIT_RIGHT) ||
-			(image++,                           track == TRACK_BIT_LEFT) ||
-			(image++,                           track == TRACK_BIT_CROSS) ||
+		/* track on flat ground */
+		(image = rti->base_sprites.track_y, track == TRACK_BIT_Y) ||
+		(image++,                           track == TRACK_BIT_X) ||
+		(image++,                           track == TRACK_BIT_UPPER) ||
+		(image++,                           track == TRACK_BIT_LOWER) ||
+		(image++,                           track == TRACK_BIT_RIGHT) ||
+		(image++,                           track == TRACK_BIT_LEFT) ||
+		(image++,                           track == TRACK_BIT_CROSS) ||
 
-			(image = rti->base_sprites.track_ns, track == TRACK_BIT_HORZ) ||
-			(image++,                            track == TRACK_BIT_VERT) ||
+		(image = rti->base_sprites.track_ns, track == TRACK_BIT_HORZ) ||
+		(image++,                            track == TRACK_BIT_VERT) ||
 
-			(junction = true, false) ||
-			(image = rti->base_sprites.ground, (track & TRACK_BIT_3WAY_NE) == 0) ||
-			(image++,                          (track & TRACK_BIT_3WAY_SW) == 0) ||
-			(image++,                          (track & TRACK_BIT_3WAY_NW) == 0) ||
-			(image++,                          (track & TRACK_BIT_3WAY_SE) == 0) ||
-			(image++, true);
-		}
-
-		switch (rgt) {
-			case RAIL_GROUND_BARREN:     pal = PALETTE_TO_BARE_LAND; break;
-			case RAIL_GROUND_ICE_DESERT: image += rti->snow_offset;  break;
-			case RAIL_GROUND_WATER: {
-				/* three-corner-raised slope */
-				DrawShoreTile(ti->tileh);
-				Corner track_corner = OppositeCorner(GetHighestSlopeCorner(ComplementSlope(ti->tileh)));
-				sub = &(_halftile_sub_sprite[track_corner]);
-				break;
-			}
-			default: break;
-		}
+		(junction = true, false) ||
+		(image = rti->base_sprites.ground, (track & TRACK_BIT_3WAY_NE) == 0) ||
+		(image++,                          (track & TRACK_BIT_3WAY_SW) == 0) ||
+		(image++,                          (track & TRACK_BIT_3WAY_NW) == 0) ||
+		(image++,                          (track & TRACK_BIT_3WAY_SE) == 0) ||
+		(image++, true);
 	}
 
-	if (image != 0) DrawGroundSprite(image, pal, sub);
+	switch (rgt) {
+		case RAIL_GROUND_BARREN:     pal = PALETTE_TO_BARE_LAND; break;
+		case RAIL_GROUND_ICE_DESERT: image += rti->snow_offset;  break;
+		case RAIL_GROUND_WATER: {
+			/* three-corner-raised slope */
+			DrawShoreTile(ti->tileh);
+			Corner track_corner = OppositeCorner(GetHighestSlopeCorner(ComplementSlope(ti->tileh)));
+			sub = &(_halftile_sub_sprite[track_corner]);
+			break;
+		}
+		default: break;
+	}
+
+	DrawGroundSprite(image, pal, sub);
 
 	/* Draw track pieces individually for junction tiles */
 	if (junction) {
@@ -2223,26 +2128,122 @@ static void DrawTrackBits(TileInfo *ti, TrackBits track)
 		if (pbs & TRACK_BIT_LEFT)  DrawGroundSprite(rti->base_sprites.single_w, PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_W ? -(int)TILE_HEIGHT : 0);
 		if (pbs & TRACK_BIT_RIGHT) DrawGroundSprite(rti->base_sprites.single_e, PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_E ? -(int)TILE_HEIGHT : 0);
 	}
+}
+
+static void DrawTrackBits(TileInfo *ti, TrackBits track, const RailtypeInfo *rti, RailGroundType rgt)
+{
+	if (rti->UsesOverlay()) {
+		DrawTrackBitsOverlay(ti, track, rti);
+	} else {
+		DrawTrackBitsNonOverlay(ti, track, rti, rgt);
+	}
+
+}
+
+static void DrawUpperHalftileOverlay(TileInfo *ti, Corner corner, const RailtypeInfo *rti, RailGroundType rgt)
+{
+	SpriteID image;
+	switch (rgt) {
+		case RAIL_GROUND_BARREN:     image = SPR_FLAT_BARE_LAND;  break;
+		case RAIL_GROUND_ICE_DESERT:
+		case RAIL_GROUND_HALF_SNOW:  image = SPR_FLAT_SNOW_DESERT_TILE; break;
+		default:                     image = SPR_FLAT_GRASS_TILE; break;
+	}
+
+	/* Draw higher halftile-overlay: Use the sloped sprites with three corners raised. They probably best fit the lighting. */
+	Slope fake_slope = SlopeWithThreeCornersRaised(OppositeCorner(corner));
+
+	image += SlopeToSpriteOffset(fake_slope);
+
+	DrawGroundSprite(image, PAL_NONE, &(_halftile_sub_sprite[corner]));
+
+	TrackBits track = CornerToTrackBits(corner);
+
+	SpriteID overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY, TCX_UPPER_HALFTILE);
+	SpriteID ground = GetCustomRailSprite(rti, ti->tile, RTSG_GROUND, TCX_UPPER_HALFTILE);
+
+	int offset;
+	switch (track) {
+		default: NOT_REACHED();
+		case TRACK_BIT_UPPER: offset = RTO_N; break;
+		case TRACK_BIT_LOWER: offset = RTO_S; break;
+		case TRACK_BIT_RIGHT: offset = RTO_E; break;
+		case TRACK_BIT_LEFT:  offset = RTO_W; break;
+	}
+
+	DrawTrackSprite(ground + offset, PAL_NONE, ti, fake_slope);
+	if (_settings_client.gui.show_track_reservation && HasReservedTracks(ti->tile, track)) {
+		DrawTrackSprite(overlay + offset, PALETTE_CRASH, ti, fake_slope);
+	}
+}
+
+static void DrawUpperHalftileNonOverlay(TileInfo *ti, Corner corner, const RailtypeInfo *rti, RailGroundType rgt)
+{
+	/* Draw higher halftile-overlay: Use the sloped sprites with three corners raised. They probably best fit the lighting. */
+	Slope fake_slope = SlopeWithThreeCornersRaised(OppositeCorner(corner));
+	SpriteID image = _track_sloped_sprites[fake_slope - 1] + rti->base_sprites.track_y;
+	PaletteID pal = PAL_NONE;
+
+	switch (rgt) {
+		case RAIL_GROUND_BARREN:     pal = PALETTE_TO_BARE_LAND; break;
+		case RAIL_GROUND_ICE_DESERT:
+		case RAIL_GROUND_HALF_SNOW:  image += rti->snow_offset;  break; // higher part has snow in this case too
+		default: break;
+	}
+
+	DrawGroundSprite(image, pal, &(_halftile_sub_sprite[corner]));
+
+	if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasReservedTracks(ti->tile, CornerToTrackBits(corner))) {
+		static const byte _corner_to_track_sprite[] = {3, 1, 2, 0};
+		DrawGroundSprite(_corner_to_track_sprite[corner] + rti->base_sprites.single_n, PALETTE_CRASH, NULL, 0, -(int)TILE_HEIGHT);
+	}
+}
+
+static void DrawUpperHalftile(TileInfo *ti, Corner corner, const RailtypeInfo *rti, RailGroundType rgt)
+{
+	DrawFoundation(ti, HalftileFoundation(corner));
+
+	if (rti->UsesOverlay()) {
+		DrawUpperHalftileOverlay(ti, corner, rti, rgt);
+	} else {
+		DrawUpperHalftileNonOverlay(ti, corner, rti, rgt);
+	}
+}
+
+/**
+ * Draw ground sprite and track bits
+ * @param ti TileInfo
+ * @param track TrackBits to draw
+ */
+static void DrawTrack(TileInfo *ti, TrackBits track)
+{
+	RailGroundType rgt = GetRailGroundType(ti->tile);
+	Foundation f = GetRailFoundation(ti->tileh, track);
+	Corner halftile_corner = CORNER_INVALID;
+
+	if (IsNonContinuousFoundation(f)) {
+		/* Save halftile corner */
+		halftile_corner = (f == FOUNDATION_STEEP_BOTH ? GetHighestSlopeCorner(ti->tileh) : GetHalftileFoundationCorner(f));
+		/* Draw lower part first */
+		track &= ~CornerToTrackBits(halftile_corner);
+		f = (f == FOUNDATION_STEEP_BOTH ? FOUNDATION_STEEP_LOWER : FOUNDATION_NONE);
+	}
+
+	DrawFoundation(ti, f);
+	/* DrawFoundation modifies ti */
+
+	const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
+
+	/* Non-overlay railtypes need ground to be drawn if there is no lower halftile track */
+	if (rti->UsesOverlay() || track == TRACK_BIT_NONE) {
+		/* Draw ground */
+		DrawTrackGround(ti, rgt, track != TRACK_BIT_NONE);
+	}
+
+	DrawTrackBits(ti, track, rti, rgt);
 
 	if (IsValidCorner(halftile_corner)) {
-		DrawFoundation(ti, HalftileFoundation(halftile_corner));
-
-		/* Draw higher halftile-overlay: Use the sloped sprites with three corners raised. They probably best fit the lightning. */
-		Slope fake_slope = SlopeWithThreeCornersRaised(OppositeCorner(halftile_corner));
-		image = _track_sloped_sprites[fake_slope - 1] + rti->base_sprites.track_y;
-		pal = PAL_NONE;
-		switch (rgt) {
-			case RAIL_GROUND_BARREN:     pal = PALETTE_TO_BARE_LAND; break;
-			case RAIL_GROUND_ICE_DESERT:
-			case RAIL_GROUND_HALF_SNOW:  image += rti->snow_offset;  break; // higher part has snow in this case too
-			default: break;
-		}
-		DrawGroundSprite(image, pal, &(_halftile_sub_sprite[halftile_corner]));
-
-		if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasReservedTracks(ti->tile, CornerToTrackBits(halftile_corner))) {
-			static const byte _corner_to_track_sprite[] = {3, 1, 2, 0};
-			DrawGroundSprite(_corner_to_track_sprite[halftile_corner] + rti->base_sprites.single_n, PALETTE_CRASH, NULL, 0, -(int)TILE_HEIGHT);
-		}
+		DrawUpperHalftile(ti, halftile_corner, rti, rgt);
 	}
 }
 
@@ -2352,7 +2353,7 @@ static void DrawTile_Track(TileInfo *ti)
 
 		TrackBits rails = GetTrackBits(ti->tile);
 
-		DrawTrackBits(ti, rails);
+		DrawTrack(ti, rails);
 
 		if (HasBit(_display_opt, DO_FULL_DETAIL)) DrawTrackDetails(ti, rti);
 
