@@ -214,31 +214,104 @@ static CommandCost EnsureNoTrainOnTrack(TileIndex tile, Track track)
  * @param flags    Flags of the operation.
  * @return Succeeded or failed command.
  */
-static CommandCost CheckTrackCombination(TileIndex tile, TrackBits to_build, uint flags)
+static CommandCost CheckTrackCombination(TileIndex tile, Track to_build, RailType railtype, DoCommandFlag flags)
 {
-	if (!IsNormalRailTile(tile)) return_cmd_error(STR_ERROR_IMPOSSIBLE_TRACK_COMBINATION);
+	assert(IsNormalRailTile(tile));
 
-	/* So, we have a tile with tracks on it (and possibly signals). Let's see
-	 * what tracks first */
 	TrackBits current = GetTrackBits(tile); // The current track layout.
-	TrackBits future = current | to_build;  // The track layout we want to build.
+	assert(current != TRACK_BIT_NONE);
+
+	TrackBits future = current | TrackToTrackBits(to_build); // The track layout we want to build.
 
 	/* Are we really building something new? */
 	if (current == future) {
 		/* Nothing new is being built */
-		return_cmd_error(STR_ERROR_ALREADY_BUILT);
-	}
-
-	/* Let's see if we may build this */
-	if ((flags & DC_NO_RAIL_OVERLAP) || HasSignalOnTrack(tile, TRACK_UPPER) || HasSignalOnTrack(tile, TRACK_LOWER)) {
-		/* If we are not allowed to overlap (flag is on for ai companies or we have
-		 * signals on the tile), check that */
-		if (future != TRACK_BIT_HORZ && future != TRACK_BIT_VERT) {
-			return_cmd_error((flags & DC_NO_RAIL_OVERLAP) ? STR_ERROR_IMPOSSIBLE_TRACK_COMBINATION : STR_ERROR_MUST_REMOVE_SIGNALS_FIRST);
+		if (IsCompatibleRail(GetRailType(tile, to_build), railtype)) {
+			return_cmd_error(STR_ERROR_ALREADY_BUILT);
+		} else {
+			return_cmd_error(STR_ERROR_IMPOSSIBLE_TRACK_COMBINATION);
 		}
 	}
-	/* Normally, we may overlap and any combination is valid */
-	return CommandCost();
+
+	/* These combinations are always allowed */
+	if (future == TRACK_BIT_HORZ || future == TRACK_BIT_VERT) {
+		if (flags & DC_EXEC) {
+			SetRailType(tile, railtype, to_build);
+		}
+		return CommandCost();
+	}
+
+	if (flags & DC_NO_RAIL_OVERLAP) {
+		/* If we are not allowed to overlap (flag is on for ai companies), check that */
+		return_cmd_error(STR_ERROR_IMPOSSIBLE_TRACK_COMBINATION);
+	}
+
+	RailType rt; // RailType to convert to, or INVALID_RAILTYPE if no conversion is necessary
+
+	if (current == TRACK_BIT_HORZ || current == TRACK_BIT_VERT) {
+		RailType rt1 = GetRailType(tile, TRACK_UPPER);
+		if (!IsCompatibleRail(rt1, railtype)) return_cmd_error(STR_ERROR_IMPOSSIBLE_TRACK_COMBINATION);
+
+		RailType rt2 = GetRailType(tile, TRACK_LOWER);
+		if (!IsCompatibleRail(rt2, railtype)) return_cmd_error(STR_ERROR_IMPOSSIBLE_TRACK_COMBINATION);
+
+		if (rt1 != rt2) {
+			/* Two different railtypes present */
+			if ((railtype == rt1 || HasPowerOnRail(rt1, railtype)) && (railtype == rt2 || HasPowerOnRail(rt2, railtype))) {
+				rt = railtype;
+			} else if ((railtype == rt1 || HasPowerOnRail(railtype, rt1)) && HasPowerOnRail(rt2, rt1)) {
+				rt = railtype = rt1;
+			} else if ((railtype == rt2 || HasPowerOnRail(railtype, rt2)) && HasPowerOnRail(rt1, rt2)) {
+				rt = railtype = rt2;
+			} else {
+				return_cmd_error(STR_ERROR_IMPOSSIBLE_TRACK_COMBINATION);
+			}
+		} else if (railtype == rt1) {
+			/* Nothing to do */
+			rt = INVALID_RAILTYPE;
+		} else if (HasPowerOnRail(railtype, rt1)) {
+			/* Try to keep existing railtype */
+			railtype = rt1;
+			rt = INVALID_RAILTYPE;
+		} else if (HasPowerOnRail(rt1, railtype)) {
+			rt = railtype;
+		} else {
+			return_cmd_error(STR_ERROR_IMPOSSIBLE_TRACK_COMBINATION);
+		}
+	} else {
+		rt = GetRailType(tile, FindFirstTrack(current));
+
+		if (railtype == rt) {
+			/* Nothing to do */
+			rt = INVALID_RAILTYPE;
+		} else if (!IsCompatibleRail(rt, railtype)) {
+			return_cmd_error(STR_ERROR_IMPOSSIBLE_TRACK_COMBINATION);
+		} else if (HasPowerOnRail(railtype, rt)) {
+			/* Try to keep existing railtype */
+			railtype = rt;
+			rt = INVALID_RAILTYPE;
+		} else if (HasPowerOnRail(rt, railtype)) {
+			rt = railtype;
+		} else {
+			return_cmd_error(STR_ERROR_IMPOSSIBLE_TRACK_COMBINATION);
+		}
+	}
+
+	CommandCost ret;
+	if (rt != INVALID_RAILTYPE) {
+		ret = DoCommand(tile, tile, rt, flags, CMD_CONVERT_RAIL);
+		if (ret.Failed()) return ret;
+	}
+
+	if (HasSignalOnTrack(tile, TRACK_UPPER) || HasSignalOnTrack(tile, TRACK_LOWER)) {
+		return_cmd_error(STR_ERROR_MUST_REMOVE_SIGNALS_FIRST);
+	}
+
+	if (flags & DC_EXEC) {
+		SetRailType(tile, railtype, to_build);
+	}
+
+	return ret;
 }
 
 
@@ -425,28 +498,16 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 			CommandCost ret = CheckTileOwnership(tile);
 			if (ret.Failed()) return ret;
 
-			if (!IsCompatibleRail(GetRailType(tile), railtype)) return_cmd_error(STR_ERROR_IMPOSSIBLE_TRACK_COMBINATION);
-
-			ret = CheckTrackCombination(tile, trackbit, flags);
-			if (ret.Succeeded()) ret = EnsureNoTrainOnTrack(tile, track);
+			ret = CheckTrackCombination(tile, track, railtype, flags);
 			if (ret.Failed()) return ret;
+			cost.AddCost(ret);
 
 			ret = CheckRailSlope(tileh, trackbit, GetTrackBits(tile), tile);
 			if (ret.Failed()) return ret;
 			cost.AddCost(ret);
 
-			/* If the rail types don't match, try to convert only if engines of
-			 * the new rail type are not powered on the present rail type and engines of
-			 * the present rail type are powered on the new rail type. */
-			if (GetRailType(tile) != railtype && !HasPowerOnRail(railtype, GetRailType(tile))) {
-				if (HasPowerOnRail(GetRailType(tile), railtype)) {
-					ret = DoCommand(tile, tile, railtype, flags, CMD_CONVERT_RAIL);
-					if (ret.Failed()) return ret;
-					cost.AddCost(ret);
-				} else {
-					return CMD_ERROR;
-				}
-			}
+			ret = EnsureNoTrainOnTrack(tile, track);
+			if (ret.Failed()) return ret;
 
 			if (flags & DC_EXEC) {
 				SetRailGroundType(tile, RAIL_GROUND_BARREN);
