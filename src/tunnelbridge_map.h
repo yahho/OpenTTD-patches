@@ -32,27 +32,6 @@ static inline DiagDirection GetTunnelBridgeDirection(TileIndex t)
 }
 
 /**
- * Tunnel: Get the transport type of the tunnel (road or rail)
- * Bridge: Get the transport type of the bridge's ramp
- * @param t The tile to analyze
- * @pre IsTunnelTile(t) || IsBridgeHeadTile(t)
- * @return the transport type in the tunnel/bridge
- */
-static inline TransportType GetTunnelBridgeTransportType(TileIndex t)
-{
-	if (IsTunnelTile(t)) {
-		return GetTunnelTransportType(t);
-	} else if (IsRailBridgeTile(t)) {
-		return TRANSPORT_RAIL;
-	} else if (IsRoadBridgeTile(t)) {
-		return TRANSPORT_ROAD;
-	} else {
-		assert(IsAqueductTile(t));
-		return TRANSPORT_WATER;
-	}
-}
-
-/**
  * Determines type of the wormhole and returns its other end
  * @param t one end
  * @pre IsTunnelTile(t) || IsBridgeHeadTile(t)
