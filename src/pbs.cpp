@@ -25,13 +25,13 @@ TrackBits GetReservedTrackbits(TileIndex t)
 {
 	switch (GetTileType(t)) {
 		case TT_RAILWAY:
-			return IsTileSubtype(t, TT_BRIDGE) ? GetTunnelBridgeReservationTrackBits(t) : GetRailReservationTrackBits(t);
+			return IsTileSubtype(t, TT_BRIDGE) ? GetBridgeReservationTrackBits(t) : GetRailReservationTrackBits(t);
 
 		case TT_MISC:
 			switch (GetTileSubtype(t)) {
 				case TT_MISC_CROSSING: return GetCrossingReservationTrackBits(t);
 				case TT_MISC_TUNNEL:
-					if (GetTunnelTransportType(t) == TRANSPORT_RAIL) return GetTunnelBridgeReservationTrackBits(t);
+					if (GetTunnelTransportType(t) == TRANSPORT_RAIL) return GetTunnelReservationTrackBits(t);
 					break;
 				case TT_MISC_DEPOT:
 					if (IsRailDepot(t)) return GetDepotReservationTrackBits(t);
@@ -104,7 +104,7 @@ bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations)
 	switch (GetTileType(tile)) {
 		case TT_RAILWAY:
 			if (!IsTileSubtype(tile, TT_BRIDGE)) return TryReserveTrack(tile, t);
-			if (!GetTunnelBridgeReservationTrackBits(tile)) {
+			if (!GetBridgeReservationTrackBits(tile)) {
 				SetTunnelBridgeReservation(tile, true);
 				return true;
 			}
@@ -120,7 +120,7 @@ bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations)
 					return true;
 
 				case TT_MISC_TUNNEL:
-					if (GetTunnelTransportType(tile) == TRANSPORT_RAIL && !GetTunnelBridgeReservationTrackBits(tile)) {
+					if (GetTunnelTransportType(tile) == TRANSPORT_RAIL && !GetTunnelReservationTrackBits(tile)) {
 						SetTunnelBridgeReservation(tile, true);
 						return true;
 					}

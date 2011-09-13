@@ -60,13 +60,27 @@ static inline void SetTunnelBridgeReservation(TileIndex t, bool b)
 }
 
 /**
- * Get the reserved track bits for a rail tunnel/bridge
- * @pre (IsTunnelTile(t) && GetTunnelTransportType(t) == TRANSPORT_RAIL) || IsRailBridgeTile(t)
+ * Get the reserved track bits for a rail bridge
+ * @pre IsRailBridgeTile(t)
  * @param t the tile
  * @return reserved track bits
  */
-static inline TrackBits GetTunnelBridgeReservationTrackBits(TileIndex t)
+static inline TrackBits GetBridgeReservationTrackBits(TileIndex t)
 {
+	assert(IsRailBridgeTile(t));
+	return HasTunnelBridgeReservation(t) ? DiagDirToDiagTrackBits(GetTunnelBridgeDirection(t)) : TRACK_BIT_NONE;
+}
+
+/**
+ * Get the reserved track bits for a rail tunnel
+ * @pre IsTunnelTile(t) && GetTunnelTransportType(t) == TRANSPORT_RAIL
+ * @param t the tile
+ * @return reserved track bits
+ */
+static inline TrackBits GetTunnelReservationTrackBits(TileIndex t)
+{
+	assert(IsTunnelTile(t));
+	assert(GetTunnelTransportType(t) == TRANSPORT_RAIL);
 	return HasTunnelBridgeReservation(t) ? DiagDirToDiagTrackBits(GetTunnelBridgeDirection(t)) : TRACK_BIT_NONE;
 }
 
