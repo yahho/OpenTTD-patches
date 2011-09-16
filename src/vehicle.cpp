@@ -2574,7 +2574,7 @@ void Vehicle::ShowVisualEffect() const
 		 * - The vehicle is a train engine that is currently unpowered */
 		if (disable_effect ||
 				v->vehstatus & VS_HIDDEN ||
-				(MayHaveBridgeAbove(v->tile) && IsBridgeAbove(v->tile)) ||
+				HasBridgeAbove(v->tile) ||
 				IsDepotTile(v->tile) ||
 				IsTunnelTile(v->tile) ||
 				(v->type == VEH_TRAIN &&

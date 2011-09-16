@@ -62,6 +62,16 @@ static inline bool IsBridgeAbove(TileIndex t)
 }
 
 /**
+ * Checks if there is a bridge over this tile
+ * @param t The tile to check
+ * @return Whether there is a bridge over the tile
+ */
+static inline bool HasBridgeAbove(TileIndex t)
+{
+	return MayHaveBridgeAbove(t) && IsBridgeAbove(t);
+}
+
+/**
  * Determines the type of bridge on a tile
  * @param t The tile to analyze
  * @pre IsBridgeTile(t)

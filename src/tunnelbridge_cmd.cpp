@@ -374,15 +374,13 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 
 		const TileIndex heads[] = {tile_start, tile_end};
 		for (int i = 0; i < 2; i++) {
-			if (MayHaveBridgeAbove(heads[i])) {
-				if (IsBridgeAbove(heads[i])) {
-					TileIndex north_head = GetNorthernBridgeEnd(heads[i]);
+			if (HasBridgeAbove(heads[i])) {
+				TileIndex north_head = GetNorthernBridgeEnd(heads[i]);
 
-					if (direction == GetBridgeAxis(heads[i])) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+				if (direction == GetBridgeAxis(heads[i])) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
 
-					if (z_start + 1 == GetBridgeHeight(north_head)) {
-						return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
-					}
+				if (z_start + 1 == GetBridgeHeight(north_head)) {
+					return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
 				}
 			}
 		}
@@ -391,7 +389,7 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 		for (TileIndex tile = tile_start + delta; tile != tile_end; tile += delta) {
 			if (GetTileMaxZ(tile) > z_start) return_cmd_error(STR_ERROR_BRIDGE_TOO_LOW_FOR_TERRAIN);
 
-			if (MayHaveBridgeAbove(tile) && IsBridgeAbove(tile)) {
+			if (HasBridgeAbove(tile)) {
 				/* Disallow crossing bridges for the time being */
 				return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
 			}
