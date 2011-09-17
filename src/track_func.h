@@ -205,7 +205,7 @@ static inline bool IsValidTrack(Track track)
  */
 static inline bool IsValidTrackdir(Trackdir trackdir)
 {
-	return (TrackdirToTrackdirBits(trackdir) & TRACKDIR_BIT_MASK) != 0;
+	return (trackdir & ~0x09) < 6;
 }
 
 
@@ -241,7 +241,7 @@ static inline Track TrackToOppositeTrack(Track t)
  */
 static inline Trackdir ReverseTrackdir(Trackdir trackdir)
 {
-	assert(trackdir != INVALID_TRACKDIR);
+	assert(trackdir < TRACKDIR_END);
 	return (Trackdir)(trackdir ^ 8);
 }
 
@@ -256,7 +256,7 @@ static inline Trackdir ReverseTrackdir(Trackdir trackdir)
  */
 static inline Track TrackdirToTrack(Trackdir trackdir)
 {
-	return (Track)(trackdir & 0x7);
+	return (Track)(trackdir & ~0x8);
 }
 
 /**
@@ -613,7 +613,7 @@ static inline bool IsDiagonalTrack(Track track)
  */
 static inline bool IsDiagonalTrackdir(Trackdir trackdir)
 {
-	return IsDiagonalTrack(TrackdirToTrack(trackdir));
+	return (trackdir & ~0x09) == 0;
 }
 
 

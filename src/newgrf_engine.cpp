@@ -817,7 +817,7 @@ static uint32 VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *object,
 		case VEH_TRAIN: {
 			Train *t = Train::From(v);
 			switch (variable - 0x80) {
-				case 0x62: return t->track;
+				case 0x62: return (t->trackdir < TRACKDIR_END) ? TrackToTrackBits(TrackdirToTrack(t->trackdir)) : (TrackBits)(uint)t->trackdir;
 				case 0x66: return t->railtype;
 				case 0x73: return 0x80 + VEHICLE_LENGTH - t->gcache.cached_veh_length;
 				case 0x74: return t->gcache.cached_power;
@@ -848,7 +848,7 @@ static uint32 VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *object,
 		case VEH_SHIP: {
 			Ship *s = Ship::From(v);
 			switch (variable - 0x80) {
-				case 0x62: return s->state;
+				case 0x62: return (s->trackdir < TRACKDIR_END) ? TrackToTrackBits(TrackdirToTrack(s->trackdir)) : (TrackBits)(uint)s->trackdir;
 			}
 			break;
 		}

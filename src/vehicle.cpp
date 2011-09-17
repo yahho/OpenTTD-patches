@@ -512,8 +512,10 @@ static Vehicle *EnsureNoTrainOnTrackProc(Vehicle *v, void *data)
 
 	if (v->type != VEH_TRAIN) return NULL;
 
-	Train *t = Train::From(v);
-	if ((t->track != rail_bits) && !TracksOverlap(t->track | rail_bits)) return NULL;
+	Trackdir trackdir = Train::From(v)->trackdir;
+	if (trackdir >= TRACKDIR_END) return NULL; // in wormhole or depot
+	TrackBits trackbits = TrackToTrackBits(TrackdirToTrack(trackdir));
+	if ((trackbits != rail_bits) && !TracksOverlap(trackbits | rail_bits)) return NULL;
 
 	return v;
 }
@@ -1359,7 +1361,7 @@ void VehicleEnterDepot(Vehicle *v)
 		case VEH_SHIP: {
 			SetWindowClassesDirty(WC_SHIPS_LIST);
 			Ship *ship = Ship::From(v);
-			ship->state = TRACK_BIT_DEPOT;
+			ship->trackdir = TRACKDIR_DEPOT;
 			ship->UpdateCache();
 			ship->UpdateViewport(true, true);
 			SetWindowDirty(WC_VEHICLE_DEPOT, v->tile);

@@ -3103,15 +3103,15 @@ static VehicleEnterTileStatus VehicleEnter_Track(Vehicle *v, TileIndex tile, int
 		if (frame != TILE_SIZE - 1) return VETSB_CONTINUE;
 		v->tile = GetOtherBridgeEnd(tile);
 		Train *t = Train::From(v);
-		t->track = TRACK_BIT_WORMHOLE;
+		t->trackdir = TRACKDIR_WORMHOLE;
 		ClrBit(t->gv_flags, GVF_GOINGUP_BIT);
 		ClrBit(t->gv_flags, GVF_GOINGDOWN_BIT);
 		return VETSB_ENTERED_WORMHOLE;
 	} else if (vdir == ReverseDiagDir(dir)) {
 		v->tile = tile;
 		Train *t = Train::From(v);
-		if (t->track == TRACK_BIT_WORMHOLE) {
-			t->track = DiagDirToDiagTrackBits(vdir);
+		if (t->trackdir == TRACKDIR_WORMHOLE) {
+			t->trackdir = DiagDirToDiagTrackdir(vdir);
 			return VETSB_ENTERED_WORMHOLE;
 		}
 	}

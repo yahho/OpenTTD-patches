@@ -565,7 +565,7 @@ bool YapfTrainCheckReverse(const Train *v)
 
 	int reverse_penalty = 0;
 
-	if (v->track == TRACK_BIT_WORMHOLE) {
+	if (v->trackdir == TRACKDIR_WORMHOLE) {
 		/* front in tunnel / on bridge */
 		assert(TrackdirToExitdir(td) == ReverseDiagDir(GetTunnelBridgeDirection(tile)));
 		/* Now 'tile' is the tunnel entry/bridge ramp the train will reach when driving forward */
@@ -578,7 +578,7 @@ bool YapfTrainCheckReverse(const Train *v)
 		reverse_penalty -= DistanceManhattan(cur_tile, tile) * YAPF_TILE_LENGTH;
 	}
 
-	if (last_veh->track == TRACK_BIT_WORMHOLE) {
+	if (last_veh->trackdir == TRACKDIR_WORMHOLE) {
 		/* back in tunnel / on bridge */
 		assert(TrackdirToExitdir(td_rev) == GetTunnelBridgeDirection(tile_rev));
 		tile_rev = GetOtherTunnelBridgeEnd(tile_rev);

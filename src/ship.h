@@ -22,7 +22,7 @@ WaterClass GetEffectiveWaterClass(TileIndex tile);
  * All ships have this type.
  */
 struct Ship FINAL : public SpecializedVehicle<Ship, VEH_SHIP> {
-	TrackBitsByte state; ///< The "track" the ship is following.
+	TrackdirByte trackdir; ///< The "trackdir" the ship is following.
 
 	/** We don't want GCC to zero our struct! It already is zeroed and has an index! */
 	Ship() : SpecializedVehicleBase() {}
@@ -39,7 +39,7 @@ struct Ship FINAL : public SpecializedVehicle<Ship, VEH_SHIP> {
 	int GetDisplayMaxSpeed() const { return this->vcache.cached_max_speed / 2; }
 	int GetCurrentMaxSpeed() const { return min(this->vcache.cached_max_speed, this->current_order.max_speed * 2); }
 	Money GetRunningCost() const;
-	bool IsInDepot() const { return this->state == TRACK_BIT_DEPOT; }
+	bool IsInDepot() const { return this->trackdir == TRACKDIR_DEPOT; }
 	bool Tick();
 	void OnNewDay();
 	Trackdir GetVehicleTrackdir() const;

@@ -1077,7 +1077,7 @@ static uint16 _old_next_ptr;
 static VehicleID _current_vehicle_id;
 
 static const OldChunks vehicle_train_chunk[] = {
-	OCL_SVAR(  OC_UINT8, Train, track ),
+	OCL_SVAR(  OC_UINT8, Train, trackdir ),
 	OCL_SVAR(  OC_UINT8, Train, force_proceed ),
 	OCL_SVAR( OC_UINT16, Train, crash_anim_pos ),
 	OCL_SVAR(  OC_UINT8, Train, railtype ),
@@ -1102,7 +1102,7 @@ static const OldChunks vehicle_road_chunk[] = {
 };
 
 static const OldChunks vehicle_ship_chunk[] = {
-	OCL_SVAR(  OC_UINT8, Ship, state ),
+	OCL_SVAR(  OC_UINT8, Ship, trackdir ),
 
 	OCL_NULL( 9 ), ///< Junk
 

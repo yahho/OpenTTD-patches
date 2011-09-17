@@ -1022,13 +1022,13 @@ static VehicleEnterTileStatus VehicleEnter_Misc(Vehicle *u, TileIndex tile, int 
 				/* Vehicle enters bridge at the last frame inside this tile. */
 				if (frame != TILE_SIZE - 1) return VETSB_CONTINUE;
 				u->tile = GetOtherBridgeEnd(tile);
-				Ship::From(u)->state = TRACK_BIT_WORMHOLE;
+				Ship::From(u)->trackdir = TRACKDIR_WORMHOLE;
 				return VETSB_ENTERED_WORMHOLE;
 			} else if (vdir == ReverseDiagDir(dir)) {
 				u->tile = tile;
 				Ship *ship = Ship::From(u);
-				if (ship->state == TRACK_BIT_WORMHOLE) {
-					ship->state = DiagDirToDiagTrackBits(vdir);
+				if (ship->trackdir == TRACKDIR_WORMHOLE) {
+					ship->trackdir = DiagDirToDiagTrackdir(vdir);
 					return VETSB_ENTERED_WORMHOLE;
 				}
 			}
@@ -1052,7 +1052,7 @@ static VehicleEnterTileStatus VehicleEnter_Misc(Vehicle *u, TileIndex tile, int 
 			if (u->type == VEH_TRAIN) {
 				Train *t = Train::From(u);
 
-				if (t->track != TRACK_BIT_WORMHOLE && dir == vdir) {
+				if (t->trackdir != TRACKDIR_WORMHOLE && dir == vdir) {
 					if (t->IsFrontEngine() && frame == TUNNEL_SOUND_FRAME) {
 						if (!PlayVehicleSound(t, VSE_TUNNEL) && RailVehInfo(t->engine_type)->engclass == 0) {
 							SndPlayVehicleFx(SND_05_TRAIN_THROUGH_TUNNEL, u);
@@ -1061,7 +1061,7 @@ static VehicleEnterTileStatus VehicleEnter_Misc(Vehicle *u, TileIndex tile, int 
 					}
 					if (frame == _tunnel_visibility_frame[dir]) {
 						t->tile = GetOtherTunnelEnd(tile);
-						t->track = TRACK_BIT_WORMHOLE;
+						t->trackdir = TRACKDIR_WORMHOLE;
 						t->vehstatus |= VS_HIDDEN;
 						return VETSB_ENTERED_WORMHOLE;
 					}
@@ -1070,8 +1070,7 @@ static VehicleEnterTileStatus VehicleEnter_Misc(Vehicle *u, TileIndex tile, int 
 				if (dir == ReverseDiagDir(vdir) && frame == TILE_SIZE - _tunnel_visibility_frame[dir] && z == 0) {
 					/* We're at the tunnel exit ?? */
 					t->tile = tile;
-					t->track = DiagDirToDiagTrackBits(vdir);
-					assert(t->track);
+					t->trackdir = DiagDirToDiagTrackdir(vdir);
 					t->vehstatus &= ~VS_HIDDEN;
 					return VETSB_ENTERED_WORMHOLE;
 				}
@@ -1123,7 +1122,7 @@ static VehicleEnterTileStatus VehicleEnter_Misc(Vehicle *u, TileIndex tile, int 
 				if (v->direction == DiagDirToDir(ReverseDiagDir(dir))) {
 					if (fract_coord_x == _fractcoords_enter_x[dir] && fract_coord_y == _fractcoords_enter_y[dir]) {
 						/* enter the depot */
-						v->track = TRACK_BIT_DEPOT,
+						v->trackdir = TRACKDIR_DEPOT,
 						v->vehstatus |= VS_HIDDEN; // hide it
 						v->direction = ReverseDir(v->direction);
 						if (v->Next() == NULL) VehicleEnterDepot(v->First());
@@ -1145,7 +1144,7 @@ static VehicleEnterTileStatus VehicleEnter_Misc(Vehicle *u, TileIndex tile, int 
 						/* leave the depot? */
 						if ((v = v->Next()) != NULL) {
 							v->vehstatus &= ~VS_HIDDEN;
-							v->track = (DiagDirToAxis(dir) == AXIS_X ? TRACK_BIT_X : TRACK_BIT_Y);
+							v->trackdir = DiagDirToDiagTrackdir(dir);
 						}
 					}
 				}

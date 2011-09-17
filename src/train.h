@@ -78,7 +78,7 @@ struct Train FINAL : public GroundVehicle<Train, VEH_TRAIN> {
 	uint16 crash_anim_pos; ///< Crash animation counter.
 
 	uint16 flags;
-	TrackBitsByte track;
+	TrackdirByte trackdir;
 	TrainForceProceedingByte force_proceed;
 	RailTypeByte railtype;
 	RailTypes compatible_railtypes;
@@ -103,7 +103,7 @@ struct Train FINAL : public GroundVehicle<Train, VEH_TRAIN> {
 	int GetDisplayMaxSpeed() const { return this->vcache.cached_max_speed; }
 	Money GetRunningCost() const;
 	int GetDisplayImageWidth(Point *offset = NULL) const;
-	bool IsInDepot() const { return this->track == TRACK_BIT_DEPOT; }
+	bool IsInDepot() const { return this->trackdir == TRACKDIR_DEPOT; }
 	bool Tick();
 	void OnNewDay();
 	uint Crash(bool flooded = false);
@@ -166,7 +166,7 @@ struct Train FINAL : public GroundVehicle<Train, VEH_TRAIN> {
 	 */
 	inline RailType GetTrackRailType() const
 	{
-		return GetRailType(this->tile, TrackBitsToTrack(this->track));
+		return GetRailType(this->tile, TrackdirToTrack(this->trackdir));
 	}
 
 protected: // These functions should not be called outside acceleration code.
@@ -239,7 +239,7 @@ protected: // These functions should not be called outside acceleration code.
 	inline byte GetAirDragArea() const
 	{
 		/* Air drag is higher in tunnels due to the limited cross-section. */
-		return (this->track == TRACK_BIT_WORMHOLE && this->vehstatus & VS_HIDDEN) ? 28 : 14;
+		return (this->trackdir == TRACKDIR_WORMHOLE && this->vehstatus & VS_HIDDEN) ? 28 : 14;
 	}
 
 	/**
@@ -314,8 +314,8 @@ protected: // These functions should not be called outside acceleration code.
 	 */
 	inline bool TileMayHaveSlopedTrack() const
 	{
-		/* Any track that isn't TRACK_BIT_X or TRACK_BIT_Y cannot be sloped. */
-		return this->track == TRACK_BIT_X || this->track == TRACK_BIT_Y;
+		/* Any track that isn't TRACK_X or TRACK_Y cannot be sloped. */
+		return IsDiagonalTrackdir(this->trackdir);
 	}
 
 	/**

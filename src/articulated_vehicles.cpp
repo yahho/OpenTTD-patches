@@ -344,7 +344,7 @@ void AddArticulatedParts(Vehicle *first)
 				v = t;
 
 				t->subtype = 0;
-				t->track = front->track;
+				t->trackdir = front->trackdir;
 				t->railtype = front->railtype;
 
 				t->spritenum = e_artic->u.rail.image_index;

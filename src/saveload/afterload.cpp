@@ -722,7 +722,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 				continue;
 			}
 			if (v->type == VEH_TRAIN) {
-				Train::From(v)->track = TRACK_BIT_WORMHOLE;
+				Train::From(v)->trackdir = TRACKDIR_WORMHOLE;
 			} else {
 				RoadVehicle::From(v)->state = RVSB_WORMHOLE;
 			}
@@ -1750,15 +1750,15 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 				v->vehstatus |= VS_HIDDEN;
 
 				switch (v->type) {
-					case VEH_TRAIN: Train::From(v)->track       = TRACK_BIT_WORMHOLE; break;
-					case VEH_ROAD:  RoadVehicle::From(v)->state = RVSB_WORMHOLE;      break;
+					case VEH_TRAIN: Train::From(v)->trackdir    = TRACKDIR_WORMHOLE; break;
+					case VEH_ROAD:  RoadVehicle::From(v)->state = RVSB_WORMHOLE;     break;
 					default: NOT_REACHED();
 				}
 			} else {
 				v->vehstatus &= ~VS_HIDDEN;
 
 				switch (v->type) {
-					case VEH_TRAIN: Train::From(v)->track       = DiagDirToDiagTrackBits(vdir); break;
+					case VEH_TRAIN: Train::From(v)->trackdir    = DiagDirToDiagTrackdir(vdir); break;
 					case VEH_ROAD:  RoadVehicle::From(v)->state = DiagDirToDiagTrackdir(vdir); RoadVehicle::From(v)->frame = frame; break;
 					default: NOT_REACHED();
 				}
@@ -1774,7 +1774,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 
 			switch (v->type) {
 				case VEH_TRAIN:
-					in_wormhole = Train::From(v)->track == TRACK_BIT_WORMHOLE;
+					in_wormhole = Train::From(v)->trackdir == TRACKDIR_WORMHOLE;
 					break;
 
 				case VEH_ROAD:
@@ -1782,7 +1782,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 					break;
 
 				case VEH_SHIP:
-					in_wormhole = Ship::From(v)->state == TRACK_BIT_WORMHOLE;
+					in_wormhole = Ship::From(v)->trackdir == TRACKDIR_WORMHOLE;
 					break;
 
 				default: continue;
@@ -1849,7 +1849,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 					if (t->vehstatus & VS_CRASHED) break;
 
 					/* Only X/Y tracks can be sloped. */
-					if (t->track != TRACK_BIT_X && t->track != TRACK_BIT_Y) break;
+					if (!IsDiagonalTrackdir(t->trackdir)) break;
 
 					t->gv_flags |= FixVehicleInclination(t, t->direction);
 					break;
@@ -1900,10 +1900,10 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 				if (v->type == VEH_TRAIN && !(v->vehstatus & VS_CRASHED) &&
 						v->direction != DiagDirToDir(dir)) {
 					/* If the train has left the bridge, it shouldn't have
-					 * track == TRACK_BIT_WORMHOLE - this could happen
+					 * trackdir == TRACKDIR_WORMHOLE - this could happen
 					 * when the train was reversed while on the last "tick"
 					 * on the ramp before leaving the ramp to the bridge. */
-					Train::From(v)->track = DiagDirToDiagTrackBits(dir);
+					Train::From(v)->trackdir = DiagDirToDiagTrackdir(ReverseDiagDir(dir));
 				}
 			}
 

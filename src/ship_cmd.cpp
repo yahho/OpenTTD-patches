@@ -233,12 +233,12 @@ Trackdir Ship::GetVehicleTrackdir() const
 		return DiagDirToDiagTrackdir(GetShipDepotDirection(this->tile));
 	}
 
-	if (this->state == TRACK_BIT_WORMHOLE) {
+	if (this->trackdir == TRACKDIR_WORMHOLE) {
 		/* ship on aqueduct, so just use his direction and assume a diagonal track */
 		return DiagDirToDiagTrackdir(DirToDiagDir(this->direction));
 	}
 
-	return TrackDirectionToTrackdir(FindFirstTrack(this->state), this->direction);
+	return this->trackdir;
 }
 
 void Ship::MarkDirty()
@@ -332,15 +332,16 @@ static bool CheckShipLeaveDepot(Ship *v)
 	if (north_trackdirs) {
 		/* Leave towards north */
 		v->direction = DiagDirToDir(north_dir);
+		v->trackdir = DiagDirToDiagTrackdir(north_dir);
 	} else if (south_trackdirs) {
 		/* Leave towards south */
 		v->direction = DiagDirToDir(south_dir);
+		v->trackdir = DiagDirToDiagTrackdir(south_dir);
 	} else {
 		/* Both ways blocked */
 		return false;
 	}
 
-	v->state = AxisToTrackBits(axis);
 	v->vehstatus &= ~VS_HIDDEN;
 
 	v->cur_speed = 0;
@@ -467,7 +468,7 @@ static void ShipController(Ship *v)
 	if (!ShipAccelerate(v)) return;
 
 	GetNewVehiclePosResult gp = GetNewVehiclePos(v);
-	if (v->state == TRACK_BIT_WORMHOLE) {
+	if (v->trackdir == TRACKDIR_WORMHOLE) {
 		/* On a bridge */
 		if (gp.new_tile != v->tile || !HasBit(VehicleEnterTile(v, gp.new_tile, gp.x, gp.y), VETS_ENTERED_WORMHOLE)) {
 			v->x_pos = gp.x;
@@ -476,7 +477,7 @@ static void ShipController(Ship *v)
 			if ((v->vehstatus & VS_HIDDEN) == 0) VehicleUpdateViewport(v, true);
 			return;
 		}
-	} else if (v->state == TRACK_BIT_DEPOT) {
+	} else if (v->trackdir == TRACKDIR_DEPOT) {
 		/* Inside depot */
 		assert(gp.old_tile == gp.new_tile);
 		gp.x = v->x_pos;
@@ -549,7 +550,7 @@ static void ShipController(Ship *v)
 
 		if (!HasBit(r, VETS_ENTERED_WORMHOLE)) {
 			v->tile = gp.new_tile;
-			v->state = TrackToTrackBits(TrackdirToTrack(trackdir));
+			v->trackdir = trackdir;
 
 			/* Update ship cache when the water class changes. Aqueducts are always canals. */
 			WaterClass old_wc = GetEffectiveWaterClass(gp.old_tile);
@@ -572,6 +573,7 @@ getout:
 
 reverse_direction:
 	v->direction = ReverseDir(v->direction);
+	v->trackdir = ReverseTrackdir(v->trackdir);
 	goto getout;
 }
 
@@ -630,7 +632,7 @@ CommandCost CmdBuildShip(TileIndex tile, DoCommandFlag flags, const Engine *e, u
 		v->max_age = e->GetLifeLengthInDays();
 		_new_vehicle_id = v->index;
 
-		v->state = TRACK_BIT_DEPOT;
+		v->trackdir = TRACKDIR_DEPOT;
 
 		v->SetServiceInterval(Company::Get(_current_company)->settings.vehicle.servint_ships);
 		v->date_of_last_service = _date;

@@ -77,7 +77,7 @@ void BuildDepotVehicleList(VehicleType type, TileIndex tile, VehicleList *engine
 			case VEH_TRAIN: {
 				const Train *t = Train::From(v);
 				if (t->IsArticulatedPart() || t->IsRearDualheaded()) continue;
-				if (t->track != TRACK_BIT_DEPOT) continue;
+				if (t->trackdir != TRACKDIR_DEPOT) continue;
 				if (wagons != NULL && t->First()->IsFreeWagon()) {
 					if (individual_wagons || t->IsFreeWagon()) *wagons->Append() = t;
 					continue;

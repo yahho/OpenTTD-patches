@@ -355,6 +355,27 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 			}
 		}
 
+		if (IsFullSavegameVersionBefore(stv, 4)) {
+			/* Track is now saved as a trackdir */
+			FOR_ALL_VEHICLES(v) {
+				switch (v->type) {
+					case VEH_TRAIN: {
+						Train *t = Train::From(v);
+						TrackBits track = (TrackBits)(Trackdir)(t->trackdir);
+						if (track < 0x40U) t->trackdir = TrackDirectionToTrackdir(FindFirstTrack(track), t->direction);
+						break;
+					}
+					case VEH_SHIP: {
+						Ship *s = Ship::From(v);
+						TrackBits track = (TrackBits)(Trackdir)(s->trackdir);
+						if (track < 0x40U) s->trackdir = TrackDirectionToTrackdir(FindFirstTrack(track), s->direction);
+						break;
+					}
+					default: ;
+				}
+			}
+		}
+
 		if (IsOTTDSavegameVersionBefore(stv, 162)) {
 			/* Set the vehicle-local cargo age counter from the old global counter. */
 			FOR_ALL_VEHICLES(v) {
@@ -488,7 +509,7 @@ void FixupTrainLengths()
 			 * so we need to move all vehicles forward to cover the difference to the
 			 * old center, otherwise wagon spacing in trains would be broken upon load. */
 			for (Train *u = Train::From(v); u != NULL; u = u->Next()) {
-				if (u->track == TRACK_BIT_DEPOT || (u->vehstatus & VS_CRASHED)) continue;
+				if (u->trackdir == TRACKDIR_DEPOT || (u->vehstatus & VS_CRASHED)) continue;
 
 				Train *next = u->Next();
 
@@ -545,12 +566,12 @@ void FixupTrainLengths()
 				}
 
 				/* If the next wagon is still in a depot, check if it shouldn't be outside already. */
-				if (next != NULL && next->track == TRACK_BIT_DEPOT) {
+				if (next != NULL && next->trackdir == TRACKDIR_DEPOT) {
 					int d = TicksToLeaveDepot(u);
 					if (d <= 0) {
 						/* Next vehicle should have left the depot already, show it and pull forward. */
 						next->vehstatus &= ~VS_HIDDEN;
-						next->track = TrackToTrackBits(GetRailDepotTrack(next->tile));
+						next->trackdir = DiagDirToDiagTrackdir(GetRailDepotDirection(next->tile));
 						for (int i = 0; i >= d; i--) TrainController(next, NULL);
 					}
 				}
@@ -719,7 +740,7 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 		 SLE_VAR(Train, crash_anim_pos, SLE_UINT16),
 		 SLE_VAR(Train, force_proceed,  SLE_UINT8),
 		 SLE_VAR(Train, railtype,       SLE_UINT8),
-		 SLE_VAR(Train, track,          SLE_UINT8),
+		 SLE_VAR(Train, trackdir,       SLE_UINT8),
 
 		 SLE_VAR(Train, flags,          SLE_FILE_U8  | SLE_VAR_U16,  , ,   2,  99),
 		 SLE_VAR(Train, flags,          SLE_UINT16,                 0, , 100,    ),
@@ -757,7 +778,7 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 	static const SaveLoad _ship_desc[] = {
 		SLE_WRITEBYTE(Vehicle, type, VEH_SHIP),
 		SLE_INCLUDE(_common_veh_desc),
-		 SLE_VAR(Ship, state, SLE_UINT8),
+		 SLE_VAR(Ship, trackdir, SLE_UINT8),
 
 		SLE_NULL(16, , , 2, 143), // old reserved space
 
