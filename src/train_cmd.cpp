@@ -50,28 +50,6 @@ static const byte _vehicle_initial_y_fract[4] = { 8, 4, 8, 10};
 
 
 /**
- * Determine the side in which the train will leave the tile
- *
- * @param direction vehicle direction
- * @param track vehicle track bits
- * @return side of tile the train will leave
- */
-static inline DiagDirection TrainExitDir(Direction direction, TrackBits track)
-{
-	static const TrackBits state_dir_table[DIAGDIR_END] = { TRACK_BIT_RIGHT, TRACK_BIT_LOWER, TRACK_BIT_LEFT, TRACK_BIT_UPPER };
-
-	DiagDirection diagdir = DirToDiagDir(direction);
-
-	/* Determine the diagonal direction in which we will exit this tile */
-	if (!HasBit(direction, 0) && track != state_dir_table[diagdir]) {
-		diagdir = ChangeDiagDir(diagdir, DIAGDIRDIFF_90LEFT);
-	}
-
-	return diagdir;
-}
-
-
-/**
  * Return the cargo weight multiplier to use for a rail vehicle
  * @param cargo Cargo type to get multiplier for
  * @return Cargo weight multiplier
