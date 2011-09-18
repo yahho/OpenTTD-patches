@@ -3146,14 +3146,13 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			 * with the current train, if not, bail out. */
 			if (!CheckCompatibleRail(v, gp.new_tile, TrackdirToTrack(FindFirstTrackdir(trackdirbits)))) goto invalid_rail;
 
-			TrackBits chosen_track;
+			Trackdir chosen_trackdir;
 			if (prev == NULL) {
 				/* Currently the locomotive is active. Determine which one of the
 				 * available tracks to choose */
-				Trackdir chosen_trackdir = ChooseTrainTrack(v, gp.new_tile, enterdir, trackdirbits, false, NULL, true);
+				chosen_trackdir = ChooseTrainTrack(v, gp.new_tile, enterdir, trackdirbits, false, NULL, true);
 				assert(chosen_trackdir != INVALID_TRACKDIR);
-				chosen_track = TrackToTrackBits(TrackdirToTrack(chosen_trackdir));
-				assert(chosen_track & (TrackdirBitsToTrackBits(trackdirbits) | GetReservedTrackbits(gp.new_tile)));
+				assert(HasBit(trackdirbits | TrackBitsToTrackdirBits(GetReservedTrackbits(gp.new_tile)), chosen_trackdir));
 
 				if (v->force_proceed != TFP_NONE && IsNormalRailTile(gp.new_tile)) {
 					/* For each signal we find decrease the counter by one.
@@ -3219,9 +3218,11 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 						/* Vehicles entering tunnels enter the wormhole earlier than for bridges.
 						 * However, just choose the track into the wormhole. */
 						assert(IsTunnelTile(prev->tile));
-						chosen_track = TrackdirBitsToTrackBits(trackdirbits);
+						assert(KillFirstBit(trackdirbits) == TRACKDIR_BIT_NONE);
+						chosen_trackdir = FindFirstTrackdir(trackdirbits);
+						assert(IsDiagonalTrackdir(chosen_trackdir));
 					} else {
-						chosen_track = TrackToTrackBits(TrackdirToTrack(prev->trackdir));
+						chosen_trackdir = prev->trackdir;
 					}
 				} else {
 					/* Choose the track that leads to the tile where prev is.
@@ -3233,21 +3234,17 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					 */
 					DiagDirection exitdir = DiagdirBetweenTiles(gp.new_tile, prev->tile);
 					assert(IsValidDiagDirection(exitdir));
-					Trackdir trackdir = EnterdirExitdirToTrackdir(enterdir, exitdir);
-					assert(!IsReversingRoadTrackdir(trackdir));
-					chosen_track = TrackToTrackBits(TrackdirToTrack(trackdir));
+					chosen_trackdir = EnterdirExitdirToTrackdir(enterdir, exitdir);
+					assert(!IsReversingRoadTrackdir(chosen_trackdir));
 				}
-				chosen_track &= TrackdirBitsToTrackBits(trackdirbits);
+				assert(HasBit(trackdirbits, chosen_trackdir));
 			}
 
-			/* Make sure chosen track is a valid track */
-			assert(
-					chosen_track == TRACK_BIT_X     || chosen_track == TRACK_BIT_Y ||
-					chosen_track == TRACK_BIT_UPPER || chosen_track == TRACK_BIT_LOWER ||
-					chosen_track == TRACK_BIT_LEFT  || chosen_track == TRACK_BIT_RIGHT);
+			/* Make sure chosen trackdir is a valid trackdir */
+			assert(IsValidTrackdir(chosen_trackdir));
 
 			/* Update XY to reflect the entrance to the new tile, and select the direction to use */
-			const byte *b = _initial_tile_subcoord[FIND_FIRST_BIT(chosen_track)][enterdir];
+			const byte *b = _initial_tile_subcoord[TrackdirToTrack(chosen_trackdir)][enterdir];
 			gp.x = (gp.x & ~0xF) | b[0];
 			gp.y = (gp.y & ~0xF) | b[1];
 			Direction chosen_dir = (Direction)b[2];
@@ -3259,12 +3256,8 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			}
 
 			if (!HasBit(r, VETS_ENTERED_WORMHOLE)) {
-				Track track = FindFirstTrack(chosen_track);
-				Trackdir tdir = TrackDirectionToTrackdir(track, chosen_dir);
-				assert(IsValidTrackdir(tdir));
-
-				if (v->IsFrontEngine() && HasPbsSignalOnTrackdir(gp.new_tile, tdir)) {
-					SetSignalStateByTrackdir(gp.new_tile, tdir, SIGNAL_STATE_RED);
+				if (v->IsFrontEngine() && HasPbsSignalOnTrackdir(gp.new_tile, chosen_trackdir)) {
+					SetSignalStateByTrackdir(gp.new_tile, chosen_trackdir, SIGNAL_STATE_RED);
 					MarkTileDirtyByTile(gp.new_tile);
 				}
 
@@ -3274,9 +3267,9 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				RailType old_rt = v->GetTrackRailType();
 
 				v->tile = gp.new_tile;
-				v->trackdir = tdir;
+				v->trackdir = chosen_trackdir;
 
-				if (GetTileRailType(gp.new_tile, track) != old_rt) {
+				if (GetTileRailType(gp.new_tile, TrackdirToTrack(chosen_trackdir)) != old_rt) {
 					v->First()->ConsistChanged(true);
 				}
 			}
