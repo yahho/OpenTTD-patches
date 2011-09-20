@@ -115,7 +115,9 @@ typedef void TileLoopProc(TileIndex tile);
 typedef void ChangeTileOwnerProc(TileIndex tile, Owner old_owner, Owner new_owner);
 
 /** @see VehicleEnterTileStatus to see what the return values mean */
-typedef VehicleEnterTileStatus VehicleEnterTileProc(Vehicle *v, TileIndex tile, int x, int y);
+typedef VehicleEnterTileStatus TrainEnterTileProc(Train *v, TileIndex tile, int x, int y);
+typedef VehicleEnterTileStatus RoadVehEnterTileProc(RoadVehicle *v, TileIndex tile, int x, int y);
+typedef VehicleEnterTileStatus ShipEnterTileProc(Ship *v, TileIndex tile, int x, int y);
 typedef Foundation GetFoundationProc(TileIndex tile, Slope tileh);
 
 /**
@@ -151,7 +153,9 @@ struct TileTypeProcs {
 	TileLoopProc *tile_loop_proc;
 	ChangeTileOwnerProc *change_tile_owner_proc;
 	AddProducedCargoProc *add_produced_cargo_proc; ///< Adds produced cargo of the tile to cargo array supplied as parameter
-	VehicleEnterTileProc *vehicle_enter_tile_proc; ///< Called when a vehicle enters a tile
+	TrainEnterTileProc *train_enter_tile_proc;     ///< Called when a train enters a tile
+	RoadVehEnterTileProc *roadveh_enter_tile_proc; ///< Called when a road vehicle enters a tile
+	ShipEnterTileProc *ship_enter_tile_proc;       ///< Called when a ship enters a tile
 	GetFoundationProc *get_foundation_proc;
 	TerraformTileProc *terraform_tile_proc;        ///< Called when a terraforming operation is about to take place
 };
@@ -164,7 +168,9 @@ static inline const TileTypeProcs *GetTileProcs(TileIndex tile)
 }
 
 TrackStatus GetTileTrackStatus(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side = INVALID_DIAGDIR);
-VehicleEnterTileStatus VehicleEnterTile(Vehicle *v, TileIndex tile, int x, int y);
+VehicleEnterTileStatus TrainEnterTile(Train *v, TileIndex tile, int x, int y);
+VehicleEnterTileStatus RoadVehEnterTile(RoadVehicle *v, TileIndex tile, int x, int y);
+VehicleEnterTileStatus ShipEnterTile(Ship *v, TileIndex tile, int x, int y);
 void ChangeTileOwner(TileIndex tile, Owner old_owner, Owner new_owner);
 void GetTileDesc(TileIndex tile, TileDesc *td);
 

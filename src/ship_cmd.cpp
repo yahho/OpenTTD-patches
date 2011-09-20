@@ -470,7 +470,7 @@ static void ShipController(Ship *v)
 	GetNewVehiclePosResult gp = GetNewVehiclePos(v);
 	if (v->trackdir == TRACKDIR_WORMHOLE) {
 		/* On a bridge */
-		if (gp.new_tile != v->tile || !HasBit(VehicleEnterTile(v, gp.new_tile, gp.x, gp.y), VETS_ENTERED_WORMHOLE)) {
+		if (gp.new_tile != v->tile || !HasBit(ShipEnterTile(v, gp.new_tile, gp.x, gp.y), VETS_ENTERED_WORMHOLE)) {
 			v->x_pos = gp.x;
 			v->y_pos = gp.y;
 			VehicleUpdatePosition(v);
@@ -485,7 +485,7 @@ static void ShipController(Ship *v)
 	} else if (gp.old_tile == gp.new_tile) {
 		/* Not on a bridge or in a depot, staying in the old tile */
 
-		uint32 r = VehicleEnterTile(v, gp.new_tile, gp.x, gp.y);
+		uint32 r = ShipEnterTile(v, gp.new_tile, gp.x, gp.y);
 		if (HasBit(r, VETS_CANNOT_ENTER)) goto reverse_direction;
 
 		/* A leave station order only needs one tick to get processed, so we can
@@ -545,7 +545,7 @@ static void ShipController(Ship *v)
 		gp.y = (gp.y & ~0xF) | b[1];
 
 		/* Call the landscape function and tell it that the vehicle entered the tile */
-		uint32 r = VehicleEnterTile(v, gp.new_tile, gp.x, gp.y);
+		uint32 r = ShipEnterTile(v, gp.new_tile, gp.x, gp.y);
 		if (HasBit(r, VETS_CANNOT_ENTER)) goto reverse_direction;
 
 		if (!HasBit(r, VETS_ENTERED_WORMHOLE)) {

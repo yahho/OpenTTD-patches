@@ -1090,7 +1090,7 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 			}
 		}
 
-		if (gp.new_tile == v->tile && HasBit(VehicleEnterTile(v, gp.new_tile, gp.x, gp.y), VETS_ENTERED_WORMHOLE)) {
+		if (gp.new_tile == v->tile && HasBit(RoadVehEnterTile(v, gp.new_tile, gp.x, gp.y), VETS_ENTERED_WORMHOLE)) {
 			/* Vehicle has just exited a bridge or tunnel */
 			v->x_pos = gp.x;
 			v->y_pos = gp.y;
@@ -1209,7 +1209,7 @@ again:
 			}
 		}
 
-		uint32 r = VehicleEnterTile(v, tile, x, y);
+		uint32 r = RoadVehEnterTile(v, tile, x, y);
 		if (HasBit(r, VETS_CANNOT_ENTER)) {
 			if (!IsTunnelTile(tile) && !IsBridgeHeadTile(tile)) {
 				v->cur_speed = 0;
@@ -1296,7 +1296,7 @@ again:
 		Direction new_dir = RoadVehGetSlidingDirection(v, x, y);
 		if (v->IsFrontEngine() && RoadVehFindCloseTo(v, x, y, new_dir) != NULL) return false;
 
-		uint32 r = VehicleEnterTile(v, v->tile, x, y);
+		uint32 r = RoadVehEnterTile(v, v->tile, x, y);
 		if (HasBit(r, VETS_CANNOT_ENTER)) {
 			v->cur_speed = 0;
 			return false;
@@ -1435,7 +1435,7 @@ again:
 
 	/* Check tile position conditions - i.e. stop position in depot,
 	 * entry onto bridge or into tunnel */
-	uint32 r = VehicleEnterTile(v, v->tile, x, y);
+	uint32 r = RoadVehEnterTile(v, v->tile, x, y);
 	if (HasBit(r, VETS_CANNOT_ENTER)) {
 		v->cur_speed = 0;
 		return false;

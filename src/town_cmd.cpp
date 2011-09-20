@@ -3365,7 +3365,9 @@ extern const TileTypeProcs _tile_type_town_procs = {
 	TileLoop_Town,           // tile_loop_proc
 	ChangeTileOwner_Town,    // change_tile_owner_proc
 	AddProducedCargo_Town,   // add_produced_cargo_proc
-	NULL,                    // vehicle_enter_tile_proc
+	NULL,                    // train_enter_tile_proc
+	NULL,                    // roadveh_enter_tile_proc
+	NULL,                    // ship_enter_tile_proc
 	GetFoundation_Town,      // get_foundation_proc
 	TerraformTile_Town,      // terraform_tile_proc
 };

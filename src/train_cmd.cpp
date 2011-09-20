@@ -1512,7 +1512,7 @@ static void UpdateStatusAfterSwap(Train *v)
 
 	/* Call the proper EnterTile function unless we are in a wormhole. */
 	if (v->trackdir != TRACKDIR_WORMHOLE) {
-		VehicleEnterTile(v, v->tile, v->x_pos, v->y_pos);
+		TrainEnterTile(v, v->tile, v->x_pos, v->y_pos);
 	} else {
 		assert(v->direction == DiagDirToDir(GetTunnelBridgeDirection(v->tile)));
 		v->tile = GetOtherTunnelBridgeEnd(v->tile);
@@ -1521,7 +1521,7 @@ static void UpdateStatusAfterSwap(Train *v)
 		 * If we were swapped with such a vehicle, we have set TRACKDIR_WORMHOLE,
 		 * when we shouldn't have. Check if this is the case. */
 		if (TileVirtXY(v->x_pos, v->y_pos) == v->tile) {
-			VehicleEnterTile(v, v->tile, v->x_pos, v->y_pos);
+			TrainEnterTile(v, v->tile, v->x_pos, v->y_pos);
 			if (v->trackdir != TRACKDIR_WORMHOLE && IsRailBridgeTile(v->tile)) {
 				/* We have just left the wormhole, possibly set the
 				 * "goingdown" bit. UpdateInclination() can be used
@@ -3071,7 +3071,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 		if (v->trackdir == TRACKDIR_WORMHOLE) {
 			/* In a tunnel or on a bridge */
 
-			if (gp.new_tile != v->tile || !HasBit(VehicleEnterTile(v, gp.new_tile, gp.x, gp.y), VETS_ENTERED_WORMHOLE)) {
+			if (gp.new_tile != v->tile || !HasBit(TrainEnterTile(v, gp.new_tile, gp.x, gp.y), VETS_ENTERED_WORMHOLE)) {
 				v->x_pos = gp.x;
 				v->y_pos = gp.y;
 				VehicleUpdatePosition(v);
@@ -3097,7 +3097,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			/* Reverse when we are at the end of the track already, do not move to the new position */
 			if (v->IsFrontEngine() && !TrainCheckIfLineEnds(v, reverse)) return false;
 
-			uint32 r = VehicleEnterTile(v, gp.new_tile, gp.x, gp.y);
+			uint32 r = TrainEnterTile(v, gp.new_tile, gp.x, gp.y);
 			if (HasBit(r, VETS_CANNOT_ENTER)) {
 				goto invalid_rail;
 			}
@@ -3236,7 +3236,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			Direction chosen_dir = (Direction)b[2];
 
 			/* Call the landscape function and tell it that the vehicle entered the tile */
-			uint32 r = VehicleEnterTile(v, gp.new_tile, gp.x, gp.y);
+			uint32 r = TrainEnterTile(v, gp.new_tile, gp.x, gp.y);
 			if (HasBit(r, VETS_CANNOT_ENTER)) {
 				goto invalid_rail;
 			}

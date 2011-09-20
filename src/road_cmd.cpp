@@ -1744,7 +1744,7 @@ static void GetTileDesc_Road(TileIndex tile, TileDesc *td)
 	}
 }
 
-static VehicleEnterTileStatus VehicleEnter_Road(Vehicle *v, TileIndex tile, int x, int y)
+static VehicleEnterTileStatus RoadVehEnter_Road(RoadVehicle *v, TileIndex tile, int x, int y)
 {
 	if (IsTileSubtype(tile, TT_TRACK)) return VETSB_CONTINUE;
 
@@ -1759,8 +1759,6 @@ static VehicleEnterTileStatus VehicleEnter_Road(Vehicle *v, TileIndex tile, int 
 	/* Number of units moved by the vehicle since entering the tile */
 	byte frame = (vdir == DIAGDIR_NE || vdir == DIAGDIR_NW) ? TILE_SIZE - 1 - pos : pos;
 
-	assert(v->type == VEH_ROAD);
-
 	/* modify speed of vehicle */
 	uint16 spd = GetBridgeSpec(GetRoadBridgeType(tile))->speed * 2;
 	Vehicle *first = v->First();
@@ -1770,18 +1768,16 @@ static VehicleEnterTileStatus VehicleEnter_Road(Vehicle *v, TileIndex tile, int 
 		/* Vehicle enters bridge at the last frame inside this tile. */
 		if (frame != TILE_SIZE - 1) return VETSB_CONTINUE;
 		v->tile = GetOtherBridgeEnd(tile);
-		RoadVehicle *rv = RoadVehicle::From(v);
-		rv->state = RVSB_WORMHOLE;
+		v->state = RVSB_WORMHOLE;
 		/* There are no slopes inside bridges / tunnels. */
-		ClrBit(rv->gv_flags, GVF_GOINGUP_BIT);
-		ClrBit(rv->gv_flags, GVF_GOINGDOWN_BIT);
+		ClrBit(v->gv_flags, GVF_GOINGUP_BIT);
+		ClrBit(v->gv_flags, GVF_GOINGDOWN_BIT);
 		return VETSB_ENTERED_WORMHOLE;
 	} else if (vdir == ReverseDiagDir(dir)) {
 		v->tile = tile;
-		RoadVehicle *rv = RoadVehicle::From(v);
-		if (rv->state == RVSB_WORMHOLE) {
-			rv->state = DiagDirToDiagTrackdir(vdir);
-			rv->frame = 0;
+		if (v->state == RVSB_WORMHOLE) {
+			v->state = DiagDirToDiagTrackdir(vdir);
+			v->frame = 0;
 			return VETSB_ENTERED_WORMHOLE;
 		}
 	}
@@ -1892,7 +1888,9 @@ extern const TileTypeProcs _tile_type_road_procs = {
 	TileLoop_Road,           // tile_loop_proc
 	ChangeTileOwner_Road,    // change_tile_owner_proc
 	NULL,                    // add_produced_cargo_proc
-	VehicleEnter_Road,       // vehicle_enter_tile_proc
+	NULL,                    // train_enter_tile_proc
+	RoadVehEnter_Road,       // roadveh_enter_tile_proc
+	NULL,                    // ship_enter_tile_proc
 	GetFoundation_Road,      // get_foundation_proc
 	TerraformTile_Road,      // terraform_tile_proc
 };

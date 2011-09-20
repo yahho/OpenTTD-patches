@@ -1300,7 +1300,7 @@ static void ChangeTileOwner_Water(TileIndex tile, Owner old_owner, Owner new_own
 	}
 }
 
-static VehicleEnterTileStatus VehicleEnter_Water(Vehicle *v, TileIndex tile, int x, int y)
+static VehicleEnterTileStatus ShipEnter_Water(Ship *v, TileIndex tile, int x, int y)
 {
 	return VETSB_CONTINUE;
 }
@@ -1326,7 +1326,9 @@ extern const TileTypeProcs _tile_type_water_procs = {
 	TileLoop_Water,           // tile_loop_proc
 	ChangeTileOwner_Water,    // change_tile_owner_proc
 	NULL,                     // add_produced_cargo_proc
-	VehicleEnter_Water,       // vehicle_enter_tile_proc
+	NULL,                     // train_enter_tile_proc
+	NULL,                     // roadveh_enter_tile_proc
+	ShipEnter_Water,          // ship_enter_tile_proc
 	GetFoundation_Water,      // get_foundation_proc
 	TerraformTile_Water,      // terraform_tile_proc
 };

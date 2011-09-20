@@ -650,7 +650,9 @@ extern const TileTypeProcs _tile_type_clear_procs = {
 	TileLoop_Clear,           ///< tile_loop_proc
 	ChangeTileOwner_Clear,    ///< change_tile_owner_proc
 	NULL,                     ///< add_produced_cargo_proc
-	NULL,                     ///< vehicle_enter_tile_proc
+	NULL,                     ///< train_enter_tile_proc
+	NULL,                     ///< roadveh_enter_tile_proc
+	NULL,                     ///< ship_enter_tile_proc
 	GetFoundation_Clear,      ///< get_foundation_proc
 	TerraformTile_Clear,      ///< terraform_tile_proc
 };
