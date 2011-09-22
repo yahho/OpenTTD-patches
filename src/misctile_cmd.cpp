@@ -948,13 +948,6 @@ static void ChangeTileOwner_Misc(TileIndex tile, Owner old_owner, Owner new_owne
 
 
 /**
- * Frame when the 'enter tunnel' sound should be played. This is the second
- * frame on a tile, so the sound is played shortly after entering the tunnel
- * tile, while the vehicle is still visible.
- */
-static const byte TUNNEL_SOUND_FRAME = 1;
-
-/**
  * Frame when a vehicle should be hidden in a tunnel with a certain direction.
  * This differs per direction, because of visibility / bounding box issues.
  * Note that direction, in this case, is the direction leading into the tunnel.
@@ -964,33 +957,6 @@ static const byte TUNNEL_SOUND_FRAME = 1;
  */
 extern const byte _tunnel_visibility_frame[DIAGDIR_END] = {12, 8, 8, 12};
 
-static const byte _fractcoords_enter_x[4] = { 0xA, 0x8, 0x4, 0x8 };
-static const byte _fractcoords_enter_y[4] = { 0x8, 0x4, 0x8, 0xA };
-static const int8 _deltacoord_leaveoffset_x[4] = { -1,  0,  1,  0 };
-static const int8 _deltacoord_leaveoffset_y[4] = {  0,  1,  0, -1 };
-
-/**
- * Compute number of ticks when next wagon will leave a depot.
- * Negative means next wagon should have left depot n ticks before.
- * @param v vehicle outside (leaving) the depot
- * @return number of ticks when the next wagon will leave
- */
-int TicksToLeaveDepot(const Train *v)
-{
-	DiagDirection dir = GetRailDepotDirection(v->tile);
-	int length = v->CalcNextVehicleOffset();
-
-	switch (dir) {
-		case DIAGDIR_NE: return  ((int)(v->x_pos & 0x0F) - (_fractcoords_enter_x[dir] - (length + 1)));
-		case DIAGDIR_SE: return -((int)(v->y_pos & 0x0F) - (_fractcoords_enter_y[dir] + (length + 1)));
-		case DIAGDIR_SW: return -((int)(v->x_pos & 0x0F) - (_fractcoords_enter_x[dir] + (length + 1)));
-		default:
-		case DIAGDIR_NW: return  ((int)(v->y_pos & 0x0F) - (_fractcoords_enter_y[dir] - (length + 1)));
-	}
-
-	return 0; // make compilers happy
-}
-
 /**
  * Given the direction the road depot is pointing, this is the direction the
  * vehicle should be travelling in in order to enter the depot.
@@ -998,99 +964,6 @@ int TicksToLeaveDepot(const Train *v)
 static const byte _roadveh_enter_depot_dir[4] = {
 	TRACKDIR_X_SW, TRACKDIR_Y_NW, TRACKDIR_X_NE, TRACKDIR_Y_SE
 };
-
-static VehicleEnterTileStatus TrainEnter_Misc(Train *u, TileIndex tile, int x, int y)
-{
-	switch (GetTileSubtype(tile)) {
-		default: break;
-
-		case TT_MISC_TUNNEL: {
-			int z = GetSlopePixelZ(x, y) - u->z_pos;
-			assert(abs(z) < 3);
-
-			/* Direction into the wormhole */
-			const DiagDirection dir = GetTunnelBridgeDirection(tile);
-			/* Direction of the vehicle */
-			const DiagDirection vdir = DirToDiagDir(u->direction);
-			/* New position of the vehicle on the tile */
-			byte pos = (DiagDirToAxis(vdir) == AXIS_X ? x : y) & TILE_UNIT_MASK;
-			/* Number of units moved by the vehicle since entering the tile */
-			byte frame = (vdir == DIAGDIR_NE || vdir == DIAGDIR_NW) ? TILE_SIZE - 1 - pos : pos;
-
-			if (u->trackdir != TRACKDIR_WORMHOLE && dir == vdir) {
-				if (u->IsFrontEngine() && frame == TUNNEL_SOUND_FRAME) {
-					if (!PlayVehicleSound(u, VSE_TUNNEL) && RailVehInfo(u->engine_type)->engclass == 0) {
-						SndPlayVehicleFx(SND_05_TRAIN_THROUGH_TUNNEL, u);
-					}
-					return VETSB_CONTINUE;
-				}
-				if (frame == _tunnel_visibility_frame[dir]) {
-					u->tile = GetOtherTunnelEnd(tile);
-					u->trackdir = TRACKDIR_WORMHOLE;
-					u->vehstatus |= VS_HIDDEN;
-					return VETSB_ENTERED_WORMHOLE;
-				}
-			}
-
-			if (dir == ReverseDiagDir(vdir) && frame == TILE_SIZE - _tunnel_visibility_frame[dir] && z == 0) {
-				/* We're at the tunnel exit ?? */
-				u->tile = tile;
-				u->trackdir = DiagDirToDiagTrackdir(vdir);
-				u->vehstatus &= ~VS_HIDDEN;
-				return VETSB_ENTERED_WORMHOLE;
-			}
-
-			break;
-		}
-
-		case TT_MISC_DEPOT: {
-			if (!IsRailDepot(tile)) break;
-
-			/* depot direction */
-			DiagDirection dir = GetRailDepotDirection(tile);
-
-			byte fract_coord_x = x & 0xF;
-			byte fract_coord_y = y & 0xF;
-
-			/* make sure a train is not entering the tile from behind */
-			assert(DistanceFromTileEdge(ReverseDiagDir(dir), fract_coord_x, fract_coord_y) != 0);
-
-			if (u->direction == DiagDirToDir(ReverseDiagDir(dir))) {
-				if (fract_coord_x == _fractcoords_enter_x[dir] && fract_coord_y == _fractcoords_enter_y[dir]) {
-					/* enter the depot */
-					u->trackdir = TRACKDIR_DEPOT,
-					u->vehstatus |= VS_HIDDEN; // hide it
-					u->direction = ReverseDir(u->direction);
-					if (u->Next() == NULL) VehicleEnterDepot(u->First());
-					u->tile = tile;
-
-					InvalidateWindowData(WC_VEHICLE_DEPOT, u->tile);
-					return VETSB_ENTERED_WORMHOLE;
-				}
-			} else if (u->direction == DiagDirToDir(dir)) {
-				/* Calculate the point where the following wagon should be activated. */
-				int length = u->CalcNextVehicleOffset();
-
-				byte fract_coord_leave_x = _fractcoords_enter_x[dir] +
-					(length + 1) * _deltacoord_leaveoffset_x[dir];
-				byte fract_coord_leave_y = _fractcoords_enter_y[dir] +
-					(length + 1) * _deltacoord_leaveoffset_y[dir];
-
-				if (fract_coord_x == fract_coord_leave_x && fract_coord_y == fract_coord_leave_y) {
-					/* leave the depot? */
-					if ((u = u->Next()) != NULL) {
-						u->vehstatus &= ~VS_HIDDEN;
-						u->trackdir = DiagDirToDiagTrackdir(dir);
-					}
-				}
-			}
-
-			break;
-		}
-	}
-
-	return VETSB_CONTINUE;
-}
 
 static VehicleEnterTileStatus RoadVehEnter_Misc(RoadVehicle *u, TileIndex tile, int x, int y)
 {
@@ -1236,7 +1109,7 @@ extern const TileTypeProcs _tile_type_misc_procs = {
 	TileLoop_Misc,           // tile_loop_proc
 	ChangeTileOwner_Misc,    // change_tile_owner_proc
 	NULL,                    // add_produced_cargo_proc
-	TrainEnter_Misc,         // train_enter_tile_proc
+	NULL,                    // train_enter_tile_proc
 	RoadVehEnter_Misc,       // roadveh_enter_tile_proc
 	ShipEnter_Misc,          // ship_enter_tile_proc
 	GetFoundation_Misc,      // get_foundation_proc

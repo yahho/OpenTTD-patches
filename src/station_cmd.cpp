@@ -3103,42 +3103,6 @@ static bool ClickTile_Station(TileIndex tile)
 	return true;
 }
 
-static VehicleEnterTileStatus TrainEnter_Station(Train *v, TileIndex tile, int x, int y)
-{
-	StationID station_id = GetStationIndex(tile);
-	if (!v->current_order.ShouldStopAtStation(v, station_id)) return VETSB_CONTINUE;
-	if (!IsRailStation(tile) || !v->IsFrontEngine()) return VETSB_CONTINUE;
-
-	int station_ahead;
-	int station_length;
-	int stop = GetTrainStopLocation(station_id, tile, Train::From(v), &station_ahead, &station_length);
-
-	/* Stop whenever that amount of station ahead + the distance from the
-	 * begin of the platform to the stop location is longer than the length
-	 * of the platform. Station ahead 'includes' the current tile where the
-	 * vehicle is on, so we need to subtract that. */
-	if (stop + station_ahead - (int)TILE_SIZE >= station_length) return VETSB_CONTINUE;
-
-	DiagDirection dir = DirToDiagDir(v->direction);
-
-	x &= 0xF;
-	y &= 0xF;
-
-	if (DiagDirToAxis(dir) != AXIS_X) Swap(x, y);
-	if (y == TILE_SIZE / 2) {
-		if (dir != DIAGDIR_SE && dir != DIAGDIR_SW) x = TILE_SIZE - 1 - x;
-		stop &= TILE_SIZE - 1;
-
-		if (x >= stop) return VETSB_ENTERED_STATION | (VehicleEnterTileStatus)(station_id << VETS_STATION_ID_OFFSET); // enter station
-
-		v->vehstatus |= VS_TRAIN_SLOWING;
-		uint16 spd = max(0, (stop - x) * 20 - 15);
-		if (spd < v->cur_speed) v->cur_speed = spd;
-	}
-
-	return VETSB_CONTINUE;
-}
-
 static VehicleEnterTileStatus RoadVehEnter_Station(RoadVehicle *v, TileIndex tile, int x, int y)
 {
 	if (v->state < RVSB_IN_ROAD_STOP && !IsReversingRoadTrackdir((Trackdir)v->state) && v->frame == 0) {
@@ -4274,7 +4238,7 @@ extern const TileTypeProcs _tile_type_station_procs = {
 	TileLoop_Station,           // tile_loop_proc
 	ChangeTileOwner_Station,    // change_tile_owner_proc
 	NULL,                       // add_produced_cargo_proc
-	TrainEnter_Station,         // train_enter_tile_proc
+	NULL,                       // train_enter_tile_proc
 	RoadVehEnter_Station,       // roadveh_enter_tile_proc
 	ShipEnter_Station,          // ship_enter_tile_proc
 	GetFoundation_Station,      // get_foundation_proc

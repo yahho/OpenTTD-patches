@@ -40,6 +40,7 @@
 
 static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck);
 static bool TrainCheckIfLineEnds(Train *v, bool reverse = true);
+static VehicleEnterTileStatus TrainEnterTile(Train *v, TileIndex tile, int x, int y);
 bool TrainController(Train *v, Vehicle *nomove, bool reverse = true); // Also used in vehicle_sl.cpp.
 static TileIndex TrainApproachingCrossingTile(const Train *v);
 static void CheckIfTrainNeedsService(Train *v);
@@ -3047,6 +3048,239 @@ static Vehicle *CheckTrainAtSignal(Vehicle *v, void *data)
 	if (t->cur_speed > 5 || TrackdirToExitdir(t->trackdir) != exitdir) return NULL;
 
 	return t;
+}
+
+/**
+ * Tile callback routine when vehicle enters a track tile
+ * @see vehicle_enter_tile_proc
+ */
+static VehicleEnterTileStatus TrainEnter_Track(Train *v, TileIndex tile, int x, int y)
+{
+	if (IsTileSubtype(tile, TT_TRACK)) return VETSB_CONTINUE;
+
+	assert(abs((int)(GetSlopePixelZ(x, y) - v->z_pos)) < 3);
+
+	/* Direction into the wormhole */
+	const DiagDirection dir = GetTunnelBridgeDirection(tile);
+	/* Direction of the vehicle */
+	const DiagDirection vdir = DirToDiagDir(v->direction);
+	/* New position of the vehicle on the tile */
+	byte pos = (DiagDirToAxis(vdir) == AXIS_X ? x : y) & TILE_UNIT_MASK;
+	/* Number of units moved by the vehicle since entering the tile */
+	byte frame = (vdir == DIAGDIR_NE || vdir == DIAGDIR_NW) ? TILE_SIZE - 1 - pos : pos;
+
+	/* modify speed of vehicle */
+	uint16 spd = GetBridgeSpec(GetRailBridgeType(tile))->speed;
+	Vehicle *first = v->First();
+	first->cur_speed = min(first->cur_speed, spd);
+
+	if (vdir == dir) {
+		/* Vehicle enters bridge at the last frame inside this tile. */
+		if (frame != TILE_SIZE - 1) return VETSB_CONTINUE;
+		v->tile = GetOtherBridgeEnd(tile);
+		v->trackdir = TRACKDIR_WORMHOLE;
+		ClrBit(v->gv_flags, GVF_GOINGUP_BIT);
+		ClrBit(v->gv_flags, GVF_GOINGDOWN_BIT);
+		return VETSB_ENTERED_WORMHOLE;
+	} else if (vdir == ReverseDiagDir(dir)) {
+		v->tile = tile;
+		if (v->trackdir == TRACKDIR_WORMHOLE) {
+			v->trackdir = DiagDirToDiagTrackdir(vdir);
+			return VETSB_ENTERED_WORMHOLE;
+		}
+	}
+
+	return VETSB_CONTINUE;
+}
+
+/**
+ * Frame when the 'enter tunnel' sound should be played. This is the second
+ * frame on a tile, so the sound is played shortly after entering the tunnel
+ * tile, while the vehicle is still visible.
+ */
+static const byte TUNNEL_SOUND_FRAME = 1;
+
+extern const byte _tunnel_visibility_frame[DIAGDIR_END];
+
+static const byte _fractcoords_enter_x[4] = { 0xA, 0x8, 0x4, 0x8 };
+static const byte _fractcoords_enter_y[4] = { 0x8, 0x4, 0x8, 0xA };
+static const int8 _deltacoord_leaveoffset_x[4] = { -1,  0,  1,  0 };
+static const int8 _deltacoord_leaveoffset_y[4] = {  0,  1,  0, -1 };
+
+/**
+ * Compute number of ticks when next wagon will leave a depot.
+ * Negative means next wagon should have left depot n ticks before.
+ * @param v vehicle outside (leaving) the depot
+ * @return number of ticks when the next wagon will leave
+ */
+int TicksToLeaveDepot(const Train *v)
+{
+	DiagDirection dir = GetRailDepotDirection(v->tile);
+	int length = v->CalcNextVehicleOffset();
+
+	switch (dir) {
+		case DIAGDIR_NE: return  ((int)(v->x_pos & 0x0F) - (_fractcoords_enter_x[dir] - (length + 1)));
+		case DIAGDIR_SE: return -((int)(v->y_pos & 0x0F) - (_fractcoords_enter_y[dir] + (length + 1)));
+		case DIAGDIR_SW: return -((int)(v->x_pos & 0x0F) - (_fractcoords_enter_x[dir] + (length + 1)));
+		default:
+		case DIAGDIR_NW: return  ((int)(v->y_pos & 0x0F) - (_fractcoords_enter_y[dir] - (length + 1)));
+	}
+
+	return 0; // make compilers happy
+}
+
+static VehicleEnterTileStatus TrainEnter_Misc(Train *u, TileIndex tile, int x, int y)
+{
+	switch (GetTileSubtype(tile)) {
+		default: break;
+
+		case TT_MISC_TUNNEL: {
+			int z = GetSlopePixelZ(x, y) - u->z_pos;
+			assert(abs(z) < 3);
+
+			/* Direction into the wormhole */
+			const DiagDirection dir = GetTunnelBridgeDirection(tile);
+			/* Direction of the vehicle */
+			const DiagDirection vdir = DirToDiagDir(u->direction);
+			/* New position of the vehicle on the tile */
+			byte pos = (DiagDirToAxis(vdir) == AXIS_X ? x : y) & TILE_UNIT_MASK;
+			/* Number of units moved by the vehicle since entering the tile */
+			byte frame = (vdir == DIAGDIR_NE || vdir == DIAGDIR_NW) ? TILE_SIZE - 1 - pos : pos;
+
+			if (u->trackdir != TRACKDIR_WORMHOLE && dir == vdir) {
+				if (u->IsFrontEngine() && frame == TUNNEL_SOUND_FRAME) {
+					if (!PlayVehicleSound(u, VSE_TUNNEL) && RailVehInfo(u->engine_type)->engclass == 0) {
+						SndPlayVehicleFx(SND_05_TRAIN_THROUGH_TUNNEL, u);
+					}
+					return VETSB_CONTINUE;
+				}
+				if (frame == _tunnel_visibility_frame[dir]) {
+					u->tile = GetOtherTunnelEnd(tile);
+					u->trackdir = TRACKDIR_WORMHOLE;
+					u->vehstatus |= VS_HIDDEN;
+					return VETSB_ENTERED_WORMHOLE;
+				}
+			}
+
+			if (dir == ReverseDiagDir(vdir) && frame == TILE_SIZE - _tunnel_visibility_frame[dir] && z == 0) {
+				/* We're at the tunnel exit ?? */
+				u->tile = tile;
+				u->trackdir = DiagDirToDiagTrackdir(vdir);
+				u->vehstatus &= ~VS_HIDDEN;
+				return VETSB_ENTERED_WORMHOLE;
+			}
+
+			break;
+		}
+
+		case TT_MISC_DEPOT: {
+			if (!IsRailDepot(tile)) break;
+
+			/* depot direction */
+			DiagDirection dir = GetRailDepotDirection(tile);
+
+			byte fract_coord_x = x & 0xF;
+			byte fract_coord_y = y & 0xF;
+
+			/* make sure a train is not entering the tile from behind */
+			assert(DistanceFromTileEdge(ReverseDiagDir(dir), fract_coord_x, fract_coord_y) != 0);
+
+			if (u->direction == DiagDirToDir(ReverseDiagDir(dir))) {
+				if (fract_coord_x == _fractcoords_enter_x[dir] && fract_coord_y == _fractcoords_enter_y[dir]) {
+					/* enter the depot */
+					u->trackdir = TRACKDIR_DEPOT,
+					u->vehstatus |= VS_HIDDEN; // hide it
+					u->direction = ReverseDir(u->direction);
+					if (u->Next() == NULL) VehicleEnterDepot(u->First());
+					u->tile = tile;
+
+					InvalidateWindowData(WC_VEHICLE_DEPOT, u->tile);
+					return VETSB_ENTERED_WORMHOLE;
+				}
+			} else if (u->direction == DiagDirToDir(dir)) {
+				/* Calculate the point where the following wagon should be activated. */
+				int length = u->CalcNextVehicleOffset();
+
+				byte fract_coord_leave_x = _fractcoords_enter_x[dir] +
+					(length + 1) * _deltacoord_leaveoffset_x[dir];
+				byte fract_coord_leave_y = _fractcoords_enter_y[dir] +
+					(length + 1) * _deltacoord_leaveoffset_y[dir];
+
+				if (fract_coord_x == fract_coord_leave_x && fract_coord_y == fract_coord_leave_y) {
+					/* leave the depot? */
+					if ((u = u->Next()) != NULL) {
+						u->vehstatus &= ~VS_HIDDEN;
+						u->trackdir = DiagDirToDiagTrackdir(dir);
+					}
+				}
+			}
+
+			break;
+		}
+	}
+
+	return VETSB_CONTINUE;
+}
+
+static VehicleEnterTileStatus TrainEnter_Station(Train *v, TileIndex tile, int x, int y)
+{
+	StationID station_id = GetStationIndex(tile);
+	if (!v->current_order.ShouldStopAtStation(v, station_id)) return VETSB_CONTINUE;
+	if (!IsRailStation(tile) || !v->IsFrontEngine()) return VETSB_CONTINUE;
+
+	int station_ahead;
+	int station_length;
+	int stop = GetTrainStopLocation(station_id, tile, Train::From(v), &station_ahead, &station_length);
+
+	/* Stop whenever that amount of station ahead + the distance from the
+	 * begin of the platform to the stop location is longer than the length
+	 * of the platform. Station ahead 'includes' the current tile where the
+	 * vehicle is on, so we need to subtract that. */
+	if (stop + station_ahead - (int)TILE_SIZE >= station_length) return VETSB_CONTINUE;
+
+	DiagDirection dir = DirToDiagDir(v->direction);
+
+	x &= 0xF;
+	y &= 0xF;
+
+	if (DiagDirToAxis(dir) != AXIS_X) Swap(x, y);
+	if (y == TILE_SIZE / 2) {
+		if (dir != DIAGDIR_SE && dir != DIAGDIR_SW) x = TILE_SIZE - 1 - x;
+		stop &= TILE_SIZE - 1;
+
+		if (x >= stop) return VETSB_ENTERED_STATION | (VehicleEnterTileStatus)(station_id << VETS_STATION_ID_OFFSET); // enter station
+
+		v->vehstatus |= VS_TRAIN_SLOWING;
+		uint16 spd = max(0, (stop - x) * 20 - 15);
+		if (spd < v->cur_speed) v->cur_speed = spd;
+	}
+
+	return VETSB_CONTINUE;
+}
+
+/**
+ * Call the tile callback function for a train entering a tile
+ * @param v    Train entering the tile
+ * @param tile Tile entered
+ * @param x    X position
+ * @param y    Y position
+ * @return Some meta-data over the to be entered tile.
+ * @see VehicleEnterTileStatus to see what the bits in the return value mean.
+ */
+static VehicleEnterTileStatus TrainEnterTile(Train *v, TileIndex tile, int x, int y)
+{
+	switch (GetTileType(tile)) {
+		default: NOT_REACHED();
+
+		case TT_RAILWAY:
+			return TrainEnter_Track(v, tile, x, y);
+
+		case TT_MISC:
+			return TrainEnter_Misc(v, tile, x, y);
+
+		case TT_STATION:
+			return TrainEnter_Station(v, tile, x, y);
+	}
 }
 
 /**

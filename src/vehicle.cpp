@@ -1568,20 +1568,6 @@ Direction GetDirectionTowards(const Vehicle *v, int x, int y)
 }
 
 /**
- * Call the tile callback function for a train entering a tile
- * @param v    Train entering the tile
- * @param tile Tile entered
- * @param x    X position
- * @param y    Y position
- * @return Some meta-data over the to be entered tile.
- * @see VehicleEnterTileStatus to see what the bits in the return value mean.
- */
-VehicleEnterTileStatus TrainEnterTile(Train *v, TileIndex tile, int x, int y)
-{
-	return GetTileProcs(tile)->train_enter_tile_proc(v, tile, x, y);
-}
-
-/**
  * Call the tile callback function for a road vehicle entering a tile
  * @param v    Road vehicle entering the tile
  * @param tile Tile entered
