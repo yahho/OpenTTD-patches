@@ -3103,11 +3103,6 @@ static bool ClickTile_Station(TileIndex tile)
 	return true;
 }
 
-static VehicleEnterTileStatus ShipEnter_Station(Ship *v, TileIndex tile, int x, int y)
-{
-	return VETSB_CONTINUE;
-}
-
 /**
  * Run the watched cargo callback for all houses in the catchment area.
  * @param st Station.
@@ -4228,7 +4223,7 @@ extern const TileTypeProcs _tile_type_station_procs = {
 	NULL,                       // add_produced_cargo_proc
 	NULL,                       // train_enter_tile_proc
 	NULL,                       // roadveh_enter_tile_proc
-	ShipEnter_Station,          // ship_enter_tile_proc
+	NULL,                       // ship_enter_tile_proc
 	GetFoundation_Station,      // get_foundation_proc
 	TerraformTile_Station,      // terraform_tile_proc
 };

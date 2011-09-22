@@ -168,7 +168,6 @@ static inline const TileTypeProcs *GetTileProcs(TileIndex tile)
 }
 
 TrackStatus GetTileTrackStatus(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side = INVALID_DIAGDIR);
-VehicleEnterTileStatus ShipEnterTile(Ship *v, TileIndex tile, int x, int y);
 void ChangeTileOwner(TileIndex tile, Owner old_owner, Owner new_owner);
 void GetTileDesc(TileIndex tile, TileDesc *td);
 

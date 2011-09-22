@@ -957,38 +957,6 @@ static void ChangeTileOwner_Misc(TileIndex tile, Owner old_owner, Owner new_owne
  */
 extern const byte _tunnel_visibility_frame[DIAGDIR_END] = {12, 8, 8, 12};
 
-static VehicleEnterTileStatus ShipEnter_Misc(Ship *u, TileIndex tile, int x, int y)
-{
-	if (IsTileSubtype(tile, TT_MISC_AQUEDUCT)) {
-		assert(abs((int)(GetSlopePixelZ(x, y) - u->z_pos)) < 3);
-
-		/* Direction into the wormhole */
-		const DiagDirection dir = GetTunnelBridgeDirection(tile);
-		/* Direction of the vehicle */
-		const DiagDirection vdir = DirToDiagDir(u->direction);
-		/* New position of the vehicle on the tile */
-		byte pos = (DiagDirToAxis(vdir) == AXIS_X ? x : y) & TILE_UNIT_MASK;
-		/* Number of units moved by the vehicle since entering the tile */
-		byte frame = (vdir == DIAGDIR_NE || vdir == DIAGDIR_NW) ? TILE_SIZE - 1 - pos : pos;
-
-		if (vdir == dir) {
-			/* Vehicle enters bridge at the last frame inside this tile. */
-			if (frame != TILE_SIZE - 1) return VETSB_CONTINUE;
-			u->tile = GetOtherBridgeEnd(tile);
-			u->trackdir = TRACKDIR_WORMHOLE;
-			return VETSB_ENTERED_WORMHOLE;
-		} else if (vdir == ReverseDiagDir(dir)) {
-			u->tile = tile;
-			if (u->trackdir == TRACKDIR_WORMHOLE) {
-				u->trackdir = DiagDirToDiagTrackdir(vdir);
-				return VETSB_ENTERED_WORMHOLE;
-			}
-		}
-	}
-
-	return VETSB_CONTINUE;
-}
-
 
 static Foundation GetFoundation_Misc(TileIndex tile, Slope tileh)
 {
@@ -1038,7 +1006,7 @@ extern const TileTypeProcs _tile_type_misc_procs = {
 	NULL,                    // add_produced_cargo_proc
 	NULL,                    // train_enter_tile_proc
 	NULL,                    // roadveh_enter_tile_proc
-	ShipEnter_Misc,          // ship_enter_tile_proc
+	NULL,                    // ship_enter_tile_proc
 	GetFoundation_Misc,      // get_foundation_proc
 	TerraformTile_Misc,      // terraform_tile_proc
 };

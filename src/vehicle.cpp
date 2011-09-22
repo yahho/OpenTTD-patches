@@ -1568,20 +1568,6 @@ Direction GetDirectionTowards(const Vehicle *v, int x, int y)
 }
 
 /**
- * Call the tile callback function for a ship entering a tile
- * @param v    Ship entering the tile
- * @param tile Tile entered
- * @param x    X position
- * @param y    Y position
- * @return Some meta-data over the to be entered tile.
- * @see VehicleEnterTileStatus to see what the bits in the return value mean.
- */
-VehicleEnterTileStatus ShipEnterTile(Ship *v, TileIndex tile, int x, int y)
-{
-	return GetTileProcs(tile)->ship_enter_tile_proc(v, tile, x, y);
-}
-
-/**
  * Initializes the structure. Vehicle unit numbers are supposed not to change after
  * struct initialization, except after each call to this->NextID() the returned value
  * is assigned to a vehicle.
