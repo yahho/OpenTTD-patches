@@ -1744,47 +1744,6 @@ static void GetTileDesc_Road(TileIndex tile, TileDesc *td)
 	}
 }
 
-static VehicleEnterTileStatus RoadVehEnter_Road(RoadVehicle *v, TileIndex tile, int x, int y)
-{
-	if (IsTileSubtype(tile, TT_TRACK)) return VETSB_CONTINUE;
-
-	assert(abs((int)(GetSlopePixelZ(x, y) - v->z_pos)) < 3);
-
-	/* Direction into the wormhole */
-	const DiagDirection dir = GetTunnelBridgeDirection(tile);
-	/* Direction of the vehicle */
-	const DiagDirection vdir = DirToDiagDir(v->direction);
-	/* New position of the vehicle on the tile */
-	byte pos = (DiagDirToAxis(vdir) == AXIS_X ? x : y) & TILE_UNIT_MASK;
-	/* Number of units moved by the vehicle since entering the tile */
-	byte frame = (vdir == DIAGDIR_NE || vdir == DIAGDIR_NW) ? TILE_SIZE - 1 - pos : pos;
-
-	/* modify speed of vehicle */
-	uint16 spd = GetBridgeSpec(GetRoadBridgeType(tile))->speed * 2;
-	Vehicle *first = v->First();
-	first->cur_speed = min(first->cur_speed, spd);
-
-	if (vdir == dir) {
-		/* Vehicle enters bridge at the last frame inside this tile. */
-		if (frame != TILE_SIZE - 1) return VETSB_CONTINUE;
-		v->tile = GetOtherBridgeEnd(tile);
-		v->state = RVSB_WORMHOLE;
-		/* There are no slopes inside bridges / tunnels. */
-		ClrBit(v->gv_flags, GVF_GOINGUP_BIT);
-		ClrBit(v->gv_flags, GVF_GOINGDOWN_BIT);
-		return VETSB_ENTERED_WORMHOLE;
-	} else if (vdir == ReverseDiagDir(dir)) {
-		v->tile = tile;
-		if (v->state == RVSB_WORMHOLE) {
-			v->state = DiagDirToDiagTrackdir(vdir);
-			v->frame = 0;
-			return VETSB_ENTERED_WORMHOLE;
-		}
-	}
-
-	return VETSB_CONTINUE;
-}
-
 
 static void ChangeTileOwner_Road(TileIndex tile, Owner old_owner, Owner new_owner)
 {
@@ -1889,7 +1848,7 @@ extern const TileTypeProcs _tile_type_road_procs = {
 	ChangeTileOwner_Road,    // change_tile_owner_proc
 	NULL,                    // add_produced_cargo_proc
 	NULL,                    // train_enter_tile_proc
-	RoadVehEnter_Road,       // roadveh_enter_tile_proc
+	NULL,                    // roadveh_enter_tile_proc
 	NULL,                    // ship_enter_tile_proc
 	GetFoundation_Road,      // get_foundation_proc
 	TerraformTile_Road,      // terraform_tile_proc

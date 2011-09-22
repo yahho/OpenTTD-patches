@@ -957,79 +957,6 @@ static void ChangeTileOwner_Misc(TileIndex tile, Owner old_owner, Owner new_owne
  */
 extern const byte _tunnel_visibility_frame[DIAGDIR_END] = {12, 8, 8, 12};
 
-/**
- * Given the direction the road depot is pointing, this is the direction the
- * vehicle should be travelling in in order to enter the depot.
- */
-static const byte _roadveh_enter_depot_dir[4] = {
-	TRACKDIR_X_SW, TRACKDIR_Y_NW, TRACKDIR_X_NE, TRACKDIR_Y_SE
-};
-
-static VehicleEnterTileStatus RoadVehEnter_Misc(RoadVehicle *u, TileIndex tile, int x, int y)
-{
-	switch (GetTileSubtype(tile)) {
-		default: break;
-
-		case TT_MISC_TUNNEL: {
-			int z = GetSlopePixelZ(x, y) - u->z_pos;
-			assert(abs(z) < 3);
-
-			/* Direction into the wormhole */
-			const DiagDirection dir = GetTunnelBridgeDirection(tile);
-			/* Direction of the vehicle */
-			const DiagDirection vdir = DirToDiagDir(u->direction);
-			/* New position of the vehicle on the tile */
-			byte pos = (DiagDirToAxis(vdir) == AXIS_X ? x : y) & TILE_UNIT_MASK;
-			/* Number of units moved by the vehicle since entering the tile */
-			byte frame = (vdir == DIAGDIR_NE || vdir == DIAGDIR_NW) ? TILE_SIZE - 1 - pos : pos;
-
-			/* Enter tunnel? */
-			if (u->state != RVSB_WORMHOLE && dir == vdir) {
-				if (frame == _tunnel_visibility_frame[dir]) {
-					/* Frame should be equal to the next frame number in the RV's movement */
-					assert(frame == u->frame + 1);
-					u->tile = GetOtherTunnelEnd(tile);
-					u->state = RVSB_WORMHOLE;
-					u->vehstatus |= VS_HIDDEN;
-					return VETSB_ENTERED_WORMHOLE;
-				} else {
-					return VETSB_CONTINUE;
-				}
-			}
-
-			/* We're at the tunnel exit ?? */
-			if (dir == ReverseDiagDir(vdir) && frame == TILE_SIZE - _tunnel_visibility_frame[dir] && z == 0) {
-				u->tile = tile;
-				u->state = DiagDirToDiagTrackdir(vdir);
-				u->frame = frame;
-				u->vehstatus &= ~VS_HIDDEN;
-				return VETSB_ENTERED_WORMHOLE;
-			}
-
-			break;
-		}
-
-		case TT_MISC_DEPOT:
-			if (!IsRoadDepot(tile)) break;
-
-			if (u->frame == RVC_DEPOT_STOP_FRAME &&
-					_roadveh_enter_depot_dir[GetRoadDepotDirection(tile)] == u->state) {
-				u->state = RVSB_IN_DEPOT;
-				u->vehstatus |= VS_HIDDEN;
-				u->direction = ReverseDir(u->direction);
-				if (u->Next() == NULL) VehicleEnterDepot(u->First());
-				u->tile = tile;
-
-				InvalidateWindowData(WC_VEHICLE_DEPOT, u->tile);
-				return VETSB_ENTERED_WORMHOLE;
-			}
-
-			break;
-	}
-
-	return VETSB_CONTINUE;
-}
-
 static VehicleEnterTileStatus ShipEnter_Misc(Ship *u, TileIndex tile, int x, int y)
 {
 	if (IsTileSubtype(tile, TT_MISC_AQUEDUCT)) {
@@ -1110,7 +1037,7 @@ extern const TileTypeProcs _tile_type_misc_procs = {
 	ChangeTileOwner_Misc,    // change_tile_owner_proc
 	NULL,                    // add_produced_cargo_proc
 	NULL,                    // train_enter_tile_proc
-	RoadVehEnter_Misc,       // roadveh_enter_tile_proc
+	NULL,                    // roadveh_enter_tile_proc
 	ShipEnter_Misc,          // ship_enter_tile_proc
 	GetFoundation_Misc,      // get_foundation_proc
 	TerraformTile_Misc,      // terraform_tile_proc

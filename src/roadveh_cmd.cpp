@@ -715,6 +715,159 @@ int RoadVehicle::UpdateSpeed()
 	}
 }
 
+static VehicleEnterTileStatus RoadVehEnter_Road(RoadVehicle *v, TileIndex tile, int x, int y)
+{
+	if (IsTileSubtype(tile, TT_TRACK)) return VETSB_CONTINUE;
+
+	assert(abs((int)(GetSlopePixelZ(x, y) - v->z_pos)) < 3);
+
+	/* Direction into the wormhole */
+	const DiagDirection dir = GetTunnelBridgeDirection(tile);
+	/* Direction of the vehicle */
+	const DiagDirection vdir = DirToDiagDir(v->direction);
+	/* New position of the vehicle on the tile */
+	byte pos = (DiagDirToAxis(vdir) == AXIS_X ? x : y) & TILE_UNIT_MASK;
+	/* Number of units moved by the vehicle since entering the tile */
+	byte frame = (vdir == DIAGDIR_NE || vdir == DIAGDIR_NW) ? TILE_SIZE - 1 - pos : pos;
+
+	/* modify speed of vehicle */
+	uint16 spd = GetBridgeSpec(GetRoadBridgeType(tile))->speed * 2;
+	Vehicle *first = v->First();
+	first->cur_speed = min(first->cur_speed, spd);
+
+	if (vdir == dir) {
+		/* Vehicle enters bridge at the last frame inside this tile. */
+		if (frame != TILE_SIZE - 1) return VETSB_CONTINUE;
+		v->tile = GetOtherBridgeEnd(tile);
+		v->state = RVSB_WORMHOLE;
+		/* There are no slopes inside bridges / tunnels. */
+		ClrBit(v->gv_flags, GVF_GOINGUP_BIT);
+		ClrBit(v->gv_flags, GVF_GOINGDOWN_BIT);
+		return VETSB_ENTERED_WORMHOLE;
+	} else if (vdir == ReverseDiagDir(dir)) {
+		v->tile = tile;
+		if (v->state == RVSB_WORMHOLE) {
+			v->state = DiagDirToDiagTrackdir(vdir);
+			v->frame = 0;
+			return VETSB_ENTERED_WORMHOLE;
+		}
+	}
+
+	return VETSB_CONTINUE;
+}
+
+extern const byte _tunnel_visibility_frame[DIAGDIR_END];
+
+/**
+ * Given the direction the road depot is pointing, this is the direction the
+ * vehicle should be travelling in in order to enter the depot.
+ */
+static const byte _roadveh_enter_depot_dir[4] = {
+	TRACKDIR_X_SW, TRACKDIR_Y_NW, TRACKDIR_X_NE, TRACKDIR_Y_SE
+};
+
+static VehicleEnterTileStatus RoadVehEnter_Misc(RoadVehicle *u, TileIndex tile, int x, int y)
+{
+	switch (GetTileSubtype(tile)) {
+		default: break;
+
+		case TT_MISC_TUNNEL: {
+			int z = GetSlopePixelZ(x, y) - u->z_pos;
+			assert(abs(z) < 3);
+
+			/* Direction into the wormhole */
+			const DiagDirection dir = GetTunnelBridgeDirection(tile);
+			/* Direction of the vehicle */
+			const DiagDirection vdir = DirToDiagDir(u->direction);
+			/* New position of the vehicle on the tile */
+			byte pos = (DiagDirToAxis(vdir) == AXIS_X ? x : y) & TILE_UNIT_MASK;
+			/* Number of units moved by the vehicle since entering the tile */
+			byte frame = (vdir == DIAGDIR_NE || vdir == DIAGDIR_NW) ? TILE_SIZE - 1 - pos : pos;
+
+			/* Enter tunnel? */
+			if (u->state != RVSB_WORMHOLE && dir == vdir) {
+				if (frame == _tunnel_visibility_frame[dir]) {
+					/* Frame should be equal to the next frame number in the RV's movement */
+					assert(frame == u->frame + 1);
+					u->tile = GetOtherTunnelEnd(tile);
+					u->state = RVSB_WORMHOLE;
+					u->vehstatus |= VS_HIDDEN;
+					return VETSB_ENTERED_WORMHOLE;
+				} else {
+					return VETSB_CONTINUE;
+				}
+			}
+
+			/* We're at the tunnel exit ?? */
+			if (dir == ReverseDiagDir(vdir) && frame == TILE_SIZE - _tunnel_visibility_frame[dir] && z == 0) {
+				u->tile = tile;
+				u->state = DiagDirToDiagTrackdir(vdir);
+				u->frame = frame;
+				u->vehstatus &= ~VS_HIDDEN;
+				return VETSB_ENTERED_WORMHOLE;
+			}
+
+			break;
+		}
+
+		case TT_MISC_DEPOT:
+			if (!IsRoadDepot(tile)) break;
+
+			if (u->frame == RVC_DEPOT_STOP_FRAME &&
+					_roadveh_enter_depot_dir[GetRoadDepotDirection(tile)] == u->state) {
+				u->state = RVSB_IN_DEPOT;
+				u->vehstatus |= VS_HIDDEN;
+				u->direction = ReverseDir(u->direction);
+				if (u->Next() == NULL) VehicleEnterDepot(u->First());
+				u->tile = tile;
+
+				InvalidateWindowData(WC_VEHICLE_DEPOT, u->tile);
+				return VETSB_ENTERED_WORMHOLE;
+			}
+
+			break;
+	}
+
+	return VETSB_CONTINUE;
+}
+
+static VehicleEnterTileStatus RoadVehEnter_Station(RoadVehicle *v, TileIndex tile, int x, int y)
+{
+	if (v->state < RVSB_IN_ROAD_STOP && !IsReversingRoadTrackdir((Trackdir)v->state) && v->frame == 0) {
+		if (IsRoadStop(tile) && v->IsFrontEngine()) {
+			/* Attempt to allocate a parking bay in a road stop */
+			return RoadStop::GetByTile(tile, GetRoadStopType(tile))->Enter(v) ? VETSB_CONTINUE : VETSB_CANNOT_ENTER;
+		}
+	}
+
+	return VETSB_CONTINUE;
+}
+
+/**
+ * Call the tile callback function for a road vehicle entering a tile
+ * @param v    Road vehicle entering the tile
+ * @param tile Tile entered
+ * @param x    X position
+ * @param y    Y position
+ * @return Some meta-data over the to be entered tile.
+ * @see VehicleEnterTileStatus to see what the bits in the return value mean.
+ */
+static VehicleEnterTileStatus RoadVehEnterTile(RoadVehicle *v, TileIndex tile, int x, int y)
+{
+	switch (GetTileType(tile)) {
+		default: NOT_REACHED();
+
+		case TT_ROAD:
+			return RoadVehEnter_Road(v, tile, x, y);
+
+		case TT_MISC:
+			return RoadVehEnter_Misc(v, tile, x, y);
+
+		case TT_STATION:
+			return RoadVehEnter_Station(v, tile, x, y);
+	}
+}
+
 static Direction RoadVehGetNewDirection(const RoadVehicle *v, int x, int y)
 {
 	static const Direction _roadveh_new_dir[] = {
