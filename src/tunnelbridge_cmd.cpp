@@ -1668,8 +1668,8 @@ extern const byte _tunnel_visibility_frame[DIAGDIR_END] = {12, 8, 8, 12};
 static VehicleEnterTileStatus VehicleEnter_TunnelBridge(Vehicle *v, TileIndex tile, int x, int y)
 {
 	int z = GetSlopePixelZ(x, y) - v->z_pos;
+	assert(abs(z) < 3);
 
-	if (abs(z) > 2) return VETSB_CANNOT_ENTER;
 	/* Direction into the wormhole */
 	const DiagDirection dir = GetTunnelBridgeDirection(tile);
 	/* Direction of the vehicle */
