@@ -1691,7 +1691,7 @@ static VehicleEnterTileStatus VehicleEnter_TunnelBridge(Vehicle *v, TileIndex ti
 					return VETSB_CONTINUE;
 				}
 				if (frame == _tunnel_visibility_frame[dir]) {
-					t->tile = tile;
+					t->tile = GetOtherTunnelEnd(tile);
 					t->track = TRACK_BIT_WORMHOLE;
 					t->vehstatus |= VS_HIDDEN;
 					return VETSB_ENTERED_WORMHOLE;
@@ -1714,7 +1714,7 @@ static VehicleEnterTileStatus VehicleEnter_TunnelBridge(Vehicle *v, TileIndex ti
 				if (frame == _tunnel_visibility_frame[dir]) {
 					/* Frame should be equal to the next frame number in the RV's movement */
 					assert(frame == rv->frame + 1);
-					rv->tile = tile;
+					rv->tile = GetOtherTunnelEnd(tile);
 					rv->state = RVSB_WORMHOLE;
 					rv->vehstatus |= VS_HIDDEN;
 					return VETSB_ENTERED_WORMHOLE;
@@ -1745,6 +1745,7 @@ static VehicleEnterTileStatus VehicleEnter_TunnelBridge(Vehicle *v, TileIndex ti
 		if (vdir == dir) {
 			/* Vehicle enters bridge at the last frame inside this tile. */
 			if (frame != TILE_SIZE - 1) return VETSB_CONTINUE;
+			v->tile = GetOtherBridgeEnd(tile);
 			switch (v->type) {
 				case VEH_TRAIN: {
 					Train *t = Train::From(v);

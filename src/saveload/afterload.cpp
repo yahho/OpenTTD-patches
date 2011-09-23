@@ -25,6 +25,7 @@
 #include "../date_func.h"
 #include "../roadveh.h"
 #include "../train.h"
+#include "../ship.h"
 #include "../station_base.h"
 #include "../waypoint_base.h"
 #include "../roadstop_base.h"
@@ -2473,6 +2474,34 @@ bool AfterLoadGame()
 					case VEH_ROAD:  RoadVehicle::From(v)->state = DiagDirToDiagTrackdir(vdir); RoadVehicle::From(v)->frame = frame; break;
 					default: NOT_REACHED();
 				}
+			}
+		}
+	}
+
+	{
+		Vehicle *v;
+
+		FOR_ALL_VEHICLES(v) {
+			bool in_wormhole;
+
+			switch (v->type) {
+				case VEH_TRAIN:
+					in_wormhole = Train::From(v)->track == TRACK_BIT_WORMHOLE;
+					break;
+
+				case VEH_ROAD:
+					in_wormhole = RoadVehicle::From(v)->state == RVSB_WORMHOLE;
+					break;
+
+				case VEH_SHIP:
+					in_wormhole = Ship::From(v)->state == TRACK_BIT_WORMHOLE;
+					break;
+
+				default: continue;
+			}
+
+			if (in_wormhole && v->direction == DiagDirToDir(GetTunnelBridgeDirection(v->tile))) {
+				v->tile = GetOtherTunnelBridgeEnd(v->tile);
 			}
 		}
 	}

@@ -1534,6 +1534,8 @@ static void UpdateStatusAfterSwap(Train *v)
 	if (v->track != TRACK_BIT_WORMHOLE) {
 		VehicleEnterTile(v, v->tile, v->x_pos, v->y_pos);
 	} else {
+		assert(v->direction == DiagDirToDir(GetTunnelBridgeDirection(v->tile)));
+		v->tile = GetOtherTunnelBridgeEnd(v->tile);
 		/* VehicleEnter_TunnelBridge() sets TRACK_BIT_WORMHOLE when the vehicle
 		 * is on the last bit of the bridge head (frame == TILE_SIZE - 1).
 		 * If we were swapped with such a vehicle, we have set TRACK_BIT_WORMHOLE,
