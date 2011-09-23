@@ -404,48 +404,6 @@ static void ShipArrivesAt(const Vehicle *v, Station *st)
 }
 
 
-static VehicleEnterTileStatus ShipEnter_Water(Ship *v, TileIndex tile, int x, int y)
-{
-	return VETSB_CONTINUE;
-}
-
-static VehicleEnterTileStatus ShipEnter_Misc(Ship *u, TileIndex tile, int x, int y)
-{
-	if (IsTileSubtype(tile, TT_MISC_AQUEDUCT)) {
-		assert(abs((int)(GetSlopePixelZ(x, y) - u->z_pos)) < 3);
-
-		/* Direction into the wormhole */
-		const DiagDirection dir = GetTunnelBridgeDirection(tile);
-		/* Direction of the vehicle */
-		const DiagDirection vdir = DirToDiagDir(u->direction);
-		/* New position of the vehicle on the tile */
-		byte pos = (DiagDirToAxis(vdir) == AXIS_X ? x : y) & TILE_UNIT_MASK;
-		/* Number of units moved by the vehicle since entering the tile */
-		byte frame = (vdir == DIAGDIR_NE || vdir == DIAGDIR_NW) ? TILE_SIZE - 1 - pos : pos;
-
-		if (vdir == dir) {
-			/* Vehicle enters bridge at the last frame inside this tile. */
-			if (frame != TILE_SIZE - 1) return VETSB_CONTINUE;
-			u->tile = GetOtherBridgeEnd(tile);
-			u->trackdir = TRACKDIR_WORMHOLE;
-			return VETSB_ENTERED_WORMHOLE;
-		} else if (vdir == ReverseDiagDir(dir)) {
-			u->tile = tile;
-			if (u->trackdir == TRACKDIR_WORMHOLE) {
-				u->trackdir = DiagDirToDiagTrackdir(vdir);
-				return VETSB_ENTERED_WORMHOLE;
-			}
-		}
-	}
-
-	return VETSB_CONTINUE;
-}
-
-static VehicleEnterTileStatus ShipEnter_Station(Ship *v, TileIndex tile, int x, int y)
-{
-	return VETSB_CONTINUE;
-}
-
 /**
  * Call the tile callback function for a ship entering a tile
  * @param v    Ship entering the tile
@@ -457,18 +415,34 @@ static VehicleEnterTileStatus ShipEnter_Station(Ship *v, TileIndex tile, int x, 
  */
 static VehicleEnterTileStatus ShipEnterTile(Ship *v, TileIndex tile, int x, int y)
 {
-	switch (GetTileType(tile)) {
-		default: NOT_REACHED();
+	if (IsAqueductTile(tile)) {
+		assert(abs((int)(GetSlopePixelZ(x, y) - v->z_pos)) < 3);
 
-		case TT_WATER:
-			return ShipEnter_Water(v, tile, x, y);
+		/* Direction into the wormhole */
+		const DiagDirection dir = GetTunnelBridgeDirection(tile);
+		/* Direction of the vehicle */
+		const DiagDirection vdir = DirToDiagDir(v->direction);
+		/* New position of the vehicle on the tile */
+		byte pos = (DiagDirToAxis(vdir) == AXIS_X ? x : y) & TILE_UNIT_MASK;
+		/* Number of units moved by the vehicle since entering the tile */
+		byte frame = (vdir == DIAGDIR_NE || vdir == DIAGDIR_NW) ? TILE_SIZE - 1 - pos : pos;
 
-		case TT_MISC:
-			return ShipEnter_Misc(v, tile, x, y);
-
-		case TT_STATION:
-			return ShipEnter_Station(v, tile, x, y);
+		if (vdir == dir) {
+			/* Vehicle enters bridge at the last frame inside this tile. */
+			if (frame != TILE_SIZE - 1) return VETSB_CONTINUE;
+			v->tile = GetOtherBridgeEnd(tile);
+			v->trackdir = TRACKDIR_WORMHOLE;
+			return VETSB_ENTERED_WORMHOLE;
+		} else if (vdir == ReverseDiagDir(dir)) {
+			v->tile = tile;
+			if (v->trackdir == TRACKDIR_WORMHOLE) {
+				v->trackdir = DiagDirToDiagTrackdir(vdir);
+				return VETSB_ENTERED_WORMHOLE;
+			}
+		}
 	}
+
+	return VETSB_CONTINUE;
 }
 
 /**
