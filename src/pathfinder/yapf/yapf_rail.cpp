@@ -567,9 +567,7 @@ bool YapfTrainCheckReverse(const Train *v)
 
 	if (v->track == TRACK_BIT_WORMHOLE) {
 		/* front in tunnel / on bridge */
-		DiagDirection dir_into_wormhole = GetTunnelBridgeDirection(tile);
-
-		if (TrackdirToExitdir(td) == dir_into_wormhole) tile = GetOtherTunnelBridgeEnd(tile);
+		assert(TrackdirToExitdir(td) == ReverseDiagDir(GetTunnelBridgeDirection(tile)));
 		/* Now 'tile' is the tunnel entry/bridge ramp the train will reach when driving forward */
 
 		/* Current position of the train in the wormhole */
@@ -582,9 +580,8 @@ bool YapfTrainCheckReverse(const Train *v)
 
 	if (last_veh->track == TRACK_BIT_WORMHOLE) {
 		/* back in tunnel / on bridge */
-		DiagDirection dir_into_wormhole = GetTunnelBridgeDirection(tile_rev);
-
-		if (TrackdirToExitdir(td_rev) == dir_into_wormhole) tile_rev = GetOtherTunnelBridgeEnd(tile_rev);
+		assert(TrackdirToExitdir(td_rev) == GetTunnelBridgeDirection(tile_rev));
+		tile_rev = GetOtherTunnelBridgeEnd(tile_rev);
 		/* Now 'tile_rev' is the tunnel entry/bridge ramp the train will reach when reversing */
 
 		/* Current position of the last wagon in the wormhole */
