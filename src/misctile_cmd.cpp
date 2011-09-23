@@ -1004,9 +1004,6 @@ extern const TileTypeProcs _tile_type_misc_procs = {
 	TileLoop_Misc,           // tile_loop_proc
 	ChangeTileOwner_Misc,    // change_tile_owner_proc
 	NULL,                    // add_produced_cargo_proc
-	NULL,                    // train_enter_tile_proc
-	NULL,                    // roadveh_enter_tile_proc
-	NULL,                    // ship_enter_tile_proc
 	GetFoundation_Misc,      // get_foundation_proc
 	TerraformTile_Misc,      // terraform_tile_proc
 };

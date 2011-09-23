@@ -4221,9 +4221,6 @@ extern const TileTypeProcs _tile_type_station_procs = {
 	TileLoop_Station,           // tile_loop_proc
 	ChangeTileOwner_Station,    // change_tile_owner_proc
 	NULL,                       // add_produced_cargo_proc
-	NULL,                       // train_enter_tile_proc
-	NULL,                       // roadveh_enter_tile_proc
-	NULL,                       // ship_enter_tile_proc
 	GetFoundation_Station,      // get_foundation_proc
 	TerraformTile_Station,      // terraform_tile_proc
 };

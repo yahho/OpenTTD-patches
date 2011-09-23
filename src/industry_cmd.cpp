@@ -2795,9 +2795,6 @@ extern const TileTypeProcs _tile_type_industry_procs = {
 	TileLoop_Industry,           // tile_loop_proc
 	ChangeTileOwner_Industry,    // change_tile_owner_proc
 	NULL,                        // add_produced_cargo_proc
-	NULL,                        // train_enter_tile_proc
-	NULL,                        // roadveh_enter_tile_proc
-	NULL,                        // ship_enter_tile_proc
 	GetFoundation_Industry,      // get_foundation_proc
 	TerraformTile_Industry,      // terraform_tile_proc
 };

@@ -3201,9 +3201,6 @@ extern const TileTypeProcs _tile_type_rail_procs = {
 	TileLoop_Track,           // tile_loop_proc
 	ChangeTileOwner_Track,    // change_tile_owner_proc
 	NULL,                     // add_produced_cargo_proc
-	NULL,                     // vehicle_enter_tile_proc
-	NULL,                     // roadveh_enter_tile_proc
-	NULL,                     // ship_enter_tile_proc
 	GetFoundation_Track,      // get_foundation_proc
 	TerraformTile_Track,      // terraform_tile_proc
 };

@@ -1321,9 +1321,6 @@ extern const TileTypeProcs _tile_type_water_procs = {
 	TileLoop_Water,           // tile_loop_proc
 	ChangeTileOwner_Water,    // change_tile_owner_proc
 	NULL,                     // add_produced_cargo_proc
-	NULL,                     // train_enter_tile_proc
-	NULL,                     // roadveh_enter_tile_proc
-	NULL,                     // ship_enter_tile_proc
 	GetFoundation_Water,      // get_foundation_proc
 	TerraformTile_Water,      // terraform_tile_proc
 };
