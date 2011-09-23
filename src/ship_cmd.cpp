@@ -471,7 +471,7 @@ static void ShipController(Ship *v)
 	GetNewVehiclePosResult gp = GetNewVehiclePos(v);
 	if (v->state == TRACK_BIT_WORMHOLE) {
 		/* On a bridge */
-		if (!IsTileType(gp.new_tile, MP_TUNNELBRIDGE) || !HasBit(VehicleEnterTile(v, gp.new_tile, gp.x, gp.y), VETS_ENTERED_WORMHOLE)) {
+		if (gp.new_tile != v->tile || !HasBit(VehicleEnterTile(v, gp.new_tile, gp.x, gp.y), VETS_ENTERED_WORMHOLE)) {
 			v->x_pos = gp.x;
 			v->y_pos = gp.y;
 			VehicleUpdatePosition(v);

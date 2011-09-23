@@ -1540,9 +1540,8 @@ static void UpdateStatusAfterSwap(Train *v)
 		 * is on the last bit of the bridge head (frame == TILE_SIZE - 1).
 		 * If we were swapped with such a vehicle, we have set TRACK_BIT_WORMHOLE,
 		 * when we shouldn't have. Check if this is the case. */
-		TileIndex vt = TileVirtXY(v->x_pos, v->y_pos);
-		if (IsTileType(vt, MP_TUNNELBRIDGE)) {
-			VehicleEnterTile(v, vt, v->x_pos, v->y_pos);
+		if (TileVirtXY(v->x_pos, v->y_pos) == v->tile) {
+			VehicleEnterTile(v, v->tile, v->x_pos, v->y_pos);
 			if (v->track != TRACK_BIT_WORMHOLE && IsBridgeTile(v->tile)) {
 				/* We have just left the wormhole, possibly set the
 				 * "goingdown" bit. UpdateInclination() can be used
@@ -3085,7 +3084,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 		if (v->track == TRACK_BIT_WORMHOLE) {
 			/* In a tunnel or on a bridge */
 
-			if (!IsTileType(gp.new_tile, MP_TUNNELBRIDGE) || !HasBit(VehicleEnterTile(v, gp.new_tile, gp.x, gp.y), VETS_ENTERED_WORMHOLE)) {
+			if (gp.new_tile != v->tile || !HasBit(VehicleEnterTile(v, gp.new_tile, gp.x, gp.y), VETS_ENTERED_WORMHOLE)) {
 				v->x_pos = gp.x;
 				v->y_pos = gp.y;
 				VehicleUpdatePosition(v);
@@ -3098,11 +3097,8 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				TryReserveRailTrack(gp.new_tile, DiagDirToDiagTrack(GetTunnelBridgeDirection(gp.new_tile)));
 				CheckNextTrainTile(v);
 			}
-			/* Prevent v->UpdateInclination() being called with wrong parameters.
-			 * This could happen if the train was reversed inside the tunnel/bridge. */
-			if (gp.old_tile == gp.new_tile) {
-				gp.old_tile = GetOtherTunnelBridgeEnd(gp.old_tile);
-			}
+			/* Prevent v->UpdateInclination() being called with wrong parameters. */
+			gp.old_tile = GetOtherTunnelBridgeEnd(gp.old_tile);
 		} else if (v->track == TRACK_BIT_DEPOT) {
 			/* Inside depot */
 			assert(gp.old_tile == gp.new_tile);

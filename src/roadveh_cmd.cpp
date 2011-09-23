@@ -1131,8 +1131,8 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 			}
 		}
 
-		if (IsTileType(gp.new_tile, MP_TUNNELBRIDGE) && HasBit(VehicleEnterTile(v, gp.new_tile, gp.x, gp.y), VETS_ENTERED_WORMHOLE)) {
-			/* Vehicle has just entered a bridge or tunnel */
+		if (gp.new_tile == v->tile && HasBit(VehicleEnterTile(v, gp.new_tile, gp.x, gp.y), VETS_ENTERED_WORMHOLE)) {
+			/* Vehicle has just exited a bridge or tunnel */
 			v->x_pos = gp.x;
 			v->y_pos = gp.y;
 			VehicleUpdatePosition(v);
