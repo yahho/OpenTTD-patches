@@ -499,12 +499,6 @@ static const byte _ship_subcoord[4][6][3] = {
 
 static void ShipController(Ship *v)
 {
-	uint32 r;
-	const byte *b;
-	Direction dir;
-	Track track;
-	TrackBits tracks;
-
 	v->tick_counter++;
 	v->current_order_time++;
 
@@ -541,7 +535,7 @@ static void ShipController(Ship *v)
 	} else if (gp.old_tile == gp.new_tile) {
 		/* Not on a bridge or in a depot, staying in the old tile */
 
-		r = VehicleEnterTile(v, gp.new_tile, gp.x, gp.y);
+		uint32 r = VehicleEnterTile(v, gp.new_tile, gp.x, gp.y);
 		if (HasBit(r, VETS_CANNOT_ENTER)) goto reverse_direction;
 
 		/* A leave station order only needs one tick to get processed, so we can
@@ -585,23 +579,23 @@ static void ShipController(Ship *v)
 
 		if (!IsValidTile(gp.new_tile)) goto reverse_direction;
 
-		dir = ShipGetNewDirectionFromTiles(gp.new_tile, gp.old_tile);
+		Direction dir = ShipGetNewDirectionFromTiles(gp.new_tile, gp.old_tile);
 		assert(dir == DIR_NE || dir == DIR_SE || dir == DIR_SW || dir == DIR_NW);
 		DiagDirection diagdir = DirToDiagDir(dir);
-		tracks = GetAvailShipTracks(gp.new_tile, diagdir);
+		TrackBits tracks = GetAvailShipTracks(gp.new_tile, diagdir);
 		if (tracks == TRACK_BIT_NONE) goto reverse_direction;
 
 		/* Choose a direction, and continue if we find one */
-		track = ChooseShipTrack(v, gp.new_tile, diagdir, tracks);
+		Track track = ChooseShipTrack(v, gp.new_tile, diagdir, tracks);
 		if (track == INVALID_TRACK) goto reverse_direction;
 
-		b = _ship_subcoord[diagdir][track];
+		const byte *b = _ship_subcoord[diagdir][track];
 
 		gp.x = (gp.x & ~0xF) | b[0];
 		gp.y = (gp.y & ~0xF) | b[1];
 
 		/* Call the landscape function and tell it that the vehicle entered the tile */
-		r = VehicleEnterTile(v, gp.new_tile, gp.x, gp.y);
+		uint32 r = VehicleEnterTile(v, gp.new_tile, gp.x, gp.y);
 		if (HasBit(r, VETS_CANNOT_ENTER)) goto reverse_direction;
 
 		if (!HasBit(r, VETS_ENTERED_WORMHOLE)) {
@@ -618,7 +612,7 @@ static void ShipController(Ship *v)
 	}
 
 	/* update image of ship, as well as delta XY */
-	dir = ShipGetNewDirection(v, gp.x, gp.y);
+	ShipGetNewDirection(v, gp.x, gp.y);
 	v->x_pos = gp.x;
 	v->y_pos = gp.y;
 	v->z_pos = GetSlopePixelZ(gp.x, gp.y);
@@ -629,8 +623,7 @@ getout:
 	return;
 
 reverse_direction:
-	dir = ReverseDir(v->direction);
-	v->direction = dir;
+	v->direction = ReverseDir(v->direction);
 	goto getout;
 }
 
