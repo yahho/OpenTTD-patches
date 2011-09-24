@@ -422,18 +422,8 @@ static VehicleEnterTileStatus ShipEnterTile(Ship *v, TileIndex tile, int x, int 
 		const DiagDirection dir = GetTunnelBridgeDirection(tile);
 		/* Direction of the vehicle */
 		const DiagDirection vdir = DirToDiagDir(v->direction);
-		/* New position of the vehicle on the tile */
-		byte pos = (DiagDirToAxis(vdir) == AXIS_X ? x : y) & TILE_UNIT_MASK;
-		/* Number of units moved by the vehicle since entering the tile */
-		byte frame = (vdir == DIAGDIR_NE || vdir == DIAGDIR_NW) ? TILE_SIZE - 1 - pos : pos;
 
-		if (vdir == dir) {
-			/* Vehicle enters bridge at the last frame inside this tile. */
-			if (frame != TILE_SIZE - 1) return VETSB_CONTINUE;
-			v->tile = GetOtherBridgeEnd(tile);
-			v->trackdir = TRACKDIR_WORMHOLE;
-			return VETSB_ENTERED_WORMHOLE;
-		} else if (vdir == ReverseDiagDir(dir)) {
+		if (vdir == ReverseDiagDir(dir)) {
 			v->tile = tile;
 			if (v->trackdir == TRACKDIR_WORMHOLE) {
 				v->trackdir = DiagDirToDiagTrackdir(vdir);
@@ -572,6 +562,19 @@ static void ShipController(Ship *v)
 
 		DiagDirection diagdir = DiagdirBetweenTiles(gp.old_tile, gp.new_tile);
 		assert(diagdir != INVALID_DIAGDIR);
+
+		if (IsAqueductTile(gp.old_tile) && GetTunnelBridgeDirection(gp.old_tile) == diagdir) {
+			TileIndex end_tile = GetOtherBridgeEnd(gp.old_tile);
+			if (end_tile != gp.new_tile) {
+				/* Entering an aqueduct */
+				v->tile = end_tile;
+				v->trackdir = TRACKDIR_WORMHOLE;
+				v->x_pos = gp.x;
+				v->y_pos = gp.y;
+				VehicleUpdatePositionAndViewport(v);
+				return;
+			}
+		}
 
 		TrackdirBits trackdirs = GetAvailShipTrackdirs(gp.new_tile, diagdir);
 		if (trackdirs == TRACKDIR_BIT_NONE) goto reverse_direction;

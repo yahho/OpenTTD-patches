@@ -1766,30 +1766,59 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		}
 	}
 
-	if (IsFullSavegameVersionBefore(stv, 1)) {
+	if (IsFullSavegameVersionBefore(stv, 5)) {
 		Vehicle *v;
 
 		FOR_ALL_VEHICLES(v) {
-			bool in_wormhole;
-
 			switch (v->type) {
-				case VEH_TRAIN:
-					in_wormhole = Train::From(v)->trackdir == TRACKDIR_WORMHOLE;
+				case VEH_TRAIN: {
+					Train *t = Train::From(v);
+					if (t->trackdir == TRACKDIR_WORMHOLE) {
+						TileIndex other_end = GetOtherTunnelBridgeEnd(v->tile);
+						TileIndex vt = TileVirtXY(v->x_pos, v->y_pos);
+						if (vt == v->tile || vt == other_end) {
+							v->tile = vt;
+							t->trackdir = DiagDirToDiagTrackdir(DirToDiagDir(v->direction));
+						} else if (v->direction == DiagDirToDir(GetTunnelBridgeDirection(v->tile))) {
+							v->tile = other_end;
+						}
+					}
 					break;
+				}
 
-				case VEH_ROAD:
-					in_wormhole = RoadVehicle::From(v)->state == RVSB_WORMHOLE;
+				case VEH_ROAD: {
+					RoadVehicle *rv = RoadVehicle::From(v);
+					if (rv->state == RVSB_WORMHOLE) {
+						TileIndex other_end = GetOtherTunnelBridgeEnd(v->tile);
+						TileIndex vt = TileVirtXY(v->x_pos, v->y_pos);
+						if (vt == v->tile || vt == other_end) {
+							DiagDirection dir = DirToDiagDir(v->direction);
+							v->tile = vt;
+							rv->state = DiagDirToDiagTrackdir(dir);
+							rv->frame = DistanceFromTileEdge(ReverseDiagDir(dir), v->x_pos & TILE_UNIT_MASK, v->y_pos & TILE_UNIT_MASK);
+						} else if (v->direction == DiagDirToDir(GetTunnelBridgeDirection(v->tile))) {
+							v->tile = other_end;
+						}
+					}
 					break;
+				}
 
-				case VEH_SHIP:
-					in_wormhole = Ship::From(v)->trackdir == TRACKDIR_WORMHOLE;
+				case VEH_SHIP: {
+					Ship *s = Ship::From(v);
+					if (s->trackdir == TRACKDIR_WORMHOLE) {
+						TileIndex other_end = GetOtherTunnelBridgeEnd(v->tile);
+						TileIndex vt = TileVirtXY(v->x_pos, v->y_pos);
+						if (vt == v->tile || vt == other_end) {
+							v->tile = vt;
+							s->trackdir = DiagDirToDiagTrackdir(DirToDiagDir(v->direction));
+						} else if (v->direction == DiagDirToDir(GetTunnelBridgeDirection(v->tile))) {
+							v->tile = other_end;
+						}
+					}
 					break;
+				}
 
-				default: continue;
-			}
-
-			if (in_wormhole && v->direction == DiagDirToDir(GetTunnelBridgeDirection(v->tile))) {
-				v->tile = GetOtherTunnelBridgeEnd(v->tile);
+				default: break;
 			}
 		}
 	}

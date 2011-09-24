@@ -725,26 +725,13 @@ static VehicleEnterTileStatus RoadVehEnter_Road(RoadVehicle *v, TileIndex tile, 
 	const DiagDirection dir = GetTunnelBridgeDirection(tile);
 	/* Direction of the vehicle */
 	const DiagDirection vdir = DirToDiagDir(v->direction);
-	/* New position of the vehicle on the tile */
-	byte pos = (DiagDirToAxis(vdir) == AXIS_X ? x : y) & TILE_UNIT_MASK;
-	/* Number of units moved by the vehicle since entering the tile */
-	byte frame = (vdir == DIAGDIR_NE || vdir == DIAGDIR_NW) ? TILE_SIZE - 1 - pos : pos;
 
 	/* modify speed of vehicle */
 	uint16 spd = GetBridgeSpec(GetRoadBridgeType(tile))->speed * 2;
 	Vehicle *first = v->First();
 	first->cur_speed = min(first->cur_speed, spd);
 
-	if (vdir == dir) {
-		/* Vehicle enters bridge at the last frame inside this tile. */
-		if (frame != TILE_SIZE - 1) return VETSB_CONTINUE;
-		v->tile = GetOtherBridgeEnd(tile);
-		v->state = RVSB_WORMHOLE;
-		/* There are no slopes inside bridges / tunnels. */
-		ClrBit(v->gv_flags, GVF_GOINGUP_BIT);
-		ClrBit(v->gv_flags, GVF_GOINGDOWN_BIT);
-		return VETSB_ENTERED_WORMHOLE;
-	} else if (vdir == ReverseDiagDir(dir)) {
+	if (vdir == ReverseDiagDir(dir)) {
 		v->tile = tile;
 		if (v->state == RVSB_WORMHOLE) {
 			v->state = DiagDirToDiagTrackdir(vdir);
@@ -789,22 +776,23 @@ static VehicleEnterTileStatus RoadVehEnter_Misc(RoadVehicle *u, TileIndex tile, 
 				if (frame == _tunnel_visibility_frame[dir]) {
 					/* Frame should be equal to the next frame number in the RV's movement */
 					assert(frame == u->frame + 1);
-					u->tile = GetOtherTunnelEnd(tile);
-					u->state = RVSB_WORMHOLE;
 					u->vehstatus |= VS_HIDDEN;
-					return VETSB_ENTERED_WORMHOLE;
-				} else {
-					return VETSB_CONTINUE;
 				}
+				return VETSB_CONTINUE;
 			}
 
 			/* We're at the tunnel exit ?? */
-			if (dir == ReverseDiagDir(vdir) && frame == TILE_SIZE - _tunnel_visibility_frame[dir] && z == 0) {
-				u->tile = tile;
-				u->state = DiagDirToDiagTrackdir(vdir);
-				u->frame = frame;
-				u->vehstatus &= ~VS_HIDDEN;
-				return VETSB_ENTERED_WORMHOLE;
+			if (dir == ReverseDiagDir(vdir) && z == 0) {
+				if (u->state == RVSB_WORMHOLE) {
+					u->tile = tile;
+					u->state = DiagDirToDiagTrackdir(vdir);
+					assert(frame == 0);
+					u->frame = 0;
+					return VETSB_ENTERED_WORMHOLE;
+				}
+				if (frame == TILE_SIZE - _tunnel_visibility_frame[dir]) {
+					u->vehstatus &= ~VS_HIDDEN;
+				}
 			}
 
 			break;
@@ -1269,6 +1257,62 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 	if (rd.x == RDE_NEXT_TILE) {
 		DiagDirection enterdir = (DiagDirection)(rd.y);
 		TileIndex tile = v->tile + TileOffsByDiagDir(enterdir);
+
+		if (IsTunnelTile(v->tile) && GetTunnelBridgeDirection(v->tile) == enterdir) {
+			TileIndex end_tile = GetOtherTunnelEnd(v->tile);
+			if (end_tile != tile) {
+				/* Entering a tunnel */
+				GetNewVehiclePosResult gp = GetNewVehiclePos(v);
+				assert(gp.new_tile == tile);
+
+				if (v->IsFrontEngine()) {
+					const Vehicle *u = RoadVehFindCloseTo(v, gp.x, gp.y, v->direction);
+					if (u != NULL) {
+						v->cur_speed = u->First()->cur_speed;
+						return false;
+					}
+				}
+
+				v->tile = end_tile;
+				v->state = RVSB_WORMHOLE;
+
+				v->x_pos = gp.x;
+				v->y_pos = gp.y;
+				VehicleUpdatePosition(v);
+				return true;
+			}
+		}
+
+		if (IsRoadBridgeTile(v->tile) && GetTunnelBridgeDirection(v->tile) == enterdir) {
+			TileIndex end_tile = GetOtherBridgeEnd(v->tile);
+			if (end_tile != tile) {
+				/* Entering a bridge */
+				GetNewVehiclePosResult gp = GetNewVehiclePos(v);
+				assert(gp.new_tile == tile);
+
+				if (v->IsFrontEngine()) {
+					const Vehicle *u = RoadVehFindCloseTo(v, gp.x, gp.y, v->direction);
+					if (u != NULL) {
+						v->cur_speed = u->First()->cur_speed;
+						return false;
+					}
+				}
+
+				v->tile = end_tile;
+				v->state = RVSB_WORMHOLE;
+				ClrBit(v->gv_flags, GVF_GOINGUP_BIT);
+				ClrBit(v->gv_flags, GVF_GOINGDOWN_BIT);
+
+				RoadVehicle *first = v->First();
+				first->cur_speed = min(first->cur_speed, GetBridgeSpec(GetRoadBridgeType(v->tile))->speed * 2);
+
+				v->x_pos = gp.x;
+				v->y_pos = gp.y;
+				VehicleUpdatePositionAndViewport(v);
+				return true;
+			}
+		}
+
 		Trackdir dir;
 
 		if (v->IsFrontEngine()) {

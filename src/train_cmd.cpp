@@ -1517,21 +1517,6 @@ static void UpdateStatusAfterSwap(Train *v)
 	} else {
 		assert(v->direction == DiagDirToDir(GetTunnelBridgeDirection(v->tile)));
 		v->tile = GetOtherTunnelBridgeEnd(v->tile);
-		/* VehicleEnter_TunnelBridge() sets TRACKDIR_WORMHOLE when the vehicle
-		 * is on the last bit of the bridge head (frame == TILE_SIZE - 1).
-		 * If we were swapped with such a vehicle, we have set TRACKDIR_WORMHOLE,
-		 * when we shouldn't have. Check if this is the case. */
-		if (TileVirtXY(v->x_pos, v->y_pos) == v->tile) {
-			TrainEnterTile(v, v->tile, v->x_pos, v->y_pos);
-			if (v->trackdir != TRACKDIR_WORMHOLE && IsRailBridgeTile(v->tile)) {
-				/* We have just left the wormhole, possibly set the
-				 * "goingdown" bit. UpdateInclination() can be used
-				 * because we are at the border of the tile. */
-				VehicleUpdatePosition(v);
-				v->UpdateInclination(true, true);
-				return;
-			}
-		}
 	}
 
 	VehicleUpdatePosition(v);
@@ -3064,25 +3049,13 @@ static VehicleEnterTileStatus TrainEnter_Track(Train *v, TileIndex tile, int x, 
 	const DiagDirection dir = GetTunnelBridgeDirection(tile);
 	/* Direction of the vehicle */
 	const DiagDirection vdir = DirToDiagDir(v->direction);
-	/* New position of the vehicle on the tile */
-	byte pos = (DiagDirToAxis(vdir) == AXIS_X ? x : y) & TILE_UNIT_MASK;
-	/* Number of units moved by the vehicle since entering the tile */
-	byte frame = (vdir == DIAGDIR_NE || vdir == DIAGDIR_NW) ? TILE_SIZE - 1 - pos : pos;
 
 	/* modify speed of vehicle */
 	uint16 spd = GetBridgeSpec(GetRailBridgeType(tile))->speed;
 	Vehicle *first = v->First();
 	first->cur_speed = min(first->cur_speed, spd);
 
-	if (vdir == dir) {
-		/* Vehicle enters bridge at the last frame inside this tile. */
-		if (frame != TILE_SIZE - 1) return VETSB_CONTINUE;
-		v->tile = GetOtherBridgeEnd(tile);
-		v->trackdir = TRACKDIR_WORMHOLE;
-		ClrBit(v->gv_flags, GVF_GOINGUP_BIT);
-		ClrBit(v->gv_flags, GVF_GOINGDOWN_BIT);
-		return VETSB_ENTERED_WORMHOLE;
-	} else if (vdir == ReverseDiagDir(dir)) {
+	if (vdir == ReverseDiagDir(dir)) {
 		v->tile = tile;
 		if (v->trackdir == TRACKDIR_WORMHOLE) {
 			v->trackdir = DiagDirToDiagTrackdir(vdir);
@@ -3155,19 +3128,20 @@ static VehicleEnterTileStatus TrainEnter_Misc(Train *u, TileIndex tile, int x, i
 					return VETSB_CONTINUE;
 				}
 				if (frame == _tunnel_visibility_frame[dir]) {
-					u->tile = GetOtherTunnelEnd(tile);
-					u->trackdir = TRACKDIR_WORMHOLE;
 					u->vehstatus |= VS_HIDDEN;
 					return VETSB_ENTERED_WORMHOLE;
 				}
 			}
 
-			if (dir == ReverseDiagDir(vdir) && frame == TILE_SIZE - _tunnel_visibility_frame[dir] && z == 0) {
-				/* We're at the tunnel exit ?? */
-				u->tile = tile;
-				u->trackdir = DiagDirToDiagTrackdir(vdir);
-				u->vehstatus &= ~VS_HIDDEN;
-				return VETSB_ENTERED_WORMHOLE;
+			if (dir == ReverseDiagDir(vdir) && z == 0) {
+				if (u->trackdir == TRACKDIR_WORMHOLE) {
+					u->tile = tile;
+					u->trackdir = DiagDirToDiagTrackdir(vdir);
+					return VETSB_ENTERED_WORMHOLE;
+				}
+				if (frame == TILE_SIZE - _tunnel_visibility_frame[dir]) {
+					u->vehstatus &= ~VS_HIDDEN;
+				}
 			}
 
 			break;
@@ -3303,7 +3277,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 
 		GetNewVehiclePosResult gp = GetNewVehiclePos(v);
 		if (v->trackdir == TRACKDIR_WORMHOLE) {
-			/* In a tunnel or on a bridge */
+			/* In a tunnel or on a bridge (middle part) */
 
 			if (gp.new_tile != v->tile || !HasBit(TrainEnterTile(v, gp.new_tile, gp.x, gp.y), VETS_ENTERED_WORMHOLE)) {
 				v->x_pos = gp.x;
@@ -3345,10 +3319,45 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			/* Determine what direction we're entering the new tile from */
 			enterdir = DiagdirBetweenTiles(gp.old_tile, gp.new_tile);
 			assert(IsValidDiagDirection(enterdir));
+			DiagDirection tsdir;
+
+			if (IsTunnelTile(gp.old_tile) && GetTunnelBridgeDirection(gp.old_tile) == enterdir) {
+				TileIndex end_tile = GetOtherTunnelEnd(gp.old_tile);
+				if (end_tile != gp.new_tile) {
+					/* Entering a tunnel */
+					v->tile = end_tile;
+					v->trackdir = TRACKDIR_WORMHOLE;
+
+					v->x_pos = gp.x;
+					v->y_pos = gp.y;
+					VehicleUpdatePosition(v);
+					continue;
+				}
+				tsdir = INVALID_DIAGDIR;
+			} else if (IsRailBridgeTile(gp.old_tile) && GetTunnelBridgeDirection(gp.old_tile) == enterdir) {
+				TileIndex end_tile = GetOtherBridgeEnd(gp.old_tile);
+				if (end_tile != gp.new_tile) {
+					/* Entering a bridge */
+					v->tile = end_tile;
+					v->trackdir = TRACKDIR_WORMHOLE;
+					ClrBit(v->gv_flags, GVF_GOINGUP_BIT);
+					ClrBit(v->gv_flags, GVF_GOINGDOWN_BIT);
+
+					first->cur_speed = min(first->cur_speed, GetBridgeSpec(GetRailBridgeType(v->tile))->speed);
+
+					v->x_pos = gp.x;
+					v->y_pos = gp.y;
+					VehicleUpdatePositionAndViewport(v);
+					continue;
+				}
+				tsdir = INVALID_DIAGDIR;
+			} else {
+				tsdir = ReverseDiagDir(enterdir);
+			}
 
 			/* Get the status of the tracks in the new tile and mask
 			 * away the bits that aren't reachable. */
-			TrackStatus ts = GetTileTrackStatus(gp.new_tile, TRANSPORT_RAIL, 0, ReverseDiagDir(enterdir));
+			TrackStatus ts = GetTileTrackStatus(gp.new_tile, TRANSPORT_RAIL, 0, tsdir);
 			TrackdirBits reachable_trackdirs = DiagdirReachesTrackdirs(enterdir);
 
 			TrackdirBits trackdirbits = TrackStatusToTrackdirBits(ts) & reachable_trackdirs;
