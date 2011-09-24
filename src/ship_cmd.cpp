@@ -524,93 +524,7 @@ static void ShipController(Ship *v)
 	if (!ShipAccelerate(v)) return;
 
 	GetNewVehiclePosResult gp = GetNewVehiclePos(v);
-	if (v->state != TRACK_BIT_WORMHOLE) {
-		/* Not on a bridge */
-		if (gp.old_tile == gp.new_tile) {
-			/* Staying in tile */
-			if (v->IsInDepot()) {
-				gp.x = v->x_pos;
-				gp.y = v->y_pos;
-			} else {
-				/* Not inside depot */
-				r = VehicleEnterTile(v, gp.new_tile, gp.x, gp.y);
-				if (HasBit(r, VETS_CANNOT_ENTER)) goto reverse_direction;
-
-				/* A leave station order only needs one tick to get processed, so we can
-				 * always skip ahead. */
-				if (v->current_order.IsType(OT_LEAVESTATION)) {
-					v->current_order.Free();
-					SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
-				} else if (v->dest_tile != 0) {
-					/* We have a target, let's see if we reached it... */
-					if (v->current_order.IsType(OT_GOTO_WAYPOINT) &&
-							DistanceManhattan(v->dest_tile, gp.new_tile) <= 3) {
-						/* We got within 3 tiles of our target buoy, so let's skip to our
-						 * next order */
-						UpdateVehicleTimetable(v, true);
-						v->IncrementRealOrderIndex();
-						v->current_order.MakeDummy();
-					} else {
-						/* Non-buoy orders really need to reach the tile */
-						if (v->dest_tile == gp.new_tile) {
-							if (v->current_order.IsType(OT_GOTO_DEPOT)) {
-								if ((gp.x & 0xF) == 8 && (gp.y & 0xF) == 8) {
-									VehicleEnterDepot(v);
-									return;
-								}
-							} else if (v->current_order.IsType(OT_GOTO_STATION)) {
-								v->last_station_visited = v->current_order.GetDestination();
-
-								/* Process station in the orderlist. */
-								Station *st = Station::Get(v->current_order.GetDestination());
-								if (st->facilities & FACIL_DOCK) { // ugly, ugly workaround for problem with ships able to drop off cargo at wrong stations
-									ShipArrivesAt(v, st);
-									v->BeginLoading();
-								} else { // leave stations without docks right aways
-									v->current_order.MakeLeaveStation();
-									v->IncrementRealOrderIndex();
-								}
-							}
-						}
-					}
-				}
-			}
-		} else {
-			/* New tile */
-			if (!IsValidTile(gp.new_tile)) goto reverse_direction;
-
-			dir = ShipGetNewDirectionFromTiles(gp.new_tile, gp.old_tile);
-			assert(dir == DIR_NE || dir == DIR_SE || dir == DIR_SW || dir == DIR_NW);
-			DiagDirection diagdir = DirToDiagDir(dir);
-			tracks = GetAvailShipTracks(gp.new_tile, diagdir);
-			if (tracks == TRACK_BIT_NONE) goto reverse_direction;
-
-			/* Choose a direction, and continue if we find one */
-			track = ChooseShipTrack(v, gp.new_tile, diagdir, tracks);
-			if (track == INVALID_TRACK) goto reverse_direction;
-
-			b = _ship_subcoord[diagdir][track];
-
-			gp.x = (gp.x & ~0xF) | b[0];
-			gp.y = (gp.y & ~0xF) | b[1];
-
-			/* Call the landscape function and tell it that the vehicle entered the tile */
-			r = VehicleEnterTile(v, gp.new_tile, gp.x, gp.y);
-			if (HasBit(r, VETS_CANNOT_ENTER)) goto reverse_direction;
-
-			if (!HasBit(r, VETS_ENTERED_WORMHOLE)) {
-				v->tile = gp.new_tile;
-				v->state = TrackToTrackBits(track);
-
-				/* Update ship cache when the water class changes. Aqueducts are always canals. */
-				WaterClass old_wc = GetEffectiveWaterClass(gp.old_tile);
-				WaterClass new_wc = GetEffectiveWaterClass(gp.new_tile);
-				if (old_wc != new_wc) v->UpdateCache();
-			}
-
-			v->direction = (Direction)b[2];
-		}
-	} else {
+	if (v->state == TRACK_BIT_WORMHOLE) {
 		/* On a bridge */
 		if (!IsTileType(gp.new_tile, MP_TUNNELBRIDGE) || !HasBit(VehicleEnterTile(v, gp.new_tile, gp.x, gp.y), VETS_ENTERED_WORMHOLE)) {
 			v->x_pos = gp.x;
@@ -619,6 +533,88 @@ static void ShipController(Ship *v)
 			if ((v->vehstatus & VS_HIDDEN) == 0) VehicleUpdateViewport(v, true);
 			return;
 		}
+	} else if (v->state == TRACK_BIT_DEPOT) {
+		/* Inside depot */
+		assert(gp.old_tile == gp.new_tile);
+		gp.x = v->x_pos;
+		gp.y = v->y_pos;
+	} else if (gp.old_tile == gp.new_tile) {
+		/* Not on a bridge or in a depot, staying in the old tile */
+
+		r = VehicleEnterTile(v, gp.new_tile, gp.x, gp.y);
+		if (HasBit(r, VETS_CANNOT_ENTER)) goto reverse_direction;
+
+		/* A leave station order only needs one tick to get processed, so we can
+		 * always skip ahead. */
+		if (v->current_order.IsType(OT_LEAVESTATION)) {
+			v->current_order.Free();
+			SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
+		} else if (v->dest_tile != 0) {
+			/* We have a target, let's see if we reached it... */
+			if (v->current_order.IsType(OT_GOTO_WAYPOINT) &&
+					DistanceManhattan(v->dest_tile, gp.new_tile) <= 3) {
+				/* We got within 3 tiles of our target buoy, so let's skip to our
+				 * next order */
+				UpdateVehicleTimetable(v, true);
+				v->IncrementRealOrderIndex();
+				v->current_order.MakeDummy();
+			} else if (v->dest_tile == gp.new_tile) {
+				/* Non-buoy orders really need to reach the tile */
+				if (v->current_order.IsType(OT_GOTO_DEPOT)) {
+					if ((gp.x & 0xF) == 8 && (gp.y & 0xF) == 8) {
+						VehicleEnterDepot(v);
+						return;
+					}
+				} else if (v->current_order.IsType(OT_GOTO_STATION)) {
+					v->last_station_visited = v->current_order.GetDestination();
+
+					/* Process station in the orderlist. */
+					Station *st = Station::Get(v->current_order.GetDestination());
+					if (st->facilities & FACIL_DOCK) { // ugly, ugly workaround for problem with ships able to drop off cargo at wrong stations
+						ShipArrivesAt(v, st);
+						v->BeginLoading();
+					} else { // leave stations without docks right aways
+						v->current_order.MakeLeaveStation();
+						v->IncrementRealOrderIndex();
+					}
+				}
+			}
+		}
+	} else {
+		/* Not on a bridge or in a depot, about to enter a new tile */
+
+		if (!IsValidTile(gp.new_tile)) goto reverse_direction;
+
+		dir = ShipGetNewDirectionFromTiles(gp.new_tile, gp.old_tile);
+		assert(dir == DIR_NE || dir == DIR_SE || dir == DIR_SW || dir == DIR_NW);
+		DiagDirection diagdir = DirToDiagDir(dir);
+		tracks = GetAvailShipTracks(gp.new_tile, diagdir);
+		if (tracks == TRACK_BIT_NONE) goto reverse_direction;
+
+		/* Choose a direction, and continue if we find one */
+		track = ChooseShipTrack(v, gp.new_tile, diagdir, tracks);
+		if (track == INVALID_TRACK) goto reverse_direction;
+
+		b = _ship_subcoord[diagdir][track];
+
+		gp.x = (gp.x & ~0xF) | b[0];
+		gp.y = (gp.y & ~0xF) | b[1];
+
+		/* Call the landscape function and tell it that the vehicle entered the tile */
+		r = VehicleEnterTile(v, gp.new_tile, gp.x, gp.y);
+		if (HasBit(r, VETS_CANNOT_ENTER)) goto reverse_direction;
+
+		if (!HasBit(r, VETS_ENTERED_WORMHOLE)) {
+			v->tile = gp.new_tile;
+			v->state = TrackToTrackBits(track);
+
+			/* Update ship cache when the water class changes. Aqueducts are always canals. */
+			WaterClass old_wc = GetEffectiveWaterClass(gp.old_tile);
+			WaterClass new_wc = GetEffectiveWaterClass(gp.new_tile);
+			if (old_wc != new_wc) v->UpdateCache();
+		}
+
+		v->direction = (Direction)b[2];
 	}
 
 	/* update image of ship, as well as delta XY */
