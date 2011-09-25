@@ -3062,9 +3062,6 @@ static const byte TUNNEL_SOUND_FRAME = 1;
 
 extern const byte _tunnel_visibility_frame[DIAGDIR_END];
 
-static const int8 _deltacoord_leaveoffset_x[4] = { -1,  0,  1,  0 };
-static const int8 _deltacoord_leaveoffset_y[4] = {  0,  1,  0, -1 };
-
 /**
  * Compute number of ticks when next wagon will leave a depot.
  * Negative means next wagon should have left depot n ticks before.
@@ -3133,14 +3130,14 @@ static VehicleEnterTileStatus TrainEnter_Misc(Train *u, TileIndex tile, int x, i
 			/* depot direction */
 			DiagDirection dir = GetRailDepotDirection(tile);
 
-			byte fract_coord_x = x & 0xF;
-			byte fract_coord_y = y & 0xF;
-
 			/* make sure a train is not entering the tile from behind */
-			assert(DistanceFromTileEdge(ReverseDiagDir(dir), fract_coord_x, fract_coord_y) != 0);
+			assert(DistanceFromTileEdge(ReverseDiagDir(dir), x & 0xF, y & 0xF) != 0);
+
+			int fract_x = (int)(x & 0xF) - _vehicle_initial_x_fract[dir];
+			int fract_y = (int)(y & 0xF) - _vehicle_initial_y_fract[dir];
 
 			if (u->direction == DiagDirToDir(ReverseDiagDir(dir))) {
-				if (fract_coord_x == _vehicle_initial_x_fract[dir] && fract_coord_y == _vehicle_initial_y_fract[dir]) {
+				if (fract_x == 0 && fract_y == 0) {
 					/* enter the depot */
 					u->trackdir = TRACKDIR_DEPOT,
 					u->vehstatus |= VS_HIDDEN; // hide it
@@ -3152,15 +3149,13 @@ static VehicleEnterTileStatus TrainEnter_Misc(Train *u, TileIndex tile, int x, i
 					return VETSB_ENTERED_WORMHOLE;
 				}
 			} else if (u->direction == DiagDirToDir(dir)) {
+				static const int8 delta_x[4] = { -1,  0,  1,  0 };
+				static const int8 delta_y[4] = {  0,  1,  0, -1 };
+
 				/* Calculate the point where the following wagon should be activated. */
-				int length = u->CalcNextVehicleOffset();
+				int length = u->CalcNextVehicleOffset() + 1;
 
-				byte fract_coord_leave_x = _vehicle_initial_x_fract[dir] +
-					(length + 1) * _deltacoord_leaveoffset_x[dir];
-				byte fract_coord_leave_y = _vehicle_initial_y_fract[dir] +
-					(length + 1) * _deltacoord_leaveoffset_y[dir];
-
-				if (fract_coord_x == fract_coord_leave_x && fract_coord_y == fract_coord_leave_y) {
+				if ((fract_x == length * delta_x[dir]) && (fract_y == length * delta_y[dir])) {
 					/* leave the depot? */
 					if ((u = u->Next()) != NULL) {
 						u->vehstatus &= ~VS_HIDDEN;
