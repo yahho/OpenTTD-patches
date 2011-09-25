@@ -2846,16 +2846,8 @@ static VehicleEnterTileStatus VehicleEnter_Track(Vehicle *u, TileIndex tile, int
 	/* make sure a train is not entering the tile from behind */
 	assert(DistanceFromTileEdge(ReverseDiagDir(dir), fract_coord_x, fract_coord_y) != 0);
 
-	/* Calculate the point where the following wagon should be activated. */
-	int length = v->CalcNextVehicleOffset();
-
-	byte fract_coord_leave_x = _fractcoords_enter_x[dir] +
-		(length + 1) * _deltacoord_leaveoffset_x[dir];
-	byte fract_coord_leave_y = _fractcoords_enter_y[dir] +
-		(length + 1) * _deltacoord_leaveoffset_y[dir];
-
-	if (fract_coord_x == _fractcoords_enter_x[dir] && fract_coord_y == _fractcoords_enter_y[dir]) {
-		if (DiagDirToDir(ReverseDiagDir(dir)) == v->direction) {
+	if (v->direction == DiagDirToDir(ReverseDiagDir(dir))) {
+		if (fract_coord_x == _fractcoords_enter_x[dir] && fract_coord_y == _fractcoords_enter_y[dir]) {
 			/* enter the depot */
 			v->track = TRACK_BIT_DEPOT,
 			v->vehstatus |= VS_HIDDEN; // hide it
@@ -2866,8 +2858,16 @@ static VehicleEnterTileStatus VehicleEnter_Track(Vehicle *u, TileIndex tile, int
 			InvalidateWindowData(WC_VEHICLE_DEPOT, v->tile);
 			return VETSB_ENTERED_WORMHOLE;
 		}
-	} else if (fract_coord_x == fract_coord_leave_x && fract_coord_y == fract_coord_leave_y) {
-		if (DiagDirToDir(dir) == v->direction) {
+	} else if (v->direction == DiagDirToDir(dir)) {
+		/* Calculate the point where the following wagon should be activated. */
+		int length = v->CalcNextVehicleOffset();
+
+		byte fract_coord_leave_x = _fractcoords_enter_x[dir] +
+			(length + 1) * _deltacoord_leaveoffset_x[dir];
+		byte fract_coord_leave_y = _fractcoords_enter_y[dir] +
+			(length + 1) * _deltacoord_leaveoffset_y[dir];
+
+		if (fract_coord_x == fract_coord_leave_x && fract_coord_y == fract_coord_leave_y) {
 			/* leave the depot? */
 			if ((v = v->Next()) != NULL) {
 				v->vehstatus &= ~VS_HIDDEN;
