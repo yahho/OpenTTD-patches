@@ -3062,8 +3062,6 @@ static const byte TUNNEL_SOUND_FRAME = 1;
 
 extern const byte _tunnel_visibility_frame[DIAGDIR_END];
 
-static const byte _fractcoords_enter_x[4] = { 0xA, 0x8, 0x4, 0x8 };
-static const byte _fractcoords_enter_y[4] = { 0x8, 0x4, 0x8, 0xA };
 static const int8 _deltacoord_leaveoffset_x[4] = { -1,  0,  1,  0 };
 static const int8 _deltacoord_leaveoffset_y[4] = {  0,  1,  0, -1 };
 
@@ -3079,11 +3077,11 @@ int TicksToLeaveDepot(const Train *v)
 	int length = v->CalcNextVehicleOffset();
 
 	switch (dir) {
-		case DIAGDIR_NE: return  ((int)(v->x_pos & 0x0F) - (_fractcoords_enter_x[dir] - (length + 1)));
-		case DIAGDIR_SE: return -((int)(v->y_pos & 0x0F) - (_fractcoords_enter_y[dir] + (length + 1)));
-		case DIAGDIR_SW: return -((int)(v->x_pos & 0x0F) - (_fractcoords_enter_x[dir] + (length + 1)));
+		case DIAGDIR_NE: return  ((int)(v->x_pos & 0x0F) - (_vehicle_initial_x_fract[dir] - (length + 1)));
+		case DIAGDIR_SE: return -((int)(v->y_pos & 0x0F) - (_vehicle_initial_y_fract[dir] + (length + 1)));
+		case DIAGDIR_SW: return -((int)(v->x_pos & 0x0F) - (_vehicle_initial_x_fract[dir] + (length + 1)));
 		default:
-		case DIAGDIR_NW: return  ((int)(v->y_pos & 0x0F) - (_fractcoords_enter_y[dir] - (length + 1)));
+		case DIAGDIR_NW: return  ((int)(v->y_pos & 0x0F) - (_vehicle_initial_y_fract[dir] - (length + 1)));
 	}
 
 	return 0; // make compilers happy
@@ -3142,7 +3140,7 @@ static VehicleEnterTileStatus TrainEnter_Misc(Train *u, TileIndex tile, int x, i
 			assert(DistanceFromTileEdge(ReverseDiagDir(dir), fract_coord_x, fract_coord_y) != 0);
 
 			if (u->direction == DiagDirToDir(ReverseDiagDir(dir))) {
-				if (fract_coord_x == _fractcoords_enter_x[dir] && fract_coord_y == _fractcoords_enter_y[dir]) {
+				if (fract_coord_x == _vehicle_initial_x_fract[dir] && fract_coord_y == _vehicle_initial_y_fract[dir]) {
 					/* enter the depot */
 					u->trackdir = TRACKDIR_DEPOT,
 					u->vehstatus |= VS_HIDDEN; // hide it
@@ -3157,9 +3155,9 @@ static VehicleEnterTileStatus TrainEnter_Misc(Train *u, TileIndex tile, int x, i
 				/* Calculate the point where the following wagon should be activated. */
 				int length = u->CalcNextVehicleOffset();
 
-				byte fract_coord_leave_x = _fractcoords_enter_x[dir] +
+				byte fract_coord_leave_x = _vehicle_initial_x_fract[dir] +
 					(length + 1) * _deltacoord_leaveoffset_x[dir];
-				byte fract_coord_leave_y = _fractcoords_enter_y[dir] +
+				byte fract_coord_leave_y = _vehicle_initial_y_fract[dir] +
 					(length + 1) * _deltacoord_leaveoffset_y[dir];
 
 				if (fract_coord_x == fract_coord_leave_x && fract_coord_y == fract_coord_leave_y) {
