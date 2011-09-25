@@ -1501,13 +1501,7 @@ static int GetSlopePixelZ_TunnelBridge(TileIndex tile, uint x, uint y)
 
 			if (tileh != SLOPE_FLAT) return z + TILE_HEIGHT;
 
-			switch (dir) {
-				default: NOT_REACHED();
-				case DIAGDIR_NE: delta = (TILE_SIZE - 1 - x) / 2; break;
-				case DIAGDIR_SE: delta = y / 2; break;
-				case DIAGDIR_SW: delta = x / 2; break;
-				case DIAGDIR_NW: delta = (TILE_SIZE - 1 - y) / 2; break;
-			}
+			delta = DistanceFromTileEdge(ReverseDiagDir(dir), x, y) / 2;
 			return z + 1 + delta;
 		}
 	}

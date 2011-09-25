@@ -284,6 +284,28 @@ static inline int GetTileMaxPixelZ(TileIndex tile)
 
 
 /**
+ * Compute the distance from a tile edge
+ * @param side Tile edge
+ * @param x x within the tile
+ * @param y y within the tile
+ * @return The distance from the edge
+ */
+static inline uint DistanceFromTileEdge(DiagDirection side, uint x, uint y)
+{
+	assert(x < TILE_SIZE);
+	assert(y < TILE_SIZE);
+
+	switch (side) {
+		default: NOT_REACHED();
+		case DIAGDIR_NE: return x;
+		case DIAGDIR_SE: return TILE_SIZE - 1 - y;
+		case DIAGDIR_SW: return TILE_SIZE - 1 - x;
+		case DIAGDIR_NW: return y;
+	}
+}
+
+
+/**
  * Calculate a hash value from a tile position
  *
  * @param x The X coordinate
