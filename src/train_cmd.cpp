@@ -3090,32 +3090,23 @@ static VehicleEnterTileStatus TrainEnter_Misc(Train *u, TileIndex tile, int x, i
 		default: break;
 
 		case TT_MISC_TUNNEL: {
-			int z = GetSlopePixelZ(x, y) - u->z_pos;
-			assert(abs(z) < 3);
+			assert(abs((int)GetSlopePixelZ(x, y) - u->z_pos) < 3);
 
 			/* Direction into the wormhole */
 			const DiagDirection dir = GetTunnelBridgeDirection(tile);
-			/* Direction of the vehicle */
-			const DiagDirection vdir = DirToDiagDir(u->direction);
-			/* New position of the vehicle on the tile */
-			byte pos = (DiagDirToAxis(vdir) == AXIS_X ? x : y) & TILE_UNIT_MASK;
-			/* Number of units moved by the vehicle since entering the tile */
-			byte frame = (vdir == DIAGDIR_NE || vdir == DIAGDIR_NW) ? TILE_SIZE - 1 - pos : pos;
 
-			if (u->trackdir != TRACKDIR_WORMHOLE && dir == vdir) {
+			if (u->direction == DiagDirToDir(dir)) {
+				uint frame = DistanceFromTileEdge(ReverseDiagDir(dir), x & 0xF, y & 0xF);
 				if (u->IsFrontEngine() && frame == TUNNEL_SOUND_FRAME) {
 					if (!PlayVehicleSound(u, VSE_TUNNEL) && RailVehInfo(u->engine_type)->engclass == 0) {
 						SndPlayVehicleFx(SND_05_TRAIN_THROUGH_TUNNEL, u);
 					}
-					return VETSB_CONTINUE;
 				}
 				if (frame == _tunnel_visibility_frame[dir]) {
 					u->vehstatus |= VS_HIDDEN;
-					return VETSB_ENTERED_WORMHOLE;
 				}
-			}
-
-			if (dir == ReverseDiagDir(vdir) && z == 0) {
+			} else if (u->direction == ReverseDir(DiagDirToDir(dir))) {
+				uint frame = DistanceFromTileEdge(dir, x & 0xF, y & 0xF);
 				if (frame == TILE_SIZE - _tunnel_visibility_frame[dir]) {
 					u->vehstatus &= ~VS_HIDDEN;
 				}
