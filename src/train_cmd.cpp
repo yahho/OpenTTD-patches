@@ -3045,23 +3045,10 @@ static VehicleEnterTileStatus TrainEnter_Track(Train *v, TileIndex tile, int x, 
 
 	assert(abs((int)(GetSlopePixelZ(x, y) - v->z_pos)) < 3);
 
-	/* Direction into the wormhole */
-	const DiagDirection dir = GetTunnelBridgeDirection(tile);
-	/* Direction of the vehicle */
-	const DiagDirection vdir = DirToDiagDir(v->direction);
-
 	/* modify speed of vehicle */
 	uint16 spd = GetBridgeSpec(GetRailBridgeType(tile))->speed;
 	Vehicle *first = v->First();
 	first->cur_speed = min(first->cur_speed, spd);
-
-	if (vdir == ReverseDiagDir(dir)) {
-		v->tile = tile;
-		if (v->trackdir == TRACKDIR_WORMHOLE) {
-			v->trackdir = DiagDirToDiagTrackdir(vdir);
-			return VETSB_ENTERED_WORMHOLE;
-		}
-	}
 
 	return VETSB_CONTINUE;
 }
@@ -3134,11 +3121,6 @@ static VehicleEnterTileStatus TrainEnter_Misc(Train *u, TileIndex tile, int x, i
 			}
 
 			if (dir == ReverseDiagDir(vdir) && z == 0) {
-				if (u->trackdir == TRACKDIR_WORMHOLE) {
-					u->tile = tile;
-					u->trackdir = DiagDirToDiagTrackdir(vdir);
-					return VETSB_ENTERED_WORMHOLE;
-				}
 				if (frame == TILE_SIZE - _tunnel_visibility_frame[dir]) {
 					u->vehstatus &= ~VS_HIDDEN;
 				}
@@ -3279,7 +3261,8 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 		if (v->trackdir == TRACKDIR_WORMHOLE) {
 			/* In a tunnel or on a bridge (middle part) */
 
-			if (gp.new_tile != v->tile || !HasBit(TrainEnterTile(v, gp.new_tile, gp.x, gp.y), VETS_ENTERED_WORMHOLE)) {
+			if (gp.new_tile != v->tile) {
+				/* Still in the wormhole */
 				v->x_pos = gp.x;
 				v->y_pos = gp.y;
 				VehicleUpdatePosition(v);
@@ -3287,9 +3270,12 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				continue;
 			}
 
+			assert(gp.old_tile == gp.new_tile);
+			v->trackdir = DiagDirToDiagTrackdir(ReverseDiagDir(GetTunnelBridgeDirection(v->tile)));
+			TrainEnterTile(v, gp.new_tile, gp.x, gp.y);
 			/* Perform look-ahead on tunnel exit. */
 			if (v->IsFrontEngine()) {
-				TryReserveRailTrack(gp.new_tile, DiagDirToDiagTrack(GetTunnelBridgeDirection(gp.new_tile)));
+				TryReserveRailTrack(gp.new_tile, TrackdirToTrack(v->trackdir));
 				CheckNextTrainTile(v);
 			}
 			/* Prevent v->UpdateInclination() being called with wrong parameters. */
