@@ -2798,8 +2798,6 @@ static void ChangeTileOwner_Track(TileIndex tile, Owner old_owner, Owner new_own
 	}
 }
 
-static const byte _fractcoords_behind_x[4] = { 0xF, 0x8, 0x0, 0x8 };
-static const byte _fractcoords_behind_y[4] = { 0x8, 0x0, 0x8, 0xF };
 static const byte _fractcoords_enter_x[4] = { 0xA, 0x8, 0x4, 0x8 };
 static const byte _fractcoords_enter_y[4] = { 0x8, 0x4, 0x8, 0xA };
 static const int8 _deltacoord_leaveoffset_x[4] = { -1,  0,  1,  0 };
@@ -2842,6 +2840,12 @@ static VehicleEnterTileStatus VehicleEnter_Track(Vehicle *u, TileIndex tile, int
 	/* depot direction */
 	DiagDirection dir = GetRailDepotDirection(tile);
 
+	byte fract_coord_x = x & 0xF;
+	byte fract_coord_y = y & 0xF;
+
+	/* make sure a train is not entering the tile from behind */
+	assert(DistanceFromTileEdge(ReverseDiagDir(dir), fract_coord_x, fract_coord_y) != 0);
+
 	/* Calculate the point where the following wagon should be activated. */
 	int length = v->CalcNextVehicleOffset();
 
@@ -2850,13 +2854,7 @@ static VehicleEnterTileStatus VehicleEnter_Track(Vehicle *u, TileIndex tile, int
 	byte fract_coord_leave_y = _fractcoords_enter_y[dir] +
 		(length + 1) * _deltacoord_leaveoffset_y[dir];
 
-	byte fract_coord_x = x & 0xF;
-	byte fract_coord_y = y & 0xF;
-
-	if (fract_coord_x == _fractcoords_behind_x[dir] && fract_coord_y == _fractcoords_behind_y[dir]) {
-		/* make sure a train is not entering the tile from behind */
-		return VETSB_CANNOT_ENTER;
-	} else if (fract_coord_x == _fractcoords_enter_x[dir] && fract_coord_y == _fractcoords_enter_y[dir]) {
+	if (fract_coord_x == _fractcoords_enter_x[dir] && fract_coord_y == _fractcoords_enter_y[dir]) {
 		if (DiagDirToDir(ReverseDiagDir(dir)) == v->direction) {
 			/* enter the depot */
 			v->track = TRACK_BIT_DEPOT,
