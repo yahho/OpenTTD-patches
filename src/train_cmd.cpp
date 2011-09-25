@@ -3137,7 +3137,6 @@ static VehicleEnterTileStatus TrainEnter_Misc(Train *u, TileIndex tile, int x, i
 					u->tile = tile;
 
 					InvalidateWindowData(WC_VEHICLE_DEPOT, u->tile);
-					return VETSB_ENTERED_WORMHOLE;
 				}
 			} else if (u->direction == DiagDirToDir(dir)) {
 				static const int8 delta_x[4] = { -1,  0,  1,  0 };
@@ -3276,9 +3275,6 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			if (v->IsFrontEngine() && !TrainCheckIfLineEnds(v, reverse)) return false;
 
 			uint32 r = TrainEnterTile(v, gp.new_tile, gp.x, gp.y);
-			if (HasBit(r, VETS_CANNOT_ENTER)) {
-				goto invalid_rail;
-			}
 			if (HasBit(r, VETS_ENTERED_STATION)) {
 				/* The new position is the end of the platform */
 				TrainEnterStation(v, r >> VETS_STATION_ID_OFFSET);
@@ -3450,27 +3446,22 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 
 			/* Call the landscape function and tell it that the vehicle entered the tile */
 			uint32 r = TrainEnterTile(v, gp.new_tile, gp.x, gp.y);
-			if (HasBit(r, VETS_CANNOT_ENTER)) {
-				goto invalid_rail;
+
+			if (v->IsFrontEngine() && HasPbsSignalOnTrackdir(gp.new_tile, chosen_trackdir)) {
+				SetSignalStateByTrackdir(gp.new_tile, chosen_trackdir, SIGNAL_STATE_RED);
+				MarkTileDirtyByTile(gp.new_tile);
 			}
 
-			if (!HasBit(r, VETS_ENTERED_WORMHOLE)) {
-				if (v->IsFrontEngine() && HasPbsSignalOnTrackdir(gp.new_tile, chosen_trackdir)) {
-					SetSignalStateByTrackdir(gp.new_tile, chosen_trackdir, SIGNAL_STATE_RED);
-					MarkTileDirtyByTile(gp.new_tile);
-				}
+			/* Clear any track reservation when the last vehicle leaves the tile */
+			if (v->Next() == NULL) ClearPathReservation(v, v->tile, v->GetVehicleTrackdir());
 
-				/* Clear any track reservation when the last vehicle leaves the tile */
-				if (v->Next() == NULL) ClearPathReservation(v, v->tile, v->GetVehicleTrackdir());
+			RailType old_rt = v->GetTrackRailType();
 
-				RailType old_rt = v->GetTrackRailType();
+			v->tile = gp.new_tile;
+			v->trackdir = chosen_trackdir;
 
-				v->tile = gp.new_tile;
-				v->trackdir = chosen_trackdir;
-
-				if (GetTileRailType(gp.new_tile, TrackdirToTrack(chosen_trackdir)) != old_rt) {
-					v->First()->ConsistChanged(true);
-				}
+			if (GetTileRailType(gp.new_tile, TrackdirToTrack(chosen_trackdir)) != old_rt) {
+				v->First()->ConsistChanged(true);
 			}
 
 			/* We need to update signal status, but after the vehicle position hash
