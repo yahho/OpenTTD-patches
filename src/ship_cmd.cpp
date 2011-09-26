@@ -405,20 +405,6 @@ static void ShipArrivesAt(const Vehicle *v, Station *st)
 
 
 /**
- * Call the tile callback function for a ship entering a tile
- * @param v    Ship entering the tile
- * @param tile Tile entered
- * @param x    X position
- * @param y    Y position
- * @return Some meta-data over the to be entered tile.
- * @see VehicleEnterTileStatus to see what the bits in the return value mean.
- */
-static VehicleEnterTileStatus ShipEnterTile(Ship *v, TileIndex tile, int x, int y)
-{
-	return VETSB_CONTINUE;
-}
-
-/**
  * Runs the pathfinder to choose a trackdir to continue along.
  *
  * @param v Ship to navigate
@@ -501,9 +487,6 @@ static void ShipController(Ship *v)
 	} else if (gp.old_tile == gp.new_tile) {
 		/* Not on a bridge or in a depot, staying in the old tile */
 
-		uint32 r = ShipEnterTile(v, gp.new_tile, gp.x, gp.y);
-		if (HasBit(r, VETS_CANNOT_ENTER)) goto reverse_direction;
-
 		/* A leave station order only needs one tick to get processed, so we can
 		 * always skip ahead. */
 		if (v->current_order.IsType(OT_LEAVESTATION)) {
@@ -573,19 +556,13 @@ static void ShipController(Ship *v)
 		gp.x = (gp.x & ~0xF) | b[0];
 		gp.y = (gp.y & ~0xF) | b[1];
 
-		/* Call the landscape function and tell it that the vehicle entered the tile */
-		uint32 r = ShipEnterTile(v, gp.new_tile, gp.x, gp.y);
-		if (HasBit(r, VETS_CANNOT_ENTER)) goto reverse_direction;
+		v->tile = gp.new_tile;
+		v->trackdir = trackdir;
 
-		if (!HasBit(r, VETS_ENTERED_WORMHOLE)) {
-			v->tile = gp.new_tile;
-			v->trackdir = trackdir;
-
-			/* Update ship cache when the water class changes. Aqueducts are always canals. */
-			WaterClass old_wc = GetEffectiveWaterClass(gp.old_tile);
-			WaterClass new_wc = GetEffectiveWaterClass(gp.new_tile);
-			if (old_wc != new_wc) v->UpdateCache();
-		}
+		/* Update ship cache when the water class changes. Aqueducts are always canals. */
+		WaterClass old_wc = GetEffectiveWaterClass(gp.old_tile);
+		WaterClass new_wc = GetEffectiveWaterClass(gp.new_tile);
+		if (old_wc != new_wc) v->UpdateCache();
 
 		v->direction = (Direction)b[2];
 	}
