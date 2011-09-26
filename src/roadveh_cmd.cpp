@@ -721,24 +721,10 @@ static VehicleEnterTileStatus RoadVehEnter_Road(RoadVehicle *v, TileIndex tile, 
 
 	assert(abs((int)(GetSlopePixelZ(x, y) - v->z_pos)) < 3);
 
-	/* Direction into the wormhole */
-	const DiagDirection dir = GetTunnelBridgeDirection(tile);
-	/* Direction of the vehicle */
-	const DiagDirection vdir = DirToDiagDir(v->direction);
-
 	/* modify speed of vehicle */
 	uint16 spd = GetBridgeSpec(GetRoadBridgeType(tile))->speed * 2;
 	Vehicle *first = v->First();
 	first->cur_speed = min(first->cur_speed, spd);
-
-	if (vdir == ReverseDiagDir(dir)) {
-		v->tile = tile;
-		if (v->state == RVSB_WORMHOLE) {
-			v->state = DiagDirToDiagTrackdir(vdir);
-			v->frame = 0;
-			return VETSB_ENTERED_WORMHOLE;
-		}
-	}
 
 	return VETSB_CONTINUE;
 }
@@ -783,13 +769,6 @@ static VehicleEnterTileStatus RoadVehEnter_Misc(RoadVehicle *u, TileIndex tile, 
 
 			/* We're at the tunnel exit ?? */
 			if (dir == ReverseDiagDir(vdir) && z == 0) {
-				if (u->state == RVSB_WORMHOLE) {
-					u->tile = tile;
-					u->state = DiagDirToDiagTrackdir(vdir);
-					assert(frame == 0);
-					u->frame = 0;
-					return VETSB_ENTERED_WORMHOLE;
-				}
 				if (frame == TILE_SIZE - _tunnel_visibility_frame[dir]) {
 					u->vehstatus &= ~VS_HIDDEN;
 				}
@@ -1231,19 +1210,23 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 			}
 		}
 
-		if (gp.new_tile == v->tile && HasBit(RoadVehEnterTile(v, gp.new_tile, gp.x, gp.y), VETS_ENTERED_WORMHOLE)) {
-			/* Vehicle has just exited a bridge or tunnel */
+		if (gp.new_tile != v->tile) {
+			/* Still in the wormhole */
 			v->x_pos = gp.x;
 			v->y_pos = gp.y;
 			VehicleUpdatePosition(v);
-			v->UpdateInclination(true, true);
+			if ((v->vehstatus & VS_HIDDEN) == 0) VehicleUpdateViewport(v, true);
 			return true;
 		}
 
+		/* Vehicle has just exited a bridge or tunnel */
+		v->state = DiagDirToDiagTrackdir(ReverseDiagDir(GetTunnelBridgeDirection(v->tile)));
+		v->frame = 0;
+		RoadVehEnterTile(v, gp.new_tile, gp.x, gp.y);
 		v->x_pos = gp.x;
 		v->y_pos = gp.y;
 		VehicleUpdatePosition(v);
-		if ((v->vehstatus & VS_HIDDEN) == 0) VehicleUpdateViewport(v, true);
+		v->UpdateInclination(true, true);
 		return true;
 	}
 
