@@ -415,23 +415,6 @@ static void ShipArrivesAt(const Vehicle *v, Station *st)
  */
 static VehicleEnterTileStatus ShipEnterTile(Ship *v, TileIndex tile, int x, int y)
 {
-	if (IsAqueductTile(tile)) {
-		assert(abs((int)(GetSlopePixelZ(x, y) - v->z_pos)) < 3);
-
-		/* Direction into the wormhole */
-		const DiagDirection dir = GetTunnelBridgeDirection(tile);
-		/* Direction of the vehicle */
-		const DiagDirection vdir = DirToDiagDir(v->direction);
-
-		if (vdir == ReverseDiagDir(dir)) {
-			v->tile = tile;
-			if (v->trackdir == TRACKDIR_WORMHOLE) {
-				v->trackdir = DiagDirToDiagTrackdir(vdir);
-				return VETSB_ENTERED_WORMHOLE;
-			}
-		}
-	}
-
 	return VETSB_CONTINUE;
 }
 
@@ -501,12 +484,14 @@ static void ShipController(Ship *v)
 	GetNewVehiclePosResult gp = GetNewVehiclePos(v);
 	if (v->trackdir == TRACKDIR_WORMHOLE) {
 		/* On a bridge */
-		if (gp.new_tile != v->tile || !HasBit(ShipEnterTile(v, gp.new_tile, gp.x, gp.y), VETS_ENTERED_WORMHOLE)) {
+		if (gp.new_tile != v->tile) {
+			/* Still on the bridge */
 			v->x_pos = gp.x;
 			v->y_pos = gp.y;
-			VehicleUpdatePosition(v);
-			if ((v->vehstatus & VS_HIDDEN) == 0) VehicleUpdateViewport(v, true);
+			VehicleUpdatePositionAndViewport(v);
 			return;
+		} else {
+			v->trackdir = DiagDirToDiagTrackdir(ReverseDiagDir(GetTunnelBridgeDirection(v->tile)));
 		}
 	} else if (v->trackdir == TRACKDIR_DEPOT) {
 		/* Inside depot */
