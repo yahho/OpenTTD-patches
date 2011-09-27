@@ -1189,6 +1189,9 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 	 * by the previous vehicle in the chain when it gets to the right place. */
 	if (v->IsInDepot()) return true;
 
+	RoadDriveEntry rd;
+	TileIndex tile; // only used when entering a new tile
+
 	if (v->state == RVSB_WORMHOLE) {
 		/* Vehicle is entering a depot or is on a bridge or in a tunnel */
 		GetNewVehiclePosResult gp = GetNewVehiclePos(v);
@@ -1211,81 +1214,78 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 		}
 
 		/* Vehicle has just exited a bridge or tunnel */
-		v->state = DiagDirToDiagTrackdir(ReverseDiagDir(GetTunnelBridgeDirection(v->tile)));
-		v->frame = 0;
-		RoadVehEnterTile(v, gp.new_tile, gp.x, gp.y);
-		v->x_pos = gp.x;
-		v->y_pos = gp.y;
-		VehicleUpdatePosition(v);
-		v->UpdateInclination(true, true);
-		return true;
-	}
+		rd.x = RDE_NEXT_TILE;
+		rd.y = ReverseDiagDir(GetTunnelBridgeDirection(gp.new_tile));
+		tile = gp.new_tile;
+	} else {
+		/* Get move position data for next frame.
+		 * For a drive-through road stop use 'straight road' move data.
+		 * In this case v->state is masked to give the road stop entry direction. */
+		rd = _road_drive_data[_settings_game.vehicle.road_side ^ v->overtaking]
+			[HasBit(v->state, RVS_IN_DT_ROAD_STOP) ? (v->state & RVSB_ROAD_STOP_TRACKDIR_MASK) : v->state]
+			[v->frame + 1];
 
-	/* Get move position data for next frame.
-	 * For a drive-through road stop use 'straight road' move data.
-	 * In this case v->state is masked to give the road stop entry direction. */
-	RoadDriveEntry rd = _road_drive_data[_settings_game.vehicle.road_side ^ v->overtaking]
-		[HasBit(v->state, RVS_IN_DT_ROAD_STOP) ? (v->state & RVSB_ROAD_STOP_TRACKDIR_MASK) : v->state]
-		[v->frame + 1];
+		if (rd.x == RDE_NEXT_TILE) {
+			DiagDirection enterdir = (DiagDirection)(rd.y);
+			tile = v->tile + TileOffsByDiagDir(enterdir);
+
+			if (IsTunnelTile(v->tile) && GetTunnelBridgeDirection(v->tile) == enterdir) {
+				TileIndex end_tile = GetOtherTunnelEnd(v->tile);
+				if (end_tile != tile) {
+					/* Entering a tunnel */
+					GetNewVehiclePosResult gp = GetNewVehiclePos(v);
+					assert(gp.new_tile == tile);
+
+					if (v->IsFrontEngine()) {
+						const Vehicle *u = RoadVehFindCloseTo(v, gp.x, gp.y, v->direction);
+						if (u != NULL) {
+							v->cur_speed = u->First()->cur_speed;
+							return false;
+						}
+					}
+
+					v->tile = end_tile;
+					v->state = RVSB_WORMHOLE;
+
+					v->x_pos = gp.x;
+					v->y_pos = gp.y;
+					VehicleUpdatePosition(v);
+					return true;
+				}
+			} else if (IsRoadBridgeTile(v->tile) && GetTunnelBridgeDirection(v->tile) == enterdir) {
+				TileIndex end_tile = GetOtherBridgeEnd(v->tile);
+				if (end_tile != tile) {
+					/* Entering a bridge */
+					GetNewVehiclePosResult gp = GetNewVehiclePos(v);
+					assert(gp.new_tile == tile);
+
+					if (v->IsFrontEngine()) {
+						const Vehicle *u = RoadVehFindCloseTo(v, gp.x, gp.y, v->direction);
+						if (u != NULL) {
+							v->cur_speed = u->First()->cur_speed;
+							return false;
+						}
+					}
+
+					v->tile = end_tile;
+					v->state = RVSB_WORMHOLE;
+					ClrBit(v->gv_flags, GVF_GOINGUP_BIT);
+					ClrBit(v->gv_flags, GVF_GOINGDOWN_BIT);
+
+					RoadVehicle *first = v->First();
+					first->cur_speed = min(first->cur_speed, GetBridgeSpec(GetRoadBridgeType(v->tile))->speed * 2);
+
+					v->x_pos = gp.x;
+					v->y_pos = gp.y;
+					VehicleUpdatePositionAndViewport(v);
+					return true;
+				}
+			}
+		}
+	}
 
 	if (rd.x == RDE_NEXT_TILE) {
 		DiagDirection enterdir = (DiagDirection)(rd.y);
-		TileIndex tile = v->tile + TileOffsByDiagDir(enterdir);
-
-		if (IsTunnelTile(v->tile) && GetTunnelBridgeDirection(v->tile) == enterdir) {
-			TileIndex end_tile = GetOtherTunnelEnd(v->tile);
-			if (end_tile != tile) {
-				/* Entering a tunnel */
-				GetNewVehiclePosResult gp = GetNewVehiclePos(v);
-				assert(gp.new_tile == tile);
-
-				if (v->IsFrontEngine()) {
-					const Vehicle *u = RoadVehFindCloseTo(v, gp.x, gp.y, v->direction);
-					if (u != NULL) {
-						v->cur_speed = u->First()->cur_speed;
-						return false;
-					}
-				}
-
-				v->tile = end_tile;
-				v->state = RVSB_WORMHOLE;
-
-				v->x_pos = gp.x;
-				v->y_pos = gp.y;
-				VehicleUpdatePosition(v);
-				return true;
-			}
-		}
-
-		if (IsRoadBridgeTile(v->tile) && GetTunnelBridgeDirection(v->tile) == enterdir) {
-			TileIndex end_tile = GetOtherBridgeEnd(v->tile);
-			if (end_tile != tile) {
-				/* Entering a bridge */
-				GetNewVehiclePosResult gp = GetNewVehiclePos(v);
-				assert(gp.new_tile == tile);
-
-				if (v->IsFrontEngine()) {
-					const Vehicle *u = RoadVehFindCloseTo(v, gp.x, gp.y, v->direction);
-					if (u != NULL) {
-						v->cur_speed = u->First()->cur_speed;
-						return false;
-					}
-				}
-
-				v->tile = end_tile;
-				v->state = RVSB_WORMHOLE;
-				ClrBit(v->gv_flags, GVF_GOINGUP_BIT);
-				ClrBit(v->gv_flags, GVF_GOINGDOWN_BIT);
-
-				RoadVehicle *first = v->First();
-				first->cur_speed = min(first->cur_speed, GetBridgeSpec(GetRoadBridgeType(v->tile))->speed * 2);
-
-				v->x_pos = gp.x;
-				v->y_pos = gp.y;
-				VehicleUpdatePositionAndViewport(v);
-				return true;
-			}
-		}
 
 		Trackdir dir;
 
