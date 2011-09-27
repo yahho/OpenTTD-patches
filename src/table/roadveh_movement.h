@@ -26,7 +26,7 @@ static const RoadDriveEntry _rvdd_ls_x_ne[] = {
 	{ 2, 5},
 	{ 1, 5},
 	{ 0, 5},
-	{RDE_NEXT_TILE | DIAGDIR_NE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NE}
 };
 static const RoadDriveEntry _rvdd_ls_y_se[] = {
 	{5,  0},
@@ -45,7 +45,7 @@ static const RoadDriveEntry _rvdd_ls_y_se[] = {
 	{5, 13},
 	{5, 14},
 	{5, 15},
-	{RDE_NEXT_TILE | DIAGDIR_SE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SE}
 };
 static const RoadDriveEntry _rvdd_ls_upper_e[] = {
 	{5, 0},
@@ -56,7 +56,7 @@ static const RoadDriveEntry _rvdd_ls_upper_e[] = {
 	{2, 5},
 	{1, 5},
 	{0, 5},
-	{RDE_NEXT_TILE | DIAGDIR_NE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NE}
 };
 static const RoadDriveEntry _rvdd_ls_lower_e[] = {
 	{15,  5},
@@ -75,7 +75,7 @@ static const RoadDriveEntry _rvdd_ls_lower_e[] = {
 	{ 5, 13},
 	{ 5, 14},
 	{ 5, 15},
-	{RDE_NEXT_TILE | DIAGDIR_SE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SE}
 };
 static const RoadDriveEntry _rvdd_ls_left_s[] = {
 	{ 5, 0},
@@ -94,7 +94,7 @@ static const RoadDriveEntry _rvdd_ls_left_s[] = {
 	{13, 9},
 	{14, 9},
 	{15, 9},
-	{RDE_NEXT_TILE | DIAGDIR_SW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SW}
 };
 static const RoadDriveEntry _rvdd_ls_right_s[] = {
 	{0,  9},
@@ -106,21 +106,21 @@ static const RoadDriveEntry _rvdd_ls_right_s[] = {
 	{5, 13},
 	{5, 14},
 	{5, 15},
-	{RDE_NEXT_TILE | DIAGDIR_SE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SE}
 };
 static const RoadDriveEntry _rvdd_ls_rvrev_ne_short[] = {
 	{0, 6},
 	{0, 7},
 	{0, 8},
 	{0, 9},
-	{RDE_TURNED | DIAGDIR_SW, 0}
+	{RDE_TURNED, DIAGDIR_SW}
 };
 static const RoadDriveEntry _rvdd_ls_rvrev_se_short[] = {
 	{6, 15},
 	{7, 15},
 	{8, 15},
 	{9, 15},
-	{RDE_TURNED | DIAGDIR_NW, 0}
+	{RDE_TURNED, DIAGDIR_NW}
 };
 static const RoadDriveEntry _rvdd_ls_x_sw[] = {
 	{ 0, 9},
@@ -139,7 +139,7 @@ static const RoadDriveEntry _rvdd_ls_x_sw[] = {
 	{13, 9},
 	{14, 9},
 	{15, 9},
-	{RDE_NEXT_TILE | DIAGDIR_SW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SW}
 };
 static const RoadDriveEntry _rvdd_ls_y_nw[] = {
 	{9, 15},
@@ -158,7 +158,7 @@ static const RoadDriveEntry _rvdd_ls_y_nw[] = {
 	{9,  2},
 	{9,  1},
 	{9,  0},
-	{RDE_NEXT_TILE | DIAGDIR_NW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NW}
 };
 static const RoadDriveEntry _rvdd_ls_upper_w[] = {
 	{0, 9},
@@ -176,7 +176,7 @@ static const RoadDriveEntry _rvdd_ls_upper_w[] = {
 	{9, 2},
 	{9, 1},
 	{9, 0},
-	{RDE_NEXT_TILE | DIAGDIR_NW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NW}
 };
 static const RoadDriveEntry _rvdd_ls_lower_w[] = {
 	{ 9, 15},
@@ -188,7 +188,7 @@ static const RoadDriveEntry _rvdd_ls_lower_w[] = {
 	{13,  9},
 	{14,  9},
 	{15,  9},
-	{RDE_NEXT_TILE | DIAGDIR_SW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SW}
 };
 static const RoadDriveEntry _rvdd_ls_left_n[] = {
 	{15, 5},
@@ -199,7 +199,7 @@ static const RoadDriveEntry _rvdd_ls_left_n[] = {
 	{10, 2},
 	{ 9, 1},
 	{ 9, 0},
-	{RDE_NEXT_TILE | DIAGDIR_NW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NW}
 };
 static const RoadDriveEntry _rvdd_ls_right_n[] = {
 	{9, 15},
@@ -217,21 +217,21 @@ static const RoadDriveEntry _rvdd_ls_right_n[] = {
 	{2,  5},
 	{1,  5},
 	{0,  5},
-	{RDE_NEXT_TILE | DIAGDIR_NE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NE}
 };
 static const RoadDriveEntry _rvdd_ls_rvrev_sw_short[] = {
 	{15, 8},
 	{15, 7},
 	{15, 6},
 	{15, 5},
-	{RDE_TURNED | DIAGDIR_NE, 0}
+	{RDE_TURNED, DIAGDIR_NE}
 };
 static const RoadDriveEntry _rvdd_ls_rvrev_nw_short[] = {
 	{8, 0},
 	{7, 0},
 	{6, 0},
 	{5, 0},
-	{RDE_TURNED | DIAGDIR_SE, 0}
+	{RDE_TURNED, DIAGDIR_SE}
 };
 static const RoadDriveEntry _rvdd_rs_x_ne[] = {
 	{15, 9},
@@ -250,7 +250,7 @@ static const RoadDriveEntry _rvdd_rs_x_ne[] = {
 	{ 2, 9},
 	{ 1, 9},
 	{ 0, 9},
-	{RDE_NEXT_TILE | DIAGDIR_NE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NE}
 };
 static const RoadDriveEntry _rvdd_rs_y_se[] = {
 	{9,  0},
@@ -269,7 +269,7 @@ static const RoadDriveEntry _rvdd_rs_y_se[] = {
 	{9, 13},
 	{9, 14},
 	{9, 15},
-	{RDE_NEXT_TILE | DIAGDIR_SE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SE}
 };
 static const RoadDriveEntry _rvdd_rs_upper_e[] = {
 	{9, 0},
@@ -287,7 +287,7 @@ static const RoadDriveEntry _rvdd_rs_upper_e[] = {
 	{2, 9},
 	{1, 9},
 	{0, 9},
-	{RDE_NEXT_TILE | DIAGDIR_NE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NE}
 };
 static const RoadDriveEntry _rvdd_rs_lower_e[] = {
 	{15,  9},
@@ -299,7 +299,7 @@ static const RoadDriveEntry _rvdd_rs_lower_e[] = {
 	{ 9, 13},
 	{ 9, 14},
 	{ 9, 15},
-	{RDE_NEXT_TILE | DIAGDIR_SE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SE}
 };
 static const RoadDriveEntry _rvdd_rs_left_s[] = {
 	{ 9, 0},
@@ -310,7 +310,7 @@ static const RoadDriveEntry _rvdd_rs_left_s[] = {
 	{13, 5},
 	{14, 5},
 	{15, 5},
-	{RDE_NEXT_TILE | DIAGDIR_SW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SW}
 };
 static const RoadDriveEntry _rvdd_rs_right_s[] = {
 	{0,  5},
@@ -328,21 +328,21 @@ static const RoadDriveEntry _rvdd_rs_right_s[] = {
 	{9, 13},
 	{9, 14},
 	{9, 15},
-	{RDE_NEXT_TILE | DIAGDIR_SE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SE}
 };
 static const RoadDriveEntry _rvdd_rs_rvrev_ne_short[] = {
 	{0, 8},
 	{0, 7},
 	{0, 6},
 	{0, 5},
-	{RDE_TURNED | DIAGDIR_SW, 0}
+	{RDE_TURNED, DIAGDIR_SW}
 };
 static const RoadDriveEntry _rvdd_rs_rvrev_se_short[] = {
 	{8, 15},
 	{7, 15},
 	{6, 15},
 	{5, 15},
-	{RDE_TURNED | DIAGDIR_NW, 0}
+	{RDE_TURNED, DIAGDIR_NW}
 };
 static const RoadDriveEntry _rvdd_rs_x_sw[] = {
 	{ 0, 5},
@@ -361,7 +361,7 @@ static const RoadDriveEntry _rvdd_rs_x_sw[] = {
 	{13, 5},
 	{14, 5},
 	{15, 5},
-	{RDE_NEXT_TILE | DIAGDIR_SW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SW}
 };
 static const RoadDriveEntry _rvdd_rs_y_nw[] = {
 	{5, 15},
@@ -380,7 +380,7 @@ static const RoadDriveEntry _rvdd_rs_y_nw[] = {
 	{5,  2},
 	{5,  1},
 	{5,  0},
-	{RDE_NEXT_TILE | DIAGDIR_NW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NW}
 };
 static const RoadDriveEntry _rvdd_rs_upper_w[] = {
 	{0, 5},
@@ -391,7 +391,7 @@ static const RoadDriveEntry _rvdd_rs_upper_w[] = {
 	{5, 2},
 	{5, 1},
 	{5, 0},
-	{RDE_NEXT_TILE | DIAGDIR_NW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NW}
 };
 static const RoadDriveEntry _rvdd_rs_lower_w[] = {
 	{ 5, 15},
@@ -410,7 +410,7 @@ static const RoadDriveEntry _rvdd_rs_lower_w[] = {
 	{13,  5},
 	{14,  5},
 	{15,  5},
-	{RDE_NEXT_TILE | DIAGDIR_SW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SW}
 };
 static const RoadDriveEntry _rvdd_rs_left_n[] = {
 	{15, 9},
@@ -429,7 +429,7 @@ static const RoadDriveEntry _rvdd_rs_left_n[] = {
 	{ 5, 2},
 	{ 5, 1},
 	{ 5, 0},
-	{RDE_NEXT_TILE | DIAGDIR_NW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NW}
 };
 static const RoadDriveEntry _rvdd_rs_right_n[] = {
 	{5, 15},
@@ -441,21 +441,21 @@ static const RoadDriveEntry _rvdd_rs_right_n[] = {
 	{2,  9},
 	{1,  9},
 	{0,  9},
-	{RDE_NEXT_TILE | DIAGDIR_NE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NE}
 };
 static const RoadDriveEntry _rvdd_rs_rvrev_sw_short[] = {
 	{15, 6},
 	{15, 7},
 	{15, 8},
 	{15, 9},
-	{RDE_TURNED | DIAGDIR_NE, 0}
+	{RDE_TURNED, DIAGDIR_NE}
 };
 static const RoadDriveEntry _rvdd_rs_rvrev_nw_short[] = {
 	{6, 0},
 	{7, 0},
 	{8, 0},
 	{9, 0},
-	{RDE_TURNED | DIAGDIR_SE, 0}
+	{RDE_TURNED, DIAGDIR_SE}
 };
 static const RoadDriveEntry _rvdd_ls_station_sw_far[] = {
 	{15,  5},
@@ -495,7 +495,7 @@ static const RoadDriveEntry _rvdd_ls_station_sw_far[] = {
 	{13, 10},
 	{14,  9},
 	{15,  9},
-	{RDE_NEXT_TILE | DIAGDIR_SW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SW}
 };
 static const RoadDriveEntry _rvdd_ls_station_nw_far[] = {
 	{ 5,  0},
@@ -535,7 +535,7 @@ static const RoadDriveEntry _rvdd_ls_station_nw_far[] = {
 	{10,  2},
 	{ 9,  1},
 	{ 9,  0},
-	{RDE_NEXT_TILE | DIAGDIR_NW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NW}
 };
 static const RoadDriveEntry _rvdd_ls_station_sw_near[] = {
 	{15,  5},
@@ -567,7 +567,7 @@ static const RoadDriveEntry _rvdd_ls_station_sw_near[] = {
 	{13, 10},
 	{14,  9},
 	{15,  9},
-	{RDE_NEXT_TILE | DIAGDIR_SW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SW}
 };
 static const RoadDriveEntry _rvdd_ls_station_nw_near[] = {
 	{ 5, 0},
@@ -599,7 +599,7 @@ static const RoadDriveEntry _rvdd_ls_station_nw_near[] = {
 	{10, 2},
 	{ 9, 1},
 	{ 9, 0},
-	{RDE_NEXT_TILE | DIAGDIR_NW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NW}
 };
 static const RoadDriveEntry _rvdd_ls_station_ne_far[] = {
 	{ 0, 9},
@@ -637,7 +637,7 @@ static const RoadDriveEntry _rvdd_ls_station_ne_far[] = {
 	{ 2, 4},
 	{ 1, 5},
 	{ 0, 5},
-	{RDE_NEXT_TILE | DIAGDIR_NE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NE}
 };
 static const RoadDriveEntry _rvdd_ls_station_se_far[] = {
 	{9, 15},
@@ -675,7 +675,7 @@ static const RoadDriveEntry _rvdd_ls_station_se_far[] = {
 	{4, 13},
 	{5, 14},
 	{5, 15},
-	{RDE_NEXT_TILE | DIAGDIR_SE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SE}
 };
 static const RoadDriveEntry _rvdd_ls_station_ne_near[] = {
 	{0, 9},
@@ -705,7 +705,7 @@ static const RoadDriveEntry _rvdd_ls_station_ne_near[] = {
 	{2, 4},
 	{1, 5},
 	{0, 5},
-	{RDE_NEXT_TILE | DIAGDIR_NE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NE}
 };
 static const RoadDriveEntry _rvdd_ls_station_se_near[] = {
 	{9, 15},
@@ -735,7 +735,7 @@ static const RoadDriveEntry _rvdd_ls_station_se_near[] = {
 	{4, 13},
 	{5, 14},
 	{5, 15},
-	{RDE_NEXT_TILE | DIAGDIR_SE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SE}
 };
 static const RoadDriveEntry _rvdd_rs_station_sw_far[] = {
 	{15,  9},
@@ -775,7 +775,7 @@ static const RoadDriveEntry _rvdd_rs_station_sw_far[] = {
 	{13,  6},
 	{14,  5},
 	{15,  5},
-	{RDE_NEXT_TILE | DIAGDIR_SW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SW}
 };
 static const RoadDriveEntry _rvdd_rs_station_nw_far[] = {
 	{ 9,  0},
@@ -815,7 +815,7 @@ static const RoadDriveEntry _rvdd_rs_station_nw_far[] = {
 	{ 6,  2},
 	{ 5,  1},
 	{ 5,  0},
-	{RDE_NEXT_TILE | DIAGDIR_NW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NW}
 };
 static const RoadDriveEntry _rvdd_rs_station_sw_near[] = {
 	{15,  9},
@@ -847,7 +847,7 @@ static const RoadDriveEntry _rvdd_rs_station_sw_near[] = {
 	{13,  6},
 	{14,  5},
 	{15,  5},
-	{RDE_NEXT_TILE | DIAGDIR_SW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SW}
 };
 static const RoadDriveEntry _rvdd_rs_station_nw_near[] = {
 	{ 9, 0},
@@ -879,7 +879,7 @@ static const RoadDriveEntry _rvdd_rs_station_nw_near[] = {
 	{ 6, 2},
 	{ 5, 1},
 	{ 5, 0},
-	{RDE_NEXT_TILE | DIAGDIR_NW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NW}
 };
 static const RoadDriveEntry _rvdd_rs_station_ne_far[] = {
 	{ 0, 5},
@@ -917,7 +917,7 @@ static const RoadDriveEntry _rvdd_rs_station_ne_far[] = {
 	{ 2, 8},
 	{ 1, 9},
 	{ 0, 9},
-	{RDE_NEXT_TILE | DIAGDIR_NE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NE}
 };
 static const RoadDriveEntry _rvdd_rs_station_se_far[] = {
 	{5, 15},
@@ -955,7 +955,7 @@ static const RoadDriveEntry _rvdd_rs_station_se_far[] = {
 	{8, 13},
 	{9, 14},
 	{9, 15},
-	{RDE_NEXT_TILE | DIAGDIR_SE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SE}
 };
 static const RoadDriveEntry _rvdd_rs_station_ne_near[] = {
 	{0, 5},
@@ -985,7 +985,7 @@ static const RoadDriveEntry _rvdd_rs_station_ne_near[] = {
 	{2, 8},
 	{1, 9},
 	{0, 9},
-	{RDE_NEXT_TILE | DIAGDIR_NE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NE}
 };
 static const RoadDriveEntry _rvdd_rs_station_se_near[] = {
 	{5, 15},
@@ -1015,7 +1015,7 @@ static const RoadDriveEntry _rvdd_rs_station_se_near[] = {
 	{8, 13},
 	{9, 14},
 	{9, 15},
-	{RDE_NEXT_TILE | DIAGDIR_SE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SE}
 };
 
 static const RoadDriveEntry * const _road_road_drive_data[] = {
@@ -1115,7 +1115,7 @@ static const RoadDriveEntry _rvdd_ls_rvrev_ne_long[] = {
 	{ 0, 7},
 	{ 0, 8},
 	{ 0, 9},
-	{RDE_TURNED | DIAGDIR_SW, 0},
+	{RDE_TURNED, DIAGDIR_SW},
 	{ 1, 9},
 	{ 2, 9},
 	{ 3, 9},
@@ -1131,7 +1131,7 @@ static const RoadDriveEntry _rvdd_ls_rvrev_ne_long[] = {
 	{13, 9},
 	{14, 9},
 	{15, 9},
-	{RDE_NEXT_TILE | DIAGDIR_SW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SW}
 };
 
 static const RoadDriveEntry _rvdd_rs_rvrev_ne_long[] = {
@@ -1155,7 +1155,7 @@ static const RoadDriveEntry _rvdd_rs_rvrev_ne_long[] = {
 	{ 0, 7},
 	{ 0, 6},
 	{ 0, 5},
-	{RDE_TURNED | DIAGDIR_SW, 0},
+	{RDE_TURNED, DIAGDIR_SW},
 	{ 1, 5},
 	{ 2, 5},
 	{ 3, 5},
@@ -1171,7 +1171,7 @@ static const RoadDriveEntry _rvdd_rs_rvrev_ne_long[] = {
 	{13, 5},
 	{14, 5},
 	{15, 5},
-	{RDE_NEXT_TILE | DIAGDIR_SW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SW}
 };
 
 static const RoadDriveEntry _rvdd_ls_rvrev_se_long[] = {
@@ -1195,7 +1195,7 @@ static const RoadDriveEntry _rvdd_ls_rvrev_se_long[] = {
 	{7, 15},
 	{8, 15},
 	{9, 15},
-	{RDE_TURNED | DIAGDIR_NW, 0},
+	{RDE_TURNED, DIAGDIR_NW},
 	{9, 14},
 	{9, 13},
 	{9, 12},
@@ -1211,7 +1211,7 @@ static const RoadDriveEntry _rvdd_ls_rvrev_se_long[] = {
 	{9,  2},
 	{9,  1},
 	{9,  0},
-	{RDE_NEXT_TILE | DIAGDIR_NW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NW}
 };
 
 static const RoadDriveEntry _rvdd_rs_rvrev_se_long[] = {
@@ -1235,7 +1235,7 @@ static const RoadDriveEntry _rvdd_rs_rvrev_se_long[] = {
 	{7, 15},
 	{6, 15},
 	{5, 15},
-	{RDE_TURNED | DIAGDIR_NW, 0},
+	{RDE_TURNED, DIAGDIR_NW},
 	{5, 14},
 	{5, 13},
 	{5, 12},
@@ -1251,7 +1251,7 @@ static const RoadDriveEntry _rvdd_rs_rvrev_se_long[] = {
 	{5,  2},
 	{5,  1},
 	{5,  0},
-	{RDE_NEXT_TILE | DIAGDIR_NW, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NW}
 };
 
 static const RoadDriveEntry _rvdd_ls_rvrev_sw_long[] = {
@@ -1275,7 +1275,7 @@ static const RoadDriveEntry _rvdd_ls_rvrev_sw_long[] = {
 	{15, 7},
 	{15, 6},
 	{15, 5},
-	{RDE_TURNED | DIAGDIR_NE, 0},
+	{RDE_TURNED, DIAGDIR_NE},
 	{14, 5},
 	{13, 5},
 	{12, 5},
@@ -1291,7 +1291,7 @@ static const RoadDriveEntry _rvdd_ls_rvrev_sw_long[] = {
 	{ 2, 5},
 	{ 1, 5},
 	{ 0, 5},
-	{RDE_NEXT_TILE | DIAGDIR_NE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NE}
 };
 static const RoadDriveEntry _rvdd_rs_rvrev_sw_long[] = {
 	{ 0, 5},
@@ -1314,7 +1314,7 @@ static const RoadDriveEntry _rvdd_rs_rvrev_sw_long[] = {
 	{15, 7},
 	{15, 8},
 	{15, 9},
-	{RDE_TURNED | DIAGDIR_NE, 0},
+	{RDE_TURNED, DIAGDIR_NE},
 	{14, 9},
 	{13, 9},
 	{12, 9},
@@ -1330,7 +1330,7 @@ static const RoadDriveEntry _rvdd_rs_rvrev_sw_long[] = {
 	{ 2, 9},
 	{ 1, 9},
 	{ 0, 9},
-	{RDE_NEXT_TILE | DIAGDIR_NE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_NE}
 };
 
 static const RoadDriveEntry _rvdd_ls_rvrev_nw_long[] = {
@@ -1354,7 +1354,7 @@ static const RoadDriveEntry _rvdd_ls_rvrev_nw_long[] = {
 	{7,  0},
 	{6,  0},
 	{5,  0},
-	{RDE_TURNED | DIAGDIR_SE, 0},
+	{RDE_TURNED, DIAGDIR_SE},
 	{5,  1},
 	{5,  2},
 	{5,  3},
@@ -1370,7 +1370,7 @@ static const RoadDriveEntry _rvdd_ls_rvrev_nw_long[] = {
 	{5, 13},
 	{5, 14},
 	{5, 15},
-	{RDE_NEXT_TILE | DIAGDIR_SE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SE}
 };
 static const RoadDriveEntry _rvdd_rs_rvrev_nw_long[] = {
 	{5, 15},
@@ -1393,7 +1393,7 @@ static const RoadDriveEntry _rvdd_rs_rvrev_nw_long[] = {
 	{7,  0},
 	{8,  0},
 	{9,  0},
-	{RDE_TURNED | DIAGDIR_SE, 0},
+	{RDE_TURNED, DIAGDIR_SE},
 	{9,  1},
 	{9,  2},
 	{9,  3},
@@ -1409,7 +1409,7 @@ static const RoadDriveEntry _rvdd_rs_rvrev_nw_long[] = {
 	{9, 13},
 	{9, 14},
 	{9, 15},
-	{RDE_NEXT_TILE | DIAGDIR_SE, 0}
+	{RDE_NEXT_TILE, DIAGDIR_SE}
 };
 
 static const RoadDriveEntry * const _road_tram_drive_data[] = {

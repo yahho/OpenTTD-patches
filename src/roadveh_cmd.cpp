@@ -1113,20 +1113,21 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 		(HasBit(v->state, RVS_IN_DT_ROAD_STOP) ? v->state & RVSB_ROAD_STOP_TRACKDIR_MASK : v->state) +
 		(_settings_game.vehicle.road_side << RVS_DRIVE_SIDE)) ^ v->overtaking][v->frame + 1];
 
-	if (rd.x & RDE_NEXT_TILE) {
-		TileIndex tile = v->tile + TileOffsByDiagDir((DiagDirection)(rd.x & 3));
+	if (rd.x == RDE_NEXT_TILE) {
+		DiagDirection enterdir = (DiagDirection)(rd.y);
+		TileIndex tile = v->tile + TileOffsByDiagDir(enterdir);
 		Trackdir dir;
 
 		if (v->IsFrontEngine()) {
 			/* If this is the front engine, look for the right path. */
-			dir = RoadFindPathToDest(v, tile, (DiagDirection)(rd.x & 3));
+			dir = RoadFindPathToDest(v, tile, enterdir);
 
 			if (dir == INVALID_TRACKDIR) {
 				v->cur_speed = 0;
 				return false;
 			}
 		} else {
-			dir = FollowPreviousRoadVehicle(v, prev, tile, (DiagDirection)(rd.x & 3));
+			dir = FollowPreviousRoadVehicle(v, prev, tile, enterdir);
 		}
 
 again:
@@ -1209,7 +1210,7 @@ again:
 				return false;
 			}
 			/* Try an about turn to re-enter the previous tile */
-			dir = _road_reverse_table[rd.x & 3];
+			dir = _road_reverse_table[enterdir];
 			goto again;
 		}
 
@@ -1255,8 +1256,9 @@ again:
 		return true;
 	}
 
-	if (rd.x & RDE_TURNED) {
+	if (rd.x == RDE_TURNED) {
 		/* Vehicle has finished turning around, it will now head back onto the same tile */
+		DiagDirection enterdir = (DiagDirection)(rd.y);
 		Trackdir dir;
 		uint turn_around_start_frame = RVC_TURN_AROUND_START_FRAME;
 
@@ -1271,7 +1273,7 @@ again:
 			 * going to be properly shown.
 			 */
 			turn_around_start_frame = RVC_START_FRAME_AFTER_LONG_TRAM;
-			switch (rd.x & 0x3) {
+			switch (enterdir) {
 				default: NOT_REACHED();
 				case DIAGDIR_NW: dir = TRACKDIR_RVREV_SE; break;
 				case DIAGDIR_NE: dir = TRACKDIR_RVREV_SW; break;
@@ -1281,14 +1283,14 @@ again:
 		} else {
 			if (v->IsFrontEngine()) {
 				/* If this is the front engine, look for the right path. */
-				dir = RoadFindPathToDest(v, v->tile, (DiagDirection)(rd.x & 3));
+				dir = RoadFindPathToDest(v, v->tile, enterdir);
 
 				if (dir == INVALID_TRACKDIR) {
 					v->cur_speed = 0;
 					return false;
 				}
 			} else {
-				dir = FollowPreviousRoadVehicle(v, prev, v->tile, (DiagDirection)(rd.x & 3));
+				dir = FollowPreviousRoadVehicle(v, prev, v->tile, enterdir);
 			}
 		}
 
