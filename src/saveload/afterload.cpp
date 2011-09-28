@@ -704,27 +704,13 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		}
 
 		FOR_ALL_VEHICLES(v) {
-			if (!v->IsGroundVehicle()) continue;
-			if (IsBridgeHeadTile(v->tile)) {
-				DiagDirection dir = GetTunnelBridgeDirection(v->tile);
-
-				if (dir != DirToDiagDir(v->direction)) continue;
-				switch (dir) {
-					default: throw SlCorrupt("Invalid vehicle direction");
-					case DIAGDIR_NE: if ((v->x_pos & 0xF) !=  0)            continue; break;
-					case DIAGDIR_SE: if ((v->y_pos & 0xF) != TILE_SIZE - 1) continue; break;
-					case DIAGDIR_SW: if ((v->x_pos & 0xF) != TILE_SIZE - 1) continue; break;
-					case DIAGDIR_NW: if ((v->y_pos & 0xF) !=  0)            continue; break;
-				}
-			} else if (v->z_pos > GetSlopePixelZ(v->x_pos, v->y_pos)) {
+			if (v->IsGroundVehicle() && v->z_pos > GetSlopePixelZ(v->x_pos, v->y_pos)) {
 				v->tile = GetNorthernBridgeEnd(v->tile);
-			} else {
-				continue;
-			}
-			if (v->type == VEH_TRAIN) {
-				Train::From(v)->trackdir = TRACKDIR_WORMHOLE;
-			} else {
-				RoadVehicle::From(v)->state = RVSB_WORMHOLE;
+				if (v->type == VEH_TRAIN) {
+					Train::From(v)->trackdir = TRACKDIR_WORMHOLE;
+				} else {
+					RoadVehicle::From(v)->state = RVSB_WORMHOLE;
+				}
 			}
 		}
 	}
