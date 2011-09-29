@@ -78,15 +78,15 @@ static void _DoCommandReturnBuildBridge1(class ScriptInstance *instance)
 	uint type = 0;
 	switch (vehicle_type) {
 		case ScriptVehicle::VT_ROAD:
-			type |= (TRANSPORT_ROAD << 15);
+			type |= (TRANSPORT_ROAD << 12);
 			type |= (::RoadTypeToRoadTypes((::RoadType)ScriptObject::GetRoadType()) << 8);
 			break;
 		case ScriptVehicle::VT_RAIL:
-			type |= (TRANSPORT_RAIL << 15);
+			type |= (TRANSPORT_RAIL << 12);
 			type |= (ScriptRail::GetCurrentRailType() << 8);
 			break;
 		case ScriptVehicle::VT_WATER:
-			type |= (TRANSPORT_WATER << 15);
+			type |= (TRANSPORT_WATER << 12);
 			break;
 		default: NOT_REACHED();
 	}

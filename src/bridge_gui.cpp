@@ -54,14 +54,14 @@ typedef GUIList<BuildBridgeData> GUIBridgeList; ///< List of bridges, used in #B
  * @param p2 various bitstuffed elements
  * - p2 = (bit  0- 7) - bridge type (hi bh)
  * - p2 = (bit  8-11) - rail type or road types.
- * - p2 = (bit 15-16) - transport type.
+ * - p2 = (bit 12-13) - transport type.
  */
 void CcBuildBridge(const CommandCost &result, TileIndex end_tile, uint32 p1, uint32 p2)
 {
 	if (result.Failed()) return;
 	if (_settings_client.sound.confirm) SndPlayTileFx(SND_27_BLACKSMITH_ANVIL, end_tile);
 
-	TransportType transport_type = Extract<TransportType, 15, 2>(p2);
+	TransportType transport_type = Extract<TransportType, 12, 2>(p2);
 
 	if (transport_type == TRANSPORT_ROAD) {
 		DiagDirection end_direction = ReverseDiagDir(GetTunnelBridgeDirection(end_tile));
@@ -110,7 +110,7 @@ private:
 
 	void BuildBridge(uint8 i)
 	{
-		switch ((TransportType)(this->type >> 15)) {
+		switch ((TransportType)(this->type >> 12)) {
 			case TRANSPORT_RAIL: _last_railbridge_type = this->bridges->Get(i)->index; break;
 			case TRANSPORT_ROAD: _last_roadbridge_type = this->bridges->Get(i)->index; break;
 			default: break;
@@ -143,9 +143,9 @@ public:
 		this->vscroll = this->GetScrollbar(WID_BBS_SCROLLBAR);
 		/* Change the data, or the caption of the gui. Set it to road or rail, accordingly. */
 		this->GetWidget<NWidgetCore>(WID_BBS_CAPTION)->widget_data = (GB(this->type, 15, 2) == TRANSPORT_ROAD) ? STR_SELECT_ROAD_BRIDGE_CAPTION : STR_SELECT_RAIL_BRIDGE_CAPTION;
-		this->FinishInitNested(GB(br_type, 15, 2)); // Initializes 'this->bridgetext_offset'.
+		this->FinishInitNested(GB(br_type, 12, 2)); // Initializes 'this->bridgetext_offset'.
 
-		this->parent = FindWindowById(WC_BUILD_TOOLBAR, GB(this->type, 15, 2));
+		this->parent = FindWindowById(WC_BUILD_TOOLBAR, GB(this->type, 12, 2));
 		this->bridges->SetListing(this->last_sorting);
 		this->bridges->SetSortFuncs(this->sorter_funcs);
 		this->bridges->NeedResort();
@@ -361,10 +361,10 @@ void ShowBuildBridgeWindow(TileIndex start, TileIndex end, TransportType transpo
 	DeleteWindowByClass(WC_BUILD_BRIDGE);
 
 	/* Data type for the bridge.
-	 * Bit 16,15 = transport type,
-	 *     14..8 = road/rail types,
+	 * Bit 13,12 = transport type,
+	 *     11..8 = road/rail types,
 	 *      7..0 = type of bridge */
-	uint32 type = (transport_type << 15) | (road_rail_type << 8);
+	uint32 type = (transport_type << 12) | (road_rail_type << 8);
 
 	/* The bridge length without ramps. */
 	const uint bridge_len = GetTunnelBridgeLength(start, end);

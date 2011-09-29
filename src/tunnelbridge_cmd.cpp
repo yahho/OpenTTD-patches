@@ -369,7 +369,7 @@ static CommandCost BuildAqueduct(TileIndex tile_start, TileIndex tile_end, DoCom
  * @param p2 various bitstuffed elements
  * - p2 = (bit  0- 7) - bridge type (hi bh)
  * - p2 = (bit  8-11) - rail type or road types.
- * - p2 = (bit 15-16) - transport type.
+ * - p2 = (bit 12-13) - transport type.
  * @param text unused
  * @return the cost of this operation or an error
  */
@@ -381,7 +381,7 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 	if (!IsValidTile(p1)) return_cmd_error(STR_ERROR_BRIDGE_THROUGH_MAP_BORDER);
 
 	/* type of bridge */
-	switch (Extract<TransportType, 15, 2>(p2)) {
+	switch (Extract<TransportType, 12, 2>(p2)) {
 		case TRANSPORT_ROAD:
 			return BuildRoadBridge(p1, end_tile, bridge_type, Extract<RoadTypes, 8, 2>(p2), flags);
 
