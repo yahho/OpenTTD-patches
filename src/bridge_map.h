@@ -112,6 +112,28 @@ static inline BridgeType GetBridgeType(TileIndex t)
 }
 
 /**
+ * Set the type of rail bridge on a tile
+ * @param t The tile to set
+ * @param type The type to set
+ */
+static inline void SetRailBridgeType(TileIndex t, BridgeType type)
+{
+	assert(IsRailBridgeTile(t));
+	SB(_mc[t].m2, 12, 4, type);
+}
+
+/**
+ * Set the type of road bridge on a tile
+ * @param t The tile to set
+ * @param type The type to set
+ */
+static inline void SetRoadBridgeType(TileIndex t, BridgeType type)
+{
+	assert(IsRoadBridgeTile(t));
+	SB(_mc[t].m7, 0, 4, type);
+}
+
+/**
  * Get the axis of the bridge that goes over the tile. Not the axis or the ramp.
  * @param t The tile to analyze
  * @pre IsBridgeAbove(t)
