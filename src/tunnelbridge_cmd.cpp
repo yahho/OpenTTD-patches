@@ -124,7 +124,6 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 	int z_end;
 	Slope tileh_start = GetTileSlope(tile_start, &z_start);
 	Slope tileh_end = GetTileSlope(tile_end, &z_end);
-	bool pbs_reservation = false;
 
 	CommandCost terraform_cost_north = CheckBridgeSlope(direction == AXIS_X ? DIAGDIR_SW : DIAGDIR_SE, &tileh_start, &z_start);
 	CommandCost terraform_cost_south = CheckBridgeSlope(direction == AXIS_X ? DIAGDIR_NE : DIAGDIR_NW, &tileh_end,   &z_end);
@@ -153,9 +152,6 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 				if (!IsTileOwner(tile_start, company)) {
 					return_cmd_error(STR_ERROR_AREA_IS_OWNED_BY_ANOTHER);
 				}
-
-				/* Keep the reservation, the path stays valid. */
-				pbs_reservation = HasTunnelBridgeReservation(tile_start);
 
 				break;
 
@@ -206,6 +202,52 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 		}
 
 		cost.AddCost((bridge_len + 1) * _price[PR_CLEAR_BRIDGE]); // The cost of clearing the current bridge.
+
+		/* do the drill? */
+		if (flags & DC_EXEC) {
+			switch (transport_type) {
+				case TRANSPORT_RAIL:
+					SetRailBridgeType(tile_start, bridge_type);
+					SetRailBridgeType(tile_end,   bridge_type);
+					break;
+
+				case TRANSPORT_ROAD: {
+					RoadTypes prev_roadtypes = GetRoadTypes(tile_start);
+					/* Also give unowned present roadtypes to new owner */
+					if (HasBit(prev_roadtypes, ROADTYPE_ROAD) && GetRoadOwner(tile_start, ROADTYPE_ROAD) == OWNER_NONE) ClrBit(prev_roadtypes, ROADTYPE_ROAD);
+					if (HasBit(prev_roadtypes, ROADTYPE_TRAM) && GetRoadOwner(tile_start, ROADTYPE_TRAM) == OWNER_NONE) ClrBit(prev_roadtypes, ROADTYPE_TRAM);
+					Company *c = Company::GetIfValid(company);
+					if (c != NULL) {
+						/* Add all new road types to the company infrastructure counter. */
+						RoadType new_rt;
+						FOR_EACH_SET_ROADTYPE(new_rt, roadtypes ^ prev_roadtypes) {
+							/* A full diagonal road tile has two road bits. */
+							c->infrastructure.road[new_rt] += (bridge_len + 2) * 2 * TUNNELBRIDGE_TRACKBIT_FACTOR;
+						}
+					}
+					DirtyCompanyInfrastructureWindows(company);
+
+					SetRoadBridgeType(tile_start, bridge_type);
+					SetRoadTypes(tile_start, roadtypes);
+					SetRoadBridgeType(tile_end,   bridge_type);
+					SetRoadTypes(tile_end,   roadtypes);
+
+					for (RoadType rt = ROADTYPE_BEGIN; rt < ROADTYPE_END; rt++) {
+						if (!HasBit(prev_roadtypes, rt)) {
+							SetRoadOwner(tile_start, rt, company);
+							SetRoadOwner(tile_end,   rt, company);
+						}
+					}
+
+					break;
+				}
+
+				default:
+					NOT_REACHED();
+			}
+
+			MarkBridgeTilesDirty(tile_start, tile_end, AxisToDiagDir(direction));
+		}
 	} else {
 		/* Build a new bridge. */
 
@@ -286,66 +328,55 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 					cost.AddCost(ret);
 					break;
 			}
-
-			if (flags & DC_EXEC) {
-				/* We do this here because when replacing a bridge with another
-				 * type calling SetBridgeMiddle isn't needed. After all, the
-				 * tile already has the has_bridge_above bits set. */
-				SetBridgeMiddle(tile, direction);
-			}
 		}
-	}
 
-	/* do the drill? */
-	if (flags & DC_EXEC) {
-		DiagDirection dir = AxisToDiagDir(direction);
+		/* do the drill? */
+		if (flags & DC_EXEC) {
+			DiagDirection dir = AxisToDiagDir(direction);
 
-		Company *c = Company::GetIfValid(company);
-		switch (transport_type) {
-			case TRANSPORT_RAIL:
-				/* Add to company infrastructure count if building a new bridge. */
-				if (!IsBridgeHeadTile(tile_start) && c != NULL) c->infrastructure.rail[railtype] += (bridge_len + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
-				MakeRailBridgeRamp(tile_start, company, bridge_type, dir,                 railtype);
-				MakeRailBridgeRamp(tile_end,   company, bridge_type, ReverseDiagDir(dir), railtype);
-				SetTunnelBridgeReservation(tile_start, pbs_reservation);
-				SetTunnelBridgeReservation(tile_end,   pbs_reservation);
-				break;
+			Company *c = Company::GetIfValid(company);
+			switch (transport_type) {
+				case TRANSPORT_RAIL:
+					/* Add to company infrastructure count. */
+					if (c != NULL) c->infrastructure.rail[railtype] += (bridge_len + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
+					MakeRailBridgeRamp(tile_start, company, bridge_type, dir,                 railtype);
+					MakeRailBridgeRamp(tile_end,   company, bridge_type, ReverseDiagDir(dir), railtype);
+					break;
 
-			case TRANSPORT_ROAD: {
-				RoadTypes prev_roadtypes = IsRoadBridgeTile(tile_start) ? GetRoadTypes(tile_start) : ROADTYPES_NONE;
-				/* Also give unowned present roadtypes to new owner */
-				if (HasBit(prev_roadtypes, ROADTYPE_ROAD) && GetRoadOwner(tile_start, ROADTYPE_ROAD) == OWNER_NONE) ClrBit(prev_roadtypes, ROADTYPE_ROAD);
-				if (HasBit(prev_roadtypes, ROADTYPE_TRAM) && GetRoadOwner(tile_start, ROADTYPE_TRAM) == OWNER_NONE) ClrBit(prev_roadtypes, ROADTYPE_TRAM);
-				if (c != NULL) {
-					/* Add all new road types to the company infrastructure counter. */
-					RoadType new_rt;
-					FOR_EACH_SET_ROADTYPE(new_rt, roadtypes ^ prev_roadtypes) {
-						/* A full diagonal road tile has two road bits. */
-						c->infrastructure.road[new_rt] += (bridge_len + 2) * 2 * TUNNELBRIDGE_TRACKBIT_FACTOR;
+				case TRANSPORT_ROAD:
+					if (c != NULL) {
+						/* Add all new road types to the company infrastructure counter. */
+						RoadType new_rt;
+						FOR_EACH_SET_ROADTYPE(new_rt, roadtypes) {
+							/* A full diagonal road tile has two road bits. */
+							c->infrastructure.road[new_rt] += (bridge_len + 2) * 2 * TUNNELBRIDGE_TRACKBIT_FACTOR;
+						}
 					}
-				}
-				Owner owner_road = company;
-				Owner owner_tram = company;
-				if (HasBit(prev_roadtypes, ROADTYPE_ROAD)) owner_road = GetRoadOwner(tile_start, ROADTYPE_ROAD);
-				if (HasBit(prev_roadtypes, ROADTYPE_TRAM)) owner_tram = GetRoadOwner(tile_start, ROADTYPE_TRAM);
-				MakeRoadBridgeRamp(tile_start, owner_road, owner_tram, bridge_type, dir,                 roadtypes);
-				MakeRoadBridgeRamp(tile_end,   owner_road, owner_tram, bridge_type, ReverseDiagDir(dir), roadtypes);
-				break;
+					MakeRoadBridgeRamp(tile_start, company, company, bridge_type, dir,                 roadtypes);
+					MakeRoadBridgeRamp(tile_end,   company, company, bridge_type, ReverseDiagDir(dir), roadtypes);
+					break;
+
+				case TRANSPORT_WATER:
+					if (c != NULL) c->infrastructure.water += (bridge_len + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
+					MakeAqueductBridgeRamp(tile_start, company, dir);
+					MakeAqueductBridgeRamp(tile_end,   company, ReverseDiagDir(dir));
+					break;
+
+				default:
+					NOT_REACHED();
 			}
 
-			case TRANSPORT_WATER:
-				assert(!IsBridgeHeadTile(tile_start));
-				if (c != NULL) c->infrastructure.water += (bridge_len + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
-				MakeAqueductBridgeRamp(tile_start, company, dir);
-				MakeAqueductBridgeRamp(tile_end,   company, ReverseDiagDir(dir));
-				break;
+			MarkTileDirtyByTile(tile_start);
+			MarkTileDirtyByTile(tile_end);
 
-			default:
-				NOT_REACHED();
+			/* Mark all tiles dirty */
+			for (TileIndex tile = tile_start + delta; tile < tile_end; tile += delta) {
+				SetBridgeMiddle(tile, direction);
+				MarkTileDirtyByTile(tile);
+			}
+
+			DirtyCompanyInfrastructureWindows(company);
 		}
-
-		MarkBridgeTilesDirty(tile_start, tile_end, AxisToDiagDir(direction));
-		DirtyCompanyInfrastructureWindows(company);
 	}
 
 	if ((flags & DC_EXEC) && transport_type == TRANSPORT_RAIL) {
