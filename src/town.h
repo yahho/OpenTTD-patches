@@ -177,6 +177,12 @@ TileIndexDiff GetHouseNorthPart(HouseID &house);
 
 Town *CalcClosestTownFromTile(TileIndex tile, uint threshold = UINT_MAX);
 
+static inline TownID CalcClosestTownIDFromTile(TileIndex tile)
+{
+	const Town *town = CalcClosestTownFromTile(tile);
+	return (town != NULL) ? town->index : (TownID)INVALID_TOWN;
+}
+
 #define FOR_ALL_TOWNS_FROM(var, start) FOR_ALL_ITEMS_FROM(Town, town_index, var, start)
 #define FOR_ALL_TOWNS(var) FOR_ALL_TOWNS_FROM(var, 0)
 

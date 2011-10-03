@@ -288,8 +288,7 @@ CommandCost RemoveRoad(TileIndex tile, DoCommandFlag flags, RoadBits pieces, Roa
 						} else {
 							if (rt == ROADTYPE_ROAD && IsRoadOwner(tile, ROADTYPE_ROAD, OWNER_TOWN)) {
 								/* Update nearest-town index */
-								const Town *town = CalcClosestTownFromTile(tile);
-								SetTownIndex(tile, town == NULL ? (TownID)INVALID_TOWN : town->index);
+								SetTownIndex(tile, CalcClosestTownIDFromTile(tile));
 							}
 							SetRoadBits(tile, ROAD_NONE, rt);
 							SetRoadTypes(tile, rts);
