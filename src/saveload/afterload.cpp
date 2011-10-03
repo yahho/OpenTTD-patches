@@ -708,6 +708,15 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		}
 	}
 
+	if (IsFullSavegameVersionBefore(stv, 6)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsRoadBridgeTile(t)) {
+				const Town *town = CalcClosestTownFromTile(t);
+				if (town != NULL) SetTownIndex(t, town->index);
+			}
+		}
+	}
+
 	if (IsOTTDSavegameVersionBefore(stv, 42)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsRoadTile(t) && GetTownIndex(t) == INVALID_TOWN) {

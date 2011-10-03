@@ -222,14 +222,16 @@ static inline void MakeBridgeRamp(TileIndex t, Owner o, DiagDirection d, uint rt
  * @param bridgetype the type of bridge this bridge ramp belongs to
  * @param d          the direction this ramp must be facing
  * @param r          the road type of the bridge
+ * @param town       owner/closest town ID
  */
-static inline void MakeRoadBridgeRamp(TileIndex t, Owner owner_road, Owner owner_tram, BridgeType bridgetype, DiagDirection d, RoadTypes r)
+static inline void MakeRoadBridgeRamp(TileIndex t, Owner owner_road, Owner owner_tram, BridgeType bridgetype, DiagDirection d, RoadTypes r, uint town)
 {
 	SetTileTypeSubtype(t, TT_ROAD, TT_BRIDGE);
 	MakeBridgeRamp(t, owner_road, d, 0);
 	SB(_mc[t].m7, 0, 4, bridgetype);
 	if (owner_tram != OWNER_TOWN) SetRoadOwner(t, ROADTYPE_TRAM, owner_tram);
 	SetRoadTypes(t, r);
+	_mc[t].m2 = town;
 }
 
 /**

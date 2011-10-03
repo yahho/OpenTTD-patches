@@ -42,24 +42,30 @@ TileIndex _build_tunnel_endtile; ///< The end of a tunnel; as hidden return from
  * @param tile_end End tile
  * @param bridge_type Bridge type
  * @param rts Road types
+ * @param town the town that is building the road (if applicable)
  * @param flags type of operation
  * @return the cost of this operation or an error
  */
-static CommandCost BuildRoadBridge(TileIndex tile_start, TileIndex tile_end, BridgeType bridge_type, RoadTypes rts, DoCommandFlag flags)
+static CommandCost BuildRoadBridge(TileIndex tile_start, TileIndex tile_end, BridgeType bridge_type, RoadTypes rts, TownID town, DoCommandFlag flags)
 {
 	CompanyID company = _current_company;
 
 	if (!HasExactlyOneBit(rts) || !HasRoadTypesAvail(_current_company, rts)) return CMD_ERROR;
 
 	if (company == OWNER_DEITY) {
-		const Town *town = CalcClosestTownFromTile(tile_start);
-
-		company = OWNER_TOWN;
+		const Town *t = CalcClosestTownFromTile(tile_start);
 
 		/* If we are not within a town, we are not owned by the town */
-		if (town == NULL || DistanceSquare(tile_start, town->xy) > town->cache.squared_town_zone_radius[HZB_TOWN_EDGE]) {
+		if (t == NULL || DistanceSquare(tile_start, t->xy) > t->cache.squared_town_zone_radius[HZB_TOWN_EDGE]) {
 			company = OWNER_NONE;
+		} else {
+			company = OWNER_TOWN;
+			town = t->index;
 		}
+	} else if (company == OWNER_TOWN) {
+		if (!Town::IsValidID(town)) return CMD_ERROR;
+	} else {
+		town = INVALID_TOWN;
 	}
 
 	Axis direction;
@@ -169,8 +175,8 @@ static CommandCost BuildRoadBridge(TileIndex tile_start, TileIndex tile_end, Bri
 					c->infrastructure.road[new_rt] += (bridge_len + 2) * 2 * TUNNELBRIDGE_TRACKBIT_FACTOR;
 				}
 			}
-			MakeRoadBridgeRamp(tile_start, company, company, bridge_type, dir,                 rts);
-			MakeRoadBridgeRamp(tile_end,   company, company, bridge_type, ReverseDiagDir(dir), rts);
+			MakeRoadBridgeRamp(tile_start, company, company, bridge_type, dir,                 rts, town != INVALID_TOWN ? town : CalcClosestTownIDFromTile(tile_start));
+			MakeRoadBridgeRamp(tile_end,   company, company, bridge_type, ReverseDiagDir(dir), rts, town != INVALID_TOWN ? town : CalcClosestTownIDFromTile(tile_end));
 
 			SetBridgeMiddleTiles(tile_start, tile_end, direction);
 			DirtyCompanyInfrastructureWindows(company);
@@ -370,6 +376,7 @@ static CommandCost BuildAqueduct(TileIndex tile_start, TileIndex tile_end, DoCom
  * - p2 = (bit  0- 7) - bridge type (hi bh)
  * - p2 = (bit  8-11) - rail type or road types.
  * - p2 = (bit 12-13) - transport type.
+ * - p2 = (bit 16-31) - the town that is building the road (if applicable)
  * @param text unused
  * @return the cost of this operation or an error
  */
@@ -383,7 +390,7 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 	/* type of bridge */
 	switch (Extract<TransportType, 12, 2>(p2)) {
 		case TRANSPORT_ROAD:
-			return BuildRoadBridge(p1, end_tile, bridge_type, Extract<RoadTypes, 8, 2>(p2), flags);
+			return BuildRoadBridge(p1, end_tile, bridge_type, Extract<RoadTypes, 8, 2>(p2), GB(p2, 16, 16), flags);
 
 		case TRANSPORT_RAIL:
 			return BuildRailBridge(p1, end_tile, bridge_type, Extract<RailType, 8, 4>(p2), flags);
