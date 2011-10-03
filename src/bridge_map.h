@@ -65,18 +65,6 @@ static inline BridgeType GetRailBridgeType(TileIndex t)
 }
 
 /**
- * Determines the type of road bridge on a tile
- * @param t The tile to analyze
- * @pre IsRoadBridgeTile(t)
- * @return The bridge type
- */
-static inline BridgeType GetRoadBridgeType(TileIndex t)
-{
-	assert(IsRoadBridgeTile(t));
-	return GB(_mc[t].m7, 0, 4);
-}
-
-/**
  * Set the type of rail bridge on a tile
  * @param t The tile to set
  * @param type The type to set
@@ -85,17 +73,6 @@ static inline void SetRailBridgeType(TileIndex t, BridgeType type)
 {
 	assert(IsRailBridgeTile(t));
 	SB(_mc[t].m2, 12, 4, type);
-}
-
-/**
- * Set the type of road bridge on a tile
- * @param t The tile to set
- * @param type The type to set
- */
-static inline void SetRoadBridgeType(TileIndex t, BridgeType type)
-{
-	assert(IsRoadBridgeTile(t));
-	SB(_mc[t].m7, 0, 4, type);
 }
 
 /**
@@ -177,26 +154,6 @@ static inline void MakeBridgeRamp(TileIndex t, Owner o, DiagDirection d, uint rt
 	_mc[t].m5 = 0;
 	SB(_mc[t].m0, 2, 2, 0);
 	_mc[t].m7 = 0;
-}
-
-/**
- * Make a bridge ramp for roads.
- * @param t          the tile to make a bridge ramp
- * @param owner_road the new owner of the road on the bridge
- * @param owner_tram the new owner of the tram on the bridge
- * @param bridgetype the type of bridge this bridge ramp belongs to
- * @param d          the direction this ramp must be facing
- * @param r          the road type of the bridge
- * @param town       owner/closest town ID
- */
-static inline void MakeRoadBridgeRamp(TileIndex t, Owner owner_road, Owner owner_tram, BridgeType bridgetype, DiagDirection d, RoadTypes r, uint town)
-{
-	SetTileTypeSubtype(t, TT_ROAD, TT_BRIDGE);
-	MakeBridgeRamp(t, owner_road, d, 0);
-	SB(_mc[t].m7, 0, 4, bridgetype);
-	if (owner_tram != OWNER_TOWN) SetRoadOwner(t, ROADTYPE_TRAM, owner_tram);
-	SetRoadTypes(t, r);
-	_mc[t].m2 = town;
 }
 
 /**
