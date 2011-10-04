@@ -35,11 +35,13 @@ RoadBits GetAnyRoadBits(TileIndex tile, RoadType rt, bool tunnel_bridge_entrance
 	if (!HasTileRoadType(tile, rt)) return ROAD_NONE;
 
 	switch (GetTileType(tile)) {
-		case TT_ROAD:
-			if (IsTileSubtype(tile, TT_TRACK)) return GetRoadBits(tile, rt);
-			return tunnel_bridge_entrance ?
-					AxisToRoadBits(DiagDirToAxis(GetTunnelBridgeDirection(tile))) :
-					DiagDirToRoadBits(ReverseDiagDir(GetTunnelBridgeDirection(tile)));
+		case TT_ROAD: {
+			RoadBits bits = GetRoadBits(tile, rt);
+			if (!tunnel_bridge_entrance && IsTileSubtype(tile, TT_BRIDGE)) {
+				bits &= ~DiagDirToRoadBits(GetTunnelBridgeDirection(tile));
+			}
+			return bits;
+		}
 
 		case TT_MISC:
 			switch (GetTileSubtype(tile)) {

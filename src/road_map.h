@@ -79,7 +79,7 @@ static inline RoadBits GetAllRoadBits(TileIndex tile)
  */
 static inline void SetRoadBits(TileIndex t, RoadBits r, RoadType rt)
 {
-	assert(IsRoadTile(t)); // XXX incomplete
+	assert(IsRoadTile(t));
 	switch (rt) {
 		default: NOT_REACHED();
 		case ROADTYPE_ROAD: SB(_mc[t].m4, 0, 4, r); break;
@@ -507,11 +507,11 @@ static inline void MakeRoadBridgeRamp(TileIndex t, Owner owner_road, Owner owner
 	SetTileOwner(t, owner_road);
 	_mc[t].m2 = town;
 	_mc[t].m3 = d << 6;
-	_mc[t].m4 = 0;
+	RoadBits bits = AxisToRoadBits(DiagDirToAxis(d));
+	_mc[t].m4 = (HasBit(r, ROADTYPE_ROAD) ? bits : 0) | ((HasBit(r, ROADTYPE_TRAM) ? bits : 0) << 4);
 	_mc[t].m5 = 0;
-	_mc[t].m7 = bridgetype;
+	_mc[t].m7 = bridgetype | (r << 6);
 	if (owner_tram != OWNER_TOWN) SetRoadOwner(t, ROADTYPE_TRAM, owner_tram);
-	SetRoadTypes(t, r);
 }
 
 /**

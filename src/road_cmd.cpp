@@ -291,7 +291,9 @@ static CommandCost RemoveRoad_Bridge(TileIndex tile, DoCommandFlag flags, RoadBi
 			DirtyCompanyInfrastructureWindows(c->index);
 		}
 
+		SetRoadBits(other_end, ROAD_NONE, rt);
 		SetRoadTypes(other_end, GetRoadTypes(other_end) & ~RoadTypeToRoadTypes(rt));
+		SetRoadBits(tile, ROAD_NONE, rt);
 		SetRoadTypes(tile, GetRoadTypes(tile) & ~RoadTypeToRoadTypes(rt));
 
 		/* If the owner of the bridge sells all its road, also move the ownership
@@ -759,8 +761,10 @@ static CommandCost BuildRoad_Road(TileIndex tile, DoCommandFlag flags, RoadType 
  */
 static CommandCost BuildRoad_Bridge(TileIndex tile, DoCommandFlag flags, RoadType rt, RoadBits pieces, CompanyID company, TownID town, DisallowedRoadDirections drd)
 {
+	DiagDirection dir = GetTunnelBridgeDirection(tile);
+
 	/* Only allow building the outern roadbit, so building long roads stops at existing bridges */
-	if (pieces != DiagDirToRoadBits(ReverseDiagDir(GetTunnelBridgeDirection(tile)))) {
+	if (pieces != DiagDirToRoadBits(ReverseDiagDir(dir))) {
 		return BuildRoad_Clear(tile, flags, rt, pieces, company, town, drd);
 	}
 
@@ -778,11 +782,13 @@ static CommandCost BuildRoad_Bridge(TileIndex tile, DoCommandFlag flags, RoadTyp
 	if (flags & DC_EXEC) {
 		SetRoadTypes(other_end, GetRoadTypes(other_end) | RoadTypeToRoadTypes(rt));
 		SetRoadTypes(tile, GetRoadTypes(tile) | RoadTypeToRoadTypes(rt));
+		SetRoadBits(other_end, AxisToRoadBits(DiagDirToAxis(dir)), rt);
+		SetRoadBits(tile, AxisToRoadBits(DiagDirToAxis(dir)), rt);
 		SetRoadOwner(other_end, rt, company);
 		SetRoadOwner(tile, rt, company);
 
 		/* Mark tiles dirty that have been repaved */
-		MarkBridgeTilesDirty(tile, other_end, GetTunnelBridgeDirection(tile));
+		MarkBridgeTilesDirty(tile, other_end, dir);
 
 		/* Update company infrastructure count. */
 		Company *c = Company::GetIfValid(GetRoadOwner(tile, rt));

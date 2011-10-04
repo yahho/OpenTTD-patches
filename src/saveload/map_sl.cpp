@@ -910,6 +910,17 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			}
 		}
 	}
+
+	/* Add road layout to road bridgeheads */
+	if (IsFullSavegameVersionBefore(stv, 7)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsTileTypeSubtype(t, TT_ROAD, TT_BRIDGE)) {
+				RoadBits bits = AxisToRoadBits(DiagDirToAxis((DiagDirection)GB(_mc[t].m3, 6, 2)));
+				SB(_mc[t].m4, 0, 4, HasBit(_mc[t].m7, 6) ? bits : 0);
+				SB(_mc[t].m4, 4, 4, HasBit(_mc[t].m7, 7) ? bits : 0);
+			}
+		}
+	}
 }
 
 
