@@ -23,22 +23,21 @@
  * - bridge ramps: start of the ramp is treated as road piece
  * - bridge middle parts: bridge itself is ignored
  *
- * If straight_tunnel_bridge_entrance is set a ROAD_X or ROAD_Y
- * for bridge ramps and tunnel entrances is returned depending
- * on the orientation of the tunnel or bridge.
+ * If tunnel_bridge_entrance is set then the road bit that leads
+ * into the tunnel/bridge is also returned
  * @param tile the tile to get the road bits for
  * @param rt   the road type to get the road bits form
- * @param straight_tunnel_bridge_entrance whether to return straight road bits for tunnels/bridges.
+ * @param tunnel_bridge_entrance whether to return the road bit that leads into a tunnel/bridge.
  * @return the road bits of the given tile
  */
-RoadBits GetAnyRoadBits(TileIndex tile, RoadType rt, bool straight_tunnel_bridge_entrance)
+RoadBits GetAnyRoadBits(TileIndex tile, RoadType rt, bool tunnel_bridge_entrance)
 {
 	if (!HasTileRoadType(tile, rt)) return ROAD_NONE;
 
 	switch (GetTileType(tile)) {
 		case TT_ROAD:
 			if (IsTileSubtype(tile, TT_TRACK)) return GetRoadBits(tile, rt);
-			return straight_tunnel_bridge_entrance ?
+			return tunnel_bridge_entrance ?
 					AxisToRoadBits(DiagDirToAxis(GetTunnelBridgeDirection(tile))) :
 					DiagDirToRoadBits(ReverseDiagDir(GetTunnelBridgeDirection(tile)));
 
@@ -50,7 +49,7 @@ RoadBits GetAnyRoadBits(TileIndex tile, RoadType rt, bool straight_tunnel_bridge
 				case TT_MISC_DEPOT:    return IsRoadDepot(tile) ? DiagDirToRoadBits(GetGroundDepotDirection(tile)) : ROAD_NONE;
 				case TT_MISC_TUNNEL:
 					if (GetTunnelTransportType(tile) != TRANSPORT_ROAD) return ROAD_NONE;
-					return straight_tunnel_bridge_entrance ?
+					return tunnel_bridge_entrance ?
 							AxisToRoadBits(DiagDirToAxis(GetTunnelBridgeDirection(tile))) :
 							DiagDirToRoadBits(ReverseDiagDir(GetTunnelBridgeDirection(tile)));
 			}

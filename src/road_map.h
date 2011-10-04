@@ -465,7 +465,7 @@ static inline void SetRoadBridgeType(TileIndex t, BridgeType type)
 }
 
 
-RoadBits GetAnyRoadBits(TileIndex tile, RoadType rt, bool straight_tunnel_bridge_entrance = false);
+RoadBits GetAnyRoadBits(TileIndex tile, RoadType rt, bool tunnel_bridge_entrance = false);
 
 
 /**
