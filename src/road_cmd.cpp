@@ -434,36 +434,37 @@ CommandCost RemoveRoad(TileIndex tile, DoCommandFlag flags, RoadBits pieces, Roa
 
 /**
  * Calculate the costs for roads on slopes
- *  Aside modify the RoadBits to fit on the slopes
+ * Also compute the road bits that have to be built to fit the slope
  *
- * @note The RoadBits are modified too!
  * @param tileh The current slope
  * @param pieces The RoadBits we want to add
  * @param existing The existent RoadBits of the current type
- * @param other The other existent RoadBits
+ * @param other The existent RoadBits for the other type
+ * @param build The actual RoadBits to build
  * @return The costs for these RoadBits on this slope
  */
-static CommandCost CheckRoadSlope(Slope tileh, RoadBits *pieces, RoadBits existing, RoadBits other)
+static CommandCost CheckRoadSlope(Slope tileh, RoadBits pieces, RoadBits existing, RoadBits other, RoadBits *build)
 {
 	/* Remove already build pieces */
-	CLRBITS(*pieces, existing);
+	CLRBITS(pieces, existing);
 
 	/* If we can't build anything stop here */
-	if (*pieces == ROAD_NONE) return CMD_ERROR;
+	if (pieces == ROAD_NONE) return CMD_ERROR;
 
 	/* All RoadBit combos are valid on flat land */
-	if (tileh == SLOPE_FLAT) return CommandCost();
+	if (tileh == SLOPE_FLAT) {
+		if (build != NULL) *build = pieces;
+		return CommandCost();
+	}
 
 	/* Steep slopes behave the same as slopes with one corner raised. */
 	if (IsSteepSlope(tileh)) {
 		tileh = SlopeWithOneCornerRaised(GetHighestSlopeCorner(tileh));
 	}
 
-	/* Save the merge of all bits of the current type */
-	RoadBits type_bits = existing | *pieces;
-
 	/* Roads on slopes */
-	if (_settings_game.construction.build_on_slopes && (_invalid_leveled_roadbits[tileh] & (other | type_bits)) == ROAD_NONE) {
+	if (_settings_game.construction.build_on_slopes && (_invalid_leveled_roadbits[tileh] & (other | existing | pieces)) == ROAD_NONE) {
+		if (build != NULL) *build = pieces;
 
 		/* If we add leveling we've got to pay for it */
 		if ((other | existing) == ROAD_NONE) return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
@@ -472,26 +473,26 @@ static CommandCost CheckRoadSlope(Slope tileh, RoadBits *pieces, RoadBits existi
 	}
 
 	/* Autocomplete uphill roads */
-	*pieces |= MirrorRoadBits(*pieces);
-	type_bits = existing | *pieces;
+	pieces |= MirrorRoadBits(pieces);
+	RoadBits type_bits = existing | pieces;
 
 	/* Uphill roads */
 	if (IsStraightRoad(type_bits) && (other == type_bits || other == ROAD_NONE) &&
-			(_invalid_straight_roadbits[tileh] & (other | type_bits)) == ROAD_NONE) {
-
-		/* Slopes with foundation ? */
-		if (IsSlopeWithOneCornerRaised(tileh)) {
-
-			/* Prevent build on slopes if it isn't allowed */
-			if (_settings_game.construction.build_on_slopes) {
-
-				/* If we add foundation we've got to pay for it */
-				if ((other | existing) == ROAD_NONE) return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
-
-				return CommandCost();
-			}
-		} else {
+			(_invalid_straight_roadbits[tileh] & type_bits) == ROAD_NONE) {
+		/* Slopes without foundation */
+		if (!IsSlopeWithOneCornerRaised(tileh)) {
+			if (build != NULL) *build = pieces;
 			if (HasExactlyOneBit(existing) && GetRoadFoundation(tileh, existing) == FOUNDATION_NONE) return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
+			return CommandCost();
+		}
+
+		/* Prevent build on slopes if it isn't allowed */
+		if (_settings_game.construction.build_on_slopes) {
+			if (build != NULL) *build = pieces;
+
+			/* If we add foundation we've got to pay for it */
+			if ((other | existing) == ROAD_NONE) return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
+
 			return CommandCost();
 		}
 	}
@@ -721,7 +722,7 @@ do_clear:;
 
 	if (other_bits != pieces) {
 		/* Check the foundation/slopes when adding road/tram bits */
-		CommandCost ret = CheckRoadSlope(tileh, &pieces, existing, other_bits);
+		CommandCost ret = CheckRoadSlope(tileh, pieces, existing, other_bits, &pieces);
 		/* Return an error if we need to build a foundation (ret != 0) but the
 		 * current setting is turned off */
 		if (ret.Failed() || (ret.GetCost() != 0 && !_settings_game.construction.build_on_slopes)) {
@@ -1799,11 +1800,10 @@ static CommandCost TerraformTile_Road(TileIndex tile, DoCommandFlag flags, int z
 	if (_settings_game.construction.build_on_slopes && AutoslopeEnabled()) {
 		if (IsTileSubtype(tile, TT_TRACK)) {
 			RoadBits bits = GetAllRoadBits(tile);
-			RoadBits bits_copy = bits;
+			RoadBits bits_new;
 			/* Check if the slope-road_bits combination is valid at all, i.e. it is safe to call GetRoadFoundation(). */
-			if (CheckRoadSlope(tileh_new, &bits_copy, ROAD_NONE, ROAD_NONE).Succeeded()) {
-				/* CheckRoadSlope() sometimes changes the road_bits, if it does not agree with them. */
-				if (bits == bits_copy) {
+			if (CheckRoadSlope(tileh_new, bits, ROAD_NONE, ROAD_NONE, &bits_new).Succeeded()) {
+				if (bits == bits_new) {
 					int z_old;
 					Slope tileh_old = GetTileSlope(tile, &z_old);
 
