@@ -773,7 +773,11 @@ static inline bool ForceReverse(TileIndex tile, DiagDirection dir, TransportType
 static bool CanEnterTile(TileIndex tile, DiagDirection dir, TransportType type, uint subtype, RailTypes railtypes, Owner owner)
 {
 	/* Check tunnel entries and bridge ramps */
-	if ((IsTunnelTile(tile) || IsBridgeHeadTile(tile)) && GetTunnelBridgeDirection(tile) != dir) return false;
+	if (IsTunnelTile(tile)) {
+		if (GetTunnelBridgeDirection(tile) != dir) return false;
+	} else if (IsBridgeHeadTile(tile)) {
+		if (GetTunnelBridgeDirection(tile) == ReverseDiagDir(dir)) return false;
+	}
 
 	/* Test ownership */
 	if (!CanEnterTileOwnerCheck(owner, tile, dir)) return false;

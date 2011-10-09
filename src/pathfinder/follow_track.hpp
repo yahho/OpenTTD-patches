@@ -189,18 +189,22 @@ protected:
 	/** Follow the m_exitdir from m_old_tile and fill m_new_tile and m_tiles_skipped */
 	inline void FollowTileExit()
 	{
-		/* extra handling for tunnels and bridges in our direction */
-		if (IsTunnelTile(m_old_tile) || IsBridgeHeadTile(m_old_tile)) {
+		/* extra handling for bridges in our direction */
+		if (IsBridgeHeadTile(m_old_tile)) {
+			if (m_exitdir == GetTunnelBridgeDirection(m_old_tile)) {
+				/* we are entering the bridge */
+				m_flag = TF_BRIDGE;
+				m_new_tile = GetOtherBridgeEnd(m_old_tile);
+				m_tiles_skipped = GetTunnelBridgeLength(m_new_tile, m_old_tile);
+				return;
+			}
+		/* extra handling for tunnels in our direction */
+		} else if (IsTunnelTile(m_old_tile)) {
 			DiagDirection enterdir = GetTunnelBridgeDirection(m_old_tile);
 			if (enterdir == m_exitdir) {
-				/* we are entering the tunnel / bridge */
-				if (IsTunnelTile(m_old_tile)) {
-					m_flag = TF_TUNNEL;
-					m_new_tile = GetOtherTunnelEnd(m_old_tile);
-				} else {
-					m_flag = TF_BRIDGE;
-					m_new_tile = GetOtherBridgeEnd(m_old_tile);
-				}
+				/* we are entering the tunnel */
+				m_flag = TF_TUNNEL;
+				m_new_tile = GetOtherTunnelEnd(m_old_tile);
 				m_tiles_skipped = GetTunnelBridgeLength(m_new_tile, m_old_tile);
 				return;
 			}
@@ -366,7 +370,7 @@ protected:
 		} else if (IsBridgeHeadTile(m_new_tile)) {
 			if (m_flag != TF_BRIDGE) {
 				DiagDirection ramp_enderdir = GetTunnelBridgeDirection(m_new_tile);
-				if (ramp_enderdir != m_exitdir) {
+				if (ramp_enderdir == ReverseDiagDir(m_exitdir)) {
 					m_err = EC_NO_WAY;
 					return false;
 				}
