@@ -3282,8 +3282,13 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 		if (enterdir == INVALID_DIAGDIR) {
 			/* Staying on the same tile */
 
-			/* Reverse when we are at the end of the track already, do not move to the new position */
-			if (!new_in_wormhole && v->IsFrontEngine() && !TrainCheckIfLineEnds(v, reverse)) return false;
+			if (new_in_wormhole) {
+				/* Needed to test whether to call CheckNextTrainTile */
+				gp.old_tile = TileVirtXY(v->x_pos, v->y_pos);
+			} else {
+				/* Reverse when we are at the end of the track already, do not move to the new position */
+				if (v->IsFrontEngine() && !TrainCheckIfLineEnds(v, reverse)) return false;
+			}
 		} else {
 			/* Entering a new tile */
 
@@ -3436,6 +3441,8 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 
 			if (new_in_wormhole) {
 				/* Just entered the wormhole */
+				assert(gp.old_tile == TileVirtXY(v->x_pos, v->y_pos));
+
 				v->tile = gp.new_tile;
 				v->trackdir = TRACKDIR_WORMHOLE;
 			} else {
@@ -3449,22 +3456,25 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				}
 			}
 
-			if (!new_in_wormhole) {
+			Direction chosen_dir;
+			if (new_in_wormhole) {
+				chosen_dir = DiagDirToDir(enterdir);
+			} else {
 				/* Update XY to reflect the entrance to the new tile, and select the direction to use */
 				const byte *b = _initial_tile_subcoord[chosen_trackdir];
 				gp.x = (gp.x & ~0xF) | b[0];
 				gp.y = (gp.y & ~0xF) | b[1];
-				Direction chosen_dir = (Direction)b[2];
+				chosen_dir = (Direction)b[2];
+			}
 
-				if (chosen_dir != v->direction) {
-					if (prev == NULL && _settings_game.vehicle.train_acceleration_model == AM_ORIGINAL) {
-						const AccelerationSlowdownParams *asp = &_accel_slowdown[GetRailTypeInfo(v->railtype)->acceleration_type];
-						DirDiff diff = DirDifference(v->direction, chosen_dir);
-						v->cur_speed -= (diff == DIRDIFF_45RIGHT || diff == DIRDIFF_45LEFT ? asp->small_turn : asp->large_turn) * v->cur_speed >> 8;
-					}
-					direction_changed = true;
-					v->direction = chosen_dir;
+			if (chosen_dir != v->direction) {
+				if (prev == NULL && _settings_game.vehicle.train_acceleration_model == AM_ORIGINAL) {
+					const AccelerationSlowdownParams *asp = &_accel_slowdown[GetRailTypeInfo(v->railtype)->acceleration_type];
+					DirDiff diff = DirDifference(v->direction, chosen_dir);
+					v->cur_speed -= (diff == DIRDIFF_45RIGHT || diff == DIRDIFF_45LEFT ? asp->small_turn : asp->large_turn) * v->cur_speed >> 8;
 				}
+				direction_changed = true;
+				v->direction = chosen_dir;
 			}
 
 			/* update image of train, as well as delta XY */
@@ -3499,10 +3509,10 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 		if (enterdir != INVALID_DIAGDIR) {
 			/* Update signals or crossing state if we changed tile */
 			/* Signals can only change when the first or the last vehicle moves. */
-			if (v->Next() == NULL && !old_in_wormhole) {
+			if (v->Next() == NULL) {
 				/* Update the signal segment added before, if any */
 				UpdateSignalsInBuffer();
-				if (IsLevelCrossingTile(gp.old_tile)) UpdateLevelCrossing(gp.old_tile);
+				if (!old_in_wormhole && IsLevelCrossingTile(gp.old_tile)) UpdateLevelCrossing(gp.old_tile);
 			}
 
 			if (v->IsFrontEngine()) {
@@ -3536,15 +3546,27 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 		if (v->IsFrontEngine()) {
 			v->wait_counter = 0;
 
-			/* If we are approaching a crossing that is reserved, play the sound now. */
-			TileIndex crossing = TrainApproachingCrossingTile(v);
-			if (crossing != INVALID_TILE && HasCrossingReservation(crossing) && _settings_client.sound.ambient) SndPlayTileFx(SND_0E_LEVEL_CROSSING, crossing);
+			bool check_next_tile;
 
 			/* Always try to extend the reservation when entering a tile.
 			 * Otherwise, do not check on every tick to save some computing time. */
-			if (!new_in_wormhole && (enterdir != INVALID_DIAGDIR || v->tick_counter % _settings_game.pf.path_backoff_interval == 0)) {
-				CheckNextTrainTile(v);
+			if (new_in_wormhole) {
+				if (old_in_wormhole) {
+					TileIndex last_wormhole_tile = TileAddByDiagDir(v->tile, GetTunnelBridgeDirection(v->tile));
+					check_next_tile = (gp.new_tile == last_wormhole_tile) && (gp.new_tile != gp.old_tile || v->tick_counter % _settings_game.pf.path_backoff_interval == 0);
+				} else {
+					TileIndexDiff diff = TileOffsByDiagDir(GetTunnelBridgeDirection(v->tile));
+					check_next_tile = (gp.old_tile == TILE_ADD(v->tile, 2*diff));
+				}
+			} else {
+				/* If we are approaching a crossing that is reserved, play the sound now. */
+				TileIndex crossing = TrainApproachingCrossingTile(v);
+				if (crossing != INVALID_TILE && HasCrossingReservation(crossing) && _settings_client.sound.ambient) SndPlayTileFx(SND_0E_LEVEL_CROSSING, crossing);
+
+				check_next_tile = (enterdir != INVALID_DIAGDIR) || (v->tick_counter % _settings_game.pf.path_backoff_interval == 0);
 			}
+
+			if (check_next_tile) CheckNextTrainTile(v);
 		}
 	}
 
@@ -3811,7 +3833,11 @@ static bool TrainCanLeaveTile(const Train *v)
 	TileIndex tile = v->tile;
 
 	/* entering a tunnel/bridge? */
-	if (IsTunnelTile(tile) || IsRailBridgeTile(tile)) {
+	if (IsRailBridgeTile(tile)) {
+		if (TrackdirToExitdir(v->trackdir) == GetTunnelBridgeDirection(tile)) return false;
+	}
+
+	if (IsTunnelTile(tile)) {
 		DiagDirection dir = GetTunnelBridgeDirection(tile);
 		if (DiagDirToDir(dir) == v->direction) return false;
 	}
@@ -3872,6 +3898,24 @@ static bool TrainCheckIfLineEnds(Train *v, bool reverse)
 		if (break_speed < v->cur_speed) v->cur_speed = break_speed;
 	} else {
 		v->vehstatus &= ~VS_TRAIN_SLOWING;
+	}
+
+	if (v->trackdir == TRACKDIR_WORMHOLE) {
+		DiagDirection dir = GetTunnelBridgeDirection(v->tile);
+
+		/* Only check when the train is on the last tile segment */
+		if (TileVirtXY(v->x_pos, v->y_pos) != v->tile + TileOffsByDiagDir(dir)) return true;
+
+		TrackStatus ts = GetTileTrackStatus(v->tile, TRANSPORT_RAIL, 0, INVALID_DIAGDIR);
+		TrackdirBits reachable_trackdirs = DiagdirReachesTrackdirs(ReverseDiagDir(dir));
+
+		TrackdirBits trackdirbits = TrackStatusToTrackdirBits(ts) & reachable_trackdirs;
+		TrackdirBits red_signals = TrackStatusToRedSignals(ts) & reachable_trackdirs;
+
+		assert(trackdirbits != TRACKDIR_BIT_NONE);
+		assert(CheckCompatibleRail(v, v->tile, TrackdirToTrack(FindFirstTrackdir(trackdirbits))));
+
+		return (trackdirbits & red_signals) == 0 || TrainApproachingLineEnd(v, true, reverse);
 	}
 
 	if (!TrainCanLeaveTile(v)) return true;
