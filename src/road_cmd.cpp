@@ -880,43 +880,101 @@ static CommandCost BuildRoad_Road(TileIndex tile, DoCommandFlag flags, RoadType 
 static CommandCost BuildRoad_Bridge(TileIndex tile, DoCommandFlag flags, RoadType rt, RoadBits pieces, CompanyID company, TownID town, DisallowedRoadDirections drd)
 {
 	DiagDirection dir = GetTunnelBridgeDirection(tile);
+	Slope tileh = GetTileSlope(tile);
+	uint num;
+	bool other_end;
 
-	/* Only allow building the outern roadbit, so building long roads stops at existing bridges */
-	if (pieces != DiagDirToRoadBits(ReverseDiagDir(dir))) {
-		return BuildRoad_Clear(tile, flags, rt, pieces, company, town, drd);
+	if (HasBridgeFlatRamp(tileh, DiagDirToAxis(dir))) {
+		RoadBits existing = GetRoadBits(tile, rt);
+		pieces &= ~existing;
+		if (pieces == ROAD_NONE) return_cmd_error(STR_ERROR_ALREADY_BUILT);
+
+		if (!IsValidRoadBridgeBits(tileh, dir, existing | pieces)) {
+			return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
+		}
+
+		num = CountBits(pieces);
+		other_end = (pieces & DiagDirToRoadBits(dir)) != 0;
+		pieces |= existing;
+	} else {
+		/* Only allow building the outern roadbit, so building long roads stops at existing bridges */
+		if (pieces != DiagDirToRoadBits(ReverseDiagDir(dir))) {
+			return BuildRoad_Clear(tile, flags, rt, pieces, company, town, drd);
+		}
+
+		if (HasTileRoadType(tile, rt)) return_cmd_error(STR_ERROR_ALREADY_BUILT);
+
+		pieces = AxisToRoadBits(DiagDirToAxis(dir));
+		num = 2;
+		other_end = true;
 	}
 
-	if (HasTileRoadType(tile, rt)) return_cmd_error(STR_ERROR_ALREADY_BUILT);
+	TileIndex other_tile;
+	RoadBits other_pieces;
 
-	TileIndex other_end = GetOtherBridgeEnd(tile);
+	if (other_end) {
+		other_tile = GetOtherBridgeEnd(tile);
 
-	/* Don't allow adding roadtype to the bridge when vehicles are already driving on it */
-	CommandCost ret = TunnelBridgeIsFree(tile, other_end);
-	if (ret.Failed()) return ret;
+		/* Don't allow adding roadtype to the bridge when vehicles are already driving on it */
+		CommandCost ret = TunnelBridgeIsFree(tile, other_tile);
+		if (ret.Failed()) return ret;
 
-	/* There are 2 pieces on *every* tile of the bridge */
-	uint num_pieces = 2 * (GetTunnelBridgeLength(tile, other_end) + 2);
+		/* Don't allow to mix owners */
+		CompanyID new_owner   = HasTileRoadType(tile, rt) ? GetRoadOwner(tile, rt) : company;
+		CompanyID other_owner = HasTileRoadType(other_tile, rt) ? GetRoadOwner(other_tile, rt) : company;
+		if (new_owner != other_owner) return CMD_ERROR;
+
+		num += 2 * GetTunnelBridgeLength(tile, other_tile);
+
+		if (IsExtendedRoadBridge(other_tile)) {
+			other_pieces = GetRoadBits(other_tile, rt) | DiagDirToRoadBits(ReverseDiagDir(dir));
+			num++;
+		} else {
+			assert(GetRoadBits(other_tile, rt) == ROAD_NONE);
+			other_pieces = AxisToRoadBits(DiagDirToAxis(dir));
+			num += 2;
+		}
+	} else {
+		CommandCost ret = EnsureNoVehicleOnGround(tile);
+		if (ret.Failed()) return ret;
+	}
 
 	if (flags & DC_EXEC) {
-		SetRoadTypes(other_end, GetRoadTypes(other_end) | RoadTypeToRoadTypes(rt));
-		SetRoadTypes(tile, GetRoadTypes(tile) | RoadTypeToRoadTypes(rt));
-		SetRoadBits(other_end, AxisToRoadBits(DiagDirToAxis(dir)), rt);
-		SetRoadBits(tile, AxisToRoadBits(DiagDirToAxis(dir)), rt);
-		SetRoadOwner(other_end, rt, company);
-		SetRoadOwner(tile, rt, company);
+		if (other_end) {
+			/* Update company infrastructure count. */
+			Company *c = Company::GetIfValid(GetRoadOwner(tile, rt));
+			if (c != NULL) {
+				uint existing = CountBits(GetRoadBits(tile, rt)) + CountBits(GetRoadBits(other_tile, rt));
+				c->infrastructure.road[rt] -= existing;
+				c->infrastructure.road[rt] += (existing + num) * TUNNELBRIDGE_TRACKBIT_FACTOR;
+				DirtyCompanyInfrastructureWindows(c->index);
+			}
 
-		/* Mark tiles dirty that have been repaved */
-		MarkBridgeTilesDirty(tile, other_end, dir);
+			if (!HasTileRoadType(other_tile, rt)) {
+				SetRoadTypes(other_tile, GetRoadTypes(other_tile) | RoadTypeToRoadTypes(rt));
+				SetRoadOwner(other_tile, rt, company);
+			}
+			SetRoadBits(other_tile, other_pieces, rt);
 
-		/* Update company infrastructure count. */
-		Company *c = Company::GetIfValid(GetRoadOwner(tile, rt));
-		if (c != NULL) {
-			c->infrastructure.road[rt] += num_pieces * TUNNELBRIDGE_TRACKBIT_FACTOR;
-			DirtyCompanyInfrastructureWindows(c->index);
+			MarkBridgeTilesDirty(tile, other_tile, dir, false);
+		} else {
+			/* Update company infrastructure count. */
+			Company *c = Company::GetIfValid(GetRoadOwner(tile, rt));
+			if (c != NULL) {
+				c->infrastructure.road[rt] += (pieces & DiagDirToRoadBits(dir)) != 0 ? num * TUNNELBRIDGE_TRACKBIT_FACTOR : num;
+				DirtyCompanyInfrastructureWindows(c->index);
+			}
 		}
+
+		if (!HasTileRoadType(tile, rt)) {
+			SetRoadTypes(tile, GetRoadTypes(tile) | RoadTypeToRoadTypes(rt));
+			SetRoadOwner(tile, rt, company);
+		}
+		SetRoadBits(tile, pieces, rt);
+		MarkTileDirtyByTile(tile);
 	}
 
-	return CommandCost(EXPENSES_CONSTRUCTION, num_pieces * _price[PR_BUILD_ROAD]);
+	return CommandCost(EXPENSES_CONSTRUCTION, num * _price[PR_BUILD_ROAD]);
 }
 
 /**
