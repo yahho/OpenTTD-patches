@@ -531,6 +531,19 @@ static inline void MakeRoadBridgeRamp(TileIndex t, Owner owner_road, Owner owner
 }
 
 /**
+ * Make a normal road tile from a road bridge ramp.
+ * @param t the tile to make a normal road
+ * @note roadbits will have to be adjusted when this function is called
+ */
+static inline void MakeNormalRoadFromBridge(TileIndex t)
+{
+	assert(IsRoadBridgeTile(t));
+	SetTileTypeSubtype(t, TT_ROAD, TT_TRACK);
+	SB(_mc[t].m3, 6, 2, 0);
+	SB(_mc[t].m7, 0, 4, 0);
+}
+
+/**
  * Make a level crossing.
  * @param t       Tile to make a level crossing.
  * @param road    New owner of road.

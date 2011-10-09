@@ -1436,26 +1436,54 @@ static CommandCost ClearTile_Road(TileIndex tile, DoCommandFlag flags)
 			ChangeTownRating(t, RATING_TUNNEL_BRIDGE_DOWN_STEP, RATING_TUNNEL_BRIDGE_MINIMUM, flags);
 		}
 
-		uint len = GetTunnelBridgeLength(tile, endtile) + 2; // Don't forget the end tiles.
+		uint len = GetTunnelBridgeLength(tile, endtile);
 
 		if (flags & DC_EXEC) {
-			/* Update company infrastructure counts. */
+			RemoveBridgeMiddleTiles(tile, endtile);
+
+			DiagDirection dir = GetTunnelBridgeDirection(tile);
+			RoadBits bridge_piece = DiagDirToRoadBits(dir);
+			RoadBits other_nonbridge_pieces = ComplementRoadBits(DiagDirToRoadBits(ReverseDiagDir(dir)));
+			bool other_extended = IsExtendedRoadBridge(endtile);
+
+			MakeNormalRoadFromBridge(endtile);
+
 			RoadType rt;
 			FOR_EACH_SET_ROADTYPE(rt, GetRoadTypes(tile)) {
 				Company *c = Company::GetIfValid(GetRoadOwner(tile, rt));
-				if (c != NULL) {
-					/* A full diagonal road tile has two road bits. */
-					c->infrastructure.road[rt] -= len * 2 * TUNNELBRIDGE_TRACKBIT_FACTOR;
-					DirtyCompanyInfrastructureWindows(c->index);
+				RoadBits pieces = GetRoadBits(tile, rt);
+
+				if ((pieces & bridge_piece) == 0) {
+					/* This roadtype does not connect to the bridge */
+					if (c != NULL) {
+						c->infrastructure.road[rt] -= CountBits(pieces);
+						DirtyCompanyInfrastructureWindows(c->index);
+					}
+				} else {
+					/* This roadtype connects to the bridge */
+					RoadBits other_pieces = GetRoadBits(endtile, rt);
+
+					if (c != NULL) {
+						/* A full diagonal road tile has two road bits. */
+						c->infrastructure.road[rt] -= (CountBits(pieces) + 2 * len + CountBits(other_pieces)) * TUNNELBRIDGE_TRACKBIT_FACTOR;
+						DirtyCompanyInfrastructureWindows(c->index);
+					}
+
+					if (other_extended && ((other_pieces &= other_nonbridge_pieces) != 0)) {
+						SetRoadBits(endtile, other_pieces, rt);
+						if (c != NULL) c->infrastructure.road[rt] += CountBits(other_pieces);
+					} else {
+						ClearRoadType(endtile, rt);
+					}
 				}
+
 			}
 
-			RemoveBridgeMiddleTiles(tile, endtile);
 			DoClearSquare(tile);
-			DoClearSquare(endtile);
+			MarkTileDirtyByTile(endtile);
 		}
 
-		return CommandCost(EXPENSES_CONSTRUCTION, len * _price[PR_CLEAR_BRIDGE]);
+		return CommandCost(EXPENSES_CONSTRUCTION, (len + 2) * _price[PR_CLEAR_BRIDGE]);
 	}
 }
 
@@ -1575,7 +1603,9 @@ static void DrawRoadBits(TileInfo *ti)
 	PaletteID pal = PAL_NONE;
 
 	if (ti->tileh != SLOPE_FLAT) {
-		DrawFoundation(ti, GetRoadFoundation(ti->tileh, road | tram));
+		Foundation f = IsTileSubtype(ti->tile, TT_TRACK) ? GetRoadFoundation(ti->tileh, road | tram) : FOUNDATION_LEVELED;
+
+		DrawFoundation(ti, f);
 
 		/* DrawFoundation() modifies ti.
 		 * Default sloped sprites.. */
@@ -1584,7 +1614,7 @@ static void DrawRoadBits(TileInfo *ti)
 
 	if (image == 0) image = _road_tile_sprites_1[road != ROAD_NONE ? road : tram];
 
-	Roadside roadside = GetRoadside(ti->tile);
+	Roadside roadside = IsTileSubtype(ti->tile, TT_TRACK) ? GetRoadside(ti->tile) : ROADSIDE_GRASS;
 
 	if (AlwaysDrawUnpavedRoads(ti->tile, roadside)) {
 		image += 19;
@@ -1612,20 +1642,22 @@ static void DrawRoadBits(TileInfo *ti)
 		DrawGroundSprite(image, pal);
 	}
 
-	if (road != ROAD_NONE) {
+	if (IsTileSubtype(ti->tile, TT_TRACK) && road != ROAD_NONE) {
 		DisallowedRoadDirections drd = GetDisallowedRoadDirections(ti->tile);
 		if (drd != DRD_NONE) {
 			DrawGroundSpriteAt(SPR_ONEWAY_BASE + drd - 1 + ((road == ROAD_X) ? 0 : 3), PAL_NONE, 8, 8, GetPartialPixelZ(8, 8, ti->tileh));
 		}
 	}
 
-	if (HasRoadWorks(ti->tile)) {
+	if (roadside >= ROADSIDE_GRASS_ROAD_WORKS) {
 		/* Road works */
 		DrawGroundSprite((road | tram) & ROAD_X ? SPR_EXCAVATION_X : SPR_EXCAVATION_Y, PAL_NONE);
 		return;
 	}
 
 	if (tram != ROAD_NONE) DrawTramCatenary(ti, tram);
+
+	if (!IsTileSubtype(ti->tile, TT_TRACK)) return;
 
 	/* Return if full detail is disabled, or we are zoomed fully out. */
 	if (!HasBit(_display_opt, DO_FULL_DETAIL) || _cur_dpi->zoom > ZOOM_LVL_DETAIL) return;
@@ -1652,7 +1684,7 @@ static void DrawRoadBits(TileInfo *ti)
 /** Tile callback function for rendering a road tile to the screen */
 static void DrawTile_Road(TileInfo *ti)
 {
-	if (IsTileSubtype(ti->tile, TT_TRACK)) {
+	if (IsTileSubtype(ti->tile, TT_TRACK) || IsExtendedRoadBridge(ti->tile)) {
 		DrawRoadBits(ti);
 	} else {
 		DrawBridgeGround(ti);
@@ -1790,6 +1822,8 @@ static int GetSlopePixelZ_Road(TileIndex tile, uint x, uint y)
 		if (tileh == SLOPE_FLAT) return z;
 		z += ApplyPixelFoundationToSlope(GetRoadFoundation(tileh, GetAllRoadBits(tile)), &tileh);
 		return z + GetPartialPixelZ(x & 0xF, y & 0xF, tileh);
+	} else if (IsExtendedRoadBridge(tile)) {
+		return z + TILE_HEIGHT;
 	} else {
 		x &= 0xF;
 		y &= 0xF;
@@ -1810,7 +1844,9 @@ static int GetSlopePixelZ_Road(TileIndex tile, uint x, uint y)
 
 static Foundation GetFoundation_Road(TileIndex tile, Slope tileh)
 {
-	return IsTileSubtype(tile, TT_TRACK) ? GetRoadFoundation(tileh, GetAllRoadBits(tile)) : GetBridgeFoundation(tileh, DiagDirToAxis(GetTunnelBridgeDirection(tile)));
+	return IsTileSubtype(tile, TT_TRACK) ? GetRoadFoundation(tileh, GetAllRoadBits(tile)) :
+		IsExtendedRoadBridge(tile) ? FOUNDATION_LEVELED :
+		GetBridgeFoundation(tileh, DiagDirToAxis(GetTunnelBridgeDirection(tile)));
 }
 
 static const Roadside _town_road_types[][2] = {
@@ -1950,32 +1986,26 @@ static TrackStatus GetTileTrackStatus_Road(TileIndex tile, TransportType mode, u
 		TRACKDIR_BIT_MASK,                           // ROAD_ALL
 	};
 
+	static const uint drd_mask[DRD_END] = { 0xFFFF, 0xFF00, 0xFF, 0x0 };
+
 	TrackdirBits trackdirbits;
 
+	if (mode != TRANSPORT_ROAD || ((GetRoadTypes(tile) & sub_mode) == 0)) return 0;
+
 	if (IsTileSubtype(tile, TT_TRACK)) {
-		static const uint drd_mask[DRD_END] = { 0xFFFF, 0xFF00, 0xFF, 0x0 };
-
-		if ((GetRoadTypes(tile) & sub_mode) == 0) return 0;
-
-		RoadType rt = (RoadType)FindFirstBit(sub_mode);
-		RoadBits bits = GetRoadBits(tile, rt);
-
-		/* no roadbit at this side of tile, return 0 */
-		if (side != INVALID_DIAGDIR && (DiagDirToRoadBits(side) & bits) == 0) return 0;
-
-		if (HasRoadWorks(tile)) {
-			trackdirbits = TRACKDIR_BIT_NONE;
-		} else {
-			trackdirbits = road_trackdirbits[bits];
-			if (rt == ROADTYPE_ROAD) trackdirbits &= (TrackdirBits)drd_mask[GetDisallowedRoadDirections(tile)];
-		}
+		if (HasRoadWorks(tile)) return 0;
 	} else {
-		if (mode != TRANSPORT_ROAD || ((GetRoadTypes(tile) & sub_mode) == 0)) return 0;
-
-		DiagDirection dir = GetTunnelBridgeDirection(tile);
-		if (side != INVALID_DIAGDIR && side != ReverseDiagDir(dir)) return 0;
-		trackdirbits = TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir));
+		if (side == GetTunnelBridgeDirection(tile)) return 0;
 	}
+
+	RoadType rt = (RoadType)FindFirstBit(sub_mode);
+	RoadBits bits = GetRoadBits(tile, rt);
+
+	/* no roadbit at this side of tile, return 0 */
+	if (side != INVALID_DIAGDIR && (DiagDirToRoadBits(side) & bits) == 0) return 0;
+
+	trackdirbits = road_trackdirbits[bits];
+	if (IsTileSubtype(tile, TT_TRACK) && rt == ROADTYPE_ROAD) trackdirbits &= (TrackdirBits)drd_mask[GetDisallowedRoadDirections(tile)];
 
 	return CombineTrackStatus(trackdirbits, TRACKDIR_BIT_NONE);
 }
@@ -2058,14 +2088,20 @@ static void ChangeTileOwner_Road(TileIndex tile, Owner old_owner, Owner new_owne
 		TileIndex other_end = GetOtherBridgeEnd(tile);
 		/* Set number of pieces to zero if it's the southern tile as we
 		 * don't want to update the infrastructure counts twice. */
-		uint num_pieces = tile < other_end ? (GetTunnelBridgeLength(tile, other_end) + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR * 2 : 0;
+		uint len = tile < other_end ? GetTunnelBridgeLength(tile, other_end) * 2 : 0;
+		RoadBits bridge_piece = DiagDirToRoadBits(GetTunnelBridgeDirection(tile));
 
 		for (RoadType rt = ROADTYPE_ROAD; rt < ROADTYPE_END; rt++) {
 			/* Update all roadtypes, no matter if they are present */
 			if (GetRoadOwner(tile, rt) == old_owner) {
 				if (HasBit(GetRoadTypes(tile), rt)) {
-					/* Update company infrastructure counts. A full diagonal road tile has two road bits.
+					/* Update company infrastructure counts.
 					 * No need to dirty windows here, we'll redraw the whole screen anyway. */
+					RoadBits pieces = GetRoadBits(tile, rt);
+					uint num_pieces = CountBits(pieces);
+					if ((pieces & bridge_piece) != 0) {
+						num_pieces = (num_pieces + len) * TUNNELBRIDGE_TRACKBIT_FACTOR;
+					}
 					oldc->infrastructure.road[rt] -= num_pieces;
 					if (newc != NULL) newc->infrastructure.road[rt] += num_pieces;
 				}
@@ -2098,6 +2134,8 @@ static CommandCost TerraformTile_Road(TileIndex tile, DoCommandFlag flags, int z
 					if ((z_old == z_new) && (tileh_old == tileh_new)) return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
 				}
 			}
+		} else if (IsExtendedRoadBridge(tile)) {
+			if (IsValidRoadBridgeBits(tileh_new, GetTunnelBridgeDirection(tile), GetAllRoadBits(tile))) return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
 		} else {
 			int z_old;
 			Slope tileh_old = GetTileSlope(tile, &z_old);
