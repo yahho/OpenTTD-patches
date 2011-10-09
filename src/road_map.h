@@ -464,6 +464,22 @@ static inline void SetRoadBridgeType(TileIndex t, BridgeType type)
 	SB(_mc[t].m7, 0, 4, type);
 }
 
+/**
+ * Check if a road bridge is an extended bridge head
+ * @param t The tile to check
+ * @return Whether there are road bits set not in the axis of the bridge
+ */
+static inline bool IsExtendedRoadBridge(TileIndex t)
+{
+	assert(IsRoadBridgeTile(t));
+
+	RoadBits axis = AxisToRoadBits(DiagDirToAxis(GetTunnelBridgeDirection(t)));
+	RoadBits road = GetRoadBits(t, ROADTYPE_ROAD);
+	RoadBits tram = GetRoadBits(t, ROADTYPE_TRAM);
+
+	return (road != ROAD_NONE && road != axis) || (tram != ROAD_NONE && tram != axis);
+}
+
 
 RoadBits GetAnyRoadBits(TileIndex tile, RoadType rt, bool tunnel_bridge_entrance = false);
 
