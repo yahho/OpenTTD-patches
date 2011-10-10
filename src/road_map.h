@@ -19,38 +19,6 @@
 #include "tile_map.h"
 
 
-/*
- * Check if a tile is normal road.
- *
- * @param t the tile to check
- * @return whether the tile is normal road
- */
-static inline bool IsNormalRoadTile(TileIndex t)
-{
-	return IsTileTypeSubtype(t, TT_ROAD, TT_TRACK);
-}
-
-/*
- * Check if a tile has a road bridgehead.
- *
- * @param t the tile to check
- * @return whether the tile has a road bridgehead
- */
-static inline bool IsRoadBridgeTile(TileIndex t)
-{
-	return IsTileTypeSubtype(t, TT_ROAD, TT_BRIDGE);
-}
-
-/**
- * Return whether a tile is a level crossing tile.
- * @param t Tile to query.
- * @return True if level crossing tile.
- */
-static inline bool IsLevelCrossingTile(TileIndex t)
-{
-	return IsTileTypeSubtype(t, TT_MISC, TT_MISC_CROSSING);
-}
-
 /**
  * Return whether a tile is a road depot tile.
  * @param t Tile to query.
@@ -58,7 +26,7 @@ static inline bool IsLevelCrossingTile(TileIndex t)
  */
 static inline bool IsRoadDepotTile(TileIndex t)
 {
-	return IsTileTypeSubtype(t, TT_MISC, TT_MISC_DEPOT) && HasBit(_mc[t].m1, 5);
+	return IsGroundDepotTile(t) && HasBit(_mc[t].m1, 5);
 }
 
 /**

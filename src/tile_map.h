@@ -190,47 +190,66 @@ static inline bool IsTileTypeSubtype(TileIndex tile, TileType type, TileSubtype 
 }
 
 /**
- * Checks if a tile is railway.
+ * Checks if a tile is void.
  *
  * @param tile The tile to check
- * @return true If the tile is railway
+ * @return true If the tile is void
  */
-static inline bool IsRailwayTile(TileIndex tile)
+static inline bool IsVoidTile(TileIndex tile)
 {
-	return IsTileType(tile, TT_RAILWAY);
+	return IsTileTypeSubtype(tile, TT_GROUND, TT_GROUND_VOID);
 }
 
 /**
- * Checks if a tile has a road.
- *
- * @param tile The tile to check
- * @return true If the tile has a road
+ * Check if a tile is ground (but not void).
+ * @param t the tile to check
+ * @return whether the tile is ground (fields, clear or trees)
  */
-static inline bool IsRoadTile(TileIndex tile)
+static inline bool IsGroundTile(TileIndex t)
 {
-	return IsTileType(tile, TT_ROAD);
+	return IsTileType(t, TT_GROUND) && !IsTileSubtype(t, TT_GROUND_VOID);
 }
 
 /**
- * Checks if a tile is a house.
+ * Checks if a tile has fields.
  *
  * @param tile The tile to check
- * @return true If the tile is a house
+ * @return true If the tile has fields
  */
-static inline bool IsHouseTile(TileIndex tile)
+static inline bool IsFieldsTile(TileIndex t)
 {
-	return GB(_mc[tile].m0, 6, 2) == 3;
+	return IsTileTypeSubtype(t, TT_GROUND, TT_GROUND_FIELDS);
 }
 
 /**
- * Checks if a tile is a station tile.
+ * Check if a tile is empty ground.
+ * @param t the tile to check
+ * @return whether the tile is empty ground
+ */
+static inline bool IsClearTile(TileIndex t)
+{
+	return IsTileTypeSubtype(t, TT_GROUND, TT_GROUND_CLEAR);
+}
+
+/**
+ * Checks if a tile has trees.
+ * @param t the tile to check
+ * @return whether the tile has trees
+ */
+static inline bool IsTreeTile(TileIndex t)
+{
+	return IsTileTypeSubtype(t, TT_GROUND, TT_GROUND_TREES);
+}
+
+/**
+ * Checks if a tile has an object.
  *
  * @param tile The tile to check
- * @return true If the tile is a station tile
+ * @return true If the tile has an object
  */
-static inline bool IsStationTile(TileIndex tile)
+static inline bool IsObjectTile(TileIndex tile)
 {
-	return IsTileType(tile, TT_STATION);
+	return IsTileType(tile, TT_OBJECT);
 }
 
 /**
@@ -245,25 +264,90 @@ static inline bool IsWaterTile(TileIndex tile)
 }
 
 /**
- * Checks if a tile is void.
+ * Checks if a tile is railway.
  *
  * @param tile The tile to check
- * @return true If the tile is void
+ * @return true If the tile is railway
  */
-static inline bool IsVoidTile(TileIndex tile)
+static inline bool IsRailwayTile(TileIndex tile)
 {
-	return IsTileTypeSubtype(tile, TT_GROUND, TT_GROUND_VOID);
+	return IsTileType(tile, TT_RAILWAY);
+}
+
+/*
+ * Check if a tile is normal rail.
+ *
+ * @param t the tile to check
+ * @return whether the tile is normal rail
+ */
+static inline bool IsNormalRailTile(TileIndex t)
+{
+	return IsTileTypeSubtype(t, TT_RAILWAY, TT_TRACK);
+}
+
+/*
+ * Check if a tile has a rail bridgehead.
+ *
+ * @param t the tile to check
+ * @return whether the tile has a rail bridgehead
+ */
+static inline bool IsRailBridgeTile(TileIndex t)
+{
+	return IsTileTypeSubtype(t, TT_RAILWAY, TT_BRIDGE);
 }
 
 /**
- * Checks if a tile is an industry.
+ * Checks if a tile has a road.
  *
  * @param tile The tile to check
- * @return true If the tile is an industry
+ * @return true If the tile has a road
  */
-static inline bool IsIndustryTile(TileIndex tile)
+static inline bool IsRoadTile(TileIndex tile)
 {
-	return GB(_mc[tile].m0, 6, 2) == 2;
+	return IsTileType(tile, TT_ROAD);
+}
+
+/*
+ * Check if a tile is normal road.
+ *
+ * @param t the tile to check
+ * @return whether the tile is normal road
+ */
+static inline bool IsNormalRoadTile(TileIndex t)
+{
+	return IsTileTypeSubtype(t, TT_ROAD, TT_TRACK);
+}
+
+/*
+ * Check if a tile has a road bridgehead.
+ *
+ * @param t the tile to check
+ * @return whether the tile has a road bridgehead
+ */
+static inline bool IsRoadBridgeTile(TileIndex t)
+{
+	return IsTileTypeSubtype(t, TT_ROAD, TT_BRIDGE);
+}
+
+/**
+ * Return whether a tile is a level crossing tile.
+ * @param t Tile to query.
+ * @return True if level crossing tile.
+ */
+static inline bool IsLevelCrossingTile(TileIndex t)
+{
+	return IsTileTypeSubtype(t, TT_MISC, TT_MISC_CROSSING);
+}
+
+/**
+ * Check if a tile has an aqueduct.
+ *
+ * @param t the tile to check
+ * @return whether the tile has an aqueduct
+ */
+static inline bool IsAqueductTile(TileIndex t)
+{
+	return IsTileTypeSubtype(t, TT_MISC, TT_MISC_AQUEDUCT);
 }
 
 /**
@@ -278,14 +362,46 @@ static inline bool IsTunnelTile(TileIndex tile)
 }
 
 /**
- * Checks if a tile has an object.
+ * Check if a tile has a ground (rail or road) depot.
+ * @param t the tile to check
+ * @return whether the tile has a ground depot
+ */
+static inline bool IsGroundDepotTile(TileIndex t)
+{
+	return IsTileTypeSubtype(t, TT_MISC, TT_MISC_DEPOT);
+}
+
+/**
+ * Checks if a tile is a station tile.
  *
  * @param tile The tile to check
- * @return true If the tile has an object
+ * @return true If the tile is a station tile
  */
-static inline bool IsObjectTile(TileIndex tile)
+static inline bool IsStationTile(TileIndex tile)
 {
-	return IsTileType(tile, TT_OBJECT);
+	return IsTileType(tile, TT_STATION);
+}
+
+/**
+ * Checks if a tile is an industry.
+ *
+ * @param tile The tile to check
+ * @return true If the tile is an industry
+ */
+static inline bool IsIndustryTile(TileIndex tile)
+{
+	return GB(_mc[tile].m0, 6, 2) == 2;
+}
+
+/**
+ * Checks if a tile is a house.
+ *
+ * @param tile The tile to check
+ * @return true If the tile is a house
+ */
+static inline bool IsHouseTile(TileIndex tile)
+{
+	return GB(_mc[tile].m0, 6, 2) == 3;
 }
 
 /**

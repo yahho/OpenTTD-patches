@@ -31,38 +31,6 @@ enum Ground {
 
 
 /**
- * Check if a tile is ground (but not void).
- * @param t the tile to check
- * @return whether the tile is ground (fields, clear or trees)
- */
-static inline bool IsGroundTile(TileIndex t)
-{
-	return IsTileType(t, TT_GROUND) && !IsTileSubtype(t, TT_GROUND_VOID);
-}
-
-
-/**
- * Check if a tile is empty ground.
- * @param t the tile to check
- * @return whether the tile is empty ground
- */
-static inline bool IsClearTile(TileIndex t)
-{
-	return IsTileTypeSubtype(t, TT_GROUND, TT_GROUND_CLEAR);
-}
-
-/**
- * Checks if a tile has trees.
- * @param t the tile to check
- * @return whether the tile has trees
- */
-static inline bool IsTreeTile(TileIndex t)
-{
-	return IsTileTypeSubtype(t, TT_GROUND, TT_GROUND_TREES);
-}
-
-
-/**
  * Get the full ground type of a clear tile.
  * @param t the tile to get the ground type of
  * @pre IsClearTile(t) || IsTreeTile(t)
@@ -179,17 +147,6 @@ static inline void SetClearGroundDensity(TileIndex t, Ground g, uint density, bo
 	SB(_mc[t].m4, 0, 2, density);
 }
 
-
-/**
- * Checks if a tile has fields.
- *
- * @param tile The tile to check
- * @return true If the tile has fields
- */
-static inline bool IsFieldsTile(TileIndex t)
-{
-	return IsTileTypeSubtype(t, TT_GROUND, TT_GROUND_FIELDS);
-}
 
 /**
  * Get the field type (production stage) of the field

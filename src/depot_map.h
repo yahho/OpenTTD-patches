@@ -33,16 +33,6 @@ static inline bool IsDepotTypeTile(TileIndex tile, TransportType type)
 }
 
 /**
- * Check if a tile has a ground (rail or road) depot.
- * @param t the tile to check
- * @return whether the tile has a ground depot
- */
-static inline bool IsGroundDepotTile(TileIndex t)
-{
-	return IsTileTypeSubtype(t, TT_MISC, TT_MISC_DEPOT);
-}
-
-/**
  * Check if a ground depot is a rail depot.
  * @param t the tile to check
  * @pre IsGroundDepotTile(TileIndex t)
