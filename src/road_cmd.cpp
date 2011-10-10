@@ -578,6 +578,33 @@ static CommandCost CheckRoadSlope(Slope tileh, RoadBits pieces, RoadBits existin
 }
 
 /**
+ * Check if a given roadbits set is valid for a road bridge head
+ * @param tileh The slope
+ * @param dir The bridge direction
+ * @param bits The roadbits
+ * @return Whether the given combination is valid
+ */
+bool IsValidRoadBridgeBits(Slope tileh, DiagDirection dir, RoadBits bits)
+{
+	static const Slope valid_slopes[DIAGDIR_END][2] = {
+		{ SLOPE_W, SLOPE_S },
+		{ SLOPE_N, SLOPE_W },
+		{ SLOPE_E, SLOPE_N },
+		{ SLOPE_S, SLOPE_E },
+	};
+
+	if (tileh == InclinedSlope(ReverseDiagDir(dir))) return true;
+
+	if (tileh == valid_slopes[dir][0]) {
+		return (bits & DiagDirToRoadBits(ChangeDiagDir(dir, DIAGDIRDIFF_90RIGHT))) == 0;
+	} else if (tileh == valid_slopes[dir][1]) {
+		return (bits & DiagDirToRoadBits(ChangeDiagDir(dir, DIAGDIRDIFF_90LEFT))) == 0;
+	}
+
+	return false;
+}
+
+/**
  * Build a piece of road, clearing the land if necessary
  * @param tile tile where to build road
  * @param flags operation to perform
