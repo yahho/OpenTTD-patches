@@ -17,21 +17,6 @@
 
 
 /**
- * Get the direction pointing to the other end.
- *
- * Tunnel: Get the direction facing into the tunnel
- * Bridge: Get the direction pointing onto the bridge
- * @param t The tile to analyze
- * @pre IsTunnelTile(t) || IsBridgeHeadTile(t)
- * @return the above mentioned direction
- */
-static inline DiagDirection GetTunnelBridgeDirection(TileIndex t)
-{
-	assert(IsTunnelTile(t) || IsBridgeHeadTile(t));
-	return (DiagDirection)GB(_mc[t].m3, 6, 2);
-}
-
-/**
  * Determines type of the wormhole and returns its other end
  * @param t one end
  * @pre IsTunnelTile(t) || IsBridgeHeadTile(t)

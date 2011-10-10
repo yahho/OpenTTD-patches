@@ -540,6 +540,33 @@ static inline void ToggleSnow(TileIndex t)
 
 
 /**
+ * Check if a tile has a bridgehead.
+ *
+ * @param t the tile to check
+ * @return whether the tile has a bridge head (rail, road or aqueduct)
+ */
+static inline bool IsBridgeHeadTile(TileIndex t)
+{
+	return IsRailBridgeTile(t) || IsRoadBridgeTile(t) || IsAqueductTile(t);
+}
+
+/**
+ * Get the direction pointing to the other end.
+ *
+ * Tunnel: Get the direction facing into the tunnel
+ * Bridge: Get the direction pointing onto the bridge
+ * @param t The tile to analyze
+ * @pre IsTunnelTile(t) || IsBridgeHeadTile(t)
+ * @return the above mentioned direction
+ */
+static inline DiagDirection GetTunnelBridgeDirection(TileIndex t)
+{
+	assert(IsTunnelTile(t) || IsBridgeHeadTile(t));
+	return (DiagDirection)GB(_mc[t].m3, 6, 2);
+}
+
+
+/**
  * Returns the direction the depot is facing to
  * @param t the tile to get the depot facing from
  * @pre IsGroundDepotTile(t)

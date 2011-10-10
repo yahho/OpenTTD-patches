@@ -17,18 +17,6 @@
 #include "bridge.h"
 
 /**
- * Check if a tile has a bridgehead.
- *
- * @param t the tile to check
- * @return whether the tile has a bridge head (rail, road or aqueduct)
- */
-static inline bool IsBridgeHeadTile(TileIndex t)
-{
-	return IsRailBridgeTile(t) || IsRoadBridgeTile(t) || IsAqueductTile(t);
-}
-
-
-/**
  * checks for the possibility that a bridge may be on this tile
  * These are in fact all the tile types on which a bridge can be found
  * @param t The tile to analyze
