@@ -247,7 +247,7 @@ CommandCost CmdBuildRoadVehicle(TileIndex tile, DoCommandFlag flags, const Engin
 
 		RoadVehicle *v = new RoadVehicle();
 		*ret = v;
-		v->direction = DiagDirToDir(GetRoadDepotDirection(tile));
+		v->direction = DiagDirToDir(GetGroundDepotDirection(tile));
 		v->owner = _current_company;
 
 		v->tile = tile;
@@ -772,7 +772,7 @@ static VehicleEnterTileStatus RoadVehEnter_Misc(RoadVehicle *u, TileIndex tile, 
 			if (!IsRoadDepot(tile)) break;
 
 			if (u->frame == RVC_DEPOT_STOP_FRAME &&
-					_roadveh_enter_depot_dir[GetRoadDepotDirection(tile)] == u->state) {
+					_roadveh_enter_depot_dir[GetGroundDepotDirection(tile)] == u->state) {
 				u->state = RVSB_IN_DEPOT;
 				u->vehstatus |= VS_HIDDEN;
 				u->direction = ReverseDir(u->direction);
@@ -976,7 +976,7 @@ static Trackdir RoadFindPathToDest(RoadVehicle *v, TileIndex tile, DiagDirection
 	TrackdirBits trackdirs = TrackStatusToTrackdirBits(ts);
 
 	if (IsRoadDepotTile(tile)) {
-		if ((!IsTileOwner(tile, v->owner) || GetRoadDepotDirection(tile) == enterdir || (GetRoadTypes(tile) & v->compatible_roadtypes) == 0)) {
+		if ((!IsTileOwner(tile, v->owner) || GetGroundDepotDirection(tile) == enterdir || (GetRoadTypes(tile) & v->compatible_roadtypes) == 0)) {
 			/* Road depot owned by another company or with the wrong orientation */
 			trackdirs = TRACKDIR_BIT_NONE;
 		}
@@ -1072,7 +1072,7 @@ static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 		if (u->state != RVSB_IN_DEPOT || u->tile != v->tile) return false;
 	}
 
-	DiagDirection dir = GetRoadDepotDirection(v->tile);
+	DiagDirection dir = GetGroundDepotDirection(v->tile);
 	v->direction = DiagDirToDir(dir);
 
 	Trackdir tdir = DiagDirToDiagTrackdir(dir);
@@ -1129,7 +1129,7 @@ static Trackdir FollowPreviousRoadVehicle(const RoadVehicle *v, const RoadVehicl
 
 		Trackdir dir;
 		if (prev_state == RVSB_IN_DEPOT) {
-			dir = DiagDirToDiagTrackdir(ReverseDiagDir(GetRoadDepotDirection(tile)));
+			dir = DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(tile)));
 		} else if (HasBit(prev_state, RVS_IN_DT_ROAD_STOP)) {
 			dir = (Trackdir)(prev_state & RVSB_ROAD_STOP_TRACKDIR_MASK);
 		} else {
@@ -1788,7 +1788,7 @@ Trackdir RoadVehicle::GetVehicleTrackdir() const
 
 	if (this->IsInDepot()) {
 		/* We'll assume the road vehicle is facing outwards */
-		return DiagDirToDiagTrackdir(GetRoadDepotDirection(this->tile));
+		return DiagDirToDiagTrackdir(GetGroundDepotDirection(this->tile));
 	}
 
 	if (IsStandardRoadStopTile(this->tile)) {

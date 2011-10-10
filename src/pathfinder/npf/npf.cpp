@@ -699,8 +699,8 @@ static DiagDirection GetDepotDirection(TileIndex tile, TransportType type)
 	assert(IsDepotTypeTile(tile, type));
 
 	switch (type) {
-		case TRANSPORT_RAIL:  return GetRailDepotDirection(tile);
-		case TRANSPORT_ROAD:  return GetRoadDepotDirection(tile);
+		case TRANSPORT_RAIL:
+		case TRANSPORT_ROAD:  return GetGroundDepotDirection(tile);
 		case TRANSPORT_WATER: return GetShipDepotDirection(tile);
 		default: return INVALID_DIAGDIR; // Not reached
 	}

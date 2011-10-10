@@ -609,7 +609,7 @@ void DrawCatenary(const TileInfo *ti)
 
 				case TT_MISC_DEPOT: {
 					if (!IsRailDepot(ti->tile)) return;
-					const SortableSpriteStruct *sss = &CatenarySpriteData_Depot[GetRailDepotDirection(ti->tile)];
+					const SortableSpriteStruct *sss = &CatenarySpriteData_Depot[GetGroundDepotDirection(ti->tile)];
 					SpriteID wire_base = GetWireBase(ti->tile);
 
 					/* This wire is not visible with the default depot sprites */

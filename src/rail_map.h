@@ -108,18 +108,6 @@ static inline bool HasTrack(TileIndex tile, Track track)
 }
 
 /**
- * Returns the direction the depot is facing to
- * @param t the tile to get the depot facing from
- * @pre IsRailDepotTile(t)
- * @return the direction the depot is facing
- */
-static inline DiagDirection GetRailDepotDirection(TileIndex t)
-{
-	assert(IsRailDepotTile(t));
-	return (DiagDirection)GB(_mc[t].m5, 0, 2);
-}
-
-/**
  * Returns the track of a depot, ignoring direction
  * @pre IsRailDepotTile(t)
  * @param t the tile to get the depot track from
@@ -128,7 +116,7 @@ static inline DiagDirection GetRailDepotDirection(TileIndex t)
 static inline Track GetRailDepotTrack(TileIndex t)
 {
 	assert(IsRailDepotTile(t));
-	return DiagDirToDiagTrack(GetRailDepotDirection(t));
+	return DiagDirToDiagTrack(GetGroundDepotDirection(t));
 }
 
 

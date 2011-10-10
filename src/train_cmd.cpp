@@ -562,7 +562,7 @@ static CommandCost CmdBuildRailWagon(TileIndex tile, DoCommandFlag flags, const 
 		v->engine_type = e->index;
 		v->gcache.first_engine = INVALID_ENGINE; // needs to be set before first callback
 
-		DiagDirection dir = GetRailDepotDirection(tile);
+		DiagDirection dir = GetGroundDepotDirection(tile);
 
 		v->direction = DiagDirToDir(dir);
 		v->tile = tile;
@@ -688,7 +688,7 @@ CommandCost CmdBuildRailVehicle(TileIndex tile, DoCommandFlag flags, const Engin
 	if (!HasPowerOnRail(rvi->railtype, GetRailType(tile))) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
-		DiagDirection dir = GetRailDepotDirection(tile);
+		DiagDirection dir = GetGroundDepotDirection(tile);
 		int x = TileX(tile) * TILE_SIZE + _vehicle_initial_x_fract[dir];
 		int y = TileY(tile) * TILE_SIZE + _vehicle_initial_y_fract[dir];
 
@@ -1707,7 +1707,7 @@ static void AdvanceWagonsAfterSwap(Train *v)
 
 		if (d <= 0) {
 			leave->vehstatus &= ~VS_HIDDEN; // move it out of the depot
-			leave->trackdir = DiagDirToDiagTrackdir(GetRailDepotDirection(leave->tile));
+			leave->trackdir = DiagDirToDiagTrackdir(GetGroundDepotDirection(leave->tile));
 			for (int i = 0; i >= d; i--) TrainController(leave, NULL); // maybe move it, and maybe let another wagon leave
 		}
 	} else {
@@ -1814,7 +1814,7 @@ void ReverseTrainDirection(Train *v)
 			!IsPbsSignal(GetSignalType(v->tile, TrackdirToTrack(v->trackdir))));
 
 		/* If we are on a depot tile facing outwards, do not treat the current tile as safe. */
-		if (IsRailDepotTile(v->tile) && TrackdirToExitdir(v->GetVehicleTrackdir()) == GetRailDepotDirection(v->tile)) first_tile_okay = false;
+		if (IsRailDepotTile(v->tile) && TrackdirToExitdir(v->GetVehicleTrackdir()) == GetGroundDepotDirection(v->tile)) first_tile_okay = false;
 
 		if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->tile, TrackdirToExitdir(v->GetVehicleTrackdir()), true);
 		if (TryPathReserve(v, false, first_tile_okay)) {
@@ -2189,7 +2189,7 @@ void FreeTrainTrackReservation(const Train *v)
 	StationID station_id = IsRailStationTile(v->tile) ? GetStationIndex(v->tile) : INVALID_STATION;
 
 	/* Can't be holding a reservation if we enter a depot. */
-	if (IsRailDepotTile(tile) && TrackdirToExitdir(td) != GetRailDepotDirection(tile)) return;
+	if (IsRailDepotTile(tile) && TrackdirToExitdir(td) != GetGroundDepotDirection(tile)) return;
 	if (v->trackdir == TRACKDIR_DEPOT) {
 		/* Front engine is in a depot. We enter if some part is not in the depot. */
 		for (const Train *u = v; u != NULL; u = u->Next()) {
@@ -2637,8 +2637,8 @@ bool TryPathReserve(Train *v, bool mark_as_stuck, bool first_tile_okay)
 			return false;
 		} else {
 			/* Depot not reserved, but the next tile might be. */
-			TileIndex next_tile = TileAddByDiagDir(v->tile, GetRailDepotDirection(v->tile));
-			if (HasReservedTracks(next_tile, DiagdirReachesTracks(GetRailDepotDirection(v->tile)))) return false;
+			TileIndex next_tile = TileAddByDiagDir(v->tile, GetGroundDepotDirection(v->tile));
+			if (HasReservedTracks(next_tile, DiagdirReachesTracks(GetGroundDepotDirection(v->tile)))) return false;
 		}
 	}
 
@@ -3068,7 +3068,7 @@ extern const byte _tunnel_visibility_frame[DIAGDIR_END];
  */
 int TicksToLeaveDepot(const Train *v)
 {
-	DiagDirection dir = GetRailDepotDirection(v->tile);
+	DiagDirection dir = GetGroundDepotDirection(v->tile);
 	int length = v->CalcNextVehicleOffset();
 
 	switch (dir) {
@@ -3117,7 +3117,7 @@ static void TrainEnter_Misc(Train *u, TileIndex tile, int x, int y)
 			if (!IsRailDepot(tile)) break;
 
 			/* depot direction */
-			DiagDirection dir = GetRailDepotDirection(tile);
+			DiagDirection dir = GetGroundDepotDirection(tile);
 
 			/* make sure a train is not entering the tile from behind */
 			assert(DistanceFromTileEdge(ReverseDiagDir(dir), x & 0xF, y & 0xF) != 0);
@@ -3790,7 +3790,7 @@ static bool TrainCanLeaveTile(const Train *v)
 
 	/* entering a depot? */
 	if (IsRailDepotTile(tile)) {
-		DiagDirection dir = ReverseDiagDir(GetRailDepotDirection(tile));
+		DiagDirection dir = ReverseDiagDir(GetGroundDepotDirection(tile));
 		if (DiagDirToDir(dir) == v->direction) return false;
 	}
 
@@ -4165,7 +4165,7 @@ Trackdir Train::GetVehicleTrackdir() const
 
 	if (this->trackdir == TRACKDIR_DEPOT) {
 		/* We'll assume the train is facing outwards */
-		return DiagDirToDiagTrackdir(GetRailDepotDirection(this->tile)); // Train in depot
+		return DiagDirToDiagTrackdir(GetGroundDepotDirection(this->tile)); // Train in depot
 	}
 
 	if (this->trackdir == TRACKDIR_WORMHOLE) {

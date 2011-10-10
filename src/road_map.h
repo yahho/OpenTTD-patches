@@ -440,18 +440,6 @@ static inline void TerminateRoadWorks(TileIndex t)
 }
 
 
-/**
- * Get the direction of the exit of a road depot.
- * @param t The tile to query.
- * @return Diagonal direction of the depot exit.
- */
-static inline DiagDirection GetRoadDepotDirection(TileIndex t)
-{
-	assert(IsRoadDepotTile(t));
-	return (DiagDirection)GB(_mc[t].m5, 0, 2);
-}
-
-
 RoadBits GetAnyRoadBits(TileIndex tile, RoadType rt, bool straight_tunnel_bridge_entrance = false);
 
 

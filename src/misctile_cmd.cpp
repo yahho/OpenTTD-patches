@@ -164,9 +164,9 @@ static void DrawTrainDepot(TileInfo *ti)
 
 	if (IsInvisibilitySet(TO_BUILDINGS)) {
 		/* Draw rail instead of depot */
-		dts = &_depot_invisible_gfx_table[GetRailDepotDirection(ti->tile)];
+		dts = &_depot_invisible_gfx_table[GetGroundDepotDirection(ti->tile)];
 	} else {
-		dts = &_depot_gfx_table[GetRailDepotDirection(ti->tile)];
+		dts = &_depot_gfx_table[GetGroundDepotDirection(ti->tile)];
 	}
 
 	SpriteID image;
@@ -192,7 +192,7 @@ static void DrawTrainDepot(TileInfo *ti)
 	if (rti->UsesOverlay()) {
 		SpriteID ground = GetCustomRailSprite(rti, ti->tile, RTSG_GROUND);
 
-		switch (GetRailDepotDirection(ti->tile)) {
+		switch (GetGroundDepotDirection(ti->tile)) {
 			case DIAGDIR_NE: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
 			case DIAGDIR_SW: DrawGroundSprite(ground + RTO_X, PAL_NONE); break;
 			case DIAGDIR_NW: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
@@ -203,7 +203,7 @@ static void DrawTrainDepot(TileInfo *ti)
 		if (_settings_client.gui.show_track_reservation && HasDepotReservation(ti->tile)) {
 			SpriteID overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY);
 
-			switch (GetRailDepotDirection(ti->tile)) {
+			switch (GetGroundDepotDirection(ti->tile)) {
 				case DIAGDIR_NE: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
 				case DIAGDIR_SW: DrawGroundSprite(overlay + RTO_X, PALETTE_CRASH); break;
 				case DIAGDIR_NW: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
@@ -214,7 +214,7 @@ static void DrawTrainDepot(TileInfo *ti)
 	} else {
 		/* PBS debugging, draw reserved tracks darker */
 		if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasDepotReservation(ti->tile)) {
-			switch (GetRailDepotDirection(ti->tile)) {
+			switch (GetGroundDepotDirection(ti->tile)) {
 				case DIAGDIR_NE: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
 				case DIAGDIR_SW: DrawGroundSprite(rti->base_sprites.single_x, PALETTE_CRASH); break;
 				case DIAGDIR_NW: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
@@ -273,9 +273,9 @@ static void DrawRoadDepot(TileInfo *ti)
 
 	const DrawTileSprites *dts;
 	if (HasTileRoadType(ti->tile, ROADTYPE_TRAM)) {
-		dts =  &_tram_depot[GetRoadDepotDirection(ti->tile)];
+		dts =  &_tram_depot[GetGroundDepotDirection(ti->tile)];
 	} else {
-		dts =  &_road_depot[GetRoadDepotDirection(ti->tile)];
+		dts =  &_road_depot[GetGroundDepotDirection(ti->tile)];
 	}
 
 	DrawGroundSprite(dts->ground.sprite, PAL_NONE);
@@ -494,7 +494,7 @@ static CommandCost RemoveTrainDepot(TileIndex tile, DoCommandFlag flags)
 
 	if (flags & DC_EXEC) {
 		/* read variables before the depot is removed */
-		DiagDirection dir = GetRailDepotDirection(tile);
+		DiagDirection dir = GetGroundDepotDirection(tile);
 		Owner owner = GetTileOwner(tile);
 		Train *v = NULL;
 
@@ -769,13 +769,11 @@ static TrackStatus GetTileTrackStatus_Misc(TileIndex tile, TransportType mode, u
 
 			if (IsRailDepot(tile)) {
 				if (mode != TRANSPORT_RAIL) return 0;
-
-				dir = GetRailDepotDirection(tile);
 			} else {
 				if ((mode != TRANSPORT_ROAD) || ((GetRoadTypes(tile) & sub_mode) == 0)) return 0;
-
-				dir = GetRoadDepotDirection(tile);
 			}
+
+			dir = GetGroundDepotDirection(tile);
 
 			if (side != INVALID_DIAGDIR && side != dir) return 0;
 
@@ -978,13 +976,11 @@ static CommandCost TerraformTile_Misc(TileIndex tile, DoCommandFlag flags, int z
 				if (!IsSteepSlope(tileh_new) && (GetTileMaxZ(tile) == z_new + GetSlopeMaxZ(tileh_new)) && HasBit(VALID_LEVEL_CROSSING_SLOPES, tileh_new)) return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
 				break;
 
-			case TT_MISC_DEPOT: {
-				DiagDirection dir = IsRailDepot(tile) ? GetRailDepotDirection(tile) : GetRoadDepotDirection(tile);
-				if (AutoslopeCheckForEntranceEdge(tile, z_new, tileh_new, dir)) {
+			case TT_MISC_DEPOT:
+				if (AutoslopeCheckForEntranceEdge(tile, z_new, tileh_new, GetGroundDepotDirection(tile))) {
 					return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
 				}
 				break;
-			}
 		}
 	}
 

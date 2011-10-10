@@ -538,6 +538,20 @@ static inline void ToggleSnow(TileIndex t)
 	ToggleBit(_mc[t].m3, 4);
 }
 
+
+/**
+ * Returns the direction the depot is facing to
+ * @param t the tile to get the depot facing from
+ * @pre IsGroundDepotTile(t)
+ * @return the direction the depot is facing
+ */
+static inline DiagDirection GetGroundDepotDirection(TileIndex t)
+{
+	assert(IsGroundDepotTile(t));
+	return (DiagDirection)GB(_mc[t].m5, 0, 2);
+}
+
+
 /**
  * Get the current animation frame
  * @param t the tile
