@@ -630,11 +630,11 @@ void DrawBridgeMiddle(const TileInfo *ti)
 	psid++;
 
 	if (transport_type == TRANSPORT_ROAD) {
-		RoadTypes rts = GetRoadTypes(rampsouth);
+		RoadBits bits = DiagDirToRoadBits(axis == AXIS_X ? DIAGDIR_NE : DIAGDIR_NW);
 
-		if (HasBit(rts, ROADTYPE_TRAM)) {
+		if ((GetRoadBits(rampsouth, ROADTYPE_TRAM) & bits) != 0) {
 			/* DrawBridgeTramBits() calls EndSpriteCombine() and StartSpriteCombine() */
-			DrawBridgeTramBits(x, y, bridge_z, axis ^ 1, HasBit(rts, ROADTYPE_ROAD), false);
+			DrawBridgeTramBits(x, y, bridge_z, axis ^ 1, (GetRoadBits(rampsouth, ROADTYPE_ROAD) & bits) != 0, false);
 		} else {
 			EndSpriteCombine();
 			StartSpriteCombine();
