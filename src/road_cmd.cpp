@@ -158,6 +158,40 @@ CommandCost CheckAllowRemoveRoad(TileIndex tile, RoadBits remove, Owner owner, R
 
 
 /**
+ * Clear road bits and type and make necessary adjustments in a road tile
+ * @param tile tile to clear road type from
+ * @param rt road type to clear
+ * @pre IsRoadTile(tile)
+ */
+static void ClearRoadType(TileIndex tile, RoadType rt)
+{
+	assert(IsRoadTile(tile));
+
+	RoadTypes rts = GetRoadTypes(tile) & ~RoadTypeToRoadTypes(rt);
+	if (rts == ROADTYPES_NONE) {
+		DoClearSquare(tile);
+		return;
+	}
+
+	if (rt == ROADTYPE_ROAD && IsRoadOwner(tile, ROADTYPE_ROAD, OWNER_TOWN)) {
+		/* Update nearest-town index */
+		SetTownIndex(tile, CalcClosestTownIDFromTile(tile));
+	}
+
+	SetRoadBits(tile, ROAD_NONE, rt);
+	SetRoadTypes(tile, rts);
+
+	/* If the owner of a roadtype sells all their road, set the ownership
+	 * of the tile to the owner of the other roadtype. */
+	RoadType other_rt = (rt == ROADTYPE_ROAD) ? ROADTYPE_TRAM : ROADTYPE_ROAD;
+	Owner other_owner = GetRoadOwner(tile, other_rt);
+	if (other_owner != GetTileOwner(tile)) {
+		SetTileOwner(tile, other_owner);
+	}
+}
+
+
+/**
  * Delete a piece of road from a normal road tile
  * @param tile tile where to remove road from
  * @param flags operation to perform
@@ -226,19 +260,7 @@ static CommandCost RemoveRoad_Road(TileIndex tile, DoCommandFlag flags, RoadBits
 		}
 
 		if (present == ROAD_NONE) {
-			RoadTypes rts = GetRoadTypes(tile) & ComplementRoadTypes(RoadTypeToRoadTypes(rt));
-			if (rts == ROADTYPES_NONE) {
-				/* Includes MarkTileDirtyByTile() */
-				DoClearSquare(tile);
-			} else {
-				if (rt == ROADTYPE_ROAD && IsRoadOwner(tile, ROADTYPE_ROAD, OWNER_TOWN)) {
-					/* Update nearest-town index */
-					SetTownIndex(tile, CalcClosestTownIDFromTile(tile));
-				}
-				SetRoadBits(tile, ROAD_NONE, rt);
-				SetRoadTypes(tile, rts);
-				MarkTileDirtyByTile(tile);
-			}
+			ClearRoadType(tile, rt);
 		} else {
 			/* When bits are removed, you *always* end up with something that
 			 * is not a complete straight road tile. However, trams do not have
@@ -291,19 +313,8 @@ static CommandCost RemoveRoad_Bridge(TileIndex tile, DoCommandFlag flags, RoadBi
 			DirtyCompanyInfrastructureWindows(c->index);
 		}
 
-		SetRoadBits(other_end, ROAD_NONE, rt);
-		SetRoadTypes(other_end, GetRoadTypes(other_end) & ~RoadTypeToRoadTypes(rt));
-		SetRoadBits(tile, ROAD_NONE, rt);
-		SetRoadTypes(tile, GetRoadTypes(tile) & ~RoadTypeToRoadTypes(rt));
-
-		/* If the owner of the bridge sells all its road, also move the ownership
-		 * to the owner of the other roadtype. */
-		RoadType other_rt = (rt == ROADTYPE_ROAD) ? ROADTYPE_TRAM : ROADTYPE_ROAD;
-		Owner other_owner = GetRoadOwner(tile, other_rt);
-		if (other_owner != GetTileOwner(tile)) {
-			SetTileOwner(tile, other_owner);
-			SetTileOwner(other_end, other_owner);
-		}
+		ClearRoadType(tile, rt);
+		ClearRoadType(other_end, rt);
 
 		/* Mark tiles dirty that have been repaved */
 		MarkBridgeTilesDirty(tile, other_end, GetTunnelBridgeDirection(tile));
