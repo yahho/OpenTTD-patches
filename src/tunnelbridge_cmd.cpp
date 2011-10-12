@@ -81,6 +81,7 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 			/* Airports don't have bridges. */
 			return CMD_ERROR;
 	}
+
 	TileIndex tile_start = p1;
 	TileIndex tile_end = end_tile;
 
@@ -96,18 +97,9 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 		}
 	}
 
-	if (tile_start == tile_end) {
-		return_cmd_error(STR_ERROR_CAN_T_START_AND_END_ON);
-	}
-
 	Axis direction;
-	if (TileX(tile_start) == TileX(tile_end)) {
-		direction = AXIS_Y;
-	} else if (TileY(tile_start) == TileY(tile_end)) {
-		direction = AXIS_X;
-	} else {
-		return_cmd_error(STR_ERROR_START_AND_END_MUST_BE_IN);
-	}
+	CommandCost ret = CheckBridgeTiles(tile_start, tile_end, &direction);
+	if (ret.Failed()) return ret;
 
 	if (tile_end < tile_start) Swap(tile_start, tile_end);
 
@@ -238,96 +230,9 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 		}
 	} else {
 		/* Build a new bridge. */
-		int z_start;
-		int z_end;
-		Slope tileh_start = GetTileSlope(tile_start, &z_start);
-		Slope tileh_end = GetTileSlope(tile_end, &z_end);
-
-		CommandCost terraform_cost_north = CheckBridgeSlope(direction == AXIS_X ? DIAGDIR_SW : DIAGDIR_SE, &tileh_start, &z_start);
-		CommandCost terraform_cost_south = CheckBridgeSlope(direction == AXIS_X ? DIAGDIR_NE : DIAGDIR_NW, &tileh_end,   &z_end);
-
-		/* Aqueducts can't be built of flat land. */
-		if (transport_type == TRANSPORT_WATER && (tileh_start == SLOPE_FLAT || tileh_end == SLOPE_FLAT)) return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
-		if (z_start != z_end) return_cmd_error(STR_ERROR_BRIDGEHEADS_NOT_SAME_HEIGHT);
-
-		bool allow_on_slopes = (_settings_game.construction.build_on_slopes && transport_type != TRANSPORT_WATER);
-
-		/* Try and clear the start landscape */
-		CommandCost ret = DoCommand(tile_start, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
-		if (ret.Failed()) return ret;
-		cost = ret;
-
-		if (terraform_cost_north.Failed() || (terraform_cost_north.GetCost() != 0 && !allow_on_slopes)) return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
-		cost.AddCost(terraform_cost_north);
-
-		/* Try and clear the end landscape */
-		ret = DoCommand(tile_end, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+		CommandCost ret = CheckBridgeBuildable(tile_start, tile_end, flags, true, true, transport_type == TRANSPORT_WATER);
 		if (ret.Failed()) return ret;
 		cost.AddCost(ret);
-
-		/* false - end tile slope check */
-		if (terraform_cost_south.Failed() || (terraform_cost_south.GetCost() != 0 && !allow_on_slopes)) return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
-		cost.AddCost(terraform_cost_south);
-
-		const TileIndex heads[] = {tile_start, tile_end};
-		for (int i = 0; i < 2; i++) {
-			if (HasBridgeAbove(heads[i])) {
-				TileIndex north_head = GetNorthernBridgeEnd(heads[i]);
-
-				if (direction == GetBridgeAxis(heads[i])) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
-
-				if (z_start + 1 == GetBridgeHeight(north_head)) {
-					return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
-				}
-			}
-		}
-
-		TileIndexDiff delta = (direction == AXIS_X ? TileDiffXY(1, 0) : TileDiffXY(0, 1));
-		for (TileIndex tile = tile_start + delta; tile != tile_end; tile += delta) {
-			if (GetTileMaxZ(tile) > z_start) return_cmd_error(STR_ERROR_BRIDGE_TOO_LOW_FOR_TERRAIN);
-
-			if (HasBridgeAbove(tile)) {
-				/* Disallow crossing bridges for the time being */
-				return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
-			}
-
-			switch (GetTileType(tile)) {
-				case TT_WATER:
-					if (!IsPlainWater(tile) && !IsCoast(tile)) goto not_valid_below;
-					break;
-
-				case TT_MISC:
-					if (IsTileSubtype(tile, TT_MISC_TUNNEL)) break;
-					if (IsTileSubtype(tile, TT_MISC_DEPOT)) goto not_valid_below;
-					assert(TT_BRIDGE == TT_MISC_AQUEDUCT);
-					/* fall through */
-				case TT_RAILWAY:
-				case TT_ROAD:
-					if (!IsTileSubtype(tile, TT_BRIDGE)) break;
-					if (direction == DiagDirToAxis(GetTunnelBridgeDirection(tile))) goto not_valid_below;
-					if (z_start < GetBridgeHeight(tile)) goto not_valid_below;
-					break;
-
-				case TT_OBJECT: {
-					const ObjectSpec *spec = ObjectSpec::GetByTile(tile);
-					if ((spec->flags & OBJECT_FLAG_ALLOW_UNDER_BRIDGE) == 0) goto not_valid_below;
-					if (GetTileMaxZ(tile) + spec->height > z_start) goto not_valid_below;
-					break;
-				}
-
-				case TT_GROUND:
-					assert(IsGroundTile(tile));
-					if (!IsTileSubtype(tile, TT_GROUND_TREES)) break;
-					/* fall through */
-				default:
-	not_valid_below:;
-					/* try and clear the middle landscape */
-					ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
-					if (ret.Failed()) return ret;
-					cost.AddCost(ret);
-					break;
-			}
-		}
 
 		/* do the drill? */
 		if (flags & DC_EXEC) {

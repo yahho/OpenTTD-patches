@@ -96,6 +96,8 @@ int CalcBridgeLenCostFactor(int x);
 
 void ResetBridges();
 
+CommandCost CheckBridgeTiles(TileIndex tile1, TileIndex tile2, Axis *axis);
+CommandCost CheckBridgeBuildable(TileIndex tile1, TileIndex tile2, DoCommandFlag flags, bool clear1, bool clear2, bool restricted = false);
 CommandCost CheckBridgeSlope(DiagDirection dir, Slope *tileh, int *z);
 
 static inline void MarkBridgeTilesDirty(TileIndex start, TileIndex end, DiagDirection dir)

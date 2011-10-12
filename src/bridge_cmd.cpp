@@ -22,6 +22,7 @@
 #include "command_func.h"
 #include "date_func.h"
 #include "economy_func.h"
+#include "clear_map.h"
 #include "rail_map.h"
 #include "road_map.h"
 #include "water_map.h"
@@ -34,6 +35,7 @@
 
 #include "newgrf_commons.h"
 #include "newgrf_railtype.h"
+#include "newgrf_object.h"
 
 #include "table/sprites.h"
 #include "table/strings.h"
@@ -111,6 +113,149 @@ bool HasBridgeFlatRamp(Slope tileh, Axis axis)
 	ApplyFoundationToSlope(GetBridgeFoundation(tileh, axis), &tileh);
 	/* If the foundation slope is flat the bridge has a non-flat ramp and vice versa. */
 	return (tileh != SLOPE_FLAT);
+}
+
+/**
+ * Check tiles validity for a bridge.
+ *
+ * @param tile1 Start tile
+ * @param tile2 End tile
+ * @param axis Pointer to receive bridge axis, or NULL
+ * @return Null cost for success or an error
+ */
+CommandCost CheckBridgeTiles(TileIndex tile1, TileIndex tile2, Axis *axis)
+{
+	if (!IsValidTile(tile1) || !IsValidTile(tile2)) return_cmd_error(STR_ERROR_BRIDGE_THROUGH_MAP_BORDER);
+
+	if (tile1 == tile2) {
+		return_cmd_error(STR_ERROR_CAN_T_START_AND_END_ON);
+	} else if (TileX(tile1) == TileX(tile2)) {
+		if (axis != NULL) *axis = AXIS_Y;
+	} else if (TileY(tile1) == TileY(tile2)) {
+		if (axis != NULL) *axis = AXIS_X;
+	} else {
+		return_cmd_error(STR_ERROR_START_AND_END_MUST_BE_IN);
+	}
+
+	return CommandCost();
+}
+
+/**
+ * Check if a bridge can be built.
+ *
+ * @param tile1 Start tile
+ * @param tile2 End tile
+ * @param flags type of operation
+ * @param clear1 Try to clear start tile
+ * @param clear2 Try to clear end tile
+ * @param restricted Force flat ramp (for aqueducts)
+ * @return Terraforming cost for success or an error
+ */
+CommandCost CheckBridgeBuildable(TileIndex tile1, TileIndex tile2, DoCommandFlag flags, bool clear1, bool clear2, bool restricted)
+{
+	DiagDirection dir = DiagdirBetweenTiles(tile1, tile2);
+	assert(IsValidDiagDirection(dir));
+
+	int z1;
+	int z2;
+	Slope tileh1 = GetTileSlope(tile1, &z1);
+	Slope tileh2 = GetTileSlope(tile2, &z2);
+
+	CommandCost terraform1 = CheckBridgeSlope(dir, &tileh1, &z1);
+	CommandCost terraform2 = CheckBridgeSlope(ReverseDiagDir(dir), &tileh2, &z2);
+
+	if (restricted && (tileh1 == SLOPE_FLAT || tileh2 == SLOPE_FLAT)) return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
+	if (z1 != z2) return_cmd_error(STR_ERROR_BRIDGEHEADS_NOT_SAME_HEIGHT);
+
+	bool allow_on_slopes = (_settings_game.construction.build_on_slopes && !restricted);
+
+	CommandCost cost;
+
+	if (clear1) {
+		/* Try and clear the start landscape */
+		CommandCost ret = DoCommand(tile1, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+		if (ret.Failed()) return ret;
+		cost.AddCost(ret);
+
+		if (terraform1.Failed() || (terraform1.GetCost() != 0 && !allow_on_slopes)) return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
+		cost.AddCost(terraform1);
+	} else {
+		assert(terraform1.Succeeded());
+	}
+
+	if (clear2) {
+		/* Try and clear the end landscape */
+		CommandCost ret = DoCommand(tile2, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+		if (ret.Failed()) return ret;
+		cost.AddCost(ret);
+
+		if (terraform2.Failed() || (terraform2.GetCost() != 0 && !allow_on_slopes)) return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
+		cost.AddCost(terraform2);
+	} else {
+		assert(terraform2.Succeeded());
+	}
+
+	const TileIndex heads[] = {tile1, tile2};
+	for (int i = 0; i < 2; i++) {
+		if (HasBridgeAbove(heads[i])) {
+			if (DiagDirToAxis(dir) == GetBridgeAxis(heads[i])) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+
+			if (z1 + 1 == GetBridgeHeight(GetNorthernBridgeEnd(heads[i]))) {
+				return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+			}
+		}
+	}
+
+	TileIndexDiff delta = TileOffsByDiagDir(dir);
+
+	for (TileIndex tile = tile1 + delta; tile != tile2; tile += delta) {
+		if (GetTileMaxZ(tile) > z1) return_cmd_error(STR_ERROR_BRIDGE_TOO_LOW_FOR_TERRAIN);
+
+		if (HasBridgeAbove(tile)) {
+			/* Disallow crossing bridges for the time being */
+			return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+		}
+
+		switch (GetTileType(tile)) {
+			case TT_WATER:
+				if (IsPlainWater(tile) || IsCoast(tile)) continue;
+				break;
+
+			case TT_MISC:
+				if (IsTileSubtype(tile, TT_MISC_TUNNEL)) continue;
+				if (IsTileSubtype(tile, TT_MISC_DEPOT)) break;
+				assert(TT_BRIDGE == TT_MISC_AQUEDUCT);
+				/* fall through */
+			case TT_RAILWAY:
+			case TT_ROAD:
+				if (!IsTileSubtype(tile, TT_BRIDGE)) continue;
+				if (DiagDirToAxis(dir) == DiagDirToAxis(GetTunnelBridgeDirection(tile))) break;
+				if (z1 >= GetBridgeHeight(tile)) continue;
+				break;
+
+			case TT_OBJECT: {
+				const ObjectSpec *spec = ObjectSpec::GetByTile(tile);
+				if ((spec->flags & OBJECT_FLAG_ALLOW_UNDER_BRIDGE) == 0) break;
+				if (z1 >= GetTileMaxZ(tile) + spec->height) continue;
+				break;
+			}
+
+			case TT_GROUND:
+				assert(IsGroundTile(tile));
+				if (!IsTileSubtype(tile, TT_GROUND_TREES)) continue;
+				break;
+
+			default:
+				break;
+		}
+
+		/* try and clear the middle landscape */
+		CommandCost ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+		if (ret.Failed()) return ret;
+		cost.AddCost(ret);
+	}
+
+	return cost;
 }
 
 /**
