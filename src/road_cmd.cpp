@@ -287,37 +287,117 @@ static CommandCost RemoveRoad_Road(TileIndex tile, DoCommandFlag flags, RoadBits
  */
 static CommandCost RemoveRoad_Bridge(TileIndex tile, DoCommandFlag flags, RoadBits pieces, RoadType rt, bool town_check)
 {
-	TileIndex other_end = GetOtherBridgeEnd(tile);
-	CommandCost ret = TunnelBridgeIsFree(tile, other_end);
+	DiagDirection dir = GetTunnelBridgeDirection(tile);
+
+	CommandCost ret = CheckAllowRemoveRoad(tile, pieces, GetRoadOwner(tile, rt), rt, flags, town_check);
 	if (ret.Failed()) return ret;
 
-	ret = CheckAllowRemoveRoad(tile, pieces, GetRoadOwner(tile, rt), rt, flags, town_check);
-	if (ret.Failed()) return ret;
+	RoadBits bits = GetRoadBits(tile, rt);
 
-	/* If it's the last roadtype, just clear the whole tile */
-	if (GetRoadTypes(tile) == RoadTypeToRoadTypes(rt)) return DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+	/* limit the bits to delete to the existing bits. */
+	pieces &= bits;
+	if (pieces == ROAD_NONE) return_cmd_error(rt == ROADTYPE_TRAM ? STR_ERROR_THERE_IS_NO_TRAMWAY : STR_ERROR_THERE_IS_NO_ROAD);
 
-	/* Removing any roadbit in the bridge axis removes the roadtype (that's the behaviour remove-long-roads needs) */
-	if ((AxisToRoadBits(DiagDirToAxis(GetTunnelBridgeDirection(tile))) & pieces) == ROAD_NONE) return_cmd_error(rt == ROADTYPE_TRAM ? STR_ERROR_THERE_IS_NO_TRAMWAY : STR_ERROR_THERE_IS_NO_ROAD);
+	if (HasBridgeFlatRamp(GetTileSlope(tile), DiagDirToAxis(dir))) {
+		bits &= ~pieces;
+	} else {
+		assert((pieces & ~AxisToRoadBits(DiagDirToAxis(dir))) == ROAD_NONE);
+		pieces = AxisToRoadBits(DiagDirToAxis(dir));
+		bits = ROAD_NONE;
+	}
 
 	CommandCost cost(EXPENSES_CONSTRUCTION);
-	/* Pay for *every* tile of the bridge */
-	uint len = GetTunnelBridgeLength(other_end, tile) + 2;
-	cost.AddCost(len * _price[PR_CLEAR_ROAD]);
+
+	/* Other end and length of the bridge, if we are removing the bridge piece */
+	TileIndex other_end;
+	uint len;
+
+	/* Roadbits left at the other side */
+	RoadBits other_end_bits = ROAD_NONE;
+
+	/* Whether to remove the bridge itself */
+	bool remove_bridge = false;
+
+	if ((pieces & DiagDirToRoadBits(dir)) == 0) {
+		/* Not removing the bridge piece */
+		other_end = INVALID_TILE;
+
+		ret = EnsureNoVehicleOnGround(tile);
+		if (ret.Failed()) return ret;
+
+		cost.AddCost(CountBits(pieces) * _price[PR_CLEAR_ROAD]);
+	} else {
+		/* Removing the bridge piece */
+		other_end = GetOtherBridgeEnd(tile);
+		len = GetTunnelBridgeLength(tile, other_end);
+
+		ret = TunnelBridgeIsFree(tile, other_end);
+		if (ret.Failed()) return ret;
+
+		if ((GetOtherRoadBits(tile, rt) & DiagDirToRoadBits(dir)) != 0) {
+			/* The other road type has the bridge piece, so the bridge stays */
+			uint num = CountBits(pieces) + 2 * len;
+
+			if (!IsExtendedRoadBridge(other_end)) {
+				assert(GetRoadBits(other_end, rt) == AxisToRoadBits(DiagDirToAxis(dir)));
+				assert(GetOtherRoadBits(other_end, rt) == AxisToRoadBits(DiagDirToAxis(dir)));
+				num += 2;
+			} else {
+				other_end_bits = GetRoadBits(other_end, rt) & ~DiagDirToRoadBits(ReverseDiagDir(dir));
+				num++;
+			}
+
+			cost.AddCost(num * _price[PR_CLEAR_ROAD]);
+		} else {
+			/* Removing the last bridge piece and therefore the bridge itself */
+			remove_bridge = true;
+			cost.AddCost((len + 2) * _price[PR_CLEAR_BRIDGE]);
+
+			if (IsExtendedRoadBridge(other_end)) {
+				other_end_bits = GetRoadBits(other_end, rt) & ~DiagDirToRoadBits(ReverseDiagDir(dir));
+			}
+		}
+	}
 
 	if (flags & DC_EXEC) {
 		Company *c = Company::GetIfValid(GetRoadOwner(tile, rt));
 		if (c != NULL) {
-			/* A full diagonal road tile has two road bits. */
-			c->infrastructure.road[rt] -= len * 2 * TUNNELBRIDGE_TRACKBIT_FACTOR;
+			if (other_end != INVALID_TILE) {
+				c->infrastructure.road[rt] -= (CountBits(bits | pieces) + 2 * len + CountBits(GetRoadBits(other_end, rt))) * TUNNELBRIDGE_TRACKBIT_FACTOR;
+				c->infrastructure.road[rt] += CountBits(bits) + CountBits(other_end_bits);
+			} else if ((bits & DiagDirToRoadBits(dir)) != 0) {
+				c->infrastructure.road[rt] -= CountBits(pieces) * TUNNELBRIDGE_TRACKBIT_FACTOR;
+			} else {
+				c->infrastructure.road[rt] -= CountBits(pieces);
+			}
 			DirtyCompanyInfrastructureWindows(c->index);
 		}
 
-		ClearRoadType(tile, rt);
-		ClearRoadType(other_end, rt);
+		if (remove_bridge) RemoveBridgeMiddleTiles(tile, other_end);
 
-		/* Mark tiles dirty that have been repaved */
-		MarkBridgeTilesDirty(tile, other_end, GetTunnelBridgeDirection(tile));
+		if (bits != ROAD_NONE) {
+			SetRoadBits(tile, bits, rt);
+			if (remove_bridge) MakeNormalRoadFromBridge(tile);
+		} else {
+			assert((GetRoadTypes(tile) != RoadTypeToRoadTypes(rt)) || remove_bridge);
+			if (remove_bridge) MakeNormalRoadFromBridge(tile);
+			ClearRoadType(tile, rt);
+		}
+
+		MarkTileDirtyByTile(tile);
+
+		if (other_end != INVALID_TILE) {
+			if (other_end_bits != ROAD_NONE) {
+				SetRoadBits(other_end, other_end_bits, rt);
+				if (remove_bridge) MakeNormalRoadFromBridge(other_end);
+			} else {
+				assert((GetRoadTypes(other_end) != RoadTypeToRoadTypes(rt)) || remove_bridge);
+				if (remove_bridge) MakeNormalRoadFromBridge(other_end);
+				ClearRoadType(other_end, rt);
+			}
+
+			MarkBridgeTilesDirty(tile, other_end, dir, false);
+		}
 	}
 
 	return cost;

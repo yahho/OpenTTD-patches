@@ -100,12 +100,12 @@ CommandCost CheckBridgeTiles(TileIndex tile1, TileIndex tile2, Axis *axis);
 CommandCost CheckBridgeBuildable(TileIndex tile1, TileIndex tile2, DoCommandFlag flags, bool clear1, bool clear2, bool restricted = false);
 CommandCost CheckBridgeSlope(DiagDirection dir, Slope *tileh, int *z);
 
-static inline void MarkBridgeTilesDirty(TileIndex start, TileIndex end, DiagDirection dir)
+static inline void MarkBridgeTilesDirty(TileIndex start, TileIndex end, DiagDirection dir, bool first = true)
 {
 	assert(DiagdirBetweenTiles(start, end) == dir);
 
 	TileIndexDiff delta = TileOffsByDiagDir(dir);
-	for (TileIndex tile = start; tile != end; tile += delta) {
+	for (TileIndex tile = (first ? start : start + delta); tile != end; tile += delta) {
 		MarkTileDirtyByTile(tile);
 	}
 	MarkTileDirtyByTile(end);
