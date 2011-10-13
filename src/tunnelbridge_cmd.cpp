@@ -37,56 +37,21 @@ TileIndex _build_tunnel_endtile; ///< The end of a tunnel; as hidden return from
 
 
 /**
- * Build a Bridge
- * @param end_tile end tile
+ * Build a road bridge
+ * @param tile_start Start tile
+ * @param tile_end End tile
+ * @param bridge_type Bridge type
+ * @param rts Road types
  * @param flags type of operation
- * @param p1 packed start tile coords (~ dx)
- * @param p2 various bitstuffed elements
- * - p2 = (bit  0- 7) - bridge type (hi bh)
- * - p2 = (bit  8-11) - rail type or road types.
- * - p2 = (bit 15-16) - transport type.
- * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+static CommandCost BuildRoadBridge(TileIndex tile_start, TileIndex tile_end, BridgeType bridge_type, RoadTypes rts, DoCommandFlag flags)
 {
 	CompanyID company = _current_company;
 
-	RailType railtype = INVALID_RAILTYPE;
-	RoadTypes roadtypes = ROADTYPES_NONE;
-
-	/* unpack parameters */
-	BridgeType bridge_type = GB(p2, 0, 8);
-
-	if (!IsValidTile(p1)) return_cmd_error(STR_ERROR_BRIDGE_THROUGH_MAP_BORDER);
-
-	TransportType transport_type = Extract<TransportType, 15, 2>(p2);
-
-	/* type of bridge */
-	switch (transport_type) {
-		case TRANSPORT_ROAD:
-			roadtypes = Extract<RoadTypes, 8, 2>(p2);
-			if (!HasExactlyOneBit(roadtypes) || !HasRoadTypesAvail(company, roadtypes)) return CMD_ERROR;
-			break;
-
-		case TRANSPORT_RAIL:
-			railtype = Extract<RailType, 8, 4>(p2);
-			if (!ValParamRailtype(railtype)) return CMD_ERROR;
-			break;
-
-		case TRANSPORT_WATER:
-			break;
-
-		default:
-			/* Airports don't have bridges. */
-			return CMD_ERROR;
-	}
-
-	TileIndex tile_start = p1;
-	TileIndex tile_end = end_tile;
+	if (!HasExactlyOneBit(rts) || !HasRoadTypesAvail(_current_company, rts)) return CMD_ERROR;
 
 	if (company == OWNER_DEITY) {
-		if (transport_type != TRANSPORT_ROAD) return CMD_ERROR;
 		const Town *town = CalcClosestTownFromTile(tile_start);
 
 		company = OWNER_TOWN;
@@ -103,81 +68,52 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 
 	if (tile_end < tile_start) Swap(tile_start, tile_end);
 
+	/* set and test bridge length, availability */
 	uint bridge_len = GetTunnelBridgeLength(tile_start, tile_end);
-	if (transport_type != TRANSPORT_WATER) {
-		/* set and test bridge length, availability */
-		CommandCost ret = CheckBridgeAvailability(bridge_type, bridge_len, flags);
-		if (ret.Failed()) return ret;
-	} else {
-		if (bridge_len > _settings_game.construction.max_bridge_length) return_cmd_error(STR_ERROR_BRIDGE_TOO_LONG);
-	}
+	ret = CheckBridgeAvailability(bridge_type, bridge_len, flags);
+	if (ret.Failed()) return ret;
 
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 
-	if (IsBridgeHeadTile(tile_start) && IsBridgeHeadTile(tile_end) &&
-			GetOtherBridgeEnd(tile_start) == tile_end &&
-			GetTunnelBridgeTransportType(tile_start) == transport_type) {
+	if (IsRoadBridgeTile(tile_start) && IsRoadBridgeTile(tile_end) &&
+			GetOtherBridgeEnd(tile_start) == tile_end) {
 		/* Replace a current bridge. */
 
-		switch (transport_type) {
-			default: NOT_REACHED();
+		/* Special owner check. */
+		Owner owner_road = HasTileRoadType(tile_start, ROADTYPE_ROAD) ? GetRoadOwner(tile_start, ROADTYPE_ROAD) : INVALID_OWNER;
+		Owner owner_tram = HasTileRoadType(tile_start, ROADTYPE_TRAM) ? GetRoadOwner(tile_start, ROADTYPE_TRAM) : INVALID_OWNER;
 
-			case TRANSPORT_RAIL:
-				/* Make sure the railtypes match. */
-				if (GetRailType(tile_start) != railtype) {
-					return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
-				}
-
-				/* Do not allow replacing another company's bridges. */
-				if (!IsTileOwner(tile_start, company)) {
-					return_cmd_error(STR_ERROR_AREA_IS_OWNED_BY_ANOTHER);
-				}
-
-				break;
-
-			case TRANSPORT_ROAD: {
-				/* Special owner check. */
-				Owner owner_road = HasTileRoadType(tile_start, ROADTYPE_ROAD) ? GetRoadOwner(tile_start, ROADTYPE_ROAD) : INVALID_OWNER;
-				Owner owner_tram = HasTileRoadType(tile_start, ROADTYPE_TRAM) ? GetRoadOwner(tile_start, ROADTYPE_TRAM) : INVALID_OWNER;
-
-				/* You must own one of the roadtypes, or one of the roadtypes must be unowned, or a town must own the road. */
-				if (owner_road != company && owner_road != OWNER_NONE && owner_road != OWNER_TOWN &&
-						owner_tram != company && owner_tram != OWNER_NONE) {
-					return_cmd_error(STR_ERROR_AREA_IS_OWNED_BY_ANOTHER);
-				}
-
-				/* You must own all of the roadtypes if downgrading. */
-				if (!(flags & DC_QUERY_COST) &&
-						GetBridgeSpec(bridge_type)->speed < GetBridgeSpec(GetRoadBridgeType(tile_start))->speed &&
-						_game_mode != GM_EDITOR) {
-					if (owner_road == OWNER_TOWN) {
-						Town *t = ClosestTownFromTile(tile_start, UINT_MAX);
-
-						if (t == NULL) return CMD_ERROR;
-
-						SetDParam(0, t->index);
-						return_cmd_error(STR_ERROR_LOCAL_AUTHORITY_REFUSES_TO_ALLOW_THIS);
-					}
-					if (owner_road != company && owner_road != OWNER_NONE && owner_road != INVALID_OWNER) {
-						return_cmd_error(STR_ERROR_AREA_IS_OWNED_BY_ANOTHER);
-					}
-					if (owner_tram != company && owner_tram != OWNER_NONE && owner_tram != INVALID_OWNER) {
-						return_cmd_error(STR_ERROR_AREA_IS_OWNED_BY_ANOTHER);
-					}
-				}
-
-				/* Do not remove road types when upgrading a bridge */
-				roadtypes |= GetRoadTypes(tile_start);
-
-				break;
-			}
-
-			case TRANSPORT_WATER:
-				return_cmd_error(STR_ERROR_ALREADY_BUILT);
+		/* You must own one of the roadtypes, or one of the roadtypes must be unowned, or a town must own the road. */
+		if (owner_road != company && owner_road != OWNER_NONE && owner_road != OWNER_TOWN &&
+				owner_tram != company && owner_tram != OWNER_NONE) {
+			return_cmd_error(STR_ERROR_AREA_IS_OWNED_BY_ANOTHER);
 		}
 
+		/* You must own all of the roadtypes if downgrading. */
+		if (!(flags & DC_QUERY_COST) &&
+				GetBridgeSpec(bridge_type)->speed < GetBridgeSpec(GetRoadBridgeType(tile_start))->speed &&
+				_game_mode != GM_EDITOR) {
+			if (owner_road == OWNER_TOWN) {
+				Town *t = ClosestTownFromTile(tile_start, UINT_MAX);
+
+				if (t == NULL) return CMD_ERROR;
+
+				SetDParam(0, t->index);
+				return_cmd_error(STR_ERROR_LOCAL_AUTHORITY_REFUSES_TO_ALLOW_THIS);
+			}
+			if (owner_road != company && owner_road != OWNER_NONE && owner_road != INVALID_OWNER) {
+				return_cmd_error(STR_ERROR_AREA_IS_OWNED_BY_ANOTHER);
+			}
+			if (owner_tram != company && owner_tram != OWNER_NONE && owner_tram != INVALID_OWNER) {
+				return_cmd_error(STR_ERROR_AREA_IS_OWNED_BY_ANOTHER);
+			}
+		}
+
+		/* Do not remove road types when upgrading a bridge */
+		rts |= GetRoadTypes(tile_start);
+
 		/* Do not replace the bridge with the same bridge type. */
-		if (!(flags & DC_QUERY_COST) && (bridge_type == GetBridgeType(tile_start)) && (transport_type != TRANSPORT_ROAD || (roadtypes & ~GetRoadTypes(tile_start)) == 0)) {
+		if (!(flags & DC_QUERY_COST) && (bridge_type == GetRoadBridgeType(tile_start)) && ((rts & ~GetRoadTypes(tile_start)) == 0)) {
 			return_cmd_error(STR_ERROR_ALREADY_BUILT);
 		}
 
@@ -185,52 +121,38 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 
 		/* do the drill? */
 		if (flags & DC_EXEC) {
-			switch (transport_type) {
-				case TRANSPORT_RAIL:
-					SetRailBridgeType(tile_start, bridge_type);
-					SetRailBridgeType(tile_end,   bridge_type);
-					break;
-
-				case TRANSPORT_ROAD: {
-					RoadTypes prev_roadtypes = GetRoadTypes(tile_start);
-					/* Also give unowned present roadtypes to new owner */
-					if (HasBit(prev_roadtypes, ROADTYPE_ROAD) && GetRoadOwner(tile_start, ROADTYPE_ROAD) == OWNER_NONE) ClrBit(prev_roadtypes, ROADTYPE_ROAD);
-					if (HasBit(prev_roadtypes, ROADTYPE_TRAM) && GetRoadOwner(tile_start, ROADTYPE_TRAM) == OWNER_NONE) ClrBit(prev_roadtypes, ROADTYPE_TRAM);
-					Company *c = Company::GetIfValid(company);
-					if (c != NULL) {
-						/* Add all new road types to the company infrastructure counter. */
-						RoadType new_rt;
-						FOR_EACH_SET_ROADTYPE(new_rt, roadtypes ^ prev_roadtypes) {
-							/* A full diagonal road tile has two road bits. */
-							c->infrastructure.road[new_rt] += (bridge_len + 2) * 2 * TUNNELBRIDGE_TRACKBIT_FACTOR;
-						}
-					}
-					DirtyCompanyInfrastructureWindows(company);
-
-					SetRoadBridgeType(tile_start, bridge_type);
-					SetRoadTypes(tile_start, roadtypes);
-					SetRoadBridgeType(tile_end,   bridge_type);
-					SetRoadTypes(tile_end,   roadtypes);
-
-					for (RoadType rt = ROADTYPE_BEGIN; rt < ROADTYPE_END; rt++) {
-						if (!HasBit(prev_roadtypes, rt)) {
-							SetRoadOwner(tile_start, rt, company);
-							SetRoadOwner(tile_end,   rt, company);
-						}
-					}
-
-					break;
+			RoadTypes prev_roadtypes = GetRoadTypes(tile_start);
+			/* Also give unowned present roadtypes to new owner */
+			if (HasBit(prev_roadtypes, ROADTYPE_ROAD) && GetRoadOwner(tile_start, ROADTYPE_ROAD) == OWNER_NONE) ClrBit(prev_roadtypes, ROADTYPE_ROAD);
+			if (HasBit(prev_roadtypes, ROADTYPE_TRAM) && GetRoadOwner(tile_start, ROADTYPE_TRAM) == OWNER_NONE) ClrBit(prev_roadtypes, ROADTYPE_TRAM);
+			Company *c = Company::GetIfValid(company);
+			if (c != NULL) {
+				/* Add all new road types to the company infrastructure counter. */
+				RoadType new_rt;
+				FOR_EACH_SET_ROADTYPE(new_rt, rts ^ prev_roadtypes) {
+					/* A full diagonal road tile has two road bits. */
+					c->infrastructure.road[new_rt] += (bridge_len + 2) * 2 * TUNNELBRIDGE_TRACKBIT_FACTOR;
 				}
+			}
+			DirtyCompanyInfrastructureWindows(company);
 
-				default:
-					NOT_REACHED();
+			SetRoadBridgeType(tile_start, bridge_type);
+			SetRoadTypes(tile_start, rts);
+			SetRoadBridgeType(tile_end,   bridge_type);
+			SetRoadTypes(tile_end,   rts);
+
+			for (RoadType rt = ROADTYPE_BEGIN; rt < ROADTYPE_END; rt++) {
+				if (!HasBit(prev_roadtypes, rt)) {
+					SetRoadOwner(tile_start, rt, company);
+					SetRoadOwner(tile_end,   rt, company);
+				}
 			}
 
 			MarkBridgeTilesDirty(tile_start, tile_end, AxisToDiagDir(direction));
 		}
 	} else {
 		/* Build a new bridge. */
-		CommandCost ret = CheckBridgeBuildable(tile_start, tile_end, flags, true, true, transport_type == TRANSPORT_WATER);
+		CommandCost ret = CheckBridgeBuildable(tile_start, tile_end, flags, true, true);
 		if (ret.Failed()) return ret;
 		cost.AddCost(ret);
 
@@ -239,46 +161,20 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 			DiagDirection dir = AxisToDiagDir(direction);
 
 			Company *c = Company::GetIfValid(company);
-			switch (transport_type) {
-				case TRANSPORT_RAIL:
-					/* Add to company infrastructure count. */
-					if (c != NULL) c->infrastructure.rail[railtype] += (bridge_len + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
-					MakeRailBridgeRamp(tile_start, company, bridge_type, dir,                 railtype);
-					MakeRailBridgeRamp(tile_end,   company, bridge_type, ReverseDiagDir(dir), railtype);
-					break;
-
-				case TRANSPORT_ROAD:
-					if (c != NULL) {
-						/* Add all new road types to the company infrastructure counter. */
-						RoadType new_rt;
-						FOR_EACH_SET_ROADTYPE(new_rt, roadtypes) {
-							/* A full diagonal road tile has two road bits. */
-							c->infrastructure.road[new_rt] += (bridge_len + 2) * 2 * TUNNELBRIDGE_TRACKBIT_FACTOR;
-						}
-					}
-					MakeRoadBridgeRamp(tile_start, company, company, bridge_type, dir,                 roadtypes);
-					MakeRoadBridgeRamp(tile_end,   company, company, bridge_type, ReverseDiagDir(dir), roadtypes);
-					break;
-
-				case TRANSPORT_WATER:
-					if (c != NULL) c->infrastructure.water += (bridge_len + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
-					MakeAqueductBridgeRamp(tile_start, company, dir);
-					MakeAqueductBridgeRamp(tile_end,   company, ReverseDiagDir(dir));
-					break;
-
-				default:
-					NOT_REACHED();
+			if (c != NULL) {
+				/* Add all new road types to the company infrastructure counter. */
+				RoadType new_rt;
+				FOR_EACH_SET_ROADTYPE(new_rt, rts) {
+					/* A full diagonal road tile has two road bits. */
+					c->infrastructure.road[new_rt] += (bridge_len + 2) * 2 * TUNNELBRIDGE_TRACKBIT_FACTOR;
+				}
 			}
+			MakeRoadBridgeRamp(tile_start, company, company, bridge_type, dir,                 rts);
+			MakeRoadBridgeRamp(tile_end,   company, company, bridge_type, ReverseDiagDir(dir), rts);
 
 			SetBridgeMiddleTiles(tile_start, tile_end, direction);
 			DirtyCompanyInfrastructureWindows(company);
 		}
-	}
-
-	if ((flags & DC_EXEC) && transport_type == TRANSPORT_RAIL) {
-		Track track = AxisToTrack(direction);
-		AddSideToSignalBuffer(tile_start, INVALID_DIAGDIR, company);
-		YapfNotifyTrackLayoutChange(tile_start, track);
 	}
 
 	/* for human player that builds the bridge he gets a selection to choose from bridges (DC_QUERY_COST)
@@ -289,24 +185,216 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 	if (!(flags & DC_QUERY_COST) || (c != NULL && c->is_ai)) {
 		bridge_len += 2; // begin and end tiles/ramps
 
-		switch (transport_type) {
-			case TRANSPORT_ROAD: cost.AddCost(bridge_len * _price[PR_BUILD_ROAD] * 2 * CountBits(roadtypes)); break;
-			case TRANSPORT_RAIL: cost.AddCost(bridge_len * RailBuildCost(railtype)); break;
-			default: break;
-		}
+		cost.AddCost(bridge_len * _price[PR_BUILD_ROAD] * 2 * CountBits(rts));
 
 		if (c != NULL) bridge_len = CalcBridgeLenCostFactor(bridge_len);
 
-		if (transport_type != TRANSPORT_WATER) {
-			cost.AddCost((int64)bridge_len * _price[PR_BUILD_BRIDGE] * GetBridgeSpec(bridge_type)->price >> 8);
-		} else {
-			/* Aqueducts use a separate base cost. */
-			cost.AddCost((int64)bridge_len * _price[PR_BUILD_AQUEDUCT]);
-		}
-
+		cost.AddCost((int64)bridge_len * _price[PR_BUILD_BRIDGE] * GetBridgeSpec(bridge_type)->price >> 8);
 	}
 
 	return cost;
+}
+
+
+/**
+ * Build a rail bridge
+ * @param tile_start Start tile
+ * @param tile_end End tile
+ * @param bridge_type Bridge type
+ * @param railtype Rail type
+ * @param flags type of operation
+ * @return the cost of this operation or an error
+ */
+static CommandCost BuildRailBridge(TileIndex tile_start, TileIndex tile_end, BridgeType bridge_type, RailType railtype, DoCommandFlag flags)
+{
+	if (!ValParamRailtype(railtype)) return CMD_ERROR;
+
+	if (_current_company == OWNER_DEITY) return CMD_ERROR;
+
+	Axis direction;
+	CommandCost ret = CheckBridgeTiles(tile_start, tile_end, &direction);
+	if (ret.Failed()) return ret;
+
+	if (tile_end < tile_start) Swap(tile_start, tile_end);
+
+	/* set and test bridge length, availability */
+	uint bridge_len = GetTunnelBridgeLength(tile_start, tile_end);
+	ret = CheckBridgeAvailability(bridge_type, bridge_len, flags);
+	if (ret.Failed()) return ret;
+
+	CommandCost cost(EXPENSES_CONSTRUCTION);
+
+	if (IsRailBridgeTile(tile_start) && IsRailBridgeTile(tile_end) &&
+			GetOtherBridgeEnd(tile_start) == tile_end) {
+		/* Replace a current bridge. */
+
+		/* Make sure the railtypes match. */
+		if (GetRailType(tile_start) != railtype) {
+			return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+		}
+
+		/* Do not replace the bridge with the same bridge type. */
+		if (!(flags & DC_QUERY_COST) && bridge_type == GetRailBridgeType(tile_start)) {
+			return_cmd_error(STR_ERROR_ALREADY_BUILT);
+		}
+
+		/* Do not allow replacing another company's bridges. */
+		if (!IsTileOwner(tile_start, _current_company) && !IsTileOwner(tile_start, OWNER_TOWN)) {
+			return_cmd_error(STR_ERROR_AREA_IS_OWNED_BY_ANOTHER);
+		}
+
+		cost.AddCost((bridge_len + 1) * _price[PR_CLEAR_BRIDGE]); // The cost of clearing the current bridge.
+
+		/* do the drill? */
+		if (flags & DC_EXEC) {
+			SetRailBridgeType(tile_start, bridge_type);
+			SetRailBridgeType(tile_end,   bridge_type);
+
+			MarkBridgeTilesDirty(tile_start, tile_end, AxisToDiagDir(direction));
+		}
+	} else {
+		/* Build a new bridge. */
+		CommandCost ret = CheckBridgeBuildable(tile_start, tile_end, flags, true, true);
+		if (ret.Failed()) return ret;
+		cost.AddCost(ret);
+
+		/* do the drill? */
+		if (flags & DC_EXEC) {
+			DiagDirection dir = AxisToDiagDir(direction);
+
+			/* Add to company infrastructure count. */
+			Company::Get(_current_company)->infrastructure.rail[railtype] += (bridge_len + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
+			MakeRailBridgeRamp(tile_start, _current_company, bridge_type, dir,                 railtype);
+			MakeRailBridgeRamp(tile_end,   _current_company, bridge_type, ReverseDiagDir(dir), railtype);
+
+			SetBridgeMiddleTiles(tile_start, tile_end, direction);
+			DirtyCompanyInfrastructureWindows(_current_company);
+		}
+	}
+
+	if (flags & DC_EXEC) {
+		Track track = AxisToTrack(direction);
+		AddSideToSignalBuffer(tile_start, INVALID_DIAGDIR, _current_company);
+		YapfNotifyTrackLayoutChange(tile_start, track);
+	}
+
+	/* for human player that builds the bridge he gets a selection to choose from bridges (DC_QUERY_COST)
+	 * It's unnecessary to execute this command every time for every bridge. So it is done only
+	 * and cost is computed in "bridge_gui.c". For AI, Towns this has to be of course calculated
+	 */
+	Company *c = Company::Get(_current_company);
+	if (!(flags & DC_QUERY_COST) || c->is_ai) {
+		bridge_len += 2; // begin and end tiles/ramps
+
+		cost.AddCost(bridge_len * RailBuildCost(railtype));
+
+		bridge_len = CalcBridgeLenCostFactor(bridge_len);
+
+		cost.AddCost((int64)bridge_len * _price[PR_BUILD_BRIDGE] * GetBridgeSpec(bridge_type)->price >> 8);
+	}
+
+	return cost;
+}
+
+
+/**
+ * Build an aqueduct
+ * @param tile_start Start tile
+ * @param tile_end End tile
+ * @param flags type of operation
+ * @return the cost of this operation or an error
+ */
+static CommandCost BuildAqueduct(TileIndex tile_start, TileIndex tile_end, DoCommandFlag flags)
+{
+	if (_current_company == OWNER_DEITY) return CMD_ERROR;
+
+	Axis direction;
+	CommandCost ret = CheckBridgeTiles(tile_start, tile_end, &direction);
+	if (ret.Failed()) return ret;
+
+	if (tile_end < tile_start) Swap(tile_start, tile_end);
+
+	/* set and test bridge length, availability */
+	uint bridge_len = GetTunnelBridgeLength(tile_start, tile_end);
+	if (bridge_len > _settings_game.construction.max_bridge_length) return_cmd_error(STR_ERROR_BRIDGE_TOO_LONG);
+
+	CommandCost cost(EXPENSES_CONSTRUCTION);
+
+	if (IsAqueductTile(tile_start) && IsAqueductTile(tile_end) &&
+			GetOtherBridgeEnd(tile_start) == tile_end) {
+		return_cmd_error(STR_ERROR_ALREADY_BUILT);
+	}
+
+	/* Build a new bridge. */
+	ret = CheckBridgeBuildable(tile_start, tile_end, flags, true, true, true);
+	if (ret.Failed()) return ret;
+	cost.AddCost(ret);
+
+	/* do the drill? */
+	if (flags & DC_EXEC) {
+		DiagDirection dir = AxisToDiagDir(direction);
+
+		Company *c = Company::GetIfValid(_current_company);
+		if (c != NULL) c->infrastructure.water += (bridge_len + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
+		MakeAqueductBridgeRamp(tile_start, _current_company, dir);
+		MakeAqueductBridgeRamp(tile_end,   _current_company, ReverseDiagDir(dir));
+
+		SetBridgeMiddleTiles(tile_start, tile_end, direction);
+		DirtyCompanyInfrastructureWindows(_current_company);
+	}
+
+	/* for human player that builds the bridge he gets a selection to choose from bridges (DC_QUERY_COST)
+	 * It's unnecessary to execute this command every time for every bridge. So it is done only
+	 * and cost is computed in "bridge_gui.c". For AI, Towns this has to be of course calculated
+	 */
+	Company *c = Company::GetIfValid(_current_company);
+	if (!(flags & DC_QUERY_COST) || (c != NULL && c->is_ai)) {
+		bridge_len += 2; // begin and end tiles/ramps
+
+		if (c != NULL) bridge_len = CalcBridgeLenCostFactor(bridge_len);
+
+		/* Aqueducts use a separate base cost. */
+		cost.AddCost((int64)bridge_len * _price[PR_BUILD_AQUEDUCT]);
+	}
+
+	return cost;
+}
+
+
+/**
+ * Build a Bridge
+ * @param end_tile end tile
+ * @param flags type of operation
+ * @param p1 packed start tile coords (~ dx)
+ * @param p2 various bitstuffed elements
+ * - p2 = (bit  0- 7) - bridge type (hi bh)
+ * - p2 = (bit  8-11) - rail type or road types.
+ * - p2 = (bit 15-16) - transport type.
+ * @param text unused
+ * @return the cost of this operation or an error
+ */
+CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+{
+	/* unpack parameters */
+	BridgeType bridge_type = GB(p2, 0, 8);
+
+	if (!IsValidTile(p1)) return_cmd_error(STR_ERROR_BRIDGE_THROUGH_MAP_BORDER);
+
+	/* type of bridge */
+	switch (Extract<TransportType, 15, 2>(p2)) {
+		case TRANSPORT_ROAD:
+			return BuildRoadBridge(p1, end_tile, bridge_type, Extract<RoadTypes, 8, 2>(p2), flags);
+
+		case TRANSPORT_RAIL:
+			return BuildRailBridge(p1, end_tile, bridge_type, Extract<RailType, 8, 4>(p2), flags);
+
+		case TRANSPORT_WATER:
+			return BuildAqueduct(p1, end_tile, flags);
+
+		default:
+			/* Airports don't have bridges. */
+			return CMD_ERROR;
+	}
 }
 
 
