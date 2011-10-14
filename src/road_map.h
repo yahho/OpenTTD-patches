@@ -544,6 +544,22 @@ static inline void MakeNormalRoadFromBridge(TileIndex t)
 }
 
 /**
+ * Make a road bridge tile from a normal road.
+ * @param t          the tile to make a road bridge
+ * @param bridgetype the type of bridge this bridge ramp belongs to
+ * @param d          the direction this ramp must be facing
+ * @note roadbits will have to be adjusted when this function is called
+ */
+static inline void MakeRoadBridgeFromRoad(TileIndex t, BridgeType bridgetype, DiagDirection d)
+{
+	assert(IsNormalRoadTile(t));
+	SetTileTypeSubtype(t, TT_ROAD, TT_BRIDGE);
+	SB(_mc[t].m3, 6, 2, d);
+	SB(_mc[t].m5, 4, 3, 0);
+	SB(_mc[t].m7, 0, 4, bridgetype);
+}
+
+/**
  * Make a level crossing.
  * @param t       Tile to make a level crossing.
  * @param road    New owner of road.

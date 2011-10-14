@@ -36,6 +36,8 @@
 TileIndex _build_tunnel_endtile; ///< The end of a tunnel; as hidden return from the tunnel build command for GUI purposes.
 
 
+extern bool IsValidRoadBridgeBits(Slope tileh, DiagDirection dir, RoadBits bits);
+
 /**
  * Build a road bridge
  * @param tile_start Start tile
@@ -157,26 +159,85 @@ static CommandCost BuildRoadBridge(TileIndex tile_start, TileIndex tile_end, Bri
 			MarkBridgeTilesDirty(tile_start, tile_end, AxisToDiagDir(direction));
 		}
 	} else {
+		DiagDirection dir = AxisToDiagDir(direction);
+
+		bool clear_start = !IsNormalRoadTile(tile_start) ||
+			GetDisallowedRoadDirections(tile_start) != DRD_NONE ||
+			HasRoadWorks(tile_start) ||
+			!IsValidRoadBridgeBits(GetTileSlope(tile_start), dir, GetAllRoadBits(tile_start));
+
+		if (!clear_start) {
+			RoadType rt;
+			FOR_EACH_SET_ROADTYPE(rt, GetRoadTypes(tile_start) & rts) {
+				if (GetRoadOwner(tile_start, rt) != company) clear_start = true;
+			}
+		}
+
+		bool clear_end = !IsNormalRoadTile(tile_end) ||
+			GetDisallowedRoadDirections(tile_end) != DRD_NONE ||
+			HasRoadWorks(tile_end) ||
+			!IsValidRoadBridgeBits(GetTileSlope(tile_end), ReverseDiagDir(dir), GetAllRoadBits(tile_end));
+
+		if (!clear_end) {
+			RoadType rt;
+			FOR_EACH_SET_ROADTYPE(rt, GetRoadTypes(tile_end) & rts) {
+				if (GetRoadOwner(tile_end, rt) != company) clear_end = true;
+			}
+		}
+
 		/* Build a new bridge. */
-		CommandCost ret = CheckBridgeBuildable(tile_start, tile_end, flags, true, true);
+		CommandCost ret = CheckBridgeBuildable(tile_start, tile_end, flags, clear_start, clear_end);
 		if (ret.Failed()) return ret;
 		cost.AddCost(ret);
 
 		/* do the drill? */
 		if (flags & DC_EXEC) {
-			DiagDirection dir = AxisToDiagDir(direction);
-
 			Company *c = Company::GetIfValid(company);
+			uint num_pieces = 2 * bridge_len;
+
+			if (clear_start) {
+				MakeRoadBridgeRamp(tile_start, company, company, bridge_type, dir, rts, town != INVALID_TOWN ? town : CalcClosestTownIDFromTile(tile_start));
+				num_pieces += 2;
+			} else {
+				MakeRoadBridgeFromRoad(tile_start, bridge_type, dir);
+				SetRoadTypes(tile_start, GetRoadTypes(tile_start) | rts);
+
+				RoadBits bits = DiagDirToRoadBits(dir);
+				RoadType new_rt;
+				FOR_EACH_SET_ROADTYPE(new_rt, rts) {
+					RoadBits pieces = GetRoadBits(tile_start, new_rt);
+					uint n = CountBits(pieces);
+					if (c != NULL) c->infrastructure.road[new_rt] += (n + 1) * TUNNELBRIDGE_TRACKBIT_FACTOR - n;
+					SetRoadBits(tile_start, pieces | bits, new_rt);
+				}
+			}
+
+			if (clear_end) {
+				MakeRoadBridgeRamp(tile_end, company, company, bridge_type, ReverseDiagDir(dir), rts, town != INVALID_TOWN ? town : CalcClosestTownIDFromTile(tile_end));
+				num_pieces += 2;
+			} else {
+				MakeRoadBridgeFromRoad(tile_end, bridge_type, ReverseDiagDir(dir));
+				SetRoadTypes(tile_end, GetRoadTypes(tile_end) | rts);
+
+				RoadBits bits = DiagDirToRoadBits(ReverseDiagDir(dir));
+				RoadType new_rt;
+				FOR_EACH_SET_ROADTYPE(new_rt, rts) {
+					RoadBits pieces = GetRoadBits(tile_end, new_rt);
+					uint n = CountBits(pieces);
+					if (c != NULL) c->infrastructure.road[new_rt] += (n + 1) * TUNNELBRIDGE_TRACKBIT_FACTOR - n;
+					SetRoadBits(tile_end, pieces | bits, new_rt);
+				}
+			}
+
+			num_pieces *= TUNNELBRIDGE_TRACKBIT_FACTOR;
 			if (c != NULL) {
 				/* Add all new road types to the company infrastructure counter. */
 				RoadType new_rt;
 				FOR_EACH_SET_ROADTYPE(new_rt, rts) {
 					/* A full diagonal road tile has two road bits. */
-					c->infrastructure.road[new_rt] += (bridge_len + 2) * 2 * TUNNELBRIDGE_TRACKBIT_FACTOR;
+					c->infrastructure.road[new_rt] += num_pieces;
 				}
 			}
-			MakeRoadBridgeRamp(tile_start, company, company, bridge_type, dir,                 rts, town != INVALID_TOWN ? town : CalcClosestTownIDFromTile(tile_start));
-			MakeRoadBridgeRamp(tile_end,   company, company, bridge_type, ReverseDiagDir(dir), rts, town != INVALID_TOWN ? town : CalcClosestTownIDFromTile(tile_end));
 
 			SetBridgeMiddleTiles(tile_start, tile_end, direction);
 			DirtyCompanyInfrastructureWindows(company);
