@@ -199,32 +199,6 @@ static Vehicle *TrainOnTileEnum(Vehicle *v, void *)
 
 /**
  * Perform some operations before adding data into Todo set
- * The new and reverse direction is removed from _globset, because we are sure
- * it doesn't need to be checked again
- * Also, remove reverse direction from _tbdset
- * This is the 'core' part so the graph searching won't enter any tile twice
- *
- * @param t1 tile we are entering
- * @param d1 direction (tile side) we are entering
- * @param t2 tile we are leaving
- * @param d2 direction (tile side) we are leaving
- * @return false iff reverse direction was in Todo set
- */
-static inline bool CheckAddToTodoSet(TileIndex t1, DiagDirection d1, TileIndex t2, DiagDirection d2)
-{
-	_globset.Remove(t1, d1); // it can be in Global but not in Todo
-	_globset.Remove(t2, d2); // remove in all cases
-
-	assert(!_tbdset.IsIn(t1, d1)); // it really shouldn't be there already
-
-	if (_tbdset.Remove(t2, d2)) return false;
-
-	return true;
-}
-
-
-/**
- * Perform some operations before adding data into Todo set
  * The new and reverse direction is removed from Global set, because we are sure
  * it doesn't need to be checked again
  * Also, remove reverse direction from Todo set
@@ -238,7 +212,12 @@ static inline bool CheckAddToTodoSet(TileIndex t1, DiagDirection d1, TileIndex t
  */
 static inline bool MaybeAddToTodoSet(TileIndex t1, DiagDirection d1, TileIndex t2, DiagDirection d2)
 {
-	if (!CheckAddToTodoSet(t1, d1, t2, d2)) return true;
+	_globset.Remove(t1, d1); // it can be in Global but not in Todo
+	_globset.Remove(t2, d2); // remove in all cases
+
+	assert(!_tbdset.IsIn(t1, d1)); // it really shouldn't be there already
+
+	if (_tbdset.Remove(t2, d2)) return true;
 
 	return _tbdset.Add(t1, d1);
 }
