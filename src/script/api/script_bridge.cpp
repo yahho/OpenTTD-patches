@@ -30,8 +30,15 @@
 
 /* static */ BridgeID ScriptBridge::GetBridgeID(TileIndex tile)
 {
-	if (!IsBridgeTile(tile)) return (BridgeID)-1;
-	return (BridgeID)::GetBridgeType(tile);
+	if (IsRailBridgeTile(tile)) {
+		return (BridgeID)::GetRailBridgeType(tile);
+	} else if (IsRoadBridgeTile(tile)) {
+		return (BridgeID)::GetRoadBridgeType(tile);
+	} else if (IsAqueductTile(tile)) {
+		return (BridgeID) 0;
+	} else {
+		return (BridgeID)-1;
+	}
 }
 
 /**

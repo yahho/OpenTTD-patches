@@ -89,18 +89,6 @@ static inline BridgeType GetRoadBridgeType(TileIndex t)
 }
 
 /**
- * Determines the type of bridge on a tile
- * @param t The tile to analyze
- * @pre IsBridgeHeadTile(t)
- * @return The bridge type
- */
-static inline BridgeType GetBridgeType(TileIndex t)
-{
-	return IsRailwayTile(t) ? GetRailBridgeType(t) :
-		IsRoadTile(t) ? GetRoadBridgeType(t) : 0;
-}
-
-/**
  * Set the type of rail bridge on a tile
  * @param t The tile to set
  * @param type The type to set
