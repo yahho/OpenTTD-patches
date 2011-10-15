@@ -2458,8 +2458,9 @@ static void DrawUpperHalftile(TileInfo *ti, Corner corner, const RailtypeInfo *r
  */
 static void DrawTrack(TileInfo *ti, TrackBits track)
 {
-	RailGroundType rgt = GetRailGroundType(ti->tile);
-	Foundation f = GetRailFoundation(ti->tileh, track);
+	RailGroundType rgt = IsTileSubtype(ti->tile, TT_TRACK) ? GetRailGroundType(ti->tile) :
+		IsOnSnow(ti->tile) ? RAIL_GROUND_ICE_DESERT : RAIL_GROUND_GRASS;
+	Foundation f = IsTileSubtype(ti->tile, TT_TRACK) ? GetRailFoundation(ti->tileh, track) : FOUNDATION_LEVELED;
 	Corner halftile_corner = CORNER_INVALID;
 	bool draw_ground;
 	const RailtypeInfo *rti, *halftile_rti;
@@ -2632,14 +2633,14 @@ static void DrawSignals(TileIndex tile, TrackBits rails)
 
 static void DrawTile_Track(TileInfo *ti)
 {
-	if (IsTileSubtype(ti->tile, TT_TRACK)) {
+	if (IsTileSubtype(ti->tile, TT_TRACK) || IsExtendedRailBridge(ti->tile)) {
 		_drawtile_track_palette = COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile));
 
 		TrackBits rails = GetTrackBits(ti->tile);
 
 		DrawTrack(ti, rails);
 
-		if (HasBit(_display_opt, DO_FULL_DETAIL)) DrawTrackDetails(ti, rails);
+		if (HasBit(_display_opt, DO_FULL_DETAIL) && IsTileSubtype(ti->tile, TT_TRACK)) DrawTrackDetails(ti, rails);
 
 		if (IsCatenaryDrawn()) DrawCatenary(ti);
 
@@ -2707,6 +2708,8 @@ static int GetSlopePixelZ_Track(TileIndex tile, uint x, uint y)
 		if (tileh == SLOPE_FLAT) return z;
 		z += ApplyPixelFoundationToSlope(GetRailFoundation(tileh, GetTrackBits(tile)), &tileh);
 		return z + GetPartialPixelZ(x & 0xF, y & 0xF, tileh);
+	} else if (IsExtendedRailBridge(tile)) {
+		return z + TILE_HEIGHT;
 	} else {
 		x &= 0xF;
 		y &= 0xF;
@@ -2727,7 +2730,9 @@ static int GetSlopePixelZ_Track(TileIndex tile, uint x, uint y)
 
 static Foundation GetFoundation_Track(TileIndex tile, Slope tileh)
 {
-	return IsTileSubtype(tile, TT_TRACK) ? GetRailFoundation(tileh, GetTrackBits(tile)) : GetBridgeFoundation(tileh, DiagDirToAxis(GetTunnelBridgeDirection(tile)));
+	return IsTileSubtype(tile, TT_TRACK) ? GetRailFoundation(tileh, GetTrackBits(tile)) :
+		IsExtendedRailBridge(tile) ? FOUNDATION_LEVELED :
+		GetBridgeFoundation(tileh, DiagDirToAxis(GetTunnelBridgeDirection(tile)));
 }
 
 static void TileLoop_Track(TileIndex tile)
@@ -2842,7 +2847,7 @@ static void TileLoop_Track(TileIndex tile)
 			/* Show fences if it's a house, industry, object, road, tunnelbridge or not owned by us. */
 			if (!IsValidTile(tile2) || IsHouseTile(tile2) || IsIndustryTile(tile2) ||
 					(IsTileType(tile2, TT_MISC) && !IsRailDepotTile(tile2)) ||
-					IsRoadTile(tile2) || IsRailBridgeTile(tile2) ||
+					IsRoadTile(tile2) || (IsRailBridgeTile(tile2) && !IsExtendedRailBridge(tile2)) ||
 					(IsObjectTile(tile2) && !IsOwnedLand(tile2)) || !IsTileOwner(tile2, owner)) {
 				fences |= 1 << d;
 			}
@@ -2874,16 +2879,8 @@ set_ground:
 
 static TrackStatus GetTileTrackStatus_Track(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
 {
-	if (IsTileSubtype(tile, TT_BRIDGE)) {
-		if (mode != TRANSPORT_RAIL) return 0;
-
-		DiagDirection dir = GetTunnelBridgeDirection(tile);
-		if (side != INVALID_DIAGDIR && side != ReverseDiagDir(dir)) return 0;
-		return CombineTrackStatus(TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir)), TRACKDIR_BIT_NONE);
-	}
-
 	/* Case of half tile slope with water. */
-	if (mode == TRANSPORT_WATER && GetRailGroundType(tile) == RAIL_GROUND_WATER && IsSlopeWithOneCornerRaised(GetTileSlope(tile))) {
+	if (mode == TRANSPORT_WATER && IsTileSubtype(tile, TT_TRACK) && GetRailGroundType(tile) == RAIL_GROUND_WATER && IsSlopeWithOneCornerRaised(GetTileSlope(tile))) {
 		TrackBits tb = GetTrackBits(tile);
 		switch (tb) {
 			default: NOT_REACHED();
@@ -2896,6 +2893,10 @@ static TrackStatus GetTileTrackStatus_Track(TileIndex tile, TransportType mode, 
 	}
 
 	if (mode != TRANSPORT_RAIL) return 0;
+
+	if (IsTileSubtype(tile, TT_BRIDGE)) {
+		if (side == GetTunnelBridgeDirection(tile)) return 0;
+	}
 
 	TrackBits trackbits = GetTrackBits(tile);
 	TrackdirBits red_signals = TRACKDIR_BIT_NONE;
@@ -3024,64 +3025,73 @@ static void ChangeTileOwner_Track(TileIndex tile, Owner old_owner, Owner new_own
 
 	if (new_owner != INVALID_OWNER) {
 		/* Update company infrastructure counts. No need to dirty windows here, we'll redraw the whole screen anyway. */
-		if (IsTileSubtype(tile, TT_TRACK)) {
-			TrackBits bits = GetTrackBits(tile);
-			RailType rt;
-			uint num_sigs;
+		TrackBits bits = GetTrackBits(tile);
+		uint factor = IsTileSubtype(tile, TT_BRIDGE) ? TUNNELBRIDGE_TRACKBIT_FACTOR : 1;
+		RailType rt;
+		uint num_sigs;
 
-			switch (bits) {
-				case TRACK_BIT_HORZ:
-				case TRACK_BIT_VERT:
+		switch (bits) {
+			case TRACK_BIT_HORZ:
+			case TRACK_BIT_VERT:
+				if (IsTileSubtype(tile, TT_BRIDGE)) {
+					DiagDirection dir = GetTunnelBridgeDirection(tile);
+					rt = GetSideRailType(tile, dir);
+					Company::Get(old_owner)->infrastructure.rail[rt] -= TUNNELBRIDGE_TRACKBIT_FACTOR;
+					Company::Get(new_owner)->infrastructure.rail[rt] += TUNNELBRIDGE_TRACKBIT_FACTOR;
+					rt = GetSideRailType(tile, ReverseDiagDir(dir));
+				} else {
 					rt = GetRailType(tile, TRACK_UPPER);
 					Company::Get(old_owner)->infrastructure.rail[rt]--;
 					Company::Get(new_owner)->infrastructure.rail[rt]++;
 					rt = GetRailType(tile, TRACK_LOWER);
-					Company::Get(old_owner)->infrastructure.rail[rt]--;
-					Company::Get(new_owner)->infrastructure.rail[rt]++;
-					num_sigs = CountBits(GetPresentSignals(tile, TRACK_UPPER)) + CountBits(GetPresentSignals(tile, TRACK_LOWER));
-					break;
-
-				case TRACK_BIT_RIGHT:
-				case TRACK_BIT_LOWER:
-					rt = GetRailType(tile, TRACK_LOWER);
-					Company::Get(old_owner)->infrastructure.rail[rt]--;
-					Company::Get(new_owner)->infrastructure.rail[rt]++;
-					num_sigs = CountBits(GetPresentSignals(tile, TRACK_LOWER));
-					break;
-
-				case TRACK_BIT_LOWER_RIGHT:
-					rt = GetRailType(tile, TRACK_LOWER);
-					Company::Get(old_owner)->infrastructure.rail[rt] -= 2 * 2;
-					Company::Get(new_owner)->infrastructure.rail[rt] += 2 * 2;
-					num_sigs = 0;
-					break;
-
-				default: {
-					rt = GetRailType(tile, TRACK_UPPER);
-					uint num_pieces = CountBits(bits);
-					if (TracksOverlap(bits)) {
-						num_pieces *= num_pieces;
-						num_sigs = 0;
-					} else {
-						num_sigs = CountBits(GetPresentSignals(tile, TRACK_UPPER));
-					}
-					Company::Get(old_owner)->infrastructure.rail[rt] -= num_pieces;
-					Company::Get(new_owner)->infrastructure.rail[rt] += num_pieces;
-					break;
 				}
+				Company::Get(old_owner)->infrastructure.rail[rt]--;
+				Company::Get(new_owner)->infrastructure.rail[rt]++;
+				num_sigs = CountBits(GetPresentSignals(tile, TRACK_UPPER)) + CountBits(GetPresentSignals(tile, TRACK_LOWER));
+				break;
+
+			case TRACK_BIT_RIGHT:
+			case TRACK_BIT_LOWER:
+				rt = GetRailType(tile, TRACK_LOWER);
+				Company::Get(old_owner)->infrastructure.rail[rt] -= factor;
+				Company::Get(new_owner)->infrastructure.rail[rt] += factor;
+				num_sigs = CountBits(GetPresentSignals(tile, TRACK_LOWER));
+				break;
+
+			case TRACK_BIT_LOWER_RIGHT:
+				rt = GetRailType(tile, TRACK_LOWER);
+				Company::Get(old_owner)->infrastructure.rail[rt] -= 2 * 2 * factor;
+				Company::Get(new_owner)->infrastructure.rail[rt] += 2 * 2 * factor;
+				num_sigs = 0;
+				break;
+
+			default: {
+				rt = GetRailType(tile, TRACK_UPPER);
+				uint num_pieces = CountBits(bits);
+				if (TracksOverlap(bits)) {
+					num_pieces *= num_pieces;
+					num_sigs = 0;
+				} else {
+					num_sigs = CountBits(GetPresentSignals(tile, TRACK_UPPER));
+				}
+				num_pieces *= factor;
+				Company::Get(old_owner)->infrastructure.rail[rt] -= num_pieces;
+				Company::Get(new_owner)->infrastructure.rail[rt] += num_pieces;
+				break;
 			}
+		}
 
-			Company::Get(old_owner)->infrastructure.signal -= num_sigs;
-			Company::Get(new_owner)->infrastructure.signal += num_sigs;
-		} else {
+		Company::Get(old_owner)->infrastructure.signal -= num_sigs;
+		Company::Get(new_owner)->infrastructure.signal += num_sigs;
+
+		if (IsTileSubtype(tile, TT_BRIDGE)) {
 			TileIndex other_end = GetOtherBridgeEnd(tile);
-			/* Set number of pieces to zero if it's the southern tile as we
-			 * don't want to update the infrastructure counts twice. */
-			uint num_pieces = tile < other_end ? (GetTunnelBridgeLength(tile, other_end) + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR : 0;
-
-			RailType rt = GetRailType(tile);
-			Company::Get(old_owner)->infrastructure.rail[rt] -= num_pieces;
-			Company::Get(new_owner)->infrastructure.rail[rt] += num_pieces;
+			if (tile < other_end) {
+				uint num_pieces = GetTunnelBridgeLength(tile, other_end) * TUNNELBRIDGE_TRACKBIT_FACTOR;
+				RailType rt = GetBridgeRailType(tile);
+				Company::Get(old_owner)->infrastructure.rail[rt] -= num_pieces;
+				Company::Get(new_owner)->infrastructure.rail[rt] += num_pieces;
+			}
 		}
 
 		SetTileOwner(tile, new_owner);
@@ -3194,12 +3204,16 @@ static CommandCost TerraformTile_Track(TileIndex tile, DoCommandFlag flags, int 
 		if (_settings_game.construction.build_on_slopes && AutoslopeEnabled()) {
 			DiagDirection direction = GetTunnelBridgeDirection(tile);
 
-			/* Check if new slope is valid for bridges in general (so we can safely call GetBridgeFoundation()) */
-			CheckBridgeSlope(direction, &tileh_old, &z_old);
-			CommandCost res = CheckBridgeSlope(direction, &tileh_new, &z_new);
+			if (IsExtendedRailBridge(tile)) {
+				if (IsValidRailBridgeBits(tileh_new, direction, GetTrackBits(tile))) return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
+			} else {
+				/* Check if new slope is valid for bridges in general (so we can safely call GetBridgeFoundation()) */
+				CheckBridgeSlope(direction, &tileh_old, &z_old);
+				CommandCost res = CheckBridgeSlope(direction, &tileh_new, &z_new);
 
-			/* Surface slope is valid and remains unchanged? */
-			if (res.Succeeded() && (z_old == z_new) && (tileh_old == tileh_new)) return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
+				/* Surface slope is valid and remains unchanged? */
+				if (res.Succeeded() && (z_old == z_new) && (tileh_old == tileh_new)) return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_FOUNDATION]);
+			}
 		}
 
 		return DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
