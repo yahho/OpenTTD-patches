@@ -105,7 +105,7 @@ bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations)
 		case TT_RAILWAY:
 			if (!IsTileSubtype(tile, TT_BRIDGE)) return TryReserveTrack(tile, t);
 			if (!GetBridgeReservationTrackBits(tile)) {
-				SetTunnelBridgeReservation(tile, true);
+				SetBridgeReservation(tile, true);
 				return true;
 			}
 			break;
@@ -121,7 +121,7 @@ bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations)
 
 				case TT_MISC_TUNNEL:
 					if (GetTunnelTransportType(tile) == TRANSPORT_RAIL && !GetTunnelReservationTrackBits(tile)) {
-						SetTunnelBridgeReservation(tile, true);
+						SetTunnelReservation(tile, true);
 						return true;
 					}
 					break;
@@ -168,7 +168,7 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 
 	switch (GetTileType(tile)) {
 		case TT_RAILWAY:
-			IsTileSubtype(tile, TT_BRIDGE) ? SetTunnelBridgeReservation(tile, false) : UnreserveTrack(tile, t);
+			IsTileSubtype(tile, TT_BRIDGE) ? SetBridgeReservation(tile, false) : UnreserveTrack(tile, t);
 			break;
 
 		case TT_MISC:
@@ -179,7 +179,7 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 					break;
 
 				case TT_MISC_TUNNEL:
-					if (GetTunnelTransportType(tile) == TRANSPORT_RAIL) SetTunnelBridgeReservation(tile, false);
+					if (GetTunnelTransportType(tile) == TRANSPORT_RAIL) SetTunnelReservation(tile, false);
 					break;
 
 				case TT_MISC_DEPOT:

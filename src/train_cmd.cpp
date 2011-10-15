@@ -2167,8 +2167,13 @@ static void ClearPathReservation(const Train *v, const PFPos &pos)
 
 			if (TunnelBridgeIsFree(pos.tile, end, v).Succeeded()) {
 				/* Free the reservation only if no other train is on the tiles. */
-				SetTunnelBridgeReservation(pos.tile, false);
-				SetTunnelBridgeReservation(end, false);
+				if (IsRailwayTile(pos.tile)) {
+					SetBridgeReservation(pos.tile, false);
+					SetBridgeReservation(end, false);
+				} else {
+					SetTunnelReservation(pos.tile, false);
+					SetTunnelReservation(end, false);
+				}
 
 				if (_settings_client.gui.show_track_reservation) {
 					MarkTileDirtyByTile(pos.tile);
@@ -2863,10 +2868,12 @@ uint Train::Crash(bool flooded)
 		if (!HasBit(this->flags, VRF_TRAIN_STUCK)) FreeTrainTrackReservation(this);
 		for (const Train *v = this; v != NULL; v = v->Next()) {
 			ClearPathReservation(v, v->GetPos());
-			if (IsTunnelTile(v->tile) || IsRailBridgeTile(v->tile)) {
-				/* ClearPathReservation will not free the wormhole exit
-				 * if the train has just entered the wormhole. */
-				SetTunnelBridgeReservation(GetOtherTunnelBridgeEnd(v->tile), false);
+			/* ClearPathReservation will not free the wormhole exit
+			 * if the train has just entered the wormhole. */
+			if (IsTunnelTile(v->tile)) {
+				SetTunnelReservation(GetOtherTunnelBridgeEnd(v->tile), false);
+			} else if (IsRailBridgeTile(v->tile)) {
+				SetBridgeReservation(GetOtherTunnelBridgeEnd(v->tile), false);
 			}
 		}
 

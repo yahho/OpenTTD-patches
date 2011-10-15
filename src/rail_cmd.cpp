@@ -1646,7 +1646,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 				Track track = DiagDirToDiagTrack(GetTunnelBridgeDirection(tile));
 				Train *affected = NULL;
 
-				if (HasTunnelBridgeReservation(tile)) {
+				if (IsRailwayTile(tile) ? HasBridgeReservation(tile) : HasTunnelReservation(tile)) {
 					affected = FindUnpoweredReservationTrain(tile, track, totype);
 				}
 
@@ -1910,7 +1910,7 @@ static CommandCost ClearTile_Track(TileIndex tile, DoCommandFlag flags)
 			Track track = DiagDirToDiagTrack(direction);
 
 			Train *v = NULL;
-			if (HasTunnelBridgeReservation(tile)) {
+			if (HasBridgeReservation(tile)) {
 				v = GetTrainForReservation(tile, track);
 				if (v != NULL) FreeTrainTrackReservation(v);
 			}
@@ -2647,7 +2647,7 @@ static void DrawTile_Track(TileInfo *ti)
 		}
 
 		/* PBS debugging, draw reserved tracks darker */
-		if (_game_mode != GM_MENU &&_settings_client.gui.show_track_reservation && HasTunnelBridgeReservation(ti->tile)) {
+		if (_game_mode != GM_MENU &&_settings_client.gui.show_track_reservation && HasBridgeReservation(ti->tile)) {
 			if (HasBridgeFlatRamp(ti->tileh, DiagDirToAxis(dir))) {
 				AddSortableSpriteToDraw(DiagDirToAxis(dir) == AXIS_X ? rti->base_sprites.single_x : rti->base_sprites.single_y, PALETTE_CRASH, ti->x, ti->y, 16, 16, 0, ti->z + 8);
 			} else {
