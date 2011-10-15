@@ -18,6 +18,7 @@
 #include "track_func.h"
 #include "tile_map.h"
 #include "signal_type.h"
+#include "bridge.h"
 
 
 /**
@@ -454,6 +455,30 @@ static inline RailGroundType GetRailGroundType(TileIndex t)
 }
 
 
+/**
+ * Determines the type of rail bridge on a tile
+ * @param t The tile to analyze
+ * @pre IsRailBridgeTile(t)
+ * @return The bridge type
+ */
+static inline BridgeType GetRailBridgeType(TileIndex t)
+{
+	assert(IsRailBridgeTile(t));
+	return GB(_mc[t].m2, 12, 4);
+}
+
+/**
+ * Set the type of rail bridge on a tile
+ * @param t The tile to set
+ * @param type The type to set
+ */
+static inline void SetRailBridgeType(TileIndex t, BridgeType type)
+{
+	assert(IsRailBridgeTile(t));
+	SB(_mc[t].m2, 12, 4, type);
+}
+
+
 static inline void MakeRailNormal(TileIndex t, Owner o, TrackBits b, RailType r)
 {
 	SetTileTypeSubtype(t, TT_RAILWAY, TT_TRACK);
@@ -466,6 +491,25 @@ static inline void MakeRailNormal(TileIndex t, Owner o, TrackBits b, RailType r)
 	_mc[t].m7 = 0;
 }
 
+/**
+ * Make a bridge ramp for rails.
+ * @param t          the tile to make a bridge ramp
+ * @param o          the new owner of the bridge ramp
+ * @param bridgetype the type of bridge this bridge ramp belongs to
+ * @param d          the direction this ramp must be facing
+ * @param r          the rail type of the bridge
+ */
+static inline void MakeRailBridgeRamp(TileIndex t, Owner o, BridgeType bridgetype, DiagDirection d, RailType r)
+{
+	SetTileTypeSubtype(t, TT_RAILWAY, TT_BRIDGE);
+	SB(_mc[t].m0, 2, 2, 0);
+	SetTileOwner(t, o);
+	_mc[t].m2 = bridgetype << 12;
+	_mc[t].m3 = (d << 6) | r;
+	_mc[t].m4 = 0;
+	_mc[t].m5 = 0;
+	_mc[t].m7 = 0;
+}
 
 static inline void MakeRailDepot(TileIndex t, Owner o, DepotID did, DiagDirection d, RailType r)
 {
