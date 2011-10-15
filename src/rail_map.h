@@ -478,6 +478,17 @@ static inline void SetRailBridgeType(TileIndex t, BridgeType type)
 	SB(_mc[t].m2, 12, 4, type);
 }
 
+/**
+ * Check if a rail bridge is an extended bridge head
+ * @param t The tile to check
+ * @return Whether there are track bits set other than the axis track bit
+ */
+static inline bool IsExtendedRailBridge(TileIndex t)
+{
+	assert(IsRailBridgeTile(t));
+	return GetTrackBits(t) != DiagDirToDiagTrackBits(GetTunnelBridgeDirection(t));
+}
+
 
 static inline void MakeRailNormal(TileIndex t, Owner o, TrackBits b, RailType r)
 {
