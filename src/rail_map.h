@@ -38,7 +38,7 @@ static inline bool IsRailDepotTile(TileIndex t)
  */
 static inline RailType GetRailType(TileIndex t, Track track = INVALID_TRACK)
 {
-	if (IsNormalRailTile(t) && (track == TRACK_LOWER || track == TRACK_RIGHT)) {
+	if (IsRailwayTile(t) && (track == TRACK_LOWER || track == TRACK_RIGHT)) {
 		return (RailType)GB(_mc[t].m5, 0, 4);
 	} else {
 		return (RailType)GB(_mc[t].m3, 0, 4);
@@ -52,7 +52,7 @@ static inline RailType GetRailType(TileIndex t, Track track = INVALID_TRACK)
  */
 static inline void SetRailType(TileIndex t, RailType r, Track track = INVALID_TRACK)
 {
-	if (!IsNormalRailTile(t)) {
+	if (!IsRailwayTile(t)) {
 		assert(track == INVALID_TRACK);
 		SB(_mc[t].m3, 0, 4, r);
 	} else {
@@ -80,7 +80,7 @@ static inline void SetRailType(TileIndex t, RailType r, Track track = INVALID_TR
  */
 static inline TrackBits GetTrackBits(TileIndex tile)
 {
-	assert(IsNormalRailTile(tile));
+	assert(IsRailwayTile(tile));
 	return (TrackBits)GB(_mc[tile].m2, 0, 6);
 }
 
@@ -91,7 +91,7 @@ static inline TrackBits GetTrackBits(TileIndex tile)
  */
 static inline void SetTrackBits(TileIndex t, TrackBits b)
 {
-	assert(IsNormalRailTile(t));
+	assert(IsRailwayTile(t));
 	SB(_mc[t].m2, 0, 6, b);
 }
 
@@ -99,12 +99,12 @@ static inline void SetTrackBits(TileIndex t, TrackBits b)
  * Returns whether the given track is present on the given tile.
  * @param tile  the tile to check the track presence of
  * @param track the track to search for on the tile
- * @pre IsNormalRailTile(tile)
+ * @pre IsRailwayTile(tile)
  * @return true if and only if the given track exists on the tile
  */
 static inline bool HasTrack(TileIndex tile, Track track)
 {
-	assert(IsNormalRailTile(tile));
+	assert(IsRailwayTile(tile));
 	return HasBit(GetTrackBits(tile), track);
 }
 
@@ -123,28 +123,28 @@ static inline Track GetRailDepotTrack(TileIndex t)
 
 /**
  * Returns the reserved track bits of the tile
- * @pre IsNormalRailTile(t)
+ * @pre IsRailwayTile(t)
  * @param t the tile to query
  * @return the track bits
  */
 static inline TrackBits GetRailReservationTrackBits(TileIndex t)
 {
-	assert(IsNormalRailTile(t));
+	assert(IsRailwayTile(t));
 	byte track_b = GB(_mc[t].m2, 8, 3);
-	Track track = (Track)(track_b - 1);    // map array saves Track+1
 	if (track_b == 0) return TRACK_BIT_NONE;
+	Track track = (Track)(track_b - 1);    // map array saves Track+1
 	return (TrackBits)(TrackToTrackBits(track) | (HasBit(_mc[t].m2, 11) ? TrackToTrackBits(TrackToOppositeTrack(track)) : 0));
 }
 
 /**
  * Sets the reserved track bits of the tile
- * @pre IsNormalRailTile(t) && !TracksOverlap(b)
+ * @pre IsRailwayTile(t) && !TracksOverlap(b)
  * @param t the tile to change
  * @param b the track bits
  */
 static inline void SetTrackReservation(TileIndex t, TrackBits b)
 {
-	assert(IsNormalRailTile(t));
+	assert(IsRailwayTile(t));
 	assert(b != INVALID_TRACK_BIT);
 	assert(!TracksOverlap(b));
 	Track track = RemoveFirstTrack(&b);
@@ -154,14 +154,14 @@ static inline void SetTrackReservation(TileIndex t, TrackBits b)
 
 /**
  * Try to reserve a specific track on a tile
- * @pre IsNormalRailTile(t) && HasTrack(tile, t)
+ * @pre IsRailwayTile(t) && HasTrack(tile, t)
  * @param tile the tile
  * @param t the rack to reserve
  * @return true if successful
  */
 static inline bool TryReserveTrack(TileIndex tile, Track t)
 {
-	assert(IsNormalRailTile(tile));
+	assert(IsRailwayTile(tile));
 	assert(HasTrack(tile, t));
 	TrackBits bits = TrackToTrackBits(t);
 	TrackBits res = GetRailReservationTrackBits(tile);
@@ -174,13 +174,13 @@ static inline bool TryReserveTrack(TileIndex tile, Track t)
 
 /**
  * Lift the reservation of a specific track on a tile
- * @pre IsNormalRailTile(t) && HasTrack(tile, t)
+ * @pre IsRailwayTile(t) && HasTrack(tile, t)
  * @param tile the tile
  * @param t the track to free
  */
 static inline void UnreserveTrack(TileIndex tile, Track t)
 {
-	assert(IsNormalRailTile(tile));
+	assert(IsRailwayTile(tile));
 	assert(HasTrack(tile, t));
 	TrackBits res = GetRailReservationTrackBits(tile);
 	res &= ~TrackToTrackBits(t);
@@ -504,7 +504,7 @@ static inline void MakeRailBridgeRamp(TileIndex t, Owner o, BridgeType bridgetyp
 	SetTileTypeSubtype(t, TT_RAILWAY, TT_BRIDGE);
 	SB(_mc[t].m0, 2, 2, 0);
 	SetTileOwner(t, o);
-	_mc[t].m2 = bridgetype << 12;
+	_mc[t].m2 = (bridgetype << 12) | DiagDirToDiagTrackBits(d);
 	_mc[t].m3 = (d << 6) | r;
 	_mc[t].m4 = 0;
 	_mc[t].m5 = 0;

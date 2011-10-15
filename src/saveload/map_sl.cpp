@@ -921,6 +921,21 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			}
 		}
 	}
+
+	/* Add track layout to rail bridgeheads */
+	if (IsFullSavegameVersionBefore(stv, 8)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsTileTypeSubtype(t, TT_RAILWAY, TT_BRIDGE)) {
+				Track track = DiagDirToDiagTrack((DiagDirection)GB(_mc[t].m3, 6, 2));
+				bool reserved = HasBit(_mc[t].m5, 4);
+				SB(_mc[t].m2, 0, 6, TrackToTrackBits(track));
+				SB(_mc[t].m2, 6, 1, reserved ? 1 : 0);
+				SB(_mc[t].m2, 8, 4, reserved ? (track + 1) : 0);
+				SB(_mc[t].m5, 4, 4, 0);
+				_mc[t].m4 = _mc[t].m7 = 0;
+			}
+		}
+	}
 }
 
 

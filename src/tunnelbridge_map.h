@@ -38,7 +38,7 @@ static inline TileIndex GetOtherTunnelBridgeEnd(TileIndex t)
 static inline bool HasBridgeReservation(TileIndex t)
 {
 	assert(IsRailBridgeTile(t));
-	return HasBit(_mc[t].m5, 4);
+	return HasBit(_mc[t].m2, 6);
 }
 
 /**
@@ -50,18 +50,8 @@ static inline bool HasBridgeReservation(TileIndex t)
 static inline void SetBridgeReservation(TileIndex t, bool b)
 {
 	assert(IsRailBridgeTile(t));
-	SB(_mc[t].m5, 4, 1, b ? 1 : 0);
-}
-
-/**
- * Get the reserved track bits for a rail bridge
- * @pre IsRailBridgeTile(t)
- * @param t the tile
- * @return reserved track bits
- */
-static inline TrackBits GetBridgeReservationTrackBits(TileIndex t)
-{
-	return HasBridgeReservation(t) ? DiagDirToDiagTrackBits(GetTunnelBridgeDirection(t)) : TRACK_BIT_NONE;
+	SB(_mc[t].m2, 6, 1, b ? 1 : 0);
+	SetTrackReservation(t, b ? GetTrackBits(t) : TRACK_BIT_NONE);
 }
 
 /**

@@ -52,12 +52,8 @@ void AfterLoadLabelMaps()
 		for (TileIndex t = 0; t < MapSize(); t++) {
 			switch (GetTileType(t)) {
 				case TT_RAILWAY:
-					if (IsTileSubtype(t, TT_TRACK)) {
-						SetRailType(t, railtype_conversion_map[GetRailType(t, TRACK_UPPER)], TRACK_UPPER);
-						SetRailType(t, railtype_conversion_map[GetRailType(t, TRACK_LOWER)], TRACK_LOWER);
-					} else {
-						SetRailType(t, railtype_conversion_map[GetRailType(t)]);
-					}
+					SetRailType(t, railtype_conversion_map[GetRailType(t, TRACK_UPPER)], TRACK_UPPER);
+					SetRailType(t, railtype_conversion_map[GetRailType(t, TRACK_LOWER)], TRACK_LOWER);
 					break;
 
 				case TT_MISC:

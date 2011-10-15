@@ -25,7 +25,7 @@ TrackBits GetReservedTrackbits(TileIndex t)
 {
 	switch (GetTileType(t)) {
 		case TT_RAILWAY:
-			return IsTileSubtype(t, TT_BRIDGE) ? GetBridgeReservationTrackBits(t) : GetRailReservationTrackBits(t);
+			return GetRailReservationTrackBits(t);
 
 		case TT_MISC:
 			switch (GetTileSubtype(t)) {
@@ -104,7 +104,7 @@ bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations)
 	switch (GetTileType(tile)) {
 		case TT_RAILWAY:
 			if (!IsTileSubtype(tile, TT_BRIDGE)) return TryReserveTrack(tile, t);
-			if (!GetBridgeReservationTrackBits(tile)) {
+			if (!HasBridgeReservation(tile)) {
 				SetBridgeReservation(tile, true);
 				return true;
 			}
