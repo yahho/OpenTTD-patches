@@ -2871,9 +2871,9 @@ uint Train::Crash(bool flooded)
 			/* ClearPathReservation will not free the wormhole exit
 			 * if the train has just entered the wormhole. */
 			if (IsTunnelTile(v->tile)) {
-				SetTunnelReservation(GetOtherTunnelBridgeEnd(v->tile), false);
+				SetTunnelReservation(GetOtherTunnelEnd(v->tile), false);
 			} else if (IsRailBridgeTile(v->tile)) {
-				SetBridgeReservation(GetOtherTunnelBridgeEnd(v->tile), false);
+				SetBridgeReservation(GetOtherBridgeEnd(v->tile), false);
 			}
 		}
 

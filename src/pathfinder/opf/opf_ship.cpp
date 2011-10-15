@@ -54,7 +54,7 @@ static void TPFModeShip(TrackPathFinder *tpf, TileIndex tile, DiagDirection dire
 		DiagDirection dir = GetTunnelBridgeDirection(tile);
 		/* entering aqueduct? */
 		if (dir == direction) {
-			TileIndex endtile = GetOtherTunnelBridgeEnd(tile);
+			TileIndex endtile = GetOtherBridgeEnd(tile);
 
 			tpf->rd.cur_length += GetTunnelBridgeLength(tile, endtile) + 1;
 

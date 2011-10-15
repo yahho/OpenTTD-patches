@@ -260,7 +260,7 @@ static void GenericPlaceSignals(TileIndex tile)
 static void PlaceRail_Bridge(TileIndex tile, Window *w)
 {
 	if (IsBridgeHeadTile(tile)) {
-		TileIndex other_tile = GetOtherTunnelBridgeEnd(tile);
+		TileIndex other_tile = GetOtherBridgeEnd(tile);
 		Point pt = {0, 0};
 		w->OnPlaceMouseUp(VPM_X_OR_Y, DDSP_BUILD_BRIDGE, pt, other_tile, tile);
 	} else {

@@ -1732,7 +1732,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 			} else if (dir == ReverseDiagDir(vdir)) { // Leaving tunnel
 				hidden = frame < TILE_SIZE - _tunnel_visibility_frame[dir];
 				/* v->tile changes at the moment when the vehicle leaves the tunnel. */
-				v->tile = hidden ? GetOtherTunnelBridgeEnd(vtile) : vtile;
+				v->tile = hidden ? GetOtherTunnelEnd(vtile) : vtile;
 			} else {
 				/* We could get here in two cases:
 				 * - for road vehicles, it is reversing at the end of the tunnel
@@ -1802,7 +1802,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 				case VEH_SHIP: {
 					Ship *s = Ship::From(v);
 					if (s->trackdir == TRACKDIR_WORMHOLE) {
-						TileIndex other_end = GetOtherTunnelBridgeEnd(v->tile);
+						TileIndex other_end = GetOtherBridgeEnd(v->tile);
 						TileIndex vt = TileVirtXY(v->x_pos, v->y_pos);
 						if (vt == v->tile || vt == other_end) {
 							v->tile = vt;

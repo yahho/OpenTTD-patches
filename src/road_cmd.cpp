@@ -470,7 +470,7 @@ static CommandCost RemoveRoad_Tunnel(TileIndex tile, DoCommandFlag flags, RoadBi
 {
 	if (GetTunnelTransportType(tile) != TRANSPORT_ROAD) return CMD_ERROR;
 
-	TileIndex other_end = GetOtherTunnelBridgeEnd(tile);
+	TileIndex other_end = GetOtherTunnelEnd(tile);
 	CommandCost ret = TunnelBridgeIsFree(tile, other_end);
 	if (ret.Failed()) return ret;
 
@@ -1111,7 +1111,7 @@ static CommandCost BuildRoad_Tunnel(TileIndex tile, DoCommandFlag flags, RoadTyp
 
 	if (HasTileRoadType(tile, rt)) return_cmd_error(STR_ERROR_ALREADY_BUILT);
 
-	TileIndex other_end = GetOtherTunnelBridgeEnd(tile);
+	TileIndex other_end = GetOtherTunnelEnd(tile);
 
 	/* Don't allow adding roadtype to the tunnel when vehicles are already driving on it */
 	CommandCost ret = TunnelBridgeIsFree(tile, other_end);

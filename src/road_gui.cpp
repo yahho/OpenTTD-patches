@@ -73,7 +73,7 @@ void CcPlaySound1D(const CommandCost &result, TileIndex tile, uint32 p1, uint32 
 static void PlaceRoad_Bridge(TileIndex tile, Window *w)
 {
 	if (IsBridgeHeadTile(tile)) {
-		TileIndex other_tile = GetOtherTunnelBridgeEnd(tile);
+		TileIndex other_tile = GetOtherBridgeEnd(tile);
 		Point pt = {0, 0};
 		w->OnPlaceMouseUp(VPM_X_OR_Y, DDSP_BUILD_BRIDGE, pt, other_tile, tile);
 	} else {
@@ -99,7 +99,7 @@ void CcBuildRoadTunnel(const CommandCost &result, TileIndex start_tile, uint32 p
 		DiagDirection start_direction = ReverseDiagDir(GetTunnelBridgeDirection(start_tile));
 		ConnectRoadToStructure(start_tile, start_direction);
 
-		TileIndex end_tile = GetOtherTunnelBridgeEnd(start_tile);
+		TileIndex end_tile = GetOtherTunnelEnd(start_tile);
 		DiagDirection end_direction = ReverseDiagDir(GetTunnelBridgeDirection(end_tile));
 		ConnectRoadToStructure(end_tile, end_direction);
 	} else {

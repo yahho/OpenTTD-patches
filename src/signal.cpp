@@ -352,7 +352,7 @@ static SigFlags ExploreSegment(Owner owner)
 						if (ReverseDiagDir(ss.side) != dir) continue;
 						if (!(flags & SF_TRAIN) && HasVehicleOnPos(ss.tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
 						ss.side = INVALID_DIAGDIR;
-						newss.tile = GetOtherTunnelBridgeEnd(ss.tile); // just skip to exit tile
+						newss.tile = GetOtherBridgeEnd(ss.tile); // just skip to exit tile
 						newss.side = INVALID_DIAGDIR;
 					}
 				}
@@ -385,7 +385,7 @@ static SigFlags ExploreSegment(Owner owner)
 							if (ReverseDiagDir(ss.side) != dir) continue;
 							if (!(flags & SF_TRAIN) && HasVehicleOnPos(ss.tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
 							ss.side = INVALID_DIAGDIR;
-							newss.tile = GetOtherTunnelBridgeEnd(ss.tile); // just skip to exit tile
+							newss.tile = GetOtherTunnelEnd(ss.tile); // just skip to exit tile
 							newss.side = INVALID_DIAGDIR;
 						}
 						break;
