@@ -252,8 +252,8 @@ static SigFlags ExploreSegment(Owner owner)
 	DiagDirection enterdir;
 
 	while (_tbdset.Get(&tile, &enterdir)) {
-		TileIndex oldtile = tile; // tile we are leaving
-		DiagDirection exitdir = enterdir == INVALID_DIAGDIR ? INVALID_DIAGDIR : ReverseDiagDir(enterdir); // expected new exit direction (for straight line)
+		TileIndex newtile = tile; // tile we will enter
+		DiagDirection exitdir = enterdir == INVALID_DIAGDIR ? INVALID_DIAGDIR : ReverseDiagDir(enterdir); // expected exit direction (for straight line)
 
 		switch (GetTileType(tile)) {
 			case TT_RAILWAY:
@@ -314,7 +314,7 @@ static SigFlags ExploreSegment(Owner owner)
 
 					for (DiagDirection dir = DIAGDIR_BEGIN; dir < DIAGDIR_END; dir++) { // test all possible exit directions
 						if (dir != enterdir && (tracks & _enterdir_to_trackbits[dir])) { // any track incidating?
-							TileIndex newtile = tile + TileOffsByDiagDir(dir);  // new tile to check
+							newtile = tile + TileOffsByDiagDir(dir);  // new tile to check
 							DiagDirection newdir = ReverseDiagDir(dir); // direction we are entering from
 							if (!MaybeAddToTodoSet(newtile, newdir, tile, dir)) return flags | SF_FULL;
 						}
@@ -328,11 +328,11 @@ static SigFlags ExploreSegment(Owner owner)
 						if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
 						enterdir = dir;
 						exitdir = ReverseDiagDir(dir);
-						tile += TileOffsByDiagDir(exitdir); // just skip to next tile
+						newtile += TileOffsByDiagDir(exitdir); // just skip to next tile
 					} else { // NOT incoming from the wormhole!
 						if (ReverseDiagDir(enterdir) != dir) continue;
 						if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
-						tile = GetOtherTunnelBridgeEnd(tile); // just skip to exit tile
+						newtile = GetOtherTunnelBridgeEnd(tile); // just skip to exit tile
 						enterdir = INVALID_DIAGDIR;
 						exitdir = INVALID_DIAGDIR;
 					}
@@ -348,7 +348,7 @@ static SigFlags ExploreSegment(Owner owner)
 					case TT_MISC_CROSSING:
 						if (DiagDirToAxis(enterdir) == GetCrossingRoadAxis(tile)) continue; // different axis
 						if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
-						tile += TileOffsByDiagDir(exitdir);
+						newtile += TileOffsByDiagDir(exitdir);
 						break;
 
 					case TT_MISC_TUNNEL: {
@@ -359,11 +359,11 @@ static SigFlags ExploreSegment(Owner owner)
 							if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
 							enterdir = dir;
 							exitdir = ReverseDiagDir(dir);
-							tile += TileOffsByDiagDir(exitdir); // just skip to next tile
+							newtile += TileOffsByDiagDir(exitdir); // just skip to next tile
 						} else { // NOT incoming from the wormhole!
 							if (ReverseDiagDir(enterdir) != dir) continue;
 							if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
-							tile = GetOtherTunnelBridgeEnd(tile); // just skip to exit tile
+							newtile = GetOtherTunnelBridgeEnd(tile); // just skip to exit tile
 							enterdir = INVALID_DIAGDIR;
 							exitdir = INVALID_DIAGDIR;
 						}
@@ -375,7 +375,7 @@ static SigFlags ExploreSegment(Owner owner)
 						if (enterdir == INVALID_DIAGDIR) { // from 'inside' - train just entered or left the depot
 							if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
 							exitdir = GetGroundDepotDirection(tile);
-							tile += TileOffsByDiagDir(exitdir);
+							newtile += TileOffsByDiagDir(exitdir);
 							enterdir = ReverseDiagDir(exitdir);
 							break;
 						} else if (enterdir == GetGroundDepotDirection(tile)) { // entered a depot
@@ -392,14 +392,14 @@ static SigFlags ExploreSegment(Owner owner)
 				if (IsStationTileBlocked(tile)) continue; // 'eye-candy' station tile
 
 				if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
-				tile += TileOffsByDiagDir(exitdir);
+				newtile += TileOffsByDiagDir(exitdir);
 				break;
 
 			default:
 				continue; // continue the while() loop
 		}
 
-		if (!MaybeAddToTodoSet(tile, enterdir, oldtile, exitdir)) return flags | SF_FULL;
+		if (!MaybeAddToTodoSet(newtile, enterdir, tile, exitdir)) return flags | SF_FULL;
 	}
 
 	return flags;
