@@ -14,7 +14,6 @@
 
 #include "rail_map.h"
 #include "road_map.h"
-#include "bridge.h"
 
 /**
  * checks for the possibility that a bridge may be on this tile
@@ -115,25 +114,6 @@ static inline void SetBridgeMiddle(TileIndex t, Axis a)
 }
 
 /**
- * Generic part to make a bridge ramp for both roads and rails.
- * @param t          the tile to make a bridge ramp
- * @param o          the new owner of the bridge ramp
- * @param d          the direction this ramp must be facing
- * @param rt         the road or rail type
- * @note this function should not be called directly.
- */
-static inline void MakeBridgeRamp(TileIndex t, Owner o, DiagDirection d, uint rt)
-{
-	SetTileOwner(t, o);
-	_mc[t].m2 = 0;
-	_mc[t].m3 = (d << 6) | rt;
-	_mc[t].m4 = 0;
-	_mc[t].m5 = 0;
-	SB(_mc[t].m0, 2, 2, 0);
-	_mc[t].m7 = 0;
-}
-
-/**
  * Make a bridge ramp for aqueducts.
  * @param t          the tile to make a bridge ramp
  * @param o          the new owner of the bridge ramp
@@ -142,7 +122,13 @@ static inline void MakeBridgeRamp(TileIndex t, Owner o, DiagDirection d, uint rt
 static inline void MakeAqueductBridgeRamp(TileIndex t, Owner o, DiagDirection d)
 {
 	SetTileTypeSubtype(t, TT_MISC, TT_MISC_AQUEDUCT);
-	MakeBridgeRamp(t, o, d, 0);
+	SB(_mc[t].m0, 2, 2, 0);
+	SetTileOwner(t, o);
+	_mc[t].m2 = 0;
+	_mc[t].m3 = d << 6;
+	_mc[t].m4 = 0;
+	_mc[t].m5 = 0;
+	_mc[t].m7 = 0;
 }
 
 #endif /* BRIDGE_MAP_H */
