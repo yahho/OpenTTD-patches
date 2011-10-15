@@ -666,22 +666,13 @@ static CommandCost CheckRoadSlope(Slope tileh, RoadBits pieces, RoadBits existin
  */
 bool IsValidRoadBridgeBits(Slope tileh, DiagDirection dir, RoadBits bits)
 {
-	static const Slope valid_slopes[DIAGDIR_END][2] = {
-		{ SLOPE_W, SLOPE_S },
-		{ SLOPE_N, SLOPE_W },
-		{ SLOPE_E, SLOPE_N },
-		{ SLOPE_S, SLOPE_E },
-	};
+	DiagDirDiff diff = CheckExtendedBridgeHead(tileh, dir);
 
-	if (tileh == InclinedSlope(ReverseDiagDir(dir))) return true;
-
-	if (tileh == valid_slopes[dir][0]) {
-		return (bits & DiagDirToRoadBits(ChangeDiagDir(dir, DIAGDIRDIFF_90RIGHT))) == 0;
-	} else if (tileh == valid_slopes[dir][1]) {
-		return (bits & DiagDirToRoadBits(ChangeDiagDir(dir, DIAGDIRDIFF_90LEFT))) == 0;
+	switch (diff) {
+		case DIAGDIRDIFF_SAME: return true;
+		case DIAGDIRDIFF_REVERSE: return false;
+		default: return (bits & DiagDirToRoadBits(ChangeDiagDir(dir, diff))) == 0;
 	}
-
-	return false;
 }
 
 /**

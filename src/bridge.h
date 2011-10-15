@@ -14,6 +14,7 @@
 
 #include "gfx_type.h"
 #include "tile_cmd.h"
+#include "slope_func.h"
 #include "viewport_func.h"
 
 /**
@@ -72,6 +73,27 @@ static inline int GetBridgePartialPixelZ(DiagDirection dir, uint x, uint y)
 	assert(y < TILE_SIZE);
 
 	return DistanceFromTileEdge(ReverseDiagDir(dir), x, y) / 2 + 1;
+}
+
+/**
+ * Get the direction(s) to which rail/road can be connected in an extended bridgehead.
+ * @param tileh Slope of the tile
+ * @param dir Direction of the bridge
+ * @return DIAGDIRDIFF_SAME for all directions allowed; DIAGDIRDIFF_REVERSE for none (invalid slope); else invalid direction as a difference from dir
+ */
+static inline DiagDirDiff CheckExtendedBridgeHead(Slope tileh, DiagDirection dir)
+{
+	extern const Slope bridgehead_valid_slopes[DIAGDIR_END][2];
+
+	if (tileh == InclinedSlope(ReverseDiagDir(dir))) {
+		return DIAGDIRDIFF_SAME;
+	} else if (tileh == bridgehead_valid_slopes[dir][0]) {
+		return DIAGDIRDIFF_90RIGHT;
+	} else if (tileh == bridgehead_valid_slopes[dir][1]) {
+		return DIAGDIRDIFF_90LEFT;
+	} else {
+		return DIAGDIRDIFF_REVERSE;
+	}
 }
 
 /**

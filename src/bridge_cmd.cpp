@@ -42,6 +42,15 @@
 #include "table/bridge_land.h"
 
 
+/** Data for CheckExtendedBridgeHead; see the function for details */
+extern const Slope bridgehead_valid_slopes[DIAGDIR_END][2] = {
+	{ SLOPE_W, SLOPE_S },
+	{ SLOPE_N, SLOPE_W },
+	{ SLOPE_E, SLOPE_N },
+	{ SLOPE_S, SLOPE_E },
+};
+
+
 /** Z position of the bridge sprites relative to bridge height (downwards) */
 static const int BRIDGE_Z_START = 3;
 

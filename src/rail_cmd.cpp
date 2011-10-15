@@ -456,6 +456,26 @@ static inline bool ValParamTrackOrientation(Track track)
 	return IsValidTrack(track);
 }
 
+
+/**
+ * Check if a given trackbits set is valid for a rail bridge head
+ * @param tileh The slope
+ * @param dir The bridge direction
+ * @param bits The trackbits
+ * @return Whether the given combination is valid
+ */
+bool IsValidRailBridgeBits(Slope tileh, DiagDirection dir, TrackBits bits)
+{
+	DiagDirDiff diff = CheckExtendedBridgeHead(tileh, dir);
+
+	switch (diff) {
+		case DIAGDIRDIFF_SAME: return true;
+		case DIAGDIRDIFF_REVERSE: return false;
+		default: return (bits & DiagdirReachesTracks(ReverseDiagDir(ChangeDiagDir(dir, diff)))) == 0;
+	}
+}
+
+
 /**
  * Build a single piece of rail
  * @param tile tile  to build on
