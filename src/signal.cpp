@@ -272,16 +272,19 @@ static SigFlags ExploreSegment(Owner owner)
 						if (!(flags & SF_TRAIN) && HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
 					}
 
+					assert((tracks_masked & ~tracks) == TRACK_BIT_NONE); // tracks_masked must be a subset of tracks
 					assert(tracks_masked != TRACK_BIT_NONE);
 					assert(tracks_masked != TRACK_BIT_HORZ);
 					assert(tracks_masked != TRACK_BIT_VERT);
+					assert(tracks != TRACK_BIT_HORZ);
+					assert(tracks != TRACK_BIT_VERT);
 
 					// tile can only have signals if it only has one bit
-					if (HasAtMostOneBit(tracks_masked)) {
-						Track track = TrackBitsToTrack(tracks_masked); // mask TRACK_BIT_X and Y too
+					if (HasAtMostOneBit(tracks)) {
+						Track track = TrackBitsToTrack(tracks); // get the only track
 						if (HasSignalOnTrack(tile, track)) { // now check whole track, not trackdir
 							SignalType sig = GetSignalType(tile, track);
-							Trackdir trackdir = (Trackdir)FindFirstBit((tracks * 0x101) & _enterdir_to_trackdirbits[enterdir]);
+							Trackdir trackdir = (Trackdir)FindFirstBit(TrackBitsToTrackdirBits(tracks) & _enterdir_to_trackdirbits[enterdir]);
 							Trackdir reversedir = ReverseTrackdir(trackdir);
 							/* add (tile, reversetrackdir) to 'to-be-updated' set when there is
 							 * ANY conventional signal in REVERSE direction
