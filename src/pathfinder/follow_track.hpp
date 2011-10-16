@@ -412,13 +412,12 @@ protected:
 		/* rail transport is possible only on compatible rail types */
 		if (IsRailTT()) {
 			RailType rail_type;
-			if (IsNormalRailTile(m_new.tile)) {
-				TrackBits tracks = GetTrackBits(m_new.tile) & DiagdirReachesTracks(m_exitdir);
-				if (tracks == TRACK_BIT_NONE) {
+			if (IsRailwayTile(m_new.tile)) {
+				rail_type = GetSideRailType(m_new.tile, ReverseDiagDir(m_exitdir));
+				if (rail_type == INVALID_RAILTYPE) {
 					m_err = EC_NO_WAY;
 					return false;
 				}
-				rail_type = GetRailType(m_new.tile, FindFirstTrack(tracks));
 			} else {
 				rail_type = GetTileRailType(m_new.tile);
 			}

@@ -775,10 +775,9 @@ static bool CanEnterTile(TileIndex tile, DiagDirection dir, TransportType type, 
 	/* check correct rail type (mono, maglev, etc) */
 	if (type == TRANSPORT_RAIL) {
 		RailType rail_type;
-		if (IsNormalRailTile(tile)) {
-			TrackBits trackbits = GetTrackBits(tile) & DiagdirReachesTracks(dir);
-			if (trackbits == TRACK_BIT_NONE) return false;
-			rail_type = GetRailType(tile, FindFirstTrack(trackbits));
+		if (IsRailwayTile(tile)) {
+			rail_type = GetSideRailType(tile, ReverseDiagDir(dir));
+			if (rail_type == INVALID_RAILTYPE) return false;
 		} else {
 			rail_type = GetTileRailType(tile);
 		}

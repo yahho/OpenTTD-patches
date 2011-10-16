@@ -122,6 +122,20 @@ static inline Track GetRailDepotTrack(TileIndex t)
 
 
 /**
+ * Gets the rail type of the rail inciding on a given tile side
+ * @param t the tile to get the rail type from
+ * @param dir the side to get the track to check
+ * @return the rail type of the tracks in the tile inciding on the given side, or INVALID_RAILTYPE if there are none
+ */
+static inline RailType GetSideRailType(TileIndex t, DiagDirection dir)
+{
+	TrackBits trackbits = GetTrackBits(t) & DiagdirReachesTracks(ReverseDiagDir(dir));
+	if (trackbits == TRACK_BIT_NONE) return INVALID_RAILTYPE;
+	return GetRailType(t, FindFirstTrack(trackbits));
+}
+
+
+/**
  * Returns the reserved track bits of the tile
  * @pre IsRailwayTile(t)
  * @param t the tile to query
