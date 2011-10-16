@@ -87,21 +87,18 @@ static inline TLG GetTLG(TileIndex t)
 static TrackBits GetRailTrackBitsUniversal(TileIndex t, byte *override)
 {
 	switch (GetTileType(t)) {
-		case TT_RAILWAY:
-			if (IsTileSubtype(t, TT_TRACK)) {
-				TrackBits present = GetTrackBits(t);
-				TrackBits result = TRACK_BIT_NONE;
-				if (HasCatenary(GetRailType(t, TRACK_UPPER))) result |= present & (TRACK_BIT_CROSS | TRACK_BIT_UPPER | TRACK_BIT_LEFT);
-				if (HasCatenary(GetRailType(t, TRACK_LOWER))) result |= present & (TRACK_BIT_LOWER | TRACK_BIT_RIGHT);
-				return result;
-			} else {
-				if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
-				DiagDirection dir = GetTunnelBridgeDirection(t);
-				if (override != NULL && GetTunnelBridgeLength(t, GetOtherBridgeEnd(t)) > 0) {
-					*override = 1 << dir;
-				}
-				return DiagDirToDiagTrackBits(dir);
+		case TT_RAILWAY: {
+			TrackBits present = GetTrackBits(t);
+			TrackBits result = TRACK_BIT_NONE;
+			if (HasCatenary(GetRailType(t, TRACK_UPPER))) result |= present & (TRACK_BIT_CROSS | TRACK_BIT_UPPER | TRACK_BIT_LEFT);
+			if (HasCatenary(GetRailType(t, TRACK_LOWER))) result |= present & (TRACK_BIT_LOWER | TRACK_BIT_RIGHT);
+
+			if (IsTileSubtype(t, TT_BRIDGE) && (override != NULL) && GetTunnelBridgeLength(t, GetOtherBridgeEnd(t)) > 0) {
+				*override = 1 << GetTunnelBridgeDirection(t);
 			}
+
+			return result;
+		}
 
 		case TT_MISC:
 			switch (GetTileSubtype(t)) {
@@ -209,7 +206,7 @@ static void AdjustTileh(TileIndex tile, Slope *tileh)
 {
 	if (IsTunnelTile(tile)) {
 		*tileh = SLOPE_STEEP; // XXX - Hack to make tunnel entrances to always have a pylon
-	} else if (IsRailBridgeTile(tile)) {
+	} else if (IsRailBridgeTile(tile) && !IsExtendedRailBridge(tile)) {
 		if (*tileh != SLOPE_FLAT) {
 			*tileh = SLOPE_FLAT;
 		} else {
