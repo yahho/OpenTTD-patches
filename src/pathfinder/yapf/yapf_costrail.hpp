@@ -45,7 +45,7 @@ protected:
 				this->rail_type = GetTileRailType(pos.tile, TrackdirToTrack(pos.td));
 			} else {
 				this->tile_type = TT_GROUND;
-				this->rail_type = GetTileRailType(pos.wormhole, TrackdirToTrack(pos.td));
+				this->rail_type = IsRailwayTile(pos.wormhole) ? GetBridgeRailType(pos.wormhole) : GetRailType(pos.wormhole);
 			}
 		}
 

@@ -168,7 +168,9 @@ struct Train FINAL : public GroundVehicle<Train, VEH_TRAIN> {
 	 */
 	inline RailType GetTrackRailType() const
 	{
-		return GetRailType(this->tile, TrackdirToTrack(this->trackdir));
+		return !IsRailwayTile(this->tile) ? GetRailType(this->tile) :
+			(this->trackdir == TRACKDIR_WORMHOLE) ? GetBridgeRailType(this->tile) :
+			GetRailType(this->tile, TrackdirToTrack(this->trackdir));
 	}
 
 protected: // These functions should not be called outside acceleration code.

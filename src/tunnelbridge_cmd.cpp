@@ -296,7 +296,7 @@ static CommandCost BuildRailBridge(TileIndex tile_start, TileIndex tile_end, Bri
 		/* Replace a current bridge. */
 
 		/* Make sure the railtypes match. */
-		if (GetRailType(tile_start) != railtype) {
+		if (GetBridgeRailType(tile_start) != railtype) {
 			return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
 		}
 

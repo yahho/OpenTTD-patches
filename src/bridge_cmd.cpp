@@ -603,7 +603,7 @@ void DrawBridgeMiddle(const TileInfo *ti)
 		if (IsRailwayTile(rampsouth)) {
 			transport_type = TRANSPORT_RAIL;
 			type = GetRailBridgeType(rampsouth);
-			base_offset = GetRailTypeInfo(GetRailType(rampsouth))->bridge_offset;
+			base_offset = GetRailTypeInfo(GetBridgeRailType(rampsouth))->bridge_offset;
 		} else {
 			transport_type = TRANSPORT_ROAD;
 			type = GetRoadBridgeType(rampsouth);
@@ -649,7 +649,7 @@ void DrawBridgeMiddle(const TileInfo *ti)
 			StartSpriteCombine();
 		}
 	} else if (transport_type == TRANSPORT_RAIL) {
-		const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(rampsouth));
+		const RailtypeInfo *rti = GetRailTypeInfo(GetBridgeRailType(rampsouth));
 		if (rti->UsesOverlay() && !IsInvisibilitySet(TO_BRIDGES)) {
 			SpriteID surface = GetCustomRailSprite(rti, rampsouth, RTSG_BRIDGE, TCX_ON_BRIDGE);
 			if (surface != 0) {
@@ -658,7 +658,7 @@ void DrawBridgeMiddle(const TileInfo *ti)
 		}
 		EndSpriteCombine();
 
-		if (HasCatenaryDrawn(GetRailType(rampsouth))) {
+		if (HasCatenaryDrawn(GetBridgeRailType(rampsouth))) {
 			DrawCatenaryOnBridge(ti);
 		}
 	}

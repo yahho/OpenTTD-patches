@@ -134,6 +134,17 @@ static inline RailType GetSideRailType(TileIndex t, DiagDirection dir)
 	return GetRailType(t, FindFirstTrack(trackbits));
 }
 
+/**
+ * Gets the rail type of a rail bridge
+ * @param t the tile to get the rail type from
+ * @return the rail type of the bridge
+ */
+static inline RailType GetBridgeRailType(TileIndex t)
+{
+	assert(IsRailBridgeTile(t));
+	return GetSideRailType(t, GetTunnelBridgeDirection(t));
+}
+
 
 /**
  * Returns the reserved track bits of the tile

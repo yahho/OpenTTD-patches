@@ -539,7 +539,7 @@ public:
 				rt = GetRailType(m_old.tile, TrackdirToTrack(m_old.td));
 			} else if (IsTileSubtype(m_old.wormhole, TT_BRIDGE)) {
 				bridge_tile = m_old.wormhole;
-				rt = GetRailType(bridge_tile);
+				rt = GetBridgeRailType(bridge_tile);
 			} else {
 				bridge_tile = INVALID_TILE;
 				rt = GetRailType(m_old.wormhole);
