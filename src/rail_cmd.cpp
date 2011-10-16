@@ -1576,6 +1576,325 @@ static inline Train *FindUnpoweredReservationTrain(TileIndex tile, Track track, 
 }
 
 /**
+ * Convert one rail type to another, for normal rail tiles
+ * @param tile tile to convert
+ * @param totype new railtype to convert to
+ * @param affected list of affected trains
+ * @param flags operation to perform
+ * @return the cost of this operation or an error
+ */
+static CommandCost ConvertTrack(TileIndex tile, RailType totype, TrainList *affected, DoCommandFlag flags)
+{
+	/* Trying to convert other's rail */
+	CommandCost ret = CheckTileOwnership(tile);
+	if (ret.Failed()) return ret;
+
+	bool ignore_electric = _settings_game.vehicle.disable_elrails && totype == RAILTYPE_RAIL;
+
+	TrackBits trackbits = GetTrackBits(tile);
+	RailType type = GetRailType(tile, TRACK_UPPER);
+
+	CommandCost cost(EXPENSES_CONSTRUCTION);
+
+	switch (trackbits) {
+		case TRACK_BIT_HORZ:
+		case TRACK_BIT_VERT: {
+			RailType type2 = GetRailType(tile, TRACK_LOWER);
+			if (type != type2) {
+				bool ignore1 = type == totype || (ignore_electric && type == RAILTYPE_ELECTRIC);
+				bool ignore2 = type2 == totype || (ignore_electric && type2 == RAILTYPE_ELECTRIC);
+				if (ignore1 && ignore2) return CommandCost();
+
+				Track track = (trackbits == TRACK_BIT_HORZ) ? TRACK_UPPER : TRACK_LEFT;
+				if (!ignore1 && !IsCompatibleRail(type, totype)) {
+					CommandCost ret = EnsureNoTrainOnTrack(tile, track);
+					if (ret.Failed()) return ret;
+				}
+
+				if (!ignore2 && !IsCompatibleRail(type2, totype)) {
+					CommandCost ret = EnsureNoTrainOnTrack(tile, TrackToOppositeTrack(track));
+					if (ret.Failed()) return ret;
+				}
+
+				cost.AddCost(RailConvertCost(type, totype));
+				cost.AddCost(RailConvertCost(type2, totype));
+				break;
+			}
+		}
+			/* fall through */
+		case TRACK_BIT_RIGHT:
+		case TRACK_BIT_LOWER:
+		case TRACK_BIT_LOWER_RIGHT:
+			type = GetRailType(tile, TRACK_LOWER);
+			/* fall through */
+		default:
+			/* Converting to the same type or converting 'hidden' elrail -> rail */
+			if (type == totype || (ignore_electric && type == RAILTYPE_ELECTRIC)) return CommandCost();
+
+			if (!IsCompatibleRail(type, totype)) {
+				CommandCost ret = EnsureNoVehicleOnGround(tile);
+				if (ret.Failed()) return ret;
+			}
+
+			cost.AddCost(RailConvertCost(type, totype) * CountBits(trackbits));
+			break;
+	}
+
+	if (flags & DC_EXEC) { // we can safely convert, too
+		SmallVector<Train *, 2> vehicles_affected;
+
+		TrackBits reserved = GetReservedTrackbits(tile);
+		Track     track;
+		while ((track = RemoveFirstTrack(&reserved)) != INVALID_TRACK) {
+			Train *v = FindUnpoweredReservationTrain(tile, track, totype);
+			if (v != NULL) *vehicles_affected.Append() = v;
+		}
+
+		/* Update the company infrastructure counters. */
+		Company *c = Company::Get(GetTileOwner(tile));
+		uint num_pieces;
+
+		TrackBits bits = GetTrackBits(tile);
+		switch (bits) {
+			case TRACK_BIT_HORZ:
+			case TRACK_BIT_VERT:
+				num_pieces = 2;
+				c->infrastructure.rail[GetRailType(tile, TRACK_UPPER)]--;
+				c->infrastructure.rail[GetRailType(tile, TRACK_LOWER)]--;
+				break;
+
+			case TRACK_BIT_RIGHT:
+			case TRACK_BIT_LOWER:
+				num_pieces = 1;
+				c->infrastructure.rail[GetRailType(tile, TRACK_LOWER)]--;
+				break;
+
+			case TRACK_BIT_LOWER_RIGHT:
+				num_pieces = 2 * 2;
+				c->infrastructure.rail[GetRailType(tile, TRACK_LOWER)] -= 2 * 2;
+				break;
+
+			default:
+				num_pieces = CountBits(bits);
+				if (TracksOverlap(bits)) num_pieces *= num_pieces;
+				c->infrastructure.rail[GetRailType(tile, TRACK_UPPER)] -= num_pieces;
+				break;
+		}
+
+		c->infrastructure.rail[totype] += num_pieces;
+		DirtyCompanyInfrastructureWindows(c->index);
+
+		SetRailType(tile, totype);
+		MarkTileDirtyByTile(tile);
+		/* update power of train on this tile */
+		FindVehicleOnPos(tile, affected, &UpdateTrainPowerProc);
+
+		/* notify YAPF about the track layout change */
+		while (trackbits != TRACK_BIT_NONE) {
+			YapfNotifyTrackLayoutChange(tile, RemoveFirstTrack(&trackbits));
+		}
+
+		for (uint i = 0; i < vehicles_affected.Length(); ++i) {
+			TryPathReserve(vehicles_affected[i], true);
+		}
+	}
+
+	return cost;
+}
+
+/**
+ * Convert one rail type to another, for bridge tiles
+ * @param tile tile to convert
+ * @param endtile bridge end
+ * @param totype new railtype to convert to
+ * @param affected list of affected trains
+ * @param flags operation to perform
+ * @return the cost of this operation or an error
+ */
+static CommandCost ConvertBridge(TileIndex tile, TileIndex endtile, RailType totype, TrainList *affected, DoCommandFlag flags)
+{
+	/* Trying to convert other's rail */
+	CommandCost ret = CheckTileOwnership(tile);
+	if (ret.Failed()) return ret;
+
+	/* Original railtype we are converting from */
+	RailType type = GetRailType(tile);
+
+	/* Converting to the same type or converting 'hidden' elrail -> rail */
+	if (type == totype) return CommandCost();
+	if (_settings_game.vehicle.disable_elrails && totype == RAILTYPE_RAIL && type == RAILTYPE_ELECTRIC) return CommandCost();
+
+	/* When not converting rail <-> el. rail, no vehicle can be in the bridge */
+	if (!IsCompatibleRail(type, totype)) {
+		CommandCost ret = TunnelBridgeIsFree(tile, endtile);
+		if (ret.Failed()) return ret;
+	}
+
+	uint len = GetTunnelBridgeLength(tile, endtile);
+
+	if (flags & DC_EXEC) {
+		Track track = DiagDirToDiagTrack(GetTunnelBridgeDirection(tile));
+
+		Train *v = NULL;
+		if (GetReservedTrackbits(tile) != TRACK_BIT_NONE) {
+			v = FindUnpoweredReservationTrain(tile, track, totype);
+		}
+
+		Train *w = NULL;
+		if (GetReservedTrackbits(endtile) != TRACK_BIT_NONE) {
+			w = FindUnpoweredReservationTrain(endtile, track, totype);
+		}
+
+		/* Update the company infrastructure counters. */
+		uint num_pieces = (len + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
+		Company *c = Company::Get(GetTileOwner(tile));
+		c->infrastructure.rail[GetRailType(tile)] -= num_pieces;
+		c->infrastructure.rail[totype] += num_pieces;
+		DirtyCompanyInfrastructureWindows(c->index);
+
+		SetRailType(tile, totype);
+		SetRailType(endtile, totype);
+
+		FindVehicleOnPos(tile, affected, &UpdateTrainPowerProc);
+		FindVehicleOnPos(endtile, affected, &UpdateTrainPowerProc);
+
+		YapfNotifyTrackLayoutChange(tile, track);
+		YapfNotifyTrackLayoutChange(endtile, track);
+
+		MarkBridgeTilesDirty(tile, endtile, GetTunnelBridgeDirection(tile));
+
+		if (v != NULL) TryPathReserve(v, true);
+		if (w != NULL) TryPathReserve(w, true);
+	}
+
+	return CommandCost(EXPENSES_CONSTRUCTION, (len + 2) * RailConvertCost(type, totype));
+}
+
+/**
+ * Convert one rail type to another, for tunnel tiles
+ * @param tile tile to convert
+ * @param endtile tunnel end
+ * @param totype new railtype to convert to
+ * @param affected list of affected trains
+ * @param flags operation to perform
+ * @return the cost of this operation or an error
+ */
+static CommandCost ConvertTunnel(TileIndex tile, TileIndex endtile, RailType totype, TrainList *affected, DoCommandFlag flags)
+{
+	/* Trying to convert other's rail */
+	CommandCost ret = CheckTileOwnership(tile);
+	if (ret.Failed()) return ret;
+
+	/* Original railtype we are converting from */
+	RailType type = GetRailType(tile);
+
+	/* Converting to the same type or converting 'hidden' elrail -> rail */
+	if (type == totype) return CommandCost();
+	if (_settings_game.vehicle.disable_elrails && totype == RAILTYPE_RAIL && type == RAILTYPE_ELECTRIC) return CommandCost();
+
+	/* When not converting rail <-> el. rail, no vehicle can be in the tunnel */
+	if (!IsCompatibleRail(type, totype)) {
+		CommandCost ret = TunnelBridgeIsFree(tile, endtile);
+		if (ret.Failed()) return ret;
+	}
+
+	uint len = GetTunnelBridgeLength(tile, endtile) + 2;
+
+	if (flags & DC_EXEC) {
+		Track track = DiagDirToDiagTrack(GetTunnelBridgeDirection(tile));
+
+		Train *v = NULL;
+		if (HasTunnelHeadReservation(tile)) {
+			v = FindUnpoweredReservationTrain(tile, track, totype);
+		}
+
+		Train *w = NULL;
+		if (HasTunnelHeadReservation(endtile)) {
+			w = FindUnpoweredReservationTrain(endtile, track, totype);
+		}
+
+		/* Update the company infrastructure counters. */
+		uint num_pieces = len * TUNNELBRIDGE_TRACKBIT_FACTOR;
+		Company *c = Company::Get(GetTileOwner(tile));
+		c->infrastructure.rail[type] -= num_pieces;
+		c->infrastructure.rail[totype] += num_pieces;
+		DirtyCompanyInfrastructureWindows(c->index);
+
+		SetRailType(tile, totype);
+		SetRailType(endtile, totype);
+
+		FindVehicleOnPos(tile, affected, &UpdateTrainPowerProc);
+		FindVehicleOnPos(endtile, affected, &UpdateTrainPowerProc);
+
+		YapfNotifyTrackLayoutChange(tile, track);
+		YapfNotifyTrackLayoutChange(endtile, track);
+
+		MarkTileDirtyByTile(tile);
+		MarkTileDirtyByTile(endtile);
+
+		if (v != NULL) TryPathReserve(v, true);
+		if (w != NULL) TryPathReserve(w, true);
+	}
+
+	return CommandCost(EXPENSES_CONSTRUCTION, len * RailConvertCost(type, totype));
+}
+
+/**
+ * Convert one rail type to another, generic version
+ * @param tile tile to convert
+ * @param totype new railtype to convert to
+ * @param track present track in the tile
+ * @param reserved whether the track is reserved
+ * @param affected list of affected trains
+ * @param flags operation to perform
+ * @return the cost of this operation or an error
+ */
+static CommandCost ConvertGeneric(TileIndex tile, RailType totype, Track track, bool reserved, TrainList *affected, DoCommandFlag flags)
+{
+	/* Trying to convert other's rail */
+	CommandCost ret = CheckTileOwnership(tile);
+	if (ret.Failed()) return ret;
+
+	/* Original railtype we are converting from */
+	RailType type = GetRailType(tile);
+
+	/* Converting to the same type or converting 'hidden' elrail -> rail */
+	if (type == totype) return CommandCost();
+	if (_settings_game.vehicle.disable_elrails && totype == RAILTYPE_RAIL && type == RAILTYPE_ELECTRIC) return CommandCost();
+
+	if (!IsCompatibleRail(type, totype)) {
+		CommandCost ret = EnsureNoVehicleOnGround(tile);
+		if (ret.Failed()) return ret;
+	}
+
+	if (flags & DC_EXEC) { // we can safely convert, too
+		Train *v = NULL;
+		if (reserved) v = FindUnpoweredReservationTrain(tile, track, totype);
+
+		/* Update the company infrastructure counters. */
+		if (!IsRailStationTile(tile) || !IsStationTileBlocked(tile)) {
+			Company *c = Company::Get(GetTileOwner(tile));
+			uint num_pieces = IsLevelCrossingTile(tile) ? LEVELCROSSING_TRACKBIT_FACTOR : 1;
+			c->infrastructure.rail[type] -= num_pieces;
+			c->infrastructure.rail[totype] += num_pieces;
+			DirtyCompanyInfrastructureWindows(c->index);
+		}
+
+		SetRailType(tile, totype);
+		MarkTileDirtyByTile(tile);
+		/* update power of train on this tile */
+		FindVehicleOnPos(tile, affected, &UpdateTrainPowerProc);
+
+		/* notify YAPF about the track layout change */
+		YapfNotifyTrackLayoutChange(tile, track);
+
+		if (v != NULL) TryPathReserve(v, true);
+	}
+
+	return CommandCost(EXPENSES_CONSTRUCTION, RailConvertCost(type, totype));
+}
+
+/**
  * Convert one rail type to the other. You can convert normal rail to
  * monorail/maglev easily or vice-versa.
  * @param tile end tile of rail conversion drag
@@ -1601,267 +1920,83 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 	TileArea ta(tile, p1);
 	TileIterator *iter = HasBit(p2, 4) ? (TileIterator *)new DiagonalTileIterator(tile, p1) : new OrthogonalTileIterator(ta);
 	for (; (tile = *iter) != INVALID_TILE; ++(*iter)) {
+		CommandCost ret;
+
+		Track track = INVALID_TRACK;
+		bool reserved;
+
 		/* Check if there is any track on tile */
 		switch (GetTileType(tile)) {
 			case TT_RAILWAY:
+				if (IsTileSubtype(tile, TT_TRACK)) {
+					ret = ConvertTrack(tile, totype, &affected_trains, flags);
+				} else {
+					/* If both ends of bridge are in the range, do not try to convert twice -
+					 * it would cause assert because of different test and exec runs */
+					TileIndex endtile = GetOtherBridgeEnd(tile);
+					if (endtile < tile && TileX(endtile) >= TileX(ta.tile) && TileX(endtile) < TileX(ta.tile) + ta.w &&
+							TileY(endtile) >= TileY(ta.tile) && TileY(endtile) < TileY(ta.tile) + ta.h) continue;
+
+					ret = ConvertBridge(tile, endtile, totype, &affected_trains, flags);
+				}
 				break;
+
 			case TT_MISC:
 				switch (GetTileSubtype(tile)) {
 					default: continue;
+
 					case TT_MISC_CROSSING:
 						if (RailNoLevelCrossings(totype)) {
 							err.MakeError(STR_ERROR_CROSSING_DISALLOWED);
 							continue;
 						}
+						track = GetCrossingRailTrack(tile);
+						reserved = HasCrossingReservation(tile);
 						break;
-					case TT_MISC_TUNNEL:
+
+					case TT_MISC_TUNNEL: {
 						if (GetTunnelTransportType(tile) != TRANSPORT_RAIL) continue;
+
+						/* If both ends of tunnel are in the range, do not try to convert twice -
+						 * it would cause assert because of different test and exec runs */
+						TileIndex endtile = GetOtherTunnelEnd(tile);
+						if (endtile < tile && TileX(endtile) >= TileX(ta.tile) && TileX(endtile) < TileX(ta.tile) + ta.w &&
+								TileY(endtile) >= TileY(ta.tile) && TileY(endtile) < TileY(ta.tile) + ta.h) continue;
+
+						ret = ConvertTunnel(tile, endtile, totype, &affected_trains, flags);
 						break;
+					}
+
 					case TT_MISC_DEPOT:
 						if (!IsRailDepot(tile)) continue;
+						track = GetRailDepotTrack(tile);
+						reserved = HasDepotReservation(tile);
 						break;
 				}
 				break;
+
 			case TT_STATION:
 				if (!HasStationRail(tile)) continue;
+				track = GetRailStationTrack(tile);
+				reserved = HasStationReservation(tile);
 				break;
+
 			default: continue;
 		}
 
-		/* Trying to convert other's rail */
-		CommandCost ret = CheckTileOwnership(tile);
-		if (ret.Failed()) {
-			err = ret;
-			continue;
+		if (track != INVALID_TRACK) {
+			ret = ConvertGeneric(tile, totype, track, reserved, &affected_trains, flags);
 		}
 
-		bool ignore_electric = _settings_game.vehicle.disable_elrails && totype == RAILTYPE_RAIL;
-
-		/* Vehicle on the tile */
-
-		if (IsTunnelTile(tile) || IsRailBridgeTile(tile)) {
-			TileIndex endtile = GetOtherTunnelBridgeEnd(tile);
-
-			/* If both ends of tunnel/bridge are in the range, do not try to convert twice -
-			 * it would cause assert because of different test and exec runs */
-			if (endtile < tile && TileX(endtile) >= TileX(ta.tile) && TileX(endtile) < TileX(ta.tile) + ta.w &&
-					TileY(endtile) >= TileY(ta.tile) && TileY(endtile) < TileY(ta.tile) + ta.h) continue;
-
-			/* Original railtype we are converting from */
-			RailType type = GetRailType(tile);
-
-			/* Converting to the same type or converting 'hidden' elrail -> rail */
-			if (type == totype || (ignore_electric && type == RAILTYPE_ELECTRIC)) continue;
-
-			/* When not converting rail <-> el. rail, any vehicle cannot be in tunnel/bridge */
-			if (!IsCompatibleRail(type, totype)) {
-				CommandCost ret = TunnelBridgeIsFree(tile, endtile);
-				if (ret.Failed()) {
-					err = ret;
-					continue;
-				}
-			}
-
-			if (flags & DC_EXEC) {
-				Track track = DiagDirToDiagTrack(GetTunnelBridgeDirection(tile));
-				Train *affected1 = NULL;
-				Train *affected2 = NULL;
-
-				if (GetReservedTrackbits(tile) != TRACK_BIT_NONE) {
-					affected1 = FindUnpoweredReservationTrain(tile, track, totype);
-				}
-				if (GetReservedTrackbits(endtile) != TRACK_BIT_NONE) {
-					affected2 = FindUnpoweredReservationTrain(endtile, track, totype);
-				}
-
-				/* Update the company infrastructure counters. */
-				uint num_pieces = (GetTunnelBridgeLength(tile, endtile) + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
-				Company *c = Company::Get(GetTileOwner(tile));
-				c->infrastructure.rail[GetRailType(tile)] -= num_pieces;
-				c->infrastructure.rail[totype] += num_pieces;
-				DirtyCompanyInfrastructureWindows(c->index);
-
-				SetRailType(tile, totype);
-				SetRailType(endtile, totype);
-
-				FindVehicleOnPos(tile, &affected_trains, &UpdateTrainPowerProc);
-				FindVehicleOnPos(endtile, &affected_trains, &UpdateTrainPowerProc);
-
-				YapfNotifyTrackLayoutChange(tile, track);
-				YapfNotifyTrackLayoutChange(endtile, track);
-
-				if (IsBridgeHeadTile(tile)) {
-					MarkBridgeTilesDirty(tile, endtile, GetTunnelBridgeDirection(tile));
-				} else {
-					MarkTileDirtyByTile(tile);
-					MarkTileDirtyByTile(endtile);
-				}
-
-				if (affected1 != NULL) TryPathReserve(affected1, true);
-				if (affected2 != NULL) TryPathReserve(affected2, true);
-			}
-
-			cost.AddCost((GetTunnelBridgeLength(tile, endtile) + 2) * RailConvertCost(type, totype));
+		if (ret.Failed()) {
+			err = ret;
 		} else {
-			if (IsNormalRailTile(tile)) {
-				RailType type = GetRailType(tile, TRACK_UPPER);
-				TrackBits trackbits = GetTrackBits(tile);
+			cost.AddCost(ret);
 
-				switch (trackbits) {
-					case TRACK_BIT_HORZ:
-					case TRACK_BIT_VERT: {
-						RailType type2 = GetRailType(tile, TRACK_LOWER);
-						if (type != type2) {
-							bool ignore1 = type == totype || (ignore_electric && type == RAILTYPE_ELECTRIC);
-							bool ignore2 = type2 == totype || (ignore_electric && type2 == RAILTYPE_ELECTRIC);
-							if (ignore1 && ignore2) continue;
-							Track track = trackbits == TRACK_BIT_HORZ ? TRACK_UPPER : TRACK_LEFT;
-							if (!ignore1 && !IsCompatibleRail(type, totype)) {
-								CommandCost ret = EnsureNoTrainOnTrack(tile, track);
-								if (ret.Failed()) {
-									err = ret;
-									continue;
-								}
-							}
-							if (!ignore2 && !IsCompatibleRail(type2, totype)) {
-								CommandCost ret = EnsureNoTrainOnTrack(tile, TrackToOppositeTrack(track));
-								if (ret.Failed()) {
-									err = ret;
-									continue;
-								}
-							}
-							cost.AddCost(RailConvertCost(type, totype));
-							cost.AddCost(RailConvertCost(type2, totype));
-							break;
-						}
-					}
-						/* fall through */
-					case TRACK_BIT_RIGHT:
-					case TRACK_BIT_LOWER:
-					case TRACK_BIT_LOWER_RIGHT:
-						type = GetRailType(tile, TRACK_LOWER);
-						/* fall through */
-					default:
-						/* Converting to the same type or converting 'hidden' elrail -> rail */
-						if (type == totype || (ignore_electric && type == RAILTYPE_ELECTRIC)) continue;
-
-						if (!IsCompatibleRail(type, totype)) {
-							CommandCost ret = EnsureNoVehicleOnGround(tile);
-							if (ret.Failed()) {
-								err = ret;
-								continue;
-							}
-						}
-
-						cost.AddCost(RailConvertCost(type, totype) * CountBits(trackbits));
-						break;
-				}
-			} else {
-				/* Original railtype we are converting from */
-				RailType type = GetRailType(tile);
-
-				/* Converting to the same type or converting 'hidden' elrail -> rail */
-				if (type == totype || (ignore_electric && type == RAILTYPE_ELECTRIC)) continue;
-
-				if (!IsCompatibleRail(type, totype)) {
-					CommandCost ret = EnsureNoVehicleOnGround(tile);
-					if (ret.Failed()) {
-						err = ret;
-						continue;
-					}
-				}
-
-				cost.AddCost(RailConvertCost(type, totype));
-			}
-
-			if (flags & DC_EXEC) { // we can safely convert, too
-				SmallVector<Train *, 2> vehicles_affected;
-
-				TrackBits reserved = GetReservedTrackbits(tile);
-				Track     track;
-				while ((track = RemoveFirstTrack(&reserved)) != INVALID_TRACK) {
-					Train *v = FindUnpoweredReservationTrain(tile, track, totype);
-					if (v != NULL) *vehicles_affected.Append() = v;
-				}
-
-				/* Update the company infrastructure counters. */
-				if (!IsRailStationTile(tile) || !IsStationTileBlocked(tile)) {
-					Company *c = Company::Get(GetTileOwner(tile));
-					uint num_pieces;
-					if (IsNormalRailTile(tile)) {
-						TrackBits bits = GetTrackBits(tile);
-						switch (bits) {
-							case TRACK_BIT_HORZ:
-							case TRACK_BIT_VERT:
-								num_pieces = 2;
-								c->infrastructure.rail[GetRailType(tile, TRACK_UPPER)]--;
-								c->infrastructure.rail[GetRailType(tile, TRACK_LOWER)]--;
-								break;
-
-							case TRACK_BIT_RIGHT:
-							case TRACK_BIT_LOWER:
-								num_pieces = 1;
-								c->infrastructure.rail[GetRailType(tile, TRACK_LOWER)]--;
-								break;
-
-							case TRACK_BIT_LOWER_RIGHT:
-								num_pieces = 2 * 2;
-								c->infrastructure.rail[GetRailType(tile, TRACK_LOWER)] -= 2 * 2;
-								break;
-
-							default:
-								num_pieces = CountBits(bits);
-								if (TracksOverlap(bits)) num_pieces *= num_pieces;
-								c->infrastructure.rail[GetRailType(tile, TRACK_UPPER)] -= num_pieces;
-								break;
-						}
-					} else {
-						num_pieces = IsLevelCrossingTile(tile) ? LEVELCROSSING_TRACKBIT_FACTOR : 1;
-						c->infrastructure.rail[GetRailType(tile)] -= num_pieces;
-					}
-					c->infrastructure.rail[totype] += num_pieces;
-					DirtyCompanyInfrastructureWindows(c->index);
-				}
-
-				SetRailType(tile, totype);
-				MarkTileDirtyByTile(tile);
-				/* update power of train on this tile */
-				FindVehicleOnPos(tile, &affected_trains, &UpdateTrainPowerProc);
-
-				switch (GetTileType(tile)) {
-					case TT_RAILWAY: {
-						TrackBits tracks = GetTrackBits(tile);
-						/* notify YAPF about the track layout change */
-						while (tracks != TRACK_BIT_NONE) {
-							YapfNotifyTrackLayoutChange(tile, RemoveFirstTrack(&tracks));
-						}
-						break;
-					}
-
-					case TT_MISC:
-						if (IsLevelCrossingTile(tile)) {
-							Track track = GetCrossingRailTrack(tile);
-							YapfNotifyTrackLayoutChange(tile, track);
-						} else { // assert(IsRailDepotTile(tile))
-							/* notify YAPF about the track layout change */
-							YapfNotifyTrackLayoutChange(tile, GetRailDepotTrack(tile));
-
-							/* Update build vehicle window related to this depot */
-							InvalidateWindowData(WC_VEHICLE_DEPOT, tile);
-							InvalidateWindowData(WC_BUILD_VEHICLE, tile);
-						}
-						break;
-
-					default: { // TT_STATION
-						Track track = GetRailStationTrack(tile);
-						YapfNotifyTrackLayoutChange(tile, track);
-						break;
-					}
-				}
-
-				for (uint i = 0; i < vehicles_affected.Length(); ++i) {
-					TryPathReserve(vehicles_affected[i], true);
-				}
+			if (IsRailDepotTile(tile) && (flags & DC_EXEC)) {
+				/* Update build vehicle window related to this depot */
+				InvalidateWindowData(WC_VEHICLE_DEPOT, tile);
+				InvalidateWindowData(WC_BUILD_VEHICLE, tile);
 			}
 		}
 	}
