@@ -3321,7 +3321,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					assert(chosen_trackdir != INVALID_TRACKDIR);
 					assert(HasBit(trackdirbits | TrackBitsToTrackdirBits(GetReservedTrackbits(gp.new_tile)), chosen_trackdir));
 
-					if (v->force_proceed != TFP_NONE && IsNormalRailTile(gp.new_tile)) {
+					if (v->force_proceed != TFP_NONE && IsRailwayTile(gp.new_tile)) {
 						/* For each signal we find decrease the counter by one.
 						 * We start at two, so the first signal we pass decreases
 						 * this to one, then if we reach the next signal it is
@@ -3426,16 +3426,12 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			if (v->Next() == NULL) {
 				/* Clear any track reservation when the last vehicle leaves the tile */
 				ClearPathReservation(v, v->GetPos());
-			}
 
-			if (!new_in_wormhole) {
-				if (v->Next() == NULL) {
-					PFPos rev = v->GetReversePos();
-					if (HasSignalOnPos(rev)) {
-						assert(IsSignalBufferEmpty());
-						AddPosToSignalBuffer(rev, v->owner);
-						/* Defer actual updating of signals until the train has moved */
-					}
+				PFPos rev = v->GetReversePos();
+				if (HasSignalOnPos(rev)) {
+					assert(IsSignalBufferEmpty());
+					AddPosToSignalBuffer(rev, v->owner);
+					/* Defer actual updating of signals until the train has moved */
 				}
 			}
 
@@ -3696,8 +3692,6 @@ static void DeleteLastWagon(Train *v)
 		AddDepotToSignalBuffer(tile, owner);
 	} else if (IsTunnelTile(tile)) {
 		AddTunnelToSignalBuffer(tile, owner);
-	} else if (IsRailBridgeTile(tile)) {
-		AddBridgeToSignalBuffer(tile, owner);
 	} else {
 		AddTrackToSignalBuffer(tile, track, owner);
 	}

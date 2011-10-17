@@ -469,7 +469,7 @@ void ChangeOwnershipOfCompanyItems(Owner old_owner, Owner new_owner)
 			tile = 0;
 
 			do {
-				if (IsNormalRailTile(tile) && IsTileOwner(tile, new_owner)) {
+				if (IsRailwayTile(tile) && IsTileOwner(tile, new_owner)) {
 					TrackBits tracks = GetTrackBits(tile);
 					do { // there may be two tracks with signals for TRACK_BIT_HORZ and TRACK_BIT_VERT
 						Track track = RemoveFirstTrack(&tracks);
