@@ -179,9 +179,8 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 /** Follow a reservation starting from a specific tile to the end. */
 static PBSTileInfo FollowReservation(Owner o, RailTypes rts, TileIndex tile, Trackdir trackdir, bool ignore_oneway = false)
 {
-	TileIndex start_tile = tile;
-	Trackdir  start_trackdir = trackdir;
-	bool      first_loop = true;
+	TileIndex start_tile = INVALID_TILE;
+	Trackdir  start_trackdir = INVALID_TRACKDIR;
 
 	/* Start track not reserved? This can happen if two trains
 	 * are on the same tile. The reservation on the next tile
@@ -220,14 +219,13 @@ static PBSTileInfo FollowReservation(Owner o, RailTypes rts, TileIndex tile, Tra
 		tile = ft.m_new_tile;
 		trackdir = new_trackdir;
 
-		if (first_loop) {
+		if (start_tile == INVALID_TILE) {
 			/* Update the start tile after we followed the track the first
 			 * time. This is necessary because the track follower can skip
 			 * tiles (in stations for example) which means that we might
 			 * never visit our original starting tile again. */
 			start_tile = tile;
 			start_trackdir = trackdir;
-			first_loop = false;
 		} else {
 			/* Loop encountered? */
 			if (tile == start_tile && trackdir == start_trackdir) break;
