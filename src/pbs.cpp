@@ -269,6 +269,28 @@ static Vehicle *FindTrainOnTrackEnum(Vehicle *v, void *data)
 	return NULL;
 }
 
+/** Find a train on a reserved path end */
+static void FindTrainOnPathEnd(FindTrainOnTrackInfo *ftoti)
+{
+	FindVehicleOnPos(ftoti->res.tile, ftoti, FindTrainOnTrackEnum);
+	if (ftoti->best != NULL) return;
+
+	/* Special case for stations: check the whole platform for a vehicle. */
+	if (IsRailStationTile(ftoti->res.tile)) {
+		TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(ftoti->res.trackdir)));
+		for (TileIndex tile = ftoti->res.tile + diff; IsCompatibleTrainStationTile(tile, ftoti->res.tile); tile += diff) {
+			FindVehicleOnPos(tile, ftoti, FindTrainOnTrackEnum);
+			if (ftoti->best != NULL) return;
+		}
+	}
+
+	/* Special case for bridges/tunnels: check the other end as well. */
+	if (IsTileType(ftoti->res.tile, MP_TUNNELBRIDGE)) {
+		FindVehicleOnPos(GetOtherTunnelBridgeEnd(ftoti->res.tile), ftoti, FindTrainOnTrackEnum);
+		if (ftoti->best != NULL) return;
+	}
+}
+
 /**
  * Follow a train reservation to the last tile.
  *
@@ -289,24 +311,8 @@ PBSTileInfo FollowTrainReservation(const Train *v, Vehicle **train_on_res)
 	ftoti.res = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, tile, trackdir);
 	ftoti.res.okay = IsSafeWaitingPosition(v, ftoti.res.tile, ftoti.res.trackdir, true, _settings_game.pf.forbid_90_deg);
 	if (train_on_res != NULL) {
-		FindVehicleOnPos(ftoti.res.tile, &ftoti, FindTrainOnTrackEnum);
+		FindTrainOnPathEnd(&ftoti);
 		if (ftoti.best != NULL) *train_on_res = ftoti.best->First();
-		if (*train_on_res == NULL && IsRailStationTile(ftoti.res.tile)) {
-			/* The target tile is a rail station. The track follower
-			 * has stopped on the last platform tile where we haven't
-			 * found a train. Also check all previous platform tiles
-			 * for a possible train. */
-			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(ftoti.res.trackdir)));
-			for (TileIndex st_tile = ftoti.res.tile + diff; *train_on_res == NULL && IsCompatibleTrainStationTile(st_tile, ftoti.res.tile); st_tile += diff) {
-				FindVehicleOnPos(st_tile, &ftoti, FindTrainOnTrackEnum);
-				if (ftoti.best != NULL) *train_on_res = ftoti.best->First();
-			}
-		}
-		if (*train_on_res == NULL && IsTileType(ftoti.res.tile, MP_TUNNELBRIDGE)) {
-			/* The target tile is a bridge/tunnel, also check the other end tile. */
-			FindVehicleOnPos(GetOtherTunnelBridgeEnd(ftoti.res.tile), &ftoti, FindTrainOnTrackEnum);
-			if (ftoti.best != NULL) *train_on_res = ftoti.best->First();
-		}
 	}
 	return ftoti.res;
 }
@@ -336,23 +342,8 @@ Train *GetTrainForReservation(TileIndex tile, Track track)
 		FindTrainOnTrackInfo ftoti;
 		ftoti.res = FollowReservation(GetTileOwner(tile), rts, tile, trackdir, true);
 
-		FindVehicleOnPos(ftoti.res.tile, &ftoti, FindTrainOnTrackEnum);
+		FindTrainOnPathEnd(&ftoti);
 		if (ftoti.best != NULL) return ftoti.best;
-
-		/* Special case for stations: check the whole platform for a vehicle. */
-		if (IsRailStationTile(ftoti.res.tile)) {
-			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(ftoti.res.trackdir)));
-			for (TileIndex st_tile = ftoti.res.tile + diff; IsCompatibleTrainStationTile(st_tile, ftoti.res.tile); st_tile += diff) {
-				FindVehicleOnPos(st_tile, &ftoti, FindTrainOnTrackEnum);
-				if (ftoti.best != NULL) return ftoti.best;
-			}
-		}
-
-		/* Special case for bridges/tunnels: check the other end as well. */
-		if (IsTileType(ftoti.res.tile, MP_TUNNELBRIDGE)) {
-			FindVehicleOnPos(GetOtherTunnelBridgeEnd(ftoti.res.tile), &ftoti, FindTrainOnTrackEnum);
-			if (ftoti.best != NULL) return ftoti.best;
-		}
 	}
 
 	return NULL;
