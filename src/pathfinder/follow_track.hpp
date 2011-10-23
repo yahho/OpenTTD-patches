@@ -24,12 +24,9 @@
 #include "pf_performance_timer.hpp"
 
 /**
- * Track follower helper template class (can serve pathfinders and vehicle
- *  controllers). See 6 different typedefs below for 3 different transport
- *  types w/ or w/o 90-deg turns allowed
+ * Track follower helper template base class
  */
-template <TransportType Ttr_type_, typename VehicleType, bool Twormhole = false>
-struct CFollowTrack
+struct CFollowTrackBase
 {
 	enum TileFlag {
 		TF_NONE,
@@ -53,7 +50,7 @@ struct CFollowTrack
 		TR_REVERSE,
 	};
 
-	const VehicleType  *m_veh;           ///< moving vehicle
+	const Vehicle      *m_veh;           ///< moving vehicle
 	Owner               m_veh_owner;     ///< owner of the vehicle
 	PFPos               m_old;           ///< the origin (vehicle moved from) before move
 	PFNewPos            m_new;           ///< the new tile (the vehicle has entered)
@@ -65,7 +62,16 @@ struct CFollowTrack
 	RailTypes           m_railtypes;
 	bool                m_allow_90deg;
 	bool                m_mask_reserved;
+};
 
+/**
+ * Track follower helper template class (can serve pathfinders and vehicle
+ *  controllers). See 6 different typedefs below for 3 different transport
+ *  types w/ or w/o 90-deg turns allowed
+ */
+template <TransportType Ttr_type_, typename VehicleType, bool Twormhole = false>
+struct CFollowTrack : CFollowTrackBase
+{
 	inline CFollowTrack(const VehicleType *v = NULL, bool allow_90deg = true, bool mask_reserved = false, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
 	{
 		assert(!IsRailTT() || (v != NULL && v->type == VEH_TRAIN));
