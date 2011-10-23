@@ -49,8 +49,7 @@ struct CFollowTrack
 	const VehicleType  *m_veh;           ///< moving vehicle
 	Owner               m_veh_owner;     ///< owner of the vehicle
 	PFPos               m_old;           ///< the origin (vehicle moved from) before move
-	TileIndex           m_new_tile;      ///< the new tile (the vehicle has entered)
-	TrackdirBits        m_new_td_bits;   ///< the new set of available trackdirs
+	PFNewPos            m_new;           ///< the new tile (the vehicle has entered)
 	DiagDirection       m_exitdir;       ///< exit direction (leaving the old tile)
 	TileFlag            m_flag;          ///< last turn passed station, tunnel or bridge
 	int                 m_tiles_skipped; ///< number of skipped tunnel or station tiles
@@ -130,7 +129,7 @@ public:
 		if (!CanExitOldTile()) return false;
 		FollowTileExit();
 		if (!QueryNewTileTrackStatus() || !CanEnterNewTile() ||
-				(m_new_td_bits &= DiagdirReachesTrackdirs(m_exitdir)) == TRACKDIR_BIT_NONE) {
+				(m_new.trackdirs &= DiagdirReachesTrackdirs(m_exitdir)) == TRACKDIR_BIT_NONE) {
 			/* In case we can't enter the next tile, but are
 			 * a normal road vehicle, then we can actually
 			 * try to reverse as this is the end of the road.
@@ -145,8 +144,8 @@ public:
 			return TryReverse();
 		}
 		if (!m_allow_90deg) {
-			m_new_td_bits &= (TrackdirBits)~(int)TrackdirCrossesTrackdirs(m_old.td);
-			if (m_new_td_bits == TRACKDIR_BIT_NONE) {
+			m_new.trackdirs &= (TrackdirBits)~(int)TrackdirCrossesTrackdirs(m_old.td);
+			if (m_new.trackdirs == TRACKDIR_BIT_NONE) {
 				m_err = EC_90DEG;
 				return false;
 			}
@@ -161,24 +160,24 @@ public:
 		if (m_flag == TF_STATION) {
 			/* Check skipped station tiles as well. */
 			TileIndexDiff diff = TileOffsByDiagDir(m_exitdir);
-			for (TileIndex tile = m_new_tile - diff * m_tiles_skipped; tile != m_new_tile; tile += diff) {
+			for (TileIndex tile = m_new.tile - diff * m_tiles_skipped; tile != m_new.tile; tile += diff) {
 				if (HasStationReservation(tile)) {
-					m_new_td_bits = TRACKDIR_BIT_NONE;
+					m_new.trackdirs = TRACKDIR_BIT_NONE;
 					m_err = EC_RESERVED;
 					return false;
 				}
 			}
 		}
 
-		TrackBits reserved = GetReservedTrackbits(m_new_tile);
+		TrackBits reserved = GetReservedTrackbits(m_new.tile);
 		/* Mask already reserved trackdirs. */
-		m_new_td_bits &= ~TrackBitsToTrackdirBits(reserved);
+		m_new.trackdirs &= ~TrackBitsToTrackdirBits(reserved);
 		/* Mask out all trackdirs that conflict with the reservation. */
 		Track t;
-		FOR_EACH_SET_TRACK(t, TrackdirBitsToTrackBits(m_new_td_bits)) {
-			if (TracksOverlap(reserved | TrackToTrackBits(t))) m_new_td_bits &= ~TrackToTrackdirBits(t);
+		FOR_EACH_SET_TRACK(t, TrackdirBitsToTrackBits(m_new.trackdirs)) {
+			if (TracksOverlap(reserved | TrackToTrackBits(t))) m_new.trackdirs &= ~TrackToTrackdirBits(t);
 		}
-		if (m_new_td_bits == TRACKDIR_BIT_NONE) {
+		if (m_new.trackdirs == TRACKDIR_BIT_NONE) {
 			m_err = EC_RESERVED;
 			return false;
 		}
@@ -186,7 +185,7 @@ public:
 	}
 
 protected:
-	/** Follow m_exitdir from m_old and fill m_new_tile and m_tiles_skipped */
+	/** Follow m_exitdir from m_old and fill m_new.tile and m_tiles_skipped */
 	inline void FollowTileExit()
 	{
 		/* extra handling for bridges in our direction */
@@ -194,8 +193,8 @@ protected:
 			if (m_exitdir == GetTunnelBridgeDirection(m_old.tile)) {
 				/* we are entering the bridge */
 				m_flag = TF_BRIDGE;
-				m_new_tile = GetOtherBridgeEnd(m_old.tile);
-				m_tiles_skipped = GetTunnelBridgeLength(m_new_tile, m_old.tile);
+				m_new.tile = GetOtherBridgeEnd(m_old.tile);
+				m_tiles_skipped = GetTunnelBridgeLength(m_new.tile, m_old.tile);
 				return;
 			}
 		/* extra handling for tunnels in our direction */
@@ -204,8 +203,8 @@ protected:
 			if (enterdir == m_exitdir) {
 				/* we are entering the tunnel */
 				m_flag = TF_TUNNEL;
-				m_new_tile = GetOtherTunnelEnd(m_old.tile);
-				m_tiles_skipped = GetTunnelBridgeLength(m_new_tile, m_old.tile);
+				m_new.tile = GetOtherTunnelEnd(m_old.tile);
+				m_tiles_skipped = GetTunnelBridgeLength(m_new.tile, m_old.tile);
 				return;
 			}
 			assert(ReverseDiagDir(enterdir) == m_exitdir);
@@ -213,12 +212,12 @@ protected:
 
 		/* normal or station tile, do one step */
 		TileIndexDiff diff = TileOffsByDiagDir(m_exitdir);
-		m_new_tile = TILE_ADD(m_old.tile, diff);
+		m_new.tile = TILE_ADD(m_old.tile, diff);
 
 		/* special handling for stations */
-		if (IsRailTT() && HasStationTileRail(m_new_tile)) {
+		if (IsRailTT() && HasStationTileRail(m_new.tile)) {
 			m_flag = TF_STATION;
-		} else if (IsRoadTT() && IsRoadStopTile(m_new_tile)) {
+		} else if (IsRoadTT() && IsRoadStopTile(m_new.tile)) {
 			m_flag = TF_STATION;
 		} else {
 			m_flag = TF_NONE;
@@ -227,34 +226,34 @@ protected:
 		m_tiles_skipped = 0;
 	}
 
-	/** stores track status (available trackdirs) for the new tile into m_new_td_bits */
+	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
 	inline bool QueryNewTileTrackStatus()
 	{
 		CPerfStart perf(*m_pPerf);
-		if (IsRailTT() && IsNormalRailTile(m_new_tile)) {
-			m_new_td_bits = (TrackdirBits)(GetTrackBits(m_new_tile) * 0x101);
+		if (IsRailTT() && IsNormalRailTile(m_new.tile)) {
+			m_new.trackdirs = TrackBitsToTrackdirBits(GetTrackBits(m_new.tile));
 		} else {
-			m_new_td_bits = GetTrackStatusTrackdirBits(m_new_tile);
+			m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
 
-			if (IsTram() && m_new_td_bits == 0) {
+			if (IsTram() && m_new.trackdirs == 0) {
 				/* GetTileTrackStatus() returns 0 for single tram bits.
 				 * As we cannot change it there (easily) without breaking something, change it here */
-				switch (GetSingleTramBit(m_new_tile)) {
+				switch (GetSingleTramBit(m_new.tile)) {
 					case DIAGDIR_NE:
 					case DIAGDIR_SW:
-						m_new_td_bits = TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW;
+						m_new.trackdirs = TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW;
 						break;
 
 					case DIAGDIR_NW:
 					case DIAGDIR_SE:
-						m_new_td_bits = TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE;
+						m_new.trackdirs = TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE;
 						break;
 
 					default: break;
 				}
 			}
 		}
-		return (m_new_td_bits != TRACKDIR_BIT_NONE);
+		return (m_new.trackdirs != TRACKDIR_BIT_NONE);
 	}
 
 	/** return true if we can leave m_old in m_exitdir */
@@ -289,12 +288,12 @@ protected:
 		return true;
 	}
 
-	/** return true if we can enter m_new_tile from m_exitdir */
+	/** return true if we can enter m_new.tile from m_exitdir */
 	inline bool CanEnterNewTile()
 	{
-		if (IsRoadTT() && IsStandardRoadStopTile(m_new_tile)) {
+		if (IsRoadTT() && IsStandardRoadStopTile(m_new.tile)) {
 			/* road stop can be entered from one direction only unless it's a drive-through stop */
-			DiagDirection exitdir = GetRoadStopDir(m_new_tile);
+			DiagDirection exitdir = GetRoadStopDir(m_new.tile);
 			if (ReverseDiagDir(exitdir) != m_exitdir) {
 				m_err = EC_NO_WAY;
 				return false;
@@ -303,7 +302,7 @@ protected:
 
 		/* single tram bits can only be entered from one direction */
 		if (IsTram()) {
-			DiagDirection single_tram = GetSingleTramBit(m_new_tile);
+			DiagDirection single_tram = GetSingleTramBit(m_new.tile);
 			if (single_tram != INVALID_DIAGDIR && single_tram != ReverseDiagDir(m_exitdir)) {
 				m_err = EC_NO_WAY;
 				return false;
@@ -311,20 +310,20 @@ protected:
 		}
 
 		/* road and rail depots can also be entered from one direction only */
-		if (IsRoadTT() && IsDepotTypeTile(m_new_tile, TT())) {
-			DiagDirection exitdir = GetGroundDepotDirection(m_new_tile);
+		if (IsRoadTT() && IsDepotTypeTile(m_new.tile, TT())) {
+			DiagDirection exitdir = GetGroundDepotDirection(m_new.tile);
 			if (ReverseDiagDir(exitdir) != m_exitdir) {
 				m_err = EC_NO_WAY;
 				return false;
 			}
 			/* don't try to enter other company's depots */
-			if (GetTileOwner(m_new_tile) != m_veh_owner) {
+			if (GetTileOwner(m_new.tile) != m_veh_owner) {
 				m_err = EC_OWNER;
 				return false;
 			}
 		}
-		if (IsRailTT() && IsDepotTypeTile(m_new_tile, TT())) {
-			DiagDirection exitdir = GetGroundDepotDirection(m_new_tile);
+		if (IsRailTT() && IsDepotTypeTile(m_new.tile, TT())) {
+			DiagDirection exitdir = GetGroundDepotDirection(m_new.tile);
 			if (ReverseDiagDir(exitdir) != m_exitdir) {
 				m_err = EC_NO_WAY;
 				return false;
@@ -332,7 +331,7 @@ protected:
 		}
 
 		/* rail transport is possible only on tiles with the same owner as vehicle */
-		if (IsRailTT() && GetTileOwner(m_new_tile) != m_veh_owner) {
+		if (IsRailTT() && GetTileOwner(m_new.tile) != m_veh_owner) {
 			/* different owner */
 			m_err = EC_NO_WAY;
 			return false;
@@ -341,15 +340,15 @@ protected:
 		/* rail transport is possible only on compatible rail types */
 		if (IsRailTT()) {
 			RailType rail_type;
-			if (IsNormalRailTile(m_new_tile)) {
-				TrackBits tracks = GetTrackBits(m_new_tile) & DiagdirReachesTracks(m_exitdir);
+			if (IsNormalRailTile(m_new.tile)) {
+				TrackBits tracks = GetTrackBits(m_new.tile) & DiagdirReachesTracks(m_exitdir);
 				if (tracks == TRACK_BIT_NONE) {
 					m_err = EC_NO_WAY;
 					return false;
 				}
-				rail_type = GetRailType(m_new_tile, FindFirstTrack(tracks));
+				rail_type = GetRailType(m_new.tile, FindFirstTrack(tracks));
 			} else {
-				rail_type = GetTileRailType(m_new_tile);
+				rail_type = GetTileRailType(m_new.tile);
 			}
 			if (!HasBit(m_railtypes, rail_type)) {
 				/* incompatible rail type */
@@ -359,17 +358,17 @@ protected:
 		}
 
 		/* tunnel holes and bridge ramps can be entered only from proper direction */
-		if (IsTunnelTile(m_new_tile)) {
+		if (IsTunnelTile(m_new.tile)) {
 			if (m_flag != TF_TUNNEL) {
-				DiagDirection tunnel_enterdir = GetTunnelBridgeDirection(m_new_tile);
+				DiagDirection tunnel_enterdir = GetTunnelBridgeDirection(m_new.tile);
 				if (tunnel_enterdir != m_exitdir) {
 					m_err = EC_NO_WAY;
 					return false;
 				}
 			}
-		} else if (IsBridgeHeadTile(m_new_tile)) {
+		} else if (IsBridgeHeadTile(m_new.tile)) {
 			if (m_flag != TF_BRIDGE) {
-				DiagDirection ramp_enderdir = GetTunnelBridgeDirection(m_new_tile);
+				DiagDirection ramp_enderdir = GetTunnelBridgeDirection(m_new.tile);
 				if (ramp_enderdir == ReverseDiagDir(m_exitdir)) {
 					m_err = EC_NO_WAY;
 					return false;
@@ -381,13 +380,13 @@ protected:
 		if (IsRailTT() && m_flag == TF_STATION) {
 			/* entered railway station
 			 * get platform length */
-			uint length = BaseStation::GetByTile(m_new_tile)->GetPlatformLength(m_new_tile, TrackdirToExitdir(m_old.td));
+			uint length = BaseStation::GetByTile(m_new.tile)->GetPlatformLength(m_new.tile, TrackdirToExitdir(m_old.td));
 			/* how big step we must do to get to the last platform tile; */
 			m_tiles_skipped = length - 1;
 			/* move to the platform end */
 			TileIndexDiff diff = TileOffsByDiagDir(m_exitdir);
 			diff *= m_tiles_skipped;
-			m_new_tile = TILE_ADD(m_new_tile, diff);
+			m_new.tile = TILE_ADD(m_new.tile, diff);
 			return true;
 		}
 
@@ -402,8 +401,8 @@ protected:
 			DiagDirection exitdir = GetGroundDepotDirection(m_old.tile);
 			if (exitdir != m_exitdir) {
 				/* reverse */
-				m_new_tile = m_old.tile;
-				m_new_td_bits = TrackdirToTrackdirBits(ReverseTrackdir(m_old.td));
+				m_new.tile = m_old.tile;
+				m_new.trackdirs = TrackdirToTrackdirBits(ReverseTrackdir(m_old.td));
 				m_exitdir = exitdir;
 				m_tiles_skipped = 0;
 				m_flag = TF_NONE;
@@ -414,8 +413,8 @@ protected:
 		/* single tram bits cause reversing */
 		if (IsTram() && GetSingleTramBit(m_old.tile) == ReverseDiagDir(m_exitdir)) {
 			/* reverse */
-			m_new_tile = m_old.tile;
-			m_new_td_bits = TrackdirToTrackdirBits(ReverseTrackdir(m_old.td));
+			m_new.tile = m_old.tile;
+			m_new.trackdirs = TrackdirToTrackdirBits(ReverseTrackdir(m_old.td));
 			m_exitdir = ReverseDiagDir(m_exitdir);
 			m_tiles_skipped = 0;
 			m_flag = TF_NONE;
@@ -432,12 +431,12 @@ protected:
 			/* if we reached the end of road, we can reverse the RV and continue moving */
 			m_exitdir = ReverseDiagDir(m_exitdir);
 			/* new tile will be the same as old one */
-			m_new_tile = m_old.tile;
+			m_new.tile = m_old.tile;
 			/* set new trackdir bits to all reachable trackdirs */
-			m_new_td_bits = GetTrackStatusTrackdirBits(m_new_tile);
-			m_new_td_bits &= DiagdirReachesTrackdirs(m_exitdir);
+			m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
+			m_new.trackdirs &= DiagdirReachesTrackdirs(m_exitdir);
 			/* we always have some trackdirs reachable after reversal */
-			assert(m_new_td_bits != TRACKDIR_BIT_NONE);
+			assert(m_new.trackdirs != TRACKDIR_BIT_NONE);
 			return true;
 		}
 		m_err = EC_NO_WAY;

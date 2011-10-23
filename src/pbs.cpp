@@ -210,7 +210,7 @@ static PBSTileInfo FollowReservation(Owner o, RailTypes rts, TileIndex tile, Tra
 	/* Do not disallow 90 deg turns as the setting might have changed between reserving and now. */
 	CFollowTrackRail ft(o, true, rts);
 	while (ft.Follow(tile, trackdir)) {
-		TrackdirBits reserved = ft.m_new_td_bits & TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new_tile));
+		TrackdirBits reserved = ft.m_new.trackdirs & TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new.tile));
 
 		/* No reservation --> path end found */
 		if (reserved == TRACKDIR_BIT_NONE) {
@@ -218,9 +218,9 @@ static PBSTileInfo FollowReservation(Owner o, RailTypes rts, TileIndex tile, Tra
 				/* Check skipped station tiles as well, maybe our reservation ends inside the station. */
 				TileIndexDiff diff = TileOffsByDiagDir(ft.m_exitdir);
 				while (ft.m_tiles_skipped-- > 0) {
-					ft.m_new_tile -= diff;
-					if (HasStationReservation(ft.m_new_tile)) {
-						tile = ft.m_new_tile;
+					ft.m_new.tile -= diff;
+					if (HasStationReservation(ft.m_new.tile)) {
+						tile = ft.m_new.tile;
 						trackdir = DiagDirToDiagTrackdir(ft.m_exitdir);
 						break;
 					}
@@ -234,9 +234,9 @@ static PBSTileInfo FollowReservation(Owner o, RailTypes rts, TileIndex tile, Tra
 
 		/* One-way signal against us. The reservation can't be ours as it is not
 		 * a safe position from our direction and we can never pass the signal. */
-		if (!ignore_oneway && HasOnewaySignalBlockingTrackdir(ft.m_new_tile, new_trackdir)) break;
+		if (!ignore_oneway && HasOnewaySignalBlockingTrackdir(ft.m_new.tile, new_trackdir)) break;
 
-		tile = ft.m_new_tile;
+		tile = ft.m_new.tile;
 		trackdir = new_trackdir;
 
 		if (start_tile == INVALID_TILE) {
@@ -416,20 +416,20 @@ PBSPositionState CheckWaitingPosition(const Train *v, TileIndex tile, Trackdir t
 	/* End of track? Safe position. */
 	if (!ft.Follow(tile, trackdir)) return state;
 
-	assert(ft.m_new_td_bits != TRACKDIR_BIT_NONE);
+	assert(ft.m_new.trackdirs != TRACKDIR_BIT_NONE);
 	assert((state == PBS_FREE) || (cb == PBS_CHECK_FULL));
 
 	if (cb != PBS_CHECK_FREE) {
-		if (KillFirstBit(ft.m_new_td_bits) != TRACKDIR_BIT_NONE) return PBS_UNSAFE;
-		if (!IsNormalRailTile(ft.m_new_tile)) return PBS_UNSAFE;
+		if (KillFirstBit(ft.m_new.trackdirs) != TRACKDIR_BIT_NONE) return PBS_UNSAFE;
+		if (!IsNormalRailTile(ft.m_new.tile)) return PBS_UNSAFE;
 
-		Trackdir td = FindFirstTrackdir(ft.m_new_td_bits);
-		if (HasSignalOnTrackdir(ft.m_new_tile, td)) {
+		Trackdir td = FindFirstTrackdir(ft.m_new.trackdirs);
+		if (HasSignalOnTrackdir(ft.m_new.tile, td)) {
 			/* PBS signal on next trackdir? Safe position. */
-			if (!IsPbsSignal(GetSignalType(ft.m_new_tile, TrackdirToTrack(td)))) return PBS_UNSAFE;
-		} else if (HasSignalOnTrackdir(ft.m_new_tile, ReverseTrackdir(td))) {
+			if (!IsPbsSignal(GetSignalType(ft.m_new.tile, TrackdirToTrack(td)))) return PBS_UNSAFE;
+		} else if (HasSignalOnTrackdir(ft.m_new.tile, ReverseTrackdir(td))) {
 			/* One-way PBS signal against us? Safe position. */
-			if (GetSignalType(ft.m_new_tile, TrackdirToTrack(td)) != SIGTYPE_PBS_ONEWAY) return PBS_UNSAFE;
+			if (GetSignalType(ft.m_new.tile, TrackdirToTrack(td)) != SIGTYPE_PBS_ONEWAY) return PBS_UNSAFE;
 		} else {
 			/* No signal at all? Unsafe position. */
 			return PBS_UNSAFE;
@@ -439,13 +439,13 @@ PBSPositionState CheckWaitingPosition(const Train *v, TileIndex tile, Trackdir t
 		if (state != PBS_FREE) return PBS_BUSY;
 	} else if (!IsStationTile(tile)) {
 		/* With PBS_CHECK_FREE, all these should be true. */
-		assert(KillFirstBit(ft.m_new_td_bits) == TRACKDIR_BIT_NONE);
-		assert(IsNormalRailTile(ft.m_new_tile));
-		assert(HasSignalOnTrack(ft.m_new_tile, TrackdirToTrack(FindFirstTrackdir(ft.m_new_td_bits))));
-		assert(IsPbsSignal(GetSignalType(ft.m_new_tile, TrackdirToTrack(FindFirstTrackdir(ft.m_new_td_bits)))));
+		assert(KillFirstBit(ft.m_new.trackdirs) == TRACKDIR_BIT_NONE);
+		assert(IsNormalRailTile(ft.m_new.tile));
+		assert(HasSignalOnTrack(ft.m_new.tile, TrackdirToTrack(FindFirstTrackdir(ft.m_new.trackdirs))));
+		assert(IsPbsSignal(GetSignalType(ft.m_new.tile, TrackdirToTrack(FindFirstTrackdir(ft.m_new.trackdirs)))));
 	}
 
 	assert(state == PBS_FREE);
 
-	return HasReservedTracks(ft.m_new_tile, TrackdirBitsToTrackBits(ft.m_new_td_bits)) ? PBS_BUSY : PBS_FREE;
+	return HasReservedTracks(ft.m_new.tile, TrackdirBitsToTrackBits(ft.m_new.trackdirs)) ? PBS_BUSY : PBS_FREE;
 }

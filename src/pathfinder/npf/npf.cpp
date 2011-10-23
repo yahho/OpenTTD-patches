@@ -419,16 +419,16 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 					TileIndex t = tile;
 					Trackdir td = trackdir;
 					while (ft.Follow(t, td)) {
-						assert(t != ft.m_new_tile);
-						t = ft.m_new_tile;
-						if (KillFirstBit(ft.m_new_td_bits) != TRACKDIR_BIT_NONE) {
+						assert(t != ft.m_new.tile);
+						t = ft.m_new.tile;
+						if (KillFirstBit(ft.m_new.trackdirs) != TRACKDIR_BIT_NONE) {
 							/* We encountered a junction; it's going to be too complex to
 							 * handle this perfectly, so just bail out. There is no simple
 							 * free path, so try the other possibilities. */
 							td = INVALID_TRACKDIR;
 							break;
 						}
-						td = RemoveFirstTrackdir(&ft.m_new_td_bits);
+						td = RemoveFirstTrackdir(&ft.m_new.trackdirs);
 						/* If this is a safe waiting position we're done searching for it */
 						if (IsSafeWaitingPosition(train, t, td, _settings_game.pf.forbid_90_deg)) break;
 					}

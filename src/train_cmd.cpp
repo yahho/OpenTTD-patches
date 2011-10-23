@@ -2043,12 +2043,12 @@ static void CheckNextTrainTile(Train *v)
 	CFollowTrackRail ft(v, !_settings_game.pf.forbid_90_deg);
 	if (!ft.Follow(v->tile, td)) return;
 
-	if (!HasReservedTracks(ft.m_new_tile, TrackdirBitsToTrackBits(ft.m_new_td_bits))) {
+	if (!HasReservedTracks(ft.m_new.tile, TrackdirBitsToTrackBits(ft.m_new.trackdirs))) {
 		/* Next tile is not reserved. */
-		if (KillFirstBit(ft.m_new_td_bits) == TRACKDIR_BIT_NONE) {
-			if (HasPbsSignalOnTrackdir(ft.m_new_tile, FindFirstTrackdir(ft.m_new_td_bits))) {
+		if (KillFirstBit(ft.m_new.trackdirs) == TRACKDIR_BIT_NONE) {
+			if (HasPbsSignalOnTrackdir(ft.m_new.tile, FindFirstTrackdir(ft.m_new.trackdirs))) {
 				/* If the next tile is a PBS signal, try to make a reservation. */
-				ChooseTrainTrack(v, ft.m_new_tile, ft.m_exitdir, ft.m_new_td_bits, false, NULL, false);
+				ChooseTrainTrack(v, ft.m_new.tile, ft.m_exitdir, ft.m_new.trackdirs, false, NULL, false);
 			}
 		}
 	}
@@ -2197,8 +2197,8 @@ void FreeTrainTrackReservation(const Train *v)
 
 	CFollowTrackRail ft(v, true, true);
 	while (ft.Follow(tile, td)) {
-		tile = ft.m_new_tile;
-		TrackdirBits bits = ft.m_new_td_bits & TrackBitsToTrackdirBits(GetReservedTrackbits(tile));
+		tile = ft.m_new.tile;
+		TrackdirBits bits = ft.m_new.trackdirs & TrackBitsToTrackdirBits(GetReservedTrackbits(tile));
 		td = RemoveFirstTrackdir(&bits);
 		assert(bits == TRACKDIR_BIT_NONE);
 
@@ -2225,7 +2225,7 @@ void FreeTrainTrackReservation(const Train *v)
 		}
 
 		/* Don't free first station/bridge/tunnel if we are on it. */
-		if (free_tile || ft.m_flag == ft.TF_NONE || (ft.m_flag == ft.TF_STATION && GetStationIndex(ft.m_new_tile) != station_id)) ClearPathReservation(v, tile, td);
+		if (free_tile || ft.m_flag == ft.TF_NONE || (ft.m_flag == ft.TF_STATION && GetStationIndex(ft.m_new.tile) != station_id)) ClearPathReservation(v, tile, td);
 
 		free_tile = true;
 	}
@@ -2285,30 +2285,30 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 	Trackdir  cur_td = origin.trackdir;
 	while (ft.Follow(tile, cur_td)) {
 		/* Station, depot or waypoint are a possible target. */
-		if (ft.m_flag == ft.TF_STATION || IsRailDepotTile(ft.m_new_tile) || KillFirstBit(ft.m_new_td_bits) != TRACKDIR_BIT_NONE) {
+		if (ft.m_flag == ft.TF_STATION || IsRailDepotTile(ft.m_new.tile) || KillFirstBit(ft.m_new.trackdirs) != TRACKDIR_BIT_NONE) {
 			/* Choice found or possible target encountered.
 			 * On finding a possible target, we need to stop and let the pathfinder handle the
 			 * remaining path. This is because we don't know if this target is in one of our
 			 * orders, so we might cause pathfinding to fail later on if we find a choice.
 			 * This failure would cause a bogous call to TryReserveSafePath which might reserve
 			 * a wrong path not leading to our next destination. */
-			if (HasReservedTracks(ft.m_new_tile, TrackdirBitsToTrackBits(ft.m_new_td_bits))) break;
+			if (HasReservedTracks(ft.m_new.tile, TrackdirBitsToTrackBits(ft.m_new.trackdirs))) break;
 
 			/* If we did skip some tiles, backtrack to the first skipped tile so the pathfinder
 			 * actually starts its search at the first unreserved tile. */
-			if (ft.m_tiles_skipped != 0) ft.m_new_tile -= TileOffsByDiagDir(ft.m_exitdir) * ft.m_tiles_skipped;
+			if (ft.m_tiles_skipped != 0) ft.m_new.tile -= TileOffsByDiagDir(ft.m_exitdir) * ft.m_tiles_skipped;
 
 			/* Choice found, path valid but not okay. Save info about the choice tile as well. */
-			if (new_trackdirs != NULL) *new_trackdirs = ft.m_new_td_bits;
+			if (new_trackdirs != NULL) *new_trackdirs = ft.m_new.trackdirs;
 			if (enterdir != NULL) *enterdir = ft.m_exitdir;
-			return PBSTileInfo(ft.m_new_tile, ft.m_old.td, false);
+			return PBSTileInfo(ft.m_new.tile, ft.m_old.td, false);
 		}
 
 		/* Possible signal tile. */
-		if (HasOnewaySignalBlockingTrackdir(ft.m_new_tile, FindFirstTrackdir(ft.m_new_td_bits))) break;
+		if (HasOnewaySignalBlockingTrackdir(ft.m_new.tile, FindFirstTrackdir(ft.m_new.trackdirs))) break;
 
-		tile = ft.m_new_tile;
-		cur_td = FindFirstTrackdir(ft.m_new_td_bits);
+		tile = ft.m_new.tile;
+		cur_td = FindFirstTrackdir(ft.m_new.trackdirs);
 
 		PBSPositionState state = CheckWaitingPosition(v, tile, cur_td, _settings_game.pf.forbid_90_deg);
 		if (state == PBS_BUSY) break;
@@ -2334,11 +2334,11 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 	while (tile != stopped || cur_td != stopped_td) {
 		if (!ft.Follow(tile, cur_td)) break;
 
-		assert(ft.m_new_td_bits != TRACKDIR_BIT_NONE);
-		assert(KillFirstBit(ft.m_new_td_bits) == TRACKDIR_BIT_NONE);
+		assert(ft.m_new.trackdirs != TRACKDIR_BIT_NONE);
+		assert(KillFirstBit(ft.m_new.trackdirs) == TRACKDIR_BIT_NONE);
 
-		tile = ft.m_new_tile;
-		cur_td = FindFirstTrackdir(ft.m_new_td_bits);
+		tile = ft.m_new.tile;
+		cur_td = FindFirstTrackdir(ft.m_new.trackdirs);
 
 		UnreserveRailTrack(tile, TrackdirToTrack(cur_td));
 	}

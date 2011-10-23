@@ -93,4 +93,12 @@ struct PFPos {
 	}
 };
 
+/**
+ * Pathfinder new position
+ */
+struct PFNewPos {
+	TileIndex tile;
+	TrackdirBits trackdirs;
+};
+
 #endif /* PATHFINDER_TYPE_H */

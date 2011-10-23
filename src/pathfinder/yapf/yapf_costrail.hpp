@@ -277,8 +277,8 @@ public:
 	inline bool PfCalcCost(Node &n, const TrackFollower *tf)
 	{
 		assert(!n.flags_u.flags_s.m_targed_seen);
-		assert(tf->m_new_tile == n.m_key.m_tile);
-		assert((TrackdirToTrackdirBits(n.m_key.m_td) & tf->m_new_td_bits) != TRACKDIR_BIT_NONE);
+		assert(tf->m_new.tile == n.m_key.m_tile);
+		assert((TrackdirToTrackdirBits(n.m_key.m_td) & tf->m_new.trackdirs) != TRACKDIR_BIT_NONE);
 
 		CPerfStart perf_cost(Yapf().m_perf_cost);
 
@@ -415,16 +415,16 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 					TileIndex t = cur.tile;
 					Trackdir td = cur.td;
 					while (ft.Follow(t, td)) {
-						assert(t != ft.m_new_tile);
-						t = ft.m_new_tile;
-						if (KillFirstBit(ft.m_new_td_bits) != TRACKDIR_BIT_NONE) {
+						assert(t != ft.m_new.tile);
+						t = ft.m_new.tile;
+						if (KillFirstBit(ft.m_new.trackdirs) != TRACKDIR_BIT_NONE) {
 							/* We encountered a junction; it's going to be too complex to
 							 * handle this perfectly, so just bail out. There is no simple
 							 * free path, so try the other possibilities. */
 							td = INVALID_TRACKDIR;
 							break;
 						}
-						td = RemoveFirstTrackdir(&ft.m_new_td_bits);
+						td = RemoveFirstTrackdir(&ft.m_new.trackdirs);
 						/* If this is a safe waiting position we're done searching for it */
 						if (IsSafeWaitingPosition(v, t, td, _settings_game.pf.forbid_90_deg)) break;
 					}
@@ -499,14 +499,14 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			}
 
 			/* Check if the next tile is not a choice. */
-			if (KillFirstBit(tf_local.m_new_td_bits) != TRACKDIR_BIT_NONE) {
+			if (KillFirstBit(tf_local.m_new.trackdirs) != TRACKDIR_BIT_NONE) {
 				/* More than one segment will follow. Close this one. */
 				end_segment_reason |= ESRB_CHOICE_FOLLOWS;
 				break;
 			}
 
 			/* Gather the next tile/trackdir/tile_type/rail_type. */
-			TILE next(tf_local.m_new_tile, (Trackdir)FindFirstBit2x64(tf_local.m_new_td_bits));
+			TILE next(tf_local.m_new.tile, (Trackdir)FindFirstBit2x64(tf_local.m_new.trackdirs));
 
 			if (TrackFollower::DoTrackMasking() && IsNormalRailTile(next.tile)) {
 				if (HasSignalOnTrackdir(next.tile, next.td) && IsPbsSignal(GetSignalType(next.tile, TrackdirToTrack(next.td)))) {
@@ -535,7 +535,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			if (segment_cost > s_max_segment_cost) {
 				/* Potentially in the infinite loop (or only very long segment?). We should
 				 * not force it to finish prematurely unless we are on a regular tile. */
-				if (IsNormalRailTile(tf->m_new_tile)) {
+				if (IsNormalRailTile(tf->m_new.tile)) {
 					end_segment_reason |= ESRB_SEGMENT_TOO_LONG;
 					break;
 				}

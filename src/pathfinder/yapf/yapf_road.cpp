@@ -126,19 +126,19 @@ public:
 			if (!F.Follow(tile, trackdir)) break;
 
 			/* if there are more trackdirs available & reachable, we are at the end of segment */
-			if (KillFirstBit(F.m_new_td_bits) != TRACKDIR_BIT_NONE) break;
+			if (KillFirstBit(F.m_new.trackdirs) != TRACKDIR_BIT_NONE) break;
 
-			Trackdir new_td = (Trackdir)FindFirstBit2x64(F.m_new_td_bits);
+			Trackdir new_td = (Trackdir)FindFirstBit2x64(F.m_new.trackdirs);
 
 			/* stop if RV is on simple loop with no junctions */
-			if (F.m_new_tile == n.m_key.m_tile && new_td == n.m_key.m_td) return false;
+			if (F.m_new.tile == n.m_key.m_tile && new_td == n.m_key.m_td) return false;
 
 			/* if we skipped some tunnel tiles, add their cost */
 			segment_cost += F.m_tiles_skipped * YAPF_TILE_LENGTH;
 			tiles += F.m_tiles_skipped + 1;
 
 			/* add hilly terrain penalty */
-			segment_cost += Yapf().SlopeCost(tile, F.m_new_tile, trackdir);
+			segment_cost += Yapf().SlopeCost(tile, F.m_new.tile, trackdir);
 
 			/* add min/max speed penalties */
 			int min_speed = 0;
@@ -148,7 +148,7 @@ public:
 			if (min_speed > max_veh_speed) segment_cost += 10 * (min_speed - max_veh_speed);
 
 			/* move to the next tile */
-			tile = F.m_new_tile;
+			tile = F.m_new.tile;
 			trackdir = new_td;
 			if (tiles > MAX_MAP_SIZE) break;
 		}

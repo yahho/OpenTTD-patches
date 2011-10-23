@@ -214,11 +214,11 @@ public:
 	/** add multiple nodes - direct children of the given node */
 	inline void AddMultipleNodes(Node *parent, const TrackFollower &tf)
 	{
-		bool is_choice = (KillFirstBit(tf.m_new_td_bits) != TRACKDIR_BIT_NONE);
-		for (TrackdirBits rtds = tf.m_new_td_bits; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
+		bool is_choice = (KillFirstBit(tf.m_new.trackdirs) != TRACKDIR_BIT_NONE);
+		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			Trackdir td = (Trackdir)FindFirstBit2x64(rtds);
 			Node& n = Yapf().CreateNewNode();
-			n.Set(parent, tf.m_new_tile, td, is_choice);
+			n.Set(parent, tf.m_new.tile, td, is_choice);
 			Yapf().AddNewNode(n, tf);
 		}
 	}
