@@ -2301,7 +2301,7 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 			/* Choice found, path valid but not okay. Save info about the choice tile as well. */
 			if (new_trackdirs != NULL) *new_trackdirs = ft.m_new_td_bits;
 			if (enterdir != NULL) *enterdir = ft.m_exitdir;
-			return PBSTileInfo(ft.m_new_tile, ft.m_old_td, false);
+			return PBSTileInfo(ft.m_new_tile, ft.m_old.td, false);
 		}
 
 		/* Possible signal tile. */
@@ -2323,14 +2323,14 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 
 	if (ft.m_err == CFollowTrackRail::EC_OWNER || ft.m_err == CFollowTrackRail::EC_NO_WAY) {
 		/* End of line, path valid and okay. */
-		return PBSTileInfo(ft.m_old_tile, ft.m_old_td, true);
+		return PBSTileInfo(ft.m_old.tile, ft.m_old.td, true);
 	}
 
 	/* Sorry, can't reserve path, back out. */
 	tile = origin.tile;
 	cur_td = origin.trackdir;
-	TileIndex stopped = ft.m_old_tile;
-	Trackdir  stopped_td = ft.m_old_td;
+	TileIndex stopped = ft.m_old.tile;
+	Trackdir  stopped_td = ft.m_old.td;
 	while (tile != stopped || cur_td != stopped_td) {
 		if (!ft.Follow(tile, cur_td)) break;
 

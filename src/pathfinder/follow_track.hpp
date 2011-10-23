@@ -19,6 +19,7 @@
 #include "../tunnelbridge.h"
 #include "../tunnelbridge_map.h"
 #include "../depot_map.h"
+#include "pathfinder_type.h"
 #include "pf_performance_timer.hpp"
 
 /**
@@ -47,8 +48,7 @@ struct CFollowTrack
 
 	const VehicleType  *m_veh;           ///< moving vehicle
 	Owner               m_veh_owner;     ///< owner of the vehicle
-	TileIndex           m_old_tile;      ///< the origin (vehicle moved from) before move
-	Trackdir            m_old_td;        ///< the trackdir (the vehicle was on) before move
+	PFPos               m_old;           ///< the origin (vehicle moved from) before move
 	TileIndex           m_new_tile;      ///< the new tile (the vehicle has entered)
 	TrackdirBits        m_new_td_bits;   ///< the new set of available trackdirs
 	DiagDirection       m_exitdir;       ///< exit direction (leaving the old tile)
@@ -120,12 +120,12 @@ public:
 	 */
 	inline bool Follow(TileIndex old_tile, Trackdir old_td)
 	{
-		m_old_tile = old_tile;
-		m_old_td = old_td;
+		m_old.tile = old_tile;
+		m_old.td = old_td;
 		m_err = EC_NONE;
-		assert(((GetTrackStatusTrackdirBits(m_old_tile) & TrackdirToTrackdirBits(m_old_td)) != 0) ||
-		       (IsTram() && GetSingleTramBit(m_old_tile) != INVALID_DIAGDIR)); // Disable the assertion for single tram bits
-		m_exitdir = TrackdirToExitdir(m_old_td);
+		assert(((GetTrackStatusTrackdirBits(m_old.tile) & TrackdirToTrackdirBits(m_old.td)) != 0) ||
+		       (IsTram() && GetSingleTramBit(m_old.tile) != INVALID_DIAGDIR)); // Disable the assertion for single tram bits
+		m_exitdir = TrackdirToExitdir(m_old.td);
 		if (ForcedReverse()) return true;
 		if (!CanExitOldTile()) return false;
 		FollowTileExit();
@@ -145,7 +145,7 @@ public:
 			return TryReverse();
 		}
 		if (!m_allow_90deg) {
-			m_new_td_bits &= (TrackdirBits)~(int)TrackdirCrossesTrackdirs(m_old_td);
+			m_new_td_bits &= (TrackdirBits)~(int)TrackdirCrossesTrackdirs(m_old.td);
 			if (m_new_td_bits == TRACKDIR_BIT_NONE) {
 				m_err = EC_90DEG;
 				return false;
@@ -186,26 +186,26 @@ public:
 	}
 
 protected:
-	/** Follow the m_exitdir from m_old_tile and fill m_new_tile and m_tiles_skipped */
+	/** Follow m_exitdir from m_old and fill m_new_tile and m_tiles_skipped */
 	inline void FollowTileExit()
 	{
 		/* extra handling for bridges in our direction */
-		if (IsBridgeHeadTile(m_old_tile)) {
-			if (m_exitdir == GetTunnelBridgeDirection(m_old_tile)) {
+		if (IsBridgeHeadTile(m_old.tile)) {
+			if (m_exitdir == GetTunnelBridgeDirection(m_old.tile)) {
 				/* we are entering the bridge */
 				m_flag = TF_BRIDGE;
-				m_new_tile = GetOtherBridgeEnd(m_old_tile);
-				m_tiles_skipped = GetTunnelBridgeLength(m_new_tile, m_old_tile);
+				m_new_tile = GetOtherBridgeEnd(m_old.tile);
+				m_tiles_skipped = GetTunnelBridgeLength(m_new_tile, m_old.tile);
 				return;
 			}
 		/* extra handling for tunnels in our direction */
-		} else if (IsTunnelTile(m_old_tile)) {
-			DiagDirection enterdir = GetTunnelBridgeDirection(m_old_tile);
+		} else if (IsTunnelTile(m_old.tile)) {
+			DiagDirection enterdir = GetTunnelBridgeDirection(m_old.tile);
 			if (enterdir == m_exitdir) {
 				/* we are entering the tunnel */
 				m_flag = TF_TUNNEL;
-				m_new_tile = GetOtherTunnelEnd(m_old_tile);
-				m_tiles_skipped = GetTunnelBridgeLength(m_new_tile, m_old_tile);
+				m_new_tile = GetOtherTunnelEnd(m_old.tile);
+				m_tiles_skipped = GetTunnelBridgeLength(m_new_tile, m_old.tile);
 				return;
 			}
 			assert(ReverseDiagDir(enterdir) == m_exitdir);
@@ -213,7 +213,7 @@ protected:
 
 		/* normal or station tile, do one step */
 		TileIndexDiff diff = TileOffsByDiagDir(m_exitdir);
-		m_new_tile = TILE_ADD(m_old_tile, diff);
+		m_new_tile = TILE_ADD(m_old.tile, diff);
 
 		/* special handling for stations */
 		if (IsRailTT() && HasStationTileRail(m_new_tile)) {
@@ -257,12 +257,12 @@ protected:
 		return (m_new_td_bits != TRACKDIR_BIT_NONE);
 	}
 
-	/** return true if we can leave m_old_tile in m_exitdir */
+	/** return true if we can leave m_old in m_exitdir */
 	inline bool CanExitOldTile()
 	{
 		/* road stop can be left at one direction only unless it's a drive-through stop */
-		if (IsRoadTT() && IsStandardRoadStopTile(m_old_tile)) {
-			DiagDirection exitdir = GetRoadStopDir(m_old_tile);
+		if (IsRoadTT() && IsStandardRoadStopTile(m_old.tile)) {
+			DiagDirection exitdir = GetRoadStopDir(m_old.tile);
 			if (exitdir != m_exitdir) {
 				m_err = EC_NO_WAY;
 				return false;
@@ -271,7 +271,7 @@ protected:
 
 		/* single tram bits can only be left in one direction */
 		if (IsTram()) {
-			DiagDirection single_tram = GetSingleTramBit(m_old_tile);
+			DiagDirection single_tram = GetSingleTramBit(m_old.tile);
 			if (single_tram != INVALID_DIAGDIR && single_tram != m_exitdir) {
 				m_err = EC_NO_WAY;
 				return false;
@@ -279,8 +279,8 @@ protected:
 		}
 
 		/* road depots can be also left in one direction only */
-		if (IsRoadTT() && IsDepotTypeTile(m_old_tile, TT())) {
-			DiagDirection exitdir = GetGroundDepotDirection(m_old_tile);
+		if (IsRoadTT() && IsDepotTypeTile(m_old.tile, TT())) {
+			DiagDirection exitdir = GetGroundDepotDirection(m_old.tile);
 			if (exitdir != m_exitdir) {
 				m_err = EC_NO_WAY;
 				return false;
@@ -381,7 +381,7 @@ protected:
 		if (IsRailTT() && m_flag == TF_STATION) {
 			/* entered railway station
 			 * get platform length */
-			uint length = BaseStation::GetByTile(m_new_tile)->GetPlatformLength(m_new_tile, TrackdirToExitdir(m_old_td));
+			uint length = BaseStation::GetByTile(m_new_tile)->GetPlatformLength(m_new_tile, TrackdirToExitdir(m_old.td));
 			/* how big step we must do to get to the last platform tile; */
 			m_tiles_skipped = length - 1;
 			/* move to the platform end */
@@ -398,12 +398,12 @@ protected:
 	inline bool ForcedReverse()
 	{
 		/* rail and road depots cause reversing */
-		if (!IsWaterTT() && IsDepotTypeTile(m_old_tile, TT())) {
-			DiagDirection exitdir = GetGroundDepotDirection(m_old_tile);
+		if (!IsWaterTT() && IsDepotTypeTile(m_old.tile, TT())) {
+			DiagDirection exitdir = GetGroundDepotDirection(m_old.tile);
 			if (exitdir != m_exitdir) {
 				/* reverse */
-				m_new_tile = m_old_tile;
-				m_new_td_bits = TrackdirToTrackdirBits(ReverseTrackdir(m_old_td));
+				m_new_tile = m_old.tile;
+				m_new_td_bits = TrackdirToTrackdirBits(ReverseTrackdir(m_old.td));
 				m_exitdir = exitdir;
 				m_tiles_skipped = 0;
 				m_flag = TF_NONE;
@@ -412,10 +412,10 @@ protected:
 		}
 
 		/* single tram bits cause reversing */
-		if (IsTram() && GetSingleTramBit(m_old_tile) == ReverseDiagDir(m_exitdir)) {
+		if (IsTram() && GetSingleTramBit(m_old.tile) == ReverseDiagDir(m_exitdir)) {
 			/* reverse */
-			m_new_tile = m_old_tile;
-			m_new_td_bits = TrackdirToTrackdirBits(ReverseTrackdir(m_old_td));
+			m_new_tile = m_old.tile;
+			m_new_td_bits = TrackdirToTrackdirBits(ReverseTrackdir(m_old.td));
 			m_exitdir = ReverseDiagDir(m_exitdir);
 			m_tiles_skipped = 0;
 			m_flag = TF_NONE;
@@ -432,7 +432,7 @@ protected:
 			/* if we reached the end of road, we can reverse the RV and continue moving */
 			m_exitdir = ReverseDiagDir(m_exitdir);
 			/* new tile will be the same as old one */
-			m_new_tile = m_old_tile;
+			m_new_tile = m_old.tile;
 			/* set new trackdir bits to all reachable trackdirs */
 			m_new_td_bits = GetTrackStatusTrackdirBits(m_new_tile);
 			m_new_td_bits &= DiagdirReachesTrackdirs(m_exitdir);
@@ -445,7 +445,7 @@ protected:
 	}
 
 public:
-	/** Helper for pathfinders - get min/max speed on the m_old_tile/m_old_td */
+	/** Helper for pathfinders - get min/max speed on m_old */
 	int GetSpeedLimit(int *pmin_speed = NULL) const
 	{
 		int min_speed = 0;
@@ -453,17 +453,17 @@ public:
 
 		if (IsRailTT()) {
 			/* Check for on-bridge speed limit */
-			if (IsRailBridgeTile(m_old_tile)) {
-				int spd = GetBridgeSpec(GetRailBridgeType(m_old_tile))->speed;
+			if (IsRailBridgeTile(m_old.tile)) {
+				int spd = GetBridgeSpec(GetRailBridgeType(m_old.tile))->speed;
 				if (max_speed > spd) max_speed = spd;
 			}
 			/* Check for speed limit imposed by railtype */
-			uint16 rail_speed = GetRailTypeInfo(GetRailType(m_old_tile, TrackdirToTrack(m_old_td)))->max_speed;
+			uint16 rail_speed = GetRailTypeInfo(GetRailType(m_old.tile, TrackdirToTrack(m_old.td)))->max_speed;
 			if (rail_speed > 0) max_speed = min(max_speed, rail_speed);
 		} else if (IsRoadTT()) {
 			/* Check for on-bridge speed limit */
-			if (IsRoadBridgeTile(m_old_tile)) {
-				int spd = 2 * GetBridgeSpec(GetRoadBridgeType(m_old_tile))->speed;
+			if (IsRoadBridgeTile(m_old.tile)) {
+				int spd = 2 * GetBridgeSpec(GetRoadBridgeType(m_old.tile))->speed;
 				if (max_speed > spd) max_speed = spd;
 			}
 		}

@@ -13,6 +13,7 @@
 #define PATHFINDER_TYPE_H
 
 #include "../tile_type.h"
+#include "../track_type.h"
 
 /** Length (penalty) of one tile with NPF */
 static const int NPF_TILE_LENGTH = 100;
@@ -57,6 +58,38 @@ struct FindDepotData {
 	FindDepotData(TileIndex tile = INVALID_TILE, uint best_length = UINT_MAX, bool reverse = false) :
 		tile(tile), best_length(best_length), reverse(reverse)
 	{
+	}
+};
+
+/**
+ * Pathfinder current position
+ */
+struct PFPos {
+	TileIndex tile;
+	Trackdir td;
+
+	/**
+	 * Create an empty PFPos
+	 */
+	PFPos() : tile(INVALID_TILE), td(INVALID_TRACKDIR) { }
+
+	/**
+	 * Create a PFPos for a given tile and trackdir
+	 */
+	PFPos(TileIndex t, Trackdir d) : tile(t), td(d) { }
+
+	/**
+	 * Compare with another PFPos
+	 */
+	bool operator == (const PFPos &other) const {
+		return (tile == other.tile) && (td == other.td);
+	}
+
+	/**
+	 * Compare with another PFPos
+	 */
+	bool operator != (const PFPos &other) const {
+		return (tile != other.tile) || (td != other.td);
 	}
 };
 
