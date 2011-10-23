@@ -14,6 +14,7 @@
 
 #include "../tile_type.h"
 #include "../track_type.h"
+#include "../track_func.h"
 
 /** Length (penalty) of one tile with NPF */
 static const int NPF_TILE_LENGTH = 100;
@@ -94,11 +95,17 @@ struct PFPos {
 };
 
 /**
- * Pathfinder new position
+ * Pathfinder new position; td will be INVALID_POSITION unless trackdirs has exactly one trackdir set
  */
-struct PFNewPos {
-	TileIndex tile;
+struct PFNewPos : PFPos {
 	TrackdirBits trackdirs;
+
+	inline void SetTrackdir()
+	{
+		td = (KillFirstBit(trackdirs) == TRACKDIR_BIT_NONE) ? FindFirstTrackdir(trackdirs) : INVALID_TRACKDIR;
+	}
+
+	inline bool IsTrackdirSet() const { return td != INVALID_TRACKDIR; }
 };
 
 #endif /* PATHFINDER_TYPE_H */

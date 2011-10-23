@@ -197,9 +197,9 @@ struct CYapfRailNodeT
 			if (!((obj.*func)(cur, cur_td))) return false;
 
 			ft.Follow(cur, cur_td);
+			assert(ft.m_new.IsTrackdirSet());
 			cur = ft.m_new.tile;
-			assert(KillFirstBit(ft.m_new.trackdirs) == TRACKDIR_BIT_NONE);
-			cur_td = FindFirstTrackdir(ft.m_new.trackdirs);
+			cur_td = ft.m_new.td;
 		}
 
 		return (obj.*func)(cur, cur_td);

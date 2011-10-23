@@ -417,14 +417,13 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 					while (ft.Follow(t, td)) {
 						assert(t != ft.m_new.tile);
 						t = ft.m_new.tile;
-						if (KillFirstBit(ft.m_new.trackdirs) != TRACKDIR_BIT_NONE) {
+						td = ft.m_new.td;
+						if (td == INVALID_TRACKDIR) {
 							/* We encountered a junction; it's going to be too complex to
 							 * handle this perfectly, so just bail out. There is no simple
 							 * free path, so try the other possibilities. */
-							td = INVALID_TRACKDIR;
 							break;
 						}
-						td = RemoveFirstTrackdir(&ft.m_new.trackdirs);
 						/* If this is a safe waiting position we're done searching for it */
 						if (IsSafeWaitingPosition(v, t, td, _settings_game.pf.forbid_90_deg)) break;
 					}
@@ -499,14 +498,14 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			}
 
 			/* Check if the next tile is not a choice. */
-			if (KillFirstBit(tf_local.m_new.trackdirs) != TRACKDIR_BIT_NONE) {
+			if (!tf_local.m_new.IsTrackdirSet()) {
 				/* More than one segment will follow. Close this one. */
 				end_segment_reason |= ESRB_CHOICE_FOLLOWS;
 				break;
 			}
 
 			/* Gather the next tile/trackdir/tile_type/rail_type. */
-			TILE next(tf_local.m_new.tile, (Trackdir)FindFirstBit2x64(tf_local.m_new.trackdirs));
+			TILE next(tf_local.m_new.tile, tf_local.m_new.td);
 
 			if (TrackFollower::DoTrackMasking() && IsNormalRailTile(next.tile)) {
 				if (HasSignalOnTrackdir(next.tile, next.td) && IsPbsSignal(GetSignalType(next.tile, TrackdirToTrack(next.td)))) {

@@ -2043,10 +2043,10 @@ static void CheckNextTrainTile(Train *v)
 	CFollowTrackRail ft(v, !_settings_game.pf.forbid_90_deg);
 	if (!ft.Follow(v->tile, td)) return;
 
-	if (!HasReservedTracks(ft.m_new.tile, TrackdirBitsToTrackBits(ft.m_new.trackdirs))) {
+	if (ft.m_new.IsTrackdirSet()) {
 		/* Next tile is not reserved. */
-		if (KillFirstBit(ft.m_new.trackdirs) == TRACKDIR_BIT_NONE) {
-			if (HasPbsSignalOnTrackdir(ft.m_new.tile, FindFirstTrackdir(ft.m_new.trackdirs))) {
+		if (!HasReservedTracks(ft.m_new.tile, TrackdirBitsToTrackBits(ft.m_new.trackdirs))) {
+			if (HasPbsSignalOnTrackdir(ft.m_new.tile, ft.m_new.td)) {
 				/* If the next tile is a PBS signal, try to make a reservation. */
 				ChooseTrainTrack(v, ft.m_new.tile, ft.m_exitdir, ft.m_new.trackdirs, false, NULL, false);
 			}
@@ -2285,7 +2285,7 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 	Trackdir  cur_td = origin.trackdir;
 	while (ft.Follow(tile, cur_td)) {
 		/* Station, depot or waypoint are a possible target. */
-		if (ft.m_flag == ft.TF_STATION || IsRailDepotTile(ft.m_new.tile) || KillFirstBit(ft.m_new.trackdirs) != TRACKDIR_BIT_NONE) {
+		if (ft.m_flag == ft.TF_STATION || IsRailDepotTile(ft.m_new.tile) || !ft.m_new.IsTrackdirSet()) {
 			/* Choice found or possible target encountered.
 			 * On finding a possible target, we need to stop and let the pathfinder handle the
 			 * remaining path. This is because we don't know if this target is in one of our
@@ -2305,10 +2305,10 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 		}
 
 		/* Possible signal tile. */
-		if (HasOnewaySignalBlockingTrackdir(ft.m_new.tile, FindFirstTrackdir(ft.m_new.trackdirs))) break;
+		if (HasOnewaySignalBlockingTrackdir(ft.m_new.tile, ft.m_new.td)) break;
 
 		tile = ft.m_new.tile;
-		cur_td = FindFirstTrackdir(ft.m_new.trackdirs);
+		cur_td = ft.m_new.td;
 
 		PBSPositionState state = CheckWaitingPosition(v, tile, cur_td, _settings_game.pf.forbid_90_deg);
 		if (state == PBS_BUSY) break;
@@ -2335,10 +2335,10 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 		if (!ft.Follow(tile, cur_td)) break;
 
 		assert(ft.m_new.trackdirs != TRACKDIR_BIT_NONE);
-		assert(KillFirstBit(ft.m_new.trackdirs) == TRACKDIR_BIT_NONE);
+		assert(ft.m_new.IsTrackdirSet());
 
 		tile = ft.m_new.tile;
-		cur_td = FindFirstTrackdir(ft.m_new.trackdirs);
+		cur_td = ft.m_new.td;
 
 		UnreserveRailTrack(tile, TrackdirToTrack(cur_td));
 	}

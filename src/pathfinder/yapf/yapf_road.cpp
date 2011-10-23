@@ -126,12 +126,10 @@ public:
 			if (!F.Follow(tile, trackdir)) break;
 
 			/* if there are more trackdirs available & reachable, we are at the end of segment */
-			if (KillFirstBit(F.m_new.trackdirs) != TRACKDIR_BIT_NONE) break;
-
-			Trackdir new_td = (Trackdir)FindFirstBit2x64(F.m_new.trackdirs);
+			if (!F.m_new.IsTrackdirSet()) break;
 
 			/* stop if RV is on simple loop with no junctions */
-			if (F.m_new.tile == n.m_key.m_tile && new_td == n.m_key.m_td) return false;
+			if (F.m_new.tile == n.m_key.m_tile && F.m_new.td == n.m_key.m_td) return false;
 
 			/* if we skipped some tunnel tiles, add their cost */
 			segment_cost += F.m_tiles_skipped * YAPF_TILE_LENGTH;
@@ -149,7 +147,7 @@ public:
 
 			/* move to the next tile */
 			tile = F.m_new.tile;
-			trackdir = new_td;
+			trackdir = F.m_new.td;
 			if (tiles > MAX_MAP_SIZE) break;
 		}
 

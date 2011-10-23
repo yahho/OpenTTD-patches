@@ -150,6 +150,8 @@ public:
 				return false;
 			}
 		}
+		/* Check if the resulting trackdirs is a single trackdir */
+		m_new.SetTrackdir();
 		return true;
 	}
 
@@ -162,6 +164,7 @@ public:
 			TileIndexDiff diff = TileOffsByDiagDir(m_exitdir);
 			for (TileIndex tile = m_new.tile - diff * m_tiles_skipped; tile != m_new.tile; tile += diff) {
 				if (HasStationReservation(tile)) {
+					m_new.td = INVALID_TRACKDIR;
 					m_new.trackdirs = TRACKDIR_BIT_NONE;
 					m_err = EC_RESERVED;
 					return false;
@@ -178,9 +181,12 @@ public:
 			if (TracksOverlap(reserved | TrackToTrackBits(t))) m_new.trackdirs &= ~TrackToTrackdirBits(t);
 		}
 		if (m_new.trackdirs == TRACKDIR_BIT_NONE) {
+			m_new.td = INVALID_TRACKDIR;
 			m_err = EC_RESERVED;
 			return false;
 		}
+		/* Check if the resulting trackdirs is a single trackdir */
+		m_new.SetTrackdir();
 		return true;
 	}
 
@@ -402,7 +408,8 @@ protected:
 			if (exitdir != m_exitdir) {
 				/* reverse */
 				m_new.tile = m_old.tile;
-				m_new.trackdirs = TrackdirToTrackdirBits(ReverseTrackdir(m_old.td));
+				m_new.td = ReverseTrackdir(m_old.td);
+				m_new.trackdirs = TrackdirToTrackdirBits(m_new.td);
 				m_exitdir = exitdir;
 				m_tiles_skipped = 0;
 				m_flag = TF_NONE;
@@ -414,7 +421,8 @@ protected:
 		if (IsTram() && GetSingleTramBit(m_old.tile) == ReverseDiagDir(m_exitdir)) {
 			/* reverse */
 			m_new.tile = m_old.tile;
-			m_new.trackdirs = TrackdirToTrackdirBits(ReverseTrackdir(m_old.td));
+			m_new.td = ReverseTrackdir(m_old.td);
+			m_new.trackdirs = TrackdirToTrackdirBits(m_new.td);
 			m_exitdir = ReverseDiagDir(m_exitdir);
 			m_tiles_skipped = 0;
 			m_flag = TF_NONE;
@@ -437,8 +445,11 @@ protected:
 			m_new.trackdirs &= DiagdirReachesTrackdirs(m_exitdir);
 			/* we always have some trackdirs reachable after reversal */
 			assert(m_new.trackdirs != TRACKDIR_BIT_NONE);
+			/* check if the resulting trackdirs is a single trackdir */
+			m_new.SetTrackdir();
 			return true;
 		}
+		m_new.td = INVALID_TRACKDIR;
 		m_err = EC_NO_WAY;
 		return false;
 	}

@@ -420,16 +420,15 @@ PBSPositionState CheckWaitingPosition(const Train *v, TileIndex tile, Trackdir t
 	assert((state == PBS_FREE) || (cb == PBS_CHECK_FULL));
 
 	if (cb != PBS_CHECK_FREE) {
-		if (KillFirstBit(ft.m_new.trackdirs) != TRACKDIR_BIT_NONE) return PBS_UNSAFE;
+		if (!ft.m_new.IsTrackdirSet()) return PBS_UNSAFE;
 		if (!IsNormalRailTile(ft.m_new.tile)) return PBS_UNSAFE;
 
-		Trackdir td = FindFirstTrackdir(ft.m_new.trackdirs);
-		if (HasSignalOnTrackdir(ft.m_new.tile, td)) {
+		if (HasSignalOnTrackdir(ft.m_new.tile, ft.m_new.td)) {
 			/* PBS signal on next trackdir? Safe position. */
-			if (!IsPbsSignal(GetSignalType(ft.m_new.tile, TrackdirToTrack(td)))) return PBS_UNSAFE;
-		} else if (HasSignalOnTrackdir(ft.m_new.tile, ReverseTrackdir(td))) {
+			if (!IsPbsSignal(GetSignalType(ft.m_new.tile, TrackdirToTrack(ft.m_new.td)))) return PBS_UNSAFE;
+		} else if (HasSignalOnTrackdir(ft.m_new.tile, ReverseTrackdir(ft.m_new.td))) {
 			/* One-way PBS signal against us? Safe position. */
-			if (GetSignalType(ft.m_new.tile, TrackdirToTrack(td)) != SIGTYPE_PBS_ONEWAY) return PBS_UNSAFE;
+			if (GetSignalType(ft.m_new.tile, TrackdirToTrack(ft.m_new.td)) != SIGTYPE_PBS_ONEWAY) return PBS_UNSAFE;
 		} else {
 			/* No signal at all? Unsafe position. */
 			return PBS_UNSAFE;
@@ -439,10 +438,10 @@ PBSPositionState CheckWaitingPosition(const Train *v, TileIndex tile, Trackdir t
 		if (state != PBS_FREE) return PBS_BUSY;
 	} else if (!IsStationTile(tile)) {
 		/* With PBS_CHECK_FREE, all these should be true. */
-		assert(KillFirstBit(ft.m_new.trackdirs) == TRACKDIR_BIT_NONE);
+		assert(ft.m_new.IsTrackdirSet());
 		assert(IsNormalRailTile(ft.m_new.tile));
-		assert(HasSignalOnTrack(ft.m_new.tile, TrackdirToTrack(FindFirstTrackdir(ft.m_new.trackdirs))));
-		assert(IsPbsSignal(GetSignalType(ft.m_new.tile, TrackdirToTrack(FindFirstTrackdir(ft.m_new.trackdirs)))));
+		assert(HasSignalOnTrack(ft.m_new.tile, TrackdirToTrack(ft.m_new.td)));
+		assert(IsPbsSignal(GetSignalType(ft.m_new.tile, TrackdirToTrack(ft.m_new.td))));
 	}
 
 	assert(state == PBS_FREE);
