@@ -410,17 +410,13 @@ PBSPositionState CheckWaitingPosition(const Train *v, TileIndex tile, Trackdir t
 		state = PBS_FREE;
 	}
 
-	/* Check next tile. For performance reasons, we check for 90 degree turns ourself. */
-	CFollowTrackRail ft(v, true, GetRailTypeInfo(v->railtype)->compatible_railtypes);
+	/* Check next tile. */
+	CFollowTrackRail ft(v, !forbid_90deg, GetRailTypeInfo(v->railtype)->compatible_railtypes);
 
 	/* End of track? Safe position. */
 	if (!ft.Follow(tile, trackdir)) return state;
 
-	/* Check for reachable tracks. */
-	ft.m_new_td_bits &= DiagdirReachesTrackdirs(ft.m_exitdir);
-	if (forbid_90deg) ft.m_new_td_bits &= ~TrackdirCrossesTrackdirs(trackdir);
-	if (ft.m_new_td_bits == TRACKDIR_BIT_NONE) return state;
-
+	assert(ft.m_new_td_bits != TRACKDIR_BIT_NONE);
 	assert((state == PBS_FREE) || (cb == PBS_CHECK_FULL));
 
 	if (cb != PBS_CHECK_FREE) {

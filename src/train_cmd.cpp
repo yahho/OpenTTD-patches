@@ -2040,7 +2040,7 @@ static void CheckNextTrainTile(Train *v)
 			!IsPbsSignal(GetSignalType(v->tile, TrackdirToTrack(td))) &&
 			GetSignalStateByTrackdir(v->tile, td) == SIGNAL_STATE_RED) return;
 
-	CFollowTrackRail ft(v);
+	CFollowTrackRail ft(v, !_settings_game.pf.forbid_90_deg);
 	if (!ft.Follow(v->tile, td)) return;
 
 	if (!HasReservedTracks(ft.m_new_tile, TrackdirBitsToTrackBits(ft.m_new_td_bits))) {
@@ -2048,11 +2048,7 @@ static void CheckNextTrainTile(Train *v)
 		if (KillFirstBit(ft.m_new_td_bits) == TRACKDIR_BIT_NONE) {
 			if (HasPbsSignalOnTrackdir(ft.m_new_tile, FindFirstTrackdir(ft.m_new_td_bits))) {
 				/* If the next tile is a PBS signal, try to make a reservation. */
-				TrackdirBits trackdirs = ft.m_new_td_bits;
-				if (_settings_game.pf.forbid_90_deg) {
-					trackdirs &= ~TrackdirCrossesTrackdirs(ft.m_old_td);
-				}
-				ChooseTrainTrack(v, ft.m_new_tile, ft.m_exitdir, trackdirs, false, NULL, false);
+				ChooseTrainTrack(v, ft.m_new_tile, ft.m_exitdir, ft.m_new_td_bits, false, NULL, false);
 			}
 		}
 	}
@@ -2283,7 +2279,7 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 {
 	PBSTileInfo origin = FollowTrainReservation(v);
 
-	CFollowTrackRail ft(v);
+	CFollowTrackRail ft(v, !_settings_game.pf.forbid_90_deg);
 
 	TileIndex tile = origin.tile;
 	Trackdir  cur_td = origin.trackdir;
@@ -2291,11 +2287,6 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 		if (KillFirstBit(ft.m_new_td_bits) == TRACKDIR_BIT_NONE) {
 			/* Possible signal tile. */
 			if (HasOnewaySignalBlockingTrackdir(ft.m_new_tile, FindFirstTrackdir(ft.m_new_td_bits))) break;
-		}
-
-		if (_settings_game.pf.forbid_90_deg) {
-			ft.m_new_td_bits &= ~TrackdirCrossesTrackdirs(ft.m_old_td);
-			if (ft.m_new_td_bits == TRACKDIR_BIT_NONE) break;
 		}
 
 		/* Station, depot or waypoint are a possible target. */
@@ -2346,10 +2337,7 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 	while (tile != stopped || cur_td != stopped_td) {
 		if (!ft.Follow(tile, cur_td)) break;
 
-		if (_settings_game.pf.forbid_90_deg) {
-			ft.m_new_td_bits &= ~TrackdirCrossesTrackdirs(ft.m_old_td);
-			assert(ft.m_new_td_bits != TRACKDIR_BIT_NONE);
-		}
+		assert(ft.m_new_td_bits != TRACKDIR_BIT_NONE);
 		assert(KillFirstBit(ft.m_new_td_bits) == TRACKDIR_BIT_NONE);
 
 		tile = ft.m_new_tile;
