@@ -159,6 +159,19 @@ public:
 		return Follow(PFPos(old_tile, old_td));
 	}
 
+	inline bool FollowNext()
+	{
+		assert(m_new.tile != INVALID_TILE);
+		assert(m_new.IsTrackdirSet());
+		return Follow(m_new);
+	}
+
+	inline void SetPos(const PFPos &pos)
+	{
+		m_new.PFPos::operator = (pos);
+		m_new.trackdirs = TrackdirToTrackdirBits(pos.td);
+	}
+
 	inline bool MaskReservedTracks()
 	{
 		if (!m_mask_reserved) return true;

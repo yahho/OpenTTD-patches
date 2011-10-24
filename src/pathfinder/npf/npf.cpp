@@ -416,23 +416,20 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 					 * red. This way waypoints near stations should work better. */
 					const Train *train = Train::From(fstd->v);
 					CFollowTrackRail ft(train);
-					TileIndex t = tile;
-					Trackdir td = trackdir;
-					while (ft.Follow(t, td)) {
-						assert(t != ft.m_new.tile);
-						t = ft.m_new.tile;
-						td = ft.m_new.td;
-						if (td == INVALID_TRACKDIR) {
+					ft.SetPos(PFPos(tile, trackdir));
+					while (ft.FollowNext()) {
+						assert(ft.m_old.tile != ft.m_new.tile);
+						if (!ft.m_new.IsTrackdirSet()) {
 							/* We encountered a junction; it's going to be too complex to
 							 * handle this perfectly, so just bail out. There is no simple
 							 * free path, so try the other possibilities. */
 							break;
 						}
 						/* If this is a safe waiting position we're done searching for it */
-						if (IsSafeWaitingPosition(train, t, td, _settings_game.pf.forbid_90_deg)) break;
+						if (IsSafeWaitingPosition(train, ft.m_new.tile, ft.m_new.td, _settings_game.pf.forbid_90_deg)) break;
 					}
-					if (td == INVALID_TRACKDIR ||
-							!IsFreeSafeWaitingPosition(train, t, td, _settings_game.pf.forbid_90_deg)) {
+					if (!ft.m_new.IsTrackdirSet() ||
+							!IsFreeSafeWaitingPosition(train, ft.m_new.tile, ft.m_new.td, _settings_game.pf.forbid_90_deg)) {
 						cost += _settings_game.pf.npf.npf_rail_lastred_penalty;
 					}
 				}

@@ -209,11 +209,13 @@ static PBSTileInfo FollowReservation(Owner o, RailTypes rts, TileIndex tile, Tra
 
 	/* Do not disallow 90 deg turns as the setting might have changed between reserving and now. */
 	CFollowTrackRail ft(o, true, rts);
-	while (ft.Follow(tile, trackdir)) {
-		TrackdirBits reserved = ft.m_new.trackdirs & TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new.tile));
+	ft.SetPos(PFPos(tile, trackdir));
+
+	while (ft.FollowNext()) {
+		ft.m_new.trackdirs &= TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new.tile));
 
 		/* No reservation --> path end found */
-		if (reserved == TRACKDIR_BIT_NONE) {
+		if (ft.m_new.trackdirs == TRACKDIR_BIT_NONE) {
 			if (ft.m_flag == ft.TF_STATION) {
 				/* Check skipped station tiles as well, maybe our reservation ends inside the station. */
 				TileIndexDiff diff = TileOffsByDiagDir(ft.m_exitdir);
@@ -230,14 +232,14 @@ static PBSTileInfo FollowReservation(Owner o, RailTypes rts, TileIndex tile, Tra
 		}
 
 		/* Can't have more than one reserved trackdir */
-		Trackdir new_trackdir = FindFirstTrackdir(reserved);
+		ft.m_new.td = FindFirstTrackdir(ft.m_new.trackdirs);
 
 		/* One-way signal against us. The reservation can't be ours as it is not
 		 * a safe position from our direction and we can never pass the signal. */
-		if (!ignore_oneway && HasOnewaySignalBlockingTrackdir(ft.m_new.tile, new_trackdir)) break;
+		if (!ignore_oneway && HasOnewaySignalBlockingTrackdir(ft.m_new.tile, ft.m_new.td)) break;
 
 		tile = ft.m_new.tile;
-		trackdir = new_trackdir;
+		trackdir = ft.m_new.td;
 
 		if (start_tile == INVALID_TILE) {
 			/* Update the start tile after we followed the track the first

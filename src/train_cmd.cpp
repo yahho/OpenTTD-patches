@@ -2196,36 +2196,36 @@ void FreeTrainTrackReservation(const Train *v)
 	if (TracksOverlap(GetReservedTrackbits(tile) | TrackToTrackBits(TrackdirToTrack(td)))) return;
 
 	CFollowTrackRail ft(v, true, true);
-	while (ft.Follow(tile, td)) {
-		tile = ft.m_new.tile;
-		TrackdirBits bits = ft.m_new.trackdirs & TrackBitsToTrackdirBits(GetReservedTrackbits(tile));
-		td = RemoveFirstTrackdir(&bits);
-		assert(bits == TRACKDIR_BIT_NONE);
+	ft.SetPos(PFPos(tile, td));
 
-		if (!IsValidTrackdir(td)) break;
+	while (ft.FollowNext()) {
+		ft.m_new.trackdirs &= TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new.tile));
+		if (ft.m_new.trackdirs == TRACKDIR_BIT_NONE) break;
+		assert(KillFirstBit(ft.m_new.trackdirs) == TRACKDIR_BIT_NONE);
+		ft.m_new.td = FindFirstTrackdir(ft.m_new.trackdirs);
 
-		if (IsNormalRailTile(tile)) {
-			if (HasSignalOnTrackdir(tile, td) && !IsPbsSignal(GetSignalType(tile, TrackdirToTrack(td)))) {
+		if (IsNormalRailTile(ft.m_new.tile)) {
+			if (HasSignalOnTrackdir(ft.m_new.tile, ft.m_new.td) && !IsPbsSignal(GetSignalType(ft.m_new.tile, TrackdirToTrack(ft.m_new.td)))) {
 				/* Conventional signal along trackdir: remove reservation and stop. */
-				UnreserveRailTrack(tile, TrackdirToTrack(td));
+				UnreserveRailTrack(ft.m_new.tile, TrackdirToTrack(ft.m_new.td));
 				break;
 			}
-			if (HasPbsSignalOnTrackdir(tile, td)) {
-				if (GetSignalStateByTrackdir(tile, td) == SIGNAL_STATE_RED) {
+			if (HasPbsSignalOnTrackdir(ft.m_new.tile, ft.m_new.td)) {
+				if (GetSignalStateByTrackdir(ft.m_new.tile, ft.m_new.td) == SIGNAL_STATE_RED) {
 					/* Red PBS signal? Can't be our reservation, would be green then. */
 					break;
 				} else {
 					/* Turn the signal back to red. */
-					SetSignalStateByTrackdir(tile, td, SIGNAL_STATE_RED);
-					MarkTileDirtyByTile(tile);
+					SetSignalStateByTrackdir(ft.m_new.tile, ft.m_new.td, SIGNAL_STATE_RED);
+					MarkTileDirtyByTile(ft.m_new.tile);
 				}
-			} else if (HasSignalOnTrackdir(tile, ReverseTrackdir(td)) && IsOnewaySignal(tile, TrackdirToTrack(td))) {
+			} else if (HasSignalOnTrackdir(ft.m_new.tile, ReverseTrackdir(ft.m_new.td)) && IsOnewaySignal(ft.m_new.tile, TrackdirToTrack(ft.m_new.td))) {
 				break;
 			}
 		}
 
 		/* Don't free first station/bridge/tunnel if we are on it. */
-		if (free_tile || ft.m_flag == ft.TF_NONE || (ft.m_flag == ft.TF_STATION && GetStationIndex(ft.m_new.tile) != station_id)) ClearPathReservation(v, tile, td);
+		if (free_tile || ft.m_flag == ft.TF_NONE || (ft.m_flag == ft.TF_STATION && GetStationIndex(ft.m_new.tile) != station_id)) ClearPathReservation(v, ft.m_new.tile, ft.m_new.td);
 
 		free_tile = true;
 	}
@@ -2280,10 +2280,9 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 	PBSTileInfo origin = FollowTrainReservation(v);
 
 	CFollowTrackRail ft(v, !_settings_game.pf.forbid_90_deg);
+	ft.SetPos(PFPos(origin.tile, origin.trackdir));
 
-	TileIndex tile = origin.tile;
-	Trackdir  cur_td = origin.trackdir;
-	while (ft.Follow(tile, cur_td)) {
+	while (ft.FollowNext()) {
 		/* Station, depot or waypoint are a possible target. */
 		if (ft.m_flag == ft.TF_STATION || IsRailDepotTile(ft.m_new.tile) || !ft.m_new.IsTrackdirSet()) {
 			/* Choice found or possible target encountered.
@@ -2307,17 +2306,14 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 		/* Possible signal tile. */
 		if (HasOnewaySignalBlockingTrackdir(ft.m_new.tile, ft.m_new.td)) break;
 
-		tile = ft.m_new.tile;
-		cur_td = ft.m_new.td;
-
-		PBSPositionState state = CheckWaitingPosition(v, tile, cur_td, _settings_game.pf.forbid_90_deg);
+		PBSPositionState state = CheckWaitingPosition(v, ft.m_new.tile, ft.m_new.td, _settings_game.pf.forbid_90_deg);
 		if (state == PBS_BUSY) break;
 
-		if (!TryReserveRailTrack(tile, TrackdirToTrack(cur_td))) break;
+		if (!TryReserveRailTrack(ft.m_new.tile, TrackdirToTrack(ft.m_new.td))) break;
 
 		if (state == PBS_FREE) {
 			/* Safe position is all good, path valid and okay. */
-			return PBSTileInfo(tile, cur_td, true);
+			return PBSTileInfo(ft.m_new.tile, ft.m_new.td, true);
 		}
 	}
 
@@ -2327,20 +2323,15 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 	}
 
 	/* Sorry, can't reserve path, back out. */
-	tile = origin.tile;
-	cur_td = origin.trackdir;
-	TileIndex stopped = ft.m_old.tile;
-	Trackdir  stopped_td = ft.m_old.td;
-	while (tile != stopped || cur_td != stopped_td) {
-		if (!ft.Follow(tile, cur_td)) break;
+	PFPos stopped = ft.m_old;
+	ft.SetPos(PFPos(origin.tile, origin.trackdir));
+	while (ft.m_new != stopped) {
+		if (!ft.FollowNext()) break;
 
 		assert(ft.m_new.trackdirs != TRACKDIR_BIT_NONE);
 		assert(ft.m_new.IsTrackdirSet());
 
-		tile = ft.m_new.tile;
-		cur_td = ft.m_new.td;
-
-		UnreserveRailTrack(tile, TrackdirToTrack(cur_td));
+		UnreserveRailTrack(ft.m_new.tile, TrackdirToTrack(ft.m_new.td));
 	}
 
 	/* Path invalid. */

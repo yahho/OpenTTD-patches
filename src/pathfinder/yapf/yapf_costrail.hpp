@@ -412,27 +412,24 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 					 * one, so check that and if so see that as the last signal being
 					 * red. This way waypoints near stations should work better. */
 					CFollowTrackRail ft(v);
-					TileIndex t = cur.tile;
-					Trackdir td = cur.td;
-					while (ft.Follow(t, td)) {
-						assert(t != ft.m_new.tile);
-						t = ft.m_new.tile;
-						td = ft.m_new.td;
-						if (td == INVALID_TRACKDIR) {
+					ft.SetPos(PFPos(cur.tile, cur.td));
+					while (ft.FollowNext()) {
+						assert(ft.m_old.tile != ft.m_new.tile);
+						if (!ft.m_new.IsTrackdirSet()) {
 							/* We encountered a junction; it's going to be too complex to
 							 * handle this perfectly, so just bail out. There is no simple
 							 * free path, so try the other possibilities. */
 							break;
 						}
 						/* If this is a safe waiting position we're done searching for it */
-						if (IsSafeWaitingPosition(v, t, td, _settings_game.pf.forbid_90_deg)) break;
+						if (IsSafeWaitingPosition(v, ft.m_new.tile, ft.m_new.td, _settings_game.pf.forbid_90_deg)) break;
 					}
 
 					/* In the case this platform is (possibly) occupied we add penalty so the
 					 * other platforms of this waypoint are evaluated as well, i.e. we assume
 					 * that there is a red signal in the waypoint when it's occupied. */
-					if (td == INVALID_TRACKDIR ||
-							!IsFreeSafeWaitingPosition(v, t, td, _settings_game.pf.forbid_90_deg)) {
+					if (!ft.m_new.IsTrackdirSet() ||
+							!IsFreeSafeWaitingPosition(v, ft.m_new.tile, ft.m_new.td, _settings_game.pf.forbid_90_deg)) {
 						extra_cost += Yapf().PfGetSettings().rail_lastred_penalty;
 					}
 				}

@@ -190,19 +190,15 @@ struct CYapfRailNodeT
 	bool IterateTiles(const Train *v, Tpf &yapf, Tbase &obj, bool (Tfunc::*func)(TileIndex, Trackdir)) const
 	{
 		typename Tbase::TrackFollower ft(v, yapf.GetCompatibleRailTypes());
-		TileIndex cur = base::GetTile();
-		Trackdir  cur_td = base::GetTrackdir();
+		ft.SetPos(PFPos(base::GetTile(), base::GetTrackdir()));
 
-		while (cur != GetLastTile() || cur_td != GetLastTrackdir()) {
-			if (!((obj.*func)(cur, cur_td))) return false;
-
-			ft.Follow(cur, cur_td);
+		while (ft.m_new.tile != GetLastTile() || ft.m_new.td != GetLastTrackdir()) {
+			if (!((obj.*func)(ft.m_new.tile, ft.m_new.td))) return false;
+			ft.FollowNext();
 			assert(ft.m_new.IsTrackdirSet());
-			cur = ft.m_new.tile;
-			cur_td = ft.m_new.td;
 		}
 
-		return (obj.*func)(cur, cur_td);
+		return (obj.*func)(ft.m_new.tile, ft.m_new.td);
 	}
 
 	void Dump(DumpTarget &dmp) const
