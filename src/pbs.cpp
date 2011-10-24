@@ -411,7 +411,7 @@ PBSPositionState CheckWaitingPosition(const Train *v, TileIndex tile, Trackdir t
 	}
 
 	/* Check next tile. */
-	CFollowTrackRail ft(v, !forbid_90deg, GetRailTypeInfo(v->railtype)->compatible_railtypes);
+	CFollowTrackRail ft(v, !forbid_90deg, true);
 
 	/* End of track? Safe position. */
 	if (!ft.Follow(tile, trackdir)) return state;

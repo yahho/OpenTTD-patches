@@ -493,8 +493,8 @@ typedef CFollowTrackT<TRANSPORT_RAIL, Train, false, true > CFollowTrackFreeRailN
 
 struct CFollowTrackRail : CFollowTrack<TRANSPORT_RAIL, Train>
 {
-	inline CFollowTrackRail(const Train *v = NULL, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES)
-		: CFollowTrack<TRANSPORT_RAIL, Train>(v, allow_90deg, false, railtype_override)
+	inline CFollowTrackRail(const Train *v = NULL, bool allow_90deg = true, bool railtype_override = false)
+		: CFollowTrack<TRANSPORT_RAIL, Train>(v, allow_90deg, false, railtype_override ? GetRailTypeInfo(v->railtype)->compatible_railtypes : INVALID_RAILTYPES)
 	{
 	}
 
