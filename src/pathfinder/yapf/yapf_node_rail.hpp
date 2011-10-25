@@ -67,21 +67,17 @@ struct CYapfRailSegment
 	typedef CYapfRailSegmentKey Key;
 
 	CYapfRailSegmentKey    m_key;
-	TileIndex              m_last_tile;
-	Trackdir               m_last_td;
+	PFPos                  m_last;
 	int                    m_cost;
-	TileIndex              m_last_signal_tile;
-	Trackdir               m_last_signal_td;
+	PFPos                  m_last_signal;
 	EndSegmentReasonBits   m_end_segment_reason;
 	CYapfRailSegment      *m_hash_next;
 
 	inline CYapfRailSegment(const CYapfRailSegmentKey& key)
 		: m_key(key)
-		, m_last_tile(INVALID_TILE)
-		, m_last_td(INVALID_TRACKDIR)
+		, m_last()
 		, m_cost(-1)
-		, m_last_signal_tile(INVALID_TILE)
-		, m_last_signal_td(INVALID_TRACKDIR)
+		, m_last_signal()
 		, m_end_segment_reason(ESRB_NONE)
 		, m_hash_next(NULL)
 	{}
@@ -109,11 +105,11 @@ struct CYapfRailSegment
 	void Dump(DumpTarget &dmp) const
 	{
 		dmp.WriteStructT("m_key", &m_key);
-		dmp.WriteTile("m_last_tile", m_last_tile);
-		dmp.WriteEnumT("m_last_td", m_last_td);
+		dmp.WriteTile("m_last.tile", m_last.tile);
+		dmp.WriteEnumT("m_last.td", m_last.td);
 		dmp.WriteLine("m_cost = %d", m_cost);
-		dmp.WriteTile("m_last_signal_tile", m_last_signal_tile);
-		dmp.WriteEnumT("m_last_signal_td", m_last_signal_td);
+		dmp.WriteTile("m_last_signal.tile", m_last_signal.tile);
+		dmp.WriteEnumT("m_last_signal.td", m_last_signal.td);
 		dmp.WriteEnumT("m_end_segment_reason", m_end_segment_reason);
 	}
 };
@@ -170,20 +166,20 @@ struct CYapfRailNodeT
 	inline TileIndex GetLastTile() const
 	{
 		assert(m_segment != NULL);
-		return m_segment->m_last_tile;
+		return m_segment->m_last.tile;
 	}
 
 	inline Trackdir GetLastTrackdir() const
 	{
 		assert(m_segment != NULL);
-		return m_segment->m_last_td;
+		return m_segment->m_last.td;
 	}
 
 	inline void SetLastTileTrackdir(TileIndex tile, Trackdir td)
 	{
 		assert(m_segment != NULL);
-		m_segment->m_last_tile = tile;
-		m_segment->m_last_td = td;
+		m_segment->m_last.tile = tile;
+		m_segment->m_last.td = td;
 	}
 
 	template <class Tbase, class Tfunc, class Tpf>

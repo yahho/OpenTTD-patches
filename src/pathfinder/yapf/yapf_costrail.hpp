@@ -233,8 +233,8 @@ public:
 					}
 
 					n.m_num_signals_passed++;
-					n.m_segment->m_last_signal_tile = tile;
-					n.m_segment->m_last_signal_td = trackdir;
+					n.m_segment->m_last_signal.tile = tile;
+					n.m_segment->m_last_signal.td = trackdir;
 				}
 
 				if (has_signal_against && IsPbsSignal(GetSignalType(tile, TrackdirToTrack(trackdir)))) {
@@ -359,13 +359,13 @@ public:
 					/* We know also the reason why the segment ends. */
 					end_segment_reason = segment.m_end_segment_reason;
 					/* We will need also some information about the last signal (if it was red). */
-					if (segment.m_last_signal_tile != INVALID_TILE) {
-						assert(HasSignalOnTrackdir(segment.m_last_signal_tile, segment.m_last_signal_td));
-						SignalState sig_state = GetSignalStateByTrackdir(segment.m_last_signal_tile, segment.m_last_signal_td);
+					if (segment.m_last_signal.tile != INVALID_TILE) {
+						assert(HasSignalOnTrackdir(segment.m_last_signal.tile, segment.m_last_signal.td));
+						SignalState sig_state = GetSignalStateByTrackdir(segment.m_last_signal.tile, segment.m_last_signal.td);
 						bool is_red = (sig_state == SIGNAL_STATE_RED);
 						n.flags_u.flags_s.m_last_signal_was_red = is_red;
 						if (is_red) {
-							n.m_last_red_signal_type = GetSignalType(segment.m_last_signal_tile, TrackdirToTrack(segment.m_last_signal_td));
+							n.m_last_red_signal_type = GetSignalType(segment.m_last_signal.tile, TrackdirToTrack(segment.m_last_signal.td));
 						}
 					}
 					/* No further calculation needed. */
@@ -615,8 +615,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 	{
 		n.m_segment = &ci;
 		if (n.m_segment->m_cost < 0) {
-			n.m_segment->m_last_tile = n.GetPos().tile;
-			n.m_segment->m_last_td = n.GetPos().td;
+			n.m_segment->m_last = n.GetPos();
 		}
 	}
 
