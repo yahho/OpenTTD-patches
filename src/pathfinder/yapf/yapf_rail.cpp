@@ -214,7 +214,7 @@ public:
 	inline void PfFollowNode(Node& old_node)
 	{
 		TrackFollower F(Yapf().GetVehicle());
-		if (F.Follow(old_node.GetLastTile(), old_node.GetLastTrackdir())) {
+		if (F.Follow(old_node.GetLastPos())) {
 			Yapf().AddMultipleNodes(&old_node, F);
 		}
 	}
@@ -269,7 +269,7 @@ public:
 		/* some path found
 		 * get found depot tile */
 		Node *n = Yapf().GetBestNode();
-		*depot_tile = n->GetLastTile();
+		*depot_tile = n->GetLastPos().tile;
 
 		/* walk through the path back to the origin */
 		Node *pNode = n;
@@ -310,7 +310,7 @@ public:
 	inline void PfFollowNode(Node& old_node)
 	{
 		TrackFollower F(Yapf().GetVehicle(), Yapf().GetCompatibleRailTypes());
-		if (F.Follow(old_node.GetLastTile(), old_node.GetLastTrackdir()) && F.MaskReservedTracks()) {
+		if (F.Follow(old_node.GetLastPos()) && F.MaskReservedTracks()) {
 			Yapf().AddMultipleNodes(&old_node, F);
 		}
 	}
@@ -353,7 +353,7 @@ public:
 
 		/* Found a destination, set as reservation target. */
 		Node *pNode = Yapf().GetBestNode();
-		this->SetReservationTarget(pNode, pNode->GetLastTile(), pNode->GetLastTrackdir());
+		this->SetReservationTarget(pNode, pNode->GetLastPos().tile, pNode->GetLastPos().td);
 
 		/* Walk through the path back to the origin. */
 		Node *pPrev = NULL;
@@ -364,7 +364,7 @@ public:
 			this->FindSafePositionOnNode(pPrev);
 		}
 
-		return dont_reserve || this->TryReservePath(NULL, pNode->GetLastTile());
+		return dont_reserve || this->TryReservePath(NULL, pNode->GetLastPos().tile);
 	}
 };
 
@@ -393,7 +393,7 @@ public:
 	inline void PfFollowNode(Node& old_node)
 	{
 		TrackFollower F(Yapf().GetVehicle());
-		if (F.Follow(old_node.GetLastTile(), old_node.GetLastTrackdir())) {
+		if (F.Follow(old_node.GetLastPos())) {
 			Yapf().AddMultipleNodes(&old_node, F);
 		}
 	}
@@ -442,7 +442,7 @@ public:
 		Node *pNode = Yapf().GetBestNode();
 		if (pNode != NULL) {
 			/* reserve till end of path */
-			this->SetReservationTarget(pNode, pNode->GetLastTile(), pNode->GetLastTrackdir());
+			this->SetReservationTarget(pNode, pNode->GetLastPos().tile, pNode->GetLastPos().td);
 
 			/* path was found or at least suggested
 			 * walk through the path back to the origin */
@@ -457,7 +457,7 @@ public:
 			Node& best_next_node = *pPrev;
 			next_trackdir = best_next_node.GetPos().td;
 
-			if (reserve_track && path_found) this->TryReservePath(target, pNode->GetLastTile());
+			if (reserve_track && path_found) this->TryReservePath(target, pNode->GetLastPos().tile);
 		}
 
 		/* Treat the path as found if stopped on the first two way signal(s). */

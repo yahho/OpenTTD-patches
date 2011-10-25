@@ -163,16 +163,10 @@ struct CYapfRailNodeT
 		flags_u.flags_s.m_choice_seen |= is_choice;
 	}
 
-	inline TileIndex GetLastTile() const
+	inline const PFPos& GetLastPos() const
 	{
 		assert(m_segment != NULL);
-		return m_segment->m_last.tile;
-	}
-
-	inline Trackdir GetLastTrackdir() const
-	{
-		assert(m_segment != NULL);
-		return m_segment->m_last.td;
+		return m_segment->m_last;
 	}
 
 	inline void SetLastTileTrackdir(TileIndex tile, Trackdir td)
@@ -188,7 +182,7 @@ struct CYapfRailNodeT
 		typename Tbase::TrackFollower ft(v, yapf.GetCompatibleRailTypes());
 		ft.SetPos(base::GetPos());
 
-		while (ft.m_new.tile != GetLastTile() || ft.m_new.td != GetLastTrackdir()) {
+		while (ft.m_new != GetLastPos()) {
 			if (!((obj.*func)(ft.m_new.tile, ft.m_new.td))) return false;
 			ft.FollowNext();
 			assert(ft.m_new.IsTrackdirSet());

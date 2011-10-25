@@ -327,7 +327,7 @@ public:
 		TILE cur(n.GetPos().tile, n.GetPos().td);
 
 		/* the previous tile will be needed for transition cost calculations */
-		TILE prev = !has_parent ? TILE() : TILE(n.m_parent->GetLastTile(), n.m_parent->GetLastTrackdir());
+		TILE prev = !has_parent ? TILE() : TILE(n.m_parent->GetLastPos().tile, n.m_parent->GetLastPos().td);
 
 		EndSegmentReasonBits end_segment_reason = ESRB_NONE;
 
@@ -369,7 +369,7 @@ public:
 						}
 					}
 					/* No further calculation needed. */
-					cur = TILE(n.GetLastTile(), n.GetLastTrackdir());
+					cur = TILE(n.GetLastPos().tile, n.GetLastPos().td);
 					break;
 				}
 			} else {
@@ -588,9 +588,9 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 
 			/* Station platform-length penalty. */
 			if ((end_segment_reason & ESRB_STATION) != ESRB_NONE) {
-				const BaseStation *st = BaseStation::GetByTile(n.GetLastTile());
+				const BaseStation *st = BaseStation::GetByTile(n.GetLastPos().tile);
 				assert(st != NULL);
-				uint platform_length = st->GetPlatformLength(n.GetLastTile(), ReverseDiagDir(TrackdirToExitdir(n.GetLastTrackdir())));
+				uint platform_length = st->GetPlatformLength(n.GetLastPos().tile, ReverseDiagDir(TrackdirToExitdir(n.GetLastPos().td)));
 				/* Reduce the extra cost caused by passing-station penalty (each station receives it in the segment cost). */
 				extra_cost -= Yapf().PfGetSettings().rail_station_penalty * platform_length;
 				/* Add penalty for the inappropriate platform length. */
