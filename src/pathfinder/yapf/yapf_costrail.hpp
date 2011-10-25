@@ -28,32 +28,24 @@ public:
 protected:
 
 	/* Structure used inside PfCalcCost() to keep basic tile information. */
-	struct TILE {
-		TileIndex   tile;
-		Trackdir    td;
+	struct TILE : PFPos {
 		TileType    tile_type;
 		RailType    rail_type;
 
-		TILE()
+		TILE() : PFPos()
 		{
-			tile = INVALID_TILE;
-			td = INVALID_TRACKDIR;
 			tile_type = TT_GROUND;
 			rail_type = INVALID_RAILTYPE;
 		}
 
-		TILE(TileIndex tile, Trackdir td)
+		TILE(const PFPos &pos) : PFPos(pos)
 		{
-			this->tile = tile;
-			this->td = td;
-			this->tile_type = GetTileType(tile);
-			this->rail_type = GetTileRailType(tile, TrackdirToTrack(td));
+			this->tile_type = GetTileType(pos.tile);
+			this->rail_type = GetTileRailType(pos.tile, TrackdirToTrack(pos.td));
 		}
 
-		TILE(const TILE &src)
+		TILE(const TILE &src) : PFPos(src)
 		{
-			tile = src.tile;
-			td = src.td;
 			tile_type = src.tile_type;
 			rail_type = src.rail_type;
 		}
@@ -324,10 +316,10 @@ public:
 		const Train *v = Yapf().GetVehicle();
 
 		/* start at n and walk to the end of segment */
-		TILE cur(n.GetPos().tile, n.GetPos().td);
+		TILE cur(n.GetPos());
 
 		/* the previous tile will be needed for transition cost calculations */
-		TILE prev = !has_parent ? TILE() : TILE(n.m_parent->GetLastPos().tile, n.m_parent->GetLastPos().td);
+		TILE prev = !has_parent ? TILE() : TILE(n.m_parent->GetLastPos());
 
 		EndSegmentReasonBits end_segment_reason = ESRB_NONE;
 
@@ -369,7 +361,7 @@ public:
 						}
 					}
 					/* No further calculation needed. */
-					cur = TILE(n.GetLastPos().tile, n.GetLastPos().td);
+					cur = TILE(n.GetLastPos());
 					break;
 				}
 			} else {
@@ -412,7 +404,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 					 * one, so check that and if so see that as the last signal being
 					 * red. This way waypoints near stations should work better. */
 					CFollowTrackRail ft(v);
-					ft.SetPos(PFPos(cur.tile, cur.td));
+					ft.SetPos(cur);
 					while (ft.FollowNext()) {
 						assert(ft.m_old.tile != ft.m_new.tile);
 						if (!ft.m_new.IsTrackdirSet()) {
@@ -479,7 +471,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			assert(tf_local.m_railtypes == Yapf().GetCompatibleRailTypes());
 			assert(tf_local.m_pPerf == &Yapf().m_perf_ts_cost);
 
-			if (!tf_local.Follow(cur.tile, cur.td)) {
+			if (!tf_local.Follow(cur)) {
 				assert(tf_local.m_err != TrackFollower::EC_NONE);
 				/* Can't move to the next tile (EOL?). */
 				if (tf_local.m_err == TrackFollower::EC_RAIL_TYPE) {
@@ -502,7 +494,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			}
 
 			/* Gather the next tile/trackdir/tile_type/rail_type. */
-			TILE next(tf_local.m_new.tile, tf_local.m_new.td);
+			TILE next(tf_local.m_new);
 
 			if (TrackFollower::DoTrackMasking() && IsNormalRailTile(next.tile)) {
 				if (HasSignalOnTrackdir(next.tile, next.td) && IsPbsSignal(GetSignalType(next.tile, TrackdirToTrack(next.td)))) {
@@ -523,7 +515,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			}
 
 			/* Avoid infinite looping. */
-			if (next.tile == n.GetPos().tile && next.td == n.GetPos().td) {
+			if (next == n.GetPos()) {
 				end_segment_reason |= ESRB_INFINITE_LOOP;
 				break;
 			}
