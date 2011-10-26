@@ -12,8 +12,8 @@
 #ifndef YAPF_NODE_HPP
 #define YAPF_NODE_HPP
 
-/** Yapf Node Key that evaluates hash from (and compares) tile & exit dir. */
-struct CYapfNodeKeyExitDir {
+/** Yapf Node Key base class. */
+struct CYapfNodeKey {
 	TileIndex      m_tile;
 	Trackdir       m_td;
 	DiagDirection  m_exitdir;
@@ -25,9 +25,6 @@ struct CYapfNodeKeyExitDir {
 		m_exitdir = (m_td == INVALID_TRACKDIR) ? INVALID_DIAGDIR : TrackdirToExitdir(m_td);
 	}
 
-	inline int CalcHash() const {return m_exitdir | (m_tile << 2);}
-	inline bool operator == (const CYapfNodeKeyExitDir& other) const {return (m_tile == other.m_tile) && (m_exitdir == other.m_exitdir);}
-
 	void Dump(DumpTarget &dmp) const
 	{
 		dmp.WriteTile("m_tile", m_tile);
@@ -36,7 +33,15 @@ struct CYapfNodeKeyExitDir {
 	}
 };
 
-struct CYapfNodeKeyTrackDir : public CYapfNodeKeyExitDir
+/** Yapf Node Key that evaluates hash from (and compares) tile & exit dir. */
+struct CYapfNodeKeyExitDir : public CYapfNodeKey
+{
+	inline int CalcHash() const {return m_exitdir | (m_tile << 2);}
+	inline bool operator == (const CYapfNodeKeyExitDir& other) const {return (m_tile == other.m_tile) && (m_exitdir == other.m_exitdir);}
+};
+
+/** Yapf Node Key that evaluates hash from (and compares) tile & track dir. */
+struct CYapfNodeKeyTrackDir : public CYapfNodeKey
 {
 	inline int CalcHash() const {return m_td | (m_tile << 4);}
 	inline bool operator == (const CYapfNodeKeyTrackDir& other) const {return (m_tile == other.m_tile) && (m_td == other.m_td);}
