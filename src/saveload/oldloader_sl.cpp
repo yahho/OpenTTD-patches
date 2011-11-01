@@ -41,7 +41,7 @@ static byte _old_vehicle_multiplier; ///< TTDPatch vehicle multiplier
 
 static uint8 *_old_map3;
 
-void FixOldMapArray()
+static void FixOldMapArray()
 {
 	/* TTO/TTD/TTDP savegames could have buoys at tile 0
 	 * (without assigned station struct) */
