@@ -280,7 +280,7 @@ static Vehicle *FindTrainOnTrackEnum(Vehicle *v, void *data)
 	if (v->type != VEH_TRAIN || (v->vehstatus & VS_CRASHED)) return NULL;
 
 	Train *t = Train::From(v);
-	if (t->trackdir == TRACKDIR_WORMHOLE || TrackdirToTrack(t->trackdir) == TrackdirToTrack(info->res.trackdir)) {
+	if (t->trackdir == TRACKDIR_WORMHOLE || TrackdirToTrack(t->trackdir) == TrackdirToTrack(info->res.pos.td)) {
 		t = t->First();
 
 		/* ALWAYS return the lowest ID (anti-desync!) */
@@ -294,21 +294,21 @@ static Vehicle *FindTrainOnTrackEnum(Vehicle *v, void *data)
 /** Find a train on a reserved path end */
 static void FindTrainOnPathEnd(FindTrainOnTrackInfo *ftoti)
 {
-	FindVehicleOnPos(ftoti->res.tile, ftoti, FindTrainOnTrackEnum);
+	FindVehicleOnPos(ftoti->res.pos.tile, ftoti, FindTrainOnTrackEnum);
 	if (ftoti->best != NULL) return;
 
 	/* Special case for stations: check the whole platform for a vehicle. */
-	if (IsRailStationTile(ftoti->res.tile)) {
-		TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(ftoti->res.trackdir)));
-		for (TileIndex tile = ftoti->res.tile + diff; IsCompatibleTrainStationTile(tile, ftoti->res.tile); tile += diff) {
+	if (IsRailStationTile(ftoti->res.pos.tile)) {
+		TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(ftoti->res.pos.td)));
+		for (TileIndex tile = ftoti->res.pos.tile + diff; IsCompatibleTrainStationTile(tile, ftoti->res.pos.tile); tile += diff) {
 			FindVehicleOnPos(tile, ftoti, FindTrainOnTrackEnum);
 			if (ftoti->best != NULL) return;
 		}
 	}
 
 	/* Special case for bridges/tunnels: check the other end as well. */
-	if (IsTunnelTile(ftoti->res.tile) || IsRailBridgeTile(ftoti->res.tile)) {
-		FindVehicleOnPos(GetOtherTunnelBridgeEnd(ftoti->res.tile), ftoti, FindTrainOnTrackEnum);
+	if (IsTunnelTile(ftoti->res.pos.tile) || IsRailBridgeTile(ftoti->res.pos.tile)) {
+		FindVehicleOnPos(GetOtherTunnelBridgeEnd(ftoti->res.pos.tile), ftoti, FindTrainOnTrackEnum);
 		if (ftoti->best != NULL) return;
 	}
 }
@@ -331,7 +331,7 @@ PBSTileInfo FollowTrainReservation(const Train *v, Vehicle **train_on_res)
 
 	FindTrainOnTrackInfo ftoti;
 	ftoti.res = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, tile, trackdir);
-	ftoti.res.okay = IsSafeWaitingPosition(v, ftoti.res.tile, ftoti.res.trackdir, _settings_game.pf.forbid_90_deg);
+	ftoti.res.okay = IsSafeWaitingPosition(v, ftoti.res.pos.tile, ftoti.res.pos.td, _settings_game.pf.forbid_90_deg);
 	if (train_on_res != NULL) {
 		FindTrainOnPathEnd(&ftoti);
 		if (ftoti.best != NULL) *train_on_res = ftoti.best->First();

@@ -155,9 +155,9 @@ public:
 		m_origin_tile = origin;
 
 		if (target != NULL) {
-			target->tile = m_res_dest;
-			target->trackdir = m_res_dest_td;
-			target->okay = false;
+			target->pos.tile = m_res_dest;
+			target->pos.td   = m_res_dest_td;
+			target->okay     = false;
 		}
 
 		/* Don't bother if the target is reserved. */
@@ -427,11 +427,11 @@ public:
 
 	inline Trackdir ChooseRailTrack(const Train *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found, bool reserve_track, PBSTileInfo *target)
 	{
-		if (target != NULL) target->tile = INVALID_TILE;
+		if (target != NULL) target->pos.tile = INVALID_TILE;
 
 		/* set origin and destination nodes */
 		PBSTileInfo origin = FollowTrainReservation(v);
-		Yapf().SetOrigin(origin.tile, origin.trackdir, INVALID_TILE, INVALID_TRACKDIR, 1, true);
+		Yapf().SetOrigin(origin.pos.tile, origin.pos.td, INVALID_TILE, INVALID_TRACKDIR, 1, true);
 		Yapf().SetDestination(v);
 
 		/* find the best path */
@@ -625,7 +625,7 @@ FindDepotData YapfTrainFindNearestDepot(const Train *v, int max_penalty)
 		pfnFindNearestDepotTwoWay = &CYapfAnyDepotRail2::stFindNearestDepotTwoWay; // Trackdir, forbid 90-deg
 	}
 
-	bool ret = pfnFindNearestDepotTwoWay(v, origin.tile, origin.trackdir, last_tile, td_rev, max_penalty, YAPF_INFINITE_PENALTY, &fdd.tile, &fdd.reverse);
+	bool ret = pfnFindNearestDepotTwoWay(v, origin.pos.tile, origin.pos.td, last_tile, td_rev, max_penalty, YAPF_INFINITE_PENALTY, &fdd.tile, &fdd.reverse);
 	fdd.best_length = ret ? max_penalty / 2 : UINT_MAX; // some fake distance or NOT_FOUND
 	return fdd;
 }

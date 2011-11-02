@@ -1267,13 +1267,12 @@ Trackdir NPFTrainChooseTrack(const Train *v, TileIndex tile, DiagDirection enter
 	NPFFillWithOrderData(&fstd, v, reserve_track);
 
 	PBSTileInfo origin = FollowTrainReservation(v);
-	assert(IsValidTrackdir(origin.trackdir));
+	assert(IsValidTrackdir(origin.pos.td));
 
-	NPFFoundTargetData ftd = NPFRouteToStationOrTile(origin.tile, origin.trackdir, true, &fstd, TRANSPORT_RAIL, 0, v->owner, v->compatible_railtypes);
+	NPFFoundTargetData ftd = NPFRouteToStationOrTile(origin.pos.tile, origin.pos.td, true, &fstd, TRANSPORT_RAIL, 0, v->owner, v->compatible_railtypes);
 
 	if (target != NULL) {
-		target->tile = ftd.node.pos.tile;
-		target->trackdir = ftd.node.pos.td;
+		target->pos  = ftd.node.pos;
 		target->okay = ftd.res_okay;
 	}
 
