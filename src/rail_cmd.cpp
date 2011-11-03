@@ -178,21 +178,6 @@ static const byte _track_sloped_sprites[14] = {
  */
 
 
-
-/* MAP2 byte:    abcd???? => Signal On? Same coding as map3lo
- * MAP3LO byte:  abcd???? => Signal Exists?
- *               a and b are for diagonals, upper and left,
- *               one for each direction. (ie a == NE->SW, b ==
- *               SW->NE, or v.v., I don't know. b and c are
- *               similar for lower and right.
- * MAP2 byte:    ????abcd => Type of ground.
- * MAP3LO byte:  ????abcd => Type of rail.
- * MAP5:         00abcdef => rail
- *               01abcdef => rail w/ signals
- *               10uuuuuu => unused
- *               11uuuudd => unused
- */
-
 /**
  * Tests if a vehicle interacts with the specified track.
  * All track bits interact except parallel #TRACK_BIT_HORZ or #TRACK_BIT_VERT.
