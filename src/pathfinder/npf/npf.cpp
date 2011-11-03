@@ -152,7 +152,7 @@ static int32 NPFCalcStationOrTileHeuristic(AyStar *as, AyStarNode *current, Open
 {
 	NPFFindStationOrTileData *fstd = (NPFFindStationOrTileData*)as->user_target;
 	NPFFoundTargetData *ftd = (NPFFoundTargetData*)as->user_path;
-	TileIndex from = current->tile;
+	TileIndex from = current->pos.tile;
 	TileIndex to = fstd->dest_coords;
 	uint dist;
 
@@ -169,7 +169,7 @@ static int32 NPFCalcStationOrTileHeuristic(AyStar *as, AyStarNode *current, Open
 		dist = NPFDistanceTrack(from, to);
 	}
 
-	DEBUG(npf, 4, "Calculating H for: (%d, %d). Result: %d", TileX(current->tile), TileY(current->tile), dist);
+	DEBUG(npf, 4, "Calculating H for: (%d, %d). Result: %d", TileX(current->pos.tile), TileY(current->pos.tile), dist);
 
 	if (dist < ftd->best_bird_dist) {
 		ftd->best_bird_dist = dist;
@@ -185,7 +185,7 @@ static int32 NPFCalcStationOrTileHeuristic(AyStar *as, AyStarNode *current, Open
 static void NPFFillTrackdirChoice(AyStarNode *current, OpenListNode *parent)
 {
 	if (parent->path.parent == NULL) {
-		Trackdir trackdir = current->direction;
+		Trackdir trackdir = current->pos.td;
 		/* This is a first order decision, so we'd better save the
 		 * direction we chose */
 		current->user_data[NPF_TRACKDIR_CHOICE] = trackdir;
@@ -201,12 +201,12 @@ static void NPFFillTrackdirChoice(AyStarNode *current, OpenListNode *parent)
  * including the exit tile. Requires that this is a Tunnel tile */
 static uint NPFTunnelCost(AyStarNode *current)
 {
-	DiagDirection exitdir = TrackdirToExitdir(current->direction);
-	TileIndex tile = current->tile;
+	DiagDirection exitdir = TrackdirToExitdir(current->pos.td);
+	TileIndex tile = current->pos.tile;
 	if (GetTunnelBridgeDirection(tile) == ReverseDiagDir(exitdir)) {
 		/* We just popped out if this tunnel, since were
 		 * facing the tunnel exit */
-		return NPF_TILE_LENGTH * (GetTunnelBridgeLength(current->tile, GetOtherTunnelEnd(current->tile)) + 1);
+		return NPF_TILE_LENGTH * (GetTunnelBridgeLength(current->pos.tile, GetOtherTunnelEnd(current->pos.tile)) + 1);
 		/* @todo: Penalty for tunnels? */
 	} else {
 		/* We are entering the tunnel, the enter tile is just a
@@ -217,16 +217,16 @@ static uint NPFTunnelCost(AyStarNode *current)
 
 static inline uint NPFBridgeCost(AyStarNode *current)
 {
-	return NPF_TILE_LENGTH * GetTunnelBridgeLength(current->tile, GetOtherBridgeEnd(current->tile));
+	return NPF_TILE_LENGTH * GetTunnelBridgeLength(current->pos.tile, GetOtherBridgeEnd(current->pos.tile));
 }
 
 static uint NPFSlopeCost(AyStarNode *current)
 {
-	TileIndex next = current->tile + TileOffsByDiagDir(TrackdirToExitdir(current->direction));
+	TileIndex next = current->pos.tile + TileOffsByDiagDir(TrackdirToExitdir(current->pos.td));
 
 	/* Get center of tiles */
-	int x1 = TileX(current->tile) * TILE_SIZE + TILE_SIZE / 2;
-	int y1 = TileY(current->tile) * TILE_SIZE + TILE_SIZE / 2;
+	int x1 = TileX(current->pos.tile) * TILE_SIZE + TILE_SIZE / 2;
+	int y1 = TileY(current->pos.tile) * TILE_SIZE + TILE_SIZE / 2;
 	int x2 = TileX(next) * TILE_SIZE + TILE_SIZE / 2;
 	int y2 = TileY(next) * TILE_SIZE + TILE_SIZE / 2;
 
@@ -251,14 +251,14 @@ static uint NPFSlopeCost(AyStarNode *current)
 
 static uint NPFReservedTrackCost(AyStarNode *current)
 {
-	TileIndex tile = current->tile;
-	TrackBits track = TrackToTrackBits(TrackdirToTrack(current->direction));
+	TileIndex tile = current->pos.tile;
+	TrackBits track = TrackToTrackBits(TrackdirToTrack(current->pos.td));
 	TrackBits res = GetReservedTrackbits(tile);
 
 	if (NPFGetFlag(current, NPF_FLAG_3RD_SIGNAL) || NPFGetFlag(current, NPF_FLAG_LAST_SIGNAL_BLOCK) || ((res & track) == TRACK_BIT_NONE && !TracksOverlap(res | track))) return 0;
 
 	if (IsTunnelTile(tile) || IsBridgeHeadTile(tile)) {
-		DiagDirection exitdir = TrackdirToExitdir(current->direction);
+		DiagDirection exitdir = TrackdirToExitdir(current->pos.td);
 		if (GetTunnelBridgeDirection(tile) == ReverseDiagDir(exitdir)) {
 			return  _settings_game.pf.npf.npf_rail_pbs_cross_penalty * (GetTunnelBridgeLength(tile, GetOtherTunnelBridgeEnd(tile)) + 1);
 		}
@@ -301,15 +301,15 @@ static int32 NPFWaterPathCost(AyStar *as, AyStarNode *current, OpenListNode *par
 {
 	/* TileIndex tile = current->tile; */
 	int32 cost = 0;
-	Trackdir trackdir = current->direction;
+	Trackdir trackdir = current->pos.td;
 
 	cost = _trackdir_length[trackdir]; // Should be different for diagonal tracks
 
-	if (IsBuoyTile(current->tile) && IsDiagonalTrackdir(trackdir)) {
+	if (IsBuoyTile(current->pos.tile) && IsDiagonalTrackdir(trackdir)) {
 		cost += _settings_game.pf.npf.npf_buoy_penalty; // A small penalty for going over buoys
 	}
 
-	if (current->direction != NextTrackdir((Trackdir)parent->path.node.direction)) {
+	if (current->pos.td != NextTrackdir((Trackdir)parent->path.node.pos.td)) {
 		cost += _settings_game.pf.npf.npf_water_curve_penalty;
 	}
 
@@ -321,7 +321,7 @@ static int32 NPFWaterPathCost(AyStar *as, AyStarNode *current, OpenListNode *par
 /* Determine the cost of this node, for road tracks */
 static int32 NPFRoadPathCost(AyStar *as, AyStarNode *current, OpenListNode *parent)
 {
-	TileIndex tile = current->tile;
+	TileIndex tile = current->pos.tile;
 	int32 cost = 0;
 
 	/* Determine base length */
@@ -341,7 +341,7 @@ static int32 NPFRoadPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 			if (IsDriveThroughStopTile(tile)) {
 				/* Increase the cost for drive-through road stops */
 				cost += _settings_game.pf.npf.npf_road_drive_through_penalty;
-				DiagDirection dir = TrackdirToExitdir(current->direction);
+				DiagDirection dir = TrackdirToExitdir(current->pos.td);
 				if (!RoadStop::IsDriveThroughRoadStopContinuation(tile, tile - TileOffsByDiagDir(dir))) {
 					/* When we're the first road stop in a 'queue' of them we increase
 					 * cost based on the fill percentage of the whole queue. */
@@ -366,12 +366,12 @@ static int32 NPFRoadPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 
 	/* Check for turns. Road vehicles only really drive diagonal, turns are
 	 * represented by non-diagonal tracks */
-	if (!IsDiagonalTrackdir(current->direction)) {
+	if (!IsDiagonalTrackdir(current->pos.td)) {
 		cost += _settings_game.pf.npf.npf_road_curve_penalty;
 	}
 
 	NPFMarkTile(tile);
-	DEBUG(npf, 4, "Calculating G for: (%d, %d). Result: %d", TileX(current->tile), TileY(current->tile), cost);
+	DEBUG(npf, 4, "Calculating G for: (%d, %d). Result: %d", TileX(current->pos.tile), TileY(current->pos.tile), cost);
 	return cost;
 }
 
@@ -379,8 +379,8 @@ static int32 NPFRoadPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 /* Determine the cost of this node, for railway tracks */
 static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *parent)
 {
-	TileIndex tile = current->tile;
-	Trackdir trackdir = current->direction;
+	TileIndex tile = current->pos.tile;
+	Trackdir trackdir = current->pos.td;
 	int32 cost = 0;
 	/* HACK: We create a OpenListNode manually, so we can call EndNodeCheck */
 	OpenListNode new_node;
@@ -389,7 +389,7 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 	switch (GetTileType(tile)) {
 		case TT_RAILWAY:
 			cost = _trackdir_length[trackdir]; // Should be different for diagonal tracks
-			if (IsTileSubtype(tile, TT_BRIDGE) && GetTunnelBridgeDirection(tile) == ReverseDiagDir(TrackdirToExitdir(current->direction))) {
+			if (IsTileSubtype(tile, TT_BRIDGE) && GetTunnelBridgeDirection(tile) == ReverseDiagDir(TrackdirToExitdir(current->pos.td))) {
 				cost += NPF_TILE_LENGTH * GetTunnelBridgeLength(tile, GetOtherBridgeEnd(tile));
 			}
 			break;
@@ -500,7 +500,7 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 	cost += NPFSlopeCost(current);
 
 	/* Check for turns */
-	if (current->direction != NextTrackdir((Trackdir)parent->path.node.direction)) {
+	if (current->pos.td != NextTrackdir((Trackdir)parent->path.node.pos.td)) {
 		cost += _settings_game.pf.npf.npf_rail_curve_penalty;
 	}
 	/* TODO, with realistic acceleration, also the amount of straight track between
@@ -518,7 +518,7 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 	cost += NPFReservedTrackCost(current);
 
 	NPFMarkTile(tile);
-	DEBUG(npf, 4, "Calculating G for: (%d, %d). Result: %d", TileX(current->tile), TileY(current->tile), cost);
+	DEBUG(npf, 4, "Calculating G for: (%d, %d). Result: %d", TileX(current->pos.tile), TileY(current->pos.tile), cost);
 	return cost;
 }
 
@@ -527,7 +527,7 @@ static int32 NPFFindDepot(AyStar *as, OpenListNode *current)
 {
 	/* It's not worth caching the result with NPF_FLAG_IS_TARGET here as below,
 	 * since checking the cache not that much faster than the actual check */
-	return IsDepotTypeTile(current->path.node.tile, (TransportType)as->user_data[NPF_TYPE]) ?
+	return IsDepotTypeTile(current->path.node.pos.tile, (TransportType)as->user_data[NPF_TYPE]) ?
 		AYSTAR_FOUND_END_NODE : AYSTAR_DONE;
 }
 
@@ -536,7 +536,7 @@ static int32 NPFFindSafeTile(AyStar *as, OpenListNode *current)
 {
 	const Train *v = Train::From(((NPFFindStationOrTileData *)as->user_target)->v);
 
-	return IsFreeSafeWaitingPosition(v, current->path.node.tile, current->path.node.direction, _settings_game.pf.forbid_90_deg) ?
+	return IsFreeSafeWaitingPosition(v, current->path.node.pos.tile, current->path.node.pos.td, _settings_game.pf.forbid_90_deg) ?
 			AYSTAR_FOUND_END_NODE : AYSTAR_DONE;
 }
 
@@ -545,7 +545,7 @@ static int32 NPFFindStationOrTile(AyStar *as, OpenListNode *current)
 {
 	NPFFindStationOrTileData *fstd = (NPFFindStationOrTileData*)as->user_target;
 	AyStarNode *node = &current->path.node;
-	TileIndex tile = node->tile;
+	TileIndex tile = node->pos.tile;
 
 	if (fstd->station_index == INVALID_STATION && tile == fstd->dest_coords) return AYSTAR_FOUND_END_NODE;
 
@@ -572,7 +572,7 @@ static const PathNode *FindSafePosition(PathNode *path, const Train *v)
 	PathNode *sig = path;
 
 	for (; path->parent != NULL; path = path->parent) {
-		if (IsSafeWaitingPosition(v, path->node.tile, path->node.direction, _settings_game.pf.forbid_90_deg)) {
+		if (IsSafeWaitingPosition(v, path->node.pos.tile, path->node.pos.td, _settings_game.pf.forbid_90_deg)) {
 			sig = path;
 		}
 	}
@@ -587,10 +587,10 @@ static void ClearPathReservation(const PathNode *start, const PathNode *end)
 {
 	bool first_run = true;
 	for (; start != end; start = start->parent) {
-		if (IsRailStationTile(start->node.tile) && first_run) {
-			SetRailStationPlatformReservation(start->node.tile, TrackdirToExitdir(start->node.direction), false);
+		if (IsRailStationTile(start->node.pos.tile) && first_run) {
+			SetRailStationPlatformReservation(start->node.pos.tile, TrackdirToExitdir(start->node.pos.td), false);
 		} else {
-			UnreserveRailTrack(start->node.tile, TrackdirToTrack(start->node.direction));
+			UnreserveRailTrack(start->node.pos.tile, TrackdirToTrack(start->node.pos.td));
 		}
 		first_run = false;
 	}
@@ -619,22 +619,22 @@ static void NPFSaveTargetData(AyStar *as, OpenListNode *current)
 		ftd->node = target->node;
 
 		/* If the target is a station skip to platform end. */
-		if (IsRailStationTile(target->node.tile)) {
-			DiagDirection dir = TrackdirToExitdir(target->node.direction);
-			uint len = Station::GetByTile(target->node.tile)->GetPlatformLength(target->node.tile, dir);
-			TileIndex end_tile = TILE_ADD(target->node.tile, (len - 1) * TileOffsByDiagDir(dir));
+		if (IsRailStationTile(target->node.pos.tile)) {
+			DiagDirection dir = TrackdirToExitdir(target->node.pos.td);
+			uint len = Station::GetByTile(target->node.pos.tile)->GetPlatformLength(target->node.pos.tile, dir);
+			TileIndex end_tile = TILE_ADD(target->node.pos.tile, (len - 1) * TileOffsByDiagDir(dir));
 
 			/* Update only end tile, trackdir of a station stays the same. */
-			ftd->node.tile = end_tile;
-			if (!IsWaitingPositionFree(v, end_tile, target->node.direction, _settings_game.pf.forbid_90_deg)) return;
-			SetRailStationPlatformReservation(target->node.tile, dir, true);
-			SetRailStationReservation(target->node.tile, false);
+			ftd->node.pos.tile = end_tile;
+			if (!IsWaitingPositionFree(v, end_tile, target->node.pos.td, _settings_game.pf.forbid_90_deg)) return;
+			SetRailStationPlatformReservation(target->node.pos.tile, dir, true);
+			SetRailStationReservation(target->node.pos.tile, false);
 		} else {
-			if (!IsWaitingPositionFree(v, target->node.tile, target->node.direction, _settings_game.pf.forbid_90_deg)) return;
+			if (!IsWaitingPositionFree(v, target->node.pos.tile, target->node.pos.td, _settings_game.pf.forbid_90_deg)) return;
 		}
 
 		for (const PathNode *cur = target; cur->parent != NULL; cur = cur->parent) {
-			if (!TryReserveRailTrack(cur->node.tile, TrackdirToTrack(cur->node.direction))) {
+			if (!TryReserveRailTrack(cur->node.pos.tile, TrackdirToTrack(cur->node.pos.td))) {
 				/* Reservation failed, undo. */
 				ClearPathReservation(target, cur);
 				return;
@@ -854,8 +854,8 @@ static TrackdirBits GetDriveableTrackdirBits(TileIndex dst_tile, Trackdir src_tr
 static void NPFFollowTrack(AyStar *aystar, OpenListNode *current)
 {
 	/* We leave src_tile on track src_trackdir in direction src_exitdir */
-	Trackdir src_trackdir = current->path.node.direction;
-	TileIndex src_tile = current->path.node.tile;
+	Trackdir src_trackdir = current->path.node.pos.td;
+	TileIndex src_tile = current->path.node.pos.tile;
 	DiagDirection src_exitdir = TrackdirToExitdir(src_trackdir);
 
 	/* Is src_tile valid, and can be used?
@@ -941,8 +941,8 @@ static void NPFFollowTrack(AyStar *aystar, OpenListNode *current)
 		{
 			/* We've found ourselves a neighbour :-) */
 			AyStarNode *neighbour = &aystar->neighbours[i];
-			neighbour->tile = dst_tile;
-			neighbour->direction = dst_trackdir;
+			neighbour->pos.tile = dst_tile;
+			neighbour->pos.td = dst_trackdir;
 			/* Save user data */
 			neighbour->user_data[NPF_NODE_FLAGS] = current->path.node.user_data[NPF_NODE_FLAGS];
 			NPFFillTrackdirChoice(neighbour, current);
@@ -996,7 +996,7 @@ static NPFFoundTargetData NPFRouteInternal(AyStarNode *start1, bool ignore_start
 	result.best_bird_dist = UINT_MAX;
 	result.best_path_dist = UINT_MAX;
 	result.best_trackdir  = INVALID_TRACKDIR;
-	result.node.tile      = INVALID_TILE;
+	result.node.pos.tile  = INVALID_TILE;
 	result.res_okay       = false;
 	_npf_aystar.user_path = &result;
 
@@ -1015,10 +1015,10 @@ static NPFFoundTargetData NPFRouteInternal(AyStarNode *start1, bool ignore_start
 
 	if (result.best_bird_dist != 0) {
 		if (target != NULL) {
-			DEBUG(npf, 1, "Could not find route to tile 0x%X from 0x%X.", target->dest_coords, start1->tile);
+			DEBUG(npf, 1, "Could not find route to tile 0x%X from 0x%X.", target->dest_coords, start1->pos.tile);
 		} else {
 			/* Assumption: target == NULL, so we are looking for a depot */
-			DEBUG(npf, 1, "Could not find route to a depot from tile 0x%X.", start1->tile);
+			DEBUG(npf, 1, "Could not find route to a depot from tile 0x%X.", start1->pos.tile);
 		}
 
 	}
@@ -1033,13 +1033,13 @@ static NPFFoundTargetData NPFRouteToStationOrTileTwoWay(TileIndex tile1, Trackdi
 	AyStarNode start1;
 	AyStarNode start2;
 
-	start1.tile = tile1;
-	start2.tile = tile2;
+	start1.pos.tile = tile1;
+	start2.pos.tile = tile2;
 	/* We set this in case the target is also the start tile, we will just
 	 * return a not found then */
 	start1.user_data[NPF_TRACKDIR_CHOICE] = INVALID_TRACKDIR;
-	start1.direction = trackdir1;
-	start2.direction = trackdir2;
+	start1.pos.td = trackdir1;
+	start2.pos.td = trackdir2;
 	start2.user_data[NPF_TRACKDIR_CHOICE] = INVALID_TRACKDIR;
 
 	return NPFRouteInternal(&start1, ignore_start_tile1, (IsValidTile(tile2) ? &start2 : NULL), ignore_start_tile2, target, NPFFindStationOrTile, NPFCalcStationOrTileHeuristic, type, sub_type, owner, railtypes, 0);
@@ -1065,13 +1065,13 @@ static NPFFoundTargetData NPFRouteToDepotBreadthFirstTwoWay(TileIndex tile1, Tra
 	AyStarNode start1;
 	AyStarNode start2;
 
-	start1.tile = tile1;
-	start2.tile = tile2;
+	start1.pos.tile = tile1;
+	start2.pos.tile = tile2;
 	/* We set this in case the target is also the start tile, we will just
 	 * return a not found then */
 	start1.user_data[NPF_TRACKDIR_CHOICE] = INVALID_TRACKDIR;
-	start1.direction = trackdir1;
-	start2.direction = trackdir2;
+	start1.pos.td = trackdir1;
+	start2.pos.td = trackdir2;
 	start2.user_data[NPF_TRACKDIR_CHOICE] = INVALID_TRACKDIR;
 
 	/* perform a breadth first search. Target is NULL,
@@ -1134,7 +1134,7 @@ FindDepotData NPFRoadVehicleFindNearestDepot(const RoadVehicle *v, int max_penal
 	 * number by this. It might not be completely what we want, but it will
 	 * work for now :-) We can possibly change this when the old pathfinder
 	 * is removed. */
-	return FindDepotData(ftd.node.tile, ftd.best_path_dist);
+	return FindDepotData(ftd.node.pos.tile, ftd.best_path_dist);
 }
 
 Trackdir NPFRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)
@@ -1218,7 +1218,7 @@ FindDepotData NPFTrainFindNearestDepot(const Train *v, int max_penalty)
 	 * number by this. It might not be completely what we want, but it will
 	 * work for now :-) We can possibly change this when the old pathfinder
 	 * is removed. */
-	return FindDepotData(ftd.node.tile, ftd.best_path_dist, NPFGetFlag(&ftd.node, NPF_FLAG_REVERSE));
+	return FindDepotData(ftd.node.pos.tile, ftd.best_path_dist, NPFGetFlag(&ftd.node, NPF_FLAG_REVERSE));
 }
 
 bool NPFTrainFindNearestSafeTile(const Train *v, TileIndex tile, Trackdir trackdir, bool override_railtype)
@@ -1230,11 +1230,11 @@ bool NPFTrainFindNearestSafeTile(const Train *v, TileIndex tile, Trackdir trackd
 	fstd.reserve_path = true;
 
 	AyStarNode start1;
-	start1.tile = tile;
+	start1.pos.tile = tile;
 	/* We set this in case the target is also the start tile, we will just
 	 * return a not found then */
 	start1.user_data[NPF_TRACKDIR_CHOICE] = INVALID_TRACKDIR;
-	start1.direction = trackdir;
+	start1.pos.td = trackdir;
 	NPFSetFlag(&start1, NPF_FLAG_IGNORE_RESERVED, true);
 
 	RailTypes railtypes = v->compatible_railtypes;
@@ -1274,8 +1274,8 @@ Trackdir NPFTrainChooseTrack(const Train *v, TileIndex tile, DiagDirection enter
 	NPFFoundTargetData ftd = NPFRouteToStationOrTile(origin.tile, origin.trackdir, true, &fstd, TRANSPORT_RAIL, 0, v->owner, v->compatible_railtypes);
 
 	if (target != NULL) {
-		target->tile = ftd.node.tile;
-		target->trackdir = (Trackdir)ftd.node.direction;
+		target->tile = ftd.node.pos.tile;
+		target->trackdir = ftd.node.pos.td;
 		target->okay = ftd.res_okay;
 	}
 

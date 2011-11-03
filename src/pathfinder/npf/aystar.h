@@ -21,6 +21,7 @@
 #include "queue.h"
 #include "../../tile_type.h"
 #include "../../track_type.h"
+#include "../pathfinder_type.h"
 
 //#define AYSTAR_DEBUG
 
@@ -38,8 +39,7 @@ static const int AYSTAR_INVALID_NODE = -1; ///< Item is not valid (for example, 
 
 /** Node in the search. */
 struct AyStarNode {
-	TileIndex tile;
-	Trackdir direction;
+	PFPos pos;
 	uint user_data[2];
 };
 

@@ -34,7 +34,7 @@
  */
 PathNode *AyStar::ClosedListIsInList(const AyStarNode *node)
 {
-	return (PathNode*)this->closedlist_hash.Get(node->tile, node->direction);
+	return (PathNode*)this->closedlist_hash.Get(node->pos.tile, node->pos.td);
 }
 
 /**
@@ -47,7 +47,7 @@ void AyStar::ClosedListAdd(const PathNode *node)
 	/* Add a node to the ClosedList */
 	PathNode *new_node = MallocT<PathNode>(1);
 	*new_node = *node;
-	this->closedlist_hash.Set(node->node.tile, node->node.direction, new_node);
+	this->closedlist_hash.Set(node->node.pos.tile, node->node.pos.td, new_node);
 }
 
 /**
@@ -57,7 +57,7 @@ void AyStar::ClosedListAdd(const PathNode *node)
  */
 OpenListNode *AyStar::OpenListIsInList(const AyStarNode *node)
 {
-	return (OpenListNode*)this->openlist_hash.Get(node->tile, node->direction);
+	return (OpenListNode*)this->openlist_hash.Get(node->pos.tile, node->pos.td);
 }
 
 /**
@@ -70,7 +70,7 @@ OpenListNode *AyStar::OpenListPop()
 	/* Return the item the Queue returns.. the best next OpenList item. */
 	OpenListNode *res = (OpenListNode*)this->openlist_queue.Pop();
 	if (res != NULL) {
-		this->openlist_hash.DeleteValue(res->path.node.tile, res->path.node.direction);
+		this->openlist_hash.DeleteValue(res->path.node.pos.tile, res->path.node.pos.td);
 	}
 
 	return res;
@@ -87,7 +87,7 @@ void AyStar::OpenListAdd(PathNode *parent, const AyStarNode *node, int f, int g)
 	new_node->g = g;
 	new_node->path.parent = parent;
 	new_node->path.node = *node;
-	this->openlist_hash.Set(node->tile, node->direction, new_node);
+	this->openlist_hash.Set(node->pos.tile, node->pos.td, new_node);
 
 	/* Add it to the queue */
 	this->openlist_queue.Push(new_node, f);

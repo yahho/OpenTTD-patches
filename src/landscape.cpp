@@ -1014,7 +1014,7 @@ static bool FlowsDown(TileIndex begin, TileIndex end)
 /* AyStar callback for checking whether we reached our destination. */
 static int32 River_EndNodeCheck(AyStar *aystar, OpenListNode *current)
 {
-	return current->path.node.tile == *(TileIndex*)aystar->user_target ? AYSTAR_FOUND_END_NODE : AYSTAR_DONE;
+	return current->path.node.pos.tile == *(TileIndex*)aystar->user_target ? AYSTAR_FOUND_END_NODE : AYSTAR_DONE;
 }
 
 /* AyStar callback for getting the cost of the current node. */
@@ -1026,20 +1026,20 @@ static int32 River_CalculateG(AyStar *aystar, AyStarNode *current, OpenListNode 
 /* AyStar callback for getting the estimated cost to the destination. */
 static int32 River_CalculateH(AyStar *aystar, AyStarNode *current, OpenListNode *parent)
 {
-	return DistanceManhattan(*(TileIndex*)aystar->user_target, current->tile);
+	return DistanceManhattan(*(TileIndex*)aystar->user_target, current->pos.tile);
 }
 
 /* AyStar callback for getting the neighbouring nodes of the given node. */
 static void River_GetNeighbours(AyStar *aystar, OpenListNode *current)
 {
-	TileIndex tile = current->path.node.tile;
+	TileIndex tile = current->path.node.pos.tile;
 
 	aystar->num_neighbours = 0;
 	for (DiagDirection d = DIAGDIR_BEGIN; d < DIAGDIR_END; d++) {
 		TileIndex t2 = tile + TileOffsByDiagDir(d);
 		if (IsValidTile(t2) && FlowsDown(tile, t2)) {
-			aystar->neighbours[aystar->num_neighbours].tile = t2;
-			aystar->neighbours[aystar->num_neighbours].direction = INVALID_TRACKDIR;
+			aystar->neighbours[aystar->num_neighbours].pos.tile = t2;
+			aystar->neighbours[aystar->num_neighbours].pos.td = INVALID_TRACKDIR;
 			aystar->num_neighbours++;
 		}
 	}
@@ -1049,7 +1049,7 @@ static void River_GetNeighbours(AyStar *aystar, OpenListNode *current)
 static void River_FoundEndNode(AyStar *aystar, OpenListNode *current)
 {
 	for (PathNode *path = &current->path; path != NULL; path = path->parent) {
-		TileIndex tile = path->node.tile;
+		TileIndex tile = path->node.pos.tile;
 		if (!IsPlainWaterTile(tile)) {
 			MakeRiver(tile, Random());
 			/* Remove desert directly around the river tile. */
@@ -1090,8 +1090,8 @@ static void BuildRiver(TileIndex begin, TileIndex end)
 	finder.Init(River_Hash, 1 << RIVER_HASH_SIZE);
 
 	AyStarNode start;
-	start.tile = begin;
-	start.direction = INVALID_TRACKDIR;
+	start.pos.tile = begin;
+	start.pos.td = INVALID_TRACKDIR;
 	finder.AddStartNode(&start, 0);
 	finder.Main();
 	finder.Free();
