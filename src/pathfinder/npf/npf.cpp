@@ -215,11 +215,6 @@ static uint NPFTunnelCost(AyStarNode *current)
 	}
 }
 
-static inline uint NPFBridgeCost(AyStarNode *current)
-{
-	return NPF_TILE_LENGTH * GetTunnelBridgeLength(current->pos.tile, GetOtherBridgeEnd(current->pos.tile));
-}
-
 static uint NPFSlopeCost(AyStarNode *current)
 {
 	TileIndex next = current->pos.tile + TileOffsByDiagDir(TrackdirToExitdir(current->pos.td));
@@ -327,7 +322,10 @@ static int32 NPFRoadPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 	/* Determine base length */
 	switch (GetTileType(tile)) {
 		case TT_ROAD:
-			cost = IsTileSubtype(tile, TT_BRIDGE) ? NPFBridgeCost(current) : NPF_TILE_LENGTH;
+			cost = NPF_TILE_LENGTH;
+			if (IsTileSubtype(tile, TT_BRIDGE) && GetTunnelBridgeDirection(tile) == ReverseDiagDir(TrackdirToExitdir(current->pos.td))) {
+				cost += NPF_TILE_LENGTH * GetTunnelBridgeLength(tile, GetOtherBridgeEnd(tile));
+			}
 			break;
 
 		case TT_MISC:
