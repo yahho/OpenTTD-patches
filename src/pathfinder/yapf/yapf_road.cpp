@@ -150,8 +150,7 @@ public:
 		}
 
 		/* save end of segment back to the node */
-		n.m_segment_last_tile = pos.tile;
-		n.m_segment_last_td = pos.td;
+		n.m_segment_last = pos;
 
 		/* save also tile cost */
 		int parent_cost = (n.m_parent != NULL) ? n.m_parent->m_cost : 0;
@@ -179,7 +178,7 @@ public:
 	/** Called by YAPF to detect if node ends in the desired destination */
 	inline bool PfDetectDestination(Node& n)
 	{
-		bool bDest = IsRoadDepotTile(n.m_segment_last_tile);
+		bool bDest = IsRoadDepotTile(n.m_segment_last.tile);
 		return bDest;
 	}
 
@@ -243,7 +242,7 @@ public:
 	/** Called by YAPF to detect if node ends in the desired destination */
 	inline bool PfDetectDestination(Node& n)
 	{
-		return PfDetectDestinationTile(n.m_segment_last_tile, n.m_segment_last_td);
+		return PfDetectDestinationTile(n.m_segment_last.tile, n.m_segment_last.td);
 	}
 
 	inline bool PfDetectDestinationTile(TileIndex tile, Trackdir trackdir)
@@ -271,8 +270,8 @@ public:
 			return true;
 		}
 
-		TileIndex tile = n.m_segment_last_tile;
-		DiagDirection exitdir = TrackdirToExitdir(n.m_segment_last_td);
+		TileIndex tile = n.m_segment_last.tile;
+		DiagDirection exitdir = TrackdirToExitdir(n.m_segment_last.td);
 		int x1 = 2 * TileX(tile) + dg_dir_to_x_offs[(int)exitdir];
 		int y1 = 2 * TileY(tile) + dg_dir_to_y_offs[(int)exitdir];
 		int x2 = 2 * TileX(m_destTile);
@@ -316,7 +315,7 @@ public:
 	inline void PfFollowNode(Node& old_node)
 	{
 		TrackFollower F(Yapf().GetVehicle());
-		if (F.Follow(old_node.m_segment_last_tile, old_node.m_segment_last_td)) {
+		if (F.Follow(old_node.m_segment_last)) {
 			Yapf().AddMultipleNodes(&old_node, F);
 		}
 	}
@@ -445,7 +444,7 @@ public:
 
 		if (max_distance > 0 && n->m_cost > max_distance * YAPF_TILE_LENGTH) return false;
 
-		*depot_tile = n->m_segment_last_tile;
+		*depot_tile = n->m_segment_last.tile;
 		return true;
 	}
 };

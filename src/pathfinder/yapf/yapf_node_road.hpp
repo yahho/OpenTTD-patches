@@ -19,14 +19,13 @@ struct CYapfRoadNodeT
 {
 	typedef CYapfNodeT<Tkey_, CYapfRoadNodeT<Tkey_> > base;
 
-	TileIndex       m_segment_last_tile;
-	Trackdir        m_segment_last_td;
+	PFPos m_segment_last;
 
 	void Set(CYapfRoadNodeT *parent, TileIndex tile, Trackdir td, bool is_choice)
 	{
 		base::Set(parent, tile, td, is_choice);
-		m_segment_last_tile = tile;
-		m_segment_last_td = td;
+		m_segment_last.tile = tile;
+		m_segment_last.td = td;
 	}
 };
 
