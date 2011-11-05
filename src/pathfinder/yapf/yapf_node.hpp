@@ -69,8 +69,7 @@ struct CYapfNodeT {
 
 	inline Node *GetHashNext() {return m_hash_next;}
 	inline void SetHashNext(Node *pNext) {m_hash_next = pNext;}
-	inline TileIndex GetTile() const {return m_key.tile;}
-	inline Trackdir GetTrackdir() const {return m_key.td;}
+	inline const PFPos& GetPos() const {return m_key;}
 	inline const Tkey_& GetKey() const {return m_key;}
 	inline int GetCost() const {return m_cost;}
 	inline int GetCostEstimate() const {return m_estimate;}

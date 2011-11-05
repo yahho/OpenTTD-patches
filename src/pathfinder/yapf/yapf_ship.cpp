@@ -41,7 +41,7 @@ public:
 	inline void PfFollowNode(Node& old_node)
 	{
 		TrackFollower F(Yapf().GetVehicle());
-		if (F.Follow(old_node.m_key.tile, old_node.m_key.td)) {
+		if (F.Follow(old_node.GetPos())) {
 			Yapf().AddMultipleNodes(&old_node, F);
 		}
 	}
@@ -91,8 +91,8 @@ public:
 			}
 			/* return trackdir from the best next node (direct child of origin) */
 			Node& best_next_node = *pPrevNode;
-			assert(best_next_node.GetTile() == tile);
-			next_trackdir = best_next_node.GetTrackdir();
+			assert(best_next_node.GetPos().tile == tile);
+			next_trackdir = best_next_node.GetPos().td;
 		}
 		return next_trackdir;
 	}
@@ -128,7 +128,7 @@ public:
 			pNode = pNode->m_parent;
 		}
 
-		Trackdir best_trackdir = pNode->GetTrackdir();
+		Trackdir best_trackdir = pNode->GetPos().td;
 		assert(best_trackdir == td1 || best_trackdir == td2);
 		return best_trackdir == td2;
 	}
@@ -160,9 +160,9 @@ public:
 	inline bool PfCalcCost(Node& n, const TrackFollower *tf)
 	{
 		/* base tile cost depending on distance */
-		int c = IsDiagonalTrackdir(n.GetTrackdir()) ? YAPF_TILE_LENGTH : YAPF_TILE_CORNER_LENGTH;
+		int c = IsDiagonalTrackdir(n.GetPos().td) ? YAPF_TILE_LENGTH : YAPF_TILE_CORNER_LENGTH;
 		/* additional penalty for curves */
-		if (n.m_parent != NULL && n.GetTrackdir() != NextTrackdir(n.m_parent->GetTrackdir())) {
+		if (n.m_parent != NULL && n.GetPos().td != NextTrackdir(n.m_parent->GetPos().td)) {
 			/* new trackdir does not match the next one when going straight */
 			c += YAPF_TILE_LENGTH;
 		}
@@ -172,7 +172,7 @@ public:
 
 		/* Ocean/canal speed penalty. */
 		const ShipVehicleInfo *svi = ShipVehInfo(Yapf().GetVehicle()->engine_type);
-		byte speed_frac = (GetEffectiveWaterClass(n.GetTile()) == WATER_CLASS_SEA) ? svi->ocean_speed_frac : svi->canal_speed_frac;
+		byte speed_frac = (GetEffectiveWaterClass(n.GetPos().tile) == WATER_CLASS_SEA) ? svi->ocean_speed_frac : svi->canal_speed_frac;
 		if (speed_frac > 0) c += YAPF_TILE_LENGTH * (1 + tf->m_tiles_skipped) * speed_frac / (256 - speed_frac);
 
 		/* apply it */

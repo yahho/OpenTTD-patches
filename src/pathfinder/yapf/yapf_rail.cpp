@@ -455,7 +455,7 @@ public:
 			}
 			/* return trackdir from the best origin node (one of start nodes) */
 			Node& best_next_node = *pPrev;
-			next_trackdir = best_next_node.GetTrackdir();
+			next_trackdir = best_next_node.GetPos().td;
 
 			if (reserve_track && path_found) this->TryReservePath(target, pNode->GetLastTile());
 		}

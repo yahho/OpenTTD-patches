@@ -277,8 +277,8 @@ public:
 	inline bool PfCalcCost(Node &n, const TrackFollower *tf)
 	{
 		assert(!n.flags_u.flags_s.m_targed_seen);
-		assert(tf->m_new.tile == n.m_key.tile);
-		assert((TrackdirToTrackdirBits(n.m_key.td) & tf->m_new.trackdirs) != TRACKDIR_BIT_NONE);
+		assert(tf->m_new.tile == n.GetPos().tile);
+		assert((TrackdirToTrackdirBits(n.GetPos().td) & tf->m_new.trackdirs) != TRACKDIR_BIT_NONE);
 
 		CPerfStart perf_cost(Yapf().m_perf_cost);
 
@@ -323,8 +323,8 @@ public:
 
 		const Train *v = Yapf().GetVehicle();
 
-		/* start at n.m_key.m_tile / n.m_key.m_td and walk to the end of segment */
-		TILE cur(n.m_key.tile, n.m_key.td);
+		/* start at n and walk to the end of segment */
+		TILE cur(n.GetPos().tile, n.GetPos().td);
 
 		/* the previous tile will be needed for transition cost calculations */
 		TILE prev = !has_parent ? TILE() : TILE(n.m_parent->GetLastTile(), n.m_parent->GetLastTrackdir());
@@ -523,7 +523,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			}
 
 			/* Avoid infinite looping. */
-			if (next.tile == n.m_key.tile && next.td == n.m_key.td) {
+			if (next.tile == n.GetPos().tile && next.td == n.GetPos().td) {
 				end_segment_reason |= ESRB_INFINITE_LOOP;
 				break;
 			}
@@ -615,8 +615,8 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 	{
 		n.m_segment = &ci;
 		if (n.m_segment->m_cost < 0) {
-			n.m_segment->m_last_tile = n.m_key.tile;
-			n.m_segment->m_last_td = n.m_key.td;
+			n.m_segment->m_last_tile = n.GetPos().tile;
+			n.m_segment->m_last_td = n.GetPos().td;
 		}
 	}
 
