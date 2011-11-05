@@ -12,16 +12,15 @@
 #ifndef YAPF_NODE_HPP
 #define YAPF_NODE_HPP
 
+#include "../pathfinder_type.h"
+
 /** Yapf Node Key base class. */
-struct CYapfNodeKey {
-	TileIndex      tile;
-	Trackdir       td;
+struct CYapfNodeKey : PFPos {
 	DiagDirection  exitdir;
 
 	inline void Set(TileIndex t, Trackdir d)
 	{
-		tile = t;
-		td = d;
+		PFPos::Set(t, d);
 		exitdir = (d == INVALID_TRACKDIR) ? INVALID_DIAGDIR : TrackdirToExitdir(d);
 	}
 

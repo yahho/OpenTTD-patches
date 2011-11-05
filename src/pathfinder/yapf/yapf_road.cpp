@@ -104,39 +104,38 @@ public:
 	{
 		int segment_cost = 0;
 		uint tiles = 0;
-		/* start at n.m_key.m_tile / n.m_key.m_td and walk to the end of segment */
-		TileIndex tile = n.m_key.tile;
-		Trackdir trackdir = n.m_key.td;
+		/* start at n.m_key and walk to the end of segment */
+		PFPos pos = n.m_key;
 		for (;;) {
 			/* base tile cost depending on distance between edges */
-			segment_cost += Yapf().OneTileCost(tile, trackdir);
+			segment_cost += Yapf().OneTileCost(pos.tile, pos.td);
 
 			const RoadVehicle *v = Yapf().GetVehicle();
 			/* we have reached the vehicle's destination - segment should end here to avoid target skipping */
-			if (Yapf().PfDetectDestinationTile(tile, trackdir)) break;
+			if (Yapf().PfDetectDestinationTile(pos.tile, pos.td)) break;
 
 			/* stop if we have just entered the depot */
-			if (IsRoadDepotTile(tile) && trackdir == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(tile)))) {
+			if (IsRoadDepotTile(pos.tile) && pos.td == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(pos.tile)))) {
 				/* next time we will reverse and leave the depot */
 				break;
 			}
 
 			/* if there are no reachable trackdirs on new tile, we have end of road */
 			TrackFollower F(Yapf().GetVehicle());
-			if (!F.Follow(tile, trackdir)) break;
+			if (!F.Follow(pos)) break;
 
 			/* if there are more trackdirs available & reachable, we are at the end of segment */
 			if (!F.m_new.IsTrackdirSet()) break;
 
 			/* stop if RV is on simple loop with no junctions */
-			if (F.m_new.tile == n.m_key.tile && F.m_new.td == n.m_key.td) return false;
+			if (F.m_new == n.m_key) return false;
 
 			/* if we skipped some tunnel tiles, add their cost */
 			segment_cost += F.m_tiles_skipped * YAPF_TILE_LENGTH;
 			tiles += F.m_tiles_skipped + 1;
 
 			/* add hilly terrain penalty */
-			segment_cost += Yapf().SlopeCost(tile, F.m_new.tile, trackdir);
+			segment_cost += Yapf().SlopeCost(pos.tile, F.m_new.tile, pos.td);
 
 			/* add min/max speed penalties */
 			int min_speed = 0;
@@ -146,14 +145,13 @@ public:
 			if (min_speed > max_veh_speed) segment_cost += 10 * (min_speed - max_veh_speed);
 
 			/* move to the next tile */
-			tile = F.m_new.tile;
-			trackdir = F.m_new.td;
+			pos = F.m_new;
 			if (tiles > MAX_MAP_SIZE) break;
 		}
 
 		/* save end of segment back to the node */
-		n.m_segment_last_tile = tile;
-		n.m_segment_last_td = trackdir;
+		n.m_segment_last_tile = pos.tile;
+		n.m_segment_last_td = pos.td;
 
 		/* save also tile cost */
 		int parent_cost = (n.m_parent != NULL) ? n.m_parent->m_cost : 0;
