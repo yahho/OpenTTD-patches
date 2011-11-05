@@ -41,7 +41,7 @@ public:
 	inline void PfFollowNode(Node& old_node)
 	{
 		TrackFollower F(Yapf().GetVehicle());
-		if (F.Follow(old_node.m_key.m_tile, old_node.m_key.m_td)) {
+		if (F.Follow(old_node.m_key.tile, old_node.m_key.td)) {
 			Yapf().AddMultipleNodes(&old_node, F);
 		}
 	}

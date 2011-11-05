@@ -14,37 +14,37 @@
 
 /** Yapf Node Key base class. */
 struct CYapfNodeKey {
-	TileIndex      m_tile;
-	Trackdir       m_td;
-	DiagDirection  m_exitdir;
+	TileIndex      tile;
+	Trackdir       td;
+	DiagDirection  exitdir;
 
-	inline void Set(TileIndex tile, Trackdir td)
+	inline void Set(TileIndex t, Trackdir d)
 	{
-		m_tile = tile;
-		m_td = td;
-		m_exitdir = (m_td == INVALID_TRACKDIR) ? INVALID_DIAGDIR : TrackdirToExitdir(m_td);
+		tile = t;
+		td = d;
+		exitdir = (d == INVALID_TRACKDIR) ? INVALID_DIAGDIR : TrackdirToExitdir(d);
 	}
 
 	void Dump(DumpTarget &dmp) const
 	{
-		dmp.WriteTile("m_tile", m_tile);
-		dmp.WriteEnumT("m_td", m_td);
-		dmp.WriteEnumT("m_exitdir", m_exitdir);
+		dmp.WriteTile("m_tile", tile);
+		dmp.WriteEnumT("m_td", td);
+		dmp.WriteEnumT("m_exitdir", exitdir);
 	}
 };
 
 /** Yapf Node Key that evaluates hash from (and compares) tile & exit dir. */
 struct CYapfNodeKeyExitDir : public CYapfNodeKey
 {
-	inline int CalcHash() const {return m_exitdir | (m_tile << 2);}
-	inline bool operator == (const CYapfNodeKeyExitDir& other) const {return (m_tile == other.m_tile) && (m_exitdir == other.m_exitdir);}
+	inline int CalcHash() const {return exitdir | (tile << 2);}
+	inline bool operator == (const CYapfNodeKeyExitDir& other) const {return (tile == other.tile) && (exitdir == other.exitdir);}
 };
 
 /** Yapf Node Key that evaluates hash from (and compares) tile & track dir. */
 struct CYapfNodeKeyTrackDir : public CYapfNodeKey
 {
-	inline int CalcHash() const {return m_td | (m_tile << 4);}
-	inline bool operator == (const CYapfNodeKeyTrackDir& other) const {return (m_tile == other.m_tile) && (m_td == other.m_td);}
+	inline int CalcHash() const {return td | (tile << 4);}
+	inline bool operator == (const CYapfNodeKeyTrackDir& other) const {return (tile == other.tile) && (td == other.td);}
 };
 
 /** Yapf Node base */
@@ -70,8 +70,8 @@ struct CYapfNodeT {
 
 	inline Node *GetHashNext() {return m_hash_next;}
 	inline void SetHashNext(Node *pNext) {m_hash_next = pNext;}
-	inline TileIndex GetTile() const {return m_key.m_tile;}
-	inline Trackdir GetTrackdir() const {return m_key.m_td;}
+	inline TileIndex GetTile() const {return m_key.tile;}
+	inline Trackdir GetTrackdir() const {return m_key.td;}
 	inline const Tkey_& GetKey() const {return m_key;}
 	inline int GetCost() const {return m_cost;}
 	inline int GetCostEstimate() const {return m_estimate;}

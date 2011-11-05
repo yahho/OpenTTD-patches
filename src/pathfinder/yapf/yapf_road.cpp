@@ -105,8 +105,8 @@ public:
 		int segment_cost = 0;
 		uint tiles = 0;
 		/* start at n.m_key.m_tile / n.m_key.m_td and walk to the end of segment */
-		TileIndex tile = n.m_key.m_tile;
-		Trackdir trackdir = n.m_key.m_td;
+		TileIndex tile = n.m_key.tile;
+		Trackdir trackdir = n.m_key.td;
 		for (;;) {
 			/* base tile cost depending on distance between edges */
 			segment_cost += Yapf().OneTileCost(tile, trackdir);
@@ -129,7 +129,7 @@ public:
 			if (!F.m_new.IsTrackdirSet()) break;
 
 			/* stop if RV is on simple loop with no junctions */
-			if (F.m_new.tile == n.m_key.m_tile && F.m_new.td == n.m_key.m_td) return false;
+			if (F.m_new.tile == n.m_key.tile && F.m_new.td == n.m_key.td) return false;
 
 			/* if we skipped some tunnel tiles, add their cost */
 			segment_cost += F.m_tiles_skipped * YAPF_TILE_LENGTH;
