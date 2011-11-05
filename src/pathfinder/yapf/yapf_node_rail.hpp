@@ -39,16 +39,6 @@ struct CYapfRailSegmentKey
 		return m_value;
 	}
 
-	inline TileIndex GetTile() const
-	{
-		return (TileIndex)(m_value >> 4);
-	}
-
-	inline Trackdir GetTrackdir() const
-	{
-		return (Trackdir)(m_value & 0x0F);
-	}
-
 	inline bool operator == (const CYapfRailSegmentKey& other) const
 	{
 		return m_value == other.m_value;
@@ -56,8 +46,8 @@ struct CYapfRailSegmentKey
 
 	void Dump(DumpTarget &dmp) const
 	{
-		dmp.WriteTile("tile", GetTile());
-		dmp.WriteEnumT("td", GetTrackdir());
+		dmp.WriteTile("tile", (TileIndex)(m_value >> 4));
+		dmp.WriteEnumT("td", (Trackdir)(m_value & 0x0F));
 	}
 };
 
@@ -85,11 +75,6 @@ struct CYapfRailSegment
 	inline const Key& GetKey() const
 	{
 		return m_key;
-	}
-
-	inline TileIndex GetTile() const
-	{
-		return m_key.GetTile();
 	}
 
 	inline CYapfRailSegment *GetHashNext()
