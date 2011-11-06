@@ -377,24 +377,23 @@ static int32 NPFRoadPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 /* Determine the cost of this node, for railway tracks */
 static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *parent)
 {
-	TileIndex tile = current->pos.tile;
-	Trackdir trackdir = current->pos.td;
+	PFPos pos = current->pos;
 	int32 cost = 0;
 	/* HACK: We create a OpenListNode manually, so we can call EndNodeCheck */
 	OpenListNode new_node;
 
 	/* Determine base length */
-	switch (GetTileType(tile)) {
+	switch (GetTileType(pos.tile)) {
 		case TT_RAILWAY:
-			cost = _trackdir_length[trackdir]; // Should be different for diagonal tracks
-			if (IsTileSubtype(tile, TT_BRIDGE) && GetTunnelBridgeDirection(tile) == ReverseDiagDir(TrackdirToExitdir(current->pos.td))) {
-				cost += NPF_TILE_LENGTH * GetTunnelBridgeLength(tile, GetOtherBridgeEnd(tile));
+			cost = _trackdir_length[pos.td]; // Should be different for diagonal tracks
+			if (IsTileSubtype(pos.tile, TT_BRIDGE) && GetTunnelBridgeDirection(pos.tile) == ReverseDiagDir(TrackdirToExitdir(current->pos.td))) {
+				cost += NPF_TILE_LENGTH * GetTunnelBridgeLength(pos.tile, GetOtherBridgeEnd(pos.tile));
 			}
 			break;
 
 		case TT_MISC:
-			if (IsLevelCrossingTile(tile)) cost = NPF_TILE_LENGTH;
-			else if (IsTunnelTile(tile)) cost = NPFTunnelCost(current);
+			if (IsLevelCrossingTile(pos.tile)) cost = NPF_TILE_LENGTH;
+			else if (IsTunnelTile(pos.tile)) cost = NPFTunnelCost(current);
 			break;
 
 		case TT_STATION:
@@ -406,15 +405,15 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 			 * will therefore not make a difference. */
 			cost = NPF_TILE_LENGTH + _settings_game.pf.npf.npf_rail_station_penalty;
 
-			if (IsRailWaypoint(tile)) {
+			if (IsRailWaypoint(pos.tile)) {
 				NPFFindStationOrTileData *fstd = (NPFFindStationOrTileData*)as->user_target;
-				if (fstd->v->current_order.IsType(OT_GOTO_WAYPOINT) && GetStationIndex(tile) == fstd->v->current_order.GetDestination()) {
+				if (fstd->v->current_order.IsType(OT_GOTO_WAYPOINT) && GetStationIndex(pos.tile) == fstd->v->current_order.GetDestination()) {
 					/* This waypoint is our destination; maybe this isn't an unreserved
 					 * one, so check that and if so see that as the last signal being
 					 * red. This way waypoints near stations should work better. */
 					const Train *train = Train::From(fstd->v);
 					CFollowTrackRail ft(train);
-					ft.SetPos(PFPos(tile, trackdir));
+					ft.SetPos(pos);
 					while (ft.FollowNext()) {
 						assert(ft.m_old.tile != ft.m_new.tile);
 						if (!ft.m_new.IsTrackdirSet()) {
@@ -441,11 +440,11 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 	/* Determine extra costs */
 
 	/* Check for signals */
-	if (IsNormalRailTile(tile)) {
-		if (HasSignalOnTrackdir(tile, trackdir)) {
-			SignalType sigtype = GetSignalType(tile, TrackdirToTrack(trackdir));
+	if (IsNormalRailTile(pos.tile)) {
+		if (HasSignalOnTrackdir(pos.tile, pos.td)) {
+			SignalType sigtype = GetSignalType(pos.tile, TrackdirToTrack(pos.td));
 			/* Ordinary track with signals */
-			if (GetSignalStateByTrackdir(tile, trackdir) == SIGNAL_STATE_RED) {
+			if (GetSignalStateByTrackdir(pos.tile, pos.td) == SIGNAL_STATE_RED) {
 				/* Signal facing us is red */
 				if (!NPFGetFlag(current, NPF_FLAG_SEEN_SIGNAL)) {
 					/* Penalize the first signal we
@@ -480,7 +479,7 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 			NPFSetFlag(current, NPF_FLAG_LAST_SIGNAL_BLOCK, !IsPbsSignal(sigtype));
 		}
 
-		if (HasPbsSignalOnTrackdir(tile, ReverseTrackdir(trackdir)) && !NPFGetFlag(current, NPF_FLAG_3RD_SIGNAL)) {
+		if (HasPbsSignalOnTrackdir(pos.tile, ReverseTrackdir(pos.td)) && !NPFGetFlag(current, NPF_FLAG_3RD_SIGNAL)) {
 			cost += _settings_game.pf.npf.npf_rail_pbs_signal_back_penalty;
 		}
 	}
@@ -505,7 +504,7 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 	 *      curves should be taken into account, as this affects the speed limit. */
 
 	/* Check for reverse in depot */
-	if (IsRailDepotTile(tile) && as->EndNodeCheck(as, &new_node) != AYSTAR_FOUND_END_NODE) {
+	if (IsRailDepotTile(pos.tile) && as->EndNodeCheck(as, &new_node) != AYSTAR_FOUND_END_NODE) {
 		/* Penalise any depot tile that is not the last tile in the path. This
 		 * _should_ penalise every occurrence of reversing in a depot (and only
 		 * that) */
@@ -515,7 +514,7 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 	/* Check for occupied track */
 	cost += NPFReservedTrackCost(current);
 
-	NPFMarkTile(tile);
+	NPFMarkTile(pos.tile);
 	DEBUG(npf, 4, "Calculating G for: (%d, %d). Result: %d", TileX(current->pos.tile), TileY(current->pos.tile), cost);
 	return cost;
 }
