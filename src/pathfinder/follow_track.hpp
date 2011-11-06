@@ -117,10 +117,9 @@ public:
 	 * main follower routine. Fills all members and return true on success.
 	 *  Otherwise returns false if track can't be followed.
 	 */
-	inline bool Follow(TileIndex old_tile, Trackdir old_td)
+	inline bool Follow(const PFPos &pos)
 	{
-		m_old.tile = old_tile;
-		m_old.td = old_td;
+		m_old = pos;
 		m_err = EC_NONE;
 		assert(((GetTrackStatusTrackdirBits(m_old.tile) & TrackdirToTrackdirBits(m_old.td)) != 0) ||
 		       (IsTram() && GetSingleTramBit(m_old.tile) != INVALID_DIAGDIR)); // Disable the assertion for single tram bits
@@ -153,6 +152,11 @@ public:
 		/* Check if the resulting trackdirs is a single trackdir */
 		m_new.SetTrackdir();
 		return true;
+	}
+
+	inline bool Follow(TileIndex old_tile, Trackdir old_td)
+	{
+		return Follow(PFPos(old_tile, old_td));
 	}
 
 	inline bool MaskReservedTracks()
