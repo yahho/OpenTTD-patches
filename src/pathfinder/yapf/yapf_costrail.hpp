@@ -122,13 +122,13 @@ public:
 	}
 
 	/** Return one tile cost (base cost + level crossing penalty). */
-	inline int OneTileCost(TileIndex& tile, Trackdir trackdir)
+	inline int OneTileCost(const PFPos &pos)
 	{
 		int cost = 0;
 		/* set base cost */
-		if (IsDiagonalTrackdir(trackdir)) {
+		if (IsDiagonalTrackdir(pos.td)) {
 			cost += YAPF_TILE_LENGTH;
-			if (IsLevelCrossingTile(tile)) {
+			if (IsLevelCrossingTile(pos.tile)) {
 				/* Increase the cost for level crossings */
 				cost += Yapf().PfGetSettings().rail_crossing_penalty;
 			}
@@ -372,7 +372,7 @@ public:
 no_entry_cost: // jump here at the beginning if the node has no parent (it is the first node)
 
 			/* All other tile costs will be calculated here. */
-			segment_cost += Yapf().OneTileCost(cur.tile, cur.td);
+			segment_cost += Yapf().OneTileCost(cur);
 
 			/* If we skipped some tunnel/bridge/station tiles, add their base cost */
 			segment_cost += YAPF_TILE_LENGTH * tf->m_tiles_skipped;
