@@ -162,18 +162,18 @@ struct CYapfRailNodeT
 	}
 
 	template <class Tbase, class Tfunc, class Tpf>
-	bool IterateTiles(const Train *v, Tpf &yapf, Tbase &obj, bool (Tfunc::*func)(TileIndex, Trackdir)) const
+	bool IterateTiles(const Train *v, Tpf &yapf, Tbase &obj, bool (Tfunc::*func)(const PFPos&)) const
 	{
 		typename Tbase::TrackFollower ft(v, yapf.GetCompatibleRailTypes());
 		ft.SetPos(base::GetPos());
 
 		while (ft.m_new != GetLastPos()) {
-			if (!((obj.*func)(ft.m_new.tile, ft.m_new.td))) return false;
+			if (!((obj.*func)(ft.m_new))) return false;
 			ft.FollowNext();
 			assert(ft.m_new.IsTrackdirSet());
 		}
 
-		return (obj.*func)(ft.m_new.tile, ft.m_new.td);
+		return (obj.*func)(ft.m_new);
 	}
 
 	void Dump(DumpTarget &dmp) const

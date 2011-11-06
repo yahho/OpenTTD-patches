@@ -61,71 +61,71 @@ private:
 	Trackdir  m_res_fail_td;      ///< The trackdir where the reservation failed
 	TileIndex m_origin_tile;      ///< Tile our reservation will originate from
 
-	bool FindSafePositionProc(TileIndex tile, Trackdir td)
+	bool FindSafePositionProc(const PFPos &pos)
 	{
-		if (IsSafeWaitingPosition(Yapf().GetVehicle(), tile, td, !TrackFollower::Allow90degTurns())) {
-			m_res_dest = tile;
-			m_res_dest_td = td;
+		if (IsSafeWaitingPosition(Yapf().GetVehicle(), pos.tile, pos.td, !TrackFollower::Allow90degTurns())) {
+			m_res_dest = pos.tile;
+			m_res_dest_td = pos.td;
 			return false;   // Stop iterating segment
 		}
 		return true;
 	}
 
 	/** Try to reserve a single track/platform. */
-	bool ReserveSingleTrack(TileIndex tile, Trackdir td)
+	bool ReserveSingleTrack(const PFPos &pos)
 	{
-		if (IsRailStationTile(tile)) {
-			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(td)));
-			TileIndex t = tile;
+		if (IsRailStationTile(pos.tile)) {
+			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
+			TileIndex t = pos.tile;
 
 			do {
 				if (HasStationReservation(t)) {
 					/* Platform could not be reserved, undo. */
-					TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(td));
-					while (t != tile) {
+					TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(pos.td));
+					while (t != pos.tile) {
 						t = TILE_ADD(t, diff);
 						SetRailStationReservation(t, false);
 					}
-					m_res_fail_tile = tile;
-					m_res_fail_td = td;
+					m_res_fail_tile = pos.tile;
+					m_res_fail_td = pos.td;
 					return false;
 				}
 				SetRailStationReservation(t, true);
 				MarkTileDirtyByTile(t);
 				t = TILE_ADD(t, diff);
-			} while (IsCompatibleTrainStationTile(t, tile) && t != m_origin_tile);
+			} while (IsCompatibleTrainStationTile(t, pos.tile) && t != m_origin_tile);
 
-			TriggerStationRandomisation(NULL, tile, SRT_PATH_RESERVATION);
+			TriggerStationRandomisation(NULL, pos.tile, SRT_PATH_RESERVATION);
 		} else {
-			if (!TryReserveRailTrack(tile, TrackdirToTrack(td))) {
+			if (!TryReserveRailTrack(pos.tile, TrackdirToTrack(pos.td))) {
 				/* Tile couldn't be reserved, undo. */
-				m_res_fail_tile = tile;
-				m_res_fail_td = td;
+				m_res_fail_tile = pos.tile;
+				m_res_fail_td = pos.td;
 				return false;
 			}
 		}
 
-		return tile != m_res_dest || td != m_res_dest_td;
+		return pos.tile != m_res_dest || pos.td != m_res_dest_td;
 	}
 
 	/** Unreserve a single track/platform. Stops when the previous failer is reached. */
-	bool UnreserveSingleTrack(TileIndex tile, Trackdir td)
+	bool UnreserveSingleTrack(const PFPos &pos)
 	{
-		if (tile == m_res_fail_tile && td == m_res_fail_td) return false;
+		if (pos.tile == m_res_fail_tile && pos.td == m_res_fail_td) return false;
 
-		if (IsRailStationTile(tile)) {
-			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(td)));
-			TileIndex     t = tile;
-			while (IsCompatibleTrainStationTile(t, tile) && t != m_origin_tile) {
+		if (IsRailStationTile(pos.tile)) {
+			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
+			TileIndex     t = pos.tile;
+			while (IsCompatibleTrainStationTile(t, pos.tile) && t != m_origin_tile) {
 				assert(HasStationReservation(t));
 				SetRailStationReservation(t, false);
 				t = TILE_ADD(t, diff);
 			}
 		} else {
-			UnreserveRailTrack(tile, TrackdirToTrack(td));
+			UnreserveRailTrack(pos.tile, TrackdirToTrack(pos.td));
 		}
 
-		return tile != m_res_dest || td != m_res_dest_td;
+		return pos.tile != m_res_dest || pos.td != m_res_dest_td;
 	}
 
 public:
