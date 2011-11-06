@@ -53,14 +53,13 @@ public:
 	/** Called by YAPF to detect if node ends in the desired destination */
 	inline bool PfDetectDestination(Node& n)
 	{
-		return PfDetectDestination(n.GetLastPos().tile, n.GetLastPos().td);
+		return PfDetectDestination(n.GetLastPos());
 	}
 
 	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination(TileIndex tile, Trackdir td)
+	inline bool PfDetectDestination(const PFPos &pos)
 	{
-		bool bDest = IsRailDepotTile(tile);
-		return bDest;
+		return IsRailDepotTile(pos.tile);
 	}
 
 	/**
@@ -93,13 +92,13 @@ public:
 	/** Called by YAPF to detect if node ends in the desired destination */
 	inline bool PfDetectDestination(Node& n)
 	{
-		return PfDetectDestination(n.GetLastPos().tile, n.GetLastPos().td);
+		return PfDetectDestination(n.GetLastPos());
 	}
 
 	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination(TileIndex tile, Trackdir td)
+	inline bool PfDetectDestination(const PFPos &pos)
 	{
-		return IsFreeSafeWaitingPosition(Yapf().GetVehicle(), tile, td, !TrackFollower::Allow90degTurns());
+		return IsFreeSafeWaitingPosition(Yapf().GetVehicle(), pos.tile, pos.td, !TrackFollower::Allow90degTurns());
 	}
 
 	/**
@@ -165,20 +164,20 @@ public:
 	/** Called by YAPF to detect if node ends in the desired destination */
 	inline bool PfDetectDestination(Node& n)
 	{
-		return PfDetectDestination(n.GetLastPos().tile, n.GetLastPos().td);
+		return PfDetectDestination(n.GetLastPos());
 	}
 
 	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination(TileIndex tile, Trackdir td)
+	inline bool PfDetectDestination(const PFPos &pos)
 	{
 		bool bDest;
 		if (m_dest_station_id != INVALID_STATION) {
-			bDest = HasStationTileRail(tile)
-				&& (GetStationIndex(tile) == m_dest_station_id)
-				&& (GetRailStationTrack(tile) == TrackdirToTrack(td));
+			bDest = HasStationTileRail(pos.tile)
+				&& (GetStationIndex(pos.tile) == m_dest_station_id)
+				&& (GetRailStationTrack(pos.tile) == TrackdirToTrack(pos.td));
 		} else {
-			bDest = (tile == m_destTile)
-				&& ((m_destTrackdirs & TrackdirToTrackdirBits(td)) != TRACKDIR_BIT_NONE);
+			bDest = (pos.tile == m_destTile)
+				&& ((m_destTrackdirs & TrackdirToTrackdirBits(pos.td)) != TRACKDIR_BIT_NONE);
 		}
 		return bDest;
 	}

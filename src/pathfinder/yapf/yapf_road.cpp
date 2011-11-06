@@ -112,7 +112,7 @@ public:
 
 			const RoadVehicle *v = Yapf().GetVehicle();
 			/* we have reached the vehicle's destination - segment should end here to avoid target skipping */
-			if (Yapf().PfDetectDestinationTile(pos.tile, pos.td)) break;
+			if (Yapf().PfDetectDestinationTile(pos)) break;
 
 			/* stop if we have just entered the depot */
 			if (IsRoadDepotTile(pos.tile) && pos.td == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(pos.tile)))) {
@@ -178,13 +178,12 @@ public:
 	/** Called by YAPF to detect if node ends in the desired destination */
 	inline bool PfDetectDestination(Node& n)
 	{
-		bool bDest = IsRoadDepotTile(n.m_segment_last.tile);
-		return bDest;
+		return IsRoadDepotTile(n.m_segment_last.tile);
 	}
 
-	inline bool PfDetectDestinationTile(TileIndex tile, Trackdir trackdir)
+	inline bool PfDetectDestinationTile(const PFPos &pos)
 	{
-		return IsRoadDepotTile(tile);
+		return IsRoadDepotTile(pos.tile);
 	}
 
 	/**
@@ -242,19 +241,19 @@ public:
 	/** Called by YAPF to detect if node ends in the desired destination */
 	inline bool PfDetectDestination(Node& n)
 	{
-		return PfDetectDestinationTile(n.m_segment_last.tile, n.m_segment_last.td);
+		return PfDetectDestinationTile(n.m_segment_last);
 	}
 
-	inline bool PfDetectDestinationTile(TileIndex tile, Trackdir trackdir)
+	inline bool PfDetectDestinationTile(const PFPos &pos)
 	{
 		if (m_dest_station != INVALID_STATION) {
-			return IsStationTile(tile) &&
-				GetStationIndex(tile) == m_dest_station &&
-				(m_bus ? IsBusStop(tile) : IsTruckStop(tile)) &&
-				(m_non_artic || IsDriveThroughStopTile(tile));
+			return IsStationTile(pos.tile) &&
+				GetStationIndex(pos.tile) == m_dest_station &&
+				(m_bus ? IsBusStop(pos.tile) : IsTruckStop(pos.tile)) &&
+				(m_non_artic || IsDriveThroughStopTile(pos.tile));
 		}
 
-		return tile == m_destTile && ((m_destTrackdirs & TrackdirToTrackdirBits(trackdir)) != TRACKDIR_BIT_NONE);
+		return pos.tile == m_destTile && ((m_destTrackdirs & TrackdirToTrackdirBits(pos.td)) != TRACKDIR_BIT_NONE);
 	}
 
 	/**

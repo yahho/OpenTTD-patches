@@ -543,7 +543,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 		bool target_seen = false;
 		if ((end_segment_reason & ESRB_POSSIBLE_TARGET) != ESRB_NONE) {
 			/* Depot, station or waypoint. */
-			if (Yapf().PfDetectDestination(cur.tile, cur.td)) {
+			if (Yapf().PfDetectDestination(cur)) {
 				/* Destination found. */
 				target_seen = true;
 			}
