@@ -54,18 +54,15 @@ protected:
 	}
 
 private:
-	TileIndex m_res_dest;         ///< The reservation target tile
-	Trackdir  m_res_dest_td;      ///< The reservation target trackdir
+	PFPos     m_res_dest;         ///< The reservation target
 	Node      *m_res_node;        ///< The reservation target node
-	TileIndex m_res_fail_tile;    ///< The tile where the reservation failed
-	Trackdir  m_res_fail_td;      ///< The trackdir where the reservation failed
+	PFPos     m_res_fail;         ///< The position where the reservation failed
 	TileIndex m_origin_tile;      ///< Tile our reservation will originate from
 
 	bool FindSafePositionProc(const PFPos &pos)
 	{
 		if (IsSafeWaitingPosition(Yapf().GetVehicle(), pos.tile, pos.td, !TrackFollower::Allow90degTurns())) {
-			m_res_dest = pos.tile;
-			m_res_dest_td = pos.td;
+			m_res_dest = pos;
 			return false;   // Stop iterating segment
 		}
 		return true;
@@ -86,8 +83,7 @@ private:
 						t = TILE_ADD(t, diff);
 						SetRailStationReservation(t, false);
 					}
-					m_res_fail_tile = pos.tile;
-					m_res_fail_td = pos.td;
+					m_res_fail = pos;
 					return false;
 				}
 				SetRailStationReservation(t, true);
@@ -99,19 +95,18 @@ private:
 		} else {
 			if (!TryReserveRailTrack(pos.tile, TrackdirToTrack(pos.td))) {
 				/* Tile couldn't be reserved, undo. */
-				m_res_fail_tile = pos.tile;
-				m_res_fail_td = pos.td;
+				m_res_fail = pos;
 				return false;
 			}
 		}
 
-		return pos.tile != m_res_dest || pos.td != m_res_dest_td;
+		return pos != m_res_dest;
 	}
 
 	/** Unreserve a single track/platform. Stops when the previous failer is reached. */
 	bool UnreserveSingleTrack(const PFPos &pos)
 	{
-		if (pos.tile == m_res_fail_tile && pos.td == m_res_fail_td) return false;
+		if (pos == m_res_fail) return false;
 
 		if (IsRailStationTile(pos.tile)) {
 			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
@@ -125,16 +120,15 @@ private:
 			UnreserveRailTrack(pos.tile, TrackdirToTrack(pos.td));
 		}
 
-		return pos.tile != m_res_dest || pos.td != m_res_dest_td;
+		return pos != m_res_dest;
 	}
 
 public:
 	/** Set the target to where the reservation should be extended. */
-	inline void SetReservationTarget(Node *node, TileIndex tile, Trackdir td)
+	inline void SetReservationTarget(Node *node, const PFPos &pos)
 	{
 		m_res_node = node;
-		m_res_dest = tile;
-		m_res_dest_td = td;
+		m_res_dest = pos;
 	}
 
 	/** Check the node for a possible reservation target. */
@@ -153,27 +147,26 @@ public:
 	/** Try to reserve the path till the reservation target. */
 	bool TryReservePath(PBSTileInfo *target, TileIndex origin)
 	{
-		m_res_fail_tile = INVALID_TILE;
+		m_res_fail = PFPos();
 		m_origin_tile = origin;
 
 		if (target != NULL) {
-			target->pos.tile = m_res_dest;
-			target->pos.td   = m_res_dest_td;
-			target->okay     = false;
+			target->pos  = m_res_dest;
+			target->okay = false;
 		}
 
 		/* Don't bother if the target is reserved. */
-		if (!IsWaitingPositionFree(Yapf().GetVehicle(), m_res_dest, m_res_dest_td)) return false;
+		if (!IsWaitingPositionFree(Yapf().GetVehicle(), m_res_dest.tile, m_res_dest.td)) return false;
 
 		for (Node *node = m_res_node; node->m_parent != NULL; node = node->m_parent) {
 			node->IterateTiles(Yapf().GetVehicle(), Yapf(), *this, &CYapfReserveTrack<Types>::ReserveSingleTrack);
-			if (m_res_fail_tile != INVALID_TILE) {
+			if (m_res_fail.tile != INVALID_TILE) {
 				/* Reservation failed, undo. */
 				Node *fail_node = m_res_node;
-				TileIndex stop_tile = m_res_fail_tile;
+				TileIndex stop_tile = m_res_fail.tile;
 				do {
 					/* If this is the node that failed, stop at the failed tile. */
-					m_res_fail_tile = fail_node == node ? stop_tile : INVALID_TILE;
+					m_res_fail.tile = fail_node == node ? stop_tile : INVALID_TILE;
 					fail_node->IterateTiles(Yapf().GetVehicle(), Yapf(), *this, &CYapfReserveTrack<Types>::UnreserveSingleTrack);
 				} while (fail_node != node && (fail_node = fail_node->m_parent) != NULL);
 
@@ -355,7 +348,7 @@ public:
 
 		/* Found a destination, set as reservation target. */
 		Node *pNode = Yapf().GetBestNode();
-		this->SetReservationTarget(pNode, pNode->GetLastPos().tile, pNode->GetLastPos().td);
+		this->SetReservationTarget(pNode, pNode->GetLastPos());
 
 		/* Walk through the path back to the origin. */
 		Node *pPrev = NULL;
@@ -444,7 +437,7 @@ public:
 		Node *pNode = Yapf().GetBestNode();
 		if (pNode != NULL) {
 			/* reserve till end of path */
-			this->SetReservationTarget(pNode, pNode->GetLastPos().tile, pNode->GetLastPos().td);
+			this->SetReservationTarget(pNode, pNode->GetLastPos());
 
 			/* path was found or at least suggested
 			 * walk through the path back to the origin */
