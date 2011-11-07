@@ -81,7 +81,12 @@ private:
 			do {
 				if (HasStationReservation(t)) {
 					/* Platform could not be reserved, undo. */
-					m_res_fail_tile = t;
+					TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(td));
+					while (t != tile) {
+						t = TILE_ADD(t, diff);
+						SetRailStationReservation(t, false);
+					}
+					m_res_fail_tile = tile;
 					m_res_fail_td = td;
 					return false;
 				}
@@ -106,17 +111,21 @@ private:
 	/** Unreserve a single track/platform. Stops when the previous failer is reached. */
 	bool UnreserveSingleTrack(TileIndex tile, Trackdir td)
 	{
+		if (tile == m_res_fail_tile && td == m_res_fail_td) return false;
+
 		if (IsRailStationTile(tile)) {
-			TileIndex     start = tile;
 			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(td)));
-			while ((tile != m_res_fail_tile || td != m_res_fail_td) && IsCompatibleTrainStationTile(tile, start)) {
-				SetRailStationReservation(tile, false);
-				tile = TILE_ADD(tile, diff);
+			TileIndex     t = tile;
+			while (IsCompatibleTrainStationTile(t, tile) && t != m_origin_tile) {
+				assert(HasStationReservation(t));
+				SetRailStationReservation(t, false);
+				t = TILE_ADD(t, diff);
 			}
-		} else if (tile != m_res_fail_tile || td != m_res_fail_td) {
+		} else {
 			UnreserveRailTrack(tile, TrackdirToTrack(td));
 		}
-		return (tile != m_res_dest || td != m_res_dest_td) && (tile != m_res_fail_tile || td != m_res_fail_td);
+
+		return tile != m_res_dest || td != m_res_dest_td;
 	}
 
 public:
