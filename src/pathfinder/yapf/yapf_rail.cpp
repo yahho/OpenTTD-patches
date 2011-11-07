@@ -56,10 +56,9 @@ protected:
 private:
 	PFPos     m_res_dest;         ///< The reservation target
 	Node      *m_res_node;        ///< The reservation target node
-	PFPos     m_res_fail;         ///< The position where the reservation failed
 	TileIndex m_origin_tile;      ///< Tile our reservation will originate from
 
-	bool FindSafePositionProc(const PFPos &pos)
+	bool FindSafePositionProc(const PFPos &pos, PFPos*)
 	{
 		if (IsSafeWaitingPosition(Yapf().GetVehicle(), pos.tile, pos.td, !TrackFollower::Allow90degTurns())) {
 			m_res_dest = pos;
@@ -69,7 +68,7 @@ private:
 	}
 
 	/** Try to reserve a single track/platform. */
-	bool ReserveSingleTrack(const PFPos &pos)
+	bool ReserveSingleTrack(const PFPos &pos, PFPos *fail)
 	{
 		if (IsRailStationTile(pos.tile)) {
 			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
@@ -83,7 +82,7 @@ private:
 						t = TILE_ADD(t, diff);
 						SetRailStationReservation(t, false);
 					}
-					m_res_fail = pos;
+					*fail = pos;
 					return false;
 				}
 				SetRailStationReservation(t, true);
@@ -95,7 +94,7 @@ private:
 		} else {
 			if (!TryReserveRailTrack(pos.tile, TrackdirToTrack(pos.td))) {
 				/* Tile couldn't be reserved, undo. */
-				m_res_fail = pos;
+				*fail = pos;
 				return false;
 			}
 		}
@@ -104,9 +103,9 @@ private:
 	}
 
 	/** Unreserve a single track/platform. Stops when the previous failer is reached. */
-	bool UnreserveSingleTrack(const PFPos &pos)
+	bool UnreserveSingleTrack(const PFPos &pos, PFPos *stop)
 	{
-		if (pos == m_res_fail) return false;
+		if (stop != NULL && pos == *stop) return false;
 
 		if (IsRailStationTile(pos.tile)) {
 			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
@@ -147,7 +146,6 @@ public:
 	/** Try to reserve the path till the reservation target. */
 	bool TryReservePath(PBSTileInfo *target, TileIndex origin)
 	{
-		m_res_fail = PFPos();
 		m_origin_tile = origin;
 
 		if (target != NULL) {
@@ -158,18 +156,17 @@ public:
 		/* Don't bother if the target is reserved. */
 		if (!IsWaitingPositionFree(Yapf().GetVehicle(), m_res_dest.tile, m_res_dest.td)) return false;
 
-		for (Node *node = m_res_node; node->m_parent != NULL; node = node->m_parent) {
-			node->IterateTiles(Yapf().GetVehicle(), Yapf(), *this, &CYapfReserveTrack<Types>::ReserveSingleTrack);
-			if (m_res_fail.tile != INVALID_TILE) {
-				/* Reservation failed, undo. */
-				Node *fail_node = m_res_node;
-				TileIndex stop_tile = m_res_fail.tile;
-				do {
-					/* If this is the node that failed, stop at the failed tile. */
-					m_res_fail.tile = fail_node == node ? stop_tile : INVALID_TILE;
-					fail_node->IterateTiles(Yapf().GetVehicle(), Yapf(), *this, &CYapfReserveTrack<Types>::UnreserveSingleTrack);
-				} while (fail_node != node && (fail_node = fail_node->m_parent) != NULL);
+		PFPos res_fail;
 
+		for (Node *node = m_res_node; node->m_parent != NULL; node = node->m_parent) {
+			node->IterateTiles(Yapf().GetVehicle(), Yapf(), *this, &CYapfReserveTrack<Types>::ReserveSingleTrack, &res_fail);
+			if (res_fail.tile != INVALID_TILE) {
+				/* Reservation failed, undo. */
+				Node *failed_node = node;
+				for (node = m_res_node; node != failed_node; node = node->m_parent) {
+					node->IterateTiles(Yapf().GetVehicle(), Yapf(), *this, &CYapfReserveTrack<Types>::UnreserveSingleTrack, NULL);
+				}
+				failed_node->IterateTiles(Yapf().GetVehicle(), Yapf(), *this, &CYapfReserveTrack<Types>::UnreserveSingleTrack, &res_fail);
 				return false;
 			}
 		}
