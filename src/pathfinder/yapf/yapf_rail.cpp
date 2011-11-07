@@ -97,6 +97,7 @@ private:
 				/* Platform could not be reserved, undo. */
 				m_res_fail_tile = tile;
 				m_res_fail_td = td;
+				return false;
 			}
 		} else {
 			if (!TryReserveRailTrack(tile, TrackdirToTrack(td))) {
