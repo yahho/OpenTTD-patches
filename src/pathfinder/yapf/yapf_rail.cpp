@@ -71,34 +71,26 @@ private:
 		return true;
 	}
 
-	/** Reserve a railway platform. Tile contains the failed tile on abort. */
-	bool ReserveRailStationPlatform(TileIndex &tile, DiagDirection dir)
-	{
-		TileIndex     start = tile;
-		TileIndexDiff diff = TileOffsByDiagDir(dir);
-
-		do {
-			if (HasStationReservation(tile)) return false;
-			SetRailStationReservation(tile, true);
-			MarkTileDirtyByTile(tile);
-			tile = TILE_ADD(tile, diff);
-		} while (IsCompatibleTrainStationTile(tile, start) && tile != m_origin_tile);
-
-		TriggerStationRandomisation(NULL, start, SRT_PATH_RESERVATION);
-
-		return true;
-	}
-
 	/** Try to reserve a single track/platform. */
 	bool ReserveSingleTrack(TileIndex tile, Trackdir td)
 	{
 		if (IsRailStationTile(tile)) {
-			if (!ReserveRailStationPlatform(tile, TrackdirToExitdir(ReverseTrackdir(td)))) {
-				/* Platform could not be reserved, undo. */
-				m_res_fail_tile = tile;
-				m_res_fail_td = td;
-				return false;
-			}
+			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(td)));
+			TileIndex t = tile;
+
+			do {
+				if (HasStationReservation(t)) {
+					/* Platform could not be reserved, undo. */
+					m_res_fail_tile = t;
+					m_res_fail_td = td;
+					return false;
+				}
+				SetRailStationReservation(t, true);
+				MarkTileDirtyByTile(t);
+				t = TILE_ADD(t, diff);
+			} while (IsCompatibleTrainStationTile(t, tile) && t != m_origin_tile);
+
+			TriggerStationRandomisation(NULL, tile, SRT_PATH_RESERVATION);
 		} else {
 			if (!TryReserveRailTrack(tile, TrackdirToTrack(td))) {
 				/* Tile couldn't be reserved, undo. */
