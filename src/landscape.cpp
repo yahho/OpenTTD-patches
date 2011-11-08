@@ -1062,13 +1062,12 @@ static const uint RIVER_HASH_SIZE = 8; ///< The number of bits the hash for rive
 
 /**
  * Simple hash function for river tiles to be used by AyStar.
- * @param tile The tile to hash.
- * @param dir The unused direction.
+ * @param pos The position to hash.
  * @return The hash for the tile.
  */
-static uint River_Hash(uint tile, uint dir)
+static uint River_Hash(const PFPos &pos)
 {
-	return GB(TileHash(TileX(tile), TileY(tile)), 0, RIVER_HASH_SIZE);
+	return GB(TileHash(TileX(pos.tile), TileY(pos.tile)), 0, RIVER_HASH_SIZE);
 }
 
 /**

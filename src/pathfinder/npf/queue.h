@@ -12,6 +12,8 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
+#include "../pathfinder_type.h"
+
 //#define HASH_STATS
 
 
@@ -60,8 +62,7 @@ struct BinaryHeap {
  * Hash
  */
 struct HashNode {
-	uint key1;
-	uint key2;
+	PFPos key;
 	void *value;
 	HashNode *next;
 };
@@ -69,7 +70,7 @@ struct HashNode {
  * Generates a hash code from the given key pair. You should make sure that
  * the resulting range is clearly defined.
  */
-typedef uint Hash_HashProc(uint key1, uint key2);
+typedef uint Hash_HashProc(const PFPos &key);
 struct Hash {
 	/* The hash function used */
 	Hash_HashProc *hash;
@@ -85,10 +86,10 @@ struct Hash {
 
 	void Init(Hash_HashProc *hash, uint num_buckets);
 
-	void *Get(uint key1, uint key2) const;
-	void *Set(uint key1, uint key2, void *value);
+	void *Get(const PFPos &key) const;
+	void *Set(const PFPos &key, void *value);
 
-	void *DeleteValue(uint key1, uint key2);
+	void *DeleteValue(const PFPos &key);
 
 	void Clear(bool free_values);
 	void Delete(bool free_values);
@@ -105,7 +106,7 @@ protected:
 #ifdef HASH_STATS
 	void PrintStatistics() const;
 #endif
-	HashNode *FindNode(uint key1, uint key2, HashNode** prev_out) const;
+	HashNode *FindNode(const PFPos &key, HashNode** prev_out) const;
 };
 
 #endif /* QUEUE_H */
