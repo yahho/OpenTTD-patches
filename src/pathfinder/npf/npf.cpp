@@ -1217,7 +1217,7 @@ FindDepotData NPFTrainFindNearestDepot(const Train *v, int max_penalty)
 	return FindDepotData(ftd.node.pos.tile, ftd.best_path_dist, NPFGetFlag(&ftd.node, NPF_FLAG_REVERSE));
 }
 
-bool NPFTrainFindNearestSafeTile(const Train *v, TileIndex tile, Trackdir trackdir, bool override_railtype)
+bool NPFTrainFindNearestSafeTile(const Train *v, const PFPos &pos, bool override_railtype)
 {
 	assert(v->type == VEH_TRAIN);
 
@@ -1226,11 +1226,10 @@ bool NPFTrainFindNearestSafeTile(const Train *v, TileIndex tile, Trackdir trackd
 	fstd.reserve_path = true;
 
 	AyStarNode start1;
-	start1.pos.tile = tile;
+	start1.pos = pos;
 	/* We set this in case the target is also the start tile, we will just
 	 * return a not found then */
 	start1.user_data[NPF_TRACKDIR_CHOICE] = INVALID_TRACKDIR;
-	start1.pos.td = trackdir;
 	NPFSetFlag(&start1, NPF_FLAG_IGNORE_RESERVED, true);
 
 	RailTypes railtypes = v->compatible_railtypes;

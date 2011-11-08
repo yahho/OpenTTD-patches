@@ -2343,16 +2343,15 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
  * Safe tiles are tiles in front of a signal, depots and station tiles at end of line.
  *
  * @param v The vehicle.
- * @param tile The tile the search should start from.
- * @param td The trackdir the search should start from.
+ * @param pos The position the search should start from.
  * @param override_railtype Whether all physically compatible railtypes should be followed.
  * @return True if a path to a safe stopping tile could be reserved.
  */
-static bool TryReserveSafeTrack(const Train *v, TileIndex tile, Trackdir td, bool override_tailtype)
+static bool TryReserveSafeTrack(const Train *v, const PFPos &pos, bool override_tailtype)
 {
 	switch (_settings_game.pf.pathfinder_for_trains) {
-		case VPF_NPF: return NPFTrainFindNearestSafeTile(v, tile, td, override_tailtype);
-		case VPF_YAPF: return YapfTrainFindNearestSafeTile(v, tile, td, override_tailtype);
+		case VPF_NPF: return NPFTrainFindNearestSafeTile(v, pos, override_tailtype);
+		case VPF_YAPF: return YapfTrainFindNearestSafeTile(v, pos, override_tailtype);
 
 		default: NOT_REACHED();
 	}
@@ -2536,7 +2535,7 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 	if (res_dest.pos.tile == INVALID_TILE) {
 		/* Try to find any safe destination. */
 		PBSTileInfo origin = FollowTrainReservation(v);
-		if (TryReserveSafeTrack(v, origin.pos.tile, origin.pos.td, false)) {
+		if (TryReserveSafeTrack(v, origin.pos, false)) {
 			TrackBits res = GetReservedTrackbits(tile);
 			best_trackdir = FindFirstTrackdir(TrackBitsToTrackdirBits(res) & DiagdirReachesTrackdirs(enterdir));
 			TryReserveRailTrack(v->tile, TrackdirToTrack(v->GetVehicleTrackdir()));
@@ -2578,7 +2577,7 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 			}
 		}
 		/* No order or no safe position found, try any position. */
-		if (!TryReserveSafeTrack(v, res_dest.pos.tile, res_dest.pos.td, true)) {
+		if (!TryReserveSafeTrack(v, res_dest.pos, true)) {
 			FreeTrainTrackReservation(v);
 			if (mark_stuck) MarkTrainAsStuck(v);
 			if (got_reservation != NULL) *got_reservation = false;

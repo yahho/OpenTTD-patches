@@ -313,18 +313,18 @@ public:
 		return 't';
 	}
 
-	static bool stFindNearestSafeTile(const Train *v, TileIndex t1, Trackdir td, bool override_railtype)
+	static bool stFindNearestSafeTile(const Train *v, const PFPos &pos, bool override_railtype)
 	{
 		/* Create pathfinder instance */
 		Tpf pf1;
 #if !DEBUG_YAPF_CACHE
-		bool result1 = pf1.FindNearestSafeTile(v, t1, td, override_railtype, false);
+		bool result1 = pf1.FindNearestSafeTile(v, pos, override_railtype, false);
 
 #else
-		bool result2 = pf1.FindNearestSafeTile(v, t1, td, override_railtype, true);
+		bool result2 = pf1.FindNearestSafeTile(v, pos, override_railtype, true);
 		Tpf pf2;
 		pf2.DisableCache(true);
-		bool result1 = pf2.FindNearestSafeTile(v, t1, td, override_railtype, false);
+		bool result1 = pf2.FindNearestSafeTile(v, pos, override_railtype, false);
 		if (result1 != result2) {
 			DEBUG(yapf, 0, "CACHE ERROR: FindSafeTile() = [%s, %s]", result2 ? "T" : "F", result1 ? "T" : "F");
 			DumpState(pf1, pf2);
@@ -334,10 +334,10 @@ public:
 		return result1;
 	}
 
-	bool FindNearestSafeTile(const Train *v, TileIndex t1, Trackdir td, bool override_railtype, bool dont_reserve)
+	bool FindNearestSafeTile(const Train *v, const PFPos &pos, bool override_railtype, bool dont_reserve)
 	{
 		/* Set origin and destination. */
-		Yapf().SetOrigin(t1, td);
+		Yapf().SetOrigin(pos.tile, pos.td);
 		Yapf().SetDestination(v, override_railtype);
 
 		bool bFound = Yapf().FindPath(v);
@@ -621,9 +621,9 @@ FindDepotData YapfTrainFindNearestDepot(const Train *v, int max_penalty)
 	return fdd;
 }
 
-bool YapfTrainFindNearestSafeTile(const Train *v, TileIndex tile, Trackdir td, bool override_railtype)
+bool YapfTrainFindNearestSafeTile(const Train *v, const PFPos &pos, bool override_railtype)
 {
-	typedef bool (*PfnFindNearestSafeTile)(const Train*, TileIndex, Trackdir, bool);
+	typedef bool (*PfnFindNearestSafeTile)(const Train*, const PFPos&, bool);
 	PfnFindNearestSafeTile pfnFindNearestSafeTile = CYapfAnySafeTileRail1::stFindNearestSafeTile;
 
 	/* check if non-default YAPF type needed */
@@ -631,7 +631,7 @@ bool YapfTrainFindNearestSafeTile(const Train *v, TileIndex tile, Trackdir td, b
 		pfnFindNearestSafeTile = &CYapfAnySafeTileRail2::stFindNearestSafeTile;
 	}
 
-	return pfnFindNearestSafeTile(v, tile, td, override_railtype);
+	return pfnFindNearestSafeTile(v, pos, override_railtype);
 }
 
 /** if any track changes, this counter is incremented - that will invalidate segment cost cache */

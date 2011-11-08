@@ -70,12 +70,11 @@ FindDepotData NPFTrainFindNearestDepot(const Train *v, int max_penalty);
  * Try to extend the reserved path of a train to the nearest safe tile using NPF.
  *
  * @param v    The train that needs to find a safe tile.
- * @param tile Last tile of the current reserved path.
- * @param td   Last trackdir of the current reserved path.
+ * @param pos  Last position of the current reserved path.
  * @param override_railtype Should all physically compatible railtypes be searched, even if the vehicle can't run on them on its own?
  * @return True if the path could be extended to a safe tile.
  */
-bool NPFTrainFindNearestSafeTile(const Train *v, TileIndex tile, Trackdir td, bool override_railtype);
+bool NPFTrainFindNearestSafeTile(const Train *v, const PFPos &pos, bool override_railtype);
 
 /**
  * Returns true if it is better to reverse the train before leaving station using NPF.
