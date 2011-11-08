@@ -423,7 +423,7 @@ public:
 
 		/* set origin and destination nodes */
 		PBSTileInfo origin = FollowTrainReservation(v);
-		Yapf().SetOrigin(origin.pos.tile, origin.pos.td, INVALID_TILE, INVALID_TRACKDIR, 1, true);
+		Yapf().SetOrigin(origin.pos.tile, origin.pos.td);
 		Yapf().SetDestination(v);
 
 		/* find the best path */
