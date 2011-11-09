@@ -250,7 +250,7 @@ public:
 	inline bool FindNearestDepotTwoWay(const Train *v, const PFPos &pos1, const PFPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
 	{
 		/* set origin and destination nodes */
-		Yapf().SetOrigin(pos1.tile, pos1.td, pos2.tile, pos2.td, reverse_penalty, true);
+		Yapf().SetOrigin(pos1, pos2, reverse_penalty, true);
 		Yapf().SetDestination(v);
 		Yapf().SetMaxCost(max_penalty);
 
@@ -337,7 +337,7 @@ public:
 	bool FindNearestSafeTile(const Train *v, const PFPos &pos, bool override_railtype, bool dont_reserve)
 	{
 		/* Set origin and destination. */
-		Yapf().SetOrigin(pos.tile, pos.td);
+		Yapf().SetOrigin(pos);
 		Yapf().SetDestination(v, override_railtype);
 
 		bool bFound = Yapf().FindPath(v);
@@ -423,7 +423,7 @@ public:
 
 		/* set origin and destination nodes */
 		PBSTileInfo origin = FollowTrainReservation(v);
-		Yapf().SetOrigin(origin.pos.tile, origin.pos.td);
+		Yapf().SetOrigin(origin.pos);
 		Yapf().SetDestination(v);
 
 		/* find the best path */
@@ -479,7 +479,7 @@ public:
 	{
 		/* create pathfinder instance
 		 * set origin and destination nodes */
-		Yapf().SetOrigin(pos1.tile, pos1.td, pos2.tile, pos2.td, reverse_penalty, false);
+		Yapf().SetOrigin(pos1, pos2, reverse_penalty, false);
 		Yapf().SetDestination(v);
 
 		/* find the best path */

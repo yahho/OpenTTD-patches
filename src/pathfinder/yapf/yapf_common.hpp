@@ -62,10 +62,8 @@ public:
 	typedef typename Node::Key Key;               ///< key to hash tables
 
 protected:
-	TileIndex   m_orgTile;                        ///< first origin tile
-	Trackdir    m_orgTd;                          ///< first origin trackdir
-	TileIndex   m_revTile;                        ///< second (reversed) origin tile
-	Trackdir    m_revTd;                          ///< second (reversed) origin trackdir
+	PFPos       m_org;                            ///< first origin position
+	PFPos       m_rev;                            ///< second (reversed) origin position
 	int         m_reverse_penalty;                ///< penalty to be added for using the reversed origin
 	bool        m_treat_first_red_two_way_signal_as_eol; ///< in some cases (leaving station) we need to handle first two-way signal differently
 
@@ -76,13 +74,11 @@ protected:
 	}
 
 public:
-	/** set origin (tiles, trackdirs, etc.) */
-	void SetOrigin(TileIndex tile, Trackdir td, TileIndex tiler = INVALID_TILE, Trackdir tdr = INVALID_TRACKDIR, int reverse_penalty = 0, bool treat_first_red_two_way_signal_as_eol = true)
+	/** set origin */
+	void SetOrigin(const PFPos &pos, const PFPos &rev = PFPos(), int reverse_penalty = 0, bool treat_first_red_two_way_signal_as_eol = true)
 	{
-		m_orgTile = tile;
-		m_orgTd = td;
-		m_revTile = tiler;
-		m_revTd = tdr;
+		m_org = pos;
+		m_rev = rev;
 		m_reverse_penalty = reverse_penalty;
 		m_treat_first_red_two_way_signal_as_eol = treat_first_red_two_way_signal_as_eol;
 	}
@@ -90,14 +86,14 @@ public:
 	/** Called when YAPF needs to place origin nodes into open list */
 	void PfSetStartupNodes()
 	{
-		if (m_orgTile != INVALID_TILE && m_orgTd != INVALID_TRACKDIR) {
+		if (m_org.tile != INVALID_TILE && m_org.td != INVALID_TRACKDIR) {
 			Node& n1 = Yapf().CreateNewNode();
-			n1.Set(NULL, m_orgTile, m_orgTd, false);
+			n1.Set(NULL, m_org.tile, m_org.td, false);
 			Yapf().AddStartupNode(n1);
 		}
-		if (m_revTile != INVALID_TILE && m_revTd != INVALID_TRACKDIR) {
+		if (m_rev.tile != INVALID_TILE && m_rev.td != INVALID_TRACKDIR) {
 			Node& n2 = Yapf().CreateNewNode();
-			n2.Set(NULL, m_revTile, m_revTd, false);
+			n2.Set(NULL, m_rev.tile, m_rev.td, false);
 			n2.m_cost = m_reverse_penalty;
 			Yapf().AddStartupNode(n2);
 		}
