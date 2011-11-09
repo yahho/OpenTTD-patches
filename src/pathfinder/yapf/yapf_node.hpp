@@ -18,10 +18,10 @@
 struct CYapfNodeKey : PFPos {
 	DiagDirection  exitdir;
 
-	inline void Set(TileIndex t, Trackdir d)
+	inline void Set(const PFPos &pos)
 	{
-		PFPos::Set(t, d);
-		exitdir = (d == INVALID_TRACKDIR) ? INVALID_DIAGDIR : TrackdirToExitdir(d);
+		PFPos::operator=(pos);
+		exitdir = (pos.td == INVALID_TRACKDIR) ? INVALID_DIAGDIR : TrackdirToExitdir(pos.td);
 	}
 
 	void Dump(DumpTarget &dmp) const
@@ -58,9 +58,9 @@ struct CYapfNodeT {
 	int         m_cost;
 	int         m_estimate;
 
-	inline void Set(Node *parent, TileIndex tile, Trackdir td, bool is_choice)
+	inline void Set(Node *parent, const PFPos &pos, bool is_choice)
 	{
-		m_key.Set(tile, td);
+		m_key.Set(pos);
 		m_hash_next = NULL;
 		m_parent = parent;
 		m_cost = 0;

@@ -21,11 +21,10 @@ struct CYapfRoadNodeT
 
 	PFPos m_segment_last;
 
-	void Set(CYapfRoadNodeT *parent, TileIndex tile, Trackdir td, bool is_choice)
+	void Set(CYapfRoadNodeT *parent, const PFPos &pos, bool is_choice)
 	{
-		base::Set(parent, tile, td, is_choice);
-		m_segment_last.tile = tile;
-		m_segment_last.td = td;
+		base::Set(parent, pos, is_choice);
+		m_segment_last = pos;
 	}
 };
 

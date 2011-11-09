@@ -215,10 +215,11 @@ public:
 	inline void AddMultipleNodes(Node *parent, const TrackFollower &tf)
 	{
 		bool is_choice = !tf.m_new.IsTrackdirSet();
+		PFPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
-			Trackdir td = FindFirstTrackdir(rtds);
+			pos.td = FindFirstTrackdir(rtds);
 			Node& n = Yapf().CreateNewNode();
-			n.Set(parent, tf.m_new.tile, td, is_choice);
+			n.Set(parent, pos, is_choice);
 			Yapf().AddNewNode(n, tf);
 		}
 	}

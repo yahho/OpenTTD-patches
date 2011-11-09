@@ -120,9 +120,9 @@ struct CYapfRailNodeT
 	SignalType        m_last_red_signal_type;
 	SignalType        m_last_signal_type;
 
-	inline void Set(CYapfRailNodeT *parent, TileIndex tile, Trackdir td, bool is_choice)
+	inline void Set(CYapfRailNodeT *parent, const PFPos &pos, bool is_choice)
 	{
-		base::Set(parent, tile, td, is_choice);
+		base::Set(parent, pos, is_choice);
 		m_segment = NULL;
 		if (parent == NULL) {
 			m_num_signals_passed      = 0;

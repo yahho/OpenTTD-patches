@@ -51,13 +51,14 @@ public:
 	{
 		if (m_org.td != INVALID_TRACKDIR) {
 			Node& n1 = Yapf().CreateNewNode();
-			n1.Set(NULL, m_org.tile, m_org.td, false);
+			n1.Set(NULL, m_org, false);
 			Yapf().AddStartupNode(n1);
 		} else {
+			PFPos pos = m_org;
 			for (TrackdirBits tdb = m_trackdirs; tdb != TRACKDIR_BIT_NONE; tdb = KillFirstBit(tdb)) {
-				Trackdir td = FindFirstTrackdir(tdb);
+				pos.td = FindFirstTrackdir(tdb);
 				Node& n1 = Yapf().CreateNewNode();
-				n1.Set(NULL, m_org.tile, td, true);
+				n1.Set(NULL, pos, true);
 				Yapf().AddStartupNode(n1);
 			}
 		}
@@ -100,12 +101,12 @@ public:
 	{
 		if (m_org.tile != INVALID_TILE && m_org.td != INVALID_TRACKDIR) {
 			Node& n1 = Yapf().CreateNewNode();
-			n1.Set(NULL, m_org.tile, m_org.td, false);
+			n1.Set(NULL, m_org, false);
 			Yapf().AddStartupNode(n1);
 		}
 		if (m_rev.tile != INVALID_TILE && m_rev.td != INVALID_TRACKDIR) {
 			Node& n2 = Yapf().CreateNewNode();
-			n2.Set(NULL, m_rev.tile, m_rev.td, false);
+			n2.Set(NULL, m_rev, false);
 			n2.m_cost = m_reverse_penalty;
 			Yapf().AddStartupNode(n2);
 		}
