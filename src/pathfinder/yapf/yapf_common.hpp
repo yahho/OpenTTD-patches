@@ -22,8 +22,8 @@ public:
 	typedef typename Node::Key Key;               ///< key to hash tables
 
 protected:
-	TileIndex    m_orgTile;                       ///< origin tile
-	TrackdirBits m_orgTrackdirs;                  ///< origin trackdir mask
+	PFPos        m_org;                           ///< origin position
+	TrackdirBits m_trackdirs;                     ///< origin trackdir mask
 
 	/** to access inherited path finder */
 	inline Tpf& Yapf()
@@ -32,22 +32,34 @@ protected:
 	}
 
 public:
+	/** Set origin position */
+	void SetOrigin(const PFPos &pos)
+	{
+		m_org = pos;
+		m_trackdirs = TrackdirToTrackdirBits(pos.td);
+	}
+
 	/** Set origin tile / trackdir mask */
 	void SetOrigin(TileIndex tile, TrackdirBits trackdirs)
 	{
-		m_orgTile = tile;
-		m_orgTrackdirs = trackdirs;
+		m_org = PFPos(tile, (KillFirstBit(trackdirs) == TRACKDIR_BIT_NONE) ? FindFirstTrackdir(trackdirs) : INVALID_TRACKDIR);
+		m_trackdirs = trackdirs;
 	}
 
 	/** Called when YAPF needs to place origin nodes into open list */
 	void PfSetStartupNodes()
 	{
-		bool is_choice = (KillFirstBit(m_orgTrackdirs) != TRACKDIR_BIT_NONE);
-		for (TrackdirBits tdb = m_orgTrackdirs; tdb != TRACKDIR_BIT_NONE; tdb = KillFirstBit(tdb)) {
-			Trackdir td = (Trackdir)FindFirstBit2x64(tdb);
+		if (m_org.td != INVALID_TRACKDIR) {
 			Node& n1 = Yapf().CreateNewNode();
-			n1.Set(NULL, m_orgTile, td, is_choice);
+			n1.Set(NULL, m_org.tile, m_org.td, false);
 			Yapf().AddStartupNode(n1);
+		} else {
+			for (TrackdirBits tdb = m_trackdirs; tdb != TRACKDIR_BIT_NONE; tdb = KillFirstBit(tdb)) {
+				Trackdir td = FindFirstTrackdir(tdb);
+				Node& n1 = Yapf().CreateNewNode();
+				n1.Set(NULL, m_org.tile, td, true);
+				Yapf().AddStartupNode(n1);
+			}
 		}
 	}
 };

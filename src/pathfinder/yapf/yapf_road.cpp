@@ -410,15 +410,14 @@ public:
 	/** Return true if the valid origin (tile/trackdir) was set from the current vehicle position. */
 	inline bool SetOriginFromVehiclePos(const RoadVehicle *v)
 	{
-		/* set origin (tile, trackdir) */
-		TileIndex src_tile = v->tile;
-		Trackdir src_td = v->GetVehicleTrackdir();
-		if ((TrackStatusToTrackdirBits(GetTileTrackStatus(src_tile, TRANSPORT_ROAD, v->compatible_roadtypes)) & TrackdirToTrackdirBits(src_td)) == 0) {
+		/* set origin position */
+		PFPos pos (v->tile, v->GetVehicleTrackdir());
+		if ((TrackStatusToTrackdirBits(GetTileTrackStatus(pos.tile, TRANSPORT_ROAD, v->compatible_roadtypes)) & TrackdirToTrackdirBits(pos.td)) == 0) {
 			/* sometimes the roadveh is not on the road (it resides on non-existing track)
 			 * how should we handle that situation? */
 			return false;
 		}
-		Yapf().SetOrigin(src_tile, TrackdirToTrackdirBits(src_td));
+		Yapf().SetOrigin(pos);
 		return true;
 	}
 
@@ -431,7 +430,7 @@ public:
 	inline bool FindNearestDepot(const RoadVehicle *v, const PFPos &pos, int max_distance, TileIndex *depot_tile)
 	{
 		/* set origin and destination nodes */
-		Yapf().SetOrigin(pos.tile, TrackdirToTrackdirBits(pos.td));
+		Yapf().SetOrigin(pos);
 
 		/* find the best path */
 		bool bFound = Yapf().FindPath(v);
