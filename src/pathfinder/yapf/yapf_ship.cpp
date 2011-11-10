@@ -58,43 +58,39 @@ public:
 		if (tile == v->dest_tile) {
 			/* use vehicle's current direction if that's possible, otherwise use first usable one. */
 			Trackdir veh_dir = v->GetVehicleTrackdir();
-			return ((trackdirs & TrackdirToTrackdirBits(veh_dir)) != 0) ? veh_dir : (Trackdir)FindFirstBit2x64(trackdirs);
+			return ((trackdirs & TrackdirToTrackdirBits(veh_dir)) != 0) ? veh_dir : FindFirstTrackdir(trackdirs);
 		}
 
 		/* move back to the old tile/trackdir (where ship is coming from) */
-		TileIndex src_tile = TILE_ADD(tile, TileOffsByDiagDir(ReverseDiagDir(enterdir)));
+		assert(v->tile == TILE_ADD(tile, TileOffsByDiagDir(ReverseDiagDir(enterdir))));
 		Trackdir trackdir = v->GetVehicleTrackdir();
 		assert(IsValidTrackdir(trackdir));
 
-		/* convert origin trackdir to TrackdirBits */
-		trackdirs = TrackdirToTrackdirBits(trackdir);
 		/* get available trackdirs on the destination tile */
 		TrackdirBits dest_trackdirs = TrackStatusToTrackdirBits(GetTileTrackStatus(v->dest_tile, TRANSPORT_WATER, 0));
 
 		/* create pathfinder instance */
 		Tpf pf;
 		/* set origin and destination nodes */
-		pf.SetOrigin(src_tile, trackdirs);
+		pf.SetOrigin(PFPos(v->tile, trackdir));
 		pf.SetDestination(v->dest_tile, dest_trackdirs);
 		/* find best path */
 		path_found = pf.FindPath(v);
 
-		Trackdir next_trackdir = INVALID_TRACKDIR; // this would mean "path not found"
-
 		Node *pNode = pf.GetBestNode();
-		if (pNode != NULL) {
-			/* walk through the path back to the origin */
-			Node *pPrevNode = NULL;
-			while (pNode->m_parent != NULL) {
-				pPrevNode = pNode;
-				pNode = pNode->m_parent;
-			}
-			/* return trackdir from the best next node (direct child of origin) */
-			Node& best_next_node = *pPrevNode;
-			assert(best_next_node.GetPos().tile == tile);
-			next_trackdir = best_next_node.GetPos().td;
+		if (pNode == NULL) return INVALID_TRACKDIR; // path not found
+
+		/* walk through the path back to the origin */
+		Node *pPrevNode = NULL;
+		while (pNode->m_parent != NULL) {
+			pPrevNode = pNode;
+			pNode = pNode->m_parent;
 		}
-		return next_trackdir;
+
+		/* return trackdir from the best next node (direct child of origin) */
+		Node& best_next_node = *pPrevNode;
+		assert(best_next_node.GetPos().tile == tile);
+		return best_next_node.GetPos().td;
 	}
 
 	/**
