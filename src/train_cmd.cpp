@@ -2135,39 +2135,38 @@ static bool CheckTrainStayInDepot(Train *v)
 /**
  * Clear the reservation of \a tile that was just left by a wagon on \a track_dir.
  * @param v %Train owning the reservation.
- * @param tile Tile with reservation to clear.
- * @param track_dir Track direction to clear.
+ * @param pos position to clear.
  */
-static void ClearPathReservation(const Train *v, TileIndex tile, Trackdir track_dir)
+static void ClearPathReservation(const Train *v, const PFPos &pos)
 {
-	DiagDirection dir = TrackdirToExitdir(track_dir);
+	DiagDirection dir = TrackdirToExitdir(pos.td);
 
-	if (IsTunnelTile(tile) || IsRailBridgeTile(tile)) {
+	if (IsTunnelTile(pos.tile) || IsRailBridgeTile(pos.tile)) {
 		/* Are we just leaving a tunnel/bridge? */
-		if (GetTunnelBridgeDirection(tile) == ReverseDiagDir(dir)) {
-			TileIndex end = GetOtherTunnelBridgeEnd(tile);
+		if (GetTunnelBridgeDirection(pos.tile) == ReverseDiagDir(dir)) {
+			TileIndex end = GetOtherTunnelBridgeEnd(pos.tile);
 
-			if (TunnelBridgeIsFree(tile, end, v).Succeeded()) {
+			if (TunnelBridgeIsFree(pos.tile, end, v).Succeeded()) {
 				/* Free the reservation only if no other train is on the tiles. */
-				SetTunnelBridgeReservation(tile, false);
+				SetTunnelBridgeReservation(pos.tile, false);
 				SetTunnelBridgeReservation(end, false);
 
 				if (_settings_client.gui.show_track_reservation) {
-					MarkTileDirtyByTile(tile);
+					MarkTileDirtyByTile(pos.tile);
 					MarkTileDirtyByTile(end);
 				}
 			}
 		}
-	} else if (IsRailStationTile(tile)) {
-		TileIndex new_tile = TileAddByDiagDir(tile, dir);
+	} else if (IsRailStationTile(pos.tile)) {
+		TileIndex new_tile = TileAddByDiagDir(pos.tile, dir);
 		/* If the new tile is not a further tile of the same station, we
 		 * clear the reservation for the whole platform. */
-		if (!IsCompatibleTrainStationTile(new_tile, tile)) {
-			SetRailStationPlatformReservation(tile, ReverseDiagDir(dir), false);
+		if (!IsCompatibleTrainStationTile(new_tile, pos.tile)) {
+			SetRailStationPlatformReservation(pos.tile, ReverseDiagDir(dir), false);
 		}
 	} else {
 		/* Any other tile */
-		UnreserveRailTrack(tile, TrackdirToTrack(track_dir));
+		UnreserveRailTrack(pos.tile, TrackdirToTrack(pos.td));
 	}
 }
 
@@ -2225,7 +2224,7 @@ void FreeTrainTrackReservation(const Train *v)
 		}
 
 		/* Don't free first station/bridge/tunnel if we are on it. */
-		if (free_tile || ft.m_flag == ft.TF_NONE || (ft.m_flag == ft.TF_STATION && GetStationIndex(ft.m_new.tile) != station_id)) ClearPathReservation(v, ft.m_new.tile, ft.m_new.td);
+		if (free_tile || ft.m_flag == ft.TF_NONE || (ft.m_flag == ft.TF_STATION && GetStationIndex(ft.m_new.tile) != station_id)) ClearPathReservation(v, ft.m_new);
 
 		free_tile = true;
 	}
@@ -2861,7 +2860,7 @@ uint Train::Crash(bool flooded)
 		 * Also clear all reserved tracks the train is currently on. */
 		if (!HasBit(this->flags, VRF_TRAIN_STUCK)) FreeTrainTrackReservation(this);
 		for (const Train *v = this; v != NULL; v = v->Next()) {
-			ClearPathReservation(v, v->tile, v->GetVehicleTrackdir());
+			ClearPathReservation(v, PFPos(v->tile, v->GetVehicleTrackdir()));
 			if (IsTunnelTile(v->tile) || IsRailBridgeTile(v->tile)) {
 				/* ClearPathReservation will not free the wormhole exit
 				 * if the train has just entered the wormhole. */
@@ -3401,7 +3400,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				}
 
 				/* Clear any track reservation when the last vehicle leaves the tile */
-				if (v->Next() == NULL && v->trackdir != TRACKDIR_WORMHOLE) ClearPathReservation(v, v->tile, v->GetVehicleTrackdir());
+				if (v->Next() == NULL && v->trackdir != TRACKDIR_WORMHOLE) ClearPathReservation(v, PFPos(v->tile, v->GetVehicleTrackdir()));
 			}
 
 			if (new_in_wormhole) {
