@@ -31,11 +31,11 @@ protected:
 		return *static_cast<Tpf*>(this);
 	}
 
-	int SlopeCost(TileIndex tile, TileIndex next_tile, Trackdir trackdir)
+	int SlopeCost(const PFPos &pos, TileIndex next_tile)
 	{
 		/* height of the center of the current tile */
-		int x1 = TileX(tile) * TILE_SIZE;
-		int y1 = TileY(tile) * TILE_SIZE;
+		int x1 = TileX(pos.tile) * TILE_SIZE;
+		int y1 = TileY(pos.tile) * TILE_SIZE;
 		int z1 = GetSlopePixelZ(x1 + TILE_SIZE / 2, y1 + TILE_SIZE / 2);
 
 		/* height of the center of the next tile */
@@ -135,7 +135,7 @@ public:
 			tiles += F.m_tiles_skipped + 1;
 
 			/* add hilly terrain penalty */
-			segment_cost += Yapf().SlopeCost(pos.tile, F.m_new.tile, pos.td);
+			segment_cost += Yapf().SlopeCost(pos, F.m_new.tile);
 
 			/* add min/max speed penalties */
 			int min_speed = 0;
