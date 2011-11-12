@@ -1816,7 +1816,7 @@ void ReverseTrainDirection(Train *v)
 		/* If we are on a depot tile facing outwards, do not treat the current tile as safe. */
 		if (IsRailDepotTile(v->tile) && TrackdirToExitdir(v->GetVehicleTrackdir()) == GetGroundDepotDirection(v->tile)) first_tile_okay = false;
 
-		if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->tile, TrackdirToExitdir(v->GetVehicleTrackdir()), true);
+		if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(PFPos(v->tile, v->GetVehicleTrackdir()), true);
 		if (TryPathReserve(v, false, first_tile_okay)) {
 			/* Do a look-ahead now in case our current tile was already a safe tile. */
 			CheckNextTrainTile(v);

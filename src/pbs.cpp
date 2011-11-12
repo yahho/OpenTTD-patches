@@ -60,17 +60,28 @@ TrackBits GetReservedTrackbits(TileIndex t)
  */
 void SetRailStationPlatformReservation(TileIndex start, DiagDirection dir, bool b)
 {
-	TileIndex     tile = start;
-	TileIndexDiff diff = TileOffsByDiagDir(dir);
-
 	assert(IsRailStationTile(start));
 	assert(GetRailStationAxis(start) == DiagDirToAxis(dir));
+
+	TileIndex     tile = start;
+	TileIndexDiff diff = TileOffsByDiagDir(dir);
 
 	do {
 		SetRailStationReservation(tile, b);
 		MarkTileDirtyByTile(tile);
 		tile = TILE_ADD(tile, diff);
 	} while (IsCompatibleTrainStationTile(tile, start));
+}
+
+/**
+ * Set the reservation for a complete station platform.
+ * @pre IsRailStationTile(pos.tile)
+ * @param pos starting tile and direction of the platform
+ * @param b the state the reservation should be set to
+ */
+void SetRailStationPlatformReservation(const PFPos &pos, bool b)
+{
+	SetRailStationPlatformReservation(pos.tile, TrackdirToExitdir(pos.td), b);
 }
 
 /**

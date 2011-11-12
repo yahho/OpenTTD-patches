@@ -584,7 +584,7 @@ static void ClearPathReservation(const PathNode *start, const PathNode *end)
 	bool first_run = true;
 	for (; start != end; start = start->parent) {
 		if (IsRailStationTile(start->node.pos.tile) && first_run) {
-			SetRailStationPlatformReservation(start->node.pos.tile, TrackdirToExitdir(start->node.pos.td), false);
+			SetRailStationPlatformReservation(start->node.pos, false);
 		} else {
 			UnreserveRailTrack(start->node.pos.tile, TrackdirToTrack(start->node.pos.td));
 		}
@@ -623,7 +623,7 @@ static void NPFSaveTargetData(AyStar *as, OpenListNode *current)
 			/* Update only end tile, trackdir of a station stays the same. */
 			ftd->node.pos.tile = end_tile;
 			if (!IsWaitingPositionFree(v, end_tile, target->node.pos.td, _settings_game.pf.forbid_90_deg)) return;
-			SetRailStationPlatformReservation(target->node.pos.tile, dir, true);
+			SetRailStationPlatformReservation(target->node.pos, true);
 			SetRailStationReservation(target->node.pos.tile, false);
 		} else {
 			if (!IsWaitingPositionFree(v, target->node.pos.tile, target->node.pos.td, _settings_game.pf.forbid_90_deg)) return;
