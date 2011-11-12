@@ -459,5 +459,5 @@ PBSPositionState CheckWaitingPosition(const Train *v, TileIndex tile, Trackdir t
 
 	assert(state == PBS_FREE);
 
-	return HasReservedTracks(ft.m_new.tile, TrackdirBitsToTrackBits(ft.m_new.trackdirs)) ? PBS_BUSY : PBS_FREE;
+	return HasReservedPos(ft.m_new) ? PBS_BUSY : PBS_FREE;
 }

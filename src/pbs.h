@@ -106,4 +106,15 @@ static inline bool HasReservedTrack(TileIndex tile, Track track)
 	return HasReservedTracks(tile, TrackToTrackBits(track));
 }
 
+/**
+ * Check whether a position is reserved.
+ *
+ * @param pos the position
+ * @return true if the track is reserved
+ */
+static inline bool HasReservedPos(const PFPos &pos)
+{
+	return HasReservedTrack(pos.tile, TrackdirToTrack(pos.td));
+}
+
 #endif /* PBS_H */

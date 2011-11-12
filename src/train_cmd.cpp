@@ -2045,7 +2045,7 @@ static void CheckNextTrainTile(Train *v)
 
 	if (ft.m_new.IsTrackdirSet()) {
 		/* Next tile is not reserved. */
-		if (!HasReservedTracks(ft.m_new.tile, TrackdirBitsToTrackBits(ft.m_new.trackdirs))) {
+		if (!HasReservedPos(ft.m_new)) {
 			if (HasPbsSignalOnTrackdir(ft.m_new.tile, ft.m_new.td)) {
 				/* If the next tile is a PBS signal, try to make a reservation. */
 				ChooseTrainTrack(v, ft.m_new.tile, ft.m_exitdir, ft.m_new.trackdirs, false, NULL, false);
