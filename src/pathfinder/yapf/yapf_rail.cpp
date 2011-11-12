@@ -92,7 +92,7 @@ private:
 
 			TriggerStationRandomisation(NULL, pos.tile, SRT_PATH_RESERVATION);
 		} else {
-			if (!TryReserveRailTrack(pos.tile, TrackdirToTrack(pos.td))) {
+			if (!TryReserveRailTrack(pos)) {
 				/* Tile couldn't be reserved, undo. */
 				*fail = pos;
 				return false;
@@ -116,7 +116,7 @@ private:
 				t = TILE_ADD(t, diff);
 			}
 		} else {
-			UnreserveRailTrack(pos.tile, TrackdirToTrack(pos.td));
+			UnreserveRailTrack(pos);
 		}
 
 		return pos != m_res_dest;

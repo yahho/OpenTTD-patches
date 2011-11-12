@@ -586,7 +586,7 @@ static void ClearPathReservation(const PathNode *start, const PathNode *end)
 		if (IsRailStationTile(start->node.pos.tile) && first_run) {
 			SetRailStationPlatformReservation(start->node.pos, false);
 		} else {
-			UnreserveRailTrack(start->node.pos.tile, TrackdirToTrack(start->node.pos.td));
+			UnreserveRailTrack(start->node.pos);
 		}
 		first_run = false;
 	}
@@ -630,7 +630,7 @@ static void NPFSaveTargetData(AyStar *as, OpenListNode *current)
 		}
 
 		for (const PathNode *cur = target; cur->parent != NULL; cur = cur->parent) {
-			if (!TryReserveRailTrack(cur->node.pos.tile, TrackdirToTrack(cur->node.pos.td))) {
+			if (!TryReserveRailTrack(cur->node.pos)) {
 				/* Reservation failed, undo. */
 				ClearPathReservation(target, cur);
 				return;

@@ -2166,7 +2166,7 @@ static void ClearPathReservation(const Train *v, const PFPos &pos)
 		}
 	} else {
 		/* Any other tile */
-		UnreserveRailTrack(pos.tile, TrackdirToTrack(pos.td));
+		UnreserveRailTrack(pos);
 	}
 }
 
@@ -2206,7 +2206,7 @@ void FreeTrainTrackReservation(const Train *v)
 		if (IsNormalRailTile(ft.m_new.tile)) {
 			if (HasSignalOnTrackdir(ft.m_new.tile, ft.m_new.td) && !IsPbsSignal(GetSignalType(ft.m_new.tile, TrackdirToTrack(ft.m_new.td)))) {
 				/* Conventional signal along trackdir: remove reservation and stop. */
-				UnreserveRailTrack(ft.m_new.tile, TrackdirToTrack(ft.m_new.td));
+				UnreserveRailTrack(ft.m_new);
 				break;
 			}
 			if (HasPbsSignalOnTrackdir(ft.m_new.tile, ft.m_new.td)) {
@@ -2308,7 +2308,7 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 		PBSPositionState state = CheckWaitingPosition(v, ft.m_new.tile, ft.m_new.td, _settings_game.pf.forbid_90_deg);
 		if (state == PBS_BUSY) break;
 
-		if (!TryReserveRailTrack(ft.m_new.tile, TrackdirToTrack(ft.m_new.td))) break;
+		if (!TryReserveRailTrack(ft.m_new)) break;
 
 		if (state == PBS_FREE) {
 			/* Safe position is all good, path valid and okay. */
@@ -2330,7 +2330,7 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 		assert(ft.m_new.trackdirs != TRACKDIR_BIT_NONE);
 		assert(ft.m_new.IsTrackdirSet());
 
-		UnreserveRailTrack(ft.m_new.tile, TrackdirToTrack(ft.m_new.td));
+		UnreserveRailTrack(ft.m_new);
 	}
 
 	/* Path invalid. */
@@ -2537,7 +2537,7 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 		if (TryReserveSafeTrack(v, origin.pos, false)) {
 			TrackBits res = GetReservedTrackbits(tile);
 			best_trackdir = FindFirstTrackdir(TrackBitsToTrackdirBits(res) & DiagdirReachesTrackdirs(enterdir));
-			TryReserveRailTrack(v->tile, TrackdirToTrack(v->GetVehicleTrackdir()));
+			TryReserveRailTrack(PFPos(v->tile, v->GetVehicleTrackdir()));
 			if (got_reservation != NULL) *got_reservation = true;
 			if (changed_signal) MarkTileDirtyByTile(tile);
 		} else {
@@ -2585,7 +2585,7 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 		break;
 	}
 
-	TryReserveRailTrack(v->tile, TrackdirToTrack(v->GetVehicleTrackdir()));
+	TryReserveRailTrack(PFPos(v->tile, v->GetVehicleTrackdir()));
 
 	if (changed_signal) MarkTileDirtyByTile(tile);
 

@@ -27,6 +27,16 @@ void SetRailStationPlatformReservation(const PFPos &pos, bool b);
 bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations = true);
 void UnreserveRailTrack(TileIndex tile, Track t);
 
+static inline bool TryReserveRailTrack(const PFPos &pos)
+{
+	return TryReserveRailTrack(pos.tile, TrackdirToTrack(pos.td));
+}
+
+static inline void UnreserveRailTrack(const PFPos &pos)
+{
+	UnreserveRailTrack(pos.tile, TrackdirToTrack(pos.td));
+}
+
 /** This struct contains information about the end of a reserved path. */
 struct PBSTileInfo {
 	PFPos     pos;       ///< PFPos the path ends, INVALID_TILE if no valid path was found.
