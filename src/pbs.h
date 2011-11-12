@@ -15,6 +15,7 @@
 #include "tile_type.h"
 #include "direction_type.h"
 #include "track_type.h"
+#include "track_func.h"
 #include "vehicle_type.h"
 
 TrackBits GetReservedTrackbits(TileIndex t);
@@ -60,6 +61,18 @@ Train *GetTrainForReservation(TileIndex tile, Track track);
 static inline bool HasReservedTracks(TileIndex tile, TrackBits tracks)
 {
 	return (GetReservedTrackbits(tile) & tracks) != TRACK_BIT_NONE;
+}
+
+/**
+ * Check whether a track is reserved on a tile.
+ *
+ * @param tile the tile
+ * @param track the track to test
+ * @return true if the track is reserved
+ */
+static inline bool HasReservedTrack(TileIndex tile, Track track)
+{
+	return HasReservedTracks(tile, TrackToTrackBits(track));
 }
 
 #endif /* PBS_H */

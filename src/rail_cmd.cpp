@@ -641,7 +641,7 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 			}
 
 			if (flags & DC_EXEC) {
-				if (HasReservedTracks(tile, trackbit)) {
+				if (HasReservedTrack(tile, track)) {
 					v = GetTrainForReservation(tile, track);
 					if (v != NULL) FreeTrainTrackReservation(v);
 				}
@@ -1061,7 +1061,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 		/* The new/changed signal could block our path. As this can lead to
 		 * stale reservations, we clear the path reservation here and try
 		 * to redo it later on. */
-		if (HasReservedTracks(tile, TrackToTrackBits(track))) {
+		if (HasReservedTrack(tile, track)) {
 			v = GetTrainForReservation(tile, track);
 			if (v != NULL) FreeTrainTrackReservation(v);
 		}
@@ -1430,7 +1430,7 @@ CommandCost CmdRemoveSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1
 	/* Do it? */
 	if (flags & DC_EXEC) {
 		Train *v = NULL;
-		if (HasReservedTracks(tile, TrackToTrackBits(track))) {
+		if (HasReservedTrack(tile, track)) {
 			v = GetTrainForReservation(tile, track);
 		} else if (IsPbsSignal(GetSignalType(tile, track))) {
 			/* PBS signal, might be the end of a path reservation. */

@@ -186,7 +186,7 @@ static PBSTileInfo FollowReservation(Owner o, RailTypes rts, TileIndex tile, Tra
 	/* Start track not reserved? This can happen if two trains
 	 * are on the same tile. The reservation on the next tile
 	 * is not ours in this case, so exit. */
-	if (!HasReservedTracks(tile, TrackToTrackBits(TrackdirToTrack(trackdir)))) return PBSTileInfo(tile, trackdir, false);
+	if (!HasReservedTrack(tile, TrackdirToTrack(trackdir))) return PBSTileInfo(tile, trackdir, false);
 
 	/* Do not disallow 90 deg turns as the setting might have changed between reserving and now. */
 	CFollowTrackRail ft(o, rts);
@@ -322,7 +322,7 @@ PBSTileInfo FollowTrainReservation(const Train *v, Vehicle **train_on_res)
  */
 Train *GetTrainForReservation(TileIndex tile, Track track)
 {
-	assert(HasReservedTracks(tile, TrackToTrackBits(track)));
+	assert(HasReservedTrack(tile, track));
 	Trackdir  trackdir = TrackToTrackdir(track);
 
 	RailTypes rts = GetRailTypeInfo(GetTileRailType(tile))->compatible_railtypes;
