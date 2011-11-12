@@ -20,21 +20,21 @@ struct CYapfCostBase {
 	 * @param td   The track direction to check.
 	 * @return True if there's a slope, otherwise false.
 	 */
-	inline static bool stSlopeCost(TileIndex tile, Trackdir td)
+	inline static bool stSlopeCost(const PFPos &pos)
 	{
-		if (IsDiagonalTrackdir(td)) {
-			if (IsBridgeHeadTile(tile)) {
+		if (IsDiagonalTrackdir(pos.td)) {
+			if (IsBridgeHeadTile(pos.tile)) {
 				/* it is bridge ramp, check if we are entering the bridge */
-				if (GetTunnelBridgeDirection(tile) != TrackdirToExitdir(td)) return false; // no, we are leaving it, no penalty
+				if (GetTunnelBridgeDirection(pos.tile) != TrackdirToExitdir(pos.td)) return false; // no, we are leaving it, no penalty
 				/* we are entering the bridge */
-				Slope tile_slope = GetTileSlope(tile);
-				Axis axis = DiagDirToAxis(GetTunnelBridgeDirection(tile));
+				Slope tile_slope = GetTileSlope(pos.tile);
+				Axis axis = DiagDirToAxis(GetTunnelBridgeDirection(pos.tile));
 				return !HasBridgeFlatRamp(tile_slope, axis);
 			} else {
 				/* not bridge ramp */
-				if (IsTunnelTile(tile)) return false; // tunnel entry/exit doesn't slope
-				Slope tile_slope = GetTileSlope(tile);
-				return IsUphillTrackdir(tile_slope, td); // slopes uphill => apply penalty
+				if (IsTunnelTile(pos.tile)) return false; // tunnel entry/exit doesn't slope
+				Slope tile_slope = GetTileSlope(pos.tile);
+				return IsUphillTrackdir(tile_slope, pos.td); // slopes uphill => apply penalty
 			}
 		}
 		return false;

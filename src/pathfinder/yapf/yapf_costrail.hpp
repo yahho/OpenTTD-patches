@@ -88,10 +88,10 @@ protected:
 	}
 
 public:
-	inline int SlopeCost(TileIndex tile, Trackdir td)
+	inline int SlopeCost(const PFPos &pos)
 	{
 		CPerfStart perf_cost(Yapf().m_perf_slope_cost);
-		if (!stSlopeCost(tile, td)) return 0;
+		if (!stSlopeCost(pos)) return 0;
 		return Yapf().PfGetSettings().rail_slope_penalty;
 	}
 
@@ -378,7 +378,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			segment_cost += YAPF_TILE_LENGTH * tf->m_tiles_skipped;
 
 			/* Slope cost. */
-			segment_cost += Yapf().SlopeCost(cur.tile, cur.td);
+			segment_cost += Yapf().SlopeCost(cur);
 
 			/* Signal cost (routine can modify segment data). */
 			segment_cost += Yapf().SignalCost(n, cur.tile, cur.td);
