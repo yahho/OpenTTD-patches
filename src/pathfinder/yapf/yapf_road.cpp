@@ -51,27 +51,27 @@ protected:
 	}
 
 	/** return one tile cost */
-	inline int OneTileCost(TileIndex tile, Trackdir trackdir)
+	inline int OneTileCost(const PFPos &pos)
 	{
 		int cost = 0;
 		/* set base cost */
-		if (IsDiagonalTrackdir(trackdir)) {
+		if (IsDiagonalTrackdir(pos.td)) {
 			cost += YAPF_TILE_LENGTH;
-			switch (GetTileType(tile)) {
+			switch (GetTileType(pos.tile)) {
 				case TT_MISC:
 					/* Increase the cost for level crossings */
-					if (IsLevelCrossingTile(tile)) {
+					if (IsLevelCrossingTile(pos.tile)) {
 						cost += Yapf().PfGetSettings().road_crossing_penalty;
 					}
 					break;
 
 				case TT_STATION: {
-					const RoadStop *rs = RoadStop::GetByTile(tile, GetRoadStopType(tile));
-					if (IsDriveThroughStopTile(tile)) {
+					const RoadStop *rs = RoadStop::GetByTile(pos.tile, GetRoadStopType(pos.tile));
+					if (IsDriveThroughStopTile(pos.tile)) {
 						/* Increase the cost for drive-through road stops */
 						cost += Yapf().PfGetSettings().road_stop_penalty;
-						DiagDirection dir = TrackdirToExitdir(trackdir);
-						if (!RoadStop::IsDriveThroughRoadStopContinuation(tile, tile - TileOffsByDiagDir(dir))) {
+						DiagDirection dir = TrackdirToExitdir(pos.td);
+						if (!RoadStop::IsDriveThroughRoadStopContinuation(pos.tile, pos.tile - TileOffsByDiagDir(dir))) {
 							/* When we're the first road stop in a 'queue' of them we increase
 							 * cost based on the fill percentage of the whole queue. */
 							const RoadStop::Entry *entry = rs->GetEntry(dir);
@@ -108,7 +108,7 @@ public:
 		PFPos pos = n.GetPos();
 		for (;;) {
 			/* base tile cost depending on distance between edges */
-			segment_cost += Yapf().OneTileCost(pos.tile, pos.td);
+			segment_cost += Yapf().OneTileCost(pos);
 
 			const RoadVehicle *v = Yapf().GetVehicle();
 			/* we have reached the vehicle's destination - segment should end here to avoid target skipping */
