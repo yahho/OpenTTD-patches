@@ -2273,7 +2273,7 @@ static Trackdir DoTrainPathfind(const Train *v, TileIndex tile, DiagDirection en
 /**
  * Extend a train path as far as possible. Stops on encountering a safe tile,
  * another reservation or a track choice.
- * @return INVALID_TILE indicates that the reservation failed.
+ * @return A safe waiting position if the path could be extended to one; the first (unsafe, unreserved) choice or target tile; or INVALID_TILE if the reservation could not be extended to one of those.
  */
 static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trackdirs, DiagDirection *enterdir)
 {
@@ -2301,7 +2301,7 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 			/* Choice found, path valid but not okay. Save info about the choice tile as well. */
 			if (new_trackdirs != NULL) *new_trackdirs = ft.m_new.trackdirs;
 			if (enterdir != NULL) *enterdir = ft.m_exitdir;
-			return PBSTileInfo(ft.m_new.tile, ft.m_old.td, false);
+			return PBSTileInfo(ft.m_new.tile, ft.m_new.td, false);
 		}
 
 		/* Possible signal tile. */
@@ -2519,7 +2519,9 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 		orders.SwitchToNextOrder(true);
 	}
 
-	if (res_dest.tile != INVALID_TILE && !res_dest.okay) {
+	assert(res_dest.tile != INVALID_TILE);
+
+	if (!res_dest.okay) {
 		/* Pathfinders are able to tell that route was only 'guessed'. */
 		bool      path_found = true;
 		TileIndex new_tile = res_dest.tile;
