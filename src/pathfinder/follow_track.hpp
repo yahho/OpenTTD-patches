@@ -154,11 +154,6 @@ public:
 		return true;
 	}
 
-	inline bool Follow(TileIndex old_tile, Trackdir old_td)
-	{
-		return Follow(PFPos(old_tile, old_td));
-	}
-
 	inline bool FollowNext()
 	{
 		assert(m_new.tile != INVALID_TILE);
