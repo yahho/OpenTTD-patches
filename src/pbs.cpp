@@ -406,7 +406,7 @@ PBSPositionState CheckWaitingPosition(const Train *v, const PFPos &pos, bool for
 	if (IsRailDepotTile(pos.tile)) return HasDepotReservation(pos.tile) ? PBS_BUSY : PBS_FREE;
 
 	Track track = TrackdirToTrack(pos.td);
-	if (IsNormalRailTile(pos.tile) && HasSignalOnTrackdir(pos.tile, pos.td) && !IsPbsSignal(GetSignalType(pos.tile, track))) {
+	if (IsNormalRailTile(pos.tile) && HasSignalAlongPos(pos) && !IsPbsSignal(GetSignalType(pos.tile, track))) {
 		/* For non-pbs signals, stop on the signal tile. */
 		if (cb == PBS_CHECK_SAFE) return PBS_FREE;
 		return HasReservedTrack(pos.tile, track) ? PBS_BUSY : PBS_FREE;
@@ -435,10 +435,10 @@ PBSPositionState CheckWaitingPosition(const Train *v, const PFPos &pos, bool for
 		if (!ft.m_new.IsTrackdirSet()) return PBS_UNSAFE;
 		if (!IsNormalRailTile(ft.m_new.tile)) return PBS_UNSAFE;
 
-		if (HasSignalOnTrackdir(ft.m_new.tile, ft.m_new.td)) {
+		if (HasSignalAlongPos(ft.m_new)) {
 			/* PBS signal on next trackdir? Safe position. */
 			if (!IsPbsSignal(GetSignalType(ft.m_new.tile, TrackdirToTrack(ft.m_new.td)))) return PBS_UNSAFE;
-		} else if (HasSignalOnTrackdir(ft.m_new.tile, ReverseTrackdir(ft.m_new.td))) {
+		} else if (HasSignalAgainstPos(ft.m_new)) {
 			/* One-way PBS signal against us? Safe position. */
 			if (GetSignalType(ft.m_new.tile, TrackdirToTrack(ft.m_new.td)) != SIGTYPE_PBS_ONEWAY) return PBS_UNSAFE;
 		} else {

@@ -440,7 +440,7 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 
 	/* Check for signals */
 	if (IsNormalRailTile(pos.tile)) {
-		if (HasSignalOnTrackdir(pos.tile, pos.td)) {
+		if (HasSignalAlongPos(pos)) {
 			SignalType sigtype = GetSignalType(pos.tile, TrackdirToTrack(pos.td));
 			/* Ordinary track with signals */
 			if (GetSignalStateByTrackdir(pos.tile, pos.td) == SIGNAL_STATE_RED) {

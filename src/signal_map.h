@@ -16,6 +16,23 @@
 #include "pathfinder/pathfinder_type.h"
 
 /**
+ * Checks for the presence of signals along the given trackdir.
+ */
+static inline bool HasSignalAlongPos(const PFPos &pos)
+{
+	return HasSignalOnTrackdir(pos.tile, pos.td);
+}
+
+/**
+ * Checks for the presence of signals against the given trackdir.
+ */
+static inline bool HasSignalAgainstPos(const PFPos &pos)
+{
+	return HasSignalOnTrackdir(pos.tile, ReverseTrackdir(pos.td));
+}
+
+
+/**
  * Is a pbs signal present along the trackdir?
  * @param tile the tile to check
  * @param td the trackdir to check

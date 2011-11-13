@@ -2204,7 +2204,7 @@ void FreeTrainTrackReservation(const Train *v)
 		ft.m_new.td = FindFirstTrackdir(ft.m_new.trackdirs);
 
 		if (IsNormalRailTile(ft.m_new.tile)) {
-			if (HasSignalOnTrackdir(ft.m_new.tile, ft.m_new.td) && !IsPbsSignal(GetSignalType(ft.m_new.tile, TrackdirToTrack(ft.m_new.td)))) {
+			if (HasSignalAlongPos(ft.m_new) && !IsPbsSignal(GetSignalType(ft.m_new.tile, TrackdirToTrack(ft.m_new.td)))) {
 				/* Conventional signal along trackdir: remove reservation and stop. */
 				UnreserveRailTrack(ft.m_new);
 				break;
@@ -2218,7 +2218,7 @@ void FreeTrainTrackReservation(const Train *v)
 					SetSignalStateByTrackdir(ft.m_new.tile, ft.m_new.td, SIGNAL_STATE_RED);
 					MarkTileDirtyByTile(ft.m_new.tile);
 				}
-			} else if (HasSignalOnTrackdir(ft.m_new.tile, ReverseTrackdir(ft.m_new.td)) && IsOnewaySignal(ft.m_new.tile, TrackdirToTrack(ft.m_new.td))) {
+			} else if (HasSignalAgainstPos(ft.m_new) && IsOnewaySignal(ft.m_new.tile, TrackdirToTrack(ft.m_new.td))) {
 				break;
 			}
 		}
