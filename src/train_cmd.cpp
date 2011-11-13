@@ -2210,7 +2210,7 @@ void FreeTrainTrackReservation(const Train *v)
 				break;
 			}
 			if (HasPbsSignalOnTrackdir(ft.m_new.tile, ft.m_new.td)) {
-				if (GetSignalStateByTrackdir(ft.m_new.tile, ft.m_new.td) == SIGNAL_STATE_RED) {
+				if (GetSignalStateByPos(ft.m_new) == SIGNAL_STATE_RED) {
 					/* Red PBS signal? Can't be our reservation, would be green then. */
 					break;
 				} else {

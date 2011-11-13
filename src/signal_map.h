@@ -36,6 +36,14 @@ static inline SignalType GetSignalType(const PFPos &pos)
 	return GetSignalType(pos.tile, TrackdirToTrack(pos.td));
 }
 
+/**
+ * Gets the state of the signal along the given trackdir.
+ */
+static inline SignalState GetSignalStateByPos(const PFPos &pos)
+{
+	return GetSignalStateByTrackdir(pos.tile, pos.td);
+}
+
 
 /**
  * Is a pbs signal present along the trackdir?

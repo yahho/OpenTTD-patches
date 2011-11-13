@@ -443,7 +443,7 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 		if (HasSignalAlongPos(pos)) {
 			SignalType sigtype = GetSignalType(pos);
 			/* Ordinary track with signals */
-			if (GetSignalStateByTrackdir(pos.tile, pos.td) == SIGNAL_STATE_RED) {
+			if (GetSignalStateByPos(pos) == SIGNAL_STATE_RED) {
 				/* Signal facing us is red */
 				if (!NPFGetFlag(current, NPF_FLAG_SEEN_SIGNAL)) {
 					/* Penalize the first signal we

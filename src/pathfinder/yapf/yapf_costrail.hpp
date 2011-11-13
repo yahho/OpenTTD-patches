@@ -178,7 +178,7 @@ public:
 				n.m_segment->m_end_segment_reason |= ESRB_DEAD_END;
 			} else {
 				if (has_signal_along) {
-					SignalState sig_state = GetSignalStateByTrackdir(pos.tile, pos.td);
+					SignalState sig_state = GetSignalStateByPos(pos);
 					SignalType sig_type = GetSignalType(pos);
 
 					n.m_last_signal_type = sig_type;
@@ -352,7 +352,7 @@ public:
 					/* We will need also some information about the last signal (if it was red). */
 					if (segment.m_last_signal.tile != INVALID_TILE) {
 						assert(HasSignalAlongPos(segment.m_last_signal));
-						SignalState sig_state = GetSignalStateByTrackdir(segment.m_last_signal.tile, segment.m_last_signal.td);
+						SignalState sig_state = GetSignalStateByPos(segment.m_last_signal);
 						bool is_red = (sig_state == SIGNAL_STATE_RED);
 						n.flags_u.flags_s.m_last_signal_was_red = is_red;
 						if (is_red) {
