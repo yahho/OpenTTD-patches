@@ -99,8 +99,7 @@ public:
 	/** Called by YAPF to detect if node ends in the desired destination */
 	inline bool PfDetectDestination(TileIndex tile, Trackdir td)
 	{
-		return IsSafeWaitingPosition(Yapf().GetVehicle(), tile, td, !TrackFollower::Allow90degTurns()) &&
-				IsWaitingPositionFree(Yapf().GetVehicle(), tile, td, !TrackFollower::Allow90degTurns());
+		return IsFreeSafeWaitingPosition(Yapf().GetVehicle(), tile, td, !TrackFollower::Allow90degTurns());
 	}
 
 	/**

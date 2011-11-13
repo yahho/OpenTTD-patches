@@ -433,8 +433,7 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 						if (IsSafeWaitingPosition(train, t, td, _settings_game.pf.forbid_90_deg)) break;
 					}
 					if (td == INVALID_TRACKDIR ||
-							!IsSafeWaitingPosition(train, t, td, _settings_game.pf.forbid_90_deg) ||
-							!IsWaitingPositionFree(train, t, td, _settings_game.pf.forbid_90_deg)) {
+							!IsFreeSafeWaitingPosition(train, t, td, _settings_game.pf.forbid_90_deg)) {
 						cost += _settings_game.pf.npf.npf_rail_lastred_penalty;
 					}
 				}
@@ -541,9 +540,8 @@ static int32 NPFFindSafeTile(AyStar *as, OpenListNode *current)
 {
 	const Train *v = Train::From(((NPFFindStationOrTileData *)as->user_target)->v);
 
-	return (IsSafeWaitingPosition(v, current->path.node.tile, current->path.node.direction, _settings_game.pf.forbid_90_deg) &&
-			IsWaitingPositionFree(v, current->path.node.tile, current->path.node.direction, _settings_game.pf.forbid_90_deg)) ?
-				AYSTAR_FOUND_END_NODE : AYSTAR_DONE;
+	return IsFreeSafeWaitingPosition(v, current->path.node.tile, current->path.node.direction, _settings_game.pf.forbid_90_deg) ?
+			AYSTAR_FOUND_END_NODE : AYSTAR_DONE;
 }
 
 /* Will find a station identified using the NPFFindStationOrTileData */

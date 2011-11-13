@@ -440,8 +440,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 					 * other platforms of this waypoint are evaluated as well, i.e. we assume
 					 * that there is a red signal in the waypoint when it's occupied. */
 					if (td == INVALID_TRACKDIR ||
-							!IsSafeWaitingPosition(v, t, td, _settings_game.pf.forbid_90_deg) ||
-							!IsWaitingPositionFree(v, t, td, _settings_game.pf.forbid_90_deg)) {
+							!IsFreeSafeWaitingPosition(v, t, td, _settings_game.pf.forbid_90_deg)) {
 						extra_cost += Yapf().PfGetSettings().rail_lastred_penalty;
 					}
 				}
