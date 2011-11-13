@@ -962,6 +962,7 @@ object_map.h
 rail_map.h
 road_map.cpp
 road_map.h
+signal_map.h
 station_map.h
 tile_map.h
 town_map.h

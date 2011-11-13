@@ -1169,6 +1169,7 @@
     <ClInclude Include="..\src\rail_map.h" />
     <ClCompile Include="..\src\road_map.cpp" />
     <ClInclude Include="..\src\road_map.h" />
+    <ClInclude Include="..\src\signal_map.h" />
     <ClInclude Include="..\src\station_map.h" />
     <ClInclude Include="..\src\tile_map.h" />
     <ClInclude Include="..\src\town_map.h" />

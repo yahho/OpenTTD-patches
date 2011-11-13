@@ -4035,6 +4035,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\signal_map.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\station_map.h"
 				>
 			</File>

@@ -419,29 +419,6 @@ static inline void SetSignalStateByTrackdir(TileIndex tile, Trackdir trackdir, S
 	}
 }
 
-/**
- * Is a pbs signal present along the trackdir?
- * @param tile the tile to check
- * @param td the trackdir to check
- */
-static inline bool HasPbsSignalOnTrackdir(TileIndex tile, Trackdir td)
-{
-	return IsNormalRailTile(tile) && HasSignalOnTrackdir(tile, td) &&
-			IsPbsSignal(GetSignalType(tile, TrackdirToTrack(td)));
-}
-
-/**
- * Is a one-way signal blocking the trackdir? A one-way signal on the
- * trackdir against will block, but signals on both trackdirs won't.
- * @param tile the tile to check
- * @param td the trackdir to check
- */
-static inline bool HasOnewaySignalBlockingTrackdir(TileIndex tile, Trackdir td)
-{
-	return IsNormalRailTile(tile) && HasSignalOnTrackdir(tile, ReverseTrackdir(td)) &&
-			!HasSignalOnTrackdir(tile, td) && IsOnewaySignal(tile, TrackdirToTrack(td));
-}
-
 
 RailType GetTileRailType(TileIndex tile, Track track = INVALID_TRACK);
 

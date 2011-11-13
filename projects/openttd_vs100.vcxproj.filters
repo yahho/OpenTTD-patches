@@ -2736,6 +2736,9 @@
     <ClInclude Include="..\src\road_map.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\signal_map.h">
+      <Filter>Map Accessors</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\station_map.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
