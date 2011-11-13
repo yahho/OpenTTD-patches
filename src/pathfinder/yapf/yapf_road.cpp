@@ -411,7 +411,7 @@ public:
 	inline bool SetOriginFromVehiclePos(const RoadVehicle *v)
 	{
 		/* set origin position */
-		PFPos pos (v->tile, v->GetVehicleTrackdir());
+		PFPos pos = v->GetPos();
 		if ((TrackStatusToTrackdirBits(GetTileTrackStatus(pos.tile, TRANSPORT_ROAD, v->compatible_roadtypes)) & TrackdirToTrackdirBits(pos.td)) == 0) {
 			/* sometimes the roadveh is not on the road (it resides on non-existing track)
 			 * how should we handle that situation? */
@@ -488,7 +488,7 @@ Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDi
 
 FindDepotData YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, int max_distance)
 {
-	PFPos pos (v->tile, v->GetVehicleTrackdir());
+	PFPos pos = v->GetPos();
 	if ((TrackStatusToTrackdirBits(GetTileTrackStatus(pos.tile, TRANSPORT_ROAD, v->compatible_roadtypes)) & TrackdirToTrackdirBits(pos.td)) == 0) {
 		return FindDepotData();
 	}

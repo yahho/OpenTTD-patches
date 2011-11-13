@@ -224,21 +224,23 @@ void Ship::OnNewDay()
 	SetWindowClassesDirty(WC_SHIPS_LIST);
 }
 
-Trackdir Ship::GetVehicleTrackdir() const
+PFPos Ship::GetPos() const
 {
-	if (this->vehstatus & VS_CRASHED) return INVALID_TRACKDIR;
+	if (this->vehstatus & VS_CRASHED) return PFPos();
+
+	Trackdir td;
 
 	if (this->IsInDepot()) {
 		/* We'll assume the ship is facing outwards */
-		return DiagDirToDiagTrackdir(GetShipDepotDirection(this->tile));
-	}
-
-	if (this->trackdir == TRACKDIR_WORMHOLE) {
+		td = DiagDirToDiagTrackdir(GetShipDepotDirection(this->tile));
+	} else if (this->trackdir == TRACKDIR_WORMHOLE) {
 		/* ship on aqueduct, so just use his direction and assume a diagonal track */
-		return DiagDirToDiagTrackdir(DirToDiagDir(this->direction));
+		td = DiagDirToDiagTrackdir(DirToDiagDir(this->direction));
+	} else {
+		td = this->trackdir;
 	}
 
-	return this->trackdir;
+	return PFPos(this->tile, td);
 }
 
 void Ship::MarkDirty()

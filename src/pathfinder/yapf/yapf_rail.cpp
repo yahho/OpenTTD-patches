@@ -548,8 +548,8 @@ bool YapfTrainCheckReverse(const Train *v)
 	const Train *last_veh = v->Last();
 
 	/* tiles where front and back are */
-	PFPos pos (v->tile, v->GetVehicleTrackdir());
-	PFPos rev (last_veh->tile, ReverseTrackdir(last_veh->GetVehicleTrackdir()));
+	PFPos pos = v->GetPos();
+	PFPos rev = last_veh->GetReversePos();
 
 	int reverse_penalty = 0;
 
@@ -599,10 +599,8 @@ FindDepotData YapfTrainFindNearestDepot(const Train *v, int max_penalty)
 {
 	FindDepotData fdd;
 
-	const Train *last_veh = v->Last();
-
 	PBSTileInfo origin = FollowTrainReservation(v);
-	PFPos rev (last_veh->tile, ReverseTrackdir(last_veh->GetVehicleTrackdir()));
+	PFPos rev = v->Last()->GetReversePos();
 
 	typedef bool (*PfnFindNearestDepotTwoWay)(const Train*, const PFPos&, const PFPos&, int, int, TileIndex*, bool*);
 	PfnFindNearestDepotTwoWay pfnFindNearestDepotTwoWay = &CYapfAnyDepotRail1::stFindNearestDepotTwoWay;

@@ -54,17 +54,17 @@ public:
 
 	static Trackdir ChooseShipTrack(const Ship *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)
 	{
+		/* move back to the old tile/trackdir (where ship is coming from) */
+		PFPos pos = v->GetPos();
+		assert(pos.tile == TILE_ADD(tile, TileOffsByDiagDir(ReverseDiagDir(enterdir))));
+		assert(IsValidTrackdir(pos.td));
+
 		/* handle special case - when next tile is destination tile */
 		if (tile == v->dest_tile) {
 			/* use vehicle's current direction if that's possible, otherwise use first usable one. */
-			Trackdir veh_dir = v->GetVehicleTrackdir();
+			Trackdir veh_dir = pos.td;
 			return ((trackdirs & TrackdirToTrackdirBits(veh_dir)) != 0) ? veh_dir : FindFirstTrackdir(trackdirs);
 		}
-
-		/* move back to the old tile/trackdir (where ship is coming from) */
-		assert(v->tile == TILE_ADD(tile, TileOffsByDiagDir(ReverseDiagDir(enterdir))));
-		Trackdir trackdir = v->GetVehicleTrackdir();
-		assert(IsValidTrackdir(trackdir));
 
 		/* get available trackdirs on the destination tile */
 		TrackdirBits dest_trackdirs = TrackStatusToTrackdirBits(GetTileTrackStatus(v->dest_tile, TRANSPORT_WATER, 0));
@@ -72,7 +72,7 @@ public:
 		/* create pathfinder instance */
 		Tpf pf;
 		/* set origin and destination nodes */
-		pf.SetOrigin(PFPos(v->tile, trackdir));
+		pf.SetOrigin(pos);
 		pf.SetDestination(v->dest_tile, dest_trackdirs);
 		/* find best path */
 		path_found = pf.FindPath(v);
@@ -229,9 +229,7 @@ Trackdir YapfShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterd
 
 bool YapfShipCheckReverse(const Ship *v)
 {
-	Trackdir td = v->GetVehicleTrackdir();
-	Trackdir td_rev = ReverseTrackdir(td);
-	TileIndex tile = v->tile;
+	PFPos pos = v->GetPos();
 
 	typedef bool (*PfnCheckReverseShip)(const Ship*, TileIndex, Trackdir, Trackdir);
 	PfnCheckReverseShip pfnCheckReverseShip = CYapfShip2::CheckShipReverse; // default: ExitDir, allow 90-deg
@@ -243,7 +241,7 @@ bool YapfShipCheckReverse(const Ship *v)
 		pfnCheckReverseShip = &CYapfShip1::CheckShipReverse; // Trackdir, allow 90-deg
 	}
 
-	bool reverse = pfnCheckReverseShip(v, tile, td, td_rev);
+	bool reverse = pfnCheckReverseShip(v, pos.tile, pos.td, ReverseTrackdir(pos.td));
 
 	return reverse;
 }

@@ -178,7 +178,7 @@ Trackdir OPFShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterdi
 	assert(TILE_ADD(tile, -TileOffsByDiagDir(enterdir)) == v->tile);
 
 	/* Let's find out how far it would be if we would reverse first */
-	Trackdir trackdir = v->GetVehicleTrackdir();
+	Trackdir trackdir = v->GetPos().td;
 	assert(HasBit(DiagdirReachesTrackdirs(ReverseDiagDir(enterdir)), ReverseTrackdir(trackdir)));
 	TrackdirBits b = TrackStatusToTrackdirBits(GetTileTrackStatus(v->tile, TRANSPORT_WATER, 0)) & TrackdirToTrackdirBits(ReverseTrackdir(trackdir));
 

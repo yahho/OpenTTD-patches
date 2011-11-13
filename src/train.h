@@ -107,7 +107,9 @@ struct Train FINAL : public GroundVehicle<Train, VEH_TRAIN> {
 	bool Tick();
 	void OnNewDay();
 	uint Crash(bool flooded = false);
-	Trackdir GetVehicleTrackdir() const;
+	Trackdir GetTrackdir() const;
+	PFPos GetPos() const;
+	PFPos GetReversePos() const;
 	TileIndex GetOrderStationLocation(StationID station);
 	bool FindClosestDepot(TileIndex *location, DestinationID *destination, bool *reverse);
 

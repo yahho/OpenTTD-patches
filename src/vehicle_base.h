@@ -23,6 +23,7 @@
 #include "transport_type.h"
 #include "group_type.h"
 #include "base_consist.h"
+#include "pathfinder/pathfinder_type.h"
 #include <list>
 #include <map>
 
@@ -472,18 +473,13 @@ public:
 	virtual uint Crash(bool flooded = false);
 
 	/**
-	 * Returns the Trackdir on which the vehicle is currently located.
-	 * Works for trains and ships.
-	 * Currently works only sortof for road vehicles, since they have a fuzzy
-	 * concept of being "on" a trackdir. Dunno really what it returns for a road
-	 * vehicle that is halfway a tile, never really understood that part. For road
-	 * vehicles that are at the beginning or end of the tile, should just return
-	 * the diagonal trackdir on which they are driving. I _think_.
+	 * Returns the tile/trackdir on which the vehicle is currently located.
+	 * Works for road vehicles, trains and ships.
 	 * For other vehicles types, or vehicles with no clear trackdir (such as those
-	 * in depots), returns 0xFF.
-	 * @return the trackdir of the vehicle
+	 * in depots), returns an invalid position.
+	 * @return the position of the vehicle
 	 */
-	virtual Trackdir GetVehicleTrackdir() const { return INVALID_TRACKDIR; }
+	virtual PFPos GetPos() const { return PFPos(); }
 
 	/**
 	 * Gets the running cost of a vehicle  that can be sent into SetDParam for string processing.

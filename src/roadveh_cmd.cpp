@@ -1782,24 +1782,26 @@ void RoadVehicle::OnNewDay()
 	SetWindowClassesDirty(WC_ROADVEH_LIST);
 }
 
-Trackdir RoadVehicle::GetVehicleTrackdir() const
+PFPos RoadVehicle::GetPos() const
 {
-	if (this->vehstatus & VS_CRASHED) return INVALID_TRACKDIR;
+	if (this->vehstatus & VS_CRASHED) return PFPos();
+
+	Trackdir td;
 
 	if (this->IsInDepot()) {
 		/* We'll assume the road vehicle is facing outwards */
-		return DiagDirToDiagTrackdir(GetGroundDepotDirection(this->tile));
-	}
-
-	if (IsStandardRoadStopTile(this->tile)) {
+		td = DiagDirToDiagTrackdir(GetGroundDepotDirection(this->tile));
+	} else if (IsStandardRoadStopTile(this->tile)) {
 		/* We'll assume the road vehicle is facing outwards */
-		return DiagDirToDiagTrackdir(GetRoadStopDir(this->tile)); // Road vehicle in a station
+		td = DiagDirToDiagTrackdir(GetRoadStopDir(this->tile)); // Road vehicle in a station
+	} else if (this->state > RVSB_TRACKDIR_MASK) {
+		/* Drive through road stops / wormholes (tunnels) */
+		td = DiagDirToDiagTrackdir(DirToDiagDir(this->direction));
+	} else {
+		/* If vehicle's state is a valid track direction (vehicle is not turning around) return it,
+		 * otherwise transform it into a valid track direction */
+		td = (Trackdir)((IsReversingRoadTrackdir((Trackdir)this->state)) ? (this->state - 6) : this->state);
 	}
 
-	/* Drive through road stops / wormholes (tunnels) */
-	if (this->state > RVSB_TRACKDIR_MASK) return DiagDirToDiagTrackdir(DirToDiagDir(this->direction));
-
-	/* If vehicle's state is a valid track direction (vehicle is not turning around) return it,
-	 * otherwise transform it into a valid track direction */
-	return (Trackdir)((IsReversingRoadTrackdir((Trackdir)this->state)) ? (this->state - 6) : this->state);
+	return PFPos(this->tile, td);
 }

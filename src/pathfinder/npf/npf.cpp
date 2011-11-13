@@ -1119,9 +1119,9 @@ static void NPFFillWithOrderData(NPFFindStationOrTileData *fstd, const Vehicle *
 
 FindDepotData NPFRoadVehicleFindNearestDepot(const RoadVehicle *v, int max_penalty)
 {
-	Trackdir trackdir = v->GetVehicleTrackdir();
+	PFPos pos = v->GetPos();
 
-	NPFFoundTargetData ftd = NPFRouteToDepotBreadthFirstTwoWay(v->tile, trackdir, false, v->tile, ReverseTrackdir(trackdir), false, NULL, TRANSPORT_ROAD, v->compatible_roadtypes, v->owner, INVALID_RAILTYPES, 0);
+	NPFFoundTargetData ftd = NPFRouteToDepotBreadthFirstTwoWay(pos.tile, pos.td, false, pos.tile, ReverseTrackdir(pos.td), false, NULL, TRANSPORT_ROAD, v->compatible_roadtypes, v->owner, INVALID_RAILTYPES, 0);
 
 	if (ftd.best_bird_dist != 0) return FindDepotData();
 
@@ -1162,12 +1162,14 @@ Trackdir NPFRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDir
 Trackdir NPFShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)
 {
 	NPFFindStationOrTileData fstd;
-	Trackdir trackdir = v->GetVehicleTrackdir();
-	assert(trackdir != INVALID_TRACKDIR); // Check that we are not in a depot
+
+	PFPos pos = v->GetPos();
+	assert(pos.tile == TILE_ADD(tile, TileOffsByDiagDir(ReverseDiagDir(enterdir))));
+	assert(pos.td != INVALID_TRACKDIR); // Check that we are not in a depot
 
 	NPFFillWithOrderData(&fstd, v);
 
-	NPFFoundTargetData ftd = NPFRouteToStationOrTile(tile - TileOffsByDiagDir(enterdir), trackdir, true, &fstd, TRANSPORT_WATER, 0, v->owner, INVALID_RAILTYPES);
+	NPFFoundTargetData ftd = NPFRouteToStationOrTile(pos.tile, pos.td, true, &fstd, TRANSPORT_WATER, 0, v->owner, INVALID_RAILTYPES);
 
 	/* If ftd.best_bird_dist is 0, we found our target and ftd.best_trackdir contains
 	 * the direction we need to take to get there, if ftd.best_bird_dist is not 0,
@@ -1184,12 +1186,13 @@ bool NPFShipCheckReverse(const Ship *v)
 
 	NPFFillWithOrderData(&fstd, v);
 
-	Trackdir trackdir = v->GetVehicleTrackdir();
-	Trackdir trackdir_rev = ReverseTrackdir(trackdir);
-	assert(trackdir != INVALID_TRACKDIR);
-	assert(trackdir_rev != INVALID_TRACKDIR);
+	PFPos pos = v->GetPos();
+	assert(pos.td != INVALID_TRACKDIR);
 
-	ftd = NPFRouteToStationOrTileTwoWay(v->tile, trackdir, false, v->tile, trackdir_rev, false, &fstd, TRANSPORT_WATER, 0, v->owner, INVALID_RAILTYPES);
+	PFPos rev = pos;
+	rev.td = ReverseTrackdir(rev.td);
+
+	ftd = NPFRouteToStationOrTileTwoWay(pos.tile, pos.td, false, rev.tile, rev.td, false, &fstd, TRANSPORT_WATER, 0, v->owner, INVALID_RAILTYPES);
 	/* If we didn't find anything, just keep on going straight ahead, otherwise take the reverse flag */
 	return ftd.best_bird_dist == 0 && NPFGetFlag(&ftd.node, NPF_FLAG_REVERSE);
 }
@@ -1198,15 +1201,14 @@ bool NPFShipCheckReverse(const Ship *v)
 
 FindDepotData NPFTrainFindNearestDepot(const Train *v, int max_penalty)
 {
-	const Train *last = v->Last();
-	Trackdir trackdir = v->GetVehicleTrackdir();
-	Trackdir trackdir_rev = ReverseTrackdir(last->GetVehicleTrackdir());
+	PFPos pos = v->GetPos();
+	PFPos rev = v->Last()->GetReversePos();
 	NPFFindStationOrTileData fstd;
 	fstd.v = v;
 	fstd.reserve_path = false;
 
-	assert(trackdir != INVALID_TRACKDIR);
-	NPFFoundTargetData ftd = NPFRouteToDepotBreadthFirstTwoWay(v->tile, trackdir, false, last->tile, trackdir_rev, false, &fstd, TRANSPORT_RAIL, 0, v->owner, v->compatible_railtypes, NPF_INFINITE_PENALTY);
+	assert(pos.td != INVALID_TRACKDIR);
+	NPFFoundTargetData ftd = NPFRouteToDepotBreadthFirstTwoWay(pos.tile, pos.td, false, rev.tile, rev.td, false, &fstd, TRANSPORT_RAIL, 0, v->owner, v->compatible_railtypes, NPF_INFINITE_PENALTY);
 	if (ftd.best_bird_dist != 0) return FindDepotData();
 
 	/* Found target */
@@ -1244,16 +1246,15 @@ bool NPFTrainCheckReverse(const Train *v)
 {
 	NPFFindStationOrTileData fstd;
 	NPFFoundTargetData ftd;
-	const Train *last = v->Last();
 
 	NPFFillWithOrderData(&fstd, v);
 
-	Trackdir trackdir = v->GetVehicleTrackdir();
-	Trackdir trackdir_rev = ReverseTrackdir(last->GetVehicleTrackdir());
-	assert(trackdir != INVALID_TRACKDIR);
-	assert(trackdir_rev != INVALID_TRACKDIR);
+	PFPos pos = v->GetPos();
+	PFPos rev = v->Last()->GetReversePos();
+	assert(pos.td != INVALID_TRACKDIR);
+	assert(rev.td != INVALID_TRACKDIR);
 
-	ftd = NPFRouteToStationOrTileTwoWay(v->tile, trackdir, false, last->tile, trackdir_rev, false, &fstd, TRANSPORT_RAIL, 0, v->owner, v->compatible_railtypes);
+	ftd = NPFRouteToStationOrTileTwoWay(pos.tile, pos.td, false, rev.tile, rev.td, false, &fstd, TRANSPORT_RAIL, 0, v->owner, v->compatible_railtypes);
 	/* If we didn't find anything, just keep on going straight ahead, otherwise take the reverse flag */
 	return ftd.best_bird_dist == 0 && NPFGetFlag(&ftd.node, NPF_FLAG_REVERSE);
 }

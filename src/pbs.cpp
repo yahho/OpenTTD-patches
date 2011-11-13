@@ -335,13 +335,12 @@ PBSTileInfo FollowTrainReservation(const Train *v, Vehicle **train_on_res)
 {
 	assert(v->type == VEH_TRAIN);
 
-	TileIndex tile = v->tile;
-	Trackdir  trackdir = v->GetVehicleTrackdir();
+	PFPos pos = v->GetPos();
 
-	if (IsRailDepotTile(tile) && !GetDepotReservationTrackBits(tile)) return PBSTileInfo(tile, trackdir, false);
+	if (IsRailDepotTile(pos.tile) && !GetDepotReservationTrackBits(pos.tile)) return PBSTileInfo(pos.tile, pos.td, false);
 
 	FindTrainOnTrackInfo ftoti;
-	ftoti.res = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, tile, trackdir);
+	ftoti.res = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, pos.tile, pos.td);
 	ftoti.res.okay = IsSafeWaitingPosition(v, ftoti.res.pos, _settings_game.pf.forbid_90_deg);
 	if (train_on_res != NULL) {
 		FindTrainOnPathEnd(&ftoti);

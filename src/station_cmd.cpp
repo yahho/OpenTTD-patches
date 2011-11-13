@@ -1114,17 +1114,17 @@ CommandCost FindJoiningWaypoint(StationID existing_waypoint, StationID waypoint_
 static void FreeTrainReservation(Train *v)
 {
 	FreeTrainTrackReservation(v);
-	if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(PFPos(v->tile, v->GetVehicleTrackdir()), false);
+	if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->GetPos(), false);
 	v = v->Last();
-	if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(PFPos(v->tile, ReverseTrackdir(v->GetVehicleTrackdir())), false);
+	if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->GetReversePos(), false);
 }
 
 static void RestoreTrainReservation(Train *v)
 {
-	if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(PFPos(v->tile, v->GetVehicleTrackdir()), true);
+	if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->GetPos(), true);
 	TryPathReserve(v, true, true);
 	v = v->Last();
-	if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(PFPos(v->tile, ReverseTrackdir(v->GetVehicleTrackdir())), true);
+	if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->GetReversePos(), true);
 }
 
 /**
