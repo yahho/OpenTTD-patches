@@ -405,15 +405,14 @@ PBSPositionState CheckWaitingPosition(const Train *v, const PFPos &pos, bool for
 	/* Depots are always safe, and free iff unreserved. */
 	if (IsRailDepotTile(pos.tile)) return HasDepotReservation(pos.tile) ? PBS_BUSY : PBS_FREE;
 
-	Track track = TrackdirToTrack(pos.td);
-	if (IsNormalRailTile(pos.tile) && HasSignalAlongPos(pos) && !IsPbsSignal(GetSignalType(pos.tile, track))) {
+	if (IsNormalRailTile(pos.tile) && HasSignalAlongPos(pos) && !IsPbsSignal(GetSignalType(pos))) {
 		/* For non-pbs signals, stop on the signal tile. */
 		if (cb == PBS_CHECK_SAFE) return PBS_FREE;
-		return HasReservedTrack(pos.tile, track) ? PBS_BUSY : PBS_FREE;
+		return HasReservedTrack(pos.tile, TrackdirToTrack(pos.td)) ? PBS_BUSY : PBS_FREE;
 	}
 
 	PBSPositionState state;
-	if ((cb != PBS_CHECK_SAFE) && TrackOverlapsTracks(GetReservedTrackbits(pos.tile), track)) {
+	if ((cb != PBS_CHECK_SAFE) && TrackOverlapsTracks(GetReservedTrackbits(pos.tile), TrackdirToTrack(pos.td))) {
 		/* Track reserved? Can never be a free waiting position. */
 		if (cb != PBS_CHECK_FULL) return PBS_BUSY;
 		state = PBS_BUSY;
@@ -437,10 +436,10 @@ PBSPositionState CheckWaitingPosition(const Train *v, const PFPos &pos, bool for
 
 		if (HasSignalAlongPos(ft.m_new)) {
 			/* PBS signal on next trackdir? Safe position. */
-			if (!IsPbsSignal(GetSignalType(ft.m_new.tile, TrackdirToTrack(ft.m_new.td)))) return PBS_UNSAFE;
+			if (!IsPbsSignal(GetSignalType(ft.m_new))) return PBS_UNSAFE;
 		} else if (HasSignalAgainstPos(ft.m_new)) {
 			/* One-way PBS signal against us? Safe position. */
-			if (GetSignalType(ft.m_new.tile, TrackdirToTrack(ft.m_new.td)) != SIGTYPE_PBS_ONEWAY) return PBS_UNSAFE;
+			if (GetSignalType(ft.m_new) != SIGTYPE_PBS_ONEWAY) return PBS_UNSAFE;
 		} else {
 			/* No signal at all? Unsafe position. */
 			return PBS_UNSAFE;
@@ -453,7 +452,7 @@ PBSPositionState CheckWaitingPosition(const Train *v, const PFPos &pos, bool for
 		assert(ft.m_new.IsTrackdirSet());
 		assert(IsNormalRailTile(ft.m_new.tile));
 		assert(HasSignalOnTrack(ft.m_new.tile, TrackdirToTrack(ft.m_new.td)));
-		assert(IsPbsSignal(GetSignalType(ft.m_new.tile, TrackdirToTrack(ft.m_new.td))));
+		assert(IsPbsSignal(GetSignalType(ft.m_new)));
 	}
 
 	assert(state == PBS_FREE);

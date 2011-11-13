@@ -31,6 +31,11 @@ static inline bool HasSignalAgainstPos(const PFPos &pos)
 	return HasSignalOnTrackdir(pos.tile, ReverseTrackdir(pos.td));
 }
 
+static inline SignalType GetSignalType(const PFPos &pos)
+{
+	return GetSignalType(pos.tile, TrackdirToTrack(pos.td));
+}
+
 
 /**
  * Is a pbs signal present along the trackdir?

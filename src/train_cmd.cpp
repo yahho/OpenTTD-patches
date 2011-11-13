@@ -2204,7 +2204,7 @@ void FreeTrainTrackReservation(const Train *v)
 		ft.m_new.td = FindFirstTrackdir(ft.m_new.trackdirs);
 
 		if (IsNormalRailTile(ft.m_new.tile)) {
-			if (HasSignalAlongPos(ft.m_new) && !IsPbsSignal(GetSignalType(ft.m_new.tile, TrackdirToTrack(ft.m_new.td)))) {
+			if (HasSignalAlongPos(ft.m_new) && !IsPbsSignal(GetSignalType(ft.m_new))) {
 				/* Conventional signal along trackdir: remove reservation and stop. */
 				UnreserveRailTrack(ft.m_new);
 				break;

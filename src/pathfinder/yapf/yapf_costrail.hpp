@@ -179,7 +179,7 @@ public:
 			} else {
 				if (has_signal_along) {
 					SignalState sig_state = GetSignalStateByTrackdir(pos.tile, pos.td);
-					SignalType sig_type = GetSignalType(pos.tile, TrackdirToTrack(pos.td));
+					SignalType sig_type = GetSignalType(pos);
 
 					n.m_last_signal_type = sig_type;
 
@@ -228,7 +228,7 @@ public:
 					n.m_segment->m_last_signal = pos;
 				}
 
-				if (has_signal_against && IsPbsSignal(GetSignalType(pos.tile, TrackdirToTrack(pos.td)))) {
+				if (has_signal_against && IsPbsSignal(GetSignalType(pos))) {
 					cost += n.m_num_signals_passed < Yapf().PfGetSettings().rail_look_ahead_max_signals ? Yapf().PfGetSettings().rail_pbs_signal_back_penalty : 0;
 				}
 			}
@@ -356,7 +356,7 @@ public:
 						bool is_red = (sig_state == SIGNAL_STATE_RED);
 						n.flags_u.flags_s.m_last_signal_was_red = is_red;
 						if (is_red) {
-							n.m_last_red_signal_type = GetSignalType(segment.m_last_signal.tile, TrackdirToTrack(segment.m_last_signal.td));
+							n.m_last_red_signal_type = GetSignalType(segment.m_last_signal);
 						}
 					}
 					/* No further calculation needed. */
@@ -438,7 +438,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 
 			} else if (TrackFollower::DoTrackMasking() && cur.tile_type == TT_RAILWAY) {
 				/* Searching for a safe tile? */
-				if (HasSignalAlongPos(cur) && !IsPbsSignal(GetSignalType(cur.tile, TrackdirToTrack(cur.td)))) {
+				if (HasSignalAlongPos(cur) && !IsPbsSignal(GetSignalType(cur))) {
 					end_segment_reason |= ESRB_SAFE_TILE;
 				}
 			}
@@ -496,10 +496,10 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			TILE next(tf_local.m_new);
 
 			if (TrackFollower::DoTrackMasking() && IsNormalRailTile(next.tile)) {
-				if (HasSignalAlongPos(next) && IsPbsSignal(GetSignalType(next.tile, TrackdirToTrack(next.td)))) {
+				if (HasSignalAlongPos(next) && IsPbsSignal(GetSignalType(next))) {
 					/* Possible safe tile. */
 					end_segment_reason |= ESRB_SAFE_TILE;
-				} else if (HasSignalAgainstPos(next) && GetSignalType(next.tile, TrackdirToTrack(next.td)) == SIGTYPE_PBS_ONEWAY) {
+				} else if (HasSignalAgainstPos(next) && GetSignalType(next) == SIGTYPE_PBS_ONEWAY) {
 					/* Possible safe tile, but not so good as it's the back of a signal... */
 					end_segment_reason |= ESRB_SAFE_TILE | ESRB_DEAD_END;
 					extra_cost += Yapf().PfGetSettings().rail_lastred_exit_penalty;
