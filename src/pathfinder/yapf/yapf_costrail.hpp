@@ -413,14 +413,14 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 							break;
 						}
 						/* If this is a safe waiting position we're done searching for it */
-						if (IsSafeWaitingPosition(v, ft.m_new.tile, ft.m_new.td, _settings_game.pf.forbid_90_deg)) break;
+						if (IsSafeWaitingPosition(v, ft.m_new, _settings_game.pf.forbid_90_deg)) break;
 					}
 
 					/* In the case this platform is (possibly) occupied we add penalty so the
 					 * other platforms of this waypoint are evaluated as well, i.e. we assume
 					 * that there is a red signal in the waypoint when it's occupied. */
 					if (!ft.m_new.IsTrackdirSet() ||
-							!IsFreeSafeWaitingPosition(v, ft.m_new.tile, ft.m_new.td, _settings_game.pf.forbid_90_deg)) {
+							!IsFreeSafeWaitingPosition(v, ft.m_new, _settings_game.pf.forbid_90_deg)) {
 						extra_cost += Yapf().PfGetSettings().rail_lastred_penalty;
 					}
 				}

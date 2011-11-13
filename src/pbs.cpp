@@ -342,7 +342,7 @@ PBSTileInfo FollowTrainReservation(const Train *v, Vehicle **train_on_res)
 
 	FindTrainOnTrackInfo ftoti;
 	ftoti.res = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, tile, trackdir);
-	ftoti.res.okay = IsSafeWaitingPosition(v, ftoti.res.pos.tile, ftoti.res.pos.td, _settings_game.pf.forbid_90_deg);
+	ftoti.res.okay = IsSafeWaitingPosition(v, ftoti.res.pos, _settings_game.pf.forbid_90_deg);
 	if (train_on_res != NULL) {
 		FindTrainOnPathEnd(&ftoti);
 		if (ftoti.best != NULL) *train_on_res = ftoti.best->First();
@@ -386,8 +386,7 @@ Train *GetTrainForReservation(TileIndex tile, Track track)
  * Analyse a waiting position, to check if it is safe and/or if it is free.
  *
  * @param v the vehicle to test for
- * @param tile The tile
- * @param trackdir The trackdir to test
+ * @param pos The position
  * @param forbid_90deg Don't allow trains to make 90 degree turns
  * @param cb Checking behaviour
  * @return Depending on cb:
@@ -401,20 +400,20 @@ Train *GetTrainForReservation(TileIndex tile, Track track)
  *  * PBS_CHECK_SAFE_FREE: Check if the position is both safe and free.
  *    Return PBS_FREE iff it is.
  */
-PBSPositionState CheckWaitingPosition(const Train *v, TileIndex tile, Trackdir trackdir, bool forbid_90deg, PBSCheckingBehaviour cb)
+PBSPositionState CheckWaitingPosition(const Train *v, const PFPos &pos, bool forbid_90deg, PBSCheckingBehaviour cb)
 {
 	/* Depots are always safe, and free iff unreserved. */
-	if (IsRailDepotTile(tile)) return HasDepotReservation(tile) ? PBS_BUSY : PBS_FREE;
+	if (IsRailDepotTile(pos.tile)) return HasDepotReservation(pos.tile) ? PBS_BUSY : PBS_FREE;
 
-	Track track = TrackdirToTrack(trackdir);
-	if (IsNormalRailTile(tile) && HasSignalOnTrackdir(tile, trackdir) && !IsPbsSignal(GetSignalType(tile, track))) {
+	Track track = TrackdirToTrack(pos.td);
+	if (IsNormalRailTile(pos.tile) && HasSignalOnTrackdir(pos.tile, pos.td) && !IsPbsSignal(GetSignalType(pos.tile, track))) {
 		/* For non-pbs signals, stop on the signal tile. */
 		if (cb == PBS_CHECK_SAFE) return PBS_FREE;
-		return HasReservedTrack(tile, track) ? PBS_BUSY : PBS_FREE;
+		return HasReservedTrack(pos.tile, track) ? PBS_BUSY : PBS_FREE;
 	}
 
 	PBSPositionState state;
-	if ((cb != PBS_CHECK_SAFE) && TrackOverlapsTracks(GetReservedTrackbits(tile), track)) {
+	if ((cb != PBS_CHECK_SAFE) && TrackOverlapsTracks(GetReservedTrackbits(pos.tile), track)) {
 		/* Track reserved? Can never be a free waiting position. */
 		if (cb != PBS_CHECK_FULL) return PBS_BUSY;
 		state = PBS_BUSY;
@@ -427,7 +426,7 @@ PBSPositionState CheckWaitingPosition(const Train *v, TileIndex tile, Trackdir t
 	CFollowTrackRail ft(v, !forbid_90deg, true);
 
 	/* End of track? Safe position. */
-	if (!ft.Follow(tile, trackdir)) return state;
+	if (!ft.Follow(pos)) return state;
 
 	assert(ft.m_new.trackdirs != TRACKDIR_BIT_NONE);
 	assert((state == PBS_FREE) || (cb == PBS_CHECK_FULL));
@@ -449,7 +448,7 @@ PBSPositionState CheckWaitingPosition(const Train *v, TileIndex tile, Trackdir t
 
 		if (cb == PBS_CHECK_SAFE) return PBS_FREE;
 		if (state != PBS_FREE) return PBS_BUSY;
-	} else if (!IsStationTile(tile)) {
+	} else if (!IsStationTile(pos.tile)) {
 		/* With PBS_CHECK_FREE, all these should be true. */
 		assert(ft.m_new.IsTrackdirSet());
 		assert(IsNormalRailTile(ft.m_new.tile));

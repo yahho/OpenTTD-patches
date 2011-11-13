@@ -60,7 +60,7 @@ private:
 
 	bool FindSafePositionProc(const PFPos &pos, PFPos*)
 	{
-		if (IsSafeWaitingPosition(Yapf().GetVehicle(), pos.tile, pos.td, !TrackFollower::Allow90degTurns())) {
+		if (IsSafeWaitingPosition(Yapf().GetVehicle(), pos, !TrackFollower::Allow90degTurns())) {
 			m_res_dest = pos;
 			return false;   // Stop iterating segment
 		}
@@ -154,7 +154,7 @@ public:
 		}
 
 		/* Don't bother if the target is reserved. */
-		if (!IsWaitingPositionFree(Yapf().GetVehicle(), m_res_dest.tile, m_res_dest.td)) return false;
+		if (!IsWaitingPositionFree(Yapf().GetVehicle(), m_res_dest)) return false;
 
 		PFPos res_fail;
 

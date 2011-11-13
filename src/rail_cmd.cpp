@@ -1193,7 +1193,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 		if (v != NULL) {
 			/* Extend the train's path if it's not stopped or loading, or not at a safe position. */
 			if (!(((v->vehstatus & VS_STOPPED) && v->cur_speed == 0) || v->current_order.IsType(OT_LOADING)) ||
-					!IsSafeWaitingPosition(v, v->tile, v->GetVehicleTrackdir(), _settings_game.pf.forbid_90_deg)) {
+					!IsSafeWaitingPosition(v, PFPos(v->tile, v->GetVehicleTrackdir()), _settings_game.pf.forbid_90_deg)) {
 				TryPathReserve(v, true);
 			}
 		}

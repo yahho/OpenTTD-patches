@@ -73,21 +73,21 @@ enum PBSCheckingBehaviour {
 	PBS_CHECK_SAFE_FREE, ///< Check if the waiting position is both safe and free
 };
 
-PBSPositionState CheckWaitingPosition(const Train *v, TileIndex tile, Trackdir trackdir, bool forbid_90deg = false, PBSCheckingBehaviour cb = PBS_CHECK_FULL);
+PBSPositionState CheckWaitingPosition(const Train *v, const PFPos &pos, bool forbid_90deg = false, PBSCheckingBehaviour cb = PBS_CHECK_FULL);
 
-static inline bool IsSafeWaitingPosition(const Train *v, TileIndex tile, Trackdir trackdir, bool forbid_90deg = false)
+static inline bool IsSafeWaitingPosition(const Train *v, const PFPos &pos, bool forbid_90deg = false)
 {
-	return CheckWaitingPosition(v, tile, trackdir, forbid_90deg, PBS_CHECK_SAFE) != PBS_UNSAFE;
+	return CheckWaitingPosition(v, pos, forbid_90deg, PBS_CHECK_SAFE) != PBS_UNSAFE;
 }
 
-static inline bool IsWaitingPositionFree(const Train *v, TileIndex tile, Trackdir trackdir, bool forbid_90deg = false)
+static inline bool IsWaitingPositionFree(const Train *v, const PFPos &pos, bool forbid_90deg = false)
 {
-	return CheckWaitingPosition(v, tile, trackdir, forbid_90deg, PBS_CHECK_FREE) == PBS_FREE;
+	return CheckWaitingPosition(v, pos, forbid_90deg, PBS_CHECK_FREE) == PBS_FREE;
 }
 
-static inline bool IsFreeSafeWaitingPosition(const Train *v, TileIndex tile, Trackdir trackdir, bool forbid_90deg = false)
+static inline bool IsFreeSafeWaitingPosition(const Train *v, const PFPos &pos, bool forbid_90deg = false)
 {
-	return CheckWaitingPosition(v, tile, trackdir, forbid_90deg, PBS_CHECK_SAFE_FREE) == PBS_FREE;
+	return CheckWaitingPosition(v, pos, forbid_90deg, PBS_CHECK_SAFE_FREE) == PBS_FREE;
 }
 
 Train *GetTrainForReservation(TileIndex tile, Track track);

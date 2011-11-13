@@ -2305,7 +2305,7 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 		/* Possible signal tile. */
 		if (HasOnewaySignalBlockingTrackdir(ft.m_new.tile, ft.m_new.td)) break;
 
-		PBSPositionState state = CheckWaitingPosition(v, ft.m_new.tile, ft.m_new.td, _settings_game.pf.forbid_90_deg);
+		PBSPositionState state = CheckWaitingPosition(v, ft.m_new, _settings_game.pf.forbid_90_deg);
 		if (state == PBS_BUSY) break;
 
 		if (!TryReserveRailTrack(ft.m_new)) break;
@@ -2550,7 +2550,7 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 	if (got_reservation != NULL) *got_reservation = true;
 
 	/* Reservation target found and free, check if it is safe. */
-	while (!IsSafeWaitingPosition(v, res_dest.pos.tile, res_dest.pos.td, _settings_game.pf.forbid_90_deg)) {
+	while (!IsSafeWaitingPosition(v, res_dest.pos, _settings_game.pf.forbid_90_deg)) {
 		/* Extend reservation until we have found a safe position. */
 		DiagDirection exitdir = TrackdirToExitdir(res_dest.pos.td);
 		TileIndex     next_tile = TileAddByDiagDir(res_dest.pos.tile, exitdir);

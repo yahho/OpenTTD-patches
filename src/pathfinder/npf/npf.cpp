@@ -422,10 +422,10 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 							break;
 						}
 						/* If this is a safe waiting position we're done searching for it */
-						if (IsSafeWaitingPosition(train, ft.m_new.tile, ft.m_new.td, _settings_game.pf.forbid_90_deg)) break;
+						if (IsSafeWaitingPosition(train, ft.m_new, _settings_game.pf.forbid_90_deg)) break;
 					}
 					if (!ft.m_new.IsTrackdirSet() ||
-							!IsFreeSafeWaitingPosition(train, ft.m_new.tile, ft.m_new.td, _settings_game.pf.forbid_90_deg)) {
+							!IsFreeSafeWaitingPosition(train, ft.m_new, _settings_game.pf.forbid_90_deg)) {
 						cost += _settings_game.pf.npf.npf_rail_lastred_penalty;
 					}
 				}
@@ -532,7 +532,7 @@ static int32 NPFFindSafeTile(AyStar *as, OpenListNode *current)
 {
 	const Train *v = Train::From(((NPFFindStationOrTileData *)as->user_target)->v);
 
-	return IsFreeSafeWaitingPosition(v, current->path.node.pos.tile, current->path.node.pos.td, _settings_game.pf.forbid_90_deg) ?
+	return IsFreeSafeWaitingPosition(v, current->path.node.pos, _settings_game.pf.forbid_90_deg) ?
 			AYSTAR_FOUND_END_NODE : AYSTAR_DONE;
 }
 
@@ -568,7 +568,7 @@ static const PathNode *FindSafePosition(PathNode *path, const Train *v)
 	PathNode *sig = path;
 
 	for (; path->parent != NULL; path = path->parent) {
-		if (IsSafeWaitingPosition(v, path->node.pos.tile, path->node.pos.td, _settings_game.pf.forbid_90_deg)) {
+		if (IsSafeWaitingPosition(v, path->node.pos, _settings_game.pf.forbid_90_deg)) {
 			sig = path;
 		}
 	}
@@ -622,11 +622,11 @@ static void NPFSaveTargetData(AyStar *as, OpenListNode *current)
 
 			/* Update only end tile, trackdir of a station stays the same. */
 			ftd->node.pos.tile = end_tile;
-			if (!IsWaitingPositionFree(v, end_tile, target->node.pos.td, _settings_game.pf.forbid_90_deg)) return;
+			if (!IsWaitingPositionFree(v, ftd->node.pos, _settings_game.pf.forbid_90_deg)) return;
 			SetRailStationPlatformReservation(target->node.pos, true);
 			SetRailStationReservation(target->node.pos.tile, false);
 		} else {
-			if (!IsWaitingPositionFree(v, target->node.pos.tile, target->node.pos.td, _settings_game.pf.forbid_90_deg)) return;
+			if (!IsWaitingPositionFree(v, target->node.pos, _settings_game.pf.forbid_90_deg)) return;
 		}
 
 		for (const PathNode *cur = target; cur->parent != NULL; cur = cur->parent) {
