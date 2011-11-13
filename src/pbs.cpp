@@ -247,7 +247,7 @@ static PBSTileInfo FollowReservation(Owner o, RailTypes rts, TileIndex tile, Tra
 
 		/* One-way signal against us. The reservation can't be ours as it is not
 		 * a safe position from our direction and we can never pass the signal. */
-		if (!ignore_oneway && HasOnewaySignalBlockingTrackdir(ft.m_new.tile, ft.m_new.td)) break;
+		if (!ignore_oneway && HasOnewaySignalBlockingPos(ft.m_new)) break;
 
 		tile = ft.m_new.tile;
 		trackdir = ft.m_new.td;

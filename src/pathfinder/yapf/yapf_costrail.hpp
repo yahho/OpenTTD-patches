@@ -479,7 +479,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 					end_segment_reason |= ESRB_DEAD_END;
 				}
 
-				if (TrackFollower::DoTrackMasking() && !HasOnewaySignalBlockingTrackdir(cur.tile, cur.td)) {
+				if (TrackFollower::DoTrackMasking() && !HasOnewaySignalBlockingPos(cur)) {
 					end_segment_reason |= ESRB_SAFE_TILE;
 				}
 				break;

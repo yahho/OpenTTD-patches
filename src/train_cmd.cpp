@@ -2303,7 +2303,7 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 		}
 
 		/* Possible signal tile. */
-		if (HasOnewaySignalBlockingTrackdir(ft.m_new.tile, ft.m_new.td)) break;
+		if (HasOnewaySignalBlockingPos(ft.m_new)) break;
 
 		PBSPositionState state = CheckWaitingPosition(v, ft.m_new, _settings_game.pf.forbid_90_deg);
 		if (state == PBS_BUSY) break;

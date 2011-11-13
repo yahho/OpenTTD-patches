@@ -87,4 +87,14 @@ static inline bool HasOnewaySignalBlockingTrackdir(TileIndex tile, Trackdir td)
 			!HasSignalOnTrackdir(tile, td) && IsOnewaySignal(tile, TrackdirToTrack(td));
 }
 
+/**
+ * Is a one-way signal blocking the trackdir? A one-way signal on the
+ * trackdir against will block, but signals on both trackdirs won't.
+ * @param pos the position to check
+ */
+static inline bool HasOnewaySignalBlockingPos(const PFPos &pos)
+{
+	return HasOnewaySignalBlockingTrackdir(pos.tile, pos.td);
+}
+
 #endif /* SIGNAL_MAP_H */
