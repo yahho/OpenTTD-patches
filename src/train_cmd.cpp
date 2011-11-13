@@ -2046,7 +2046,7 @@ static void CheckNextTrainTile(Train *v)
 	if (ft.m_new.IsTrackdirSet()) {
 		/* Next tile is not reserved. */
 		if (!HasReservedPos(ft.m_new)) {
-			if (HasPbsSignalOnTrackdir(ft.m_new.tile, ft.m_new.td)) {
+			if (HasPbsSignalAlongPos(ft.m_new)) {
 				/* If the next tile is a PBS signal, try to make a reservation. */
 				ChooseTrainTrack(v, ft.m_new.tile, ft.m_exitdir, ft.m_new.trackdirs, false, NULL, false);
 			}
@@ -2209,7 +2209,7 @@ void FreeTrainTrackReservation(const Train *v)
 				UnreserveRailTrack(ft.m_new);
 				break;
 			}
-			if (HasPbsSignalOnTrackdir(ft.m_new.tile, ft.m_new.td)) {
+			if (HasPbsSignalAlongPos(ft.m_new)) {
 				if (GetSignalStateByPos(ft.m_new) == SIGNAL_STATE_RED) {
 					/* Red PBS signal? Can't be our reservation, would be green then. */
 					break;

@@ -478,7 +478,7 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 			NPFSetFlag(current, NPF_FLAG_LAST_SIGNAL_BLOCK, !IsPbsSignal(sigtype));
 		}
 
-		if (HasPbsSignalOnTrackdir(pos.tile, ReverseTrackdir(pos.td)) && !NPFGetFlag(current, NPF_FLAG_3RD_SIGNAL)) {
+		if (HasPbsSignalAgainstPos(pos) && !NPFGetFlag(current, NPF_FLAG_3RD_SIGNAL)) {
 			cost += _settings_game.pf.npf.npf_rail_pbs_signal_back_penalty;
 		}
 	}

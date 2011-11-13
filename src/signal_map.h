@@ -57,6 +57,25 @@ static inline bool HasPbsSignalOnTrackdir(TileIndex tile, Trackdir td)
 }
 
 /**
+ * Is a pbs signal present along the trackdir?
+ * @param pos the position to check
+ */
+static inline bool HasPbsSignalAlongPos(const PFPos &pos)
+{
+	return HasPbsSignalOnTrackdir(pos.tile, pos.td);
+}
+
+/**
+ * Is a pbs signal present against the trackdir?
+ * @param pos the position to check
+ */
+static inline bool HasPbsSignalAgainstPos(const PFPos &pos)
+{
+	return HasPbsSignalOnTrackdir(pos.tile, ReverseTrackdir(pos.td));
+}
+
+
+/**
  * Is a one-way signal blocking the trackdir? A one-way signal on the
  * trackdir against will block, but signals on both trackdirs won't.
  * @param tile the tile to check
