@@ -140,26 +140,26 @@ public:
 	}
 
 	/** Check for a reserved station platform. */
-	inline bool IsAnyStationTileReserved(TileIndex tile, Trackdir trackdir, int skipped)
+	inline bool IsAnyStationTileReserved(const PFPos &pos, int skipped)
 	{
-		TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(trackdir)));
-		for (; skipped >= 0; skipped--, tile += diff) {
+		TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
+		for (TileIndex tile = pos.tile; skipped >= 0; skipped--, tile += diff) {
 			if (HasStationReservation(tile)) return true;
 		}
 		return false;
 	}
 
 	/** The cost for reserved tiles, including skipped ones. */
-	inline int ReservationCost(Node& n, TileIndex tile, Trackdir trackdir, int skipped)
+	inline int ReservationCost(Node& n, const PFPos &pos, int skipped)
 	{
 		if (n.m_num_signals_passed >= m_sig_look_ahead_costs.Size() / 2) return 0;
 		if (!IsPbsSignal(n.m_last_signal_type)) return 0;
 
-		if (IsRailStationTile(tile) && IsAnyStationTileReserved(tile, trackdir, skipped)) {
+		if (IsRailStationTile(pos.tile) && IsAnyStationTileReserved(pos, skipped)) {
 			return Yapf().PfGetSettings().rail_pbs_station_penalty * (skipped + 1);
-		} else if (TrackOverlapsTracks(GetReservedTrackbits(tile), TrackdirToTrack(trackdir))) {
+		} else if (TrackOverlapsTracks(GetReservedTrackbits(pos.tile), TrackdirToTrack(pos.td))) {
 			int cost = Yapf().PfGetSettings().rail_pbs_cross_penalty;
-			if (!IsDiagonalTrackdir(trackdir)) cost = (cost * YAPF_TILE_CORNER_LENGTH) / YAPF_TILE_LENGTH;
+			if (!IsDiagonalTrackdir(pos.td)) cost = (cost * YAPF_TILE_CORNER_LENGTH) / YAPF_TILE_LENGTH;
 			return cost * (skipped + 1);
 		}
 		return 0;
@@ -384,7 +384,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			segment_cost += Yapf().SignalCost(n, cur.tile, cur.td);
 
 			/* Reserved tiles. */
-			segment_cost += Yapf().ReservationCost(n, cur.tile, cur.td, tf->m_tiles_skipped);
+			segment_cost += Yapf().ReservationCost(n, cur, tf->m_tiles_skipped);
 
 			end_segment_reason = segment.m_end_segment_reason;
 
