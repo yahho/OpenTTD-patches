@@ -208,19 +208,18 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 
 
 /** Follow a reservation starting from a specific tile to the end. */
-static PBSTileInfo FollowReservation(Owner o, RailTypes rts, TileIndex tile, Trackdir trackdir, bool ignore_oneway = false)
+static PBSTileInfo FollowReservation(Owner o, RailTypes rts, const PFPos &pos, bool ignore_oneway = false)
 {
-	TileIndex start_tile = INVALID_TILE;
-	Trackdir  start_trackdir = INVALID_TRACKDIR;
-
 	/* Start track not reserved? This can happen if two trains
 	 * are on the same tile. The reservation on the next tile
 	 * is not ours in this case, so exit. */
-	if (!HasReservedTrack(tile, TrackdirToTrack(trackdir))) return PBSTileInfo(tile, trackdir, false);
+	if (!HasReservedPos(pos)) return PBSTileInfo(pos.tile, pos.td, false);
 
 	/* Do not disallow 90 deg turns as the setting might have changed between reserving and now. */
 	CFollowTrackRail ft(o, true, rts);
-	ft.SetPos(PFPos(tile, trackdir));
+	ft.SetPos(pos);
+	PFPos cur = pos;
+	PFPos start;
 
 	while (ft.FollowNext()) {
 		ft.m_new.trackdirs &= TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new.tile));
@@ -233,8 +232,7 @@ static PBSTileInfo FollowReservation(Owner o, RailTypes rts, TileIndex tile, Tra
 				while (ft.m_tiles_skipped-- > 0) {
 					ft.m_new.tile -= diff;
 					if (HasStationReservation(ft.m_new.tile)) {
-						tile = ft.m_new.tile;
-						trackdir = DiagDirToDiagTrackdir(ft.m_exitdir);
+						cur = ft.m_new;
 						break;
 					}
 				}
@@ -249,27 +247,25 @@ static PBSTileInfo FollowReservation(Owner o, RailTypes rts, TileIndex tile, Tra
 		 * a safe position from our direction and we can never pass the signal. */
 		if (!ignore_oneway && HasOnewaySignalBlockingPos(ft.m_new)) break;
 
-		tile = ft.m_new.tile;
-		trackdir = ft.m_new.td;
+		cur = ft.m_new;
 
-		if (start_tile == INVALID_TILE) {
+		if (start.tile == INVALID_TILE) {
 			/* Update the start tile after we followed the track the first
 			 * time. This is necessary because the track follower can skip
 			 * tiles (in stations for example) which means that we might
 			 * never visit our original starting tile again. */
-			start_tile = tile;
-			start_trackdir = trackdir;
+			start = cur;
 		} else {
 			/* Loop encountered? */
-			if (tile == start_tile && trackdir == start_trackdir) break;
+			if (cur == start) break;
 		}
 		/* Depot tile? Can't continue. */
-		if (IsRailDepotTile(tile)) break;
+		if (IsRailDepotTile(cur.tile)) break;
 		/* Non-pbs signal? Reservation can't continue. */
-		if (IsNormalRailTile(tile) && HasSignalOnTrackdir(tile, trackdir) && !IsPbsSignal(GetSignalType(tile, TrackdirToTrack(trackdir)))) break;
+		if (IsNormalRailTile(cur.tile) && HasSignalAlongPos(cur) && !IsPbsSignal(GetSignalType(cur))) break;
 	}
 
-	return PBSTileInfo(tile, trackdir, false);
+	return PBSTileInfo(cur.tile, cur.td, false);
 }
 
 /**
@@ -340,7 +336,7 @@ PBSTileInfo FollowTrainReservation(const Train *v, Vehicle **train_on_res)
 	if (IsRailDepotTile(pos.tile) && !GetDepotReservationTrackBits(pos.tile)) return PBSTileInfo(pos.tile, pos.td, false);
 
 	FindTrainOnTrackInfo ftoti;
-	ftoti.res = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, pos.tile, pos.td);
+	ftoti.res = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, pos);
 	ftoti.res.okay = IsSafeWaitingPosition(v, ftoti.res.pos, _settings_game.pf.forbid_90_deg);
 	if (train_on_res != NULL) {
 		FindTrainOnPathEnd(&ftoti);
@@ -372,7 +368,7 @@ Train *GetTrainForReservation(TileIndex tile, Track track)
 		if (HasOnewaySignalBlockingTrackdir(tile, ReverseTrackdir(trackdir)) && !HasPbsSignalOnTrackdir(tile, trackdir)) continue;
 
 		FindTrainOnTrackInfo ftoti;
-		ftoti.res = FollowReservation(GetTileOwner(tile), rts, tile, trackdir, true);
+		ftoti.res = FollowReservation(GetTileOwner(tile), rts, PFPos(tile, trackdir), true);
 
 		FindTrainOnPathEnd(&ftoti);
 		if (ftoti.best != NULL) return ftoti.best;
