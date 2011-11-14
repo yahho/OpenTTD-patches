@@ -49,6 +49,13 @@ struct PBSTileInfo {
 	PBSTileInfo() : pos(), okay(false) {}
 
 	/**
+	 * Create a PBSTileInfo with given position and safe waiting position information.
+	 * @param _pos The position where the path ends.
+	 * @param _okay Whether the tile is a safe waiting point or not.
+	 */
+	PBSTileInfo(const PFPos &_pos, bool _okay) : pos(_pos), okay(_okay) {}
+
+	/**
 	 * Create a PBSTileInfo with given tile, track direction and safe waiting position information.
 	 * @param _t The tile where the path ends.
 	 * @param _td The reserved track dir on the tile.

@@ -2298,7 +2298,7 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 			/* Choice found, path valid but not okay. Save info about the choice tile as well. */
 			if (new_trackdirs != NULL) *new_trackdirs = ft.m_new.trackdirs;
 			if (enterdir != NULL) *enterdir = ft.m_exitdir;
-			return PBSTileInfo(ft.m_new.tile, ft.m_new.td, false);
+			return PBSTileInfo(ft.m_new, false);
 		}
 
 		/* Possible signal tile. */
@@ -2311,13 +2311,13 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 
 		if (state == PBS_FREE) {
 			/* Safe position is all good, path valid and okay. */
-			return PBSTileInfo(ft.m_new.tile, ft.m_new.td, true);
+			return PBSTileInfo(ft.m_new, true);
 		}
 	}
 
 	if (ft.m_err == CFollowTrackRail::EC_OWNER || ft.m_err == CFollowTrackRail::EC_NO_WAY) {
 		/* End of line, path valid and okay. */
-		return PBSTileInfo(ft.m_old.tile, ft.m_old.td, true);
+		return PBSTileInfo(ft.m_old, true);
 	}
 
 	/* Sorry, can't reserve path, back out. */
