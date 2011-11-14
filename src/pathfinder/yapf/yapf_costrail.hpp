@@ -165,21 +165,21 @@ public:
 		return 0;
 	}
 
-	int SignalCost(Node& n, TileIndex tile, Trackdir trackdir)
+	int SignalCost(Node& n, const PFPos &pos)
 	{
 		int cost = 0;
 		/* if there is one-way signal in the opposite direction, then it is not our way */
 		CPerfStart perf_cost(Yapf().m_perf_other_cost);
-		if (IsNormalRailTile(tile)) {
-			bool has_signal_against = HasSignalOnTrackdir(tile, ReverseTrackdir(trackdir));
-			bool has_signal_along = HasSignalOnTrackdir(tile, trackdir);
-			if (has_signal_against && !has_signal_along && IsOnewaySignal(tile, TrackdirToTrack(trackdir))) {
+		if (IsNormalRailTile(pos.tile)) {
+			bool has_signal_against = HasSignalOnTrackdir(pos.tile, ReverseTrackdir(pos.td));
+			bool has_signal_along = HasSignalOnTrackdir(pos.tile, pos.td);
+			if (has_signal_against && !has_signal_along && IsOnewaySignal(pos.tile, TrackdirToTrack(pos.td))) {
 				/* one-way signal in opposite direction */
 				n.m_segment->m_end_segment_reason |= ESRB_DEAD_END;
 			} else {
 				if (has_signal_along) {
-					SignalState sig_state = GetSignalStateByTrackdir(tile, trackdir);
-					SignalType sig_type = GetSignalType(tile, TrackdirToTrack(trackdir));
+					SignalState sig_state = GetSignalStateByTrackdir(pos.tile, pos.td);
+					SignalType sig_type = GetSignalType(pos.tile, TrackdirToTrack(pos.td));
 
 					n.m_last_signal_type = sig_type;
 
@@ -225,11 +225,10 @@ public:
 					}
 
 					n.m_num_signals_passed++;
-					n.m_segment->m_last_signal.tile = tile;
-					n.m_segment->m_last_signal.td = trackdir;
+					n.m_segment->m_last_signal = pos;
 				}
 
-				if (has_signal_against && IsPbsSignal(GetSignalType(tile, TrackdirToTrack(trackdir)))) {
+				if (has_signal_against && IsPbsSignal(GetSignalType(pos.tile, TrackdirToTrack(pos.td)))) {
 					cost += n.m_num_signals_passed < Yapf().PfGetSettings().rail_look_ahead_max_signals ? Yapf().PfGetSettings().rail_pbs_signal_back_penalty : 0;
 				}
 			}
@@ -381,7 +380,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			segment_cost += Yapf().SlopeCost(cur);
 
 			/* Signal cost (routine can modify segment data). */
-			segment_cost += Yapf().SignalCost(n, cur.tile, cur.td);
+			segment_cost += Yapf().SignalCost(n, cur);
 
 			/* Reserved tiles. */
 			segment_cost += Yapf().ReservationCost(n, cur, tf->m_tiles_skipped);
