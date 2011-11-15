@@ -213,6 +213,7 @@ protected:
 				m_flag = TF_BRIDGE;
 				m_new.tile = GetOtherBridgeEnd(m_old.tile);
 				m_tiles_skipped = GetTunnelBridgeLength(m_new.tile, m_old.tile);
+				m_new.wormhole = INVALID_TILE;
 				return;
 			}
 		/* extra handling for tunnels in our direction */
@@ -223,6 +224,7 @@ protected:
 				m_flag = TF_TUNNEL;
 				m_new.tile = GetOtherTunnelEnd(m_old.tile);
 				m_tiles_skipped = GetTunnelBridgeLength(m_new.tile, m_old.tile);
+				m_new.wormhole = INVALID_TILE;
 				return;
 			}
 			assert(ReverseDiagDir(enterdir) == m_exitdir);
@@ -231,6 +233,7 @@ protected:
 		/* normal or station tile, do one step */
 		TileIndexDiff diff = TileOffsByDiagDir(m_exitdir);
 		m_new.tile = TILE_ADD(m_old.tile, diff);
+		m_new.wormhole = INVALID_TILE;
 
 		/* special handling for stations */
 		if (IsRailTT() && HasStationTileRail(m_new.tile)) {
@@ -420,6 +423,7 @@ protected:
 			if (exitdir != m_exitdir) {
 				/* reverse */
 				m_new.tile = m_old.tile;
+				m_new.wormhole = INVALID_TILE;
 				m_new.td = ReverseTrackdir(m_old.td);
 				m_new.trackdirs = TrackdirToTrackdirBits(m_new.td);
 				m_exitdir = exitdir;
@@ -433,6 +437,7 @@ protected:
 		if (IsTram() && GetSingleTramBit(m_old.tile) == ReverseDiagDir(m_exitdir)) {
 			/* reverse */
 			m_new.tile = m_old.tile;
+			m_new.wormhole = INVALID_TILE;
 			m_new.td = ReverseTrackdir(m_old.td);
 			m_new.trackdirs = TrackdirToTrackdirBits(m_new.td);
 			m_exitdir = ReverseDiagDir(m_exitdir);
@@ -452,6 +457,7 @@ protected:
 			m_exitdir = ReverseDiagDir(m_exitdir);
 			/* new tile will be the same as old one */
 			m_new.tile = m_old.tile;
+			m_new.wormhole = INVALID_TILE;
 			/* set new trackdir bits to all reachable trackdirs */
 			m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
 			m_new.trackdirs &= DiagdirReachesTrackdirs(m_exitdir);
