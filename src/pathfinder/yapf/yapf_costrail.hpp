@@ -554,7 +554,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			segment.m_cost = segment_cost;
 			segment.m_end_segment_reason = end_segment_reason & ESRB_CACHED_MASK;
 			/* Save end of segment back to the node. */
-			n.SetLastTileTrackdir(cur.tile, cur.td);
+			n.SetLastTileTrackdir(cur);
 		}
 
 		/* Do we have an excuse why not to continue pathfinding in this direction? */

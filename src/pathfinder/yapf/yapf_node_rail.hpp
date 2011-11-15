@@ -154,11 +154,10 @@ struct CYapfRailNodeT
 		return m_segment->m_last;
 	}
 
-	inline void SetLastTileTrackdir(TileIndex tile, Trackdir td)
+	inline void SetLastTileTrackdir(const PFPos &pos)
 	{
 		assert(m_segment != NULL);
-		m_segment->m_last.tile = tile;
-		m_segment->m_last.td = td;
+		m_segment->m_last = pos;
 	}
 
 	template <class Tbase, class Tfunc, class Tpf>
