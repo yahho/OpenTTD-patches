@@ -80,14 +80,6 @@ struct PFPos {
 	PFPos(TileIndex t, Trackdir d) : tile(t), td(d) { }
 
 	/**
-	 * Set to a given tile and trackdir
-	 */
-	void Set(TileIndex t, Trackdir d) {
-		tile = t;
-		td = d;
-	}
-
-	/**
 	 * Compare with another PFPos
 	 */
 	bool operator == (const PFPos &other) const {
