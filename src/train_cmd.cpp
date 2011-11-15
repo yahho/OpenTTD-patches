@@ -2324,7 +2324,7 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 	PFPos stopped = ft.m_old;
 	ft.SetPos(origin.pos);
 	while (ft.m_new != stopped) {
-		if (!ft.FollowNext()) break;
+		if (!ft.FollowNext()) NOT_REACHED();
 
 		assert(ft.m_new.trackdirs != TRACKDIR_BIT_NONE);
 		assert(ft.m_new.IsTrackdirSet());
