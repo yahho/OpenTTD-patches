@@ -20,7 +20,7 @@
  */
 static inline bool HasSignalAlongPos(const PFPos &pos)
 {
-	return IsNormalRailTile(pos.tile) && HasSignalOnTrackdir(pos.tile, pos.td);
+	return !pos.InWormhole() && IsNormalRailTile(pos.tile) && HasSignalOnTrackdir(pos.tile, pos.td);
 }
 
 /**
@@ -28,7 +28,7 @@ static inline bool HasSignalAlongPos(const PFPos &pos)
  */
 static inline bool HasSignalAgainstPos(const PFPos &pos)
 {
-	return IsNormalRailTile(pos.tile) && HasSignalOnTrackdir(pos.tile, ReverseTrackdir(pos.td));
+	return !pos.InWormhole() && IsNormalRailTile(pos.tile) && HasSignalOnTrackdir(pos.tile, ReverseTrackdir(pos.td));
 }
 
 /**
@@ -36,7 +36,7 @@ static inline bool HasSignalAgainstPos(const PFPos &pos)
  */
 static inline bool HasSignalOnPos(const PFPos &pos)
 {
-	return IsNormalRailTile(pos.tile) && HasSignalOnTrack(pos.tile, TrackdirToTrack(pos.td));
+	return !pos.InWormhole() && IsNormalRailTile(pos.tile) && HasSignalOnTrack(pos.tile, TrackdirToTrack(pos.td));
 }
 
 static inline SignalType GetSignalType(const PFPos &pos)
@@ -71,7 +71,7 @@ static inline bool HasPbsSignalOnTrackdir(TileIndex tile, Trackdir td)
  */
 static inline bool HasPbsSignalAlongPos(const PFPos &pos)
 {
-	return HasPbsSignalOnTrackdir(pos.tile, pos.td);
+	return !pos.InWormhole() && HasPbsSignalOnTrackdir(pos.tile, pos.td);
 }
 
 /**
@@ -80,7 +80,7 @@ static inline bool HasPbsSignalAlongPos(const PFPos &pos)
  */
 static inline bool HasPbsSignalAgainstPos(const PFPos &pos)
 {
-	return HasPbsSignalOnTrackdir(pos.tile, ReverseTrackdir(pos.td));
+	return !pos.InWormhole() && HasPbsSignalOnTrackdir(pos.tile, ReverseTrackdir(pos.td));
 }
 
 
@@ -103,7 +103,7 @@ static inline bool HasOnewaySignalBlockingTrackdir(TileIndex tile, Trackdir td)
  */
 static inline bool HasOnewaySignalBlockingPos(const PFPos &pos)
 {
-	return HasOnewaySignalBlockingTrackdir(pos.tile, pos.td);
+	return !pos.InWormhole() && HasOnewaySignalBlockingTrackdir(pos.tile, pos.td);
 }
 
 #endif /* SIGNAL_MAP_H */
