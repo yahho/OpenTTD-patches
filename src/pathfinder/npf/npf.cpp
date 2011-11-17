@@ -849,14 +849,13 @@ static TrackdirBits GetDriveableTrackdirBits(TileIndex dst_tile, Trackdir src_tr
  * copy AyStarNode.user_data[NPF_NODE_FLAGS] from the parent */
 static void NPFFollowTrack(AyStar *aystar, OpenListNode *current)
 {
-	/* We leave src_tile on track src_trackdir in direction src_exitdir */
-	Trackdir src_trackdir = current->path.node.pos.td;
-	TileIndex src_tile = current->path.node.pos.tile;
-	DiagDirection src_exitdir = TrackdirToExitdir(src_trackdir);
+	/* We leave src in direction src_exitdir */
+	PFPos src = current->path.node.pos;
+	DiagDirection src_exitdir = TrackdirToExitdir(src.td);
 
-	/* Is src_tile valid, and can be used?
-	 * When choosing track on a junction src_tile is the tile neighboured to the junction wrt. exitdir.
-	 * But we must not check the validity of this move, as src_tile is totally unrelated to the move, if a roadvehicle reversed on a junction. */
+	/* Is src.tile valid, and can be used?
+	 * When choosing track on a junction src.tile is the tile neighboured to the junction wrt. exitdir.
+	 * But we must not check the validity of this move, as src.tile is totally unrelated to the move, if a roadvehicle reversed on a junction. */
 	bool ignore_src_tile = (current->path.parent == NULL && NPFGetFlag(&current->path.node, NPF_FLAG_IGNORE_START_TILE));
 
 	/* Information about the vehicle: TransportType (road/rail/water) and SubType (compatible rail/road types) */
@@ -865,7 +864,7 @@ static void NPFFollowTrack(AyStar *aystar, OpenListNode *current)
 
 	/* Initialize to 0, so we can jump out (return) somewhere an have no neighbours */
 	aystar->num_neighbours = 0;
-	DEBUG(npf, 4, "Expanding: (%d, %d, %d) [%d]", TileX(src_tile), TileY(src_tile), src_trackdir, src_tile);
+	DEBUG(npf, 4, "Expanding: (%d, %d, %d) [%d]", TileX(src.tile), TileY(src.tile), src.td, src.tile);
 
 	/* We want to determine the tile we arrive, and which choices we have there */
 	TileIndex dst_tile;
@@ -873,40 +872,40 @@ static void NPFFollowTrack(AyStar *aystar, OpenListNode *current)
 
 	/* Find dest tile */
 	if (ignore_src_tile) {
-		/* Do not perform any checks that involve src_tile */
-		dst_tile = src_tile + TileOffsByDiagDir(src_exitdir);
-		trackdirbits = GetDriveableTrackdirBits(dst_tile, src_trackdir, type, subtype);
-	} else if ((IsTunnelTile(src_tile) || IsBridgeHeadTile(src_tile)) && GetTunnelBridgeDirection(src_tile) == src_exitdir) {
+		/* Do not perform any checks that involve src.tile */
+		dst_tile = src.tile + TileOffsByDiagDir(src_exitdir);
+		trackdirbits = GetDriveableTrackdirBits(dst_tile, src.td, type, subtype);
+	} else if ((IsTunnelTile(src.tile) || IsBridgeHeadTile(src.tile)) && GetTunnelBridgeDirection(src.tile) == src_exitdir) {
 		/* We drive through the wormhole and arrive on the other side */
-		dst_tile = GetOtherTunnelBridgeEnd(src_tile);
-		trackdirbits = TrackdirToTrackdirBits(src_trackdir);
-	} else if (ForceReverse(src_tile, src_exitdir, type, subtype)) {
+		dst_tile = GetOtherTunnelBridgeEnd(src.tile);
+		trackdirbits = TrackdirToTrackdirBits(src.td);
+	} else if (ForceReverse(src.tile, src_exitdir, type, subtype)) {
 		/* We can only reverse on this tile */
-		dst_tile = src_tile;
-		src_trackdir = ReverseTrackdir(src_trackdir);
-		trackdirbits = TrackdirToTrackdirBits(src_trackdir);
+		dst_tile = src.tile;
+		src.td = ReverseTrackdir(src.td);
+		trackdirbits = TrackdirToTrackdirBits(src.td);
 	} else {
-		/* We leave src_tile in src_exitdir and reach dst_tile */
-		dst_tile = AddTileIndexDiffCWrap(src_tile, TileIndexDiffCByDiagDir(src_exitdir));
+		/* We leave src in src_exitdir and reach dst_tile */
+		dst_tile = AddTileIndexDiffCWrap(src.tile, TileIndexDiffCByDiagDir(src_exitdir));
 
 		if (dst_tile == INVALID_TILE || !CanEnterTile(dst_tile, src_exitdir, type, subtype, (RailTypes)aystar->user_data[NPF_RAILTYPES], (Owner)aystar->user_data[NPF_OWNER])) {
 			/* We cannot enter the next tile. Road vehicles can reverse, others reach dead end */
 			if (type != TRANSPORT_ROAD || HasBit(subtype, ROADTYPE_TRAM)) return;
 
-			dst_tile = src_tile;
-			src_trackdir = ReverseTrackdir(src_trackdir);
+			dst_tile = src.tile;
+			src.td = ReverseTrackdir(src.td);
 		}
 
-		trackdirbits = GetDriveableTrackdirBits(dst_tile, src_trackdir, type, subtype);
+		trackdirbits = GetDriveableTrackdirBits(dst_tile, src.td, type, subtype);
 
 		if (trackdirbits == 0) {
 			/* We cannot enter the next tile. Road vehicles can reverse, others reach dead end */
 			if (type != TRANSPORT_ROAD || HasBit(subtype, ROADTYPE_TRAM)) return;
 
-			dst_tile = src_tile;
-			src_trackdir = ReverseTrackdir(src_trackdir);
+			dst_tile = src.tile;
+			src.td = ReverseTrackdir(src.td);
 
-			trackdirbits = GetDriveableTrackdirBits(dst_tile, src_trackdir, type, subtype);
+			trackdirbits = GetDriveableTrackdirBits(dst_tile, src.td, type, subtype);
 		}
 	}
 
