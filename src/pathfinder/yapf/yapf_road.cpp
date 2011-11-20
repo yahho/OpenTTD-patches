@@ -106,6 +106,11 @@ public:
 		uint tiles = 0;
 		/* start at n and walk to the end of segment */
 		PFPos pos = n.GetPos();
+
+		if (IsRoadBridgeTile(pos.tile) && TrackdirToExitdir(ReverseTrackdir(pos.td)) == GetTunnelBridgeDirection(pos.tile)) {
+			segment_cost = GetTunnelBridgeLength(pos.tile, GetOtherBridgeEnd(pos.tile)) * YAPF_TILE_LENGTH;
+		}
+
 		for (;;) {
 			/* base tile cost depending on distance between edges */
 			segment_cost += Yapf().OneTileCost(pos);
