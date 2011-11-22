@@ -30,6 +30,30 @@ static inline TileIndex GetOtherTunnelBridgeEnd(TileIndex t)
 
 
 /**
+ * Get the reservation state of the rail bridge middle part
+ * @pre IsRailBridgeTile(t)
+ * @param t the tile
+ * @return reservation state
+ */
+static inline bool HasBridgeMiddleReservation(TileIndex t)
+{
+	assert(IsRailBridgeTile(t));
+	return HasBit(_mc[t].m2, 6);
+}
+
+/**
+ * Set the reservation state of the rail bridge middle part
+ * @pre IsRailBridgeTile(t)
+ * @param t the tile
+ * @param b the reservation state
+ */
+static inline void SetBridgeMiddleReservation(TileIndex t, bool b)
+{
+	assert(IsRailBridgeTile(t));
+	SB(_mc[t].m2, 6, 1, b ? 1 : 0);
+}
+
+/**
  * Get the reservation state of the rail bridge
  * @pre IsRailBridgeTile(t)
  * @param t the tile
@@ -38,7 +62,7 @@ static inline TileIndex GetOtherTunnelBridgeEnd(TileIndex t)
 static inline bool HasBridgeReservation(TileIndex t)
 {
 	assert(IsRailBridgeTile(t));
-	return HasBit(_mc[t].m2, 6);
+	return HasBridgeMiddleReservation(t);
 }
 
 /**
@@ -50,7 +74,7 @@ static inline bool HasBridgeReservation(TileIndex t)
 static inline void SetBridgeReservation(TileIndex t, bool b)
 {
 	assert(IsRailBridgeTile(t));
-	SB(_mc[t].m2, 6, 1, b ? 1 : 0);
+	SetBridgeMiddleReservation(t, b);
 	SetTrackReservation(t, b ? GetTrackBits(t) : TRACK_BIT_NONE);
 }
 
