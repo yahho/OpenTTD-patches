@@ -214,7 +214,7 @@ static PBSTileInfo FollowReservation(Owner o, RailTypes rts, TileIndex tile, Tra
 
 		/* No reservation --> path end found */
 		if (reserved == TRACKDIR_BIT_NONE) {
-			if (ft.m_is_station) {
+			if (ft.m_flag == ft.TF_STATION) {
 				/* Check skipped station tiles as well, maybe our reservation ends inside the station. */
 				TileIndexDiff diff = TileOffsByDiagDir(ft.m_exitdir);
 				while (ft.m_tiles_skipped-- > 0) {

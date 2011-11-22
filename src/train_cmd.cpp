@@ -2225,7 +2225,7 @@ void FreeTrainTrackReservation(const Train *v)
 		}
 
 		/* Don't free first station/bridge/tunnel if we are on it. */
-		if (free_tile || (!(ft.m_is_station && GetStationIndex(ft.m_new_tile) == station_id) && !ft.m_is_tunnel && !ft.m_is_bridge)) ClearPathReservation(v, tile, td);
+		if (free_tile || ft.m_flag == ft.TF_NONE || (ft.m_flag == ft.TF_STATION && GetStationIndex(ft.m_new_tile) != station_id)) ClearPathReservation(v, tile, td);
 
 		free_tile = true;
 	}
@@ -2290,7 +2290,7 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 		}
 
 		/* Station, depot or waypoint are a possible target. */
-		bool target_seen = ft.m_is_station || IsRailDepotTile(ft.m_new_tile);
+		bool target_seen = ft.m_flag == ft.TF_STATION || IsRailDepotTile(ft.m_new_tile);
 		if (target_seen || KillFirstBit(ft.m_new_td_bits) != TRACKDIR_BIT_NONE) {
 			/* Choice found or possible target encountered.
 			 * On finding a possible target, we need to stop and let the pathfinder handle the

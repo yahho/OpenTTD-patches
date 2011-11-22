@@ -29,6 +29,13 @@
 template <TransportType Ttr_type_, typename VehicleType>
 struct CFollowTrack
 {
+	enum TileFlag {
+		TF_NONE,
+		TF_STATION,
+		TF_TUNNEL,
+		TF_BRIDGE,
+	};
+
 	enum ErrorCode {
 		EC_NONE,
 		EC_OWNER,
@@ -45,9 +52,7 @@ struct CFollowTrack
 	TileIndex           m_new_tile;      ///< the new tile (the vehicle has entered)
 	TrackdirBits        m_new_td_bits;   ///< the new set of available trackdirs
 	DiagDirection       m_exitdir;       ///< exit direction (leaving the old tile)
-	bool                m_is_tunnel;     ///< last turn passed tunnel
-	bool                m_is_bridge;     ///< last turn passed bridge ramp
-	bool                m_is_station;    ///< last turn passed station
+	TileFlag            m_flag;          ///< last turn passed station, tunnel or bridge
 	int                 m_tiles_skipped; ///< number of skipped tunnel or station tiles
 	ErrorCode           m_err;
 	CPerformanceTimer  *m_pPerf;
@@ -153,7 +158,7 @@ public:
 	{
 		if (!m_mask_reserved) return true;
 
-		if (m_is_station) {
+		if (m_flag == TF_STATION) {
 			/* Check skipped station tiles as well. */
 			TileIndexDiff diff = TileOffsByDiagDir(m_exitdir);
 			for (TileIndex tile = m_new_tile - diff * m_tiles_skipped; tile != m_new_tile; tile += diff) {
@@ -184,19 +189,16 @@ protected:
 	/** Follow the m_exitdir from m_old_tile and fill m_new_tile and m_tiles_skipped */
 	inline void FollowTileExit()
 	{
-		m_is_station = m_is_bridge = m_is_tunnel = false;
-		m_tiles_skipped = 0;
-
 		/* extra handling for tunnels and bridges in our direction */
 		if (IsTunnelTile(m_old_tile) || IsBridgeHeadTile(m_old_tile)) {
 			DiagDirection enterdir = GetTunnelBridgeDirection(m_old_tile);
 			if (enterdir == m_exitdir) {
 				/* we are entering the tunnel / bridge */
 				if (IsTunnelTile(m_old_tile)) {
-					m_is_tunnel = true;
+					m_flag = TF_TUNNEL;
 					m_new_tile = GetOtherTunnelEnd(m_old_tile);
 				} else {
-					m_is_bridge = true;
+					m_flag = TF_BRIDGE;
 					m_new_tile = GetOtherBridgeEnd(m_old_tile);
 				}
 				m_tiles_skipped = GetTunnelBridgeLength(m_new_tile, m_old_tile);
@@ -211,12 +213,14 @@ protected:
 
 		/* special handling for stations */
 		if (IsRailTT() && HasStationTileRail(m_new_tile)) {
-			m_is_station = true;
+			m_flag = TF_STATION;
 		} else if (IsRoadTT() && IsRoadStopTile(m_new_tile)) {
-			m_is_station = true;
+			m_flag = TF_STATION;
 		} else {
-			m_is_station = false;
+			m_flag = TF_NONE;
 		}
+
+		m_tiles_skipped = 0;
 	}
 
 	/** stores track status (available trackdirs) for the new tile into m_new_td_bits */
@@ -352,7 +356,7 @@ protected:
 
 		/* tunnel holes and bridge ramps can be entered only from proper direction */
 		if (IsTunnelTile(m_new_tile)) {
-			if (!m_is_tunnel) {
+			if (m_flag != TF_TUNNEL) {
 				DiagDirection tunnel_enterdir = GetTunnelBridgeDirection(m_new_tile);
 				if (tunnel_enterdir != m_exitdir) {
 					m_err = EC_NO_WAY;
@@ -360,7 +364,7 @@ protected:
 				}
 			}
 		} else if (IsBridgeHeadTile(m_new_tile)) {
-			if (!m_is_bridge) {
+			if (m_flag != TF_BRIDGE) {
 				DiagDirection ramp_enderdir = GetTunnelBridgeDirection(m_new_tile);
 				if (ramp_enderdir != m_exitdir) {
 					m_err = EC_NO_WAY;
@@ -370,7 +374,7 @@ protected:
 		}
 
 		/* special handling for rail stations - get to the end of platform */
-		if (IsRailTT() && m_is_station) {
+		if (IsRailTT() && m_flag == TF_STATION) {
 			/* entered railway station
 			 * get platform length */
 			uint length = BaseStation::GetByTile(m_new_tile)->GetPlatformLength(m_new_tile, TrackdirToExitdir(m_old_td));
@@ -398,7 +402,7 @@ protected:
 				m_new_td_bits = TrackdirToTrackdirBits(ReverseTrackdir(m_old_td));
 				m_exitdir = exitdir;
 				m_tiles_skipped = 0;
-				m_is_tunnel = m_is_bridge = m_is_station = false;
+				m_flag = TF_NONE;
 				return true;
 			}
 		}
@@ -410,7 +414,7 @@ protected:
 			m_new_td_bits = TrackdirToTrackdirBits(ReverseTrackdir(m_old_td));
 			m_exitdir = ReverseDiagDir(m_exitdir);
 			m_tiles_skipped = 0;
-			m_is_tunnel = m_is_bridge = m_is_station = false;
+			m_flag = TF_NONE;
 			return true;
 		}
 
