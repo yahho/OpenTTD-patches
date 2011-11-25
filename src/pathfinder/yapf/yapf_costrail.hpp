@@ -170,69 +170,70 @@ public:
 		int cost = 0;
 		/* if there is one-way signal in the opposite direction, then it is not our way */
 		CPerfStart perf_cost(Yapf().m_perf_other_cost);
-		if (IsNormalRailTile(pos.tile)) {
-			bool has_signal_against = HasSignalAgainstPos(pos);
-			bool has_signal_along = HasSignalAlongPos(pos);
-			if (has_signal_against && !has_signal_along && IsOnewaySignal(pos.tile, TrackdirToTrack(pos.td))) {
-				/* one-way signal in opposite direction */
-				n.m_segment->m_end_segment_reason |= ESRB_DEAD_END;
-			} else {
-				if (has_signal_along) {
-					SignalState sig_state = GetSignalStateByPos(pos);
-					SignalType sig_type = GetSignalType(pos);
 
-					n.m_last_signal_type = sig_type;
+		bool has_signal_against = HasSignalAgainstPos(pos);
+		bool has_signal_along = HasSignalAlongPos(pos);
 
-					/* cache the look-ahead polynomial constant only if we didn't pass more signals than the look-ahead limit is */
-					int look_ahead_cost = (n.m_num_signals_passed < m_sig_look_ahead_costs.Size()) ? m_sig_look_ahead_costs.Data()[n.m_num_signals_passed] : 0;
-					if (sig_state != SIGNAL_STATE_RED) {
-						/* green signal */
-						n.flags_u.flags_s.m_last_signal_was_red = false;
-						/* negative look-ahead red-signal penalties would cause problems later, so use them as positive penalties for green signal */
-						if (look_ahead_cost < 0) {
-							/* add its negation to the cost */
-							cost -= look_ahead_cost;
-						}
-					} else {
-						/* we have a red signal in our direction
-						 * was it first signal which is two-way? */
-						if (!IsPbsSignal(sig_type) && Yapf().TreatFirstRedTwoWaySignalAsEOL() && n.flags_u.flags_s.m_choice_seen && has_signal_against && n.m_num_signals_passed == 0) {
-							/* yes, the first signal is two-way red signal => DEAD END. Prune this branch... */
-							Yapf().PruneIntermediateNodeBranch();
-							n.m_segment->m_end_segment_reason |= ESRB_DEAD_END;
-							Yapf().m_stopped_on_first_two_way_signal = true;
-							return -1;
-						}
-						n.m_last_red_signal_type = sig_type;
-						n.flags_u.flags_s.m_last_signal_was_red = true;
+		if (has_signal_against && !has_signal_along && IsOnewaySignal(pos.tile, TrackdirToTrack(pos.td))) {
+			/* one-way signal in opposite direction */
+			n.m_segment->m_end_segment_reason |= ESRB_DEAD_END;
+		} else {
+			if (has_signal_along) {
+				SignalState sig_state = GetSignalStateByPos(pos);
+				SignalType sig_type = GetSignalType(pos);
 
-						/* look-ahead signal penalty */
-						if (!IsPbsSignal(sig_type) && look_ahead_cost > 0) {
-							/* add the look ahead penalty only if it is positive */
-							cost += look_ahead_cost;
-						}
+				n.m_last_signal_type = sig_type;
 
-						/* special signal penalties */
-						if (n.m_num_signals_passed == 0) {
-							switch (sig_type) {
-								case SIGTYPE_COMBO:
-								case SIGTYPE_EXIT:   cost += Yapf().PfGetSettings().rail_firstred_exit_penalty; break; // first signal is red pre-signal-exit
-								case SIGTYPE_NORMAL:
-								case SIGTYPE_ENTRY:  cost += Yapf().PfGetSettings().rail_firstred_penalty; break;
-								default: break;
-							}
-						}
+				/* cache the look-ahead polynomial constant only if we didn't pass more signals than the look-ahead limit is */
+				int look_ahead_cost = (n.m_num_signals_passed < m_sig_look_ahead_costs.Size()) ? m_sig_look_ahead_costs.Data()[n.m_num_signals_passed] : 0;
+				if (sig_state != SIGNAL_STATE_RED) {
+					/* green signal */
+					n.flags_u.flags_s.m_last_signal_was_red = false;
+					/* negative look-ahead red-signal penalties would cause problems later, so use them as positive penalties for green signal */
+					if (look_ahead_cost < 0) {
+						/* add its negation to the cost */
+						cost -= look_ahead_cost;
+					}
+				} else {
+					/* we have a red signal in our direction
+					 * was it first signal which is two-way? */
+					if (!IsPbsSignal(sig_type) && Yapf().TreatFirstRedTwoWaySignalAsEOL() && n.flags_u.flags_s.m_choice_seen && has_signal_against && n.m_num_signals_passed == 0) {
+						/* yes, the first signal is two-way red signal => DEAD END. Prune this branch... */
+						Yapf().PruneIntermediateNodeBranch();
+						n.m_segment->m_end_segment_reason |= ESRB_DEAD_END;
+						Yapf().m_stopped_on_first_two_way_signal = true;
+						return -1;
+					}
+					n.m_last_red_signal_type = sig_type;
+					n.flags_u.flags_s.m_last_signal_was_red = true;
+
+					/* look-ahead signal penalty */
+					if (!IsPbsSignal(sig_type) && look_ahead_cost > 0) {
+						/* add the look ahead penalty only if it is positive */
+						cost += look_ahead_cost;
 					}
 
-					n.m_num_signals_passed++;
-					n.m_segment->m_last_signal = pos;
+					/* special signal penalties */
+					if (n.m_num_signals_passed == 0) {
+						switch (sig_type) {
+							case SIGTYPE_COMBO:
+							case SIGTYPE_EXIT:   cost += Yapf().PfGetSettings().rail_firstred_exit_penalty; break; // first signal is red pre-signal-exit
+							case SIGTYPE_NORMAL:
+							case SIGTYPE_ENTRY:  cost += Yapf().PfGetSettings().rail_firstred_penalty; break;
+							default: break;
+						}
+					}
 				}
 
-				if (has_signal_against && IsPbsSignal(GetSignalType(pos))) {
-					cost += n.m_num_signals_passed < Yapf().PfGetSettings().rail_look_ahead_max_signals ? Yapf().PfGetSettings().rail_pbs_signal_back_penalty : 0;
-				}
+				n.m_num_signals_passed++;
+				n.m_segment->m_last_signal = pos;
+			}
+
+			if (has_signal_against && IsPbsSignal(GetSignalType(pos))) {
+				cost += n.m_num_signals_passed < Yapf().PfGetSettings().rail_look_ahead_max_signals ? Yapf().PfGetSettings().rail_pbs_signal_back_penalty : 0;
 			}
 		}
+
 		return cost;
 	}
 
@@ -495,7 +496,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			/* Gather the next tile/trackdir/tile_type/rail_type. */
 			TILE next(tf_local.m_new);
 
-			if (TrackFollower::DoTrackMasking() && IsNormalRailTile(next.tile)) {
+			if (TrackFollower::DoTrackMasking()) {
 				if (HasSignalAlongPos(next) && IsPbsSignal(GetSignalType(next))) {
 					/* Possible safe tile. */
 					end_segment_reason |= ESRB_SAFE_TILE;

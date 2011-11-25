@@ -439,48 +439,46 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 	/* Determine extra costs */
 
 	/* Check for signals */
-	if (IsNormalRailTile(pos.tile)) {
-		if (HasSignalAlongPos(pos)) {
-			SignalType sigtype = GetSignalType(pos);
-			/* Ordinary track with signals */
-			if (GetSignalStateByPos(pos) == SIGNAL_STATE_RED) {
-				/* Signal facing us is red */
-				if (!NPFGetFlag(current, NPF_FLAG_SEEN_SIGNAL)) {
-					/* Penalize the first signal we
-					 * encounter, if it is red */
+	if (HasSignalAlongPos(pos)) {
+		SignalType sigtype = GetSignalType(pos);
+		/* Ordinary track with signals */
+		if (GetSignalStateByPos(pos) == SIGNAL_STATE_RED) {
+			/* Signal facing us is red */
+			if (!NPFGetFlag(current, NPF_FLAG_SEEN_SIGNAL)) {
+				/* Penalize the first signal we
+				 * encounter, if it is red */
 
-					/* Is this a presignal exit or combo? */
-					if (!IsPbsSignal(sigtype)) {
-						if (sigtype == SIGTYPE_EXIT || sigtype == SIGTYPE_COMBO) {
-							/* Penalise exit and combo signals differently (heavier) */
-							cost += _settings_game.pf.npf.npf_rail_firstred_exit_penalty;
-						} else {
-							cost += _settings_game.pf.npf.npf_rail_firstred_penalty;
-						}
+				/* Is this a presignal exit or combo? */
+				if (!IsPbsSignal(sigtype)) {
+					if (sigtype == SIGTYPE_EXIT || sigtype == SIGTYPE_COMBO) {
+						/* Penalise exit and combo signals differently (heavier) */
+						cost += _settings_game.pf.npf.npf_rail_firstred_exit_penalty;
+					} else {
+						cost += _settings_game.pf.npf.npf_rail_firstred_penalty;
 					}
 				}
-				/* Record the state of this signal. Path signals are assumed to
-				 * be green as the signal state of them has no meaning for this. */
-				NPFSetFlag(current, NPF_FLAG_LAST_SIGNAL_RED, !IsPbsSignal(sigtype));
-			} else {
-				/* Record the state of this signal */
-				NPFSetFlag(current, NPF_FLAG_LAST_SIGNAL_RED, false);
 			}
-			if (NPFGetFlag(current, NPF_FLAG_SEEN_SIGNAL)) {
-				if (NPFGetFlag(current, NPF_FLAG_2ND_SIGNAL)) {
-					NPFSetFlag(current, NPF_FLAG_3RD_SIGNAL, true);
-				} else {
-					NPFSetFlag(current, NPF_FLAG_2ND_SIGNAL, true);
-				}
-			} else {
-				NPFSetFlag(current, NPF_FLAG_SEEN_SIGNAL, true);
-			}
-			NPFSetFlag(current, NPF_FLAG_LAST_SIGNAL_BLOCK, !IsPbsSignal(sigtype));
+			/* Record the state of this signal. Path signals are assumed to
+			 * be green as the signal state of them has no meaning for this. */
+			NPFSetFlag(current, NPF_FLAG_LAST_SIGNAL_RED, !IsPbsSignal(sigtype));
+		} else {
+			/* Record the state of this signal */
+			NPFSetFlag(current, NPF_FLAG_LAST_SIGNAL_RED, false);
 		}
+		if (NPFGetFlag(current, NPF_FLAG_SEEN_SIGNAL)) {
+			if (NPFGetFlag(current, NPF_FLAG_2ND_SIGNAL)) {
+				NPFSetFlag(current, NPF_FLAG_3RD_SIGNAL, true);
+			} else {
+				NPFSetFlag(current, NPF_FLAG_2ND_SIGNAL, true);
+			}
+		} else {
+			NPFSetFlag(current, NPF_FLAG_SEEN_SIGNAL, true);
+		}
+		NPFSetFlag(current, NPF_FLAG_LAST_SIGNAL_BLOCK, !IsPbsSignal(sigtype));
+	}
 
-		if (HasPbsSignalAgainstPos(pos) && !NPFGetFlag(current, NPF_FLAG_3RD_SIGNAL)) {
-			cost += _settings_game.pf.npf.npf_rail_pbs_signal_back_penalty;
-		}
+	if (HasPbsSignalAgainstPos(pos) && !NPFGetFlag(current, NPF_FLAG_3RD_SIGNAL)) {
+		cost += _settings_game.pf.npf.npf_rail_pbs_signal_back_penalty;
 	}
 
 	/* Penalise the tile if it is a target tile and the last signal was

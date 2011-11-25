@@ -20,7 +20,7 @@
  */
 static inline bool HasSignalAlongPos(const PFPos &pos)
 {
-	return HasSignalOnTrackdir(pos.tile, pos.td);
+	return IsNormalRailTile(pos.tile) && HasSignalOnTrackdir(pos.tile, pos.td);
 }
 
 /**
@@ -28,11 +28,12 @@ static inline bool HasSignalAlongPos(const PFPos &pos)
  */
 static inline bool HasSignalAgainstPos(const PFPos &pos)
 {
-	return HasSignalOnTrackdir(pos.tile, ReverseTrackdir(pos.td));
+	return IsNormalRailTile(pos.tile) && HasSignalOnTrackdir(pos.tile, ReverseTrackdir(pos.td));
 }
 
 static inline SignalType GetSignalType(const PFPos &pos)
 {
+	assert(HasSignalAlongPos(pos) || HasSignalAgainstPos(pos));
 	return GetSignalType(pos.tile, TrackdirToTrack(pos.td));
 }
 

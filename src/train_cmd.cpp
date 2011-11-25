@@ -1809,8 +1809,7 @@ void ReverseTrainDirection(Train *v)
 	if (UpdateSignalsOnSegment(v->tile, dir, v->owner) == SIGSEG_PBS || _settings_game.pf.reserve_paths) {
 		/* If we are currently on a tile with conventional signals, we can't treat the
 		 * current tile as a safe tile or we would enter a PBS block without a reservation. */
-		bool first_tile_okay = !(IsNormalRailTile(v->tile) &&
-			HasSignalAlongPos(v->GetPos()) &&
+		bool first_tile_okay = !(HasSignalAlongPos(v->GetPos()) &&
 			!IsPbsSignal(GetSignalType(v->tile, TrackdirToTrack(v->trackdir))));
 
 		/* If we are on a depot tile facing outwards, do not treat the current tile as safe. */
@@ -2036,7 +2035,7 @@ static void CheckNextTrainTile(Train *v)
 	PFPos pos = v->GetPos();
 
 	/* On a tile with a red non-pbs signal, don't look ahead. */
-	if (IsNormalRailTile(v->tile) && HasSignalAlongPos(pos) &&
+	if (HasSignalAlongPos(pos) &&
 			!IsPbsSignal(GetSignalType(pos)) &&
 			GetSignalStateByPos(pos) == SIGNAL_STATE_RED) return;
 
@@ -2202,24 +2201,23 @@ void FreeTrainTrackReservation(const Train *v)
 		assert(KillFirstBit(ft.m_new.trackdirs) == TRACKDIR_BIT_NONE);
 		ft.m_new.td = FindFirstTrackdir(ft.m_new.trackdirs);
 
-		if (IsNormalRailTile(ft.m_new.tile)) {
-			if (HasSignalAlongPos(ft.m_new) && !IsPbsSignal(GetSignalType(ft.m_new))) {
-				/* Conventional signal along trackdir: remove reservation and stop. */
-				UnreserveRailTrack(ft.m_new);
+		if (HasSignalAlongPos(ft.m_new) && !IsPbsSignal(GetSignalType(ft.m_new))) {
+			/* Conventional signal along trackdir: remove reservation and stop. */
+			UnreserveRailTrack(ft.m_new);
+			break;
+		}
+
+		if (HasPbsSignalAlongPos(ft.m_new)) {
+			if (GetSignalStateByPos(ft.m_new) == SIGNAL_STATE_RED) {
+				/* Red PBS signal? Can't be our reservation, would be green then. */
 				break;
+			} else {
+				/* Turn the signal back to red. */
+				SetSignalStateByTrackdir(ft.m_new.tile, ft.m_new.td, SIGNAL_STATE_RED);
+				MarkTileDirtyByTile(ft.m_new.tile);
 			}
-			if (HasPbsSignalAlongPos(ft.m_new)) {
-				if (GetSignalStateByPos(ft.m_new) == SIGNAL_STATE_RED) {
-					/* Red PBS signal? Can't be our reservation, would be green then. */
-					break;
-				} else {
-					/* Turn the signal back to red. */
-					SetSignalStateByTrackdir(ft.m_new.tile, ft.m_new.td, SIGNAL_STATE_RED);
-					MarkTileDirtyByTile(ft.m_new.tile);
-				}
-			} else if (HasSignalAgainstPos(ft.m_new) && IsOnewaySignal(ft.m_new.tile, TrackdirToTrack(ft.m_new.td))) {
-				break;
-			}
+		} else if (HasSignalAgainstPos(ft.m_new) && IsOnewaySignal(ft.m_new.tile, TrackdirToTrack(ft.m_new.td))) {
+			break;
 		}
 
 		/* Don't free first station/bridge/tunnel if we are on it. */

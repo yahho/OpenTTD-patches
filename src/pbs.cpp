@@ -262,7 +262,7 @@ static PBSTileInfo FollowReservation(Owner o, RailTypes rts, const PFPos &pos, b
 		/* Depot tile? Can't continue. */
 		if (IsRailDepotTile(cur.tile)) break;
 		/* Non-pbs signal? Reservation can't continue. */
-		if (IsNormalRailTile(cur.tile) && HasSignalAlongPos(cur) && !IsPbsSignal(GetSignalType(cur))) break;
+		if (HasSignalAlongPos(cur) && !IsPbsSignal(GetSignalType(cur))) break;
 	}
 
 	return PBSTileInfo(cur, false);
@@ -400,7 +400,7 @@ PBSPositionState CheckWaitingPosition(const Train *v, const PFPos &pos, bool for
 	/* Depots are always safe, and free iff unreserved. */
 	if (IsRailDepotTile(pos.tile)) return HasDepotReservation(pos.tile) ? PBS_BUSY : PBS_FREE;
 
-	if (IsNormalRailTile(pos.tile) && HasSignalAlongPos(pos) && !IsPbsSignal(GetSignalType(pos))) {
+	if (HasSignalAlongPos(pos) && !IsPbsSignal(GetSignalType(pos))) {
 		/* For non-pbs signals, stop on the signal tile. */
 		if (cb == PBS_CHECK_SAFE) return PBS_FREE;
 		return HasReservedTrack(pos.tile, TrackdirToTrack(pos.td)) ? PBS_BUSY : PBS_FREE;
@@ -427,7 +427,6 @@ PBSPositionState CheckWaitingPosition(const Train *v, const PFPos &pos, bool for
 
 	if (cb != PBS_CHECK_FREE) {
 		if (!ft.m_new.IsTrackdirSet()) return PBS_UNSAFE;
-		if (!IsNormalRailTile(ft.m_new.tile)) return PBS_UNSAFE;
 
 		if (HasSignalAlongPos(ft.m_new)) {
 			/* PBS signal on next trackdir? Safe position. */
