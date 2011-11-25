@@ -2203,8 +2203,7 @@ void FreeTrainTrackReservation(const Train *v)
 	assert(v->IsFrontEngine());
 
 	PFPos     pos = v->GetPos();
-	bool      free_tile = !(IsRailStationTile(v->tile) || IsTunnelTile(v->tile) || IsRailBridgeTile(v->tile));
-	StationID station_id = IsRailStationTile(v->tile) ? GetStationIndex(v->tile) : INVALID_STATION;
+	bool      first = true;
 
 	/* Can't be holding a reservation if we enter a depot. */
 	if (IsRailDepotTile(pos.tile) && TrackdirToExitdir(pos.td) != GetGroundDepotDirection(pos.tile)) return;
@@ -2245,10 +2244,21 @@ void FreeTrainTrackReservation(const Train *v)
 			break;
 		}
 
-		/* Don't free first station/bridge/tunnel if we are on it. */
-		if (free_tile || ft.m_flag == ft.TF_NONE || (ft.m_flag == ft.TF_STATION && GetStationIndex(ft.m_new.tile) != station_id)) ClearPathReservation(v, ft.m_new);
+		if (first) {
+			if (ft.m_flag == ft.TF_BRIDGE) {
+				assert(IsRailBridgeTile(ft.m_old.tile));
+			} else if (ft.m_flag == ft.TF_TUNNEL) {
+				assert(IsTunnelTile(ft.m_old.tile));
+			}
+		}
 
-		free_tile = true;
+		/* Don't free first station/bridge/tunnel if we are on it. */
+		if (!first || (ft.m_flag == ft.TF_NONE) ||
+				(ft.m_flag == ft.TF_STATION && (!IsRailStationTile(ft.m_old.tile) || GetStationIndex(ft.m_new.tile) != GetStationIndex(ft.m_old.tile)))) {
+			ClearPathReservation(v, ft.m_new);
+		}
+
+		first = false;
 	}
 }
 
