@@ -302,7 +302,6 @@ public:
 		 *    - last red signal penalty
 		 *    - penalty for too long or too short platform on the destination station
 		 */
-		int transition_cost = 0;
 		int extra_cost = 0;
 
 		/* Segment: one or more tiles connected by contiguous tracks of the same type.
@@ -318,59 +317,46 @@ public:
 		/* start at n and walk to the end of segment */
 		TILE cur(n.GetPos());
 
-		/* the previous tile will be needed for transition cost calculations */
-		TILE prev = !has_parent ? TILE() : TILE(n.m_parent->GetLastPos());
-
 		EndSegmentReasonBits end_segment_reason = ESRB_NONE;
 
 		TrackFollower tf_local(v, Yapf().GetCompatibleRailTypes(), &Yapf().m_perf_ts_cost);
 
-		if (!has_parent) {
-			/* We will jump to the middle of the cost calculator assuming that segment cache is not used. */
+		TileIndex prev;
+
+		if (has_parent) {
+			/* First transition cost goes to segment entry cost */
+			PFPos ppos = n.m_parent->GetLastPos();
+			segment_entry_cost = Yapf().CurveCost(ppos.td, cur.td);
+			segment_entry_cost += Yapf().SwitchCost(ppos.tile, cur.tile, TrackdirToExitdir(ppos.td));
+
+			/* It is the right time now to look if we can reuse the cached segment cost. */
+			if (is_cached_segment) {
+				/* Yes, we already know the segment cost. */
+				segment_cost = segment.m_cost;
+				/* We know also the reason why the segment ends. */
+				end_segment_reason = segment.m_end_segment_reason;
+				/* We will need also some information about the last signal (if it was red). */
+				if (segment.m_last_signal.tile != INVALID_TILE) {
+					assert(HasSignalAlongPos(segment.m_last_signal));
+					SignalState sig_state = GetSignalStateByPos(segment.m_last_signal);
+					bool is_red = (sig_state == SIGNAL_STATE_RED);
+					n.flags_u.flags_s.m_last_signal_was_red = is_red;
+					if (is_red) {
+						n.m_last_red_signal_type = GetSignalType(segment.m_last_signal);
+					}
+				}
+				/* No further calculation needed. */
+				cur = TILE(n.GetLastPos());
+				goto cached_segment;
+			}
+
+			prev = ppos.tile;
+		} else {
 			assert(!is_cached_segment);
-			/* Skip the first transition cost calculation. */
-			goto no_entry_cost;
+			prev = INVALID_TILE;
 		}
 
 		for (;;) {
-			/* Transition cost (cost of the move from previous tile) */
-			transition_cost = Yapf().CurveCost(prev.td, cur.td);
-			transition_cost += Yapf().SwitchCost(prev.tile, cur.tile, TrackdirToExitdir(prev.td));
-
-			/* First transition cost counts against segment entry cost, other transitions
-			 * inside segment will come to segment cost (and will be cached) */
-			if (segment_cost == 0) {
-				/* We just entered the loop. First transition cost goes to segment entry cost)*/
-				segment_entry_cost = transition_cost;
-				transition_cost = 0;
-
-				/* It is the right time now to look if we can reuse the cached segment cost. */
-				if (is_cached_segment) {
-					/* Yes, we already know the segment cost. */
-					segment_cost = segment.m_cost;
-					/* We know also the reason why the segment ends. */
-					end_segment_reason = segment.m_end_segment_reason;
-					/* We will need also some information about the last signal (if it was red). */
-					if (segment.m_last_signal.tile != INVALID_TILE) {
-						assert(HasSignalAlongPos(segment.m_last_signal));
-						SignalState sig_state = GetSignalStateByPos(segment.m_last_signal);
-						bool is_red = (sig_state == SIGNAL_STATE_RED);
-						n.flags_u.flags_s.m_last_signal_was_red = is_red;
-						if (is_red) {
-							n.m_last_red_signal_type = GetSignalType(segment.m_last_signal);
-						}
-					}
-					/* No further calculation needed. */
-					cur = TILE(n.GetLastPos());
-					break;
-				}
-			} else {
-				/* Other than first transition cost count as the regular segment cost. */
-				segment_cost += transition_cost;
-			}
-
-no_entry_cost: // jump here at the beginning if the node has no parent (it is the first node)
-
 			/* All other tile costs will be calculated here. */
 			segment_cost += Yapf().OneTileCost(cur);
 
@@ -389,9 +375,10 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			end_segment_reason = segment.m_end_segment_reason;
 
 			/* Tests for 'potential target' reasons to close the segment. */
-			if (cur.tile == prev.tile) {
+			if (cur.tile == prev) {
 				/* Penalty for reversing in a depot. */
 				assert(IsRailDepotTile(cur.tile));
+				assert(cur.td == DiagDirToDiagTrackdir(GetGroundDepotDirection(cur.tile)));
 				segment_cost += Yapf().PfGetSettings().rail_depot_reverse_penalty;
 				/* We will end in this pass (depot is possible target) */
 				end_segment_reason |= ESRB_DEPOT;
@@ -534,11 +521,16 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 				break;
 			}
 
-			/* For the next loop set new prev and cur tile info. */
-			prev = cur;
-			cur = next;
+			/* Transition cost (cost of the move from previous tile) */
+			segment_cost += Yapf().CurveCost(cur.td, next.td);
+			segment_cost += Yapf().SwitchCost(cur.tile, next.tile, TrackdirToExitdir(cur.td));
 
+			/* For the next loop set new prev and cur tile info. */
+			prev = cur.tile;
+			cur = next;
 		} // for (;;)
+
+cached_segment:
 
 		bool target_seen = false;
 		if ((end_segment_reason & ESRB_POSSIBLE_TARGET) != ESRB_NONE) {
