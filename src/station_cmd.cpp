@@ -1114,17 +1114,23 @@ CommandCost FindJoiningWaypoint(StationID existing_waypoint, StationID waypoint_
 static void FreeTrainReservation(Train *v)
 {
 	FreeTrainTrackReservation(v);
-	if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->GetPos(), false);
-	v = v->Last();
-	if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->GetReversePos(), false);
+
+	const PFPos pos = v->GetPos();
+	if (!pos.InWormhole() && IsRailStationTile(pos.tile)) SetRailStationPlatformReservation(pos, false);
+
+	const PFPos rev = v->Last()->GetReversePos();
+	if (!rev.InWormhole() && IsRailStationTile(rev.tile)) SetRailStationPlatformReservation(rev, false);
 }
 
 static void RestoreTrainReservation(Train *v)
 {
-	if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->GetPos(), true);
+	const PFPos pos = v->GetPos();
+	if (!pos.InWormhole() && IsRailStationTile(pos.tile)) SetRailStationPlatformReservation(pos, true);
+
 	TryPathReserve(v, true, true);
-	v = v->Last();
-	if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->GetReversePos(), true);
+
+	const PFPos rev = v->Last()->GetReversePos();
+	if (!rev.InWormhole() && IsRailStationTile(rev.tile)) SetRailStationPlatformReservation(rev, true);
 }
 
 /**

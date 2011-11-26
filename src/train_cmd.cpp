@@ -1806,15 +1806,17 @@ void ReverseTrainDirection(Train *v)
 	AddPosToSignalBuffer(v->GetPos(), v->owner);
 
 	if (UpdateSignalsInBuffer() == SIGSEG_PBS || _settings_game.pf.reserve_paths) {
+		PFPos pos = v->GetPos();
+
 		/* If we are currently on a tile with conventional signals, we can't treat the
 		 * current tile as a safe tile or we would enter a PBS block without a reservation. */
-		bool first_tile_okay = !(HasSignalAlongPos(v->GetPos()) &&
-			!IsPbsSignal(GetSignalType(v->tile, TrackdirToTrack(v->trackdir))));
+		bool first_tile_okay = !(HasSignalAlongPos(pos) &&
+			!IsPbsSignal(GetSignalType(pos)));
 
 		/* If we are on a depot tile facing outwards, do not treat the current tile as safe. */
-		if (IsRailDepotTile(v->tile) && TrackdirToExitdir(v->GetTrackdir()) == GetGroundDepotDirection(v->tile)) first_tile_okay = false;
+		if (!pos.InWormhole() && IsRailDepotTile(pos.tile) && TrackdirToExitdir(pos.td) == GetGroundDepotDirection(pos.tile)) first_tile_okay = false;
 
-		if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->GetPos(), true);
+		if (!pos.InWormhole() && IsRailStationTile(pos.tile)) SetRailStationPlatformReservation(pos, true);
 		if (TryPathReserve(v, false, first_tile_okay)) {
 			/* Do a look-ahead now in case our current tile was already a safe tile. */
 			CheckNextTrainTile(v);
@@ -2160,27 +2162,8 @@ static void ClearPathReservation(const Train *v, const PFPos &pos)
 {
 	DiagDirection dir = TrackdirToExitdir(pos.td);
 
-	if (IsTunnelTile(pos.tile) || IsRailBridgeTile(pos.tile)) {
-		/* Are we just leaving a tunnel/bridge? */
-		if (GetTunnelBridgeDirection(pos.tile) == ReverseDiagDir(dir)) {
-			TileIndex end = GetOtherTunnelBridgeEnd(pos.tile);
-
-			if (TunnelBridgeIsFree(pos.tile, end, v).Succeeded()) {
-				/* Free the reservation only if no other train is on the tiles. */
-				if (IsRailwayTile(pos.tile)) {
-					SetBridgeReservation(pos.tile, false);
-					SetBridgeReservation(end, false);
-				} else {
-					SetTunnelReservation(pos.tile, false);
-					SetTunnelReservation(end, false);
-				}
-
-				if (_settings_client.gui.show_track_reservation) {
-					MarkTileDirtyByTile(pos.tile);
-					MarkTileDirtyByTile(end);
-				}
-			}
-		}
+	if (pos.InWormhole()) {
+		UnreserveRailTrack(pos);
 	} else if (IsRailStationTile(pos.tile)) {
 		TileIndex new_tile = TileAddByDiagDir(pos.tile, dir);
 		/* If the new tile is not a further tile of the same station, we
@@ -2214,7 +2197,7 @@ void FreeTrainTrackReservation(const Train *v)
 		}
 	}
 	/* Don't free reservation if it's not ours. */
-	if (TracksOverlap(GetReservedTrackbits(pos.tile) | TrackToTrackBits(TrackdirToTrack(pos.td)))) return;
+	if (!pos.InWormhole() && TracksOverlap(GetReservedTrackbits(pos.tile) | TrackToTrackBits(TrackdirToTrack(pos.td)))) return;
 
 	CFollowTrackRail ft(v, true, true);
 	ft.SetPos(pos);
@@ -2248,15 +2231,15 @@ void FreeTrainTrackReservation(const Train *v)
 
 		if (first) {
 			if (ft.m_flag == ft.TF_BRIDGE) {
-				assert(IsRailBridgeTile(ft.m_old.tile));
+				assert(IsRailBridgeTile(ft.m_old.InWormhole() ? ft.m_old.wormhole : ft.m_old.tile));
 			} else if (ft.m_flag == ft.TF_TUNNEL) {
-				assert(IsTunnelTile(ft.m_old.tile));
+				assert(IsTunnelTile(ft.m_old.InWormhole() ? ft.m_old.wormhole : ft.m_old.tile));
 			}
 		}
 
-		/* Don't free first station/bridge/tunnel if we are on it. */
-		if (!first || (ft.m_flag == ft.TF_NONE) ||
-				(ft.m_flag == ft.TF_STATION && (!IsRailStationTile(ft.m_old.tile) || GetStationIndex(ft.m_new.tile) != GetStationIndex(ft.m_old.tile)))) {
+		/* Don't free first station if we are on it. */
+		if (!first || (ft.m_flag != ft.TF_STATION) ||
+				!IsRailStationTile(ft.m_old.tile) || GetStationIndex(ft.m_new.tile) != GetStationIndex(ft.m_old.tile)) {
 			ClearPathReservation(v, ft.m_new);
 		}
 
@@ -2852,7 +2835,13 @@ void Train::ReserveTrackUnderConsist() const
 	for (const Train *u = this; u != NULL; u = u->Next()) {
 		switch (u->trackdir) {
 			case TRACKDIR_WORMHOLE:
-				TryReserveRailTrack(u->tile, DiagDirToDiagTrack(GetTunnelBridgeDirection(u->tile)));
+				if (IsRailwayTile(u->tile)) {
+					SetBridgeMiddleReservation(u->tile, true);
+					SetBridgeMiddleReservation(GetOtherBridgeEnd(u->tile), true);
+				} else {
+					SetTunnelMiddleReservation(u->tile, true);
+					SetTunnelMiddleReservation(GetOtherTunnelEnd(u->tile), true);
+				}
 				break;
 			case TRACKDIR_DEPOT:
 				break;
@@ -2880,13 +2869,6 @@ uint Train::Crash(bool flooded)
 		if (!HasBit(this->flags, VRF_TRAIN_STUCK)) FreeTrainTrackReservation(this);
 		for (const Train *v = this; v != NULL; v = v->Next()) {
 			ClearPathReservation(v, v->GetPos());
-			/* ClearPathReservation will not free the wormhole exit
-			 * if the train has just entered the wormhole. */
-			if (IsTunnelTile(v->tile)) {
-				SetTunnelReservation(GetOtherTunnelEnd(v->tile), false);
-			} else if (IsRailBridgeTile(v->tile)) {
-				SetBridgeReservation(GetOtherBridgeEnd(v->tile), false);
-			}
 		}
 
 		/* we may need to update crossing we were approaching,
@@ -3422,11 +3404,27 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					SetSignalStateByTrackdir(gp.new_tile, chosen_trackdir, SIGNAL_STATE_RED);
 					MarkTileDirtyByTile(gp.new_tile);
 				}
+			} else {
+				/* new_in_wormhole */
+				assert(!old_in_wormhole);
+				if (prev == NULL) {
+					if (IsRailwayTile(gp.old_tile)) {
+						SetBridgeMiddleReservation(gp.old_tile, true);
+						SetBridgeMiddleReservation(gp.new_tile, true);
+					} else {
+						SetTunnelMiddleReservation(gp.old_tile, true);
+						SetTunnelMiddleReservation(gp.new_tile, true);
+					}
+				}
+			}
 
+			if (v->Next() == NULL) {
+				/* Clear any track reservation when the last vehicle leaves the tile */
+				ClearPathReservation(v, v->GetPos());
+			}
+
+			if (!new_in_wormhole) {
 				if (v->Next() == NULL) {
-					/* Clear any track reservation when the last vehicle leaves the tile */
-					if (v->trackdir != TRACKDIR_WORMHOLE) ClearPathReservation(v, v->GetPos());
-
 					PFPos rev = v->GetReversePos();
 					if (HasSignalOnPos(rev)) {
 						assert(IsSignalBufferEmpty());
@@ -3631,14 +3629,25 @@ static void DeleteLastWagon(Train *v)
 
 	if (trackdir == TRACKDIR_DEPOT) return;
 
-	Track track;
 	if (trackdir == TRACKDIR_WORMHOLE) {
-		/* Vehicle is inside a wormhole, v->trackdir contains no useful value then. */
-		track = DiagDirToDiagTrack(GetTunnelBridgeDirection(tile));
-	} else {
-		track = TrackdirToTrack(trackdir);
+		TileIndex endtile = GetOtherTunnelBridgeEnd(tile);
+		if (EnsureNoTrainOnTunnelBridgeMiddle(tile, endtile).Succeeded()) {
+			if (IsRailwayTile(tile)) {
+				SetBridgeMiddleReservation(tile, false);
+				SetBridgeMiddleReservation(endtile, false);
+			} else {
+				SetTunnelMiddleReservation(tile, false);
+				SetTunnelMiddleReservation(endtile, false);
+			}
+		}
+
+		assert(IsSignalBufferEmpty());
+		AddSideToSignalBuffer(tile, INVALID_DIAGDIR, owner);
+		UpdateSignalsInBuffer();
+		return;
 	}
 
+	Track track = TrackdirToTrack(trackdir);
 	if (HasReservedTrack(tile, track)) {
 		UnreserveRailTrack(tile, track);
 
@@ -4180,15 +4189,11 @@ void Train::OnNewDay()
 Trackdir Train::GetTrackdir() const
 {
 	assert(!(this->vehstatus & VS_CRASHED));
+	assert(this->trackdir != TRACKDIR_WORMHOLE);
 
 	if (this->trackdir == TRACKDIR_DEPOT) {
 		/* We'll assume the train is facing outwards */
 		return DiagDirToDiagTrackdir(GetGroundDepotDirection(this->tile)); // Train in depot
-	}
-
-	if (this->trackdir == TRACKDIR_WORMHOLE) {
-		/* train in tunnel or on bridge, so just use his direction and assume a diagonal track */
-		return DiagDirToDiagTrackdir(DirToDiagDir(this->direction));
 	}
 
 	return this->trackdir;
@@ -4198,12 +4203,25 @@ PFPos Train::GetPos() const
 {
 	if (this->vehstatus & VS_CRASHED) return PFPos();
 
+	if (this->trackdir == TRACKDIR_WORMHOLE) {
+		DiagDirection rev = GetTunnelBridgeDirection(this->tile);
+		assert(ReverseDiagDir(rev) == DirToDiagDir(this->direction));
+		return PFPos(TILE_ADD(this->tile, TileOffsByDiagDir(rev)), DiagDirToDiagTrackdir(ReverseDiagDir(rev)), this->tile);
+	}
+
 	return PFPos(this->tile, this->GetTrackdir());
 }
 
 PFPos Train::GetReversePos() const
 {
 	if (this->vehstatus & VS_CRASHED) return PFPos();
+
+	if (this->trackdir == TRACKDIR_WORMHOLE) {
+		TileIndex other_end = GetOtherTunnelBridgeEnd(this->tile);
+		DiagDirection dir = GetTunnelBridgeDirection(other_end);
+		assert(dir == DirToDiagDir(this->direction));
+		return PFPos(TILE_ADD(other_end, TileOffsByDiagDir(dir)), DiagDirToDiagTrackdir(ReverseDiagDir(dir)), other_end);
+	}
 
 	return PFPos(this->tile, ReverseTrackdir(this->GetTrackdir()));
 }

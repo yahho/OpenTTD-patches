@@ -2057,6 +2057,30 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		_saved_scrollpos_y *= ZOOM_LVL_BASE;
 	}
 
+	if (IsFullSavegameVersionBefore(stv, 10)) {
+		Train *t;
+		FOR_ALL_TRAINS(t) {
+			Train *last = t->Last();
+			if (IsRailBridgeTile(last->tile) && (DirToDiagDir(last->direction) == ReverseDiagDir(GetTunnelBridgeDirection(last->tile)))) {
+				/* Clear reservation for already left bridge parts */
+				TileIndex other_end = GetOtherBridgeEnd(last->tile);
+				SetTrackReservation(other_end, TRACK_BIT_NONE);
+				if (last->trackdir != TRACKDIR_WORMHOLE) {
+					SetBridgeMiddleReservation(last->tile, false);
+					SetBridgeMiddleReservation(other_end, false);
+				}
+			} else if (IsTunnelTile(last->tile) && (DirToDiagDir(last->direction) == ReverseDiagDir(GetTunnelBridgeDirection(last->tile)))) {
+				/* Clear reservation for already left tunnel parts */
+				TileIndex other_end = GetOtherTunnelEnd(last->tile);
+				SetTunnelHeadReservation(other_end, false);
+				if (last->trackdir != TRACKDIR_WORMHOLE) {
+					SetTunnelMiddleReservation(last->tile, false);
+					SetTunnelMiddleReservation(other_end, false);
+				}
+			}
+		}
+	}
+
 	/* When any NewGRF has been changed the availability of some vehicles might
 	 * have been changed too. e->company_avail must be set to 0 in that case
 	 * which is done by StartupEngines(). */

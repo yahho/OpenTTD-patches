@@ -54,31 +54,6 @@ static inline void SetBridgeMiddleReservation(TileIndex t, bool b)
 }
 
 /**
- * Get the reservation state of the rail bridge
- * @pre IsRailBridgeTile(t)
- * @param t the tile
- * @return reservation state
- */
-static inline bool HasBridgeReservation(TileIndex t)
-{
-	assert(IsRailBridgeTile(t));
-	return HasBridgeMiddleReservation(t);
-}
-
-/**
- * Set the reservation state of the rail bridge
- * @pre IsRailBridgeTile(t)
- * @param t the tile
- * @param b the reservation state
- */
-static inline void SetBridgeReservation(TileIndex t, bool b)
-{
-	assert(IsRailBridgeTile(t));
-	SetBridgeMiddleReservation(t, b);
-	SetTrackReservation(t, b ? GetTrackBits(t) : TRACK_BIT_NONE);
-}
-
-/**
  * Get the reservation state of the rail tunnel head
  * @pre IsTunnelTile(t) && GetTunnelTransportType(t) == TRANSPORT_RAIL
  * @param t the tile
@@ -128,18 +103,6 @@ static inline void SetTunnelMiddleReservation(TileIndex t, bool b)
 	assert(IsTunnelTile(t));
 	assert(GetTunnelTransportType(t) == TRANSPORT_RAIL);
 	SB(_mc[t].m5, 5, 1, b ? 1 : 0);
-}
-
-/**
- * Set the reservation state of the rail tunnel
- * @pre IsTunnelTile(t) && GetTunnelTransportType(t) == TRANSPORT_RAIL
- * @param t the tile
- * @param b the reservation state
- */
-static inline void SetTunnelReservation(TileIndex t, bool b)
-{
-	SetTunnelHeadReservation(t, b);
-	SetTunnelMiddleReservation(t, b);
 }
 
 /**

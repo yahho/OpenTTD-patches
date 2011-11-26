@@ -442,10 +442,17 @@ static CommandCost RemoveTunnel(TileIndex tile, DoCommandFlag flags)
 			Track track = DiagDirToDiagTrack(dir);
 			Owner owner = GetTileOwner(tile);
 
-			Train *v = NULL;
+			Train *v1 = NULL;
+			Train *v2 = NULL;
+
 			if (HasTunnelHeadReservation(tile)) {
-				v = GetTrainForReservation(tile, track);
-				if (v != NULL) FreeTrainTrackReservation(v);
+				v1 = GetTrainForReservation(tile, track);
+				if (v1 != NULL) FreeTrainTrackReservation(v1);
+			}
+
+			if (HasTunnelHeadReservation(endtile)) {
+				v2 = GetTrainForReservation(endtile, track);
+				if (v2 != NULL) FreeTrainTrackReservation(v2);
 			}
 
 			if (Company::IsValidID(owner)) {
@@ -463,7 +470,8 @@ static CommandCost RemoveTunnel(TileIndex tile, DoCommandFlag flags)
 			YapfNotifyTrackLayoutChange(tile,    track);
 			YapfNotifyTrackLayoutChange(endtile, track);
 
-			if (v != NULL) TryPathReserve(v);
+			if (v1 != NULL) TryPathReserve(v1);
+			if (v2 != NULL) TryPathReserve(v2);
 		} else {
 			RoadType rt;
 			FOR_EACH_SET_ROADTYPE(rt, GetRoadTypes(tile)) {

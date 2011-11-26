@@ -1644,10 +1644,14 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 
 			if (flags & DC_EXEC) {
 				Track track = DiagDirToDiagTrack(GetTunnelBridgeDirection(tile));
-				Train *affected = NULL;
+				Train *affected1 = NULL;
+				Train *affected2 = NULL;
 
-				if (IsRailwayTile(tile) ? HasBridgeReservation(tile) : HasTunnelHeadReservation(tile)) {
-					affected = FindUnpoweredReservationTrain(tile, track, totype);
+				if (GetReservedTrackbits(tile) != TRACK_BIT_NONE) {
+					affected1 = FindUnpoweredReservationTrain(tile, track, totype);
+				}
+				if (GetReservedTrackbits(endtile) != TRACK_BIT_NONE) {
+					affected2 = FindUnpoweredReservationTrain(endtile, track, totype);
 				}
 
 				/* Update the company infrastructure counters. */
@@ -1673,7 +1677,8 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 					MarkTileDirtyByTile(endtile);
 				}
 
-				if (affected != NULL) TryPathReserve(affected, true);
+				if (affected1 != NULL) TryPathReserve(affected1, true);
+				if (affected2 != NULL) TryPathReserve(affected2, true);
 			}
 
 			cost.AddCost((GetTunnelBridgeLength(tile, endtile) + 2) * RailConvertCost(type, totype));
@@ -1909,10 +1914,17 @@ static CommandCost ClearTile_Track(TileIndex tile, DoCommandFlag flags)
 			DiagDirection direction = GetTunnelBridgeDirection(tile);
 			Track track = DiagDirToDiagTrack(direction);
 
-			Train *v = NULL;
-			if (HasBridgeReservation(tile)) {
-				v = GetTrainForReservation(tile, track);
-				if (v != NULL) FreeTrainTrackReservation(v);
+			Train *v1 = NULL;
+			Train *v2 = NULL;
+
+			if (GetReservedTrackbits(tile) != TRACK_BIT_NONE) {
+				v1 = GetTrainForReservation(tile, track);
+				if (v1 != NULL) FreeTrainTrackReservation(v1);
+			}
+
+			if (GetReservedTrackbits(endtile) != TRACK_BIT_NONE) {
+				v2 = GetTrainForReservation(endtile, track);
+				if (v2 != NULL) FreeTrainTrackReservation(v2);
 			}
 
 			/* Update company infrastructure counts. */
@@ -1931,7 +1943,8 @@ static CommandCost ClearTile_Track(TileIndex tile, DoCommandFlag flags)
 			YapfNotifyTrackLayoutChange(tile,    track);
 			YapfNotifyTrackLayoutChange(endtile, track);
 
-			if (v != NULL) TryPathReserve(v, true);
+			if (v1 != NULL) TryPathReserve(v1, true);
+			if (v2 != NULL) TryPathReserve(v2, true);
 		}
 
 		return CommandCost(EXPENSES_CONSTRUCTION, len * _price[PR_CLEAR_BRIDGE]);
@@ -2647,7 +2660,7 @@ static void DrawTile_Track(TileInfo *ti)
 		}
 
 		/* PBS debugging, draw reserved tracks darker */
-		if (_game_mode != GM_MENU &&_settings_client.gui.show_track_reservation && HasBridgeReservation(ti->tile)) {
+		if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && GetRailReservationTrackBits(ti->tile) != TRACK_BIT_NONE) {
 			if (HasBridgeFlatRamp(ti->tileh, DiagDirToAxis(dir))) {
 				AddSortableSpriteToDraw(DiagDirToAxis(dir) == AXIS_X ? rti->base_sprites.single_x : rti->base_sprites.single_y, PALETTE_CRASH, ti->x, ti->y, 16, 16, 0, ti->z + 8);
 			} else {

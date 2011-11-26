@@ -586,20 +586,20 @@ typedef CFollowTrackT<TRANSPORT_WATER, Ship, false> CFollowTrackWaterNo90;
 
 typedef CFollowTrackT<TRANSPORT_ROAD, RoadVehicle, true > CFollowTrackRoad;
 
-typedef CFollowTrackT<TRANSPORT_RAIL, Train, true,  false> CFollowTrackRail90;
-typedef CFollowTrackT<TRANSPORT_RAIL, Train, false, false> CFollowTrackRailNo90;
-typedef CFollowTrackT<TRANSPORT_RAIL, Train, true,  false, true > CFollowTrackFreeRail90;
-typedef CFollowTrackT<TRANSPORT_RAIL, Train, false, false, true > CFollowTrackFreeRailNo90;
+typedef CFollowTrackT<TRANSPORT_RAIL, Train, true,  true> CFollowTrackRail90;
+typedef CFollowTrackT<TRANSPORT_RAIL, Train, false, true> CFollowTrackRailNo90;
+typedef CFollowTrackT<TRANSPORT_RAIL, Train, true,  true, true > CFollowTrackFreeRail90;
+typedef CFollowTrackT<TRANSPORT_RAIL, Train, false, true, true > CFollowTrackFreeRailNo90;
 
-struct CFollowTrackRail : CFollowTrack<TRANSPORT_RAIL, Train, false>
+struct CFollowTrackRail : CFollowTrack<TRANSPORT_RAIL, Train, true>
 {
 	inline CFollowTrackRail(const Train *v = NULL, bool allow_90deg = true, bool railtype_override = false)
-		: CFollowTrack<TRANSPORT_RAIL, Train, false>(v, allow_90deg, false, railtype_override ? GetRailTypeInfo(v->railtype)->compatible_railtypes : INVALID_RAILTYPES)
+		: CFollowTrack<TRANSPORT_RAIL, Train, true>(v, allow_90deg, false, railtype_override ? GetRailTypeInfo(v->railtype)->compatible_railtypes : INVALID_RAILTYPES)
 	{
 	}
 
 	inline CFollowTrackRail(Owner o, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES)
-		: CFollowTrack<TRANSPORT_RAIL, Train, false>(o, allow_90deg, false, railtype_override)
+		: CFollowTrack<TRANSPORT_RAIL, Train, true>(o, allow_90deg, false, railtype_override)
 	{
 	}
 };

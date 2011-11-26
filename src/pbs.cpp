@@ -105,12 +105,7 @@ bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations)
 
 	switch (GetTileType(tile)) {
 		case TT_RAILWAY:
-			if (!IsTileSubtype(tile, TT_BRIDGE)) return TryReserveTrack(tile, t);
-			if (!HasBridgeReservation(tile)) {
-				SetBridgeReservation(tile, true);
-				return true;
-			}
-			break;
+			return TryReserveTrack(tile, t);
 
 		case TT_MISC:
 			switch (GetTileSubtype(tile)) {
@@ -122,8 +117,8 @@ bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations)
 					return true;
 
 				case TT_MISC_TUNNEL:
-					if (GetTunnelTransportType(tile) == TRANSPORT_RAIL && !GetTunnelReservationTrackBits(tile)) {
-						SetTunnelReservation(tile, true);
+					if (GetTunnelTransportType(tile) == TRANSPORT_RAIL && !HasTunnelHeadReservation(tile)) {
+						SetTunnelHeadReservation(tile, true);
 						return true;
 					}
 					break;
@@ -170,7 +165,7 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 
 	switch (GetTileType(tile)) {
 		case TT_RAILWAY:
-			IsTileSubtype(tile, TT_BRIDGE) ? SetBridgeReservation(tile, false) : UnreserveTrack(tile, t);
+			UnreserveTrack(tile, t);
 			break;
 
 		case TT_MISC:
@@ -181,7 +176,7 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 					break;
 
 				case TT_MISC_TUNNEL:
-					if (GetTunnelTransportType(tile) == TRANSPORT_RAIL) SetTunnelReservation(tile, false);
+					if (GetTunnelTransportType(tile) == TRANSPORT_RAIL) SetTunnelHeadReservation(tile, false);
 					break;
 
 				case TT_MISC_DEPOT:
@@ -266,7 +261,7 @@ static PBSTileInfo FollowReservation(Owner o, RailTypes rts, const PFPos &pos, b
 			if (cur == start) break;
 		}
 		/* Depot tile? Can't continue. */
-		if (IsRailDepotTile(cur.tile)) break;
+		if (!cur.InWormhole() && IsRailDepotTile(cur.tile)) break;
 		/* Non-pbs signal? Reservation can't continue. */
 		if (HasSignalAlongPos(cur) && !IsPbsSignal(GetSignalType(cur))) break;
 	}
@@ -293,36 +288,51 @@ static Vehicle *FindTrainOnTrackEnum(Vehicle *v, void *data)
 	if (v->type != VEH_TRAIN || (v->vehstatus & VS_CRASHED)) return NULL;
 
 	Train *t = Train::From(v);
-	if (t->trackdir == TRACKDIR_WORMHOLE || TrackdirToTrack(t->trackdir) == TrackdirToTrack(info->res.pos.td)) {
-		t = t->First();
+	if (TrackdirToTrack(t->trackdir) != TrackdirToTrack(info->res.pos.td)) return NULL;
 
-		/* ALWAYS return the lowest ID (anti-desync!) */
-		if (info->best == NULL || t->index < info->best->index) info->best = t;
-		return t;
-	}
+	t = t->First();
 
-	return NULL;
+	/* ALWAYS return the lowest ID (anti-desync!) */
+	if (info->best == NULL || t->index < info->best->index) info->best = t;
+	return t;
+}
+
+/** Callback for Has/FindVehicleOnPos to find a train in a wormhole. */
+static Vehicle *FindTrainInWormholeEnum(Vehicle *v, void *data)
+{
+	FindTrainOnTrackInfo *info = (FindTrainOnTrackInfo *)data;
+
+	if (v->type != VEH_TRAIN || (v->vehstatus & VS_CRASHED)) return NULL;
+
+	Train *t = Train::From(v);
+	if (t->trackdir != TRACKDIR_WORMHOLE) return NULL;
+
+	t = t->First();
+
+	/* ALWAYS return the lowest ID (anti-desync!) */
+	if (info->best == NULL || t->index < info->best->index) info->best = t;
+	return t;
 }
 
 /** Find a train on a reserved path end */
 static void FindTrainOnPathEnd(FindTrainOnTrackInfo *ftoti)
 {
-	FindVehicleOnPos(ftoti->res.pos.tile, ftoti, FindTrainOnTrackEnum);
-	if (ftoti->best != NULL) return;
-
-	/* Special case for stations: check the whole platform for a vehicle. */
-	if (IsRailStationTile(ftoti->res.pos.tile)) {
-		TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(ftoti->res.pos.td)));
-		for (TileIndex tile = ftoti->res.pos.tile + diff; IsCompatibleTrainStationTile(tile, ftoti->res.pos.tile); tile += diff) {
-			FindVehicleOnPos(tile, ftoti, FindTrainOnTrackEnum);
-			if (ftoti->best != NULL) return;
-		}
-	}
-
-	/* Special case for bridges/tunnels: check the other end as well. */
-	if (IsTunnelTile(ftoti->res.pos.tile) || IsRailBridgeTile(ftoti->res.pos.tile)) {
-		FindVehicleOnPos(GetOtherTunnelBridgeEnd(ftoti->res.pos.tile), ftoti, FindTrainOnTrackEnum);
+	if (ftoti->res.pos.InWormhole()) {
+		FindVehicleOnPos(ftoti->res.pos.wormhole, ftoti, FindTrainInWormholeEnum);
 		if (ftoti->best != NULL) return;
+		FindVehicleOnPos(GetOtherTunnelBridgeEnd(ftoti->res.pos.wormhole), ftoti, FindTrainInWormholeEnum);
+	} else {
+		FindVehicleOnPos(ftoti->res.pos.tile, ftoti, FindTrainOnTrackEnum);
+		if (ftoti->best != NULL) return;
+
+		/* Special case for stations: check the whole platform for a vehicle. */
+		if (IsRailStationTile(ftoti->res.pos.tile)) {
+			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(ftoti->res.pos.td)));
+			for (TileIndex tile = ftoti->res.pos.tile + diff; IsCompatibleTrainStationTile(tile, ftoti->res.pos.tile); tile += diff) {
+				FindVehicleOnPos(tile, ftoti, FindTrainOnTrackEnum);
+				if (ftoti->best != NULL) return;
+			}
+		}
 	}
 }
 
@@ -339,7 +349,7 @@ PBSTileInfo FollowTrainReservation(const Train *v, Vehicle **train_on_res)
 
 	PFPos pos = v->GetPos();
 
-	if (IsRailDepotTile(pos.tile) && !GetDepotReservationTrackBits(pos.tile)) return PBSTileInfo(pos, false);
+	if (!pos.InWormhole() && IsRailDepotTile(pos.tile) && !HasDepotReservation(pos.tile)) return PBSTileInfo(pos, false);
 
 	FindTrainOnTrackInfo ftoti;
 	ftoti.res = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, pos);

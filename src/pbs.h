@@ -34,14 +34,14 @@ static inline bool TryReserveRailTrack(const PFPos &pos)
 	if (!pos.InWormhole()) {
 		return TryReserveRailTrack(pos.tile, TrackdirToTrack(pos.td));
 	} else if (IsRailwayTile(pos.wormhole)) {
-		if (HasBridgeReservation(pos.wormhole)) return false;
-		SetBridgeReservation(pos.wormhole, true);
-		SetBridgeReservation(GetOtherBridgeEnd(pos.wormhole), true);
+		if (HasBridgeMiddleReservation(pos.wormhole)) return false;
+		SetBridgeMiddleReservation(pos.wormhole, true);
+		SetBridgeMiddleReservation(GetOtherBridgeEnd(pos.wormhole), true);
 		return true;
 	} else {
 		if (HasTunnelMiddleReservation(pos.wormhole)) return false;
-		SetTunnelReservation(pos.wormhole, true);
-		SetTunnelReservation(GetOtherTunnelEnd(pos.wormhole), true);
+		SetTunnelMiddleReservation(pos.wormhole, true);
+		SetTunnelMiddleReservation(GetOtherTunnelEnd(pos.wormhole), true);
 		return true;
 	}
 }
@@ -51,11 +51,11 @@ static inline void UnreserveRailTrack(const PFPos &pos)
 	if (!pos.InWormhole()) {
 		UnreserveRailTrack(pos.tile, TrackdirToTrack(pos.td));
 	} else if (IsRailwayTile(pos.wormhole)) {
-		SetBridgeReservation(pos.wormhole, false);
-		SetBridgeReservation(GetOtherBridgeEnd(pos.wormhole), false);
+		SetBridgeMiddleReservation(pos.wormhole, false);
+		SetBridgeMiddleReservation(GetOtherBridgeEnd(pos.wormhole), false);
 	} else {
-		SetTunnelReservation(pos.wormhole, false);
-		SetTunnelReservation(GetOtherTunnelEnd(pos.wormhole), false);
+		SetTunnelMiddleReservation(pos.wormhole, false);
+		SetTunnelMiddleReservation(GetOtherTunnelEnd(pos.wormhole), false);
 	}
 }
 
@@ -154,7 +154,7 @@ static inline bool HasReservedTrack(TileIndex tile, Track track)
 static inline bool HasReservedPos(const PFPos &pos)
 {
 	return !pos.InWormhole() ? HasReservedTrack(pos.tile, TrackdirToTrack(pos.td)) :
-		IsRailwayTile(pos.wormhole) ? HasBridgeReservation(pos.wormhole) : HasTunnelMiddleReservation(pos.wormhole);
+		IsRailwayTile(pos.wormhole) ? HasBridgeMiddleReservation(pos.wormhole) : HasTunnelMiddleReservation(pos.wormhole);
 }
 
 #endif /* PBS_H */
