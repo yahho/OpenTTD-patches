@@ -413,25 +413,34 @@ Train *GetTrainForReservation(TileIndex tile, Track track)
  */
 PBSPositionState CheckWaitingPosition(const Train *v, const PFPos &pos, bool forbid_90deg, PBSCheckingBehaviour cb)
 {
-	if (pos.InWormhole()) return PBS_UNSAFE;
-
-	/* Depots are always safe, and free iff unreserved. */
-	if (IsRailDepotTile(pos.tile)) return HasDepotReservation(pos.tile) ? PBS_BUSY : PBS_FREE;
-
-	if (HasSignalAlongPos(pos) && !IsPbsSignal(GetSignalType(pos))) {
-		/* For non-pbs signals, stop on the signal tile. */
-		if (cb == PBS_CHECK_SAFE) return PBS_FREE;
-		return HasReservedTrack(pos.tile, TrackdirToTrack(pos.td)) ? PBS_BUSY : PBS_FREE;
-	}
-
 	PBSPositionState state;
-	if ((cb != PBS_CHECK_SAFE) && TrackOverlapsTracks(GetReservedTrackbits(pos.tile), TrackdirToTrack(pos.td))) {
-		/* Track reserved? Can never be a free waiting position. */
-		if (cb != PBS_CHECK_FULL) return PBS_BUSY;
-		state = PBS_BUSY;
+	if (pos.InWormhole()) {
+		if ((cb != PBS_CHECK_SAFE) && HasReservedPos(pos)) {
+			/* Track reserved? Can never be a free waiting position. */
+			if (cb != PBS_CHECK_FULL) return PBS_BUSY;
+			state = PBS_BUSY;
+		} else {
+			/* Track not reserved or we do not care (PBS_CHECK_SAFE). */
+			state = PBS_FREE;
+		}
 	} else {
-		/* Track not reserved or we do not care (PBS_CHECK_SAFE). */
-		state = PBS_FREE;
+		/* Depots are always safe, and free iff unreserved. */
+		if (IsRailDepotTile(pos.tile)) return HasDepotReservation(pos.tile) ? PBS_BUSY : PBS_FREE;
+
+		if (HasSignalAlongPos(pos) && !IsPbsSignal(GetSignalType(pos))) {
+			/* For non-pbs signals, stop on the signal tile. */
+			if (cb == PBS_CHECK_SAFE) return PBS_FREE;
+			return HasReservedTrack(pos.tile, TrackdirToTrack(pos.td)) ? PBS_BUSY : PBS_FREE;
+		}
+
+		if ((cb != PBS_CHECK_SAFE) && TrackOverlapsTracks(GetReservedTrackbits(pos.tile), TrackdirToTrack(pos.td))) {
+			/* Track reserved? Can never be a free waiting position. */
+			if (cb != PBS_CHECK_FULL) return PBS_BUSY;
+			state = PBS_BUSY;
+		} else {
+			/* Track not reserved or we do not care (PBS_CHECK_SAFE). */
+			state = PBS_FREE;
+		}
 	}
 
 	/* Check next tile. */
