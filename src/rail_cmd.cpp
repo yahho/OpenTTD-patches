@@ -201,7 +201,7 @@ static CommandCost EnsureNoTrainOnTrack(TileIndex tile, Track track)
  */
 static CommandCost CheckTrackCombination(TileIndex tile, Track to_build, RailType railtype, DoCommandFlag flags)
 {
-	assert(IsNormalRailTile(tile));
+	assert(IsRailwayTile(tile));
 
 	TrackBits current = GetTrackBits(tile); // The current track layout.
 	assert(current != TRACK_BIT_NONE);
@@ -498,8 +498,6 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 
 	switch (GetTileType(tile)) {
 		case TT_RAILWAY: {
-			if (!IsTileSubtype(tile, TT_TRACK)) goto try_clear;
-
 			CommandCost ret = CheckTileOwnership(tile);
 			if (ret.Failed()) return ret;
 
@@ -507,26 +505,44 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 			if (ret.Failed()) return ret;
 			cost.AddCost(ret);
 
-			ret = CheckRailSlope(tileh, trackbit, GetTrackBits(tile), tile);
-			if (ret.Failed()) return ret;
-			cost.AddCost(ret);
+			if (IsTileSubtype(tile, TT_TRACK)) {
+				ret = CheckRailSlope(tileh, trackbit, GetTrackBits(tile), tile);
+				if (ret.Failed()) return ret;
+				cost.AddCost(ret);
+			} else {
+				if (!IsValidRailBridgeBits(tileh, GetTunnelBridgeDirection(tile), GetTrackBits(tile) | trackbit)) return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
+			}
 
 			ret = EnsureNoTrainOnTrack(tile, track);
 			if (ret.Failed()) return ret;
 
 			if (flags & DC_EXEC) {
-				SetRailGroundType(tile, RAIL_GROUND_BARREN);
+				if (IsTileSubtype(tile, TT_TRACK)) SetRailGroundType(tile, RAIL_GROUND_BARREN);
 				TrackBits bits = GetTrackBits(tile);
-				SetTrackBits(tile, bits | trackbit);
-				/* Subtract old infrastructure count. */
-				uint pieces = CountBits(bits);
-				if (TracksOverlap(bits)) pieces *= pieces;
-				Company::Get(GetTileOwner(tile))->infrastructure.rail[GetRailType(tile)] -= pieces;
-				/* Add new infrastructure count. */
-				pieces = CountBits(bits | trackbit);
-				if (TracksOverlap(bits | trackbit)) pieces *= pieces;
-				Company::Get(GetTileOwner(tile))->infrastructure.rail[GetRailType(tile)] += pieces;
-				DirtyCompanyInfrastructureWindows(GetTileOwner(tile));
+				TrackBits newbits = bits | trackbit;
+				SetTrackBits(tile, newbits);
+
+				/* Update infrastructure count. */
+				Owner owner = GetTileOwner(tile);
+				if (newbits == TRACK_BIT_HORZ || newbits == TRACK_BIT_VERT) {
+					Company::Get(owner)->infrastructure.rail[railtype]++;
+				} else {
+					RailType rt = GetRailType(tile, track);
+					if (bits == TRACK_BIT_HORZ || bits == TRACK_BIT_VERT) {
+						Company::Get(owner)->infrastructure.rail[rt] -= IsTileSubtype(tile, TT_BRIDGE) ? TUNNELBRIDGE_TRACKBIT_FACTOR + 1 : 2;
+					} else {
+						uint pieces = CountBits(bits);
+						pieces *= pieces;
+						if (IsTileSubtype(tile, TT_BRIDGE)) pieces *= TUNNELBRIDGE_TRACKBIT_FACTOR;
+						Company::Get(owner)->infrastructure.rail[rt] -= pieces;
+					}
+					uint pieces = CountBits(newbits);
+					assert(TracksOverlap(newbits));
+					pieces *= pieces;
+					if (IsTileSubtype(tile, TT_BRIDGE)) pieces *= TUNNELBRIDGE_TRACKBIT_FACTOR;
+					Company::Get(owner)->infrastructure.rail[rt] += pieces;
+				}
+				DirtyCompanyInfrastructureWindows(owner);
 			}
 			break;
 		}
