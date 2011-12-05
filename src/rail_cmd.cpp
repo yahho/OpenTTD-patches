@@ -631,130 +631,75 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 }
 
 /**
- * Remove a single piece of track
+ * Remove a single piece of track from a railway tile
  * @param tile tile to remove track from
+ * @param track the track to remove
  * @param flags operation to perform
- * @param p1 unused
- * @param p2 rail orientation
- * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+static CommandCost RemoveRailTrack(TileIndex tile, Track track, DoCommandFlag flags)
 {
-	Track track = Extract<Track, 0, 3>(p2);
-	CommandCost cost(EXPENSES_CONSTRUCTION);
+	if (_current_company != OWNER_WATER) {
+		CommandCost ret = CheckTileOwnership(tile);
+		if (ret.Failed()) return ret;
+	}
+
+	CommandCost ret = EnsureNoTrainOnTrack(tile, track);
+	if (ret.Failed()) return ret;
+
+	TrackBits present = GetTrackBits(tile);
+	TrackBits trackbit = TrackToTrackBits(track);
 	bool crossing = false;
 
-	if (!ValParamTrackOrientation(track)) return CMD_ERROR;
+	if ((present & trackbit) == 0) return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
+	if (present == (TRACK_BIT_X | TRACK_BIT_Y)) crossing = true;
 
-	/* Need to read tile owner now because it may change when the rail is removed
-	 * Also, in case of floods, _current_company != owner
-	 * There may be invalid tiletype even in exec run (when removing long track),
-	 * so do not call GetTileOwner(tile) in any case here */
-	Owner owner = INVALID_OWNER;
+	RailType rt = GetRailType(tile, track);
+	CommandCost cost(EXPENSES_CONSTRUCTION, RailClearCost(rt));
 
-	Train *v = NULL;
-
-	switch (GetTileType(tile)) {
-		case TT_MISC: {
-			if (!IsLevelCrossingTile(tile) || GetCrossingRailTrack(tile) != track) return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
-
-			if (_current_company != OWNER_WATER) {
-				CommandCost ret = CheckTileOwnership(tile);
-				if (ret.Failed()) return ret;
-			}
-
-			if (!(flags & DC_BANKRUPT)) {
-				CommandCost ret = EnsureNoVehicleOnGround(tile);
-				if (ret.Failed()) return ret;
-			}
-
-			cost.AddCost(RailClearCost(GetRailType(tile)));
-
-			if (flags & DC_EXEC) {
-				if (HasCrossingReservation(tile)) {
-					v = GetTrainForReservation(tile, track);
-					if (v != NULL) FreeTrainTrackReservation(v);
-				}
-				owner = GetTileOwner(tile);
-				Company::Get(owner)->infrastructure.rail[GetRailType(tile)] -= LEVELCROSSING_TRACKBIT_FACTOR;
-				DirtyCompanyInfrastructureWindows(owner);
-				MakeRoadNormal(tile, GetCrossingRoadBits(tile), GetRoadTypes(tile), GetTownIndex(tile), GetRoadOwner(tile, ROADTYPE_ROAD), GetRoadOwner(tile, ROADTYPE_TRAM));
-				DeleteNewGRFInspectWindow(GSF_RAILTYPES, tile);
-			}
-			break;
-		}
-
-		case TT_RAILWAY: {
-			if (!IsTileSubtype(tile, TT_TRACK)) return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
-
-			if (_current_company != OWNER_WATER) {
-				CommandCost ret = CheckTileOwnership(tile);
-				if (ret.Failed()) return ret;
-			}
-
-			CommandCost ret = EnsureNoTrainOnTrack(tile, track);
-			if (ret.Failed()) return ret;
-
-			TrackBits trackbit = TrackToTrackBits(track);
-			TrackBits present  = GetTrackBits(tile);
-			if ((present & trackbit) == 0) return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
-			if (present == (TRACK_BIT_X | TRACK_BIT_Y)) crossing = true;
-
-			RailType rt = GetRailType(tile, track);
-			cost.AddCost(RailClearCost(rt));
-
-			/* Charge extra to remove signals on the track, if they are there */
-			if (HasSignalOnTrack(tile, track)) {
-				cost.AddCost(DoCommand(tile, track, 0, flags, CMD_REMOVE_SIGNALS));
-			}
-
-			if (flags & DC_EXEC) {
-				if (HasReservedTrack(tile, track)) {
-					v = GetTrainForReservation(tile, track);
-					if (v != NULL) FreeTrainTrackReservation(v);
-				}
-
-				owner = GetTileOwner(tile);
-
-				if (TracksOverlap(present)) {
-					/* Subtract old infrastructure count. */
-					uint pieces = CountBits(present);
-					Company::Get(owner)->infrastructure.rail[rt] -= pieces * pieces;
-					/* Add new infrastructure count. */
-					present ^= trackbit;
-					pieces--;
-					if (TracksOverlap(present)) pieces *= pieces;
-					Company::Get(owner)->infrastructure.rail[rt] += pieces;
-				} else {
-					Company::Get(owner)->infrastructure.rail[rt]--;
-					present ^= trackbit;
-				}
-				DirtyCompanyInfrastructureWindows(owner);
-
-				if (present == 0) {
-					Slope tileh = GetTileSlope(tile);
-					/* If there is flat water on the lower halftile, convert the tile to shore so the water remains */
-					if (GetRailGroundType(tile) == RAIL_GROUND_WATER && IsSlopeWithOneCornerRaised(tileh)) {
-						MakeShore(tile);
-					} else {
-						DoClearSquare(tile);
-					}
-					DeleteNewGRFInspectWindow(GSF_RAILTYPES, tile);
-				} else {
-					SetTrackBits(tile, present);
-					SetTrackReservation(tile, GetRailReservationTrackBits(tile) & present);
-				}
-			}
-			break;
-		}
-
-		default: return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
+	/* Charge extra to remove signals on the track, if they are there */
+	if (HasSignalOnTrack(tile, track)) {
+		cost.AddCost(DoCommand(tile, track, 0, flags, CMD_REMOVE_SIGNALS));
 	}
 
 	if (flags & DC_EXEC) {
-		/* if we got that far, 'owner' variable is set correctly */
-		assert(Company::IsValidID(owner));
+		Train *v = NULL;
+
+		if (HasReservedTrack(tile, track)) {
+			v = GetTrainForReservation(tile, track);
+			if (v != NULL) FreeTrainTrackReservation(v);
+		}
+
+		Owner owner = GetTileOwner(tile);
+
+		if (TracksOverlap(present)) {
+			/* Subtract old infrastructure count. */
+			uint pieces = CountBits(present);
+			Company::Get(owner)->infrastructure.rail[rt] -= pieces * pieces;
+			/* Add new infrastructure count. */
+			present ^= trackbit;
+			pieces--;
+			if (TracksOverlap(present)) pieces *= pieces;
+			Company::Get(owner)->infrastructure.rail[rt] += pieces;
+		} else {
+			Company::Get(owner)->infrastructure.rail[rt]--;
+			present ^= trackbit;
+		}
+		DirtyCompanyInfrastructureWindows(owner);
+
+		if (present == 0) {
+			Slope tileh = GetTileSlope(tile);
+			/* If there is flat water on the lower halftile, convert the tile to shore so the water remains */
+			if (GetRailGroundType(tile) == RAIL_GROUND_WATER && IsSlopeWithOneCornerRaised(tileh)) {
+				MakeShore(tile);
+			} else {
+				DoClearSquare(tile);
+			}
+			DeleteNewGRFInspectWindow(GSF_RAILTYPES, tile);
+		} else {
+			SetTrackBits(tile, present);
+			SetTrackReservation(tile, GetRailReservationTrackBits(tile) & present);
+		}
 
 		MarkTileDirtyByTile(tile);
 		if (crossing) {
@@ -775,6 +720,82 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 	}
 
 	return cost;
+}
+
+/**
+ * Remove the rail track from a crossing
+ * @param tile tile to remove track from
+ * @param flags operation to perform
+ * @return the cost of this operation or an error
+ */
+static CommandCost RemoveCrossingTrack(TileIndex tile, DoCommandFlag flags)
+{
+	if (_current_company != OWNER_WATER) {
+		CommandCost ret = CheckTileOwnership(tile);
+		if (ret.Failed()) return ret;
+	}
+
+	if (!(flags & DC_BANKRUPT)) {
+		CommandCost ret = EnsureNoVehicleOnGround(tile);
+		if (ret.Failed()) return ret;
+	}
+
+	CommandCost cost(EXPENSES_CONSTRUCTION, RailClearCost(GetRailType(tile)));
+
+	if (flags & DC_EXEC) {
+		Track track = GetCrossingRailTrack(tile);
+		Train *v = NULL;
+
+		if (HasCrossingReservation(tile)) {
+			v = GetTrainForReservation(tile, track);
+			if (v != NULL) FreeTrainTrackReservation(v);
+		}
+
+		Owner owner = GetTileOwner(tile);
+		Company::Get(owner)->infrastructure.rail[GetRailType(tile)] -= LEVELCROSSING_TRACKBIT_FACTOR;
+		DirtyCompanyInfrastructureWindows(owner);
+		MakeRoadNormal(tile, GetCrossingRoadBits(tile), GetRoadTypes(tile), GetTownIndex(tile), GetRoadOwner(tile, ROADTYPE_ROAD), GetRoadOwner(tile, ROADTYPE_TRAM));
+		DeleteNewGRFInspectWindow(GSF_RAILTYPES, tile);
+
+		MarkTileDirtyByTile(tile);
+
+		AddTrackToSignalBuffer(tile, track, owner);
+		YapfNotifyTrackLayoutChange(tile, track);
+
+		if (v != NULL) TryPathReserve(v, true);
+	}
+
+	return cost;
+}
+
+/**
+ * Remove a single piece of track
+ * @param tile tile to remove track from
+ * @param flags operation to perform
+ * @param p1 unused
+ * @param p2 rail orientation
+ * @param text unused
+ * @return the cost of this operation or an error
+ */
+CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+{
+	Track track = Extract<Track, 0, 3>(p2);
+
+	if (!ValParamTrackOrientation(track)) return CMD_ERROR;
+
+	switch (GetTileType(tile)) {
+		case TT_MISC:
+			if (!IsLevelCrossingTile(tile) || GetCrossingRailTrack(tile) != track) break;
+			return RemoveCrossingTrack(tile, flags);
+
+		case TT_RAILWAY:
+			if (!IsTileSubtype(tile, TT_TRACK)) break;
+			return RemoveRailTrack(tile, track, flags);
+
+		default: break;
+	}
+
+	return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 }
 
 
