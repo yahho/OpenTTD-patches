@@ -548,6 +548,40 @@ CommandCost EnsureNoTrainOnTrackBits(TileIndex tile, TrackBits track_bits)
 	return CommandCost();
 }
 
+static Vehicle *EnsureNoTrainOnBridgeTrackProc(Vehicle *v, void *data)
+{
+	if (v->type != VEH_TRAIN) return NULL;
+
+	Track allowed = *(Track *)data;
+	Trackdir trackdir = Train::From(v)->trackdir;
+	if (TrackdirToTrack(trackdir) != allowed) return v;
+
+	return NULL;
+}
+
+/**
+ * Tests if a train interacts with the specified track bits or is on the bridge middle part.
+ *
+ * @param tile1 one bridge end
+ * @param bits1 track bits on first bridge end
+ * @param tile2 the other bridge end
+ * @param bits2 track bits on second bridge end
+ * @return whether there is a train on the bridge tracks or middle part
+ */
+CommandCost EnsureNoTrainOnBridgeTrackBits(TileIndex tile1, TrackBits bits1, TileIndex tile2, TrackBits bits2)
+{
+	assert(bits1 != TRACK_BIT_NONE);
+	assert(bits2 != TRACK_BIT_NONE);
+
+	Track allowed = AllowedNonOverlappingTrack(bits1);
+	if (HasVehicleOnPos(tile1, &allowed, &EnsureNoTrainOnBridgeTrackProc)) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+
+	allowed = AllowedNonOverlappingTrack(bits2);
+	if (HasVehicleOnPos(tile2, &allowed, &EnsureNoTrainOnBridgeTrackProc)) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+
+	return CommandCost();
+}
+
 static Vehicle *EnsureNoTrainOnTunnelBridgeMiddleProc(Vehicle *v, void *data)
 {
 	return (v->type == VEH_TRAIN) && (Train::From(v)->trackdir == TRACKDIR_WORMHOLE) ? v : NULL;
