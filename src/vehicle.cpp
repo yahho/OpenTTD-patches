@@ -506,18 +506,28 @@ CommandCost TunnelBridgeIsFree(TileIndex tile, TileIndex endtile, const Vehicle 
 	return CommandCost();
 }
 
+static Track AllowedNonOverlappingTrack(TrackBits bits)
+{
+	switch (bits) {
+		case TRACK_BIT_UPPER: return TRACK_LOWER;
+		case TRACK_BIT_LOWER: return TRACK_UPPER;
+		case TRACK_BIT_LEFT:  return TRACK_RIGHT;
+		case TRACK_BIT_RIGHT: return TRACK_LEFT;
+		default: return INVALID_TRACK;
+	}
+}
+
 static Vehicle *EnsureNoTrainOnTrackProc(Vehicle *v, void *data)
 {
-	TrackBits rail_bits = *(TrackBits *)data;
-
 	if (v->type != VEH_TRAIN) return NULL;
 
 	Trackdir trackdir = Train::From(v)->trackdir;
 	if (trackdir >= TRACKDIR_END) return NULL; // in wormhole or depot
-	TrackBits trackbits = TrackToTrackBits(TrackdirToTrack(trackdir));
-	if ((trackbits != rail_bits) && !TracksOverlap(trackbits | rail_bits)) return NULL;
 
-	return v;
+	Track allowed = *(Track *)data;
+	if (TrackdirToTrack(trackdir) != allowed) return v;
+
+	return NULL;
 }
 
 /**
@@ -530,7 +540,11 @@ static Vehicle *EnsureNoTrainOnTrackProc(Vehicle *v, void *data)
  */
 CommandCost EnsureNoTrainOnTrackBits(TileIndex tile, TrackBits track_bits)
 {
-	if (HasVehicleOnPos(tile, &track_bits, &EnsureNoTrainOnTrackProc)) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+	assert(track_bits != TRACK_BIT_NONE);
+
+	Track allowed = AllowedNonOverlappingTrack(track_bits);
+
+	if (HasVehicleOnPos(tile, &allowed, &EnsureNoTrainOnTrackProc)) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
 	return CommandCost();
 }
 
