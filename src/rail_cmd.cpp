@@ -2293,52 +2293,54 @@ static CommandCost ClearTile_Track(TileIndex tile, DoCommandFlag flags)
 			if (ret.Failed()) return ret;
 		}
 
-		TileIndex endtile = GetOtherBridgeEnd(tile);
+		TrackBits present = GetTrackBits(tile);
 
-		CommandCost ret = TunnelBridgeIsFree(tile, endtile);
-		if (ret.Failed()) return ret;
+		if ((present == TRACK_BIT_HORZ) || (present == TRACK_BIT_VERT)) {
+			Track track = FindFirstTrack(DiagdirReachesTracks(GetTunnelBridgeDirection(tile)) & present);
 
-		uint len = GetTunnelBridgeLength(tile, endtile) + 2; // Don't forget the end tiles.
+			CommandCost cost = DoCommand(tile, 0, track, flags, CMD_REMOVE_SINGLE_RAIL);
+			if (cost.Failed()) return cost;
 
-		if (flags & DC_EXEC) {
-			/* read this value before actual removal of bridge */
-			DiagDirection direction = GetTunnelBridgeDirection(tile);
-			Track track = DiagDirToDiagTrack(direction);
+			CommandCost ret = RemoveBridgeTrack(tile, TrackToOppositeTrack(track), flags);
+			if (ret.Failed()) return ret;
 
-			Train *v1 = NULL;
-			Train *v2 = NULL;
-
-			if (GetReservedTrackbits(tile) != TRACK_BIT_NONE) {
-				v1 = GetTrainForReservation(tile, track);
-				if (v1 != NULL) FreeTrainTrackReservation(v1);
-			}
-
-			if (GetReservedTrackbits(endtile) != TRACK_BIT_NONE) {
-				v2 = GetTrainForReservation(endtile, track);
-				if (v2 != NULL) FreeTrainTrackReservation(v2);
-			}
-
-			/* Update company infrastructure counts. */
-			Owner owner = GetTileOwner(tile);
-			if (Company::IsValidID(owner)) Company::Get(owner)->infrastructure.rail[GetRailType(tile)] -= len * TUNNELBRIDGE_TRACKBIT_FACTOR;
-			DirtyCompanyInfrastructureWindows(owner);
-
-			RemoveBridgeMiddleTiles(tile, endtile);
-			DoClearSquare(tile);
-			DoClearSquare(endtile);
-
-			/* cannot use INVALID_DIAGDIR for signal update because the bridge doesn't exist anymore */
-			AddSideToSignalBuffer(tile,    ReverseDiagDir(direction), owner);
-			AddSideToSignalBuffer(endtile, direction,                 owner);
-
-			YapfNotifyTrackLayoutChange(tile,    track);
-			YapfNotifyTrackLayoutChange(endtile, track);
-
-			if (v1 != NULL) TryPathReserve(v1, true);
-			if (v2 != NULL) TryPathReserve(v2, true);
+			cost.AddCost(ret);
+			return cost;
 		}
 
-		return CommandCost(EXPENSES_CONSTRUCTION, len * _price[PR_CLEAR_BRIDGE]);
+		TileIndex other_tile = GetOtherBridgeEnd(tile);
+		TrackBits other_remove = GetTrackBits(other_tile) & DiagdirReachesTracks(GetTunnelBridgeDirection(tile));
+
+		assert(other_remove != TRACK_BIT_NONE);
+
+		CommandCost ret = EnsureNoTrainOnBridgeTrackBits(tile, present, other_tile, other_remove);
+		if (ret.Failed()) return ret;
+
+		uint len = GetTunnelBridgeLength(tile, other_tile) + 2; // Don't forget the end tiles.
+
+		CommandCost cost(EXPENSES_CONSTRUCTION, len * _price[PR_CLEAR_BRIDGE]);
+		cost.AddCost((CountBits(present) - 1) * RailClearCost(GetBridgeRailType(tile)));
+
+		/* Charge extra to remove signals on the track, if any */
+		if (HasSignalOnTrack(tile, FindFirstTrack(present))) {
+			cost.AddCost(DoCommand(tile, FindFirstTrack(present), 0, flags, CMD_REMOVE_SIGNALS));
+		}
+
+		int n = CountBits(other_remove);
+		if (n == 1) {
+			Track other_track = FindFirstTrack(other_remove);
+			if (HasSignalOnTrack(other_tile, other_track)) {
+				cost.AddCost(DoCommand(other_tile, other_track, 0, flags, CMD_REMOVE_SIGNALS));
+			}
+		} else {
+			cost.AddCost((n - 1) * RailClearCost(GetBridgeRailType(other_tile)));
+		}
+
+		if (flags & DC_EXEC) {
+			RemoveRailBridge(tile, present, other_tile, other_remove);
+		}
+
+		return cost;
 	}
 }
 
