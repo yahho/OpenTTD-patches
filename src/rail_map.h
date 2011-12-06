@@ -547,6 +547,21 @@ static inline void MakeRailBridgeRamp(TileIndex t, Owner o, BridgeType bridgetyp
 	_mc[t].m7 = 0;
 }
 
+/**
+ * Make a normal rail tile from a rail bridge ramp.
+ * @param t the tile to make a normal rail
+ * @note trackbits will have to be adjusted when this function is called
+ */
+static inline void MakeNormalRailFromBridge(TileIndex t)
+{
+	assert(IsRailBridgeTile(t));
+	SetTileTypeSubtype(t, TT_RAILWAY, TT_TRACK);
+	ClrBit(_mc[t].m2, 6);
+	SB(_mc[t].m2, 12, 4, 0);
+	SB(_mc[t].m3, 4, 4, 0);
+	SB(_mc[t].m5, 4, 4, 0);
+}
+
 static inline void MakeRailDepot(TileIndex t, Owner o, DepotID did, DiagDirection d, RailType r)
 {
 	SetTileTypeSubtype(t, TT_MISC, TT_MISC_DEPOT);

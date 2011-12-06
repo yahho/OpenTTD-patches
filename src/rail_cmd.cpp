@@ -630,6 +630,23 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 	return cost;
 }
 
+static void NotifyTrackRemoval(TileIndex tile, Track track, bool was_crossing, Owner owner)
+{
+	if (was_crossing) {
+		/* crossing is set when only TRACK_BIT_X and TRACK_BIT_Y are set. As we
+		 * are removing one of these pieces, we'll need to update signals for
+		 * both directions explicitly, as after the track is removed it won't
+		 * 'connect' with the other piece. */
+		AddTrackToSignalBuffer(tile, TRACK_X, owner);
+		AddTrackToSignalBuffer(tile, TRACK_Y, owner);
+		YapfNotifyTrackLayoutChange(tile, TRACK_X);
+		YapfNotifyTrackLayoutChange(tile, TRACK_Y);
+	} else {
+		AddTrackToSignalBuffer(tile, track, owner);
+		YapfNotifyTrackLayoutChange(tile, track);
+	}
+}
+
 /**
  * Remove a single piece of track from a railway tile
  * @param tile tile to remove track from
@@ -675,11 +692,18 @@ static CommandCost RemoveRailTrack(TileIndex tile, Track track, DoCommandFlag fl
 		if (TracksOverlap(present)) {
 			/* Subtract old infrastructure count. */
 			uint pieces = CountBits(present);
-			Company::Get(owner)->infrastructure.rail[rt] -= pieces * pieces;
+			pieces *= pieces;
+			if (IsTileSubtype(tile, TT_BRIDGE)) pieces *= TUNNELBRIDGE_TRACKBIT_FACTOR;
+			Company::Get(owner)->infrastructure.rail[rt] -= pieces;
 			/* Add new infrastructure count. */
 			present ^= trackbit;
-			pieces--;
-			if (TracksOverlap(present)) pieces *= pieces;
+			if (present == TRACK_BIT_HORZ || present == TRACK_BIT_VERT) {
+				pieces = IsTileSubtype(tile, TT_BRIDGE) ? TUNNELBRIDGE_TRACKBIT_FACTOR + 1 : 2;
+			} else {
+				pieces = CountBits(present);
+				pieces *= pieces;
+				if (IsTileSubtype(tile, TT_BRIDGE)) pieces *= TUNNELBRIDGE_TRACKBIT_FACTOR;
+			}
 			Company::Get(owner)->infrastructure.rail[rt] += pieces;
 		} else {
 			Company::Get(owner)->infrastructure.rail[rt]--;
@@ -702,21 +726,156 @@ static CommandCost RemoveRailTrack(TileIndex tile, Track track, DoCommandFlag fl
 		}
 
 		MarkTileDirtyByTile(tile);
-		if (crossing) {
-			/* crossing is set when only TRACK_BIT_X and TRACK_BIT_Y are set. As we
-			 * are removing one of these pieces, we'll need to update signals for
-			 * both directions explicitly, as after the track is removed it won't
-			 * 'connect' with the other piece. */
-			AddTrackToSignalBuffer(tile, TRACK_X, owner);
-			AddTrackToSignalBuffer(tile, TRACK_Y, owner);
-			YapfNotifyTrackLayoutChange(tile, TRACK_X);
-			YapfNotifyTrackLayoutChange(tile, TRACK_Y);
-		} else {
-			AddTrackToSignalBuffer(tile, track, owner);
-			YapfNotifyTrackLayoutChange(tile, track);
-		}
+		NotifyTrackRemoval(tile, track, crossing, owner);
 
 		if (v != NULL) TryPathReserve(v, true);
+	}
+
+	return cost;
+}
+
+static void RemoveRailBridgeHead(TileIndex tile, TrackBits remove, RailType rt)
+{
+	Owner owner = GetTileOwner(tile);
+
+	TrackBits bits = GetTrackBits(tile);
+	bool crossing = (bits == (TRACK_BIT_X | TRACK_BIT_Y));
+
+	/* Update infrastructure count. */
+	if (HasExactlyOneBit(bits)) {
+		assert((bits & ~remove) == TRACK_BIT_NONE);
+		bits = TRACK_BIT_NONE;
+		Company::Get(owner)->infrastructure.rail[rt] -= TUNNELBRIDGE_TRACKBIT_FACTOR;
+	} else if (bits != TRACK_BIT_HORZ && bits != TRACK_BIT_VERT) {
+		assert(TracksOverlap(bits));
+		uint pieces = CountBits(bits);
+		Company::Get(owner)->infrastructure.rail[rt] -= pieces * pieces * TUNNELBRIDGE_TRACKBIT_FACTOR;
+		bits &= ~remove;
+		pieces = CountBits(bits);
+		Company::Get(owner)->infrastructure.rail[rt] += pieces * pieces;
+	} else if (remove == bits) {
+		bits = TRACK_BIT_NONE;
+		Company::Get(owner)->infrastructure.rail[rt] -= TUNNELBRIDGE_TRACKBIT_FACTOR;
+		Company::Get(owner)->infrastructure.rail[GetSideRailType(tile, ReverseDiagDir(GetTunnelBridgeDirection(tile)))]--;
+	} else {
+		bits &= ~remove;
+		Company::Get(owner)->infrastructure.rail[rt] -= TUNNELBRIDGE_TRACKBIT_FACTOR;
+	}
+
+	if (bits == TRACK_BIT_NONE) {
+		DoClearSquare(tile);
+		DeleteNewGRFInspectWindow(GSF_RAILTYPES, tile);
+	} else {
+		assert((DiagdirReachesTracks(ReverseDiagDir(GetTunnelBridgeDirection(tile))) & bits) == TRACK_BIT_NONE);
+		MakeNormalRailFromBridge(tile);
+		SetTrackBits(tile, bits);
+		SetTrackReservation(tile, GetRailReservationTrackBits(tile) & bits);
+	}
+
+	MarkTileDirtyByTile(tile);
+
+	while (remove != TRACK_BIT_NONE) {
+		Track track = RemoveFirstTrack(&remove);
+		NotifyTrackRemoval(tile, track, crossing, owner);
+	}
+}
+
+static void RemoveRailBridge(TileIndex tile, TrackBits remove, TileIndex other_tile, TrackBits other_remove)
+{
+	SmallVector<Train*, 4> affected;
+
+	TrackBits bits = GetReservedTrackbits(tile);
+	while (bits != TRACK_BIT_NONE) {
+		Track track = RemoveFirstTrack(&bits);
+		if ((TrackToTrackBits(track) & remove) != TRACK_BIT_NONE) {
+			Train *v = GetTrainForReservation(tile, track);
+			FreeTrainTrackReservation(v);
+			*affected.Append() = v;
+		}
+	}
+
+	bits = GetReservedTrackbits(other_tile);
+	while (bits != TRACK_BIT_NONE) {
+		Track track = RemoveFirstTrack(&bits);
+		if ((TrackToTrackBits(track) & other_remove) != TRACK_BIT_NONE) {
+			Train *v = GetTrainForReservation(other_tile, track);
+			FreeTrainTrackReservation(v);
+			*affected.Append() = v;
+		}
+	}
+
+	RailType rt = GetBridgeRailType(tile);
+	Owner owner = GetTileOwner(tile);
+	assert(GetTileOwner(other_tile) == owner);
+
+	RemoveBridgeMiddleTiles(tile, other_tile);
+	Company::Get(owner)->infrastructure.rail[rt] -= GetTunnelBridgeLength(tile, other_tile) * TUNNELBRIDGE_TRACKBIT_FACTOR;
+
+	RemoveRailBridgeHead(tile, remove, rt);
+	RemoveRailBridgeHead(other_tile, other_remove, rt);
+
+	DirtyCompanyInfrastructureWindows(owner);
+
+	for (uint i = 0; i < affected.Length(); ++i) {
+		TryPathReserve(affected[i], true);
+	}
+}
+
+/**
+ * Remove a single piece of track from a rail bridge tile
+ * @param tile tile to remove track from
+ * @param track the track to remove
+ * @param flags operation to perform
+ * @return the cost of this operation or an error
+ */
+static CommandCost RemoveBridgeTrack(TileIndex tile, Track track, DoCommandFlag flags)
+{
+	if (_current_company != OWNER_WATER) {
+		CommandCost ret = CheckTileOwnership(tile);
+		if (ret.Failed()) return ret;
+	}
+
+	DiagDirection dir = GetTunnelBridgeDirection(tile);
+	TrackBits present = GetTrackBits(tile);
+	TrackBits trackbit = TrackToTrackBits(track);
+
+	if ((present & trackbit) == TRACK_BIT_NONE) return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
+
+	if ((present & DiagdirReachesTracks(ReverseDiagDir(dir)) & ~trackbit) != TRACK_BIT_NONE) {
+		return RemoveRailTrack(tile, track, flags);
+	}
+
+	/* bridge must be torn down */
+
+	TileIndex other_tile = GetOtherBridgeEnd(tile);
+	TrackBits other_present = GetTrackBits(other_tile);
+	TrackBits other_remove = other_present & DiagdirReachesTracks(dir);
+
+	assert(other_remove != TRACK_BIT_NONE);
+
+	CommandCost ret = EnsureNoTrainOnBridgeTrackBits(tile, trackbit, other_tile, other_remove);
+	if (ret.Failed()) return ret;
+
+	CommandCost cost(EXPENSES_CONSTRUCTION, (GetTunnelBridgeLength(tile, other_tile) + 2) * _price[PR_CLEAR_BRIDGE]);
+
+	/* Charge extra to remove signals on the track, if they are there */
+	if (HasSignalOnTrack(tile, track)) {
+		cost.AddCost(DoCommand(tile, track, 0, flags, CMD_REMOVE_SIGNALS));
+	}
+
+	int n = CountBits(other_remove);
+	if (n == 1) {
+		Track other_track = FindFirstTrack(other_remove);
+		if (HasSignalOnTrack(other_tile, other_track)) {
+			cost.AddCost(DoCommand(other_tile, other_track, 0, flags, CMD_REMOVE_SIGNALS));
+		}
+	} else {
+		assert(GetRailType(tile, track) == GetBridgeRailType(other_tile));
+		cost.AddCost((n - 1) * RailClearCost(GetRailType(tile, track)));
+	}
+
+	if (flags & DC_EXEC) {
+		RemoveRailBridge(tile, trackbit, other_tile, other_remove);
 	}
 
 	return cost;
@@ -789,8 +948,11 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 			return RemoveCrossingTrack(tile, flags);
 
 		case TT_RAILWAY:
-			if (!IsTileSubtype(tile, TT_TRACK)) break;
-			return RemoveRailTrack(tile, track, flags);
+			if (IsTileSubtype(tile, TT_BRIDGE)) {
+				return RemoveBridgeTrack(tile, track, flags);
+			} else {
+				return RemoveRailTrack(tile, track, flags);
+			}
 
 		default: break;
 	}
@@ -940,21 +1102,30 @@ static CommandCost CmdRailTrackHelper(TileIndex tile, DoCommandFlag flags, uint3
 
 	bool had_success = false;
 	CommandCost last_error = CMD_ERROR;
+	bool seen_bridgehead = false;
 	for (;;) {
-		CommandCost ret = DoCommand(tile, railtype, TrackdirToTrack(trackdir), flags, remove ? CMD_REMOVE_SINGLE_RAIL : CMD_BUILD_SINGLE_RAIL);
-
-		if (ret.Failed()) {
-			last_error = ret;
-			if (last_error.GetErrorMessage() != STR_ERROR_ALREADY_BUILT && !remove) {
-				if (HasBit(p2, 8)) return last_error;
-				break;
-			}
-
-			/* Ownership errors are more important. */
-			if (last_error.GetErrorMessage() == STR_ERROR_OWNED_BY && remove) break;
+		if (seen_bridgehead && IsRailBridgeTile(tile) && DiagDirToDiagTrackdir(ReverseDiagDir(GetTunnelBridgeDirection(tile))) == trackdir) {
+			seen_bridgehead = false;
 		} else {
-			had_success = true;
-			total_cost.AddCost(ret);
+			CommandCost ret = DoCommand(tile, railtype, TrackdirToTrack(trackdir), flags, remove ? CMD_REMOVE_SINGLE_RAIL : CMD_BUILD_SINGLE_RAIL);
+
+			if (ret.Failed()) {
+				last_error = ret;
+				if (last_error.GetErrorMessage() != STR_ERROR_ALREADY_BUILT && !remove) {
+					if (HasBit(p2, 8)) return last_error;
+					break;
+				}
+
+				/* Ownership errors are more important. */
+				if (last_error.GetErrorMessage() == STR_ERROR_OWNED_BY && remove) break;
+			} else {
+				had_success = true;
+				total_cost.AddCost(ret);
+			}
+		}
+
+		if (IsRailBridgeTile(tile) && DiagDirToDiagTrackdir(GetTunnelBridgeDirection(tile)) == trackdir) {
+			seen_bridgehead = true;
 		}
 
 		if (tile == end_tile) break;
