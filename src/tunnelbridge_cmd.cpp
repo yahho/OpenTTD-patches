@@ -264,6 +264,57 @@ static CommandCost BuildRoadBridge(TileIndex tile_start, TileIndex tile_end, Bri
 
 
 /**
+ * Trackbits to add to a rail tile if a bridge is built on it, or TRACK_BIT_NONE if tile must be cleared
+ * @param tile tile to check
+ * @param dir direction for bridge
+ * @param rt railtype for bridge
+ * @return trackbits to add, or TRACK_BIT_NONE if tile must be cleared
+ */
+static TrackBits RailBridgeAddBits(TileIndex tile, DiagDirection dir, RailType rt)
+{
+	if (!IsNormalRailTile(tile) || !IsTileOwner(tile, _current_company)) return TRACK_BIT_NONE;
+
+	Slope tileh = GetTileSlope(tile);
+	DiagDirDiff diff = CheckExtendedBridgeHead(tileh, dir);
+	TrackBits present = GetTrackBits(tile);
+
+	switch (diff) {
+		case DIAGDIRDIFF_REVERSE: return TRACK_BIT_NONE;
+
+		case DIAGDIRDIFF_SAME: {
+			TrackBits bridgebits = DiagdirReachesTracks(ReverseDiagDir(dir));
+			if ((present & bridgebits) != TRACK_BIT_NONE) return TRACK_BIT_NONE;
+
+			Track track = FindFirstTrack(present);
+
+			if (KillFirstBit(present) != TRACK_BIT_NONE) {
+				return (GetRailType(tile, track) == rt) ? bridgebits : TRACK_BIT_NONE;
+			} else if (GetRailType(tile, track) == rt && !HasSignalOnTrack(tile, track)) {
+				return bridgebits & ~TrackToTrackBits(TrackToOppositeTrack(track));
+			} else if (IsDiagonalTrack(track)) {
+				return TRACK_BIT_NONE;
+			} else {
+				return bridgebits & TrackToTrackBits(TrackToOppositeTrack(track));
+			}
+		}
+
+		default: {
+			TrackBits allowed = TRACK_BIT_ALL & ~DiagdirReachesTracks(ReverseDiagDir(ChangeDiagDir(dir, diff)));
+			if (present != (allowed & ~DiagdirReachesTracks(ReverseDiagDir(dir)))) {
+				return TRACK_BIT_NONE;
+			}
+
+			Track track = FindFirstTrack(present);
+			assert(present == TrackToTrackBits(track)); // present should have exactly one trackbit
+
+			if (HasSignalOnTrack(tile, track) || GetRailType(tile, track) != rt) return TRACK_BIT_NONE;
+
+			return allowed ^ present;
+		}
+	}
+}
+
+/**
  * Build a rail bridge
  * @param tile_start Start tile
  * @param tile_end End tile
@@ -320,19 +371,62 @@ static CommandCost BuildRailBridge(TileIndex tile_start, TileIndex tile_end, Bri
 			MarkBridgeTilesDirty(tile_start, tile_end, AxisToDiagDir(direction));
 		}
 	} else {
+		DiagDirection dir = AxisToDiagDir(direction);
+
+		TrackBits add_start = RailBridgeAddBits(tile_start, dir, railtype);
+		TrackBits add_end   = RailBridgeAddBits(tile_end,   ReverseDiagDir(dir), railtype);
+
 		/* Build a new bridge. */
-		CommandCost ret = CheckBridgeBuildable(tile_start, tile_end, flags, true, true);
+		CommandCost ret = CheckBridgeBuildable(tile_start, tile_end, flags, add_start == TRACK_BIT_NONE, add_end == TRACK_BIT_NONE);
 		if (ret.Failed()) return ret;
 		cost.AddCost(ret);
 
 		/* do the drill? */
 		if (flags & DC_EXEC) {
-			DiagDirection dir = AxisToDiagDir(direction);
+			/* Add to company infrastructure count if building a new bridge. */
+			Company *c = Company::Get(_current_company);
+			uint pieces = bridge_len;
 
-			/* Add to company infrastructure count. */
-			Company::Get(_current_company)->infrastructure.rail[railtype] += (bridge_len + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
-			MakeRailBridgeRamp(tile_start, _current_company, bridge_type, dir,                 railtype);
-			MakeRailBridgeRamp(tile_end,   _current_company, bridge_type, ReverseDiagDir(dir), railtype);
+			if (add_start == TRACK_BIT_NONE) {
+				MakeRailBridgeRamp(tile_start, _current_company, bridge_type, dir, railtype);
+				pieces++;
+			} else {
+				TrackBits bits = GetTrackBits(tile_start);
+				MakeRailBridgeFromRail(tile_start, bridge_type, dir);
+				SetTrackBits(tile_start, bits | add_start);
+				SetRailType(tile_start, railtype, FindFirstTrack(add_start));
+
+				if (HasExactlyOneBit(add_start)) {
+					pieces++;
+				} else {
+					uint n = CountBits(bits);
+					c->infrastructure.rail[railtype] -= n * n;
+					n = CountBits(bits | add_start);
+					pieces += n * n;
+				}
+			}
+
+			if (add_end == TRACK_BIT_NONE) {
+				MakeRailBridgeRamp(tile_end, _current_company, bridge_type, ReverseDiagDir(dir), railtype);
+				pieces++;
+			} else {
+				TrackBits bits = GetTrackBits(tile_end);
+				MakeRailBridgeFromRail(tile_end, bridge_type, ReverseDiagDir(dir));
+				SetTrackBits(tile_end, bits | add_end);
+				SetRailType(tile_end, railtype, FindFirstTrack(add_end));
+
+				if (HasExactlyOneBit(add_end)) {
+					pieces++;
+				} else {
+					uint n = CountBits(bits);
+					c->infrastructure.rail[railtype] -= n * n;
+					n = CountBits(bits | add_end);
+					pieces += n * n;
+				}
+			}
+
+			c->infrastructure.rail[railtype] += pieces * TUNNELBRIDGE_TRACKBIT_FACTOR;
+			DirtyCompanyInfrastructureWindows(_current_company);
 
 			SetBridgeMiddleTiles(tile_start, tile_end, direction);
 			DirtyCompanyInfrastructureWindows(_current_company);
