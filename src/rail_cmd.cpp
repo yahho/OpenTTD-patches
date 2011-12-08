@@ -1292,8 +1292,8 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 	if (sigtype > SIGTYPE_LAST) return CMD_ERROR;
 	if (cycle_start > cycle_stop || cycle_stop > SIGTYPE_LAST) return CMD_ERROR;
 
-	/* You can only build signals on plain rail tiles, and the selected track must exist */
-	if (!ValParamTrackOrientation(track) || !IsNormalRailTile(tile) ||
+	/* You can only build signals on rail tiles, and the selected track must exist */
+	if (!ValParamTrackOrientation(track) || !IsRailwayTile(tile) ||
 			!HasTrack(tile, track)) {
 		return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 	}
@@ -1520,7 +1520,7 @@ static CommandCost CmdSignalTrackHelper(TileIndex tile, DoCommandFlag flags, uin
 	TileIndex end_tile = p1;
 	if (signal_density == 0 || signal_density > 20) return CMD_ERROR;
 
-	if (!IsNormalRailTile(tile)) return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
+	if (!IsRailwayTile(tile)) return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 
 	/* for vertical/horizontal tracks, double the given signals density
 	 * since the original amount will be too dense (shorter tracks) */
@@ -1693,7 +1693,7 @@ CommandCost CmdRemoveSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1
 {
 	Track track = Extract<Track, 0, 3>(p1);
 
-	if (!ValParamTrackOrientation(track) || !IsNormalRailTile(tile) || !HasTrack(tile, track)) {
+	if (!ValParamTrackOrientation(track) || !IsRailwayTile(tile) || !HasTrack(tile, track)) {
 		return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 	}
 	if (!HasSignalOnTrack(tile, track)) {
@@ -2361,6 +2361,36 @@ static CommandCost ClearTile_Track(TileIndex tile, DoCommandFlag flags)
 }
 
 
+static int GetSlopePixelZ_Track(TileIndex tile, uint x, uint y)
+{
+	int z;
+	Slope tileh = GetTilePixelSlope(tile, &z);
+
+	if (IsTileSubtype(tile, TT_TRACK)) {
+		if (tileh == SLOPE_FLAT) return z;
+		z += ApplyPixelFoundationToSlope(GetRailFoundation(tileh, GetTrackBits(tile)), &tileh);
+		return z + GetPartialPixelZ(x & 0xF, y & 0xF, tileh);
+	} else if (IsExtendedRailBridge(tile)) {
+		return z + TILE_HEIGHT;
+	} else {
+		x &= 0xF;
+		y &= 0xF;
+
+		DiagDirection dir = GetTunnelBridgeDirection(tile);
+
+		z += ApplyPixelFoundationToSlope(GetBridgeFoundation(tileh, DiagDirToAxis(dir)), &tileh);
+
+		/* On the bridge ramp? */
+		uint pos = (DiagDirToAxis(dir) == AXIS_X ? y : x);
+		if (5 <= pos && pos <= 10) {
+			return z + ((tileh == SLOPE_FLAT) ? GetBridgePartialPixelZ(dir, x, y) : TILE_HEIGHT);
+		}
+
+		return z + GetPartialPixelZ(x, y, tileh);
+	}
+}
+
+
 static uint32 _drawtile_track_palette;
 
 static void DrawTrackFence_NW(const TileInfo *ti, SpriteID base_image)
@@ -2927,7 +2957,7 @@ static void DrawTrack(TileInfo *ti, TrackBits track)
  * Get surface height in point (x,y)
  * On tiles with halftile foundations move (x,y) to a safe point wrt. track
  */
-static uint GetSafeSlopePixelZ(uint x, uint y, Track track)
+static uint GetSafeSlopePixelZ(TileIndex tile, uint x, uint y, Track track)
 {
 	switch (track) {
 		case TRACK_UPPER: x &= ~0xF; y &= ~0xF; break;
@@ -2936,7 +2966,15 @@ static uint GetSafeSlopePixelZ(uint x, uint y, Track track)
 		case TRACK_RIGHT: x &= ~0xF; y |=  0xF; break;
 		default: break;
 	}
-	return GetSlopePixelZ(x, y);
+
+	uint z = GetSlopePixelZ_Track(tile, x, y);
+
+	if (IsTileSubtype(tile, TT_BRIDGE) && !IsExtendedRailBridge(tile)) {
+		assert(IsDiagonalTrack(track));
+		z += GetBridgePartialPixelZ(GetTunnelBridgeDirection(tile), x & 0xF, y & 0xF);
+	}
+
+	return z;
 }
 
 static void DrawSingleSignal(TileIndex tile, Trackdir trackdir)
@@ -2989,7 +3027,7 @@ static void DrawSingleSignal(TileIndex tile, Trackdir trackdir)
 	uint x = TileX(tile) * TILE_SIZE + SignalData[trackdir].pos[side].x;
 	uint y = TileY(tile) * TILE_SIZE + SignalData[trackdir].pos[side].y;
 
-	AddSortableSpriteToDraw(sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ(x, y, track));
+	AddSortableSpriteToDraw(sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ(tile, x, y, track));
 }
 
 static void DrawSignals(TileIndex tile, TrackBits rails)
@@ -3083,38 +3121,17 @@ static void DrawTile_Track(TileInfo *ti)
 		if (HasCatenaryDrawn(GetRailType(ti->tile))) {
 			DrawCatenary(ti);
 		}
+
+		if (DiagDirToAxis(dir) == AXIS_Y) {
+			DrawSingleSignal(ti->tile, TRACKDIR_Y_SE);
+			DrawSingleSignal(ti->tile, TRACKDIR_Y_NW);
+		} else {
+			DrawSingleSignal(ti->tile, TRACKDIR_X_NE);
+			DrawSingleSignal(ti->tile, TRACKDIR_X_SW);
+		}
 	}
 
 	DrawBridgeMiddle(ti);
-}
-
-static int GetSlopePixelZ_Track(TileIndex tile, uint x, uint y)
-{
-	int z;
-	Slope tileh = GetTilePixelSlope(tile, &z);
-
-	if (IsTileSubtype(tile, TT_TRACK)) {
-		if (tileh == SLOPE_FLAT) return z;
-		z += ApplyPixelFoundationToSlope(GetRailFoundation(tileh, GetTrackBits(tile)), &tileh);
-		return z + GetPartialPixelZ(x & 0xF, y & 0xF, tileh);
-	} else if (IsExtendedRailBridge(tile)) {
-		return z + TILE_HEIGHT;
-	} else {
-		x &= 0xF;
-		y &= 0xF;
-
-		DiagDirection dir = GetTunnelBridgeDirection(tile);
-
-		z += ApplyPixelFoundationToSlope(GetBridgeFoundation(tileh, DiagDirToAxis(dir)), &tileh);
-
-		/* On the bridge ramp? */
-		uint pos = (DiagDirToAxis(dir) == AXIS_X ? y : x);
-		if (5 <= pos && pos <= 10) {
-			return z + ((tileh == SLOPE_FLAT) ? GetBridgePartialPixelZ(dir, x, y) : TILE_HEIGHT);
-		}
-
-		return z + GetPartialPixelZ(x, y, tileh);
-	}
 }
 
 static Foundation GetFoundation_Track(TileIndex tile, Slope tileh)
