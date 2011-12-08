@@ -534,6 +534,24 @@ CommandCost EnsureNoTrainOnTrackBits(TileIndex tile, TrackBits track_bits)
 	return CommandCost();
 }
 
+static Vehicle *EnsureNoTrainOnTunnelBridgeMiddleProc(Vehicle *v, void *data)
+{
+	return (v->type == VEH_TRAIN) && (Train::From(v)->trackdir == TRACKDIR_WORMHOLE) ? v : NULL;
+}
+
+/**
+ * Tests if there is a train on the middle bridge part
+ * @param tile1 one bridge end
+ * @param tile2 the other bridge end
+ * @return whether there is a train on the bridge
+ */
+CommandCost EnsureNoTrainOnTunnelBridgeMiddle(TileIndex tile1, TileIndex tile2)
+{
+	if (HasVehicleOnPos(tile1, NULL, &EnsureNoTrainOnTunnelBridgeMiddleProc)) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+	if (HasVehicleOnPos(tile2, NULL, &EnsureNoTrainOnTunnelBridgeMiddleProc)) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+	return CommandCost();
+}
+
 static void UpdateVehicleTileHash(Vehicle *v, bool remove)
 {
 	Vehicle **old_hash = v->hash_tile_current;
