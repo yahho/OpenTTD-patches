@@ -3823,11 +3823,12 @@ static bool TrainApproachingLineEnd(Train *v, bool signal, bool reverse)
 
 
 /**
- * Determines whether train would like to leave the tile
+ * Determines whether a train is on the map and will stay on it after leaving the current tile
+ * (as opposed to being in a wormhole or depot)
  * @param v train to test
  * @return true iff vehicle is NOT entering or inside a depot or tunnel/bridge
  */
-static bool TrainCanLeaveTile(const Train *v)
+static bool TrainStayOnMap(const Train *v)
 {
 	/* Exit if inside a tunnel/bridge or a depot */
 	if (v->trackdir == TRACKDIR_WORMHOLE || v->trackdir == TRACKDIR_DEPOT) return false;
@@ -3866,7 +3867,7 @@ static TileIndex TrainApproachingCrossingTile(const Train *v)
 	assert(v->IsFrontEngine());
 	assert(!(v->vehstatus & VS_CRASHED));
 
-	if (!TrainCanLeaveTile(v)) return INVALID_TILE;
+	if (!TrainStayOnMap(v)) return INVALID_TILE;
 
 	DiagDirection dir = TrackdirToExitdir(v->trackdir);
 	TileIndex tile = v->tile + TileOffsByDiagDir(dir);
@@ -3920,7 +3921,7 @@ static bool TrainCheckIfLineEnds(Train *v, bool reverse)
 		return (trackdirbits & red_signals) == 0 || TrainApproachingLineEnd(v, true, reverse);
 	}
 
-	if (!TrainCanLeaveTile(v)) return true;
+	if (!TrainStayOnMap(v)) return true;
 
 	/* Determine the non-diagonal direction in which we will exit this tile */
 	DiagDirection dir = TrackdirToExitdir(v->trackdir);
