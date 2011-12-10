@@ -151,7 +151,8 @@ public:
 	/** Called by YAPF to detect if node ends in the desired destination */
 	inline bool PfDetectDestination(Node& n)
 	{
-		return (n.GetPos().tile == m_destTile) && ((m_destTrackdirs & TrackdirToTrackdirBits(n.GetPos().td)) != TRACKDIR_BIT_NONE);
+		const PFPos& pos = n.GetPos();
+		return !pos.InWormhole() && (pos.tile == m_destTile) && ((m_destTrackdirs & TrackdirToTrackdirBits(pos.td)) != TRACKDIR_BIT_NONE);
 	}
 
 	/**

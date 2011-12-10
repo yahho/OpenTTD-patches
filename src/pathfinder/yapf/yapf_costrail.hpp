@@ -40,8 +40,13 @@ protected:
 
 		TILE(const PFPos &pos) : PFPos(pos)
 		{
-			this->tile_type = GetTileType(pos.tile);
-			this->rail_type = GetTileRailType(pos.tile, TrackdirToTrack(pos.td));
+			if (!pos.InWormhole()) {
+				this->tile_type = GetTileType(pos.tile);
+				this->rail_type = GetTileRailType(pos.tile, TrackdirToTrack(pos.td));
+			} else {
+				this->tile_type = TT_GROUND;
+				this->rail_type = GetTileRailType(pos.wormhole, TrackdirToTrack(pos.td));
+			}
 		}
 
 		TILE(const TILE &src) : PFPos(src)
@@ -111,11 +116,11 @@ public:
 		return cost;
 	}
 
-	inline int SwitchCost(TileIndex tile1, TileIndex tile2, DiagDirection exitdir)
+	inline int SwitchCost(const PFPos &pos1, const PFPos &pos2, DiagDirection exitdir)
 	{
-		if (IsNormalRailTile(tile1) && IsNormalRailTile(tile2)) {
-			bool t1 = KillFirstBit(GetTrackBits(tile1) & DiagdirReachesTracks(ReverseDiagDir(exitdir))) != TRACK_BIT_NONE;
-			bool t2 = KillFirstBit(GetTrackBits(tile2) & DiagdirReachesTracks(exitdir)) != TRACK_BIT_NONE;
+		if (!pos1.InWormhole() && IsRailwayTile(pos1.tile) && !pos2.InWormhole() && IsRailwayTile(pos2.tile)) {
+			bool t1 = KillFirstBit(GetTrackBits(pos1.tile) & DiagdirReachesTracks(ReverseDiagDir(exitdir))) != TRACK_BIT_NONE;
+			bool t2 = KillFirstBit(GetTrackBits(pos2.tile) & DiagdirReachesTracks(exitdir)) != TRACK_BIT_NONE;
 			if (t1 && t2) return Yapf().PfGetSettings().rail_doubleslip_penalty;
 		}
 		return 0;
@@ -155,7 +160,7 @@ public:
 		if (n.m_num_signals_passed >= m_sig_look_ahead_costs.Size() / 2) return 0;
 		if (!IsPbsSignal(n.m_last_signal_type)) return 0;
 
-		if (IsRailStationTile(pos.tile) && IsAnyStationTileReserved(pos, skipped)) {
+		if (!pos.InWormhole() && IsRailStationTile(pos.tile) && IsAnyStationTileReserved(pos, skipped)) {
 			return Yapf().PfGetSettings().rail_pbs_station_penalty * (skipped + 1);
 		} else if (TrackOverlapsTracks(GetReservedTrackbits(pos.tile), TrackdirToTrack(pos.td))) {
 			int cost = Yapf().PfGetSettings().rail_pbs_cross_penalty;
@@ -270,6 +275,7 @@ public:
 	{
 		assert(!n.flags_u.flags_s.m_targed_seen);
 		assert(tf->m_new.tile == n.GetPos().tile);
+		assert(tf->m_new.wormhole == n.GetPos().wormhole);
 		assert((TrackdirToTrackdirBits(n.GetPos().td) & tf->m_new.trackdirs) != TRACKDIR_BIT_NONE);
 
 		CPerfStart perf_cost(Yapf().m_perf_cost);
@@ -327,7 +333,7 @@ public:
 			/* First transition cost goes to segment entry cost */
 			PFPos ppos = n.m_parent->GetLastPos();
 			segment_entry_cost = Yapf().CurveCost(ppos.td, cur.td);
-			segment_entry_cost += Yapf().SwitchCost(ppos.tile, cur.tile, TrackdirToExitdir(ppos.td));
+			segment_entry_cost += Yapf().SwitchCost(ppos, cur, TrackdirToExitdir(ppos.td));
 
 			/* It is the right time now to look if we can reuse the cached segment cost. */
 			if (is_cached_segment) {
@@ -377,6 +383,7 @@ public:
 			/* Tests for 'potential target' reasons to close the segment. */
 			if (cur.tile == prev) {
 				/* Penalty for reversing in a depot. */
+				assert(!cur.InWormhole());
 				assert(IsRailDepotTile(cur.tile));
 				assert(cur.td == DiagDirToDiagTrackdir(GetGroundDepotDirection(cur.tile)));
 				segment_cost += Yapf().PfGetSettings().rail_depot_reverse_penalty;
@@ -510,7 +517,7 @@ public:
 			if (segment_cost > s_max_segment_cost) {
 				/* Potentially in the infinite loop (or only very long segment?). We should
 				 * not force it to finish prematurely unless we are on a regular tile. */
-				if (IsNormalRailTile(tf->m_new.tile)) {
+				if (!tf->m_new.InWormhole() && IsNormalRailTile(tf->m_new.tile)) {
 					end_segment_reason |= ESRB_SEGMENT_TOO_LONG;
 					break;
 				}
@@ -523,7 +530,7 @@ public:
 
 			/* Transition cost (cost of the move from previous tile) */
 			segment_cost += Yapf().CurveCost(cur.td, next.td);
-			segment_cost += Yapf().SwitchCost(cur.tile, next.tile, TrackdirToExitdir(cur.td));
+			segment_cost += Yapf().SwitchCost(cur, next, TrackdirToExitdir(cur.td));
 
 			/* For the next loop set new prev and cur tile info. */
 			prev = cur.tile;

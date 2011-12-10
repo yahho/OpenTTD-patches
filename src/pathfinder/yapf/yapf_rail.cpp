@@ -70,7 +70,7 @@ private:
 	/** Try to reserve a single track/platform. */
 	bool ReserveSingleTrack(const PFPos &pos, PFPos *fail)
 	{
-		if (IsRailStationTile(pos.tile)) {
+		if (!pos.InWormhole() && IsRailStationTile(pos.tile)) {
 			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
 			TileIndex t = pos.tile;
 
@@ -107,7 +107,7 @@ private:
 	{
 		if (stop != NULL && pos == *stop) return false;
 
-		if (IsRailStationTile(pos.tile)) {
+		if (!pos.InWormhole() && IsRailStationTile(pos.tile)) {
 			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
 			TileIndex     t = pos.tile;
 			while (IsCompatibleTrainStationTile(t, pos.tile) && t != m_origin_tile) {

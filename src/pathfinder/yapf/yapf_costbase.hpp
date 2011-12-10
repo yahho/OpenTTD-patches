@@ -22,7 +22,7 @@ struct CYapfCostBase {
 	 */
 	inline static bool stSlopeCost(const PFPos &pos)
 	{
-		if (IsDiagonalTrackdir(pos.td)) {
+		if (!pos.InWormhole() && IsDiagonalTrackdir(pos.td)) {
 			if (IsBridgeHeadTile(pos.tile)) {
 				/* it is bridge ramp, check if we are entering the bridge */
 				if (GetTunnelBridgeDirection(pos.tile) != TrackdirToExitdir(pos.td)) return false; // no, we are leaving it, no penalty
