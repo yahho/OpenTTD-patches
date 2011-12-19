@@ -2005,24 +2005,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		_settings_game.game_creation.snow_line_height /= TILE_HEIGHT;
 	}
 
-	if (IsSavegameVersionBefore(stv, 164) && !IsSavegameVersionBefore(stv, 32)) {
-		/* We store 4 fences in the field tiles instead of only SE and SW. */
-		for (TileIndex t = 0; t < map_size; t++) {
-			if (!IsTileType(t, MP_CLEAR) && !IsTileType(t, MP_TREES)) continue;
-			if (IsTileType(t, MP_CLEAR) && IsClearGround(t, CLEAR_FIELDS)) continue;
-			uint fence = GB(_m[t].m4, 5, 3);
-			if (fence != 0 && IsTileType(TILE_ADDXY(t, 1, 0), MP_CLEAR) && IsClearGround(TILE_ADDXY(t, 1, 0), CLEAR_FIELDS)) {
-				SetFence(TILE_ADDXY(t, 1, 0), DIAGDIR_NE, fence);
-			}
-			fence = GB(_m[t].m4, 2, 3);
-			if (fence != 0 && IsTileType(TILE_ADDXY(t, 0, 1), MP_CLEAR) && IsClearGround(TILE_ADDXY(t, 0, 1), CLEAR_FIELDS)) {
-				SetFence(TILE_ADDXY(t, 0, 1), DIAGDIR_NW, fence);
-			}
-			SB(_m[t].m4, 2, 3, 0);
-			SB(_m[t].m4, 5, 3, 0);
-		}
-	}
-
 	/* The center of train vehicles was changed, fix up spacing. */
 	if (IsSavegameVersionBefore(stv, 164)) FixupTrainLengths();
 

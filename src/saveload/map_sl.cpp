@@ -608,6 +608,33 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			}
 		}
 	}
+
+	if (IsSavegameVersionBefore(stv, 164)) {
+		/* We store 4 fences in the field tiles instead of only SE and SW. */
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (!IsTileType(t, MP_CLEAR) && !IsTileType(t, MP_TREES)) continue;
+			if (IsTileType(t, MP_CLEAR) && !HasBit(_m[t].m3, 4) && GB(_m[t].m5, 2, 3) == 3) continue;
+
+			uint fence = GB(_m[t].m4, 5, 3);
+			if (fence != 0) {
+				TileIndex neighbour = TILE_ADDXY(t, 1, 0);
+				if (IsTileType(neighbour, MP_CLEAR) && !HasBit(_m[neighbour].m3, 4) && GB(_m[neighbour].m5, 2, 3) == 3) {
+					SB(_m[neighbour].m3, 5, 3, fence);
+				}
+			}
+
+			fence = GB(_m[t].m4, 2, 3);
+			if (fence != 0) {
+				TileIndex neighbour = TILE_ADDXY(t, 0, 1);
+				if (IsTileType(neighbour, MP_CLEAR) && !HasBit(_m[neighbour].m3, 4) && GB(_m[neighbour].m5, 2, 3) == 3) {
+					SB(_m[neighbour].m6, 2, 3, fence);
+				}
+			}
+
+			SB(_m[t].m4, 2, 3, 0);
+			SB(_m[t].m4, 5, 3, 0);
+		}
+	}
 }
 
 
