@@ -108,28 +108,45 @@ void AfterLoadCompanyStats()
 
 	for (TileIndex tile = 0; tile < MapSize(); tile++) {
 		switch (GetTileType(tile)) {
-			case TT_RAILWAY:
+			case TT_RAILWAY: {
 				c = Company::GetIfValid(GetTileOwner(tile));
 				if (c == NULL) break;
 
-				if (IsTileSubtype(tile, TT_TRACK)) {
-					TrackBits bits = GetTrackBits(tile);
-					uint pieces = CountBits(bits);
-					if (TracksOverlap(bits)) pieces *= pieces;
-					c->infrastructure.rail[GetRailType(tile)] += pieces;
-
+				TrackBits bits = GetTrackBits(tile);
+				if (HasExactlyOneBit(bits)) {
+					Track track = FindFirstTrack(bits);
+					c->infrastructure.rail[GetRailType(tile, track)] += IsTileSubtype(tile, TT_BRIDGE) ? TUNNELBRIDGE_TRACKBIT_FACTOR : 1;
+					c->infrastructure.signal += CountBits(GetPresentSignals(tile, track));
+				} else if (bits == TRACK_BIT_HORZ || bits == TRACK_BIT_VERT) {
+					if (IsTileSubtype(tile, TT_BRIDGE)) {
+						DiagDirection dir = GetTunnelBridgeDirection(tile);
+						c->infrastructure.rail[GetSideRailType(tile, dir)] += TUNNELBRIDGE_TRACKBIT_FACTOR;
+						c->infrastructure.rail[GetSideRailType(tile, ReverseDiagDir(dir))]++;
+					} else {
+						c->infrastructure.rail[GetRailType(tile, TRACK_UPPER)]++;
+						c->infrastructure.rail[GetRailType(tile, TRACK_LOWER)]++;
+					}
 					c->infrastructure.signal += CountBits(GetPresentSignals(tile, TRACK_UPPER)) + CountBits(GetPresentSignals(tile, TRACK_LOWER));
 				} else {
+					assert(TracksOverlap(bits));
+					uint pieces = CountBits(bits);
+					pieces *= pieces;
+					if (IsTileSubtype(tile, TT_BRIDGE)) pieces *= TUNNELBRIDGE_TRACKBIT_FACTOR;
+					c->infrastructure.rail[GetRailType(tile, FindFirstTrack(bits))] += pieces;
+				}
+
+				if (IsTileSubtype(tile, TT_BRIDGE)) {
 					/* Only count the bridge if we're on the northern end tile. */
 					TileIndex other_end = GetOtherBridgeEnd(tile);
 					if (tile < other_end) {
 						/* Count each bridge TUNNELBRIDGE_TRACKBIT_FACTOR times to simulate
-						 * the higher structural maintenance needs, and don't forget the end tiles. */
-						uint len = (GetTunnelBridgeLength(tile, other_end) + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
+						 * the higher structural maintenance needs. */
+						uint len = GetTunnelBridgeLength(tile, other_end) * TUNNELBRIDGE_TRACKBIT_FACTOR;
 						c->infrastructure.rail[GetRailType(tile)] += len;
 					}
 				}
 				break;
+			}
 
 			case TT_ROAD:
 				if (IsTileSubtype(tile, TT_TRACK)) {
