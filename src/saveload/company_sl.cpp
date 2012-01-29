@@ -142,16 +142,18 @@ void AfterLoadCompanyStats()
 				} else {
 					/* Only count the bridge if we're on the northern end tile. */
 					TileIndex other_end = GetOtherBridgeEnd(tile);
-					if (tile < other_end) {
-						/* Count each bridge TUNNELBRIDGE_TRACKBIT_FACTOR times to simulate
-						 * the higher structural maintenance needs, and don't forget the end tiles. */
-						uint len = (GetTunnelBridgeLength(tile, other_end) + 2) * 2 * TUNNELBRIDGE_TRACKBIT_FACTOR;
+					uint len = (tile < other_end) ? 2 * GetTunnelBridgeLength(tile, other_end) : 0;
 
-						/* Iterate all present road types as each can have a different owner. */
-						RoadType rt;
-						FOR_EACH_SET_ROADTYPE(rt, GetRoadTypes(tile)) {
-							c = Company::GetIfValid(GetRoadOwner(tile, rt));
-							if (c != NULL) c->infrastructure.road[rt] += len;
+					RoadBits bridge_piece = DiagDirToRoadBits(GetTunnelBridgeDirection(tile));
+
+					/* Iterate all present road types as each can have a different owner. */
+					RoadType rt;
+					FOR_EACH_SET_ROADTYPE(rt, GetRoadTypes(tile)) {
+						c = Company::GetIfValid(GetRoadOwner(tile, rt));
+						if (c != NULL) {
+							RoadBits pieces = GetRoadBits(tile, rt);
+							uint n = CountBits(pieces);
+							c->infrastructure.road[rt] += ((pieces & bridge_piece) != 0) ? (n + len) * TUNNELBRIDGE_TRACKBIT_FACTOR : n;
 						}
 					}
 				}
