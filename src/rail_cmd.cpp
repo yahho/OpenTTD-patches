@@ -2930,7 +2930,7 @@ static void DrawTrack(TileInfo *ti, TrackBits track)
 		}
 	}
 
-	DrawFoundation(ti, f);
+	DrawFoundation(ti, f, IsTileSubtype(ti->tile, TT_BRIDGE) ? GetTunnelBridgeDirection(ti->tile) : INVALID_DIAGDIR);
 	/* DrawFoundation modifies ti */
 
 	if (draw_ground) {

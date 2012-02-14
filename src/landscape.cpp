@@ -384,8 +384,9 @@ bool HasFoundationNE(TileIndex tile, Slope slope_here, uint z_here)
  * Draw foundation \a f at tile \a ti. Updates \a ti.
  * @param ti Tile to draw foundation on
  * @param f  Foundation to draw
+ * @param side Side to skip
  */
-void DrawFoundation(TileInfo *ti, Foundation f)
+void DrawFoundation(TileInfo *ti, Foundation f, DiagDirection side)
 {
 	if (!IsFoundation(f)) return;
 
@@ -402,8 +403,8 @@ void DrawFoundation(TileInfo *ti, Foundation f)
 	 * Block 2: Wall  at NW        edge
 	 * Block 3: No walls at NW or NE edge
 	 */
-	if (!HasFoundationNW(ti->tile, slope, z)) sprite_block += 1;
-	if (!HasFoundationNE(ti->tile, slope, z)) sprite_block += 2;
+	if (side == DIAGDIR_NW || !HasFoundationNW(ti->tile, slope, z)) sprite_block += 1;
+	if (side == DIAGDIR_NE || !HasFoundationNE(ti->tile, slope, z)) sprite_block += 2;
 
 	/* Use the original slope sprites if NW and NE borders should be visible */
 	SpriteID leveled_base = (sprite_block == 0 ? (int)SPR_FOUNDATION_BASE : (SPR_SLOPES_VIRTUAL_BASE + sprite_block * SPR_TRKFOUND_BLOCK_SIZE));

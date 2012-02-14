@@ -1731,8 +1731,11 @@ static void DrawRoadBits(TileInfo *ti)
 	SpriteID image = 0;
 	PaletteID pal = PAL_NONE;
 
-	if (ti->tileh != SLOPE_FLAT) {
-		Foundation f = IsTileSubtype(ti->tile, TT_TRACK) ? GetRoadFoundation(ti->tileh, road | tram) : FOUNDATION_LEVELED;
+	if (IsTileSubtype(ti->tile, TT_BRIDGE)) {
+		assert(ti->tileh != SLOPE_FLAT);
+		DrawFoundation(ti, FOUNDATION_LEVELED, GetTunnelBridgeDirection(ti->tile));
+	} else if (ti->tileh != SLOPE_FLAT) {
+		Foundation f = GetRoadFoundation(ti->tileh, road | tram);
 
 		DrawFoundation(ti, f);
 

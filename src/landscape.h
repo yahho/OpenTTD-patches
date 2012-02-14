@@ -129,7 +129,7 @@ static inline uint ApplyPixelFoundationToSlope(Foundation f, Slope *s)
 	return ApplyFoundationToSlope(f, s) * TILE_HEIGHT;
 }
 
-void DrawFoundation(TileInfo *ti, Foundation f);
+void DrawFoundation(TileInfo *ti, Foundation f, DiagDirection side = INVALID_DIAGDIR);
 bool HasFoundationNW(TileIndex tile, Slope slope_here, uint z_here);
 bool HasFoundationNE(TileIndex tile, Slope slope_here, uint z_here);
 
