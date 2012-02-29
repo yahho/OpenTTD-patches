@@ -1566,24 +1566,28 @@ static bool ClickTile_Road(TileIndex tile)
 
 static TrackStatus GetTileTrackStatus_Road(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
 {
-	/* Converts RoadBits to TrackBits */
-	static const TrackBits road_trackbits[16] = {
-		TRACK_BIT_NONE,                                  // ROAD_NONE
-		TRACK_BIT_NONE,                                  // ROAD_NW
-		TRACK_BIT_NONE,                                  // ROAD_SW
-		TRACK_BIT_LEFT,                                  // ROAD_W
-		TRACK_BIT_NONE,                                  // ROAD_SE
-		TRACK_BIT_Y,                                     // ROAD_Y
-		TRACK_BIT_LOWER,                                 // ROAD_S
-		TRACK_BIT_LEFT | TRACK_BIT_LOWER | TRACK_BIT_Y,  // ROAD_Y | ROAD_SW
-		TRACK_BIT_NONE,                                  // ROAD_NE
-		TRACK_BIT_UPPER,                                 // ROAD_N
-		TRACK_BIT_X,                                     // ROAD_X
-		TRACK_BIT_LEFT | TRACK_BIT_UPPER | TRACK_BIT_X,  // ROAD_X | ROAD_NW
-		TRACK_BIT_RIGHT,                                 // ROAD_E
-		TRACK_BIT_RIGHT | TRACK_BIT_UPPER | TRACK_BIT_Y, // ROAD_Y | ROAD_NE
-		TRACK_BIT_RIGHT | TRACK_BIT_LOWER | TRACK_BIT_X, // ROAD_X | ROAD_SE
-		TRACK_BIT_ALL,                                   // ROAD_ALL
+	/* Converts RoadBits to TrackdirBits */
+	static const TrackdirBits road_trackdirbits[16] = {
+		TRACKDIR_BIT_NONE,                           // ROAD_NONE
+		TRACKDIR_BIT_NONE,                           // ROAD_NW
+		TRACKDIR_BIT_NONE,                           // ROAD_SW
+		TRACKDIR_BIT_LEFT_S | TRACKDIR_BIT_LEFT_N,   // ROAD_W
+		TRACKDIR_BIT_NONE,                           // ROAD_SE
+		TRACKDIR_BIT_Y_SE | TRACKDIR_BIT_Y_NW,       // ROAD_Y
+		TRACKDIR_BIT_LOWER_E | TRACKDIR_BIT_LOWER_W, // ROAD_S
+		TRACKDIR_BIT_LEFT_S | TRACKDIR_BIT_LOWER_E | TRACKDIR_BIT_Y_SE
+			| TRACKDIR_BIT_LEFT_N | TRACKDIR_BIT_LOWER_W | TRACKDIR_BIT_Y_NW,  // ROAD_Y | ROAD_SW
+		TRACKDIR_BIT_NONE,                           // ROAD_NE
+		TRACKDIR_BIT_UPPER_E | TRACKDIR_BIT_UPPER_W, // ROAD_N
+		TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW,       // ROAD_X
+		TRACKDIR_BIT_LEFT_S | TRACKDIR_BIT_UPPER_E | TRACKDIR_BIT_X_NE
+			| TRACKDIR_BIT_LEFT_N | TRACKDIR_BIT_UPPER_W | TRACKDIR_BIT_X_SW,  // ROAD_X | ROAD_NW
+		TRACKDIR_BIT_RIGHT_S | TRACKDIR_BIT_RIGHT_N, // ROAD_E
+		TRACKDIR_BIT_RIGHT_S | TRACKDIR_BIT_UPPER_E | TRACKDIR_BIT_Y_SE
+			| TRACKDIR_BIT_RIGHT_N | TRACKDIR_BIT_UPPER_W | TRACKDIR_BIT_Y_NW, // ROAD_Y | ROAD_NE
+		TRACKDIR_BIT_RIGHT_S | TRACKDIR_BIT_LOWER_E | TRACKDIR_BIT_X_NE
+			| TRACKDIR_BIT_RIGHT_N | TRACKDIR_BIT_LOWER_W | TRACKDIR_BIT_X_SW, // ROAD_X | ROAD_SE
+		TRACKDIR_BIT_MASK,                           // ROAD_ALL
 	};
 
 	TrackdirBits trackdirbits = TRACKDIR_BIT_NONE;
@@ -1597,15 +1601,18 @@ static TrackStatus GetTileTrackStatus_Road(TileIndex tile, TransportType mode, u
 			if ((GetRoadTypes(tile) & sub_mode) == 0) break;
 			switch (GetRoadTileType(tile)) {
 				case ROAD_TILE_NORMAL: {
-					const uint drd_to_multiplier[DRD_END] = { 0x101, 0x100, 0x1, 0x0 };
+					const uint drd_mask[DRD_END] = { 0xFFFF, 0xFF00, 0xFF, 0x0 };
 					RoadType rt = (RoadType)FindFirstBit(sub_mode);
 					RoadBits bits = GetRoadBits(tile, rt);
 
 					/* no roadbit at this side of tile, return 0 */
 					if (side != INVALID_DIAGDIR && (DiagDirToRoadBits(side) & bits) == 0) break;
 
-					uint multiplier = drd_to_multiplier[rt == ROADTYPE_TRAM ? DRD_NONE : GetDisallowedRoadDirections(tile)];
-					if (!HasRoadWorks(tile)) trackdirbits = (TrackdirBits)(road_trackbits[bits] * multiplier);
+					if (!HasRoadWorks(tile)) {
+						trackdirbits = road_trackdirbits[bits];
+						if (rt == ROADTYPE_ROAD) trackdirbits &= (TrackdirBits)drd_mask[GetDisallowedRoadDirections(tile)];
+					}
+
 					break;
 				}
 
