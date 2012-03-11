@@ -2083,9 +2083,15 @@ static bool CheckTrainStayInDepot(Train *v)
 
 		v->wait_counter = 0;
 
+		if (HasDepotReservation(v->tile)) {
+			/* Depot reserved, can't exit. */
+			SetWindowClassesDirty(WC_TRAINS_LIST);
+			return true;
+		}
+
 		seg_state = _settings_game.pf.reserve_paths ? SIGSEG_PBS : UpdateSignalsOnSegment(v->tile, INVALID_DIAGDIR, v->owner);
-		if (seg_state == SIGSEG_FULL || HasDepotReservation(v->tile)) {
-			/* Full and no PBS signal in block or depot reserved, can't exit. */
+		if (seg_state == SIGSEG_FULL) {
+			/* Full and no PBS signal in block, can't exit. */
 			SetWindowClassesDirty(WC_TRAINS_LIST);
 			return true;
 		}
