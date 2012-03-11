@@ -206,6 +206,7 @@ static SignalSide SignalSideFrom(TileIndex tile, DiagDirection side)
 static SmallSet<SignalPos,  SIG_TBU_SIZE>  _tbuset("_tbuset");   ///< set of signals that will be updated
 static SmallSet<SignalSide, SIG_TBD_SIZE>  _tbdset("_tbdset");   ///< set of open nodes in current signal block
 static SmallSet<SignalSide, SIG_GLOB_SIZE> _globset("_globset"); ///< set of places to be updated in following runs
+static Owner _last_owner = INVALID_OWNER; ///< owner of tracks in _globset, or INVALID_OWNER if empty
 
 
 /** Check whether there is a train on rail, not in a depot */
@@ -492,11 +493,11 @@ static inline void ResetSets()
  *
  * @param owner company whose signals we are updating
  * @return state of the first block from _globset
- * @pre Company::IsValidID(owner)
+ * @pre _globset.IsEmpty() || Company::IsValidID(owner)
  */
 static SigSegState UpdateSignalsInBuffer(Owner owner)
 {
-	assert(Company::IsValidID(owner));
+	assert(_globset.IsEmpty() || Company::IsValidID(owner));
 
 	SigSegState state = SIGSEG_NONE; // value to return
 
@@ -580,11 +581,10 @@ static SigSegState UpdateSignalsInBuffer(Owner owner)
 		UpdateSignalsAroundSegment(flags);
 	}
 
+	_last_owner = INVALID_OWNER;
+
 	return state;
 }
-
-
-static Owner _last_owner = INVALID_OWNER; ///< last owner whose track was put into _globset
 
 
 /**
@@ -595,7 +595,6 @@ void UpdateSignalsInBuffer()
 {
 	if (!_globset.IsEmpty()) {
 		UpdateSignalsInBuffer(_last_owner);
-		_last_owner = INVALID_OWNER; // invalidate
 	}
 }
 
@@ -620,7 +619,6 @@ void AddTrackToSignalBuffer(TileIndex tile, Track track, Owner owner)
 	if (_globset.Items() >= SIG_GLOB_UPDATE) {
 		/* too many items, force update */
 		UpdateSignalsInBuffer(_last_owner);
-		_last_owner = INVALID_OWNER;
 	}
 }
 
@@ -644,7 +642,6 @@ void AddSideToSignalBuffer(TileIndex tile, DiagDirection side, Owner owner)
 	if (_globset.Items() >= SIG_GLOB_UPDATE) {
 		/* too many items, force update */
 		UpdateSignalsInBuffer(_last_owner);
-		_last_owner = INVALID_OWNER;
 	}
 }
 
