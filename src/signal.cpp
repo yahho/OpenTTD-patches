@@ -498,8 +498,7 @@ static SigSegState UpdateSignalsInBuffer(Owner owner)
 {
 	assert(Company::IsValidID(owner));
 
-	bool first = true;  // first block?
-	SigSegState state = SIGSEG_FREE; // value to return
+	SigSegState state = SIGSEG_NONE; // value to return
 
 	SignalSide ss;
 
@@ -562,13 +561,13 @@ static SigSegState UpdateSignalsInBuffer(Owner owner)
 
 		SigFlags flags = ExploreSegment(owner);
 
-		if (first) {
-			first = false;
-			/* SIGSEG_FREE is set by default */
+		if (state == SIGSEG_NONE) {
 			if (flags & SF_PBS) {
 				state = SIGSEG_PBS;
 			} else if ((flags & SF_TRAIN) || ((flags & SF_EXIT) && !(flags & SF_GREEN)) || (flags & SF_FULL)) {
 				state = SIGSEG_FULL;
+			} else {
+				state = SIGSEG_FREE;
 			}
 		}
 

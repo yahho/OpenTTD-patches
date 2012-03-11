@@ -19,6 +19,7 @@
 
 /** State of the signal segment */
 enum SigSegState {
+	SIGSEG_NONE,    ///< There was no segment (not usually a returned value)
 	SIGSEG_FREE,    ///< Free and has no pre-signal exits or at least one green exit
 	SIGSEG_FULL,    ///< Occupied by a train
 	SIGSEG_PBS,     ///< Segment is a PBS segment
