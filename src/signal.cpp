@@ -588,6 +588,28 @@ static SigSegState UpdateSignalsInBuffer(Owner owner)
 
 
 /**
+ * Set signal buffer owner
+ */
+static inline void SetBufferOwner(Owner owner)
+{
+	/* do not allow signal updates for two companies in one run */
+	assert(_globset.IsEmpty() || owner == _last_owner);
+	_last_owner = owner;
+}
+
+/**
+ * Update signals in buffer if it has too many items
+ */
+static inline void UpdateSignalsInBufferAuto()
+{
+	if (_globset.Items() >= SIG_GLOB_UPDATE) {
+		/* too many items, force update */
+		UpdateSignalsInBuffer(_last_owner);
+	}
+}
+
+
+/**
  * Update signals in buffer
  * Called from 'outside'
  */
@@ -608,18 +630,12 @@ void UpdateSignalsInBuffer()
  */
 void AddTrackToSignalBuffer(TileIndex tile, Track track, Owner owner)
 {
-	/* do not allow signal updates for two companies in one run */
-	assert(_globset.IsEmpty() || owner == _last_owner);
-
-	_last_owner = owner;
+	SetBufferOwner(owner);
 
 	_globset.Add(SignalSideFrom(tile, TrackdirToExitdir(TrackToTrackdir(track))));
 	_globset.Add(SignalSideFrom(tile, TrackdirToExitdir(ReverseTrackdir(TrackToTrackdir(track)))));
 
-	if (_globset.Items() >= SIG_GLOB_UPDATE) {
-		/* too many items, force update */
-		UpdateSignalsInBuffer(_last_owner);
-	}
+	UpdateSignalsInBufferAuto();
 }
 
 
@@ -632,17 +648,11 @@ void AddTrackToSignalBuffer(TileIndex tile, Track track, Owner owner)
  */
 void AddSideToSignalBuffer(TileIndex tile, DiagDirection side, Owner owner)
 {
-	/* do not allow signal updates for two companies in one run */
-	assert(_globset.IsEmpty() || owner == _last_owner);
-
-	_last_owner = owner;
+	SetBufferOwner(owner);
 
 	_globset.Add(SignalSideFrom(tile, side));
 
-	if (_globset.Items() >= SIG_GLOB_UPDATE) {
-		/* too many items, force update */
-		UpdateSignalsInBuffer(_last_owner);
-	}
+	UpdateSignalsInBufferAuto();
 }
 
 /**
