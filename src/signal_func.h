@@ -29,6 +29,6 @@ SigSegState UpdateSignalsOnSegment(TileIndex tile, DiagDirection side, Owner own
 void SetSignalsOnBothDir(TileIndex tile, Track track, Owner owner);
 void AddTrackToSignalBuffer(TileIndex tile, Track track, Owner owner);
 void AddSideToSignalBuffer(TileIndex tile, DiagDirection side, Owner owner);
-void UpdateSignalsInBuffer();
+SigSegState UpdateSignalsInBuffer();
 
 #endif /* SIGNAL_FUNC_H */

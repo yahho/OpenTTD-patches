@@ -206,7 +206,7 @@ static SignalSide SignalSideFrom(TileIndex tile, DiagDirection side)
 static SmallSet<SignalPos,  SIG_TBU_SIZE>  _tbuset("_tbuset");   ///< set of signals that will be updated
 static SmallSet<SignalSide, SIG_TBD_SIZE>  _tbdset("_tbdset");   ///< set of open nodes in current signal block
 static SmallSet<SignalSide, SIG_GLOB_SIZE> _globset("_globset"); ///< set of places to be updated in following runs
-static Owner _last_owner = INVALID_OWNER; ///< owner of tracks in _globset, or INVALID_OWNER if empty
+static Owner _owner = INVALID_OWNER; ///< owner of tracks in _globset, or INVALID_OWNER if empty
 
 
 /** Check whether there is a train on rail, not in a depot */
@@ -493,11 +493,11 @@ static inline void ResetSets()
  *
  * @param owner company whose signals we are updating
  * @return state of the first block from _globset
- * @pre _globset.IsEmpty() || Company::IsValidID(owner)
+ * @pre _globset.IsEmpty() || Company::IsValidID(_owner)
  */
-static SigSegState UpdateSignalsInBuffer(Owner owner)
+SigSegState UpdateSignalsInBuffer()
 {
-	assert(_globset.IsEmpty() || Company::IsValidID(owner));
+	assert(_globset.IsEmpty() || Company::IsValidID(_owner));
 
 	SigSegState state = SIGSEG_NONE; // value to return
 
@@ -560,7 +560,7 @@ static SigSegState UpdateSignalsInBuffer(Owner owner)
 		assert(!_tbdset.Overflowed()); // it really shouldn't overflow by these one or two items
 		assert(!_tbdset.IsEmpty()); // it wouldn't hurt anyone, but shouldn't happen too
 
-		SigFlags flags = ExploreSegment(owner);
+		SigFlags flags = ExploreSegment(_owner);
 
 		if (state == SIGSEG_NONE) {
 			if (flags & SF_PBS) {
@@ -581,7 +581,7 @@ static SigSegState UpdateSignalsInBuffer(Owner owner)
 		UpdateSignalsAroundSegment(flags);
 	}
 
-	_last_owner = INVALID_OWNER;
+	_owner = INVALID_OWNER;
 
 	return state;
 }
@@ -593,8 +593,8 @@ static SigSegState UpdateSignalsInBuffer(Owner owner)
 static inline void SetBufferOwner(Owner owner)
 {
 	/* do not allow signal updates for two companies in one run */
-	assert(_globset.IsEmpty() || owner == _last_owner);
-	_last_owner = owner;
+	assert(_globset.IsEmpty() || owner == _owner);
+	_owner = owner;
 }
 
 /**
@@ -604,19 +604,7 @@ static inline void UpdateSignalsInBufferAuto()
 {
 	if (_globset.Items() >= SIG_GLOB_UPDATE) {
 		/* too many items, force update */
-		UpdateSignalsInBuffer(_last_owner);
-	}
-}
-
-
-/**
- * Update signals in buffer
- * Called from 'outside'
- */
-void UpdateSignalsInBuffer()
-{
-	if (!_globset.IsEmpty()) {
-		UpdateSignalsInBuffer(_last_owner);
+		UpdateSignalsInBuffer();
 	}
 }
 
@@ -668,9 +656,11 @@ void AddSideToSignalBuffer(TileIndex tile, DiagDirection side, Owner owner)
 SigSegState UpdateSignalsOnSegment(TileIndex tile, DiagDirection side, Owner owner)
 {
 	assert(_globset.IsEmpty());
+
+	SetBufferOwner(owner);
 	_globset.Add(SignalSideFrom(tile, side));
 
-	return UpdateSignalsInBuffer(owner);
+	return UpdateSignalsInBuffer();
 }
 
 
@@ -688,5 +678,5 @@ void SetSignalsOnBothDir(TileIndex tile, Track track, Owner owner)
 	assert(_globset.IsEmpty());
 
 	AddTrackToSignalBuffer(tile, track, owner);
-	UpdateSignalsInBuffer(owner);
+	UpdateSignalsInBuffer();
 }
