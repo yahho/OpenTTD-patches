@@ -2821,21 +2821,6 @@ static inline void AffectSpeedByZChange(Train *v, int old_z)
 	}
 }
 
-static bool TrainMovedChangeSignals(TileIndex tile, DiagDirection dir)
-{
-	if (!IsNormalRailTile(tile)) return false;
-
-	TrackdirBits tracks = TrackBitsToTrackdirBits(GetTrackBits(tile)) & DiagdirReachesTrackdirs(dir);
-	Trackdir trackdir = FindFirstTrackdir(tracks);
-	Track track = TrackdirToTrack(trackdir);
-
-	return HasSignalOnTrack(tile, track) &&
-		UpdateSignalsOnSegment(tile, TrackdirToExitdir(trackdir), GetTileOwner(tile)) == SIGSEG_PBS &&
-		HasSignalOnTrackdir(tile, trackdir) &&
-		/* A PBS block with a non-PBS signal facing us? */
-		!IsPbsSignal(GetSignalType(tile, track));
-}
-
 /** Tries to reserve track under whole train consist. */
 void Train::ReserveTrackUnderConsist() const
 {
@@ -3476,8 +3461,16 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 
 		if (enterdir != INVALID_DIAGDIR) {
 			/* Update signals or crossing state if we changed tile */
-			if (v->IsFrontEngine() && !new_in_wormhole) {
-				if (TrainMovedChangeSignals(gp.new_tile, enterdir)) {
+			if (v->IsFrontEngine() && !new_in_wormhole && IsNormalRailTile(gp.new_tile)) {
+				TrackdirBits tracks = TrackBitsToTrackdirBits(GetTrackBits(gp.new_tile)) & DiagdirReachesTrackdirs(enterdir);
+				Trackdir trackdir = FindFirstTrackdir(tracks);
+				Track track = TrackdirToTrack(trackdir);
+
+				if (HasSignalOnTrack(gp.new_tile, track) &&
+						UpdateSignalsOnSegment(gp.new_tile, TrackdirToExitdir(trackdir), GetTileOwner(gp.new_tile)) == SIGSEG_PBS &&
+						HasSignalOnTrackdir(gp.new_tile, trackdir) &&
+						/* A PBS block with a non-PBS signal facing us? */
+						!IsPbsSignal(GetSignalType(gp.new_tile, track))) {
 					/* We are entering a block with PBS signals right now, but
 					 * not through a PBS signal. This means we don't have a
 					 * reservation right now. As a conventional signal will only
@@ -3498,7 +3491,15 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			/* Signals can only change when the first
 			 * (above) or the last vehicle moves. */
 			if (v->Next() == NULL && !old_in_wormhole) {
-				TrainMovedChangeSignals(gp.old_tile, ReverseDiagDir(enterdir));
+				if (IsNormalRailTile(gp.old_tile)) {
+					TrackdirBits tracks = TrackBitsToTrackdirBits(GetTrackBits(gp.old_tile)) & DiagdirReachesTrackdirs(ReverseDiagDir(enterdir));
+					Trackdir trackdir = FindFirstTrackdir(tracks);
+					Track track = TrackdirToTrack(trackdir);
+
+					if (HasSignalOnTrack(gp.old_tile, track)) {
+						UpdateSignalsOnSegment(gp.old_tile, TrackdirToExitdir(trackdir), GetTileOwner(gp.old_tile));
+					}
+				}
 				if (IsLevelCrossingTile(gp.old_tile)) UpdateLevelCrossing(gp.old_tile);
 			}
 		}
