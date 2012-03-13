@@ -1803,10 +1803,13 @@ void ReverseTrainDirection(Train *v)
 	}
 
 	/* TrackdirToExitdir does not always produce the desired dir for depots
-	 * and tunnels/bridges that is needed for UpdateSignalsOnSegment. */
+	 * and tunnels/bridges that is needed for AddSideToSignalBuffer. */
 	DiagDirection dir = (IsRailDepotTile(v->tile) || IsTunnelTile(v->tile) || IsRailBridgeTile(v->tile)) ? INVALID_DIAGDIR : TrackdirToExitdir(v->trackdir);
 
-	if (UpdateSignalsOnSegment(v->tile, dir, v->owner) == SIGSEG_PBS || _settings_game.pf.reserve_paths) {
+	assert(IsSignalBufferEmpty());
+	AddSideToSignalBuffer(v->tile, dir, v->owner);
+
+	if (UpdateSignalsInBuffer() == SIGSEG_PBS || _settings_game.pf.reserve_paths) {
 		/* If we are currently on a tile with conventional signals, we can't treat the
 		 * current tile as a safe tile or we would enter a PBS block without a reservation. */
 		bool first_tile_okay = !(HasSignalAlongPos(v->GetPos()) &&
@@ -2092,7 +2095,9 @@ static bool CheckTrainStayInDepot(Train *v)
 		if (_settings_game.pf.reserve_paths) {
 			try_reserve = true;
 		} else {
-			SigSegState seg_state = UpdateSignalsOnSegment(v->tile, INVALID_DIAGDIR, v->owner);
+			assert(IsSignalBufferEmpty());
+			AddSideToSignalBuffer(v->tile, INVALID_DIAGDIR, v->owner);
+			SigSegState seg_state = UpdateSignalsInBuffer();
 			if (seg_state == SIGSEG_FULL) {
 				/* Full and no PBS signal in block, can't exit. */
 				SetWindowClassesDirty(WC_TRAINS_LIST);
@@ -2100,9 +2105,12 @@ static bool CheckTrainStayInDepot(Train *v)
 			}
 			try_reserve = seg_state == SIGSEG_PBS;
 		}
+	} else if (_settings_game.pf.reserve_paths) {
+		try_reserve = true;
 	} else {
-		try_reserve = _settings_game.pf.reserve_paths ||
-			UpdateSignalsOnSegment(v->tile, INVALID_DIAGDIR, v->owner) == SIGSEG_PBS;
+		assert(IsSignalBufferEmpty());
+		AddSideToSignalBuffer(v->tile, INVALID_DIAGDIR, v->owner);
+		try_reserve = UpdateSignalsInBuffer() == SIGSEG_PBS;
 	}
 
 	/* We are leaving a depot, but have to go to the exact same one; re-enter */
@@ -2136,7 +2144,11 @@ static bool CheckTrainStayInDepot(Train *v)
 
 	v->UpdateViewport(true, true);
 	VehicleUpdatePosition(v);
-	UpdateSignalsOnSegment(v->tile, INVALID_DIAGDIR, v->owner);
+
+	assert(IsSignalBufferEmpty());
+	AddSideToSignalBuffer(v->tile, INVALID_DIAGDIR, v->owner);
+	UpdateSignalsInBuffer();
+
 	v->UpdateAcceleration();
 	InvalidateWindowData(WC_VEHICLE_DEPOT, v->tile);
 
@@ -3354,10 +3366,13 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 						 * reversing of stuck trains is disabled, don't reverse.
 						 * This does not apply if the reason for reversing is a one-way
 						 * signal blocking us, because a train would then be stuck forever. */
-						if (!_settings_game.pf.reverse_at_signals && !HasOnewaySignalBlockingTrackdir(gp.new_tile, chosen_trackdir) &&
-								UpdateSignalsOnSegment(v->tile, enterdir, v->owner) == SIGSEG_PBS) {
-							v->wait_counter = 0;
-							return false;
+						if (!_settings_game.pf.reverse_at_signals && !HasOnewaySignalBlockingTrackdir(gp.new_tile, chosen_trackdir)) {
+							assert(IsSignalBufferEmpty());
+							AddSideToSignalBuffer(v->tile, enterdir, v->owner);
+							if (UpdateSignalsInBuffer() == SIGSEG_PBS) {
+								v->wait_counter = 0;
+								return false;
+							}
 						}
 						goto reverse_train_direction;
 					} else {
@@ -3464,23 +3479,27 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			if (v->IsFrontEngine() && !new_in_wormhole && IsNormalRailTile(gp.new_tile)) {
 				Track track = TrackdirToTrack(v->trackdir);
 
-				if (HasSignalOnTrack(gp.new_tile, track) &&
-						UpdateSignalsOnSegment(gp.new_tile, TrackdirToExitdir(v->trackdir), GetTileOwner(gp.new_tile)) == SIGSEG_PBS &&
-						HasSignalOnTrackdir(gp.new_tile, v->trackdir) &&
-						/* A PBS block with a non-PBS signal facing us? */
-						!IsPbsSignal(GetSignalType(gp.new_tile, track))) {
-					/* We are entering a block with PBS signals right now, but
-					 * not through a PBS signal. This means we don't have a
-					 * reservation right now. As a conventional signal will only
-					 * ever be green if no other train is in the block, getting
-					 * a path should always be possible. If the player built
-					 * such a strange network that it is not possible, the train
-					 * will be marked as stuck and the player has to deal with
-					 * the problem. */
-					if ((!HasReservedTrack(gp.new_tile, track) &&
-							!TryReserveRailTrack(gp.new_tile, track)) ||
-							!TryPathReserve(v)) {
-						MarkTrainAsStuck(v);
+				if (HasSignalOnTrack(gp.new_tile, track)) {
+					assert(IsSignalBufferEmpty());
+					AddSideToSignalBuffer(gp.new_tile, TrackdirToExitdir(v->trackdir), GetTileOwner(gp.new_tile));
+
+					if (UpdateSignalsInBuffer() == SIGSEG_PBS &&
+							HasSignalOnTrackdir(gp.new_tile, v->trackdir) &&
+							/* A PBS block with a non-PBS signal facing us? */
+							!IsPbsSignal(GetSignalType(gp.new_tile, track))) {
+						/* We are entering a block with PBS signals right now, but
+						 * not through a PBS signal. This means we don't have a
+						 * reservation right now. As a conventional signal will only
+						 * ever be green if no other train is in the block, getting
+						 * a path should always be possible. If the player built
+						 * such a strange network that it is not possible, the train
+						 * will be marked as stuck and the player has to deal with
+						 * the problem. */
+						if ((!HasReservedTrack(gp.new_tile, track) &&
+								!TryReserveRailTrack(gp.new_tile, track)) ||
+								!TryPathReserve(v)) {
+							MarkTrainAsStuck(v);
+						}
 					}
 				}
 			}
@@ -3494,7 +3513,9 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					Track track = TrackdirToTrack(trackdir);
 
 					if (HasSignalOnTrack(gp.old_tile, track)) {
-						UpdateSignalsOnSegment(gp.old_tile, TrackdirToExitdir(trackdir), GetTileOwner(gp.old_tile));
+						assert(IsSignalBufferEmpty());
+						AddSideToSignalBuffer(gp.old_tile, TrackdirToExitdir(trackdir), GetTileOwner(gp.old_tile));
+						UpdateSignalsInBuffer();
 					}
 				}
 				if (IsLevelCrossingTile(gp.old_tile)) UpdateLevelCrossing(gp.old_tile);
@@ -3622,13 +3643,13 @@ static void DeleteLastWagon(Train *v)
 	if (IsLevelCrossingTile(tile)) UpdateLevelCrossing(tile);
 
 	/* Update signals */
+	assert(IsSignalBufferEmpty());
 	if (IsTunnelTile(tile) || IsRailBridgeTile(tile) || IsRailDepotTile(tile)) {
-		UpdateSignalsOnSegment(tile, INVALID_DIAGDIR, owner);
+		AddSideToSignalBuffer(tile, INVALID_DIAGDIR, owner);
 	} else {
-		assert(IsSignalBufferEmpty());
 		AddTrackToSignalBuffer(tile, track, owner);
-		UpdateSignalsInBuffer();
 	}
+	UpdateSignalsInBuffer();
 }
 
 /**
@@ -3904,7 +3925,9 @@ static bool TrainLocoHandler(Train *v, bool mode)
 		DiagDirection dir = TrackdirToExitdir(v->trackdir);
 		if (IsRailDepotTile(v->tile) || IsTunnelTile(v->tile) || IsRailBridgeTile(v->tile)) dir = INVALID_DIAGDIR;
 
-		if (UpdateSignalsOnSegment(v->tile, dir, v->owner) == SIGSEG_PBS || _settings_game.pf.reserve_paths) {
+		assert(IsSignalBufferEmpty());
+		AddSideToSignalBuffer(v->tile, dir, v->owner);
+		if (UpdateSignalsInBuffer() == SIGSEG_PBS || _settings_game.pf.reserve_paths) {
 			TryPathReserve(v, true, true);
 		}
 		ClrBit(v->flags, VRF_LEAVING_STATION);

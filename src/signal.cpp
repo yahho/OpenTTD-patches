@@ -651,23 +651,3 @@ void AddSideToSignalBuffer(TileIndex tile, DiagDirection side, Owner owner)
 
 	UpdateSignalsInBufferAuto();
 }
-
-/**
- * Update signals, starting at one side of a tile
- * Will check tile next to this at opposite side too
- *
- * @see UpdateSignalsInBuffer()
- * @param tile tile where we start
- * @param side side of tile
- * @param owner owner whose signals we will update
- * @return the state of the signal segment
- */
-SigSegState UpdateSignalsOnSegment(TileIndex tile, DiagDirection side, Owner owner)
-{
-	assert(IsSignalBufferEmpty());
-
-	SetBufferOwner(owner);
-	_globset.Add(SignalSideFrom(tile, side));
-
-	return UpdateSignalsInBuffer();
-}
