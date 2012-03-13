@@ -3625,7 +3625,9 @@ static void DeleteLastWagon(Train *v)
 	if (IsTunnelTile(tile) || IsRailBridgeTile(tile) || IsRailDepotTile(tile)) {
 		UpdateSignalsOnSegment(tile, INVALID_DIAGDIR, owner);
 	} else {
-		SetSignalsOnBothDir(tile, track, owner);
+		assert(IsSignalBufferEmpty());
+		AddTrackToSignalBuffer(tile, track, owner);
+		UpdateSignalsInBuffer();
 	}
 }
 

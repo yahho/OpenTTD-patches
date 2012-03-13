@@ -671,21 +671,3 @@ SigSegState UpdateSignalsOnSegment(TileIndex tile, DiagDirection side, Owner own
 
 	return UpdateSignalsInBuffer();
 }
-
-
-/**
- * Update signals at segments that are at both ends of
- * given (existent or non-existent) track
- *
- * @see UpdateSignalsInBuffer()
- * @param tile tile where we start
- * @param track track at which ends we will update signals
- * @param owner owner whose signals we will update
- */
-void SetSignalsOnBothDir(TileIndex tile, Track track, Owner owner)
-{
-	assert(IsSignalBufferEmpty());
-
-	AddTrackToSignalBuffer(tile, track, owner);
-	UpdateSignalsInBuffer();
-}
