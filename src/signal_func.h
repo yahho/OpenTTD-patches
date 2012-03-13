@@ -25,6 +25,8 @@ enum SigSegState {
 	SIGSEG_PBS,     ///< Segment is a PBS segment
 };
 
+bool IsSignalBufferEmpty();
+
 SigSegState UpdateSignalsOnSegment(TileIndex tile, DiagDirection side, Owner owner);
 void SetSignalsOnBothDir(TileIndex tile, Track track, Owner owner);
 void AddTrackToSignalBuffer(TileIndex tile, Track track, Owner owner);

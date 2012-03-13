@@ -588,6 +588,15 @@ SigSegState UpdateSignalsInBuffer()
 
 
 /**
+ * Check if signal buffer is empty
+ * @returns whether the signal buffer is empty
+ */
+bool IsSignalBufferEmpty()
+{
+	return _globset.IsEmpty();
+}
+
+/**
  * Set signal buffer owner
  */
 static inline void SetBufferOwner(Owner owner)
@@ -655,7 +664,7 @@ void AddSideToSignalBuffer(TileIndex tile, DiagDirection side, Owner owner)
  */
 SigSegState UpdateSignalsOnSegment(TileIndex tile, DiagDirection side, Owner owner)
 {
-	assert(_globset.IsEmpty());
+	assert(IsSignalBufferEmpty());
 
 	SetBufferOwner(owner);
 	_globset.Add(SignalSideFrom(tile, side));
@@ -675,7 +684,7 @@ SigSegState UpdateSignalsOnSegment(TileIndex tile, DiagDirection side, Owner own
  */
 void SetSignalsOnBothDir(TileIndex tile, Track track, Owner owner)
 {
-	assert(_globset.IsEmpty());
+	assert(IsSignalBufferEmpty());
 
 	AddTrackToSignalBuffer(tile, track, owner);
 	UpdateSignalsInBuffer();
