@@ -3462,13 +3462,11 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 		if (enterdir != INVALID_DIAGDIR) {
 			/* Update signals or crossing state if we changed tile */
 			if (v->IsFrontEngine() && !new_in_wormhole && IsNormalRailTile(gp.new_tile)) {
-				TrackdirBits tracks = TrackBitsToTrackdirBits(GetTrackBits(gp.new_tile)) & DiagdirReachesTrackdirs(enterdir);
-				Trackdir trackdir = FindFirstTrackdir(tracks);
-				Track track = TrackdirToTrack(trackdir);
+				Track track = TrackdirToTrack(v->trackdir);
 
 				if (HasSignalOnTrack(gp.new_tile, track) &&
-						UpdateSignalsOnSegment(gp.new_tile, TrackdirToExitdir(trackdir), GetTileOwner(gp.new_tile)) == SIGSEG_PBS &&
-						HasSignalOnTrackdir(gp.new_tile, trackdir) &&
+						UpdateSignalsOnSegment(gp.new_tile, TrackdirToExitdir(v->trackdir), GetTileOwner(gp.new_tile)) == SIGSEG_PBS &&
+						HasSignalOnTrackdir(gp.new_tile, v->trackdir) &&
 						/* A PBS block with a non-PBS signal facing us? */
 						!IsPbsSignal(GetSignalType(gp.new_tile, track))) {
 					/* We are entering a block with PBS signals right now, but
@@ -3479,7 +3477,6 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					 * such a strange network that it is not possible, the train
 					 * will be marked as stuck and the player has to deal with
 					 * the problem. */
-					Track track = TrackdirToTrack(v->trackdir);
 					if ((!HasReservedTrack(gp.new_tile, track) &&
 							!TryReserveRailTrack(gp.new_tile, track)) ||
 							!TryPathReserve(v)) {
