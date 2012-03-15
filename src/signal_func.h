@@ -16,6 +16,7 @@
 #include "tile_type.h"
 #include "direction_type.h"
 #include "company_type.h"
+#include "pathfinder/pathfinder_type.h"
 
 /** State of the signal segment */
 enum SigSegState {
@@ -29,6 +30,7 @@ bool IsSignalBufferEmpty();
 
 void AddTrackToSignalBuffer(TileIndex tile, Track track, Owner owner);
 void AddSideToSignalBuffer(TileIndex tile, DiagDirection side, Owner owner);
+void AddPosToSignalBuffer(const PFPos &pos, Owner owner);
 SigSegState UpdateSignalsInBuffer();
 
 #endif /* SIGNAL_FUNC_H */

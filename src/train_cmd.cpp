@@ -1802,12 +1802,8 @@ void ReverseTrainDirection(Train *v)
 		return;
 	}
 
-	/* TrackdirToExitdir does not always produce the desired dir for depots
-	 * and tunnels/bridges that is needed for AddSideToSignalBuffer. */
-	DiagDirection dir = (IsRailDepotTile(v->tile) || IsTunnelTile(v->tile) || IsRailBridgeTile(v->tile)) ? INVALID_DIAGDIR : TrackdirToExitdir(v->trackdir);
-
 	assert(IsSignalBufferEmpty());
-	AddSideToSignalBuffer(v->tile, dir, v->owner);
+	AddPosToSignalBuffer(v->GetPos(), v->owner);
 
 	if (UpdateSignalsInBuffer() == SIGSEG_PBS || _settings_game.pf.reserve_paths) {
 		/* If we are currently on a tile with conventional signals, we can't treat the
@@ -3368,7 +3364,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 						 * signal blocking us, because a train would then be stuck forever. */
 						if (!_settings_game.pf.reverse_at_signals && !HasOnewaySignalBlockingTrackdir(gp.new_tile, chosen_trackdir)) {
 							assert(IsSignalBufferEmpty());
-							AddSideToSignalBuffer(v->tile, enterdir, v->owner);
+							AddPosToSignalBuffer(v->GetPos(), v->owner);
 							if (UpdateSignalsInBuffer() == SIGSEG_PBS) {
 								v->wait_counter = 0;
 								return false;
@@ -3415,7 +3411,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					PFPos rev = v->GetReversePos();
 					if (HasSignalOnPos(rev)) {
 						assert(IsSignalBufferEmpty());
-						AddSideToSignalBuffer(gp.old_tile, TrackdirToExitdir(ReverseTrackdir(v->trackdir)), GetTileOwner(gp.old_tile));
+						AddPosToSignalBuffer(rev, v->owner);
 						/* Defer actual updating of signals until the train has moved */
 					}
 				}
@@ -3496,7 +3492,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				PFPos pos = v->GetPos();
 				if (HasSignalOnPos(pos)) {
 					assert(IsSignalBufferEmpty());
-					AddSideToSignalBuffer(pos.tile, TrackdirToExitdir(pos.td), GetTileOwner(pos.tile));
+					AddPosToSignalBuffer(pos, v->owner);
 
 					if (UpdateSignalsInBuffer() == SIGSEG_PBS &&
 							HasSignalAlongPos(pos) &&
@@ -3920,11 +3916,8 @@ static bool TrainLocoHandler(Train *v, bool mode)
 		/* Try to reserve a path when leaving the station as we
 		 * might not be marked as wanting a reservation, e.g.
 		 * when an overlength train gets turned around in a station. */
-		DiagDirection dir = TrackdirToExitdir(v->trackdir);
-		if (IsRailDepotTile(v->tile) || IsTunnelTile(v->tile) || IsRailBridgeTile(v->tile)) dir = INVALID_DIAGDIR;
-
 		assert(IsSignalBufferEmpty());
-		AddSideToSignalBuffer(v->tile, dir, v->owner);
+		AddPosToSignalBuffer(v->GetPos(), v->owner);
 		if (UpdateSignalsInBuffer() == SIGSEG_PBS || _settings_game.pf.reserve_paths) {
 			TryPathReserve(v, true, true);
 		}

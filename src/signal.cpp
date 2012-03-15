@@ -651,3 +651,25 @@ void AddSideToSignalBuffer(TileIndex tile, DiagDirection side, Owner owner)
 
 	UpdateSignalsInBufferAuto();
 }
+
+
+/**
+ * Add a pathfinder position to signal update buffer
+ *
+ * @param pos position to add
+ * @param owner owner whose signals we will update
+ */
+void AddPosToSignalBuffer(const PFPos &pos, Owner owner)
+{
+	SetBufferOwner(owner);
+
+	DiagDirection side;
+	if (IsRailDepotTile(pos.tile) || IsTunnelTile(pos.tile) || IsRailBridgeTile(pos.tile)) {
+		side = INVALID_DIAGDIR;
+	} else {
+		side = TrackdirToExitdir(pos.td);
+	}
+	_globset.Add(SignalSideFrom(pos.tile, side));
+
+	UpdateSignalsInBufferAuto();
+}
