@@ -3408,8 +3408,16 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					MarkTileDirtyByTile(gp.new_tile);
 				}
 
-				/* Clear any track reservation when the last vehicle leaves the tile */
-				if (v->Next() == NULL && v->trackdir != TRACKDIR_WORMHOLE) ClearPathReservation(v, v->GetPos());
+				if (v->Next() == NULL) {
+					/* Clear any track reservation when the last vehicle leaves the tile */
+					if (v->trackdir != TRACKDIR_WORMHOLE) ClearPathReservation(v, v->GetPos());
+
+					if (!old_in_wormhole && IsNormalRailTile(gp.old_tile) && HasSignalOnTrack(gp.old_tile, TrackdirToTrack(v->trackdir))) {
+						assert(IsSignalBufferEmpty());
+						AddSideToSignalBuffer(gp.old_tile, TrackdirToExitdir(ReverseTrackdir(v->trackdir)), GetTileOwner(gp.old_tile));
+						/* Defer actual updating of signals until the train has moved */
+					}
+				}
 			}
 
 			if (new_in_wormhole) {
@@ -3476,6 +3484,13 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 
 		if (enterdir != INVALID_DIAGDIR) {
 			/* Update signals or crossing state if we changed tile */
+			/* Signals can only change when the first or the last vehicle moves. */
+			if (v->Next() == NULL && !old_in_wormhole) {
+				/* Update the signal segment added before, if any */
+				UpdateSignalsInBuffer();
+				if (IsLevelCrossingTile(gp.old_tile)) UpdateLevelCrossing(gp.old_tile);
+			}
+
 			if (v->IsFrontEngine() && !new_in_wormhole && IsNormalRailTile(gp.new_tile)) {
 				Track track = TrackdirToTrack(v->trackdir);
 
@@ -3502,23 +3517,6 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 						}
 					}
 				}
-			}
-
-			/* Signals can only change when the first
-			 * (above) or the last vehicle moves. */
-			if (v->Next() == NULL && !old_in_wormhole) {
-				if (IsNormalRailTile(gp.old_tile)) {
-					TrackdirBits tracks = TrackBitsToTrackdirBits(GetTrackBits(gp.old_tile)) & DiagdirReachesTrackdirs(ReverseDiagDir(enterdir));
-					Trackdir trackdir = FindFirstTrackdir(tracks);
-					Track track = TrackdirToTrack(trackdir);
-
-					if (HasSignalOnTrack(gp.old_tile, track)) {
-						assert(IsSignalBufferEmpty());
-						AddSideToSignalBuffer(gp.old_tile, TrackdirToExitdir(trackdir), GetTileOwner(gp.old_tile));
-						UpdateSignalsInBuffer();
-					}
-				}
-				if (IsLevelCrossingTile(gp.old_tile)) UpdateLevelCrossing(gp.old_tile);
 			}
 		}
 
