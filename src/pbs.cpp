@@ -444,8 +444,7 @@ PBSPositionState CheckWaitingPosition(const Train *v, const PFPos &pos, bool for
 	} else if (!IsStationTile(pos.tile)) {
 		/* With PBS_CHECK_FREE, all these should be true. */
 		assert(ft.m_new.IsTrackdirSet());
-		assert(IsNormalRailTile(ft.m_new.tile));
-		assert(HasSignalOnTrack(ft.m_new.tile, TrackdirToTrack(ft.m_new.td)));
+		assert(HasSignalOnPos(ft.m_new));
 		assert(IsPbsSignal(GetSignalType(ft.m_new)));
 	}
 

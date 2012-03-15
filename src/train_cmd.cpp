@@ -3412,7 +3412,8 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					/* Clear any track reservation when the last vehicle leaves the tile */
 					if (v->trackdir != TRACKDIR_WORMHOLE) ClearPathReservation(v, v->GetPos());
 
-					if (!old_in_wormhole && IsNormalRailTile(gp.old_tile) && HasSignalOnTrack(gp.old_tile, TrackdirToTrack(v->trackdir))) {
+					PFPos rev = v->GetReversePos();
+					if (HasSignalOnPos(rev)) {
 						assert(IsSignalBufferEmpty());
 						AddSideToSignalBuffer(gp.old_tile, TrackdirToExitdir(ReverseTrackdir(v->trackdir)), GetTileOwner(gp.old_tile));
 						/* Defer actual updating of signals until the train has moved */
@@ -3491,17 +3492,16 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				if (IsLevelCrossingTile(gp.old_tile)) UpdateLevelCrossing(gp.old_tile);
 			}
 
-			if (v->IsFrontEngine() && !new_in_wormhole && IsNormalRailTile(gp.new_tile)) {
-				Track track = TrackdirToTrack(v->trackdir);
-
-				if (HasSignalOnTrack(gp.new_tile, track)) {
+			if (v->IsFrontEngine()) {
+				PFPos pos = v->GetPos();
+				if (HasSignalOnPos(pos)) {
 					assert(IsSignalBufferEmpty());
-					AddSideToSignalBuffer(gp.new_tile, TrackdirToExitdir(v->trackdir), GetTileOwner(gp.new_tile));
+					AddSideToSignalBuffer(pos.tile, TrackdirToExitdir(pos.td), GetTileOwner(pos.tile));
 
 					if (UpdateSignalsInBuffer() == SIGSEG_PBS &&
-							HasSignalOnTrackdir(gp.new_tile, v->trackdir) &&
+							HasSignalAlongPos(pos) &&
 							/* A PBS block with a non-PBS signal facing us? */
-							!IsPbsSignal(GetSignalType(gp.new_tile, track))) {
+							!IsPbsSignal(GetSignalType(pos))) {
 						/* We are entering a block with PBS signals right now, but
 						 * not through a PBS signal. This means we don't have a
 						 * reservation right now. As a conventional signal will only
@@ -3510,8 +3510,8 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 						 * such a strange network that it is not possible, the train
 						 * will be marked as stuck and the player has to deal with
 						 * the problem. */
-						if ((!HasReservedTrack(gp.new_tile, track) &&
-								!TryReserveRailTrack(gp.new_tile, track)) ||
+						if ((!HasReservedPos(pos) &&
+								!TryReserveRailTrack(pos)) ||
 								!TryPathReserve(v)) {
 							MarkTrainAsStuck(v);
 						}
