@@ -14,6 +14,7 @@
 
 #include "gfx_type.h"
 #include "tile_cmd.h"
+#include "viewport_func.h"
 
 /**
  * This enum is related to the definition of bridge pieces,
@@ -93,5 +94,16 @@ int CalcBridgeLenCostFactor(int x);
 void ResetBridges();
 
 CommandCost CheckBridgeSlope(DiagDirection dir, Slope *tileh, int *z);
+
+static inline void MarkBridgeTilesDirty(TileIndex start, TileIndex end, DiagDirection dir)
+{
+	assert(DiagdirBetweenTiles(start, end) == dir);
+
+	TileIndexDiff delta = TileOffsByDiagDir(dir);
+	for (TileIndex tile = start; tile != end; tile += delta) {
+		MarkTileDirtyByTile(tile);
+	}
+	MarkTileDirtyByTile(end);
+}
 
 #endif /* BRIDGE_H */

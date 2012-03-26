@@ -1616,13 +1616,11 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 				YapfNotifyTrackLayoutChange(tile, track);
 				YapfNotifyTrackLayoutChange(endtile, track);
 
-				MarkTileDirtyByTile(tile);
-				MarkTileDirtyByTile(endtile);
-
 				if (IsBridge(tile)) {
-					TileIndexDiff delta = TileOffsByDiagDir(GetTunnelBridgeDirection(tile));
-					TileIndex t = tile + delta;
-					for (; t != endtile; t += delta) MarkTileDirtyByTile(t); // TODO encapsulate this into a function
+					MarkBridgeTilesDirty(tile, endtile, GetTunnelBridgeDirection(tile));
+				} else {
+					MarkTileDirtyByTile(tile);
+					MarkTileDirtyByTile(endtile);
 				}
 
 				if (affected != NULL) TryPathReserve(affected, true);

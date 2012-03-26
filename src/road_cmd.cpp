@@ -233,12 +233,11 @@ static CommandCost RemoveRoad(TileIndex tile, DoCommandFlag flags, RoadBits piec
 				}
 
 				/* Mark tiles dirty that have been repaved */
-				MarkTileDirtyByTile(tile);
-				MarkTileDirtyByTile(other_end);
 				if (IsBridge(tile)) {
-					TileIndexDiff delta = TileOffsByDiagDir(GetTunnelBridgeDirection(tile));
-
-					for (TileIndex t = tile + delta; t != other_end; t += delta) MarkTileDirtyByTile(t);
+					MarkBridgeTilesDirty(tile, other_end, GetTunnelBridgeDirection(tile));
+				} else {
+					MarkTileDirtyByTile(tile);
+					MarkTileDirtyByTile(other_end);
 				}
 			}
 		} else {
@@ -734,12 +733,11 @@ do_clear:;
 				SetRoadOwner(tile, rt, company);
 
 				/* Mark tiles dirty that have been repaved */
-				MarkTileDirtyByTile(other_end);
-				MarkTileDirtyByTile(tile);
 				if (IsBridge(tile)) {
-					TileIndexDiff delta = TileOffsByDiagDir(GetTunnelBridgeDirection(tile));
-
-					for (TileIndex t = tile + delta; t != other_end; t += delta) MarkTileDirtyByTile(t);
+					MarkBridgeTilesDirty(tile, other_end, GetTunnelBridgeDirection(tile));
+				} else {
+					MarkTileDirtyByTile(other_end);
+					MarkTileDirtyByTile(tile);
 				}
 				break;
 			}
