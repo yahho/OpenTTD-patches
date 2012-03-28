@@ -166,6 +166,27 @@ CommandCost CheckBridgeSlope(DiagDirection dir, Slope *tileh, int *z)
 }
 
 /**
+ * Set bridge axis on a new bridge middle tiles, and mark them dirty
+ *
+ * @param tile1 Bridge start tile
+ * @param tile2 Bridge end tile
+ * @param direction Bridge axis
+ */
+void SetBridgeMiddleTiles(TileIndex tile1, TileIndex tile2, Axis direction)
+{
+	assert(tile1 < tile2);
+
+	MarkTileDirtyByTile(tile1);
+	MarkTileDirtyByTile(tile2);
+
+	TileIndexDiff delta = TileOffsByDiagDir(AxisToDiagDir(direction));
+	for (TileIndex tile = tile1 + delta; tile < tile2; tile += delta) {
+		SetBridgeMiddle(tile, direction);
+		MarkTileDirtyByTile(tile);
+	}
+}
+
+/**
  * Clear middle bridge tiles
  *
  * @param tile1 Bridge start tile

@@ -366,15 +366,7 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 					NOT_REACHED();
 			}
 
-			MarkTileDirtyByTile(tile_start);
-			MarkTileDirtyByTile(tile_end);
-
-			/* Mark all tiles dirty */
-			for (TileIndex tile = tile_start + delta; tile < tile_end; tile += delta) {
-				SetBridgeMiddle(tile, direction);
-				MarkTileDirtyByTile(tile);
-			}
-
+			SetBridgeMiddleTiles(tile_start, tile_end, direction);
 			DirtyCompanyInfrastructureWindows(company);
 		}
 	}
