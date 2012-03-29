@@ -1812,64 +1812,8 @@ static CommandCost ClearTile_Track(TileIndex tile, DoCommandFlag flags)
 	}
 }
 
-/**
- * Get surface height in point (x,y)
- * On tiles with halftile foundations move (x,y) to a safe point wrt. track
- */
-static uint GetSaveSlopeZ(uint x, uint y, Track track)
-{
-	switch (track) {
-		case TRACK_UPPER: x &= ~0xF; y &= ~0xF; break;
-		case TRACK_LOWER: x |=  0xF; y |=  0xF; break;
-		case TRACK_LEFT:  x |=  0xF; y &= ~0xF; break;
-		case TRACK_RIGHT: x &= ~0xF; y |=  0xF; break;
-		default: break;
-	}
-	return GetSlopePixelZ(x, y);
-}
-
-static void DrawSingleSignal(TileIndex tile, const RailtypeInfo *rti, Track track, SignalState condition, SignalOffsets image, uint pos)
-{
-	bool side;
-	switch (_settings_game.construction.train_signal_side) {
-		case 0:  side = false;                                 break; // left
-		case 2:  side = true;                                  break; // right
-		default: side = _settings_game.vehicle.road_side != 0; break; // driving side
-	}
-	static const Point SignalPositions[2][12] = {
-		{ // Signals on the left side
-		/*  LEFT      LEFT      RIGHT     RIGHT     UPPER     UPPER */
-			{ 8,  5}, {14,  1}, { 1, 14}, { 9, 11}, { 1,  0}, { 3, 10},
-		/*  LOWER     LOWER     X         X         Y         Y     */
-			{11,  4}, {14, 14}, {11,  3}, { 4, 13}, { 3,  4}, {11, 13}
-		}, { // Signals on the right side
-		/*  LEFT      LEFT      RIGHT     RIGHT     UPPER     UPPER */
-			{14,  1}, {12, 10}, { 4,  6}, { 1, 14}, {10,  4}, { 0,  1},
-		/*  LOWER     LOWER     X         X         Y         Y     */
-			{14, 14}, { 5, 12}, {11, 13}, { 4,  3}, {13,  4}, { 3, 11}
-		}
-	};
-
-	uint x = TileX(tile) * TILE_SIZE + SignalPositions[side][pos].x;
-	uint y = TileY(tile) * TILE_SIZE + SignalPositions[side][pos].y;
-
-	SignalType type       = GetSignalType(tile, track);
-	SignalVariant variant = GetSignalVariant(tile, track);
-
-	SpriteID sprite = GetCustomSignalSprite(rti, tile, type, variant, condition);
-	if (sprite != 0) {
-		sprite += image;
-	} else {
-		/* Normal electric signals are stored in a different sprite block than all other signals. */
-		sprite = (type == SIGTYPE_NORMAL && variant == SIG_ELECTRIC) ? SPR_ORIGINAL_SIGNALS_BASE : SPR_SIGNALS_BASE - 16;
-		sprite += type * 16 + variant * 64 + image * 2 + condition + (type > SIGTYPE_LAST_NOPBS ? 64 : 0);
-	}
-
-	AddSortableSpriteToDraw(sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSaveSlopeZ(x, y, track));
-}
 
 static uint32 _drawtile_track_palette;
-
 
 static void DrawTrackFence_NW(const TileInfo *ti, SpriteID base_image)
 {
@@ -2304,6 +2248,62 @@ static void DrawTrackBits(TileInfo *ti, TrackBits track)
 			DrawGroundSprite(_corner_to_track_sprite[halftile_corner] + rti->base_sprites.single_n, PALETTE_CRASH, NULL, 0, -(int)TILE_HEIGHT);
 		}
 	}
+}
+
+/**
+ * Get surface height in point (x,y)
+ * On tiles with halftile foundations move (x,y) to a safe point wrt. track
+ */
+static uint GetSafeSlopePixelZ(uint x, uint y, Track track)
+{
+	switch (track) {
+		case TRACK_UPPER: x &= ~0xF; y &= ~0xF; break;
+		case TRACK_LOWER: x |=  0xF; y |=  0xF; break;
+		case TRACK_LEFT:  x |=  0xF; y &= ~0xF; break;
+		case TRACK_RIGHT: x &= ~0xF; y |=  0xF; break;
+		default: break;
+	}
+	return GetSlopePixelZ(x, y);
+}
+
+static void DrawSingleSignal(TileIndex tile, const RailtypeInfo *rti, Track track, SignalState condition, SignalOffsets image, uint pos)
+{
+	bool side;
+	switch (_settings_game.construction.train_signal_side) {
+		case 0:  side = false;                                 break; // left
+		case 2:  side = true;                                  break; // right
+		default: side = _settings_game.vehicle.road_side != 0; break; // driving side
+	}
+	static const Point SignalPositions[2][12] = {
+		{ // Signals on the left side
+		/*  LEFT      LEFT      RIGHT     RIGHT     UPPER     UPPER */
+			{ 8,  5}, {14,  1}, { 1, 14}, { 9, 11}, { 1,  0}, { 3, 10},
+		/*  LOWER     LOWER     X         X         Y         Y     */
+			{11,  4}, {14, 14}, {11,  3}, { 4, 13}, { 3,  4}, {11, 13}
+		}, { // Signals on the right side
+		/*  LEFT      LEFT      RIGHT     RIGHT     UPPER     UPPER */
+			{14,  1}, {12, 10}, { 4,  6}, { 1, 14}, {10,  4}, { 0,  1},
+		/*  LOWER     LOWER     X         X         Y         Y     */
+			{14, 14}, { 5, 12}, {11, 13}, { 4,  3}, {13,  4}, { 3, 11}
+		}
+	};
+
+	uint x = TileX(tile) * TILE_SIZE + SignalPositions[side][pos].x;
+	uint y = TileY(tile) * TILE_SIZE + SignalPositions[side][pos].y;
+
+	SignalType type       = GetSignalType(tile, track);
+	SignalVariant variant = GetSignalVariant(tile, track);
+
+	SpriteID sprite = GetCustomSignalSprite(rti, tile, type, variant, condition);
+	if (sprite != 0) {
+		sprite += image;
+	} else {
+		/* Normal electric signals are stored in a different sprite block than all other signals. */
+		sprite = (type == SIGTYPE_NORMAL && variant == SIG_ELECTRIC) ? SPR_ORIGINAL_SIGNALS_BASE : SPR_SIGNALS_BASE - 16;
+		sprite += type * 16 + variant * 64 + image * 2 + condition + (type > SIGTYPE_LAST_NOPBS ? 64 : 0);
+	}
+
+	AddSortableSpriteToDraw(sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ(x, y, track));
 }
 
 static void DrawSignals(TileIndex tile, TrackBits rails, const RailtypeInfo *rti)
