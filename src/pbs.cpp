@@ -75,12 +75,14 @@ void SetRailStationPlatformReservation(TileIndex start, DiagDirection dir, bool 
 
 /**
  * Set the reservation for a complete station platform.
- * @pre IsRailStationTile(pos.tile)
+ * @pre !pos.InWormhole() && IsRailStationTile(pos.tile)
  * @param pos starting tile and direction of the platform
  * @param b the state the reservation should be set to
  */
 void SetRailStationPlatformReservation(const PFPos &pos, bool b)
 {
+	assert(!pos.InWormhole());
+
 	SetRailStationPlatformReservation(pos.tile, TrackdirToExitdir(pos.td), b);
 }
 
@@ -397,6 +399,8 @@ Train *GetTrainForReservation(TileIndex tile, Track track)
  */
 PBSPositionState CheckWaitingPosition(const Train *v, const PFPos &pos, bool forbid_90deg, PBSCheckingBehaviour cb)
 {
+	if (pos.InWormhole()) return PBS_UNSAFE;
+
 	/* Depots are always safe, and free iff unreserved. */
 	if (IsRailDepotTile(pos.tile)) return HasDepotReservation(pos.tile) ? PBS_BUSY : PBS_FREE;
 

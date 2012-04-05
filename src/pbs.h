@@ -19,6 +19,7 @@
 #include "vehicle_type.h"
 #include "pathfinder/pathfinder_type.h"
 #include "signal_map.h"
+#include "tunnelbridge_map.h"
 
 TrackBits GetReservedTrackbits(TileIndex t);
 
@@ -30,12 +31,32 @@ void UnreserveRailTrack(TileIndex tile, Track t);
 
 static inline bool TryReserveRailTrack(const PFPos &pos)
 {
-	return TryReserveRailTrack(pos.tile, TrackdirToTrack(pos.td));
+	if (!pos.InWormhole()) {
+		return TryReserveRailTrack(pos.tile, TrackdirToTrack(pos.td));
+	} else if (IsRailwayTile(pos.wormhole)) {
+		if (HasBridgeReservation(pos.wormhole)) return false;
+		SetBridgeReservation(pos.wormhole, true);
+		SetBridgeReservation(GetOtherBridgeEnd(pos.wormhole), true);
+		return true;
+	} else {
+		if (HasTunnelMiddleReservation(pos.wormhole)) return false;
+		SetTunnelReservation(pos.wormhole, true);
+		SetTunnelReservation(GetOtherTunnelEnd(pos.wormhole), true);
+		return true;
+	}
 }
 
 static inline void UnreserveRailTrack(const PFPos &pos)
 {
-	UnreserveRailTrack(pos.tile, TrackdirToTrack(pos.td));
+	if (!pos.InWormhole()) {
+		UnreserveRailTrack(pos.tile, TrackdirToTrack(pos.td));
+	} else if (IsRailwayTile(pos.wormhole)) {
+		SetBridgeReservation(pos.wormhole, false);
+		SetBridgeReservation(GetOtherBridgeEnd(pos.wormhole), false);
+	} else {
+		SetTunnelReservation(pos.wormhole, false);
+		SetTunnelReservation(GetOtherTunnelEnd(pos.wormhole), false);
+	}
 }
 
 /** This struct contains information about the end of a reserved path. */
@@ -132,7 +153,8 @@ static inline bool HasReservedTrack(TileIndex tile, Track track)
  */
 static inline bool HasReservedPos(const PFPos &pos)
 {
-	return HasReservedTrack(pos.tile, TrackdirToTrack(pos.td));
+	return !pos.InWormhole() ? HasReservedTrack(pos.tile, TrackdirToTrack(pos.td)) :
+		IsRailwayTile(pos.wormhole) ? HasBridgeReservation(pos.wormhole) : HasTunnelMiddleReservation(pos.wormhole);
 }
 
 #endif /* PBS_H */
