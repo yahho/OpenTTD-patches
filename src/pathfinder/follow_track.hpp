@@ -27,7 +27,7 @@
  *  controllers). See 6 different typedefs below for 3 different transport
  *  types w/ or w/o 90-deg turns allowed
  */
-template <TransportType Ttr_type_, typename VehicleType>
+template <TransportType Ttr_type_, typename VehicleType, bool Twormhole = false>
 struct CFollowTrack
 {
 	enum TileFlag {
@@ -87,6 +87,7 @@ struct CFollowTrack
 	inline static bool IsRailTT() { return TT() == TRANSPORT_RAIL; }
 	inline bool IsTram() { return IsRoadTT() && HasBit(RoadVehicle::From(m_veh)->compatible_roadtypes, ROADTYPE_TRAM); }
 	inline static bool IsRoadTT() { return TT() == TRANSPORT_ROAD; }
+	inline static bool StepWormhole() {return Twormhole;}
 
 protected:
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
@@ -131,6 +132,13 @@ public:
 			if (ForcedReverse()) return true;
 			if (!CanExitOldTile()) return false;
 			FollowTileExit();
+		}
+
+		if (m_new.InWormhole()) {
+			assert(StepWormhole());
+			m_new.td = DiagDirToDiagTrackdir(m_exitdir);
+			m_new.trackdirs = TrackdirToTrackdirBits(m_new.td);
+			return true;
 		}
 
 		if (!QueryNewTileTrackStatus() || !CanEnterNewTile() ||
@@ -190,6 +198,18 @@ public:
 			}
 		}
 
+		if (m_new.InWormhole()) {
+			assert(m_new.IsTrackdirSet());
+			if (HasReservedPos(m_new)) {
+				m_new.td = INVALID_TRACKDIR;
+				m_new.trackdirs = TRACKDIR_BIT_NONE;
+				m_err = EC_RESERVED;
+				return false;
+			} else {
+				return true;
+			}
+		}
+
 		TrackBits reserved = GetReservedTrackbits(m_new.tile);
 		/* Mask already reserved trackdirs. */
 		m_new.trackdirs &= ~TrackBitsToTrackdirBits(reserved);
@@ -220,7 +240,13 @@ protected:
 				m_flag = TF_BRIDGE;
 				m_new.tile = GetOtherBridgeEnd(m_old.tile);
 				m_tiles_skipped = GetTunnelBridgeLength(m_new.tile, m_old.tile);
-				m_new.wormhole = INVALID_TILE;
+				if (StepWormhole() && m_tiles_skipped > 0) {
+					m_tiles_skipped--;
+					m_new.wormhole = m_new.tile;
+					m_new.tile = TILE_ADD(m_new.tile, TileOffsByDiagDir(ReverseDiagDir(m_exitdir)));
+				} else {
+					m_new.wormhole = INVALID_TILE;
+				}
 				return;
 			}
 		/* extra handling for tunnels in our direction */
@@ -231,7 +257,13 @@ protected:
 				m_flag = TF_TUNNEL;
 				m_new.tile = GetOtherTunnelEnd(m_old.tile);
 				m_tiles_skipped = GetTunnelBridgeLength(m_new.tile, m_old.tile);
-				m_new.wormhole = INVALID_TILE;
+				if (StepWormhole() && m_tiles_skipped > 0) {
+					m_tiles_skipped--;
+					m_new.wormhole = m_new.tile;
+					m_new.tile = TILE_ADD(m_new.tile, TileOffsByDiagDir(ReverseDiagDir(m_exitdir)));
+				} else {
+					m_new.wormhole = INVALID_TILE;
+				}
 				return;
 			}
 			assert(ReverseDiagDir(enterdir) == m_exitdir);
@@ -537,11 +569,11 @@ public:
 	}
 };
 
-template <TransportType Ttr_type_, typename VehicleType, bool T90deg_turns_allowed, bool Tmask_reserved_tracks = false>
-struct CFollowTrackT : CFollowTrack<Ttr_type_, VehicleType>
+template <TransportType Ttr_type_, typename VehicleType, bool T90deg_turns_allowed, bool Twormhole = false, bool Tmask_reserved_tracks = false>
+struct CFollowTrackT : CFollowTrack<Ttr_type_, VehicleType, Twormhole>
 {
 	inline CFollowTrackT(const VehicleType *v = NULL, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
-		: CFollowTrack<Ttr_type_, VehicleType>(v, T90deg_turns_allowed, Tmask_reserved_tracks, railtype_override, pPerf)
+		: CFollowTrack<Ttr_type_, VehicleType, Twormhole>(v, T90deg_turns_allowed, Tmask_reserved_tracks, railtype_override, pPerf)
 	{
 	}
 
@@ -554,20 +586,20 @@ typedef CFollowTrackT<TRANSPORT_WATER, Ship, false> CFollowTrackWaterNo90;
 
 typedef CFollowTrackT<TRANSPORT_ROAD, RoadVehicle, true > CFollowTrackRoad;
 
-typedef CFollowTrackT<TRANSPORT_RAIL, Train, true > CFollowTrackRail90;
-typedef CFollowTrackT<TRANSPORT_RAIL, Train, false> CFollowTrackRailNo90;
-typedef CFollowTrackT<TRANSPORT_RAIL, Train, true,  true > CFollowTrackFreeRail90;
-typedef CFollowTrackT<TRANSPORT_RAIL, Train, false, true > CFollowTrackFreeRailNo90;
+typedef CFollowTrackT<TRANSPORT_RAIL, Train, true,  false> CFollowTrackRail90;
+typedef CFollowTrackT<TRANSPORT_RAIL, Train, false, false> CFollowTrackRailNo90;
+typedef CFollowTrackT<TRANSPORT_RAIL, Train, true,  false, true > CFollowTrackFreeRail90;
+typedef CFollowTrackT<TRANSPORT_RAIL, Train, false, false, true > CFollowTrackFreeRailNo90;
 
-struct CFollowTrackRail : CFollowTrack<TRANSPORT_RAIL, Train>
+struct CFollowTrackRail : CFollowTrack<TRANSPORT_RAIL, Train, false>
 {
 	inline CFollowTrackRail(const Train *v = NULL, bool allow_90deg = true, bool railtype_override = false)
-		: CFollowTrack<TRANSPORT_RAIL, Train>(v, allow_90deg, false, railtype_override ? GetRailTypeInfo(v->railtype)->compatible_railtypes : INVALID_RAILTYPES)
+		: CFollowTrack<TRANSPORT_RAIL, Train, false>(v, allow_90deg, false, railtype_override ? GetRailTypeInfo(v->railtype)->compatible_railtypes : INVALID_RAILTYPES)
 	{
 	}
 
 	inline CFollowTrackRail(Owner o, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES)
-		: CFollowTrack<TRANSPORT_RAIL, Train>(o, allow_90deg, false, railtype_override)
+		: CFollowTrack<TRANSPORT_RAIL, Train, false>(o, allow_90deg, false, railtype_override)
 	{
 	}
 };
