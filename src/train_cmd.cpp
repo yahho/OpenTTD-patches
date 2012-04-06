@@ -2220,10 +2220,12 @@ void FreeTrainTrackReservation(const Train *v)
 	ft.SetPos(pos);
 
 	while (ft.FollowNext()) {
-		ft.m_new.trackdirs &= TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new.tile));
-		if (ft.m_new.trackdirs == TRACKDIR_BIT_NONE) break;
-		assert(KillFirstBit(ft.m_new.trackdirs) == TRACKDIR_BIT_NONE);
-		ft.m_new.td = FindFirstTrackdir(ft.m_new.trackdirs);
+		if (!ft.m_new.InWormhole()) {
+			ft.m_new.trackdirs &= TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new.tile));
+			if (ft.m_new.trackdirs == TRACKDIR_BIT_NONE) break;
+			assert(KillFirstBit(ft.m_new.trackdirs) == TRACKDIR_BIT_NONE);
+			ft.m_new.td = FindFirstTrackdir(ft.m_new.trackdirs);
+		}
 
 		if (HasSignalAlongPos(ft.m_new) && !IsPbsSignal(GetSignalType(ft.m_new))) {
 			/* Conventional signal along trackdir: remove reservation and stop. */
@@ -2315,7 +2317,7 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 
 	while (ft.FollowNext()) {
 		/* Station, depot or waypoint are a possible target. */
-		if (ft.m_flag == ft.TF_STATION || IsRailDepotTile(ft.m_new.tile) || !ft.m_new.IsTrackdirSet()) {
+		if (ft.m_flag == ft.TF_STATION || (!ft.m_new.InWormhole() && IsRailDepotTile(ft.m_new.tile)) || !ft.m_new.IsTrackdirSet()) {
 			/* Choice found or possible target encountered.
 			 * On finding a possible target, we need to stop and let the pathfinder handle the
 			 * remaining path. This is because we don't know if this target is in one of our
