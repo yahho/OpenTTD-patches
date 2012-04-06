@@ -121,12 +121,18 @@ public:
 	{
 		m_old = pos;
 		m_err = EC_NONE;
-		assert(((GetTrackStatusTrackdirBits(m_old.tile) & TrackdirToTrackdirBits(m_old.td)) != 0) ||
-		       (IsTram() && GetSingleTramBit(m_old.tile) != INVALID_DIAGDIR)); // Disable the assertion for single tram bits
 		m_exitdir = TrackdirToExitdir(m_old.td);
-		if (ForcedReverse()) return true;
-		if (!CanExitOldTile()) return false;
-		FollowTileExit();
+
+		if (m_old.InWormhole()) {
+			FollowWormhole();
+		} else {
+			assert(((GetTrackStatusTrackdirBits(m_old.tile) & TrackdirToTrackdirBits(m_old.td)) != 0) ||
+			       (IsTram() && GetSingleTramBit(m_old.tile) != INVALID_DIAGDIR)); // Disable the assertion for single tram bits
+			if (ForcedReverse()) return true;
+			if (!CanExitOldTile()) return false;
+			FollowTileExit();
+		}
+
 		if (!QueryNewTileTrackStatus() || !CanEnterNewTile() ||
 				(m_new.trackdirs &= DiagdirReachesTrackdirs(m_exitdir)) == TRACKDIR_BIT_NONE) {
 			/* In case we can't enter the next tile, but are
@@ -206,6 +212,7 @@ protected:
 	/** Follow m_exitdir from m_old and fill m_new.tile and m_tiles_skipped */
 	inline void FollowTileExit()
 	{
+		assert(!m_old.InWormhole());
 		/* extra handling for bridges in our direction */
 		if (IsBridgeHeadTile(m_old.tile)) {
 			if (m_exitdir == GetTunnelBridgeDirection(m_old.tile)) {
@@ -245,6 +252,18 @@ protected:
 		}
 
 		m_tiles_skipped = 0;
+	}
+
+	/** Follow m_old when in a wormhole */
+	inline void FollowWormhole()
+	{
+		assert(m_old.InWormhole());
+		assert(IsBridgeHeadTile(m_old.wormhole) || IsTunnelTile(m_old.wormhole));
+
+		m_new.tile = m_old.wormhole;
+		m_new.wormhole = INVALID_TILE;
+		m_flag = IsTileSubtype(m_old.wormhole, TT_BRIDGE) ? TF_BRIDGE : TF_TUNNEL;
+		m_tiles_skipped = GetTunnelBridgeLength(m_new.tile, m_old.tile);
 	}
 
 	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
@@ -480,13 +499,29 @@ public:
 		int max_speed = INT_MAX; // no limit
 
 		if (IsRailTT()) {
+			/* Check for on-bridge and railtype speed limit */
+			TileIndex bridge_tile;
+			RailType rt;
+
+			if (!m_old.InWormhole()) {
+				bridge_tile = IsRailBridgeTile(m_old.tile) ? m_old.tile : INVALID_TILE;
+				rt = GetRailType(m_old.tile, TrackdirToTrack(m_old.td));
+			} else if (IsTileSubtype(m_old.wormhole, TT_BRIDGE)) {
+				bridge_tile = m_old.wormhole;
+				rt = GetRailType(bridge_tile);
+			} else {
+				bridge_tile = INVALID_TILE;
+				rt = GetRailType(m_old.wormhole);
+			}
+
 			/* Check for on-bridge speed limit */
-			if (IsRailBridgeTile(m_old.tile)) {
-				int spd = GetBridgeSpec(GetRailBridgeType(m_old.tile))->speed;
+			if (bridge_tile != INVALID_TILE) {
+				int spd = GetBridgeSpec(GetRailBridgeType(bridge_tile))->speed;
 				if (max_speed > spd) max_speed = spd;
 			}
+
 			/* Check for speed limit imposed by railtype */
-			uint16 rail_speed = GetRailTypeInfo(GetRailType(m_old.tile, TrackdirToTrack(m_old.td)))->max_speed;
+			uint16 rail_speed = GetRailTypeInfo(rt)->max_speed;
 			if (rail_speed > 0) max_speed = min(max_speed, rail_speed);
 		} else if (IsRoadTT()) {
 			/* Check for on-bridge speed limit */
