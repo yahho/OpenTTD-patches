@@ -1646,7 +1646,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 				Track track = DiagDirToDiagTrack(GetTunnelBridgeDirection(tile));
 				Train *affected = NULL;
 
-				if (IsRailwayTile(tile) ? HasBridgeReservation(tile) : HasTunnelReservation(tile)) {
+				if (IsRailwayTile(tile) ? HasBridgeReservation(tile) : HasTunnelHeadReservation(tile)) {
 					affected = FindUnpoweredReservationTrain(tile, track, totype);
 				}
 

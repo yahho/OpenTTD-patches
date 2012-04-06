@@ -936,6 +936,19 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			}
 		}
 	}
+
+	/* Split tunnelhead/tunnel PBS reservation */
+	if (IsFullSavegameVersionBefore(stv, 9)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsTileTypeSubtype(t, TT_MISC, TT_MISC_TUNNEL) && GB(_mc[t].m5, 6, 2) == 0) {
+				if (HasBit(_mc[t].m5, 4)) {
+					SetBit(_mc[t].m5, 5);
+				} else {
+					ClrBit(_mc[t].m5, 5);
+				}
+			}
+		}
+	}
 }
 
 
