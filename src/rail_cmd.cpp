@@ -1575,6 +1575,17 @@ static inline Train *FindUnpoweredReservationTrain(TileIndex tile, Track track, 
 	return v;
 }
 
+template <typename T>
+static inline void FindUnpoweredReservationTrains(T *vector, TileIndex tile, RailType rt)
+{
+	TrackBits reserved = GetReservedTrackbits(tile);
+	Track track;
+	while ((track = RemoveFirstTrack(&reserved)) != INVALID_TRACK) {
+		Train *v = FindUnpoweredReservationTrain(tile, track, rt);
+		if (v != NULL) *vector->Append() = v;
+	}
+}
+
 /**
  * Convert one rail type to another, for normal rail tiles
  * @param tile tile to convert
@@ -1642,13 +1653,7 @@ static CommandCost ConvertTrack(TileIndex tile, RailType totype, TrainList *affe
 
 	if (flags & DC_EXEC) { // we can safely convert, too
 		SmallVector<Train *, 2> vehicles_affected;
-
-		TrackBits reserved = GetReservedTrackbits(tile);
-		Track     track;
-		while ((track = RemoveFirstTrack(&reserved)) != INVALID_TRACK) {
-			Train *v = FindUnpoweredReservationTrain(tile, track, totype);
-			if (v != NULL) *vehicles_affected.Append() = v;
-		}
+		FindUnpoweredReservationTrains(&vehicles_affected, tile, totype);
 
 		/* Update the company infrastructure counters. */
 		Company *c = Company::Get(GetTileOwner(tile));
