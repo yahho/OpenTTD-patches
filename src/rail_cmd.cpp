@@ -1502,6 +1502,17 @@ static Vehicle *UpdateTrainPowerProc(Vehicle *v, void *data)
 	return NULL;
 }
 
+/** Check if the given tile track is reserved by a train which will be unpowered on the given railtype.
+ *  If it is, remove its reservation and return it. Otherwise, return NULL. */
+static inline Train *FindUnpoweredReservationTrain(TileIndex tile, Track track, RailType rt)
+{
+	Train *v = GetTrainForReservation(tile, track);
+	if (v == NULL || HasPowerOnRail(v->railtype, rt)) return NULL;
+	/* No power on new rail type, reroute. */
+	FreeTrainTrackReservation(v);
+	return v;
+}
+
 /**
  * Convert one rail type to the other. You can convert normal rail to
  * monorail/maglev easily or vice-versa.
@@ -1579,12 +1590,8 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 				TrackBits reserved = GetReservedTrackbits(tile);
 				Track     track;
 				while ((track = RemoveFirstTrack(&reserved)) != INVALID_TRACK) {
-					Train *v = GetTrainForReservation(tile, track);
-					if (v != NULL && !HasPowerOnRail(v->railtype, totype)) {
-						/* No power on new rail type, reroute. */
-						FreeTrainTrackReservation(v);
-						*vehicles_affected.Append() = v;
-					}
+					Train *v = FindUnpoweredReservationTrain(tile, track, totype);
+					if (v != NULL) *vehicles_affected.Append() = v;
 				}
 
 				/* Update the company infrastructure counters. */
@@ -1656,12 +1663,8 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 				if (flags & DC_EXEC) {
 					Track track = DiagDirToDiagTrack(GetTunnelBridgeDirection(tile));
 					if (HasTunnelBridgeReservation(tile)) {
-						Train *v = GetTrainForReservation(tile, track);
-						if (v != NULL && !HasPowerOnRail(v->railtype, totype)) {
-							/* No power on new rail type, reroute. */
-							FreeTrainTrackReservation(v);
-							*vehicles_affected.Append() = v;
-						}
+						Train *v = FindUnpoweredReservationTrain(tile, track, totype);
+						if (v != NULL) *vehicles_affected.Append() = v;
 					}
 
 					/* Update the company infrastructure counters. */
