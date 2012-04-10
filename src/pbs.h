@@ -46,7 +46,7 @@ struct PBSTileInfo {
 };
 
 PBSTileInfo FollowTrainReservation(const Train *v, Vehicle **train_on_res = NULL);
-bool IsSafeWaitingPosition(const Train *v, TileIndex tile, Trackdir trackdir, bool include_line_end, bool forbid_90deg = false);
+bool IsSafeWaitingPosition(const Train *v, TileIndex tile, Trackdir trackdir, bool forbid_90deg = false);
 bool IsWaitingPositionFree(const Train *v, TileIndex tile, Trackdir trackdir, bool forbid_90deg = false);
 
 Train *GetTrainForReservation(TileIndex tile, Track track);

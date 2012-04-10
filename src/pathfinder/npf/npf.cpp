@@ -430,10 +430,10 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 						}
 						td = RemoveFirstTrackdir(&ft.m_new_td_bits);
 						/* If this is a safe waiting position we're done searching for it */
-						if (IsSafeWaitingPosition(train, t, td, true, _settings_game.pf.forbid_90_deg)) break;
+						if (IsSafeWaitingPosition(train, t, td, _settings_game.pf.forbid_90_deg)) break;
 					}
 					if (td == INVALID_TRACKDIR ||
-							!IsSafeWaitingPosition(train, t, td, true, _settings_game.pf.forbid_90_deg) ||
+							!IsSafeWaitingPosition(train, t, td, _settings_game.pf.forbid_90_deg) ||
 							!IsWaitingPositionFree(train, t, td, _settings_game.pf.forbid_90_deg)) {
 						cost += _settings_game.pf.npf.npf_rail_lastred_penalty;
 					}
@@ -541,7 +541,7 @@ static int32 NPFFindSafeTile(AyStar *as, OpenListNode *current)
 {
 	const Train *v = Train::From(((NPFFindStationOrTileData *)as->user_target)->v);
 
-	return (IsSafeWaitingPosition(v, current->path.node.tile, current->path.node.direction, true, _settings_game.pf.forbid_90_deg) &&
+	return (IsSafeWaitingPosition(v, current->path.node.tile, current->path.node.direction, _settings_game.pf.forbid_90_deg) &&
 			IsWaitingPositionFree(v, current->path.node.tile, current->path.node.direction, _settings_game.pf.forbid_90_deg)) ?
 				AYSTAR_FOUND_END_NODE : AYSTAR_DONE;
 }
@@ -578,7 +578,7 @@ static const PathNode *FindSafePosition(PathNode *path, const Train *v)
 	PathNode *sig = path;
 
 	for (; path->parent != NULL; path = path->parent) {
-		if (IsSafeWaitingPosition(v, path->node.tile, path->node.direction, true, _settings_game.pf.forbid_90_deg)) {
+		if (IsSafeWaitingPosition(v, path->node.tile, path->node.direction, _settings_game.pf.forbid_90_deg)) {
 			sig = path;
 		}
 	}

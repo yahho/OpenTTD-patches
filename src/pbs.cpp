@@ -309,7 +309,7 @@ PBSTileInfo FollowTrainReservation(const Train *v, Vehicle **train_on_res)
 
 	FindTrainOnTrackInfo ftoti;
 	ftoti.res = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, tile, trackdir);
-	ftoti.res.okay = IsSafeWaitingPosition(v, ftoti.res.tile, ftoti.res.trackdir, true, _settings_game.pf.forbid_90_deg);
+	ftoti.res.okay = IsSafeWaitingPosition(v, ftoti.res.tile, ftoti.res.trackdir, _settings_game.pf.forbid_90_deg);
 	if (train_on_res != NULL) {
 		FindTrainOnPathEnd(&ftoti);
 		if (ftoti.best != NULL) *train_on_res = ftoti.best->First();
@@ -355,11 +355,10 @@ Train *GetTrainForReservation(TileIndex tile, Track track)
  * @param v the vehicle to test for
  * @param tile The tile
  * @param trackdir The trackdir to test
- * @param include_line_end Should end-of-line tiles be considered safe?
  * @param forbid_90deg Don't allow trains to make 90 degree turns
  * @return True if it is a safe position
  */
-bool IsSafeWaitingPosition(const Train *v, TileIndex tile, Trackdir trackdir, bool include_line_end, bool forbid_90deg)
+bool IsSafeWaitingPosition(const Train *v, TileIndex tile, Trackdir trackdir, bool forbid_90deg)
 {
 	if (IsRailDepotTile(tile)) return true;
 
@@ -374,22 +373,22 @@ bool IsSafeWaitingPosition(const Train *v, TileIndex tile, Trackdir trackdir, bo
 	/* End of track? */
 	if (!ft.Follow(tile, trackdir)) {
 		/* Last tile of a terminus station is a safe position. */
-		if (include_line_end) return true;
+		return true;
 	}
 
 	/* Check for reachable tracks. */
 	ft.m_new_td_bits &= DiagdirReachesTrackdirs(ft.m_exitdir);
 	if (forbid_90deg) ft.m_new_td_bits &= ~TrackdirCrossesTrackdirs(trackdir);
-	if (ft.m_new_td_bits == TRACKDIR_BIT_NONE) return include_line_end;
+	if (ft.m_new_td_bits == TRACKDIR_BIT_NONE) return true;
 
 	if (ft.m_new_td_bits != TRACKDIR_BIT_NONE && KillFirstBit(ft.m_new_td_bits) == TRACKDIR_BIT_NONE) {
 		Trackdir td = FindFirstTrackdir(ft.m_new_td_bits);
 		/* PBS signal on next trackdir? Safe position. */
 		if (HasPbsSignalOnTrackdir(ft.m_new_tile, td)) return true;
-		/* One-way PBS signal against us? Safe if end-of-line is allowed. */
+		/* One-way PBS signal against us? Safe position. */
 		if (IsTileType(ft.m_new_tile, MP_RAILWAY) && HasSignalOnTrackdir(ft.m_new_tile, ReverseTrackdir(td)) &&
 				GetSignalType(ft.m_new_tile, TrackdirToTrack(td)) == SIGTYPE_PBS_ONEWAY) {
-			return include_line_end;
+			return true;
 		}
 	}
 

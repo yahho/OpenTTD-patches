@@ -63,7 +63,7 @@ private:
 
 	bool FindSafePositionProc(TileIndex tile, Trackdir td)
 	{
-		if (IsSafeWaitingPosition(Yapf().GetVehicle(), tile, td, true, !TrackFollower::Allow90degTurns())) {
+		if (IsSafeWaitingPosition(Yapf().GetVehicle(), tile, td, !TrackFollower::Allow90degTurns())) {
 			m_res_dest = tile;
 			m_res_dest_td = td;
 			return false;   // Stop iterating segment
