@@ -2349,14 +2349,15 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackBits *new_tracks,
 		tile = ft.m_new_tile;
 		cur_td = FindFirstTrackdir(ft.m_new_td_bits);
 
-		if (IsSafeWaitingPosition(v, tile, cur_td, _settings_game.pf.forbid_90_deg)) {
-			bool wp_free = IsWaitingPositionFree(v, tile, cur_td, _settings_game.pf.forbid_90_deg);
-			if (!(wp_free && TryReserveRailTrack(tile, TrackdirToTrack(cur_td)))) break;
+		PBSPositionState state = CheckWaitingPosition(v, tile, cur_td, _settings_game.pf.forbid_90_deg);
+		if (state == PBS_BUSY) break;
+
+		if (!TryReserveRailTrack(tile, TrackdirToTrack(cur_td))) break;
+
+		if (state == PBS_FREE) {
 			/* Safe position is all good, path valid and okay. */
 			return PBSTileInfo(tile, cur_td, true);
 		}
-
-		if (!TryReserveRailTrack(tile, TrackdirToTrack(cur_td))) break;
 	}
 
 	if (ft.m_err == CFollowTrackRail::EC_OWNER || ft.m_err == CFollowTrackRail::EC_NO_WAY) {
