@@ -577,7 +577,6 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 	bool crossing = false;
 
 	if (!ValParamTrackOrientation(track)) return CMD_ERROR;
-	TrackBits trackbit = TrackToTrackBits(track);
 
 	/* Need to read tile owner now because it may change when the rail is removed
 	 * Also, in case of floods, _current_company != owner
@@ -589,7 +588,7 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 
 	switch (GetTileType(tile)) {
 		case MP_ROAD: {
-			if (!IsLevelCrossing(tile) || GetCrossingRailBits(tile) != trackbit) return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
+			if (!IsLevelCrossing(tile) || GetCrossingRailTrack(tile) != track) return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 
 			if (_current_company != OWNER_WATER) {
 				CommandCost ret = CheckTileOwnership(tile);
@@ -604,7 +603,7 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 			cost.AddCost(RailClearCost(GetRailType(tile)));
 
 			if (flags & DC_EXEC) {
-				if (HasReservedTracks(tile, trackbit)) {
+				if (HasCrossingReservation(tile)) {
 					v = GetTrainForReservation(tile, track);
 					if (v != NULL) FreeTrainTrackReservation(v);
 				}
@@ -618,7 +617,6 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 		}
 
 		case MP_RAILWAY: {
-			TrackBits present;
 			/* There are no rails present at depots. */
 			if (!IsPlainRail(tile)) return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 
@@ -630,7 +628,8 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 			CommandCost ret = EnsureNoTrainOnTrack(tile, track);
 			if (ret.Failed()) return ret;
 
-			present = GetTrackBits(tile);
+			TrackBits trackbit = TrackToTrackBits(track);
+			TrackBits present  = GetTrackBits(tile);
 			if ((present & trackbit) == 0) return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 			if (present == (TRACK_BIT_X | TRACK_BIT_Y)) crossing = true;
 
