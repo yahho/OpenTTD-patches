@@ -548,7 +548,7 @@ static inline TrackdirBits TrackdirReachesTrackdirs(Trackdir trackdir)
  * but it uses two simpler tables to achieve the result */
 
 /**
- * Maps a trackdir to all trackdirs that make 90 deg turns with it.
+ * Maps a track to all trackdirs that make 90 deg turns with it.
  *
  * For the diagonal tracks this returns the track direction bits
  * of the other axis in both directions, which cannot be joined by
@@ -557,13 +557,26 @@ static inline TrackdirBits TrackdirReachesTrackdirs(Trackdir trackdir)
  * either on the current tile (which no train can joined) or on the
  * bordering tiles.
  *
+ * @param track The track
+ * @return The TrackdirBits which are (more or less) 90 deg turns.
+ */
+static inline TrackdirBits TrackCrossesTrackdirs(Track track)
+{
+	extern const TrackdirBits _track_crosses_trackdirs[TRACK_END];
+	return _track_crosses_trackdirs[track];
+}
+
+/**
+ * Maps a trackdir to all trackdirs that make 90 deg turns with it.
+ *
+ * See TrackCrossesTrackdirs.
+ *
  * @param trackdir The track direction
  * @return The TrackdirBits which are (more or less) 90 deg turns.
  */
 static inline TrackdirBits TrackdirCrossesTrackdirs(Trackdir trackdir)
 {
-	extern const TrackdirBits _track_crosses_trackdirs[TRACK_END];
-	return _track_crosses_trackdirs[TrackdirToTrack(trackdir)];
+	return TrackCrossesTrackdirs(TrackdirToTrack(trackdir));
 }
 
 /**
