@@ -57,9 +57,9 @@ WaterClass GetEffectiveWaterClass(TileIndex tile)
 
 static const uint16 _ship_sprites[] = {0x0E5D, 0x0E55, 0x0E65, 0x0E6D};
 
-static inline TrackBits GetTileShipTrackStatus(TileIndex tile)
+static inline TrackdirBits GetAvailShipTrackdirs(TileIndex tile, DiagDirection enterdir)
 {
-	return TrackStatusToTrackBits(GetTileTrackStatus(tile, TRANSPORT_WATER, 0));
+	return TrackStatusToTrackdirBits(GetTileTrackStatus(tile, TRANSPORT_WATER, 0)) & DiagdirReachesTrackdirs(enterdir);
 }
 
 static SpriteID GetShipIcon(EngineID engine, EngineImageType image_type)
@@ -316,8 +316,8 @@ static bool CheckShipLeaveDepot(Ship *v)
 	DiagDirection south_dir = AxisToDiagDir(axis);
 	TileIndex south_neighbour = TILE_ADD(tile, 2 * TileOffsByDiagDir(south_dir));
 
-	TrackBits north_tracks = DiagdirReachesTracks(north_dir) & GetTileShipTrackStatus(north_neighbour);
-	TrackBits south_tracks = DiagdirReachesTracks(south_dir) & GetTileShipTrackStatus(south_neighbour);
+	TrackBits north_tracks = TrackdirBitsToTrackBits(GetAvailShipTrackdirs(north_neighbour, north_dir));
+	TrackBits south_tracks = TrackdirBitsToTrackBits(GetAvailShipTrackdirs(south_neighbour, south_dir));
 	if (north_tracks && south_tracks) {
 		/* Ask pathfinder for best direction */
 		bool reverse = false;
@@ -429,11 +429,6 @@ static Track ChooseShipTrack(Ship *v, TileIndex tile, DiagDirection enterdir, Tr
 
 	v->HandlePathfindingResult(path_found);
 	return track;
-}
-
-static inline TrackBits GetAvailShipTracks(TileIndex tile, DiagDirection dir)
-{
-	return GetTileShipTrackStatus(tile) & DiagdirReachesTracks(dir);
 }
 
 static const byte _ship_subcoord[4][6][3] = {
@@ -556,7 +551,7 @@ static void ShipController(Ship *v)
 		DiagDirection diagdir = DiagdirBetweenTiles(gp.old_tile, gp.new_tile);
 		assert(diagdir != INVALID_DIAGDIR);
 
-		TrackBits tracks = GetAvailShipTracks(gp.new_tile, diagdir);
+		TrackBits tracks = TrackdirBitsToTrackBits(GetAvailShipTrackdirs(gp.new_tile, diagdir));
 		if (tracks == TRACK_BIT_NONE) goto reverse_direction;
 
 		/* Choose a direction, and continue if we find one */
