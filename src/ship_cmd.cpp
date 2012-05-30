@@ -316,25 +316,25 @@ static bool CheckShipLeaveDepot(Ship *v)
 	DiagDirection south_dir = AxisToDiagDir(axis);
 	TileIndex south_neighbour = TILE_ADD(tile, 2 * TileOffsByDiagDir(south_dir));
 
-	TrackBits north_tracks = TrackdirBitsToTrackBits(GetAvailShipTrackdirs(north_neighbour, north_dir));
-	TrackBits south_tracks = TrackdirBitsToTrackBits(GetAvailShipTrackdirs(south_neighbour, south_dir));
-	if (north_tracks && south_tracks) {
+	TrackdirBits north_trackdirs = GetAvailShipTrackdirs(north_neighbour, north_dir);
+	TrackdirBits south_trackdirs = GetAvailShipTrackdirs(south_neighbour, south_dir);
+	if (north_trackdirs && south_trackdirs) {
 		/* Ask pathfinder for best direction */
 		bool reverse = false;
 		bool path_found;
 		switch (_settings_game.pf.pathfinder_for_ships) {
-			case VPF_OPF: reverse = OPFShipChooseTrack(v, north_neighbour, north_dir, north_tracks, path_found) == INVALID_TRACK; break; // OPF always allows reversing
+			case VPF_OPF: reverse = OPFShipChooseTrack(v, north_neighbour, north_dir, north_trackdirs, path_found) == INVALID_TRACKDIR; break; // OPF always allows reversing
 			case VPF_NPF: reverse = NPFShipCheckReverse(v); break;
 			case VPF_YAPF: reverse = YapfShipCheckReverse(v); break;
 			default: NOT_REACHED();
 		}
-		if (reverse) north_tracks = TRACK_BIT_NONE;
+		if (reverse) north_trackdirs = TRACKDIR_BIT_NONE;
 	}
 
-	if (north_tracks) {
+	if (north_trackdirs) {
 		/* Leave towards north */
 		v->direction = DiagDirToDir(north_dir);
-	} else if (south_tracks) {
+	} else if (south_trackdirs) {
 		/* Leave towards south */
 		v->direction = DiagDirToDir(south_dir);
 	} else {
@@ -406,29 +406,29 @@ static void ShipArrivesAt(const Vehicle *v, Station *st)
 
 
 /**
- * Runs the pathfinder to choose a track to continue along.
+ * Runs the pathfinder to choose a trackdir to continue along.
  *
  * @param v Ship to navigate
- * @param tile Tile, the ship is about to enter
+ * @param tile Tile the ship is about to enter
  * @param enterdir Direction of entering
- * @param tracks Available track choices on \a tile
- * @return Track to choose, or INVALID_TRACK when to reverse.
+ * @param trackdirs Available trackdir choices on \a tile
+ * @return Trackdir to choose, or INVALID_TRACKDIR when to reverse.
  */
-static Track ChooseShipTrack(Ship *v, TileIndex tile, DiagDirection enterdir, TrackBits tracks)
+static Trackdir ChooseShipTrack(Ship *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs)
 {
 	assert(IsValidDiagDirection(enterdir));
 
 	bool path_found = true;
-	Track track;
+	Trackdir trackdir;
 	switch (_settings_game.pf.pathfinder_for_ships) {
-		case VPF_OPF: track = OPFShipChooseTrack(v, tile, enterdir, tracks, path_found); break;
-		case VPF_NPF: track = NPFShipChooseTrack(v, tile, enterdir, tracks, path_found); break;
-		case VPF_YAPF: track = YapfShipChooseTrack(v, tile, enterdir, tracks, path_found); break;
+		case VPF_OPF: trackdir = OPFShipChooseTrack(v, tile, enterdir, trackdirs, path_found); break;
+		case VPF_NPF: trackdir = NPFShipChooseTrack(v, tile, enterdir, trackdirs, path_found); break;
+		case VPF_YAPF: trackdir = YapfShipChooseTrack(v, tile, enterdir, trackdirs, path_found); break;
 		default: NOT_REACHED();
 	}
 
 	v->HandlePathfindingResult(path_found);
-	return track;
+	return trackdir;
 }
 
 static const byte _ship_subcoord[4][6][3] = {
@@ -551,14 +551,14 @@ static void ShipController(Ship *v)
 		DiagDirection diagdir = DiagdirBetweenTiles(gp.old_tile, gp.new_tile);
 		assert(diagdir != INVALID_DIAGDIR);
 
-		TrackBits tracks = TrackdirBitsToTrackBits(GetAvailShipTrackdirs(gp.new_tile, diagdir));
-		if (tracks == TRACK_BIT_NONE) goto reverse_direction;
+		TrackdirBits trackdirs = GetAvailShipTrackdirs(gp.new_tile, diagdir);
+		if (trackdirs == TRACKDIR_BIT_NONE) goto reverse_direction;
 
 		/* Choose a direction, and continue if we find one */
-		Track track = ChooseShipTrack(v, gp.new_tile, diagdir, tracks);
-		if (track == INVALID_TRACK) goto reverse_direction;
+		Trackdir trackdir = ChooseShipTrack(v, gp.new_tile, diagdir, trackdirs);
+		if (trackdir == INVALID_TRACKDIR) goto reverse_direction;
 
-		const byte *b = _ship_subcoord[diagdir][track];
+		const byte *b = _ship_subcoord[diagdir][TrackdirToTrack(trackdir)];
 
 		gp.x = (gp.x & ~0xF) | b[0];
 		gp.y = (gp.y & ~0xF) | b[1];
@@ -569,7 +569,7 @@ static void ShipController(Ship *v)
 
 		if (!HasBit(r, VETS_ENTERED_WORMHOLE)) {
 			v->tile = gp.new_tile;
-			v->state = TrackToTrackBits(track);
+			v->state = TrackToTrackBits(TrackdirToTrack(trackdir));
 
 			/* Update ship cache when the water class changes. Aqueducts are always canals. */
 			WaterClass old_wc = GetEffectiveWaterClass(gp.old_tile);
