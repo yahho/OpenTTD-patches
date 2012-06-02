@@ -118,16 +118,6 @@ static void OPFShipFollowTrack(TileIndex tile, DiagDirection direction, TrackPat
 	TPFModeShip(tpf, tile, direction);
 }
 
-/** Directions to search towards given track bits and the ship's enter direction. */
-static const DiagDirection _ship_search_directions[6][4] = {
-	{ DIAGDIR_NE,      INVALID_DIAGDIR, DIAGDIR_SW,      INVALID_DIAGDIR },
-	{ INVALID_DIAGDIR, DIAGDIR_SE,      INVALID_DIAGDIR, DIAGDIR_NW      },
-	{ INVALID_DIAGDIR, DIAGDIR_NE,      DIAGDIR_NW,      INVALID_DIAGDIR },
-	{ DIAGDIR_SE,      INVALID_DIAGDIR, INVALID_DIAGDIR, DIAGDIR_SW      },
-	{ DIAGDIR_NW,      DIAGDIR_SW,      INVALID_DIAGDIR, INVALID_DIAGDIR },
-	{ INVALID_DIAGDIR, INVALID_DIAGDIR, DIAGDIR_SE,      DIAGDIR_NE      },
-};
-
 /** Track to "direction (& 3)" mapping. */
 static const byte _pick_shiptrack_table[6] = {DIR_NE, DIR_SE, DIR_E, DIR_E, DIR_N, DIR_N};
 
@@ -149,7 +139,7 @@ static uint FindShipTrack(const Ship *v, TileIndex tile, DiagDirection dir, Trac
 		pfs.best_bird_dist = UINT_MAX;
 		pfs.best_length = UINT_MAX;
 
-		OPFShipFollowTrack(tile, _ship_search_directions[TrackdirToTrack(td)][dir], &pfs);
+		OPFShipFollowTrack(tile, TrackdirToExitdir(td), &pfs);
 
 		if (best_trackdir != INVALID_TRACKDIR) {
 			if (pfs.best_bird_dist != 0) {
