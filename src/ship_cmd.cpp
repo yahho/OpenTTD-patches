@@ -431,39 +431,21 @@ static Trackdir ChooseShipTrack(Ship *v, TileIndex tile, DiagDirection enterdir,
 	return trackdir;
 }
 
-static const byte _ship_subcoord[4][6][3] = {
-	{
-		{15, 8, 1},
-		{ 0, 0, 0},
-		{ 0, 0, 0},
-		{15, 8, 2},
-		{15, 7, 0},
-		{ 0, 0, 0},
-	},
-	{
-		{ 0, 0, 0},
-		{ 8, 0, 3},
-		{ 7, 0, 2},
-		{ 0, 0, 0},
-		{ 8, 0, 4},
-		{ 0, 0, 0},
-	},
-	{
-		{ 0, 8, 5},
-		{ 0, 0, 0},
-		{ 0, 7, 6},
-		{ 0, 0, 0},
-		{ 0, 0, 0},
-		{ 0, 8, 4},
-	},
-	{
-		{ 0, 0, 0},
-		{ 8, 15, 7},
-		{ 0, 0, 0},
-		{ 8, 15, 6},
-		{ 0, 0, 0},
-		{ 7, 15, 0},
-	}
+static const byte _ship_subcoord[TRACKDIR_END][3] = {
+	{15, 8, 1},  // TRACKDIR_X_NE
+	{ 8, 0, 3},  // TRACKDIR_Y_SE
+	{ 7, 0, 2},  // TRACKDIR_UPPER_E
+	{15, 8, 2},  // TRACKDIR_LOWER_E
+	{ 8, 0, 4},  // TRACKDIR_LEFT_S
+	{ 0, 8, 4},  // TRACKDIR_RIGHT_S
+	{ 0, 0, 0},
+	{ 0, 0, 0},
+	{ 0, 8, 5},  // TRACKDIR_X_SW
+	{ 8,15, 7},  // TRACKDIR_Y_NW
+	{ 0, 7, 6},  // TRACKDIR_UPPER_W
+	{ 8,15, 6},  // TRACKDIR_LOWER_W
+	{15, 7, 0},  // TRACKDIR_LEFT_N
+	{ 7,15, 0},  // TRACKDIR_RIGHT_N
 };
 
 static void ShipController(Ship *v)
@@ -558,7 +540,7 @@ static void ShipController(Ship *v)
 		Trackdir trackdir = ChooseShipTrack(v, gp.new_tile, diagdir, trackdirs);
 		if (trackdir == INVALID_TRACKDIR) goto reverse_direction;
 
-		const byte *b = _ship_subcoord[diagdir][TrackdirToTrack(trackdir)];
+		const byte *b = _ship_subcoord[trackdir];
 
 		gp.x = (gp.x & ~0xF) | b[0];
 		gp.y = (gp.y & ~0xF) | b[1];
