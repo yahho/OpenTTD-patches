@@ -1257,7 +1257,7 @@ bool NPFTrainCheckReverse(const Train *v)
 	return ftd.best_bird_dist == 0 && NPFGetFlag(&ftd.node, NPF_FLAG_REVERSE);
 }
 
-Track NPFTrainChooseTrack(const Train *v, TileIndex tile, DiagDirection enterdir, TrackBits tracks, bool &path_found, bool reserve_track, struct PBSTileInfo *target)
+Trackdir NPFTrainChooseTrack(const Train *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found, bool reserve_track, struct PBSTileInfo *target)
 {
 	NPFFindStationOrTileData fstd;
 	NPFFillWithOrderData(&fstd, v, reserve_track);
@@ -1278,7 +1278,7 @@ Track NPFTrainChooseTrack(const Train *v, TileIndex tile, DiagDirection enterdir
 		 * @todo maybe display error?
 		 * @todo: go straight ahead if possible? */
 		path_found = true;
-		return FindFirstTrack(tracks);
+		return FindFirstTrackdir(trackdirs);
 	}
 
 	/* If ftd.best_bird_dist is 0, we found our target and ftd.best_trackdir contains
@@ -1286,6 +1286,5 @@ Track NPFTrainChooseTrack(const Train *v, TileIndex tile, DiagDirection enterdir
 	 * we did not find our target, but ftd.best_trackdir contains the direction leading
 	 * to the tile closest to our target. */
 	path_found = (ftd.best_bird_dist == 0);
-	/* Discard enterdir information, making it a normal track */
-	return TrackdirToTrack(ftd.best_trackdir);
+	return ftd.best_trackdir;
 }
