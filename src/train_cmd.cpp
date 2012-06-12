@@ -3133,7 +3133,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			TrackdirBits reachable_trackdirs = DiagdirReachesTrackdirs(enterdir);
 
 			TrackdirBits trackdirbits = TrackStatusToTrackdirBits(ts) & reachable_trackdirs;
-			TrackBits red_signals = TrackdirBitsToTrackBits(TrackStatusToRedSignals(ts) & reachable_trackdirs);
+			TrackdirBits red_signals = TrackStatusToRedSignals(ts);
 
 			if (_settings_game.pf.forbid_90_deg && prev == NULL) {
 				/* We allow wagons to make 90 deg turns, because forbid_90_deg
@@ -3161,9 +3161,9 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					 * We start at two, so the first signal we pass decreases
 					 * this to one, then if we reach the next signal it is
 					 * decreased to zero and we won't pass that new signal. */
-					Trackdir dir = FindFirstTrackdir(trackdirbits);
-					if (GetSignalType(gp.new_tile, TrackdirToTrack(dir)) != SIGTYPE_PBS ||
-							!HasSignalOnTrackdir(gp.new_tile, ReverseTrackdir(dir))) {
+					assert(trackdirbits == TrackdirToTrackdirBits(chosen_trackdir));
+					if (GetSignalType(gp.new_tile, TrackdirToTrack(chosen_trackdir)) != SIGTYPE_PBS ||
+							!HasSignalOnTrackdir(gp.new_tile, ReverseTrackdir(chosen_trackdir))) {
 						/* However, we do not want to be stopped by PBS signals
 						 * entered via the back. */
 						v->force_proceed = (v->force_proceed == TFP_SIGNAL) ? TFP_STUCK : TFP_NONE;
@@ -3172,24 +3172,24 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				}
 
 				/* Check if it's a red signal and that force proceed is not clicked. */
-				if ((red_signals & chosen_track) && v->force_proceed == TFP_NONE) {
+				if (HasBit(red_signals, chosen_trackdir) && v->force_proceed == TFP_NONE) {
 					/* In front of a red signal */
-					Trackdir i = FindFirstTrackdir(trackdirbits);
+					assert(trackdirbits == TrackdirToTrackdirBits(chosen_trackdir));
 
 					/* Don't handle stuck trains here. */
 					if (HasBit(v->flags, VRF_TRAIN_STUCK)) return false;
 
-					if (!HasSignalOnTrackdir(gp.new_tile, ReverseTrackdir(i))) {
+					if (!HasSignalOnTrackdir(gp.new_tile, ReverseTrackdir(chosen_trackdir))) {
 						v->cur_speed = 0;
 						v->subspeed = 0;
 						v->progress = 255 - 100;
 						if (!_settings_game.pf.reverse_at_signals || ++v->wait_counter < _settings_game.pf.wait_oneway_signal * 20) return false;
-					} else if (HasSignalOnTrackdir(gp.new_tile, i)) {
+					} else if (HasSignalOnTrackdir(gp.new_tile, chosen_trackdir)) {
 						v->cur_speed = 0;
 						v->subspeed = 0;
 						v->progress = 255 - 10;
 						if (!_settings_game.pf.reverse_at_signals || ++v->wait_counter < _settings_game.pf.wait_twoway_signal * 73) {
-							DiagDirection exitdir = TrackdirToExitdir(i);
+							DiagDirection exitdir = TrackdirToExitdir(chosen_trackdir);
 							TileIndex o_tile = TileAddByDiagDir(gp.new_tile, exitdir);
 
 							exitdir = ReverseDiagDir(exitdir);
@@ -3203,14 +3203,14 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					 * reversing of stuck trains is disabled, don't reverse.
 					 * This does not apply if the reason for reversing is a one-way
 					 * signal blocking us, because a train would then be stuck forever. */
-					if (!_settings_game.pf.reverse_at_signals && !HasOnewaySignalBlockingTrackdir(gp.new_tile, i) &&
+					if (!_settings_game.pf.reverse_at_signals && !HasOnewaySignalBlockingTrackdir(gp.new_tile, chosen_trackdir) &&
 							UpdateSignalsOnSegment(v->tile, enterdir, v->owner) == SIGSEG_PBS) {
 						v->wait_counter = 0;
 						return false;
 					}
 					goto reverse_train_direction;
 				} else {
-					TryReserveRailTrack(gp.new_tile, TrackBitsToTrack(chosen_track), false);
+					TryReserveRailTrack(gp.new_tile, TrackdirToTrack(chosen_trackdir), false);
 				}
 			} else {
 				/* The wagon is active, simply follow the prev vehicle. */
