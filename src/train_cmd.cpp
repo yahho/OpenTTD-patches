@@ -3687,13 +3687,12 @@ static bool TrainCheckIfLineEnds(Train *v, bool reverse)
 	/* We are sure the train is not entering a depot, it is detected above */
 
 	/* mask unreachable track bits if we are forbidden to do 90deg turns */
-	TrackBits bits = TrackdirBitsToTrackBits(trackdirbits);
 	if (_settings_game.pf.forbid_90_deg) {
-		bits &= ~TrackCrossesTracks(FindFirstTrack(v->track));
+		trackdirbits &= ~TrackCrossesTrackdirs(FindFirstTrack(v->track));
 	}
 
 	/* no suitable trackbits at all || unusable rail (wrong type or owner) */
-	if (bits == TRACK_BIT_NONE || !CheckCompatibleRail(v, tile)) {
+	if (trackdirbits == TRACKDIR_BIT_NONE || !CheckCompatibleRail(v, tile)) {
 		return TrainApproachingLineEnd(v, false, reverse);
 	}
 
