@@ -528,12 +528,7 @@ static Vehicle *EnsureNoTrainOnTrackProc(Vehicle *v, void *data)
  */
 CommandCost EnsureNoTrainOnTrackBits(TileIndex tile, TrackBits track_bits)
 {
-	/* Value v is not safe in MP games, however, it is used to generate a local
-	 * error message only (which may be different for different machines).
-	 * Such a message does not affect MP synchronisation.
-	 */
-	Vehicle *v = VehicleFromPos(tile, &track_bits, &EnsureNoTrainOnTrackProc, true);
-	if (v != NULL) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY + v->type);
+	if (HasVehicleOnPos(tile, &track_bits, &EnsureNoTrainOnTrackProc)) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
 	return CommandCost();
 }
 
