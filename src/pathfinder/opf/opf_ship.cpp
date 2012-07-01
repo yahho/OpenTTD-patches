@@ -178,16 +178,15 @@ bad:;
 Trackdir OPFShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)
 {
 	assert(IsValidDiagDirection(enterdir));
-
-	TileIndex tile2 = TILE_ADD(tile, -TileOffsByDiagDir(enterdir));
+	assert(TILE_ADD(tile, -TileOffsByDiagDir(enterdir)) == v->tile);
 
 	/* Let's find out how far it would be if we would reverse first */
 	Trackdir trackdir = v->GetVehicleTrackdir();
-	TrackdirBits b = TrackStatusToTrackdirBits(GetTileTrackStatus(tile2, TRANSPORT_WATER, 0)) & DiagdirReachesTrackdirs(ReverseDiagDir(enterdir)) & TrackdirToTrackdirBits(trackdir);
+	TrackdirBits b = TrackStatusToTrackdirBits(GetTileTrackStatus(v->tile, TRANSPORT_WATER, 0)) & DiagdirReachesTrackdirs(ReverseDiagDir(enterdir)) & TrackdirToTrackdirBits(trackdir);
 
 	uint distr = UINT_MAX; // distance if we reversed
 	if (b != 0) {
-		distr = FindShipTrack(v, tile2, ReverseDiagDir(enterdir), b, tile, &trackdir);
+		distr = FindShipTrack(v, v->tile, ReverseDiagDir(enterdir), b, tile, &trackdir);
 		if (distr != UINT_MAX) distr++; // penalty for reversing
 	}
 
