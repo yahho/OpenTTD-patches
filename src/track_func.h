@@ -466,6 +466,21 @@ static inline Trackdir TrackDirectionToTrackdir(Track track, Direction dir)
 }
 
 /**
+ * Maps a pair of (4-way) directions to the trackdir that must be followed
+ * on a tile when entering in the first direction to exit in the second one.
+ *
+ * @param enterdir The direction in which the tile is entered
+ * @param exitdir The direction in which the tile is to be exited
+ * @return the trackdir that must be followed
+ * @note some combinations lead to reversing trackdirs
+ */
+static inline Trackdir EnterdirExitdirToTrackdir(DiagDirection enterdir, DiagDirection exitdir)
+{
+	extern const Trackdir _enterdir_exitdir_to_trackdir[DIAGDIR_END][DIAGDIR_END];
+	return _enterdir_exitdir_to_trackdir[enterdir][exitdir];
+}
+
+/**
  * Maps a (4-way) direction to the diagonal track incidating with that diagdir
  *
  * @param diagdir The direction

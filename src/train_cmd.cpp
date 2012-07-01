@@ -3230,15 +3230,11 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					 *  2) some orientations of tunnel entries, where the vehicle is already inside the wormhole at 8/16 from the tile edge.
 					 *     Is also the train just reversing, the wagon inside the tunnel is 'on' the tile of the opposite tunnel entry.
 					 */
-					static const TrackBits _connecting_track[DIAGDIR_END][DIAGDIR_END] = {
-						{TRACK_BIT_X,     TRACK_BIT_LOWER, TRACK_BIT_NONE,  TRACK_BIT_LEFT },
-						{TRACK_BIT_UPPER, TRACK_BIT_Y,     TRACK_BIT_LEFT,  TRACK_BIT_NONE },
-						{TRACK_BIT_NONE,  TRACK_BIT_RIGHT, TRACK_BIT_X,     TRACK_BIT_UPPER},
-						{TRACK_BIT_RIGHT, TRACK_BIT_NONE,  TRACK_BIT_LOWER, TRACK_BIT_Y    }
-					};
 					DiagDirection exitdir = DiagdirBetweenTiles(gp.new_tile, prev->tile);
 					assert(IsValidDiagDirection(exitdir));
-					chosen_track = _connecting_track[enterdir][exitdir];
+					Trackdir trackdir = EnterdirExitdirToTrackdir(enterdir, exitdir);
+					assert(!IsReversingRoadTrackdir(trackdir));
+					chosen_track = TrackToTrackBits(TrackdirToTrack(trackdir));
 				}
 				chosen_track &= TrackdirBitsToTrackBits(trackdirbits);
 			}
