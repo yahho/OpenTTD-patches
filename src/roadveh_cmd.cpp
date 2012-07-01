@@ -1014,70 +1014,42 @@ static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 	return true;
 }
 
-static Trackdir FollowPreviousRoadVehicle(const RoadVehicle *v, const RoadVehicle *prev, TileIndex tile, DiagDirection entry_dir, bool already_reversed)
+static Trackdir FollowPreviousRoadVehicle(const RoadVehicle *v, const RoadVehicle *prev, TileIndex tile, DiagDirection entry_dir)
 {
-	if (prev->tile == v->tile && !already_reversed) {
-		/* If the previous vehicle is on the same tile as this vehicle is
-		 * then it must have reversed. */
-		return _road_reverse_table[entry_dir];
-	}
-
-	byte prev_state = prev->state;
-	Trackdir dir;
-
-	if (prev_state == RVSB_WORMHOLE || prev_state == RVSB_IN_DEPOT) {
-		DiagDirection diag_dir = INVALID_DIAGDIR;
-
-		if (IsTileType(tile, MP_TUNNELBRIDGE)) {
-			diag_dir = GetTunnelBridgeDirection(tile);
-		} else if (IsRoadDepotTile(tile)) {
-			diag_dir = ReverseDiagDir(GetRoadDepotDirection(tile));
-		}
-
-		if (diag_dir == INVALID_DIAGDIR) return INVALID_TRACKDIR;
-		dir = DiagDirToDiagTrackdir(diag_dir);
+	if (prev->tile != tile) {
+		/*
+		 * The previous vehicle has already left the tile; follow
+		 * the trackdir that heads in its direction.
+		 */
+		DiagDirection exitdir = DiagdirBetweenTiles(tile, prev->tile);
+		assert(IsValidDiagDirection(exitdir));
+		return EnterdirExitdirToTrackdir(entry_dir, exitdir);
 	} else {
-		if (already_reversed && prev->tile != tile) {
-			/*
-			 * The vehicle has reversed, but did not go straight back.
-			 * It immediately turn onto another tile. This means that
-			 * the roadstate of the previous vehicle cannot be used
-			 * as the direction we have to go with this vehicle.
-			 *
-			 * Next table is build in the following way:
-			 *  - first row for when the vehicle in front went to the northern or
-			 *    western tile, second for southern and eastern.
-			 *  - columns represent the entry direction.
-			 *  - cell values are determined by the Trackdir one has to take from
-			 *    the entry dir (column) to the tile in north or south by only
-			 *    going over the trackdirs used for turning 90 degrees, i.e.
-			 *    TRACKDIR_{UPPER,RIGHT,LOWER,LEFT}_{N,E,S,W}.
-			 */
-			static const Trackdir reversed_turn_lookup[2][DIAGDIR_END] = {
-				{ TRACKDIR_UPPER_W, TRACKDIR_RIGHT_N, TRACKDIR_LEFT_N,  TRACKDIR_UPPER_E },
-				{ TRACKDIR_RIGHT_S, TRACKDIR_LOWER_W, TRACKDIR_LOWER_E, TRACKDIR_LEFT_S  }};
-			dir = reversed_turn_lookup[prev->tile < tile ? 0 : 1][ReverseDiagDir(entry_dir)];
+		byte prev_state = prev->state;
+
+		assert(prev_state != RVSB_WORMHOLE);
+
+		Trackdir dir;
+		if (prev_state == RVSB_IN_DEPOT) {
+			dir = DiagDirToDiagTrackdir(ReverseDiagDir(GetRoadDepotDirection(tile)));
 		} else if (HasBit(prev_state, RVS_IN_DT_ROAD_STOP)) {
 			dir = (Trackdir)(prev_state & RVSB_ROAD_STOP_TRACKDIR_MASK);
-		} else if (prev_state < TRACKDIR_END) {
-			dir = (Trackdir)prev_state;
 		} else {
-			return INVALID_TRACKDIR;
+			assert(prev_state < TRACKDIR_END);
+			dir = (Trackdir)prev_state;
 		}
+
+		/* Do some sanity checking. */
+		static const RoadBits required_roadbits[] = {
+			ROAD_X,            ROAD_Y,            ROAD_NW | ROAD_NE, ROAD_SW | ROAD_SE,
+			ROAD_NW | ROAD_SW, ROAD_NE | ROAD_SE, ROAD_X,            ROAD_Y
+		};
+		RoadBits required = required_roadbits[dir & 0x07];
+
+		assert((required & GetAnyRoadBits(tile, v->roadtype, true)) != ROAD_NONE);
+
+		return dir;
 	}
-
-	/* Do some sanity checking. */
-	static const RoadBits required_roadbits[] = {
-		ROAD_X,            ROAD_Y,            ROAD_NW | ROAD_NE, ROAD_SW | ROAD_SE,
-		ROAD_NW | ROAD_SW, ROAD_NE | ROAD_SE, ROAD_X,            ROAD_Y
-	};
-	RoadBits required = required_roadbits[dir & 0x07];
-
-	if ((required & GetAnyRoadBits(tile, v->roadtype, true)) == ROAD_NONE) {
-		dir = INVALID_TRACKDIR;
-	}
-
-	return dir;
 }
 
 /**
@@ -1161,14 +1133,13 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 		if (v->IsFrontEngine()) {
 			/* If this is the front engine, look for the right path. */
 			dir = RoadFindPathToDest(v, tile, (DiagDirection)(rd.x & 3));
-		} else {
-			dir = FollowPreviousRoadVehicle(v, prev, tile, (DiagDirection)(rd.x & 3), false);
-		}
 
-		if (dir == INVALID_TRACKDIR) {
-			if (!v->IsFrontEngine()) error("Disconnecting road vehicle.");
-			v->cur_speed = 0;
-			return false;
+			if (dir == INVALID_TRACKDIR) {
+				v->cur_speed = 0;
+				return false;
+			}
+		} else {
+			dir = FollowPreviousRoadVehicle(v, prev, tile, (DiagDirection)(rd.x & 3));
 		}
 
 again:
@@ -1324,14 +1295,14 @@ again:
 			if (v->IsFrontEngine()) {
 				/* If this is the front engine, look for the right path. */
 				dir = RoadFindPathToDest(v, v->tile, (DiagDirection)(rd.x & 3));
-			} else {
-				dir = FollowPreviousRoadVehicle(v, prev, v->tile, (DiagDirection)(rd.x & 3), true);
-			}
-		}
 
-		if (dir == INVALID_TRACKDIR) {
-			v->cur_speed = 0;
-			return false;
+				if (dir == INVALID_TRACKDIR) {
+					v->cur_speed = 0;
+					return false;
+				}
+			} else {
+				dir = FollowPreviousRoadVehicle(v, prev, v->tile, (DiagDirection)(rd.x & 3));
+			}
 		}
 
 		const RoadDriveEntry *rdp = _road_drive_data[v->roadtype][(_settings_game.vehicle.road_side << RVS_DRIVE_SIDE) + dir];
