@@ -1372,9 +1372,9 @@ again:
 	 * and it's the correct type of stop (bus or truck) and the frame equals the stop frame...
 	 * (the station test and stop type test ensure that other vehicles, using the road stop as
 	 * a through route, do not stop) */
-	if (v->IsFrontEngine() && ((IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_ROAD_STOP_END) &&
-			_road_stop_stop_frame[v->state - RVSB_IN_ROAD_STOP + (_settings_game.vehicle.road_side << RVS_DRIVE_SIDE)] == v->frame) ||
-			(IsInsideMM(v->state, RVSB_IN_DT_ROAD_STOP, RVSB_IN_DT_ROAD_STOP_END) &&
+	if (v->IsFrontEngine() && ((HasBit(v->state, RVS_IN_ROAD_STOP) &&
+			_road_stop_stop_frame[_settings_game.vehicle.road_side][v->state & RVSB_TRACKDIR_MASK] == v->frame) ||
+			(HasBit(v->state, RVS_IN_DT_ROAD_STOP) &&
 			v->current_order.ShouldStopAtStation(v, GetStationIndex(v->tile)) &&
 			v->owner == GetTileOwner(v->tile) &&
 			GetRoadStopType(v->tile) == (v->IsBus() ? ROADSTOP_BUS : ROADSTOP_TRUCK) &&

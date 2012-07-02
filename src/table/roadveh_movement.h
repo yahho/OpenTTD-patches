@@ -1214,10 +1214,14 @@ static const RoadDriveEntry * const _road_drive_data[] = {
 };
 
 /** Table of road stop stop frames, when to stop at a road stop. */
-extern const byte _road_stop_stop_frame[] = {
+extern const byte _road_stop_stop_frame[2][TRACKDIR_END] = {
 	/* Duplicated left and right because of "entered stop" bit */
-	20, 20, 16, 16,  20, 20, 16, 16,
-	19, 19, 15, 15,  19, 19, 15, 15,
-	16, 16, 12, 12,  16, 16, 12, 12,
-	15, 15, 11, 11,  15, 15, 11, 11
+	{	/* left-side driving */
+		20, 20, 16, 16,  20, 20, 16, 16,
+		19, 19, 15, 15,  19, 19, 15, 15,
+	},
+	{	/* right-side driving */
+		16, 16, 12, 12,  16, 16, 12, 12,
+		15, 15, 11, 11,  15, 15, 11, 11,
+	},
 };
