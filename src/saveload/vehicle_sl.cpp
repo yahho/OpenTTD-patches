@@ -336,6 +336,15 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 			}
 		}
 
+		if (IsFullSavegameVersionBefore(stv, 2)) {
+			/* Shift bits in road vehicle state */
+			RoadVehicle *rv;
+			FOR_ALL_ROADVEHICLES(rv) {
+				if (rv->state < 0x80) rv->state = ((rv->state >> 1) & 0x30) | (rv->state & 0x0F);
+				rv->overtaking = (rv->overtaking != 0) ? 1 : 0;
+			}
+		}
+
 		if (IsOTTDSavegameVersionBefore(stv, 160)) {
 			/* In some old savegames there might be some "crap" stored. */
 			FOR_ALL_VEHICLES(v) {

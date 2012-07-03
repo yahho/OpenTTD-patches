@@ -244,7 +244,7 @@ void FixOldVehicles(const SavegameTypeVersion *stv)
 				ClrBit(rv->state, 2);
 				if (IsOldTileType(rv->tile, OLD_MP_STATION) && _mc[rv->tile].m5 >= 168) {
 					/* Update the vehicle's road state to show we're in a drive through road stop. */
-					SetBit(rv->state, RVS_IN_DT_ROAD_STOP);
+					SetBit(rv->state, 6);
 				}
 			}
 		}

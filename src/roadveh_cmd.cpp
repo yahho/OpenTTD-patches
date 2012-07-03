@@ -820,7 +820,7 @@ static void RoadVehCheckOvertake(RoadVehicle *v, RoadVehicle *u)
 	/* When the vehicle in front of us is stopped we may only take
 	 * half the time to pass it than when the vehicle is moving. */
 	v->overtaking_ctr = (od.u->cur_speed == 0 || (od.u->vehstatus & VS_STOPPED)) ? RV_OVERTAKE_TIMEOUT / 2 : 0;
-	v->overtaking = RVSB_DRIVE_SIDE;
+	v->overtaking = 1;
 }
 
 static void RoadZPosAffectSpeed(RoadVehicle *v, byte old_z)
@@ -965,7 +965,7 @@ static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 	v->direction = DiagDirToDir(dir);
 
 	Trackdir tdir = DiagDirToDiagTrackdir(dir);
-	const RoadDriveEntry *rdp = _road_drive_data[(_settings_game.vehicle.road_side << RVS_DRIVE_SIDE) + tdir];
+	const RoadDriveEntry *rdp = _road_drive_data[_settings_game.vehicle.road_side][tdir];
 
 	int x = TileX(v->tile) * TILE_SIZE + (rdp[RVC_DEPOT_START_FRAME].x & 0xF);
 	int y = TileY(v->tile) * TILE_SIZE + (rdp[RVC_DEPOT_START_FRAME].y & 0xF);
@@ -1109,9 +1109,9 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 	/* Get move position data for next frame.
 	 * For a drive-through road stop use 'straight road' move data.
 	 * In this case v->state is masked to give the road stop entry direction. */
-	RoadDriveEntry rd = _road_drive_data[(
-		(HasBit(v->state, RVS_IN_DT_ROAD_STOP) ? v->state & RVSB_ROAD_STOP_TRACKDIR_MASK : v->state) +
-		(_settings_game.vehicle.road_side << RVS_DRIVE_SIDE)) ^ v->overtaking][v->frame + 1];
+	RoadDriveEntry rd = _road_drive_data[_settings_game.vehicle.road_side ^ v->overtaking]
+		[HasBit(v->state, RVS_IN_DT_ROAD_STOP) ? (v->state & RVSB_ROAD_STOP_TRACKDIR_MASK) : v->state]
+		[v->frame + 1];
 
 	if (rd.x == RDE_NEXT_TILE) {
 		DiagDirection enterdir = (DiagDirection)(rd.y);
@@ -1191,7 +1191,7 @@ again:
 		}
 
 		/* Get position data for first frame on the new tile */
-		const RoadDriveEntry *rdp = _road_drive_data[(dir + (_settings_game.vehicle.road_side << RVS_DRIVE_SIDE)) ^ v->overtaking];
+		const RoadDriveEntry *rdp = _road_drive_data[_settings_game.vehicle.road_side ^ v->overtaking][dir];
 
 		int x = TileX(tile) * TILE_SIZE + rdp[start_frame].x;
 		int y = TileY(tile) * TILE_SIZE + rdp[start_frame].y;
@@ -1284,7 +1284,7 @@ again:
 			}
 		}
 
-		const RoadDriveEntry *rdp = _road_drive_data[(_settings_game.vehicle.road_side << RVS_DRIVE_SIDE) + dir];
+		const RoadDriveEntry *rdp = _road_drive_data[_settings_game.vehicle.road_side][dir];
 
 		int x = TileX(v->tile) * TILE_SIZE + rdp[RVC_AFTER_TURN_START_FRAME].x;
 		int y = TileY(v->tile) * TILE_SIZE + rdp[RVC_AFTER_TURN_START_FRAME].y;
