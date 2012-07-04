@@ -1135,9 +1135,19 @@ again:
 		if (IsReversingRoadTrackdir(dir)) {
 			/* When turning around we can't be overtaking. */
 			v->overtaking = 0;
+			bool use_long_corner;
 
 			/* Turning around */
-			if (v->roadtype == ROADTYPE_TRAM) {
+			if (v->roadtype == ROADTYPE_ROAD) {
+				/* Not a tram. */
+				if (IsNormalRoadTile(v->tile) && GetDisallowedRoadDirections(v->tile) != DRD_NONE) {
+					v->cur_speed = 0;
+					return false;
+				}
+				use_long_corner = false;
+			} else if (v->IsFrontEngine()) {
+				/* Tram front vehicle. */
+
 				/* Determine the road bits the tram needs to be able to turn around
 				 * using the 'big' corner loop. */
 				RoadBits needed;
@@ -1148,43 +1158,37 @@ again:
 					case TRACKDIR_RVREV_SW: needed = ROAD_NE; break;
 					case TRACKDIR_RVREV_NW: needed = ROAD_SE; break;
 				}
-				if ((v->Previous() != NULL && v->Previous()->tile == tile) ||
-						(v->IsFrontEngine() && IsNormalRoadTile(tile) && !HasRoadWorks(tile) &&
-							(needed & GetRoadBits(tile, ROADTYPE_TRAM)) != ROAD_NONE)) {
+				if (IsNormalRoadTile(tile) && !HasRoadWorks(tile) &&
+						(needed & GetRoadBits(tile, ROADTYPE_TRAM)) != ROAD_NONE) {
 					/*
-					 * Taking the 'big' corner for trams only happens when:
-					 * - The previous vehicle in this (articulated) tram chain is
-					 *   already on the 'next' tile, we just follow them regardless of
-					 *   anything. When it is NOT on the 'next' tile, the tram started
-					 *   doing a reversing turn when the piece of tram track on the next
-					 *   tile did not exist yet. Do not use the big tram loop as that is
-					 *   going to cause the tram to split up.
-					 * - Or the front of the tram can drive over the next tile.
+					 * Taking the 'big' corner for trams only happens when
+					 * the front of the tram can drive over the next tile.
 					 */
-					start_frame = RVC_LONG_TURN_START_FRAME;
-				} else if (!v->IsFrontEngine() || !CanBuildTramTrackOnTile(v->owner, tile, needed) || ((~needed & GetAnyRoadBits(v->tile, ROADTYPE_TRAM, false)) == ROAD_NONE)) {
+					use_long_corner = true;
+				} else if (!CanBuildTramTrackOnTile(v->owner, tile, needed) || ((~needed & GetAnyRoadBits(v->tile, ROADTYPE_TRAM, false)) == ROAD_NONE)) {
 					/*
-					 * Taking the 'small' corner for trams only happens when:
-					 * - We are not the from vehicle of an articulated tram.
-					 * - Or when the company cannot build on the next tile.
-					 *
-					 * The 'small' corner means that the vehicle is on the end of a
-					 * tram track and needs to start turning there. To do this properly
-					 * the tram needs to start at an offset in the tram turning 'code'
-					 * for 'big' corners. It furthermore does not go to the next tile,
-					 * so that needs to be fixed too.
+					 * Taking the 'small' corner for trams only happens when
+					 * the company cannot build on the next tile.
 					 */
-					tile = v->tile;
-					start_frame = RVC_SHORT_TURN_START_FRAME;
+					use_long_corner = false;
 				} else {
 					/* The company can build on the next tile, so wait till (s)he does. */
 					v->cur_speed = 0;
 					return false;
 				}
-			} else if (IsNormalRoadTile(v->tile) && GetDisallowedRoadDirections(v->tile) != DRD_NONE) {
-				v->cur_speed = 0;
-				return false;
 			} else {
+				/* Tram, not front vehicle. Just follow the previous vehicle. */
+				use_long_corner = (v->Previous()->tile == tile);
+			}
+
+			if (use_long_corner) {
+				start_frame = RVC_LONG_TURN_START_FRAME;
+			} else {
+				/*
+				 * The 'small' corner means that the vehicle is on the end of a
+				 * tram track and needs to start turning there. It therefore
+				 * does not go to the next tile, so that needs to be fixed.
+				 */
 				tile = v->tile;
 				start_frame = RVC_SHORT_TURN_START_FRAME;
 			}
