@@ -1267,7 +1267,7 @@ again:
 		DiagDirection enterdir = (DiagDirection)(rd.y);
 		Trackdir dir;
 
-		if (v->roadtype == ROADTYPE_TRAM && !IsRoadDepotTile(v->tile) && HasExactlyOneBit(GetAnyRoadBits(v->tile, ROADTYPE_TRAM, true))) {
+		if (v->roadtype == ROADTYPE_TRAM && IsNormalRoadTile(v->tile) && HasExactlyOneBit(GetRoadBits(v->tile, ROADTYPE_TRAM))) {
 			/*
 			 * The tram is turning around with one tram 'roadbit'. This means that
 			 * it is using the 'big' corner 'drive data'. When the tram reaches the
