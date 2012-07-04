@@ -1161,6 +1161,7 @@ again:
 					 *   going to cause the tram to split up.
 					 * - Or the front of the tram can drive over the next tile.
 					 */
+					start_frame = RVC_LONG_TURN_START_FRAME;
 				} else if (!v->IsFrontEngine() || !CanBuildTramTrackOnTile(v->owner, tile, needed) || ((~needed & GetAnyRoadBits(v->tile, ROADTYPE_TRAM, false)) == ROAD_NONE)) {
 					/*
 					 * Taking the 'small' corner for trams only happens when:
@@ -1174,7 +1175,7 @@ again:
 					 * so that needs to be fixed too.
 					 */
 					tile = v->tile;
-					start_frame = RVC_TURN_AROUND_START_FRAME_SHORT_TRAM;
+					start_frame = RVC_SHORT_TURN_START_FRAME;
 				} else {
 					/* The company can build on the next tile, so wait till (s)he does. */
 					v->cur_speed = 0;
@@ -1185,6 +1186,7 @@ again:
 				return false;
 			} else {
 				tile = v->tile;
+				start_frame = RVC_SHORT_TURN_START_FRAME;
 			}
 		}
 
@@ -1284,8 +1286,8 @@ again:
 
 		const RoadDriveEntry *rdp = _road_drive_data[v->roadtype][(_settings_game.vehicle.road_side << RVS_DRIVE_SIDE) + dir];
 
-		int x = TileX(v->tile) * TILE_SIZE + rdp[RVC_TURN_AROUND_START_FRAME].x;
-		int y = TileY(v->tile) * TILE_SIZE + rdp[RVC_TURN_AROUND_START_FRAME].y;
+		int x = TileX(v->tile) * TILE_SIZE + rdp[RVC_AFTER_TURN_START_FRAME].x;
+		int y = TileY(v->tile) * TILE_SIZE + rdp[RVC_AFTER_TURN_START_FRAME].y;
 
 		Direction new_dir = RoadVehGetSlidingDirection(v, x, y);
 		if (v->IsFrontEngine() && RoadVehFindCloseTo(v, x, y, new_dir) != NULL) return false;
@@ -1297,7 +1299,7 @@ again:
 		}
 
 		v->state = dir;
-		v->frame = RVC_TURN_AROUND_START_FRAME;
+		v->frame = RVC_AFTER_TURN_START_FRAME;
 
 		if (new_dir != v->direction) {
 			v->direction = new_dir;

@@ -68,9 +68,10 @@ static const uint RDE_TURNED    = 0x40; ///< We just finished turning
  * For trams there are a few different start frames as there are two
  * places where trams can turn. */
 static const uint RVC_DEFAULT_START_FRAME                =  0;
-static const uint RVC_TURN_AROUND_START_FRAME            =  1;
+static const uint RVC_SHORT_TURN_START_FRAME             = 16;
+static const uint RVC_LONG_TURN_START_FRAME              =  0;
+static const uint RVC_AFTER_TURN_START_FRAME             =  1;
 static const uint RVC_DEPOT_START_FRAME                  =  6;
-static const uint RVC_TURN_AROUND_START_FRAME_SHORT_TRAM = 16;
 /* Stop frame for a vehicle in a drive-through stop */
 static const uint RVC_DRIVE_THROUGH_STOP_FRAME           = 11;
 static const uint RVC_DEPOT_STOP_FRAME                   = 11;
