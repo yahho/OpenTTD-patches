@@ -70,7 +70,6 @@ static const uint RDE_TURNED    = 0x40; ///< We just finished turning
 static const uint RVC_DEFAULT_START_FRAME                =  0;
 static const uint RVC_TURN_AROUND_START_FRAME            =  1;
 static const uint RVC_DEPOT_START_FRAME                  =  6;
-static const uint RVC_START_FRAME_AFTER_LONG_TRAM        = 21;
 static const uint RVC_TURN_AROUND_START_FRAME_SHORT_TRAM = 16;
 /* Stop frame for a vehicle in a drive-through stop */
 static const uint RVC_DRIVE_THROUGH_STOP_FRAME           = 11;

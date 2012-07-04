@@ -1260,26 +1260,14 @@ again:
 		/* Vehicle has finished turning around, it will now head back onto the same tile */
 		DiagDirection enterdir = (DiagDirection)(rd.y);
 		Trackdir dir;
-		uint turn_around_start_frame = RVC_TURN_AROUND_START_FRAME;
 
 		if (v->roadtype == ROADTYPE_TRAM && !IsRoadDepotTile(v->tile) && HasExactlyOneBit(GetAnyRoadBits(v->tile, ROADTYPE_TRAM, true))) {
 			/*
 			 * The tram is turning around with one tram 'roadbit'. This means that
-			 * it is using the 'big' corner 'drive data'. However, to support the
-			 * trams to take a small corner, there is a 'turned' marker in the middle
-			 * of the turning 'drive data'. When the tram took the long corner, we
-			 * will still use the 'big' corner drive data, but we advance it one
-			 * frame. We furthermore set the driving direction so the turning is
-			 * going to be properly shown.
+			 * it is using the 'big' corner 'drive data'. When the tram reaches the
+			 * 'turned' marker, we switch it to the corresponding straight drive data.
 			 */
-			turn_around_start_frame = RVC_START_FRAME_AFTER_LONG_TRAM;
-			switch (enterdir) {
-				default: NOT_REACHED();
-				case DIAGDIR_NW: dir = TRACKDIR_RVREV_SE; break;
-				case DIAGDIR_NE: dir = TRACKDIR_RVREV_SW; break;
-				case DIAGDIR_SE: dir = TRACKDIR_RVREV_NW; break;
-				case DIAGDIR_SW: dir = TRACKDIR_RVREV_NE; break;
-			}
+			dir = DiagDirToDiagTrackdir(enterdir);
 		} else {
 			if (v->IsFrontEngine()) {
 				/* If this is the front engine, look for the right path. */
@@ -1296,8 +1284,8 @@ again:
 
 		const RoadDriveEntry *rdp = _road_drive_data[v->roadtype][(_settings_game.vehicle.road_side << RVS_DRIVE_SIDE) + dir];
 
-		int x = TileX(v->tile) * TILE_SIZE + rdp[turn_around_start_frame].x;
-		int y = TileY(v->tile) * TILE_SIZE + rdp[turn_around_start_frame].y;
+		int x = TileX(v->tile) * TILE_SIZE + rdp[RVC_TURN_AROUND_START_FRAME].x;
+		int y = TileY(v->tile) * TILE_SIZE + rdp[RVC_TURN_AROUND_START_FRAME].y;
 
 		Direction new_dir = RoadVehGetSlidingDirection(v, x, y);
 		if (v->IsFrontEngine() && RoadVehFindCloseTo(v, x, y, new_dir) != NULL) return false;
@@ -1309,7 +1297,7 @@ again:
 		}
 
 		v->state = dir;
-		v->frame = turn_around_start_frame;
+		v->frame = RVC_TURN_AROUND_START_FRAME;
 
 		if (new_dir != v->direction) {
 			v->direction = new_dir;
