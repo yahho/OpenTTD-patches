@@ -965,7 +965,7 @@ static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 	v->direction = DiagDirToDir(dir);
 
 	Trackdir tdir = DiagDirToDiagTrackdir(dir);
-	const RoadDriveEntry *rdp = _road_drive_data[v->roadtype][(_settings_game.vehicle.road_side << RVS_DRIVE_SIDE) + tdir];
+	const RoadDriveEntry *rdp = _road_drive_data[(_settings_game.vehicle.road_side << RVS_DRIVE_SIDE) + tdir];
 
 	int x = TileX(v->tile) * TILE_SIZE + (rdp[RVC_DEPOT_START_FRAME].x & 0xF);
 	int y = TileY(v->tile) * TILE_SIZE + (rdp[RVC_DEPOT_START_FRAME].y & 0xF);
@@ -1109,7 +1109,7 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 	/* Get move position data for next frame.
 	 * For a drive-through road stop use 'straight road' move data.
 	 * In this case v->state is masked to give the road stop entry direction. */
-	RoadDriveEntry rd = _road_drive_data[v->roadtype][(
+	RoadDriveEntry rd = _road_drive_data[(
 		(HasBit(v->state, RVS_IN_DT_ROAD_STOP) ? v->state & RVSB_ROAD_STOP_TRACKDIR_MASK : v->state) +
 		(_settings_game.vehicle.road_side << RVS_DRIVE_SIDE)) ^ v->overtaking][v->frame + 1];
 
@@ -1191,7 +1191,7 @@ again:
 		}
 
 		/* Get position data for first frame on the new tile */
-		const RoadDriveEntry *rdp = _road_drive_data[v->roadtype][(dir + (_settings_game.vehicle.road_side << RVS_DRIVE_SIDE)) ^ v->overtaking];
+		const RoadDriveEntry *rdp = _road_drive_data[(dir + (_settings_game.vehicle.road_side << RVS_DRIVE_SIDE)) ^ v->overtaking];
 
 		int x = TileX(tile) * TILE_SIZE + rdp[start_frame].x;
 		int y = TileY(tile) * TILE_SIZE + rdp[start_frame].y;
@@ -1284,7 +1284,7 @@ again:
 			}
 		}
 
-		const RoadDriveEntry *rdp = _road_drive_data[v->roadtype][(_settings_game.vehicle.road_side << RVS_DRIVE_SIDE) + dir];
+		const RoadDriveEntry *rdp = _road_drive_data[(_settings_game.vehicle.road_side << RVS_DRIVE_SIDE) + dir];
 
 		int x = TileX(v->tile) * TILE_SIZE + rdp[RVC_AFTER_TURN_START_FRAME].x;
 		int y = TileY(v->tile) * TILE_SIZE + rdp[RVC_AFTER_TURN_START_FRAME].y;
