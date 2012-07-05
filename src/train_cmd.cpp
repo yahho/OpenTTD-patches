@@ -40,7 +40,7 @@
 
 static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck);
 static bool TrainCheckIfLineEnds(Train *v, bool reverse = true);
-static VehicleEnterTileStatus TrainEnterTile(Train *v, TileIndex tile, int x, int y);
+static StationID TrainEnterTile(Train *v, TileIndex tile, int x, int y);
 bool TrainController(Train *v, Vehicle *nomove, bool reverse = true); // Also used in vehicle_sl.cpp.
 static TileIndex TrainApproachingCrossingTile(const Train *v);
 static void CheckIfTrainNeedsService(Train *v);
@@ -3039,9 +3039,9 @@ static Vehicle *CheckTrainAtSignal(Vehicle *v, void *data)
  * Tile callback routine when vehicle enters a track tile
  * @see vehicle_enter_tile_proc
  */
-static VehicleEnterTileStatus TrainEnter_Track(Train *v, TileIndex tile, int x, int y)
+static void TrainEnter_Track(Train *v, TileIndex tile, int x, int y)
 {
-	if (IsTileSubtype(tile, TT_TRACK)) return VETSB_CONTINUE;
+	if (IsTileSubtype(tile, TT_TRACK)) return;
 
 	assert(abs((int)(GetSlopePixelZ(x, y) - v->z_pos)) < 3);
 
@@ -3049,8 +3049,6 @@ static VehicleEnterTileStatus TrainEnter_Track(Train *v, TileIndex tile, int x, 
 	uint16 spd = GetBridgeSpec(GetRailBridgeType(tile))->speed;
 	Vehicle *first = v->First();
 	first->cur_speed = min(first->cur_speed, spd);
-
-	return VETSB_CONTINUE;
 }
 
 /**
@@ -3084,7 +3082,7 @@ int TicksToLeaveDepot(const Train *v)
 	return 0; // make compilers happy
 }
 
-static VehicleEnterTileStatus TrainEnter_Misc(Train *u, TileIndex tile, int x, int y)
+static void TrainEnter_Misc(Train *u, TileIndex tile, int x, int y)
 {
 	switch (GetTileSubtype(tile)) {
 		default: break;
@@ -3157,15 +3155,13 @@ static VehicleEnterTileStatus TrainEnter_Misc(Train *u, TileIndex tile, int x, i
 			break;
 		}
 	}
-
-	return VETSB_CONTINUE;
 }
 
-static VehicleEnterTileStatus TrainEnter_Station(Train *v, TileIndex tile, int x, int y)
+static StationID TrainEnter_Station(Train *v, TileIndex tile, int x, int y)
 {
 	StationID station_id = GetStationIndex(tile);
-	if (!v->current_order.ShouldStopAtStation(v, station_id)) return VETSB_CONTINUE;
-	if (!IsRailStation(tile) || !v->IsFrontEngine()) return VETSB_CONTINUE;
+	if (!v->current_order.ShouldStopAtStation(v, station_id)) return INVALID_STATION;
+	if (!IsRailStation(tile) || !v->IsFrontEngine()) return INVALID_STATION;
 
 	int station_ahead;
 	int station_length;
@@ -3175,7 +3171,7 @@ static VehicleEnterTileStatus TrainEnter_Station(Train *v, TileIndex tile, int x
 	 * begin of the platform to the stop location is longer than the length
 	 * of the platform. Station ahead 'includes' the current tile where the
 	 * vehicle is on, so we need to subtract that. */
-	if (stop + station_ahead - (int)TILE_SIZE >= station_length) return VETSB_CONTINUE;
+	if (stop + station_ahead - (int)TILE_SIZE >= station_length) return INVALID_STATION;
 
 	DiagDirection dir = DirToDiagDir(v->direction);
 
@@ -3187,14 +3183,14 @@ static VehicleEnterTileStatus TrainEnter_Station(Train *v, TileIndex tile, int x
 		if (dir != DIAGDIR_SE && dir != DIAGDIR_SW) x = TILE_SIZE - 1 - x;
 		stop &= TILE_SIZE - 1;
 
-		if (x >= stop) return VETSB_ENTERED_STATION | (VehicleEnterTileStatus)(station_id << VETS_STATION_ID_OFFSET); // enter station
+		if (x >= stop) return station_id; // enter station
 
 		v->vehstatus |= VS_TRAIN_SLOWING;
 		uint16 spd = max(0, (stop - x) * 20 - 15);
 		if (spd < v->cur_speed) v->cur_speed = spd;
 	}
 
-	return VETSB_CONTINUE;
+	return INVALID_STATION;
 }
 
 /**
@@ -3203,23 +3199,26 @@ static VehicleEnterTileStatus TrainEnter_Station(Train *v, TileIndex tile, int x
  * @param tile Tile entered
  * @param x    X position
  * @param y    Y position
- * @return Some meta-data over the to be entered tile.
- * @see VehicleEnterTileStatus to see what the bits in the return value mean.
+ * @return Station ID of an entered station, or INVALID_STATION otherwise
  */
-static VehicleEnterTileStatus TrainEnterTile(Train *v, TileIndex tile, int x, int y)
+static StationID TrainEnterTile(Train *v, TileIndex tile, int x, int y)
 {
 	switch (GetTileType(tile)) {
 		default: NOT_REACHED();
 
 		case TT_RAILWAY:
-			return TrainEnter_Track(v, tile, x, y);
+			TrainEnter_Track(v, tile, x, y);
+			break;
 
 		case TT_MISC:
-			return TrainEnter_Misc(v, tile, x, y);
+			TrainEnter_Misc(v, tile, x, y);
+			break;
 
 		case TT_STATION:
 			return TrainEnter_Station(v, tile, x, y);
 	}
+
+	return INVALID_STATION;
 }
 
 /**
@@ -3274,10 +3273,10 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			/* Reverse when we are at the end of the track already, do not move to the new position */
 			if (v->IsFrontEngine() && !TrainCheckIfLineEnds(v, reverse)) return false;
 
-			uint32 r = TrainEnterTile(v, gp.new_tile, gp.x, gp.y);
-			if (HasBit(r, VETS_ENTERED_STATION)) {
+			StationID sid = TrainEnterTile(v, gp.new_tile, gp.x, gp.y);
+			if (sid != INVALID_STATION) {
 				/* The new position is the end of the platform */
-				TrainEnterStation(v, r >> VETS_STATION_ID_OFFSET);
+				TrainEnterStation(v, sid);
 			}
 		} else {
 			/* Not inside tunnel or depot, about to enter a new tile */
@@ -3445,7 +3444,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			Direction chosen_dir = (Direction)b[2];
 
 			/* Call the landscape function and tell it that the vehicle entered the tile */
-			uint32 r = TrainEnterTile(v, gp.new_tile, gp.x, gp.y);
+			StationID sid = TrainEnterTile(v, gp.new_tile, gp.x, gp.y);
 
 			if (v->IsFrontEngine() && HasPbsSignalOnTrackdir(gp.new_tile, chosen_trackdir)) {
 				SetSignalStateByTrackdir(gp.new_tile, chosen_trackdir, SIGNAL_STATE_RED);
@@ -3489,9 +3488,9 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				CheckNextTrainTile(v);
 			}
 
-			if (HasBit(r, VETS_ENTERED_STATION)) {
+			if (sid != INVALID_STATION) {
 				/* The new position is the location where we want to stop */
-				TrainEnterStation(v, r >> VETS_STATION_ID_OFFSET);
+				TrainEnterStation(v, sid);
 			}
 		}
 
