@@ -20,23 +20,9 @@
 
 /** The returned bits of VehicleEnterTile. */
 enum VehicleEnterTileStatus {
-	VETS_ENTERED_STATION  = 1, ///< The vehicle entered a station
-	VETS_ENTERED_WORMHOLE = 2, ///< The vehicle either entered a bridge, tunnel or depot tile
-	VETS_CANNOT_ENTER     = 3, ///< The vehicle cannot enter the tile
-
-	/**
-	 * Shift the VehicleEnterTileStatus this many bits
-	 * to the right to get the station ID when
-	 * VETS_ENTERED_STATION is set
-	 */
-	VETS_STATION_ID_OFFSET = 8,
-	VETS_STATION_MASK      = 0xFFFF << VETS_STATION_ID_OFFSET,
-
-	/** Bit sets of the above specified bits */
-	VETSB_CONTINUE         = 0,                          ///< The vehicle can continue normally
-	VETSB_ENTERED_STATION  = 1 << VETS_ENTERED_STATION,  ///< The vehicle entered a station
-	VETSB_ENTERED_WORMHOLE = 1 << VETS_ENTERED_WORMHOLE, ///< The vehicle either entered a bridge, tunnel or depot tile
-	VETSB_CANNOT_ENTER     = 1 << VETS_CANNOT_ENTER,     ///< The vehicle cannot enter the tile
+	VETS_CONTINUE         = 0, ///< The vehicle can continue normally
+	VETS_ENTERED_WORMHOLE = 1, ///< The vehicle either entered a bridge, tunnel or depot tile
+	VETS_CANNOT_ENTER     = 2, ///< The vehicle cannot enter the tile
 };
 DECLARE_ENUM_AS_BIT_SET(VehicleEnterTileStatus)
 

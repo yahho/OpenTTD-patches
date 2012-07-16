@@ -717,7 +717,7 @@ int RoadVehicle::UpdateSpeed()
 
 static VehicleEnterTileStatus RoadVehEnter_Road(RoadVehicle *v, TileIndex tile, int x, int y)
 {
-	if (IsTileSubtype(tile, TT_TRACK)) return VETSB_CONTINUE;
+	if (IsTileSubtype(tile, TT_TRACK)) return VETS_CONTINUE;
 
 	assert(abs((int)(GetSlopePixelZ(x, y) - v->z_pos)) < 3);
 
@@ -726,7 +726,7 @@ static VehicleEnterTileStatus RoadVehEnter_Road(RoadVehicle *v, TileIndex tile, 
 	Vehicle *first = v->First();
 	first->cur_speed = min(first->cur_speed, spd);
 
-	return VETSB_CONTINUE;
+	return VETS_CONTINUE;
 }
 
 extern const byte _tunnel_visibility_frame[DIAGDIR_END];
@@ -764,7 +764,7 @@ static VehicleEnterTileStatus RoadVehEnter_Misc(RoadVehicle *u, TileIndex tile, 
 					assert(frame == u->frame + 1);
 					u->vehstatus |= VS_HIDDEN;
 				}
-				return VETSB_CONTINUE;
+				return VETS_CONTINUE;
 			}
 
 			/* We're at the tunnel exit ?? */
@@ -789,13 +789,13 @@ static VehicleEnterTileStatus RoadVehEnter_Misc(RoadVehicle *u, TileIndex tile, 
 				u->tile = tile;
 
 				InvalidateWindowData(WC_VEHICLE_DEPOT, u->tile);
-				return VETSB_ENTERED_WORMHOLE;
+				return VETS_ENTERED_WORMHOLE;
 			}
 
 			break;
 	}
 
-	return VETSB_CONTINUE;
+	return VETS_CONTINUE;
 }
 
 static VehicleEnterTileStatus RoadVehEnter_Station(RoadVehicle *v, TileIndex tile, int x, int y)
@@ -803,11 +803,11 @@ static VehicleEnterTileStatus RoadVehEnter_Station(RoadVehicle *v, TileIndex til
 	if (v->state < RVSB_IN_ROAD_STOP && !IsReversingRoadTrackdir((Trackdir)v->state) && v->frame == 0) {
 		if (IsRoadStop(tile) && v->IsFrontEngine()) {
 			/* Attempt to allocate a parking bay in a road stop */
-			return RoadStop::GetByTile(tile, GetRoadStopType(tile))->Enter(v) ? VETSB_CONTINUE : VETSB_CANNOT_ENTER;
+			return RoadStop::GetByTile(tile, GetRoadStopType(tile))->Enter(v) ? VETS_CONTINUE : VETS_CANNOT_ENTER;
 		}
 	}
 
-	return VETSB_CONTINUE;
+	return VETS_CONTINUE;
 }
 
 /**
@@ -1390,7 +1390,7 @@ again:
 		}
 
 		uint32 r = RoadVehEnterTile(v, tile, x, y);
-		if (HasBit(r, VETS_CANNOT_ENTER)) {
+		if (r == VETS_CANNOT_ENTER) {
 			if (!IsTunnelTile(tile) && !IsBridgeHeadTile(tile)) {
 				v->cur_speed = 0;
 				return false;
@@ -1426,7 +1426,7 @@ again:
 			}
 		}
 
-		if (!HasBit(r, VETS_ENTERED_WORMHOLE)) {
+		if (r != VETS_ENTERED_WORMHOLE) {
 			v->tile = tile;
 			v->state = (byte)dir;
 			v->frame = start_frame;
@@ -1477,7 +1477,7 @@ again:
 		if (v->IsFrontEngine() && RoadVehFindCloseTo(v, x, y, new_dir) != NULL) return false;
 
 		uint32 r = RoadVehEnterTile(v, v->tile, x, y);
-		if (HasBit(r, VETS_CANNOT_ENTER)) {
+		if (r == VETS_CANNOT_ENTER) {
 			v->cur_speed = 0;
 			return false;
 		}
@@ -1616,7 +1616,7 @@ again:
 	/* Check tile position conditions - i.e. stop position in depot,
 	 * entry onto bridge or into tunnel */
 	uint32 r = RoadVehEnterTile(v, v->tile, x, y);
-	if (HasBit(r, VETS_CANNOT_ENTER)) {
+	if (r == VETS_CANNOT_ENTER) {
 		v->cur_speed = 0;
 		return false;
 	}
@@ -1627,7 +1627,7 @@ again:
 
 	/* Move to next frame unless vehicle arrived at a stop position
 	 * in a depot or entered a tunnel/bridge */
-	if (!HasBit(r, VETS_ENTERED_WORMHOLE)) v->frame++;
+	if (r != VETS_ENTERED_WORMHOLE) v->frame++;
 	v->x_pos = x;
 	v->y_pos = y;
 	VehicleUpdatePosition(v);
