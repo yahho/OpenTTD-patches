@@ -47,14 +47,14 @@ assert_compile(sizeof(_original_railtypes) <= sizeof(_railtypes));
 
 /** Enum holding the signal offset in the sprite sheet according to the side it is representing. */
 enum SignalOffsets {
-	SIGNAL_TO_SOUTHWEST,
 	SIGNAL_TO_NORTHEAST,
+	SIGNAL_TO_SOUTHWEST,
 	SIGNAL_TO_SOUTHEAST,
 	SIGNAL_TO_NORTHWEST,
-	SIGNAL_TO_EAST,
 	SIGNAL_TO_WEST,
-	SIGNAL_TO_SOUTH,
+	SIGNAL_TO_EAST,
 	SIGNAL_TO_NORTH,
+	SIGNAL_TO_SOUTH,
 };
 
 /**
@@ -101,8 +101,8 @@ void ResolveRailTypeGUISprites(RailtypeInfo *rti)
 		for (SignalVariant var = SIG_ELECTRIC; var <= SIG_SEMAPHORE; var = (SignalVariant)(var + 1)) {
 			SpriteID red   = GetCustomSignalSprite(rti, INVALID_TILE, type, var, SIGNAL_STATE_RED, true);
 			SpriteID green = GetCustomSignalSprite(rti, INVALID_TILE, type, var, SIGNAL_STATE_GREEN, true);
-			rti->gui_sprites.signals[type][var][0] = (red != 0)   ? red + SIGNAL_TO_SOUTH   : _signal_lookup[var][type];
-			rti->gui_sprites.signals[type][var][1] = (green != 0) ? green + SIGNAL_TO_SOUTH : _signal_lookup[var][type] + 1;
+			rti->gui_sprites.signals[type][var][0] = (red != 0)   ? red + SIGNAL_TO_NORTH   : _signal_lookup[var][type];
+			rti->gui_sprites.signals[type][var][1] = (green != 0) ? green + SIGNAL_TO_NORTH : _signal_lookup[var][type] + 1;
 		}
 	}
 }
@@ -2311,27 +2311,27 @@ static void DrawSignals(TileIndex tile, TrackBits rails, const RailtypeInfo *rti
 #define MAYBE_DRAW_SIGNAL(x, y, z, t) if (IsSignalPresent(tile, x)) DrawSingleSignal(tile, rti, t, GetSingleSignalState(tile, x), y, z)
 
 	if (rails & TRACK_BIT_Y) {
-		MAYBE_DRAW_SIGNAL(3, SIGNAL_TO_SOUTHEAST, 10, TRACK_Y);
-		MAYBE_DRAW_SIGNAL(2, SIGNAL_TO_NORTHWEST, 11, TRACK_Y);
+		MAYBE_DRAW_SIGNAL(3, SIGNAL_TO_NORTHWEST, 10, TRACK_Y);
+		MAYBE_DRAW_SIGNAL(2, SIGNAL_TO_SOUTHEAST, 11, TRACK_Y);
 	} else if (rails & TRACK_BIT_X) {
 		MAYBE_DRAW_SIGNAL(3, SIGNAL_TO_SOUTHWEST, 8, TRACK_X);
 		MAYBE_DRAW_SIGNAL(2, SIGNAL_TO_NORTHEAST, 9, TRACK_X);
 	} else {
 		if (rails & TRACK_BIT_LEFT) {
-			MAYBE_DRAW_SIGNAL(2, SIGNAL_TO_NORTH, 0, TRACK_LEFT);
-			MAYBE_DRAW_SIGNAL(3, SIGNAL_TO_SOUTH, 1, TRACK_LEFT);
+			MAYBE_DRAW_SIGNAL(2, SIGNAL_TO_SOUTH, 0, TRACK_LEFT);
+			MAYBE_DRAW_SIGNAL(3, SIGNAL_TO_NORTH, 1, TRACK_LEFT);
 		}
 		if (rails & TRACK_BIT_RIGHT) {
-			MAYBE_DRAW_SIGNAL(0, SIGNAL_TO_NORTH, 2, TRACK_RIGHT);
-			MAYBE_DRAW_SIGNAL(1, SIGNAL_TO_SOUTH, 3, TRACK_RIGHT);
+			MAYBE_DRAW_SIGNAL(0, SIGNAL_TO_SOUTH, 2, TRACK_RIGHT);
+			MAYBE_DRAW_SIGNAL(1, SIGNAL_TO_NORTH, 3, TRACK_RIGHT);
 		}
 		if (rails & TRACK_BIT_UPPER) {
-			MAYBE_DRAW_SIGNAL(3, SIGNAL_TO_WEST, 4, TRACK_UPPER);
-			MAYBE_DRAW_SIGNAL(2, SIGNAL_TO_EAST, 5, TRACK_UPPER);
+			MAYBE_DRAW_SIGNAL(3, SIGNAL_TO_EAST, 4, TRACK_UPPER);
+			MAYBE_DRAW_SIGNAL(2, SIGNAL_TO_WEST, 5, TRACK_UPPER);
 		}
 		if (rails & TRACK_BIT_LOWER) {
-			MAYBE_DRAW_SIGNAL(1, SIGNAL_TO_WEST, 6, TRACK_LOWER);
-			MAYBE_DRAW_SIGNAL(0, SIGNAL_TO_EAST, 7, TRACK_LOWER);
+			MAYBE_DRAW_SIGNAL(1, SIGNAL_TO_EAST, 6, TRACK_LOWER);
+			MAYBE_DRAW_SIGNAL(0, SIGNAL_TO_WEST, 7, TRACK_LOWER);
 		}
 	}
 }
