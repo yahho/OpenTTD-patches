@@ -97,12 +97,10 @@ public:
 	 * Check whether a ship should reverse to reach its destination.
 	 * Called when leaving depot.
 	 * @param v Ship
-	 * @param tile Current position
-	 * @param td1 Forward direction
-	 * @param td2 Reverse direction
+	 * @param pos Current position
 	 * @return true if the reverse direction is better
 	 */
-	static bool CheckShipReverse(const Ship *v, TileIndex tile, Trackdir td1, Trackdir td2)
+	static bool CheckShipReverse(const Ship *v, const PFPos &pos)
 	{
 		/* get available trackdirs on the destination tile */
 		TrackdirBits dest_trackdirs = TrackStatusToTrackdirBits(GetTileTrackStatus(v->dest_tile, TRANSPORT_WATER, 0));
@@ -110,7 +108,7 @@ public:
 		/* create pathfinder instance */
 		Tpf pf;
 		/* set origin and destination nodes */
-		pf.SetOrigin(tile, TrackdirToTrackdirBits(td1) | TrackdirToTrackdirBits(td2));
+		pf.SetOrigin(pos.tile, TrackdirToTrackdirBits(pos.td) | TrackdirToTrackdirBits(ReverseTrackdir(pos.td)));
 		pf.SetDestination(v->dest_tile, dest_trackdirs);
 		/* find best path */
 		if (!pf.FindPath(v)) return false;
@@ -125,8 +123,8 @@ public:
 		}
 
 		Trackdir best_trackdir = pNode->GetPos().td;
-		assert(best_trackdir == td1 || best_trackdir == td2);
-		return best_trackdir == td2;
+		assert(best_trackdir == pos.td || best_trackdir == ReverseTrackdir(pos.td));
+		return best_trackdir != pos.td;
 	}
 };
 
@@ -231,7 +229,7 @@ bool YapfShipCheckReverse(const Ship *v)
 {
 	PFPos pos = v->GetPos();
 
-	typedef bool (*PfnCheckReverseShip)(const Ship*, TileIndex, Trackdir, Trackdir);
+	typedef bool (*PfnCheckReverseShip)(const Ship*, const PFPos&);
 	PfnCheckReverseShip pfnCheckReverseShip = CYapfShip2::CheckShipReverse; // default: ExitDir, allow 90-deg
 
 	/* check if non-default YAPF type needed */
@@ -241,7 +239,7 @@ bool YapfShipCheckReverse(const Ship *v)
 		pfnCheckReverseShip = &CYapfShip1::CheckShipReverse; // Trackdir, allow 90-deg
 	}
 
-	bool reverse = pfnCheckReverseShip(v, pos.tile, pos.td, ReverseTrackdir(pos.td));
+	bool reverse = pfnCheckReverseShip(v, pos);
 
 	return reverse;
 }
