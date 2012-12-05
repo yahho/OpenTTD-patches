@@ -46,7 +46,8 @@ enum SavegameType {
 void GenerateDefaultSaveName(char *buf, const char *last);
 void SetSaveLoadError(uint16 str);
 const char *GetSaveLoadErrorString();
-SaveOrLoadResult SaveOrLoad(const char *filename, int mode, Subdirectory sb, bool threaded = true);
+SaveOrLoadResult SaveGame(const char *filename, Subdirectory sb, bool threaded = true);
+SaveOrLoadResult LoadGame(const char *filename, int mode, Subdirectory sb);
 void WaitTillSaved();
 void ProcessAsyncSaveFinish();
 void DoExitSave();

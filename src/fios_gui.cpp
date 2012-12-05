@@ -564,7 +564,7 @@ public:
 							_load_check_data.Clear();
 
 							if (file->type == FIOS_TYPE_FILE || file->type == FIOS_TYPE_SCENARIO) {
-								SaveOrLoad(name, SL_LOAD_CHECK, NO_DIRECTORY, false);
+								LoadGame(name, SL_LOAD_CHECK, NO_DIRECTORY);
 							}
 
 							this->InvalidateData(1);

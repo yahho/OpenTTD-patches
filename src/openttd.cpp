@@ -327,7 +327,7 @@ static void LoadIntroGame(bool load_newgrfs = true)
 	SetupColoursAndInitialWindow();
 
 	/* Load the default opening screen savegame */
-	if (SaveOrLoad("opntitle.dat", SL_LOAD, BASESET_DIR) != SL_OK) {
+	if (LoadGame("opntitle.dat", SL_LOAD, BASESET_DIR) != SL_OK) {
 		GenerateWorld(GWM_EMPTY, 64, 64); // if failed loading, make empty world.
 		WaitTillGeneratedWorld();
 		SetLocalCompany(COMPANY_SPECTATOR);
@@ -644,7 +644,7 @@ int openttd_main(int argc, char *argv[])
 			FiosGetSavegameListCallback(SLD_LOAD_GAME, mgo.opt, strrchr(mgo.opt, '.'), title, lastof(title));
 
 			_load_check_data.Clear();
-			SaveOrLoadResult res = SaveOrLoad(mgo.opt, SL_LOAD_CHECK, SAVE_DIR, false);
+			SaveOrLoadResult res = LoadGame(mgo.opt, SL_LOAD_CHECK, SAVE_DIR);
 			if (res != SL_OK || _load_check_data.HasErrors()) {
 				fprintf(stderr, "Failed to open savegame\n");
 				if (_load_check_data.HasErrors()) {
@@ -973,7 +973,7 @@ bool SafeLoad(const char *filename, int mode, GameMode newgm, Subdirectory subdi
 
 	_game_mode = newgm;
 
-	switch (lf == NULL ? SaveOrLoad(filename, mode, subdir) : LoadWithFilter(lf)) {
+	switch (lf == NULL ? LoadGame(filename, mode, subdir) : LoadWithFilter(lf)) {
 		case SL_OK: return true;
 
 		case SL_REINIT:
@@ -1125,7 +1125,7 @@ void SwitchToMode(SwitchMode new_mode)
 
 		case SM_SAVE_GAME: // Save game.
 			/* Make network saved games on pause compatible to singleplayer */
-			if (SaveOrLoad(_file_to_saveload.name, SL_SAVE, NO_DIRECTORY) != SL_OK) {
+			if (SaveGame(_file_to_saveload.name, NO_DIRECTORY) != SL_OK) {
 				SetDParamStr(0, GetSaveLoadErrorString());
 				ShowErrorMessage(STR_JUST_RAW_STRING, INVALID_STRING_ID, WL_ERROR);
 			} else {
@@ -1335,7 +1335,7 @@ void StateGameLoop()
 			/* Save the desync savegame if needed. */
 			char name[MAX_PATH];
 			snprintf(name, lengthof(name), "dmp_cmds_%08x_%08x.sav", _settings_game.game_creation.generation_seed, _date);
-			SaveOrLoad(name, SL_SAVE, AUTOSAVE_DIR, false);
+			SaveGame(name, AUTOSAVE_DIR, false);
 		}
 
 		CheckCaches();
@@ -1389,7 +1389,7 @@ static void DoAutosave()
 	}
 
 	DEBUG(sl, 2, "Autosaving to '%s'", buf);
-	if (SaveOrLoad(buf, SL_SAVE, AUTOSAVE_DIR) != SL_OK) {
+	if (SaveGame(buf, AUTOSAVE_DIR) != SL_OK) {
 		ShowErrorMessage(STR_ERROR_AUTOSAVE_FAILED, INVALID_STRING_ID, WL_ERROR);
 	}
 }

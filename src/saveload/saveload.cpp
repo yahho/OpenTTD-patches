@@ -2555,22 +2555,57 @@ SaveOrLoadResult LoadWithFilter(LoadFilter *reader)
 }
 
 /**
- * Main Save or Load function where the high-level saveload functions are
- * handled. It opens the savegame, selects format and checks versions
- * @param filename The name of the savegame being created/loaded
- * @param mode Save or load mode. Load can also be a TTD(Patch) game. Use #SL_LOAD, #SL_OLD_LOAD, #SL_LOAD_CHECK, or #SL_SAVE.
+ * Main Save function where the high-level saveload functions are
+ * handled.
+ * @param filename The name of the savegame being created
  * @param sb The sub directory to save the savegame in
  * @param threaded True when threaded saving is allowed
- * @return Return the result of the action. #SL_OK, #SL_ERROR, or #SL_REINIT ("unload" the game)
+ * @return Return the result of the action. #SL_OK or #SL_ERROR
  */
-SaveOrLoadResult SaveOrLoad(const char *filename, int mode, Subdirectory sb, bool threaded)
+SaveOrLoadResult SaveGame(const char *filename, Subdirectory sb, bool threaded)
 {
 	/* An instance of saving is already active, so don't go saving again */
-	if (_sl.saveinprogress && mode == SL_SAVE && threaded) {
+	if (_sl.saveinprogress && threaded) {
 		/* if not an autosave, but a user action, show error message */
 		if (!_do_autosave) ShowErrorMessage(STR_ERROR_SAVE_STILL_IN_PROGRESS, INVALID_STRING_ID, WL_ERROR);
 		return SL_OK;
 	}
+	WaitTillSaved();
+
+	_sl.action = SLA_SAVE;
+
+	try {
+		FILE *fh = FioFOpenFile(filename, "wb", sb);
+
+		if (fh == NULL) {
+			SlError(STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE);
+		}
+
+		DEBUG(desync, 1, "save: %08x; %02x; %s", _date, _date_fract, filename);
+		if (_network_server || !_settings_client.gui.threaded_saves) threaded = false;
+
+		return DoSave(new FileWriter(fh), threaded);
+	} catch (...) {
+		ClearSaveLoadState();
+
+		/* Skip the "colour" character */
+		DEBUG(sl, 0, "%s", GetSaveLoadErrorString() + 3);
+
+		/* A saver exception!! reinitialize all variables to prevent crash! */
+		return SL_ERROR;
+	}
+}
+
+/**
+ * Main Load function where the high-level saveload functions are
+ * handled. It opens the savegame, selects format and checks versions
+ * @param filename The name of the savegame being loaded
+ * @param mode Load mode. Load can also be a TTD(Patch) game. Use #SL_LOAD, #SL_OLD_LOAD or #SL_LOAD_CHECK.
+ * @param sb The sub directory to load the savegame from
+ * @return Return the result of the action. #SL_OK, #SL_ERROR, or #SL_REINIT ("unload" the game)
+ */
+SaveOrLoadResult LoadGame(const char *filename, int mode, Subdirectory sb)
+{
 	WaitTillSaved();
 
 	/* Load a TTDLX or TTDPatch game */
@@ -2598,27 +2633,19 @@ SaveOrLoadResult SaveOrLoad(const char *filename, int mode, Subdirectory sb, boo
 	switch (mode) {
 		case SL_LOAD_CHECK: _sl.action = SLA_LOAD_CHECK; break;
 		case SL_LOAD: _sl.action = SLA_LOAD; break;
-		case SL_SAVE: _sl.action = SLA_SAVE; break;
 		default: NOT_REACHED();
 	}
 
 	try {
-		FILE *fh = (mode == SL_SAVE) ? FioFOpenFile(filename, "wb", sb) : FioFOpenFile(filename, "rb", sb);
+		FILE *fh = FioFOpenFile(filename, "rb", sb);
 
 		/* Make it a little easier to load savegames from the console */
-		if (fh == NULL && mode != SL_SAVE) fh = FioFOpenFile(filename, "rb", SAVE_DIR);
-		if (fh == NULL && mode != SL_SAVE) fh = FioFOpenFile(filename, "rb", BASE_DIR);
-		if (fh == NULL && mode != SL_SAVE) fh = FioFOpenFile(filename, "rb", SCENARIO_DIR);
+		if (fh == NULL) fh = FioFOpenFile(filename, "rb", SAVE_DIR);
+		if (fh == NULL) fh = FioFOpenFile(filename, "rb", BASE_DIR);
+		if (fh == NULL) fh = FioFOpenFile(filename, "rb", SCENARIO_DIR);
 
 		if (fh == NULL) {
-			SlError(mode == SL_SAVE ? STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE : STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
-		}
-
-		if (mode == SL_SAVE) { // SAVE game
-			DEBUG(desync, 1, "save: %08x; %02x; %s", _date, _date_fract, filename);
-			if (_network_server || !_settings_client.gui.threaded_saves) threaded = false;
-
-			return DoSave(new FileWriter(fh), threaded);
+			SlError(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
 		}
 
 		/* LOAD game */
@@ -2631,7 +2658,7 @@ SaveOrLoadResult SaveOrLoad(const char *filename, int mode, Subdirectory sb, boo
 		/* Skip the "colour" character */
 		if (mode != SL_LOAD_CHECK) DEBUG(sl, 0, "%s", GetSaveLoadErrorString() + 3);
 
-		/* A saver/loader exception!! reinitialize all variables to prevent crash! */
+		/* A loader exception!! reinitialize all variables to prevent crash! */
 		return (mode == SL_LOAD) ? SL_REINIT : SL_ERROR;
 	}
 }
@@ -2639,7 +2666,7 @@ SaveOrLoadResult SaveOrLoad(const char *filename, int mode, Subdirectory sb, boo
 /** Do a save when exiting the game (_settings_client.gui.autosave_on_exit) */
 void DoExitSave()
 {
-	SaveOrLoad("exit.sav", SL_SAVE, AUTOSAVE_DIR);
+	SaveGame("exit.sav", AUTOSAVE_DIR);
 }
 
 /**
