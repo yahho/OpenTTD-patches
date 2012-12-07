@@ -55,6 +55,12 @@ struct LoadBuffer {
 
 		return *this->bufp++;
 	}
+
+	inline int ReadUint16()
+	{
+		int x = this->ReadByte() << 8;
+		return x | this->ReadByte();
+	}
 };
 
 /** Container for dumping the savegame (quickly) to memory. */
