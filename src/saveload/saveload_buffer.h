@@ -58,14 +58,14 @@ struct LoadBuffer {
 };
 
 /** Container for dumping the savegame (quickly) to memory. */
-struct MemoryDumper {
+struct SaveDumper {
 	static const size_t MEMORY_CHUNK_SIZE = 128 * 1024;
 	AutoFreeSmallVector<byte *, 16> blocks; ///< Buffer with blocks of allocated memory
 	byte *buf;                              ///< Current position within the buffer
 	byte *bufe;                             ///< End of the current buffer block
 
 	/** Initialise our variables. */
-	MemoryDumper() : buf(NULL), bufe(NULL)
+	SaveDumper() : buf(NULL), bufe(NULL)
 	{
 	}
 

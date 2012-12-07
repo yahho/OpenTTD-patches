@@ -287,7 +287,7 @@ struct SaveLoadParams {
 	size_t obj_len;                      ///< the length of the current object we are busy with
 	int array_index, last_array_index;   ///< in the case of an array, the current and last positions
 
-	MemoryDumper *dumper;                ///< Memory dumper to write the savegame to.
+	SaveDumper *dumper;                  ///< Memory dumper to write the savegame to.
 	SaveFilter *sf;                      ///< Filter to write the savegame to.
 
 	LoadBuffer *reader;                  ///< Savegame reading buffer.
@@ -1717,7 +1717,7 @@ static bool DoSave(SaveFilter *writer, bool threaded)
 {
 	assert(!_sl.saveinprogress);
 
-	_sl.dumper = new MemoryDumper();
+	_sl.dumper = new SaveDumper();
 	_sl.sf = writer;
 
 	_sl_version = SAVEGAME_VERSION;

@@ -28,14 +28,14 @@ void LoadBuffer::FillBuffer()
 }
 
 
-void MemoryDumper::AllocBuffer()
+void SaveDumper::AllocBuffer()
 {
 	this->buf = CallocT<byte>(MEMORY_CHUNK_SIZE);
 	*this->blocks.Append() = this->buf;
 	this->bufe = this->buf + MEMORY_CHUNK_SIZE;
 }
 
-void MemoryDumper::Flush(SaveFilter *writer)
+void SaveDumper::Flush(SaveFilter *writer)
 {
 	uint i = 0;
 	size_t t = this->GetSize();
