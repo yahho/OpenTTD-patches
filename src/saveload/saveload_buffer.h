@@ -12,6 +12,7 @@
 #ifndef SAVELOAD_BUFFER_H
 #define SAVELOAD_BUFFER_H
 
+#include "../core/bitmath_func.hpp"
 #include "../core/smallvec_type.hpp"
 #include "saveload_filter.h"
 
@@ -111,6 +112,12 @@ struct SaveDumper {
 		}
 
 		*this->buf++ = b;
+	}
+
+	inline void WriteUint16(uint16 v)
+	{
+		this->WriteByte(GB(v, 8, 8));
+		this->WriteByte(GB(v, 0, 8));
 	}
 
 	/**

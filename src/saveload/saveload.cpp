@@ -501,16 +501,10 @@ void SlWriteByte(byte b)
 	_sl.dumper->WriteByte(b);
 }
 
-static inline void SlWriteUint16(uint16 v)
-{
-	SlWriteByte(GB(v, 8, 8));
-	SlWriteByte(GB(v, 0, 8));
-}
-
 static inline void SlWriteUint32(uint32 v)
 {
-	SlWriteUint16(GB(v, 16, 16));
-	SlWriteUint16(GB(v,  0, 16));
+	_sl.dumper->WriteUint16(GB(v, 16, 16));
+	_sl.dumper->WriteUint16(GB(v,  0, 16));
 }
 
 static inline void SlWriteUint64(uint64 x)
@@ -761,9 +755,9 @@ static void SlSaveLoadConv(void *ptr, VarType conv)
 			switch (GetVarFileType(conv)) {
 				case SLE_FILE_I8: assert(x >= -128 && x <= 127);     SlWriteByte(x);break;
 				case SLE_FILE_U8: assert(x >= 0 && x <= 255);        SlWriteByte(x);break;
-				case SLE_FILE_I16:assert(x >= -32768 && x <= 32767); SlWriteUint16(x);break;
+				case SLE_FILE_I16:assert(x >= -32768 && x <= 32767); _sl.dumper->WriteUint16(x);break;
 				case SLE_FILE_STRINGID:
-				case SLE_FILE_U16:assert(x >= 0 && x <= 65535);      SlWriteUint16(x);break;
+				case SLE_FILE_U16:assert(x >= 0 && x <= 65535);      _sl.dumper->WriteUint16(x);break;
 				case SLE_FILE_I32:
 				case SLE_FILE_U32:                                   SlWriteUint32((uint32)x);break;
 				case SLE_FILE_I64:
