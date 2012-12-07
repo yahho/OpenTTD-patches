@@ -17,8 +17,6 @@
 
 void LoadBuffer::FillBuffer()
 {
-	assert(this->bufp == this->bufe);
-
 	size_t len = this->reader->Read(this->buf, lengthof(this->buf));
 	if (len == 0) SlErrorCorrupt("Unexpected end of stream");
 

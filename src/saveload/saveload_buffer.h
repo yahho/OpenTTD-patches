@@ -75,6 +75,20 @@ struct LoadBuffer {
 		uint32 y = this->ReadUint32();
 		return (uint64)x << 32 | y;
 	}
+
+	/**
+	 * Read in and discard bytes from the file
+	 * @param length The amount of bytes to skip
+	 */
+	inline void Skip(size_t length)
+	{
+		while (length > (size_t)(this->bufe - this->bufp)) {
+			length -= this->bufe - this->bufp;
+			this->FillBuffer();
+		}
+
+		this->bufp += length;
+	}
 };
 
 /** Container for dumping the savegame (quickly) to memory. */

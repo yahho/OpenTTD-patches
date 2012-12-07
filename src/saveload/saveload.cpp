@@ -502,16 +502,6 @@ void SlWriteByte(byte b)
 }
 
 /**
- * Read in bytes from the file/data structure but don't do
- * anything with them, discarding them in effect
- * @param length The amount of bytes that is being treated this way
- */
-static inline void SlSkipBytes(size_t length)
-{
-	for (; length != 0; length--) SlReadByte();
-}
-
-/**
  * Read in the header descriptor of an object or an array.
  * If the highest bit is set (7), then the index is bigger than 127
  * elements, so use the next byte to read in the real value.
@@ -651,7 +641,7 @@ int SlIterateArray()
 void SlSkipArray()
 {
 	while (SlIterateArray() != -1) {
-		SlSkipBytes(_next_offs - _sl.reader->GetSize());
+		_sl.reader->Skip(_next_offs - _sl.reader->GetSize());
 	}
 }
 
@@ -862,7 +852,7 @@ static void SlString(void *ptr, size_t length, StrType conv)
 				if (len >= length) {
 					DEBUG(sl, 1, "String length in savegame is bigger than buffer, truncating");
 					SlCopyBytes(ptr, length);
-					SlSkipBytes(len - length);
+					_sl.reader->Skip(len - length);
 					len = length - 1;
 				} else {
 					SlCopyBytes(ptr, len);
@@ -1146,7 +1136,7 @@ static inline bool SlSkipVariableOnLoad(const SaveLoad *sld)
 		assert((sld->type == SL_ARR) || (sld->type == SL_STR));
 		size_t skip = (sld->type == SL_STR) ?
 			SlReadArrayLength() : SlCalcConvFileLen(sld->conv);
-		SlSkipBytes(skip * sld->length);
+		_sl.reader->Skip(skip * sld->length);
 		return true;
 	}
 
@@ -1359,7 +1349,7 @@ static void SlLoadChunk(const ChunkHandler *ch, bool check = false)
 			} else if (ch->load_check_proc) {
 				ch->load_check_proc();
 			} else {
-				SlSkipBytes(len);
+				_sl.reader->Skip(len);
 			}
 			if (_sl.reader->GetSize() != endoffs) SlErrorCorrupt("Invalid chunk size");
 			break;
