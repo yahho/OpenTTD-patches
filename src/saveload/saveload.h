@@ -49,14 +49,6 @@ void DoExitSave();
 bool SaveWithFilter(struct SaveFilter *writer, bool threaded);
 bool LoadWithFilter(struct LoadFilter *reader);
 
-int SlIterateArray();
-
-size_t SlGetFieldLength();
-void SlWriteLength(size_t length);
-
-byte SlReadByte();
-void SlWriteByte(byte b);
-
 void SlArray(void *array, size_t length, VarType conv);
 void SlObject(void *object, const SaveLoad *sld);
 bool SlObjectMember(void *object, const SaveLoad *sld);

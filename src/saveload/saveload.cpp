@@ -482,57 +482,6 @@ void ProcessAsyncSaveFinish()
 	}
 }
 
-/**
- * Wrapper for reading a byte from the buffer.
- * @return The read byte.
- */
-byte SlReadByte()
-{
-	return _sl.reader->ReadByte();
-}
-
-/**
- * Wrapper for writing a byte to the dumper.
- * @param b The byte to write.
- */
-void SlWriteByte(byte b)
-{
-	_sl.dumper->WriteByte(b);
-}
-
-
-static size_t _next_offs;
-
-/**
- * Iterate through the elements of an array and read the whole thing
- * @return The index of the object, or -1 if we have reached the end of current block
- */
-int SlIterateArray()
-{
-	return _sl.reader->IterateChunk();
-}
-
-/**
- * Writes the length of a RIFF object.
- * @param length The length of the object
- */
-void SlWriteLength(size_t length)
-{
-	assert(_sl.dumper->chunk_type == CH_RIFF);
-	_sl.dumper->WriteRIFFSize(length);
-}
-
-/** Get the length of the current object */
-size_t SlGetFieldLength()
-{
-	assert((_sl.action == SLA_LOAD) || (_sl.action == SLA_LOAD_CHECK));
-
-	if (_sl.reader->chunk_type == CH_RIFF) {
-		return _sl.reader->GetChunkSize();
-	} else {
-		return _sl.reader->GetElementSize();;
-	}
-}
 
 /**
  * Handle all conversion and typechecking of variables here.
@@ -775,7 +724,7 @@ bool SlObjectMember(void *object, const SaveLoad *sld)
 
 		case SL_WRITEBYTE:
 			switch (_sl.action) {
-				case SLA_SAVE: SlWriteByte(sld->conv); break;
+				case SLA_SAVE: _sl.dumper->WriteByte(sld->conv); break;
 				case SLA_LOAD_CHECK:
 				case SLA_LOAD: *(byte *)ptr = sld->conv; break;
 				case SLA_PTRS: break;
@@ -1248,7 +1197,6 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 
 	_sl.lf = fmt->init_load(_sl.lf);
 	_sl.reader = new LoadBuffer(_sl.lf);
-	_next_offs = 0;
 
 	if (!load_check) {
 		/* Old maps were hardcoded to 256x256 and thus did not contain
