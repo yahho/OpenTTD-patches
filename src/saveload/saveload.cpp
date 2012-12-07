@@ -290,7 +290,7 @@ struct SaveLoadParams {
 	MemoryDumper *dumper;                ///< Memory dumper to write the savegame to.
 	SaveFilter *sf;                      ///< Filter to write the savegame to.
 
-	ReadBuffer *reader;                  ///< Savegame reading buffer.
+	LoadBuffer *reader;                  ///< Savegame reading buffer.
 	LoadFilter *lf;                      ///< Filter to read the savegame from.
 
 	StringID error_str;                  ///< the translatable error message to show
@@ -1811,7 +1811,7 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 	}
 
 	_sl.lf = fmt->init_load(_sl.lf);
-	_sl.reader = new ReadBuffer(_sl.lf);
+	_sl.reader = new LoadBuffer(_sl.lf);
 	_next_offs = 0;
 
 	if (!load_check) {

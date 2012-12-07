@@ -16,7 +16,7 @@
 #include "saveload_filter.h"
 
 /** A buffer for reading (and buffering) savegame data. */
-struct ReadBuffer {
+struct LoadBuffer {
 	static const size_t MEMORY_CHUNK_SIZE = 128 * 1024;
 	byte buf[MEMORY_CHUNK_SIZE]; ///< Buffer we are reading from
 	byte *bufp;                  ///< Current position within the buffer
@@ -28,7 +28,7 @@ struct ReadBuffer {
 	 * Initialise our variables.
 	 * @param reader The filter to read data from.
 	 */
-	ReadBuffer(LoadFilter *reader) : bufp(NULL), bufe(NULL), reader(reader), read(0)
+	LoadBuffer(LoadFilter *reader) : bufp(NULL), bufe(NULL), reader(reader), read(0)
 	{
 	}
 

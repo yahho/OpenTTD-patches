@@ -15,7 +15,7 @@
 #include "saveload.h"
 
 
-void ReadBuffer::FillBuffer()
+void LoadBuffer::FillBuffer()
 {
 	assert(this->bufp == this->bufe);
 
