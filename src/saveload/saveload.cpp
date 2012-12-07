@@ -501,16 +501,10 @@ void SlWriteByte(byte b)
 	_sl.dumper->WriteByte(b);
 }
 
-static inline void SlWriteUint32(uint32 v)
-{
-	_sl.dumper->WriteUint16(GB(v, 16, 16));
-	_sl.dumper->WriteUint16(GB(v,  0, 16));
-}
-
 static inline void SlWriteUint64(uint64 x)
 {
-	SlWriteUint32((uint32)(x >> 32));
-	SlWriteUint32((uint32)x);
+	_sl.dumper->WriteUint32((uint32)(x >> 32));
+	_sl.dumper->WriteUint32((uint32)x);
 }
 
 /**
@@ -679,7 +673,7 @@ void SlWriteLength(size_t length)
 			 * The lower 24 bits are normal
 			 * The uppermost 4 bits are bits 24:27 */
 			assert(length < (1 << 28));
-			SlWriteUint32((uint32)((length & 0xFFFFFF) | ((length >> 24) << 28)));
+			_sl.dumper->WriteUint32((uint32)((length & 0xFFFFFF) | ((length >> 24) << 28)));
 			break;
 		case CH_ARRAY:
 			assert(_sl.last_array_index <= _sl.array_index);
@@ -759,7 +753,7 @@ static void SlSaveLoadConv(void *ptr, VarType conv)
 				case SLE_FILE_STRINGID:
 				case SLE_FILE_U16:assert(x >= 0 && x <= 65535);      _sl.dumper->WriteUint16(x);break;
 				case SLE_FILE_I32:
-				case SLE_FILE_U32:                                   SlWriteUint32((uint32)x);break;
+				case SLE_FILE_U32:                                   _sl.dumper->WriteUint32((uint32)x);break;
 				case SLE_FILE_I64:
 				case SLE_FILE_U64:                                   SlWriteUint64(x);break;
 				default: NOT_REACHED();
@@ -1108,12 +1102,12 @@ static void SlList(void *list, SLRefType conv)
 
 	switch (_sl.action) {
 		case SLA_SAVE: {
-			SlWriteUint32((uint32)l->size());
+			_sl.dumper->WriteUint32((uint32)l->size());
 
 			PtrList::iterator iter;
 			for (iter = l->begin(); iter != l->end(); ++iter) {
 				void *ptr = *iter;
-				SlWriteUint32((uint32)ReferenceToInt(ptr, conv));
+				_sl.dumper->WriteUint32((uint32)ReferenceToInt(ptr, conv));
 			}
 			break;
 		}
@@ -1215,7 +1209,7 @@ bool SlObjectMember(void *object, const SaveLoad *sld)
 		case SL_REF: // Reference variable, translate
 			switch (_sl.action) {
 				case SLA_SAVE:
-					SlWriteUint32((uint32)ReferenceToInt(*(void **)ptr, (SLRefType)sld->conv));
+					_sl.dumper->WriteUint32((uint32)ReferenceToInt(*(void **)ptr, (SLRefType)sld->conv));
 					break;
 				case SLA_LOAD_CHECK:
 				case SLA_LOAD:
@@ -1390,7 +1384,7 @@ static void SlSaveChunk(const ChunkHandler *ch)
 	/* Don't save any chunk information if there is no save handler. */
 	if (proc == NULL) return;
 
-	SlWriteUint32(ch->id);
+	_sl.dumper->WriteUint32(ch->id);
 	DEBUG(sl, 2, "Saving chunk %c%c%c%c", ch->id >> 24, ch->id >> 16, ch->id >> 8, ch->id);
 
 	_sl.block_mode = ch->flags & CH_TYPE_MASK;
@@ -1421,7 +1415,7 @@ static void SlSaveChunks()
 	}
 
 	/* Terminator */
-	SlWriteUint32(0);
+	_sl.dumper->WriteUint32(0);
 }
 
 /**

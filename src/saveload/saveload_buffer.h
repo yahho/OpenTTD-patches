@@ -120,6 +120,12 @@ struct SaveDumper {
 		this->WriteByte(GB(v, 0, 8));
 	}
 
+	inline void WriteUint32(uint32 v)
+	{
+		this->WriteUint16(GB(v, 16, 16));
+		this->WriteUint16(GB(v,  0, 16));
+	}
+
 	/**
 	 * Flush this dumper into a writer.
 	 * @param writer The filter we want to use.
