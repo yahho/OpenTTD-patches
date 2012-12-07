@@ -501,13 +501,6 @@ void SlWriteByte(byte b)
 	_sl.dumper->WriteByte(b);
 }
 
-static inline uint64 SlReadUint64()
-{
-	uint32 x = _sl.reader->ReadUint32();
-	uint32 y = _sl.reader->ReadUint32();
-	return (uint64)x << 32 | y;
-}
-
 static inline void SlWriteUint16(uint16 v)
 {
 	SlWriteByte(GB(v, 8, 8));
@@ -790,8 +783,8 @@ static void SlSaveLoadConv(void *ptr, VarType conv)
 				case SLE_FILE_U16: x = (uint16)_sl.reader->ReadUint16(); break;
 				case SLE_FILE_I32: x = (int32 )_sl.reader->ReadUint32(); break;
 				case SLE_FILE_U32: x = (uint32)_sl.reader->ReadUint32(); break;
-				case SLE_FILE_I64: x = (int64 )SlReadUint64(); break;
-				case SLE_FILE_U64: x = (uint64)SlReadUint64(); break;
+				case SLE_FILE_I64: x = (int64 )_sl.reader->ReadUint64(); break;
+				case SLE_FILE_U64: x = (uint64)_sl.reader->ReadUint64(); break;
 				case SLE_FILE_STRINGID: x = RemapOldStringID((uint16)_sl.reader->ReadUint16()); break;
 				default: NOT_REACHED();
 			}
