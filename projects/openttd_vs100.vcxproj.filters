@@ -1779,6 +1779,12 @@
     <ClInclude Include="..\src\saveload\saveload.h">
       <Filter>Save/Load handlers</Filter>
     </ClInclude>
+    <ClCompile Include="..\src\saveload\saveload_buffer.cpp">
+      <Filter>Save/Load handlers</Filter>
+    </ClCompile>
+    <ClInclude Include="..\src\saveload\saveload_buffer.h">
+      <Filter>Save/Load handlers</Filter>
+    </ClInclude>
     <ClCompile Include="..\src\saveload\saveload_data.cpp">
       <Filter>Save/Load handlers</Filter>
     </ClCompile>

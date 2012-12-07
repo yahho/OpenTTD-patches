@@ -48,6 +48,7 @@
 
 #include "saveload_internal.h"
 #include "saveload_filter.h"
+#include "saveload_buffer.h"
 
 /*
  * Previous savegame versions, the trunk revision where they were
@@ -274,106 +275,6 @@ enum SaveLoadAction {
 enum NeedLength {
 	NL_NONE = 0,       ///< not working in NeedLength mode
 	NL_CALCLENGTH = 2, ///< need to calculate the length
-};
-
-/** Save in chunks of 128 KiB. */
-static const size_t MEMORY_CHUNK_SIZE = 128 * 1024;
-
-/** A buffer for reading (and buffering) savegame data. */
-struct ReadBuffer {
-	byte buf[MEMORY_CHUNK_SIZE]; ///< Buffer we're going to read from.
-	byte *bufp;                  ///< Location we're at reading the buffer.
-	byte *bufe;                  ///< End of the buffer we can read from.
-	LoadFilter *reader;          ///< The filter used to actually read.
-	size_t read;                 ///< The amount of read bytes so far from the filter.
-
-	/**
-	 * Initialise our variables.
-	 * @param reader The filter to actually read data.
-	 */
-	ReadBuffer(LoadFilter *reader) : bufp(NULL), bufe(NULL), reader(reader), read(0)
-	{
-	}
-
-	inline byte ReadByte()
-	{
-		if (this->bufp == this->bufe) {
-			size_t len = this->reader->Read(this->buf, lengthof(this->buf));
-			if (len == 0) SlErrorCorrupt("Unexpected end of chunk");
-
-			this->read += len;
-			this->bufp = this->buf;
-			this->bufe = this->buf + len;
-		}
-
-		return *this->bufp++;
-	}
-
-	/**
-	 * Get the size of the memory dump made so far.
-	 * @return The size.
-	 */
-	size_t GetSize() const
-	{
-		return this->read - (this->bufe - this->bufp);
-	}
-};
-
-
-/** Container for dumping the savegame (quickly) to memory. */
-struct MemoryDumper {
-	AutoFreeSmallVector<byte *, 16> blocks; ///< Buffer with blocks of allocated memory.
-	byte *buf;                              ///< Buffer we're going to write to.
-	byte *bufe;                             ///< End of the buffer we write to.
-
-	/** Initialise our variables. */
-	MemoryDumper() : buf(NULL), bufe(NULL)
-	{
-	}
-
-	/**
-	 * Write a single byte into the dumper.
-	 * @param b The byte to write.
-	 */
-	inline void WriteByte(byte b)
-	{
-		/* Are we at the end of this chunk? */
-		if (this->buf == this->bufe) {
-			this->buf = CallocT<byte>(MEMORY_CHUNK_SIZE);
-			*this->blocks.Append() = this->buf;
-			this->bufe = this->buf + MEMORY_CHUNK_SIZE;
-		}
-
-		*this->buf++ = b;
-	}
-
-	/**
-	 * Flush this dumper into a writer.
-	 * @param writer The filter we want to use.
-	 */
-	void Flush(SaveFilter *writer)
-	{
-		uint i = 0;
-		size_t t = this->GetSize();
-
-		while (t > 0) {
-			size_t to_write = min(MEMORY_CHUNK_SIZE, t);
-
-			writer->Write(this->blocks[i++], to_write);
-			t -= to_write;
-		}
-
-		writer->Finish();
-	}
-
-	/**
-	 * Get the size of the memory dump made so far.
-	 * @return The size.
-	 */
-	size_t GetSize() const
-	{
-		return this->blocks.Length() * MEMORY_CHUNK_SIZE - (this->bufe - this->buf);
-	}
 };
 
 /** The saveload struct, containing reader-writer functions, buffer, version, etc. */

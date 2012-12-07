@@ -608,6 +608,8 @@ saveload/oldloader_sl.cpp
 saveload/order_sl.cpp
 saveload/saveload.cpp
 saveload/saveload.h
+saveload/saveload_buffer.cpp
+saveload/saveload_buffer.h
 saveload/saveload_data.cpp
 saveload/saveload_data.h
 saveload/saveload_filter.cpp
