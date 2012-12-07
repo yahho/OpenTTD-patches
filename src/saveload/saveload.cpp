@@ -501,16 +501,10 @@ void SlWriteByte(byte b)
 	_sl.dumper->WriteByte(b);
 }
 
-static inline uint32 SlReadUint32()
-{
-	uint32 x = _sl.reader->ReadUint16() << 16;
-	return x | _sl.reader->ReadUint16();
-}
-
 static inline uint64 SlReadUint64()
 {
-	uint32 x = SlReadUint32();
-	uint32 y = SlReadUint32();
+	uint32 x = _sl.reader->ReadUint32();
+	uint32 y = _sl.reader->ReadUint32();
 	return (uint64)x << 32 | y;
 }
 
@@ -794,8 +788,8 @@ static void SlSaveLoadConv(void *ptr, VarType conv)
 				case SLE_FILE_U8:  x = (byte  )SlReadByte();   break;
 				case SLE_FILE_I16: x = (int16 )_sl.reader->ReadUint16(); break;
 				case SLE_FILE_U16: x = (uint16)_sl.reader->ReadUint16(); break;
-				case SLE_FILE_I32: x = (int32 )SlReadUint32(); break;
-				case SLE_FILE_U32: x = (uint32)SlReadUint32(); break;
+				case SLE_FILE_I32: x = (int32 )_sl.reader->ReadUint32(); break;
+				case SLE_FILE_U32: x = (uint32)_sl.reader->ReadUint32(); break;
 				case SLE_FILE_I64: x = (int64 )SlReadUint64(); break;
 				case SLE_FILE_U64: x = (uint64)SlReadUint64(); break;
 				case SLE_FILE_STRINGID: x = RemapOldStringID((uint16)_sl.reader->ReadUint16()); break;
@@ -958,7 +952,7 @@ void SlArray(void *array, size_t length, VarType conv)
 		/* used for conversion of Money 32bit->64bit */
 		if (conv == (SLE_FILE_I32 | SLE_VAR_I64)) {
 			for (uint i = 0; i < length; i++) {
-				((int64*)array)[i] = (int32)BSWAP32(SlReadUint32());
+				((int64*)array)[i] = (int32)BSWAP32(_sl.reader->ReadUint32());
 			}
 			return;
 		}
@@ -1138,11 +1132,11 @@ static void SlList(void *list, SLRefType conv)
 		}
 		case SLA_LOAD_CHECK:
 		case SLA_LOAD: {
-			size_t length = IsSavegameVersionBefore(69) ? _sl.reader->ReadUint16() : SlReadUint32();
+			size_t length = IsSavegameVersionBefore(69) ? _sl.reader->ReadUint16() : _sl.reader->ReadUint32();
 
 			/* Load each reference and push to the end of the list */
 			for (size_t i = 0; i < length; i++) {
-				size_t data = IsSavegameVersionBefore(69) ? _sl.reader->ReadUint16() : SlReadUint32();
+				size_t data = IsSavegameVersionBefore(69) ? _sl.reader->ReadUint16() : _sl.reader->ReadUint32();
 				l->push_back((void *)data);
 			}
 			break;
@@ -1238,7 +1232,7 @@ bool SlObjectMember(void *object, const SaveLoad *sld)
 					break;
 				case SLA_LOAD_CHECK:
 				case SLA_LOAD:
-					*(size_t *)ptr = IsSavegameVersionBefore(69) ? _sl.reader->ReadUint16() : SlReadUint32();
+					*(size_t *)ptr = IsSavegameVersionBefore(69) ? _sl.reader->ReadUint16() : _sl.reader->ReadUint32();
 					break;
 				case SLA_PTRS:
 					*(void **)ptr = IntToReference(*(size_t *)ptr, (SLRefType)sld->conv);
@@ -1461,7 +1455,7 @@ static void SlLoadChunks(bool check = false)
 	uint32 id;
 	const ChunkHandler *ch;
 
-	for (id = SlReadUint32(); id != 0; id = SlReadUint32()) {
+	for (id = _sl.reader->ReadUint32(); id != 0; id = _sl.reader->ReadUint32()) {
 		DEBUG(sl, 2, "Loading chunk %c%c%c%c", id >> 24, id >> 16, id >> 8, id);
 
 		ch = SlFindChunkHandler(id);
