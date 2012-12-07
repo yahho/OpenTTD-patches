@@ -104,4 +104,21 @@ template <typename T> SaveFilter *CreateSaveFilter(SaveFilter *chain, byte compr
 	return new T(chain, compression_level);
 }
 
+
+/** The format for a reader/writer type of a savegame */
+struct SaveLoadFormat {
+	const char *name;                     ///< name of the compressor/decompressor (debug-only)
+	uint32 tag;                           ///< the 4-letter tag by which it is identified in the savegame
+
+	LoadFilter *(*init_load)(LoadFilter *chain);                    ///< Constructor for the load filter.
+	SaveFilter *(*init_write)(SaveFilter *chain, byte compression); ///< Constructor for the save filter.
+
+	byte min_compression;                 ///< the minimum compression level of this format
+	byte default_compression;             ///< the default compression level of this format
+	byte max_compression;                 ///< the maximum compression level of this format
+};
+
+const SaveLoadFormat *GetSavegameFormat(char *s, byte *compression_level);
+const SaveLoadFormat *GetSavegameFormatByTag(uint32 tag);
+
 #endif /* SAVELOAD_FILTER_H */

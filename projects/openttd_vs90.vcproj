@@ -2692,6 +2692,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\saveload\saveload_filter.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\saveload\saveload_filter.h"
 				>
 			</File>
