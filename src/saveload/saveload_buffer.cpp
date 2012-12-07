@@ -25,6 +25,36 @@ void LoadBuffer::FillBuffer()
 	this->bufe = this->buf + len;
 }
 
+/**
+ * Read in the header descriptor of an object or an array.
+ * If the highest bit is set (7), then the index is bigger than 127
+ * elements, so use the next byte to read in the real value.
+ * The actual value is then both bytes added with the first shifted
+ * 8 bits to the left, and dropping the highest bit (which only indicated a big index).
+ * x = ((x & 0x7F) << 8) + ReadByte();
+ * @return Return the value of the index
+ */
+uint LoadBuffer::ReadGamma()
+{
+	uint i = this->ReadByte();
+	if (HasBit(i, 7)) {
+		i &= ~0x80;
+		if (HasBit(i, 6)) {
+			i &= ~0x40;
+			if (HasBit(i, 5)) {
+				i &= ~0x20;
+				if (HasBit(i, 4)) {
+					SlErrorCorrupt("Unsupported gamma");
+				}
+				i = (i << 8) | this->ReadByte();
+			}
+			i = (i << 8) | this->ReadByte();
+		}
+		i = (i << 8) | this->ReadByte();
+	}
+	return i;
+}
+
 
 void SaveDumper::AllocBuffer()
 {

@@ -502,36 +502,6 @@ void SlWriteByte(byte b)
 }
 
 /**
- * Read in the header descriptor of an object or an array.
- * If the highest bit is set (7), then the index is bigger than 127
- * elements, so use the next byte to read in the real value.
- * The actual value is then both bytes added with the first shifted
- * 8 bits to the left, and dropping the highest bit (which only indicated a big index).
- * x = ((x & 0x7F) << 8) + SlReadByte();
- * @return Return the value of the index
- */
-static uint SlReadSimpleGamma()
-{
-	uint i = SlReadByte();
-	if (HasBit(i, 7)) {
-		i &= ~0x80;
-		if (HasBit(i, 6)) {
-			i &= ~0x40;
-			if (HasBit(i, 5)) {
-				i &= ~0x20;
-				if (HasBit(i, 4)) {
-					SlErrorCorrupt("Unsupported gamma");
-				}
-				i = (i << 8) | SlReadByte();
-			}
-			i = (i << 8) | SlReadByte();
-		}
-		i = (i << 8) | SlReadByte();
-	}
-	return i;
-}
-
-/**
  * Write the header descriptor of an object or an array.
  * If the element is bigger than 127, use 2 bytes for saving
  * and use the highest byte of the first written one as a notice
@@ -570,7 +540,7 @@ static inline uint SlGetGammaLength(size_t i)
 
 static inline uint SlReadSparseIndex()
 {
-	return SlReadSimpleGamma();
+	return _sl.reader->ReadGamma();
 }
 
 static inline void SlWriteSparseIndex(uint index)
@@ -580,7 +550,7 @@ static inline void SlWriteSparseIndex(uint index)
 
 static inline uint SlReadArrayLength()
 {
-	return SlReadSimpleGamma();
+	return _sl.reader->ReadGamma();
 }
 
 static inline void SlWriteArrayLength(size_t length)

@@ -76,6 +76,8 @@ struct LoadBuffer {
 		return (uint64)x << 32 | y;
 	}
 
+	uint ReadGamma();
+
 	/**
 	 * Read in and discard bytes from the file
 	 * @param length The amount of bytes to skip
