@@ -501,12 +501,6 @@ void SlWriteByte(byte b)
 	_sl.dumper->WriteByte(b);
 }
 
-static inline void SlWriteUint64(uint64 x)
-{
-	_sl.dumper->WriteUint32((uint32)(x >> 32));
-	_sl.dumper->WriteUint32((uint32)x);
-}
-
 /**
  * Read in bytes from the file/data structure but don't do
  * anything with them, discarding them in effect
@@ -755,7 +749,7 @@ static void SlSaveLoadConv(void *ptr, VarType conv)
 				case SLE_FILE_I32:
 				case SLE_FILE_U32:                                   _sl.dumper->WriteUint32((uint32)x);break;
 				case SLE_FILE_I64:
-				case SLE_FILE_U64:                                   SlWriteUint64(x);break;
+				case SLE_FILE_U64:                                   _sl.dumper->WriteUint64(x);break;
 				default: NOT_REACHED();
 			}
 			break;
