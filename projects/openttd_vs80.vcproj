@@ -2695,6 +2695,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\saveload\saveload_data.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\saveload\saveload_data.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\saveload\saveload_filter.cpp"
 				>
 			</File>

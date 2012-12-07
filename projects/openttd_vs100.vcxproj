@@ -850,6 +850,8 @@
     <ClCompile Include="..\src\saveload\order_sl.cpp" />
     <ClCompile Include="..\src\saveload\saveload.cpp" />
     <ClInclude Include="..\src\saveload\saveload.h" />
+    <ClCompile Include="..\src\saveload\saveload_data.cpp" />
+    <ClInclude Include="..\src\saveload\saveload_data.h" />
     <ClCompile Include="..\src\saveload\saveload_filter.cpp" />
     <ClInclude Include="..\src\saveload\saveload_filter.h" />
     <ClInclude Include="..\src\saveload\saveload_internal.h" />

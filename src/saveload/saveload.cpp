@@ -739,34 +739,6 @@ static inline uint SlGetArrayLength(size_t length)
 	return SlGetGammaLength(length);
 }
 
-/**
- * Return the size in bytes of a certain type of normal/atomic variable
- * as it appears in memory. See VarTypes
- * @param conv VarType type of variable that is used for calculating the size
- * @return Return the size of this type in bytes
- */
-static inline uint SlCalcConvMemLen(VarType conv)
-{
-	static const byte conv_mem_size[] = {1, 1, 1, 2, 2, 4, 4, 8, 8, 0};
-	byte length = GB(conv, 4, 4);
-	assert(length < lengthof(conv_mem_size));
-	return conv_mem_size[length];
-}
-
-/**
- * Return the size in bytes of a certain type of normal/atomic variable
- * as it appears in a saved game. See VarTypes
- * @param conv VarType type of variable that is used for calculating the size
- * @return Return the size of this type in bytes
- */
-static inline byte SlCalcConvFileLen(VarType conv)
-{
-	static const byte conv_file_size[] = {1, 1, 2, 2, 4, 4, 8, 8, 2};
-	byte length = GB(conv, 0, 4);
-	assert(length < lengthof(conv_file_size));
-	return conv_file_size[length];
-}
-
 /** Return the size in bytes of a reference (pointer) */
 static inline size_t SlCalcRefLen()
 {
@@ -887,55 +859,6 @@ static void SlCopyBytes(void *ptr, size_t length)
 size_t SlGetFieldLength()
 {
 	return _sl.obj_len;
-}
-
-/**
- * Return a signed-long version of the value of a setting
- * @param ptr pointer to the variable
- * @param conv type of variable, can be a non-clean
- * type, eg one with other flags because it is parsed
- * @return returns the value of the pointer-setting
- */
-int64 ReadValue(const void *ptr, VarType conv)
-{
-	switch (GetVarMemType(conv)) {
-		case SLE_VAR_BL:  return (*(const bool *)ptr != 0);
-		case SLE_VAR_I8:  return *(const int8  *)ptr;
-		case SLE_VAR_U8:  return *(const byte  *)ptr;
-		case SLE_VAR_I16: return *(const int16 *)ptr;
-		case SLE_VAR_U16: return *(const uint16*)ptr;
-		case SLE_VAR_I32: return *(const int32 *)ptr;
-		case SLE_VAR_U32: return *(const uint32*)ptr;
-		case SLE_VAR_I64: return *(const int64 *)ptr;
-		case SLE_VAR_U64: return *(const uint64*)ptr;
-		case SLE_VAR_NULL:return 0;
-		default: NOT_REACHED();
-	}
-}
-
-/**
- * Write the value of a setting
- * @param ptr pointer to the variable
- * @param conv type of variable, can be a non-clean type, eg
- *             with other flags. It is parsed upon read
- * @param val the new value being given to the variable
- */
-void WriteValue(void *ptr, VarType conv, int64 val)
-{
-	switch (GetVarMemType(conv)) {
-		case SLE_VAR_BL:  *(bool  *)ptr = (val != 0);  break;
-		case SLE_VAR_I8:  *(int8  *)ptr = val; break;
-		case SLE_VAR_U8:  *(byte  *)ptr = val; break;
-		case SLE_VAR_I16: *(int16 *)ptr = val; break;
-		case SLE_VAR_U16: *(uint16*)ptr = val; break;
-		case SLE_VAR_I32: *(int32 *)ptr = val; break;
-		case SLE_VAR_U32: *(uint32*)ptr = val; break;
-		case SLE_VAR_I64: *(int64 *)ptr = val; break;
-		case SLE_VAR_U64: *(uint64*)ptr = val; break;
-		case SLE_VAR_NAME: *(char**)ptr = CopyFromOldName(val); break;
-		case SLE_VAR_NULL: break;
-		default: NOT_REACHED();
-	}
 }
 
 /**
@@ -1347,15 +1270,6 @@ static void SlList(void *list, SLRefType conv)
 	}
 }
 
-
-/** Are we going to save this object or not? */
-static inline bool SlIsObjectValidInSavegame(const SaveLoad *sld)
-{
-	if (_sl_version < sld->version_from || _sl_version > sld->version_to) return false;
-	if (sld->flags & SLF_NOT_IN_SAVE) return false;
-
-	return true;
-}
 
 /**
  * Are we going to load this variable when loading a savegame or not?
