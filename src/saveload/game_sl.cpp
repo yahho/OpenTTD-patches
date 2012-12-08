@@ -35,21 +35,6 @@ static const SaveLoad _game_script[] = {
 
 static void SaveReal_GSDT(int *index_ptr)
 {
-	GameConfig *config = GameConfig::GetConfig();
-
-	if (config->HasScript()) {
-		ttd_strlcpy(_game_saveload_name, config->GetName(), lengthof(_game_saveload_name));
-		_game_saveload_version = config->GetVersion();
-	} else {
-		/* No GameScript is configured for this so store an empty string as name. */
-		_game_saveload_name[0] = '\0';
-		_game_saveload_version = -1;
-	}
-
-	_game_saveload_is_random = config->IsRandom();
-	_game_saveload_settings[0] = '\0';
-	config->SettingsToString(_game_saveload_settings, lengthof(_game_saveload_settings));
-
 	SlObject(NULL, _game_script);
 	Game::Save();
 }
@@ -107,6 +92,21 @@ static void Load_GSDT()
 
 static void Save_GSDT()
 {
+	GameConfig *config = GameConfig::GetConfig();
+
+	if (config->HasScript()) {
+		ttd_strlcpy(_game_saveload_name, config->GetName(), lengthof(_game_saveload_name));
+		_game_saveload_version = config->GetVersion();
+	} else {
+		/* No GameScript is configured for this so store an empty string as name. */
+		_game_saveload_name[0] = '\0';
+		_game_saveload_version = -1;
+	}
+
+	_game_saveload_is_random = config->IsRandom();
+	_game_saveload_settings[0] = '\0';
+	config->SettingsToString(_game_saveload_settings, lengthof(_game_saveload_settings));
+
 	SlSetArrayIndex(0);
 	SlAutolength((AutolengthProc *)SaveReal_GSDT, NULL);
 }
