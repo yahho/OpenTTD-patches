@@ -501,20 +501,6 @@ void SlWriteByte(byte b)
 	_sl.dumper->WriteByte(b);
 }
 
-static inline uint SlReadArrayLength()
-{
-	return _sl.reader->ReadGamma();
-}
-
-static inline void SlWriteArrayLength(size_t length)
-{
-	_sl.dumper->WriteGamma(length);
-}
-
-static inline uint SlGetArrayLength(size_t length)
-{
-	return GetGammaLength(length);
-}
 
 /** Return the size in bytes of a reference (pointer) */
 static inline size_t SlCalcRefLen()
@@ -537,7 +523,7 @@ int SlIterateArray()
 	if (_next_offs != 0 && _sl.reader->GetSize() != _next_offs) SlErrorCorrupt("Invalid chunk size");
 
 	for (;;) {
-		uint length = SlReadArrayLength();
+		uint length = _sl.reader->ReadGamma();
 		if (length == 0) {
 			_next_offs = 0;
 			return -1;
@@ -585,12 +571,12 @@ void SlWriteLength(size_t length)
 		case CH_ARRAY:
 			assert(_sl.last_array_index <= _sl.array_index);
 			while (++_sl.last_array_index <= _sl.array_index) {
-				SlWriteArrayLength(1);
+				_sl.dumper->WriteGamma(1);
 			}
-			SlWriteArrayLength(length + 1);
+			_sl.dumper->WriteGamma(length + 1);
 			break;
 		case CH_SPARSE_ARRAY:
-			SlWriteArrayLength(length + 1 + SlGetArrayLength(_sl.array_index)); // Also include length of sparse index.
+			_sl.dumper->WriteGamma(length + 1 + GetGammaLength(_sl.array_index)); // Also include length of sparse index.
 			_sl.dumper->WriteGamma(_sl.array_index);
 			break;
 		default: NOT_REACHED();
@@ -732,7 +718,7 @@ static inline size_t SlCalcStringLen(const void *ptr, size_t length, StrType con
 	}
 
 	len = SlCalcNetStringLen(str, len);
-	return len + SlGetArrayLength(len); // also include the length of the index
+	return len + GetGammaLength(len); // also include the length of the index
 }
 
 /**
@@ -753,13 +739,13 @@ static void SlString(void *ptr, size_t length, StrType conv)
 				len = SlCalcNetStringLen((char *)ptr, length);
 			}
 
-			SlWriteArrayLength(len);
+			_sl.dumper->WriteGamma(len);
 			SlCopyBytes(ptr, len);
 			break;
 		}
 		case SLA_LOAD_CHECK:
 		case SLA_LOAD: {
-			size_t len = SlReadArrayLength();
+			size_t len = _sl.reader->ReadGamma();
 
 			if ((conv & SLS_POINTER) != 0) { // Malloc'd string, free previous incarnation, and allocate
 				free(*(char **)ptr);
@@ -1058,7 +1044,7 @@ static inline bool SlSkipVariableOnLoad(const SaveLoad *sld)
 	if ((sld->flags & SLF_NO_NETWORK_SYNC) && _sl.action != SLA_SAVE && _networking && !_network_server) {
 		assert((sld->type == SL_ARR) || (sld->type == SL_STR));
 		size_t skip = (sld->type == SL_STR) ?
-			SlReadArrayLength() : SlCalcConvFileLen(sld->conv);
+			_sl.reader->ReadGamma() : SlCalcConvFileLen(sld->conv);
 		_sl.reader->Skip(skip * sld->length);
 		return true;
 	}
@@ -1303,12 +1289,12 @@ static void SlSaveChunk(const ChunkHandler *ch)
 			_sl.last_array_index = 0;
 			SlWriteByte(CH_ARRAY);
 			proc();
-			SlWriteArrayLength(0); // Terminate arrays
+			_sl.dumper->WriteGamma(0); // Terminate arrays
 			break;
 		case CH_SPARSE_ARRAY:
 			SlWriteByte(CH_SPARSE_ARRAY);
 			proc();
-			SlWriteArrayLength(0); // Terminate arrays
+			_sl.dumper->WriteGamma(0); // Terminate arrays
 			break;
 		default: NOT_REACHED();
 	}
