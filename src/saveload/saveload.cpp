@@ -501,16 +501,6 @@ void SlWriteByte(byte b)
 	_sl.dumper->WriteByte(b);
 }
 
-static inline uint SlReadSparseIndex()
-{
-	return _sl.reader->ReadGamma();
-}
-
-static inline void SlWriteSparseIndex(uint index)
-{
-	_sl.dumper->WriteGamma(index);
-}
-
 static inline uint SlReadArrayLength()
 {
 	return _sl.reader->ReadGamma();
@@ -557,7 +547,7 @@ int SlIterateArray()
 		_next_offs = _sl.reader->GetSize() + length;
 
 		switch (_sl.block_mode) {
-			case CH_SPARSE_ARRAY: index = (int)SlReadSparseIndex(); break;
+			case CH_SPARSE_ARRAY: index = (int)_sl.reader->ReadGamma(); break;
 			case CH_ARRAY:        index = _sl.array_index++; break;
 			default:
 				DEBUG(sl, 0, "SlIterateArray error");
@@ -601,7 +591,7 @@ void SlWriteLength(size_t length)
 			break;
 		case CH_SPARSE_ARRAY:
 			SlWriteArrayLength(length + 1 + SlGetArrayLength(_sl.array_index)); // Also include length of sparse index.
-			SlWriteSparseIndex(_sl.array_index);
+			_sl.dumper->WriteGamma(_sl.array_index);
 			break;
 		default: NOT_REACHED();
 	}
