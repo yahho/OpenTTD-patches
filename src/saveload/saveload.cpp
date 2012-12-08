@@ -501,37 +501,6 @@ void SlWriteByte(byte b)
 	_sl.dumper->WriteByte(b);
 }
 
-/**
- * Write the header descriptor of an object or an array.
- * If the element is bigger than 127, use 2 bytes for saving
- * and use the highest byte of the first written one as a notice
- * that the length consists of 2 bytes, etc.. like this:
- * 0xxxxxxx
- * 10xxxxxx xxxxxxxx
- * 110xxxxx xxxxxxxx xxxxxxxx
- * 1110xxxx xxxxxxxx xxxxxxxx xxxxxxxx
- * @param i Index being written
- */
-
-static void SlWriteSimpleGamma(size_t i)
-{
-	if (i >= (1 << 7)) {
-		if (i >= (1 << 14)) {
-			if (i >= (1 << 21)) {
-				assert(i < (1 << 28));
-				SlWriteByte((byte)(0xE0 | (i >> 24)));
-				SlWriteByte((byte)(i >> 16));
-			} else {
-				SlWriteByte((byte)(0xC0 | (i >> 16)));
-			}
-			SlWriteByte((byte)(i >> 8));
-		} else {
-			SlWriteByte((byte)(0x80 | (i >> 8)));
-		}
-	}
-	SlWriteByte((byte)i);
-}
-
 /** Return how many bytes used to encode a gamma value */
 static inline uint SlGetGammaLength(size_t i)
 {
@@ -545,7 +514,7 @@ static inline uint SlReadSparseIndex()
 
 static inline void SlWriteSparseIndex(uint index)
 {
-	SlWriteSimpleGamma(index);
+	_sl.dumper->WriteGamma(index);
 }
 
 static inline uint SlReadArrayLength()
@@ -555,7 +524,7 @@ static inline uint SlReadArrayLength()
 
 static inline void SlWriteArrayLength(size_t length)
 {
-	SlWriteSimpleGamma(length);
+	_sl.dumper->WriteGamma(length);
 }
 
 static inline uint SlGetArrayLength(size_t length)

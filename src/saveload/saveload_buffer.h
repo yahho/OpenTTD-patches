@@ -148,6 +148,8 @@ struct SaveDumper {
 		this->WriteUint32((uint32)x);
 	}
 
+	void WriteGamma(size_t i);
+
 	/**
 	 * Flush this dumper into a writer.
 	 * @param writer The filter we want to use.

@@ -63,6 +63,37 @@ void SaveDumper::AllocBuffer()
 	this->bufe = this->buf + MEMORY_CHUNK_SIZE;
 }
 
+/**
+ * Write the header descriptor of an object or an array.
+ * If the element is bigger than 127, use 2 bytes for saving
+ * and use the highest byte of the first written one as a notice
+ * that the length consists of 2 bytes, etc.. like this:
+ * 0xxxxxxx
+ * 10xxxxxx xxxxxxxx
+ * 110xxxxx xxxxxxxx xxxxxxxx
+ * 1110xxxx xxxxxxxx xxxxxxxx xxxxxxxx
+ * @param i Index being written
+ */
+
+void SaveDumper::WriteGamma(size_t i)
+{
+	if (i >= (1 << 7)) {
+		if (i >= (1 << 14)) {
+			if (i >= (1 << 21)) {
+				assert(i < (1 << 28));
+				this->WriteByte((byte)(0xE0 | (i >> 24)));
+				this->WriteByte((byte)(i >> 16));
+			} else {
+				this->WriteByte((byte)(0xC0 | (i >> 16)));
+			}
+			this->WriteByte((byte)(i >> 8));
+		} else {
+			this->WriteByte((byte)(0x80 | (i >> 8)));
+		}
+	}
+	this->WriteByte((byte)i);
+}
+
 void SaveDumper::Flush(SaveFilter *writer)
 {
 	uint i = 0;
