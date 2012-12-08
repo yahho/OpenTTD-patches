@@ -20,22 +20,24 @@
 #include "../game/game_instance.hpp"
 #include "../game/game_text.hpp"
 
-static char _game_saveload_name[64];
-static int  _game_saveload_version;
-static char _game_saveload_settings[1024];
-static bool _game_saveload_is_random;
+struct GameSaveload {
+	char name[64];
+	char settings[1024];
+	int version;
+	bool is_random;
+};
 
 static const SaveLoad _game_script[] = {
-	    SLEG_STR(_game_saveload_name,        SLE_STRB),
-	    SLEG_STR(_game_saveload_settings,    SLE_STRB),
-	    SLEG_VAR(_game_saveload_version,   SLE_UINT32),
-	    SLEG_VAR(_game_saveload_is_random,   SLE_BOOL),
+	     SLE_STR(GameSaveload, name,        SLE_STRB, lengthof(GameSaveload::name)),
+	     SLE_STR(GameSaveload, settings,    SLE_STRB, lengthof(GameSaveload::settings)),
+	     SLE_VAR(GameSaveload, version,   SLE_UINT32),
+	     SLE_VAR(GameSaveload, is_random,   SLE_BOOL),
 	     SLE_END()
 };
 
-static void SaveReal_GSDT(int *index_ptr)
+static void SaveReal_GSDT(GameSaveload *gsl)
 {
-	SlObject(NULL, _game_script);
+	SlObject(gsl, _game_script);
 	Game::Save();
 }
 
@@ -46,8 +48,9 @@ static void Load_GSDT()
 
 	if ((CompanyID)SlIterateArray() == (CompanyID)-1) return;
 
-	_game_saveload_version = -1;
-	SlObject(NULL, _game_script);
+	GameSaveload gsl;
+	gsl.version = -1;
+	SlObject(&gsl, _game_script);
 
 	if (_networking && !_network_server) {
 		GameInstance::LoadEmpty();
@@ -56,36 +59,36 @@ static void Load_GSDT()
 	}
 
 	GameConfig *config = GameConfig::GetConfig(GameConfig::SSS_FORCE_GAME);
-	if (StrEmpty(_game_saveload_name)) {
+	if (StrEmpty(gsl.name)) {
 	} else {
-		config->Change(_game_saveload_name, _game_saveload_version, false, _game_saveload_is_random);
+		config->Change(gsl.name, gsl.version, false, gsl.is_random);
 		if (!config->HasScript()) {
 			/* No version of the GameScript available that can load the data. Try to load the
 				* latest version of the GameScript instead. */
-			config->Change(_game_saveload_name, -1, false, _game_saveload_is_random);
+			config->Change(gsl.name, -1, false, gsl.is_random);
 			if (!config->HasScript()) {
-				if (strcmp(_game_saveload_name, "%_dummy") != 0) {
-					DEBUG(script, 0, "The savegame has an GameScript by the name '%s', version %d which is no longer available.", _game_saveload_name, _game_saveload_version);
+				if (strcmp(gsl.name, "%_dummy") != 0) {
+					DEBUG(script, 0, "The savegame has an GameScript by the name '%s', version %d which is no longer available.", gsl.name, gsl.version);
 					DEBUG(script, 0, "This game wil continue to run without GameScript.");
 				} else {
 					DEBUG(script, 0, "The savegame had no GameScript available at the time of saving.");
 					DEBUG(script, 0, "This game wil continue to run without GameScript.");
 				}
 			} else {
-				DEBUG(script, 0, "The savegame has an GameScript by the name '%s', version %d which is no longer available.", _game_saveload_name, _game_saveload_version);
+				DEBUG(script, 0, "The savegame has an GameScript by the name '%s', version %d which is no longer available.", gsl.name, gsl.version);
 				DEBUG(script, 0, "The latest version of that GameScript has been loaded instead, but it'll not get the savegame data as it's incompatible.");
 			}
 			/* Make sure the GameScript doesn't get the saveload data, as he was not the
 				*  writer of the saveload data in the first place */
-			_game_saveload_version = -1;
+			gsl.version = -1;
 		}
 	}
 
-	config->StringToSettings(_game_saveload_settings);
+	config->StringToSettings(gsl.settings);
 
 	/* Start the GameScript directly if it was active in the savegame */
 	Game::StartNew();
-	Game::Load(_game_saveload_version);
+	Game::Load(gsl.version);
 
 	if ((CompanyID)SlIterateArray() != (CompanyID)-1) SlErrorCorrupt("Too many GameScript configs");
 }
@@ -93,22 +96,23 @@ static void Load_GSDT()
 static void Save_GSDT()
 {
 	GameConfig *config = GameConfig::GetConfig();
+	GameSaveload gsl;
 
 	if (config->HasScript()) {
-		ttd_strlcpy(_game_saveload_name, config->GetName(), lengthof(_game_saveload_name));
-		_game_saveload_version = config->GetVersion();
+		ttd_strlcpy(gsl.name, config->GetName(), lengthof(gsl.name));
+		gsl.version = config->GetVersion();
 	} else {
 		/* No GameScript is configured for this so store an empty string as name. */
-		_game_saveload_name[0] = '\0';
-		_game_saveload_version = -1;
+		gsl.name[0] = '\0';
+		gsl.version = -1;
 	}
 
-	_game_saveload_is_random = config->IsRandom();
-	_game_saveload_settings[0] = '\0';
-	config->SettingsToString(_game_saveload_settings, lengthof(_game_saveload_settings));
+	gsl.is_random = config->IsRandom();
+	gsl.settings[0] = '\0';
+	config->SettingsToString(gsl.settings, lengthof(gsl.settings));
 
 	SlSetArrayIndex(0);
-	SlAutolength((AutolengthProc *)SaveReal_GSDT, NULL);
+	SlAutolength((AutolengthProc *)SaveReal_GSDT, &gsl);
 }
 
 extern GameStrings *_current_data;
