@@ -501,12 +501,6 @@ void SlWriteByte(byte b)
 	_sl.dumper->WriteByte(b);
 }
 
-/** Return how many bytes used to encode a gamma value */
-static inline uint SlGetGammaLength(size_t i)
-{
-	return 1 + (i >= (1 << 7)) + (i >= (1 << 14)) + (i >= (1 << 21));
-}
-
 static inline uint SlReadSparseIndex()
 {
 	return _sl.reader->ReadGamma();
@@ -529,7 +523,7 @@ static inline void SlWriteArrayLength(size_t length)
 
 static inline uint SlGetArrayLength(size_t length)
 {
-	return SlGetGammaLength(length);
+	return GetGammaLength(length);
 }
 
 /** Return the size in bytes of a reference (pointer) */
