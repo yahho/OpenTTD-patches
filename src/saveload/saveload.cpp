@@ -1403,7 +1403,9 @@ static inline bool SlIsObjectValidInSavegame(const SaveLoad *sld)
 static inline bool SlSkipVariableOnLoad(const SaveLoad *sld)
 {
 	if ((sld->conv & SLF_NO_NETWORK_SYNC) && _sl.action != SLA_SAVE && _networking && !_network_server) {
-		SlSkipBytes(SlCalcConvMemLen(sld->conv) * sld->length);
+		size_t skip = (GetVarFileType(sld->conv) == SLE_FILE_STRING) ?
+			SlReadArrayLength() : SlCalcConvFileLen(sld->conv);
+		SlSkipBytes(skip * sld->length);
 		return true;
 	}
 
