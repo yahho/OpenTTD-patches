@@ -527,11 +527,7 @@ void SlWriteLength(size_t length)
 {
 	switch (_sl.dumper->chunk_type) {
 		case CH_RIFF:
-			/* Ugly encoding of >16M RIFF chunks
-			 * The lower 24 bits are normal
-			 * The uppermost 4 bits are bits 24:27 */
-			assert(length < (1 << 28));
-			_sl.dumper->WriteUint32((uint32)((length & 0xFFFFFF) | ((length >> 24) << 28)));
+			_sl.dumper->WriteRIFFSize(length);
 			break;
 		case CH_ARRAY:
 			assert(_sl.dumper->array_index <= _sl.array_index);
@@ -972,7 +968,7 @@ void SlRIFFObject(void *object, const SaveLoad *sld)
 {
 	assert(_sl.action == SLA_SAVE);
 
-	SlWriteLength(SlCalcObjLength(object, sld));
+	_sl.dumper->WriteRIFFSize(SlCalcObjLength(object, sld));
 	SlObject(object, sld);
 }
 
