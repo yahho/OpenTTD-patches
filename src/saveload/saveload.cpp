@@ -821,6 +821,35 @@ void SlSkipArray()
 }
 
 /**
+ * Writes the length of either a RIFF object or the size of an element in an array.
+ * @param length The length of the object
+ */
+void SlWriteLength(size_t length)
+{
+	switch (_sl.block_mode) {
+		case CH_RIFF:
+			/* Ugly encoding of >16M RIFF chunks
+			 * The lower 24 bits are normal
+			 * The uppermost 4 bits are bits 24:27 */
+			assert(length < (1 << 28));
+			SlWriteUint32((uint32)((length & 0xFFFFFF) | ((length >> 24) << 28)));
+			break;
+		case CH_ARRAY:
+			assert(_sl.last_array_index <= _sl.array_index);
+			while (++_sl.last_array_index <= _sl.array_index) {
+				SlWriteArrayLength(1);
+			}
+			SlWriteArrayLength(length + 1);
+			break;
+		case CH_SPARSE_ARRAY:
+			SlWriteArrayLength(length + 1 + SlGetArrayLength(_sl.array_index)); // Also include length of sparse index.
+			SlWriteSparseIndex(_sl.array_index);
+			break;
+		default: NOT_REACHED();
+	}
+}
+
+/**
  * Sets the length of either a RIFF object or the number of items in an array.
  * This lets us load an object or an array of arbitrary size
  * @param length The length of the sought object/array
@@ -832,27 +861,7 @@ void SlSetLength(size_t length)
 	switch (_sl.need_length) {
 		case NL_WANTLENGTH:
 			_sl.need_length = NL_NONE;
-			switch (_sl.block_mode) {
-				case CH_RIFF:
-					/* Ugly encoding of >16M RIFF chunks
-					 * The lower 24 bits are normal
-					 * The uppermost 4 bits are bits 24:27 */
-					assert(length < (1 << 28));
-					SlWriteUint32((uint32)((length & 0xFFFFFF) | ((length >> 24) << 28)));
-					break;
-				case CH_ARRAY:
-					assert(_sl.last_array_index <= _sl.array_index);
-					while (++_sl.last_array_index <= _sl.array_index) {
-						SlWriteArrayLength(1);
-					}
-					SlWriteArrayLength(length + 1);
-					break;
-				case CH_SPARSE_ARRAY:
-					SlWriteArrayLength(length + 1 + SlGetArrayLength(_sl.array_index)); // Also include length of sparse index.
-					SlWriteSparseIndex(_sl.array_index);
-					break;
-				default: NOT_REACHED();
-			}
+			SlWriteLength(length);
 			break;
 
 		case NL_CALCLENGTH:
