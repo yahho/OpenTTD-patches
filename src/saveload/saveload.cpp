@@ -1493,15 +1493,6 @@ void SlObject(void *object, const SaveLoad *sld)
 }
 
 /**
- * Save or Load (a list of) global variables
- * @param sldg The global variable that is being loaded or saved
- */
-void SlGlobList(const SaveLoadGlobVarList *sldg)
-{
-	SlObject(NULL, (const SaveLoad*)sldg);
-}
-
-/**
  * Do something of which I have no idea what it is :P
  * @param proc The callback procedure that is called
  * @param arg The variable that will be used for the callback procedure

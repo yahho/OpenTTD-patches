@@ -133,7 +133,7 @@ static const SaveLoad _industry_builder_desc[] = {
 /** Load/save industry builder. */
 static void LoadSave_IBLD()
 {
-	SlGlobList(_industry_builder_desc);
+	SlObject(NULL, _industry_builder_desc);
 }
 
 /** Description of the data to save and load in #IndustryTypeBuildData. */

@@ -207,9 +207,6 @@ struct SaveLoad {
 	void *address;       ///< address of variable OR offset of variable in the struct (max offset is 65536)
 };
 
-/** Same as #SaveLoad but global variables are used (for better readability); */
-typedef SaveLoad SaveLoadGlobVarList;
-
 /**
  * Storage of simple variables, references (pointers), and arrays.
  * @param type     Load/save type. @see SaveLoadType
@@ -525,7 +522,6 @@ size_t SlCalcObjLength(const void *object, const SaveLoad *sld);
 byte SlReadByte();
 void SlWriteByte(byte b);
 
-void SlGlobList(const SaveLoadGlobVarList *sldg);
 void SlArray(void *array, size_t length, VarType conv);
 void SlObject(void *object, const SaveLoad *sld);
 bool SlObjectMember(void *object, const SaveLoad *sld);

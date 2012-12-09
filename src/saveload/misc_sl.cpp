@@ -68,7 +68,7 @@ void ResetViewportAfterLoadGame()
 
 byte _age_cargo_skip_counter; ///< Skip aging of cargo? Used before savegame version 162.
 
-static const SaveLoadGlobVarList _date_desc[] = {
+static const SaveLoad _date_desc[] = {
 	SLEG_CONDVAR(_date,                   SLE_FILE_U16 | SLE_VAR_I32,  0,  30),
 	SLEG_CONDVAR(_date,                   SLE_INT32,                  31, SL_MAX_VERSION),
 	    SLEG_VAR(_date_fract,             SLE_UINT16),
@@ -93,7 +93,7 @@ static const SaveLoadGlobVarList _date_desc[] = {
 	     SLE_END()
 };
 
-static const SaveLoadGlobVarList _date_check_desc[] = {
+static const SaveLoad _date_check_desc[] = {
 	SLEG_CONDVAR(_load_check_data.current_date,  SLE_FILE_U16 | SLE_VAR_I32,  0,  30),
 	SLEG_CONDVAR(_load_check_data.current_date,  SLE_INT32,                  31, SL_MAX_VERSION),
 	    SLE_NULL(2),                       // _date_fract
@@ -122,19 +122,19 @@ static const SaveLoadGlobVarList _date_check_desc[] = {
  * XXX: currently some unrelated stuff is just put here */
 static void SaveLoad_DATE()
 {
-	SlGlobList(_date_desc);
+	SlObject(NULL, _date_desc);
 }
 
 static void Check_DATE()
 {
-	SlGlobList(_date_check_desc);
+	SlObject(NULL, _date_check_desc);
 	if (IsSavegameVersionBefore(31)) {
 		_load_check_data.current_date += DAYS_TILL_ORIGINAL_BASE_YEAR;
 	}
 }
 
 
-static const SaveLoadGlobVarList _view_desc[] = {
+static const SaveLoad _view_desc[] = {
 	SLEG_CONDVAR(_saved_scrollpos_x,    SLE_FILE_I16 | SLE_VAR_I32, 0, 5),
 	SLEG_CONDVAR(_saved_scrollpos_x,    SLE_INT32,                  6, SL_MAX_VERSION),
 	SLEG_CONDVAR(_saved_scrollpos_y,    SLE_FILE_I16 | SLE_VAR_I32, 0, 5),
@@ -145,7 +145,7 @@ static const SaveLoadGlobVarList _view_desc[] = {
 
 static void SaveLoad_VIEW()
 {
-	SlGlobList(_view_desc);
+	SlObject(NULL, _view_desc);
 }
 
 extern const ChunkHandler _misc_chunk_handlers[] = {
