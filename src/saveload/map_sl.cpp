@@ -16,33 +16,37 @@
 
 #include "saveload.h"
 
-static uint32 _map_dim_x;
-static uint32 _map_dim_y;
+struct MapDim {
+	uint32 x, y;
+};
 
-static const SaveLoadGlobVarList _map_dimensions[] = {
-	SLEG_CONDVAR(_map_dim_x, SLE_UINT32, 6, SL_MAX_VERSION),
-	SLEG_CONDVAR(_map_dim_y, SLE_UINT32, 6, SL_MAX_VERSION),
-	    SLEG_END()
+static const SaveLoad _map_dimensions[] = {
+	SLE_CONDVAR(MapDim, x, SLE_UINT32, 6, SL_MAX_VERSION),
+	SLE_CONDVAR(MapDim, y, SLE_UINT32, 6, SL_MAX_VERSION),
+	    SLE_END()
 };
 
 static void Save_MAPS()
 {
-	_map_dim_x = MapSizeX();
-	_map_dim_y = MapSizeY();
-	SlGlobList(_map_dimensions);
+	MapDim map_dim;
+	map_dim.x = MapSizeX();
+	map_dim.y = MapSizeY();
+	SlObject(&map_dim, _map_dimensions);
 }
 
 static void Load_MAPS()
 {
-	SlGlobList(_map_dimensions);
-	AllocateMap(_map_dim_x, _map_dim_y);
+	MapDim map_dim;
+	SlObject(&map_dim, _map_dimensions);
+	AllocateMap(map_dim.x, map_dim.y);
 }
 
 static void Check_MAPS()
 {
-	SlGlobList(_map_dimensions);
-	_load_check_data.map_size_x = _map_dim_x;
-	_load_check_data.map_size_y = _map_dim_y;
+	MapDim map_dim;
+	SlObject(&map_dim, _map_dimensions);
+	_load_check_data.map_size_x = map_dim.x;
+	_load_check_data.map_size_y = map_dim.y;
 }
 
 static const uint MAP_SL_BUF_SIZE = 4096;
