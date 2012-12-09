@@ -604,15 +604,13 @@ static void SlAddLength(size_t length)
  */
 static void SlCopyBytes(void *ptr, size_t length)
 {
-	byte *p = (byte *)ptr;
-
 	switch (_sl.action) {
 		case SLA_LOAD_CHECK:
 		case SLA_LOAD:
-			for (; length != 0; length--) *p++ = SlReadByte();
+			_sl.reader->CopyBytes(ptr, length);
 			break;
 		case SLA_SAVE:
-			for (; length != 0; length--) SlWriteByte(*p++);
+			_sl.dumper->CopyBytes(ptr, length);
 			break;
 		default: NOT_REACHED();
 	}

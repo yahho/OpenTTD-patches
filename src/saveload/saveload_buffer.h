@@ -91,6 +91,8 @@ struct LoadBuffer {
 
 		this->bufp += length;
 	}
+
+	void CopyBytes(void *ptr, size_t length);
 };
 
 /** Container for dumping the savegame (quickly) to memory. */
@@ -149,6 +151,8 @@ struct SaveDumper {
 	}
 
 	void WriteGamma(size_t i);
+
+	void CopyBytes(const void *ptr, size_t length);
 
 	/**
 	 * Flush this dumper into a writer.

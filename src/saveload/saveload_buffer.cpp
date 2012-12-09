@@ -55,6 +55,27 @@ uint LoadBuffer::ReadGamma()
 	return i;
 }
 
+/**
+ * Load a sequence of bytes.
+ * @param ptr Load destination
+ * @param length Number of bytes to copy
+ */
+void LoadBuffer::CopyBytes(void *ptr, size_t length)
+{
+	byte *p = (byte *)ptr;
+	size_t diff;
+
+	while (length > (diff = this->bufe - this->bufp)) {
+		memcpy(p, this->bufp, diff);
+		p += diff;
+		length -= diff;
+		this->FillBuffer();
+	}
+
+	memcpy(p, this->bufp, length);
+	this->bufp += length;
+}
+
 
 void SaveDumper::AllocBuffer()
 {
@@ -92,6 +113,27 @@ void SaveDumper::WriteGamma(size_t i)
 		}
 	}
 	this->WriteByte((byte)i);
+}
+
+/**
+ * Save a sequence of bytes.
+ * @param ptr Save source
+ * @param length Number of bytes to copy
+ */
+void SaveDumper::CopyBytes(const void *ptr, size_t length)
+{
+	const byte *p = (const byte *)ptr;
+	size_t diff;
+
+	while (length > (diff = this->bufe - this->buf)) {
+		memcpy(this->buf, p, diff);
+		p += diff;
+		length -= diff;
+		this->AllocBuffer();
+	}
+
+	memcpy(this->buf, p, length);
+	this->buf += length;
 }
 
 void SaveDumper::Flush(SaveFilter *writer)
