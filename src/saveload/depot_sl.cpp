@@ -33,8 +33,7 @@ static void Save_DEPT()
 	Depot *depot;
 
 	FOR_ALL_DEPOTS(depot) {
-		SlSetArrayIndex(depot->index);
-		SlObject(depot, _depot_desc);
+		SlArrayObject(depot->index, depot, _depot_desc);
 	}
 }
 

@@ -525,6 +525,8 @@ void SlWriteByte(byte b);
 void SlArray(void *array, size_t length, VarType conv);
 void SlObject(void *object, const SaveLoad *sld);
 bool SlObjectMember(void *object, const SaveLoad *sld);
+void SlArrayObject(uint index, void *object, const SaveLoad *sld);
+
 void NORETURN SlError(StringID string, const char *extra_msg = NULL);
 void NORETURN SlErrorCorrupt(const char *msg);
 

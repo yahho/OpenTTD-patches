@@ -34,8 +34,7 @@ static void Save_OBJS()
 
 	/* Write the objects */
 	FOR_ALL_OBJECTS(o) {
-		SlSetArrayIndex(o->index);
-		SlObject(o, _object_desc);
+		SlArrayObject(o->index, o, _object_desc);
 	}
 }
 

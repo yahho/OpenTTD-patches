@@ -864,8 +864,7 @@ static void Save_VEHS()
 	Vehicle *v;
 	/* Write the vehicles */
 	FOR_ALL_VEHICLES(v) {
-		SlSetArrayIndex(v->index);
-		SlObject(v, GetVehicleDescription(v->type));
+		SlArrayObject(v->index, v, GetVehicleDescription(v->type));
 	}
 }
 

@@ -99,8 +99,7 @@ static void Save_RAIL()
 	for (RailType r = RAILTYPE_BEGIN; r != RAILTYPE_END; r++) {
 		lo.label = GetRailTypeInfo(r)->label;
 
-		SlSetArrayIndex(r);
-		SlObject(&lo, _label_object_desc);
+		SlArrayObject(r, &lo, _label_object_desc);
 	}
 }
 

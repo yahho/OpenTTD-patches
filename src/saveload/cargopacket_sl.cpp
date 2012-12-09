@@ -117,8 +117,7 @@ static void Save_CAPA()
 	CargoPacket *cp;
 
 	FOR_ALL_CARGOPACKETS(cp) {
-		SlSetArrayIndex(cp->index);
-		SlObject(cp, GetCargoPacketDesc());
+		SlArrayObject(cp->index, cp, GetCargoPacketDesc());
 	}
 }
 

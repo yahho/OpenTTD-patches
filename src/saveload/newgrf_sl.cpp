@@ -30,8 +30,7 @@ static const SaveLoad _newgrf_mapping_desc[] = {
 void Save_NewGRFMapping(const OverrideManagerBase &mapping)
 {
 	for (uint i = 0; i < mapping.GetMaxMapping(); i++) {
-		SlSetArrayIndex(i);
-		SlObject(&mapping.mapping_ID[i], _newgrf_mapping_desc);
+		SlArrayObject(i, &mapping.mapping_ID[i], _newgrf_mapping_desc);
 	}
 }
 
@@ -73,8 +72,7 @@ static void Save_NGRF()
 
 	for (GRFConfig *c = _grfconfig; c != NULL; c = c->next) {
 		if (HasBit(c->flags, GCF_STATIC)) continue;
-		SlSetArrayIndex(index++);
-		SlObject(c, _grfconfig_desc);
+		SlArrayObject(index++, c, _grfconfig_desc);
 	}
 }
 

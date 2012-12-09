@@ -55,8 +55,7 @@ static void Save_ENGN()
 {
 	Engine *e;
 	FOR_ALL_ENGINES(e) {
-		SlSetArrayIndex(e->index);
-		SlObject(e, _engine_desc);
+		SlArrayObject(e->index, e, _engine_desc);
 	}
 }
 
@@ -141,8 +140,7 @@ static void Save_EIDS()
 	const EngineIDMapping *end = _engine_mngr.End();
 	uint index = 0;
 	for (EngineIDMapping *eid = _engine_mngr.Begin(); eid != end; eid++, index++) {
-		SlSetArrayIndex(index);
-		SlObject(eid, _engine_id_mapping_desc);
+		SlArrayObject(index, eid, _engine_id_mapping_desc);
 	}
 }
 

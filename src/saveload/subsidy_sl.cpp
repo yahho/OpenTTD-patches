@@ -31,8 +31,7 @@ static void Save_SUBS()
 {
 	Subsidy *s;
 	FOR_ALL_SUBSIDIES(s) {
-		SlSetArrayIndex(s->index);
-		SlObject(s, _subsidies_desc);
+		SlArrayObject(s->index, s, _subsidies_desc);
 	}
 }
 

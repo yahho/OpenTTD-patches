@@ -28,8 +28,7 @@ static void Save_GOAL()
 {
 	Goal *s;
 	FOR_ALL_GOALS(s) {
-		SlSetArrayIndex(s->index);
-		SlObject(s, _goals_desc);
+		SlArrayObject(s->index, s, _goals_desc);
 	}
 }
 

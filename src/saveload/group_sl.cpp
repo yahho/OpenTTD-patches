@@ -29,8 +29,7 @@ static void Save_GRPS()
 	Group *g;
 
 	FOR_ALL_GROUPS(g) {
-		SlSetArrayIndex(g->index);
-		SlObject(g, _group_desc);
+		SlArrayObject(g->index, g, _group_desc);
 	}
 }
 

@@ -35,8 +35,7 @@ static void Save_SIGN()
 	Sign *si;
 
 	FOR_ALL_SIGNS(si) {
-		SlSetArrayIndex(si->index);
-		SlObject(si, _sign_desc);
+		SlArrayObject(si->index, si, _sign_desc);
 	}
 }
 

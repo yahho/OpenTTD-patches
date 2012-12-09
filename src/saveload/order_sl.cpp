@@ -126,8 +126,7 @@ static void Save_ORDR()
 	Order *order;
 
 	FOR_ALL_ORDERS(order) {
-		SlSetArrayIndex(order->index);
-		SlObject(order, GetOrderDescription());
+		SlArrayObject(order->index, order, GetOrderDescription());
 	}
 }
 
@@ -215,8 +214,7 @@ static void Save_ORDL()
 	OrderList *list;
 
 	FOR_ALL_ORDER_LISTS(list) {
-		SlSetArrayIndex(list->index);
-		SlObject(list, GetOrderListDescription());
+		SlArrayObject(list->index, list, GetOrderListDescription());
 	}
 }
 
@@ -273,8 +271,7 @@ static void Save_BKOR()
 
 	OrderBackup *ob;
 	FOR_ALL_ORDER_BACKUPS(ob) {
-		SlSetArrayIndex(ob->index);
-		SlObject(ob, GetOrderBackupDescription());
+		SlArrayObject(ob->index, ob, GetOrderBackupDescription());
 	}
 }
 

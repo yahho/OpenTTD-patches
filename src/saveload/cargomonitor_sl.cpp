@@ -38,8 +38,7 @@ static void SaveDelivery()
 		storage.number = iter->first;
 		storage.amount = iter->second;
 
-		SlSetArrayIndex(i);
-		SlObject(&storage, _cargomonitor_pair_desc);
+		SlArrayObject(i, &storage, _cargomonitor_pair_desc);
 
 		i++;
 		iter++;
@@ -73,8 +72,7 @@ static void SavePickup()
 		storage.number = iter->first;
 		storage.amount = iter->second;
 
-		SlSetArrayIndex(i);
-		SlObject(&storage, _cargomonitor_pair_desc);
+		SlArrayObject(i, &storage, _cargomonitor_pair_desc);
 
 		i++;
 		iter++;

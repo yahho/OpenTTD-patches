@@ -74,8 +74,7 @@ static void Save_CAPY()
 {
 	CargoPayment *cp;
 	FOR_ALL_CARGO_PAYMENTS(cp) {
-		SlSetArrayIndex(cp->index);
-		SlObject(cp, _cargopayment_desc);
+		SlArrayObject(cp->index, cp, _cargopayment_desc);
 	}
 }
 

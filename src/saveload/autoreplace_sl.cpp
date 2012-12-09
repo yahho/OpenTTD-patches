@@ -29,8 +29,7 @@ static void Save_ERNW()
 	EngineRenew *er;
 
 	FOR_ALL_ENGINE_RENEWS(er) {
-		SlSetArrayIndex(er->index);
-		SlObject(er, _engine_renew_desc);
+		SlArrayObject(er->index, er, _engine_renew_desc);
 	}
 }
 

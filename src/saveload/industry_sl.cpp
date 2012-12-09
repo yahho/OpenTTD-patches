@@ -69,8 +69,7 @@ static void Save_INDY()
 
 	/* Write the industries */
 	FOR_ALL_INDUSTRIES(ind) {
-		SlSetArrayIndex(ind->index);
-		SlObject(ind, _industry_desc);
+		SlArrayObject(ind->index, ind, _industry_desc);
 	}
 }
 
@@ -150,8 +149,7 @@ static const SaveLoad _industrytype_builder_desc[] = {
 static void Save_ITBL()
 {
 	for (int i = 0; i < NUM_INDUSTRYTYPES; i++) {
-		SlSetArrayIndex(i);
-		SlObject(_industry_builder.builddata + i, _industrytype_builder_desc);
+		SlArrayObject(i, _industry_builder.builddata + i, _industrytype_builder_desc);
 	}
 }
 

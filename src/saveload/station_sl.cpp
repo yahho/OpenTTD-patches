@@ -589,8 +589,7 @@ static void Save_ROADSTOP()
 	RoadStop *rs;
 
 	FOR_ALL_ROADSTOPS(rs) {
-		SlSetArrayIndex(rs->index);
-		SlObject(rs, _roadstop_desc);
+		SlArrayObject(rs->index, rs, _roadstop_desc);
 	}
 }
 
