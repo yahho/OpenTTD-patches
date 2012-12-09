@@ -227,8 +227,7 @@ static void Save_LGRP()
 {
 	LinkGraph *lg;
 	FOR_ALL_LINK_GRAPHS(lg) {
-		SlSetArrayIndex(lg->index);
-		SlAutolength((AutolengthProc*)DoSave_LGRP, lg);
+		SlArrayAutoElement(lg->index, (AutolengthProc*)DoSave_LGRP, lg);
 	}
 }
 
@@ -239,8 +238,7 @@ static void Save_LGRJ()
 {
 	LinkGraphJob *lgj;
 	FOR_ALL_LINK_GRAPH_JOBS(lgj) {
-		SlSetArrayIndex(lgj->index);
-		SlAutolength((AutolengthProc*)DoSave_LGRJ, lgj);
+		SlArrayAutoElement(lgj->index, (AutolengthProc*)DoSave_LGRJ, lgj);
 	}
 }
 

@@ -124,8 +124,7 @@ static void Save_AIPL()
 		/* If the AI was active, store his data too */
 		aisl.id = (CompanyID)(Company::IsValidAiID(i) ? i : -1);
 
-		SlSetArrayIndex(i);
-		SlAutolength((AutolengthProc *)SaveReal_AIPL, &aisl);
+		SlArrayAutoElement(i, (AutolengthProc *)SaveReal_AIPL, &aisl);
 	}
 }
 

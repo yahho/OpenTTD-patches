@@ -261,8 +261,7 @@ static void Save_TOWN()
 	Town *t;
 
 	FOR_ALL_TOWNS(t) {
-		SlSetArrayIndex(t->index);
-		SlAutolength((AutolengthProc*)RealSave_Town, t);
+		SlArrayAutoElement(t->index, (AutolengthProc*)RealSave_Town, t);
 	}
 }
 

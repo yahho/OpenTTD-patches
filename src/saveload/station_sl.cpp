@@ -493,8 +493,7 @@ static void Save_STNN()
 	BaseStation *st;
 	/* Write the stations */
 	FOR_ALL_BASE_STATIONS(st) {
-		SlSetArrayIndex(st->index);
-		SlAutolength((AutolengthProc*)RealSave_STNN, st);
+		SlArrayAutoElement(st->index, (AutolengthProc*)RealSave_STNN, st);
 	}
 }
 

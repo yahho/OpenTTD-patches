@@ -472,8 +472,7 @@ static void Save_PLYR()
 {
 	Company *c;
 	FOR_ALL_COMPANIES(c) {
-		SlSetArrayIndex(c->index);
-		SlAutolength((AutolengthProc*)SaveLoad_PLYR, c);
+		SlArrayAutoElement(c->index, (AutolengthProc*)SaveLoad_PLYR, c);
 	}
 }
 

@@ -111,8 +111,7 @@ static void Save_GSDT()
 	gsl.settings[0] = '\0';
 	config->SettingsToString(gsl.settings, lengthof(gsl.settings));
 
-	SlSetArrayIndex(0);
-	SlAutolength((AutolengthProc *)SaveReal_GSDT, &gsl);
+	SlArrayAutoElement(0, (AutolengthProc *)SaveReal_GSDT, &gsl);
 }
 
 extern GameStrings *_current_data;
@@ -181,8 +180,7 @@ static void Save_GSTR()
 	if (_current_data == NULL) return;
 
 	for (uint i = 0; i < _current_data->raw_strings.Length(); i++) {
-		SlSetArrayIndex(i);
-		SlAutolength((AutolengthProc *)SaveReal_GSTR, _current_data->raw_strings[i]);
+		SlArrayAutoElement(i, (AutolengthProc *)SaveReal_GSTR, _current_data->raw_strings[i]);
 	}
 }
 

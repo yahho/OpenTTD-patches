@@ -513,7 +513,7 @@ void WriteValue(void *ptr, VarType conv, int64 val);
 void SlSetArrayIndex(uint index);
 int SlIterateArray();
 
-void SlAutolength(AutolengthProc *proc, void *arg);
+void SlArrayAutoElement(uint index, AutolengthProc *proc, void *arg);
 size_t SlGetFieldLength();
 void SlSetLength(size_t length);
 size_t SlCalcObjMemberLength(const void *object, const SaveLoad *sld);
