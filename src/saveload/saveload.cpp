@@ -273,7 +273,6 @@ enum SaveLoadAction {
 
 enum NeedLength {
 	NL_NONE = 0,       ///< not working in NeedLength mode
-	NL_WANTLENGTH = 1, ///< writing length and data
 	NL_CALCLENGTH = 2, ///< need to calculate the length
 };
 
@@ -850,26 +849,16 @@ void SlWriteLength(size_t length)
 }
 
 /**
- * Sets the length of either a RIFF object or the number of items in an array.
+ * Sets the length of an element in an array.
  * This lets us load an object or an array of arbitrary size
  * @param length The length of the sought object/array
  */
 static void SlSetLength(size_t length)
 {
 	assert(_sl.action == SLA_SAVE);
+	assert(_sl.need_length == NL_CALCLENGTH);
 
-	switch (_sl.need_length) {
-		case NL_WANTLENGTH:
-			_sl.need_length = NL_NONE;
-			SlWriteLength(length);
-			break;
-
-		case NL_CALCLENGTH:
-			_sl.obj_len += (int)length;
-			break;
-
-		default: NOT_REACHED();
-	}
+	_sl.obj_len += (int)length;
 }
 
 /**
@@ -1136,8 +1125,7 @@ void SlArray(void *array, size_t length, VarType conv)
 	/* Automatically calculate the length? */
 	if (_sl.need_length != NL_NONE) {
 		SlSetLength(SlCalcArrayLen(length, conv));
-		/* Determine length only? */
-		if (_sl.need_length == NL_CALCLENGTH) return;
+		return;
 	}
 
 	/* NOTICE - handle some buggy stuff, in really old versions everything was saved
@@ -1313,8 +1301,7 @@ static void SlList(void *list, SLRefType conv)
 	/* Automatically calculate the length? */
 	if (_sl.need_length != NL_NONE) {
 		SlSetLength(SlCalcListLen(list));
-		/* Determine length only? */
-		if (_sl.need_length == NL_CALCLENGTH) return;
+		return;
 	}
 
 	typedef std::list<void *> PtrList;
@@ -1487,7 +1474,7 @@ void SlObject(void *object, const SaveLoad *sld)
 	/* Automatically calculate the length? */
 	if (_sl.need_length != NL_NONE) {
 		SlSetLength(SlCalcObjLength(object, sld));
-		if (_sl.need_length == NL_CALCLENGTH) return;
+		return;
 	}
 
 	for (; sld->type != SL_END; sld++) {
@@ -1502,7 +1489,9 @@ void SlObject(void *object, const SaveLoad *sld)
  */
 void SlRIFFObject(void *object, const SaveLoad *sld)
 {
-	_sl.need_length = NL_WANTLENGTH;
+	assert(_sl.action == SLA_SAVE);
+
+	SlWriteLength(SlCalcObjLength(object, sld));
 	SlObject(object, sld);
 }
 
@@ -1514,9 +1503,11 @@ void SlRIFFObject(void *object, const SaveLoad *sld)
  */
 void SlArrayObject(uint index, void *object, const SaveLoad *sld)
 {
-	_sl.need_length = NL_WANTLENGTH;
+	assert(_sl.action == SLA_SAVE);
+
 	_sl.array_index = index;
 
+	SlWriteLength(SlCalcObjLength(object, sld));
 	SlObject(object, sld);
 }
 
@@ -1537,9 +1528,9 @@ void SlArrayAutoElement(uint index, AutolengthProc *proc, void *arg)
 	_sl.obj_len = 0;
 	proc(arg);
 
-	/* Setup length */
-	_sl.need_length = NL_WANTLENGTH;
-	SlSetLength(_sl.obj_len);
+	/* Write length */
+	SlWriteLength(_sl.obj_len);
+	_sl.need_length = NL_NONE;
 
 	size_t offs = _sl.dumper->GetSize() + _sl.obj_len;
 
