@@ -118,9 +118,16 @@ static const SaveLoad _date_check_desc[] = {
 	     SLE_END()
 };
 
-/* Save load date related variables as well as persistent tick counters
+/* Save date-related variables as well as persistent tick counters
  * XXX: currently some unrelated stuff is just put here */
-static void SaveLoad_DATE()
+static void Save_DATE()
+{
+	SlObject(NULL, _date_desc);
+}
+
+/* Load date-related variables as well as persistent tick counters
+ * XXX: currently some unrelated stuff is just put here */
+static void Load_DATE()
 {
 	SlObject(NULL, _date_desc);
 }
@@ -143,12 +150,17 @@ static const SaveLoad _view_desc[] = {
 	     SLE_END()
 };
 
-static void SaveLoad_VIEW()
+static void Save_VIEW()
+{
+	SlObject(NULL, _view_desc);
+}
+
+static void Load_VIEW()
 {
 	SlObject(NULL, _view_desc);
 }
 
 extern const ChunkHandler _misc_chunk_handlers[] = {
-	{ 'DATE', SaveLoad_DATE, SaveLoad_DATE, NULL, Check_DATE, CH_RIFF},
-	{ 'VIEW', SaveLoad_VIEW, SaveLoad_VIEW, NULL, NULL,       CH_RIFF | CH_LAST},
+	{ 'DATE', Save_DATE, Load_DATE, NULL, Check_DATE, CH_RIFF},
+	{ 'VIEW', Save_VIEW, Load_VIEW, NULL, NULL,       CH_RIFF | CH_LAST},
 };

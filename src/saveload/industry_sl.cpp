@@ -129,8 +129,14 @@ static const SaveLoad _industry_builder_desc[] = {
 	 SLE_END()
 };
 
-/** Load/save industry builder. */
-static void LoadSave_IBLD()
+/** Save industry builder. */
+static void Save_IBLD()
+{
+	SlObject(NULL, _industry_builder_desc);
+}
+
+/** Load industry builder. */
+static void Load_IBLD()
 {
 	SlObject(NULL, _industry_builder_desc);
 }
@@ -170,6 +176,6 @@ extern const ChunkHandler _industry_chunk_handlers[] = {
 	{ 'INDY', Save_INDY,     Load_INDY,     Ptrs_INDY, NULL, CH_ARRAY},
 	{ 'IIDS', Save_IIDS,     Load_IIDS,     NULL,      NULL, CH_ARRAY},
 	{ 'TIDS', Save_TIDS,     Load_TIDS,     NULL,      NULL, CH_ARRAY},
-	{ 'IBLD', LoadSave_IBLD, LoadSave_IBLD, NULL,      NULL, CH_RIFF},
+	{ 'IBLD', Save_IBLD,     Load_IBLD,     NULL,      NULL, CH_RIFF},
 	{ 'ITBL', Save_ITBL,     Load_ITBL,     NULL,      NULL, CH_ARRAY | CH_LAST},
 };
