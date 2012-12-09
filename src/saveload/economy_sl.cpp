@@ -52,7 +52,7 @@ static const SaveLoad _economy_desc[] = {
 /** Economy variables */
 static void Save_ECMY()
 {
-	SlObject(&_economy, _economy_desc);
+	SlRIFFObject(&_economy, _economy_desc);
 }
 
 /** Economy variables */

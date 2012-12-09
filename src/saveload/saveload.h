@@ -515,7 +515,6 @@ int SlIterateArray();
 void SlArrayAutoElement(uint index, AutolengthProc *proc, void *arg);
 size_t SlGetFieldLength();
 void SlWriteLength(size_t length);
-void SlSetLength(size_t length);
 size_t SlCalcObjMemberLength(const void *object, const SaveLoad *sld);
 size_t SlCalcObjLength(const void *object, const SaveLoad *sld);
 
@@ -525,6 +524,7 @@ void SlWriteByte(byte b);
 void SlArray(void *array, size_t length, VarType conv);
 void SlObject(void *object, const SaveLoad *sld);
 bool SlObjectMember(void *object, const SaveLoad *sld);
+void SlRIFFObject(void *object, const SaveLoad *sld);
 void SlArrayObject(uint index, void *object, const SaveLoad *sld);
 
 void NORETURN SlError(StringID string, const char *extra_msg = NULL);

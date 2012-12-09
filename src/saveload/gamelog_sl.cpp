@@ -149,7 +149,7 @@ static void Save_GLOG()
 	}
 	length++;
 
-	SlSetLength(length);
+	SlWriteLength(length);
 
 	for (LoggedAction *la = _gamelog_action; la != laend; la++) {
 		SlWriteByte(la->at);

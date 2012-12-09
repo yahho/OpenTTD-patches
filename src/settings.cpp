@@ -2113,7 +2113,7 @@ static void SaveSettings(const SettingDesc *sd, void *object)
 	for (i = sd; i->save.type != SL_END; i++) {
 		length += SlCalcObjMemberLength(object, &i->save);
 	}
-	SlSetLength(length);
+	SlWriteLength(length);
 
 	for (i = sd; i->save.type != SL_END; i++) {
 		SlObjectMember(object, &i->save);

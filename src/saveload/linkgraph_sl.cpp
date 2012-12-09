@@ -247,7 +247,7 @@ static void Save_LGRJ()
  */
 static void Save_LGRS()
 {
-	SlObject(LinkGraphSchedule::Instance(), GetLinkGraphScheduleDesc());
+	SlRIFFObject(LinkGraphSchedule::Instance(), GetLinkGraphScheduleDesc());
 }
 
 /**

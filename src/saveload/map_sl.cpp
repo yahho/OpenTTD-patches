@@ -31,7 +31,7 @@ static void Save_MAPS()
 	MapDim map_dim;
 	map_dim.x = MapSizeX();
 	map_dim.y = MapSizeY();
-	SlObject(&map_dim, _map_dimensions);
+	SlRIFFObject(&map_dim, _map_dimensions);
 }
 
 static void Load_MAPS()
@@ -67,7 +67,7 @@ static void Save_MAPT()
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
-	SlSetLength(size);
+	SlWriteLength(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].type_height;
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
@@ -90,7 +90,7 @@ static void Save_MAP1()
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
-	SlSetLength(size);
+	SlWriteLength(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].m1;
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
@@ -116,7 +116,7 @@ static void Save_MAP2()
 	SmallStackSafeStackAlloc<uint16, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
-	SlSetLength(size * sizeof(uint16));
+	SlWriteLength(size * sizeof(uint16));
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].m2;
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT16);
@@ -139,7 +139,7 @@ static void Save_MAP3()
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
-	SlSetLength(size);
+	SlWriteLength(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].m3;
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
@@ -162,7 +162,7 @@ static void Save_MAP4()
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
-	SlSetLength(size);
+	SlWriteLength(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].m4;
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
@@ -185,7 +185,7 @@ static void Save_MAP5()
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
-	SlSetLength(size);
+	SlWriteLength(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].m5;
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
@@ -221,7 +221,7 @@ static void Save_MAP6()
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
-	SlSetLength(size);
+	SlWriteLength(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].m6;
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
@@ -244,7 +244,7 @@ static void Save_MAP7()
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
-	SlSetLength(size);
+	SlWriteLength(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _me[i++].m7;
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);

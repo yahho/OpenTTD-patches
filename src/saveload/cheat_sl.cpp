@@ -24,7 +24,7 @@ static void Save_CHTS()
 	Cheat *cht = (Cheat*) &_cheats;
 	Cheat *cht_last = &cht[count];
 
-	SlSetLength(count * 2);
+	SlWriteLength(count * 2);
 	for (; cht != cht_last; cht++) {
 		SlWriteByte(cht->been_used);
 		SlWriteByte(cht->value);

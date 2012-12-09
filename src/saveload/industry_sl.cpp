@@ -132,7 +132,7 @@ static const SaveLoad _industry_builder_desc[] = {
 /** Save industry builder. */
 static void Save_IBLD()
 {
-	SlObject(NULL, _industry_builder_desc);
+	SlRIFFObject(NULL, _industry_builder_desc);
 }
 
 /** Load industry builder. */

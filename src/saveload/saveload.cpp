@@ -854,7 +854,7 @@ void SlWriteLength(size_t length)
  * This lets us load an object or an array of arbitrary size
  * @param length The length of the sought object/array
  */
-void SlSetLength(size_t length)
+static void SlSetLength(size_t length)
 {
 	assert(_sl.action == SLA_SAVE);
 
@@ -1496,6 +1496,17 @@ void SlObject(void *object, const SaveLoad *sld)
 }
 
 /**
+ * Write a single object as a RIFF chunk.
+ * @param object The object that is being saved
+ * @param sld The SaveLoad description of the object so we know how to manipulate it
+ */
+void SlRIFFObject(void *object, const SaveLoad *sld)
+{
+	_sl.need_length = NL_WANTLENGTH;
+	SlObject(object, sld);
+}
+
+/**
  * Write an element of a (sparse) array from an object.
  * @param index The index of this element
  * @param object The object that is being saved
@@ -1604,7 +1615,6 @@ static void SlSaveChunk(const ChunkHandler *ch)
 	_sl.block_mode = ch->flags & CH_TYPE_MASK;
 	switch (ch->flags & CH_TYPE_MASK) {
 		case CH_RIFF:
-			_sl.need_length = NL_WANTLENGTH;
 			proc();
 			break;
 		case CH_ARRAY:
