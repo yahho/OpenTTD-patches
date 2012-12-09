@@ -510,7 +510,6 @@ static inline const void *GetVariableAddress(const SaveLoad *sld, const void *ob
 int64 ReadValue(const void *ptr, VarType conv);
 void WriteValue(void *ptr, VarType conv, int64 val);
 
-void SlSetArrayIndex(uint index);
 int SlIterateArray();
 
 void SlArrayAutoElement(uint index, AutolengthProc *proc, void *arg);

@@ -774,12 +774,6 @@ static inline size_t SlCalcRefLen()
 	return IsSavegameVersionBefore(69) ? 2 : 4;
 }
 
-void SlSetArrayIndex(uint index)
-{
-	_sl.need_length = NL_WANTLENGTH;
-	_sl.array_index = index;
-}
-
 static size_t _next_offs;
 
 /**
@@ -1500,7 +1494,9 @@ void SlObject(void *object, const SaveLoad *sld)
  */
 void SlArrayObject(uint index, void *object, const SaveLoad *sld)
 {
-	SlSetArrayIndex(index);
+	_sl.need_length = NL_WANTLENGTH;
+	_sl.array_index = index;
+
 	SlObject(object, sld);
 }
 
@@ -1514,7 +1510,7 @@ void SlArrayAutoElement(uint index, AutolengthProc *proc, void *arg)
 {
 	assert(_sl.action == SLA_SAVE);
 
-	SlSetArrayIndex(index);
+	_sl.array_index = index;
 
 	/* Tell it to calculate the length */
 	_sl.need_length = NL_CALCLENGTH;
