@@ -151,6 +151,49 @@ void LoadBuffer::ReadString(void *ptr, size_t length, StrType conv)
 	str_validate((char *)ptr, (char *)ptr + len, settings);
 }
 
+/**
+ * Load an array.
+ * @param array The array being manipulated
+ * @param length The length of the array in elements
+ * @param conv VarType type of the atomic array (int, byte, uint64, etc.)
+ */
+void LoadBuffer::ReadArray(void *ptr, size_t length, VarType conv)
+{
+	extern uint16 _sl_version;
+
+	/* NOTICE - handle some buggy stuff, in really old versions everything was saved
+	 * as a byte-type. So detect this, and adjust array size accordingly */
+	if (_sl_version == 0) {
+		/* all arrays except difficulty settings */
+		if (conv == SLE_INT16 || conv == SLE_UINT16 || conv == SLE_STRINGID ||
+				conv == SLE_INT32 || conv == SLE_UINT32) {
+			this->CopyBytes(ptr, length * SlCalcConvFileLen(conv));
+			return;
+		}
+		/* used for conversion of Money 32bit->64bit */
+		if (conv == (SLE_FILE_I32 | SLE_VAR_I64)) {
+			for (uint i = 0; i < length; i++) {
+				((int64*)ptr)[i] = (int32)BSWAP32(this->ReadUint32());
+			}
+			return;
+		}
+	}
+
+	/* If the size of elements is 1 byte both in file and memory, no special
+	 * conversion is needed, use specialized copy-copy function to speed up things */
+	if (conv == SLE_INT8 || conv == SLE_UINT8) {
+		this->CopyBytes(ptr, length);
+	} else {
+		byte *a = (byte*)ptr;
+		byte mem_size = SlCalcConvMemLen(conv);
+
+		for (; length != 0; length --) {
+			this->ReadVar(a, conv);
+			a += mem_size; // get size
+		}
+	}
+}
+
 
 void SaveDumper::AllocBuffer()
 {
@@ -257,6 +300,29 @@ void SaveDumper::WriteString(const void *ptr, size_t length, StrType conv)
 
 	this->WriteGamma(len);
 	this->CopyBytes(s, len);
+}
+
+/**
+ * Save an array.
+ * @param array The array being manipulated
+ * @param length The length of the array in elements
+ * @param conv VarType type of the atomic array (int, byte, uint64, etc.)
+ */
+void SaveDumper::WriteArray(const void *ptr, size_t length, VarType conv)
+{
+	/* If the size of elements is 1 byte both in file and memory, no special
+	 * conversion is needed, use specialized copy-copy function to speed up things */
+	if (conv == SLE_INT8 || conv == SLE_UINT8) {
+		this->CopyBytes(ptr, length);
+	} else {
+		const byte *a = (const byte*)ptr;
+		byte mem_size = SlCalcConvMemLen(conv);
+
+		for (; length != 0; length --) {
+			this->WriteVar(a, conv);
+			a += mem_size; // get size
+		}
+	}
 }
 
 void SaveDumper::Flush(SaveFilter *writer)

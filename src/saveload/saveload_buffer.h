@@ -97,6 +97,7 @@ struct LoadBuffer {
 
 	void ReadVar(void *ptr, VarType conv);
 	void ReadString(void *ptr, size_t length, StrType conv);
+	void ReadArray(void *ptr, size_t length, VarType conv);
 };
 
 /** Container for dumping the savegame (quickly) to memory. */
@@ -160,6 +161,7 @@ struct SaveDumper {
 
 	void WriteVar(const void *ptr, VarType conv);
 	void WriteString(const void *ptr, size_t length, StrType conv);
+	void WriteArray(const void *ptr, size_t length, VarType conv);
 
 	/**
 	 * Flush this dumper into a writer.

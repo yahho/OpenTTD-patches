@@ -727,44 +727,23 @@ static inline size_t SlCalcArrayLen(size_t length, VarType conv)
  */
 void SlArray(void *array, size_t length, VarType conv)
 {
-	if (_sl.action == SLA_PTRS || _sl.action == SLA_NULL) return;
-
-	/* Are we only computing the length? */
-	if (_sl.need_length != NL_NONE) {
-		SlAddLength(SlCalcArrayLen(length, conv));
-		return;
-	}
-
-	/* NOTICE - handle some buggy stuff, in really old versions everything was saved
-	 * as a byte-type. So detect this, and adjust array size accordingly */
-	if (_sl.action != SLA_SAVE && _sl_version == 0) {
-		/* all arrays except difficulty settings */
-		if (conv == SLE_INT16 || conv == SLE_UINT16 || conv == SLE_STRINGID ||
-				conv == SLE_INT32 || conv == SLE_UINT32) {
-			SlCopyBytes(array, length * SlCalcConvFileLen(conv));
-			return;
-		}
-		/* used for conversion of Money 32bit->64bit */
-		if (conv == (SLE_FILE_I32 | SLE_VAR_I64)) {
-			for (uint i = 0; i < length; i++) {
-				((int64*)array)[i] = (int32)BSWAP32(_sl.reader->ReadUint32());
+	switch (_sl.action) {
+		case SLA_SAVE:
+			/* Are we only computing the length? */
+			if (_sl.need_length != NL_NONE) {
+				SlAddLength(SlCalcArrayLen(length, conv));
+				return;
 			}
-			return;
-		}
-	}
 
-	/* If the size of elements is 1 byte both in file and memory, no special
-	 * conversion is needed, use specialized copy-copy function to speed up things */
-	if (conv == SLE_INT8 || conv == SLE_UINT8) {
-		SlCopyBytes(array, length);
-	} else {
-		byte *a = (byte*)array;
-		byte mem_size = SlCalcConvMemLen(conv);
-
-		for (; length != 0; length --) {
-			SlSaveLoadConv(a, conv);
-			a += mem_size; // get size
-		}
+			_sl.dumper->WriteArray(array, length, conv);
+			break;
+		case SLA_LOAD_CHECK:
+		case SLA_LOAD:
+			_sl.reader->ReadArray(array, length, conv);
+			break;
+		case SLA_PTRS: break;
+		case SLA_NULL: break;
+		default: NOT_REACHED();
 	}
 }
 
