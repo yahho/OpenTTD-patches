@@ -696,19 +696,9 @@ static inline size_t SlCalcStringLen(const void *ptr, size_t length, StrType con
 static void SlString(void *ptr, size_t length, StrType conv)
 {
 	switch (_sl.action) {
-		case SLA_SAVE: {
-			size_t len;
-			if (conv & SLS_POINTER) {
-				ptr = *(char **)ptr;
-				len = SlCalcNetStringLen((char *)ptr, SIZE_MAX);
-			} else {
-				len = SlCalcNetStringLen((char *)ptr, length);
-			}
-
-			_sl.dumper->WriteGamma(len);
-			SlCopyBytes(ptr, len);
+		case SLA_SAVE:
+			_sl.dumper->WriteString(ptr, length, conv);
 			break;
-		}
 		case SLA_LOAD_CHECK:
 		case SLA_LOAD:
 			_sl.reader->ReadString(ptr, length, conv);

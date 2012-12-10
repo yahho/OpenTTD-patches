@@ -236,6 +236,29 @@ void SaveDumper::WriteVar(const void *ptr, VarType conv)
 	}
 }
 
+/**
+ * Save a string.
+ * @param ptr the string being manipulated
+ * @param length of the string (full length)
+ * @param conv StrType type of the current element of the struct
+ */
+void SaveDumper::WriteString(const void *ptr, size_t length, StrType conv)
+{
+	const char *s;
+	size_t len;
+
+	if (conv & SLS_POINTER) {
+		s = *(const char *const *)ptr;
+		len = (s != NULL) ? strlen(s) : 0;
+	} else {
+		s = (const char *)ptr;
+		len = ttd_strnlen(s, length - 1);
+	}
+
+	this->WriteGamma(len);
+	this->CopyBytes(s, len);
+}
+
 void SaveDumper::Flush(SaveFilter *writer)
 {
 	uint i = 0;
