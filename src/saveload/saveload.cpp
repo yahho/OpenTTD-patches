@@ -596,26 +596,6 @@ static void SlAddLength(size_t length)
 	_sl.obj_len += (int)length;
 }
 
-/**
- * Save/Load bytes. These do not need to be converted to Little/Big Endian
- * so directly write them or read them to/from file
- * @param ptr The source or destination of the object being manipulated
- * @param length number of bytes this fast CopyBytes lasts
- */
-static void SlCopyBytes(void *ptr, size_t length)
-{
-	switch (_sl.action) {
-		case SLA_LOAD_CHECK:
-		case SLA_LOAD:
-			_sl.reader->CopyBytes(ptr, length);
-			break;
-		case SLA_SAVE:
-			_sl.dumper->CopyBytes(ptr, length);
-			break;
-		default: NOT_REACHED();
-	}
-}
-
 /** Get the length of the current object */
 size_t SlGetFieldLength()
 {
