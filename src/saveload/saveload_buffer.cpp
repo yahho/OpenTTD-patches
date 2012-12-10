@@ -343,9 +343,9 @@ bool LoadBuffer::ReadObjectMember(void *object, const SaveLoad *sld)
 
 void SaveDumper::AllocBuffer()
 {
-	this->buf = CallocT<byte>(MEMORY_CHUNK_SIZE);
+	this->buf = CallocT<byte>(this->alloc_size);
 	*this->blocks.Append() = this->buf;
-	this->bufe = this->buf + MEMORY_CHUNK_SIZE;
+	this->bufe = this->buf + this->alloc_size;
 }
 
 /**
@@ -613,7 +613,7 @@ void SaveDumper::Flush(SaveFilter *writer)
 	size_t t = this->GetSize();
 
 	while (t > 0) {
-		size_t to_write = min(MEMORY_CHUNK_SIZE, t);
+		size_t to_write = min(this->alloc_size, t);
 
 		writer->Write(this->blocks[i++], to_write);
 		t -= to_write;

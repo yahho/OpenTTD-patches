@@ -165,15 +165,16 @@ struct LoadBuffer {
 
 /** Container for dumping the savegame (quickly) to memory. */
 struct SaveDumper {
-	static const size_t MEMORY_CHUNK_SIZE = 128 * 1024;
+	static const size_t DEFAULT_ALLOC_SIZE = 128 * 1024;
 	AutoFreeSmallVector<byte *, 16> blocks; ///< Buffer with blocks of allocated memory
 	byte *buf;                              ///< Current position within the buffer
 	byte *bufe;                             ///< End of the current buffer block
+	const size_t alloc_size;                ///< Block allocation size
 	uint chunk_type;                        ///< The type of the current save chunk
 	uint array_index;                       ///< Next array index for (non-sparse) arrays
 
 	/** Initialise our variables. */
-	SaveDumper() : buf(NULL), bufe(NULL), chunk_type(-1)
+	SaveDumper(size_t as = DEFAULT_ALLOC_SIZE) : buf(NULL), bufe(NULL), alloc_size(as), chunk_type(-1)
 	{
 	}
 
@@ -183,7 +184,7 @@ struct SaveDumper {
 	 */
 	size_t GetSize() const
 	{
-		return this->blocks.Length() * MEMORY_CHUNK_SIZE - (this->bufe - this->buf);
+		return this->blocks.Length() * this->alloc_size - (this->bufe - this->buf);
 	}
 
 	void AllocBuffer();
