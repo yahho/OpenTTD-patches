@@ -13,6 +13,7 @@
 
 #include "saveload_buffer.h"
 #include "saveload.h"
+#include "saveload_internal.h"
 
 
 void LoadBuffer::FillBuffer()
@@ -74,6 +75,32 @@ void LoadBuffer::CopyBytes(void *ptr, size_t length)
 
 	memcpy(p, this->bufp, length);
 	this->bufp += length;
+}
+
+/**
+ * Read a value from the file, endian safely, and store it into the struct.
+ * @param ptr The object being filled
+ * @param conv VarType type of the current element of the struct
+ */
+void LoadBuffer::ReadVar(void *ptr, VarType conv)
+{
+	int64 x;
+	/* Read a value from the file */
+	switch (GetVarFileType(conv)) {
+		case SLE_FILE_I8:  x = (int8  )this->ReadByte();   break;
+		case SLE_FILE_U8:  x = (byte  )this->ReadByte();   break;
+		case SLE_FILE_I16: x = (int16 )this->ReadUint16(); break;
+		case SLE_FILE_U16: x = (uint16)this->ReadUint16(); break;
+		case SLE_FILE_I32: x = (int32 )this->ReadUint32(); break;
+		case SLE_FILE_U32: x = (uint32)this->ReadUint32(); break;
+		case SLE_FILE_I64: x = (int64 )this->ReadUint64(); break;
+		case SLE_FILE_U64: x = (uint64)this->ReadUint64(); break;
+		case SLE_FILE_STRINGID: x = RemapOldStringID((uint16)this->ReadUint16()); break;
+		default: NOT_REACHED();
+	}
+
+	/* Write The value to the struct. These ARE endian safe. */
+	WriteValue(ptr, conv, x);
 }
 
 

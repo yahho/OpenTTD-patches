@@ -652,26 +652,9 @@ static void SlSaveLoadConv(void *ptr, VarType conv)
 			break;
 		}
 		case SLA_LOAD_CHECK:
-		case SLA_LOAD: {
-			int64 x;
-			/* Read a value from the file */
-			switch (GetVarFileType(conv)) {
-				case SLE_FILE_I8:  x = (int8  )SlReadByte();   break;
-				case SLE_FILE_U8:  x = (byte  )SlReadByte();   break;
-				case SLE_FILE_I16: x = (int16 )_sl.reader->ReadUint16(); break;
-				case SLE_FILE_U16: x = (uint16)_sl.reader->ReadUint16(); break;
-				case SLE_FILE_I32: x = (int32 )_sl.reader->ReadUint32(); break;
-				case SLE_FILE_U32: x = (uint32)_sl.reader->ReadUint32(); break;
-				case SLE_FILE_I64: x = (int64 )_sl.reader->ReadUint64(); break;
-				case SLE_FILE_U64: x = (uint64)_sl.reader->ReadUint64(); break;
-				case SLE_FILE_STRINGID: x = RemapOldStringID((uint16)_sl.reader->ReadUint16()); break;
-				default: NOT_REACHED();
-			}
-
-			/* Write The value to the struct. These ARE endian safe. */
-			WriteValue(ptr, conv, x);
+		case SLA_LOAD:
+			_sl.reader->ReadVar(ptr, conv);
 			break;
-		}
 		case SLA_PTRS: break;
 		case SLA_NULL: break;
 		default: NOT_REACHED();

@@ -15,6 +15,7 @@
 #include "../core/bitmath_func.hpp"
 #include "../core/smallvec_type.hpp"
 #include "saveload_filter.h"
+#include "saveload_data.h"
 
 /** A buffer for reading (and buffering) savegame data. */
 struct LoadBuffer {
@@ -93,6 +94,8 @@ struct LoadBuffer {
 	}
 
 	void CopyBytes(void *ptr, size_t length);
+
+	void ReadVar(void *ptr, VarType conv);
 };
 
 /** Container for dumping the savegame (quickly) to memory. */
