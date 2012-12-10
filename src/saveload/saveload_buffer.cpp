@@ -14,6 +14,7 @@
 #include "../stdafx.h"
 #include "../debug.h"
 #include "../string_func.h"
+#include "../network/network.h"
 #include "../town.h"
 #include "../vehicle_base.h"
 #include "../station_base.h"
@@ -302,6 +303,41 @@ void LoadBuffer::SkipChunk()
 	} else {
 		this->IterateChunk(true);
 	}
+}
+
+bool LoadBuffer::ReadObjectMember(void *object, const SaveLoad *sld)
+{
+	/* CONDITIONAL saveload types depend on the savegame version */
+	if (!SlIsObjectValidInSavegame(sld)) return false;
+
+	if ((sld->flags & SLF_NO_NETWORK_SYNC) && _networking && !_network_server) {
+		assert((sld->type == SL_ARR) || (sld->type == SL_STR));
+		size_t skip = (sld->type == SL_STR) ?
+			this->ReadGamma() : SlCalcConvFileLen(sld->conv);
+		this->Skip(skip * sld->length);
+		return false;
+	}
+
+	void *ptr = GetVariableAddress(sld, object);
+
+	switch (sld->type) {
+		case SL_VAR: this->ReadVar(ptr, sld->conv); break;
+		case SL_REF: *(size_t *)ptr = IsSavegameVersionBefore(69) ? this->ReadUint16() : this->ReadUint32(); break;
+		case SL_ARR: this->ReadArray(ptr, sld->length, sld->conv); break;
+		case SL_STR: this->ReadString(ptr, sld->length, sld->conv); break;
+		case SL_LST: this->ReadList(ptr, (SLRefType)sld->conv); break;
+
+		case SL_WRITEBYTE:
+			*(byte *)ptr = sld->conv;
+			break;
+
+		case SL_INCLUDE:
+			this->ReadObject(object, (SaveLoad*)sld->address);
+			break;
+
+		default: NOT_REACHED();
+	}
+	return true;
 }
 
 

@@ -147,6 +147,20 @@ struct LoadBuffer {
 	}
 
 	void SkipChunk();
+
+	bool ReadObjectMember(void *object, const SaveLoad *sld);
+
+	/**
+	 * Main load function.
+	 * @param ptr The object that is being loaded
+	 * @param sld The SaveLoad description of the object so we know how to manipulate it
+	 */
+	void ReadObject(void *object, const SaveLoad *sld)
+	{
+		for (; sld->type != SL_END; sld++) {
+			this->ReadObjectMember(object, sld);
+		}
+	}
 };
 
 /** Container for dumping the savegame (quickly) to memory. */
