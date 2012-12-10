@@ -247,6 +247,20 @@ struct SaveDumper {
 
 	void WriteElementHeader(uint index, size_t length);
 
+	void WriteObjectMember(const void *object, const SaveLoad *sld);
+
+	/**
+	 * Main save function.
+	 * @param ptr The object that is being saved
+	 * @param sld The SaveLoad description of the object so we know how to manipulate it
+	 */
+	void WriteObject(const void *object, const SaveLoad *sld)
+	{
+		for (; sld->type != SL_END; sld++) {
+			this->WriteObjectMember(object, sld);
+		}
+	}
+
 	/**
 	 * Flush this dumper into a writer.
 	 * @param writer The filter we want to use.

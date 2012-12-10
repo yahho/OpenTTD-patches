@@ -581,6 +581,32 @@ void SaveDumper::WriteElementHeader(uint index, size_t length)
 	}
 }
 
+void SaveDumper::WriteObjectMember(const void *object, const SaveLoad *sld)
+{
+	/* CONDITIONAL saveload types depend on the savegame version */
+	if (!SlIsObjectValidInSavegame(sld)) return;
+
+	const void *ptr = GetVariableAddress(sld, object);
+
+	switch (sld->type) {
+		case SL_VAR: this->WriteVar(ptr, sld->conv); break;
+		case SL_REF: this->WriteRef(*(const void * const*)ptr, (SLRefType)sld->conv); break;
+		case SL_ARR: this->WriteArray(ptr, sld->length, sld->conv); break;
+		case SL_STR: this->WriteString(ptr, sld->length, sld->conv); break;
+		case SL_LST: this->WriteList(ptr, (SLRefType)sld->conv); break;
+
+		case SL_WRITEBYTE:
+			this->WriteByte(sld->conv);
+			break;
+
+		case SL_INCLUDE:
+			this->WriteObject(object, (SaveLoad*)sld->address);
+			break;
+
+		default: NOT_REACHED();
+	}
+}
+
 void SaveDumper::Flush(SaveFilter *writer)
 {
 	uint i = 0;
