@@ -157,6 +157,8 @@ struct SaveDumper {
 
 	void CopyBytes(const void *ptr, size_t length);
 
+	void WriteVar(const void *ptr, VarType conv);
+
 	/**
 	 * Flush this dumper into a writer.
 	 * @param writer The filter we want to use.

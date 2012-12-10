@@ -633,24 +633,9 @@ size_t SlGetFieldLength()
 static void SlSaveLoadConv(void *ptr, VarType conv)
 {
 	switch (_sl.action) {
-		case SLA_SAVE: {
-			int64 x = ReadValue(ptr, conv);
-
-			/* Write the value to the file and check if its value is in the desired range */
-			switch (GetVarFileType(conv)) {
-				case SLE_FILE_I8: assert(x >= -128 && x <= 127);     SlWriteByte(x);break;
-				case SLE_FILE_U8: assert(x >= 0 && x <= 255);        SlWriteByte(x);break;
-				case SLE_FILE_I16:assert(x >= -32768 && x <= 32767); _sl.dumper->WriteUint16(x);break;
-				case SLE_FILE_STRINGID:
-				case SLE_FILE_U16:assert(x >= 0 && x <= 65535);      _sl.dumper->WriteUint16(x);break;
-				case SLE_FILE_I32:
-				case SLE_FILE_U32:                                   _sl.dumper->WriteUint32((uint32)x);break;
-				case SLE_FILE_I64:
-				case SLE_FILE_U64:                                   _sl.dumper->WriteUint64(x);break;
-				default: NOT_REACHED();
-			}
+		case SLA_SAVE:
+			_sl.dumper->WriteVar(ptr, conv);
 			break;
-		}
 		case SLA_LOAD_CHECK:
 		case SLA_LOAD:
 			_sl.reader->ReadVar(ptr, conv);
