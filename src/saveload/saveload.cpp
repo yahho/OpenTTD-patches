@@ -852,16 +852,9 @@ static void SlList(void *list, SLRefType conv)
 			break;
 		}
 		case SLA_LOAD_CHECK:
-		case SLA_LOAD: {
-			size_t length = IsSavegameVersionBefore(69) ? _sl.reader->ReadUint16() : _sl.reader->ReadUint32();
-
-			/* Load each reference and push to the end of the list */
-			for (size_t i = 0; i < length; i++) {
-				size_t data = IsSavegameVersionBefore(69) ? _sl.reader->ReadUint16() : _sl.reader->ReadUint32();
-				l->push_back((void *)data);
-			}
+		case SLA_LOAD:
+			_sl.reader->ReadList(list, conv);
 			break;
-		}
 		case SLA_PTRS: {
 			PtrList temp = *l;
 

@@ -98,6 +98,7 @@ struct LoadBuffer {
 	void ReadVar(void *ptr, VarType conv);
 	void ReadString(void *ptr, size_t length, StrType conv);
 	void ReadArray(void *ptr, size_t length, VarType conv);
+	void ReadList(void *ptr, SLRefType conv);
 };
 
 /** Container for dumping the savegame (quickly) to memory. */

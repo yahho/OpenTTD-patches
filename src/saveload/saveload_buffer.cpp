@@ -9,6 +9,8 @@
 
 /** @file saveload_buffer.cpp Saveload buffer definitions. */
 
+#include <list>
+
 #include "../stdafx.h"
 #include "../debug.h"
 #include "../string_func.h"
@@ -198,6 +200,24 @@ void LoadBuffer::ReadArray(void *ptr, size_t length, VarType conv)
 			this->ReadVar(a, conv);
 			a += mem_size; // get size
 		}
+	}
+}
+
+/**
+ * Load a list.
+ * @param list The list being manipulated
+ * @param conv SLRefType type of the list (Vehicle *, Station *, etc)
+ */
+void LoadBuffer::ReadList(void *ptr, SLRefType conv)
+{
+	std::list<void *> *l = (std::list<void *> *) ptr;
+
+	size_t length = IsSavegameVersionBefore(69) ? this->ReadUint16() : this->ReadUint32();
+
+	/* Load each reference and push to the end of the list */
+	for (size_t i = 0; i < length; i++) {
+		size_t data = IsSavegameVersionBefore(69) ? this->ReadUint16() : this->ReadUint32();
+		l->push_back((void *)data);
 	}
 }
 
