@@ -10,6 +10,8 @@
 /** @file saveload_buffer.cpp Saveload buffer definitions. */
 
 #include "../stdafx.h"
+#include "../debug.h"
+#include "../string_func.h"
 
 #include "saveload_buffer.h"
 #include "saveload.h"
@@ -101,6 +103,52 @@ void LoadBuffer::ReadVar(void *ptr, VarType conv)
 
 	/* Write The value to the struct. These ARE endian safe. */
 	WriteValue(ptr, conv, x);
+}
+
+/**
+ * Load a string.
+ * @param ptr the string being manipulated
+ * @param length of the string (full length)
+ * @param conv StrType type of the current element of the struct
+ */
+void LoadBuffer::ReadString(void *ptr, size_t length, StrType conv)
+{
+	size_t len = this->ReadGamma();
+
+	if ((conv & SLS_POINTER) != 0) { // Malloc'd string, free previous incarnation, and allocate
+		char **pptr = (char **)ptr;
+		free(*pptr);
+		if (len == 0) {
+			*pptr = NULL;
+			return;
+		} else {
+			*pptr = MallocT<char>(len + 1); // terminating '\0'
+			ptr = *pptr;
+			this->CopyBytes(ptr, len);
+		}
+	} else {
+		if (len >= length) {
+			DEBUG(sl, 1, "String length in savegame is bigger than buffer, truncating");
+			this->CopyBytes(ptr, length);
+			this->Skip(len - length);
+			len = length - 1;
+		} else {
+			this->CopyBytes(ptr, len);
+		}
+	}
+
+	((char *)ptr)[len] = '\0'; // properly terminate the string
+	StringValidationSettings settings = SVS_REPLACE_WITH_QUESTION_MARK;
+	if ((conv & SLS_ALLOW_CONTROL) != 0) {
+		settings = settings | SVS_ALLOW_CONTROL_CODE;
+		if (IsSavegameVersionBefore(169)) {
+			str_fix_scc_encoded((char *)ptr, (char *)ptr + len);
+		}
+	}
+	if ((conv & SLS_ALLOW_NEWLINE) != 0) {
+		settings = settings | SVS_ALLOW_NEWLINE;
+	}
+	str_validate((char *)ptr, (char *)ptr + len, settings);
 }
 
 

@@ -710,44 +710,9 @@ static void SlString(void *ptr, size_t length, StrType conv)
 			break;
 		}
 		case SLA_LOAD_CHECK:
-		case SLA_LOAD: {
-			size_t len = _sl.reader->ReadGamma();
-
-			if ((conv & SLS_POINTER) != 0) { // Malloc'd string, free previous incarnation, and allocate
-				free(*(char **)ptr);
-				if (len == 0) {
-					*(char **)ptr = NULL;
-					return;
-				} else {
-					*(char **)ptr = MallocT<char>(len + 1); // terminating '\0'
-					ptr = *(char **)ptr;
-					SlCopyBytes(ptr, len);
-				}
-			} else {
-				if (len >= length) {
-					DEBUG(sl, 1, "String length in savegame is bigger than buffer, truncating");
-					SlCopyBytes(ptr, length);
-					_sl.reader->Skip(len - length);
-					len = length - 1;
-				} else {
-					SlCopyBytes(ptr, len);
-				}
-			}
-
-			((char *)ptr)[len] = '\0'; // properly terminate the string
-			StringValidationSettings settings = SVS_REPLACE_WITH_QUESTION_MARK;
-			if ((conv & SLS_ALLOW_CONTROL) != 0) {
-				settings = settings | SVS_ALLOW_CONTROL_CODE;
-				if (IsSavegameVersionBefore(169)) {
-					str_fix_scc_encoded((char *)ptr, (char *)ptr + len);
-				}
-			}
-			if ((conv & SLS_ALLOW_NEWLINE) != 0) {
-				settings = settings | SVS_ALLOW_NEWLINE;
-			}
-			str_validate((char *)ptr, (char *)ptr + len, settings);
+		case SLA_LOAD:
+			_sl.reader->ReadString(ptr, length, conv);
 			break;
-		}
 		case SLA_PTRS: break;
 		case SLA_NULL: break;
 		default: NOT_REACHED();
