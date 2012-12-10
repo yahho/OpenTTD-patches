@@ -165,6 +165,7 @@ struct SaveDumper {
 	void WriteVar(const void *ptr, VarType conv);
 	void WriteString(const void *ptr, size_t length, StrType conv);
 	void WriteArray(const void *ptr, size_t length, VarType conv);
+	void WriteList(const void *ptr, SLRefType conv);
 
 	/**
 	 * Flush this dumper into a writer.

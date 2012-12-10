@@ -389,6 +389,24 @@ void SaveDumper::WriteArray(const void *ptr, size_t length, VarType conv)
 	}
 }
 
+/**
+ * Save a list.
+ * @param list The list being manipulated
+ * @param conv SLRefType type of the list (Vehicle *, Station *, etc)
+ */
+void SaveDumper::WriteList(const void *ptr, SLRefType conv)
+{
+	typedef const std::list<const void *> PtrList;
+	PtrList *l = (PtrList *)ptr;
+
+	this->WriteUint32(l->size());
+
+	PtrList::const_iterator iter;
+	for (iter = l->begin(); iter != l->end(); ++iter) {
+		this->WriteRef(*iter, conv);
+	}
+}
+
 void SaveDumper::Flush(SaveFilter *writer)
 {
 	uint i = 0;

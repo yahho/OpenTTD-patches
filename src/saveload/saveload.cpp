@@ -841,16 +841,9 @@ static void SlList(void *list, SLRefType conv)
 	PtrList *l = (PtrList *)list;
 
 	switch (_sl.action) {
-		case SLA_SAVE: {
-			_sl.dumper->WriteUint32((uint32)l->size());
-
-			PtrList::iterator iter;
-			for (iter = l->begin(); iter != l->end(); ++iter) {
-				void *ptr = *iter;
-				_sl.dumper->WriteRef(ptr, conv);
-			}
+		case SLA_SAVE:
+			_sl.dumper->WriteList(list, conv);
 			break;
-		}
 		case SLA_LOAD_CHECK:
 		case SLA_LOAD:
 			_sl.reader->ReadList(list, conv);
