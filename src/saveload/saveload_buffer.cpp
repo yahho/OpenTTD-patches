@@ -607,6 +607,18 @@ void SaveDumper::WriteObjectMember(const void *object, const SaveLoad *sld)
 	}
 }
 
+void SaveDumper::Dump(SaveDumper *target)
+{
+	uint n = this->blocks.Length();
+	if (n == 0) return;
+
+	n--;
+	for (uint i = 0; i < n; i++) {
+		target->CopyBytes(this->blocks[i], this->alloc_size);
+	}
+	target->CopyBytes(this->blocks[n], this->alloc_size - (this->bufe - this->buf));
+}
+
 void SaveDumper::Flush(SaveFilter *writer)
 {
 	uint n = this->blocks.Length();

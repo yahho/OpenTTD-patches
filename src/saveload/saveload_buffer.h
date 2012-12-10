@@ -263,6 +263,12 @@ struct SaveDumper {
 	}
 
 	/**
+	 * Flush this dumper into another one.
+	 * @param dumper The dumper to dump to.
+	 */
+	void Dump(SaveDumper *target);
+
+	/**
 	 * Flush this dumper into a writer.
 	 * @param writer The filter we want to use.
 	 */
