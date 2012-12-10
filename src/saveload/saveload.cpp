@@ -729,39 +729,6 @@ void SlArray(void *array, size_t length, VarType conv)
 
 
 /**
- * Pointers cannot be saved to a savegame, so this functions gets
- * the index of the item, and if not available, it hussles with
- * pointers (looks really bad :()
- * Remember that a NULL item has value 0, and all
- * indices have +1, so vehicle 0 is saved as index 1.
- * @param obj The object that we want to get the index of
- * @param rt SLRefType type of the object the index is being sought of
- * @return Return the pointer converted to an index of the type pointed to
- */
-static size_t ReferenceToInt(const void *obj, SLRefType rt)
-{
-	assert(_sl.action == SLA_SAVE);
-
-	if (obj == NULL) return 0;
-
-	switch (rt) {
-		case REF_VEHICLE_OLD: // Old vehicles we save as new ones
-		case REF_VEHICLE:   return ((const  Vehicle*)obj)->index + 1;
-		case REF_STATION:   return ((const  Station*)obj)->index + 1;
-		case REF_TOWN:      return ((const     Town*)obj)->index + 1;
-		case REF_ORDER:     return ((const    Order*)obj)->index + 1;
-		case REF_ROADSTOPS: return ((const RoadStop*)obj)->index + 1;
-		case REF_ENGINE_RENEWS:  return ((const       EngineRenew*)obj)->index + 1;
-		case REF_CARGO_PACKET:   return ((const       CargoPacket*)obj)->index + 1;
-		case REF_ORDERLIST:      return ((const         OrderList*)obj)->index + 1;
-		case REF_STORAGE:        return ((const PersistentStorage*)obj)->index + 1;
-		case REF_LINK_GRAPH:     return ((const         LinkGraph*)obj)->index + 1;
-		case REF_LINK_GRAPH_JOB: return ((const      LinkGraphJob*)obj)->index + 1;
-		default: NOT_REACHED();
-	}
-}
-
-/**
  * Pointers cannot be loaded from a savegame, so this function
  * gets the index from the savegame and returns the appropriate
  * pointer from the already loaded base.
@@ -880,7 +847,7 @@ static void SlList(void *list, SLRefType conv)
 			PtrList::iterator iter;
 			for (iter = l->begin(); iter != l->end(); ++iter) {
 				void *ptr = *iter;
-				_sl.dumper->WriteUint32((uint32)ReferenceToInt(ptr, conv));
+				_sl.dumper->WriteRef(ptr, conv);
 			}
 			break;
 		}
@@ -982,7 +949,7 @@ bool SlObjectMember(void *object, const SaveLoad *sld)
 		case SL_REF: // Reference variable, translate
 			switch (_sl.action) {
 				case SLA_SAVE:
-					_sl.dumper->WriteUint32((uint32)ReferenceToInt(*(void **)ptr, (SLRefType)sld->conv));
+					_sl.dumper->WriteRef(*(void **)ptr, (SLRefType)sld->conv);
 					break;
 				case SLA_LOAD_CHECK:
 				case SLA_LOAD:

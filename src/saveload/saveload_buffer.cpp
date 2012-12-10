@@ -12,6 +12,13 @@
 #include "../stdafx.h"
 #include "../debug.h"
 #include "../string_func.h"
+#include "../town.h"
+#include "../vehicle_base.h"
+#include "../station_base.h"
+#include "../roadstop_base.h"
+#include "../autoreplace_base.h"
+#include "../linkgraph/linkgraph.h"
+#include "../linkgraph/linkgraphjob.h"
 
 #include "saveload_buffer.h"
 #include "saveload.h"
@@ -252,6 +259,43 @@ void SaveDumper::CopyBytes(const void *ptr, size_t length)
 
 	memcpy(this->buf, p, length);
 	this->buf += length;
+}
+
+/**
+ * Pointers cannot be saved to a savegame, so this functions gets
+ * the index of the item and writes it into the buffer.
+ * Remember that a NULL item has value 0, and all
+ * indices have +1, so vehicle 0 is saved as index 1.
+ * @param ptr The object that we want to get the index of
+ * @param ref SLRefType type of the object the index is being sought of
+ * @return Return the pointer converted to an index of the type pointed to
+ */
+void SaveDumper::WriteRef(const void *ptr, SLRefType ref)
+{
+	uint32 x;
+
+	if (ptr == NULL) {
+		x = 0;
+	} else {
+		switch (ref) {
+			case REF_VEHICLE_OLD: // Old vehicles we save as new ones
+			case REF_VEHICLE:   x = ((const  Vehicle*)ptr)->index; break;
+			case REF_STATION:   x = ((const  Station*)ptr)->index; break;
+			case REF_TOWN:      x = ((const     Town*)ptr)->index; break;
+			case REF_ORDER:     x = ((const    Order*)ptr)->index; break;
+			case REF_ROADSTOPS: x = ((const RoadStop*)ptr)->index; break;
+			case REF_ENGINE_RENEWS:  x = ((const       EngineRenew*)ptr)->index; break;
+			case REF_CARGO_PACKET:   x = ((const       CargoPacket*)ptr)->index; break;
+			case REF_ORDERLIST:      x = ((const         OrderList*)ptr)->index; break;
+			case REF_STORAGE:        x = ((const PersistentStorage*)ptr)->index; break;
+			case REF_LINK_GRAPH:     x = ((const         LinkGraph*)ptr)->index; break;
+			case REF_LINK_GRAPH_JOB: x = ((const      LinkGraphJob*)ptr)->index; break;
+			default: NOT_REACHED();
+		}
+		x++;
+	}
+
+	this->WriteUint32(x);
 }
 
 /**

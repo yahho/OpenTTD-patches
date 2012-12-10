@@ -159,6 +159,8 @@ struct SaveDumper {
 
 	void CopyBytes(const void *ptr, size_t length);
 
+	void WriteRef(const void *ptr, SLRefType ref);
+
 	void WriteVar(const void *ptr, VarType conv);
 	void WriteString(const void *ptr, size_t length, StrType conv);
 	void WriteArray(const void *ptr, size_t length, VarType conv);
