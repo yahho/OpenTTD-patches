@@ -1579,8 +1579,9 @@ void SlAutolength(AutolengthProc *proc, void *arg)
 /**
  * Load a chunk of data (eg vehicles, stations, etc.)
  * @param ch The chunkhandler that will be used for the operation
+ * @param test Whether the load is done to check a savegame
  */
-static void SlLoadChunk(const ChunkHandler *ch)
+static void SlLoadChunk(const ChunkHandler *ch, bool check = false)
 {
 	byte m = SlReadByte();
 	size_t len;
@@ -1592,73 +1593,33 @@ static void SlLoadChunk(const ChunkHandler *ch)
 	switch (m) {
 		case CH_ARRAY:
 			_sl.array_index = 0;
-			ch->load_proc();
-			break;
+			/* fall through */
 		case CH_SPARSE_ARRAY:
-			ch->load_proc();
-			break;
-		default:
-			if ((m & 0xF) == CH_RIFF) {
-				/* Read length */
-				len = (SlReadByte() << 16) | ((m >> 4) << 24);
-				len += SlReadUint16();
-				_sl.obj_len = len;
-				endoffs = _sl.reader->GetSize() + len;
+			if (!check) {
 				ch->load_proc();
-				if (_sl.reader->GetSize() != endoffs) SlErrorCorrupt("Invalid chunk size");
-			} else {
-				SlErrorCorrupt("Invalid chunk type");
-			}
-			break;
-	}
-}
-
-/**
- * Load a chunk of data for checking savegames.
- * If the chunkhandler is NULL, the chunk is skipped.
- * @param ch The chunkhandler that will be used for the operation
- */
-static void SlLoadCheckChunk(const ChunkHandler *ch)
-{
-	byte m = SlReadByte();
-	size_t len;
-	size_t endoffs;
-
-	_sl.block_mode = m;
-	_sl.obj_len = 0;
-
-	switch (m) {
-		case CH_ARRAY:
-			_sl.array_index = 0;
-			if (ch->load_check_proc) {
-				ch->load_check_proc();
-			} else {
-				SlSkipArray();
-			}
-			break;
-		case CH_SPARSE_ARRAY:
-			if (ch->load_check_proc) {
+			} else if (ch->load_check_proc) {
 				ch->load_check_proc();
 			} else {
 				SlSkipArray();
 			}
 			break;
 		default:
-			if ((m & 0xF) == CH_RIFF) {
-				/* Read length */
-				len = (SlReadByte() << 16) | ((m >> 4) << 24);
-				len += SlReadUint16();
-				_sl.obj_len = len;
-				endoffs = _sl.reader->GetSize() + len;
-				if (ch->load_check_proc) {
-					ch->load_check_proc();
-				} else {
-					SlSkipBytes(len);
-				}
-				if (_sl.reader->GetSize() != endoffs) SlErrorCorrupt("Invalid chunk size");
-			} else {
+			if ((m & 0xF) != CH_RIFF) {
 				SlErrorCorrupt("Invalid chunk type");
 			}
+			/* Read length */
+			len = (SlReadByte() << 16) | ((m >> 4) << 24);
+			len += SlReadUint16();
+			_sl.obj_len = len;
+			endoffs = _sl.reader->GetSize() + len;
+			if (!check) {
+				ch->load_proc();
+			} else if (ch->load_check_proc) {
+				ch->load_check_proc();
+			} else {
+				SlSkipBytes(len);
+			}
+			if (_sl.reader->GetSize() != endoffs) SlErrorCorrupt("Invalid chunk size");
 			break;
 	}
 }
@@ -1748,7 +1709,7 @@ static void SlLoadCheckChunks()
 
 		ch = SlFindChunkHandler(id);
 		if (ch == NULL) SlErrorCorrupt("Unknown chunk type");
-		SlLoadCheckChunk(ch);
+		SlLoadChunk(ch, true);
 	}
 }
 
