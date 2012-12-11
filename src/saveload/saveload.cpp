@@ -1684,7 +1684,7 @@ static const ChunkHandler *SlFindChunkHandler(uint32 id)
 }
 
 /** Load all chunks */
-static void SlLoadChunks()
+static void SlLoadChunks(bool check = false)
 {
 	uint32 id;
 	const ChunkHandler *ch;
@@ -1694,22 +1694,7 @@ static void SlLoadChunks()
 
 		ch = SlFindChunkHandler(id);
 		if (ch == NULL) SlErrorCorrupt("Unknown chunk type");
-		SlLoadChunk(ch);
-	}
-}
-
-/** Load all chunks for savegame checking */
-static void SlLoadCheckChunks()
-{
-	uint32 id;
-	const ChunkHandler *ch;
-
-	for (id = SlReadUint32(); id != 0; id = SlReadUint32()) {
-		DEBUG(sl, 2, "Loading chunk %c%c%c%c", id >> 24, id >> 16, id >> 8, id);
-
-		ch = SlFindChunkHandler(id);
-		if (ch == NULL) SlErrorCorrupt("Unknown chunk type");
-		SlLoadChunk(ch, true);
+		SlLoadChunk(ch, check);
 	}
 }
 
@@ -2569,13 +2554,11 @@ static SaveOrLoadResult DoLoad(LoadFilter *reader, bool load_check)
 		}
 	}
 
-	if (load_check) {
-		/* Load chunks into _load_check_data.
-		 * No pools are loaded. References are not possible, and thus do not need resolving. */
-		SlLoadCheckChunks();
-	} else {
-		/* Load chunks and resolve references */
-		SlLoadChunks();
+	/* Load chunks. */
+	SlLoadChunks(load_check);
+
+	if (!load_check) {
+		/* Resolve references */
 		SlFixPointers();
 	}
 
