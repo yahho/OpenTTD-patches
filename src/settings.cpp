@@ -2106,18 +2106,14 @@ static void LoadSettings(LoadBuffer *reader, const SettingDesc *osd, void *objec
  */
 static void SaveSettings(SaveDumper *dumper, const SettingDesc *sd, void *object)
 {
-	/* We need to write the CH_RIFF header, but unfortunately can't call
-	 * SlCalcLength() because we have a different format. So do this manually */
-	const SettingDesc *i;
-	size_t length = 0;
-	for (i = sd; i->save.type != SL_END; i++) {
-		length += SlCalcObjMemberLength(object, &i->save);
-	}
-	SlWriteLength(length);
+	SaveDumper temp(1024);
 
-	for (i = sd; i->save.type != SL_END; i++) {
-		SlObjectMember(object, &i->save);
+	for (const SettingDesc *i = sd; i->save.type != SL_END; i++) {
+		temp.WriteObjectMember(object, &i->save);
 	}
+
+	dumper->WriteRIFFSize(temp.GetSize());
+	temp.Dump(dumper);
 }
 
 static void Load_OPTS(LoadBuffer *reader)
