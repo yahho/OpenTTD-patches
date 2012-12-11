@@ -137,33 +137,26 @@ static void Load_GLOG_common(LoadBuffer *reader, LoggedAction *&gamelog_action, 
 static void Save_GLOG(SaveDumper *dumper)
 {
 	const LoggedAction *laend = &_gamelog_action[_gamelog_actions];
-	size_t length = 0;
+
+	SaveDumper temp(1024);
 
 	for (const LoggedAction *la = _gamelog_action; la != laend; la++) {
+		temp.WriteByte(la->at);
+		temp.WriteObject(la, _glog_action_desc);
+
 		const LoggedChange *lcend = &la->change[la->changes];
 		for (LoggedChange *lc = la->change; lc != lcend; lc++) {
 			assert((uint)lc->ct < lengthof(_glog_desc));
-			length += SlCalcObjLength(lc, _glog_desc[lc->ct]) + 1;
-		}
-		length += 4;
-	}
-	length++;
-
-	SlWriteLength(length);
-
-	for (LoggedAction *la = _gamelog_action; la != laend; la++) {
-		SlWriteByte(la->at);
-		SlObject(la, _glog_action_desc);
-
-		const LoggedChange *lcend = &la->change[la->changes];
-		for (LoggedChange *lc = la->change; lc != lcend; lc++) {
-			SlWriteByte(lc->ct);
 			assert((uint)lc->ct < GLCT_END);
-			SlObject(lc, _glog_desc[lc->ct]);
+			temp.WriteByte(lc->ct);
+			temp.WriteObject(lc, _glog_desc[lc->ct]);
 		}
-		SlWriteByte(GLCT_NONE);
+		temp.WriteByte(GLCT_NONE);
 	}
-	SlWriteByte(GLAT_NONE);
+	temp.WriteByte(GLAT_NONE);
+
+	dumper->WriteRIFFSize(temp.GetSize());
+	temp.Dump(dumper);
 }
 
 static void Load_GLOG(LoadBuffer *reader)
