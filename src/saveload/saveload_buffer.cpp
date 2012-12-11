@@ -609,15 +609,14 @@ void SaveDumper::WriteObjectMember(const void *object, const SaveLoad *sld)
 
 void SaveDumper::Flush(SaveFilter *writer)
 {
-	uint i = 0;
-	size_t t = this->GetSize();
+	uint n = this->blocks.Length();
+	if (n == 0) return;
 
-	while (t > 0) {
-		size_t to_write = min(this->alloc_size, t);
-
-		writer->Write(this->blocks[i++], to_write);
-		t -= to_write;
+	n--;
+	for (uint i = 0; i < n; i++) {
+		writer->Write(this->blocks[i], this->alloc_size);
 	}
+	writer->Write(this->blocks[n], this->alloc_size - (this->bufe - this->buf));
 
 	writer->Finish();
 }
