@@ -145,6 +145,8 @@ struct LoadBuffer {
 		assert((this->chunk_type == CH_ARRAY) || (this->chunk_type == CH_SPARSE_ARRAY));
 		return this->array.size;
 	}
+
+	void SkipChunk();
 };
 
 /** Container for dumping the savegame (quickly) to memory. */

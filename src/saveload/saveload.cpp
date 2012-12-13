@@ -1035,11 +1035,7 @@ static void SlLoadChunk(const ChunkHandler *ch, bool check = false)
 	} else if (ch->load_check_proc) {
 		ch->load_check_proc();
 	} else {
-		if (_sl.reader->chunk_type == CH_RIFF) {
-			_sl.reader->Skip(_sl.reader->riff.length);
-		} else {
-			_sl.reader->IterateChunk(true);
-		}
+		_sl.reader->SkipChunk();
 	}
 
 	_sl.reader->EndChunk();

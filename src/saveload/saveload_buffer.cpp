@@ -291,6 +291,19 @@ int LoadBuffer::IterateChunk(bool skip)
 	}
 }
 
+/**
+ * Skip a whole chunk
+ */
+void LoadBuffer::SkipChunk()
+{
+	if (this->chunk_type == CH_RIFF) {
+		assert(this->GetSize() == this->riff.end - this->riff.length);
+		this->Skip(this->riff.length);
+	} else {
+		this->IterateChunk(true);
+	}
+}
+
 
 void SaveDumper::AllocBuffer()
 {
