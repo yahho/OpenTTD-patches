@@ -41,6 +41,8 @@ struct LoadBuffer {
 			size_t end;    ///< End offset of the current chunk
 		} riff;
 		struct {
+			size_t size;   ///< Current array element size
+			size_t next;   ///< Next element offset
 			int index;     ///< Current array index for (non-sparse) arrays
 		} array;
 	};
@@ -130,6 +132,18 @@ struct LoadBuffer {
 	{
 		assert(this->chunk_type == CH_RIFF);
 		return this->riff.length;
+	}
+
+	int IterateChunk(bool skip = false);
+
+	/**
+	 * Return the size of the current array element.
+	 * @return The size of the current array element
+	 */
+	inline size_t GetElementSize() const
+	{
+		assert((this->chunk_type == CH_ARRAY) || (this->chunk_type == CH_SPARSE_ARRAY));
+		return this->array.size;
 	}
 };
 

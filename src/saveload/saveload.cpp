@@ -516,42 +516,7 @@ static size_t _next_offs;
  */
 int SlIterateArray()
 {
-	int index;
-
-	/* After reading in the whole array inside the loop
-	 * we must have read in all the data, so we must be at end of current block. */
-	if (_next_offs != 0 && _sl.reader->GetSize() != _next_offs) SlErrorCorrupt("Invalid chunk size");
-
-	for (;;) {
-		uint length = _sl.reader->ReadGamma();
-		if (length == 0) {
-			_next_offs = 0;
-			return -1;
-		}
-
-		_sl.obj_len = --length;
-		_next_offs = _sl.reader->GetSize() + length;
-
-		switch (_sl.reader->chunk_type) {
-			case CH_SPARSE_ARRAY: index = (int)_sl.reader->ReadGamma(); break;
-			case CH_ARRAY:        index = _sl.reader->array.index++; break;
-			default:
-				DEBUG(sl, 0, "SlIterateArray error");
-				return -1; // error
-		}
-
-		if (length != 0) return index;
-	}
-}
-
-/**
- * Skip an array or sparse array
- */
-void SlSkipArray()
-{
-	while (SlIterateArray() != -1) {
-		_sl.reader->Skip(_next_offs - _sl.reader->GetSize());
-	}
+	return _sl.reader->IterateChunk();
 }
 
 /**
@@ -604,7 +569,7 @@ size_t SlGetFieldLength()
 	if (_sl.reader->chunk_type == CH_RIFF) {
 		return _sl.reader->GetChunkSize();
 	} else {
-		return _sl.obj_len;
+		return _sl.reader->GetElementSize();;
 	}
 }
 
@@ -1073,7 +1038,7 @@ static void SlLoadChunk(const ChunkHandler *ch, bool check = false)
 		if (_sl.reader->chunk_type == CH_RIFF) {
 			_sl.reader->Skip(_sl.reader->riff.length);
 		} else {
-			SlSkipArray();
+			_sl.reader->IterateChunk(true);
 		}
 	}
 

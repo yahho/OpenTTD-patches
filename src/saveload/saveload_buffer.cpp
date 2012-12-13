@@ -233,6 +233,7 @@ void LoadBuffer::BeginChunk()
 			/* fall through */
 		case CH_SPARSE_ARRAY:
 			this->chunk_type = m;
+			this->array.next = this->GetSize();
 			break;
 		default:
 			if ((m & 0xF) != CH_RIFF) {
@@ -257,6 +258,37 @@ void LoadBuffer::EndChunk()
 	}
 
 	this->chunk_type = -1;
+}
+
+/**
+ * Iterate through the elements of an array chunk
+ * @param skip Whether to skip the whole chunk
+ * @return The index of the element, or -1 if we have reached the end of current block
+ */
+int LoadBuffer::IterateChunk(bool skip)
+{
+	assert((this->chunk_type == CH_ARRAY) || (this->chunk_type == CH_SPARSE_ARRAY));
+
+	/* Check that elements are fully read before going on with the next one. */
+	if (this->GetSize() != this->array.next) SlErrorCorrupt("Invalid chunk size");
+
+	for (;;) {
+		uint length = this->ReadGamma();
+		if (length == 0) {
+			return -1;
+		}
+
+		this->array.size = --length;
+		this->array.next = this->GetSize() + length;
+
+		int index = (this->chunk_type == CH_SPARSE_ARRAY) ?
+			(int)this->ReadGamma() : this->array.index++;
+
+		if (length != 0) {
+			if (!skip) return index;
+			this->Skip(this->array.next - this->GetSize());
+		}
+	}
 }
 
 
