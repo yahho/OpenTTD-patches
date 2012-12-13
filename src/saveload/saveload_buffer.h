@@ -34,12 +34,22 @@ struct LoadBuffer {
 	byte *bufe;                  ///< End of the buffer
 	LoadFilter *reader;          ///< Downstream filter to read from
 	size_t read;                 ///< Amount of bytes read so far from the filter
+	uint chunk_type;             ///< The type of the current chunk
+	union {
+		struct {
+			size_t length; ///< The length of the current chunk
+			size_t end;    ///< End offset of the current chunk
+		} riff;
+		struct {
+			int index;     ///< Current array index for (non-sparse) arrays
+		} array;
+	};
 
 	/**
 	 * Initialise our variables.
 	 * @param reader The filter to read data from.
 	 */
-	LoadBuffer(LoadFilter *reader) : bufp(NULL), bufe(NULL), reader(reader), read(0)
+	LoadBuffer(LoadFilter *reader) : bufp(NULL), bufe(NULL), reader(reader), read(0), chunk_type(-1)
 	{
 	}
 
@@ -108,6 +118,19 @@ struct LoadBuffer {
 	void ReadString(void *ptr, size_t length, StrType conv);
 	void ReadArray(void *ptr, size_t length, VarType conv);
 	void ReadList(void *ptr, SLRefType conv);
+
+	void BeginChunk();
+	void EndChunk();
+
+	/**
+	 * Return the size of the current RIFF chunk.
+	 * @return The size of the current RIFF chunk
+	 */
+	inline size_t GetChunkSize() const
+	{
+		assert(this->chunk_type == CH_RIFF);
+		return this->riff.length;
+	}
 };
 
 /** Container for dumping the savegame (quickly) to memory. */

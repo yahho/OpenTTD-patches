@@ -532,9 +532,9 @@ int SlIterateArray()
 		_sl.obj_len = --length;
 		_next_offs = _sl.reader->GetSize() + length;
 
-		switch (_sl.block_mode) {
+		switch (_sl.reader->chunk_type) {
 			case CH_SPARSE_ARRAY: index = (int)_sl.reader->ReadGamma(); break;
-			case CH_ARRAY:        index = _sl.array_index++; break;
+			case CH_ARRAY:        index = _sl.reader->array.index++; break;
 			default:
 				DEBUG(sl, 0, "SlIterateArray error");
 				return -1; // error
@@ -599,7 +599,13 @@ static void SlAddLength(size_t length)
 /** Get the length of the current object */
 size_t SlGetFieldLength()
 {
-	return _sl.obj_len;
+	assert((_sl.action == SLA_LOAD) || (_sl.action == SLA_LOAD_CHECK));
+
+	if (_sl.reader->chunk_type == CH_RIFF) {
+		return _sl.reader->GetChunkSize();
+	} else {
+		return _sl.obj_len;
+	}
 }
 
 /**
@@ -1057,45 +1063,21 @@ void SlArrayAutoElement(uint index, AutolengthProc *proc, void *arg)
  */
 static void SlLoadChunk(const ChunkHandler *ch, bool check = false)
 {
-	byte m = SlReadByte();
-	size_t len;
-	size_t endoffs;
+	_sl.reader->BeginChunk();
 
-	_sl.block_mode = m;
-	_sl.obj_len = 0;
-
-	switch (m) {
-		case CH_ARRAY:
-			_sl.array_index = 0;
-			/* fall through */
-		case CH_SPARSE_ARRAY:
-			if (!check) {
-				ch->load_proc();
-			} else if (ch->load_check_proc) {
-				ch->load_check_proc();
-			} else {
-				SlSkipArray();
-			}
-			break;
-		default:
-			if ((m & 0xF) != CH_RIFF) {
-				SlErrorCorrupt("Invalid chunk type");
-			}
-			/* Read length */
-			len = (SlReadByte() << 16) | ((m >> 4) << 24);
-			len += _sl.reader->ReadUint16();
-			_sl.obj_len = len;
-			endoffs = _sl.reader->GetSize() + len;
-			if (!check) {
-				ch->load_proc();
-			} else if (ch->load_check_proc) {
-				ch->load_check_proc();
-			} else {
-				_sl.reader->Skip(len);
-			}
-			if (_sl.reader->GetSize() != endoffs) SlErrorCorrupt("Invalid chunk size");
-			break;
+	if (!check) {
+		ch->load_proc();
+	} else if (ch->load_check_proc) {
+		ch->load_check_proc();
+	} else {
+		if (_sl.reader->chunk_type == CH_RIFF) {
+			_sl.reader->Skip(_sl.reader->riff.length);
+		} else {
+			SlSkipArray();
+		}
 	}
+
+	_sl.reader->EndChunk();
 }
 
 /**

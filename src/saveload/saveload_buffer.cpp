@@ -221,6 +221,44 @@ void LoadBuffer::ReadList(void *ptr, SLRefType conv)
 	}
 }
 
+/**
+ * Begin reading of a chunk
+ */
+void LoadBuffer::BeginChunk()
+{
+	byte m = this->ReadByte();
+	switch (m) {
+		case CH_ARRAY:
+			this->array.index = 0;
+			/* fall through */
+		case CH_SPARSE_ARRAY:
+			this->chunk_type = m;
+			break;
+		default:
+			if ((m & 0xF) != CH_RIFF) {
+				SlErrorCorrupt("Invalid chunk type");
+			}
+			this->chunk_type = CH_RIFF;
+			/* Read length */
+			this->riff.length = (this->ReadByte() << 16) | ((m >> 4) << 24);
+			this->riff.length += this->ReadUint16();
+			this->riff.end = this->GetSize() + this->riff.length;
+			break;
+	}
+}
+
+/**
+ * End reading of a chunk
+ */
+void LoadBuffer::EndChunk()
+{
+	if ((this->chunk_type == CH_RIFF) && (this->GetSize() != this->riff.end)) {
+		SlErrorCorrupt("Invalid chunk size");
+	}
+
+	this->chunk_type = -1;
+}
+
 
 void SaveDumper::AllocBuffer()
 {
