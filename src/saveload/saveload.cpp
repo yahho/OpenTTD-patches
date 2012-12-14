@@ -1025,7 +1025,7 @@ static void SlLoadChunk(const ChunkHandler *ch, bool check = false)
  */
 static void SlSaveChunk(const ChunkHandler *ch)
 {
-	ChunkSaveLoadProc *proc = ch->save_proc;
+	ChunkSaveProc *proc = ch->save_proc;
 
 	/* Don't save any chunk information if there is no save handler. */
 	if (proc == NULL) return;
