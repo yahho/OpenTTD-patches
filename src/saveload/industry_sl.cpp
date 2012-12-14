@@ -161,11 +161,11 @@ static void Load_ITBL()
 	int index;
 	for (int i = 0; i < NUM_INDUSTRYTYPES; i++) {
 		index = SlIterateArray();
-		assert(index == i);
+		if (index != i) SlErrorCorrupt("Invalid industry-type build data");
 		SlObject(_industry_builder.builddata + i, _industrytype_builder_desc);
 	}
 	index = SlIterateArray();
-	assert(index == -1);
+	if (index != -1) SlErrorCorrupt("Invalid industry-type build data");
 }
 
 extern const ChunkHandler _industry_chunk_handlers[] = {
