@@ -36,20 +36,6 @@ static const SaveLoad _ai_company[] = {
 static void SaveReal_AIPL(int *index_ptr)
 {
 	CompanyID index = (CompanyID)*index_ptr;
-	AIConfig *config = AIConfig::GetConfig(index);
-
-	if (config->HasScript()) {
-		ttd_strlcpy(_ai_saveload_name, config->GetName(), lengthof(_ai_saveload_name));
-		_ai_saveload_version = config->GetVersion();
-	} else {
-		/* No AI is configured for this so store an empty string as name. */
-		_ai_saveload_name[0] = '\0';
-		_ai_saveload_version = -1;
-	}
-
-	_ai_saveload_is_random = config->IsRandom();
-	_ai_saveload_settings[0] = '\0';
-	config->SettingsToString(_ai_saveload_settings, lengthof(_ai_saveload_settings));
 
 	SlObject(NULL, _ai_company);
 	/* If the AI was active, store his data too */
@@ -117,6 +103,21 @@ static void Load_AIPL()
 static void Save_AIPL()
 {
 	for (int i = COMPANY_FIRST; i < MAX_COMPANIES; i++) {
+		AIConfig *config = AIConfig::GetConfig((CompanyID)i);
+
+		if (config->HasScript()) {
+			ttd_strlcpy(_ai_saveload_name, config->GetName(), lengthof(_ai_saveload_name));
+			_ai_saveload_version = config->GetVersion();
+		} else {
+			/* No AI is configured for this so store an empty string as name. */
+			_ai_saveload_name[0] = '\0';
+			_ai_saveload_version = -1;
+		}
+
+		_ai_saveload_is_random = config->IsRandom();
+		_ai_saveload_settings[0] = '\0';
+		config->SettingsToString(_ai_saveload_settings, lengthof(_ai_saveload_settings));
+
 		SlSetArrayIndex(i);
 		SlAutolength((AutolengthProc *)SaveReal_AIPL, &i);
 	}
