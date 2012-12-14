@@ -20,26 +20,27 @@
 #include "../network/network.h"
 #include "../ai/ai_instance.hpp"
 
-static char _ai_saveload_name[64];
-static int  _ai_saveload_version;
-static char _ai_saveload_settings[1024];
-static bool _ai_saveload_is_random;
+struct AiSaveload {
+	char name[64];
+	char settings[1024];
+	int  version;
+	bool is_random;
+	CompanyID id;
+};
 
 static const SaveLoad _ai_company[] = {
-	    SLEG_STR(_ai_saveload_name,        SLE_STRB),
-	    SLEG_STR(_ai_saveload_settings,    SLE_STRB),
-	SLEG_CONDVAR(_ai_saveload_version,   SLE_UINT32, 108, SL_MAX_VERSION),
-	SLEG_CONDVAR(_ai_saveload_is_random,   SLE_BOOL, 136, SL_MAX_VERSION),
+	     SLE_STR(AiSaveload, name,        SLE_STRB, lengthof(AiSaveload::name)),
+	     SLE_STR(AiSaveload, settings,    SLE_STRB, lengthof(AiSaveload::settings)),
+	 SLE_CONDVAR(AiSaveload, version,   SLE_UINT32, 108, SL_MAX_VERSION),
+	 SLE_CONDVAR(AiSaveload, is_random,   SLE_BOOL, 136, SL_MAX_VERSION),
 	     SLE_END()
 };
 
-static void SaveReal_AIPL(int *index_ptr)
+static void SaveReal_AIPL(AiSaveload *aisl)
 {
-	CompanyID index = (CompanyID)*index_ptr;
-
-	SlObject(NULL, _ai_company);
+	SlObject(aisl, _ai_company);
 	/* If the AI was active, store his data too */
-	if (Company::IsValidAiID(index)) AI::Save(index);
+	if (aisl->id != (CompanyID)-1) AI::Save(aisl->id);
 }
 
 static void Load_AIPL()
@@ -49,77 +50,82 @@ static void Load_AIPL()
 		AIConfig::GetConfig(c, AIConfig::SSS_FORCE_GAME)->Change(NULL);
 	}
 
-	CompanyID index;
-	while ((index = (CompanyID)SlIterateArray()) != (CompanyID)-1) {
-		if (index >= MAX_COMPANIES) SlErrorCorrupt("Too many AI configs");
+	AiSaveload aisl;
+	while ((aisl.id = (CompanyID)SlIterateArray()) != (CompanyID)-1) {
+		if (aisl.id >= MAX_COMPANIES) SlErrorCorrupt("Too many AI configs");
 
-		_ai_saveload_is_random = 0;
-		_ai_saveload_version = -1;
-		SlObject(NULL, _ai_company);
+		aisl.is_random = 0;
+		aisl.version = -1;
+		SlObject(&aisl, _ai_company);
 
 		if (_networking && !_network_server) {
-			if (Company::IsValidAiID(index)) AIInstance::LoadEmpty();
+			if (Company::IsValidAiID(aisl.id)) AIInstance::LoadEmpty();
 			continue;
 		}
 
-		AIConfig *config = AIConfig::GetConfig(index, AIConfig::SSS_FORCE_GAME);
-		if (StrEmpty(_ai_saveload_name)) {
+		AIConfig *config = AIConfig::GetConfig(aisl.id, AIConfig::SSS_FORCE_GAME);
+		if (StrEmpty(aisl.name)) {
 			/* A random AI. */
 			config->Change(NULL, -1, false, true);
 		} else {
-			config->Change(_ai_saveload_name, _ai_saveload_version, false, _ai_saveload_is_random);
+			config->Change(aisl.name, aisl.version, false, aisl.is_random);
 			if (!config->HasScript()) {
 				/* No version of the AI available that can load the data. Try to load the
 				 * latest version of the AI instead. */
-				config->Change(_ai_saveload_name, -1, false, _ai_saveload_is_random);
+				config->Change(aisl.name, -1, false, aisl.is_random);
 				if (!config->HasScript()) {
-					if (strcmp(_ai_saveload_name, "%_dummy") != 0) {
-						DEBUG(script, 0, "The savegame has an AI by the name '%s', version %d which is no longer available.", _ai_saveload_name, _ai_saveload_version);
+					if (strcmp(aisl.name, "%_dummy") != 0) {
+						DEBUG(script, 0, "The savegame has an AI by the name '%s', version %d which is no longer available.", aisl.name, aisl.version);
 						DEBUG(script, 0, "A random other AI will be loaded in its place.");
 					} else {
 						DEBUG(script, 0, "The savegame had no AIs available at the time of saving.");
 						DEBUG(script, 0, "A random available AI will be loaded now.");
 					}
 				} else {
-					DEBUG(script, 0, "The savegame has an AI by the name '%s', version %d which is no longer available.", _ai_saveload_name, _ai_saveload_version);
+					DEBUG(script, 0, "The savegame has an AI by the name '%s', version %d which is no longer available.", aisl.name, aisl.version);
 					DEBUG(script, 0, "The latest version of that AI has been loaded instead, but it'll not get the savegame data as it's incompatible.");
 				}
 				/* Make sure the AI doesn't get the saveload data, as he was not the
 				 *  writer of the saveload data in the first place */
-				_ai_saveload_version = -1;
+				aisl.version = -1;
 			}
 		}
 
-		config->StringToSettings(_ai_saveload_settings);
+		config->StringToSettings(aisl.settings);
 
 		/* Start the AI directly if it was active in the savegame */
-		if (Company::IsValidAiID(index)) {
-			AI::StartNew(index, false);
-			AI::Load(index, _ai_saveload_version);
+		if (Company::IsValidAiID(aisl.id)) {
+			AI::StartNew(aisl.id, false);
+			AI::Load(aisl.id, aisl.version);
 		}
 	}
 }
 
 static void Save_AIPL()
 {
+	AiSaveload aisl;
+
 	for (int i = COMPANY_FIRST; i < MAX_COMPANIES; i++) {
 		AIConfig *config = AIConfig::GetConfig((CompanyID)i);
 
 		if (config->HasScript()) {
-			ttd_strlcpy(_ai_saveload_name, config->GetName(), lengthof(_ai_saveload_name));
-			_ai_saveload_version = config->GetVersion();
+			ttd_strlcpy(aisl.name, config->GetName(), lengthof(aisl.name));
+			aisl.version = config->GetVersion();
 		} else {
 			/* No AI is configured for this so store an empty string as name. */
-			_ai_saveload_name[0] = '\0';
-			_ai_saveload_version = -1;
+			aisl.name[0] = '\0';
+			aisl.version = -1;
 		}
 
-		_ai_saveload_is_random = config->IsRandom();
-		_ai_saveload_settings[0] = '\0';
-		config->SettingsToString(_ai_saveload_settings, lengthof(_ai_saveload_settings));
+		aisl.is_random = config->IsRandom();
+		aisl.settings[0] = '\0';
+		config->SettingsToString(aisl.settings, lengthof(aisl.settings));
+
+		/* If the AI was active, store his data too */
+		aisl.id = (CompanyID)(Company::IsValidAiID(i) ? i : -1);
 
 		SlSetArrayIndex(i);
-		SlAutolength((AutolengthProc *)SaveReal_AIPL, &i);
+		SlAutolength((AutolengthProc *)SaveReal_AIPL, &aisl);
 	}
 }
 
