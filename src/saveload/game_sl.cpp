@@ -117,29 +117,32 @@ static void Save_GSDT()
 
 extern GameStrings *_current_data;
 
-static const char *_game_saveload_string;
-static uint _game_saveload_strings;
+struct GameSaveloadStrings {
+	const char *s;
+	uint n;
+};
 
 static const SaveLoad _game_language_header[] = {
-	SLEG_STR(_game_saveload_string, SLE_STR),
-	SLEG_VAR(_game_saveload_strings, SLE_UINT32),
+	 SLE_STR(GameSaveloadStrings, s, SLE_STR, 0),
+	 SLE_VAR(GameSaveloadStrings, n, SLE_UINT32),
 	 SLE_END()
 };
 
 static const SaveLoad _game_language_string[] = {
-	SLEG_STR(_game_saveload_string, SLE_STR | SLF_ALLOW_CONTROL),
+	 SLE_STR(GameSaveloadStrings, s, SLE_STR | SLF_ALLOW_CONTROL, 0),
 	 SLE_END()
 };
 
 static void SaveReal_GSTR(LanguageStrings *ls)
 {
-	_game_saveload_string  = ls->language;
-	_game_saveload_strings = ls->lines.Length();
+	GameSaveloadStrings gss;
+	gss.s = ls->language;
+	gss.n = ls->lines.Length();
 
-	SlObject(NULL, _game_language_header);
-	for (uint i = 0; i < _game_saveload_strings; i++) {
-		_game_saveload_string = ls->lines[i];
-		SlObject(NULL, _game_language_string);
+	SlObject(&gss, _game_language_header);
+	for (uint i = 0; i < gss.n; i++) {
+		gss.s = ls->lines[i];
+		SlObject(&gss, _game_language_string);
 	}
 }
 
@@ -149,13 +152,14 @@ static void Load_GSTR()
 	_current_data = new GameStrings();
 
 	while (SlIterateArray() != -1) {
-		_game_saveload_string = NULL;
-		SlObject(NULL, _game_language_header);
+		GameSaveloadStrings gss;
+		gss.s = NULL;
+		SlObject(&gss, _game_language_header);
 
-		LanguageStrings *ls = new LanguageStrings(_game_saveload_string);
-		for (uint i = 0; i < _game_saveload_strings; i++) {
-			SlObject(NULL, _game_language_string);
-			*ls->lines.Append() = strdup(_game_saveload_string != NULL ? _game_saveload_string : "");
+		LanguageStrings *ls = new LanguageStrings(gss.s);
+		for (uint i = 0; i < gss.n; i++) {
+			SlObject(&gss, _game_language_string);
+			*ls->lines.Append() = strdup(gss.s != NULL ? gss.s : "");
 		}
 
 		*_current_data->raw_strings.Append() = ls;
