@@ -490,6 +490,38 @@ void SaveDumper::WriteList(const void *ptr, SLRefType conv)
 	}
 }
 
+/**
+ * Begin writing of a chunk
+ */
+void SaveDumper::BeginChunk(uint type)
+{
+	this->chunk_type = type;
+
+	switch (type) {
+		case CH_RIFF:
+			break;
+		case CH_ARRAY:
+			this->array_index = 0;
+			/* fall through */
+		case CH_SPARSE_ARRAY:
+			this->WriteByte(type);
+			break;
+		default: NOT_REACHED();
+	}
+}
+
+/**
+ * End writing of a chunk
+ */
+void SaveDumper::EndChunk()
+{
+	if (this->chunk_type != CH_RIFF) {
+		this->WriteGamma(0); // Terminate arrays
+	}
+
+	this->chunk_type = -1;
+}
+
 void SaveDumper::Flush(SaveFilter *writer)
 {
 	uint i = 0;

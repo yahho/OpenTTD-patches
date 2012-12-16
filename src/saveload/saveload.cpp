@@ -525,7 +525,7 @@ int SlIterateArray()
  */
 void SlWriteLength(size_t length)
 {
-	switch (_sl.block_mode) {
+	switch (_sl.dumper->chunk_type) {
 		case CH_RIFF:
 			/* Ugly encoding of >16M RIFF chunks
 			 * The lower 24 bits are normal
@@ -534,8 +534,8 @@ void SlWriteLength(size_t length)
 			_sl.dumper->WriteUint32((uint32)((length & 0xFFFFFF) | ((length >> 24) << 28)));
 			break;
 		case CH_ARRAY:
-			assert(_sl.last_array_index <= _sl.array_index);
-			while (++_sl.last_array_index <= _sl.array_index) {
+			assert(_sl.dumper->array_index <= _sl.array_index);
+			while (++_sl.dumper->array_index <= _sl.array_index) {
 				_sl.dumper->WriteGamma(1);
 			}
 			_sl.dumper->WriteGamma(length + 1);
@@ -1056,24 +1056,9 @@ static void SlSaveChunk(const ChunkHandler *ch)
 	_sl.dumper->WriteUint32(ch->id);
 	DEBUG(sl, 2, "Saving chunk %c%c%c%c", ch->id >> 24, ch->id >> 16, ch->id >> 8, ch->id);
 
-	_sl.block_mode = ch->flags & CH_TYPE_MASK;
-	switch (ch->flags & CH_TYPE_MASK) {
-		case CH_RIFF:
-			proc();
-			break;
-		case CH_ARRAY:
-			_sl.last_array_index = 0;
-			SlWriteByte(CH_ARRAY);
-			proc();
-			_sl.dumper->WriteGamma(0); // Terminate arrays
-			break;
-		case CH_SPARSE_ARRAY:
-			SlWriteByte(CH_SPARSE_ARRAY);
-			proc();
-			_sl.dumper->WriteGamma(0); // Terminate arrays
-			break;
-		default: NOT_REACHED();
-	}
+	_sl.dumper->BeginChunk(ch->flags & CH_TYPE_MASK);
+	proc();
+	_sl.dumper->EndChunk();
 }
 
 /** Save all chunks */

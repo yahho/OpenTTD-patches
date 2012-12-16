@@ -155,9 +155,11 @@ struct SaveDumper {
 	AutoFreeSmallVector<byte *, 16> blocks; ///< Buffer with blocks of allocated memory
 	byte *buf;                              ///< Current position within the buffer
 	byte *bufe;                             ///< End of the current buffer block
+	uint chunk_type;                        ///< The type of the current save chunk
+	int array_index;                        ///< Next array index for (non-sparse) arrays
 
 	/** Initialise our variables. */
-	SaveDumper() : buf(NULL), bufe(NULL)
+	SaveDumper() : buf(NULL), bufe(NULL), chunk_type(-1)
 	{
 	}
 
@@ -214,6 +216,9 @@ struct SaveDumper {
 	void WriteString(const void *ptr, size_t length, StrType conv);
 	void WriteArray(const void *ptr, size_t length, VarType conv);
 	void WriteList(const void *ptr, SLRefType conv);
+
+	void BeginChunk(uint type);
+	void EndChunk();
 
 	/**
 	 * Flush this dumper into a writer.
