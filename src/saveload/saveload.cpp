@@ -520,28 +520,13 @@ int SlIterateArray()
 }
 
 /**
- * Writes the length of either a RIFF object or the size of an element in an array.
+ * Writes the length of a RIFF object.
  * @param length The length of the object
  */
 void SlWriteLength(size_t length)
 {
-	switch (_sl.dumper->chunk_type) {
-		case CH_RIFF:
-			_sl.dumper->WriteRIFFSize(length);
-			break;
-		case CH_ARRAY:
-			assert(_sl.dumper->array_index <= _sl.array_index);
-			while (++_sl.dumper->array_index <= _sl.array_index) {
-				_sl.dumper->WriteGamma(1);
-			}
-			_sl.dumper->WriteGamma(length + 1);
-			break;
-		case CH_SPARSE_ARRAY:
-			_sl.dumper->WriteGamma(length + 1 + GetGammaLength(_sl.array_index)); // Also include length of sparse index.
-			_sl.dumper->WriteGamma(_sl.array_index);
-			break;
-		default: NOT_REACHED();
-	}
+	assert(_sl.dumper->chunk_type == CH_RIFF);
+	_sl.dumper->WriteRIFFSize(length);
 }
 
 /**
@@ -982,9 +967,7 @@ void SlArrayObject(uint index, void *object, const SaveLoad *sld)
 {
 	assert(_sl.action == SLA_SAVE);
 
-	_sl.array_index = index;
-
-	SlWriteLength(SlCalcObjLength(object, sld));
+	_sl.dumper->WriteElementHeader(index, SlCalcObjLength(object, sld));
 	SlObject(object, sld);
 }
 
@@ -998,15 +981,13 @@ void SlArrayAutoElement(uint index, AutolengthProc *proc, void *arg)
 {
 	assert(_sl.action == SLA_SAVE);
 
-	_sl.array_index = index;
-
 	/* Tell it to calculate the length */
 	_sl.need_length = NL_CALCLENGTH;
 	_sl.obj_len = 0;
 	proc(arg);
 
 	/* Write length */
-	SlWriteLength(_sl.obj_len);
+	_sl.dumper->WriteElementHeader(index, _sl.obj_len);
 	_sl.need_length = NL_NONE;
 
 	size_t offs = _sl.dumper->GetSize() + _sl.obj_len;

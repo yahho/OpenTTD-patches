@@ -522,6 +522,29 @@ void SaveDumper::EndChunk()
 	this->chunk_type = -1;
 }
 
+/**
+ * Write next array element's header. On non-sparse arrays, it skips to the
+ * given index and then writes its length. On sparse arrays, it writes both
+ * length and index.
+ * @param index Index of the element
+ * @param length Size of its raw contents
+ */
+void SaveDumper::WriteElementHeader(uint index, size_t length)
+{
+	assert((this->chunk_type == CH_ARRAY) || (this->chunk_type == CH_SPARSE_ARRAY));
+
+	if (this->chunk_type == CH_ARRAY) {
+		assert(index >= this->array_index);
+		while (++this->array_index <= index) {
+			this->WriteGamma(1);
+		}
+		this->WriteGamma(length + 1);
+	} else {
+		this->WriteGamma(length + 1 + GetGammaLength(index));
+		this->WriteGamma(index);
+	}
+}
+
 void SaveDumper::Flush(SaveFilter *writer)
 {
 	uint i = 0;
