@@ -193,14 +193,14 @@
 }
 
 
-/* static */ void Game::Save()
+/* static */ void Game::Save(SaveDumper *dumper)
 {
 	if (Game::instance != NULL && (!_networking || _network_server)) {
 		Backup<CompanyByte> cur_company(_current_company, OWNER_DEITY, FILE_LINE);
-		Game::instance->Save();
+		Game::instance->Save(dumper);
 		cur_company.Restore();
 	} else {
-		GameInstance::SaveEmpty();
+		GameInstance::SaveEmpty(dumper);
 	}
 }
 

@@ -272,17 +272,17 @@
 	event->Release();
 }
 
-/* static */ void AI::Save(CompanyID company)
+/* static */ void AI::Save(SaveDumper *dumper, CompanyID company)
 {
 	if (!_networking || _network_server) {
 		Company *c = Company::GetIfValid(company);
 		assert(c != NULL && c->ai_instance != NULL);
 
 		Backup<CompanyByte> cur_company(_current_company, company, FILE_LINE);
-		c->ai_instance->Save();
+		c->ai_instance->Save(dumper);
 		cur_company.Restore();
 	} else {
-		AIInstance::SaveEmpty();
+		AIInstance::SaveEmpty(dumper);
 	}
 }
 

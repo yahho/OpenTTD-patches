@@ -129,7 +129,7 @@ public:
 	/**
 	 * Save data from an AI to a savegame.
 	 */
-	static void Save(CompanyID company);
+	static void Save(SaveDumper *dumper, CompanyID company);
 
 	/**
 	 * Load data for an AI from a savegame.

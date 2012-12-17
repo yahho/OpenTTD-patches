@@ -88,7 +88,7 @@ public:
 	/**
 	 * Save data from a GameScript to a savegame.
 	 */
-	static void Save();
+	static void Save(SaveDumper *dumper);
 
 	/**
 	 * Load data for a GameScript from a savegame.

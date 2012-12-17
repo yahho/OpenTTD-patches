@@ -36,13 +36,6 @@ static const SaveLoad _ai_company[] = {
 	     SLE_END()
 };
 
-static void SaveReal_AIPL(AiSaveload *aisl)
-{
-	SlObject(aisl, _ai_company);
-	/* If the AI was active, store his data too */
-	if (aisl->id != (CompanyID)-1) AI::Save(aisl->id);
-}
-
 static void Load_AIPL(LoadBuffer *reader)
 {
 	/* Free all current data */
@@ -124,7 +117,14 @@ static void Save_AIPL(SaveDumper *dumper)
 		/* If the AI was active, store his data too */
 		aisl.id = (CompanyID)(Company::IsValidAiID(i) ? i : -1);
 
-		SlArrayAutoElement(i, (AutolengthProc *)SaveReal_AIPL, &aisl);
+		SaveDumper temp(1024);
+
+		temp.WriteObject(&aisl, _ai_company);
+		/* If the AI was active, store his data too */
+		if (aisl.id != (CompanyID)-1) AI::Save(&temp, aisl.id);
+
+		dumper->WriteElementHeader(i, temp.GetSize());
+		temp.Dump(dumper);
 	}
 }
 

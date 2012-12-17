@@ -130,13 +130,15 @@ public:
 
 	/**
 	 * Call the script Save function and save all data in the savegame.
+	 * @param dumper The dumper to save the data to
 	 */
-	void Save();
+	void Save(SaveDumper *dumper);
 
 	/**
 	 * Don't save any data in the savegame.
+	 * @param dumper The dumper to save the data to
 	 */
-	static void SaveEmpty();
+	static void SaveEmpty(SaveDumper *dumper);
 
 	/**
 	 * Load data from a savegame and store it on the stack.
@@ -253,6 +255,7 @@ private:
 
 	/**
 	 * Save one object (int / string / array / table) to the savegame.
+	 * @param dumper The dumper to save the data to
 	 * @param vm The virtual machine to get all the data from.
 	 * @param index The index on the squirrel stack of the element to save.
 	 * @param max_depth The maximum depth recursive arrays / tables will be stored
@@ -261,7 +264,7 @@ private:
 	 *   valid.
 	 * @return True if the saving was successful.
 	 */
-	static bool SaveObject(HSQUIRRELVM vm, SQInteger index, int max_depth, bool test);
+	static bool SaveObject(SaveDumper *dumper, HSQUIRRELVM vm, SQInteger index, int max_depth, bool test);
 
 	/**
 	 * Load all objects from a savegame.

@@ -337,7 +337,7 @@ static const SaveLoad _script_byte[] = {
 	SLE_END()
 };
 
-/* static */ bool ScriptInstance::SaveObject(HSQUIRRELVM vm, SQInteger index, int max_depth, bool test)
+/* static */ bool ScriptInstance::SaveObject(SaveDumper *dumper, HSQUIRRELVM vm, SQInteger index, int max_depth, bool test)
 {
 	if (max_depth == 0) {
 		ScriptLog::Error("Savedata can only be nested to 25 deep. No data saved."); // SQUIRREL_MAX_DEPTH = 25
@@ -348,13 +348,13 @@ static const SaveLoad _script_byte[] = {
 		case OT_INTEGER: {
 			if (!test) {
 				_script_sl_byte = SQSL_INT;
-				SlObject(NULL, _script_byte);
+				dumper->WriteObject(NULL, _script_byte);
 			}
 			SQInteger res;
 			sq_getinteger(vm, index, &res);
 			if (!test) {
 				int value = (int)res;
-				SlArray(&value, 1, SLE_INT32);
+				dumper->WriteArray(&value, 1, SLE_INT32);
 			}
 			return true;
 		}
@@ -362,7 +362,7 @@ static const SaveLoad _script_byte[] = {
 		case OT_STRING: {
 			if (!test) {
 				_script_sl_byte = SQSL_STRING;
-				SlObject(NULL, _script_byte);
+				dumper->WriteObject(NULL, _script_byte);
 			}
 			const SQChar *res;
 			sq_getstring(vm, index, &res);
@@ -376,8 +376,8 @@ static const SaveLoad _script_byte[] = {
 			}
 			if (!test) {
 				_script_sl_byte = (byte)len;
-				SlObject(NULL, _script_byte);
-				SlArray(const_cast<char *>(buf), len, SLE_CHAR);
+				dumper->WriteObject(NULL, _script_byte);
+				dumper->WriteArray(const_cast<char *>(buf), len, SLE_CHAR);
 			}
 			return true;
 		}
@@ -385,12 +385,12 @@ static const SaveLoad _script_byte[] = {
 		case OT_ARRAY: {
 			if (!test) {
 				_script_sl_byte = SQSL_ARRAY;
-				SlObject(NULL, _script_byte);
+				dumper->WriteObject(NULL, _script_byte);
 			}
 			sq_pushnull(vm);
 			while (SQ_SUCCEEDED(sq_next(vm, index - 1))) {
 				/* Store the value */
-				bool res = SaveObject(vm, -1, max_depth - 1, test);
+				bool res = SaveObject(dumper, vm, -1, max_depth - 1, test);
 				sq_pop(vm, 2);
 				if (!res) {
 					sq_pop(vm, 1);
@@ -400,7 +400,7 @@ static const SaveLoad _script_byte[] = {
 			sq_pop(vm, 1);
 			if (!test) {
 				_script_sl_byte = SQSL_ARRAY_TABLE_END;
-				SlObject(NULL, _script_byte);
+				dumper->WriteObject(NULL, _script_byte);
 			}
 			return true;
 		}
@@ -408,12 +408,12 @@ static const SaveLoad _script_byte[] = {
 		case OT_TABLE: {
 			if (!test) {
 				_script_sl_byte = SQSL_TABLE;
-				SlObject(NULL, _script_byte);
+				dumper->WriteObject(NULL, _script_byte);
 			}
 			sq_pushnull(vm);
 			while (SQ_SUCCEEDED(sq_next(vm, index - 1))) {
 				/* Store the key + value */
-				bool res = SaveObject(vm, -2, max_depth - 1, test) && SaveObject(vm, -1, max_depth - 1, test);
+				bool res = SaveObject(dumper, vm, -2, max_depth - 1, test) && SaveObject(dumper, vm, -1, max_depth - 1, test);
 				sq_pop(vm, 2);
 				if (!res) {
 					sq_pop(vm, 1);
@@ -423,7 +423,7 @@ static const SaveLoad _script_byte[] = {
 			sq_pop(vm, 1);
 			if (!test) {
 				_script_sl_byte = SQSL_ARRAY_TABLE_END;
-				SlObject(NULL, _script_byte);
+				dumper->WriteObject(NULL, _script_byte);
 			}
 			return true;
 		}
@@ -431,13 +431,13 @@ static const SaveLoad _script_byte[] = {
 		case OT_BOOL: {
 			if (!test) {
 				_script_sl_byte = SQSL_BOOL;
-				SlObject(NULL, _script_byte);
+				dumper->WriteObject(NULL, _script_byte);
 			}
 			SQBool res;
 			sq_getbool(vm, index, &res);
 			if (!test) {
 				_script_sl_byte = res ? 1 : 0;
-				SlObject(NULL, _script_byte);
+				dumper->WriteObject(NULL, _script_byte);
 			}
 			return true;
 		}
@@ -445,7 +445,7 @@ static const SaveLoad _script_byte[] = {
 		case OT_NULL: {
 			if (!test) {
 				_script_sl_byte = SQSL_NULL;
-				SlObject(NULL, _script_byte);
+				dumper->WriteObject(NULL, _script_byte);
 			}
 			return true;
 		}
@@ -456,30 +456,30 @@ static const SaveLoad _script_byte[] = {
 	}
 }
 
-/* static */ void ScriptInstance::SaveEmpty()
+/* static */ void ScriptInstance::SaveEmpty(SaveDumper *dumper)
 {
 	_script_sl_byte = 0;
-	SlObject(NULL, _script_byte);
+	dumper->WriteObject(NULL, _script_byte);
 }
 
-void ScriptInstance::Save()
+void ScriptInstance::Save(SaveDumper *dumper)
 {
 	ScriptObject::ActiveInstance active(this);
 
 	/* Don't save data if the script didn't start yet or if it crashed. */
 	if (this->engine == NULL || this->engine->HasScriptCrashed()) {
-		SaveEmpty();
+		SaveEmpty(dumper);
 		return;
 	}
 
 	HSQUIRRELVM vm = this->engine->GetVM();
 	if (this->is_save_data_on_stack) {
 		_script_sl_byte = 1;
-		SlObject(NULL, _script_byte);
+		dumper->WriteObject(NULL, _script_byte);
 		/* Save the data that was just loaded. */
-		SaveObject(vm, -1, SQUIRREL_MAX_DEPTH, false);
+		SaveObject(dumper, vm, -1, SQUIRREL_MAX_DEPTH, false);
 	} else if (!this->is_started) {
-		SaveEmpty();
+		SaveEmpty(dumper);
 		return;
 	} else if (this->engine->MethodExists(*this->instance, "Save")) {
 		HSQOBJECT savedata;
@@ -490,7 +490,7 @@ void ScriptInstance::Save()
 			if (!this->engine->CallMethod(*this->instance, "Save", &savedata, MAX_SL_OPS)) {
 				/* The script crashed in the Save function. We can't kill
 				 * it here, but do so in the next script tick. */
-				SaveEmpty();
+				SaveEmpty(dumper);
 				this->engine->CrashOccurred();
 				return;
 			}
@@ -500,7 +500,7 @@ void ScriptInstance::Save()
 			this->is_dead = true;
 			this->engine->ThrowError(e.GetErrorMessage());
 			this->engine->ResumeError();
-			SaveEmpty();
+			SaveEmpty(dumper);
 			/* We can't kill the script here, so mark it as crashed (not dead) and
 			 * kill it in the next script tick. */
 			this->is_dead = false;
@@ -511,24 +511,24 @@ void ScriptInstance::Save()
 
 		if (!sq_istable(savedata)) {
 			ScriptLog::Error(this->engine->IsSuspended() ? "This script took too long to Save." : "Save function should return a table.");
-			SaveEmpty();
+			SaveEmpty(dumper);
 			this->engine->CrashOccurred();
 			return;
 		}
 		sq_pushobject(vm, savedata);
-		if (SaveObject(vm, -1, SQUIRREL_MAX_DEPTH, true)) {
+		if (SaveObject(dumper, vm, -1, SQUIRREL_MAX_DEPTH, true)) {
 			_script_sl_byte = 1;
-			SlObject(NULL, _script_byte);
-			SaveObject(vm, -1, SQUIRREL_MAX_DEPTH, false);
+			dumper->WriteObject(NULL, _script_byte);
+			SaveObject(dumper, vm, -1, SQUIRREL_MAX_DEPTH, false);
 			this->is_save_data_on_stack = true;
 		} else {
-			SaveEmpty();
+			SaveEmpty(dumper);
 			this->engine->CrashOccurred();
 		}
 	} else {
 		ScriptLog::Warning("Save function is not implemented");
 		_script_sl_byte = 0;
-		SlObject(NULL, _script_byte);
+		dumper->WriteObject(NULL, _script_byte);
 	}
 }
 

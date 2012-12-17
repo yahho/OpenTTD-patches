@@ -35,12 +35,6 @@ static const SaveLoad _game_script[] = {
 	     SLE_END()
 };
 
-static void SaveReal_GSDT(GameSaveload *gsl)
-{
-	SlObject(gsl, _game_script);
-	Game::Save();
-}
-
 static void Load_GSDT(LoadBuffer *reader)
 {
 	/* Free all current data */
@@ -111,7 +105,13 @@ static void Save_GSDT(SaveDumper *dumper)
 	gsl.settings[0] = '\0';
 	config->SettingsToString(gsl.settings, lengthof(gsl.settings));
 
-	SlArrayAutoElement(0, (AutolengthProc *)SaveReal_GSDT, &gsl);
+	SaveDumper temp(1024);
+
+	temp.WriteObject(&gsl, _game_script);
+	Game::Save(&temp);
+
+	dumper->WriteElementHeader(0, temp.GetSize());
+	temp.Dump(dumper);
 }
 
 extern GameStrings *_current_data;
