@@ -329,14 +329,6 @@ enum SQSaveLoadType {
 	SQSL_ARRAY_TABLE_END = 0xFF, ///< Marks the end of an array or table, no data follows.
 };
 
-static byte _script_sl_byte; ///< Used as source/target by the script saveload code to store/load a single byte.
-
-/** SaveLoad array that saves/loads exactly one byte. */
-static const SaveLoad _script_byte[] = {
-	SLEG_VAR(_script_sl_byte, SLE_UINT8),
-	SLE_END()
-};
-
 /* static */ bool ScriptInstance::SaveObject(SaveDumper *dumper, HSQUIRRELVM vm, SQInteger index, int max_depth, bool test)
 {
 	if (max_depth == 0) {
@@ -347,8 +339,7 @@ static const SaveLoad _script_byte[] = {
 	switch (sq_gettype(vm, index)) {
 		case OT_INTEGER: {
 			if (!test) {
-				_script_sl_byte = SQSL_INT;
-				dumper->WriteObject(NULL, _script_byte);
+				dumper->WriteByte(SQSL_INT);
 			}
 			SQInteger res;
 			sq_getinteger(vm, index, &res);
@@ -361,8 +352,7 @@ static const SaveLoad _script_byte[] = {
 
 		case OT_STRING: {
 			if (!test) {
-				_script_sl_byte = SQSL_STRING;
-				dumper->WriteObject(NULL, _script_byte);
+				dumper->WriteByte(SQSL_STRING);
 			}
 			const SQChar *res;
 			sq_getstring(vm, index, &res);
@@ -375,8 +365,7 @@ static const SaveLoad _script_byte[] = {
 				return false;
 			}
 			if (!test) {
-				_script_sl_byte = (byte)len;
-				dumper->WriteObject(NULL, _script_byte);
+				dumper->WriteByte(len);
 				dumper->WriteArray(const_cast<char *>(buf), len, SLE_CHAR);
 			}
 			return true;
@@ -384,8 +373,7 @@ static const SaveLoad _script_byte[] = {
 
 		case OT_ARRAY: {
 			if (!test) {
-				_script_sl_byte = SQSL_ARRAY;
-				dumper->WriteObject(NULL, _script_byte);
+				dumper->WriteByte(SQSL_ARRAY);
 			}
 			sq_pushnull(vm);
 			while (SQ_SUCCEEDED(sq_next(vm, index - 1))) {
@@ -399,16 +387,14 @@ static const SaveLoad _script_byte[] = {
 			}
 			sq_pop(vm, 1);
 			if (!test) {
-				_script_sl_byte = SQSL_ARRAY_TABLE_END;
-				dumper->WriteObject(NULL, _script_byte);
+				dumper->WriteByte(SQSL_ARRAY_TABLE_END);
 			}
 			return true;
 		}
 
 		case OT_TABLE: {
 			if (!test) {
-				_script_sl_byte = SQSL_TABLE;
-				dumper->WriteObject(NULL, _script_byte);
+				dumper->WriteByte(SQSL_TABLE);
 			}
 			sq_pushnull(vm);
 			while (SQ_SUCCEEDED(sq_next(vm, index - 1))) {
@@ -422,30 +408,26 @@ static const SaveLoad _script_byte[] = {
 			}
 			sq_pop(vm, 1);
 			if (!test) {
-				_script_sl_byte = SQSL_ARRAY_TABLE_END;
-				dumper->WriteObject(NULL, _script_byte);
+				dumper->WriteByte(SQSL_ARRAY_TABLE_END);
 			}
 			return true;
 		}
 
 		case OT_BOOL: {
 			if (!test) {
-				_script_sl_byte = SQSL_BOOL;
-				dumper->WriteObject(NULL, _script_byte);
+				dumper->WriteByte(SQSL_BOOL);
 			}
 			SQBool res;
 			sq_getbool(vm, index, &res);
 			if (!test) {
-				_script_sl_byte = res ? 1 : 0;
-				dumper->WriteObject(NULL, _script_byte);
+				dumper->WriteByte(res ? 1 : 0);
 			}
 			return true;
 		}
 
 		case OT_NULL: {
 			if (!test) {
-				_script_sl_byte = SQSL_NULL;
-				dumper->WriteObject(NULL, _script_byte);
+				dumper->WriteByte(SQSL_NULL);
 			}
 			return true;
 		}
@@ -458,8 +440,7 @@ static const SaveLoad _script_byte[] = {
 
 /* static */ void ScriptInstance::SaveEmpty(SaveDumper *dumper)
 {
-	_script_sl_byte = 0;
-	dumper->WriteObject(NULL, _script_byte);
+	dumper->WriteByte(0);
 }
 
 void ScriptInstance::Save(SaveDumper *dumper)
@@ -474,8 +455,7 @@ void ScriptInstance::Save(SaveDumper *dumper)
 
 	HSQUIRRELVM vm = this->engine->GetVM();
 	if (this->is_save_data_on_stack) {
-		_script_sl_byte = 1;
-		dumper->WriteObject(NULL, _script_byte);
+		dumper->WriteByte(1);
 		/* Save the data that was just loaded. */
 		SaveObject(dumper, vm, -1, SQUIRREL_MAX_DEPTH, false);
 	} else if (!this->is_started) {
@@ -517,8 +497,7 @@ void ScriptInstance::Save(SaveDumper *dumper)
 		}
 		sq_pushobject(vm, savedata);
 		if (SaveObject(dumper, vm, -1, SQUIRREL_MAX_DEPTH, true)) {
-			_script_sl_byte = 1;
-			dumper->WriteObject(NULL, _script_byte);
+			dumper->WriteByte(1);
 			SaveObject(dumper, vm, -1, SQUIRREL_MAX_DEPTH, false);
 			this->is_save_data_on_stack = true;
 		} else {
@@ -527,8 +506,7 @@ void ScriptInstance::Save(SaveDumper *dumper)
 		}
 	} else {
 		ScriptLog::Warning("Save function is not implemented");
-		_script_sl_byte = 0;
-		dumper->WriteObject(NULL, _script_byte);
+		dumper->WriteByte(0);
 	}
 }
 
@@ -553,8 +531,7 @@ bool ScriptInstance::IsPaused()
 
 /* static */ bool ScriptInstance::LoadObjects(LoadBuffer *reader, HSQUIRRELVM vm)
 {
-	reader->ReadObject(NULL, _script_byte);
-	switch (_script_sl_byte) {
+	switch (reader->ReadByte()) {
 		case SQSL_INT: {
 			int value;
 			reader->ReadArray(&value, 1, SLE_INT32);
@@ -563,9 +540,9 @@ bool ScriptInstance::IsPaused()
 		}
 
 		case SQSL_STRING: {
-			reader->ReadObject(NULL, _script_byte);
+			byte len = reader->ReadByte();
 			static char buf[256];
-			reader->ReadArray(buf, _script_sl_byte, SLE_CHAR);
+			reader->ReadArray(buf, len, SLE_CHAR);
 			if (vm != NULL) sq_pushstring(vm, OTTD2SQ(buf), -1);
 			return true;
 		}
@@ -590,8 +567,8 @@ bool ScriptInstance::IsPaused()
 		}
 
 		case SQSL_BOOL: {
-			reader->ReadObject(NULL, _script_byte);
-			if (vm != NULL) sq_pushinteger(vm, (SQBool)(_script_sl_byte != 0));
+			byte value = reader->ReadByte();
+			if (vm != NULL) sq_pushinteger(vm, (SQBool)(value != 0));
 			return true;
 		}
 
@@ -610,9 +587,8 @@ bool ScriptInstance::IsPaused()
 
 /* static */ void ScriptInstance::LoadEmpty(LoadBuffer *reader)
 {
-	reader->ReadObject(NULL, _script_byte);
 	/* Check if there was anything saved at all. */
-	if (_script_sl_byte == 0) return;
+	if (reader->ReadByte() == 0) return;
 
 	LoadObjects(reader, NULL);
 }
@@ -627,9 +603,8 @@ void ScriptInstance::Load(LoadBuffer *reader, int version)
 	}
 	HSQUIRRELVM vm = this->engine->GetVM();
 
-	reader->ReadObject(NULL, _script_byte);
 	/* Check if there was anything saved at all. */
-	if (_script_sl_byte == 0) return;
+	if (reader->ReadByte() == 0) return;
 
 	sq_pushinteger(vm, version);
 	LoadObjects(reader, vm);
