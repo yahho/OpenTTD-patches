@@ -18,6 +18,7 @@
 #include "../command_type.h"
 #include "../company_type.h"
 #include "../fileio_type.h"
+#include "../saveload/saveload_buffer.h"
 
 static const uint SQUIRREL_MAX_DEPTH = 25; ///< The maximum recursive depth for items stored in the savegame.
 
@@ -139,15 +140,17 @@ public:
 
 	/**
 	 * Load data from a savegame and store it on the stack.
+	 * @param reader The buffer to load the data from
 	 * @param version The version of the script when saving, or -1 if this was
 	 *  not the original script saving the game.
 	 */
-	void Load(int version);
+	void Load(LoadBuffer *reader, int version);
 
 	/**
 	 * Load and discard data from a savegame.
+	 * @param reader The buffer to load the data from
 	 */
-	static void LoadEmpty();
+	static void LoadEmpty(LoadBuffer *reader);
 
 	/**
 	 * Suspends the script for the current tick and then pause the execution
@@ -262,9 +265,10 @@ private:
 
 	/**
 	 * Load all objects from a savegame.
+	 * @param reader The buffer to load the data from
 	 * @return True if the loading was successful.
 	 */
-	static bool LoadObjects(HSQUIRRELVM vm);
+	static bool LoadObjects(LoadBuffer *reader, HSQUIRRELVM vm);
 };
 
 #endif /* SCRIPT_INSTANCE_HPP */

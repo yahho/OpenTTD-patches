@@ -551,28 +551,28 @@ bool ScriptInstance::IsPaused()
 	return this->is_paused;
 }
 
-/* static */ bool ScriptInstance::LoadObjects(HSQUIRRELVM vm)
+/* static */ bool ScriptInstance::LoadObjects(LoadBuffer *reader, HSQUIRRELVM vm)
 {
-	SlObject(NULL, _script_byte);
+	reader->ReadObject(NULL, _script_byte);
 	switch (_script_sl_byte) {
 		case SQSL_INT: {
 			int value;
-			SlArray(&value, 1, SLE_INT32);
+			reader->ReadArray(&value, 1, SLE_INT32);
 			if (vm != NULL) sq_pushinteger(vm, (SQInteger)value);
 			return true;
 		}
 
 		case SQSL_STRING: {
-			SlObject(NULL, _script_byte);
+			reader->ReadObject(NULL, _script_byte);
 			static char buf[256];
-			SlArray(buf, _script_sl_byte, SLE_CHAR);
+			reader->ReadArray(buf, _script_sl_byte, SLE_CHAR);
 			if (vm != NULL) sq_pushstring(vm, OTTD2SQ(buf), -1);
 			return true;
 		}
 
 		case SQSL_ARRAY: {
 			if (vm != NULL) sq_newarray(vm, 0);
-			while (LoadObjects(vm)) {
+			while (LoadObjects(reader, vm)) {
 				if (vm != NULL) sq_arrayappend(vm, -2);
 				/* The value is popped from the stack by squirrel. */
 			}
@@ -581,8 +581,8 @@ bool ScriptInstance::IsPaused()
 
 		case SQSL_TABLE: {
 			if (vm != NULL) sq_newtable(vm);
-			while (LoadObjects(vm)) {
-				LoadObjects(vm);
+			while (LoadObjects(reader, vm)) {
+				LoadObjects(reader, vm);
 				if (vm != NULL) sq_rawset(vm, -3);
 				/* The key (-2) and value (-1) are popped from the stack by squirrel. */
 			}
@@ -590,7 +590,7 @@ bool ScriptInstance::IsPaused()
 		}
 
 		case SQSL_BOOL: {
-			SlObject(NULL, _script_byte);
+			reader->ReadObject(NULL, _script_byte);
 			if (vm != NULL) sq_pushinteger(vm, (SQBool)(_script_sl_byte != 0));
 			return true;
 		}
@@ -608,31 +608,31 @@ bool ScriptInstance::IsPaused()
 	}
 }
 
-/* static */ void ScriptInstance::LoadEmpty()
+/* static */ void ScriptInstance::LoadEmpty(LoadBuffer *reader)
 {
-	SlObject(NULL, _script_byte);
+	reader->ReadObject(NULL, _script_byte);
 	/* Check if there was anything saved at all. */
 	if (_script_sl_byte == 0) return;
 
-	LoadObjects(NULL);
+	LoadObjects(reader, NULL);
 }
 
-void ScriptInstance::Load(int version)
+void ScriptInstance::Load(LoadBuffer *reader, int version)
 {
 	ScriptObject::ActiveInstance active(this);
 
 	if (this->engine == NULL || version == -1) {
-		LoadEmpty();
+		LoadEmpty(reader);
 		return;
 	}
 	HSQUIRRELVM vm = this->engine->GetVM();
 
-	SlObject(NULL, _script_byte);
+	reader->ReadObject(NULL, _script_byte);
 	/* Check if there was anything saved at all. */
 	if (_script_sl_byte == 0) return;
 
 	sq_pushinteger(vm, version);
-	LoadObjects(vm);
+	LoadObjects(reader, vm);
 	this->is_save_data_on_stack = true;
 }
 

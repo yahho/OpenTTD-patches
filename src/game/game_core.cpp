@@ -204,15 +204,15 @@
 	}
 }
 
-/* static */ void Game::Load(int version)
+/* static */ void Game::Load(LoadBuffer *reader, int version)
 {
 	if (Game::instance != NULL && (!_networking || _network_server)) {
 		Backup<CompanyByte> cur_company(_current_company, OWNER_DEITY, FILE_LINE);
-		Game::instance->Load(version);
+		Game::instance->Load(reader, version);
 		cur_company.Restore();
 	} else {
 		/* Read, but ignore, the load data */
-		GameInstance::LoadEmpty();
+		GameInstance::LoadEmpty(reader);
 	}
 }
 

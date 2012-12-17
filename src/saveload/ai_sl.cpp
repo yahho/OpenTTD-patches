@@ -59,7 +59,7 @@ static void Load_AIPL(LoadBuffer *reader)
 		reader->ReadObject(&aisl, _ai_company);
 
 		if (_networking && !_network_server) {
-			if (Company::IsValidAiID(aisl.id)) AIInstance::LoadEmpty();
+			if (Company::IsValidAiID(aisl.id)) AIInstance::LoadEmpty(reader);
 			continue;
 		}
 
@@ -96,7 +96,7 @@ static void Load_AIPL(LoadBuffer *reader)
 		/* Start the AI directly if it was active in the savegame */
 		if (Company::IsValidAiID(aisl.id)) {
 			AI::StartNew(aisl.id, false);
-			AI::Load(aisl.id, aisl.version);
+			AI::Load(reader, aisl.id, aisl.version);
 		}
 	}
 }

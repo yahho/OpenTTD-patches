@@ -286,18 +286,18 @@
 	}
 }
 
-/* static */ void AI::Load(CompanyID company, int version)
+/* static */ void AI::Load(LoadBuffer *reader, CompanyID company, int version)
 {
 	if (!_networking || _network_server) {
 		Company *c = Company::GetIfValid(company);
 		assert(c != NULL && c->ai_instance != NULL);
 
 		Backup<CompanyByte> cur_company(_current_company, company, FILE_LINE);
-		c->ai_instance->Load(version);
+		c->ai_instance->Load(reader, version);
 		cur_company.Restore();
 	} else {
 		/* Read, but ignore, the load data */
-		AIInstance::LoadEmpty();
+		AIInstance::LoadEmpty(reader);
 	}
 }
 

@@ -16,6 +16,7 @@
 #include "../core/string_compare_type.hpp"
 #include "ai_scanner.hpp"
 #include <map>
+#include "../saveload/saveload_buffer.h"
 
 /** A list that maps AI names to their AIInfo object. */
 typedef std::map<const char *, class ScriptInfo *, StringCompare> ScriptInfoList;
@@ -133,7 +134,7 @@ public:
 	/**
 	 * Load data for an AI from a savegame.
 	 */
-	static void Load(CompanyID company, int version);
+	static void Load(LoadBuffer *reader, CompanyID company, int version);
 
 	/**
 	 * Get the number of days before the next AI should start.

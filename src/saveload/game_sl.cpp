@@ -53,7 +53,7 @@ static void Load_GSDT(LoadBuffer *reader)
 	reader->ReadObject(&gsl, _game_script);
 
 	if (_networking && !_network_server) {
-		GameInstance::LoadEmpty();
+		GameInstance::LoadEmpty(reader);
 		if (reader->IterateChunk() != -1) SlErrorCorrupt("Too many GameScript configs");
 		return;
 	}
@@ -88,7 +88,7 @@ static void Load_GSDT(LoadBuffer *reader)
 
 	/* Start the GameScript directly if it was active in the savegame */
 	Game::StartNew();
-	Game::Load(gsl.version);
+	Game::Load(reader, gsl.version);
 
 	if (reader->IterateChunk() != -1) SlErrorCorrupt("Too many GameScript configs");
 }
