@@ -329,7 +329,7 @@ enum SQSaveLoadType {
 	SQSL_ARRAY_TABLE_END = 0xFF, ///< Marks the end of an array or table, no data follows.
 };
 
-/* static */ bool ScriptInstance::SaveObject(SaveDumper *dumper, HSQUIRRELVM vm, SQInteger index, int max_depth, bool test)
+/* static */ bool ScriptInstance::SaveObject(SaveDumper *dumper, HSQUIRRELVM vm, SQInteger index, int max_depth)
 {
 	if (max_depth == 0) {
 		ScriptLog::Error("Savedata can only be nested to 25 deep. No data saved."); // SQUIRREL_MAX_DEPTH = 25
@@ -340,7 +340,7 @@ enum SQSaveLoadType {
 		case OT_INTEGER: {
 			SQInteger res;
 			sq_getinteger(vm, index, &res);
-			if (!test) {
+			if (dumper != NULL) {
 				dumper->WriteByte(SQSL_INT);
 				int value = (int)res;
 				dumper->WriteArray(&value, 1, SLE_INT32);
@@ -359,7 +359,7 @@ enum SQSaveLoadType {
 				ScriptLog::Error("Maximum string length is 254 chars. No data saved.");
 				return false;
 			}
-			if (!test) {
+			if (dumper != NULL) {
 				dumper->WriteByte(SQSL_STRING);
 				dumper->WriteByte(len);
 				dumper->WriteArray(const_cast<char *>(buf), len, SLE_CHAR);
@@ -368,13 +368,13 @@ enum SQSaveLoadType {
 		}
 
 		case OT_ARRAY: {
-			if (!test) {
+			if (dumper != NULL) {
 				dumper->WriteByte(SQSL_ARRAY);
 			}
 			sq_pushnull(vm);
 			while (SQ_SUCCEEDED(sq_next(vm, index - 1))) {
 				/* Store the value */
-				bool res = SaveObject(dumper, vm, -1, max_depth - 1, test);
+				bool res = SaveObject(dumper, vm, -1, max_depth - 1);
 				sq_pop(vm, 2);
 				if (!res) {
 					sq_pop(vm, 1);
@@ -382,20 +382,20 @@ enum SQSaveLoadType {
 				}
 			}
 			sq_pop(vm, 1);
-			if (!test) {
+			if (dumper != NULL) {
 				dumper->WriteByte(SQSL_ARRAY_TABLE_END);
 			}
 			return true;
 		}
 
 		case OT_TABLE: {
-			if (!test) {
+			if (dumper != NULL) {
 				dumper->WriteByte(SQSL_TABLE);
 			}
 			sq_pushnull(vm);
 			while (SQ_SUCCEEDED(sq_next(vm, index - 1))) {
 				/* Store the key + value */
-				bool res = SaveObject(dumper, vm, -2, max_depth - 1, test) && SaveObject(dumper, vm, -1, max_depth - 1, test);
+				bool res = SaveObject(dumper, vm, -2, max_depth - 1) && SaveObject(dumper, vm, -1, max_depth - 1);
 				sq_pop(vm, 2);
 				if (!res) {
 					sq_pop(vm, 1);
@@ -403,7 +403,7 @@ enum SQSaveLoadType {
 				}
 			}
 			sq_pop(vm, 1);
-			if (!test) {
+			if (dumper != NULL) {
 				dumper->WriteByte(SQSL_ARRAY_TABLE_END);
 			}
 			return true;
@@ -412,7 +412,7 @@ enum SQSaveLoadType {
 		case OT_BOOL: {
 			SQBool res;
 			sq_getbool(vm, index, &res);
-			if (!test) {
+			if (dumper != NULL) {
 				dumper->WriteByte(SQSL_BOOL);
 				dumper->WriteByte(res ? 1 : 0);
 			}
@@ -420,7 +420,7 @@ enum SQSaveLoadType {
 		}
 
 		case OT_NULL: {
-			if (!test) {
+			if (dumper != NULL) {
 				dumper->WriteByte(SQSL_NULL);
 			}
 			return true;
@@ -451,7 +451,7 @@ void ScriptInstance::Save(SaveDumper *dumper)
 	if (this->is_save_data_on_stack) {
 		dumper->WriteByte(1);
 		/* Save the data that was just loaded. */
-		SaveObject(dumper, vm, -1, SQUIRREL_MAX_DEPTH, false);
+		SaveObject(dumper, vm, -1, SQUIRREL_MAX_DEPTH);
 	} else if (!this->is_started) {
 		SaveEmpty(dumper);
 		return;
@@ -490,9 +490,9 @@ void ScriptInstance::Save(SaveDumper *dumper)
 			return;
 		}
 		sq_pushobject(vm, savedata);
-		if (SaveObject(dumper, vm, -1, SQUIRREL_MAX_DEPTH, true)) {
+		if (SaveObject(NULL, vm, -1, SQUIRREL_MAX_DEPTH)) {
 			dumper->WriteByte(1);
-			SaveObject(dumper, vm, -1, SQUIRREL_MAX_DEPTH, false);
+			SaveObject(dumper, vm, -1, SQUIRREL_MAX_DEPTH);
 			this->is_save_data_on_stack = true;
 		} else {
 			SaveEmpty(dumper);
