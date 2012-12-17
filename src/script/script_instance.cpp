@@ -338,12 +338,10 @@ enum SQSaveLoadType {
 
 	switch (sq_gettype(vm, index)) {
 		case OT_INTEGER: {
-			if (!test) {
-				dumper->WriteByte(SQSL_INT);
-			}
 			SQInteger res;
 			sq_getinteger(vm, index, &res);
 			if (!test) {
+				dumper->WriteByte(SQSL_INT);
 				int value = (int)res;
 				dumper->WriteArray(&value, 1, SLE_INT32);
 			}
@@ -351,9 +349,6 @@ enum SQSaveLoadType {
 		}
 
 		case OT_STRING: {
-			if (!test) {
-				dumper->WriteByte(SQSL_STRING);
-			}
 			const SQChar *res;
 			sq_getstring(vm, index, &res);
 			/* @bug if a string longer than 512 characters is given to SQ2OTTD, the
@@ -365,6 +360,7 @@ enum SQSaveLoadType {
 				return false;
 			}
 			if (!test) {
+				dumper->WriteByte(SQSL_STRING);
 				dumper->WriteByte(len);
 				dumper->WriteArray(const_cast<char *>(buf), len, SLE_CHAR);
 			}
@@ -414,12 +410,10 @@ enum SQSaveLoadType {
 		}
 
 		case OT_BOOL: {
-			if (!test) {
-				dumper->WriteByte(SQSL_BOOL);
-			}
 			SQBool res;
 			sq_getbool(vm, index, &res);
 			if (!test) {
+				dumper->WriteByte(SQSL_BOOL);
 				dumper->WriteByte(res ? 1 : 0);
 			}
 			return true;
