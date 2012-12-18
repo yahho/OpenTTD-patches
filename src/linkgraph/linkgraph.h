@@ -22,6 +22,7 @@
 
 struct SaveLoad;
 struct LoadBuffer;
+struct SaveDumper;
 class LinkGraph;
 
 /**
@@ -505,7 +506,7 @@ protected:
 	friend class LinkGraph::Node;
 	friend const SaveLoad *GetLinkGraphDesc();
 	friend const SaveLoad *GetLinkGraphJobDesc();
-	friend void Save_LinkGraph(LinkGraph &lg);
+	friend void Save_LinkGraph(SaveDumper *dumper, const LinkGraph &lg);
 	friend void Load_LinkGraph(LoadBuffer *reader, LinkGraph &lg);
 
 	CargoID cargo;         ///< Cargo of this component's link graph.

@@ -130,39 +130,16 @@ static const SaveLoad _edge_desc[] = {
  * Save a link graph.
  * @param comp Link graph to be saved.
  */
-void Save_LinkGraph(LinkGraph &lg)
+void Save_LinkGraph(SaveDumper *dumper, const LinkGraph &lg)
 {
 	uint size = lg.Size();
 	for (NodeID from = 0; from < size; ++from) {
-		Node *node = &lg.nodes[from];
-		SlObject(node, _node_desc);
+		const Node *node = &lg.nodes[from];
+		dumper->WriteObject(node, _node_desc);
 		for (NodeID to = 0; to < size; ++to) {
-			SlObject(&lg.edges[from][to], _edge_desc);
+			dumper->WriteObject(&lg.edges[from][to], _edge_desc);
 		}
 	}
-}
-
-/**
- * Save a link graph job.
- * @param lgj LinkGraphJob to be saved.
- */
-static void DoSave_LGRJ(LinkGraphJob *lgj)
-{
-	SlObject(lgj, GetLinkGraphJobDesc());
-	_num_nodes = lgj->Size();
-	SlObject(const_cast<LinkGraph *>(&lgj->Graph()), GetLinkGraphDesc());
-	Save_LinkGraph(const_cast<LinkGraph &>(lgj->Graph()));
-}
-
-/**
- * Save a link graph.
- * @param lg LinkGraph to be saved.
- */
-static void DoSave_LGRP(LinkGraph *lg)
-{
-	_num_nodes = lg->Size();
-	SlObject(lg, GetLinkGraphDesc());
-	Save_LinkGraph(*lg);
 }
 
 /**
@@ -244,7 +221,14 @@ static void Save_LGRP(SaveDumper *dumper)
 {
 	LinkGraph *lg;
 	FOR_ALL_LINK_GRAPHS(lg) {
-		SlArrayAutoElement(lg->index, (AutolengthProc*)DoSave_LGRP, lg);
+		SaveDumper temp(1024);
+
+		_num_nodes = lg->Size();
+		temp.WriteObject(lg, GetLinkGraphDesc());
+		Save_LinkGraph(&temp, *lg);
+
+		dumper->WriteElementHeader(lg->index, temp.GetSize());
+		temp.Dump(dumper);
 	}
 }
 
@@ -255,7 +239,15 @@ static void Save_LGRJ(SaveDumper *dumper)
 {
 	LinkGraphJob *lgj;
 	FOR_ALL_LINK_GRAPH_JOBS(lgj) {
-		SlArrayAutoElement(lgj->index, (AutolengthProc*)DoSave_LGRJ, lgj);
+		SaveDumper temp(1024);
+
+		temp.WriteObject(lgj, GetLinkGraphJobDesc());
+		_num_nodes = lgj->Size();
+		temp.WriteObject(&lgj->Graph(), GetLinkGraphDesc());
+		Save_LinkGraph(&temp, lgj->Graph());
+
+		dumper->WriteElementHeader(lgj->index, temp.GetSize());
+		temp.Dump(dumper);
 	}
 }
 

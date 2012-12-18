@@ -49,11 +49,8 @@ void DoExitSave();
 bool SaveWithFilter(struct SaveFilter *writer, bool threaded);
 bool LoadWithFilter(struct LoadFilter *reader);
 
-typedef void AutolengthProc(void *arg);
-
 int SlIterateArray();
 
-void SlArrayAutoElement(uint index, AutolengthProc *proc, void *arg);
 size_t SlGetFieldLength();
 void SlWriteLength(size_t length);
 size_t SlCalcObjMemberLength(const void *object, const SaveLoad *sld);

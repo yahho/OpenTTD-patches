@@ -238,30 +238,30 @@ const SaveLoad *GetTileMatrixDesc()
 	return _tilematrix_desc;
 }
 
-static void RealSave_Town(Town *t)
-{
-	SlObject(t, _town_desc);
-
-	for (CargoID i = 0; i < NUM_CARGO; i++) {
-		SlObject(&t->supplied[i], _town_supplied_desc);
-	}
-	for (int i = TE_BEGIN; i < NUM_TE; i++) {
-		SlObject(&t->received[i], _town_received_desc);
-	}
-
-	SlObject(&t->cargo_accepted, GetTileMatrixDesc());
-	if (t->cargo_accepted.area.w != 0) {
-		uint arr_len = t->cargo_accepted.area.w / AcceptanceMatrix::GRID * t->cargo_accepted.area.h / AcceptanceMatrix::GRID;
-		SlArray(t->cargo_accepted.data, arr_len, SLE_UINT32);
-	}
-}
-
 static void Save_TOWN(SaveDumper *dumper)
 {
 	Town *t;
 
 	FOR_ALL_TOWNS(t) {
-		SlArrayAutoElement(t->index, (AutolengthProc*)RealSave_Town, t);
+		SaveDumper temp(1024);
+
+		temp.WriteObject(t, _town_desc);
+
+		for (CargoID i = 0; i < NUM_CARGO; i++) {
+			temp.WriteObject(&t->supplied[i], _town_supplied_desc);
+		}
+		for (int i = TE_BEGIN; i < NUM_TE; i++) {
+			temp.WriteObject(&t->received[i], _town_received_desc);
+		}
+
+		temp.WriteObject(&t->cargo_accepted, GetTileMatrixDesc());
+		if (t->cargo_accepted.area.w != 0) {
+			uint arr_len = t->cargo_accepted.area.w / AcceptanceMatrix::GRID * t->cargo_accepted.area.h / AcceptanceMatrix::GRID;
+			temp.WriteArray(t->cargo_accepted.data, arr_len, SLE_UINT32);
+		}
+
+		dumper->WriteElementHeader(t->index, temp.GetSize());
+		temp.Dump(dumper);
 	}
 }
 

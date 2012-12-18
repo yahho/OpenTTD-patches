@@ -450,50 +450,50 @@ static const SaveLoad _waypoint_desc[] = {
 	      SLE_END()
 };
 
-static void RealSave_STNN(BaseStation *bst)
-{
-	bool waypoint = (bst->facilities & FACIL_WAYPOINT) != 0;
-	SlObject(bst, waypoint ? _waypoint_desc : _station_desc);
-
-	if (!waypoint) {
-		Station *st = Station::From(bst);
-		for (CargoID i = 0; i < NUM_CARGO; i++) {
-			_num_dests = (uint32)st->goods[i].cargo.Packets()->MapSize();
-			_num_flows = 0;
-			for (FlowStatMap::const_iterator it(st->goods[i].flows.begin()); it != st->goods[i].flows.end(); ++it) {
-				_num_flows += (uint32)it->second.GetShares()->size();
-			}
-			SlObject(&st->goods[i], GetGoodsDesc());
-			for (FlowStatMap::const_iterator outer_it(st->goods[i].flows.begin()); outer_it != st->goods[i].flows.end(); ++outer_it) {
-				const FlowStat::SharesMap *shares = outer_it->second.GetShares();
-				uint32 sum_shares = 0;
-				FlowSaveLoad flow;
-				flow.source = outer_it->first;
-				for (FlowStat::SharesMap::const_iterator inner_it(shares->begin()); inner_it != shares->end(); ++inner_it) {
-					flow.via = inner_it->second;
-					flow.share = inner_it->first - sum_shares;
-					sum_shares = inner_it->first;
-					assert(flow.share > 0);
-					SlObject(&flow, _flow_desc);
-				}
-			}
-			for (StationCargoPacketMap::ConstMapIterator it(st->goods[i].cargo.Packets()->begin()); it != st->goods[i].cargo.Packets()->end(); ++it) {
-				SlObject(const_cast<StationCargoPacketMap::value_type *>(&(*it)), _cargo_list_desc);
-			}
-		}
-	}
-
-	for (uint i = 0; i < bst->num_specs; i++) {
-		SlObject(&bst->speclist[i], _station_speclist_desc);
-	}
-}
-
 static void Save_STNN(SaveDumper *dumper)
 {
-	BaseStation *st;
+	BaseStation *bst;
 	/* Write the stations */
-	FOR_ALL_BASE_STATIONS(st) {
-		SlArrayAutoElement(st->index, (AutolengthProc*)RealSave_STNN, st);
+	FOR_ALL_BASE_STATIONS(bst) {
+		SaveDumper temp(1024);
+
+		bool waypoint = (bst->facilities & FACIL_WAYPOINT) != 0;
+		temp.WriteObject(bst, waypoint ? _waypoint_desc : _station_desc);
+
+		if (!waypoint) {
+			Station *st = Station::From(bst);
+			for (CargoID i = 0; i < NUM_CARGO; i++) {
+				_num_dests = (uint32)st->goods[i].cargo.Packets()->MapSize();
+				_num_flows = 0;
+				for (FlowStatMap::const_iterator it(st->goods[i].flows.begin()); it != st->goods[i].flows.end(); ++it) {
+					_num_flows += (uint32)it->second.GetShares()->size();
+				}
+				temp.WriteObject(&st->goods[i], GetGoodsDesc());
+				for (FlowStatMap::const_iterator outer_it(st->goods[i].flows.begin()); outer_it != st->goods[i].flows.end(); ++outer_it) {
+					const FlowStat::SharesMap *shares = outer_it->second.GetShares();
+					uint32 sum_shares = 0;
+					FlowSaveLoad flow;
+					flow.source = outer_it->first;
+					for (FlowStat::SharesMap::const_iterator inner_it(shares->begin()); inner_it != shares->end(); ++inner_it) {
+						flow.via = inner_it->second;
+						flow.share = inner_it->first - sum_shares;
+						sum_shares = inner_it->first;
+						assert(flow.share > 0);
+						temp.WriteObject(&flow, _flow_desc);
+					}
+				}
+				for (StationCargoPacketMap::ConstMapIterator it(st->goods[i].cargo.Packets()->begin()); it != st->goods[i].cargo.Packets()->end(); ++it) {
+					temp.WriteObject(const_cast<StationCargoPacketMap::value_type *>(&(*it)), _cargo_list_desc);
+				}
+			}
+		}
+
+		for (uint i = 0; i < bst->num_specs; i++) {
+			temp.WriteObject(&bst->speclist[i], _station_speclist_desc);
+		}
+
+		dumper->WriteElementHeader(bst->index, temp.GetSize());
+		temp.Dump(dumper);
 	}
 }
 

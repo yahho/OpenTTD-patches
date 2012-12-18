@@ -463,33 +463,32 @@ static void Load_PLYR_common(LoadBuffer *reader, Company *c, CompanyProperties *
 	}
 }
 
-static void Save_PLYR_common(Company *c)
-{
-	int i;
-
-	SlObject((CompanyProperties*)c, _company_desc);
-	SlObject(c, _company_settings_desc);
-
-	/* Write economy */
-	SlObject(&c->cur_economy, _company_economy_desc);
-
-	/* Write old economy entries. */
-	assert(c->num_valid_stat_ent <= lengthof(c->old_economy));
-	for (i = 0; i < c->num_valid_stat_ent; i++) {
-		SlObject(&c->old_economy[i], _company_economy_desc);
-	}
-
-	/* Write each livery entry. */
-	for (i = 0; i < LS_END; i++) {
-		SlObject(&c->livery[i], _company_livery_desc);
-	}
-}
-
 static void Save_PLYR(SaveDumper *dumper)
 {
 	Company *c;
 	FOR_ALL_COMPANIES(c) {
-		SlArrayAutoElement(c->index, (AutolengthProc*)Save_PLYR_common, c);
+		SaveDumper temp(1024);
+		int i;
+
+		temp.WriteObject((CompanyProperties*)c, _company_desc);
+		temp.WriteObject(c, _company_settings_desc);
+
+		/* Write economy */
+		temp.WriteObject(&c->cur_economy, _company_economy_desc);
+
+		/* Write old economy entries. */
+		assert(c->num_valid_stat_ent <= lengthof(c->old_economy));
+		for (i = 0; i < c->num_valid_stat_ent; i++) {
+			temp.WriteObject(&c->old_economy[i], _company_economy_desc);
+		}
+
+		/* Write each livery entry. */
+		for (i = 0; i < LS_END; i++) {
+			temp.WriteObject(&c->livery[i], _company_livery_desc);
+		}
+
+		dumper->WriteElementHeader(c->index, temp.GetSize());
+		temp.Dump(dumper);
 	}
 }
 
