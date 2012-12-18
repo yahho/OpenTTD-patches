@@ -565,24 +565,9 @@ static void SlSaveLoadConv(void *ptr, VarType conv)
 }
 
 /**
- * Calculate the net length of a string. This is in almost all cases
- * just strlen(), but if the string is not properly terminated, we'll
- * resort to the maximum length of the buffer.
- * @param ptr pointer to the stringbuffer
- * @param length maximum length of the string (buffer). If -1 we don't care
- * about a maximum length, but take string length as it is.
- * @return return the net length of the string
- */
-static inline size_t SlCalcNetStringLen(const char *ptr, size_t length)
-{
-	if (ptr == NULL) return 0;
-	return min(strlen(ptr), length - 1);
-}
-
-/**
  * Calculate the gross length of the string that it
- * will occupy in the savegame. This includes the real length, returned
- * by SlCalcNetStringLen and the length that the index will occupy.
+ * will occupy in the savegame. This includes the real length
+ * and the length that the index will occupy.
  * @param ptr pointer to the stringbuffer
  * @param length maximum length of the string (buffer size, etc.)
  * @param conv type of data been used
@@ -595,13 +580,12 @@ static inline size_t SlCalcStringLen(const void *ptr, size_t length, StrType con
 
 	if (conv & SLS_POINTER) {
 		str = *(const char * const *)ptr;
-		len = SIZE_MAX;
+		len = (str != NULL) ? strlen(str) : 0;
 	} else {
 		str = (const char *)ptr;
-		len = length;
+		len = ttd_strnlen(str, length - 1);
 	}
 
-	len = SlCalcNetStringLen(str, len);
 	return len + GetGammaLength(len); // also include the length of the index
 }
 
