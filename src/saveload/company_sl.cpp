@@ -405,7 +405,7 @@ static const SaveLoad _company_livery_desc[] = {
 	SLE_END()
 };
 
-static void SaveLoad_PLYR_common(Company *c, CompanyProperties *cprops)
+static void Load_PLYR_common(Company *c, CompanyProperties *cprops)
 {
 	int i;
 
@@ -426,16 +426,16 @@ static void SaveLoad_PLYR_common(Company *c, CompanyProperties *cprops)
 		}
 	}
 
-	/* Write economy */
+	/* Read economy */
 	SlObject(&cprops->cur_economy, _company_economy_desc);
 
-	/* Write old economy entries. */
+	/* Read old economy entries. */
 	if (cprops->num_valid_stat_ent > lengthof(cprops->old_economy)) SlErrorCorrupt("Too many old economy entries");
 	for (i = 0; i < cprops->num_valid_stat_ent; i++) {
 		SlObject(&cprops->old_economy[i], _company_economy_desc);
 	}
 
-	/* Write each livery entry. */
+	/* Read each livery entry. */
 	int num_liveries = IsSavegameVersionBefore(63) ? LS_END - 4 : (IsSavegameVersionBefore(85) ? LS_END - 2: LS_END);
 	if (c != NULL) {
 		for (i = 0; i < num_liveries; i++) {
@@ -463,16 +463,33 @@ static void SaveLoad_PLYR_common(Company *c, CompanyProperties *cprops)
 	}
 }
 
-static void SaveLoad_PLYR(Company *c)
+static void Save_PLYR_common(Company *c)
 {
-	SaveLoad_PLYR_common(c, c);
+	int i;
+
+	SlObject((CompanyProperties*)c, _company_desc);
+	SlObject(c, _company_settings_desc);
+
+	/* Write economy */
+	SlObject(&c->cur_economy, _company_economy_desc);
+
+	/* Write old economy entries. */
+	assert(c->num_valid_stat_ent <= lengthof(c->old_economy));
+	for (i = 0; i < c->num_valid_stat_ent; i++) {
+		SlObject(&c->old_economy[i], _company_economy_desc);
+	}
+
+	/* Write each livery entry. */
+	for (i = 0; i < LS_END; i++) {
+		SlObject(&c->livery[i], _company_livery_desc);
+	}
 }
 
 static void Save_PLYR()
 {
 	Company *c;
 	FOR_ALL_COMPANIES(c) {
-		SlArrayAutoElement(c->index, (AutolengthProc*)SaveLoad_PLYR, c);
+		SlArrayAutoElement(c->index, (AutolengthProc*)Save_PLYR_common, c);
 	}
 }
 
@@ -481,7 +498,7 @@ static void Load_PLYR()
 	int index;
 	while ((index = SlIterateArray()) != -1) {
 		Company *c = new (index) Company();
-		SaveLoad_PLYR(c);
+		Load_PLYR_common(c, c);
 		_company_colours[index] = (Colours)c->colour;
 	}
 }
@@ -492,7 +509,7 @@ static void Check_PLYR()
 	while ((index = SlIterateArray()) != -1) {
 		CompanyProperties *cprops = new CompanyProperties();
 		memset(cprops, 0, sizeof(*cprops));
-		SaveLoad_PLYR_common(NULL, cprops);
+		Load_PLYR_common(NULL, cprops);
 
 		/* We do not load old custom names */
 		if (IsSavegameVersionBefore(84)) {

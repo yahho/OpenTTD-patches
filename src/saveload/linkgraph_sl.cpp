@@ -127,10 +127,10 @@ static const SaveLoad _edge_desc[] = {
 };
 
 /**
- * Save/load a link graph.
- * @param comp Link graph to be saved or loaded.
+ * Save a link graph.
+ * @param comp Link graph to be saved.
  */
-void SaveLoad_LinkGraph(LinkGraph &lg)
+void Save_LinkGraph(LinkGraph &lg)
 {
 	uint size = lg.Size();
 	for (NodeID from = 0; from < size; ++from) {
@@ -151,7 +151,7 @@ static void DoSave_LGRJ(LinkGraphJob *lgj)
 	SlObject(lgj, GetLinkGraphJobDesc());
 	_num_nodes = lgj->Size();
 	SlObject(const_cast<LinkGraph *>(&lgj->Graph()), GetLinkGraphDesc());
-	SaveLoad_LinkGraph(const_cast<LinkGraph &>(lgj->Graph()));
+	Save_LinkGraph(const_cast<LinkGraph &>(lgj->Graph()));
 }
 
 /**
@@ -162,7 +162,23 @@ static void DoSave_LGRP(LinkGraph *lg)
 {
 	_num_nodes = lg->Size();
 	SlObject(lg, GetLinkGraphDesc());
-	SaveLoad_LinkGraph(*lg);
+	Save_LinkGraph(*lg);
+}
+
+/**
+ * Load a link graph.
+ * @param comp Link graph to be loaded.
+ */
+void Load_LinkGraph(LinkGraph &lg)
+{
+	uint size = lg.Size();
+	for (NodeID from = 0; from < size; ++from) {
+		Node *node = &lg.nodes[from];
+		SlObject(node, _node_desc);
+		for (NodeID to = 0; to < size; ++to) {
+			SlObject(&lg.edges[from][to], _edge_desc);
+		}
+	}
 }
 
 /**
@@ -179,7 +195,7 @@ static void Load_LGRP()
 		LinkGraph *lg = new (index) LinkGraph();
 		SlObject(lg, GetLinkGraphDesc());
 		lg->Init(_num_nodes);
-		SaveLoad_LinkGraph(*lg);
+		Load_LinkGraph(*lg);
 	}
 }
 
@@ -199,7 +215,7 @@ static void Load_LGRJ()
 		LinkGraph &lg = const_cast<LinkGraph &>(lgj->Graph());
 		SlObject(&lg, GetLinkGraphDesc());
 		lg.Init(_num_nodes);
-		SaveLoad_LinkGraph(lg);
+		Load_LinkGraph(lg);
 	}
 }
 
