@@ -803,32 +803,28 @@ static inline bool SlSkipVariableOnLoad(const SaveLoad *sld)
  */
 size_t SlCalcObjLength(const void *object, const SaveLoad *sld)
 {
+	assert(_sl.action == SLA_SAVE);
+
 	size_t length = 0;
 
 	/* Need to determine the length and write a length tag. */
 	for (; sld->type != SL_END; sld++) {
-		length += SlCalcObjMemberLength(object, sld);
+		/* CONDITIONAL saveload types depend on the savegame version */
+		if (!SlIsObjectValidInSavegame(sld)) continue;
+
+		switch (sld->type) {
+			case SL_VAR: length += SlCalcConvFileLen(sld->conv); break;
+			case SL_REF: length += SlCalcRefLen(); break;
+			case SL_ARR: length += SlCalcArrayLen(sld->length, sld->conv); break;
+			case SL_STR: length += SlCalcStringLen(GetVariableAddress(sld, object), sld->length, sld->conv); break;
+			case SL_LST: length += SlCalcListLen(GetVariableAddress(sld, object)); break;
+			case SL_WRITEBYTE: length++; break; // a byte is logically of size 1
+			case SL_INCLUDE:   length += SlCalcObjLength(object, (SaveLoad*)sld->address); break;
+			default: NOT_REACHED();
+		}
 	}
+
 	return length;
-}
-
-size_t SlCalcObjMemberLength(const void *object, const SaveLoad *sld)
-{
-	assert(_sl.action == SLA_SAVE);
-
-	/* CONDITIONAL saveload types depend on the savegame version */
-	if (!SlIsObjectValidInSavegame(sld)) return 0;
-
-	switch (sld->type) {
-		case SL_VAR: return SlCalcConvFileLen(sld->conv);
-		case SL_REF: return SlCalcRefLen();
-		case SL_ARR: return SlCalcArrayLen(sld->length, sld->conv);
-		case SL_STR: return SlCalcStringLen(GetVariableAddress(sld, object), sld->length, sld->conv);
-		case SL_LST: return SlCalcListLen(GetVariableAddress(sld, object));
-		case SL_WRITEBYTE: return 1; // a byte is logically of size 1
-		case SL_INCLUDE: return SlCalcObjLength(object, (SaveLoad*)sld->address);
-		default: NOT_REACHED();
-	}
 }
 
 
