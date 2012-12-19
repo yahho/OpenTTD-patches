@@ -33,7 +33,7 @@ static void Load_PSAC(LoadBuffer *reader)
 }
 
 /** Save persistent storage data. */
-static void Save_PSAC()
+static void Save_PSAC(SaveDumper *dumper)
 {
 	PersistentStorage *ps;
 

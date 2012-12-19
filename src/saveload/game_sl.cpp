@@ -93,7 +93,7 @@ static void Load_GSDT(LoadBuffer *reader)
 	if (reader->IterateChunk() != -1) SlErrorCorrupt("Too many GameScript configs");
 }
 
-static void Save_GSDT()
+static void Save_GSDT(SaveDumper *dumper)
 {
 	GameConfig *config = GameConfig::GetConfig();
 	GameSaveload gsl;
@@ -175,7 +175,7 @@ static void Load_GSTR(LoadBuffer *reader)
 	ReconsiderGameScriptLanguage();
 }
 
-static void Save_GSTR()
+static void Save_GSTR(SaveDumper *dumper)
 {
 	if (_current_data == NULL) return;
 

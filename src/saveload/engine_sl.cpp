@@ -51,7 +51,7 @@ Engine *GetTempDataEngine(EngineID index)
 	return &_temp_engine[index];
 }
 
-static void Save_ENGN()
+static void Save_ENGN(SaveDumper *dumper)
 {
 	Engine *e;
 	FOR_ALL_ENGINES(e) {
@@ -135,7 +135,7 @@ static const SaveLoad _engine_id_mapping_desc[] = {
 	SLE_END()
 };
 
-static void Save_EIDS()
+static void Save_EIDS(SaveDumper *dumper)
 {
 	const EngineIDMapping *end = _engine_mngr.End();
 	uint index = 0;

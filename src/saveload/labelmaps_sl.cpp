@@ -92,7 +92,7 @@ static const SaveLoad _label_object_desc[] = {
 	SLE_END(),
 };
 
-static void Save_RAIL()
+static void Save_RAIL(SaveDumper *dumper)
 {
 	LabelObject lo;
 

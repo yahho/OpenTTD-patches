@@ -63,7 +63,7 @@ static const SaveLoad _industry_desc[] = {
 	SLE_END()
 };
 
-static void Save_INDY()
+static void Save_INDY(SaveDumper *dumper)
 {
 	Industry *ind;
 
@@ -73,14 +73,14 @@ static void Save_INDY()
 	}
 }
 
-static void Save_IIDS()
+static void Save_IIDS(SaveDumper *dumper)
 {
-	Save_NewGRFMapping(_industry_mngr);
+	Save_NewGRFMapping(dumper, _industry_mngr);
 }
 
-static void Save_TIDS()
+static void Save_TIDS(SaveDumper *dumper)
 {
-	Save_NewGRFMapping(_industile_mngr);
+	Save_NewGRFMapping(dumper, _industile_mngr);
 }
 
 static void Load_INDY(LoadBuffer *reader)
@@ -130,7 +130,7 @@ static const SaveLoad _industry_builder_desc[] = {
 };
 
 /** Save industry builder. */
-static void Save_IBLD()
+static void Save_IBLD(SaveDumper *dumper)
 {
 	SlRIFFObject(NULL, _industry_builder_desc);
 }
@@ -152,7 +152,7 @@ static const SaveLoad _industrytype_builder_desc[] = {
 };
 
 /** Save industry-type build data. */
-static void Save_ITBL()
+static void Save_ITBL(SaveDumper *dumper)
 {
 	for (int i = 0; i < NUM_INDUSTRYTYPES; i++) {
 		SlArrayObject(i, _industry_builder.builddata + i, _industrytype_builder_desc);

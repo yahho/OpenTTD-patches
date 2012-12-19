@@ -27,7 +27,7 @@ static const SaveLoad _newgrf_mapping_desc[] = {
  * Save a GRF ID + local id -> OpenTTD's id mapping.
  * @param mapping The mapping to save.
  */
-void Save_NewGRFMapping(const OverrideManagerBase &mapping)
+void Save_NewGRFMapping(SaveDumper *dumper, const OverrideManagerBase &mapping)
 {
 	for (uint i = 0; i < mapping.GetMaxMapping(); i++) {
 		SlArrayObject(i, &mapping.mapping_ID[i], _newgrf_mapping_desc);
@@ -66,7 +66,7 @@ static const SaveLoad _grfconfig_desc[] = {
 };
 
 
-static void Save_NGRF()
+static void Save_NGRF(SaveDumper *dumper)
 {
 	int index = 0;
 

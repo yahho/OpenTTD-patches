@@ -2104,7 +2104,7 @@ static void LoadSettings(LoadBuffer *reader, const SettingDesc *osd, void *objec
  * @param object can be either NULL in which case we load global variables or
  * a pointer to a struct which is getting saved
  */
-static void SaveSettings(const SettingDesc *sd, void *object)
+static void SaveSettings(SaveDumper *dumper, const SettingDesc *sd, void *object)
 {
 	/* We need to write the CH_RIFF header, but unfortunately can't call
 	 * SlCalcLength() because we have a different format. So do this manually */
@@ -2143,9 +2143,9 @@ static void Check_PATS(LoadBuffer *reader)
 	LoadSettings(reader, _settings, &_load_check_data.settings);
 }
 
-static void Save_PATS()
+static void Save_PATS(SaveDumper *dumper)
 {
-	SaveSettings(_settings, &_settings_game);
+	SaveSettings(dumper, _settings, &_settings_game);
 }
 
 void CheckConfig()

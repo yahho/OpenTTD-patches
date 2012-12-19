@@ -27,7 +27,7 @@ static const SaveLoad _subsidies_desc[] = {
 	SLE_END()
 };
 
-static void Save_SUBS()
+static void Save_SUBS(SaveDumper *dumper)
 {
 	Subsidy *s;
 	FOR_ALL_SUBSIDIES(s) {

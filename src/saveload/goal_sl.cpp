@@ -24,7 +24,7 @@ static const SaveLoad _goals_desc[] = {
 	    SLE_END()
 };
 
-static void Save_GOAL()
+static void Save_GOAL(SaveDumper *dumper)
 {
 	Goal *s;
 	FOR_ALL_GOALS(s) {

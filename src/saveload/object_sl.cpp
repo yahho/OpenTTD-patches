@@ -28,7 +28,7 @@ static const SaveLoad _object_desc[] = {
 	SLE_END()
 };
 
-static void Save_OBJS()
+static void Save_OBJS(SaveDumper *dumper)
 {
 	Object *o;
 
@@ -61,9 +61,9 @@ static void Ptrs_OBJS()
 	}
 }
 
-static void Save_OBID()
+static void Save_OBID(SaveDumper *dumper)
 {
-	Save_NewGRFMapping(_object_mngr);
+	Save_NewGRFMapping(dumper, _object_mngr);
 }
 
 static void Load_OBID(LoadBuffer *reader)

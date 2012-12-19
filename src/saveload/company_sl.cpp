@@ -485,7 +485,7 @@ static void Save_PLYR_common(Company *c)
 	}
 }
 
-static void Save_PLYR()
+static void Save_PLYR(SaveDumper *dumper)
 {
 	Company *c;
 	FOR_ALL_COMPANIES(c) {

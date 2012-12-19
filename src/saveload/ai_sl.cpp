@@ -101,7 +101,7 @@ static void Load_AIPL(LoadBuffer *reader)
 	}
 }
 
-static void Save_AIPL()
+static void Save_AIPL(SaveDumper *dumper)
 {
 	AiSaveload aisl;
 

@@ -134,7 +134,7 @@ static void Load_GLOG_common(LoadBuffer *reader, LoggedAction *&gamelog_action, 
 	}
 }
 
-static void Save_GLOG()
+static void Save_GLOG(SaveDumper *dumper)
 {
 	const LoggedAction *laend = &_gamelog_action[_gamelog_actions];
 	size_t length = 0;

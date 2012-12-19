@@ -17,17 +17,17 @@
 /**
  * Save the cheat values.
  */
-static void Save_CHTS()
+static void Save_CHTS(SaveDumper *dumper)
 {
 	/* Cannot use lengthof because _cheats is of type Cheats, not Cheat */
 	byte count = sizeof(_cheats) / sizeof(Cheat);
 	Cheat *cht = (Cheat*) &_cheats;
 	Cheat *cht_last = &cht[count];
 
-	SlWriteLength(count * 2);
+	dumper->WriteRIFFSize(count * 2);
 	for (; cht != cht_last; cht++) {
-		SlWriteByte(cht->been_used);
-		SlWriteByte(cht->value);
+		dumper->WriteByte(cht->been_used);
+		dumper->WriteByte(cht->value);
 	}
 }
 

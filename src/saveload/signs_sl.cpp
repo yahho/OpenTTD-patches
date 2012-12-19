@@ -30,7 +30,7 @@ static const SaveLoad _sign_desc[] = {
 };
 
 /** Save all signs */
-static void Save_SIGN()
+static void Save_SIGN(SaveDumper *dumper)
 {
 	Sign *si;
 

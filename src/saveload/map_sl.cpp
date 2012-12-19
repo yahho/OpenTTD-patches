@@ -26,7 +26,7 @@ static const SaveLoad _map_dimensions[] = {
 	    SLE_END()
 };
 
-static void Save_MAPS()
+static void Save_MAPS(SaveDumper *dumper)
 {
 	MapDim map_dim;
 	map_dim.x = MapSizeX();
@@ -62,15 +62,15 @@ static void Load_MAPT(LoadBuffer *reader)
 	}
 }
 
-static void Save_MAPT()
+static void Save_MAPT(SaveDumper *dumper)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
-	SlWriteLength(size);
+	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].type_height;
-		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		dumper->WriteArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 	}
 }
 
@@ -85,15 +85,15 @@ static void Load_MAP1(LoadBuffer *reader)
 	}
 }
 
-static void Save_MAP1()
+static void Save_MAP1(SaveDumper *dumper)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
-	SlWriteLength(size);
+	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].m1;
-		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		dumper->WriteArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 	}
 }
 
@@ -111,15 +111,15 @@ static void Load_MAP2(LoadBuffer *reader)
 	}
 }
 
-static void Save_MAP2()
+static void Save_MAP2(SaveDumper *dumper)
 {
 	SmallStackSafeStackAlloc<uint16, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
-	SlWriteLength(size * sizeof(uint16));
+	dumper->WriteRIFFSize(size * sizeof(uint16));
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].m2;
-		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT16);
+		dumper->WriteArray(buf, MAP_SL_BUF_SIZE, SLE_UINT16);
 	}
 }
 
@@ -134,15 +134,15 @@ static void Load_MAP3(LoadBuffer *reader)
 	}
 }
 
-static void Save_MAP3()
+static void Save_MAP3(SaveDumper *dumper)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
-	SlWriteLength(size);
+	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].m3;
-		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		dumper->WriteArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 	}
 }
 
@@ -157,15 +157,15 @@ static void Load_MAP4(LoadBuffer *reader)
 	}
 }
 
-static void Save_MAP4()
+static void Save_MAP4(SaveDumper *dumper)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
-	SlWriteLength(size);
+	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].m4;
-		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		dumper->WriteArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 	}
 }
 
@@ -180,15 +180,15 @@ static void Load_MAP5(LoadBuffer *reader)
 	}
 }
 
-static void Save_MAP5()
+static void Save_MAP5(SaveDumper *dumper)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
-	SlWriteLength(size);
+	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].m5;
-		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		dumper->WriteArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 	}
 }
 
@@ -216,15 +216,15 @@ static void Load_MAP6(LoadBuffer *reader)
 	}
 }
 
-static void Save_MAP6()
+static void Save_MAP6(SaveDumper *dumper)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
-	SlWriteLength(size);
+	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].m6;
-		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		dumper->WriteArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 	}
 }
 
@@ -239,15 +239,15 @@ static void Load_MAP7(LoadBuffer *reader)
 	}
 }
 
-static void Save_MAP7()
+static void Save_MAP7(SaveDumper *dumper)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
-	SlWriteLength(size);
+	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _me[i++].m7;
-		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		dumper->WriteArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 	}
 }
 

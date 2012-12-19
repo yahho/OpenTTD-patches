@@ -240,7 +240,7 @@ void AfterLoadLinkGraphs()
 /**
  * Save all link graphs.
  */
-static void Save_LGRP()
+static void Save_LGRP(SaveDumper *dumper)
 {
 	LinkGraph *lg;
 	FOR_ALL_LINK_GRAPHS(lg) {
@@ -251,7 +251,7 @@ static void Save_LGRP()
 /**
  * Save all link graph jobs.
  */
-static void Save_LGRJ()
+static void Save_LGRJ(SaveDumper *dumper)
 {
 	LinkGraphJob *lgj;
 	FOR_ALL_LINK_GRAPH_JOBS(lgj) {
@@ -262,7 +262,7 @@ static void Save_LGRJ()
 /**
  * Save the link graph schedule.
  */
-static void Save_LGRS()
+static void Save_LGRS(SaveDumper *dumper)
 {
 	SlRIFFObject(LinkGraphSchedule::Instance(), GetLinkGraphScheduleDesc());
 }

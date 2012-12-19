@@ -28,7 +28,7 @@ static const SaveLoad _cargomonitor_pair_desc[] = {
 };
 
 /** Save the #_cargo_deliveries monitoring map. */
-static void SaveDelivery()
+static void SaveDelivery(SaveDumper *dumper)
 {
 	TempStorage storage;
 
@@ -62,7 +62,7 @@ static void LoadDelivery(LoadBuffer *reader)
 
 
 /** Save the #_cargo_pickups monitoring map. */
-static void SavePickup()
+static void SavePickup(SaveDumper *dumper)
 {
 	TempStorage storage;
 

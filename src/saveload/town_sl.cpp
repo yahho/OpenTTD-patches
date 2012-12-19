@@ -215,9 +215,9 @@ static const SaveLoad _town_received_desc[] = {
 	SLE_END()
 };
 
-static void Save_HIDS()
+static void Save_HIDS(SaveDumper *dumper)
 {
-	Save_NewGRFMapping(_house_mngr);
+	Save_NewGRFMapping(dumper, _house_mngr);
 }
 
 static void Load_HIDS(LoadBuffer *reader)
@@ -256,7 +256,7 @@ static void RealSave_Town(Town *t)
 	}
 }
 
-static void Save_TOWN()
+static void Save_TOWN(SaveDumper *dumper)
 {
 	Town *t;
 

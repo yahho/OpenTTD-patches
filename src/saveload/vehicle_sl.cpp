@@ -859,7 +859,7 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 }
 
 /** Will be called when the vehicles need to be saved. */
-static void Save_VEHS()
+static void Save_VEHS(SaveDumper *dumper)
 {
 	Vehicle *v;
 	/* Write the vehicles */

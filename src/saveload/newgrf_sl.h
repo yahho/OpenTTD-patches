@@ -15,7 +15,7 @@
 #include "../newgrf_commons.h"
 #include "saveload_buffer.h"
 
-void Save_NewGRFMapping(const OverrideManagerBase &mapping);
+void Save_NewGRFMapping(SaveDumper *dumper, const OverrideManagerBase &mapping);
 void Load_NewGRFMapping(LoadBuffer *reader, OverrideManagerBase &mapping);
 
 #endif /* SAVELOAD_NEWGRF_SL_H */

@@ -37,7 +37,7 @@ static const SaveLoad _story_page_elements_desc[] = {
 	    SLE_END()
 };
 
-static void Save_STORY_PAGE_ELEMENT()
+static void Save_STORY_PAGE_ELEMENT(SaveDumper *dumper)
 {
 	StoryPageElement *s;
 	FOR_ALL_STORY_PAGE_ELEMENTS(s) {
@@ -72,7 +72,7 @@ static const SaveLoad _story_pages_desc[] = {
 	    SLE_END()
 };
 
-static void Save_STORY_PAGE()
+static void Save_STORY_PAGE(SaveDumper *dumper)
 {
 	StoryPage *s;
 	FOR_ALL_STORY_PAGES(s) {

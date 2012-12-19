@@ -28,7 +28,7 @@ static const SaveLoad _depot_desc[] = {
 	 SLE_END()
 };
 
-static void Save_DEPT()
+static void Save_DEPT(SaveDumper *dumper)
 {
 	Depot *depot;
 

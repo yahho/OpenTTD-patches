@@ -24,7 +24,7 @@ static const SaveLoad _engine_renew_desc[] = {
 	SLE_END()
 };
 
-static void Save_ERNW()
+static void Save_ERNW(SaveDumper *dumper)
 {
 	EngineRenew *er;
 

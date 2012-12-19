@@ -14,9 +14,9 @@
 #include "saveload.h"
 #include "newgrf_sl.h"
 
-static void Save_APID()
+static void Save_APID(SaveDumper *dumper)
 {
-	Save_NewGRFMapping(_airport_mngr);
+	Save_NewGRFMapping(dumper, _airport_mngr);
 }
 
 static void Load_APID(LoadBuffer *reader)
@@ -24,9 +24,9 @@ static void Load_APID(LoadBuffer *reader)
 	Load_NewGRFMapping(reader, _airport_mngr);
 }
 
-static void Save_ATID()
+static void Save_ATID(SaveDumper *dumper)
 {
-	Save_NewGRFMapping(_airporttile_mngr);
+	Save_NewGRFMapping(dumper, _airporttile_mngr);
 }
 
 static void Load_ATID(LoadBuffer *reader)

@@ -22,10 +22,10 @@ extern uint _animated_tile_allocated;
 /**
  * Save the ANIT chunk.
  */
-static void Save_ANIT()
+static void Save_ANIT(SaveDumper *dumper)
 {
-	SlWriteLength(_animated_tile_count * sizeof(*_animated_tile_list));
-	SlArray(_animated_tile_list, _animated_tile_count, SLE_UINT32);
+	dumper->WriteRIFFSize(_animated_tile_count * sizeof(*_animated_tile_list));
+	dumper->WriteArray(_animated_tile_list, _animated_tile_count, SLE_UINT32);
 }
 
 /**

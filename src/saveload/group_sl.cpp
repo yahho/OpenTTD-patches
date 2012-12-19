@@ -24,7 +24,7 @@ static const SaveLoad _group_desc[] = {
 	     SLE_END()
 };
 
-static void Save_GRPS()
+static void Save_GRPS(SaveDumper *dumper)
 {
 	Group *g;
 

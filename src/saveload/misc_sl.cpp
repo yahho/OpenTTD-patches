@@ -120,7 +120,7 @@ static const SaveLoad _date_check_desc[] = {
 
 /* Save date-related variables as well as persistent tick counters
  * XXX: currently some unrelated stuff is just put here */
-static void Save_DATE()
+static void Save_DATE(SaveDumper *dumper)
 {
 	SlRIFFObject(NULL, _date_desc);
 }
@@ -150,7 +150,7 @@ static const SaveLoad _view_desc[] = {
 	     SLE_END()
 };
 
-static void Save_VIEW()
+static void Save_VIEW(SaveDumper *dumper)
 {
 	SlRIFFObject(NULL, _view_desc);
 }

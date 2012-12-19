@@ -1022,32 +1022,33 @@ static void SlLoadChunk(LoadBuffer *reader, const ChunkHandler *ch, bool check =
 /**
  * Save a chunk of data (eg. vehicles, stations, etc.). Each chunk is
  * prefixed by an ID identifying it, followed by data, and terminator where appropriate
+ * @param dumper The dumper object to write to
  * @param ch The chunkhandler that will be used for the operation
  */
-static void SlSaveChunk(const ChunkHandler *ch)
+static void SlSaveChunk(SaveDumper *dumper, const ChunkHandler *ch)
 {
 	ChunkSaveProc *proc = ch->save_proc;
 
 	/* Don't save any chunk information if there is no save handler. */
 	if (proc == NULL) return;
 
-	_sl.dumper->WriteUint32(ch->id);
+	dumper->WriteUint32(ch->id);
 	DEBUG(sl, 2, "Saving chunk %c%c%c%c", ch->id >> 24, ch->id >> 16, ch->id >> 8, ch->id);
 
-	_sl.dumper->BeginChunk(ch->flags & CH_TYPE_MASK);
-	proc();
-	_sl.dumper->EndChunk();
+	dumper->BeginChunk(ch->flags & CH_TYPE_MASK);
+	proc(dumper);
+	dumper->EndChunk();
 }
 
 /** Save all chunks */
-static void SlSaveChunks()
+static void SlSaveChunks(SaveDumper *dumper)
 {
 	FOR_ALL_CHUNK_HANDLERS(ch) {
-		SlSaveChunk(ch);
+		SlSaveChunk(dumper, ch);
 	}
 
 	/* Terminator */
-	_sl.dumper->WriteUint32(0);
+	dumper->WriteUint32(0);
 }
 
 /**
@@ -1324,7 +1325,7 @@ static bool DoSave(SaveFilter *writer, bool threaded)
 	_sl_version = SAVEGAME_VERSION;
 
 	SaveViewportBeforeSaveGame();
-	SlSaveChunks();
+	SlSaveChunks(_sl.dumper);
 
 	SaveFileStart();
 	if (!threaded || !ThreadObject::New(&SaveFileToDiskThread, NULL, &_save_thread)) {

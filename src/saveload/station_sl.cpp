@@ -488,7 +488,7 @@ static void RealSave_STNN(BaseStation *bst)
 	}
 }
 
-static void Save_STNN()
+static void Save_STNN(SaveDumper *dumper)
 {
 	BaseStation *st;
 	/* Write the stations */
@@ -584,7 +584,7 @@ static void Ptrs_STNN()
 	}
 }
 
-static void Save_ROADSTOP()
+static void Save_ROADSTOP(SaveDumper *dumper)
 {
 	RoadStop *rs;
 

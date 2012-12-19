@@ -112,7 +112,7 @@ const SaveLoad *GetCargoPacketDesc()
 /**
  * Save the cargo packets.
  */
-static void Save_CAPA()
+static void Save_CAPA(SaveDumper *dumper)
 {
 	CargoPacket *cp;
 

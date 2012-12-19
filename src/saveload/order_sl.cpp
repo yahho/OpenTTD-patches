@@ -121,7 +121,7 @@ const SaveLoad *GetOrderDescription()
 	return _order_desc;
 }
 
-static void Save_ORDR()
+static void Save_ORDR(SaveDumper *dumper)
 {
 	Order *order;
 
@@ -209,7 +209,7 @@ const SaveLoad *GetOrderListDescription()
 	return _orderlist_desc;
 }
 
-static void Save_ORDL()
+static void Save_ORDL(SaveDumper *dumper)
 {
 	OrderList *list;
 
@@ -262,7 +262,7 @@ const SaveLoad *GetOrderBackupDescription()
 	return _order_backup_desc;
 }
 
-static void Save_BKOR()
+static void Save_BKOR(SaveDumper *dumper)
 {
 	/* We only save this when we're a network server
 	 * as we want this information on our clients. For
