@@ -494,4 +494,6 @@ static inline bool SlIsObjectCurrentlyValid(const SaveLoad *sld)
 	return true;
 }
 
+size_t SlCalcObjLength(const void *object, const SaveLoad *sld);
+
 #endif /* SAVELOAD_DATA_H */

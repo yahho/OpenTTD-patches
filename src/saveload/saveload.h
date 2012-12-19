@@ -53,7 +53,6 @@ int SlIterateArray();
 
 size_t SlGetFieldLength();
 void SlWriteLength(size_t length);
-size_t SlCalcObjLength(const void *object, const SaveLoad *sld);
 
 byte SlReadByte();
 void SlWriteByte(byte b);

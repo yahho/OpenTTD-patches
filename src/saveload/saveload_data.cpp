@@ -9,7 +9,10 @@
 
 /** @file saveload_data.cpp Saveload data definitions. */
 
+#include <list>
+
 #include "../stdafx.h"
+#include "../string_func.h"
 #include "saveload_data.h"
 #include "saveload_internal.h"
 
@@ -63,4 +66,90 @@ void WriteValue(void *ptr, VarType conv, int64 val)
 		case SLE_VAR_NULL: break;
 		default: NOT_REACHED();
 	}
+}
+
+
+/** Return the size in bytes of a reference (pointer) */
+static inline size_t SlCalcRefLen()
+{
+	return IsSavegameVersionBefore(69) ? 2 : 4;
+}
+
+/**
+ * Return the size in bytes of a certain type of atomic array
+ * @param length The length of the array counted in elements
+ * @param conv VarType type of the variable that is used in calculating the size
+ */
+static inline size_t SlCalcArrayLen(size_t length, VarType conv)
+{
+	return SlCalcConvFileLen(conv) * length;
+}
+
+/**
+ * Calculate the gross length of the string that it
+ * will occupy in the savegame. This includes the real length
+ * and the length that the index will occupy.
+ * @param ptr pointer to the stringbuffer
+ * @param length maximum length of the string (buffer size, etc.)
+ * @param conv type of data been used
+ * @return return the gross length of the string
+ */
+static inline size_t SlCalcStringLen(const void *ptr, size_t length, StrType conv)
+{
+	size_t len;
+	const char *str;
+
+	if (conv & SLS_POINTER) {
+		str = *(const char * const *)ptr;
+		len = (str != NULL) ? strlen(str) : 0;
+	} else {
+		str = (const char *)ptr;
+		len = ttd_strnlen(str, length - 1);
+	}
+
+	return len + GetGammaLength(len); // also include the length of the index
+}
+
+/**
+ * Return the size in bytes of a list
+ * @param list The std::list to find the size of
+ */
+static inline size_t SlCalcListLen(const void *list)
+{
+	const std::list<void *> *l = (const std::list<void *> *) list;
+
+	int type_size = IsSavegameVersionBefore(69) ? 2 : 4;
+	/* Each entry is saved as type_size bytes, plus type_size bytes are used for the length
+	 * of the list */
+	return l->size() * type_size + type_size;
+}
+
+/**
+ * Calculate the size of an object.
+ * @param object to be measured
+ * @param sld The SaveLoad description of the object so we know how to manipulate it
+ * @return size of given object
+ */
+size_t SlCalcObjLength(const void *object, const SaveLoad *sld)
+{
+	size_t length = 0;
+
+	/* Need to determine the length and write a length tag. */
+	for (; sld->type != SL_END; sld++) {
+		/* CONDITIONAL saveload types depend on the savegame version */
+		if (!SlIsObjectValidInSavegame(sld)) continue;
+
+		switch (sld->type) {
+			case SL_VAR: length += SlCalcConvFileLen(sld->conv); break;
+			case SL_REF: length += SlCalcRefLen(); break;
+			case SL_ARR: length += SlCalcArrayLen(sld->length, sld->conv); break;
+			case SL_STR: length += SlCalcStringLen(GetVariableAddress(sld, object), sld->length, sld->conv); break;
+			case SL_LST: length += SlCalcListLen(GetVariableAddress(sld, object)); break;
+			case SL_WRITEBYTE: length++; break; // a byte is logically of size 1
+			case SL_INCLUDE:   length += SlCalcObjLength(object, (SaveLoad*)sld->address); break;
+			default: NOT_REACHED();
+		}
+	}
+
+	return length;
 }
