@@ -126,7 +126,7 @@ static void Save_ORDR(SaveDumper *dumper)
 	Order *order;
 
 	FOR_ALL_ORDERS(order) {
-		SlArrayObject(order->index, order, GetOrderDescription());
+		dumper->WriteElement(order->index, order, GetOrderDescription());
 	}
 }
 
@@ -214,7 +214,7 @@ static void Save_ORDL(SaveDumper *dumper)
 	OrderList *list;
 
 	FOR_ALL_ORDER_LISTS(list) {
-		SlArrayObject(list->index, list, GetOrderListDescription());
+		dumper->WriteElement(list->index, list, GetOrderListDescription());
 	}
 }
 
@@ -271,7 +271,7 @@ static void Save_BKOR(SaveDumper *dumper)
 
 	OrderBackup *ob;
 	FOR_ALL_ORDER_BACKUPS(ob) {
-		SlArrayObject(ob->index, ob, GetOrderBackupDescription());
+		dumper->WriteElement(ob->index, ob, GetOrderBackupDescription());
 	}
 }
 

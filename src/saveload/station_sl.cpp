@@ -589,7 +589,7 @@ static void Save_ROADSTOP(SaveDumper *dumper)
 	RoadStop *rs;
 
 	FOR_ALL_ROADSTOPS(rs) {
-		SlArrayObject(rs->index, rs, _roadstop_desc);
+		dumper->WriteElement(rs->index, rs, _roadstop_desc);
 	}
 }
 

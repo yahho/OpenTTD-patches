@@ -754,32 +754,6 @@ void SlObject(void *object, const SaveLoad *sld)
 	}
 }
 
-/**
- * Write a single object as a RIFF chunk.
- * @param object The object that is being saved
- * @param sld The SaveLoad description of the object so we know how to manipulate it
- */
-void SlRIFFObject(void *object, const SaveLoad *sld)
-{
-	assert(_sl.action == SLA_SAVE);
-
-	_sl.dumper->WriteRIFFSize(SlCalcObjLength(object, sld));
-	SlObject(object, sld);
-}
-
-/**
- * Write an element of a (sparse) array from an object.
- * @param index The index of this element
- * @param object The object that is being saved
- * @param sld The SaveLoad description of the object so we know how to manipulate it
- */
-void SlArrayObject(uint index, void *object, const SaveLoad *sld)
-{
-	assert(_sl.action == SLA_SAVE);
-
-	_sl.dumper->WriteElementHeader(index, SlCalcObjLength(object, sld));
-	SlObject(object, sld);
-}
 
 /**
  * Load a chunk of data (eg vehicles, stations, etc.)

@@ -122,7 +122,7 @@ static const SaveLoad _date_check_desc[] = {
  * XXX: currently some unrelated stuff is just put here */
 static void Save_DATE(SaveDumper *dumper)
 {
-	SlRIFFObject(NULL, _date_desc);
+	dumper->WriteRIFFObject(NULL, _date_desc);
 }
 
 /* Load date-related variables as well as persistent tick counters
@@ -152,7 +152,7 @@ static const SaveLoad _view_desc[] = {
 
 static void Save_VIEW(SaveDumper *dumper)
 {
-	SlRIFFObject(NULL, _view_desc);
+	dumper->WriteRIFFObject(NULL, _view_desc);
 }
 
 static void Load_VIEW(LoadBuffer *reader)

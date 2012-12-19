@@ -864,7 +864,7 @@ static void Save_VEHS(SaveDumper *dumper)
 	Vehicle *v;
 	/* Write the vehicles */
 	FOR_ALL_VEHICLES(v) {
-		SlArrayObject(v->index, v, GetVehicleDescription(v->type));
+		dumper->WriteElement(v->index, v, GetVehicleDescription(v->type));
 	}
 }
 

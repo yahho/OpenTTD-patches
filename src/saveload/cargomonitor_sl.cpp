@@ -38,7 +38,7 @@ static void SaveDelivery(SaveDumper *dumper)
 		storage.number = iter->first;
 		storage.amount = iter->second;
 
-		SlArrayObject(i, &storage, _cargomonitor_pair_desc);
+		dumper->WriteElement(i, &storage, _cargomonitor_pair_desc);
 
 		i++;
 		iter++;
@@ -72,7 +72,7 @@ static void SavePickup(SaveDumper *dumper)
 		storage.number = iter->first;
 		storage.amount = iter->second;
 
-		SlArrayObject(i, &storage, _cargomonitor_pair_desc);
+		dumper->WriteElement(i, &storage, _cargomonitor_pair_desc);
 
 		i++;
 		iter++;

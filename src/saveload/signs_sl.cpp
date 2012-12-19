@@ -35,7 +35,7 @@ static void Save_SIGN(SaveDumper *dumper)
 	Sign *si;
 
 	FOR_ALL_SIGNS(si) {
-		SlArrayObject(si->index, si, _sign_desc);
+		dumper->WriteElement(si->index, si, _sign_desc);
 	}
 }
 

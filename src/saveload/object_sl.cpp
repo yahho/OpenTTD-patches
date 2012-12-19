@@ -34,7 +34,7 @@ static void Save_OBJS(SaveDumper *dumper)
 
 	/* Write the objects */
 	FOR_ALL_OBJECTS(o) {
-		SlArrayObject(o->index, o, _object_desc);
+		dumper->WriteElement(o->index, o, _object_desc);
 	}
 }
 

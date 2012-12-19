@@ -69,7 +69,7 @@ static void Save_INDY(SaveDumper *dumper)
 
 	/* Write the industries */
 	FOR_ALL_INDUSTRIES(ind) {
-		SlArrayObject(ind->index, ind, _industry_desc);
+		dumper->WriteElement(ind->index, ind, _industry_desc);
 	}
 }
 
@@ -132,7 +132,7 @@ static const SaveLoad _industry_builder_desc[] = {
 /** Save industry builder. */
 static void Save_IBLD(SaveDumper *dumper)
 {
-	SlRIFFObject(NULL, _industry_builder_desc);
+	dumper->WriteRIFFObject(NULL, _industry_builder_desc);
 }
 
 /** Load industry builder. */
@@ -155,7 +155,7 @@ static const SaveLoad _industrytype_builder_desc[] = {
 static void Save_ITBL(SaveDumper *dumper)
 {
 	for (int i = 0; i < NUM_INDUSTRYTYPES; i++) {
-		SlArrayObject(i, _industry_builder.builddata + i, _industrytype_builder_desc);
+		dumper->WriteElement(i, _industry_builder.builddata + i, _industrytype_builder_desc);
 	}
 }
 

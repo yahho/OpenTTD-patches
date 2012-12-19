@@ -41,7 +41,7 @@ static void Save_STORY_PAGE_ELEMENT(SaveDumper *dumper)
 {
 	StoryPageElement *s;
 	FOR_ALL_STORY_PAGE_ELEMENTS(s) {
-		SlArrayObject(s->index, s, _story_page_elements_desc);
+		dumper->WriteElement(s->index, s, _story_page_elements_desc);
 	}
 }
 
@@ -76,7 +76,7 @@ static void Save_STORY_PAGE(SaveDumper *dumper)
 {
 	StoryPage *s;
 	FOR_ALL_STORY_PAGES(s) {
-		SlArrayObject(s->index, s, _story_pages_desc);
+		dumper->WriteElement(s->index, s, _story_pages_desc);
 	}
 }
 

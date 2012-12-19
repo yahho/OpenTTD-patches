@@ -31,7 +31,7 @@ static void Save_SUBS(SaveDumper *dumper)
 {
 	Subsidy *s;
 	FOR_ALL_SUBSIDIES(s) {
-		SlArrayObject(s->index, s, _subsidies_desc);
+		dumper->WriteElement(s->index, s, _subsidies_desc);
 	}
 }
 

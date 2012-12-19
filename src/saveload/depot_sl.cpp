@@ -33,7 +33,7 @@ static void Save_DEPT(SaveDumper *dumper)
 	Depot *depot;
 
 	FOR_ALL_DEPOTS(depot) {
-		SlArrayObject(depot->index, depot, _depot_desc);
+		dumper->WriteElement(depot->index, depot, _depot_desc);
 	}
 }
 

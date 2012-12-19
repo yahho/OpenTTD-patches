@@ -31,7 +31,7 @@ static void Save_MAPS(SaveDumper *dumper)
 	MapDim map_dim;
 	map_dim.x = MapSizeX();
 	map_dim.y = MapSizeY();
-	SlRIFFObject(&map_dim, _map_dimensions);
+	dumper->WriteRIFFObject(&map_dim, _map_dimensions);
 }
 
 static void Load_MAPS(LoadBuffer *reader)

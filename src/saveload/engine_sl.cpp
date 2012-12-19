@@ -55,7 +55,7 @@ static void Save_ENGN(SaveDumper *dumper)
 {
 	Engine *e;
 	FOR_ALL_ENGINES(e) {
-		SlArrayObject(e->index, e, _engine_desc);
+		dumper->WriteElement(e->index, e, _engine_desc);
 	}
 }
 
@@ -140,7 +140,7 @@ static void Save_EIDS(SaveDumper *dumper)
 	const EngineIDMapping *end = _engine_mngr.End();
 	uint index = 0;
 	for (EngineIDMapping *eid = _engine_mngr.Begin(); eid != end; eid++, index++) {
-		SlArrayObject(index, eid, _engine_id_mapping_desc);
+		dumper->WriteElement(index, eid, _engine_id_mapping_desc);
 	}
 }
 

@@ -256,7 +256,7 @@ static void Save_LGRJ(SaveDumper *dumper)
  */
 static void Save_LGRS(SaveDumper *dumper)
 {
-	SlRIFFObject(LinkGraphSchedule::Instance(), GetLinkGraphScheduleDesc());
+	dumper->WriteRIFFObject(LinkGraphSchedule::Instance(), GetLinkGraphScheduleDesc());
 }
 
 /**

@@ -117,7 +117,7 @@ static void Save_CAPA(SaveDumper *dumper)
 	CargoPacket *cp;
 
 	FOR_ALL_CARGOPACKETS(cp) {
-		SlArrayObject(cp->index, cp, GetCargoPacketDesc());
+		dumper->WriteElement(cp->index, cp, GetCargoPacketDesc());
 	}
 }
 

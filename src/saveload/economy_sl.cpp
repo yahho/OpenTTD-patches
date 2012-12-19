@@ -52,7 +52,7 @@ static const SaveLoad _economy_desc[] = {
 /** Economy variables */
 static void Save_ECMY(SaveDumper *dumper)
 {
-	SlRIFFObject(&_economy, _economy_desc);
+	dumper->WriteRIFFObject(&_economy, _economy_desc);
 }
 
 /** Economy variables */
@@ -74,7 +74,7 @@ static void Save_CAPY(SaveDumper *dumper)
 {
 	CargoPayment *cp;
 	FOR_ALL_CARGO_PAYMENTS(cp) {
-		SlArrayObject(cp->index, cp, _cargopayment_desc);
+		dumper->WriteElement(cp->index, cp, _cargopayment_desc);
 	}
 }
 

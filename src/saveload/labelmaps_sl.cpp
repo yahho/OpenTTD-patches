@@ -99,7 +99,7 @@ static void Save_RAIL(SaveDumper *dumper)
 	for (RailType r = RAILTYPE_BEGIN; r != RAILTYPE_END; r++) {
 		lo.label = GetRailTypeInfo(r)->label;
 
-		SlArrayObject(r, &lo, _label_object_desc);
+		dumper->WriteElement(r, &lo, _label_object_desc);
 	}
 }
 

@@ -29,7 +29,7 @@ static void Save_ERNW(SaveDumper *dumper)
 	EngineRenew *er;
 
 	FOR_ALL_ENGINE_RENEWS(er) {
-		SlArrayObject(er->index, er, _engine_renew_desc);
+		dumper->WriteElement(er->index, er, _engine_renew_desc);
 	}
 }
 

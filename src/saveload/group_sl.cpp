@@ -29,7 +29,7 @@ static void Save_GRPS(SaveDumper *dumper)
 	Group *g;
 
 	FOR_ALL_GROUPS(g) {
-		SlArrayObject(g->index, g, _group_desc);
+		dumper->WriteElement(g->index, g, _group_desc);
 	}
 }
 

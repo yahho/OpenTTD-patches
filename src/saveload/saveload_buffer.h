@@ -263,6 +263,29 @@ struct SaveDumper {
 	}
 
 	/**
+	 * Write a single object as a RIFF chunk.
+	 * @param object The object that is being saved
+	 * @param sld The SaveLoad description of the object so we know how to manipulate it
+	 */
+	void WriteRIFFObject(const void *object, const SaveLoad *sld)
+	{
+		this->WriteRIFFSize(SlCalcObjLength(object, sld));
+		this->WriteObject(object, sld);
+	}
+
+	/**
+	 * Write an element of a (sparse) array as an object.
+	 * @param index The index of this element
+	 * @param object The object that is being saved
+	 * @param sld The SaveLoad description of the object so we know how to manipulate it
+	 */
+	void WriteElement(uint index, const void *object, const SaveLoad *sld)
+	{
+		this->WriteElementHeader(index, SlCalcObjLength(object, sld));
+		this->WriteObject(object, sld);
+	}
+
+	/**
 	 * Flush this dumper into another one.
 	 * @param dumper The dumper to dump to.
 	 */

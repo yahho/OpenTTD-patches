@@ -28,7 +28,7 @@ static void Save_GOAL(SaveDumper *dumper)
 {
 	Goal *s;
 	FOR_ALL_GOALS(s) {
-		SlArrayObject(s->index, s, _goals_desc);
+		dumper->WriteElement(s->index, s, _goals_desc);
 	}
 }
 
