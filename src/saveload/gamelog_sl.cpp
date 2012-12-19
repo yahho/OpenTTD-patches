@@ -102,24 +102,24 @@ static const SaveLoad * const _glog_desc[] = {
 
 assert_compile(lengthof(_glog_desc) == GLCT_END);
 
-static void Load_GLOG_common(LoggedAction *&gamelog_action, uint &gamelog_actions)
+static void Load_GLOG_common(LoadBuffer *reader, LoggedAction *&gamelog_action, uint &gamelog_actions)
 {
 	assert(gamelog_action == NULL);
 	assert(gamelog_actions == 0);
 
 	GamelogActionType at;
-	while ((at = (GamelogActionType)SlReadByte()) != GLAT_NONE) {
+	while ((at = (GamelogActionType)reader->ReadByte()) != GLAT_NONE) {
 		gamelog_action = ReallocT(gamelog_action, gamelog_actions + 1);
 		LoggedAction *la = &gamelog_action[gamelog_actions++];
 
 		la->at = at;
 
-		SlObject(la, _glog_action_desc); // has to be saved after 'DATE'!
+		reader->ReadObject(la, _glog_action_desc); // has to be saved after 'DATE'!
 		la->change = NULL;
 		la->changes = 0;
 
 		GamelogChangeType ct;
-		while ((ct = (GamelogChangeType)SlReadByte()) != GLCT_NONE) {
+		while ((ct = (GamelogChangeType)reader->ReadByte()) != GLCT_NONE) {
 			la->change = ReallocT(la->change, la->changes + 1);
 
 			LoggedChange *lc = &la->change[la->changes++];
@@ -129,7 +129,7 @@ static void Load_GLOG_common(LoggedAction *&gamelog_action, uint &gamelog_action
 
 			assert((uint)ct < GLCT_END);
 
-			SlObject(lc, _glog_desc[ct]);
+			reader->ReadObject(lc, _glog_desc[ct]);
 		}
 	}
 }
@@ -166,14 +166,14 @@ static void Save_GLOG()
 	SlWriteByte(GLAT_NONE);
 }
 
-static void Load_GLOG()
+static void Load_GLOG(LoadBuffer *reader)
 {
-	Load_GLOG_common(_gamelog_action, _gamelog_actions);
+	Load_GLOG_common(reader, _gamelog_action, _gamelog_actions);
 }
 
-static void Check_GLOG()
+static void Check_GLOG(LoadBuffer *reader)
 {
-	Load_GLOG_common(_load_check_data.gamelog_action, _load_check_data.gamelog_actions);
+	Load_GLOG_common(reader, _load_check_data.gamelog_action, _load_check_data.gamelog_actions);
 }
 
 extern const ChunkHandler _gamelog_chunk_handlers[] = {

@@ -21,14 +21,14 @@ static const SaveLoad _storage_desc[] = {
 };
 
 /** Load persistent storage data. */
-static void Load_PSAC()
+static void Load_PSAC(LoadBuffer *reader)
 {
 	int index;
 
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		assert(PersistentStorage::CanAllocateItem());
 		PersistentStorage *ps = new (index) PersistentStorage(0);
-		SlObject(ps, _storage_desc);
+		reader->ReadObject(ps, _storage_desc);
 	}
 }
 

@@ -405,41 +405,41 @@ static const SaveLoad _company_livery_desc[] = {
 	SLE_END()
 };
 
-static void Load_PLYR_common(Company *c, CompanyProperties *cprops)
+static void Load_PLYR_common(LoadBuffer *reader, Company *c, CompanyProperties *cprops)
 {
 	int i;
 
-	SlObject(cprops, _company_desc);
+	reader->ReadObject(cprops, _company_desc);
 	if (c != NULL) {
-		SlObject(c, _company_settings_desc);
+		reader->ReadObject(c, _company_settings_desc);
 	} else {
-		SlObject(NULL, _company_settings_skip_desc);
+		reader->ReadObject(NULL, _company_settings_skip_desc);
 	}
 
 	/* Keep backwards compatible for savegames, so load the old AI block */
 	if (IsSavegameVersionBefore(107) && cprops->is_ai) {
 		CompanyOldAI old_ai;
 
-		SlObject(&old_ai, _company_ai_desc);
+		reader->ReadObject(&old_ai, _company_ai_desc);
 		for (i = 0; i != old_ai.num_build_rec; i++) {
-			SlObject(NULL, _company_ai_build_rec_desc);
+			reader->ReadObject(NULL, _company_ai_build_rec_desc);
 		}
 	}
 
 	/* Read economy */
-	SlObject(&cprops->cur_economy, _company_economy_desc);
+	reader->ReadObject(&cprops->cur_economy, _company_economy_desc);
 
 	/* Read old economy entries. */
 	if (cprops->num_valid_stat_ent > lengthof(cprops->old_economy)) SlErrorCorrupt("Too many old economy entries");
 	for (i = 0; i < cprops->num_valid_stat_ent; i++) {
-		SlObject(&cprops->old_economy[i], _company_economy_desc);
+		reader->ReadObject(&cprops->old_economy[i], _company_economy_desc);
 	}
 
 	/* Read each livery entry. */
 	int num_liveries = IsSavegameVersionBefore(63) ? LS_END - 4 : (IsSavegameVersionBefore(85) ? LS_END - 2: LS_END);
 	if (c != NULL) {
 		for (i = 0; i < num_liveries; i++) {
-			SlObject(&c->livery[i], _company_livery_desc);
+			reader->ReadObject(&c->livery[i], _company_livery_desc);
 		}
 
 		if (num_liveries < LS_END) {
@@ -458,7 +458,7 @@ static void Load_PLYR_common(Company *c, CompanyProperties *cprops)
 		/* Skip liveries */
 		Livery dummy_livery;
 		for (i = 0; i < num_liveries; i++) {
-			SlObject(&dummy_livery, _company_livery_desc);
+			reader->ReadObject(&dummy_livery, _company_livery_desc);
 		}
 	}
 }
@@ -493,23 +493,23 @@ static void Save_PLYR()
 	}
 }
 
-static void Load_PLYR()
+static void Load_PLYR(LoadBuffer *reader)
 {
 	int index;
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		Company *c = new (index) Company();
-		Load_PLYR_common(c, c);
+		Load_PLYR_common(reader, c, c);
 		_company_colours[index] = (Colours)c->colour;
 	}
 }
 
-static void Check_PLYR()
+static void Check_PLYR(LoadBuffer *reader)
 {
 	int index;
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		CompanyProperties *cprops = new CompanyProperties();
 		memset(cprops, 0, sizeof(*cprops));
-		Load_PLYR_common(NULL, cprops);
+		Load_PLYR_common(reader, NULL, cprops);
 
 		/* We do not load old custom names */
 		if (IsSavegameVersionBefore(84)) {

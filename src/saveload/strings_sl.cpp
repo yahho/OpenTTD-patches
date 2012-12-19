@@ -121,15 +121,17 @@ void InitializeOldNames()
 /**
  * Load the NAME chunk.
  */
-static void Load_NAME()
+static void Load_NAME(LoadBuffer *reader)
 {
 	int index;
 
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		if (index >= NUM_OLD_STRINGS) SlErrorCorrupt("Invalid old name index");
-		if (SlGetFieldLength() > (uint)LEN_OLD_STRINGS) SlErrorCorrupt("Invalid old name length");
 
-		SlArray(&_old_name_array[LEN_OLD_STRINGS * index], SlGetFieldLength(), SLE_UINT8);
+		size_t elemsize = reader->GetElementSize();
+		if (elemsize > (uint)LEN_OLD_STRINGS) SlErrorCorrupt("Invalid old name length");
+
+		reader->ReadArray(&_old_name_array[LEN_OLD_STRINGS * index], elemsize, SLE_UINT8);
 		/* Make sure the old name is null terminated */
 		_old_name_array[LEN_OLD_STRINGS * index + LEN_OLD_STRINGS - 1] = '\0';
 	}

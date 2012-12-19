@@ -40,12 +40,12 @@ static void Save_SIGN()
 }
 
 /** Load all signs */
-static void Load_SIGN()
+static void Load_SIGN(LoadBuffer *reader)
 {
 	int index;
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		Sign *si = new (index) Sign();
-		SlObject(si, _sign_desc);
+		reader->ReadObject(si, _sign_desc);
 		/* Before version 6.1, signs didn't have owner.
 		 * Before version 83, invalid signs were determined by si->str == 0.
 		 * Before version 103, owner could be a bankrupted company.

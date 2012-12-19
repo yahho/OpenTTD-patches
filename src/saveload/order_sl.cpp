@@ -130,12 +130,12 @@ static void Save_ORDR()
 	}
 }
 
-static void Load_ORDR()
+static void Load_ORDR(LoadBuffer *reader)
 {
 	if (IsSavegameVersionBefore(5, 2)) {
 		/* Version older than 5.2 did not have a ->next pointer. Convert them
 		 * (in the old days, the orderlist was 5000 items big) */
-		size_t len = SlGetFieldLength();
+		size_t len = reader->GetChunkSize();
 
 		if (IsSavegameVersionBefore(5)) {
 			/* Pre-version 5 had another layout for orders
@@ -143,7 +143,7 @@ static void Load_ORDR()
 			len /= sizeof(uint16);
 			uint16 *orders = MallocT<uint16>(len + 1);
 
-			SlArray(orders, len, SLE_UINT16);
+			reader->ReadArray(orders, len, SLE_UINT16);
 
 			for (size_t i = 0; i < len; ++i) {
 				Order *o = new (i) Order();
@@ -155,7 +155,7 @@ static void Load_ORDR()
 			len /= sizeof(uint32);
 			uint32 *orders = MallocT<uint32>(len + 1);
 
-			SlArray(orders, len, SLE_UINT32);
+			reader->ReadArray(orders, len, SLE_UINT32);
 
 			for (size_t i = 0; i < len; ++i) {
 				new (i) Order(orders[i]);
@@ -180,9 +180,9 @@ static void Load_ORDR()
 	} else {
 		int index;
 
-		while ((index = SlIterateArray()) != -1) {
+		while ((index = reader->IterateChunk()) != -1) {
 			Order *order = new (index) Order();
-			SlObject(order, GetOrderDescription());
+			reader->ReadObject(order, GetOrderDescription());
 		}
 	}
 }
@@ -218,14 +218,14 @@ static void Save_ORDL()
 	}
 }
 
-static void Load_ORDL()
+static void Load_ORDL(LoadBuffer *reader)
 {
 	int index;
 
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		/* set num_orders to 0 so it's a valid OrderList */
 		OrderList *list = new (index) OrderList(0);
-		SlObject(list, GetOrderListDescription());
+		reader->ReadObject(list, GetOrderListDescription());
 	}
 
 }
@@ -275,14 +275,14 @@ static void Save_BKOR()
 	}
 }
 
-void Load_BKOR()
+void Load_BKOR(LoadBuffer *reader)
 {
 	int index;
 
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		/* set num_orders to 0 so it's a valid OrderList */
 		OrderBackup *ob = new (index) OrderBackup();
-		SlObject(ob, GetOrderBackupDescription());
+		reader->ReadObject(ob, GetOrderBackupDescription());
 	}
 
 	/* Only load order-backups for network clients.

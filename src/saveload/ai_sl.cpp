@@ -43,7 +43,7 @@ static void SaveReal_AIPL(AiSaveload *aisl)
 	if (aisl->id != (CompanyID)-1) AI::Save(aisl->id);
 }
 
-static void Load_AIPL()
+static void Load_AIPL(LoadBuffer *reader)
 {
 	/* Free all current data */
 	for (CompanyID c = COMPANY_FIRST; c < MAX_COMPANIES; c++) {
@@ -51,12 +51,12 @@ static void Load_AIPL()
 	}
 
 	AiSaveload aisl;
-	while ((aisl.id = (CompanyID)SlIterateArray()) != (CompanyID)-1) {
+	while ((aisl.id = (CompanyID)reader->IterateChunk()) != (CompanyID)-1) {
 		if (aisl.id >= MAX_COMPANIES) SlErrorCorrupt("Too many AI configs");
 
 		aisl.is_random = 0;
 		aisl.version = -1;
-		SlObject(&aisl, _ai_company);
+		reader->ReadObject(&aisl, _ai_company);
 
 		if (_networking && !_network_server) {
 			if (Company::IsValidAiID(aisl.id)) AIInstance::LoadEmpty();

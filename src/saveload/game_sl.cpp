@@ -41,20 +41,20 @@ static void SaveReal_GSDT(GameSaveload *gsl)
 	Game::Save();
 }
 
-static void Load_GSDT()
+static void Load_GSDT(LoadBuffer *reader)
 {
 	/* Free all current data */
 	GameConfig::GetConfig(GameConfig::SSS_FORCE_GAME)->Change(NULL);
 
-	if ((CompanyID)SlIterateArray() == (CompanyID)-1) return;
+	if (reader->IterateChunk() == -1) return;
 
 	GameSaveload gsl;
 	gsl.version = -1;
-	SlObject(&gsl, _game_script);
+	reader->ReadObject(&gsl, _game_script);
 
 	if (_networking && !_network_server) {
 		GameInstance::LoadEmpty();
-		if ((CompanyID)SlIterateArray() != (CompanyID)-1) SlErrorCorrupt("Too many GameScript configs");
+		if (reader->IterateChunk() != -1) SlErrorCorrupt("Too many GameScript configs");
 		return;
 	}
 
@@ -90,7 +90,7 @@ static void Load_GSDT()
 	Game::StartNew();
 	Game::Load(gsl.version);
 
-	if ((CompanyID)SlIterateArray() != (CompanyID)-1) SlErrorCorrupt("Too many GameScript configs");
+	if (reader->IterateChunk() != -1) SlErrorCorrupt("Too many GameScript configs");
 }
 
 static void Save_GSDT()
@@ -145,19 +145,19 @@ static void SaveReal_GSTR(LanguageStrings *ls)
 	}
 }
 
-static void Load_GSTR()
+static void Load_GSTR(LoadBuffer *reader)
 {
 	delete _current_data;
 	_current_data = new GameStrings();
 
-	while (SlIterateArray() != -1) {
+	while (reader->IterateChunk() != -1) {
 		GameSaveloadStrings gss;
 		gss.s = NULL;
-		SlObject(&gss, _game_language_header);
+		reader->ReadObject(&gss, _game_language_header);
 
 		LanguageStrings *ls = new LanguageStrings(gss.s);
 		for (uint i = 0; i < gss.n; i++) {
-			SlObject(&gss, _game_language_string);
+			reader->ReadObject(&gss, _game_language_string);
 			*ls->lines.Append() = strdup(gss.s != NULL ? gss.s : "");
 		}
 

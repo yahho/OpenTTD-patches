@@ -37,13 +37,13 @@ static void Save_DEPT()
 	}
 }
 
-static void Load_DEPT()
+static void Load_DEPT(LoadBuffer *reader)
 {
 	int index;
 
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		Depot *depot = new (index) Depot();
-		SlObject(depot, _depot_desc);
+		reader->ReadObject(depot, _depot_desc);
 
 		/* Set the town 'pointer' so we can restore it later. */
 		if (IsSavegameVersionBefore(141)) depot->town = (Town *)(size_t)_town_index;

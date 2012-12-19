@@ -83,15 +83,15 @@ static void Save_TIDS()
 	Save_NewGRFMapping(_industile_mngr);
 }
 
-static void Load_INDY()
+static void Load_INDY(LoadBuffer *reader)
 {
 	int index;
 
 	Industry::ResetIndustryCounts();
 
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		Industry *i = new (index) Industry();
-		SlObject(i, _industry_desc);
+		reader->ReadObject(i, _industry_desc);
 
 		/* Before savegame version 161, persistent storages were not stored in a pool. */
 		if (IsSavegameVersionBefore(161) && !IsSavegameVersionBefore(76)) {
@@ -104,14 +104,14 @@ static void Load_INDY()
 	}
 }
 
-static void Load_IIDS()
+static void Load_IIDS(LoadBuffer *reader)
 {
-	Load_NewGRFMapping(_industry_mngr);
+	Load_NewGRFMapping(reader, _industry_mngr);
 }
 
-static void Load_TIDS()
+static void Load_TIDS(LoadBuffer *reader)
 {
-	Load_NewGRFMapping(_industile_mngr);
+	Load_NewGRFMapping(reader, _industile_mngr);
 }
 
 static void Ptrs_INDY()
@@ -136,9 +136,9 @@ static void Save_IBLD()
 }
 
 /** Load industry builder. */
-static void Load_IBLD()
+static void Load_IBLD(LoadBuffer *reader)
 {
-	SlObject(NULL, _industry_builder_desc);
+	reader->ReadObject(NULL, _industry_builder_desc);
 }
 
 /** Description of the data to save and load in #IndustryTypeBuildData. */
@@ -160,15 +160,15 @@ static void Save_ITBL()
 }
 
 /** Load industry-type build data. */
-static void Load_ITBL()
+static void Load_ITBL(LoadBuffer *reader)
 {
 	int index;
 	for (int i = 0; i < NUM_INDUSTRYTYPES; i++) {
-		index = SlIterateArray();
+		index = reader->IterateChunk();
 		if (index != i) SlErrorCorrupt("Invalid industry-type build data");
-		SlObject(_industry_builder.builddata + i, _industrytype_builder_desc);
+		reader->ReadObject(_industry_builder.builddata + i, _industrytype_builder_desc);
 	}
-	index = SlIterateArray();
+	index = reader->IterateChunk();
 	if (index != -1) SlErrorCorrupt("Invalid industry-type build data");
 }
 

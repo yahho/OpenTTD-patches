@@ -34,13 +34,13 @@ static void Save_GRPS()
 }
 
 
-static void Load_GRPS()
+static void Load_GRPS(LoadBuffer *reader)
 {
 	int index;
 
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		Group *g = new (index) Group();
-		SlObject(g, _group_desc);
+		reader->ReadObject(g, _group_desc);
 	}
 }
 

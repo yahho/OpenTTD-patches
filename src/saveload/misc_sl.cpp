@@ -127,14 +127,14 @@ static void Save_DATE()
 
 /* Load date-related variables as well as persistent tick counters
  * XXX: currently some unrelated stuff is just put here */
-static void Load_DATE()
+static void Load_DATE(LoadBuffer *reader)
 {
-	SlObject(NULL, _date_desc);
+	reader->ReadObject(NULL, _date_desc);
 }
 
-static void Check_DATE()
+static void Check_DATE(LoadBuffer *reader)
 {
-	SlObject(NULL, _date_check_desc);
+	reader->ReadObject(NULL, _date_check_desc);
 	if (IsSavegameVersionBefore(31)) {
 		_load_check_data.current_date += DAYS_TILL_ORIGINAL_BASE_YEAR;
 	}
@@ -155,9 +155,9 @@ static void Save_VIEW()
 	SlRIFFObject(NULL, _view_desc);
 }
 
-static void Load_VIEW()
+static void Load_VIEW(LoadBuffer *reader)
 {
-	SlObject(NULL, _view_desc);
+	reader->ReadObject(NULL, _view_desc);
 }
 
 extern const ChunkHandler _misc_chunk_handlers[] = {

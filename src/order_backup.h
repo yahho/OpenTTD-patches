@@ -17,6 +17,7 @@
 #include "tile_type.h"
 #include "vehicle_type.h"
 #include "base_consist.h"
+#include "saveload/saveload_buffer.h"
 
 /** Unique identifier for an order backup. */
 typedef uint8 OrderBackupID;
@@ -37,7 +38,7 @@ static const uint32 MAKE_ORDER_BACKUP_FLAG = 1U << 31;
 struct OrderBackup : OrderBackupPool::PoolItem<&_order_backup_pool>, BaseConsist {
 private:
 	friend const struct SaveLoad *GetOrderBackupDescription(); ///< Saving and loading of order backups.
-	friend void Load_BKOR();   ///< Creating empty orders upon savegame loading.
+	friend void Load_BKOR(LoadBuffer *);   ///< Creating empty orders upon savegame loading.
 	uint32 user;               ///< The user that requested the backup.
 	TileIndex tile;            ///< Tile of the depot where the order was changed.
 	GroupID group;             ///< The group the vehicle was part of.

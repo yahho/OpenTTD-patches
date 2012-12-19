@@ -38,7 +38,7 @@ void Save_NewGRFMapping(const OverrideManagerBase &mapping)
  * Load a GRF ID + local id -> OpenTTD's id mapping.
  * @param mapping The mapping to load.
  */
-void Load_NewGRFMapping(OverrideManagerBase &mapping)
+void Load_NewGRFMapping(LoadBuffer *reader, OverrideManagerBase &mapping)
 {
 	/* Clear the current mapping stored.
 	 * This will create the manager if ever it is not yet done */
@@ -47,9 +47,9 @@ void Load_NewGRFMapping(OverrideManagerBase &mapping)
 	uint max_id = mapping.GetMaxMapping();
 
 	int index;
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		if ((uint)index >= max_id) break;
-		SlObject(&mapping.mapping_ID[index], _newgrf_mapping_desc);
+		reader->ReadObject(&mapping.mapping_ID[index], _newgrf_mapping_desc);
 	}
 }
 
@@ -77,28 +77,28 @@ static void Save_NGRF()
 }
 
 
-static void Load_NGRF_common(GRFConfig *&grfconfig)
+static void Load_NGRF_common(LoadBuffer *reader, GRFConfig *&grfconfig)
 {
 	ClearGRFConfigList(&grfconfig);
-	while (SlIterateArray() != -1) {
+	while (reader->IterateChunk() != -1) {
 		GRFConfig *c = new GRFConfig();
-		SlObject(c, _grfconfig_desc);
+		reader->ReadObject(c, _grfconfig_desc);
 		if (IsSavegameVersionBefore(101)) c->SetSuitablePalette();
 		AppendToGRFConfigList(&grfconfig, c);
 	}
 }
 
-static void Load_NGRF()
+static void Load_NGRF(LoadBuffer *reader)
 {
-	Load_NGRF_common(_grfconfig);
+	Load_NGRF_common(reader, _grfconfig);
 
 	/* Append static NewGRF configuration, but only if there are some NewGRFs. */
 	if (_game_mode != GM_MENU || _all_grfs != NULL) AppendStaticGRFConfigs(&_grfconfig);
 }
 
-static void Check_NGRF()
+static void Check_NGRF(LoadBuffer *reader)
 {
-	Load_NGRF_common(_load_check_data.grfconfig);
+	Load_NGRF_common(reader, _load_check_data.grfconfig);
 }
 
 extern const ChunkHandler _newgrf_chunk_handlers[] = {

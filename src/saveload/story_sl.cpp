@@ -45,13 +45,13 @@ static void Save_STORY_PAGE_ELEMENT()
 	}
 }
 
-static void Load_STORY_PAGE_ELEMENT()
+static void Load_STORY_PAGE_ELEMENT(LoadBuffer *reader)
 {
 	int index;
 	uint32 max_sort_value = 0;
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		StoryPageElement *s = new (index) StoryPageElement();
-		SlObject(s, _story_page_elements_desc);
+		reader->ReadObject(s, _story_page_elements_desc);
 		if (s->sort_value > max_sort_value) {
 			max_sort_value = s->sort_value;
 		}
@@ -80,13 +80,13 @@ static void Save_STORY_PAGE()
 	}
 }
 
-static void Load_STORY_PAGE()
+static void Load_STORY_PAGE(LoadBuffer *reader)
 {
 	int index;
 	uint32 max_sort_value = 0;
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		StoryPage *s = new (index) StoryPage();
-		SlObject(s, _story_pages_desc);
+		reader->ReadObject(s, _story_pages_desc);
 		if (s->sort_value > max_sort_value) {
 			max_sort_value = s->sort_value;
 		}

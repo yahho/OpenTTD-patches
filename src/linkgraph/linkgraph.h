@@ -21,6 +21,7 @@
 #include "linkgraph_type.h"
 
 struct SaveLoad;
+struct LoadBuffer;
 class LinkGraph;
 
 /**
@@ -505,7 +506,7 @@ protected:
 	friend const SaveLoad *GetLinkGraphDesc();
 	friend const SaveLoad *GetLinkGraphJobDesc();
 	friend void Save_LinkGraph(LinkGraph &lg);
-	friend void Load_LinkGraph(LinkGraph &lg);
+	friend void Load_LinkGraph(LoadBuffer *reader, LinkGraph &lg);
 
 	CargoID cargo;         ///< Cargo of this component's link graph.
 	Date last_compression; ///< Last time the capacities and supplies were compressed.

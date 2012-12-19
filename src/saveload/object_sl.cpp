@@ -38,12 +38,12 @@ static void Save_OBJS()
 	}
 }
 
-static void Load_OBJS()
+static void Load_OBJS(LoadBuffer *reader)
 {
 	int index;
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		Object *o = new (index) Object();
-		SlObject(o, _object_desc);
+		reader->ReadObject(o, _object_desc);
 	}
 }
 
@@ -66,9 +66,9 @@ static void Save_OBID()
 	Save_NewGRFMapping(_object_mngr);
 }
 
-static void Load_OBID()
+static void Load_OBID(LoadBuffer *reader)
 {
-	Load_NewGRFMapping(_object_mngr);
+	Load_NewGRFMapping(reader, _object_mngr);
 }
 
 extern const ChunkHandler _object_chunk_handlers[] = {

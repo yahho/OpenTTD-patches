@@ -33,13 +33,13 @@ static void Save_ERNW()
 	}
 }
 
-static void Load_ERNW()
+static void Load_ERNW(LoadBuffer *reader)
 {
 	int index;
 
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		EngineRenew *er = new (index) EngineRenew();
-		SlObject(er, _engine_renew_desc);
+		reader->ReadObject(er, _engine_renew_desc);
 
 		/* Advanced vehicle lists, ungrouped vehicles got added */
 		if (IsSavegameVersionBefore(60)) {

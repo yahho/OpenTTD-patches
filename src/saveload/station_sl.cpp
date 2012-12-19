@@ -319,20 +319,20 @@ static void SwapPackets(GoodsEntry *ge)
 	}
 }
 
-static void Load_STNS()
+static void Load_STNS(LoadBuffer *reader)
 {
 	int index;
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		Station *st = new (index) Station();
 
-		SlObject(st, _old_station_desc);
+		reader->ReadObject(st, _old_station_desc);
 
 		_waiting_acceptance = 0;
 
 		uint num_cargo = IsSavegameVersionBefore(55) ? 12 : NUM_CARGO;
 		for (CargoID i = 0; i < num_cargo; i++) {
 			GoodsEntry *ge = &st->goods[i];
-			SlObject(ge, GetGoodsDesc());
+			reader->ReadObject(ge, GetGoodsDesc());
 			SwapPackets(ge);
 			if (IsSavegameVersionBefore(68)) {
 				SB(ge->acceptance_pickup, GoodsEntry::GES_ACCEPTANCE, 1, HasBit(_waiting_acceptance, 15));
@@ -358,7 +358,7 @@ static void Load_STNS()
 			/* Allocate speclist memory when loading a game */
 			st->speclist = CallocT<StationSpecList>(st->num_specs);
 			for (uint i = 0; i < st->num_specs; i++) {
-				SlObject(&st->speclist[i], _station_speclist_desc);
+				reader->ReadObject(&st->speclist[i], _station_speclist_desc);
 			}
 		}
 	}
@@ -497,15 +497,15 @@ static void Save_STNN()
 	}
 }
 
-static void Load_STNN()
+static void Load_STNN(LoadBuffer *reader)
 {
 	int index;
 
-	while ((index = SlIterateArray()) != -1) {
-		bool waypoint = (SlReadByte() & FACIL_WAYPOINT) != 0;
+	while ((index = reader->IterateChunk()) != -1) {
+		bool waypoint = (reader->ReadByte() & FACIL_WAYPOINT) != 0;
 
 		BaseStation *bst = waypoint ? (BaseStation *)new (index) Waypoint() : new (index) Station();
-		SlObject(bst, waypoint ? _waypoint_desc : _station_desc);
+		reader->ReadObject(bst, waypoint ? _waypoint_desc : _station_desc);
 
 		if (!waypoint) {
 			Station *st = Station::From(bst);
@@ -519,12 +519,12 @@ static void Load_STNN()
 			}
 
 			for (CargoID i = 0; i < NUM_CARGO; i++) {
-				SlObject(&st->goods[i], GetGoodsDesc());
+				reader->ReadObject(&st->goods[i], GetGoodsDesc());
 				FlowSaveLoad flow;
 				FlowStat *fs = NULL;
 				StationID prev_source = INVALID_STATION;
 				for (uint32 j = 0; j < _num_flows; ++j) {
-					SlObject(&flow, _flow_desc);
+					reader->ReadObject(&flow, _flow_desc);
 					if (fs == NULL || prev_source != flow.source) {
 						fs = &(st->goods[i].flows.insert(std::make_pair(flow.source, FlowStat(flow.via, flow.share))).first->second);
 					} else {
@@ -537,7 +537,7 @@ static void Load_STNN()
 				} else {
 					StationCargoPair pair;
 					for (uint j = 0; j < _num_dests; ++j) {
-						SlObject(&pair, _cargo_list_desc);
+						reader->ReadObject(&pair, _cargo_list_desc);
 						const_cast<StationCargoPacketMap &>(*(st->goods[i].cargo.Packets()))[pair.first].swap(pair.second);
 						assert(pair.second.empty());
 					}
@@ -549,7 +549,7 @@ static void Load_STNN()
 			/* Allocate speclist memory when loading a game */
 			bst->speclist = CallocT<StationSpecList>(bst->num_specs);
 			for (uint i = 0; i < bst->num_specs; i++) {
-				SlObject(&bst->speclist[i], _station_speclist_desc);
+				reader->ReadObject(&bst->speclist[i], _station_speclist_desc);
 			}
 		}
 	}
@@ -593,14 +593,14 @@ static void Save_ROADSTOP()
 	}
 }
 
-static void Load_ROADSTOP()
+static void Load_ROADSTOP(LoadBuffer *reader)
 {
 	int index;
 
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		RoadStop *rs = new (index) RoadStop(INVALID_TILE);
 
-		SlObject(rs, _roadstop_desc);
+		reader->ReadObject(rs, _roadstop_desc);
 	}
 }
 

@@ -2087,11 +2087,11 @@ void IConsoleListSettings(const char *prefilter)
  * @param object can be either NULL in which case we load global variables or
  * a pointer to a struct which is getting saved
  */
-static void LoadSettings(const SettingDesc *osd, void *object)
+static void LoadSettings(LoadBuffer *reader, const SettingDesc *osd, void *object)
 {
 	for (; osd->save.type != SL_END; osd++) {
 		const SaveLoad *sld = &osd->save;
-		if (!SlObjectMember(object, sld)) continue;
+		if (!reader->ReadObjectMember(object, sld)) continue;
 
 		void *ptr = GetVariableAddress(sld, object);
 		if ((sld->type == SL_VAR) && IsNumericType(sld->conv)) Write_ValidateSetting(ptr, osd, ReadValue(ptr, sld->conv));
@@ -2120,27 +2120,27 @@ static void SaveSettings(const SettingDesc *sd, void *object)
 	}
 }
 
-static void Load_OPTS()
+static void Load_OPTS(LoadBuffer *reader)
 {
 	/* Copy over default setting since some might not get loaded in
 	 * a networking environment. This ensures for example that the local
 	 * autosave-frequency stays when joining a network-server */
 	PrepareOldDiffCustom();
-	LoadSettings(_gameopt_settings, &_settings_game);
+	LoadSettings(reader, _gameopt_settings, &_settings_game);
 	HandleOldDiffCustom(true);
 }
 
-static void Load_PATS()
+static void Load_PATS(LoadBuffer *reader)
 {
 	/* Copy over default setting since some might not get loaded in
 	 * a networking environment. This ensures for example that the local
 	 * currency setting stays when joining a network-server */
-	LoadSettings(_settings, &_settings_game);
+	LoadSettings(reader, _settings, &_settings_game);
 }
 
-static void Check_PATS()
+static void Check_PATS(LoadBuffer *reader)
 {
-	LoadSettings(_settings, &_load_check_data.settings);
+	LoadSettings(reader, _settings, &_load_check_data.settings);
 }
 
 static void Save_PATS()

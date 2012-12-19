@@ -19,9 +19,9 @@ static void Save_APID()
 	Save_NewGRFMapping(_airport_mngr);
 }
 
-static void Load_APID()
+static void Load_APID(LoadBuffer *reader)
 {
-	Load_NewGRFMapping(_airport_mngr);
+	Load_NewGRFMapping(reader, _airport_mngr);
 }
 
 static void Save_ATID()
@@ -29,9 +29,9 @@ static void Save_ATID()
 	Save_NewGRFMapping(_airporttile_mngr);
 }
 
-static void Load_ATID()
+static void Load_ATID(LoadBuffer *reader)
 {
-	Load_NewGRFMapping(_airporttile_mngr);
+	Load_NewGRFMapping(reader, _airporttile_mngr);
 }
 
 extern const ChunkHandler _airport_chunk_handlers[] = {

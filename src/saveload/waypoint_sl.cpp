@@ -167,19 +167,19 @@ static const SaveLoad _old_waypoint_desc[] = {
 	SLE_END()
 };
 
-static void Load_WAYP()
+static void Load_WAYP(LoadBuffer *reader)
 {
 	/* Precaution for when loading failed and it didn't get cleared */
 	_old_waypoints.Clear();
 
 	int index;
 
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		OldWaypoint *wp = _old_waypoints.Append();
 		memset(wp, 0, sizeof(*wp));
 
 		wp->index = index;
-		SlObject(wp, _old_waypoint_desc);
+		reader->ReadObject(wp, _old_waypoint_desc);
 	}
 }
 

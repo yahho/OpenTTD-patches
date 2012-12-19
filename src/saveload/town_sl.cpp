@@ -220,9 +220,9 @@ static void Save_HIDS()
 	Save_NewGRFMapping(_house_mngr);
 }
 
-static void Load_HIDS()
+static void Load_HIDS(LoadBuffer *reader)
 {
-	Load_NewGRFMapping(_house_mngr);
+	Load_NewGRFMapping(reader, _house_mngr);
 }
 
 const SaveLoad *GetTileMatrixDesc()
@@ -265,19 +265,19 @@ static void Save_TOWN()
 	}
 }
 
-static void Load_TOWN()
+static void Load_TOWN(LoadBuffer *reader)
 {
 	int index;
 
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		Town *t = new (index) Town();
-		SlObject(t, _town_desc);
+		reader->ReadObject(t, _town_desc);
 
 		for (CargoID i = 0; i < NUM_CARGO; i++) {
-			SlObject(&t->supplied[i], _town_supplied_desc);
+			reader->ReadObject(&t->supplied[i], _town_supplied_desc);
 		}
 		for (int i = TE_BEGIN; i < TE_END; i++) {
-			SlObject(&t->received[i], _town_received_desc);
+			reader->ReadObject(&t->received[i], _town_received_desc);
 		}
 
 		if (t->townnamegrfid == 0 && !IsInsideMM(t->townnametype, SPECSTR_TOWNNAME_START, SPECSTR_TOWNNAME_LAST + 1) && GB(t->townnametype, 11, 5) != 15) {
@@ -286,11 +286,11 @@ static void Load_TOWN()
 
 		if (IsSavegameVersionBefore(166)) continue;
 
-		SlObject(&t->cargo_accepted, GetTileMatrixDesc());
+		reader->ReadObject(&t->cargo_accepted, GetTileMatrixDesc());
 		if (t->cargo_accepted.area.w != 0) {
 			uint arr_len = t->cargo_accepted.area.w / AcceptanceMatrix::GRID * t->cargo_accepted.area.h / AcceptanceMatrix::GRID;
 			t->cargo_accepted.data = MallocT<uint32>(arr_len);
-			SlArray(t->cargo_accepted.data, arr_len, SLE_UINT32);
+			reader->ReadArray(t->cargo_accepted.data, arr_len, SLE_UINT32);
 
 			/* Rebuild total cargo acceptance. */
 			UpdateTownCargoTotal(t);

@@ -35,12 +35,12 @@ static void Save_SUBS()
 	}
 }
 
-static void Load_SUBS()
+static void Load_SUBS(LoadBuffer *reader)
 {
 	int index;
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		Subsidy *s = new (index) Subsidy();
-		SlObject(s, _subsidies_desc);
+		reader->ReadObject(s, _subsidies_desc);
 	}
 }
 

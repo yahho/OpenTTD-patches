@@ -103,14 +103,14 @@ static void Save_RAIL()
 	}
 }
 
-static void Load_RAIL()
+static void Load_RAIL(LoadBuffer *reader)
 {
 	_railtype_list.Clear();
 
 	LabelObject lo;
 
-	while (SlIterateArray() != -1) {
-		SlObject(&lo, _label_object_desc);
+	while (reader->IterateChunk() != -1) {
+		reader->ReadObject(&lo, _label_object_desc);
 		*_railtype_list.Append() = (RailTypeLabel)lo.label;
 	}
 }

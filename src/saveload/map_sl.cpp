@@ -34,30 +34,30 @@ static void Save_MAPS()
 	SlRIFFObject(&map_dim, _map_dimensions);
 }
 
-static void Load_MAPS()
+static void Load_MAPS(LoadBuffer *reader)
 {
 	MapDim map_dim;
-	SlObject(&map_dim, _map_dimensions);
+	reader->ReadObject(&map_dim, _map_dimensions);
 	AllocateMap(map_dim.x, map_dim.y);
 }
 
-static void Check_MAPS()
+static void Check_MAPS(LoadBuffer *reader)
 {
 	MapDim map_dim;
-	SlObject(&map_dim, _map_dimensions);
+	reader->ReadObject(&map_dim, _map_dimensions);
 	_load_check_data.map_size_x = map_dim.x;
 	_load_check_data.map_size_y = map_dim.y;
 }
 
 static const uint MAP_SL_BUF_SIZE = 4096;
 
-static void Load_MAPT()
+static void Load_MAPT(LoadBuffer *reader)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	for (TileIndex i = 0; i != size;) {
-		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		reader->ReadArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _m[i++].type_height = buf[j];
 	}
 }
@@ -74,13 +74,13 @@ static void Save_MAPT()
 	}
 }
 
-static void Load_MAP1()
+static void Load_MAP1(LoadBuffer *reader)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	for (TileIndex i = 0; i != size;) {
-		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		reader->ReadArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _m[i++].m1 = buf[j];
 	}
 }
@@ -97,13 +97,13 @@ static void Save_MAP1()
 	}
 }
 
-static void Load_MAP2()
+static void Load_MAP2(LoadBuffer *reader)
 {
 	SmallStackSafeStackAlloc<uint16, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	for (TileIndex i = 0; i != size;) {
-		SlArray(buf, MAP_SL_BUF_SIZE,
+		reader->ReadArray(buf, MAP_SL_BUF_SIZE,
 			/* In those versions the m2 was 8 bits */
 			IsSavegameVersionBefore(5) ? SLE_FILE_U8 | SLE_VAR_U16 : SLE_UINT16
 		);
@@ -123,13 +123,13 @@ static void Save_MAP2()
 	}
 }
 
-static void Load_MAP3()
+static void Load_MAP3(LoadBuffer *reader)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	for (TileIndex i = 0; i != size;) {
-		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		reader->ReadArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _m[i++].m3 = buf[j];
 	}
 }
@@ -146,13 +146,13 @@ static void Save_MAP3()
 	}
 }
 
-static void Load_MAP4()
+static void Load_MAP4(LoadBuffer *reader)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	for (TileIndex i = 0; i != size;) {
-		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		reader->ReadArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _m[i++].m4 = buf[j];
 	}
 }
@@ -169,13 +169,13 @@ static void Save_MAP4()
 	}
 }
 
-static void Load_MAP5()
+static void Load_MAP5(LoadBuffer *reader)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	for (TileIndex i = 0; i != size;) {
-		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		reader->ReadArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _m[i++].m5 = buf[j];
 	}
 }
@@ -192,7 +192,7 @@ static void Save_MAP5()
 	}
 }
 
-static void Load_MAP6()
+static void Load_MAP6(LoadBuffer *reader)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
@@ -200,7 +200,7 @@ static void Load_MAP6()
 	if (IsSavegameVersionBefore(42)) {
 		for (TileIndex i = 0; i != size;) {
 			/* 1024, otherwise we overflow on 64x64 maps! */
-			SlArray(buf, 1024, SLE_UINT8);
+			reader->ReadArray(buf, 1024, SLE_UINT8);
 			for (uint j = 0; j != 1024; j++) {
 				_m[i++].m6 = GB(buf[j], 0, 2);
 				_m[i++].m6 = GB(buf[j], 2, 2);
@@ -210,7 +210,7 @@ static void Load_MAP6()
 		}
 	} else {
 		for (TileIndex i = 0; i != size;) {
-			SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+			reader->ReadArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 			for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _m[i++].m6 = buf[j];
 		}
 	}
@@ -228,13 +228,13 @@ static void Save_MAP6()
 	}
 }
 
-static void Load_MAP7()
+static void Load_MAP7(LoadBuffer *reader)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	for (TileIndex i = 0; i != size;) {
-		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		reader->ReadArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _me[i++].m7 = buf[j];
 	}
 }

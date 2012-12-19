@@ -167,16 +167,17 @@ static void DoSave_LGRP(LinkGraph *lg)
 
 /**
  * Load a link graph.
+ * @param reader Reader to load the link graph from.
  * @param comp Link graph to be loaded.
  */
-void Load_LinkGraph(LinkGraph &lg)
+void Load_LinkGraph(LoadBuffer *reader, LinkGraph &lg)
 {
 	uint size = lg.Size();
 	for (NodeID from = 0; from < size; ++from) {
 		Node *node = &lg.nodes[from];
-		SlObject(node, _node_desc);
+		reader->ReadObject(node, _node_desc);
 		for (NodeID to = 0; to < size; ++to) {
-			SlObject(&lg.edges[from][to], _edge_desc);
+			reader->ReadObject(&lg.edges[from][to], _edge_desc);
 		}
 	}
 }
@@ -184,47 +185,47 @@ void Load_LinkGraph(LinkGraph &lg)
 /**
  * Load all link graphs.
  */
-static void Load_LGRP()
+static void Load_LGRP(LoadBuffer *reader)
 {
 	int index;
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		if (!LinkGraph::CanAllocateItem()) {
 			/* Impossible as they have been present in previous game. */
 			NOT_REACHED();
 		}
 		LinkGraph *lg = new (index) LinkGraph();
-		SlObject(lg, GetLinkGraphDesc());
+		reader->ReadObject(lg, GetLinkGraphDesc());
 		lg->Init(_num_nodes);
-		Load_LinkGraph(*lg);
+		Load_LinkGraph(reader, *lg);
 	}
 }
 
 /**
  * Load all link graph jobs.
  */
-static void Load_LGRJ()
+static void Load_LGRJ(LoadBuffer *reader)
 {
 	int index;
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		if (!LinkGraphJob::CanAllocateItem()) {
 			/* Impossible as they have been present in previous game. */
 			NOT_REACHED();
 		}
 		LinkGraphJob *lgj = new (index) LinkGraphJob();
-		SlObject(lgj, GetLinkGraphJobDesc());
+		reader->ReadObject(lgj, GetLinkGraphJobDesc());
 		LinkGraph &lg = const_cast<LinkGraph &>(lgj->Graph());
-		SlObject(&lg, GetLinkGraphDesc());
+		reader->ReadObject(&lg, GetLinkGraphDesc());
 		lg.Init(_num_nodes);
-		Load_LinkGraph(lg);
+		Load_LinkGraph(reader, lg);
 	}
 }
 
 /**
  * Load the link graph schedule.
  */
-static void Load_LGRS()
+static void Load_LGRS(LoadBuffer *reader)
 {
-	SlObject(LinkGraphSchedule::Instance(), GetLinkGraphScheduleDesc());
+	reader->ReadObject(LinkGraphSchedule::Instance(), GetLinkGraphScheduleDesc());
 }
 
 /**

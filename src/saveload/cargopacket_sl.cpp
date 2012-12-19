@@ -124,13 +124,13 @@ static void Save_CAPA()
 /**
  * Load the cargo packets.
  */
-static void Load_CAPA()
+static void Load_CAPA(LoadBuffer *reader)
 {
 	int index;
 
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		CargoPacket *cp = new (index) CargoPacket();
-		SlObject(cp, GetCargoPacketDesc());
+		reader->ReadObject(cp, GetCargoPacketDesc());
 	}
 }
 

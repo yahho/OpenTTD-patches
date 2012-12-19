@@ -1000,22 +1000,23 @@ void SlArrayAutoElement(uint index, AutolengthProc *proc, void *arg)
 
 /**
  * Load a chunk of data (eg vehicles, stations, etc.)
+ * @param reader The reader object to read from
  * @param ch The chunkhandler that will be used for the operation
  * @param test Whether the load is done to check a savegame
  */
-static void SlLoadChunk(const ChunkHandler *ch, bool check = false)
+static void SlLoadChunk(LoadBuffer *reader, const ChunkHandler *ch, bool check = false)
 {
-	_sl.reader->BeginChunk();
+	reader->BeginChunk();
 
 	if (!check) {
-		ch->load_proc();
+		ch->load_proc(reader);
 	} else if (ch->load_check_proc) {
-		ch->load_check_proc();
+		ch->load_check_proc(reader);
 	} else {
-		_sl.reader->SkipChunk();
+		reader->SkipChunk();
 	}
 
-	_sl.reader->EndChunk();
+	reader->EndChunk();
 }
 
 /**
@@ -1062,17 +1063,17 @@ static const ChunkHandler *SlFindChunkHandler(uint32 id)
 }
 
 /** Load all chunks */
-static void SlLoadChunks(bool check = false)
+static void SlLoadChunks(LoadBuffer *reader, bool check = false)
 {
 	uint32 id;
 	const ChunkHandler *ch;
 
-	for (id = _sl.reader->ReadUint32(); id != 0; id = _sl.reader->ReadUint32()) {
+	for (id = reader->ReadUint32(); id != 0; id = reader->ReadUint32()) {
 		DEBUG(sl, 2, "Loading chunk %c%c%c%c", id >> 24, id >> 16, id >> 8, id);
 
 		ch = SlFindChunkHandler(id);
 		if (ch == NULL) SlErrorCorrupt("Unknown chunk type");
-		SlLoadChunk(ch, check);
+		SlLoadChunk(reader, ch, check);
 	}
 }
 
@@ -1449,7 +1450,7 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 	}
 
 	/* Load chunks. */
-	SlLoadChunks(load_check);
+	SlLoadChunks(_sl.reader, load_check);
 
 	if (!load_check) {
 		/* Resolve references */

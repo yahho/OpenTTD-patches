@@ -59,15 +59,15 @@ static void Save_ENGN()
 	}
 }
 
-static void Load_ENGN()
+static void Load_ENGN(LoadBuffer *reader)
 {
 	/* As engine data is loaded before engines are initialized we need to load
 	 * this information into a temporary array. This is then copied into the
 	 * engine pool after processing NewGRFs by CopyTempEngineData(). */
 	int index;
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		Engine *e = GetTempDataEngine(index);
-		SlObject(e, _engine_desc);
+		reader->ReadObject(e, _engine_desc);
 
 		if (IsSavegameVersionBefore(179)) {
 			/* preview_company_rank was replaced with preview_company and preview_asked.
@@ -111,13 +111,13 @@ void CopyTempEngineData()
 	_temp_engine.clear();
 }
 
-static void Load_ENGS()
+static void Load_ENGS(LoadBuffer *reader)
 {
 	/* Load old separate String ID list into a temporary array. This
 	 * was always 256 entries. */
 	StringID names[256];
 
-	SlArray(names, lengthof(names), SLE_STRINGID);
+	reader->ReadArray(names, lengthof(names), SLE_STRINGID);
 
 	/* Copy each string into the temporary engine array. */
 	for (EngineID engine = 0; engine < lengthof(names); engine++) {
@@ -144,13 +144,13 @@ static void Save_EIDS()
 	}
 }
 
-static void Load_EIDS()
+static void Load_EIDS(LoadBuffer *reader)
 {
 	_engine_mngr.Clear();
 
-	while (SlIterateArray() != -1) {
+	while (reader->IterateChunk() != -1) {
 		EngineIDMapping *eid = _engine_mngr.Append();
-		SlObject(eid, _engine_id_mapping_desc);
+		reader->ReadObject(eid, _engine_id_mapping_desc);
 	}
 }
 

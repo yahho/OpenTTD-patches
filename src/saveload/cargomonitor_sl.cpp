@@ -46,14 +46,14 @@ static void SaveDelivery()
 }
 
 /** Load the #_cargo_deliveries monitoring map. */
-static void LoadDelivery()
+static void LoadDelivery(LoadBuffer *reader)
 {
 	TempStorage storage;
 
 	ClearCargoDeliveryMonitoring();
 	for (;;) {
-		if (SlIterateArray() < 0) break;
-		SlObject(&storage, _cargomonitor_pair_desc);
+		if (reader->IterateChunk() < 0) break;
+		reader->ReadObject(&storage, _cargomonitor_pair_desc);
 
 		std::pair<CargoMonitorID, uint32> p(storage.number, storage.amount);
 		_cargo_deliveries.insert(p);
@@ -80,14 +80,14 @@ static void SavePickup()
 }
 
 /** Load the #_cargo_pickups monitoring map. */
-static void LoadPickup()
+static void LoadPickup(LoadBuffer *reader)
 {
 	TempStorage storage;
 
 	ClearCargoPickupMonitoring();
 	for (;;) {
-		if (SlIterateArray() < 0) break;
-		SlObject(&storage, _cargomonitor_pair_desc);
+		if (reader->IterateChunk() < 0) break;
+		reader->ReadObject(&storage, _cargomonitor_pair_desc);
 
 		std::pair<CargoMonitorID, uint32> p(storage.number, storage.amount);
 		_cargo_pickups.insert(p);

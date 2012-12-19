@@ -20,6 +20,7 @@
 #include "station_type.h"
 #include "vehicle_type.h"
 #include "date_type.h"
+#include "saveload/saveload_buffer.h"
 
 typedef Pool<Order, OrderID, 256, 64000> OrderPool;
 typedef Pool<OrderList, OrderListID, 128, 64000> OrderListPool;
@@ -34,7 +35,7 @@ extern OrderListPool _orderlist_pool;
 struct Order : OrderPool::PoolItem<&_order_pool> {
 private:
 	friend const struct SaveLoad *GetVehicleDescription(VehicleType vt); ///< Saving and loading the current order of vehicles.
-	friend void Load_VEHS();                                             ///< Loading of ancient vehicles.
+	friend void Load_VEHS(LoadBuffer *reader);                           ///< Loading of ancient vehicles.
 	friend const struct SaveLoad *GetOrderDescription();                 ///< Saving and loading of orders.
 
 	uint8 type;           ///< The type of order + non-stop flags

@@ -32,12 +32,12 @@ static void Save_GOAL()
 	}
 }
 
-static void Load_GOAL()
+static void Load_GOAL(LoadBuffer *reader)
 {
 	int index;
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		Goal *s = new (index) Goal();
-		SlObject(s, _goals_desc);
+		reader->ReadObject(s, _goals_desc);
 	}
 }
 

@@ -869,15 +869,15 @@ static void Save_VEHS()
 }
 
 /** Will be called when vehicles need to be loaded. */
-void Load_VEHS()
+void Load_VEHS(LoadBuffer *reader)
 {
 	int index;
 
 	_cargo_count = 0;
 
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		Vehicle *v;
-		VehicleType vtype = (VehicleType)SlReadByte();
+		VehicleType vtype = (VehicleType)reader->ReadByte();
 
 		switch (vtype) {
 			case VEH_TRAIN:    v = new (index) Train();           break;
@@ -890,7 +890,7 @@ void Load_VEHS()
 			default: SlErrorCorrupt("Invalid vehicle type");
 		}
 
-		SlObject(v, GetVehicleDescription(vtype));
+		reader->ReadObject(v, GetVehicleDescription(vtype));
 
 		if (_cargo_count != 0 && IsCompanyBuildableVehicleType(v) && CargoPacket::CanAllocateItem()) {
 			/* Don't construct the packet with station here, because that'll fail with old savegames */

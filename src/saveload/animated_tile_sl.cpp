@@ -31,12 +31,12 @@ static void Save_ANIT()
 /**
  * Load the ANIT chunk; the chunk containing the animated tiles.
  */
-static void Load_ANIT()
+static void Load_ANIT(LoadBuffer *reader)
 {
 	/* Before version 80 we did NOT have a variable length animated tile table */
 	if (IsSavegameVersionBefore(80)) {
 		/* In pre version 6, we has 16bit per tile, now we have 32bit per tile, convert it ;) */
-		SlArray(_animated_tile_list, 256, IsSavegameVersionBefore(6) ? (SLE_FILE_U16 | SLE_VAR_U32) : SLE_UINT32);
+		reader->ReadArray(_animated_tile_list, 256, IsSavegameVersionBefore(6) ? (SLE_FILE_U16 | SLE_VAR_U32) : SLE_UINT32);
 
 		for (_animated_tile_count = 0; _animated_tile_count < 256; _animated_tile_count++) {
 			if (_animated_tile_list[_animated_tile_count] == 0) break;
@@ -44,14 +44,14 @@ static void Load_ANIT()
 		return;
 	}
 
-	_animated_tile_count = (uint)SlGetFieldLength() / sizeof(*_animated_tile_list);
+	_animated_tile_count = (uint)reader->GetChunkSize() / sizeof(*_animated_tile_list);
 
 	/* Determine a nice rounded size for the amount of allocated tiles */
 	_animated_tile_allocated = 256;
 	while (_animated_tile_allocated < _animated_tile_count) _animated_tile_allocated *= 2;
 
 	_animated_tile_list = ReallocT<TileIndex>(_animated_tile_list, _animated_tile_allocated);
-	SlArray(_animated_tile_list, _animated_tile_count, SLE_UINT32);
+	reader->ReadArray(_animated_tile_list, _animated_tile_count, SLE_UINT32);
 }
 
 /**
