@@ -274,7 +274,6 @@ enum SaveLoadAction {
 
 enum NeedLength {
 	NL_NONE = 0,       ///< not working in NeedLength mode
-	NL_CALCLENGTH = 2, ///< need to calculate the length
 };
 
 /** The saveload struct, containing reader-writer functions, buffer, version, etc. */
@@ -529,19 +528,6 @@ void SlWriteLength(size_t length)
 	_sl.dumper->WriteRIFFSize(length);
 }
 
-/**
- * Adds the length of an object to the accumulated length.
- * This lets us save an object of unknown size
- * @param length The length of the object to add
- */
-static void SlAddLength(size_t length)
-{
-	assert(_sl.action == SLA_SAVE);
-	assert(_sl.need_length == NL_CALCLENGTH);
-
-	_sl.obj_len += (int)length;
-}
-
 /** Get the length of the current object */
 size_t SlGetFieldLength()
 {
@@ -661,12 +647,6 @@ void SlArray(void *array, size_t length, VarType conv)
 {
 	switch (_sl.action) {
 		case SLA_SAVE:
-			/* Are we only computing the length? */
-			if (_sl.need_length != NL_NONE) {
-				SlAddLength(SlCalcArrayLen(length, conv));
-				return;
-			}
-
 			_sl.dumper->WriteArray(array, length, conv);
 			break;
 		case SLA_LOAD_CHECK:
@@ -783,12 +763,6 @@ static inline size_t SlCalcListLen(const void *list)
  */
 static void SlList(void *list, SLRefType conv)
 {
-	/* Are we only computing the length? */
-	if (_sl.need_length != NL_NONE) {
-		SlAddLength(SlCalcListLen(list));
-		return;
-	}
-
 	typedef std::list<void *> PtrList;
 	PtrList *l = (PtrList *)list;
 
@@ -933,12 +907,6 @@ bool SlObjectMember(void *object, const SaveLoad *sld)
  */
 void SlObject(void *object, const SaveLoad *sld)
 {
-	/* Are we only computing the length? */
-	if (_sl.need_length != NL_NONE) {
-		SlAddLength(SlCalcObjLength(object, sld));
-		return;
-	}
-
 	for (; sld->type != SL_END; sld++) {
 		SlObjectMember(object, sld);
 	}
