@@ -484,75 +484,6 @@ void ProcessAsyncSaveFinish()
 
 
 /**
- * Handle all conversion and typechecking of variables here.
- * In the case of saving, read in the actual value from the struct
- * and then write them to file, endian safely. Loading a value
- * goes exactly the opposite way
- * @param ptr The object being filled/read
- * @param conv VarType type of the current element of the struct
- */
-static void SlSaveLoadConv(void *ptr, VarType conv)
-{
-	switch (_sl.action) {
-		case SLA_SAVE:
-			_sl.dumper->WriteVar(ptr, conv);
-			break;
-		case SLA_LOAD_CHECK:
-		case SLA_LOAD:
-			_sl.reader->ReadVar(ptr, conv);
-			break;
-		case SLA_PTRS: break;
-		case SLA_NULL: break;
-		default: NOT_REACHED();
-	}
-}
-
-/**
- * Save/Load a string.
- * @param ptr the string being manipulated
- * @param length of the string (full length)
- * @param conv StrType type of the current element of the struct
- */
-static void SlString(void *ptr, size_t length, StrType conv)
-{
-	switch (_sl.action) {
-		case SLA_SAVE:
-			_sl.dumper->WriteString(ptr, length, conv);
-			break;
-		case SLA_LOAD_CHECK:
-		case SLA_LOAD:
-			_sl.reader->ReadString(ptr, length, conv);
-			break;
-		case SLA_PTRS: break;
-		case SLA_NULL: break;
-		default: NOT_REACHED();
-	}
-}
-
-/**
- * Save/Load an array.
- * @param array The array being manipulated
- * @param length The length of the array in elements
- * @param conv VarType type of the atomic array (int, byte, uint64, etc.)
- */
-void SlArray(void *array, size_t length, VarType conv)
-{
-	switch (_sl.action) {
-		case SLA_SAVE:
-			_sl.dumper->WriteArray(array, length, conv);
-			break;
-		case SLA_LOAD_CHECK:
-		case SLA_LOAD:
-			_sl.reader->ReadArray(array, length, conv);
-			break;
-		case SLA_PTRS: break;
-		case SLA_NULL: break;
-		default: NOT_REACHED();
-	}
-}
-
-
-/**
  * Pointers cannot be loaded from a savegame, so this function
  * gets the index from the savegame and returns the appropriate
  * pointer from the already loaded base.
@@ -644,102 +575,49 @@ static void SlList(void *list, SLRefType conv)
 	typedef std::list<void *> PtrList;
 	PtrList *l = (PtrList *)list;
 
-	switch (_sl.action) {
-		case SLA_SAVE:
-			_sl.dumper->WriteList(list, conv);
-			break;
-		case SLA_LOAD_CHECK:
-		case SLA_LOAD:
-			_sl.reader->ReadList(list, conv);
-			break;
-		case SLA_PTRS: {
-			PtrList temp = *l;
+	if (_sl.action == SLA_PTRS) {
+		PtrList temp = *l;
 
-			l->clear();
-			PtrList::iterator iter;
-			for (iter = temp.begin(); iter != temp.end(); ++iter) {
-				void *ptr = IntToReference((size_t)*iter, conv);
-				l->push_back(ptr);
+		l->clear();
+		PtrList::iterator iter;
+		for (iter = temp.begin(); iter != temp.end(); ++iter) {
+			void *ptr = IntToReference((size_t)*iter, conv);
+			l->push_back(ptr);
+		}
+	} else {
+		l->clear();
+	}
+}
+
+static void SlObjectMember(void *object, const SaveLoad *sld)
+{
+	assert((_sl.action == SLA_PTRS) || (_sl.action == SLA_NULL));
+
+	/* CONDITIONAL saveload types depend on the savegame version */
+	if (!SlIsObjectValidInSavegame(sld)) return;
+
+	switch (sld->type) {
+		case SL_REF: {
+			void **ptr = (void **)GetVariableAddress(sld, object);
+
+			if (_sl.action == SLA_PTRS) {
+				*ptr = IntToReference(*(size_t *)ptr, (SLRefType)sld->conv);
+			} else {
+				*ptr = NULL;
 			}
 			break;
 		}
-		case SLA_NULL:
-			l->clear();
-			break;
-		default: NOT_REACHED();
-	}
-}
 
-
-/**
- * Are we going to load this variable when loading a savegame or not?
- * @note If the variable is skipped it is skipped in the savegame
- * bytestream itself as well, so there is no need to skip it somewhere else
- */
-static inline bool SlSkipVariableOnLoad(const SaveLoad *sld)
-{
-	if ((sld->flags & SLF_NO_NETWORK_SYNC) && _sl.action != SLA_SAVE && _networking && !_network_server) {
-		assert((sld->type == SL_ARR) || (sld->type == SL_STR));
-		size_t skip = (sld->type == SL_STR) ?
-			_sl.reader->ReadGamma() : SlCalcConvFileLen(sld->conv);
-		_sl.reader->Skip(skip * sld->length);
-		return true;
-	}
-
-	return false;
-}
-
-
-bool SlObjectMember(void *object, const SaveLoad *sld)
-{
-	/* CONDITIONAL saveload types depend on the savegame version */
-	if (!SlIsObjectValidInSavegame(sld)) return false;
-	if (SlSkipVariableOnLoad(sld)) return false;
-
-	void *ptr = GetVariableAddress(sld, object);
-
-	switch (sld->type) {
-		case SL_VAR: SlSaveLoadConv(ptr, sld->conv); break;
-		case SL_REF: // Reference variable, translate
-			switch (_sl.action) {
-				case SLA_SAVE:
-					_sl.dumper->WriteRef(*(void **)ptr, (SLRefType)sld->conv);
-					break;
-				case SLA_LOAD_CHECK:
-				case SLA_LOAD:
-					*(size_t *)ptr = IsSavegameVersionBefore(69) ? _sl.reader->ReadUint16() : _sl.reader->ReadUint32();
-					break;
-				case SLA_PTRS:
-					*(void **)ptr = IntToReference(*(size_t *)ptr, (SLRefType)sld->conv);
-					break;
-				case SLA_NULL:
-					*(void **)ptr = NULL;
-					break;
-				default: NOT_REACHED();
-			}
-			break;
-		case SL_ARR: SlArray(ptr, sld->length, sld->conv); break;
-		case SL_STR: SlString(ptr, sld->length, sld->conv); break;
-		case SL_LST: SlList(ptr, (SLRefType)sld->conv); break;
-
-		case SL_WRITEBYTE:
-			switch (_sl.action) {
-				case SLA_SAVE: _sl.dumper->WriteByte(sld->conv); break;
-				case SLA_LOAD_CHECK:
-				case SLA_LOAD: *(byte *)ptr = sld->conv; break;
-				case SLA_PTRS: break;
-				case SLA_NULL: break;
-				default: NOT_REACHED();
-			}
+		case SL_LST:
+			SlList(GetVariableAddress(sld, object), (SLRefType)sld->conv);
 			break;
 
 		case SL_INCLUDE:
 			SlObject(object, (SaveLoad*)sld->address);
 			break;
 
-		default: NOT_REACHED();
+		default: break;
 	}
-	return true;
 }
 
 /**
