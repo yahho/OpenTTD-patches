@@ -272,19 +272,9 @@ enum SaveLoadAction {
 	SLA_LOAD_CHECK,  ///< partial loading into #_load_check_data
 };
 
-enum NeedLength {
-	NL_NONE = 0,       ///< not working in NeedLength mode
-};
-
 /** The saveload struct, containing reader-writer functions, buffer, version, etc. */
 struct SaveLoadParams {
 	SaveLoadAction action;               ///< are we doing a save or a load atm.
-	NeedLength need_length;              ///< working in NeedLength (Autolength) mode?
-	byte block_mode;                     ///< ???
-	bool error;                          ///< did an error occur or not
-
-	size_t obj_len;                      ///< the length of the current object we are busy with
-	int array_index, last_array_index;   ///< in the case of an array, the current and last positions
 
 	SaveDumper *dumper;                  ///< Memory dumper to write the savegame to.
 	SaveFilter *sf;                      ///< Filter to write the savegame to.
