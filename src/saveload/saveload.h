@@ -448,9 +448,6 @@ typedef SaveLoad SaveLoadGlobVarList;
  */
 #define SLEG_CONDNULL(length, from, to) {true, SL_ARR, SLE_FILE_U8 | SLE_VAR_NULL | SLF_NOT_IN_CONFIG, length, from, to, (void*)NULL}
 
-/** End marker of global variables save or load. */
-#define SLEG_END() {true, SL_END, 0, 0, 0, 0, NULL}
-
 /**
  * Checks whether the savegame is below \a major.\a minor.
  * @param major Major number of the version to check against.

@@ -127,7 +127,7 @@ static void Ptrs_INDY()
 /** Description of the data to save and load in #IndustryBuildData. */
 static const SaveLoad _industry_builder_desc[] = {
 	SLEG_VAR(_industry_builder.wanted_inds, SLE_UINT32),
-	SLEG_END()
+	 SLE_END()
 };
 
 /** Load/save industry builder. */

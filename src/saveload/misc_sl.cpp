@@ -90,7 +90,7 @@ static const SaveLoadGlobVarList _date_desc[] = {
 	    SLEG_VAR(_trees_tick_ctr,         SLE_UINT8),
 	SLEG_CONDVAR(_pause_mode,             SLE_UINT8,                   4, SL_MAX_VERSION),
 	SLE_CONDNULL(4, 11, 119),
-	    SLEG_END()
+	     SLE_END()
 };
 
 static const SaveLoadGlobVarList _date_check_desc[] = {
@@ -115,7 +115,7 @@ static const SaveLoadGlobVarList _date_check_desc[] = {
 	    SLE_NULL(1),                       // _trees_tick_ctr
 	SLE_CONDNULL(1, 4, SL_MAX_VERSION),    // _pause_mode
 	SLE_CONDNULL(4, 11, 119),
-	    SLEG_END()
+	     SLE_END()
 };
 
 /* Save load date related variables as well as persistent tick counters
@@ -140,7 +140,7 @@ static const SaveLoadGlobVarList _view_desc[] = {
 	SLEG_CONDVAR(_saved_scrollpos_y,    SLE_FILE_I16 | SLE_VAR_I32, 0, 5),
 	SLEG_CONDVAR(_saved_scrollpos_y,    SLE_INT32,                  6, SL_MAX_VERSION),
 	    SLEG_VAR(_saved_scrollpos_zoom, SLE_UINT8),
-	    SLEG_END()
+	     SLE_END()
 };
 
 static void SaveLoad_VIEW()

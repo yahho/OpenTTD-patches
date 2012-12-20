@@ -59,6 +59,8 @@ static size_t ConvertLandscape(const char *value);
 #define NSD_GENERAL(name, def, cmd, guiflags, min, max, interval, many, str, strhelp, strval, proc, load, cat)\
 	{name, (const void*)(size_t)(def), {(byte)cmd}, {(uint16)guiflags}, min, max, interval, many, str, strhelp, strval, proc, load, cat}
 
+#define SDT_END() {{NULL, NULL, {0}, {0}, 0, 0, 0, NULL, STR_NULL, STR_NULL, STR_NULL, NULL, NULL, SC_NONE}, SLE_END()}
+
 /* Macros for various objects to go in the configuration file.
  * This section is for global variables */
 #define SDTG_GENERAL(name, sdt_cmd, sle_cmd, conv, flags, guiflags, var, length, def, min, max, interval, full, str, strhelp, strval, proc, from, to, cat)\
@@ -84,8 +86,6 @@ static size_t ConvertLandscape(const char *value);
 
 #define SDTG_NULL(length, from, to)\
 	{{"", NULL, {0}, {0}, 0, 0, 0, NULL, STR_NULL, STR_NULL, STR_NULL, NULL, NULL, SC_NONE}, SLEG_NULL(length, from, to)}
-
-#define SDTG_END() {{NULL, NULL, {0}, {0}, 0, 0, 0, NULL, STR_NULL, STR_NULL, STR_NULL, NULL, NULL, SC_NONE}, SLEG_END()}
 
 /* Macros for various objects to go in the configuration file.
  * This section is for structures where their various members are saved */
@@ -131,6 +131,4 @@ static size_t ConvertLandscape(const char *value);
 
 #define SDTC_OMANY(var, conv, flags, guiflags, def, max, full, str, strhelp, strval, proc, from, to, cat)\
 	SDTG_GENERAL(#var, SDT_ONEOFMANY, SL_VAR, conv, flags, guiflags, _settings_client.var, 1, def, 0, max, 0, full, str, strhelp, strval, proc, from, to, cat)
-
-#define SDT_END() {{NULL, NULL, {0}, {0}, 0, 0, 0, NULL, STR_NULL, STR_NULL, STR_NULL, NULL, NULL, SC_NONE}, SLE_END()}
 
