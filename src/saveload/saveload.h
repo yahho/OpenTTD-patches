@@ -275,7 +275,7 @@ typedef SaveLoad SaveLoadGlobVarList;
  * Storage of a list in some savegame versions.
  * @param base     Name of the class or struct containing the list.
  * @param variable Name of the variable in the class or struct referenced by \a base.
- * @param type     Storage of the data in memory and in the savegame.
+ * @param type     Type of the reference, a value from #SLRefType.
  * @param from     First savegame version that has the list.
  * @param to       Last savegame version that has the list.
  */
@@ -319,7 +319,7 @@ typedef SaveLoad SaveLoadGlobVarList;
  * Storage of a list in every savegame version.
  * @param base     Name of the class or struct containing the list.
  * @param variable Name of the variable in the class or struct referenced by \a base.
- * @param type     Storage of the data in memory and in the savegame.
+ * @param type     Type of the reference, a value from #SLRefType.
  */
 #define SLE_LST(base, variable, type) SLE_CONDLST(base, variable, type, 0, SL_MAX_VERSION)
 
@@ -370,7 +370,7 @@ typedef SaveLoad SaveLoadGlobVarList;
 /**
  * Storage of a global reference in some savegame versions.
  * @param variable Name of the global variable.
- * @param type     Storage of the data in memory and in the savegame.
+ * @param type     Type of the reference, a value from #SLRefType.
  * @param from     First savegame version that has the field.
  * @param to       Last savegame version that has the field.
  */
@@ -399,7 +399,7 @@ typedef SaveLoad SaveLoadGlobVarList;
 /**
  * Storage of a global list in some savegame versions.
  * @param variable Name of the global variable.
- * @param type     Storage of the data in memory and in the savegame.
+ * @param type     Type of the reference, a value from #SLRefType.
  * @param from     First savegame version that has the list.
  * @param to       Last savegame version that has the list.
  */
@@ -415,7 +415,7 @@ typedef SaveLoad SaveLoadGlobVarList;
 /**
  * Storage of a global reference in every savegame version.
  * @param variable Name of the global variable.
- * @param type     Storage of the data in memory and in the savegame.
+ * @param type     Type of the reference, a value from #SLRefType.
  */
 #define SLEG_REF(variable, type) SLEG_CONDREF(variable, type, 0, SL_MAX_VERSION)
 
@@ -436,7 +436,7 @@ typedef SaveLoad SaveLoadGlobVarList;
 /**
  * Storage of a global list in every savegame version.
  * @param variable Name of the global variable.
- * @param type     Storage of the data in memory and in the savegame.
+ * @param type     Type of the reference, a value from #SLRefType.
  */
 #define SLEG_LST(variable, type) SLEG_CONDLST(variable, type, 0, SL_MAX_VERSION)
 
