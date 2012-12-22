@@ -1423,72 +1423,53 @@ size_t SlCalcObjMemberLength(const void *object, const SaveLoad *sld)
 {
 	assert(_sl.action == SLA_SAVE);
 
-	switch (sld->type) {
-		case SL_VAR:
-		case SL_REF:
-		case SL_ARR:
-		case SL_STR:
-		case SL_LST:
-			/* CONDITIONAL saveload types depend on the savegame version */
-			if (!SlIsObjectValidInSavegame(sld)) break;
+	/* CONDITIONAL saveload types depend on the savegame version */
+	if (!SlIsObjectValidInSavegame(sld)) return 0;
 
-			switch (sld->type) {
-				case SL_VAR: return SlCalcConvFileLen(sld->conv);
-				case SL_REF: return SlCalcRefLen();
-				case SL_ARR: return SlCalcArrayLen(sld->length, sld->conv);
-				case SL_STR: return SlCalcStringLen(GetVariableAddress(object, sld), sld->length, sld->conv);
-				case SL_LST: return SlCalcListLen(GetVariableAddress(object, sld));
-				default: NOT_REACHED();
-			}
-			break;
+	switch (sld->type) {
+		case SL_VAR: return SlCalcConvFileLen(sld->conv);
+		case SL_REF: return SlCalcRefLen();
+		case SL_ARR: return SlCalcArrayLen(sld->length, sld->conv);
+		case SL_STR: return SlCalcStringLen(GetVariableAddress(object, sld), sld->length, sld->conv);
+		case SL_LST: return SlCalcListLen(GetVariableAddress(object, sld));
 		case SL_WRITEBYTE: return 1; // a byte is logically of size 1
 		case SL_VEH_INCLUDE: return SlCalcObjLength(object, GetVehicleDescription(VEH_END));
 		case SL_ST_INCLUDE: return SlCalcObjLength(object, GetBaseStationDescription());
 		default: NOT_REACHED();
 	}
-	return 0;
 }
 
 
 bool SlObjectMember(void *ptr, const SaveLoad *sld)
 {
+	/* CONDITIONAL saveload types depend on the savegame version */
+	if (!SlIsObjectValidInSavegame(sld)) return false;
+	if (SlSkipVariableOnLoad(sld)) return false;
+
 	VarType conv = GB(sld->conv, 0, 8);
 	switch (sld->type) {
-		case SL_VAR:
-		case SL_REF:
-		case SL_ARR:
-		case SL_STR:
-		case SL_LST:
-			/* CONDITIONAL saveload types depend on the savegame version */
-			if (!SlIsObjectValidInSavegame(sld)) return false;
-			if (SlSkipVariableOnLoad(sld)) return false;
-
-			switch (sld->type) {
-				case SL_VAR: SlSaveLoadConv(ptr, conv); break;
-				case SL_REF: // Reference variable, translate
-					switch (_sl.action) {
-						case SLA_SAVE:
-							SlWriteUint32((uint32)ReferenceToInt(*(void **)ptr, (SLRefType)conv));
-							break;
-						case SLA_LOAD_CHECK:
-						case SLA_LOAD:
-							*(size_t *)ptr = IsSavegameVersionBefore(69) ? SlReadUint16() : SlReadUint32();
-							break;
-						case SLA_PTRS:
-							*(void **)ptr = IntToReference(*(size_t *)ptr, (SLRefType)conv);
-							break;
-						case SLA_NULL:
-							*(void **)ptr = NULL;
-							break;
-						default: NOT_REACHED();
-					}
+		case SL_VAR: SlSaveLoadConv(ptr, conv); break;
+		case SL_REF: // Reference variable, translate
+			switch (_sl.action) {
+				case SLA_SAVE:
+					SlWriteUint32((uint32)ReferenceToInt(*(void **)ptr, (SLRefType)conv));
 					break;
-				case SL_ARR: SlArray(ptr, sld->length, conv); break;
-				case SL_STR: SlString(ptr, sld->length, sld->conv); break;
-				case SL_LST: SlList(ptr, (SLRefType)conv); break;
+				case SLA_LOAD_CHECK:
+				case SLA_LOAD:
+					*(size_t *)ptr = IsSavegameVersionBefore(69) ? SlReadUint16() : SlReadUint32();
+					break;
+				case SLA_PTRS:
+					*(void **)ptr = IntToReference(*(size_t *)ptr, (SLRefType)conv);
+					break;
+				case SLA_NULL:
+					*(void **)ptr = NULL;
+					break;
 				default: NOT_REACHED();
 			}
 			break;
+		case SL_ARR: SlArray(ptr, sld->length, conv); break;
+		case SL_STR: SlString(ptr, sld->length, sld->conv); break;
+		case SL_LST: SlList(ptr, (SLRefType)conv); break;
 
 		case SL_WRITEBYTE:
 			switch (_sl.action) {
