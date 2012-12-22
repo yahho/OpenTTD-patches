@@ -579,37 +579,6 @@ static void SlList(void *list, SLRefType conv)
 	}
 }
 
-static void SlObjectMember(void *object, const SaveLoad *sld)
-{
-	assert((_sl.action == SLA_PTRS) || (_sl.action == SLA_NULL));
-
-	/* CONDITIONAL saveload types depend on the savegame version */
-	if (!SlIsObjectValidInSavegame(sld)) return;
-
-	switch (sld->type) {
-		case SL_REF: {
-			void **ptr = (void **)GetVariableAddress(sld, object);
-
-			if (_sl.action == SLA_PTRS) {
-				*ptr = IntToReference(*(size_t *)ptr, (SLRefType)sld->conv);
-			} else {
-				*ptr = NULL;
-			}
-			break;
-		}
-
-		case SL_LST:
-			SlList(GetVariableAddress(sld, object), (SLRefType)sld->conv);
-			break;
-
-		case SL_INCLUDE:
-			SlObject(object, (SaveLoad*)sld->address);
-			break;
-
-		default: break;
-	}
-}
-
 /**
  * Main SaveLoad function.
  * @param object The object that is being saved or loaded
@@ -617,8 +586,34 @@ static void SlObjectMember(void *object, const SaveLoad *sld)
  */
 void SlObject(void *object, const SaveLoad *sld)
 {
+	assert((_sl.action == SLA_PTRS) || (_sl.action == SLA_NULL));
+
 	for (; sld->type != SL_END; sld++) {
-		SlObjectMember(object, sld);
+		/* CONDITIONAL saveload types depend on the savegame version */
+		if (!SlIsObjectValidInSavegame(sld)) continue;
+
+		switch (sld->type) {
+			case SL_REF: {
+				void **ptr = (void **)GetVariableAddress(sld, object);
+
+				if (_sl.action == SLA_PTRS) {
+					*ptr = IntToReference(*(size_t *)ptr, (SLRefType)sld->conv);
+				} else {
+					*ptr = NULL;
+				}
+				break;
+			}
+
+			case SL_LST:
+				SlList(GetVariableAddress(sld, object), (SLRefType)sld->conv);
+				break;
+
+			case SL_INCLUDE:
+				SlObject(object, (SaveLoad*)sld->address);
+				break;
+
+			default: break;
+		}
 	}
 }
 
