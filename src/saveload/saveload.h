@@ -517,9 +517,14 @@ static inline bool IsNumericType(VarType conv)
  * is taken. If non-null only the offset is stored in the union and we need
  * to add this to the address of the object
  */
-static inline void *GetVariableAddress(const SaveLoad *sld, const void *object = NULL)
+static inline void *GetVariableAddress(const SaveLoad *sld, void *object = NULL)
 {
-	return const_cast<byte *>((const byte*)(sld->global ? NULL : object) + (ptrdiff_t)sld->address);
+	return sld->global ? sld->address : ((byte*)object + (ptrdiff_t)sld->address);
+}
+
+static inline const void *GetVariableAddress(const SaveLoad *sld, const void *object)
+{
+	return GetVariableAddress(sld, const_cast<void *>(object));
 }
 
 int64 ReadValue(const void *ptr, VarType conv);
