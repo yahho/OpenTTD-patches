@@ -554,31 +554,6 @@ static void *IntToReference(size_t index, SLRefType rt)
 	}
 }
 
-
-/**
- * Save/Load a list.
- * @param list The list being manipulated
- * @param conv SLRefType type of the list (Vehicle *, Station *, etc)
- */
-static void SlList(void *list, SLRefType conv)
-{
-	typedef std::list<void *> PtrList;
-	PtrList *l = (PtrList *)list;
-
-	if (_sl.action == SLA_PTRS) {
-		PtrList temp = *l;
-
-		l->clear();
-		PtrList::iterator iter;
-		for (iter = temp.begin(); iter != temp.end(); ++iter) {
-			void *ptr = IntToReference((size_t)*iter, conv);
-			l->push_back(ptr);
-		}
-	} else {
-		l->clear();
-	}
-}
-
 /**
  * Main SaveLoad function.
  * @param object The object that is being saved or loaded
@@ -604,9 +579,23 @@ void SlObject(void *object, const SaveLoad *sld)
 				break;
 			}
 
-			case SL_LST:
-				SlList(GetVariableAddress(sld, object), (SLRefType)sld->conv);
+			case SL_LST: {
+				typedef std::list<void *> PtrList;
+				PtrList *l = (PtrList *)GetVariableAddress(sld, object);
+
+				if (_sl.action == SLA_PTRS) {
+					PtrList temp = *l;
+
+					l->clear();
+					PtrList::iterator iter;
+					for (iter = temp.begin(); iter != temp.end(); ++iter) {
+						l->push_back(IntToReference((size_t)*iter, (SLRefType)sld->conv));
+					}
+				} else {
+					l->clear();
+				}
 				break;
+			}
 
 			case SL_INCLUDE:
 				SlObject(object, (SaveLoad*)sld->address);
