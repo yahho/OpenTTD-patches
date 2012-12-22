@@ -61,7 +61,7 @@ const SaveLoad *GetLinkGraphJobDesc()
 
 		int setting = 0;
 		const SettingDesc *desc = GetSettingDescription(setting);
-		while (desc->save.cmd != SL_END) {
+		while (desc->save.type != SL_END) {
 			if (desc->desc.name != NULL && strncmp(desc->desc.name, prefix, prefixlen) == 0) {
 				SaveLoad sl = desc->save;
 				char *&address = reinterpret_cast<char *&>(sl.address);
@@ -81,7 +81,7 @@ const SaveLoad *GetLinkGraphJobDesc()
 		int i = 0;
 		do {
 			*(saveloads.Append()) = job_desc[i++];
-		} while (saveloads[saveloads.Length() - 1].cmd != SL_END);
+		} while (saveloads[saveloads.Length() - 1].type != SL_END);
 	}
 
 	return &saveloads[0];

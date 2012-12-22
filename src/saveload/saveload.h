@@ -201,7 +201,7 @@ typedef byte SaveLoadType; ///< Save/load type. @see SaveLoadTypes
 /** SaveLoad type struct. Do NOT use this directly but use the SLE_ macros defined just below! */
 struct SaveLoad {
 	bool global;         ///< should we load a global variable or a non-global one
-	SaveLoadType cmd;    ///< the action to take with the saved/loaded type, All types need different action
+	SaveLoadType type;   ///< object type
 	VarType conv;        ///< type of the variable to be saved, int
 	uint16 length;       ///< (conditional) length of the variable (eg. arrays) (max array size is 65536 elements)
 	uint16 version_from; ///< save/load the variable starting from this savegame version
@@ -218,7 +218,7 @@ typedef SaveLoad SaveLoadGlobVarList;
 
 /**
  * Storage of simple variables, references (pointers), and arrays.
- * @param cmd      Load/save type. @see SaveLoadType
+ * @param type     Load/save type. @see SaveLoadType
  * @param base     Name of the class or struct containing the variable.
  * @param variable Name of the variable in the class or struct referenced by \a base.
  * @param conv     Subtype/conversion of the data between memory and savegame.
@@ -227,7 +227,7 @@ typedef SaveLoad SaveLoadGlobVarList;
  * @param to       Last savegame version that has the field.
  * @note In general, it is better to use one of the SLE_* macros below.
  */
-#define SLE_GENERAL(cmd, base, variable, conv, length, from, to) {false, cmd, conv, length, from, to, (void*)cpp_offsetof(base, variable)}
+#define SLE_GENERAL(type, base, variable, conv, length, from, to) {false, type, conv, length, from, to, (void*)cpp_offsetof(base, variable)}
 
 /**
  * Storage of a variable in some savegame versions.
@@ -348,7 +348,7 @@ typedef SaveLoad SaveLoadGlobVarList;
 
 /**
  * Storage of global simple variables, references (pointers), and arrays.
- * @param cmd      Load/save type. @see SaveLoadType
+ * @param type     Load/save type. @see SaveLoadType
  * @param variable Name of the global variable.
  * @param conv     Subtype/conversion of the data between memory and savegame.
  * @param length   Length of object (for arrays and strings)
@@ -356,7 +356,7 @@ typedef SaveLoad SaveLoadGlobVarList;
  * @param to       Last savegame version that has the field.
  * @note In general, it is better to use one of the SLEG_* macros below.
  */
-#define SLEG_GENERAL(cmd, variable, conv, length, from, to) {true, cmd, conv, length, from, to, (void*)&variable}
+#define SLEG_GENERAL(type, variable, conv, length, from, to) {true, type, conv, length, from, to, (void*)&variable}
 
 /**
  * Storage of a global variable in some savegame versions.

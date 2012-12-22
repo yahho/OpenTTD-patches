@@ -1413,7 +1413,7 @@ size_t SlCalcObjLength(const void *object, const SaveLoad *sld)
 	size_t length = 0;
 
 	/* Need to determine the length and write a length tag. */
-	for (; sld->cmd != SL_END; sld++) {
+	for (; sld->type != SL_END; sld++) {
 		length += SlCalcObjMemberLength(object, sld);
 	}
 	return length;
@@ -1423,7 +1423,7 @@ size_t SlCalcObjMemberLength(const void *object, const SaveLoad *sld)
 {
 	assert(_sl.action == SLA_SAVE);
 
-	switch (sld->cmd) {
+	switch (sld->type) {
 		case SL_VAR:
 		case SL_REF:
 		case SL_ARR:
@@ -1432,7 +1432,7 @@ size_t SlCalcObjMemberLength(const void *object, const SaveLoad *sld)
 			/* CONDITIONAL saveload types depend on the savegame version */
 			if (!SlIsObjectValidInSavegame(sld)) break;
 
-			switch (sld->cmd) {
+			switch (sld->type) {
 				case SL_VAR: return SlCalcConvFileLen(sld->conv);
 				case SL_REF: return SlCalcRefLen();
 				case SL_ARR: return SlCalcArrayLen(sld->length, sld->conv);
@@ -1453,7 +1453,7 @@ size_t SlCalcObjMemberLength(const void *object, const SaveLoad *sld)
 bool SlObjectMember(void *ptr, const SaveLoad *sld)
 {
 	VarType conv = GB(sld->conv, 0, 8);
-	switch (sld->cmd) {
+	switch (sld->type) {
 		case SL_VAR:
 		case SL_REF:
 		case SL_ARR:
@@ -1463,7 +1463,7 @@ bool SlObjectMember(void *ptr, const SaveLoad *sld)
 			if (!SlIsObjectValidInSavegame(sld)) return false;
 			if (SlSkipVariableOnLoad(sld)) return false;
 
-			switch (sld->cmd) {
+			switch (sld->type) {
 				case SL_VAR: SlSaveLoadConv(ptr, conv); break;
 				case SL_REF: // Reference variable, translate
 					switch (_sl.action) {
@@ -1533,7 +1533,7 @@ void SlObject(void *object, const SaveLoad *sld)
 		if (_sl.need_length == NL_CALCLENGTH) return;
 	}
 
-	for (; sld->cmd != SL_END; sld++) {
+	for (; sld->type != SL_END; sld++) {
 		void *ptr = sld->global ? sld->address : GetVariableAddress(object, sld);
 		SlObjectMember(ptr, sld);
 	}

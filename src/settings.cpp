@@ -480,7 +480,7 @@ static void IniLoadSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 	void *ptr;
 	const char *s;
 
-	for (; sd->save.cmd != SL_END; sd++) {
+	for (; sd->save.type != SL_END; sd++) {
 		const SettingDescBase *sdb = &sd->desc;
 		const SaveLoad        *sld = &sd->save;
 
@@ -577,7 +577,7 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 	const char *s;
 	void *ptr;
 
-	for (; sd->save.cmd != SL_END; sd++) {
+	for (; sd->save.type != SL_END; sd++) {
 		const SettingDescBase *sdb = &sd->desc;
 		const SaveLoad        *sld = &sd->save;
 
@@ -1872,7 +1872,7 @@ void SetDefaultCompanySettings(CompanyID cid)
 {
 	Company *c = Company::Get(cid);
 	const SettingDesc *sd;
-	for (sd = _company_settings; sd->save.cmd != SL_END; sd++) {
+	for (sd = _company_settings; sd->save.type != SL_END; sd++) {
 		void *var = GetVariableAddress(&c->settings, &sd->save);
 		Write_ValidateSetting(var, sd, (int32)(size_t)sd->desc.def);
 	}
@@ -1886,7 +1886,7 @@ void SyncCompanySettings()
 {
 	const SettingDesc *sd;
 	uint i = 0;
-	for (sd = _company_settings; sd->save.cmd != SL_END; sd++, i++) {
+	for (sd = _company_settings; sd->save.type != SL_END; sd++, i++) {
 		const void *old_var = GetVariableAddress(&Company::Get(_current_company)->settings, &sd->save);
 		const void *new_var = GetVariableAddress(&_settings_client.company, &sd->save);
 		uint32 old_value = (uint32)ReadValue(old_var, sd->save.conv);
@@ -1946,13 +1946,13 @@ const SettingDesc *GetSettingFromName(const char *name, uint *i)
 	const SettingDesc *sd;
 
 	/* First check all full names */
-	for (*i = 0, sd = _settings; sd->save.cmd != SL_END; sd++, (*i)++) {
+	for (*i = 0, sd = _settings; sd->save.type != SL_END; sd++, (*i)++) {
 		if (!SlIsObjectCurrentlyValid(sd->save.version_from, sd->save.version_to)) continue;
 		if (strcmp(sd->desc.name, name) == 0) return sd;
 	}
 
 	/* Then check the shortcut variant of the name. */
-	for (*i = 0, sd = _settings; sd->save.cmd != SL_END; sd++, (*i)++) {
+	for (*i = 0, sd = _settings; sd->save.type != SL_END; sd++, (*i)++) {
 		if (!SlIsObjectCurrentlyValid(sd->save.version_from, sd->save.version_to)) continue;
 		const char *short_name = strchr(sd->desc.name, '.');
 		if (short_name != NULL) {
@@ -1963,7 +1963,7 @@ const SettingDesc *GetSettingFromName(const char *name, uint *i)
 
 	if (strncmp(name, "company.", 8) == 0) name += 8;
 	/* And finally the company-based settings */
-	for (*i = 0, sd = _company_settings; sd->save.cmd != SL_END; sd++, (*i)++) {
+	for (*i = 0, sd = _company_settings; sd->save.type != SL_END; sd++, (*i)++) {
 		if (!SlIsObjectCurrentlyValid(sd->save.version_from, sd->save.version_to)) continue;
 		if (strcmp(sd->desc.name, name) == 0) return sd;
 	}
@@ -2057,7 +2057,7 @@ void IConsoleListSettings(const char *prefilter)
 {
 	IConsolePrintF(CC_WARNING, "All settings with their current value:");
 
-	for (const SettingDesc *sd = _settings; sd->save.cmd != SL_END; sd++) {
+	for (const SettingDesc *sd = _settings; sd->save.type != SL_END; sd++) {
 		if (!SlIsObjectCurrentlyValid(sd->save.version_from, sd->save.version_to)) continue;
 		if (prefilter != NULL && strstr(sd->desc.name, prefilter) == NULL) continue;
 		char value[80];
@@ -2084,7 +2084,7 @@ void IConsoleListSettings(const char *prefilter)
  */
 static void LoadSettings(const SettingDesc *osd, void *object)
 {
-	for (; osd->save.cmd != SL_END; osd++) {
+	for (; osd->save.type != SL_END; osd++) {
 		const SaveLoad *sld = &osd->save;
 		void *ptr = GetVariableAddress(object, sld);
 
@@ -2105,12 +2105,12 @@ static void SaveSettings(const SettingDesc *sd, void *object)
 	 * SlCalcLength() because we have a different format. So do this manually */
 	const SettingDesc *i;
 	size_t length = 0;
-	for (i = sd; i->save.cmd != SL_END; i++) {
+	for (i = sd; i->save.type != SL_END; i++) {
 		length += SlCalcObjMemberLength(object, &i->save);
 	}
 	SlSetLength(length);
 
-	for (i = sd; i->save.cmd != SL_END; i++) {
+	for (i = sd; i->save.type != SL_END; i++) {
 		void *ptr = GetVariableAddress(object, &i->save);
 		SlObjectMember(ptr, &i->save);
 	}
