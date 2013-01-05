@@ -431,6 +431,8 @@ static void Write_ValidateSetting(void *ptr, const SettingDesc *sd, int32 val)
 
 	/* We cannot know the maximum value of a bitset variable, so just have faith */
 	if (sdb->cmd != SDT_MANYOFMANY) {
+		assert(sd->save.type == SL_VAR);
+
 		/* We need to take special care of the uint32 type as we receive from the function
 		 * a signed integer. While here also bail out on 64-bit settings as those are not
 		 * supported. Unsigned 8 and 16-bit variables are safe since they fit into a signed
@@ -521,21 +523,15 @@ static void IniLoadSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 				break;
 
 			case SDT_STRING:
-				switch (GetVarMemType(sld->conv)) {
-					case SLE_VAR_STRB:
-					case SLE_VAR_STRBQ:
-						if (p != NULL) ttd_strlcpy((char*)ptr, (const char*)p, sld->length);
-						break;
-
-					case SLE_VAR_STR:
-					case SLE_VAR_STRQ:
-						free(*(char**)ptr);
-						*(char**)ptr = p == NULL ? NULL : strdup((const char*)p);
-						break;
-
-					case SLE_VAR_CHAR: if (p != NULL) *(char *)ptr = *(const char *)p; break;
-
-					default: NOT_REACHED();
+				if (sld->type != SL_STR) {
+					assert(sld->type == SL_VAR);
+					assert(GetVarMemType(sld->conv) == SLE_VAR_CHAR);
+					if (p != NULL) *(char *)ptr = *(const char *)p;
+				} else if (sld->conv & SLS_POINTER) {
+					free(*(char**)ptr);
+					*(char**)ptr = p == NULL ? NULL : strdup((const char*)p);
+				} else {
+					if (p != NULL) ttd_strlcpy((char*)ptr, (const char*)p, sld->length);
 				}
 				break;
 
@@ -611,6 +607,7 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 				case SDT_NUMX:
 				case SDT_ONEOFMANY:
 				case SDT_MANYOFMANY:
+					assert(sld->type == SL_VAR);
 					switch (GetVarMemType(sld->conv)) {
 						case SLE_VAR_BL:
 							if (*(bool*)ptr == (p != NULL)) continue;
@@ -658,21 +655,29 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 			}
 
 			case SDT_STRING:
-				switch (GetVarMemType(sld->conv)) {
-					case SLE_VAR_STRB: strecpy(buf, (char*)ptr, lastof(buf)); break;
-					case SLE_VAR_STRBQ:seprintf(buf, lastof(buf), "\"%s\"", (char*)ptr); break;
-					case SLE_VAR_STR:  strecpy(buf, *(char**)ptr, lastof(buf)); break;
+				if (sld->type != SL_STR) {
+					assert(sld->type == SL_VAR);
+					assert(GetVarMemType(sld->conv) == SLE_VAR_CHAR);
+					buf[0] = *(char*)ptr;
+					buf[1] = '\0';
+				} else {
+					const char *s;
 
-					case SLE_VAR_STRQ:
-						if (*(char**)ptr == NULL) {
+					if (sld->conv & SLS_POINTER) {
+						s = *(const char *const *)ptr;
+					} else {
+						s = (const char *)ptr;
+					}
+
+					if (sld->conv & SLS_QUOTED) {
+						if (s == NULL) {
 							buf[0] = '\0';
 						} else {
-							seprintf(buf, lastof(buf), "\"%s\"", *(char**)ptr);
+							seprintf(buf, lastof(buf), "\"%s\"", s);
 						}
-						break;
-
-					case SLE_VAR_CHAR: buf[0] = *(char*)ptr; buf[1] = '\0'; break;
-					default: NOT_REACHED();
+					} else {
+						strecpy(buf, s, lastof(buf));
+					}
 				}
 				break;
 
@@ -1921,7 +1926,7 @@ bool SetSettingValue(uint index, const char *value, bool force_newgame)
 	const SettingDesc *sd = &_settings[index];
 	assert(sd->save.flags & SLF_NO_NETWORK_SYNC);
 
-	if (GetVarMemType(sd->save.conv) == SLE_VAR_STRQ) {
+	if ((sd->save.type == SL_STR) && (sd->save.conv & SLS_POINTER)) {
 		char **var = (char**)GetVariableAddress(&sd->save, (_game_mode == GM_MENU || force_newgame) ? &_settings_newgame : &_settings_game);
 		free(*var);
 		*var = strcmp(value, "(null)") == 0 ? NULL : strdup(value);
@@ -2035,7 +2040,7 @@ void IConsoleGetSetting(const char *name, bool force_newgame)
 	ptr = GetVariableAddress(&sd->save, (_game_mode == GM_MENU || force_newgame) ? &_settings_newgame : &_settings_game);
 
 	if (sd->desc.cmd == SDT_STRING) {
-		IConsolePrintF(CC_WARNING, "Current value for '%s' is: '%s'", name, (GetVarMemType(sd->save.conv) == SLE_VAR_STRQ) ? *(const char * const *)ptr : (const char *)ptr);
+		IConsolePrintF(CC_WARNING, "Current value for '%s' is: '%s'", name, (sd->save.conv & SLS_POINTER) ? *(const char * const *)ptr : (const char *)ptr);
 	} else {
 		if (sd->desc.cmd == SDT_BOOLX) {
 			snprintf(value, sizeof(value), (*(const bool*)ptr != 0) ? "on" : "off");
@@ -2066,7 +2071,7 @@ void IConsoleListSettings(const char *prefilter)
 		if (sd->desc.cmd == SDT_BOOLX) {
 			snprintf(value, lengthof(value), (*(const bool *)ptr != 0) ? "on" : "off");
 		} else if (sd->desc.cmd == SDT_STRING) {
-			snprintf(value, sizeof(value), "%s", (GetVarMemType(sd->save.conv) == SLE_VAR_STRQ) ? *(const char * const *)ptr : (const char *)ptr);
+			snprintf(value, sizeof(value), "%s", (sd->save.conv & SLS_POINTER) ? *(const char * const *)ptr : (const char *)ptr);
 		} else {
 			snprintf(value, lengthof(value), sd->desc.min < 0 ? "%d" : "%u", (int32)ReadValue(ptr, sd->save.conv));
 		}
@@ -2089,7 +2094,7 @@ static void LoadSettings(const SettingDesc *osd, void *object)
 		if (!SlObjectMember(object, sld)) continue;
 
 		void *ptr = GetVariableAddress(sld, object);
-		if (IsNumericType(sld->conv)) Write_ValidateSetting(ptr, osd, ReadValue(ptr, sld->conv));
+		if ((sld->type == SL_VAR) && IsNumericType(sld->conv)) Write_ValidateSetting(ptr, osd, ReadValue(ptr, sld->conv));
 	}
 }
 

@@ -1026,23 +1026,17 @@ static inline size_t SlCalcNetStringLen(const char *ptr, size_t length)
  * @param conv type of data been used
  * @return return the gross length of the string
  */
-static inline size_t SlCalcStringLen(const void *ptr, size_t length, VarType conv)
+static inline size_t SlCalcStringLen(const void *ptr, size_t length, StrType conv)
 {
 	size_t len;
 	const char *str;
 
-	switch (GetVarMemType(conv)) {
-		default: NOT_REACHED();
-		case SLE_VAR_STR:
-		case SLE_VAR_STRQ:
-			str = *(const char * const *)ptr;
-			len = SIZE_MAX;
-			break;
-		case SLE_VAR_STRB:
-		case SLE_VAR_STRBQ:
-			str = (const char *)ptr;
-			len = length;
-			break;
+	if (conv & SLS_POINTER) {
+		str = *(const char * const *)ptr;
+		len = SIZE_MAX;
+	} else {
+		str = (const char *)ptr;
+		len = length;
 	}
 
 	len = SlCalcNetStringLen(str, len);
@@ -1053,24 +1047,18 @@ static inline size_t SlCalcStringLen(const void *ptr, size_t length, VarType con
  * Save/Load a string.
  * @param ptr the string being manipulated
  * @param length of the string (full length)
- * @param conv must be SLE_FILE_STRING
+ * @param conv StrType type of the current element of the struct
  */
-static void SlString(void *ptr, size_t length, VarType conv)
+static void SlString(void *ptr, size_t length, StrType conv)
 {
 	switch (_sl.action) {
 		case SLA_SAVE: {
 			size_t len;
-			switch (GetVarMemType(conv)) {
-				default: NOT_REACHED();
-				case SLE_VAR_STRB:
-				case SLE_VAR_STRBQ:
-					len = SlCalcNetStringLen((char *)ptr, length);
-					break;
-				case SLE_VAR_STR:
-				case SLE_VAR_STRQ:
-					ptr = *(char **)ptr;
-					len = SlCalcNetStringLen((char *)ptr, SIZE_MAX);
-					break;
+			if (conv & SLS_POINTER) {
+				ptr = *(char **)ptr;
+				len = SlCalcNetStringLen((char *)ptr, SIZE_MAX);
+			} else {
+				len = SlCalcNetStringLen((char *)ptr, length);
 			}
 
 			SlWriteArrayLength(len);
@@ -1081,31 +1069,25 @@ static void SlString(void *ptr, size_t length, VarType conv)
 		case SLA_LOAD: {
 			size_t len = SlReadArrayLength();
 
-			switch (GetVarMemType(conv)) {
-				default: NOT_REACHED();
-				case SLE_VAR_STRB:
-				case SLE_VAR_STRBQ:
-					if (len >= length) {
-						DEBUG(sl, 1, "String length in savegame is bigger than buffer, truncating");
-						SlCopyBytes(ptr, length);
-						SlSkipBytes(len - length);
-						len = length - 1;
-					} else {
-						SlCopyBytes(ptr, len);
-					}
-					break;
-				case SLE_VAR_STR:
-				case SLE_VAR_STRQ: // Malloc'd string, free previous incarnation, and allocate
-					free(*(char **)ptr);
-					if (len == 0) {
-						*(char **)ptr = NULL;
-						return;
-					} else {
-						*(char **)ptr = MallocT<char>(len + 1); // terminating '\0'
-						ptr = *(char **)ptr;
-						SlCopyBytes(ptr, len);
-					}
-					break;
+			if ((conv & SLS_POINTER) != 0) { // Malloc'd string, free previous incarnation, and allocate
+				free(*(char **)ptr);
+				if (len == 0) {
+					*(char **)ptr = NULL;
+					return;
+				} else {
+					*(char **)ptr = MallocT<char>(len + 1); // terminating '\0'
+					ptr = *(char **)ptr;
+					SlCopyBytes(ptr, len);
+				}
+			} else {
+				if (len >= length) {
+					DEBUG(sl, 1, "String length in savegame is bigger than buffer, truncating");
+					SlCopyBytes(ptr, length);
+					SlSkipBytes(len - length);
+					len = length - 1;
+				} else {
+					SlCopyBytes(ptr, len);
+				}
 			}
 
 			((char *)ptr)[len] = '\0'; // properly terminate the string
@@ -1393,7 +1375,8 @@ static inline bool SlIsObjectValidInSavegame(const SaveLoad *sld)
 static inline bool SlSkipVariableOnLoad(const SaveLoad *sld)
 {
 	if ((sld->flags & SLF_NO_NETWORK_SYNC) && _sl.action != SLA_SAVE && _networking && !_network_server) {
-		size_t skip = (GetVarFileType(sld->conv) == SLE_FILE_STRING) ?
+		assert((sld->type == SL_ARR) || (sld->type == SL_STR));
+		size_t skip = (sld->type == SL_STR) ?
 			SlReadArrayLength() : SlCalcConvFileLen(sld->conv);
 		SlSkipBytes(skip * sld->length);
 		return true;
@@ -1447,20 +1430,19 @@ bool SlObjectMember(void *object, const SaveLoad *sld)
 
 	void *ptr = GetVariableAddress(sld, object);
 
-	VarType conv = GB(sld->conv, 0, 8);
 	switch (sld->type) {
-		case SL_VAR: SlSaveLoadConv(ptr, conv); break;
+		case SL_VAR: SlSaveLoadConv(ptr, sld->conv); break;
 		case SL_REF: // Reference variable, translate
 			switch (_sl.action) {
 				case SLA_SAVE:
-					SlWriteUint32((uint32)ReferenceToInt(*(void **)ptr, (SLRefType)conv));
+					SlWriteUint32((uint32)ReferenceToInt(*(void **)ptr, (SLRefType)sld->conv));
 					break;
 				case SLA_LOAD_CHECK:
 				case SLA_LOAD:
 					*(size_t *)ptr = IsSavegameVersionBefore(69) ? SlReadUint16() : SlReadUint32();
 					break;
 				case SLA_PTRS:
-					*(void **)ptr = IntToReference(*(size_t *)ptr, (SLRefType)conv);
+					*(void **)ptr = IntToReference(*(size_t *)ptr, (SLRefType)sld->conv);
 					break;
 				case SLA_NULL:
 					*(void **)ptr = NULL;
@@ -1468,9 +1450,9 @@ bool SlObjectMember(void *object, const SaveLoad *sld)
 				default: NOT_REACHED();
 			}
 			break;
-		case SL_ARR: SlArray(ptr, sld->length, conv); break;
+		case SL_ARR: SlArray(ptr, sld->length, sld->conv); break;
 		case SL_STR: SlString(ptr, sld->length, sld->conv); break;
-		case SL_LST: SlList(ptr, (SLRefType)conv); break;
+		case SL_LST: SlList(ptr, (SLRefType)sld->conv); break;
 
 		case SL_WRITEBYTE:
 			switch (_sl.action) {

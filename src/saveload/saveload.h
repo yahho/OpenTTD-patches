@@ -104,7 +104,7 @@ enum ChunkType {
  * Bits 8-15 are reserved for various flags as explained below
  */
 enum VarTypes {
-	/* 4 bits allocated a maximum of 16 types for NumberType */
+	/* 4 bits allocated for a maximum of 16 types for NumberType */
 	SLE_FILE_I8       = 0,
 	SLE_FILE_U8       = 1,
 	SLE_FILE_I16      = 2,
@@ -114,10 +114,9 @@ enum VarTypes {
 	SLE_FILE_I64      = 6,
 	SLE_FILE_U64      = 7,
 	SLE_FILE_STRINGID = 8, ///< StringID offset into strings-array
-	SLE_FILE_STRING   = 9,
-	/* 6 more possible file-primitives */
+	/* 7 more possible file-primitives */
 
-	/* 4 bits allocated a maximum of 16 types for NumberType */
+	/* 4 bits allocated for a maximum of 16 types for NumberType */
 	SLE_VAR_BL    =  0 << 4,
 	SLE_VAR_I8    =  1 << 4,
 	SLE_VAR_U8    =  2 << 4,
@@ -128,12 +127,8 @@ enum VarTypes {
 	SLE_VAR_I64   =  7 << 4,
 	SLE_VAR_U64   =  8 << 4,
 	SLE_VAR_NULL  =  9 << 4, ///< useful to write zeros in savegame.
-	SLE_VAR_STRB  = 10 << 4, ///< string (with pre-allocated buffer)
-	SLE_VAR_STRBQ = 11 << 4, ///< string enclosed in quotes (with pre-allocated buffer)
-	SLE_VAR_STR   = 12 << 4, ///< string pointer
-	SLE_VAR_STRQ  = 13 << 4, ///< string pointer enclosed in quotes
-	SLE_VAR_NAME  = 14 << 4, ///< old custom name to be converted to a char pointer
-	/* 1 more possible memory-primitives */
+	SLE_VAR_NAME  = 10 << 4, ///< old custom name to be converted to a char pointer
+	/* 5 more possible memory-primitives */
 
 	/* Shortcut values */
 	SLE_VAR_CHAR = SLE_VAR_I8,
@@ -152,27 +147,33 @@ enum VarTypes {
 	SLE_UINT64       = SLE_FILE_U64 | SLE_VAR_U64,
 	SLE_CHAR         = SLE_FILE_I8  | SLE_VAR_CHAR,
 	SLE_STRINGID     = SLE_FILE_STRINGID | SLE_VAR_U16,
-	SLS_STRINGBUF    = SLE_FILE_STRING   | SLE_VAR_STRB,
-	SLS_STRINGBQUOTE = SLE_FILE_STRING   | SLE_VAR_STRBQ,
-	SLS_STRING       = SLE_FILE_STRING   | SLE_VAR_STR,
-	SLS_STRINGQUOTE  = SLE_FILE_STRING   | SLE_VAR_STRQ,
 	SLE_NAME         = SLE_FILE_STRINGID | SLE_VAR_NAME,
 
 	/* Shortcut values */
 	SLE_UINT  = SLE_UINT32,
 	SLE_INT   = SLE_INT32,
-	SLS_STRB  = SLS_STRINGBUF,
-	SLS_STRBQ = SLS_STRINGBQUOTE,
-	SLS_STR   = SLS_STRING,
-	SLS_STRQ  = SLS_STRINGQUOTE,
-
-	/* 8 bits allocated for a maximum of 8 flags */
-	SLS_ALLOW_CONTROL   = 1 << 11, ///< allow control codes in the strings
-	SLS_ALLOW_NEWLINE   = 1 << 12, ///< allow new lines in the strings
-	/* 6 more possible flags */
 };
 
-typedef uint32 VarType;
+typedef byte VarType;
+
+/**
+ * StrTypes encodes information about saving and loading of strings (#SLE_STR).
+ */
+enum StrTypes {
+	SLS_QUOTED        = 1 << 0, ///< string is enclosed in quotes
+	SLS_POINTER       = 1 << 1, ///< string is stored as a pointer (as opposed to a fixed buffer)
+
+	SLS_STRB  = 0,                        ///< string (with pre-allocated buffer)
+	SLS_STRBQ = SLS_QUOTED,               ///< string enclosed in quotes (with pre-allocated buffer)
+	SLS_STR   = SLS_POINTER,              ///< string pointer
+	SLS_STRQ  = SLS_POINTER | SLS_QUOTED, ///< string pointer enclosed in quotes
+
+	SLS_ALLOW_CONTROL = 1 << 2, ///< allow control codes in the string
+	SLS_ALLOW_NEWLINE = 1 << 3, ///< allow newlines in the string
+	/* 4 more possible flags */
+};
+
+typedef byte StrType;
 
 /** Type of data saved. */
 enum SaveLoadTypes {
@@ -200,7 +201,7 @@ enum SaveLoadFlags {
 /** SaveLoad type struct. Do NOT use this directly but use the SLE_ macros defined just below! */
 struct SaveLoad {
 	SaveLoadType type;   ///< object type
-	VarType conv;        ///< type of the variable to be saved, int
+	byte conv;           ///< object subtype/conversion
 	byte flags;          ///< save/load flags
 	uint16 length;       ///< (conditional) length of the variable (eg. arrays) (max array size is 65536 elements)
 	uint16 version_from; ///< save/load the variable starting from this savegame version
