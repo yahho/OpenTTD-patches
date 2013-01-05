@@ -155,7 +155,7 @@ static const SaveLoad _old_waypoint_desc[] = {
 	SLE_CONDVAR(OldWaypoint, town_cn,    SLE_FILE_U8 | SLE_VAR_U16,  12, 88),
 	SLE_CONDVAR(OldWaypoint, town_cn,    SLE_UINT16,                 89, SL_MAX_VERSION),
 	SLE_CONDVAR(OldWaypoint, string_id,  SLE_STRINGID,                0, 83),
-	SLE_CONDSTR(OldWaypoint, name,       SLE_STR, 0,                 84, SL_MAX_VERSION),
+	SLE_CONDSTR(OldWaypoint, name,       SLS_STR, 0,                 84, SL_MAX_VERSION),
 	    SLE_VAR(OldWaypoint, delete_ctr, SLE_UINT8),
 
 	SLE_CONDVAR(OldWaypoint, build_date, SLE_FILE_U16 | SLE_VAR_I32,  3, 30),

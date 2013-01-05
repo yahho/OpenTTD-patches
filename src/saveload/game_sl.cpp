@@ -28,8 +28,8 @@ struct GameSaveload {
 };
 
 static const SaveLoad _game_script[] = {
-	     SLE_STR(GameSaveload, name,        SLE_STRB, lengthof(GameSaveload::name)),
-	     SLE_STR(GameSaveload, settings,    SLE_STRB, lengthof(GameSaveload::settings)),
+	     SLE_STR(GameSaveload, name,        SLS_STRB, lengthof(GameSaveload::name)),
+	     SLE_STR(GameSaveload, settings,    SLS_STRB, lengthof(GameSaveload::settings)),
 	     SLE_VAR(GameSaveload, version,   SLE_UINT32),
 	     SLE_VAR(GameSaveload, is_random,   SLE_BOOL),
 	     SLE_END()
@@ -123,13 +123,13 @@ struct GameSaveloadStrings {
 };
 
 static const SaveLoad _game_language_header[] = {
-	 SLE_STR(GameSaveloadStrings, s, SLE_STR, 0),
+	 SLE_STR(GameSaveloadStrings, s, SLS_STR, 0),
 	 SLE_VAR(GameSaveloadStrings, n, SLE_UINT32),
 	 SLE_END()
 };
 
 static const SaveLoad _game_language_string[] = {
-	 SLE_STR(GameSaveloadStrings, s, SLE_STR | SLF_ALLOW_CONTROL, 0),
+	 SLE_STR(GameSaveloadStrings, s, SLS_STR | SLS_ALLOW_CONTROL, 0),
 	 SLE_END()
 };
 

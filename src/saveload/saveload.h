@@ -152,27 +152,27 @@ enum VarTypes {
 	SLE_UINT64       = SLE_FILE_U64 | SLE_VAR_U64,
 	SLE_CHAR         = SLE_FILE_I8  | SLE_VAR_CHAR,
 	SLE_STRINGID     = SLE_FILE_STRINGID | SLE_VAR_U16,
-	SLE_STRINGBUF    = SLE_FILE_STRING   | SLE_VAR_STRB,
-	SLE_STRINGBQUOTE = SLE_FILE_STRING   | SLE_VAR_STRBQ,
-	SLE_STRING       = SLE_FILE_STRING   | SLE_VAR_STR,
-	SLE_STRINGQUOTE  = SLE_FILE_STRING   | SLE_VAR_STRQ,
+	SLS_STRINGBUF    = SLE_FILE_STRING   | SLE_VAR_STRB,
+	SLS_STRINGBQUOTE = SLE_FILE_STRING   | SLE_VAR_STRBQ,
+	SLS_STRING       = SLE_FILE_STRING   | SLE_VAR_STR,
+	SLS_STRINGQUOTE  = SLE_FILE_STRING   | SLE_VAR_STRQ,
 	SLE_NAME         = SLE_FILE_STRINGID | SLE_VAR_NAME,
 
 	/* Shortcut values */
 	SLE_UINT  = SLE_UINT32,
 	SLE_INT   = SLE_INT32,
-	SLE_STRB  = SLE_STRINGBUF,
-	SLE_STRBQ = SLE_STRINGBQUOTE,
-	SLE_STR   = SLE_STRING,
-	SLE_STRQ  = SLE_STRINGQUOTE,
+	SLS_STRB  = SLS_STRINGBUF,
+	SLS_STRBQ = SLS_STRINGBQUOTE,
+	SLS_STR   = SLS_STRING,
+	SLS_STRQ  = SLS_STRINGQUOTE,
 
 	/* 8 bits allocated for a maximum of 8 flags
 	 * Flags directing saving/loading of a variable */
 	SLF_NOT_IN_SAVE     = 1 <<  8, ///< do not save with savegame, basically client-based
 	SLF_NOT_IN_CONFIG   = 1 <<  9, ///< do not save to config file
 	SLF_NO_NETWORK_SYNC = 1 << 10, ///< do not synchronize over network (but it is saved if SLF_NOT_IN_SAVE is not set)
-	SLF_ALLOW_CONTROL   = 1 << 11, ///< allow control codes in the strings
-	SLF_ALLOW_NEWLINE   = 1 << 12, ///< allow new lines in the strings
+	SLS_ALLOW_CONTROL   = 1 << 11, ///< allow control codes in the strings
+	SLS_ALLOW_NEWLINE   = 1 << 12, ///< allow new lines in the strings
 	/* 3 more possible flags */
 };
 

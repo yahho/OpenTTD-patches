@@ -56,7 +56,7 @@ void Load_NewGRFMapping(OverrideManagerBase &mapping)
 
 
 static const SaveLoad _grfconfig_desc[] = {
-	    SLE_STR(GRFConfig, filename,         SLE_STR,    0x40),
+	    SLE_STR(GRFConfig, filename,         SLS_STR,    0x40),
 	    SLE_VAR(GRFConfig, ident.grfid,      SLE_UINT32),
 	    SLE_ARR(GRFConfig, ident.md5sum,     SLE_UINT8,  16),
 	SLE_CONDVAR(GRFConfig, version,          SLE_UINT32, 151, SL_MAX_VERSION),

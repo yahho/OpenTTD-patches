@@ -41,7 +41,7 @@ static const SaveLoad _glog_oldver_desc[] = {
 };
 
 static const SaveLoad _glog_setting_desc[] = {
-	SLE_STR(LoggedChange, setting.name,      SLE_STR,    128),
+	SLE_STR(LoggedChange, setting.name,      SLS_STR,    128),
 	SLE_VAR(LoggedChange, setting.oldval,    SLE_INT32),
 	SLE_VAR(LoggedChange, setting.newval,    SLE_INT32),
 	SLE_END()
@@ -123,7 +123,7 @@ static void Load_GLOG_common(LoggedAction *&gamelog_action, uint &gamelog_action
 			la->change = ReallocT(la->change, la->changes + 1);
 
 			LoggedChange *lc = &la->change[la->changes++];
-			/* for SLE_STR, pointer has to be valid! so make it NULL */
+			/* for SLS_STR, pointer has to be valid! so make it NULL */
 			memset(lc, 0, sizeof(*lc));
 			lc->ct = ct;
 
