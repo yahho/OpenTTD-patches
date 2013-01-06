@@ -1163,12 +1163,12 @@ static const void *ResolveVariableAddress(const GameSettings *settings_ptr, cons
 {
 	if ((sd->desc.flags & SGF_PER_COMPANY) != 0) {
 		if (Company::IsValidID(_local_company) && _game_mode != GM_MENU) {
-			return GetVariableAddress(&Company::Get(_local_company)->settings, &sd->save);
+			return GetVariableAddress(&sd->save, &Company::Get(_local_company)->settings);
 		} else {
-			return GetVariableAddress(&_settings_client.company, &sd->save);
+			return GetVariableAddress(&sd->save, &_settings_client.company);
 		}
 	} else {
-		return GetVariableAddress(settings_ptr, &sd->save);
+		return GetVariableAddress(&sd->save, settings_ptr);
 	}
 }
 

@@ -510,7 +510,7 @@ static void IniLoadSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 		}
 
 		p = (item == NULL) ? sdb->def : StringToVal(sdb, item->value);
-		ptr = GetVariableAddress(object, sld);
+		ptr = GetVariableAddress(sld, object);
 
 		switch (sdb->cmd) {
 			case SDT_BOOLX: // All four are various types of (integer) numbers
@@ -598,7 +598,7 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 		}
 
 		item = group->GetItem(s, true);
-		ptr = GetVariableAddress(object, sld);
+		ptr = GetVariableAddress(sld, object);
 
 		if (item->value != NULL) {
 			/* check if the value is the same as the old value */
@@ -1346,7 +1346,7 @@ static void HandleOldDiffCustom(bool savegame)
 		const SettingDesc *sd = &_settings[i];
 		/* Skip deprecated options */
 		if (!SlIsObjectCurrentlyValid(sd->save.version_from, sd->save.version_to)) continue;
-		void *var = GetVariableAddress(savegame ? &_settings_game : &_settings_newgame, &sd->save);
+		void *var = GetVariableAddress(&sd->save, savegame ? &_settings_game : &_settings_newgame);
 		Write_ValidateSetting(var, sd, (int32)((i == 4 ? 1000 : 1) * _old_diff_custom[i]));
 	}
 }
@@ -1741,7 +1741,7 @@ CommandCost CmdChangeSetting(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 	if (!sd->IsEditable(true)) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
-		void *var = GetVariableAddress(&GetGameSettings(), &sd->save);
+		void *var = GetVariableAddress(&sd->save, &GetGameSettings());
 
 		int32 oldval = (int32)ReadValue(var, sd->save.conv);
 		int32 newval = (int32)p2;
@@ -1784,7 +1784,7 @@ CommandCost CmdChangeCompanySetting(TileIndex tile, DoCommandFlag flags, uint32 
 	const SettingDesc *sd = &_company_settings[p1];
 
 	if (flags & DC_EXEC) {
-		void *var = GetVariableAddress(&Company::Get(_current_company)->settings, &sd->save);
+		void *var = GetVariableAddress(&sd->save, &Company::Get(_current_company)->settings);
 
 		int32 oldval = (int32)ReadValue(var, sd->save.conv);
 		int32 newval = (int32)p2;
@@ -1820,11 +1820,11 @@ bool SetSettingValue(uint index, int32 value, bool force_newgame)
 	 * of settings because changing a company-based setting in a game also
 	 * changes its defaults. At least that is the convention we have chosen */
 	if (sd->save.conv & SLF_NO_NETWORK_SYNC) {
-		void *var = GetVariableAddress(&GetGameSettings(), &sd->save);
+		void *var = GetVariableAddress(&sd->save, &GetGameSettings());
 		Write_ValidateSetting(var, sd, value);
 
 		if (_game_mode != GM_MENU) {
-			void *var2 = GetVariableAddress(&_settings_newgame, &sd->save);
+			void *var2 = GetVariableAddress(&sd->save, &_settings_newgame);
 			Write_ValidateSetting(var2, sd, value);
 		}
 		if (sd->desc.proc != NULL) sd->desc.proc((int32)ReadValue(var, sd->save.conv));
@@ -1835,7 +1835,7 @@ bool SetSettingValue(uint index, int32 value, bool force_newgame)
 	}
 
 	if (force_newgame) {
-		void *var2 = GetVariableAddress(&_settings_newgame, &sd->save);
+		void *var2 = GetVariableAddress(&sd->save, &_settings_newgame);
 		Write_ValidateSetting(var2, sd, value);
 		return true;
 	}
@@ -1859,7 +1859,7 @@ void SetCompanySetting(uint index, int32 value)
 	if (Company::IsValidID(_local_company) && _game_mode != GM_MENU) {
 		DoCommandP(0, index, value, CMD_CHANGE_COMPANY_SETTING);
 	} else {
-		void *var = GetVariableAddress(&_settings_client.company, &sd->save);
+		void *var = GetVariableAddress(&sd->save, &_settings_client.company);
 		Write_ValidateSetting(var, sd, value);
 		if (sd->desc.proc != NULL) sd->desc.proc((int32)ReadValue(var, sd->save.conv));
 	}
@@ -1873,7 +1873,7 @@ void SetDefaultCompanySettings(CompanyID cid)
 	Company *c = Company::Get(cid);
 	const SettingDesc *sd;
 	for (sd = _company_settings; sd->save.type != SL_END; sd++) {
-		void *var = GetVariableAddress(&c->settings, &sd->save);
+		void *var = GetVariableAddress(&sd->save, &c->settings);
 		Write_ValidateSetting(var, sd, (int32)(size_t)sd->desc.def);
 	}
 }
@@ -1887,8 +1887,8 @@ void SyncCompanySettings()
 	const SettingDesc *sd;
 	uint i = 0;
 	for (sd = _company_settings; sd->save.type != SL_END; sd++, i++) {
-		const void *old_var = GetVariableAddress(&Company::Get(_current_company)->settings, &sd->save);
-		const void *new_var = GetVariableAddress(&_settings_client.company, &sd->save);
+		const void *old_var = GetVariableAddress(&sd->save, &Company::Get(_current_company)->settings);
+		const void *new_var = GetVariableAddress(&sd->save, &_settings_client.company);
 		uint32 old_value = (uint32)ReadValue(old_var, sd->save.conv);
 		uint32 new_value = (uint32)ReadValue(new_var, sd->save.conv);
 		if (old_value != new_value) NetworkSendCommand(0, i, new_value, CMD_CHANGE_COMPANY_SETTING, NULL, NULL, _local_company);
@@ -1922,11 +1922,11 @@ bool SetSettingValue(uint index, const char *value, bool force_newgame)
 	assert(sd->save.conv & SLF_NO_NETWORK_SYNC);
 
 	if (GetVarMemType(sd->save.conv) == SLE_VAR_STRQ) {
-		char **var = (char**)GetVariableAddress((_game_mode == GM_MENU || force_newgame) ? &_settings_newgame : &_settings_game, &sd->save);
+		char **var = (char**)GetVariableAddress(&sd->save, (_game_mode == GM_MENU || force_newgame) ? &_settings_newgame : &_settings_game);
 		free(*var);
 		*var = strcmp(value, "(null)") == 0 ? NULL : strdup(value);
 	} else {
-		char *var = (char*)GetVariableAddress(NULL, &sd->save);
+		char *var = (char*)GetVariableAddress(&sd->save);
 		ttd_strlcpy(var, value, sd->save.length);
 	}
 	if (sd->desc.proc != NULL) sd->desc.proc(0);
@@ -2032,7 +2032,7 @@ void IConsoleGetSetting(const char *name, bool force_newgame)
 		return;
 	}
 
-	ptr = GetVariableAddress((_game_mode == GM_MENU || force_newgame) ? &_settings_newgame : &_settings_game, &sd->save);
+	ptr = GetVariableAddress(&sd->save, (_game_mode == GM_MENU || force_newgame) ? &_settings_newgame : &_settings_game);
 
 	if (sd->desc.cmd == SDT_STRING) {
 		IConsolePrintF(CC_WARNING, "Current value for '%s' is: '%s'", name, (GetVarMemType(sd->save.conv) == SLE_VAR_STRQ) ? *(const char * const *)ptr : (const char *)ptr);
@@ -2061,7 +2061,7 @@ void IConsoleListSettings(const char *prefilter)
 		if (!SlIsObjectCurrentlyValid(sd->save.version_from, sd->save.version_to)) continue;
 		if (prefilter != NULL && strstr(sd->desc.name, prefilter) == NULL) continue;
 		char value[80];
-		const void *ptr = GetVariableAddress(&GetGameSettings(), &sd->save);
+		const void *ptr = GetVariableAddress(&sd->save, &GetGameSettings());
 
 		if (sd->desc.cmd == SDT_BOOLX) {
 			snprintf(value, lengthof(value), (*(const bool *)ptr != 0) ? "on" : "off");
@@ -2086,7 +2086,7 @@ static void LoadSettings(const SettingDesc *osd, void *object)
 {
 	for (; osd->save.type != SL_END; osd++) {
 		const SaveLoad *sld = &osd->save;
-		void *ptr = GetVariableAddress(object, sld);
+		void *ptr = GetVariableAddress(sld, object);
 
 		if (!SlObjectMember(ptr, sld)) continue;
 		if (IsNumericType(sld->conv)) Write_ValidateSetting(ptr, osd, ReadValue(ptr, sld->conv));
@@ -2111,7 +2111,7 @@ static void SaveSettings(const SettingDesc *sd, void *object)
 	SlSetLength(length);
 
 	for (i = sd; i->save.type != SL_END; i++) {
-		void *ptr = GetVariableAddress(object, &i->save);
+		void *ptr = GetVariableAddress(&i->save, object);
 		SlObjectMember(ptr, &i->save);
 	}
 }

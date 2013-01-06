@@ -1430,8 +1430,8 @@ size_t SlCalcObjMemberLength(const void *object, const SaveLoad *sld)
 		case SL_VAR: return SlCalcConvFileLen(sld->conv);
 		case SL_REF: return SlCalcRefLen();
 		case SL_ARR: return SlCalcArrayLen(sld->length, sld->conv);
-		case SL_STR: return SlCalcStringLen(GetVariableAddress(object, sld), sld->length, sld->conv);
-		case SL_LST: return SlCalcListLen(GetVariableAddress(object, sld));
+		case SL_STR: return SlCalcStringLen(GetVariableAddress(sld, object), sld->length, sld->conv);
+		case SL_LST: return SlCalcListLen(GetVariableAddress(sld, object));
 		case SL_WRITEBYTE: return 1; // a byte is logically of size 1
 		case SL_VEH_INCLUDE: return SlCalcObjLength(object, GetVehicleDescription(VEH_END));
 		case SL_ST_INCLUDE: return SlCalcObjLength(object, GetBaseStationDescription());
@@ -1510,7 +1510,7 @@ void SlObject(void *object, const SaveLoad *sld)
 	}
 
 	for (; sld->type != SL_END; sld++) {
-		void *ptr = sld->global ? sld->address : GetVariableAddress(object, sld);
+		void *ptr = sld->global ? sld->address : GetVariableAddress(sld, object);
 		SlObjectMember(ptr, sld);
 	}
 }
