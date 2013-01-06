@@ -608,27 +608,6 @@ void SlObject(void *object, const SaveLoad *sld)
 
 
 /**
- * Load a chunk of data (eg vehicles, stations, etc.)
- * @param reader The reader object to read from
- * @param ch The chunkhandler that will be used for the operation
- * @param test Whether the load is done to check a savegame
- */
-static void SlLoadChunk(LoadBuffer *reader, const ChunkHandler *ch, bool check = false)
-{
-	reader->BeginChunk();
-
-	if (!check) {
-		ch->load_proc(reader);
-	} else if (ch->load_check_proc) {
-		ch->load_check_proc(reader);
-	} else {
-		reader->SkipChunk();
-	}
-
-	reader->EndChunk();
-}
-
-/**
  * Save a chunk of data (eg. vehicles, stations, etc.). Each chunk is
  * prefixed by an ID identifying it, followed by data, and terminator where appropriate
  * @param dumper The dumper object to write to
@@ -672,7 +651,11 @@ static const ChunkHandler *SlFindChunkHandler(uint32 id)
 	return NULL;
 }
 
-/** Load all chunks */
+/**
+ * Load all chunks
+ * @param reader The reader object to read from
+ * @param test Whether the load is done to check a savegame
+ */
 static void SlLoadChunks(LoadBuffer *reader, bool check = false)
 {
 	uint32 id;
@@ -683,7 +666,18 @@ static void SlLoadChunks(LoadBuffer *reader, bool check = false)
 
 		ch = SlFindChunkHandler(id);
 		if (ch == NULL) SlErrorCorrupt("Unknown chunk type");
-		SlLoadChunk(reader, ch, check);
+
+		reader->BeginChunk();
+
+		if (!check) {
+			ch->load_proc(reader);
+		} else if (ch->load_check_proc) {
+			ch->load_check_proc(reader);
+		} else {
+			reader->SkipChunk();
+		}
+
+		reader->EndChunk();
 	}
 }
 
