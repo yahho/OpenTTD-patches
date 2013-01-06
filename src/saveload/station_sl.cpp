@@ -406,7 +406,7 @@ static OldPersistentStorage _old_st_persistent_storage;
 
 static const SaveLoad _station_desc[] = {
 	SLE_WRITEBYTE(Station, facilities,                 FACIL_NONE),
-	SLE_ST_INCLUDE(),
+	SLE_INCLUDE(_base_station_desc),
 
 	      SLE_VAR(Station, train_station.tile,         SLE_UINT32),
 	      SLE_VAR(Station, train_station.w,            SLE_FILE_U8 | SLE_VAR_U16),
@@ -439,7 +439,7 @@ static const SaveLoad _station_desc[] = {
 
 static const SaveLoad _waypoint_desc[] = {
 	SLE_WRITEBYTE(Waypoint, facilities,                FACIL_WAYPOINT),
-	SLE_ST_INCLUDE(),
+	SLE_INCLUDE(_base_station_desc),
 
 	      SLE_VAR(Waypoint, town_cn,                   SLE_UINT16),
 
@@ -449,15 +449,6 @@ static const SaveLoad _waypoint_desc[] = {
 
 	      SLE_END()
 };
-
-/**
- * Get the base station description to be used for SL_ST_INCLUDE
- * @return the base station description.
- */
-const SaveLoad *GetBaseStationDescription()
-{
-	return _base_station_desc;
-}
 
 static void RealSave_STNN(BaseStation *bst)
 {

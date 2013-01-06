@@ -187,8 +187,7 @@ enum SaveLoadTypes {
 	SL_LST         =  4, ///< Save/load a list.
 	/* non-normal save-load types */
 	SL_WRITEBYTE   =  8,
-	SL_VEH_INCLUDE =  9,
-	SL_ST_INCLUDE  = 10,
+	SL_INCLUDE     =  9,
 	SL_END         = 15
 };
 
@@ -205,7 +204,8 @@ struct SaveLoad {
 	/* NOTE: This element either denotes the address of the variable for a global
 	 * variable, or the offset within a struct which is then bound to a variable
 	 * during runtime. Decision on which one to use is controlled by the function
-	 * that is called to save it. address: global=true, offset: global=false */
+	 * that is called to save it. address: global=true, offset: global=false.
+	 * For SL_INCLUDE, this points to the SaveLoad object to be included. */
 	void *address;       ///< address of variable OR offset of variable in the struct (max offset is 65536)
 };
 
@@ -336,8 +336,8 @@ typedef SaveLoad SaveLoadGlobVarList;
 /** Translate values ingame to different values in the savegame and vv. */
 #define SLE_WRITEBYTE(base, variable, value) SLE_GENERAL(SL_WRITEBYTE, base, variable, value, 0, 0, SL_MAX_VERSION)
 
-#define SLE_VEH_INCLUDE() {false, SL_VEH_INCLUDE, 0, 0, 0, SL_MAX_VERSION, NULL}
-#define SLE_ST_INCLUDE() {false, SL_ST_INCLUDE, 0, 0, 0, SL_MAX_VERSION, NULL}
+/** Include another SaveLoad object. */
+#define SLE_INCLUDE(include) {false, SL_INCLUDE, 0, 0, 0, SL_MAX_VERSION, const_cast<SaveLoad *>(include)}
 
 /** End marker of a struct/class save or load. */
 #define SLE_END() {false, SL_END, 0, 0, 0, 0, NULL}

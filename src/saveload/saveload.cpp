@@ -1433,8 +1433,7 @@ size_t SlCalcObjMemberLength(const void *object, const SaveLoad *sld)
 		case SL_STR: return SlCalcStringLen(GetVariableAddress(sld, object), sld->length, sld->conv);
 		case SL_LST: return SlCalcListLen(GetVariableAddress(sld, object));
 		case SL_WRITEBYTE: return 1; // a byte is logically of size 1
-		case SL_VEH_INCLUDE: return SlCalcObjLength(object, GetVehicleDescription(VEH_END));
-		case SL_ST_INCLUDE: return SlCalcObjLength(object, GetBaseStationDescription());
+		case SL_INCLUDE: return SlCalcObjLength(object, (SaveLoad*)sld->address);
 		default: NOT_REACHED();
 	}
 }
@@ -1484,13 +1483,8 @@ bool SlObjectMember(void *object, const SaveLoad *sld)
 			}
 			break;
 
-		/* SL_VEH_INCLUDE loads common code for vehicles */
-		case SL_VEH_INCLUDE:
-			SlObject(object, GetVehicleDescription(VEH_END));
-			break;
-
-		case SL_ST_INCLUDE:
-			SlObject(object, GetBaseStationDescription());
+		case SL_INCLUDE:
+			SlObject(object, (SaveLoad*)sld->address);
 			break;
 
 		default: NOT_REACHED();

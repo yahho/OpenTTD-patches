@@ -24,7 +24,6 @@ void ResetOldNames();
 
 void MoveBuoysToWaypoints();
 void MoveWaypointsToBaseStations();
-const SaveLoad *GetBaseStationDescription();
 
 void AfterLoadVehicles(bool part_of_load);
 void FixupTrainLengths();
