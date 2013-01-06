@@ -1440,11 +1440,13 @@ size_t SlCalcObjMemberLength(const void *object, const SaveLoad *sld)
 }
 
 
-bool SlObjectMember(void *ptr, const SaveLoad *sld)
+bool SlObjectMember(void *object, const SaveLoad *sld)
 {
 	/* CONDITIONAL saveload types depend on the savegame version */
 	if (!SlIsObjectValidInSavegame(sld)) return false;
 	if (SlSkipVariableOnLoad(sld)) return false;
+
+	void *ptr = GetVariableAddress(sld, object);
 
 	VarType conv = GB(sld->conv, 0, 8);
 	switch (sld->type) {
@@ -1510,8 +1512,7 @@ void SlObject(void *object, const SaveLoad *sld)
 	}
 
 	for (; sld->type != SL_END; sld++) {
-		void *ptr = GetVariableAddress(sld, object);
-		SlObjectMember(ptr, sld);
+		SlObjectMember(object, sld);
 	}
 }
 

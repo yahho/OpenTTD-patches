@@ -2086,9 +2086,9 @@ static void LoadSettings(const SettingDesc *osd, void *object)
 {
 	for (; osd->save.type != SL_END; osd++) {
 		const SaveLoad *sld = &osd->save;
-		void *ptr = GetVariableAddress(sld, object);
+		if (!SlObjectMember(object, sld)) continue;
 
-		if (!SlObjectMember(ptr, sld)) continue;
+		void *ptr = GetVariableAddress(sld, object);
 		if (IsNumericType(sld->conv)) Write_ValidateSetting(ptr, osd, ReadValue(ptr, sld->conv));
 	}
 }
@@ -2111,8 +2111,7 @@ static void SaveSettings(const SettingDesc *sd, void *object)
 	SlSetLength(length);
 
 	for (i = sd; i->save.type != SL_END; i++) {
-		void *ptr = GetVariableAddress(&i->save, object);
-		SlObjectMember(ptr, &i->save);
+		SlObjectMember(object, &i->save);
 	}
 }
 
