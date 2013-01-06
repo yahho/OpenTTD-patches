@@ -413,18 +413,16 @@ static void SaveLoad_PLYR_common(Company *c, CompanyProperties *cprops)
 	if (c != NULL) {
 		SlObject(c, _company_settings_desc);
 	} else {
-		char nothing;
-		SlObject(&nothing, _company_settings_skip_desc);
+		SlObject(NULL, _company_settings_skip_desc);
 	}
 
 	/* Keep backwards compatible for savegames, so load the old AI block */
 	if (IsSavegameVersionBefore(107) && cprops->is_ai) {
 		CompanyOldAI old_ai;
-		char nothing;
 
 		SlObject(&old_ai, _company_ai_desc);
 		for (i = 0; i != old_ai.num_build_rec; i++) {
-			SlObject(&nothing, _company_ai_build_rec_desc);
+			SlObject(NULL, _company_ai_build_rec_desc);
 		}
 	}
 
