@@ -62,7 +62,7 @@ struct LZOLoadFilter : ChainLoadFilter {
 		/* Check if size is bad */
 		((uint32*)out)[0] = size = tmp[1];
 
-		if (_sl_version != 0) {
+		if (_sl_version.version != 0) {
 			tmp[0] = TO_BE32(tmp[0]);
 			size = TO_BE32(size);
 		}

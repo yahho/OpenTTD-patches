@@ -14,6 +14,24 @@
 
 #include "../core/bitmath_func.hpp"
 
+/** Types of save games. */
+enum SavegameType {
+	SGT_TTD,    ///< TTD  savegame (can be detected incorrectly)
+	SGT_TTDP1,  ///< TTDP savegame ( -//- ) (data at NW border)
+	SGT_TTDP2,  ///< TTDP savegame in new format (data at SE border)
+	SGT_OTTD,   ///< OTTD savegame
+	SGT_TTO,    ///< TTO savegame
+	SGT_INVALID = 0xFF, ///< broken savegame (used internally)
+};
+
+/** Type and version of a savegame. */
+struct SavegameTypeVersion {
+	SavegameType type;  ///< type of savegame
+	uint ttdp_version;  ///< version of TTDP savegame (if applicable)
+	uint version;       ///< the major savegame version identifier
+	uint minor_version; ///< the minor savegame version, DO NOT USE!
+};
+
 /**
  * Checks whether the savegame is below \a major.\a minor.
  * @param major Major number of the version to check against.
@@ -22,9 +40,8 @@
  */
 static inline bool IsSavegameVersionBefore(uint16 major, byte minor = 0)
 {
-	extern uint16 _sl_version;
-	extern byte   _sl_minor_version;
-	return _sl_version < major || (minor > 0 && _sl_version == major && _sl_minor_version < minor);
+	extern SavegameTypeVersion _sl_version;
+	return _sl_version.version < major || (minor > 0 && _sl_version.version == major && _sl_version.minor_version < minor);
 }
 
 /** Type of data saved. */
@@ -473,9 +490,9 @@ static inline const void *GetVariableAddress(const SaveLoad *sld, const void *ob
 /** Are we going to save this object or not? */
 static inline bool SlIsObjectValidInSavegame(const SaveLoad *sld)
 {
-	extern uint16 _sl_version;
+	extern SavegameTypeVersion _sl_version;
 
-	if (_sl_version < sld->version_from || _sl_version > sld->version_to) return false;
+	if (_sl_version.version < sld->version_from || _sl_version.version > sld->version_to) return false;
 	if (sld->flags & SLF_NOT_IN_SAVE) return false;
 
 	return true;

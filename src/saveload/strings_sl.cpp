@@ -63,7 +63,7 @@ char *CopyFromOldName(StringID id)
 	if (IsSavegameVersionBefore(37)) {
 		/* Allow for expansion when converted to UTF-8. */
 		char tmp[LEN_OLD_STRINGS * MAX_CHAR_LENGTH];
-		uint offs = _savegame_type == SGT_TTO ? LEN_OLD_STRINGS_TTO * GB(id, 0, 8) : LEN_OLD_STRINGS * GB(id, 0, 9);
+		uint offs = _sl_version.type == SGT_TTO ? LEN_OLD_STRINGS_TTO * GB(id, 0, 8) : LEN_OLD_STRINGS * GB(id, 0, 9);
 		const char *strfrom = &_old_name_array[offs];
 		char *strto = tmp;
 

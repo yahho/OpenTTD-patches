@@ -27,16 +27,6 @@ enum LoadMode {
 	SL_LOAD_CHECK =  4, ///< Load for game preview.
 };
 
-/** Types of save games. */
-enum SavegameType {
-	SGT_TTD,    ///< TTD  savegame (can be detected incorrectly)
-	SGT_TTDP1,  ///< TTDP savegame ( -//- ) (data at NW border)
-	SGT_TTDP2,  ///< TTDP savegame in new format (data at SE border)
-	SGT_OTTD,   ///< OTTD savegame
-	SGT_TTO,    ///< TTO savegame
-	SGT_INVALID = 0xFF, ///< broken savegame (used internally)
-};
-
 void GenerateDefaultSaveName(char *buf, const char *last);
 void SetSaveLoadError(uint16 str);
 const char *GetSaveLoadErrorString();

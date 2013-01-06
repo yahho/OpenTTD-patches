@@ -175,11 +175,9 @@ void LoadBuffer::ReadString(void *ptr, size_t length, StrType conv)
  */
 void LoadBuffer::ReadArray(void *ptr, size_t length, VarType conv)
 {
-	extern uint16 _sl_version;
-
 	/* NOTICE - handle some buggy stuff, in really old versions everything was saved
 	 * as a byte-type. So detect this, and adjust array size accordingly */
-	if (_sl_version == 0) {
+	if (_sl_version.version == 0) {
 		/* all arrays except difficulty settings */
 		if (conv == SLE_INT16 || conv == SLE_UINT16 || conv == SLE_STRINGID ||
 				conv == SLE_INT32 || conv == SLE_UINT32) {

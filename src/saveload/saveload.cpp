@@ -255,11 +255,8 @@
  */
 extern const uint16 SAVEGAME_VERSION = 185; ///< Current savegame version of OpenTTD.
 
-SavegameType _savegame_type; ///< type of savegame we are loading
+SavegameTypeVersion _sl_version; ///< type and version of savegame we are loading
 
-uint32 _ttdp_version;     ///< version of TTDP savegame (if applicable)
-uint16 _sl_version;       ///< the major savegame version identifier
-byte   _sl_minor_version; ///< the minor savegame version, DO NOT USE!
 char _savegame_format[8]; ///< how to compress savegames
 bool _do_autosave;        ///< are we doing an autosave at the moment?
 
@@ -380,7 +377,7 @@ static void SlNullPointers()
 	/* We don't want any savegame conversion code to run
 	 * during NULLing; especially those that try to get
 	 * pointers from other pools. */
-	_sl_version = SAVEGAME_VERSION;
+	_sl_version.version = SAVEGAME_VERSION;
 
 	DEBUG(sl, 1, "Nulling pointers");
 
@@ -917,7 +914,7 @@ static bool DoSave(SaveFilter *writer, bool threaded)
 	_sl.dumper = new SaveDumper();
 	_sl.sf = writer;
 
-	_sl_version = SAVEGAME_VERSION;
+	_sl_version.version = SAVEGAME_VERSION;
 
 	SaveViewportBeforeSaveGame();
 	SlSaveChunks(_sl.dumper);
@@ -977,22 +974,22 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 
 	if (fmt != NULL) {
 		/* check version number */
-		_sl_version = TO_BE32(hdr[1]) >> 16;
+		_sl_version.version = TO_BE32(hdr[1]) >> 16;
 		/* Minor is not used anymore from version 18.0, but it is still needed
 		 * in versions before that (4 cases) which can't be removed easy.
 		 * Therefore it is loaded, but never saved (or, it saves a 0 in any scenario). */
-		_sl_minor_version = (TO_BE32(hdr[1]) >> 8) & 0xFF;
+		_sl_version.minor_version = (TO_BE32(hdr[1]) >> 8) & 0xFF;
 
-		DEBUG(sl, 1, "Loading savegame version %d", _sl_version);
+		DEBUG(sl, 1, "Loading savegame version %d", _sl_version.version);
 
 		/* Is the version higher than the current? */
-		if (_sl_version > SAVEGAME_VERSION) SlError(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
+		if (_sl_version.version > SAVEGAME_VERSION) SlError(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
 	} else {
 		/* No loader found, treat as version 0 and use LZO format */
 		DEBUG(sl, 0, "Unknown savegame type, trying to load it as the buggy format");
 		_sl.lf->Reset();
-		_sl_version = 0;
-		_sl_minor_version = 0;
+		_sl_version.version = 0;
+		_sl_version.minor_version = 0;
 
 		/* Try to find the LZO savegame format. */
 		fmt = GetLZO0SavegameFormat();
@@ -1054,7 +1051,7 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 
 	ClearSaveLoadState();
 
-	_savegame_type = SGT_OTTD;
+	_sl_version.type = SGT_OTTD;
 
 	if (load_check) {
 		/* The only part from AfterLoadGame() we need */
@@ -1156,8 +1153,8 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 		ClearGRFConfigList(&_grfconfig);
 		GamelogReset();
 		if (!LoadOldSaveGame(filename)) return false;
-		_sl_version = 0;
-		_sl_minor_version = 0;
+		_sl_version.version = 0;
+		_sl_version.minor_version = 0;
 		GamelogStartAction(GLAT_LOAD);
 		if (!AfterLoadGame()) {
 			GamelogStopAction();
