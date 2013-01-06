@@ -1486,11 +1486,11 @@ bool SlObjectMember(void *object, const SaveLoad *sld)
 
 		/* SL_VEH_INCLUDE loads common code for vehicles */
 		case SL_VEH_INCLUDE:
-			SlObject(ptr, GetVehicleDescription(VEH_END));
+			SlObject(object, GetVehicleDescription(VEH_END));
 			break;
 
 		case SL_ST_INCLUDE:
-			SlObject(ptr, GetBaseStationDescription());
+			SlObject(object, GetBaseStationDescription());
 			break;
 
 		default: NOT_REACHED();
