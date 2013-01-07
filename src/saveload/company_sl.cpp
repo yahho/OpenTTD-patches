@@ -532,11 +532,11 @@ static void Check_PLYR(LoadBuffer *reader)
 	}
 }
 
-static void Ptrs_PLYR()
+static void Ptrs_PLYR(const SavegameTypeVersion *stv)
 {
 	Company *c;
 	FOR_ALL_COMPANIES(c) {
-		SlObject(c, _company_settings_desc);
+		SlObject(c, _company_settings_desc, stv);
 	}
 }
 

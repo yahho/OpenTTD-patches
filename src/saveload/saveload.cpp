@@ -384,7 +384,7 @@ static void SlNullPointers()
 	FOR_ALL_CHUNK_HANDLERS(ch) {
 		if (ch->ptrs_proc != NULL) {
 			DEBUG(sl, 2, "Nulling pointers for %c%c%c%c", ch->id >> 24, ch->id >> 16, ch->id >> 8, ch->id);
-			ch->ptrs_proc();
+			ch->ptrs_proc(&_sl_version);
 		}
 	}
 
@@ -478,9 +478,10 @@ void ProcessAsyncSaveFinish()
  * are +1 so vehicle 0 is saved as 1.
  * @param index The index that is being converted to a pointer
  * @param rt SLRefType type of the object the pointer is sought of
+ * @param stv Savegame type and version
  * @return Return the index converted to a pointer of any type
  */
-static void *IntToReference(size_t index, SLRefType rt)
+static void *IntToReference(size_t index, SLRefType rt, const SavegameTypeVersion *stv)
 {
 	assert_compile(sizeof(size_t) <= sizeof(void *));
 
@@ -488,7 +489,7 @@ static void *IntToReference(size_t index, SLRefType rt)
 
 	/* After version 4.3 REF_VEHICLE_OLD is saved as REF_VEHICLE,
 	 * and should be loaded like that */
-	if (rt == REF_VEHICLE_OLD && !IsSavegameVersionBefore(4, 4)) {
+	if (rt == REF_VEHICLE_OLD && !IsSavegameVersionBefore(stv, 4, 4)) {
 		rt = REF_VEHICLE;
 	}
 
@@ -507,7 +508,7 @@ static void *IntToReference(size_t index, SLRefType rt)
 		case REF_ORDER:
 			if (Order::IsValidID(index)) return Order::Get(index);
 			/* in old versions, invalid order was used to mark end of order list */
-			if (IsSavegameVersionBefore(5, 2)) return NULL;
+			if (IsSavegameVersionBefore(stv, 5, 2)) return NULL;
 			SlErrorCorrupt("Referencing invalid Order");
 
 		case REF_VEHICLE_OLD:
@@ -555,21 +556,21 @@ static void *IntToReference(size_t index, SLRefType rt)
  * Main SaveLoad function.
  * @param object The object that is being saved or loaded
  * @param sld The SaveLoad description of the object so we know how to manipulate it
+ * @param stv Savegame type and version
  */
-void SlObject(void *object, const SaveLoad *sld)
+void SlObject(void *object, const SaveLoad *sld, const SavegameTypeVersion *stv)
 {
 	assert((_sl.action == SLA_PTRS) || (_sl.action == SLA_NULL));
 
 	for (; sld->type != SL_END; sld++) {
-		/* CONDITIONAL saveload types depend on the savegame version */
-		if (!SlIsObjectValidInSavegame(sld)) continue;
+		if (!SlIsObjectValidInSavegame(stv, sld)) continue;
 
 		switch (sld->type) {
 			case SL_REF: {
 				void **ptr = (void **)GetVariableAddress(sld, object);
 
 				if (_sl.action == SLA_PTRS) {
-					*ptr = IntToReference(*(size_t *)ptr, (SLRefType)sld->conv);
+					*ptr = IntToReference(*(size_t *)ptr, (SLRefType)sld->conv, stv);
 				} else {
 					*ptr = NULL;
 				}
@@ -586,7 +587,7 @@ void SlObject(void *object, const SaveLoad *sld)
 					l->clear();
 					PtrList::iterator iter;
 					for (iter = temp.begin(); iter != temp.end(); ++iter) {
-						l->push_back(IntToReference((size_t)*iter, (SLRefType)sld->conv));
+						l->push_back(IntToReference((size_t)*iter, (SLRefType)sld->conv, stv));
 					}
 				} else {
 					l->clear();
@@ -595,7 +596,7 @@ void SlObject(void *object, const SaveLoad *sld)
 			}
 
 			case SL_INCLUDE:
-				SlObject(object, (SaveLoad*)sld->address);
+				SlObject(object, (SaveLoad*)sld->address, stv);
 				break;
 
 			default: break;
@@ -671,7 +672,7 @@ static void SlLoadChunks(LoadBuffer *reader, bool check = false)
 }
 
 /** Fix all pointers (convert index -> pointer) */
-static void SlFixPointers()
+static void SlFixPointers(const SavegameTypeVersion *stv)
 {
 	_sl.action = SLA_PTRS;
 
@@ -680,7 +681,7 @@ static void SlFixPointers()
 	FOR_ALL_CHUNK_HANDLERS(ch) {
 		if (ch->ptrs_proc != NULL) {
 			DEBUG(sl, 2, "Fixing pointers for %c%c%c%c", ch->id >> 24, ch->id >> 16, ch->id >> 8, ch->id);
-			ch->ptrs_proc();
+			ch->ptrs_proc(stv);
 		}
 	}
 
@@ -1004,6 +1005,8 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 		SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, err_str);
 	}
 
+	_sl_version.type = SGT_OTTD;
+
 	_sl.lf = fmt->init_load(_sl.lf);
 	_sl.reader = new LoadBuffer(_sl.lf, &_sl_version);
 
@@ -1046,12 +1049,10 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 
 	if (!load_check) {
 		/* Resolve references */
-		SlFixPointers();
+		SlFixPointers(&_sl_version);
 	}
 
 	ClearSaveLoadState();
-
-	_sl_version.type = SGT_OTTD;
 
 	if (load_check) {
 		/* The only part from AfterLoadGame() we need */

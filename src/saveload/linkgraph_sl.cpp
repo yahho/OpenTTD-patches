@@ -262,9 +262,9 @@ static void Save_LGRS(SaveDumper *dumper)
 /**
  * Substitute pointers in link graph schedule.
  */
-static void Ptrs_LGRS()
+static void Ptrs_LGRS(const SavegameTypeVersion *stv)
 {
-	SlObject(LinkGraphSchedule::Instance(), GetLinkGraphScheduleDesc());
+	SlObject(LinkGraphSchedule::Instance(), GetLinkGraphScheduleDesc(), stv);
 }
 
 extern const ChunkHandler _linkgraph_chunk_handlers[] = {

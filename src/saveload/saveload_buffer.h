@@ -318,7 +318,7 @@ static inline uint GetGammaLength(size_t i)
 
 typedef void ChunkSaveProc(SaveDumper*);
 typedef void ChunkLoadProc(LoadBuffer*);
-typedef void ChunkPtrsProc();
+typedef void ChunkPtrsProc(const SavegameTypeVersion*);
 
 /** Handlers and description of chunk. */
 struct ChunkHandler {

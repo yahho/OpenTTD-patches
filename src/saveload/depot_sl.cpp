@@ -50,13 +50,13 @@ static void Load_DEPT(LoadBuffer *reader)
 	}
 }
 
-static void Ptrs_DEPT()
+static void Ptrs_DEPT(const SavegameTypeVersion *stv)
 {
 	Depot *depot;
 
 	FOR_ALL_DEPOTS(depot) {
-		SlObject(depot, _depot_desc);
-		if (IsSavegameVersionBefore(141)) depot->town = Town::Get((size_t)depot->town);
+		SlObject(depot, _depot_desc, stv);
+		if (IsSavegameVersionBefore(stv, 141)) depot->town = Town::Get((size_t)depot->town);
 	}
 }
 

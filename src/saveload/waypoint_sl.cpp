@@ -183,15 +183,15 @@ static void Load_WAYP(LoadBuffer *reader)
 	}
 }
 
-static void Ptrs_WAYP()
+static void Ptrs_WAYP(const SavegameTypeVersion *stv)
 {
 	for (OldWaypoint *wp = _old_waypoints.Begin(); wp != _old_waypoints.End(); wp++) {
-		SlObject(wp, _old_waypoint_desc);
+		SlObject(wp, _old_waypoint_desc, stv);
 
-		if (IsSavegameVersionBefore(12)) {
+		if (IsSavegameVersionBefore(stv, 12)) {
 			wp->town_cn = (wp->string_id & 0xC000) == 0xC000 ? (wp->string_id >> 8) & 0x3F : 0;
 			wp->town = ClosestTownFromTile(wp->xy, UINT_MAX);
-		} else if (IsSavegameVersionBefore(122)) {
+		} else if (IsSavegameVersionBefore(stv, 122)) {
 			/* Only for versions 12 .. 122 */
 			if (!Town::IsValidID(wp->town_index)) {
 				/* Upon a corrupted waypoint we'll likely get here. The next step will be to
@@ -204,7 +204,7 @@ static void Ptrs_WAYP()
 			}
 			wp->town = Town::Get(wp->town_index);
 		}
-		if (IsSavegameVersionBefore(84)) {
+		if (IsSavegameVersionBefore(stv, 84)) {
 			wp->name = CopyFromOldName(wp->string_id);
 		}
 	}

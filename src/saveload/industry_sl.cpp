@@ -114,12 +114,12 @@ static void Load_TIDS(LoadBuffer *reader)
 	Load_NewGRFMapping(reader, _industile_mngr);
 }
 
-static void Ptrs_INDY()
+static void Ptrs_INDY(const SavegameTypeVersion *stv)
 {
 	Industry *i;
 
 	FOR_ALL_INDUSTRIES(i) {
-		SlObject(i, _industry_desc);
+		SlObject(i, _industry_desc, stv);
 	}
 }
 

@@ -917,11 +917,11 @@ void Load_VEHS(LoadBuffer *reader)
 	}
 }
 
-static void Ptrs_VEHS()
+static void Ptrs_VEHS(const SavegameTypeVersion *stv)
 {
 	Vehicle *v;
 	FOR_ALL_VEHICLES(v) {
-		SlObject(v, GetVehicleDescription(v->type));
+		SlObject(v, GetVehicleDescription(v->type), stv);
 	}
 }
 

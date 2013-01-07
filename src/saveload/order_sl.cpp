@@ -187,15 +187,15 @@ static void Load_ORDR(LoadBuffer *reader)
 	}
 }
 
-static void Ptrs_ORDR()
+static void Ptrs_ORDR(const SavegameTypeVersion *stv)
 {
 	/* Orders from old savegames have pointers corrected in Load_ORDR */
-	if (IsSavegameVersionBefore(5, 2)) return;
+	if (IsSavegameVersionBefore(stv, 5, 2)) return;
 
 	Order *o;
 
 	FOR_ALL_ORDERS(o) {
-		SlObject(o, GetOrderDescription());
+		SlObject(o, GetOrderDescription(), stv);
 	}
 }
 
@@ -230,12 +230,12 @@ static void Load_ORDL(LoadBuffer *reader)
 
 }
 
-static void Ptrs_ORDL()
+static void Ptrs_ORDL(const SavegameTypeVersion *stv)
 {
 	OrderList *list;
 
 	FOR_ALL_ORDER_LISTS(list) {
-		SlObject(list, GetOrderListDescription());
+		SlObject(list, GetOrderListDescription(), stv);
 	}
 }
 
@@ -294,11 +294,11 @@ void Load_BKOR(LoadBuffer *reader)
 	}
 }
 
-static void Ptrs_BKOR()
+static void Ptrs_BKOR(const SavegameTypeVersion *stv)
 {
 	OrderBackup *ob;
 	FOR_ALL_ORDER_BACKUPS(ob) {
-		SlObject(ob, GetOrderBackupDescription());
+		SlObject(ob, GetOrderBackupDescription(), stv);
 	}
 }
 

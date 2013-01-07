@@ -50,12 +50,12 @@ static void Load_ERNW(LoadBuffer *reader)
 	}
 }
 
-static void Ptrs_ERNW()
+static void Ptrs_ERNW(const SavegameTypeVersion *stv)
 {
 	EngineRenew *er;
 
 	FOR_ALL_ENGINE_RENEWS(er) {
-		SlObject(er, _engine_renew_desc);
+		SlObject(er, _engine_renew_desc, stv);
 	}
 }
 

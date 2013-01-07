@@ -364,22 +364,22 @@ static void Load_STNS(LoadBuffer *reader)
 	}
 }
 
-static void Ptrs_STNS()
+static void Ptrs_STNS(const SavegameTypeVersion *stv)
 {
 	/* Don't run when savegame version is higher than or equal to 123. */
-	if (!IsSavegameVersionBefore(123)) return;
+	if (!IsSavegameVersionBefore(stv, 123)) return;
 
 	Station *st;
 	FOR_ALL_STATIONS(st) {
-		if (!IsSavegameVersionBefore(68)) {
+		if (!IsSavegameVersionBefore(stv, 68)) {
 			for (CargoID i = 0; i < NUM_CARGO; i++) {
 				GoodsEntry *ge = &st->goods[i];
 				SwapPackets(ge);
-				SlObject(ge, GetGoodsDesc());
+				SlObject(ge, GetGoodsDesc(), stv);
 				SwapPackets(ge);
 			}
 		}
-		SlObject(st, _old_station_desc);
+		SlObject(st, _old_station_desc, stv);
 	}
 }
 
@@ -555,32 +555,32 @@ static void Load_STNN(LoadBuffer *reader)
 	}
 }
 
-static void Ptrs_STNN()
+static void Ptrs_STNN(const SavegameTypeVersion *stv)
 {
 	/* Don't run when savegame version lower than 123. */
-	if (IsSavegameVersionBefore(123)) return;
+	if (IsSavegameVersionBefore(stv, 123)) return;
 
 	Station *st;
 	FOR_ALL_STATIONS(st) {
 		for (CargoID i = 0; i < NUM_CARGO; i++) {
 			GoodsEntry *ge = &st->goods[i];
-			if (IsSavegameVersionBefore(183)) {
+			if (IsSavegameVersionBefore(stv, 183)) {
 				SwapPackets(ge);
-				SlObject(ge, GetGoodsDesc());
+				SlObject(ge, GetGoodsDesc(), stv);
 				SwapPackets(ge);
 			} else {
-				SlObject(ge, GetGoodsDesc());
+				SlObject(ge, GetGoodsDesc(), stv);
 				for (StationCargoPacketMap::ConstMapIterator it = ge->cargo.Packets()->begin(); it != ge->cargo.Packets()->end(); ++it) {
-					SlObject(const_cast<StationCargoPair *>(&(*it)), _cargo_list_desc);
+					SlObject(const_cast<StationCargoPair *>(&(*it)), _cargo_list_desc, stv);
 				}
 			}
 		}
-		SlObject(st, _station_desc);
+		SlObject(st, _station_desc, stv);
 	}
 
 	Waypoint *wp;
 	FOR_ALL_WAYPOINTS(wp) {
-		SlObject(wp, _waypoint_desc);
+		SlObject(wp, _waypoint_desc, stv);
 	}
 }
 
@@ -604,11 +604,11 @@ static void Load_ROADSTOP(LoadBuffer *reader)
 	}
 }
 
-static void Ptrs_ROADSTOP()
+static void Ptrs_ROADSTOP(const SavegameTypeVersion *stv)
 {
 	RoadStop *rs;
 	FOR_ALL_ROADSTOPS(rs) {
-		SlObject(rs, _roadstop_desc);
+		SlObject(rs, _roadstop_desc, stv);
 	}
 }
 

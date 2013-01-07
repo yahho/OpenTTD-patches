@@ -299,14 +299,14 @@ static void Load_TOWN(LoadBuffer *reader)
 }
 
 /** Fix pointers when loading town data. */
-static void Ptrs_TOWN()
+static void Ptrs_TOWN(const SavegameTypeVersion *stv)
 {
 	/* Don't run when savegame version lower than 161. */
-	if (IsSavegameVersionBefore(161)) return;
+	if (IsSavegameVersionBefore(stv, 161)) return;
 
 	Town *t;
 	FOR_ALL_TOWNS(t) {
-		SlObject(t, _town_desc);
+		SlObject(t, _town_desc, stv);
 	}
 }
 

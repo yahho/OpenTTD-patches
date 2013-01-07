@@ -88,11 +88,11 @@ static void Load_CAPY(LoadBuffer *reader)
 	}
 }
 
-static void Ptrs_CAPY()
+static void Ptrs_CAPY(const SavegameTypeVersion *stv)
 {
 	CargoPayment *cp;
 	FOR_ALL_CARGO_PAYMENTS(cp) {
-		SlObject(cp, _cargopayment_desc);
+		SlObject(cp, _cargopayment_desc, stv);
 	}
 }
 
