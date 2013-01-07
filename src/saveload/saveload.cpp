@@ -767,7 +767,7 @@ struct FileWriter : SaveFilter {
 /* actual loader/saver function */
 void InitializeGame(uint size_x, uint size_y, bool reset_date, bool reset_settings);
 extern bool AfterLoadGame();
-extern bool LoadOldSaveGame(const char *file);
+extern bool LoadOldSaveGame(const char *file, SavegameTypeVersion *stv);
 
 /**
  * Clear/free saveload state.
@@ -1152,7 +1152,7 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 		 * for OTTD savegames which have their own NewGRF logic. */
 		ClearGRFConfigList(&_grfconfig);
 		GamelogReset();
-		if (!LoadOldSaveGame(filename)) return false;
+		if (!LoadOldSaveGame(filename, &_sl_version)) return false;
 		_sl_version.version = 0;
 		_sl_version.minor_version = 0;
 		GamelogStartAction(GLAT_LOAD);

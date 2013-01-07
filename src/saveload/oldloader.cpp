@@ -111,8 +111,8 @@ bool LoadChunk(LoadgameState *ls, void *base, const OldChunks *chunks)
 	byte *base_ptr = (byte*)base;
 
 	for (const OldChunks *chunk = chunks; chunk->type != OC_END; chunk++) {
-		if (((chunk->type & OC_TTD) && _sl_version.type == SGT_TTO) ||
-				((chunk->type & OC_TTO) && _sl_version.type != SGT_TTO)) {
+		if (((chunk->type & OC_TTD) && ls->stv->type == SGT_TTO) ||
+				((chunk->type & OC_TTO) && ls->stv->type != SGT_TTO)) {
 			/* TTD(P)-only chunk, but TTO savegame || TTO-only chunk, but TTD/TTDP savegame */
 			continue;
 		}
@@ -185,7 +185,7 @@ bool LoadChunk(LoadgameState *ls, void *base, const OldChunks *chunks)
  * Initialize some data before reading
  *
  */
-static void InitLoading(LoadgameState *ls)
+static void InitLoading(LoadgameState *ls, SavegameTypeVersion *stv)
 {
 	ls->chunk_size   = 0;
 	ls->total_read   = 0;
@@ -196,6 +196,8 @@ static void InitLoading(LoadgameState *ls)
 	ls->buffer_cur   = 0;
 	ls->buffer_count = 0;
 	memset(ls->buffer, 0, BUFFER_SIZE);
+
+	ls->stv = stv;
 
 	_bump_assert_value = 0;
 
@@ -272,13 +274,13 @@ static SavegameType DetermineOldSavegameType(FILE *f, char *title, const char *l
 
 typedef bool LoadOldMainProc(LoadgameState *ls);
 
-bool LoadOldSaveGame(const char *file)
+bool LoadOldSaveGame(const char *file, SavegameTypeVersion *stv)
 {
 	LoadgameState ls;
 
 	DEBUG(oldloader, 3, "Trying to load a TTD(Patch) savegame");
 
-	InitLoading(&ls);
+	InitLoading(&ls, stv);
 
 	/* Open file */
 	ls.file = FioFOpenFile(file, "rb", NO_DIRECTORY);
@@ -288,17 +290,15 @@ bool LoadOldSaveGame(const char *file)
 		return false;
 	}
 
-	SavegameType type = DetermineOldSavegameType(ls.file, NULL, NULL);
+	ls.stv->type = DetermineOldSavegameType(ls.file, NULL, NULL);
 
 	LoadOldMainProc *proc = NULL;
 
-	switch (type) {
+	switch (ls.stv->type) {
 		case SGT_TTO: proc = &LoadTTOMain; break;
 		case SGT_TTD: proc = &LoadTTDMain; break;
 		default: break;
 	}
-
-	_sl_version.type = type;
 
 	bool game_loaded;
 	try {

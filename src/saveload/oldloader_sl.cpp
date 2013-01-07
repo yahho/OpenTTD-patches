@@ -477,14 +477,14 @@ static inline byte RemapTTOColour(byte tto)
 	return tto_colour_remap[tto];
 }
 
-static inline uint RemapTownIndex(uint x)
+static inline uint RemapTownIndex(const SavegameTypeVersion *stv, uint x)
 {
-	return _sl_version.type == SGT_TTO ? (x - 0x264) / 78 : (x - 0x264) / 94;
+	return stv->type == SGT_TTO ? (x - 0x264) / 78 : (x - 0x264) / 94;
 }
 
-static inline uint RemapOrderIndex(uint x)
+static inline uint RemapOrderIndex(const SavegameTypeVersion *stv, uint x)
 {
-	return _sl_version.type == SGT_TTO ? (x - 0x1AC4) / 2 : (x - 0x1C18) / 2;
+	return stv->type == SGT_TTO ? (x - 0x1AC4) / 2 : (x - 0x1C18) / 2;
 }
 
 extern TileIndex *_animated_tile_list;
@@ -495,7 +495,7 @@ static uint32 _old_town_index;
 static uint16 _old_string_id;
 static uint16 _old_string_id_2;
 
-static void ReadTTDPatchFlags()
+static void ReadTTDPatchFlags(SavegameTypeVersion *stv)
 {
 	if (_read_ttdpatch_flags) return;
 
@@ -503,11 +503,11 @@ static void ReadTTDPatchFlags()
 
 	/* Set default values */
 	_old_vehicle_multiplier = 1;
-	_sl_version.ttdp_version = 0;
+	stv->ttdp_version = 0;
 	_old_extra_chunk_nums = 0;
 	_bump_assert_value = 0;
 
-	if (_sl_version.type == SGT_TTO) return;
+	if (stv->type == SGT_TTO) return;
 
 	/* TTDPatch misuses _old_map3 for flags.. read them! */
 	_old_vehicle_multiplier = _old_map3[0];
@@ -525,19 +525,19 @@ static void ReadTTDPatchFlags()
 	_bump_assert_value = (_old_vehicle_multiplier - 1) * 850 * 128;
 
 	for (uint i = 0; i < 17; i++) { // check tile 0, too
-		if (_old_map3[i] != 0) _sl_version.type = SGT_TTDP1;
+		if (_old_map3[i] != 0) stv->type = SGT_TTDP1;
 	}
 
 	/* Check if we have a modern TTDPatch savegame (has extra data all around) */
-	if (memcmp(&_old_map3[0x1FFFA], "TTDp", 4) == 0) _sl_version.type = SGT_TTDP2;
+	if (memcmp(&_old_map3[0x1FFFA], "TTDp", 4) == 0) stv->type = SGT_TTDP2;
 
-	_old_extra_chunk_nums = _old_map3[_sl_version.type == SGT_TTDP2 ? 0x1FFFE : 0x2];
+	_old_extra_chunk_nums = _old_map3[stv->type == SGT_TTDP2 ? 0x1FFFE : 0x2];
 
 	/* Clean the misused places */
 	for (uint i = 0;       i < 17;      i++) _old_map3[i] = 0;
 	for (uint i = 0x1FE00; i < 0x20000; i++) _old_map3[i] = 0;
 
-	if (_sl_version.type == SGT_TTDP2) DEBUG(oldloader, 2, "Found TTDPatch game");
+	if (stv->type == SGT_TTDP2) DEBUG(oldloader, 2, "Found TTDPatch game");
 
 	DEBUG(oldloader, 3, "Vehicle-multiplier is set to %d (%d vehicles)", _old_vehicle_multiplier, _old_vehicle_multiplier * 850);
 }
@@ -599,7 +599,7 @@ static bool LoadOldTown(LoadgameState *ls, int num)
 	if (!LoadChunk(ls, t, town_chunk)) return false;
 
 	if (t->xy != 0) {
-		if (_sl_version.type == SGT_TTO) {
+		if (ls->stv->type == SGT_TTO) {
 			/* 0x10B6 is auto-generated name, others are custom names */
 			t->townnametype = t->townnametype == 0x10B6 ? 0x20C1 : t->townnametype + 0x2A00;
 		}
@@ -671,7 +671,7 @@ static bool LoadOldDepot(LoadgameState *ls, int num)
 
 	if (d->xy != 0) {
 		/* In some cases, there could be depots referencing invalid town. */
-		Town *t = Town::GetIfValid(RemapTownIndex(_old_town_index));
+		Town *t = Town::GetIfValid(RemapTownIndex(ls->stv, _old_town_index));
 		if (t == NULL) t = Town::GetRandom();
 		d->town = t;
 	} else {
@@ -701,7 +701,7 @@ static const OldChunks goods_chunk[] = {
 static bool LoadOldGood(LoadgameState *ls, int num)
 {
 	/* for TTO games, 12th (num == 11) goods entry is created in the Station constructor */
-	if (_sl_version.type == SGT_TTO && num == 11) return true;
+	if (ls->stv->type == SGT_TTO && num == 11) return true;
 
 	Station *st = Station::Get(_current_station_id);
 	GoodsEntry *ge = &st->goods[num];
@@ -763,9 +763,9 @@ static bool LoadOldStation(LoadgameState *ls, int num)
 	if (!LoadChunk(ls, st, station_chunk)) return false;
 
 	if (st->xy != 0) {
-		st->town = Town::Get(RemapTownIndex(_old_town_index));
+		st->town = Town::Get(RemapTownIndex(ls->stv, _old_town_index));
 
-		if (_sl_version.type == SGT_TTO) {
+		if (ls->stv->type == SGT_TTO) {
 			if (IsInsideBS(_old_string_id, 0x180F, 32)) {
 				st->string_id = STR_SV_STNAME + (_old_string_id - 0x180F); // automatic name
 			} else {
@@ -840,9 +840,9 @@ static bool LoadOldIndustry(LoadgameState *ls, int num)
 	if (!LoadChunk(ls, i, industry_chunk)) return false;
 
 	if (i->location.tile != 0) {
-		i->town = Town::Get(RemapTownIndex(_old_town_index));
+		i->town = Town::Get(RemapTownIndex(ls->stv, _old_town_index));
 
-		if (_sl_version.type == SGT_TTO) {
+		if (ls->stv->type == SGT_TTO) {
 			if (i->type > 0x06) i->type++; // Printing Works were added
 			if (i->type == 0x0A) i->type = 0x12; // Iron Ore Mine has different ID
 
@@ -874,7 +874,7 @@ static bool LoadOldCompanyYearly(LoadgameState *ls, int num)
 	Company *c = Company::Get(_current_company_id);
 
 	for (uint i = 0; i < 13; i++) {
-		if (_sl_version.type == SGT_TTO && i == 6) {
+		if (ls->stv->type == SGT_TTO && i == 6) {
 			_old_yearly = 0; // property maintenance
 		} else {
 			if (!LoadChunk(ls, NULL, _company_yearly_chunk)) return false;
@@ -972,7 +972,7 @@ static bool LoadOldCompany(LoadgameState *ls, int num)
 		return true;
 	}
 
-	if (_sl_version.type == SGT_TTO) {
+	if (ls->stv->type == SGT_TTO) {
 		/* adjust manager's face */
 		if (HasBit(c->face, 27) && GB(c->face, 26, 1) == GB(c->face, 19, 1)) {
 			/* if face would be black in TTD, adjust tie colour and thereby face colour */
@@ -1230,14 +1230,14 @@ static const OldChunks vehicle_chunk[] = {
 bool LoadOldVehicle(LoadgameState *ls, int num)
 {
 	/* Read the TTDPatch flags, because we need some info from it */
-	ReadTTDPatchFlags();
+	ReadTTDPatchFlags(ls->stv);
 
 	for (uint i = 0; i < _old_vehicle_multiplier; i++) {
 		_current_vehicle_id = num * _old_vehicle_multiplier + i;
 
 		Vehicle *v;
 
-		if (_sl_version.type == SGT_TTO) {
+		if (ls->stv->type == SGT_TTO) {
 			uint type = ReadByte(ls);
 			switch (type) {
 				default: return false;
@@ -1341,8 +1341,8 @@ bool LoadOldVehicle(LoadgameState *ls, int num)
 		}
 
 		if (_old_order_ptr != 0 && _old_order_ptr != 0xFFFFFFFF) {
-			uint max = _sl_version.type == SGT_TTO ? 3000 : 5000;
-			uint old_id = RemapOrderIndex(_old_order_ptr);
+			uint max = ls->stv->type == SGT_TTO ? 3000 : 5000;
+			uint old_id = RemapOrderIndex(ls->stv, _old_order_ptr);
 			if (old_id < max) v->orders.old = Order::Get(old_id); // don't accept orders > max number of orders
 		}
 		v->current_order.AssignOrder(UnpackOldOrder(_old_order));
@@ -1376,7 +1376,7 @@ static bool LoadOldSign(LoadgameState *ls, int num)
 	if (!LoadChunk(ls, si, sign_chunk)) return false;
 
 	if (_old_string_id != 0) {
-		if (_sl_version.type == SGT_TTO) {
+		if (ls->stv->type == SGT_TTO) {
 			if (_old_string_id != 0x140A) si->name = CopyFromOldName(_old_string_id + 0x2A00);
 		} else {
 			si->name = CopyFromOldName(RemapOldStringID(_old_string_id));
@@ -1414,7 +1414,7 @@ static const OldChunks engine_chunk[] = {
 
 static bool LoadOldEngine(LoadgameState *ls, int num)
 {
-	Engine *e = _sl_version.type == SGT_TTO ? &_old_engines[num] : GetTempDataEngine(num);
+	Engine *e = ls->stv->type == SGT_TTO ? &_old_engines[num] : GetTempDataEngine(num);
 	return LoadChunk(ls, e, engine_chunk);
 }
 
@@ -1473,7 +1473,7 @@ static bool LoadOldGameDifficulty(LoadgameState *ls, int num)
 
 static bool LoadOldMapPart1(LoadgameState *ls, int num)
 {
-	if (_sl_version.type == SGT_TTO) {
+	if (ls->stv->type == SGT_TTO) {
 		MemSetT(_m, 0, OLD_MAP_SIZE);
 		MemSetT(_me, 0, OLD_MAP_SIZE);
 	}
@@ -1485,7 +1485,7 @@ static bool LoadOldMapPart1(LoadgameState *ls, int num)
 		_m[i].m2 = ReadByte(ls);
 	}
 
-	if (_sl_version.type != SGT_TTO) {
+	if (ls->stv->type != SGT_TTO) {
 		for (uint i = 0; i < OLD_MAP_SIZE; i++) {
 			_old_map3[i * 2] = ReadByte(ls);
 			_old_map3[i * 2 + 1] = ReadByte(ls);
@@ -1518,7 +1518,7 @@ static bool LoadOldMapPart2(LoadgameState *ls, int num)
 
 static bool LoadTTDPatchExtraChunks(LoadgameState *ls, int num)
 {
-	ReadTTDPatchFlags();
+	ReadTTDPatchFlags(ls->stv);
 
 	DEBUG(oldloader, 2, "Found %d extra chunk(s)", _old_extra_chunk_nums);
 
@@ -1555,9 +1555,9 @@ static bool LoadTTDPatchExtraChunks(LoadgameState *ls, int num)
 
 			/* TTDPatch version and configuration */
 			case 0x3:
-				_sl_version.ttdp_version = ReadUint32(ls);
+				ls->stv->ttdp_version = ReadUint32(ls);
 				DEBUG(oldloader, 3, "Game saved with TTDPatch version %d.%d.%d r%d",
-					GB(_sl_version.ttdp_version, 24, 8), GB(_sl_version.ttdp_version, 20, 4), GB(_sl_version.ttdp_version, 16, 4), GB(_sl_version.ttdp_version, 0, 16));
+					GB(ls->stv->ttdp_version, 24, 8), GB(ls->stv->ttdp_version, 20, 4), GB(ls->stv->ttdp_version, 16, 4), GB(ls->stv->ttdp_version, 0, 16));
 				len -= 4;
 				while (len-- != 0) ReadByte(ls); // skip the configuration
 				break;

@@ -31,6 +31,8 @@ struct LoadgameState {
 	byte buffer[BUFFER_SIZE];
 
 	uint total_read;
+
+	SavegameTypeVersion *stv;
 };
 
 /* OldChunk-Type */
