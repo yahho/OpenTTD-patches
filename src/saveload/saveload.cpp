@@ -1005,7 +1005,7 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 	}
 
 	_sl.lf = fmt->init_load(_sl.lf);
-	_sl.reader = new LoadBuffer(_sl.lf);
+	_sl.reader = new LoadBuffer(_sl.lf, &_sl_version);
 
 	if (!load_check) {
 		/* Old maps were hardcoded to 256x256 and thus did not contain

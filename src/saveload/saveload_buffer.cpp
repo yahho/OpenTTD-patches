@@ -157,7 +157,7 @@ void LoadBuffer::ReadString(void *ptr, size_t length, StrType conv)
 	StringValidationSettings settings = SVS_REPLACE_WITH_QUESTION_MARK;
 	if ((conv & SLS_ALLOW_CONTROL) != 0) {
 		settings = settings | SVS_ALLOW_CONTROL_CODE;
-		if (IsSavegameVersionBefore(169)) {
+		if (IsSavegameVersionBefore(this->stv, 169)) {
 			str_fix_scc_encoded((char *)ptr, (char *)ptr + len);
 		}
 	}
@@ -177,7 +177,7 @@ void LoadBuffer::ReadArray(void *ptr, size_t length, VarType conv)
 {
 	/* NOTICE - handle some buggy stuff, in really old versions everything was saved
 	 * as a byte-type. So detect this, and adjust array size accordingly */
-	if (_sl_version.version == 0) {
+	if (this->stv->version == 0) {
 		/* all arrays except difficulty settings */
 		if (conv == SLE_INT16 || conv == SLE_UINT16 || conv == SLE_STRINGID ||
 				conv == SLE_INT32 || conv == SLE_UINT32) {
@@ -217,11 +217,11 @@ void LoadBuffer::ReadList(void *ptr, SLRefType conv)
 {
 	std::list<void *> *l = (std::list<void *> *) ptr;
 
-	size_t length = IsSavegameVersionBefore(69) ? this->ReadUint16() : this->ReadUint32();
+	size_t length = IsSavegameVersionBefore(this->stv, 69) ? this->ReadUint16() : this->ReadUint32();
 
 	/* Load each reference and push to the end of the list */
 	for (size_t i = 0; i < length; i++) {
-		size_t data = IsSavegameVersionBefore(69) ? this->ReadUint16() : this->ReadUint32();
+		size_t data = IsSavegameVersionBefore(this->stv, 69) ? this->ReadUint16() : this->ReadUint32();
 		l->push_back((void *)data);
 	}
 }
@@ -311,8 +311,7 @@ void LoadBuffer::SkipChunk()
 
 bool LoadBuffer::ReadObjectMember(void *object, const SaveLoad *sld)
 {
-	/* CONDITIONAL saveload types depend on the savegame version */
-	if (!SlIsObjectValidInSavegame(sld)) return false;
+	if (!SlIsObjectValidInSavegame(this->stv, sld)) return false;
 
 	if ((sld->flags & SLF_NO_NETWORK_SYNC) && _networking && !_network_server) {
 		assert((sld->type == SL_ARR) || (sld->type == SL_STR));
@@ -326,7 +325,7 @@ bool LoadBuffer::ReadObjectMember(void *object, const SaveLoad *sld)
 
 	switch (sld->type) {
 		case SL_VAR: this->ReadVar(ptr, sld->conv); break;
-		case SL_REF: *(size_t *)ptr = IsSavegameVersionBefore(69) ? this->ReadUint16() : this->ReadUint32(); break;
+		case SL_REF: *(size_t *)ptr = IsSavegameVersionBefore(this->stv, 69) ? this->ReadUint16() : this->ReadUint32(); break;
 		case SL_ARR: this->ReadArray(ptr, sld->length, sld->conv); break;
 		case SL_STR: this->ReadString(ptr, sld->length, sld->conv); break;
 		case SL_LST: this->ReadList(ptr, (SLRefType)sld->conv); break;

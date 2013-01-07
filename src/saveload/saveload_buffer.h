@@ -46,12 +46,14 @@ struct LoadBuffer {
 			int index;     ///< Current array index for (non-sparse) arrays
 		} array;
 	};
+	const SavegameTypeVersion *stv; ///< type and version of the savegame
 
 	/**
 	 * Initialise our variables.
 	 * @param reader The filter to read data from.
 	 */
-	LoadBuffer(LoadFilter *reader) : bufp(NULL), bufe(NULL), reader(reader), read(0), chunk_type(-1)
+	LoadBuffer(LoadFilter *reader, const SavegameTypeVersion *stv)
+		: bufp(NULL), bufe(NULL), reader(reader), read(0), chunk_type(-1), stv(stv)
 	{
 	}
 
