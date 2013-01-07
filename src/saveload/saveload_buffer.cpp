@@ -107,7 +107,13 @@ void LoadBuffer::ReadVar(void *ptr, VarType conv)
 		case SLE_FILE_U32: x = (uint32)this->ReadUint32(); break;
 		case SLE_FILE_I64: x = (int64 )this->ReadUint64(); break;
 		case SLE_FILE_U64: x = (uint64)this->ReadUint64(); break;
-		case SLE_FILE_STRINGID: x = RemapOldStringID((uint16)this->ReadUint16()); break;
+		case SLE_FILE_STRINGID:
+			x = RemapOldStringID((uint16)this->ReadUint16());
+			if (GetVarMemType(conv) == SLE_VAR_NAME) {
+				*(char**)ptr = CopyFromOldName(x);
+				return;
+			}
+			break;
 		default: NOT_REACHED();
 	}
 
