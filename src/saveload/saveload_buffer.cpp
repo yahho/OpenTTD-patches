@@ -217,11 +217,11 @@ void LoadBuffer::ReadList(void *ptr, SLRefType conv)
 {
 	std::list<void *> *l = (std::list<void *> *) ptr;
 
-	size_t length = IsSavegameVersionBefore(this->stv, 69) ? this->ReadUint16() : this->ReadUint32();
+	size_t length = this->ReadRef();
 
 	/* Load each reference and push to the end of the list */
 	for (size_t i = 0; i < length; i++) {
-		size_t data = IsSavegameVersionBefore(this->stv, 69) ? this->ReadUint16() : this->ReadUint32();
+		size_t data = this->ReadRef();
 		l->push_back((void *)data);
 	}
 }
@@ -325,7 +325,7 @@ bool LoadBuffer::ReadObjectMember(void *object, const SaveLoad *sld)
 
 	switch (sld->type) {
 		case SL_VAR: this->ReadVar(ptr, sld->conv); break;
-		case SL_REF: *(size_t *)ptr = IsSavegameVersionBefore(this->stv, 69) ? this->ReadUint16() : this->ReadUint32(); break;
+		case SL_REF: *(size_t *)ptr = this->ReadRef(); break;
 		case SL_ARR: this->ReadArray(ptr, sld->length, sld->conv); break;
 		case SL_STR: this->ReadString(ptr, sld->length, sld->conv); break;
 		case SL_LST: this->ReadList(ptr, (SLRefType)sld->conv); break;

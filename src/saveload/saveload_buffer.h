@@ -118,6 +118,11 @@ struct LoadBuffer {
 
 	void CopyBytes(void *ptr, size_t length);
 
+	inline size_t ReadRef()
+	{
+		return IsSavegameVersionBefore(this->stv, 69) ? this->ReadUint16() : this->ReadUint32();
+	}
+
 	void ReadVar(void *ptr, VarType conv);
 	void ReadString(void *ptr, size_t length, StrType conv);
 	void ReadArray(void *ptr, size_t length, VarType conv);
