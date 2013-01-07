@@ -206,7 +206,7 @@ static void Ptrs_WAYP(const SavegameTypeVersion *stv)
 			wp->town = Town::Get(wp->town_index);
 		}
 		if (IsSavegameVersionBefore(stv, 84)) {
-			wp->name = CopyFromOldName(wp->string_id);
+			wp->name = CopyFromOldName(stv, wp->string_id);
 		}
 	}
 }

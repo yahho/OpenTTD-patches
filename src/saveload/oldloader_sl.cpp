@@ -168,7 +168,7 @@ static StringID *_old_vehicle_names;
  * the old new style savegames. Then #AfterLoadGame can handle
  * the rest of the conversion.
  */
-void FixOldVehicles()
+void FixOldVehicles(const SavegameTypeVersion *stv)
 {
 	Vehicle *v;
 
@@ -189,7 +189,7 @@ void FixOldVehicles()
 		/* Vehicle-subtype is different in TTD(Patch) */
 		if (v->type == VEH_EFFECT) v->subtype = v->subtype >> 1;
 
-		v->name = CopyFromOldName(_old_vehicle_names[v->index]);
+		v->name = CopyFromOldName(stv, _old_vehicle_names[v->index]);
 
 		/* We haven't used this bit for stations for ages */
 		if (v->type == VEH_ROAD) {
@@ -1377,9 +1377,9 @@ static bool LoadOldSign(LoadgameState *ls, int num)
 
 	if (_old_string_id != 0) {
 		if (ls->stv->type == SGT_TTO) {
-			if (_old_string_id != 0x140A) si->name = CopyFromOldName(_old_string_id + 0x2A00);
+			if (_old_string_id != 0x140A) si->name = CopyFromOldName(ls->stv, _old_string_id + 0x2A00);
 		} else {
-			si->name = CopyFromOldName(RemapOldStringID(_old_string_id));
+			si->name = CopyFromOldName(ls->stv, RemapOldStringID(_old_string_id));
 		}
 		si->owner = OWNER_NONE;
 	} else {
@@ -1421,7 +1421,7 @@ static bool LoadOldEngine(LoadgameState *ls, int num)
 static bool LoadOldEngineName(LoadgameState *ls, int num)
 {
 	Engine *e = GetTempDataEngine(num);
-	e->name = CopyFromOldName(RemapOldStringID(ReadUint16(ls)));
+	e->name = CopyFromOldName(ls->stv, RemapOldStringID(ReadUint16(ls)));
 	return true;
 }
 
@@ -1779,7 +1779,7 @@ bool LoadTTDMain(LoadgameState *ls)
 
 	/* Fix the game to be compatible with OpenTTD */
 	FixOldTowns();
-	FixOldVehicles();
+	FixOldVehicles(ls->stv);
 
 	/* We have a new difficulty setting */
 	_settings_game.difficulty.town_council_tolerance = Clamp(_old_diff_level, 0, 2);
@@ -1821,7 +1821,7 @@ bool LoadTTOMain(LoadgameState *ls)
 	}
 
 	FixOldTowns();
-	FixOldVehicles();
+	FixOldVehicles(ls->stv);
 	FixTTOCompanies();
 
 	/* We have a new difficulty setting */

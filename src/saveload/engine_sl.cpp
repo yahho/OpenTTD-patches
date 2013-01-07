@@ -122,7 +122,7 @@ static void Load_ENGS(LoadBuffer *reader)
 	/* Copy each string into the temporary engine array. */
 	for (EngineID engine = 0; engine < lengthof(names); engine++) {
 		Engine *e = GetTempDataEngine(engine);
-		e->name = CopyFromOldName(names[engine]);
+		e->name = CopyFromOldName(reader->stv, names[engine]);
 	}
 }
 

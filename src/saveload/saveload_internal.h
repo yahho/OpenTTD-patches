@@ -19,7 +19,7 @@
 
 void InitializeOldNames();
 StringID RemapOldStringID(StringID s);
-char *CopyFromOldName(StringID id);
+char *CopyFromOldName(const SavegameTypeVersion *stv, StringID id);
 void ResetOldNames();
 
 void MoveBuoysToWaypoints();

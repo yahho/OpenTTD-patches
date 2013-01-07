@@ -110,7 +110,7 @@ void LoadBuffer::ReadVar(void *ptr, VarType conv)
 		case SLE_FILE_STRINGID:
 			x = RemapOldStringID((uint16)this->ReadUint16());
 			if (GetVarMemType(conv) == SLE_VAR_NAME) {
-				*(char**)ptr = CopyFromOldName(x);
+				*(char**)ptr = CopyFromOldName(this->stv, x);
 				return;
 			}
 			break;

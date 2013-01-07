@@ -55,15 +55,15 @@ char *_old_name_array = NULL;
  * @param id the StringID of the custom name to clone.
  * @return the clones custom name.
  */
-char *CopyFromOldName(StringID id)
+char *CopyFromOldName(const SavegameTypeVersion *stv, StringID id)
 {
 	/* Is this name an (old) custom name? */
 	if (GB(id, 11, 5) != 15) return NULL;
 
-	if (IsSavegameVersionBefore(37)) {
+	if (IsSavegameVersionBefore(stv, 37)) {
 		/* Allow for expansion when converted to UTF-8. */
 		char tmp[LEN_OLD_STRINGS * MAX_CHAR_LENGTH];
-		uint offs = _sl_version.type == SGT_TTO ? LEN_OLD_STRINGS_TTO * GB(id, 0, 8) : LEN_OLD_STRINGS * GB(id, 0, 9);
+		uint offs = stv->type == SGT_TTO ? LEN_OLD_STRINGS_TTO * GB(id, 0, 8) : LEN_OLD_STRINGS * GB(id, 0, 9);
 		const char *strfrom = &_old_name_array[offs];
 		char *strto = tmp;
 

@@ -122,7 +122,7 @@ struct GroundVehicleCache;
 extern const SaveLoad *GetVehicleDescription(VehicleType vt);
 struct LoadgameState;
 extern bool LoadOldVehicle(LoadgameState *ls, int num);
-extern void FixOldVehicles();
+extern void FixOldVehicles(const SavegameTypeVersion *stv);
 
 struct GRFFile;
 
@@ -155,7 +155,7 @@ private:
 			const Order *next, uint hops, bool was_refit, bool has_cargo);
 public:
 	friend const SaveLoad *GetVehicleDescription(VehicleType vt); ///< So we can use private/protected variables in the saveload code
-	friend void FixOldVehicles();
+	friend void FixOldVehicles(const SavegameTypeVersion *stv);
 	friend void AfterLoadVehicles(const SavegameTypeVersion *stv); ///< So we can set the #previous and #first pointers while loading
 	friend bool LoadOldVehicle(LoadgameState *ls, int num);       ///< So we can set the proper next pointer while loading
 

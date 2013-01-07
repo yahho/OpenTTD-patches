@@ -562,22 +562,22 @@ bool AfterLoadGame(const SavegameTypeVersion *stv)
 	if (IsSavegameVersionBefore(stv, 84)) {
 		Company *c;
 		FOR_ALL_COMPANIES(c) {
-			c->name = CopyFromOldName(c->name_1);
+			c->name = CopyFromOldName(stv, c->name_1);
 			if (c->name != NULL) c->name_1 = STR_SV_UNNAMED;
-			c->president_name = CopyFromOldName(c->president_name_1);
+			c->president_name = CopyFromOldName(stv, c->president_name_1);
 			if (c->president_name != NULL) c->president_name_1 = SPECSTR_PRESIDENT_NAME;
 		}
 
 		Station *st;
 		FOR_ALL_STATIONS(st) {
-			st->name = CopyFromOldName(st->string_id);
+			st->name = CopyFromOldName(stv, st->string_id);
 			/* generating new name would be too much work for little effect, use the station name fallback */
 			if (st->name != NULL) st->string_id = STR_SV_STNAME_FALLBACK;
 		}
 
 		Town *t;
 		FOR_ALL_TOWNS(t) {
-			t->name = CopyFromOldName(t->townnametype);
+			t->name = CopyFromOldName(stv, t->townnametype);
 			if (t->name != NULL) t->townnametype = SPECSTR_TOWNNAME_START + _settings_game.game_creation.town_name;
 		}
 	}
