@@ -33,6 +33,18 @@ struct SavegameTypeVersion {
 };
 
 /**
+ * Checks whether the given savegame version is below \a major.\a minor.
+ * @param stv Savegame version to check.
+ * @param major Major number of the version to check against.
+ * @param minor Minor number of the version to check against. If \a minor is 0 or not specified, only the major number is checked.
+ * @return Savegame version is earlier than the specified version.
+ */
+static inline bool IsSavegameVersionBefore(const SavegameTypeVersion *stv, uint16 major, byte minor = 0)
+{
+	return stv->version < major || (minor > 0 && stv->version == major && stv->minor_version < minor);
+}
+
+/**
  * Checks whether the savegame is below \a major.\a minor.
  * @param major Major number of the version to check against.
  * @param minor Minor number of the version to check against. If \a minor is 0 or not specified, only the major number is checked.
@@ -41,8 +53,9 @@ struct SavegameTypeVersion {
 static inline bool IsSavegameVersionBefore(uint16 major, byte minor = 0)
 {
 	extern SavegameTypeVersion _sl_version;
-	return _sl_version.version < major || (minor > 0 && _sl_version.version == major && _sl_version.minor_version < minor);
+	return IsSavegameVersionBefore(&_sl_version, major, minor);
 }
+
 
 /** Type of data saved. */
 enum SaveLoadTypes {
@@ -487,15 +500,21 @@ static inline const void *GetVariableAddress(const SaveLoad *sld, const void *ob
 	return GetVariableAddress(sld, const_cast<void *>(object));
 }
 
+/** Is this object valid in a certain savegame version? */
+static inline bool SlIsObjectValidInSavegame(const SavegameTypeVersion *stv, const SaveLoad *sld)
+{
+	if (stv->version < sld->version_from || stv->version > sld->version_to) return false;
+	if (sld->flags & SLF_NOT_IN_SAVE) return false;
+
+	return true;
+}
+
 /** Are we going to save this object or not? */
 static inline bool SlIsObjectValidInSavegame(const SaveLoad *sld)
 {
 	extern SavegameTypeVersion _sl_version;
 
-	if (_sl_version.version < sld->version_from || _sl_version.version > sld->version_to) return false;
-	if (sld->flags & SLF_NOT_IN_SAVE) return false;
-
-	return true;
+	return SlIsObjectValidInSavegame(&_sl_version, sld);
 }
 
 /**
