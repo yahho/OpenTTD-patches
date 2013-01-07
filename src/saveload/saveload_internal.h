@@ -23,14 +23,14 @@ char *CopyFromOldName(StringID id);
 void ResetOldNames();
 
 void MoveBuoysToWaypoints();
-void MoveWaypointsToBaseStations();
+void MoveWaypointsToBaseStations(const SavegameTypeVersion *stv);
 
-void AfterLoadVehicles(bool part_of_load);
+void AfterLoadVehicles(const SavegameTypeVersion *stv);
 void FixupTrainLengths();
 void AfterLoadStations();
 void AfterLoadRoadStops();
 void AfterLoadLabelMaps();
-void AfterLoadStoryBook();
+void AfterLoadStoryBook(const SavegameTypeVersion *stv);
 void AfterLoadLinkGraphs();
 void AfterLoadCompanyStats();
 void UpdateHousesAndTowns();

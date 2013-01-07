@@ -19,6 +19,7 @@
 #include "cargo_type.h"
 #include "vehicle_type.h"
 #include "core/multimap.hpp"
+#include "saveload/saveload_data.h"
 #include <list>
 
 /** Unique identifier for a single cargo packet. */
@@ -191,7 +192,7 @@ public:
 
 	static void InvalidateAllFrom(SourceType src_type, SourceID src);
 	static void InvalidateAllFrom(StationID sid);
-	static void AfterLoad();
+	static void AfterLoad(const SavegameTypeVersion *stv);
 };
 
 /**

@@ -629,7 +629,7 @@ struct FileWriter : SaveFilter {
 
 /* actual loader/saver function */
 void InitializeGame(uint size_x, uint size_y, bool reset_date, bool reset_settings);
-extern bool AfterLoadGame();
+extern bool AfterLoadGame(const SavegameTypeVersion *stv);
 extern bool LoadOldSaveGame(const char *file, SavegameTypeVersion *stv);
 
 /**
@@ -924,7 +924,7 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 
 		/* After loading fix up savegame for any internal changes that
 		 * might have occurred since then. If it fails, load back the old game. */
-		if (!AfterLoadGame()) {
+		if (!AfterLoadGame(&_sl_version)) {
 			GamelogStopAction();
 			return false;
 		}
@@ -1019,7 +1019,7 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 		_sl_version.version = 0;
 		_sl_version.minor_version = 0;
 		GamelogStartAction(GLAT_LOAD);
-		if (!AfterLoadGame()) {
+		if (!AfterLoadGame(&_sl_version)) {
 			GamelogStopAction();
 			return false;
 		}

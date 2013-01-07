@@ -15,9 +15,9 @@
 #include "saveload.h"
 
 /** Called after load to trash broken pages. */
-void AfterLoadStoryBook()
+void AfterLoadStoryBook(const SavegameTypeVersion *stv)
 {
-	if (IsSavegameVersionBefore(185)) {
+	if (IsSavegameVersionBefore(stv, 185)) {
 		/* Trash all story pages and page elements because
 		 * they were saved with wrong data types.
 		 */

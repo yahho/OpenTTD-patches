@@ -242,7 +242,7 @@ static void CheckValidVehicles()
 extern byte _age_cargo_skip_counter; // From misc_sl.cpp
 
 /** Called after load to update coordinates */
-void AfterLoadVehicles(bool part_of_load)
+void AfterLoadVehicles(const SavegameTypeVersion *stv)
 {
 	Vehicle *v;
 
@@ -251,14 +251,14 @@ void AfterLoadVehicles(bool part_of_load)
 		if (v->Next() != NULL) v->Next()->previous = v;
 		if (v->NextShared() != NULL) v->NextShared()->previous_shared = v;
 
-		if (part_of_load) v->fill_percent_te_id = INVALID_TE_ID;
+		if (stv != NULL) v->fill_percent_te_id = INVALID_TE_ID;
 		v->first = NULL;
 		if (v->IsGroundVehicle()) v->GetGroundVehicleCache()->first_engine = INVALID_ENGINE;
 	}
 
 	/* AfterLoadVehicles may also be called in case of NewGRF reload, in this
 	 * case we may not convert orders again. */
-	if (part_of_load) {
+	if (stv != NULL) {
 		/* Create shared vehicle chain for very old games (pre 5,2) and create
 		 * OrderList from shared vehicle chains. For this to work correctly, the
 		 * following conditions must be fulfilled:
@@ -269,7 +269,7 @@ void AfterLoadVehicles(bool part_of_load)
 
 		FOR_ALL_VEHICLES(v) {
 			if (v->orders.old != NULL) {
-				if (IsSavegameVersionBefore(105)) { // Pre-105 didn't save an OrderList
+				if (IsSavegameVersionBefore(stv, 105)) { // Pre-105 didn't save an OrderList
 					if (mapping[v->orders.old] == NULL) {
 						/* This adds the whole shared vehicle chain for case b */
 
@@ -281,7 +281,7 @@ void AfterLoadVehicles(bool part_of_load)
 					} else {
 						v->orders.list = mapping[v->orders.old];
 						/* For old games (case a) we must create the shared vehicle chain */
-						if (IsSavegameVersionBefore(5, 2)) {
+						if (IsSavegameVersionBefore(stv, 5, 2)) {
 							v->AddToShared(v->orders.list->GetFirstSharedVehicle());
 						}
 					}
@@ -303,8 +303,8 @@ void AfterLoadVehicles(bool part_of_load)
 		}
 	}
 
-	if (part_of_load) {
-		if (IsSavegameVersionBefore(105)) {
+	if (stv != NULL) {
+		if (IsSavegameVersionBefore(stv, 105)) {
 			/* Before 105 there was no order for shared orders, thus it messed up horribly */
 			FOR_ALL_VEHICLES(v) {
 				if (v->First() != v || v->orders.list != NULL || v->previous_shared != NULL || v->next_shared == NULL) continue;
@@ -318,7 +318,7 @@ void AfterLoadVehicles(bool part_of_load)
 			}
 		}
 
-		if (IsSavegameVersionBefore(157)) {
+		if (IsSavegameVersionBefore(stv, 157)) {
 			/* The road vehicle subtype was converted to a flag. */
 			RoadVehicle *rv;
 			FOR_ALL_ROADVEHICLES(rv) {
@@ -335,7 +335,7 @@ void AfterLoadVehicles(bool part_of_load)
 			}
 		}
 
-		if (IsSavegameVersionBefore(160)) {
+		if (IsSavegameVersionBefore(stv, 160)) {
 			/* In some old savegames there might be some "crap" stored. */
 			FOR_ALL_VEHICLES(v) {
 				if (!v->IsPrimaryVehicle() && v->type != VEH_DISASTER) {
@@ -345,14 +345,14 @@ void AfterLoadVehicles(bool part_of_load)
 			}
 		}
 
-		if (IsSavegameVersionBefore(162)) {
+		if (IsSavegameVersionBefore(stv, 162)) {
 			/* Set the vehicle-local cargo age counter from the old global counter. */
 			FOR_ALL_VEHICLES(v) {
 				v->cargo_age_counter = _age_cargo_skip_counter;
 			}
 		}
 
-		if (IsSavegameVersionBefore(180)) {
+		if (IsSavegameVersionBefore(stv, 180)) {
 			/* Set service interval flags */
 			FOR_ALL_VEHICLES(v) {
 				if (!v->IsPrimaryVehicle()) continue;
@@ -402,7 +402,7 @@ void AfterLoadVehicles(bool part_of_load)
 	}
 
 	/* Stop non-front engines */
-	if (part_of_load && IsSavegameVersionBefore(112)) {
+	if (stv != NULL && IsSavegameVersionBefore(stv, 112)) {
 		FOR_ALL_VEHICLES(v) {
 			if (v->type == VEH_TRAIN) {
 				Train *t = Train::From(v);
@@ -415,7 +415,7 @@ void AfterLoadVehicles(bool part_of_load)
 			}
 			/* trains weren't stopping gradually in old OTTD versions (and TTO/TTD)
 			 * other vehicle types didn't have zero speed while stopped (even in 'recent' OTTD versions) */
-			if ((v->vehstatus & VS_STOPPED) && (v->type != VEH_TRAIN || IsSavegameVersionBefore(2, 1))) {
+			if ((v->vehstatus & VS_STOPPED) && (v->type != VEH_TRAIN || IsSavegameVersionBefore(stv, 2, 1))) {
 				v->cur_speed = 0;
 			}
 		}

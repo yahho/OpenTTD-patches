@@ -20,13 +20,13 @@
  * Converts this order from an old savegame's version;
  * it moves all bits to the new location.
  */
-void Order::ConvertFromOldSavegame()
+void Order::ConvertFromOldSavegame(const SavegameTypeVersion *stv)
 {
 	uint8 old_flags = this->flags;
 	this->flags = 0;
 
 	/* First handle non-stop - use value from savegame if possible, else use value from config file */
-	if (_settings_client.gui.sg_new_nonstop || (IsSavegameVersionBefore(22) && _sl_version.type != SGT_TTO && _sl_version.type != SGT_TTD && _settings_client.gui.new_nonstop)) {
+	if (_settings_client.gui.sg_new_nonstop || (IsSavegameVersionBefore(stv, 22) && stv->type != SGT_TTO && stv->type != SGT_TTD && _settings_client.gui.new_nonstop)) {
 		/* OFB_NON_STOP */
 		this->SetNonStopType((old_flags & 8) ? ONSF_NO_STOP_AT_ANY_STATION : ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS);
 	} else {
@@ -47,7 +47,7 @@ void Order::ConvertFromOldSavegame()
 			this->SetLoadType(OLF_LOAD_IF_POSSIBLE);
 		} else {
 			/* old OTTD versions stored full_load_any in config file - assume it was enabled when loading */
-			this->SetLoadType(_settings_client.gui.sg_full_load_any || IsSavegameVersionBefore(22) ? OLF_FULL_LOAD_ANY : OLFB_FULL_LOAD);
+			this->SetLoadType(_settings_client.gui.sg_full_load_any || IsSavegameVersionBefore(stv, 22) ? OLF_FULL_LOAD_ANY : OLFB_FULL_LOAD);
 		}
 
 		if (this->IsType(OT_GOTO_STATION)) this->SetStopLocation(OSL_PLATFORM_FAR_END);

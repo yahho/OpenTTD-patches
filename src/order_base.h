@@ -187,7 +187,7 @@ public:
 
 	uint32 Pack() const;
 	uint16 MapOldOrder() const;
-	void ConvertFromOldSavegame();
+	void ConvertFromOldSavegame(const SavegameTypeVersion *stv);
 };
 
 void InsertOrder(Vehicle *v, Order *new_o, VehicleOrderID sel_ord);
@@ -199,7 +199,7 @@ void DeleteOrder(Vehicle *v, VehicleOrderID sel_ord);
  */
 struct OrderList : OrderListPool::PoolItem<&_orderlist_pool> {
 private:
-	friend void AfterLoadVehicles(bool part_of_load); ///< For instantiating the shared vehicle chain
+	friend void AfterLoadVehicles(const SavegameTypeVersion *stv); ///< For instantiating the shared vehicle chain
 	friend const struct SaveLoad *GetOrderListDescription(); ///< Saving and loading of order lists.
 
 	StationID GetBestLoadableNext(const Vehicle *v, const Order *o1, const Order *o2) const;

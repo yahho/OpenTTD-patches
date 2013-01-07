@@ -23,8 +23,6 @@
 
 extern const uint16 SAVEGAME_VERSION;  ///< current savegame version
 
-extern SavegameTypeVersion _sl_version; ///< type and version of savegame we are loading
-
 
 static GamelogActionType _gamelog_action_type = GLAT_NONE; ///< action to record if anything changes
 
@@ -449,15 +447,15 @@ void GamelogMode()
 /**
  * Logs loading from savegame without gamelog
  */
-void GamelogOldver()
+void GamelogOldver(const SavegameTypeVersion *stv)
 {
 	assert(_gamelog_action_type == GLAT_LOAD);
 
 	LoggedChange *lc = GamelogChange(GLCT_OLDVER);
 	if (lc == NULL) return;
 
-	lc->oldver.type = _sl_version.type;
-	lc->oldver.version = (_sl_version.type == SGT_OTTD ? ((uint32)_sl_version.version << 8 | _sl_version.minor_version) : _sl_version.ttdp_version);
+	lc->oldver.type = stv->type;
+	lc->oldver.version = (stv->type == SGT_OTTD ? ((uint32)stv->version << 8 | stv->minor_version) : stv->ttdp_version);
 }
 
 /**

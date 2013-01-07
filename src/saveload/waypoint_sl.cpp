@@ -62,13 +62,13 @@ static void UpdateWaypointOrder(Order *o)
  * Perform all steps to upgrade from the old waypoints to the new version
  * that uses station. This includes some old saveload mechanics.
  */
-void MoveWaypointsToBaseStations()
+void MoveWaypointsToBaseStations(const SavegameTypeVersion *stv)
 {
 	/* In version 17, ground type is moved from m2 to m4 for depots and
 	 * waypoints to make way for storing the index in m2. The custom graphics
 	 * id which was stored in m4 is now saved as a grf/id reference in the
 	 * waypoint struct. */
-	if (IsSavegameVersionBefore(17)) {
+	if (IsSavegameVersionBefore(stv, 17)) {
 		for (OldWaypoint *wp = _old_waypoints.Begin(); wp != _old_waypoints.End(); wp++) {
 			if (wp->delete_ctr != 0) continue; // The waypoint was deleted
 
@@ -111,7 +111,7 @@ void MoveWaypointsToBaseStations()
 		TileIndex t = wp->xy;
 		if (IsTileType(t, MP_RAILWAY) && GetRailTileType(t) == 2 /* RAIL_TILE_WAYPOINT */ && _m[t].m2 == wp->index) {
 			/* The tile might've been reserved! */
-			bool reserved = !IsSavegameVersionBefore(100) && HasBit(_m[t].m5, 4);
+			bool reserved = !IsSavegameVersionBefore(stv, 100) && HasBit(_m[t].m5, 4);
 
 			/* The tile really has our waypoint, so reassign the map array */
 			MakeRailWaypoint(t, GetTileOwner(t), new_wp->index, (Axis)GB(_m[t].m5, 0, 1), 0, GetRailType(t));

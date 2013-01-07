@@ -13,6 +13,7 @@
 #define GAMELOG_H
 
 #include "newgrf_config.h"
+#include "saveload/saveload_data.h"
 
 /** The actions we log. */
 enum GamelogActionType {
@@ -48,7 +49,7 @@ bool GamelogTestEmergency();
 
 void GamelogRevision();
 void GamelogMode();
-void GamelogOldver();
+void GamelogOldver(const SavegameTypeVersion *stv);
 void GamelogSetting(const char *name, int32 oldval, int32 newval);
 
 void GamelogGRFUpdate(const GRFConfig *oldg, const GRFConfig *newg);
