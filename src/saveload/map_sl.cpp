@@ -105,7 +105,7 @@ static void Load_MAP2(LoadBuffer *reader)
 	for (TileIndex i = 0; i != size;) {
 		reader->ReadArray(buf, MAP_SL_BUF_SIZE,
 			/* In those versions the m2 was 8 bits */
-			IsSavegameVersionBefore(5) ? SLE_FILE_U8 | SLE_VAR_U16 : SLE_UINT16
+			reader->IsVersionBefore(5) ? SLE_FILE_U8 | SLE_VAR_U16 : SLE_UINT16
 		);
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _m[i++].m2 = buf[j];
 	}
@@ -197,7 +197,7 @@ static void Load_MAP6(LoadBuffer *reader)
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
-	if (IsSavegameVersionBefore(42)) {
+	if (reader->IsVersionBefore(42)) {
 		for (TileIndex i = 0; i != size;) {
 			/* 1024, otherwise we overflow on 64x64 maps! */
 			reader->ReadArray(buf, 1024, SLE_UINT8);

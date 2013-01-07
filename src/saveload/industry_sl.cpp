@@ -94,7 +94,7 @@ static void Load_INDY(LoadBuffer *reader)
 		reader->ReadObject(i, _industry_desc);
 
 		/* Before savegame version 161, persistent storages were not stored in a pool. */
-		if (IsSavegameVersionBefore(161) && !IsSavegameVersionBefore(76)) {
+		if (reader->IsVersionBefore(161) && !reader->IsVersionBefore(76)) {
 			/* Store the old persistent storage. The GRFID will be added later. */
 			assert(PersistentStorage::CanAllocateItem());
 			i->psa = new PersistentStorage(0);

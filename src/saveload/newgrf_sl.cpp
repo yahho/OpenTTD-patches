@@ -83,7 +83,7 @@ static void Load_NGRF_common(LoadBuffer *reader, GRFConfig *&grfconfig)
 	while (reader->IterateChunk() != -1) {
 		GRFConfig *c = new GRFConfig();
 		reader->ReadObject(c, _grfconfig_desc);
-		if (IsSavegameVersionBefore(101)) c->SetSuitablePalette();
+		if (reader->IsVersionBefore(101)) c->SetSuitablePalette();
 		AppendToGRFConfigList(&grfconfig, c);
 	}
 }

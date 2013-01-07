@@ -66,6 +66,11 @@ struct LoadBuffer {
 		return this->read - (this->bufe - this->bufp);
 	}
 
+	inline bool IsVersionBefore(uint16 major, byte minor = 0) const
+	{
+		return IsSavegameVersionBefore(this->stv, major, minor);
+	}
+
 	void FillBuffer();
 
 	/**
@@ -120,7 +125,7 @@ struct LoadBuffer {
 
 	inline size_t ReadRef()
 	{
-		return IsSavegameVersionBefore(this->stv, 69) ? this->ReadUint16() : this->ReadUint32();
+		return this->IsVersionBefore(69) ? this->ReadUint16() : this->ReadUint32();
 	}
 
 	void ReadVar(void *ptr, VarType conv);

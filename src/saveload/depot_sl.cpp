@@ -46,7 +46,7 @@ static void Load_DEPT(LoadBuffer *reader)
 		reader->ReadObject(depot, _depot_desc);
 
 		/* Set the town 'pointer' so we can restore it later. */
-		if (IsSavegameVersionBefore(141)) depot->town = (Town *)(size_t)_town_index;
+		if (reader->IsVersionBefore(141)) depot->town = (Town *)(size_t)_town_index;
 	}
 }
 

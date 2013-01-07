@@ -329,16 +329,16 @@ static void Load_STNS(LoadBuffer *reader)
 
 		_waiting_acceptance = 0;
 
-		uint num_cargo = IsSavegameVersionBefore(55) ? 12 : NUM_CARGO;
+		uint num_cargo = reader->IsVersionBefore(55) ? 12 : NUM_CARGO;
 		for (CargoID i = 0; i < num_cargo; i++) {
 			GoodsEntry *ge = &st->goods[i];
 			reader->ReadObject(ge, GetGoodsDesc());
 			SwapPackets(ge);
-			if (IsSavegameVersionBefore(68)) {
+			if (reader->IsVersionBefore(68)) {
 				SB(ge->acceptance_pickup, GoodsEntry::GES_ACCEPTANCE, 1, HasBit(_waiting_acceptance, 15));
 				if (GB(_waiting_acceptance, 0, 12) != 0) {
 					/* In old versions, enroute_from used 0xFF as INVALID_STATION */
-					StationID source = (IsSavegameVersionBefore(7) && _cargo_source == 0xFF) ? INVALID_STATION : _cargo_source;
+					StationID source = (reader->IsVersionBefore(7) && _cargo_source == 0xFF) ? INVALID_STATION : _cargo_source;
 
 					/* Make sure we can allocate the CargoPacket. This is safe
 					 * as there can only be ~64k stations and 32 cargoes in these
@@ -511,7 +511,7 @@ static void Load_STNN(LoadBuffer *reader)
 			Station *st = Station::From(bst);
 
 			/* Before savegame version 161, persistent storages were not stored in a pool. */
-			if (IsSavegameVersionBefore(161) && !IsSavegameVersionBefore(145) && st->facilities & FACIL_AIRPORT) {
+			if (reader->IsVersionBefore(161) && !reader->IsVersionBefore(145) && st->facilities & FACIL_AIRPORT) {
 				/* Store the old persistent storage. The GRFID will be added later. */
 				assert(PersistentStorage::CanAllocateItem());
 				st->airport.psa = new PersistentStorage(0);
@@ -532,7 +532,7 @@ static void Load_STNN(LoadBuffer *reader)
 					}
 					prev_source = flow.source;
 				}
-				if (IsSavegameVersionBefore(183)) {
+				if (reader->IsVersionBefore(183)) {
 					SwapPackets(&st->goods[i]);
 				} else {
 					StationCargoPair pair;

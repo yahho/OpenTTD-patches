@@ -19,7 +19,7 @@
 static void Load_PRIC(LoadBuffer *reader)
 {
 	/* Old games store 49 base prices, very old games store them as int32 */
-	int vt = IsSavegameVersionBefore(65) ? SLE_FILE_I32 : SLE_FILE_I64;
+	int vt = reader->IsVersionBefore(65) ? SLE_FILE_I32 : SLE_FILE_I64;
 	reader->ReadArray(NULL, 49, vt | SLE_VAR_NULL);
 	reader->ReadArray(NULL, 49, SLE_FILE_U16 | SLE_VAR_NULL);
 }
@@ -27,8 +27,8 @@ static void Load_PRIC(LoadBuffer *reader)
 /** Cargo payment rates in pre 126 savegames */
 static void Load_CAPR(LoadBuffer *reader)
 {
-	uint num_cargo = IsSavegameVersionBefore(55) ? 12 : NUM_CARGO;
-	int vt = IsSavegameVersionBefore(65) ? SLE_FILE_I32 : SLE_FILE_I64;
+	uint num_cargo = reader->IsVersionBefore(55) ? 12 : NUM_CARGO;
+	int vt = reader->IsVersionBefore(65) ? SLE_FILE_I32 : SLE_FILE_I64;
 	reader->ReadArray(NULL, num_cargo, vt | SLE_VAR_NULL);
 	reader->ReadArray(NULL, num_cargo, SLE_FILE_U16 | SLE_VAR_NULL);
 }
@@ -59,7 +59,7 @@ static void Save_ECMY(SaveDumper *dumper)
 static void Load_ECMY(LoadBuffer *reader)
 {
 	reader->ReadObject(&_economy, _economy_desc);
-	StartupIndustryDailyChanges(IsSavegameVersionBefore(102));  // old savegames will need to be initialized
+	StartupIndustryDailyChanges(reader->IsVersionBefore(102));  // old savegames will need to be initialized
 }
 
 static const SaveLoad _cargopayment_desc[] = {

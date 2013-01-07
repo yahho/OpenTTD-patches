@@ -42,9 +42,9 @@ static void Load_ERNW(LoadBuffer *reader)
 		reader->ReadObject(er, _engine_renew_desc);
 
 		/* Advanced vehicle lists, ungrouped vehicles got added */
-		if (IsSavegameVersionBefore(60)) {
+		if (reader->IsVersionBefore(60)) {
 			er->group_id = ALL_GROUP;
-		} else if (IsSavegameVersionBefore(71)) {
+		} else if (reader->IsVersionBefore(71)) {
 			if (er->group_id == DEFAULT_GROUP) er->group_id = ALL_GROUP;
 		}
 	}

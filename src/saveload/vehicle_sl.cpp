@@ -899,13 +899,13 @@ void Load_VEHS(LoadBuffer *reader)
 		}
 
 		/* Old savegames used 'last_station_visited = 0xFF' */
-		if (IsSavegameVersionBefore(5) && v->last_station_visited == 0xFF) {
+		if (reader->IsVersionBefore(5) && v->last_station_visited == 0xFF) {
 			v->last_station_visited = INVALID_STATION;
 		}
 
-		if (IsSavegameVersionBefore(182)) v->last_loading_station = INVALID_STATION;
+		if (reader->IsVersionBefore(182)) v->last_loading_station = INVALID_STATION;
 
-		if (IsSavegameVersionBefore(5)) {
+		if (reader->IsVersionBefore(5)) {
 			/* Convert the current_order.type (which is a mix of type and flags, because
 			 *  in those versions, they both were 4 bits big) to type and flags */
 			v->current_order.flags = GB(v->current_order.type, 4, 4);
@@ -913,7 +913,7 @@ void Load_VEHS(LoadBuffer *reader)
 		}
 
 		/* Advanced vehicle lists got added */
-		if (IsSavegameVersionBefore(60)) v->group_id = DEFAULT_GROUP;
+		if (reader->IsVersionBefore(60)) v->group_id = DEFAULT_GROUP;
 	}
 }
 

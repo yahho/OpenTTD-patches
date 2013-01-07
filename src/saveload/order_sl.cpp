@@ -132,12 +132,12 @@ static void Save_ORDR(SaveDumper *dumper)
 
 static void Load_ORDR(LoadBuffer *reader)
 {
-	if (IsSavegameVersionBefore(5, 2)) {
+	if (reader->IsVersionBefore(5, 2)) {
 		/* Version older than 5.2 did not have a ->next pointer. Convert them
 		 * (in the old days, the orderlist was 5000 items big) */
 		size_t len = reader->GetChunkSize();
 
-		if (IsSavegameVersionBefore(5)) {
+		if (reader->IsVersionBefore(5)) {
 			/* Pre-version 5 had another layout for orders
 			 * (uint16 instead of uint32) */
 			len /= sizeof(uint16);
@@ -151,7 +151,7 @@ static void Load_ORDR(LoadBuffer *reader)
 			}
 
 			free(orders);
-		} else if (IsSavegameVersionBefore(5, 2)) {
+		} else if (reader->IsVersionBefore(5, 2)) {
 			len /= sizeof(uint32);
 			uint32 *orders = MallocT<uint32>(len + 1);
 

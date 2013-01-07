@@ -284,7 +284,7 @@ static void Load_TOWN(LoadBuffer *reader)
 			SlErrorCorrupt("Invalid town name generator");
 		}
 
-		if (IsSavegameVersionBefore(166)) continue;
+		if (reader->IsVersionBefore(166)) continue;
 
 		reader->ReadObject(&t->cargo_accepted, GetTileMatrixDesc());
 		if (t->cargo_accepted.area.w != 0) {
