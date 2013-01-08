@@ -187,6 +187,7 @@ static void Ptrs_WAYP(const SavegameTypeVersion *stv)
 {
 	for (OldWaypoint *wp = _old_waypoints.Begin(); wp != _old_waypoints.End(); wp++) {
 		SlObject(wp, _old_waypoint_desc, stv);
+		if (stv == NULL) continue;
 
 		if (IsSavegameVersionBefore(stv, 12)) {
 			wp->town_cn = (wp->string_id & 0xC000) == 0xC000 ? (wp->string_id >> 8) & 0x3F : 0;

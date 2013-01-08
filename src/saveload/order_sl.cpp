@@ -190,7 +190,7 @@ static void Load_ORDR(LoadBuffer *reader)
 static void Ptrs_ORDR(const SavegameTypeVersion *stv)
 {
 	/* Orders from old savegames have pointers corrected in Load_ORDR */
-	if (IsSavegameVersionBefore(stv, 5, 2)) return;
+	if ((stv != NULL) && IsSavegameVersionBefore(stv, 5, 2)) return;
 
 	Order *o;
 

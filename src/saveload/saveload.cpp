@@ -384,7 +384,7 @@ static void SlNullPointers()
 	FOR_ALL_CHUNK_HANDLERS(ch) {
 		if (ch->ptrs_proc != NULL) {
 			DEBUG(sl, 2, "Nulling pointers for %c%c%c%c", ch->id >> 24, ch->id >> 16, ch->id >> 8, ch->id);
-			ch->ptrs_proc(&_sl_version);
+			ch->ptrs_proc(NULL);
 		}
 	}
 
@@ -556,20 +556,21 @@ static void *IntToReference(size_t index, SLRefType rt, const SavegameTypeVersio
  * Main SaveLoad function.
  * @param object The object that is being saved or loaded
  * @param sld The SaveLoad description of the object so we know how to manipulate it
- * @param stv Savegame type and version
+ * @param stv Savegame type and version; NULL when clearing references
  */
 void SlObject(void *object, const SaveLoad *sld, const SavegameTypeVersion *stv)
 {
 	assert((_sl.action == SLA_PTRS) || (_sl.action == SLA_NULL));
+	assert((stv == NULL) == (_sl.action == SLA_NULL));
 
 	for (; sld->type != SL_END; sld++) {
-		if (!SlIsObjectValidInSavegame(stv, sld)) continue;
+		if ((stv != NULL) ? !SlIsObjectValidInSavegame(stv, sld) : !SlIsObjectCurrentlyValid(sld)) continue;
 
 		switch (sld->type) {
 			case SL_REF: {
 				void **ptr = (void **)GetVariableAddress(sld, object);
 
-				if (_sl.action == SLA_PTRS) {
+				if (stv != NULL) {
 					*ptr = IntToReference(*(size_t *)ptr, (SLRefType)sld->conv, stv);
 				} else {
 					*ptr = NULL;
@@ -581,7 +582,7 @@ void SlObject(void *object, const SaveLoad *sld, const SavegameTypeVersion *stv)
 				typedef std::list<void *> PtrList;
 				PtrList *l = (PtrList *)GetVariableAddress(sld, object);
 
-				if (_sl.action == SLA_PTRS) {
+				if (stv != NULL) {
 					PtrList temp = *l;
 
 					l->clear();
