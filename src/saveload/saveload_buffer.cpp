@@ -586,8 +586,8 @@ void SaveDumper::WriteElementHeader(uint index, size_t length)
 
 void SaveDumper::WriteObjectMember(const void *object, const SaveLoad *sld)
 {
-	/* CONDITIONAL saveload types depend on the savegame version */
-	if (!SlIsObjectValidInSavegame(sld)) return;
+	if (!SlIsObjectCurrentlyValid(sld)) return;
+	if (sld->flags & SLF_NOT_IN_SAVE) return;
 
 	const void *ptr = GetVariableAddress(sld, object);
 

@@ -75,11 +75,8 @@ void WriteValue(void *ptr, VarType conv, int64 val)
 }
 
 
-/** Return the size in bytes of a reference (pointer) */
-static inline size_t SlCalcRefLen()
-{
-	return IsSavegameVersionBefore(69) ? 2 : 4;
-}
+/** Size in bytes of a reference (pointer) */
+static const size_t REF_LENGTH = 4;
 
 /**
  * Return the size in bytes of a certain type of atomic array
@@ -124,10 +121,9 @@ static inline size_t SlCalcListLen(const void *list)
 {
 	const std::list<void *> *l = (const std::list<void *> *) list;
 
-	int type_size = IsSavegameVersionBefore(69) ? 2 : 4;
-	/* Each entry is saved as type_size bytes, plus type_size bytes are used for the length
+	/* Each entry is saved as REF_LENGTH bytes, plus REF_LENGTH bytes are used for the length
 	 * of the list */
-	return l->size() * type_size + type_size;
+	return l->size() * REF_LENGTH + REF_LENGTH;
 }
 
 /**
@@ -142,12 +138,12 @@ size_t SlCalcObjLength(const void *object, const SaveLoad *sld)
 
 	/* Need to determine the length and write a length tag. */
 	for (; sld->type != SL_END; sld++) {
-		/* CONDITIONAL saveload types depend on the savegame version */
-		if (!SlIsObjectValidInSavegame(sld)) continue;
+		if (!SlIsObjectCurrentlyValid(sld)) continue;
+		if (sld->flags & SLF_NOT_IN_SAVE) continue;
 
 		switch (sld->type) {
 			case SL_VAR: length += SlCalcConvFileLen(sld->conv); break;
-			case SL_REF: length += SlCalcRefLen(); break;
+			case SL_REF: length += REF_LENGTH; break;
 			case SL_ARR: length += SlCalcArrayLen(sld->length, sld->conv); break;
 			case SL_STR: length += SlCalcStringLen(GetVariableAddress(sld, object), sld->length, sld->conv); break;
 			case SL_LST: length += SlCalcListLen(GetVariableAddress(sld, object)); break;
