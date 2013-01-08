@@ -119,7 +119,7 @@ static void Ptrs_INDY(const SavegameTypeVersion *stv)
 	Industry *i;
 
 	FOR_ALL_INDUSTRIES(i) {
-		SlObject(i, _industry_desc, stv);
+		SlObjectPtrs(i, _industry_desc, stv);
 	}
 }
 

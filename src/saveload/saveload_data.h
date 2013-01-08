@@ -532,4 +532,6 @@ static inline bool SlIsObjectCurrentlyValid(const SaveLoad *sld)
 
 size_t SlCalcObjLength(const void *object, const SaveLoad *sld);
 
+void SlObjectPtrs(void *object, const SaveLoad *sld, const SavegameTypeVersion *stv);
+
 #endif /* SAVELOAD_DATA_H */

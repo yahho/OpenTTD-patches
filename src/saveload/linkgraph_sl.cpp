@@ -264,7 +264,7 @@ static void Save_LGRS(SaveDumper *dumper)
  */
 static void Ptrs_LGRS(const SavegameTypeVersion *stv)
 {
-	SlObject(LinkGraphSchedule::Instance(), GetLinkGraphScheduleDesc(), stv);
+	SlObjectPtrs(LinkGraphSchedule::Instance(), GetLinkGraphScheduleDesc(), stv);
 }
 
 extern const ChunkHandler _linkgraph_chunk_handlers[] = {

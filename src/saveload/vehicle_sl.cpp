@@ -921,7 +921,7 @@ static void Ptrs_VEHS(const SavegameTypeVersion *stv)
 {
 	Vehicle *v;
 	FOR_ALL_VEHICLES(v) {
-		SlObject(v, GetVehicleDescription(v->type), stv);
+		SlObjectPtrs(v, GetVehicleDescription(v->type), stv);
 	}
 }
 

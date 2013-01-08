@@ -39,8 +39,6 @@ void DoExitSave();
 bool SaveWithFilter(struct SaveFilter *writer, bool threaded);
 bool LoadWithFilter(struct LoadFilter *reader);
 
-void SlObject(void *object, const SaveLoad *sld, const SavegameTypeVersion *stv);
-
 void NORETURN SlError(StringID string, const char *extra_msg = NULL);
 void NORETURN SlErrorCorrupt(const char *msg);
 

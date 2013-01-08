@@ -186,7 +186,7 @@ static void Load_WAYP(LoadBuffer *reader)
 static void Ptrs_WAYP(const SavegameTypeVersion *stv)
 {
 	for (OldWaypoint *wp = _old_waypoints.Begin(); wp != _old_waypoints.End(); wp++) {
-		SlObject(wp, _old_waypoint_desc, stv);
+		SlObjectPtrs(wp, _old_waypoint_desc, stv);
 		if (stv == NULL) continue;
 
 		if (IsSavegameVersionBefore(stv, 12)) {

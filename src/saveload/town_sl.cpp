@@ -306,7 +306,7 @@ static void Ptrs_TOWN(const SavegameTypeVersion *stv)
 
 	Town *t;
 	FOR_ALL_TOWNS(t) {
-		SlObject(t, _town_desc, stv);
+		SlObjectPtrs(t, _town_desc, stv);
 	}
 }
 

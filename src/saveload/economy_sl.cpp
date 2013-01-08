@@ -92,7 +92,7 @@ static void Ptrs_CAPY(const SavegameTypeVersion *stv)
 {
 	CargoPayment *cp;
 	FOR_ALL_CARGO_PAYMENTS(cp) {
-		SlObject(cp, _cargopayment_desc, stv);
+		SlObjectPtrs(cp, _cargopayment_desc, stv);
 	}
 }
 

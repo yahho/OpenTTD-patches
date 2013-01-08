@@ -375,11 +375,11 @@ static void Ptrs_STNS(const SavegameTypeVersion *stv)
 			for (CargoID i = 0; i < NUM_CARGO; i++) {
 				GoodsEntry *ge = &st->goods[i];
 				SwapPackets(ge);
-				SlObject(ge, GetGoodsDesc(), stv);
+				SlObjectPtrs(ge, GetGoodsDesc(), stv);
 				SwapPackets(ge);
 			}
 		}
-		SlObject(st, _old_station_desc, stv);
+		SlObjectPtrs(st, _old_station_desc, stv);
 	}
 }
 
@@ -566,21 +566,21 @@ static void Ptrs_STNN(const SavegameTypeVersion *stv)
 			GoodsEntry *ge = &st->goods[i];
 			if ((stv != NULL) && IsSavegameVersionBefore(stv, 183)) {
 				SwapPackets(ge);
-				SlObject(ge, GetGoodsDesc(), stv);
+				SlObjectPtrs(ge, GetGoodsDesc(), stv);
 				SwapPackets(ge);
 			} else {
-				SlObject(ge, GetGoodsDesc(), stv);
+				SlObjectPtrs(ge, GetGoodsDesc(), stv);
 				for (StationCargoPacketMap::ConstMapIterator it = ge->cargo.Packets()->begin(); it != ge->cargo.Packets()->end(); ++it) {
-					SlObject(const_cast<StationCargoPair *>(&(*it)), _cargo_list_desc, stv);
+					SlObjectPtrs(const_cast<StationCargoPair *>(&(*it)), _cargo_list_desc, stv);
 				}
 			}
 		}
-		SlObject(st, _station_desc, stv);
+		SlObjectPtrs(st, _station_desc, stv);
 	}
 
 	Waypoint *wp;
 	FOR_ALL_WAYPOINTS(wp) {
-		SlObject(wp, _waypoint_desc, stv);
+		SlObjectPtrs(wp, _waypoint_desc, stv);
 	}
 }
 
@@ -608,7 +608,7 @@ static void Ptrs_ROADSTOP(const SavegameTypeVersion *stv)
 {
 	RoadStop *rs;
 	FOR_ALL_ROADSTOPS(rs) {
-		SlObject(rs, _roadstop_desc, stv);
+		SlObjectPtrs(rs, _roadstop_desc, stv);
 	}
 }
 

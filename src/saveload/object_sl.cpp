@@ -51,7 +51,7 @@ static void Ptrs_OBJS(const SavegameTypeVersion *stv)
 {
 	Object *o;
 	FOR_ALL_OBJECTS(o) {
-		SlObject(o, _object_desc, stv);
+		SlObjectPtrs(o, _object_desc, stv);
 		if ((stv != NULL) && IsSavegameVersionBefore(stv, 148) && !IsTileType(o->location.tile, MP_OBJECT)) {
 			/* Due to a small bug stale objects could remain. */
 			delete o;

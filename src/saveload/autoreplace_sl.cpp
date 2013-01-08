@@ -55,7 +55,7 @@ static void Ptrs_ERNW(const SavegameTypeVersion *stv)
 	EngineRenew *er;
 
 	FOR_ALL_ENGINE_RENEWS(er) {
-		SlObject(er, _engine_renew_desc, stv);
+		SlObjectPtrs(er, _engine_renew_desc, stv);
 	}
 }
 

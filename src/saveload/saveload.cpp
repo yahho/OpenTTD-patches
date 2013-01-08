@@ -21,22 +21,19 @@
  * <li>repeat this until everything is done, and flush any remaining output to file
  * </ol>
  */
+
+#include <exception>
+
 #include "../stdafx.h"
 #include "../debug.h"
-#include "../station_base.h"
+#include "../gfx_func.h"
 #include "../thread/thread.h"
-#include "../town.h"
 #include "../network/network.h"
 #include "../window_func.h"
 #include "../strings_func.h"
 #include "../core/endian_func.hpp"
-#include "../vehicle_base.h"
 #include "../company_func.h"
 #include "../date_func.h"
-#include "../autoreplace_base.h"
-#include "../roadstop_base.h"
-#include "../linkgraph/linkgraph.h"
-#include "../linkgraph/linkgraphjob.h"
 #include "../statusbar_gui.h"
 #include "../fileio_func.h"
 #include "../gamelog.h"
@@ -466,142 +463,6 @@ void ProcessAsyncSaveFinish()
 		_save_thread->Join();
 		delete _save_thread;
 		_save_thread = NULL;
-	}
-}
-
-
-/**
- * Pointers cannot be loaded from a savegame, so this function
- * gets the index from the savegame and returns the appropriate
- * pointer from the already loaded base.
- * Remember that an index of 0 is a NULL pointer so all indices
- * are +1 so vehicle 0 is saved as 1.
- * @param index The index that is being converted to a pointer
- * @param rt SLRefType type of the object the pointer is sought of
- * @param stv Savegame type and version
- * @return Return the index converted to a pointer of any type
- */
-static void *IntToReference(size_t index, SLRefType rt, const SavegameTypeVersion *stv)
-{
-	assert_compile(sizeof(size_t) <= sizeof(void *));
-
-	assert(_sl.action == SLA_PTRS);
-
-	/* After version 4.3 REF_VEHICLE_OLD is saved as REF_VEHICLE,
-	 * and should be loaded like that */
-	if (rt == REF_VEHICLE_OLD && !IsSavegameVersionBefore(stv, 4, 4)) {
-		rt = REF_VEHICLE;
-	}
-
-	/* No need to look up NULL pointers, just return immediately */
-	if (index == (rt == REF_VEHICLE_OLD ? 0xFFFF : 0)) return NULL;
-
-	/* Correct index. Old vehicles were saved differently:
-	 * invalid vehicle was 0xFFFF, now we use 0x0000 for everything invalid. */
-	if (rt != REF_VEHICLE_OLD) index--;
-
-	switch (rt) {
-		case REF_ORDERLIST:
-			if (OrderList::IsValidID(index)) return OrderList::Get(index);
-			SlErrorCorrupt("Referencing invalid OrderList");
-
-		case REF_ORDER:
-			if (Order::IsValidID(index)) return Order::Get(index);
-			/* in old versions, invalid order was used to mark end of order list */
-			if (IsSavegameVersionBefore(stv, 5, 2)) return NULL;
-			SlErrorCorrupt("Referencing invalid Order");
-
-		case REF_VEHICLE_OLD:
-		case REF_VEHICLE:
-			if (Vehicle::IsValidID(index)) return Vehicle::Get(index);
-			SlErrorCorrupt("Referencing invalid Vehicle");
-
-		case REF_STATION:
-			if (Station::IsValidID(index)) return Station::Get(index);
-			SlErrorCorrupt("Referencing invalid Station");
-
-		case REF_TOWN:
-			if (Town::IsValidID(index)) return Town::Get(index);
-			SlErrorCorrupt("Referencing invalid Town");
-
-		case REF_ROADSTOPS:
-			if (RoadStop::IsValidID(index)) return RoadStop::Get(index);
-			SlErrorCorrupt("Referencing invalid RoadStop");
-
-		case REF_ENGINE_RENEWS:
-			if (EngineRenew::IsValidID(index)) return EngineRenew::Get(index);
-			SlErrorCorrupt("Referencing invalid EngineRenew");
-
-		case REF_CARGO_PACKET:
-			if (CargoPacket::IsValidID(index)) return CargoPacket::Get(index);
-			SlErrorCorrupt("Referencing invalid CargoPacket");
-
-		case REF_STORAGE:
-			if (PersistentStorage::IsValidID(index)) return PersistentStorage::Get(index);
-			SlErrorCorrupt("Referencing invalid PersistentStorage");
-
-		case REF_LINK_GRAPH:
-			if (LinkGraph::IsValidID(index)) return LinkGraph::Get(index);
-			SlErrorCorrupt("Referencing invalid LinkGraph");
-
-		case REF_LINK_GRAPH_JOB:
-			if (LinkGraphJob::IsValidID(index)) return LinkGraphJob::Get(index);
-			SlErrorCorrupt("Referencing invalid LinkGraphJob");
-
-		default: NOT_REACHED();
-	}
-}
-
-/**
- * Main SaveLoad function.
- * @param object The object that is being saved or loaded
- * @param sld The SaveLoad description of the object so we know how to manipulate it
- * @param stv Savegame type and version; NULL when clearing references
- */
-void SlObject(void *object, const SaveLoad *sld, const SavegameTypeVersion *stv)
-{
-	assert((_sl.action == SLA_PTRS) || (_sl.action == SLA_NULL));
-	assert((stv == NULL) == (_sl.action == SLA_NULL));
-
-	for (; sld->type != SL_END; sld++) {
-		if ((stv != NULL) ? !SlIsObjectValidInSavegame(stv, sld) : !SlIsObjectCurrentlyValid(sld)) continue;
-
-		switch (sld->type) {
-			case SL_REF: {
-				void **ptr = (void **)GetVariableAddress(sld, object);
-
-				if (stv != NULL) {
-					*ptr = IntToReference(*(size_t *)ptr, (SLRefType)sld->conv, stv);
-				} else {
-					*ptr = NULL;
-				}
-				break;
-			}
-
-			case SL_LST: {
-				typedef std::list<void *> PtrList;
-				PtrList *l = (PtrList *)GetVariableAddress(sld, object);
-
-				if (stv != NULL) {
-					PtrList temp = *l;
-
-					l->clear();
-					PtrList::iterator iter;
-					for (iter = temp.begin(); iter != temp.end(); ++iter) {
-						l->push_back(IntToReference((size_t)*iter, (SLRefType)sld->conv, stv));
-					}
-				} else {
-					l->clear();
-				}
-				break;
-			}
-
-			case SL_INCLUDE:
-				SlObject(object, (SaveLoad*)sld->address, stv);
-				break;
-
-			default: break;
-		}
 	}
 }
 

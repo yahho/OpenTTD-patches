@@ -195,7 +195,7 @@ static void Ptrs_ORDR(const SavegameTypeVersion *stv)
 	Order *o;
 
 	FOR_ALL_ORDERS(o) {
-		SlObject(o, GetOrderDescription(), stv);
+		SlObjectPtrs(o, GetOrderDescription(), stv);
 	}
 }
 
@@ -235,7 +235,7 @@ static void Ptrs_ORDL(const SavegameTypeVersion *stv)
 	OrderList *list;
 
 	FOR_ALL_ORDER_LISTS(list) {
-		SlObject(list, GetOrderListDescription(), stv);
+		SlObjectPtrs(list, GetOrderListDescription(), stv);
 	}
 }
 
@@ -298,7 +298,7 @@ static void Ptrs_BKOR(const SavegameTypeVersion *stv)
 {
 	OrderBackup *ob;
 	FOR_ALL_ORDER_BACKUPS(ob) {
-		SlObject(ob, GetOrderBackupDescription(), stv);
+		SlObjectPtrs(ob, GetOrderBackupDescription(), stv);
 	}
 }
 

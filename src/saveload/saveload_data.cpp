@@ -15,6 +15,13 @@
 #include "../string_func.h"
 #include "saveload_data.h"
 #include "saveload_internal.h"
+#include "../town.h"
+#include "../station_base.h"
+#include "../roadstop_base.h"
+#include "../vehicle_base.h"
+#include "../autoreplace_base.h"
+#include "../linkgraph/linkgraph.h"
+#include "../linkgraph/linkgraphjob.h"
 
 extern const byte _conv_mem_size[] = {1, 1, 1, 2, 2, 4, 4, 8, 8, 0};
 extern const byte _conv_file_size[] = {1, 1, 2, 2, 4, 4, 8, 8, 2};
@@ -151,4 +158,135 @@ size_t SlCalcObjLength(const void *object, const SaveLoad *sld)
 	}
 
 	return length;
+}
+
+
+/**
+ * Pointers cannot be loaded from a savegame, so this function
+ * gets the index from the savegame and returns the appropriate
+ * pointer from the already loaded base.
+ * Remember that an index of 0 is a NULL pointer so all indices
+ * are +1 so vehicle 0 is saved as 1.
+ * @param index The index that is being converted to a pointer
+ * @param rt SLRefType type of the object the pointer is sought of
+ * @param stv Savegame type and version
+ * @return Return the index converted to a pointer of any type
+ */
+static void *IntToReference(size_t index, SLRefType rt, const SavegameTypeVersion *stv)
+{
+	assert_compile(sizeof(size_t) <= sizeof(void *));
+
+	/* After version 4.3 REF_VEHICLE_OLD is saved as REF_VEHICLE,
+	 * and should be loaded like that */
+	if (rt == REF_VEHICLE_OLD && !IsSavegameVersionBefore(stv, 4, 4)) {
+		rt = REF_VEHICLE;
+	}
+
+	/* No need to look up NULL pointers, just return immediately */
+	if (index == (rt == REF_VEHICLE_OLD ? 0xFFFF : 0)) return NULL;
+
+	/* Correct index. Old vehicles were saved differently:
+	 * invalid vehicle was 0xFFFF, now we use 0x0000 for everything invalid. */
+	if (rt != REF_VEHICLE_OLD) index--;
+
+	switch (rt) {
+		case REF_ORDERLIST:
+			if (OrderList::IsValidID(index)) return OrderList::Get(index);
+			SlErrorCorrupt("Referencing invalid OrderList");
+
+		case REF_ORDER:
+			if (Order::IsValidID(index)) return Order::Get(index);
+			/* in old versions, invalid order was used to mark end of order list */
+			if (IsSavegameVersionBefore(stv, 5, 2)) return NULL;
+			SlErrorCorrupt("Referencing invalid Order");
+
+		case REF_VEHICLE_OLD:
+		case REF_VEHICLE:
+			if (Vehicle::IsValidID(index)) return Vehicle::Get(index);
+			SlErrorCorrupt("Referencing invalid Vehicle");
+
+		case REF_STATION:
+			if (Station::IsValidID(index)) return Station::Get(index);
+			SlErrorCorrupt("Referencing invalid Station");
+
+		case REF_TOWN:
+			if (Town::IsValidID(index)) return Town::Get(index);
+			SlErrorCorrupt("Referencing invalid Town");
+
+		case REF_ROADSTOPS:
+			if (RoadStop::IsValidID(index)) return RoadStop::Get(index);
+			SlErrorCorrupt("Referencing invalid RoadStop");
+
+		case REF_ENGINE_RENEWS:
+			if (EngineRenew::IsValidID(index)) return EngineRenew::Get(index);
+			SlErrorCorrupt("Referencing invalid EngineRenew");
+
+		case REF_CARGO_PACKET:
+			if (CargoPacket::IsValidID(index)) return CargoPacket::Get(index);
+			SlErrorCorrupt("Referencing invalid CargoPacket");
+
+		case REF_STORAGE:
+			if (PersistentStorage::IsValidID(index)) return PersistentStorage::Get(index);
+			SlErrorCorrupt("Referencing invalid PersistentStorage");
+
+		case REF_LINK_GRAPH:
+			if (LinkGraph::IsValidID(index)) return LinkGraph::Get(index);
+			SlErrorCorrupt("Referencing invalid LinkGraph");
+
+		case REF_LINK_GRAPH_JOB:
+			if (LinkGraphJob::IsValidID(index)) return LinkGraphJob::Get(index);
+			SlErrorCorrupt("Referencing invalid LinkGraphJob");
+
+		default: NOT_REACHED();
+	}
+}
+
+/**
+ * Fix/null pointers in a SaveLoad object.
+ * @param object The object whose pointers are to be fixed
+ * @param sld The SaveLoad description of the object so we know how to manipulate it
+ * @param stv Savegame type and version; NULL when clearing references
+ */
+void SlObjectPtrs(void *object, const SaveLoad *sld, const SavegameTypeVersion *stv)
+{
+	for (; sld->type != SL_END; sld++) {
+		if ((stv != NULL) ? !SlIsObjectValidInSavegame(stv, sld) : !SlIsObjectCurrentlyValid(sld)) continue;
+
+		switch (sld->type) {
+			case SL_REF: {
+				void **ptr = (void **)GetVariableAddress(sld, object);
+
+				if (stv != NULL) {
+					*ptr = IntToReference(*(size_t *)ptr, (SLRefType)sld->conv, stv);
+				} else {
+					*ptr = NULL;
+				}
+				break;
+			}
+
+			case SL_LST: {
+				typedef std::list<void *> PtrList;
+				PtrList *l = (PtrList *)GetVariableAddress(sld, object);
+
+				if (stv != NULL) {
+					PtrList temp = *l;
+
+					l->clear();
+					PtrList::iterator iter;
+					for (iter = temp.begin(); iter != temp.end(); ++iter) {
+						l->push_back(IntToReference((size_t)*iter, (SLRefType)sld->conv, stv));
+					}
+				} else {
+					l->clear();
+				}
+				break;
+			}
+
+			case SL_INCLUDE:
+				SlObjectPtrs(object, (SaveLoad*)sld->address, stv);
+				break;
+
+			default: break;
+		}
+	}
 }
