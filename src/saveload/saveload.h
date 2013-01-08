@@ -457,16 +457,14 @@ static inline bool IsSavegameVersionBefore(uint16 major, byte minor = 0)
 }
 
 /**
- * Checks if some version from/to combination falls within the range of the
- * active savegame version.
- * @param version_from Lowest version number that falls within the range.
- * @param version_to   Highest version number that falls within the range.
- * @return Active savegame version falls within the given range.
+ * Checks if a SaveLoad object is active in the current savegame version.
+ * @param sld SaveLoad object to check
+ * @return Whether the object is active in the current savegame version.
  */
-static inline bool SlIsObjectCurrentlyValid(uint16 version_from, uint16 version_to)
+static inline bool SlIsObjectCurrentlyValid(const SaveLoad *sld)
 {
 	extern const uint16 SAVEGAME_VERSION;
-	if (SAVEGAME_VERSION < version_from || SAVEGAME_VERSION > version_to) return false;
+	if (SAVEGAME_VERSION < sld->version_from || SAVEGAME_VERSION > sld->version_to) return false;
 
 	return true;
 }

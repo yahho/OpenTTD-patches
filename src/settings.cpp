@@ -486,7 +486,7 @@ static void IniLoadSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 		const SettingDescBase *sdb = &sd->desc;
 		const SaveLoad        *sld = &sd->save;
 
-		if (!SlIsObjectCurrentlyValid(sld->version_from, sld->version_to)) continue;
+		if (!SlIsObjectCurrentlyValid(sld)) continue;
 
 		/* For settings.xx.yy load the settings from [xx] yy = ? */
 		s = strchr(sdb->name, '.');
@@ -579,7 +579,7 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 
 		/* If the setting is not saved to the configuration
 		 * file, just continue with the next setting */
-		if (!SlIsObjectCurrentlyValid(sld->version_from, sld->version_to)) continue;
+		if (!SlIsObjectCurrentlyValid(sld)) continue;
 		if (sld->flags & SLF_NOT_IN_CONFIG) continue;
 
 		/* XXX - wtf is this?? (group override?) */
@@ -1350,7 +1350,7 @@ static void HandleOldDiffCustom(bool savegame)
 	for (uint i = 0; i < options_to_load; i++) {
 		const SettingDesc *sd = &_settings[i];
 		/* Skip deprecated options */
-		if (!SlIsObjectCurrentlyValid(sd->save.version_from, sd->save.version_to)) continue;
+		if (!SlIsObjectCurrentlyValid(&sd->save)) continue;
 		void *var = GetVariableAddress(&sd->save, savegame ? &_settings_game : &_settings_newgame);
 		Write_ValidateSetting(var, sd, (int32)((i == 4 ? 1000 : 1) * _old_diff_custom[i]));
 	}
@@ -1741,7 +1741,7 @@ CommandCost CmdChangeSetting(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 	const SettingDesc *sd = GetSettingDescription(p1);
 
 	if (sd == NULL) return CMD_ERROR;
-	if (!SlIsObjectCurrentlyValid(sd->save.version_from, sd->save.version_to)) return CMD_ERROR;
+	if (!SlIsObjectCurrentlyValid(&sd->save)) return CMD_ERROR;
 
 	if (!sd->IsEditable(true)) return CMD_ERROR;
 
@@ -1952,13 +1952,13 @@ const SettingDesc *GetSettingFromName(const char *name, uint *i)
 
 	/* First check all full names */
 	for (*i = 0, sd = _settings; sd->save.type != SL_END; sd++, (*i)++) {
-		if (!SlIsObjectCurrentlyValid(sd->save.version_from, sd->save.version_to)) continue;
+		if (!SlIsObjectCurrentlyValid(&sd->save)) continue;
 		if (strcmp(sd->desc.name, name) == 0) return sd;
 	}
 
 	/* Then check the shortcut variant of the name. */
 	for (*i = 0, sd = _settings; sd->save.type != SL_END; sd++, (*i)++) {
-		if (!SlIsObjectCurrentlyValid(sd->save.version_from, sd->save.version_to)) continue;
+		if (!SlIsObjectCurrentlyValid(&sd->save)) continue;
 		const char *short_name = strchr(sd->desc.name, '.');
 		if (short_name != NULL) {
 			short_name++;
@@ -1969,7 +1969,7 @@ const SettingDesc *GetSettingFromName(const char *name, uint *i)
 	if (strncmp(name, "company.", 8) == 0) name += 8;
 	/* And finally the company-based settings */
 	for (*i = 0, sd = _company_settings; sd->save.type != SL_END; sd++, (*i)++) {
-		if (!SlIsObjectCurrentlyValid(sd->save.version_from, sd->save.version_to)) continue;
+		if (!SlIsObjectCurrentlyValid(&sd->save)) continue;
 		if (strcmp(sd->desc.name, name) == 0) return sd;
 	}
 
@@ -2063,7 +2063,7 @@ void IConsoleListSettings(const char *prefilter)
 	IConsolePrintF(CC_WARNING, "All settings with their current value:");
 
 	for (const SettingDesc *sd = _settings; sd->save.type != SL_END; sd++) {
-		if (!SlIsObjectCurrentlyValid(sd->save.version_from, sd->save.version_to)) continue;
+		if (!SlIsObjectCurrentlyValid(&sd->save)) continue;
 		if (prefilter != NULL && strstr(sd->desc.name, prefilter) == NULL) continue;
 		char value[80];
 		const void *ptr = GetVariableAddress(&sd->save, &GetGameSettings());
