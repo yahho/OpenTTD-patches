@@ -37,11 +37,13 @@ static const uint LZO_BUFFER_SIZE = 8192;
 
 /** Filter using LZO compression. */
 struct LZOLoadFilter : ChainLoadFilter {
+	const bool buggy;
+
 	/**
 	 * Initialise this filter.
 	 * @param chain The next filter in this chain.
 	 */
-	LZOLoadFilter(LoadFilter *chain) : ChainLoadFilter(chain)
+	LZOLoadFilter(LoadFilter *chain, bool buggy = false) : ChainLoadFilter(chain), buggy(buggy)
 	{
 		if (lzo_init() != LZO_E_OK) SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize decompressor");
 	}
@@ -62,7 +64,7 @@ struct LZOLoadFilter : ChainLoadFilter {
 		/* Check if size is bad */
 		((uint32*)out)[0] = size = tmp[1];
 
-		if (_sl_version.version != 0) {
+		if (!buggy) {
 			tmp[0] = TO_BE32(tmp[0]);
 			size = TO_BE32(size);
 		}
@@ -80,6 +82,12 @@ struct LZOLoadFilter : ChainLoadFilter {
 		return len;
 	}
 };
+
+/** Instantiator for the old version 0 LZO filter */
+static ChainLoadFilter *CreateLZO0LoadFilter(LoadFilter *chain)
+{
+	return new LZOLoadFilter(chain, true);
+}
 
 /** Filter using LZO compression. */
 struct LZOSaveFilter : ChainSaveFilter {
@@ -507,8 +515,15 @@ const SaveLoadFormat *GetSavegameFormatByTag(uint32 tag)
 const SaveLoadFormat *GetLZO0SavegameFormat()
 {
 	/* The LZO savegame format uses 'OTTD' as tag. */
+#ifdef WITH_LZO
+	static const SaveLoadFormat lzo0_format =
+		{"lzo", TO_BE32X('OTTD'), CreateLZO0LoadFilter, NULL, 0, 0, 0};
+
+	return &lzo0_format;
+#else
 	assert(_saveload_formats[0].tag == TO_BE32X('OTTD'));
 	return &_saveload_formats[0];
+#endif
 }
 
 #if 0
