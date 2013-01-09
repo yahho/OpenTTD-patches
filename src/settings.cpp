@@ -1329,15 +1329,15 @@ static void PrepareOldDiffCustom()
 
 /**
  * Reading of the old diff_custom array and transforming it to the new format.
- * @param savegame is it read from the config or savegame. In the latter case
- *                 we are sure there is an array; in the former case we have
- *                 to check that.
+ * @param stv Savegame type and version; or NULL if reading from config.
+ *                 In the former case we are sure there is an array;
+ *                 in the latter case we have to check that.
  */
-static void HandleOldDiffCustom(bool savegame)
+static void HandleOldDiffCustom(const SavegameTypeVersion *stv)
 {
-	uint options_to_load = GAME_DIFFICULTY_NUM - ((savegame && IsSavegameVersionBefore(4)) ? 1 : 0);
+	uint options_to_load = GAME_DIFFICULTY_NUM - ((stv != NULL && IsSavegameVersionBefore(stv, 4)) ? 1 : 0);
 
-	if (!savegame) {
+	if (stv == NULL) {
 		/* If we did read to old_diff_custom, then at least one value must be non 0. */
 		bool old_diff_custom_used = false;
 		for (uint i = 0; i < options_to_load && !old_diff_custom_used; i++) {
@@ -1351,7 +1351,7 @@ static void HandleOldDiffCustom(bool savegame)
 		const SettingDesc *sd = &_settings[i];
 		/* Skip deprecated options */
 		if (!SlIsObjectCurrentlyValid(&sd->save)) continue;
-		void *var = GetVariableAddress(&sd->save, savegame ? &_settings_game : &_settings_newgame);
+		void *var = GetVariableAddress(&sd->save, stv != NULL ? &_settings_game : &_settings_newgame);
 		Write_ValidateSetting(var, sd, (int32)((i == 4 ? 1000 : 1) * _old_diff_custom[i]));
 	}
 }
@@ -1617,7 +1617,7 @@ void LoadFromConfig(bool minimal)
 
 		PrepareOldDiffCustom();
 		IniLoadSettings(ini, _gameopt_settings, "gameopt", &_settings_newgame);
-		HandleOldDiffCustom(false);
+		HandleOldDiffCustom(NULL);
 
 		ValidateSettings();
 
@@ -2123,7 +2123,7 @@ static void Load_OPTS(LoadBuffer *reader)
 	 * autosave-frequency stays when joining a network-server */
 	PrepareOldDiffCustom();
 	LoadSettings(reader, _gameopt_settings, &_settings_game);
-	HandleOldDiffCustom(true);
+	HandleOldDiffCustom(reader->stv);
 }
 
 static void Load_PATS(LoadBuffer *reader)

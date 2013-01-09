@@ -50,8 +50,6 @@ extern int32 _saved_scrollpos_x;
 extern int32 _saved_scrollpos_y;
 extern ZoomLevelByte _saved_scrollpos_zoom;
 
-extern SavegameTypeVersion _sl_version;
-
 CompanyManagerFace ConvertFromOldCompanyManagerFace(uint32 face);
 
 Order UnpackOldOrder(uint16 packed);

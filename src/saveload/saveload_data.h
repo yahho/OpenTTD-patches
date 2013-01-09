@@ -44,18 +44,6 @@ static inline bool IsSavegameVersionBefore(const SavegameTypeVersion *stv, uint1
 	return stv->version < major || (minor > 0 && stv->version == major && stv->minor_version < minor);
 }
 
-/**
- * Checks whether the savegame is below \a major.\a minor.
- * @param major Major number of the version to check against.
- * @param minor Minor number of the version to check against. If \a minor is 0 or not specified, only the major number is checked.
- * @return Savegame version is earlier than the specified version.
- */
-static inline bool IsSavegameVersionBefore(uint16 major, byte minor = 0)
-{
-	extern SavegameTypeVersion _sl_version;
-	return IsSavegameVersionBefore(&_sl_version, major, minor);
-}
-
 
 /** Type of data saved. */
 enum SaveLoadTypes {
@@ -507,14 +495,6 @@ static inline bool SlIsObjectValidInSavegame(const SavegameTypeVersion *stv, con
 	if (sld->flags & SLF_NOT_IN_SAVE) return false;
 
 	return true;
-}
-
-/** Are we going to save this object or not? */
-static inline bool SlIsObjectValidInSavegame(const SaveLoad *sld)
-{
-	extern SavegameTypeVersion _sl_version;
-
-	return SlIsObjectValidInSavegame(&_sl_version, sld);
 }
 
 /**

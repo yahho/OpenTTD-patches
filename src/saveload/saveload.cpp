@@ -252,8 +252,6 @@
  */
 extern const uint16 SAVEGAME_VERSION = 185; ///< Current savegame version of OpenTTD.
 
-SavegameTypeVersion _sl_version; ///< type and version of savegame we are loading
-
 char _savegame_format[8]; ///< how to compress savegames
 bool _do_autosave;        ///< are we doing an autosave at the moment?
 
@@ -370,11 +368,6 @@ static const ChunkHandler * const _chunk_handlers[] = {
 static void SlNullPointers()
 {
 	_sl.action = SLA_NULL;
-
-	/* We don't want any savegame conversion code to run
-	 * during NULLing; especially those that try to get
-	 * pointers from other pools. */
-	_sl_version.version = SAVEGAME_VERSION;
 
 	DEBUG(sl, 1, "Nulling pointers");
 
@@ -777,8 +770,6 @@ static bool DoSave(SaveFilter *writer, bool threaded)
 	_sl.dumper = new SaveDumper();
 	_sl.sf = writer;
 
-	_sl_version.version = SAVEGAME_VERSION;
-
 	SaveViewportBeforeSaveGame();
 	SlSaveChunks(_sl.dumper);
 
@@ -820,6 +811,10 @@ bool SaveWithFilter(SaveFilter *writer, bool threaded)
  */
 static bool DoLoad(LoadFilter *reader, bool load_check)
 {
+	SavegameTypeVersion sl_version;
+	sl_version.type = SGT_OTTD;
+	sl_version.ttdp_version = 0;
+
 	_sl.lf = reader;
 
 	if (load_check) {
@@ -837,22 +832,22 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 
 	if (fmt != NULL) {
 		/* check version number */
-		_sl_version.version = TO_BE32(hdr[1]) >> 16;
+		sl_version.version = TO_BE32(hdr[1]) >> 16;
 		/* Minor is not used anymore from version 18.0, but it is still needed
 		 * in versions before that (4 cases) which can't be removed easy.
 		 * Therefore it is loaded, but never saved (or, it saves a 0 in any scenario). */
-		_sl_version.minor_version = (TO_BE32(hdr[1]) >> 8) & 0xFF;
+		sl_version.minor_version = (TO_BE32(hdr[1]) >> 8) & 0xFF;
 
-		DEBUG(sl, 1, "Loading savegame version %d", _sl_version.version);
+		DEBUG(sl, 1, "Loading savegame version %d", sl_version.version);
 
 		/* Is the version higher than the current? */
-		if (_sl_version.version > SAVEGAME_VERSION) SlError(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
+		if (sl_version.version > SAVEGAME_VERSION) SlError(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
 	} else {
 		/* No loader found, treat as version 0 and use LZO format */
 		DEBUG(sl, 0, "Unknown savegame type, trying to load it as the buggy format");
 		_sl.lf->Reset();
-		_sl_version.version = 0;
-		_sl_version.minor_version = 0;
+		sl_version.version = 0;
+		sl_version.minor_version = 0;
 
 		/* Try to find the LZO savegame format. */
 		fmt = GetLZO0SavegameFormat();
@@ -867,10 +862,8 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 		SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, err_str);
 	}
 
-	_sl_version.type = SGT_OTTD;
-
 	_sl.lf = fmt->init_load(_sl.lf);
-	_sl.reader = new LoadBuffer(_sl.lf, &_sl_version);
+	_sl.reader = new LoadBuffer(_sl.lf, &sl_version);
 
 	if (!load_check) {
 		/* Old maps were hardcoded to 256x256 and thus did not contain
@@ -880,7 +873,7 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 
 		GamelogReset();
 
-		if (IsSavegameVersionBefore(4)) {
+		if (IsSavegameVersionBefore(&sl_version, 4)) {
 			/*
 			 * NewGRFs were introduced between 0.3,4 and 0.3.5, which both
 			 * shared savegame version 4. Anything before that 'obviously'
@@ -911,7 +904,7 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 
 	if (!load_check) {
 		/* Resolve references */
-		SlFixPointers(&_sl_version);
+		SlFixPointers(&sl_version);
 	}
 
 	ClearSaveLoadState();
@@ -919,12 +912,14 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 	if (load_check) {
 		/* The only part from AfterLoadGame() we need */
 		_load_check_data.grf_compatibility = IsGoodGRFConfigList(_load_check_data.grfconfig);
+
+		_load_check_data.sl_version = sl_version;
 	} else {
 		GamelogStartAction(GLAT_LOAD);
 
 		/* After loading fix up savegame for any internal changes that
 		 * might have occurred since then. If it fails, load back the old game. */
-		if (!AfterLoadGame(&_sl_version)) {
+		if (!AfterLoadGame(&sl_version)) {
 			GamelogStopAction();
 			return false;
 		}
@@ -1007,6 +1002,8 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 
 	/* Load a TTDLX or TTDPatch game */
 	if (mode == SL_OLD_LOAD) {
+		SavegameTypeVersion sl_version;
+
 		InitializeGame(256, 256, true, true); // set a mapsize of 256x256 for TTDPatch games or it might get confused
 
 		/* TTD/TTO savegames have no NewGRFs, TTDP savegame have them
@@ -1015,11 +1012,11 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 		 * for OTTD savegames which have their own NewGRF logic. */
 		ClearGRFConfigList(&_grfconfig);
 		GamelogReset();
-		if (!LoadOldSaveGame(filename, &_sl_version)) return false;
-		_sl_version.version = 0;
-		_sl_version.minor_version = 0;
+		if (!LoadOldSaveGame(filename, &sl_version)) return false;
+		sl_version.version = 0;
+		sl_version.minor_version = 0;
 		GamelogStartAction(GLAT_LOAD);
-		if (!AfterLoadGame(&_sl_version)) {
+		if (!AfterLoadGame(&sl_version)) {
 			GamelogStopAction();
 			return false;
 		}
