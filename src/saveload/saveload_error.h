@@ -12,12 +12,24 @@
 #ifndef SAVELOAD_ERROR_H
 #define SAVELOAD_ERROR_H
 
+#include <exception>
+
 #include "../strings_type.h"
 
 /** Saveload error struct. */
 struct SlErrorData {
 	StringID str;      ///< error message
 	const char *data;  ///< extra data for str
+};
+
+/** Saveload exception class. */
+struct SlException : std::exception {
+	SlErrorData error;
+
+	SlException(StringID str, const char *data) {
+		this->error.str = str;
+		this->error.data = data;
+	}
 };
 
 #endif /* SAVELOAD_ERROR_H */

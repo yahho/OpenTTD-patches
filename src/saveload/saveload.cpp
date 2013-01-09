@@ -393,21 +393,7 @@ static void SlNullPointers()
  */
 void NORETURN SlError(StringID string, const char *extra_msg)
 {
-	/* Distinguish between loading into _load_check_data vs. normal save/load. */
-	if (_sl.action == SLA_LOAD_CHECK) {
-		_load_check_data.error.str = string;
-		_load_check_data.error.data = extra_msg;
-	} else {
-		_sl.error.str = string;
-		_sl.error.data = extra_msg;
-	}
-
-	/* We have to NULL all pointers here; we might be in a state where
-	 * the pointers are actually filled with indices, which means that
-	 * when we access them during cleaning the pool dereferences of
-	 * those indices will be made with segmentation faults as result. */
-	if (_sl.action == SLA_LOAD || _sl.action == SLA_PTRS) SlNullPointers();
-	throw std::exception();
+	throw SlException(string, extra_msg);
 }
 
 /**
@@ -712,7 +698,9 @@ static bool SaveFileToDisk(bool threaded)
 		if (threaded) SetAsyncSaveFinish(SaveFileDone);
 
 		return true;
-	} catch (...) {
+	} catch (SlException e) {
+		_sl.error = e.error;
+
 		ClearSaveLoadState();
 
 		AsyncSaveFinishProc asfp = SaveFileDone;
@@ -794,7 +782,9 @@ bool SaveWithFilter(SaveFilter *writer, bool threaded)
 	try {
 		_sl.action = SLA_SAVE;
 		return DoSave(writer, threaded);
-	} catch (...) {
+	} catch (SlException e) {
+		_sl.error = e.error;
+
 		ClearSaveLoadState();
 		return false;
 	}
@@ -935,7 +925,11 @@ bool LoadWithFilter(LoadFilter *reader)
 	try {
 		_sl.action = SLA_LOAD;
 		return DoLoad(reader, false);
-	} catch (...) {
+	} catch (SlException e) {
+		_sl.error = e.error;
+
+		SlNullPointers();
+
 		ClearSaveLoadState();
 		return false;
 	}
@@ -972,7 +966,9 @@ bool SaveGame(const char *filename, Subdirectory sb, bool threaded)
 		if (_network_server || !_settings_client.gui.threaded_saves) threaded = false;
 
 		return DoSave(new FileWriter(fh), threaded);
-	} catch (...) {
+	} catch (SlException e) {
+		_sl.error = e.error;
+
 		ClearSaveLoadState();
 
 		/* Skip the "colour" character */
@@ -1041,7 +1037,16 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 		assert(mode == SL_LOAD || mode == SL_LOAD_CHECK);
 		DEBUG(desync, 1, "load: %s", filename);
 		return DoLoad(new FileReader(fh), mode == SL_LOAD_CHECK);
-	} catch (...) {
+	} catch (SlException e) {
+		/* Distinguish between loading into _load_check_data vs. normal load. */
+		if (mode == SL_LOAD_CHECK) {
+			_load_check_data.error = e.error;
+		} else {
+			_sl.error = e.error;
+
+			SlNullPointers();
+		}
+
 		ClearSaveLoadState();
 
 		/* Skip the "colour" character */
