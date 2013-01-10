@@ -267,9 +267,6 @@ enum SaveLoadAction {
 
 /** The saveload struct, containing reader-writer functions, buffer, version, etc. */
 struct SaveLoadParams {
-	SaveDumper *dumper;                  ///< Memory dumper to write the savegame to.
-	SaveFilter *sf;                      ///< Filter to write the savegame to.
-
 	SlErrorData error;                   ///< the error to show
 
 	byte ff_state;                       ///< The state of fast-forward when saving started.
@@ -506,9 +503,6 @@ struct FileReader : LoadFilter {
 	{
 		if (this->file != NULL) fclose(this->file);
 		this->file = NULL;
-
-		/* Make sure we don't double free. */
-		_sl.sf = NULL;
 	}
 
 	/* virtual */ size_t Read(byte *buf, size_t size)
@@ -542,9 +536,6 @@ struct FileWriter : SaveFilter {
 	~FileWriter()
 	{
 		this->Finish();
-
-		/* Make sure we don't double free. */
-		_sl.sf = NULL;
 	}
 
 	/* virtual */ void Write(const byte *buf, size_t size)
@@ -572,11 +563,6 @@ extern bool LoadOldSaveGame(const char *file, SavegameTypeVersion *stv, SlErrorD
  */
 static inline void ClearSaveLoadState()
 {
-	delete _sl.dumper;
-	_sl.dumper = NULL;
-
-	delete _sl.sf;
-	_sl.sf = NULL;
 }
 
 /**
@@ -632,7 +618,7 @@ static void SaveFileError()
  * We have written the whole game into memory, _memory_savegame, now find
  * and appropriate compressor and start writing to file.
  */
-static bool SaveFileToDisk(bool threaded)
+static bool SaveFileToDisk(SaveFilter *writer, SaveDumper *dumper, bool threaded)
 {
 	AsyncSaveFinishProc asfp = SaveFileDone;
 	bool res;
@@ -643,10 +629,10 @@ static bool SaveFileToDisk(bool threaded)
 
 		/* We have written our stuff to memory, now write it to file! */
 		uint32 hdr[2] = { fmt->tag, TO_BE32(SAVEGAME_VERSION << 16) };
-		_sl.sf->Write((byte*)hdr, sizeof(hdr));
+		writer->Write((byte*)hdr, sizeof(hdr));
 
-		_sl.sf = fmt->init_write(_sl.sf, compression);
-		_sl.dumper->Flush(_sl.sf);
+		writer = fmt->init_write(writer, compression);
+		dumper->Flush(writer);
 
 		res = true;
 	} catch (SlException e) {
@@ -663,6 +649,9 @@ static bool SaveFileToDisk(bool threaded)
 		res = false;
 	}
 
+	delete writer;
+	delete dumper;
+
 	ClearSaveLoadState();
 
 	if (threaded) {
@@ -674,10 +663,19 @@ static bool SaveFileToDisk(bool threaded)
 	return res;
 }
 
+struct WriterDumper {
+	SaveFilter *writer;
+	SaveDumper *dumper;
+};
+
 /** Thread run function for saving the file to disk. */
 static void SaveFileToDiskThread(void *arg)
 {
-	SaveFileToDisk(true);
+	WriterDumper *data = (WriterDumper*)arg;
+
+	SaveFileToDisk(data->writer, data->dumper, true);
+
+	delete data;
 }
 
 void WaitTillSaved()
@@ -704,22 +702,27 @@ static bool DoSave(SaveFilter *writer, bool threaded)
 {
 	assert(!_sl.saveinprogress);
 
-	_sl.dumper = new SaveDumper();
-	_sl.sf = writer;
+	SaveDumper *dumper = new SaveDumper();
 
 	SaveViewportBeforeSaveGame();
-	SlSaveChunks(_sl.dumper);
+	SlSaveChunks(dumper);
 
 	SaveFileStart();
 
 	if (threaded) {
-		if (ThreadObject::New(&SaveFileToDiskThread, NULL, &_save_thread)) {
+		WriterDumper *data = new WriterDumper;
+		data->writer = writer;
+		data->dumper = dumper;
+
+		if (ThreadObject::New(&SaveFileToDiskThread, data, &_save_thread)) {
 			return true;
 		}
+
 		DEBUG(sl, 1, "Cannot create savegame thread, reverting to single-threaded mode...");
+		delete data;
 	}
 
-	return SaveFileToDisk(false);
+	return SaveFileToDisk(writer, dumper, false);
 }
 
 /**
