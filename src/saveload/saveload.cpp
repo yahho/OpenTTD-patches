@@ -270,8 +270,6 @@ struct SaveLoadParams {
 	SaveDumper *dumper;                  ///< Memory dumper to write the savegame to.
 	SaveFilter *sf;                      ///< Filter to write the savegame to.
 
-	LoadBuffer *reader;                  ///< Savegame reading buffer.
-
 	SlErrorData error;                   ///< the error to show
 
 	byte ff_state;                       ///< The state of fast-forward when saving started.
@@ -579,9 +577,6 @@ static inline void ClearSaveLoadState()
 
 	delete _sl.sf;
 	_sl.sf = NULL;
-
-	delete _sl.reader;
-	_sl.reader = NULL;
 }
 
 /**
@@ -829,7 +824,6 @@ static bool DoLoad(LoadFilter **chain, bool load_check)
 	}
 
 	*chain = fmt->init_load(*chain);
-	_sl.reader = new LoadBuffer(*chain, &sl_version);
 
 	if (!load_check) {
 		/* Old maps were hardcoded to 256x256 and thus did not contain
@@ -866,7 +860,8 @@ static bool DoLoad(LoadFilter **chain, bool load_check)
 	}
 
 	/* Load chunks. */
-	SlLoadChunks(_sl.reader, load_check);
+	LoadBuffer reader(*chain, &sl_version);
+	SlLoadChunks(&reader, load_check);
 
 	if (!load_check) {
 		/* Resolve references */
