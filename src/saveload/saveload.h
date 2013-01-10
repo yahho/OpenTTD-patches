@@ -16,14 +16,13 @@
 #include "../strings_type.h"
 
 /** Save or load mode. @see SaveOrLoad */
-enum SaveOrLoadMode {
+enum LoadMode {
 	SL_INVALID    = -1, ///< Invalid mode.
 	SL_LOAD       =  0, ///< Load game.
-	SL_SAVE       =  1, ///< Save game.
-	SL_OLD_LOAD   =  2, ///< Load old game.
-	SL_PNG        =  3, ///< Load PNG file (height map).
-	SL_BMP        =  4, ///< Load BMP file (height map).
-	SL_LOAD_CHECK =  5, ///< Load for game preview.
+	SL_OLD_LOAD   =  1, ///< Load old game.
+	SL_PNG        =  2, ///< Load PNG file (height map).
+	SL_BMP        =  3, ///< Load BMP file (height map).
+	SL_LOAD_CHECK =  4, ///< Load for game preview.
 };
 
 /** Types of save games. */
