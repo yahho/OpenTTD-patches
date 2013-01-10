@@ -271,7 +271,6 @@ struct SaveLoadParams {
 	SaveFilter *sf;                      ///< Filter to write the savegame to.
 
 	LoadBuffer *reader;                  ///< Savegame reading buffer.
-	LoadFilter *lf;                      ///< Filter to read the savegame from.
 
 	SlErrorData error;                   ///< the error to show
 
@@ -583,9 +582,6 @@ static inline void ClearSaveLoadState()
 
 	delete _sl.reader;
 	_sl.reader = NULL;
-
-	delete _sl.lf;
-	_sl.lf = NULL;
 }
 
 /**
@@ -779,17 +775,15 @@ bool SaveGame(const char *filename, Subdirectory sb, bool threaded)
 
 /**
  * Actually perform the loading of a "non-old" savegame.
- * @param reader     The filter to read the savegame from.
+ * @param chain      The filter chain head to read the savegame from.
  * @param load_check Whether to perform the checking ("preview") or actually load the game.
  * @return Return whether loading was successful
  */
-static bool DoLoad(LoadFilter *reader, bool load_check)
+static bool DoLoad(LoadFilter **chain, bool load_check)
 {
 	SavegameTypeVersion sl_version;
 	sl_version.type = SGT_OTTD;
 	sl_version.ttdp_version = 0;
-
-	_sl.lf = reader;
 
 	if (load_check) {
 		/* Clear previous check data */
@@ -799,7 +793,7 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 	}
 
 	uint32 hdr[2];
-	if (_sl.lf->Read((byte*)hdr, sizeof(hdr)) != sizeof(hdr)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
+	if ((*chain)->Read((byte*)hdr, sizeof(hdr)) != sizeof(hdr)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
 
 	/* see if we have any loader for this type. */
 	const SaveLoadFormat *fmt = GetSavegameFormatByTag(hdr[0]);
@@ -819,7 +813,7 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 	} else {
 		/* No loader found, treat as version 0 and use LZO format */
 		DEBUG(sl, 0, "Unknown savegame type, trying to load it as the buggy format");
-		_sl.lf->Reset();
+		(*chain)->Reset();
 		sl_version.version = 0;
 		sl_version.minor_version = 0;
 
@@ -834,8 +828,8 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 		throw SlException(STR_GAME_SAVELOAD_ERROR_MISSING_LOADER, fmt->name);
 	}
 
-	_sl.lf = fmt->init_load(_sl.lf);
-	_sl.reader = new LoadBuffer(_sl.lf, &sl_version);
+	*chain = fmt->init_load(*chain);
+	_sl.reader = new LoadBuffer(*chain, &sl_version);
 
 	if (!load_check) {
 		/* Old maps were hardcoded to 256x256 and thus did not contain
@@ -909,16 +903,22 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
  */
 bool LoadWithFilter(LoadFilter *reader)
 {
+	LoadFilter *chain = reader;
+	bool res;
+
 	try {
-		return DoLoad(reader, false);
+		res = DoLoad(&chain, false);
 	} catch (SlException e) {
 		_sl.error = e.error;
 
 		SlNullPointers();
 
 		ClearSaveLoadState();
-		return false;
+		res = false;
 	}
+
+	delete chain;
+	return res;
 }
 
 /**
@@ -959,6 +959,9 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 
 	assert((mode == SL_LOAD) || (mode == SLA_LOAD_CHECK));
 
+	LoadFilter *chain = NULL;
+	bool res;
+
 	try {
 		FILE *fh = FioFOpenFile(filename, "rb", sb);
 
@@ -971,9 +974,11 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 			throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
 		}
 
+		chain = new FileReader(fh);
+
 		/* LOAD game */
 		DEBUG(desync, 1, "load: %s", filename);
-		return DoLoad(new FileReader(fh), mode == SL_LOAD_CHECK);
+		res = DoLoad(&chain, mode == SL_LOAD_CHECK);
 	} catch (SlException e) {
 		/* Distinguish between loading into _load_check_data vs. normal load. */
 		if (mode == SL_LOAD_CHECK) {
@@ -990,8 +995,11 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 		if (mode != SL_LOAD_CHECK) DEBUG(sl, 0, "%s", GetSaveLoadErrorString() + 3);
 
 		/* A loader exception!! reinitialize all variables to prevent crash! */
-		return false;
+		res = false;
 	}
+
+	delete chain;
+	return res;
 }
 
 /** Do a save when exiting the game (_settings_client.gui.autosave_on_exit) */
