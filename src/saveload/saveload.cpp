@@ -751,6 +751,48 @@ bool SaveWithFilter(SaveFilter *writer, bool threaded)
 }
 
 /**
+ * Main Save function where the high-level saveload functions are
+ * handled.
+ * @param filename The name of the savegame being created
+ * @param sb The sub directory to save the savegame in
+ * @param threaded True when threaded saving is allowed
+ * @return Return whether saving was successful
+ */
+bool SaveGame(const char *filename, Subdirectory sb, bool threaded)
+{
+	/* An instance of saving is already active, so don't go saving again */
+	if (_sl.saveinprogress && threaded) {
+		/* if not an autosave, but a user action, show error message */
+		if (!_do_autosave) ShowErrorMessage(STR_ERROR_SAVE_STILL_IN_PROGRESS, INVALID_STRING_ID, WL_ERROR);
+		return true;
+	}
+	WaitTillSaved();
+
+	try {
+		FILE *fh = FioFOpenFile(filename, "wb", sb);
+
+		if (fh == NULL) {
+			throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE);
+		}
+
+		DEBUG(desync, 1, "save: %08x; %02x; %s", _date, _date_fract, filename);
+		if (_network_server || !_settings_client.gui.threaded_saves) threaded = false;
+
+		return DoSave(new FileWriter(fh), threaded);
+	} catch (SlException e) {
+		_sl.error = e.error;
+
+		ClearSaveLoadState();
+
+		/* Skip the "colour" character */
+		DEBUG(sl, 0, "%s", GetSaveLoadErrorString() + 3);
+
+		/* A saver exception!! reinitialize all variables to prevent crash! */
+		return false;
+	}
+}
+
+/**
  * Actually perform the loading of a "non-old" savegame.
  * @param reader     The filter to read the savegame from.
  * @param load_check Whether to perform the checking ("preview") or actually load the game.
@@ -890,48 +932,6 @@ bool LoadWithFilter(LoadFilter *reader)
 		SlNullPointers();
 
 		ClearSaveLoadState();
-		return false;
-	}
-}
-
-/**
- * Main Save function where the high-level saveload functions are
- * handled.
- * @param filename The name of the savegame being created
- * @param sb The sub directory to save the savegame in
- * @param threaded True when threaded saving is allowed
- * @return Return whether saving was successful
- */
-bool SaveGame(const char *filename, Subdirectory sb, bool threaded)
-{
-	/* An instance of saving is already active, so don't go saving again */
-	if (_sl.saveinprogress && threaded) {
-		/* if not an autosave, but a user action, show error message */
-		if (!_do_autosave) ShowErrorMessage(STR_ERROR_SAVE_STILL_IN_PROGRESS, INVALID_STRING_ID, WL_ERROR);
-		return true;
-	}
-	WaitTillSaved();
-
-	try {
-		FILE *fh = FioFOpenFile(filename, "wb", sb);
-
-		if (fh == NULL) {
-			throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE);
-		}
-
-		DEBUG(desync, 1, "save: %08x; %02x; %s", _date, _date_fract, filename);
-		if (_network_server || !_settings_client.gui.threaded_saves) threaded = false;
-
-		return DoSave(new FileWriter(fh), threaded);
-	} catch (SlException e) {
-		_sl.error = e.error;
-
-		ClearSaveLoadState();
-
-		/* Skip the "colour" character */
-		DEBUG(sl, 0, "%s", GetSaveLoadErrorString() + 3);
-
-		/* A saver exception!! reinitialize all variables to prevent crash! */
 		return false;
 	}
 }
