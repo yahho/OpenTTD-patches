@@ -656,7 +656,11 @@ static bool SaveFileToDisk(bool threaded)
 
 		ClearSaveLoadState();
 
-		if (threaded) SetAsyncSaveFinish(SaveFileDone);
+		if (threaded) {
+			SetAsyncSaveFinish(SaveFileDone);
+		} else {
+			SaveFileDone();
+		}
 
 		return true;
 	} catch (SlException e) {
@@ -728,10 +732,7 @@ static bool DoSave(SaveFilter *writer, bool threaded)
 		DEBUG(sl, 1, "Cannot create savegame thread, reverting to single-threaded mode...");
 	}
 
-	bool result = SaveFileToDisk(false);
-	SaveFileDone();
-
-	return result;
+	return SaveFileToDisk(false);
 }
 
 /**
