@@ -740,14 +740,7 @@ static bool DoSave(SaveFilter *writer, bool threaded)
  */
 bool SaveWithFilter(SaveFilter *writer, bool threaded)
 {
-	try {
-		return DoSave(writer, threaded);
-	} catch (SlException e) {
-		_sl.error = e.error;
-
-		ClearSaveLoadState();
-		return false;
-	}
+	return DoSave(writer, threaded);
 }
 
 /**
@@ -782,19 +775,7 @@ bool SaveGame(const char *filename, Subdirectory sb, bool threaded)
 	DEBUG(desync, 1, "save: %08x; %02x; %s", _date, _date_fract, filename);
 	if (_network_server || !_settings_client.gui.threaded_saves) threaded = false;
 
-	try {
-		return DoSave(new FileWriter(fh), threaded);
-	} catch (SlException e) {
-		_sl.error = e.error;
-
-		ClearSaveLoadState();
-
-		/* Skip the "colour" character */
-		DEBUG(sl, 0, "%s", GetSaveLoadErrorString() + 3);
-
-		/* A saver exception!! reinitialize all variables to prevent crash! */
-		return false;
-	}
+	return DoSave(new FileWriter(fh), threaded);
 }
 
 /**
