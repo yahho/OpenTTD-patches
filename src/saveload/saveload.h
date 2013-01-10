@@ -15,13 +15,6 @@
 #include "../fileio_type.h"
 #include "../strings_type.h"
 
-/** Save or load result codes. */
-enum SaveOrLoadResult {
-	SL_OK     = 0, ///< completed successfully
-	SL_ERROR  = 1, ///< error that was caught before internal structures were modified
-	SL_REINIT = 2, ///< error that was caught in the middle of updating game state, need to clear it. (can only happen during load)
-};
-
 /** Save or load mode. @see SaveOrLoad */
 enum SaveOrLoadMode {
 	SL_INVALID    = -1, ///< Invalid mode.
@@ -46,14 +39,14 @@ enum SavegameType {
 void GenerateDefaultSaveName(char *buf, const char *last);
 void SetSaveLoadError(uint16 str);
 const char *GetSaveLoadErrorString();
-SaveOrLoadResult SaveGame(const char *filename, Subdirectory sb, bool threaded = true);
-SaveOrLoadResult LoadGame(const char *filename, int mode, Subdirectory sb);
+bool SaveGame(const char *filename, Subdirectory sb, bool threaded = true);
+bool LoadGame(const char *filename, int mode, Subdirectory sb);
 void WaitTillSaved();
 void ProcessAsyncSaveFinish();
 void DoExitSave();
 
-SaveOrLoadResult SaveWithFilter(struct SaveFilter *writer, bool threaded);
-SaveOrLoadResult LoadWithFilter(struct LoadFilter *reader);
+bool SaveWithFilter(struct SaveFilter *writer, bool threaded);
+bool LoadWithFilter(struct LoadFilter *reader);
 
 typedef void ChunkSaveLoadProc();
 typedef void AutolengthProc(void *arg);

@@ -327,7 +327,7 @@ static void LoadIntroGame(bool load_newgrfs = true)
 	SetupColoursAndInitialWindow();
 
 	/* Load the default opening screen savegame */
-	if (LoadGame("opntitle.dat", SL_LOAD, BASESET_DIR) != SL_OK) {
+	if (!LoadGame("opntitle.dat", SL_LOAD, BASESET_DIR)) {
 		GenerateWorld(GWM_EMPTY, 64, 64); // if failed loading, make empty world.
 		WaitTillGeneratedWorld();
 		SetLocalCompany(COMPANY_SPECTATOR);
@@ -644,8 +644,8 @@ int openttd_main(int argc, char *argv[])
 			FiosGetSavegameListCallback(SLD_LOAD_GAME, mgo.opt, strrchr(mgo.opt, '.'), title, lastof(title));
 
 			_load_check_data.Clear();
-			SaveOrLoadResult res = LoadGame(mgo.opt, SL_LOAD_CHECK, SAVE_DIR);
-			if (res != SL_OK || _load_check_data.HasErrors()) {
+			bool res = LoadGame(mgo.opt, SL_LOAD_CHECK, SAVE_DIR);
+			if (!res || _load_check_data.HasErrors()) {
 				fprintf(stderr, "Failed to open savegame\n");
 				if (_load_check_data.HasErrors()) {
 					char buf[256];
@@ -973,38 +973,33 @@ bool SafeLoad(const char *filename, int mode, GameMode newgm, Subdirectory subdi
 
 	_game_mode = newgm;
 
-	switch (lf == NULL ? LoadGame(filename, mode, subdir) : LoadWithFilter(lf)) {
-		case SL_OK: return true;
-
-		case SL_REINIT:
+	if (lf == NULL ? LoadGame(filename, mode, subdir) : LoadWithFilter(lf)) {
+		return true;
+	} else {
 #ifdef ENABLE_NETWORK
-			if (_network_dedicated) {
-				/*
-				 * We need to reinit a network map...
-				 * We can't simply load the intro game here as that game has many
-				 * special cases which make clients desync immediately. So we fall
-				 * back to just generating a new game with the current settings.
-				 */
-				DEBUG(net, 0, "Loading game failed, so a new (random) game will be started!");
-				MakeNewGame(false, true);
-				return false;
-			}
-			if (_network_server) {
-				/* We can't load the intro game as server, so disconnect first. */
-				NetworkDisconnect();
-			}
+		if (_network_dedicated) {
+			/*
+			 * We need to reinit a network map...
+			 * We can't simply load the intro game here as that game has many
+			 * special cases which make clients desync immediately. So we fall
+			 * back to just generating a new game with the current settings.
+			 */
+			DEBUG(net, 0, "Loading game failed, so a new (random) game will be started!");
+			MakeNewGame(false, true);
+			return false;
+		}
+		if (_network_server) {
+			/* We can't load the intro game as server, so disconnect first. */
+			NetworkDisconnect();
+		}
 #endif /* ENABLE_NETWORK */
 
-			switch (ogm) {
-				default:
-				case GM_MENU:   LoadIntroGame();      break;
-				case GM_EDITOR: MakeNewEditorWorld(); break;
-			}
-			return false;
-
-		default:
-			_game_mode = ogm;
-			return false;
+		switch (ogm) {
+			default:
+			case GM_MENU:   LoadIntroGame();      break;
+			case GM_EDITOR: MakeNewEditorWorld(); break;
+		}
+		return false;
 	}
 }
 
@@ -1125,7 +1120,7 @@ void SwitchToMode(SwitchMode new_mode)
 
 		case SM_SAVE_GAME: // Save game.
 			/* Make network saved games on pause compatible to singleplayer */
-			if (SaveGame(_file_to_saveload.name, NO_DIRECTORY) != SL_OK) {
+			if (!SaveGame(_file_to_saveload.name, NO_DIRECTORY)) {
 				SetDParamStr(0, GetSaveLoadErrorString());
 				ShowErrorMessage(STR_JUST_RAW_STRING, INVALID_STRING_ID, WL_ERROR);
 			} else {
@@ -1389,7 +1384,7 @@ static void DoAutosave()
 	}
 
 	DEBUG(sl, 2, "Autosaving to '%s'", buf);
-	if (SaveGame(buf, AUTOSAVE_DIR) != SL_OK) {
+	if (!SaveGame(buf, AUTOSAVE_DIR)) {
 		ShowErrorMessage(STR_ERROR_AUTOSAVE_FAILED, INVALID_STRING_ID, WL_ERROR);
 	}
 }

@@ -2293,7 +2293,7 @@ static void SaveFileError()
  * We have written the whole game into memory, _memory_savegame, now find
  * and appropriate compressor and start writing to file.
  */
-static SaveOrLoadResult SaveFileToDisk(bool threaded)
+static bool SaveFileToDisk(bool threaded)
 {
 	try {
 		byte compression;
@@ -2310,7 +2310,7 @@ static SaveOrLoadResult SaveFileToDisk(bool threaded)
 
 		if (threaded) SetAsyncSaveFinish(SaveFileDone);
 
-		return SL_OK;
+		return true;
 	} catch (...) {
 		ClearSaveLoadState();
 
@@ -2329,7 +2329,7 @@ static SaveOrLoadResult SaveFileToDisk(bool threaded)
 		} else {
 			asfp();
 		}
-		return SL_ERROR;
+		return false;
 	}
 }
 
@@ -2357,9 +2357,9 @@ void WaitTillSaved()
  * using the writer, either in threaded mode if possible, or single-threaded.
  * @param writer   The filter to write the savegame to.
  * @param threaded Whether to try to perform the saving asynchronously.
- * @return Return the result of the action. #SL_OK or #SL_ERROR
+ * @return Return whether saving was successful
  */
-static SaveOrLoadResult DoSave(SaveFilter *writer, bool threaded)
+static bool DoSave(SaveFilter *writer, bool threaded)
 {
 	assert(!_sl.saveinprogress);
 
@@ -2375,29 +2375,29 @@ static SaveOrLoadResult DoSave(SaveFilter *writer, bool threaded)
 	if (!threaded || !ThreadObject::New(&SaveFileToDiskThread, NULL, &_save_thread)) {
 		if (threaded) DEBUG(sl, 1, "Cannot create savegame thread, reverting to single-threaded mode...");
 
-		SaveOrLoadResult result = SaveFileToDisk(false);
+		bool result = SaveFileToDisk(false);
 		SaveFileDone();
 
 		return result;
 	}
 
-	return SL_OK;
+	return true;
 }
 
 /**
  * Save the game using a (writer) filter.
  * @param writer   The filter to write the savegame to.
  * @param threaded Whether to try to perform the saving asynchronously.
- * @return Return the result of the action. #SL_OK or #SL_ERROR
+ * @return Return whether saving was successful
  */
-SaveOrLoadResult SaveWithFilter(SaveFilter *writer, bool threaded)
+bool SaveWithFilter(SaveFilter *writer, bool threaded)
 {
 	try {
 		_sl.action = SLA_SAVE;
 		return DoSave(writer, threaded);
 	} catch (...) {
 		ClearSaveLoadState();
-		return SL_ERROR;
+		return false;
 	}
 }
 
@@ -2405,9 +2405,9 @@ SaveOrLoadResult SaveWithFilter(SaveFilter *writer, bool threaded)
  * Actually perform the loading of a "non-old" savegame.
  * @param reader     The filter to read the savegame from.
  * @param load_check Whether to perform the checking ("preview") or actually load the game.
- * @return Return the result of the action. #SL_OK or #SL_REINIT ("unload" the game)
+ * @return Return whether loading was successful
  */
-static SaveOrLoadResult DoLoad(LoadFilter *reader, bool load_check)
+static bool DoLoad(LoadFilter *reader, bool load_check)
 {
 	_sl.lf = reader;
 
@@ -2529,28 +2529,28 @@ static SaveOrLoadResult DoLoad(LoadFilter *reader, bool load_check)
 		 * might have occurred since then. If it fails, load back the old game. */
 		if (!AfterLoadGame()) {
 			GamelogStopAction();
-			return SL_REINIT;
+			return false;
 		}
 
 		GamelogStopAction();
 	}
 
-	return SL_OK;
+	return true;
 }
 
 /**
  * Load the game using a (reader) filter.
  * @param reader   The filter to read the savegame from.
- * @return Return the result of the action. #SL_OK or #SL_REINIT ("unload" the game)
+ * @return Return whether loading was successful
  */
-SaveOrLoadResult LoadWithFilter(LoadFilter *reader)
+bool LoadWithFilter(LoadFilter *reader)
 {
 	try {
 		_sl.action = SLA_LOAD;
 		return DoLoad(reader, false);
 	} catch (...) {
 		ClearSaveLoadState();
-		return SL_REINIT;
+		return false;
 	}
 }
 
@@ -2560,15 +2560,15 @@ SaveOrLoadResult LoadWithFilter(LoadFilter *reader)
  * @param filename The name of the savegame being created
  * @param sb The sub directory to save the savegame in
  * @param threaded True when threaded saving is allowed
- * @return Return the result of the action. #SL_OK or #SL_ERROR
+ * @return Return whether saving was successful
  */
-SaveOrLoadResult SaveGame(const char *filename, Subdirectory sb, bool threaded)
+bool SaveGame(const char *filename, Subdirectory sb, bool threaded)
 {
 	/* An instance of saving is already active, so don't go saving again */
 	if (_sl.saveinprogress && threaded) {
 		/* if not an autosave, but a user action, show error message */
 		if (!_do_autosave) ShowErrorMessage(STR_ERROR_SAVE_STILL_IN_PROGRESS, INVALID_STRING_ID, WL_ERROR);
-		return SL_OK;
+		return true;
 	}
 	WaitTillSaved();
 
@@ -2592,7 +2592,7 @@ SaveOrLoadResult SaveGame(const char *filename, Subdirectory sb, bool threaded)
 		DEBUG(sl, 0, "%s", GetSaveLoadErrorString() + 3);
 
 		/* A saver exception!! reinitialize all variables to prevent crash! */
-		return SL_ERROR;
+		return false;
 	}
 }
 
@@ -2602,9 +2602,9 @@ SaveOrLoadResult SaveGame(const char *filename, Subdirectory sb, bool threaded)
  * @param filename The name of the savegame being loaded
  * @param mode Load mode. Load can also be a TTD(Patch) game. Use #SL_LOAD, #SL_OLD_LOAD or #SL_LOAD_CHECK.
  * @param sb The sub directory to load the savegame from
- * @return Return the result of the action. #SL_OK, #SL_ERROR, or #SL_REINIT ("unload" the game)
+ * @return Return whether loading was successful
  */
-SaveOrLoadResult LoadGame(const char *filename, int mode, Subdirectory sb)
+bool LoadGame(const char *filename, int mode, Subdirectory sb)
 {
 	WaitTillSaved();
 
@@ -2618,16 +2618,16 @@ SaveOrLoadResult LoadGame(const char *filename, int mode, Subdirectory sb)
 		 * for OTTD savegames which have their own NewGRF logic. */
 		ClearGRFConfigList(&_grfconfig);
 		GamelogReset();
-		if (!LoadOldSaveGame(filename)) return SL_REINIT;
+		if (!LoadOldSaveGame(filename)) return false;
 		_sl_version = 0;
 		_sl_minor_version = 0;
 		GamelogStartAction(GLAT_LOAD);
 		if (!AfterLoadGame()) {
 			GamelogStopAction();
-			return SL_REINIT;
+			return false;
 		}
 		GamelogStopAction();
-		return SL_OK;
+		return true;
 	}
 
 	switch (mode) {
@@ -2659,7 +2659,7 @@ SaveOrLoadResult LoadGame(const char *filename, int mode, Subdirectory sb)
 		if (mode != SL_LOAD_CHECK) DEBUG(sl, 0, "%s", GetSaveLoadErrorString() + 3);
 
 		/* A loader exception!! reinitialize all variables to prevent crash! */
-		return (mode == SL_LOAD) ? SL_REINIT : SL_ERROR;
+		return false;
 	}
 }
 
