@@ -720,16 +720,18 @@ static bool DoSave(SaveFilter *writer, bool threaded)
 	SlSaveChunks(_sl.dumper);
 
 	SaveFileStart();
-	if (!threaded || !ThreadObject::New(&SaveFileToDiskThread, NULL, &_save_thread)) {
-		if (threaded) DEBUG(sl, 1, "Cannot create savegame thread, reverting to single-threaded mode...");
 
-		bool result = SaveFileToDisk(false);
-		SaveFileDone();
-
-		return result;
+	if (threaded) {
+		if (ThreadObject::New(&SaveFileToDiskThread, NULL, &_save_thread)) {
+			return true;
+		}
+		DEBUG(sl, 1, "Cannot create savegame thread, reverting to single-threaded mode...");
 	}
 
-	return true;
+	bool result = SaveFileToDisk(false);
+	SaveFileDone();
+
+	return result;
 }
 
 /**
