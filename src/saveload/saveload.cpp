@@ -559,13 +559,6 @@ extern bool AfterLoadGame(const SavegameTypeVersion *stv);
 extern bool LoadOldSaveGame(const char *file, SavegameTypeVersion *stv, SlErrorData *e);
 
 /**
- * Clear/free saveload state.
- */
-static inline void ClearSaveLoadState()
-{
-}
-
-/**
  * Update the gui accordingly when starting saving
  * and set locks on saveload. Also turn off fast-forward cause with that
  * saving takes Aaaaages
@@ -651,8 +644,6 @@ static bool SaveFileToDisk(SaveFilter *writer, SaveDumper *dumper, bool threaded
 
 	delete writer;
 	delete dumper;
-
-	ClearSaveLoadState();
 
 	if (threaded) {
 		SetAsyncSaveFinish(asfp);
@@ -866,19 +857,15 @@ static bool DoLoad(LoadFilter **chain, bool load_check)
 	LoadBuffer reader(*chain, &sl_version);
 	SlLoadChunks(&reader, load_check);
 
-	if (!load_check) {
-		/* Resolve references */
-		SlFixPointers(&sl_version);
-	}
-
-	ClearSaveLoadState();
-
 	if (load_check) {
 		/* The only part from AfterLoadGame() we need */
 		_load_check_data.grf_compatibility = IsGoodGRFConfigList(_load_check_data.grfconfig);
 
 		_load_check_data.sl_version = sl_version;
 	} else {
+		/* Resolve references */
+		SlFixPointers(&sl_version);
+
 		GamelogStartAction(GLAT_LOAD);
 
 		/* After loading fix up savegame for any internal changes that
@@ -911,7 +898,6 @@ bool LoadWithFilter(LoadFilter *reader)
 
 		SlNullPointers();
 
-		ClearSaveLoadState();
 		res = false;
 	}
 
@@ -986,8 +972,6 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 
 			SlNullPointers();
 		}
-
-		ClearSaveLoadState();
 
 		/* Skip the "colour" character */
 		if (mode != SL_LOAD_CHECK) DEBUG(sl, 0, "%s", GetSaveLoadErrorString() + 3);
