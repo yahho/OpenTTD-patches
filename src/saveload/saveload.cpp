@@ -768,16 +768,21 @@ bool SaveGame(const char *filename, Subdirectory sb, bool threaded)
 	}
 	WaitTillSaved();
 
+	FILE *fh = FioFOpenFile(filename, "wb", sb);
+
+	if (fh == NULL) {
+		_sl.error.str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE;
+
+		/* Skip the "colour" character */
+		DEBUG(sl, 0, "%s", GetSaveLoadErrorString() + 3);
+
+		return false;
+	}
+
+	DEBUG(desync, 1, "save: %08x; %02x; %s", _date, _date_fract, filename);
+	if (_network_server || !_settings_client.gui.threaded_saves) threaded = false;
+
 	try {
-		FILE *fh = FioFOpenFile(filename, "wb", sb);
-
-		if (fh == NULL) {
-			throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE);
-		}
-
-		DEBUG(desync, 1, "save: %08x; %02x; %s", _date, _date_fract, filename);
-		if (_network_server || !_settings_client.gui.threaded_saves) threaded = false;
-
 		return DoSave(new FileWriter(fh), threaded);
 	} catch (SlException e) {
 		_sl.error = e.error;
