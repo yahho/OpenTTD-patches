@@ -67,10 +67,6 @@ struct ChunkHandler {
 	uint32 flags;                       ///< Flags of the chunk. @see ChunkType
 };
 
-struct NullStruct {
-	byte null;
-};
-
 /** Type of reference (#SLE_REF, #SLE_CONDREF). */
 enum SLRefType {
 	REF_ORDER          =  0, ///< Load/save a reference to an order.
@@ -324,18 +320,18 @@ typedef SaveLoad SaveLoadGlobVarList;
 #define SLE_LST(base, variable, reftype) SLE_CONDLST(base, variable, reftype, 0, SL_MAX_VERSION)
 
 /**
- * Empty space in every savegame version.
- * @param length Length of the empty space.
- */
-#define SLE_NULL(length) SLE_CONDNULL(length, 0, SL_MAX_VERSION)
-
-/**
  * Empty space in some savegame versions.
  * @param length Length of the empty space.
  * @param from   First savegame version that has the empty space.
  * @param to     Last savegame version that has the empty space.
  */
-#define SLE_CONDNULL(length, from, to) SLE_CONDARR(NullStruct, null, SLE_FILE_U8 | SLE_VAR_NULL | SLF_NOT_IN_CONFIG, length, from, to)
+#define SLE_CONDNULL(length, from, to) {true, SL_ARR, SLE_FILE_U8 | SLE_VAR_NULL | SLF_NOT_IN_CONFIG, length, from, to, (void*)NULL}
+
+/**
+ * Empty space in every savegame version.
+ * @param length Length of the empty space.
+ */
+#define SLE_NULL(length) SLE_CONDNULL(length, 0, SL_MAX_VERSION)
 
 /** Translate values ingame to different values in the savegame and vv. */
 #define SLE_WRITEBYTE(base, variable, value) SLE_GENERAL(SL_WRITEBYTE, base, variable, value, 0, 0, SL_MAX_VERSION)
@@ -439,14 +435,6 @@ typedef SaveLoad SaveLoadGlobVarList;
  * @param reftype  Type of the reference, a value from #SLRefType.
  */
 #define SLEG_LST(variable, reftype) SLEG_CONDLST(variable, reftype, 0, SL_MAX_VERSION)
-
-/**
- * Empty global space in some savegame versions.
- * @param length Length of the empty space.
- * @param from   First savegame version that has the empty space.
- * @param to     Last savegame version that has the empty space.
- */
-#define SLEG_CONDNULL(length, from, to) {true, SL_ARR, SLE_FILE_U8 | SLE_VAR_NULL | SLF_NOT_IN_CONFIG, length, from, to, (void*)NULL}
 
 /**
  * Checks whether the savegame is below \a major.\a minor.

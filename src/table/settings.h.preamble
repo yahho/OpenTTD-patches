@@ -85,7 +85,7 @@ static size_t ConvertLandscape(const char *value);
 	SDTG_GENERAL(name, SDT_MANYOFMANY, SL_VAR, conv, flags, guiflags, var, 0, def, 0, 0, 0, full, str, strhelp, strval, proc, from, to, cat)
 
 #define SDTG_NULL(length, from, to)\
-	{{"", NULL, {0}, {0}, 0, 0, 0, NULL, STR_NULL, STR_NULL, STR_NULL, NULL, NULL, SC_NONE}, SLEG_NULL(length, from, to)}
+	{{"", NULL, {0}, {0}, 0, 0, 0, NULL, STR_NULL, STR_NULL, STR_NULL, NULL, NULL, SC_NONE}, SLE_CONDNULL(length, from, to)}
 
 /* Macros for various objects to go in the configuration file.
  * This section is for structures where their various members are saved */
