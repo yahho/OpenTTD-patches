@@ -1671,7 +1671,7 @@ struct FileReader : LoadFilter {
 	 * Create the file reader, so it reads from a specific file.
 	 * @param file The file to read from.
 	 */
-	FileReader(FILE *file) : LoadFilter(NULL), file(file), begin(ftell(file))
+	FileReader(FILE *file) : LoadFilter(), file(file), begin(ftell(file))
 	{
 	}
 
@@ -1708,7 +1708,7 @@ struct FileWriter : SaveFilter {
 	 * Create the file writer, so it writes to a specific file.
 	 * @param file The file to write to.
 	 */
-	FileWriter(FILE *file) : SaveFilter(NULL), file(file)
+	FileWriter(FILE *file) : SaveFilter(), file(file)
 	{
 	}
 

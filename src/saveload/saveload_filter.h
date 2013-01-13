@@ -14,21 +14,9 @@
 
 /** Interface for filtering a savegame till it is loaded. */
 struct LoadFilter {
-	/** Chained to the (savegame) filters. */
-	LoadFilter *chain;
-
-	/**
-	 * Initialise this filter.
-	 * @param chain The next filter in this chain.
-	 */
-	LoadFilter(LoadFilter *chain) : chain(chain)
-	{
-	}
-
 	/** Make sure the writers are properly closed. */
 	virtual ~LoadFilter()
 	{
-		delete this->chain;
 	}
 
 	/**
@@ -42,39 +30,52 @@ struct LoadFilter {
 	/**
 	 * Reset this filter to read from the beginning of the file.
 	 */
-	virtual void Reset()
+	virtual void Reset() = 0;
+};
+
+/** Filter for chaining into another filter. */
+struct ChainLoadFilter : LoadFilter {
+	/** Chained to the (savegame) filters. */
+	LoadFilter *chain;
+
+	/**
+	 * Initialise this filter.
+	 * @param chain The next filter in this chain.
+	 */
+	ChainLoadFilter(LoadFilter *chain) : LoadFilter(), chain(chain)
+	{
+	}
+
+	/** Make sure the writers are properly closed. */
+	~ChainLoadFilter()
+	{
+		delete this->chain;
+	}
+
+	/**
+	 * Reset this filter to read from the beginning of the file.
+	 */
+	void Reset() OVERRIDE
 	{
 		this->chain->Reset();
 	}
 };
 
 /**
- * Instantiator for a load filter.
+ * Instantiator for a chain load filter.
  * @param chain The next filter in this chain.
  * @tparam T    The type of load filter to create.
  */
-template <typename T> LoadFilter *CreateLoadFilter(LoadFilter *chain)
+template <typename T> ChainLoadFilter *CreateLoadFilter(LoadFilter *chain)
 {
 	return new T(chain);
 }
 
 /** Interface for filtering a savegame till it is written. */
 struct SaveFilter {
-	/** Chained to the (savegame) filters. */
-	SaveFilter *chain;
-
-	/**
-	 * Initialise this filter.
-	 * @param chain The next filter in this chain.
-	 */
-	SaveFilter(SaveFilter *chain) : chain(chain)
-	{
-	}
-
 	/** Make sure the writers are properly closed. */
 	virtual ~SaveFilter()
 	{
-		delete this->chain;
 	}
 
 	/**
@@ -87,19 +88,44 @@ struct SaveFilter {
 	/**
 	 * Prepare everything to finish writing the savegame.
 	 */
-	virtual void Finish()
+	virtual void Finish() = 0;
+};
+
+/** Filter for chaining into another filter. */
+struct ChainSaveFilter : SaveFilter {
+	/** Chained to the (savegame) filters. */
+	SaveFilter *chain;
+
+	/**
+	 * Initialise this filter.
+	 * @param chain The next filter in this chain.
+	 */
+	ChainSaveFilter(SaveFilter *chain) : SaveFilter(), chain(chain)
+	{
+	}
+
+	/** Make sure the writers are properly closed. */
+	~ChainSaveFilter()
+	{
+		delete this->chain;
+	}
+
+	/**
+	 * Prepare everything to finish writing the savegame.
+	 */
+	void Finish() OVERRIDE
 	{
 		if (this->chain != NULL) this->chain->Finish();
 	}
 };
 
 /**
- * Instantiator for a save filter.
+ * Instantiator for a chain save filter.
  * @param chain             The next filter in this chain.
  * @param compression_level The requested level of compression.
  * @tparam T                The type of save filter to create.
  */
-template <typename T> SaveFilter *CreateSaveFilter(SaveFilter *chain, byte compression_level)
+template <typename T> ChainSaveFilter *CreateSaveFilter(SaveFilter *chain, byte compression_level)
 {
 	return new T(chain, compression_level);
 }
@@ -110,8 +136,8 @@ struct SaveLoadFormat {
 	const char *name;                     ///< name of the compressor/decompressor (debug-only)
 	uint32 tag;                           ///< the 4-letter tag by which it is identified in the savegame
 
-	LoadFilter *(*init_load)(LoadFilter *chain);                    ///< Constructor for the load filter.
-	SaveFilter *(*init_write)(SaveFilter *chain, byte compression); ///< Constructor for the save filter.
+	ChainLoadFilter *(*init_load)(LoadFilter *chain);                    ///< Constructor for the load filter.
+	ChainSaveFilter *(*init_write)(SaveFilter *chain, byte compression); ///< Constructor for the save filter.
 
 	byte min_compression;                 ///< the minimum compression level of this format
 	byte default_compression;             ///< the default compression level of this format

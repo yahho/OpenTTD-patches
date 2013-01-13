@@ -62,7 +62,7 @@ struct PacketWriter : SaveFilter {
 	 * Create the packet writer.
 	 * @param cs The socket handler we're making the packets for.
 	 */
-	PacketWriter(ServerNetworkGameSocketHandler *cs) : SaveFilter(NULL), cs(cs), current(NULL), total_size(0)
+	PacketWriter(ServerNetworkGameSocketHandler *cs) : SaveFilter(), cs(cs), current(NULL), total_size(0)
 	{
 		this->cs->savegame_mutex = ThreadMutex::New();
 	}

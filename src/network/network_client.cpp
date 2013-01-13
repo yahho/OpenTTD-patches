@@ -49,7 +49,7 @@ struct PacketReader : LoadFilter {
 	size_t read_bytes;                      ///< The total number of read bytes.
 
 	/** Initialise everything. */
-	PacketReader() : LoadFilter(NULL), buf(NULL), bufe(NULL), block(NULL), written_bytes(0), read_bytes(0)
+	PacketReader() : LoadFilter(), buf(NULL), bufe(NULL), block(NULL), written_bytes(0), read_bytes(0)
 	{
 	}
 

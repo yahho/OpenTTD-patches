@@ -36,12 +36,12 @@ static const size_t MEMORY_CHUNK_SIZE = 128 * 1024;
 static const uint LZO_BUFFER_SIZE = 8192;
 
 /** Filter using LZO compression. */
-struct LZOLoadFilter : LoadFilter {
+struct LZOLoadFilter : ChainLoadFilter {
 	/**
 	 * Initialise this filter.
 	 * @param chain The next filter in this chain.
 	 */
-	LZOLoadFilter(LoadFilter *chain) : LoadFilter(chain)
+	LZOLoadFilter(LoadFilter *chain) : ChainLoadFilter(chain)
 	{
 		if (lzo_init() != LZO_E_OK) SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize decompressor");
 	}
@@ -82,13 +82,13 @@ struct LZOLoadFilter : LoadFilter {
 };
 
 /** Filter using LZO compression. */
-struct LZOSaveFilter : SaveFilter {
+struct LZOSaveFilter : ChainSaveFilter {
 	/**
 	 * Initialise this filter.
 	 * @param chain             The next filter in this chain.
 	 * @param compression_level The requested level of compression.
 	 */
-	LZOSaveFilter(SaveFilter *chain, byte compression_level) : SaveFilter(chain)
+	LZOSaveFilter(SaveFilter *chain, byte compression_level) : ChainSaveFilter(chain)
 	{
 		if (lzo_init() != LZO_E_OK) SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize compressor");
 	}
@@ -123,12 +123,12 @@ struct LZOSaveFilter : SaveFilter {
  *********************************************/
 
 /** Filter without any compression. */
-struct NoCompLoadFilter : LoadFilter {
+struct NoCompLoadFilter : ChainLoadFilter {
 	/**
 	 * Initialise this filter.
 	 * @param chain The next filter in this chain.
 	 */
-	NoCompLoadFilter(LoadFilter *chain) : LoadFilter(chain)
+	NoCompLoadFilter(LoadFilter *chain) : ChainLoadFilter(chain)
 	{
 	}
 
@@ -139,13 +139,13 @@ struct NoCompLoadFilter : LoadFilter {
 };
 
 /** Filter without any compression. */
-struct NoCompSaveFilter : SaveFilter {
+struct NoCompSaveFilter : ChainSaveFilter {
 	/**
 	 * Initialise this filter.
 	 * @param chain             The next filter in this chain.
 	 * @param compression_level The requested level of compression.
 	 */
-	NoCompSaveFilter(SaveFilter *chain, byte compression_level) : SaveFilter(chain)
+	NoCompSaveFilter(SaveFilter *chain, byte compression_level) : ChainSaveFilter(chain)
 	{
 	}
 
@@ -163,7 +163,7 @@ struct NoCompSaveFilter : SaveFilter {
 #include <zlib.h>
 
 /** Filter using Zlib compression. */
-struct ZlibLoadFilter : LoadFilter {
+struct ZlibLoadFilter : ChainLoadFilter {
 	z_stream z;                        ///< Stream state we are reading from.
 	byte fread_buf[MEMORY_CHUNK_SIZE]; ///< Buffer for reading from the file.
 
@@ -171,7 +171,7 @@ struct ZlibLoadFilter : LoadFilter {
 	 * Initialise this filter.
 	 * @param chain The next filter in this chain.
 	 */
-	ZlibLoadFilter(LoadFilter *chain) : LoadFilter(chain)
+	ZlibLoadFilter(LoadFilter *chain) : ChainLoadFilter(chain)
 	{
 		memset(&this->z, 0, sizeof(this->z));
 		if (inflateInit(&this->z) != Z_OK) SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize decompressor");
@@ -207,7 +207,7 @@ struct ZlibLoadFilter : LoadFilter {
 };
 
 /** Filter using Zlib compression. */
-struct ZlibSaveFilter : SaveFilter {
+struct ZlibSaveFilter : ChainSaveFilter {
 	z_stream z; ///< Stream state we are writing to.
 
 	/**
@@ -215,7 +215,7 @@ struct ZlibSaveFilter : SaveFilter {
 	 * @param chain             The next filter in this chain.
 	 * @param compression_level The requested level of compression.
 	 */
-	ZlibSaveFilter(SaveFilter *chain, byte compression_level) : SaveFilter(chain)
+	ZlibSaveFilter(SaveFilter *chain, byte compression_level) : ChainSaveFilter(chain)
 	{
 		memset(&this->z, 0, sizeof(this->z));
 		if (deflateInit(&this->z, compression_level) != Z_OK) SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize compressor");
@@ -292,7 +292,7 @@ struct ZlibSaveFilter : SaveFilter {
 static const lzma_stream _lzma_init = LZMA_STREAM_INIT;
 
 /** Filter without any compression. */
-struct LZMALoadFilter : LoadFilter {
+struct LZMALoadFilter : ChainLoadFilter {
 	lzma_stream lzma;                  ///< Stream state that we are reading from.
 	byte fread_buf[MEMORY_CHUNK_SIZE]; ///< Buffer for reading from the file.
 
@@ -300,7 +300,7 @@ struct LZMALoadFilter : LoadFilter {
 	 * Initialise this filter.
 	 * @param chain The next filter in this chain.
 	 */
-	LZMALoadFilter(LoadFilter *chain) : LoadFilter(chain), lzma(_lzma_init)
+	LZMALoadFilter(LoadFilter *chain) : ChainLoadFilter(chain), lzma(_lzma_init)
 	{
 		/* Allow saves up to 256 MB uncompressed */
 		if (lzma_auto_decoder(&this->lzma, 1 << 28, 0) != LZMA_OK) SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize decompressor");
@@ -335,7 +335,7 @@ struct LZMALoadFilter : LoadFilter {
 };
 
 /** Filter using LZMA compression. */
-struct LZMASaveFilter : SaveFilter {
+struct LZMASaveFilter : ChainSaveFilter {
 	lzma_stream lzma; ///< Stream state that we are writing to.
 
 	/**
@@ -343,7 +343,7 @@ struct LZMASaveFilter : SaveFilter {
 	 * @param chain             The next filter in this chain.
 	 * @param compression_level The requested level of compression.
 	 */
-	LZMASaveFilter(SaveFilter *chain, byte compression_level) : SaveFilter(chain), lzma(_lzma_init)
+	LZMASaveFilter(SaveFilter *chain, byte compression_level) : ChainSaveFilter(chain), lzma(_lzma_init)
 	{
 		if (lzma_easy_encoder(&this->lzma, compression_level, LZMA_CHECK_CRC32) != LZMA_OK) SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize compressor");
 	}
