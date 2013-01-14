@@ -222,6 +222,7 @@ typedef SaveLoad SaveLoadGlobVarList;
  * @param base     Name of the class or struct containing the variable.
  * @param variable Name of the variable in the class or struct referenced by \a base.
  * @param type     Storage of the data in memory and in the savegame.
+ * @param length   Length of object (for arrays and strings)
  * @param from     First savegame version that has the field.
  * @param to       Last savegame version that has the field.
  * @note In general, it is better to use one of the SLE_* macros below.
@@ -350,6 +351,7 @@ typedef SaveLoad SaveLoadGlobVarList;
  * @param cmd      Load/save type. @see SaveLoadType
  * @param variable Name of the global variable.
  * @param type     Storage of the data in memory and in the savegame.
+ * @param length   Length of object (for arrays and strings)
  * @param from     First savegame version that has the field.
  * @param to       Last savegame version that has the field.
  * @note In general, it is better to use one of the SLEG_* macros below.
