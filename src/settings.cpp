@@ -584,7 +584,7 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 		/* If the setting is not saved to the configuration
 		 * file, just continue with the next setting */
 		if (!SlIsObjectCurrentlyValid(sld->version_from, sld->version_to)) continue;
-		if (sld->conv & SLF_NOT_IN_CONFIG) continue;
+		if (sld->flags & SLF_NOT_IN_CONFIG) continue;
 
 		/* XXX - wtf is this?? (group override?) */
 		s = strchr(sdb->name, '.');
@@ -761,7 +761,7 @@ void IniSaveWindowSettings(IniFile *ini, const char *grpname, void *desc)
  */
 bool SettingDesc::IsEditable(bool do_command) const
 {
-	if (!do_command && !(this->save.conv & SLF_NO_NETWORK_SYNC) && _networking && !_network_server && !(this->desc.flags & SGF_PER_COMPANY)) return false;
+	if (!do_command && !(this->save.flags & SLF_NO_NETWORK_SYNC) && _networking && !_network_server && !(this->desc.flags & SGF_PER_COMPANY)) return false;
 	if ((this->desc.flags & SGF_NETWORK_ONLY) && !_networking && _game_mode != GM_MENU) return false;
 	if ((this->desc.flags & SGF_NO_NETWORK) && _networking) return false;
 	if ((this->desc.flags & SGF_NEWGAME_ONLY) &&
@@ -777,7 +777,7 @@ bool SettingDesc::IsEditable(bool do_command) const
 SettingType SettingDesc::GetType() const
 {
 	if (this->desc.flags & SGF_PER_COMPANY) return ST_COMPANY;
-	return (this->save.conv & SLF_NOT_IN_SAVE) ? ST_CLIENT : ST_GAME;
+	return (this->save.flags & SLF_NOT_IN_SAVE) ? ST_CLIENT : ST_GAME;
 }
 
 /* Begin - Callback Functions for the various settings. */
@@ -1819,7 +1819,7 @@ bool SetSettingValue(uint index, int32 value, bool force_newgame)
 	 * (if any) to change. Also *hack*hack* we update the _newgame version
 	 * of settings because changing a company-based setting in a game also
 	 * changes its defaults. At least that is the convention we have chosen */
-	if (sd->save.conv & SLF_NO_NETWORK_SYNC) {
+	if (sd->save.flags & SLF_NO_NETWORK_SYNC) {
 		void *var = GetVariableAddress(&sd->save, &GetGameSettings());
 		Write_ValidateSetting(var, sd, value);
 
@@ -1919,7 +1919,7 @@ uint GetCompanySettingIndex(const char *name)
 bool SetSettingValue(uint index, const char *value, bool force_newgame)
 {
 	const SettingDesc *sd = &_settings[index];
-	assert(sd->save.conv & SLF_NO_NETWORK_SYNC);
+	assert(sd->save.flags & SLF_NO_NETWORK_SYNC);
 
 	if (GetVarMemType(sd->save.conv) == SLE_VAR_STRQ) {
 		char **var = (char**)GetVariableAddress(&sd->save, (_game_mode == GM_MENU || force_newgame) ? &_settings_newgame : &_settings_game);

@@ -166,14 +166,10 @@ enum VarTypes {
 	SLS_STR   = SLS_STRING,
 	SLS_STRQ  = SLS_STRINGQUOTE,
 
-	/* 8 bits allocated for a maximum of 8 flags
-	 * Flags directing saving/loading of a variable */
-	SLF_NOT_IN_SAVE     = 1 <<  8, ///< do not save with savegame, basically client-based
-	SLF_NOT_IN_CONFIG   = 1 <<  9, ///< do not save to config file
-	SLF_NO_NETWORK_SYNC = 1 << 10, ///< do not synchronize over network (but it is saved if SLF_NOT_IN_SAVE is not set)
+	/* 8 bits allocated for a maximum of 8 flags */
 	SLS_ALLOW_CONTROL   = 1 << 11, ///< allow control codes in the strings
 	SLS_ALLOW_NEWLINE   = 1 << 12, ///< allow new lines in the strings
-	/* 3 more possible flags */
+	/* 6 more possible flags */
 };
 
 typedef uint32 VarType;
@@ -193,11 +189,19 @@ enum SaveLoadTypes {
 
 typedef byte SaveLoadType; ///< Save/load type. @see SaveLoadTypes
 
+/** Flags directing saving/loading of a variable */
+enum SaveLoadFlags {
+	SLF_NOT_IN_SAVE     = 1 << 1, ///< do not save with savegame, basically client-based
+	SLF_NOT_IN_CONFIG   = 1 << 2, ///< do not save to config file
+	SLF_NO_NETWORK_SYNC = 1 << 3, ///< do not synchronize over network (but it is saved if SLF_NOT_IN_SAVE is not set)
+};
+
 /** SaveLoad type struct. Do NOT use this directly but use the SLE_ macros defined just below! */
 struct SaveLoad {
 	bool global;         ///< should we load a global variable or a non-global one
 	SaveLoadType type;   ///< object type
 	VarType conv;        ///< type of the variable to be saved, int
+	byte flags;          ///< save/load flags
 	uint16 length;       ///< (conditional) length of the variable (eg. arrays) (max array size is 65536 elements)
 	uint16 version_from; ///< save/load the variable starting from this savegame version
 	uint16 version_to;   ///< save/load the variable until this savegame version
@@ -224,7 +228,7 @@ typedef SaveLoad SaveLoadGlobVarList;
  * @param to       Last savegame version that has the field.
  * @note In general, it is better to use one of the SLE_* macros below.
  */
-#define SLE_GENERAL(type, base, variable, conv, flags, length, from, to) {false, type, (conv) | (flags), length, from, to, (void*)cpp_offsetof(base, variable)}
+#define SLE_GENERAL(type, base, variable, conv, flags, length, from, to) {false, type, conv, flags, length, from, to, (void*)cpp_offsetof(base, variable)}
 
 /**
  * Storage of a variable in some savegame versions.
@@ -326,7 +330,7 @@ typedef SaveLoad SaveLoadGlobVarList;
  * @param from   First savegame version that has the empty space.
  * @param to     Last savegame version that has the empty space.
  */
-#define SLE_CONDNULL(length, from, to) {true, SL_ARR, SLE_FILE_U8 | SLE_VAR_NULL | SLF_NOT_IN_CONFIG, length, from, to, (void*)NULL}
+#define SLE_CONDNULL(length, from, to) {true, SL_ARR, SLE_FILE_U8 | SLE_VAR_NULL, SLF_NOT_IN_CONFIG, length, from, to, (void*)NULL}
 
 /**
  * Empty space in every savegame version.
@@ -338,10 +342,10 @@ typedef SaveLoad SaveLoadGlobVarList;
 #define SLE_WRITEBYTE(base, variable, value) SLE_GENERAL(SL_WRITEBYTE, base, variable, value, 0, 0, 0, SL_MAX_VERSION)
 
 /** Include another SaveLoad object. */
-#define SLE_INCLUDE(include) {false, SL_INCLUDE, 0, 0, 0, SL_MAX_VERSION, const_cast<SaveLoad *>(include)}
+#define SLE_INCLUDE(include) {false, SL_INCLUDE, 0, 0, 0, 0, SL_MAX_VERSION, const_cast<SaveLoad *>(include)}
 
 /** End marker of a struct/class save or load. */
-#define SLE_END() {false, SL_END, 0, 0, 0, 0, NULL}
+#define SLE_END() {false, SL_END, 0, 0, 0, 0, 0, NULL}
 
 /**
  * Storage of global simple variables, references (pointers), and arrays.
@@ -354,7 +358,7 @@ typedef SaveLoad SaveLoadGlobVarList;
  * @param to       Last savegame version that has the field.
  * @note In general, it is better to use one of the SLEG_* macros below.
  */
-#define SLEG_GENERAL(type, variable, conv, flags, length, from, to) {true, type, (conv) | (flags), length, from, to, (void*)&variable}
+#define SLEG_GENERAL(type, variable, conv, flags, length, from, to) {true, type, conv, flags, length, from, to, (void*)&variable}
 
 /**
  * Storage of a global variable in some savegame versions.

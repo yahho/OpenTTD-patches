@@ -42,7 +42,7 @@
 	uint index;
 	const SettingDesc *sd = GetSettingFromName(setting, &index);
 
-	if ((sd->save.conv & SLF_NO_NETWORK_SYNC) != 0) return false;
+	if ((sd->save.flags & SLF_NO_NETWORK_SYNC) != 0) return false;
 	if (sd->desc.cmd != SDT_BOOLX && sd->desc.cmd != SDT_NUMX) return false;
 
 	return ScriptObject::DoCommand(0, index, value, CMD_CHANGE_SETTING);
