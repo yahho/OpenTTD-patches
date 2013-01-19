@@ -1963,8 +1963,8 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 		_sl_version = 0;
 		_sl_minor_version = 0;
 
-		/* Try to find the LZO savegame format; it uses 'OTTD' as tag. */
-		fmt = GetSavegameFormatByTag(TO_BE32X('OTTD'));
+		/* Try to find the LZO savegame format. */
+		fmt = GetLZO0SavegameFormat();
 		/* Who removed LZO support? Bad bad boy! */
 		assert(fmt != NULL);
 	}

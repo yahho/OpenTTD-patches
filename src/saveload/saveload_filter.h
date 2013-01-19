@@ -120,5 +120,6 @@ struct SaveLoadFormat {
 
 const SaveLoadFormat *GetSavegameFormat(char *s, byte *compression_level);
 const SaveLoadFormat *GetSavegameFormatByTag(uint32 tag);
+const SaveLoadFormat *GetLZO0SavegameFormat();
 
 #endif /* SAVELOAD_FILTER_H */

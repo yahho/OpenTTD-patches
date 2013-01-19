@@ -499,6 +499,17 @@ const SaveLoadFormat *GetSavegameFormatByTag(uint32 tag)
 	return NULL;
 }
 
+/**
+ * Return the savegame format corresponding to the buggy version 0 LZO format
+ * @return Pointer to SaveLoadFormat struct giving all characteristics of this type of savegame
+ */
+const SaveLoadFormat *GetLZO0SavegameFormat()
+{
+	/* The LZO savegame format uses 'OTTD' as tag. */
+	assert(_saveload_formats[0].tag == TO_BE32X('OTTD'));
+	return &_saveload_formats[0];
+}
+
 #if 0
 /**
  * Function to get the type of the savegame by looking at the file header.
