@@ -849,11 +849,11 @@ void SlWriteLength(size_t length)
 }
 
 /**
- * Sets the length of an element in an array.
- * This lets us load an object or an array of arbitrary size
- * @param length The length of the sought object/array
+ * Adds the length of an object to the accumulated length.
+ * This lets us save an object of unknown size
+ * @param length The length of the object to add
  */
-static void SlSetLength(size_t length)
+static void SlAddLength(size_t length)
 {
 	assert(_sl.action == SLA_SAVE);
 	assert(_sl.need_length == NL_CALCLENGTH);
@@ -1122,9 +1122,9 @@ void SlArray(void *array, size_t length, VarType conv)
 {
 	if (_sl.action == SLA_PTRS || _sl.action == SLA_NULL) return;
 
-	/* Automatically calculate the length? */
+	/* Are we only computing the length? */
 	if (_sl.need_length != NL_NONE) {
-		SlSetLength(SlCalcArrayLen(length, conv));
+		SlAddLength(SlCalcArrayLen(length, conv));
 		return;
 	}
 
@@ -1298,9 +1298,9 @@ static inline size_t SlCalcListLen(const void *list)
  */
 static void SlList(void *list, SLRefType conv)
 {
-	/* Automatically calculate the length? */
+	/* Are we only computing the length? */
 	if (_sl.need_length != NL_NONE) {
-		SlSetLength(SlCalcListLen(list));
+		SlAddLength(SlCalcListLen(list));
 		return;
 	}
 
@@ -1471,9 +1471,9 @@ bool SlObjectMember(void *object, const SaveLoad *sld)
  */
 void SlObject(void *object, const SaveLoad *sld)
 {
-	/* Automatically calculate the length? */
+	/* Are we only computing the length? */
 	if (_sl.need_length != NL_NONE) {
-		SlSetLength(SlCalcObjLength(object, sld));
+		SlAddLength(SlCalcObjLength(object, sld));
 		return;
 	}
 
