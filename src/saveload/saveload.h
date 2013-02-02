@@ -15,6 +15,7 @@
 #include "../fileio_type.h"
 #include "../strings_type.h"
 #include "saveload_data.h"
+#include "saveload_buffer.h"
 
 /** Save or load mode. @see SaveOrLoad */
 enum LoadMode {
@@ -48,27 +49,7 @@ void DoExitSave();
 bool SaveWithFilter(struct SaveFilter *writer, bool threaded);
 bool LoadWithFilter(struct LoadFilter *reader);
 
-typedef void ChunkSaveLoadProc();
 typedef void AutolengthProc(void *arg);
-
-/** Handlers and description of chunk. */
-struct ChunkHandler {
-	uint32 id;                          ///< Unique ID (4 letters).
-	ChunkSaveLoadProc *save_proc;       ///< Save procedure of the chunk.
-	ChunkSaveLoadProc *load_proc;       ///< Load procedure of the chunk.
-	ChunkSaveLoadProc *ptrs_proc;       ///< Manipulate pointers in the chunk.
-	ChunkSaveLoadProc *load_check_proc; ///< Load procedure for game preview.
-	uint32 flags;                       ///< Flags of the chunk. @see ChunkType
-};
-
-/** Flags of a chunk. */
-enum ChunkType {
-	CH_RIFF         =  0,
-	CH_ARRAY        =  1,
-	CH_SPARSE_ARRAY =  2,
-	CH_TYPE_MASK    =  3,
-	CH_LAST         =  8, ///< Last chunk in this array.
-};
 
 int SlIterateArray();
 

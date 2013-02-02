@@ -17,6 +17,15 @@
 #include "saveload_filter.h"
 #include "saveload_data.h"
 
+/** Type and flags of a chunk. */
+enum ChunkType {
+	CH_RIFF         =  0,
+	CH_ARRAY        =  1,
+	CH_SPARSE_ARRAY =  2,
+	CH_TYPE_MASK    =  3,
+	CH_LAST         =  8, ///< Last chunk in this array.
+};
+
 /** A buffer for reading (and buffering) savegame data. */
 struct LoadBuffer {
 	static const size_t MEMORY_CHUNK_SIZE = 128 * 1024;
@@ -179,5 +188,17 @@ static inline uint GetGammaLength(size_t i)
 {
 	return 1 + (i >= (1 << 7)) + (i >= (1 << 14)) + (i >= (1 << 21));
 }
+
+typedef void ChunkSaveLoadProc();
+
+/** Handlers and description of chunk. */
+struct ChunkHandler {
+	uint32 id;                          ///< Unique ID (4 letters).
+	ChunkSaveLoadProc *save_proc;       ///< Save procedure of the chunk.
+	ChunkSaveLoadProc *load_proc;       ///< Load procedure of the chunk.
+	ChunkSaveLoadProc *ptrs_proc;       ///< Manipulate pointers in the chunk.
+	ChunkSaveLoadProc *load_check_proc; ///< Load procedure for game preview.
+	uint32 flags;                       ///< Flags of the chunk. @see ChunkType
+};
 
 #endif /* SAVELOAD_BUFFER_H */
