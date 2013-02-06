@@ -343,7 +343,7 @@ enum SQSaveLoadType {
 			if (dumper != NULL) {
 				dumper->WriteByte(SQSL_INT);
 				int value = (int)res;
-				dumper->WriteArray(&value, 1, SLE_INT32);
+				dumper->WriteVar(&value, SLE_INT32);
 			}
 			return true;
 		}
@@ -528,7 +528,7 @@ bool ScriptInstance::IsPaused()
 	switch (reader->ReadByte()) {
 		case SQSL_INT: {
 			int value;
-			reader->ReadArray(&value, 1, SLE_INT32);
+			reader->ReadVar(&value, SLE_INT32);
 			if (vm != NULL) sq_pushinteger(vm, (SQInteger)value);
 			return true;
 		}
