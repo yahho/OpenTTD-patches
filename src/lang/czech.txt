@@ -4069,12 +4069,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Nelze č
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Uložení hry selhalo{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Nelze smazat soubor
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Nelze otevřít hru{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Vnitřní chyba: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Poškozená hra - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Uložená hra je z novější verze
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Soubor je nečitelný
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Do souboru nelze zapisovat
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Kontrola integrity dat selhala
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Vnitřní chyba: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Poškozená hra - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Uložená hra je z novější verze
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Soubor je nečitelný
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Do souboru nelze zapisovat
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Kontrola integrity dat selhala
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<nedostupné>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Hra byla uložena ve verzi bez podpory tramvají. Všechny tramvaje se odstraní
 

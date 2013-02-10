@@ -4073,12 +4073,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Ne mogu 
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Spremanje igre nije uspjelo{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Ne mogu obrisati datoteku
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Učitavanje igre nije uspjelo{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Interna greška: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Pokvarena spremljena igra - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Spremljena igra je stvorena s novijom verzijom
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Datoteka nije čitljiva
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Ne mogu pisati u datoteku
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Provjera integriteta podataka nije uspjela
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Interna greška: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Pokvarena spremljena igra - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Spremljena igra je stvorena s novijom verzijom
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Datoteka nije čitljiva
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Ne mogu pisati u datoteku
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Provjera integriteta podataka nije uspjela
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<not available>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Igra je bila spremljena u verziji bez podrške za tramvaje. Svi tramvaji su uklonjeni.
 

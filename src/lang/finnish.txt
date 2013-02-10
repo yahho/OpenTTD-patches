@@ -3977,12 +3977,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Asemaa e
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Tallennus epäonnistui.{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Tiedostoa ei voi poistaa.
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Lataus epäonnistui.{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Sisäinen virhe: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Viallinen tallennus - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Tallennus on tehty uudemalla versiolla
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Tiedostoa ei voi lukea
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Tiedostoa ei voi kirjoittaa
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Tietojen varmistustarkistus epäonnistui
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Sisäinen virhe: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Viallinen tallennus - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Tallennus on tehty uudemalla versiolla
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Tiedostoa ei voi lukea
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Tiedostoa ei voi kirjoittaa
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Tietojen varmistustarkistus epäonnistui
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<ei saatavilla>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Peli tallennettiin versiossa, joka ei tue raitiovaunuja. Kaikki raitiovaunut on poistettu
 

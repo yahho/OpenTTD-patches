@@ -3688,12 +3688,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Kan ikkj
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Lagring av spelet mislukkast{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Kan ikkje slette fil
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Feil ved henting av spel{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Intern feil: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Øydelagd lagra spel - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Spelet er lagra i ein nyare versjon
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Kan ikkje lese fila
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Kan ikkje skrive til fila
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Integritetssjekk av data mislukkast
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Intern feil: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Øydelagd lagra spel - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Spelet er lagra i ein nyare versjon
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Kan ikkje lese fila
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Kan ikkje skrive til fila
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Integritetssjekk av data mislukkast
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<not available>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Spelet har blitt lagra i ein versjon utan støtte for trikk. Alle trikkar har blitt fjerna
 

@@ -3978,12 +3978,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Kan nie 
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Speletjie Spaar Misluk{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Kan nie lêer uitvee nie
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Speletjie Laai Misluk{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Interne fout: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Gebreekte gespaarde spel - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Spaarspeletjie is gemaak met nuwer uitgawe
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Lêer nie leesbare
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Lêer nie skryfbaar
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Data integriteit het misluk
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Interne fout: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Gebreekte gespaarde spel - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Spaarspeletjie is gemaak met nuwer uitgawe
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Lêer nie leesbare
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Lêer nie skryfbaar
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Data integriteit het misluk
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<nie beskikbaar>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Spel was in 'n weergawe sonder trem ondersteuning gestoor. Alle tremme was verwyder
 

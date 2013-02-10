@@ -3850,12 +3850,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Не м�
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Запазването на играта е неуспешно{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Изтриването на файла е неуспешно
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Отварянето на играта е неуспешно{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Вътрешна грешка: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Запазената игра е повредена - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Запазената игра е направена от по-нова версия
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Фаилат е непрочетим
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Фаилат е неписуем
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Неуспешна проверкат за валидност на данните
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Вътрешна грешка: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Запазената игра е повредена - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Запазената игра е направена от по-нова версия
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Фаилат е непрочетим
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Фаилат е неписуем
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Неуспешна проверкат за валидност на данните
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<няма я>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Играта бе записана във версия без поддръжка на трамваи. Всички трамваи са изтрити.
 

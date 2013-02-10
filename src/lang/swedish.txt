@@ -3931,12 +3931,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Kan inte
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Sparandet av spelet misslyckades{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Kan inte ta bort filen
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Inläsningen av spelet misslyckades{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Internt fel: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Trasig sparfil - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Sparfilen är gjord med en nyare version
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Filen är inte läsbar
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Filen är inte skrivbar
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Integritetskontrollen på datan misslyckades
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Internt fel: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Trasig sparfil - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Sparfilen är gjord med en nyare version
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Filen är inte läsbar
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Filen är inte skrivbar
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Integritetskontrollen på datan misslyckades
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<not available>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Spelet sparades i en version som ej stöder spårvagn. Alla spårvagnar har tagits bort
 

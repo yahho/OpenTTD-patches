@@ -4082,12 +4082,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Čitanje
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Čuvanje pozicije nije uspelo{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Brisanje datoteke nije uspelo
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Učitavanje pozicije nije uspelo{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Unutrašnja greška: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Neispravna sačuvana partija - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Partija je sačuvana sa novijom verzijom igre
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Datoteka se ne može pročitati
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Ne može se upisivati u datoteku
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Integritet podataka je narušen
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Unutrašnja greška: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Neispravna sačuvana partija - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Partija je sačuvana sa novijom verzijom igre
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Datoteka se ne može pročitati
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Ne može se upisivati u datoteku
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Integritet podataka je narušen
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<nije dostupno>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Partija je sačuvana u vreziji bez podrške za tramvaje. Svi tramvaji su uklonjeni
 

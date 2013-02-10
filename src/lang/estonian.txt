@@ -4034,12 +4034,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Ei suuda
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Mängu salvestamine nurjus{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Faili ei saa kustutada
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Mängu laadimine nurjus{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Süsteemi viga: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Katkine salvestus - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Salvestus on tehtud uuemas osas
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Fail pole loetav
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Faili ei saanud kirjutada
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Andmeterviklikkuse kontrolli ei läbitud
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Süsteemi viga: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Katkine salvestus - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Salvestus on tehtud uuemas osas
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Fail pole loetav
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Faili ei saanud kirjutada
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Andmeterviklikkuse kontrolli ei läbitud
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<mitte saadaval>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Mäng on salvestatud osas, kus trammid ei olnud toetatud. Kõik trammid on eemaldatud
 

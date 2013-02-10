@@ -3974,12 +3974,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Không �
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Lưu ván chơi có lỗi{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Không thể xoá file
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Nạp ván chơi thất bại{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Lỗi kỹ thuật: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Bản lưu ván chơi bị hỏng - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Bản lưu ván chơi dành cho phiên bản mới hơn
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Không có quyền đọc file
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Không có quyền ghi file
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Kiểm tra thấy không toàn vẹn dữ liệu
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Lỗi kỹ thuật: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Bản lưu ván chơi bị hỏng - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Bản lưu ván chơi dành cho phiên bản mới hơn
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Không có quyền đọc file
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Không có quyền ghi file
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Kiểm tra thấy không toàn vẹn dữ liệu
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<không có sẵn>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Lưu ván chơi sẽ không có xe điện. Những công trình cho xe điện sẽ bị xoá bỏ
 

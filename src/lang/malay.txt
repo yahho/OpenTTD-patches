@@ -3654,12 +3654,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Gagal da
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Penyimpanan Permainan Gagal{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Tidak boleh memadamkan fail
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Pembukaan Permainan Gagal{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Kesilapan dalaman: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Simpanan permainan yang rosak - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Simpanan permainan ini telah dibuat dengan versi yang lebih baru
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Fail tidak boleh dibaca
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Fail tidak boleh ditulis
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Pemeriksaan ketulusan data gagal
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Kesilapan dalaman: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Simpanan permainan yang rosak - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Simpanan permainan ini telah dibuat dengan versi yang lebih baru
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Fail tidak boleh dibaca
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Fail tidak boleh ditulis
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Pemeriksaan ketulusan data gagal
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<tidak terdapat>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Permainan ini telah disimpan dengan versi yang tidak mempunyai sokongan trem. Semua trem telah dibuang
 

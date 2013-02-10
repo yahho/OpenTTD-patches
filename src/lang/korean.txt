@@ -3978,12 +3978,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}드라�
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}게임 저장 실패{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}파일을 삭제할 수 없습니다.
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}게임 불러오기 실패{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :내부 오류: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :손상된 게임 저장 파일 - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :상위 버전의 게임 저장 파일입니다
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :파일을 읽을 수 없습니다
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :파일을 쓸 수 없습니다
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :데이터 무결성 검사 실패
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}내부 오류: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}손상된 게임 저장 파일 - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}상위 버전의 게임 저장 파일입니다
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}파일을 읽을 수 없습니다
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}파일을 쓸 수 없습니다
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}데이터 무결성 검사 실패
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<사용 불가능>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}전차를 지원하지 않는 버전으로 게임이 저장되었습니다. 모든 전차는 제거되었습니다.
 

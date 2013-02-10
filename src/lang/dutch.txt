@@ -3975,12 +3975,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Kan niet
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Opslaan spel mislukt{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Kan bestand niet verwijderen
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Laden spel mislukt{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Interne fout: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Kapotte savegame - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Opgeslagen spel hoort bij een nieuwere versie
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Bestand is niet leesbaar
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Bestand is niet schrijfbaar
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Data-integriteitscontrole mislukt
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Interne fout: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Kapotte savegame - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Opgeslagen spel hoort bij een nieuwere versie
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Bestand is niet leesbaar
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Bestand is niet schrijfbaar
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Data-integriteitscontrole mislukt
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<niet beschikbaar>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Spel was opgeslagen in een versie zonder tram-ondersteuning. Alle trams zijn verwijderd
 

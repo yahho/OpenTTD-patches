@@ -3976,12 +3976,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}No es po
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Error guardando juego{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}No es posible borrar el fichero
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Carga de Juego Errónea{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Error interno: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Partida guardada corrupta - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :La partida guardada ha sido realizada con una versión más nueva
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :No se puede leer fichero
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :No se puede escribir en el fichero
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Comprobación de integridad de los datos fallida
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Error interno: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Partida guardada corrupta - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}La partida guardada ha sido realizada con una versión más nueva
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}No se puede leer fichero
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}No se puede escribir en el fichero
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Comprobación de integridad de los datos fallida
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<no disponible>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}El juego ha sido guardado en una versión sin soporte para tranvías. Todos los tranvías serán eliminados
 

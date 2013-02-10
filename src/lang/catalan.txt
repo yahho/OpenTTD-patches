@@ -3978,12 +3978,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Impossib
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Desat del joc erroni{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Impossible esborrar l'arxiu
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Càrrega del joc errònia{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Error Intern: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :El joc desat està trencat - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :El joc desat està fet amb una versió més moderna
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :No es pot llegir l'arxiu
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :No es pot escriure a l'arxiu
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :El test d'integritat de dades ha fallat
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Error Intern: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}El joc desat està trencat - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}El joc desat està fet amb una versió més moderna
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}No es pot llegir l'arxiu
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}No es pot escriure a l'arxiu
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}El test d'integritat de dades ha fallat
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<no disponible>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}El joc s'ha desat en una versió sense suport de tramvies. S'han eliminat tots els tramvies
 

@@ -3974,12 +3974,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Incapaz 
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Salvar o Jogo Falhou{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Incapaz de excluir arquivo
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Carregar Jogo Falhou{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Erro interno: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Jogo salvo inutilizado - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Jogo salvo é feito com versão mais nova
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Arquivo não legível
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Arquivo não gravável
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Verificação de integridade de dados falhou
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Erro interno: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Jogo salvo inutilizado - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Jogo salvo é feito com versão mais nova
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Arquivo não legível
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Arquivo não gravável
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Verificação de integridade de dados falhou
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<não disponível>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Jogo foi salvo numa versão sem suporte a bondes. Todos os bondes foram removidos
 

@@ -3872,12 +3872,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Methu da
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Methwyd â Chadw Gêm{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Methu Dileu Ffeil
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Methwyd â Llwytho Gêm{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Gwall mewnol: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Mae'r gêm a gadwyd wedi torri - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Mae'r gêm a gadwyd wedi ei chadw mewn fersiwn ddiweddarach
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Ffeil annarllenadwy
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Ffeil anysgrifenadwy
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Methodd y gwirio cyfanrwydd data
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Gwall mewnol: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Mae'r gêm a gadwyd wedi torri - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Mae'r gêm a gadwyd wedi ei chadw mewn fersiwn ddiweddarach
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Ffeil annarllenadwy
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Ffeil anysgrifenadwy
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Methodd y gwirio cyfanrwydd data
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<ddim ar gael>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Cafodd y gêm ei gadw mewn fersiwn heb gynhaliaeth tramiau. Dileuwyd y tramiau
 

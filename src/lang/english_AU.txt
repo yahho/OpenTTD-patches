@@ -3977,12 +3977,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Unable t
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Game Save Failed{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Unable to delete file
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Game Load Failed{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Internal error: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Broken savegame - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Savegame is made with newer version
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :File not readable
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :File not writeable
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Data integrity check failed
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Internal error: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Broken savegame - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Savegame is made with newer version
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}File not readable
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}File not writeable
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Data integrity check failed
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<not available>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Game was saved in version without tram support. All trams have been removed
 

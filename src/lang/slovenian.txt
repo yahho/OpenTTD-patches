@@ -4129,12 +4129,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Pogona n
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Shranjevanje igre ni uspelo{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Datoteke ni mogoče zbrisati
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Nalaganje igre ni uspelo{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Interna napaka: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Napaka v shranjeni igri - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Igra je bila shranjena z novejso razlicico
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Datoteke ni mogoče brati
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :V datoteko ni mogoče pisati
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Preverba podatkov ni uspela
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Interna napaka: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Napaka v shranjeni igri - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Igra je bila shranjena z novejso razlicico
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Datoteke ni mogoče brati
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}V datoteko ni mogoče pisati
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Preverba podatkov ni uspela
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<ni na voljo>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Igra je bila shranjena brez podpore za tramvaj. Vsi tramvaji so bili odstranjeni
 

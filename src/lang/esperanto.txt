@@ -3390,12 +3390,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Ne eblas
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Ludkonservado Fiaskis{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Ne eblas forviŝi dosieron
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Ludŝarĝado Fiaskis{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Interna eraro: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Rompa konservludo - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Konservludo estas fari kun pli novan version
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Ne legebla dosiero
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Ne enskribebla dosiero
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Datena rekteco kontrolo fiaskis
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Interna eraro: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Rompa konservludo - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Konservludo estas fari kun pli novan version
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Ne legebla dosiero
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Ne enskribebla dosiero
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Datena rekteco kontrolo fiaskis
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<ne disponebla>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Ludon estis konservinta en versio sen subteno por tramveturilo. Ĉiujn tramveturilojn estas formovita.
 

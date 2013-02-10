@@ -3977,12 +3977,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Tidak da
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Penyimpanan Game gagal{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Tidak mampu untuk menghapus file/berkas
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Gagal membuka permainan{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Kesalahan Internal: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Berkas simpanan permainan rusak - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Berkas simpanan dibuat dari versi yang lebih baru
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Berkas tidak terbaca
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Berkas tidak dapat ditulisi
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Pemeriksaan integritas data gagal
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Kesalahan Internal: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Berkas simpanan permainan rusak - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Berkas simpanan dibuat dari versi yang lebih baru
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Berkas tidak terbaca
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Berkas tidak dapat ditulisi
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Pemeriksaan integritas data gagal
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<not available>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Game telah disimpan pada versi tanpa dukungan trem. Semua Trem telah dihilangkan
 

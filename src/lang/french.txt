@@ -3974,12 +3974,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Impossib
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}La sauvegarde a échoué{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Impossible de supprimer le fichier
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Le chargement a échoué{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Erreur interne{NBSP}: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Sauvegarde corrompue − {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Sauvegarde modifiée avec une version plus récente
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Fichier illisible
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Fichier protégé en écriture
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Échec du contrôle d'intégrité des données
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Erreur interne{NBSP}: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Sauvegarde corrompue − {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Sauvegarde modifiée avec une version plus récente
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Fichier illisible
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Fichier protégé en écriture
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Échec du contrôle d'intégrité des données
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<non disponible>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Partie sauvegardée avec une version sans support des tramways. Tous les tramways ont été supprimés.
 

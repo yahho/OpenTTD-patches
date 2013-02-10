@@ -3973,12 +3973,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}ไม�
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}บันทึกเกมล้มเหลว!!!{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}ไม่สามารถทำการลบไฟล์
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}โหลดเกมล้มเหลว{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :ข้อผิดพลาดจากภายใน: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :เกมที่บันทึกไว้ เสีย - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :เกมที่บันทึกไว้ สำหรับเวอร์ชันใหม่
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :ไม่สามารถโหลดไฟล์ได้
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :ไม่สามารถเขียนไฟล์ได้
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :การตรวจสอบความสมบูรณ์ของข้อมูลล้มเหลว
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}ข้อผิดพลาดจากภายใน: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}เกมที่บันทึกไว้ เสีย - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}เกมที่บันทึกไว้ สำหรับเวอร์ชันใหม่
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}ไม่สามารถโหลดไฟล์ได้
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}ไม่สามารถเขียนไฟล์ได้
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}การตรวจสอบความสมบูรณ์ของข้อมูลล้มเหลว
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<ไม่สามารถใช้งาน>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}บันทึกนี้บันทึกเป็นเวอร์ชั่นที่ยังไม่สนับสนุนระบบรถราง. ทั้งหมดจะถูกลบออก
 

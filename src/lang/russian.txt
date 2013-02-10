@@ -4167,12 +4167,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Не у�
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Невозможно сохранить игру{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Невозможно удалить файл
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Невозможно загрузить игру{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Внутренняя ошибка: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Файл повреждён - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Сохранение сделано в более новой версии
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Файл не читается
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Незаписываемый файл
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Нарушена целостность
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Внутренняя ошибка: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Файл повреждён - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Сохранение сделано в более новой версии
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Файл не читается
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Незаписываемый файл
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Нарушена целостность
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<недоступно>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Игра была сохранена в версии без поддержки трамваев. Все трамваи удалены.
 

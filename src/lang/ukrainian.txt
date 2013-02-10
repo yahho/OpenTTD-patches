@@ -4058,12 +4058,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Немо
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Помилка запису гри{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Неможливо стерти файл
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Помилка завантаження гри{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Внутрішня помилка: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Файл збереженої гри пошкоджений - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Файл збереженої гри зроблений більш новою версією
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Неможливо прочитати файл
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Неможливо записати файл
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Перевірка на цілісність зазнала невдачі
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Внутрішня помилка: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Файл збереженої гри пошкоджений - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Файл збереженої гри зроблений більш новою версією
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Неможливо прочитати файл
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Неможливо записати файл
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Перевірка на цілісність зазнала невдачі
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<недоступно>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Гра була записана у версії без підтримки трамваїв. Усі трамваї були видалені
 

@@ -3977,12 +3977,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}ドラ�
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}ゲームの保存に失敗しました{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}ファイルを削除できません
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}ゲームの読み込みに失敗しました{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :内部エラー: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :破損したセーブゲーム: {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :このファイルは上位のバージョンによって保存されたものです
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :ファイルを読み込むことができません
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :ファイルに書き込むことができません
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :データ保全性チェック失敗
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}内部エラー: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}破損したセーブゲーム: {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}このファイルは上位のバージョンによって保存されたものです
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}ファイルを読み込むことができません
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}ファイルに書き込むことができません
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}データ保全性チェック失敗
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<使用不能>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}このゲームは路面電車に対応していないバージョンで保存されましたので、すべての路面電車が削除されました。
 

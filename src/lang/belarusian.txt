@@ -4199,12 +4199,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Не а�
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Немагчыма захаваць гульню{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Немагчыма выдаліць файл
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Немагчыма загрузіць гульню{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Унутраная памылка: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Файл пашкоджаны — {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Захаваньне зроблена ў больш новай вэрсіі
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Файл не чытаецца
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Незапiсваемы файл
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Парушана цэласнасьць
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Унутраная памылка: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Файл пашкоджаны — {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Захаваньне зроблена ў больш новай вэрсіі
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Файл не чытаецца
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Незапiсваемы файл
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Парушана цэласнасьць
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<недаступна>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Гульня была захавана ў вэрсіі без падтрымкі трамваяў. Усе трамваі былі адключаны.
 

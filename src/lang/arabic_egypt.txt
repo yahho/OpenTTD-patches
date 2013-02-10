@@ -3467,12 +3467,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}لا ي�
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}فشل حفظ اللعبة{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}لا يمكن حذف الملف
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}فشل فتح اللعبة {}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :خطأ داخلي: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :لعبة محفوطة غير صالحة{STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :اللعبة حفظت بنسخة أحدث
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :لا يمكن قراءة الملف
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :لايمكن قراءة الملف
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :فشل التحقق من سلامة البيانات
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}خطأ داخلي: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}لعبة محفوطة غير صالحة{STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}اللعبة حفظت بنسخة أحدث
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}لا يمكن قراءة الملف
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}لايمكن قراءة الملف
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}فشل التحقق من سلامة البيانات
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<غير متاح>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}اللعبة حفظت بنسخة لا تدعم الترام. كل ما يتعلق بالترام حذف.
 

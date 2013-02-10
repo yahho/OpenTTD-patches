@@ -3786,12 +3786,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Ezin iza
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Jokoa gordetzeak huts egin du{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Ezin izan da artxiboa ezabatu
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Jokoa kargatzeak huts egin du{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Barne akatsa: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Gordetako jokoa hautsia dago - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Gordetako jokoa bertsio berriago batekin egin da
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Ezin daiteke artxiboa irakurri
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Ezin daiteke artxiboa idatzi
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Artxiboen integraltasuna konprobatzeak huts egin du
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Barne akatsa: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Gordetako jokoa hautsia dago - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Gordetako jokoa bertsio berriago batekin egin da
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Ezin daiteke artxiboa irakurri
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Ezin daiteke artxiboa idatzi
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Artxiboen integraltasuna konprobatzeak huts egin du
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<ez dago baliagarri>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Tranbiarik gabeko bertsio batean gorde zen. Tranbia guztiak ezabatuak izan dira
 

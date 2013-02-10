@@ -4242,12 +4242,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Negali p
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Žaidimo išsaugoti nepavyko{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Failo ištrinti nepavyko
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Žaidimo atverti nepavyko{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Vidinė klaida: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Sugadintas išsaugotas žaidimas - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Išsaugotas žaidimas iš naujesnės versijos
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Neįmanoma perskaityti failo
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Neįmanoma įrašyti failo
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Nepavyko duomenų vientisumo patikrinimas
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Vidinė klaida: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Sugadintas išsaugotas žaidimas - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Išsaugotas žaidimas iš naujesnės versijos
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Neįmanoma perskaityti failo
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Neįmanoma įrašyti failo
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Nepavyko duomenų vientisumo patikrinimas
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<neprieinamas>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Žaidimas buvo išsaugotas be tramvajų palaikymo. Visi tramvajai buvo panaikinti.
 

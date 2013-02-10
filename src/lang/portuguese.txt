@@ -3890,12 +3890,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Não é 
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Falha ao Guardar Jogo{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Não é possível eliminar ficheiro
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Falha ao Abrir Jogo{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Erro interno: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Ficheiro corrompido - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Jogo gravado numa versão mais recente do jogo
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Impossível ler ficheiro
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Impossível escrever ficheiro
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Falha ao verificar integridade de dados
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Erro interno: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Ficheiro corrompido - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Jogo gravado numa versão mais recente do jogo
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Impossível ler ficheiro
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Impossível escrever ficheiro
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Falha ao verificar integridade de dados
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<indisponível>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}O jogo foi salvo numa versão sem suporte a eléctricos. Todos os eléctricos foram removidos.
 

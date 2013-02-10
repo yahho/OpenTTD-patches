@@ -3974,12 +3974,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Sürüc�
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Oyun kaydedilemedi{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Dosya silinemedi
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Dosya yüklenemedi{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :İç hata: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Bozuk kayıtlı oyun - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Oyun yeni bir sürümle kaydedilmiş.
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Dosya okunabilir değil
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Dosya yazılabilir değil
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Veri sağlamlık kontrolü başarısız
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}İç hata: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Bozuk kayıtlı oyun - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Oyun yeni bir sürümle kaydedilmiş.
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Dosya okunabilir değil
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Dosya yazılabilir değil
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Veri sağlamlık kontrolü başarısız
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<uygun değil>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Oyun tramvay desteği olmayan bir sürümde kaydedilmiş. Tüm tramvaylar kaldırılmıştır
 

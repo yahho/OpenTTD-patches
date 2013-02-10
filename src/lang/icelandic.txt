@@ -3850,12 +3850,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Get ekki
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Vistun leiks mistókst{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Get ekki eytt skrá
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Mistókst að opna leik{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Innri villa: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Bilun í vistuðum leik - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Leikur er vistaður í nýrri útgáfu
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Skrá er ekki lesanleg
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Skrá er ekki skrifanleg
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Könnun gagnaheilinda mistókst
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Innri villa: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Bilun í vistuðum leik - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Leikur er vistaður í nýrri útgáfu
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Skrá er ekki lesanleg
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Skrá er ekki skrifanleg
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Könnun gagnaheilinda mistókst
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<not available>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Leikurinn var vistaður í útgáfu án sporvagna. Allir sporvagnar hafa verið fjarlægðir
 

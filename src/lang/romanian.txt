@@ -3842,12 +3842,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Discul n
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Salvarea jocului eşuată{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Ştergerea jocului eşuată
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Încărcarea jocului eşuată{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Eroare internă: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Salvare eronată - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Salvarea a fost făcută cu o versiune mai nouă
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Fişierul nu poate fi citit
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Fişierul nu poate fi scris
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Integritatea datelor compromisă
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Eroare internă: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Salvare eronată - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Salvarea a fost făcută cu o versiune mai nouă
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Fişierul nu poate fi citit
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Fişierul nu poate fi scris
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Integritatea datelor compromisă
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<indisponibil>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Jocul a fost salvat într-o versiune fără suport pentru tramvaie. Toate tramvaiele au fost eliminate
 

@@ -3366,12 +3366,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Ní féi
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Theip ar Shábháil Cluiche{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Ní féidir comhad a scriosadh
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Theip ar Lódáil Cluiche{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Earráid inmheánach: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Cluiche sábháilte briste - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Rinneadh an cluiche sábháilte le leagan níos nuaí
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Níl an comhad inléite
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Níl an comhad inscríofa
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Theip ar seiceáil sláine na sonraí
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Earráid inmheánach: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Cluiche sábháilte briste - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Rinneadh an cluiche sábháilte le leagan níos nuaí
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Níl an comhad inléite
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Níl an comhad inscríofa
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Theip ar seiceáil sláine na sonraí
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<níl sé ar fáil>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Sábháladh an cluiche i leagan gan tacaíocht do thramanna. Baineadh gach tram.
 

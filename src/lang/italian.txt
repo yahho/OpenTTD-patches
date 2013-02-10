@@ -4007,12 +4007,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Impossib
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Salvataggio non riuscito{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Impossibile eliminare il file
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Caricamento non riuscito{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Errore interno: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Salvataggio danneggiato - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Salvataggio creato con una versione più recente
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :File non leggibile
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :File non scrivibile
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Controllo integrità dati non riuscito
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Errore interno: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Salvataggio danneggiato - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Salvataggio creato con una versione più recente
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}File non leggibile
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}File non scrivibile
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Controllo integrità dati non riuscito
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<non disponibile>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}La partita è stata salvata in una versione senza il supporto per i tram. Tutti i tram sono stati rimossi
 

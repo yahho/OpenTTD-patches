@@ -3973,12 +3973,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Kann net
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Fehler beim Späicheren{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Kann d'Datei net leschen
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Fehler beim Lueden{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Internen Fehler: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Futtissen Spillstand - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Spillstand ass mat enger méi neier Versioun gemaach
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Datei net liesbar
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Datei net beschreiwbar
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Datenintegritéitfehler
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Internen Fehler: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Futtissen Spillstand - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Spillstand ass mat enger méi neier Versioun gemaach
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Datei net liesbar
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Datei net beschreiwbar
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Datenintegritéitfehler
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<keent do>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Spill gouf an enger Versioun ouni Tram support gesaved. All Tram gouf wechgeholl
 

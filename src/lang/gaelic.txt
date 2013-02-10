@@ -4202,12 +4202,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Cha ghab
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Dh’fhàillig le sàbhaladh a’ gheama{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Cha ghabh sguabadh às dhan fhaidhle
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Dh’fhàillig le luchdadh a’ gheama{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Mearachd taobh a-staigh: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Tha an geama air shàbhaladh briste - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Chaidh an sàbhaladh seo a dhèanamh le tionndadh as ùire dhen gheama
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Cha ghabh am faidhle a leughadh
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Cha ghabh am faidhle sgrìobhadh
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Dh’fhàillig le sgrùdadh na fìreantachd air an dàta
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Mearachd taobh a-staigh: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Tha an geama air shàbhaladh briste - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Chaidh an sàbhaladh seo a dhèanamh le tionndadh as ùire dhen gheama
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Cha ghabh am faidhle a leughadh
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Cha ghabh am faidhle sgrìobhadh
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Dh’fhàillig le sgrùdadh na fìreantachd air an dàta
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<chan eil seo ri làimh>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Chaidh an geama a shàbhaladh le tionndadh nach cuir taic ri tramaichean. Chaidh na h-uile trama a thoirt air falbh
 

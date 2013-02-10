@@ -3841,12 +3841,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Nevar la
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Spēles saglabāšana neizdevās{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Nevar dzēst failu
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Spēles ielādēšana neizdevās{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Iekšēja kļūda: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Bojāts saglabātās spēles fails - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Spēle ir saglabāta ar jaunāku versiju
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Failu nevar nolasīt
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Failā nevar ierakstīt
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Datu integritātes pārbaude neizdevās
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Iekšēja kļūda: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Bojāts saglabātās spēles fails - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Spēle ir saglabāta ar jaunāku versiju
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Failu nevar nolasīt
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Failā nevar ierakstīt
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Datu integritātes pārbaude neizdevās
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<nav pieejams>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Spēle tika saglabāta bez tramvaju atbalsta. Visi tramvaji tika aizvākti.
 

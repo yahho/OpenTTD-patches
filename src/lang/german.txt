@@ -3978,12 +3978,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Laufwerk
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Spielspeicherung fehlgeschlagen{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Datei kann nicht gelöscht werden
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Laden des Spieles fehlgeschlagen{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Interner Fehler: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Spielstandsdatei defekt - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Spielstand wurde mit neuerer Version erstellt
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Datei kann nicht gelesen werden
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Datei kann nicht geschrieben werden
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Prüfung der Datenintegrität fehlgeschlagen
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Interner Fehler: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Spielstandsdatei defekt - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Spielstand wurde mit neuerer Version erstellt
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Datei kann nicht gelesen werden
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Datei kann nicht geschrieben werden
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Prüfung der Datenintegrität fehlgeschlagen
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<nicht verfügbar>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Spiel wurde in einer Version ohne Straßenbahnunterstützung gespeichert. Alle Straßenbahnen wurden entfernt
 

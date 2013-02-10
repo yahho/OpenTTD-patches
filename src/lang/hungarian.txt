@@ -4037,12 +4037,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Nem olva
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}A mentés nem sikerült{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Nem sikerült törölni a fájlt
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}A betöltés nem sikerült{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Belső hiba: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Hibás játékállás-mentés - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :A játékállást újabb verzió mentette el
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :A fájl nem olvasható
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :A fájl nem írható
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Adat integritás hiba
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Belső hiba: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Hibás játékállás-mentés - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}A játékállást újabb verzió mentette el
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}A fájl nem olvasható
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}A fájl nem írható
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Adat integritás hiba
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<nem elérhető>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}A játék olyan verzióban lett elmentve, ami nem támogatja a villamosokat. Az összes villamos el lett távolítva
 

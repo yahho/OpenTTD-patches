@@ -3846,12 +3846,12 @@ STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Kan ikke
 STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Fejl under gemning af spil{}{STRING}
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Kan ikke slette fil
 STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Fejl under hentning af spil{}{STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :Intern fejl: {STRING}
-STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :Ødelagt gemt spil - {STRING}
-STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :Spillet er gemt med en nyere version
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :Filen kan ikke læses
-STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :Filen kan ikke skrives
-STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :Dataintegritets-tjek fejlede
+STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Intern fejl: {STRING}
+STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Ødelagt gemt spil - {STRING}
+STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Spillet er gemt med en nyere version
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}Filen kan ikke læses
+STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}Filen kan ikke skrives
+STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Dataintegritets-tjek fejlede
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<ikke tilgængelig>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Spillet er gemt i en version uden sporveje. Alle sporveje er blevet fjernet.
 
