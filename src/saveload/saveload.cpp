@@ -362,21 +362,6 @@ static const ChunkHandler * const _chunk_handlers[] = {
 	for (const ChunkHandler * const *chsc = _chunk_handlers; *chsc != NULL; chsc++) \
 		for (const ChunkHandler *ch = *chsc; ch != NULL; ch = (ch->flags & CH_LAST) ? NULL : ch + 1)
 
-/** Null all pointers (convert index -> NULL) */
-static void SlNullPointers()
-{
-	DEBUG(sl, 1, "Nulling pointers");
-
-	FOR_ALL_CHUNK_HANDLERS(ch) {
-		if (ch->ptrs_proc != NULL) {
-			DEBUG(sl, 2, "Nulling pointers for %c%c%c%c", ch->id >> 24, ch->id >> 16, ch->id >> 8, ch->id);
-			ch->ptrs_proc(NULL);
-		}
-	}
-
-	DEBUG(sl, 1, "All pointers nulled");
-}
-
 /**
  * Error handler. Sets everything up to show an error message and to clean
  * up the mess of a partial savegame load.
@@ -504,19 +489,30 @@ static void SlLoadChunks(LoadBuffer *reader, bool check = false)
 	}
 }
 
-/** Fix all pointers (convert index -> pointer) */
+/**
+ * Fix all pointers (convert index -> pointer)
+ * If stv is NULL, set them to NULL.
+ */
 static void SlFixPointers(const SavegameTypeVersion *stv)
 {
-	DEBUG(sl, 1, "Fixing pointers");
+	const char *const desc = (stv != NULL) ? "Fixing pointers" : "Nulling pointers";
+
+	DEBUG(sl, 1, "%s", desc);
 
 	FOR_ALL_CHUNK_HANDLERS(ch) {
 		if (ch->ptrs_proc != NULL) {
-			DEBUG(sl, 2, "Fixing pointers for %c%c%c%c", ch->id >> 24, ch->id >> 16, ch->id >> 8, ch->id);
+			DEBUG(sl, 2, "%s for %c%c%c%c", desc, ch->id >> 24, ch->id >> 16, ch->id >> 8, ch->id);
 			ch->ptrs_proc(stv);
 		}
 	}
 
-	DEBUG(sl, 1, "All pointers fixed");
+	DEBUG(sl, 1, "%s done", desc);
+}
+
+/** Null all pointers (convert index -> NULL) */
+static inline void SlNullPointers()
+{
+	SlFixPointers(NULL);
 }
 
 
