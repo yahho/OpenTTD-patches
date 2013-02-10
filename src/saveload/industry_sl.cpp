@@ -13,6 +13,7 @@
 #include "../industry.h"
 
 #include "saveload.h"
+#include "saveload_error.h"
 #include "newgrf_sl.h"
 
 static OldPersistentStorage _old_ind_persistent_storage;
@@ -165,11 +166,11 @@ static void Load_ITBL(LoadBuffer *reader)
 	int index;
 	for (int i = 0; i < NUM_INDUSTRYTYPES; i++) {
 		index = reader->IterateChunk();
-		if (index != i) SlErrorCorrupt("Invalid industry-type build data");
+		if (index != i) throw SlCorrupt("Invalid industry-type build data");
 		reader->ReadObject(_industry_builder.builddata + i, _industrytype_builder_desc);
 	}
 	index = reader->IterateChunk();
-	if (index != -1) SlErrorCorrupt("Invalid industry-type build data");
+	if (index != -1) throw SlCorrupt("Invalid industry-type build data");
 }
 
 extern const ChunkHandler _industry_chunk_handlers[] = {

@@ -70,13 +70,13 @@ struct LZOLoadFilter : ChainLoadFilter {
 			size = TO_BE32(size);
 		}
 
-		if (size >= sizeof(out)) SlErrorCorrupt("Inconsistent size");
+		if (size >= sizeof(out)) throw SlCorrupt("Inconsistent size");
 
 		/* Read block */
 		if (this->chain->Read(out + sizeof(uint32), size) != size) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
 
 		/* Verify checksum */
-		if (tmp[0] != lzo_adler32(0, out, size + sizeof(uint32))) SlErrorCorrupt("Bad checksum");
+		if (tmp[0] != lzo_adler32(0, out, size + sizeof(uint32))) throw SlCorrupt("Bad checksum");
 
 		/* Decompress */
 		lzo1x_decompress_safe(out + sizeof(uint32) * 1, size, buf, &len, NULL);

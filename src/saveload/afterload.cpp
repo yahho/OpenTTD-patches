@@ -56,6 +56,7 @@
 
 
 #include "saveload_internal.h"
+#include "saveload_error.h"
 
 #include <signal.h>
 
@@ -80,7 +81,7 @@ void SetWaterClassDependingOnSurroundings(TileIndex t, bool include_invalid_wate
 			SetWaterClass(t, WATER_CLASS_INVALID);
 			return;
 		} else {
-			SlErrorCorrupt("Invalid water class for dry tile");
+			throw SlCorrupt("Invalid water class for dry tile");
 		}
 	}
 
@@ -109,7 +110,7 @@ void SetWaterClassDependingOnSurroundings(TileIndex t, bool include_invalid_wate
 						case WATER_CLASS_SEA:   has_water = true; break;
 						case WATER_CLASS_CANAL: has_canal = true; break;
 						case WATER_CLASS_RIVER: has_river = true; break;
-						default: SlErrorCorrupt("Invalid water class for tile");
+						default: throw SlCorrupt("Invalid water class for tile");
 					}
 				}
 				break;
@@ -971,7 +972,7 @@ bool AfterLoadGame(const SavegameTypeVersion *stv)
 				case MP_ROAD:
 					SB(_m[t].m5, 6, 2, GB(_m[t].m5, 4, 2));
 					switch (GetRoadTileType(t)) {
-						default: SlErrorCorrupt("Invalid road tile type");
+						default: throw SlCorrupt("Invalid road tile type");
 						case ROAD_TILE_NORMAL:
 							SB(_m[t].m4, 0, 4, GB(_m[t].m5, 0, 4));
 							SB(_m[t].m4, 4, 4, 0);
@@ -1012,7 +1013,7 @@ bool AfterLoadGame(const SavegameTypeVersion *stv)
 					if (fix_roadtypes) SetRoadTypes(t, (RoadTypes)GB(_me[t].m7, 5, 3));
 					SB(_me[t].m7, 5, 1, GB(_m[t].m3, 7, 1)); // snow/desert
 					switch (GetRoadTileType(t)) {
-						default: SlErrorCorrupt("Invalid road tile type");
+						default: throw SlCorrupt("Invalid road tile type");
 						case ROAD_TILE_NORMAL:
 							SB(_me[t].m7, 0, 4, GB(_m[t].m3, 0, 4)); // road works
 							SB(_m[t].m6, 3, 3, GB(_m[t].m3, 4, 3));  // ground
@@ -1131,7 +1132,7 @@ bool AfterLoadGame(const SavegameTypeVersion *stv)
 
 				if (dir != DirToDiagDir(v->direction)) continue;
 				switch (dir) {
-					default: SlErrorCorrupt("Invalid vehicle direction");
+					default: throw SlCorrupt("Invalid vehicle direction");
 					case DIAGDIR_NE: if ((v->x_pos & 0xF) !=  0)            continue; break;
 					case DIAGDIR_SE: if ((v->y_pos & 0xF) != TILE_SIZE - 1) continue; break;
 					case DIAGDIR_SW: if ((v->x_pos & 0xF) != TILE_SIZE - 1) continue; break;

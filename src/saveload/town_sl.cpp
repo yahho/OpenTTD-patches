@@ -16,6 +16,7 @@
 #include "../subsidy_func.h"
 
 #include "saveload.h"
+#include "saveload_error.h"
 #include "newgrf_sl.h"
 
 /**
@@ -281,7 +282,7 @@ static void Load_TOWN(LoadBuffer *reader)
 		}
 
 		if (t->townnamegrfid == 0 && !IsInsideMM(t->townnametype, SPECSTR_TOWNNAME_START, SPECSTR_TOWNNAME_LAST + 1) && GB(t->townnametype, 11, 5) != 15) {
-			SlErrorCorrupt("Invalid town name generator");
+			throw SlCorrupt("Invalid town name generator");
 		}
 
 		if (reader->IsVersionBefore(166)) continue;

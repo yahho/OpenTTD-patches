@@ -18,6 +18,7 @@
 #include "../station_base.h"
 
 #include "saveload.h"
+#include "saveload_error.h"
 
 #include "table/strings.h"
 
@@ -430,7 +431,7 @@ static void Load_PLYR_common(LoadBuffer *reader, Company *c, CompanyProperties *
 	reader->ReadObject(&cprops->cur_economy, _company_economy_desc);
 
 	/* Read old economy entries. */
-	if (cprops->num_valid_stat_ent > lengthof(cprops->old_economy)) SlErrorCorrupt("Too many old economy entries");
+	if (cprops->num_valid_stat_ent > lengthof(cprops->old_economy)) throw SlCorrupt("Too many old economy entries");
 	for (i = 0; i < cprops->num_valid_stat_ent; i++) {
 		reader->ReadObject(&cprops->old_economy[i], _company_economy_desc);
 	}

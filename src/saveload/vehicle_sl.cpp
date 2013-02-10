@@ -21,6 +21,7 @@
 #include "../company_func.h"
 
 #include "saveload.h"
+#include "saveload_error.h"
 
 #include <map>
 
@@ -152,7 +153,7 @@ void ConvertOldMultiheadToNew()
 						u->SetWagon();
 						u->SetFreeWagon();
 						break;
-					default: SlErrorCorrupt("Invalid train subtype");
+					default: throw SlCorrupt("Invalid train subtype");
 				}
 			}
 		}
@@ -330,7 +331,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 					rv->subtype = 0;
 					rv->SetArticulatedPart();
 				} else {
-					SlErrorCorrupt("Invalid road vehicle subtype");
+					throw SlCorrupt("Invalid road vehicle subtype");
 				}
 			}
 		}
@@ -887,7 +888,7 @@ void Load_VEHS(LoadBuffer *reader)
 			case VEH_EFFECT:   v = new (index) EffectVehicle();   break;
 			case VEH_DISASTER: v = new (index) DisasterVehicle(); break;
 			case VEH_INVALID: // Savegame shouldn't contain invalid vehicles
-			default: SlErrorCorrupt("Invalid vehicle type");
+			default: throw SlCorrupt("Invalid vehicle type");
 		}
 
 		reader->ReadObject(v, GetVehicleDescription(vtype));

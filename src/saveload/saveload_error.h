@@ -15,6 +15,7 @@
 #include <exception>
 
 #include "../strings_type.h"
+#include "table/strings.h"
 
 /** Saveload error struct. */
 struct SlErrorData {
@@ -30,6 +31,12 @@ struct SlException : std::exception {
 		this->error.str = str;
 		this->error.data = data;
 	}
+};
+
+/** Saveload exception class for savegame corruption. */
+struct SlCorrupt : SlException {
+	SlCorrupt(const char *data) :
+		SlException(STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME, data) { }
 };
 
 #endif /* SAVELOAD_ERROR_H */

@@ -12,6 +12,7 @@
 #include "../stdafx.h"
 #include "../debug.h"
 #include "saveload.h"
+#include "saveload_error.h"
 #include "../string_func.h"
 
 #include "../game/game.hpp"
@@ -48,7 +49,7 @@ static void Load_GSDT(LoadBuffer *reader)
 
 	if (_networking && !_network_server) {
 		GameInstance::LoadEmpty(reader);
-		if (reader->IterateChunk() != -1) SlErrorCorrupt("Too many GameScript configs");
+		if (reader->IterateChunk() != -1) throw SlCorrupt("Too many GameScript configs");
 		return;
 	}
 
@@ -84,7 +85,7 @@ static void Load_GSDT(LoadBuffer *reader)
 	Game::StartNew();
 	Game::Load(reader, gsl.version);
 
-	if (reader->IterateChunk() != -1) SlErrorCorrupt("Too many GameScript configs");
+	if (reader->IterateChunk() != -1) throw SlCorrupt("Too many GameScript configs");
 }
 
 static void Save_GSDT(SaveDumper *dumper)

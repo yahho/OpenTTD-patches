@@ -362,18 +362,6 @@ static const ChunkHandler * const _chunk_handlers[] = {
 	for (const ChunkHandler * const *chsc = _chunk_handlers; *chsc != NULL; chsc++) \
 		for (const ChunkHandler *ch = *chsc; ch != NULL; ch = (ch->flags & CH_LAST) ? NULL : ch + 1)
 
-/**
- * Error handler for corrupt savegames. Sets everything up to show the
- * error message and to clean up the mess of a partial savegame load.
- * @param msg Location the corruption has been spotted.
- * @note This function does never return as it throws an exception to
- *       break out of all the saveload code.
- */
-void NORETURN SlErrorCorrupt(const char *msg)
-{
-	throw SlException(STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME, msg);
-}
-
 
 typedef void (*AsyncSaveFinishProc)();                ///< Callback for when the savegame loading is finished.
 static AsyncSaveFinishProc _async_save_finish = NULL; ///< Callback to call when the savegame loading is finished.
@@ -460,7 +448,7 @@ static void SlLoadChunks(LoadBuffer *reader, bool check = false)
 		DEBUG(sl, 2, "Loading chunk %c%c%c%c", id >> 24, id >> 16, id >> 8, id);
 
 		ch = SlFindChunkHandler(id);
-		if (ch == NULL) SlErrorCorrupt("Unknown chunk type");
+		if (ch == NULL) throw SlCorrupt("Unknown chunk type");
 
 		reader->BeginChunk();
 

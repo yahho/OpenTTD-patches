@@ -13,6 +13,7 @@
 #include "../cheat_type.h"
 
 #include "saveload.h"
+#include "saveload_error.h"
 
 /**
  * Save the cheat values.
@@ -39,7 +40,7 @@ static void Load_CHTS(LoadBuffer *reader)
 	Cheat *cht = (Cheat*)&_cheats;
 	size_t count = reader->GetChunkSize() / 2;
 	/* Cannot use lengthof because _cheats is of type Cheats, not Cheat */
-	if (count > sizeof(_cheats) / sizeof(Cheat)) SlErrorCorrupt("Too many cheat values");
+	if (count > sizeof(_cheats) / sizeof(Cheat)) throw SlCorrupt("Too many cheat values");
 
 	for (uint i = 0; i < count; i++) {
 		cht[i].been_used = (reader->ReadByte() != 0);

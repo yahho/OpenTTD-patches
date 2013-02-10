@@ -12,6 +12,7 @@
 #include "../stdafx.h"
 #include "../string_func.h"
 #include "saveload_internal.h"
+#include "saveload_error.h"
 
 #include "table/strings.h"
 
@@ -126,10 +127,10 @@ static void Load_NAME(LoadBuffer *reader)
 	int index;
 
 	while ((index = reader->IterateChunk()) != -1) {
-		if (index >= NUM_OLD_STRINGS) SlErrorCorrupt("Invalid old name index");
+		if (index >= NUM_OLD_STRINGS) throw SlCorrupt("Invalid old name index");
 
 		size_t elemsize = reader->GetElementSize();
-		if (elemsize > (uint)LEN_OLD_STRINGS) SlErrorCorrupt("Invalid old name length");
+		if (elemsize > (uint)LEN_OLD_STRINGS) throw SlCorrupt("Invalid old name length");
 
 		reader->ReadArray(&_old_name_array[LEN_OLD_STRINGS * index], elemsize, SLE_UINT8);
 		/* Make sure the old name is null terminated */

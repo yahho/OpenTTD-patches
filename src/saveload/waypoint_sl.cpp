@@ -202,7 +202,7 @@ static void Ptrs_WAYP(const SavegameTypeVersion *stv)
 				 * of old waypoints we constructed and then this waypoint (and the other
 				 * possibly corrupt ones) will not be queried in the NULL Ptrs proc run. */
 				_old_waypoints.Clear();
-				SlErrorCorrupt("Referencing invalid Town");
+				throw SlCorrupt("Referencing invalid Town");
 			}
 			wp->town = Town::Get(wp->town_index);
 		}

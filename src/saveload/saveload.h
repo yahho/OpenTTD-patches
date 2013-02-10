@@ -39,8 +39,6 @@ void DoExitSave();
 bool SaveWithFilter(struct SaveFilter *writer, bool threaded);
 bool LoadWithFilter(struct LoadFilter *reader);
 
-void NORETURN SlErrorCorrupt(const char *msg);
-
 bool SaveloadCrashWithMissingNewGRFs();
 
 extern char _savegame_format[8];

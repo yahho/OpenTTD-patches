@@ -26,12 +26,13 @@
 #include "saveload_buffer.h"
 #include "saveload.h"
 #include "saveload_internal.h"
+#include "saveload_error.h"
 
 
 void LoadBuffer::FillBuffer()
 {
 	size_t len = this->reader->Read(this->buf, lengthof(this->buf));
-	if (len == 0) SlErrorCorrupt("Unexpected end of stream");
+	if (len == 0) throw SlCorrupt("Unexpected end of stream");
 
 	this->read += len;
 	this->bufp = this->buf;
@@ -57,7 +58,7 @@ uint LoadBuffer::ReadGamma()
 			if (HasBit(i, 5)) {
 				i &= ~0x20;
 				if (HasBit(i, 4)) {
-					SlErrorCorrupt("Unsupported gamma");
+					throw SlCorrupt("Unsupported gamma");
 				}
 				i = (i << 8) | this->ReadByte();
 			}
@@ -242,7 +243,7 @@ void LoadBuffer::BeginChunk()
 			break;
 		default:
 			if ((m & 0xF) != CH_RIFF) {
-				SlErrorCorrupt("Invalid chunk type");
+				throw SlCorrupt("Invalid chunk type");
 			}
 			this->chunk_type = CH_RIFF;
 			/* Read length */
@@ -259,7 +260,7 @@ void LoadBuffer::BeginChunk()
 void LoadBuffer::EndChunk()
 {
 	if ((this->chunk_type == CH_RIFF) && (this->GetSize() != this->riff.end)) {
-		SlErrorCorrupt("Invalid chunk size");
+		throw SlCorrupt("Invalid chunk size");
 	}
 
 	this->chunk_type = -1;
@@ -275,7 +276,7 @@ int LoadBuffer::IterateChunk(bool skip)
 	assert((this->chunk_type == CH_ARRAY) || (this->chunk_type == CH_SPARSE_ARRAY));
 
 	/* Check that elements are fully read before going on with the next one. */
-	if (this->GetSize() != this->array.next) SlErrorCorrupt("Invalid chunk size");
+	if (this->GetSize() != this->array.next) throw SlCorrupt("Invalid chunk size");
 
 	for (;;) {
 		uint length = this->ReadGamma();

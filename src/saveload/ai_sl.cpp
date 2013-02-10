@@ -13,6 +13,7 @@
 #include "../company_base.h"
 #include "../debug.h"
 #include "saveload.h"
+#include "saveload_error.h"
 #include "../string_func.h"
 
 #include "../ai/ai.hpp"
@@ -45,7 +46,7 @@ static void Load_AIPL(LoadBuffer *reader)
 
 	AiSaveload aisl;
 	while ((aisl.id = (CompanyID)reader->IterateChunk()) != (CompanyID)-1) {
-		if (aisl.id >= MAX_COMPANIES) SlErrorCorrupt("Too many AI configs");
+		if (aisl.id >= MAX_COMPANIES) throw SlCorrupt("Too many AI configs");
 
 		aisl.is_random = 0;
 		aisl.version = -1;
