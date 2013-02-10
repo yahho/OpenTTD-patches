@@ -1058,7 +1058,7 @@ void SwitchToMode(SwitchMode new_mode)
 
 			if (!SafeLoad(_file_to_saveload.name, _file_to_saveload.mode, GM_NORMAL, NO_DIRECTORY)) {
 				SetDParamStr(0, GetSaveLoadErrorString());
-				ShowErrorMessage(STR_JUST_RAW_STRING, INVALID_STRING_ID, WL_ERROR);
+				ShowErrorMessage(STR_ERROR_GAME_LOAD_FAILED, STR_JUST_RAW_STRING, WL_ERROR);
 			} else {
 				if (_saveload_mode == SLD_LOAD_SCENARIO) {
 					/* Reset engine pool to simplify changing engine NewGRFs in scenario editor. */
@@ -1104,7 +1104,7 @@ void SwitchToMode(SwitchMode new_mode)
 				DoCommandP(0, PM_PAUSED_SAVELOAD, 0, CMD_PAUSE);
 			} else {
 				SetDParamStr(0, GetSaveLoadErrorString());
-				ShowErrorMessage(STR_JUST_RAW_STRING, INVALID_STRING_ID, WL_ERROR);
+				ShowErrorMessage(STR_ERROR_GAME_LOAD_FAILED, STR_JUST_RAW_STRING, WL_ERROR);
 			}
 			break;
 		}
@@ -1121,7 +1121,7 @@ void SwitchToMode(SwitchMode new_mode)
 			/* Make network saved games on pause compatible to singleplayer */
 			if (!SaveGame(_file_to_saveload.name, NO_DIRECTORY)) {
 				SetDParamStr(0, GetSaveLoadErrorString());
-				ShowErrorMessage(STR_JUST_RAW_STRING, INVALID_STRING_ID, WL_ERROR);
+				ShowErrorMessage(STR_ERROR_GAME_SAVE_FAILED, STR_JUST_RAW_STRING, WL_ERROR);
 			} else {
 				DeleteWindowById(WC_SAVELOAD, 0);
 			}

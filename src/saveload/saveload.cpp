@@ -677,11 +677,10 @@ void SetSaveLoadError(StringID str)
 /** Get the string representation of the error message */
 const char *GetSaveLoadErrorString()
 {
-	SetDParam(0, _sl.error_str);
-	SetDParamStr(1, _sl.extra_msg);
+	SetDParamStr(0, _sl.extra_msg);
 
 	static char err_str[512];
-	GetString(err_str, _sl.action == SLA_SAVE ? STR_ERROR_GAME_SAVE_FAILED : STR_ERROR_GAME_LOAD_FAILED, lastof(err_str));
+	GetString(err_str, _sl.error_str, lastof(err_str));
 	return err_str;
 }
 
@@ -689,7 +688,7 @@ const char *GetSaveLoadErrorString()
 static void SaveFileError()
 {
 	SetDParamStr(0, GetSaveLoadErrorString());
-	ShowErrorMessage(STR_JUST_RAW_STRING, INVALID_STRING_ID, WL_ERROR);
+	ShowErrorMessage(STR_ERROR_GAME_SAVE_FAILED, STR_JUST_RAW_STRING, WL_ERROR);
 	SaveFileDone();
 }
 

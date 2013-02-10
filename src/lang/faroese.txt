@@ -3599,9 +3599,9 @@ STR_MESSAGE_ESTIMATED_INCOME                                    :{WHITE}Inntøku
 STR_ERROR_SAVE_STILL_IN_PROGRESS                                :{WHITE}Goyming er enn í gongd,{}vinarliga bíða til ta er liðugt!
 STR_ERROR_AUTOSAVE_FAILED                                       :{WHITE}Sjálvgoymsla eydnaðist ikki
 STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Ikki ført fyri at lesa drev
-STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Eydnaðist ikki at goyma spæl{}{STRING}
+STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Eydnaðist ikki at goyma spæl
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Ikki ført fyri at strika fílu
-STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Eydnaðist ikki at heinta spæl{}{STRING}
+STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Eydnaðist ikki at heinta spæl
 STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Innanhýsis villa: {STRING}
 STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Goymda spæli er broti - {STRING}
 STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Goymda spæli er frá nýggjari útgávu

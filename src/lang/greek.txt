@@ -3926,9 +3926,9 @@ STR_MESSAGE_ESTIMATED_INCOME                                    :{WHITE}Υπολ
 STR_ERROR_SAVE_STILL_IN_PROGRESS                                :{WHITE}Η αποθήκευση είναι σε εξέλιξη,{}παρακαλώ περιμένετε να τελειώσει!
 STR_ERROR_AUTOSAVE_FAILED                                       :{WHITE}Η αυτόματη αποθήκευση απέτυχε
 STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Αδύνατη η ανάγνωση του δίσκου
-STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Η Αποθήκευση Παιχνιδιού Απέτυχε{}{STRING}
+STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Η Αποθήκευση Παιχνιδιού Απέτυχε
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Αδύνατη η διαγραφή του αρχείου
-STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Η Φόρτωση Παιχνιδιού Απέτυχε{}{STRING}
+STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Η Φόρτωση Παιχνιδιού Απέτυχε
 STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Εσωτερικό λάθος: {STRING}
 STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Χαλασμένο αποθηκευμένο παιχνίδι - {STRING}
 STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Το αποθηκευμένο παιχνίδι είναι φτιαγμένο με νεότερη έκδοση

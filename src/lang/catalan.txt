@@ -3975,9 +3975,9 @@ STR_MESSAGE_ESTIMATED_INCOME                                    :{WHITE}Ingresso
 STR_ERROR_SAVE_STILL_IN_PROGRESS                                :{WHITE}S'està desant el joc,{}espera a que acabi l'operació!
 STR_ERROR_AUTOSAVE_FAILED                                       :{WHITE}Ha fallat el desat automàtic
 STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Impossible llegir la unitat de disc
-STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Desat del joc erroni{}{STRING}
+STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Desat del joc erroni
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Impossible esborrar l'arxiu
-STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Càrrega del joc errònia{}{STRING}
+STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Càrrega del joc errònia
 STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Error Intern: {STRING}
 STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}El joc desat està trencat - {STRING}
 STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}El joc desat està fet amb una versió més moderna

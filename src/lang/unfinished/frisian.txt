@@ -2462,9 +2462,9 @@ STR_MESSAGE_ESTIMATED_INCOME                                    :{WHITE}Dit gjit
 
 # Saveload messages
 STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Koe net fan 'e skiif lêze
-STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Opslaan Mislearre{}{STRING}
+STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Opslaan Mislearre
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Kin bestân net fuortsmite
-STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Laden Mislearre{}{STRING}
+STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Laden Mislearre
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<net beskikber>
 
 # Map generation messages

@@ -3971,9 +3971,9 @@ STR_MESSAGE_ESTIMATED_INCOME                                    :{WHITE}Renda Es
 STR_ERROR_SAVE_STILL_IN_PROGRESS                                :{WHITE}Salvamento ainda em progresso,{}por favor aguarde até que termine!
 STR_ERROR_AUTOSAVE_FAILED                                       :{WHITE}Autosalvar falhou
 STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Incapaz de ler unidade
-STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Salvar o Jogo Falhou{}{STRING}
+STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Salvar o Jogo Falhou
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Incapaz de excluir arquivo
-STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Carregar Jogo Falhou{}{STRING}
+STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Carregar Jogo Falhou
 STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Erro interno: {STRING}
 STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Jogo salvo inutilizado - {STRING}
 STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Jogo salvo é feito com versão mais nova

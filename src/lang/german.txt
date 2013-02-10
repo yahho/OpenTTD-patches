@@ -3975,9 +3975,9 @@ STR_MESSAGE_ESTIMATED_INCOME                                    :{WHITE}Geschät
 STR_ERROR_SAVE_STILL_IN_PROGRESS                                :{WHITE}Speichern läuft,{}bitte warten, bis es beendet ist!
 STR_ERROR_AUTOSAVE_FAILED                                       :{WHITE}Autosicherung fehlgeschlagen
 STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Laufwerk nicht betriebsbereit
-STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Spielspeicherung fehlgeschlagen{}{STRING}
+STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Spielspeicherung fehlgeschlagen
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Datei kann nicht gelöscht werden
-STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Laden des Spieles fehlgeschlagen{}{STRING}
+STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Laden des Spieles fehlgeschlagen
 STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Interner Fehler: {STRING}
 STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Spielstandsdatei defekt - {STRING}
 STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Spielstand wurde mit neuerer Version erstellt

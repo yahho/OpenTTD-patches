@@ -3971,9 +3971,9 @@ STR_MESSAGE_ESTIMATED_INCOME                                    :{WHITE}Thu nh�
 STR_ERROR_SAVE_STILL_IN_PROGRESS                                :{WHITE}Đang lưu vào đĩa,{}hãy chờ cho đến khi hoàn thành!
 STR_ERROR_AUTOSAVE_FAILED                                       :{WHITE}Tự lưu gặp lỗi
 STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Không đọc được đĩa
-STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Lưu ván chơi có lỗi{}{STRING}
+STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Lưu ván chơi có lỗi
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Không thể xoá file
-STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Nạp ván chơi thất bại{}{STRING}
+STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Nạp ván chơi thất bại
 STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Lỗi kỹ thuật: {STRING}
 STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Bản lưu ván chơi bị hỏng - {STRING}
 STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Bản lưu ván chơi dành cho phiên bản mới hơn

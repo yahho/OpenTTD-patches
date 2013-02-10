@@ -3970,9 +3970,9 @@ STR_MESSAGE_ESTIMATED_INCOME                                    :{WHITE}Geschät
 STR_ERROR_SAVE_STILL_IN_PROGRESS                                :{WHITE}Nach umgaangen ze späicheren. {} Weg. waarden bis daat faerdeg ass!
 STR_ERROR_AUTOSAVE_FAILED                                       :{WHITE}Fehler beim Autospäicheren
 STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Kann net um Laafwierk liesen
-STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Fehler beim Späicheren{}{STRING}
+STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Fehler beim Späicheren
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Kann d'Datei net leschen
-STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Fehler beim Lueden{}{STRING}
+STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Fehler beim Lueden
 STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Internen Fehler: {STRING}
 STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Futtissen Spillstand - {STRING}
 STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Spillstand ass mat enger méi neier Versioun gemaach

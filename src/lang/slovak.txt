@@ -4042,9 +4042,9 @@ STR_MESSAGE_ESTIMATED_INCOME                                    :{WHITE}Priblizn
 STR_ERROR_SAVE_STILL_IN_PROGRESS                                :{WHITE}Ukladanie hry este bezi,{}pockajte prosim na dokoncenie!
 STR_ERROR_AUTOSAVE_FAILED                                       :{WHITE}Autoulozenie zlyhalo
 STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Zariadenie je nečitateľné
-STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Uloženie hry zlyhalo{}{STRING}
+STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Uloženie hry zlyhalo
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Súbor sa nedá vymazať
-STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Nahratie hry zlyhalo{}{STRING}
+STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Nahratie hry zlyhalo
 STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Interná chyba: {STRING}
 STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Poškodená uložená hra - {STRING}
 STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Hra bola uložená vo vyššej verzii

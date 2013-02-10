@@ -3464,9 +3464,9 @@ STR_MESSAGE_ESTIMATED_INCOME                                    :{WHITE}الدخ
 STR_ERROR_SAVE_STILL_IN_PROGRESS                                :{WHITE}الحفظ مازال جاريا الآن{}الرجاء الأنتظار حتر ينتهي
 STR_ERROR_AUTOSAVE_FAILED                                       :{WHITE}فشل الحفظ التلقائي
 STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}لا يمكن قرائة القرص
-STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}فشل حفظ اللعبة{}{STRING}
+STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}فشل حفظ اللعبة
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}لا يمكن حذف الملف
-STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}فشل فتح اللعبة {}{STRING}
+STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}فشل فتح اللعبة
 STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}خطأ داخلي: {STRING}
 STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}لعبة محفوطة غير صالحة{STRING}
 STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}اللعبة حفظت بنسخة أحدث

@@ -3887,9 +3887,9 @@ STR_MESSAGE_ESTIMATED_INCOME                                    :{WHITE}Lucro Es
 STR_ERROR_SAVE_STILL_IN_PROGRESS                                :{WHITE}Gravação ainda em curso,{}por favor aguarde!
 STR_ERROR_AUTOSAVE_FAILED                                       :{WHITE}Falha ao guardar automaticamente
 STR_ERROR_UNABLE_TO_READ_DRIVE                                  :{BLACK}Não é possível ler unidade
-STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Falha ao Guardar Jogo{}{STRING}
+STR_ERROR_GAME_SAVE_FAILED                                      :{WHITE}Falha ao Guardar Jogo
 STR_ERROR_UNABLE_TO_DELETE_FILE                                 :{WHITE}Não é possível eliminar ficheiro
-STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Falha ao Abrir Jogo{}{STRING}
+STR_ERROR_GAME_LOAD_FAILED                                      :{WHITE}Falha ao Abrir Jogo
 STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Erro interno: {STRING}
 STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Ficheiro corrompido - {STRING}
 STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Jogo gravado numa versão mais recente do jogo
