@@ -26,7 +26,7 @@ struct SlErrorData {
 struct SlException : std::exception {
 	SlErrorData error;
 
-	SlException(StringID str, const char *data) {
+	SlException(StringID str, const char *data = NULL) {
 		this->error.str = str;
 		this->error.data = data;
 	}

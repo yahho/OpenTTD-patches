@@ -23,6 +23,7 @@
 #include "../command_func.h"
 #include "../saveload/saveload.h"
 #include "../saveload/saveload_filter.h"
+#include "../saveload/saveload_error.h"
 #include "../station_base.h"
 #include "../genworld.h"
 #include "../company_func.h"
@@ -100,7 +101,7 @@ struct PacketWriter : SaveFilter {
 	/* virtual */ void Write(const byte *buf, size_t size)
 	{
 		/* We want to abort the saving when the socket is closed. */
-		if (this->cs == NULL) SlError(STR_NETWORK_ERROR_LOSTCONNECTION);
+		if (this->cs == NULL) throw SlException(STR_NETWORK_ERROR_LOSTCONNECTION);
 
 		if (this->current == NULL) this->current = new Packet(PACKET_SERVER_MAP_DATA);
 
@@ -127,7 +128,7 @@ struct PacketWriter : SaveFilter {
 	/* virtual */ void Finish()
 	{
 		/* We want to abort the saving when the socket is closed. */
-		if (this->cs == NULL) SlError(STR_NETWORK_ERROR_LOSTCONNECTION);
+		if (this->cs == NULL) throw SlException(STR_NETWORK_ERROR_LOSTCONNECTION);
 
 		if (this->cs->savegame_mutex != NULL) this->cs->savegame_mutex->BeginCritical();
 

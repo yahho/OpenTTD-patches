@@ -19,6 +19,7 @@
 #include "table/strings.h"
 
 #include "saveload_internal.h"
+#include "saveload_error.h"
 
 /** Helper structure to convert from the old waypoint system. */
 struct OldWaypoint {
@@ -94,7 +95,7 @@ void MoveWaypointsToBaseStations(const SavegameTypeVersion *stv)
 		}
 	}
 
-	if (!Waypoint::CanAllocateItem(_old_waypoints.Length())) SlError(STR_ERROR_TOO_MANY_STATIONS_LOADING);
+	if (!Waypoint::CanAllocateItem(_old_waypoints.Length())) throw SlException(STR_ERROR_TOO_MANY_STATIONS_LOADING);
 
 	/* All saveload conversions have been done. Create the new waypoints! */
 	for (OldWaypoint *wp = _old_waypoints.Begin(); wp != _old_waypoints.End(); wp++) {

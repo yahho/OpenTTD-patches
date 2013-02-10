@@ -1974,7 +1974,7 @@ bool AfterLoadGame(const SavegameTypeVersion *stv)
 					if (!Object::CanAllocateItem()) {
 						/* Nice... you managed to place 64k lighthouses and
 						 * antennae on the map... boohoo. */
-						SlError(STR_ERROR_TOO_MANY_OBJECTS);
+						throw SlException(STR_ERROR_TOO_MANY_OBJECTS);
 					}
 
 					Object *o = new Object();

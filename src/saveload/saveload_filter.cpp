@@ -21,6 +21,7 @@
 
 #include "saveload_filter.h"
 #include "saveload.h"
+#include "saveload_error.h"
 
 /** Save in chunks of 128 KiB. */
 static const size_t MEMORY_CHUNK_SIZE = 128 * 1024;
@@ -45,7 +46,7 @@ struct LZOLoadFilter : ChainLoadFilter {
 	 */
 	LZOLoadFilter(LoadFilter *chain, bool buggy = false) : ChainLoadFilter(chain), buggy(buggy)
 	{
-		if (lzo_init() != LZO_E_OK) SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize decompressor");
+		if (lzo_init() != LZO_E_OK) throw SlException(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize decompressor");
 	}
 
 	/* virtual */ size_t Read(byte *buf, size_t ssize)
@@ -59,7 +60,7 @@ struct LZOLoadFilter : ChainLoadFilter {
 		lzo_uint len;
 
 		/* Read header*/
-		if (this->chain->Read((byte*)tmp, sizeof(tmp)) != sizeof(tmp)) SlError(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
+		if (this->chain->Read((byte*)tmp, sizeof(tmp)) != sizeof(tmp)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
 
 		/* Check if size is bad */
 		((uint32*)out)[0] = size = tmp[1];
@@ -72,7 +73,7 @@ struct LZOLoadFilter : ChainLoadFilter {
 		if (size >= sizeof(out)) SlErrorCorrupt("Inconsistent size");
 
 		/* Read block */
-		if (this->chain->Read(out + sizeof(uint32), size) != size) SlError(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
+		if (this->chain->Read(out + sizeof(uint32), size) != size) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
 
 		/* Verify checksum */
 		if (tmp[0] != lzo_adler32(0, out, size + sizeof(uint32))) SlErrorCorrupt("Bad checksum");
@@ -98,7 +99,7 @@ struct LZOSaveFilter : ChainSaveFilter {
 	 */
 	LZOSaveFilter(SaveFilter *chain, byte compression_level) : ChainSaveFilter(chain)
 	{
-		if (lzo_init() != LZO_E_OK) SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize compressor");
+		if (lzo_init() != LZO_E_OK) throw SlException(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize compressor");
 	}
 
 	/* virtual */ void Write(const byte *buf, size_t size)
@@ -183,7 +184,7 @@ struct ZlibLoadFilter : ChainLoadFilter {
 	ZlibLoadFilter(LoadFilter *chain) : ChainLoadFilter(chain)
 	{
 		memset(&this->z, 0, sizeof(this->z));
-		if (inflateInit(&this->z) != Z_OK) SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize decompressor");
+		if (inflateInit(&this->z) != Z_OK) throw SlException(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize decompressor");
 	}
 
 	/** Clean everything up. */
@@ -208,7 +209,7 @@ struct ZlibLoadFilter : ChainLoadFilter {
 			int r = inflate(&this->z, 0);
 			if (r == Z_STREAM_END) break;
 
-			if (r != Z_OK) SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "inflate() failed");
+			if (r != Z_OK) throw SlException(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "inflate() failed");
 		} while (this->z.avail_out != 0);
 
 		return size - this->z.avail_out;
@@ -227,7 +228,7 @@ struct ZlibSaveFilter : ChainSaveFilter {
 	ZlibSaveFilter(SaveFilter *chain, byte compression_level) : ChainSaveFilter(chain)
 	{
 		memset(&this->z, 0, sizeof(this->z));
-		if (deflateInit(&this->z, compression_level) != Z_OK) SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize compressor");
+		if (deflateInit(&this->z, compression_level) != Z_OK) throw SlException(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize compressor");
 	}
 
 	/** Clean up what we allocated. */
@@ -267,7 +268,7 @@ struct ZlibSaveFilter : ChainSaveFilter {
 			}
 			if (r == Z_STREAM_END) break;
 
-			if (r != Z_OK) SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "zlib returned error code");
+			if (r != Z_OK) throw SlException(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "zlib returned error code");
 		} while (this->z.avail_in || !this->z.avail_out);
 	}
 
@@ -312,7 +313,7 @@ struct LZMALoadFilter : ChainLoadFilter {
 	LZMALoadFilter(LoadFilter *chain) : ChainLoadFilter(chain), lzma(_lzma_init)
 	{
 		/* Allow saves up to 256 MB uncompressed */
-		if (lzma_auto_decoder(&this->lzma, 1 << 28, 0) != LZMA_OK) SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize decompressor");
+		if (lzma_auto_decoder(&this->lzma, 1 << 28, 0) != LZMA_OK) throw SlException(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize decompressor");
 	}
 
 	/** Clean everything up. */
@@ -336,7 +337,7 @@ struct LZMALoadFilter : ChainLoadFilter {
 			/* inflate the data */
 			lzma_ret r = lzma_code(&this->lzma, LZMA_RUN);
 			if (r == LZMA_STREAM_END) break;
-			if (r != LZMA_OK) SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "liblzma returned error code");
+			if (r != LZMA_OK) throw SlException(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "liblzma returned error code");
 		} while (this->lzma.avail_out != 0);
 
 		return size - this->lzma.avail_out;
@@ -354,7 +355,7 @@ struct LZMASaveFilter : ChainSaveFilter {
 	 */
 	LZMASaveFilter(SaveFilter *chain, byte compression_level) : ChainSaveFilter(chain), lzma(_lzma_init)
 	{
-		if (lzma_easy_encoder(&this->lzma, compression_level, LZMA_CHECK_CRC32) != LZMA_OK) SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize compressor");
+		if (lzma_easy_encoder(&this->lzma, compression_level, LZMA_CHECK_CRC32) != LZMA_OK) throw SlException(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize compressor");
 	}
 
 	/** Clean up what we allocated. */
@@ -386,7 +387,7 @@ struct LZMASaveFilter : ChainSaveFilter {
 				this->chain->Write(buf, n);
 			}
 			if (r == LZMA_STREAM_END) break;
-			if (r != LZMA_OK) SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "liblzma returned error code");
+			if (r != LZMA_OK) throw SlException(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "liblzma returned error code");
 		} while (this->lzma.avail_in || !this->lzma.avail_out);
 	}
 

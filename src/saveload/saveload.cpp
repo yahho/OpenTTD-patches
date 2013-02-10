@@ -363,19 +363,6 @@ static const ChunkHandler * const _chunk_handlers[] = {
 		for (const ChunkHandler *ch = *chsc; ch != NULL; ch = (ch->flags & CH_LAST) ? NULL : ch + 1)
 
 /**
- * Error handler. Sets everything up to show an error message and to clean
- * up the mess of a partial savegame load.
- * @param string The translatable error message to show.
- * @param extra_msg An extra error message coming from one of the APIs.
- * @note This function does never return as it throws an exception to
- *       break out of all the saveload code.
- */
-void NORETURN SlError(StringID string, const char *extra_msg)
-{
-	throw SlException(string, extra_msg);
-}
-
-/**
  * Error handler for corrupt savegames. Sets everything up to show the
  * error message and to clean up the mess of a partial savegame load.
  * @param msg Location the corruption has been spotted.
@@ -384,7 +371,7 @@ void NORETURN SlError(StringID string, const char *extra_msg)
  */
 void NORETURN SlErrorCorrupt(const char *msg)
 {
-	SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME, msg);
+	throw SlException(STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME, msg);
 }
 
 
@@ -580,7 +567,7 @@ struct FileWriter : SaveFilter {
 		/* We're in the process of shutting down, i.e. in "failure" mode. */
 		if (this->file == NULL) return;
 
-		if (fwrite(buf, 1, size, this->file) != size) SlError(STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE);
+		if (fwrite(buf, 1, size, this->file) != size) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE);
 	}
 
 	/* virtual */ void Finish()
@@ -797,7 +784,7 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 	}
 
 	uint32 hdr[2];
-	if (_sl.lf->Read((byte*)hdr, sizeof(hdr)) != sizeof(hdr)) SlError(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
+	if (_sl.lf->Read((byte*)hdr, sizeof(hdr)) != sizeof(hdr)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
 
 	/* see if we have any loader for this type. */
 	const SaveLoadFormat *fmt = GetSavegameFormatByTag(hdr[0]);
@@ -813,7 +800,7 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 		DEBUG(sl, 1, "Loading savegame version %d", sl_version.version);
 
 		/* Is the version higher than the current? */
-		if (sl_version.version > SAVEGAME_VERSION) SlError(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
+		if (sl_version.version > SAVEGAME_VERSION) throw SlException(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
 	} else {
 		/* No loader found, treat as version 0 and use LZO format */
 		DEBUG(sl, 0, "Unknown savegame type, trying to load it as the buggy format");
@@ -829,7 +816,7 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 
 	/* loader for this savegame type is not implemented? */
 	if (fmt->init_load == NULL) {
-		SlError(STR_GAME_SAVELOAD_ERROR_MISSING_LOADER, fmt->name);
+		throw SlException(STR_GAME_SAVELOAD_ERROR_MISSING_LOADER, fmt->name);
 	}
 
 	_sl.lf = fmt->init_load(_sl.lf);
@@ -941,7 +928,7 @@ bool SaveGame(const char *filename, Subdirectory sb, bool threaded)
 		FILE *fh = FioFOpenFile(filename, "wb", sb);
 
 		if (fh == NULL) {
-			SlError(STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE);
+			throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE);
 		}
 
 		DEBUG(desync, 1, "save: %08x; %02x; %s", _date, _date_fract, filename);
@@ -1008,7 +995,7 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 		if (fh == NULL) fh = FioFOpenFile(filename, "rb", SCENARIO_DIR);
 
 		if (fh == NULL) {
-			SlError(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
+			throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
 		}
 
 		/* LOAD game */
