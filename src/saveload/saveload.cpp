@@ -267,8 +267,6 @@ enum SaveLoadAction {
 
 /** The saveload struct, containing reader-writer functions, buffer, version, etc. */
 struct SaveLoadParams {
-	SaveLoadAction action;               ///< are we doing a save or a load atm.
-
 	SaveDumper *dumper;                  ///< Memory dumper to write the savegame to.
 	SaveFilter *sf;                      ///< Filter to write the savegame to.
 
@@ -367,8 +365,6 @@ static const ChunkHandler * const _chunk_handlers[] = {
 /** Null all pointers (convert index -> NULL) */
 static void SlNullPointers()
 {
-	_sl.action = SLA_NULL;
-
 	DEBUG(sl, 1, "Nulling pointers");
 
 	FOR_ALL_CHUNK_HANDLERS(ch) {
@@ -379,8 +375,6 @@ static void SlNullPointers()
 	}
 
 	DEBUG(sl, 1, "All pointers nulled");
-
-	assert(_sl.action == SLA_NULL);
 }
 
 /**
@@ -513,8 +507,6 @@ static void SlLoadChunks(LoadBuffer *reader, bool check = false)
 /** Fix all pointers (convert index -> pointer) */
 static void SlFixPointers(const SavegameTypeVersion *stv)
 {
-	_sl.action = SLA_PTRS;
-
 	DEBUG(sl, 1, "Fixing pointers");
 
 	FOR_ALL_CHUNK_HANDLERS(ch) {
@@ -525,8 +517,6 @@ static void SlFixPointers(const SavegameTypeVersion *stv)
 	}
 
 	DEBUG(sl, 1, "All pointers fixed");
-
-	assert(_sl.action == SLA_PTRS);
 }
 
 
@@ -780,7 +770,6 @@ static bool DoSave(SaveFilter *writer, bool threaded)
 bool SaveWithFilter(SaveFilter *writer, bool threaded)
 {
 	try {
-		_sl.action = SLA_SAVE;
 		return DoSave(writer, threaded);
 	} catch (SlException e) {
 		_sl.error = e.error;
@@ -923,7 +912,6 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 bool LoadWithFilter(LoadFilter *reader)
 {
 	try {
-		_sl.action = SLA_LOAD;
 		return DoLoad(reader, false);
 	} catch (SlException e) {
 		_sl.error = e.error;
@@ -952,8 +940,6 @@ bool SaveGame(const char *filename, Subdirectory sb, bool threaded)
 		return true;
 	}
 	WaitTillSaved();
-
-	_sl.action = SLA_SAVE;
 
 	try {
 		FILE *fh = FioFOpenFile(filename, "wb", sb);
@@ -1015,11 +1001,7 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 		return true;
 	}
 
-	switch (mode) {
-		case SL_LOAD_CHECK: _sl.action = SLA_LOAD_CHECK; break;
-		case SL_LOAD: _sl.action = SLA_LOAD; break;
-		default: NOT_REACHED();
-	}
+	assert((mode == SL_LOAD) || (mode == SLA_LOAD_CHECK));
 
 	try {
 		FILE *fh = FioFOpenFile(filename, "rb", sb);
@@ -1034,7 +1016,6 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 		}
 
 		/* LOAD game */
-		assert(mode == SL_LOAD || mode == SL_LOAD_CHECK);
 		DEBUG(desync, 1, "load: %s", filename);
 		return DoLoad(new FileReader(fh), mode == SL_LOAD_CHECK);
 	} catch (SlException e) {
