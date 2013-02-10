@@ -854,6 +854,7 @@
     <ClInclude Include="..\src\saveload\saveload_buffer.h" />
     <ClCompile Include="..\src\saveload\saveload_data.cpp" />
     <ClInclude Include="..\src\saveload\saveload_data.h" />
+    <ClInclude Include="..\src\saveload\saveload_error.h" />
     <ClCompile Include="..\src\saveload\saveload_filter.cpp" />
     <ClInclude Include="..\src\saveload\saveload_filter.h" />
     <ClInclude Include="..\src\saveload\saveload_internal.h" />

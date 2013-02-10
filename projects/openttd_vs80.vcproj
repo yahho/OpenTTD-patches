@@ -2711,6 +2711,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\saveload\saveload_error.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\saveload\saveload_filter.cpp"
 				>
 			</File>

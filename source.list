@@ -612,6 +612,7 @@ saveload/saveload_buffer.cpp
 saveload/saveload_buffer.h
 saveload/saveload_data.cpp
 saveload/saveload_data.h
+saveload/saveload_error.h
 saveload/saveload_filter.cpp
 saveload/saveload_filter.h
 saveload/saveload_internal.h

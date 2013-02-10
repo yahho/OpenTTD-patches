@@ -47,8 +47,8 @@ static bool _savegame_sort_dirty;
 void LoadCheckData::Clear()
 {
 	this->checkable = false;
-	this->error = INVALID_STRING_ID;
-	this->error_data = NULL;
+	this->error.str = INVALID_STRING_ID;
+	this->error.data = NULL;
 
 	this->map_size_x = this->map_size_y = 256; // Default for old savegames which do not store mapsize.
 	this->current_date = 0;
@@ -383,11 +383,11 @@ public:
 					/* Old savegame, no information available */
 					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SAVELOAD_DETAIL_NOT_AVAILABLE);
 					y += FONT_HEIGHT_NORMAL;
-				} else if (_load_check_data.error != INVALID_STRING_ID) {
+				} else if (_load_check_data.error.str != INVALID_STRING_ID) {
 					/* Incompatible / broken savegame */
-					SetDParamStr(0, _load_check_data.error_data);
+					SetDParamStr(0, _load_check_data.error.data);
 					y = DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT,
-							y, r.bottom - WD_FRAMERECT_BOTTOM, _load_check_data.error, TC_RED);
+							y, r.bottom - WD_FRAMERECT_BOTTOM, _load_check_data.error.str, TC_RED);
 				} else {
 					/* Mapsize */
 					SetDParam(0, _load_check_data.map_size_x);

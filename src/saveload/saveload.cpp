@@ -46,6 +46,7 @@
 #include "saveload_internal.h"
 #include "saveload_filter.h"
 #include "saveload_buffer.h"
+#include "saveload_error.h"
 
 /*
  * Previous savegame versions, the trunk revision where they were
@@ -274,8 +275,7 @@ struct SaveLoadParams {
 	LoadBuffer *reader;                  ///< Savegame reading buffer.
 	LoadFilter *lf;                      ///< Filter to read the savegame from.
 
-	StringID error_str;                  ///< the translatable error message to show
-	const char *extra_msg;               ///< the error message
+	SlErrorData error;                   ///< the error to show
 
 	byte ff_state;                       ///< The state of fast-forward when saving started.
 	bool saveinprogress;                 ///< Whether there is currently a save in progress.
@@ -395,11 +395,11 @@ void NORETURN SlError(StringID string, const char *extra_msg)
 {
 	/* Distinguish between loading into _load_check_data vs. normal save/load. */
 	if (_sl.action == SLA_LOAD_CHECK) {
-		_load_check_data.error = string;
-		_load_check_data.error_data = extra_msg;
+		_load_check_data.error.str = string;
+		_load_check_data.error.data = extra_msg;
 	} else {
-		_sl.error_str = string;
-		_sl.extra_msg = extra_msg;
+		_sl.error.str = string;
+		_sl.error.data = extra_msg;
 	}
 
 	/* We have to NULL all pointers here; we might be in a state where
@@ -669,16 +669,16 @@ static void SaveFileDone()
 /** Set the error message from outside of the actual loading/saving of the game (AfterLoadGame and friends) */
 void SetSaveLoadError(StringID str)
 {
-	_sl.error_str = str;
+	_sl.error.str = str;
 }
 
 /** Get the string representation of the error message */
 const char *GetSaveLoadErrorString()
 {
-	SetDParamStr(0, _sl.extra_msg);
+	SetDParamStr(0, _sl.error.data);
 
 	static char err_str[512];
-	GetString(err_str, _sl.error_str, lastof(err_str));
+	GetString(err_str, _sl.error.str, lastof(err_str));
 	return err_str;
 }
 
@@ -719,7 +719,7 @@ static bool SaveFileToDisk(bool threaded)
 
 		/* We don't want to shout when saving is just
 		 * cancelled due to a client disconnecting. */
-		if (_sl.error_str != STR_NETWORK_ERROR_LOSTCONNECTION) {
+		if (_sl.error.str != STR_NETWORK_ERROR_LOSTCONNECTION) {
 			/* Skip the "colour" character */
 			DEBUG(sl, 0, "%s", GetSaveLoadErrorString() + 3);
 			asfp = SaveFileError;

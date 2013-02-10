@@ -17,6 +17,7 @@
 #include "newgrf_config.h"
 #include "network/core/tcp_content.h"
 #include "saveload/saveload_data.h"
+#include "saveload/saveload_error.h"
 
 
 typedef SmallMap<uint, CompanyProperties *> CompanyPropertiesMap;
@@ -26,8 +27,7 @@ typedef SmallMap<uint, CompanyProperties *> CompanyPropertiesMap;
  */
 struct LoadCheckData {
 	bool checkable;     ///< True if the savegame could be checked by SL_LOAD_CHECK. (Old savegames are not checkable.)
-	StringID error;     ///< Error message from loading. INVALID_STRING_ID if no error.
-	const char *error_data;   ///< Data to pass to SetDParamStr when displaying #error.
+	SlErrorData error;  ///< Error message from loading. INVALID_STRING_ID if no error.
 
 	SavegameTypeVersion sl_version;               ///< Savegame type and version
 
@@ -63,7 +63,7 @@ struct LoadCheckData {
 	 */
 	bool HasErrors()
 	{
-		return this->checkable && this->error != INVALID_STRING_ID;
+		return this->checkable && this->error.str != INVALID_STRING_ID;
 	}
 
 	/**
@@ -72,7 +72,7 @@ struct LoadCheckData {
 	 */
 	bool HasNewGrfs()
 	{
-		return this->checkable && this->error == INVALID_STRING_ID && this->grfconfig != NULL;
+		return this->checkable && this->error.str == INVALID_STRING_ID && this->grfconfig != NULL;
 	}
 
 	void Clear();

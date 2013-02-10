@@ -648,8 +648,8 @@ int openttd_main(int argc, char *argv[])
 				fprintf(stderr, "Failed to open savegame\n");
 				if (_load_check_data.HasErrors()) {
 					char buf[256];
-					SetDParamStr(0, _load_check_data.error_data);
-					GetString(buf, _load_check_data.error, lastof(buf));
+					SetDParamStr(0, _load_check_data.error.data);
+					GetString(buf, _load_check_data.error.str, lastof(buf));
 					fprintf(stderr, "%s\n", buf);
 				}
 				return 1;
