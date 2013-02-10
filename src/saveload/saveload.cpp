@@ -275,7 +275,7 @@ struct SaveLoadParams {
 	LoadFilter *lf;                      ///< Filter to read the savegame from.
 
 	StringID error_str;                  ///< the translatable error message to show
-	char *extra_msg;                     ///< the error message
+	const char *extra_msg;               ///< the error message
 
 	byte ff_state;                       ///< The state of fast-forward when saving started.
 	bool saveinprogress;                 ///< Whether there is currently a save in progress.
@@ -396,12 +396,10 @@ void NORETURN SlError(StringID string, const char *extra_msg)
 	/* Distinguish between loading into _load_check_data vs. normal save/load. */
 	if (_sl.action == SLA_LOAD_CHECK) {
 		_load_check_data.error = string;
-		free(_load_check_data.error_data);
-		_load_check_data.error_data = (extra_msg == NULL) ? NULL : strdup(extra_msg);
+		_load_check_data.error_data = extra_msg;
 	} else {
 		_sl.error_str = string;
-		free(_sl.extra_msg);
-		_sl.extra_msg = (extra_msg == NULL) ? NULL : strdup(extra_msg);
+		_sl.extra_msg = extra_msg;
 	}
 
 	/* We have to NULL all pointers here; we might be in a state where

@@ -27,7 +27,7 @@ typedef SmallMap<uint, CompanyProperties *> CompanyPropertiesMap;
 struct LoadCheckData {
 	bool checkable;     ///< True if the savegame could be checked by SL_LOAD_CHECK. (Old savegames are not checkable.)
 	StringID error;     ///< Error message from loading. INVALID_STRING_ID if no error.
-	char *error_data;   ///< Data to pass to SetDParamStr when displaying #error.
+	const char *error_data;   ///< Data to pass to SetDParamStr when displaying #error.
 
 	SavegameTypeVersion sl_version;               ///< Savegame type and version
 
@@ -44,7 +44,7 @@ struct LoadCheckData {
 	struct LoggedAction *gamelog_action;          ///< Gamelog actions
 	uint gamelog_actions;                         ///< Number of gamelog actions
 
-	LoadCheckData() : error_data(NULL), grfconfig(NULL), gamelog_action(NULL)
+	LoadCheckData() : grfconfig(NULL), gamelog_action(NULL)
 	{
 		this->Clear();
 	}
