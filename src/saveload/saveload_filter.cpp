@@ -59,7 +59,7 @@ struct LZOLoadFilter : ChainLoadFilter {
 		lzo_uint len;
 
 		/* Read header*/
-		if (this->chain->Read((byte*)tmp, sizeof(tmp)) != sizeof(tmp)) SlError(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE, "File read failed");
+		if (this->chain->Read((byte*)tmp, sizeof(tmp)) != sizeof(tmp)) SlError(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
 
 		/* Check if size is bad */
 		((uint32*)out)[0] = size = tmp[1];
