@@ -856,9 +856,7 @@ static bool DoLoad(LoadFilter *reader, bool load_check)
 
 	/* loader for this savegame type is not implemented? */
 	if (fmt->init_load == NULL) {
-		char err_str[64];
-		snprintf(err_str, lengthof(err_str), "Loader for '%s' is not available.", fmt->name);
-		SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, err_str);
+		SlError(STR_GAME_SAVELOAD_ERROR_MISSING_LOADER, fmt->name);
 	}
 
 	_sl.lf = fmt->init_load(_sl.lf);
