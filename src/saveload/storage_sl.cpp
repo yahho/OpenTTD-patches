@@ -11,7 +11,7 @@
 
 #include "../stdafx.h"
 #include "../newgrf_storage.h"
-#include "saveload.h"
+#include "saveload_buffer.h"
 
 /** Description of the data to save and load in #PersistentStorage. */
 static const SaveLoad _storage_desc[] = {

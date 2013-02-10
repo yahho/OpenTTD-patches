@@ -12,7 +12,7 @@
 #include "../stdafx.h"
 #include "../group.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 
 static const SaveLoad _group_desc[] = {
 	 SLE_CONDVAR(Group, name,               SLE_NAME,                       0,  83),

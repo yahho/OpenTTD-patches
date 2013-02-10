@@ -13,7 +13,7 @@
 #include "../object_base.h"
 #include "../object_map.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 #include "newgrf_sl.h"
 
 static const SaveLoad _object_desc[] = {

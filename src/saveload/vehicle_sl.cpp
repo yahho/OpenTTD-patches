@@ -20,7 +20,7 @@
 #include "../company_base.h"
 #include "../company_func.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 #include "saveload_error.h"
 
 #include <map>

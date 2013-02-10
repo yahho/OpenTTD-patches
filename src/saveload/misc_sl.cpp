@@ -19,7 +19,7 @@
 #include "../core/random_func.hpp"
 #include "../fios.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 
 extern TileIndex _cur_tileloop_tile;
 extern uint16 _disaster_delay;

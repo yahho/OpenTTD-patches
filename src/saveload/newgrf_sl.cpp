@@ -12,7 +12,7 @@
 #include "../stdafx.h"
 #include "../fios.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 #include "newgrf_sl.h"
 
 /** Save and load the mapping between a spec and the NewGRF it came from. */

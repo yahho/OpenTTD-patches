@@ -15,7 +15,7 @@
 #include "../landscape.h"
 #include "../subsidy_func.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 #include "saveload_error.h"
 #include "newgrf_sl.h"
 

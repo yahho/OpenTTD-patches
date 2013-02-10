@@ -14,7 +14,7 @@
 #include "../core/bitmath_func.hpp"
 #include "../fios.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 
 struct MapDim {
 	uint32 x, y;

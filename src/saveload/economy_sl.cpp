@@ -13,7 +13,7 @@
 #include "../economy_func.h"
 #include "../economy_base.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 
 /** Prices in pre 126 savegames */
 static void Load_PRIC(LoadBuffer *reader)

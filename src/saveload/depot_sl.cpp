@@ -13,7 +13,7 @@
 #include "../depot_base.h"
 #include "../town.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 
 static TownID _town_index;
 

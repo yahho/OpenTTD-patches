@@ -11,7 +11,7 @@
 
 #include "../stdafx.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 #include "newgrf_sl.h"
 
 static void Save_APID(SaveDumper *dumper)

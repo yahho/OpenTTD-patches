@@ -12,7 +12,7 @@
 #include "../stdafx.h"
 #include "../autoreplace_base.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 
 static const SaveLoad _engine_renew_desc[] = {
 	    SLE_VAR(EngineRenew, from,     SLE_UINT16),

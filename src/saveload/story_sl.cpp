@@ -12,7 +12,7 @@
 #include "../stdafx.h"
 #include "../story_base.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 
 /** Called after load to trash broken pages. */
 void AfterLoadStoryBook(const SavegameTypeVersion *stv)

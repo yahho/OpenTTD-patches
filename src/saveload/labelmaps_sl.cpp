@@ -13,7 +13,7 @@
 #include "../station_map.h"
 #include "../tunnelbridge_map.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 
 static SmallVector<RailTypeLabel, RAILTYPE_END> _railtype_list;
 

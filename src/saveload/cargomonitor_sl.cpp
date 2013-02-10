@@ -12,7 +12,7 @@
 #include "../stdafx.h"
 #include "../cargomonitor.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 
 /** Temporary storage of cargo monitoring data for loading or saving it. */
 struct TempStorage {

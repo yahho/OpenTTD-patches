@@ -14,7 +14,7 @@
 #include "../linkgraph/linkgraphjob.h"
 #include "../linkgraph/linkgraphschedule.h"
 #include "../settings_internal.h"
-#include "saveload.h"
+#include "saveload_buffer.h"
 
 typedef LinkGraph::BaseNode Node;
 typedef LinkGraph::BaseEdge Edge;

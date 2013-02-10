@@ -17,7 +17,7 @@
 #include "../tunnelbridge.h"
 #include "../station_base.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 #include "saveload_error.h"
 
 #include "table/strings.h"

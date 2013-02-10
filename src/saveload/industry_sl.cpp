@@ -12,7 +12,7 @@
 #include "../stdafx.h"
 #include "../industry.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 #include "saveload_error.h"
 #include "newgrf_sl.h"
 

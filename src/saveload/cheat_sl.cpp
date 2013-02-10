@@ -12,7 +12,7 @@
 #include "../stdafx.h"
 #include "../cheat_type.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 #include "saveload_error.h"
 
 /**

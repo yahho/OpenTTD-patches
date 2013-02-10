@@ -11,7 +11,7 @@
 
 #include "../stdafx.h"
 #include "../debug.h"
-#include "saveload.h"
+#include "saveload_buffer.h"
 #include "saveload_error.h"
 #include "../string_func.h"
 

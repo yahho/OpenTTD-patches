@@ -12,7 +12,7 @@
 #include "../stdafx.h"
 #include "../company_base.h"
 #include "../debug.h"
-#include "saveload.h"
+#include "saveload_buffer.h"
 #include "saveload_error.h"
 #include "../string_func.h"
 

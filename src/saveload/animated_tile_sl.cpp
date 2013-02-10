@@ -13,7 +13,7 @@
 #include "../tile_type.h"
 #include "../core/alloc_func.hpp"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 
 extern TileIndex *_animated_tile_list;
 extern uint _animated_tile_count;

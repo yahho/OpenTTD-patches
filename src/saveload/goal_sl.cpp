@@ -12,7 +12,7 @@
 #include "../stdafx.h"
 #include "../goal_base.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 
 static const SaveLoad _goals_desc[] = {
 	    SLE_VAR(Goal, company,   SLE_UINT16),

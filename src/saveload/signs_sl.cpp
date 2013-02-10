@@ -13,7 +13,7 @@
 #include "../signs_base.h"
 #include "../fios.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 
 /** Description of a sign within the savegame. */
 static const SaveLoad _sign_desc[] = {

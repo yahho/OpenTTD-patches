@@ -13,7 +13,7 @@
 #include "../gamelog_internal.h"
 #include "../fios.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 
 static const SaveLoad _glog_action_desc[] = {
 	SLE_VAR(LoggedAction, tick,              SLE_UINT16),

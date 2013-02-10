@@ -13,7 +13,7 @@
 #include "../vehicle_base.h"
 #include "../station_base.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 
 /**
  * Savegame conversion for cargopackets.

@@ -12,7 +12,7 @@
 #include "../stdafx.h"
 #include "../subsidy_base.h"
 
-#include "saveload.h"
+#include "saveload_buffer.h"
 
 static const SaveLoad _subsidies_desc[] = {
 	    SLE_VAR(Subsidy, cargo_type, SLE_UINT8),
