@@ -309,9 +309,10 @@ bool LoadOldSaveGame(const char *file, SavegameTypeVersion *stv, SlErrorData *e)
 		game_loaded = false;
 	}
 
+	fclose(ls.file);
+
 	if (!game_loaded) {
 		e->str = STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED;
-		fclose(ls.file);
 		return false;
 	}
 
