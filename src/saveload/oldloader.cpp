@@ -19,6 +19,7 @@
 #include "table/strings.h"
 
 #include "saveload_internal.h"
+#include "saveload_error.h"
 #include "oldloader.h"
 
 #include <exception>
@@ -274,7 +275,7 @@ static SavegameType DetermineOldSavegameType(FILE *f, char *title, const char *l
 
 typedef bool LoadOldMainProc(LoadgameState *ls);
 
-bool LoadOldSaveGame(const char *file, SavegameTypeVersion *stv)
+bool LoadOldSaveGame(const char *file, SavegameTypeVersion *stv, SlErrorData *e)
 {
 	LoadgameState ls;
 
@@ -287,6 +288,7 @@ bool LoadOldSaveGame(const char *file, SavegameTypeVersion *stv)
 
 	if (ls.file == NULL) {
 		DEBUG(oldloader, 0, "Cannot open file '%s'", file);
+		e->str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE;
 		return false;
 	}
 
@@ -308,7 +310,7 @@ bool LoadOldSaveGame(const char *file, SavegameTypeVersion *stv)
 	}
 
 	if (!game_loaded) {
-		SetSaveLoadError(STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED);
+		e->str = STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED;
 		fclose(ls.file);
 		return false;
 	}
