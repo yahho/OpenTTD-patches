@@ -943,25 +943,32 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 
 	assert((mode == SL_LOAD) || (mode == SLA_LOAD_CHECK));
 
-	LoadFilter *chain = NULL;
+	FILE *fh = FioFOpenFile(filename, "rb", sb);
+
+	/* Make it a little easier to load savegames from the console */
+	if (fh == NULL) fh = FioFOpenFile(filename, "rb", SAVE_DIR);
+	if (fh == NULL) fh = FioFOpenFile(filename, "rb", BASE_DIR);
+	if (fh == NULL) fh = FioFOpenFile(filename, "rb", SCENARIO_DIR);
+
+	if (fh == NULL) {
+		/* Distinguish between loading into _load_check_data vs. normal load. */
+		if (mode == SL_LOAD_CHECK) {
+			_load_check_data.error.str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE;
+		} else {
+			_sl.error.str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE;
+			DEBUG(sl, 0, "%s", GetSaveLoadErrorString() + 3);
+		}
+
+		return false;
+	}
+
+	/* LOAD game */
+	DEBUG(desync, 1, "load: %s", filename);
+
+	LoadFilter *chain = new FileReader(fh);
 	bool res;
 
 	try {
-		FILE *fh = FioFOpenFile(filename, "rb", sb);
-
-		/* Make it a little easier to load savegames from the console */
-		if (fh == NULL) fh = FioFOpenFile(filename, "rb", SAVE_DIR);
-		if (fh == NULL) fh = FioFOpenFile(filename, "rb", BASE_DIR);
-		if (fh == NULL) fh = FioFOpenFile(filename, "rb", SCENARIO_DIR);
-
-		if (fh == NULL) {
-			throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
-		}
-
-		chain = new FileReader(fh);
-
-		/* LOAD game */
-		DEBUG(desync, 1, "load: %s", filename);
 		res = DoLoad(&chain, mode == SL_LOAD_CHECK);
 	} catch (SlException e) {
 		/* Distinguish between loading into _load_check_data vs. normal load. */
