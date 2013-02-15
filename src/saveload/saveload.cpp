@@ -643,6 +643,9 @@ static void SaveFileError()
  */
 static bool SaveFileToDisk(bool threaded)
 {
+	AsyncSaveFinishProc asfp = SaveFileDone;
+	bool res;
+
 	try {
 		byte compression;
 		const SaveLoadFormat *fmt = GetSavegameFormat(_savegame_format, &compression);
@@ -654,21 +657,9 @@ static bool SaveFileToDisk(bool threaded)
 		_sl.sf = fmt->init_write(_sl.sf, compression);
 		_sl.dumper->Flush(_sl.sf);
 
-		ClearSaveLoadState();
-
-		if (threaded) {
-			SetAsyncSaveFinish(SaveFileDone);
-		} else {
-			SaveFileDone();
-		}
-
-		return true;
+		res = true;
 	} catch (SlException e) {
 		_sl.error = e.error;
-
-		ClearSaveLoadState();
-
-		AsyncSaveFinishProc asfp = SaveFileDone;
 
 		/* We don't want to shout when saving is just
 		 * cancelled due to a client disconnecting. */
@@ -678,13 +669,18 @@ static bool SaveFileToDisk(bool threaded)
 			asfp = SaveFileError;
 		}
 
-		if (threaded) {
-			SetAsyncSaveFinish(asfp);
-		} else {
-			asfp();
-		}
-		return false;
+		res = false;
 	}
+
+	ClearSaveLoadState();
+
+	if (threaded) {
+		SetAsyncSaveFinish(asfp);
+	} else {
+		asfp();
+	}
+
+	return res;
 }
 
 /** Thread run function for saving the file to disk. */
