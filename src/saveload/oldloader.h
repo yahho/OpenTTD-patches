@@ -26,8 +26,8 @@ struct LoadgameState {
 	bool decoding;
 	byte decode_char;
 
-	uint buffer_count;
-	uint buffer_cur;
+	size_t buffer_count;
+	size_t buffer_cur;
 	byte buffer[BUFFER_SIZE];
 
 	uint total_read;

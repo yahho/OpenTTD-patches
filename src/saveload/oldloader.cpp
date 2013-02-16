@@ -53,7 +53,7 @@ static byte ReadByteFromFile(LoadgameState *ls)
 	if (ls->buffer_cur >= ls->buffer_count) {
 
 		/* Read some new bytes from the file */
-		int count = (int)fread(ls->buffer, 1, BUFFER_SIZE, ls->file);
+		size_t count = fread(ls->buffer, 1, BUFFER_SIZE, ls->file);
 
 		/* We tried to read, but there is nothing in the file anymore.. */
 		if (count == 0) {
