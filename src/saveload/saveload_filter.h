@@ -33,6 +33,41 @@ struct LoadFilter {
 	virtual void Reset() = 0;
 };
 
+/** Yes, simply reading from a file. */
+struct FileReader : LoadFilter {
+	FILE *file; ///< The file to read from.
+	long begin; ///< The begin of the file.
+
+	/**
+	 * Create the file reader, so it reads from a specific file.
+	 * @param file The file to read from.
+	 */
+	FileReader(FILE *file) : LoadFilter(), file(file), begin(ftell(file))
+	{
+	}
+
+	/** Make sure everything is cleaned up. */
+	~FileReader()
+	{
+		if (this->file != NULL) fclose(this->file);
+		this->file = NULL;
+	}
+
+	/* virtual */ size_t Read(byte *buf, size_t size)
+	{
+		/* We're in the process of shutting down, i.e. in "failure" mode. */
+		if (this->file == NULL) return 0;
+
+		return fread(buf, 1, size, this->file);
+	}
+
+	/* virtual */ void Reset()
+	{
+		clearerr(this->file);
+		fseek(this->file, this->begin, SEEK_SET);
+	}
+};
+
 /** Filter for chaining into another filter. */
 struct ChainLoadFilter : LoadFilter {
 	/** Chained to the (savegame) filters. */
