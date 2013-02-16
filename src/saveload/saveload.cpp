@@ -867,27 +867,46 @@ static bool DoLoad(LoadFilter **chain, int mode)
 }
 
 /**
- * Load the game using a (reader) filter.
+ * Load a game using a (reader) filter in the given mode.
  * @param reader   The filter to read the savegame from.
+ * @param mode Load mode. Load can also be a TTD(Patch) game. Use #SL_LOAD, #SL_OLD_LOAD or #SL_LOAD_CHECK.
  * @return Return whether loading was successful
  */
-bool LoadWithFilter(LoadFilter *reader)
+static bool LoadWithFilterMode(LoadFilter *reader, int mode)
 {
 	LoadFilter *chain = reader;
 	bool res;
 
 	try {
-		res = DoLoad(&chain, SL_LOAD);
+		res = DoLoad(&chain, mode);
 	} catch (SlException e) {
-		_sl.error = e.error;
+		/* Distinguish between loading into _load_check_data vs. normal load. */
+		if (mode == SL_LOAD_CHECK) {
+			_load_check_data.error = e.error;
+		} else {
+			_sl.error = e.error;
 
-		SlNullPointers();
+			SlNullPointers();
+
+			/* Skip the "colour" character */
+			DEBUG(sl, 0, "%s", GetSaveLoadErrorString() + 3);
+		}
 
 		res = false;
 	}
 
 	delete chain;
 	return res;
+}
+
+/**
+ * Load the game using a (reader) filter.
+ * @param reader   The filter to read the savegame from.
+ * @return Return whether loading was successful
+ */
+bool LoadWithFilter(LoadFilter *reader)
+{
+	return LoadWithFilterMode(reader, SL_LOAD);
 }
 
 /**
@@ -941,30 +960,7 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 		_load_check_data.checkable = true;
 	}
 
-	LoadFilter *chain = new FileReader(fh);
-	bool res;
-
-	try {
-		res = DoLoad(&chain, mode);
-	} catch (SlException e) {
-		/* Distinguish between loading into _load_check_data vs. normal load. */
-		if (mode == SL_LOAD_CHECK) {
-			_load_check_data.error = e.error;
-		} else {
-			_sl.error = e.error;
-
-			SlNullPointers();
-		}
-
-		/* Skip the "colour" character */
-		if (mode != SL_LOAD_CHECK) DEBUG(sl, 0, "%s", GetSaveLoadErrorString() + 3);
-
-		/* A loader exception!! reinitialize all variables to prevent crash! */
-		res = false;
-	}
-
-	delete chain;
-	return res;
+	return LoadWithFilterMode(new FileReader(fh), mode);
 }
 
 /** Do a save when exiting the game (_settings_client.gui.autosave_on_exit) */
