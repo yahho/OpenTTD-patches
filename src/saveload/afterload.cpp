@@ -58,8 +58,6 @@
 #include "saveload_internal.h"
 #include "saveload_error.h"
 
-#include <signal.h>
-
 extern Company *DoStartupNewCompany(bool is_ai, CompanyID company = INVALID_COMPANY);
 
 /**
@@ -270,128 +268,6 @@ static void InitializeWindowsAndCaches()
 	BuildOwnerLegend();
 }
 
-typedef void (CDECL *SignalHandlerPointer)(int);
-static SignalHandlerPointer _prev_segfault = NULL;
-static SignalHandlerPointer _prev_abort    = NULL;
-static SignalHandlerPointer _prev_fpe      = NULL;
-
-static void CDECL HandleSavegameLoadCrash(int signum);
-
-/**
- * Replaces signal handlers of SIGSEGV and SIGABRT
- * and stores pointers to original handlers in memory.
- */
-static void SetSignalHandlers()
-{
-	_prev_segfault = signal(SIGSEGV, HandleSavegameLoadCrash);
-	_prev_abort    = signal(SIGABRT, HandleSavegameLoadCrash);
-	_prev_fpe      = signal(SIGFPE,  HandleSavegameLoadCrash);
-}
-
-/**
- * Resets signal handlers back to original handlers.
- */
-static void ResetSignalHandlers()
-{
-	signal(SIGSEGV, _prev_segfault);
-	signal(SIGABRT, _prev_abort);
-	signal(SIGFPE,  _prev_fpe);
-}
-
-/**
- * Try to find the overridden GRF identifier of the given GRF.
- * @param c the GRF to get the 'previous' version of.
- * @return the GRF identifier or \a c if none could be found.
- */
-static const GRFIdentifier *GetOverriddenIdentifier(const GRFConfig *c)
-{
-	const LoggedAction *la = &_gamelog_action[_gamelog_actions - 1];
-	if (la->at != GLAT_LOAD) return &c->ident;
-
-	const LoggedChange *lcend = &la->change[la->changes];
-	for (const LoggedChange *lc = la->change; lc != lcend; lc++) {
-		if (lc->ct == GLCT_GRFCOMPAT && lc->grfcompat.grfid == c->ident.grfid) return &lc->grfcompat;
-	}
-
-	return &c->ident;
-}
-
-/** Was the saveload crash because of missing NewGRFs? */
-static bool _saveload_crash_with_missing_newgrfs = false;
-
-/**
- * Did loading the savegame cause a crash? If so,
- * were NewGRFs missing?
- * @return when the saveload crashed due to missing NewGRFs.
- */
-bool SaveloadCrashWithMissingNewGRFs()
-{
-	return _saveload_crash_with_missing_newgrfs;
-}
-
-/**
- * Signal handler used to give a user a more useful report for crashes during
- * the savegame loading process; especially when there's problems with the
- * NewGRFs that are required by the savegame.
- * @param signum received signal
- */
-static void CDECL HandleSavegameLoadCrash(int signum)
-{
-	ResetSignalHandlers();
-
-	char buffer[8192];
-	char *p = buffer;
-	p += seprintf(p, lastof(buffer), "Loading your savegame caused OpenTTD to crash.\n");
-
-	for (const GRFConfig *c = _grfconfig; !_saveload_crash_with_missing_newgrfs && c != NULL; c = c->next) {
-		_saveload_crash_with_missing_newgrfs = HasBit(c->flags, GCF_COMPATIBLE) || c->status == GCS_NOT_FOUND;
-	}
-
-	if (_saveload_crash_with_missing_newgrfs) {
-		p += seprintf(p, lastof(buffer),
-			"This is most likely caused by a missing NewGRF or a NewGRF that\n"
-			"has been loaded as replacement for a missing NewGRF. OpenTTD\n"
-			"cannot easily determine whether a replacement NewGRF is of a newer\n"
-			"or older version.\n"
-			"It will load a NewGRF with the same GRF ID as the missing NewGRF.\n"
-			"This means that if the author makes incompatible NewGRFs with the\n"
-			"same GRF ID OpenTTD cannot magically do the right thing. In most\n"
-			"cases OpenTTD will load the savegame and not crash, but this is an\n"
-			"exception.\n"
-			"Please load the savegame with the appropriate NewGRFs installed.\n"
-			"The missing/compatible NewGRFs are:\n");
-
-		for (const GRFConfig *c = _grfconfig; c != NULL; c = c->next) {
-			if (HasBit(c->flags, GCF_COMPATIBLE)) {
-				const GRFIdentifier *replaced = GetOverriddenIdentifier(c);
-				char buf[40];
-				md5sumToString(buf, lastof(buf), replaced->md5sum);
-				p += seprintf(p, lastof(buffer), "NewGRF %08X (checksum %s) not found.\n  Loaded NewGRF \"%s\" with same GRF ID instead.\n", BSWAP32(c->ident.grfid), buf, c->filename);
-			}
-			if (c->status == GCS_NOT_FOUND) {
-				char buf[40];
-				md5sumToString(buf, lastof(buf), c->ident.md5sum);
-				p += seprintf(p, lastof(buffer), "NewGRF %08X (%s) not found; checksum %s.\n", BSWAP32(c->ident.grfid), c->filename, buf);
-			}
-		}
-	} else {
-		p += seprintf(p, lastof(buffer),
-			"This is probably caused by a corruption in the savegame.\n"
-			"Please file a bug report and attach this savegame.\n");
-	}
-
-	ShowInfo(buffer);
-
-	SignalHandlerPointer call = NULL;
-	switch (signum) {
-		case SIGSEGV: call = _prev_segfault; break;
-		case SIGABRT: call = _prev_abort; break;
-		case SIGFPE:  call = _prev_fpe; break;
-		default: NOT_REACHED();
-	}
-	if (call != NULL) call(signum);
-}
-
 /**
  * Tries to change owner of this rail tile to a valid owner. In very old versions it could happen that
  * a rail track had an invalid owner. When conversion isn't possible, track is removed.
@@ -481,8 +357,6 @@ static uint FixVehicleInclination(Vehicle *v, Direction dir)
  */
 bool AfterLoadGame(const SavegameTypeVersion *stv)
 {
-	SetSignalHandlers();
-
 	TileIndex map_size = MapSize();
 
 	extern TileIndex _cur_tileloop_tile; // From landscape.cpp.
@@ -501,8 +375,6 @@ bool AfterLoadGame(const SavegameTypeVersion *stv)
 	} else if (_network_dedicated && (_pause_mode & PM_PAUSED_ERROR) != 0) {
 		DEBUG(net, 0, "The loading savegame was paused due to an error state.");
 		DEBUG(net, 0, "  The savegame cannot be used for multiplayer!");
-		/* Restore the signals */
-		ResetSignalHandlers();
 		return false;
 	} else if (!_networking || _network_server) {
 		/* If we are in single player, i.e. not networking, and loading the
@@ -619,8 +491,6 @@ bool AfterLoadGame(const SavegameTypeVersion *stv)
 
 	if (_networking && gcf_res != GLC_ALL_GOOD) {
 		SetSaveLoadError(STR_NETWORK_ERROR_CLIENT_NEWGRF_MISMATCH);
-		/* Restore the signals */
-		ResetSignalHandlers();
 		return false;
 	}
 
@@ -725,8 +595,6 @@ bool AfterLoadGame(const SavegameTypeVersion *stv)
 	/* make sure there is a town in the game */
 	if (_game_mode == GM_NORMAL && Town::GetNumItems() == 0) {
 		SetSaveLoadError(STR_ERROR_NO_TOWN_IN_SCENARIO);
-		/* Restore the signals */
-		ResetSignalHandlers();
 		return false;
 	}
 
@@ -798,8 +666,6 @@ bool AfterLoadGame(const SavegameTypeVersion *stv)
 						st = STATION_BUS;
 						SetStationGfx(t, gfx - 170 + GFX_TRUCK_BUS_DRIVETHROUGH_OFFSET);
 					} else {
-						/* Restore the signals */
-						ResetSignalHandlers();
 						return false;
 					}
 					SB(_m[t].m6, 3, 3, st);
@@ -2853,8 +2719,6 @@ bool AfterLoadGame(const SavegameTypeVersion *stv)
 	GamelogPrintDebug(1);
 
 	InitializeWindowsAndCaches();
-	/* Restore the signals */
-	ResetSignalHandlers();
 
 	AfterLoadLinkGraphs();
 	return true;
