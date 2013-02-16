@@ -355,7 +355,7 @@ static uint FixVehicleInclination(Vehicle *v, Direction dir)
  * load older savegames and to fill the caches for various purposes.
  * @return True iff conversion went without a problem.
  */
-bool AfterLoadGame(const SavegameTypeVersion *stv)
+void AfterLoadGame(const SavegameTypeVersion *stv)
 {
 	TileIndex map_size = MapSize();
 
@@ -375,7 +375,7 @@ bool AfterLoadGame(const SavegameTypeVersion *stv)
 	} else if (_network_dedicated && (_pause_mode & PM_PAUSED_ERROR) != 0) {
 		DEBUG(net, 0, "The loading savegame was paused due to an error state.");
 		DEBUG(net, 0, "  The savegame cannot be used for multiplayer!");
-		return false;
+		throw SlCorrupt("Savegame paused due to an error state");
 	} else if (!_networking || _network_server) {
 		/* If we are in single player, i.e. not networking, and loading the
 		 * savegame or we are loading the savegame as network server we do
@@ -490,8 +490,7 @@ bool AfterLoadGame(const SavegameTypeVersion *stv)
 	}
 
 	if (_networking && gcf_res != GLC_ALL_GOOD) {
-		SetSaveLoadError(STR_NETWORK_ERROR_CLIENT_NEWGRF_MISMATCH);
-		return false;
+		throw SlException(STR_NETWORK_ERROR_CLIENT_NEWGRF_MISMATCH);
 	}
 
 	switch (gcf_res) {
@@ -594,8 +593,7 @@ bool AfterLoadGame(const SavegameTypeVersion *stv)
 
 	/* make sure there is a town in the game */
 	if (_game_mode == GM_NORMAL && Town::GetNumItems() == 0) {
-		SetSaveLoadError(STR_ERROR_NO_TOWN_IN_SCENARIO);
-		return false;
+		throw SlException(STR_ERROR_NO_TOWN_IN_SCENARIO);
 	}
 
 	/* The void tiles on the southern border used to belong to a wrong class (pre 4.3).
@@ -666,7 +664,7 @@ bool AfterLoadGame(const SavegameTypeVersion *stv)
 						st = STATION_BUS;
 						SetStationGfx(t, gfx - 170 + GFX_TRUCK_BUS_DRIVETHROUGH_OFFSET);
 					} else {
-						return false;
+						throw SlCorrupt("Invalid station tile");
 					}
 					SB(_m[t].m6, 3, 3, st);
 					break;
@@ -2721,7 +2719,6 @@ bool AfterLoadGame(const SavegameTypeVersion *stv)
 	InitializeWindowsAndCaches();
 
 	AfterLoadLinkGraphs();
-	return true;
 }
 
 /**
