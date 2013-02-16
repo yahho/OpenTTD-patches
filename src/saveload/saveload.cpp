@@ -728,16 +728,14 @@ bool SaveGame(const char *filename, Subdirectory sb, bool threaded)
 }
 
 /**
- * Actually perform the loading of a "non-old" savegame.
- * @param chain      The filter chain head to read the savegame from.
- * @param load_check Whether to perform the checking ("preview") or actually load the game.
- * @return Return whether loading was successful
+ * Determine version of format of a (non-old) savegame.
+ * @param chain The filter chain head to read the savegame from, to which a chain filter will be prepended
+ * @param stv   The SavegameTypeVersion object in which to store the savegame version.
  */
-static bool DoLoad(LoadFilter **chain, bool load_check)
+static void LoadSavegameFormat(LoadFilter **chain, SavegameTypeVersion *stv)
 {
-	SavegameTypeVersion sl_version;
-	sl_version.type = SGT_OTTD;
-	sl_version.ttdp_version = 0;
+	stv->type = SGT_OTTD;
+	stv->ttdp_version = 0;
 
 	uint32 hdr[2];
 	if ((*chain)->Read((byte*)hdr, sizeof(hdr)) != sizeof(hdr)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
@@ -747,22 +745,22 @@ static bool DoLoad(LoadFilter **chain, bool load_check)
 
 	if (fmt != NULL) {
 		/* check version number */
-		sl_version.version = TO_BE32(hdr[1]) >> 16;
+		stv->version = TO_BE32(hdr[1]) >> 16;
 		/* Minor is not used anymore from version 18.0, but it is still needed
 		 * in versions before that (4 cases) which can't be removed easy.
 		 * Therefore it is loaded, but never saved (or, it saves a 0 in any scenario). */
-		sl_version.minor_version = (TO_BE32(hdr[1]) >> 8) & 0xFF;
+		stv->minor_version = (TO_BE32(hdr[1]) >> 8) & 0xFF;
 
-		DEBUG(sl, 1, "Loading savegame version %d", sl_version.version);
+		DEBUG(sl, 1, "Loading savegame version %d", stv->version);
 
 		/* Is the version higher than the current? */
-		if (sl_version.version > SAVEGAME_VERSION) throw SlException(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
+		if (stv->version > SAVEGAME_VERSION) throw SlException(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
 	} else {
 		/* No loader found, treat as version 0 and use LZO format */
 		DEBUG(sl, 0, "Unknown savegame type, trying to load it as the buggy format");
 		(*chain)->Reset();
-		sl_version.version = 0;
-		sl_version.minor_version = 0;
+		stv->version = 0;
+		stv->minor_version = 0;
 
 		/* Try to find the LZO savegame format. */
 		fmt = GetLZO0SavegameFormat();
@@ -776,6 +774,19 @@ static bool DoLoad(LoadFilter **chain, bool load_check)
 	}
 
 	*chain = fmt->init_load(*chain);
+}
+
+/**
+ * Actually perform the loading of a "non-old" savegame.
+ * @param chain      The filter chain head to read the savegame from.
+ * @param load_check Whether to perform the checking ("preview") or actually load the game.
+ * @return Return whether loading was successful
+ */
+static bool DoLoad(LoadFilter **chain, bool load_check)
+{
+	SavegameTypeVersion sl_version;
+
+	LoadSavegameFormat(chain, &sl_version);
 
 	if (!load_check) {
 		/* Old maps were hardcoded to 256x256 and thus did not contain
