@@ -739,13 +739,6 @@ static bool DoLoad(LoadFilter **chain, bool load_check)
 	sl_version.type = SGT_OTTD;
 	sl_version.ttdp_version = 0;
 
-	if (load_check) {
-		/* Clear previous check data */
-		_load_check_data.Clear();
-		/* Mark SL_LOAD_CHECK as supported for this savegame. */
-		_load_check_data.checkable = true;
-	}
-
 	uint32 hdr[2];
 	if ((*chain)->Read((byte*)hdr, sizeof(hdr)) != sizeof(hdr)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
 
@@ -938,6 +931,13 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 
 	/* LOAD game */
 	DEBUG(desync, 1, "load: %s", filename);
+
+	if (mode == SL_LOAD_CHECK) {
+		/* Clear previous check data */
+		_load_check_data.Clear();
+		/* Mark SL_LOAD_CHECK as supported for this savegame. */
+		_load_check_data.checkable = true;
+	}
 
 	LoadFilter *chain = new FileReader(fh);
 	bool res;
