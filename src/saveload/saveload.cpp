@@ -779,16 +779,21 @@ static void LoadSavegameFormat(LoadFilter **chain, SavegameTypeVersion *stv)
 /**
  * Actually perform the loading of a "non-old" savegame.
  * @param chain      The filter chain head to read the savegame from.
- * @param load_check Whether to perform the checking ("preview") or actually load the game.
+ * @param mode Load mode. Load can also be a TTD(Patch) game. Use #SL_LOAD, #SL_OLD_LOAD or #SL_LOAD_CHECK.
  * @return Return whether loading was successful
  */
-static bool DoLoad(LoadFilter **chain, bool load_check)
+static bool DoLoad(LoadFilter **chain, int mode)
 {
 	SavegameTypeVersion sl_version;
 
-	LoadSavegameFormat(chain, &sl_version);
+	if (mode == SL_OLD_LOAD) {
+		sl_version.version = 0;
+		sl_version.minor_version = 0;
+	} else {
+		LoadSavegameFormat(chain, &sl_version);
+	}
 
-	if (!load_check) {
+	if (mode != SL_LOAD_CHECK) {
 		/* Old maps were hardcoded to 256x256 and thus did not contain
 		 * any mapsize information. Pre-initialize to 256x256 to not to
 		 * confuse old games */
@@ -796,45 +801,56 @@ static bool DoLoad(LoadFilter **chain, bool load_check)
 
 		GamelogReset();
 
+		/*
+		 * TTD/TTO savegames have no NewGRFs, and TTDP savegames have
+		 * them, but the NewGRF list will be made in LoadOldSaveGame,
+		 * and it has to be cleared here.
+		 *
+		 * For OTTD savegames, the situation is more complex.
+		 * NewGRFs were introduced between 0.3,4 and 0.3.5, which both
+		 * shared savegame version 4. Anything before that 'obviously'
+		 * does not have any NewGRFs. Between the introduction and
+		 * savegame version 41 (just before 0.5) the NewGRF settings
+		 * were not stored in the savegame and they were loaded by
+		 * using the settings from the main menu.
+		 * So, to recap:
+		 * - savegame version  <  4:  do not load any NewGRFs.
+		 * - savegame version >= 41:  load NewGRFs from savegame, which is
+		 *                            already done at this stage by
+		 *                            overwriting the main menu settings.
+		 * - other savegame versions: use main menu settings.
+		 *
+		 * This means that users *can* crash savegame version 4..40
+		 * savegames if they set incompatible NewGRFs in the main menu,
+		 * but can't crash anymore for savegame version < 4 savegames.
+		 *
+		 * Note: this is done here because AfterLoadGame is also called
+		 * for TTO/TTD/TTDP savegames which have their own NewGRF logic.
+		 */
 		if (IsSavegameVersionBefore(&sl_version, 4)) {
-			/*
-			 * NewGRFs were introduced between 0.3,4 and 0.3.5, which both
-			 * shared savegame version 4. Anything before that 'obviously'
-			 * does not have any NewGRFs. Between the introduction and
-			 * savegame version 41 (just before 0.5) the NewGRF settings
-			 * were not stored in the savegame and they were loaded by
-			 * using the settings from the main menu.
-			 * So, to recap:
-			 * - savegame version  <  4:  do not load any NewGRFs.
-			 * - savegame version >= 41:  load NewGRFs from savegame, which is
-			 *                            already done at this stage by
-			 *                            overwriting the main menu settings.
-			 * - other savegame versions: use main menu settings.
-			 *
-			 * This means that users *can* crash savegame version 4..40
-			 * savegames if they set incompatible NewGRFs in the main menu,
-			 * but can't crash anymore for savegame version < 4 savegames.
-			 *
-			 * Note: this is done here because AfterLoadGame is also called
-			 * for TTO/TTD/TTDP savegames which have their own NewGRF logic.
-			 */
 			ClearGRFConfigList(&_grfconfig);
 		}
 	}
 
-	/* Load chunks. */
-	LoadBuffer reader(*chain, &sl_version);
-	SlLoadChunks(&reader, load_check);
+	if (mode == SL_OLD_LOAD) {
+		if (!LoadOldSaveGame(*chain, &sl_version, &_sl.error)) return false;
+	} else {
+		/* Load chunks. */
+		LoadBuffer reader(*chain, &sl_version);
+		SlLoadChunks(&reader, mode == SL_LOAD_CHECK);
 
-	if (load_check) {
+		/* Resolve references */
+		if (mode != SL_LOAD_CHECK) {
+			SlFixPointers(&sl_version);
+		}
+	}
+
+	if (mode == SL_LOAD_CHECK) {
 		/* The only part from AfterLoadGame() we need */
 		_load_check_data.grf_compatibility = IsGoodGRFConfigList(_load_check_data.grfconfig);
 
 		_load_check_data.sl_version = sl_version;
 	} else {
-		/* Resolve references */
-		SlFixPointers(&sl_version);
-
 		GamelogStartAction(GLAT_LOAD);
 
 		/* After loading fix up savegame for any internal changes that
@@ -861,7 +877,7 @@ bool LoadWithFilter(LoadFilter *reader)
 	bool res;
 
 	try {
-		res = DoLoad(&chain, false);
+		res = DoLoad(&chain, SL_LOAD);
 	} catch (SlException e) {
 		_sl.error = e.error;
 
@@ -913,35 +929,10 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 		return false;
 	}
 
-	if (mode == SL_OLD_LOAD) {
-		SavegameTypeVersion sl_version;
-
-		FileReader reader(fh);
-
-		InitializeGame(256, 256, true, true); // set a mapsize of 256x256 for TTDPatch games or it might get confused
-
-		/* TTD/TTO savegames have no NewGRFs, TTDP savegame have them
-		 * and if so a new NewGRF list will be made in LoadOldSaveGame.
-		 * Note: this is done here because AfterLoadGame is also called
-		 * for OTTD savegames which have their own NewGRF logic. */
-		ClearGRFConfigList(&_grfconfig);
-		GamelogReset();
-		if (!LoadOldSaveGame(&reader, &sl_version, &_sl.error)) return false;
-		sl_version.version = 0;
-		sl_version.minor_version = 0;
-		GamelogStartAction(GLAT_LOAD);
-		if (!AfterLoadGame(&sl_version)) {
-			GamelogStopAction();
-			return false;
-		}
-		GamelogStopAction();
-		return true;
-	}
-
-	assert((mode == SL_LOAD) || (mode == SLA_LOAD_CHECK));
-
 	/* LOAD game */
-	DEBUG(desync, 1, "load: %s", filename);
+	if (mode != SL_OLD_LOAD) {
+		DEBUG(desync, 1, "load: %s", filename);
+	}
 
 	if (mode == SL_LOAD_CHECK) {
 		/* Clear previous check data */
@@ -954,7 +945,7 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 	bool res;
 
 	try {
-		res = DoLoad(&chain, mode == SL_LOAD_CHECK);
+		res = DoLoad(&chain, mode);
 	} catch (SlException e) {
 		/* Distinguish between loading into _load_check_data vs. normal load. */
 		if (mode == SL_LOAD_CHECK) {
