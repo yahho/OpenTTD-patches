@@ -550,12 +550,6 @@ static void SaveFileDone()
 	_sl.saveinprogress = false;
 }
 
-/** Set the error message from outside of the actual loading/saving of the game (AfterLoadGame and friends) */
-void SetSaveLoadError(StringID str)
-{
-	_sl.error.str = str;
-}
-
 /** Get the string representation of the error message */
 const char *GetSaveLoadErrorString()
 {
