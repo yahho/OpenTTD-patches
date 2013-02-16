@@ -521,7 +521,7 @@ struct FileWriter : SaveFilter {
 /* actual loader/saver function */
 void InitializeGame(uint size_x, uint size_y, bool reset_date, bool reset_settings);
 extern bool AfterLoadGame(const SavegameTypeVersion *stv);
-extern bool LoadOldSaveGame(const char *file, SavegameTypeVersion *stv, SlErrorData *e);
+extern bool LoadOldSaveGame(LoadFilter *reader, SavegameTypeVersion *stv, SlErrorData *e);
 
 /**
  * Update the gui accordingly when starting saving
@@ -886,6 +886,16 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 	if (mode == SL_OLD_LOAD) {
 		SavegameTypeVersion sl_version;
 
+		FILE *fh  = FioFOpenFile(filename, "rb", NO_DIRECTORY);
+
+		if (fh == NULL) {
+			DEBUG(oldloader, 0, "Cannot open file '%s'", filename);
+			_sl.error.str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE;
+			return false;
+		}
+
+		FileReader reader(fh);
+
 		InitializeGame(256, 256, true, true); // set a mapsize of 256x256 for TTDPatch games or it might get confused
 
 		/* TTD/TTO savegames have no NewGRFs, TTDP savegame have them
@@ -894,7 +904,7 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 		 * for OTTD savegames which have their own NewGRF logic. */
 		ClearGRFConfigList(&_grfconfig);
 		GamelogReset();
-		if (!LoadOldSaveGame(filename, &sl_version, &_sl.error)) return false;
+		if (!LoadOldSaveGame(&reader, &sl_version, &_sl.error)) return false;
 		sl_version.version = 0;
 		sl_version.minor_version = 0;
 		GamelogStartAction(GLAT_LOAD);

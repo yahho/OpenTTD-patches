@@ -20,6 +20,7 @@
 
 #include "saveload_internal.h"
 #include "saveload_error.h"
+#include "saveload_filter.h"
 #include "oldloader.h"
 
 #include <exception>
@@ -53,7 +54,7 @@ static byte ReadByteFromFile(LoadgameState *ls)
 	if (ls->buffer_cur >= ls->buffer_count) {
 
 		/* Read some new bytes from the file */
-		size_t count = fread(ls->buffer, 1, BUFFER_SIZE, ls->file);
+		size_t count = ls->reader->Read(ls->buffer, BUFFER_SIZE);
 
 		/* We tried to read, but there is nothing in the file anymore.. */
 		if (count == 0) {
@@ -186,8 +187,10 @@ bool LoadChunk(LoadgameState *ls, void *base, const OldChunks *chunks)
  * Initialize some data before reading
  *
  */
-static void InitLoading(LoadgameState *ls, SavegameTypeVersion *stv)
+static void InitLoading(LoadgameState *ls, LoadFilter *reader, SavegameTypeVersion *stv)
 {
+	ls->reader       = reader;
+
 	ls->chunk_size   = 0;
 	ls->total_read   = 0;
 
@@ -228,11 +231,11 @@ static bool VerifyOldNameChecksum(char *title, uint len)
 	return sum == sum2;
 }
 
-static inline bool CheckOldSavegameType(FILE *f, char *temp, const char *last, uint len)
+static inline bool CheckOldSavegameType(LoadFilter *reader, char *temp, const char *last, uint len)
 {
 	assert(last - temp + 1 >= (int)len);
 
-	if (fread(temp, 1, len, f) != len) {
+	if (reader->Read((byte*)temp, len) != len) {
 		temp[0] = '\0'; // if reading failed, make the name empty
 		return false;
 	}
@@ -244,19 +247,17 @@ static inline bool CheckOldSavegameType(FILE *f, char *temp, const char *last, u
 	return ret;
 }
 
-static SavegameType DetermineOldSavegameType(FILE *f, char *title, const char *last)
+static SavegameType DetermineOldSavegameType(LoadFilter *reader, char *title, const char *last)
 {
 	assert_compile(TTD_HEADER_SIZE >= TTO_HEADER_SIZE);
 	char temp[TTD_HEADER_SIZE];
 
 	SavegameType type = SGT_TTO;
 
-	/* Can't fseek to 0 as in tar files that is not correct */
-	long pos = ftell(f);
-	if (!CheckOldSavegameType(f, temp, lastof(temp), TTO_HEADER_SIZE)) {
+	if (!CheckOldSavegameType(reader, temp, lastof(temp), TTO_HEADER_SIZE)) {
 		type = SGT_TTD;
-		fseek(f, pos, SEEK_SET);
-		if (!CheckOldSavegameType(f, temp, lastof(temp), TTD_HEADER_SIZE)) {
+		reader->Reset();
+		if (!CheckOldSavegameType(reader, temp, lastof(temp), TTD_HEADER_SIZE)) {
 			type = SGT_INVALID;
 		}
 	}
@@ -275,24 +276,15 @@ static SavegameType DetermineOldSavegameType(FILE *f, char *title, const char *l
 
 typedef bool LoadOldMainProc(LoadgameState *ls);
 
-bool LoadOldSaveGame(const char *file, SavegameTypeVersion *stv, SlErrorData *e)
+bool LoadOldSaveGame(LoadFilter *reader, SavegameTypeVersion *stv, SlErrorData *e)
 {
 	LoadgameState ls;
 
 	DEBUG(oldloader, 3, "Trying to load a TTD(Patch) savegame");
 
-	InitLoading(&ls, stv);
+	InitLoading(&ls, reader, stv);
 
-	/* Open file */
-	ls.file = FioFOpenFile(file, "rb", NO_DIRECTORY);
-
-	if (ls.file == NULL) {
-		DEBUG(oldloader, 0, "Cannot open file '%s'", file);
-		e->str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE;
-		return false;
-	}
-
-	ls.stv->type = DetermineOldSavegameType(ls.file, NULL, NULL);
+	ls.stv->type = DetermineOldSavegameType(ls.reader, NULL, NULL);
 
 	LoadOldMainProc *proc = NULL;
 
@@ -308,8 +300,6 @@ bool LoadOldSaveGame(const char *file, SavegameTypeVersion *stv, SlErrorData *e)
 	} catch (...) {
 		game_loaded = false;
 	}
-
-	fclose(ls.file);
 
 	if (!game_loaded) {
 		e->str = STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED;
@@ -330,7 +320,6 @@ void GetOldSaveGameName(const char *file, char *title, const char *last)
 		return;
 	}
 
-	DetermineOldSavegameType(f, title, last);
-
-	fclose(f);
+	FileReader reader(f);
+	DetermineOldSavegameType(&reader, title, last);
 }
