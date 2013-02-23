@@ -141,25 +141,6 @@ void SetWaterClassDependingOnSurroundings(TileIndex t, bool include_invalid_wate
 	}
 }
 
-/* since savegame version 4.1, exclusive transport rights are stored at towns */
-static void UpdateExclusiveRights()
-{
-	Town *t;
-
-	FOR_ALL_TOWNS(t) {
-		t->exclusivity = INVALID_COMPANY;
-	}
-
-	/* FIXME old exclusive rights status is not being imported (stored in s->blocked_months_obsolete)
-	 *   could be implemented this way:
-	 * 1.) Go through all stations
-	 *     Build an array town_blocked[ town_id ][ company_id ]
-	 *     that stores if at least one station in that town is blocked for a company
-	 * 2.) Go through that array, if you find a town that is not blocked for
-	 *     one company, but for all others, then give him exclusivity.
-	 */
-}
-
 static const byte convert_currency[] = {
 	 0,  1, 12,  8,  3,
 	10, 14, 19,  4,  5,
@@ -412,7 +393,22 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	}
 
 	/* from version 4.1 of the savegame, exclusive rights are stored at towns */
-	if (IsSavegameVersionBefore(stv, 4, 1)) UpdateExclusiveRights();
+	if (IsSavegameVersionBefore(stv, 4, 1)) {
+		Town *t;
+
+		FOR_ALL_TOWNS(t) {
+			t->exclusivity = INVALID_COMPANY;
+		}
+
+		/* FIXME old exclusive rights status is not being imported (stored in s->blocked_months_obsolete)
+		 *   could be implemented this way:
+		 * 1.) Go through all stations
+		 *     Build an array town_blocked[ town_id ][ company_id ]
+		 *     that stores if at least one station in that town is blocked for a company
+		 * 2.) Go through that array, if you find a town that is not blocked for
+		 *     one company, but for all others, then give him exclusivity.
+		 */
+	}
 
 	/* from version 4.2 of the savegame, currencies are in a different order */
 	if (IsSavegameVersionBefore(stv, 4, 2)) UpdateCurrencies();
