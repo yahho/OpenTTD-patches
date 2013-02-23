@@ -141,20 +141,6 @@ void SetWaterClassDependingOnSurroundings(TileIndex t, bool include_invalid_wate
 	}
 }
 
-static const byte convert_currency[] = {
-	 0,  1, 12,  8,  3,
-	10, 14, 19,  4,  5,
-	 9, 11, 13,  6, 17,
-	16, 22, 21,  7, 15,
-	18,  2, 20,
-};
-
-/* since savegame version 4.2 the currencies are arranged differently */
-static void UpdateCurrencies()
-{
-	_settings_game.locale.currency = convert_currency[_settings_game.locale.currency];
-}
-
 /* Up to revision 1413 the invisible tiles at the southern border have not been
  * MP_VOID, even though they should have. This is fixed by this function
  */
@@ -411,7 +397,17 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	}
 
 	/* from version 4.2 of the savegame, currencies are in a different order */
-	if (IsSavegameVersionBefore(stv, 4, 2)) UpdateCurrencies();
+	if (IsSavegameVersionBefore(stv, 4, 2)) {
+		static const byte convert_currency[] = {
+			 0,  1, 12,  8,  3,
+			10, 14, 19,  4,  5,
+			 9, 11, 13,  6, 17,
+			16, 22, 21,  7, 15,
+			18,  2, 20,
+		};
+
+		_settings_game.locale.currency = convert_currency[_settings_game.locale.currency];
+	}
 
 	/* In old version there seems to be a problem that water is owned by
 	 * OWNER_NONE, not OWNER_WATER.. I can't replicate it for the current
