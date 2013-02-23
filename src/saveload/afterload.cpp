@@ -68,14 +68,14 @@ extern Company *DoStartupNewCompany(bool is_ai, CompanyID company = INVALID_COMP
  * This as for example docks and shipdepots do not store
  * whether the tile used to be canal or 'normal' water.
  * @param t the tile to change.
- * @param include_invalid_water_class Also consider WATER_CLASS_INVALID, i.e. industry tiles on land
+ * @param allow_invalid Also consider WATER_CLASS_INVALID, i.e. industry tiles on land
  */
-void SetWaterClassDependingOnSurroundings(TileIndex t, bool include_invalid_water_class)
+static void GuessWaterClass(TileIndex t, bool allow_invalid)
 {
 	/* If the slope is not flat, we always assume 'land' (if allowed). Also for one-corner-raised-shores.
 	 * Note: Wrt. autosloping under industry tiles this is the most fool-proof behaviour. */
 	if (!IsTileFlat(t)) {
-		if (include_invalid_water_class) {
+		if (allow_invalid) {
 			SetWaterClass(t, WATER_CLASS_INVALID);
 			return;
 		} else {
@@ -127,7 +127,7 @@ void SetWaterClassDependingOnSurroundings(TileIndex t, bool include_invalid_wate
 		}
 	}
 
-	if (!has_water && !has_canal && !has_river && include_invalid_water_class) {
+	if (!has_water && !has_canal && !has_river && allow_invalid) {
 		SetWaterClass(t, WATER_CLASS_INVALID);
 		return;
 	}
@@ -1546,8 +1546,8 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (!IsTileFlat(t)) continue;
 
-			if (IsTileType(t, MP_WATER) && IsLock(t)) SetWaterClassDependingOnSurroundings(t, false);
-			if (IsTileType(t, MP_STATION) && (IsDock(t) || IsBuoy(t))) SetWaterClassDependingOnSurroundings(t, false);
+			if (IsTileType(t, MP_WATER) && IsLock(t)) GuessWaterClass(t, false);
+			if (IsTileType(t, MP_STATION) && (IsDock(t) || IsBuoy(t))) GuessWaterClass(t, false);
 		}
 	}
 
@@ -1644,11 +1644,11 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		for (TileIndex t = 0; t < map_size; t++) {
 			/* Set newly introduced WaterClass of industry tiles */
 			if (IsTileType(t, MP_STATION) && IsOilRig(t)) {
-				SetWaterClassDependingOnSurroundings(t, true);
+				GuessWaterClass(t, true);
 			}
 			if (IsTileType(t, MP_INDUSTRY)) {
 				if ((GetIndustrySpec(GetIndustryType(t))->behaviour & INDUSTRYBEH_BUILT_ONWATER) != 0) {
-					SetWaterClassDependingOnSurroundings(t, true);
+					GuessWaterClass(t, true);
 				} else {
 					SetWaterClass(t, WATER_CLASS_INVALID);
 				}
