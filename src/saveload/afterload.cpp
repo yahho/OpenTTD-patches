@@ -141,25 +141,6 @@ void SetWaterClassDependingOnSurroundings(TileIndex t, bool include_invalid_wate
 	}
 }
 
-static void ConvertTownOwner()
-{
-	for (TileIndex tile = 0; tile != MapSize(); tile++) {
-		switch (GetTileType(tile)) {
-			case MP_ROAD:
-				if (GB(_m[tile].m5, 4, 2) == ROAD_TILE_CROSSING && HasBit(_m[tile].m3, 7)) {
-					_m[tile].m3 = OWNER_TOWN;
-				}
-				/* FALL THROUGH */
-
-			case MP_TUNNELBRIDGE:
-				if (_m[tile].m1 & 0x80) SetTileOwner(tile, OWNER_TOWN);
-				break;
-
-			default: break;
-		}
-	}
-}
-
 /* since savegame version 4.1, exclusive transport rights are stored at towns */
 static void UpdateExclusiveRights()
 {
@@ -412,7 +393,23 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	}
 
 	/* in version 2.1 of the savegame, town owner was unified. */
-	if (IsSavegameVersionBefore(stv, 2, 1)) ConvertTownOwner();
+	if (IsSavegameVersionBefore(stv, 2, 1)) {
+		for (TileIndex tile = 0; tile < map_size; tile++) {
+			switch (GetTileType(tile)) {
+				case MP_ROAD:
+					if (GB(_m[tile].m5, 4, 2) == ROAD_TILE_CROSSING && HasBit(_m[tile].m3, 7)) {
+						_m[tile].m3 = OWNER_TOWN;
+					}
+					/* FALL THROUGH */
+
+				case MP_TUNNELBRIDGE:
+					if (_m[tile].m1 & 0x80) SetTileOwner(tile, OWNER_TOWN);
+					break;
+
+				default: break;
+			}
+		}
+	}
 
 	/* from version 4.1 of the savegame, exclusive rights are stored at towns */
 	if (IsSavegameVersionBefore(stv, 4, 1)) UpdateExclusiveRights();
