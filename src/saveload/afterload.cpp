@@ -141,17 +141,6 @@ void SetWaterClassDependingOnSurroundings(TileIndex t, bool include_invalid_wate
 	}
 }
 
-/* Up to revision 1413 the invisible tiles at the southern border have not been
- * MP_VOID, even though they should have. This is fixed by this function
- */
-static void UpdateVoidTiles()
-{
-	uint i;
-
-	for (i = 0; i < MapMaxY(); ++i) MakeVoid(i * MapSizeX() + MapMaxX());
-	for (i = 0; i < MapSizeX(); ++i) MakeVoid(MapSizeX() * MapMaxY() + i);
-}
-
 static inline RailType UpdateRailType(RailType rt, RailType min)
 {
 	return rt >= min ? (RailType)(rt + 1): rt;
@@ -589,7 +578,13 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	 * This problem appears in savegame version 21 too, see r3455. But after loading the
 	 * savegame and saving again, the buggy map array could be converted to new savegame
 	 * version. It didn't show up before r12070. */
-	if (IsSavegameVersionBefore(stv, 87)) UpdateVoidTiles();
+	if (IsSavegameVersionBefore(stv, 87)) {
+		uint i;
+
+		for (i = 0; i < MapMaxY(); ++i) MakeVoid(i * MapSizeX() + MapMaxX());
+		for (i = 0; i < MapSizeX(); ++i) MakeVoid(MapSizeX() * MapMaxY() + i);
+	}
+
 
 	/* If Load Scenario / New (Scenario) Game is used,
 	 *  a company does not exist yet. So create one here.
