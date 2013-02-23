@@ -359,10 +359,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 {
 	TileIndex map_size = MapSize();
 
-	extern TileIndex _cur_tileloop_tile; // From landscape.cpp.
-	/* The LFSR used in RunTileLoop iteration cannot have a zeroed state, make it non-zeroed. */
-	if (_cur_tileloop_tile == 0) _cur_tileloop_tile = 1;
-
 	if (IsSavegameVersionBefore(stv, 98)) GamelogOldver(stv);
 
 	GamelogTestRevision();
@@ -386,6 +382,10 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		 * the game loop when the server is not, i.e. it desyncs. */
 		_pause_mode &= ~PMB_PAUSED_NETWORK;
 	}
+
+	extern TileIndex _cur_tileloop_tile; // From landscape.cpp.
+	/* The LFSR used in RunTileLoop iteration cannot have a zeroed state, make it non-zeroed. */
+	if (_cur_tileloop_tile == 0) _cur_tileloop_tile = 1;
 
 	/* In very old versions, size of train stations was stored differently.
 	 * They had swapped width and height if station was built along the Y axis.
