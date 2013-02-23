@@ -141,11 +141,6 @@ void SetWaterClassDependingOnSurroundings(TileIndex t, bool include_invalid_wate
 	}
 }
 
-static inline RailType UpdateRailType(RailType rt, RailType min)
-{
-	return rt >= min ? (RailType)(rt + 1): rt;
-}
-
 /**
  * Update the viewport coordinates of all signs.
  */
@@ -1015,29 +1010,27 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		for (TileIndex t = 0; t < map_size; t++) {
 			switch (GetTileType(t)) {
 				case MP_RAILWAY:
-					SetRailType(t, UpdateRailType(GetRailType(t), min_rail));
 					break;
 
 				case MP_ROAD:
-					if (IsLevelCrossing(t)) {
-						SetRailType(t, UpdateRailType(GetRailType(t), min_rail));
-					}
+					if (!IsLevelCrossing(t)) continue;
 					break;
 
 				case MP_STATION:
-					if (HasStationRail(t)) {
-						SetRailType(t, UpdateRailType(GetRailType(t), min_rail));
-					}
+					if (!HasStationRail(t)) continue;
 					break;
 
 				case MP_TUNNELBRIDGE:
-					if (GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL) {
-						SetRailType(t, UpdateRailType(GetRailType(t), min_rail));
-					}
+					if (GetTunnelBridgeTransportType(t) != TRANSPORT_RAIL) continue;
 					break;
 
 				default:
-					break;
+					continue;
+			}
+
+			RailType rt = GetRailType(t);
+			if (rt >= min_rail) {
+				SetRailType(t, (RailType)(rt + 1));
 			}
 		}
 
