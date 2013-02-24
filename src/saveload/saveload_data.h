@@ -164,20 +164,25 @@ enum SaveLoadFlags {
 	SLF_NO_NETWORK_SYNC = 1 << 3, ///< do not synchronize over network (but it is saved if SLF_NOT_IN_SAVE is not set)
 };
 
+/** Version range for SaveLoad objects */
+struct SaveLoadRange {
+	uint16 from; ///< save/load the variable starting from this savegame version
+	uint16 to;   ///< save/load the variable until this savegame version
+};
+
 /** SaveLoad type struct. Do NOT use this directly but use the SLE_ macros defined just below! */
 struct SaveLoad {
-	SaveLoadType type;   ///< object type
-	byte conv;           ///< object subtype/conversion
-	byte flags;          ///< save/load flags
-	uint16 length;       ///< (conditional) length of the variable (eg. arrays) (max array size is 65536 elements)
-	uint16 version_from; ///< save/load the variable starting from this savegame version
-	uint16 version_to;   ///< save/load the variable until this savegame version
+	SaveLoadType type;     ///< object type
+	byte conv;             ///< object subtype/conversion
+	byte flags;            ///< save/load flags
+	uint16 length;         ///< (conditional) length of the variable (eg. arrays) (max array size is 65536 elements)
+	SaveLoadRange version; ///< save/load the variable in this version range
 	/* NOTE: This element either denotes the address of the variable for a global
 	 * variable, or the offset within a struct which is then bound to a variable
 	 * during runtime. Decision on which one to use is controlled by the function
 	 * that is called to save it. address: global=true, offset: global=false.
 	 * For SL_INCLUDE, this points to the SaveLoad object to be included. */
-	void *address;       ///< address of variable OR offset of variable in the struct (max offset is 65536)
+	void *address;         ///< address of variable OR offset of variable in the struct (max offset is 65536)
 };
 
 /** Highest possible savegame version. */
@@ -195,7 +200,7 @@ struct SaveLoad {
  * @param to       Last savegame version that has the field.
  * @note In general, it is better to use one of the SLE_* macros below.
  */
-#define SLE_GENERAL(type, base, variable, conv, flags, length, from, to) {type, conv, flags, length, from, to, (void*)cpp_offsetof(base, variable)}
+#define SLE_GENERAL(type, base, variable, conv, flags, length, from, to) {type, conv, flags, length, {from, to}, (void*)cpp_offsetof(base, variable)}
 
 /**
  * Storage of a variable in some savegame versions.
@@ -297,7 +302,7 @@ struct SaveLoad {
  * @param from   First savegame version that has the empty space.
  * @param to     Last savegame version that has the empty space.
  */
-#define SLE_CONDNULL(length, from, to) {SL_ARR, SLE_FILE_U8 | SLE_VAR_NULL, SLF_NOT_IN_CONFIG, length, from, to, (void*)NULL}
+#define SLE_CONDNULL(length, from, to) {SL_ARR, SLE_FILE_U8 | SLE_VAR_NULL, SLF_NOT_IN_CONFIG, length, {from, to}, (void*)NULL}
 
 /**
  * Empty space in every savegame version.
@@ -309,10 +314,10 @@ struct SaveLoad {
 #define SLE_WRITEBYTE(base, variable, value) SLE_GENERAL(SL_WRITEBYTE, base, variable, value, 0, 0, 0, SL_MAX_VERSION)
 
 /** Include another SaveLoad object. */
-#define SLE_INCLUDE(include) {SL_INCLUDE, 0, 0, 0, 0, SL_MAX_VERSION, const_cast<SaveLoad *>(include)}
+#define SLE_INCLUDE(include) {SL_INCLUDE, 0, 0, 0, {0, SL_MAX_VERSION}, const_cast<SaveLoad *>(include)}
 
 /** End marker of a struct/class save or load. */
-#define SLE_END() {SL_END, 0, 0, 0, 0, 0, NULL}
+#define SLE_END() {SL_END, 0, 0, 0, {0, 0}, NULL}
 
 /**
  * Storage of global simple variables, references (pointers), and arrays.
@@ -325,7 +330,7 @@ struct SaveLoad {
  * @param to       Last savegame version that has the field.
  * @note In general, it is better to use one of the SLEG_* macros below.
  */
-#define SLEG_GENERAL(type, variable, conv, flags, length, from, to) {type, conv, (flags) | SLF_GLOBAL, length, from, to, (void*)&variable}
+#define SLEG_GENERAL(type, variable, conv, flags, length, from, to) {type, conv, (flags) | SLF_GLOBAL, length, {from, to}, (void*)&variable}
 
 /**
  * Storage of a global variable in some savegame versions.
@@ -491,7 +496,7 @@ static inline const void *GetVariableAddress(const SaveLoad *sld, const void *ob
 /** Is this object valid in a certain savegame version? */
 static inline bool SlIsObjectValidInSavegame(const SavegameTypeVersion *stv, const SaveLoad *sld)
 {
-	if (stv->version < sld->version_from || stv->version > sld->version_to) return false;
+	if (stv->version < sld->version.from || stv->version > sld->version.to) return false;
 	if (sld->flags & SLF_NOT_IN_SAVE) return false;
 
 	return true;
@@ -505,7 +510,7 @@ static inline bool SlIsObjectValidInSavegame(const SavegameTypeVersion *stv, con
 static inline bool SlIsObjectCurrentlyValid(const SaveLoad *sld)
 {
 	extern const uint16 SAVEGAME_VERSION;
-	if (SAVEGAME_VERSION < sld->version_from || SAVEGAME_VERSION > sld->version_to) return false;
+	if (SAVEGAME_VERSION < sld->version.from || SAVEGAME_VERSION > sld->version.to) return false;
 
 	return true;
 }
