@@ -319,6 +319,9 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	/* The LFSR used in RunTileLoop iteration cannot have a zeroed state, make it non-zeroed. */
 	if (_cur_tileloop_tile == 0) _cur_tileloop_tile = 1;
 
+	/* Adjust map array for changes since the savegame was made. */
+	AfterLoadMap(stv);
+
 	/* In very old versions, size of train stations was stored differently.
 	 * They had swapped width and height if station was built along the Y axis.
 	 * TTO and TTD used 3 bits for width/height, while OpenTTD used 4.

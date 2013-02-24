@@ -16,6 +16,16 @@
 
 #include "saveload_buffer.h"
 
+
+/**
+ *  Fix map array after loading an old savegame
+ */
+void AfterLoadMap(const SavegameTypeVersion *stv)
+{
+	TileIndex map_size = MapSize();
+}
+
+
 struct MapDim {
 	uint32 x, y;
 };

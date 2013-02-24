@@ -25,6 +25,7 @@ void ResetOldNames();
 void MoveBuoysToWaypoints();
 void MoveWaypointsToBaseStations(const SavegameTypeVersion *stv);
 
+void AfterLoadMap(const SavegameTypeVersion *stv);
 void AfterLoadVehicles(const SavegameTypeVersion *stv);
 void FixupTrainLengths();
 void AfterLoadStations();
