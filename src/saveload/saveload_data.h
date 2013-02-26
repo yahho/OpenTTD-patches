@@ -188,6 +188,49 @@ struct SaveLoad {
 /** Highest possible savegame version. */
 #define SL_MAX_VERSION UINT16_MAX
 
+/** Workaround for MSVC broken variadic macro support. */
+#define SLE_EXPAND(x) x
+
+/**
+ * Generic SaveLoad object, with version range.
+ * @param type     Load/save type. @see SaveLoadType
+ * @param address  Address of variable or offset of variable in the struct
+ * @param conv     Subtype/conversion of the data between memory and savegame.
+ * @param flags    Save/load flags
+ * @param length   Length of object (for arrays and strings)
+ * @param from     First savegame version that has the field.
+ * @param to       Last savegame version that has the field.
+ * @note This macro should not be used directly.
+ */
+#define SLE_ANY_1(type, address, conv, flags, length, from, to) {type, conv, flags, length, {from, to}, address}
+
+/**
+ * Generic SaveLoad object, without version range.
+ * @param type     Load/save type. @see SaveLoadType
+ * @param address  Address of variable or offset of variable in the struct
+ * @param conv     Subtype/conversion of the data between memory and savegame.
+ * @param flags    Save/load flags
+ * @param length   Length of object (for arrays and strings)
+ * @note This macro should not be used directly.
+ */
+#define SLE_ANY_0(type, address, conv, flags, length, ...) SLE_ANY_1(type, address, conv, flags, length, 0, SL_MAX_VERSION)
+
+/**
+ * Generic SaveLoad object, with or without version range.
+ * @param type     Load/save type. @see SaveLoadType
+ * @param address  Address of variable or offset of variable in the struct
+ * @param conv     Subtype/conversion of the data between memory and savegame.
+ * @param flags    Save/load flags
+ * @param length   Length of object (for arrays and strings)
+ * @param from     First savegame version that has the field (optional).
+ * @param to       Last savegame version that has the field (optional).
+ * @note Either both version arguments or neither of them should be present.
+ * @note There should be a trailing empty argument to this macro.
+ * @note This macro should not be used directly.
+ */
+#define SLE_ANY_(type, address, conv, flags, ...) SLE_EXPAND(SLE_ANY(type, address, conv, flags, __VA_ARGS__ 1, INVALID, 0, INVALID, ))
+#define SLE_ANY(type, address, conv, flags, length, from, to, n, ...) SLE_ANY_##n(type, address, conv, flags, length, from, to)
+
 /**
  * Storage of simple variables, references (pointers), and arrays.
  * @param type     Load/save type. @see SaveLoadType
@@ -196,119 +239,90 @@ struct SaveLoad {
  * @param conv     Subtype/conversion of the data between memory and savegame.
  * @param flags    Save/load flags
  * @param length   Length of object (for arrays and strings)
- * @param from     First savegame version that has the field.
- * @param to       Last savegame version that has the field.
+ * @param from     First savegame version that has the field (optional).
+ * @param to       Last savegame version that has the field (optional).
+ * @note Either both version arguments or neither of them should be present.
  * @note In general, it is better to use one of the SLE_* macros below.
  */
-#define SLE_GENERAL(type, base, variable, conv, flags, length, from, to) {type, conv, flags, length, {from, to}, (void*)cpp_offsetof(base, variable)}
+#define SLE_GENERAL(...) SLE_EXPAND(SLE_GENERAL_(__VA_ARGS__, ))
+#define SLE_GENERAL_(type, base, variable, conv, flags, length, ...) SLE_EXPAND(SLE_ANY_(type, ((void*)cpp_offsetof(base, variable)), conv, flags, length, __VA_ARGS__))
 
 /**
- * Storage of a variable in some savegame versions.
+ * Storage of a variable.
  * @param base     Name of the class or struct containing the variable.
  * @param variable Name of the variable in the class or struct referenced by \a base.
  * @param conv     Storage of the data in memory and in the savegame.
- * @param from     First savegame version that has the field.
- * @param to       Last savegame version that has the field.
+ * @param from     First savegame version that has the field (optional).
+ * @param to       Last savegame version that has the field (optional).
+ * @note Either both version arguments or neither of them should be present.
  */
-#define SLE_CONDVAR(base, variable, conv, from, to) SLE_GENERAL(SL_VAR, base, variable, conv, 0, 0, from, to)
+#define SLE_VAR(...) SLE_EXPAND(SLE_VAR_(__VA_ARGS__, ))
+#define SLE_VAR_(base, variable, conv, ...) SLE_EXPAND(SLE_GENERAL_(SL_VAR, base, variable, conv, 0, 0, __VA_ARGS__))
+#define SLE_CONDVAR SLE_VAR
 
 /**
- * Storage of a reference in some savegame versions.
+ * Storage of a reference.
  * @param base     Name of the class or struct containing the variable.
  * @param variable Name of the variable in the class or struct referenced by \a base.
  * @param reftype  Type of the reference, a value from #SLRefType.
- * @param from     First savegame version that has the field.
- * @param to       Last savegame version that has the field.
+ * @param from     First savegame version that has the field (optional).
+ * @param to       Last savegame version that has the field (optional).
+ * @note Either both version arguments or neither of them should be present.
  */
-#define SLE_CONDREF(base, variable, reftype, from, to) SLE_GENERAL(SL_REF, base, variable, reftype, 0, 0, from, to)
+#define SLE_REF(...) SLE_EXPAND(SLE_REF_(__VA_ARGS__, ))
+#define SLE_REF_(base, variable, reftype, ...) SLE_EXPAND(SLE_GENERAL_(SL_REF, base, variable, reftype, 0, 0, __VA_ARGS__))
+#define SLE_CONDREF SLE_REF
 
 /**
- * Storage of an array in some savegame versions.
+ * Storage of an array.
  * @param base     Name of the class or struct containing the array.
  * @param variable Name of the variable in the class or struct referenced by \a base.
  * @param conv     Storage of the data in memory and in the savegame.
  * @param length   Number of elements in the array.
- * @param from     First savegame version that has the array.
- * @param to       Last savegame version that has the array.
+ * @param from     First savegame version that has the array (optional).
+ * @param to       Last savegame version that has the array (optional).
+ * @note Either both version arguments or neither of them should be present.
  */
-#define SLE_CONDARR(base, variable, conv, length, from, to) SLE_GENERAL(SL_ARR, base, variable, conv, 0, length, from, to)
+#define SLE_ARR(...) SLE_EXPAND(SLE_ARR_(__VA_ARGS__, ))
+#define SLE_ARR_(base, variable, conv, length, ...) SLE_EXPAND(SLE_GENERAL_(SL_ARR, base, variable, conv, 0, length, __VA_ARGS__))
+#define SLE_CONDARR SLE_ARR
 
 /**
- * Storage of a string in some savegame versions.
+ * Storage of a string.
  * @param base     Name of the class or struct containing the string.
  * @param variable Name of the variable in the class or struct referenced by \a base.
  * @param conv     Storage of the data in memory and in the savegame.
  * @param length   Number of elements in the string (only used for fixed size buffers).
- * @param from     First savegame version that has the string.
- * @param to       Last savegame version that has the string.
+ * @param from     First savegame version that has the string (optional).
+ * @param to       Last savegame version that has the string (optional).
+ * @note Either both version arguments or neither of them should be present.
  */
-#define SLE_CONDSTR(base, variable, conv, length, from, to) SLE_GENERAL(SL_STR, base, variable, conv, 0, length, from, to)
+#define SLE_STR(...) SLE_EXPAND(SLE_STR_(__VA_ARGS__, ))
+#define SLE_STR_(base, variable, conv, length, ...) SLE_EXPAND(SLE_GENERAL_(SL_STR, base, variable, conv, 0, length, __VA_ARGS__))
+#define SLE_CONDSTR SLE_STR
 
 /**
- * Storage of a list in some savegame versions.
+ * Storage of a list.
  * @param base     Name of the class or struct containing the list.
  * @param variable Name of the variable in the class or struct referenced by \a base.
  * @param reftype  Type of the reference, a value from #SLRefType.
- * @param from     First savegame version that has the list.
- * @param to       Last savegame version that has the list.
+ * @param from     First savegame version that has the list (optional).
+ * @param to       Last savegame version that has the list (optional).
+ * @note Either both version arguments or neither of them should be present.
  */
-#define SLE_CONDLST(base, variable, reftype, from, to) SLE_GENERAL(SL_LST, base, variable, reftype, 0, 0, from, to)
+#define SLE_LST(...) SLE_EXPAND(SLE_LST_(__VA_ARGS__, ))
+#define SLE_LST_(base, variable, reftype, ...) SLE_EXPAND(SLE_GENERAL_(SL_LST, base, variable, reftype, 0, 0, __VA_ARGS__))
+#define SLE_CONDLST SLE_LST
 
 /**
- * Storage of a variable in every version of a savegame.
- * @param base     Name of the class or struct containing the variable.
- * @param variable Name of the variable in the class or struct referenced by \a base.
- * @param conv     Storage of the data in memory and in the savegame.
- */
-#define SLE_VAR(base, variable, conv) SLE_CONDVAR(base, variable, conv, 0, SL_MAX_VERSION)
-
-/**
- * Storage of a reference in every version of a savegame.
- * @param base     Name of the class or struct containing the variable.
- * @param variable Name of the variable in the class or struct referenced by \a base.
- * @param reftype  Type of the reference, a value from #SLRefType.
- */
-#define SLE_REF(base, variable, reftype) SLE_CONDREF(base, variable, reftype, 0, SL_MAX_VERSION)
-
-/**
- * Storage of an array in every version of a savegame.
- * @param base     Name of the class or struct containing the array.
- * @param variable Name of the variable in the class or struct referenced by \a base.
- * @param conv     Storage of the data in memory and in the savegame.
- * @param length   Number of elements in the array.
- */
-#define SLE_ARR(base, variable, conv, length) SLE_CONDARR(base, variable, conv, length, 0, SL_MAX_VERSION)
-
-/**
- * Storage of a string in every savegame version.
- * @param base     Name of the class or struct containing the string.
- * @param variable Name of the variable in the class or struct referenced by \a base.
- * @param conv     Storage of the data in memory and in the savegame.
- * @param length   Number of elements in the string (only used for fixed size buffers).
- */
-#define SLE_STR(base, variable, conv, length) SLE_CONDSTR(base, variable, conv, length, 0, SL_MAX_VERSION)
-
-/**
- * Storage of a list in every savegame version.
- * @param base     Name of the class or struct containing the list.
- * @param variable Name of the variable in the class or struct referenced by \a base.
- * @param reftype  Type of the reference, a value from #SLRefType.
- */
-#define SLE_LST(base, variable, reftype) SLE_CONDLST(base, variable, reftype, 0, SL_MAX_VERSION)
-
-/**
- * Empty space in some savegame versions.
+ * Empty space.
  * @param length Length of the empty space.
- * @param from   First savegame version that has the empty space.
- * @param to     Last savegame version that has the empty space.
+ * @param from   First savegame version that has the empty space (optional).
+ * @param to     Last savegame version that has the empty space (optional).
  */
-#define SLE_CONDNULL(length, from, to) {SL_ARR, SLE_FILE_U8 | SLE_VAR_NULL, SLF_NOT_IN_CONFIG, length, {from, to}, (void*)NULL}
-
-/**
- * Empty space in every savegame version.
- * @param length Length of the empty space.
- */
-#define SLE_NULL(length) SLE_CONDNULL(length, 0, SL_MAX_VERSION)
+#define SLE_NULL(...) SLE_EXPAND(SLE_NULL_(__VA_ARGS__, ))
+#define SLE_NULL_(length, ...) SLE_EXPAND(SLE_ANY_(SL_ARR, (void*)NULL, SLE_FILE_U8 | SLE_VAR_NULL, SLF_NOT_IN_CONFIG, length, __VA_ARGS__))
+#define SLE_CONDNULL SLE_NULL
 
 /** Translate values ingame to different values in the savegame and vv. */
 #define SLE_WRITEBYTE(base, variable, value) SLE_GENERAL(SL_WRITEBYTE, base, variable, value, 0, 0, 0, SL_MAX_VERSION)
@@ -326,93 +340,75 @@ struct SaveLoad {
  * @param conv     Subtype/conversion of the data between memory and savegame.
  * @param flags    Save/load flags
  * @param length   Length of object (for arrays and strings)
- * @param from     First savegame version that has the field.
- * @param to       Last savegame version that has the field.
+ * @param from     First savegame version that has the field (optional).
+ * @param to       Last savegame version that has the field (optional).
+ * @note Either both version arguments or neither of them should be present.
  * @note In general, it is better to use one of the SLEG_* macros below.
  */
-#define SLEG_GENERAL(type, variable, conv, flags, length, from, to) {type, conv, (flags) | SLF_GLOBAL, length, {from, to}, (void*)&variable}
+#define SLEG_GENERAL(...) SLE_EXPAND(SLEG_GENERAL_(__VA_ARGS__, ))
+#define SLEG_GENERAL_(type, variable, conv, flags, length, ...) SLE_EXPAND(SLE_ANY_(type, (void*)&variable, conv, (flags) | SLF_GLOBAL, length, __VA_ARGS__))
 
 /**
- * Storage of a global variable in some savegame versions.
+ * Storage of a global variable.
  * @param variable Name of the global variable.
  * @param conv     Storage of the data in memory and in the savegame.
- * @param from     First savegame version that has the field.
- * @param to       Last savegame version that has the field.
+ * @param from     First savegame version that has the field (optional).
+ * @param to       Last savegame version that has the field (optional).
+ * @note Either both version arguments or neither of them should be present.
  */
-#define SLEG_CONDVAR(variable, conv, from, to) SLEG_GENERAL(SL_VAR, variable, conv, 0, 0, from, to)
+#define SLEG_VAR(...) SLE_EXPAND(SLEG_VAR_(__VA_ARGS__, ))
+#define SLEG_VAR_(variable, conv, ...) SLE_EXPAND(SLEG_GENERAL_(SL_VAR, variable, conv, 0, 0, __VA_ARGS__))
+#define SLEG_CONDVAR SLEG_VAR
 
 /**
- * Storage of a global reference in some savegame versions.
+ * Storage of a global reference.
  * @param variable Name of the global variable.
  * @param reftype  Type of the reference, a value from #SLRefType.
- * @param from     First savegame version that has the field.
- * @param to       Last savegame version that has the field.
+ * @param from     First savegame version that has the field (optional).
+ * @param to       Last savegame version that has the field (optional).
+ * @note Either both version arguments or neither of them should be present.
  */
-#define SLEG_CONDREF(variable, reftype, from, to) SLEG_GENERAL(SL_REF, variable, reftype, 0, 0, from, to)
+#define SLEG_REF(...) SLE_EXPAND(SLEG_REF_(__VA_ARGS__, ))
+#define SLEG_REF_(variable, reftype, ...) SLE_EXPAND(SLEG_GENERAL_(SL_REF, variable, reftype, 0, 0, __VA_ARGS__))
+#define SLEG_CONDREF SLEG_REF
 
 /**
- * Storage of a global array in some savegame versions.
+ * Storage of a global array.
  * @param variable Name of the global variable.
  * @param conv     Storage of the data in memory and in the savegame.
  * @param length   Number of elements in the array.
- * @param from     First savegame version that has the array.
- * @param to       Last savegame version that has the array.
+ * @param from     First savegame version that has the array (optional).
+ * @param to       Last savegame version that has the array (optional).
+ * @note Either both version arguments or neither of them should be present.
  */
-#define SLEG_CONDARR(variable, conv, length, from, to) SLEG_GENERAL(SL_ARR, variable, conv, 0, length, from, to)
+#define SLEG_ARR(...) SLE_EXPAND(SLEG_ARR_(__VA_ARGS__, ))
+#define SLEG_ARR_(variable, conv, length, ...) SLE_EXPAND(SLEG_GENERAL_(SL_ARR, variable, conv, 0, length, __VA_ARGS__))
+#define SLEG_CONDARR SLEG_ARR
 
 /**
- * Storage of a global string in some savegame versions.
+ * Storage of a global string.
  * @param variable Name of the global variable.
  * @param conv     Storage of the data in memory and in the savegame.
  * @param length   Number of elements in the string (only used for fixed size buffers).
- * @param from     First savegame version that has the string.
- * @param to       Last savegame version that has the string.
+ * @param from     First savegame version that has the string (optional).
+ * @param to       Last savegame version that has the string (optional).
+ * @note Either both version arguments or neither of them should be present.
  */
-#define SLEG_CONDSTR(variable, conv, length, from, to) SLEG_GENERAL(SL_STR, variable, conv, 0, length, from, to)
+#define SLEG_STR(...) SLE_EXPAND(SLEG_STR_(__VA_ARGS__, ))
+#define SLEG_STR_(variable, conv, length, ...) SLE_EXPAND(SLEG_GENERAL_(SL_STR, variable, conv, 0, length, __VA_ARGS__))
+#define SLEG_CONDSTR SLEG_STR
 
 /**
- * Storage of a global list in some savegame versions.
+ * Storage of a global list.
  * @param variable Name of the global variable.
  * @param reftype  Type of the reference, a value from #SLRefType.
- * @param from     First savegame version that has the list.
- * @param to       Last savegame version that has the list.
+ * @param from     First savegame version that has the list (optional).
+ * @param to       Last savegame version that has the list (optional).
+ * @note Either both version arguments or neither of them should be present.
  */
-#define SLEG_CONDLST(variable, reftype, from, to) SLEG_GENERAL(SL_LST, variable, reftype, 0, 0, from, to)
-
-/**
- * Storage of a global variable in every savegame version.
- * @param variable Name of the global variable.
- * @param conv     Storage of the data in memory and in the savegame.
- */
-#define SLEG_VAR(variable, conv) SLEG_CONDVAR(variable, conv, 0, SL_MAX_VERSION)
-
-/**
- * Storage of a global reference in every savegame version.
- * @param variable Name of the global variable.
- * @param reftype  Type of the reference, a value from #SLRefType.
- */
-#define SLEG_REF(variable, reftype) SLEG_CONDREF(variable, reftype, 0, SL_MAX_VERSION)
-
-/**
- * Storage of a global array in every savegame version.
- * @param variable Name of the global variable.
- * @param conv     Storage of the data in memory and in the savegame.
- */
-#define SLEG_ARR(variable, conv) SLEG_CONDARR(variable, conv, lengthof(variable), 0, SL_MAX_VERSION)
-
-/**
- * Storage of a global string in every savegame version.
- * @param variable Name of the global variable.
- * @param conv     Storage of the data in memory and in the savegame.
- */
-#define SLEG_STR(variable, conv) SLEG_CONDSTR(variable, conv, lengthof(variable), 0, SL_MAX_VERSION)
-
-/**
- * Storage of a global list in every savegame version.
- * @param variable Name of the global variable.
- * @param reftype  Type of the reference, a value from #SLRefType.
- */
-#define SLEG_LST(variable, reftype) SLEG_CONDLST(variable, reftype, 0, SL_MAX_VERSION)
+#define SLEG_LST(...) SLE_EXPAND(SLEG_LST_(__VA_ARGS__, ))
+#define SLEG_LST_(variable, reftype, ...) SLE_EXPAND(SLEG_GENERAL_(SL_LST, variable, reftype, 0, 0, __VA_ARGS__))
+#define SLEG_CONDLST SLEG_LST
 
 /**
  * Get the NumberType of a setting. This describes the integer type
