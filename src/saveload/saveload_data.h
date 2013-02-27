@@ -27,9 +27,15 @@ enum SavegameType {
 /** Type and version of a savegame. */
 struct SavegameTypeVersion {
 	SavegameType type;  ///< type of savegame
-	uint ttdp_version;  ///< version of TTDP savegame (if applicable)
-	uint version;       ///< the major savegame version identifier
-	uint minor_version; ///< the minor savegame version, DO NOT USE!
+	union {
+		struct {
+			uint version; ///< version of TTDP savegame (if applicable)
+		} ttdp;
+		struct {
+			uint version;       ///< the major savegame version
+			uint minor_version; ///< the minor savegame version
+		} ottd;
+	};
 };
 
 /**
@@ -41,7 +47,7 @@ struct SavegameTypeVersion {
  */
 static inline bool IsSavegameVersionBefore(const SavegameTypeVersion *stv, uint16 major, byte minor = 0)
 {
-	return stv->version < major || (minor > 0 && stv->version == major && stv->minor_version < minor);
+	return stv->type != SGT_OTTD || stv->ottd.version < major || (minor > 0 && stv->ottd.version == major && stv->ottd.minor_version < minor);
 }
 
 
@@ -495,7 +501,11 @@ static inline const void *GetVariableAddress(const SaveLoad *sld, const void *ob
 /** Is this object valid in a certain savegame version? */
 static inline bool SlIsObjectValidInSavegame(const SavegameTypeVersion *stv, const SaveLoad *sld)
 {
-	if (stv->version < sld->version.from || stv->version > sld->version.to) return false;
+	if (stv->type == SGT_OTTD) {
+		if (stv->ottd.version < sld->version.from || stv->ottd.version > sld->version.to) return false;
+	} else {
+		if (0 < sld->version.from) return false;
+	}
 	if (sld->flags & SLF_NOT_IN_SAVE) return false;
 
 	return true;

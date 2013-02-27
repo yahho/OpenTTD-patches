@@ -855,7 +855,6 @@ static void CDECL HandleSavegameLoadCrash(int signum)
 static void LoadSavegameFormat(LoadFilter **chain, SavegameTypeVersion *stv)
 {
 	stv->type = SGT_OTTD;
-	stv->ttdp_version = 0;
 
 	uint32 hdr[2];
 	if ((*chain)->Read((byte*)hdr, sizeof(hdr)) != sizeof(hdr)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
@@ -865,22 +864,22 @@ static void LoadSavegameFormat(LoadFilter **chain, SavegameTypeVersion *stv)
 
 	if (fmt != NULL) {
 		/* check version number */
-		stv->version = TO_BE32(hdr[1]) >> 16;
+		stv->ottd.version = TO_BE32(hdr[1]) >> 16;
 		/* Minor is not used anymore from version 18.0, but it is still needed
 		 * in versions before that (4 cases) which can't be removed easy.
 		 * Therefore it is loaded, but never saved (or, it saves a 0 in any scenario). */
-		stv->minor_version = (TO_BE32(hdr[1]) >> 8) & 0xFF;
+		stv->ottd.minor_version = (TO_BE32(hdr[1]) >> 8) & 0xFF;
 
-		DEBUG(sl, 1, "Loading savegame version %d", stv->version);
+		DEBUG(sl, 1, "Loading savegame version %d", stv->ottd.version);
 
 		/* Is the version higher than the current? */
-		if (stv->version > SAVEGAME_VERSION) throw SlException(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
+		if (stv->ottd.version > SAVEGAME_VERSION) throw SlException(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
 	} else {
 		/* No loader found, treat as version 0 and use LZO format */
 		DEBUG(sl, 0, "Unknown savegame type, trying to load it as the buggy format");
 		(*chain)->Reset();
-		stv->version = 0;
-		stv->minor_version = 0;
+		stv->ottd.version = 0;
+		stv->ottd.minor_version = 0;
 
 		/* Try to find the LZO savegame format. */
 		fmt = GetLZO0SavegameFormat();
@@ -906,10 +905,7 @@ static bool DoLoad(LoadFilter **chain, int mode)
 {
 	SavegameTypeVersion sl_version;
 
-	if (mode == SL_OLD_LOAD) {
-		sl_version.version = 0;
-		sl_version.minor_version = 0;
-	} else {
+	if (mode != SL_OLD_LOAD) {
 		LoadSavegameFormat(chain, &sl_version);
 	}
 

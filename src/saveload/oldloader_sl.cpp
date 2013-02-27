@@ -504,7 +504,7 @@ static void ReadTTDPatchFlags(SavegameTypeVersion *stv)
 
 	/* Set default values */
 	_old_vehicle_multiplier = 1;
-	stv->ttdp_version = 0;
+	stv->ttdp.version = 0;
 	_old_extra_chunk_nums = 0;
 	_bump_assert_value = 0;
 
@@ -1556,9 +1556,9 @@ static bool LoadTTDPatchExtraChunks(LoadgameState *ls, int num)
 
 			/* TTDPatch version and configuration */
 			case 0x3:
-				ls->stv->ttdp_version = ReadUint32(ls);
+				ls->stv->ttdp.version = ReadUint32(ls);
 				DEBUG(oldloader, 3, "Game saved with TTDPatch version %d.%d.%d r%d",
-					GB(ls->stv->ttdp_version, 24, 8), GB(ls->stv->ttdp_version, 20, 4), GB(ls->stv->ttdp_version, 16, 4), GB(ls->stv->ttdp_version, 0, 16));
+					GB(ls->stv->ttdp.version, 24, 8), GB(ls->stv->ttdp.version, 20, 4), GB(ls->stv->ttdp.version, 16, 4), GB(ls->stv->ttdp.version, 0, 16));
 				len -= 4;
 				while (len-- != 0) ReadByte(ls); // skip the configuration
 				break;
