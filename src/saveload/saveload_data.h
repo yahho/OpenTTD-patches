@@ -191,6 +191,9 @@ struct SaveLoad {
 /** Workaround for MSVC broken variadic macro support. */
 #define SLE_EXPAND(x) x
 
+/** Substitute first paramenter if non-empty, else second. */
+#define SLE_DEFAULT_IF_EMPTY(value, default) ((sizeof(#value) != 1) ? (value + 0) : (default))
+
 /**
  * Generic SaveLoad object, with version range.
  * @param type     Load/save type. @see SaveLoadType
@@ -199,10 +202,10 @@ struct SaveLoad {
  * @param flags    Save/load flags
  * @param length   Length of object (for arrays and strings)
  * @param from     First savegame version that has the field.
- * @param to       Last savegame version that has the field.
+ * @param to       Last savegame version that has the field, empty for maximum possible value.
  * @note This macro should not be used directly.
  */
-#define SLE_ANY_1(type, address, conv, flags, length, from, to) {type, conv, flags, length, {from, to}, address}
+#define SLE_ANY_1(type, address, conv, flags, length, from, to) {type, conv, flags, length, {from, SLE_DEFAULT_IF_EMPTY(to, SL_MAX_VERSION)}, address}
 
 /**
  * Generic SaveLoad object, without version range.
@@ -213,7 +216,7 @@ struct SaveLoad {
  * @param length   Length of object (for arrays and strings)
  * @note This macro should not be used directly.
  */
-#define SLE_ANY_0(type, address, conv, flags, length, ...) SLE_ANY_1(type, address, conv, flags, length, 0, SL_MAX_VERSION)
+#define SLE_ANY_0(type, address, conv, flags, length, ...) SLE_ANY_1(type, address, conv, flags, length, 0, )
 
 /**
  * Generic SaveLoad object, with or without version range.
@@ -325,7 +328,7 @@ struct SaveLoad {
 #define SLE_CONDNULL SLE_NULL
 
 /** Translate values ingame to different values in the savegame and vv. */
-#define SLE_WRITEBYTE(base, variable, value) SLE_GENERAL(SL_WRITEBYTE, base, variable, value, 0, 0, 0, SL_MAX_VERSION)
+#define SLE_WRITEBYTE(base, variable, value) SLE_GENERAL(SL_WRITEBYTE, base, variable, value, 0, 0, 0, )
 
 /** Include another SaveLoad object. */
 #define SLE_INCLUDE(include) {SL_INCLUDE, 0, 0, 0, {0, SL_MAX_VERSION}, const_cast<SaveLoad *>(include)}
