@@ -52,12 +52,12 @@ static void Load_SIGN(LoadBuffer *reader)
 		 *  - we can't use IsValidCompany() now, so this is fixed in AfterLoadGame()
 		 * All signs that were saved are valid (including those with just 'Sign' and INVALID_OWNER).
 		 *  - so set owner to OWNER_NONE if needed (signs from pre-version 6.1 would be lost) */
-		if (reader->IsVersionBefore(6, 1) || (reader->IsVersionBefore(83) && si->owner == INVALID_OWNER)) {
+		if (reader->IsOTTDVersionBefore(6, 1) || (reader->IsOTTDVersionBefore(83) && si->owner == INVALID_OWNER)) {
 			si->owner = OWNER_NONE;
 		}
 
 		/* Signs placed in scenario editor shall now be OWNER_DEITY */
-		if (reader->IsVersionBefore(171) && si->owner == OWNER_NONE && _saveload_mode == SLD_LOAD_SCENARIO) {
+		if (reader->IsOTTDVersionBefore(171) && si->owner == OWNER_NONE && _saveload_mode == SLD_LOAD_SCENARIO) {
 			si->owner = OWNER_DEITY;
 		}
 	}

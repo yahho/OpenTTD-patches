@@ -30,7 +30,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	TileIndex map_size = MapSize();
 
 	/* in version 2.1 of the savegame, town owner was unified. */
-	if (IsSavegameVersionBefore(stv, 2, 1)) {
+	if (IsOTTDSavegameVersionBefore(stv, 2, 1)) {
 		for (TileIndex tile = 0; tile < map_size; tile++) {
 			switch (GetTileType(tile)) {
 				case MP_ROAD:
@@ -51,7 +51,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	/* In version 6.1 we put the town index in the map-array. To do this, we need
 	 *  to use m2 (16bit big), so we need to clean m2, and that is where this is
 	 *  all about ;) */
-	if (IsSavegameVersionBefore(stv, 6, 1)) {
+	if (IsOTTDSavegameVersionBefore(stv, 6, 1)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			switch (GetTileType(t)) {
 				case MP_HOUSE:
@@ -71,7 +71,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 
 	/* From version 15, we moved a semaphore bit from bit 2 to bit 3 in m4, making
 	 *  room for PBS. Now in version 21 move it back :P. */
-	if (IsSavegameVersionBefore(stv, 21) && !IsSavegameVersionBefore(stv, 15)) {
+	if (IsOTTDSavegameVersionBefore(stv, 21) && !IsOTTDSavegameVersionBefore(stv, 15)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			switch (GetTileType(t)) {
 				case MP_RAILWAY:
@@ -101,7 +101,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
-	if (IsSavegameVersionBefore(stv, 48)) {
+	if (IsOTTDSavegameVersionBefore(stv, 48)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			switch (GetTileType(t)) {
 				case MP_RAILWAY:
@@ -131,7 +131,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 
 	/* From version 53, the map array was changed for house tiles to allow
 	 * space for newhouses grf features. A new byte, m7, was also added. */
-	if (IsSavegameVersionBefore(stv, 53)) {
+	if (IsOTTDSavegameVersionBefore(stv, 53)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsTileType(t, MP_HOUSE)) {
 				if (GB(_m[t].m3, 6, 2) != TOWN_HOUSE_COMPLETED) {
@@ -161,7 +161,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
-	if (IsSavegameVersionBefore(stv, 64)) {
+	if (IsOTTDSavegameVersionBefore(stv, 64)) {
 		/* copy the signal type/variant and move signal states bits */
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsTileType(t, MP_RAILWAY) && GB(_m[t].m5, 6, 2) == 1) {
@@ -173,7 +173,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
-	if (IsSavegameVersionBefore(stv, 72)) {
+	if (IsOTTDSavegameVersionBefore(stv, 72)) {
 		/* Locks in very old savegames had OWNER_WATER as owner */
 		for (TileIndex t = 0; t < map_size; t++) {
 			switch (GetTileType(t)) {
@@ -231,7 +231,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	 * grassy trees were always drawn fully grassy. Furthermore, trees on rough
 	 * land used to have zero density, now they have full density. Therefore,
 	 * make all grassy/rough land trees have a density of 3. */
-	if (IsSavegameVersionBefore(stv, 81)) {
+	if (IsOTTDSavegameVersionBefore(stv, 81)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (GetTileType(t) == MP_TREES) {
 				uint groundType = GB(_m[t].m2, 4, 2);
@@ -244,7 +244,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	 * This problem appears in savegame version 21 too, see r3455. But after loading the
 	 * savegame and saving again, the buggy map array could be converted to new savegame
 	 * version. It didn't show up before r12070. */
-	if (IsSavegameVersionBefore(stv, 87)) {
+	if (IsOTTDSavegameVersionBefore(stv, 87)) {
 		static const Tile voidtile = { MP_VOID << 4, 0, 0, 0, 0, 0, 0 };
 		TileIndex t;
 
@@ -259,9 +259,9 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
-	if (IsSavegameVersionBefore(stv, 114)) {
-		bool old_bridge = IsSavegameVersionBefore(stv, 42);
-		bool add_roadtypes = IsSavegameVersionBefore(stv, 61);
+	if (IsOTTDSavegameVersionBefore(stv, 114)) {
+		bool old_bridge = IsOTTDSavegameVersionBefore(stv, 42);
+		bool add_roadtypes = IsOTTDSavegameVersionBefore(stv, 61);
 
 		for (TileIndex t = 0; t < map_size; t++) {
 			switch (GetTileType(t)) {
@@ -401,7 +401,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 
 	/* From version 82, old style canals (above sealevel (0), WATER owner) are no longer supported.
 	    Replace the owner for those by OWNER_NONE. */
-	if (IsSavegameVersionBefore(stv, 82)) {
+	if (IsOTTDSavegameVersionBefore(stv, 82)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsTileType(t, MP_WATER) &&
 					_m[t].m5 == 0 &&
@@ -418,7 +418,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	 * someone can remove canals owned by somebody else and it prevents
 	 * making floods using the removal of ship depots.
 	 */
-	if (IsSavegameVersionBefore(stv, 83)) {
+	if (IsOTTDSavegameVersionBefore(stv, 83)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsTileType(t, MP_WATER) && GB(_m[t].m5, 4, 4) == 8) {
 				_m[t].m4 = (TileHeight(t) == 0) ? OWNER_WATER : OWNER_NONE;
@@ -427,7 +427,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	}
 
 	/* The water class was moved/unified. */
-	if (IsSavegameVersionBefore(stv, 146)) {
+	if (IsOTTDSavegameVersionBefore(stv, 146)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			switch (GetTileType(t)) {
 				case MP_STATION:
@@ -461,7 +461,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
-	if (IsSavegameVersionBefore(stv, 86)) {
+	if (IsOTTDSavegameVersionBefore(stv, 86)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			/* Move river flag and update canals to use water class */
 			if (IsTileType(t, MP_WATER) && GB(_m[t].m1, 5, 2) != WATER_CLASS_RIVER) {
@@ -487,7 +487,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	/* Move the signal variant back up one bit for PBS. We don't convert the old PBS
 	 * format here, as an old layout wouldn't work properly anyway. To be safe, we
 	 * clear any possible PBS reservations as well. */
-	if (IsSavegameVersionBefore(stv, 100)) {
+	if (IsOTTDSavegameVersionBefore(stv, 100)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			switch (GetTileType(t)) {
 				case MP_RAILWAY:
@@ -524,7 +524,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
-	if (IsSavegameVersionBefore(stv, 112)) {
+	if (IsOTTDSavegameVersionBefore(stv, 112)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			/* Check for HQ bit being set, instead of using map accessor,
 			 * since we've already changed it code-wise */
@@ -539,7 +539,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 
 	/* The bits for the tree ground and tree density have
 	 * been swapped (m2 bits 7..6 and 5..4. */
-	if (IsSavegameVersionBefore(stv, 135)) {
+	if (IsOTTDSavegameVersionBefore(stv, 135)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsTileType(t, MP_CLEAR)) {
 				if (GB(_m[t].m5, 2, 3) == 4) {
@@ -558,13 +558,13 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	}
 
 	/* Reset tropic zone for VOID tiles, they shall not have any. */
-	if (IsSavegameVersionBefore(stv, 141)) {
+	if (IsOTTDSavegameVersionBefore(stv, 141)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsTileType(t, MP_VOID)) SB(_m[t].m6, 0, 2, 0);
 		}
 	}
 
-	if (IsSavegameVersionBefore(stv, 144)) {
+	if (IsOTTDSavegameVersionBefore(stv, 144)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (!IsTileType(t, MP_OBJECT)) continue;
 
@@ -579,7 +579,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
-	if (IsSavegameVersionBefore(stv, 147)) {
+	if (IsOTTDSavegameVersionBefore(stv, 147)) {
 		/* Move the animation frame to the same location (m7) for all objects. */
 		for (TileIndex t = 0; t < map_size; t++) {
 			switch (GetTileType(t)) {
@@ -609,7 +609,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
-	if (IsSavegameVersionBefore(stv, 164)) {
+	if (IsOTTDSavegameVersionBefore(stv, 164)) {
 		/* We store 4 fences in the field tiles instead of only SE and SW. */
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (!IsTileType(t, MP_CLEAR) && !IsTileType(t, MP_TREES)) continue;
@@ -727,7 +727,7 @@ static void Load_MAP2(LoadBuffer *reader)
 	for (TileIndex i = 0; i != size;) {
 		reader->ReadArray(buf, MAP_SL_BUF_SIZE,
 			/* In those versions the m2 was 8 bits */
-			reader->IsVersionBefore(5) ? SLE_FILE_U8 | SLE_VAR_U16 : SLE_UINT16
+			reader->IsOTTDVersionBefore(5) ? SLE_FILE_U8 | SLE_VAR_U16 : SLE_UINT16
 		);
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _m[i++].m2 = buf[j];
 	}
@@ -819,7 +819,7 @@ static void Load_MAP6(LoadBuffer *reader)
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
-	if (reader->IsVersionBefore(42)) {
+	if (reader->IsOTTDVersionBefore(42)) {
 		for (TileIndex i = 0; i != size;) {
 			/* 1024, otherwise we overflow on 64x64 maps! */
 			reader->ReadArray(buf, 1024, SLE_UINT8);

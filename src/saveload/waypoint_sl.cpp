@@ -69,7 +69,7 @@ void MoveWaypointsToBaseStations(const SavegameTypeVersion *stv)
 	 * waypoints to make way for storing the index in m2. The custom graphics
 	 * id which was stored in m4 is now saved as a grf/id reference in the
 	 * waypoint struct. */
-	if (IsSavegameVersionBefore(stv, 17)) {
+	if (IsOTTDSavegameVersionBefore(stv, 17)) {
 		for (OldWaypoint *wp = _old_waypoints.Begin(); wp != _old_waypoints.End(); wp++) {
 			if (wp->delete_ctr != 0) continue; // The waypoint was deleted
 
@@ -112,7 +112,7 @@ void MoveWaypointsToBaseStations(const SavegameTypeVersion *stv)
 		TileIndex t = wp->xy;
 		if (IsTileType(t, MP_RAILWAY) && GetRailTileType(t) == 2 /* RAIL_TILE_WAYPOINT */ && _m[t].m2 == wp->index) {
 			/* The tile might've been reserved! */
-			bool reserved = !IsSavegameVersionBefore(stv, 100) && HasBit(_m[t].m5, 4);
+			bool reserved = !IsOTTDSavegameVersionBefore(stv, 100) && HasBit(_m[t].m5, 4);
 
 			/* The tile really has our waypoint, so reassign the map array */
 			MakeRailWaypoint(t, GetTileOwner(t), new_wp->index, (Axis)GB(_m[t].m5, 0, 1), 0, GetRailType(t));
@@ -190,10 +190,10 @@ static void Ptrs_WAYP(const SavegameTypeVersion *stv)
 		SlObjectPtrs(wp, _old_waypoint_desc, stv);
 		if (stv == NULL) continue;
 
-		if (IsSavegameVersionBefore(stv, 12)) {
+		if (IsOTTDSavegameVersionBefore(stv, 12)) {
 			wp->town_cn = (wp->string_id & 0xC000) == 0xC000 ? (wp->string_id >> 8) & 0x3F : 0;
 			wp->town = ClosestTownFromTile(wp->xy, UINT_MAX);
-		} else if (IsSavegameVersionBefore(stv, 122)) {
+		} else if (IsOTTDSavegameVersionBefore(stv, 122)) {
 			/* Only for versions 12 .. 122 */
 			if (!Town::IsValidID(wp->town_index)) {
 				/* Upon a corrupted waypoint we'll likely get here. The next step will be to
@@ -206,7 +206,7 @@ static void Ptrs_WAYP(const SavegameTypeVersion *stv)
 			}
 			wp->town = Town::Get(wp->town_index);
 		}
-		if (IsSavegameVersionBefore(stv, 84)) {
+		if (IsOTTDSavegameVersionBefore(stv, 84)) {
 			wp->name = CopyFromOldName(stv, wp->string_id);
 		}
 	}

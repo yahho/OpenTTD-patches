@@ -285,7 +285,7 @@ static void Load_TOWN(LoadBuffer *reader)
 			throw SlCorrupt("Invalid town name generator");
 		}
 
-		if (reader->IsVersionBefore(166)) continue;
+		if (reader->IsOTTDVersionBefore(166)) continue;
 
 		reader->ReadObject(&t->cargo_accepted, GetTileMatrixDesc());
 		if (t->cargo_accepted.area.w != 0) {
@@ -303,7 +303,7 @@ static void Load_TOWN(LoadBuffer *reader)
 static void Ptrs_TOWN(const SavegameTypeVersion *stv)
 {
 	/* Don't run when savegame version lower than 161. */
-	if ((stv != NULL) && IsSavegameVersionBefore(stv, 161)) return;
+	if ((stv != NULL) && IsOTTDSavegameVersionBefore(stv, 161)) return;
 
 	Town *t;
 	FOR_ALL_TOWNS(t) {

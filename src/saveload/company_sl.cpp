@@ -418,7 +418,7 @@ static void Load_PLYR_common(LoadBuffer *reader, Company *c, CompanyProperties *
 	}
 
 	/* Keep backwards compatible for savegames, so load the old AI block */
-	if (reader->IsVersionBefore(107) && cprops->is_ai) {
+	if (reader->IsOTTDVersionBefore(107) && cprops->is_ai) {
 		CompanyOldAI old_ai;
 
 		reader->ReadObject(&old_ai, _company_ai_desc);
@@ -437,7 +437,7 @@ static void Load_PLYR_common(LoadBuffer *reader, Company *c, CompanyProperties *
 	}
 
 	/* Read each livery entry. */
-	int num_liveries = reader->IsVersionBefore(63) ? LS_END - 4 : (reader->IsVersionBefore(85) ? LS_END - 2: LS_END);
+	int num_liveries = reader->IsOTTDVersionBefore(63) ? LS_END - 4 : (reader->IsOTTDVersionBefore(85) ? LS_END - 2: LS_END);
 	if (c != NULL) {
 		for (i = 0; i < num_liveries; i++) {
 			reader->ReadObject(&c->livery[i], _company_livery_desc);
@@ -512,7 +512,7 @@ static void Check_PLYR(LoadBuffer *reader)
 		Load_PLYR_common(reader, NULL, cprops);
 
 		/* We do not load old custom names */
-		if (reader->IsVersionBefore(84)) {
+		if (reader->IsOTTDVersionBefore(84)) {
 			if (GB(cprops->name_1, 11, 5) == 15) {
 				cprops->name_1 = STR_GAME_SAVELOAD_NOT_AVAILABLE;
 			}

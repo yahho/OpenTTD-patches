@@ -42,9 +42,9 @@ static void Load_ERNW(LoadBuffer *reader)
 		reader->ReadObject(er, _engine_renew_desc);
 
 		/* Advanced vehicle lists, ungrouped vehicles got added */
-		if (reader->IsVersionBefore(60)) {
+		if (reader->IsOTTDVersionBefore(60)) {
 			er->group_id = ALL_GROUP;
-		} else if (reader->IsVersionBefore(71)) {
+		} else if (reader->IsOTTDVersionBefore(71)) {
 			if (er->group_id == DEFAULT_GROUP) er->group_id = ALL_GROUP;
 		}
 	}

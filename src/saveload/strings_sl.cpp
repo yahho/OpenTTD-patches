@@ -61,7 +61,7 @@ char *CopyFromOldName(const SavegameTypeVersion *stv, StringID id)
 	/* Is this name an (old) custom name? */
 	if (GB(id, 11, 5) != 15) return NULL;
 
-	if (IsSavegameVersionBefore(stv, 37)) {
+	if (IsOTTDSavegameVersionBefore(stv, 37)) {
 		/* Allow for expansion when converted to UTF-8. */
 		char tmp[LEN_OLD_STRINGS * MAX_CHAR_LENGTH];
 		uint offs = stv->type == SGT_TTO ? LEN_OLD_STRINGS_TTO * GB(id, 0, 8) : LEN_OLD_STRINGS * GB(id, 0, 9);

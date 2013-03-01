@@ -943,7 +943,7 @@ static bool DoLoad(LoadFilter **chain, int mode)
 		 * Note: this is done here because AfterLoadGame is also called
 		 * for TTO/TTD/TTDP savegames which have their own NewGRF logic.
 		 */
-		if (IsSavegameVersionBefore(&sl_version, 4)) {
+		if (IsOTTDSavegameVersionBefore(&sl_version, 4)) {
 			ClearGRFConfigList(&_grfconfig);
 		}
 	}

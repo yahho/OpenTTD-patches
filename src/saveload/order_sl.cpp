@@ -26,7 +26,7 @@ void Order::ConvertFromOldSavegame(const SavegameTypeVersion *stv)
 	this->flags = 0;
 
 	/* First handle non-stop - use value from savegame if possible, else use value from config file */
-	if (_settings_client.gui.sg_new_nonstop || (IsSavegameVersionBefore(stv, 22) && stv->type != SGT_TTO && stv->type != SGT_TTD && _settings_client.gui.new_nonstop)) {
+	if (_settings_client.gui.sg_new_nonstop || (IsOTTDSavegameVersionBefore(stv, 22) && stv->type != SGT_TTO && stv->type != SGT_TTD && _settings_client.gui.new_nonstop)) {
 		/* OFB_NON_STOP */
 		this->SetNonStopType((old_flags & 8) ? ONSF_NO_STOP_AT_ANY_STATION : ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS);
 	} else {
@@ -47,7 +47,7 @@ void Order::ConvertFromOldSavegame(const SavegameTypeVersion *stv)
 			this->SetLoadType(OLF_LOAD_IF_POSSIBLE);
 		} else {
 			/* old OTTD versions stored full_load_any in config file - assume it was enabled when loading */
-			this->SetLoadType(_settings_client.gui.sg_full_load_any || IsSavegameVersionBefore(stv, 22) ? OLF_FULL_LOAD_ANY : OLFB_FULL_LOAD);
+			this->SetLoadType(_settings_client.gui.sg_full_load_any || IsOTTDSavegameVersionBefore(stv, 22) ? OLF_FULL_LOAD_ANY : OLFB_FULL_LOAD);
 		}
 
 		if (this->IsType(OT_GOTO_STATION)) this->SetStopLocation(OSL_PLATFORM_FAR_END);
@@ -132,12 +132,12 @@ static void Save_ORDR(SaveDumper *dumper)
 
 static void Load_ORDR(LoadBuffer *reader)
 {
-	if (reader->IsVersionBefore(5, 2)) {
+	if (reader->IsOTTDVersionBefore(5, 2)) {
 		/* Version older than 5.2 did not have a ->next pointer. Convert them
 		 * (in the old days, the orderlist was 5000 items big) */
 		size_t len = reader->GetChunkSize();
 
-		if (reader->IsVersionBefore(5)) {
+		if (reader->IsOTTDVersionBefore(5)) {
 			/* Pre-version 5 had another layout for orders
 			 * (uint16 instead of uint32) */
 			len /= sizeof(uint16);
@@ -151,7 +151,7 @@ static void Load_ORDR(LoadBuffer *reader)
 			}
 
 			free(orders);
-		} else if (reader->IsVersionBefore(5, 2)) {
+		} else if (reader->IsOTTDVersionBefore(5, 2)) {
 			len /= sizeof(uint32);
 			uint32 *orders = MallocT<uint32>(len + 1);
 
@@ -190,7 +190,7 @@ static void Load_ORDR(LoadBuffer *reader)
 static void Ptrs_ORDR(const SavegameTypeVersion *stv)
 {
 	/* Orders from old savegames have pointers corrected in Load_ORDR */
-	if ((stv != NULL) && IsSavegameVersionBefore(stv, 5, 2)) return;
+	if ((stv != NULL) && IsOTTDSavegameVersionBefore(stv, 5, 2)) return;
 
 	Order *o;
 

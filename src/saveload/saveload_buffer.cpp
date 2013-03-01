@@ -158,7 +158,7 @@ void LoadBuffer::ReadString(void *ptr, size_t length, StrType conv)
 	StringValidationSettings settings = SVS_REPLACE_WITH_QUESTION_MARK;
 	if ((conv & SLS_ALLOW_CONTROL) != 0) {
 		settings = settings | SVS_ALLOW_CONTROL_CODE;
-		if (this->IsVersionBefore(169)) {
+		if (this->IsOTTDVersionBefore(169)) {
 			str_fix_scc_encoded((char *)ptr, (char *)ptr + len);
 		}
 	}

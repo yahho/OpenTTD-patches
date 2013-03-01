@@ -69,7 +69,7 @@ static void Load_ENGN(LoadBuffer *reader)
 		Engine *e = GetTempDataEngine(index);
 		reader->ReadObject(e, _engine_desc);
 
-		if (reader->IsVersionBefore(179)) {
+		if (reader->IsOTTDVersionBefore(179)) {
 			/* preview_company_rank was replaced with preview_company and preview_asked.
 			 * Just cancel any previews. */
 			e->flags &= ~4; // ENGINE_OFFER_WINDOW_OPEN

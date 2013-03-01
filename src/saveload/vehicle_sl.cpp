@@ -270,7 +270,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 
 		FOR_ALL_VEHICLES(v) {
 			if (v->orders.old != NULL) {
-				if (IsSavegameVersionBefore(stv, 105)) { // Pre-105 didn't save an OrderList
+				if (IsOTTDSavegameVersionBefore(stv, 105)) { // Pre-105 didn't save an OrderList
 					if (mapping[v->orders.old] == NULL) {
 						/* This adds the whole shared vehicle chain for case b */
 
@@ -282,7 +282,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 					} else {
 						v->orders.list = mapping[v->orders.old];
 						/* For old games (case a) we must create the shared vehicle chain */
-						if (IsSavegameVersionBefore(stv, 5, 2)) {
+						if (IsOTTDSavegameVersionBefore(stv, 5, 2)) {
 							v->AddToShared(v->orders.list->GetFirstSharedVehicle());
 						}
 					}
@@ -305,7 +305,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 	}
 
 	if (stv != NULL) {
-		if (IsSavegameVersionBefore(stv, 105)) {
+		if (IsOTTDSavegameVersionBefore(stv, 105)) {
 			/* Before 105 there was no order for shared orders, thus it messed up horribly */
 			FOR_ALL_VEHICLES(v) {
 				if (v->First() != v || v->orders.list != NULL || v->previous_shared != NULL || v->next_shared == NULL) continue;
@@ -319,7 +319,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 			}
 		}
 
-		if (IsSavegameVersionBefore(stv, 157)) {
+		if (IsOTTDSavegameVersionBefore(stv, 157)) {
 			/* The road vehicle subtype was converted to a flag. */
 			RoadVehicle *rv;
 			FOR_ALL_ROADVEHICLES(rv) {
@@ -336,7 +336,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 			}
 		}
 
-		if (IsSavegameVersionBefore(stv, 160)) {
+		if (IsOTTDSavegameVersionBefore(stv, 160)) {
 			/* In some old savegames there might be some "crap" stored. */
 			FOR_ALL_VEHICLES(v) {
 				if (!v->IsPrimaryVehicle() && v->type != VEH_DISASTER) {
@@ -346,14 +346,14 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 			}
 		}
 
-		if (IsSavegameVersionBefore(stv, 162)) {
+		if (IsOTTDSavegameVersionBefore(stv, 162)) {
 			/* Set the vehicle-local cargo age counter from the old global counter. */
 			FOR_ALL_VEHICLES(v) {
 				v->cargo_age_counter = _age_cargo_skip_counter;
 			}
 		}
 
-		if (IsSavegameVersionBefore(stv, 180)) {
+		if (IsOTTDSavegameVersionBefore(stv, 180)) {
 			/* Set service interval flags */
 			FOR_ALL_VEHICLES(v) {
 				if (!v->IsPrimaryVehicle()) continue;
@@ -403,7 +403,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 	}
 
 	/* Stop non-front engines */
-	if (stv != NULL && IsSavegameVersionBefore(stv, 112)) {
+	if (stv != NULL && IsOTTDSavegameVersionBefore(stv, 112)) {
 		FOR_ALL_VEHICLES(v) {
 			if (v->type == VEH_TRAIN) {
 				Train *t = Train::From(v);
@@ -416,7 +416,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 			}
 			/* trains weren't stopping gradually in old OTTD versions (and TTO/TTD)
 			 * other vehicle types didn't have zero speed while stopped (even in 'recent' OTTD versions) */
-			if ((v->vehstatus & VS_STOPPED) && (v->type != VEH_TRAIN || IsSavegameVersionBefore(stv, 2, 1))) {
+			if ((v->vehstatus & VS_STOPPED) && (v->type != VEH_TRAIN || IsOTTDSavegameVersionBefore(stv, 2, 1))) {
 				v->cur_speed = 0;
 			}
 		}
@@ -900,13 +900,13 @@ void Load_VEHS(LoadBuffer *reader)
 		}
 
 		/* Old savegames used 'last_station_visited = 0xFF' */
-		if (reader->IsVersionBefore(5) && v->last_station_visited == 0xFF) {
+		if (reader->IsOTTDVersionBefore(5) && v->last_station_visited == 0xFF) {
 			v->last_station_visited = INVALID_STATION;
 		}
 
-		if (reader->IsVersionBefore(182)) v->last_loading_station = INVALID_STATION;
+		if (reader->IsOTTDVersionBefore(182)) v->last_loading_station = INVALID_STATION;
 
-		if (reader->IsVersionBefore(5)) {
+		if (reader->IsOTTDVersionBefore(5)) {
 			/* Convert the current_order.type (which is a mix of type and flags, because
 			 *  in those versions, they both were 4 bits big) to type and flags */
 			v->current_order.flags = GB(v->current_order.type, 4, 4);
@@ -914,7 +914,7 @@ void Load_VEHS(LoadBuffer *reader)
 		}
 
 		/* Advanced vehicle lists got added */
-		if (reader->IsVersionBefore(60)) v->group_id = DEFAULT_GROUP;
+		if (reader->IsOTTDVersionBefore(60)) v->group_id = DEFAULT_GROUP;
 	}
 }
 

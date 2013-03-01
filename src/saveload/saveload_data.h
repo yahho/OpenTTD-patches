@@ -45,7 +45,7 @@ struct SavegameTypeVersion {
  * @param minor Minor number of the version to check against. If \a minor is 0 or not specified, only the major number is checked.
  * @return Savegame version is earlier than the specified version.
  */
-static inline bool IsSavegameVersionBefore(const SavegameTypeVersion *stv, uint16 major, byte minor = 0)
+static inline bool IsOTTDSavegameVersionBefore(const SavegameTypeVersion *stv, uint16 major, byte minor = 0)
 {
 	return stv->type != SGT_OTTD || stv->ottd.version < major || (minor > 0 && stv->ottd.version == major && stv->ottd.minor_version < minor);
 }

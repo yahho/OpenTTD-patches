@@ -135,7 +135,7 @@ static void Load_DATE(LoadBuffer *reader)
 static void Check_DATE(LoadBuffer *reader)
 {
 	reader->ReadObject(NULL, _date_check_desc);
-	if (reader->IsVersionBefore(31)) {
+	if (reader->IsOTTDVersionBefore(31)) {
 		_load_check_data.current_date += DAYS_TILL_ORIGINAL_BASE_YEAR;
 	}
 }

@@ -46,7 +46,7 @@ static void Load_DEPT(LoadBuffer *reader)
 		reader->ReadObject(depot, _depot_desc);
 
 		/* Set the town 'pointer' so we can restore it later. */
-		if (reader->IsVersionBefore(141)) depot->town = (Town *)(size_t)_town_index;
+		if (reader->IsOTTDVersionBefore(141)) depot->town = (Town *)(size_t)_town_index;
 	}
 }
 
@@ -56,7 +56,7 @@ static void Ptrs_DEPT(const SavegameTypeVersion *stv)
 
 	FOR_ALL_DEPOTS(depot) {
 		SlObjectPtrs(depot, _depot_desc, stv);
-		if ((stv != NULL) && IsSavegameVersionBefore(stv, 141)) depot->town = Town::Get((size_t)depot->town);
+		if ((stv != NULL) && IsOTTDSavegameVersionBefore(stv, 141)) depot->town = Town::Get((size_t)depot->town);
 	}
 }
 
