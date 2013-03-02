@@ -455,7 +455,7 @@ void GamelogOldver(const SavegameTypeVersion *stv)
 	if (lc == NULL) return;
 
 	lc->oldver.type = stv->type;
-	lc->oldver.version = (stv->type == SGT_OTTD ? ((uint32)stv->ottd.version << 8 | stv->ottd.minor_version) : stv->ttdp.version);
+	lc->oldver.version = (stv->type == SGT_FTTD ? stv->fttd.version : stv->type == SGT_OTTD ? ((uint32)stv->ottd.version << 8 | stv->ottd.minor_version) : stv->ttdp.version);
 }
 
 /**

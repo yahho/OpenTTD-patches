@@ -228,7 +228,7 @@ static void WriteSavegameInfo(const char *name)
 	char buf[8192];
 	char *p = buf;
 	p += seprintf(p, lastof(buf), "Name:         %s\n", name);
-	p += seprintf(p, lastof(buf), "Savegame ver: %d\n", _load_check_data.sl_version.ottd.version);
+	p += seprintf(p, lastof(buf), "Savegame ver: %c%d\n", _load_check_data.sl_version.type == SGT_FTTD ? 'F' : 'O', _load_check_data.sl_version.fttd.version);
 	p += seprintf(p, lastof(buf), "NewGRF ver:   0x%08X\n", last_ottd_rev);
 	p += seprintf(p, lastof(buf), "Modified:     %d\n", ever_modified);
 

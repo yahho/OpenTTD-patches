@@ -16,11 +16,12 @@
 
 /** Types of save games. */
 enum SavegameType {
+	SGT_TTO,    ///< TTO savegame
 	SGT_TTD,    ///< TTD  savegame (can be detected incorrectly)
 	SGT_TTDP1,  ///< TTDP savegame ( -//- ) (data at NW border)
 	SGT_TTDP2,  ///< TTDP savegame in new format (data at SE border)
 	SGT_OTTD,   ///< OTTD savegame
-	SGT_TTO,    ///< TTO savegame
+	SGT_FTTD,   ///< FTTD savegame
 	SGT_INVALID = 0xFF, ///< broken savegame (used internally)
 };
 
@@ -35,19 +36,39 @@ struct SavegameTypeVersion {
 			uint version;       ///< the major savegame version
 			uint minor_version; ///< the minor savegame version
 		} ottd;
+		struct {
+			uint version; ///< savegame version
+		} fttd;
 	};
 };
 
 /**
- * Checks whether the given savegame version is below \a major.\a minor.
+ * Checks whether the savegame version is older than a given version.
+ * @param stv Savegame version to check.
+ * @param version Version to check against.
+ * @param major Major number of the version to check against, for legacy savegames.
+ * @param minor Minor number of the version to check against, ignored if 0, for legacy savegames.
+ * @return Savegame version is earlier than the specified version.
+ */
+static inline bool IsFullSavegameVersionBefore(const SavegameTypeVersion *stv, uint version, uint major = UINT_MAX, uint minor = 0)
+{
+	switch (stv->type) {
+		default: return major > 0;
+		case SGT_OTTD: return stv->ottd.version < major || (minor > 0 && stv->ottd.version == major && stv->ottd.minor_version < minor);
+		case SGT_FTTD: return stv->fttd.version < version;
+	}
+}
+
+/**
+ * Checks whether the savegame version is legacy and older than a given version.
  * @param stv Savegame version to check.
  * @param major Major number of the version to check against.
- * @param minor Minor number of the version to check against. If \a minor is 0 or not specified, only the major number is checked.
+ * @param minor Minor number of the version to check against, ignored if 0.
  * @return Savegame version is earlier than the specified version.
  */
 static inline bool IsOTTDSavegameVersionBefore(const SavegameTypeVersion *stv, uint16 major, byte minor = 0)
 {
-	return stv->type != SGT_OTTD || stv->ottd.version < major || (minor > 0 && stv->ottd.version == major && stv->ottd.minor_version < minor);
+	return IsFullSavegameVersionBefore(stv, 0, major, minor);
 }
 
 
