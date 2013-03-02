@@ -1721,7 +1721,7 @@ struct FileWriter : SaveFilter {
 		_sl.sf = NULL;
 	}
 
-	/* virtual */ void Write(byte *buf, size_t size)
+	/* virtual */ void Write(const byte *buf, size_t size)
 	{
 		/* We're in the process of shutting down, i.e. in "failure" mode. */
 		if (this->file == NULL) return;

@@ -93,7 +93,7 @@ struct LZOSaveFilter : ChainSaveFilter {
 		if (lzo_init() != LZO_E_OK) SlError(STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR, "cannot initialize compressor");
 	}
 
-	/* virtual */ void Write(byte *buf, size_t size)
+	/* virtual */ void Write(const byte *buf, size_t size)
 	{
 		const lzo_bytep in = buf;
 		/* Buffer size is from the LZO docs plus the chunk header size. */
@@ -149,7 +149,7 @@ struct NoCompSaveFilter : ChainSaveFilter {
 	{
 	}
 
-	/* virtual */ void Write(byte *buf, size_t size)
+	/* virtual */ void Write(const byte *buf, size_t size)
 	{
 		this->chain->Write(buf, size);
 	}
@@ -160,6 +160,7 @@ struct NoCompSaveFilter : ChainSaveFilter {
  ********************************************/
 
 #if defined(WITH_ZLIB)
+#define ZLIB_CONST
 #include <zlib.h>
 
 /** Filter using Zlib compression. */
@@ -233,7 +234,7 @@ struct ZlibSaveFilter : ChainSaveFilter {
 	 * @param len  Amount of bytes to write.
 	 * @param mode Mode for deflate.
 	 */
-	void WriteLoop(byte *p, size_t len, int mode)
+	void WriteLoop(const byte *p, size_t len, int mode)
 	{
 		byte buf[MEMORY_CHUNK_SIZE]; // output buffer
 		uint n;
@@ -262,7 +263,7 @@ struct ZlibSaveFilter : ChainSaveFilter {
 		} while (this->z.avail_in || !this->z.avail_out);
 	}
 
-	/* virtual */ void Write(byte *buf, size_t size)
+	/* virtual */ void Write(const byte *buf, size_t size)
 	{
 		this->WriteLoop(buf, size, 0);
 	}
@@ -360,7 +361,7 @@ struct LZMASaveFilter : ChainSaveFilter {
 	 * @param len    Amount of bytes to write.
 	 * @param action Action for lzma_code.
 	 */
-	void WriteLoop(byte *p, size_t len, lzma_action action)
+	void WriteLoop(const byte *p, size_t len, lzma_action action)
 	{
 		byte buf[MEMORY_CHUNK_SIZE]; // output buffer
 		size_t n;
@@ -381,7 +382,7 @@ struct LZMASaveFilter : ChainSaveFilter {
 		} while (this->lzma.avail_in || !this->lzma.avail_out);
 	}
 
-	/* virtual */ void Write(byte *buf, size_t size)
+	/* virtual */ void Write(const byte *buf, size_t size)
 	{
 		this->WriteLoop(buf, size, LZMA_RUN);
 	}

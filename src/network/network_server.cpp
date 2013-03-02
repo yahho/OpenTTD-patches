@@ -97,7 +97,7 @@ struct PacketWriter : SaveFilter {
 		this->current = NULL;
 	}
 
-	/* virtual */ void Write(byte *buf, size_t size)
+	/* virtual */ void Write(const byte *buf, size_t size)
 	{
 		/* We want to abort the saving when the socket is closed. */
 		if (this->cs == NULL) SlError(STR_NETWORK_ERROR_LOSTCONNECTION);
@@ -106,7 +106,7 @@ struct PacketWriter : SaveFilter {
 
 		if (this->cs->savegame_mutex != NULL) this->cs->savegame_mutex->BeginCritical();
 
-		byte *bufe = buf + size;
+		const byte *bufe = buf + size;
 		while (buf != bufe) {
 			size_t to_write = min(SEND_MTU - this->current->size, bufe - buf);
 			memcpy(this->current->buffer + this->current->size, buf, to_write);
