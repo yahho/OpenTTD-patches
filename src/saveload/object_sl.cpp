@@ -17,13 +17,13 @@
 #include "newgrf_sl.h"
 
 static const SaveLoad _object_desc[] = {
-	    SLE_VAR(Object, location.tile,              SLE_UINT32),
-	    SLE_VAR(Object, location.w,                 SLE_FILE_U8 | SLE_VAR_U16),
-	    SLE_VAR(Object, location.h,                 SLE_FILE_U8 | SLE_VAR_U16),
-	    SLE_REF(Object, town,                       REF_TOWN),
-	    SLE_VAR(Object, build_date,                 SLE_UINT32),
-	SLE_CONDVAR(Object, colour,                     SLE_UINT8,                  148, SL_MAX_VERSION),
-	SLE_CONDVAR(Object, view,                       SLE_UINT8,                  155, SL_MAX_VERSION),
+	SLE_VAR(Object, location.tile, SLE_UINT32),
+	SLE_VAR(Object, location.w,    SLE_FILE_U8 | SLE_VAR_U16),
+	SLE_VAR(Object, location.h,    SLE_FILE_U8 | SLE_VAR_U16),
+	SLE_REF(Object, town,          REF_TOWN),
+	SLE_VAR(Object, build_date,    SLE_UINT32),
+	SLE_VAR(Object, colour,        SLE_UINT8,    0, , 148, ),
+	SLE_VAR(Object, view,          SLE_UINT8,    0, , 155, ),
 
 	SLE_END()
 };

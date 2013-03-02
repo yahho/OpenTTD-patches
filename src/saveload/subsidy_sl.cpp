@@ -15,15 +15,15 @@
 #include "saveload_buffer.h"
 
 static const SaveLoad _subsidies_desc[] = {
-	    SLE_VAR(Subsidy, cargo_type, SLE_UINT8),
-	    SLE_VAR(Subsidy, remaining,  SLE_UINT8),
-	SLE_CONDVAR(Subsidy, awarded,    SLE_UINT8,                 125, SL_MAX_VERSION),
-	SLE_CONDVAR(Subsidy, src_type,   SLE_UINT8,                 125, SL_MAX_VERSION),
-	SLE_CONDVAR(Subsidy, dst_type,   SLE_UINT8,                 125, SL_MAX_VERSION),
-	SLE_CONDVAR(Subsidy, src,        SLE_FILE_U8 | SLE_VAR_U16,   0, 4),
-	SLE_CONDVAR(Subsidy, src,        SLE_UINT16,                  5, SL_MAX_VERSION),
-	SLE_CONDVAR(Subsidy, dst,        SLE_FILE_U8 | SLE_VAR_U16,   0, 4),
-	SLE_CONDVAR(Subsidy, dst,        SLE_UINT16,                  5, SL_MAX_VERSION),
+	SLE_VAR(Subsidy, cargo_type, SLE_UINT8),
+	SLE_VAR(Subsidy, remaining,  SLE_UINT8),
+	SLE_VAR(Subsidy, awarded,    SLE_UINT8,                 0, , 125,  ),
+	SLE_VAR(Subsidy, src_type,   SLE_UINT8,                 0, , 125,  ),
+	SLE_VAR(Subsidy, dst_type,   SLE_UINT8,                 0, , 125,  ),
+	SLE_VAR(Subsidy, src,        SLE_FILE_U8 | SLE_VAR_U16,  , ,   0, 4),
+	SLE_VAR(Subsidy, src,        SLE_UINT16,                0, ,   5,  ),
+	SLE_VAR(Subsidy, dst,        SLE_FILE_U8 | SLE_VAR_U16,  , ,   0, 4),
+	SLE_VAR(Subsidy, dst,        SLE_UINT16,                0, ,   5,  ),
 	SLE_END()
 };
 

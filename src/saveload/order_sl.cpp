@@ -102,20 +102,20 @@ Order UnpackOldOrder(uint16 packed)
 const SaveLoad *GetOrderDescription()
 {
 	static const SaveLoad _order_desc[] = {
-		     SLE_VAR(Order, type,           SLE_UINT8),
-		     SLE_VAR(Order, flags,          SLE_UINT8),
-		     SLE_VAR(Order, dest,           SLE_UINT16),
-		     SLE_REF(Order, next,           REF_ORDER),
-		 SLE_CONDVAR(Order, refit_cargo,    SLE_UINT8,   36, SL_MAX_VERSION),
-		SLE_CONDNULL(1,                                  36, 181), // refit_subtype
-		 SLE_CONDVAR(Order, wait_time,      SLE_UINT16,  67, SL_MAX_VERSION),
-		 SLE_CONDVAR(Order, travel_time,    SLE_UINT16,  67, SL_MAX_VERSION),
-		 SLE_CONDVAR(Order, max_speed,      SLE_UINT16, 172, SL_MAX_VERSION),
+		 SLE_VAR(Order, type,           SLE_UINT8),
+		 SLE_VAR(Order, flags,          SLE_UINT8),
+		 SLE_VAR(Order, dest,           SLE_UINT16),
+		 SLE_REF(Order, next,           REF_ORDER),
+		 SLE_VAR(Order, refit_cargo,    SLE_UINT8,  0, ,  36,   ),
+		SLE_NULL(1,                                  , ,  36, 181), // refit_subtype
+		 SLE_VAR(Order, wait_time,      SLE_UINT16, 0, ,  67,   ),
+		 SLE_VAR(Order, travel_time,    SLE_UINT16, 0, ,  67,   ),
+		 SLE_VAR(Order, max_speed,      SLE_UINT16, 0, , 172,   ),
 
 		/* Leftover from the minor savegame version stuff
 		 * We will never use those free bytes, but we have to keep this line to allow loading of old savegames */
-		SLE_CONDNULL(10,                                  5,  35),
-		     SLE_END()
+		SLE_NULL(10,                                 , ,   5,  35),
+		 SLE_END()
 	};
 
 	return _order_desc;
@@ -133,7 +133,7 @@ static void Save_ORDR(SaveDumper *dumper)
 static void Load_ORDR(LoadBuffer *reader)
 {
 	if (reader->IsOTTDVersionBefore(5, 2)) {
-		/* Version older than 5.2 did not have a ->next pointer. Convert them
+		/* Legacy versions older than 5.2 did not have a ->next pointer. Convert them
 		 * (in the old days, the orderlist was 5000 items big) */
 		size_t len = reader->GetChunkSize();
 
@@ -242,21 +242,21 @@ static void Ptrs_ORDL(const SavegameTypeVersion *stv)
 const SaveLoad *GetOrderBackupDescription()
 {
 	static const SaveLoad _order_backup_desc[] = {
-		     SLE_VAR(OrderBackup, user,                     SLE_UINT32),
-		     SLE_VAR(OrderBackup, tile,                     SLE_UINT32),
-		     SLE_VAR(OrderBackup, group,                    SLE_UINT16),
-		     SLE_VAR(OrderBackup, service_interval,         SLE_UINT32),
-		     SLE_STR(OrderBackup, name,                     SLS_STR, 0),
-		     SLE_VAR(OrderBackup, clone,                    SLE_UINT16),
-		     SLE_VAR(OrderBackup, cur_real_order_index,     SLE_UINT8),
-		 SLE_CONDVAR(OrderBackup, cur_implicit_order_index, SLE_UINT8,                 176, SL_MAX_VERSION),
-		 SLE_CONDVAR(OrderBackup, current_order_time,       SLE_UINT32,                176, SL_MAX_VERSION),
-		 SLE_CONDVAR(OrderBackup, lateness_counter,         SLE_INT32,                 176, SL_MAX_VERSION),
-		 SLE_CONDVAR(OrderBackup, timetable_start,          SLE_INT32,                 176, SL_MAX_VERSION),
-		 SLE_CONDVAR(OrderBackup, vehicle_flags,            SLE_FILE_U8 | SLE_VAR_U16, 176, 179),
-		 SLE_CONDVAR(OrderBackup, vehicle_flags,            SLE_UINT16,                180, SL_MAX_VERSION),
-		     SLE_REF(OrderBackup, orders,                   REF_ORDER),
-		     SLE_END()
+		SLE_VAR(OrderBackup, user,                     SLE_UINT32),
+		SLE_VAR(OrderBackup, tile,                     SLE_UINT32),
+		SLE_VAR(OrderBackup, group,                    SLE_UINT16),
+		SLE_VAR(OrderBackup, service_interval,         SLE_UINT32),
+		SLE_STR(OrderBackup, name,                     SLS_STR, 0),
+		SLE_VAR(OrderBackup, clone,                    SLE_UINT16),
+		SLE_VAR(OrderBackup, cur_real_order_index,     SLE_UINT8),
+		SLE_VAR(OrderBackup, cur_implicit_order_index, SLE_UINT8,                 0, , 176,    ),
+		SLE_VAR(OrderBackup, current_order_time,       SLE_UINT32,                0, , 176,    ),
+		SLE_VAR(OrderBackup, lateness_counter,         SLE_INT32,                 0, , 176,    ),
+		SLE_VAR(OrderBackup, timetable_start,          SLE_INT32,                 0, , 176,    ),
+		SLE_VAR(OrderBackup, vehicle_flags,            SLE_FILE_U8 | SLE_VAR_U16,  , , 176, 179),
+		SLE_VAR(OrderBackup, vehicle_flags,            SLE_UINT16,                0, , 180,    ),
+		SLE_REF(OrderBackup, orders,                   REF_ORDER),
+		SLE_END()
 	};
 
 	return _order_backup_desc;

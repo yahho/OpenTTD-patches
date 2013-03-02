@@ -176,9 +176,9 @@ void LoadBuffer::ReadString(void *ptr, size_t length, StrType conv)
  */
 void LoadBuffer::ReadArray(void *ptr, size_t length, VarType conv)
 {
-	/* NOTICE - handle some buggy stuff, in really old versions everything was saved
+	/* NOTICE - handle some buggy stuff, in really old legacy versions everything was saved
 	 * as a byte-type. So detect this, and adjust array size accordingly */
-	if (this->stv->ottd.version == 0) {
+	if (this->stv->type == SGT_OTTD && this->stv->ottd.version == 0) {
 		/* all arrays except difficulty settings */
 		if (conv == SLE_INT16 || conv == SLE_UINT16 || conv == SLE_STRINGID ||
 				conv == SLE_INT32 || conv == SLE_UINT32) {

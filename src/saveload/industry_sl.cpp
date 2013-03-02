@@ -19,47 +19,47 @@
 static OldPersistentStorage _old_ind_persistent_storage;
 
 static const SaveLoad _industry_desc[] = {
-	SLE_CONDVAR(Industry, location.tile,              SLE_FILE_U16 | SLE_VAR_U32,  0, 5),
-	SLE_CONDVAR(Industry, location.tile,              SLE_UINT32,                  6, SL_MAX_VERSION),
-	    SLE_VAR(Industry, location.w,                 SLE_FILE_U8 | SLE_VAR_U16),
-	    SLE_VAR(Industry, location.h,                 SLE_FILE_U8 | SLE_VAR_U16),
-	    SLE_REF(Industry, town,                       REF_TOWN),
-	SLE_CONDNULL( 2, 0, 60),       ///< used to be industry's produced_cargo
-	SLE_CONDARR(Industry, produced_cargo,             SLE_UINT8,  2,              78, SL_MAX_VERSION),
-	SLE_CONDARR(Industry, incoming_cargo_waiting,     SLE_UINT16, 3,              70, SL_MAX_VERSION),
-	    SLE_ARR(Industry, produced_cargo_waiting,     SLE_UINT16, 2),
-	    SLE_ARR(Industry, production_rate,            SLE_UINT8,  2),
-	SLE_CONDNULL( 3, 0, 60),       ///< used to be industry's accepts_cargo
-	SLE_CONDARR(Industry, accepts_cargo,              SLE_UINT8,  3,              78, SL_MAX_VERSION),
-	    SLE_VAR(Industry, prod_level,                 SLE_UINT8),
-	    SLE_ARR(Industry, this_month_production,      SLE_UINT16, 2),
-	    SLE_ARR(Industry, this_month_transported,     SLE_UINT16, 2),
-	    SLE_ARR(Industry, last_month_pct_transported, SLE_UINT8,  2),
-	    SLE_ARR(Industry, last_month_production,      SLE_UINT16, 2),
-	    SLE_ARR(Industry, last_month_transported,     SLE_UINT16, 2),
+	SLE_VAR(Industry, location.tile,              SLE_FILE_U16 | SLE_VAR_U32,  , ,  0, 5),
+	SLE_VAR(Industry, location.tile,              SLE_UINT32,                 0, ,  6,  ),
+	SLE_VAR(Industry, location.w,                 SLE_FILE_U8 | SLE_VAR_U16),
+	SLE_VAR(Industry, location.h,                 SLE_FILE_U8 | SLE_VAR_U16),
+	SLE_REF(Industry, town,                       REF_TOWN),
+	SLE_NULL( 2, , , 0, 60),       ///< used to be industry's produced_cargo
+	SLE_ARR(Industry, produced_cargo,             SLE_UINT8,  2,              0, , 78,  ),
+	SLE_ARR(Industry, incoming_cargo_waiting,     SLE_UINT16, 3,              0, , 70,  ),
+	SLE_ARR(Industry, produced_cargo_waiting,     SLE_UINT16, 2),
+	SLE_ARR(Industry, production_rate,            SLE_UINT8,  2),
+	SLE_NULL( 3, , , 0, 60),       ///< used to be industry's accepts_cargo
+	SLE_ARR(Industry, accepts_cargo,              SLE_UINT8,  3,              0, , 78,  ),
+	SLE_VAR(Industry, prod_level,                 SLE_UINT8),
+	SLE_ARR(Industry, this_month_production,      SLE_UINT16, 2),
+	SLE_ARR(Industry, this_month_transported,     SLE_UINT16, 2),
+	SLE_ARR(Industry, last_month_pct_transported, SLE_UINT8,  2),
+	SLE_ARR(Industry, last_month_production,      SLE_UINT16, 2),
+	SLE_ARR(Industry, last_month_transported,     SLE_UINT16, 2),
 
-	    SLE_VAR(Industry, counter,                    SLE_UINT16),
+	SLE_VAR(Industry, counter,                    SLE_UINT16),
 
-	    SLE_VAR(Industry, type,                       SLE_UINT8),
-	    SLE_VAR(Industry, owner,                      SLE_UINT8),
-	    SLE_VAR(Industry, random_colour,              SLE_UINT8),
-	SLE_CONDVAR(Industry, last_prod_year,             SLE_FILE_U8 | SLE_VAR_I32,  0, 30),
-	SLE_CONDVAR(Industry, last_prod_year,             SLE_INT32,                 31, SL_MAX_VERSION),
-	    SLE_VAR(Industry, was_cargo_delivered,        SLE_UINT8),
+	SLE_VAR(Industry, type,                       SLE_UINT8),
+	SLE_VAR(Industry, owner,                      SLE_UINT8),
+	SLE_VAR(Industry, random_colour,              SLE_UINT8),
+	SLE_VAR(Industry, last_prod_year,             SLE_FILE_U8 | SLE_VAR_I32,  , ,   0, 30),
+	SLE_VAR(Industry, last_prod_year,             SLE_INT32,                 0, ,  31,   ),
+	SLE_VAR(Industry, was_cargo_delivered,        SLE_UINT8),
 
-	SLE_CONDVAR(Industry, founder,                    SLE_UINT8,                 70, SL_MAX_VERSION),
-	SLE_CONDVAR(Industry, construction_date,          SLE_INT32,                 70, SL_MAX_VERSION),
-	SLE_CONDVAR(Industry, construction_type,          SLE_UINT8,                 70, SL_MAX_VERSION),
-	SLE_CONDVAR(Industry, last_cargo_accepted_at,     SLE_INT32,                 70, SL_MAX_VERSION),
-	SLE_CONDVAR(Industry, selected_layout,            SLE_UINT8,                 73, SL_MAX_VERSION),
+	SLE_VAR(Industry, founder,                    SLE_UINT8,                 0, ,  70,   ),
+	SLE_VAR(Industry, construction_date,          SLE_INT32,                 0, ,  70,   ),
+	SLE_VAR(Industry, construction_type,          SLE_UINT8,                 0, ,  70,   ),
+	SLE_VAR(Industry, last_cargo_accepted_at,     SLE_INT32,                 0, ,  70,   ),
+	SLE_VAR(Industry, selected_layout,            SLE_UINT8,                 0, ,  73,   ),
 
-	SLEG_CONDARR(_old_ind_persistent_storage.storage, SLE_UINT32, 16,            76, 160),
-	SLE_CONDREF(Industry, psa,                        REF_STORAGE,              161, SL_MAX_VERSION),
+	SLEG_ARR(_old_ind_persistent_storage.storage, SLE_UINT32, 16,             , ,  76, 160),
+	SLE_REF(Industry, psa,                        REF_STORAGE,               0, , 161,    ),
 
-	SLE_CONDVAR(Industry, random_triggers,            SLE_UINT8,                 82, SL_MAX_VERSION),
-	SLE_CONDVAR(Industry, random,                     SLE_UINT16,                82, SL_MAX_VERSION),
+	SLE_VAR(Industry, random_triggers,            SLE_UINT8,                 0, ,  82,    ),
+	SLE_VAR(Industry, random,                     SLE_UINT16,                0, ,  82,    ),
 
-	SLE_CONDNULL(32, 2, 143), // old reserved space
+	SLE_NULL(32, , , 2, 143), // old reserved space
 
 	SLE_END()
 };
@@ -94,7 +94,7 @@ static void Load_INDY(LoadBuffer *reader)
 		Industry *i = new (index) Industry();
 		reader->ReadObject(i, _industry_desc);
 
-		/* Before savegame version 161, persistent storages were not stored in a pool. */
+		/* Before legacy savegame version 161, persistent storages were not stored in a pool. */
 		if (reader->IsOTTDVersionBefore(161) && !reader->IsOTTDVersionBefore(76)) {
 			/* Store the old persistent storage. The GRFID will be added later. */
 			assert(PersistentStorage::CanAllocateItem());

@@ -936,7 +936,7 @@ static bool DoLoad(LoadFilter **chain, int mode)
 		 *                            overwriting the main menu settings.
 		 * - other savegame versions: use main menu settings.
 		 *
-		 * This means that users *can* crash savegame version 4..40
+		 * This means that users *can* crash OTTD savegame version 4..40
 		 * savegames if they set incompatible NewGRFs in the main menu,
 		 * but can't crash anymore for savegame version < 4 savegames.
 		 *

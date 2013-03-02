@@ -66,7 +66,7 @@
 	}
 
 	if (!IsOTTDSavegameVersionBefore(stv, 68)) {
-		/* Only since version 68 we have cargo packets. Savegames from before used
+		/* Only since legacy version 68 we have cargo packets. Savegames from before used
 		 * 'new CargoPacket' + cargolist.Append so their caches are already
 		 * correct and do not need rebuilding. */
 		Vehicle *v;
@@ -92,17 +92,17 @@
 const SaveLoad *GetCargoPacketDesc()
 {
 	static const SaveLoad _cargopacket_desc[] = {
-		     SLE_VAR(CargoPacket, source,          SLE_UINT16),
-		     SLE_VAR(CargoPacket, source_xy,       SLE_UINT32),
-		     SLE_VAR(CargoPacket, loaded_at_xy,    SLE_UINT32),
-		     SLE_VAR(CargoPacket, count,           SLE_UINT16),
-		     SLE_VAR(CargoPacket, days_in_transit, SLE_UINT8),
-		     SLE_VAR(CargoPacket, feeder_share,    SLE_INT64),
-		 SLE_CONDVAR(CargoPacket, source_type,     SLE_UINT8,  125, SL_MAX_VERSION),
-		 SLE_CONDVAR(CargoPacket, source_id,       SLE_UINT16, 125, SL_MAX_VERSION),
+		 SLE_VAR(CargoPacket, source,          SLE_UINT16),
+		 SLE_VAR(CargoPacket, source_xy,       SLE_UINT32),
+		 SLE_VAR(CargoPacket, loaded_at_xy,    SLE_UINT32),
+		 SLE_VAR(CargoPacket, count,           SLE_UINT16),
+		 SLE_VAR(CargoPacket, days_in_transit, SLE_UINT8),
+		 SLE_VAR(CargoPacket, feeder_share,    SLE_INT64),
+		 SLE_VAR(CargoPacket, source_type,     SLE_UINT8,  0, , 125, ),
+		 SLE_VAR(CargoPacket, source_id,       SLE_UINT16, 0, , 125, ),
 
 		/* Used to be paid_for, but that got changed. */
-		SLE_CONDNULL(1, 0, 120),
+		SLE_NULL(1, , , 0, 120),
 
 		SLE_END()
 	};

@@ -173,7 +173,7 @@ static void *IntToReference(size_t index, SLRefType rt, const SavegameTypeVersio
 {
 	assert_compile(sizeof(size_t) <= sizeof(void *));
 
-	/* After version 4.3 REF_VEHICLE_OLD is saved as REF_VEHICLE,
+	/* After legacy version 4.3 REF_VEHICLE_OLD is saved as REF_VEHICLE,
 	 * and should be loaded like that */
 	if (rt == REF_VEHICLE_OLD && !IsOTTDSavegameVersionBefore(stv, 4, 4)) {
 		rt = REF_VEHICLE;

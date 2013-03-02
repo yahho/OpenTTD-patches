@@ -55,13 +55,13 @@ void Load_NewGRFMapping(LoadBuffer *reader, OverrideManagerBase &mapping)
 
 
 static const SaveLoad _grfconfig_desc[] = {
-	    SLE_STR(GRFConfig, filename,         SLS_STR,    0x40),
-	    SLE_VAR(GRFConfig, ident.grfid,      SLE_UINT32),
-	    SLE_ARR(GRFConfig, ident.md5sum,     SLE_UINT8,  16),
-	SLE_CONDVAR(GRFConfig, version,          SLE_UINT32, 151, SL_MAX_VERSION),
-	    SLE_ARR(GRFConfig, param,            SLE_UINT32, 0x80),
-	    SLE_VAR(GRFConfig, num_params,       SLE_UINT8),
-	SLE_CONDVAR(GRFConfig, palette,          SLE_UINT8,  101, SL_MAX_VERSION),
+	SLE_STR(GRFConfig, filename,     SLS_STR,    0x40),
+	SLE_VAR(GRFConfig, ident.grfid,  SLE_UINT32),
+	SLE_ARR(GRFConfig, ident.md5sum, SLE_UINT8,  16),
+	SLE_VAR(GRFConfig, version,      SLE_UINT32,       0, , 151, ),
+	SLE_ARR(GRFConfig, param,        SLE_UINT32, 0x80),
+	SLE_VAR(GRFConfig, num_params,   SLE_UINT8),
+	SLE_VAR(GRFConfig, palette,      SLE_UINT8,        0, , 101, ),
 	SLE_END()
 };
 

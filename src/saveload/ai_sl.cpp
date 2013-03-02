@@ -30,11 +30,11 @@ struct AiSaveload {
 };
 
 static const SaveLoad _ai_company[] = {
-	     SLE_STR(AiSaveload, name,        SLS_STRB, lengthof(AiSaveload::name)),
-	     SLE_STR(AiSaveload, settings,    SLS_STRB, lengthof(AiSaveload::settings)),
-	 SLE_CONDVAR(AiSaveload, version,   SLE_UINT32, 108, SL_MAX_VERSION),
-	 SLE_CONDVAR(AiSaveload, is_random,   SLE_BOOL, 136, SL_MAX_VERSION),
-	     SLE_END()
+	SLE_STR(AiSaveload, name,        SLS_STRB, lengthof(AiSaveload::name)),
+	SLE_STR(AiSaveload, settings,    SLS_STRB, lengthof(AiSaveload::settings)),
+	SLE_VAR(AiSaveload, version,   SLE_UINT32, 0, , 108, ),
+	SLE_VAR(AiSaveload, is_random,   SLE_BOOL, 0, , 136, ),
+	SLE_END()
 };
 
 static void Load_AIPL(LoadBuffer *reader)

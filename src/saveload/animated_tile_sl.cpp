@@ -33,7 +33,7 @@ static void Save_ANIT(SaveDumper *dumper)
  */
 static void Load_ANIT(LoadBuffer *reader)
 {
-	/* Before version 80 we did NOT have a variable length animated tile table */
+	/* Before legacy version 80 we did NOT have a variable length animated tile table */
 	if (reader->IsOTTDVersionBefore(80)) {
 		/* In pre version 6, we has 16bit per tile, now we have 32bit per tile, convert it ;) */
 		reader->ReadArray(_animated_tile_list, 256, reader->IsOTTDVersionBefore(6) ? (SLE_FILE_U16 | SLE_VAR_U32) : SLE_UINT32);

@@ -346,7 +346,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		}
 	}
 
-	/* from version 4.1 of the savegame, exclusive rights are stored at towns */
+	/* from legacy version 4.1 of the savegame, exclusive rights are stored at towns */
 	if (IsOTTDSavegameVersionBefore(stv, 4, 1)) {
 		Town *t;
 
@@ -364,7 +364,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		 */
 	}
 
-	/* from version 4.2 of the savegame, currencies are in a different order */
+	/* from legacy version 4.2 of the savegame, currencies are in a different order */
 	if (IsOTTDSavegameVersionBefore(stv, 4, 2)) {
 		static const byte convert_currency[] = {
 			 0,  1, 12,  8,  3,
@@ -585,7 +585,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 				case STATION_TRUCK:
 				case STATION_BUS:
 					if (IsOTTDSavegameVersionBefore(stv, 6)) {
-						/* Before version 5 you could not have more than 250 stations.
+						/* Before legacy version 5 you could not have more than 250 stations.
 						 * Version 6 adds large maps, so you could only place 253*253
 						 * road stops on a map (no freeform edges) = 64009. So, yes
 						 * someone could in theory create such a full map to trigger
@@ -628,11 +628,11 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		}
 	}
 
-	/* In version 2.2 of the savegame, we have new airports, so status of all aircraft is reset.
+	/* In legacy version 2.2 of the savegame, we have new airports, so status of all aircraft is reset.
 	 * This has to be called after the oilrig airport_type update above ^^^ ! */
 	if (IsOTTDSavegameVersionBefore(stv, 2, 2)) UpdateOldAircraft();
 
-	/* In version 6.1 we put the town index in the map-array. To do this, we need
+	/* In legacy version 6.1 we put the town index in the map-array. To do this, we need
 	 *  to use m2 (16bit big), so we need to clean m2, and that is where this is
 	 *  all about ;) */
 	if (IsOTTDSavegameVersionBefore(stv, 6, 1)) {
@@ -658,14 +658,14 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		_settings_game.construction.freeform_edges = false;
 	}
 
-	/* From version 9.0, we update the max passengers of a town (was sometimes negative
+	/* From legacy version 9.0, we update the max passengers of a town (was sometimes negative
 	 *  before that. */
 	if (IsOTTDSavegameVersionBefore(stv, 9)) {
 		Town *t;
 		FOR_ALL_TOWNS(t) UpdateTownMaxPass(t);
 	}
 
-	/* From version 16.0, we included autorenew on engines, which are now saved, but
+	/* From legacy version 16.0, we included autorenew on engines, which are now saved, but
 	 *  of course, we do need to initialize them for older savegames. */
 	if (IsOTTDSavegameVersionBefore(stv, 16)) {
 		Company *c;
@@ -732,7 +732,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		}
 	}
 
-	/* Elrails got added in rev 24 */
+	/* Elrails got added in legacy version 24 */
 	if (IsOTTDSavegameVersionBefore(stv, 24)) {
 		RailType min_rail = RAILTYPE_ELECTRIC;
 
@@ -778,7 +778,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 
 	}
 
-	/* In version 16.1 of the savegame a company can decide if trains, which get
+	/* In legacy version 16.1 of the savegame a company can decide if trains, which get
 	 * replaced, shall keep their old length. In all prior versions, just default
 	 * to false */
 	if (IsOTTDSavegameVersionBefore(stv, 16, 1)) {
@@ -882,7 +882,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		}
 	}
 
-	/* from version 38 we have optional elrails, since we cannot know the
+	/* from legacy version 38 we have optional elrails, since we cannot know the
 	 * preference of a user, let elrails enabled; it can be disabled manually */
 	if (IsOTTDSavegameVersionBefore(stv, 38)) _settings_game.vehicle.disable_elrails = false;
 	/* do the same as when elrails were enabled/disabled manually just now */
@@ -964,7 +964,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	}
 
 	/* A setting containing the proportion of towns that grow twice as
-	 * fast was added in version 54. From version 56 this is now saved in the
+	 * fast was added in legacy version 54. From version 56 this is now saved in the
 	 * town as cities can be built specifically in the scenario editor. */
 	if (IsOTTDSavegameVersionBefore(stv, 56)) {
 		Town *t;
@@ -1926,7 +1926,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	}
 
 	if (IsOTTDSavegameVersionBefore(stv, 159)) {
-		/* If the savegame is old (before version 100), then the value of 255
+		/* If the savegame is old (before legacy version 100), then the value of 255
 		 * for these settings did not mean "disabled". As such everything
 		 * before then did reverse.
 		 * To simplify stuff we disable all turning around or we do not

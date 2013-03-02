@@ -204,6 +204,7 @@ struct SaveLoad {
 	byte flags;            ///< save/load flags
 	uint16 length;         ///< (conditional) length of the variable (eg. arrays) (max array size is 65536 elements)
 	SaveLoadRange version; ///< save/load the variable in this version range
+	SaveLoadRange legacy;  ///< save/load the variable in this legacy version range
 	/* NOTE: This element either denotes the address of the variable for a global
 	 * variable, or the offset within a struct which is then bound to a variable
 	 * during runtime. Decision on which one to use is controlled by the function
@@ -222,6 +223,21 @@ struct SaveLoad {
 #define SLE_DEFAULT_IF_EMPTY(value, default) ((sizeof(#value) != 1) ? (value + 0) : (default))
 
 /**
+ * Generic SaveLoad object, with version range and legacy version range.
+ * @param type     Load/save type. @see SaveLoadType
+ * @param address  Address of variable or offset of variable in the struct
+ * @param conv     Subtype/conversion of the data between memory and savegame.
+ * @param flags    Save/load flags
+ * @param length   Length of object (for arrays and strings)
+ * @param from     First savegame version that has the field.
+ * @param to       Last savegame version that has the field, empty for maximum possible value.
+ * @param lfrom    First legacy savegame version that has the field.
+ * @param lto      Last legacy savegame version that has the field, empty for maximum possible value.
+ * @note This macro should not be used directly.
+ */
+#define SLE_ANY_2(type, address, conv, flags, length, from, to, lfrom, lto) {type, conv, flags, length, {SLE_DEFAULT_IF_EMPTY(from, SL_MAX_VERSION), SLE_DEFAULT_IF_EMPTY(to, SL_MAX_VERSION)}, {lfrom, SLE_DEFAULT_IF_EMPTY(lto, SL_MAX_VERSION)}, address}
+
+/**
  * Generic SaveLoad object, with version range.
  * @param type     Load/save type. @see SaveLoadType
  * @param address  Address of variable or offset of variable in the struct
@@ -232,7 +248,7 @@ struct SaveLoad {
  * @param to       Last savegame version that has the field, empty for maximum possible value.
  * @note This macro should not be used directly.
  */
-#define SLE_ANY_1(type, address, conv, flags, length, from, to) {type, conv, flags, length, {from, SLE_DEFAULT_IF_EMPTY(to, SL_MAX_VERSION)}, address}
+#define SLE_ANY_1(type, address, conv, flags, length, from, to, ...) SLE_ANY_2(type, address, conv, flags, length, from, to, SL_MAX_VERSION, 0)
 
 /**
  * Generic SaveLoad object, without version range.
@@ -243,7 +259,7 @@ struct SaveLoad {
  * @param length   Length of object (for arrays and strings)
  * @note This macro should not be used directly.
  */
-#define SLE_ANY_0(type, address, conv, flags, length, ...) SLE_ANY_1(type, address, conv, flags, length, 0, )
+#define SLE_ANY_0(type, address, conv, flags, length, ...) SLE_ANY_2(type, address, conv, flags, length, 0, , 0, )
 
 /**
  * Generic SaveLoad object, with or without version range.
@@ -254,12 +270,14 @@ struct SaveLoad {
  * @param length   Length of object (for arrays and strings)
  * @param from     First savegame version that has the field (optional).
  * @param to       Last savegame version that has the field (optional).
- * @note Either both version arguments or neither of them should be present.
+ * @param lfrom    First legacy savegame version that has the field (optional).
+ * @param lto      Last legacy savegame version that has the field (optional).
+ * @note Both savegame version interval endpoints must be present for any given range.
  * @note There should be a trailing empty argument to this macro.
  * @note This macro should not be used directly.
  */
-#define SLE_ANY_(type, address, conv, flags, ...) SLE_EXPAND(SLE_ANY(type, address, conv, flags, __VA_ARGS__ 1, INVALID, 0, INVALID, ))
-#define SLE_ANY(type, address, conv, flags, length, from, to, n, ...) SLE_ANY_##n(type, address, conv, flags, length, from, to)
+#define SLE_ANY_(type, address, conv, flags, ...) SLE_EXPAND(SLE_ANY(type, address, conv, flags, __VA_ARGS__ 2, INVALID, 1, INVALID, 0, INVALID, ))
+#define SLE_ANY(type, address, conv, flags, length, from, to, lfrom, lto, n, ...) SLE_ANY_##n(type, address, conv, flags, length, from, to, lfrom, lto)
 
 /**
  * Storage of simple variables, references (pointers), and arrays.
@@ -271,7 +289,9 @@ struct SaveLoad {
  * @param length   Length of object (for arrays and strings)
  * @param from     First savegame version that has the field (optional).
  * @param to       Last savegame version that has the field (optional).
- * @note Either both version arguments or neither of them should be present.
+ * @param lfrom    First legacy savegame version that has the field (optional).
+ * @param lto      Last legacy savegame version that has the field (optional).
+ * @note Both savegame version interval endpoints must be present for any given range.
  * @note In general, it is better to use one of the SLE_* macros below.
  */
 #define SLE_GENERAL(...) SLE_EXPAND(SLE_GENERAL_(__VA_ARGS__, ))
@@ -284,11 +304,12 @@ struct SaveLoad {
  * @param conv     Storage of the data in memory and in the savegame.
  * @param from     First savegame version that has the field (optional).
  * @param to       Last savegame version that has the field (optional).
- * @note Either both version arguments or neither of them should be present.
+ * @param lfrom    First legacy savegame version that has the field (optional).
+ * @param lto      Last legacy savegame version that has the field (optional).
+ * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLE_VAR(...) SLE_EXPAND(SLE_VAR_(__VA_ARGS__, ))
 #define SLE_VAR_(base, variable, conv, ...) SLE_EXPAND(SLE_GENERAL_(SL_VAR, base, variable, conv, 0, 0, __VA_ARGS__))
-#define SLE_CONDVAR SLE_VAR
 
 /**
  * Storage of a reference.
@@ -297,11 +318,12 @@ struct SaveLoad {
  * @param reftype  Type of the reference, a value from #SLRefType.
  * @param from     First savegame version that has the field (optional).
  * @param to       Last savegame version that has the field (optional).
- * @note Either both version arguments or neither of them should be present.
+ * @param lfrom    First legacy savegame version that has the field (optional).
+ * @param lto      Last legacy savegame version that has the field (optional).
+ * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLE_REF(...) SLE_EXPAND(SLE_REF_(__VA_ARGS__, ))
 #define SLE_REF_(base, variable, reftype, ...) SLE_EXPAND(SLE_GENERAL_(SL_REF, base, variable, reftype, 0, 0, __VA_ARGS__))
-#define SLE_CONDREF SLE_REF
 
 /**
  * Storage of an array.
@@ -311,11 +333,12 @@ struct SaveLoad {
  * @param length   Number of elements in the array.
  * @param from     First savegame version that has the array (optional).
  * @param to       Last savegame version that has the array (optional).
- * @note Either both version arguments or neither of them should be present.
+ * @param lfrom    First legacy savegame version that has the array (optional).
+ * @param lto      Last legacy savegame version that has the array (optional).
+ * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLE_ARR(...) SLE_EXPAND(SLE_ARR_(__VA_ARGS__, ))
 #define SLE_ARR_(base, variable, conv, length, ...) SLE_EXPAND(SLE_GENERAL_(SL_ARR, base, variable, conv, 0, length, __VA_ARGS__))
-#define SLE_CONDARR SLE_ARR
 
 /**
  * Storage of a string.
@@ -325,11 +348,12 @@ struct SaveLoad {
  * @param length   Number of elements in the string (only used for fixed size buffers).
  * @param from     First savegame version that has the string (optional).
  * @param to       Last savegame version that has the string (optional).
- * @note Either both version arguments or neither of them should be present.
+ * @param lfrom    First legacy savegame version that has the string (optional).
+ * @param lto      Last legacy savegame version that has the string (optional).
+ * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLE_STR(...) SLE_EXPAND(SLE_STR_(__VA_ARGS__, ))
 #define SLE_STR_(base, variable, conv, length, ...) SLE_EXPAND(SLE_GENERAL_(SL_STR, base, variable, conv, 0, length, __VA_ARGS__))
-#define SLE_CONDSTR SLE_STR
 
 /**
  * Storage of a list.
@@ -338,30 +362,33 @@ struct SaveLoad {
  * @param reftype  Type of the reference, a value from #SLRefType.
  * @param from     First savegame version that has the list (optional).
  * @param to       Last savegame version that has the list (optional).
- * @note Either both version arguments or neither of them should be present.
+ * @param lfrom    First legacy savegame version that has the list (optional).
+ * @param lto      Last legacy savegame version that has the list (optional).
+ * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLE_LST(...) SLE_EXPAND(SLE_LST_(__VA_ARGS__, ))
 #define SLE_LST_(base, variable, reftype, ...) SLE_EXPAND(SLE_GENERAL_(SL_LST, base, variable, reftype, 0, 0, __VA_ARGS__))
-#define SLE_CONDLST SLE_LST
 
 /**
  * Empty space.
  * @param length Length of the empty space.
  * @param from   First savegame version that has the empty space (optional).
  * @param to     Last savegame version that has the empty space (optional).
+ * @param lfrom  First legacy savegame version that has the empty space (optional).
+ * @param lto    Last legacy savegame version that has the empty space (optional).
+ * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLE_NULL(...) SLE_EXPAND(SLE_NULL_(__VA_ARGS__, ))
 #define SLE_NULL_(length, ...) SLE_EXPAND(SLE_ANY_(SL_ARR, (void*)NULL, SLE_FILE_U8 | SLE_VAR_NULL, SLF_NOT_IN_CONFIG, length, __VA_ARGS__))
-#define SLE_CONDNULL SLE_NULL
 
 /** Translate values ingame to different values in the savegame and vv. */
-#define SLE_WRITEBYTE(base, variable, value) SLE_GENERAL(SL_WRITEBYTE, base, variable, value, 0, 0, 0, )
+#define SLE_WRITEBYTE(base, variable, value) SLE_GENERAL(SL_WRITEBYTE, base, variable, value, 0, 0)
 
 /** Include another SaveLoad object. */
-#define SLE_INCLUDE(include) {SL_INCLUDE, 0, 0, 0, {0, SL_MAX_VERSION}, const_cast<SaveLoad *>(include)}
+#define SLE_INCLUDE(include) {SL_INCLUDE, 0, 0, 0, {0, SL_MAX_VERSION}, {0, SL_MAX_VERSION}, const_cast<SaveLoad *>(include)}
 
 /** End marker of a struct/class save or load. */
-#define SLE_END() {SL_END, 0, 0, 0, {0, 0}, NULL}
+#define SLE_END() {SL_END, 0, 0, 0, {0, 0}, {0, 0}, NULL}
 
 /**
  * Storage of global simple variables, references (pointers), and arrays.
@@ -372,7 +399,9 @@ struct SaveLoad {
  * @param length   Length of object (for arrays and strings)
  * @param from     First savegame version that has the field (optional).
  * @param to       Last savegame version that has the field (optional).
- * @note Either both version arguments or neither of them should be present.
+ * @param lfrom    First legacy savegame version that has the field (optional).
+ * @param lto      Last legacy savegame version that has the field (optional).
+ * @note Both savegame version interval endpoints must be present for any given range.
  * @note In general, it is better to use one of the SLEG_* macros below.
  */
 #define SLEG_GENERAL(...) SLE_EXPAND(SLEG_GENERAL_(__VA_ARGS__, ))
@@ -384,11 +413,12 @@ struct SaveLoad {
  * @param conv     Storage of the data in memory and in the savegame.
  * @param from     First savegame version that has the field (optional).
  * @param to       Last savegame version that has the field (optional).
- * @note Either both version arguments or neither of them should be present.
+ * @param lfrom    First legacy savegame version that has the field (optional).
+ * @param lto      Last legacy savegame version that has the field (optional).
+ * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLEG_VAR(...) SLE_EXPAND(SLEG_VAR_(__VA_ARGS__, ))
 #define SLEG_VAR_(variable, conv, ...) SLE_EXPAND(SLEG_GENERAL_(SL_VAR, variable, conv, 0, 0, __VA_ARGS__))
-#define SLEG_CONDVAR SLEG_VAR
 
 /**
  * Storage of a global reference.
@@ -396,11 +426,12 @@ struct SaveLoad {
  * @param reftype  Type of the reference, a value from #SLRefType.
  * @param from     First savegame version that has the field (optional).
  * @param to       Last savegame version that has the field (optional).
- * @note Either both version arguments or neither of them should be present.
+ * @param lfrom    First legacy savegame version that has the field (optional).
+ * @param lto      Last legacy savegame version that has the field (optional).
+ * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLEG_REF(...) SLE_EXPAND(SLEG_REF_(__VA_ARGS__, ))
 #define SLEG_REF_(variable, reftype, ...) SLE_EXPAND(SLEG_GENERAL_(SL_REF, variable, reftype, 0, 0, __VA_ARGS__))
-#define SLEG_CONDREF SLEG_REF
 
 /**
  * Storage of a global array.
@@ -409,11 +440,12 @@ struct SaveLoad {
  * @param length   Number of elements in the array.
  * @param from     First savegame version that has the array (optional).
  * @param to       Last savegame version that has the array (optional).
- * @note Either both version arguments or neither of them should be present.
+ * @param lfrom    First legacy savegame version that has the array (optional).
+ * @param lto      Last legacy savegame version that has the array (optional).
+ * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLEG_ARR(...) SLE_EXPAND(SLEG_ARR_(__VA_ARGS__, ))
 #define SLEG_ARR_(variable, conv, length, ...) SLE_EXPAND(SLEG_GENERAL_(SL_ARR, variable, conv, 0, length, __VA_ARGS__))
-#define SLEG_CONDARR SLEG_ARR
 
 /**
  * Storage of a global string.
@@ -422,11 +454,12 @@ struct SaveLoad {
  * @param length   Number of elements in the string (only used for fixed size buffers).
  * @param from     First savegame version that has the string (optional).
  * @param to       Last savegame version that has the string (optional).
- * @note Either both version arguments or neither of them should be present.
+ * @param lfrom    First legacy savegame version that has the string (optional).
+ * @param lto      Last legacy savegame version that has the string (optional).
+ * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLEG_STR(...) SLE_EXPAND(SLEG_STR_(__VA_ARGS__, ))
 #define SLEG_STR_(variable, conv, length, ...) SLE_EXPAND(SLEG_GENERAL_(SL_STR, variable, conv, 0, length, __VA_ARGS__))
-#define SLEG_CONDSTR SLEG_STR
 
 /**
  * Storage of a global list.
@@ -434,11 +467,12 @@ struct SaveLoad {
  * @param reftype  Type of the reference, a value from #SLRefType.
  * @param from     First savegame version that has the list (optional).
  * @param to       Last savegame version that has the list (optional).
- * @note Either both version arguments or neither of them should be present.
+ * @param lfrom    First legacy savegame version that has the list (optional).
+ * @param lto      Last legacy savegame version that has the list (optional).
+ * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLEG_LST(...) SLE_EXPAND(SLEG_LST_(__VA_ARGS__, ))
 #define SLEG_LST_(variable, reftype, ...) SLE_EXPAND(SLEG_GENERAL_(SL_LST, variable, reftype, 0, 0, __VA_ARGS__))
-#define SLEG_CONDLST SLEG_LST
 
 /**
  * Get the NumberType of a setting. This describes the integer type
@@ -522,11 +556,20 @@ static inline const void *GetVariableAddress(const SaveLoad *sld, const void *ob
 /** Is this object valid in a certain savegame version? */
 static inline bool SlIsObjectValidInSavegame(const SavegameTypeVersion *stv, const SaveLoad *sld)
 {
-	if (stv->type == SGT_OTTD) {
-		if (stv->ottd.version < sld->version.from || stv->ottd.version > sld->version.to) return false;
-	} else {
-		if (0 < sld->version.from) return false;
+	switch (stv->type) {
+		default:
+			if (0 < sld->legacy.from) return false;
+			break;
+
+		case SGT_OTTD:
+			if (stv->ottd.version < sld->legacy.from || stv->ottd.version > sld->legacy.to) return false;
+			break;
+
+		case SGT_FTTD:
+			if (stv->fttd.version < sld->version.from || stv->fttd.version > sld->version.to) return false;
+			break;
 	}
+
 	if (sld->flags & SLF_NOT_IN_SAVE) return false;
 
 	return true;
@@ -540,7 +583,7 @@ static inline bool SlIsObjectValidInSavegame(const SavegameTypeVersion *stv, con
 static inline bool SlIsObjectCurrentlyValid(const SaveLoad *sld)
 {
 	extern const uint16 SAVEGAME_VERSION;
-	if (SAVEGAME_VERSION < sld->version.from || SAVEGAME_VERSION > sld->version.to) return false;
+	if (SAVEGAME_VERSION < sld->legacy.from || SAVEGAME_VERSION > sld->legacy.to) return false;
 
 	return true;
 }

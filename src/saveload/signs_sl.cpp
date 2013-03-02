@@ -17,15 +17,15 @@
 
 /** Description of a sign within the savegame. */
 static const SaveLoad _sign_desc[] = {
-	SLE_CONDVAR(Sign, name,  SLE_NAME,                   0, 83),
-	SLE_CONDSTR(Sign, name,  SLS_STR | SLS_ALLOW_CONTROL, 0, 84, SL_MAX_VERSION),
-	SLE_CONDVAR(Sign, x,     SLE_FILE_I16 | SLE_VAR_I32, 0, 4),
-	SLE_CONDVAR(Sign, y,     SLE_FILE_I16 | SLE_VAR_I32, 0, 4),
-	SLE_CONDVAR(Sign, x,     SLE_INT32,                  5, SL_MAX_VERSION),
-	SLE_CONDVAR(Sign, y,     SLE_INT32,                  5, SL_MAX_VERSION),
-	SLE_CONDVAR(Sign, owner, SLE_UINT8,                  6, SL_MAX_VERSION),
-	SLE_CONDVAR(Sign, z,     SLE_FILE_U8  | SLE_VAR_I32, 0, 163),
-	SLE_CONDVAR(Sign, z,     SLE_INT32,                164, SL_MAX_VERSION),
+	SLE_VAR(Sign, name,  SLE_NAME,                        , ,   0,  83),
+	SLE_STR(Sign, name,  SLS_STR | SLS_ALLOW_CONTROL, 0, 0, ,  84,    ),
+	SLE_VAR(Sign, x,     SLE_FILE_I16 | SLE_VAR_I32,      , ,   0,   4),
+	SLE_VAR(Sign, y,     SLE_FILE_I16 | SLE_VAR_I32,      , ,   0,   4),
+	SLE_VAR(Sign, x,     SLE_INT32,                      0, ,   5,    ),
+	SLE_VAR(Sign, y,     SLE_INT32,                      0, ,   5,    ),
+	SLE_VAR(Sign, owner, SLE_UINT8,                      0, ,   6,    ),
+	SLE_VAR(Sign, z,     SLE_FILE_U8  | SLE_VAR_I32,      , ,   0, 163),
+	SLE_VAR(Sign, z,     SLE_INT32,                      0, , 164,    ),
 	SLE_END()
 };
 
@@ -46,9 +46,9 @@ static void Load_SIGN(LoadBuffer *reader)
 	while ((index = reader->IterateChunk()) != -1) {
 		Sign *si = new (index) Sign();
 		reader->ReadObject(si, _sign_desc);
-		/* Before version 6.1, signs didn't have owner.
-		 * Before version 83, invalid signs were determined by si->str == 0.
-		 * Before version 103, owner could be a bankrupted company.
+		/* Before legacy version 6.1, signs didn't have owner.
+		 * Before legacy version 83, invalid signs were determined by si->str == 0.
+		 * Before legacy version 103, owner could be a bankrupted company.
 		 *  - we can't use IsValidCompany() now, so this is fixed in AfterLoadGame()
 		 * All signs that were saved are valid (including those with just 'Sign' and INVALID_OWNER).
 		 *  - so set owner to OWNER_NONE if needed (signs from pre-version 6.1 would be lost) */

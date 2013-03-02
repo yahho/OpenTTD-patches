@@ -15,13 +15,13 @@
 #include "saveload_buffer.h"
 
 static const SaveLoad _goals_desc[] = {
-	    SLE_VAR(Goal, company,   SLE_UINT16),
-	    SLE_VAR(Goal, type,      SLE_UINT16),
-	    SLE_VAR(Goal, dst,       SLE_UINT32),
-	    SLE_STR(Goal, text,      SLS_STR | SLS_ALLOW_CONTROL, 0),
-	SLE_CONDSTR(Goal, progress,  SLS_STR | SLS_ALLOW_CONTROL, 0, 182, SL_MAX_VERSION),
-	SLE_CONDVAR(Goal, completed, SLE_BOOL, 182, SL_MAX_VERSION),
-	    SLE_END()
+	SLE_VAR(Goal, company,   SLE_UINT16),
+	SLE_VAR(Goal, type,      SLE_UINT16),
+	SLE_VAR(Goal, dst,       SLE_UINT32),
+	SLE_STR(Goal, text,      SLS_STR | SLS_ALLOW_CONTROL, 0),
+	SLE_STR(Goal, progress,  SLS_STR | SLS_ALLOW_CONTROL, 0, 0, , 182, ),
+	SLE_VAR(Goal, completed, SLE_BOOL, 0, , 182, ),
+	SLE_END()
 };
 
 static void Save_GOAL(SaveDumper *dumper)

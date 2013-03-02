@@ -15,8 +15,8 @@
 
 /** Description of the data to save and load in #PersistentStorage. */
 static const SaveLoad _storage_desc[] = {
-	 SLE_CONDVAR(PersistentStorage, grfid,    SLE_UINT32,                  6, SL_MAX_VERSION),
-	 SLE_CONDARR(PersistentStorage, storage,  SLE_UINT32, 16,            161, SL_MAX_VERSION),
+	 SLE_VAR(PersistentStorage, grfid,   SLE_UINT32,     0, ,   6, ),
+	 SLE_ARR(PersistentStorage, storage, SLE_UINT32, 16, 0, , 161, ),
 	 SLE_END()
 };
 

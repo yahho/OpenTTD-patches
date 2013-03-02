@@ -29,7 +29,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 {
 	TileIndex map_size = MapSize();
 
-	/* in version 2.1 of the savegame, town owner was unified. */
+	/* in legacy version 2.1 of the savegame, town owner was unified. */
 	if (IsOTTDSavegameVersionBefore(stv, 2, 1)) {
 		for (TileIndex tile = 0; tile < map_size; tile++) {
 			switch (GetTileType(tile)) {
@@ -48,7 +48,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
-	/* In version 6.1 we put the town index in the map-array. To do this, we need
+	/* In legacy version 6.1 we put the town index in the map-array. To do this, we need
 	 *  to use m2 (16bit big), so we need to clean m2, and that is where this is
 	 *  all about ;) */
 	if (IsOTTDSavegameVersionBefore(stv, 6, 1)) {
@@ -69,7 +69,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
-	/* From version 15, we moved a semaphore bit from bit 2 to bit 3 in m4, making
+	/* From legacy version 15, we moved a semaphore bit from bit 2 to bit 3 in m4, making
 	 *  room for PBS. Now in version 21 move it back :P. */
 	if (IsOTTDSavegameVersionBefore(stv, 21) && !IsOTTDSavegameVersionBefore(stv, 15)) {
 		for (TileIndex t = 0; t < map_size; t++) {
@@ -129,7 +129,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
-	/* From version 53, the map array was changed for house tiles to allow
+	/* From legacy version 53, the map array was changed for house tiles to allow
 	 * space for newhouses grf features. A new byte, m7, was also added. */
 	if (IsOTTDSavegameVersionBefore(stv, 53)) {
 		for (TileIndex t = 0; t < map_size; t++) {
@@ -227,7 +227,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
-	/* Before version 81, the density of grass was always stored as zero, and
+	/* Before legacy version 81, the density of grass was always stored as zero, and
 	 * grassy trees were always drawn fully grassy. Furthermore, trees on rough
 	 * land used to have zero density, now they have full density. Therefore,
 	 * make all grassy/rough land trees have a density of 3. */
@@ -399,7 +399,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
-	/* From version 82, old style canals (above sealevel (0), WATER owner) are no longer supported.
+	/* From legacy version 82, old style canals (above sealevel (0), WATER owner) are no longer supported.
 	    Replace the owner for those by OWNER_NONE. */
 	if (IsOTTDSavegameVersionBefore(stv, 82)) {
 		for (TileIndex t = 0; t < map_size; t++) {
@@ -643,9 +643,9 @@ struct MapDim {
 };
 
 static const SaveLoad _map_dimensions[] = {
-	SLE_CONDVAR(MapDim, x, SLE_UINT32, 6, SL_MAX_VERSION),
-	SLE_CONDVAR(MapDim, y, SLE_UINT32, 6, SL_MAX_VERSION),
-	    SLE_END()
+	SLE_VAR(MapDim, x, SLE_UINT32, 0, , 6, ),
+	SLE_VAR(MapDim, y, SLE_UINT32, 0, , 6, ),
+	SLE_END()
 };
 
 static void Save_MAPS(SaveDumper *dumper)
