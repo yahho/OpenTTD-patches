@@ -578,14 +578,8 @@ static bool SaveFileToDisk(SaveFilter *writer, SaveDumper *dumper, bool threaded
 	bool res;
 
 	try {
-		byte compression;
-		const SaveLoadFormat *fmt = GetSavegameFormat(_savegame_format, &compression);
+		writer = GetSavegameWriter(_savegame_format, SAVEGAME_VERSION << 16, writer);
 
-		/* We have written our stuff to memory, now write it to file! */
-		uint32 hdr[2] = { fmt->tag, TO_BE32(SAVEGAME_VERSION << 16) };
-		writer->Write((byte*)hdr, sizeof(hdr));
-
-		writer = fmt->init_write(writer, compression);
 		dumper->Flush(writer);
 
 		res = true;

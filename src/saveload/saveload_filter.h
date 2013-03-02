@@ -179,7 +179,7 @@ struct SaveLoadFormat {
 	byte max_compression;                 ///< the maximum compression level of this format
 };
 
-const SaveLoadFormat *GetSavegameFormat(char *s, byte *compression_level);
+ChainSaveFilter *GetSavegameWriter(char *s, uint version, SaveFilter *writer);
 const SaveLoadFormat *GetSavegameFormatByTag(uint32 tag);
 const SaveLoadFormat *GetLZO0SavegameFormat();
 

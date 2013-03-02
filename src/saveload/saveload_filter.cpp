@@ -446,7 +446,7 @@ static const SaveLoadFormat _saveload_formats[] = {
  * @param compression_level Output for telling what compression level we want.
  * @return Pointer to SaveLoadFormat struct giving all characteristics of this type of savegame
  */
-const SaveLoadFormat *GetSavegameFormat(char *s, byte *compression_level)
+static const SaveLoadFormat *GetSavegameFormat(char *s, byte *compression_level)
 {
 	const SaveLoadFormat *def = lastof(_saveload_formats);
 
@@ -491,6 +491,26 @@ const SaveLoadFormat *GetSavegameFormat(char *s, byte *compression_level)
 	}
 	*compression_level = def->default_compression;
 	return def;
+}
+
+/**
+ * Return a savegame writer for the given compression format.
+ * @param format Name of the savegame format, or NULL for the default format.
+ * @param version Version number to write.
+ * @param writer Underlying I/O writer.
+ * @return A chain writer to write the savegame.
+ */
+ChainSaveFilter *GetSavegameWriter(char *format, uint version, SaveFilter *writer)
+{
+	byte compression;
+	const SaveLoadFormat *fmt = GetSavegameFormat(format, &compression);
+
+	writer->Write((const byte*)&fmt->tag, sizeof(fmt->tag));
+
+	uint32 hdr = TO_BE32(version);
+	writer->Write((byte*)&hdr, sizeof(hdr));
+
+	return fmt->init_write(writer, compression);
 }
 
 /**
