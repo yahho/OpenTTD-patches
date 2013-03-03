@@ -409,6 +409,19 @@ struct LZMASaveFilter : ChainSaveFilter {
  ************* END OF CODE *****************
  *******************************************/
 
+/** The format for a reader/writer type of a savegame */
+struct SaveLoadFormat {
+	const char *name;                     ///< name of the compressor/decompressor (debug-only)
+	uint32 tag;                           ///< the 4-letter tag by which it is identified in the savegame
+
+	ChainLoadFilter *(*init_load)(LoadFilter *chain);                    ///< Constructor for the load filter.
+	ChainSaveFilter *(*init_write)(SaveFilter *chain, byte compression); ///< Constructor for the save filter.
+
+	byte min_compression;                 ///< the minimum compression level of this format
+	byte default_compression;             ///< the default compression level of this format
+	byte max_compression;                 ///< the maximum compression level of this format
+};
+
 /** The different saveload formats known/understood by OpenTTD. */
 static const SaveLoadFormat _saveload_formats[] = {
 #if defined(WITH_LZO)
