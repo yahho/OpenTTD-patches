@@ -854,9 +854,9 @@ static void LoadSavegameFormat(LoadFilter **chain, SavegameTypeVersion *stv)
 	if ((*chain)->Read((byte*)hdr, sizeof(hdr)) != sizeof(hdr)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
 
 	/* see if we have any loader for this type. */
-	const SaveLoadFormat *fmt = GetSavegameFormatByTag(hdr[0]);
+	ChainLoadFilter *(*init_load) (LoadFilter *) = GetOTTDSavegameLoader(hdr[0]);
 
-	if (fmt != NULL) {
+	if (init_load != NULL) {
 		/* check version number */
 		stv->ottd.version = TO_BE32(hdr[1]) >> 16;
 		/* Minor is not used anymore from version 18.0, but it is still needed
@@ -872,21 +872,14 @@ static void LoadSavegameFormat(LoadFilter **chain, SavegameTypeVersion *stv)
 		/* No loader found, treat as version 0 and use LZO format */
 		DEBUG(sl, 0, "Unknown savegame type, trying to load it as the buggy format");
 		(*chain)->Reset();
+
+		/* Try to find the LZO savegame format loader. */
+		init_load = GetLZO0SavegameLoader();
 		stv->ottd.version = 0;
 		stv->ottd.minor_version = 0;
-
-		/* Try to find the LZO savegame format. */
-		fmt = GetLZO0SavegameFormat();
-		/* Who removed LZO support? Bad bad boy! */
-		assert(fmt != NULL);
 	}
 
-	/* loader for this savegame type is not implemented? */
-	if (fmt->init_load == NULL) {
-		throw SlException(STR_GAME_SAVELOAD_ERROR_MISSING_LOADER, fmt->name);
-	}
-
-	*chain = fmt->init_load(*chain);
+	*chain = init_load(*chain);
 }
 
 /**

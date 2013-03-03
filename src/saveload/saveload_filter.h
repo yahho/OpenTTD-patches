@@ -180,7 +180,7 @@ struct SaveLoadFormat {
 };
 
 ChainSaveFilter *GetSavegameWriter(char *s, uint version, SaveFilter *writer);
-const SaveLoadFormat *GetSavegameFormatByTag(uint32 tag);
-const SaveLoadFormat *GetLZO0SavegameFormat();
+ChainLoadFilter* (*GetOTTDSavegameLoader(uint32 tag))(LoadFilter *chain);
+ChainLoadFilter* (*GetLZO0SavegameLoader())(LoadFilter *chain);
 
 #endif /* SAVELOAD_FILTER_H */

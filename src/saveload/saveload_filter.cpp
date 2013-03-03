@@ -514,36 +514,37 @@ ChainSaveFilter *GetSavegameWriter(char *format, uint version, SaveFilter *write
 }
 
 /**
- * Return the savegameformat corresponding to a tag.
+ * Return the reader construction function corresponding to a tag.
  * @param tag Tag of the savegame format.
- * @return Pointer to SaveLoadFormat struct giving all characteristics of this type of savegame
+ * @return Pointer to the reader construction function for this type of savegame
  */
-const SaveLoadFormat *GetSavegameFormatByTag(uint32 tag)
+ChainLoadFilter* (*GetOTTDSavegameLoader(uint32 tag))(LoadFilter *chain)
 {
 	const SaveLoadFormat *fmt;
 
 	for (fmt = _saveload_formats; fmt != endof(_saveload_formats); fmt++) {
-		if (fmt->tag == tag) return fmt;
+		if (fmt->tag == tag) {
+			if (fmt->init_load == NULL) {
+				throw SlException(STR_GAME_SAVELOAD_ERROR_MISSING_LOADER, fmt->name);
+			}
+
+			return fmt->init_load;
+		}
 	}
 
 	return NULL;
 }
 
 /**
- * Return the savegame format corresponding to the buggy version 0 LZO format
- * @return Pointer to SaveLoadFormat struct giving all characteristics of this type of savegame
+ * Return the reader construction function corresponding to the buggy version 0 LZO format
+ * @return Pointer to the reader construction function for this type of savegame
  */
-const SaveLoadFormat *GetLZO0SavegameFormat()
+ChainLoadFilter* (*GetLZO0SavegameLoader())(LoadFilter *chain)
 {
-	/* The LZO savegame format uses 'OTTD' as tag. */
 #ifdef WITH_LZO
-	static const SaveLoadFormat lzo0_format =
-		{"lzo", TO_BE32X('OTTD'), CreateLZO0LoadFilter, NULL, 0, 0, 0};
-
-	return &lzo0_format;
+	return &CreateLZO0LoadFilter;
 #else
-	assert(_saveload_formats[0].tag == TO_BE32X('OTTD'));
-	return &_saveload_formats[0];
+	throw SlException(STR_GAME_SAVELOAD_ERROR_MISSING_LOADER, "lzo");
 #endif
 }
 
