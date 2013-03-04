@@ -413,6 +413,7 @@ struct LZMASaveFilter : ChainSaveFilter {
 struct SaveLoadFormat {
 	const char *name;                     ///< name of the compressor/decompressor (debug-only)
 	uint32 tag;                           ///< the 4-letter tag by which it is identified in the savegame
+	uint32 ottd_tag;                      ///< the 4-letter tag by which it is identified in legacy savegames
 
 	ChainLoadFilter *(*init_load)(LoadFilter *chain);                    ///< Constructor for the load filter.
 	ChainSaveFilter *(*init_write)(SaveFilter *chain, byte compression); ///< Constructor for the save filter.
@@ -426,19 +427,19 @@ struct SaveLoadFormat {
 static const SaveLoadFormat _saveload_formats[] = {
 #if defined(WITH_LZO)
 	/* Roughly 75% larger than zlib level 6 at only ~7% of the CPU usage. */
-	{"lzo",    TO_BE32X('OTTD'), CreateLoadFilter<LZOLoadFilter>,    CreateSaveFilter<LZOSaveFilter>,    0, 0, 0},
+	{"lzo",    TO_BE32X('LZO\0'),   TO_BE32X('OTTD'), CreateLoadFilter<LZOLoadFilter>,    CreateSaveFilter<LZOSaveFilter>,    0, 0, 0},
 #else
-	{"lzo",    TO_BE32X('OTTD'), NULL,                               NULL,                               0, 0, 0},
+	{"lzo",    TO_BE32X('LZO\0'),   TO_BE32X('OTTD'), NULL,                               NULL,                               0, 0, 0},
 #endif
 	/* Roughly 5 times larger at only 1% of the CPU usage over zlib level 6. */
-	{"none",   TO_BE32X('OTTN'), CreateLoadFilter<NoCompLoadFilter>, CreateSaveFilter<NoCompSaveFilter>, 0, 0, 0},
+	{"none",   TO_BE32X('RAW\0'),   TO_BE32X('OTTN'), CreateLoadFilter<NoCompLoadFilter>, CreateSaveFilter<NoCompSaveFilter>, 0, 0, 0},
 #if defined(WITH_ZLIB)
 	/* After level 6 the speed reduction is significant (1.5x to 2.5x slower per level), but the reduction in filesize is
 	 * fairly insignificant (~1% for each step). Lower levels become ~5-10% bigger by each level than level 6 while level
 	 * 1 is "only" 3 times as fast. Level 0 results in uncompressed savegames at about 8 times the cost of "none". */
-	{"zlib",   TO_BE32X('OTTZ'), CreateLoadFilter<ZlibLoadFilter>,   CreateSaveFilter<ZlibSaveFilter>,   0, 6, 9},
+	{"zlib",   TO_BE32X('Z\0\0\0'), TO_BE32X('OTTZ'), CreateLoadFilter<ZlibLoadFilter>,   CreateSaveFilter<ZlibSaveFilter>,   0, 6, 9},
 #else
-	{"zlib",   TO_BE32X('OTTZ'), NULL,                               NULL,                               0, 0, 0},
+	{"zlib",   TO_BE32X('Z\0\0\0'), TO_BE32X('OTTZ'), NULL,                               NULL,                               0, 0, 0},
 #endif
 #if defined(WITH_LZMA)
 	/* Level 2 compression is speed wise as fast as zlib level 6 compression (old default), but results in ~10% smaller saves.
@@ -446,9 +447,9 @@ static const SaveLoadFormat _saveload_formats[] = {
 	 * The next significant reduction in file size is at level 4, but that is already 4 times slower. Level 3 is primarily 50%
 	 * slower while not improving the filesize, while level 0 and 1 are faster, but don't reduce savegame size much.
 	 * It's OTTX and not e.g. OTTL because liblzma is part of xz-utils and .tar.xz is preferred over .tar.lzma. */
-	{"lzma",   TO_BE32X('OTTX'), CreateLoadFilter<LZMALoadFilter>,   CreateSaveFilter<LZMASaveFilter>,   0, 2, 9},
+	{"lzma",   TO_BE32X('XZ\0\0'),  TO_BE32X('OTTX'), CreateLoadFilter<LZMALoadFilter>,   CreateSaveFilter<LZMASaveFilter>,   0, 2, 9},
 #else
-	{"lzma",   TO_BE32X('OTTX'), NULL,                               NULL,                               0, 0, 0},
+	{"lzma",   TO_BE32X('XZ\0\0'),  TO_BE32X('OTTX'), NULL,                               NULL,                               0, 0, 0},
 #endif
 };
 
@@ -518,7 +519,7 @@ ChainSaveFilter *GetSavegameWriter(char *format, uint version, SaveFilter *write
 	byte compression;
 	const SaveLoadFormat *fmt = GetSavegameFormat(format, &compression);
 
-	writer->Write((const byte*)&fmt->tag, sizeof(fmt->tag));
+	writer->Write((const byte*)&fmt->ottd_tag, sizeof(fmt->ottd_tag));
 
 	uint32 hdr = TO_BE32(version);
 	writer->Write((byte*)&hdr, sizeof(hdr));
@@ -527,7 +528,7 @@ ChainSaveFilter *GetSavegameWriter(char *format, uint version, SaveFilter *write
 }
 
 /**
- * Return the reader construction function corresponding to a tag.
+ * Return the reader construction function corresponding to a legacy tag.
  * @param tag Tag of the savegame format.
  * @return Pointer to the reader construction function for this type of savegame
  */
@@ -536,7 +537,7 @@ ChainLoadFilter* (*GetOTTDSavegameLoader(uint32 tag))(LoadFilter *chain)
 	const SaveLoadFormat *fmt;
 
 	for (fmt = _saveload_formats; fmt != endof(_saveload_formats); fmt++) {
-		if (fmt->tag == tag) {
+		if (fmt->ottd_tag == tag) {
 			if (fmt->init_load == NULL) {
 				throw SlException(STR_GAME_SAVELOAD_ERROR_MISSING_LOADER, fmt->name);
 			}
@@ -582,7 +583,7 @@ int GetSavegameType(char *file)
 	} else {
 		/* see if we have any loader for this type. */
 		for (fmt = _saveload_formats; fmt != endof(_saveload_formats); fmt++) {
-			if (fmt->tag == hdr) {
+			if (fmt->ottd_tag == hdr) {
 				mode = SL_LOAD; // new type of savegame
 				break;
 			}
