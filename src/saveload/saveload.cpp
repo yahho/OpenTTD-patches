@@ -848,33 +848,46 @@ static void CDECL HandleSavegameLoadCrash(int signum)
  */
 static void LoadSavegameFormat(LoadFilter **chain, SavegameTypeVersion *stv)
 {
-	stv->type = SGT_OTTD;
+	uint32 hdr;
+	if ((*chain)->Read((byte*)&hdr, sizeof(hdr)) != sizeof(hdr)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
 
-	uint32 hdr[2];
-	if ((*chain)->Read((byte*)hdr, sizeof(hdr)) != sizeof(hdr)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
+	ChainLoadFilter *(*init_load) (LoadFilter *);
 
-	/* see if we have any loader for this type. */
-	ChainLoadFilter *(*init_load) (LoadFilter *) = GetOTTDSavegameLoader(hdr[0]);
+	if (hdr == TO_BE32X('FTTD')) {
+		/* native savegame, read compression format */
+		if ((*chain)->Read((byte*)&hdr, sizeof(hdr)) != sizeof(hdr)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
+		init_load = GetSavegameLoader(hdr);
 
-	if (init_load != NULL) {
-		/* check version number */
-		stv->ottd.version = TO_BE32(hdr[1]) >> 16;
-		/* Minor is not used anymore from version 18.0, but it is still needed
-		 * in versions before that (4 cases) which can't be removed easy.
-		 * Therefore it is loaded, but never saved (or, it saves a 0 in any scenario). */
-		stv->ottd.minor_version = (TO_BE32(hdr[1]) >> 8) & 0xFF;
+		/* read savegame version */
+		if ((*chain)->Read((byte*)&hdr, sizeof(hdr)) != sizeof(hdr)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
+		stv->type = SGT_FTTD;
+		stv->fttd.version = TO_BE32(hdr);
+		if ((*chain)->Read((byte*)&hdr, sizeof(hdr)) != sizeof(hdr)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
 
-		DEBUG(sl, 1, "Loading savegame version %d", stv->ottd.version);
+		DEBUG(sl, 1, "Loading savegame version %d", stv->fttd.version);
 
 		/* Is the version higher than the current? */
+		if (stv->fttd.version > 0 || hdr != 0) throw SlException(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
+	} else if ((init_load = GetOTTDSavegameLoader(hdr)) != NULL) {
+		/* openttd savegame, read savegame version */
+		if ((*chain)->Read((byte*)&hdr, sizeof(hdr)) != sizeof(hdr)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
+		stv->type = SGT_OTTD;
+		stv->ottd.version = TO_BE32(hdr) >> 16;
+		stv->ottd.minor_version = (TO_BE32(hdr) >> 8) & 0xFF;
+
+		DEBUG(sl, 1, (stv->ottd.version < 18) ? "%s %d.%d" : "%s %d",
+			"Loading openttd savegame version", stv->ottd.version, stv->ottd.minor_version);
+
+		/* Is the version higher than the maximum supported version? */
 		if (stv->ottd.version > SAVEGAME_VERSION) throw SlException(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
 	} else {
-		/* No loader found, treat as version 0 and use LZO format */
+		/* No loader found, treat as openttd version 0 and use LZO format */
 		DEBUG(sl, 0, "Unknown savegame type, trying to load it as the buggy format");
 		(*chain)->Reset();
 
 		/* Try to find the LZO savegame format loader. */
 		init_load = GetLZO0SavegameLoader();
+		stv->type = SGT_OTTD;
 		stv->ottd.version = 0;
 		stv->ottd.minor_version = 0;
 	}

@@ -528,6 +528,28 @@ ChainSaveFilter *GetSavegameWriter(char *format, uint version, SaveFilter *write
 }
 
 /**
+ * Return the reader construction function corresponding to a tag.
+ * @param tag Tag of the savegame format.
+ * @return Pointer to the reader construction function for this type of savegame
+ */
+ChainLoadFilter* (*GetSavegameLoader(uint32 tag))(LoadFilter *chain)
+{
+	const SaveLoadFormat *fmt;
+
+	for (fmt = _saveload_formats; fmt != endof(_saveload_formats); fmt++) {
+		if (fmt->tag == tag) {
+			if (fmt->init_load == NULL) {
+				throw SlException(STR_GAME_SAVELOAD_ERROR_MISSING_LOADER, fmt->name);
+			}
+
+			return fmt->init_load;
+		}
+	}
+
+	return NULL;
+}
+
+/**
  * Return the reader construction function corresponding to a legacy tag.
  * @param tag Tag of the savegame format.
  * @return Pointer to the reader construction function for this type of savegame

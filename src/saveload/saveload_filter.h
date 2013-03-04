@@ -167,6 +167,7 @@ template <typename T> ChainSaveFilter *CreateSaveFilter(SaveFilter *chain, byte 
 
 
 ChainSaveFilter *GetSavegameWriter(char *s, uint version, SaveFilter *writer);
+ChainLoadFilter* (*GetSavegameLoader(uint32 tag))(LoadFilter *chain);
 ChainLoadFilter* (*GetOTTDSavegameLoader(uint32 tag))(LoadFilter *chain);
 ChainLoadFilter* (*GetLZO0SavegameLoader())(LoadFilter *chain);
 
