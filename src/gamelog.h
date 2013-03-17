@@ -12,27 +12,61 @@
 #ifndef GAMELOG_H
 #define GAMELOG_H
 
+#include <memory>
+#include <vector>
+
 #include "newgrf_config.h"
 #include "saveload/saveload_data.h"
 
-/** The actions we log. */
-enum GamelogActionType {
-	GLAT_START,        ///< Game created
-	GLAT_LOAD,         ///< Game loaded
-	GLAT_GRF,          ///< GRF changed
-	GLAT_CHEAT,        ///< Cheat was used
-	GLAT_SETTING,      ///< Setting changed
-	GLAT_GRFBUG,       ///< GRF bug was triggered
-	GLAT_EMERGENCY,    ///< Emergency savegame
-	GLAT_END,          ///< So we know how many GLATs are there
-	GLAT_NONE  = 0xFF, ///< No logging active; in savegames, end of list
+/** The type of entries we log. */
+enum GamelogEntryType {
+	GLOG_START,         ///< Game starts
+	GLOG_STARTED,       ///< Game started
+	GLOG_LOAD,          ///< Game load
+	GLOG_LOADED,        ///< Game loaded
+	GLOG_MODE,          ///< Switch between scenario editor and game
+	GLOG_REVISION,      ///< Changed game revision string
+	GLOG_LEGACYREV,     ///< Changed game revision string (legacy)
+	GLOG_OLDVER,        ///< Loaded from savegame without logged data
+	GLOG_EMERGENCY,     ///< Emergency savegame
+	GLOG_SETTING,       ///< Setting changed
+	GLOG_CHEAT,         ///< Cheat was used
+	GLOG_GRFBEGIN,      ///< GRF config change beginning
+	GLOG_GRFEND,        ///< GRF config change end
+	GLOG_GRFADD,        ///< GRF added
+	GLOG_GRFREM,        ///< GRF removed
+	GLOG_GRFCOMPAT,     ///< Compatible GRF loaded
+	GLOG_GRFPARAM,      ///< GRF parameter changed
+	GLOG_GRFMOVE,       ///< GRF order changed
+	GLOG_GRFBUG,        ///< GRF bug was triggered
+	GLOG_ENTRYTYPE_END, ///< So we know how many entry types there are
 };
 
-void GamelogStartAction(GamelogActionType at);
-void GamelogStopAction();
+struct GamelogPrintBuffer;
 
-void GamelogFree(struct LoggedAction *gamelog_action, uint gamelog_actions);
+/** Gamelog entry base class. */
+struct GamelogEntry {
+	GamelogEntryType type;
+
+	GamelogEntry(GamelogEntryType t) : type(t) { }
+
+	virtual ~GamelogEntry()
+	{
+	}
+
+	virtual void Print(GamelogPrintBuffer *buf) = 0;
+};
+
+/** Gamelog structure. */
+struct Gamelog : std::vector<std::unique_ptr<GamelogEntry> > {
+	void append(GamelogEntry *entry) {
+		this->push_back(std::unique_ptr<GamelogEntry>(entry));
+	}
+};
+
 void GamelogReset();
+
+void GamelogInfo(const Gamelog *gamelog, uint32 *last_rev, byte *ever_modified, bool *removed_newgrfs);
 
 /**
  * Callback for printing text.
@@ -44,25 +78,32 @@ void GamelogPrint(GamelogPrintProc *proc); // needed for WIN32 / WINCE crash.log
 void GamelogPrintDebug(int level);
 void GamelogPrintConsole();
 
+void GamelogAddStart();
+void GamelogAddStarted();
+
+void GamelogAddLoad();
+void GamelogAddLoaded();
+
+void GamelogAddRevision();
+void GamelogTestRevision();
+void GamelogAddMode();
+void GamelogTestMode();
+void GamelogOldver(const SavegameTypeVersion *stv);
+
 void GamelogEmergency();
 bool GamelogTestEmergency();
 
-void GamelogRevision();
-void GamelogMode();
-void GamelogOldver(const SavegameTypeVersion *stv);
 void GamelogSetting(const char *name, int32 oldval, int32 newval);
 
-void GamelogGRFUpdate(const GRFConfig *oldg, const GRFConfig *newg);
+void GamelogGRFBegin();
+void GamelogGRFEnd();
+
+void GamelogGRFAdd(const GRFConfig *newg);
 void GamelogGRFAddList(const GRFConfig *newg);
 void GamelogGRFRemove(uint32 grfid);
-void GamelogGRFAdd(const GRFConfig *newg);
 void GamelogGRFCompatible(const GRFIdentifier *newg);
-
-void GamelogTestRevision();
-void GamelogTestMode();
+void GamelogGRFUpdate(const GRFConfig *oldg, const GRFConfig *newg);
 
 bool GamelogGRFBugReverse(uint32 grfid, uint16 internal_id);
-
-void GamelogInfo(struct LoggedAction *gamelog_action, uint gamelog_actions, uint32 *last_ottd_rev, byte *ever_modified, bool *removed_newgrfs);
 
 #endif /* GAMELOG_H */

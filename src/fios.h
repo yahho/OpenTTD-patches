@@ -14,6 +14,7 @@
 
 #include "gfx_type.h"
 #include "company_base.h"
+#include "gamelog.h"
 #include "newgrf_config.h"
 #include "network/core/tcp_content.h"
 #include "saveload/saveload_data.h"
@@ -41,10 +42,9 @@ struct LoadCheckData {
 	GRFConfig *grfconfig;                         ///< NewGrf configuration from save.
 	GRFListCompatibility grf_compatibility;       ///< Summary state of NewGrfs, whether missing files or only compatible found.
 
-	struct LoggedAction *gamelog_action;          ///< Gamelog actions
-	uint gamelog_actions;                         ///< Number of gamelog actions
+	Gamelog gamelog;                              ///< Gamelog
 
-	LoadCheckData() : grfconfig(NULL), gamelog_action(NULL)
+	LoadCheckData() : grfconfig(NULL), gamelog()
 	{
 		this->Clear();
 	}

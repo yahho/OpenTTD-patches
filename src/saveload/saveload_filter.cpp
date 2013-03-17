@@ -516,12 +516,15 @@ static const SaveLoadFormat *GetSavegameFormat(char *s, byte *compression_level)
  */
 ChainSaveFilter *GetSavegameWriter(char *format, uint version, SaveFilter *writer)
 {
+	static const uint32 magic = TO_BE32X('FTTD');
+
 	byte compression;
 	const SaveLoadFormat *fmt = GetSavegameFormat(format, &compression);
 
-	writer->Write((const byte*)&fmt->ottd_tag, sizeof(fmt->ottd_tag));
+	writer->Write((const byte*)&magic, sizeof(magic));
+	writer->Write((const byte*)&fmt->tag, sizeof(fmt->tag));
 
-	uint32 hdr = TO_BE32(version);
+	uint32 hdr[2] = { TO_BE32(version), 0 };
 	writer->Write((byte*)&hdr, sizeof(hdr));
 
 	return fmt->init_write(writer, compression);

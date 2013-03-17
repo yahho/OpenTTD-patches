@@ -1898,11 +1898,11 @@ static void NewGRFConfirmationCallback(Window *w, bool confirmed)
 		DeleteWindowByClass(WC_GRF_PARAMETERS);
 		NewGRFWindow *nw = dynamic_cast<NewGRFWindow*>(w);
 
-		GamelogStartAction(GLAT_GRF);
+		GamelogGRFBegin();
 		GamelogGRFUpdate(_grfconfig, nw->actives); // log GRF changes
 		CopyGRFConfigList(nw->orig_list, nw->actives, false);
 		ReloadNewGRFData();
-		GamelogStopAction();
+		GamelogGRFEnd();
 
 		/* Show new, updated list */
 		GRFConfig *c;

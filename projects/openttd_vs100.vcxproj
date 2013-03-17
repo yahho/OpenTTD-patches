@@ -454,7 +454,7 @@
     <ClInclude Include="..\src\fontdetection.h" />
     <ClInclude Include="..\src\base_consist.h" />
     <ClInclude Include="..\src\gamelog.h" />
-    <ClInclude Include="..\src\gamelog_internal.h" />
+    <ClInclude Include="..\src\gamelog_entries.h" />
     <ClInclude Include="..\src\genworld.h" />
     <ClInclude Include="..\src\gfx_func.h" />
     <ClInclude Include="..\src\gfx_layout.h" />

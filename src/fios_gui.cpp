@@ -60,9 +60,7 @@ void LoadCheckData::Clear()
 	}
 	companies.Clear();
 
-	GamelogFree(this->gamelog_action, this->gamelog_actions);
-	this->gamelog_action = NULL;
-	this->gamelog_actions = 0;
+	this->gamelog.clear();
 
 	ClearGRFConfigList(&this->grfconfig);
 }

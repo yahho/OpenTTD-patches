@@ -187,7 +187,7 @@ fontcache.h
 fontdetection.h
 base_consist.h
 gamelog.h
-gamelog_internal.h
+gamelog_entries.h
 genworld.h
 gfx_func.h
 gfx_layout.h

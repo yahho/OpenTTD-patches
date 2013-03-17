@@ -14,7 +14,7 @@
 #include "../signs_base.h"
 #include "../depot_base.h"
 #include "../fios.h"
-#include "../gamelog_internal.h"
+#include "../gamelog.h"
 #include "../network/network.h"
 #include "../gfxinit.h"
 #include "../viewport_func.h"

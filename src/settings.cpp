@@ -1762,9 +1762,7 @@ CommandCost CmdChangeSetting(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 		}
 
 		if (sd->desc.flags & SGF_NO_NETWORK) {
-			GamelogStartAction(GLAT_SETTING);
 			GamelogSetting(sd->desc.name, oldval, newval);
-			GamelogStopAction();
 		}
 
 		SetWindowClassesDirty(WC_GAME_OPTIONS);

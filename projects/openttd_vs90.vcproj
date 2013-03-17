@@ -1088,7 +1088,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\gamelog_internal.h"
+				RelativePath=".\..\src\gamelog_entries.h"
 				>
 			</File>
 			<File

@@ -583,7 +583,7 @@ static inline bool SlIsObjectValidInSavegame(const SavegameTypeVersion *stv, con
 static inline bool SlIsObjectCurrentlyValid(const SaveLoad *sld)
 {
 	extern const uint16 SAVEGAME_VERSION;
-	if (SAVEGAME_VERSION < sld->legacy.from || SAVEGAME_VERSION > sld->legacy.to) return false;
+	if (SAVEGAME_VERSION < sld->version.from || SAVEGAME_VERSION > sld->version.to) return false;
 
 	return true;
 }

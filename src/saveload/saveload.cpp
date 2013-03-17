@@ -38,7 +38,7 @@
 #include "../statusbar_gui.h"
 #include "../fileio_func.h"
 #include "../gamelog.h"
-#include "../gamelog_internal.h"
+#include "../gamelog_entries.h"
 #include "../string_func.h"
 #include "../fios.h"
 #include "../error.h"
@@ -50,210 +50,9 @@
 #include "saveload_buffer.h"
 #include "saveload_error.h"
 
-/*
- * Previous savegame versions, the trunk revision where they were
- * introduced and the released version that had that particular
- * savegame version.
- * Up to savegame version 18 there is a minor version as well.
- *
- *    1.0         0.1.x, 0.2.x
- *    2.0         0.3.0
- *    2.1         0.3.1, 0.3.2
- *    3.x         lost
- *    4.0     1
- *    4.1   122   0.3.3, 0.3.4
- *    4.2  1222   0.3.5
- *    4.3  1417
- *    4.4  1426
- *    5.0  1429
- *    5.1  1440
- *    5.2  1525   0.3.6
- *    6.0  1721
- *    6.1  1768
- *    7.0  1770
- *    8.0  1786
- *    9.0  1909
- *   10.0  2030
- *   11.0  2033
- *   11.1  2041
- *   12.1  2046
- *   13.1  2080   0.4.0, 0.4.0.1
- *   14.0  2441
- *   15.0  2499
- *   16.0  2817
- *   16.1  3155
- *   17.0  3212
- *   17.1  3218
- *   18    3227
- *   19    3396
- *   20    3403
- *   21    3472   0.4.x
- *   22    3726
- *   23    3915
- *   24    4150
- *   25    4259
- *   26    4466
- *   27    4757
- *   28    4987
- *   29    5070
- *   30    5946
- *   31    5999
- *   32    6001
- *   33    6440
- *   34    6455
- *   35    6602
- *   36    6624
- *   37    7182
- *   38    7195
- *   39    7269
- *   40    7326
- *   41    7348   0.5.x
- *   42    7573
- *   43    7642
- *   44    8144
- *   45    8501
- *   46    8705
- *   47    8735
- *   48    8935
- *   49    8969
- *   50    8973
- *   51    8978
- *   52    9066
- *   53    9316
- *   54    9613
- *   55    9638
- *   56    9667
- *   57    9691
- *   58    9762
- *   59    9779
- *   60    9874
- *   61    9892
- *   62    9905
- *   63    9956
- *   64   10006
- *   65   10210
- *   66   10211
- *   67   10236
- *   68   10266
- *   69   10319
- *   70   10541
- *   71   10567
- *   72   10601
- *   73   10903
- *   74   11030
- *   75   11107
- *   76   11139
- *   77   11172
- *   78   11176
- *   79   11188
- *   80   11228
- *   81   11244
- *   82   11410
- *   83   11589
- *   84   11822
- *   85   11874
- *   86   12042
- *   87   12129
- *   88   12134
- *   89   12160
- *   90   12293
- *   91   12347
- *   92   12381   0.6.x
- *   93   12648
- *   94   12816
- *   95   12924
- *   96   13226
- *   97   13256
- *   98   13375
- *   99   13838
- *  100   13952
- *  101   14233
- *  102   14332
- *  103   14598
- *  104   14735
- *  105   14803
- *  106   14919
- *  107   15027
- *  108   15045
- *  109   15075
- *  110   15148
- *  111   15190
- *  112   15290
- *  113   15340
- *  114   15601
- *  115   15695
- *  116   15893   0.7.x
- *  117   16037
- *  118   16129
- *  119   16242
- *  120   16439
- *  121   16694
- *  122   16855
- *  123   16909
- *  124   16993
- *  125   17113
- *  126   17433
- *  127   17439
- *  128   18281
- *  129   18292
- *  130   18404
- *  131   18481
- *  132   18522
- *  133   18674
- *  134   18703
- *  135   18719
- *  136   18764
- *  137   18912
- *  138   18942   1.0.x
- *  139   19346
- *  140   19382
- *  141   19799
- *  142   20003
- *  143   20048
- *  144   20334
- *  145   20376
- *  146   20446
- *  147   20621
- *  148   20659
- *  149   20832
- *  150   20857
- *  151   20918
- *  152   21171
- *  153   21263
- *  154   21426
- *  155   21453
- *  156   21728
- *  157   21862
- *  158   21933
- *  159   21962
- *  160   21974   1.1.x
- *  161   22567
- *  162   22713
- *  163   22767
- *  164   23290
- *  165   23304
- *  166   23415
- *  167   23504
- *  168   23637
- *  169   23816
- *  170   23826
- *  171   23835
- *  172   23947
- *  173   23967   1.2.0-RC1
- *  174   23973   1.2.x
- *  175   24136
- *  176   24446
- *  177   24619
- *  178   24789
- *  179   24810
- *  180   24998   1.3.x
- *  181   25012
- *  182   25296
- *  183   25363
- *  184   25508
- *  185   25620
- */
-extern const uint16 SAVEGAME_VERSION = 185; ///< Current savegame version of OpenTTD.
+extern const uint16 SAVEGAME_VERSION = 0; ///< Current savegame version
+
+static const uint16 OTTD_SAVEGAME_VERSION = 185; ///< Maximum supported OTTD version
 
 char _savegame_format[8]; ///< how to compress savegames
 bool _do_autosave;        ///< are we doing an autosave at the moment?
@@ -578,7 +377,7 @@ static bool SaveFileToDisk(SaveFilter *writer, SaveDumper *dumper, bool threaded
 	bool res;
 
 	try {
-		writer = GetSavegameWriter(_savegame_format, SAVEGAME_VERSION << 16, writer);
+		writer = GetSavegameWriter(_savegame_format, SAVEGAME_VERSION, writer);
 
 		dumper->Flush(writer);
 
@@ -753,12 +552,18 @@ static void ResetSignalHandlers()
  */
 static const GRFIdentifier *GetOverriddenIdentifier(const GRFConfig *c)
 {
-	const LoggedAction *la = &_gamelog_action[_gamelog_actions - 1];
-	if (la->at != GLAT_LOAD) return &c->ident;
+	extern Gamelog _gamelog;
 
-	const LoggedChange *lcend = &la->change[la->changes];
-	for (const LoggedChange *lc = la->change; lc != lcend; lc++) {
-		if (lc->ct == GLCT_GRFCOMPAT && lc->grfcompat.grfid == c->ident.grfid) return &lc->grfcompat;
+	Gamelog::const_reverse_iterator entry = _gamelog.crbegin();
+
+	if ((*entry)->type != GLOG_LOADED) return &c->ident;
+	entry++;
+
+	while (entry != _gamelog.crend() && (*entry)->type != GLOG_LOAD) {
+		if ((*entry)->type == GLOG_GRFCOMPAT) {
+			const GamelogEntryGRFCompat *compat = (GamelogEntryGRFCompat*)entry->get();
+			if (compat->grf.grfid == c->ident.grfid) return &compat->grf;
+		}
 	}
 
 	return &c->ident;
@@ -867,7 +672,7 @@ static void LoadSavegameFormat(LoadFilter **chain, SavegameTypeVersion *stv)
 		DEBUG(sl, 1, "Loading savegame version %d", stv->fttd.version);
 
 		/* Is the version higher than the current? */
-		if (stv->fttd.version > 0 || hdr != 0) throw SlException(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
+		if (stv->fttd.version > SAVEGAME_VERSION || hdr != 0) throw SlException(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
 	} else if ((init_load = GetOTTDSavegameLoader(hdr)) != NULL) {
 		/* openttd savegame, read savegame version */
 		if ((*chain)->Read((byte*)&hdr, sizeof(hdr)) != sizeof(hdr)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
@@ -879,7 +684,7 @@ static void LoadSavegameFormat(LoadFilter **chain, SavegameTypeVersion *stv)
 			"Loading openttd savegame version", stv->ottd.version, stv->ottd.minor_version);
 
 		/* Is the version higher than the maximum supported version? */
-		if (stv->ottd.version > SAVEGAME_VERSION) throw SlException(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
+		if (stv->ottd.version > OTTD_SAVEGAME_VERSION) throw SlException(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
 	} else {
 		/* No loader found, treat as openttd version 0 and use LZO format */
 		DEBUG(sl, 0, "Unknown savegame type, trying to load it as the buggy format");
@@ -967,13 +772,13 @@ static bool DoLoad(LoadFilter **chain, int mode)
 
 		_load_check_data.sl_version = sl_version;
 	} else {
-		GamelogStartAction(GLAT_LOAD);
+		GamelogAddLoad();
 
 		/* After loading fix up savegame for any internal changes that
 		 * might have occurred since then. */
 		AfterLoadGame(&sl_version);
 
-		GamelogStopAction();
+		GamelogAddLoaded();
 	}
 
 	return true;
