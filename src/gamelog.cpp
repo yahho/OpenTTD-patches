@@ -99,24 +99,20 @@ public:
 		this->offset = 0;
 	}
 
-	void append(const char *s, ...) WARN_FORMAT(2, 3);
+	void append(const char *s, ...) WARN_FORMAT(2, 3) {
+		if (this->offset >= this->LENGTH) return;
+
+		va_list va;
+
+		va_start(va, s);
+		this->offset += vsnprintf(this->buffer + this->offset, this->LENGTH - this->offset, s, va);
+		va_end(va);
+	}
 
 	void dump(GamelogPrintProc *proc) {
 		proc(this->buffer);
 	}
 };
-
-void GamelogPrintBuffer::append(const char *s, ...)
-{
-	if (this->offset >= this->LENGTH) return;
-
-	va_list va;
-
-	va_start(va, s);
-	this->offset += vsnprintf(this->buffer + this->offset, this->LENGTH - this->offset, s, va);
-	va_end(va);
-}
-
 
 /**
  * Prints GRF ID, checksum and filename if found
