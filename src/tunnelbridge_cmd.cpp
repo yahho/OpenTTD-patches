@@ -341,7 +341,7 @@ static CommandCost BuildRailBridge(TileIndex tile_start, TileIndex tile_end, Bri
 
 	if (flags & DC_EXEC) {
 		Track track = AxisToTrack(direction);
-		AddSideToSignalBuffer(tile_start, INVALID_DIAGDIR, _current_company);
+		AddBridgeToSignalBuffer(tile_start, _current_company);
 		YapfNotifyTrackLayoutChange(tile_start, track);
 	}
 
@@ -618,7 +618,7 @@ CommandCost CmdBuildTunnel(TileIndex start_tile, DoCommandFlag flags, uint32 p1,
 			if (!IsTunnelTile(start_tile) && c != NULL) c->infrastructure.rail[railtype] += num_pieces;
 			MakeRailTunnel(start_tile, company, direction,                 railtype);
 			MakeRailTunnel(end_tile,   company, ReverseDiagDir(direction), railtype);
-			AddSideToSignalBuffer(start_tile, INVALID_DIAGDIR, company);
+			AddTunnelToSignalBuffer(start_tile, company);
 			YapfNotifyTrackLayoutChange(start_tile, DiagDirToDiagTrack(direction));
 		} else {
 			if (c != NULL) {

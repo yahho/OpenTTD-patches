@@ -1040,7 +1040,7 @@ CommandCost CmdBuildTrainDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 		Company::Get(_current_company)->infrastructure.rail[railtype]++;
 		DirtyCompanyInfrastructureWindows(_current_company);
 
-		AddSideToSignalBuffer(tile, INVALID_DIAGDIR, _current_company);
+		AddDepotToSignalBuffer(tile, _current_company);
 		YapfNotifyTrackLayoutChange(tile, DiagDirToDiagTrack(dir));
 	}
 

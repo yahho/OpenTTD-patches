@@ -647,7 +647,57 @@ void AddSideToSignalBuffer(TileIndex tile, DiagDirection side, Owner owner)
 {
 	SetBufferOwner(owner);
 
+	assert(IsValidDiagDirection(side));
 	_globset.Add(SignalSideFrom(tile, side));
+
+	UpdateSignalsInBufferAuto();
+}
+
+/**
+ * Add depot tile to signal update buffer
+ *
+ * @param tile tile to add
+ * @param owner owner whose signals we will update
+ */
+void AddDepotToSignalBuffer(TileIndex tile, Owner owner)
+{
+	SetBufferOwner(owner);
+
+	assert(IsDepotTile(tile));
+	_globset.Add(SignalSideFrom(tile, INVALID_DIAGDIR));
+
+	UpdateSignalsInBufferAuto();
+}
+
+/**
+ * Add bridge tile to signal update buffer
+ *
+ * @param tile tile to add
+ * @param owner owner whose signals we will update
+ */
+void AddBridgeToSignalBuffer(TileIndex tile, Owner owner)
+{
+	SetBufferOwner(owner);
+
+	assert(IsRailBridgeTile(tile));
+	_globset.Add(SignalSideFrom(tile, INVALID_DIAGDIR));
+
+	UpdateSignalsInBufferAuto();
+}
+
+/**
+ * Add tunnel tile to signal update buffer
+ *
+ * @param tile tile to add
+ * @param owner owner whose signals we will update
+ */
+void AddTunnelToSignalBuffer(TileIndex tile, Owner owner)
+{
+	SetBufferOwner(owner);
+
+	assert(IsTunnelTile(tile));
+	assert(GetTunnelTransportType(tile) == TRANSPORT_RAIL);
+	_globset.Add(SignalSideFrom(tile, INVALID_DIAGDIR));
 
 	UpdateSignalsInBufferAuto();
 }

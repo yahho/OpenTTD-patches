@@ -30,6 +30,9 @@ bool IsSignalBufferEmpty();
 
 void AddTrackToSignalBuffer(TileIndex tile, Track track, Owner owner);
 void AddSideToSignalBuffer(TileIndex tile, DiagDirection side, Owner owner);
+void AddDepotToSignalBuffer(TileIndex tile, Owner owner);
+void AddBridgeToSignalBuffer(TileIndex tile, Owner owner);
+void AddTunnelToSignalBuffer(TileIndex tile, Owner owner);
 void AddPosToSignalBuffer(const PFPos &pos, Owner owner);
 SigSegState UpdateSignalsInBuffer();
 

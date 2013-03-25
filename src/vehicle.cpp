@@ -1365,7 +1365,7 @@ void VehicleEnterDepot(Vehicle *v)
 			if (_settings_client.gui.show_track_reservation) MarkTileDirtyByTile(t->tile);
 
 			assert(IsSignalBufferEmpty());
-			AddSideToSignalBuffer(t->tile, INVALID_DIAGDIR, t->owner);
+			AddDepotToSignalBuffer(t->tile, t->owner);
 			UpdateSignalsInBuffer();
 			t->wait_counter = 0;
 			t->force_proceed = TFP_NONE;

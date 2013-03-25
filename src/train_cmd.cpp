@@ -2094,7 +2094,7 @@ static bool CheckTrainStayInDepot(Train *v)
 			try_reserve = true;
 		} else {
 			assert(IsSignalBufferEmpty());
-			AddSideToSignalBuffer(v->tile, INVALID_DIAGDIR, v->owner);
+			AddDepotToSignalBuffer(v->tile, v->owner);
 			SigSegState seg_state = UpdateSignalsInBuffer();
 			if (seg_state == SIGSEG_FULL) {
 				/* Full and no PBS signal in block, can't exit. */
@@ -2107,7 +2107,7 @@ static bool CheckTrainStayInDepot(Train *v)
 		try_reserve = true;
 	} else {
 		assert(IsSignalBufferEmpty());
-		AddSideToSignalBuffer(v->tile, INVALID_DIAGDIR, v->owner);
+		AddDepotToSignalBuffer(v->tile, v->owner);
 		try_reserve = UpdateSignalsInBuffer() == SIGSEG_PBS;
 	}
 
@@ -2144,7 +2144,7 @@ static bool CheckTrainStayInDepot(Train *v)
 	VehicleUpdatePosition(v);
 
 	assert(IsSignalBufferEmpty());
-	AddSideToSignalBuffer(v->tile, INVALID_DIAGDIR, v->owner);
+	AddDepotToSignalBuffer(v->tile, v->owner);
 	UpdateSignalsInBuffer();
 
 	v->UpdateAcceleration();
@@ -3664,7 +3664,11 @@ static void DeleteLastWagon(Train *v)
 		}
 
 		assert(IsSignalBufferEmpty());
-		AddSideToSignalBuffer(tile, INVALID_DIAGDIR, owner);
+		if (IsRailwayTile(tile)) {
+			AddBridgeToSignalBuffer(tile, owner);
+		} else {
+			AddTunnelToSignalBuffer(tile, owner);
+		}
 		UpdateSignalsInBuffer();
 		return;
 	}
@@ -3688,8 +3692,12 @@ static void DeleteLastWagon(Train *v)
 
 	/* Update signals */
 	assert(IsSignalBufferEmpty());
-	if (IsTunnelTile(tile) || IsRailBridgeTile(tile) || IsRailDepotTile(tile)) {
-		AddSideToSignalBuffer(tile, INVALID_DIAGDIR, owner);
+	if (IsRailDepotTile(tile)) {
+		AddDepotToSignalBuffer(tile, owner);
+	} else if (IsTunnelTile(tile)) {
+		AddTunnelToSignalBuffer(tile, owner);
+	} else if (IsRailBridgeTile(tile)) {
+		AddBridgeToSignalBuffer(tile, owner);
 	} else {
 		AddTrackToSignalBuffer(tile, track, owner);
 	}
