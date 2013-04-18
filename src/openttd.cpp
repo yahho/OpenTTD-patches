@@ -853,6 +853,11 @@ int openttd_main(int argc, char *argv[])
 
 	ScanNewGRFFiles(scanner);
 
+	if (IsExperimentalSavegameVersion()) {
+		ErrorMessageData msg(STR_WARNING_EXPERIMENTAL_SAVEGAME_VERSION_1, STR_WARNING_EXPERIMENTAL_SAVEGAME_VERSION_2);
+		ScheduleErrorMessage(msg);
+	}
+
 	_video_driver->MainLoop();
 
 	WaitTillSaved();

@@ -17,6 +17,34 @@
 #include "saveload_data.h"
 #include "saveload_buffer.h"
 
+/*
+ * An experimental savegame provides no backward or forward compatibility.
+ * It can only be loaded by the same binary that produced it, or one from
+ * the same sources; as a safeguard, the saveload code will refuse to load
+ * an experimental savegame unless the binary itself is built with this
+ * flag set.
+ *
+ * Experimental savegames should be used sparingly, because they contain
+ * no information about their layout. They should be used when a change
+ * in the savegame format is too invasive to be done atomically, i.e.,
+ * when it must be split into smaller commits and many of them alter the
+ * savegame format, so as not to bump the savegame version at each step
+ * or to add lots of compatibility checks in the code. In this situation,
+ * first increase SAVEGAME_VERSION and set savegame experimentality to
+ * true, then all savegame-changing commits go in, and finally savegame
+ * experimentality is restored to false. (This means, of course, that
+ * savegames made with intermediate source trees will not load with any
+ * other version.)
+ */
+
+/** Return whether the resulting binary produces experimental savegames. */
+inline bool IsExperimentalSavegameVersion()
+{
+	static const bool experimental_savegame = false;
+
+	return experimental_savegame;
+}
+
 /** Save or load mode. @see SaveOrLoad */
 enum LoadMode {
 	SL_INVALID    = -1, ///< Invalid mode.

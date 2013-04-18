@@ -50,6 +50,13 @@
 #include "saveload_buffer.h"
 #include "saveload_error.h"
 
+/*
+ * Savegame version stored in savegames made with the resulting binary.
+ * Each time an incompatible change is introduced in the savegame format,
+ * this number should be increased, and provisions should be made to load
+ * savegames of the previous (and earlier) versions.
+ */
+
 extern const uint16 SAVEGAME_VERSION = 0; ///< Current savegame version
 
 static const uint16 OTTD_SAVEGAME_VERSION = 185; ///< Maximum supported OTTD version
@@ -377,7 +384,9 @@ static bool SaveFileToDisk(SaveFilter *writer, SaveDumper *dumper, bool threaded
 	bool res;
 
 	try {
-		writer = GetSavegameWriter(_savegame_format, SAVEGAME_VERSION, writer);
+		writer = GetSavegameWriter(_savegame_format,
+			IsExperimentalSavegameVersion() ? -1u : SAVEGAME_VERSION,
+			writer);
 
 		dumper->Flush(writer);
 
@@ -671,8 +680,14 @@ static void LoadSavegameFormat(LoadFilter **chain, SavegameTypeVersion *stv)
 
 		DEBUG(sl, 1, "Loading savegame version %d", stv->fttd.version);
 
+		/* Is the savegame experimental (which means no version detection)? */
+		if (stv->fttd.version == -1u) {
+			if (!IsExperimentalSavegameVersion()) throw SlException(STR_GAME_SAVELOAD_ERROR_EXPERIMENTAL_SAVEGAME);
+			stv->fttd.version = SAVEGAME_VERSION;
 		/* Is the version higher than the current? */
-		if (stv->fttd.version > SAVEGAME_VERSION || hdr != 0) throw SlException(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
+		} else if (stv->fttd.version > SAVEGAME_VERSION || hdr != 0) {
+			throw SlException(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
+		}
 	} else if ((init_load = GetOTTDSavegameLoader(hdr)) != NULL) {
 		/* openttd savegame, read savegame version */
 		if ((*chain)->Read((byte*)&hdr, sizeof(hdr)) != sizeof(hdr)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);

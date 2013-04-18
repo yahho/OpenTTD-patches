@@ -3981,11 +3981,14 @@ STR_GAME_SAVELOAD_ERROR_BROKEN_INTERNAL_ERROR                   :{WHITE}Internal
 STR_GAME_SAVELOAD_ERROR_MISSING_LOADER                          :{WHITE}Loader for format '{RAW_STRING}' is not available
 STR_GAME_SAVELOAD_ERROR_BROKEN_SAVEGAME                         :{WHITE}Broken savegame - {RAW_STRING}
 STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME                        :{WHITE}Savegame is made with newer version
+STR_GAME_SAVELOAD_ERROR_EXPERIMENTAL_SAVEGAME                   :{WHITE}Savegame is experimental and this version of OpenTTD is not
 STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE                       :{WHITE}File not readable
 STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE                      :{WHITE}File not writeable
 STR_GAME_SAVELOAD_ERROR_DATA_INTEGRITY_CHECK_FAILED             :{WHITE}Data integrity check failed
 STR_GAME_SAVELOAD_NOT_AVAILABLE                                 :<not available>
 STR_WARNING_LOADGAME_REMOVED_TRAMS                              :{WHITE}Game was saved in version without tram support. All trams have been removed
+STR_WARNING_EXPERIMENTAL_SAVEGAME_VERSION_1                     :{WHITE}Games saved with this version of OpenTTD are EXPERIMENTAL
+STR_WARNING_EXPERIMENTAL_SAVEGAME_VERSION_2                     :{WHITE}They can only be loaded by this exact version
 
 # Map generation messages
 STR_ERROR_COULD_NOT_CREATE_TOWN                                 :{WHITE}Map generation aborted...{}... no suitable town locations
