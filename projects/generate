@@ -171,9 +171,8 @@ load_main_data() {
 
 load_lang_data() {
 	RES=""
-	for i in `ls $1`
+	for i in `ls $1 | sed -e 's,^.*/,,' -e 's/\.txt$//'`
 	do
-		i=`basename $i | sed s~.txt$~~g`
 		if [ "$i" == "english" ]
 		then
 			continue
@@ -212,9 +211,8 @@ load_settings_data() {
 	RES=""
 	RES2="
 #3..\\objs\\settings\\settings_gen.exe -o ..\\objs\\settings\\table\\settings.h -b ..\\src\\table\\settings.h.preamble -a ..\\src\\table\\settings.h.postamble"
-	for i in `ls $1`
+	for i in `ls $1 | sed -e 's,^.*/,,'`
 	do
-		i=`basename $i`
 		RES="$RES
 #1		<File
 #1			RelativePath=\"..\\src\\table\\"$i"\"
