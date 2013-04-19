@@ -46,6 +46,21 @@ fi
 # version_vs80.vcproj           is for MSVC 2005
 
 
+# check for duplicate filenames in source.list
+dup=`sed <$ROOT_DIR/source.list -e '/^$/d' -e '/#/d' -e 's,^.*/,,' -e '/ottdres.rc\|win32.cpp\|win32_v.cpp/d' | sort | uniq -d`
+if [ -n "$dup" ]; then
+	echo " !! ERROR !!"
+	echo ""
+	echo "The following filenames are duplicated in this project:"
+	echo " " $dup
+	echo "Because MSVC uses one single directory for all object files, it"
+	echo "cannot handle filenames with the same name inside the same project."
+	echo "Please rename either one of the file and try generating again."
+	echo ""
+	echo " !! ERROR !!"
+	exit 1
+fi
+
 
 # First, collect the list of Windows files
 allegro_config=""
@@ -58,24 +73,6 @@ with_cocoa="0"
 enable_directmusic="1"
 with_threads="1"
 file_prefix="..\\\\src\\\\"
-
-safety_check() {
-	li=""
-	for i in `cat $1 | grep -v "#\|ottdres.rc\|win32.cpp\|win32_v.cpp" | xargs -n 1 basename | sort`; do
-		if [ "$li" = "$i" ]; then
-			echo " !! ERROR !!"
-			echo ""
-			echo "The filename '$i' is already used in this project."
-			echo "Because MSVC uses one single directory for all object files, it"
-			echo "cannot handle filenames with the same name inside the same project."
-			echo "Please rename either one of the file and try generating again."
-			echo ""
-			echo " !! ERROR !!"
-			exit 1
-		fi
-		li="$i"
-	done
-}
 
 grep '\.h' "$ROOT_DIR/source.list" | grep -v '../objs/langs/table/strings.h\|../objs/settings/table/settings.h' | sed 's/	//' | sort > tmp.headers.source.list
 find "$ROOT_DIR/src" \( -iname "*.h" -or -iname "*.hpp" \) -and -not -ipath "*/.svn/*" | sed "s~$ROOT_DIR/src/~~" | sort > tmp.headers.src
@@ -282,8 +279,6 @@ generate() {
 		}
 	' >> "$ROOT_DIR/projects/$2"
 }
-
-safety_check "$ROOT_DIR/source.list"
 
 load_main_data "$ROOT_DIR/source.list" openttd
 openttdfiles=`echo "$openttd" | grep "^#4" | sed "s~#4~~g"`
