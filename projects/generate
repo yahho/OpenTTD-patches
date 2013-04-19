@@ -75,7 +75,7 @@ with_threads="1"
 file_prefix="..\\\\src\\\\"
 
 grep '\.h' "$ROOT_DIR/source.list" | grep -v '../objs/langs/table/strings.h\|../objs/settings/table/settings.h' | sed 's/	//' | sort > tmp.headers.source.list
-find "$ROOT_DIR/src" \( -iname "*.h" -or -iname "*.hpp" \) -and -not -ipath "*/.svn/*" | sed "s~$ROOT_DIR/src/~~" | sort > tmp.headers.src
+find "$ROOT_DIR/src" -iname .svn -prune -o \( -iname '*.h' -o -iname '*.hpp' \) -print | sed "s~$ROOT_DIR/src/~~" | sort > tmp.headers.src
 if [ -n "`diff tmp.headers.source.list tmp.headers.src`" ]; then
 	echo "The following headers are missing in source.list and not in /src/ or vice versa."
 	diff tmp.headers.source.list tmp.headers.src | grep '[<>]' | sort
