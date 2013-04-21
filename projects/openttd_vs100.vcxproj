@@ -1846,6 +1846,7 @@
     <ClCompile Include="..\src\newgrf_town.cpp" />
     <ClCompile Include="..\src\newgrf_townname.cpp" />
     <ClInclude Include="..\src\tile\tile.h" />
+    <ClInclude Include="..\src\tile\zoneheight.h" />
     <ClCompile Include="..\src\bridge_map.cpp" />
     <ClInclude Include="..\src\bridge_map.h" />
     <ClInclude Include="..\src\clear_map.h" />

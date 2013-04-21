@@ -13,12 +13,6 @@
 #define MAP_TYPE_H
 
 /**
- * Data that is stored per tile. Also used TileC for this.
- * Look at docs/landscape.html for the exact meaning of the members.
- */
-typedef byte TileH; ///< Zone and height of the northern corner
-
-/**
  * An offset value between to tiles.
  *
  * This value is used for the difference between

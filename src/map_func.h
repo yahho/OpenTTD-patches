@@ -13,6 +13,7 @@
 #define MAP_FUNC_H
 
 #include "core/math_func.hpp"
+#include "tile/zoneheight.h"
 #include "tile_type.h"
 #include "map_type.h"
 #include "direction_func.h"
@@ -33,7 +34,7 @@ extern uint _map_tile_mask;
  * This variable points to the tile type-and-height array which contains the tiles of
  * the map.
  */
-extern TileH *_mth;
+extern TileZH *_mth;
 
 /**
  * Pointer to the tile contents array.
