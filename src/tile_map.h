@@ -13,6 +13,7 @@
 #define TILE_MAP_H
 
 #include "tile/zoneheight.h"
+#include "tile/class.h"
 #include "slope_type.h"
 #include "map_func.h"
 #include "core/bitmath_func.hpp"
@@ -74,8 +75,7 @@ static inline uint TilePixelHeight(TileIndex tile)
 static inline TileType GetTileType(TileIndex tile)
 {
 	assert(tile < MapSize());
-	uint type = GB(_mc[tile].m0, 4, 4);
-	return (TileType)type;
+	return tile_get_type(&_mc[tile]);
 }
 
 /**
@@ -109,12 +109,11 @@ static inline bool IsInnerTile(TileIndex tile)
 static inline void SetTileType(TileIndex tile, TileType type)
 {
 	assert(tile < MapSize());
-	assert(type < 8);
 	/* Only void tiles are allowed at the lower left and right
 	 * edges of the map. If _settings_game.construction.freeform_edges is true,
 	 * the upper edges of the map are also VOID tiles. */
 	assert(IsInnerTile(tile) || (type == TT_GROUND));
-	SB(_mc[tile].m0, 4, 4, type);
+	tile_set_type(&_mc[tile], type);
 }
 
 /**
@@ -127,9 +126,7 @@ static inline void SetTileType(TileIndex tile, TileType type)
 static inline TileSubtype GetTileSubtype(TileIndex tile)
 {
 	assert(tile < MapSize());
-	assert(tiletype_has_subtypes(GetTileType(tile)));
-	uint subtype = GB(_mc[tile].m1, 6, 2);
-	return (TileSubtype)subtype;
+	return tile_get_subtype(&_mc[tile]);
 }
 
 /**
@@ -142,10 +139,7 @@ static inline TileSubtype GetTileSubtype(TileIndex tile)
 static inline void SetTileTypeSubtype(TileIndex tile, TileType type, TileSubtype subtype)
 {
 	assert(tile < MapSize());
-	assert(type < 8);
-	assert(tiletype_has_subtypes(type));
-	SB(_mc[tile].m0, 4, 4, type);
-	SB(_mc[tile].m1, 6, 2, subtype);
+	tile_set_type_subtype(&_mc[tile], type, subtype);
 }
 
 /**
@@ -159,7 +153,7 @@ static inline void SetTileTypeSubtype(TileIndex tile, TileType type, TileSubtype
  */
 static inline bool IsTileType(TileIndex tile, TileType type)
 {
-	return GetTileType(tile) == type;
+	return tile_is_type(&_mc[tile], type);
 }
 
 /**
@@ -172,7 +166,7 @@ static inline bool IsTileType(TileIndex tile, TileType type)
  */
 static inline bool IsTileSubtype(TileIndex tile, TileSubtype subtype)
 {
-	return GetTileSubtype(tile) == subtype;
+	return tile_is_subtype(&_mc[tile], subtype);
 }
 
 /**
@@ -185,8 +179,7 @@ static inline bool IsTileSubtype(TileIndex tile, TileSubtype subtype)
  */
 static inline bool IsTileTypeSubtype(TileIndex tile, TileType type, TileSubtype subtype)
 {
-	assert(tiletype_has_subtypes(type));
-	return IsTileType(tile, type) && IsTileSubtype(tile, subtype);
+	return tile_is_type_subtype(&_mc[tile], type, subtype);
 }
 
 /**
@@ -197,7 +190,7 @@ static inline bool IsTileTypeSubtype(TileIndex tile, TileType type, TileSubtype 
  */
 static inline bool IsVoidTile(TileIndex tile)
 {
-	return IsTileTypeSubtype(tile, TT_GROUND, TT_GROUND_VOID);
+	return tile_is_void(&_mc[tile]);
 }
 
 /**
@@ -207,7 +200,7 @@ static inline bool IsVoidTile(TileIndex tile)
  */
 static inline bool IsGroundTile(TileIndex t)
 {
-	return IsTileType(t, TT_GROUND) && !IsTileSubtype(t, TT_GROUND_VOID);
+	return tile_is_ground(&_mc[t]);
 }
 
 /**
@@ -218,7 +211,7 @@ static inline bool IsGroundTile(TileIndex t)
  */
 static inline bool IsFieldsTile(TileIndex t)
 {
-	return IsTileTypeSubtype(t, TT_GROUND, TT_GROUND_FIELDS);
+	return tile_is_fields(&_mc[t]);
 }
 
 /**
@@ -228,7 +221,7 @@ static inline bool IsFieldsTile(TileIndex t)
  */
 static inline bool IsClearTile(TileIndex t)
 {
-	return IsTileTypeSubtype(t, TT_GROUND, TT_GROUND_CLEAR);
+	return tile_is_clear(&_mc[t]);
 }
 
 /**
@@ -238,7 +231,7 @@ static inline bool IsClearTile(TileIndex t)
  */
 static inline bool IsTreeTile(TileIndex t)
 {
-	return IsTileTypeSubtype(t, TT_GROUND, TT_GROUND_TREES);
+	return tile_is_trees(&_mc[t]);
 }
 
 /**
@@ -249,7 +242,7 @@ static inline bool IsTreeTile(TileIndex t)
  */
 static inline bool IsObjectTile(TileIndex tile)
 {
-	return IsTileType(tile, TT_OBJECT);
+	return tile_is_object(&_mc[tile]);
 }
 
 /**
@@ -260,7 +253,7 @@ static inline bool IsObjectTile(TileIndex tile)
  */
 static inline bool IsWaterTile(TileIndex tile)
 {
-	return IsTileType(tile, TT_WATER);
+	return tile_is_water(&_mc[tile]);
 }
 
 /**
@@ -271,7 +264,7 @@ static inline bool IsWaterTile(TileIndex tile)
  */
 static inline bool IsRailwayTile(TileIndex tile)
 {
-	return IsTileType(tile, TT_RAILWAY);
+	return tile_is_railway(&_mc[tile]);
 }
 
 /*
@@ -282,7 +275,7 @@ static inline bool IsRailwayTile(TileIndex tile)
  */
 static inline bool IsNormalRailTile(TileIndex t)
 {
-	return IsTileTypeSubtype(t, TT_RAILWAY, TT_TRACK);
+	return tile_is_rail_track(&_mc[t]);
 }
 
 /*
@@ -293,7 +286,7 @@ static inline bool IsNormalRailTile(TileIndex t)
  */
 static inline bool IsRailBridgeTile(TileIndex t)
 {
-	return IsTileTypeSubtype(t, TT_RAILWAY, TT_BRIDGE);
+	return tile_is_rail_bridge(&_mc[t]);
 }
 
 /**
@@ -304,7 +297,7 @@ static inline bool IsRailBridgeTile(TileIndex t)
  */
 static inline bool IsRoadTile(TileIndex tile)
 {
-	return IsTileType(tile, TT_ROAD);
+	return tile_is_road(&_mc[tile]);
 }
 
 /*
@@ -315,7 +308,7 @@ static inline bool IsRoadTile(TileIndex tile)
  */
 static inline bool IsNormalRoadTile(TileIndex t)
 {
-	return IsTileTypeSubtype(t, TT_ROAD, TT_TRACK);
+	return tile_is_road_track(&_mc[t]);
 }
 
 /*
@@ -326,7 +319,7 @@ static inline bool IsNormalRoadTile(TileIndex t)
  */
 static inline bool IsRoadBridgeTile(TileIndex t)
 {
-	return IsTileTypeSubtype(t, TT_ROAD, TT_BRIDGE);
+	return tile_is_road_bridge(&_mc[t]);
 }
 
 /**
@@ -336,7 +329,7 @@ static inline bool IsRoadBridgeTile(TileIndex t)
  */
 static inline bool IsLevelCrossingTile(TileIndex t)
 {
-	return IsTileTypeSubtype(t, TT_MISC, TT_MISC_CROSSING);
+	return tile_is_crossing(&_mc[t]);
 }
 
 /**
@@ -347,7 +340,7 @@ static inline bool IsLevelCrossingTile(TileIndex t)
  */
 static inline bool IsAqueductTile(TileIndex t)
 {
-	return IsTileTypeSubtype(t, TT_MISC, TT_MISC_AQUEDUCT);
+	return tile_is_aqueduct(&_mc[t]);
 }
 
 /**
@@ -358,7 +351,7 @@ static inline bool IsAqueductTile(TileIndex t)
  */
 static inline bool IsTunnelTile(TileIndex tile)
 {
-	return IsTileTypeSubtype(tile, TT_MISC, TT_MISC_TUNNEL);
+	return tile_is_tunnel(&_mc[tile]);
 }
 
 /**
@@ -368,7 +361,7 @@ static inline bool IsTunnelTile(TileIndex tile)
  */
 static inline bool IsGroundDepotTile(TileIndex t)
 {
-	return IsTileTypeSubtype(t, TT_MISC, TT_MISC_DEPOT);
+	return tile_is_ground_depot(&_mc[t]);
 }
 
 /**
@@ -379,7 +372,7 @@ static inline bool IsGroundDepotTile(TileIndex t)
  */
 static inline bool IsStationTile(TileIndex tile)
 {
-	return IsTileType(tile, TT_STATION);
+	return tile_is_station(&_mc[tile]);
 }
 
 /**
@@ -390,7 +383,7 @@ static inline bool IsStationTile(TileIndex tile)
  */
 static inline bool IsIndustryTile(TileIndex tile)
 {
-	return GB(_mc[tile].m0, 6, 2) == 2;
+	return tile_is_industry(&_mc[tile]);
 }
 
 /**
@@ -401,7 +394,7 @@ static inline bool IsIndustryTile(TileIndex tile)
  */
 static inline bool IsHouseTile(TileIndex tile)
 {
-	return GB(_mc[tile].m0, 6, 2) == 3;
+	return tile_is_house(&_mc[tile]);
 }
 
 /**
@@ -547,7 +540,7 @@ static inline void ToggleSnow(TileIndex t)
  */
 static inline bool IsBridgeHeadTile(TileIndex t)
 {
-	return IsRailBridgeTile(t) || IsRoadBridgeTile(t) || IsAqueductTile(t);
+	return tile_is_bridge(&_mc[t]);
 }
 
 /**

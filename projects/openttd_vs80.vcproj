@@ -10850,6 +10850,10 @@
 				RelativePath=".\..\src\tile\zoneheight.h"
 				>
 			</File>
+			<File
+				RelativePath=".\..\src\tile\class.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Map Accessors"

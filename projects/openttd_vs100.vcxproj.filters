@@ -2721,6 +2721,9 @@
     <ClInclude Include="..\src\tile\zoneheight.h">
       <Filter>Tile Accessors</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\tile\class.h">
+      <Filter>Tile Accessors</Filter>
+    </ClInclude>
     <ClCompile Include="..\src\bridge_map.cpp">
       <Filter>Map Accessors</Filter>
     </ClCompile>
