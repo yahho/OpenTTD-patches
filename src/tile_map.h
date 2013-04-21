@@ -31,7 +31,7 @@
 static inline uint TileHeight(TileIndex tile)
 {
 	assert(tile < MapSize());
-	return GB(_mth[tile].type_height, 0, 4);
+	return GB(_mth[tile], 0, 4);
 }
 
 /**
@@ -48,7 +48,7 @@ static inline void SetTileHeight(TileIndex tile, uint height)
 {
 	assert(tile < MapSize());
 	assert(height <= MAX_TILE_HEIGHT);
-	SB(_mth[tile].type_height, 0, 4, height);
+	SB(_mth[tile], 0, 4, height);
 }
 
 /**
@@ -478,7 +478,7 @@ static inline void SetTropicZone(TileIndex tile, TropicZone type)
 {
 	assert(tile < MapSize());
 	assert(!IsVoidTile(tile) || type == TROPICZONE_NORMAL);
-	SB(_mth[tile].type_height, 6, 2, type);
+	SB(_mth[tile], 6, 2, type);
 }
 
 /**
@@ -490,7 +490,7 @@ static inline void SetTropicZone(TileIndex tile, TropicZone type)
 static inline TropicZone GetTropicZone(TileIndex tile)
 {
 	assert(tile < MapSize());
-	return (TropicZone)GB(_mth[tile].type_height, 6, 2);
+	return (TropicZone)GB(_mth[tile], 6, 2);
 }
 
 /** Check if a tile has snow/desert. */

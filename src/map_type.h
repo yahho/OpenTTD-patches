@@ -16,9 +16,7 @@
  * Data that is stored per tile. Also used TileC for this.
  * Look at docs/landscape.html for the exact meaning of the members.
  */
-struct TileH {
-	byte   type_height; ///< Zone and height of the northern corner
-};
+typedef byte TileH; ///< Zone and height of the northern corner
 
 /**
  * An offset value between to tiles.

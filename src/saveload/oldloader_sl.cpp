@@ -53,7 +53,7 @@ enum OldTileType {
 static inline OldTileType GetOldTileType(TileIndex tile)
 {
 	assert(tile < MapSize());
-	return (OldTileType)GB(_mth[tile].type_height, 4, 4);
+	return (OldTileType)GB(_mth[tile], 4, 4);
 }
 
 static inline bool IsOldTileType(TileIndex tile, OldTileType type)
@@ -63,7 +63,7 @@ static inline bool IsOldTileType(TileIndex tile, OldTileType type)
 
 static inline void SetOldTileType(TileIndex tile, OldTileType type)
 {
-	SB(_mth[tile].type_height, 4, 4, type);
+	SB(_mth[tile], 4, 4, type);
 }
 
 static bool _read_ttdpatch_flags;    ///< Have we (tried to) read TTDPatch extra flags?
@@ -1550,7 +1550,7 @@ static bool LoadOldMapPart2(LoadgameState *ls, int num)
 	uint i;
 
 	for (i = 0; i < OLD_MAP_SIZE; i++) {
-		_mth[i].type_height = ReadByte(ls);
+		_mth[i] = ReadByte(ls);
 	}
 	for (i = 0; i < OLD_MAP_SIZE; i++) {
 		_mc[i].m5 = ReadByte(ls);

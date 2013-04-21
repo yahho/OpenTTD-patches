@@ -40,7 +40,7 @@ enum OldTileType {
 static inline OldTileType GetOldTileType(TileIndex tile)
 {
 	assert(tile < MapSize());
-	return (OldTileType)GB(_mth[tile].type_height, 4, 4);
+	return (OldTileType)GB(_mth[tile], 4, 4);
 }
 
 static inline bool IsOldTileType(TileIndex tile, OldTileType type)
@@ -50,13 +50,13 @@ static inline bool IsOldTileType(TileIndex tile, OldTileType type)
 
 static inline void SetOldTileType(TileIndex tile, OldTileType type)
 {
-	SB(_mth[tile].type_height, 4, 4, type);
+	SB(_mth[tile], 4, 4, type);
 }
 
 static inline uint OldTileHeight(TileIndex tile)
 {
 	assert(tile < MapSize());
-	return GB(_mth[tile].type_height, 0, 4);
+	return GB(_mth[tile], 0, 4);
 }
 
 static bool IsOldTileFlat(TileIndex tile)
@@ -303,12 +303,12 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		TileIndex t;
 
 		for (t = MapMaxX(); t < map_size - 1; t += MapSizeX()) {
-			_mth[t].type_height = OLD_MP_VOID << 4;
+			_mth[t] = OLD_MP_VOID << 4;
 			memset(&_mc[t], 0, sizeof(_mc[t]));
 		}
 
 		for (t = MapSizeX() * MapMaxY(); t < map_size; t++) {
-			_mth[t].type_height = OLD_MP_VOID << 4;
+			_mth[t] = OLD_MP_VOID << 4;
 			memset(&_mc[t], 0, sizeof(_mc[t]));
 		}
 	}
@@ -898,7 +898,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					throw SlCorrupt("Invalid tile type");
 			}
 
-			SB(_mth[t].type_height, 4, 4, zone << 2);
+			SB(_mth[t], 4, 4, zone << 2);
 		}
 	}
 
@@ -994,7 +994,7 @@ static void Load_MAPT(LoadBuffer *reader)
 
 	for (TileIndex i = 0; i != size;) {
 		reader->ReadArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mth[i++].type_height = buf[j];
+		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mth[i++] = buf[j];
 	}
 }
 
@@ -1005,7 +1005,7 @@ static void Save_MAPT(SaveDumper *dumper)
 
 	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mth[i++].type_height;
+		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mth[i++];
 		dumper->WriteArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 	}
 }
