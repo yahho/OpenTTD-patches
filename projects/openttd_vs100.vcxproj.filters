@@ -67,38 +67,41 @@
     <Filter Include="NewGRF">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000021}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Map Accessors">
+    <Filter Include="Tile Accessors">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000022}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Misc">
+    <Filter Include="Map Accessors">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000023}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Network Core">
+    <Filter Include="Misc">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000024}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Pathfinder">
+    <Filter Include="Network Core">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000025}</UniqueIdentifier>
     </Filter>
-    <Filter Include="NPF">
+    <Filter Include="Pathfinder">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000026}</UniqueIdentifier>
     </Filter>
-    <Filter Include="YAPF">
+    <Filter Include="NPF">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000027}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Video">
+    <Filter Include="YAPF">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000028}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Music">
+    <Filter Include="Video">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000029}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sound">
+    <Filter Include="Music">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000030}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Windows files">
+    <Filter Include="Sound">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000031}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Threading">
+    <Filter Include="Windows files">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000032}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Threading">
+      <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000033}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -2712,6 +2715,9 @@
     <ClCompile Include="..\src\newgrf_townname.cpp">
       <Filter>NewGRF</Filter>
     </ClCompile>
+    <ClInclude Include="..\src\tile\tile.h">
+      <Filter>Tile Accessors</Filter>
+    </ClInclude>
     <ClCompile Include="..\src\bridge_map.cpp">
       <Filter>Map Accessors</Filter>
     </ClCompile>

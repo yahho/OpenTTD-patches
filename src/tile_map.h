@@ -127,7 +127,7 @@ static inline void SetTileType(TileIndex tile, TileType type)
 static inline TileSubtype GetTileSubtype(TileIndex tile)
 {
 	assert(tile < MapSize());
-	assert(TileTypeHasSubtypes(GetTileType(tile)));
+	assert(tiletype_has_subtypes(GetTileType(tile)));
 	uint subtype = GB(_mc[tile].m1, 6, 2);
 	return (TileSubtype)subtype;
 }
@@ -143,7 +143,7 @@ static inline void SetTileTypeSubtype(TileIndex tile, TileType type, TileSubtype
 {
 	assert(tile < MapSize());
 	assert(type < 8);
-	assert(TileTypeHasSubtypes(type));
+	assert(tiletype_has_subtypes(type));
 	SB(_mc[tile].m0, 4, 4, type);
 	SB(_mc[tile].m1, 6, 2, subtype);
 }
@@ -185,7 +185,7 @@ static inline bool IsTileSubtype(TileIndex tile, TileSubtype subtype)
  */
 static inline bool IsTileTypeSubtype(TileIndex tile, TileType type, TileSubtype subtype)
 {
-	assert(TileTypeHasSubtypes(type));
+	assert(tiletype_has_subtypes(type));
 	return IsTileType(tile, type) && IsTileSubtype(tile, subtype);
 }
 

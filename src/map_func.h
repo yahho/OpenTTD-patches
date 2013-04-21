@@ -41,7 +41,7 @@ extern TileH *_mth;
  * This variable points to the tile contents array which contains the tiles
  * of the map.
  */
-extern TileC *_mc;
+extern Tile *_mc;
 
 void AllocateMap(uint size_x, uint size_y);
 

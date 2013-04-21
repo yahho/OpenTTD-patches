@@ -10840,6 +10840,14 @@
 			</File>
 		</Filter>
 		<Filter
+			Name="Tile Accessors"
+			>
+			<File
+				RelativePath=".\..\src\tile\tile.h"
+				>
+			</File>
+		</Filter>
+		<Filter
 			Name="Map Accessors"
 			>
 			<File

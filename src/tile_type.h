@@ -12,6 +12,8 @@
 #ifndef TILE_TYPE_H
 #define TILE_TYPE_H
 
+#include "tile/tile.h"
+
 static const uint TILE_SIZE      = 16;            ///< Tiles are 16x16 "units" in size
 static const uint TILE_UNIT_MASK = TILE_SIZE - 1; ///< For masking in/out the inner-tile units.
 static const uint TILE_PIXELS    = 32;            ///< a tile is 32x32 pixels
@@ -23,54 +25,6 @@ static const uint MIN_SNOWLINE_HEIGHT = 2;                     ///< Minimum snow
 static const uint DEF_SNOWLINE_HEIGHT = 7;                     ///< Default snowline height
 static const uint MAX_SNOWLINE_HEIGHT = (MAX_TILE_HEIGHT - 2); ///< Maximum allowed snowline height
 
-
-/**
- * The different types of tiles.
- *
- * Each tile belongs to one type, according whatever is build on it.
- *
- * @note A railway with a crossing street is marked as road.
- */
-enum TileType {
-	TT_GROUND       =  0,  ///< A tile without any structures, i.e. grass, rocks, farm fields, trees etc.; or void
-	TT_OBJECT       =  1,  ///< Contains objects such as transmitters and owned land
-	TT_WATER        =  2,  ///< Water tile
-	TT_RAILWAY      =  4,  ///< A railway
-	TT_ROAD         =  5,  ///< A tile with road (or tram tracks)
-	TT_MISC         =  6,  ///< Level crossings, aqueducts, tunnels, depots
-	TT_STATION      =  7,  ///< A tile of a station
-	//TT_INDUSTRY   =  8,  ///< Part of an industry
-	//TT_HOUSE      = 12,  ///< A house by a town
-};
-
-/**
- * Subtypes of certain tile types.
- *
- * Each subtype only makes sense for certain types, normally just one.
- */
-enum TileSubtype {
-	TT_GROUND_VOID   = 0,  ///< Void tile (TT_GROUND)
-	TT_GROUND_FIELDS = 1,  ///< Fields (TT_GROUND)
-	TT_GROUND_CLEAR  = 2,  ///< Clear (neither fields nor trees) (TT_GROUND)
-	TT_GROUND_TREES  = 3,  ///< Trees (TT_GROUND)
-	TT_TRACK         = 0,  ///< Railway track or normal road (TT_RAILWAY, TT_ROAD)
-	TT_BRIDGE        = 1,  ///< Bridge ramp/bridgehead (TT_RAILWAY, TT_ROAD)
-	TT_MISC_CROSSING = 0,  ///< Level crossing (TT_MISC)
-	TT_MISC_AQUEDUCT = 1,  ///< Aqueduct (TT_MISC)
-	TT_MISC_TUNNEL   = 2,  ///< Tunnel entry (TT_MISC)
-	TT_MISC_DEPOT    = 3,  ///< Railway or road depot (TT_MISC)
-};
-
-/**
- * Check whether a given tile type has subtypes.
- *
- * @param tt The type to check
- * @return Whether the given type has subtypes
- */
-static inline bool TileTypeHasSubtypes(TileType tt)
-{
-	return (tt == TT_GROUND) || (tt == TT_RAILWAY) || (tt == TT_ROAD) || (tt == TT_MISC);
-}
 
 /**
  * Additional infos of a tile on a tropic game.

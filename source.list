@@ -953,6 +953,9 @@ newgrf_text.cpp
 newgrf_town.cpp
 newgrf_townname.cpp
 
+# Tile Accessors
+tile/tile.h
+
 # Map Accessors
 bridge_map.cpp
 bridge_map.h
