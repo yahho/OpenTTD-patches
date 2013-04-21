@@ -2724,6 +2724,9 @@
     <ClInclude Include="..\src\tile\class.h">
       <Filter>Tile Accessors</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\tile\common.h">
+      <Filter>Tile Accessors</Filter>
+    </ClInclude>
     <ClCompile Include="..\src\bridge_map.cpp">
       <Filter>Map Accessors</Filter>
     </ClCompile>

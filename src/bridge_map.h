@@ -12,6 +12,7 @@
 #ifndef BRIDGE_MAP_H
 #define BRIDGE_MAP_H
 
+#include "tile/common.h"
 #include "rail_map.h"
 #include "road_map.h"
 
@@ -23,10 +24,7 @@
  */
 static inline bool MayHaveBridgeAbove(TileIndex t)
 {
-	return (IsTileType(t, TT_GROUND) && (IsTileSubtype(t, TT_GROUND_FIELDS) || IsTileSubtype(t, TT_GROUND_CLEAR))) ||
-		(IsTileType(t, TT_MISC) && !IsTileSubtype(t, TT_MISC_DEPOT)) ||
-			IsRailwayTile(t) || IsRoadTile(t) ||
-			IsWaterTile(t) || IsObjectTile(t);
+	return tile_is_bridgeable(&_mc[t]);
 }
 
 /**
@@ -37,8 +35,7 @@ static inline bool MayHaveBridgeAbove(TileIndex t)
  */
 static inline bool IsBridgeAbove(TileIndex t)
 {
-	assert(MayHaveBridgeAbove(t));
-	return GB(_mc[t].m0, 0, 2) != 0;
+	return tile_bridgeable_has_bridge(&_mc[t]);
 }
 
 /**
@@ -48,7 +45,7 @@ static inline bool IsBridgeAbove(TileIndex t)
  */
 static inline bool HasBridgeAbove(TileIndex t)
 {
-	return MayHaveBridgeAbove(t) && IsBridgeAbove(t);
+	return tile_has_bridge_above(&_mc[t]);
 }
 
 /**
@@ -59,8 +56,7 @@ static inline bool HasBridgeAbove(TileIndex t)
  */
 static inline Axis GetBridgeAxis(TileIndex t)
 {
-	assert(IsBridgeAbove(t));
-	return (Axis)(GB(_mc[t].m0, 0, 2) - 1);
+	return tile_get_bridge_axis(&_mc[t]);
 }
 
 TileIndex GetNorthernBridgeEnd(TileIndex t);
@@ -79,26 +75,13 @@ static inline int GetBridgePixelHeight(TileIndex tile)
 }
 
 /**
- * Remove the bridge over the given axis.
- * @param t the tile to remove the bridge from
- * @param a the axis of the bridge to remove
- * @pre MayHaveBridgeAbove(t)
- */
-static inline void ClearSingleBridgeMiddle(TileIndex t, Axis a)
-{
-	assert(MayHaveBridgeAbove(t));
-	ClrBit(_mc[t].m0, a);
-}
-
-/**
  * Removes bridges from the given, that is bridges along the X and Y axis.
  * @param t the tile to remove the bridge from
  * @pre MayHaveBridgeAbove(t)
  */
 static inline void ClearBridgeMiddle(TileIndex t)
 {
-	ClearSingleBridgeMiddle(t, AXIS_X);
-	ClearSingleBridgeMiddle(t, AXIS_Y);
+	tile_clear_bridge_above(&_mc[t]);
 }
 
 /**
@@ -109,8 +92,7 @@ static inline void ClearBridgeMiddle(TileIndex t)
  */
 static inline void SetBridgeMiddle(TileIndex t, Axis a)
 {
-	assert(MayHaveBridgeAbove(t));
-	SetBit(_mc[t].m0, a);
+	tile_set_bridge_above(&_mc[t], a);
 }
 
 /**

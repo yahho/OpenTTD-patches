@@ -12,6 +12,7 @@
 #ifndef TOWN_MAP_H
 #define TOWN_MAP_H
 
+#include "tile/common.h"
 #include "clear_map.h"
 #include "road_map.h"
 #include "house.h"
@@ -265,7 +266,7 @@ static inline Year GetHouseAge(TileIndex t)
 static inline void SetHouseRandomBits(TileIndex t, byte random)
 {
 	assert(IsHouseTile(t));
-	_mc[t].m3 = random;
+	tile_set_random_bits(&_mc[t], random);
 }
 
 /**
@@ -278,7 +279,7 @@ static inline void SetHouseRandomBits(TileIndex t, byte random)
 static inline byte GetHouseRandomBits(TileIndex t)
 {
 	assert(IsHouseTile(t));
-	return _mc[t].m3;
+	return tile_get_random_bits(&_mc[t]);
 }
 
 /**

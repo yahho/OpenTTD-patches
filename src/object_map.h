@@ -12,6 +12,7 @@
 #ifndef OBJECT_MAP_H
 #define OBJECT_MAP_H
 
+#include "tile/common.h"
 #include "water_map.h"
 #include "object_type.h"
 
@@ -114,7 +115,7 @@ static inline bool IsStatueTile(TileIndex t)
 static inline byte GetObjectRandomBits(TileIndex t)
 {
 	assert(IsObjectTile(t));
-	return _mc[t].m3;
+	return tile_get_random_bits(&_mc[t]);
 }
 
 

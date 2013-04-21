@@ -12,6 +12,7 @@
 #ifndef WATER_MAP_H
 #define WATER_MAP_H
 
+#include "tile/common.h"
 #include "depot_type.h"
 #include "tile_map.h"
 
@@ -332,7 +333,7 @@ static inline byte GetLockPart(TileIndex t)
 static inline byte GetWaterTileRandomBits(TileIndex t)
 {
 	assert(IsWaterTile(t));
-	return _mc[t].m3;
+	return tile_get_random_bits(&_mc[t]);
 }
 
 /**

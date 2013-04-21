@@ -14,6 +14,7 @@
 
 #include "tile/zoneheight.h"
 #include "tile/class.h"
+#include "tile/common.h"
 #include "slope_type.h"
 #include "map_func.h"
 #include "core/bitmath_func.hpp"
@@ -423,10 +424,7 @@ static inline bool IsValidTile(TileIndex tile)
 static inline Owner GetTileOwner(TileIndex tile)
 {
 	assert(IsValidTile(tile));
-	assert(!IsHouseTile(tile));
-	assert(!IsIndustryTile(tile));
-
-	return (Owner)GB(_mc[tile].m1, 0, 5);
+	return tile_get_owner(&_mc[tile]);
 }
 
 /**
@@ -443,10 +441,7 @@ static inline Owner GetTileOwner(TileIndex tile)
 static inline void SetTileOwner(TileIndex tile, Owner owner)
 {
 	assert(IsValidTile(tile));
-	assert(!IsHouseTile(tile));
-	assert(!IsIndustryTile(tile));
-
-	SB(_mc[tile].m1, 0, 5, owner);
+	tile_set_owner(&_mc[tile], owner);
 }
 
 /**
@@ -458,7 +453,7 @@ static inline void SetTileOwner(TileIndex tile, Owner owner)
  */
 static inline bool IsTileOwner(TileIndex tile, Owner owner)
 {
-	return GetTileOwner(tile) == owner;
+	return tile_is_owner(&_mc[tile], owner);
 }
 
 /**
@@ -554,8 +549,7 @@ static inline bool IsBridgeHeadTile(TileIndex t)
  */
 static inline DiagDirection GetTunnelBridgeDirection(TileIndex t)
 {
-	assert(IsTunnelTile(t) || IsBridgeHeadTile(t));
-	return (DiagDirection)GB(_mc[t].m3, 6, 2);
+	return tile_get_tunnelbridge_direction(&_mc[t]);
 }
 
 
@@ -580,8 +574,7 @@ static inline DiagDirection GetGroundDepotDirection(TileIndex t)
  */
 static inline byte GetAnimationFrame(TileIndex t)
 {
-	assert(IsHouseTile(t) || IsObjectTile(t) || IsIndustryTile(t) || IsStationTile(t));
-	return _mc[t].m7;
+	return tile_get_frame(&_mc[t]);
 }
 
 /**
@@ -592,8 +585,7 @@ static inline byte GetAnimationFrame(TileIndex t)
  */
 static inline void SetAnimationFrame(TileIndex t, byte frame)
 {
-	assert(IsHouseTile(t) || IsObjectTile(t) || IsIndustryTile(t) || IsStationTile(t));
-	_mc[t].m7 = frame;
+	tile_set_frame(&_mc[t], frame);
 }
 
 Slope GetTileSlope(TileIndex tile, int *h = NULL);

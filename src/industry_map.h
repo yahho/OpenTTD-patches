@@ -12,6 +12,7 @@
 #ifndef INDUSTRY_MAP_H
 #define INDUSTRY_MAP_H
 
+#include "tile/common.h"
 #include "industrytype.h"
 #include "water_map.h"
 
@@ -227,7 +228,7 @@ static inline void SetIndustryAnimationLoop(TileIndex tile, byte count)
 static inline byte GetIndustryRandomBits(TileIndex tile)
 {
 	assert(IsIndustryTile(tile));
-	return _mc[tile].m3;
+	return tile_get_random_bits(&_mc[tile]);
 }
 
 /**
@@ -240,7 +241,7 @@ static inline byte GetIndustryRandomBits(TileIndex tile)
 static inline void SetIndustryRandomBits(TileIndex tile, byte bits)
 {
 	assert(IsIndustryTile(tile));
-	_mc[tile].m3 = bits;
+	tile_set_random_bits(&_mc[tile], bits);
 }
 
 /**
