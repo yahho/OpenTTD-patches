@@ -12,40 +12,9 @@
 #ifndef TREE_MAP_H
 #define TREE_MAP_H
 
+#include "tile/ground.h"
 #include "tile_map.h"
 #include "clear_map.h"
-
-/**
- * List of tree types along all landscape types.
- *
- * This enumeration contains a list of the different tree types along
- * all landscape types. The values for the enumerations may be used for
- * offsets from the grfs files. These points to the start of
- * the tree list for a landscape. See the TREE_COUNT_* enumerations
- * for the amount of different trees for a specific landscape.
- */
-enum TreeType {
-	TREE_TEMPERATE    = 0x00, ///< temperate tree
-	TREE_SUB_ARCTIC   = 0x0C, ///< tree on a sub_arctic landscape
-	TREE_RAINFOREST   = 0x14, ///< tree on the 'green part' on a sub-tropical map
-	TREE_CACTUS       = 0x1B, ///< a cactus for the 'desert part' on a sub-tropical map
-	TREE_SUB_TROPICAL = 0x1C, ///< tree on a sub-tropical map, non-rainforest, non-desert
-	TREE_TOYLAND      = 0x20, ///< tree on a toyland map
-	TREE_INVALID      = 0xFF, ///< An invalid tree
-};
-
-/* Counts the number of tree types for each landscape.
- *
- * This list contains the counts of different tree types for each landscape. This list contains
- * 5 entries instead of 4 (as there are only 4 landscape types) as the sub tropic landscape
- * has two types of area, one for normal trees and one only for cacti.
- */
-static const uint TREE_COUNT_TEMPERATE    = TREE_SUB_ARCTIC - TREE_TEMPERATE;    ///< number of tree types on a temperate map.
-static const uint TREE_COUNT_SUB_ARCTIC   = TREE_RAINFOREST - TREE_SUB_ARCTIC;   ///< number of tree types on a sub arctic map.
-static const uint TREE_COUNT_RAINFOREST   = TREE_CACTUS     - TREE_RAINFOREST;   ///< number of tree types for the 'rainforest part' of a sub-tropic map.
-static const uint TREE_COUNT_SUB_TROPICAL = TREE_TOYLAND    - TREE_SUB_TROPICAL; ///< number of tree types for the 'sub-tropic part' of a sub-tropic map.
-static const uint TREE_COUNT_TOYLAND      = 9;                                   ///< number of tree types on a toyland map.
-
 
 /**
  * Returns the treetype of a tile.
@@ -61,8 +30,7 @@ static const uint TREE_COUNT_TOYLAND      = 9;                                  
  */
 static inline TreeType GetTreeType(TileIndex t)
 {
-	assert(IsTreeTile(t));
-	return (TreeType)_mc[t].m7;
+	return tile_get_tree_type(&_mc[t]);
 }
 
 /**
@@ -77,8 +45,7 @@ static inline TreeType GetTreeType(TileIndex t)
  */
 static inline uint GetTreeCount(TileIndex t)
 {
-	assert(IsTreeTile(t));
-	return GB(_mc[t].m5, 6, 2) + 1;
+	return tile_get_tree_count(&_mc[t]);
 }
 
 /**
@@ -94,8 +61,7 @@ static inline uint GetTreeCount(TileIndex t)
  */
 static inline void AddTreeCount(TileIndex t, int c)
 {
-	assert(IsTreeTile(t)); // XXX incomplete
-	_mc[t].m5 += c << 6;
+	tile_add_tree_count(&_mc[t], c);
 }
 
 /**
@@ -109,8 +75,7 @@ static inline void AddTreeCount(TileIndex t, int c)
  */
 static inline uint GetTreeGrowth(TileIndex t)
 {
-	assert(IsTreeTile(t));
-	return GB(_mc[t].m5, 0, 3);
+	return tile_get_tree_growth(&_mc[t]);
 }
 
 /**
@@ -124,8 +89,7 @@ static inline uint GetTreeGrowth(TileIndex t)
  */
 static inline void AddTreeGrowth(TileIndex t, int a)
 {
-	assert(IsTreeTile(t)); // XXX incomplete
-	_mc[t].m5 += a;
+	tile_add_tree_growth(&_mc[t], a);
 }
 
 /**
@@ -140,8 +104,7 @@ static inline void AddTreeGrowth(TileIndex t, int a)
  */
 static inline void SetTreeGrowth(TileIndex t, uint g)
 {
-	assert(IsTreeTile(t)); // XXX incomplete
-	SB(_mc[t].m5, 0, 3, g);
+	tile_set_tree_growth(&_mc[t], g);
 }
 
 /**
@@ -158,14 +121,7 @@ static inline void SetTreeGrowth(TileIndex t, uint g)
  */
 static inline void MakeTree(TileIndex t, TreeType type, uint count, uint growth, Ground ground, uint density)
 {
-	SetTileTypeSubtype(t, TT_GROUND, TT_GROUND_TREES);
-	SB(_mc[t].m0, 2, 2, 0);
-	SetTileOwner(t, OWNER_NONE);
-	_mc[t].m2 = 0;
-	_mc[t].m3 = ground << 4;
-	_mc[t].m4 = density;
-	_mc[t].m5 = count << 6 | growth;
-	_mc[t].m7 = type;
+	tile_make_trees(&_mc[t], type, count, growth, ground, density);
 }
 
 #endif /* TREE_MAP_H */
