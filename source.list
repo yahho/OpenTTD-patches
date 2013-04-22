@@ -959,6 +959,7 @@ tile/zoneheight.h
 tile/class.h
 tile/common.h
 tile/ground.h
+tile/water.h
 
 # Map Accessors
 bridge_map.cpp
