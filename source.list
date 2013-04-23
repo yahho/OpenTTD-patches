@@ -960,6 +960,7 @@ tile/class.h
 tile/common.h
 tile/ground.h
 tile/water.h
+tile/object.h
 
 # Map Accessors
 bridge_map.cpp

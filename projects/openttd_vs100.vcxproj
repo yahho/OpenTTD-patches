@@ -1851,6 +1851,7 @@
     <ClInclude Include="..\src\tile\common.h" />
     <ClInclude Include="..\src\tile\ground.h" />
     <ClInclude Include="..\src\tile\water.h" />
+    <ClInclude Include="..\src\tile\object.h" />
     <ClCompile Include="..\src\bridge_map.cpp" />
     <ClInclude Include="..\src\bridge_map.h" />
     <ClInclude Include="..\src\clear_map.h" />

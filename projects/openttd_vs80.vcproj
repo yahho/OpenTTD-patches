@@ -10866,6 +10866,10 @@
 				RelativePath=".\..\src\tile\water.h"
 				>
 			</File>
+			<File
+				RelativePath=".\..\src\tile\object.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Map Accessors"

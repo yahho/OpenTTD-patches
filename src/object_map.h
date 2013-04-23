@@ -13,6 +13,7 @@
 #define OBJECT_MAP_H
 
 #include "tile/common.h"
+#include "tile/object.h"
 #include "water_map.h"
 #include "object_type.h"
 
@@ -24,8 +25,7 @@
  */
 static inline ObjectType GetObjectType(TileIndex t)
 {
-	assert(IsObjectTile(t));
-	return (ObjectType)_mc[t].m5;
+	return tile_get_object_type(&_mc[t]);
 }
 
 /**
@@ -36,8 +36,7 @@ static inline ObjectType GetObjectType(TileIndex t)
  */
 static inline ObjectID GetObjectIndex(TileIndex t)
 {
-	assert(IsObjectTile(t));
-	return _mc[t].m2;
+	return tile_get_object_index(&_mc[t]);
 }
 
 /**
@@ -47,7 +46,7 @@ static inline ObjectID GetObjectIndex(TileIndex t)
  */
 static inline bool IsTransmitterTile(TileIndex t)
 {
-	return IsObjectTile(t) && GetObjectType(t) == OBJECT_TRANSMITTER;
+	return tile_is_transmitter(&_mc[t]);
 }
 
 /**
@@ -58,8 +57,7 @@ static inline bool IsTransmitterTile(TileIndex t)
  */
 static inline bool IsOwnedLand(TileIndex t)
 {
-	assert(IsObjectTile(t));
-	return GetObjectType(t) == OBJECT_OWNED_LAND;
+	return tile_object_is_owned_land(&_mc[t]);
 }
 
 /**
@@ -69,7 +67,7 @@ static inline bool IsOwnedLand(TileIndex t)
  */
 static inline bool IsOwnedLandTile(TileIndex t)
 {
-	return IsObjectTile(t) && IsOwnedLand(t);
+	return tile_is_owned_land(&_mc[t]);
 }
 
 /**
@@ -80,8 +78,7 @@ static inline bool IsOwnedLandTile(TileIndex t)
  */
 static inline bool IsCompanyHQ(TileIndex t)
 {
-	assert(IsObjectTile(t));
-	return _mc[t].m5 == OBJECT_HQ;
+	return tile_object_is_hq(&_mc[t]);
 }
 
 /**
@@ -92,8 +89,7 @@ static inline bool IsCompanyHQ(TileIndex t)
  */
 static inline bool IsStatue(TileIndex t)
 {
-	assert(IsObjectTile(t));
-	return GetObjectType(t) == OBJECT_STATUE;
+	return tile_object_is_statue(&_mc[t]);
 }
 
 /**
@@ -103,7 +99,7 @@ static inline bool IsStatue(TileIndex t)
  */
 static inline bool IsStatueTile(TileIndex t)
 {
-	return IsObjectTile(t) && IsStatue(t);
+	return tile_is_statue(&_mc[t]);
 }
 
 /**
@@ -131,15 +127,7 @@ static inline byte GetObjectRandomBits(TileIndex t)
  */
 static inline void MakeObject(TileIndex t, ObjectType u, Owner o, ObjectID index, WaterClass wc, byte random)
 {
-	SetTileType(t, TT_OBJECT);
-	SetTileOwner(t, o);
-	SetWaterClass(t, wc);
-	_mc[t].m2 = index;
-	_mc[t].m3 = random;
-	_mc[t].m4 = 0;
-	_mc[t].m5 = u;
-	SB(_mc[t].m0, 2, 2, 0);
-	_mc[t].m7 = 0;
+	tile_make_object(&_mc[t], u, o, index, wc, random);
 }
 
 #endif /* OBJECT_MAP_H */
