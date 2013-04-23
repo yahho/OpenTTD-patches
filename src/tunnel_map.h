@@ -12,6 +12,7 @@
 #ifndef TUNNEL_MAP_H
 #define TUNNEL_MAP_H
 
+#include "tile/misc.h"
 #include "tile_map.h"
 #include "road_map.h"
 
@@ -24,8 +25,7 @@
  */
 static inline TransportType GetTunnelTransportType(TileIndex t)
 {
-	assert(IsTunnelTile(t));
-	return (TransportType)GB(_mc[t].m5, 6, 2);
+	return tile_get_tunnel_transport_type(&_mc[t]);
 }
 
 TileIndex GetOtherTunnelEnd(TileIndex);
@@ -41,17 +41,7 @@ bool IsTunnelInWayDir(TileIndex tile, int z, DiagDirection dir);
  */
 static inline void MakeRoadTunnel(TileIndex t, Owner o, DiagDirection d, RoadTypes r)
 {
-	SetTileTypeSubtype(t, TT_MISC, TT_MISC_TUNNEL);
-	SB(_mc[t].m0, 2, 2, 0);
-	SetTileOwner(t, o);
-	_mc[t].m2 = 0;
-	_mc[t].m3 = d << 6;
-	_mc[t].m4 = 0;
-	_mc[t].m5 = TRANSPORT_ROAD << 6;
-	_mc[t].m7 = 0;
-	SetRoadOwner(t, ROADTYPE_ROAD, o);
-	if (o != OWNER_TOWN) SetRoadOwner(t, ROADTYPE_TRAM, o);
-	SetRoadTypes(t, r);
+	tile_make_road_tunnel(&_mc[t], o, d, r);
 }
 
 /**
@@ -63,14 +53,7 @@ static inline void MakeRoadTunnel(TileIndex t, Owner o, DiagDirection d, RoadTyp
  */
 static inline void MakeRailTunnel(TileIndex t, Owner o, DiagDirection d, RailType r)
 {
-	SetTileTypeSubtype(t, TT_MISC, TT_MISC_TUNNEL);
-	SB(_mc[t].m0, 2, 2, 0);
-	SetTileOwner(t, o);
-	_mc[t].m2 = 0;
-	_mc[t].m3 = (d << 6) | r;
-	_mc[t].m4 = 0;
-	_mc[t].m5 = TRANSPORT_RAIL << 6;
-	_mc[t].m7 = 0;
+	tile_make_rail_tunnel(&_mc[t], o, d, r);
 }
 
 #endif /* TUNNEL_MAP_H */

@@ -12,6 +12,7 @@
 #ifndef DEPOT_MAP_H
 #define DEPOT_MAP_H
 
+#include "tile/misc.h"
 #include "station_map.h"
 
 /**
@@ -40,8 +41,7 @@ static inline bool IsDepotTypeTile(TileIndex tile, TransportType type)
  */
 static inline bool IsRailDepot(TileIndex t)
 {
-	assert(IsGroundDepotTile(t));
-	return !HasBit(_mc[t].m1, 5);
+	return tile_depot_is_rail(&_mc[t]);
 }
 
 /**
@@ -52,8 +52,7 @@ static inline bool IsRailDepot(TileIndex t)
  */
 static inline bool IsRoadDepot(TileIndex t)
 {
-	assert(IsGroundDepotTile(t));
-	return HasBit(_mc[t].m1, 5);
+	return tile_depot_is_road(&_mc[t]);
 }
 
 /**
@@ -74,9 +73,7 @@ static inline bool IsDepotTile(TileIndex tile)
  */
 static inline DepotID GetDepotIndex(TileIndex t)
 {
-	/* Hangars don't have a Depot class, thus store no DepotID. */
-	assert(IsGroundDepotTile(t) || IsShipDepotTile(t));
-	return _mc[t].m2;
+	return tile_get_depot_index(&_mc[t]);
 }
 
 /**

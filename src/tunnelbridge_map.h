@@ -61,9 +61,7 @@ static inline void SetBridgeMiddleReservation(TileIndex t, bool b)
  */
 static inline bool HasTunnelHeadReservation(TileIndex t)
 {
-	assert(IsTunnelTile(t));
-	assert(GetTunnelTransportType(t) == TRANSPORT_RAIL);
-	return HasBit(_mc[t].m5, 4);
+	return tile_is_tunnel_head_reserved(&_mc[t]);
 }
 
 /**
@@ -74,9 +72,7 @@ static inline bool HasTunnelHeadReservation(TileIndex t)
  */
 static inline void SetTunnelHeadReservation(TileIndex t, bool b)
 {
-	assert(IsTunnelTile(t));
-	assert(GetTunnelTransportType(t) == TRANSPORT_RAIL);
-	SB(_mc[t].m5, 4, 1, b ? 1 : 0);
+	tile_set_tunnel_head_reserved(&_mc[t], b);
 }
 
 /**
@@ -87,9 +83,7 @@ static inline void SetTunnelHeadReservation(TileIndex t, bool b)
  */
 static inline bool HasTunnelMiddleReservation(TileIndex t)
 {
-	assert(IsTunnelTile(t));
-	assert(GetTunnelTransportType(t) == TRANSPORT_RAIL);
-	return HasBit(_mc[t].m5, 5);
+	return tile_is_tunnel_middle_reserved(&_mc[t]);
 }
 
 /**
@@ -100,9 +94,7 @@ static inline bool HasTunnelMiddleReservation(TileIndex t)
  */
 static inline void SetTunnelMiddleReservation(TileIndex t, bool b)
 {
-	assert(IsTunnelTile(t));
-	assert(GetTunnelTransportType(t) == TRANSPORT_RAIL);
-	SB(_mc[t].m5, 5, 1, b ? 1 : 0);
+	tile_set_tunnel_middle_reserved(&_mc[t], b);
 }
 
 /**
@@ -113,7 +105,7 @@ static inline void SetTunnelMiddleReservation(TileIndex t, bool b)
  */
 static inline TrackBits GetTunnelReservationTrackBits(TileIndex t)
 {
-	return HasTunnelHeadReservation(t) ? DiagDirToDiagTrackBits(GetTunnelBridgeDirection(t)) : TRACK_BIT_NONE;
+	return tile_get_tunnel_reserved_trackbits(&_mc[t]);
 }
 
 #endif /* TUNNELBRIDGE_MAP_H */

@@ -12,6 +12,7 @@
 #ifndef RAIL_MAP_H
 #define RAIL_MAP_H
 
+#include "tile/misc.h"
 #include "rail_type.h"
 #include "depot_type.h"
 #include "signal_func.h"
@@ -28,7 +29,7 @@
  */
 static inline bool IsRailDepotTile(TileIndex t)
 {
-	return IsGroundDepotTile(t) && !HasBit(_mc[t].m1, 5);
+	return tile_is_rail_depot(&_mc[t]);
 }
 
 /**
@@ -116,8 +117,7 @@ static inline bool HasTrack(TileIndex tile, Track track)
  */
 static inline Track GetRailDepotTrack(TileIndex t)
 {
-	assert(IsRailDepotTile(t));
-	return DiagDirToDiagTrack(GetGroundDepotDirection(t));
+	return tile_get_depot_track(&_mc[t]);
 }
 
 
@@ -220,8 +220,7 @@ static inline void UnreserveTrack(TileIndex tile, Track t)
  */
 static inline bool HasDepotReservation(TileIndex t)
 {
-	assert(IsRailDepotTile(t));
-	return HasBit(_mc[t].m5, 4);
+	return tile_is_depot_reserved(&_mc[t]);
 }
 
 /**
@@ -232,8 +231,7 @@ static inline bool HasDepotReservation(TileIndex t)
  */
 static inline void SetDepotReservation(TileIndex t, bool b)
 {
-	assert(IsRailDepotTile(t));
-	SB(_mc[t].m5, 4, 1, (byte)b);
+	tile_set_depot_reserved(&_mc[t], b);
 }
 
 /**
@@ -244,8 +242,7 @@ static inline void SetDepotReservation(TileIndex t, bool b)
  */
 static inline TrackBits GetDepotReservationTrackBits(TileIndex t)
 {
-	assert(IsRailDepotTile(t));
-	return HasDepotReservation(t) ? TrackToTrackBits(GetRailDepotTrack(t)) : TRACK_BIT_NONE;
+	return tile_get_depot_reserved_trackbits(&_mc[t]);
 }
 
 
@@ -580,15 +577,7 @@ static inline void MakeRailBridgeFromRail(TileIndex t, BridgeType bridgetype, Di
 
 static inline void MakeRailDepot(TileIndex t, Owner o, DepotID did, DiagDirection d, RailType r)
 {
-	SetTileTypeSubtype(t, TT_MISC, TT_MISC_DEPOT);
-	ClrBit(_mc[t].m1, 5);
-	SB(_mc[t].m0, 2, 2, 0);
-	SetTileOwner(t, o);
-	_mc[t].m2 = did;
-	_mc[t].m3 = r;
-	_mc[t].m4 = 0;
-	_mc[t].m5 = d;
-	_mc[t].m7 = 0;
+	tile_make_rail_depot(&_mc[t], o, did, d, r);
 }
 
 #endif /* RAIL_MAP_H */

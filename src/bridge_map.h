@@ -103,14 +103,7 @@ static inline void SetBridgeMiddle(TileIndex t, Axis a)
  */
 static inline void MakeAqueductBridgeRamp(TileIndex t, Owner o, DiagDirection d)
 {
-	SetTileTypeSubtype(t, TT_MISC, TT_MISC_AQUEDUCT);
-	SB(_mc[t].m0, 2, 2, 0);
-	SetTileOwner(t, o);
-	_mc[t].m2 = 0;
-	_mc[t].m3 = d << 6;
-	_mc[t].m4 = 0;
-	_mc[t].m5 = 0;
-	_mc[t].m7 = 0;
+	tile_make_aqueduct(&_mc[t], o, d);
 }
 
 #endif /* BRIDGE_MAP_H */

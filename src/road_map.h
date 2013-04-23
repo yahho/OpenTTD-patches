@@ -12,6 +12,7 @@
 #ifndef ROAD_MAP_H
 #define ROAD_MAP_H
 
+#include "tile/misc.h"
 #include "track_func.h"
 #include "depot_type.h"
 #include "rail_type.h"
@@ -27,7 +28,7 @@
  */
 static inline bool IsRoadDepotTile(TileIndex t)
 {
-	return IsGroundDepotTile(t) && HasBit(_mc[t].m1, 5);
+	return tile_is_road_depot(&_mc[t]);
 }
 
 /**
@@ -231,8 +232,7 @@ static inline void SetDisallowedRoadDirections(TileIndex t, DisallowedRoadDirect
  */
 static inline Axis GetCrossingRoadAxis(TileIndex t)
 {
-	assert(IsLevelCrossingTile(t));
-	return (Axis)GB(_mc[t].m4, 5, 1);
+	return tile_get_crossing_road_axis(&_mc[t]);
 }
 
 /**
@@ -243,8 +243,7 @@ static inline Axis GetCrossingRoadAxis(TileIndex t)
  */
 static inline Axis GetCrossingRailAxis(TileIndex t)
 {
-	assert(IsLevelCrossingTile(t));
-	return OtherAxis((Axis)GetCrossingRoadAxis(t));
+	return tile_get_crossing_rail_axis(&_mc[t]);
 }
 
 /**
@@ -254,7 +253,7 @@ static inline Axis GetCrossingRailAxis(TileIndex t)
  */
 static inline RoadBits GetCrossingRoadBits(TileIndex tile)
 {
-	return GetCrossingRoadAxis(tile) == AXIS_X ? ROAD_X : ROAD_Y;
+	return tile_get_crossing_roadbits(&_mc[tile]);
 }
 
 /**
@@ -264,7 +263,7 @@ static inline RoadBits GetCrossingRoadBits(TileIndex tile)
  */
 static inline Track GetCrossingRailTrack(TileIndex tile)
 {
-	return AxisToTrack(GetCrossingRailAxis(tile));
+	return tile_get_crossing_rail_track(&_mc[tile]);
 }
 
 /**
@@ -274,7 +273,7 @@ static inline Track GetCrossingRailTrack(TileIndex tile)
  */
 static inline TrackBits GetCrossingRailBits(TileIndex tile)
 {
-	return AxisToTrackBits(GetCrossingRailAxis(tile));
+	return tile_get_crossing_rail_trackbits(&_mc[tile]);
 }
 
 
@@ -286,8 +285,7 @@ static inline TrackBits GetCrossingRailBits(TileIndex tile)
  */
 static inline bool HasCrossingReservation(TileIndex t)
 {
-	assert(IsLevelCrossingTile(t));
-	return HasBit(_mc[t].m4, 7);
+	return tile_crossing_is_reserved(&_mc[t]);
 }
 
 /**
@@ -298,8 +296,7 @@ static inline bool HasCrossingReservation(TileIndex t)
  */
 static inline void SetCrossingReservation(TileIndex t, bool b)
 {
-	assert(IsLevelCrossingTile(t));
-	SB(_mc[t].m4, 7, 1, b ? 1 : 0);
+	tile_crossing_set_reserved(&_mc[t], b);
 }
 
 /**
@@ -310,7 +307,7 @@ static inline void SetCrossingReservation(TileIndex t, bool b)
  */
 static inline TrackBits GetCrossingReservationTrackBits(TileIndex t)
 {
-	return HasCrossingReservation(t) ? GetCrossingRailBits(t) : TRACK_BIT_NONE;
+	return tile_crossing_get_reserved_trackbits(&_mc[t]);
 }
 
 /**
@@ -321,8 +318,7 @@ static inline TrackBits GetCrossingReservationTrackBits(TileIndex t)
  */
 static inline bool IsCrossingBarred(TileIndex t)
 {
-	assert(IsLevelCrossingTile(t));
-	return HasBit(_mc[t].m4, 6);
+	return tile_crossing_is_barred(&_mc[t]);
 }
 
 /**
@@ -333,8 +329,7 @@ static inline bool IsCrossingBarred(TileIndex t)
  */
 static inline void SetCrossingBarred(TileIndex t, bool barred)
 {
-	assert(IsLevelCrossingTile(t));
-	SB(_mc[t].m4, 6, 1, barred ? 1 : 0);
+	tile_crossing_set_barred(&_mc[t], barred);
 }
 
 /**
@@ -572,15 +567,7 @@ static inline void MakeRoadBridgeFromRoad(TileIndex t, BridgeType bridgetype, Di
  */
 static inline void MakeRoadCrossing(TileIndex t, Owner road, Owner tram, Owner rail, Axis roaddir, RailType rat, RoadTypes rot, uint town)
 {
-	SetTileTypeSubtype(t, TT_MISC, TT_MISC_CROSSING);
-	SB(_mc[t].m0, 2, 2, 0);
-	SetTileOwner(t, rail);
-	_mc[t].m2 = town;
-	_mc[t].m3 = rat;
-	_mc[t].m4 = roaddir << 5;
-	_mc[t].m5 = 0;
-	_mc[t].m7 = rot << 6 | road;
-	SetRoadOwner(t, ROADTYPE_TRAM, tram);
+	tile_make_crossing(&_mc[t], rail, road, tram, roaddir, rat, rot, town);
 }
 
 /**
@@ -593,15 +580,7 @@ static inline void MakeRoadCrossing(TileIndex t, Owner road, Owner tram, Owner r
  */
 static inline void MakeRoadDepot(TileIndex t, Owner owner, DepotID did, DiagDirection dir, RoadType rt)
 {
-	SetTileTypeSubtype(t, TT_MISC, TT_MISC_DEPOT);
-	SetBit(_mc[t].m1, 5);
-	SB(_mc[t].m0, 2, 2, 0);
-	SetTileOwner(t, owner);
-	_mc[t].m2 = did;
-	_mc[t].m3 = 0;
-	_mc[t].m4 = 0;
-	_mc[t].m5 = dir;
-	_mc[t].m7 = RoadTypeToRoadTypes(rt) << 6;
+	tile_make_road_depot(&_mc[t], owner, did, dir, rt);
 }
 
 #endif /* ROAD_MAP_H */

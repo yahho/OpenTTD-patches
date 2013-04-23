@@ -15,6 +15,7 @@
 #include "tile/zoneheight.h"
 #include "tile/class.h"
 #include "tile/common.h"
+#include "tile/misc.h"
 #include "slope_type.h"
 #include "map_func.h"
 #include "core/bitmath_func.hpp"
@@ -561,8 +562,7 @@ static inline DiagDirection GetTunnelBridgeDirection(TileIndex t)
  */
 static inline DiagDirection GetGroundDepotDirection(TileIndex t)
 {
-	assert(IsGroundDepotTile(t));
-	return (DiagDirection)GB(_mc[t].m5, 0, 2);
+	return tile_get_ground_depot_direction(&_mc[t]);
 }
 
 
