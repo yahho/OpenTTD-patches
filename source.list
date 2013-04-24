@@ -962,6 +962,7 @@ tile/ground.h
 tile/water.h
 tile/object.h
 tile/misc.h
+tile/signal.h
 
 # Map Accessors
 bridge_map.cpp

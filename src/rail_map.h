@@ -13,6 +13,7 @@
 #define RAIL_MAP_H
 
 #include "tile/misc.h"
+#include "tile/signal.h"
 #include "rail_type.h"
 #include "depot_type.h"
 #include "signal_func.h"
@@ -260,9 +261,10 @@ static inline byte *SignalByte(TileIndex t, Track track)
 static inline void ClearSignals(TileIndex tile, Track track)
 {
 	if (track == INVALID_TRACK) {
-		_mc[tile].m4 = _mc[tile].m7 = 0;
+		signalpair_clear(&_mc[tile].m4);
+		signalpair_clear(&_mc[tile].m7);
 	} else {
-		*SignalByte(tile, track) = 0;
+		signalpair_clear(SignalByte(tile, track));
 	}
 }
 
@@ -274,7 +276,7 @@ static inline void ClearSignals(TileIndex tile, Track track)
  */
 static inline void SetPresentSignals(TileIndex tile, Track track, uint signals)
 {
-	SB(*SignalByte(tile, track), 2, 2, signals);
+	signalpair_set_present(SignalByte(tile, track), signals);
 }
 
 /**
@@ -285,7 +287,7 @@ static inline void SetPresentSignals(TileIndex tile, Track track, uint signals)
  */
 static inline uint GetPresentSignals(TileIndex tile, Track track)
 {
-	return GB(*SignalByte(tile, track), 2, 2);
+	return signalpair_get_present(SignalByte(tile, track));
 }
 
 /**
@@ -294,8 +296,7 @@ static inline uint GetPresentSignals(TileIndex tile, Track track)
  */
 static inline bool HasSignalOnTrack(TileIndex tile, Track track)
 {
-	assert(IsValidTrack(track));
-	return GetPresentSignals(tile, track) != 0;
+	return signalpair_has_signals(SignalByte(tile, track));
 }
 
 static inline bool IsPbsSignal(SignalType s)
@@ -305,19 +306,12 @@ static inline bool IsPbsSignal(SignalType s)
 
 static inline SignalType GetSignalType(TileIndex t, Track track)
 {
-	assert(HasSignalOnTrack(t, track));
-	return (SignalType)GB(*SignalByte(t, track), 4, 3);
+	return signalpair_get_type(SignalByte(t, track));
 }
 
 static inline void SetSignalType(TileIndex t, Track track, SignalType s)
 {
-	assert(HasSignalOnTrack(t, track));
-	if (track == INVALID_TRACK) {
-		SB(_mc[t].m4, 4, 3, s);
-		SB(_mc[t].m7, 4, 3, s);
-	} else {
-		SB(*SignalByte(t, track), 4, 3, s);
-	}
+	signalpair_set_type(SignalByte(t, track), s);
 }
 
 static inline bool IsPresignalEntry(TileIndex t, Track track)
@@ -339,24 +333,19 @@ static inline bool IsOnewaySignal(TileIndex t, Track track)
 static inline void CycleSignalSide(TileIndex t, Track track)
 {
 	byte *p = SignalByte(t, track);
-	byte sig = GB(*p, 2, 2);
-	if (--sig == 0) sig = IsPbsSignal(GetSignalType(t, track)) ? 2 : 3;
-	SB(*p, 2, 2, sig);
+	byte sig = signalpair_get_present(p);
+	if (--sig == 0) sig = IsPbsSignal(signalpair_get_type(p)) ? 2 : 3;
+	signalpair_set_present(p, sig);
 }
 
 static inline SignalVariant GetSignalVariant(TileIndex t, Track track)
 {
-	return (SignalVariant)GB(*SignalByte(t, track), 7, 1);
+	return signalpair_get_variant(SignalByte(t, track));
 }
 
 static inline void SetSignalVariant(TileIndex t, Track track, SignalVariant v)
 {
-	if (track == INVALID_TRACK) {
-		SB(_mc[t].m4, 7, 1, v);
-		SB(_mc[t].m7, 7, 1, v);
-	} else {
-		SB(*SignalByte(t, track), 7, 1, v);
-	}
+	signalpair_set_variant(SignalByte(t, track), v);
 }
 
 /**
@@ -367,7 +356,7 @@ static inline void SetSignalVariant(TileIndex t, Track track, SignalVariant v)
  */
 static inline void SetSignalStates(TileIndex tile, Track track, uint state)
 {
-	SB(*SignalByte(tile, track), 0, 2, state);
+	signalpair_set_states(SignalByte(tile, track), state);
 }
 
 /**
@@ -378,7 +367,7 @@ static inline void SetSignalStates(TileIndex tile, Track track, uint state)
  */
 static inline uint GetSignalStates(TileIndex tile, Track track)
 {
-	return GB(*SignalByte(tile, track), 0, 2);
+	return signalpair_get_states(SignalByte(tile, track));
 }
 
 /**
@@ -413,7 +402,7 @@ static inline uint SignalBit(Trackdir trackdir)
 static inline bool HasSignalOnTrackdir(TileIndex tile, Trackdir trackdir)
 {
 	assert (IsValidTrackdir(trackdir));
-	return (*SignalByte(tile, TrackdirToTrack(trackdir)) & (IsSignalHighBit(trackdir) ? 0x08 : 0x04)) != 0;
+	return signalpair_has_signal(SignalByte(tile, TrackdirToTrack(trackdir)), IsSignalHighBit(trackdir));
 }
 
 /**
@@ -425,9 +414,7 @@ static inline bool HasSignalOnTrackdir(TileIndex tile, Trackdir trackdir)
 static inline SignalState GetSignalStateByTrackdir(TileIndex tile, Trackdir trackdir)
 {
 	assert(IsValidTrackdir(trackdir));
-	assert(HasSignalOnTrack(tile, TrackdirToTrack(trackdir)));
-	return (*SignalByte(tile, TrackdirToTrack(trackdir)) & (IsSignalHighBit(trackdir) ? 0x02 : 0x01)) != 0 ?
-		SIGNAL_STATE_GREEN : SIGNAL_STATE_RED;
+	return signalpair_get_state(SignalByte(tile, TrackdirToTrack(trackdir)), IsSignalHighBit(trackdir));
 }
 
 /**
@@ -435,11 +422,8 @@ static inline SignalState GetSignalStateByTrackdir(TileIndex tile, Trackdir trac
  */
 static inline void SetSignalStateByTrackdir(TileIndex tile, Trackdir trackdir, SignalState state)
 {
-	if (state == SIGNAL_STATE_GREEN) { // set 1
-		*SignalByte(tile, TrackdirToTrack(trackdir)) |= (IsSignalHighBit(trackdir) ? 0x02 : 0x01);
-	} else {
-		*SignalByte(tile, TrackdirToTrack(trackdir)) &= (IsSignalHighBit(trackdir) ? 0xFD : 0xFE);
-	}
+	assert(IsValidTrackdir(trackdir));
+	signalpair_set_state(SignalByte(tile, TrackdirToTrack(trackdir)), IsSignalHighBit(trackdir), state);
 }
 
 
