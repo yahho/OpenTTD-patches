@@ -1,1345 +1,802 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+  "http://www.w3.org/TR/html4/strict.dtd">
+
 <html>
 
 <head>
- <meta name="Author" content="Marcin Grzegorczyk">
- <meta name="Description" content="Structure of OpenTTD (OTTD) landscape arrays">
- <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
- <title>OpenTTD Landscape Internals</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Content-Stype-Type" content="text/css">
+<meta name="Author" content="Cirdan">
+<meta name="Description" content="Structure of OpenTTD (OTTD) landscape arrays">
+<style type="text/css">
+  body    { text-align: justify; }
+  table   { text-align: center; margin: auto; border-collapse: collapse; }
+  thead   { text-align: center; margin: auto; }
+  td, th  { border: solid thin; padding: 2px 5px; }
+  td.text, th.text { text-align: justify; }
+  span.head  { background-color: cyan; }
+  span.free  { background-color: lime; }
+  span.abuse { background-color: red;  }
+  .mono   { font-family: monospace; }
+  table.bitmap td { font-family: monospace; }
+  table.bitmap td.text { font-family: inherit; }
+  table.bitmap td a { text-decoration: none; }
+</style>
 </head>
 
 <body>
 
- <h3><a name="Landscape">Landscape</a></h3>
- <p>
-  For a graphical representation of the tile-layout have a look at
-  <a href="landscape_grid.html">Landscape grid</a> page.
- </p>
- <p>Eight attributes (counting &quot;<span style="font-weight: bold;">type_height</span>&quot;) hold the informations about a tile.<BR>
-  These attributes are referred to as
-  &quot;<span style="font-weight: bold;">type_height</span>",
-  &quot;<span style="font-weight: bold;">m1</span>&quot;, &quot;<span style="font-weight: bold;">m2</span>&quot;,
-  &quot;<span style="font-weight: bold;">m3</span>&quot;, &quot;<span style="font-weight: bold;">m4</span>&quot;,
-  &quot;<span style="font-weight: bold;">m5</span>&quot;, &quot;<span style="font-weight: bold;">m6</span>&quot;
-  and "<span style="font-weight: bold;">m7</span>".<br>
-  The most important value is the class of a tile, stored in the upper 4 bits
-  of the <span style="font-weight: bold;">type_height</span> attribute. The lower 4 bits are used to encode the height and
-  slope data.
- </p>
+<h1>Landscape</h1>
 
- Frequently repeating patterns:
- <ul>
-  <li><span style="font-weight: bold;">m1</span>
-   <ul>
-    <li>
-     <a name="WaterClass"></a>
-      Bits 6..5:
-     <table border="1" style="width: 30em;">
-      <tr bgcolor="#CCCCCC"><td colspan="2">The type of water that is on a tile.
-      <tr><td style="width: 5em;"><tt>00</tt></td><td align=left>Sea</td></tr>
-      <tr><td><tt>01</tt></td><td align=left>Canal</td></tr>
-      <tr><td><tt>02</tt></td><td align=left>River</td></tr>
-      <tr><td><tt>03</tt></td><td align=left>Invalid, i.e. no water on this tile</td></tr>
-     </table>
-     Some tiles, such as houses, reuse these bits of other purposes.
-    </li>
-    <li>
-     <a name="OwnershipInfo"></a>
-     Bits 4..0:
-     <table border="1" style="width: 30em;">
-      <tr bgcolor="#CCCCCC"><td colspan="2">The owner of a tile can be either companies (human or AI) or "Game entities".
-      <tr><td style="width: 5em;"><tt>00..0E</tt></td><td align=left>Normal companies</td></tr>
-      <tr><td><tt>0F</tt></td><td align=left>a town owns the tile</td></tr>
-      <tr><td><tt>10</tt></td><td align=left>nobody owns the tile</td></tr>
-      <tr><td><tt>11</tt></td><td align=left>"water" owns the tile</td></tr>
-      <tr><td><tt>FF</tt></td><td align=left>spectator in MP or in scenario editor</td></tr>
-     </table>
-     Some tiles, such as houses and industries, reuse these bits of other purposes.
-    </li>
-   </ul>
-  </li>
-  <li><span style="font-weight: bold;">m6</span>
-   <ul>
-    <li>
-     <a name="bridge_direction"></a>
-     Bits 7..6:
-     <table border="1" style="width: 30em;">
-      <tr bgcolor="#CCCCCC"><td colspan="2">Presence and direction of bridge above, for tiles that support this.</td></tr>
-      <tr><td style="width: 5em;"><tt>00</tt></td><td>no bridge</td></tr>
-      <tr><td><tt>01</tt></td><td>Axis X (North-East)</td></tr>
-      <tr><td><tt>02</tt></td><td>Axis Y (South-West)</td></tr>
-     </table>
-     Some tiles, such as houses do not support bridges over them and use these bits for other purposes.
-    </li>
-    <li>
-     <a name="tropic_zone"></a>
-     Bits 1..0:
-     <table border="1" style="width: 30em;">
-      <tr bgcolor="#CCCCCC"><td colspan="2">Only meaningfull in tropic climate. It contains the definition of the available zones</td></tr>
-      <tr><td style="width: 5em;"><tt>00</tt></td><td>normal</td></tr>
-      <tr><td><tt>01</tt></td><td>desert</td></tr>
-      <tr><td><tt>02</tt></td><td>rain forest</td></tr>
-     </table>
-     In any other climate these 2 bits are theoretically free of use, however using them does not seem useful.
-    </li>
-   </ul>
-  </li>
-  <li><span style="font-weight: bold;">m7:</span><br>
-   Animation frame/state. Used for houses, industries, objects and stations.
-  </li>
- </ul>
+<p>
+Seven attributes hold the information about a tile. These attributes are
+<b>type_height</b>, <b>m0</b>, <b>m1</b>, <b>m2</b>, <b>m3</b>, <b>m4</b>,
+<b>m5</b> and <b>m7</b>.
+</p>
 
- <p>OTTD's class-specific periodic tile processing routine is called once every +256 ticks for each tile.</p>
+<p>
+The attribute <b>type_height</b> contains the height of a tile stored in
+its lower 4 bits. The slope of a tile is computed combining its height
+with the heights of its neighbours. The higher bits of <b>type_height</b>
+may contain additional information depending on the climate; currently,
+the higher 2 bits contain the zone information in the tropical climate.
+</p>
 
- <table border=1 cellpadding=3>
-  <tr bgcolor="#0099FF">
-   <th align=left><font color="#FFFFFF">Class</font></th>
-   <th align=left><font color="#FFFFFF">Meaning & details of encoding</font></th>
-  </tr>
-  <tr bgcolor="#CCCCCC">
-   <td align=left><strong><a name="Class0"><tt> 0 </tt></a></strong></td>
-   <td align=left>&nbsp;<strong>Ground </strong></td>
-  </tr>
+<table>
+  <tr> <th> type_height (8)
+  <tr> <td class="mono"> 7654-3210
+  <tr> <td class="mono">
+    <span title="Zone">zz</span>00-<span title="Tile height (0&ndash;15)">hhhh</span>
+</table>
+
+<p>
+The zones currently defined for the tropical climate are the following.
+</p>
+
+<table class="field">
+  <tr> <th> Value <th> Meaning
+  <tr> <td class="mono"> 00 <td class="text"> Normal
+  <tr> <td class="mono"> 01 <td class="text"> Desert
+  <tr> <td class="mono"> 02 <td class="text"> Rain forest
+</table>
+
+
+<h2>Tile contents</h2>
+
+<p>
+The attributes <b>m0</b> &hellip; <b>m7</b> define the contents of a tile
+proper, ie, what is built on the tile. Generally speaking, the higher bits
+of <b>m0</b> determine the kind of object that is on the tile (its "class").
+Also, the lower 2 bits of <b>m0</b> record whether there is a bridge over
+the tile, for tile classes that allow this. <b>m1</b> contains the owner
+of the tile and, for tile classes representing an indexed object,
+<b>m2</b> contains the index of this object into the corresponding array.
+The values of <b>m3</b>, <b>m4</b>, <b>m5</b> and <b>m7</b> are highly
+dependent on the object class.
+</p>
+
+<p>
+The following table describes the full encoding used in storing objects
+into the tile structure; the possible values for each field are described
+below.
+</p>
+
+<p>
+<i>Legend:</i>
+<span class="head"><span class="mono">XX</span></span> class mark;
+<span class="free"><span class="mono">00</span></span> free;
+<span class="abuse"><span class="mono">XX</span></span> abused
+  for different purposes
+</p>
+
+<table class="bitmap">
+  <tr> <th colspan="2" class="text"> Object type <th> m0 (8)
+    <th> m1 (8) <th> m2 (16) <th> m3 (8) <th> m4 (8) <th> m5 (8) <th> m7 (8)
+  <tr> <th colspan="2" class="text"> Bits
+    <td> 7654-3210 <td> 7654-3210 <td> FEDC-BA98-7654-3210
+    <td> 7654-3210 <td> 7654-3210 <td> 7654-3210 <td> 7654-3210
+
+  <!-- misc -->
+
+  <!-- void -->
   <tr>
-   <td valign=top nowrap>&nbsp;</td>
-   <td>
-    <ul>
-     <li>m1 bits 4..0: <a href="#OwnershipInfo">owner</a> of the tile (normally <tt>10</tt>)</li>
-     <li>m2: see fields</li>
-     <li>m3 bits 7..5: type of hedge on NE border of the tile</li>
-     <li>m3 bits 3..0: see fields</li>
-     <li>m3 bit 4: set if the tile is covered with snow</li>
-     <li>m4 bits 7..5: type of hedge on the SW border of the tile (1 through 6, or 0=none)</li>
-     <li>m4 bits 4..2: same as 7..5, but for the SE border</li>
-     <li>m5 bits 7..5: update counter, incremented on every periodic processing for tile types,
-         other than <tt>03</tt>, <tt>07</tt>, <tt>0B</tt>, <tt>10</tt> and above.<BR>
-         on wraparound, the tile is updated (for fields, the type of fields in m3 is increased, for other types the tile type in m5 is increased).<BR>
-         For snow and desert, these bits are not used, tile is updated on every periodic processing.</li>
-     <li>m5 bits 4..2: tile type:
-      <table>
-       <tr>
-        <td nowrap valign=top><tt>0</tt>&nbsp; </td>
-        <td align=left>bare land / grass</td>
-       </tr>
+    <td colspan="2" class="text"> Void
+    <td> <span class="head">0000</span>-<span class="free">0000</span>
+    <td> <span class="head">00</span><span class="free">00-0000</span>
+    <td> <span class="free">0000-0000-0000-0000</span>
+    <td> <span class="free">0000-0000</span>
+    <td> <span class="free">0000-0000</span>
+    <td> <span class="free">0000-0000</span>
+    <td> <span class="free">0000-0000</span>
 
-       <tr>
-        <td nowrap valign=top><tt>1</tt>&nbsp; </td>
-        <td align=left>rough land (density must be 3)</td>
-       </tr>
+  <!-- ground -->
+  <tr> <td rowspan="3" class="text"> Ground
 
-       <tr>
-        <td nowrap valign=top><tt>2</tt>&nbsp; </td>
-        <td align=left>rocks (density must be 3)</td>
-       </tr>
+  <!-- fields -->
+    <td class="text"> Fields
+    <td> <span class="head">0000</span>-<span class="free">00</span><a
+      href="#bridgeabove" title="Bridge above">/\</a>
+    <td> <span class="head">01</span><span class="free">0</span><a
+        href="#owner" title="Owner">[ownr]</a>
+    <td> <span title="Industry index of farm">[-industry-index--]</span>
+    <td> <span title="Field type (0&hellip;9)">[ft]</span>-<a
+        href="#counter" title="Update counter">[##]</a>
+    <td> <a href="#hedge" title="Hedge on SW border">[h]</a><a
+        href="#hedge" title="Hedge on SE border">[-h]</a><span
+        class="free">00</span>
+    <td> <a href="#hedge" title="Hedge on NE border">[h]</a><a
+        href="#hedge" title="Hedge on NW border">[-h]</a><span
+        class="free">00</span>
+    <td rowspan="2"> <span class="free">0000-0000</span>
 
-       <tr>
-        <td nowrap valign=top><tt>3</tt>&nbsp; </td>
-        <td align=left>fields (density must be 3)
-         <ul>
-          <li>m2: index into the array of industries (farms), INVALID_INDUSTRY (0xFFFF) if farm has been removed</li>
-          <li>m3 bits 3..0: field type (legal values: 0 through 9)</li>
-         </ul>
-        </td>
-       </tr>
+  <!-- clear -->
+  <tr> <td class="text"> Clear
+    <td> <span class="head">0000</span>-<span class="free">00</span><a
+      href="#bridgeabove" title="Bridge above">/\</a>
+    <td> <span class="head">10</span><span class="free">0</span><a
+        href="#owner" title="Owner">[ownr]</a>
+    <td rowspan="2"> <span class="free">0000-0000-0000-0000</span>
+    <td rowspan="2"> <a href="#ground" title="Ground type">[gt]</a>-<a
+        href="#counter" title="Update counter">[##]</a>
+    <td rowspan="2"> <span class="free">0000-00</span><a
+        href="#ground" title="Ground and density">%%</a>
+    <td> <span class="free">0000-0000</span>
 
-       <tr>
-        <td nowrap valign=top><tt>4</tt>&nbsp; </td>
-        <td align=left>snow</td>
-       </tr>
+  <!-- trees -->
+  <tr> <td class="text"> Trees
+    <td> <span class="head">0000</span>-<span class="free">0000</span>
+    <td> <span class="head">11</span><span class="free">0</span><a
+        href="#owner" title="Owner">[ownr]</a>
+    <td> <a href="#trees" title="Number of trees">[number-]</a>
+    <td> <a href="#trees" title="Types of trees">[-types-]</a>
 
-       <tr>
-        <td nowrap valign=top><tt>5</tt>&nbsp; </td>
-        <td align=left>desert (density must be 1 or 3)</td>
-       </tr>
-      </table>
-     </li>
-     <li>m5 bits 1..0: density:
-      <table>
-       <tr>
-        <td nowrap valign=top><tt>0</tt>&nbsp; </td>
-        <td>bare land</td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td>1/4 snow</td>
-        <td></td>
-       </tr>
+  <!-- objects -->
+  <tr> <td class="text" colspan="2"> Objects
+    <td> <span class="head">0001</span>-<span class="free">00</span><a
+        href="#bridgeabove" title="Bridge above">/\</a>
+    <td> <span class="free">0</span><span
+        title="Water class (sea, canal or river)">~~</span><a
+        href="#owner" title="Owner">[ownr]</a>
+    <td> <span title="Object index">[--object-index---]</span>
+    <td> <span title="Random data">[random-]</span>
+    <td> <span class="free">0000-0000</span>
+    <td> <a href="#objects" title="Tile type">[-type--]</a>
+    <td> <span title="Animation frame">[-frame-]</span>
 
-       <tr>
-        <td nowrap valign=top><tt>1</tt>&nbsp; </td>
-        <td>1/3 grass</td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td>2/4 snow;&nbsp;</td>
-        <td>1/2 desert</td>
-       </tr>
+  <!-- water -->
+  <tr> <td class="text" colspan="2"> Water
+    <td> <span class="head">0010</span>-<span class="free">00</span><a
+        href="#bridgeabove" title="Bridge above">/\</a>
+    <td> <span class="free">0</span><span
+        title="Water class (sea, canal or river)">~~</span><a
+        href="#owner" title="Owner">[ownr]</a>
+    <td> <span class="free">0000-0000-0000-0000</span>
+    <td> <span title="Random data for canal or river tiles">[random-]</span>
+    <td> <span class="free">0000-0000</span>
+    <td> <a href="#water" title="Tile type">[-type--]</a>
+    <td> <span class="free">0000-0000</span>
 
-       <tr>
-        <td nowrap valign=top><tt>2</tt>&nbsp; </td>
-        <td>2/3 grass</td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td>3/4 snow</td>
-        <td></td>
-       </tr>
+  <!-- (free) -->
+  <tr> <td colspan="2">
+    <td> <span class="head">0011</span>-<span class="free">0000</span>
+    <td> <td> <td> <td> <td> <td>
 
-       <tr>
-        <td nowrap valign=top><tt>3</tt>&nbsp; </td>
-        <td>full grass;&nbsp;</td>
-        <td>rough land;&nbsp;</td>
-        <td>rocks;&nbsp;</td>
-        <td>fields;&nbsp;</td>
-        <td>full snow;&nbsp;</td>
-        <td>full desert</td>
-       </tr>
-      </table>
-     </li>
-     <li>m6 bits 7..6 : Possibility of a bridge above, in the <a href="#bridge_direction">direction specified</a></li>
-     <li>m6 bits 4..2: type of hedge on NW border of the tile</li>
-     <li>m6 bits 1..0 : <a href="#tropic_zone">Tropic zone definition</a></li>
-    </ul>
-   </td>
-  </tr>
+  <!-- transport -->
 
-  <tr bgcolor="#CCCCCC">
-   <td valign=top nowrap><strong><a name="Class1"><tt> 1</tt></a></strong></td>
-   <td><strong>Railway tracks</strong></td>
-  </tr>
+  <!-- railway track -->
+  <tr> <td class="text" rowspan="2"> Railway
+  <td class="text"> Track
+    <td rowspan="2"> <span class="head">0100</span>-<span
+        class="free">00</span<a href="#bridgeabove"
+        title="Bridge above">/\</a>
+    <td> <span class="head">00</span><span class="free">0</span><a
+        href="#owner" title="Owner">[ownr]</a>
+    <td> <span class="free">0000</span>-<a href="#pbs"
+        title="PBS reservation">[!!]</a>-<span class="free">00</span><a
+        href="#trackmask" title="Track layout bitmask">[-pcs-]</a>
+    <td> <a href="#fence" title="Ground and fence">[gf]</a>-<a
+        href="#track" title="Track type">[tt]</a>
+    <td> <a href="#signal" title="First signal">[signal1]</a>
+    <td> <span class="free">0000-0000</span>
+    <td> <a href="#signal" title="Second signal">[signal2]</a>
+  <tr> <td class="text"> Bridgehead
+    <td> <span class="head">01</span><span class="free">0</span><a
+        href="#owner" title="Owner">[ownr]</a>
+    <td> <a href="#bridge" title="Bridge type">[bt]</a>-<span
+        class="free">0000-0000-0000</span>
+    <td> <a href="#direction" title="Bridge direction">&lt;&gt;</a><span
+        class="free">0</span><span title="On snow or desert">g</span>-<a
+        href="#track" title="Track type">[tt]</a>
+    <td> <span class="free">0000-0000</span>
+    <td> <span class="free">000</span><span
+        title="PBS reservation for bridge">!</span>-<span
+        class="free">0000</span>
+    <td> <span class="free">0000-0000</span>
+
+  <!-- road -->
+  <tr> <td class="text" rowspan="2"> Road
+  <td class="text"> Road
+    <td rowspan="2"> <span class="head">0101</span>-<span
+        class="free">00</span><a href="#bridgeabove"
+        title="Bridge above">/\</a>
+    <td> <span class="head">00</span><span class="free">0</span><a
+        href="#owner" title="Road owner">[ownr]</a>
+    <td> <span
+        title="Town index (owning town if town-owned, else nearest town)"
+        >[---town-index----]</span>
+    <td> <span
+        title="One-way status, disallow driving to the north">^</span><span
+        title="One-way status, disallow driving to the south">v</span><span
+        class="free">0</span><span
+        title="On snow or desert">g</span>-<span title="Reserved">XXXX</span>
+    <td> <a href="#roadmask" title="Tram layout">[l1]</a>-<a
+        href="#roadmask" title="Road layout">[l0]</a>
+    <td> <span title="Reserved">X</span><a href="#pavement"
+        title="Ground and pavement">[p]</a>-<a href="#owner"
+        title="Tramway owner">[o1]</a>
+    <td> <a href="#roadbits" title="Present road types">==</a><span
+        title="Reserved">XX</span>-<span
+        title="Roadworks counter">[rw]</span>
+  <tr> <td class="text"> Bridgehead
+    <td> <span class="head">01</span><span class="free">0</span><a
+        href="#owner" title="Road owner">[ownr]</a>
+    <td> <span class="free">0000-0000-0000-0000</span>
+    <td> <a href="#direction" title="Bridge direction">&lt;&gt;</a><span
+        class="free">0</span><span
+        title="On snow or desert">g</span>-<span
+        title="Reserved">XXXX</span>
+    <td> <span class="free">0000-0000</span>
+    <td> <span title="Reserved">X</span><span class="free">000</span>-<a
+        href="#owner" title="Tramway owner">[o1]</a>
+    <td> <a href="#roadbits" title="Present road types">==</a><span
+        title="Reserved">XX</span>-<a href="#bridge"
+        title="Bridge type">[bt]</a>
+
+  <!-- level crossing -->
+  <tr> <td class="text" colspan="2"> Level crossing
+    <td rowspan="4"> <span class="head">0110</span>-<span
+        class="free">00</span><a href="#bridgeabove"
+        title="Bridge above">/\</a>
+    <td> <span class="head">00</span><span class="free">0</span><a
+        href="#owner" title="Track owner">[ownr]</a>
+    <td> <span
+        title="Town index (owning town if road is town-owned, else nearest town)"
+        >[---town-index----]</span>
+    <td> <span class="free">000</span><span
+        title="On snow or desert">g</span>-<a href="#track"
+        title="Track type">[tt]</a>
+    <td> <span title="PBS reservation">!</span><span
+        title="Crossing lights on">:</span><span
+        title="Direction (set: Y)">x</span><span class="free">0-0000</span>
+    <td> <span title="Reserved">X</span><a href="#pavement"
+        title="Ground and pavement">[p]</a>-<a href="#owner"
+        title="Tramway owner">[o1]</a>
+    <td> <a href="#roadbits" title="Present road types">==</a><span
+        title="Reserved">X</span><a href="#owner" title="Road owner">[own0]</a>
+
+  <!-- aqueduct -->
+  <tr> <td class="text" colspan="2"> Aqueduct
+    <td> <span class="head">01</span><span class="free">0</span><a
+        href="#owner" title="Owner">[ownr]</a>
+    <td> <span class="free">0000-0000-0000-0000</span>
+    <td> <a href="#direction" title="Tunnel direction">&lt;&gt;</a><span
+        class="free">0</span><span title="On snow or desert">g</span>-<span
+        class="free">0000</span>
+    <td> <span class="free">0000-0000</span>
+    <td> <span class="free">0000-0000</span>
+    <td> <span class="free">0000-0000</span>
+
+  <!-- simple tunnel -->
+  <tr> <td class="text" rowspan="2"> Tunnel
+    <td class="text"> Railway
+    <td rowspan="2"> <span class="head">10</span><span class="free">0</span><a
+        href="#owner" title="Owner">[ownr]</a>
+    <td rowspan="2"> <span class="free">0000-0000-0000-0000</span>
+    <td> <a href="#direction" title="Tunnel direction">&lt;&gt;</a><span
+        class="free">0</span><span title="On snow or desert">g</span>-<a
+        href="#track" title="Track type">[tt]</a>
+    <td rowspan="2"> <span class="free">0000-0000</span>
+    <td> <span class="head">00</span><span class="free"></span><span
+      class="free">0</span><span
+      title="PBS reservation for tunnel">!</span>-<span
+      class="free">0000</span>
+    <td> <span class="free">0000-0000</span>
   <tr>
-   <td valign=top nowrap>&nbsp;</td>
-   <td>
-    <ul>
-     <li>m1 bits 4..0: <a href="#OwnershipInfo">owner</a> of the tile</li>
-     <li>m2: see signals</li>
-     <li>m3 bits 7..4: see signals</li>
-     <li>m3 bits 3..0 = <a name="TrackType">track type</a>:
-      <table>
-       <tr>
-        <td><tt>0</tt>&nbsp; </td>
-        <td>conventional railway</td>
-       </tr>
+    <td class="text"> Road
+    <td> <a href="#direction" title="Tunnel direction">&lt;&gt;</a><span
+        class="free">0</span><span title="On snow or desert">g</span>-<span
+        class="free">0000</span>
+    <td> <span class="head">01</span><span class="free">00</span>-<a
+        href="#owner" title="Tramway owner">[o1]</a>
+    <td> <a href="#roadbits" title="Present road types">==</a><span
+        title="Reserved">X</span><a
+        href="#owner" title="Road owner">[own0]</a>
 
-       <tr>
-        <td><tt>1</tt>&nbsp; </td>
-        <td>electrified railway</td>
-       </tr>
+  <!-- ground depots -->
+  <tr> <td class="text" colspan="2"> Railway depot
+    <td rowspan="2"> <span class="head">0110</span>-<span
+        class="free">0000</span>
+    <td> <span class="head">110</span><a
+        href="#owner" title="Owner">[ownr]</a>
+    <td rowspan="2"> <span title="Nearest town index">[---depot-index---]</span>
+    <td> <span class="free">000</span><span
+        title="On snow or desert">g</span>-<a
+        href="#track" title="Track type">[tt]</a>
+    <td rowspan="2"> <span class="free">0000-0000</span>
+    <td> <span class="free">000</span><span
+        title="PBS reservation">!</span>-<span class="free">00</span><a
+        href="#direction" title="Direction">&lt;&gt;</a>
+    <td> <span class="free">0000-0000</span>
+  <tr> <td class="text" colspan="2"> Road depot
+    <td> <span class="head">111</span><a
+        href="#owner" title="Owner">[ownr]</a>
+    <td> <span class="free">000</span><span
+        title="On snow or desert">g</span>-<span class="free">0000</span>
+    <td> <span class="free">0000-00</span><a href="#direction"
+        title="Direction">&lt;&gt;</a>
+    <td> <a href="#roadbits" title="Present road types">==</a><span
+        class="free">00-0000</span>
 
-       <tr>
-        <td><tt>2</tt>&nbsp; </td>
-        <td>monorail</td>
-       </tr>
+  <!-- station -->
+  <tr> <td rowspan="8" class="text"> Station
 
-       <tr>
-        <td><tt>3</tt>&nbsp; </td>
-        <td>maglev</td>
-       </tr>
-      </table>
-     </li>
-     <li>m4 bits 7..4: see signals</li>
-     <li>m4 bits 3..0: Ground type (values with fences are not valid for depots and checkpoints)
-      <table>
-       <tr>
-        <td nowrap valign=top><tt>0</tt>&nbsp; </td>
-        <td align=left>on bare land</td>
-       </tr>
+  <td class="text"> Railway
+    <td> <span class="head">0111-000</span><span
+      title="PBS reservation">!</span>
+    <td rowspan="8"> <span class="free">0</span><span
+      title="Water class (sea, canal or river)">~~</span><a
+      href="#owner" title="Owner">[ownr]</a>
+    <td rowspan="8"> <span title="Station index">[--station-index--]</span>
+    <td rowspan="2"> <span title="Persistent random data">[rd]</span>-<a
+      href="#track" title="Track type">[tt]</a>
+    <td rowspan="8"> <span
+      title="Custom station id (0 for standard)">[custom-]</span>
+    <td rowspan="8"> <span title="Graphics index">[-graph-]</span>
+    <td rowspan="2"> <span title="Animation frame">[-frame-]</span>
 
-       <tr>
-        <td nowrap valign=top><tt>1</tt>&nbsp; </td>
-        <td align=left>on grass, no fences</td>
-       </tr>
+  <tr> <td class="text"> Waypoint
+    <td> <span class="head">0111-111</span><span
+      title="PBS reservation">!</span>
 
-       <tr>
-        <td nowrap valign=top><tt>2</tt>&nbsp; </td>
-        <td align=left>fence on the NW side</td>
-       </tr>
+  <tr> <td class="text"> Lorry
+    <td> <span class="head">0111-010</span><span class="free">0</span>
+    <td rowspan="2"> <a href="#owner"
+      title="Tramway owner">[o1]</a>-<span title="Reserved">XXXX</span>
+    <td rowspan="2"> <a href="#roadbits" title="Present road types">==</a><span
+      title="Reserved">X</span><a
+      href="#owner" title="Road owner">[own0]</a>
 
-       <tr>
-        <td nowrap valign=top><tt>3</tt>&nbsp; </td>
-        <td align=left>fence on the SE side</td>
-       </tr>
+  <tr> <td class="text"> Bus
+    <td> <span class="head">0111-011</span><span class="free">0</span>
 
-       <tr>
-        <td nowrap valign=top><tt>4</tt>&nbsp; </td>
-        <td align=left>fences on the NW and SE sides</td>
-       </tr>
+  <tr> <td class="text"> Oilrig
+    <td> <span class="head">0111-100</span><span class="free">0</span>
+    <td rowspan="3"> <span class="free">0000-0000</span>
+    <td rowspan="3"> <span class="free">0000-0000</span>
 
-       <tr>
-        <td nowrap valign=top><tt>5</tt>&nbsp; </td>
-        <td align=left>fence on the NE side</td>
-       </tr>
+  <tr> <td class="text"> Dock
+    <td> <span class="head">0111-101</span><span class="free">0</span>
 
-       <tr>
-        <td nowrap valign=top><tt>6</tt>&nbsp; </td>
-        <td align=left>fence on the SW side</td>
-       </tr>
+  <tr> <td class="text"> Buoy
+    <td> <span class="head">0111-110</span><span class="free">0</span>
 
-       <tr>
-        <td nowrap valign=top><tt>7</tt>&nbsp; </td>
-        <td align=left>fences on the NE and SW sides</td>
-       </tr>
+  <tr> <td class="text"> Airport
+    <td> <span class="head">0111-001</span><span class="free">0</span>
+    <td> <span title="Persistent random data">[rd]</span>-<span
+      class="free">0000</span>
+    <td> <span title="Animation frame">[-frame-]</span>
 
-       <tr>
-        <td nowrap valign=top><tt>8</tt>&nbsp; </td>
-        <td align=left>fence on the E side (track in the W corner)</td>
-       </tr>
+  <!-- industries -->
+  <tr> <td colspan="2" class="text"> <a href="#industries">Industry</a>
+    <td> <span class="head">10</span><span class="free">00</span>-XXXX
+    <td> <span title="Complete">X</span><span
+      title="Water class (sea, canal or river)">~~</span><span
+      class="free">0</span>-<span class="abuse">XXXX</span>
+    <td> <span title="Industry index">[-industry-index--]</span>
+    <td> <span title="Random data">[random-]</span>
+    <td> <span title="Animation loop">[-anim--]</span>
+    <td> XXXX-XXXX
+    <td> <span title="Animation frame">[-frame-]</span>
 
-       <tr>
-        <td nowrap valign=top><tt>9</tt>&nbsp; </td>
-        <td align=left>fence on the W side (track in the E corner)</td>
-       </tr>
+  <!-- houses -->
+  <tr> <td colspan="2" class="text"> <a href="#houses">House</a>
+    <td> <span class="head">11</span><span class="free">0</span>X-XXXX
+    <td> XX<span class="abuse">XX-XXXX</span>
+    <td> <span title="Town index">[---town-index----]</span>
+    <td> <span title="Random data">[random-]</span>
+    <td> XXXX-XXXX
+    <td> XXX<span class="abuse">X-XXXX</span>
+    <td> XXXX-<span class="abuse">XXXX</span>
 
-       <tr>
-        <td nowrap valign=top><tt>A</tt>&nbsp; </td>
-        <td align=left>fence on the S side (track in the N corner)</td>
-       </tr>
+  <tr> <th colspan="2" class="text"> Bits
+    <td> 7654-3210 <td> 7654-3210 <td> FEDC-BA98-7654-3210
+    <td> 7654-3210 <td> 7654-3210 <td> 7654-3210 <td> 7654-3210
+</table>
 
-       <tr>
-        <td nowrap valign=top><tt>B</tt>&nbsp; </td>
-        <td align=left>fence on the N side (track in the S corner)</td>
-       </tr>
 
-       <tr>
-        <td nowrap valign=top><tt>C</tt>&nbsp; </td>
-        <td align=left>on snow or desert</td>
-       </tr>
+<h2>Field values</h2>
 
-       <tr>
-        <td nowrap valign=top><tt>D</tt>&nbsp; </td>
-        <td align=left>on grass with fence and shore or water on the free halftile</td>
-       </tr>
+<h3 id="bridgeabove">Bridge above</h3>
 
-       <tr>
-        <td nowrap valign=top><tt>E</tt>&nbsp; </td>
-        <td align=left>higher part on foundation with snow, lower without snow</td>
-       </tr>
-      </table>
-     </li>
-     <li>m5 bit 7 clear: railway track
+<p>
+Whether there is a bridge above the tile, and its direction.
+</p>
+
+<table class="field">
+  <tr> <th> Value <th> Meaning
+  <tr> <td class="mono"> 00 <td class="text"> No bridge
+  <tr> <td class="mono"> 01 <td class="text"> Bridge along X axis
+  <tr> <td class="mono"> 10 <td class="text"> Bridge along Y axis
+</table>
+
+
+<h3 id="direction">Direction</h3>
+
+<table class="field">
+  <tr> <th> Value <th> Meaning
+  <tr> <td class="mono"> 0 <td class="text"> NE
+  <tr> <td class="mono"> 1 <td class="text"> SE
+  <tr> <td class="mono"> 2 <td class="text"> SW
+  <tr> <td class="mono"> 3 <td class="text"> NW
+</table>
+
+
+<h3 id="owner">Owner</h3>
+
+<p>
+Owner of the tile or piece of road.
+</p>
+
+<table class="field">
+  <tr> <th> Value <th> Meaning
+  <tr> <td class="mono"> 00&hellip;0E <td class="text"> Companies
+  <tr> <td class="mono"> 0F <td class="text"> Town
+  <tr> <td class="mono"> 10 <td class="text"> Nobody
+  <tr> <td class="mono"> 11 <td class="text"> Water
+<!--  <tr> <td class="mono"> FF <td class="text">
+    Spectator in MP or in scenario editor -->
+</table>
+
+
+<h3 id="counter">Update counter</h3>
+
+<p>
+An update counter is used in tiles that are to remain in a certain state
+for a period of time and then change. The counter is increased on every
+periodic processing of the tile, and the corresponding action is taken
+when the counter reaches a preset value or wraps around.
+</p>
+
+
+<h3 id="ground">Ground and density</h3>
+
+<p>
+Ground type (grass, snow, desert, &hellip;) and density for clear or tree
+tiles.
+</p>
+
+<table class="field">
+  <tr> <th> Value <th> Meaning <th> Densities
+  <tr> <td class="mono"> 0000 <td class="text"> Grass     <td> 0&mdash;3
+  <tr> <td class="mono"> 0001 <td class="text"> Shore     <td> N/A
+  <tr> <td class="mono"> 0010 <td class="text"> Roughland <td> N/A
+  <tr> <td class="mono"> 0011 <td class="text"> Rocks     <td> N/A
+  <tr> <td class="mono"> 0100 <td class="text"> Desert    <td> 1, 3
+  <tr> <td class="mono"> 1000 <td class="text"> Snow      <td> 0&mdash;3
+  <tr> <td class="mono"> 1010 <td class="text"> Snow-covered roughland <td> 0&mdash;3
+  <tr> <td class="mono"> 1011 <td class="text"> Snow-covered rocks     <td> 0&mdash;3
+</table>
+
+
+<h3 id="hedge">Hedge</h3>
+
+<p>
+Hedge on the border of a tile. It can take the values 1 through&nbsp;6,
+or 0 for none.
+</p>
+
+
+<h3 id="trees">Trees</h3>
+
+<p>
+Both the number and type of trees fields jointly determine the set of trees
+actually displayed at a tile. The lower 3 bits of the number field
+represent the growth status of the trees (0&hellip;2 for growing; 3 for
+fully grown; 4&hellip;7 for withering).
+</p>
+
+
+<h3 id="water">Water tile types</h3>
+
+<table class="field">
+  <tr> <th> Value <th> Meaning
+  <tr> <td class="mono"> 00 <td class="text"> Water, canal or river
+  <tr> <td class="mono"> 01 <td class="text"> Coast or riverbank
+  <tr> <td class="mono"> 10 <td class="text"> Canal lock, middle part, SW-NE
+  <tr> <td class="mono"> 11 <td class="text"> Canal lock, middle part, NW-SE
+  <tr> <td class="mono"> 12 <td class="text"> Canal lock, middle part, NE-SW
+  <tr> <td class="mono"> 13 <td class="text"> Canal lock, middle part, SE-NW
+  <tr> <td class="mono"> 14 <td class="text"> Canal lock, lower part, SW-NE
+  <tr> <td class="mono"> 15 <td class="text"> Canal lock, lower part, NW-SE
+  <tr> <td class="mono"> 16 <td class="text"> Canal lock, lower part, NE-SW
+  <tr> <td class="mono"> 17 <td class="text"> Canal lock, lower part, SE-NW
+  <tr> <td class="mono"> 18 <td class="text"> Canal lock, upper part, SW-NE
+  <tr> <td class="mono"> 19 <td class="text"> Canal lock, upper part, NW-SE
+  <tr> <td class="mono"> 1A <td class="text"> Canal lock, upper part, NE-SW
+  <tr> <td class="mono"> 1B <td class="text"> Canal lock, upper part, SE-NW
+  <tr> <td class="mono"> 80 <td class="text"> Ship depot, X direction, NE part
+  <tr> <td class="mono"> 81 <td class="text"> Ship depot, X direction, SW part
+  <tr> <td class="mono"> 82 <td class="text"> Ship depot, Y direction, NW part
+  <tr> <td class="mono"> 83 <td class="text"> Ship depot, Y direction, SE part
+</table>
+
+
+<h3 id="objects">Object types</h3>
+
+<table class="field">
+  <tr> <th> Value <th> Meaning
+  <tr> <td class="mono"> 00 <td class="text"> Transmitter
+  <tr> <td class="mono"> 01 <td class="text"> Lighthouse
+  <tr> <td class="mono"> 02 <td class="text"> Company statue
+  <tr> <td class="mono"> 03 <td class="text"> Company-owned land
+  <tr> <td class="mono"> 80&hellip;93
+    <td class="text"> Company headquarters <br> (5 sets of 4 tiles each)
+</table>
+
+
+<h3 id="bridge">Bridge types</h3>
+
+<table class="field">
+  <tr> <th> Value <th> Max. speed (mph) <th> Meaning
+  <tr> <td class="mono"> 0 <td>  20 <td class="text"> Wooden
+  <tr> <td class="mono"> 1 <td>  30 <td class="text"> Concrete
+  <tr> <td class="mono"> 2 <td>  40 <td class="text"> Girder, steel
+  <tr> <td class="mono"> 3 <td>  50 <td class="text"> Suspension, concrete
+  <tr> <td class="mono"> 4 <td>  60 <td class="text"> Suspension, steel
+  <tr> <td class="mono"> 5 <td>  70 <td class="text"> Suspension, steel
+  <tr> <td class="mono"> 6 <td> 100 <td class="text"> Cantilever, steel
+  <tr> <td class="mono"> 7 <td> 130 <td class="text"> Cantilever, steel
+  <tr> <td class="mono"> 8 <td> 150 <td class="text"> Cantilever, steel
+  <tr> <td class="mono"> 9 <td> 160 <td class="text"> Girder, steel
+  <tr> <td class="mono"> A <td> 200 <td class="text"> Tubular, steel
+  <tr> <td class="mono"> B <td> 320 <td class="text"> Tubular, steel
+  <tr> <td class="mono"> C <td> 380 <td class="text"> Tubular, silicon
+</table>
+
+
+<h3 id="track">Track types</h3>
+
+<table class="field">
+  <tr> <th> Value <th> Meaning
+  <tr> <td class="mono"> 0 <td class="text"> Conventional railway
+  <tr> <td class="mono"> 1 <td class="text"> Electrified railway
+  <tr> <td class="mono"> 2 <td class="text"> Monorail
+  <tr> <td class="mono"> 3 <td class="text"> Maglev
+</table>
+
+
+<h3 id="trackmask">Track layout</h3>
+
+<table class="field">
+  <tr> <th> Bit <th> Track present
+  <tr> <td class="mono"> 01 <td class="text"> X direction
+  <tr> <td class="mono"> 02 <td class="text"> Y direction
+  <tr> <td class="mono"> 04 <td class="text"> North corner (WE)
+  <tr> <td class="mono"> 08 <td class="text"> South corner (WE)
+  <tr> <td class="mono"> 10 <td class="text"> West corner (NS)
+  <tr> <td class="mono"> 20 <td class="text"> East corner (NS)
+</table>
+
+
+<h3 id="pbs">PBS track reservations</h3>
+
+<table class="field">
+  <tr> <th> Value <th> Reserved track
+  <tr> <td class="mono"> 0 <td class="text"> None
+  <tr> <td class="mono"> 1 <td class="text"> X direction
+  <tr> <td class="mono"> 2 <td class="text"> Y direction
+  <tr> <td class="mono"> 3 <td class="text"> North corner (WE)
+  <tr> <td class="mono"> 4 <td class="text"> South corner (WE)
+  <tr> <td class="mono"> 5 <td class="text"> West corner (NS)
+  <tr> <td class="mono"> 6 <td class="text"> East corner (NS)
+  <tr> <td class="mono"> 8 <td class="text"> Opposite track also reserved
+</table>
+
+
+<h3 id="fence">Ground and fence for railway tracks</h3>
+
+<table class="field">
+  <tr> <th> Value <th> Meaning
+  <tr> <td class="mono"> 0 <td class="text"> Bareland
+  <tr> <td class="mono"> 1 <td class="text"> Grass, no fence
+  <tr> <td class="mono"> 2 <td class="text"> Fence on the NW side
+  <tr> <td class="mono"> 3 <td class="text"> Fence on the SE side
+  <tr> <td class="mono"> 4 <td class="text"> Fences on the NW and SE sides
+  <tr> <td class="mono"> 5 <td class="text"> Fence on the NE side
+  <tr> <td class="mono"> 6 <td class="text"> Fence on the SW side
+  <tr> <td class="mono"> 7 <td class="text"> Fences on the NE and SW sides
+  <tr> <td class="mono"> 8 <td class="text"> Fence on the E side
+  <tr> <td class="mono"> 9 <td class="text"> Fence on the W side
+  <tr> <td class="mono"> A <td class="text"> Fence on the S side
+  <tr> <td class="mono"> B <td class="text"> Fence on the N side
+  <tr> <td class="mono"> C <td class="text"> Snow or desert
+  <tr> <td class="mono"> D <td class="text">
+    Grass with fence and shore or water on the free halftile
+  <tr> <td class="mono"> E <td class="text">
+    Higher part on foundation with snow, lower without snow
+</table>
+
+
+<h3 id="signal">Signals</h3>
+
+<table class="field">
+  <tr> <th> Value <th> Meaning
+  <tr> <td class="mono"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1
+    <td class="text"> First signal is green
+  <tr> <td class="mono"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1&nbsp;
+    <td class="text"> Second signal is green
+  <tr> <td class="mono"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;
+    <td class="text"> First signal present
+  <tr> <td class="mono"> &nbsp;&nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;&nbsp;
+    <td class="text"> Second signal present
+  <tr> <td class="mono"> &nbsp;000&nbsp;&nbsp;&nbsp;&nbsp;
+    <td class="text"> No signals
+  <tr> <td class="mono"> &nbsp;001&nbsp;&nbsp;&nbsp;&nbsp;
+    <td class="text"> Normal signals
+  <tr> <td class="mono"> &nbsp;010&nbsp;&nbsp;&nbsp;&nbsp;
+    <td class="text"> Pre-signals
+  <tr> <td class="mono"> &nbsp;011&nbsp;&nbsp;&nbsp;&nbsp;
+    <td class="text"> Exit-signals
+  <tr> <td class="mono"> &nbsp;100&nbsp;&nbsp;&nbsp;&nbsp;
+    <td class="text"> Combo-signals
+  <tr> <td class="mono"> &nbsp;101&nbsp;&nbsp;&nbsp;&nbsp;
+    <td class="text"> PBS signals
+  <tr> <td class="mono"> &nbsp;110&nbsp;&nbsp;&nbsp;&nbsp;
+    <td class="text"> PBS one-way signals
+  <tr> <td class="mono"> 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <td class="text"> Semaphore signals
+</table>
+
+
+<h3 id="roadbits">Present road types</h3>
+
+<table class="field">
+  <tr> <th> Bit <th> Meaning
+  <tr> <td class="mono"> 01 <td class="text"> Normal road
+  <tr> <td class="mono"> 10 <td class="text"> Tramway
+</table>
+
+
+<h3 id="pavement">Ground and pavement for roads</h3>
+
+<table class="field">
+  <tr> <th> Value <th> Meaning
+  <tr> <td class="mono"> 0 <td class="text"> On bareland
+  <tr> <td class="mono"> 1 <td class="text"> On grass
+  <tr> <td class="mono"> 2 <td class="text"> Paved
+  <tr> <td class="mono"> 3 <td class="text"> Paved, with streetlights
+  <tr> <td class="mono"> 5 <td class="text"> Paved, tree-lined
+  <tr> <td class="mono"> 6 <td class="text"> On grass, with road works
+  <tr> <td class="mono"> 7 <td class="text"> Paved, with roadworks
+</table>
+
+
+<h3 id="roadmask">Road layout</h3>
+
+<table class="field">
+  <tr> <th> Bit <th> Road piece present
+  <tr> <td class="mono"> 1 <td class="text"> NW piece
+  <tr> <td class="mono"> 2 <td class="text"> SW piece
+  <tr> <td class="mono"> 4 <td class="text"> SE piece
+  <tr> <td class="mono"> 8 <td class="text"> NE piece
+</table>
+
+
+<h3 id="industries">Industries</h3>
+
+<ul>
+
+<li> <b>m1</b> bit <b>7</b>: clear: under construction
+  <ul>
+    <li> <b>m1</b> bits <b>6&hellip;5</b>:
+      water class (sea, canal, river or land)
+    <li> <b>m1</b> bits <b>3&hellip;2</b>:
+      construction counter, for buildings under construction incremented
+      on every periodic tile processing
+    <li> <b>m1</b> bits <b>1&hellip;0</b>:
+      stage of construction (3 = completed), incremented when the
+      construction counter wraps around; the meaning is different for
+      some animated tiles which are never under construction
+      (types <span class="mono">01</span>,
+      <span class="mono">1E</span>&hellip;<span class="mono">20</span>,
+      <span class="mono">30</span>, <span class="mono">58</span>)
+  </ul>
+
+<li> <b>m2</b>: index into the array of industries
+
+<li> <b>m3</b>: random bits (NewGRF)
+
+<li> <b>m4</b>: animation loop
+
+<li> <b>m5</b>: <a href="landscape_industries.html">industry tile type</a>
+(with <b>m0</b> bit <b>3</b>)
+
+<li> <b>m7</b>: animation frame
+
+<li> <b>m0</b> bit <b>3</b>: bit 8 of type (see <b>m5</b>)
+
+<li> <b>m0</b> bits <b>2&hellip;0</b>: random triggers (NewGRF)
+
+</ul>
+
+
+<h3 id="houses">Houses</h3>
+
+<ul>
+
+<li> <b>m1</b> bit <b>7</b>:
+  <ul>
+    <li> set: house is complete
       <ul>
-       <li>m5 bits 5..0: track layout: bit set = track present:
-        <table>
-         <tr>
-          <td nowrap valign=top>bit 0: </td>
-          <td align=left>in the X direction</td>
-         </tr>
-
-         <tr>
-          <td nowrap valign=top>bit 1: </td>
-          <td align=left>in the Y direction</td>
-         </tr>
-
-         <tr>
-          <td nowrap valign=top>bit 2: </td>
-          <td align=left>in the north corner (direction W-E)</td>
-         </tr>
-
-         <tr>
-          <td nowrap valign=top>bit 3: </td>
-          <td align=left>in the south corner (direction W-E)</td>
-         </tr>
-
-         <tr>
-          <td nowrap valign=top>bit 4: </td>
-          <td align=left>in the west corner (direction N-S)</td>
-         </tr>
-
-         <tr>
-          <td nowrap valign=top>bit 5: </td>
-          <td align=left>in the east corner (direction N-S)</td>
-         </tr>
-        </table>
-       </li>
-       <li>m5 bit 6 set = with signals:<BR>
-        There are at most 4 signals on a tile. The signals 0..3 belong to the directions:
-        <table>
-         <tr>
-          <td></td>
-          <td>Track <tt>0</tt> (X)&nbsp;</td>
-          <td>Track <tt>1</tt> (Y)&nbsp;</td>
-          <td>Track <tt>2</tt> (north)&nbsp;</td>
-          <td>Track <tt>3</tt> (south)&nbsp;</td>
-          <td>Track <tt>4</tt> (west)&nbsp;</td>
-          <td>Track <tt>5</tt> (east)</td>
-         </tr>
-
-         <tr>
-          <td align=left>Signal <tt>0</tt>&nbsp;</td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td>west</td>
-          <td></td>
-          <td>south</td>
-         </tr>
-
-         <tr>
-          <td align=left>Signal <tt>1</tt>&nbsp;</td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td>east</td>
-          <td></td>
-          <td>north</td>
-         </tr>
-
-         <tr>
-          <td align=left>Signal <tt>2</tt>&nbsp;</td>
-          <td>south-west</td>
-          <td>north-west</td>
-          <td>west</td>
-          <td></td>
-          <td>south</td>
-          <td></td>
-         </tr>
-
-         <tr>
-          <td align=left>Signal <tt>3</tt>&nbsp;</td>
-          <td>north-east</td>
-          <td>south-east</td>
-          <td>east</td>
-          <td></td>
-          <td>north</td>
-          <td></td>
-         </tr>
-        </table>
-        <ul>
-         <li>m2 bit 7: Signal 0 and 1: set = semaphore signals, clear = light signals</li>
-         <li>m2 bit 3: Signal 2 and 3: set = semaphore signals, clear = light signals</li>
-         <li>m2 bits 6..4: type of signal 0 and 1 (same values as m2 bits 2..0)</li>
-         <li>m2 bits 2..0: type of signal 2 and 3
-          <table>
-           <tr>
-            <td nowrap="nowrap" valign="top"><tt>000</tt>: </td>
-            <td align="left">normal signals</td>
-           </tr>
-
-           <tr>
-            <td nowrap="nowrap" valign="top"><tt>001</tt>: </td>
-            <td align="left">pre-signals</td>
-           </tr>
-
-           <tr>
-            <td nowrap="nowrap" valign="top"><tt>010</tt>: </td>
-            <td align="left">exit-signals</td>
-           </tr>
-
-           <tr>
-            <td nowrap="nowrap" valign="top"><tt>011</tt>: </td>
-            <td align="left">combo-signals</td>
-           </tr>
-
-           <tr>
-            <td nowrap="nowrap" valign="top"><tt>100</tt>: </td>
-            <td align="left">pbs signals</td>
-           </tr>
-
-           <tr>
-            <td nowrap="nowrap" valign="top"><tt>101</tt>: </td>
-            <td align="left">no-entry signals</td>
-           </tr>
-          </table>
-         </li>
-
-         <li>m3 bits 7..4: bit set = signal 3..0 present</li>
-         <li>m4 bits 7..4: bit clear = signal 3..0 shows red</li>
-        </ul>
-       </li>
-       <li>m2 bits 8..10: track reserved for pbs
-         <table>
-          <tr>
-            <td><tt>0</tt>&nbsp; </td>
-            <td>not reserved</td>
-          </tr>
-          <tr>
-            <td><tt>1</tt>&nbsp; </td>
-            <td>X direction</td>
-          </tr>
-          <tr>
-            <td><tt>2</tt>&nbsp; </td>
-            <td>Y direction</td>
-          </tr>
-          <tr>
-            <td><tt>3</tt>&nbsp; </td>
-            <td>north corner (W-E)</td>
-          </tr>
-          <tr>
-            <td><tt>4</tt>&nbsp; </td>
-            <td>south corner (W-E)</td>
-          </tr>
-          <tr>
-            <td><tt>5</tt>&nbsp; </td>
-            <td>west corner (N-S)</td>
-          </tr>
-          <tr>
-            <td><tt>6</tt>&nbsp; </td>
-            <td>east corner (N-S)</td>
-          </tr>
-         </table>
-       </li>
-       <li>m2 bit 11: opposite track is reserved, too</li>
+        <li> <b>m5</b>: age of house in years, clamped at 255
       </ul>
-     </li>
-     <li>m5 bit 7 set, bit 6 set: railway depot
+    <li> clear: house is under construction
       <ul>
-       <li>m2: Depot index</li>
-       <li>m5 bits 1..0: exit towards
-        <table>
-         <tr>
-          <td><tt>0</tt>&nbsp; </td>
-          <td>NE</td>
-         </tr>
-
-         <tr>
-          <td><tt>1</tt>&nbsp; </td>
-          <td>SE</td>
-         </tr>
-
-         <tr>
-          <td><tt>2</tt>&nbsp; </td>
-          <td>SW</td>
-         </tr>
-
-         <tr>
-          <td><tt>3</tt>&nbsp; </td>
-          <td>NW</td>
-         </tr>
-        </table>
-       </li>
-       <li>m5 bit 4: pbs reservation state</li>
+        <li> <b>m5</b> bits <b>4&hellip;3</b>: construction stage
+        <li> <b>m5</b> bits <b>2&hellip;0</b>: construction counter
       </ul>
-     </li>
-     <li>m6 bits 7..6 : Possibility of a bridge above, in the <a href="#bridge_direction">direction specified</a></li>
-     <li>m6 bits 1..0 : <a href="#tropic_zone">Tropic zone definition</a></li>
-    </ul>
-   </td>
-  </tr>
+  </ul>
 
-  <tr bgcolor="#CCCCCC">
-   <td valign=top nowrap><strong><a name="Class2"><tt> 2</tt></a></strong></td>
-   <td><strong>Roads</strong></td>
-  </tr>
-  <tr>
-   <td valign=top nowrap>&nbsp;</td>
-   <td>
-    <ul>
-     <li>m2: Index into the array of towns (owning town for town roads; closest town otherwise, INVALID_TOWN if there is no town or we are creating a town)</li>
-     <li>m7 bit 5 set = on snow or desert</li>
-     <li>m7 bits 7..6: present road types
-      <table>
-       <tr>
-        <td>bit 0&nbsp; </td>
-        <td>normal road</td>
-       </tr>
+<li> <b>m1</b> bit <b>6</b>: bit <b>8</b> of house type (see <b>m4</b>),
+allowing 512 different types.
 
-       <tr>
-        <td>bit 1&nbsp; </td>
-        <td>tram</td>
-       </tr>
-      </table>
-     </li>
-     <li>m5 bits 7 clear: road or level-crossing
+<li> <b>m1</b> bits <b>5&hellip;0</b>:
+  <ul>
+    <li> If <a href="#newhouses">Newhouses</a> is activated:
+      periodic processing time remaining
+    <li> Standard behaviour: lift position (only for houses
+        type <span class="mono">04</span> and <span class="mono">05</span>)
+  </ul>
+
+<li> <b>m2</b>: index into the array of towns
+
+<li> <b>m3</b>: random bits (<a href="#newhouses">Newhouses</a>)
+
+<li> <b>m4</b>: <a href="landscape_houses.html">town building type</a>
+(with <b>m1</b> bit <b>6</b>)
+
+<li> <b>m5</b>: see <b>m1</b> bit <b>7</b>
+
+<li> <b>m7</b>:
+  <ul>
+    <li> If <a href="#newhouses">Newhouses</a> is activated:
+      current animation frame
+    <li> Standard behaviour: (only for houses
+        type <span class="mono">04</span> and <span class="mono">05</span>)
       <ul>
-       <li>m6 bits 5..3:
-        <table>
-         <tr>
-          <td><tt>0</tt>&nbsp; </td>
-          <td>on bare land</td>
-         </tr>
-         <tr>
-          <td><tt>1</tt>&nbsp; </td>
-          <td>on grass</td>
-         </tr>
-         <tr>
-          <td><tt>2</tt>&nbsp; </td>
-          <td>paved</td>
-         </tr>
-         <tr>
-          <td><tt>3</tt>&nbsp; </td>
-          <td>with streetlights</td>
-         </tr>
-         <tr>
-          <td><tt>5</tt>&nbsp; </td>
-          <td>tree-lined</td>
-         </tr>
-         <tr>
-          <td><tt>6</tt>&nbsp; </td>
-          <td>on grass with road works</td>
-         </tr>
-         <tr>
-          <td><tt>7</tt>&nbsp; </td>
-          <td>paved with road works</td>
-         </tr>
-        </table>
-       </li>
-       <li>m3 bits 7..4: <a href="#OwnershipInfo">owner</a> of road type 1 (tram); OWNER_NONE (<tt>10</tt>) is stored as OWNER_TOWN (<tt>0F</tt>)
-       <li>m5 bit 6 clear: road
-        <ul>
-         <li>m1 bits 4..0: <a href="#OwnershipInfo">owner</a> of the road type 0 (normal road)</li>
-         <li>m7 bits 3..0: counter for the roadworks</li>
-         <li>m5 bits 3..0: road layout road type 0 (normal road): bit set = road piece present:
-          <table>
-           <tr>
-            <td align=left>bit 0: </td>
-            <td>NW piece</td>
-           </tr>
-           <tr>
-            <td align=left>bit 1: </td>
-            <td>SW piece</td>
-           </tr>
-           <tr>
-            <td align=left>bit 2: </td>
-            <td>SE piece</td>
-           </tr>
-           <tr>
-            <td align=left>bit 3: </td>
-            <td>NE piece</td>
-           </tr>
-          </table>
-         </li>
-         <li>m3 bits 0..3: road layout road type 1 (tram)</li>
-         <li>m5 bits 5..4: bits to disallow vehicles to go a specific direction
-          <table>
-           <tr>
-            <td align=left>bit 0: </td>
-            <td>set = disallow driving in south-west or south-east direction</td>
-           </tr>
-           <tr>
-            <td align=left>bit 1: </td>
-            <td>set = disallow driving in north-west or north-east direction</td>
-           </tr>
-          </table>
-         </li>
-        </ul>
-       </li>
-       <li>m5 bit 6 set: level crossing
-        <ul>
-         <li>m1 bits 4..0: <a href="#OwnershipInfo">owner</a> of the railway track</li>
-         <li>m3 bits 3..0: <a href="#TrackType">railway track type</a></li>
-         <li>m5 bit 0: direction
-          <table>
-           <tr>
-            <td align=left><tt>0</tt>&nbsp; </td>
-            <td align=left>road in the X direction, rail in Y</td>
-           </tr>
-           <tr>
-            <td align=left><tt>1</tt>&nbsp; </td>
-            <td align=left>road in the Y direction, rail in X</td>
-           </tr>
-          </table>
-         </li>
-         <li>m5 bit 5: set if crossing lights are on</li>
-         <li>m7 bits 4..0: <a href="#OwnershipInfo">owner</a> of the road type 0 (normal road)</li>
-         <li>m5 bit 4: pbs reservation state</li>
-        </ul>
-       </li>
+        <li> bit <b>3</b>: lift has destination when set
+        <li> bits <b>2&hellip;0</b>: lift destination. Values can be
+          0&hellip;6 except 1, so the building has 6 effective floors.
+          This is due to the fact that the first floor is 2 'normal'
+          floors high. One 'normal' floor has a height of 6 lift positions.
       </ul>
-     </li>
-     <li>m5 bit 7 set, bit 6 clear: road depot
-      <ul>
-       <li>m1 bits 4..0: <a href="#OwnershipInfo">owner</a> of the depot</li>
-       <li>m2: Depot index</li>
-       <li>m5 bits 1..0: exit towards:
-        <table>
-         <tr>
-          <td><tt>0</tt>&nbsp; </td>
-          <td>NE</td>
-         </tr>
+  </ul>
 
-         <tr>
-          <td><tt>1</tt>&nbsp; </td>
-          <td>SE</td>
-         </tr>
+<li> <b>m0</b> bits <b>4&hellip;0</b>: triggers activated
+(<a href="#newhouses">Newhouses</a>)
 
-         <tr>
-          <td><tt>2</tt>&nbsp; </td>
-          <td>SW</td>
-         </tr>
+</ul>
 
-         <tr>
-          <td><tt>3</tt>&nbsp; </td>
-          <td>NW</td>
-         </tr>
-        </table>
-       </li>
-      </ul>
-     </li>
-     <li>m6 bits 7..6 : Possibility of a bridge above, in the <a href="#bridge_direction">direction specified</a></li>
-     <li>m6 bits 1..0 : <a href="#tropic_zone">Tropic zone definition</a></li>
-    </ul>
-   </td>
-  </tr>
-
-  <tr bgcolor="#CCCCCC">
-   <td valign=top nowrap><strong><a name="Class3"><tt> 3</tt></a></strong></td>
-   <td><strong>Town building </strong></td>
-  </tr>
-  <tr>
-   <td valign=top nowrap>&nbsp;</td>
-   <td>
-    <ul>
-     <li>m1 : Random bits <a href="#newhouses">(newhouses)</a> </li>
-     <li>m2 : index into the array of towns</li>
-     <li>m3 bit 7 :
-      <ul>
-       <li> set : House is complete
-        <ul>
-         <li>m5 : Age of house in years, clamped at 255</li>
-        </ul>
-       </li>
-       <li> clear : House is in construction
-        <ul>
-         <li>m5 bits 7..5 : free</li>
-         <li>m5 bits 4..3 : construction stage</li>
-         <li>m5 bits 2..0 : construction counter</li>
-        </ul>
-       </li>
-      </ul>
-     <li>m3 bit 6 : bit 8 of house type (m4), allowing 512 different types.</li>
-     <li>m3 bit 5 : free</li>
-     <li>m3 bits 4..0 : triggers activated <a href="#newhouses">(newhouses)</a></li>
-     <li>m4 : <a href="landscape_houses.html">town building type</a> (with m3[6] bit)</li>
-     <li>m5 : see m3 bit 7</li>
-     <li>m6 :
-      <ul>
-       <li>If <a href="#newhouses">newhouses</a> is activated
-        <ul>
-         <li>bits 7..2 : Periodic processing time remaining</li>
-        </ul>
-       </li>
-       <li>Standard behaviour
-        <ul>
-         <li>bits 7..2 : lift position (for houses type 04 and 05)</li>
-        </ul>
-       </li>
-       <li>bits 1..0 : tropic zone specifier</li>
-      </ul>
-     </li>
-     <li>m7 :
-      <ul>
-       <li>If <a href="#newhouses">newhouses</a> is activated
-        <ul>
-         <li>Current animation frame</li>
-        </ul>
-       </li>
-       <li>Standard behaviour (only for houses type 04 and 05)
-        <ul>
-         <li>bits 7..4 : free</li>
-         <li>bits 3..1 : lift destination.  Values can be 0..6, except 1.<br>
-             So the building has 6 effective floors. This is due to the fact that the first floor is 2 'normal' floors high.<br>
-             One 'normal' floor has a height of 6 lift positions.
-         </li>
-         <li>bit 0 : Lift has destination when set</li>
-        </ul>
-       </li>
-      </ul>
-     </li>
-    </ul>
-    <small><a name="newhouses"></a>Newhouses is the name englobing a newGRF feature developped by TTDPatch devs (mainly Csaboka).<br>
-    It allows the replacement of the properties as well as the graphics of houses in the game.<br>
-    To distinguish between the standard behaviour and the newGRF one, HouseID (m4 + m3[6]) is tested for anything above 110.<br>
-    110 is the count of standard houses. So above 110 means there is a new definition of at least one house</small>
-   </td>
-  </tr>
-
-  <tr bgcolor="#CCCCCC">
-   <td valign=top nowrap><strong><a name="Class4"><tt> 4 </tt></a></strong></td>
-   <td><strong>Trees </strong></td>
-  </tr>
-  <tr>
-   <td valign=top nowrap>&nbsp;</td>
-   <td>
-    <ul>
-     <li>m1 bits 4..0: <a href="#OwnershipInfo">owner</a> (normally <tt>10</tt>)</li>
-     <li>m2 bits 8..6: ground
-      <table>
-
-       <tr>
-        <td align=left><tt>0</tt>&nbsp; </td>
-        <td>on grass</td>
-       </tr>
-
-       <tr>
-        <td align=left><tt>1</tt>&nbsp; </td>
-        <td>on rough land (density must be 3)</td>
-       </tr>
-
-       <tr>
-        <td align=left><tt>2</tt>&nbsp; </td>
-        <td>on snow or desert</td>
-       </tr>
-
-       <tr>
-        <td align=left><tt>3</tt>&nbsp; </td>
-        <td>on shore (density must be 3)</td>
-       </tr>
-
-       <tr>
-        <td align=left><tt>4</tt>&nbsp; </td>
-        <td>on snow with rough land underneed</td>
-       </tr>
-      </table>
-     </li>
-     <li>m2 bits 5..4: ground density</li>
-     <li>m2 bits 3..0: update counter, incremented on every periodic processing.<br>
-          on wraparound the growth status is updated (or, if it's <tt>3</tt>, a random action is taken)</li>
-     <li>m3 bits 7..0: type of trees:
-      <table>
-       <tr>
-        <td nowrap valign=top><tt>00</tt>..<tt>0B</tt>&nbsp; </td>
-        <td align=left>temperate climate trees</td>
-       </tr>
-
-       <tr>
-        <td nowrap valign=top><tt>0C</tt>..<tt>13</tt>&nbsp; </td>
-        <td align=left>sub-arctic climate trees</td>
-       </tr>
-
-       <tr>
-        <td nowrap valign=top><tt>14</tt>..<tt>1A</tt>&nbsp; </td>
-        <td align=left>rainforest trees</td>
-       </tr>
-
-       <tr>
-        <td nowrap valign=top><tt>1B</tt> </td>
-        <td align=left>cactus plants</td>
-       </tr>
-
-       <tr>
-        <td nowrap valign=top><tt>1C</tt>..<tt>1F</tt>&nbsp; </td>
-        <td align=left>sub-tropical climate, non-rainforest, non-desert trees</td>
-       </tr>
-
-       <tr>
-        <td nowrap valign=top><tt>20</tt>..<tt>28</tt>&nbsp; </td>
-        <td align=left>toyland trees</td>
-       </tr>
-      </table>
-      <small>Note: the actually displayed set of trees depends on both type and number of trees</small>
-     </li>
-     <li>m5 bits 7..6: number of trees minus one</li>
-     <li>m5 bits 2..0: growth status:
-      <table border="0">
-       <tr>
-        <td><tt>0</tt>..<tt>2</tt>&nbsp;</td>
-        <td>one of trees is growing&nbsp;</td>
-       </tr>
-       <tr>
-        <td><tt>3</tt>&nbsp;</td>
-        <td>all trees are fully grown&nbsp;</td>
-       </tr>
-       <tr>
-        <td><tt>4</tt>..<tt>6</tt>&nbsp;</td>
-        <td>one of trees is withering&nbsp;</td>
-       </tr>
-      </table>
-     </li>
-     <li>m6 bits 1..0 : <a href="#tropic_zone">Tropic zone definition</a></li>
-    </ul>
-   </td>
-  </tr>
-
-  <tr bgcolor="#CCCCCC">
-   <td valign=top nowrap><strong><a name="Class5"><tt> 5</tt></a></strong></td>
-   <td><strong>Station tiles</strong></td>
-  </tr>
-  <tr>
-   <td valign=top nowrap>&nbsp;</td>
-   <td>
-    <ul>
-     <li>m1 bits 6..5: water class for buoys, water part of docks and for airport tiles</li>
-     <li>m1 bits 4..0: <a href="#OwnershipInfo">owner</a> of the station</li>
-     <li>m2: index into the array of stations</li>
-     <li>m3 bits 7..4: persistent random data for railway stations/waypoints and airports)</li>
-     <li>m3 bits 7..4: <a href="#OwnershipInfo">owner</a> of tram tracks (road stop)</li>
-     <li>m3 bits 3..0: <a href="#TrackType">track type</a> for railway stations/waypoints</li>
-     <li>m4: custom station id; 0 means standard graphics</li>
-     <li>m5: graphics index (range from 0..255 for each station type):
-      <table>
-       <tr>
-        <td nowrap valign=top><tt>00</tt>..<tt>07</tt>&nbsp; </td>
-        <td align=left>railway station
-         <table>
-          <tr>
-           <td><tt>00</tt>..<tt>01</tt>&nbsp; </td>
-           <td align=left>open platform</td>
-          </tr>
-          <tr>
-           <td><tt>02</tt>..<tt>03</tt>&nbsp; </td>
-           <td align=left>open platform with station building</td>
-          </tr>
-          <tr>
-           <td><tt>04</tt>....<tt>07</tt>&nbsp; </td>
-           <td align=left>roofed platform</td>
-          </tr>
-          <tr>
-           <td colspan=2>bit 0: clear = in X direction, set = in Y direction</td>
-          </tr>
-         </table>
-        </td>
-       </tr>
-
-       <tr>
-        <td nowrap valign=top><tt>00</tt>..<tt>01</tt></td>
-        <td align=left>waypoints
-         <table>
-          <tr>
-           <td><tt>00</tt>&nbsp; </td>
-           <td align=left>in X direction</td>
-          </tr>
-          <tr>
-           <td><tt>01</tt>&nbsp; </td>
-           <td align=left>in Y direction</td>
-          </tr>
-         </table>
-        </td>
-       </tr>
-
-       <tr>
-        <td nowrap valign=top><tt>00</tt>..<tt>FF</tt></td>
-        <td align=left>all airports</td>
-       </tr>
-
-       <tr>
-        <td nowrap valign=top><tt>00</tt>..<tt>05</tt>&nbsp; </td>
-        <td align=left>road stops
-         <table>
-          <tr>
-           <td><tt>00</tt>&nbsp; </td>
-           <td align=left>exit towards NE</td>
-          </tr>
-          <tr>
-           <td><tt>01</tt>&nbsp; </td>
-           <td align=left>exit towards SE</td>
-          </tr>
-          <tr>
-           <td><tt>02</tt>&nbsp; </td>
-           <td align=left>exit towards SW</td>
-          </tr>
-          <tr>
-           <td><tt>03</tt>&nbsp; </td>
-           <td align=left>exit towards NW</td>
-          </tr>
-          <tr>
-           <td><tt>04</tt>&nbsp; </td>
-           <td align=left>drive through X</td>
-          </tr>
-          <tr>
-           <td><tt>05</tt>&nbsp; </td>
-           <td align=left>drive through Y</td>
-          </tr>
-         </table>
-        </td>
-       </tr>
-
-       <tr>
-        <td nowrap valign=top><tt>00</tt>..<tt>05</tt>&nbsp; </td>
-        <td align=left>ship dock
-         <table>
-          <tr>
-           <td><tt>00</tt>&nbsp; </td>
-           <td align=left>SW coast part</td>
-          </tr>
-          <tr>
-           <td><tt>01</tt>&nbsp; </td>
-           <td align=left>NW coast part</td>
-          </tr>
-          <tr>
-           <td><tt>02</tt>&nbsp; </td>
-           <td align=left>NE coast part</td>
-          </tr>
-          <tr>
-           <td><tt>03</tt>&nbsp; </td>
-           <td align=left>SE coast part</td>
-          </tr>
-          <tr>
-           <td><tt>04</tt>&nbsp; </td>
-           <td align=left>X direction water part</td>
-          </tr>
-          <tr>
-           <td><tt>05</tt>&nbsp; </td>
-           <td align=left>Y direction water part</td>
-          </tr>
-         </table>
-        </td>
-       </tr>
-      </table>
-     </li>
-     <li>m6 bits 5..3: the station type (rail, airport, truck, bus, oilrig, dock, buoy, waypoint)</li>
-     <li>m6 bit 2: pbs reservation state for railway stations/waypoints</li>
-
-     <li>m6 bits 1..0 : <a href="#tropic_zone">Tropic zone definition</a></li>
-     <li>m7 bits 4..0: <a href="#OwnershipInfo">owner</a> of road (road stops)</li>
-     <li>m7 bits 7..6: present road types (road stops)</li>
-     <li>m7: animation frame (railway stations/waypoints, airports)</li>
-    </ul>
-   </td>
-  </tr>
-
-  <tr bgcolor="#CCCCCC">
-   <td valign=top nowrap><strong><a name="Class6"><tt> 6 </tt></a></strong></td>
-   <td><strong>Water</strong></td>
-  </tr>
-  <tr>
-   <td valign=top nowrap>&nbsp;</td>
-   <td>
-    <ul>
-     <li>m1 bits 6..5 : Water class (sea, canal or river)
-     <li>m1 bits 4..0: <a href="#OwnershipInfo">owner</a> (for sea, rivers, and coasts normally <tt>11</tt>)</li>
-     <li>m2: Depot index (for depots only)</li>
-     <li>m4: Random data for canal or river tiles</li>
-     <li>m5: tile type:
-      <table>
-       <tr>
-        <td nowrap valign=top><tt>00</tt>&nbsp; </td>
-        <td align=left>water, canal or river</td>
-       </tr>
-
-       <tr>
-        <td nowrap valign=top><tt>01</tt>&nbsp; </td>
-        <td align=left>coast or riverbank</td>
-       </tr>
-
-       <tr>
-        <td nowrap valign=top><tt>10</tt>..<tt>1B</tt>&nbsp; </td>
-        <td align=left>canal locks
-         <table>
-          <tr>
-           <td nowrap valign=top><tt>10</tt>&nbsp; </td>
-           <td align=left>middle part, (SW-NE direction)</td>
-          </tr>
-          <tr>
-           <td nowrap valign=top><tt>11</tt>&nbsp; </td>
-           <td align=left>middle part, (NW-SE direction)</td>
-          </tr>
-          <tr>
-           <td nowrap valign=top><tt>12</tt>&nbsp; </td>
-           <td align=left>middle part, (NE-SW direction)</td>
-          </tr>
-          <tr>
-           <td nowrap valign=top><tt>13</tt>&nbsp; </td>
-           <td align=left>middle part, (SE-NW direction)</td>
-          </tr>
-          <tr>
-           <td nowrap valign=top><tt>14</tt>&nbsp; </td>
-           <td align=left>lower part, (SW-NE direction)</td>
-          </tr>
-          <tr>
-           <td nowrap valign=top><tt>15</tt>&nbsp; </td>
-           <td align=left>lower part, (NW-SE direction)</td>
-          </tr>
-          <tr>
-           <td nowrap valign=top><tt>16</tt>&nbsp; </td>
-           <td align=left>lower part, (NE-SW direction)</td>
-          </tr>
-          <tr>
-           <td nowrap valign=top><tt>17</tt>&nbsp; </td>
-           <td align=left>lower part, (SE-NW direction)</td>
-          </tr>
-          <tr>
-           <td nowrap valign=top><tt>18</tt>&nbsp; </td>
-           <td align=left>upper part, (SW-NE direction)</td>
-          </tr>
-          <tr>
-           <td nowrap valign=top><tt>19</tt>&nbsp; </td>
-           <td align=left>upper part, (NW-SE direction)</td>
-          </tr>
-          <tr>
-           <td nowrap valign=top><tt>1A</tt>&nbsp; </td>
-           <td align=left>upper part, (NE-SW direction)</td>
-          </tr>
-          <tr>
-           <td nowrap valign=top><tt>1B</tt>&nbsp; </td>
-           <td align=left>upper part, (SE-NW direction)</td>
-          </tr>
-         </table>
-        </td>
-       </tr>
-
-       <tr>
-        <td nowrap valign=top><tt>80</tt>..<tt>83</tt>&nbsp; </td>
-        <td align=left>ship depots
-         <table>
-          <tr>
-           <td nowrap valign=top><tt>80</tt>&nbsp; </td>
-           <td align=left>ship depot, NE part (X direction)</td>
-          </tr>
-          <tr>
-           <td nowrap valign=top><tt>81</tt>&nbsp; </td>
-           <td align=left>ship depot, SW part (X direction)</td>
-          </tr>
-          <tr>
-           <td nowrap valign=top><tt>82</tt>&nbsp; </td>
-           <td align=left>ship depot, NW part (Y direction)</td>
-          </tr>
-          <tr>
-           <td nowrap valign=top><tt>83</tt>&nbsp; </td>
-           <td align=left>ship depot, SE part (Y direction)</td>
-          </tr>
-         </table>
-        </td>
-       </tr>
-      </table>
-     </li>
-     <li>m6 bits 7..6 : Possibility of a bridge above, in the <a href="#bridge_direction">direction specified</a></li>
-     <li>m6 bits 1..0 : <a href="#tropic_zone">Tropic zone definition</a></li>
-    </ul>
-   </td>
-  </tr>
-
-  <tr bgcolor="#CCCCCC">
-   <td valign=top nowrap><strong><a name="Class7"><tt> 7 </tt></a></strong></td>
-   <td><strong>Void </strong></td>
-  </tr>
-  <tr>
-   <td valign=top nowrap>&nbsp;</td>
-   <td>Tiles of this class form an invisible, one tile wide border at the south (bottom) edges of the map,<br>
-       so as to protect several algorithms from the consequences of a wraparound at the edges.
-   </td>
-  </tr>
-
-  <tr bgcolor="#CCCCCC">
-   <td valign=top nowrap><strong><a name="Class8"><tt> 8</tt></a></strong></td>
-   <td><strong>Industry tile </strong></td>
-  </tr>
-  <tr>
-   <td valign=top nowrap>&nbsp;</td>
-   <td>
-    <ul>
-     <li>m1 bit 7: clear = under construction
-      <ul>
-       <li>m1 bits 6..5 : Water class (sea, canal, river or land)
-       <li>m1 bits 3..2: construction counter, for buildings under construction incremented on every periodic tile processing</li>
-       <li>m1 bits 1..0: stage of construction (<tt>3</tt> = completed), incremented when the construction counter wraps around<br>
-           the meaning is different for some animated tiles which are never under construction (types <tt>01</tt>, <tt>1E</tt>..<tt>20</tt>, <tt>30</tt>, <tt>58</tt>; see above)</li>
-      </ul>
-     </li>
-     <li>m2: index into the array of industries</li>
-     <li>m3: random bits (NewGRF)</li>
-     <li>m4: animation loop</li>
-     <li>m5: <a href="landscape_industries.html">type</a> (plus m6 bit 2):<br>
-      <small>(note: this is not the same as the industry type, which is stored in the array of industries)</small>
-     </li>
-     <li>m6 bits 5..3: random triggers (NewGRF)</li>
-     <li>m6 bit 2: bit 8 of type (see m5)</li>
-     <li>m6 bits 1..0 : <a href="#tropic_zone">Tropic zone definition</a></li>
-     <li>m7: animation frame</li>
-    </ul>
-   </td>
-  </tr>
-
-  <tr bgcolor="#CCCCCC">
-   <td valign=top nowrap><strong><a name="Class9"><tt> 9</tt></a></strong></td>
-   <td><strong>Tunnel / bridge</strong></td>
-  </tr>
-  <tr>
-   <td valign=top nowrap>&nbsp;</td>
-   <td>
-    <ul>
-     <li>m1 bits 4..0: <a href="#OwnershipInfo">owner</a></li>
-     <li>m3 bits 7..4: <a href="#OwnershipInfo">owner</a> of tram</li>
-     <li>m3 bits 3..0: <a href="#TrackType">track type</a> for railway</li>
-     <li>m5 bit 4: pbs reservation state for railway</li>
-     <li>m5 bits 7 clear: tunnel entrance/exit</li>
-     <li>m5 bit 7 set: bridge ramp
-      <ul>
-       <li>m6 bits 5..2: <a name="BridgeType">bridge type</a>:
-        <table>
-         <tr>
-          <th align=left>Type&nbsp;</th>
-          <th align=left>Max. speed (mph)&nbsp;</th>
-          <th align=left>Description</th>
-         </tr>
-
-         <tr>
-          <td nowrap valign=top><tt>0</tt>&nbsp; </td>
-          <td align=center>20</td>
-          <td align=left>wooden</td>
-         </tr>
-
-         <tr>
-          <td nowrap valign=top><tt>1</tt>&nbsp; </td>
-          <td align=center>30</td>
-          <td align=left>concrete</td>
-         </tr>
-
-         <tr>
-          <td nowrap valign=top><tt>2</tt>&nbsp; </td>
-          <td align=center>40</td>
-          <td align=left>girder, steel</td>
-         </tr>
-
-         <tr>
-          <td nowrap valign=top><tt>3</tt>&nbsp; </td>
-          <td align=center>50</td>
-          <td align=left>suspension, concrete</td>
-         </tr>
-
-         <tr>
-          <td nowrap valign=top><tt>4</tt>&nbsp; </td>
-          <td align=center>60</td>
-          <td align=left>suspension, steel</td>
-         </tr>
-
-         <tr>
-          <td nowrap valign=top><tt>5</tt>&nbsp; </td>
-          <td align=center>70</td>
-          <td align=left>suspension, steel</td>
-         </tr>
-
-         <tr>
-          <td nowrap valign=top><tt>6</tt>&nbsp; </td>
-          <td align=center>100</td>
-          <td align=left>cantilever, steel</td>
-         </tr>
-
-         <tr>
-          <td nowrap valign=top><tt>7</tt>&nbsp; </td>
-          <td align=center>130</td>
-          <td align=left>cantilever, steel</td>
-         </tr>
-
-         <tr>
-          <td nowrap valign=top><tt>8</tt>&nbsp; </td>
-          <td align=center>150</td>
-          <td align=left>cantilever, steel</td>
-         </tr>
-
-         <tr>
-          <td nowrap valign=top><tt>9</tt>&nbsp; </td>
-          <td align=center>160</td>
-          <td align=left>girder, steel</td>
-         </tr>
-
-         <tr>
-          <td nowrap valign=top><tt>A</tt>&nbsp; </td>
-          <td align=center>200</td>
-          <td align=left>tubular, steel</td>
-         </tr>
-
-         <tr>
-          <td nowrap valign=top><tt>B</tt>&nbsp; </td>
-          <td align=center>320</td>
-          <td align=left>tubular, steel</td>
-         </tr>
-
-         <tr>
-          <td nowrap valign=top><tt>C</tt>&nbsp; </td>
-          <td align=center>380</td>
-          <td align=left>tubular, silicon</td>
-         </tr>
-        </table>
-       </li>
-      </ul>
-     </li>
-     <li>m5 bits 3..2: transport type
-      <table>
-       <tr>
-        <td><tt>0</tt>&nbsp;</td>
-        <td>railway</td>
-       </tr>
-
-       <tr>
-        <td><tt>1</tt>&nbsp;</td>
-        <td>road</td>
-       </tr>
-
-       <tr>
-        <td><tt>2</tt>&nbsp;</td>
-        <td>water</td>
-       </tr>
-      </table>
-     </li>
-     <li>m5 bits 1..0: direction onto the bridge / out of the tunnel
-      <table>
-       <tr>
-        <td><tt>0</tt>&nbsp; </td>
-        <td>NE</td>
-       </tr>
-
-       <tr>
-        <td><tt>1</tt>&nbsp; </td>
-        <td>SE</td>
-       </tr>
-
-       <tr>
-        <td><tt>2</tt>&nbsp; </td>
-        <td>SW</td>
-       </tr>
-
-       <tr>
-        <td><tt>3</tt>&nbsp; </td>
-        <td>NW</td>
-       </tr>
-      </table>
-     </li>
-     <li>m6 bits 7..6 : Possibility of a bridge above, in the <a href="#bridge_direction">direction specified</a></li>
-     <li>m6 bits 1..0 : <a href="#tropic_zone">Tropic zone definition</a></li>
-     <li>m7 bits 4..0: <a href="#OwnershipInfo">owner</a> of road</li>
-     <li>m7 bit 5 set = on snow or desert</li>
-     <li>m7 bits 7..6: present road types for road</li>
-    </ul>
-   </td>
-  </tr>
-
-  <tr bgcolor="#CCCCCC">
-   <td valign=top nowrap><strong><a name="ClassA"><tt> A</tt></a></strong></td>
-   <td><strong><tt>Objects</tt></strong></td>
-  </tr>
-  <tr>
-   <td valign=top nowrap>&nbsp;</td>
-   <td>
-    <ul>
-     <li>m1 bits 6..5 : Water class (sea, canal, river or land)
-     <li>m1 bits 4..0: <a href="#OwnershipInfo">owner</a> of the object (for lighthouses and transmitters normally <tt>10</tt>)</li>
-     <li>m2: index into the array of objects
-     <li>m3: random bits
-     <li>m5: tile type:
-      <table>
-       <tr>
-        <td nowrap valign=top><tt>00</tt>&nbsp; </td>
-        <td align=left>transmitter</td>
-       </tr>
-
-       <tr>
-        <td nowrap valign=top><tt>01</tt>&nbsp; </td>
-        <td align=left>lighthouse</td>
-       </tr>
-
-       <tr>
-        <td nowrap valign=top><tt>02</tt>&nbsp; </td>
-        <td align=left>company statue
-       </tr>
-
-       <tr>
-        <td nowrap valign=top><tt>03</tt>&nbsp; </td>
-        <td align=left>company-owned land</td>
-       </tr>
-
-       <tr>
-        <td nowrap valign=top><tt>04</tt><tt></tt>&nbsp; </td>
-        <td align=left>company headquarters</td>
-       </tr>
-      </table>
-     </li>
-     <li>m6 bits 7..6 : Possibility of a bridge above, in the <a href="#bridge_direction">direction specified</a></li>
-     <li>m6 bits 1..0 : <a href="#tropic_zone">Tropic zone definition</a></li>
-     <li>m7: animation counter
-    </ul>
-   </td>
-  </tr>
-  <tr>
-   <td colspan=2>Classes <tt>B</tt> through <tt>F</tt> are reserved. The presence
-      of a tile in one of the reserved classes will crash OTTD.</td>
-  </tr>
- </table>
+<p id="newhouses">
+Newhouses is the name englobing a newGRF feature developed by TTDPatch devs
+(mainly Csaboka). It allows the replacement of the properties as well as
+the graphics of houses in the game. To distinguish between the standard
+behaviour and the newGRF one, HouseID (<b>m4+m1[6]</b>) is tested for
+anything above 110. 110 is the count of standard houses, so anything
+above 110 means that there is a new definition of at least one house.
+</p>
 
 
- <hr>
- Original Copyright &copy; 2003 by Marcin Grzegorczyk for TTDLX.<br>
- Transport Tycoon and Transport Tycoon Deluxe are Copyright &copy; by Chris Sawyer.<br>
- All the other trademarks are the property of their respective owners.<br>
 </body>
 
 </html>
