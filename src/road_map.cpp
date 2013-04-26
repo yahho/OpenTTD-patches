@@ -32,10 +32,9 @@
  */
 RoadBits GetAnyRoadBits(TileIndex tile, RoadType rt, bool tunnel_bridge_entrance)
 {
-	if (!HasTileRoadType(tile, rt)) return ROAD_NONE;
-
 	switch (GetTileType(tile)) {
 		case TT_ROAD: {
+			if (!HasTileRoadType(tile, rt)) return ROAD_NONE;
 			RoadBits bits = GetRoadBits(tile, rt);
 			if (!tunnel_bridge_entrance && IsTileSubtype(tile, TT_BRIDGE)) {
 				bits &= ~DiagDirToRoadBits(GetTunnelBridgeDirection(tile));
@@ -46,11 +45,12 @@ RoadBits GetAnyRoadBits(TileIndex tile, RoadType rt, bool tunnel_bridge_entrance
 		case TT_MISC:
 			switch (GetTileSubtype(tile)) {
 				default: NOT_REACHED();
-				case TT_MISC_CROSSING: return GetCrossingRoadBits(tile);
+				case TT_MISC_CROSSING: return HasTileRoadType(tile, rt) ? GetCrossingRoadBits(tile) : ROAD_NONE;
 				case TT_MISC_AQUEDUCT: return ROAD_NONE;
-				case TT_MISC_DEPOT:    return IsRoadDepot(tile) ? DiagDirToRoadBits(GetGroundDepotDirection(tile)) : ROAD_NONE;
+				case TT_MISC_DEPOT:    return IsRoadDepot(tile) && HasTileRoadType(tile, rt) ? DiagDirToRoadBits(GetGroundDepotDirection(tile)) : ROAD_NONE;
 				case TT_MISC_TUNNEL:
 					if (GetTunnelTransportType(tile) != TRANSPORT_ROAD) return ROAD_NONE;
+					if (!HasTileRoadType(tile, rt)) return ROAD_NONE;
 					return tunnel_bridge_entrance ?
 							AxisToRoadBits(DiagDirToAxis(GetTunnelBridgeDirection(tile))) :
 							DiagDirToRoadBits(ReverseDiagDir(GetTunnelBridgeDirection(tile)));
@@ -58,6 +58,7 @@ RoadBits GetAnyRoadBits(TileIndex tile, RoadType rt, bool tunnel_bridge_entrance
 
 		case TT_STATION:
 			if (!IsRoadStopTile(tile)) return ROAD_NONE;
+			if (!HasTileRoadType(tile, rt)) return ROAD_NONE;
 			if (IsDriveThroughStopTile(tile)) return (GetRoadStopDir(tile) == DIAGDIR_NE) ? ROAD_X : ROAD_Y;
 			return DiagDirToRoadBits(GetRoadStopDir(tile));
 

@@ -13,6 +13,7 @@
 #define ROAD_MAP_H
 
 #include "tile/misc.h"
+#include "tile/road.h"
 #include "track_func.h"
 #include "depot_type.h"
 #include "rail_type.h"
@@ -40,12 +41,7 @@ static inline bool IsRoadDepotTile(TileIndex t)
  */
 static inline RoadBits GetRoadBits(TileIndex t, RoadType rt)
 {
-	assert(IsRoadTile(t));
-	switch (rt) {
-		default: NOT_REACHED();
-		case ROADTYPE_ROAD: return (RoadBits)GB(_mc[t].m4, 0, 4);
-		case ROADTYPE_TRAM: return (RoadBits)GB(_mc[t].m4, 4, 4);
-	}
+	return tile_get_roadbits(&_mc[t], rt);
 }
 
 /**
@@ -68,7 +64,7 @@ static inline RoadBits GetOtherRoadBits(TileIndex t, RoadType rt)
  */
 static inline RoadBits GetAllRoadBits(TileIndex tile)
 {
-	return GetRoadBits(tile, ROADTYPE_ROAD) | GetRoadBits(tile, ROADTYPE_TRAM);
+	return tile_get_all_roadbits(&_mc[tile]);
 }
 
 /**
@@ -80,12 +76,7 @@ static inline RoadBits GetAllRoadBits(TileIndex tile)
  */
 static inline void SetRoadBits(TileIndex t, RoadBits r, RoadType rt)
 {
-	assert(IsRoadTile(t));
-	switch (rt) {
-		default: NOT_REACHED();
-		case ROADTYPE_ROAD: SB(_mc[t].m4, 0, 4, r); break;
-		case ROADTYPE_TRAM: SB(_mc[t].m4, 4, 4, r); break;
-	}
+	tile_set_roadbits(&_mc[t], rt, r);
 }
 
 /**
@@ -95,7 +86,7 @@ static inline void SetRoadBits(TileIndex t, RoadBits r, RoadType rt)
  */
 static inline RoadTypes GetRoadTypes(TileIndex t)
 {
-	return (RoadTypes)GB(_mc[t].m7, 6, 2);
+	return tile_get_roadtypes(&_mc[t]);
 }
 
 /**
@@ -105,8 +96,7 @@ static inline RoadTypes GetRoadTypes(TileIndex t)
  */
 static inline void SetRoadTypes(TileIndex t, RoadTypes rt)
 {
-	assert(IsRoadTile(t) || IsLevelCrossingTile(t) || IsTunnelTile(t) || IsRoadDepotTile(t) || IsStationTile(t));
-	SB(_mc[t].m7, 6, 2, rt);
+	tile_set_roadtypes(&_mc[t], rt);
 }
 
 /**
@@ -117,7 +107,7 @@ static inline void SetRoadTypes(TileIndex t, RoadTypes rt)
  */
 static inline bool HasTileRoadType(TileIndex t, RoadType rt)
 {
-	return HasBit(GetRoadTypes(t), rt);
+	return tile_has_roadtype(&_mc[t], rt);
 }
 
 /**
@@ -128,17 +118,7 @@ static inline bool HasTileRoadType(TileIndex t, RoadType rt)
  */
 static inline Owner GetRoadOwner(TileIndex t, RoadType rt)
 {
-	assert(IsRoadTile(t) || IsLevelCrossingTile(t) || IsTunnelTile(t) || IsStationTile(t));
-	switch (rt) {
-		default: NOT_REACHED();
-		case ROADTYPE_ROAD: return (Owner)GB(IsRoadTile(t) ? _mc[t].m1 : _mc[t].m7, 0, 5);
-		case ROADTYPE_TRAM: {
-			/* Trams don't need OWNER_TOWN, and remapping OWNER_NONE
-			 * to OWNER_TOWN makes it use one bit less */
-			Owner o = (Owner)(IsStationTile(t) ? GB(_mc[t].m3, 4, 4) : GB(_mc[t].m5, 0, 4));
-			return o == OWNER_TOWN ? OWNER_NONE : o;
-		}
-	}
+	return tile_get_road_owner(&_mc[t], rt);
 }
 
 /**
@@ -149,19 +129,7 @@ static inline Owner GetRoadOwner(TileIndex t, RoadType rt)
  */
 static inline void SetRoadOwner(TileIndex t, RoadType rt, Owner o)
 {
-	assert(IsRoadTile(t) || IsLevelCrossingTile(t) || IsTunnelTile(t) || IsStationTile(t));
-	switch (rt) {
-		default: NOT_REACHED();
-		case ROADTYPE_ROAD: SB(IsRoadTile(t) ? _mc[t].m1 : _mc[t].m7, 0, 5, o); break;
-		case ROADTYPE_TRAM:
-			if (o == OWNER_NONE) o = OWNER_TOWN;
-			if (IsStationTile(t)) {
-				SB(_mc[t].m3, 4, 4, o);
-			} else {
-				SB(_mc[t].m5, 0, 4, o);
-			}
-			break;
-	}
+	tile_set_road_owner(&_mc[t], rt, o);
 }
 
 /**
@@ -189,18 +157,6 @@ static inline bool HasTownOwnedRoad(TileIndex t)
 	return HasTileRoadType(t, ROADTYPE_ROAD) && IsRoadOwner(t, ROADTYPE_ROAD, OWNER_TOWN);
 }
 
-/** Which directions are disallowed ? */
-enum DisallowedRoadDirections {
-	DRD_NONE,       ///< None of the directions are disallowed
-	DRD_SOUTHBOUND, ///< All southbound traffic is disallowed
-	DRD_NORTHBOUND, ///< All northbound traffic is disallowed
-	DRD_BOTH,       ///< All directions are disallowed
-	DRD_END,        ///< Sentinel
-};
-DECLARE_ENUM_AS_BIT_SET(DisallowedRoadDirections)
-/** Helper information for extract tool. */
-template <> struct EnumPropsT<DisallowedRoadDirections> : MakeEnumPropsT<DisallowedRoadDirections, byte, DRD_NONE, DRD_END, DRD_END, 2> {};
-
 /**
  * Gets the disallowed directions
  * @param t the tile to get the directions from
@@ -208,8 +164,7 @@ template <> struct EnumPropsT<DisallowedRoadDirections> : MakeEnumPropsT<Disallo
  */
 static inline DisallowedRoadDirections GetDisallowedRoadDirections(TileIndex t)
 {
-	assert(IsNormalRoadTile(t));
-	return (DisallowedRoadDirections)GB(_mc[t].m3, 6, 2);
+	return tile_get_disallowed_directions(&_mc[t]);
 }
 
 /**
@@ -219,9 +174,7 @@ static inline DisallowedRoadDirections GetDisallowedRoadDirections(TileIndex t)
  */
 static inline void SetDisallowedRoadDirections(TileIndex t, DisallowedRoadDirections drd)
 {
-	assert(IsNormalRoadTile(t));
-	assert(drd < DRD_END);
-	SB(_mc[t].m3, 6, 2, drd);
+	tile_set_disallowed_directions(&_mc[t], drd);
 }
 
 /**
@@ -351,17 +304,6 @@ static inline void BarCrossing(TileIndex t)
 }
 
 
-/** The possible road side decorations. */
-enum Roadside {
-	ROADSIDE_BARREN           = 0, ///< Road on barren land
-	ROADSIDE_GRASS            = 1, ///< Road on grass
-	ROADSIDE_PAVED            = 2, ///< Road with paved sidewalks
-	ROADSIDE_STREET_LIGHTS    = 3, ///< Road with street lights on paved sidewalks
-	ROADSIDE_TREES            = 5, ///< Road with trees on paved sidewalks
-	ROADSIDE_GRASS_ROAD_WORKS = 6, ///< Road on grass with road works
-	ROADSIDE_PAVED_ROAD_WORKS = 7, ///< Road with sidewalks and road works
-};
-
 /**
  * Get the decorations of a road.
  * @param tile The tile to query.
@@ -369,8 +311,7 @@ enum Roadside {
  */
 static inline Roadside GetRoadside(TileIndex tile)
 {
-	assert(IsNormalRoadTile(tile) || IsLevelCrossingTile(tile));
-	return (Roadside)GB(_mc[tile].m5, 4, 3);
+	return tile_get_roadside(&_mc[tile]);
 }
 
 /**
@@ -380,8 +321,7 @@ static inline Roadside GetRoadside(TileIndex tile)
  */
 static inline void SetRoadside(TileIndex tile, Roadside s)
 {
-	assert(IsNormalRoadTile(tile) || IsLevelCrossingTile(tile));
-	SB(_mc[tile].m5, 4, 3, s);
+	tile_set_roadside(&_mc[tile], s);
 }
 
 /**
@@ -391,7 +331,7 @@ static inline void SetRoadside(TileIndex tile, Roadside s)
  */
 static inline bool HasRoadWorks(TileIndex t)
 {
-	return GetRoadside(t) >= ROADSIDE_GRASS_ROAD_WORKS;
+	return tile_has_roadworks(&_mc[t]);
 }
 
 /**
@@ -401,9 +341,7 @@ static inline bool HasRoadWorks(TileIndex t)
  */
 static inline bool IncreaseRoadWorksCounter(TileIndex t)
 {
-	AB(_mc[t].m7, 0, 4, 1);
-
-	return GB(_mc[t].m7, 0, 4) == 15;
+	return tile_inc_roadworks(&_mc[t]);
 }
 
 /**
@@ -432,7 +370,7 @@ static inline void TerminateRoadWorks(TileIndex t)
 	assert(HasRoadWorks(t));
 	SetRoadside(t, (Roadside)(GetRoadside(t) - ROADSIDE_GRASS_ROAD_WORKS + ROADSIDE_GRASS));
 	/* Stop the counter */
-	SB(_mc[t].m7, 0, 4, 0);
+	tile_reset_roadworks(&_mc[t]);
 }
 
 
@@ -444,8 +382,7 @@ static inline void TerminateRoadWorks(TileIndex t)
  */
 static inline BridgeType GetRoadBridgeType(TileIndex t)
 {
-	assert(IsRoadBridgeTile(t));
-	return GB(_mc[t].m7, 0, 4);
+	return tile_get_road_bridge_type(&_mc[t]);
 }
 
 /**
@@ -455,8 +392,7 @@ static inline BridgeType GetRoadBridgeType(TileIndex t)
  */
 static inline void SetRoadBridgeType(TileIndex t, BridgeType type)
 {
-	assert(IsRoadBridgeTile(t));
-	SB(_mc[t].m7, 0, 4, type);
+	tile_set_road_bridge_type(&_mc[t], type);
 }
 
 /**
@@ -466,13 +402,7 @@ static inline void SetRoadBridgeType(TileIndex t, BridgeType type)
  */
 static inline bool IsExtendedRoadBridge(TileIndex t)
 {
-	assert(IsRoadBridgeTile(t));
-
-	RoadBits axis = AxisToRoadBits(DiagDirToAxis(GetTunnelBridgeDirection(t)));
-	RoadBits road = GetRoadBits(t, ROADTYPE_ROAD);
-	RoadBits tram = GetRoadBits(t, ROADTYPE_TRAM);
-
-	return (road != ROAD_NONE && road != axis) || (tram != ROAD_NONE && tram != axis);
+	return tile_is_road_custom_bridgehead(&_mc[t]);
 }
 
 
@@ -490,15 +420,7 @@ RoadBits GetAnyRoadBits(TileIndex tile, RoadType rt, bool tunnel_bridge_entrance
  */
 static inline void MakeRoadNormal(TileIndex t, RoadBits bits, RoadTypes rot, TownID town, Owner road, Owner tram)
 {
-	SetTileTypeSubtype(t, TT_ROAD, TT_TRACK);
-	SB(_mc[t].m0, 2, 2, 0);
-	SetTileOwner(t, road);
-	_mc[t].m2 = town;
-	_mc[t].m3 = 0;
-	_mc[t].m4 = (HasBit(rot, ROADTYPE_ROAD) ? bits : 0) | ((HasBit(rot, ROADTYPE_TRAM) ? bits : 0) << 4);
-	_mc[t].m5 = 0;
-	_mc[t].m7 = rot << 6;
-	SetRoadOwner(t, ROADTYPE_TRAM, tram);
+	tile_make_road(&_mc[t], rot, bits, town, road, tram);
 }
 
 /**
@@ -513,16 +435,7 @@ static inline void MakeRoadNormal(TileIndex t, RoadBits bits, RoadTypes rot, Tow
  */
 static inline void MakeRoadBridgeRamp(TileIndex t, Owner owner_road, Owner owner_tram, BridgeType bridgetype, DiagDirection d, RoadTypes r, uint town)
 {
-	SetTileTypeSubtype(t, TT_ROAD, TT_BRIDGE);
-	SB(_mc[t].m0, 2, 2, 0);
-	SetTileOwner(t, owner_road);
-	_mc[t].m2 = town;
-	_mc[t].m3 = d << 6;
-	RoadBits bits = AxisToRoadBits(DiagDirToAxis(d));
-	_mc[t].m4 = (HasBit(r, ROADTYPE_ROAD) ? bits : 0) | ((HasBit(r, ROADTYPE_TRAM) ? bits : 0) << 4);
-	_mc[t].m5 = 0;
-	_mc[t].m7 = bridgetype | (r << 6);
-	if (owner_tram != OWNER_TOWN) SetRoadOwner(t, ROADTYPE_TRAM, owner_tram);
+	tile_make_road_bridge(&_mc[t], bridgetype, d, r, town, owner_road, owner_tram);
 }
 
 /**
@@ -532,10 +445,7 @@ static inline void MakeRoadBridgeRamp(TileIndex t, Owner owner_road, Owner owner
  */
 static inline void MakeNormalRoadFromBridge(TileIndex t)
 {
-	assert(IsRoadBridgeTile(t));
-	SetTileTypeSubtype(t, TT_ROAD, TT_TRACK);
-	SB(_mc[t].m3, 6, 2, 0);
-	SB(_mc[t].m7, 0, 4, 0);
+	tile_make_road_from_bridge(&_mc[t]);
 }
 
 /**
@@ -547,11 +457,7 @@ static inline void MakeNormalRoadFromBridge(TileIndex t)
  */
 static inline void MakeRoadBridgeFromRoad(TileIndex t, BridgeType bridgetype, DiagDirection d)
 {
-	assert(IsNormalRoadTile(t));
-	SetTileTypeSubtype(t, TT_ROAD, TT_BRIDGE);
-	SB(_mc[t].m3, 6, 2, d);
-	SB(_mc[t].m5, 4, 3, 0);
-	SB(_mc[t].m7, 0, 4, bridgetype);
+	tile_make_bridge_from_road(&_mc[t], bridgetype, d);
 }
 
 /**

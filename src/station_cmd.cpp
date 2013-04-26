@@ -1812,7 +1812,7 @@ CommandCost CmdBuildRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 	if (flags & DC_EXEC) {
 		/* Check every tile in the area. */
 		TILE_AREA_LOOP(cur_tile, roadstop_area) {
-			RoadTypes cur_rts = GetRoadTypes(cur_tile);
+			RoadTypes cur_rts = (IsRoadTile(cur_tile) || IsStationTile(cur_tile)) ? GetRoadTypes(cur_tile) : ROADTYPES_NONE;
 			Owner road_owner = HasBit(cur_rts, ROADTYPE_ROAD) ? GetRoadOwner(cur_tile, ROADTYPE_ROAD) : _current_company;
 			Owner tram_owner = HasBit(cur_rts, ROADTYPE_TRAM) ? GetRoadOwner(cur_tile, ROADTYPE_TRAM) : _current_company;
 

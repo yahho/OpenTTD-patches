@@ -468,7 +468,7 @@ static CommandCost RemoveRoad_Crossing(TileIndex tile, DoCommandFlag flags, Road
  */
 static CommandCost RemoveRoad_Tunnel(TileIndex tile, DoCommandFlag flags, RoadBits pieces, RoadType rt, bool town_check)
 {
-	if (GetTunnelTransportType(tile) != TRANSPORT_ROAD) return CMD_ERROR;
+	assert(GetTunnelTransportType(tile) == TRANSPORT_ROAD);
 
 	TileIndex other_end = GetOtherTunnelEnd(tile);
 	CommandCost ret = TunnelBridgeIsFree(tile, other_end);
@@ -562,11 +562,10 @@ static CommandCost RemoveRoad_Station(TileIndex tile, DoCommandFlag flags, RoadB
  */
 CommandCost RemoveRoad(TileIndex tile, DoCommandFlag flags, RoadBits pieces, RoadType rt, bool crossing_check, bool town_check = true)
 {
-	/* The tile doesn't have the given road type */
-	if (!HasTileRoadType(tile, rt)) return_cmd_error(rt == ROADTYPE_TRAM ? STR_ERROR_THERE_IS_NO_TRAMWAY : STR_ERROR_THERE_IS_NO_ROAD);
-
 	switch (GetTileType(tile)) {
 		case TT_ROAD: {
+			if (!HasTileRoadType(tile, rt)) break;
+
 			if (IsTileSubtype(tile, TT_TRACK)) {
 				return RemoveRoad_Road(tile, flags, pieces, rt, town_check);
 			} else {
@@ -576,17 +575,32 @@ CommandCost RemoveRoad(TileIndex tile, DoCommandFlag flags, RoadBits pieces, Roa
 
 		case TT_MISC:
 			switch (GetTileSubtype(tile)) {
-				case TT_MISC_CROSSING: return RemoveRoad_Crossing(tile, flags, pieces, rt, crossing_check, town_check);
-				case TT_MISC_TUNNEL:   return RemoveRoad_Tunnel(tile, flags, pieces, rt, town_check);
-				default: return CMD_ERROR;
+				case TT_MISC_CROSSING:
+					if (!HasTileRoadType(tile, rt)) break;
+					return RemoveRoad_Crossing(tile, flags, pieces, rt, crossing_check, town_check);
+
+				case TT_MISC_TUNNEL:
+					if (!HasTileRoadType(tile, rt)) break;
+					if (GetTunnelTransportType(tile) != TRANSPORT_ROAD) break;
+					return RemoveRoad_Tunnel(tile, flags, pieces, rt, town_check);
+
+				default:
+					break;
 			}
 
+			break;
+
 		case TT_STATION:
+			if (!HasTileRoadType(tile, rt)) break;
+
 			return RemoveRoad_Station(tile, flags, pieces, rt, town_check);
 
 		default:
-			return CMD_ERROR;
+			break;
 	}
+
+	/* The tile doesn't have the given road type */
+	return_cmd_error(rt == ROADTYPE_TRAM ? STR_ERROR_THERE_IS_NO_TRAMWAY : STR_ERROR_THERE_IS_NO_ROAD);
 }
 
 
