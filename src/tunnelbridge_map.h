@@ -37,8 +37,7 @@ static inline TileIndex GetOtherTunnelBridgeEnd(TileIndex t)
  */
 static inline bool HasBridgeMiddleReservation(TileIndex t)
 {
-	assert(IsRailBridgeTile(t));
-	return HasBit(_mc[t].m2, 6);
+	return tile_is_bridge_middle_reserved(&_mc[t]);
 }
 
 /**
@@ -49,8 +48,7 @@ static inline bool HasBridgeMiddleReservation(TileIndex t)
  */
 static inline void SetBridgeMiddleReservation(TileIndex t, bool b)
 {
-	assert(IsRailBridgeTile(t));
-	SB(_mc[t].m2, 6, 1, b ? 1 : 0);
+	tile_set_bridge_middle_reserved(&_mc[t], b);
 }
 
 /**

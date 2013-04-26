@@ -10878,6 +10878,10 @@
 				RelativePath=".\..\src\tile\signal.h"
 				>
 			</File>
+			<File
+				RelativePath=".\..\src\tile\rail.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Map Accessors"
