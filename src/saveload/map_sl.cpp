@@ -268,10 +268,10 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 						_mc[t].m5 = gfx - 83 + 67 - 8;
 					} else if (IsInsideMM(gfx, 168, 170)) { // Drive through truck
 						st = 2;
-						_mc[t].m5 = gfx - 168 + GFX_TRUCK_BUS_DRIVETHROUGH_OFFSET;
+						_mc[t].m5 = gfx - 168 + GFX_ROAD_DT_OFFSET;
 					} else if (IsInsideMM(gfx, 170, 172)) { // Drive through bus
 						st = 3;
-						_mc[t].m5 = gfx - 170 + GFX_TRUCK_BUS_DRIVETHROUGH_OFFSET;
+						_mc[t].m5 = gfx - 170 + GFX_ROAD_DT_OFFSET;
 					} else {
 						throw SlCorrupt("Invalid station tile");
 					}

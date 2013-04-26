@@ -18,7 +18,7 @@
 #include "newgrf_commons.h"
 #include "tilearea_type.h"
 
-/** Copy from station_map.h */
+/** Copy from tile/station.h */
 typedef byte StationGfx;
 
 /** Tile-offset / AirportTileID pair. */
