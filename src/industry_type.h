@@ -31,6 +31,4 @@ static const IndustryGfx  NEW_INDUSTRYTILEOFFSET = 175;               ///< origi
 static const IndustryGfx  NUM_INDUSTRYTILES      = 512;               ///< total number of industry tiles, new and old
 static const IndustryGfx  INVALID_INDUSTRYTILE   = NUM_INDUSTRYTILES; ///< one above amount is considered invalid
 
-static const int INDUSTRY_COMPLETED = 3; ///< final stage of industry construction.
-
 #endif /* INDUSTRY_TYPE_H */
