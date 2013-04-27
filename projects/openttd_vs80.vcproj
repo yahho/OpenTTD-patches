@@ -10894,6 +10894,10 @@
 				RelativePath=".\..\src\tile\industry.h"
 				>
 			</File>
+			<File
+				RelativePath=".\..\src\tile\house.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Map Accessors"

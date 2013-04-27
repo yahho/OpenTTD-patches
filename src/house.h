@@ -18,12 +18,6 @@
 #include "newgrf_animation_type.h"
 #include "newgrf_commons.h"
 
-/**
- * Simple value that indicates the house has reached the final stage of
- * construction.
- */
-static const byte TOWN_HOUSE_COMPLETED = 3;
-
 static const uint HOUSE_NO_CLASS      = 0;
 static const HouseID NEW_HOUSE_OFFSET = 110;
 static const HouseID HOUSE_MAX        = 512;

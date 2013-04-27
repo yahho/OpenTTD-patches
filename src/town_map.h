@@ -13,6 +13,7 @@
 #define TOWN_MAP_H
 
 #include "tile/common.h"
+#include "tile/house.h"
 #include "clear_map.h"
 #include "road_map.h"
 #include "house.h"
@@ -25,8 +26,7 @@
  */
 static inline TownID GetTownIndex(TileIndex t)
 {
-	assert(IsHouseTile(t) || IsRoadTile(t) || IsLevelCrossingTile(t));
-	return _mc[t].m2;
+	return tile_get_town(&_mc[t]);
 }
 
 /**
@@ -37,8 +37,7 @@ static inline TownID GetTownIndex(TileIndex t)
  */
 static inline void SetTownIndex(TileIndex t, TownID index)
 {
-	assert(IsHouseTile(t) || IsRoadTile(t) || IsLevelCrossingTile(t));
-	_mc[t].m2 = index;
+	tile_set_town(&_mc[t], index);
 }
 
 /**
@@ -50,8 +49,7 @@ static inline void SetTownIndex(TileIndex t, TownID index)
  */
 static inline HouseID GetCleanHouseType(TileIndex t)
 {
-	assert(IsHouseTile(t));
-	return _mc[t].m4 | (GB(_mc[t].m1, 6, 1) << 8);
+	return tile_get_raw_house_type(&_mc[t]);
 }
 
 /**
@@ -73,9 +71,7 @@ static inline HouseID GetHouseType(TileIndex t)
  */
 static inline void SetHouseType(TileIndex t, HouseID house_id)
 {
-	assert(IsHouseTile(t));
-	_mc[t].m4 = GB(house_id, 0, 8);
-	SB(_mc[t].m1, 6, 1, GB(house_id, 8, 1));
+	tile_set_raw_house_type(&_mc[t], house_id);
 }
 
 /**
@@ -85,7 +81,7 @@ static inline void SetHouseType(TileIndex t, HouseID house_id)
  */
 static inline bool LiftHasDestination(TileIndex t)
 {
-	return HasBit(_mc[t].m7, 3);
+	return tile_has_lift_destination(&_mc[t]);
 }
 
 /**
@@ -96,8 +92,7 @@ static inline bool LiftHasDestination(TileIndex t)
  */
 static inline void SetLiftDestination(TileIndex t, byte dest)
 {
-	SetBit(_mc[t].m7, 3);
-	SB(_mc[t].m7, 0, 3, dest);
+	tile_set_lift_destination(&_mc[t], dest);
 }
 
 /**
@@ -107,7 +102,7 @@ static inline void SetLiftDestination(TileIndex t, byte dest)
  */
 static inline byte GetLiftDestination(TileIndex t)
 {
-	return GB(_mc[t].m7, 0, 3);
+	return tile_get_lift_destination(&_mc[t]);
 }
 
 /**
@@ -118,7 +113,7 @@ static inline byte GetLiftDestination(TileIndex t)
  */
 static inline void HaltLift(TileIndex t)
 {
-	SB(_mc[t].m7, 0, 4, 0);
+	tile_halt_lift(&_mc[t]);
 }
 
 /**
@@ -128,7 +123,7 @@ static inline void HaltLift(TileIndex t)
  */
 static inline byte GetLiftPosition(TileIndex t)
 {
-	return GB(_mc[t].m1, 0, 6);
+	return tile_get_lift_position(&_mc[t]);
 }
 
 /**
@@ -138,7 +133,7 @@ static inline byte GetLiftPosition(TileIndex t)
  */
 static inline void SetLiftPosition(TileIndex t, byte pos)
 {
-	SB(_mc[t].m1, 0, 6, pos);
+	tile_set_lift_position(&_mc[t], pos);
 }
 
 /**
@@ -148,8 +143,7 @@ static inline void SetLiftPosition(TileIndex t, byte pos)
  */
 static inline bool IsHouseCompleted(TileIndex t)
 {
-	assert(IsHouseTile(t));
-	return HasBit(_mc[t].m1, 7);
+	return tile_is_house_completed(&_mc[t]);
 }
 
 /**
@@ -159,20 +153,8 @@ static inline bool IsHouseCompleted(TileIndex t)
  */
 static inline void SetHouseCompleted(TileIndex t, bool status)
 {
-	assert(IsHouseTile(t));
-	SB(_mc[t].m1, 7, 1, !!status);
+	tile_set_house_completed(&_mc[t], status);
 }
-
-/**
- * House Construction Scheme.
- *  Construction counter, for buildings under construction. Incremented on every
- *  periodic tile processing.
- *  On wraparound, the stage of building in is increased.
- *  GetHouseBuildingStage is taking care of the real stages,
- *  (as the sprite for the next phase of house building)
- *  (Get|Inc)HouseConstructionTick is simply a tick counter between the
- *  different stages
- */
 
 /**
  * Gets the building stage of a house
@@ -186,8 +168,7 @@ static inline void SetHouseCompleted(TileIndex t, bool status)
  */
 static inline byte GetHouseBuildingStage(TileIndex t)
 {
-	assert(IsHouseTile(t));
-	return IsHouseCompleted(t) ? (byte)TOWN_HOUSE_COMPLETED : GB(_mc[t].m5, 3, 2);
+	return tile_get_building_stage(&_mc[t]);
 }
 
 /**
@@ -198,8 +179,7 @@ static inline byte GetHouseBuildingStage(TileIndex t)
  */
 static inline byte GetHouseConstructionTick(TileIndex t)
 {
-	assert(IsHouseTile(t));
-	return IsHouseCompleted(t) ? 0 : GB(_mc[t].m5, 0, 3);
+	return tile_get_building_counter(&_mc[t]);
 }
 
 /**
@@ -211,10 +191,7 @@ static inline byte GetHouseConstructionTick(TileIndex t)
  */
 static inline void IncHouseConstructionTick(TileIndex t)
 {
-	assert(IsHouseTile(t));
-	AB(_mc[t].m5, 0, 5, 1);
-
-	if (GB(_mc[t].m5, 3, 2) == TOWN_HOUSE_COMPLETED) {
+	if (tile_inc_building_counter(&_mc[t])) {
 		/* House is now completed.
 		 * Store the year of construction as well, for newgrf house purpose */
 		SetHouseCompleted(t, true);
@@ -229,8 +206,7 @@ static inline void IncHouseConstructionTick(TileIndex t)
  */
 static inline void ResetHouseAge(TileIndex t)
 {
-	assert(IsHouseTile(t) && IsHouseCompleted(t));
-	_mc[t].m5 = 0;
+	tile_reset_house_age(&_mc[t]);
 }
 
 /**
@@ -240,8 +216,7 @@ static inline void ResetHouseAge(TileIndex t)
  */
 static inline void IncrementHouseAge(TileIndex t)
 {
-	assert(IsHouseTile(t));
-	if (IsHouseCompleted(t) && _mc[t].m5 < 0xFF) _mc[t].m5++;
+	tile_inc_house_age(&_mc[t]);
 }
 
 /**
@@ -252,8 +227,7 @@ static inline void IncrementHouseAge(TileIndex t)
  */
 static inline Year GetHouseAge(TileIndex t)
 {
-	assert(IsHouseTile(t));
-	return IsHouseCompleted(t) ? _mc[t].m5 : 0;
+	return tile_get_house_age(&_mc[t]);
 }
 
 /**
@@ -291,8 +265,7 @@ static inline byte GetHouseRandomBits(TileIndex t)
  */
 static inline void SetHouseTriggers(TileIndex t, byte triggers)
 {
-	assert(IsHouseTile(t));
-	SB(_mc[t].m0, 0, 5, triggers);
+	tile_set_house_triggers(&_mc[t], triggers);
 }
 
 /**
@@ -304,8 +277,7 @@ static inline void SetHouseTriggers(TileIndex t, byte triggers)
  */
 static inline byte GetHouseTriggers(TileIndex t)
 {
-	assert(IsHouseTile(t));
-	return GB(_mc[t].m0, 0, 5);
+	return tile_get_house_triggers(&_mc[t]);
 }
 
 /**
@@ -316,8 +288,7 @@ static inline byte GetHouseTriggers(TileIndex t)
  */
 static inline byte GetHouseProcessingTime(TileIndex t)
 {
-	assert(IsHouseTile(t));
-	return GB(_mc[t].m1, 0, 6);
+	return tile_get_house_processing_counter(&_mc[t]);
 }
 
 /**
@@ -328,8 +299,7 @@ static inline byte GetHouseProcessingTime(TileIndex t)
  */
 static inline void SetHouseProcessingTime(TileIndex t, byte time)
 {
-	assert(IsHouseTile(t));
-	SB(_mc[t].m1, 0, 6, time);
+	tile_set_house_processing_counter(&_mc[t], time);
 }
 
 /**
@@ -339,9 +309,7 @@ static inline void SetHouseProcessingTime(TileIndex t, byte time)
  */
 static inline void DecHouseProcessingTime(TileIndex t)
 {
-	assert(IsHouseTile(t));
-	assert(GetHouseProcessingTime(t) != 0);
-	_mc[t].m1--;
+	tile_dec_house_processing_counter(&_mc[t]);
 }
 
 /**
@@ -357,16 +325,7 @@ static inline void DecHouseProcessingTime(TileIndex t)
 static inline void MakeHouseTile(TileIndex t, TownID tid, byte counter, byte stage, HouseID type, byte random_bits)
 {
 	assert(IsGroundTile(t));
-
-	_mc[t].m0 = 0xC0;
-	_mc[t].m1 = 0;
-	_mc[t].m2 = tid;
-	_mc[t].m3 = random_bits;
-	SetHouseType(t, type);
-	SetHouseCompleted(t, stage == TOWN_HOUSE_COMPLETED);
-	_mc[t].m5 = IsHouseCompleted(t) ? 0 : (stage << 3 | counter);
-	SetAnimationFrame(t, 0);
-	SetHouseProcessingTime(t, HouseSpec::Get(type)->processing_time);
+	tile_make_house(&_mc[t], tid, type, stage, counter, random_bits, HouseSpec::Get(type)->processing_time);
 }
 
 #endif /* TOWN_MAP_H */

@@ -967,6 +967,7 @@ tile/rail.h
 tile/road.h
 tile/station.h
 tile/industry.h
+tile/house.h
 
 # Map Accessors
 bridge_map.cpp
