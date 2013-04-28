@@ -82,7 +82,7 @@ generate() {
 			p
 		' > "$ROOT_DIR/projects/$2"
 
-		echo "$3" >> "$ROOT_DIR/projects/$2"
+		printf "%s" "$3" >> "$ROOT_DIR/projects/$2"
 
 		# Everything between the !!FILTERS!! marker and the !!FILES!! marker
 		sed < "$ROOT_DIR/projects/$2".in -n -e '
@@ -100,7 +100,7 @@ generate() {
 		' > "$ROOT_DIR/projects/$2"
 	fi
 
-	echo "$1" >> "$ROOT_DIR/projects/$2"
+	printf "%s" "$1" >> "$ROOT_DIR/projects/$2"
 
 	# Everything below the !!FILES!! marker
 	sed < "$ROOT_DIR/projects/$2".in -n -e '
@@ -204,10 +204,14 @@ openttd="`cat "$ROOT_DIR/source.list" | tr '\r' '\n' | awk '
 	END { print "#1		</Filter>"; }
 '`"
 
-openttdfiles=`echo "$openttd" | grep "^#4" | sed "s~#4~~g"`
-openttdfilters=`echo "$openttd" | grep "^#3" | sed "s~#3~~g"`
-openttdvcxproj=`echo "$openttd" | grep "^#2" | sed "s~#2~~g"`
-openttd=`echo "$openttd" | grep "^#1" | sed "s~#1~~g"`
+openttdfiles="`echo "$openttd" | grep "^#4" | sed "s~#4~~g"`
+"
+openttdfilters="`echo "$openttd" | grep "^#3" | sed "s~#3~~g"`
+"
+openttdvcxproj="`echo "$openttd" | grep "^#2" | sed "s~#2~~g"`
+"
+openttd="`echo "$openttd" | grep "^#1" | sed "s~#1~~g"`
+"
 
 generate "$openttd" "openttd_vs80.vcproj"
 generate "$openttd" "openttd_vs90.vcproj"
@@ -249,9 +253,12 @@ do
 #3    </CustomBuild>"
 done
 
-langfiles=`echo "$lang" | grep "^#3" | sed "s~#3~~g"`
-langvcxproj=`echo "$lang" | grep "^#2" | sed "s~#2~~g"`
-lang=`echo "$lang" | grep "^#1" | sed "s~#1~~g"`
+langfiles="`echo "$lang" | grep "^#3" | sed "s~#3~~g"`
+"
+langvcxproj="`echo "$lang" | grep "^#2" | sed "s~#2~~g"`
+"
+lang="`echo "$lang" | grep "^#1" | sed "s~#1~~g"`
+"
 
 generate "$lang" "langs_vs80.vcproj"
 generate "$lang" "langs_vs90.vcproj"
@@ -279,10 +286,14 @@ done
 
 settings="$settings$settings2"
 
-settingsfiles=`echo "$settings" | grep "^#4" | sed "s~#4~~g"`
-settingscommand=`echo "$settings" | grep "^#3" | sed "s~#3~~g"`
-settingsvcxproj=`echo "$settings" | grep "^#2" | sed "s~#2~~g"`
-settings=`echo "$settings" | grep "^#1" | sed "s~#1~~g"`
+settingsfiles="`echo "$settings" | grep "^#4" | sed "s~#4~~g"`
+"
+settingscommand="`echo "$settings" | grep "^#3" | sed "s~#3~~g"`
+"
+settingsvcxproj="`echo "$settings" | grep "^#2" | sed "s~#2~~g"`
+"
+settings="`echo "$settings" | grep "^#1" | sed "s~#1~~g"`
+"
 
 generate "$settings" "settings_vs80.vcproj" "$settingscommand"
 generate "$settings" "settings_vs90.vcproj" "$settingscommand"
