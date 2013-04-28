@@ -123,93 +123,87 @@ enable_directmusic="1"
 with_threads="1"
 file_prefix="..\\\\src\\\\"
 
-load_main_data() {
-	# Read the source.list and process it
-	RES="`cat $1 | tr '\r' '\n' | awk '
-		/^(	*)#end/  { if (deep == skip) { skip -= 1; } deep -= 1; next; }
-		/^(	*)#else/ { if (deep == skip) { skip -= 1; } else if (deep - 1 == skip) { skip += 1; } next; }
-		/^(	*)#if/   {
+# Read the source.list and process it
+openttd="`cat "$ROOT_DIR/source.list" | tr '\r' '\n' | awk '
+	/^(	*)#end/  { if (deep == skip) { skip -= 1; } deep -= 1; next; }
+	/^(	*)#else/ { if (deep == skip) { skip -= 1; } else if (deep - 1 == skip) { skip += 1; } next; }
+	/^(	*)#if/   {
+		gsub("	", "", $0);
+		gsub("^#if", "", $0);
+		gsub("^ ", "", $0);
+
+		if (deep != skip) { deep += 1; next; }
+
+		deep += 1;
+
+		if ($0 == "ALLEGRO"     && "'$allegro_config'" == "")      { next; }
+		if ($0 == "SDL"         && "'$sdl_config'" == "")          { next; }
+		if ($0 == "PNG"         && "'$png_config'" == "")          { next; }
+		if ($0 == "OSX"         && "'$os'" != "OSX")               { next; }
+		if ($0 == "OS2"         && "'$os'" != "OS2")               { next; }
+		if ($0 == "PSP"         && "'$os'" != "PSP")               { next; }
+		if ($0 == "DOS"         && "'$os'" != "DOS")               { next; }
+		if ($0 == "DEDICATED"   && "'$enable_dedicated'" != "1")   { next; }
+		if ($0 == "AI"          && "'$enable_ai'" == "0")          { next; }
+		if ($0 == "COCOA"       && "'$with_cocoa'" == "0")         { next; }
+		if ($0 == "BEOS"        && "'$os'" != "BEOS")              { next; }
+		if ($0 == "WIN32"       && "'$os'" != "MINGW" && "'$os'" != "CYGWIN" && "'$os'" != "MSVC" ) { next; }
+		if ($0 == "WINCE"       && "'$os'" != "WINCE")             { next; }
+		if ($0 == "MSVC"        && "'$os'" != "MSVC")              { next; }
+		if ($0 == "DIRECTMUSIC" && "'$enable_directmusic'" != "1") { next; }
+		if ($0 == "LIBTIMIDITY" && "'$libtimidity'" == "" )        { next; }
+		if ($0 == "HAVE_THREAD" && "'$with_threads'" == "0")       { next; }
+
+		skip += 1;
+
+		next;
+	}
+	/^(	*)#/ {
+		if (deep == skip) {
 			gsub("	", "", $0);
-			gsub("^#if", "", $0);
+			gsub("^#", "", $0);
 			gsub("^ ", "", $0);
 
-			if (deep != skip) { deep += 1; next; }
-
-			deep += 1;
-
-			if ($0 == "ALLEGRO"     && "'$allegro_config'" == "")      { next; }
-			if ($0 == "SDL"         && "'$sdl_config'" == "")          { next; }
-			if ($0 == "PNG"         && "'$png_config'" == "")          { next; }
-			if ($0 == "OSX"         && "'$os'" != "OSX")               { next; }
-			if ($0 == "OS2"         && "'$os'" != "OS2")               { next; }
-			if ($0 == "PSP"         && "'$os'" != "PSP")               { next; }
-			if ($0 == "DOS"         && "'$os'" != "DOS")               { next; }
-			if ($0 == "DEDICATED"   && "'$enable_dedicated'" != "1")   { next; }
-			if ($0 == "AI"          && "'$enable_ai'" == "0")          { next; }
-			if ($0 == "COCOA"       && "'$with_cocoa'" == "0")         { next; }
-			if ($0 == "BEOS"        && "'$os'" != "BEOS")              { next; }
-			if ($0 == "WIN32"       && "'$os'" != "MINGW" &&
-											"'$os'" != "CYGWIN" && "'$os'" != "MSVC" ) { next; }
-			if ($0 == "WINCE"       && "'$os'" != "WINCE")             { next; }
-			if ($0 == "MSVC"        && "'$os'" != "MSVC")              { next; }
-			if ($0 == "DIRECTMUSIC" && "'$enable_directmusic'" != "1") { next; }
-			if ($0 == "LIBTIMIDITY" && "'$libtimidity'" == "" )        { next; }
-			if ($0 == "HAVE_THREAD" && "'$with_threads'" == "0")       { next; }
-
-			skip += 1;
-
-			next;
-		}
-		/^(	*)#/ {
-			if (deep == skip) {
-				gsub("	", "", $0);
-				gsub("^#", "", $0);
-				gsub("^ ", "", $0);
-
-				if (first_time != 0) {
-					print "#1		</Filter>";
-				} else {
-					first_time = 1;
-				}
-
-				filter = $0;
-				print "#1		<Filter";
-				print "#1			Name=\\""filter"\\"";
-				print "#1			>";
-				print "#3    <Filter Include=\\""filter"\\">";
-				printf "#3      <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-%012d}</UniqueIdentifier>\n", i;
-				print "#3    </Filter>";
-				i += 1;
+			if (first_time != 0) {
+				print "#1		</Filter>";
+			} else {
+				first_time = 1;
 			}
 
-			next;
+			filter = $0;
+			print "#1		<Filter";
+			print "#1			Name=\\""filter"\\"";
+			print "#1			>";
+			print "#3    <Filter Include=\\""filter"\\">";
+			printf "#3      <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-%012d}</UniqueIdentifier>\n", i;
+			print "#3    </Filter>";
+			i += 1;
 		}
-		/^$/ { next }
-		{
-			if (deep == skip) {
-				gsub("	", "", $0);
-				gsub("/", "\\\\", $0);
-				print "#1			<File";
-				print "#1				RelativePath=\\".\\\\'$file_prefix'"$0"\\"";
-				print "#1				>";
-				print "#1			</File>";
-				split($0, file, ".");
-				cltype = "ClInclude"
-				if (file[2] == "cpp") cltype = "ClCompile";
-				if (file[2] == "rc") cltype = "ResourceCompile";
-				print "#2    <"cltype" Include=\\"'$file_prefix'"$0"\\" />";
-				print "#4    <"cltype" Include=\\"'$file_prefix'"$0"\\">";
-				print "#4      <Filter>"filter"</Filter>";
-				print "#4    </"cltype">";
-			}
+
+		next;
+	}
+	/^$/ { next }
+	{
+		if (deep == skip) {
+			gsub("	", "", $0);
+			gsub("/", "\\\\", $0);
+			print "#1			<File";
+			print "#1				RelativePath=\\".\\\\'$file_prefix'"$0"\\"";
+			print "#1				>";
+			print "#1			</File>";
+			split($0, file, ".");
+			cltype = "ClInclude"
+			if (file[2] == "cpp") cltype = "ClCompile";
+			if (file[2] == "rc") cltype = "ResourceCompile";
+			print "#2    <"cltype" Include=\\"'$file_prefix'"$0"\\" />";
+			print "#4    <"cltype" Include=\\"'$file_prefix'"$0"\\">";
+			print "#4      <Filter>"filter"</Filter>";
+			print "#4    </"cltype">";
 		}
-		END { print "#1		</Filter>"; }
-	'`"
+	}
+	END { print "#1		</Filter>"; }
+'`"
 
-	eval "$2=\"\$RES\""
-}
-
-load_main_data "$ROOT_DIR/source.list" openttd
 openttdfiles=`echo "$openttd" | grep "^#4" | sed "s~#4~~g"`
 openttdfilters=`echo "$openttd" | grep "^#3" | sed "s~#3~~g"`
 openttdvcxproj=`echo "$openttd" | grep "^#2" | sed "s~#2~~g"`
@@ -221,15 +215,14 @@ generate "$openttdvcxproj" "openttd_vs100.vcxproj"
 generate "$openttdfiles" "openttd_vs100.vcxproj.filters" "$openttdfilters"
 
 
-load_lang_data() {
-	RES=""
-	for i in `ls $1 | sed -e 's,^.*/,,' -e 's/\.txt$//'`
-	do
-		if [ "$i" == "english" ]
-		then
-			continue
-		fi
-		RES="$RES
+lang=""
+for i in `ls "$ROOT_DIR"/src/lang/*.txt | sed -e 's,^.*/,,' -e 's/\.txt$//'`
+do
+	if [ "$i" == "english" ]
+	then
+		continue
+	fi
+	lang="$lang
 #1			<File
 #1				RelativePath=\"..\\src\\lang\\"$i".txt\"
 #1				>
@@ -254,12 +247,8 @@ load_lang_data() {
 #3    <CustomBuild Include=\"..\\src\\lang\\"$i".txt\">
 #3      <Filter>Translations</Filter>
 #3    </CustomBuild>"
-	done
+done
 
-	eval "$2=\"\$RES\""
-}
-
-load_lang_data "$ROOT_DIR/src/lang/*.txt" lang
 langfiles=`echo "$lang" | grep "^#3" | sed "s~#3~~g"`
 langvcxproj=`echo "$lang" | grep "^#2" | sed "s~#2~~g"`
 lang=`echo "$lang" | grep "^#1" | sed "s~#1~~g"`
@@ -270,13 +259,13 @@ generate "$langvcxproj" "langs_vs100.vcxproj"
 generate "$langfiles" "langs_vs100.vcxproj.filters"
 
 
-load_settings_data() {
-	RES=""
-	RES2="
+settings=""
+settings2="
 #3..\\objs\\settings\\settings_gen.exe -o ..\\objs\\settings\\table\\settings.h -b ..\\src\\table\\settings.h.preamble -a ..\\src\\table\\settings.h.postamble"
-	for i in `ls $1 | sed -e 's,^.*/,,'`
-	do
-		RES="$RES
+
+for i in `ls "$ROOT_DIR"/src/table/*.ini | sed -e 's,^.*/,,'`
+do
+	settings="$settings
 #1		<File
 #1			RelativePath=\"..\\src\\table\\"$i"\"
 #1			>
@@ -285,13 +274,11 @@ load_settings_data() {
 #4    <None Include=\"..\\src\\table\\"$i"\">
 #4      <Filter>INI</Filter>
 #4    </None>"
-		RES2="$RES2 ..\\src\\table\\"$i
-	done
+	settings2="$settings2 ..\\src\\table\\"$i
+done
 
-	eval "$2=\"\$RES\$RES2\""
-}
+settings="$settings$settings2"
 
-load_settings_data "$ROOT_DIR/src/table/*.ini" settings
 settingsfiles=`echo "$settings" | grep "^#4" | sed "s~#4~~g"`
 settingscommand=`echo "$settings" | grep "^#3" | sed "s~#3~~g"`
 settingsvcxproj=`echo "$settings" | grep "^#2" | sed "s~#2~~g"`
