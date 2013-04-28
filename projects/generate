@@ -173,49 +173,66 @@ openttd="`echo "$srclist" | awk '
 		gsub("^ ", "", $0);
 
 		if (first_time != 0) {
-			print "#1		</Filter>";
+			print "		</Filter>";
 		} else {
 			first_time = 1;
 		}
 
-		filter = $0;
-		print "#1		<Filter";
-		print "#1			Name=\\""filter"\\"";
-		print "#1			>";
-		print "#3    <Filter Include=\\""filter"\\">";
-		printf "#3      <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-%012d}</UniqueIdentifier>\n", i;
-		print "#3    </Filter>";
-		i += 1;
+		print "		<Filter";
+		print "			Name=\\""$0"\\"";
+		print "			>";
 
 		next;
 	}
-	/^$/ { next }
 	{
 		gsub("	", "", $0);
 		gsub("/", "\\\\", $0);
-		print "#1			<File";
-		print "#1				RelativePath=\\".\\\\'$file_prefix'"$0"\\"";
-		print "#1				>";
-		print "#1			</File>";
+		print "			<File";
+		print "				RelativePath=\\".\\\\'$file_prefix'"$0"\\"";
+		print "				>";
+		print "			</File>";
+	}
+	END { print "		</Filter>"; }
+'`
+"
+
+openttdfiles="`echo "$srclist" | awk '
+	/^#/ {
+		gsub("^#", "", $0);
+		gsub("^ ", "", $0);
+
+		filter = $0;
+
+		next;
+	}
+	{
+		gsub("	", "", $0);
+		gsub("/", "\\\\", $0);
 		split($0, file, ".");
 		cltype = "ClInclude"
 		if (file[2] == "cpp") cltype = "ClCompile";
 		if (file[2] == "rc") cltype = "ResourceCompile";
-		print "#2    <"cltype" Include=\\"'$file_prefix'"$0"\\" />";
-		print "#4    <"cltype" Include=\\"'$file_prefix'"$0"\\">";
-		print "#4      <Filter>"filter"</Filter>";
-		print "#4    </"cltype">";
+		print "    <"cltype" Include=\\"'$file_prefix'"$0"\\">";
+		print "      <Filter>"filter"</Filter>";
+		print "    </"cltype">";
 	}
-	END { print "#1		</Filter>"; }
-'`"
+'`
+"
 
-openttdfiles="`echo "$openttd" | grep "^#4" | sed "s~#4~~g"`
+openttdvcxproj="`echo "$openttdfiles" | sed -n -e '/\bInclude=/ s,>$, />,p'`
 "
-openttdfilters="`echo "$openttd" | grep "^#3" | sed "s~#3~~g"`
-"
-openttdvcxproj="`echo "$openttd" | grep "^#2" | sed "s~#2~~g"`
-"
-openttd="`echo "$openttd" | grep "^#1" | sed "s~#1~~g"`
+
+openttdfilters="`echo "$srclist" | awk '
+	/^#/ {
+		gsub("^#", "", $0);
+		gsub("^ ", "", $0);
+
+		print  "    <Filter Include=\\""$0"\\">";
+		printf "      <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-%012d}</UniqueIdentifier>\n", i;
+		print  "    </Filter>";
+		i += 1;
+	}
+'`
 "
 
 generate "$openttd" "openttd_vs80.vcproj"
