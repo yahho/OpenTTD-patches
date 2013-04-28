@@ -18,7 +18,7 @@
 struct RememberData {
 	uint16 cur_length;
 	byte depth;
-	Track last_choosen_track;
+	Trackdir last_chosen_trackdir;
 };
 
 struct TrackPathFinder {
@@ -72,34 +72,34 @@ static void TPFModeShip(TrackPathFinder *tpf, TileIndex tile, DiagDirection dire
 
 	if (++tpf->rd.cur_length > 50) return;
 
-	TrackBits bits = TrackStatusToTrackBits(GetTileTrackStatus(tile, TRANSPORT_WATER, 0)) & DiagdirReachesTracks(direction);
-	if (bits == TRACK_BIT_NONE) return;
+	TrackdirBits trackdirs = TrackStatusToTrackdirBits(GetTileTrackStatus(tile, TRANSPORT_WATER, 0)) & DiagdirReachesTrackdirs(direction);
+	if (trackdirs == TRACKDIR_BIT_NONE) return;
 
 	assert(TileX(tile) != MapMaxX() && TileY(tile) != MapMaxY());
 
-	bool only_one_track = true;
+	bool only_one_trackdir = true;
 	do {
-		Track track = RemoveFirstTrack(&bits);
-		if (bits != TRACK_BIT_NONE) only_one_track = false;
+		Trackdir trackdir = RemoveFirstTrackdir(&trackdirs);
+		if (trackdirs != TRACKDIR_BIT_NONE) only_one_trackdir = false;
 		RememberData rd = tpf->rd;
 
 		/* Change direction 4 times only */
-		if (!only_one_track && track != tpf->rd.last_choosen_track) {
+		if (!only_one_trackdir && trackdir != tpf->rd.last_chosen_trackdir) {
 			if (++tpf->rd.depth > 4) {
 				tpf->rd = rd;
 				return;
 			}
-			tpf->rd.last_choosen_track = track;
+			tpf->rd.last_chosen_trackdir = trackdir;
 		}
 
-		tpf->the_dir = TrackEnterdirToTrackdir(track, direction);
+		tpf->the_dir = trackdir;
 
 		if (!ShipTrackFollower(tile, tpf, tpf->rd.cur_length)) {
 			TPFModeShip(tpf, tile, TrackdirToExitdir(tpf->the_dir));
 		}
 
 		tpf->rd = rd;
-	} while (bits != TRACK_BIT_NONE);
+	} while (trackdirs != TRACKDIR_BIT_NONE);
 }
 
 static void OPFShipFollowTrack(TileIndex tile, DiagDirection direction, TrackPathFinder *tpf)
@@ -109,7 +109,7 @@ static void OPFShipFollowTrack(TileIndex tile, DiagDirection direction, TrackPat
 	/* initialize path finder variables */
 	tpf->rd.cur_length = 0;
 	tpf->rd.depth = 0;
-	tpf->rd.last_choosen_track = INVALID_TRACK;
+	tpf->rd.last_chosen_trackdir = INVALID_TRACKDIR;
 
 	ShipTrackFollower(tile, tpf, 0);
 	TPFModeShip(tpf, tile, direction);
