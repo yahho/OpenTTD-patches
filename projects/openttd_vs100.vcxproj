@@ -333,24 +333,80 @@
     <ClCompile Include="..\src\ini.cpp" />
     <ClCompile Include="..\src\ini_load.cpp" />
     <ClCompile Include="..\src\landscape.cpp" />
-    <ClCompile Include="..\src\linkgraph\demands.cpp" />
-    <ClCompile Include="..\src\linkgraph\flowmapper.cpp" />
-    <ClCompile Include="..\src\linkgraph\linkgraph.cpp" />
-    <ClCompile Include="..\src\linkgraph\linkgraphjob.cpp" />
-    <ClCompile Include="..\src\linkgraph\linkgraphschedule.cpp" />
-    <ClCompile Include="..\src\linkgraph\mcf.cpp" />
+    <ClCompile Include="..\src\linkgraph\demands.cpp">
+      <AssemblerListingLocation>$(IntDir)\linkgraph\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\linkgraph\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\linkgraph\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\linkgraph\flowmapper.cpp">
+      <AssemblerListingLocation>$(IntDir)\linkgraph\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\linkgraph\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\linkgraph\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\linkgraph\linkgraph.cpp">
+      <AssemblerListingLocation>$(IntDir)\linkgraph\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\linkgraph\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\linkgraph\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\linkgraph\linkgraphjob.cpp">
+      <AssemblerListingLocation>$(IntDir)\linkgraph\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\linkgraph\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\linkgraph\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\linkgraph\linkgraphschedule.cpp">
+      <AssemblerListingLocation>$(IntDir)\linkgraph\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\linkgraph\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\linkgraph\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\linkgraph\mcf.cpp">
+      <AssemblerListingLocation>$(IntDir)\linkgraph\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\linkgraph\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\linkgraph\</XMLDocumentationFileName>
+    </ClCompile>
     <ClCompile Include="..\src\map.cpp" />
     <ClCompile Include="..\src\misc.cpp" />
     <ClCompile Include="..\src\mixer.cpp" />
     <ClCompile Include="..\src\music.cpp" />
-    <ClCompile Include="..\src\network\network.cpp" />
-    <ClCompile Include="..\src\network\network_admin.cpp" />
-    <ClCompile Include="..\src\network\network_client.cpp" />
-    <ClCompile Include="..\src\network\network_command.cpp" />
-    <ClCompile Include="..\src\network\network_content.cpp" />
-    <ClCompile Include="..\src\network\network_gamelist.cpp" />
-    <ClCompile Include="..\src\network\network_server.cpp" />
-    <ClCompile Include="..\src\network\network_udp.cpp" />
+    <ClCompile Include="..\src\network\network.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\network\network_admin.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\network\network_client.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\network\network_command.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\network\network_content.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\network\network_gamelist.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\network\network_server.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\network\network_udp.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\</XMLDocumentationFileName>
+    </ClCompile>
     <ClCompile Include="..\src\openttd.cpp" />
     <ClCompile Include="..\src\order_backup.cpp" />
     <ClCompile Include="..\src\os_timer.cpp" />
@@ -369,7 +425,11 @@
     <ClCompile Include="..\src\sprite.cpp" />
     <ClCompile Include="..\src\spritecache.cpp" />
     <ClCompile Include="..\src\station.cpp" />
-    <ClCompile Include="..\src\strgen\strgen_base.cpp" />
+    <ClCompile Include="..\src\strgen\strgen_base.cpp">
+      <AssemblerListingLocation>$(IntDir)\strgen\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\strgen\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\strgen\</XMLDocumentationFileName>
+    </ClCompile>
     <ClCompile Include="..\src\string.cpp" />
     <ClCompile Include="..\src\stringfilter.cpp" />
     <ClCompile Include="..\src\strings.cpp" />
@@ -652,27 +712,51 @@
     <ClInclude Include="..\src\window_type.h" />
     <ClInclude Include="..\src\zoom_func.h" />
     <ClInclude Include="..\src\zoom_type.h" />
-    <ClCompile Include="..\src\core\alloc_func.cpp" />
+    <ClCompile Include="..\src\core\alloc_func.cpp">
+      <AssemblerListingLocation>$(IntDir)\core\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\core\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\core\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\core\alloc_func.hpp" />
     <ClInclude Include="..\src\core\alloc_type.hpp" />
     <ClInclude Include="..\src\core\backup_type.hpp" />
-    <ClCompile Include="..\src\core\bitmath_func.cpp" />
+    <ClCompile Include="..\src\core\bitmath_func.cpp">
+      <AssemblerListingLocation>$(IntDir)\core\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\core\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\core\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\core\bitmath_func.hpp" />
     <ClInclude Include="..\src\core\endian_func.hpp" />
     <ClInclude Include="..\src\core\endian_type.hpp" />
     <ClInclude Include="..\src\core\enum_type.hpp" />
-    <ClCompile Include="..\src\core\geometry_func.cpp" />
+    <ClCompile Include="..\src\core\geometry_func.cpp">
+      <AssemblerListingLocation>$(IntDir)\core\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\core\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\core\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\core\geometry_func.hpp" />
     <ClInclude Include="..\src\core\geometry_type.hpp" />
-    <ClCompile Include="..\src\core\math_func.cpp" />
+    <ClCompile Include="..\src\core\math_func.cpp">
+      <AssemblerListingLocation>$(IntDir)\core\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\core\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\core\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\core\math_func.hpp" />
     <ClInclude Include="..\src\core\mem_func.hpp" />
     <ClInclude Include="..\src\core\multimap.hpp" />
     <ClInclude Include="..\src\core\overflowsafe_type.hpp" />
-    <ClCompile Include="..\src\core\pool_func.cpp" />
+    <ClCompile Include="..\src\core\pool_func.cpp">
+      <AssemblerListingLocation>$(IntDir)\core\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\core\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\core\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\core\pool_func.hpp" />
     <ClInclude Include="..\src\core\pool_type.hpp" />
-    <ClCompile Include="..\src\core\random_func.cpp" />
+    <ClCompile Include="..\src\core\random_func.cpp">
+      <AssemblerListingLocation>$(IntDir)\core\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\core\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\core\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\core\random_func.hpp" />
     <ClInclude Include="..\src\core\smallmap_type.hpp" />
     <ClInclude Include="..\src\core\smallmatrix_type.hpp" />
@@ -701,13 +785,29 @@
     <ClCompile Include="..\src\highscore_gui.cpp" />
     <ClCompile Include="..\src\industry_gui.cpp" />
     <ClCompile Include="..\src\intro_gui.cpp" />
-    <ClCompile Include="..\src\linkgraph\linkgraph_gui.cpp" />
+    <ClCompile Include="..\src\linkgraph\linkgraph_gui.cpp">
+      <AssemblerListingLocation>$(IntDir)\linkgraph\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\linkgraph\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\linkgraph\</XMLDocumentationFileName>
+    </ClCompile>
     <ClCompile Include="..\src\main_gui.cpp" />
     <ClCompile Include="..\src\misc_gui.cpp" />
     <ClCompile Include="..\src\music_gui.cpp" />
-    <ClCompile Include="..\src\network\network_chat_gui.cpp" />
-    <ClCompile Include="..\src\network\network_content_gui.cpp" />
-    <ClCompile Include="..\src\network\network_gui.cpp" />
+    <ClCompile Include="..\src\network\network_chat_gui.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\network\network_content_gui.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\network\network_gui.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\</XMLDocumentationFileName>
+    </ClCompile>
     <ClCompile Include="..\src\newgrf_debug_gui.cpp" />
     <ClCompile Include="..\src\newgrf_gui.cpp" />
     <ClCompile Include="..\src\news_gui.cpp" />
@@ -748,7 +848,11 @@
     <ClInclude Include="..\src\widgets\date_widget.h" />
     <ClInclude Include="..\src\widgets\depot_widget.h" />
     <ClInclude Include="..\src\widgets\dock_widget.h" />
-    <ClCompile Include="..\src\widgets\dropdown.cpp" />
+    <ClCompile Include="..\src\widgets\dropdown.cpp">
+      <AssemblerListingLocation>$(IntDir)\widgets\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\widgets\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\widgets\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\widgets\dropdown_func.h" />
     <ClInclude Include="..\src\widgets\dropdown_type.h" />
     <ClInclude Include="..\src\widgets\dropdown_widget.h" />
@@ -821,53 +925,209 @@
     <ClCompile Include="..\src\vehicle_cmd.cpp" />
     <ClCompile Include="..\src\water_cmd.cpp" />
     <ClCompile Include="..\src\waypoint_cmd.cpp" />
-    <ClCompile Include="..\src\saveload\afterload.cpp" />
-    <ClCompile Include="..\src\saveload\ai_sl.cpp" />
-    <ClCompile Include="..\src\saveload\airport_sl.cpp" />
-    <ClCompile Include="..\src\saveload\animated_tile_sl.cpp" />
-    <ClCompile Include="..\src\saveload\autoreplace_sl.cpp" />
-    <ClCompile Include="..\src\saveload\cargomonitor_sl.cpp" />
-    <ClCompile Include="..\src\saveload\cargopacket_sl.cpp" />
-    <ClCompile Include="..\src\saveload\cheat_sl.cpp" />
-    <ClCompile Include="..\src\saveload\company_sl.cpp" />
-    <ClCompile Include="..\src\saveload\depot_sl.cpp" />
-    <ClCompile Include="..\src\saveload\economy_sl.cpp" />
-    <ClCompile Include="..\src\saveload\engine_sl.cpp" />
-    <ClCompile Include="..\src\saveload\game_sl.cpp" />
-    <ClCompile Include="..\src\saveload\gamelog_sl.cpp" />
-    <ClCompile Include="..\src\saveload\goal_sl.cpp" />
-    <ClCompile Include="..\src\saveload\group_sl.cpp" />
-    <ClCompile Include="..\src\saveload\industry_sl.cpp" />
-    <ClCompile Include="..\src\saveload\labelmaps_sl.cpp" />
-    <ClCompile Include="..\src\saveload\linkgraph_sl.cpp" />
-    <ClCompile Include="..\src\saveload\map_sl.cpp" />
-    <ClCompile Include="..\src\saveload\misc_sl.cpp" />
-    <ClCompile Include="..\src\saveload\newgrf_sl.cpp" />
+    <ClCompile Include="..\src\saveload\afterload.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\ai_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\airport_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\animated_tile_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\autoreplace_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\cargomonitor_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\cargopacket_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\cheat_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\company_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\depot_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\economy_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\engine_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\game_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\gamelog_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\goal_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\group_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\industry_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\labelmaps_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\linkgraph_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\map_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\misc_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\newgrf_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\saveload\newgrf_sl.h" />
-    <ClCompile Include="..\src\saveload\object_sl.cpp" />
-    <ClCompile Include="..\src\saveload\oldloader.cpp" />
+    <ClCompile Include="..\src\saveload\object_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\oldloader.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\saveload\oldloader.h" />
-    <ClCompile Include="..\src\saveload\oldloader_sl.cpp" />
-    <ClCompile Include="..\src\saveload\order_sl.cpp" />
-    <ClCompile Include="..\src\saveload\saveload.cpp" />
+    <ClCompile Include="..\src\saveload\oldloader_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\order_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\saveload.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\saveload\saveload.h" />
-    <ClCompile Include="..\src\saveload\saveload_buffer.cpp" />
+    <ClCompile Include="..\src\saveload\saveload_buffer.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\saveload\saveload_buffer.h" />
-    <ClCompile Include="..\src\saveload\saveload_data.cpp" />
+    <ClCompile Include="..\src\saveload\saveload_data.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\saveload\saveload_data.h" />
     <ClInclude Include="..\src\saveload\saveload_error.h" />
-    <ClCompile Include="..\src\saveload\saveload_filter.cpp" />
+    <ClCompile Include="..\src\saveload\saveload_filter.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\saveload\saveload_filter.h" />
     <ClInclude Include="..\src\saveload\saveload_internal.h" />
-    <ClCompile Include="..\src\saveload\signs_sl.cpp" />
-    <ClCompile Include="..\src\saveload\station_sl.cpp" />
-    <ClCompile Include="..\src\saveload\storage_sl.cpp" />
-    <ClCompile Include="..\src\saveload\strings_sl.cpp" />
-    <ClCompile Include="..\src\saveload\story_sl.cpp" />
-    <ClCompile Include="..\src\saveload\subsidy_sl.cpp" />
-    <ClCompile Include="..\src\saveload\town_sl.cpp" />
-    <ClCompile Include="..\src\saveload\vehicle_sl.cpp" />
-    <ClCompile Include="..\src\saveload\waypoint_sl.cpp" />
+    <ClCompile Include="..\src\saveload\signs_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\station_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\storage_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\strings_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\story_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\subsidy_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\town_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\vehicle_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\saveload\waypoint_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\table\airport_defaults.h" />
     <ClInclude Include="..\src\table\airport_movement.h" />
     <ClInclude Include="..\src\table\airporttile_ids.h" />
@@ -890,7 +1150,11 @@
     <ClInclude Include="..\src\table\palettes.h" />
     <ClInclude Include="..\src\table\pricebase.h" />
     <ClInclude Include="..\src\table\railtypes.h" />
-    <ClCompile Include="..\src\table\road_land.cpp" />
+    <ClCompile Include="..\src\table\road_land.cpp">
+      <AssemblerListingLocation>$(IntDir)\table\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\table\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\table\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\table\road_land.h" />
     <ClInclude Include="..\src\table\roadveh_movement.h" />
     <ClInclude Include="..\src\..\objs\settings\table\settings.h" />
@@ -905,41 +1169,129 @@
     <ClInclude Include="..\src\table\tree_land.h" />
     <ClInclude Include="..\src\table\unicode.h" />
     <ClInclude Include="..\src\table\water_land.h" />
-    <ClCompile Include="..\src\3rdparty\md5\md5.cpp" />
+    <ClCompile Include="..\src\3rdparty\md5\md5.cpp">
+      <AssemblerListingLocation>$(IntDir)\3rdparty\md5\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\3rdparty\md5\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\3rdparty\md5\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\3rdparty\md5\md5.h" />
-    <ClCompile Include="..\src\script\script_config.cpp" />
+    <ClCompile Include="..\src\script\script_config.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\script\script_config.hpp" />
     <ClInclude Include="..\src\script\script_fatalerror.hpp" />
-    <ClCompile Include="..\src\script\script_info.cpp" />
+    <ClCompile Include="..\src\script\script_info.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\script\script_info.hpp" />
-    <ClCompile Include="..\src\script\script_info_dummy.cpp" />
-    <ClCompile Include="..\src\script\script_instance.cpp" />
+    <ClCompile Include="..\src\script\script_info_dummy.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\script_instance.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\script\script_instance.hpp" />
-    <ClCompile Include="..\src\script\script_scanner.cpp" />
+    <ClCompile Include="..\src\script\script_scanner.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\script\script_scanner.hpp" />
     <ClInclude Include="..\src\script\script_storage.hpp" />
     <ClInclude Include="..\src\script\script_suspend.hpp" />
-    <ClCompile Include="..\src\script\squirrel.cpp" />
+    <ClCompile Include="..\src\script\squirrel.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\script\squirrel.hpp" />
     <ClInclude Include="..\src\script\squirrel_class.hpp" />
     <ClInclude Include="..\src\script\squirrel_helper.hpp" />
     <ClInclude Include="..\src\script\squirrel_helper_type.hpp" />
-    <ClCompile Include="..\src\script\squirrel_std.cpp" />
+    <ClCompile Include="..\src\script\squirrel_std.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\script\squirrel_std.hpp" />
-    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqapi.cpp" />
-    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqbaselib.cpp" />
-    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqclass.cpp" />
-    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqcompiler.cpp" />
-    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqdebug.cpp" />
-    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqfuncstate.cpp" />
-    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqlexer.cpp" />
-    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqmem.cpp" />
-    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqobject.cpp" />
-    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqstate.cpp" />
-    <ClCompile Include="..\src\3rdparty\squirrel\sqstdlib\sqstdaux.cpp" />
-    <ClCompile Include="..\src\3rdparty\squirrel\sqstdlib\sqstdmath.cpp" />
-    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqtable.cpp" />
-    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqvm.cpp" />
+    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqapi.cpp">
+      <AssemblerListingLocation>$(IntDir)\3rdparty\squirrel\squirrel\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\3rdparty\squirrel\squirrel\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\3rdparty\squirrel\squirrel\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqbaselib.cpp">
+      <AssemblerListingLocation>$(IntDir)\3rdparty\squirrel\squirrel\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\3rdparty\squirrel\squirrel\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\3rdparty\squirrel\squirrel\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqclass.cpp">
+      <AssemblerListingLocation>$(IntDir)\3rdparty\squirrel\squirrel\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\3rdparty\squirrel\squirrel\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\3rdparty\squirrel\squirrel\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqcompiler.cpp">
+      <AssemblerListingLocation>$(IntDir)\3rdparty\squirrel\squirrel\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\3rdparty\squirrel\squirrel\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\3rdparty\squirrel\squirrel\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqdebug.cpp">
+      <AssemblerListingLocation>$(IntDir)\3rdparty\squirrel\squirrel\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\3rdparty\squirrel\squirrel\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\3rdparty\squirrel\squirrel\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqfuncstate.cpp">
+      <AssemblerListingLocation>$(IntDir)\3rdparty\squirrel\squirrel\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\3rdparty\squirrel\squirrel\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\3rdparty\squirrel\squirrel\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqlexer.cpp">
+      <AssemblerListingLocation>$(IntDir)\3rdparty\squirrel\squirrel\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\3rdparty\squirrel\squirrel\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\3rdparty\squirrel\squirrel\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqmem.cpp">
+      <AssemblerListingLocation>$(IntDir)\3rdparty\squirrel\squirrel\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\3rdparty\squirrel\squirrel\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\3rdparty\squirrel\squirrel\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqobject.cpp">
+      <AssemblerListingLocation>$(IntDir)\3rdparty\squirrel\squirrel\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\3rdparty\squirrel\squirrel\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\3rdparty\squirrel\squirrel\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqstate.cpp">
+      <AssemblerListingLocation>$(IntDir)\3rdparty\squirrel\squirrel\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\3rdparty\squirrel\squirrel\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\3rdparty\squirrel\squirrel\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\squirrel\sqstdlib\sqstdaux.cpp">
+      <AssemblerListingLocation>$(IntDir)\3rdparty\squirrel\sqstdlib\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\3rdparty\squirrel\sqstdlib\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\3rdparty\squirrel\sqstdlib\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\squirrel\sqstdlib\sqstdmath.cpp">
+      <AssemblerListingLocation>$(IntDir)\3rdparty\squirrel\sqstdlib\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\3rdparty\squirrel\sqstdlib\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\3rdparty\squirrel\sqstdlib\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqtable.cpp">
+      <AssemblerListingLocation>$(IntDir)\3rdparty\squirrel\squirrel\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\3rdparty\squirrel\squirrel\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\3rdparty\squirrel\squirrel\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqvm.cpp">
+      <AssemblerListingLocation>$(IntDir)\3rdparty\squirrel\squirrel\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\3rdparty\squirrel\squirrel\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\3rdparty\squirrel\squirrel\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\3rdparty\squirrel\squirrel\sqarray.h" />
     <ClInclude Include="..\src\3rdparty\squirrel\squirrel\sqclass.h" />
     <ClInclude Include="..\src\3rdparty\squirrel\squirrel\sqclosure.h" />
@@ -966,30 +1318,78 @@
     <ClInclude Include="..\src\3rdparty\squirrel\squirrel\squtils.h" />
     <ClInclude Include="..\src\3rdparty\squirrel\squirrel\sqvm.h" />
     <ClInclude Include="..\src\ai\ai.hpp" />
-    <ClCompile Include="..\src\ai\ai_config.cpp" />
+    <ClCompile Include="..\src\ai\ai_config.cpp">
+      <AssemblerListingLocation>$(IntDir)\ai\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\ai\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\ai\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\ai\ai_config.hpp" />
-    <ClCompile Include="..\src\ai\ai_core.cpp" />
-    <ClCompile Include="..\src\ai\ai_gui.cpp" />
+    <ClCompile Include="..\src\ai\ai_core.cpp">
+      <AssemblerListingLocation>$(IntDir)\ai\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\ai\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\ai\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\ai\ai_gui.cpp">
+      <AssemblerListingLocation>$(IntDir)\ai\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\ai\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\ai\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\ai\ai_gui.hpp" />
-    <ClCompile Include="..\src\ai\ai_info.cpp" />
+    <ClCompile Include="..\src\ai\ai_info.cpp">
+      <AssemblerListingLocation>$(IntDir)\ai\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\ai\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\ai\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\ai\ai_info.hpp" />
-    <ClCompile Include="..\src\ai\ai_instance.cpp" />
+    <ClCompile Include="..\src\ai\ai_instance.cpp">
+      <AssemblerListingLocation>$(IntDir)\ai\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\ai\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\ai\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\ai\ai_instance.hpp" />
-    <ClCompile Include="..\src\ai\ai_scanner.cpp" />
+    <ClCompile Include="..\src\ai\ai_scanner.cpp">
+      <AssemblerListingLocation>$(IntDir)\ai\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\ai\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\ai\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\ai\ai_scanner.hpp" />
     <ClInclude Include="..\src\script\api\ai_changelog.hpp" />
     <ClInclude Include="..\src\script\api\game_changelog.hpp" />
     <ClInclude Include="..\src\game\game.hpp" />
-    <ClCompile Include="..\src\game\game_config.cpp" />
+    <ClCompile Include="..\src\game\game_config.cpp">
+      <AssemblerListingLocation>$(IntDir)\game\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\game\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\game\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\game\game_config.hpp" />
-    <ClCompile Include="..\src\game\game_core.cpp" />
-    <ClCompile Include="..\src\game\game_info.cpp" />
+    <ClCompile Include="..\src\game\game_core.cpp">
+      <AssemblerListingLocation>$(IntDir)\game\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\game\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\game\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\game\game_info.cpp">
+      <AssemblerListingLocation>$(IntDir)\game\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\game\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\game\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\game\game_info.hpp" />
-    <ClCompile Include="..\src\game\game_instance.cpp" />
+    <ClCompile Include="..\src\game\game_instance.cpp">
+      <AssemblerListingLocation>$(IntDir)\game\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\game\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\game\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\game\game_instance.hpp" />
-    <ClCompile Include="..\src\game\game_scanner.cpp" />
+    <ClCompile Include="..\src\game\game_scanner.cpp">
+      <AssemblerListingLocation>$(IntDir)\game\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\game\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\game\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\game\game_scanner.hpp" />
-    <ClCompile Include="..\src\game\game_text.cpp" />
+    <ClCompile Include="..\src\game\game_text.cpp">
+      <AssemblerListingLocation>$(IntDir)\game\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\game\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\game\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\game\game_text.hpp" />
     <ClInclude Include="..\src\script\api\script_accounting.hpp" />
     <ClInclude Include="..\src\script\api\script_admin.hpp" />
@@ -1054,90 +1454,374 @@
     <ClInclude Include="..\src\script\api\script_waypoint.hpp" />
     <ClInclude Include="..\src\script\api\script_waypointlist.hpp" />
     <ClInclude Include="..\src\script\api\script_window.hpp" />
-    <ClCompile Include="..\src\script\api\script_accounting.cpp" />
-    <ClCompile Include="..\src\script\api\script_admin.cpp" />
-    <ClCompile Include="..\src\script\api\script_airport.cpp" />
-    <ClCompile Include="..\src\script\api\script_base.cpp" />
-    <ClCompile Include="..\src\script\api\script_basestation.cpp" />
-    <ClCompile Include="..\src\script\api\script_bridge.cpp" />
-    <ClCompile Include="..\src\script\api\script_bridgelist.cpp" />
-    <ClCompile Include="..\src\script\api\script_cargo.cpp" />
-    <ClCompile Include="..\src\script\api\script_cargolist.cpp" />
-    <ClCompile Include="..\src\script\api\script_cargomonitor.cpp" />
-    <ClCompile Include="..\src\script\api\script_company.cpp" />
-    <ClCompile Include="..\src\script\api\script_companymode.cpp" />
-    <ClCompile Include="..\src\script\api\script_controller.cpp" />
-    <ClCompile Include="..\src\script\api\script_date.cpp" />
-    <ClCompile Include="..\src\script\api\script_depotlist.cpp" />
-    <ClCompile Include="..\src\script\api\script_engine.cpp" />
-    <ClCompile Include="..\src\script\api\script_enginelist.cpp" />
-    <ClCompile Include="..\src\script\api\script_error.cpp" />
-    <ClCompile Include="..\src\script\api\script_event.cpp" />
-    <ClCompile Include="..\src\script\api\script_event_types.cpp" />
-    <ClCompile Include="..\src\script\api\script_execmode.cpp" />
-    <ClCompile Include="..\src\script\api\script_game.cpp" />
-    <ClCompile Include="..\src\script\api\script_gamesettings.cpp" />
-    <ClCompile Include="..\src\script\api\script_goal.cpp" />
-    <ClCompile Include="..\src\script\api\script_group.cpp" />
-    <ClCompile Include="..\src\script\api\script_grouplist.cpp" />
-    <ClCompile Include="..\src\script\api\script_industry.cpp" />
-    <ClCompile Include="..\src\script\api\script_industrylist.cpp" />
-    <ClCompile Include="..\src\script\api\script_industrytype.cpp" />
-    <ClCompile Include="..\src\script\api\script_industrytypelist.cpp" />
-    <ClCompile Include="..\src\script\api\script_infrastructure.cpp" />
-    <ClCompile Include="..\src\script\api\script_list.cpp" />
-    <ClCompile Include="..\src\script\api\script_log.cpp" />
-    <ClCompile Include="..\src\script\api\script_map.cpp" />
-    <ClCompile Include="..\src\script\api\script_marine.cpp" />
-    <ClCompile Include="..\src\script\api\script_news.cpp" />
-    <ClCompile Include="..\src\script\api\script_object.cpp" />
-    <ClCompile Include="..\src\script\api\script_order.cpp" />
-    <ClCompile Include="..\src\script\api\script_rail.cpp" />
-    <ClCompile Include="..\src\script\api\script_railtypelist.cpp" />
-    <ClCompile Include="..\src\script\api\script_road.cpp" />
-    <ClCompile Include="..\src\script\api\script_sign.cpp" />
-    <ClCompile Include="..\src\script\api\script_signlist.cpp" />
-    <ClCompile Include="..\src\script\api\script_station.cpp" />
-    <ClCompile Include="..\src\script\api\script_stationlist.cpp" />
-    <ClCompile Include="..\src\script\api\script_story_page.cpp" />
-    <ClCompile Include="..\src\script\api\script_subsidy.cpp" />
-    <ClCompile Include="..\src\script\api\script_subsidylist.cpp" />
-    <ClCompile Include="..\src\script\api\script_testmode.cpp" />
-    <ClCompile Include="..\src\script\api\script_text.cpp" />
-    <ClCompile Include="..\src\script\api\script_tile.cpp" />
-    <ClCompile Include="..\src\script\api\script_tilelist.cpp" />
-    <ClCompile Include="..\src\script\api\script_town.cpp" />
-    <ClCompile Include="..\src\script\api\script_townlist.cpp" />
-    <ClCompile Include="..\src\script\api\script_tunnel.cpp" />
-    <ClCompile Include="..\src\script\api\script_vehicle.cpp" />
-    <ClCompile Include="..\src\script\api\script_vehiclelist.cpp" />
-    <ClCompile Include="..\src\script\api\script_viewport.cpp" />
-    <ClCompile Include="..\src\script\api\script_waypoint.cpp" />
-    <ClCompile Include="..\src\script\api\script_waypointlist.cpp" />
-    <ClCompile Include="..\src\script\api\script_window.cpp" />
-    <ClCompile Include="..\src\blitter\32bpp_anim.cpp" />
+    <ClCompile Include="..\src\script\api\script_accounting.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_admin.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_airport.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_base.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_basestation.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_bridge.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_bridgelist.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_cargo.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_cargolist.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_cargomonitor.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_company.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_companymode.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_controller.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_date.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_depotlist.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_engine.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_enginelist.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_error.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_event.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_event_types.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_execmode.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_game.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_gamesettings.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_goal.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_group.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_grouplist.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_industry.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_industrylist.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_industrytype.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_industrytypelist.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_infrastructure.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_list.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_log.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_map.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_marine.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_news.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_object.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_order.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_rail.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_railtypelist.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_road.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_sign.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_signlist.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_station.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_stationlist.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_story_page.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_subsidy.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_subsidylist.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_testmode.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_text.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_tile.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_tilelist.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_town.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_townlist.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_tunnel.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_vehicle.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_vehiclelist.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_viewport.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_waypoint.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_waypointlist.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_window.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\blitter\32bpp_anim.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\blitter\32bpp_anim.hpp" />
-    <ClCompile Include="..\src\blitter\32bpp_base.cpp" />
+    <ClCompile Include="..\src\blitter\32bpp_base.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\blitter\32bpp_base.hpp" />
-    <ClCompile Include="..\src\blitter\32bpp_optimized.cpp" />
+    <ClCompile Include="..\src\blitter\32bpp_optimized.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\blitter\32bpp_optimized.hpp" />
-    <ClCompile Include="..\src\blitter\32bpp_simple.cpp" />
+    <ClCompile Include="..\src\blitter\32bpp_simple.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\blitter\32bpp_simple.hpp" />
-    <ClCompile Include="..\src\blitter\8bpp_base.cpp" />
+    <ClCompile Include="..\src\blitter\8bpp_base.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\blitter\8bpp_base.hpp" />
-    <ClCompile Include="..\src\blitter\8bpp_optimized.cpp" />
+    <ClCompile Include="..\src\blitter\8bpp_optimized.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\blitter\8bpp_optimized.hpp" />
-    <ClCompile Include="..\src\blitter\8bpp_simple.cpp" />
+    <ClCompile Include="..\src\blitter\8bpp_simple.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\blitter\8bpp_simple.hpp" />
-    <ClCompile Include="..\src\blitter\base.cpp" />
+    <ClCompile Include="..\src\blitter\base.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\blitter\base.hpp" />
     <ClInclude Include="..\src\blitter\factory.hpp" />
-    <ClCompile Include="..\src\blitter\null.cpp" />
+    <ClCompile Include="..\src\blitter\null.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\blitter\null.hpp" />
     <ClInclude Include="..\src\music\music_driver.hpp" />
     <ClInclude Include="..\src\sound\sound_driver.hpp" />
     <ClInclude Include="..\src\video\video_driver.hpp" />
-    <ClCompile Include="..\src\spriteloader\grf.cpp" />
+    <ClCompile Include="..\src\spriteloader\grf.cpp">
+      <AssemblerListingLocation>$(IntDir)\spriteloader\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\spriteloader\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\spriteloader\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\spriteloader\grf.hpp" />
     <ClInclude Include="..\src\spriteloader\spriteloader.hpp" />
     <ClCompile Include="..\src\newgrf.cpp" />
@@ -1181,51 +1865,123 @@
     <ClInclude Include="..\src\misc\array.hpp" />
     <ClInclude Include="..\src\misc\binaryheap.hpp" />
     <ClInclude Include="..\src\misc\blob.hpp" />
-    <ClCompile Include="..\src\misc\countedobj.cpp" />
+    <ClCompile Include="..\src\misc\countedobj.cpp">
+      <AssemblerListingLocation>$(IntDir)\misc\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\misc\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\misc\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\misc\countedptr.hpp" />
-    <ClCompile Include="..\src\misc\dbg_helpers.cpp" />
+    <ClCompile Include="..\src\misc\dbg_helpers.cpp">
+      <AssemblerListingLocation>$(IntDir)\misc\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\misc\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\misc\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\misc\dbg_helpers.h" />
     <ClInclude Include="..\src\misc\fixedsizearray.hpp" />
-    <ClCompile Include="..\src\misc\getoptdata.cpp" />
+    <ClCompile Include="..\src\misc\getoptdata.cpp">
+      <AssemblerListingLocation>$(IntDir)\misc\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\misc\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\misc\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\misc\getoptdata.h" />
     <ClInclude Include="..\src\misc\hashtable.hpp" />
     <ClInclude Include="..\src\misc\str.hpp" />
-    <ClCompile Include="..\src\network\core\address.cpp" />
+    <ClCompile Include="..\src\network\core\address.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\core\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\core\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\core\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\network\core\address.h" />
     <ClInclude Include="..\src\network\core\config.h" />
-    <ClCompile Include="..\src\network\core\core.cpp" />
+    <ClCompile Include="..\src\network\core\core.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\core\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\core\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\core\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\network\core\core.h" />
     <ClInclude Include="..\src\network\core\game.h" />
-    <ClCompile Include="..\src\network\core\host.cpp" />
+    <ClCompile Include="..\src\network\core\host.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\core\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\core\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\core\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\network\core\host.h" />
     <ClInclude Include="..\src\network\core\os_abstraction.h" />
-    <ClCompile Include="..\src\network\core\packet.cpp" />
+    <ClCompile Include="..\src\network\core\packet.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\core\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\core\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\core\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\network\core\packet.h" />
-    <ClCompile Include="..\src\network\core\tcp.cpp" />
+    <ClCompile Include="..\src\network\core\tcp.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\core\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\core\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\core\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\network\core\tcp.h" />
-    <ClCompile Include="..\src\network\core\tcp_admin.cpp" />
+    <ClCompile Include="..\src\network\core\tcp_admin.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\core\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\core\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\core\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\network\core\tcp_admin.h" />
-    <ClCompile Include="..\src\network\core\tcp_connect.cpp" />
-    <ClCompile Include="..\src\network\core\tcp_content.cpp" />
+    <ClCompile Include="..\src\network\core\tcp_connect.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\core\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\core\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\core\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\network\core\tcp_content.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\core\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\core\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\core\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\network\core\tcp_content.h" />
-    <ClCompile Include="..\src\network\core\tcp_game.cpp" />
+    <ClCompile Include="..\src\network\core\tcp_game.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\core\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\core\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\core\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\network\core\tcp_game.h" />
-    <ClCompile Include="..\src\network\core\tcp_http.cpp" />
+    <ClCompile Include="..\src\network\core\tcp_http.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\core\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\core\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\core\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\network\core\tcp_http.h" />
     <ClInclude Include="..\src\network\core\tcp_listen.h" />
-    <ClCompile Include="..\src\network\core\udp.cpp" />
+    <ClCompile Include="..\src\network\core\udp.cpp">
+      <AssemblerListingLocation>$(IntDir)\network\core\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\network\core\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\network\core\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\network\core\udp.h" />
     <ClInclude Include="..\src\pathfinder\follow_track.hpp" />
-    <ClCompile Include="..\src\pathfinder\opf\opf_ship.cpp" />
+    <ClCompile Include="..\src\pathfinder\opf\opf_ship.cpp">
+      <AssemblerListingLocation>$(IntDir)\pathfinder\opf\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\pathfinder\opf\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\pathfinder\opf\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\pathfinder\opf\opf_ship.h" />
     <ClInclude Include="..\src\pathfinder\pathfinder_func.h" />
     <ClInclude Include="..\src\pathfinder\pathfinder_type.h" />
     <ClInclude Include="..\src\pathfinder\pf_performance_timer.hpp" />
-    <ClCompile Include="..\src\pathfinder\npf\aystar.cpp" />
+    <ClCompile Include="..\src\pathfinder\npf\aystar.cpp">
+      <AssemblerListingLocation>$(IntDir)\pathfinder\npf\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\pathfinder\npf\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\pathfinder\npf\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\pathfinder\npf\aystar.h" />
-    <ClCompile Include="..\src\pathfinder\npf\npf.cpp" />
+    <ClCompile Include="..\src\pathfinder\npf\npf.cpp">
+      <AssemblerListingLocation>$(IntDir)\pathfinder\npf\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\pathfinder\npf\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\pathfinder\npf\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\pathfinder\npf\npf_func.h" />
-    <ClCompile Include="..\src\pathfinder\npf\queue.cpp" />
+    <ClCompile Include="..\src\pathfinder\npf\queue.cpp">
+      <AssemblerListingLocation>$(IntDir)\pathfinder\npf\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\pathfinder\npf\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\pathfinder\npf\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\pathfinder\npf\queue.h" />
     <ClInclude Include="..\src\pathfinder\yapf\nodelist.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf.h" />
@@ -1241,25 +1997,89 @@
     <ClInclude Include="..\src\pathfinder\yapf\yapf_node_rail.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf_node_road.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf_node_ship.hpp" />
-    <ClCompile Include="..\src\pathfinder\yapf\yapf_rail.cpp" />
-    <ClCompile Include="..\src\pathfinder\yapf\yapf_road.cpp" />
-    <ClCompile Include="..\src\pathfinder\yapf\yapf_ship.cpp" />
+    <ClCompile Include="..\src\pathfinder\yapf\yapf_rail.cpp">
+      <AssemblerListingLocation>$(IntDir)\pathfinder\yapf\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\pathfinder\yapf\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\pathfinder\yapf\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\pathfinder\yapf\yapf_road.cpp">
+      <AssemblerListingLocation>$(IntDir)\pathfinder\yapf\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\pathfinder\yapf\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\pathfinder\yapf\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\pathfinder\yapf\yapf_ship.cpp">
+      <AssemblerListingLocation>$(IntDir)\pathfinder\yapf\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\pathfinder\yapf\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\pathfinder\yapf\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\pathfinder\yapf\yapf_type.hpp" />
-    <ClCompile Include="..\src\video\dedicated_v.cpp" />
-    <ClCompile Include="..\src\video\null_v.cpp" />
-    <ClCompile Include="..\src\video\sdl_v.cpp" />
-    <ClCompile Include="..\src\video\win32_v.cpp" />
-    <ClCompile Include="..\src\music\dmusic.cpp" />
-    <ClCompile Include="..\src\music\null_m.cpp" />
-    <ClCompile Include="..\src\music\win32_m.cpp" />
-    <ClCompile Include="..\src\sound\null_s.cpp" />
-    <ClCompile Include="..\src\sound\sdl_s.cpp" />
-    <ClCompile Include="..\src\sound\win32_s.cpp" />
-    <ClCompile Include="..\src\os\windows\crashlog_win.cpp" />
+    <ClCompile Include="..\src\video\dedicated_v.cpp">
+      <AssemblerListingLocation>$(IntDir)\video\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\video\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\video\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\video\null_v.cpp">
+      <AssemblerListingLocation>$(IntDir)\video\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\video\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\video\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\video\sdl_v.cpp">
+      <AssemblerListingLocation>$(IntDir)\video\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\video\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\video\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\video\win32_v.cpp">
+      <AssemblerListingLocation>$(IntDir)\video\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\video\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\video\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\music\dmusic.cpp">
+      <AssemblerListingLocation>$(IntDir)\music\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\music\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\music\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\music\null_m.cpp">
+      <AssemblerListingLocation>$(IntDir)\music\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\music\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\music\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\music\win32_m.cpp">
+      <AssemblerListingLocation>$(IntDir)\music\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\music\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\music\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\sound\null_s.cpp">
+      <AssemblerListingLocation>$(IntDir)\sound\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\sound\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\sound\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\sound\sdl_s.cpp">
+      <AssemblerListingLocation>$(IntDir)\sound\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\sound\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\sound\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\sound\win32_s.cpp">
+      <AssemblerListingLocation>$(IntDir)\sound\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\sound\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\sound\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\os\windows\crashlog_win.cpp">
+      <AssemblerListingLocation>$(IntDir)\os\windows\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\os\windows\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\os\windows\</XMLDocumentationFileName>
+    </ClCompile>
     <ResourceCompile Include="..\src\os\windows\ottdres.rc" />
-    <ClCompile Include="..\src\os\windows\win32.cpp" />
+    <ClCompile Include="..\src\os\windows\win32.cpp">
+      <AssemblerListingLocation>$(IntDir)\os\windows\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\os\windows\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\os\windows\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\thread\thread.h" />
-    <ClCompile Include="..\src\thread\thread_win32.cpp" />
+    <ClCompile Include="..\src\thread\thread_win32.cpp">
+      <AssemblerListingLocation>$(IntDir)\thread\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\thread\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\thread\</XMLDocumentationFileName>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\media\openttd.ico" />

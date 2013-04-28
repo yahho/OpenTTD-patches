@@ -168,6 +168,12 @@ srclist="`cat "$ROOT_DIR/source.list" | tr '\r' '\n' | awk '
 '`"
 
 openttd="`echo "$srclist" | awk '
+	BEGIN {
+		configs[0] = "Release|Win32";
+		configs[1] = "Debug|Win32";
+		configs[2] = "Release|x64";
+		configs[3] = "Debug|x64";
+	}
 	/^#/ {
 		gsub("^#", "", $0);
 		gsub("^ ", "", $0);
@@ -190,9 +196,56 @@ openttd="`echo "$srclist" | awk '
 		print "			<File";
 		print "				RelativePath=\\".\\\\'$file_prefix'"$0"\\"";
 		print "				>";
+		ndirs = split($0, dirs, "\\\\");
+		if (ndirs > 1 && match($0, /\.cpp$/)) {
+			dir = "$(IntDir)\\\\";
+			for (i = 1; i < ndirs; i++) {
+				dir = sprintf("%s%s\\\\", dir, dirs[i]);
+			}
+			for (i = 0; i < 4; i++) {
+				print "				<FileConfiguration";
+				print "					Name=\\"" configs[i] "\\"";
+				print "					>";
+				print "					<Tool";
+				print "						Name=\\"VCCLCompilerTool\\"";
+				print "						AssemblerListingLocation=\\""dir"\\"";
+				print "						ObjectFile=\\""dir"\\"";
+				print "						XMLDocumentationFileName=\\""dir"\\"";
+				print "					/>";
+				print "				</FileConfiguration>";
+			}
+		}
 		print "			</File>";
 	}
 	END { print "		</Filter>"; }
+'`
+"
+
+openttdvcxproj="`echo "$srclist" | awk '
+	/^#/ { next; }
+	{
+		gsub("	", "", $0);
+		gsub("/", "\\\\", $0);
+		split($0, file, ".");
+		cltype = "ClInclude"
+		if (file[2] == "cpp") cltype = "ClCompile";
+		if (file[2] == "rc") cltype = "ResourceCompile";
+
+		ndirs = split($0, dirs, "\\\\");
+		if (ndirs > 1 && cltype == "ClCompile") {
+			dir = "$(IntDir)\\\\";
+			for (i = 1; i < ndirs; i++) {
+				dir = sprintf("%s%s\\\\", dir, dirs[i]);
+			}
+			print "    <ClCompile Include=\\"'$file_prefix'"$0"\\">";
+			print "      <AssemblerListingLocation>"dir"</AssemblerListingLocation>";
+			print "      <ObjectFileName>"dir"</ObjectFileName>";
+			print "      <XMLDocumentationFileName>"dir"</XMLDocumentationFileName>";
+			print "    </ClCompile>";
+		} else {
+			print "    <"cltype" Include=\\"'$file_prefix'"$0"\\" />";
+		}
+	}
 '`
 "
 
@@ -217,9 +270,6 @@ openttdfiles="`echo "$srclist" | awk '
 		print "    </"cltype">";
 	}
 '`
-"
-
-openttdvcxproj="`echo "$openttdfiles" | sed -n -e '/\bInclude=/ s,>$, />,p'`
 "
 
 openttdfilters="`echo "$srclist" | awk '

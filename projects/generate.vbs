@@ -146,7 +146,12 @@ Sub headers_check(filename, dir)
 End Sub
 
 Function load_main_data(filename, ByRef vcxproj, ByRef filters, ByRef files)
-	Dim res, file, line, deep, skip, first_filter, first_file, filter, cltype, index
+	Dim res, file, line, deep, skip, first_filter, first_file, filter, cltype, index, ext, pathelems, outdir, config
+	Dim configs(3)
+	configs(0) = "Release|Win32"
+	configs(1) = "Debug|Win32"
+	configs(2) = "Release|x64"
+	configs(3) = "Debug|x64"
 	res = ""
 	index = 0
 	' Read the source.list and process it
@@ -205,12 +210,36 @@ Function load_main_data(filename, ByRef vcxproj, ByRef filters, ByRef files)
 						Else
 							first_file = 1
 						End If
+						ext = Split(Line, ".")(1)
+						pathelems = Split(Line, "\")
+						If UBound(pathelems) > 0 Then
+							ReDim Preserve pathelems(UBound(pathelems) - 1)
+							outdir = "$(IntDir)\" & Join(pathelems, "\") & "\"
+						Else
+							outdir = ""
+						End If
 						res = res & _
 						"			<File" & vbCrLf & _
 						"				RelativePath=" & Chr(34) & ".\..\src\" & line & Chr(34) & vbCrLf & _
-						"				>" & vbCrLf & _
+						"				>" & vbCrLf
+						If ext = "cpp" And outdir <> "" Then
+							For Each config In configs
+								res = res & _
+								"				<FileConfiguration" & vbCrLf & _
+								"					Name=" & Chr(34) & config & Chr(34) & vbCrLf & _
+								"					>" & vbCrLf & _
+								"					<Tool" & vbCrLf & _
+								"						Name=" & Chr(34) & "VCCLCompilerTool" & Chr(34) & vbCrLf & _
+								"						AssemblerListingLocation=" & Chr(34) & outdir & Chr(34) & vbCrLf & _
+								"						ObjectFile=" & Chr(34) & outdir & Chr(34) & vbCrLf & _
+								"						XMLDocumentationFileName=" & Chr(34) & outdir & Chr(34) & vbCrLf & _
+								"					/>" & vbCrLf & _
+								"				</FileConfiguration>" & vbCrLf
+							Next
+						End If
+						res = res & _
 						"			</File>" & vbCrLf
-						Select Case Split(Line, ".")(1)
+						Select Case ext
 							Case "cpp"
 								cltype = "ClCompile"
 							Case "rc"
@@ -218,7 +247,16 @@ Function load_main_data(filename, ByRef vcxproj, ByRef filters, ByRef files)
 							Case Else
 								cltype = "ClInclude"
 						End Select
-						vcxproj = vcxproj & "    <" & cltype & " Include="& Chr(34) & "..\src\" & line & Chr(34) & " />"
+						If ext = "cpp" And outdir <> "" Then
+							vcxproj = vcxproj & _
+							"    <ClCompile Include=" & Chr(34) & "..\src\" & line & Chr(34) & ">" & vbCrLf & _
+							"      <AssemblerListingLocation>" & outdir & "</AssemblerListingLocation>" & vbCrLf & _
+							"      <ObjectFileName>" & outdir & "</ObjectFileName>" & vbCrLf & _
+							"      <XMLDocumentationFileName>" & outdir & "</XMLDocumentationFileName>" & vbCrLf & _
+							"    </ClCompile>"
+						Else
+							vcxproj = vcxproj & "    <" & cltype & " Include="& Chr(34) & "..\src\" & line & Chr(34) & " />"
+						End If
 						files = files & _
 						"    <" & cltype & " Include="& Chr(34) & "..\src\" & line & Chr(34) & ">" & vbCrLf & _
 						"      <Filter>" & filter & "</Filter>" & vbCrLf & _
