@@ -62,6 +62,55 @@ if [ -n "$dup" ]; then
 fi
 
 
+grep '\.h' "$ROOT_DIR/source.list" | grep -v '../objs/langs/table/strings.h\|../objs/settings/table/settings.h' | sed 's/	//' | sort > tmp.headers.source.list
+find "$ROOT_DIR/src" -iname .svn -prune -o \( -iname '*.h' -o -iname '*.hpp' \) -print | sed "s~$ROOT_DIR/src/~~" | sort > tmp.headers.src
+if ! diff tmp.headers.source.list tmp.headers.src >/dev/null; then
+	echo "The following headers are missing in source.list and not in /src/ or vice versa."
+	diff tmp.headers.source.list tmp.headers.src | grep '[<>]' | sort
+	echo ""
+fi
+rm tmp.headers.*
+
+
+generate() {
+	echo "Generating $2..."
+	if [ $# -eq 3 ]; then
+		# Everything above the !!FILTERS!! marker
+		sed < "$ROOT_DIR/projects/$2".in -n -e '
+			s/\r$//
+			/!!FILTERS!!/ q
+			p
+		' > "$ROOT_DIR/projects/$2"
+
+		echo "$3" >> "$ROOT_DIR/projects/$2"
+
+		# Everything between the !!FILTERS!! marker and the !!FILES!! marker
+		sed < "$ROOT_DIR/projects/$2".in -n -e '
+			s/\r$//
+			1,/!!FILTERS!!/ d
+			/!!FILES!!/ q
+			p
+		' >> "$ROOT_DIR/projects/$2"
+	else
+		# Everything above the !!FILES!! marker
+		sed < "$ROOT_DIR/projects/$2".in -n -e '
+			s/\r$//
+			/!!FILES!!/ q
+			p
+		' > "$ROOT_DIR/projects/$2"
+	fi
+
+	echo "$1" >> "$ROOT_DIR/projects/$2"
+
+	# Everything below the !!FILES!! marker
+	sed < "$ROOT_DIR/projects/$2".in -n -e '
+		s/\r$//
+		1,/!!FILES!!/ d
+		p
+	' >> "$ROOT_DIR/projects/$2"
+}
+
+
 # First, collect the list of Windows files
 allegro_config=""
 sdl_config="1"
@@ -73,15 +122,6 @@ with_cocoa="0"
 enable_directmusic="1"
 with_threads="1"
 file_prefix="..\\\\src\\\\"
-
-grep '\.h' "$ROOT_DIR/source.list" | grep -v '../objs/langs/table/strings.h\|../objs/settings/table/settings.h' | sed 's/	//' | sort > tmp.headers.source.list
-find "$ROOT_DIR/src" -iname .svn -prune -o \( -iname '*.h' -o -iname '*.hpp' \) -print | sed "s~$ROOT_DIR/src/~~" | sort > tmp.headers.src
-if ! diff tmp.headers.source.list tmp.headers.src >/dev/null; then
-	echo "The following headers are missing in source.list and not in /src/ or vice versa."
-	diff tmp.headers.source.list tmp.headers.src | grep '[<>]' | sort
-	echo ""
-fi
-rm tmp.headers.*
 
 load_main_data() {
 	# Read the source.list and process it
@@ -169,6 +209,18 @@ load_main_data() {
 	eval "$2=\"\$RES\""
 }
 
+load_main_data "$ROOT_DIR/source.list" openttd
+openttdfiles=`echo "$openttd" | grep "^#4" | sed "s~#4~~g"`
+openttdfilters=`echo "$openttd" | grep "^#3" | sed "s~#3~~g"`
+openttdvcxproj=`echo "$openttd" | grep "^#2" | sed "s~#2~~g"`
+openttd=`echo "$openttd" | grep "^#1" | sed "s~#1~~g"`
+
+generate "$openttd" "openttd_vs80.vcproj"
+generate "$openttd" "openttd_vs90.vcproj"
+generate "$openttdvcxproj" "openttd_vs100.vcxproj"
+generate "$openttdfiles" "openttd_vs100.vcxproj.filters" "$openttdfilters"
+
+
 load_lang_data() {
 	RES=""
 	for i in `ls $1 | sed -e 's,^.*/,,' -e 's/\.txt$//'`
@@ -207,6 +259,17 @@ load_lang_data() {
 	eval "$2=\"\$RES\""
 }
 
+load_lang_data "$ROOT_DIR/src/lang/*.txt" lang
+langfiles=`echo "$lang" | grep "^#3" | sed "s~#3~~g"`
+langvcxproj=`echo "$lang" | grep "^#2" | sed "s~#2~~g"`
+lang=`echo "$lang" | grep "^#1" | sed "s~#1~~g"`
+
+generate "$lang" "langs_vs80.vcproj"
+generate "$lang" "langs_vs90.vcproj"
+generate "$langvcxproj" "langs_vs100.vcxproj"
+generate "$langfiles" "langs_vs100.vcxproj.filters"
+
+
 load_settings_data() {
 	RES=""
 	RES2="
@@ -228,69 +291,12 @@ load_settings_data() {
 	eval "$2=\"\$RES\$RES2\""
 }
 
-generate() {
-	echo "Generating $2..."
-	if [ $# -eq 3 ]; then
-		# Everything above the !!FILTERS!! marker
-		sed < "$ROOT_DIR/projects/$2".in -n -e '
-			s/\r$//
-			/!!FILTERS!!/ q
-			p
-		' > "$ROOT_DIR/projects/$2"
-
-		echo "$3" >> "$ROOT_DIR/projects/$2"
-
-		# Everything between the !!FILTERS!! marker and the !!FILES!! marker
-		sed < "$ROOT_DIR/projects/$2".in -n -e '
-			s/\r$//
-			1,/!!FILTERS!!/ d
-			/!!FILES!!/ q
-			p
-		' >> "$ROOT_DIR/projects/$2"
-	else
-		# Everything above the !!FILES!! marker
-		sed < "$ROOT_DIR/projects/$2".in -n -e '
-			s/\r$//
-			/!!FILES!!/ q
-			p
-		' > "$ROOT_DIR/projects/$2"
-	fi
-
-	echo "$1" >> "$ROOT_DIR/projects/$2"
-
-	# Everything below the !!FILES!! marker
-	sed < "$ROOT_DIR/projects/$2".in -n -e '
-		s/\r$//
-		1,/!!FILES!!/ d
-		p
-	' >> "$ROOT_DIR/projects/$2"
-}
-
-load_main_data "$ROOT_DIR/source.list" openttd
-openttdfiles=`echo "$openttd" | grep "^#4" | sed "s~#4~~g"`
-openttdfilters=`echo "$openttd" | grep "^#3" | sed "s~#3~~g"`
-openttdvcxproj=`echo "$openttd" | grep "^#2" | sed "s~#2~~g"`
-openttd=`echo "$openttd" | grep "^#1" | sed "s~#1~~g"`
-
-load_lang_data "$ROOT_DIR/src/lang/*.txt" lang
-langfiles=`echo "$lang" | grep "^#3" | sed "s~#3~~g"`
-langvcxproj=`echo "$lang" | grep "^#2" | sed "s~#2~~g"`
-lang=`echo "$lang" | grep "^#1" | sed "s~#1~~g"`
-
 load_settings_data "$ROOT_DIR/src/table/*.ini" settings
 settingsfiles=`echo "$settings" | grep "^#4" | sed "s~#4~~g"`
 settingscommand=`echo "$settings" | grep "^#3" | sed "s~#3~~g"`
 settingsvcxproj=`echo "$settings" | grep "^#2" | sed "s~#2~~g"`
 settings=`echo "$settings" | grep "^#1" | sed "s~#1~~g"`
 
-generate "$openttd" "openttd_vs80.vcproj"
-generate "$openttd" "openttd_vs90.vcproj"
-generate "$openttdvcxproj" "openttd_vs100.vcxproj"
-generate "$openttdfiles" "openttd_vs100.vcxproj.filters" "$openttdfilters"
-generate "$lang" "langs_vs80.vcproj"
-generate "$lang" "langs_vs90.vcproj"
-generate "$langvcxproj" "langs_vs100.vcxproj"
-generate "$langfiles" "langs_vs100.vcxproj.filters"
 generate "$settings" "settings_vs80.vcproj" "$settingscommand"
 generate "$settings" "settings_vs90.vcproj" "$settingscommand"
 generate "$settingsvcxproj" "settings_vs100.vcxproj" "$settingscommand"
