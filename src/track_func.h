@@ -412,50 +412,6 @@ static inline DiagDirection TrackdirToExitdir(Trackdir trackdir)
 }
 
 /**
- * Maps a track and an (4-way) dir to the trackdir that represents the track
- * with the exit in the given direction.
- *
- * For the diagonal tracks the resulting track direction are clear for a given
- * DiagDirection. It either matches the direction or it returns INVALID_TRACKDIR,
- * as a TRACK_X cannot be applied with DIAG_SE.
- * For the straight tracks the resulting track direction will be the
- * direction which the DiagDirection is pointing. But this will be INVALID_TRACKDIR
- * if the DiagDirection is pointing 'away' the track.
- *
- * @param track The track to apply an direction on
- * @param diagdir The DiagDirection to apply on
- * @return The resulting track direction or INVALID_TRACKDIR if not possible.
- */
-static inline Trackdir TrackExitdirToTrackdir(Track track, DiagDirection diagdir)
-{
-	extern const Trackdir _track_exitdir_to_trackdir[TRACK_END][DIAGDIR_END];
-	return _track_exitdir_to_trackdir[track][diagdir];
-}
-
-/**
- * Maps a track and an (4-way) dir to the trackdir that represents the track
- * with the entry in the given direction.
- *
- * For the diagonal tracks the return value is clear, its either the matching
- * track direction or INVALID_TRACKDIR.
- * For the straight tracks this returns the track direction which results if
- * you follow the DiagDirection and then turn by 45 deg left or right on the
- * next tile. The new direction on the new track will be the returning Trackdir
- * value. If the parameters makes no sense like the track TRACK_UPPER and the
- * direction DIAGDIR_NE (target track cannot be reached) this function returns
- * INVALID_TRACKDIR.
- *
- * @param track The target track
- * @param diagdir The direction to "come from"
- * @return the resulting Trackdir or INVALID_TRACKDIR if not possible.
- */
-static inline Trackdir TrackEnterdirToTrackdir(Track track, DiagDirection diagdir)
-{
-	extern const Trackdir _track_enterdir_to_trackdir[TRACK_END][DIAGDIR_END];
-	return _track_enterdir_to_trackdir[track][diagdir];
-}
-
-/**
  * Maps a track and a full (8-way) direction to the trackdir that represents
  * the track running in the given direction.
  */
