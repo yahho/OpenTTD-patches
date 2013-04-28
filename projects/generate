@@ -219,46 +219,45 @@ generate "$openttdvcxproj" "openttd_vs100.vcxproj"
 generate "$openttdfiles" "openttd_vs100.vcxproj.filters" "$openttdfilters"
 
 
-lang=""
-for i in `ls "$ROOT_DIR"/src/lang/*.txt | sed -e 's,^.*/,,' -e 's/\.txt$//'`
-do
-	if [ "$i" == "english" ]
-	then
-		continue
-	fi
-	lang="$lang
-#1			<File
-#1				RelativePath=\"..\\src\\lang\\"$i".txt\"
-#1				>
-#1				<FileConfiguration
-#1					Name=\"Debug|Win32\"
-#1					>
-#1					<Tool
-#1						Name=\"VCCustomBuildTool\"
-#1						Description=\"Generating "$i" language file\"
-#1						CommandLine=\"..\\objs\\strgen\\strgen.exe -s ..\\src\\lang -d ..\\bin\\lang &quot;\$(InputPath)&quot;&#x0D;&#x0A;exit 0&#x0D;&#x0A;\"
-#1						AdditionalDependencies=\"..\\src\\lang\\english.txt;..\\objs\\strgen\\strgen.exe\"
-#1						Outputs=\"..\\bin\\lang\\"$i".lng\"
-#1					/>
-#1				</FileConfiguration>
-#1			</File>
-#2    <CustomBuild Include=\"..\\src\\lang\\"$i".txt\">
-#2      <Message Condition=\"'\$(Configuration)|\$(Platform)'=='Debug|Win32'\">Generating "$i" language file</Message>
-#2      <Command Condition=\"'\$(Configuration)|\$(Platform)'=='Debug|Win32'\">..\\objs\\strgen\\strgen.exe -s ..\\src\\lang -d ..\\bin\\lang \"%(FullPath)\"</Command>
-#2      <AdditionalInputs Condition=\"'\$(Configuration)|\$(Platform)'=='Debug|Win32'\">..\\src\\lang\\english.txt;..\\objs\\strgen\\strgen.exe;%(AdditionalInputs)</AdditionalInputs>
-#2      <Outputs Condition=\"'\$(Configuration)|\$(Platform)'=='Debug|Win32'\">..\\bin\\lang\\"$i".lng;%(Outputs)</Outputs>
-#2    </CustomBuild>
-#3    <CustomBuild Include=\"..\\src\\lang\\"$i".txt\">
-#3      <Filter>Translations</Filter>
-#3    </CustomBuild>"
-done
+txtfiles=`ls "$ROOT_DIR"/src/lang/*.txt | sed -e 's,^.*/,,' -e 's/\.txt$//' -e '/^english$/d'`
 
-langfiles="`echo "$lang" | grep "^#3" | sed "s~#3~~g"`
+lang=""
+langvcxproj=""
+langfiles=""
+
+for i in $txtfiles
+do
+	lang="$lang\
+			<File
+				RelativePath=\"..\\src\\lang\\$i.txt\"
+				>
+				<FileConfiguration
+					Name=\"Debug|Win32\"
+					>
+					<Tool
+						Name=\"VCCustomBuildTool\"
+						Description=\"Generating $i language file\"
+						CommandLine=\"..\\objs\\strgen\\strgen.exe -s ..\\src\\lang -d ..\\bin\\lang &quot;\$(InputPath)&quot;&#x0D;&#x0A;exit 0&#x0D;&#x0A;\"
+						AdditionalDependencies=\"..\\src\\lang\\english.txt;..\\objs\\strgen\\strgen.exe\"
+						Outputs=\"..\\bin\\lang\\$i.lng\"
+					/>
+				</FileConfiguration>
+			</File>
 "
-langvcxproj="`echo "$lang" | grep "^#2" | sed "s~#2~~g"`
+	langvcxproj="$langvcxproj\
+    <CustomBuild Include=\"..\\src\\lang\\$i.txt\">
+      <Message Condition=\"'\$(Configuration)|\$(Platform)'=='Debug|Win32'\">Generating $i language file</Message>
+      <Command Condition=\"'\$(Configuration)|\$(Platform)'=='Debug|Win32'\">..\\objs\\strgen\\strgen.exe -s ..\\src\\lang -d ..\\bin\\lang \"%(FullPath)\"</Command>
+      <AdditionalInputs Condition=\"'\$(Configuration)|\$(Platform)'=='Debug|Win32'\">..\\src\\lang\\english.txt;..\\objs\\strgen\\strgen.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition=\"'\$(Configuration)|\$(Platform)'=='Debug|Win32'\">..\\bin\\lang\\$i.lng;%(Outputs)</Outputs>
+    </CustomBuild>
 "
-lang="`echo "$lang" | grep "^#1" | sed "s~#1~~g"`
+	langfiles="$langfiles\
+    <CustomBuild Include=\"..\\src\\lang\\$i.txt\">
+      <Filter>Translations</Filter>
+    </CustomBuild>
 "
+done
 
 generate "$lang" "langs_vs80.vcproj"
 generate "$lang" "langs_vs90.vcproj"
@@ -266,33 +265,33 @@ generate "$langvcxproj" "langs_vs100.vcxproj"
 generate "$langfiles" "langs_vs100.vcxproj.filters"
 
 
-settings=""
-settings2="
-#3..\\objs\\settings\\settings_gen.exe -o ..\\objs\\settings\\table\\settings.h -b ..\\src\\table\\settings.h.preamble -a ..\\src\\table\\settings.h.postamble"
+inifiles=`ls "$ROOT_DIR"/src/table/*.ini | sed -e 's,^.*/,,'`
 
-for i in `ls "$ROOT_DIR"/src/table/*.ini | sed -e 's,^.*/,,'`
+settings=""
+settingscommand="..\\objs\\settings\\settings_gen.exe -o ..\\objs\\settings\\table\\settings.h -b ..\\src\\table\\settings.h.preamble -a ..\\src\\table\\settings.h.postamble"
+settingsvcxproj=""
+settingsfiles=""
+
+for i in $inifiles
 do
-	settings="$settings
-#1		<File
-#1			RelativePath=\"..\\src\\table\\"$i"\"
-#1			>
-#1		</File>
-#2    <None Include=\"..\\src\\table\\"$i"\" />
-#4    <None Include=\"..\\src\\table\\"$i"\">
-#4      <Filter>INI</Filter>
-#4    </None>"
-	settings2="$settings2 ..\\src\\table\\"$i
+	settings="$settings\
+		<File
+			RelativePath=\"..\\src\\table\\$i\"
+			>
+		</File>
+"
+	settingscommand="$settingscommand ..\\src\\table\\$i"
+	settingsvcxproj="$settingsvcxproj\
+    <None Include=\"..\\src\\table\\$i\" />
+"
+	settingsfiles="$settingsfiles\
+    <None Include=\"..\\src\\table\\$i\">
+      <Filter>INI</Filter>
+    </None>
+"
 done
 
-settings="$settings$settings2"
-
-settingsfiles="`echo "$settings" | grep "^#4" | sed "s~#4~~g"`
-"
-settingscommand="`echo "$settings" | grep "^#3" | sed "s~#3~~g"`
-"
-settingsvcxproj="`echo "$settings" | grep "^#2" | sed "s~#2~~g"`
-"
-settings="`echo "$settings" | grep "^#1" | sed "s~#1~~g"`
+settingscommand="$settingscommand
 "
 
 generate "$settings" "settings_vs80.vcproj" "$settingscommand"
