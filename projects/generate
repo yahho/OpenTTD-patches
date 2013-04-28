@@ -46,22 +46,6 @@ fi
 # version_vs80.vcproj           is for MSVC 2005
 
 
-# check for duplicate filenames in source.list
-dup=`sed <$ROOT_DIR/source.list -e '/^$/d' -e '/#/d' -e 's,^.*/,,' -e '/ottdres.rc\|win32.cpp\|win32_v.cpp/d' | sort | uniq -d`
-if [ -n "$dup" ]; then
-	echo " !! ERROR !!"
-	echo ""
-	echo "The following filenames are duplicated in this project:"
-	echo " " $dup
-	echo "Because MSVC uses one single directory for all object files, it"
-	echo "cannot handle filenames with the same name inside the same project."
-	echo "Please rename either one of the file and try generating again."
-	echo ""
-	echo " !! ERROR !!"
-	exit 1
-fi
-
-
 grep '\.h' "$ROOT_DIR/source.list" | grep -v '../objs/langs/table/strings.h\|../objs/settings/table/settings.h' | sed 's/	//' | sort > tmp.headers.source.list
 find "$ROOT_DIR/src" -iname .svn -prune -o \( -iname '*.h' -o -iname '*.hpp' \) -print | sed "s~$ROOT_DIR/src/~~" | sort > tmp.headers.src
 if ! diff tmp.headers.source.list tmp.headers.src >/dev/null; then

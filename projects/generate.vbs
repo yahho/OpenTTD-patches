@@ -33,39 +33,6 @@ Set FSO = CreateObject("Scripting.FileSystemObject")
 ' generate_vs80.vcproj          is for MSVC 2005
 ' version_vs80.vcproj           is for MSVC 2005
 
-Sub safety_check(filename)
-	Dim file, line, regexp, list
-
-	' Define regexp
-	Set regexp = New RegExp
-	regexp.Pattern = "#|ottdres.rc|win32.cpp|win32_v.cpp"
-	regexp.Global = True
-
-	' We use a dictionary to check duplicates
-	Set list = CreateObject("Scripting.Dictionary")
-
-	Set file = FSO.OpenTextFile(filename, 1, 0, 0)
-	While Not file.AtEndOfStream
-		line = Replace(file.ReadLine, Chr(9), "") ' Remove tabs
-		If Len(line) > 0 And Not regexp.Test(line) Then
-			line = FSO.GetFileName(line)
-			if list.Exists(line) Then
-				WScript.Echo " !! ERROR !!" _
-				& vbCrLf & "" _
-				& vbCrLf & "The filename '" & line & "' is already used in this project." _
-				& vbCrLf & "Because MSVC uses one single directory for all object files, it" _
-				& vbCrLf & "cannot handle filenames with the same name inside the same project." _
-				& vbCrLf & "Please rename either one of the file and try generating again." _
-				& vbCrLf & "" _
-				& vbCrLf & " !! ERROR !!"
-				WScript.Quit(1)
-			End If
-			list.Add line, line
-		End If
-	Wend
-	file.Close
-End Sub
-
 Sub get_files(srcdir, dir, list)
 	Dim file, filename
 	Dim rekeep, reskip
@@ -397,7 +364,6 @@ If Not FSO.FileExists(ROOT_DIR & "/source.list") Then
 	WScript.Quit(1)
 End If
 
-safety_check ROOT_DIR & "/source.list"
 headers_check ROOT_DIR & "/source.list", ROOT_DIR & "\src\" ' Backslashes needed for DoFiles
 
 Dim openttd, openttdvcxproj, openttdfilters, openttdfiles
