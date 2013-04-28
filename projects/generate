@@ -124,7 +124,7 @@ with_threads="1"
 file_prefix="..\\\\src\\\\"
 
 # Read the source.list and process it
-openttd="`cat "$ROOT_DIR/source.list" | tr '\r' '\n' | awk '
+srclist="`cat "$ROOT_DIR/source.list" | tr '\r' '\n' | awk '
 	/^(	*)#end/  { if (deep == skip) { skip -= 1; } deep -= 1; next; }
 	/^(	*)#else/ { if (deep == skip) { skip -= 1; } else if (deep - 1 == skip) { skip += 1; } next; }
 	/^(	*)#if/   {
@@ -158,48 +158,53 @@ openttd="`cat "$ROOT_DIR/source.list" | tr '\r' '\n' | awk '
 
 		next;
 	}
-	/^(	*)#/ {
+	/^$/ { next }
+	{
 		if (deep == skip) {
 			gsub("	", "", $0);
-			gsub("^#", "", $0);
-			gsub("^ ", "", $0);
-
-			if (first_time != 0) {
-				print "#1		</Filter>";
-			} else {
-				first_time = 1;
-			}
-
-			filter = $0;
-			print "#1		<Filter";
-			print "#1			Name=\\""filter"\\"";
-			print "#1			>";
-			print "#3    <Filter Include=\\""filter"\\">";
-			printf "#3      <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-%012d}</UniqueIdentifier>\n", i;
-			print "#3    </Filter>";
-			i += 1;
+			print;
 		}
+	}
+'`"
+
+openttd="`echo "$srclist" | awk '
+	/^#/ {
+		gsub("^#", "", $0);
+		gsub("^ ", "", $0);
+
+		if (first_time != 0) {
+			print "#1		</Filter>";
+		} else {
+			first_time = 1;
+		}
+
+		filter = $0;
+		print "#1		<Filter";
+		print "#1			Name=\\""filter"\\"";
+		print "#1			>";
+		print "#3    <Filter Include=\\""filter"\\">";
+		printf "#3      <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-%012d}</UniqueIdentifier>\n", i;
+		print "#3    </Filter>";
+		i += 1;
 
 		next;
 	}
 	/^$/ { next }
 	{
-		if (deep == skip) {
-			gsub("	", "", $0);
-			gsub("/", "\\\\", $0);
-			print "#1			<File";
-			print "#1				RelativePath=\\".\\\\'$file_prefix'"$0"\\"";
-			print "#1				>";
-			print "#1			</File>";
-			split($0, file, ".");
-			cltype = "ClInclude"
-			if (file[2] == "cpp") cltype = "ClCompile";
-			if (file[2] == "rc") cltype = "ResourceCompile";
-			print "#2    <"cltype" Include=\\"'$file_prefix'"$0"\\" />";
-			print "#4    <"cltype" Include=\\"'$file_prefix'"$0"\\">";
-			print "#4      <Filter>"filter"</Filter>";
-			print "#4    </"cltype">";
-		}
+		gsub("	", "", $0);
+		gsub("/", "\\\\", $0);
+		print "#1			<File";
+		print "#1				RelativePath=\\".\\\\'$file_prefix'"$0"\\"";
+		print "#1				>";
+		print "#1			</File>";
+		split($0, file, ".");
+		cltype = "ClInclude"
+		if (file[2] == "cpp") cltype = "ClCompile";
+		if (file[2] == "rc") cltype = "ResourceCompile";
+		print "#2    <"cltype" Include=\\"'$file_prefix'"$0"\\" />";
+		print "#4    <"cltype" Include=\\"'$file_prefix'"$0"\\">";
+		print "#4      <Filter>"filter"</Filter>";
+		print "#4    </"cltype">";
 	}
 	END { print "#1		</Filter>"; }
 '`"
