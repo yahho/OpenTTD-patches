@@ -448,6 +448,12 @@ const char *GeneratePath(const char *dirname, const char *filename, bool local)
 		strcat(path, p);
 
 		if (access(path, R_OK) == 0) return strdup(path);
+	} else {
+		if (strchr(filename, '.') == NULL) {
+			/* Ignore C++ includes without an extension; */
+			/* they can conflict with directory names.   */
+			return NULL;
+		}
 	}
 
 	for (StringSet::iterator it = _include_dirs.begin(); it != _include_dirs.end(); it++) {
