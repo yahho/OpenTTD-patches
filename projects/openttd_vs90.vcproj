@@ -10900,6 +10900,54 @@
 			Name="Map Accessors"
 			>
 			<File
+				RelativePath=".\..\src\map\map.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\map\"
+						ObjectFile="$(IntDir)\map\"
+						XMLDocumentationFileName="$(IntDir)\map\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\map\"
+						ObjectFile="$(IntDir)\map\"
+						XMLDocumentationFileName="$(IntDir)\map\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\map\"
+						ObjectFile="$(IntDir)\map\"
+						XMLDocumentationFileName="$(IntDir)\map\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\map\"
+						ObjectFile="$(IntDir)\map\"
+						XMLDocumentationFileName="$(IntDir)\map\"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\..\src\map\map.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\bridge_map.cpp"
 				>
 			</File>

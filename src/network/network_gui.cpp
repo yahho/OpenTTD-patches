@@ -30,7 +30,7 @@
 #include "../company_func.h"
 #include "../core/geometry_func.hpp"
 #include "../genworld.h"
-#include "../map_type.h"
+#include "../map/map.h"
 
 #include "../widgets/network_widget.h"
 

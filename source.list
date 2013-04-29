@@ -970,6 +970,8 @@ tile/industry.h
 tile/house.h
 
 # Map Accessors
+map/map.cpp
+map/map.h
 bridge_map.cpp
 bridge_map.h
 clear_map.h
