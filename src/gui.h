@@ -12,9 +12,9 @@
 #ifndef GUI_H
 #define GUI_H
 
+#include "map/coord.h"
 #include "vehicle_type.h"
 #include "economy_type.h"
-#include "tile_type.h"
 #include "transport_type.h"
 #include "story_type.h"
 #include "company_type.h"

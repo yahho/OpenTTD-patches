@@ -12,8 +12,8 @@
 #ifndef SIGNS_FUNC_H
 #define SIGNS_FUNC_H
 
+#include "map/coord.h"
 #include "signs_type.h"
-#include "tile_type.h"
 
 struct Window;
 extern SignID _new_sign_id;

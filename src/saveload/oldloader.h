@@ -14,7 +14,7 @@
 
 #include "saveload.h"
 #include "saveload_filter.h"
-#include "../tile_type.h"
+#include "../map/coord.h"
 
 static const uint BUFFER_SIZE = 4096;
 static const uint OLD_MAP_SIZE = 256 * 256;

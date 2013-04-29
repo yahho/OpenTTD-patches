@@ -12,8 +12,8 @@
 #ifndef NEWGRF_SOUND_H
 #define NEWGRF_SOUND_H
 
+#include "map/coord.h"
 #include "sound_type.h"
-#include "tile_type.h"
 #include "vehicle_type.h"
 
 /** Events at which a sound might be played. */

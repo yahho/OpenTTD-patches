@@ -12,7 +12,7 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-#include "tile_type.h"
+#include "map/coord.h"
 #include "company_type.h"
 #include "object_type.h"
 

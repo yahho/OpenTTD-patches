@@ -10,8 +10,8 @@
 /** @file animated_tile_sl.cpp Code handling saving and loading of animated tiles */
 
 #include "../stdafx.h"
-#include "../tile_type.h"
 #include "../core/alloc_func.hpp"
+#include "../map/coord.h"
 
 #include "saveload_buffer.h"
 

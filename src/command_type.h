@@ -12,9 +12,9 @@
 #ifndef COMMAND_TYPE_H
 #define COMMAND_TYPE_H
 
+#include "map/coord.h"
 #include "economy_type.h"
 #include "strings_type.h"
-#include "tile_type.h"
 
 /**
  * Common return value for all commands. Wraps the cost and

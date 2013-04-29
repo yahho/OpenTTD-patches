@@ -12,8 +12,8 @@
 #ifndef SIGNAL_FUNC_H
 #define SIGNAL_FUNC_H
 
+#include "map/coord.h"
 #include "track_type.h"
-#include "tile_type.h"
 #include "direction_type.h"
 #include "company_type.h"
 #include "pathfinder/pathfinder_type.h"

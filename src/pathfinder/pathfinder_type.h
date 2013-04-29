@@ -12,7 +12,7 @@
 #ifndef PATHFINDER_TYPE_H
 #define PATHFINDER_TYPE_H
 
-#include "../tile_type.h"
+#include "../map/coord.h"
 #include "../track_type.h"
 #include "../track_func.h"
 

@@ -19,14 +19,4 @@ static const uint TILE_UNIT_MASK = TILE_SIZE - 1; ///< For masking in/out the in
 static const uint TILE_PIXELS    = 32;            ///< a tile is 32x32 pixels
 static const uint TILE_HEIGHT    =  8;            ///< The standard height-difference between tiles on two levels is 8 (z-diff 8)
 
-/**
- * The index/ID of a Tile.
- */
-typedef uint32 TileIndex;
-
-/**
- * The very nice invalid tile marker
- */
-static const TileIndex INVALID_TILE = (TileIndex)-1;
-
 #endif /* TILE_TYPE_H */

@@ -13,7 +13,7 @@
 #define SCRIPT_MAP_HPP
 
 #include "script_object.hpp"
-#include "../../tile_type.h"
+#include "../../map/coord.h"
 
 /**
  * Class that handles all map related functions.

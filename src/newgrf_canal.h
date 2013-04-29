@@ -12,8 +12,8 @@
 #ifndef NEWGRF_CANAL_H
 #define NEWGRF_CANAL_H
 
+#include "map/coord.h"
 #include "newgrf.h"
-#include "tile_type.h"
 
 /** Flags controlling the display of canals. */
 enum CanalFeatureFlag {

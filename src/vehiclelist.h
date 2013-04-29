@@ -13,9 +13,9 @@
 #define VEHICLELIST_H
 
 #include "core/smallvec_type.hpp"
+#include "map/coord.h"
 #include "vehicle_type.h"
 #include "company_type.h"
-#include "tile_type.h"
 
 /** Vehicle List type flags */
 enum VehicleListType {

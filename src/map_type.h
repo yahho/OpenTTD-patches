@@ -13,29 +13,6 @@
 #define MAP_TYPE_H
 
 /**
- * An offset value between to tiles.
- *
- * This value is used for the difference between
- * to tiles. It can be added to a tileindex to get
- * the resulting tileindex of the start tile applied
- * with this saved difference.
- *
- * @see TileDiffXY(int, int)
- */
-typedef int32 TileIndexDiff;
-
-/**
- * A pair-construct of a TileIndexDiff.
- *
- * This can be used to save the difference between to
- * tiles as a pair of x and y value.
- */
-struct TileIndexDiffC {
-	int16 x;        ///< The x value of the coordinate
-	int16 y;        ///< The y value of the coordinate
-};
-
-/**
  * Approximation of the length of a straight track, relative to a diagonal
  * track (ie the size of a tile side).
  *

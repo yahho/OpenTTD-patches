@@ -12,10 +12,10 @@
 #ifndef COMPANY_BASE_H
 #define COMPANY_BASE_H
 
+#include "map/coord.h"
 #include "road_type.h"
 #include "livery.h"
 #include "autoreplace_type.h"
-#include "tile_type.h"
 #include "settings_type.h"
 #include "group.h"
 

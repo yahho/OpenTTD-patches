@@ -19,7 +19,7 @@
 #define AYSTAR_H
 
 #include "queue.h"
-#include "../../tile_type.h"
+#include "../../map/coord.h"
 #include "../../track_type.h"
 #include "../pathfinder_type.h"
 

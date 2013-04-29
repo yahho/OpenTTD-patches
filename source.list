@@ -972,6 +972,8 @@ tile/house.h
 # Map Accessors
 map/map.cpp
 map/map.h
+map/coord.cpp
+map/coord.h
 bridge_map.cpp
 bridge_map.h
 clear_map.h

@@ -12,10 +12,10 @@
 #ifndef VIEWPORT_FUNC_H
 #define VIEWPORT_FUNC_H
 
+#include "map/coord.h"
 #include "gfx_type.h"
 #include "viewport_type.h"
 #include "window_type.h"
-#include "tile_type.h"
 #include "station_type.h"
 
 static const int TILE_HEIGHT_STEP = 50; ///< One Z unit tile height difference is displayed as 50m.

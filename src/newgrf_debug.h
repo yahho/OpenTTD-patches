@@ -14,7 +14,7 @@
 
 #include "newgrf.h"
 #include "core/smallvec_type.hpp"
-#include "tile_type.h"
+#include "map/coord.h"
 #include "vehicle_type.h"
 
 /** Current state of spritepicker */

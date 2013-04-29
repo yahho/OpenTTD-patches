@@ -12,8 +12,8 @@
 #ifndef ROAD_GUI_H
 #define ROAD_GUI_H
 
+#include "map/coord.h"
 #include "road_type.h"
-#include "tile_type.h"
 #include "direction_type.h"
 
 struct Window *ShowBuildRoadToolbar(RoadType roadtype);

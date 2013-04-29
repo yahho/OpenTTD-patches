@@ -13,8 +13,8 @@
 #define ORDER_BACKUP_H
 
 #include "core/pool_type.hpp"
+#include "map/coord.h"
 #include "group_type.h"
-#include "tile_type.h"
 #include "vehicle_type.h"
 #include "base_consist.h"
 #include "saveload/saveload_buffer.h"

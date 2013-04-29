@@ -12,8 +12,8 @@
 #ifndef OPF_SHIP_H
 #define OPF_SHIP_H
 
+#include "../../map/coord.h"
 #include "../../direction_type.h"
-#include "../../tile_type.h"
 #include "../../track_type.h"
 #include "../../vehicle_type.h"
 

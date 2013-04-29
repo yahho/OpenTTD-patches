@@ -12,7 +12,7 @@
 #ifndef ANIMATED_TILE_FUNC_H
 #define ANIMATED_TILE_FUNC_H
 
-#include "tile_type.h"
+#include "map/coord.h"
 
 void AddAnimatedTile(TileIndex tile);
 void DeleteAnimatedTile(TileIndex tile);

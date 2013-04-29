@@ -16,6 +16,7 @@
 #include "tile/class.h"
 #include "tile/common.h"
 #include "tile/misc.h"
+#include "map/coord.h"
 #include "slope_type.h"
 #include "map_func.h"
 #include "core/bitmath_func.hpp"
@@ -78,23 +79,6 @@ static inline TileType GetTileType(TileIndex tile)
 {
 	assert(tile < MapSize());
 	return tile_get_type(&_mc[tile]);
-}
-
-/**
- * Check if a tile is within the map (not a border)
- *
- * @param tile The tile to check
- * @return Whether the tile is in the interior of the map
- * @pre tile < MapSize()
- */
-static inline bool IsInnerTile(TileIndex tile)
-{
-	assert(tile < MapSize());
-
-	uint x = TileX(tile);
-	uint y = TileY(tile);
-
-	return x < MapMaxX() && y < MapMaxY() && ((x > 0 && y > 0) || !_settings_game.construction.freeform_edges);
 }
 
 /**
@@ -648,36 +632,4 @@ static inline uint DistanceFromTileEdge(DiagDirection side, uint x, uint y)
 		case DIAGDIR_NW: return y;
 	}
 }
-
-
-/**
- * Calculate a hash value from a tile position
- *
- * @param x The X coordinate
- * @param y The Y coordinate
- * @return The hash of the tile
- */
-static inline uint TileHash(uint x, uint y)
-{
-	uint hash = x >> 4;
-	hash ^= x >> 6;
-	hash ^= y >> 4;
-	hash -= y >> 6;
-	return hash;
-}
-
-/**
- * Get the last two bits of the TileHash
- *  from a tile position.
- *
- * @see TileHash()
- * @param x The X coordinate
- * @param y The Y coordinate
- * @return The last two bits from hash of the tile
- */
-static inline uint TileHash2Bit(uint x, uint y)
-{
-	return GB(TileHash(x, y), 0, 2);
-}
-
 #endif /* TILE_MAP_H */

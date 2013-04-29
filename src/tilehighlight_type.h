@@ -13,8 +13,8 @@
 #define TILEHIGHLIGHT_TYPE_H
 
 #include "core/geometry_type.hpp"
+#include "map/coord.h"
 #include "window_type.h"
-#include "tile_type.h"
 #include "viewport_type.h"
 
 /** Highlighting draw styles */

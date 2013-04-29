@@ -1865,6 +1865,12 @@
       <XMLDocumentationFileName>$(IntDir)\map\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\map\map.h" />
+    <ClCompile Include="..\src\map\coord.cpp">
+      <AssemblerListingLocation>$(IntDir)\map\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\map\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\map\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\map\coord.h" />
     <ClCompile Include="..\src\bridge_map.cpp" />
     <ClInclude Include="..\src\bridge_map.h" />
     <ClInclude Include="..\src\clear_map.h" />

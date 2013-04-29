@@ -12,9 +12,9 @@
 #ifndef SOUND_FUNC_H
 #define SOUND_FUNC_H
 
+#include "map/coord.h"
 #include "sound_type.h"
 #include "vehicle_type.h"
-#include "tile_type.h"
 
 void SndPlayTileFx(SoundID sound, TileIndex tile);
 void SndPlayVehicleFx(SoundID sound, const Vehicle *v);

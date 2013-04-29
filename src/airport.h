@@ -12,8 +12,8 @@
 #ifndef AIRPORT_H
 #define AIRPORT_H
 
+#include "map/coord.h"
 #include "direction_type.h"
-#include "tile_type.h"
 
 /** Some airport-related constants */
 static const uint MAX_TERMINALS =   8;                       ///< maximum number of terminals per airport

@@ -12,7 +12,7 @@
 #ifndef PBS_H
 #define PBS_H
 
-#include "tile_type.h"
+#include "map/coord.h"
 #include "direction_type.h"
 #include "track_type.h"
 #include "track_func.h"

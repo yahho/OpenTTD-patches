@@ -12,9 +12,9 @@
 #ifndef NEWGRF_GENERIC_H
 #define NEWGRF_GENERIC_H
 
+#include "map/coord.h"
 #include "industry_type.h"
 #include "newgrf.h"
-#include "tile_type.h"
 
 struct SpriteGroup;
 
