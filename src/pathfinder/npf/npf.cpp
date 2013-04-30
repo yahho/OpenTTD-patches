@@ -76,7 +76,7 @@ static AyStar _npf_aystar;
 /* The cost of each trackdir. A diagonal piece is the full NPF_TILE_LENGTH,
  * the shorter piece is sqrt(2)/2*NPF_TILE_LENGTH =~ 0.7071
  */
-#define NPF_STRAIGHT_LENGTH (uint)(NPF_TILE_LENGTH * STRAIGHT_TRACK_LENGTH)
+#define NPF_STRAIGHT_LENGTH (uint)(NPF_TILE_LENGTH * 7071 / 10000)
 static const uint _trackdir_length[TRACKDIR_END] = {
 	NPF_TILE_LENGTH, NPF_TILE_LENGTH, NPF_STRAIGHT_LENGTH, NPF_STRAIGHT_LENGTH, NPF_STRAIGHT_LENGTH, NPF_STRAIGHT_LENGTH,
 	0, 0,
@@ -119,7 +119,7 @@ static uint NPFDistanceTrack(TileIndex t0, TileIndex t1)
 
 	/* Don't factor out NPF_TILE_LENGTH below, this will round values and lose
 	 * precision */
-	return diagTracks * NPF_TILE_LENGTH + straightTracks * NPF_TILE_LENGTH * STRAIGHT_TRACK_LENGTH;
+	return diagTracks * NPF_TILE_LENGTH + straightTracks * NPF_STRAIGHT_LENGTH;
 }
 
 /**
