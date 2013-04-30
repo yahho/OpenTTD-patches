@@ -28,6 +28,7 @@
 #include "hotkeys.h"
 #include "vehicle_func.h"
 #include "gui.h"
+#include "map/subcoord.h"
 
 #include "widgets/airport_widget.h"
 

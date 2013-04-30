@@ -13,9 +13,9 @@
 #define SLOPE_FUNC_H
 
 #include "core/math_func.hpp"
+#include "map/subcoord.h"
 #include "slope_type.h"
 #include "direction_type.h"
-#include "tile_type.h"
 
 /**
  * Rangecheck for Corner enumeration.

@@ -346,7 +346,6 @@ textfile_gui.h
 textfile_type.h
 tgp.h
 tile_cmd.h
-tile_type.h
 tilearea_type.h
 tilehighlight_func.h
 tilehighlight_type.h
@@ -974,6 +973,7 @@ map/map.cpp
 map/map.h
 map/coord.cpp
 map/coord.h
+map/subcoord.h
 bridge_map.cpp
 bridge_map.h
 clear_map.h

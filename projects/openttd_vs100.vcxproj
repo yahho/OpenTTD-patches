@@ -673,7 +673,6 @@
     <ClInclude Include="..\src\textfile_type.h" />
     <ClInclude Include="..\src\tgp.h" />
     <ClInclude Include="..\src\tile_cmd.h" />
-    <ClInclude Include="..\src\tile_type.h" />
     <ClInclude Include="..\src\tilearea_type.h" />
     <ClInclude Include="..\src\tilehighlight_func.h" />
     <ClInclude Include="..\src\tilehighlight_type.h" />
@@ -1871,6 +1870,7 @@
       <XMLDocumentationFileName>$(IntDir)\map\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\map\coord.h" />
+    <ClInclude Include="..\src\map\subcoord.h" />
     <ClCompile Include="..\src\bridge_map.cpp" />
     <ClInclude Include="..\src\bridge_map.h" />
     <ClInclude Include="..\src\clear_map.h" />

@@ -27,6 +27,7 @@
 #include "core/geometry_func.hpp"
 #include "hotkeys.h"
 #include "transparency.h"
+#include "map/subcoord.h"
 
 #include "widgets/sign_widget.h"
 

@@ -2324,10 +2324,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\tile_type.h"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\tilearea_type.h"
 				>
 			</File>
@@ -10993,6 +10989,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\map\coord.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\map\subcoord.h"
 				>
 			</File>
 			<File

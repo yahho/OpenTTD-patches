@@ -17,6 +17,7 @@
 #include "tile/common.h"
 #include "tile/misc.h"
 #include "map/coord.h"
+#include "map/subcoord.h"
 #include "slope_type.h"
 #include "map_func.h"
 #include "core/bitmath_func.hpp"
@@ -611,25 +612,4 @@ static inline int GetTileMaxPixelZ(TileIndex tile)
 	return GetTileMaxZ(tile) * TILE_HEIGHT;
 }
 
-
-/**
- * Compute the distance from a tile edge
- * @param side Tile edge
- * @param x x within the tile
- * @param y y within the tile
- * @return The distance from the edge
- */
-static inline uint DistanceFromTileEdge(DiagDirection side, uint x, uint y)
-{
-	assert(x < TILE_SIZE);
-	assert(y < TILE_SIZE);
-
-	switch (side) {
-		default: NOT_REACHED();
-		case DIAGDIR_NE: return x;
-		case DIAGDIR_SE: return TILE_SIZE - 1 - y;
-		case DIAGDIR_SW: return TILE_SIZE - 1 - x;
-		case DIAGDIR_NW: return y;
-	}
-}
 #endif /* TILE_MAP_H */

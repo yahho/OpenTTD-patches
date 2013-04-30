@@ -10,6 +10,7 @@
 /** @file object_gui.cpp The GUI for objects. */
 
 #include "stdafx.h"
+#include "map/subcoord.h"
 #include "command_func.h"
 #include "newgrf.h"
 #include "newgrf_object.h"
