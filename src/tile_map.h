@@ -18,56 +18,11 @@
 #include "tile/misc.h"
 #include "map/coord.h"
 #include "map/subcoord.h"
+#include "map/zoneheight.h"
 #include "slope_type.h"
 #include "map_func.h"
 #include "core/bitmath_func.hpp"
 #include "settings_type.h"
-
-/**
- * Returns the height of a tile
- *
- * This function returns the height of the northern corner of a tile.
- * This is saved in the global map-array. It does not take affect by
- * any slope-data of the tile.
- *
- * @param tile The tile to get the height from
- * @return the height of the tile
- * @pre tile < MapSize()
- */
-static inline uint TileHeight(TileIndex tile)
-{
-	assert(tile < MapSize());
-	return tilezh_get_height(&_mth[tile]);
-}
-
-/**
- * Sets the height of a tile.
- *
- * This function sets the height of the northern corner of a tile.
- *
- * @param tile The tile to change the height
- * @param height The new height value of the tile
- * @pre tile < MapSize()
- * @pre heigth <= MAX_TILE_HEIGHT
- */
-static inline void SetTileHeight(TileIndex tile, uint height)
-{
-	assert(tile < MapSize());
-	tilezh_set_height(&_mth[tile], height);
-}
-
-/**
- * Returns the height of a tile in pixels.
- *
- * This function returns the height of the northern corner of a tile in pixels.
- *
- * @param tile The tile to get the height
- * @return The height of the tile in pixel
- */
-static inline uint TilePixelHeight(TileIndex tile)
-{
-	return TileHeight(tile) * TILE_HEIGHT;
-}
 
 /**
  * Get the tiletype of a given tile.
@@ -440,31 +395,6 @@ static inline void SetTileOwner(TileIndex tile, Owner owner)
 static inline bool IsTileOwner(TileIndex tile, Owner owner)
 {
 	return tile_is_owner(&_mc[tile], owner);
-}
-
-/**
- * Set the tropic zone
- * @param tile the tile to set the zone of
- * @param type the new type
- * @pre tile < MapSize()
- */
-static inline void SetTropicZone(TileIndex tile, TropicZone type)
-{
-	assert(tile < MapSize());
-	assert(!IsVoidTile(tile) || type == TROPICZONE_NORMAL);
-	tilezh_set_zone(&_mth[tile], type);
-}
-
-/**
- * Get the tropic zone
- * @param tile the tile to get the zone of
- * @pre tile < MapSize()
- * @return the zone type
- */
-static inline TropicZone GetTropicZone(TileIndex tile)
-{
-	assert(tile < MapSize());
-	return tilezh_get_zone(&_mth[tile]);
 }
 
 /** Check if a tile has snow/desert. */
