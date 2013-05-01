@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * This file is part of OpenTTD.
  * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -7,15 +5,19 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file object_map.h Map accessors for object tiles. */
+/** @file map/object.h Map tile accessors for object tiles. */
 
-#ifndef OBJECT_MAP_H
-#define OBJECT_MAP_H
+#ifndef MAP_OBJECT_H
+#define MAP_OBJECT_H
 
-#include "tile/common.h"
-#include "tile/object.h"
-#include "map/water.h"
-#include "object_type.h"
+#include "../stdafx.h"
+#include "../tile/common.h"
+#include "../tile/object.h"
+#include "map.h"
+#include "class.h"
+#include "coord.h"
+#include "../company_type.h"
+#include "../object_type.h"
 
 /**
  * Gets the ObjectType of the given object tile
@@ -38,6 +40,19 @@ static inline ObjectID GetObjectIndex(TileIndex t)
 {
 	return tile_get_object_index(&_mc[t]);
 }
+
+/**
+ * Get the random bits of this tile.
+ * @param t The tile to get the bits for.
+ * @pre IsObjectTile(t)
+ * @return The random bits.
+ */
+static inline byte GetObjectRandomBits(TileIndex t)
+{
+	assert(IsObjectTile(t));
+	return tile_get_random_bits(&_mc[t]);
+}
+
 
 /**
  * Does the given tile have a transmitter?
@@ -102,18 +117,6 @@ static inline bool IsStatueTile(TileIndex t)
 	return tile_is_statue(&_mc[t]);
 }
 
-/**
- * Get the random bits of this tile.
- * @param t The tile to get the bits for.
- * @pre IsObjectTile(t)
- * @return The random bits.
- */
-static inline byte GetObjectRandomBits(TileIndex t)
-{
-	assert(IsObjectTile(t));
-	return tile_get_random_bits(&_mc[t]);
-}
-
 
 /**
  * Make an Object tile.
@@ -130,4 +133,4 @@ static inline void MakeObject(TileIndex t, ObjectType u, Owner o, ObjectID index
 	tile_make_object(&_mc[t], u, o, index, wc, random);
 }
 
-#endif /* OBJECT_MAP_H */
+#endif /* MAP_OBJECT_H */

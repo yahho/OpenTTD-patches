@@ -17,7 +17,7 @@
 #include "newgrf_object.h"
 #include "newgrf_sound.h"
 #include "object_base.h"
-#include "object_map.h"
+#include "map/object.h"
 #include "tile_cmd.h"
 #include "town.h"
 #include "water.h"

@@ -32,7 +32,7 @@
 #include "date_func.h"
 #include "strings_func.h"
 #include "company_gui.h"
-#include "object_map.h"
+#include "map/object.h"
 
 #include "table/strings.h"
 #include "table/railtypes.h"

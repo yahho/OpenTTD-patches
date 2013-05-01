@@ -1876,10 +1876,10 @@
     <ClInclude Include="..\src\map\common.h" />
     <ClInclude Include="..\src\map\ground.h" />
     <ClInclude Include="..\src\map\water.h" />
+    <ClInclude Include="..\src\map\object.h" />
     <ClCompile Include="..\src\bridge_map.cpp" />
     <ClInclude Include="..\src\bridge_map.h" />
     <ClInclude Include="..\src\industry_map.h" />
-    <ClInclude Include="..\src\object_map.h" />
     <ClInclude Include="..\src\rail_map.h" />
     <ClCompile Include="..\src\road_map.cpp" />
     <ClInclude Include="..\src\road_map.h" />

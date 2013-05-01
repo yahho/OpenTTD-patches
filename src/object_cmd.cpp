@@ -27,7 +27,7 @@
 #include "cargopacket.h"
 #include "core/random_func.hpp"
 #include "core/pool_func.hpp"
-#include "object_map.h"
+#include "map/object.h"
 #include "object_base.h"
 #include "newgrf_config.h"
 #include "newgrf_object.h"

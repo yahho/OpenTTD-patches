@@ -33,7 +33,7 @@
 #include "../elrail_func.h"
 #include "../signs_func.h"
 #include "../aircraft.h"
-#include "../object_map.h"
+#include "../map/object.h"
 #include "../object_base.h"
 #include "../company_func.h"
 #include "../road_cmd.h"

@@ -979,10 +979,10 @@ map/class.h
 map/common.h
 map/ground.h
 map/water.h
+map/object.h
 bridge_map.cpp
 bridge_map.h
 industry_map.h
-object_map.h
 rail_map.h
 road_map.cpp
 road_map.h

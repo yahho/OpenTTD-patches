@@ -11,7 +11,8 @@
 
 #include "../stdafx.h"
 #include "../object_base.h"
-#include "../object_map.h"
+#include "../map/class.h"
+#include "../map/object.h"
 
 #include "saveload_buffer.h"
 #include "newgrf_sl.h"

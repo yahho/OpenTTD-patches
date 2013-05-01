@@ -42,7 +42,7 @@
 #include "core/random_func.hpp"
 #include "core/backup_type.hpp"
 #include "depot_base.h"
-#include "object_map.h"
+#include "map/object.h"
 #include "object_base.h"
 #include "ai/ai.hpp"
 #include "game/game.hpp"
