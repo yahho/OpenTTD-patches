@@ -10,7 +10,7 @@
 /** @file industry_cmd.cpp Handling of industry tiles. */
 
 #include "stdafx.h"
-#include "clear_map.h"
+#include "map/ground.h"
 #include "industry.h"
 #include "station_base.h"
 #include "landscape.h"
@@ -20,7 +20,6 @@
 #include "news_func.h"
 #include "cheat_type.h"
 #include "genworld.h"
-#include "tree_map.h"
 #include "newgrf_cargo.h"
 #include "newgrf_debug.h"
 #include "newgrf_industrytiles.h"

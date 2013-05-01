@@ -17,7 +17,7 @@
 #include "../station_map.h"
 #include "../town.h"
 #include "../landscape_type.h"
-#include "../clear_map.h"
+#include "../map/ground.h"
 #include "../water_map.h"
 
 #include "saveload_buffer.h"

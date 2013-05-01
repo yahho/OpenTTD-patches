@@ -10,7 +10,7 @@
 /** @file terraform_gui.cpp GUI related to terraforming the map. */
 
 #include "stdafx.h"
-#include "clear_map.h"
+#include "map/ground.h"
 #include "company_func.h"
 #include "company_base.h"
 #include "gui.h"
@@ -23,7 +23,6 @@
 #include "base_station_base.h"
 #include "textbuf_gui.h"
 #include "genworld.h"
-#include "tree_map.h"
 #include "landscape_type.h"
 #include "tilehighlight_func.h"
 #include "strings_func.h"

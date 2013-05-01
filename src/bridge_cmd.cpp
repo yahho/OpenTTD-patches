@@ -22,7 +22,7 @@
 #include "command_func.h"
 #include "date_func.h"
 #include "economy_func.h"
-#include "clear_map.h"
+#include "map/ground.h"
 #include "rail_map.h"
 #include "road_map.h"
 #include "water_map.h"

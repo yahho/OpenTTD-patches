@@ -2778,13 +2778,13 @@
     <ClInclude Include="..\src\map\common.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\map\ground.h">
+      <Filter>Map Accessors</Filter>
+    </ClInclude>
     <ClCompile Include="..\src\bridge_map.cpp">
       <Filter>Map Accessors</Filter>
     </ClCompile>
     <ClInclude Include="..\src\bridge_map.h">
-      <Filter>Map Accessors</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\clear_map.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
     <ClInclude Include="..\src\industry_map.h">
@@ -2812,9 +2812,6 @@
       <Filter>Map Accessors</Filter>
     </ClInclude>
     <ClInclude Include="..\src\town_map.h">
-      <Filter>Map Accessors</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\tree_map.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
     <ClCompile Include="..\src\tunnel_map.cpp">

@@ -24,7 +24,7 @@
 #include "video/video_driver.hpp"
 #include "tilehighlight_func.h"
 #include "saveload/saveload.h"
-#include "clear_map.h"
+#include "map/ground.h"
 #include "town.h"
 #include "newgrf.h"
 #include "core/random_func.hpp"

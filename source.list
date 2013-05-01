@@ -977,9 +977,9 @@ map/subcoord.h
 map/zoneheight.h
 map/class.h
 map/common.h
+map/ground.h
 bridge_map.cpp
 bridge_map.h
-clear_map.h
 industry_map.h
 object_map.h
 rail_map.h
@@ -989,7 +989,6 @@ signal_map.h
 station_map.h
 tile_map.h
 town_map.h
-tree_map.h
 tunnel_map.cpp
 tunnel_map.h
 tunnelbridge_map.h

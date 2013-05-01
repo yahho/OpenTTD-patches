@@ -11008,15 +11008,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\map\ground.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\bridge_map.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\..\src\bridge_map.h"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\clear_map.h"
 				>
 			</File>
 			<File
@@ -11053,10 +11053,6 @@
 			</File>
 			<File
 				RelativePath=".\..\src\town_map.h"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\tree_map.h"
 				>
 			</File>
 			<File

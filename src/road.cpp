@@ -10,6 +10,7 @@
 /** @file road.cpp Generic road related functions. */
 
 #include "stdafx.h"
+#include "map/ground.h"
 #include "rail_map.h"
 #include "road_map.h"
 #include "water_map.h"
@@ -19,7 +20,6 @@
 #include "engine_base.h"
 #include "date_func.h"
 #include "landscape.h"
-#include "clear_map.h"
 
 /**
  * Return if the tile is a valid tile for a crossing.

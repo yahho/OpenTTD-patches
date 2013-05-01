@@ -10,12 +10,11 @@
 /** @file smallmap_gui.cpp GUI that shows a small map of the world with metadata like owner or height. */
 
 #include "stdafx.h"
-#include "clear_map.h"
+#include "map/ground.h"
 #include "industry.h"
 #include "station_map.h"
 #include "depot_map.h"
 #include "landscape.h"
-#include "tree_map.h"
 #include "viewport_func.h"
 #include "town.h"
 #include "tunnelbridge_map.h"

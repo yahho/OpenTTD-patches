@@ -10,8 +10,8 @@
 /** @file heightmap.cpp Creating of maps from heightmaps. */
 
 #include "stdafx.h"
+#include "map/ground.h"
 #include "heightmap.h"
-#include "clear_map.h"
 #include "error.h"
 #include "saveload/saveload.h"
 #include "bmp.h"

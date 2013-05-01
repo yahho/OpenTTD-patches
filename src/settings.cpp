@@ -65,7 +65,7 @@
 #include "fios.h"
 #include "strings_func.h"
 
-#include "clear_map.h"
+#include "map/ground.h"
 #include "station_base.h"
 
 #include "table/strings.h"

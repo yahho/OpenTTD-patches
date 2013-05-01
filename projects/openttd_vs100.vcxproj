@@ -1874,9 +1874,9 @@
     <ClInclude Include="..\src\map\zoneheight.h" />
     <ClInclude Include="..\src\map\class.h" />
     <ClInclude Include="..\src\map\common.h" />
+    <ClInclude Include="..\src\map\ground.h" />
     <ClCompile Include="..\src\bridge_map.cpp" />
     <ClInclude Include="..\src\bridge_map.h" />
-    <ClInclude Include="..\src\clear_map.h" />
     <ClInclude Include="..\src\industry_map.h" />
     <ClInclude Include="..\src\object_map.h" />
     <ClInclude Include="..\src\rail_map.h" />
@@ -1886,7 +1886,6 @@
     <ClInclude Include="..\src\station_map.h" />
     <ClInclude Include="..\src\tile_map.h" />
     <ClInclude Include="..\src\town_map.h" />
-    <ClInclude Include="..\src\tree_map.h" />
     <ClCompile Include="..\src\tunnel_map.cpp" />
     <ClInclude Include="..\src\tunnel_map.h" />
     <ClInclude Include="..\src\tunnelbridge_map.h" />

@@ -10,9 +10,8 @@
 /** @file tree_cmd.cpp Handling of tree tiles. */
 
 #include "stdafx.h"
-#include "clear_map.h"
+#include "map/ground.h"
 #include "landscape.h"
-#include "tree_map.h"
 #include "viewport_func.h"
 #include "command_func.h"
 #include "town.h"

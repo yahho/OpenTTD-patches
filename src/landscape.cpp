@@ -12,8 +12,8 @@
 /** @defgroup SnowLineGroup Snowline functions and data structures */
 
 #include "stdafx.h"
+#include "map/ground.h"
 #include "heightmap.h"
-#include "clear_map.h"
 #include "spritecache.h"
 #include "viewport_func.h"
 #include "command_func.h"

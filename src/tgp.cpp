@@ -10,8 +10,9 @@
 /** @file tgp.cpp OTTD Perlin Noise Landscape Generator, aka TerraGenesis Perlin */
 
 #include "stdafx.h"
+#include "core/alloc_func.hpp"
 #include <math.h>
-#include "clear_map.h"
+#include "map/ground.h"
 #include "genworld.h"
 #include "core/random_func.hpp"
 #include "landscape_type.h"

@@ -17,7 +17,7 @@
 #include "company_base.h"
 #include "command_func.h"
 #include "sound_func.h"
-#include "tree_map.h"
+#include "map/ground.h"
 
 #include "widgets/tree_widget.h"
 

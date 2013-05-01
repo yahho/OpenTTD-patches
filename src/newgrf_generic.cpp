@@ -15,7 +15,7 @@
 #include "industrytype.h"
 #include "core/random_func.hpp"
 #include "newgrf_sound.h"
-#include "clear_map.h"
+#include "map/ground.h"
 #include "water_map.h"
 #include <list>
 

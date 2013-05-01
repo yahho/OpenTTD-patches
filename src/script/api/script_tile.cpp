@@ -14,9 +14,8 @@
 #include "script_map.hpp"
 #include "script_town.hpp"
 #include "../../station_func.h"
+#include "../../map/ground.h"
 #include "../../water_map.h"
-#include "../../clear_map.h"
-#include "../../tree_map.h"
 #include "../../town.h"
 #include "../../landscape.h"
 
