@@ -1877,6 +1877,12 @@
     <ClInclude Include="..\src\map\ground.h" />
     <ClInclude Include="..\src\map\water.h" />
     <ClInclude Include="..\src\map\object.h" />
+    <ClCompile Include="..\src\map\tunnel.cpp">
+      <AssemblerListingLocation>$(IntDir)\map\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\map\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\map\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\map\tunnel.h" />
     <ClCompile Include="..\src\bridge_map.cpp" />
     <ClInclude Include="..\src\bridge_map.h" />
     <ClInclude Include="..\src\industry_map.h" />
@@ -1887,8 +1893,6 @@
     <ClInclude Include="..\src\station_map.h" />
     <ClInclude Include="..\src\tile_map.h" />
     <ClInclude Include="..\src\town_map.h" />
-    <ClCompile Include="..\src\tunnel_map.cpp" />
-    <ClInclude Include="..\src\tunnel_map.h" />
     <ClInclude Include="..\src\tunnelbridge_map.h" />
     <ClInclude Include="..\src\misc\array.hpp" />
     <ClInclude Include="..\src\misc\binaryheap.hpp" />

@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * This file is part of OpenTTD.
  * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -7,10 +5,14 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file tunnel_map.cpp Map accessors for tunnels. */
+/** @file map/tunnel.cpp Map accessors for tunnels. */
 
-#include "stdafx.h"
-#include "tunnelbridge_map.h"
+#include "../stdafx.h"
+#include "zoneheight.h"
+#include "class.h"
+#include "common.h"
+#include "tunnel.h"
+#include "../tile_map.h"
 
 
 /**
@@ -21,6 +23,8 @@
  */
 TileIndex GetOtherTunnelEnd(TileIndex tile)
 {
+	assert(IsTunnelTile(tile));
+
 	DiagDirection dir = GetTunnelBridgeDirection(tile);
 	TileIndexDiff delta = TileOffsByDiagDir(dir);
 	uint h = TileHeight(tile);

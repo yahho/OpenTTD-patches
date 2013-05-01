@@ -57,7 +57,7 @@ void AfterLoadLabelMaps()
 					break;
 
 				case TT_MISC:
-					if (IsLevelCrossingTile(t) || (IsTunnelTile(t) && GetTunnelTransportType(t) == TRANSPORT_RAIL) || IsRailDepotTile(t)) {
+					if (IsLevelCrossingTile(t) || maptile_is_rail_tunnel(t) || IsRailDepotTile(t)) {
 						SetRailType(t, railtype_conversion_map[GetRailType(t)]);
 					}
 					break;

@@ -764,8 +764,7 @@ void AddTunnelToSignalBuffer(TileIndex tile, Owner owner)
 {
 	SetBufferOwner(owner);
 
-	assert(IsTunnelTile(tile));
-	assert(GetTunnelTransportType(tile) == TRANSPORT_RAIL);
+	assert(maptile_is_rail_tunnel(tile));
 	_globset.Add(SignalSideFrom(tile, SIDE_FROM_TUNNEL));
 
 	UpdateSignalsInBufferAuto();

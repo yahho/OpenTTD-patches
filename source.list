@@ -980,6 +980,8 @@ map/common.h
 map/ground.h
 map/water.h
 map/object.h
+map/tunnel.cpp
+map/tunnel.h
 bridge_map.cpp
 bridge_map.h
 industry_map.h
@@ -990,8 +992,6 @@ signal_map.h
 station_map.h
 tile_map.h
 town_map.h
-tunnel_map.cpp
-tunnel_map.h
 tunnelbridge_map.h
 
 # Misc

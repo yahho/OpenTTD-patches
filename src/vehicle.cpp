@@ -47,7 +47,7 @@
 #include "effectvehicle_base.h"
 #include "vehiclelist.h"
 #include "bridge_map.h"
-#include "tunnel_map.h"
+#include "map/tunnel.h"
 #include "depot_map.h"
 #include "gamelog.h"
 

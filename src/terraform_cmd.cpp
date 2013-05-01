@@ -11,7 +11,7 @@
 
 #include "stdafx.h"
 #include "command_func.h"
-#include "tunnel_map.h"
+#include "map/tunnel.h"
 #include "bridge_map.h"
 #include "viewport_func.h"
 #include "genworld.h"

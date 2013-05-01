@@ -13,7 +13,7 @@
 #define TUNNELBRIDGE_MAP_H
 
 #include "bridge_map.h"
-#include "tunnel_map.h"
+#include "map/tunnel.h"
 
 
 /**
@@ -49,61 +49,6 @@ static inline bool HasBridgeMiddleReservation(TileIndex t)
 static inline void SetBridgeMiddleReservation(TileIndex t, bool b)
 {
 	tile_set_bridge_middle_reserved(&_mc[t], b);
-}
-
-/**
- * Get the reservation state of the rail tunnel head
- * @pre IsTunnelTile(t) && GetTunnelTransportType(t) == TRANSPORT_RAIL
- * @param t the tile
- * @return reservation state
- */
-static inline bool HasTunnelHeadReservation(TileIndex t)
-{
-	return tile_is_tunnel_head_reserved(&_mc[t]);
-}
-
-/**
- * Set the reservation state of the rail tunnel head
- * @pre IsTunnelTile(t) && GetTunnelTransportType(t) == TRANSPORT_RAIL
- * @param t the tile
- * @param b the reservation state
- */
-static inline void SetTunnelHeadReservation(TileIndex t, bool b)
-{
-	tile_set_tunnel_head_reserved(&_mc[t], b);
-}
-
-/**
- * Get the reservation state of the rail tunnel middle part
- * @pre IsTunnelTile(t) && GetTunnelTransportType(t) == TRANSPORT_RAIL
- * @param t the tile
- * @return reservation state
- */
-static inline bool HasTunnelMiddleReservation(TileIndex t)
-{
-	return tile_is_tunnel_middle_reserved(&_mc[t]);
-}
-
-/**
- * Set the reservation state of the rail tunnel middle part
- * @pre IsTunnelTile(t) && GetTunnelTransportType(t) == TRANSPORT_RAIL
- * @param t the tile
- * @param b the reservation state
- */
-static inline void SetTunnelMiddleReservation(TileIndex t, bool b)
-{
-	tile_set_tunnel_middle_reserved(&_mc[t], b);
-}
-
-/**
- * Get the reserved track bits for a rail tunnel
- * @pre IsTunnelTile(t) && GetTunnelTransportType(t) == TRANSPORT_RAIL
- * @param t the tile
- * @return reserved track bits
- */
-static inline TrackBits GetTunnelReservationTrackBits(TileIndex t)
-{
-	return tile_get_tunnel_reserved_trackbits(&_mc[t]);
 }
 
 #endif /* TUNNELBRIDGE_MAP_H */
