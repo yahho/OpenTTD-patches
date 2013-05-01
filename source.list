@@ -975,6 +975,7 @@ map/coord.cpp
 map/coord.h
 map/subcoord.h
 map/zoneheight.h
+map/class.h
 bridge_map.cpp
 bridge_map.h
 clear_map.h

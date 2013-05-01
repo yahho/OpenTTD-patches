@@ -11003,6 +11003,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\map\class.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\bridge_map.cpp"
 				>
 			</File>

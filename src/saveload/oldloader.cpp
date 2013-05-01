@@ -205,7 +205,7 @@ static void InitLoading(LoadgameState *ls, LoadFilter *reader, SavegameTypeVersi
 
 	_bump_assert_value = 0;
 
-	_settings_game.construction.freeform_edges = false; // disable so we can convert map array (SetTileType is still used)
+	_settings_game.construction.freeform_edges = false; // disable so we can convert map array
 }
 
 /**

@@ -1872,6 +1872,7 @@
     <ClInclude Include="..\src\map\coord.h" />
     <ClInclude Include="..\src\map\subcoord.h" />
     <ClInclude Include="..\src\map\zoneheight.h" />
+    <ClInclude Include="..\src\map\class.h" />
     <ClCompile Include="..\src\bridge_map.cpp" />
     <ClInclude Include="..\src\bridge_map.h" />
     <ClInclude Include="..\src\clear_map.h" />
