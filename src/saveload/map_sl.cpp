@@ -18,7 +18,7 @@
 #include "../town.h"
 #include "../landscape_type.h"
 #include "../map/ground.h"
-#include "../water_map.h"
+#include "../map/water.h"
 
 #include "saveload_buffer.h"
 

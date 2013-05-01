@@ -16,7 +16,8 @@
 #include "core/random_func.hpp"
 #include "newgrf_sound.h"
 #include "map/ground.h"
-#include "water_map.h"
+#include "map/water.h"
+#include "tile_map.h"
 #include <list>
 
 /** Scope resolver for generic objects and properties. */

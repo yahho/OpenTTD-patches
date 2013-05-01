@@ -11,9 +11,9 @@
 
 #include "stdafx.h"
 #include "map/ground.h"
+#include "map/water.h"
 #include "rail_map.h"
 #include "road_map.h"
-#include "water_map.h"
 #include "genworld.h"
 #include "company_func.h"
 #include "company_base.h"

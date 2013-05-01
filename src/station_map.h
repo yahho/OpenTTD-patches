@@ -13,9 +13,9 @@
 #define STATION_MAP_H
 
 #include "tile/station.h"
+#include "map/water.h"
 #include "rail_map.h"
 #include "road_map.h"
-#include "water_map.h"
 #include "station_func.h"
 #include "rail.h"
 

@@ -10,6 +10,7 @@
 /** @file dock_gui.cpp GUI to create amazing water objects. */
 
 #include "stdafx.h"
+#include "tile_map.h"
 #include "terraform_gui.h"
 #include "window_gui.h"
 #include "station_gui.h"

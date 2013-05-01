@@ -11,11 +11,11 @@
 
 #include "stdafx.h"
 #include "map/ground.h"
+#include "map/water.h"
 #include "command_func.h"
 #include "landscape.h"
 #include "genworld.h"
 #include "viewport_func.h"
-#include "water_map.h"
 #include "water.h"
 #include "company_base.h"
 #include "company_func.h"

@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * This file is part of OpenTTD.
  * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -7,15 +5,20 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file water_map.h Map accessors for water tiles. */
+/** @file map/water.h Map tile accessors for water tiles. */
 
-#ifndef WATER_MAP_H
-#define WATER_MAP_H
+#ifndef MAP_WATER_H
+#define MAP_WATER_H
 
-#include "tile/common.h"
-#include "tile/water.h"
-#include "depot_type.h"
-#include "tile_map.h"
+#include "../stdafx.h"
+#include "../tile/common.h"
+#include "../tile/water.h"
+#include "map.h"
+#include "coord.h"
+#include "common.h"
+#include "../direction_type.h"
+#include "../direction_func.h"
+#include "../company_type.h"
 
 /**
  * Get the water tile type at a tile.
@@ -26,6 +29,81 @@ static inline WaterTileType GetWaterTileType(TileIndex t)
 {
 	return tile_get_water_type(&_mc[t]);
 }
+
+/**
+ * Is it a plain water tile?
+ * @param t Water tile to query.
+ * @return \c true if any type of clear water like ocean, river, or canal.
+ * @pre IsWaterTile(t)
+ */
+static inline bool IsPlainWater(TileIndex t)
+{
+	return tile_water_is_clear(&_mc[t]);
+}
+
+/**
+ * Is it a coast tile?
+ * @param t Water tile to query.
+ * @return \c true if it is a sea water tile.
+ * @pre IsWaterTile(t)
+ */
+static inline bool IsCoast(TileIndex t)
+{
+	return tile_water_is_coast(&_mc[t]);
+}
+
+/**
+ * Is it a water tile with a ship depot on it?
+ * @param t Water tile to query.
+ * @return \c true if it is a ship depot tile.
+ * @pre IsWaterTile(t)
+ */
+static inline bool IsShipDepot(TileIndex t)
+{
+	return tile_water_is_depot(&_mc[t]);
+}
+
+/**
+ * Is there a lock on a given water tile?
+ * @param t Water tile to query.
+ * @return \c true if it is a water lock tile.
+ * @pre IsWaterTile(t)
+ */
+static inline bool IsLock(TileIndex t)
+{
+	return tile_water_is_lock(&_mc[t]);
+}
+
+/**
+ * Is it a water tile with plain water?
+ * @param t Tile to query.
+ * @return \c true if it is a plain water tile.
+ */
+static inline bool IsPlainWaterTile(TileIndex t)
+{
+	return tile_is_clear_water(&_mc[t]);
+}
+
+/**
+ * Is it a coast tile
+ * @param t Tile to query.
+ * @return \c true if it is a coast.
+ */
+static inline bool IsCoastTile(TileIndex t)
+{
+	return tile_is_coast(&_mc[t]);
+}
+
+/**
+ * Is it a ship depot tile?
+ * @param t Tile to query.
+ * @return \c true if it is a ship depot tile.
+ */
+static inline bool IsShipDepotTile(TileIndex t)
+{
+	return tile_is_ship_depot(&_mc[t]);
+}
+
 
 /**
  * Checks whether the tile has an waterclass associated.
@@ -71,16 +149,6 @@ static inline bool IsTileOnWater(TileIndex t)
 	return tile_is_on_water(&_mc[t]);
 }
 
-/**
- * Is it a plain water tile?
- * @param t Water tile to query.
- * @return \c true if any type of clear water like ocean, river, or canal.
- * @pre IsWaterTile(t)
- */
-static inline bool IsPlainWater(TileIndex t)
-{
-	return tile_water_is_clear(&_mc[t]);
-}
 
 /**
  * Is it a sea water tile?
@@ -115,57 +183,6 @@ static inline bool IsRiver(TileIndex t)
 	return tile_water_is_river(&_mc[t]);
 }
 
-/**
- * Is it a water tile with plain water?
- * @param t Tile to query.
- * @return \c true if it is a plain water tile.
- */
-static inline bool IsPlainWaterTile(TileIndex t)
-{
-	return tile_is_clear_water(&_mc[t]);
-}
-
-/**
- * Is it a coast tile?
- * @param t Water tile to query.
- * @return \c true if it is a sea water tile.
- * @pre IsWaterTile(t)
- */
-static inline bool IsCoast(TileIndex t)
-{
-	return tile_water_is_coast(&_mc[t]);
-}
-
-/**
- * Is it a coast tile
- * @param t Tile to query.
- * @return \c true if it is a coast.
- */
-static inline bool IsCoastTile(TileIndex t)
-{
-	return tile_is_coast(&_mc[t]);
-}
-
-/**
- * Is it a water tile with a ship depot on it?
- * @param t Water tile to query.
- * @return \c true if it is a ship depot tile.
- * @pre IsWaterTile(t)
- */
-static inline bool IsShipDepot(TileIndex t)
-{
-	return tile_water_is_depot(&_mc[t]);
-}
-
-/**
- * Is it a ship depot tile?
- * @param t Tile to query.
- * @return \c true if it is a ship depot tile.
- */
-static inline bool IsShipDepotTile(TileIndex t)
-{
-	return tile_is_ship_depot(&_mc[t]);
-}
 
 /**
  * Get the axis of the ship depot.
@@ -225,16 +242,6 @@ static inline TileIndex GetShipDepotNorthTile(TileIndex t)
 	return t < tile2 ? t : tile2;
 }
 
-/**
- * Is there a lock on a given water tile?
- * @param t Water tile to query.
- * @return \c true if it is a water lock tile.
- * @pre IsWaterTile(t)
- */
-static inline bool IsLock(TileIndex t)
-{
-	return tile_water_is_lock(&_mc[t]);
-}
 
 /**
  * Get the direction of the water lock.
@@ -258,6 +265,7 @@ static inline byte GetLockPart(TileIndex t)
 	return tile_get_lock_part(&_mc[t]);
 }
 
+
 /**
  * Get the random bits of the water tile.
  * @param t Water tile to query.
@@ -270,6 +278,7 @@ static inline byte GetWaterTileRandomBits(TileIndex t)
 	return tile_get_random_bits(&_mc[t]);
 }
 
+
 /**
  * Checks whether the tile has water at the ground.
  * That is, it is either some plain water tile, or a object/industry/station/... with water under it.
@@ -281,15 +290,6 @@ static inline bool HasTileWaterGround(TileIndex t)
 	return HasTileWaterClass(t) && IsTileOnWater(t) && !IsCoastTile(t);
 }
 
-
-/**
- * Helper function to make a coast tile.
- * @param t The tile to change into water
- */
-static inline void MakeShore(TileIndex t)
-{
-	tile_make_shore(&_mc[t]);
-}
 
 /**
  * Helper function for making a watery tile.
@@ -313,16 +313,6 @@ static inline void MakeSea(TileIndex t)
 }
 
 /**
- * Make a river tile
- * @param t The tile to change into river
- * @param random_bits Random bits to be set for this tile
- */
-static inline void MakeRiver(TileIndex t, uint8 random_bits)
-{
-	tile_make_river(&_mc[t], random_bits);
-}
-
-/**
  * Make a canal tile
  * @param t The tile to change into canal
  * @param o The owner of the canal
@@ -334,6 +324,25 @@ static inline void MakeCanal(TileIndex t, Owner o, uint8 random_bits)
 }
 
 /**
+ * Make a river tile
+ * @param t The tile to change into river
+ * @param random_bits Random bits to be set for this tile
+ */
+static inline void MakeRiver(TileIndex t, uint8 random_bits)
+{
+	tile_make_river(&_mc[t], random_bits);
+}
+
+/**
+ * Helper function to make a coast tile.
+ * @param t The tile to change into water
+ */
+static inline void MakeShore(TileIndex t)
+{
+	tile_make_shore(&_mc[t]);
+}
+
+/**
  * Make a ship depot section.
  * @param t    Tile to place the ship depot section.
  * @param o    Owner of the depot.
@@ -342,7 +351,7 @@ static inline void MakeCanal(TileIndex t, Owner o, uint8 random_bits)
  * @param a    Axis of the depot.
  * @param original_water_class Original water class.
  */
-static inline void MakeShipDepot(TileIndex t, Owner o, DepotID did, DepotPart part, Axis a, WaterClass original_water_class)
+static inline void MakeShipDepot(TileIndex t, Owner o, uint did, DepotPart part, Axis a, WaterClass original_water_class)
 {
 	tile_make_ship_depot(&_mc[t], o, did, part, a, original_water_class);
 }
@@ -381,4 +390,4 @@ static inline void MakeLock(TileIndex t, Owner o, DiagDirection d, WaterClass wc
 	MakeLockTile(t + delta, IsPlainWaterTile(t + delta) ? GetTileOwner(t + delta) : o, LOCK_PART_UPPER, d, wc_upper);
 }
 
-#endif /* WATER_MAP_H */
+#endif /* MAP_WATER_H */

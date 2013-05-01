@@ -23,7 +23,7 @@
 #include "pathfinder/yapf/yapf_cache.h"
 #include "autoslope.h"
 #include "tunnelbridge_map.h"
-#include "water_map.h"
+#include "map/water.h"
 #include "strings_func.h"
 #include "tunnelbridge.h"
 #include "cheat_type.h"

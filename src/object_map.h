@@ -14,7 +14,7 @@
 
 #include "tile/common.h"
 #include "tile/object.h"
-#include "water_map.h"
+#include "map/water.h"
 #include "object_type.h"
 
 /**

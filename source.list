@@ -978,6 +978,7 @@ map/zoneheight.h
 map/class.h
 map/common.h
 map/ground.h
+map/water.h
 bridge_map.cpp
 bridge_map.h
 industry_map.h
@@ -992,7 +993,6 @@ town_map.h
 tunnel_map.cpp
 tunnel_map.h
 tunnelbridge_map.h
-water_map.h
 
 # Misc
 misc/array.hpp

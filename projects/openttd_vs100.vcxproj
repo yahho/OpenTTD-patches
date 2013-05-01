@@ -1875,6 +1875,7 @@
     <ClInclude Include="..\src\map\class.h" />
     <ClInclude Include="..\src\map\common.h" />
     <ClInclude Include="..\src\map\ground.h" />
+    <ClInclude Include="..\src\map\water.h" />
     <ClCompile Include="..\src\bridge_map.cpp" />
     <ClInclude Include="..\src\bridge_map.h" />
     <ClInclude Include="..\src\industry_map.h" />
@@ -1889,7 +1890,6 @@
     <ClCompile Include="..\src\tunnel_map.cpp" />
     <ClInclude Include="..\src\tunnel_map.h" />
     <ClInclude Include="..\src\tunnelbridge_map.h" />
-    <ClInclude Include="..\src\water_map.h" />
     <ClInclude Include="..\src\misc\array.hpp" />
     <ClInclude Include="..\src\misc\binaryheap.hpp" />
     <ClInclude Include="..\src\misc\blob.hpp" />

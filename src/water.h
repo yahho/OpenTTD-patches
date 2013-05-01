@@ -12,7 +12,7 @@
 #ifndef WATER_H
 #define WATER_H
 
-#include "water_map.h"
+#include "map/water.h"
 #include "economy_func.h"
 
 /**

@@ -14,8 +14,8 @@
 
 #include "tile/common.h"
 #include "tile/industry.h"
+#include "map/water.h"
 #include "industrytype.h"
-#include "water_map.h"
 
 
 /**

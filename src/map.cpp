@@ -12,7 +12,7 @@
 #include "stdafx.h"
 #include "debug.h"
 #include "core/alloc_func.hpp"
-#include "water_map.h"
+#include "map/water.h"
 
 /**
  * Finds the distance for the closest tile with water/land given a tile
