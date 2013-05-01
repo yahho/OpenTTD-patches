@@ -26,18 +26,6 @@
 #include "core/bitmath_func.hpp"
 #include "settings_type.h"
 
-/**
- * Returns the direction the depot is facing to
- * @param t the tile to get the depot facing from
- * @pre IsGroundDepotTile(t)
- * @return the direction the depot is facing
- */
-static inline DiagDirection GetGroundDepotDirection(TileIndex t)
-{
-	return tile_get_ground_depot_direction(&_mc[t]);
-}
-
-
 Slope GetTileSlope(TileIndex tile, int *h = NULL);
 int GetTileZ(TileIndex tile);
 int GetTileMaxZ(TileIndex tile);

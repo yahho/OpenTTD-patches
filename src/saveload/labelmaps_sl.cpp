@@ -10,6 +10,7 @@
 /** @file labelmaps_sl.cpp Code handling saving and loading of rail type label mappings */
 
 #include "../stdafx.h"
+#include "../map/depot.h"
 #include "../station_map.h"
 #include "../tunnelbridge_map.h"
 

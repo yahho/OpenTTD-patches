@@ -24,16 +24,6 @@
 
 
 /**
- * Is this tile rail tile and a rail depot?
- * @param t the tile to get the information from
- * @return true if and only if the tile is a rail depot
- */
-static inline bool IsRailDepotTile(TileIndex t)
-{
-	return tile_is_rail_depot(&_mc[t]);
-}
-
-/**
  * Gets the rail type of the given tile
  * @param t the tile to get the rail type from
  * @return the rail type of the tile
@@ -84,17 +74,6 @@ static inline void SetTrackBits(TileIndex t, TrackBits b)
 static inline bool HasTrack(TileIndex tile, Track track)
 {
 	return tile_has_track(&_mc[tile], track);
-}
-
-/**
- * Returns the track of a depot, ignoring direction
- * @pre IsRailDepotTile(t)
- * @param t the tile to get the depot track from
- * @return the track of the depot
- */
-static inline Track GetRailDepotTrack(TileIndex t)
-{
-	return tile_get_depot_track(&_mc[t]);
 }
 
 
@@ -175,39 +154,6 @@ static inline void UnreserveTrack(TileIndex tile, Track t)
 	TrackBits res = GetRailReservationTrackBits(tile);
 	res &= ~TrackToTrackBits(t);
 	SetTrackReservation(tile, res);
-}
-
-/**
- * Get the reservation state of the depot
- * @pre IsRailDepotTile(t)
- * @param t the depot tile
- * @return reservation state
- */
-static inline bool HasDepotReservation(TileIndex t)
-{
-	return tile_is_depot_reserved(&_mc[t]);
-}
-
-/**
- * Set the reservation state of the depot
- * @pre IsRailDepotTile(t)
- * @param t the depot tile
- * @param b the reservation state
- */
-static inline void SetDepotReservation(TileIndex t, bool b)
-{
-	tile_set_depot_reserved(&_mc[t], b);
-}
-
-/**
- * Get the reserved track bits for a depot
- * @pre IsRailDepotTile(t)
- * @param t the tile
- * @return reserved track bits
- */
-static inline TrackBits GetDepotReservationTrackBits(TileIndex t)
-{
-	return tile_get_depot_reserved_trackbits(&_mc[t]);
 }
 
 
@@ -448,11 +394,6 @@ static inline void MakeNormalRailFromBridge(TileIndex t)
 static inline void MakeRailBridgeFromRail(TileIndex t, BridgeType bridgetype, DiagDirection d)
 {
 	tile_make_rail_bridge_from_track(&_mc[t], bridgetype, d);
-}
-
-static inline void MakeRailDepot(TileIndex t, Owner o, DepotID did, DiagDirection d, RailType r)
-{
-	tile_make_rail_depot(&_mc[t], o, did, d, r);
 }
 
 #endif /* RAIL_MAP_H */

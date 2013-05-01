@@ -10,6 +10,7 @@
 /** @file vehicle_sl.cpp Code handling saving and loading of vehicles */
 
 #include "../stdafx.h"
+#include "../map/depot.h"
 #include "../vehicle_func.h"
 #include "../train.h"
 #include "../roadveh.h"

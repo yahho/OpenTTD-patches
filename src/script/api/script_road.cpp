@@ -13,6 +13,7 @@
 #include "script_map.hpp"
 #include "script_station.hpp"
 #include "script_cargo.hpp"
+#include "../../map/depot.h"
 #include "../../station_base.h"
 #include "../../script/squirrel_helper_type.hpp"
 

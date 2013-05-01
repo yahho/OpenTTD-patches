@@ -23,16 +23,6 @@
 
 
 /**
- * Return whether a tile is a road depot tile.
- * @param t Tile to query.
- * @return True if road depot tile.
- */
-static inline bool IsRoadDepotTile(TileIndex t)
-{
-	return tile_is_road_depot(&_mc[t]);
-}
-
-/**
  * Get the present road bits for a specific road type.
  * @param t  The tile to query.
  * @param rt Road type.
@@ -474,19 +464,6 @@ static inline void MakeRoadBridgeFromRoad(TileIndex t, BridgeType bridgetype, Di
 static inline void MakeRoadCrossing(TileIndex t, Owner road, Owner tram, Owner rail, Axis roaddir, RailType rat, RoadTypes rot, uint town)
 {
 	tile_make_crossing(&_mc[t], rail, road, tram, roaddir, rat, rot, town);
-}
-
-/**
- * Make a road depot.
- * @param t     Tile to make a level crossing.
- * @param owner New owner of the depot.
- * @param did   New depot ID.
- * @param dir   Direction of the depot exit.
- * @param rt    Road type of the depot.
- */
-static inline void MakeRoadDepot(TileIndex t, Owner owner, DepotID did, DiagDirection dir, RoadType rt)
-{
-	tile_make_road_depot(&_mc[t], owner, did, dir, rt);
 }
 
 #endif /* ROAD_MAP_H */

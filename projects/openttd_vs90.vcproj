@@ -11068,6 +11068,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\map\depot.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\bridge_map.cpp"
 				>
 			</File>

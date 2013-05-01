@@ -25,6 +25,7 @@
 #include "station_base.h"
 #include "town.h"
 #include "vehicle_base.h"
+#include "map/depot.h"
 
 #include "newgrf_airporttiles.h"
 #include "newgrf_debug.h"

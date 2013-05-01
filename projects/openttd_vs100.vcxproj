@@ -1883,6 +1883,7 @@
       <XMLDocumentationFileName>$(IntDir)\map\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\map\tunnel.h" />
+    <ClInclude Include="..\src\map\depot.h" />
     <ClCompile Include="..\src\bridge_map.cpp" />
     <ClInclude Include="..\src\bridge_map.h" />
     <ClInclude Include="..\src\industry_map.h" />

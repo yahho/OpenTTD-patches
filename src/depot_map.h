@@ -12,7 +12,7 @@
 #ifndef DEPOT_MAP_H
 #define DEPOT_MAP_H
 
-#include "tile/misc.h"
+#include "map/depot.h"
 #include "station_map.h"
 
 /**
@@ -34,28 +34,6 @@ static inline bool IsDepotTypeTile(TileIndex tile, TransportType type)
 }
 
 /**
- * Check if a ground depot is a rail depot.
- * @param t the tile to check
- * @pre IsGroundDepotTile(TileIndex t)
- * @return whether the ground depot is a rail depot
- */
-static inline bool IsRailDepot(TileIndex t)
-{
-	return tile_depot_is_rail(&_mc[t]);
-}
-
-/**
- * Check if a ground depot is a road depot.
- * @param t the tile to check
- * @pre IsGroundDepotTile(TileIndex t)
- * @return whether the ground depot is a road depot
- */
-static inline bool IsRoadDepot(TileIndex t)
-{
-	return tile_depot_is_road(&_mc[t]);
-}
-
-/**
  * Is the given tile a tile with a depot on it?
  * @param tile the tile to check
  * @return true if and only if there is a depot on the tile.
@@ -63,17 +41,6 @@ static inline bool IsRoadDepot(TileIndex t)
 static inline bool IsDepotTile(TileIndex tile)
 {
 	return IsGroundDepotTile(tile) || IsShipDepotTile(tile) || IsHangarTile(tile);
-}
-
-/**
- * Get the index of which depot is attached to the tile.
- * @param t the tile
- * @pre IsGroundDepotTile(t) || IsShipDepotTile(t)
- * @return DepotID
- */
-static inline DepotID GetDepotIndex(TileIndex t)
-{
-	return tile_get_depot_index(&_mc[t]);
 }
 
 /**

@@ -35,6 +35,7 @@
 #include "zoom_func.h"
 #include "rail_gui.h"
 
+#include "map/depot.h"
 #include "station_map.h"
 #include "tunnelbridge_map.h"
 
