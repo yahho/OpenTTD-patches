@@ -438,7 +438,6 @@
     <ClCompile Include="..\src\textbuf.cpp" />
     <ClCompile Include="..\src\texteff.cpp" />
     <ClCompile Include="..\src\tgp.cpp" />
-    <ClCompile Include="..\src\tile_map.cpp" />
     <ClCompile Include="..\src\tilearea.cpp" />
     <ClCompile Include="..\src\townname.cpp" />
     <ClCompile Include="..\src\vehicle.cpp" />
@@ -1894,13 +1893,18 @@
     <ClInclude Include="..\src\map\road.h" />
     <ClInclude Include="..\src\map\industry.h" />
     <ClInclude Include="..\src\map\house.h" />
+    <ClCompile Include="..\src\map\slope.cpp">
+      <AssemblerListingLocation>$(IntDir)\map\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\map\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\map\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\map\slope.h" />
     <ClCompile Include="..\src\bridge_map.cpp" />
     <ClInclude Include="..\src\bridge_map.h" />
     <ClInclude Include="..\src\industry_map.h" />
     <ClInclude Include="..\src\rail_map.h" />
     <ClInclude Include="..\src\signal_map.h" />
     <ClInclude Include="..\src\station_map.h" />
-    <ClInclude Include="..\src\tile_map.h" />
     <ClInclude Include="..\src\town_map.h" />
     <ClInclude Include="..\src\tunnelbridge_map.h" />
     <ClInclude Include="..\src\misc\array.hpp" />

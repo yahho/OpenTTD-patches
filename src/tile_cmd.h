@@ -16,7 +16,8 @@
 #include "vehicle_type.h"
 #include "cargo_type.h"
 #include "track_type.h"
-#include "tile_map.h"
+#include "slope_type.h"
+#include "map/class.h"
 
 /** The returned bits of VehicleEnterTile. */
 enum VehicleEnterTileStatus {

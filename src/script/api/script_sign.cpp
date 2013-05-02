@@ -16,7 +16,8 @@
 #include "../../signs_base.h"
 #include "../../string_func.h"
 #include "../../strings_func.h"
-#include "../../tile_map.h"
+#include "../../map/subcoord.h"
+#include "../../map/class.h"
 
 /* static */ bool ScriptSign::IsValidSign(SignID sign_id)
 {

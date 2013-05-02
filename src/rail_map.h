@@ -18,7 +18,6 @@
 #include "depot_type.h"
 #include "signal_func.h"
 #include "track_func.h"
-#include "tile_map.h"
 #include "signal_type.h"
 #include "bridge.h"
 

@@ -12,6 +12,7 @@
 #include "stdafx.h"
 #include "map/ground.h"
 #include "map/water.h"
+#include "map/slope.h"
 #include "command_func.h"
 #include "landscape.h"
 #include "genworld.h"

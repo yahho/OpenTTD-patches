@@ -23,7 +23,7 @@
 #include "error.h"
 #include "window_gui.h"
 #include "window_func.h"
-#include "tile_map.h"
+#include "map/zoneheight.h"
 #include "landscape.h"
 
 #include "table/strings.h"

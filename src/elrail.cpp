@@ -56,6 +56,7 @@
 
 #include "stdafx.h"
 #include "station_map.h"
+#include "map/slope.h"
 #include "viewport_func.h"
 #include "train.h"
 #include "rail_gui.h"

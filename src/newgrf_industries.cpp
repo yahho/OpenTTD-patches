@@ -21,7 +21,7 @@
 #include "error.h"
 #include "strings_func.h"
 #include "core/random_func.hpp"
-#include "tile_map.h"
+#include "map/slope.h"
 
 #include "table/strings.h"
 

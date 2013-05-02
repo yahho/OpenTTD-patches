@@ -27,6 +27,7 @@
  */
 
 #include "stdafx.h"
+#include "map/slope.h"
 #include "landscape.h"
 #include "viewport_func.h"
 #include "station_base.h"

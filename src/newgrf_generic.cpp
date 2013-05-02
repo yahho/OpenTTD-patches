@@ -17,7 +17,7 @@
 #include "newgrf_sound.h"
 #include "map/ground.h"
 #include "map/water.h"
-#include "tile_map.h"
+#include "map/slope.h"
 #include <list>
 
 /** Scope resolver for generic objects and properties. */

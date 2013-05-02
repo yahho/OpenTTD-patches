@@ -26,6 +26,7 @@
 #include "sound_func.h"
 #include "company_func.h"
 #include "map/ground.h"
+#include "map/slope.h"
 #include "aircraft.h"
 #include "effectvehicle_func.h"
 #include "tunnelbridge_map.h"

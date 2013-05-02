@@ -11,6 +11,7 @@
 
 #include "stdafx.h"
 #include "map/ground.h"
+#include "map/slope.h"
 #include "landscape.h"
 #include "viewport_func.h"
 #include "command_func.h"

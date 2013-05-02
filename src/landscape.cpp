@@ -13,6 +13,7 @@
 
 #include "stdafx.h"
 #include "map/ground.h"
+#include "map/slope.h"
 #include "heightmap.h"
 #include "spritecache.h"
 #include "viewport_func.h"

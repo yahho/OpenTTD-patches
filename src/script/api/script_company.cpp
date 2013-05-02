@@ -19,7 +19,7 @@
 #include "../../economy_func.h"
 #include "../../object_type.h"
 #include "../../strings_func.h"
-#include "../../tile_map.h"
+#include "../../map/class.h"
 #include "../../string_func.h"
 #include "../../settings_func.h"
 #include "table/strings.h"

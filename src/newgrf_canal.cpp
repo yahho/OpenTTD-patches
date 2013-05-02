@@ -15,7 +15,7 @@
 #include "newgrf_canal.h"
 #include "water.h"
 #include "map/water.h"
-#include "tile_map.h"
+#include "map/slope.h"
 
 /** Table of canal 'feature' sprite groups */
 WaterFeature _water_feature[CF_END];

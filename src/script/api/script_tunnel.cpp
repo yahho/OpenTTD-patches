@@ -15,7 +15,7 @@
 #include "../script_instance.hpp"
 #include "../../map/class.h"
 #include "../../map/tunnel.h"
-#include "../../tile_map.h"
+#include "../../map/slope.h"
 
 /* static */ bool ScriptTunnel::IsTunnelTile(TileIndex tile)
 {

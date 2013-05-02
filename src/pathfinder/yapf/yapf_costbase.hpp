@@ -12,6 +12,8 @@
 #ifndef YAPF_COSTBASE_HPP
 #define YAPF_COSTBASE_HPP
 
+#include "../../map/slope.h"
+
 /** Base implementation for cost accounting. */
 struct CYapfCostBase {
 	/**

@@ -19,6 +19,7 @@
 #include "../viewport_func.h"
 #include "../industry.h"
 #include "../map/ground.h"
+#include "../map/slope.h"
 #include "../vehicle_func.h"
 #include "../string_func.h"
 #include "../date_func.h"

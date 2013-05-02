@@ -366,9 +366,6 @@
     <ClCompile Include="..\src\tgp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\tile_map.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\tilearea.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -2814,6 +2811,12 @@
     <ClInclude Include="..\src\map\house.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
+    <ClCompile Include="..\src\map\slope.cpp">
+      <Filter>Map Accessors</Filter>
+    </ClCompile>
+    <ClInclude Include="..\src\map\slope.h">
+      <Filter>Map Accessors</Filter>
+    </ClInclude>
     <ClCompile Include="..\src\bridge_map.cpp">
       <Filter>Map Accessors</Filter>
     </ClCompile>
@@ -2830,9 +2833,6 @@
       <Filter>Map Accessors</Filter>
     </ClInclude>
     <ClInclude Include="..\src\station_map.h">
-      <Filter>Map Accessors</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\tile_map.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
     <ClInclude Include="..\src\town_map.h">

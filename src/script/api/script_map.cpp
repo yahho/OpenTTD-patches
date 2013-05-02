@@ -11,7 +11,7 @@
 
 #include "../../stdafx.h"
 #include "script_map.hpp"
-#include "../../tile_map.h"
+#include "../../map/class.h"
 
 /* static */ bool ScriptMap::IsValidTile(TileIndex t)
 {

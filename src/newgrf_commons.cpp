@@ -21,6 +21,7 @@
 #include "map/ground.h"
 #include "station_map.h"
 #include "depot_map.h"
+#include "map/slope.h"
 #include "tunnelbridge_map.h"
 #include "newgrf_object.h"
 #include "genworld.h"

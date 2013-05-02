@@ -12,7 +12,7 @@
 #include "class.h"
 #include "common.h"
 #include "tunnel.h"
-#include "../tile_map.h"
+#include "slope.h"
 
 
 /**

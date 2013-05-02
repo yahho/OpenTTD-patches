@@ -88,7 +88,6 @@ subsidy.cpp
 textbuf.cpp
 texteff.cpp
 tgp.cpp
-tile_map.cpp
 tilearea.cpp
 townname.cpp
 #if WIN32
@@ -989,13 +988,14 @@ map/road.cpp
 map/road.h
 map/industry.h
 map/house.h
+map/slope.cpp
+map/slope.h
 bridge_map.cpp
 bridge_map.h
 industry_map.h
 rail_map.h
 signal_map.h
 station_map.h
-tile_map.h
 town_map.h
 tunnelbridge_map.h
 

@@ -19,6 +19,7 @@
 #include "command_func.h"
 #include "water.h"
 #include "newgrf_animation_base.h"
+#include "map/slope.h"
 
 #include "table/strings.h"
 

@@ -26,6 +26,7 @@
 #include "map/water.h"
 #include "rail_map.h"
 #include "map/road.h"
+#include "map/slope.h"
 #include "viewport_func.h"
 #include "transparency.h"
 #include "rail.h"

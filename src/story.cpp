@@ -18,7 +18,7 @@
 #include "company_func.h"
 #include "string_func.h"
 #include "date_func.h"
-#include "tile_map.h"
+#include "map/class.h"
 #include "goal_type.h"
 #include "goal_base.h"
 #include "window_func.h"

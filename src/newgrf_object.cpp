@@ -18,6 +18,7 @@
 #include "newgrf_sound.h"
 #include "object_base.h"
 #include "map/object.h"
+#include "map/slope.h"
 #include "tile_cmd.h"
 #include "town.h"
 #include "water.h"

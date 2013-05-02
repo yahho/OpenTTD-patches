@@ -10,6 +10,7 @@
 /** @file viewport_gui.cpp Extra viewport window. */
 
 #include "stdafx.h"
+#include "map/zoneheight.h"
 #include "landscape.h"
 #include "window_gui.h"
 #include "viewport_func.h"

@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * This file is part of OpenTTD.
  * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -7,10 +5,47 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file tile_map.cpp Global tile accessors. */
+/** @file map/slope.cpp Map functions for computing slopes and heights. */
 
-#include "stdafx.h"
-#include "tile_map.h"
+#include "../stdafx.h"
+#include "slope.h"
+#include "zoneheight.h"
+
+
+/**
+ * Get bottom height of the tile
+ * @param tile Tile to compute height of
+ * @return Minimum height of the tile
+ */
+int GetTileZ(TileIndex tile)
+{
+	if (TileX(tile) == MapMaxX() || TileY(tile) == MapMaxY()) return 0;
+
+	int h = TileHeight(tile); // N corner
+	h = min(h, TileHeight(tile + TileDiffXY(1, 0))); // W corner
+	h = min(h, TileHeight(tile + TileDiffXY(0, 1))); // E corner
+	h = min(h, TileHeight(tile + TileDiffXY(1, 1))); // S corner
+
+	return h;
+}
+
+/**
+ * Get top height of the tile
+ * @param t Tile to compute height of
+ * @return Maximum height of the tile
+ */
+int GetTileMaxZ(TileIndex t)
+{
+	if (TileX(t) == MapMaxX() || TileY(t) == MapMaxY()) return 0;
+
+	int h = TileHeight(t); // N corner
+	h = max<int>(h, TileHeight(t + TileDiffXY(1, 0))); // W corner
+	h = max<int>(h, TileHeight(t + TileDiffXY(0, 1))); // E corner
+	h = max<int>(h, TileHeight(t + TileDiffXY(1, 1))); // S corner
+
+	return h;
+}
+
 
 /**
  * Return the slope of a given tile
@@ -58,6 +93,7 @@ Slope GetTileSlope(TileIndex tile, int *h)
 	return (Slope)r;
 }
 
+
 /**
  * Check if a given tile is flat
  * @param tile Tile to check
@@ -80,38 +116,4 @@ bool IsTileFlat(TileIndex tile, int *h)
 
 	if (h != NULL) *h = a;
 	return true;
-}
-
-/**
- * Get bottom height of the tile
- * @param tile Tile to compute height of
- * @return Minimum height of the tile
- */
-int GetTileZ(TileIndex tile)
-{
-	if (TileX(tile) == MapMaxX() || TileY(tile) == MapMaxY()) return 0;
-
-	int h = TileHeight(tile); // N corner
-	h = min(h, TileHeight(tile + TileDiffXY(1, 0))); // W corner
-	h = min(h, TileHeight(tile + TileDiffXY(0, 1))); // E corner
-	h = min(h, TileHeight(tile + TileDiffXY(1, 1))); // S corner
-
-	return h;
-}
-
-/**
- * Get top height of the tile
- * @param t Tile to compute height of
- * @return Maximum height of the tile
- */
-int GetTileMaxZ(TileIndex t)
-{
-	if (TileX(t) == MapMaxX() || TileY(t) == MapMaxY()) return 0;
-
-	int h = TileHeight(t); // N corner
-	h = max<int>(h, TileHeight(t + TileDiffXY(1, 0))); // W corner
-	h = max<int>(h, TileHeight(t + TileDiffXY(0, 1))); // E corner
-	h = max<int>(h, TileHeight(t + TileDiffXY(1, 1))); // S corner
-
-	return h;
 }

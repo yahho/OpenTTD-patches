@@ -11,6 +11,7 @@
 
 #include "stdafx.h"
 #include "landscape.h"
+#include "map/slope.h"
 #include "tunnelbridge_map.h"
 
 
