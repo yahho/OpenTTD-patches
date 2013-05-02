@@ -1886,12 +1886,16 @@
     <ClInclude Include="..\src\map\depot.h" />
     <ClInclude Include="..\src\map\station.h" />
     <ClInclude Include="..\src\map\rail.h" />
+    <ClCompile Include="..\src\map\road.cpp">
+      <AssemblerListingLocation>$(IntDir)\map\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\map\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\map\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\map\road.h" />
     <ClCompile Include="..\src\bridge_map.cpp" />
     <ClInclude Include="..\src\bridge_map.h" />
     <ClInclude Include="..\src\industry_map.h" />
     <ClInclude Include="..\src\rail_map.h" />
-    <ClCompile Include="..\src\road_map.cpp" />
-    <ClInclude Include="..\src\road_map.h" />
     <ClInclude Include="..\src\signal_map.h" />
     <ClInclude Include="..\src\station_map.h" />
     <ClInclude Include="..\src\tile_map.h" />

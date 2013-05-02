@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * This file is part of OpenTTD.
  * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -7,20 +5,18 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file road_map.h Map accessors for roads. */
+/** @file map/road.h Map tile accessors for road tiles. */
 
-#ifndef ROAD_MAP_H
-#define ROAD_MAP_H
+#ifndef MAP_ROAD_H
+#define MAP_ROAD_H
 
-#include "tile/misc.h"
-#include "tile/road.h"
-#include "track_func.h"
-#include "depot_type.h"
-#include "rail_type.h"
-#include "road_func.h"
-#include "tile_map.h"
-#include "bridge.h"
-
+#include "../stdafx.h"
+#include "../tile/road.h"
+#include "map.h"
+#include "coord.h"
+#include "../direction_type.h"
+#include "../road_type.h"
+#include "../company_type.h"
 
 /**
  * Get the present road bits for a specific road type.
@@ -69,6 +65,10 @@ static inline void SetRoadBits(TileIndex t, RoadBits r, RoadType rt)
 	tile_set_roadbits(&_mc[t], rt, r);
 }
 
+
+RoadBits GetAnyRoadBits(TileIndex tile, RoadType rt, bool tunnel_bridge_entrance = false);
+
+
 /**
  * Get the present road types of a tile.
  * @param t The tile to query.
@@ -99,6 +99,7 @@ static inline bool HasTileRoadType(TileIndex t, RoadType rt)
 {
 	return tile_has_roadtype(&_mc[t], rt);
 }
+
 
 /**
  * Get the owner of a specific road type.
@@ -147,6 +148,77 @@ static inline bool HasTownOwnedRoad(TileIndex t)
 	return HasTileRoadType(t, ROADTYPE_ROAD) && IsRoadOwner(t, ROADTYPE_ROAD, OWNER_TOWN);
 }
 
+
+/**
+ * Get the decorations of a road.
+ * @param tile The tile to query.
+ * @return The road decoration of the tile.
+ */
+static inline Roadside GetRoadside(TileIndex tile)
+{
+	return tile_get_roadside(&_mc[tile]);
+}
+
+/**
+ * Set the decorations of a road.
+ * @param tile The tile to change.
+ * @param s    The new road decoration of the tile.
+ */
+static inline void SetRoadside(TileIndex tile, Roadside s)
+{
+	tile_set_roadside(&_mc[tile], s);
+}
+
+/**
+ * Check if a tile has road works.
+ * @param t The tile to check.
+ * @return True if the tile has road works in progress.
+ */
+static inline bool HasRoadWorks(TileIndex t)
+{
+	return tile_has_roadworks(&_mc[t]);
+}
+
+/**
+ * Terminate road works on a tile.
+ * @param t Tile to stop the road works on.
+ * @pre HasRoadWorks(t)
+ */
+static inline void TerminateRoadWorks(TileIndex t)
+{
+	assert(HasRoadWorks(t));
+	SetRoadside(t, (Roadside)(GetRoadside(t) - ROADSIDE_GRASS_ROAD_WORKS + ROADSIDE_GRASS));
+	/* Stop the counter */
+	tile_reset_roadworks(&_mc[t]);
+}
+
+/**
+ * Increase the progress counter of road works.
+ * @param t The tile to modify.
+ * @return True if the road works are in the last stage.
+ */
+static inline bool IncreaseRoadWorksCounter(TileIndex t)
+{
+	return tile_inc_roadworks(&_mc[t]);
+}
+
+/**
+ * Start road works on a tile.
+ * @param t The tile to start the work on.
+ * @pre !HasRoadWorks(t)
+ */
+static inline void StartRoadWorks(TileIndex t)
+{
+	assert(!HasRoadWorks(t));
+	/* Remove any trees or lamps in case or roadwork */
+	switch (GetRoadside(t)) {
+		case ROADSIDE_BARREN:
+		case ROADSIDE_GRASS:  SetRoadside(t, ROADSIDE_GRASS_ROAD_WORKS); break;
+		default:              SetRoadside(t, ROADSIDE_PAVED_ROAD_WORKS); break;
+	}
+}
+
+
 /**
  * Gets the disallowed directions
  * @param t the tile to get the directions from
@@ -167,6 +239,91 @@ static inline void SetDisallowedRoadDirections(TileIndex t, DisallowedRoadDirect
 	tile_set_disallowed_directions(&_mc[t], drd);
 }
 
+
+/**
+ * Determines the type of road bridge on a tile
+ * @param t The tile to analyze
+ * @pre IsRoadBridgeTile(t)
+ * @return The bridge type
+ */
+static inline uint GetRoadBridgeType(TileIndex t)
+{
+	return tile_get_road_bridge_type(&_mc[t]);
+}
+
+/**
+ * Set the type of road bridge on a tile
+ * @param t The tile to set
+ * @param type The type to set
+ */
+static inline void SetRoadBridgeType(TileIndex t, uint type)
+{
+	tile_set_road_bridge_type(&_mc[t], type);
+}
+
+/**
+ * Check if a road bridge is an extended bridge head
+ * @param t The tile to check
+ * @return Whether there are road bits set not in the axis of the bridge
+ */
+static inline bool IsExtendedRoadBridge(TileIndex t)
+{
+	return tile_is_road_custom_bridgehead(&_mc[t]);
+}
+
+
+/**
+ * Make a normal road tile.
+ * @param t    Tile to make a normal road.
+ * @param bits Road bits to set for all present road types.
+ * @param rot  New present road types.
+ * @param town Town ID if the road is a town-owned road.
+ * @param road New owner of road.
+ * @param tram New owner of tram tracks.
+ */
+static inline void MakeRoadNormal(TileIndex t, RoadBits bits, RoadTypes rot, TownID town, Owner road, Owner tram)
+{
+	tile_make_road(&_mc[t], rot, bits, town, road, tram);
+}
+
+/**
+ * Make a bridge ramp for roads.
+ * @param t          the tile to make a bridge ramp
+ * @param owner_road the new owner of the road on the bridge
+ * @param owner_tram the new owner of the tram on the bridge
+ * @param bridgetype the type of bridge this bridge ramp belongs to
+ * @param d          the direction this ramp must be facing
+ * @param r          the road type of the bridge
+ * @param town       owner/closest town ID
+ */
+static inline void MakeRoadBridgeRamp(TileIndex t, Owner owner_road, Owner owner_tram, uint bridgetype, DiagDirection d, RoadTypes r, uint town)
+{
+	tile_make_road_bridge(&_mc[t], bridgetype, d, r, town, owner_road, owner_tram);
+}
+
+/**
+ * Make a normal road tile from a road bridge ramp.
+ * @param t the tile to make a normal road
+ * @note roadbits will have to be adjusted when this function is called
+ */
+static inline void MakeNormalRoadFromBridge(TileIndex t)
+{
+	tile_make_road_from_bridge(&_mc[t]);
+}
+
+/**
+ * Make a road bridge tile from a normal road.
+ * @param t          the tile to make a road bridge
+ * @param bridgetype the type of bridge this bridge ramp belongs to
+ * @param d          the direction this ramp must be facing
+ * @note roadbits will have to be adjusted when this function is called
+ */
+static inline void MakeRoadBridgeFromRoad(TileIndex t, uint bridgetype, DiagDirection d)
+{
+	tile_make_bridge_from_road(&_mc[t], bridgetype, d);
+}
+
+
 /**
  * Get the road axis of a level crossing.
  * @param t The tile to query.
@@ -179,6 +336,16 @@ static inline Axis GetCrossingRoadAxis(TileIndex t)
 }
 
 /**
+ * Get the road bits of a level crossing.
+ * @param tile The tile to query.
+ * @return The present road bits.
+ */
+static inline RoadBits GetCrossingRoadBits(TileIndex tile)
+{
+	return tile_get_crossing_roadbits(&_mc[tile]);
+}
+
+/**
  * Get the rail axis of a level crossing.
  * @param t The tile to query.
  * @pre IsLevelCrossingTile(t)
@@ -187,16 +354,6 @@ static inline Axis GetCrossingRoadAxis(TileIndex t)
 static inline Axis GetCrossingRailAxis(TileIndex t)
 {
 	return tile_get_crossing_rail_axis(&_mc[t]);
-}
-
-/**
- * Get the road bits of a level crossing.
- * @param tile The tile to query.
- * @return The present road bits.
- */
-static inline RoadBits GetCrossingRoadBits(TileIndex tile)
-{
-	return tile_get_crossing_roadbits(&_mc[tile]);
 }
 
 /**
@@ -253,6 +410,7 @@ static inline TrackBits GetCrossingReservationTrackBits(TileIndex t)
 	return tile_crossing_get_reserved_trackbits(&_mc[t]);
 }
 
+
 /**
  * Check if the level crossing is barred.
  * @param t The tile to query.
@@ -295,162 +453,6 @@ static inline void BarCrossing(TileIndex t)
 
 
 /**
- * Get the decorations of a road.
- * @param tile The tile to query.
- * @return The road decoration of the tile.
- */
-static inline Roadside GetRoadside(TileIndex tile)
-{
-	return tile_get_roadside(&_mc[tile]);
-}
-
-/**
- * Set the decorations of a road.
- * @param tile The tile to change.
- * @param s    The new road decoration of the tile.
- */
-static inline void SetRoadside(TileIndex tile, Roadside s)
-{
-	tile_set_roadside(&_mc[tile], s);
-}
-
-/**
- * Check if a tile has road works.
- * @param t The tile to check.
- * @return True if the tile has road works in progress.
- */
-static inline bool HasRoadWorks(TileIndex t)
-{
-	return tile_has_roadworks(&_mc[t]);
-}
-
-/**
- * Increase the progress counter of road works.
- * @param t The tile to modify.
- * @return True if the road works are in the last stage.
- */
-static inline bool IncreaseRoadWorksCounter(TileIndex t)
-{
-	return tile_inc_roadworks(&_mc[t]);
-}
-
-/**
- * Start road works on a tile.
- * @param t The tile to start the work on.
- * @pre !HasRoadWorks(t)
- */
-static inline void StartRoadWorks(TileIndex t)
-{
-	assert(!HasRoadWorks(t));
-	/* Remove any trees or lamps in case or roadwork */
-	switch (GetRoadside(t)) {
-		case ROADSIDE_BARREN:
-		case ROADSIDE_GRASS:  SetRoadside(t, ROADSIDE_GRASS_ROAD_WORKS); break;
-		default:              SetRoadside(t, ROADSIDE_PAVED_ROAD_WORKS); break;
-	}
-}
-
-/**
- * Terminate road works on a tile.
- * @param t Tile to stop the road works on.
- * @pre HasRoadWorks(t)
- */
-static inline void TerminateRoadWorks(TileIndex t)
-{
-	assert(HasRoadWorks(t));
-	SetRoadside(t, (Roadside)(GetRoadside(t) - ROADSIDE_GRASS_ROAD_WORKS + ROADSIDE_GRASS));
-	/* Stop the counter */
-	tile_reset_roadworks(&_mc[t]);
-}
-
-
-/**
- * Determines the type of road bridge on a tile
- * @param t The tile to analyze
- * @pre IsRoadBridgeTile(t)
- * @return The bridge type
- */
-static inline BridgeType GetRoadBridgeType(TileIndex t)
-{
-	return tile_get_road_bridge_type(&_mc[t]);
-}
-
-/**
- * Set the type of road bridge on a tile
- * @param t The tile to set
- * @param type The type to set
- */
-static inline void SetRoadBridgeType(TileIndex t, BridgeType type)
-{
-	tile_set_road_bridge_type(&_mc[t], type);
-}
-
-/**
- * Check if a road bridge is an extended bridge head
- * @param t The tile to check
- * @return Whether there are road bits set not in the axis of the bridge
- */
-static inline bool IsExtendedRoadBridge(TileIndex t)
-{
-	return tile_is_road_custom_bridgehead(&_mc[t]);
-}
-
-
-RoadBits GetAnyRoadBits(TileIndex tile, RoadType rt, bool tunnel_bridge_entrance = false);
-
-
-/**
- * Make a normal road tile.
- * @param t    Tile to make a normal road.
- * @param bits Road bits to set for all present road types.
- * @param rot  New present road types.
- * @param town Town ID if the road is a town-owned road.
- * @param road New owner of road.
- * @param tram New owner of tram tracks.
- */
-static inline void MakeRoadNormal(TileIndex t, RoadBits bits, RoadTypes rot, TownID town, Owner road, Owner tram)
-{
-	tile_make_road(&_mc[t], rot, bits, town, road, tram);
-}
-
-/**
- * Make a bridge ramp for roads.
- * @param t          the tile to make a bridge ramp
- * @param owner_road the new owner of the road on the bridge
- * @param owner_tram the new owner of the tram on the bridge
- * @param bridgetype the type of bridge this bridge ramp belongs to
- * @param d          the direction this ramp must be facing
- * @param r          the road type of the bridge
- * @param town       owner/closest town ID
- */
-static inline void MakeRoadBridgeRamp(TileIndex t, Owner owner_road, Owner owner_tram, BridgeType bridgetype, DiagDirection d, RoadTypes r, uint town)
-{
-	tile_make_road_bridge(&_mc[t], bridgetype, d, r, town, owner_road, owner_tram);
-}
-
-/**
- * Make a normal road tile from a road bridge ramp.
- * @param t the tile to make a normal road
- * @note roadbits will have to be adjusted when this function is called
- */
-static inline void MakeNormalRoadFromBridge(TileIndex t)
-{
-	tile_make_road_from_bridge(&_mc[t]);
-}
-
-/**
- * Make a road bridge tile from a normal road.
- * @param t          the tile to make a road bridge
- * @param bridgetype the type of bridge this bridge ramp belongs to
- * @param d          the direction this ramp must be facing
- * @note roadbits will have to be adjusted when this function is called
- */
-static inline void MakeRoadBridgeFromRoad(TileIndex t, BridgeType bridgetype, DiagDirection d)
-{
-	tile_make_bridge_from_road(&_mc[t], bridgetype, d);
-}
-
-/**
  * Make a level crossing.
  * @param t       Tile to make a level crossing.
  * @param road    New owner of road.
@@ -466,4 +468,4 @@ static inline void MakeRoadCrossing(TileIndex t, Owner road, Owner tram, Owner r
 	tile_make_crossing(&_mc[t], rail, road, tram, roaddir, rat, rot, town);
 }
 
-#endif /* ROAD_MAP_H */
+#endif /* MAP_ROAD_H */

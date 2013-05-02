@@ -15,7 +15,7 @@
 #include "tile/common.h"
 #include "map/common.h"
 #include "rail_map.h"
-#include "road_map.h"
+#include "map/road.h"
 
 TileIndex GetNorthernBridgeEnd(TileIndex t);
 TileIndex GetSouthernBridgeEnd(TileIndex t);

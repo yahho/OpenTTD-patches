@@ -2802,6 +2802,12 @@
     <ClInclude Include="..\src\map\rail.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
+    <ClCompile Include="..\src\map\road.cpp">
+      <Filter>Map Accessors</Filter>
+    </ClCompile>
+    <ClInclude Include="..\src\map\road.h">
+      <Filter>Map Accessors</Filter>
+    </ClInclude>
     <ClCompile Include="..\src\bridge_map.cpp">
       <Filter>Map Accessors</Filter>
     </ClCompile>
@@ -2812,12 +2818,6 @@
       <Filter>Map Accessors</Filter>
     </ClInclude>
     <ClInclude Include="..\src\rail_map.h">
-      <Filter>Map Accessors</Filter>
-    </ClInclude>
-    <ClCompile Include="..\src\road_map.cpp">
-      <Filter>Map Accessors</Filter>
-    </ClCompile>
-    <ClInclude Include="..\src\road_map.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
     <ClInclude Include="..\src\signal_map.h">

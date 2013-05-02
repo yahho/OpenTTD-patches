@@ -15,7 +15,7 @@
 #include "map/water.h"
 #include "map/station.h"
 #include "rail_map.h"
-#include "road_map.h"
+#include "map/road.h"
 #include "station_func.h"
 #include "rail.h"
 

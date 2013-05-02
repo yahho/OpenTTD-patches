@@ -14,8 +14,9 @@
 
 #include "tile/common.h"
 #include "tile/house.h"
+#include "map/class.h"
 #include "map/ground.h"
-#include "road_map.h"
+#include "map/road.h"
 #include "house.h"
 
 /**

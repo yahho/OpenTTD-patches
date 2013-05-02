@@ -23,6 +23,7 @@
 #include "sound_func.h"
 #include "core/random_func.hpp"
 #include "newgrf_generic.h"
+#include "bridge.h"
 
 #include "table/strings.h"
 #include "table/sprites.h"

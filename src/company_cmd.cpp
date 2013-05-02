@@ -36,6 +36,7 @@
 #include "game/game.hpp"
 #include "goal_base.h"
 #include "story_base.h"
+#include "map/common.h"
 
 #include "table/strings.h"
 

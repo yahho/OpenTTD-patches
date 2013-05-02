@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * This file is part of OpenTTD.
  * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -7,13 +5,17 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file road_map.cpp Complex road accessors. */
+/** @file map/road.cpp Map tile complex road accessors. */
 
-#include "stdafx.h"
-#include "station_map.h"
-#include "tunnelbridge_map.h"
-#include "depot_map.h"
-
+#include "../stdafx.h"
+#include "../road_type.h"
+#include "map.h"
+#include "coord.h"
+#include "common.h"
+#include "tunnel.h"
+#include "depot.h"
+#include "station.h"
+#include "road.h"
 
 /**
  * Returns the RoadBits on an arbitrary tile

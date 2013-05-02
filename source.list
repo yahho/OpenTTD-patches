@@ -985,12 +985,12 @@ map/tunnel.h
 map/depot.h
 map/station.h
 map/rail.h
+map/road.cpp
+map/road.h
 bridge_map.cpp
 bridge_map.h
 industry_map.h
 rail_map.h
-road_map.cpp
-road_map.h
 signal_map.h
 station_map.h
 tile_map.h
