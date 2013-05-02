@@ -17,7 +17,6 @@
 #include "landscape.h"
 #include "viewport_func.h"
 #include "town.h"
-#include "tunnelbridge_map.h"
 #include "core/endian_func.hpp"
 #include "vehicle_base.h"
 #include "sound_func.h"

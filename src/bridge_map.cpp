@@ -11,8 +11,9 @@
 
 #include "stdafx.h"
 #include "landscape.h"
+#include "map/common.h"
 #include "map/slope.h"
-#include "tunnelbridge_map.h"
+#include "bridge.h"
 
 /**
  * Get the height ('z') of a bridge.

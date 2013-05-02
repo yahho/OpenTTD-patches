@@ -26,7 +26,6 @@
 #include "autoslope.h"
 #include "road_cmd.h"
 #include "town.h"
-#include "tunnelbridge_map.h"
 #include "tunnelbridge.h"
 #include "ship.h"
 #include "company_base.h"

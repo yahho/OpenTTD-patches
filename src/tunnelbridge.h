@@ -12,23 +12,7 @@
 #ifndef TUNNELBRIDGE_H
 #define TUNNELBRIDGE_H
 
-#include "map_func.h"
-
-/**
- * Calculates the length of a tunnel or a bridge (without end tiles)
- * @param begin The begin of the tunnel or bridge.
- * @param end   The end of the tunnel or bridge.
- * @return length of bridge/tunnel middle
- */
-static inline uint GetTunnelBridgeLength(TileIndex begin, TileIndex end)
-{
-	int x1 = TileX(begin);
-	int y1 = TileY(begin);
-	int x2 = TileX(end);
-	int y2 = TileY(end);
-
-	return abs(x2 + y2 - x1 - y1) - 1;
-}
+#include "map/coord.h"
 
 extern TileIndex _build_tunnel_endtile;
 

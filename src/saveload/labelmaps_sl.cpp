@@ -12,7 +12,6 @@
 #include "../stdafx.h"
 #include "../map/depot.h"
 #include "../station_map.h"
-#include "../tunnelbridge_map.h"
 
 #include "saveload_buffer.h"
 

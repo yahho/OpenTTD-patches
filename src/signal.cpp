@@ -12,7 +12,7 @@
 #include "stdafx.h"
 #include "debug.h"
 #include "station_map.h"
-#include "tunnelbridge_map.h"
+#include "map/bridge.h"
 #include "vehicle_func.h"
 #include "viewport_func.h"
 #include "train.h"

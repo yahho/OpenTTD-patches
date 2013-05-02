@@ -22,7 +22,10 @@
 #include "widgets/dropdown_func.h"
 #include "core/geometry_func.hpp"
 #include "cmd_helper.h"
-#include "tunnelbridge_map.h"
+#include "bridge.h"
+#include "map/common.h"
+#include "map/road.h"
+#include "map/tunnelbridge.h"
 #include "road_gui.h"
 
 #include "widgets/bridge_widget.h"

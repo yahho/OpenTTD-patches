@@ -37,7 +37,7 @@
 
 #include "map/depot.h"
 #include "station_map.h"
-#include "tunnelbridge_map.h"
+#include "map/bridge.h"
 
 #include "widgets/rail_widget.h"
 

@@ -12,7 +12,6 @@
 #include "stdafx.h"
 #include "map/depot.h"
 #include "station_map.h"
-#include "tunnelbridge_map.h"
 #include "date_func.h"
 #include "company_func.h"
 #include "company_base.h"

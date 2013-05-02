@@ -2823,6 +2823,9 @@
     <ClInclude Include="..\src\map\bridge.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\map\tunnelbridge.h">
+      <Filter>Map Accessors</Filter>
+    </ClInclude>
     <ClCompile Include="..\src\bridge_map.cpp">
       <Filter>Map Accessors</Filter>
     </ClCompile>
@@ -2842,9 +2845,6 @@
       <Filter>Map Accessors</Filter>
     </ClInclude>
     <ClInclude Include="..\src\town_map.h">
-      <Filter>Map Accessors</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\tunnelbridge_map.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
     <ClInclude Include="..\src\misc\array.hpp">

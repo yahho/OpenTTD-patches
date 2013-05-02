@@ -20,7 +20,6 @@
 #include "train.h"
 #include "autoslope.h"
 #include "water.h"
-#include "tunnelbridge_map.h"
 #include "vehicle_func.h"
 #include "sound_func.h"
 #include "tunnelbridge.h"

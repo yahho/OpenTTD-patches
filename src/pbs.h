@@ -18,8 +18,9 @@
 #include "track_func.h"
 #include "vehicle_type.h"
 #include "pathfinder/pathfinder_type.h"
+#include "map/bridge.h"
+#include "map/tunnelbridge.h"
 #include "signal_map.h"
-#include "tunnelbridge_map.h"
 
 TrackBits GetReservedTrackbits(TileIndex t);
 

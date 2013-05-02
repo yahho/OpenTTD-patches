@@ -992,6 +992,7 @@ map/slope.cpp
 map/slope.h
 map/bridge.cpp
 map/bridge.h
+map/tunnelbridge.h
 bridge_map.cpp
 bridge_map.h
 industry_map.h
@@ -999,7 +1000,6 @@ rail_map.h
 signal_map.h
 station_map.h
 town_map.h
-tunnelbridge_map.h
 
 # Misc
 misc/array.hpp

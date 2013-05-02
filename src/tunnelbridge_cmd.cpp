@@ -22,7 +22,7 @@
 #include "train.h"
 #include "pathfinder/yapf/yapf_cache.h"
 #include "autoslope.h"
-#include "tunnelbridge_map.h"
+#include "map/tunnelbridge.h"
 #include "map/water.h"
 #include "strings_func.h"
 #include "tunnelbridge.h"

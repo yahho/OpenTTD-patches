@@ -11231,6 +11231,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\map\tunnelbridge.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\bridge_map.cpp"
 				>
 			</File>
@@ -11256,10 +11260,6 @@
 			</File>
 			<File
 				RelativePath=".\..\src\town_map.h"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\tunnelbridge_map.h"
 				>
 			</File>
 		</Filter>
