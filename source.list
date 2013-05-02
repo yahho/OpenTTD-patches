@@ -987,6 +987,7 @@ map/station.h
 map/rail.h
 map/road.cpp
 map/road.h
+map/industry.h
 bridge_map.cpp
 bridge_map.h
 industry_map.h
