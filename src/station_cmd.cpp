@@ -889,7 +889,7 @@ static CommandCost CheckFlatLandRoadStop(TileArea tile_area, DoCommandFlag flags
 					return ClearTile_Station(cur_tile, DC_AUTO); // Get error message.
 				}
 				/* Drive-through station in the wrong direction. */
-				if (is_drive_through && IsDriveThroughStopTile(cur_tile) && DiagDirToAxis(GetRoadStopDir(cur_tile)) != axis){
+				if (is_drive_through && IsDriveThroughStopTile(cur_tile) && GetRoadStopAxis(cur_tile) != axis){
 					return_cmd_error(STR_ERROR_DRIVE_THROUGH_DIRECTION);
 				}
 				StationID st = GetStationIndex(cur_tile);
@@ -2026,7 +2026,7 @@ CommandCost CmdRemoveRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 		bool is_drive_through = IsDriveThroughStopTile(cur_tile);
 		RoadTypes rts = GetRoadTypes(cur_tile);
 		RoadBits road_bits = IsDriveThroughStopTile(cur_tile) ?
-				((GetRoadStopDir(cur_tile) == DIAGDIR_NE) ? ROAD_X : ROAD_Y) :
+				AxisToRoadBits(GetRoadStopAxis(cur_tile)) :
 				DiagDirToRoadBits(GetRoadStopDir(cur_tile));
 
 		Owner road_owner = GetRoadOwner(cur_tile, ROADTYPE_ROAD);
@@ -2884,7 +2884,7 @@ draw_default_foundation:
 	if (HasStationRail(ti->tile) && HasCatenaryDrawn(GetRailType(ti->tile))) DrawCatenary(ti);
 
 	if (HasBit(roadtypes, ROADTYPE_TRAM)) {
-		Axis axis = GetRoadStopDir(ti->tile) == DIAGDIR_NE ? AXIS_X : AXIS_Y;
+		Axis axis = GetRoadStopAxis(ti->tile); // tram stops are always drive-through
 		DrawGroundSprite((HasBit(roadtypes, ROADTYPE_ROAD) ? SPR_TRAMWAY_OVERLAY : SPR_TRAMWAY_TRAM) + (axis ^ 1), PAL_NONE);
 		DrawTramCatenary(ti, axis == AXIS_X ? ROAD_X : ROAD_Y);
 	}
@@ -3040,14 +3040,19 @@ static TrackStatus GetTileTrackStatus_Station(TileIndex tile, TransportType mode
 
 		case TRANSPORT_ROAD:
 			if ((GetRoadTypes(tile) & sub_mode) != 0 && IsRoadStop(tile)) {
-				DiagDirection dir = GetRoadStopDir(tile);
-				Axis axis = DiagDirToAxis(dir);
+				if (IsStandardRoadStopTile(tile)) {
+					DiagDirection dir = GetRoadStopDir(tile);
 
-				if (side != INVALID_DIAGDIR) {
-					if (axis != DiagDirToAxis(side) || (IsStandardRoadStopTile(tile) && dir != side)) break;
+					if (side != INVALID_DIAGDIR && dir != side) break;
+
+					trackbits = DiagDirToDiagTrackBits(dir);
+				} else {
+					Axis axis = GetRoadStopAxis(tile);
+
+					if (side != INVALID_DIAGDIR && axis != DiagDirToAxis(side)) break;
+
+					trackbits = AxisToTrackBits(axis);
 				}
-
-				trackbits = AxisToTrackBits(axis);
 			}
 			break;
 

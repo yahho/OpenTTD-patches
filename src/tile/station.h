@@ -363,6 +363,19 @@ static inline DiagDirection tile_get_road_station_dir(const Tile *t)
 	return (DiagDirection)(gfx % GFX_ROAD_DT_OFFSET);
 }
 
+/**
+ * Get the axis of a drive-through road stop.
+ * @param t The tile whose road stop to get the axis of
+ * @pre tile_is_drive_through_road_station(t)
+ * @return The axis of the road stop
+ */
+static inline Axis tile_get_road_station_axis(const Tile *t)
+{
+	assert(tile_is_drive_through_road_station(t));
+	StationGfx gfx = tile_get_station_gfx(t);
+	return (Axis)(gfx - GFX_ROAD_DT_OFFSET);
+}
+
 
 /**
  * Get the direction of a dock

@@ -408,6 +408,17 @@ static inline DiagDirection GetRoadStopDir(TileIndex t)
 }
 
 /**
+ * Gets the axis of the road stop.
+ * @param t the tile of the road stop
+ * @pre IsDriveThroughRoadStopTile(t)
+ * @return the axis of the road stop
+ */
+static inline Axis GetRoadStopAxis(TileIndex t)
+{
+	return tile_get_road_station_axis(&_mc[t]);
+}
+
+/**
  * Get the road stop type of this tile
  * @param t the tile to query
  * @pre IsRoadStop(t)

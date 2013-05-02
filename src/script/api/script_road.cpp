@@ -407,7 +407,7 @@ static bool NeighbourHasReachableRoad(::RoadTypes rts, TileIndex start_tile, Dia
 
 		case TT_STATION:
 			if (::IsDriveThroughStopTile(neighbour_tile)) {
-				return (::DiagDirToAxis(neighbour) == ::DiagDirToAxis(::GetRoadStopDir(neighbour_tile)));
+				return (::DiagDirToAxis(neighbour) == ::GetRoadStopAxis(neighbour_tile));
 			}
 			return false;
 

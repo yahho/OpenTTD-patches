@@ -1163,7 +1163,7 @@ static CommandCost BuildRoad_Station(TileIndex tile, DoCommandFlag flags, RoadTy
 {
 	if ((GetAnyRoadBits(tile, rt) & pieces) == pieces) return_cmd_error(STR_ERROR_ALREADY_BUILT);
 
-	if (!IsDriveThroughStopTile(tile) || (pieces & ~AxisToRoadBits(DiagDirToAxis(GetRoadStopDir(tile))))) {
+	if (!IsDriveThroughStopTile(tile) || (pieces & ~AxisToRoadBits(GetRoadStopAxis(tile)))) {
 		return BuildRoad_Clear(tile, flags, rt, pieces, company, town, drd);
 	}
 

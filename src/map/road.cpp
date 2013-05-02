@@ -61,7 +61,7 @@ RoadBits GetAnyRoadBits(TileIndex tile, RoadType rt, bool tunnel_bridge_entrance
 		case TT_STATION:
 			if (!IsRoadStopTile(tile)) return ROAD_NONE;
 			if (!HasTileRoadType(tile, rt)) return ROAD_NONE;
-			if (IsDriveThroughStopTile(tile)) return (GetRoadStopDir(tile) == DIAGDIR_NE) ? ROAD_X : ROAD_Y;
+			if (IsDriveThroughStopTile(tile)) return AxisToRoadBits(GetRoadStopAxis(tile));
 			return DiagDirToRoadBits(GetRoadStopDir(tile));
 
 		default: return ROAD_NONE;
