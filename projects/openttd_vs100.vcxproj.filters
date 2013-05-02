@@ -2796,6 +2796,9 @@
     <ClInclude Include="..\src\map\depot.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\map\station.h">
+      <Filter>Map Accessors</Filter>
+    </ClInclude>
     <ClCompile Include="..\src\bridge_map.cpp">
       <Filter>Map Accessors</Filter>
     </ClCompile>
