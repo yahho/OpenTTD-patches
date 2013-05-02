@@ -2811,6 +2811,9 @@
     <ClInclude Include="..\src\map\industry.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\map\house.h">
+      <Filter>Map Accessors</Filter>
+    </ClInclude>
     <ClCompile Include="..\src\bridge_map.cpp">
       <Filter>Map Accessors</Filter>
     </ClCompile>

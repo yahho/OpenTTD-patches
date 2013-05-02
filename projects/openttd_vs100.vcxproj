@@ -1893,6 +1893,7 @@
     </ClCompile>
     <ClInclude Include="..\src\map\road.h" />
     <ClInclude Include="..\src\map\industry.h" />
+    <ClInclude Include="..\src\map\house.h" />
     <ClCompile Include="..\src\bridge_map.cpp" />
     <ClInclude Include="..\src\bridge_map.h" />
     <ClInclude Include="..\src\industry_map.h" />

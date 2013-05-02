@@ -86,17 +86,17 @@ void UpdateHousesAndTowns()
 			bool valid_house = true;
 			if (hs->building_flags & TILE_SIZE_2x1) {
 				TileIndex tile = t + TileDiffXY(1, 0);
-				if (!IsHouseTile(tile) || GetCleanHouseType(tile) != house_type + 1) valid_house = false;
+				if (!IsHouseTile(tile) || GetCleanHouseType(tile) != (uint)house_type + 1) valid_house = false;
 			} else if (hs->building_flags & TILE_SIZE_1x2) {
 				TileIndex tile = t + TileDiffXY(0, 1);
-				if (!IsHouseTile(tile) || GetCleanHouseType(tile) != house_type + 1) valid_house = false;
+				if (!IsHouseTile(tile) || GetCleanHouseType(tile) != (uint)house_type + 1) valid_house = false;
 			} else if (hs->building_flags & TILE_SIZE_2x2) {
 				TileIndex tile = t + TileDiffXY(0, 1);
-				if (!IsHouseTile(tile) || GetCleanHouseType(tile) != house_type + 1) valid_house = false;
+				if (!IsHouseTile(tile) || GetCleanHouseType(tile) != (uint)house_type + 1) valid_house = false;
 				tile = t + TileDiffXY(1, 0);
-				if (!IsHouseTile(tile) || GetCleanHouseType(tile) != house_type + 2) valid_house = false;
+				if (!IsHouseTile(tile) || GetCleanHouseType(tile) != (uint)house_type + 2) valid_house = false;
 				tile = t + TileDiffXY(1, 1);
-				if (!IsHouseTile(tile) || GetCleanHouseType(tile) != house_type + 3) valid_house = false;
+				if (!IsHouseTile(tile) || GetCleanHouseType(tile) != (uint)house_type + 3) valid_house = false;
 			}
 			/* If not all tiles of this house are present remove the house.
 			 * The other tiles will get removed later in this loop because
