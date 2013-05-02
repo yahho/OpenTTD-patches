@@ -298,6 +298,22 @@ uint DistanceMaxPlusManhattan(TileIndex, TileIndex); ///< Max + Manhattan
 uint DistanceFromEdge(TileIndex); ///< shortest distance from any edge of the map
 uint DistanceFromEdgeDir(TileIndex, DiagDirection); ///< distance from the map edge in given direction
 
+/**
+ * Compute the distance between two tiles, when the difference between
+ * the tiles is parallel to one of the axes.
+ */
+static inline uint DistanceAlongAxis(TileIndex t1, TileIndex t2)
+{
+	int x1 = TileX(t1);
+	int y1 = TileY(t1);
+	int x2 = TileX(t2);
+	int y2 = TileY(t2);
+
+	assert((x1 == x2) || (y1 == y2));
+
+	return abs(x2 + y2 - x1 - y1);
+}
+
 
 /**
  * A callback function type for searching tiles.
