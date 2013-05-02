@@ -29,26 +29,4 @@ static inline TileIndex GetOtherTunnelBridgeEnd(TileIndex t)
 }
 
 
-/**
- * Get the reservation state of the rail bridge middle part
- * @pre IsRailBridgeTile(t)
- * @param t the tile
- * @return reservation state
- */
-static inline bool HasBridgeMiddleReservation(TileIndex t)
-{
-	return tile_is_bridge_middle_reserved(&_mc[t]);
-}
-
-/**
- * Set the reservation state of the rail bridge middle part
- * @pre IsRailBridgeTile(t)
- * @param t the tile
- * @param b the reservation state
- */
-static inline void SetBridgeMiddleReservation(TileIndex t, bool b)
-{
-	tile_set_bridge_middle_reserved(&_mc[t], b);
-}
-
 #endif /* TUNNELBRIDGE_MAP_H */

@@ -984,6 +984,7 @@ map/tunnel.cpp
 map/tunnel.h
 map/depot.h
 map/station.h
+map/rail.h
 bridge_map.cpp
 bridge_map.h
 industry_map.h

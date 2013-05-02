@@ -1885,6 +1885,7 @@
     <ClInclude Include="..\src\map\tunnel.h" />
     <ClInclude Include="..\src\map\depot.h" />
     <ClInclude Include="..\src\map\station.h" />
+    <ClInclude Include="..\src\map\rail.h" />
     <ClCompile Include="..\src\bridge_map.cpp" />
     <ClInclude Include="..\src\bridge_map.h" />
     <ClInclude Include="..\src\industry_map.h" />
