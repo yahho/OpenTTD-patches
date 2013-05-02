@@ -990,6 +990,8 @@ map/industry.h
 map/house.h
 map/slope.cpp
 map/slope.h
+map/bridge.cpp
+map/bridge.h
 bridge_map.cpp
 bridge_map.h
 industry_map.h

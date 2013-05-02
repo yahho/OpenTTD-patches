@@ -16,10 +16,7 @@
 #include "map/common.h"
 #include "rail_map.h"
 #include "map/road.h"
-
-TileIndex GetNorthernBridgeEnd(TileIndex t);
-TileIndex GetSouthernBridgeEnd(TileIndex t);
-TileIndex GetOtherBridgeEnd(TileIndex t);
+#include "map/bridge.h"
 
 int GetBridgeHeight(TileIndex tile);
 /**
@@ -30,17 +27,6 @@ int GetBridgeHeight(TileIndex tile);
 static inline int GetBridgePixelHeight(TileIndex tile)
 {
 	return GetBridgeHeight(tile) * TILE_HEIGHT;
-}
-
-/**
- * Make a bridge ramp for aqueducts.
- * @param t          the tile to make a bridge ramp
- * @param o          the new owner of the bridge ramp
- * @param d          the direction this ramp must be facing
- */
-static inline void MakeAqueductBridgeRamp(TileIndex t, Owner o, DiagDirection d)
-{
-	tile_make_aqueduct(&_mc[t], o, d);
 }
 
 #endif /* BRIDGE_MAP_H */
