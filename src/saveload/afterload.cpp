@@ -525,6 +525,20 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	 * filled; and that could eventually lead to desyncs. */
 	CargoPacket::AfterLoad(stv);
 
+	if (IsOTTDSavegameVersionBefore(stv, 42)) {
+		Vehicle *v;
+		FOR_ALL_VEHICLES(v) {
+			if (v->IsGroundVehicle() && v->z_pos > GetSlopePixelZ(v->x_pos, v->y_pos)) {
+				v->tile = GetNorthernBridgeEnd(v->tile);
+				if (v->type == VEH_TRAIN) {
+					Train::From(v)->trackdir = TRACKDIR_WORMHOLE;
+				} else {
+					RoadVehicle::From(v)->state = RVSB_WORMHOLE;
+				}
+			}
+		}
+	}
+
 	/* Oilrig was moved from id 15 to 9. We have to do this conversion
 	 * here as AfterLoadVehicles can check it indirectly via the newgrf
 	 * code. */
@@ -695,22 +709,9 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	}
 
 	if (IsOTTDSavegameVersionBefore(stv, 42)) {
-		Vehicle *v;
-
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsRoadTile(t) && GetTownIndex(t) == INVALID_TOWN) {
 				SetTownIndex(t, IsTileOwner(t, OWNER_TOWN) ? ClosestTownFromTile(t, UINT_MAX)->index : 0);
-			}
-		}
-
-		FOR_ALL_VEHICLES(v) {
-			if (v->IsGroundVehicle() && v->z_pos > GetSlopePixelZ(v->x_pos, v->y_pos)) {
-				v->tile = GetNorthernBridgeEnd(v->tile);
-				if (v->type == VEH_TRAIN) {
-					Train::From(v)->trackdir = TRACKDIR_WORMHOLE;
-				} else {
-					RoadVehicle::From(v)->state = RVSB_WORMHOLE;
-				}
 			}
 		}
 	}
