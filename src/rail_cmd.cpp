@@ -1538,11 +1538,14 @@ static CommandCost CmdSignalTrackHelper(TileIndex tile, DoCommandFlag flags, uin
 	SignalType sigtype = (SignalType)GB(p2, 7, 3);
 	if (sigtype > SIGTYPE_LAST) return CMD_ERROR;
 
-	byte signals;
+	byte signals_ref;
 	/* copy the signal-style of the first rail-piece if existing */
 	if (HasSignalOnTrack(tile, track)) {
-		signals = GetPresentSignals(tile, track);
-		assert(signals != 0);
+		signals_ref = GetPresentSignals(tile, track);
+		assert(signals_ref != 0);
+		if (!trackdir_is_signal_along(trackdir) && signals_ref < 3) {
+			signals_ref ^= 3;
+		}
 
 		/* copy signal/semaphores style (independent of CTRL) */
 		semaphores = GetSignalVariant(tile, track) != SIG_ELECTRIC;
@@ -1551,11 +1554,8 @@ static CommandCost CmdSignalTrackHelper(TileIndex tile, DoCommandFlag flags, uin
 		/* Don't but copy entry or exit-signal type */
 		if (sigtype == SIGTYPE_ENTRY || sigtype == SIGTYPE_EXIT) sigtype = SIGTYPE_NORMAL;
 	} else { // no signals exist, drag a two-way signal stretch
-		signals = IsPbsSignal(sigtype) ? SignalBit(trackdir) : 3;
+		signals_ref = IsPbsSignal(sigtype) ? 2 : 3;
 	}
-
-	bool along   = (signals & SignalBit(trackdir)) != 0;
-	bool against = (signals & SignalBit(ReverseTrackdir(trackdir))) != 0;
 
 	/* signal_ctr         - amount of tiles already processed
 	 * last_used_ctr      - amount of tiles before previously placed signal
@@ -1586,9 +1586,10 @@ static CommandCost CmdSignalTrackHelper(TileIndex tile, DoCommandFlag flags, uin
 			if (!remove && signal_ctr == 0) SetBit(p1, 17);
 
 			/* Pick the correct orientation for the track direction */
-			signals = 0;
-			if (along)   signals |= SignalBit(trackdir);
-			if (against) signals |= SignalBit(ReverseTrackdir(trackdir));
+			byte signals = signals_ref;
+			if (!trackdir_is_signal_along(trackdir) && signals < 3) {
+				signals ^= 3;
+			}
 
 			/* Test tiles in between for suitability as well if minimising gaps. */
 			bool test_only = !remove && minimise_gaps && signal_ctr < (last_used_ctr + signal_density);
@@ -1605,9 +1606,10 @@ static CommandCost CmdSignalTrackHelper(TileIndex tile, DoCommandFlag flags, uin
 				ClrBit(p1, 17);
 
 				/* Pick the correct orientation for the track direction. */
-				signals = 0;
-				if (along)   signals |= SignalBit(last_suitable_trackdir);
-				if (against) signals |= SignalBit(ReverseTrackdir(last_suitable_trackdir));
+				signals = signals_ref;
+				if (!trackdir_is_signal_along(last_suitable_trackdir) && signals < 3) {
+					signals ^= 3;
+				}
 
 				ret = DoCommand(last_suitable_tile, p1, signals, flags, remove ? CMD_REMOVE_SIGNALS : CMD_BUILD_SIGNALS);
 			}

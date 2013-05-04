@@ -50,14 +50,4 @@ static inline void CycleSignalSide(TileIndex t, Track track)
 	tile_set_present_signals(&_mc[t], track, sig);
 }
 
-/**
- * Signal bit to use to check presence and state
- * @param trackdir the trackdir to check
- * @return the bit to be used (1 or 2)
- */
-static inline uint SignalBit(Trackdir trackdir)
-{
-	return trackdir_is_signal_along(trackdir) ? 2 : 1;
-}
-
 #endif /* RAIL_MAP_H */
