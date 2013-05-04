@@ -343,10 +343,10 @@ static SigFlags ExploreSegment(Owner owner)
 								return flags | SF_FULL;
 							}
 						}
-						if (HasSignalOnTrackdir(ss.tile, trackdir) && !IsOnewaySignal(ss.tile, track)) flags |= SF_PBS;
+						if (HasSignalOnTrackdir(ss.tile, trackdir) && !IsOnewaySignal(sig)) flags |= SF_PBS;
 
 						/* if it is a presignal EXIT in OUR direction and we haven't found 2 green exits yes, do special check */
-						if (!(flags & SF_GREEN2) && IsPresignalExit(ss.tile, track) && HasSignalOnTrackdir(ss.tile, trackdir)) { // found presignal exit
+						if (!(flags & SF_GREEN2) && IsPresignalExit(sig) && HasSignalOnTrackdir(ss.tile, trackdir)) { // found presignal exit
 							if (flags & SF_EXIT) flags |= SF_EXIT2; // found two (or more) exits
 							flags |= SF_EXIT; // found at least one exit - allow for compiler optimizations
 							if (GetSignalStateByTrackdir(ss.tile, trackdir) == SIGNAL_STATE_GREEN) { // found green presignal exit
@@ -491,13 +491,13 @@ static void UpdateSignalsAroundSegment(SigFlags flags)
 					newstate = SIGNAL_STATE_RED;
 				}
 			} else { // entry, at least one exit, no green exit
-				if (IsPresignalEntry(pos.tile, TrackdirToTrack(pos.td)) && (flags & SF_EXIT) && !(flags & SF_GREEN)) newstate = SIGNAL_STATE_RED;
+				if (IsPresignalEntry(sig) && (flags & SF_EXIT) && !(flags & SF_GREEN)) newstate = SIGNAL_STATE_RED;
 			}
 		}
 
 		/* only when the state changes */
 		if (newstate != GetSignalStateByTrackdir(pos.tile, pos.td)) {
-			if (IsPresignalExit(pos.tile, TrackdirToTrack(pos.td))) {
+			if (IsPresignalExit(sig)) {
 				/* for pre-signal exits, add block to the global set */
 				DiagDirection exitdir = TrackdirToExitdir(ReverseTrackdir(pos.td));
 				SignalSideEnum side;

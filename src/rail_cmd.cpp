@@ -3324,7 +3324,7 @@ static TrackStatus GetTileTrackStatus_Track(TileIndex tile, TransportType mode, 
 		b = 3;
 	} else {
 		b = GetSignalStates(tile, TRACK_UPPER) & a;
-		if (!IsOnewaySignal(tile, TRACK_UPPER)) b |= ~a;
+		if (!IsOnewaySignal(GetSignalType(tile, TRACK_UPPER))) b |= ~a;
 	}
 
 	if ((b & 0x2) == 0) red_signals |= (TRACKDIR_BIT_LEFT_N | TRACKDIR_BIT_X_NE | TRACKDIR_BIT_Y_SE | TRACKDIR_BIT_UPPER_E);
@@ -3335,7 +3335,7 @@ static TrackStatus GetTileTrackStatus_Track(TileIndex tile, TransportType mode, 
 		b = 3;
 	} else {
 		b = GetSignalStates(tile, TRACK_LOWER) & a;
-		if (!IsOnewaySignal(tile, TRACK_LOWER)) b |= ~a;
+		if (!IsOnewaySignal(GetSignalType(tile, TRACK_LOWER))) b |= ~a;
 	}
 
 	if ((b & 0x2) == 0) red_signals |= (TRACKDIR_BIT_RIGHT_N | TRACKDIR_BIT_LOWER_E);

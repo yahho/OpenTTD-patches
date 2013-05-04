@@ -2225,7 +2225,7 @@ void FreeTrainTrackReservation(const Train *v)
 				SetSignalStateByTrackdir(ft.m_new.tile, ft.m_new.td, SIGNAL_STATE_RED);
 				MarkTileDirtyByTile(ft.m_new.tile);
 			}
-		} else if (HasSignalAgainstPos(ft.m_new) && IsOnewaySignal(ft.m_new.tile, TrackdirToTrack(ft.m_new.td))) {
+		} else if (HasSignalAgainstPos(ft.m_new) && IsOnewaySignal(GetSignalType(ft.m_new.tile, TrackdirToTrack(ft.m_new.td)))) {
 			break;
 		}
 

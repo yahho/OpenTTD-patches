@@ -27,20 +27,20 @@ static inline bool IsPbsSignal(SignalType s)
 	return s == SIGTYPE_PBS || s == SIGTYPE_PBS_ONEWAY;
 }
 
-static inline bool IsPresignalEntry(TileIndex t, Track track)
+static inline bool IsPresignalEntry(SignalType s)
 {
-	return GetSignalType(t, track) == SIGTYPE_ENTRY || GetSignalType(t, track) == SIGTYPE_COMBO;
+	return s == SIGTYPE_ENTRY || s == SIGTYPE_COMBO;
 }
 
-static inline bool IsPresignalExit(TileIndex t, Track track)
+static inline bool IsPresignalExit(SignalType s)
 {
-	return GetSignalType(t, track) == SIGTYPE_EXIT || GetSignalType(t, track) == SIGTYPE_COMBO;
+	return s == SIGTYPE_EXIT || s == SIGTYPE_COMBO;
 }
 
 /** One-way signals can't be passed the 'wrong' way. */
-static inline bool IsOnewaySignal(TileIndex t, Track track)
+static inline bool IsOnewaySignal(SignalType s)
 {
-	return GetSignalType(t, track) != SIGTYPE_PBS;
+	return s != SIGTYPE_PBS;
 }
 
 #endif /* RAIL_MAP_H */

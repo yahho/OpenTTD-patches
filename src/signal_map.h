@@ -93,7 +93,7 @@ static inline bool HasPbsSignalAgainstPos(const PFPos &pos)
 static inline bool HasOnewaySignalBlockingTrackdir(TileIndex tile, Trackdir td)
 {
 	return IsRailwayTile(tile) && HasSignalOnTrackdir(tile, ReverseTrackdir(td)) &&
-			!HasSignalOnTrackdir(tile, td) && IsOnewaySignal(tile, TrackdirToTrack(td));
+			!HasSignalOnTrackdir(tile, td) && IsOnewaySignal(GetSignalType(tile, TrackdirToTrack(td)));
 }
 
 /**
