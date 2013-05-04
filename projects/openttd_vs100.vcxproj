@@ -1906,8 +1906,6 @@
     </ClCompile>
     <ClInclude Include="..\src\map\bridge.h" />
     <ClInclude Include="..\src\map\tunnelbridge.h" />
-    <ClCompile Include="..\src\bridge_map.cpp" />
-    <ClInclude Include="..\src\bridge_map.h" />
     <ClInclude Include="..\src\industry_map.h" />
     <ClInclude Include="..\src\rail_map.h" />
     <ClInclude Include="..\src\signal_map.h" />

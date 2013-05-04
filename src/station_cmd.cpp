@@ -11,7 +11,6 @@
 
 #include "stdafx.h"
 #include "aircraft.h"
-#include "bridge_map.h"
 #include "cmd_helper.h"
 #include "viewport_func.h"
 #include "command_func.h"

@@ -20,7 +20,7 @@
 #include "autoslope.h"
 #include "map/bridge.h"
 #include "map/tunnelbridge.h"
-#include "bridge_map.h"
+#include "bridge.h"
 #include "strings_func.h"
 #include "vehicle_func.h"
 #include "sound_func.h"

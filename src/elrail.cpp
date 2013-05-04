@@ -62,7 +62,7 @@
 #include "viewport_func.h"
 #include "train.h"
 #include "rail_gui.h"
-#include "bridge_map.h"
+#include "bridge.h"
 #include "elrail_func.h"
 #include "company_base.h"
 #include "newgrf_railtype.h"

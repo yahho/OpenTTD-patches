@@ -11235,14 +11235,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\bridge_map.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\bridge_map.h"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\industry_map.h"
 				>
 			</File>

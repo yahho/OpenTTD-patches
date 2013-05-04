@@ -15,7 +15,6 @@
 #include "command_func.h"
 #include "landscape.h"
 #include "map/slope.h"
-#include "bridge_map.h"
 #include "town.h"
 #include "waypoint_base.h"
 #include "pathfinder/yapf/yapf_cache.h"

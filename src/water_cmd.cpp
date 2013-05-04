@@ -30,7 +30,7 @@
 #include "aircraft.h"
 #include "effectvehicle_func.h"
 #include "map/bridge.h"
-#include "bridge_map.h"
+#include "bridge.h"
 #include "station_base.h"
 #include "ai/ai.hpp"
 #include "game/game.hpp"

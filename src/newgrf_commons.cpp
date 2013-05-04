@@ -22,7 +22,7 @@
 #include "station_map.h"
 #include "depot_map.h"
 #include "map/slope.h"
-#include "bridge_map.h"
+#include "bridge.h"
 #include "newgrf_object.h"
 #include "genworld.h"
 #include "newgrf_spritegroup.h"

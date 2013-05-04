@@ -15,7 +15,6 @@
 #include "stdafx.h"
 #include "bridge.h"
 #include "tunnelbridge.h"
-#include "bridge_map.h"
 #include "landscape.h"
 #include "slope_func.h"
 #include "command_func.h"
@@ -109,6 +108,21 @@ Foundation GetBridgeFoundation(Slope tileh, Axis axis)
 			((tileh == SLOPE_NW || tileh == SLOPE_SE) && axis == AXIS_Y)) return FOUNDATION_NONE;
 
 	return (HasSlopeHighestCorner(tileh) ? InclinedFoundation(axis) : FlatteningFoundation(tileh));
+}
+
+/**
+ * Get the height ('z') of a bridge.
+ * @param tile the bridge ramp tile to get the bridge height from
+ * @return the height of the bridge.
+ */
+int GetBridgeHeight(TileIndex t)
+{
+	int h;
+	Slope tileh = GetTileSlope(t, &h);
+	Foundation f = GetBridgeFoundation(tileh, DiagDirToAxis(GetTunnelBridgeDirection(t)));
+
+	/* one height level extra for the ramp */
+	return h + 1 + ApplyFoundationToSlope(f, &tileh);
 }
 
 /**

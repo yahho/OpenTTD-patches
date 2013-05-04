@@ -32,7 +32,7 @@
 #include "engine_base.h"
 #include "company_base.h"
 #include "zoom_func.h"
-#include "bridge_map.h"
+#include "map/bridge.h"
 
 #include "table/strings.h"
 

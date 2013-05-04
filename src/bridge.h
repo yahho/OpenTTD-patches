@@ -107,6 +107,17 @@ static inline const BridgeSpec *GetBridgeSpec(BridgeType i)
 	return &_bridge[i];
 }
 
+int GetBridgeHeight(TileIndex tile);
+/**
+ * Get the height ('z') of a bridge in pixels.
+ * @param tile the bridge ramp tile to get the bridge height from
+ * @return the height of the bridge in pixels
+ */
+static inline int GetBridgePixelHeight(TileIndex tile)
+{
+	return GetBridgeHeight(tile) * TILE_HEIGHT;
+}
+
 void DrawBridgeTramBits(int x, int y, int z, int offset, bool overlay, bool head);
 void DrawBridgeMiddle(const TileInfo *ti);
 void DrawBridgeGround(TileInfo *ti);
