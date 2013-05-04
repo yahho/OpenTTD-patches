@@ -50,6 +50,7 @@
 #include "depot_map.h"
 #include "map/slope.h"
 #include "gamelog.h"
+#include "signal_func.h"
 
 #include "table/strings.h"
 

@@ -34,6 +34,7 @@
 #include "vehicle_func.h"
 #include "zoom_func.h"
 #include "rail_gui.h"
+#include "tile_cmd.h"
 
 #include "map/depot.h"
 #include "station_map.h"

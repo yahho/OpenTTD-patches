@@ -16,7 +16,7 @@
 #include "cargotype.h"
 #include "rail.h"
 #include "engine_base.h"
-#include "rail_map.h"
+#include "map/rail.h"
 #include "ground_vehicle.hpp"
 
 struct Train;

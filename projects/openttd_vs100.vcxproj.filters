@@ -2829,9 +2829,6 @@
     <ClInclude Include="..\src\industry_map.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\rail_map.h">
-      <Filter>Map Accessors</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\signal_map.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>

@@ -12,7 +12,9 @@
 #ifndef SIGNAL_MAP_H
 #define SIGNAL_MAP_H
 
-#include "rail_map.h"
+#include "stdafx.h"
+#include "signal_type.h"
+#include "map/rail.h"
 #include "pathfinder/pathfinder_type.h"
 
 /**

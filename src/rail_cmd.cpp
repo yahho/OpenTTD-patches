@@ -32,6 +32,8 @@
 #include "strings_func.h"
 #include "company_gui.h"
 #include "map/object.h"
+#include "bridge.h"
+#include "signal_func.h"
 
 #include "table/strings.h"
 #include "table/railtypes.h"
@@ -1266,7 +1268,7 @@ CommandCost CmdBuildTrainDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, u
  * - p1 = (bit 0-2) - track-orientation, valid values: 0-5 (Track enum)
  * - p1 = (bit 3)   - 1 = override signal/semaphore, or pre/exit/combo signal or (for bit 7) toggle variant (CTRL-toggle)
  * - p1 = (bit 4)   - 0 = signals, 1 = semaphores
- * - p1 = (bit 5-7) - type of the signal, for valid values see enum SignalType in rail_map.h
+ * - p1 = (bit 5-7) - type of the signal, for valid values see enum SignalType in signal_type.h
  * - p1 = (bit 8)   - convert the present signal type and variant
  * - p1 = (bit 9-11)- start cycle from this signal type
  * - p1 = (bit 12-14)-wrap around after this signal type

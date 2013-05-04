@@ -48,4 +48,26 @@ enum SignalState {
 	SIGNAL_STATE_GREEN = 1, ///< The signal is green
 };
 
+
+static inline bool IsPbsSignal(SignalType s)
+{
+	return s == SIGTYPE_PBS || s == SIGTYPE_PBS_ONEWAY;
+}
+
+static inline bool IsPresignalEntry(SignalType s)
+{
+	return s == SIGTYPE_ENTRY || s == SIGTYPE_COMBO;
+}
+
+static inline bool IsPresignalExit(SignalType s)
+{
+	return s == SIGTYPE_EXIT || s == SIGTYPE_COMBO;
+}
+
+/** One-way signals can't be passed the 'wrong' way. */
+static inline bool IsOnewaySignal(SignalType s)
+{
+	return s != SIGTYPE_PBS;
+}
+
 #endif /* SIGNAL_TYPE_H */

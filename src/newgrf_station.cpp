@@ -25,6 +25,7 @@
 #include "map/slope.h"
 #include "newgrf_animation_base.h"
 #include "newgrf_class_func.h"
+#include "tile_cmd.h"
 
 
 template <typename Tspec, typename Tid, Tid Tmax>

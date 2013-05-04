@@ -994,7 +994,6 @@ map/bridge.cpp
 map/bridge.h
 map/tunnelbridge.h
 industry_map.h
-rail_map.h
 signal_map.h
 station_map.h
 town_map.h

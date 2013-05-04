@@ -46,6 +46,7 @@
 #include "object_base.h"
 #include "ai/ai.hpp"
 #include "game/game.hpp"
+#include "bridge.h"
 
 #include "table/strings.h"
 #include "table/town_land.h"

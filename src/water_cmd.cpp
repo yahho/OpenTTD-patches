@@ -40,6 +40,7 @@
 #include "company_base.h"
 #include "company_gui.h"
 #include "newgrf_generic.h"
+#include "signal_func.h"
 
 #include "table/strings.h"
 

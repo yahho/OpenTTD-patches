@@ -1907,7 +1907,6 @@
     <ClInclude Include="..\src\map\bridge.h" />
     <ClInclude Include="..\src\map\tunnelbridge.h" />
     <ClInclude Include="..\src\industry_map.h" />
-    <ClInclude Include="..\src\rail_map.h" />
     <ClInclude Include="..\src\signal_map.h" />
     <ClInclude Include="..\src\station_map.h" />
     <ClInclude Include="..\src\town_map.h" />

@@ -11,7 +11,8 @@
 
 #include "stdafx.h"
 #include "tile_cmd.h"
-#include "rail_map.h"
+#include "bridge.h"
+#include "signal_func.h"
 #include "command_func.h"
 #include "company_func.h"
 #include "vehicle_func.h"

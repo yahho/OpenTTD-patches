@@ -12,7 +12,7 @@
 #include "stdafx.h"
 #include "map/ground.h"
 #include "map/water.h"
-#include "rail_map.h"
+#include "map/rail.h"
 #include "map/road.h"
 #include "genworld.h"
 #include "company_func.h"

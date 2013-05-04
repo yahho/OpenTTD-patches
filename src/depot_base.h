@@ -12,6 +12,7 @@
 #ifndef DEPOT_BASE_H
 #define DEPOT_BASE_H
 
+#include "depot_type.h"
 #include "depot_map.h"
 #include "core/pool_type.hpp"
 

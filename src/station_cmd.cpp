@@ -51,6 +51,7 @@
 #include "company_gui.h"
 #include "linkgraph/linkgraph_base.h"
 #include "widgets/station_widget.h"
+#include "signal_func.h"
 
 #include "table/strings.h"
 

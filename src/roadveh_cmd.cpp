@@ -35,6 +35,7 @@
 #include "core/backup_type.hpp"
 #include "newgrf.h"
 #include "zoom_func.h"
+#include "bridge.h"
 
 #include "table/strings.h"
 

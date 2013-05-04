@@ -10,7 +10,6 @@
 /** @file dbg_helpers.cpp Helpers for outputting debug information. */
 
 #include "../stdafx.h"
-#include "../rail_map.h"
 #include "dbg_helpers.h"
 
 /** Trackdir & TrackdirBits short names. */

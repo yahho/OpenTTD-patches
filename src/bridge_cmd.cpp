@@ -22,7 +22,7 @@
 #include "economy_func.h"
 #include "map/ground.h"
 #include "map/water.h"
-#include "rail_map.h"
+#include "map/rail.h"
 #include "map/road.h"
 #include "map/slope.h"
 #include "map/tunnelbridge.h"

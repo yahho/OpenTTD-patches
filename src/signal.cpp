@@ -18,6 +18,7 @@
 #include "train.h"
 #include "company_base.h"
 #include "depot_map.h"
+#include "signal_func.h"
 
 
 /** these are the maximums used for updating signal blocks */

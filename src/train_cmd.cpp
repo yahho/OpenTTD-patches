@@ -34,6 +34,7 @@
 #include "newgrf.h"
 #include "order_backup.h"
 #include "zoom_func.h"
+#include "signal_func.h"
 
 #include "table/strings.h"
 #include "table/train_cmd.h"

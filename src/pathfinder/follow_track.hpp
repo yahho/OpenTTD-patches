@@ -18,6 +18,7 @@
 #include "../train.h"
 #include "../tunnelbridge.h"
 #include "../depot_map.h"
+#include "../bridge.h"
 #include "pathfinder_type.h"
 #include "pf_performance_timer.hpp"
 

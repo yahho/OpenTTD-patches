@@ -31,6 +31,7 @@
 #include "strings_func.h"
 #include "date_func.h"
 #include "vehicle_func.h"
+#include "signal_func.h"
 #include "sound_func.h"
 #include "autoreplace_func.h"
 #include "company_gui.h"
