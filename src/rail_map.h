@@ -43,11 +43,4 @@ static inline bool IsOnewaySignal(TileIndex t, Track track)
 	return GetSignalType(t, track) != SIGTYPE_PBS;
 }
 
-static inline void CycleSignalSide(TileIndex t, Track track)
-{
-	byte sig = tile_get_present_signals(&_mc[t], track);
-	if (--sig == 0) sig = IsPbsSignal(tile_get_signal_type(&_mc[t], track)) ? 2 : 3;
-	tile_set_present_signals(&_mc[t], track, sig);
-}
-
 #endif /* RAIL_MAP_H */

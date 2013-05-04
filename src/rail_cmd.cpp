@@ -1352,11 +1352,13 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 		if (p2 == 0) {
 			if (!HasSignalOnTrack(tile, track)) {
 				/* build new signals */
-				SetPresentSignals(tile, track, IsPbsSignal(sigtype) ? 1 : 3);
+				byte present = IsPbsSignal(sigtype) ?
+					1 + (num_dir_cycle & 1) :
+					3 - (num_dir_cycle % 3);
+				SetPresentSignals(tile, track, present);
 				SetSignalType(tile, track, sigtype);
 				SetSignalStates(tile, track, 3);
 				SetSignalVariant(tile, track, sigvar);
-				while (num_dir_cycle-- > 0) CycleSignalSide(tile, track);
 			} else {
 				if (convert_signal) {
 					/* convert signal button pressed */
@@ -1385,10 +1387,12 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 						SetPresentSignals(tile, track, 1);
 					}
 				} else {
-					/* cycle the signal side: both -> left -> right -> both -> ... */
-					CycleSignalSide(tile, track);
 					/* Query current signal type so the check for PBS signals below works. */
 					sigtype = GetSignalType(tile, track);
+					/* cycle the signal side: both -> left -> right -> both -> ... */
+					byte sig = GetPresentSignals(tile, track);
+					if (--sig == 0) sig = IsPbsSignal(sigtype) ? 2 : 3;
+					SetPresentSignals(tile, track, sig);
 				}
 			}
 		} else {
