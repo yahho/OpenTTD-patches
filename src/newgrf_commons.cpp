@@ -19,7 +19,7 @@
 #include "industrytype.h"
 #include "newgrf_config.h"
 #include "map/ground.h"
-#include "depot_map.h"
+#include "map/rail.h"
 #include "map/slope.h"
 #include "bridge.h"
 #include "newgrf_object.h"

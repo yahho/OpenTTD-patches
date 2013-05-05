@@ -21,6 +21,7 @@
 #include "map/coord.h"
 #include "map/class.h"
 #include "map/rail.h"
+#include "map/depot.h"
 #include "map/station.h"
 
 bool IsHangar(TileIndex t);
@@ -56,6 +57,16 @@ void DeleteOilRig(TileIndex t);
 
 /* Check if a rail station tile is traversable. */
 bool IsStationTileBlocked(TileIndex tile);
+
+/**
+ * Is the given tile a tile with a depot on it?
+ * @param tile the tile to check
+ * @return true if and only if there is a depot on the tile.
+ */
+static inline bool IsDepotTile(TileIndex tile)
+{
+	return IsGroundDepotTile(tile) || IsShipDepotTile(tile) || IsHangarTile(tile);
+}
 
 /**
  * Check if a tile is a valid continuation to a railstation tile.

@@ -12,7 +12,7 @@
 #include "stdafx.h"
 #include "train.h"
 #include "roadveh.h"
-#include "depot_map.h"
+#include "depot_func.h"
 
 /**
  * Recalculates the cached total power of a vehicle. Should be called when the consist is changed.

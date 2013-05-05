@@ -13,11 +13,12 @@
 #include "../company_func.h"
 #include "../company_manager_face.h"
 #include "../fios.h"
+#include "../map/rail.h"
 #include "../map/road.h"
 #include "../map/tunnelbridge.h"
 #include "../tunnelbridge.h"
 #include "../station_base.h"
-#include "../depot_map.h"
+#include "../station_func.h"
 
 #include "saveload_buffer.h"
 #include "saveload_error.h"

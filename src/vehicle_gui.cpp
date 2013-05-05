@@ -22,7 +22,6 @@
 #include "roadveh.h"
 #include "train.h"
 #include "aircraft.h"
-#include "depot_map.h"
 #include "group_gui.h"
 #include "strings_func.h"
 #include "vehicle_func.h"

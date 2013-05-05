@@ -12,8 +12,10 @@
 #ifndef DEPOT_FUNC_H
 #define DEPOT_FUNC_H
 
+#include "transport_type.h"
 #include "vehicle_type.h"
 #include "slope_func.h"
+#include "map/depot.h"
 
 void ShowDepotWindow(TileIndex tile, VehicleType type);
 
@@ -32,6 +34,42 @@ static inline bool CanBuildDepotByTileh(DiagDirection direction, Slope tileh)
 	/* For steep slopes both entrance corners must be raised (i.e. neither of them is the lowest corner),
 	 * For non-steep slopes at least one corner must be raised. */
 	return IsSteepSlope(tileh) ? (tileh & entrance_corners) == entrance_corners : (tileh & entrance_corners) != 0;
+}
+
+/**
+ * Check if a tile is a depot and it is a depot of the given type.
+ */
+static inline bool IsDepotTypeTile(TileIndex tile, TransportType type)
+{
+	switch (type) {
+		default: NOT_REACHED();
+		case TRANSPORT_RAIL:
+			return IsRailDepotTile(tile);
+
+		case TRANSPORT_ROAD:
+			return IsRoadDepotTile(tile);
+
+		case TRANSPORT_WATER:
+			return IsShipDepotTile(tile);
+	}
+}
+
+/**
+ * Get the type of vehicles that can use a depot
+ * @param t The tile
+ * @pre IsGroundDepotTile(t) || IsShipDepotTile(t) || IsStationTile(t)
+ * @return The type of vehicles that can use the depot
+ */
+static inline VehicleType GetDepotVehicleType(TileIndex t)
+{
+	switch (GetTileType(t)) {
+		default: NOT_REACHED();
+		case TT_WATER:   return VEH_SHIP;
+		case TT_STATION: return VEH_AIRCRAFT;
+		case TT_MISC:
+			assert(IsGroundDepotTile(t));
+			return IsRailDepot(t) ? VEH_TRAIN : VEH_ROAD;
+	}
 }
 
 #endif /* DEPOT_FUNC_H */

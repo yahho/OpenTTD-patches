@@ -489,7 +489,6 @@
     <ClInclude Include="..\src\video\dedicated_v.h" />
     <ClInclude Include="..\src\depot_base.h" />
     <ClInclude Include="..\src\depot_func.h" />
-    <ClInclude Include="..\src\depot_map.h" />
     <ClInclude Include="..\src\depot_type.h" />
     <ClInclude Include="..\src\direction_func.h" />
     <ClInclude Include="..\src\direction_type.h" />

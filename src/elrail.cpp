@@ -67,7 +67,7 @@
 #include "elrail_func.h"
 #include "company_base.h"
 #include "newgrf_railtype.h"
-#include "depot_map.h"
+#include "station_func.h"
 
 #include "table/elrail_data.h"
 

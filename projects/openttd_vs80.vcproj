@@ -1591,10 +1591,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\depot_map.h"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\depot_type.h"
 				>
 			</File>

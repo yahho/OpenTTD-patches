@@ -21,7 +21,7 @@
 #include "newgrf_text.h"
 #include "vehicle_func.h"
 #include "string_func.h"
-#include "depot_map.h"
+#include "depot_func.h"
 #include "vehiclelist.h"
 #include "engine_func.h"
 #include "articulated_vehicles.h"

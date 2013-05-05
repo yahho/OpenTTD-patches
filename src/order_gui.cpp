@@ -12,7 +12,6 @@
 #include "stdafx.h"
 #include "command_func.h"
 #include "viewport_func.h"
-#include "depot_map.h"
 #include "roadveh.h"
 #include "timetable.h"
 #include "strings_func.h"

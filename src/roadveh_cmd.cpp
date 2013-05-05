@@ -21,13 +21,13 @@
 #include "pathfinder/yapf/yapf.h"
 #include "strings_func.h"
 #include "map/road.h"
+#include "map/depot.h"
 #include "map/tunnelbridge.h"
 #include "date_func.h"
 #include "vehicle_func.h"
 #include "sound_func.h"
 #include "ai/ai.hpp"
 #include "game/game.hpp"
-#include "depot_map.h"
 #include "effectvehicle_func.h"
 #include "roadstop_base.h"
 #include "spritecache.h"
@@ -37,6 +37,7 @@
 #include "newgrf.h"
 #include "zoom_func.h"
 #include "bridge.h"
+#include "station_func.h"
 
 #include "table/strings.h"
 

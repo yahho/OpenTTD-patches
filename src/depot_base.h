@@ -13,7 +13,11 @@
 #define DEPOT_BASE_H
 
 #include "depot_type.h"
-#include "depot_map.h"
+#include "town_type.h"
+#include "map/coord.h"
+#include "map/depot.h"
+#include "depot_func.h"
+#include "station_func.h"
 #include "core/pool_type.hpp"
 
 typedef Pool<Depot, DepotID, 64, 64000> DepotPool;

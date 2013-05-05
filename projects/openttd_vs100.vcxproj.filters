@@ -519,9 +519,6 @@
     <ClInclude Include="..\src\depot_func.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\depot_map.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\depot_type.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -11,8 +11,10 @@
 
 #include "stdafx.h"
 #include "map/ground.h"
+#include "map/tunnel.h"
+#include "map/depot.h"
+#include "map/rail.h"
 #include "industry.h"
-#include "depot_map.h"
 #include "landscape.h"
 #include "viewport_func.h"
 #include "town.h"
@@ -21,6 +23,7 @@
 #include "sound_func.h"
 #include "window_func.h"
 #include "company_base.h"
+#include "rail.h"
 
 #include "smallmap_gui.h"
 

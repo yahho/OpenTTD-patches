@@ -18,6 +18,7 @@
 #include "yapf_destrail.hpp"
 #include "../../viewport_func.h"
 #include "../../newgrf_station.h"
+#include "../../station_func.h"
 
 #define DEBUG_YAPF_CACHE 0
 

@@ -14,7 +14,9 @@
 #include "script_group.hpp"
 #include "script_map.hpp"
 #include "script_station.hpp"
-#include "../../depot_map.h"
+#include "../../map/class.h"
+#include "../../map/station.h"
+#include "../../map/depot.h"
 #include "../../vehicle_base.h"
 
 ScriptVehicleList::ScriptVehicleList()

@@ -162,7 +162,6 @@ debug.h
 video/dedicated_v.h
 depot_base.h
 depot_func.h
-depot_map.h
 depot_type.h
 direction_func.h
 direction_type.h
