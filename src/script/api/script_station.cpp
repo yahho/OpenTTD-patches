@@ -16,6 +16,7 @@
 #include "../../station_base.h"
 #include "../../roadstop_base.h"
 #include "../../town.h"
+#include "../../map/road.h"
 
 /* static */ bool ScriptStation::IsValidStation(StationID station_id)
 {

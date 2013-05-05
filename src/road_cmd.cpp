@@ -18,6 +18,8 @@
 #include "depot_base.h"
 #include "newgrf.h"
 #include "autoslope.h"
+#include "map/zoneheight.h"
+#include "map/road.h"
 #include "map/bridge.h"
 #include "map/tunnelbridge.h"
 #include "bridge.h"

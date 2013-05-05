@@ -13,7 +13,7 @@
 #define TOWN_H
 
 #include "viewport_type.h"
-#include "town_map.h"
+#include "house.h"
 #include "subsidy_type.h"
 #include "newgrf_storage.h"
 #include "cargotype.h"

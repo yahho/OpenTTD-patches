@@ -994,7 +994,6 @@ map/bridge.h
 map/tunnelbridge.h
 industry_map.h
 signal_map.h
-town_map.h
 
 # Misc
 misc/array.hpp

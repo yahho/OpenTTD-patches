@@ -2829,9 +2829,6 @@
     <ClInclude Include="..\src\signal_map.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\town_map.h">
-      <Filter>Map Accessors</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\misc\array.hpp">
       <Filter>Misc</Filter>
     </ClInclude>

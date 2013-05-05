@@ -16,6 +16,7 @@
 #include "../../station_func.h"
 #include "../../map/ground.h"
 #include "../../map/water.h"
+#include "../../map/road.h"
 #include "../../map/slope.h"
 #include "../../town.h"
 #include "../../landscape.h"

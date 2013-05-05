@@ -15,6 +15,7 @@
 #include "date_func.h"
 #include "depot_base.h"
 #include "town.h"
+#include "map/road.h"
 
 /* virtual */ uint32 RailTypeScopeResolver::GetRandomBits() const
 {

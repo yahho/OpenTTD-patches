@@ -52,6 +52,8 @@
 #include "linkgraph/linkgraph_base.h"
 #include "widgets/station_widget.h"
 #include "signal_func.h"
+#include "map/zoneheight.h"
+#include "map/road.h"
 
 #include "table/strings.h"
 

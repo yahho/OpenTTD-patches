@@ -10,6 +10,8 @@
 /** @file rail_cmd.cpp Handling of rail tiles. */
 
 #include "stdafx.h"
+#include "map/zoneheight.h"
+#include "map/road.h"
 #include "cmd_helper.h"
 #include "viewport_func.h"
 #include "command_func.h"

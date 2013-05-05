@@ -18,6 +18,7 @@
 #include "../../string_func.h"
 #include "../../strings_func.h"
 #include "../../station_base.h"
+#include "../../map/zoneheight.h"
 #include "../../landscape.h"
 #include "table/strings.h"
 

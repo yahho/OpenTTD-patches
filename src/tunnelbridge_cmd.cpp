@@ -24,6 +24,7 @@
 #include "autoslope.h"
 #include "map/tunnelbridge.h"
 #include "map/water.h"
+#include "map/road.h"
 #include "strings_func.h"
 #include "tunnelbridge.h"
 #include "bridge.h"

@@ -27,6 +27,8 @@
 #include "newgrf_house.h"
 #include "newgrf_text.h"
 #include "autoslope.h"
+#include "map/zoneheight.h"
+#include "map/road.h"
 #include "map/tunnelbridge.h"
 #include "strings_func.h"
 #include "window_func.h"
@@ -1949,8 +1951,10 @@ static inline void ClearMakeHouseTile(TileIndex tile, Town *t, byte counter, byt
 
 	assert(cc.Succeeded());
 
+	assert(IsGroundTile(tile));
+
 	IncreaseBuildingCount(t, type);
-	MakeHouseTile(tile, t->index, counter, stage, type, random_bits);
+	MakeHouseTile(tile, t->index, counter, stage, type, random_bits, HouseSpec::Get(type)->processing_time);
 	if (HouseSpec::Get(type)->building_flags & BUILDING_IS_ANIMATED) AddAnimatedTile(tile);
 
 	MarkTileDirtyByTile(tile);

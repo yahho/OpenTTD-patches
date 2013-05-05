@@ -11,6 +11,7 @@
 
 #include "stdafx.h"
 #include "town.h"
+#include "map/zoneheight.h"
 #include "viewport_func.h"
 #include "error.h"
 #include "gui.h"
@@ -32,6 +33,7 @@
 #include "core/geometry_func.hpp"
 #include "genworld.h"
 #include "widgets/dropdown_func.h"
+#include "economy_func.h"
 
 #include "widgets/town_widget.h"
 

@@ -10,6 +10,8 @@
 /** @file misctile_cmd.cpp Handling of misc tiles. */
 
 #include "stdafx.h"
+#include "map/zoneheight.h"
+#include "map/road.h"
 #include "tile_cmd.h"
 #include "bridge.h"
 #include "signal_func.h"

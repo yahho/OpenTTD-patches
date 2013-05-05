@@ -17,6 +17,7 @@
 #include "house_type.h"
 #include "newgrf_animation_type.h"
 #include "newgrf_commons.h"
+#include "map/house.h"
 
 static const uint HOUSE_NO_CLASS      = 0;
 static const HouseID NEW_HOUSE_OFFSET = 110;
@@ -133,6 +134,17 @@ static inline HouseID GetTranslatedHouseID(HouseID hid)
 {
 	const HouseSpec *hs = HouseSpec::Get(hid);
 	return hs->grf_prop.override == INVALID_HOUSE_ID ? hid : hs->grf_prop.override;
+}
+
+/**
+ * Get the type of this house, which is an index into the house spec array
+ * @param t the tile
+ * @pre IsHouseTile(t)
+ * @return house type
+ */
+static inline HouseID GetHouseType(TileIndex t)
+{
+	return GetTranslatedHouseID(GetCleanHouseType(t));
 }
 
 #endif /* HOUSE_H */
