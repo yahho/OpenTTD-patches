@@ -13,9 +13,11 @@
 #define BASE_STATION_BASE_H
 
 #include "core/pool_type.hpp"
+#include "core/geometry_type.hpp"
 #include "command_type.h"
 #include "viewport_type.h"
-#include "station_map.h"
+#include "station_type.h"
+#include "map/station.h"
 
 typedef Pool<BaseStation, StationID, 32, 64000> StationPool;
 extern StationPool _station_pool;

@@ -14,11 +14,12 @@
 #include "../core/bitmath_func.hpp"
 #include "../core/random_func.hpp"
 #include "../fios.h"
-#include "../station_map.h"
 #include "../town.h"
 #include "../landscape_type.h"
+#include "../signal_type.h"
 #include "../map/ground.h"
 #include "../map/water.h"
+#include "../map/station.h"
 
 #include "saveload_buffer.h"
 

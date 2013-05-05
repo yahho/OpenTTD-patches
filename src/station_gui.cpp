@@ -31,6 +31,7 @@
 #include "vehiclelist.h"
 #include "town.h"
 #include "linkgraph/linkgraph.h"
+#include "station_func.h"
 
 #include "widgets/station_widget.h"
 

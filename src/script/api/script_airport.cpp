@@ -13,6 +13,7 @@
 #include "script_airport.hpp"
 #include "script_station.hpp"
 #include "../../station_base.h"
+#include "../../station_func.h"
 #include "../../town.h"
 
 /* static */ bool ScriptAirport::IsValidAirportType(AirportType type)

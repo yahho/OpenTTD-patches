@@ -15,6 +15,7 @@
 #include "window_func.h"
 #include "newgrf_station.h"
 #include "waypoint_base.h"
+#include "station_func.h"
 
 /**
  * Draw a waypoint

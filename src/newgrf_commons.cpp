@@ -19,7 +19,6 @@
 #include "industrytype.h"
 #include "newgrf_config.h"
 #include "map/ground.h"
-#include "station_map.h"
 #include "depot_map.h"
 #include "map/slope.h"
 #include "bridge.h"

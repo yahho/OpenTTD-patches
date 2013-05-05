@@ -20,6 +20,7 @@
 #include "newgrf_sound.h"
 #include "pathfinder/yapf/yapf.h"
 #include "strings_func.h"
+#include "map/road.h"
 #include "map/tunnelbridge.h"
 #include "date_func.h"
 #include "vehicle_func.h"

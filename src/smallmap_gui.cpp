@@ -12,7 +12,6 @@
 #include "stdafx.h"
 #include "map/ground.h"
 #include "industry.h"
-#include "station_map.h"
 #include "depot_map.h"
 #include "landscape.h"
 #include "viewport_func.h"

@@ -10,6 +10,7 @@
 /** @file npf.cpp Implementation of the NPF pathfinder. */
 
 #include "../../stdafx.h"
+#include "../../map/road.h"
 #include "../../network/network.h"
 #include "../../viewport_func.h"
 #include "../../ship.h"

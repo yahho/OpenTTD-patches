@@ -13,6 +13,7 @@
 #include "../company_func.h"
 #include "../company_manager_face.h"
 #include "../fios.h"
+#include "../map/road.h"
 #include "../map/tunnelbridge.h"
 #include "../tunnelbridge.h"
 #include "../station_base.h"

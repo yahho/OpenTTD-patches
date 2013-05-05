@@ -14,6 +14,7 @@
 #include "script_station.hpp"
 #include "../../station_base.h"
 #include "../../tile_cmd.h"
+#include "../../map/water.h"
 
 
 /* static */ bool ScriptMarine::IsWaterDepotTile(TileIndex tile)

@@ -39,6 +39,7 @@
 #include "core/backup_type.hpp"
 #include "object_base.h"
 #include "game/game.hpp"
+#include "station_func.h"
 
 #include "table/strings.h"
 #include "table/industry_land.h"

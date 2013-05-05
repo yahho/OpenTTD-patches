@@ -13,7 +13,7 @@
 #define DEPOT_MAP_H
 
 #include "map/depot.h"
-#include "station_map.h"
+#include "station_func.h"
 
 /**
  * Check if a tile is a depot and it is a depot of the given type.

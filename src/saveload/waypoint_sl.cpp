@@ -15,6 +15,7 @@
 #include "../vehicle_base.h"
 #include "../town.h"
 #include "../newgrf.h"
+#include "../map/rail.h"
 
 #include "table/strings.h"
 

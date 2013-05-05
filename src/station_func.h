@@ -18,6 +18,22 @@
 #include "vehicle_type.h"
 #include "economy_func.h"
 #include "rail.h"
+#include "map/coord.h"
+#include "map/class.h"
+#include "map/rail.h"
+#include "map/station.h"
+
+bool IsHangar(TileIndex t);
+
+/**
+ * Is tile \a t an hangar tile?
+ * @param t Tile to check
+ * @return \c true if the tile is an hangar
+ */
+static inline bool IsHangarTile(TileIndex t)
+{
+	return IsStationTile(t) && IsHangar(t);
+}
 
 void ModifyStationRatingAround(TileIndex tile, Owner owner, int amount, uint radius);
 
@@ -40,6 +56,28 @@ void DeleteOilRig(TileIndex t);
 
 /* Check if a rail station tile is traversable. */
 bool IsStationTileBlocked(TileIndex tile);
+
+/**
+ * Check if a tile is a valid continuation to a railstation tile.
+ * The tile \a test_tile is a valid continuation to \a station_tile, if all of the following are true:
+ * \li \a test_tile is a rail station tile
+ * \li the railtype of \a test_tile is compatible with the railtype of \a station_tile
+ * \li the tracks on \a test_tile and \a station_tile are in the same direction
+ * \li both tiles belong to the same station
+ * \li \a test_tile is not blocked (@see IsStationTileBlocked)
+ * @param test_tile Tile to test
+ * @param station_tile Station tile to compare with
+ * @pre IsRailStationTile(station_tile)
+ * @return true if the two tiles are compatible
+ */
+static inline bool IsCompatibleTrainStationTile(TileIndex test_tile, TileIndex station_tile)
+{
+	assert(IsRailStationTile(station_tile));
+	return IsRailStationTile(test_tile) && IsCompatibleRail(GetRailType(test_tile), GetRailType(station_tile)) &&
+			GetRailStationAxis(test_tile) == GetRailStationAxis(station_tile) &&
+			GetStationIndex(test_tile) == GetStationIndex(station_tile) &&
+			!IsStationTileBlocked(test_tile);
+}
 
 bool CanStationTileHavePylons(TileIndex tile);
 bool CanStationTileHaveWires(TileIndex tile);

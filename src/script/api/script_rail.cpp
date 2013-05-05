@@ -21,6 +21,9 @@
 #include "../../newgrf_generic.h"
 #include "../../newgrf_station.h"
 #include "../../strings_func.h"
+#include "../../rail.h"
+#include "../../station_func.h"
+#include "../../map/road.h"
 
 /* static */ char *ScriptRail::GetName(RailType rail_type)
 {

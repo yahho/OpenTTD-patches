@@ -32,6 +32,9 @@
 #include "cargotype.h"
 #include "core/geometry_func.hpp"
 #include "autoreplace_func.h"
+#include "rail.h"
+#include "map/rail.h"
+#include "map/road.h"
 
 #include "widgets/build_vehicle_widget.h"
 

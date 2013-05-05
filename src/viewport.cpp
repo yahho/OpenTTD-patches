@@ -48,6 +48,7 @@
 #include "window_gui.h"
 #include "linkgraph/linkgraph_gui.h"
 #include "clear_func.h"
+#include "station_func.h"
 
 #include "table/strings.h"
 #include "table/palettes.h"

@@ -55,7 +55,8 @@
  */
 
 #include "stdafx.h"
-#include "station_map.h"
+#include "map/rail.h"
+#include "map/road.h"
 #include "map/slope.h"
 #include "map/bridge.h"
 #include "map/tunnelbridge.h"

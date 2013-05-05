@@ -22,6 +22,7 @@
 #include "company_base.h"
 #include "window_func.h"
 #include "waypoint_base.h"
+#include "gfx_func.h"
 
 #include "widgets/waypoint_widget.h"
 

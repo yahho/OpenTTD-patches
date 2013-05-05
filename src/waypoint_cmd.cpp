@@ -14,6 +14,7 @@
 #include "cmd_helper.h"
 #include "command_func.h"
 #include "landscape.h"
+#include "map/rail.h"
 #include "map/slope.h"
 #include "town.h"
 #include "waypoint_base.h"
@@ -29,6 +30,7 @@
 #include "company_base.h"
 #include "water.h"
 #include "company_gui.h"
+#include "station_func.h"
 
 #include "table/strings.h"
 

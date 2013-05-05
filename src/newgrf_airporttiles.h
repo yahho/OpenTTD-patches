@@ -13,7 +13,7 @@
 #define NEWGRF_AIRPORTTILES_H
 
 #include "airport.h"
-#include "station_map.h"
+#include "map/station.h"
 #include "newgrf_animation_type.h"
 #include "newgrf_commons.h"
 #include "newgrf_spritegroup.h"
@@ -73,5 +73,17 @@ void AnimateAirportTile(TileIndex tile);
 void AirportTileAnimationTrigger(Station *st, TileIndex tile, AirpAnimationTrigger trigger, CargoID cargo_type = CT_INVALID);
 void AirportAnimationTrigger(Station *st, AirpAnimationTrigger trigger, CargoID cargo_type = CT_INVALID);
 bool DrawNewAirportTile(TileInfo *ti, Station *st, StationGfx gfx, const AirportTileSpec *airts);
+
+/**
+ * Get the station graphics of this airport tile
+ * @param t the tile to query
+ * @pre IsAirport(t)
+ * @return the station graphics
+ */
+static inline StationGfx GetAirportGfx(TileIndex t)
+{
+	assert(IsAirport(t));
+	return GetTranslatedAirportTileID(GetStationGfx(t));
+}
 
 #endif /* NEWGRF_AIRPORTTILES_H */

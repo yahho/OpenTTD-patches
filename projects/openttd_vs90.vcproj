@@ -11240,10 +11240,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\station_map.h"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\town_map.h"
 				>
 			</File>

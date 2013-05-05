@@ -35,9 +35,11 @@
 #include "zoom_func.h"
 #include "rail_gui.h"
 #include "tile_cmd.h"
+#include "station_func.h"
+#include "rail.h"
 
+#include "map/rail.h"
 #include "map/depot.h"
-#include "station_map.h"
 #include "map/bridge.h"
 
 #include "widgets/rail_widget.h"

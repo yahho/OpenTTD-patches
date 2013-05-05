@@ -67,6 +67,7 @@
 
 #include "map/ground.h"
 #include "station_base.h"
+#include "station_func.h"
 
 #include "table/strings.h"
 #include "table/settings.h"

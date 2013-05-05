@@ -17,7 +17,7 @@
 #include "order_backup.h"
 #include "vehicle_base.h"
 #include "window_func.h"
-#include "station_map.h"
+#include "station_func.h"
 
 OrderBackupPool _order_backup_pool("BackupOrder");
 INSTANTIATE_POOL_METHODS(OrderBackup)

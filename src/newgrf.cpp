@@ -48,6 +48,7 @@
 #include "vehicle_func.h"
 #include "language.h"
 #include "vehicle_base.h"
+#include "rail.h"
 
 #include "table/strings.h"
 #include "table/build_industry.h"

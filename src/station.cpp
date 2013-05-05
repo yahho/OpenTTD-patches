@@ -26,6 +26,7 @@
 #include "core/random_func.hpp"
 #include "linkgraph/linkgraph.h"
 #include "linkgraph/linkgraphschedule.h"
+#include "map/road.h"
 
 #include "table/strings.h"
 

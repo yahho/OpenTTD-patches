@@ -12,8 +12,8 @@
 #ifndef AIRCRAFT_H
 #define AIRCRAFT_H
 
-#include "station_map.h"
 #include "vehicle_base.h"
+#include "station_func.h"
 
 struct Aircraft;
 

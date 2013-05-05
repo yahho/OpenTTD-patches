@@ -12,6 +12,7 @@
 #ifndef  FOLLOW_TRACK_HPP
 #define  FOLLOW_TRACK_HPP
 
+#include "../map/road.h"
 #include "../pbs.h"
 #include "../roadveh.h"
 #include "../station_base.h"
