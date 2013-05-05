@@ -992,7 +992,6 @@ map/slope.h
 map/bridge.cpp
 map/bridge.h
 map/tunnelbridge.h
-industry_map.h
 signal_map.h
 
 # Misc

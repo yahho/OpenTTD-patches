@@ -14,7 +14,7 @@
 
 #include "newgrf_storage.h"
 #include "subsidy_type.h"
-#include "industry_map.h"
+#include "industrytype.h"
 #include "tilearea_type.h"
 
 

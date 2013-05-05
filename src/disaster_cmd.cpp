@@ -45,6 +45,7 @@
 #include "company_base.h"
 #include "core/random_func.hpp"
 #include "core/backup_type.hpp"
+#include "map/water.h"
 
 #include "table/strings.h"
 

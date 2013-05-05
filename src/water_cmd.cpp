@@ -19,7 +19,7 @@
 #include "depot_base.h"
 #include "depot_func.h"
 #include "water.h"
-#include "industry_map.h"
+#include "map/industry.h"
 #include "newgrf_canal.h"
 #include "strings_func.h"
 #include "vehicle_func.h"

@@ -11231,10 +11231,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\industry_map.h"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\signal_map.h"
 				>
 			</File>

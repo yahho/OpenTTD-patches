@@ -1905,7 +1905,6 @@
     </ClCompile>
     <ClInclude Include="..\src\map\bridge.h" />
     <ClInclude Include="..\src\map\tunnelbridge.h" />
-    <ClInclude Include="..\src\industry_map.h" />
     <ClInclude Include="..\src\signal_map.h" />
     <ClInclude Include="..\src\misc\array.hpp" />
     <ClInclude Include="..\src\misc\binaryheap.hpp" />

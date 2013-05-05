@@ -12,12 +12,12 @@
 #include "stdafx.h"
 #include "landscape.h"
 #include "core/random_func.hpp"
-#include "industry_map.h"
 #include "vehicle_func.h"
 #include "sound_func.h"
 #include "animated_tile_func.h"
 #include "effectvehicle_func.h"
 #include "effectvehicle_base.h"
+#include "industrytype.h"
 
 
 static void ChimneySmokeInit(EffectVehicle *v)
