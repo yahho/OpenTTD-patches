@@ -2224,7 +2224,7 @@ void FreeTrainTrackReservation(const Train *v)
 				break;
 			} else {
 				/* Turn the signal back to red. */
-				SetSignalStateByTrackdir(ft.m_new.tile, ft.m_new.td, SIGNAL_STATE_RED);
+				SetSignalState(ft.m_new.tile, ft.m_new.td, SIGNAL_STATE_RED);
 				MarkTileDirtyByTile(ft.m_new.tile);
 			}
 		} else if (HasSignalAgainstPos(ft.m_new) && IsOnewaySignal(GetSignalType(ft.m_new.tile, TrackdirToTrack(ft.m_new.td)))) {
@@ -2478,7 +2478,7 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 		if (best_trackdir != INVALID_TRACKDIR && HasPbsSignalOnTrackdir(tile, best_trackdir)) {
 			do_track_reservation = true;
 			changed_signal = true;
-			SetSignalStateByTrackdir(tile, best_trackdir, SIGNAL_STATE_GREEN);
+			SetSignalState(tile, best_trackdir, SIGNAL_STATE_GREEN);
 		} else if (!do_track_reservation) {
 			return best_trackdir;
 		}
@@ -2491,7 +2491,7 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 		if (res_dest.pos.tile == INVALID_TILE) {
 			/* Reservation failed? */
 			if (mark_stuck) MarkTrainAsStuck(v);
-			if (changed_signal) SetSignalStateByTrackdir(tile, best_trackdir, SIGNAL_STATE_RED);
+			if (changed_signal) SetSignalState(tile, best_trackdir, SIGNAL_STATE_RED);
 			return FindFirstTrackdir(trackdirs);
 		}
 		if (res_dest.okay) {
@@ -3406,7 +3406,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				assert(IsValidTrackdir(chosen_trackdir));
 
 				if (v->IsFrontEngine() && HasPbsSignalOnTrackdir(gp.new_tile, chosen_trackdir)) {
-					SetSignalStateByTrackdir(gp.new_tile, chosen_trackdir, SIGNAL_STATE_RED);
+					SetSignalState(gp.new_tile, chosen_trackdir, SIGNAL_STATE_RED);
 					MarkTileDirtyByTile(gp.new_tile);
 				}
 			} else {

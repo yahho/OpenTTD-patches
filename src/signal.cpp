@@ -19,6 +19,7 @@
 #include "company_base.h"
 #include "signal_func.h"
 #include "station_func.h"
+#include "signal_map.h"
 
 
 /** these are the maximums used for updating signal blocks */
@@ -407,6 +408,18 @@ static SigFlags ExploreSegment(Owner owner)
 							ss.side = SIDE_INTO_TUNNEL;
 						} else if (ss.side == SIDE_FROM_TUNNEL) { // incoming from the wormhole
 							if (!(flags & SF_TRAIN) && EnsureNoTrainOnTrackBits(ss.tile, TRACK_BIT_ALL).Failed()) flags |= SF_TRAIN;
+							if (maptile_has_tunnel_signals(ss.tile)) {
+								/* Only one-way signals supported in tunnels. */
+								assert(maptile_has_tunnel_signal(ss.tile, true) != maptile_has_tunnel_signal(ss.tile, false));
+								if (maptile_has_tunnel_signal(ss.tile, true)) {
+									/* Only normal signals supported into tunnels. */
+									assert(maptile_get_tunnel_signal_type(ss.tile) == SIGTYPE_NORMAL);
+									if (!_tbuset.Add(SignalPosFrom(ss.tile, DiagDirToDiagTrackdir(dir)))) {
+										return flags | SF_FULL;
+									}
+								}
+								continue;
+							}
 							ss.side = (SignalSideEnum)ReverseDiagDir(dir); // exitdir
 							newss.tile += TileOffsByDiagDir((DiagDirection)ss.side); // just skip to next tile
 							newss.side = (SignalSideEnum)dir;
@@ -414,6 +427,21 @@ static SigFlags ExploreSegment(Owner owner)
 							assert(IsValidDiagDirection((DiagDirection)ss.side));
 							if (ss.side != (SignalSideEnum)ReverseDiagDir(dir)) continue;
 							if (!(flags & SF_TRAIN) && EnsureNoTrainOnTrackBits(ss.tile, TRACK_BIT_ALL).Failed()) flags |= SF_TRAIN;
+							if (maptile_has_tunnel_signals(ss.tile)) {
+								/* Only one-way signals supported in tunnels. */
+								assert(maptile_has_tunnel_signal(ss.tile, true) != maptile_has_tunnel_signal(ss.tile, false));
+								if (maptile_has_tunnel_signal(ss.tile, false)) {
+									SignalType sig = maptile_get_tunnel_signal_type(ss.tile);
+									/* Only normal and one-way path signals supported in tunnels. */
+									assert(sig == SIGTYPE_NORMAL || sig == SIGTYPE_PBS_ONEWAY);
+									if (sig != SIGTYPE_NORMAL) {
+										flags |= SF_PBS;
+									} else if (!_tbuset.Add(SignalPosFrom(ss.tile, DiagDirToDiagTrackdir(ReverseDiagDir(dir))))) {
+										return flags | SF_FULL;
+									}
+								}
+								continue;
+							}
 							ss.side = SIDE_FROM_TUNNEL;
 							newss.tile = ss.tile;
 							newss.side = SIDE_INTO_TUNNEL;
@@ -461,6 +489,31 @@ static SigFlags ExploreSegment(Owner owner)
 }
 
 
+/** Check whether there is a train on a given virtual tile. */
+static Vehicle *TrainOnVirtTileEnum(Vehicle *v, void *tile)
+{
+	if (v->type != VEH_TRAIN || TileVirtXY(v->x_pos, v->y_pos) != *(TileIndex*)tile) return NULL;
+
+	return v;
+}
+
+/**
+ * Determine the state for a signal heading into a tunnel when there is a train in it
+ * @param tile the tunnel tile
+ * @return the signal state to set
+ */
+static SignalState GetTunnelSignalState(TileIndex tile)
+{
+	assert(maptile_is_rail_tunnel(tile));
+
+	/* signal is red if there is a train on the initial tile */
+	if (HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) return SIGNAL_STATE_RED;
+
+	/* otherwise, signal is red iff there is a train near the entry */
+	TileIndex tile2 = TileAddByDiagDir(tile, GetTunnelBridgeDirection(tile));
+	return HasVehicleOnPos(GetOtherTunnelEnd(tile), &tile2, &TrainOnVirtTileEnum) ? SIGNAL_STATE_RED : SIGNAL_STATE_GREEN;
+}
+
 /**
  * Update signals around segment in _tbuset
  *
@@ -471,6 +524,23 @@ static void UpdateSignalsAroundSegment(SigFlags flags)
 	SignalPos pos;
 
 	while (_tbuset.Get(&pos)) {
+		if (!IsRailwayTile(pos.tile)) {
+			/* Special signals */
+			assert(maptile_is_rail_tunnel(pos.tile));
+			assert(maptile_get_tunnel_signal_type(pos.tile) == SIGTYPE_NORMAL);
+
+			bool inwards = pos.td == DiagDirToDiagTrackdir(GetTunnelBridgeDirection(pos.tile));
+			SignalState newstate = !(flags & SF_TRAIN) ? SIGNAL_STATE_GREEN :
+				inwards ? GetTunnelSignalState(pos.tile) : SIGNAL_STATE_RED;
+
+			if (newstate != maptile_get_tunnel_signal_state(pos.tile, inwards)) {
+				maptile_set_tunnel_signal_state(pos.tile, inwards, newstate);
+				MarkTileDirtyByTile(pos.tile);
+			}
+
+			continue;
+		}
+
 		assert(HasSignalOnTrackdir(pos.tile, pos.td));
 
 		SignalType sig = GetSignalType(pos.tile, TrackdirToTrack(pos.td));

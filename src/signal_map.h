@@ -18,11 +18,32 @@
 #include "pathfinder/pathfinder_type.h"
 
 /**
+ * Sets the state of the signal along the given trackdir.
+ */
+static inline void SetSignalState(TileIndex tile, Trackdir trackdir, SignalState state)
+{
+	if (IsRailwayTile(tile)) {
+		SetSignalStateByTrackdir(tile, trackdir, state);
+	} else {
+		maptile_set_tunnel_signal_state(tile, TrackdirToExitdir(trackdir) == GetTunnelBridgeDirection(tile), state);
+	}
+}
+
+
+/**
  * Checks for the presence of signals along the given trackdir.
  */
 static inline bool HasSignalAlongPos(const PFPos &pos)
 {
-	return !pos.InWormhole() && IsRailwayTile(pos.tile) && HasSignalOnTrackdir(pos.tile, pos.td);
+	if (pos.InWormhole()) {
+		return false;
+	} else if (IsRailwayTile(pos.tile)) {
+		return HasSignalOnTrackdir(pos.tile, pos.td);
+	} else if (maptile_is_rail_tunnel(pos.tile)) {
+		return maptile_has_tunnel_signal(pos.tile, TrackdirToExitdir(pos.td) == GetTunnelBridgeDirection(pos.tile));
+	} else {
+		return false;
+	}
 }
 
 /**
@@ -30,7 +51,15 @@ static inline bool HasSignalAlongPos(const PFPos &pos)
  */
 static inline bool HasSignalAgainstPos(const PFPos &pos)
 {
-	return !pos.InWormhole() && IsRailwayTile(pos.tile) && HasSignalOnTrackdir(pos.tile, ReverseTrackdir(pos.td));
+	if (pos.InWormhole()) {
+		return false;
+	} else if (IsRailwayTile(pos.tile)) {
+		return HasSignalOnTrackdir(pos.tile, ReverseTrackdir(pos.td));
+	} else if (maptile_is_rail_tunnel(pos.tile)) {
+		return maptile_has_tunnel_signal(pos.tile, TrackdirToExitdir(pos.td) != GetTunnelBridgeDirection(pos.tile));
+	} else {
+		return false;
+	}
 }
 
 /**
@@ -38,13 +67,21 @@ static inline bool HasSignalAgainstPos(const PFPos &pos)
  */
 static inline bool HasSignalOnPos(const PFPos &pos)
 {
-	return !pos.InWormhole() && IsRailwayTile(pos.tile) && HasSignalOnTrack(pos.tile, TrackdirToTrack(pos.td));
+	if (pos.InWormhole()) {
+		return false;
+	} else if (IsRailwayTile(pos.tile)) {
+		return HasSignalOnTrack(pos.tile, TrackdirToTrack(pos.td));
+	} else if (maptile_is_rail_tunnel(pos.tile)) {
+		return maptile_has_tunnel_signals(pos.tile);
+	} else {
+		return false;
+	}
 }
 
 static inline SignalType GetSignalType(const PFPos &pos)
 {
 	assert(HasSignalOnPos(pos));
-	return GetSignalType(pos.tile, TrackdirToTrack(pos.td));
+	return IsRailwayTile(pos.tile) ? GetSignalType(pos.tile, TrackdirToTrack(pos.td)) : maptile_get_tunnel_signal_type(pos.tile);
 }
 
 /**
@@ -52,7 +89,8 @@ static inline SignalType GetSignalType(const PFPos &pos)
  */
 static inline SignalState GetSignalStateByPos(const PFPos &pos)
 {
-	return GetSignalStateByTrackdir(pos.tile, pos.td);
+	return IsRailwayTile(pos.tile) ? GetSignalStateByTrackdir(pos.tile, pos.td) :
+		maptile_get_tunnel_signal_state(pos.tile, TrackdirToExitdir(pos.td) == GetTunnelBridgeDirection(pos.tile));
 }
 
 
@@ -63,8 +101,9 @@ static inline SignalState GetSignalStateByPos(const PFPos &pos)
  */
 static inline bool HasPbsSignalOnTrackdir(TileIndex tile, Trackdir td)
 {
-	return IsRailwayTile(tile) && HasSignalOnTrackdir(tile, td) &&
-			IsPbsSignal(GetSignalType(tile, TrackdirToTrack(td)));
+	return IsRailwayTile(tile) ?
+			HasSignalOnTrackdir(tile, td) && IsPbsSignal(GetSignalType(tile, TrackdirToTrack(td))) :
+			maptile_is_rail_tunnel(tile) && maptile_has_tunnel_signal(tile, TrackdirToExitdir(td) == GetTunnelBridgeDirection(tile)) && IsPbsSignal(maptile_get_tunnel_signal_type(tile));
 }
 
 /**
@@ -94,8 +133,14 @@ static inline bool HasPbsSignalAgainstPos(const PFPos &pos)
  */
 static inline bool HasOnewaySignalBlockingTrackdir(TileIndex tile, Trackdir td)
 {
-	return IsRailwayTile(tile) && HasSignalOnTrackdir(tile, ReverseTrackdir(td)) &&
+	if (IsRailwayTile(tile)) {
+		return HasSignalOnTrackdir(tile, ReverseTrackdir(td)) &&
 			!HasSignalOnTrackdir(tile, td) && IsOnewaySignal(GetSignalType(tile, TrackdirToTrack(td)));
+	} else if (maptile_is_rail_tunnel(tile)) {
+		return maptile_has_tunnel_signal(tile, TrackdirToExitdir(td) != GetTunnelBridgeDirection(tile));
+	} else {
+		return false;
+	}
 }
 
 /**
