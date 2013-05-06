@@ -12,8 +12,10 @@
 
 #include "../stdafx.h"
 #include "../tile/misc.h"
+#include "../tile/signal.h"
 #include "map.h"
 #include "coord.h"
+#include "class.h"
 #include "../direction_type.h"
 #include "../track_type.h"
 #include "../transport_type.h"
@@ -106,6 +108,162 @@ static inline bool HasTunnelMiddleReservation(TileIndex t)
 static inline void SetTunnelMiddleReservation(TileIndex t, bool b)
 {
 	tile_set_tunnel_middle_reserved(&_mc[t], b);
+}
+
+
+/**
+ * Get the signal byte for the tunnel signals
+ * @param t The tile whose signal byte to get
+ * @pre maptile_is_rail_tunnel(t)
+ */
+static inline SignalPair *maptile_tunnel_signalpair(TileIndex t)
+{
+	return tile_tunnel_signalpair(&_mc[t]);
+}
+
+/**
+ * Clear the signals on a tunnel head
+ * @param t The index of the tunnel head whose signals to clear
+ * @pre maptile_is_rail_tunnel(t)
+ */
+static inline void maptile_clear_tunnel_signals(TileIndex t)
+{
+	tile_clear_tunnel_signals(&_mc[t]);
+}
+
+/**
+ * Get present signals on a tunnel head
+ * @param t The index of the tunnel head whose present signals to get
+ * @pre maptile_is_rail_tunnel(t)
+ * @return A bitmask of present signals (bit 0 is outwards, bit 1 is inwards)
+ */
+static inline uint maptile_get_tunnel_present_signals(TileIndex t)
+{
+	return tile_get_tunnel_present_signals(&_mc[t]);
+}
+
+/**
+ * Set present signals on a tunnel head
+ * @param t The index of the tunnel head whose present signals to set
+ * @param mask A bitmask of present signals (bit 0 is outwards, bit 1 is inwards)
+ * @pre maptile_is_rail_tunnel(t)
+ */
+static inline void maptile_set_tunnel_present_signals(TileIndex t, uint mask)
+{
+	tile_set_tunnel_present_signals(&_mc[t], mask);
+}
+
+/**
+ * Check if a tunnel head has signals at all
+ * @param t The index of the map tile to check
+ * @pre maptile_is_rail_tunnel(t)
+ * @return Whether the tunnel head has any signals
+ */
+static inline bool maptile_has_tunnel_signals(TileIndex t)
+{
+	return tile_has_tunnel_signals(&_mc[t]);
+}
+
+/**
+ * Check if a tunnel head has a signal on a particular direction
+ * @param t The index of the map tile to check
+ * @param inwards Whether to check the direction into the tunnel, else out of it
+ * @pre maptile_is_rail_tunnel(t)
+ * @return Whether there is a signal in the given direction
+ */
+static inline bool maptile_has_tunnel_signal(TileIndex t, bool inwards)
+{
+	return tile_has_tunnel_signal(&_mc[t], inwards);
+}
+
+/**
+ * Get signal states on a tunnel head
+ * @param t The index of the tunnel head whose signal states to get
+ * @pre maptile_is_rail_tunnel(t)
+ * @return A bitmask of signal states (bit 0 is outwards, bit 1 is inwards)
+ */
+static inline uint maptile_get_tunnel_signal_states(TileIndex t)
+{
+	return tile_get_tunnel_signal_states(&_mc[t]);
+}
+
+/**
+ * Set signal states on a tunnel head
+ * @param t The index of the tunnel head whose signal states to set
+ * @param mask A bitmask of signal states (bit 0 is outwards, bit 1 is inwards)
+ * @pre maptile_is_rail_tunnel(t)
+ */
+static inline void maptile_set_tunnel_signal_states(TileIndex t, uint mask)
+{
+	tile_set_tunnel_signal_states(&_mc[t], mask);
+}
+
+/**
+ * Get the signal state on a direction of a tunnel head
+ * @param t The index of the tunnel tile whose signal to check
+ * @param inwards Whether to check the direction into the tunnel, else out of it
+ * @pre maptile_is_rail_tunnel(t)
+ * @return The signal state on the given direction
+ */
+static inline SignalState maptile_get_tunnel_signal_state(TileIndex t, bool inwards)
+{
+	return tile_get_tunnel_signal_state(&_mc[t], inwards);
+}
+
+/**
+ * Set the signal state on a direction of a tunnel head
+ * @param t The index of the tunnel tile whose signal to set
+ * @param inwards Whether to set the direction into the tunnel, else out of it
+ * @param state The state to set
+ * @pre maptile_is_rail_tunnel(t)
+ */
+static inline void maptile_set_tunnel_signal_state(TileIndex t, bool inwards, SignalState state)
+{
+	tile_set_tunnel_signal_state(&_mc[t], inwards, state);
+}
+
+/**
+ * Get the type of the signals on a tunnel head
+ * @param t The index of the tunnel tile whose signals to get the type of
+ * @pre maptile_is_rail_tunnel(t)
+ * @return The type of the signals on the tunnel head
+ */
+static inline SignalType maptile_get_tunnel_signal_type(TileIndex t)
+{
+	return tile_get_tunnel_signal_type(&_mc[t]);
+}
+
+/**
+ * Set the type of the signals on a tunnel head
+ * @param t The index of the tunnel tile whose signals to set the type of
+ * @param type The type of signals to set
+ * @pre maptile_is_rail_tunnel(t)
+ */
+static inline void maptile_set_tunnel_signal_type(TileIndex t, SignalType type)
+{
+	tile_set_tunnel_signal_type(&_mc[t], type);
+}
+
+/**
+ * Get the variant of the signals on a tunnel head
+ * @param t The index of the tunnel tile whose signals to get the variant of
+ * @pre maptile_is_rail_tunnel(t)
+ * @return The variant of the signals on the tunnel head
+ */
+static inline SignalVariant maptile_get_tunnel_signal_variant(TileIndex t)
+{
+	return tile_get_tunnel_signal_variant(&_mc[t]);
+}
+
+/**
+ * Set the variant of the signals on a tunnel head
+ * @param t The index of the tunnel tile whose signals to set the variant of
+ * @param v The variant of signals to set
+ * @pre maptile_is_rail_tunnel(t)
+ */
+static inline void maptile_set_tunnel_signal_variant(TileIndex t, SignalVariant v)
+{
+	tile_set_tunnel_signal_variant(&_mc[t], v);
 }
 
 

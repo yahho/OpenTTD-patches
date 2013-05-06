@@ -16,6 +16,7 @@
 #include "class.h"
 #include "common.h"
 #include "water.h"
+#include "signal.h"
 #include "../direction_type.h"
 #include "../direction_func.h"
 #include "../track_type.h"
@@ -290,6 +291,181 @@ static inline void tile_set_tunnel_middle_reserved(Tile *t, bool b)
 	} else {
 		ClrBit(t->m5, 5);
 	}
+}
+
+/**
+ * Get the signal byte for the tunnel signals
+ * @param t The tile whose signal byte to get
+ * @pre tile_is_rail_tunnel(t)
+ */
+static inline SignalPair *tile_tunnel_signalpair(Tile *t)
+{
+	assert(tile_is_rail_tunnel(t));
+	return &t->m7;
+}
+
+static inline const SignalPair *tile_tunnel_signalpair(const Tile *t)
+{
+	assert(tile_is_rail_tunnel(t));
+	return &t->m7;
+}
+
+/**
+ * Clear the signals on a tunnel head
+ * @param t The tunnel head whose signals to clear
+ * @pre tile_is_rail_tunnel(t)
+ */
+static inline void tile_clear_tunnel_signals(Tile *t)
+{
+	assert(tile_is_rail_tunnel(t));
+	signalpair_clear(&t->m7);
+}
+
+/**
+ * Get present signals on a tunnel head
+ * @param t The tunnel head whose present signals to get
+ * @pre tile_is_rail_tunnel(t)
+ * @return A bitmask of present signals (bit 0 is outwards, bit 1 is inwards)
+ */
+static inline uint tile_get_tunnel_present_signals(const Tile *t)
+{
+	assert(tile_is_rail_tunnel(t));
+	return signalpair_get_present(&t->m7);
+}
+
+/**
+ * Set present signals on a tunnel head
+ * @param t The tunnel head whose present signals to set
+ * @param mask A bitmask of present signals (bit 0 is outwards, bit 1 is inwards)
+ * @pre tile_is_rail_tunnel(t)
+ */
+static inline void tile_set_tunnel_present_signals(Tile *t, uint mask)
+{
+	assert(tile_is_rail_tunnel(t));
+	signalpair_set_present(&t->m7, mask);
+}
+
+/**
+ * Check if a tunnel head has signals at all
+ * @param t The tile to check
+ * @pre tile_is_rail_tunnel(t)
+ * @return Whether the tunnel head has any signals
+ */
+static inline bool tile_has_tunnel_signals(const Tile *t)
+{
+	assert(tile_is_rail_tunnel(t));
+	return signalpair_has_signals(&t->m7);
+}
+
+/**
+ * Check if a tunnel head has a signal on a particular direction
+ * @param t The tile to check
+ * @param inwards Whether to check the direction into the tunnel, else out of it
+ * @pre tile_is_rail_tunnel(t)
+ * @return Whether there is a signal in the given direction
+ */
+static inline bool tile_has_tunnel_signal(const Tile *t, bool inwards)
+{
+	assert(tile_is_rail_tunnel(t));
+	return signalpair_has_signal(&t->m7, inwards);
+}
+
+/**
+ * Get signal states on a tunnel head
+ * @param t The tunnel head whose signal states to get
+ * @pre tile_is_rail_tunnel(t)
+ * @return A bitmask of signal states (bit 0 is outwards, bit 1 is inwards)
+ */
+static inline uint tile_get_tunnel_signal_states(const Tile *t)
+{
+	assert(tile_is_rail_tunnel(t));
+	return signalpair_get_states(&t->m7);
+}
+
+/**
+ * Set signal states on a tunnel head
+ * @param t The tunnel head whose signal states to set
+ * @param mask A bitmask of signal states (bit 0 is outwards, bit 1 is inwards)
+ * @pre tile_is_rail_tunnel(t)
+ */
+static inline void tile_set_tunnel_signal_states(Tile *t, uint mask)
+{
+	assert(tile_is_rail_tunnel(t));
+	signalpair_set_states(&t->m7, mask);
+}
+
+/**
+ * Get the signal state on a direction of a tunnel head
+ * @param t The tunnel tile whose signal to check
+ * @param inwards Whether to check the direction into the tunnel, else out of it
+ * @pre tile_is_rail_tunnel(t)
+ * @return The signal state on the given direction
+ */
+static inline SignalState tile_get_tunnel_signal_state(const Tile *t, bool inwards)
+{
+	assert(tile_is_rail_tunnel(t));
+	return signalpair_get_state(&t->m7, inwards);
+}
+
+/**
+ * Set the signal state on a direction of a tunnel head
+ * @param t The tunnel tile whose signal to set
+ * @param inwards Whether to set the direction into the tunnel, else out of it
+ * @param state The state to set
+ * @pre tile_is_rail_tunnel(t)
+ */
+static inline void tile_set_tunnel_signal_state(Tile *t, bool inwards, SignalState state)
+{
+	assert(tile_is_rail_tunnel(t));
+	signalpair_set_state(&t->m7, inwards, state);
+}
+
+/**
+ * Get the type of the signals on a tunnel head
+ * @param t The tunnel tile whose signals to get the type of
+ * @pre tile_is_rail_tunnel(t)
+ * @return The type of the signals on the tunnel head
+ */
+static inline SignalType tile_get_tunnel_signal_type(const Tile *t)
+{
+	assert(tile_is_rail_tunnel(t));
+	return signalpair_get_type(&t->m7);
+}
+
+/**
+ * Set the type of the signals on a tunnel head
+ * @param t The tunnel tile whose signals to set the type of
+ * @param type The type of signals to set
+ * @pre tile_is_rail_tunnel(t)
+ */
+static inline void tile_set_tunnel_signal_type(Tile *t, SignalType type)
+{
+	assert(tile_is_rail_tunnel(t));
+	signalpair_set_type(&t->m7, type);
+}
+
+/**
+ * Get the variant of the signals on a tunnel head
+ * @param t The tunnel tile whose signals to get the variant of
+ * @pre tile_is_rail_tunnel(t)
+ * @return The variant of the signals on the tunnel head
+ */
+static inline SignalVariant tile_get_tunnel_signal_variant(const Tile *t)
+{
+	assert(tile_is_rail_tunnel(t));
+	return signalpair_get_variant(&t->m7);
+}
+
+/**
+ * Set the variant of the signals on a tunnel head
+ * @param t The tunnel tile whose signals to set the variant of
+ * @param v The variant of signals to set
+ * @pre tile_is_rail_tunnel(t)
+ */
+static inline void tile_set_tunnel_signal_variant(Tile *t, SignalVariant v)
+{
+	assert(tile_is_rail_tunnel(t));
+	signalpair_set_variant(&t->m7, v);
 }
 
 /**
