@@ -1354,53 +1354,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 		/* Subtract old signal infrastructure count. */
 		Company::Get(GetTileOwner(tile))->infrastructure.signal -= CountBits(GetPresentSignals(tile, track));
 
-		if (p2 == 0) {
-			if (!HasSignalOnTrack(tile, track)) {
-				/* build new signals */
-				byte present = IsPbsSignal(sigtype) ?
-					1 + (num_dir_cycle & 1) :
-					3 - (num_dir_cycle % 3);
-				SetPresentSignals(tile, track, present);
-				SetSignalType(tile, track, sigtype);
-				SetSignalStates(tile, track, 3);
-				SetSignalVariant(tile, track, sigvar);
-			} else {
-				if (convert_signal) {
-					/* convert signal button pressed */
-					if (ctrl_pressed) {
-						/* toggle the present signal variant: SIG_ELECTRIC <-> SIG_SEMAPHORE */
-						SetSignalVariant(tile, track, (GetSignalVariant(tile, track) == SIG_ELECTRIC) ? SIG_SEMAPHORE : SIG_ELECTRIC);
-						/* Query current signal type so the check for PBS signals below works. */
-						sigtype = GetSignalType(tile, track);
-					} else {
-						/* convert the present signal to the chosen type and variant */
-						SetSignalType(tile, track, sigtype);
-						SetSignalVariant(tile, track, sigvar);
-						if (IsPbsSignal(sigtype) && (GetPresentSignals(tile, track) == 3)) {
-							SetPresentSignals(tile, track, 1);
-						}
-					}
-
-				} else if (ctrl_pressed) {
-					/* cycle between cycle_start and cycle_end */
-					sigtype = (SignalType)(GetSignalType(tile, track) + 1);
-
-					if (sigtype < cycle_start || sigtype > cycle_stop) sigtype = cycle_start;
-
-					SetSignalType(tile, track, sigtype);
-					if (IsPbsSignal(sigtype) && GetPresentSignals(tile, track) == 3) {
-						SetPresentSignals(tile, track, 1);
-					}
-				} else {
-					/* Query current signal type so the check for PBS signals below works. */
-					sigtype = GetSignalType(tile, track);
-					/* cycle the signal side: both -> left -> right -> both -> ... */
-					byte sig = GetPresentSignals(tile, track);
-					if (--sig == 0) sig = IsPbsSignal(sigtype) ? 2 : 3;
-					SetPresentSignals(tile, track, sig);
-				}
-			}
-		} else {
+		if (p2 != 0) {
 			if (!HasSignalOnTrack(tile, track)) {
 				/* there are no signals at all on this track yet */
 				SetSignalStates(tile, track, 3);
@@ -1411,6 +1365,47 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 			SetPresentSignals(tile, track, p2);
 			SetSignalVariant(tile, track, sigvar);
 			SetSignalType(tile, track, sigtype);
+		} else if (!HasSignalOnTrack(tile, track)) {
+			/* build new signals */
+			byte present = IsPbsSignal(sigtype) ?
+				1 + (num_dir_cycle & 1) :
+				3 - (num_dir_cycle % 3);
+			SetPresentSignals(tile, track, present);
+			SetSignalType(tile, track, sigtype);
+			SetSignalStates(tile, track, 3);
+			SetSignalVariant(tile, track, sigvar);
+		} else if (convert_signal) {
+			/* convert signal button pressed */
+			if (ctrl_pressed) {
+				/* toggle the present signal variant: SIG_ELECTRIC <-> SIG_SEMAPHORE */
+				SetSignalVariant(tile, track, (GetSignalVariant(tile, track) == SIG_ELECTRIC) ? SIG_SEMAPHORE : SIG_ELECTRIC);
+				/* Query current signal type so the check for PBS signals below works. */
+				sigtype = GetSignalType(tile, track);
+			} else {
+				/* convert the present signal to the chosen type and variant */
+				SetSignalType(tile, track, sigtype);
+				SetSignalVariant(tile, track, sigvar);
+				if (IsPbsSignal(sigtype) && (GetPresentSignals(tile, track) == 3)) {
+					SetPresentSignals(tile, track, 1);
+				}
+			}
+		} else if (ctrl_pressed) {
+			/* cycle between cycle_start and cycle_end */
+			sigtype = (SignalType)(GetSignalType(tile, track) + 1);
+
+			if (sigtype < cycle_start || sigtype > cycle_stop) sigtype = cycle_start;
+
+			SetSignalType(tile, track, sigtype);
+			if (IsPbsSignal(sigtype) && GetPresentSignals(tile, track) == 3) {
+				SetPresentSignals(tile, track, 1);
+			}
+		} else {
+			/* Query current signal type so the check for PBS signals below works. */
+			sigtype = GetSignalType(tile, track);
+			/* cycle the signal side: both -> left -> right -> both -> ... */
+			byte sig = GetPresentSignals(tile, track);
+			if (--sig == 0) sig = IsPbsSignal(sigtype) ? 2 : 3;
+			SetPresentSignals(tile, track, sig);
 		}
 
 		/* Add new signal infrastructure count. */
