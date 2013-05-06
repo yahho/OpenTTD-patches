@@ -1269,7 +1269,7 @@ CommandCost CmdBuildTrainDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, u
  * @param flags operation to perform
  * @param p1 various bitstuffed elements
  * - p1 = (bit 0-2) - track-orientation, valid values: 0-5 (Track enum)
- * - p1 = (bit 3)   - 1 = override signal/semaphore, or pre/exit/combo signal or (for bit 7) toggle variant (CTRL-toggle)
+ * - p1 = (bit 3)   - 1 = pre/exit/combo signal or (for bit 7) toggle variant (CTRL-toggle)
  * - p1 = (bit 4)   - 0 = signals, 1 = semaphores
  * - p1 = (bit 5-7) - type of the signal, for valid values see enum SignalType in signal_type.h
  * - p1 = (bit 8)   - convert the present signal type and variant
@@ -1286,7 +1286,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 {
 	Track track = Extract<Track, 0, 3>(p1);
 	bool ctrl_pressed = HasBit(p1, 3); // was the CTRL button pressed
-	SignalVariant sigvar = (ctrl_pressed ^ HasBit(p1, 4)) ? SIG_SEMAPHORE : SIG_ELECTRIC; // the signal variant of the new signal
+	SignalVariant sigvar = HasBit(p1, 4) ? SIG_SEMAPHORE : SIG_ELECTRIC; // the signal variant of the new signal
 	SignalType sigtype = Extract<SignalType, 5, 3>(p1); // the signal type of the new signal
 	bool convert_signal = HasBit(p1, 8); // convert button pressed
 	SignalType cycle_start = Extract<SignalType, 9, 3>(p1);
@@ -1585,7 +1585,7 @@ static CommandCost CmdSignalTrackHelper(TileIndex tile, DoCommandFlag flags, uin
 		if (remove || minimise_gaps || signal_ctr % signal_density == 0) {
 			uint32 p1 = GB(TrackdirToTrack(trackdir), 0, 3);
 			SB(p1, 3, 1, mode);
-			SB(p1, 4, 1, semaphores);
+			SB(p1, 4, 1, semaphores ^ mode);
 			SB(p1, 5, 3, sigtype);
 			if (!remove && signal_ctr == 0) SetBit(p1, 17);
 
@@ -1688,7 +1688,7 @@ CommandCost CmdBuildSignalTrack(TileIndex tile, DoCommandFlag flags, uint32 p1, 
  * @param flags operation to perform
  * @param p1 various bitstuffed elements, only track information is used
  *           - (bit  0- 2) - track-orientation, valid values: 0-5 (Track enum)
- *           - (bit  3)    - override signal/semaphore, or pre/exit/combo signal (CTRL-toggle)
+ *           - (bit  3)    - pre/exit/combo signal (CTRL-toggle)
  *           - (bit  4)    - 0 = signals, 1 = semaphores
  * @param p2 unused
  * @param text unused

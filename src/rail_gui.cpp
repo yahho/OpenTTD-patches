@@ -229,13 +229,13 @@ static void GenericPlaceSignals(TileIndex tile)
 		if (w != NULL) {
 			/* signal GUI is used */
 			SB(p1, 3, 1, _ctrl_pressed);
-			SB(p1, 4, 1, _cur_signal_variant);
+			SB(p1, 4, 1, _cur_signal_variant ^ _ctrl_pressed);
 			SB(p1, 5, 3, _cur_signal_type);
 			SB(p1, 8, 1, _convert_signal_button);
 			SB(p1, 9, 6, cycle_bounds[_settings_client.gui.cycle_signal_types]);
 		} else {
 			SB(p1, 3, 1, _ctrl_pressed);
-			SB(p1, 4, 1, (_cur_year < _settings_client.gui.semaphore_build_before ? SIG_SEMAPHORE : SIG_ELECTRIC));
+			SB(p1, 4, 1, ((_cur_year < _settings_client.gui.semaphore_build_before) ^ _ctrl_pressed) ? SIG_SEMAPHORE : SIG_ELECTRIC);
 			SB(p1, 5, 3, _default_signal_type[_settings_client.gui.default_signal_type]);
 			SB(p1, 8, 1, 0);
 			SB(p1, 9, 6, cycle_bounds[_settings_client.gui.cycle_signal_types]);
