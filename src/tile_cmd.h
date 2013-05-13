@@ -84,11 +84,23 @@ typedef void GetTileDescProc(TileIndex tile, TileDesc *td);
  * see track_func.h for usage of TrackStatus.
  *
  * @param tile     the tile to get the track status from
- * @param mode     the mode of transportation
- * @param sub_mode used to differentiate between different kinds within the mode
  * @return the track status information
  */
-typedef TrackStatus GetTileTrackStatusProc(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side);
+typedef TrackStatus GetTileTrackStatusProc(TileIndex tile, DiagDirection side);
+
+/**
+ * Tile callback function signature for getting the possible tracks
+ * that can be taken on a given tile by a road vehicle.
+ *
+ * The return value contains the existing trackdirs and signal states.
+ *
+ * see track_func.h for usage of TrackStatus.
+ *
+ * @param tile     the tile to get the track status from
+ * @param sub_mode used to differentiate between different kinds of transport
+ * @return the track status information
+ */
+typedef TrackStatus GetTileRoadStatusProc(TileIndex tile, uint sub_mode, DiagDirection side);
 
 /**
  * Tile callback function signature for obtaining the produced cargo of a tile.
@@ -129,7 +141,9 @@ struct TileTypeProcs {
 	ClearTileProc *clear_tile_proc;
 	AddAcceptedCargoProc *add_accepted_cargo_proc; ///< Adds accepted cargo of the tile to cargo array supplied as parameter
 	GetTileDescProc *get_tile_desc_proc;           ///< Get a description of a tile (for the 'land area information' tool)
-	GetTileTrackStatusProc *get_tile_track_status_proc; ///< Get available tracks and status of a tile
+	GetTileTrackStatusProc *get_tile_railway_status_proc;  ///< Get available railway tracks and status of a tile
+	GetTileRoadStatusProc  *get_tile_road_status_proc;     ///< Get available road tracks and status of a tile
+	GetTileTrackStatusProc *get_tile_waterway_status_proc; ///< Get available waterway tracks and status of a tile
 	ClickTileProc *click_tile_proc;                ///< Called when tile is clicked
 	AnimateTileProc *animate_tile_proc;
 	TileLoopProc *tile_loop_proc;
@@ -146,7 +160,10 @@ static inline const TileTypeProcs *GetTileProcs(TileIndex tile)
 	return _tile_type_procs[GetTileType(tile)];
 }
 
-TrackStatus GetTileTrackStatus(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side = INVALID_DIAGDIR);
+TrackStatus GetTileRailwayStatus(TileIndex tile, DiagDirection side = INVALID_DIAGDIR);
+TrackStatus GetTileRoadStatus(TileIndex tile, uint sub_mode, DiagDirection side = INVALID_DIAGDIR);
+TrackStatus GetTileWaterwayStatus(TileIndex tile, DiagDirection side = INVALID_DIAGDIR);
+
 void ChangeTileOwner(TileIndex tile, Owner old_owner, Owner new_owner);
 void GetTileDesc(TileIndex tile, TileDesc *td);
 

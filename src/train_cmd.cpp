@@ -2573,7 +2573,7 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 		/* Extend reservation until we have found a safe position. */
 		DiagDirection exitdir = TrackdirToExitdir(res_dest.pos.td);
 		TileIndex     next_tile = TileAddByDiagDir(res_dest.pos.tile, exitdir);
-		TrackdirBits  reachable = TrackStatusToTrackdirBits(GetTileTrackStatus(next_tile, TRANSPORT_RAIL, 0)) & DiagdirReachesTrackdirs(exitdir);
+		TrackdirBits  reachable = TrackStatusToTrackdirBits(GetTileRailwayStatus(next_tile)) & DiagdirReachesTrackdirs(exitdir);
 		if (_settings_game.pf.forbid_90_deg) {
 			reachable &= ~TrackdirCrossesTrackdirs(res_dest.pos.td);
 		}
@@ -2664,7 +2664,7 @@ bool TryPathReserve(Train *v, bool mark_as_stuck, bool first_tile_okay)
 
 	DiagDirection exitdir = TrackdirToExitdir(origin.pos.td);
 	TileIndex     new_tile = TileAddByDiagDir(origin.pos.tile, exitdir);
-	TrackdirBits  reachable = TrackStatusToTrackdirBits(GetTileTrackStatus(new_tile, TRANSPORT_RAIL, 0)) & DiagdirReachesTrackdirs(exitdir);
+	TrackdirBits  reachable = TrackStatusToTrackdirBits(GetTileRailwayStatus(new_tile)) & DiagdirReachesTrackdirs(exitdir);
 
 	if (_settings_game.pf.forbid_90_deg) reachable &= ~TrackdirCrossesTrackdirs(origin.pos.td);
 
@@ -3219,7 +3219,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 	for (prev = v->Previous(); v != nomove; prev = v, v = v->Next()) {
 		bool old_in_wormhole, new_in_wormhole; // old position was in wormhole, new position is in wormhole
 		DiagDirection enterdir = INVALID_DIAGDIR; // direction into the new tile, or INVALID_DIAGDIR if we stay on the old tile
-		DiagDirection tsdir = INVALID_DIAGDIR; // direction to use for GetTileTrackStatus, only when moving into a new tile
+		DiagDirection tsdir = INVALID_DIAGDIR; // direction to use for GetTileRailwayStatus, only when moving into a new tile
 
 		GetNewVehiclePosResult gp = GetNewVehiclePos(v);
 		if (v->trackdir == TRACKDIR_WORMHOLE) {
@@ -3298,7 +3298,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			if (!new_in_wormhole) {
 				/* Get the status of the tracks in the new tile and mask
 				 * away the bits that aren't reachable. */
-				TrackStatus ts = GetTileTrackStatus(gp.new_tile, TRANSPORT_RAIL, 0, tsdir);
+				TrackStatus ts = GetTileRailwayStatus(gp.new_tile, tsdir);
 				TrackdirBits reachable_trackdirs = DiagdirReachesTrackdirs(enterdir);
 
 				TrackdirBits trackdirbits = TrackStatusToTrackdirBits(ts) & reachable_trackdirs;
@@ -3911,7 +3911,7 @@ static bool TrainCheckIfLineEnds(Train *v, bool reverse)
 		/* Only check when the train is on the last tile segment */
 		if (TileVirtXY(v->x_pos, v->y_pos) != v->tile + TileOffsByDiagDir(dir)) return true;
 
-		TrackStatus ts = GetTileTrackStatus(v->tile, TRANSPORT_RAIL, 0, INVALID_DIAGDIR);
+		TrackStatus ts = GetTileRailwayStatus(v->tile, INVALID_DIAGDIR);
 		TrackdirBits reachable_trackdirs = DiagdirReachesTrackdirs(ReverseDiagDir(dir));
 
 		TrackdirBits trackdirbits = TrackStatusToTrackdirBits(ts) & reachable_trackdirs;
@@ -3931,7 +3931,7 @@ static bool TrainCheckIfLineEnds(Train *v, bool reverse)
 	TileIndex tile = v->tile + TileOffsByDiagDir(dir);
 
 	/* Determine the track status on the next tile */
-	TrackStatus ts = GetTileTrackStatus(tile, TRANSPORT_RAIL, 0, ReverseDiagDir(dir));
+	TrackStatus ts = GetTileRailwayStatus(tile, ReverseDiagDir(dir));
 	TrackdirBits reachable_trackdirs = DiagdirReachesTrackdirs(dir);
 
 	TrackdirBits trackdirbits = TrackStatusToTrackdirBits(ts) & reachable_trackdirs;

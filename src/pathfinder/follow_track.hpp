@@ -93,7 +93,13 @@ struct CFollowTrack
 protected:
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
 	{
-		return TrackStatusToTrackdirBits(GetTileTrackStatus(tile, TT(), IsRoadTT() && m_veh != NULL ? RoadVehicle::From(m_veh)->compatible_roadtypes : 0));
+		if (IsRailTT()) {
+			return TrackStatusToTrackdirBits(GetTileRailwayStatus(tile));
+		} else if (IsRoadTT()) {
+			return TrackStatusToTrackdirBits(GetTileRoadStatus(tile, m_veh != NULL ? RoadVehicle::From(m_veh)->compatible_roadtypes : 0));
+		} else {
+			return TrackStatusToTrackdirBits(GetTileWaterwayStatus(tile));
+		}
 	}
 
 public:
@@ -309,7 +315,7 @@ protected:
 			m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
 
 			if (IsTram() && m_new.trackdirs == 0) {
-				/* GetTileTrackStatus() returns 0 for single tram bits.
+				/* GetTileRoadStatus() returns 0 for single tram bits.
 				 * As we cannot change it there (easily) without breaking something, change it here */
 				switch (GetSingleTramBit(m_new.tile)) {
 					case DIAGDIR_NE:

@@ -727,47 +727,19 @@ static void GetTileDesc_Misc(TileIndex tile, TileDesc *td)
 }
 
 
-static TrackStatus GetTileTrackStatus_Misc(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
+static TrackStatus GetTileRailwayStatus_Misc(TileIndex tile, DiagDirection side)
 {
 	switch (GetTileSubtype(tile)) {
 		default: NOT_REACHED();
 
-		case TT_MISC_CROSSING: {
-			TrackdirBits trackdirbits = TRACKDIR_BIT_NONE;
-			TrackdirBits red_signals = TRACKDIR_BIT_NONE; // crossing barred
+		case TT_MISC_CROSSING:
+			return CombineTrackStatus(TrackBitsToTrackdirBits(GetCrossingRailBits(tile)), TRACKDIR_BIT_NONE);
 
-			switch (mode) {
-				case TRANSPORT_RAIL:
-					trackdirbits = TrackBitsToTrackdirBits(GetCrossingRailBits(tile));
-					break;
-
-				case TRANSPORT_ROAD: {
-					if ((GetRoadTypes(tile) & sub_mode) == 0) break;
-					Axis axis = GetCrossingRoadAxis(tile);
-
-					if (side != INVALID_DIAGDIR && axis != DiagDirToAxis(side)) break;
-
-					trackdirbits = TrackBitsToTrackdirBits(AxisToTrackBits(axis));
-					if (IsCrossingBarred(tile)) red_signals = trackdirbits;
-					break;
-				}
-
-				default: break;
-			}
-			return CombineTrackStatus(trackdirbits, red_signals);
-		}
-
-		case TT_MISC_AQUEDUCT: {
-			if (mode != TRANSPORT_WATER) return 0;
-
-			DiagDirection dir = GetTunnelBridgeDirection(tile);
-			if (side != INVALID_DIAGDIR && side != ReverseDiagDir(dir)) return 0;
-			return CombineTrackStatus(TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir)), TRACKDIR_BIT_NONE);
-		}
+		case TT_MISC_AQUEDUCT:
+			return 0;
 
 		case TT_MISC_TUNNEL: {
-			TransportType transport_type = GetTunnelTransportType(tile);
-			if (transport_type != mode || (transport_type == TRANSPORT_ROAD && (GetRoadTypes(tile) & sub_mode) == 0)) return 0;
+			if (GetTunnelTransportType(tile) != TRANSPORT_RAIL) return 0;
 
 			DiagDirection dir = GetTunnelBridgeDirection(tile);
 			if (side != INVALID_DIAGDIR && side != ReverseDiagDir(dir)) return 0;
@@ -775,22 +747,61 @@ static TrackStatus GetTileTrackStatus_Misc(TileIndex tile, TransportType mode, u
 		}
 
 		case TT_MISC_DEPOT: {
-			DiagDirection dir;
+			if (!IsRailDepot(tile)) return 0;
 
-			if (IsRailDepot(tile)) {
-				if (mode != TRANSPORT_RAIL) return 0;
-			} else {
-				if ((mode != TRANSPORT_ROAD) || ((GetRoadTypes(tile) & sub_mode) == 0)) return 0;
-			}
-
-			dir = GetGroundDepotDirection(tile);
-
+			DiagDirection dir = GetGroundDepotDirection(tile);
 			if (side != INVALID_DIAGDIR && side != dir) return 0;
-
-			TrackdirBits trackdirbits = TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir));
-			return CombineTrackStatus(trackdirbits, TRACKDIR_BIT_NONE);
+			return CombineTrackStatus(TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir)), TRACKDIR_BIT_NONE);
 		}
 	}
+}
+
+static TrackStatus GetTileRoadStatus_Misc(TileIndex tile, uint sub_mode, DiagDirection side)
+{
+	switch (GetTileSubtype(tile)) {
+		default: NOT_REACHED();
+
+		case TT_MISC_CROSSING: {
+			if ((GetRoadTypes(tile) & sub_mode) == 0) return 0;
+
+			Axis axis = GetCrossingRoadAxis(tile);
+			if (side != INVALID_DIAGDIR && axis != DiagDirToAxis(side)) return 0;
+
+			TrackdirBits trackdirbits = TrackBitsToTrackdirBits(AxisToTrackBits(axis));
+			return CombineTrackStatus(trackdirbits, IsCrossingBarred(tile) ? trackdirbits : TRACKDIR_BIT_NONE);
+		}
+
+		case TT_MISC_AQUEDUCT:
+			return 0;
+
+		case TT_MISC_TUNNEL: {
+			TransportType transport_type = GetTunnelTransportType(tile);
+			if (transport_type != TRANSPORT_ROAD || (GetRoadTypes(tile) & sub_mode) == 0) return 0;
+
+			DiagDirection dir = GetTunnelBridgeDirection(tile);
+			if (side != INVALID_DIAGDIR && side != ReverseDiagDir(dir)) return 0;
+			return CombineTrackStatus(TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir)), TRACKDIR_BIT_NONE);
+		}
+
+		case TT_MISC_DEPOT: {
+			if (!IsRoadDepot(tile) || (GetRoadTypes(tile) & sub_mode) == 0) {
+				return 0;
+			}
+
+			DiagDirection dir = GetGroundDepotDirection(tile);
+			if (side != INVALID_DIAGDIR && side != dir) return 0;
+			return CombineTrackStatus(TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir)), TRACKDIR_BIT_NONE);
+		}
+	}
+}
+
+static TrackStatus GetTileWaterwayStatus_Misc(TileIndex tile, DiagDirection side)
+{
+	if (!IsTileSubtype(tile, TT_MISC_AQUEDUCT)) return 0;
+
+	DiagDirection dir = GetTunnelBridgeDirection(tile);
+	if (side != INVALID_DIAGDIR && side != ReverseDiagDir(dir)) return 0;
+	return CombineTrackStatus(TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir)), TRACKDIR_BIT_NONE);
 }
 
 
@@ -1004,7 +1015,9 @@ extern const TileTypeProcs _tile_type_misc_procs = {
 	ClearTile_Misc,          // clear_tile_proc
 	NULL,                    // add_accepted_cargo_proc
 	GetTileDesc_Misc,        // get_tile_desc_proc
-	GetTileTrackStatus_Misc, // get_tile_track_status_proc
+	GetTileRailwayStatus_Misc,  // get_tile_railway_status_proc
+	GetTileRoadStatus_Misc,     // get_tile_road_status_proc
+	GetTileWaterwayStatus_Misc, // get_tile_waterway_status_proc
 	ClickTile_Misc,          // click_tile_proc
 	NULL,                    // animate_tile_proc
 	TileLoop_Misc,           // tile_loop_proc

@@ -601,11 +601,6 @@ static void TileLoop_Object(TileIndex tile)
 }
 
 
-static TrackStatus GetTileTrackStatus_Object(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
-{
-	return 0;
-}
-
 static bool ClickTile_Object(TileIndex tile)
 {
 	if (!IsCompanyHQ(tile)) return false;
@@ -774,7 +769,9 @@ extern const TileTypeProcs _tile_type_object_procs = {
 	ClearTile_Object,            // clear_tile_proc
 	AddAcceptedCargo_Object,     // add_accepted_cargo_proc
 	GetTileDesc_Object,          // get_tile_desc_proc
-	GetTileTrackStatus_Object,   // get_tile_track_status_proc
+	NULL,                        // get_tile_railway_status_proc
+	NULL,                        // get_tile_road_status_proc
+	NULL,                        // get_tile_waterway_status_proc
 	ClickTile_Object,            // click_tile_proc
 	AnimateTile_Object,          // animate_tile_proc
 	TileLoop_Object,             // tile_loop_proc

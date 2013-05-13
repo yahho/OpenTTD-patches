@@ -497,18 +497,44 @@ void DoClearSquare(TileIndex tile)
 }
 
 /**
- * Returns information about trackdirs and signal states.
+ * Returns information about railway trackdirs and signal states.
  * If there is any trackbit at 'side', return all trackdirbits.
- * For TRANSPORT_ROAD, return no trackbits if there is no roadbit (of given subtype) at given side.
  * @param tile tile to get info about
- * @param mode transport type
- * @param sub_mode for TRANSPORT_ROAD, roadtypes to check
  * @param side side we are entering from, INVALID_DIAGDIR to return all trackbits
- * @return trackdirbits and other info depending on 'mode'
+ * @return trackdirbits and other info
  */
-TrackStatus GetTileTrackStatus(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
+TrackStatus GetTileRailwayStatus(TileIndex tile, DiagDirection side)
 {
-	return GetTileProcs(tile)->get_tile_track_status_proc(tile, mode, sub_mode, side);
+	GetTileTrackStatusProc *proc = GetTileProcs(tile)->get_tile_railway_status_proc;
+	return proc != NULL ? proc(tile, side) : 0;
+}
+
+/**
+ * Returns information about road trackdirs and signal states.
+ * If there is any trackbit at 'side', return all trackdirbits.
+ * Return no trackbits if there is no roadbit (of given subtype) at given side.
+ * @param tile tile to get info about
+ * @param sub_mode roadtypes to check
+ * @param side side we are entering from, INVALID_DIAGDIR to return all trackbits
+ * @return trackdirbits and other info
+ */
+TrackStatus GetTileRoadStatus(TileIndex tile, uint sub_mode, DiagDirection side)
+{
+	GetTileRoadStatusProc *proc = GetTileProcs(tile)->get_tile_road_status_proc;
+	return proc != NULL ? proc(tile, sub_mode, side) : 0;
+}
+
+/**
+ * Returns information about waterway trackdirs and signal states.
+ * If there is any trackbit at 'side', return all trackdirbits.
+ * @param tile tile to get info about
+ * @param side side we are entering from, INVALID_DIAGDIR to return all trackbits
+ * @return trackdirbits and other info
+ */
+TrackStatus GetTileWaterwayStatus(TileIndex tile, DiagDirection side)
+{
+	GetTileTrackStatusProc *proc = GetTileProcs(tile)->get_tile_waterway_status_proc;
+	return proc != NULL ? proc(tile, side) : 0;
 }
 
 /**

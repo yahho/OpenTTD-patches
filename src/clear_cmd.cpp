@@ -576,11 +576,6 @@ get_out:;
 	} while (--i);
 }
 
-static TrackStatus GetTileTrackStatus_Clear(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
-{
-	return 0;
-}
-
 static const StringID _clear_land_str[] = {
 	STR_LAI_CLEAR_DESCRIPTION_GRASS,
 	STR_LAI_CLEAR_DESCRIPTION_GRASS,
@@ -645,7 +640,9 @@ extern const TileTypeProcs _tile_type_clear_procs = {
 	ClearTile_Clear,          ///< clear_tile_proc
 	NULL,                     ///< add_accepted_cargo_proc
 	GetTileDesc_Clear,        ///< get_tile_desc_proc
-	GetTileTrackStatus_Clear, ///< get_tile_track_status_proc
+	NULL,                     ///< get_tile_railway_status_proc
+	NULL,                     ///< get_tile_road_status_proc
+	NULL,                     ///< get_tile_waterway_status_proc
 	NULL,                     ///< click_tile_proc
 	NULL,                     ///< animate_tile_proc
 	TileLoop_Clear,           ///< tile_loop_proc

@@ -3018,49 +3018,46 @@ static void GetTileDesc_Station(TileIndex tile, TileDesc *td)
 }
 
 
-static TrackStatus GetTileTrackStatus_Station(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
+static TrackStatus GetTileRailwayStatus_Station(TileIndex tile, DiagDirection side)
 {
-	TrackBits trackbits = TRACK_BIT_NONE;
+	if (!HasStationRail(tile) || IsStationTileBlocked(tile)) return 0;
 
-	switch (mode) {
-		case TRANSPORT_RAIL:
-			if (HasStationRail(tile) && !IsStationTileBlocked(tile)) {
-				trackbits = TrackToTrackBits(GetRailStationTrack(tile));
-			}
-			break;
+	return CombineTrackStatus(TrackBitsToTrackdirBits(GetRailStationTrackBits(tile)), TRACKDIR_BIT_NONE);
+}
 
-		case TRANSPORT_WATER:
-			/* buoy is coded as a station, it is always on open water */
-			if (IsBuoy(tile)) {
-				trackbits = TRACK_BIT_ALL;
-				/* remove tracks that connect NE map edge */
-				if (TileX(tile) == 0) trackbits &= ~(TRACK_BIT_X | TRACK_BIT_UPPER | TRACK_BIT_RIGHT);
-				/* remove tracks that connect NW map edge */
-				if (TileY(tile) == 0) trackbits &= ~(TRACK_BIT_Y | TRACK_BIT_LEFT | TRACK_BIT_UPPER);
-			}
-			break;
+static TrackStatus GetTileRoadStatus_Station(TileIndex tile, uint sub_mode, DiagDirection side)
+{
+	if (!IsRoadStop(tile) || (GetRoadTypes(tile) & sub_mode) == 0) return 0;
 
-		case TRANSPORT_ROAD:
-			if ((GetRoadTypes(tile) & sub_mode) != 0 && IsRoadStop(tile)) {
-				if (IsStandardRoadStopTile(tile)) {
-					DiagDirection dir = GetRoadStopDir(tile);
+	TrackBits trackbits;
 
-					if (side != INVALID_DIAGDIR && dir != side) break;
+	if (IsStandardRoadStopTile(tile)) {
+		DiagDirection dir = GetRoadStopDir(tile);
 
-					trackbits = DiagDirToDiagTrackBits(dir);
-				} else {
-					Axis axis = GetRoadStopAxis(tile);
+		if (side != INVALID_DIAGDIR && dir != side) return 0;
 
-					if (side != INVALID_DIAGDIR && axis != DiagDirToAxis(side)) break;
+		trackbits = DiagDirToDiagTrackBits(dir);
+	} else {
+		Axis axis = GetRoadStopAxis(tile);
 
-					trackbits = AxisToTrackBits(axis);
-				}
-			}
-			break;
+		if (side != INVALID_DIAGDIR && axis != DiagDirToAxis(side)) return 0;
 
-		default:
-			break;
+		trackbits = AxisToTrackBits(axis);
 	}
+
+	return CombineTrackStatus(TrackBitsToTrackdirBits(trackbits), TRACKDIR_BIT_NONE);
+}
+
+static TrackStatus GetTileWaterwayStatus_Station(TileIndex tile, DiagDirection side)
+{
+	if (!IsBuoy(tile)) return 0;
+
+	/* buoy is coded as a station, it is always on open water */
+	TrackBits trackbits = TRACK_BIT_ALL;
+	/* remove tracks that connect NE map edge */
+	if (TileX(tile) == 0) trackbits &= ~(TRACK_BIT_X | TRACK_BIT_UPPER | TRACK_BIT_RIGHT);
+	/* remove tracks that connect NW map edge */
+	if (TileY(tile) == 0) trackbits &= ~(TRACK_BIT_Y | TRACK_BIT_LEFT | TRACK_BIT_UPPER);
 
 	return CombineTrackStatus(TrackBitsToTrackdirBits(trackbits), TRACKDIR_BIT_NONE);
 }
@@ -4228,7 +4225,9 @@ extern const TileTypeProcs _tile_type_station_procs = {
 	ClearTile_Station,          // clear_tile_proc
 	NULL,                       // add_accepted_cargo_proc
 	GetTileDesc_Station,        // get_tile_desc_proc
-	GetTileTrackStatus_Station, // get_tile_track_status_proc
+	GetTileRailwayStatus_Station,  // get_tile_railway_status_proc
+	GetTileRoadStatus_Station,     // get_tile_road_status_proc
+	GetTileWaterwayStatus_Station, // get_tile_waterway_status_proc
 	ClickTile_Station,          // click_tile_proc
 	AnimateTile_Station,        // animate_tile_proc
 	TileLoop_Station,           // tile_loop_proc

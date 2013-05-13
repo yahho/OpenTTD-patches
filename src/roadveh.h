@@ -258,7 +258,7 @@ protected: // These functions should not be called outside acceleration code.
 	 */
 	inline bool TileMayHaveSlopedTrack() const
 	{
-		TrackStatus ts = GetTileTrackStatus(this->tile, TRANSPORT_ROAD, this->compatible_roadtypes);
+		TrackStatus ts = GetTileRoadStatus(this->tile, this->compatible_roadtypes);
 		TrackBits trackbits = TrackStatusToTrackBits(ts);
 
 		return trackbits == TRACK_BIT_X || trackbits == TRACK_BIT_Y;

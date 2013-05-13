@@ -231,7 +231,7 @@ public:
 		} else {
 			m_dest_station  = INVALID_STATION;
 			m_destTile      = v->dest_tile;
-			m_destTrackdirs = TrackStatusToTrackdirBits(GetTileTrackStatus(v->dest_tile, TRANSPORT_ROAD, v->compatible_roadtypes));
+			m_destTrackdirs = TrackStatusToTrackdirBits(GetTileRoadStatus(v->dest_tile, v->compatible_roadtypes));
 		}
 	}
 
@@ -349,7 +349,7 @@ public:
 		/* our source tile will be the next vehicle tile (should be the given one) */
 		TileIndex src_tile = tile;
 		/* get available trackdirs on the start tile */
-		TrackdirBits src_trackdirs = TrackStatusToTrackdirBits(GetTileTrackStatus(tile, TRANSPORT_ROAD, v->compatible_roadtypes));
+		TrackdirBits src_trackdirs = TrackStatusToTrackdirBits(GetTileRoadStatus(tile, v->compatible_roadtypes));
 		/* select reachable trackdirs only */
 		src_trackdirs &= DiagdirReachesTrackdirs(enterdir);
 
@@ -417,7 +417,7 @@ public:
 	{
 		/* set origin position */
 		PFPos pos = v->GetPos();
-		if ((TrackStatusToTrackdirBits(GetTileTrackStatus(pos.tile, TRANSPORT_ROAD, v->compatible_roadtypes)) & TrackdirToTrackdirBits(pos.td)) == 0) {
+		if ((TrackStatusToTrackdirBits(GetTileRoadStatus(pos.tile, v->compatible_roadtypes)) & TrackdirToTrackdirBits(pos.td)) == 0) {
 			/* sometimes the roadveh is not on the road (it resides on non-existing track)
 			 * how should we handle that situation? */
 			return false;
@@ -494,7 +494,7 @@ Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDi
 FindDepotData YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, int max_distance)
 {
 	PFPos pos = v->GetPos();
-	if ((TrackStatusToTrackdirBits(GetTileTrackStatus(pos.tile, TRANSPORT_ROAD, v->compatible_roadtypes)) & TrackdirToTrackdirBits(pos.td)) == 0) {
+	if ((TrackStatusToTrackdirBits(GetTileRoadStatus(pos.tile, v->compatible_roadtypes)) & TrackdirToTrackdirBits(pos.td)) == 0) {
 		return FindDepotData();
 	}
 

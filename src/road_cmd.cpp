@@ -2110,7 +2110,7 @@ static bool ClickTile_Road(TileIndex tile)
 	return false;
 }
 
-static TrackStatus GetTileTrackStatus_Road(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
+static TrackStatus GetTileRoadStatus_Road(TileIndex tile, uint sub_mode, DiagDirection side)
 {
 	/* Converts RoadBits to TrackdirBits */
 	static const TrackdirBits road_trackdirbits[16] = {
@@ -2138,9 +2138,7 @@ static TrackStatus GetTileTrackStatus_Road(TileIndex tile, TransportType mode, u
 
 	static const uint drd_mask[DRD_END] = { 0xFFFF, 0xFF00, 0xFF, 0x0 };
 
-	TrackdirBits trackdirbits;
-
-	if (mode != TRANSPORT_ROAD || ((GetRoadTypes(tile) & sub_mode) == 0)) return 0;
+	if ((GetRoadTypes(tile) & sub_mode) == 0) return 0;
 
 	if (IsTileSubtype(tile, TT_TRACK)) {
 		if (HasRoadWorks(tile)) return 0;
@@ -2154,7 +2152,7 @@ static TrackStatus GetTileTrackStatus_Road(TileIndex tile, TransportType mode, u
 	/* no roadbit at this side of tile, return 0 */
 	if (side != INVALID_DIAGDIR && (DiagDirToRoadBits(side) & bits) == 0) return 0;
 
-	trackdirbits = road_trackdirbits[bits];
+	TrackdirBits trackdirbits = road_trackdirbits[bits];
 	if (IsTileSubtype(tile, TT_TRACK) && rt == ROADTYPE_ROAD) trackdirbits &= (TrackdirBits)drd_mask[GetDisallowedRoadDirections(tile)];
 
 	return CombineTrackStatus(trackdirbits, TRACKDIR_BIT_NONE);
@@ -2311,7 +2309,9 @@ extern const TileTypeProcs _tile_type_road_procs = {
 	ClearTile_Road,          // clear_tile_proc
 	NULL,                    // add_accepted_cargo_proc
 	GetTileDesc_Road,        // get_tile_desc_proc
-	GetTileTrackStatus_Road, // get_tile_track_status_proc
+	NULL,                    // get_tile_railway_status_proc
+	GetTileRoadStatus_Road,  // get_tile_road_status_proc
+	NULL,                    // get_tile_waterway_status_proc
 	ClickTile_Road,          // click_tile_proc
 	NULL,                    // animate_tile_proc
 	TileLoop_Road,           // tile_loop_proc

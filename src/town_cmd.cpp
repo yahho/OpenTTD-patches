@@ -669,12 +669,6 @@ static void GetTileDesc_Town(TileIndex tile, TileDesc *td)
 	td->owner[0] = OWNER_TOWN;
 }
 
-static TrackStatus GetTileTrackStatus_Town(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
-{
-	/* not used */
-	return 0;
-}
-
 static void ChangeTileOwner_Town(TileIndex tile, Owner old_owner, Owner new_owner)
 {
 	/* not used */
@@ -3364,7 +3358,9 @@ extern const TileTypeProcs _tile_type_town_procs = {
 	ClearTile_Town,          // clear_tile_proc
 	AddAcceptedCargo_Town,   // add_accepted_cargo_proc
 	GetTileDesc_Town,        // get_tile_desc_proc
-	GetTileTrackStatus_Town, // get_tile_track_status_proc
+	NULL,                    // get_tile_railway_status_proc
+	NULL,                    // get_tile_road_status_proc
+	NULL,                    // get_tile_waterway_status_proc
 	NULL,                    // click_tile_proc
 	AnimateTile_Town,        // animate_tile_proc
 	TileLoop_Town,           // tile_loop_proc

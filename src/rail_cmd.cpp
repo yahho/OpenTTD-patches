@@ -1443,7 +1443,7 @@ static bool CheckSignalAutoFill(TileIndex &tile, Trackdir &trackdir, int &signal
 	if (tile == INVALID_TILE) return false;
 
 	/* Check for track bits on the new tile */
-	TrackdirBits trackdirbits = TrackStatusToTrackdirBits(GetTileTrackStatus(tile, TRANSPORT_RAIL, 0));
+	TrackdirBits trackdirbits = TrackStatusToTrackdirBits(GetTileRailwayStatus(tile));
 
 	if (TracksOverlap(TrackdirBitsToTrackBits(trackdirbits))) return false;
 	trackdirbits &= TrackdirReachesTrackdirs(trackdir);
@@ -3292,23 +3292,8 @@ set_ground:
 }
 
 
-static TrackStatus GetTileTrackStatus_Track(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
+static TrackStatus GetTileRailwayStatus_Track(TileIndex tile, DiagDirection side)
 {
-	/* Case of half tile slope with water. */
-	if (mode == TRANSPORT_WATER && IsTileSubtype(tile, TT_TRACK) && GetRailGroundType(tile) == RAIL_GROUND_WATER && IsSlopeWithOneCornerRaised(GetTileSlope(tile))) {
-		TrackBits tb = GetTrackBits(tile);
-		switch (tb) {
-			default: NOT_REACHED();
-			case TRACK_BIT_UPPER: tb = TRACK_BIT_LOWER; break;
-			case TRACK_BIT_LOWER: tb = TRACK_BIT_UPPER; break;
-			case TRACK_BIT_LEFT:  tb = TRACK_BIT_RIGHT; break;
-			case TRACK_BIT_RIGHT: tb = TRACK_BIT_LEFT;  break;
-		}
-		return CombineTrackStatus(TrackBitsToTrackdirBits(tb), TRACKDIR_BIT_NONE);
-	}
-
-	if (mode != TRANSPORT_RAIL) return 0;
-
 	if (IsTileSubtype(tile, TT_BRIDGE)) {
 		if (side == GetTunnelBridgeDirection(tile)) return 0;
 	}
@@ -3346,6 +3331,24 @@ static TrackStatus GetTileTrackStatus_Track(TileIndex tile, TransportType mode, 
 	if ((b & 0x1) == 0) red_signals |= (TRACKDIR_BIT_RIGHT_S | TRACKDIR_BIT_LOWER_W);
 
 	return CombineTrackStatus(TrackBitsToTrackdirBits(trackbits), red_signals);
+}
+
+static TrackStatus GetTileWaterwayStatus_Track(TileIndex tile, DiagDirection side)
+{
+	/* Case of half tile slope with water. */
+	if (IsTileSubtype(tile, TT_TRACK) && GetRailGroundType(tile) == RAIL_GROUND_WATER && IsSlopeWithOneCornerRaised(GetTileSlope(tile))) {
+		TrackBits tb = GetTrackBits(tile);
+		switch (tb) {
+			default: NOT_REACHED();
+			case TRACK_BIT_UPPER: tb = TRACK_BIT_LOWER; break;
+			case TRACK_BIT_LOWER: tb = TRACK_BIT_UPPER; break;
+			case TRACK_BIT_LEFT:  tb = TRACK_BIT_RIGHT; break;
+			case TRACK_BIT_RIGHT: tb = TRACK_BIT_LEFT;  break;
+		}
+		return CombineTrackStatus(TrackBitsToTrackdirBits(tb), TRACKDIR_BIT_NONE);
+	}
+
+	return 0;
 }
 
 static bool ClickTile_Track(TileIndex tile)
@@ -3642,7 +3645,9 @@ extern const TileTypeProcs _tile_type_rail_procs = {
 	ClearTile_Track,          // clear_tile_proc
 	NULL,                     // add_accepted_cargo_proc
 	GetTileDesc_Track,        // get_tile_desc_proc
-	GetTileTrackStatus_Track, // get_tile_track_status_proc
+	GetTileRailwayStatus_Track,  // get_tile_railway_status_proc
+	NULL,                        // get_tile_road_status_proc
+	GetTileWaterwayStatus_Track, // get_tile_waterway_status_proc
 	ClickTile_Track,          // click_tile_proc
 	NULL,                     // animate_tile_proc
 	TileLoop_Track,           // tile_loop_proc

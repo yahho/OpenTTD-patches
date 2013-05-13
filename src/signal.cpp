@@ -591,7 +591,7 @@ SigSegState UpdateSignalsInBuffer()
 			case TT_STATION:
 			check_track:
 				assert(IsValidDiagDirection((DiagDirection)ss.side));
-				if ((TrackStatusToTrackBits(GetTileTrackStatus(ss.tile, TRANSPORT_RAIL, 0)) & _enterdir_to_trackbits[ss.side]) != TRACK_BIT_NONE) {
+				if ((TrackStatusToTrackBits(GetTileRailwayStatus(ss.tile)) & _enterdir_to_trackbits[ss.side]) != TRACK_BIT_NONE) {
 					/* only add to set when there is some 'interesting' track */
 					_tbdset.Add(ss);
 					_tbdset.Add(SignalSideFrom(ss.tile + TileOffsByDiagDir((DiagDirection)ss.side), (SignalSideEnum)ReverseDiagDir((DiagDirection)ss.side)));
@@ -605,7 +605,7 @@ SigSegState UpdateSignalsInBuffer()
 				if (!IsValidDiagDirection((DiagDirection)ss.side)) continue;
 				ss.tile = ss.tile + TileOffsByDiagDir((DiagDirection)ss.side);
 				ss.side = (SignalSideEnum)ReverseDiagDir((DiagDirection)ss.side);
-				if ((TrackStatusToTrackBits(GetTileTrackStatus(ss.tile, TRANSPORT_RAIL, 0)) & _enterdir_to_trackbits[ss.side]) != TRACK_BIT_NONE) {
+				if ((TrackStatusToTrackBits(GetTileRailwayStatus(ss.tile)) & _enterdir_to_trackbits[ss.side]) != TRACK_BIT_NONE) {
 					_tbdset.Add(ss);
 					break;
 				}

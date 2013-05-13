@@ -806,24 +806,38 @@ static bool CanEnterTile(TileIndex tile, DiagDirection dir, TransportType type, 
  */
 static TrackdirBits GetDriveableTrackdirBits(TileIndex dst_tile, Trackdir src_trackdir, TransportType type, uint subtype)
 {
-	TrackdirBits trackdirbits = TrackStatusToTrackdirBits(GetTileTrackStatus(dst_tile, type, subtype));
+	TrackdirBits trackdirbits;
+	switch (type) {
+		default: NOT_REACHED();
 
-	if (trackdirbits == 0 && type == TRANSPORT_ROAD && HasBit(subtype, ROADTYPE_TRAM)) {
-		/* GetTileTrackStatus() returns 0 for single tram bits.
-		 * As we cannot change it there (easily) without breaking something, change it here */
-		switch (GetSingleTramBit(dst_tile)) {
-			case DIAGDIR_NE:
-			case DIAGDIR_SW:
-				trackdirbits = TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW;
-				break;
+		case TRANSPORT_RAIL:
+			trackdirbits = TrackStatusToTrackdirBits(GetTileRailwayStatus(dst_tile));
+			break;
 
-			case DIAGDIR_NW:
-			case DIAGDIR_SE:
-				trackdirbits = TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE;
-				break;
+		case TRANSPORT_ROAD:
+			trackdirbits = TrackStatusToTrackdirBits(GetTileRoadStatus(dst_tile, subtype));
+			if (trackdirbits == 0 && HasBit(subtype, ROADTYPE_TRAM)) {
+				/* GetTileRoadStatus() returns 0 for single tram bits.
+				 * As we cannot change it there (easily) without breaking something, change it here */
+				switch (GetSingleTramBit(dst_tile)) {
+					case DIAGDIR_NE:
+					case DIAGDIR_SW:
+						trackdirbits = TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW;
+						break;
 
-			default: break;
-		}
+					case DIAGDIR_NW:
+					case DIAGDIR_SE:
+						trackdirbits = TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE;
+						break;
+
+					default: break;
+				}
+			}
+			break;
+
+		case TRANSPORT_WATER:
+			trackdirbits = TrackStatusToTrackdirBits(GetTileWaterwayStatus(dst_tile));
+			break;
 	}
 
 	DEBUG(npf, 4, "Next node: (%d, %d) [%d], possible trackdirs: 0x%X", TileX(dst_tile), TileY(dst_tile), dst_tile, trackdirbits);
@@ -840,9 +854,9 @@ static TrackdirBits GetDriveableTrackdirBits(TileIndex dst_tile, Trackdir src_tr
 }
 
 
-/* Will just follow the results of GetTileTrackStatus concerning where we can
+/* Will just follow the results of GetDriveableTrackdirBits concerning where we can
  * go and where not. Uses AyStar.user_data[NPF_TYPE] as the transport type and
- * an argument to GetTileTrackStatus. Will skip tunnels, meaning that the
+ * an argument to GetDriveableTrackdirBits. Will skip tunnels, meaning that the
  * entry and exit are neighbours. Will fill
  * AyStarNode.user_data[NPF_TRACKDIR_CHOICE] with an appropriate value, and
  * copy AyStarNode.user_data[NPF_NODE_FLAGS] from the parent */

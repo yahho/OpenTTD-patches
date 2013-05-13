@@ -196,7 +196,12 @@
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return ::TrackStatusToTrackdirBits(::GetTileTrackStatus(tile, (::TransportType)transport_type, UINT32_MAX)) != TRACKDIR_BIT_NONE;
+	switch (transport_type) {
+		case TRANSPORT_RAIL:  return ::TrackStatusToTrackdirBits(::GetTileRailwayStatus(tile)) != TRACKDIR_BIT_NONE;
+		case TRANSPORT_ROAD:  return ::TrackStatusToTrackdirBits(::GetTileRoadStatus(tile, UINT32_MAX)) != TRACKDIR_BIT_NONE;
+		case TRANSPORT_WATER: return ::TrackStatusToTrackdirBits(::GetTileWaterwayStatus(tile)) != TRACKDIR_BIT_NONE;
+		default: return false;
+	}
 }
 
 /* static */ int32 ScriptTile::GetCargoAcceptance(TileIndex tile, CargoID cargo_type, int width, int height, int radius)

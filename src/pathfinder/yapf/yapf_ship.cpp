@@ -67,7 +67,7 @@ public:
 		}
 
 		/* get available trackdirs on the destination tile */
-		TrackdirBits dest_trackdirs = TrackStatusToTrackdirBits(GetTileTrackStatus(v->dest_tile, TRANSPORT_WATER, 0));
+		TrackdirBits dest_trackdirs = TrackStatusToTrackdirBits(GetTileWaterwayStatus(v->dest_tile));
 
 		/* create pathfinder instance */
 		Tpf pf;
@@ -103,7 +103,7 @@ public:
 	static bool CheckShipReverse(const Ship *v, const PFPos &pos)
 	{
 		/* get available trackdirs on the destination tile */
-		TrackdirBits dest_trackdirs = TrackStatusToTrackdirBits(GetTileTrackStatus(v->dest_tile, TRANSPORT_WATER, 0));
+		TrackdirBits dest_trackdirs = TrackStatusToTrackdirBits(GetTileWaterwayStatus(v->dest_tile));
 
 		/* create pathfinder instance */
 		Tpf pf;

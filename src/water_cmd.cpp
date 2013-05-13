@@ -1231,13 +1231,11 @@ void ConvertGroundTilesIntoWaterTiles()
 	}
 }
 
-static TrackStatus GetTileTrackStatus_Water(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
+static TrackStatus GetTileWaterwayStatus_Water(TileIndex tile, DiagDirection side)
 {
 	static const byte coast_tracks[] = {0, 32, 4, 0, 16, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0};
 
 	TrackBits ts;
-
-	if (mode != TRANSPORT_WATER) return 0;
 
 	switch (GetWaterTileType(tile)) {
 		case WATER_TILE_CLEAR: ts = IsTileFlat(tile) ? TRACK_BIT_ALL : TRACK_BIT_NONE; break;
@@ -1317,7 +1315,9 @@ extern const TileTypeProcs _tile_type_water_procs = {
 	ClearTile_Water,          // clear_tile_proc
 	NULL,                     // add_accepted_cargo_proc
 	GetTileDesc_Water,        // get_tile_desc_proc
-	GetTileTrackStatus_Water, // get_tile_track_status_proc
+	NULL,                     // get_tile_railway_status_proc
+	NULL,                     // get_tile_road_status_proc
+	GetTileWaterwayStatus_Water, // get_tile_waterway_status_proc
 	ClickTile_Water,          // click_tile_proc
 	NULL,                     // animate_tile_proc
 	TileLoop_Water,           // tile_loop_proc

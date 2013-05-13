@@ -68,12 +68,12 @@ static void TPFModeShip(TrackPathFinder *tpf, TileIndex tile, DiagDirection dire
 
 	/* This addition will sometimes overflow by a single tile.
 	 * The use of TILE_MASK here makes sure that we still point at a valid
-	 * tile, and then this tile will be in the sentinel row/col, so GetTileTrackStatus will fail. */
+	 * tile, and then this tile will be in the sentinel row/col, so GetTileWaterwayStatus will fail. */
 	tile = TILE_MASK(tile + TileOffsByDiagDir(direction));
 
 	if (++tpf->rd.cur_length > 50) return;
 
-	TrackdirBits trackdirs = TrackStatusToTrackdirBits(GetTileTrackStatus(tile, TRANSPORT_WATER, 0)) & DiagdirReachesTrackdirs(direction);
+	TrackdirBits trackdirs = TrackStatusToTrackdirBits(GetTileWaterwayStatus(tile)) & DiagdirReachesTrackdirs(direction);
 	if (trackdirs == TRACKDIR_BIT_NONE) return;
 
 	assert(TileX(tile) != MapMaxX() && TileY(tile) != MapMaxY());
@@ -181,7 +181,7 @@ Trackdir OPFShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterdi
 	/* Let's find out how far it would be if we would reverse first */
 	Trackdir trackdir = v->GetPos().td;
 	assert(HasBit(DiagdirReachesTrackdirs(ReverseDiagDir(enterdir)), ReverseTrackdir(trackdir)));
-	TrackdirBits b = TrackStatusToTrackdirBits(GetTileTrackStatus(v->tile, TRANSPORT_WATER, 0)) & TrackdirToTrackdirBits(ReverseTrackdir(trackdir));
+	TrackdirBits b = TrackStatusToTrackdirBits(GetTileWaterwayStatus(v->tile)) & TrackdirToTrackdirBits(ReverseTrackdir(trackdir));
 
 	uint distr = UINT_MAX; // distance if we reversed
 	if (b != 0) {
