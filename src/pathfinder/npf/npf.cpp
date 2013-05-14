@@ -683,21 +683,6 @@ static bool CanEnterTileOwnerCheck(Owner owner, TileIndex tile, DiagDirection en
 }
 
 
-/**
- * Returns the direction the exit of the depot on the given tile is facing.
- */
-static DiagDirection GetDepotDirection(TileIndex tile, TransportType type)
-{
-	assert(IsDepotTypeTile(tile, type));
-
-	switch (type) {
-		case TRANSPORT_RAIL:
-		case TRANSPORT_ROAD:  return GetGroundDepotDirection(tile);
-		case TRANSPORT_WATER: return GetShipDepotDirection(tile);
-		default: return INVALID_DIAGDIR; // Not reached
-	}
-}
-
 /** Tests if a tile is a road tile with a single tramtrack (tram can reverse) */
 static DiagDirection GetSingleTramBit(TileIndex tile)
 {
@@ -726,7 +711,7 @@ static DiagDirection GetSingleTramBit(TileIndex tile)
  */
 static DiagDirection GetTileSingleEntry(TileIndex tile, TransportType type, uint subtype)
 {
-	if (type != TRANSPORT_WATER && IsDepotTypeTile(tile, type)) return GetDepotDirection(tile, type);
+	if (type != TRANSPORT_WATER && IsDepotTypeTile(tile, type)) return GetGroundDepotDirection(tile);
 
 	if (type == TRANSPORT_ROAD) {
 		if (IsStandardRoadStopTile(tile)) return GetRoadStopDir(tile);
