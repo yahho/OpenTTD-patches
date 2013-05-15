@@ -479,7 +479,9 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 
 			/* Move to the next tile/trackdir. */
 			tf = &tf_local;
-			tf_local.Init(v, Yapf().GetCompatibleRailTypes(), &Yapf().m_perf_ts_cost);
+			assert(tf_local.m_veh == v);
+			assert(tf_local.m_railtypes == Yapf().GetCompatibleRailTypes());
+			assert(tf_local.m_pPerf == &Yapf().m_perf_ts_cost);
 
 			if (!tf_local.Follow(cur.tile, cur.td)) {
 				assert(tf_local.m_err != TrackFollower::EC_NONE);
