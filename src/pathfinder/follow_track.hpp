@@ -479,6 +479,7 @@ protected:
 			DiagDirection exitdir = GetGroundDepotDirection(m_old.tile);
 			if (exitdir != m_exitdir) {
 				/* reverse */
+				assert(exitdir == ReverseDiagDir(m_exitdir));
 				m_new.tile = m_old.tile;
 				m_new.wormhole = INVALID_TILE;
 				m_new.td = ReverseTrackdir(m_old.td);
