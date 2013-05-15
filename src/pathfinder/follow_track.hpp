@@ -71,13 +71,6 @@ struct CFollowTrackT
 		assert((!IsRoadTT() || m_veh != NULL) && (!IsRailTT() || railtype_override != INVALID_RAILTYPES));
 		m_veh_owner = o;
 		m_pPerf = pPerf;
-		/* don't worry, all is inlined so compiler should remove unnecessary initializations */
-		m_new_tile = INVALID_TILE;
-		m_new_td_bits = TRACKDIR_BIT_NONE;
-		m_exitdir = INVALID_DIAGDIR;
-		m_is_station = m_is_bridge = m_is_tunnel = false;
-		m_tiles_skipped = 0;
-		m_err = EC_NONE;
 		m_railtypes = railtype_override;
 	}
 
