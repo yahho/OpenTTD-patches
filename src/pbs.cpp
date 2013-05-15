@@ -208,7 +208,7 @@ static PBSTileInfo FollowReservation(Owner o, RailTypes rts, TileIndex tile, Tra
 	if (!HasReservedTrack(tile, TrackdirToTrack(trackdir))) return PBSTileInfo(tile, trackdir, false);
 
 	/* Do not disallow 90 deg turns as the setting might have changed between reserving and now. */
-	CFollowTrackRail ft(o, rts);
+	CFollowTrackRail ft(o, true, rts);
 	while (ft.Follow(tile, trackdir)) {
 		TrackdirBits reserved = ft.m_new_td_bits & TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new_tile));
 
@@ -411,7 +411,7 @@ PBSPositionState CheckWaitingPosition(const Train *v, TileIndex tile, Trackdir t
 	}
 
 	/* Check next tile. For performance reasons, we check for 90 degree turns ourself. */
-	CFollowTrackRail ft(v, GetRailTypeInfo(v->railtype)->compatible_railtypes);
+	CFollowTrackRail ft(v, true, GetRailTypeInfo(v->railtype)->compatible_railtypes);
 
 	/* End of track? Safe position. */
 	if (!ft.Follow(tile, trackdir)) return state;
