@@ -136,7 +136,16 @@ public:
 		} else {
 			assert(((GetTrackStatusTrackdirBits(m_old.tile) & TrackdirToTrackdirBits(m_old.td)) != 0) ||
 			       (IsTram() && GetSingleTramBit(m_old.tile) != INVALID_DIAGDIR)); // Disable the assertion for single tram bits
-			if (ForcedReverse()) return true;
+			if (ForcedReverse()) {
+				m_new.tile = m_old.tile;
+				m_new.wormhole = INVALID_TILE;
+				m_new.td = ReverseTrackdir(m_old.td);
+				m_new.trackdirs = TrackdirToTrackdirBits(m_new.td);
+				m_exitdir = ReverseDiagDir(m_exitdir);
+				m_tiles_skipped = 0;
+				m_flag = TF_NONE;
+				return true;
+			}
 			if (!CanExitOldTile()) return false;
 			FollowTileExit();
 		}
@@ -480,13 +489,6 @@ protected:
 			if (exitdir != m_exitdir) {
 				/* reverse */
 				assert(exitdir == ReverseDiagDir(m_exitdir));
-				m_new.tile = m_old.tile;
-				m_new.wormhole = INVALID_TILE;
-				m_new.td = ReverseTrackdir(m_old.td);
-				m_new.trackdirs = TrackdirToTrackdirBits(m_new.td);
-				m_exitdir = exitdir;
-				m_tiles_skipped = 0;
-				m_flag = TF_NONE;
 				return true;
 			}
 		}
@@ -494,13 +496,6 @@ protected:
 		/* single tram bits cause reversing */
 		if (IsTram() && GetSingleTramBit(m_old.tile) == ReverseDiagDir(m_exitdir)) {
 			/* reverse */
-			m_new.tile = m_old.tile;
-			m_new.wormhole = INVALID_TILE;
-			m_new.td = ReverseTrackdir(m_old.td);
-			m_new.trackdirs = TrackdirToTrackdirBits(m_new.td);
-			m_exitdir = ReverseDiagDir(m_exitdir);
-			m_tiles_skipped = 0;
-			m_flag = TF_NONE;
 			return true;
 		}
 
