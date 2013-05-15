@@ -208,9 +208,9 @@ struct CYapfShip_TypesT
 };
 
 /* YAPF type 1 - uses TileIndex/Trackdir as Node key, allows 90-deg turns */
-struct CYapfShip1 : CYapfT<CYapfShip_TypesT<CYapfShip1, CFollowTrackWater    , CShipNodeListTrackDir> > {};
+struct CYapfShip1 : CYapfT<CYapfShip_TypesT<CYapfShip1, CFollowTrackWater90  , CShipNodeListTrackDir> > {};
 /* YAPF type 2 - uses TileIndex/DiagDirection as Node key, allows 90-deg turns */
-struct CYapfShip2 : CYapfT<CYapfShip_TypesT<CYapfShip2, CFollowTrackWater    , CShipNodeListExitDir > > {};
+struct CYapfShip2 : CYapfT<CYapfShip_TypesT<CYapfShip2, CFollowTrackWater90  , CShipNodeListExitDir > > {};
 /* YAPF type 3 - uses TileIndex/Trackdir as Node key, forbids 90-deg turns */
 struct CYapfShip3 : CYapfT<CYapfShip_TypesT<CYapfShip3, CFollowTrackWaterNo90, CShipNodeListTrackDir> > {};
 

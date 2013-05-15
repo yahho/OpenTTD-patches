@@ -481,15 +481,16 @@ struct CFollowTrackT : CFollowTrack<Ttr_type_, VehicleType>
 	inline static bool DoTrackMasking() { return Tmask_reserved_tracks; }
 };
 
-typedef CFollowTrackT<TRANSPORT_WATER, Ship,        true > CFollowTrackWater;
-typedef CFollowTrackT<TRANSPORT_ROAD,  RoadVehicle, true > CFollowTrackRoad;
-typedef CFollowTrackT<TRANSPORT_RAIL,  Train,       true > CFollowTrackRail;
+typedef CFollowTrackT<TRANSPORT_WATER, Ship, true > CFollowTrackWater90;
+typedef CFollowTrackT<TRANSPORT_WATER, Ship, false> CFollowTrackWaterNo90;
 
-typedef CFollowTrackT<TRANSPORT_WATER, Ship,        false> CFollowTrackWaterNo90;
-typedef CFollowTrackT<TRANSPORT_ROAD,  RoadVehicle, false> CFollowTrackRoadNo90;
-typedef CFollowTrackT<TRANSPORT_RAIL,  Train,       false> CFollowTrackRailNo90;
+typedef CFollowTrackT<TRANSPORT_ROAD, RoadVehicle, true > CFollowTrackRoad;
 
-typedef CFollowTrackT<TRANSPORT_RAIL, Train, true,  true > CFollowTrackFreeRail;
+typedef CFollowTrackT<TRANSPORT_RAIL, Train, true > CFollowTrackRail90;
+typedef CFollowTrackT<TRANSPORT_RAIL, Train, false> CFollowTrackRailNo90;
+typedef CFollowTrackT<TRANSPORT_RAIL, Train, true,  true > CFollowTrackFreeRail90;
 typedef CFollowTrackT<TRANSPORT_RAIL, Train, false, true > CFollowTrackFreeRailNo90;
+
+typedef CFollowTrackRail90 CFollowTrackRail;
 
 #endif /* FOLLOW_TRACK_HPP */
