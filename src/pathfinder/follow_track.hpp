@@ -26,8 +26,8 @@
  *  controllers). See 6 different typedefs below for 3 different transport
  *  types w/ or w/o 90-deg turns allowed
  */
-template <TransportType Ttr_type_, typename VehicleType, bool T90deg_turns_allowed_ = true, bool Tmask_reserved_tracks = false>
-struct CFollowTrackT
+template <TransportType Ttr_type_, typename VehicleType>
+struct CFollowTrack
 {
 	enum ErrorCode {
 		EC_NONE,
@@ -52,26 +52,30 @@ struct CFollowTrackT
 	ErrorCode           m_err;
 	CPerformanceTimer  *m_pPerf;
 	RailTypes           m_railtypes;
+	bool                m_allow_90deg;
+	bool                m_mask_reserved;
 
-	inline CFollowTrackT(const VehicleType *v = NULL, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
+	inline CFollowTrack(const VehicleType *v = NULL, bool allow_90deg = true, bool mask_reserved = false, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
 	{
 		assert(!IsRailTT() || (v != NULL && v->type == VEH_TRAIN));
 		m_veh = v;
-		Init(v != NULL ? v->owner : INVALID_OWNER, IsRailTT() && railtype_override == INVALID_RAILTYPES ? Train::From(v)->compatible_railtypes : railtype_override, pPerf);
+		Init(v != NULL ? v->owner : INVALID_OWNER, allow_90deg, mask_reserved, IsRailTT() && railtype_override == INVALID_RAILTYPES ? Train::From(v)->compatible_railtypes : railtype_override, pPerf);
 	}
 
-	inline CFollowTrackT(Owner o, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
+	inline CFollowTrack(Owner o, bool allow_90deg = true, bool mask_reserved = false, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
 	{
 		m_veh = NULL;
-		Init(o, railtype_override, pPerf);
+		Init(o, allow_90deg, mask_reserved, railtype_override, pPerf);
 	}
 
-	inline void Init(Owner o, RailTypes railtype_override, CPerformanceTimer *pPerf)
+	inline void Init(Owner o, bool allow_90deg, bool mask_reserved, RailTypes railtype_override, CPerformanceTimer *pPerf)
 	{
 		assert((!IsRoadTT() || m_veh != NULL) && (!IsRailTT() || railtype_override != INVALID_RAILTYPES));
 		m_veh_owner = o;
 		m_pPerf = pPerf;
 		m_railtypes = railtype_override;
+		m_allow_90deg = allow_90deg;
+		m_mask_reserved = mask_reserved;
 	}
 
 	inline static TransportType TT() { return Ttr_type_; }
@@ -79,8 +83,6 @@ struct CFollowTrackT
 	inline static bool IsRailTT() { return TT() == TRANSPORT_RAIL; }
 	inline bool IsTram() { return IsRoadTT() && HasBit(RoadVehicle::From(m_veh)->compatible_roadtypes, ROADTYPE_TRAM); }
 	inline static bool IsRoadTT() { return TT() == TRANSPORT_ROAD; }
-	inline static bool Allow90degTurns() { return T90deg_turns_allowed_; }
-	inline static bool DoTrackMasking() { return Tmask_reserved_tracks; }
 
 	/** Tests if a tile is a road tile with a single tramtrack (tram can reverse) */
 	inline DiagDirection GetSingleTramBit(TileIndex tile)
@@ -134,7 +136,7 @@ struct CFollowTrackT
 			m_err = EC_NO_WAY;
 			return false;
 		}
-		if (!Allow90degTurns()) {
+		if (!m_allow_90deg) {
 			m_new_td_bits &= (TrackdirBits)~(int)TrackdirCrossesTrackdirs(m_old_td);
 			if (m_new_td_bits == TRACKDIR_BIT_NONE) {
 				m_err = EC_90DEG;
@@ -146,7 +148,7 @@ struct CFollowTrackT
 
 	inline bool MaskReservedTracks()
 	{
-		if (!DoTrackMasking()) return true;
+		if (!m_mask_reserved) return true;
 
 		if (m_is_station) {
 			/* Check skipped station tiles as well. */
@@ -460,6 +462,23 @@ public:
 		if (pmin_speed != NULL) *pmin_speed = min_speed;
 		return max_speed;
 	}
+};
+
+template <TransportType Ttr_type_, typename VehicleType, bool T90deg_turns_allowed, bool Tmask_reserved_tracks = false>
+struct CFollowTrackT : CFollowTrack<Ttr_type_, VehicleType>
+{
+	inline CFollowTrackT(const VehicleType *v = NULL, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
+		: CFollowTrack<Ttr_type_, VehicleType>(v, T90deg_turns_allowed, Tmask_reserved_tracks, railtype_override, pPerf)
+	{
+	}
+
+	inline CFollowTrackT(Owner o, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
+		: CFollowTrack<Ttr_type_, VehicleType>(o, T90deg_turns_allowed, Tmask_reserved_tracks, railtype_override, pPerf)
+	{
+	}
+
+	inline static bool Allow90degTurns() { return T90deg_turns_allowed; }
+	inline static bool DoTrackMasking() { return Tmask_reserved_tracks; }
 };
 
 typedef CFollowTrackT<TRANSPORT_WATER, Ship,        true > CFollowTrackWater;
