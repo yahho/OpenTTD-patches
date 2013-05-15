@@ -472,11 +472,6 @@ struct CFollowTrackT : CFollowTrack<Ttr_type_, VehicleType>
 	{
 	}
 
-	inline CFollowTrackT(Owner o, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
-		: CFollowTrack<Ttr_type_, VehicleType>(o, T90deg_turns_allowed, Tmask_reserved_tracks, railtype_override, pPerf)
-	{
-	}
-
 	inline static bool Allow90degTurns() { return T90deg_turns_allowed; }
 	inline static bool DoTrackMasking() { return Tmask_reserved_tracks; }
 };
