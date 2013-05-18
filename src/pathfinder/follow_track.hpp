@@ -117,10 +117,8 @@ struct CFollowTrack
 		if (ForcedReverse()) return true;
 		if (!CanExitOldTile()) return false;
 		FollowTileExit();
-		if (!QueryNewTileTrackStatus()) return TryReverse();
-		if (!CanEnterNewTile()) return false;
-		m_new_td_bits &= DiagdirReachesTrackdirs(m_exitdir);
-		if (m_new_td_bits == TRACKDIR_BIT_NONE) {
+		if (!QueryNewTileTrackStatus() || !CanEnterNewTile() ||
+				(m_new_td_bits &= DiagdirReachesTrackdirs(m_exitdir)) == TRACKDIR_BIT_NONE) {
 			/* In case we can't enter the next tile, but are
 			 * a normal road vehicle, then we can actually
 			 * try to reverse as this is the end of the road.
