@@ -132,9 +132,7 @@ struct CFollowTrack
 			 * that function failed can have to do with a
 			 * missing road bit, or inability to connect the
 			 * different bits due to slopes. */
-			if (IsRoadTT() && !IsTram() && TryReverse()) return true;
-			m_err = EC_NO_WAY;
-			return false;
+			return TryReverse();
 		}
 		if (!m_allow_90deg) {
 			m_new_td_bits &= (TrackdirBits)~(int)TrackdirCrossesTrackdirs(m_old_td);
