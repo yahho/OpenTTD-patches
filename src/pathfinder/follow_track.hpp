@@ -426,12 +426,11 @@ protected:
 			/* new tile will be the same as old one */
 			m_new_tile = m_old_tile;
 			/* set new trackdir bits to all reachable trackdirs */
-			QueryNewTileTrackStatus();
+			m_new_td_bits = GetTrackStatusTrackdirBits(m_new_tile);
 			m_new_td_bits &= DiagdirReachesTrackdirs(m_exitdir);
-			if (m_new_td_bits != TRACKDIR_BIT_NONE) {
-				/* we have some trackdirs reachable after reversal */
-				return true;
-			}
+			/* we always have some trackdirs reachable after reversal */
+			assert(m_new_td_bits != TRACKDIR_BIT_NONE);
+			return true;
 		}
 		m_err = EC_NO_WAY;
 		return false;
