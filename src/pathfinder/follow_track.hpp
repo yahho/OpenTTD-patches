@@ -363,11 +363,6 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 			}
 		}
 
-		/* single tram bits cause reversing */
-		if (IsTram() && GetSingleTramBit(m_old.tile) == ReverseDiagDir(m_exitdir)) {
-			return TR_REVERSE;
-		}
-
 		/* road stop can be left at one direction only unless it's a drive-through stop */
 		if (IsStandardRoadStopTile(m_old.tile)) {
 			DiagDirection exitdir = GetRoadStopDir(m_old.tile);
@@ -376,18 +371,14 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 			}
 		}
 
-		/* single tram bits can only be left in one direction */
 		if (IsTram()) {
 			DiagDirection single_tram = GetSingleTramBit(m_old.tile);
-			if (single_tram != INVALID_DIAGDIR && single_tram != m_exitdir) {
-				return TR_NO_WAY;
+			/* single tram bits cause reversing */
+			if (single_tram == ReverseDiagDir(m_exitdir)) {
+				return TR_REVERSE;
 			}
-		}
-
-		/* road depots can be also left in one direction only */
-		if (IsRoadDepotTile(m_old.tile)) {
-			DiagDirection exitdir = GetGroundDepotDirection(m_old.tile);
-			if (exitdir != m_exitdir) {
+			/* single tram bits can only be left in one direction */
+			if (single_tram != INVALID_DIAGDIR && single_tram != m_exitdir) {
 				return TR_NO_WAY;
 			}
 		}
@@ -403,40 +394,26 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 
 			m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
 
-			if (IsTram() && m_new.trackdirs == 0) {
+			if (m_new.trackdirs == TRACKDIR_BIT_NONE) {
+				if (!IsTram()) return false;
+
 				/* GetTileRoadStatus() returns 0 for single tram bits.
 				 * As we cannot change it there (easily) without breaking something, change it here */
-				switch (GetSingleTramBit(m_new.tile)) {
-					case DIAGDIR_NE:
-					case DIAGDIR_SW:
-						m_new.trackdirs = TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW;
-						break;
-
-					case DIAGDIR_NW:
-					case DIAGDIR_SE:
-						m_new.trackdirs = TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE;
-						break;
-
-					default: break;
+				DiagDirection single_tram = GetSingleTramBit(m_new.tile);
+				if (single_tram == ReverseDiagDir(m_exitdir)) {
+					m_new.trackdirs = DiagDirToAxis(single_tram) == AXIS_X ? TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW : TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE;
+					return true;
+				} else {
+					m_err = EC_NO_WAY;
+					return false;
 				}
 			}
-
-			if (m_new.trackdirs == TRACKDIR_BIT_NONE) return false;
 		}
 
 		if (IsStandardRoadStopTile(m_new.tile)) {
 			/* road stop can be entered from one direction only unless it's a drive-through stop */
 			DiagDirection exitdir = GetRoadStopDir(m_new.tile);
 			if (ReverseDiagDir(exitdir) != m_exitdir) {
-				m_err = EC_NO_WAY;
-				return false;
-			}
-		}
-
-		/* single tram bits can only be entered from one direction */
-		if (IsTram()) {
-			DiagDirection single_tram = GetSingleTramBit(m_new.tile);
-			if (single_tram != INVALID_DIAGDIR && single_tram != ReverseDiagDir(m_exitdir)) {
 				m_err = EC_NO_WAY;
 				return false;
 			}
