@@ -166,8 +166,7 @@ public:
 			return true;
 		}
 
-		if (!QueryNewTileTrackStatus() || !CanEnterNewTile() ||
-				(m_new.trackdirs &= DiagdirReachesTrackdirs(m_exitdir)) == TRACKDIR_BIT_NONE) {
+		if (!CheckNewTile() || (m_new.trackdirs &= DiagdirReachesTrackdirs(m_exitdir)) == TRACKDIR_BIT_NONE) {
 			/* In case we can't enter the next tile, but are
 			 * a normal road vehicle, then we can actually
 			 * try to reverse as this is the end of the road.
@@ -323,36 +322,6 @@ protected:
 		m_tiles_skipped = GetTunnelBridgeLength(m_new.tile, m_old.tile);
 	}
 
-	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
-	inline bool QueryNewTileTrackStatus()
-	{
-		CPerfStart perf(*m_pPerf);
-		if (IsRailTT() && IsNormalRailTile(m_new.tile)) {
-			m_new.trackdirs = TrackBitsToTrackdirBits(GetTrackBits(m_new.tile));
-		} else {
-			m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
-
-			if (IsTram() && m_new.trackdirs == 0) {
-				/* GetTileRoadStatus() returns 0 for single tram bits.
-				 * As we cannot change it there (easily) without breaking something, change it here */
-				switch (GetSingleTramBit(m_new.tile)) {
-					case DIAGDIR_NE:
-					case DIAGDIR_SW:
-						m_new.trackdirs = TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW;
-						break;
-
-					case DIAGDIR_NW:
-					case DIAGDIR_SE:
-						m_new.trackdirs = TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE;
-						break;
-
-					default: break;
-				}
-			}
-		}
-		return (m_new.trackdirs != TRACKDIR_BIT_NONE);
-	}
-
 	/** check old tile */
 	inline TileResult CheckOldTile()
 	{
@@ -400,9 +369,38 @@ protected:
 		return TR_NORMAL;
 	}
 
-	/** return true if we can enter m_new.tile from m_exitdir */
-	inline bool CanEnterNewTile()
+	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
+	inline bool CheckNewTile()
 	{
+		{
+			CPerfStart perf(*m_pPerf);
+			if (IsRailTT() && IsNormalRailTile(m_new.tile)) {
+				m_new.trackdirs = TrackBitsToTrackdirBits(GetTrackBits(m_new.tile));
+			} else {
+				m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
+
+				if (IsTram() && m_new.trackdirs == 0) {
+					/* GetTileRoadStatus() returns 0 for single tram bits.
+					 * As we cannot change it there (easily) without breaking something, change it here */
+					switch (GetSingleTramBit(m_new.tile)) {
+						case DIAGDIR_NE:
+						case DIAGDIR_SW:
+							m_new.trackdirs = TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW;
+							break;
+
+						case DIAGDIR_NW:
+						case DIAGDIR_SE:
+							m_new.trackdirs = TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE;
+							break;
+
+						default: break;
+					}
+				}
+			}
+
+			if (m_new.trackdirs == TRACKDIR_BIT_NONE) return false;
+		}
+
 		if (IsRoadTT() && IsStandardRoadStopTile(m_new.tile)) {
 			/* road stop can be entered from one direction only unless it's a drive-through stop */
 			DiagDirection exitdir = GetRoadStopDir(m_new.tile);
