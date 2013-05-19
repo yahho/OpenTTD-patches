@@ -20,6 +20,7 @@
 #include "../tunnelbridge.h"
 #include "../depot_func.h"
 #include "../bridge.h"
+#include "../ship.h"
 #include "pathfinder_type.h"
 #include "pf_performance_timer.hpp"
 
@@ -73,6 +74,33 @@ struct CFollowTrackRailBase : CFollowTrackBase
 	typedef Train VehicleType;
 
 	static const TransportType transport_type = TRANSPORT_RAIL;
+
+	inline CFollowTrackRailBase(const Train *v, bool allow_90deg = true, bool mask_reserved = false, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
+	{
+		assert(v != NULL);
+		if (railtype_override == INVALID_RAILTYPES) {
+			railtype_override = v->compatible_railtypes;
+			assert(railtype_override != INVALID_RAILTYPES);
+		}
+
+		m_veh = v;
+		m_veh_owner = v->owner;
+		m_pPerf = pPerf;
+		m_railtypes = railtype_override;
+		m_allow_90deg = allow_90deg;
+		m_mask_reserved = mask_reserved;
+	}
+
+	inline CFollowTrackRailBase(Owner o, bool allow_90deg = true, bool mask_reserved = false, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
+	{
+		assert(railtype_override != INVALID_RAILTYPES);
+		m_veh = NULL;
+		m_veh_owner = o;
+		m_pPerf = pPerf;
+		m_railtypes = railtype_override;
+		m_allow_90deg = allow_90deg;
+		m_mask_reserved = mask_reserved;
+	}
 
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
 	{
@@ -284,6 +312,17 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 
 	static const TransportType transport_type = TRANSPORT_ROAD;
 
+	inline CFollowTrackRoadBase(const RoadVehicle *v, bool allow_90deg = true, bool mask_reserved = false)
+	{
+		assert(v != NULL);
+		m_veh = v;
+		m_veh_owner = v->owner;
+		m_pPerf = NULL;
+		m_railtypes = INVALID_RAILTYPES;
+		m_allow_90deg = allow_90deg;
+		m_mask_reserved = mask_reserved;
+	}
+
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
 	{
 		return TrackStatusToTrackdirBits(GetTileRoadStatus(tile, m_veh != NULL ? RoadVehicle::From(m_veh)->compatible_roadtypes : 0));
@@ -494,6 +533,16 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 
 	static const TransportType transport_type = TRANSPORT_WATER;
 
+	inline CFollowTrackWaterBase(const Ship *v = NULL, bool allow_90deg = true, bool mask_reserved = false)
+	{
+		m_veh = v;
+		m_veh_owner = v != NULL ? v->owner : INVALID_OWNER;
+		m_pPerf = NULL;
+		m_railtypes = INVALID_RAILTYPES;
+		m_allow_90deg = allow_90deg;
+		m_mask_reserved = mask_reserved;
+	}
+
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
 	{
 		return TrackStatusToTrackdirBits(GetTileWaterwayStatus(tile));
@@ -557,33 +606,21 @@ struct CFollowTrack : Base
 {
 	typedef typename Base::VehicleType VehicleType;
 
-	inline CFollowTrack(const VehicleType *v = NULL, bool allow_90deg = true, bool mask_reserved = false, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
+	inline CFollowTrack(const VehicleType *v = NULL, bool allow_90deg = true, bool mask_reserved = false)
+		: Base(v, allow_90deg, mask_reserved)
 	{
-		assert(!IsRailTT() || (v != NULL && v->type == VEH_TRAIN));
-		Base::m_veh = v;
-		Init(v != NULL ? v->owner : INVALID_OWNER, allow_90deg, mask_reserved, IsRailTT() && railtype_override == INVALID_RAILTYPES ? Train::From(v)->compatible_railtypes : railtype_override, pPerf);
+	}
+
+	inline CFollowTrack(const VehicleType *v, bool allow_90deg, bool mask_reserved, RailTypes railtype_override, CPerformanceTimer *pPerf = NULL)
+		: Base(v, allow_90deg, mask_reserved, railtype_override, pPerf)
+	{
 	}
 
 	inline CFollowTrack(Owner o, bool allow_90deg = true, bool mask_reserved = false, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
+		: Base(o, allow_90deg, mask_reserved, railtype_override, pPerf)
 	{
-		Base::m_veh = NULL;
-		Init(o, allow_90deg, mask_reserved, railtype_override, pPerf);
 	}
 
-	inline void Init(Owner o, bool allow_90deg, bool mask_reserved, RailTypes railtype_override, CPerformanceTimer *pPerf)
-	{
-		assert((!IsRoadTT() || Base::m_veh != NULL) && (!IsRailTT() || railtype_override != INVALID_RAILTYPES));
-		Base::m_veh_owner = o;
-		Base::m_pPerf = pPerf;
-		Base::m_railtypes = railtype_override;
-		Base::m_allow_90deg = allow_90deg;
-		Base::m_mask_reserved = mask_reserved;
-	}
-
-	inline static TransportType TT() { return Base::transport_type; }
-	inline static bool IsWaterTT() { return TT() == TRANSPORT_WATER; }
-	inline static bool IsRailTT() { return TT() == TRANSPORT_RAIL; }
-	inline static bool IsRoadTT() { return TT() == TRANSPORT_ROAD; }
 	inline static bool StepWormhole() {return Twormhole;}
 	/**
 	 * main follower routine. Fills all members and return true on success.
@@ -733,7 +770,12 @@ struct CFollowTrackT : CFollowTrack<Base, Twormhole>
 {
 	typedef typename Base::VehicleType VehicleType;
 
-	inline CFollowTrackT(const VehicleType *v = NULL, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
+	inline CFollowTrackT(const VehicleType *v)
+		: CFollowTrack<Base, Twormhole>(v, T90deg_turns_allowed, Tmask_reserved_tracks)
+	{
+	}
+
+	inline CFollowTrackT(const VehicleType *v, RailTypes railtype_override, CPerformanceTimer *pPerf = NULL)
 		: CFollowTrack<Base, Twormhole>(v, T90deg_turns_allowed, Tmask_reserved_tracks, railtype_override, pPerf)
 	{
 	}
