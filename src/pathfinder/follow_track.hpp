@@ -73,6 +73,206 @@ struct CFollowTrackRailBase : CFollowTrackBase
 	typedef Train VehicleType;
 
 	static const TransportType transport_type = TRANSPORT_RAIL;
+
+	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
+	{
+		return TrackStatusToTrackdirBits(GetTileRailwayStatus(tile));
+	}
+
+	/** check old tile */
+	inline TileResult CheckOldTile()
+	{
+		assert((GetTrackStatusTrackdirBits(m_old.tile) & TrackdirToTrackdirBits(m_old.td)) != 0);
+
+		/* depots cause reversing */
+		if (IsRailDepotTile(m_old.tile)) {
+			DiagDirection exitdir = GetGroundDepotDirection(m_old.tile);
+			if (exitdir != m_exitdir) {
+				assert(exitdir == ReverseDiagDir(m_exitdir));
+				return TR_REVERSE;
+			}
+		}
+
+		return TR_NORMAL;
+	}
+
+	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
+	inline bool CheckNewTile()
+	{
+		{
+			CPerfStart perf(*m_pPerf);
+			if (IsNormalRailTile(m_new.tile)) {
+				m_new.trackdirs = TrackBitsToTrackdirBits(GetTrackBits(m_new.tile));
+			} else {
+				m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
+			}
+
+			if (m_new.trackdirs == TRACKDIR_BIT_NONE) return false;
+		}
+
+		if (IsRailDepotTile(m_new.tile)) {
+			DiagDirection exitdir = GetGroundDepotDirection(m_new.tile);
+			if (ReverseDiagDir(exitdir) != m_exitdir) {
+				m_err = EC_NO_WAY;
+				return false;
+			}
+		}
+
+		/* rail transport is possible only on tiles with the same owner as vehicle */
+		if (GetTileOwner(m_new.tile) != m_veh_owner) {
+			/* different owner */
+			m_err = EC_NO_WAY;
+			return false;
+		}
+
+		/* rail transport is possible only on compatible rail types */
+		RailType rail_type;
+		if (IsRailwayTile(m_new.tile)) {
+			rail_type = GetSideRailType(m_new.tile, ReverseDiagDir(m_exitdir));
+			if (rail_type == INVALID_RAILTYPE) {
+				m_err = EC_NO_WAY;
+				return false;
+			}
+		} else {
+			rail_type = GetTileRailType(m_new.tile);
+		}
+
+		if (!HasBit(m_railtypes, rail_type)) {
+			/* incompatible rail type */
+			m_err = EC_RAIL_TYPE;
+			return false;
+		}
+
+		/* tunnel holes and bridge ramps can be entered only from proper direction */
+		if (IsTunnelTile(m_new.tile)) {
+			if (m_flag != TF_TUNNEL) {
+				DiagDirection tunnel_enterdir = GetTunnelBridgeDirection(m_new.tile);
+				if (tunnel_enterdir != m_exitdir) {
+					m_err = EC_NO_WAY;
+					return false;
+				}
+			}
+		} else if (IsRailBridgeTile(m_new.tile)) {
+			if (m_flag != TF_BRIDGE) {
+				DiagDirection ramp_enderdir = GetTunnelBridgeDirection(m_new.tile);
+				if (ramp_enderdir == ReverseDiagDir(m_exitdir)) {
+					m_err = EC_NO_WAY;
+					return false;
+				}
+			}
+		}
+
+		/* special handling for rail stations - get to the end of platform */
+		if (m_flag == TF_STATION) {
+			/* entered railway station
+			 * get platform length */
+			uint length = BaseStation::GetByTile(m_new.tile)->GetPlatformLength(m_new.tile, TrackdirToExitdir(m_old.td));
+			/* how big step we must do to get to the last platform tile; */
+			m_tiles_skipped = length - 1;
+			/* move to the platform end */
+			TileIndexDiff diff = TileOffsByDiagDir(m_exitdir);
+			diff *= m_tiles_skipped;
+			m_new.tile = TILE_ADD(m_new.tile, diff);
+		}
+
+		return true;
+	}
+
+	/** return true if we successfully reversed at end of road/track */
+	inline bool CheckEndOfLine()
+	{
+		m_new.td = INVALID_TRACKDIR;
+		m_err = EC_NO_WAY;
+		return false;
+	}
+
+	inline bool CheckStation()
+	{
+		return HasStationTileRail(m_new.tile);
+	}
+
+	inline bool MaskReservedTracks()
+	{
+		if (!m_mask_reserved) return true;
+
+		if (m_flag == TF_STATION) {
+			/* Check skipped station tiles as well. */
+			TileIndexDiff diff = TileOffsByDiagDir(m_exitdir);
+			for (TileIndex tile = m_new.tile - diff * m_tiles_skipped; tile != m_new.tile; tile += diff) {
+				if (HasStationReservation(tile)) {
+					m_new.td = INVALID_TRACKDIR;
+					m_new.trackdirs = TRACKDIR_BIT_NONE;
+					m_err = EC_RESERVED;
+					return false;
+				}
+			}
+		}
+
+		if (m_new.InWormhole()) {
+			assert(m_new.IsTrackdirSet());
+			if (HasReservedPos(m_new)) {
+				m_new.td = INVALID_TRACKDIR;
+				m_new.trackdirs = TRACKDIR_BIT_NONE;
+				m_err = EC_RESERVED;
+				return false;
+			} else {
+				return true;
+			}
+		}
+
+		TrackBits reserved = GetReservedTrackbits(m_new.tile);
+		/* Mask already reserved trackdirs. */
+		m_new.trackdirs &= ~TrackBitsToTrackdirBits(reserved);
+		/* Mask out all trackdirs that conflict with the reservation. */
+		Track t;
+		FOR_EACH_SET_TRACK(t, TrackdirBitsToTrackBits(m_new.trackdirs)) {
+			if (TracksOverlap(reserved | TrackToTrackBits(t))) m_new.trackdirs &= ~TrackToTrackdirBits(t);
+		}
+		if (m_new.trackdirs == TRACKDIR_BIT_NONE) {
+			m_new.td = INVALID_TRACKDIR;
+			m_err = EC_RESERVED;
+			return false;
+		}
+		/* Check if the resulting trackdirs is a single trackdir */
+		m_new.SetTrackdir();
+		return true;
+	}
+
+	/** Helper for pathfinders - get min/max speed on m_old */
+	int GetSpeedLimit(int *pmin_speed = NULL) const
+	{
+		/* Check for on-bridge and railtype speed limit */
+		TileIndex bridge_tile;
+		RailType rt;
+
+		if (!m_old.InWormhole()) {
+			bridge_tile = IsRailBridgeTile(m_old.tile) ? m_old.tile : INVALID_TILE;
+			rt = GetRailType(m_old.tile, TrackdirToTrack(m_old.td));
+		} else if (IsTileSubtype(m_old.wormhole, TT_BRIDGE)) {
+			bridge_tile = m_old.wormhole;
+			rt = GetBridgeRailType(bridge_tile);
+		} else {
+			bridge_tile = INVALID_TILE;
+			rt = GetRailType(m_old.wormhole);
+		}
+
+		int max_speed;
+
+		/* Check for on-bridge speed limit */
+		if (bridge_tile != INVALID_TILE) {
+			max_speed = GetBridgeSpec(GetRailBridgeType(bridge_tile))->speed;
+		} else {
+			max_speed = INT_MAX; // no limit
+		}
+
+		/* Check for speed limit imposed by railtype */
+		uint16 rail_speed = GetRailTypeInfo(rt)->max_speed;
+		if (rail_speed > 0) max_speed = min(max_speed, rail_speed);
+
+		/* if min speed was requested, return it */
+		if (pmin_speed != NULL) *pmin_speed = 0;
+		return max_speed;
+	}
 };
 
 /**
@@ -83,6 +283,206 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 	typedef RoadVehicle VehicleType;
 
 	static const TransportType transport_type = TRANSPORT_ROAD;
+
+	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
+	{
+		return TrackStatusToTrackdirBits(GetTileRoadStatus(tile, m_veh != NULL ? RoadVehicle::From(m_veh)->compatible_roadtypes : 0));
+	}
+
+	inline bool IsTram() { return HasBit(RoadVehicle::From(m_veh)->compatible_roadtypes, ROADTYPE_TRAM); }
+
+	/** Tests if a tile is a road tile with a single tramtrack (tram can reverse) */
+	inline DiagDirection GetSingleTramBit(TileIndex tile)
+	{
+		assert(IsTram()); // this function shouldn't be called in other cases
+
+		if (IsRoadTile(tile)) {
+			RoadBits rb = GetRoadBits(tile, ROADTYPE_TRAM);
+			switch (rb) {
+				case ROAD_NW: return DIAGDIR_NW;
+				case ROAD_SW: return DIAGDIR_SW;
+				case ROAD_SE: return DIAGDIR_SE;
+				case ROAD_NE: return DIAGDIR_NE;
+				default: break;
+			}
+		}
+		return INVALID_DIAGDIR;
+	}
+
+	/** check old tile */
+	inline TileResult CheckOldTile()
+	{
+		assert(((GetTrackStatusTrackdirBits(m_old.tile) & TrackdirToTrackdirBits(m_old.td)) != 0) ||
+		       (IsTram() && GetSingleTramBit(m_old.tile) != INVALID_DIAGDIR)); // Disable the assertion for single tram bits
+
+		/* depots cause reversing */
+		if (IsRoadDepotTile(m_old.tile)) {
+			DiagDirection exitdir = GetGroundDepotDirection(m_old.tile);
+			if (exitdir != m_exitdir) {
+				assert(exitdir == ReverseDiagDir(m_exitdir));
+				return TR_REVERSE;
+			}
+		}
+
+		/* single tram bits cause reversing */
+		if (IsTram() && GetSingleTramBit(m_old.tile) == ReverseDiagDir(m_exitdir)) {
+			return TR_REVERSE;
+		}
+
+		/* road stop can be left at one direction only unless it's a drive-through stop */
+		if (IsStandardRoadStopTile(m_old.tile)) {
+			DiagDirection exitdir = GetRoadStopDir(m_old.tile);
+			if (exitdir != m_exitdir) {
+				return TR_NO_WAY;
+			}
+		}
+
+		/* single tram bits can only be left in one direction */
+		if (IsTram()) {
+			DiagDirection single_tram = GetSingleTramBit(m_old.tile);
+			if (single_tram != INVALID_DIAGDIR && single_tram != m_exitdir) {
+				return TR_NO_WAY;
+			}
+		}
+
+		/* road depots can be also left in one direction only */
+		if (IsRoadDepotTile(m_old.tile)) {
+			DiagDirection exitdir = GetGroundDepotDirection(m_old.tile);
+			if (exitdir != m_exitdir) {
+				return TR_NO_WAY;
+			}
+		}
+
+		return TR_NORMAL;
+	}
+
+	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
+	inline bool CheckNewTile()
+	{
+		{
+			CPerfStart perf(*m_pPerf);
+
+			m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
+
+			if (IsTram() && m_new.trackdirs == 0) {
+				/* GetTileRoadStatus() returns 0 for single tram bits.
+				 * As we cannot change it there (easily) without breaking something, change it here */
+				switch (GetSingleTramBit(m_new.tile)) {
+					case DIAGDIR_NE:
+					case DIAGDIR_SW:
+						m_new.trackdirs = TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW;
+						break;
+
+					case DIAGDIR_NW:
+					case DIAGDIR_SE:
+						m_new.trackdirs = TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE;
+						break;
+
+					default: break;
+				}
+			}
+
+			if (m_new.trackdirs == TRACKDIR_BIT_NONE) return false;
+		}
+
+		if (IsStandardRoadStopTile(m_new.tile)) {
+			/* road stop can be entered from one direction only unless it's a drive-through stop */
+			DiagDirection exitdir = GetRoadStopDir(m_new.tile);
+			if (ReverseDiagDir(exitdir) != m_exitdir) {
+				m_err = EC_NO_WAY;
+				return false;
+			}
+		}
+
+		/* single tram bits can only be entered from one direction */
+		if (IsTram()) {
+			DiagDirection single_tram = GetSingleTramBit(m_new.tile);
+			if (single_tram != INVALID_DIAGDIR && single_tram != ReverseDiagDir(m_exitdir)) {
+				m_err = EC_NO_WAY;
+				return false;
+			}
+		}
+
+		/* depots can also be entered from one direction only */
+		if (IsRoadDepotTile(m_new.tile)) {
+			DiagDirection exitdir = GetGroundDepotDirection(m_new.tile);
+			if (ReverseDiagDir(exitdir) != m_exitdir) {
+				m_err = EC_NO_WAY;
+				return false;
+			}
+			/* don't try to enter other company's depots */
+			if (GetTileOwner(m_new.tile) != m_veh_owner) {
+				m_err = EC_OWNER;
+				return false;
+			}
+		}
+
+		/* tunnel holes and bridge ramps can be entered only from proper direction */
+		if (IsTunnelTile(m_new.tile)) {
+			if (m_flag != TF_TUNNEL) {
+				DiagDirection tunnel_enterdir = GetTunnelBridgeDirection(m_new.tile);
+				if (tunnel_enterdir != m_exitdir) {
+					m_err = EC_NO_WAY;
+					return false;
+				}
+			}
+		} else if (IsRoadBridgeTile(m_new.tile)) {
+			if (m_flag != TF_BRIDGE) {
+				DiagDirection ramp_enderdir = GetTunnelBridgeDirection(m_new.tile);
+				if (ramp_enderdir == ReverseDiagDir(m_exitdir)) {
+					m_err = EC_NO_WAY;
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	/** return true if we successfully reversed at end of road/track */
+	inline bool CheckEndOfLine()
+	{
+		if (!IsTram()) {
+			/* if we reached the end of road, we can reverse the RV and continue moving */
+			m_exitdir = ReverseDiagDir(m_exitdir);
+			/* new tile will be the same as old one */
+			m_new.tile = m_old.tile;
+			m_new.wormhole = INVALID_TILE;
+			/* set new trackdir bits to all reachable trackdirs */
+			m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
+			m_new.trackdirs &= DiagdirReachesTrackdirs(m_exitdir);
+			/* we always have some trackdirs reachable after reversal */
+			assert(m_new.trackdirs != TRACKDIR_BIT_NONE);
+			/* check if the resulting trackdirs is a single trackdir */
+			m_new.SetTrackdir();
+			return true;
+		}
+		m_new.td = INVALID_TRACKDIR;
+		m_err = EC_NO_WAY;
+		return false;
+	}
+
+	inline bool CheckStation()
+	{
+		return IsRoadStopTile(m_new.tile);
+	}
+
+	/** Helper for pathfinders - get min/max speed on m_old */
+	int GetSpeedLimit(int *pmin_speed = NULL) const
+	{
+		int max_speed;
+
+		/* Check for on-bridge speed limit */
+		if (IsRoadBridgeTile(m_old.tile)) {
+			max_speed = 2 * GetBridgeSpec(GetRoadBridgeType(m_old.tile))->speed;
+		} else {
+			max_speed = INT_MAX; // no limit
+		}
+
+		/* if min speed was requested, return it */
+		if (pmin_speed != NULL) *pmin_speed = 0;
+		return max_speed;
+	}
 };
 
 /**
@@ -93,6 +493,57 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 	typedef Ship VehicleType;
 
 	static const TransportType transport_type = TRANSPORT_WATER;
+
+	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
+	{
+		return TrackStatusToTrackdirBits(GetTileWaterwayStatus(tile));
+	}
+
+	/** check old tile */
+	inline TileResult CheckOldTile()
+	{
+		assert((GetTrackStatusTrackdirBits(m_old.tile) & TrackdirToTrackdirBits(m_old.td)) != 0);
+
+		return TR_NORMAL;
+	}
+
+	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
+	inline bool CheckNewTile()
+	{
+		{
+			CPerfStart perf(*m_pPerf);
+
+			m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
+
+			if (m_new.trackdirs == TRACKDIR_BIT_NONE) return false;
+		}
+
+		/* tunnel holes and bridge ramps can be entered only from proper direction */
+		if (IsAqueductTile(m_new.tile)) {
+			if (m_flag != TF_BRIDGE) {
+				DiagDirection ramp_enderdir = GetTunnelBridgeDirection(m_new.tile);
+				if (ramp_enderdir == ReverseDiagDir(m_exitdir)) {
+					m_err = EC_NO_WAY;
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	/** return true if we successfully reversed at end of road/track */
+	inline bool CheckEndOfLine()
+	{
+		m_new.td = INVALID_TRACKDIR;
+		m_err = EC_NO_WAY;
+		return false;
+	}
+
+	inline bool CheckStation()
+	{
+		return false;
+	}
 };
 
 
@@ -132,41 +583,8 @@ struct CFollowTrack : Base
 	inline static TransportType TT() { return Base::transport_type; }
 	inline static bool IsWaterTT() { return TT() == TRANSPORT_WATER; }
 	inline static bool IsRailTT() { return TT() == TRANSPORT_RAIL; }
-	inline bool IsTram() { return IsRoadTT() && HasBit(RoadVehicle::From(Base::m_veh)->compatible_roadtypes, ROADTYPE_TRAM); }
 	inline static bool IsRoadTT() { return TT() == TRANSPORT_ROAD; }
 	inline static bool StepWormhole() {return Twormhole;}
-
-protected:
-	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
-	{
-		if (IsRailTT()) {
-			return TrackStatusToTrackdirBits(GetTileRailwayStatus(tile));
-		} else if (IsRoadTT()) {
-			return TrackStatusToTrackdirBits(GetTileRoadStatus(tile, Base::m_veh != NULL ? RoadVehicle::From(Base::m_veh)->compatible_roadtypes : 0));
-		} else {
-			return TrackStatusToTrackdirBits(GetTileWaterwayStatus(tile));
-		}
-	}
-
-public:
-	/** Tests if a tile is a road tile with a single tramtrack (tram can reverse) */
-	inline DiagDirection GetSingleTramBit(TileIndex tile)
-	{
-		assert(IsTram()); // this function shouldn't be called in other cases
-
-		if (IsRoadTile(tile)) {
-			RoadBits rb = GetRoadBits(tile, ROADTYPE_TRAM);
-			switch (rb) {
-				case ROAD_NW: return DIAGDIR_NW;
-				case ROAD_SW: return DIAGDIR_SW;
-				case ROAD_SE: return DIAGDIR_SE;
-				case ROAD_NE: return DIAGDIR_NE;
-				default: break;
-			}
-		}
-		return INVALID_DIAGDIR;
-	}
-
 	/**
 	 * main follower routine. Fills all members and return true on success.
 	 *  Otherwise returns false if track can't be followed.
@@ -180,7 +598,7 @@ public:
 		if (Base::m_old.InWormhole()) {
 			FollowWormhole();
 		} else {
-			switch (CheckOldTile()) {
+			switch (Base::CheckOldTile()) {
 				case Base::TR_NO_WAY:
 					Base::m_err = Base::EC_NO_WAY;
 					return false;
@@ -206,7 +624,7 @@ public:
 			return true;
 		}
 
-		if (!CheckNewTile() || (Base::m_new.trackdirs &= DiagdirReachesTrackdirs(Base::m_exitdir)) == TRACKDIR_BIT_NONE) {
+		if (!Base::CheckNewTile() || (Base::m_new.trackdirs &= DiagdirReachesTrackdirs(Base::m_exitdir)) == TRACKDIR_BIT_NONE) {
 			/* In case we can't enter the next tile, but are
 			 * a normal road vehicle, then we can actually
 			 * try to reverse as this is the end of the road.
@@ -218,7 +636,7 @@ public:
 			 * that function failed can have to do with a
 			 * missing road bit, or inability to connect the
 			 * different bits due to slopes. */
-			return TryReverse();
+			return Base::CheckEndOfLine();
 		}
 		if (!Base::m_allow_90deg) {
 			Base::m_new.trackdirs &= (TrackdirBits)~(int)TrackdirCrossesTrackdirs(Base::m_old.td);
@@ -243,53 +661,6 @@ public:
 	{
 		Base::m_new.PFPos::operator = (pos);
 		Base::m_new.trackdirs = TrackdirToTrackdirBits(pos.td);
-	}
-
-	inline bool MaskReservedTracks()
-	{
-		if (!Base::m_mask_reserved) return true;
-
-		if (Base::m_flag == Base::TF_STATION) {
-			/* Check skipped station tiles as well. */
-			TileIndexDiff diff = TileOffsByDiagDir(Base::m_exitdir);
-			for (TileIndex tile = Base::m_new.tile - diff * Base::m_tiles_skipped; tile != Base::m_new.tile; tile += diff) {
-				if (HasStationReservation(tile)) {
-					Base::m_new.td = INVALID_TRACKDIR;
-					Base::m_new.trackdirs = TRACKDIR_BIT_NONE;
-					Base::m_err = Base::EC_RESERVED;
-					return false;
-				}
-			}
-		}
-
-		if (Base::m_new.InWormhole()) {
-			assert(Base::m_new.IsTrackdirSet());
-			if (HasReservedPos(Base::m_new)) {
-				Base::m_new.td = INVALID_TRACKDIR;
-				Base::m_new.trackdirs = TRACKDIR_BIT_NONE;
-				Base::m_err = Base::EC_RESERVED;
-				return false;
-			} else {
-				return true;
-			}
-		}
-
-		TrackBits reserved = GetReservedTrackbits(Base::m_new.tile);
-		/* Mask already reserved trackdirs. */
-		Base::m_new.trackdirs &= ~TrackBitsToTrackdirBits(reserved);
-		/* Mask out all trackdirs that conflict with the reservation. */
-		Track t;
-		FOR_EACH_SET_TRACK(t, TrackdirBitsToTrackBits(Base::m_new.trackdirs)) {
-			if (TracksOverlap(reserved | TrackToTrackBits(t))) Base::m_new.trackdirs &= ~TrackToTrackdirBits(t);
-		}
-		if (Base::m_new.trackdirs == TRACKDIR_BIT_NONE) {
-			Base::m_new.td = INVALID_TRACKDIR;
-			Base::m_err = Base::EC_RESERVED;
-			return false;
-		}
-		/* Check if the resulting trackdirs is a single trackdir */
-		Base::m_new.SetTrackdir();
-		return true;
 	}
 
 protected:
@@ -339,13 +710,7 @@ protected:
 		Base::m_new.wormhole = INVALID_TILE;
 
 		/* special handling for stations */
-		if (IsRailTT() && HasStationTileRail(Base::m_new.tile)) {
-			Base::m_flag = Base::TF_STATION;
-		} else if (IsRoadTT() && IsRoadStopTile(Base::m_new.tile)) {
-			Base::m_flag = Base::TF_STATION;
-		} else {
-			Base::m_flag = Base::TF_NONE;
-		}
+		Base::m_flag = Base::CheckStation() ? Base::TF_STATION : Base::TF_NONE;
 
 		Base::m_tiles_skipped = 0;
 	}
@@ -360,254 +725,6 @@ protected:
 		Base::m_new.wormhole = INVALID_TILE;
 		Base::m_flag = IsTileSubtype(Base::m_old.wormhole, TT_BRIDGE) ? Base::TF_BRIDGE : Base::TF_TUNNEL;
 		Base::m_tiles_skipped = GetTunnelBridgeLength(Base::m_new.tile, Base::m_old.tile);
-	}
-
-	/** check old tile */
-	inline typename Base::TileResult CheckOldTile()
-	{
-		assert(((GetTrackStatusTrackdirBits(Base::m_old.tile) & TrackdirToTrackdirBits(Base::m_old.td)) != 0) ||
-		       (IsTram() && GetSingleTramBit(Base::m_old.tile) != INVALID_DIAGDIR)); // Disable the assertion for single tram bits
-
-		/* rail and road depots cause reversing */
-		if (!IsWaterTT() && IsDepotTypeTile(Base::m_old.tile, TT())) {
-			DiagDirection exitdir = GetGroundDepotDirection(Base::m_old.tile);
-			if (exitdir != Base::m_exitdir) {
-				assert(exitdir == ReverseDiagDir(Base::m_exitdir));
-				return Base::TR_REVERSE;
-			}
-		}
-
-		/* single tram bits cause reversing */
-		if (IsTram() && GetSingleTramBit(Base::m_old.tile) == ReverseDiagDir(Base::m_exitdir)) {
-			return Base::TR_REVERSE;
-		}
-
-		/* road stop can be left at one direction only unless it's a drive-through stop */
-		if (IsRoadTT() && IsStandardRoadStopTile(Base::m_old.tile)) {
-			DiagDirection exitdir = GetRoadStopDir(Base::m_old.tile);
-			if (exitdir != Base::m_exitdir) {
-				return Base::TR_NO_WAY;
-			}
-		}
-
-		/* single tram bits can only be left in one direction */
-		if (IsTram()) {
-			DiagDirection single_tram = GetSingleTramBit(Base::m_old.tile);
-			if (single_tram != INVALID_DIAGDIR && single_tram != Base::m_exitdir) {
-				return Base::TR_NO_WAY;
-			}
-		}
-
-		/* road depots can be also left in one direction only */
-		if (IsRoadTT() && IsDepotTypeTile(Base::m_old.tile, TT())) {
-			DiagDirection exitdir = GetGroundDepotDirection(Base::m_old.tile);
-			if (exitdir != Base::m_exitdir) {
-				return Base::TR_NO_WAY;
-			}
-		}
-
-		return Base::TR_NORMAL;
-	}
-
-	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
-	inline bool CheckNewTile()
-	{
-		{
-			CPerfStart perf(*Base::m_pPerf);
-			if (IsRailTT() && IsNormalRailTile(Base::m_new.tile)) {
-				Base::m_new.trackdirs = TrackBitsToTrackdirBits(GetTrackBits(Base::m_new.tile));
-			} else {
-				Base::m_new.trackdirs = GetTrackStatusTrackdirBits(Base::m_new.tile);
-
-				if (IsTram() && Base::m_new.trackdirs == 0) {
-					/* GetTileRoadStatus() returns 0 for single tram bits.
-					 * As we cannot change it there (easily) without breaking something, change it here */
-					switch (GetSingleTramBit(Base::m_new.tile)) {
-						case DIAGDIR_NE:
-						case DIAGDIR_SW:
-							Base::m_new.trackdirs = TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW;
-							break;
-
-						case DIAGDIR_NW:
-						case DIAGDIR_SE:
-							Base::m_new.trackdirs = TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE;
-							break;
-
-						default: break;
-					}
-				}
-			}
-
-			if (Base::m_new.trackdirs == TRACKDIR_BIT_NONE) return false;
-		}
-
-		if (IsRoadTT() && IsStandardRoadStopTile(Base::m_new.tile)) {
-			/* road stop can be entered from one direction only unless it's a drive-through stop */
-			DiagDirection exitdir = GetRoadStopDir(Base::m_new.tile);
-			if (ReverseDiagDir(exitdir) != Base::m_exitdir) {
-				Base::m_err = Base::EC_NO_WAY;
-				return false;
-			}
-		}
-
-		/* single tram bits can only be entered from one direction */
-		if (IsTram()) {
-			DiagDirection single_tram = GetSingleTramBit(Base::m_new.tile);
-			if (single_tram != INVALID_DIAGDIR && single_tram != ReverseDiagDir(Base::m_exitdir)) {
-				Base::m_err = Base::EC_NO_WAY;
-				return false;
-			}
-		}
-
-		/* road and rail depots can also be entered from one direction only */
-		if (IsRoadTT() && IsDepotTypeTile(Base::m_new.tile, TT())) {
-			DiagDirection exitdir = GetGroundDepotDirection(Base::m_new.tile);
-			if (ReverseDiagDir(exitdir) != Base::m_exitdir) {
-				Base::m_err = Base::EC_NO_WAY;
-				return false;
-			}
-			/* don't try to enter other company's depots */
-			if (GetTileOwner(Base::m_new.tile) != Base::m_veh_owner) {
-				Base::m_err = Base::EC_OWNER;
-				return false;
-			}
-		}
-		if (IsRailTT() && IsDepotTypeTile(Base::m_new.tile, TT())) {
-			DiagDirection exitdir = GetGroundDepotDirection(Base::m_new.tile);
-			if (ReverseDiagDir(exitdir) != Base::m_exitdir) {
-				Base::m_err = Base::EC_NO_WAY;
-				return false;
-			}
-		}
-
-		/* rail transport is possible only on tiles with the same owner as vehicle */
-		if (IsRailTT() && GetTileOwner(Base::m_new.tile) != Base::m_veh_owner) {
-			/* different owner */
-			Base::m_err = Base::EC_NO_WAY;
-			return false;
-		}
-
-		/* rail transport is possible only on compatible rail types */
-		if (IsRailTT()) {
-			RailType rail_type;
-			if (IsRailwayTile(Base::m_new.tile)) {
-				rail_type = GetSideRailType(Base::m_new.tile, ReverseDiagDir(Base::m_exitdir));
-				if (rail_type == INVALID_RAILTYPE) {
-					Base::m_err = Base::EC_NO_WAY;
-					return false;
-				}
-			} else {
-				rail_type = GetTileRailType(Base::m_new.tile);
-			}
-			if (!HasBit(Base::m_railtypes, rail_type)) {
-				/* incompatible rail type */
-				Base::m_err = Base::EC_RAIL_TYPE;
-				return false;
-			}
-		}
-
-		/* tunnel holes and bridge ramps can be entered only from proper direction */
-		if (IsTunnelTile(Base::m_new.tile)) {
-			if (Base::m_flag != Base::TF_TUNNEL) {
-				DiagDirection tunnel_enterdir = GetTunnelBridgeDirection(Base::m_new.tile);
-				if (tunnel_enterdir != Base::m_exitdir) {
-					Base::m_err = Base::EC_NO_WAY;
-					return false;
-				}
-			}
-		} else if (IsBridgeHeadTile(Base::m_new.tile)) {
-			if (Base::m_flag != Base::TF_BRIDGE) {
-				DiagDirection ramp_enderdir = GetTunnelBridgeDirection(Base::m_new.tile);
-				if (ramp_enderdir == ReverseDiagDir(Base::m_exitdir)) {
-					Base::m_err = Base::EC_NO_WAY;
-					return false;
-				}
-			}
-		}
-
-		/* special handling for rail stations - get to the end of platform */
-		if (IsRailTT() && Base::m_flag == Base::TF_STATION) {
-			/* entered railway station
-			 * get platform length */
-			uint length = BaseStation::GetByTile(Base::m_new.tile)->GetPlatformLength(Base::m_new.tile, TrackdirToExitdir(Base::m_old.td));
-			/* how big step we must do to get to the last platform tile; */
-			Base::m_tiles_skipped = length - 1;
-			/* move to the platform end */
-			TileIndexDiff diff = TileOffsByDiagDir(Base::m_exitdir);
-			diff *= Base::m_tiles_skipped;
-			Base::m_new.tile = TILE_ADD(Base::m_new.tile, diff);
-			return true;
-		}
-
-		return true;
-	}
-
-	/** return true if we successfully reversed at end of road/track */
-	inline bool TryReverse()
-	{
-		if (IsRoadTT() && !IsTram()) {
-			/* if we reached the end of road, we can reverse the RV and continue moving */
-			Base::m_exitdir = ReverseDiagDir(Base::m_exitdir);
-			/* new tile will be the same as old one */
-			Base::m_new.tile = Base::m_old.tile;
-			Base::m_new.wormhole = INVALID_TILE;
-			/* set new trackdir bits to all reachable trackdirs */
-			Base::m_new.trackdirs = GetTrackStatusTrackdirBits(Base::m_new.tile);
-			Base::m_new.trackdirs &= DiagdirReachesTrackdirs(Base::m_exitdir);
-			/* we always have some trackdirs reachable after reversal */
-			assert(Base::m_new.trackdirs != TRACKDIR_BIT_NONE);
-			/* check if the resulting trackdirs is a single trackdir */
-			Base::m_new.SetTrackdir();
-			return true;
-		}
-		Base::m_new.td = INVALID_TRACKDIR;
-		Base::m_err = Base::EC_NO_WAY;
-		return false;
-	}
-
-public:
-	/** Helper for pathfinders - get min/max speed on m_old */
-	int GetSpeedLimit(int *pmin_speed = NULL) const
-	{
-		int min_speed = 0;
-		int max_speed = INT_MAX; // no limit
-
-		if (IsRailTT()) {
-			/* Check for on-bridge and railtype speed limit */
-			TileIndex bridge_tile;
-			RailType rt;
-
-			if (!Base::m_old.InWormhole()) {
-				bridge_tile = IsRailBridgeTile(Base::m_old.tile) ? Base::m_old.tile : INVALID_TILE;
-				rt = GetRailType(Base::m_old.tile, TrackdirToTrack(Base::m_old.td));
-			} else if (IsTileSubtype(Base::m_old.wormhole, TT_BRIDGE)) {
-				bridge_tile = Base::m_old.wormhole;
-				rt = GetBridgeRailType(bridge_tile);
-			} else {
-				bridge_tile = INVALID_TILE;
-				rt = GetRailType(Base::m_old.wormhole);
-			}
-
-			/* Check for on-bridge speed limit */
-			if (bridge_tile != INVALID_TILE) {
-				int spd = GetBridgeSpec(GetRailBridgeType(bridge_tile))->speed;
-				if (max_speed > spd) max_speed = spd;
-			}
-
-			/* Check for speed limit imposed by railtype */
-			uint16 rail_speed = GetRailTypeInfo(rt)->max_speed;
-			if (rail_speed > 0) max_speed = min(max_speed, rail_speed);
-		} else if (IsRoadTT()) {
-			/* Check for on-bridge speed limit */
-			if (IsRoadBridgeTile(Base::m_old.tile)) {
-				int spd = 2 * GetBridgeSpec(GetRoadBridgeType(Base::m_old.tile))->speed;
-				if (max_speed > spd) max_speed = spd;
-			}
-		}
-
-		/* if min speed was requested, return it */
-		if (pmin_speed != NULL) *pmin_speed = min_speed;
-		return max_speed;
 	}
 };
 
