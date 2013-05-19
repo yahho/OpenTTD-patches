@@ -147,7 +147,7 @@ static TrackBits MaskWireBits(TileIndex t, TrackBits tracks)
 		TrackBits reachable = TrackStatusToTrackBits(GetTileRailwayStatus(next_tile)) & DiagdirReachesTracks(d);
 		RailType rt;
 		if ((reachable != TRACK_BIT_NONE) ?
-				((rt = GetTileRailType(next_tile, FindFirstTrack(reachable))) == INVALID_RAILTYPE || !HasCatenary(rt)) :
+				((rt = GetRailType(next_tile, FindFirstTrack(reachable))) == INVALID_RAILTYPE || !HasCatenary(rt)) :
 				(!HasStationTileRail(next_tile) || GetRailStationAxis(next_tile) != DiagDirToAxis(d) || !CanStationTileHaveWires(next_tile))) {
 			neighbour_tdb |= DiagdirReachesTrackdirs(ReverseDiagDir(d));
 		}

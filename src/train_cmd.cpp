@@ -3449,7 +3449,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				v->tile = gp.new_tile;
 				v->trackdir = chosen_trackdir;
 
-				if (GetTileRailType(gp.new_tile, TrackdirToTrack(chosen_trackdir)) != old_rt) {
+				if (GetRailType(gp.new_tile, TrackdirToTrack(chosen_trackdir)) != old_rt) {
 					v->First()->ConsistChanged(true);
 				}
 			}

@@ -151,7 +151,7 @@ struct CFollowTrackRailBase : CFollowTrackBase
 				return false;
 			}
 		} else {
-			rail_type = GetTileRailType(m_new.tile);
+			rail_type = GetRailType(m_new.tile);
 		}
 
 		if (!HasBit(m_railtypes, rail_type)) {
