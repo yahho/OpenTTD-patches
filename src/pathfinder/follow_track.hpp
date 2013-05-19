@@ -47,6 +47,12 @@ struct CFollowTrack
 		EC_RESERVED,
 	};
 
+	enum TileResult {
+		TR_NORMAL,
+		TR_NO_WAY,
+		TR_REVERSE,
+	};
+
 	const VehicleType  *m_veh;           ///< moving vehicle
 	Owner               m_veh_owner;     ///< owner of the vehicle
 	PFPos               m_old;           ///< the origin (vehicle moved from) before move
@@ -134,19 +140,22 @@ public:
 		if (m_old.InWormhole()) {
 			FollowWormhole();
 		} else {
-			assert(((GetTrackStatusTrackdirBits(m_old.tile) & TrackdirToTrackdirBits(m_old.td)) != 0) ||
-			       (IsTram() && GetSingleTramBit(m_old.tile) != INVALID_DIAGDIR)); // Disable the assertion for single tram bits
-			if (ForcedReverse()) {
-				m_new.tile = m_old.tile;
-				m_new.wormhole = INVALID_TILE;
-				m_new.td = ReverseTrackdir(m_old.td);
-				m_new.trackdirs = TrackdirToTrackdirBits(m_new.td);
-				m_exitdir = ReverseDiagDir(m_exitdir);
-				m_tiles_skipped = 0;
-				m_flag = TF_NONE;
-				return true;
+			switch (CheckOldTile()) {
+				case TR_NO_WAY:
+					m_err = EC_NO_WAY;
+					return false;
+				case TR_REVERSE:
+					m_new.tile = m_old.tile;
+					m_new.wormhole = INVALID_TILE;
+					m_new.td = ReverseTrackdir(m_old.td);
+					m_new.trackdirs = TrackdirToTrackdirBits(m_new.td);
+					m_exitdir = ReverseDiagDir(m_exitdir);
+					m_tiles_skipped = 0;
+					m_flag = TF_NONE;
+					return true;
+				default:
+					break;
 			}
-			if (!CanExitOldTile()) return false;
 			FollowTileExit();
 		}
 
@@ -344,15 +353,31 @@ protected:
 		return (m_new.trackdirs != TRACKDIR_BIT_NONE);
 	}
 
-	/** return true if we can leave m_old in m_exitdir */
-	inline bool CanExitOldTile()
+	/** check old tile */
+	inline TileResult CheckOldTile()
 	{
+		assert(((GetTrackStatusTrackdirBits(m_old.tile) & TrackdirToTrackdirBits(m_old.td)) != 0) ||
+		       (IsTram() && GetSingleTramBit(m_old.tile) != INVALID_DIAGDIR)); // Disable the assertion for single tram bits
+
+		/* rail and road depots cause reversing */
+		if (!IsWaterTT() && IsDepotTypeTile(m_old.tile, TT())) {
+			DiagDirection exitdir = GetGroundDepotDirection(m_old.tile);
+			if (exitdir != m_exitdir) {
+				assert(exitdir == ReverseDiagDir(m_exitdir));
+				return TR_REVERSE;
+			}
+		}
+
+		/* single tram bits cause reversing */
+		if (IsTram() && GetSingleTramBit(m_old.tile) == ReverseDiagDir(m_exitdir)) {
+			return TR_REVERSE;
+		}
+
 		/* road stop can be left at one direction only unless it's a drive-through stop */
 		if (IsRoadTT() && IsStandardRoadStopTile(m_old.tile)) {
 			DiagDirection exitdir = GetRoadStopDir(m_old.tile);
 			if (exitdir != m_exitdir) {
-				m_err = EC_NO_WAY;
-				return false;
+				return TR_NO_WAY;
 			}
 		}
 
@@ -360,8 +385,7 @@ protected:
 		if (IsTram()) {
 			DiagDirection single_tram = GetSingleTramBit(m_old.tile);
 			if (single_tram != INVALID_DIAGDIR && single_tram != m_exitdir) {
-				m_err = EC_NO_WAY;
-				return false;
+				return TR_NO_WAY;
 			}
 		}
 
@@ -369,11 +393,11 @@ protected:
 		if (IsRoadTT() && IsDepotTypeTile(m_old.tile, TT())) {
 			DiagDirection exitdir = GetGroundDepotDirection(m_old.tile);
 			if (exitdir != m_exitdir) {
-				m_err = EC_NO_WAY;
-				return false;
+				return TR_NO_WAY;
 			}
 		}
-		return true;
+
+		return TR_NORMAL;
 	}
 
 	/** return true if we can enter m_new.tile from m_exitdir */
@@ -478,28 +502,6 @@ protected:
 		}
 
 		return true;
-	}
-
-	/** return true if we must reverse (in depots and single tram bits) */
-	inline bool ForcedReverse()
-	{
-		/* rail and road depots cause reversing */
-		if (!IsWaterTT() && IsDepotTypeTile(m_old.tile, TT())) {
-			DiagDirection exitdir = GetGroundDepotDirection(m_old.tile);
-			if (exitdir != m_exitdir) {
-				/* reverse */
-				assert(exitdir == ReverseDiagDir(m_exitdir));
-				return true;
-			}
-		}
-
-		/* single tram bits cause reversing */
-		if (IsTram() && GetSingleTramBit(m_old.tile) == ReverseDiagDir(m_exitdir)) {
-			/* reverse */
-			return true;
-		}
-
-		return false;
 	}
 
 	/** return true if we successfully reversed at end of road/track */
