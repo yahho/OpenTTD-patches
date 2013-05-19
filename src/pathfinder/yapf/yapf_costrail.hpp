@@ -456,7 +456,7 @@ public:
 
 			/* Move to the next tile/trackdir. */
 			tf = &tf_local;
-			assert(tf_local.m_veh == v);
+			assert(tf_local.m_veh_owner == v->owner);
 			assert(tf_local.m_railtypes == Yapf().GetCompatibleRailTypes());
 			assert(tf_local.m_pPerf == &Yapf().m_perf_ts_cost);
 

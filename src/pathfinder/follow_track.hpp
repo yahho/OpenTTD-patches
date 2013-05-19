@@ -51,18 +51,13 @@ struct CFollowTrackBase
 		TR_REVERSE,
 	};
 
-	const Vehicle      *m_veh;           ///< moving vehicle
-	Owner               m_veh_owner;     ///< owner of the vehicle
 	PFPos               m_old;           ///< the origin (vehicle moved from) before move
 	PFNewPos            m_new;           ///< the new tile (the vehicle has entered)
 	DiagDirection       m_exitdir;       ///< exit direction (leaving the old tile)
 	TileFlag            m_flag;          ///< last turn passed station, tunnel or bridge
 	int                 m_tiles_skipped; ///< number of skipped tunnel or station tiles
 	ErrorCode           m_err;
-	CPerformanceTimer  *m_pPerf;
-	RailTypes           m_railtypes;
 	bool                m_allow_90deg;
-	bool                m_mask_reserved;
 };
 
 
@@ -75,31 +70,24 @@ struct CFollowTrackRailBase : CFollowTrackBase
 
 	static const TransportType transport_type = TRANSPORT_RAIL;
 
+	const Owner               m_veh_owner;     ///< owner of the vehicle
+	const RailTypes           m_railtypes;
+	const bool                m_mask_reserved;
+	CPerformanceTimer  *const m_pPerf;
+
 	inline CFollowTrackRailBase(const Train *v, bool allow_90deg = true, bool mask_reserved = false, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
+		: m_veh_owner(v->owner), m_railtypes(railtype_override == INVALID_RAILTYPES ? v->compatible_railtypes : railtype_override), m_mask_reserved(mask_reserved), m_pPerf(pPerf)
 	{
 		assert(v != NULL);
-		if (railtype_override == INVALID_RAILTYPES) {
-			railtype_override = v->compatible_railtypes;
-			assert(railtype_override != INVALID_RAILTYPES);
-		}
-
-		m_veh = v;
-		m_veh_owner = v->owner;
-		m_pPerf = pPerf;
-		m_railtypes = railtype_override;
+		assert(m_railtypes != INVALID_RAILTYPES);
 		m_allow_90deg = allow_90deg;
-		m_mask_reserved = mask_reserved;
 	}
 
 	inline CFollowTrackRailBase(Owner o, bool allow_90deg = true, bool mask_reserved = false, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
+		: m_veh_owner(o), m_railtypes(railtype_override), m_mask_reserved(mask_reserved), m_pPerf(pPerf)
 	{
 		assert(railtype_override != INVALID_RAILTYPES);
-		m_veh = NULL;
-		m_veh_owner = o;
-		m_pPerf = pPerf;
-		m_railtypes = railtype_override;
 		m_allow_90deg = allow_90deg;
-		m_mask_reserved = mask_reserved;
 	}
 
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
@@ -127,16 +115,17 @@ struct CFollowTrackRailBase : CFollowTrackBase
 	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
 	inline bool CheckNewTile()
 	{
-		{
-			CPerfStart perf(*m_pPerf);
-			if (IsNormalRailTile(m_new.tile)) {
-				m_new.trackdirs = TrackBitsToTrackdirBits(GetTrackBits(m_new.tile));
-			} else {
-				m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
-			}
+		CPerfStart perf(*m_pPerf);
 
-			if (m_new.trackdirs == TRACKDIR_BIT_NONE) return false;
+		if (IsNormalRailTile(m_new.tile)) {
+			m_new.trackdirs = TrackBitsToTrackdirBits(GetTrackBits(m_new.tile));
+		} else {
+			m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
 		}
+
+		if (m_new.trackdirs == TRACKDIR_BIT_NONE) return false;
+
+		perf.Stop();
 
 		if (IsRailDepotTile(m_new.tile)) {
 			DiagDirection exitdir = GetGroundDepotDirection(m_new.tile);
@@ -312,15 +301,13 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 
 	static const TransportType transport_type = TRANSPORT_ROAD;
 
+	const Vehicle *const m_veh;     ///< moving vehicle
+
 	inline CFollowTrackRoadBase(const RoadVehicle *v, bool allow_90deg = true, bool mask_reserved = false)
+		: m_veh(v)
 	{
 		assert(v != NULL);
-		m_veh = v;
-		m_veh_owner = v->owner;
-		m_pPerf = NULL;
-		m_railtypes = INVALID_RAILTYPES;
 		m_allow_90deg = allow_90deg;
-		m_mask_reserved = mask_reserved;
 	}
 
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
@@ -389,24 +376,20 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
 	inline bool CheckNewTile()
 	{
-		{
-			CPerfStart perf(*m_pPerf);
+		m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
 
-			m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
+		if (m_new.trackdirs == TRACKDIR_BIT_NONE) {
+			if (!IsTram()) return false;
 
-			if (m_new.trackdirs == TRACKDIR_BIT_NONE) {
-				if (!IsTram()) return false;
-
-				/* GetTileRoadStatus() returns 0 for single tram bits.
-				 * As we cannot change it there (easily) without breaking something, change it here */
-				DiagDirection single_tram = GetSingleTramBit(m_new.tile);
-				if (single_tram == ReverseDiagDir(m_exitdir)) {
-					m_new.trackdirs = DiagDirToAxis(single_tram) == AXIS_X ? TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW : TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE;
-					return true;
-				} else {
-					m_err = EC_NO_WAY;
-					return false;
-				}
+			/* GetTileRoadStatus() returns 0 for single tram bits.
+			 * As we cannot change it there (easily) without breaking something, change it here */
+			DiagDirection single_tram = GetSingleTramBit(m_new.tile);
+			if (single_tram == ReverseDiagDir(m_exitdir)) {
+				m_new.trackdirs = DiagDirToAxis(single_tram) == AXIS_X ? TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW : TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE;
+				return true;
+			} else {
+				m_err = EC_NO_WAY;
+				return false;
 			}
 		}
 
@@ -427,7 +410,7 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 				return false;
 			}
 			/* don't try to enter other company's depots */
-			if (GetTileOwner(m_new.tile) != m_veh_owner) {
+			if (GetTileOwner(m_new.tile) != m_veh->owner) {
 				m_err = EC_OWNER;
 				return false;
 			}
@@ -512,12 +495,7 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 
 	inline CFollowTrackWaterBase(const Ship *v = NULL, bool allow_90deg = true, bool mask_reserved = false)
 	{
-		m_veh = v;
-		m_veh_owner = v != NULL ? v->owner : INVALID_OWNER;
-		m_pPerf = NULL;
-		m_railtypes = INVALID_RAILTYPES;
 		m_allow_90deg = allow_90deg;
-		m_mask_reserved = mask_reserved;
 	}
 
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
@@ -536,13 +514,9 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
 	inline bool CheckNewTile()
 	{
-		{
-			CPerfStart perf(*m_pPerf);
+		m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
 
-			m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
-
-			if (m_new.trackdirs == TRACKDIR_BIT_NONE) return false;
-		}
+		if (m_new.trackdirs == TRACKDIR_BIT_NONE) return false;
 
 		/* tunnel holes and bridge ramps can be entered only from proper direction */
 		if (IsAqueductTile(m_new.tile)) {
