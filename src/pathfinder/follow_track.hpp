@@ -292,6 +292,22 @@ struct CFollowTrackRailBase : CFollowTrackBase
 	}
 };
 
+template <bool mask_reserved>
+struct CFollowTrackRailBaseT : CFollowTrackRailBase
+{
+	inline CFollowTrackRailBaseT(const Train *v, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
+		: CFollowTrackRailBase(v, allow_90deg, mask_reserved, railtype_override, pPerf)
+	{
+	}
+
+	inline CFollowTrackRailBaseT(Owner o, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
+		: CFollowTrackRailBase(o, allow_90deg, mask_reserved, railtype_override, pPerf)
+	{
+	}
+
+	inline static bool DoTrackMasking() { return mask_reserved; }
+};
+
 /**
  * Track follower road base class
  */
@@ -303,7 +319,7 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 
 	const Vehicle *const m_veh;     ///< moving vehicle
 
-	inline CFollowTrackRoadBase(const RoadVehicle *v, bool allow_90deg = true, bool mask_reserved = false)
+	inline CFollowTrackRoadBase(const RoadVehicle *v, bool allow_90deg = true)
 		: m_veh(v)
 	{
 		assert(v != NULL);
@@ -493,7 +509,7 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 
 	static const TransportType transport_type = TRANSPORT_WATER;
 
-	inline CFollowTrackWaterBase(const Ship *v = NULL, bool allow_90deg = true, bool mask_reserved = false)
+	inline CFollowTrackWaterBase(const Ship *v = NULL, bool allow_90deg = true)
 	{
 		m_allow_90deg = allow_90deg;
 	}
@@ -557,18 +573,18 @@ struct CFollowTrack : Base
 {
 	typedef typename Base::VehicleType VehicleType;
 
-	inline CFollowTrack(const VehicleType *v = NULL, bool allow_90deg = true, bool mask_reserved = false)
-		: Base(v, allow_90deg, mask_reserved)
+	inline CFollowTrack(const VehicleType *v = NULL, bool allow_90deg = true)
+		: Base(v, allow_90deg)
 	{
 	}
 
-	inline CFollowTrack(const VehicleType *v, bool allow_90deg, bool mask_reserved, RailTypes railtype_override, CPerformanceTimer *pPerf = NULL)
-		: Base(v, allow_90deg, mask_reserved, railtype_override, pPerf)
+	inline CFollowTrack(const VehicleType *v, bool allow_90deg, RailTypes railtype_override, CPerformanceTimer *pPerf = NULL)
+		: Base(v, allow_90deg, railtype_override, pPerf)
 	{
 	}
 
-	inline CFollowTrack(Owner o, bool allow_90deg = true, bool mask_reserved = false, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
-		: Base(o, allow_90deg, mask_reserved, railtype_override, pPerf)
+	inline CFollowTrack(Owner o, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
+		: Base(o, allow_90deg, railtype_override, pPerf)
 	{
 	}
 
@@ -716,23 +732,22 @@ protected:
 	}
 };
 
-template <class Base, bool T90deg_turns_allowed, bool Twormhole = false, bool Tmask_reserved_tracks = false>
+template <class Base, bool T90deg_turns_allowed, bool Twormhole = false>
 struct CFollowTrackT : CFollowTrack<Base, Twormhole>
 {
 	typedef typename Base::VehicleType VehicleType;
 
 	inline CFollowTrackT(const VehicleType *v)
-		: CFollowTrack<Base, Twormhole>(v, T90deg_turns_allowed, Tmask_reserved_tracks)
+		: CFollowTrack<Base, Twormhole>(v, T90deg_turns_allowed)
 	{
 	}
 
 	inline CFollowTrackT(const VehicleType *v, RailTypes railtype_override, CPerformanceTimer *pPerf = NULL)
-		: CFollowTrack<Base, Twormhole>(v, T90deg_turns_allowed, Tmask_reserved_tracks, railtype_override, pPerf)
+		: CFollowTrack<Base, Twormhole>(v, T90deg_turns_allowed, railtype_override, pPerf)
 	{
 	}
 
 	inline static bool Allow90degTurns() { return T90deg_turns_allowed; }
-	inline static bool DoTrackMasking() { return Tmask_reserved_tracks; }
 };
 
 typedef CFollowTrackT<CFollowTrackWaterBase, true > CFollowTrackWater90;
@@ -740,20 +755,20 @@ typedef CFollowTrackT<CFollowTrackWaterBase, false> CFollowTrackWaterNo90;
 
 typedef CFollowTrackT<CFollowTrackRoadBase, true> CFollowTrackRoad;
 
-typedef CFollowTrackT<CFollowTrackRailBase, true,  true > CFollowTrackRail90;
-typedef CFollowTrackT<CFollowTrackRailBase, false, true > CFollowTrackRailNo90;
-typedef CFollowTrackT<CFollowTrackRailBase, true,  true, true > CFollowTrackFreeRail90;
-typedef CFollowTrackT<CFollowTrackRailBase, false, true, true > CFollowTrackFreeRailNo90;
+typedef CFollowTrackT<CFollowTrackRailBaseT<false>, true,  true> CFollowTrackRail90;
+typedef CFollowTrackT<CFollowTrackRailBaseT<false>, false, true> CFollowTrackRailNo90;
+typedef CFollowTrackT<CFollowTrackRailBaseT<true>,  true,  true> CFollowTrackFreeRail90;
+typedef CFollowTrackT<CFollowTrackRailBaseT<true>,  false, true> CFollowTrackFreeRailNo90;
 
-struct CFollowTrackRail : CFollowTrack<CFollowTrackRailBase, true>
+struct CFollowTrackRail : CFollowTrack<CFollowTrackRailBaseT<false>, true>
 {
 	inline CFollowTrackRail(const Train *v = NULL, bool allow_90deg = true, bool railtype_override = false)
-		: CFollowTrack<CFollowTrackRailBase, true>(v, allow_90deg, false, railtype_override ? GetRailTypeInfo(v->railtype)->compatible_railtypes : INVALID_RAILTYPES)
+		: CFollowTrack<CFollowTrackRailBaseT<false>, true>(v, allow_90deg, railtype_override ? GetRailTypeInfo(v->railtype)->compatible_railtypes : INVALID_RAILTYPES)
 	{
 	}
 
 	inline CFollowTrackRail(Owner o, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES)
-		: CFollowTrack<CFollowTrackRailBase, true>(o, allow_90deg, false, railtype_override)
+		: CFollowTrack<CFollowTrackRailBaseT<false>, true>(o, allow_90deg, railtype_override)
 	{
 	}
 };
