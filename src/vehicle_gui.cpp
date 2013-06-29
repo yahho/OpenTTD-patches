@@ -2317,33 +2317,28 @@ static const int VV_INITIAL_VIEWPORT_WIDTH = 226;
 static const int VV_INITIAL_VIEWPORT_HEIGHT = 84;
 static const int VV_INITIAL_VIEWPORT_HEIGHT_TRAIN = 102;
 
-/** Command indices for the _vehicle_command_translation_table. */
-enum VehicleCommandTranslation {
-	VCT_CMD_START_STOP = 0,
-	VCT_CMD_CLONE_VEH,
-	VCT_CMD_TURN_AROUND,
+/** Command codes to start/stop a vehicle indexed by vehicle type. */
+static const uint32 _vehicle_command_startstop_table[4] = {
+	CMD_START_STOP_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_STOP_START_TRAIN),
+	CMD_START_STOP_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_STOP_START_ROAD_VEHICLE),
+	CMD_START_STOP_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_STOP_START_SHIP),
+	CMD_START_STOP_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_STOP_START_AIRCRAFT)
 };
 
-/** Command codes for the shared buttons indexed by VehicleCommandTranslation and vehicle type. */
-static const uint32 _vehicle_command_translation_table[][4] = {
-	{ // VCT_CMD_START_STOP
-		CMD_START_STOP_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_STOP_START_TRAIN),
-		CMD_START_STOP_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_STOP_START_ROAD_VEHICLE),
-		CMD_START_STOP_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_STOP_START_SHIP),
-		CMD_START_STOP_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_STOP_START_AIRCRAFT)
-	},
-	{ // VCT_CMD_CLONE_VEH
-		CMD_CLONE_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_BUY_TRAIN),
-		CMD_CLONE_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_BUY_ROAD_VEHICLE),
-		CMD_CLONE_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_BUY_SHIP),
-		CMD_CLONE_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_BUY_AIRCRAFT)
-	},
-	{ // VCT_CMD_TURN_AROUND
-		CMD_REVERSE_TRAIN_DIRECTION | CMD_MSG(STR_ERROR_CAN_T_REVERSE_DIRECTION_TRAIN),
-		CMD_TURN_ROADVEH            | CMD_MSG(STR_ERROR_CAN_T_MAKE_ROAD_VEHICLE_TURN),
-		0xffffffff, // invalid for ships
-		0xffffffff  // invalid for aircrafts
-	},
+/** Command codes to clone a vehicle indexed by vehicle type. */
+static const uint32 _vehicle_command_clone_table[4] = {
+	CMD_CLONE_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_BUY_TRAIN),
+	CMD_CLONE_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_BUY_ROAD_VEHICLE),
+	CMD_CLONE_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_BUY_SHIP),
+	CMD_CLONE_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_BUY_AIRCRAFT)
+};
+
+/** Command codes to turn a vehicle around indexed by vehicle type. */
+static const uint32 _vehicle_command_turn_table[4] = {
+	CMD_REVERSE_TRAIN_DIRECTION | CMD_MSG(STR_ERROR_CAN_T_REVERSE_DIRECTION_TRAIN),
+	CMD_TURN_ROADVEH            | CMD_MSG(STR_ERROR_CAN_T_MAKE_ROAD_VEHICLE_TURN),
+	0xffffffff, // invalid for ships
+	0xffffffff  // invalid for aircrafts
 };
 
 /**
@@ -2373,7 +2368,7 @@ void CcStartStopVehicle(const CommandCost &result, TileIndex tile, uint32 p1, ui
 void StartStopVehicle(const Vehicle *v, bool texteffect)
 {
 	assert(v->IsPrimaryVehicle());
-	DoCommandP(v->tile, v->index, 0, _vehicle_command_translation_table[VCT_CMD_START_STOP][v->type], texteffect ? CcStartStopVehicle : NULL);
+	DoCommandP(v->tile, v->index, 0, _vehicle_command_startstop_table[v->type], texteffect ? CcStartStopVehicle : NULL);
 }
 
 /** Checks whether the vehicle may be refitted at the moment.*/
@@ -2682,13 +2677,13 @@ public:
 				 * For starting the vehicle the player has to open the depot GUI, which is
 				 * most likely already open, but is also visible in the vehicle viewport. */
 				DoCommandP(v->tile, v->index, _ctrl_pressed ? 1 : 0,
-										_vehicle_command_translation_table[VCT_CMD_CLONE_VEH][v->type],
+										_vehicle_command_clone_table[v->type],
 										_ctrl_pressed ? NULL : CcCloneVehicle);
 				break;
 			case WID_VV_TURN_AROUND: // turn around
 				assert(v->IsGroundVehicle());
 				DoCommandP(v->tile, v->index, 0,
-										_vehicle_command_translation_table[VCT_CMD_TURN_AROUND][v->type]);
+										_vehicle_command_turn_table[v->type]);
 				break;
 			case WID_VV_FORCE_PROCEED: // force proceed
 				assert(v->type == VEH_TRAIN);
