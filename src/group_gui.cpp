@@ -838,6 +838,16 @@ static inline VehicleGroupWindow *FindVehicleGroupWindow(VehicleType vt, Owner o
 }
 
 /**
+ * Opens a 'Rename group' window for a newly created group
+ * @param type the vehicle type to open the window for
+ */
+static void ShowRenameNewGroupWindow(VehicleType type)
+{
+	VehicleGroupWindow *w = FindVehicleGroupWindow(type, _current_company);
+	if (w != NULL) w->ShowRenameGroupWindow(_new_group_id, true);
+}
+
+/**
  * Opens a 'Rename group' window for newly created group
  * @param success did command succeed?
  * @param tile unused
@@ -850,8 +860,7 @@ void CcCreateGroup(const CommandCost &result, TileIndex tile, uint32 p1, uint32 
 	if (result.Failed()) return;
 	assert(p1 <= VEH_AIRCRAFT);
 
-	VehicleGroupWindow *w = FindVehicleGroupWindow((VehicleType)p1, _current_company);
-	if (w != NULL) w->ShowRenameGroupWindow(_new_group_id, true);
+	ShowRenameNewGroupWindow((VehicleType)p1);
 }
 
 /**
@@ -866,7 +875,7 @@ void CcAddVehicleNewGroup(const CommandCost &result, TileIndex tile, uint32 p1, 
 	if (result.Failed()) return;
 	assert(Vehicle::IsValidID(GB(p2, 0, 20)));
 
-	CcCreateGroup(result, 0, Vehicle::Get(GB(p2, 0, 20))->type, 0);
+	ShowRenameNewGroupWindow(Vehicle::Get(GB(p2, 0, 20))->type);
 }
 
 /**
