@@ -93,15 +93,6 @@ void CcPlaySound1E(const CommandCost &result, TileIndex tile, uint32 p1, uint32 
 	if (result.Succeeded() && _settings_client.sound.confirm) SndPlayTileFx(SND_20_SPLAT_2, tile);
 }
 
-static void GenericPlaceRail(TileIndex tile, int cmd)
-{
-	DoCommandP(tile, _cur_railtype, cmd,
-			_remove_button_clicked ?
-			CMD_REMOVE_SINGLE_RAIL | CMD_MSG(STR_ERROR_CAN_T_REMOVE_RAILROAD_TRACK) :
-			CMD_BUILD_SINGLE_RAIL | CMD_MSG(STR_ERROR_CAN_T_BUILD_RAILROAD_TRACK),
-			CcPlaySound1E);
-}
-
 /**
  * Try to add an additional rail-track at the entrance of a depot
  * @param tile  Tile to use for adding the rail-track
@@ -364,7 +355,11 @@ static void HandleAutodirPlacement()
 	int trackstat = _thd.drawstyle & HT_DIR_MASK; // 0..5
 
 	if (_thd.drawstyle & HT_RAIL) { // one tile case
-		GenericPlaceRail(TileVirtXY(_thd.selend.x, _thd.selend.y), trackstat);
+		DoCommandP(TileVirtXY(_thd.selend.x, _thd.selend.y), _cur_railtype, trackstat,
+				_remove_button_clicked ?
+				CMD_REMOVE_SINGLE_RAIL | CMD_MSG(STR_ERROR_CAN_T_REMOVE_RAILROAD_TRACK) :
+				CMD_BUILD_SINGLE_RAIL | CMD_MSG(STR_ERROR_CAN_T_BUILD_RAILROAD_TRACK),
+				CcPlaySound1E);
 		return;
 	}
 
