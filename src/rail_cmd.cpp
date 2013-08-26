@@ -1269,14 +1269,12 @@ CommandCost CmdBuildTrainDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, u
  * @param flags operation to perform
  * @param p1 various bitstuffed elements
  * - p1 = (bit 0-2) - track-orientation, valid values: 0-5 (Track enum)
- * - p1 = (bit 3)   - 1 = pre/exit/combo signal or (for bit 7) toggle variant (CTRL-toggle)
  * - p1 = (bit 4)   - 0 = signals, 1 = semaphores
  * - p1 = (bit 5-7) - type of the signal, for valid values see enum SignalType in signal_type.h
- * - p1 = (bit 8)   - convert the present signal type and variant
  * - p1 = (bit 9-11)- start cycle from this signal type
  * - p1 = (bit 12-14)-wrap around after this signal type
  * - p1 = (bit 15-16)-cycle the signal direction this many times
- * - p1 = (bit 17)  - 1 = don't modify an existing signal but don't fail either, 0 = always set new signal type
+ * - p1 = (bit 17-19)-operation mode (BuildSignalMode)
  * @param p2 used for CmdBuildManySignals() to copy direction of first signal
  * @param text unused
  * @return the cost of this operation or an error
@@ -1285,13 +1283,12 @@ CommandCost CmdBuildTrainDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
 {
 	Track track = Extract<Track, 0, 3>(p1);
-	bool ctrl_pressed = HasBit(p1, 3); // was the CTRL button pressed
 	SignalVariant sigvar = HasBit(p1, 4) ? SIG_SEMAPHORE : SIG_ELECTRIC; // the signal variant of the new signal
 	SignalType sigtype = Extract<SignalType, 5, 3>(p1); // the signal type of the new signal
-	bool convert_signal = HasBit(p1, 8); // convert button pressed
 	SignalType cycle_start = Extract<SignalType, 9, 3>(p1);
 	SignalType cycle_stop = Extract<SignalType, 12, 3>(p1);
 	uint num_dir_cycle = GB(p1, 15, 2);
+	BuildSignalMode mode = (BuildSignalMode) GB(p1, 17, 3);
 
 	if (sigtype > SIGTYPE_LAST) return CMD_ERROR;
 	if (cycle_start > cycle_stop || cycle_stop > SIGTYPE_LAST) return CMD_ERROR;
@@ -1310,35 +1307,35 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 	/* See if this is a valid track combination for signals (no overlap) */
 	if (TracksOverlap(GetTrackBits(tile))) return_cmd_error(STR_ERROR_NO_SUITABLE_RAILROAD_TRACK);
 
-	/* In case we don't want to change an existing signal, return without error. */
-	if (HasBit(p1, 17) && HasSignalOnTrack(tile, track)) return CommandCost();
-
-	/* you can not convert a signal if no signal is on track */
-	if (convert_signal && !HasSignalOnTrack(tile, track)) return_cmd_error(STR_ERROR_THERE_ARE_NO_SIGNALS);
-
 	CommandCost cost;
-	if (!HasSignalOnTrack(tile, track)) {
-		/* build new signals */
-		cost = CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_SIGNALS]);
-	} else {
-		if (p2 != 0 && sigvar != GetSignalVariant(tile, track)) {
-			/* convert signals <-> semaphores */
-			cost = CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_SIGNALS] + _price[PR_CLEAR_SIGNALS]);
+	if (HasSignalOnTrack(tile, track)) {
+		switch (mode) {
+			/* In case we don't want to change an existing signal, return without error. */
+			case SIGNALS_COPY_SOFT: return CommandCost();
 
-		} else if (convert_signal) {
-			/* convert button pressed */
-			if (ctrl_pressed || GetSignalVariant(tile, track) != sigvar) {
+			case SIGNALS_TOGGLE_VARIANT:
 				/* convert electric <-> semaphore */
 				cost = CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_SIGNALS] + _price[PR_CLEAR_SIGNALS]);
-			} else {
+				break;
+
+			case SIGNALS_COPY:
+			case SIGNALS_CONVERT:
+				if (sigvar != GetSignalVariant(tile, track)) {
+					/* convert signals <-> semaphores */
+					cost = CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_SIGNALS] + _price[PR_CLEAR_SIGNALS]);
+					break;
+				}
+				/* fall through */
+			default:
 				/* it is free to change signal type: normal-pre-exit-combo */
 				cost = CommandCost();
-			}
-
-		} else {
-			/* it is free to change orientation/pre-exit-combo signals */
-			cost = CommandCost();
 		}
+	} else {
+		/* you can not convert a signal if no signal is on track */
+		if (mode == SIGNALS_CONVERT || mode == SIGNALS_TOGGLE_VARIANT) return_cmd_error(STR_ERROR_THERE_ARE_NO_SIGNALS);
+
+		/* build new signals */
+		cost = CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_SIGNALS]);
 	}
 
 	if (flags & DC_EXEC) {
@@ -1354,7 +1351,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 		/* Subtract old signal infrastructure count. */
 		Company::Get(GetTileOwner(tile))->infrastructure.signal -= CountBits(GetPresentSignals(tile, track));
 
-		if (p2 != 0) {
+		if (mode == SIGNALS_COPY || mode == SIGNALS_COPY_SOFT) {
 			if (!HasSignalOnTrack(tile, track)) {
 				/* there are no signals at all on this track yet */
 				SetSignalStates(tile, track, 3);
@@ -1374,22 +1371,19 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 			SetSignalType(tile, track, sigtype);
 			SetSignalStates(tile, track, 3);
 			SetSignalVariant(tile, track, sigvar);
-		} else if (convert_signal) {
-			/* convert signal button pressed */
-			if (ctrl_pressed) {
-				/* toggle the present signal variant: SIG_ELECTRIC <-> SIG_SEMAPHORE */
-				SetSignalVariant(tile, track, (GetSignalVariant(tile, track) == SIG_ELECTRIC) ? SIG_SEMAPHORE : SIG_ELECTRIC);
-				/* Query current signal type so the check for PBS signals below works. */
-				sigtype = GetSignalType(tile, track);
-			} else {
-				/* convert the present signal to the chosen type and variant */
-				SetSignalType(tile, track, sigtype);
-				SetSignalVariant(tile, track, sigvar);
-				if (IsPbsSignal(sigtype) && (GetPresentSignals(tile, track) == 3)) {
-					SetPresentSignals(tile, track, 1);
-				}
+		} else if (mode == SIGNALS_TOGGLE_VARIANT) {
+			/* toggle the present signal variant: SIG_ELECTRIC <-> SIG_SEMAPHORE */
+			SetSignalVariant(tile, track, (GetSignalVariant(tile, track) == SIG_ELECTRIC) ? SIG_SEMAPHORE : SIG_ELECTRIC);
+			/* Query current signal type so the check for PBS signals below works. */
+			sigtype = GetSignalType(tile, track);
+		} else if (mode == SIGNALS_CONVERT) {
+			/* convert the present signal to the chosen type and variant */
+			SetSignalType(tile, track, sigtype);
+			SetSignalVariant(tile, track, sigvar);
+			if (IsPbsSignal(sigtype) && (GetPresentSignals(tile, track) == 3)) {
+				SetPresentSignals(tile, track, 1);
 			}
-		} else if (ctrl_pressed) {
+		} else if (mode == SIGNALS_CYCLE_TYPE) {
 			/* cycle between cycle_start and cycle_end */
 			sigtype = (SignalType)(GetSignalType(tile, track) + 1);
 
@@ -1582,10 +1576,9 @@ static CommandCost CmdSignalTrackHelper(TileIndex tile, DoCommandFlag flags, uin
 		/* only build/remove signals with the specified density */
 		if (remove || minimise_gaps || signal_ctr % signal_density == 0) {
 			uint32 p1 = GB(TrackdirToTrack(trackdir), 0, 3);
-			SB(p1, 3, 1, 0);
 			SB(p1, 4, 1, semaphores);
 			SB(p1, 5, 3, sigtype);
-			if (!remove && signal_ctr == 0) SetBit(p1, 17);
+			SB(p1, 17, 3, !remove && signal_ctr == 0 ? SIGNALS_COPY_SOFT : SIGNALS_COPY);
 
 			/* Pick the correct orientation for the track direction */
 			byte signals = signals_ref;
@@ -1605,7 +1598,7 @@ static CommandCost CmdSignalTrackHelper(TileIndex tile, DoCommandFlag flags, uin
 			} else if (!test_only && last_suitable_tile != INVALID_TILE) {
 				/* If a signal can't be placed, place it at the last possible position. */
 				SB(p1, 0, 3, TrackdirToTrack(last_suitable_trackdir));
-				ClrBit(p1, 17);
+				SB(p1, 17, 3, SIGNALS_COPY);
 
 				/* Pick the correct orientation for the track direction. */
 				signals = signals_ref;

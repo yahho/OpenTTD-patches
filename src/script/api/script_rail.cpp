@@ -461,6 +461,7 @@ static bool IsValidSignalType(int signal_type)
 		p1 |= (signal_cycles << 15);
 	}
 	p1 |= ((signal >= SIGNALTYPE_TWOWAY ? signal ^ SIGNALTYPE_TWOWAY : signal) << 5);
+	p1 |= (SIGNALS_BUILD << 17);
 
 	return ScriptObject::DoCommand(tile, p1, 0, CMD_BUILD_SIGNALS);
 }

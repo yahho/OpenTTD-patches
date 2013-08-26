@@ -59,4 +59,14 @@ enum RailTypes {
 };
 DECLARE_ENUM_AS_BIT_SET(RailTypes)
 
+/** Operation modes of CmdBuildSingleSignal */
+enum BuildSignalMode {
+	SIGNALS_BUILD,          ///< build signals
+	SIGNALS_CYCLE_TYPE,     ///< cycle the signal type
+	SIGNALS_COPY,           ///< copy signals
+	SIGNALS_COPY_SOFT,      ///< copy signals, but do nothing if there is already a signal
+	SIGNALS_CONVERT,        ///< convert signals
+	SIGNALS_TOGGLE_VARIANT, ///< only toggle the signal variant
+};
+
 #endif /* RAIL_TYPE_H */
