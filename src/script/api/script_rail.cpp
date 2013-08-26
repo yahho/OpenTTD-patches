@@ -458,12 +458,15 @@ static bool IsValidSignalType(int signal_type)
 	uint p1 = track;
 	if (signal < SIGNALTYPE_TWOWAY) {
 		if (signal != SIGNALTYPE_PBS && signal != SIGNALTYPE_PBS_ONEWAY) signal_cycles++;
-		p1 |= (signal_cycles << 15);
 	}
-	p1 |= ((signal >= SIGNALTYPE_TWOWAY ? signal ^ SIGNALTYPE_TWOWAY : signal) << 5);
-	p1 |= (SIGNALS_BUILD << 17);
+	::SignalType sigtype = (::SignalType)(signal >= SIGNALTYPE_TWOWAY ? signal ^ SIGNALTYPE_TWOWAY : signal);
+	p1 |= (sigtype << 5);
+	p1 |= (SIGNALS_COPY << 17);
 
-	return ScriptObject::DoCommand(tile, p1, 0, CMD_BUILD_SIGNALS);
+	uint p2 = IsPbsSignal(sigtype) ?
+		1 + (signal_cycles & 1) : 3 - (signal_cycles % 3);
+
+	return ScriptObject::DoCommand(tile, p1, p2, CMD_BUILD_SIGNALS);
 }
 
 /* static */ bool ScriptRail::RemoveSignal(TileIndex tile, TileIndex front)

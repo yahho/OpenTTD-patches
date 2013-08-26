@@ -1273,7 +1273,6 @@ CommandCost CmdBuildTrainDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, u
  * - p1 = (bit 5-7) - type of the signal, for valid values see enum SignalType in signal_type.h
  * - p1 = (bit 9-11)- start cycle from this signal type
  * - p1 = (bit 12-14)-wrap around after this signal type
- * - p1 = (bit 15-16)-cycle the signal direction this many times
  * - p1 = (bit 17-19)-operation mode (BuildSignalMode)
  * @param p2 used for CmdBuildManySignals() to copy direction of first signal
  * @param text unused
@@ -1287,7 +1286,6 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 	SignalType sigtype = Extract<SignalType, 5, 3>(p1); // the signal type of the new signal
 	SignalType cycle_start = Extract<SignalType, 9, 3>(p1);
 	SignalType cycle_stop = Extract<SignalType, 12, 3>(p1);
-	uint num_dir_cycle = GB(p1, 15, 2);
 	BuildSignalMode mode = (BuildSignalMode) GB(p1, 17, 3);
 
 	if (sigtype > SIGTYPE_LAST) return CMD_ERROR;
@@ -1364,10 +1362,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 			SetSignalType(tile, track, sigtype);
 		} else if (!HasSignalOnTrack(tile, track)) {
 			/* build new signals */
-			byte present = IsPbsSignal(sigtype) ?
-				1 + (num_dir_cycle & 1) :
-				3 - (num_dir_cycle % 3);
-			SetPresentSignals(tile, track, present);
+			SetPresentSignals(tile, track, IsPbsSignal(sigtype) ? 1 : 3);
 			SetSignalType(tile, track, sigtype);
 			SetSignalStates(tile, track, 3);
 			SetSignalVariant(tile, track, sigvar);
