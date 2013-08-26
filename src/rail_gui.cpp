@@ -93,37 +93,20 @@ void CcPlaySound1E(const CommandCost &result, TileIndex tile, uint32 p1, uint32 
 	if (result.Succeeded() && _settings_client.sound.confirm) SndPlayTileFx(SND_20_SPLAT_2, tile);
 }
 
-/**
- * Try to add an additional rail-track at the entrance of a depot
- * @param tile  Tile to use for adding the rail-track
- * @param dir   Direction to check for already present tracks
- * @param track Track to add
- * @see CcRailDepot()
- */
-static void PlaceExtraDepotRail(TileIndex tile, DiagDirection dir, Track track)
-{
-	if (HasSignalOnTrack(tile, TRACK_UPPER) || HasSignalOnTrack(tile, TRACK_LOWER)) return;
-	if ((GetTrackBits(tile) & DiagdirReachesTracks(dir)) == 0) return;
-
-	DoCommandP(tile, _cur_railtype, track, CMD_BUILD_SINGLE_RAIL);
-}
-
-/** Additional pieces of track to add at the entrance of a depot. */
-static const Track _place_depot_extra_track[12] = {
-	TRACK_LEFT,  TRACK_UPPER, TRACK_UPPER, TRACK_RIGHT, // First additional track for directions 0..3
-	TRACK_X,     TRACK_Y,     TRACK_X,     TRACK_Y,     // Second additional track
-	TRACK_LOWER, TRACK_LEFT,  TRACK_RIGHT, TRACK_LOWER, // Third additional track
-};
-
-/** Direction to check for existing track pieces. */
-static const DiagDirection _place_depot_extra_dir[12] = {
-	DIAGDIR_SE, DIAGDIR_SW, DIAGDIR_SE, DIAGDIR_SW,
-	DIAGDIR_SW, DIAGDIR_NW, DIAGDIR_NE, DIAGDIR_SE,
-	DIAGDIR_NW, DIAGDIR_NE, DIAGDIR_NW, DIAGDIR_NE,
-};
-
 void CcRailDepot(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 {
+	struct PlaceDepotExtraData {
+		DiagDirection dir;   ///< direction to check
+		Track         track; ///< track to build
+	};
+
+	static const PlaceDepotExtraData place_depot_extra_data[4][3] = {
+		{ {DIAGDIR_SE, TRACK_LEFT }, {DIAGDIR_SW, TRACK_X}, {DIAGDIR_NW, TRACK_LOWER} },
+		{ {DIAGDIR_SW, TRACK_UPPER}, {DIAGDIR_NW, TRACK_Y}, {DIAGDIR_NE, TRACK_LEFT } },
+		{ {DIAGDIR_SE, TRACK_UPPER}, {DIAGDIR_NE, TRACK_X}, {DIAGDIR_NW, TRACK_RIGHT} },
+		{ {DIAGDIR_SW, TRACK_RIGHT}, {DIAGDIR_SE, TRACK_Y}, {DIAGDIR_NW, TRACK_LOWER} },
+	};
+
 	if (result.Failed()) return;
 
 	DiagDirection dir = (DiagDirection)p2;
@@ -133,10 +116,12 @@ void CcRailDepot(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
 
 	tile += TileOffsByDiagDir(dir);
 
-	if (IsNormalRailTile(tile)) {
-		PlaceExtraDepotRail(tile, _place_depot_extra_dir[dir], _place_depot_extra_track[dir]);
-		PlaceExtraDepotRail(tile, _place_depot_extra_dir[dir + 4], _place_depot_extra_track[dir + 4]);
-		PlaceExtraDepotRail(tile, _place_depot_extra_dir[dir + 8], _place_depot_extra_track[dir + 8]);
+	if (IsNormalRailTile(tile) && !HasSignalOnTrack(tile, TRACK_UPPER) && !HasSignalOnTrack(tile, TRACK_LOWER)) {
+		for (int i = 0; i < 3; i++) {
+			if ((GetTrackBits(tile) & DiagdirReachesTracks(place_depot_extra_data[dir][i].dir)) != TRACK_BIT_NONE) {
+				DoCommandP(tile, _cur_railtype, place_depot_extra_data[dir][i].track, CMD_BUILD_SINGLE_RAIL);
+			}
+		}
 	}
 }
 
