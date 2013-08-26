@@ -1496,7 +1496,6 @@ static bool CheckSignalAutoFill(TileIndex &tile, Trackdir &trackdir, int &signal
  * @param p1  end tile of drag
  * @param p2 various bitstuffed elements
  * - p2 = (bit  0- 2) - track-orientation, valid values: 0-5 (Track enum)
- * - p2 = (bit  3)    - 1 = override signal/semaphore, or pre/exit/combo signal (CTRL-toggle)
  * - p2 = (bit  4)    - 0 = signals, 1 = semaphores
  * - p2 = (bit  5)    - 0 = build, 1 = remove signals
  * - p2 = (bit  6)    - 0 = selected stretch, 1 = auto fill
@@ -1512,7 +1511,6 @@ static CommandCost CmdSignalTrackHelper(TileIndex tile, DoCommandFlag flags, uin
 	TileIndex start_tile = tile;
 
 	Track track = Extract<Track, 0, 3>(p2);
-	bool mode = HasBit(p2, 3);
 	bool semaphores = HasBit(p2, 4);
 	bool remove = HasBit(p2, 5);
 	bool autofill = HasBit(p2, 6);
@@ -1584,8 +1582,8 @@ static CommandCost CmdSignalTrackHelper(TileIndex tile, DoCommandFlag flags, uin
 		/* only build/remove signals with the specified density */
 		if (remove || minimise_gaps || signal_ctr % signal_density == 0) {
 			uint32 p1 = GB(TrackdirToTrack(trackdir), 0, 3);
-			SB(p1, 3, 1, mode);
-			SB(p1, 4, 1, semaphores ^ mode);
+			SB(p1, 3, 1, 0);
+			SB(p1, 4, 1, semaphores);
 			SB(p1, 5, 3, sigtype);
 			if (!remove && signal_ctr == 0) SetBit(p1, 17);
 
