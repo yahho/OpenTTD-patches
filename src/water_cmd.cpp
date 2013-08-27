@@ -241,13 +241,18 @@ static CommandCost RemoveShipDepot(TileIndex tile, DoCommandFlag flags)
 
 /**
  * Builds a lock.
- * @param tile Central tile of the lock.
- * @param dir Uphill direction.
- * @param flags Operation to perform.
- * @return The cost in case of success, or an error code if it failed.
+ * @param tile tile where to place the lock
+ * @param flags type of operation
+ * @param p1 unused
+ * @param p2 unused
+ * @param text unused
+ * @return the cost of this operation or an error
  */
-static CommandCost DoBuildLock(TileIndex tile, DiagDirection dir, DoCommandFlag flags)
+CommandCost CmdBuildLock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
 {
+	DiagDirection dir = GetInclinedSlopeDirection(GetTileSlope(tile));
+	if (dir == INVALID_DIAGDIR) return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
+
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 
 	int delta = TileOffsByDiagDir(dir);
@@ -358,23 +363,6 @@ static CommandCost RemoveLock(TileIndex tile, DoCommandFlag flags)
 	}
 
 	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_LOCK]);
-}
-
-/**
- * Builds a lock.
- * @param tile tile where to place the lock
- * @param flags type of operation
- * @param p1 unused
- * @param p2 unused
- * @param text unused
- * @return the cost of this operation or an error
- */
-CommandCost CmdBuildLock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
-{
-	DiagDirection dir = GetInclinedSlopeDirection(GetTileSlope(tile));
-	if (dir == INVALID_DIAGDIR) return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
-
-	return DoBuildLock(tile, dir, flags);
 }
 
 /** Callback to create non-desert around a river tile. */
