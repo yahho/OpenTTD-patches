@@ -267,18 +267,12 @@ Group::~Group()
 
 /**
  * Create a new vehicle group.
- * @param tile unused
+ * @param vt vehicle type
  * @param flags type of operation
- * @param p1   vehicle type
- * @param p2   unused
- * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdCreateGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+static CommandCost CreateNewGroup (VehicleType vt, DoCommandFlag flags)
 {
-	VehicleType vt = Extract<VehicleType, 0, 3>(p1);
-	if (!IsCompanyBuildableVehicleType(vt)) return CMD_ERROR;
-
 	if (!Group::CanAllocateItem()) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
@@ -292,6 +286,23 @@ CommandCost CmdCreateGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 	}
 
 	return CommandCost();
+}
+
+/**
+ * Create a new vehicle group.
+ * @param tile unused
+ * @param flags type of operation
+ * @param p1   vehicle type
+ * @param p2   unused
+ * @param text unused
+ * @return the cost of this operation or an error
+ */
+CommandCost CmdCreateGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+{
+	VehicleType vt = Extract<VehicleType, 0, 3>(p1);
+	if (!IsCompanyBuildableVehicleType(vt)) return CMD_ERROR;
+
+	return CreateNewGroup (vt, flags);
 }
 
 
@@ -441,7 +452,7 @@ CommandCost CmdAddVehicleGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 
 	if (new_g == NEW_GROUP) {
 		/* Create new group. */
-		CommandCost ret = CmdCreateGroup(0, flags, v->type, 0, NULL);
+		CommandCost ret = CreateNewGroup (v->type, flags);
 		if (ret.Failed()) return ret;
 
 		new_g = _new_group_id;
