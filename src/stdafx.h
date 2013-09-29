@@ -152,8 +152,12 @@
 	#define WARN_FORMAT(string, args) __attribute__ ((format (printf, string, args)))
 	#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 7)
 		#define FINAL final
+		#define OVERRIDE override
+		#define FINAL_OVERRIDE final override
 	#else
 		#define FINAL
+		#define OVERRIDE
+		#define FINAL_OVERRIDE
 	#endif
 #endif /* __GNUC__ */
 
@@ -163,6 +167,8 @@
 	#define GCC_PACK
 	#define WARN_FORMAT(string, args)
 	#define FINAL
+	#define OVERRIDE
+	#define FINAL_OVERRIDE
 	#include <malloc.h>
 #endif /* __WATCOMC__ */
 
@@ -226,6 +232,8 @@
 	#define GCC_PACK
 	#define WARN_FORMAT(string, args)
 	#define FINAL sealed
+	#define OVERRIDE
+	#define FINAL_OVERRIDE
 
 	int CDECL snprintf(char *str, size_t size, const char *format, ...) WARN_FORMAT(3, 4);
 	#if defined(WINCE)
