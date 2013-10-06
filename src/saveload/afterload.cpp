@@ -1621,11 +1621,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	}
 
 	if (IsSavegameVersionBefore(stv, 141)) {
-		for (TileIndex t = 0; t < map_size; t++) {
-			/* Reset tropic zone for VOID tiles, they shall not have any. */
-			if (IsTileType(t, MP_VOID)) SetTropicZone(t, TROPICZONE_NORMAL);
-		}
-
 		/* We need to properly number/name the depots.
 		 * The first step is making sure none of the depots uses the
 		 * 'default' names, after that we can assign the names. */

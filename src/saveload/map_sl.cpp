@@ -557,6 +557,13 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		}
 	}
 
+	/* Reset tropic zone for VOID tiles, they shall not have any. */
+	if (IsSavegameVersionBefore(stv, 141)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsTileType(t, MP_VOID)) SB(_m[t].m6, 0, 2, 0);
+		}
+	}
+
 	if (IsSavegameVersionBefore(stv, 144)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (!IsTileType(t, MP_OBJECT)) continue;
