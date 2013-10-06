@@ -143,7 +143,7 @@ static void Load_GSTR(LoadBuffer *reader)
 		gss.s = NULL;
 		reader->ReadObject(&gss, _game_language_header);
 
-		LanguageStrings *ls = new LanguageStrings(gss.s);
+		LanguageStrings *ls = new LanguageStrings(gss.s != NULL ? gss.s : "");
 		for (uint i = 0; i < gss.n; i++) {
 			reader->ReadObject(&gss, _game_language_string);
 			*ls->lines.Append() = strdup(gss.s != NULL ? gss.s : "");
