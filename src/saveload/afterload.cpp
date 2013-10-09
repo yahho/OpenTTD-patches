@@ -1186,8 +1186,8 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		/* Increase HouseAnimationFrame from 5 to 7 bits */
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsHouseTile(t) && GetHouseType(t) >= NEW_HOUSE_OFFSET) {
-				SB(_mc[t].m0, 0, 6, GB(_mc[t].m0, 1, 5));
-				SB(_mc[t].m3, 5, 1, 0);
+				SB(_mc[t].m1, 0, 6, GB(_mc[t].m1, 1, 5));
+				SB(_mc[t].m0, 5, 1, 0);
 			}
 		}
 	}
@@ -1659,9 +1659,9 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsHouseTile(t) && GetHouseType(t) >= NEW_HOUSE_OFFSET) {
 				uint per_proc = _mc[t].m7;
-				_mc[t].m7 = GB(_mc[t].m0, 0, 6) | (GB(_mc[t].m3, 5, 1) << 6);
-				SB(_mc[t].m3, 5, 1, 0);
-				SB(_mc[t].m0, 0, 6, min(per_proc, 63));
+				_mc[t].m7 = GB(_mc[t].m1, 0, 6) | (GB(_mc[t].m0, 5, 1) << 6);
+				SB(_mc[t].m0, 5, 1, 0);
+				SB(_mc[t].m1, 0, 6, min(per_proc, 63));
 			}
 		}
 	}
@@ -2111,6 +2111,15 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		_settings_game.locale.units_volume   = Clamp(_old_units, 1, 2);
 		_settings_game.locale.units_force    = 2;
 		_settings_game.locale.units_height   = Clamp(_old_units, 0, 2);
+	}
+
+	/* Rearrange lift destination bits for houses. */
+	if (IsFullSavegameVersionBefore(stv, 1)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsHouseTile(t) && GetHouseType(t) < NEW_HOUSE_OFFSET) {
+				SB(_mc[t].m7, 0, 4, GB(_mc[t].m7, 1, 3) | (GB(_mc[t].m7, 0, 1) << 3));
+			}
+		}
 	}
 
 	/* Road stops is 'only' updating some caches */

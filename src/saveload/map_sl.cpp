@@ -798,9 +798,13 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					break;
 				}
 
-				case OLD_MP_HOUSE:
-					_mc[t].m0 = GB(_mc[t].m0, 2, 6) | 0xC0;
+				case OLD_MP_HOUSE: {
+					uint random = _mc[t].m1;
+					_mc[t].m1 = GB(_mc[t].m0, 2, 6) | (_mc[t].m3 & 0xC0);
+					_mc[t].m0 = GB(_mc[t].m3, 0, 6) | 0xC0;
+					_mc[t].m3 = random;
 					break;
+				}
 
 				case OLD_MP_TREES:
 					_mc[t].m0 = TT_GROUND << 4;
