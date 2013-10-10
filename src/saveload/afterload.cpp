@@ -1289,6 +1289,9 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		}
 	}
 
+	/* Count objects, and delete stale objects in old versions. */
+	AfterLoadObjects(stv);
+
 	if (IsOTTDSavegameVersionBefore(stv, 147) && Object::GetNumItems() == 0) {
 		/* Make real objects for object tiles. */
 		for (TileIndex t = 0; t < map_size; t++) {

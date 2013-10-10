@@ -28,6 +28,7 @@ void MoveWaypointsToBaseStations(const SavegameTypeVersion *stv);
 void AfterLoadMap(const SavegameTypeVersion *stv);
 void AfterLoadVehicles(const SavegameTypeVersion *stv);
 void FixupTrainLengths();
+void AfterLoadObjects(const SavegameTypeVersion *stv);
 void AfterLoadStations();
 void AfterLoadRoadStops();
 void AfterLoadLabelMaps();
