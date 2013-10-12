@@ -27,7 +27,7 @@
 static inline ObjectID tile_get_object_index(const Tile *t)
 {
 	assert(tile_is_object(t));
-	return (ObjectID)t->m2;
+	return t->m2 | t->m5 << 16;
 }
 
 
@@ -43,10 +43,10 @@ static inline void tile_make_object(Tile *t, Owner o, ObjectID id, WaterClass wc
 {
 	tile_set_type(t, TT_OBJECT);
 	t->m1 = (wc << 5) | o;
-	t->m2 = id;
+	t->m2 = GB(id, 0, 16);
 	t->m3 = random;
 	t->m4 = 0;
-	t->m5 = 0;
+	t->m5 = GB(id, 16, 8);
 	t->m7 = 0;
 }
 

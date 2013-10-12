@@ -2178,9 +2178,9 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		/* Move ObjectType from map to pool */
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsObjectTile(t)) {
-				Object *o = Object::GetByTile(t);
+				Object *o = Object::Get(_mc[t].m2);
 				o->type = _mc[t].m5;
-				_mc[t].m5 = 0; // cleanup for next usage
+				_mc[t].m5 = 0; // zero upper bits of (now bigger) ObjectID
 			}
 		}
 	}
