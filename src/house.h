@@ -19,9 +19,11 @@
 #include "newgrf_commons.h"
 #include "map/house.h"
 
+static const HouseID NUM_HOUSES_PER_GRF = 255;    ///< Number of supported houses per NewGRF; limited to 255 to allow extending Action3 with an extended byte later on.
+
 static const uint HOUSE_NO_CLASS      = 0;
-static const HouseID NEW_HOUSE_OFFSET = 110;
-static const HouseID NUM_HOUSES       = 512;
+static const HouseID NEW_HOUSE_OFFSET = 110;    ///< Offset for new houses.
+static const HouseID NUM_HOUSES       = 512;    ///< Total number of houses.
 static const HouseID INVALID_HOUSE_ID = 0xFFFF;
 
 /**
