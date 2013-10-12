@@ -951,7 +951,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 
 	if (IsOTTDSavegameVersionBefore(stv, 52)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsStatueTile(t)) {
+			if (IsObjectTypeTile(t, OBJECT_STATUE)) {
 				_mc[t].m2 = CalcClosestTownFromTile(t)->index;
 			}
 		}

@@ -3263,7 +3263,7 @@ static void TileLoop_Track(TileIndex tile)
 			if (!IsValidTile(tile2) || IsHouseTile(tile2) || IsIndustryTile(tile2) ||
 					(IsTileType(tile2, TT_MISC) && !IsRailDepotTile(tile2)) ||
 					IsRoadTile(tile2) || (IsRailBridgeTile(tile2) && !IsExtendedRailBridge(tile2)) ||
-					(IsObjectTile(tile2) && !IsOwnedLand(tile2)) || !IsTileOwner(tile2, owner)) {
+					(IsObjectTile(tile2) && !IsObjectType(tile2, OBJECT_OWNED_LAND)) || !IsTileOwner(tile2, owner)) {
 				fences |= 1 << d;
 			}
 		}

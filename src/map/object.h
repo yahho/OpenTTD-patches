@@ -31,6 +31,29 @@ static inline ObjectType GetObjectType(TileIndex t)
 }
 
 /**
+ * Check whether the object on a tile is of a specific type.
+ * @param t Tile to test.
+ * @param type Type to test.
+ * @pre IsObjectTile(t)
+ * @return True if type matches.
+ */
+static inline bool IsObjectType(TileIndex t, ObjectType type)
+{
+	return GetObjectType(t) == type;
+}
+
+/**
+ * Check whether a tile is a object tile of a specific type.
+ * @param t Tile to test.
+ * @param type Type to test.
+ * @return True if type matches.
+ */
+static inline bool IsObjectTypeTile(TileIndex t, ObjectType type)
+{
+	return IsObjectTile(t) && IsObjectType(t, type);
+}
+
+/**
  * Get the index of which object this tile is attached to.
  * @param t the tile
  * @pre IsObjectTile(t)
@@ -51,70 +74,6 @@ static inline byte GetObjectRandomBits(TileIndex t)
 {
 	assert(IsObjectTile(t));
 	return tile_get_random_bits(&_mc[t]);
-}
-
-
-/**
- * Does the given tile have a transmitter?
- * @param t the tile to inspect.
- * @return true if and only if the tile has a transmitter.
- */
-static inline bool IsTransmitterTile(TileIndex t)
-{
-	return tile_is_object(&_mc[t]) && tile_get_object_type(&_mc[t]) == OBJECT_TRANSMITTER;
-}
-
-/**
- * Is this object tile an 'owned land' tile?
- * @param t the tile to inspect.
- * @pre IsObjectTile(t)
- * @return true if and only if the tile is an 'owned land' tile.
- */
-static inline bool IsOwnedLand(TileIndex t)
-{
-	return tile_get_object_type(&_mc[t]) == OBJECT_OWNED_LAND;
-}
-
-/**
- * Is the given tile (pre-)owned by someone (the little flags)?
- * @param t the tile to inspect.
- * @return true if and only if the tile is an 'owned land' tile.
- */
-static inline bool IsOwnedLandTile(TileIndex t)
-{
-	return tile_is_object(&_mc[t]) && tile_get_object_type(&_mc[t]) == OBJECT_OWNED_LAND;
-}
-
-/**
- * Is this object tile a HQ tile?
- * @param t the tile to inspect.
- * @pre IsObjectTile(t)
- * @return true if and only if the tile is a HQ tile.
- */
-static inline bool IsCompanyHQ(TileIndex t)
-{
-	return tile_get_object_type(&_mc[t]) == OBJECT_HQ;
-}
-
-/**
- * Is this object tile a statue?
- * @param t the tile to inspect.
- * @pre IsObjectTile(t)
- * @return true if and only if the tile is a statue.
- */
-static inline bool IsStatue(TileIndex t)
-{
-	return tile_get_object_type(&_mc[t]) == OBJECT_STATUE;
-}
-
-/**
- * Is the given tile a statue?
- * @param t the tile to inspect.
- * @return true if and only if the tile is a statue.
- */
-static inline bool IsStatueTile(TileIndex t)
-{
-	return tile_is_object(&_mc[t]) && tile_get_object_type(&_mc[t]) == OBJECT_STATUE;
 }
 
 
