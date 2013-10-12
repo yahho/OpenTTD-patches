@@ -25,6 +25,7 @@ static const SaveLoad _object_desc[] = {
 	SLE_VAR(Object, build_date,    SLE_UINT32),
 	SLE_VAR(Object, colour,        SLE_UINT8,    0, , 148, ),
 	SLE_VAR(Object, view,          SLE_UINT8,    0, , 155, ),
+	SLE_VAR(Object, type,          SLE_UINT16,  11, , 186, ),
 
 	SLE_END()
 };
@@ -63,8 +64,6 @@ void AfterLoadObjects(const SavegameTypeVersion *stv)
 		if ((stv != NULL) && IsOTTDSavegameVersionBefore(stv, 148) && !IsObjectTile(o->location.tile)) {
 			/* Due to a small bug stale objects could remain. */
 			delete o;
-		} else {
-			Object::IncTypeCount(GetObjectType(o->location.tile));
 		}
 	}
 }

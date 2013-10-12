@@ -13,8 +13,34 @@
 #define OBJECT_H
 
 #include "map/coord.h"
+#include "map/object.h"
 #include "company_type.h"
 #include "object_type.h"
+
+ObjectType GetObjectType(TileIndex t);
+
+/**
+ * Check whether the object on a tile is of a specific type.
+ * @param t Tile to test.
+ * @param type Type to test.
+ * @pre IsObjectTile(t)
+ * @return True if type matches.
+ */
+static inline bool IsObjectType(TileIndex t, ObjectType type)
+{
+	return GetObjectType(t) == type;
+}
+
+/**
+ * Check whether a tile is a object tile of a specific type.
+ * @param t Tile to test.
+ * @param type Type to test.
+ * @return True if type matches.
+ */
+static inline bool IsObjectTypeTile(TileIndex t, ObjectType type)
+{
+	return IsObjectTile(t) && IsObjectType(t, type);
+}
 
 void UpdateCompanyHQ(TileIndex tile, uint score);
 

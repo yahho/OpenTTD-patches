@@ -36,6 +36,7 @@
 #include "map/object.h"
 #include "bridge.h"
 #include "signal_func.h"
+#include "object.h"
 
 #include "table/strings.h"
 #include "table/railtypes.h"

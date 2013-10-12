@@ -17,6 +17,7 @@
 #include "newgrf_object.h"
 #include "newgrf_sound.h"
 #include "object_base.h"
+#include "object.h"
 #include "map/object.h"
 #include "map/slope.h"
 #include "tile_cmd.h"
@@ -191,7 +192,7 @@ static uint32 GetClosestObject(TileIndex tile, ObjectType type, const Object *cu
 	uint32 best_dist = UINT32_MAX;
 	const Object *o;
 	FOR_ALL_OBJECTS(o) {
-		if (GetObjectType(o->location.tile) != type || o == current) continue;
+		if (o->type != type || o == current) continue;
 
 		best_dist = min(best_dist, DistanceManhattan(tile, o->location.tile));
 	}

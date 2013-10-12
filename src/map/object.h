@@ -20,40 +20,6 @@
 #include "../object_type.h"
 
 /**
- * Gets the ObjectType of the given object tile
- * @param t the tile to get the type from.
- * @pre IsObjectTile(t)
- * @return the type.
- */
-static inline ObjectType GetObjectType(TileIndex t)
-{
-	return tile_get_object_type(&_mc[t]);
-}
-
-/**
- * Check whether the object on a tile is of a specific type.
- * @param t Tile to test.
- * @param type Type to test.
- * @pre IsObjectTile(t)
- * @return True if type matches.
- */
-static inline bool IsObjectType(TileIndex t, ObjectType type)
-{
-	return GetObjectType(t) == type;
-}
-
-/**
- * Check whether a tile is a object tile of a specific type.
- * @param t Tile to test.
- * @param type Type to test.
- * @return True if type matches.
- */
-static inline bool IsObjectTypeTile(TileIndex t, ObjectType type)
-{
-	return IsObjectTile(t) && IsObjectType(t, type);
-}
-
-/**
  * Get the index of which object this tile is attached to.
  * @param t the tile
  * @pre IsObjectTile(t)
@@ -79,17 +45,15 @@ static inline byte GetObjectRandomBits(TileIndex t)
 
 /**
  * Make an Object tile.
- * @note do not use this function directly. Use one of the other Make* functions.
  * @param t      The tile to make and object tile.
- * @param u      The object type of the tile.
  * @param o      The new owner of the tile.
  * @param index  Index to the object.
  * @param wc     Water class for this object.
  * @param random Random data to store on the tile
  */
-static inline void MakeObject(TileIndex t, ObjectType u, Owner o, ObjectID index, WaterClass wc, byte random)
+static inline void MakeObject(TileIndex t, Owner o, ObjectID index, WaterClass wc, byte random)
 {
-	tile_make_object(&_mc[t], u, o, index, wc, random);
+	tile_make_object(&_mc[t], o, index, wc, random);
 }
 
 #endif /* MAP_OBJECT_H */

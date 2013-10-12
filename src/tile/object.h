@@ -19,18 +19,6 @@
 #include "../object_type.h"
 
 /**
- * Get the type of object at a tile
- * @param t The tile whose object type to get
- * @pre tile_is_object(t)
- * @return The type of the object at the tile
- */
-static inline ObjectType tile_get_object_type(const Tile *t)
-{
-	assert(tile_is_object(t));
-	return (ObjectType)t->m5;
-}
-
-/**
  * Get the index of the object at a tile
  * @param t The tile whose object index to get
  * @pre tile_is_object(t)
@@ -46,20 +34,19 @@ static inline ObjectID tile_get_object_index(const Tile *t)
 /**
  * Make an object tile
  * @param t The tile to make an object
- * @param type The object type to make
  * @param o The owner of the object
  * @param id The index of the object
  * @param wc The water class of the object
  * @param random The random bits of the object
  */
-static inline void tile_make_object(Tile *t, ObjectType type, Owner o, ObjectID id, WaterClass wc, byte random)
+static inline void tile_make_object(Tile *t, Owner o, ObjectID id, WaterClass wc, byte random)
 {
 	tile_set_type(t, TT_OBJECT);
 	t->m1 = (wc << 5) | o;
 	t->m2 = id;
 	t->m3 = random;
 	t->m4 = 0;
-	t->m5 = type;
+	t->m5 = 0;
 	t->m7 = 0;
 }
 

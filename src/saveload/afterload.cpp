@@ -181,6 +181,12 @@ static void InitializeWindowsAndCaches()
 		}
 	}
 
+	/* Count number of objects per type */
+	Object *o;
+	FOR_ALL_OBJECTS(o) {
+		Object::IncTypeCount(o->type);
+	}
+
 	RecomputePrices();
 
 	GroupStatistics::UpdateAfterLoad();
@@ -951,7 +957,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 
 	if (IsOTTDSavegameVersionBefore(stv, 52)) {
 		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsObjectTypeTile(t, OBJECT_STATUE)) {
+			if (IsObjectTile(t) && _mc[t].m5 == OBJECT_STATUE) {
 				_mc[t].m2 = CalcClosestTownFromTile(t)->index;
 			}
 		}
@@ -1300,7 +1306,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 
 				if (offset == 0) {
 					/* No offset, so make the object. */
-					ObjectType type = GetObjectType(t);
+					ObjectType type = _mc[t].m5;
 					int size = type == OBJECT_HQ ? 2 : 1;
 
 					if (!Object::CanAllocateItem()) {
@@ -1531,11 +1537,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		while (_economy.inflation_prices < aimed_inflation) {
 			if (AddInflation(false)) break;
 		}
-	}
-
-	if (IsOTTDSavegameVersionBefore(stv, 127)) {
-		Station *st;
-		FOR_ALL_STATIONS(st) UpdateStationAcceptance(st, false);
 	}
 
 	if (IsOTTDSavegameVersionBefore(stv, 128)) {
@@ -2171,6 +2172,23 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 				SB(_mc[t].m7, 0, 4, GB(_mc[t].m7, 1, 3) | (GB(_mc[t].m7, 0, 1) << 3));
 			}
 		}
+	}
+
+	if (IsFullSavegameVersionBefore(stv, 11, 186)) {
+		/* Move ObjectType from map to pool */
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsObjectTile(t)) {
+				Object *o = Object::GetByTile(t);
+				o->type = _mc[t].m5;
+				_mc[t].m5 = 0; // cleanup for next usage
+			}
+		}
+	}
+
+	/* Station acceptance is some kind of cache */
+	if (IsOTTDSavegameVersionBefore(stv, 127)) {
+		Station *st;
+		FOR_ALL_STATIONS(st) UpdateStationAcceptance(st, false);
 	}
 
 	/* Road stops is 'only' updating some caches */
