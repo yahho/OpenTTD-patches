@@ -486,6 +486,7 @@ struct OrdersWindow : public Window {
 private:
 	/** Under what reason are we using the PlaceObject functionality? */
 	enum OrderPlaceObjectState {
+		OPOS_NONE,
 		OPOS_GOTO,
 		OPOS_CONDITIONAL,
 		OPOS_SHARE,
@@ -808,6 +809,7 @@ public:
 
 		this->selected_order = -1;
 		this->order_over = INVALID_VEH_ORDER_ID;
+		this->goto_type = OPOS_NONE;
 		this->owner = v->owner;
 
 		this->UpdateAutoRefitState();
@@ -1187,7 +1189,6 @@ public:
 		switch (widget) {
 			case WID_O_ORDER_LIST: {
 				if (this->goto_type == OPOS_CONDITIONAL) {
-					this->goto_type = OPOS_GOTO;
 					VehicleOrderID order_id = this->GetOrderFromPt(_cursor.pos.y - this->top);
 					if (order_id != INVALID_VEH_ORDER_ID) {
 						Order order;
@@ -1489,6 +1490,7 @@ public:
 
 	virtual void OnPlaceObjectAbort()
 	{
+		this->goto_type = OPOS_NONE;
 		this->RaiseWidget(WID_O_GOTO);
 		this->SetWidgetDirty(WID_O_GOTO);
 
