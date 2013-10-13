@@ -990,25 +990,15 @@ static const uint MAP_SL_BUF_SIZE = 4096;
 
 static void Load_MAPT(LoadBuffer *reader)
 {
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	for (TileIndex i = 0; i != size;) {
-		reader->ReadArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mth[i++] = buf[j];
-	}
+	reader->CopyBytes(_mth, MapSize());
 }
 
 static void Save_MAPT(SaveDumper *dumper)
 {
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	dumper->WriteRIFFSize(size);
-	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mth[i++];
-		dumper->WriteArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
-	}
+	dumper->CopyBytes(_mth, size);
 }
 
 static void Load_MAP1(LoadBuffer *reader)
