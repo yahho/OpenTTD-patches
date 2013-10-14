@@ -15,6 +15,7 @@
 #include "../linkgraph/linkgraphschedule.h"
 #include "../settings_internal.h"
 #include "saveload_buffer.h"
+#include "saveload_error.h"
 
 typedef LinkGraph::BaseNode Node;
 typedef LinkGraph::BaseEdge Edge;
@@ -167,7 +168,7 @@ static void Load_LGRP(LoadBuffer *reader)
 	while ((index = reader->IterateChunk()) != -1) {
 		if (!LinkGraph::CanAllocateItem()) {
 			/* Impossible as they have been present in previous game. */
-			NOT_REACHED();
+			throw SlCorrupt("Too many link graphs");
 		}
 		LinkGraph *lg = new (index) LinkGraph();
 		reader->ReadObject(lg, GetLinkGraphDesc());
@@ -185,7 +186,7 @@ static void Load_LGRJ(LoadBuffer *reader)
 	while ((index = reader->IterateChunk()) != -1) {
 		if (!LinkGraphJob::CanAllocateItem()) {
 			/* Impossible as they have been present in previous game. */
-			NOT_REACHED();
+			throw SlCorrupt("Too many link graph jobs");
 		}
 		LinkGraphJob *lgj = new (index) LinkGraphJob();
 		reader->ReadObject(lgj, GetLinkGraphJobDesc());
