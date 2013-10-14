@@ -50,14 +50,14 @@ const SaveLoad *GetLinkGraphDesc()
 const SaveLoad *GetLinkGraphJobDesc()
 {
 	static SmallVector<SaveLoad, 16> saveloads;
-	static const char *prefix = "linkgraph.";
+	static const char prefix[] = "linkgraph.";
 
 	/* Build the SaveLoad array on first call and don't touch it later on */
 	if (saveloads.Length() == 0) {
-		size_t offset_gamesettings = cpp_offsetof(GameSettings, linkgraph);
-		size_t offset_component = cpp_offsetof(LinkGraphJob, settings);
+		static const size_t offset_gamesettings = cpp_offsetof(GameSettings, linkgraph);
+		static const size_t offset_component = cpp_offsetof(LinkGraphJob, settings);
 
-		size_t prefixlen = strlen(prefix);
+		static const size_t prefixlen = sizeof(prefix) - 1;
 
 		int setting = 0;
 		const SettingDesc *desc = GetSettingDescription(setting);
@@ -72,16 +72,15 @@ const SaveLoad *GetLinkGraphJobDesc()
 			desc = GetSettingDescription(++setting);
 		}
 
-		const SaveLoad job_desc[] = {
+		static const SaveLoad job_desc[] = {
 			SLE_VAR(LinkGraphJob, join_date,        SLE_UINT32),
 			SLE_VAR(LinkGraphJob, link_graph.index, SLE_UINT16),
 			SLE_END()
 		};
 
-		int i = 0;
-		do {
-			*(saveloads.Append()) = job_desc[i++];
-		} while (saveloads[saveloads.Length() - 1].type != SL_END);
+		for (uint i = 0; i < lengthof(job_desc); i++) {
+			*(saveloads.Append()) = job_desc[i];
+		}
 	}
 
 	return &saveloads[0];
