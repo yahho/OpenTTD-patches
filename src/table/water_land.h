@@ -31,37 +31,33 @@
  */
 #define TILE_SPRITE_LINE(img, dtss) { {img, PAL_NONE}, dtss },
 
-static const DrawTileSeqStruct _shipdepot_display_seq_1[] = {
+static const DrawTileSeqStruct _shipdepot_display_seq_ne[] = {
 	TILE_SEQ_LINE( 0, 15, 0, 16, 1, 0x14, 0xFE8 | (1 << PALETTE_MODIFIER_COLOUR))
 	TILE_SEQ_END()
 };
 
-static const DrawTileSeqStruct _shipdepot_display_seq_2[] = {
+static const DrawTileSeqStruct _shipdepot_display_seq_sw[] = {
 	TILE_SEQ_LINE( 0,  0, 0, 16, 1, 0x14, 0xFEA)
 	TILE_SEQ_LINE( 0, 15, 0, 16, 1, 0x14, 0xFE6 | (1 << PALETTE_MODIFIER_COLOUR))
 	TILE_SEQ_END()
 };
 
-static const DrawTileSeqStruct _shipdepot_display_seq_3[] = {
+static const DrawTileSeqStruct _shipdepot_display_seq_nw[] = {
 	TILE_SEQ_LINE( 15, 0, 0, 1, 0x10, 0x14, 0xFE9 | (1 << PALETTE_MODIFIER_COLOUR))
 	TILE_SEQ_END()
 };
 
-static const DrawTileSeqStruct _shipdepot_display_seq_4[] = {
+static const DrawTileSeqStruct _shipdepot_display_seq_se[] = {
 	TILE_SEQ_LINE(  0, 0, 0, 1, 16, 0x14, 0xFEB)
 	TILE_SEQ_LINE( 15, 0, 0, 1, 16, 0x14, 0xFE7 | (1 << PALETTE_MODIFIER_COLOUR))
 	TILE_SEQ_END()
 };
 
-static const DrawTileSprites _shipdepot_display_data[][DEPOT_PART_END] = {
-	{ // AXIS_X
-		TILE_SPRITE_LINE(0xFDD, _shipdepot_display_seq_1) // DEPOT_PART_NORTH
-		TILE_SPRITE_LINE(0xFDD, _shipdepot_display_seq_2) // DEPOT_PART_SOUTH
-	},
-	{ // AXIS_Y
-		TILE_SPRITE_LINE(0xFDD, _shipdepot_display_seq_3) // DEPOT_PART_NORTH
-		TILE_SPRITE_LINE(0xFDD, _shipdepot_display_seq_4) // DEPOT_PART_SOUTH
-	},
+static const DrawTileSprites _shipdepot_display_data[DIAGDIR_END] = {
+	TILE_SPRITE_LINE(0xFDD, _shipdepot_display_seq_ne) // DIAGDIR_NE
+	TILE_SPRITE_LINE(0xFDD, _shipdepot_display_seq_se) // DIAGDIR_SE
+	TILE_SPRITE_LINE(0xFDD, _shipdepot_display_seq_sw) // DIAGDIR_SW
+	TILE_SPRITE_LINE(0xFDD, _shipdepot_display_seq_nw) // DIAGDIR_NW
 };
 
 static const DrawTileSeqStruct _lock_display_seq_0[] = {

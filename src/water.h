@@ -12,6 +12,7 @@
 #ifndef WATER_H
 #define WATER_H
 
+#include "direction_type.h"
 #include "map/water.h"
 #include "economy_func.h"
 
@@ -33,7 +34,7 @@ void DoFloodTile(TileIndex target);
 
 void ConvertGroundTilesIntoWaterTiles();
 
-void DrawShipDepotSprite(int x, int y, Axis axis, DepotPart part);
+void DrawShipDepotSprite(int x, int y, DiagDirection dir);
 void DrawWaterClassGround(const struct TileInfo *ti);
 void DrawShoreTile(Slope tileh);
 
