@@ -61,7 +61,7 @@ static inline byte GetObjectRandomBits(TileIndex t)
  */
 static inline bool IsTransmitterTile(TileIndex t)
 {
-	return tile_is_transmitter(&_mc[t]);
+	return tile_is_object(&_mc[t]) && tile_get_object_type(&_mc[t]) == OBJECT_TRANSMITTER;
 }
 
 /**
@@ -72,7 +72,7 @@ static inline bool IsTransmitterTile(TileIndex t)
  */
 static inline bool IsOwnedLand(TileIndex t)
 {
-	return tile_object_is_owned_land(&_mc[t]);
+	return tile_get_object_type(&_mc[t]) == OBJECT_OWNED_LAND;
 }
 
 /**
@@ -82,7 +82,7 @@ static inline bool IsOwnedLand(TileIndex t)
  */
 static inline bool IsOwnedLandTile(TileIndex t)
 {
-	return tile_is_owned_land(&_mc[t]);
+	return tile_is_object(&_mc[t]) && tile_get_object_type(&_mc[t]) == OBJECT_OWNED_LAND;
 }
 
 /**
@@ -93,7 +93,7 @@ static inline bool IsOwnedLandTile(TileIndex t)
  */
 static inline bool IsCompanyHQ(TileIndex t)
 {
-	return tile_object_is_hq(&_mc[t]);
+	return tile_get_object_type(&_mc[t]) == OBJECT_HQ;
 }
 
 /**
@@ -104,7 +104,7 @@ static inline bool IsCompanyHQ(TileIndex t)
  */
 static inline bool IsStatue(TileIndex t)
 {
-	return tile_object_is_statue(&_mc[t]);
+	return tile_get_object_type(&_mc[t]) == OBJECT_STATUE;
 }
 
 /**
@@ -114,7 +114,7 @@ static inline bool IsStatue(TileIndex t)
  */
 static inline bool IsStatueTile(TileIndex t)
 {
-	return tile_is_statue(&_mc[t]);
+	return tile_is_object(&_mc[t]) && tile_get_object_type(&_mc[t]) == OBJECT_STATUE;
 }
 
 
