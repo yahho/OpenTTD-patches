@@ -1693,7 +1693,6 @@ static PaletteID DrawRoadGroundSprite(TileIndex tile, Roadside roadside, SpriteI
 			}
 			break;
 
-		case ROADSIDE_GRASS_ROAD_WORKS:
 		case ROADSIDE_GRASS:
 			if (IsOnSnow(tile)) image += unpaved_offset;
 			break;
@@ -1811,7 +1810,7 @@ static void DrawRoadBits(TileInfo *ti)
 		}
 	}
 
-	if (roadside >= ROADSIDE_GRASS_ROAD_WORKS) {
+	if (IsTileSubtype(ti->tile, TT_TRACK) && HasRoadWorks(ti->tile)) {
 		/* Road works */
 		DrawGroundSprite((road | tram) & ROAD_X ? SPR_EXCAVATION_X : SPR_EXCAVATION_Y, PAL_NONE);
 		return;
@@ -2058,26 +2057,31 @@ static void TileLoop_Road(TileIndex tile)
 			/* Show an animation to indicate road work */
 			if (t->road_build_months != 0 &&
 					(DistanceManhattan(t->xy, tile) < 8 || grp != HZB_TOWN_EDGE) &&
-					!HasAtMostOneBit(GetAllRoadBits(tile))) {
-				if (GetFoundationSlope(tile) == SLOPE_FLAT && EnsureNoVehicleOnGround(tile).Succeeded() && Chance16(1, 40)) {
-					StartRoadWorks(tile);
-
-					if (_settings_client.sound.ambient) SndPlayTileFx(SND_21_JACKHAMMER, tile);
-					CreateEffectVehicleAbove(
-						TileX(tile) * TILE_SIZE + 7,
-						TileY(tile) * TILE_SIZE + 7,
-						0,
-						EV_BULLDOZER);
-					MarkTileDirtyByTile(tile);
-					return;
+					!HasAtMostOneBit(GetAllRoadBits(tile)) &&
+					GetFoundationSlope(tile) == SLOPE_FLAT &&
+					EnsureNoVehicleOnGround(tile).Succeeded() &&
+					Chance16(1, 40)) {
+				StartRoadWorks(tile);
+				/* Remove any trees or lamps in case or roadwork */
+				switch (GetRoadside(tile)) {
+					case ROADSIDE_BARREN:
+					case ROADSIDE_GRASS:  SetRoadside(tile, ROADSIDE_GRASS); break;
+					default:              SetRoadside(tile, ROADSIDE_PAVED); break;
 				}
+
+				if (_settings_client.sound.ambient) SndPlayTileFx(SND_21_JACKHAMMER, tile);
+				CreateEffectVehicleAbove(
+					TileX(tile) * TILE_SIZE + 7,
+					TileY(tile) * TILE_SIZE + 7,
+					0,
+					EV_BULLDOZER);
+				MarkTileDirtyByTile(tile);
+				return;
 			}
 		}
 
 		UpdateRoadSide(tile, grp);
-	} else if (IncreaseRoadWorksCounter(tile)) {
-		TerminateRoadWorks(tile);
-
+	} else if (DecreaseRoadWorksCounter(tile)) {
 		if (_settings_game.economy.mod_road_rebuild) {
 			/* Generate a nicer town surface */
 			const RoadBits old_rb = GetAnyRoadBits(tile, ROADTYPE_ROAD);

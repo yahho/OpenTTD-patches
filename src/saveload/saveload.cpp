@@ -57,7 +57,7 @@
  * savegames of the previous (and earlier) versions.
  */
 
-extern const uint16 SAVEGAME_VERSION = 11; ///< Current savegame version
+extern const uint16 SAVEGAME_VERSION = 12; ///< Current savegame version
 
 static const uint16 OTTD_SAVEGAME_VERSION = 186; ///< Maximum supported OTTD version
 

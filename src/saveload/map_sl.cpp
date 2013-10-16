@@ -950,6 +950,19 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			}
 		}
 	}
+
+	/* Roadworks now count down, not up */
+	if (IsFullSavegameVersionBefore(stv, 12)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsTileTypeSubtype(t, TT_ROAD, TT_TRACK)) {
+				uint roadside = GB(_mc[t].m5, 4, 3);
+				if (roadside > 5) {
+					SB(_mc[t].m5, 4, 3, roadside - 5);
+					SB(_mc[t].m7, 0, 4, 0xF - GB(_mc[t].m7, 0, 4));
+				}
+			}
+		}
+	}
 }
 
 

@@ -180,42 +180,23 @@ static inline bool HasRoadWorks(TileIndex t)
 }
 
 /**
- * Terminate road works on a tile.
- * @param t Tile to stop the road works on.
- * @pre HasRoadWorks(t)
- */
-static inline void TerminateRoadWorks(TileIndex t)
-{
-	assert(HasRoadWorks(t));
-	SetRoadside(t, (Roadside)(GetRoadside(t) - ROADSIDE_GRASS_ROAD_WORKS + ROADSIDE_GRASS));
-	/* Stop the counter */
-	tile_reset_roadworks(&_mc[t]);
-}
-
-/**
- * Increase the progress counter of road works.
- * @param t The tile to modify.
- * @return True if the road works are in the last stage.
- */
-static inline bool IncreaseRoadWorksCounter(TileIndex t)
-{
-	return tile_inc_roadworks(&_mc[t]);
-}
-
-/**
  * Start road works on a tile.
  * @param t The tile to start the work on.
- * @pre !HasRoadWorks(t)
+ * @pre IsNormalRoadTile(t)
  */
 static inline void StartRoadWorks(TileIndex t)
 {
-	assert(!HasRoadWorks(t));
-	/* Remove any trees or lamps in case or roadwork */
-	switch (GetRoadside(t)) {
-		case ROADSIDE_BARREN:
-		case ROADSIDE_GRASS:  SetRoadside(t, ROADSIDE_GRASS_ROAD_WORKS); break;
-		default:              SetRoadside(t, ROADSIDE_PAVED_ROAD_WORKS); break;
-	}
+	tile_init_roadworks(&_mc[t]);
+}
+
+/**
+ * Decrease the road works counter.
+ * @param t The tile to modify.
+ * @return True if the road works are in the last stage.
+ */
+static inline bool DecreaseRoadWorksCounter(TileIndex t)
+{
+	return tile_dec_roadworks(&_mc[t]);
 }
 
 

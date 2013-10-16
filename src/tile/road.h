@@ -159,8 +159,6 @@ enum Roadside {
 	ROADSIDE_PAVED            = 2, ///< Road with paved sidewalks
 	ROADSIDE_STREET_LIGHTS    = 3, ///< Road with street lights on paved sidewalks
 	ROADSIDE_TREES            = 5, ///< Road with trees on paved sidewalks
-	ROADSIDE_GRASS_ROAD_WORKS = 6, ///< Road on grass with road works
-	ROADSIDE_PAVED_ROAD_WORKS = 7, ///< Road with sidewalks and road works
 };
 
 /**
@@ -195,31 +193,35 @@ static inline void tile_set_roadside(Tile *t, Roadside s)
  */
 static inline bool tile_has_roadworks(const Tile *t)
 {
-	return tile_get_roadside(t) >= ROADSIDE_GRASS_ROAD_WORKS;
+	return GB(t->m7, 0, 4) != 0;
 }
 
 /**
- * Reset the road works counter of a tile
+ * Init the road works counter of a tile (start road works)
  * @param t The tile whose road works counter to reset
  * @pre tile_is_road_track(t)
  */
-static inline void tile_reset_roadworks(Tile *t)
+static inline void tile_init_roadworks(Tile *t)
 {
 	assert(tile_is_road_track(t));
-	SB(t->m7, 0, 4, 0);
+	SB(t->m7, 0, 4, 0xF);
 }
 
 /**
- * Increment the road works counter of a tile
- * @param t The tile whose road works counter to increment
- * @pre tile_is_road_track(t)
- * @return Whether the counter has reached its maximum value
+ * Decrement the road works counter of a tile
+ * @param t The tile whose road works counter to decrement
+ * @pre tile_is_road_track(t) && tile_has_roadworks(t)
+ * @pre tile_has_roadworks
+ * @return Whether the counter has reached 0
  */
-static inline bool tile_inc_roadworks(Tile *t)
+static inline bool tile_dec_roadworks(Tile *t)
 {
-	AB(t->m7, 0, 4, 1);
+	assert(tile_is_road_track(t));
+	assert(tile_has_roadworks(t));
 
-	return GB(t->m7, 0, 4) == 15;
+	t->m7--;
+
+	return GB(t->m7, 0, 4) == 0;
 }
 
 
