@@ -345,6 +345,109 @@ int Train::GetCurveSpeedLimit() const
 	return max_speed;
 }
 
+struct TunnelPrevTrainEnumData {
+	int pos;
+	Vehicle *v;
+};
+
+static Vehicle *TunnelPrevTrainEnumSW(Vehicle *v, void *data)
+{
+	struct TunnelPrevTrainEnumData *tptedata = (TunnelPrevTrainEnumData*) data;
+
+	int pos = v->x_pos;
+	if (pos <= tptedata->pos) return NULL;
+	if (tptedata->v == NULL || pos < tptedata->v->x_pos) {
+		tptedata->v = v;
+	} else {
+		assert(pos != tptedata->v->x_pos);
+	}
+	return v;
+}
+
+static Vehicle *TunnelPrevTrainEnumSE(Vehicle *v, void *data)
+{
+	struct TunnelPrevTrainEnumData *tptedata = (TunnelPrevTrainEnumData*) data;
+
+	int pos = v->y_pos;
+	if (pos <= tptedata->pos) return NULL;
+	if (tptedata->v == NULL || pos < tptedata->v->y_pos) {
+		tptedata->v = v;
+	} else {
+		assert(pos != tptedata->v->y_pos);
+	}
+	return v;
+}
+
+static Vehicle *TunnelPrevTrainEnumNE(Vehicle *v, void *data)
+{
+	struct TunnelPrevTrainEnumData *tptedata = (TunnelPrevTrainEnumData*) data;
+
+	int pos = v->x_pos;
+	if (pos >= tptedata->pos) return NULL;
+	if (tptedata->v == NULL || pos > tptedata->v->x_pos) {
+		tptedata->v = v;
+	} else {
+		assert(pos != tptedata->v->x_pos);
+	}
+	return v;
+}
+
+static Vehicle *TunnelPrevTrainEnumNW(Vehicle *v, void *data)
+{
+	struct TunnelPrevTrainEnumData *tptedata = (TunnelPrevTrainEnumData*) data;
+
+	int pos = v->y_pos;
+	if (pos >= tptedata->pos) return NULL;
+	if (tptedata->v == NULL || pos > tptedata->v->y_pos) {
+		tptedata->v = v;
+	} else {
+		assert(pos != tptedata->v->y_pos);
+	}
+	return v;
+}
+
+static uint FindTunnelPrevTrain(const Train *t, Vehicle **vv = NULL)
+{
+	assert(maptile_is_rail_tunnel(t->tile));
+	assert(t->trackdir == TRACKDIR_WORMHOLE);
+
+	struct TunnelPrevTrainEnumData tptedata;
+	tptedata.v = NULL;
+
+	uint dist;
+	switch (GetTunnelBridgeDirection(t->tile)) {
+		default: NOT_REACHED();
+
+		case DIAGDIR_NE:
+			tptedata.pos = t->x_pos;
+			FindVehicleOnPos(t->tile, &tptedata, &TunnelPrevTrainEnumSW);
+			dist = tptedata.v == NULL ? UINT_MAX : tptedata.v->x_pos - tptedata.pos;
+			break;
+
+		case DIAGDIR_NW:
+			tptedata.pos = t->y_pos;
+			FindVehicleOnPos(t->tile, &tptedata, &TunnelPrevTrainEnumSE);
+			dist = tptedata.v == NULL ? UINT_MAX : tptedata.v->y_pos - tptedata.pos;
+			break;
+
+		case DIAGDIR_SW:
+			tptedata.pos = t->x_pos;
+			FindVehicleOnPos(t->tile, &tptedata, &TunnelPrevTrainEnumNE);
+			dist = tptedata.v == NULL ? UINT_MAX : tptedata.pos - tptedata.v->x_pos;
+			break;
+
+		case DIAGDIR_SE:
+			tptedata.pos = t->y_pos;
+			FindVehicleOnPos(t->tile, &tptedata, &TunnelPrevTrainEnumNW);
+			dist = tptedata.v == NULL ? UINT_MAX : tptedata.pos - tptedata.v->y_pos;
+			break;
+	}
+
+	if (vv != NULL) *vv = tptedata.v;
+
+	return dist;
+}
+
 /**
  * Calculates the maximum speed of the vehicle under its current conditions.
  * @return Maximum speed of the vehicle.
@@ -389,6 +492,18 @@ int Train::GetCurrentMaxSpeed() const
 		/* Vehicle is on the middle part of a bridge. */
 		if (u->trackdir == TRACKDIR_WORMHOLE && !(u->vehstatus & VS_HIDDEN)) {
 			max_speed = min(max_speed, GetBridgeSpec(GetRailBridgeType(u->tile))->speed);
+		}
+	}
+
+	if (this->trackdir == TRACKDIR_WORMHOLE && (this->vehstatus & VS_HIDDEN) && maptile_has_tunnel_signal(this->tile, false)) {
+		Vehicle *v;
+		uint dist = FindTunnelPrevTrain(this, &v);
+
+		if (dist <= TILE_SIZE) {
+			max_speed = 0;
+		} else if (v != NULL) {
+			max_speed = min(max_speed, (dist - TILE_SIZE) * this->GetAdvanceDistance() / 2);
+			if (dist < 2 * TILE_SIZE) max_speed = min(max_speed, v->cur_speed);
 		}
 	}
 
@@ -3231,6 +3346,10 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			if (gp.new_tile != v->tile) {
 				/* Still in the wormhole */
 				new_in_wormhole = true;
+				if (v->IsFrontEngine() && (v->vehstatus & VS_HIDDEN) && maptile_has_tunnel_signal(v->tile, false) && (FindTunnelPrevTrain(v) < TILE_SIZE)) {
+					/* too close to train ahead, stop */
+					return false;
+				}
 			} else {
 				new_in_wormhole = false;
 				enterdir = ReverseDiagDir(GetTunnelBridgeDirection(gp.new_tile));
@@ -3321,14 +3440,24 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					assert(chosen_trackdir != INVALID_TRACKDIR);
 					assert(HasBit(trackdirbits | TrackBitsToTrackdirBits(GetReservedTrackbits(gp.new_tile)), chosen_trackdir));
 
-					if (v->force_proceed != TFP_NONE && IsRailwayTile(gp.new_tile)) {
+					if (v->force_proceed != TFP_NONE) {
 						/* For each signal we find decrease the counter by one.
 						 * We start at two, so the first signal we pass decreases
 						 * this to one, then if we reach the next signal it is
 						 * decreased to zero and we won't pass that new signal. */
-						Track track = TrackdirToTrack(chosen_trackdir);
-						if (HasSignalOnTrack(gp.new_tile, track) && (GetSignalType(gp.new_tile, track) != SIGTYPE_PBS ||
-								!HasSignalOnTrackdir(gp.new_tile, ReverseTrackdir(chosen_trackdir)))) {
+						bool at_signal;
+						if (IsRailwayTile(gp.new_tile)) {
+							Track track = TrackdirToTrack(chosen_trackdir);
+							at_signal = HasSignalOnTrack(gp.new_tile, track) &&
+								(GetSignalType(gp.new_tile, track) != SIGTYPE_PBS ||
+									!HasSignalOnTrackdir(gp.new_tile, ReverseTrackdir(chosen_trackdir)));
+						} else if (maptile_is_rail_tunnel(gp.new_tile)) {
+							at_signal = maptile_has_tunnel_signals(gp.new_tile);
+						} else {
+							at_signal = false;
+						}
+
+						if (at_signal) {
 							/* However, we do not want to be stopped by PBS signals
 							 * entered via the back. */
 							v->force_proceed = (v->force_proceed == TFP_SIGNAL) ? TFP_STUCK : TFP_NONE;
@@ -3535,6 +3664,12 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					}
 				}
 			}
+		}
+
+		if (old_in_wormhole && old_tile != gp.new_tile && v->Next() == NULL && maptile_is_rail_tunnel(v->tile) && maptile_has_tunnel_signal(v->tile, false)
+				&& TileAddByDiagDir(old_tile, GetTunnelBridgeDirection(v->tile)) == GetOtherTunnelEnd(v->tile)) {
+			AddTunnelToSignalBuffer(v->tile, v->owner);
+			UpdateSignalsInBuffer();
 		}
 
 		if (v->IsFrontEngine()) {

@@ -788,7 +788,26 @@ static TrackStatus GetTileRailwayStatus_Misc(TileIndex tile, DiagDirection side)
 
 			DiagDirection dir = GetTunnelBridgeDirection(tile);
 			if (side != INVALID_DIAGDIR && side != ReverseDiagDir(dir)) return 0;
-			return CombineTrackStatus(TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir)), TRACKDIR_BIT_NONE);
+
+			TrackdirBits trackdirs = TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir));
+			TrackdirBits red_signals;
+			switch (maptile_get_tunnel_present_signals(tile)) {
+				default: NOT_REACHED();
+
+				case 0: red_signals = TRACKDIR_BIT_NONE; break;
+
+				case 1:
+					red_signals = maptile_get_tunnel_signal_state(tile, false) == SIGNAL_STATE_RED ? trackdirs :
+						TrackdirToTrackdirBits(DiagDirToDiagTrackdir(dir));
+					break;
+
+				case 2:
+					red_signals = maptile_get_tunnel_signal_state(tile, true) == SIGNAL_STATE_RED ? trackdirs :
+						TrackdirToTrackdirBits(DiagDirToDiagTrackdir(ReverseDiagDir(dir)));
+					break;
+			}
+
+			return CombineTrackStatus(trackdirs, red_signals);
 		}
 
 		case TT_MISC_DEPOT: {
