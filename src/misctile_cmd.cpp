@@ -132,6 +132,51 @@ static void DrawTunnel(TileInfo *ti)
 			/* Draw wire above the ramp */
 			DrawCatenaryOnTunnel(ti);
 		}
+
+		if (maptile_has_tunnel_signals(ti->tile)) {
+			static const struct {
+				Point pos[2][2]; // signal position (outwards, inwards), (left side, right side)
+				uint image; // offset from base signal sprite
+			} SignalData[DIAGDIR_END] = {
+				{ { { { 0,  3}, { 0, 13} }, { {15,  3}, {15, 13} } }, 0 }, // DIAGDIR_NE
+				{ { { { 3, 15}, {13, 15} }, { { 3,  0}, {13,  0} } }, 2 }, // DIAGDIR_SE
+				{ { { {15, 13}, {15,  3} }, { { 0, 13}, { 0,  3} } }, 1 }, // DIAGDIR_SW
+				{ { { {13,  0}, { 3,  0} }, { {13, 15}, { 3, 15} } }, 3 }, // DIAGDIR_NW
+			};
+
+			assert(maptile_has_tunnel_signal(ti->tile, true) != maptile_has_tunnel_signal(ti->tile, false));
+
+			DiagDirection dd = tunnelbridge_direction;
+			bool inwards = maptile_has_tunnel_signal(ti->tile, true);
+			if (!inwards) dd = ReverseDiagDir(dd);
+
+			SignalType type       = maptile_get_tunnel_signal_type(ti->tile);
+			SignalVariant variant = maptile_get_tunnel_signal_variant(ti->tile);
+			SignalState condition = maptile_get_tunnel_signal_state(ti->tile, inwards);
+
+			assert(type == SIGTYPE_NORMAL || (!inwards && type == SIGTYPE_PBS_ONEWAY));
+
+			SpriteID sprite = GetCustomSignalSprite(GetRailTypeInfo(GetRailType(ti->tile)), ti->tile, type, variant, condition);
+			uint image = SignalData[dd].image;
+			if (sprite != 0) {
+				sprite += image;
+			} else {
+				/* Normal electric signals are stored in a different sprite block than all other signals. */
+				sprite = (type == SIGTYPE_NORMAL && variant == SIG_ELECTRIC) ? SPR_ORIGINAL_SIGNALS_BASE : SPR_SIGNALS_BASE - 16;
+				sprite += (type == SIGTYPE_NORMAL ? SIGTYPE_NORMAL * 16 : SIGTYPE_PBS_ONEWAY * 16 + 64) + variant * 64 + image * 2 + condition;
+			}
+
+			bool side;
+			switch (_settings_game.construction.train_signal_side) {
+				case 0:  side = false;                                 break; // left
+				case 2:  side = true;                                  break; // right
+				default: side = _settings_game.vehicle.road_side != 0; break; // driving side
+			}
+			uint x = TileX(ti->tile) * TILE_SIZE + SignalData[dd].pos[inwards][side].x;
+			uint y = TileY(ti->tile) * TILE_SIZE + SignalData[dd].pos[inwards][side].y;
+
+			AddSortableSpriteToDraw(sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, ti->z);
+		}
 	}
 
 	if (railtype_overlay != 0 && !catenary) StartSpriteCombine();
