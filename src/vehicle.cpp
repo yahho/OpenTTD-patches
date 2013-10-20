@@ -1592,18 +1592,14 @@ void MarkSingleVehicleDirty(const Vehicle *v)
  */
 VehiclePos GetNewVehiclePos(const Vehicle *v)
 {
-	static const int8 _delta_coord[16] = {
-		-1,-1,-1, 0, 1, 1, 1, 0, /* x */
-		-1, 0, 1, 1, 1, 0,-1,-1, /* y */
+	static const int8 delta_coord[DIR_END][2] = { /* {x,y} */
+		{-1,-1}, {-1,0}, {-1,1}, {0,1}, {1,1}, {1,0}, {1,-1}, {0,-1}
 	};
 
-	int x = v->x_pos + _delta_coord[v->direction];
-	int y = v->y_pos + _delta_coord[v->direction + 8];
-
 	VehiclePos gp;
-	gp.x = x;
-	gp.y = y;
-	gp.new_tile = TileVirtXY(x, y);
+	gp.x = v->x_pos + delta_coord[v->direction][0];
+	gp.y = v->y_pos + delta_coord[v->direction][1];
+	gp.new_tile = TileVirtXY(gp.x, gp.y);
 	return gp;
 }
 
