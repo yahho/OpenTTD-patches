@@ -219,23 +219,20 @@ static void GenericPlaceSignals(TileIndex tile)
 			/* signal GUI not used */
 			SB(p1, 4, 1, ((_cur_year < _settings_client.gui.semaphore_build_before) ^ _ctrl_pressed) ? SIG_SEMAPHORE : SIG_ELECTRIC);
 			SB(p1, 5, 3, _default_signal_type[_settings_client.gui.default_signal_type]);
-			SB(p1, 8, 6, signal_mask[_settings_client.gui.cycle_signal_types]);
 			SB(p1, 17, 3, _ctrl_pressed ? SIGNALS_CYCLE_TYPE : SIGNALS_BUILD);
 		} else if (!_convert_signal_button) {
 			/* signal GUI is used, not converting */
 			SB(p1, 4, 1, _cur_signal_variant ^ _ctrl_pressed);
 			SB(p1, 5, 3, _cur_signal_type);
-			SB(p1, 8, 6, signal_mask[_settings_client.gui.cycle_signal_types]);
 			SB(p1, 17, 3, _ctrl_pressed ? SIGNALS_CYCLE_TYPE : SIGNALS_BUILD);
 		} else {
 			/* signal GUI is used, converting */
 			SB(p1, 4, 1, _cur_signal_variant ^ _ctrl_pressed);
 			SB(p1, 5, 3, _cur_signal_type);
-			SB(p1, 8, 6, signal_mask[_settings_client.gui.cycle_signal_types]);
 			SB(p1, 17, 3, _ctrl_pressed ? SIGNALS_TOGGLE_VARIANT : SIGNALS_CONVERT);
 		}
 
-		DoCommandP(tile, p1, 0, CMD_BUILD_SIGNALS |
+		DoCommandP(tile, p1, signal_mask[_settings_client.gui.cycle_signal_types], CMD_BUILD_SIGNALS |
 				CMD_MSG((w != NULL && _convert_signal_button) ? STR_ERROR_SIGNAL_CAN_T_CONVERT_SIGNALS_HERE : STR_ERROR_CAN_T_BUILD_SIGNALS_HERE),
 				CcPlaySound1E);
 	}

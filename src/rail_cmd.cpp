@@ -1271,9 +1271,10 @@ CommandCost CmdBuildTrainDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, u
  * - p1 = (bit 0-2) - track-orientation, valid values: 0-5 (Track enum)
  * - p1 = (bit 4)   - 0 = signals, 1 = semaphores
  * - p1 = (bit 5-7) - type of the signal, for valid values see enum SignalType in signal_type.h
- * - p1 = (bit 8-13)- bitmask of signal types to cycle through
  * - p1 = (bit 17-19)-operation mode (BuildSignalMode)
- * @param p2 used for CmdBuildManySignals() to copy direction of first signal
+ * @param p2 extra data depending on the operation mode
+ * - for SIGNALS_COPY and SIGNALS_COPY_SOFT, signals to build
+ * - for SIGNALS_CYCLE_TYPE, bitmask of signal types to cycle through
  * @param text unused
  * @return the cost of this operation or an error
  * @todo p2 should be replaced by two bits for "along" and "against" the track.
@@ -1283,11 +1284,10 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 	Track track = Extract<Track, 0, 3>(p1);
 	SignalVariant sigvar = HasBit(p1, 4) ? SIG_SEMAPHORE : SIG_ELECTRIC; // the signal variant of the new signal
 	SignalType sigtype = Extract<SignalType, 5, 3>(p1); // the signal type of the new signal
-	uint sigmask = GB(p1, 8, 6);
 	BuildSignalMode mode = (BuildSignalMode) GB(p1, 17, 3);
 
 	if (sigtype > SIGTYPE_LAST) return CMD_ERROR;
-	if (mode == SIGNALS_CYCLE_TYPE && (sigmask == 0 || sigmask > (1 << SIGTYPE_END) - 1)) return CMD_ERROR;
+	if (mode == SIGNALS_CYCLE_TYPE && (p2 == 0 || p2 > (1 << SIGTYPE_END) - 1)) return CMD_ERROR;
 
 	/* You can only build signals on rail tiles, and the selected track must exist */
 	if (!ValParamTrackOrientation(track) || !IsRailwayTile(tile) ||
@@ -1295,7 +1295,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 		return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 	}
 	/* Protect against invalid signal copying */
-	if (p2 > 3) return CMD_ERROR;
+	if ((mode == SIGNALS_COPY || mode == SIGNALS_COPY_SOFT) && (p2 == 0 || p2 > 3)) return CMD_ERROR;
 
 	CommandCost ret = CheckTileOwnership(tile);
 	if (ret.Failed()) return ret;
@@ -1381,7 +1381,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 
 			/* cycle through allowed signals */
 			sigtype = GetSignalType(tile, track);
-			sigtype = (SignalType) (FindFirstBit((sigmask | (sigmask << 8)) & ~((1 << (sigtype + 1)) - 1)) & 0x7);
+			sigtype = (SignalType) (FindFirstBit((p2 | (p2 << 8)) & ~((1 << (sigtype + 1)) - 1)) & 0x7);
 
 			SetSignalType(tile, track, sigtype);
 			if (IsPbsSignal(sigtype) && GetPresentSignals(tile, track) == 3) {
