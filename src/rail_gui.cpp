@@ -205,8 +205,12 @@ static void GenericPlaceSignals(TileIndex tile)
 	} else {
 		const Window *w = FindWindowById(WC_BUILD_SIGNAL, 0);
 
-		/* Map the setting cycle_signal_types to the lower and upper allowed signal type. */
-		static const uint cycle_bounds[] = {SIGTYPE_NORMAL | (SIGTYPE_LAST_NOPBS << 3), SIGTYPE_PBS | (SIGTYPE_LAST << 3), SIGTYPE_NORMAL | (SIGTYPE_LAST << 3)};
+		/* Map the setting cycle_signal_types to the allowed signal bitmask. */
+		static const uint signal_mask[] = {
+			(1 << SIGTYPE_PBS) - 1,
+			(1 << SIGTYPE_END) - (1 << SIGTYPE_PBS),
+			(1 << SIGTYPE_END) - 1,
+		};
 
 		/* various bitstuffed elements for CmdBuildSingleSignal() */
 		uint32 p1 = track;
@@ -215,19 +219,19 @@ static void GenericPlaceSignals(TileIndex tile)
 			/* signal GUI not used */
 			SB(p1, 4, 1, ((_cur_year < _settings_client.gui.semaphore_build_before) ^ _ctrl_pressed) ? SIG_SEMAPHORE : SIG_ELECTRIC);
 			SB(p1, 5, 3, _default_signal_type[_settings_client.gui.default_signal_type]);
-			SB(p1, 9, 6, cycle_bounds[_settings_client.gui.cycle_signal_types]);
+			SB(p1, 8, 6, signal_mask[_settings_client.gui.cycle_signal_types]);
 			SB(p1, 17, 3, _ctrl_pressed ? SIGNALS_CYCLE_TYPE : SIGNALS_BUILD);
 		} else if (!_convert_signal_button) {
 			/* signal GUI is used, not converting */
 			SB(p1, 4, 1, _cur_signal_variant ^ _ctrl_pressed);
 			SB(p1, 5, 3, _cur_signal_type);
-			SB(p1, 9, 6, cycle_bounds[_settings_client.gui.cycle_signal_types]);
+			SB(p1, 8, 6, signal_mask[_settings_client.gui.cycle_signal_types]);
 			SB(p1, 17, 3, _ctrl_pressed ? SIGNALS_CYCLE_TYPE : SIGNALS_BUILD);
 		} else {
 			/* signal GUI is used, converting */
 			SB(p1, 4, 1, _cur_signal_variant ^ _ctrl_pressed);
 			SB(p1, 5, 3, _cur_signal_type);
-			SB(p1, 9, 6, cycle_bounds[_settings_client.gui.cycle_signal_types]);
+			SB(p1, 8, 6, signal_mask[_settings_client.gui.cycle_signal_types]);
 			SB(p1, 17, 3, _ctrl_pressed ? SIGNALS_TOGGLE_VARIANT : SIGNALS_CONVERT);
 		}
 

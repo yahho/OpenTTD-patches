@@ -1271,8 +1271,7 @@ CommandCost CmdBuildTrainDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, u
  * - p1 = (bit 0-2) - track-orientation, valid values: 0-5 (Track enum)
  * - p1 = (bit 4)   - 0 = signals, 1 = semaphores
  * - p1 = (bit 5-7) - type of the signal, for valid values see enum SignalType in signal_type.h
- * - p1 = (bit 9-11)- start cycle from this signal type
- * - p1 = (bit 12-14)-wrap around after this signal type
+ * - p1 = (bit 8-13)- bitmask of signal types to cycle through
  * - p1 = (bit 17-19)-operation mode (BuildSignalMode)
  * @param p2 used for CmdBuildManySignals() to copy direction of first signal
  * @param text unused
@@ -1284,12 +1283,11 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 	Track track = Extract<Track, 0, 3>(p1);
 	SignalVariant sigvar = HasBit(p1, 4) ? SIG_SEMAPHORE : SIG_ELECTRIC; // the signal variant of the new signal
 	SignalType sigtype = Extract<SignalType, 5, 3>(p1); // the signal type of the new signal
-	SignalType cycle_start = Extract<SignalType, 9, 3>(p1);
-	SignalType cycle_stop = Extract<SignalType, 12, 3>(p1);
+	uint sigmask = GB(p1, 8, 6);
 	BuildSignalMode mode = (BuildSignalMode) GB(p1, 17, 3);
 
 	if (sigtype > SIGTYPE_LAST) return CMD_ERROR;
-	if (cycle_start > cycle_stop || cycle_stop > SIGTYPE_LAST) return CMD_ERROR;
+	if (mode == SIGNALS_CYCLE_TYPE && (sigmask == 0 || sigmask > (1 << SIGTYPE_END) - 1)) return CMD_ERROR;
 
 	/* You can only build signals on rail tiles, and the selected track must exist */
 	if (!ValParamTrackOrientation(track) || !IsRailwayTile(tile) ||
@@ -1379,10 +1377,11 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 				SetPresentSignals(tile, track, 1);
 			}
 		} else if (mode == SIGNALS_CYCLE_TYPE) {
-			/* cycle between cycle_start and cycle_end */
-			sigtype = (SignalType)(GetSignalType(tile, track) + 1);
+			assert_compile(SIGTYPE_END <= 8);
 
-			if (sigtype < cycle_start || sigtype > cycle_stop) sigtype = cycle_start;
+			/* cycle through allowed signals */
+			sigtype = GetSignalType(tile, track);
+			sigtype = (SignalType) (FindFirstBit((sigmask | (sigmask << 8)) & ~((1 << (sigtype + 1)) - 1)) & 0x7);
 
 			SetSignalType(tile, track, sigtype);
 			if (IsPbsSignal(sigtype) && GetPresentSignals(tile, track) == 3) {
