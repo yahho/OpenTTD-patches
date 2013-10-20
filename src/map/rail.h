@@ -160,6 +160,18 @@ static inline void UnreserveTrack(TileIndex tile, Track t)
 
 
 /**
+ * Get the signal byte for a signal
+ * @param tile The tile whose signal byte to get
+ * @param track The track whose signal byte to get
+ * @pre IsRailwayTile(tile)
+ */
+static inline SignalPair *maptile_signalpair(TileIndex tile, Track track)
+{
+	return tile_signalpair(&_mc[tile], track);
+}
+
+
+/**
  * Clear signals on a track
  * @param tile  the tile to clear the signals from
  * @param track the track to clear the signals from

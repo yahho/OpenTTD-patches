@@ -1303,8 +1303,10 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 	/* See if this is a valid track combination for signals (no overlap) */
 	if (TracksOverlap(GetTrackBits(tile))) return_cmd_error(STR_ERROR_NO_SUITABLE_RAILROAD_TRACK);
 
+	SignalPair *signals = maptile_signalpair(tile, track);
+
 	CommandCost cost;
-	if (HasSignalOnTrack(tile, track)) {
+	if (signalpair_has_signals(signals)) {
 		switch (mode) {
 			/* In case we don't want to change an existing signal, return without error. */
 			case SIGNALS_COPY_SOFT: return CommandCost();
@@ -1316,7 +1318,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 
 			case SIGNALS_COPY:
 			case SIGNALS_CONVERT:
-				if (sigvar != GetSignalVariant(tile, track)) {
+				if (sigvar != signalpair_get_variant(signals)) {
 					/* convert signals <-> semaphores */
 					cost = CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_SIGNALS] + _price[PR_CLEAR_SIGNALS]);
 					break;
@@ -1345,66 +1347,66 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 		}
 
 		/* Subtract old signal infrastructure count. */
-		Company::Get(GetTileOwner(tile))->infrastructure.signal -= CountBits(GetPresentSignals(tile, track));
+		Company::Get(GetTileOwner(tile))->infrastructure.signal -= CountBits(signalpair_get_present(signals));
 
 		if (mode == SIGNALS_COPY || mode == SIGNALS_COPY_SOFT) {
-			if (!HasSignalOnTrack(tile, track)) {
+			if (!signalpair_has_signals(signals)) {
 				/* there are no signals at all on this track yet */
-				SetSignalStates(tile, track, 3);
+				signalpair_set_states(signals, 3);
 			}
 
 			/* If CmdBuildManySignals is called with copying signals, just copy the
 			 * direction of the first signal given as parameter by CmdBuildManySignals */
-			SetPresentSignals(tile, track, p2);
-			SetSignalVariant(tile, track, sigvar);
-			SetSignalType(tile, track, sigtype);
-		} else if (!HasSignalOnTrack(tile, track)) {
+			signalpair_set_present(signals, p2);
+			signalpair_set_variant(signals, sigvar);
+			signalpair_set_type(signals, sigtype);
+		} else if (!signalpair_has_signals(signals)) {
 			/* build new signals */
-			SetPresentSignals(tile, track, IsPbsSignal(sigtype) ? 1 : 3);
-			SetSignalType(tile, track, sigtype);
-			SetSignalStates(tile, track, 3);
-			SetSignalVariant(tile, track, sigvar);
+			signalpair_set_present(signals, IsPbsSignal(sigtype) ? 1 : 3);
+			signalpair_set_type(signals, sigtype);
+			signalpair_set_states(signals, 3);
+			signalpair_set_variant(signals, sigvar);
 		} else if (mode == SIGNALS_TOGGLE_VARIANT) {
 			/* toggle the present signal variant: SIG_ELECTRIC <-> SIG_SEMAPHORE */
-			SetSignalVariant(tile, track, (GetSignalVariant(tile, track) == SIG_ELECTRIC) ? SIG_SEMAPHORE : SIG_ELECTRIC);
+			signalpair_set_variant(signals, (signalpair_get_variant(signals) == SIG_ELECTRIC) ? SIG_SEMAPHORE : SIG_ELECTRIC);
 			/* Query current signal type so the check for PBS signals below works. */
-			sigtype = GetSignalType(tile, track);
+			sigtype = signalpair_get_type(signals);
 		} else if (mode == SIGNALS_CONVERT) {
 			/* convert the present signal to the chosen type and variant */
-			SetSignalType(tile, track, sigtype);
-			SetSignalVariant(tile, track, sigvar);
-			if (IsPbsSignal(sigtype) && (GetPresentSignals(tile, track) == 3)) {
-				SetPresentSignals(tile, track, 1);
+			signalpair_set_type(signals, sigtype);
+			signalpair_set_variant(signals, sigvar);
+			if (IsPbsSignal(sigtype) && (signalpair_get_present(signals) == 3)) {
+				signalpair_set_present(signals, 1);
 			}
 		} else if (mode == SIGNALS_CYCLE_TYPE) {
 			assert_compile(SIGTYPE_END <= 8);
 
 			/* cycle through allowed signals */
-			sigtype = GetSignalType(tile, track);
+			sigtype = signalpair_get_type(signals);
 			sigtype = (SignalType) (FindFirstBit((p2 | (p2 << 8)) & ~((1 << (sigtype + 1)) - 1)) & 0x7);
 
-			SetSignalType(tile, track, sigtype);
-			if (IsPbsSignal(sigtype) && GetPresentSignals(tile, track) == 3) {
-				SetPresentSignals(tile, track, 1);
+			signalpair_set_type(signals, sigtype);
+			if (IsPbsSignal(sigtype) && signalpair_get_present(signals) == 3) {
+				signalpair_set_present(signals, 1);
 			}
 		} else {
 			/* Query current signal type so the check for PBS signals below works. */
-			sigtype = GetSignalType(tile, track);
+			sigtype = signalpair_get_type(signals);
 			/* cycle the signal side: both -> left -> right -> both -> ... */
-			byte sig = GetPresentSignals(tile, track);
+			uint sig = signalpair_get_present(signals);
 			if (--sig == 0) sig = IsPbsSignal(sigtype) ? 2 : 3;
-			SetPresentSignals(tile, track, sig);
+			signalpair_set_present(signals, sig);
 		}
 
 		/* Add new signal infrastructure count. */
-		Company::Get(GetTileOwner(tile))->infrastructure.signal += CountBits(GetPresentSignals(tile, track));
+		Company::Get(GetTileOwner(tile))->infrastructure.signal += CountBits(signalpair_get_present(signals));
 		DirtyCompanyInfrastructureWindows(GetTileOwner(tile));
 
 		if (IsPbsSignal(sigtype)) {
 			/* PBS signals should show red unless they are on reserved tiles without a train. */
-			uint mask = GetPresentSignals(tile, track);
-			uint state = GetSignalStates(tile, track);
-			SetSignalStates(tile, track, HasBit(GetRailReservationTrackBits(tile), track) && EnsureNoTrainOnTrack(tile, track).Succeeded() ? (state | mask) : (state & ~mask));
+			uint mask = signalpair_get_present(signals);
+			uint state = signalpair_get_states(signals);
+			signalpair_set_states(signals, HasBit(GetRailReservationTrackBits(tile), track) && EnsureNoTrainOnTrack(tile, track).Succeeded() ? (state | mask) : (state & ~mask));
 		}
 		MarkTileDirtyByTile(tile);
 		AddTrackToSignalBuffer(tile, track, _current_company);
