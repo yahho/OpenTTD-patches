@@ -183,6 +183,18 @@ static void SetDisasterVehiclePos(DisasterVehicle *v, int x, int y, int z)
 	}
 }
 
+static void SetDisasterVehiclePosAutoZ(DisasterVehicle *v, int z)
+{
+	GetNewVehiclePosResult gp = GetNewVehiclePos(v);
+
+	SetDisasterVehiclePos(v, gp.x, gp.y, z);
+}
+
+static void SetDisasterVehiclePosAuto(DisasterVehicle *v)
+{
+	SetDisasterVehiclePosAutoZ(v, v->z_pos);
+}
+
 /**
  * Zeppeliner handling, v->current_order.dest states:
  * 0: Zeppeliner initialization has found a small airport, go there and crash
@@ -198,9 +210,7 @@ static bool DisasterTick_Zeppeliner(DisasterVehicle *v)
 	if (v->current_order.GetDestination() < 2) {
 		if (HasBit(v->tick_counter, 0)) return true;
 
-		GetNewVehiclePosResult gp = GetNewVehiclePos(v);
-
-		SetDisasterVehiclePos(v, gp.x, gp.y, v->z_pos);
+		SetDisasterVehiclePosAuto(v);
 
 		if (v->current_order.GetDestination() == 1) {
 			if (++v->age == 38) {
@@ -293,8 +303,7 @@ static bool DisasterTick_Ufo(DisasterVehicle *v)
 		int y = TileY(v->dest_tile) * TILE_SIZE;
 		if (Delta(x, v->x_pos) + Delta(y, v->y_pos) >= (int)TILE_SIZE) {
 			v->direction = GetDirectionTowards(v, x, y);
-			GetNewVehiclePosResult gp = GetNewVehiclePos(v);
-			SetDisasterVehiclePos(v, gp.x, gp.y, v->z_pos);
+			SetDisasterVehiclePosAuto(v);
 			return true;
 		}
 		if (++v->age < 6) {
@@ -338,11 +347,10 @@ static bool DisasterTick_Ufo(DisasterVehicle *v)
 		}
 
 		v->direction = GetDirectionTowards(v, u->x_pos, u->y_pos);
-		GetNewVehiclePosResult gp = GetNewVehiclePos(v);
 
 		int z = v->z_pos;
 		if (dist <= TILE_SIZE && z > u->z_pos) z--;
-		SetDisasterVehiclePos(v, gp.x, gp.y, z);
+		SetDisasterVehiclePosAutoZ(v, z);
 
 		if (z <= u->z_pos && (u->vehstatus & VS_HIDDEN) == 0) {
 			v->age++;
@@ -396,10 +404,9 @@ static bool DisasterTick_Aircraft(DisasterVehicle *v, uint16 image_override, boo
 	v->tick_counter++;
 	v->image_override = (v->current_order.GetDestination() == 1 && HasBit(v->tick_counter, 2)) ? image_override : 0;
 
-	GetNewVehiclePosResult gp = GetNewVehiclePos(v);
-	SetDisasterVehiclePos(v, gp.x, gp.y, v->z_pos);
+	SetDisasterVehiclePosAuto(v);
 
-	if ((leave_at_top && gp.x < (-10 * (int)TILE_SIZE)) || (!leave_at_top && gp.x > (int)(MapSizeX() * TILE_SIZE + 9 * TILE_SIZE) - 1)) {
+	if (leave_at_top ? (v->x_pos < (-10 * (int)TILE_SIZE)) : (v->x_pos > (int)(MapSizeX() * TILE_SIZE + 9 * TILE_SIZE) - 1)) {
 		delete v;
 		return false;
 	}
@@ -493,8 +500,7 @@ static bool DisasterTick_Big_Ufo(DisasterVehicle *v)
 		if (Delta(v->x_pos, x) + Delta(v->y_pos, y) >= 8) {
 			v->direction = GetDirectionTowards(v, x, y);
 
-			GetNewVehiclePosResult gp = GetNewVehiclePos(v);
-			SetDisasterVehiclePos(v, gp.x, gp.y, v->z_pos);
+			SetDisasterVehiclePosAuto(v);
 			return true;
 		}
 
@@ -545,8 +551,7 @@ static bool DisasterTick_Big_Ufo(DisasterVehicle *v)
 		int y = TileY(v->dest_tile) * TILE_SIZE;
 		if (Delta(x, v->x_pos) + Delta(y, v->y_pos) >= (int)TILE_SIZE) {
 			v->direction = GetDirectionTowards(v, x, y);
-			GetNewVehiclePosResult gp = GetNewVehiclePos(v);
-			SetDisasterVehiclePos(v, gp.x, gp.y, v->z_pos);
+			SetDisasterVehiclePosAuto(v);
 			return true;
 		}
 
@@ -580,10 +585,9 @@ static bool DisasterTick_Big_Ufo_Destroyer(DisasterVehicle *v)
 {
 	v->tick_counter++;
 
-	GetNewVehiclePosResult gp = GetNewVehiclePos(v);
-	SetDisasterVehiclePos(v, gp.x, gp.y, v->z_pos);
+	SetDisasterVehiclePosAuto(v);
 
-	if (gp.x > (int)(MapSizeX() * TILE_SIZE + 9 * TILE_SIZE) - 1) {
+	if (v->x_pos > (int)(MapSizeX() * TILE_SIZE + 9 * TILE_SIZE) - 1) {
 		delete v;
 		return false;
 	}
@@ -637,8 +641,7 @@ static bool DisasterTick_Submarine(DisasterVehicle *v)
 	if (IsValidTile(tile)) {
 		TrackBits trackbits = TrackStatusToTrackBits(GetTileWaterwayStatus(tile));
 		if (trackbits == TRACK_BIT_ALL && !Chance16(1, 90)) {
-			GetNewVehiclePosResult gp = GetNewVehiclePos(v);
-			SetDisasterVehiclePos(v, gp.x, gp.y, v->z_pos);
+			SetDisasterVehiclePosAuto(v);
 			return true;
 		}
 	}
