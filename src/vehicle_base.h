@@ -315,7 +315,7 @@ public:
 	 * @param speed Direction-independent unscaled speed.
 	 * @return speed scaled by movement direction. 256 units are required for each movement step.
 	 */
-	inline uint GetOldAdvanceSpeed(uint speed)
+	inline uint GetOldAdvanceSpeed(uint speed) const
 	{
 		return (this->direction & 1) ? speed : speed * 3 / 4;
 	}
@@ -344,7 +344,7 @@ public:
 	 *
 	 * @return distance to drive for a movement step on the map.
 	 */
-	inline uint GetAdvanceDistance()
+	inline uint GetAdvanceDistance() const
 	{
 		return (this->direction & 1) ? 192 : 256;
 	}
