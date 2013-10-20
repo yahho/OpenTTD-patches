@@ -3222,7 +3222,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 		DiagDirection enterdir = INVALID_DIAGDIR; // direction into the new tile, or INVALID_DIAGDIR if we stay on the old tile
 		DiagDirection tsdir = INVALID_DIAGDIR; // direction to use for GetTileRailwayStatus, only when moving into a new tile
 
-		GetNewVehiclePosResult gp = GetNewVehiclePos(v);
+		VehiclePos gp = GetNewVehiclePos(v);
 		if (v->trackdir == TRACKDIR_WORMHOLE) {
 			/* In a tunnel or on a bridge (middle part) */
 			old_tile = TileVirtXY(v->x_pos, v->y_pos);

@@ -70,12 +70,12 @@ void VehicleEnterDepot(Vehicle *v);
 bool CanBuildVehicleInfrastructure(VehicleType type);
 
 /** Position information of a vehicle after it moved */
-struct GetNewVehiclePosResult {
+struct VehiclePos {
 	int x, y;  ///< x and y position of the vehicle after moving
 	TileIndex new_tile; ///< Virtual tile of the vehicle after moving
 };
 
-GetNewVehiclePosResult GetNewVehiclePos(const Vehicle *v);
+VehiclePos GetNewVehiclePos(const Vehicle *v);
 Direction GetDirectionTowards(const Vehicle *v, int x, int y);
 
 /**

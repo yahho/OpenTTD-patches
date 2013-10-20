@@ -903,7 +903,7 @@ static bool AircraftController(Aircraft *v)
 
 	do {
 
-		GetNewVehiclePosResult gp;
+		VehiclePos gp;
 
 		if (dist < 4 || (amd.flag & AMED_LAND)) {
 			/* move vehicle one pixel towards target */

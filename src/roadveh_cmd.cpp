@@ -1197,7 +1197,7 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 
 	if (v->state == RVSB_WORMHOLE) {
 		/* Vehicle is entering a depot or is on a bridge or in a tunnel */
-		GetNewVehiclePosResult gp = GetNewVehiclePos(v);
+		VehiclePos gp = GetNewVehiclePos(v);
 
 		if (v->IsFrontEngine()) {
 			const Vehicle *u = RoadVehFindCloseTo(v, gp.x, gp.y, v->direction);
@@ -1236,7 +1236,7 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 				TileIndex end_tile = GetOtherTunnelEnd(v->tile);
 				if (end_tile != tile) {
 					/* Entering a tunnel */
-					GetNewVehiclePosResult gp = GetNewVehiclePos(v);
+					VehiclePos gp = GetNewVehiclePos(v);
 					assert(gp.new_tile == tile);
 
 					if (v->IsFrontEngine()) {
@@ -1259,7 +1259,7 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 				TileIndex end_tile = GetOtherBridgeEnd(v->tile);
 				if (end_tile != tile) {
 					/* Entering a bridge */
-					GetNewVehiclePosResult gp = GetNewVehiclePos(v);
+					VehiclePos gp = GetNewVehiclePos(v);
 					assert(gp.new_tile == tile);
 
 					if (v->IsFrontEngine()) {

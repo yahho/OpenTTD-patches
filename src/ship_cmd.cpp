@@ -468,7 +468,7 @@ static void ShipController(Ship *v)
 
 	if (!ShipAccelerate(v)) return;
 
-	GetNewVehiclePosResult gp = GetNewVehiclePos(v);
+	VehiclePos gp = GetNewVehiclePos(v);
 	if (v->trackdir == TRACKDIR_WORMHOLE) {
 		/* On a bridge */
 		if (gp.new_tile != v->tile) {

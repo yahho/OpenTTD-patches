@@ -192,7 +192,7 @@ void UpdateOldAircraft()
 			}
 			a->state = FLYING;
 			AircraftNextAirportPos_and_Order(a); // move it to the entry point of the airport
-			GetNewVehiclePosResult gp = GetNewVehiclePos(a);
+			VehiclePos gp = GetNewVehiclePos(a);
 			a->tile = 0; // aircraft in air is tile=0
 
 			/* correct speed of helicopter-rotors */
