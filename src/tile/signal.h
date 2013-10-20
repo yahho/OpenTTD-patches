@@ -179,4 +179,27 @@ static inline void signalpair_set_variant(SignalPair *s, SignalVariant v)
 	SB(*s, 7, 1, v);
 }
 
+/**
+ * Toggle the variant of the signals on a track
+ * @param s The signal pair to toggle
+ */
+static inline void signalpair_toggle_variant(SignalPair *s)
+{
+	assert(signalpair_has_signals(s));
+	ToggleBit(*s, 7);
+}
+
+
+/**
+ * Set the type and variant of the signals on a track
+ * @param s The signal pair to set
+ * @param type The type of signals to set
+ * @param v The variant of signals to set
+ */
+static inline void signalpair_set_type_variant(SignalPair *s, SignalType type, SignalVariant v)
+{
+	signalpair_set_type(s, type);
+	signalpair_set_variant(s, v);
+}
+
 #endif /* TILE_SIGNAL_H */

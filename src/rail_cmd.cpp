@@ -1358,23 +1358,20 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 			/* If CmdBuildManySignals is called with copying signals, just copy the
 			 * direction of the first signal given as parameter by CmdBuildManySignals */
 			signalpair_set_present(signals, p2);
-			signalpair_set_variant(signals, sigvar);
-			signalpair_set_type(signals, sigtype);
+			signalpair_set_type_variant(signals, sigtype, sigvar);
 		} else if (!signalpair_has_signals(signals)) {
 			/* build new signals */
 			signalpair_set_present(signals, IsPbsSignal(sigtype) ? 1 : 3);
-			signalpair_set_type(signals, sigtype);
+			signalpair_set_type_variant(signals, sigtype, sigvar);
 			signalpair_set_states(signals, 3);
-			signalpair_set_variant(signals, sigvar);
 		} else if (mode == SIGNALS_TOGGLE_VARIANT) {
 			/* toggle the present signal variant: SIG_ELECTRIC <-> SIG_SEMAPHORE */
-			signalpair_set_variant(signals, (signalpair_get_variant(signals) == SIG_ELECTRIC) ? SIG_SEMAPHORE : SIG_ELECTRIC);
+			signalpair_toggle_variant(signals);
 			/* Query current signal type so the check for PBS signals below works. */
 			sigtype = signalpair_get_type(signals);
 		} else if (mode == SIGNALS_CONVERT) {
 			/* convert the present signal to the chosen type and variant */
-			signalpair_set_type(signals, sigtype);
-			signalpair_set_variant(signals, sigvar);
+			signalpair_set_type_variant(signals, sigtype, sigvar);
 			if (IsPbsSignal(sigtype) && (signalpair_get_present(signals) == 3)) {
 				signalpair_set_present(signals, 1);
 			}
