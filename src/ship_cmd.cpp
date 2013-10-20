@@ -482,10 +482,10 @@ static void ShipController(Ship *v)
 		}
 	} else if (v->trackdir == TRACKDIR_DEPOT) {
 		/* Inside depot */
-		assert(gp.old_tile == gp.new_tile);
+		assert(gp.new_tile == v->tile);
 		gp.x = v->x_pos;
 		gp.y = v->y_pos;
-	} else if (gp.old_tile == gp.new_tile) {
+	} else if (gp.new_tile == v->tile) {
 		/* Not on a bridge or in a depot, staying in the old tile */
 
 		/* A leave station order only needs one tick to get processed, so we can
@@ -529,11 +529,11 @@ static void ShipController(Ship *v)
 
 		if (!IsValidTile(gp.new_tile)) goto reverse_direction;
 
-		DiagDirection diagdir = DiagdirBetweenTiles(gp.old_tile, gp.new_tile);
+		DiagDirection diagdir = DiagdirBetweenTiles(v->tile, gp.new_tile);
 		assert(diagdir != INVALID_DIAGDIR);
 
-		if (IsAqueductTile(gp.old_tile) && GetTunnelBridgeDirection(gp.old_tile) == diagdir) {
-			TileIndex end_tile = GetOtherBridgeEnd(gp.old_tile);
+		if (IsAqueductTile(v->tile) && GetTunnelBridgeDirection(v->tile) == diagdir) {
+			TileIndex end_tile = GetOtherBridgeEnd(v->tile);
 			if (end_tile != gp.new_tile) {
 				/* Entering an aqueduct */
 				v->tile = end_tile;
@@ -557,11 +557,12 @@ static void ShipController(Ship *v)
 		gp.x = (gp.x & ~0xF) | b[0];
 		gp.y = (gp.y & ~0xF) | b[1];
 
+		WaterClass old_wc = GetEffectiveWaterClass(v->tile);
+
 		v->tile = gp.new_tile;
 		v->trackdir = trackdir;
 
 		/* Update ship cache when the water class changes. Aqueducts are always canals. */
-		WaterClass old_wc = GetEffectiveWaterClass(gp.old_tile);
 		WaterClass new_wc = GetEffectiveWaterClass(gp.new_tile);
 		if (old_wc != new_wc) v->UpdateCache();
 

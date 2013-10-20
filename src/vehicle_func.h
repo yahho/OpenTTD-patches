@@ -72,8 +72,7 @@ bool CanBuildVehicleInfrastructure(VehicleType type);
 /** Position information of a vehicle after it moved */
 struct GetNewVehiclePosResult {
 	int x, y;  ///< x and y position of the vehicle after moving
-	TileIndex old_tile; ///< Current tile of the vehicle
-	TileIndex new_tile; ///< Tile of the vehicle after moving
+	TileIndex new_tile; ///< Virtual tile of the vehicle after moving
 };
 
 GetNewVehiclePosResult GetNewVehiclePos(const Vehicle *v);

@@ -1603,7 +1603,6 @@ GetNewVehiclePosResult GetNewVehiclePos(const Vehicle *v)
 	GetNewVehiclePosResult gp;
 	gp.x = x;
 	gp.y = y;
-	gp.old_tile = v->tile;
 	gp.new_tile = TileVirtXY(x, y);
 	return gp;
 }

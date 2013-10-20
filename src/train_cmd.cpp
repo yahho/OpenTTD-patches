@@ -3217,6 +3217,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 
 	/* For every vehicle after and including the given vehicle */
 	for (prev = v->Previous(); v != nomove; prev = v, v = v->Next()) {
+		TileIndex old_tile; // old virtual tile
 		bool old_in_wormhole, new_in_wormhole; // old position was in wormhole, new position is in wormhole
 		DiagDirection enterdir = INVALID_DIAGDIR; // direction into the new tile, or INVALID_DIAGDIR if we stay on the old tile
 		DiagDirection tsdir = INVALID_DIAGDIR; // direction to use for GetTileRailwayStatus, only when moving into a new tile
@@ -3224,35 +3225,37 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 		GetNewVehiclePosResult gp = GetNewVehiclePos(v);
 		if (v->trackdir == TRACKDIR_WORMHOLE) {
 			/* In a tunnel or on a bridge (middle part) */
+			old_tile = TileVirtXY(v->x_pos, v->y_pos);
 			old_in_wormhole = true;
 
 			if (gp.new_tile != v->tile) {
 				/* Still in the wormhole */
 				new_in_wormhole = true;
 			} else {
-				assert(gp.old_tile == gp.new_tile);
 				new_in_wormhole = false;
 				enterdir = ReverseDiagDir(GetTunnelBridgeDirection(gp.new_tile));
 				tsdir = INVALID_DIAGDIR;
 			}
 		} else if (v->trackdir == TRACKDIR_DEPOT) {
 			/* Inside depot */
-			assert(gp.old_tile == gp.new_tile);
+			assert(gp.new_tile == v->tile);
 			continue;
-		} else if (gp.old_tile == gp.new_tile) {
+		} else if (gp.new_tile == v->tile) {
 			/* Not inside tunnel or depot, staying in the old tile */
+			old_tile = v->tile;
 			old_in_wormhole = false;
 			new_in_wormhole = false;
 		} else {
 			/* Not inside tunnel or depot, about to enter a new tile */
+			old_tile = v->tile;
 			old_in_wormhole = false;
 
 			/* Determine what direction we're entering the new tile from */
-			enterdir = DiagdirBetweenTiles(gp.old_tile, gp.new_tile);
+			enterdir = DiagdirBetweenTiles(v->tile, gp.new_tile);
 			assert(IsValidDiagDirection(enterdir));
 
-			if (IsTunnelTile(gp.old_tile) && GetTunnelBridgeDirection(gp.old_tile) == enterdir) {
-				TileIndex end_tile = GetOtherTunnelEnd(gp.old_tile);
+			if (IsTunnelTile(v->tile) && GetTunnelBridgeDirection(v->tile) == enterdir) {
+				TileIndex end_tile = GetOtherTunnelEnd(v->tile);
 				if (end_tile != gp.new_tile) {
 					/* Entering a tunnel */
 					new_in_wormhole = true;
@@ -3261,8 +3264,8 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					new_in_wormhole = false;
 					tsdir = INVALID_DIAGDIR;
 				}
-			} else if (IsRailBridgeTile(gp.old_tile) && GetTunnelBridgeDirection(gp.old_tile) == enterdir) {
-				TileIndex end_tile = GetOtherBridgeEnd(gp.old_tile);
+			} else if (IsRailBridgeTile(v->tile) && GetTunnelBridgeDirection(v->tile) == enterdir) {
+				TileIndex end_tile = GetOtherBridgeEnd(v->tile);
 				if (end_tile != gp.new_tile) {
 					/* Entering a bridge */
 					new_in_wormhole = true;
@@ -3284,13 +3287,8 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 		if (enterdir == INVALID_DIAGDIR) {
 			/* Staying on the same tile */
 
-			if (new_in_wormhole) {
-				/* Needed to test whether to call CheckNextTrainTile */
-				gp.old_tile = TileVirtXY(v->x_pos, v->y_pos);
-			} else {
-				/* Reverse when we are at the end of the track already, do not move to the new position */
-				if (v->IsFrontEngine() && !TrainCheckIfLineEnds(v, reverse)) return false;
-			}
+			/* Reverse when we are at the end of the track already, do not move to the new position */
+			if (!new_in_wormhole && v->IsFrontEngine() && !TrainCheckIfLineEnds(v, reverse)) return false;
 		} else {
 			/* Entering a new tile */
 
@@ -3415,11 +3413,11 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				/* new_in_wormhole */
 				assert(!old_in_wormhole);
 				if (prev == NULL) {
-					if (IsRailwayTile(gp.old_tile)) {
-						SetBridgeMiddleReservation(gp.old_tile, true);
+					if (IsRailwayTile(old_tile)) {
+						SetBridgeMiddleReservation(old_tile, true);
 						SetBridgeMiddleReservation(gp.new_tile, true);
 					} else {
-						SetTunnelMiddleReservation(gp.old_tile, true);
+						SetTunnelMiddleReservation(old_tile, true);
 						SetTunnelMiddleReservation(gp.new_tile, true);
 					}
 				}
@@ -3439,8 +3437,6 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 
 			if (new_in_wormhole) {
 				/* Just entered the wormhole */
-				assert(gp.old_tile == TileVirtXY(v->x_pos, v->y_pos));
-
 				v->tile = gp.new_tile;
 				v->trackdir = TRACKDIR_WORMHOLE;
 			} else {
@@ -3510,7 +3506,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			if (v->Next() == NULL) {
 				/* Update the signal segment added before, if any */
 				UpdateSignalsInBuffer();
-				if (!old_in_wormhole && IsLevelCrossingTile(gp.old_tile)) UpdateLevelCrossing(gp.old_tile);
+				if (!old_in_wormhole && IsLevelCrossingTile(old_tile)) UpdateLevelCrossing(old_tile);
 			}
 
 			if (v->IsFrontEngine()) {
@@ -3551,10 +3547,10 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			if (new_in_wormhole) {
 				if (old_in_wormhole) {
 					TileIndex last_wormhole_tile = TileAddByDiagDir(v->tile, GetTunnelBridgeDirection(v->tile));
-					check_next_tile = (gp.new_tile == last_wormhole_tile) && (gp.new_tile != gp.old_tile || v->tick_counter % _settings_game.pf.path_backoff_interval == 0);
+					check_next_tile = (gp.new_tile == last_wormhole_tile) && (gp.new_tile != old_tile || v->tick_counter % _settings_game.pf.path_backoff_interval == 0);
 				} else {
 					TileIndexDiff diff = TileOffsByDiagDir(GetTunnelBridgeDirection(v->tile));
-					check_next_tile = (gp.old_tile == TILE_ADD(v->tile, 2*diff));
+					check_next_tile = (old_tile == TILE_ADD(v->tile, 2*diff));
 				}
 			} else {
 				/* If we are approaching a crossing that is reserved, play the sound now. */

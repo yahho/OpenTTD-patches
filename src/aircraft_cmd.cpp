@@ -947,7 +947,7 @@ static bool AircraftController(Aircraft *v)
 					 * long as an aircraft is on the ground. */
 					gp.x = v->x_pos;
 					gp.y = v->y_pos;
-					gp.new_tile = gp.old_tile = v->tile;
+					gp.new_tile = v->tile;
 				}
 			} else {
 				v->number_consecutive_turns = 0;
