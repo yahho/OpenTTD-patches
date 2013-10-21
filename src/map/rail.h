@@ -237,17 +237,6 @@ static inline uint GetSignalStates(TileIndex tile, Track track)
 }
 
 /**
- * Set the states of the signals (Along/AgainstTrackDir)
- * @param tile  the tile to set the states for
- * @param track the track to set the states for
- * @param state the new state
- */
-static inline void SetSignalStates(TileIndex tile, Track track, uint state)
-{
-	tile_set_signal_states(&_mc[tile], track, state);
-}
-
-/**
  * Gets the state of the signal along the given trackdir.
  *
  * Along meaning if you are currently driving on the given trackdir, this is
