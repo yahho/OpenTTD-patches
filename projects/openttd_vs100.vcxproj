@@ -363,6 +363,11 @@
       <ObjectFileName>$(IntDir)\linkgraph\</ObjectFileName>
       <XMLDocumentationFileName>$(IntDir)\linkgraph\</XMLDocumentationFileName>
     </ClCompile>
+    <ClCompile Include="..\src\linkgraph\refresh.cpp">
+      <AssemblerListingLocation>$(IntDir)\linkgraph\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\linkgraph\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\linkgraph\</XMLDocumentationFileName>
+    </ClCompile>
     <ClCompile Include="..\src\map.cpp" />
     <ClCompile Include="..\src\misc.cpp" />
     <ClCompile Include="..\src\mixer.cpp" />
@@ -549,6 +554,7 @@
     <ClInclude Include="..\src\linkgraph\linkgraphjob_base.h" />
     <ClInclude Include="..\src\linkgraph\linkgraphschedule.h" />
     <ClInclude Include="..\src\linkgraph\mcf.h" />
+    <ClInclude Include="..\src\linkgraph\refresh.h" />
     <ClInclude Include="..\src\livery.h" />
     <ClInclude Include="..\src\map_func.h" />
     <ClInclude Include="..\src\map_type.h" />
