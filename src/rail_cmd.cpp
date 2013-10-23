@@ -1303,108 +1303,125 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 	/* See if this is a valid track combination for signals (no overlap) */
 	if (TracksOverlap(GetTrackBits(tile))) return_cmd_error(STR_ERROR_NO_SUITABLE_RAILROAD_TRACK);
 
-	SignalPair *signals = maptile_signalpair(tile, track);
+	SignalPair signals = *maptile_signalpair(tile, track);
 
-	CommandCost cost;
-	if (signalpair_has_signals(signals)) {
-		switch (mode) {
-			/* In case we don't want to change an existing signal, return without error. */
-			case SIGNALS_COPY_SOFT: return CommandCost();
+	CommandCost cost (EXPENSES_CONSTRUCTION);
+	switch (mode) {
+		default: return CMD_ERROR;
 
-			case SIGNALS_TOGGLE_VARIANT:
-				/* convert electric <-> semaphore */
-				cost = CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_SIGNALS] + _price[PR_CLEAR_SIGNALS]);
-				break;
-
-			case SIGNALS_COPY:
-			case SIGNALS_CONVERT:
-				if (sigvar != signalpair_get_variant(signals)) {
-					/* convert signals <-> semaphores */
-					cost = CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_SIGNALS] + _price[PR_CLEAR_SIGNALS]);
-					break;
-				}
-				/* fall through */
-			default:
+		case SIGNALS_CYCLE_TYPE:
+			if (signalpair_has_signals(&signals)) {
 				/* it is free to change signal type: normal-pre-exit-combo */
-				cost = CommandCost();
-		}
-	} else {
-		/* you can not convert a signal if no signal is on track */
-		if (mode == SIGNALS_CONVERT || mode == SIGNALS_TOGGLE_VARIANT) return_cmd_error(STR_ERROR_THERE_ARE_NO_SIGNALS);
+				assert_compile(SIGTYPE_END <= 8);
 
-		/* build new signals */
-		cost = CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_SIGNALS]);
-	}
+				/* cycle through allowed signals */
+				sigtype = signalpair_get_type(&signals);
+				sigtype = (SignalType) (FindFirstBit((p2 | (p2 << 8)) & ~((1 << (sigtype + 1)) - 1)) & 0x7);
 
-	if (flags & DC_EXEC) {
-		Train *v = NULL;
-		/* The new/changed signal could block our path. As this can lead to
-		 * stale reservations, we clear the path reservation here and try
-		 * to redo it later on. */
-		if (HasReservedTrack(tile, track)) {
-			v = GetTrainForReservation(tile, track);
-			if (v != NULL) FreeTrainTrackReservation(v);
-		}
+				signalpair_set_type(&signals, sigtype);
+				if (IsPbsSignal(sigtype) && signalpair_get_present(&signals) == 3) {
+					signalpair_set_present(&signals, 1);
+				}
 
-		/* Subtract old signal infrastructure count. */
-		Company::Get(GetTileOwner(tile))->infrastructure.signal -= CountBits(signalpair_get_present(signals));
+				break;
+			}
+			/* build new signals--fall through */
+		case SIGNALS_BUILD:
+			if (signalpair_has_signals(&signals)) {
+				/* it is free to change signal type: normal-pre-exit-combo */
+				/* cycle the signal side: both -> left -> right -> both -> ... */
+				uint sig = signalpair_get_present(&signals);
+				if (--sig == 0) sig = IsPbsSignal(signalpair_get_type(&signals)) ? 2 : 3;
+				signalpair_set_present(&signals, sig);
+			} else {
+				/* build new signals */
+				cost.AddCost(_price[PR_BUILD_SIGNALS]);
 
-		if (mode == SIGNALS_COPY || mode == SIGNALS_COPY_SOFT) {
-			if (!signalpair_has_signals(signals)) {
-				/* there are no signals at all on this track yet */
-				signalpair_set_states(signals, 3);
+				uint present = IsPbsSignal(sigtype) ? 1 : 3;
+				signalpair_set_present(&signals, present);
+				signalpair_set_type_variant(&signals, sigtype, sigvar);
+				signalpair_set_states(&signals, 3);
+			}
+			break;
+
+		case SIGNALS_COPY_SOFT:
+			/* In case we don't want to change an existing signal, return without error. */
+			if (signalpair_has_signals(&signals)) return CommandCost();
+			/* fall through */
+		case SIGNALS_COPY:
+			if (!signalpair_has_signals(&signals)) {
+				/* build new signals */
+				cost.AddCost(_price[PR_BUILD_SIGNALS]);
+				signalpair_set_states(&signals, 3);
+			} else if (sigvar != signalpair_get_variant(&signals)) {
+				/* convert signals <-> semaphores */
+				cost.AddCost(_price[PR_BUILD_SIGNALS] + _price[PR_CLEAR_SIGNALS]);
+			} else {
+				/* it is free to change signal type: normal-pre-exit-combo */
 			}
 
 			/* If CmdBuildManySignals is called with copying signals, just copy the
 			 * direction of the first signal given as parameter by CmdBuildManySignals */
-			signalpair_set_present(signals, p2);
-			signalpair_set_type_variant(signals, sigtype, sigvar);
-		} else if (!signalpair_has_signals(signals)) {
-			/* build new signals */
-			signalpair_set_present(signals, IsPbsSignal(sigtype) ? 1 : 3);
-			signalpair_set_type_variant(signals, sigtype, sigvar);
-			signalpair_set_states(signals, 3);
-		} else if (mode == SIGNALS_TOGGLE_VARIANT) {
-			/* toggle the present signal variant: SIG_ELECTRIC <-> SIG_SEMAPHORE */
-			signalpair_toggle_variant(signals);
-			/* Query current signal type so the check for PBS signals below works. */
-			sigtype = signalpair_get_type(signals);
-		} else if (mode == SIGNALS_CONVERT) {
+			signalpair_set_present(&signals, p2);
+			signalpair_set_type_variant(&signals, sigtype, sigvar);
+			break;
+
+		case SIGNALS_CONVERT:
+			if (!signalpair_has_signals(&signals)) return_cmd_error(STR_ERROR_THERE_ARE_NO_SIGNALS);
+
 			/* convert the present signal to the chosen type and variant */
-			signalpair_set_type_variant(signals, sigtype, sigvar);
-			if (IsPbsSignal(sigtype) && (signalpair_get_present(signals) == 3)) {
-				signalpair_set_present(signals, 1);
+			if (sigvar != signalpair_get_variant(&signals)) {
+				/* convert signals <-> semaphores */
+				cost.AddCost(_price[PR_BUILD_SIGNALS] + _price[PR_CLEAR_SIGNALS]);
+			} else {
+				/* it is free to change signal type: normal-pre-exit-combo */
 			}
-		} else if (mode == SIGNALS_CYCLE_TYPE) {
-			assert_compile(SIGTYPE_END <= 8);
 
-			/* cycle through allowed signals */
-			sigtype = signalpair_get_type(signals);
-			sigtype = (SignalType) (FindFirstBit((p2 | (p2 << 8)) & ~((1 << (sigtype + 1)) - 1)) & 0x7);
-
-			signalpair_set_type(signals, sigtype);
-			if (IsPbsSignal(sigtype) && signalpair_get_present(signals) == 3) {
-				signalpair_set_present(signals, 1);
+			signalpair_set_type_variant(&signals, sigtype, sigvar);
+			if (IsPbsSignal(sigtype) && (signalpair_get_present(&signals) == 3)) {
+				signalpair_set_present(&signals, 1);
 			}
-		} else {
-			/* Query current signal type so the check for PBS signals below works. */
-			sigtype = signalpair_get_type(signals);
-			/* cycle the signal side: both -> left -> right -> both -> ... */
-			uint sig = signalpair_get_present(signals);
-			if (--sig == 0) sig = IsPbsSignal(sigtype) ? 2 : 3;
-			signalpair_set_present(signals, sig);
+			break;
+
+		case SIGNALS_TOGGLE_VARIANT:
+			if (!signalpair_has_signals(&signals)) return_cmd_error(STR_ERROR_THERE_ARE_NO_SIGNALS);
+			/* convert electric <-> semaphore */
+			cost.AddCost(_price[PR_BUILD_SIGNALS] + _price[PR_CLEAR_SIGNALS]);
+			signalpair_toggle_variant(&signals);
+			break;
+	}
+
+	if (flags & DC_EXEC) {
+		Train *v = NULL;
+
+		if (mode != SIGNALS_TOGGLE_VARIANT) {
+			/* The new/changed signal could block our path. As this can lead to
+			 * stale reservations, we clear the path reservation here and try
+			 * to redo it later on. */
+			if (HasReservedTrack(tile, track)) {
+				v = GetTrainForReservation(tile, track);
+				if (v != NULL) FreeTrainTrackReservation(v);
+			}
+
+			/* Update signal infrastructure count. */
+			int infra_diff = CountBits(signalpair_get_present(&signals)) - CountBits(GetPresentSignals(tile, track));
+
+			if (infra_diff != 0) {
+				Owner owner = GetTileOwner(tile);
+				Company::Get(owner)->infrastructure.signal += infra_diff;
+				DirtyCompanyInfrastructureWindows(owner);
+			}
+
+			if (IsPbsSignal(signalpair_get_type(&signals))) {
+				/* PBS signals should show red unless they are on reserved tiles without a train. */
+				uint mask = signalpair_get_present(&signals);
+				uint state = signalpair_get_states(&signals);
+				signalpair_set_states(&signals, HasReservedTrack(tile, track) && EnsureNoTrainOnTrack(tile, track).Succeeded() ? (state | mask) : (state & ~mask));
+			}
 		}
 
-		/* Add new signal infrastructure count. */
-		Company::Get(GetTileOwner(tile))->infrastructure.signal += CountBits(signalpair_get_present(signals));
-		DirtyCompanyInfrastructureWindows(GetTileOwner(tile));
+		*maptile_signalpair(tile, track) = signals;
 
-		if (IsPbsSignal(sigtype)) {
-			/* PBS signals should show red unless they are on reserved tiles without a train. */
-			uint mask = signalpair_get_present(signals);
-			uint state = signalpair_get_states(signals);
-			signalpair_set_states(signals, HasBit(GetRailReservationTrackBits(tile), track) && EnsureNoTrainOnTrack(tile, track).Succeeded() ? (state | mask) : (state & ~mask));
-		}
 		MarkTileDirtyByTile(tile);
 		AddTrackToSignalBuffer(tile, track, _current_company);
 		YapfNotifyTrackLayoutChange(tile, track);
