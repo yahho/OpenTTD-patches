@@ -4277,6 +4277,7 @@ void FlowStat::ChangeShare(StationID st, int flow)
  */
 void FlowStat::RestrictShare(StationID st)
 {
+	assert(!this->shares.empty());
 	uint flow = 0;
 	uint last_share = 0;
 	SharesMap new_shares;
@@ -4297,6 +4298,7 @@ void FlowStat::RestrictShare(StationID st)
 	if (flow == 0) return;
 	new_shares[last_share + flow] = st;
 	this->shares.swap(new_shares);
+	assert(!this->shares.empty());
 }
 
 /**
@@ -4306,6 +4308,7 @@ void FlowStat::RestrictShare(StationID st)
  */
 void FlowStat::ReleaseShare(StationID st)
 {
+	assert(!this->shares.empty());
 	uint flow = 0;
 	uint next_share = 0;
 	bool found = false;
@@ -4332,6 +4335,7 @@ void FlowStat::ReleaseShare(StationID st)
 		}
 	}
 	this->shares.swap(new_shares);
+	assert(!this->shares.empty());
 }
 
 /**
