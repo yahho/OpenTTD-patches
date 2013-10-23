@@ -1286,24 +1286,59 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 	SignalType sigtype = Extract<SignalType, 5, 3>(p1); // the signal type of the new signal
 	BuildSignalMode mode = (BuildSignalMode) GB(p1, 17, 3);
 
-	if (sigtype > SIGTYPE_LAST) return CMD_ERROR;
-	if (mode == SIGNALS_CYCLE_TYPE && (p2 == 0 || p2 > (1 << SIGTYPE_END) - 1)) return CMD_ERROR;
-
 	/* You can only build signals on rail tiles, and the selected track must exist */
-	if (!ValParamTrackOrientation(track) || !IsRailwayTile(tile) ||
-			!HasTrack(tile, track)) {
+	SignalPair signals;
+	TileIndex other_end;
+	if (IsRailwayTile(tile)) {
+		if (sigtype > SIGTYPE_LAST) return CMD_ERROR;
+
+		if (!ValParamTrackOrientation(track) || !HasTrack(tile, track)) {
+			return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
+		}
+
+		other_end = INVALID_TILE;
+
+		if (mode == SIGNALS_CYCLE_TYPE && (p2 == 0 || p2 > (1 << SIGTYPE_END) - 1)) return CMD_ERROR;
+		/* Protect against invalid signal copying */
+		if ((mode == SIGNALS_COPY || mode == SIGNALS_COPY_SOFT) && (p2 == 0 || p2 > 3)) return CMD_ERROR;
+
+		CommandCost ret = CheckTileOwnership(tile);
+		if (ret.Failed()) return ret;
+
+		/* See if this is a valid track combination for signals (no overlap) */
+		if (TracksOverlap(GetTrackBits(tile))) return_cmd_error(STR_ERROR_NO_SUITABLE_RAILROAD_TRACK);
+
+		signals = *maptile_signalpair(tile, track);
+	} else if (maptile_is_rail_tunnel(tile)) {
+		if (track != DiagDirToDiagTrack(GetTunnelBridgeDirection(tile))) {
+			return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
+		}
+
+		/* Protect against invalid signal copying */
+		if (mode == SIGNALS_COPY || mode == SIGNALS_COPY_SOFT) {
+			if (sigtype == SIGTYPE_PBS_ONEWAY) {
+				if (p2 != 1) return CMD_ERROR;
+			} else {
+				if (sigtype != SIGTYPE_NORMAL || p2 == 0 || p2 > 2) return CMD_ERROR;
+			}
+		} else {
+			if (sigtype != SIGTYPE_NORMAL && sigtype != SIGTYPE_PBS_ONEWAY) return CMD_ERROR;
+		}
+
+		CommandCost ret = CheckTileOwnership(tile);
+		if (ret.Failed()) return ret;
+
+		/* prevent updating signals in a busy tunnel */
+		ret = EnsureNoVehicleOnGround(tile);
+		if (ret.Failed()) return ret;
+		other_end = GetOtherTunnelEnd(tile);
+		ret = EnsureNoVehicleOnGround(other_end);
+		if (ret.Failed()) return ret;
+
+		signals = *maptile_tunnel_signalpair(tile);
+	} else {
 		return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 	}
-	/* Protect against invalid signal copying */
-	if ((mode == SIGNALS_COPY || mode == SIGNALS_COPY_SOFT) && (p2 == 0 || p2 > 3)) return CMD_ERROR;
-
-	CommandCost ret = CheckTileOwnership(tile);
-	if (ret.Failed()) return ret;
-
-	/* See if this is a valid track combination for signals (no overlap) */
-	if (TracksOverlap(GetTrackBits(tile))) return_cmd_error(STR_ERROR_NO_SUITABLE_RAILROAD_TRACK);
-
-	SignalPair signals = *maptile_signalpair(tile, track);
 
 	CommandCost cost (EXPENSES_CONSTRUCTION);
 	switch (mode) {
@@ -1312,32 +1347,61 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 		case SIGNALS_CYCLE_TYPE:
 			if (signalpair_has_signals(&signals)) {
 				/* it is free to change signal type: normal-pre-exit-combo */
-				assert_compile(SIGTYPE_END <= 8);
-
-				/* cycle through allowed signals */
 				sigtype = signalpair_get_type(&signals);
-				sigtype = (SignalType) (FindFirstBit((p2 | (p2 << 8)) & ~((1 << (sigtype + 1)) - 1)) & 0x7);
+				if (other_end == INVALID_TILE) {
+					assert_compile(SIGTYPE_END <= 8);
 
-				signalpair_set_type(&signals, sigtype);
-				if (IsPbsSignal(sigtype) && signalpair_get_present(&signals) == 3) {
-					signalpair_set_present(&signals, 1);
+					/* cycle through allowed signals */
+					sigtype = (SignalType) (FindFirstBit((p2 | (p2 << 8)) & ~((1 << (sigtype + 1)) - 1)) & 0x7);
+
+					signalpair_set_type(&signals, sigtype);
+					if (IsPbsSignal(sigtype) && signalpair_get_present(&signals) == 3) {
+						signalpair_set_present(&signals, 1);
+					}
+				} else if (signalpair_has_signal(&signals, false)) {
+					/* toggle normal/path signal */
+					assert(!signalpair_has_signal(&signals, true));
+					assert(sigtype == SIGTYPE_NORMAL || sigtype == SIGTYPE_PBS_ONEWAY);
+					sigtype = (sigtype == SIGTYPE_NORMAL) ? SIGTYPE_PBS_ONEWAY : SIGTYPE_NORMAL;
+					signalpair_set_type(&signals, sigtype);
 				}
-
 				break;
 			}
 			/* build new signals--fall through */
 		case SIGNALS_BUILD:
 			if (signalpair_has_signals(&signals)) {
 				/* it is free to change signal type: normal-pre-exit-combo */
-				/* cycle the signal side: both -> left -> right -> both -> ... */
-				uint sig = signalpair_get_present(&signals);
-				if (--sig == 0) sig = IsPbsSignal(signalpair_get_type(&signals)) ? 2 : 3;
-				signalpair_set_present(&signals, sig);
+				if (other_end == INVALID_TILE) {
+					/* cycle the signal side: both -> left -> right -> both -> ... */
+					uint sig = signalpair_get_present(&signals);
+					if (--sig == 0) sig = IsPbsSignal(signalpair_get_type(&signals)) ? 2 : 3;
+					signalpair_set_present(&signals, sig);
+				} else if (signalpair_has_signal(&signals, true)) {
+					assert(signalpair_get_type(&signals) == SIGTYPE_NORMAL);
+					sigtype = SIGTYPE_NORMAL;
+					signalpair_set_present(&signals, 1);
+					assert(maptile_get_tunnel_present_signals(other_end) == 1);
+				} else {
+					assert(signalpair_has_signal(&signals, false));
+					sigtype = SIGTYPE_NORMAL;
+					signalpair_set_present(&signals, 2);
+					signalpair_set_type(&signals, SIGTYPE_NORMAL);
+				}
 			} else {
 				/* build new signals */
 				cost.AddCost(_price[PR_BUILD_SIGNALS]);
 
-				uint present = IsPbsSignal(sigtype) ? 1 : 3;
+				uint present;
+				if (other_end == INVALID_TILE) {
+					present = IsPbsSignal(sigtype) ? 1 : 3;
+				} else if (maptile_has_tunnel_signals(other_end)) {
+					assert(maptile_get_tunnel_present_signals(other_end) == 1);
+					sigtype = SIGTYPE_NORMAL;
+					present = 2;
+				} else {
+					assert(sigtype == SIGTYPE_NORMAL || sigtype == SIGTYPE_PBS_ONEWAY);
+					present = 1;
+				}
 				signalpair_set_present(&signals, present);
 				signalpair_set_type_variant(&signals, sigtype, sigvar);
 				signalpair_set_states(&signals, 3);
@@ -1370,6 +1434,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 			if (!signalpair_has_signals(&signals)) return_cmd_error(STR_ERROR_THERE_ARE_NO_SIGNALS);
 
 			/* convert the present signal to the chosen type and variant */
+			if (other_end != INVALID_TILE && signalpair_get_present(&signals) != 1 && sigtype != SIGTYPE_NORMAL) return CMD_ERROR;
 			if (sigvar != signalpair_get_variant(&signals)) {
 				/* convert signals <-> semaphores */
 				cost.AddCost(_price[PR_BUILD_SIGNALS] + _price[PR_CLEAR_SIGNALS]);
@@ -1391,21 +1456,61 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 			break;
 	}
 
+	SignalPair other_signals;
+	if (other_end != INVALID_TILE) {
+		/* make any necessary adjustments to the other end of the tunnel */
+		other_signals = *maptile_tunnel_signalpair(other_end);
+		if (signalpair_has_signal(&signals, true)) {
+			if (!signalpair_has_signals(&other_signals)) {
+				cost.AddCost(_price[PR_BUILD_SIGNALS]);
+				signalpair_set_present(&other_signals, 1);
+				signalpair_set_type_variant(&other_signals, SIGTYPE_NORMAL, signalpair_get_variant(&signals));
+				signalpair_set_states(&other_signals, 3);
+			} else if (signalpair_has_signal(&other_signals, true)) {
+				signalpair_set_present(&other_signals, 1);
+				assert(signalpair_get_type(&other_signals) == SIGTYPE_NORMAL);
+			} else {
+				other_signals = 0; // 0 means no changes
+			}
+		} else {
+			if (signalpair_has_signal(&other_signals, false)) {
+				signalpair_set_present(&other_signals, 2);
+				signalpair_set_type(&other_signals, SIGTYPE_NORMAL);
+			} else {
+				other_signals = 0; // 0 means no changes
+			}
+		}
+	} else {
+		other_signals = 0;
+	}
+
 	if (flags & DC_EXEC) {
-		Train *v = NULL;
+		Train *v[2] = { NULL, NULL };
 
 		if (mode != SIGNALS_TOGGLE_VARIANT) {
 			/* The new/changed signal could block our path. As this can lead to
 			 * stale reservations, we clear the path reservation here and try
 			 * to redo it later on. */
 			if (HasReservedTrack(tile, track)) {
-				v = GetTrainForReservation(tile, track);
-				if (v != NULL) FreeTrainTrackReservation(v);
+				v[0] = GetTrainForReservation(tile, track);
+				if (v[0] != NULL) FreeTrainTrackReservation(v[0]);
+			}
+
+			if (other_end != INVALID_TILE && HasReservedTrack(other_end, track)) {
+				v[1] = GetTrainForReservation(tile, track);
+				if (v[1] != NULL) FreeTrainTrackReservation(v[1]);
 			}
 
 			/* Update signal infrastructure count. */
-			int infra_diff = CountBits(signalpair_get_present(&signals)) - CountBits(GetPresentSignals(tile, track));
-
+			int infra_diff = CountBits(signalpair_get_present(&signals));
+			if (other_end == INVALID_TILE) {
+				infra_diff -= CountBits(GetPresentSignals(tile, track));
+			} else {
+				infra_diff -= CountBits(maptile_get_tunnel_present_signals(tile));
+				if (other_signals != 0) {
+					infra_diff += CountBits(signalpair_get_present(&other_signals)) - CountBits(maptile_get_tunnel_present_signals(other_end));
+				}
+			}
 			if (infra_diff != 0) {
 				Owner owner = GetTileOwner(tile);
 				Company::Get(owner)->infrastructure.signal += infra_diff;
@@ -1420,16 +1525,30 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 			}
 		}
 
-		*maptile_signalpair(tile, track) = signals;
+		if (other_end == INVALID_TILE) {
+			*maptile_signalpair(tile, track) = signals;
+		} else {
+			*maptile_tunnel_signalpair(tile) = signals;
+			if (other_signals != 0) *maptile_tunnel_signalpair(other_end) = other_signals;
+		}
 
 		MarkTileDirtyByTile(tile);
 		AddTrackToSignalBuffer(tile, track, _current_company);
 		YapfNotifyTrackLayoutChange(tile, track);
-		if (v != NULL) {
-			/* Extend the train's path if it's not stopped or loading, or not at a safe position. */
-			if (!(((v->vehstatus & VS_STOPPED) && v->cur_speed == 0) || v->current_order.IsType(OT_LOADING)) ||
-					!IsSafeWaitingPosition(v, v->GetPos(), _settings_game.pf.forbid_90_deg)) {
-				TryPathReserve(v, true);
+
+		if (other_signals != 0) {
+			MarkTileDirtyByTile(other_end);
+			AddTrackToSignalBuffer(other_end, track, _current_company);
+			YapfNotifyTrackLayoutChange(other_end, track);
+		}
+
+		for (int i = 0; i < 2; i++) {
+			if (v[i] != NULL) {
+				/* Extend the train's path if it's not stopped or loading, or not at a safe position. */
+				if (!(((v[i]->vehstatus & VS_STOPPED) && v[i]->cur_speed == 0) || v[i]->current_order.IsType(OT_LOADING)) ||
+						!IsSafeWaitingPosition(v[i], v[i]->GetPos(), _settings_game.pf.forbid_90_deg)) {
+					TryPathReserve(v[i], true);
+				}
 			}
 		}
 	}
