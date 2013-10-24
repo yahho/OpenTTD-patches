@@ -372,13 +372,17 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 		 * existing foundataions, so we do have to do that manually later on.*/
 		tileh[TS_NEIGHBOUR] = GetTileSlope(neighbour);
 		trackconfig[TS_NEIGHBOUR] = GetRailTrackBitsUniversal(neighbour, i);
-		wireconfig[TS_NEIGHBOUR] = MaskWireBits(neighbour, trackconfig[TS_NEIGHBOUR]);
 
 		/* If the neighboured tile does not smoothly connect to the current tile (because of a foundation),
 		 * we have to draw all pillars on the current tile. */
-		if (elevation != GetPCPElevation(neighbour, ReverseDiagDir(i))) wireconfig[TS_NEIGHBOUR] = trackconfig[TS_NEIGHBOUR] = TRACK_BIT_NONE;
-
-		isflat[TS_NEIGHBOUR] = ((trackconfig[TS_NEIGHBOUR] & (TRACK_BIT_HORZ | TRACK_BIT_VERT)) != 0);
+		if (trackconfig[TS_NEIGHBOUR] == TRACK_BIT_NONE || elevation != GetPCPElevation(neighbour, ReverseDiagDir(i))) {
+			trackconfig[TS_NEIGHBOUR] = TRACK_BIT_NONE;
+			wireconfig[TS_NEIGHBOUR]  = TRACK_BIT_NONE;
+			isflat[TS_NEIGHBOUR] = false;
+		} else {
+			wireconfig[TS_NEIGHBOUR] = MaskWireBits(neighbour, trackconfig[TS_NEIGHBOUR]);
+			isflat[TS_NEIGHBOUR] = ((trackconfig[TS_NEIGHBOUR] & (TRACK_BIT_HORZ | TRACK_BIT_VERT)) != 0);
+		}
 
 		PPPpreferred[i] = 0xFF; // We start with preferring everything (end-of-line in any direction)
 		PPPallowed[i] = AllowedPPPonPCP[i];
