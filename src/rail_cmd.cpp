@@ -1818,10 +1818,27 @@ CommandCost CmdRemoveSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1
 {
 	Track track = Extract<Track, 0, 3>(p1);
 
-	if (!ValParamTrackOrientation(track) || !IsRailwayTile(tile) || !HasTrack(tile, track)) {
+	SignalPair *signals;
+	TileIndex other_end;
+	if (IsRailwayTile(tile)) {
+		if (!ValParamTrackOrientation(track) || !HasTrack(tile, track)) {
+			return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
+		}
+
+		signals = maptile_signalpair(tile, track);
+		other_end = INVALID_TILE;
+	} else if (maptile_is_rail_tunnel(tile)) {
+		if (track != DiagDirToDiagTrack(GetTunnelBridgeDirection(tile))) {
+			return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
+		}
+
+		signals = maptile_tunnel_signalpair(tile);
+		other_end = GetOtherTunnelEnd(tile);
+	} else {
 		return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 	}
-	if (!HasSignalOnTrack(tile, track)) {
+
+	if (!signalpair_has_signals(signals)) {
 		return_cmd_error(STR_ERROR_THERE_ARE_NO_SIGNALS);
 	}
 
@@ -1831,13 +1848,48 @@ CommandCost CmdRemoveSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1
 		if (ret.Failed()) return ret;
 	}
 
+	if (other_end != INVALID_TILE) {
+		/* prevent updating signals in a busy tunnel */
+		CommandCost ret = EnsureNoVehicleOnGround(tile);
+		if (ret.Failed()) return ret;
+		ret = EnsureNoVehicleOnGround(other_end);
+		if (ret.Failed()) return ret;
+
+		if (signalpair_has_signal(signals, true)) {
+			/* We can remove a signal into a tunnel without
+			 * also removing the other signal. */
+			assert(!signalpair_has_signal(signals, false));
+			assert(maptile_get_tunnel_present_signals(other_end) == 1);
+			other_end = INVALID_TILE;
+		}
+	}
+
 	/* Do it? */
 	if (flags & DC_EXEC) {
 		Train *v = NULL;
 		if (HasReservedTrack(tile, track)) {
 			v = GetTrainForReservation(tile, track);
-		} else if (IsPbsSignal(GetSignalType(tile, track))) {
-			/* PBS signal, might be the end of a path reservation. */
+		} else if (other_end != INVALID_TILE && HasTunnelHeadReservation(other_end)) {
+			v = GetTrainForReservation(other_end, track);
+		} else if (other_end == INVALID_TILE && IsPbsSignal(signalpair_get_type(signals))) {
+			/* PBS signal, might be the end of a path reservation.
+			 *
+			 * We do not allow removal of signals in busy tunnels,
+			 * so
+			 * - If this tile has a path signal and the other end
+			 * has a (normal) signal, then this tile is not the
+			 * end of a reservation, because there is no train in
+			 * the tunnel.
+			 * - If this tile has a path signal and the other end
+			 * does not have any signals, a train with this signal
+			 * as reservation end would have been caught by the
+			 * previous check (would own the reservation for the
+			 * other end).
+			 * - If this tile has a non-path signal and the other
+			 * end has a path signal, the other end is not the end
+			 * of a reservation, because there is no train in the
+			 * tunnel.
+			 */
 			Trackdir td = TrackToTrackdir(track);
 			for (int i = 0; v == NULL && i < 2; i++, td = ReverseTrackdir(td)) {
 				/* Only test the active signal side. */
@@ -1849,18 +1901,28 @@ CommandCost CmdRemoveSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1
 				}
 			}
 		}
-		Company::Get(GetTileOwner(tile))->infrastructure.signal -= CountBits(GetPresentSignals(tile, track));
-		ClearSignals(tile, track);
-		DirtyCompanyInfrastructureWindows(GetTileOwner(tile));
 
-		AddTrackToSignalBuffer(tile, track, GetTileOwner(tile));
+		Owner owner = GetTileOwner(tile);
+		Company::Get(owner)->infrastructure.signal -= CountBits(signalpair_get_present(signals)) + (other_end != INVALID_TILE ? 1 : 0);
+		DirtyCompanyInfrastructureWindows(owner);
+
+		signalpair_clear(signals);
+		AddTrackToSignalBuffer(tile, track, owner);
 		YapfNotifyTrackLayoutChange(tile, track);
+
+		if (other_end != INVALID_TILE) {
+			maptile_clear_tunnel_signals(other_end);
+			AddTrackToSignalBuffer(other_end, track, owner);
+			YapfNotifyTrackLayoutChange(other_end, track);
+		}
+
 		if (v != NULL) TryPathReserve(v, false);
 
 		MarkTileDirtyByTile(tile);
+		if (other_end != INVALID_TILE) MarkTileDirtyByTile(other_end);
 	}
 
-	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_SIGNALS]);
+	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_SIGNALS] * (other_end != INVALID_TILE ? 2 : 1));
 }
 
 /**
