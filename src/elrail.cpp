@@ -534,22 +534,29 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 	/* Drawing of pylons is finished, now draw the wires */
 	Track t;
 	FOR_EACH_SET_TRACK(t, home.wires) {
-		SpriteID wire_base = (t == halftile_track) ? sprite_halftile : sprite_normal;
 		byte PCPconfig = HasBit(PCPstatus, PCPpositions[t][0]) +
 			(HasBit(PCPstatus, PCPpositions[t][1]) << 1);
 
-		const SortableSpriteStruct *sss;
-		int tileh_selector = !(home.tileh % 3) * home.tileh / 3; // tileh for the slopes, 0 otherwise
-
 		assert(PCPconfig != 0); // We have a pylon on neither end of the wire, that doesn't work (since we have no sprites for that)
 		assert(!IsSteepSlope(home.tileh));
-		sss = &CatenarySpriteData[Wires[tileh_selector][t][PCPconfig]];
+
+		CatenarySprite cs;
+		switch (home.tileh) {
+			case SLOPE_SW: cs = WiresSW[PCPconfig]; break;
+			case SLOPE_SE: cs = WiresSE[PCPconfig]; break;
+			case SLOPE_NW: cs = WiresNW[PCPconfig]; break;
+			case SLOPE_NE: cs = WiresNE[PCPconfig]; break;
+			default: cs = Wires[t][PCPconfig]; break;
+		}
+
+		const SortableSpriteStruct *sss = &CatenarySpriteData[cs];
 
 		/*
 		 * The "wire"-sprite position is inside the tile, i.e. 0 <= sss->?_offset < TILE_SIZE.
 		 * Therefore it is safe to use GetSlopePixelZ() for the elevation.
 		 * Also note that the result of GetSlopePixelZ() is very special for bridge-ramps.
 		 */
+		SpriteID wire_base = (t == halftile_track) ? sprite_halftile : sprite_normal;
 		AddSortableSpriteToDraw(wire_base + sss->image_offset, PAL_NONE, ti->x + sss->x_offset, ti->y + sss->y_offset,
 			sss->x_size, sss->y_size, sss->z_size, GetSlopePixelZ(ti->x + sss->x_offset, ti->y + sss->y_offset) + sss->z_offset,
 			IsTransparencySet(TO_CATENARY));
