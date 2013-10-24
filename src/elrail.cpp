@@ -84,10 +84,11 @@ static inline TLG GetTLG(TileIndex t)
 /**
  * Finds which Electrified Rail Bits are present on a given tile.
  * @param t tile to check
+ * @param dir direction this tile is from the home tile, or INVALID_TILE for the home tile itself
  * @param override pointer to PCP override, can be NULL
  * @return trackbits of tile if it is electrified
  */
-static TrackBits GetRailTrackBitsUniversal(TileIndex t, byte *override)
+static TrackBits GetRailTrackBitsUniversal(TileIndex t, DiagDirection dir, byte *override = NULL)
 {
 	switch (GetTileType(t)) {
 		case TT_RAILWAY: {
@@ -114,6 +115,8 @@ static TrackBits GetRailTrackBitsUniversal(TileIndex t, byte *override)
 				case TT_MISC_TUNNEL:
 					if (GetTunnelTransportType(t) != TRANSPORT_RAIL) return TRACK_BIT_NONE;
 					if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
+					/* ignore tunnels facing the wrong way for neighbouring tiles */
+					if (dir != INVALID_DIAGDIR && dir != GetTunnelBridgeDirection(t)) return TRACK_BIT_NONE;
 					if (override != NULL) {
 						*override = 1 << GetTunnelBridgeDirection(t);
 					}
@@ -123,6 +126,8 @@ static TrackBits GetRailTrackBitsUniversal(TileIndex t, byte *override)
 		case TT_STATION:
 			if (!HasStationRail(t)) return TRACK_BIT_NONE;
 			if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
+			/* Ignore neighbouring station tiles that allow neither wires nor pylons. */
+			if (dir != INVALID_DIAGDIR && !CanStationTileHavePylons(t) && !CanStationTileHaveWires(t)) return TRACK_BIT_NONE;
 			return TrackToTrackBits(GetRailStationTrack(t));
 
 		default:
@@ -304,7 +309,7 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 	 * 2) on the "far" end of a bridge head (the one that connects to bridge middle),
 	 *    because that one is drawn on the bridge. Exception is for length 0 bridges
 	 *    which have no middle tiles */
-	trackconfig[TS_HOME] = GetRailTrackBitsUniversal(ti->tile, &OverridePCP);
+	trackconfig[TS_HOME] = GetRailTrackBitsUniversal(ti->tile, INVALID_DIAGDIR, &OverridePCP);
 	wireconfig[TS_HOME] = MaskWireBits(ti->tile, trackconfig[TS_HOME]);
 	/* If a track bit is present that is not in the main direction, the track is level */
 	isflat[TS_HOME] = ((trackconfig[TS_HOME] & (TRACK_BIT_HORZ | TRACK_BIT_VERT)) != 0);
@@ -366,12 +371,8 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 		/* Here's one of the main headaches. GetTileSlope does not correct for possibly
 		 * existing foundataions, so we do have to do that manually later on.*/
 		tileh[TS_NEIGHBOUR] = GetTileSlope(neighbour);
-		trackconfig[TS_NEIGHBOUR] = GetRailTrackBitsUniversal(neighbour, NULL);
+		trackconfig[TS_NEIGHBOUR] = GetRailTrackBitsUniversal(neighbour, i);
 		wireconfig[TS_NEIGHBOUR] = MaskWireBits(neighbour, trackconfig[TS_NEIGHBOUR]);
-		if (IsTunnelTile(neighbour) && i != GetTunnelBridgeDirection(neighbour)) wireconfig[TS_NEIGHBOUR] = trackconfig[TS_NEIGHBOUR] = TRACK_BIT_NONE;
-
-		/* Ignore station tiles that allow neither wires nor pylons. */
-		if (IsRailStationTile(neighbour) && !CanStationTileHavePylons(neighbour) && !CanStationTileHaveWires(neighbour)) wireconfig[TS_NEIGHBOUR] = trackconfig[TS_NEIGHBOUR] = TRACK_BIT_NONE;
 
 		/* If the neighboured tile does not smoothly connect to the current tile (because of a foundation),
 		 * we have to draw all pillars on the current tile. */
