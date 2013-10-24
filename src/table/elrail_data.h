@@ -27,18 +27,6 @@ enum TLG {
 	TLG_END
 };
 
-/**
- * When determining the pylon configuration on the edge, two tiles are taken
- * into account: the tile being drawn itself (the home tile, the one in
- * ti->tile), and the neighbouring tile
- */
-enum TileSource {
-	TS_HOME      = 0,
-	TS_NEIGHBOUR = 1,
-
-	TS_END
-};
-
 static const uint NUM_TRACKS_PER_SIDE = 3;
 
 /* This array stores which tracks can meet at a tile edge */
