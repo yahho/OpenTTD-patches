@@ -465,7 +465,7 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 		 * Level means that the slope is the same, or the track is flat */
 		if (home.tileh == nbconfig.tileh || (home.isflat && nbconfig.isflat)) {
 			for (uint k = 0; k < NUM_IGNORE_GROUPS; k++) {
-				if (PPPpreferred[i] == IgnoredPCP[k][tlg][i]) ClrBit(PCPstatus, i);
+				if (PPPpreferred[i] == IgnoredPCP[tlg][i][k]) ClrBit(PCPstatus, i);
 			}
 		}
 

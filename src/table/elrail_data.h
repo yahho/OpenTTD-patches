@@ -117,76 +117,83 @@ static const byte PreferredPPPofTrackAtPCP[TRACK_END][DIAGDIR_END] = {
  * so there are certain tiles which we ignore. A straight line is found if
  * we have exactly two PPPs.
  */
-static const byte IgnoredPCP[NUM_IGNORE_GROUPS][TLG_END][DIAGDIR_END] = {
-	{   // Ignore group 1, X and Y tracks
-		{     // X even, Y even
-			IGNORE_NONE,
-			1 << DIR_NE | 1 << DIR_SW,
-			1 << DIR_NW | 1 << DIR_SE,
-			IGNORE_NONE
-		}, { // X even, Y odd
-			IGNORE_NONE,
-			IGNORE_NONE,
-			1 << DIR_NW | 1 << DIR_SE,
-			1 << DIR_NE | 1 << DIR_SW
-		}, { // X odd,  Y even
-			1 << DIR_NW | 1 << DIR_SE,
+static const byte IgnoredPCP[TLG_END][DIAGDIR_END][NUM_IGNORE_GROUPS] = {
+	{   // X even, Y even
+		{    // DIAGDIR_NE
+			IGNORE_NONE,              // Ignore group 1, X and Y tracks
+			1 << DIR_E  | 1 << DIR_W, // Ignore group 2, LEFT and RIGHT tracks
+			1 << DIR_N  | 1 << DIR_S, // Ignore group 3, UPPER and LOWER tracks
+		}, { // DIAGDIR_SE
 			1 << DIR_NE | 1 << DIR_SW,
 			IGNORE_NONE,
-			IGNORE_NONE
-		}, { // X odd,  Y odd
+			1 << DIR_N  | 1 << DIR_S,
+		}, { // DIAGDIR_SW
 			1 << DIR_NW | 1 << DIR_SE,
 			IGNORE_NONE,
 			IGNORE_NONE,
-			1 << DIR_NE | 1 << DIR_SW
+		}, { // DIAGDIR_NW
+			IGNORE_NONE,
+			1 << DIR_E  | 1 << DIR_W,
+			IGNORE_NONE,
 		}
 	},
-	{   // Ignore group 2, LEFT and RIGHT tracks
-		{
-			1 << DIR_E | 1 << DIR_W,
+	{   // X even, Y odd
+		{    // DIAGDIR_NE
 			IGNORE_NONE,
 			IGNORE_NONE,
-			1 << DIR_E | 1 << DIR_W
-		}, {
 			IGNORE_NONE,
-			1 << DIR_E | 1 << DIR_W,
-			1 << DIR_E | 1 << DIR_W,
-			IGNORE_NONE
-		}, {
+		}, { // DIAGDIR_SE
 			IGNORE_NONE,
-			1 << DIR_E | 1 << DIR_W,
-			1 << DIR_E | 1 << DIR_W,
-			IGNORE_NONE
-		}, {
-			1 << DIR_E | 1 << DIR_W,
+			1 << DIR_E  | 1 << DIR_W,
 			IGNORE_NONE,
+		}, { // DIAGDIR_SW
+			1 << DIR_NW | 1 << DIR_SE,
+			1 << DIR_E  | 1 << DIR_W,
+			1 << DIR_N  | 1 << DIR_S,
+		}, { // DIAGDIR_NW
+			1 << DIR_NE | 1 << DIR_SW,
 			IGNORE_NONE,
-			1 << DIR_E | 1 << DIR_W
+			1 << DIR_N  | 1 << DIR_S,
 		}
 	},
-	{   // Ignore group 3, UPPER and LOWER tracks
-		{
-			1 << DIR_N | 1 << DIR_S,
-			1 << DIR_N | 1 << DIR_S,
-			IGNORE_NONE,
-			IGNORE_NONE
-		}, {
+	{   // X odd, Y even
+		{    // DIAGDIR_NE
+			1 << DIR_NW | 1 << DIR_SE,
 			IGNORE_NONE,
 			IGNORE_NONE,
-			1 << DIR_N | 1 << DIR_S,
-			1 << DIR_N | 1 << DIR_S
-		}, {
+		}, { // DIAGDIR_SE
+			1 << DIR_NE | 1 << DIR_SW,
+			1 << DIR_E  | 1 << DIR_W,
+			IGNORE_NONE,
+		}, { // DIAGDIR_SW
+			IGNORE_NONE,
+			1 << DIR_E  | 1 << DIR_W,
+			1 << DIR_N  | 1 << DIR_S,
+		}, { // DIAGDIR_NW
 			IGNORE_NONE,
 			IGNORE_NONE,
-			1 << DIR_N | 1 << DIR_S ,
-			1 << DIR_N | 1 << DIR_S
-		}, {
-			1 << DIR_N | 1 << DIR_S,
-			1 << DIR_N | 1 << DIR_S,
-			IGNORE_NONE,
-			IGNORE_NONE
+			1 << DIR_N  | 1 << DIR_S,
 		}
-	}
+	},
+	{   // X odd, Y odd
+		{    // DIAGDIR_NE
+			1 << DIR_NW | 1 << DIR_SE,
+			1 << DIR_E  | 1 << DIR_W,
+			1 << DIR_N  | 1 << DIR_S,
+		}, { // DIAGDIR_SE
+			IGNORE_NONE,
+			IGNORE_NONE,
+			1 << DIR_N  | 1 << DIR_S,
+		}, { // DIAGDIR_SW
+			IGNORE_NONE,
+			IGNORE_NONE,
+			IGNORE_NONE,
+		}, { // DIAGDIR_NW
+			1 << DIR_NE | 1 << DIR_SW,
+			1 << DIR_E  | 1 << DIR_W,
+			IGNORE_NONE,
+		}
+	},
 };
 
 #undef NO_IGNORE
