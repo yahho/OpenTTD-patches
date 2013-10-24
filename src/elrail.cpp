@@ -396,9 +396,9 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 		 * PPPs we want to have, or may not have at all */
 
 		/* Tracks inciding from the home tile */
-		for (uint k = 0; k < NUM_TRACKS_AT_PCP; k++) {
+		for (uint k = 0; k < NUM_TRACKS_PER_SIDE; k++) {
 			/* We check whether the track in question (k) is present in the tile */
-			Track track = TracksAtPCPHome[i][k];
+			Track track = TracksAtTileSide[i][k];
 			if (HasBit(config[TS_HOME].wires, track)) {
 				/* track found */
 				SetBit(PCPstatus, i); // This PCP is in use
@@ -410,14 +410,14 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 		}
 
 		/* Tracks inciding from the neighbour tile */
-		for (uint k = 0; k < NUM_TRACKS_AT_PCP; k++) {
+		for (uint k = 0; k < NUM_TRACKS_PER_SIDE; k++) {
 			/* Next to us, we have a bridge head, don't worry about that one, if it shows away from us */
 			if (IsRailBridgeTile(neighbour) && GetTunnelBridgeDirection(neighbour) == ReverseDiagDir(i)) {
 				continue;
 			}
 
 			/* We check whether the track in question (k) is present in the tile */
-			Track track = TracksAtPCPNeighbour[i][k];
+			Track track = TracksAtTileSide[ReverseDiagDir(i)][k];
 			DiagDirection PCPpos = i;
 			if (HasBit(config[TS_NEIGHBOUR].wires, track)) {
 				/* track found, adjust the number

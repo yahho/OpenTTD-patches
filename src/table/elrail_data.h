@@ -39,22 +39,14 @@ enum TileSource {
 	TS_END
 };
 
-static const uint NUM_TRACKS_AT_PCP = 3;
+static const uint NUM_TRACKS_PER_SIDE = 3;
 
-/* This array stores which home tile tracks can meet at a tile edge */
-static const Track TracksAtPCPHome[DIAGDIR_END][NUM_TRACKS_AT_PCP] = {
+/* This array stores which tracks can meet at a tile edge */
+static const Track TracksAtTileSide[DIAGDIR_END][NUM_TRACKS_PER_SIDE] = {
 	{TRACK_X, TRACK_UPPER, TRACK_RIGHT},
 	{TRACK_Y, TRACK_LOWER, TRACK_RIGHT},
 	{TRACK_X, TRACK_LOWER, TRACK_LEFT },
 	{TRACK_Y, TRACK_UPPER, TRACK_LEFT },
-};
-
-/* This array stores which neighbour tile tracks can meet at a tile edge */
-static const Track TracksAtPCPNeighbour[DIAGDIR_END][NUM_TRACKS_AT_PCP] = {
-	{TRACK_X, TRACK_LOWER, TRACK_LEFT },
-	{TRACK_Y, TRACK_UPPER, TRACK_LEFT },
-	{TRACK_X, TRACK_UPPER, TRACK_RIGHT},
-	{TRACK_Y, TRACK_LOWER, TRACK_RIGHT},
 };
 
 /** Which PPPs are possible at all on a given PCP */
