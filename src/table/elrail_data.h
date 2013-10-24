@@ -359,22 +359,20 @@ static const SortableSpriteStruct CatenarySpriteData[] = {
 
 /* NS Direction */
 	{ WSO_NS_SHORT,      8,  0,  8,  8,  1, ELRAIL_ELEVATION }, //!18: LEFT  trackbit wire, pylon on both ends
-	{ WSO_NS_SHORT,      0,  8,  8,  8,  1, ELRAIL_ELEVATION }, //!19: RIGHT trackbit wire, pylon on both ends
-
 	{ WSO_NS_N,          8,  0,  8,  8,  1, ELRAIL_ELEVATION }, //!20: LEFT  trackbit wire, pylon on N end
-	{ WSO_NS_N,          0,  8,  8,  8,  1, ELRAIL_ELEVATION }, //!21: RIGHT trackbit wire, pylon on N end
-
 	{ WSO_NS_S,          8,  0,  8,  8,  1, ELRAIL_ELEVATION }, //!22: LEFT  trackbit wire, pylon on S end
+
+	{ WSO_NS_SHORT,      0,  8,  8,  8,  1, ELRAIL_ELEVATION }, //!19: RIGHT trackbit wire, pylon on both ends
+	{ WSO_NS_N,          0,  8,  8,  8,  1, ELRAIL_ELEVATION }, //!21: RIGHT trackbit wire, pylon on N end
 	{ WSO_NS_S,          0,  8,  8,  8,  1, ELRAIL_ELEVATION }, //!23: RIGHT trackbit wire, pylon on S end
 
 /* EW Direction */
 	{ WSO_EW_SHORT,      7,  0,  1,  1,  1, ELRAIL_ELEVATION }, //!24: UPPER trackbit wire, pylon on both ends
-	{ WSO_EW_SHORT,     15,  8,  3,  3,  1, ELRAIL_ELEVATION }, //!25: LOWER trackbit wire, pylon on both ends
-
 	{ WSO_EW_W,          7,  0,  1,  1,  1, ELRAIL_ELEVATION }, //!28: UPPER trackbit wire, pylon on both ends
-	{ WSO_EW_W,         15,  8,  3,  3,  1, ELRAIL_ELEVATION }, //!29: LOWER trackbit wire, pylon on both ends
-
 	{ WSO_EW_E,          7,  0,  1,  1,  1, ELRAIL_ELEVATION }, //!32: UPPER trackbit wire, pylon on both ends
+
+	{ WSO_EW_SHORT,     15,  8,  3,  3,  1, ELRAIL_ELEVATION }, //!25: LOWER trackbit wire, pylon on both ends
+	{ WSO_EW_W,         15,  8,  3,  3,  1, ELRAIL_ELEVATION }, //!29: LOWER trackbit wire, pylon on both ends
 	{ WSO_EW_E,         15,  8,  3,  3,  1, ELRAIL_ELEVATION }  //!33: LOWER trackbit wire, pylon on both ends
 };
 
@@ -431,21 +429,19 @@ enum CatenarySprite {
 	WIRE_Y_DOWN_BOTH,
 
 	WIRE_NS_W_BOTH,
-	WIRE_NS_E_BOTH,
-
 	WIRE_NS_W_N,
-	WIRE_NS_E_N,
-
 	WIRE_NS_W_S,
+
+	WIRE_NS_E_BOTH,
+	WIRE_NS_E_N,
 	WIRE_NS_E_S,
 
 	WIRE_EW_N_BOTH,
-	WIRE_EW_S_BOTH,
-
 	WIRE_EW_N_W,
-	WIRE_EW_S_W,
-
 	WIRE_EW_N_E,
+
+	WIRE_EW_S_BOTH,
+	WIRE_EW_S_W,
 	WIRE_EW_S_E,
 
 	INVALID_CATENARY = 0xFF
