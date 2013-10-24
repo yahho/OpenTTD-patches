@@ -394,27 +394,41 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 
 		/* We cycle through all the existing tracks at a PCP and see what
 		 * PPPs we want to have, or may not have at all */
+
+		/* Tracks inciding from the home tile */
+		for (uint k = 0; k < NUM_TRACKS_AT_PCP; k++) {
+			/* We check whether the track in question (k) is present in the tile */
+			Track track = TracksAtPCPHome[i][k];
+			if (HasBit(config[TS_HOME].wires, track)) {
+				/* track found */
+				SetBit(PCPstatus, i); // This PCP is in use
+				PPPpreferred[i] &= PreferredPPPofTrackAtPCP[track][i];
+			}
+			if (HasBit(config[TS_HOME].tracks, track)) {
+				PPPallowed[i] &= ~DisallowedPPPofTrackAtPCP[track][i];
+			}
+		}
+
+		/* Tracks inciding from the neighbour tile */
 		for (uint k = 0; k < NUM_TRACKS_AT_PCP; k++) {
 			/* Next to us, we have a bridge head, don't worry about that one, if it shows away from us */
-			if (TrackSourceTile[i][k] == TS_NEIGHBOUR &&
-			    IsRailBridgeTile(neighbour) &&
-			    GetTunnelBridgeDirection(neighbour) == ReverseDiagDir(i)) {
+			if (IsRailBridgeTile(neighbour) && GetTunnelBridgeDirection(neighbour) == ReverseDiagDir(i)) {
 				continue;
 			}
 
-			/* We check whether the track in question (k) is present in the tile
-			 * (TrackSourceTile) */
+			/* We check whether the track in question (k) is present in the tile */
+			Track track = TracksAtPCPNeighbour[i][k];
 			DiagDirection PCPpos = i;
-			if (HasBit(config[TrackSourceTile[i][k]].wires, TracksAtPCP[i][k])) {
-				/* track found, if track is in the neighbour tile, adjust the number
+			if (HasBit(config[TS_NEIGHBOUR].wires, track)) {
+				/* track found, adjust the number
 				 * of the PCP for preferred/allowed determination*/
-				PCPpos = (TrackSourceTile[i][k] == TS_HOME) ? i : ReverseDiagDir(i);
+				PCPpos = ReverseDiagDir(i);
 				SetBit(PCPstatus, i); // This PCP is in use
-				PPPpreferred[i] &= PreferredPPPofTrackAtPCP[TracksAtPCP[i][k]][PCPpos];
+				PPPpreferred[i] &= PreferredPPPofTrackAtPCP[track][PCPpos];
 			}
 
-			if (HasBit(config[TrackSourceTile[i][k]].tracks, TracksAtPCP[i][k])) {
-				PPPallowed[i] &= ~DisallowedPPPofTrackAtPCP[TracksAtPCP[i][k]][PCPpos];
+			if (HasBit(config[TS_NEIGHBOUR].tracks, track)) {
+				PPPallowed[i] &= ~DisallowedPPPofTrackAtPCP[track][PCPpos];
 			}
 		}
 

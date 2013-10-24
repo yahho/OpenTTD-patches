@@ -39,7 +39,23 @@ enum TileSource {
 	TS_END
 };
 
-static const uint NUM_TRACKS_AT_PCP = 6;
+static const uint NUM_TRACKS_AT_PCP = 3;
+
+/* This array stores which home tile tracks can meet at a tile edge */
+static const Track TracksAtPCPHome[DIAGDIR_END][NUM_TRACKS_AT_PCP] = {
+	{TRACK_X, TRACK_UPPER, TRACK_RIGHT},
+	{TRACK_Y, TRACK_LOWER, TRACK_RIGHT},
+	{TRACK_X, TRACK_LOWER, TRACK_LEFT },
+	{TRACK_Y, TRACK_UPPER, TRACK_LEFT },
+};
+
+/* This array stores which neighbour tile tracks can meet at a tile edge */
+static const Track TracksAtPCPNeighbour[DIAGDIR_END][NUM_TRACKS_AT_PCP] = {
+	{TRACK_X, TRACK_LOWER, TRACK_LEFT },
+	{TRACK_Y, TRACK_UPPER, TRACK_LEFT },
+	{TRACK_X, TRACK_UPPER, TRACK_RIGHT},
+	{TRACK_Y, TRACK_LOWER, TRACK_RIGHT},
+};
 
 /** Which PPPs are possible at all on a given PCP */
 static const byte AllowedPPPonPCP[DIAGDIR_END] = {
@@ -203,23 +219,6 @@ static const byte DisallowedPPPofTrackAtPCP[TRACK_END][DIAGDIR_END] = {
 	{0,           1 << DIR_W | 1 << DIR_E,  1 << DIR_W | 1 << DIR_E,  0          }, // LOWER
 	{0,           0,           1 << DIR_S | 1 << DIR_N,  1 << DIR_N | 1 << DIR_S }, // LEFT
 	{1 << DIR_S | 1 << DIR_N,  1 << DIR_S | 1 << DIR_N,  0,           0,         }, // RIGHT
-};
-
-/* This array stores which track bits can meet at a tile edge */
-static const Track TracksAtPCP[DIAGDIR_END][NUM_TRACKS_AT_PCP] = {
-	{TRACK_X, TRACK_X, TRACK_UPPER, TRACK_LOWER, TRACK_LEFT, TRACK_RIGHT},
-	{TRACK_Y, TRACK_Y, TRACK_UPPER, TRACK_LOWER, TRACK_LEFT, TRACK_RIGHT},
-	{TRACK_X, TRACK_X, TRACK_UPPER, TRACK_LOWER, TRACK_LEFT, TRACK_RIGHT},
-	{TRACK_Y, TRACK_Y, TRACK_UPPER, TRACK_LOWER, TRACK_LEFT, TRACK_RIGHT},
-};
-
-/* takes each of the 6 track bits from the array above and
- * assigns it to the home tile or neighbour tile */
-static const TileSource TrackSourceTile[DIAGDIR_END][NUM_TRACKS_AT_PCP] = {
-	{TS_HOME, TS_NEIGHBOUR, TS_HOME     , TS_NEIGHBOUR, TS_NEIGHBOUR, TS_HOME     },
-	{TS_HOME, TS_NEIGHBOUR, TS_NEIGHBOUR, TS_HOME     , TS_NEIGHBOUR, TS_HOME     },
-	{TS_HOME, TS_NEIGHBOUR, TS_NEIGHBOUR, TS_HOME     , TS_HOME     , TS_NEIGHBOUR},
-	{TS_HOME, TS_NEIGHBOUR, TS_HOME     , TS_NEIGHBOUR, TS_HOME     , TS_NEIGHBOUR},
 };
 
 /* Several PPPs maybe exist, here they are sorted in order of preference. */
