@@ -481,6 +481,8 @@ static CommandCost RemoveTunnel(TileIndex tile, DoCommandFlag flags)
 	}
 
 	uint len = GetTunnelBridgeLength(tile, endtile) + 2; // Don't forget the end tiles.
+	uint nsignals = GetTunnelTransportType(tile) != TRANSPORT_RAIL ? 0 :
+		(maptile_has_tunnel_signals(tile) ? 1 : 0) + (maptile_has_tunnel_signals(endtile) ? 1 : 0);
 
 	if (flags & DC_EXEC) {
 		if (GetTunnelTransportType(tile) == TRANSPORT_RAIL) {
@@ -534,7 +536,8 @@ static CommandCost RemoveTunnel(TileIndex tile, DoCommandFlag flags)
 			DoClearSquare(endtile);
 		}
 	}
-	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_TUNNEL] * len);
+
+	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_TUNNEL] * len + _price[PR_CLEAR_SIGNALS] * nsignals);
 }
 
 static CommandCost RemoveTrainDepot(TileIndex tile, DoCommandFlag flags)
