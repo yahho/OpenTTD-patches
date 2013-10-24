@@ -271,7 +271,7 @@ void DrawCatenaryOnTunnel(const TileInfo *ti)
 
 	SpriteID wire_base = GetWireBase(ti->tile);
 
-	const SortableSpriteStruct *sss = &CatenarySpriteData_Tunnel[dir];
+	const SortableSpriteStruct *sss = &CatenarySpriteData_TunnelDepot[dir];
 	const int *BB_data = _tunnel_wire_BB[dir];
 	AddSortableSpriteToDraw(
 		wire_base + sss->image_offset, PAL_NONE, ti->x + sss->x_offset, ti->y + sss->y_offset,
@@ -641,7 +641,7 @@ void DrawCatenary(const TileInfo *ti)
 
 				case TT_MISC_DEPOT: {
 					if (!IsRailDepot(ti->tile)) return;
-					const SortableSpriteStruct *sss = &CatenarySpriteData_Depot[GetGroundDepotDirection(ti->tile)];
+					const SortableSpriteStruct *sss = &CatenarySpriteData_TunnelDepot[GetGroundDepotDirection(ti->tile)];
 					SpriteID wire_base = GetWireBase(ti->tile);
 
 					/* This wire is not visible with the default depot sprites */
