@@ -300,10 +300,12 @@ enum WireSpriteOffset {
 	WSO_ENTRANCE_SE,
 	WSO_ENTRANCE_SW,
 	WSO_ENTRANCE_NW,
+
+	WSO_INVALID = 0xFF,
 };
 
-struct SortableSpriteStruct {
-	uint8 image_offset;
+struct SortableSpriteStructM {
+	uint8 image_offset[4];
 	int8 x_offset;
 	int8 y_offset;
 	int8 x_size;
@@ -317,63 +319,50 @@ static const uint ELRAIL_ELEVATION = 10;
 /** Wires that a draw one level higher than the north corner. */
 static const uint ELRAIL_ELEVRAISE = ELRAIL_ELEVATION + TILE_HEIGHT;
 
-static const SortableSpriteStruct CatenarySpriteData[] = {
+static const SortableSpriteStructM CatenarySpriteData[] = {
 /* X direction
 	 * Flat tiles:
 		 * Wires */
-	{ WSO_X_SW,          0,  7, 15,  1,  1, ELRAIL_ELEVATION }, //! 0: Wire in X direction, pylon on the SW end only
-	{ WSO_X_NE,          0,  7, 15,  1,  1, ELRAIL_ELEVATION }, //! 1: Wire in X direction, pylon on the NE end
-	{ WSO_X_SHORT,       0,  7, 15,  1,  1, ELRAIL_ELEVATION }, //! 2: Wire in X direction, pylon on both ends
+	{ { WSO_INVALID, WSO_X_NE,      WSO_X_SW,      WSO_X_SHORT      },  0,  7, 15,  1,  1, ELRAIL_ELEVATION }, // X flat
 
 	/* "up" tiles
 		 * Wires */
-	{ WSO_X_SW_UP,       0,  7, 15,  8,  1, ELRAIL_ELEVRAISE }, //! 3: Wire in X pitch up, pylon on the SW end only
-	{ WSO_X_NE_UP,       0,  7, 15,  8,  1, ELRAIL_ELEVRAISE }, //! 4: Wire in X pitch up, pylon on the NE end
-	{ WSO_X_SHORT_UP,    0,  7, 15,  8,  1, ELRAIL_ELEVRAISE }, //! 5: Wire in X pitch up, pylon on both ends
+	{ { WSO_INVALID, WSO_X_NE_UP,   WSO_X_SW_UP,   WSO_X_SHORT_UP   },  0,  7, 15,  8,  1, ELRAIL_ELEVRAISE }, // X up
 
 	/* "down" tiles
 		 * Wires */
-	{ WSO_X_SW_DOWN,     0,  7, 15,  8,  1, ELRAIL_ELEVATION }, //! 6: Wire in X pitch down, pylon on the SW end
-	{ WSO_X_NE_DOWN,     0,  7, 15,  8,  1, ELRAIL_ELEVATION }, //! 7: Wire in X pitch down, pylon on the NE end
-	{ WSO_X_SHORT_DOWN,  0,  7, 15,  8,  1, ELRAIL_ELEVATION }, //! 8: Wire in X pitch down, pylon on both ends
-
+	{ { WSO_INVALID, WSO_X_NE_DOWN, WSO_X_SW_DOWN, WSO_X_SHORT_DOWN },  0,  7, 15,  8,  1, ELRAIL_ELEVATION }, // X down
 
 /* Y direction
 	 * Flat tiles:
 		 * Wires */
-	{ WSO_Y_SE,          7,  0,  1, 15,  1, ELRAIL_ELEVATION }, //! 9: Wire in Y direction, pylon on the SE end only
-	{ WSO_Y_NW,          7,  0,  1, 15,  1, ELRAIL_ELEVATION }, //!10: Wire in Y direction, pylon on the NW end
-	{ WSO_Y_SHORT,       7,  0,  1, 15,  1, ELRAIL_ELEVATION }, //!11: Wire in Y direction, pylon on both ends
+	{ { WSO_INVALID, WSO_Y_SE,      WSO_Y_NW,      WSO_Y_SHORT      },  7,  0,  1, 15,  1, ELRAIL_ELEVATION }, // Y flat
 
 	/* "up" tiles
 		 * Wires */
-	{ WSO_Y_SE_UP,       7,  0,  8, 15,  1, ELRAIL_ELEVRAISE }, //!12: Wire in Y pitch up, pylon on the SE end only
-	{ WSO_Y_NW_UP,       7,  0,  8, 15,  1, ELRAIL_ELEVRAISE }, //!13: Wire in Y pitch up, pylon on the NW end
-	{ WSO_Y_SHORT_UP,    7,  0,  8, 15,  1, ELRAIL_ELEVRAISE }, //!14: Wire in Y pitch up, pylon on both ends
+	{ { WSO_INVALID, WSO_Y_SE_UP,   WSO_Y_NW_UP,   WSO_Y_SHORT_UP   },  7,  0,  8, 15,  1, ELRAIL_ELEVRAISE }, // Y up
 
 	/* "down" tiles
 		 * Wires */
-	{ WSO_Y_SE_DOWN,     7,  0,  8, 15,  1, ELRAIL_ELEVATION }, //!15: Wire in Y pitch down, pylon on the SE end
-	{ WSO_Y_NW_DOWN,     7,  0,  8, 15,  1, ELRAIL_ELEVATION }, //!16: Wire in Y pitch down, pylon on the NW end
-	{ WSO_Y_SHORT_DOWN,  7,  0,  8, 15,  1, ELRAIL_ELEVATION }, //!17: Wire in Y pitch down, pylon on both ends
+	{ { WSO_INVALID, WSO_Y_SE_DOWN, WSO_Y_NW_DOWN, WSO_Y_SHORT_DOWN },  7,  0,  8, 15,  1, ELRAIL_ELEVATION }, // Y down
 
 /* NS Direction */
-	{ WSO_NS_SHORT,      8,  0,  8,  8,  1, ELRAIL_ELEVATION }, //!18: LEFT  trackbit wire, pylon on both ends
-	{ WSO_NS_N,          8,  0,  8,  8,  1, ELRAIL_ELEVATION }, //!20: LEFT  trackbit wire, pylon on N end
-	{ WSO_NS_S,          8,  0,  8,  8,  1, ELRAIL_ELEVATION }, //!22: LEFT  trackbit wire, pylon on S end
-
-	{ WSO_NS_SHORT,      0,  8,  8,  8,  1, ELRAIL_ELEVATION }, //!19: RIGHT trackbit wire, pylon on both ends
-	{ WSO_NS_N,          0,  8,  8,  8,  1, ELRAIL_ELEVATION }, //!21: RIGHT trackbit wire, pylon on N end
-	{ WSO_NS_S,          0,  8,  8,  8,  1, ELRAIL_ELEVATION }, //!23: RIGHT trackbit wire, pylon on S end
+	{ { WSO_INVALID, WSO_NS_S,      WSO_NS_N,      WSO_NS_SHORT     },  8,  0,  8,  8,  1, ELRAIL_ELEVATION }, // LEFT
+	{ { WSO_INVALID, WSO_NS_N,      WSO_NS_S,      WSO_NS_SHORT     },  0,  8,  8,  8,  1, ELRAIL_ELEVATION }, // RIGHT
 
 /* EW Direction */
-	{ WSO_EW_SHORT,      7,  0,  1,  1,  1, ELRAIL_ELEVATION }, //!24: UPPER trackbit wire, pylon on both ends
-	{ WSO_EW_W,          7,  0,  1,  1,  1, ELRAIL_ELEVATION }, //!28: UPPER trackbit wire, pylon on both ends
-	{ WSO_EW_E,          7,  0,  1,  1,  1, ELRAIL_ELEVATION }, //!32: UPPER trackbit wire, pylon on both ends
+	{ { WSO_INVALID, WSO_EW_W,      WSO_EW_E,      WSO_EW_SHORT     },  7,  0,  1,  1,  1, ELRAIL_ELEVATION }, // UPPER
+	{ { WSO_INVALID, WSO_EW_E,      WSO_EW_W,      WSO_EW_SHORT     }, 15,  8,  3,  3,  1, ELRAIL_ELEVATION }, // LOWER
+};
 
-	{ WSO_EW_SHORT,     15,  8,  3,  3,  1, ELRAIL_ELEVATION }, //!25: LOWER trackbit wire, pylon on both ends
-	{ WSO_EW_W,         15,  8,  3,  3,  1, ELRAIL_ELEVATION }, //!29: LOWER trackbit wire, pylon on both ends
-	{ WSO_EW_E,         15,  8,  3,  3,  1, ELRAIL_ELEVATION }  //!33: LOWER trackbit wire, pylon on both ends
+struct SortableSpriteStruct {
+	uint8 image_offset;
+	int8 x_offset;
+	int8 y_offset;
+	int8 x_size;
+	int8 y_size;
+	int8 z_size;
+	int8 z_offset;
 };
 
 static const SortableSpriteStruct CatenarySpriteData_TunnelDepot[] = {
@@ -397,78 +386,45 @@ static const SortableSpriteStruct CatenarySpriteData_TunnelDepot[] = {
  * <li>Position of the Pylon inside the tile</li></ol>
  */
 enum CatenarySprite {
-	WIRE_X_FLAT_SW,
-	WIRE_X_FLAT_NE,
-	WIRE_X_FLAT_BOTH,
+	CATENARY_X_FLAT,
+	CATENARY_X_UP,
+	CATENARY_X_DOWN,
 
-	WIRE_X_UP_SW,
-	WIRE_X_UP_NE,
-	WIRE_X_UP_BOTH,
+	CATENARY_Y_FLAT,
+	CATENARY_Y_UP,
+	CATENARY_Y_DOWN,
 
-	WIRE_X_DOWN_SW,
-	WIRE_X_DOWN_NE,
-	WIRE_X_DOWN_BOTH,
+	CATENARY_W,
+	CATENARY_E,
 
-	WIRE_Y_FLAT_SE,
-	WIRE_Y_FLAT_NW,
-	WIRE_Y_FLAT_BOTH,
-
-	WIRE_Y_UP_SE,
-	WIRE_Y_UP_NW,
-	WIRE_Y_UP_BOTH,
-
-	WIRE_Y_DOWN_SE,
-	WIRE_Y_DOWN_NW,
-	WIRE_Y_DOWN_BOTH,
-
-	WIRE_NS_W_BOTH,
-	WIRE_NS_W_N,
-	WIRE_NS_W_S,
-
-	WIRE_NS_E_BOTH,
-	WIRE_NS_E_N,
-	WIRE_NS_E_S,
-
-	WIRE_EW_N_BOTH,
-	WIRE_EW_N_W,
-	WIRE_EW_N_E,
-
-	WIRE_EW_S_BOTH,
-	WIRE_EW_S_W,
-	WIRE_EW_S_E,
-
-	INVALID_CATENARY = 0xFF
+	CATENARY_N,
+	CATENARY_S,
 };
 
-/* Selects a Wire (with white and grey ends) depending on whether:
- * a) none (should never happen)
- * b) the first
- * c) the second
- * d) both
- * PCP exists.*/
-static const CatenarySprite Wires[TRACK_END][4] = {
-	{INVALID_CATENARY, WIRE_X_FLAT_NE, WIRE_X_FLAT_SW, WIRE_X_FLAT_BOTH},
-	{INVALID_CATENARY, WIRE_Y_FLAT_SE, WIRE_Y_FLAT_NW, WIRE_Y_FLAT_BOTH},
-	{INVALID_CATENARY, WIRE_EW_N_W,    WIRE_EW_N_E,    WIRE_EW_N_BOTH},
-	{INVALID_CATENARY, WIRE_EW_S_E,    WIRE_EW_S_W,    WIRE_EW_S_BOTH},
-	{INVALID_CATENARY, WIRE_NS_W_S,    WIRE_NS_W_N,    WIRE_NS_W_BOTH},
-	{INVALID_CATENARY, WIRE_NS_E_N,    WIRE_NS_E_S,    WIRE_NS_E_BOTH},
+/* Wire configurations */
+static const CatenarySprite Wires[TRACK_END] = {
+	CATENARY_X_FLAT,
+	CATENARY_Y_FLAT,
+	CATENARY_N,
+	CATENARY_S,
+	CATENARY_W,
+	CATENARY_E,
 };
 
-static const CatenarySprite WiresSW[4] = {
-	INVALID_CATENARY, WIRE_X_UP_NE,   WIRE_X_UP_SW,   WIRE_X_UP_BOTH,
+static const CatenarySprite WiresSW = {
+	CATENARY_X_UP
 };
 
-static const CatenarySprite WiresSE[4] = {
-	INVALID_CATENARY, WIRE_Y_UP_SE,   WIRE_Y_UP_NW,   WIRE_Y_UP_BOTH,
+static const CatenarySprite WiresSE = {
+	CATENARY_Y_UP
 };
 
-static const CatenarySprite WiresNW[4] = {
-	INVALID_CATENARY, WIRE_Y_DOWN_SE, WIRE_Y_DOWN_NW, WIRE_Y_DOWN_BOTH,
+static const CatenarySprite WiresNW = {
+	CATENARY_Y_DOWN
 };
 
-static const CatenarySprite WiresNE[4] = {
-	INVALID_CATENARY, WIRE_X_DOWN_NE, WIRE_X_DOWN_SW, WIRE_X_DOWN_BOTH,
+static const CatenarySprite WiresNE = {
+	CATENARY_X_DOWN
 };
 
 #endif /* ELRAIL_DATA_H */

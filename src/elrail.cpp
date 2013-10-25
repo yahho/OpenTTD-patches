@@ -542,14 +542,14 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 
 		CatenarySprite cs;
 		switch (home.tileh) {
-			case SLOPE_SW: cs = WiresSW[PCPconfig]; break;
-			case SLOPE_SE: cs = WiresSE[PCPconfig]; break;
-			case SLOPE_NW: cs = WiresNW[PCPconfig]; break;
-			case SLOPE_NE: cs = WiresNE[PCPconfig]; break;
-			default: cs = Wires[t][PCPconfig]; break;
+			case SLOPE_SW: cs = WiresSW; break;
+			case SLOPE_SE: cs = WiresSE; break;
+			case SLOPE_NW: cs = WiresNW; break;
+			case SLOPE_NE: cs = WiresNE; break;
+			default: cs = Wires[t]; break;
 		}
 
-		const SortableSpriteStruct *sss = &CatenarySpriteData[cs];
+		const SortableSpriteStructM *sss = &CatenarySpriteData[cs];
 
 		/*
 		 * The "wire"-sprite position is inside the tile, i.e. 0 <= sss->?_offset < TILE_SIZE.
@@ -557,7 +557,7 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 		 * Also note that the result of GetSlopePixelZ() is very special for bridge-ramps.
 		 */
 		SpriteID wire_base = (t == halftile_track) ? sprite_halftile : sprite_normal;
-		AddSortableSpriteToDraw(wire_base + sss->image_offset, PAL_NONE, ti->x + sss->x_offset, ti->y + sss->y_offset,
+		AddSortableSpriteToDraw(wire_base + sss->image_offset[PCPconfig], PAL_NONE, ti->x + sss->x_offset, ti->y + sss->y_offset,
 			sss->x_size, sss->y_size, sss->z_size, GetSlopePixelZ(ti->x + sss->x_offset, ti->y + sss->y_offset) + sss->z_offset,
 			IsTransparencySet(TO_CATENARY));
 	}
@@ -579,26 +579,26 @@ void DrawCatenaryOnBridge(const TileInfo *ti)
 	uint num = GetTunnelBridgeLength(ti->tile, start) + 1;
 	uint height;
 
-	const SortableSpriteStruct *sss;
 	Axis axis = GetBridgeAxis(ti->tile);
 	TLG tlg = GetTLG(ti->tile);
 
-	CatenarySprite offset = (CatenarySprite)(axis == AXIS_X ? 0 : WIRE_Y_FLAT_BOTH - WIRE_X_FLAT_BOTH);
+	const SortableSpriteStructM *sss = &CatenarySpriteData[axis == AXIS_X ? CATENARY_X_FLAT : CATENARY_Y_FLAT];
 
+	uint config;
 	if ((length % 2) && num == length) {
 		/* Draw the "short" wire on the southern end of the bridge
 		 * only needed if the length of the bridge is odd */
-		sss = &CatenarySpriteData[WIRE_X_FLAT_BOTH + offset];
+		config = 3;
 	} else {
 		/* Draw "long" wires on all other tiles of the bridge (one pylon every two tiles) */
-		sss = &CatenarySpriteData[WIRE_X_FLAT_SW + (num % 2) + offset];
+		config = 2 - (num % 2);
 	}
 
 	height = GetBridgePixelHeight(end);
 
 	SpriteID wire_base = GetWireBase(end, TCX_ON_BRIDGE);
 
-	AddSortableSpriteToDraw(wire_base + sss->image_offset, PAL_NONE, ti->x + sss->x_offset, ti->y + sss->y_offset,
+	AddSortableSpriteToDraw(wire_base + sss->image_offset[config], PAL_NONE, ti->x + sss->x_offset, ti->y + sss->y_offset,
 		sss->x_size, sss->y_size, sss->z_size, height + sss->z_offset,
 		IsTransparencySet(TO_CATENARY)
 	);
