@@ -1076,11 +1076,12 @@ CommandCost FindJoiningBaseStation(StationID existing_station, StationID station
  * @param adjacent whether adjacent stations are allowed
  * @param ta the area of the newly build station
  * @param st 'return' pointer for the found station
+ * @param error_message the error message when building a station on top of others
  * @return command cost with the error or 'okay'
  */
-static CommandCost FindJoiningStation(StationID existing_station, StationID station_to_join, bool adjacent, TileArea ta, Station **st)
+static CommandCost FindJoiningStation(StationID existing_station, StationID station_to_join, bool adjacent, TileArea ta, Station **st, StringID error_message = STR_ERROR_MUST_REMOVE_RAILWAY_STATION_FIRST)
 {
-	return FindJoiningBaseStation<Station>(existing_station, station_to_join, adjacent, ta, st, STR_ERROR_MUST_REMOVE_RAILWAY_STATION_FIRST);
+	return FindJoiningBaseStation<Station>(existing_station, station_to_join, adjacent, ta, st, error_message);
 }
 
 /**
@@ -1711,20 +1712,6 @@ static RoadStop **FindRoadStopSpot(bool truck_station, Station *st)
 static CommandCost RemoveRoadStop(TileIndex tile, DoCommandFlag flags);
 
 /**
- * Find a nearby station that joins this road stop.
- * @param existing_stop an existing road stop we build over
- * @param station_to_join the station to join to
- * @param adjacent whether adjacent stations are allowed
- * @param ta the area of the newly build station
- * @param st 'return' pointer for the found station
- * @return command cost with the error or 'okay'
- */
-static CommandCost FindJoiningRoadStop(StationID existing_stop, StationID station_to_join, bool adjacent, TileArea ta, Station **st)
-{
-	return FindJoiningBaseStation<Station>(existing_stop, station_to_join, adjacent, ta, st, STR_ERROR_MUST_REMOVE_ROAD_STOP_FIRST);
-}
-
-/**
  * Build a bus or truck stop.
  * @param tile Northernmost tile of the stop.
  * @param flags Operation to perform.
@@ -1786,7 +1773,7 @@ CommandCost CmdBuildRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 	cost.AddCost(ret);
 
 	Station *st = NULL;
-	ret = FindJoiningRoadStop(est, station_to_join, HasBit(p2, 5), roadstop_area, &st);
+	ret = FindJoiningStation(est, station_to_join, HasBit(p2, 5), roadstop_area, &st, STR_ERROR_MUST_REMOVE_ROAD_STOP_FIRST);
 	if (ret.Failed()) return ret;
 
 	/* Check if this number of road stops can be allocated. */
