@@ -540,16 +540,14 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 		assert(PCPconfig != 0); // We have a pylon on neither end of the wire, that doesn't work (since we have no sprites for that)
 		assert(!IsSteepSlope(home.tileh));
 
-		CatenarySprite cs;
+		const SortableSpriteStructM *sss;
 		switch (home.tileh) {
-			case SLOPE_SW: cs = WiresSW; break;
-			case SLOPE_SE: cs = WiresSE; break;
-			case SLOPE_NW: cs = WiresNW; break;
-			case SLOPE_NE: cs = WiresNE; break;
-			default: cs = Wires[t]; break;
+			case SLOPE_SW: sss = &CatenarySpriteDataSW;  break;
+			case SLOPE_SE: sss = &CatenarySpriteDataSE;  break;
+			case SLOPE_NW: sss = &CatenarySpriteDataNW;  break;
+			case SLOPE_NE: sss = &CatenarySpriteDataNE;  break;
+			default:       sss = &CatenarySpriteData[t]; break;
 		}
-
-		const SortableSpriteStructM *sss = &CatenarySpriteData[cs];
 
 		/*
 		 * The "wire"-sprite position is inside the tile, i.e. 0 <= sss->?_offset < TILE_SIZE.
@@ -582,7 +580,7 @@ void DrawCatenaryOnBridge(const TileInfo *ti)
 	Axis axis = GetBridgeAxis(ti->tile);
 	TLG tlg = GetTLG(ti->tile);
 
-	const SortableSpriteStructM *sss = &CatenarySpriteData[axis == AXIS_X ? CATENARY_X_FLAT : CATENARY_Y_FLAT];
+	const SortableSpriteStructM *sss = &CatenarySpriteData[AxisToTrack(axis)];
 
 	uint config;
 	if ((length % 2) && num == length) {

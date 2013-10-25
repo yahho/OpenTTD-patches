@@ -319,18 +319,27 @@ static const uint ELRAIL_ELEVATION = 10;
 /** Wires that a draw one level higher than the north corner. */
 static const uint ELRAIL_ELEVRAISE = ELRAIL_ELEVATION + TILE_HEIGHT;
 
-static const SortableSpriteStructM CatenarySpriteData[] = {
-	{ { WSO_INVALID, WSO_X_NE,      WSO_X_SW,      WSO_X_SHORT      },  0,  7, 15,  1,  1, ELRAIL_ELEVATION }, // X flat
-	{ { WSO_INVALID, WSO_Y_SE,      WSO_Y_NW,      WSO_Y_SHORT      },  7,  0,  1, 15,  1, ELRAIL_ELEVATION }, // Y flat
-	{ { WSO_INVALID, WSO_EW_W,      WSO_EW_E,      WSO_EW_SHORT     },  7,  0,  1,  1,  1, ELRAIL_ELEVATION }, // UPPER
-	{ { WSO_INVALID, WSO_EW_E,      WSO_EW_W,      WSO_EW_SHORT     }, 15,  8,  3,  3,  1, ELRAIL_ELEVATION }, // LOWER
-	{ { WSO_INVALID, WSO_NS_S,      WSO_NS_N,      WSO_NS_SHORT     },  8,  0,  8,  8,  1, ELRAIL_ELEVATION }, // LEFT
-	{ { WSO_INVALID, WSO_NS_N,      WSO_NS_S,      WSO_NS_SHORT     },  0,  8,  8,  8,  1, ELRAIL_ELEVATION }, // RIGHT
-	{ { WSO_INVALID, WSO_X_NE_UP,   WSO_X_SW_UP,   WSO_X_SHORT_UP   },  0,  7, 15,  8,  1, ELRAIL_ELEVRAISE }, // X up
-	{ { WSO_INVALID, WSO_X_NE_DOWN, WSO_X_SW_DOWN, WSO_X_SHORT_DOWN },  0,  7, 15,  8,  1, ELRAIL_ELEVATION }, // X down
-	{ { WSO_INVALID, WSO_Y_SE_UP,   WSO_Y_NW_UP,   WSO_Y_SHORT_UP   },  7,  0,  8, 15,  1, ELRAIL_ELEVRAISE }, // Y up
-	{ { WSO_INVALID, WSO_Y_SE_DOWN, WSO_Y_NW_DOWN, WSO_Y_SHORT_DOWN },  7,  0,  8, 15,  1, ELRAIL_ELEVATION }, // Y down
+static const SortableSpriteStructM CatenarySpriteData[TRACK_END] = {
+	{ { WSO_INVALID, WSO_X_NE, WSO_X_SW, WSO_X_SHORT  },  0,  7, 15,  1,  1, ELRAIL_ELEVATION }, // X flat
+	{ { WSO_INVALID, WSO_Y_SE, WSO_Y_NW, WSO_Y_SHORT  },  7,  0,  1, 15,  1, ELRAIL_ELEVATION }, // Y flat
+	{ { WSO_INVALID, WSO_EW_W, WSO_EW_E, WSO_EW_SHORT },  7,  0,  1,  1,  1, ELRAIL_ELEVATION }, // UPPER
+	{ { WSO_INVALID, WSO_EW_E, WSO_EW_W, WSO_EW_SHORT }, 15,  8,  3,  3,  1, ELRAIL_ELEVATION }, // LOWER
+	{ { WSO_INVALID, WSO_NS_S, WSO_NS_N, WSO_NS_SHORT },  8,  0,  8,  8,  1, ELRAIL_ELEVATION }, // LEFT
+	{ { WSO_INVALID, WSO_NS_N, WSO_NS_S, WSO_NS_SHORT },  0,  8,  8,  8,  1, ELRAIL_ELEVATION }, // RIGHT
 };
+
+static const SortableSpriteStructM CatenarySpriteDataSW =
+	{ { WSO_INVALID, WSO_X_NE_UP,   WSO_X_SW_UP,   WSO_X_SHORT_UP   },  0,  7, 15,  8,  1, ELRAIL_ELEVRAISE }; // X up
+
+static const SortableSpriteStructM CatenarySpriteDataSE =
+	{ { WSO_INVALID, WSO_Y_SE_UP,   WSO_Y_NW_UP,   WSO_Y_SHORT_UP   },  7,  0,  8, 15,  1, ELRAIL_ELEVRAISE }; // Y up
+
+static const SortableSpriteStructM CatenarySpriteDataNW =
+	{ { WSO_INVALID, WSO_Y_SE_DOWN, WSO_Y_NW_DOWN, WSO_Y_SHORT_DOWN },  7,  0,  8, 15,  1, ELRAIL_ELEVATION }; // Y down
+
+static const SortableSpriteStructM CatenarySpriteDataNE =
+	{ { WSO_INVALID, WSO_X_NE_DOWN, WSO_X_SW_DOWN, WSO_X_SHORT_DOWN },  0,  7, 15,  8,  1, ELRAIL_ELEVATION }; // X down
+
 
 struct SortableSpriteStruct {
 	uint8 image_offset;
@@ -347,58 +356,6 @@ static const SortableSpriteStruct CatenarySpriteData_TunnelDepot[] = {
 	{ WSO_ENTRANCE_SE,   7,  0,  1, 15,  1, ELRAIL_ELEVATION }, //! Wire for SE exit
 	{ WSO_ENTRANCE_SW,   0,  7, 15,  1,  1, ELRAIL_ELEVATION }, //! Wire for SW exit
 	{ WSO_ENTRANCE_NW,   7,  0,  1, 15,  1, ELRAIL_ELEVATION }, //! Wire for NW exit
-};
-
-
-/**
- * Refers to a certain element of the catenary.
- * Identifiers for Wires:
- * <ol><li>Direction of the wire</li>
- * <li>Slope of the tile for diagonals, placement inside the track for horiz/vertical pieces</li>
- * <li>Place where a pylon shoule be</li></ol>
- * Identifiers for Pylons:
- * <ol><li>Direction of the wire</li>
- * <li>Slope of the tile</li>
- * <li>Position of the Pylon relative to the track</li>
- * <li>Position of the Pylon inside the tile</li></ol>
- */
-enum CatenarySprite {
-	CATENARY_X_FLAT,
-	CATENARY_Y_FLAT,
-	CATENARY_N,
-	CATENARY_S,
-	CATENARY_W,
-	CATENARY_E,
-	CATENARY_X_UP,
-	CATENARY_X_DOWN,
-	CATENARY_Y_UP,
-	CATENARY_Y_DOWN,
-};
-
-/* Wire configurations */
-static const CatenarySprite Wires[TRACK_END] = {
-	CATENARY_X_FLAT,
-	CATENARY_Y_FLAT,
-	CATENARY_N,
-	CATENARY_S,
-	CATENARY_W,
-	CATENARY_E,
-};
-
-static const CatenarySprite WiresSW = {
-	CATENARY_X_UP
-};
-
-static const CatenarySprite WiresSE = {
-	CATENARY_Y_UP
-};
-
-static const CatenarySprite WiresNW = {
-	CATENARY_Y_DOWN
-};
-
-static const CatenarySprite WiresNE = {
-	CATENARY_X_DOWN
 };
 
 #endif /* ELRAIL_DATA_H */
