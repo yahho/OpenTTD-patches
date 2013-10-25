@@ -81,37 +81,6 @@ bool IsHangar(TileIndex t)
 }
 
 /**
- * Look for a station around the given tile area.
- * @param ta the area to search over
- * @param closest_station the closest station found so far
- * @param st to 'return' the found station
- * @return Succeeded command (if zero or one station found) or failed command (for two or more stations found).
- */
-template <class T>
-CommandCost GetStationAround(TileArea ta, StationID closest_station, T **st)
-{
-	ta.tile -= TileDiffXY(1, 1);
-	ta.w    += 2;
-	ta.h    += 2;
-
-	/* check around to see if there's any stations there */
-	TILE_AREA_LOOP(tile_cur, ta) {
-		if (IsStationTile(tile_cur)) {
-			StationID t = GetStationIndex(tile_cur);
-			if (!T::IsValidID(t)) continue;
-
-			if (closest_station == INVALID_STATION) {
-				closest_station = t;
-			} else if (closest_station != t) {
-				return_cmd_error(STR_ERROR_ADJOINS_MORE_THAN_ONE_EXISTING);
-			}
-		}
-	}
-	*st = (closest_station == INVALID_STATION) ? NULL : T::Get(closest_station);
-	return CommandCost();
-}
-
-/**
  * Function to check whether the given tile matches some criterion.
  * @param tile the tile to check
  * @return true if it matches, false otherwise
@@ -1073,8 +1042,25 @@ CommandCost FindJoiningBaseStation(StationID existing_station, StationID station
 
 	if (check_surrounding) {
 		/* Make sure there are no similar stations around us. */
-		CommandCost ret = GetStationAround(ta, existing_station, st);
-		if (ret.Failed()) return ret;
+		ta.tile -= TileDiffXY(1, 1);
+		ta.w    += 2;
+		ta.h    += 2;
+
+		/* check around to see if there are any stations there */
+		TILE_AREA_LOOP(tile_cur, ta) {
+			if (IsStationTile(tile_cur)) {
+				StationID t = GetStationIndex(tile_cur);
+				if (!T::IsValidID(t)) continue;
+
+				if (existing_station == INVALID_STATION) {
+					existing_station = t;
+				} else if (existing_station != t) {
+					return_cmd_error(STR_ERROR_ADJOINS_MORE_THAN_ONE_EXISTING);
+				}
+			}
+		}
+
+		*st = (existing_station == INVALID_STATION) ? NULL : T::Get(existing_station);
 	}
 
 	/* Distant join */
