@@ -570,15 +570,13 @@ static void DrawCatenaryRailway(const TileInfo *ti)
  */
 void DrawCatenaryOnBridge(const TileInfo *ti)
 {
+	TileIndex start = GetNorthernBridgeEnd(ti->tile);
 	TileIndex end = GetSouthernBridgeEnd(ti->tile);
-	TileIndex start = GetOtherBridgeEnd(end);
 
 	uint length = GetTunnelBridgeLength(start, end);
 	uint num = GetTunnelBridgeLength(ti->tile, start) + 1;
-	uint height;
 
 	Axis axis = GetBridgeAxis(ti->tile);
-	TLG tlg = GetTLG(ti->tile);
 
 	const SortableSpriteStructM *sss = &CatenarySpriteData[AxisToTrack(axis)];
 
@@ -592,7 +590,7 @@ void DrawCatenaryOnBridge(const TileInfo *ti)
 		config = 2 - (num % 2);
 	}
 
-	height = GetBridgePixelHeight(end);
+	uint height = GetBridgePixelHeight(end);
 
 	SpriteID wire_base = GetWireBase(end, TCX_ON_BRIDGE);
 
@@ -601,27 +599,34 @@ void DrawCatenaryOnBridge(const TileInfo *ti)
 		IsTransparencySet(TO_CATENARY)
 	);
 
-	SpriteID pylon_base = GetPylonBase(end, TCX_ON_BRIDGE);
+	/* Finished with wires, draw pylons */
+	if ((num % 2) == 0 && num != length) return; /* no pylons to draw */
 
-	/* Finished with wires, draw pylons
-	 * every other tile needs a pylon on the northern end */
+	DiagDirection PCPpos;
+	Direction PPPpos;
+	if (axis == AXIS_X) {
+		PCPpos = DIAGDIR_NE;
+		PPPpos = HasBit(GetTLG(ti->tile), 0) ? DIR_SE : DIR_NW;
+	} else {
+		PCPpos = DIAGDIR_NW;
+		PPPpos = HasBit(GetTLG(ti->tile), 1) ? DIR_SW : DIR_NE;
+	}
+
+	SpriteID pylon = GetPylonBase(end, TCX_ON_BRIDGE) + pylon_sprites[PPPpos];
+	uint x = ti->x + x_ppp_offsets[PPPpos];
+	uint y = ti->y + y_ppp_offsets[PPPpos];
+
+	/* every other tile needs a pylon on the northern end */
 	if (num % 2) {
-		DiagDirection PCPpos = (axis == AXIS_X ? DIAGDIR_NE : DIAGDIR_NW);
-		Direction PPPpos = (axis == AXIS_X ? DIR_NW : DIR_NE);
-		if (HasBit(tlg, (axis == AXIS_X ? 0 : 1))) PPPpos = ReverseDir(PPPpos);
-		uint x = ti->x + x_pcp_offsets[PCPpos] + x_ppp_offsets[PPPpos];
-		uint y = ti->y + y_pcp_offsets[PCPpos] + y_ppp_offsets[PPPpos];
-		AddSortableSpriteToDraw(pylon_base + pylon_sprites[PPPpos], PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, height, IsTransparencySet(TO_CATENARY), -1, -1);
+		AddSortableSpriteToDraw(pylon, PAL_NONE, x + x_pcp_offsets[PCPpos], y + y_pcp_offsets[PCPpos],
+			1, 1, BB_HEIGHT_UNDER_BRIDGE, height, IsTransparencySet(TO_CATENARY), -1, -1);
 	}
 
 	/* need a pylon on the southern end of the bridge */
-	if (GetTunnelBridgeLength(ti->tile, start) + 1 == length) {
-		DiagDirection PCPpos = (axis == AXIS_X ? DIAGDIR_SW : DIAGDIR_SE);
-		Direction PPPpos = (axis == AXIS_X ? DIR_NW : DIR_NE);
-		if (HasBit(tlg, (axis == AXIS_X ? 0 : 1))) PPPpos = ReverseDir(PPPpos);
-		uint x = ti->x + x_pcp_offsets[PCPpos] + x_ppp_offsets[PPPpos];
-		uint y = ti->y + y_pcp_offsets[PCPpos] + y_ppp_offsets[PPPpos];
-		AddSortableSpriteToDraw(pylon_base + pylon_sprites[PPPpos], PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, height, IsTransparencySet(TO_CATENARY), -1, -1);
+	if (num == length) {
+		PCPpos = ReverseDiagDir(PCPpos);
+		AddSortableSpriteToDraw(pylon, PAL_NONE, x + x_pcp_offsets[PCPpos], y + y_pcp_offsets[PCPpos],
+			1, 1, BB_HEIGHT_UNDER_BRIDGE, height, IsTransparencySet(TO_CATENARY), -1, -1);
 	}
 }
 
