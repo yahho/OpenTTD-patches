@@ -320,39 +320,16 @@ static const uint ELRAIL_ELEVATION = 10;
 static const uint ELRAIL_ELEVRAISE = ELRAIL_ELEVATION + TILE_HEIGHT;
 
 static const SortableSpriteStructM CatenarySpriteData[] = {
-/* X direction
-	 * Flat tiles:
-		 * Wires */
 	{ { WSO_INVALID, WSO_X_NE,      WSO_X_SW,      WSO_X_SHORT      },  0,  7, 15,  1,  1, ELRAIL_ELEVATION }, // X flat
-
-	/* "up" tiles
-		 * Wires */
-	{ { WSO_INVALID, WSO_X_NE_UP,   WSO_X_SW_UP,   WSO_X_SHORT_UP   },  0,  7, 15,  8,  1, ELRAIL_ELEVRAISE }, // X up
-
-	/* "down" tiles
-		 * Wires */
-	{ { WSO_INVALID, WSO_X_NE_DOWN, WSO_X_SW_DOWN, WSO_X_SHORT_DOWN },  0,  7, 15,  8,  1, ELRAIL_ELEVATION }, // X down
-
-/* Y direction
-	 * Flat tiles:
-		 * Wires */
 	{ { WSO_INVALID, WSO_Y_SE,      WSO_Y_NW,      WSO_Y_SHORT      },  7,  0,  1, 15,  1, ELRAIL_ELEVATION }, // Y flat
-
-	/* "up" tiles
-		 * Wires */
-	{ { WSO_INVALID, WSO_Y_SE_UP,   WSO_Y_NW_UP,   WSO_Y_SHORT_UP   },  7,  0,  8, 15,  1, ELRAIL_ELEVRAISE }, // Y up
-
-	/* "down" tiles
-		 * Wires */
-	{ { WSO_INVALID, WSO_Y_SE_DOWN, WSO_Y_NW_DOWN, WSO_Y_SHORT_DOWN },  7,  0,  8, 15,  1, ELRAIL_ELEVATION }, // Y down
-
-/* NS Direction */
-	{ { WSO_INVALID, WSO_NS_S,      WSO_NS_N,      WSO_NS_SHORT     },  8,  0,  8,  8,  1, ELRAIL_ELEVATION }, // LEFT
-	{ { WSO_INVALID, WSO_NS_N,      WSO_NS_S,      WSO_NS_SHORT     },  0,  8,  8,  8,  1, ELRAIL_ELEVATION }, // RIGHT
-
-/* EW Direction */
 	{ { WSO_INVALID, WSO_EW_W,      WSO_EW_E,      WSO_EW_SHORT     },  7,  0,  1,  1,  1, ELRAIL_ELEVATION }, // UPPER
 	{ { WSO_INVALID, WSO_EW_E,      WSO_EW_W,      WSO_EW_SHORT     }, 15,  8,  3,  3,  1, ELRAIL_ELEVATION }, // LOWER
+	{ { WSO_INVALID, WSO_NS_S,      WSO_NS_N,      WSO_NS_SHORT     },  8,  0,  8,  8,  1, ELRAIL_ELEVATION }, // LEFT
+	{ { WSO_INVALID, WSO_NS_N,      WSO_NS_S,      WSO_NS_SHORT     },  0,  8,  8,  8,  1, ELRAIL_ELEVATION }, // RIGHT
+	{ { WSO_INVALID, WSO_X_NE_UP,   WSO_X_SW_UP,   WSO_X_SHORT_UP   },  0,  7, 15,  8,  1, ELRAIL_ELEVRAISE }, // X up
+	{ { WSO_INVALID, WSO_X_NE_DOWN, WSO_X_SW_DOWN, WSO_X_SHORT_DOWN },  0,  7, 15,  8,  1, ELRAIL_ELEVATION }, // X down
+	{ { WSO_INVALID, WSO_Y_SE_UP,   WSO_Y_NW_UP,   WSO_Y_SHORT_UP   },  7,  0,  8, 15,  1, ELRAIL_ELEVRAISE }, // Y up
+	{ { WSO_INVALID, WSO_Y_SE_DOWN, WSO_Y_NW_DOWN, WSO_Y_SHORT_DOWN },  7,  0,  8, 15,  1, ELRAIL_ELEVATION }, // Y down
 };
 
 struct SortableSpriteStruct {
@@ -387,18 +364,15 @@ static const SortableSpriteStruct CatenarySpriteData_TunnelDepot[] = {
  */
 enum CatenarySprite {
 	CATENARY_X_FLAT,
-	CATENARY_X_UP,
-	CATENARY_X_DOWN,
-
 	CATENARY_Y_FLAT,
-	CATENARY_Y_UP,
-	CATENARY_Y_DOWN,
-
-	CATENARY_W,
-	CATENARY_E,
-
 	CATENARY_N,
 	CATENARY_S,
+	CATENARY_W,
+	CATENARY_E,
+	CATENARY_X_UP,
+	CATENARY_X_DOWN,
+	CATENARY_Y_UP,
+	CATENARY_Y_DOWN,
 };
 
 /* Wire configurations */
