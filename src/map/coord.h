@@ -62,6 +62,18 @@ static inline TileIndex TileXY(uint x, uint y)
 /**
  * Check if a tile is within the map (not a border)
  *
+ * @param x The x coordinate of the tile
+ * @param y The y coordinate of the tile
+ * @return Whether the tile is in the interior of the map
+ */
+static inline bool IsInnerTileXY(uint x, uint y)
+{
+	return x < MapMaxX() && y < MapMaxY() && ((x > 0 && y > 0) || !_settings_game.construction.freeform_edges);
+}
+
+/**
+ * Check if a tile is within the map (not a border)
+ *
  * @param tile The tile to check
  * @return Whether the tile is in the interior of the map
  * @pre tile < MapSize()
@@ -70,10 +82,7 @@ static inline bool IsInnerTile(TileIndex tile)
 {
 	assert(tile < MapSize());
 
-	uint x = TileX(tile);
-	uint y = TileY(tile);
-
-	return x < MapMaxX() && y < MapMaxY() && ((x > 0 && y > 0) || !_settings_game.construction.freeform_edges);
+	return IsInnerTileXY(TileX(tile), TileY(tile));
 }
 
 
