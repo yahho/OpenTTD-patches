@@ -1626,7 +1626,7 @@ void UpdateViewportPosition(Window *w)
 		bool update_overlay = false;
 		if (delta_x != 0 || delta_y != 0) {
 			if (_settings_client.gui.smooth_scroll) {
-				int max_scroll = ScaleByMapSize1D(512 * ZOOM_LVL_BASE);
+				int max_scroll = ScaleByMapPerimeter(512 * ZOOM_LVL_BASE);
 				/* Not at our desired position yet... */
 				w->viewport->scrollpos_x += Clamp(delta_x / 4, -max_scroll, max_scroll);
 				w->viewport->scrollpos_y += Clamp(delta_y / 4, -max_scroll, max_scroll);

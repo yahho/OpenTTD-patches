@@ -732,9 +732,9 @@ void GenerateObjects()
 			/* Scale the amount of lighthouses with the amount of land at the borders.
 			 * The -6 is because the top borders are void (-2) and all corners
 			 * are counted twice (-4). */
-			amount = ScaleByMapSize1D(amount * num_water_tiles) / (2 * MapMaxY() + 2 * MapMaxX() - 6);
+			amount = ScaleByMapPerimeter(amount * num_water_tiles) / (2 * MapMaxY() + 2 * MapMaxX() - 6);
 		} else if (spec->flags & OBJECT_FLAG_SCALE_BY_WATER) {
-			amount = ScaleByMapSize1D(amount);
+			amount = ScaleByMapPerimeter(amount);
 		} else {
 			amount = ScaleByMapSize(amount);
 		}

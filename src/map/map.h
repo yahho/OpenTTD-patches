@@ -143,12 +143,12 @@ static inline uint ScaleByMapSize(uint n)
 }
 
 /**
- * Scales the given value by the maps circumference, where the given
+ * Scales the given value by the map perimeter, where the given
  * value is for a 256 by 256 map
  * @param n the value to scale
  * @return the scaled size
  */
-static inline uint ScaleByMapSize1D(uint n)
+static inline uint ScaleByMapPerimeter(uint n)
 {
 	/* Normal circumference for the X+Y is 256+256 = 1<<9
 	 * Note, not actually taking the full circumference into account,
