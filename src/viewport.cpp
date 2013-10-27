@@ -2416,20 +2416,17 @@ static int CalcHeightdiff(HighLightStyle style, uint distance, TileIndex start_t
 	if (swap) Swap(start_tile, end_tile);
 
 	switch (style & HT_DRAG_MASK) {
-		case HT_RECT: {
-			static const CoordDiff heightdiff_area_by_dir[] = {
-				/* Start */ {1, 0}, /* Dragging east */ {0, 0}, // Dragging south
-				/* End   */ {0, 1}, /* Dragging east */ {1, 1}  // Dragging south
-			};
-
+		case HT_RECT:
 			/* In the case of an area we can determine whether we were dragging south or
 			 * east by checking the X-coordinates of the tiles */
-			byte style_t = (byte)(TileX(end_tile) > TileX(start_tile));
-			start_tile = TILE_ADD(start_tile, ToTileIndexDiff(heightdiff_area_by_dir[style_t]));
-			end_tile   = TILE_ADD(end_tile, ToTileIndexDiff(heightdiff_area_by_dir[2 + style_t]));
+			if (TileX(end_tile) > TileX(start_tile)) {
+				start_tile = TILE_ADD(start_tile, TileDiffXY(0, 0));
+				end_tile   = TILE_ADD(end_tile,   TileDiffXY(1, 1));
+			} else {
+				start_tile = TILE_ADD(start_tile, TileDiffXY(1, 0));
+				end_tile   = TILE_ADD(end_tile,   TileDiffXY(0, 1));
+			}
 			/* FALL THROUGH */
-		}
-
 		case HT_POINT:
 			h0 = TileHeight(start_tile);
 			h1 = TileHeight(end_tile);
@@ -2438,14 +2435,15 @@ static int CalcHeightdiff(HighLightStyle style, uint distance, TileIndex start_t
 			static const HighLightStyle flip_style_direction[] = {
 				HT_DIR_X, HT_DIR_Y, HT_DIR_HL, HT_DIR_HU, HT_DIR_VR, HT_DIR_VL
 			};
-			static const CoordDiff heightdiff_line_by_dir[] = {
-				/* Start */ {1, 0}, {1, 1}, /* HT_DIR_X  */ {0, 1}, {1, 1}, // HT_DIR_Y
-				/* Start */ {1, 0}, {0, 0}, /* HT_DIR_HU */ {1, 0}, {1, 1}, // HT_DIR_HL
-				/* Start */ {1, 0}, {1, 1}, /* HT_DIR_VL */ {0, 1}, {1, 1}, // HT_DIR_VR
-
-				/* Start */ {0, 1}, {0, 0}, /* HT_DIR_X  */ {1, 0}, {0, 0}, // HT_DIR_Y
-				/* End   */ {0, 1}, {0, 0}, /* HT_DIR_HU */ {1, 1}, {0, 1}, // HT_DIR_HL
-				/* End   */ {1, 0}, {0, 0}, /* HT_DIR_VL */ {0, 0}, {0, 1}, // HT_DIR_VR
+			static const CoordDiff heightdiff_line_by_dir_start[][2] = {
+				/* Start */ { {1, 0}, {1, 1} }, /* HT_DIR_X  */ { {0, 1}, {1, 1} }, // HT_DIR_Y
+				/* Start */ { {1, 0}, {0, 0} }, /* HT_DIR_HU */ { {1, 0}, {1, 1} }, // HT_DIR_HL
+				/* Start */ { {1, 0}, {1, 1} }, /* HT_DIR_VL */ { {0, 1}, {1, 1} }, // HT_DIR_VR
+			};
+			static const CoordDiff heightdiff_line_by_dir_end[][2] = {
+				/* End   */ { {0, 1}, {0, 0} }, /* HT_DIR_X  */ { {1, 0}, {0, 0} }, // HT_DIR_Y
+				/* End   */ { {0, 1}, {0, 0} }, /* HT_DIR_HU */ { {1, 1}, {0, 1} }, // HT_DIR_HL
+				/* End   */ { {1, 0}, {0, 0} }, /* HT_DIR_VL */ { {0, 0}, {0, 1} }, // HT_DIR_VR
 			};
 
 			distance %= 2; // we're only interested if the distance is even or uneven
@@ -2458,18 +2456,17 @@ static int CalcHeightdiff(HighLightStyle style, uint distance, TileIndex start_t
 			if (swap && distance == 0) style = flip_style_direction[style];
 
 			/* Use lookup table for start-tile based on HighLightStyle direction */
-			byte style_t = style * 2;
-			assert(style_t < lengthof(heightdiff_line_by_dir) - 13);
-			h0 = TileHeight(TILE_ADD(start_tile, ToTileIndexDiff(heightdiff_line_by_dir[style_t])));
-			uint ht = TileHeight(TILE_ADD(start_tile, ToTileIndexDiff(heightdiff_line_by_dir[style_t + 1])));
+			assert(style < lengthof(heightdiff_line_by_dir_start));
+			h0 = TileHeight(TILE_ADD(start_tile, ToTileIndexDiff(heightdiff_line_by_dir_start[style][0])));
+			uint ht = TileHeight(TILE_ADD(start_tile, ToTileIndexDiff(heightdiff_line_by_dir_start[style][1])));
 			h0 = max(h0, ht);
 
 			/* Use lookup table for end-tile based on HighLightStyle direction
 			 * flip around side (lower/upper, left/right) based on distance */
-			if (distance == 0) style_t = flip_style_direction[style] * 2;
-			assert(style_t < lengthof(heightdiff_line_by_dir) - 13);
-			h1 = TileHeight(TILE_ADD(end_tile, ToTileIndexDiff(heightdiff_line_by_dir[12 + style_t])));
-			ht = TileHeight(TILE_ADD(end_tile, ToTileIndexDiff(heightdiff_line_by_dir[12 + style_t + 1])));
+			if (distance == 0) style = flip_style_direction[style];
+			assert(style < lengthof(heightdiff_line_by_dir_end));
+			h1 = TileHeight(TILE_ADD(end_tile, ToTileIndexDiff(heightdiff_line_by_dir_end[style][0])));
+			ht = TileHeight(TILE_ADD(end_tile, ToTileIndexDiff(heightdiff_line_by_dir_end[style][1])));
 			h1 = max(h1, ht);
 			break;
 		}
