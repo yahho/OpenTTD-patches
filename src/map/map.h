@@ -12,6 +12,7 @@
 
 #include "../stdafx.h"
 #include "../core/math_func.hpp"
+#include "../direction_type.h"
 #include "../tile/tile.h"
 #include "../tile/zoneheight.h"
 
@@ -48,6 +49,7 @@ struct MapSizeParams {
 	uint size_x; ///< size of the map along the X axis
 	uint size_y; ///< size of the map along the Y axis
 	uint size;   ///< total number of tiles on the map
+	int diffs[DIR_END]; ///< tile index differences per direction
 };
 
 /**

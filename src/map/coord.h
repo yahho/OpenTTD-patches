@@ -245,10 +245,10 @@ static inline CoordDiff CoordDiffByDir(Direction dir)
  */
 static inline TileIndexDiff TileOffsByDiagDir(DiagDirection dir)
 {
-	extern const CoordDiff _tileoffs_by_diagdir[DIAGDIR_END];
+	extern MapSizeParams map_size;
 
 	assert(IsValidDiagDirection(dir));
-	return ToTileIndexDiff(_tileoffs_by_diagdir[dir]);
+	return map_size.diffs[DiagDirToDir(dir)];
 }
 
 /**
@@ -259,10 +259,10 @@ static inline TileIndexDiff TileOffsByDiagDir(DiagDirection dir)
  */
 static inline TileIndexDiff TileOffsByDir(Direction dir)
 {
-	extern const CoordDiff _tileoffs_by_dir[DIR_END];
+	extern MapSizeParams map_size;
 
 	assert(IsValidDirection(dir));
-	return ToTileIndexDiff(_tileoffs_by_dir[dir]);
+	return map_size.diffs[dir];
 }
 
 /**

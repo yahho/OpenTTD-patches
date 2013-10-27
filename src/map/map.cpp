@@ -44,6 +44,15 @@ void AllocateMap(uint size_x, uint size_y)
 	map_size.size_y = size_y;
 	map_size.size = size_x * size_y;
 
+	map_size.diffs[DIR_N ] = -size_x - 1;
+	map_size.diffs[DIR_NE] =         - 1;
+	map_size.diffs[DIR_E ] =  size_x - 1;
+	map_size.diffs[DIR_SE] =  size_x;
+	map_size.diffs[DIR_S ] =  size_x + 1;
+	map_size.diffs[DIR_SW] =           1;
+	map_size.diffs[DIR_W ] = -size_x + 1;
+	map_size.diffs[DIR_NW] = -size_x;
+
 	free(_mth);
 	free(_mc);
 
