@@ -14,11 +14,7 @@
 #include "../core/math_func.hpp"
 #include "map.h"
 
-uint _map_log_x;     ///< 2^_map_log_x == _map_size_x
-uint _map_log_y;     ///< 2^_map_log_y == _map_size_y
-uint _map_size_x;    ///< Size of the map along the X
-uint _map_size_y;    ///< Size of the map along the Y
-uint _map_size;      ///< The number of tiles on the map
+MapSizeParams map_size;
 
 TileZH *_mth = NULL; ///< Tile zones and heights
 Tile   *_mc  = NULL; ///< Tile contents
@@ -42,15 +38,15 @@ void AllocateMap(uint size_x, uint size_y)
 
 	DEBUG(map, 1, "Allocating map of size %dx%d", size_x, size_y);
 
-	_map_log_x = FindFirstBit(size_x);
-	_map_log_y = FindFirstBit(size_y);
-	_map_size_x = size_x;
-	_map_size_y = size_y;
-	_map_size = size_x * size_y;
+	map_size.log_x = FindFirstBit(size_x);
+	map_size.log_y = FindFirstBit(size_y);
+	map_size.size_x = size_x;
+	map_size.size_y = size_y;
+	map_size.size = size_x * size_y;
 
 	free(_mth);
 	free(_mc);
 
-	_mth = CallocT<TileZH>(_map_size);
-	_mc = CallocT<Tile>(_map_size);
+	_mth = CallocT<TileZH>(map_size.size);
+	_mc = CallocT<Tile>(map_size.size);
 }

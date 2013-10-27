@@ -41,6 +41,15 @@ extern Tile *_mc;
 
 void AllocateMap(uint size_x, uint size_y);
 
+/** Map size parameters */
+struct MapSizeParams {
+	uint log_x;  ///< logarithm of the size (number of bits) along the X axis
+	uint log_y;  ///< logarithm of the size (number of bits) along the Y axis
+	uint size_x; ///< size of the map along the X axis
+	uint size_y; ///< size of the map along the Y axis
+	uint size;   ///< total number of tiles on the map
+};
+
 /**
  * Logarithm of the map size along the X side.
  * @note try to avoid using this one
@@ -48,8 +57,8 @@ void AllocateMap(uint size_x, uint size_y);
  */
 static inline uint MapLogX()
 {
-	extern uint _map_log_x;
-	return _map_log_x;
+	extern MapSizeParams map_size;
+	return map_size.log_x;
 }
 
 /**
@@ -59,8 +68,8 @@ static inline uint MapLogX()
  */
 static inline uint MapLogY()
 {
-	extern uint _map_log_y;
-	return _map_log_y;
+	extern MapSizeParams map_size;
+	return map_size.log_y;
 }
 
 /**
@@ -69,8 +78,8 @@ static inline uint MapLogY()
  */
 static inline uint MapSizeX()
 {
-	extern uint _map_size_x;
-	return _map_size_x;
+	extern MapSizeParams map_size;
+	return map_size.size_x;
 }
 
 /**
@@ -79,8 +88,8 @@ static inline uint MapSizeX()
  */
 static inline uint MapSizeY()
 {
-	extern uint _map_size_y;
-	return _map_size_y;
+	extern MapSizeParams map_size;
+	return map_size.size_y;
 }
 
 /**
@@ -89,8 +98,8 @@ static inline uint MapSizeY()
  */
 static inline uint MapSize()
 {
-	extern uint _map_size;
-	return _map_size;
+	extern MapSizeParams map_size;
+	return map_size.size;
 }
 
 /**
@@ -110,8 +119,6 @@ static inline uint MapMaxY()
 {
 	return MapSizeY() - 1;
 }
-
-extern uint _map_tile_mask;
 
 /**
  * 'Wraps' the given tile to it is within the map. It does
