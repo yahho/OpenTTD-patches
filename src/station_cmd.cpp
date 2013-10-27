@@ -2631,7 +2631,7 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 	CommandCost ret = CheckOwnership(st->owner);
 	if (ret.Failed()) return ret;
 
-	TileIndex docking_location = TILE_ADD(st->dock_tile, GetDockOffset(st->dock_tile));
+	TileIndex docking_location = GetDockingTile(st->dock_tile);
 
 	TileIndex tile1 = st->dock_tile;
 	TileIndex tile2 = tile1 + TileOffsByDiagDir(GetDockDirection(tile1));

@@ -267,7 +267,7 @@ TileIndex Ship::GetOrderStationLocation(StationID station)
 
 	const Station *st = Station::Get(station);
 	if (st->dock_tile != INVALID_TILE) {
-		return TILE_ADD(st->dock_tile, GetDockOffset(st->dock_tile));
+		return GetDockingTile(st->dock_tile);
 	} else {
 		this->IncrementRealOrderIndex();
 		return 0;

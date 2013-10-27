@@ -461,6 +461,18 @@ static inline TileIndexDiff GetDockOffset(TileIndex t)
 	return 2 * TileOffsByDiagDir(GetDockDirection(t));
 }
 
+/**
+ * Get the docking tile for a dock.
+ * @param t Tile to query
+ * @pre IsStationTile(t)
+ * @pre IsBuoy(t) || IsOilRig(t) || IsDock(t)
+ * @return The tile that should be used as destination for ships.
+ */
+static inline TileIndex GetDockingTile(TileIndex t)
+{
+	return TILE_ADD(t, GetDockOffset(t));
+}
+
 
 /**
  * Make the given tile a rail station tile.
