@@ -450,24 +450,15 @@ static inline DiagDirection GetDockDirection(TileIndex t)
  * @pre IsBuoy(t) || IsOilRig(t) || IsDock(t)
  * @return The offset from this tile that should be used as destination for ships.
  */
-static inline CoordDiff GetDockOffset(TileIndex t)
+static inline TileIndexDiff GetDockOffset(TileIndex t)
 {
-	static const CoordDiff buoy_offset = {0, 0};
-	static const CoordDiff oilrig_offset = {2, 0};
-	static const CoordDiff dock_offset[DIAGDIR_END] = {
-		{-2,  0},
-		{ 0,  2},
-		{ 2,  0},
-		{ 0, -2},
-	};
 	assert(IsStationTile(t));
 
-	if (IsBuoy(t)) return buoy_offset;
-	if (IsOilRig(t)) return oilrig_offset;
+	if (IsBuoy(t)) return TileDiffXY(0, 0);
+	if (IsOilRig(t)) return TileDiffXY(2, 0);
 
 	assert(IsDock(t));
-
-	return dock_offset[GetDockDirection(t)];
+	return 2 * TileOffsByDiagDir(GetDockDirection(t));
 }
 
 
