@@ -2515,7 +2515,7 @@ bool HasStationInUse(StationID station, bool include_company, CompanyID company)
 	return false;
 }
 
-static const TileIndexDiffC _dock_tileoffs_chkaround[] = {
+static const CoordDiff _dock_tileoffs_chkaround[] = {
 	{-1,  0},
 	{ 0,  0},
 	{ 0,  0},

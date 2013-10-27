@@ -73,7 +73,7 @@ TileIndex TileAddWrap(TileIndex tile, int addx, int addy)
 }
 
 /** 'Lookup table' for tile offsets given a DiagDirection */
-extern const TileIndexDiffC _tileoffs_by_diagdir[] = {
+extern const CoordDiff _tileoffs_by_diagdir[] = {
 	{-1,  0}, ///< DIAGDIR_NE
 	{ 0,  1}, ///< DIAGDIR_SE
 	{ 1,  0}, ///< DIAGDIR_SW
@@ -81,7 +81,7 @@ extern const TileIndexDiffC _tileoffs_by_diagdir[] = {
 };
 
 /** 'Lookup table' for tile offsets given a Direction */
-extern const TileIndexDiffC _tileoffs_by_dir[] = {
+extern const CoordDiff _tileoffs_by_dir[] = {
 	{-1, -1}, ///< DIR_N
 	{-1,  0}, ///< DIR_NE
 	{-1,  1}, ///< DIR_E

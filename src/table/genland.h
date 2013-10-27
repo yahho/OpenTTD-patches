@@ -11,7 +11,7 @@
 
 #define M(x, y) {x,  y}
 
-static const TileIndexDiffC _make_desert_or_rainforest_data[] = {
+static const CoordDiff _make_desert_or_rainforest_data[] = {
 	M(-5, -6),
 	M(-4, -6),
 	M(-3, -6),

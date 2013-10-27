@@ -919,7 +919,7 @@ static void GenerateTerrain(int type, uint flag)
 static void CreateDesertOrRainForest()
 {
 	TileIndex update_freq = MapSize() / 4;
-	const TileIndexDiffC *data;
+	const CoordDiff *data;
 
 	for (TileIndex tile = 0; tile != MapSize(); ++tile) {
 		if ((tile % update_freq) == 0) IncreaseGeneratingWorldProgress(GWP_LANDSCAPE);
@@ -928,7 +928,7 @@ static void CreateDesertOrRainForest()
 
 		for (data = _make_desert_or_rainforest_data;
 				data != endof(_make_desert_or_rainforest_data); ++data) {
-			TileIndex t = AddTileIndexDiffCWrap(tile, *data);
+			TileIndex t = AddCoordDiffWrap(tile, *data);
 			if (t != INVALID_TILE && (TileHeight(t) >= 4 || IsWaterTile(t))) break;
 		}
 		if (data == endof(_make_desert_or_rainforest_data)) {
@@ -949,7 +949,7 @@ static void CreateDesertOrRainForest()
 
 		for (data = _make_desert_or_rainforest_data;
 				data != endof(_make_desert_or_rainforest_data); ++data) {
-			TileIndex t = AddTileIndexDiffCWrap(tile, *data);
+			TileIndex t = AddCoordDiffWrap(tile, *data);
 			if (t != INVALID_TILE && IsClearTile(t) && IsClearGround(t, GROUND_DESERT)) break;
 		}
 		if (data == endof(_make_desert_or_rainforest_data)) {

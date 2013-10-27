@@ -1033,7 +1033,7 @@ bool FloodHalftile(TileIndex t)
 	return flooded;
 }
 
-static const TileIndexDiffC _trackdelta[] = {
+static const CoordDiff _trackdelta[] = {
 	{ -1,  0 }, {  0,  1 }, { -1,  0 }, {  0,  1 }, {  1,  0 }, {  0,  1 },
 	{  0,  0 },
 	{  0,  0 },
@@ -1558,7 +1558,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 
 static bool CheckSignalAutoFill(TileIndex &tile, Trackdir &trackdir, int &signal_ctr, bool remove)
 {
-	tile = AddTileIndexDiffCWrap(tile, _trackdelta[trackdir]);
+	tile = AddCoordDiffWrap(tile, _trackdelta[trackdir]);
 	if (tile == INVALID_TILE) return false;
 
 	/* Check for track bits on the new tile */

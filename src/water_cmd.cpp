@@ -505,7 +505,7 @@ static CommandCost ClearTile_Water(TileIndex tile, DoCommandFlag flags)
 		}
 
 		case WATER_TILE_LOCK: {
-			static const TileIndexDiffC _lock_tomiddle_offs[][DIAGDIR_END] = {
+			static const CoordDiff _lock_tomiddle_offs[][DIAGDIR_END] = {
 				/*   NE       SE        SW      NW       */
 				{ { 0,  0}, {0,  0}, { 0, 0}, {0,  0} }, // LOCK_PART_MIDDLE
 				{ {-1,  0}, {0,  1}, { 1, 0}, {0, -1} }, // LOCK_PART_LOWER

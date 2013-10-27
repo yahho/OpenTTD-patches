@@ -107,7 +107,7 @@ typedef int32 TileIndexDiff;
  * @param x The offset in x direction
  * @param y The offset in y direction
  * @return The resulting offset value of the given coordinate
- * @see ToTileIndexDiff(TileIndexDiffC)
+ * @see ToTileIndexDiff(CoordDiff)
  */
 static inline TileIndexDiff TileDiffXY(int x, int y)
 {
@@ -151,28 +151,28 @@ TileIndex TileAddWrap(TileIndex tile, int addx, int addy);
  * This can be used to save the difference between to
  * tiles as a pair of x and y value.
  */
-struct TileIndexDiffC {
+struct CoordDiff {
 	int16 x;        ///< The x value of the coordinate
 	int16 y;        ///< The y value of the coordinate
 };
 
 /**
- * Return the offset between to tiles from a TileIndexDiffC struct.
+ * Return the offset between to tiles from a CoordDiff struct.
  *
  * This function works like #TileDiffXY(int, int) and returns the
  * difference between two tiles.
  *
- * @param tidc The coordinate of the offset as TileIndexDiffC
+ * @param diff The coordinate of the offset as CoordDiff
  * @return The difference between two tiles.
  * @see TileDiffXY(int, int)
  */
-static inline TileIndexDiff ToTileIndexDiff(TileIndexDiffC tidc)
+static inline TileIndexDiff ToTileIndexDiff(CoordDiff diff)
 {
-	return (tidc.y << MapLogX()) + tidc.x;
+	return (diff.y << MapLogX()) + diff.x;
 }
 
 /**
- * Add a TileIndexDiffC to a TileIndex and returns the new one.
+ * Add a CoordDiff to a TileIndex and returns the new one.
  *
  * Returns tile + the diff given in diff. If the result tile would end up
  * outside of the map, INVALID_TILE is returned instead.
@@ -181,7 +181,7 @@ static inline TileIndexDiff ToTileIndexDiff(TileIndexDiffC tidc)
  * @param diff The offset to add on the tile
  * @return The resulting TileIndex
  */
-static inline TileIndex AddTileIndexDiffCWrap(TileIndex tile, TileIndexDiffC diff)
+static inline TileIndex AddCoordDiffWrap(TileIndex tile, CoordDiff diff)
 {
 	int x = TileX(tile) + diff.x;
 	int y = TileY(tile) + diff.y;
@@ -197,9 +197,9 @@ static inline TileIndex AddTileIndexDiffCWrap(TileIndex tile, TileIndexDiffC dif
  * @param tile_b to tile
  * @return the difference between tila_a and tile_b
  */
-static inline TileIndexDiffC TileIndexToTileIndexDiffC(TileIndex tile_a, TileIndex tile_b)
+static inline CoordDiff TileCoordDiff(TileIndex tile_a, TileIndex tile_b)
 {
-	TileIndexDiffC difference;
+	CoordDiff difference;
 
 	difference.x = TileX(tile_a) - TileX(tile_b);
 	difference.y = TileY(tile_a) - TileY(tile_b);
@@ -208,28 +208,28 @@ static inline TileIndexDiffC TileIndexToTileIndexDiffC(TileIndex tile_a, TileInd
 }
 
 /**
- * Returns the TileIndexDiffC offset from a DiagDirection.
+ * Returns the CoordDiff offset from a DiagDirection.
  *
  * @param dir The given direction
- * @return The offset as TileIndexDiffC value
+ * @return The offset as CoordDiff value
  */
-static inline TileIndexDiffC TileIndexDiffCByDiagDir(DiagDirection dir)
+static inline CoordDiff CoordDiffByDiagDir(DiagDirection dir)
 {
-	extern const TileIndexDiffC _tileoffs_by_diagdir[DIAGDIR_END];
+	extern const CoordDiff _tileoffs_by_diagdir[DIAGDIR_END];
 
 	assert(IsValidDiagDirection(dir));
 	return _tileoffs_by_diagdir[dir];
 }
 
 /**
- * Returns the TileIndexDiffC offset from a Direction.
+ * Returns the CoordDiff offset from a Direction.
  *
  * @param dir The given direction
- * @return The offset as TileIndexDiffC value
+ * @return The offset as CoordDiff value
  */
-static inline TileIndexDiffC TileIndexDiffCByDir(Direction dir)
+static inline CoordDiff CoordDiffByDir(Direction dir)
 {
-	extern const TileIndexDiffC _tileoffs_by_dir[DIR_END];
+	extern const CoordDiff _tileoffs_by_dir[DIR_END];
 
 	assert(IsValidDirection(dir));
 	return _tileoffs_by_dir[dir];
@@ -241,11 +241,11 @@ static inline TileIndexDiffC TileIndexDiffCByDir(Direction dir)
  *
  * @param dir The DiagDirection
  * @return The resulting TileIndexDiff
- * @see TileIndexDiffCByDiagDir
+ * @see CoordDiffByDiagDir
  */
 static inline TileIndexDiff TileOffsByDiagDir(DiagDirection dir)
 {
-	extern const TileIndexDiffC _tileoffs_by_diagdir[DIAGDIR_END];
+	extern const CoordDiff _tileoffs_by_diagdir[DIAGDIR_END];
 
 	assert(IsValidDiagDirection(dir));
 	return ToTileIndexDiff(_tileoffs_by_diagdir[dir]);
@@ -259,7 +259,7 @@ static inline TileIndexDiff TileOffsByDiagDir(DiagDirection dir)
  */
 static inline TileIndexDiff TileOffsByDir(Direction dir)
 {
-	extern const TileIndexDiffC _tileoffs_by_dir[DIR_END];
+	extern const CoordDiff _tileoffs_by_dir[DIR_END];
 
 	assert(IsValidDirection(dir));
 	return ToTileIndexDiff(_tileoffs_by_dir[dir]);

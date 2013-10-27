@@ -2417,7 +2417,7 @@ static int CalcHeightdiff(HighLightStyle style, uint distance, TileIndex start_t
 
 	switch (style & HT_DRAG_MASK) {
 		case HT_RECT: {
-			static const TileIndexDiffC heightdiff_area_by_dir[] = {
+			static const CoordDiff heightdiff_area_by_dir[] = {
 				/* Start */ {1, 0}, /* Dragging east */ {0, 0}, // Dragging south
 				/* End   */ {0, 1}, /* Dragging east */ {1, 1}  // Dragging south
 			};
@@ -2438,7 +2438,7 @@ static int CalcHeightdiff(HighLightStyle style, uint distance, TileIndex start_t
 			static const HighLightStyle flip_style_direction[] = {
 				HT_DIR_X, HT_DIR_Y, HT_DIR_HL, HT_DIR_HU, HT_DIR_VR, HT_DIR_VL
 			};
-			static const TileIndexDiffC heightdiff_line_by_dir[] = {
+			static const CoordDiff heightdiff_line_by_dir[] = {
 				/* Start */ {1, 0}, {1, 1}, /* HT_DIR_X  */ {0, 1}, {1, 1}, // HT_DIR_Y
 				/* Start */ {1, 0}, {0, 0}, /* HT_DIR_HU */ {1, 0}, {1, 1}, // HT_DIR_HL
 				/* Start */ {1, 0}, {1, 1}, /* HT_DIR_VL */ {0, 1}, {1, 1}, // HT_DIR_VR

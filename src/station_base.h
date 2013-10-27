@@ -300,17 +300,17 @@ struct Airport : public TileArea {
 	 * @param tidc The tilediff to add to the airport tile.
 	 * @return The tile of this airport plus the rotated offset.
 	 */
-	inline TileIndex GetRotatedTileFromOffset(TileIndexDiffC tidc) const
+	inline TileIndex GetRotatedTileFromOffset(CoordDiff diff) const
 	{
 		const AirportSpec *as = this->GetSpec();
 		switch (this->rotation) {
-			case DIR_N: return this->tile + ToTileIndexDiff(tidc);
+			case DIR_N: return this->tile + ToTileIndexDiff(diff);
 
-			case DIR_E: return this->tile + TileDiffXY(tidc.y, as->size_x - 1 - tidc.x);
+			case DIR_E: return this->tile + TileDiffXY(diff.y, as->size_x - 1 - diff.x);
 
-			case DIR_S: return this->tile + TileDiffXY(as->size_x - 1 - tidc.x, as->size_y - 1 - tidc.y);
+			case DIR_S: return this->tile + TileDiffXY(as->size_x - 1 - diff.x, as->size_y - 1 - diff.y);
 
-			case DIR_W: return this->tile + TileDiffXY(as->size_y - 1 - tidc.y, tidc.x);
+			case DIR_W: return this->tile + TileDiffXY(as->size_y - 1 - diff.y, diff.x);
 
 			default: NOT_REACHED();
 		}

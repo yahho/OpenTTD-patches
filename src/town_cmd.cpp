@@ -923,7 +923,7 @@ static void LevelTownLand(TileIndex tile)
 static RoadBits GetTownRoadGridElement(Town *t, TileIndex tile, DiagDirection dir)
 {
 	/* align the grid to the downtown */
-	TileIndexDiffC grid_pos = TileIndexToTileIndexDiffC(t->xy, tile); // Vector from downtown to the tile
+	CoordDiff grid_pos = TileCoordDiff(t->xy, tile); // Vector from downtown to the tile
 	RoadBits rcmd = ROAD_NONE;
 
 	switch (t->layout) {
@@ -1368,7 +1368,7 @@ static RoadBits GenRandomRoadBits()
  */
 static bool GrowTown(Town *t)
 {
-	static const TileIndexDiffC _town_coord_mod[] = {
+	static const CoordDiff _town_coord_mod[] = {
 		{-1,  0},
 		{ 1,  1},
 		{ 1, -1},
@@ -1390,7 +1390,7 @@ static bool GrowTown(Town *t)
 	TileIndex tile = t->xy; // The tile we are working with ATM
 
 	/* Find a road that we can base the construction on. */
-	const TileIndexDiffC *ptr;
+	const CoordDiff *ptr;
 	for (ptr = _town_coord_mod; ptr != endof(_town_coord_mod); ++ptr) {
 		if (GetTownRoadBits(tile) != ROAD_NONE) {
 			int r = GrowTownAtRoad(t, tile);
@@ -2056,7 +2056,7 @@ static inline bool TownLayoutAllowsHouseHere(Town *t, TileIndex tile)
 	/* Allow towns everywhere when we don't build roads */
 	if (!_settings_game.economy.allow_town_roads && !_generating_world) return true;
 
-	TileIndexDiffC grid_pos = TileIndexToTileIndexDiffC(t->xy, tile);
+	CoordDiff grid_pos = TileCoordDiff(t->xy, tile);
 
 	switch (t->layout) {
 		case TL_2X2_GRID:
@@ -2088,7 +2088,7 @@ static inline bool TownLayoutAllows2x2HouseHere(Town *t, TileIndex tile)
 	if (!_settings_game.economy.allow_town_roads && !_generating_world) return true;
 
 	/* Compute relative position of tile. (Positive offsets are towards north) */
-	TileIndexDiffC grid_pos = TileIndexToTileIndexDiffC(t->xy, tile);
+	CoordDiff grid_pos = TileCoordDiff(t->xy, tile);
 
 	switch (t->layout) {
 		case TL_2X2_GRID:

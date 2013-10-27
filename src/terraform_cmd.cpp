@@ -194,10 +194,10 @@ static CommandCost TerraformTileHeight(TerraformerState *ts, TileIndex tile, int
 
 	/* Recurse to neighboured corners if height difference is larger than 1 */
 	{
-		const TileIndexDiffC *ttm;
+		const CoordDiff *ttm;
 
 		TileIndex orig_tile = tile;
-		static const TileIndexDiffC _terraform_tilepos[] = {
+		static const CoordDiff _terraform_tilepos[] = {
 			{ 1,  0}, // move to tile in SE
 			{-2,  0}, // undo last move, and move to tile in NW
 			{ 1,  1}, // undo last move, and move to tile in SW

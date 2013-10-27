@@ -23,7 +23,7 @@ typedef byte StationGfx;
 
 /** Tile-offset / AirportTileID pair. */
 struct AirportTileTable {
-	TileIndexDiffC ti; ///< Tile offset from  the top-most airport tile.
+	CoordDiff ti;      ///< Tile offset from  the top-most airport tile.
 	StationGfx gfx;    ///< AirportTile to use for this tile.
 };
 
@@ -89,7 +89,7 @@ enum TTDPAirportType {
 
 /** A list of all hangar tiles in an airport */
 struct HangarTileTable {
-	TileIndexDiffC ti; ///< Tile offset from the top-most airport tile.
+	CoordDiff ti;      ///< Tile offset from the top-most airport tile.
 	Direction dir;     ///< Direction of the exit.
 	byte hangar_num;   ///< The hangar to which this tile belongs.
 };

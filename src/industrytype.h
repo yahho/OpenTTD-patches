@@ -93,7 +93,7 @@ enum IndustryTileSpecialFlags {
 DECLARE_ENUM_AS_BIT_SET(IndustryTileSpecialFlags)
 
 struct IndustryTileTable {
-	TileIndexDiffC ti;
+	CoordDiff ti;
 	IndustryGfx gfx;
 };
 

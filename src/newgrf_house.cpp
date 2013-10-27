@@ -658,7 +658,7 @@ void TriggerHouse(TileIndex t, HouseTrigger trigger)
  */
 void DoWatchedCargoCallback(TileIndex tile, TileIndex origin, uint32 trigger_cargoes, uint16 random)
 {
-	TileIndexDiffC diff = TileIndexToTileIndexDiffC(origin, tile);
+	CoordDiff diff = TileCoordDiff(origin, tile);
 	uint32 cb_info = random << 16 | (uint8)diff.y << 8 | (uint8)diff.x;
 	HouseAnimationBase::ChangeAnimationFrame(CBID_HOUSE_WATCHED_CARGO_ACCEPTED, HouseSpec::Get(GetHouseType(tile)), Town::GetByTile(tile), tile, 0, cb_info, trigger_cargoes);
 }

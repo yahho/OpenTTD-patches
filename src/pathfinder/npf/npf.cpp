@@ -884,7 +884,7 @@ static void NPFFollowTrack(AyStar *aystar, OpenListNode *current)
 		trackdirbits = TrackdirToTrackdirBits(src.td);
 	} else {
 		/* We leave src in src_exitdir and reach dst_tile */
-		dst_tile = AddTileIndexDiffCWrap(src.tile, TileIndexDiffCByDiagDir(src_exitdir));
+		dst_tile = AddCoordDiffWrap(src.tile, CoordDiffByDiagDir(src_exitdir));
 
 		if (dst_tile == INVALID_TILE || !CanEnterTile(dst_tile, src_exitdir, type, subtype, (RailTypes)aystar->user_data[NPF_RAILTYPES], (Owner)aystar->user_data[NPF_OWNER])) {
 			/* We cannot enter the next tile. Road vehicles can reverse, others reach dead end */
