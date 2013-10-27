@@ -2515,14 +2515,12 @@ bool HasStationInUse(StationID station, bool include_company, CompanyID company)
 	return false;
 }
 
-static const CoordDiff _dock_tileoffs_chkaround[] = {
-	{-1,  0},
-	{ 0,  0},
-	{ 0,  0},
-	{ 0, -1}
+/** Information about dock tile area for a given direction. */
+struct DockTileArea {
+	CoordDiff offset; ///< offset to northern tile
+	byte width;       ///< width of dock area
+	byte height;      ///< height of dock area
 };
-static const byte _dock_w_chk[4] = { 2, 1, 2, 1 };
-static const byte _dock_h_chk[4] = { 1, 2, 1, 2 };
 
 /**
  * Build a dock/haven.
@@ -2535,6 +2533,13 @@ static const byte _dock_h_chk[4] = { 1, 2, 1, 2 };
  */
 CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
 {
+	static const DockTileArea dock_tilearea[DIAGDIR_END] = {
+		{ { -1,  0 }, 2, 1 },
+		{ {  0,  0 }, 1, 2 },
+		{ {  0,  0 }, 2, 1 },
+		{ {  0, -1 }, 1, 2 },
+	};
+
 	StationID station_to_join = GB(p2, 16, 16);
 	bool reuse = (station_to_join != NEW_STATION);
 	if (!reuse) station_to_join = INVALID_STATION;
@@ -2576,8 +2581,8 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 		return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
 	}
 
-	TileArea dock_area = TileArea(tile + ToTileIndexDiff(_dock_tileoffs_chkaround[direction]),
-			_dock_w_chk[direction], _dock_h_chk[direction]);
+	TileArea dock_area = TileArea(tile + ToTileIndexDiff(dock_tilearea[direction].offset),
+			dock_tilearea[direction].width, dock_tilearea[direction].height);
 
 	/* middle */
 	Station *st = NULL;
