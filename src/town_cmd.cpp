@@ -516,7 +516,7 @@ static void TileLoop_Town(TileIndex tile)
 	Backup<CompanyByte> cur_company(_current_company, OWNER_TOWN, FILE_LINE);
 
 	if ((hs->building_flags & BUILDING_HAS_1_TILE) &&
-			HasBit(t->flags, TOWN_IS_FUNDED) &&
+			HasBit(t->flags, TOWN_IS_GROWING) &&
 			CanDeleteHouse(tile) &&
 			GetHouseAge(tile) >= hs->minimum_life &&
 			--t->time_until_rebuild == 0) {
@@ -758,7 +758,7 @@ static bool GrowTown(Town *t);
 
 static void TownTickHandler(Town *t)
 {
-	if (HasBit(t->flags, TOWN_IS_FUNDED)) {
+	if (HasBit(t->flags, TOWN_IS_GROWING)) {
 		int i = t->grow_counter - 1;
 		if (i < 0) {
 			if (GrowTown(t)) {
@@ -2812,7 +2812,7 @@ static CommandCost TownActionFundBuildings(Town *t, DoCommandFlag flags)
 		/* Build next tick */
 		t->grow_counter = 1;
 		/* If we were not already growing */
-		SetBit(t->flags, TOWN_IS_FUNDED);
+		SetBit(t->flags, TOWN_IS_GROWING);
 		/* And grow for 3 months */
 		t->fund_buildings_months = 3;
 
@@ -3010,7 +3010,7 @@ static void UpdateTownRating(Town *t)
 
 static void UpdateTownGrowRate(Town *t)
 {
-	ClrBit(t->flags, TOWN_IS_FUNDED);
+	ClrBit(t->flags, TOWN_IS_GROWING);
 	SetWindowDirty(WC_TOWN_VIEW, t->index);
 
 	if (_settings_game.economy.town_growth_rate == 0 && t->fund_buildings_months == 0) return;
@@ -3033,7 +3033,7 @@ static void UpdateTownGrowRate(Town *t)
 	}
 
 	if ((t->growth_rate & TOWN_GROW_RATE_CUSTOM) != 0) {
-		SetBit(t->flags, TOWN_IS_FUNDED);
+		SetBit(t->flags, TOWN_IS_GROWING);
 		SetWindowDirty(WC_TOWN_VIEW, t->index);
 		return;
 	}
@@ -3079,7 +3079,7 @@ static void UpdateTownGrowRate(Town *t)
 		t->grow_counter = m;
 	}
 
-	SetBit(t->flags, TOWN_IS_FUNDED);
+	SetBit(t->flags, TOWN_IS_GROWING);
 	SetWindowDirty(WC_TOWN_VIEW, t->index);
 }
 
