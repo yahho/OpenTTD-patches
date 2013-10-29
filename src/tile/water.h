@@ -259,17 +259,6 @@ static inline DiagDirection tile_get_ship_depot_direction(const Tile *t)
 	return (DiagDirection)GB(t->m5, WBL_ORIENT_BEGIN, WBL_ORIENT_COUNT);
 }
 
-/**
- * Get the axis of a ship depot
- * @param t The tile whose depot to get the axis of
- * @pre tile_is_ship_depot(t)
- * @return The axis of the depot
- */
-static inline Axis tile_get_ship_depot_axis(const Tile *t)
-{
-	return DiagDirToAxis(tile_get_ship_depot_direction(t));
-}
-
 
 /**
  * Get the direction of a lock

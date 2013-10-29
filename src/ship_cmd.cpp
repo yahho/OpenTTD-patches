@@ -308,11 +308,10 @@ static bool CheckShipLeaveDepot(Ship *v)
 	}
 
 	TileIndex tile = v->tile;
-	Axis axis = GetShipDepotAxis(tile);
 
-	DiagDirection north_dir = ReverseDiagDir(AxisToDiagDir(axis));
+	DiagDirection north_dir = GetShipDepotDirection(tile);
 	TileIndex north_neighbour = TILE_ADD(tile, TileOffsByDiagDir(north_dir));
-	DiagDirection south_dir = AxisToDiagDir(axis);
+	DiagDirection south_dir = ReverseDiagDir(north_dir);
 	TileIndex south_neighbour = TILE_ADD(tile, 2 * TileOffsByDiagDir(south_dir));
 
 	TrackdirBits north_trackdirs = GetAvailShipTrackdirs(north_neighbour, north_dir);

@@ -185,17 +185,6 @@ static inline bool IsRiver(TileIndex t)
 
 
 /**
- * Get the axis of the ship depot.
- * @param t Water tile to query.
- * @return Axis of the depot.
- * @pre IsShipDepotTile(t)
- */
-static inline Axis GetShipDepotAxis(TileIndex t)
-{
-	return tile_get_ship_depot_axis(&_mc[t]);
-}
-
-/**
  * Get the direction of the ship depot.
  * @param t Water tile to query.
  * @return Direction of the depot.
