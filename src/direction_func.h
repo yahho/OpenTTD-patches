@@ -196,17 +196,6 @@ static inline Direction AxisToDirection(Axis a)
 }
 
 /**
- * Convert an axis and a flag for north/south into a DiagDirection
- * @param xy axis to convert
- * @param ns north -> 0, south -> 1
- * @return the desired DiagDirection
- */
-static inline DiagDirection XYNSToDiagDir(Axis xy, uint ns)
-{
-	return (DiagDirection)(xy * 3 ^ ns * 2);
-}
-
-/**
  * Checks if an integer value is a valid DiagDirection
  *
  * @param d The value to check

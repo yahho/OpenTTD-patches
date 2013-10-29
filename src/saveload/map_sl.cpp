@@ -439,8 +439,8 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 						}
 						SB(_mc[t].m0, 2, 6, (1 << 4) << axis);
 					} else { // ramp
-						uint north_south = GB(_mc[t].m5, 5, 1);
-						DiagDirection dir = ReverseDiagDir(XYNSToDiagDir(axis, north_south));
+						DiagDirection dir = AxisToDiagDir(axis);
+						if (HasBit(_mc[t].m5, 5)) dir = ReverseDiagDir(dir);
 						TransportType type = (TransportType)GB(_mc[t].m5, 1, 2);
 
 						_mc[t].m5 = 1 << 7 | type << 2 | dir;
