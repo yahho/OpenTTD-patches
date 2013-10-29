@@ -32,13 +32,10 @@ enum WaterTileTypeBitLayout {
 
 	WBL_COAST_FLAG        = 0,   ///< Flag for coast.
 
-	WBL_LOCK_ORIENT_BEGIN = 0,   ///< Start of lock orientiation bitfield.
-	WBL_LOCK_ORIENT_COUNT = 2,   ///< Length of lock orientiation bitfield.
+	WBL_ORIENT_BEGIN      = 0,   ///< Start of depot/lock orientiation bitfield.
+	WBL_ORIENT_COUNT      = 2,   ///< Length of depot/lock orientiation bitfield.
 	WBL_LOCK_PART_BEGIN   = 2,   ///< Start of lock part bitfield.
 	WBL_LOCK_PART_COUNT   = 2,   ///< Length of lock part bitfield.
-
-	WBL_DEPOT_PART        = 0,   ///< Depot part flag.
-	WBL_DEPOT_AXIS        = 1,   ///< Depot axis flag.
 };
 
 /** Available water tile types. */
@@ -58,13 +55,6 @@ enum WaterClass {
 };
 /** Helper information for extract tool. */
 template <> struct EnumPropsT<WaterClass> : MakeEnumPropsT<WaterClass, byte, WATER_CLASS_SEA, WATER_CLASS_INVALID, WATER_CLASS_INVALID, 2> {};
-
-/** Sections of the water depot. */
-enum DepotPart {
-	DEPOT_PART_NORTH = 0, ///< Northern part of a depot.
-	DEPOT_PART_SOUTH = 1, ///< Southern part of a depot.
-	DEPOT_PART_END
-};
 
 /** Sections of the water lock. */
 enum LockPart {
@@ -258,30 +248,6 @@ static inline bool tile_water_is_river(const Tile *t)
 
 
 /**
- * Get the axis of a ship depot
- * @param t The tile whose depot to get the axis of
- * @pre tile_is_ship_depot(t)
- * @return The axis of the depot
- */
-static inline Axis tile_get_ship_depot_axis(const Tile *t)
-{
-	assert(tile_is_ship_depot(t));
-	return (Axis)GB(t->m5, WBL_DEPOT_AXIS, 1);
-}
-
-/**
- * Get the part of a ship depot
- * @param t The tile whose depot to get the part of
- * @pre tile_is_ship_depot(t)
- * @return The part of the depot
- */
-static inline DepotPart tile_get_ship_depot_part(const Tile *t)
-{
-	assert(tile_is_ship_depot(t));
-	return (DepotPart)GB(t->m5, WBL_DEPOT_PART, 1);
-}
-
-/**
  * Get the direction of a ship depot
  * @param t The tile whose depot to get the direction of
  * @pre tile_is_ship_depot(t)
@@ -290,7 +256,18 @@ static inline DepotPart tile_get_ship_depot_part(const Tile *t)
 static inline DiagDirection tile_get_ship_depot_direction(const Tile *t)
 {
 	assert(tile_is_ship_depot(t));
-	return XYNSToDiagDir(tile_get_ship_depot_axis(t), tile_get_ship_depot_part(t));
+	return (DiagDirection)GB(t->m5, WBL_ORIENT_BEGIN, WBL_ORIENT_COUNT);
+}
+
+/**
+ * Get the axis of a ship depot
+ * @param t The tile whose depot to get the axis of
+ * @pre tile_is_ship_depot(t)
+ * @return The axis of the depot
+ */
+static inline Axis tile_get_ship_depot_axis(const Tile *t)
+{
+	return DiagDirToAxis(tile_get_ship_depot_direction(t));
 }
 
 
@@ -303,7 +280,7 @@ static inline DiagDirection tile_get_ship_depot_direction(const Tile *t)
 static inline DiagDirection tile_get_lock_direction(const Tile *t)
 {
 	assert(tile_is_lock(t));
-	return (DiagDirection)GB(t->m5, WBL_LOCK_ORIENT_BEGIN, WBL_LOCK_ORIENT_COUNT);
+	return (DiagDirection)GB(t->m5, WBL_ORIENT_BEGIN, WBL_ORIENT_COUNT);
 }
 
 /**
@@ -388,18 +365,17 @@ static inline void tile_make_shore(Tile *t)
  * @param t The tile to make a ship depot
  * @param o The owner of the depot
  * @param id The depot id
- * @param part The depot part (either #DEPOT_PART_NORTH or #DEPOT_PART_SOUTH).
- * @param a The axis of the depot
+ * @param dir The direction this depot part will face
  * @param wc The original water class
  */
-static inline void tile_make_ship_depot(Tile *t, Owner o, uint id, DepotPart part, Axis a, WaterClass wc)
+static inline void tile_make_ship_depot(Tile *t, Owner o, uint id, DiagDirection dir, WaterClass wc)
 {
 	t->m0 = TT_WATER << 4;
 	t->m1 = (wc << 5) | o;
 	t->m2 = id;
 	t->m3 = 0;
 	t->m4 = 0;
-	t->m5 = WBL_TYPE_DEPOT << WBL_TYPE_BEGIN | part << WBL_DEPOT_PART | a << WBL_DEPOT_AXIS;
+	t->m5 = WBL_TYPE_DEPOT << WBL_TYPE_BEGIN | dir << WBL_ORIENT_BEGIN;
 	t->m7 = 0;
 }
 
@@ -418,7 +394,7 @@ static inline void tile_make_lock(Tile *t, Owner o, LockPart part, DiagDirection
 	t->m2 = 0;
 	t->m3 = 0;
 	t->m4 = 0;
-	t->m5 = WBL_TYPE_LOCK << WBL_TYPE_BEGIN | part << WBL_LOCK_PART_BEGIN | dir << WBL_LOCK_ORIENT_BEGIN;
+	t->m5 = WBL_TYPE_LOCK << WBL_TYPE_BEGIN | part << WBL_LOCK_PART_BEGIN | dir << WBL_ORIENT_BEGIN;
 	t->m7 = 0;
 }
 

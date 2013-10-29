@@ -196,17 +196,6 @@ static inline Axis GetShipDepotAxis(TileIndex t)
 }
 
 /**
- * Get the part of a ship depot.
- * @param t Water tile to query.
- * @return Part of the depot.
- * @pre IsShipDepotTile(t)
- */
-static inline DepotPart GetShipDepotPart(TileIndex t)
-{
-	return tile_get_ship_depot_part(&_mc[t]);
-}
-
-/**
  * Get the direction of the ship depot.
  * @param t Water tile to query.
  * @return Direction of the depot.
@@ -225,7 +214,7 @@ static inline DiagDirection GetShipDepotDirection(TileIndex t)
  */
 static inline TileIndex GetOtherShipDepotTile(TileIndex t)
 {
-	return t + (GetShipDepotPart(t) != DEPOT_PART_NORTH ? -1 : 1) * (GetShipDepotAxis(t) != AXIS_X ? TileDiffXY(0, 1) : TileDiffXY(1, 0));
+	return t - TileOffsByDiagDir(GetShipDepotDirection(t));
 }
 
 /**
@@ -347,13 +336,12 @@ static inline void MakeShore(TileIndex t)
  * @param t    Tile to place the ship depot section.
  * @param o    Owner of the depot.
  * @param did  Depot ID.
- * @param part Depot part (either #DEPOT_PART_NORTH or #DEPOT_PART_SOUTH).
- * @param a    Axis of the depot.
+ * @param dir  Direction of the depot.
  * @param original_water_class Original water class.
  */
-static inline void MakeShipDepot(TileIndex t, Owner o, uint did, DepotPart part, Axis a, WaterClass original_water_class)
+static inline void MakeShipDepot(TileIndex t, Owner o, uint did, DiagDirection dir, WaterClass original_water_class)
 {
-	tile_make_ship_depot(&_mc[t], o, did, part, a, original_water_class);
+	tile_make_ship_depot(&_mc[t], o, did, dir, original_water_class);
 }
 
 /**

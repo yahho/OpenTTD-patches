@@ -146,8 +146,8 @@ CommandCost CmdBuildShipDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 		Company::Get(_current_company)->infrastructure.water += 2 * LOCK_DEPOT_TILE_FACTOR;
 		DirtyCompanyInfrastructureWindows(_current_company);
 
-		MakeShipDepot(tile,  _current_company, depot->index, DEPOT_PART_NORTH, axis, wc1);
-		MakeShipDepot(tile2, _current_company, depot->index, DEPOT_PART_SOUTH, axis, wc2);
+		MakeShipDepot(tile,  _current_company, depot->index, ReverseDiagDir(AxisToDiagDir(axis)), wc1);
+		MakeShipDepot(tile2, _current_company, depot->index, AxisToDiagDir(axis), wc2);
 		MarkTileDirtyByTile(tile);
 		MarkTileDirtyByTile(tile2);
 		MakeDefaultName(depot);

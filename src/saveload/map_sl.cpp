@@ -963,6 +963,16 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			}
 		}
 	}
+
+	/* Store direction for ship depots */
+	if (IsFullSavegameVersionBefore(stv, 14)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsTileType(t, TT_WATER) && GB(_mc[t].m5, 4, 4) == 8) {
+				DiagDirection dir = AxisToDiagDir((Axis)GB(_mc[t].m5, 1, 1));
+				SB(_mc[t].m5, 0, 2, HasBit(_mc[t].m5, 0) ? dir : ReverseDiagDir(dir));
+			}
+		}
+	}
 }
 
 
