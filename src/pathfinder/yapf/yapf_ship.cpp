@@ -66,14 +66,11 @@ public:
 			return ((trackdirs & TrackdirToTrackdirBits(veh_dir)) != 0) ? veh_dir : FindFirstTrackdir(trackdirs);
 		}
 
-		/* get available trackdirs on the destination tile */
-		TrackdirBits dest_trackdirs = TrackStatusToTrackdirBits(GetTileWaterwayStatus(v->dest_tile));
-
 		/* create pathfinder instance */
 		Tpf pf;
 		/* set origin and destination nodes */
 		pf.SetOrigin(pos);
-		pf.SetDestination(v->dest_tile, dest_trackdirs);
+		pf.SetDestination(v);
 		/* find best path */
 		path_found = pf.FindPath(v);
 
@@ -102,14 +99,11 @@ public:
 	 */
 	static bool CheckShipReverse(const Ship *v, const PFPos &pos)
 	{
-		/* get available trackdirs on the destination tile */
-		TrackdirBits dest_trackdirs = TrackStatusToTrackdirBits(GetTileWaterwayStatus(v->dest_tile));
-
 		/* create pathfinder instance */
 		Tpf pf;
 		/* set origin and destination nodes */
 		pf.SetOrigin(pos.tile, TrackdirToTrackdirBits(pos.td) | TrackdirToTrackdirBits(ReverseTrackdir(pos.td)));
-		pf.SetDestination(v->dest_tile, dest_trackdirs);
+		pf.SetDestination(v);
 		/* find best path */
 		if (!pf.FindPath(v)) return false;
 
@@ -175,6 +169,74 @@ public:
 	}
 };
 
+/** Destination Provider module of YAPF for ships */
+template <class Types>
+class CYapfDestinationShipT
+{
+public:
+	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
+	typedef typename Types::NodeList::Titem Node; ///< this will be our node type
+	typedef typename Node::Key Key;               ///< key to hash tables
+
+protected:
+	TileIndex m_dest_tile;
+
+public:
+	/** set the destination tile */
+	void SetDestination(const Ship *v)
+	{
+		m_dest_tile = v->dest_tile;
+	}
+
+protected:
+	/** to access inherited path finder */
+	Tpf& Yapf()
+	{
+		return *static_cast<Tpf*>(this);
+	}
+
+public:
+	inline bool PfDetectDestination(const PFPos &pos)
+	{
+		return !pos.InWormhole() && (pos.tile == m_dest_tile);
+	}
+
+	/** Called by YAPF to detect if node ends in the desired destination */
+	inline bool PfDetectDestination(Node& n)
+	{
+		return PfDetectDestination(n.GetPos());
+	}
+
+	/**
+	 * Called by YAPF to calculate cost estimate. Calculates distance to the destination
+	 *  adds it to the actual cost from origin and stores the sum to the Node::m_estimate
+	 */
+	inline bool PfCalcEstimate(Node& n)
+	{
+		static const int dg_dir_to_x_offs[] = {-1, 0, 1, 0};
+		static const int dg_dir_to_y_offs[] = {0, 1, 0, -1};
+		if (PfDetectDestination(n)) {
+			n.m_estimate = n.m_cost;
+			return true;
+		}
+
+		TileIndex tile = n.GetPos().tile;
+		DiagDirection exitdir = TrackdirToExitdir(n.GetPos().td);
+		int x1 = 2 * TileX(tile) + dg_dir_to_x_offs[(int)exitdir];
+		int y1 = 2 * TileY(tile) + dg_dir_to_y_offs[(int)exitdir];
+		int x2 = 2 * TileX(m_dest_tile);
+		int y2 = 2 * TileY(m_dest_tile);
+		int dx = abs(x1 - x2);
+		int dy = abs(y1 - y2);
+		int dmin = min(dx, dy);
+		int dxy = abs(dx - dy);
+		int d = dmin * YAPF_TILE_CORNER_LENGTH + (dxy - 1) * (YAPF_TILE_LENGTH / 2);
+		n.m_estimate = n.m_cost + d;
+		assert(n.m_estimate >= n.m_parent->m_estimate);
+		return true;
+	}
+};
+
 /**
  * Config struct of YAPF for ships.
  *  Defines all 6 base YAPF modules as classes providing services for CYapfBaseT.
@@ -196,7 +258,7 @@ struct CYapfShip_TypesT
 	typedef CYapfBaseT<Types>                 PfBase;        // base pathfinder class
 	typedef CYapfFollowShipT<Types>           PfFollow;      // node follower
 	typedef CYapfOriginTileT<Types>           PfOrigin;      // origin provider
-	typedef CYapfDestinationTileT<Types>      PfDestination; // destination/distance provider
+	typedef CYapfDestinationShipT<Types>      PfDestination; // destination/distance provider
 	typedef CYapfSegmentCostCacheNoneT<Types> PfCache;       // segment cost cache provider
 	typedef CYapfCostShipT<Types>             PfCost;        // cost provider
 };
