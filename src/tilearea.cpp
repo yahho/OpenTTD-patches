@@ -14,6 +14,20 @@
 #include "tilearea_type.h"
 
 /**
+ * Set this tile area based on initial and final coordinates.
+ * @param x0 initial x of the area
+ * @param y0 initial y of the area
+ * @param x1 final x of the area
+ * @param y1 final y of the area
+ */
+inline void TileArea::Set(uint x0, uint y0, uint x1, uint y1)
+{
+	this->tile = TileXY(x0, y0);
+	this->w = x1 - x0 + 1;
+	this->h = y1 - y0 + 1;
+}
+
+/**
  * Construct this tile area based on two points.
  * @param start the start of the area
  * @param end   the end of the area
@@ -28,9 +42,7 @@ TileArea::TileArea(TileIndex start, TileIndex end)
 	if (sx > ex) Swap(sx, ex);
 	if (sy > ey) Swap(sy, ey);
 
-	this->tile = TileXY(sx, sy);
-	this->w    = ex - sx + 1;
-	this->h    = ey - sy + 1;
+	this->Set(sx, sy, ex, ey);
 }
 
 /**
@@ -54,14 +66,7 @@ void TileArea::Add(TileIndex to_add)
 	uint ax = TileX(to_add);
 	uint ay = TileY(to_add);
 
-	sx = min(ax, sx);
-	sy = min(ay, sy);
-	ex = max(ax, ex);
-	ey = max(ay, ey);
-
-	this->tile = TileXY(sx, sy);
-	this->w    = ex - sx + 1;
-	this->h    = ey - sy + 1;
+	this->Set(min(ax, sx), min(ay, sy), max(ax, ex), max(ay, ey));
 }
 
 /**

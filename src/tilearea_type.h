@@ -33,6 +33,7 @@ struct TileArea {
 
 	TileArea(TileIndex start, TileIndex end);
 
+	void Set(uint x0, uint y0, uint x1, uint y1);
 
 	void Add(TileIndex to_add);
 
