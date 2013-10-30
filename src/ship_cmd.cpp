@@ -266,12 +266,12 @@ TileIndex Ship::GetOrderStationLocation(StationID station)
 	if (station == this->last_station_visited) this->last_station_visited = INVALID_STATION;
 
 	const Station *st = Station::Get(station);
-	if (st->dock_tile != INVALID_TILE) {
-		return GetDockingTile(st->dock_tile);
-	} else {
+	if (!(st->facilities & FACIL_DOCK)) {
 		this->IncrementRealOrderIndex();
 		return 0;
 	}
+
+	return st->xy;
 }
 
 void Ship::UpdateDeltaXY(Direction direction)
@@ -501,25 +501,20 @@ static void ShipController(Ship *v)
 				UpdateVehicleTimetable(v, true);
 				v->IncrementRealOrderIndex();
 				v->current_order.MakeDummy();
-			} else if (v->dest_tile == gp.new_tile) {
-				/* Non-buoy orders really need to reach the tile */
-				if (v->current_order.IsType(OT_GOTO_DEPOT)) {
-					if ((gp.x & 0xF) == 8 && (gp.y & 0xF) == 8) {
-						VehicleEnterDepot(v);
-						return;
-					}
-				} else if (v->current_order.IsType(OT_GOTO_STATION)) {
-					v->last_station_visited = v->current_order.GetDestination();
-
+			} else if (v->current_order.IsType(OT_GOTO_DEPOT)) {
+				if (v->dest_tile == gp.new_tile && (gp.x & 0xF) == 8 && (gp.y & 0xF) == 8) {
+					VehicleEnterDepot(v);
+					return;
+				}
+			} else if (v->current_order.IsType(OT_GOTO_STATION)) {
+				StationID sid = v->current_order.GetDestination();
+				Station *st = Station::Get(sid);
+				if (st->IsDockingTile(gp.new_tile)) {
+					assert(st->facilities & FACIL_DOCK);
+					v->last_station_visited = sid;
 					/* Process station in the orderlist. */
-					Station *st = Station::Get(v->current_order.GetDestination());
-					if (st->facilities & FACIL_DOCK) { // ugly, ugly workaround for problem with ships able to drop off cargo at wrong stations
-						ShipArrivesAt(v, st);
-						v->BeginLoading();
-					} else { // leave stations without docks right aways
-						v->current_order.MakeLeaveStation();
-						v->IncrementRealOrderIndex();
-					}
+					ShipArrivesAt(v, st);
+					v->BeginLoading();
 				}
 			}
 		}

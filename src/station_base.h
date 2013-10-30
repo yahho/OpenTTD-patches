@@ -486,6 +486,11 @@ public:
 		return IsRailStationTile(tile) && GetStationIndex(tile) == this->index;
 	}
 
+	inline bool IsDockingTile(TileIndex tile) const
+	{
+		return tile == GetDockingTile(this->dock_tile);
+	}
+
 	inline bool TileBelongsToAirport(TileIndex tile) const
 	{
 		return IsAirportTile(tile) && GetStationIndex(tile) == this->index;

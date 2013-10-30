@@ -179,13 +179,20 @@ public:
 	typedef typename Node::Key Key;               ///< key to hash tables
 
 protected:
+	StationID m_dest_station;
 	TileIndex m_dest_tile;
 
 public:
 	/** set the destination tile */
 	void SetDestination(const Ship *v)
 	{
-		m_dest_tile = v->dest_tile;
+		if (v->current_order.IsType(OT_GOTO_STATION)) {
+			m_dest_station = v->current_order.GetDestination();
+			m_dest_tile    = CalcClosestStationTile(m_dest_station, v->tile, STATION_DOCK);
+		} else {
+			m_dest_station = INVALID_STATION;
+			m_dest_tile    = v->dest_tile;
+		}
 	}
 
 protected:
@@ -198,7 +205,11 @@ protected:
 public:
 	inline bool PfDetectDestination(const PFPos &pos)
 	{
-		return !pos.InWormhole() && (pos.tile == m_dest_tile);
+		if (pos.InWormhole()) return false;
+
+		if (m_dest_station == INVALID_STATION) return pos.tile == m_dest_tile;
+
+		return Station::Get(m_dest_station)->IsDockingTile(pos.tile);
 	}
 
 	/** Called by YAPF to detect if node ends in the desired destination */
