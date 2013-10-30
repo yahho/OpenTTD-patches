@@ -37,6 +37,8 @@ struct TileArea {
 
 	void Add(TileIndex to_add);
 
+	void Add(const TileArea &to_add);
+
 	/**
 	 * Clears the 'tile area', i.e. make the tile invalid.
 	 */

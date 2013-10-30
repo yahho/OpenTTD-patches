@@ -70,6 +70,34 @@ void TileArea::Add(TileIndex to_add)
 }
 
 /**
+ * Add another tile area to a tile area; enlarge if needed.
+ * @param to_add The tile area to add
+ */
+void TileArea::Add(const TileArea &to_add)
+{
+	if (to_add.tile == INVALID_TILE) return;
+
+	if (this->tile == INVALID_TILE) {
+		this->tile = to_add.tile;
+		this->w = to_add.w;
+		this->h = to_add.h;
+		return;
+	}
+
+	uint sx = TileX(this->tile);
+	uint sy = TileY(this->tile);
+	uint ex = sx + this->w - 1;
+	uint ey = sy + this->h - 1;
+
+	uint ax = TileX(to_add.tile);
+	uint ay = TileY(to_add.tile);
+	uint zx = ax + to_add.w - 1;
+	uint zy = ay + to_add.h - 1;
+
+	this->Set(min(ax, sx), min(ay, sy), max(zx, ex), max(zy, ey));
+}
+
+/**
  * Does this tile area intersect with another?
  * @param ta the other tile area to check against.
  * @return true if they intersect.
