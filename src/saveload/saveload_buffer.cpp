@@ -427,6 +427,7 @@ void SaveDumper::WriteRef(const void *ptr, SLRefType ref)
 			case REF_TOWN:      x = ((const     Town*)ptr)->index; break;
 			case REF_ORDER:     x = ((const    Order*)ptr)->index; break;
 			case REF_ROADSTOPS: x = ((const RoadStop*)ptr)->index; break;
+			case REF_DOCKS:     x = ((const     Dock*)ptr)->index; break;
 			case REF_ENGINE_RENEWS:  x = ((const       EngineRenew*)ptr)->index; break;
 			case REF_CARGO_PACKET:   x = ((const       CargoPacket*)ptr)->index; break;
 			case REF_ORDERLIST:      x = ((const         OrderList*)ptr)->index; break;

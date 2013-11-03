@@ -121,6 +121,7 @@ void AfterLoadStations()
 			Station *sta = Station::From(st);
 			for (const RoadStop *rs = sta->bus_stops; rs != NULL; rs = rs->next) sta->bus_station.Add(rs->xy);
 			for (const RoadStop *rs = sta->truck_stops; rs != NULL; rs = rs->next) sta->truck_station.Add(rs->xy);
+			for (const Dock *d = sta->docks; d != NULL; d = d->next) sta->dock_area.Add(d->xy);
 		}
 
 		StationUpdateCachedTriggers(st);
@@ -172,8 +173,8 @@ static const SaveLoad _old_station_desc[] = {
 	SLE_VAR(Station, train_station.tile,  SLE_UINT32,                 0, ,  6,  ),
 	SLE_VAR(Station, airport.tile,        SLE_FILE_U16 | SLE_VAR_U32,  , ,  0, 5),
 	SLE_VAR(Station, airport.tile,        SLE_UINT32,                 0, ,  6,  ),
-	SLE_VAR(Station, dock_tile,           SLE_FILE_U16 | SLE_VAR_U32,  , ,  0, 5),
-	SLE_VAR(Station, dock_tile,           SLE_UINT32,                 0, ,  6,  ),
+	SLE_NULL(2,  , ,  0, 5),
+	SLE_NULL(4, 0, ,  6,  ),
 	SLE_REF(Station, town,                REF_TOWN),
 	SLE_VAR(Station, train_station.w,     SLE_FILE_U8 | SLE_VAR_U16),
 	SLE_VAR(Station, train_station.h,     SLE_FILE_U8 | SLE_VAR_U16,  0, ,  2,  ),
@@ -415,7 +416,8 @@ static const SaveLoad _station_desc[] = {
 
 	 SLE_REF(Station, bus_stops,           REF_ROADSTOPS),
 	 SLE_REF(Station, truck_stops,         REF_ROADSTOPS),
-	 SLE_VAR(Station, dock_tile,           SLE_UINT32),
+	SLE_NULL(4,                                                       0, 14, 0,    ),
+	 SLE_REF(Station, docks,               REF_DOCKS,                15,   ),
 	 SLE_VAR(Station, airport.tile,        SLE_UINT32),
 	 SLE_VAR(Station, airport.w,           SLE_FILE_U8 | SLE_VAR_U16, 0, , 140,    ),
 	 SLE_VAR(Station, airport.h,           SLE_FILE_U8 | SLE_VAR_U16, 0, , 140,    ),
@@ -614,8 +616,42 @@ static void Ptrs_ROADSTOP(const SavegameTypeVersion *stv)
 	}
 }
 
+static const SaveLoad _dock_desc[] = {
+	SLE_VAR(Dock, xy,   SLE_UINT32),
+	SLE_REF(Dock, next, REF_DOCKS),
+	SLE_END()
+};
+
+static void Save_DOCKS(SaveDumper *dumper)
+{
+	Dock *d;
+
+	FOR_ALL_DOCKS(d) {
+		dumper->WriteElement(d->index, d, _dock_desc);
+	}
+}
+
+static void Load_DOCKS(LoadBuffer *reader)
+{
+	int index;
+
+	while ((index = reader->IterateChunk()) != -1) {
+		Dock *d = new (index) Dock(INVALID_TILE);
+		reader->ReadObject(d, _dock_desc);
+	}
+}
+
+static void Ptrs_DOCKS(const SavegameTypeVersion *stv)
+{
+	Dock *d;
+	FOR_ALL_DOCKS(d) {
+		SlObjectPtrs(d, _dock_desc, stv);
+	}
+}
+
 extern const ChunkHandler _station_chunk_handlers[] = {
 	{ 'STNS', NULL,          Load_STNS,     Ptrs_STNS,     NULL, CH_ARRAY },
 	{ 'STNN', Save_STNN,     Load_STNN,     Ptrs_STNN,     NULL, CH_ARRAY },
-	{ 'ROAD', Save_ROADSTOP, Load_ROADSTOP, Ptrs_ROADSTOP, NULL, CH_ARRAY | CH_LAST},
+	{ 'ROAD', Save_ROADSTOP, Load_ROADSTOP, Ptrs_ROADSTOP, NULL, CH_ARRAY },
+	{ 'DOCK', Save_DOCKS,    Load_DOCKS,    Ptrs_DOCKS,    NULL, CH_ARRAY | CH_LAST},
 };

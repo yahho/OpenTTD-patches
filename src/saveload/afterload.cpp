@@ -428,7 +428,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		Station *st;
 		FOR_ALL_STATIONS(st) {
 			if (st->airport.tile       == 0) st->airport.tile = INVALID_TILE;
-			if (st->dock_tile          == 0) st->dock_tile    = INVALID_TILE;
 			if (st->train_station.tile == 0) st->train_station.tile   = INVALID_TILE;
 		}
 
@@ -633,6 +632,15 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 					}
 					break;
 
+				case STATION_DOCK:
+					/* Stations can now have multiple docks */
+					if (IsFullSavegameVersionBefore(stv, 15) && (GetStationGfx(t) < GFX_DOCK_BASE_WATER_PART)) {
+						assert(Dock::CanAllocateItem());
+						st->docks = new Dock(t);
+						st->dock_area = TileArea(t, TileAddByDiagDir(t, GetDockDirection(t)));
+					}
+					break;
+
 				case STATION_OILRIG: {
 					/* Very old savegames sometimes have phantom oil rigs, i.e.
 					 * an oil rig which got shut down, but not completely removed from
@@ -646,6 +654,12 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 						 * Setting it unconditionally does not hurt.
 						 */
 						Station::GetByTile(t)->airport.type = AT_OILRIG;
+
+						if (IsFullSavegameVersionBefore(stv, 15)) {
+							assert(Dock::CanAllocateItem());
+							st->docks = new Dock(t);
+							st->dock_area = TileArea(t, 1, 1);
+						}
 					} else {
 						DeleteOilRig(t);
 					}

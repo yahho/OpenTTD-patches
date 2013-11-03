@@ -19,6 +19,7 @@
 
 typedef uint16 StationID;
 typedef uint16 RoadStopID;
+typedef uint16 DockID;
 
 struct BaseStation;
 struct Station;

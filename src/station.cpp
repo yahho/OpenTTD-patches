@@ -60,7 +60,7 @@ Station::Station(TileIndex tile) :
 	SpecializedStation<Station, false>(tile),
 	bus_station(INVALID_TILE, 0, 0),
 	truck_station(INVALID_TILE, 0, 0),
-	dock_tile(INVALID_TILE),
+	dock_area(INVALID_TILE, 0, 0),
 	indtype(IT_INVALID),
 	time_since_load(255),
 	time_since_unload(255),
@@ -278,10 +278,10 @@ uint Station::GetCatchmentRadius() const
 		if (this->bus_stops          != NULL)         ret = max<uint>(ret, CA_BUS);
 		if (this->truck_stops        != NULL)         ret = max<uint>(ret, CA_TRUCK);
 		if (this->train_station.tile != INVALID_TILE) ret = max<uint>(ret, CA_TRAIN);
-		if (this->dock_tile          != INVALID_TILE) ret = max<uint>(ret, CA_DOCK);
+		if (this->docks              != NULL)         ret = max<uint>(ret, CA_DOCK);
 		if (this->airport.tile       != INVALID_TILE) ret = max<uint>(ret, this->airport.GetSpec()->catchment);
 	} else {
-		if (this->bus_stops != NULL || this->truck_stops != NULL || this->train_station.tile != INVALID_TILE || this->dock_tile != INVALID_TILE || this->airport.tile != INVALID_TILE) {
+		if (this->bus_stops != NULL || this->truck_stops != NULL || this->train_station.tile != INVALID_TILE || this->docks != NULL || this->airport.tile != INVALID_TILE) {
 			ret = CA_UNMODIFIED;
 		}
 	}
@@ -551,6 +551,10 @@ StationRect& StationRect::operator = (const Rect &src)
 	this->bottom = src.bottom;
 	return *this;
 }
+
+/** The pool of docks. */
+DockPool _dock_pool("Dock");
+INSTANTIATE_POOL_METHODS(Dock)
 
 /**
  * Calculates the maintenance cost of all airports of a company.

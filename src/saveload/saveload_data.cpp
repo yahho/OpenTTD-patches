@@ -214,6 +214,10 @@ static void *IntToReference(size_t index, SLRefType rt, const SavegameTypeVersio
 			if (RoadStop::IsValidID(index)) return RoadStop::Get(index);
 			throw SlCorrupt("Referencing invalid RoadStop");
 
+		case REF_DOCKS:
+			if (Dock::IsValidID(index)) return Dock::Get(index);
+			throw SlCorrupt("Referencing invalid Dock");
+
 		case REF_ENGINE_RENEWS:
 			if (EngineRenew::IsValidID(index)) return EngineRenew::Get(index);
 			throw SlCorrupt("Referencing invalid EngineRenew");

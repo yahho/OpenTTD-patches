@@ -253,8 +253,8 @@ static int ScriptOrderPositionToRealOrderPosition(VehicleID vehicle_id, ScriptOr
 				TILE_AREA_LOOP(t, st->train_station) {
 					if (st->TileBelongsToRailStation(t)) return t;
 				}
-			} else if (st->dock_tile != INVALID_TILE) {
-				return st->dock_tile;
+			} else if (st->docks != NULL) {
+				return st->docks->xy;
 			} else if (st->bus_stops != NULL) {
 				return st->bus_stops->xy;
 			} else if (st->truck_stops != NULL) {

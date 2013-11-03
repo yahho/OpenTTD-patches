@@ -352,7 +352,7 @@ void Station::GetTileArea(TileArea *ta, StationType type) const
 
 		case STATION_DOCK:
 		case STATION_OILRIG:
-			ta->tile = this->dock_tile;
+			*ta = this->dock_area;
 			break;
 
 		default: NOT_REACHED();
@@ -2593,13 +2593,19 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	/* Distant join */
 	if (st == NULL && distant_join) st = Station::GetIfValid(station_to_join);
 
+	/* Check if we can allocate a new dock. */
+	if (!Dock::CanAllocateItem()) return_cmd_error(STR_ERROR_TOO_MANY_DOCKS);
+
 	ret = BuildStationPart(&st, flags, reuse, dock_area, STATIONNAMING_DOCK);
 	if (ret.Failed()) return ret;
 
-	if (st != NULL && st->dock_tile != INVALID_TILE) return_cmd_error(STR_ERROR_TOO_CLOSE_TO_ANOTHER_DOCK);
-
 	if (flags & DC_EXEC) {
-		st->dock_tile = tile;
+		Dock **dl = &st->docks;
+		while (*dl != NULL) dl = &(*dl)->next;
+
+		*dl = new Dock(tile);
+		st->dock_area.Add(dock_area);
+
 		st->AddFacility(FACIL_DOCK, tile);
 
 		st->rect.BeforeAddRect(dock_area.tile, dock_area.w, dock_area.h, StationRect::ADD_TRY);
@@ -2633,20 +2639,27 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
  */
 static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 {
+	assert(IsDock(tile));
+
 	Station *st = Station::GetByTile(tile);
 	CommandCost ret = CheckOwnership(st->owner);
 	if (ret.Failed()) return ret;
 
-	TileIndex docking_location = GetDockingTile(st->dock_tile);
-
-	TileIndex tile1 = st->dock_tile;
-	TileIndex tile2 = tile1 + TileOffsByDiagDir(GetDockDirection(tile1));
+	Dock **d = &st->docks;
+	TileIndex tile1, tile2;
+	while ( tile1 = (*d)->xy, tile2 = tile1 + TileOffsByDiagDir(GetDockDirection(tile1)),
+			tile != tile1 && tile != tile2 ) {
+		/* the dock should really be there, so no check for NULL */
+		d = &(*d)->next;
+	}
 
 	ret = EnsureNoVehicleOnGround(tile1);
 	if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile2);
 	if (ret.Failed()) return ret;
 
 	if (flags & DC_EXEC) {
+		TileIndex docking_location = GetDockingTile(tile1);
+
 		DoClearSquare(tile1);
 		MarkTileDirtyByTile(tile1);
 		MakeWaterKeepingClass(tile2, st->owner);
@@ -2654,11 +2667,20 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 		st->rect.AfterRemoveTile(st, tile1);
 		st->rect.AfterRemoveTile(st, tile2);
 
-		st->dock_tile = INVALID_TILE;
-		st->facilities &= ~FACIL_DOCK;
+		Dock *next = (*d)->next;
+		delete *d;
+		*d = next;
+		if (next == NULL && d == &st->docks) st->facilities &= ~FACIL_DOCK;
 
 		Company::Get(st->owner)->infrastructure.station -= 2;
 		DirtyCompanyInfrastructureWindows(st->owner);
+
+		/* Update the tile area of the docks */
+		st->dock_area.Clear();
+		for (const Dock *dock = st->docks; dock != NULL; dock = dock->next) {
+			st->dock_area.Add(dock->xy);
+			st->dock_area.Add(dock->xy + TileOffsByDiagDir(GetDockDirection(dock->xy)));
+		}
 
 		SetWindowWidgetDirty(WC_STATION_VIEW, st->index, WID_SV_SHIPS);
 		st->UpdateVirtCoord();
@@ -3895,6 +3917,11 @@ void BuildOilRig(TileIndex tile)
 		return;
 	}
 
+	if (!Dock::CanAllocateItem()) {
+		DEBUG(misc, 0, "Can't allocate dock for oilrig at 0x%X, reverting to oilrig only", tile);
+		return;
+	}
+
 	Station *st = new Station(tile);
 	st->town = ClosestTownFromTile(tile, UINT_MAX);
 
@@ -3905,9 +3932,10 @@ void BuildOilRig(TileIndex tile)
 	MakeOilrig(tile, st->index, GetWaterClass(tile));
 
 	st->owner = OWNER_NONE;
+	st->docks = new Dock(tile);
+	st->dock_area = TileArea(tile, 1, 1);
 	st->airport.type = AT_OILRIG;
 	st->airport.Add(tile);
-	st->dock_tile = tile;
 	st->facilities = FACIL_AIRPORT | FACIL_DOCK;
 	st->build_date = _date;
 
@@ -3924,7 +3952,9 @@ void DeleteOilRig(TileIndex tile)
 
 	MakeWaterKeepingClass(tile, OWNER_NONE);
 
-	st->dock_tile = INVALID_TILE;
+	delete st->docks;
+	st->docks = NULL;
+	st->dock_area.Clear();
 	st->airport.Clear();
 	st->facilities &= ~(FACIL_AIRPORT | FACIL_DOCK);
 	st->airport.flags = 0;

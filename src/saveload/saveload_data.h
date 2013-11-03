@@ -175,12 +175,13 @@ enum SLRefType {
 	REF_TOWN           =  3, ///< Load/save a reference to a town.
 	REF_VEHICLE_OLD    =  4, ///< Load/save an old-style reference to a vehicle (for pre-4.4 savegames).
 	REF_ROADSTOPS      =  5, ///< Load/save a reference to a bus/truck stop.
-	REF_ENGINE_RENEWS  =  6, ///< Load/save a reference to an engine renewal (autoreplace).
-	REF_CARGO_PACKET   =  7, ///< Load/save a reference to a cargo packet.
-	REF_ORDERLIST      =  8, ///< Load/save a reference to an orderlist.
-	REF_STORAGE        =  9, ///< Load/save a reference to a persistent storage.
-	REF_LINK_GRAPH     = 10, ///< Load/save a reference to a link graph.
-	REF_LINK_GRAPH_JOB = 11, ///< Load/save a reference to a link graph job.
+	REF_DOCKS          =  6, ///< Load/save a reference to a dock.
+	REF_ENGINE_RENEWS  =  7, ///< Load/save a reference to an engine renewal (autoreplace).
+	REF_CARGO_PACKET   =  8, ///< Load/save a reference to a cargo packet.
+	REF_ORDERLIST      =  9, ///< Load/save a reference to an orderlist.
+	REF_STORAGE        = 10, ///< Load/save a reference to a persistent storage.
+	REF_LINK_GRAPH     = 11, ///< Load/save a reference to a link graph.
+	REF_LINK_GRAPH_JOB = 12, ///< Load/save a reference to a link graph job.
 };
 
 /** Flags directing saving/loading of a variable */

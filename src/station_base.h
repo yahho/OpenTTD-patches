@@ -291,6 +291,22 @@ struct GoodsEntry {
 	}
 };
 
+struct Dock;
+typedef Pool<Dock, DockID, 32, 64000> DockPool;
+extern DockPool _dock_pool;
+
+/** A Dock */
+struct Dock : DockPool::PoolItem<&_dock_pool> {
+	TileIndex    xy;    ///< Position on the map
+	struct Dock *next;  ///< Next dock at this station
+
+	/** Initialises a Dock */
+	inline Dock (TileIndex tile = INVALID_TILE) : xy(tile) { }
+};
+
+#define FOR_ALL_DOCKS_FROM(var, start) FOR_ALL_ITEMS_FROM(Dock, dock_index, var, start)
+#define FOR_ALL_DOCKS(var) FOR_ALL_DOCKS_FROM(var, 0)
+
 /** All airport-related information. Only valid if tile != INVALID_TILE. */
 struct Airport : public TileArea {
 	Airport() : TileArea(INVALID_TILE, 0, 0) {}
@@ -447,8 +463,10 @@ public:
 	RoadStop *truck_stops;  ///< All the truck stops
 	TileArea truck_station; ///< Tile area the truck 'station' part covers
 
+	Dock *docks;            ///< All the docks
+	TileArea dock_area;     ///< Tile area the docks cover
+
 	Airport airport;        ///< Tile area the airport covers
-	TileIndex dock_tile;    ///< The location of the dock
 
 	IndustryType indtype;   ///< Industry type to get the name from
 
@@ -488,7 +506,11 @@ public:
 
 	inline bool IsDockingTile(TileIndex tile) const
 	{
-		return tile == GetDockingTile(this->dock_tile);
+		Dock *d;
+		for (d = this->docks; d != NULL; d = d->next) {
+			if (tile == GetDockingTile(d->xy)) return true;
+		}
+		return false;
 	}
 
 	inline bool TileBelongsToAirport(TileIndex tile) const
