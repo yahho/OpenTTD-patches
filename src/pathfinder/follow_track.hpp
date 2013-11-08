@@ -70,6 +70,8 @@ struct CFollowTrackRailBase : CFollowTrackBase
 
 	static const TransportType transport_type = TRANSPORT_RAIL;
 
+	static inline bool StepWormhole() { return true; }
+
 	const Owner               m_veh_owner;     ///< owner of the vehicle
 	const RailTypes           m_railtypes;
 	CPerformanceTimer  *const m_pPerf;
@@ -330,6 +332,8 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 
 	static const TransportType transport_type = TRANSPORT_ROAD;
 
+	static inline bool StepWormhole() { return false; }
+
 	const Vehicle *const m_veh;     ///< moving vehicle
 
 	inline CFollowTrackRoadBase(const RoadVehicle *v, bool allow_90deg = true)
@@ -522,6 +526,8 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 
 	static const TransportType transport_type = TRANSPORT_WATER;
 
+	static inline bool StepWormhole() { return false; }
+
 	inline CFollowTrackWaterBase(const Ship *v = NULL, bool allow_90deg = true)
 	{
 		m_allow_90deg = allow_90deg;
@@ -581,7 +587,7 @@ struct CFollowTrackWaterBase : CFollowTrackBase
  *  controllers). See 6 different typedefs below for 3 different transport
  *  types w/ or w/o 90-deg turns allowed
  */
-template <class Base, bool Twormhole = false>
+template <class Base>
 struct CFollowTrack : Base
 {
 	typedef typename Base::VehicleType VehicleType;
@@ -601,7 +607,6 @@ struct CFollowTrack : Base
 	{
 	}
 
-	inline static bool StepWormhole() {return Twormhole;}
 	/**
 	 * main follower routine. Fills all members and return true on success.
 	 *  Otherwise returns false if track can't be followed.
@@ -635,7 +640,7 @@ struct CFollowTrack : Base
 		}
 
 		if (Base::m_new.InWormhole()) {
-			assert(StepWormhole());
+			assert(Base::StepWormhole());
 			Base::m_new.td = DiagDirToDiagTrackdir(Base::m_exitdir);
 			Base::m_new.trackdirs = TrackdirToTrackdirBits(Base::m_new.td);
 			return true;
@@ -692,7 +697,7 @@ protected:
 				Base::m_flag = Base::TF_BRIDGE;
 				Base::m_new.tile = GetOtherBridgeEnd(Base::m_old.tile);
 				Base::m_tiles_skipped = GetTunnelBridgeLength(Base::m_new.tile, Base::m_old.tile);
-				if (StepWormhole() && Base::m_tiles_skipped > 0) {
+				if (Base::StepWormhole() && Base::m_tiles_skipped > 0) {
 					Base::m_tiles_skipped--;
 					Base::m_new.wormhole = Base::m_new.tile;
 					Base::m_new.tile = TILE_ADD(Base::m_new.tile, TileOffsByDiagDir(ReverseDiagDir(Base::m_exitdir)));
@@ -709,7 +714,7 @@ protected:
 				Base::m_flag = Base::TF_TUNNEL;
 				Base::m_new.tile = GetOtherTunnelEnd(Base::m_old.tile);
 				Base::m_tiles_skipped = GetTunnelBridgeLength(Base::m_new.tile, Base::m_old.tile);
-				if (StepWormhole() && Base::m_tiles_skipped > 0) {
+				if (Base::StepWormhole() && Base::m_tiles_skipped > 0) {
 					Base::m_tiles_skipped--;
 					Base::m_new.wormhole = Base::m_new.tile;
 					Base::m_new.tile = TILE_ADD(Base::m_new.tile, TileOffsByDiagDir(ReverseDiagDir(Base::m_exitdir)));
@@ -745,18 +750,18 @@ protected:
 	}
 };
 
-template <class Base, bool T90deg_turns_allowed, bool Twormhole = false>
-struct CFollowTrackT : CFollowTrack<Base, Twormhole>
+template <class Base, bool T90deg_turns_allowed>
+struct CFollowTrackT : CFollowTrack<Base>
 {
 	typedef typename Base::VehicleType VehicleType;
 
 	inline CFollowTrackT(const VehicleType *v)
-		: CFollowTrack<Base, Twormhole>(v, T90deg_turns_allowed)
+		: CFollowTrack<Base>(v, T90deg_turns_allowed)
 	{
 	}
 
 	inline CFollowTrackT(const VehicleType *v, RailTypes railtype_override, CPerformanceTimer *pPerf = NULL)
-		: CFollowTrack<Base, Twormhole>(v, T90deg_turns_allowed, railtype_override, pPerf)
+		: CFollowTrack<Base>(v, T90deg_turns_allowed, railtype_override, pPerf)
 	{
 	}
 
@@ -768,20 +773,20 @@ typedef CFollowTrackT<CFollowTrackWaterBase, false> CFollowTrackWaterNo90;
 
 typedef CFollowTrackT<CFollowTrackRoadBase, true> CFollowTrackRoad;
 
-typedef CFollowTrackT<CFollowTrackAnyRailBase,  true,  true> CFollowTrackRail90;
-typedef CFollowTrackT<CFollowTrackAnyRailBase,  false, true> CFollowTrackRailNo90;
-typedef CFollowTrackT<CFollowTrackFreeRailBase, true,  true> CFollowTrackFreeRail90;
-typedef CFollowTrackT<CFollowTrackFreeRailBase, false, true> CFollowTrackFreeRailNo90;
+typedef CFollowTrackT<CFollowTrackAnyRailBase,  true > CFollowTrackRail90;
+typedef CFollowTrackT<CFollowTrackAnyRailBase,  false> CFollowTrackRailNo90;
+typedef CFollowTrackT<CFollowTrackFreeRailBase, true > CFollowTrackFreeRail90;
+typedef CFollowTrackT<CFollowTrackFreeRailBase, false> CFollowTrackFreeRailNo90;
 
-struct CFollowTrackRail : CFollowTrack<CFollowTrackAnyRailBase, true>
+struct CFollowTrackRail : CFollowTrack<CFollowTrackAnyRailBase>
 {
 	inline CFollowTrackRail(const Train *v = NULL, bool allow_90deg = true, bool railtype_override = false)
-		: CFollowTrack<CFollowTrackAnyRailBase, true>(v, allow_90deg, railtype_override ? GetRailTypeInfo(v->railtype)->compatible_railtypes : INVALID_RAILTYPES)
+		: CFollowTrack<CFollowTrackAnyRailBase>(v, allow_90deg, railtype_override ? GetRailTypeInfo(v->railtype)->compatible_railtypes : INVALID_RAILTYPES)
 	{
 	}
 
 	inline CFollowTrackRail(Owner o, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES)
-		: CFollowTrack<CFollowTrackAnyRailBase, true>(o, allow_90deg, railtype_override)
+		: CFollowTrack<CFollowTrackAnyRailBase>(o, allow_90deg, railtype_override)
 	{
 	}
 };
