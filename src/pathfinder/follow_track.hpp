@@ -72,19 +72,18 @@ struct CFollowTrackRailBase : CFollowTrackBase
 
 	const Owner               m_veh_owner;     ///< owner of the vehicle
 	const RailTypes           m_railtypes;
-	const bool                m_mask_reserved;
 	CPerformanceTimer  *const m_pPerf;
 
-	inline CFollowTrackRailBase(const Train *v, bool allow_90deg = true, bool mask_reserved = false, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
-		: m_veh_owner(v->owner), m_railtypes(railtype_override == INVALID_RAILTYPES ? v->compatible_railtypes : railtype_override), m_mask_reserved(mask_reserved), m_pPerf(pPerf)
+	inline CFollowTrackRailBase(const Train *v, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
+		: m_veh_owner(v->owner), m_railtypes(railtype_override == INVALID_RAILTYPES ? v->compatible_railtypes : railtype_override), m_pPerf(pPerf)
 	{
 		assert(v != NULL);
 		assert(m_railtypes != INVALID_RAILTYPES);
 		m_allow_90deg = allow_90deg;
 	}
 
-	inline CFollowTrackRailBase(Owner o, bool allow_90deg = true, bool mask_reserved = false, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
-		: m_veh_owner(o), m_railtypes(railtype_override), m_mask_reserved(mask_reserved), m_pPerf(pPerf)
+	inline CFollowTrackRailBase(Owner o, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
+		: m_veh_owner(o), m_railtypes(railtype_override), m_pPerf(pPerf)
 	{
 		assert(railtype_override != INVALID_RAILTYPES);
 		m_allow_90deg = allow_90deg;
@@ -208,9 +207,61 @@ struct CFollowTrackRailBase : CFollowTrackBase
 		return HasStationTileRail(m_new.tile);
 	}
 
+	/** Helper for pathfinders - get min/max speed on m_old */
+	int GetSpeedLimit(int *pmin_speed = NULL) const
+	{
+		/* Check for on-bridge and railtype speed limit */
+		TileIndex bridge_tile;
+		RailType rt;
+
+		if (!m_old.InWormhole()) {
+			bridge_tile = IsRailBridgeTile(m_old.tile) ? m_old.tile : INVALID_TILE;
+			rt = GetRailType(m_old.tile, TrackdirToTrack(m_old.td));
+		} else if (IsTileSubtype(m_old.wormhole, TT_BRIDGE)) {
+			bridge_tile = m_old.wormhole;
+			rt = GetBridgeRailType(bridge_tile);
+		} else {
+			bridge_tile = INVALID_TILE;
+			rt = GetRailType(m_old.wormhole);
+		}
+
+		int max_speed;
+
+		/* Check for on-bridge speed limit */
+		if (bridge_tile != INVALID_TILE) {
+			max_speed = GetBridgeSpec(GetRailBridgeType(bridge_tile))->speed;
+		} else {
+			max_speed = INT_MAX; // no limit
+		}
+
+		/* Check for speed limit imposed by railtype */
+		uint16 rail_speed = GetRailTypeInfo(rt)->max_speed;
+		if (rail_speed > 0) max_speed = min(max_speed, rail_speed);
+
+		/* if min speed was requested, return it */
+		if (pmin_speed != NULL) *pmin_speed = 0;
+		return max_speed;
+	}
+};
+
+template <bool mask_reserved>
+struct CFollowTrackRailBaseT : CFollowTrackRailBase
+{
+	inline CFollowTrackRailBaseT(const Train *v, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
+		: CFollowTrackRailBase(v, allow_90deg, railtype_override, pPerf)
+	{
+	}
+
+	inline CFollowTrackRailBaseT(Owner o, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
+		: CFollowTrackRailBase(o, allow_90deg, railtype_override, pPerf)
+	{
+	}
+
+	inline static bool DoTrackMasking() { return mask_reserved; }
+
 	inline bool MaskReservedTracks()
 	{
-		if (!m_mask_reserved) return true;
+		if (!mask_reserved) return true;
 
 		if (m_flag == TF_STATION) {
 			/* Check skipped station tiles as well. */
@@ -254,58 +305,6 @@ struct CFollowTrackRailBase : CFollowTrackBase
 		m_new.SetTrackdir();
 		return true;
 	}
-
-	/** Helper for pathfinders - get min/max speed on m_old */
-	int GetSpeedLimit(int *pmin_speed = NULL) const
-	{
-		/* Check for on-bridge and railtype speed limit */
-		TileIndex bridge_tile;
-		RailType rt;
-
-		if (!m_old.InWormhole()) {
-			bridge_tile = IsRailBridgeTile(m_old.tile) ? m_old.tile : INVALID_TILE;
-			rt = GetRailType(m_old.tile, TrackdirToTrack(m_old.td));
-		} else if (IsTileSubtype(m_old.wormhole, TT_BRIDGE)) {
-			bridge_tile = m_old.wormhole;
-			rt = GetBridgeRailType(bridge_tile);
-		} else {
-			bridge_tile = INVALID_TILE;
-			rt = GetRailType(m_old.wormhole);
-		}
-
-		int max_speed;
-
-		/* Check for on-bridge speed limit */
-		if (bridge_tile != INVALID_TILE) {
-			max_speed = GetBridgeSpec(GetRailBridgeType(bridge_tile))->speed;
-		} else {
-			max_speed = INT_MAX; // no limit
-		}
-
-		/* Check for speed limit imposed by railtype */
-		uint16 rail_speed = GetRailTypeInfo(rt)->max_speed;
-		if (rail_speed > 0) max_speed = min(max_speed, rail_speed);
-
-		/* if min speed was requested, return it */
-		if (pmin_speed != NULL) *pmin_speed = 0;
-		return max_speed;
-	}
-};
-
-template <bool mask_reserved>
-struct CFollowTrackRailBaseT : CFollowTrackRailBase
-{
-	inline CFollowTrackRailBaseT(const Train *v, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
-		: CFollowTrackRailBase(v, allow_90deg, mask_reserved, railtype_override, pPerf)
-	{
-	}
-
-	inline CFollowTrackRailBaseT(Owner o, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
-		: CFollowTrackRailBase(o, allow_90deg, mask_reserved, railtype_override, pPerf)
-	{
-	}
-
-	inline static bool DoTrackMasking() { return mask_reserved; }
 };
 
 /**
