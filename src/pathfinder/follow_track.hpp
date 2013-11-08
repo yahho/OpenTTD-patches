@@ -750,17 +750,37 @@ protected:
 	}
 };
 
-template <class Base, bool T90deg_turns_allowed>
-struct CFollowTrackT : CFollowTrack<Base>
+template <bool T90deg_turns_allowed>
+struct CFollowTrackWaterT : CFollowTrack<CFollowTrackWaterBase>
 {
-	typedef typename Base::VehicleType VehicleType;
+	inline CFollowTrackWaterT(const Ship *v)
+		: CFollowTrack<CFollowTrackWaterBase>(v, T90deg_turns_allowed)
+	{
+	}
 
-	inline CFollowTrackT(const VehicleType *v)
+	inline static bool Allow90degTurns() { return T90deg_turns_allowed; }
+};
+
+typedef CFollowTrackWaterT<true>  CFollowTrackWater90;
+typedef CFollowTrackWaterT<false> CFollowTrackWaterNo90;
+
+struct CFollowTrackRoad : CFollowTrack<CFollowTrackRoadBase>
+{
+	inline CFollowTrackRoad(const RoadVehicle *v)
+		: CFollowTrack<CFollowTrackRoadBase>(v, true)
+	{
+	}
+};
+
+template <class Base, bool T90deg_turns_allowed>
+struct CFollowTrackRailT : CFollowTrack<Base>
+{
+	inline CFollowTrackRailT(const Train *v)
 		: CFollowTrack<Base>(v, T90deg_turns_allowed)
 	{
 	}
 
-	inline CFollowTrackT(const VehicleType *v, RailTypes railtype_override, CPerformanceTimer *pPerf = NULL)
+	inline CFollowTrackRailT(const Train *v, RailTypes railtype_override, CPerformanceTimer *pPerf = NULL)
 		: CFollowTrack<Base>(v, T90deg_turns_allowed, railtype_override, pPerf)
 	{
 	}
@@ -768,15 +788,10 @@ struct CFollowTrackT : CFollowTrack<Base>
 	inline static bool Allow90degTurns() { return T90deg_turns_allowed; }
 };
 
-typedef CFollowTrackT<CFollowTrackWaterBase, true > CFollowTrackWater90;
-typedef CFollowTrackT<CFollowTrackWaterBase, false> CFollowTrackWaterNo90;
-
-typedef CFollowTrackT<CFollowTrackRoadBase, true> CFollowTrackRoad;
-
-typedef CFollowTrackT<CFollowTrackAnyRailBase,  true > CFollowTrackRail90;
-typedef CFollowTrackT<CFollowTrackAnyRailBase,  false> CFollowTrackRailNo90;
-typedef CFollowTrackT<CFollowTrackFreeRailBase, true > CFollowTrackFreeRail90;
-typedef CFollowTrackT<CFollowTrackFreeRailBase, false> CFollowTrackFreeRailNo90;
+typedef CFollowTrackRailT<CFollowTrackAnyRailBase,  true > CFollowTrackRail90;
+typedef CFollowTrackRailT<CFollowTrackAnyRailBase,  false> CFollowTrackRailNo90;
+typedef CFollowTrackRailT<CFollowTrackFreeRailBase, true > CFollowTrackFreeRail90;
+typedef CFollowTrackRailT<CFollowTrackFreeRailBase, false> CFollowTrackFreeRailNo90;
 
 struct CFollowTrackRail : CFollowTrack<CFollowTrackAnyRailBase>
 {
