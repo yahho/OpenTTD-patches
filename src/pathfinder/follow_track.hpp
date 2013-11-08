@@ -72,6 +72,8 @@ struct CFollowTrackRailBase : CFollowTrackBase
 	const RailTypes           m_railtypes;
 	CPerformanceTimer  *const m_pPerf;
 
+	inline bool Allow90deg() const { return m_allow_90deg; }
+
 	inline CFollowTrackRailBase(const Train *v, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
 		: m_veh_owner(v->owner), m_allow_90deg(allow_90deg), m_railtypes(railtype_override == INVALID_RAILTYPES ? v->compatible_railtypes : railtype_override), m_pPerf(pPerf)
 	{
@@ -327,6 +329,8 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 	const Vehicle *const m_veh;     ///< moving vehicle
 	const bool           m_allow_90deg;
 
+	inline bool Allow90deg() const { return m_allow_90deg; }
+
 	inline CFollowTrackRoadBase(const RoadVehicle *v, bool allow_90deg = true)
 		: m_veh(v), m_allow_90deg(allow_90deg)
 	{
@@ -516,6 +520,8 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 
 	const bool m_allow_90deg;
 
+	inline bool Allow90deg() const { return m_allow_90deg; }
+
 	inline CFollowTrackWaterBase(bool allow_90deg = true)
 		: m_allow_90deg(allow_90deg)
 	{
@@ -647,7 +653,7 @@ struct CFollowTrack : Base
 			 * different bits due to slopes. */
 			return Base::CheckEndOfLine();
 		}
-		if (!Base::m_allow_90deg) {
+		if (!Base::Allow90deg()) {
 			Base::m_new.trackdirs &= (TrackdirBits)~(int)TrackdirCrossesTrackdirs(Base::m_old.td);
 			if (Base::m_new.trackdirs == TRACKDIR_BIT_NONE) {
 				Base::m_err = Base::EC_90DEG;
