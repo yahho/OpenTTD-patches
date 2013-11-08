@@ -592,20 +592,21 @@ struct CFollowTrack : Base
 {
 	typedef typename Base::VehicleType VehicleType;
 
-	inline CFollowTrack(const VehicleType *v = NULL, bool allow_90deg = true)
-		: Base(v, allow_90deg)
-	{
-	}
+	/* MSVC does not support variadic templates. Oh well... */
 
-	inline CFollowTrack(const VehicleType *v, bool allow_90deg, RailTypes railtype_override, CPerformanceTimer *pPerf = NULL)
-		: Base(v, allow_90deg, railtype_override, pPerf)
-	{
-	}
+	inline CFollowTrack() : Base() { }
 
-	inline CFollowTrack(Owner o, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
-		: Base(o, allow_90deg, railtype_override, pPerf)
-	{
-	}
+	template <typename T1>
+	inline CFollowTrack (T1 t1) : Base (t1) { }
+
+	template <typename T1, typename T2>
+	inline CFollowTrack (T1 t1, T2 t2) : Base (t1, t2) { }
+
+	template <typename T1, typename T2, typename T3>
+	inline CFollowTrack (T1 t1, T2 t2, T3 t3) : Base (t1, t2, t3) { }
+
+	template <typename T1, typename T2, typename T3, typename T4>
+	inline CFollowTrack (T1 t1, T2 t2, T3 t3, T4 t4) : Base (t1, t2, t3, t4) { }
 
 	/**
 	 * main follower routine. Fills all members and return true on success.
