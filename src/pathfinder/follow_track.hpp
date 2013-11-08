@@ -66,10 +66,6 @@ struct CFollowTrackBase
  */
 struct CFollowTrackRailBase : CFollowTrackBase
 {
-	typedef Train VehicleType;
-
-	static const TransportType transport_type = TRANSPORT_RAIL;
-
 	static inline bool StepWormhole() { return true; }
 
 	const Owner               m_veh_owner;     ///< owner of the vehicle
@@ -328,10 +324,6 @@ struct CFollowTrackFreeRailBase : CFollowTrackRailBase
  */
 struct CFollowTrackRoadBase : CFollowTrackBase
 {
-	typedef RoadVehicle VehicleType;
-
-	static const TransportType transport_type = TRANSPORT_ROAD;
-
 	static inline bool StepWormhole() { return false; }
 
 	const Vehicle *const m_veh;     ///< moving vehicle
@@ -522,10 +514,6 @@ struct CFollowTrackRoadBase : CFollowTrackBase
  */
 struct CFollowTrackWaterBase : CFollowTrackBase
 {
-	typedef Ship VehicleType;
-
-	static const TransportType transport_type = TRANSPORT_WATER;
-
 	static inline bool StepWormhole() { return false; }
 
 	inline CFollowTrackWaterBase(const Ship *v = NULL, bool allow_90deg = true)
@@ -590,8 +578,6 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 template <class Base>
 struct CFollowTrack : Base
 {
-	typedef typename Base::VehicleType VehicleType;
-
 	/* MSVC does not support variadic templates. Oh well... */
 
 	inline CFollowTrack() : Base() { }
