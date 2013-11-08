@@ -516,7 +516,7 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 {
 	static inline bool StepWormhole() { return false; }
 
-	inline CFollowTrackWaterBase(const Ship *v = NULL, bool allow_90deg = true)
+	inline CFollowTrackWaterBase(bool allow_90deg = true)
 	{
 		m_allow_90deg = allow_90deg;
 	}
@@ -741,7 +741,7 @@ template <bool T90deg_turns_allowed>
 struct CFollowTrackWaterT : CFollowTrack<CFollowTrackWaterBase>
 {
 	inline CFollowTrackWaterT(const Ship *v)
-		: CFollowTrack<CFollowTrackWaterBase>(v, T90deg_turns_allowed)
+		: CFollowTrack<CFollowTrackWaterBase>(T90deg_turns_allowed)
 	{
 	}
 
