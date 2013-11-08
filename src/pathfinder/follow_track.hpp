@@ -327,12 +327,11 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 	static inline bool StepWormhole() { return false; }
 
 	const Vehicle *const m_veh;     ///< moving vehicle
-	const bool           m_allow_90deg;
 
-	inline bool Allow90deg() const { return m_allow_90deg; }
+	static inline bool Allow90deg() { return true; }
 
-	inline CFollowTrackRoadBase(const RoadVehicle *v, bool allow_90deg = true)
-		: m_veh(v), m_allow_90deg(allow_90deg)
+	inline CFollowTrackRoadBase(const RoadVehicle *v)
+		: m_veh(v)
 	{
 		assert(v != NULL);
 	}
@@ -760,7 +759,7 @@ typedef CFollowTrackWaterT<false> CFollowTrackWaterNo90;
 struct CFollowTrackRoad : CFollowTrack<CFollowTrackRoadBase>
 {
 	inline CFollowTrackRoad(const RoadVehicle *v)
-		: CFollowTrack<CFollowTrackRoadBase>(v, true)
+		: CFollowTrack<CFollowTrackRoadBase>(v)
 	{
 	}
 };
