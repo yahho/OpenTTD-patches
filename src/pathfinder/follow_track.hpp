@@ -756,13 +756,7 @@ struct CFollowTrackWaterT : CFollowTrack<CFollowTrackWaterBase>
 typedef CFollowTrackWaterT<true>  CFollowTrackWater90;
 typedef CFollowTrackWaterT<false> CFollowTrackWaterNo90;
 
-struct CFollowTrackRoad : CFollowTrack<CFollowTrackRoadBase>
-{
-	inline CFollowTrackRoad(const RoadVehicle *v)
-		: CFollowTrack<CFollowTrackRoadBase>(v)
-	{
-	}
-};
+typedef CFollowTrack<CFollowTrackRoadBase> CFollowTrackRoad;
 
 template <class Base, bool T90deg_turns_allowed>
 struct CFollowTrackRailT : CFollowTrack<Base>
