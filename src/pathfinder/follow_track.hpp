@@ -57,7 +57,6 @@ struct CFollowTrackBase
 	TileFlag            m_flag;          ///< last turn passed station, tunnel or bridge
 	int                 m_tiles_skipped; ///< number of skipped tunnel or station tiles
 	ErrorCode           m_err;
-	bool                m_allow_90deg;
 };
 
 
@@ -69,22 +68,21 @@ struct CFollowTrackRailBase : CFollowTrackBase
 	static inline bool StepWormhole() { return true; }
 
 	const Owner               m_veh_owner;     ///< owner of the vehicle
+	const bool                m_allow_90deg;
 	const RailTypes           m_railtypes;
 	CPerformanceTimer  *const m_pPerf;
 
 	inline CFollowTrackRailBase(const Train *v, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
-		: m_veh_owner(v->owner), m_railtypes(railtype_override == INVALID_RAILTYPES ? v->compatible_railtypes : railtype_override), m_pPerf(pPerf)
+		: m_veh_owner(v->owner), m_allow_90deg(allow_90deg), m_railtypes(railtype_override == INVALID_RAILTYPES ? v->compatible_railtypes : railtype_override), m_pPerf(pPerf)
 	{
 		assert(v != NULL);
 		assert(m_railtypes != INVALID_RAILTYPES);
-		m_allow_90deg = allow_90deg;
 	}
 
 	inline CFollowTrackRailBase(Owner o, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
-		: m_veh_owner(o), m_railtypes(railtype_override), m_pPerf(pPerf)
+		: m_veh_owner(o), m_allow_90deg(allow_90deg), m_railtypes(railtype_override), m_pPerf(pPerf)
 	{
 		assert(railtype_override != INVALID_RAILTYPES);
-		m_allow_90deg = allow_90deg;
 	}
 
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
@@ -327,12 +325,12 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 	static inline bool StepWormhole() { return false; }
 
 	const Vehicle *const m_veh;     ///< moving vehicle
+	const bool           m_allow_90deg;
 
 	inline CFollowTrackRoadBase(const RoadVehicle *v, bool allow_90deg = true)
-		: m_veh(v)
+		: m_veh(v), m_allow_90deg(allow_90deg)
 	{
 		assert(v != NULL);
-		m_allow_90deg = allow_90deg;
 	}
 
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
@@ -516,9 +514,11 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 {
 	static inline bool StepWormhole() { return false; }
 
+	const bool m_allow_90deg;
+
 	inline CFollowTrackWaterBase(bool allow_90deg = true)
+		: m_allow_90deg(allow_90deg)
 	{
-		m_allow_90deg = allow_90deg;
 	}
 
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
