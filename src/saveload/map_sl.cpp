@@ -217,11 +217,13 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	}
 
 	if (IsOTTDSavegameVersionBefore(stv, 64)) {
-		/* copy the signal type/variant and move signal states bits */
+		/* Since now we allow different signal types and variants on a single tile.
+		 * Move signal states to m4 to make room and clone the signal type/variant. */
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsOldTileType(t, OLD_MP_RAILWAY) && GB(_mc[t].m5, 6, 2) == 1) {
+				/* move signal states */
 				SB(_mc[t].m4, 4, 4, GB(_mc[t].m2, 4, 4));
-				SB(_mc[t].m2, 7, 1, GB(_mc[t].m2, 3, 1));
+				/* clone signal type and variant */
 				SB(_mc[t].m2, 4, 3, GB(_mc[t].m2, 0, 3));
 				ClrBit(_mc[t].m2, 7);
 			}
