@@ -131,11 +131,15 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			switch (GetOldTileType(t)) {
 				case OLD_MP_RAILWAY:
 					if (GB(_mc[t].m5, 6, 2) == 1) {
+						/* Original signal type/variant was stored in m4 but since saveload
+						 * version 48 they are in m2. The bits has been already moved to m2
+						 * (see the code somewhere above) so don't use m4, use m2 instead. */
+
 						/* convert PBS signals to combo-signals */
-						if (HasBit(_mc[t].m2, 2)) SB(_mc[t].m2, 0, 3, 3);
+						if (HasBit(_mc[t].m2, 2)) SB(_mc[t].m2, 0, 2, SIGTYPE_COMBO);
 
 						/* move the signal variant back */
-						SB(_mc[t].m2, 3, 1, HasBit(_mc[t].m2, 3) ? SIG_SEMAPHORE : SIG_ELECTRIC);
+						SB(_mc[t].m2, 2, 1, HasBit(_mc[t].m2, 3) ? SIG_SEMAPHORE : SIG_ELECTRIC);
 						ClrBit(_mc[t].m2, 3);
 					}
 
