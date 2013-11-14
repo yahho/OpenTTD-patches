@@ -153,40 +153,89 @@ void TileArea::ClampToMap()
 	this->h = min(this->h, MapSizeY() - TileY(this->tile));
 }
 
+
+/*
+ * There are two possibilities for a diagonal iterator: an "even" area or
+ * an "odd" area, where even/odd is determined by the parity of the sum of
+ * differences between the coordinates of the two endpoints.
+ *
+ *         x               x x
+ *       x x x           x x x x
+ *     x x x x x       x x x x
+ *   x x x x x       x x x x
+ *     x x x           x x
+ *       x
+ *      even            odd
+ *
+ * In our iterator, a "row" will run diagonally (up,right)-wards (so the
+ * first tile will be (0,0), then (1,1), etc.; when we wrap around, we
+ * start the second row at (1,0), then (2,1). As you can see, there are
+ * some differences between an even area and an odd area:
+ *   * In an even area, rows have two different lengths, while rows in an
+ * odd area are all of the same length.
+ *   * The difference between the last tile in a row and the first one in
+ * the next row is constant in an even area, but not so in an odd area.
+ *   * As a particular case, even areas can have no tiles in odd-numbered
+ * rows, if their side has only one tile.
+ *
+ * This all leads to the following implementation.
+ */
+
 /**
  * Construct the iterator.
  * @param corner1 Tile from where to begin iterating.
  * @param corner2 Tile where to end the iterating.
  */
-DiagonalTileIterator::DiagonalTileIterator(TileIndex corner1, TileIndex corner2) : TileIterator(corner2), base_x(TileX(corner2)), base_y(TileY(corner2)), a_cur(0), b_cur(0)
+DiagonalTileIterator::DiagonalTileIterator(TileIndex corner1, TileIndex corner2)
+	: TileIterator(corner2), x(TileX(corner2)), y(TileY(corner2))
 {
 	assert(corner1 < MapSize());
 	assert(corner2 < MapSize());
 
 	int dist_x = TileX(corner1) - TileX(corner2);
 	int dist_y = TileY(corner1) - TileY(corner2);
-	this->a_max = dist_x + dist_y;
-	this->b_max = dist_y - dist_x;
+	int w = dist_x + dist_y;
+	int h = dist_y - dist_x;
 
-	/* Unfortunately we can't find a new base and make all a and b positive because
-	 * the new base might be a "flattened" corner where there actually is no single
-	 * tile. If we try anyway the result is either inaccurate ("one off" half of the
-	 * time) or the code gets much more complex;
-	 *
-	 * We also need to increment here to have equality as marker for the end of a row or
-	 * column. Like that it's shorter than having another if/else in operator++
-	 */
-	if (this->a_max > 0) {
-		this->a_max++;
-	} else {
-		this->a_max--;
+	this->odd = (w % 2) != 0;
+
+	/* See the ASCII art above to understand these. */
+	if (w > 0) {
+		this->s1 = 1;
+		if (h >= 0) {
+			this->s2x = 0;
+			this->s2y = 1;
+		} else {
+			this->s2x = 1;
+			this->s2y = 0;
+		}
+		w = w / 2;
+		this->s2x -= w;
+		this->s2y -= w;
+	} else if (w < 0) {
+		this->s1 = -1;
+		if (h >= 0) {
+			this->s2x = -1;
+			this->s2y = 0;
+		} else {
+			this->s2x = 0;
+			this->s2y = -1;
+		}
+		w = (-w) / 2;
+		this->s2x += w;
+		this->s2y += w;
+	} else { /* w == 0 */
+		/* Hack in some values that make things work without a special case in Next. */
+		this->odd = true; /* true intended */
+		this->s1  = 0;
+		this->s2y = (h >= 0) ? 1 : -1;
+		this->s2x = -this->s2y;
+		h /= 2;
 	}
 
-	if (this->b_max > 0) {
-		this->b_max++;
-	} else {
-		this->b_max--;
-	}
+	this->w = w;
+	this->n = w;
+	this->m = abs(h);
 }
 
 /**
@@ -197,46 +246,36 @@ void DiagonalTileIterator::Next()
 	assert(this->tile != INVALID_TILE);
 
 	/* Determine the next tile, while clipping at map borders */
-	bool new_line = false;
 	do {
-		/* Iterate using the rotated coordinates. */
-		if (this->a_max == 1 || this->a_max == -1) {
-			/* Special case: Every second column has zero length, skip them completely */
-			this->a_cur = 0;
-			if (this->b_max > 0) {
-				this->b_cur = min(this->b_cur + 2, this->b_max);
-			} else {
-				this->b_cur = max(this->b_cur - 2, this->b_max);
-			}
-		} else {
-			/* Every column has at least one tile to process */
-			if (this->a_max > 0) {
-				this->a_cur += 2;
-				new_line = this->a_cur >= this->a_max;
-			} else {
-				this->a_cur -= 2;
-				new_line = this->a_cur <= this->a_max;
-			}
-			if (new_line) {
-				/* offset of initial a_cur: one tile in the same direction as a_max
-				 * every second line.
-				 */
-				this->a_cur = abs(this->a_cur) % 2 ? 0 : (this->a_max > 0 ? 1 : -1);
-
-				if (this->b_max > 0) {
-					++this->b_cur;
+		if (this->n > 0) {
+			/* next tile in the currrent row */
+			this->n--;
+			this->x += this->s1;
+			this->y += this->s1;
+		} else if (this->m > 0) {
+			/* begin next row */
+			this->m--;
+			this->x += this->s2x;
+			this->y += this->s2y;
+			this->n = this->w;
+			if ((this->m % 2) != 0) {
+				/* adjust odd-numbered rows */
+				if (this->odd ) {
+					/* odd area, correct initial tile */
+					this->x -= this->s1;
+					this->y -= this->s1;
 				} else {
-					--this->b_cur;
+					/* even area, correct row length */
+					assert(this->n > 0);
+					this->n--;
 				}
 			}
+		} else {
+			/* all done */
+			this->tile = INVALID_TILE;
+			return;
 		}
+	} while (this->x >= MapSizeX() || this->y >= MapSizeY());
 
-		/* And convert the coordinates back once we've gone to the next tile. */
-		uint x = this->base_x + (this->a_cur - this->b_cur) / 2;
-		uint y = this->base_y + (this->b_cur + this->a_cur) / 2;
-		/* Prevent wrapping around the map's borders. */
-		this->tile = x >= MapSizeX() || y >= MapSizeY() ? INVALID_TILE : TileXY(x, y);
-	} while (this->tile > MapSize() && this->b_max != this->b_cur);
-
-	if (this->b_max == this->b_cur) this->tile = INVALID_TILE;
+	this->tile = TileXY(this->x, this->y);
 }

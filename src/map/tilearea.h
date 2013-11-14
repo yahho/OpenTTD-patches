@@ -158,12 +158,15 @@ public:
 /** Iterator to iterate over a diagonal area of the map. */
 class DiagonalTileIterator : public TileIterator {
 private:
-	uint base_x; ///< The base tile x coordinate from where the iterating happens.
-	uint base_y; ///< The base tile y coordinate from where the iterating happens.
-	int a_cur;   ///< The current (rotated) x coordinate of the iteration.
-	int b_cur;   ///< The current (rotated) y coordinate of the iteration.
-	int a_max;   ///< The (rotated) x coordinate of the end of the iteration.
-	int b_max;   ///< The (rotated) y coordinate of the end of the iteration.
+	uint x;   ///< x coordinate of the current tile
+	uint y;   ///< y coordinate of the current tile
+	bool odd; ///< Whether this is an "odd" area
+	int8 s1;  ///< Advancing a tile adds (s1,s1)
+	int  s2x; ///< Advancing a row adds (s2x,s2y)
+	int  s2y; ///< Advancing a row adds (s2x,s2y)
+	uint w;   ///< The width of the main rectangle side
+	uint n;   ///< The number of tiles left on the current row
+	uint m;   ///< The number of rows left
 
 protected:
 	void Next() OVERRIDE;
