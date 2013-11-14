@@ -192,7 +192,7 @@ DiagonalTileIterator::DiagonalTileIterator(TileIndex corner1, TileIndex corner2)
 /**
  * Move ourselves to the next tile in the rectangle on the map.
  */
-TileIterator &DiagonalTileIterator::operator++()
+void DiagonalTileIterator::Next()
 {
 	assert(this->tile != INVALID_TILE);
 
@@ -239,5 +239,4 @@ TileIterator &DiagonalTileIterator::operator++()
 	} while (this->tile > MapSize() && this->b_max != this->b_cur);
 
 	if (this->b_max == this->b_cur) this->tile = INVALID_TILE;
-	return *this;
 }

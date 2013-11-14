@@ -76,6 +76,11 @@ protected:
 	{
 	}
 
+	/**
+	 * Compute the next tile.
+	 */
+	virtual void Next() = 0;
+
 public:
 	/** Some compilers really like this. */
 	virtual ~TileIterator()
@@ -94,7 +99,12 @@ public:
 	/**
 	 * Move ourselves to the next tile in the rectangle on the map.
 	 */
-	virtual TileIterator& operator ++() = 0;
+	TileIterator& operator ++()
+	{
+		assert(this->tile != INVALID_TILE);
+		this->Next();
+		return *this;
+	}
 
 	/**
 	 * Allocate a new iterator that is a copy of this one.
@@ -109,19 +119,11 @@ private:
 	int x;          ///< The current 'x' position in the rectangle.
 	int y;          ///< The current 'y' position in the rectangle.
 
-public:
-	/**
-	 * Construct the iterator.
-	 * @param ta Area, i.e. begin point and width/height of to-be-iterated area.
-	 */
-	OrthogonalTileIterator(const TileArea &ta) : TileIterator(ta.w == 0 || ta.h == 0 ? INVALID_TILE : ta.tile), w(ta.w), x(ta.w), y(ta.h)
-	{
-	}
-
+protected:
 	/**
 	 * Move ourselves to the next tile in the rectangle on the map.
 	 */
-	inline TileIterator& operator ++()
+	inline void Next() OVERRIDE
 	{
 		assert(this->tile != INVALID_TILE);
 
@@ -133,7 +135,15 @@ public:
 		} else {
 			this->tile = INVALID_TILE;
 		}
-		return *this;
+	}
+
+public:
+	/**
+	 * Construct the iterator.
+	 * @param ta Area, i.e. begin point and width/height of to-be-iterated area.
+	 */
+	OrthogonalTileIterator(const TileArea &ta) : TileIterator(ta.w == 0 || ta.h == 0 ? INVALID_TILE : ta.tile), w(ta.w), x(ta.w), y(ta.h)
+	{
 	}
 
 	virtual TileIterator *Clone() const
@@ -152,10 +162,11 @@ private:
 	int a_max;   ///< The (rotated) x coordinate of the end of the iteration.
 	int b_max;   ///< The (rotated) y coordinate of the end of the iteration.
 
+protected:
+	void Next() OVERRIDE;
+
 public:
 	DiagonalTileIterator(TileIndex begin, TileIndex end);
-
-	TileIterator& operator ++();
 
 	virtual TileIterator *Clone() const
 	{

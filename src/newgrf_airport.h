@@ -33,6 +33,17 @@ private:
 	const AirportTileTable *att; ///< The offsets.
 	TileIndex base_tile;         ///< The tile we base the offsets off.
 
+protected:
+	inline void Next() OVERRIDE
+	{
+		this->att++;
+		if (this->att->ti.x == -0x80) {
+			this->tile = INVALID_TILE;
+		} else {
+			this->tile = this->base_tile + ToTileIndexDiff(this->att->ti);
+		}
+	}
+
 public:
 	/**
 	 * Construct the iterator.
@@ -41,17 +52,6 @@ public:
 	 */
 	AirportTileTableIterator(const AirportTileTable *att, TileIndex base_tile) : TileIterator(base_tile + ToTileIndexDiff(att->ti)), att(att), base_tile(base_tile)
 	{
-	}
-
-	inline TileIterator& operator ++()
-	{
-		this->att++;
-		if (this->att->ti.x == -0x80) {
-			this->tile = INVALID_TILE;
-		} else {
-			this->tile = this->base_tile + ToTileIndexDiff(this->att->ti);
-		}
-		return *this;
 	}
 
 	/** Get the StationGfx for the current tile. */

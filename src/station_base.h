@@ -530,6 +530,13 @@ class AirportTileIterator : public OrthogonalTileIterator {
 private:
 	const Station *st; ///< The station the airport is a part of.
 
+protected:
+	inline void Next() OVERRIDE
+	{
+		do this->OrthogonalTileIterator::Next();
+		while (this->tile != INVALID_TILE && !st->TileBelongsToAirport(this->tile));
+	}
+
 public:
 	/**
 	 * Construct the iterator.
@@ -537,16 +544,7 @@ public:
 	 */
 	AirportTileIterator(const Station *st) : OrthogonalTileIterator(st->airport), st(st)
 	{
-		if (!st->TileBelongsToAirport(this->tile)) ++(*this);
-	}
-
-	inline TileIterator& operator ++()
-	{
-		(*this).OrthogonalTileIterator::operator++();
-		while (this->tile != INVALID_TILE && !st->TileBelongsToAirport(this->tile)) {
-			(*this).OrthogonalTileIterator::operator++();
-		}
-		return *this;
+		if (!st->TileBelongsToAirport(this->tile)) this->Next();
 	}
 
 	virtual TileIterator *Clone() const
