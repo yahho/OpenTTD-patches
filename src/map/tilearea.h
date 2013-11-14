@@ -115,9 +115,9 @@ public:
 /** Iterator to iterate over a tile area (rectangle) of the map. */
 class OrthogonalTileIterator : public TileIterator {
 private:
-	int w;          ///< The width of the iterated area.
-	int x;          ///< The current 'x' position in the rectangle.
-	int y;          ///< The current 'y' position in the rectangle.
+	const uint w;       ///< The width of the iterated area.
+	uint x;             ///< The current 'x' position in the rectangle.
+	uint y;             ///< The current 'y' position in the rectangle.
 
 protected:
 	/**
