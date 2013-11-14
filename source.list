@@ -88,7 +88,6 @@ subsidy.cpp
 textbuf.cpp
 texteff.cpp
 tgp.cpp
-tilearea.cpp
 townname.cpp
 #if WIN32
 #else
@@ -343,7 +342,6 @@ textfile_gui.h
 textfile_type.h
 tgp.h
 tile_cmd.h
-tilearea_type.h
 tilehighlight_func.h
 tilehighlight_type.h
 tilematrix_type.hpp
@@ -971,6 +969,8 @@ map/map.cpp
 map/map.h
 map/coord.cpp
 map/coord.h
+map/tilearea.cpp
+map/tilearea.h
 map/subcoord.h
 map/zoneheight.h
 map/class.h

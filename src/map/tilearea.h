@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * This file is part of OpenTTD.
  * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -7,12 +5,12 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file tilearea_type.h Type for storing the 'area' of something uses on the map. */
+/** @file map/tilearea.h Handling of tile areas. */
 
-#ifndef TILEAREA_TYPE_H
-#define TILEAREA_TYPE_H
+#ifndef MAP_TILEAREA_H
+#define MAP_TILEAREA_H
 
-#include "map/coord.h"
+#include "coord.h"
 
 /** Represents the covered area of e.g. a rail station */
 struct TileArea {
@@ -173,4 +171,4 @@ public:
  */
 #define TILE_AREA_LOOP(var, ta) for (OrthogonalTileIterator var(ta); var != INVALID_TILE; ++var)
 
-#endif /* TILEAREA_TYPE_H */
+#endif /* MAP_TILEAREA_H */

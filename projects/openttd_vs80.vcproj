@@ -1423,10 +1423,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\tilearea.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\townname.cpp"
 				>
 			</File>
@@ -2352,10 +2348,6 @@
 			</File>
 			<File
 				RelativePath=".\..\src\tile_cmd.h"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\tilearea_type.h"
 				>
 			</File>
 			<File
@@ -11024,6 +11016,54 @@
 			</File>
 			<File
 				RelativePath=".\..\src\map\coord.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\map\tilearea.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\map\"
+						ObjectFile="$(IntDir)\map\"
+						XMLDocumentationFileName="$(IntDir)\map\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\map\"
+						ObjectFile="$(IntDir)\map\"
+						XMLDocumentationFileName="$(IntDir)\map\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\map\"
+						ObjectFile="$(IntDir)\map\"
+						XMLDocumentationFileName="$(IntDir)\map\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\map\"
+						ObjectFile="$(IntDir)\map\"
+						XMLDocumentationFileName="$(IntDir)\map\"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\..\src\map\tilearea.h"
 				>
 			</File>
 			<File

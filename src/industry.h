@@ -15,7 +15,7 @@
 #include "newgrf_storage.h"
 #include "subsidy_type.h"
 #include "industrytype.h"
-#include "tilearea_type.h"
+#include "map/tilearea.h"
 
 
 typedef Pool<Industry, IndustryID, 64, 64000> IndustryPool;

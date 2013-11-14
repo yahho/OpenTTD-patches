@@ -14,7 +14,7 @@
 
 #include "core/smallvec_type.hpp"
 #include "core/smallstack_type.hpp"
-#include "tilearea_type.h"
+#include "map/tilearea.h"
 #include <list>
 
 typedef uint16 StationID;

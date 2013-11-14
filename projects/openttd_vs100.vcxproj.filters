@@ -366,9 +366,6 @@
     <ClCompile Include="..\src\tgp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\tilearea.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\townname.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1060,9 +1057,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\tile_cmd.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\tilearea_type.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\tilehighlight_func.h">
@@ -2758,6 +2752,12 @@
       <Filter>Map Accessors</Filter>
     </ClCompile>
     <ClInclude Include="..\src\map\coord.h">
+      <Filter>Map Accessors</Filter>
+    </ClInclude>
+    <ClCompile Include="..\src\map\tilearea.cpp">
+      <Filter>Map Accessors</Filter>
+    </ClCompile>
+    <ClInclude Include="..\src\map\tilearea.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
     <ClInclude Include="..\src\map\subcoord.h">

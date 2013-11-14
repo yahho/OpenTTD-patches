@@ -16,7 +16,7 @@
 #include "date_type.h"
 #include "newgrf_class.h"
 #include "newgrf_commons.h"
-#include "tilearea_type.h"
+#include "map/tilearea.h"
 
 /** Copy from tile/station.h */
 typedef byte StationGfx;

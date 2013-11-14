@@ -14,7 +14,7 @@
 
 #include "core/pool_type.hpp"
 #include "object_type.h"
-#include "tilearea_type.h"
+#include "map/tilearea.h"
 #include "town_type.h"
 #include "date_type.h"
 

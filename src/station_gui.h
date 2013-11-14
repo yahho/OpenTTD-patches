@@ -13,7 +13,7 @@
 #define STATION_GUI_H
 
 #include "command_type.h"
-#include "tilearea_type.h"
+#include "map/tilearea.h"
 #include "window_type.h"
 
 

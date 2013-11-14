@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * This file is part of OpenTTD.
  * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -7,11 +5,11 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file tilearea.cpp Handling of tile areas. */
+/** @file map/tilearea.cpp Handling of tile areas. */
 
-#include "stdafx.h"
+#include "../stdafx.h"
 
-#include "tilearea_type.h"
+#include "tilearea.h"
 
 /**
  * Set this tile area based on initial and final coordinates.

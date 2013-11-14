@@ -442,7 +442,6 @@
     <ClCompile Include="..\src\textbuf.cpp" />
     <ClCompile Include="..\src\texteff.cpp" />
     <ClCompile Include="..\src\tgp.cpp" />
-    <ClCompile Include="..\src\tilearea.cpp" />
     <ClCompile Include="..\src\townname.cpp" />
     <ClCompile Include="..\src\vehicle.cpp" />
     <ClCompile Include="..\src\vehiclelist.cpp" />
@@ -674,7 +673,6 @@
     <ClInclude Include="..\src\textfile_type.h" />
     <ClInclude Include="..\src\tgp.h" />
     <ClInclude Include="..\src\tile_cmd.h" />
-    <ClInclude Include="..\src\tilearea_type.h" />
     <ClInclude Include="..\src\tilehighlight_func.h" />
     <ClInclude Include="..\src\tilehighlight_type.h" />
     <ClInclude Include="..\src\tilematrix_type.hpp" />
@@ -1872,6 +1870,12 @@
       <XMLDocumentationFileName>$(IntDir)\map\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\map\coord.h" />
+    <ClCompile Include="..\src\map\tilearea.cpp">
+      <AssemblerListingLocation>$(IntDir)\map\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\map\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\map\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\map\tilearea.h" />
     <ClInclude Include="..\src\map\subcoord.h" />
     <ClInclude Include="..\src\map\zoneheight.h" />
     <ClInclude Include="..\src\map\class.h" />

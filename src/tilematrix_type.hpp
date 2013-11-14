@@ -13,7 +13,7 @@
 #define TILEMATRIX_TYPE_HPP
 
 #include "core/alloc_func.hpp"
-#include "tilearea_type.h"
+#include "map/tilearea.h"
 
 /**
  * A simple matrix that stores one value per N*N square of the map.
