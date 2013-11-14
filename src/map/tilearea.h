@@ -116,6 +116,7 @@ public:
 class OrthogonalTileIterator : public TileIterator {
 private:
 	const uint w;       ///< The width of the iterated area.
+	const uint rowdiff; ///< The amount to add when switching rows
 	uint x;             ///< The current 'x' position in the rectangle.
 	uint y;             ///< The current 'y' position in the rectangle.
 
@@ -131,7 +132,7 @@ protected:
 			this->tile++;
 		} else if (--this->y > 0) {
 			this->x = this->w;
-			this->tile += TileDiffXY(1, 1) - this->w;
+			this->tile += this->rowdiff;
 		} else {
 			this->tile = INVALID_TILE;
 		}
@@ -142,7 +143,9 @@ public:
 	 * Construct the iterator.
 	 * @param ta Area, i.e. begin point and width/height of to-be-iterated area.
 	 */
-	OrthogonalTileIterator(const TileArea &ta) : TileIterator(ta.w == 0 || ta.h == 0 ? INVALID_TILE : ta.tile), w(ta.w), x(ta.w), y(ta.h)
+	OrthogonalTileIterator(const TileArea &ta)
+		: TileIterator(ta.w == 0 || ta.h == 0 ? INVALID_TILE : ta.tile),
+			w(ta.w), rowdiff(TileDiffXY(1, 1) - ta.w), x(ta.w), y(ta.h)
 	{
 	}
 
