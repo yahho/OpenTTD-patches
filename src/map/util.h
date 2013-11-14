@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * This file is part of OpenTTD.
  * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -7,13 +5,13 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file map_func.h Functions related to maps. */
+/** @file map/util.h Map utility functions. */
 
-#ifndef MAP_FUNC_H
-#define MAP_FUNC_H
+#ifndef MAP_UTIL_H
+#define MAP_UTIL_H
 
-#include "map/coord.h"
+#include "coord.h"
 
 uint GetClosestWaterDistance(TileIndex tile, bool water);
 
-#endif /* MAP_FUNC_H */
+#endif /* MAP_UTIL_H */

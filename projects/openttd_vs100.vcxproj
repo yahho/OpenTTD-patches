@@ -368,7 +368,6 @@
       <ObjectFileName>$(IntDir)\linkgraph\</ObjectFileName>
       <XMLDocumentationFileName>$(IntDir)\linkgraph\</XMLDocumentationFileName>
     </ClCompile>
-    <ClCompile Include="..\src\map.cpp" />
     <ClCompile Include="..\src\misc.cpp" />
     <ClCompile Include="..\src\mixer.cpp" />
     <ClCompile Include="..\src\music.cpp" />
@@ -556,7 +555,6 @@
     <ClInclude Include="..\src\linkgraph\mcf.h" />
     <ClInclude Include="..\src\linkgraph\refresh.h" />
     <ClInclude Include="..\src\livery.h" />
-    <ClInclude Include="..\src\map_func.h" />
     <ClInclude Include="..\src\mixer.h" />
     <ClInclude Include="..\src\network\network.h" />
     <ClInclude Include="..\src\network\network_admin.h" />
@@ -1911,6 +1909,12 @@
     </ClCompile>
     <ClInclude Include="..\src\map\bridge.h" />
     <ClInclude Include="..\src\map\tunnelbridge.h" />
+    <ClCompile Include="..\src\map\util.cpp">
+      <AssemblerListingLocation>$(IntDir)\map\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\map\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\map\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\map\util.h" />
     <ClInclude Include="..\src\signal_map.h" />
     <ClInclude Include="..\src\misc\array.hpp" />
     <ClInclude Include="..\src\misc\binaryheap.hpp" />

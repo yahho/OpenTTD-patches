@@ -48,7 +48,6 @@ linkgraph/linkgraphjob.cpp
 linkgraph/linkgraphschedule.cpp
 linkgraph/mcf.cpp
 linkgraph/refresh.cpp
-map.cpp
 misc.cpp
 mixer.cpp
 music.cpp
@@ -225,7 +224,6 @@ linkgraph/linkgraphschedule.h
 linkgraph/mcf.h
 linkgraph/refresh.h
 livery.h
-map_func.h
 mixer.h
 network/network.h
 network/network_admin.h
@@ -994,6 +992,8 @@ map/slope.h
 map/bridge.cpp
 map/bridge.h
 map/tunnelbridge.h
+map/util.cpp
+map/util.h
 signal_map.h
 
 # Misc

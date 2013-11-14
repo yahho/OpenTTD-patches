@@ -252,9 +252,6 @@
     <ClCompile Include="..\src\linkgraph\refresh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\map.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\misc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -706,9 +703,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\livery.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\map_func.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\mixer.h">
@@ -2827,6 +2821,12 @@
       <Filter>Map Accessors</Filter>
     </ClInclude>
     <ClInclude Include="..\src\map\tunnelbridge.h">
+      <Filter>Map Accessors</Filter>
+    </ClInclude>
+    <ClCompile Include="..\src\map\util.cpp">
+      <Filter>Map Accessors</Filter>
+    </ClCompile>
+    <ClInclude Include="..\src\map\util.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
     <ClInclude Include="..\src\signal_map.h">

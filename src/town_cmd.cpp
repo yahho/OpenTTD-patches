@@ -49,7 +49,7 @@
 #include "ai/ai.hpp"
 #include "game/game.hpp"
 #include "bridge.h"
-#include "map_func.h"
+#include "map/util.h"
 
 #include "table/strings.h"
 #include "table/town_land.h"
