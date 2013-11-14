@@ -10,8 +10,6 @@
 /** @file map.cpp Base functions related to the map and distances on them. */
 
 #include "stdafx.h"
-#include "debug.h"
-#include "core/alloc_func.hpp"
 #include "map/water.h"
 
 /**

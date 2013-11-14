@@ -12,10 +12,7 @@
 #ifndef MAP_FUNC_H
 #define MAP_FUNC_H
 
-#include "core/math_func.hpp"
-#include "map/map.h"
 #include "map/coord.h"
-#include "direction_func.h"
 
 uint GetClosestWaterDistance(TileIndex tile, bool water);
 

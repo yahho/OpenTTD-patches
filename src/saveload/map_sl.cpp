@@ -10,7 +10,6 @@
 /** @file map_sl.cpp Code handling saving and loading of map */
 
 #include "../stdafx.h"
-#include "../map_func.h"
 #include "../core/bitmath_func.hpp"
 #include "../core/random_func.hpp"
 #include "../fios.h"

@@ -13,7 +13,6 @@
 #include "crashlog.h"
 #include "gamelog.h"
 #include "date_func.h"
-#include "map_func.h"
 #include "rev.h"
 #include "strings_func.h"
 #include "blitter/factory.hpp"

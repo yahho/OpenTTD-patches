@@ -23,6 +23,7 @@
 #include "core/random_func.hpp"
 #include "map/common.h"
 #include "map/slope.h"
+#include "map_func.h"
 
 #include "table/strings.h"
 

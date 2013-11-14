@@ -12,7 +12,7 @@
 #ifndef TILEAREA_TYPE_H
 #define TILEAREA_TYPE_H
 
-#include "map_func.h"
+#include "map/coord.h"
 
 /** Represents the covered area of e.g. a rail station */
 struct TileArea {

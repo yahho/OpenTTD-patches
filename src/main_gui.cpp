@@ -20,7 +20,6 @@
 #include "console_gui.h"
 #include "progress.h"
 #include "transparency_gui.h"
-#include "map_func.h"
 #include "sound_func.h"
 #include "transparency.h"
 #include "strings_func.h"

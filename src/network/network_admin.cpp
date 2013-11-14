@@ -21,7 +21,6 @@
 #include "../company_base.h"
 #include "../console_func.h"
 #include "../core/pool_func.hpp"
-#include "../map_func.h"
 #include "../rev.h"
 #include "../game/game.hpp"
 
