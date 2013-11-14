@@ -711,9 +711,6 @@
     <ClInclude Include="..\src\map_func.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\map_type.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\mixer.h">
       <Filter>Header Files</Filter>
     </ClInclude>

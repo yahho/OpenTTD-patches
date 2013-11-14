@@ -15,7 +15,6 @@
 #include "core/math_func.hpp"
 #include "map/map.h"
 #include "map/coord.h"
-#include "map_type.h"
 #include "direction_func.h"
 
 uint GetClosestWaterDistance(TileIndex tile, bool water);

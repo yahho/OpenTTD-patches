@@ -20,6 +20,7 @@
 #include "../../map/slope.h"
 #include "../../town.h"
 #include "../../landscape.h"
+#include "../../landscape_type.h"
 
 /* static */ bool ScriptTile::IsBuildable(TileIndex tile)
 {

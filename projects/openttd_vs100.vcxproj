@@ -557,7 +557,6 @@
     <ClInclude Include="..\src\linkgraph\refresh.h" />
     <ClInclude Include="..\src\livery.h" />
     <ClInclude Include="..\src\map_func.h" />
-    <ClInclude Include="..\src\map_type.h" />
     <ClInclude Include="..\src\mixer.h" />
     <ClInclude Include="..\src\network\network.h" />
     <ClInclude Include="..\src\network\network_admin.h" />

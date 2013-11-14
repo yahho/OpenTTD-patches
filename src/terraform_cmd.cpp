@@ -20,6 +20,7 @@
 #include "object_base.h"
 #include "company_base.h"
 #include "company_func.h"
+#include "landscape_type.h"
 
 #include "table/strings.h"
 

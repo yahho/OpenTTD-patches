@@ -12,7 +12,6 @@
 #ifndef INDUSTRYTYPE_H
 #define INDUSTRYTYPE_H
 
-#include "map_type.h"
 #include "slope_type.h"
 #include "industry_type.h"
 #include "landscape_type.h"

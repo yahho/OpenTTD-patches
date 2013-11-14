@@ -1884,10 +1884,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\map_type.h"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\mixer.h"
 				>
 			</File>

@@ -35,4 +35,11 @@ enum Borders {
 	BORDERS_RANDOM = 16,
 };
 
+/** Argument for CmdLevelLand describing what to do. */
+enum LevelMode {
+	LM_LEVEL, ///< Level the land.
+	LM_LOWER, ///< Lower the land.
+	LM_RAISE, ///< Raise the land.
+};
+
 #endif /* LANDSCAPE_TYPE_H */
