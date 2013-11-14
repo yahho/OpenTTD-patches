@@ -149,7 +149,7 @@ public:
 	{
 	}
 
-	virtual TileIterator *Clone() const
+	OrthogonalTileIterator *Clone() const OVERRIDE
 	{
 		return new OrthogonalTileIterator(*this);
 	}
@@ -174,7 +174,7 @@ protected:
 public:
 	DiagonalTileIterator(TileIndex begin, TileIndex end);
 
-	virtual TileIterator *Clone() const
+	DiagonalTileIterator *Clone() const OVERRIDE
 	{
 		return new DiagonalTileIterator(*this);
 	}

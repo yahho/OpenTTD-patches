@@ -547,7 +547,7 @@ public:
 		if (!st->TileBelongsToAirport(this->tile)) this->Next();
 	}
 
-	virtual TileIterator *Clone() const
+	AirportTileIterator *Clone() const OVERRIDE
 	{
 		return new AirportTileIterator(*this);
 	}
