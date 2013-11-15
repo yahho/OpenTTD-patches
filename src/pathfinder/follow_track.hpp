@@ -326,7 +326,7 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 {
 	static inline bool StepWormhole() { return false; }
 
-	const Vehicle *const m_veh;     ///< moving vehicle
+	const RoadVehicle *const m_veh; ///< moving vehicle
 
 	static inline bool Allow90deg() { return true; }
 
@@ -338,10 +338,10 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
 	{
-		return TrackStatusToTrackdirBits(GetTileRoadStatus(tile, m_veh != NULL ? RoadVehicle::From(m_veh)->compatible_roadtypes : 0));
+		return TrackStatusToTrackdirBits(GetTileRoadStatus(tile, m_veh->compatible_roadtypes));
 	}
 
-	inline bool IsTram() { return HasBit(RoadVehicle::From(m_veh)->compatible_roadtypes, ROADTYPE_TRAM); }
+	inline bool IsTram() { return HasBit(m_veh->compatible_roadtypes, ROADTYPE_TRAM); }
 
 	/** Tests if a tile is a road tile with a single tramtrack (tram can reverse) */
 	inline DiagDirection GetSingleTramBit(TileIndex tile)
