@@ -214,7 +214,6 @@ public:
 
 protected:
 	TileIndex    m_destTile;
-	TrackdirBits m_destTrackdirs;
 	StationID    m_dest_station;
 	bool         m_bus;
 	bool         m_non_artic;
@@ -227,11 +226,9 @@ public:
 			m_bus           = v->IsBus();
 			m_destTile      = CalcClosestStationTile(m_dest_station, v->tile, m_bus ? STATION_BUS : STATION_TRUCK);
 			m_non_artic     = !v->HasArticulatedPart();
-			m_destTrackdirs = INVALID_TRACKDIR_BIT;
 		} else {
 			m_dest_station  = INVALID_STATION;
 			m_destTile      = v->dest_tile;
-			m_destTrackdirs = TrackStatusToTrackdirBits(GetTileRoadStatus(v->dest_tile, v->compatible_roadtypes));
 		}
 	}
 
@@ -258,7 +255,7 @@ public:
 				(m_non_artic || IsDriveThroughStopTile(pos.tile));
 		}
 
-		return pos.tile == m_destTile && ((m_destTrackdirs & TrackdirToTrackdirBits(pos.td)) != TRACKDIR_BIT_NONE);
+		return pos.tile == m_destTile;
 	}
 
 	/**
