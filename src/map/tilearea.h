@@ -61,6 +61,27 @@ struct TileArea {
 	{
 		return TILE_ADDXY(this->tile, this->w / 2, this->h / 2);
 	}
+
+	/**
+	 * Get the tile in the area closest to a given tile.
+	 * @param t The reference tile.
+	 * @return The closest tile, or INVALID_TILE if the area is empty.
+	 */
+	TileIndex get_closest_tile(TileIndex t) const
+	{
+		if (this->tile == INVALID_TILE) return INVALID_TILE;
+
+		/* clamp x coordinate */
+		uint x = TileX(this->tile);
+		x = ClampU(TileX(t), x, x + this->w - 1);
+
+		/* clamp y coordinate */
+		uint y = TileY(this->tile);
+		y = ClampU(TileY(t), y, y + this->h - 1);
+
+		/* return the tile of our target coordinates */
+		return TileXY(x, y);
+	}
 };
 
 /** Base class for tile iterators. */

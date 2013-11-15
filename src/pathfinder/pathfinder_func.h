@@ -30,22 +30,8 @@ static inline TileIndex CalcClosestStationTile(StationID station, TileIndex tile
 	st->GetTileArea(&ta, station_type);
 
 	/* If the rail station is (temporarily) not present, use the station sign to drive near the station */
-	if (ta.tile == INVALID_TILE) return st->xy;
-
-	uint minx = TileX(ta.tile);  // topmost corner of station
-	uint miny = TileY(ta.tile);
-	uint maxx = minx + ta.w - 1; // lowermost corner of station
-	uint maxy = miny + ta.h - 1;
-
-	/* we are going the aim for the x coordinate of the closest corner
-	 * but if we are between those coordinates, we will aim for our own x coordinate */
-	uint x = ClampU(TileX(tile), minx, maxx);
-
-	/* same for y coordinate, see above comment */
-	uint y = ClampU(TileY(tile), miny, maxy);
-
-	/* return the tile of our target coordinates */
-	return TileXY(x, y);
+	tile = ta.get_closest_tile(tile);
+	return (tile != INVALID_TILE) ? tile : st->xy;
 }
 
 #endif /* PATHFINDER_FUNC_H */
