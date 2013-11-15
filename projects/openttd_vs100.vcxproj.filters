@@ -2997,9 +2997,6 @@
     <ClInclude Include="..\src\pathfinder\yapf\yapf_common.hpp">
       <Filter>YAPF</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\pathfinder\yapf\yapf_costbase.hpp">
-      <Filter>YAPF</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\pathfinder\yapf\yapf_costcache.hpp">
       <Filter>YAPF</Filter>
     </ClInclude>

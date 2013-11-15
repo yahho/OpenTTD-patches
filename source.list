@@ -1060,7 +1060,6 @@ pathfinder/yapf/yapf.hpp
 pathfinder/yapf/yapf_base.hpp
 pathfinder/yapf/yapf_cache.h
 pathfinder/yapf/yapf_common.hpp
-pathfinder/yapf/yapf_costbase.hpp
 pathfinder/yapf/yapf_costcache.hpp
 pathfinder/yapf/yapf_costrail.hpp
 pathfinder/yapf/yapf_destrail.hpp

@@ -33,7 +33,6 @@
 #include "yapf_base.hpp"
 #include "yapf_node.hpp"
 #include "yapf_common.hpp"
-#include "yapf_costbase.hpp"
 #include "yapf_costcache.hpp"
 
 

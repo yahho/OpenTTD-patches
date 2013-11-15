@@ -12,7 +12,37 @@
 #ifndef YAPF_COSTRAIL_HPP
 #define YAPF_COSTRAIL_HPP
 
+#include "../../map/slope.h"
 #include "../../pbs.h"
+
+/** Base implementation for cost accounting. */
+struct CYapfCostBase {
+	/**
+	 * Does the given track direction on the given tile yield an uphill penalty?
+	 * @param tile The tile to check.
+	 * @param td   The track direction to check.
+	 * @return True if there's a slope, otherwise false.
+	 */
+	inline static bool stSlopeCost(const PFPos &pos)
+	{
+		if (!pos.InWormhole() && IsDiagonalTrackdir(pos.td)) {
+			if (IsBridgeHeadTile(pos.tile)) {
+				/* it is bridge ramp, check if we are entering the bridge */
+				if (GetTunnelBridgeDirection(pos.tile) != TrackdirToExitdir(pos.td)) return false; // no, we are leaving it, no penalty
+				/* we are entering the bridge */
+				Slope tile_slope = GetTileSlope(pos.tile);
+				Axis axis = DiagDirToAxis(GetTunnelBridgeDirection(pos.tile));
+				return !HasBridgeFlatRamp(tile_slope, axis);
+			} else {
+				/* not bridge ramp */
+				if (IsTunnelTile(pos.tile)) return false; // tunnel entry/exit doesn't slope
+				Slope tile_slope = GetTileSlope(pos.tile);
+				return IsUphillTrackdir(tile_slope, pos.td); // slopes uphill => apply penalty
+			}
+		}
+		return false;
+	}
+};
 
 template <class Types>
 class CYapfCostRailT
