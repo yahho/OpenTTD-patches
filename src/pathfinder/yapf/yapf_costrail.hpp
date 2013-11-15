@@ -99,17 +99,20 @@ public:
 
 		if (pos.InWormhole() || !IsDiagonalTrackdir(pos.td)) return 0;
 
+		/* Only rail tracks and bridgeheads can have sloped rail. */
+		if (!IsRailwayTile(pos.tile)) return 0;
+
 		bool uphill;
-		if (IsBridgeHeadTile(pos.tile)) {
+		if (IsTileSubtype(pos.tile, TT_BRIDGE)) {
 			/* it is bridge ramp, check if we are entering the bridge */
-			if (GetTunnelBridgeDirection(pos.tile) != TrackdirToExitdir(pos.td)) return 0; // no, we are leaving it, no penalty
+			DiagDirection dir = GetTunnelBridgeDirection(pos.tile);
+			if (dir != TrackdirToExitdir(pos.td)) return 0; // no, we are leaving it, no penalty
 			/* we are entering the bridge */
 			Slope tile_slope = GetTileSlope(pos.tile);
-			Axis axis = DiagDirToAxis(GetTunnelBridgeDirection(pos.tile));
+			Axis axis = DiagDirToAxis(dir);
 			uphill = !HasBridgeFlatRamp(tile_slope, axis);
 		} else {
 			/* not bridge ramp */
-			if (IsTunnelTile(pos.tile)) return 0; // tunnel entry/exit doesn't slope
 			Slope tile_slope = GetTileSlope(pos.tile);
 			uphill = IsUphillTrackdir(tile_slope, pos.td); // slopes uphill => apply penalty
 		}
