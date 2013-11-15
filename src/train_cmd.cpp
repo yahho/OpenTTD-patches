@@ -3613,6 +3613,28 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			}
 		}
 
+		if (v->IsFrontEngine()) {
+			v->wait_counter = 0;
+
+			/* Always try to extend the reservation when entering a tile. */
+			bool check_next_tile;
+			if (!new_in_wormhole) {
+				/* If we are approaching a crossing that is reserved, play the sound now. */
+				TileIndex crossing = TrainApproachingCrossingTile(v);
+				if (crossing != INVALID_TILE && HasCrossingReservation(crossing) && _settings_client.sound.ambient) SndPlayTileFx(SND_0E_LEVEL_CROSSING, crossing);
+
+				check_next_tile = enterdir != INVALID_DIAGDIR;
+			} else if (old_in_wormhole) {
+				TileIndex last_wormhole_tile = TileAddByDiagDir(v->tile, GetTunnelBridgeDirection(v->tile));
+				check_next_tile = (gp.new_tile == last_wormhole_tile) && (gp.new_tile != old_tile);
+			} else {
+				TileIndexDiff diff = TileOffsByDiagDir(GetTunnelBridgeDirection(v->tile));
+				check_next_tile = (old_tile == TILE_ADD(v->tile, 2*diff));
+			}
+
+			if (check_next_tile) CheckNextTrainTile(v);
+		}
+
 		v->x_pos = gp.x;
 		v->y_pos = gp.y;
 		VehicleUpdatePosition(v);
@@ -3672,30 +3694,9 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			UpdateSignalsInBuffer();
 		}
 
-		if (v->IsFrontEngine()) {
-			v->wait_counter = 0;
-
-			bool check_next_tile;
-
-			/* Always try to extend the reservation when entering a tile.
-			 * Otherwise, do not check on every tick to save some computing time. */
-			if (new_in_wormhole) {
-				if (old_in_wormhole) {
-					TileIndex last_wormhole_tile = TileAddByDiagDir(v->tile, GetTunnelBridgeDirection(v->tile));
-					check_next_tile = (gp.new_tile == last_wormhole_tile) && (gp.new_tile != old_tile || v->tick_counter % _settings_game.pf.path_backoff_interval == 0);
-				} else {
-					TileIndexDiff diff = TileOffsByDiagDir(GetTunnelBridgeDirection(v->tile));
-					check_next_tile = (old_tile == TILE_ADD(v->tile, 2*diff));
-				}
-			} else {
-				/* If we are approaching a crossing that is reserved, play the sound now. */
-				TileIndex crossing = TrainApproachingCrossingTile(v);
-				if (crossing != INVALID_TILE && HasCrossingReservation(crossing) && _settings_client.sound.ambient) SndPlayTileFx(SND_0E_LEVEL_CROSSING, crossing);
-
-				check_next_tile = (enterdir != INVALID_DIAGDIR) || (v->tick_counter % _settings_game.pf.path_backoff_interval == 0);
-			}
-
-			if (check_next_tile) CheckNextTrainTile(v);
+		/* Do not check on every tick to save some computing time. */
+		if (v->IsFrontEngine() && v->tick_counter % _settings_game.pf.path_backoff_interval == 0) {
+			CheckNextTrainTile(v);
 		}
 	}
 
