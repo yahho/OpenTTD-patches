@@ -123,7 +123,6 @@ public:
 
 protected:
 	TileIndex    m_destTile;
-	TrackdirBits m_destTrackdirs;
 	StationID    m_dest_station_id;
 
 	/** to access inherited path finder */
@@ -149,13 +148,11 @@ public:
 			case OT_GOTO_STATION:
 				m_destTile = CalcClosestStationTile(v->current_order.GetDestination(), v->tile, v->current_order.IsType(OT_GOTO_STATION) ? STATION_RAIL : STATION_WAYPOINT);
 				m_dest_station_id = v->current_order.GetDestination();
-				m_destTrackdirs = INVALID_TRACKDIR_BIT;
 				break;
 
 			default:
 				m_destTile = v->dest_tile;
 				m_dest_station_id = INVALID_STATION;
-				m_destTrackdirs = TrackStatusToTrackdirBits(GetTileRailwayStatus(v->dest_tile));
 				break;
 		}
 		CYapfDestinationRailBase::SetDestination(v);
@@ -176,8 +173,7 @@ public:
 				&& (GetStationIndex(pos.tile) == m_dest_station_id)
 				&& (GetRailStationTrack(pos.tile) == TrackdirToTrack(pos.td));
 		} else {
-			bDest = !pos.InWormhole() && (pos.tile == m_destTile)
-				&& ((m_destTrackdirs & TrackdirToTrackdirBits(pos.td)) != TRACKDIR_BIT_NONE);
+			bDest = !pos.InWormhole() && (pos.tile == m_destTile);
 		}
 		return bDest;
 	}
