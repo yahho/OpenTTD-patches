@@ -3288,11 +3288,13 @@ static StationID TrainEnter_Station(Train *v, TileIndex tile, int x, int y)
 		if (dir != DIAGDIR_SE && dir != DIAGDIR_SW) x = TILE_SIZE - 1 - x;
 		stop &= TILE_SIZE - 1;
 
-		if (x >= stop) return station_id; // enter station
-
-		v->vehstatus |= VS_TRAIN_SLOWING;
-		uint16 spd = max(0, (stop - x) * 20 - 15);
-		if (spd < v->cur_speed) v->cur_speed = spd;
+		if (x == stop) {
+			return station_id; // enter station
+		} else if (x < stop) {
+			v->vehstatus |= VS_TRAIN_SLOWING;
+			uint16 spd = max(0, (stop - x) * 20 - 15);
+			if (spd < v->cur_speed) v->cur_speed = spd;
+		}
 	}
 
 	return INVALID_STATION;
