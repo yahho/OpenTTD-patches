@@ -26,32 +26,6 @@ public:
 	typedef typename Node::CachedData CachedData;
 
 protected:
-
-	/* Structure used inside PfCalcCost() to keep basic tile information. */
-	struct TILE : PFPos {
-		RailType    rail_type;
-
-		TILE() : PFPos()
-		{
-			rail_type = INVALID_RAILTYPE;
-		}
-
-		TILE(const PFPos &pos) : PFPos(pos)
-		{
-			if (!pos.InWormhole()) {
-				this->rail_type = GetTileRailType(pos.tile, TrackdirToTrack(pos.td));
-			} else {
-				this->rail_type = IsRailwayTile(pos.wormhole) ? GetBridgeRailType(pos.wormhole) : GetRailType(pos.wormhole);
-			}
-		}
-
-		TILE(const TILE &src) : PFPos(src)
-		{
-			rail_type = src.rail_type;
-		}
-	};
-
-protected:
 	/**
 	 * @note maximum cost doesn't work with caching enabled
 	 * @todo fix maximum cost failing with caching (e.g. FS#2900)
@@ -331,7 +305,10 @@ public:
 		const Train *v = Yapf().GetVehicle();
 
 		/* start at n and walk to the end of segment */
-		TILE cur(n.GetPos());
+		PFPos cur(n.GetPos());
+
+		RailType rail_type = !cur.InWormhole() ? GetTileRailType(cur.tile, TrackdirToTrack(cur.td)) :
+			IsRailwayTile(cur.wormhole) ? GetBridgeRailType(cur.wormhole) : GetRailType(cur.wormhole);
 
 		EndSegmentReasonBits end_segment_reason = ESRB_NONE;
 
@@ -362,7 +339,7 @@ public:
 					}
 				}
 				/* No further calculation needed. */
-				cur = TILE(n.GetLastPos());
+				cur = n.GetLastPos();
 				goto cached_segment;
 			}
 
@@ -497,8 +474,8 @@ public:
 				break;
 			}
 
-			/* Gather the next tile/trackdir/rail_type. */
-			TILE next(tf_local.m_new);
+			/* Gather the next tile/trackdir. */
+			PFPos next(tf_local.m_new);
 
 			if (TrackFollower::DoTrackMasking()) {
 				if (HasSignalAlongPos(next) && IsPbsSignal(GetSignalType(next))) {
@@ -512,7 +489,10 @@ public:
 			}
 
 			/* Check the next tile for the rail type. */
-			if (next.rail_type != cur.rail_type) {
+			if (next.InWormhole()) {
+				RailType next_rail_type = IsRailwayTile(next.wormhole) ? GetBridgeRailType(next.wormhole) : GetRailType(next.wormhole);
+				assert(next_rail_type == rail_type);
+			} else if (GetTileRailType(next.tile, TrackdirToTrack(next.td)) != rail_type) {
 				/* Segment must consist from the same rail_type tiles. */
 				end_segment_reason |= ESRB_RAIL_TYPE;
 				break;
