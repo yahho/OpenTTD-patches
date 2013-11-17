@@ -2156,6 +2156,8 @@ void Vehicle::LeaveStation()
 
 		SetBit(Train::From(this)->flags, VRF_LEAVING_STATION);
 	}
+
+	this->MarkDirty();
 }
 
 /**
