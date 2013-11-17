@@ -29,29 +29,24 @@ protected:
 
 	/* Structure used inside PfCalcCost() to keep basic tile information. */
 	struct TILE : PFPos {
-		TileType    tile_type;
 		RailType    rail_type;
 
 		TILE() : PFPos()
 		{
-			tile_type = TT_GROUND;
 			rail_type = INVALID_RAILTYPE;
 		}
 
 		TILE(const PFPos &pos) : PFPos(pos)
 		{
 			if (!pos.InWormhole()) {
-				this->tile_type = GetTileType(pos.tile);
 				this->rail_type = GetTileRailType(pos.tile, TrackdirToTrack(pos.td));
 			} else {
-				this->tile_type = TT_GROUND;
 				this->rail_type = IsRailwayTile(pos.wormhole) ? GetBridgeRailType(pos.wormhole) : GetRailType(pos.wormhole);
 			}
 		}
 
 		TILE(const TILE &src) : PFPos(src)
 		{
-			tile_type = src.tile_type;
 			rail_type = src.rail_type;
 		}
 	};
@@ -405,7 +400,7 @@ public:
 				/* We will end in this pass (depot is possible target) */
 				end_segment_reason |= ESRB_DEPOT;
 
-			} else if (cur.tile_type == TT_STATION && IsRailWaypoint(cur.tile)) {
+			} else if (!cur.InWormhole() && IsRailWaypointTile(cur.tile)) {
 				if (v->current_order.IsType(OT_GOTO_WAYPOINT) &&
 						GetStationIndex(cur.tile) == v->current_order.GetDestination() &&
 						!Waypoint::Get(v->current_order.GetDestination())->IsSingleTile()) {
@@ -502,7 +497,7 @@ public:
 				break;
 			}
 
-			/* Gather the next tile/trackdir/tile_type/rail_type. */
+			/* Gather the next tile/trackdir/rail_type. */
 			TILE next(tf_local.m_new);
 
 			if (TrackFollower::DoTrackMasking()) {
