@@ -446,7 +446,7 @@ public:
 				/* We will end in this pass (station is possible target) */
 				end_segment_reason |= ESRB_STATION;
 
-			} else if (TrackFollower::DoTrackMasking() && cur.tile_type == TT_RAILWAY) {
+			} else if (TrackFollower::DoTrackMasking()) {
 				/* Searching for a safe tile? */
 				if (HasSignalAlongPos(cur) && !IsPbsSignal(GetSignalType(cur))) {
 					end_segment_reason |= ESRB_SAFE_TILE;
