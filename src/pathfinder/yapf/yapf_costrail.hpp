@@ -105,9 +105,10 @@ public:
 		return cost;
 	}
 
-	inline int SwitchCost(const PFPos &pos1, const PFPos &pos2, DiagDirection exitdir)
+	inline int SwitchCost(const PFPos &pos1, const PFPos &pos2)
 	{
 		if (!pos1.InWormhole() && IsRailwayTile(pos1.tile) && !pos2.InWormhole() && IsRailwayTile(pos2.tile)) {
+			DiagDirection exitdir = TrackdirToExitdir(pos1.td);
 			bool t1 = KillFirstBit(GetTrackBits(pos1.tile) & DiagdirReachesTracks(ReverseDiagDir(exitdir))) != TRACK_BIT_NONE;
 			bool t2 = KillFirstBit(GetTrackBits(pos2.tile) & DiagdirReachesTracks(exitdir)) != TRACK_BIT_NONE;
 			if (t1 && t2) return Yapf().PfGetSettings().rail_doubleslip_penalty;
@@ -320,7 +321,7 @@ public:
 			/* First transition cost goes to segment entry cost */
 			PFPos ppos = n.m_parent->GetLastPos();
 			segment_entry_cost = Yapf().CurveCost(ppos.td, cur.td);
-			segment_entry_cost += Yapf().SwitchCost(ppos, cur, TrackdirToExitdir(ppos.td));
+			segment_entry_cost += Yapf().SwitchCost(ppos, cur);
 
 			/* It is the right time now to look if we can reuse the cached segment cost. */
 			if (is_cached_segment) {
@@ -520,7 +521,7 @@ public:
 
 			/* Transition cost (cost of the move from previous tile) */
 			segment_cost += Yapf().CurveCost(cur.td, next.td);
-			segment_cost += Yapf().SwitchCost(cur, next, TrackdirToExitdir(cur.td));
+			segment_cost += Yapf().SwitchCost(cur, next);
 
 			/* For the next loop set new prev and cur tile info. */
 			prev = cur.tile;
