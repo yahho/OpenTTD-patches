@@ -206,12 +206,12 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 
 
 /** Follow a reservation starting from a specific tile to the end. */
-static PBSTileInfo FollowReservation(Owner o, RailTypes rts, const PFPos &pos, bool ignore_oneway = false)
+static PFPos FollowReservation(Owner o, RailTypes rts, const PFPos &pos, bool ignore_oneway = false)
 {
 	/* Start track not reserved? This can happen if two trains
 	 * are on the same tile. The reservation on the next tile
 	 * is not ours in this case, so exit. */
-	if (!HasReservedPos(pos)) return PBSTileInfo(pos, false);
+	if (!HasReservedPos(pos)) return pos;
 
 	/* Do not disallow 90 deg turns as the setting might have changed between reserving and now. */
 	CFollowTrackRail ft(o, true, rts);
@@ -267,14 +267,14 @@ static PBSTileInfo FollowReservation(Owner o, RailTypes rts, const PFPos &pos, b
 		if (HasSignalAlongPos(cur) && !IsPbsSignal(GetSignalType(cur))) break;
 	}
 
-	return PBSTileInfo(cur, false);
+	return cur;
 }
 
 /**
  * Helper struct for finding the best matching vehicle on a specific track.
  */
 struct FindTrainOnTrackInfo {
-	PBSTileInfo res; ///< Information about the track.
+	PFPos pos;       ///< Information about the track.
 	Train *best;     ///< The currently "best" vehicle we have found.
 
 	/** Init the best location to NULL always! */
@@ -289,7 +289,7 @@ static Vehicle *FindTrainOnTrackEnum(Vehicle *v, void *data)
 	if (v->type != VEH_TRAIN || (v->vehstatus & VS_CRASHED)) return NULL;
 
 	Train *t = Train::From(v);
-	if (TrackdirToTrack(t->trackdir) != TrackdirToTrack(info->res.pos.td)) return NULL;
+	if (TrackdirToTrack(t->trackdir) != TrackdirToTrack(info->pos.td)) return NULL;
 
 	t = t->First();
 
@@ -318,18 +318,18 @@ static Vehicle *FindTrainInWormholeEnum(Vehicle *v, void *data)
 /** Find a train on a reserved path end */
 static void FindTrainOnPathEnd(FindTrainOnTrackInfo *ftoti)
 {
-	if (ftoti->res.pos.InWormhole()) {
-		FindVehicleOnPos(ftoti->res.pos.wormhole, ftoti, FindTrainInWormholeEnum);
+	if (ftoti->pos.InWormhole()) {
+		FindVehicleOnPos(ftoti->pos.wormhole, ftoti, FindTrainInWormholeEnum);
 		if (ftoti->best != NULL) return;
-		FindVehicleOnPos(GetOtherTunnelBridgeEnd(ftoti->res.pos.wormhole), ftoti, FindTrainInWormholeEnum);
+		FindVehicleOnPos(GetOtherTunnelBridgeEnd(ftoti->pos.wormhole), ftoti, FindTrainInWormholeEnum);
 	} else {
-		FindVehicleOnPos(ftoti->res.pos.tile, ftoti, FindTrainOnTrackEnum);
+		FindVehicleOnPos(ftoti->pos.tile, ftoti, FindTrainOnTrackEnum);
 		if (ftoti->best != NULL) return;
 
 		/* Special case for stations: check the whole platform for a vehicle. */
-		if (IsRailStationTile(ftoti->res.pos.tile)) {
-			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(ftoti->res.pos.td)));
-			for (TileIndex tile = ftoti->res.pos.tile + diff; IsCompatibleTrainStationTile(tile, ftoti->res.pos.tile); tile += diff) {
+		if (IsRailStationTile(ftoti->pos.tile)) {
+			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(ftoti->pos.td)));
+			for (TileIndex tile = ftoti->pos.tile + diff; IsCompatibleTrainStationTile(tile, ftoti->pos.tile); tile += diff) {
 				FindVehicleOnPos(tile, ftoti, FindTrainOnTrackEnum);
 				if (ftoti->best != NULL) return;
 			}
@@ -353,13 +353,14 @@ PBSTileInfo FollowTrainReservation(const Train *v, Vehicle **train_on_res)
 	if (!pos.InWormhole() && IsRailDepotTile(pos.tile) && !HasDepotReservation(pos.tile)) return PBSTileInfo(pos, false);
 
 	FindTrainOnTrackInfo ftoti;
-	ftoti.res = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, pos);
-	ftoti.res.okay = IsSafeWaitingPosition(v, ftoti.res.pos, _settings_game.pf.forbid_90_deg);
+	ftoti.pos = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, pos);
 	if (train_on_res != NULL) {
 		FindTrainOnPathEnd(&ftoti);
 		if (ftoti.best != NULL) *train_on_res = ftoti.best->First();
 	}
-	return ftoti.res;
+
+	bool okay = IsSafeWaitingPosition(v, ftoti.pos, _settings_game.pf.forbid_90_deg);
+	return PBSTileInfo(ftoti.pos, okay);
 }
 
 /**
@@ -385,7 +386,7 @@ Train *GetTrainForReservation(TileIndex tile, Track track)
 		if (HasOnewaySignalBlockingTrackdir(tile, ReverseTrackdir(trackdir)) && !HasPbsSignalOnTrackdir(tile, trackdir)) continue;
 
 		FindTrainOnTrackInfo ftoti;
-		ftoti.res = FollowReservation(GetTileOwner(tile), rts, PFPos(tile, trackdir), true);
+		ftoti.pos = FollowReservation(GetTileOwner(tile), rts, PFPos(tile, trackdir), true);
 
 		FindTrainOnPathEnd(&ftoti);
 		if (ftoti.best != NULL) return ftoti.best;
