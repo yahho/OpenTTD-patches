@@ -2602,10 +2602,10 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 		}
 	}
 
-	PBSTileInfo   res_dest(tile, INVALID_TRACKDIR, false);
+	TileIndex new_tile = tile;
 	DiagDirection dest_enterdir = enterdir;
 	if (do_track_reservation) {
-		res_dest = ExtendTrainReservation(v, &trackdirs, &dest_enterdir);
+		PBSTileInfo res_dest = ExtendTrainReservation(v, &trackdirs, &dest_enterdir);
 		if (res_dest.pos.tile == INVALID_TILE) {
 			/* Reservation failed? */
 			if (mark_stuck) MarkTrainAsStuck(v);
@@ -2619,6 +2619,7 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 			TryReserveRailTrack(v->GetPos());
 			return best_trackdir;
 		}
+		new_tile = res_dest.pos.tile;
 
 		/* Check if the train needs service here, so it has a chance to always find a depot.
 		 * Also check if the current order is a service order so we don't reserve a path to
@@ -2645,12 +2646,9 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 		orders.SwitchToNextOrder(true);
 	}
 
-	assert(res_dest.pos.tile != INVALID_TILE);
-	assert(!res_dest.okay);
-
 	/* Pathfinders are able to tell that route was only 'guessed'. */
-	bool      path_found = true;
-	TileIndex new_tile = res_dest.pos.tile;
+	bool path_found = true;
+	PBSTileInfo res_dest;
 
 	Trackdir next_trackdir = DoTrainPathfind(v, new_tile, dest_enterdir, trackdirs, path_found, do_track_reservation, &res_dest);
 	if (new_tile == tile) best_trackdir = next_trackdir;
