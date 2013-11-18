@@ -2646,16 +2646,15 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 	}
 
 	assert(res_dest.pos.tile != INVALID_TILE);
+	assert(!res_dest.okay);
 
-	if (!res_dest.okay) {
-		/* Pathfinders are able to tell that route was only 'guessed'. */
-		bool      path_found = true;
-		TileIndex new_tile = res_dest.pos.tile;
+	/* Pathfinders are able to tell that route was only 'guessed'. */
+	bool      path_found = true;
+	TileIndex new_tile = res_dest.pos.tile;
 
-		Trackdir next_trackdir = DoTrainPathfind(v, new_tile, dest_enterdir, trackdirs, path_found, do_track_reservation, &res_dest);
-		if (new_tile == tile) best_trackdir = next_trackdir;
-		v->HandlePathfindingResult(path_found);
-	}
+	Trackdir next_trackdir = DoTrainPathfind(v, new_tile, dest_enterdir, trackdirs, path_found, do_track_reservation, &res_dest);
+	if (new_tile == tile) best_trackdir = next_trackdir;
+	v->HandlePathfindingResult(path_found);
 
 	/* No track reservation requested -> finished. */
 	if (!do_track_reservation) return best_trackdir;
