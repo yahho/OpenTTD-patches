@@ -2408,7 +2408,7 @@ static Trackdir DoTrainPathfind(const Train *v, bool &path_found, bool do_track_
  * another reservation or a track choice.
  * @return A safe waiting position if the path could be extended to one; the first (unsafe, unreserved) choice or target tile; or INVALID_TILE if the reservation could not be extended to one of those.
  */
-static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trackdirs, DiagDirection *enterdir)
+static PBSTileInfo ExtendTrainReservation(const Train *v)
 {
 	PBSTileInfo origin = FollowTrainReservation(v);
 
@@ -2431,8 +2431,6 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackdirBits *new_trac
 			if (ft.m_tiles_skipped != 0) ft.m_new.tile -= TileOffsByDiagDir(ft.m_exitdir) * ft.m_tiles_skipped;
 
 			/* Choice found, path valid but not okay. Save info about the choice tile as well. */
-			if (new_trackdirs != NULL) *new_trackdirs = ft.m_new.trackdirs;
-			if (enterdir != NULL) *enterdir = ft.m_exitdir;
 			return PBSTileInfo(ft.m_new, false);
 		}
 
@@ -2600,9 +2598,8 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 	}
 
 	TileIndex new_tile = tile;
-	DiagDirection dest_enterdir = enterdir;
 	if (do_track_reservation) {
-		PBSTileInfo res_dest = ExtendTrainReservation(v, &trackdirs, &dest_enterdir);
+		PBSTileInfo res_dest = ExtendTrainReservation(v);
 		if (res_dest.pos.tile == INVALID_TILE) {
 			/* Reservation failed? */
 			if (mark_stuck) MarkTrainAsStuck(v);
