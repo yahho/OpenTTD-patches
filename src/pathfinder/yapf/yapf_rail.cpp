@@ -540,8 +540,7 @@ Trackdir YapfTrainChooseTrack(const Train *v, TileIndex tile, DiagDirection ente
 		pfnChooseRailTrack = &CYapfRail2::stChooseRailTrack; // Trackdir, forbid 90-deg
 	}
 
-	Trackdir td_ret = pfnChooseRailTrack(v, path_found, reserve_track, target);
-	return (td_ret != INVALID_TRACKDIR) ? td_ret : FindFirstTrackdir(trackdirs);
+	return pfnChooseRailTrack(v, path_found, reserve_track, target);
 }
 
 bool YapfTrainCheckReverse(const Train *v)

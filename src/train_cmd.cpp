@@ -2651,7 +2651,7 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 	PBSTileInfo res_dest;
 
 	Trackdir next_trackdir = DoTrainPathfind(v, new_tile, dest_enterdir, trackdirs, path_found, do_track_reservation, &res_dest);
-	if (new_tile == tile) best_trackdir = next_trackdir;
+	if (new_tile == tile) best_trackdir = next_trackdir != INVALID_TRACKDIR ? next_trackdir : FindFirstTrackdir(trackdirs);
 	v->HandlePathfindingResult(path_found);
 
 	/* No track reservation requested -> finished. */

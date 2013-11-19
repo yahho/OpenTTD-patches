@@ -1268,7 +1268,7 @@ Trackdir NPFTrainChooseTrack(const Train *v, TileIndex tile, DiagDirection enter
 		 * @todo maybe display error?
 		 * @todo: go straight ahead if possible? */
 		path_found = true;
-		return FindFirstTrackdir(trackdirs);
+		return INVALID_TRACKDIR;
 	}
 
 	/* If ftd.best_bird_dist is 0, we found our target and ftd.best_trackdir contains
