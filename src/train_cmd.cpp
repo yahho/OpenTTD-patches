@@ -2388,19 +2388,16 @@ static const byte _initial_tile_subcoord[TRACKDIR_END][3] = {
  * Perform pathfinding for a train.
  *
  * @param v The train
- * @param tile The tile the train is about to enter
- * @param enterdir Diagonal direction the train is coming from
- * @param trackdirs Usable trackdirs on the new tile
  * @param path_found [out] Whether a path has been found or not.
  * @param do_track_reservation Path reservation is requested
  * @param dest [out] State and destination of the requested path
  * @return The best trackdir the train should follow
  */
-static Trackdir DoTrainPathfind(const Train *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found, bool do_track_reservation, PBSTileInfo *dest)
+static Trackdir DoTrainPathfind(const Train *v, bool &path_found, bool do_track_reservation, PBSTileInfo *dest)
 {
 	switch (_settings_game.pf.pathfinder_for_trains) {
-		case VPF_NPF: return NPFTrainChooseTrack(v, tile, enterdir, trackdirs, path_found, do_track_reservation, dest);
-		case VPF_YAPF: return YapfTrainChooseTrack(v, tile, enterdir, trackdirs, path_found, do_track_reservation, dest);
+		case VPF_NPF: return NPFTrainChooseTrack(v, path_found, do_track_reservation, dest);
+		case VPF_YAPF: return YapfTrainChooseTrack(v, path_found, do_track_reservation, dest);
 
 		default: NOT_REACHED();
 	}
@@ -2650,7 +2647,7 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 	bool path_found = true;
 	PBSTileInfo res_dest;
 
-	Trackdir next_trackdir = DoTrainPathfind(v, new_tile, dest_enterdir, trackdirs, path_found, do_track_reservation, &res_dest);
+	Trackdir next_trackdir = DoTrainPathfind(v, path_found, do_track_reservation, &res_dest);
 	if (new_tile == tile) best_trackdir = next_trackdir != INVALID_TRACKDIR ? next_trackdir : FindFirstTrackdir(trackdirs);
 	v->HandlePathfindingResult(path_found);
 
@@ -2686,18 +2683,12 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 	/* Reservation target found and free, check if it is safe. */
 	while (!IsSafeWaitingPosition(v, res_dest.pos, _settings_game.pf.forbid_90_deg)) {
 		/* Extend reservation until we have found a safe position. */
-		DiagDirection exitdir = TrackdirToExitdir(res_dest.pos.td);
-		TileIndex     next_tile = TileAddByDiagDir(res_dest.pos.tile, exitdir);
-		TrackdirBits  reachable = TrackStatusToTrackdirBits(GetTileRailwayStatus(next_tile)) & DiagdirReachesTrackdirs(exitdir);
-		if (_settings_game.pf.forbid_90_deg) {
-			reachable &= ~TrackdirCrossesTrackdirs(res_dest.pos.td);
-		}
 
 		/* Get next order with destination. */
 		if (orders.SwitchToNextOrder(true)) {
 			PBSTileInfo cur_dest;
 			bool path_found;
-			DoTrainPathfind(v, next_tile, exitdir, reachable, path_found, true, &cur_dest);
+			DoTrainPathfind(v, path_found, true, &cur_dest);
 			if (cur_dest.pos.tile != INVALID_TILE) {
 				res_dest = cur_dest;
 				if (res_dest.okay) continue;

@@ -1248,7 +1248,7 @@ bool NPFTrainCheckReverse(const Train *v)
 	return ftd.best_bird_dist == 0 && NPFGetFlag(&ftd.node, NPF_FLAG_REVERSE);
 }
 
-Trackdir NPFTrainChooseTrack(const Train *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found, bool reserve_track, struct PBSTileInfo *target)
+Trackdir NPFTrainChooseTrack(const Train *v, bool &path_found, bool reserve_track, struct PBSTileInfo *target)
 {
 	NPFFindStationOrTileData fstd;
 	NPFFillWithOrderData(&fstd, v, reserve_track);

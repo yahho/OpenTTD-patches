@@ -86,14 +86,11 @@ bool NPFTrainCheckReverse(const Train *v);
 /**
  * Finds the best path for given train using NPF.
  * @param v        the train that needs to find a path
- * @param tile     the tile to find the path from (should be next tile the train is about to enter)
- * @param enterdir diagonal direction which the RV will enter this new tile from
- * @param trackdirs available trackdirs on the new tile (to choose from)
  * @param path_found [out] Whether a path has been found (true) or has been guessed (false)
  * @param reserve_track indicates whether YAPF should try to reserve the found path
  * @param target   [out] the target tile of the reservation, free is set to true if path was reserved
  * @return         the best trackdir for next turn
  */
-Trackdir NPFTrainChooseTrack(const Train *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found, bool reserve_track, struct PBSTileInfo *target);
+Trackdir NPFTrainChooseTrack(const Train *v, bool &path_found, bool reserve_track, struct PBSTileInfo *target);
 
 #endif /* NPF_FUNC_H */

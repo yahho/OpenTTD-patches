@@ -529,7 +529,7 @@ struct CYapfAnySafeTileRail1 : CYapfT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CF
 struct CYapfAnySafeTileRail2 : CYapfT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90, CRailNodeListTrackDir, CYapfDestinationAnySafeTileRailT , CYapfFollowAnySafeTileRailT> > {};
 
 
-Trackdir YapfTrainChooseTrack(const Train *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found, bool reserve_track, PBSTileInfo *target)
+Trackdir YapfTrainChooseTrack(const Train *v, bool &path_found, bool reserve_track, PBSTileInfo *target)
 {
 	/* default is YAPF type 2 */
 	typedef Trackdir (*PfnChooseRailTrack)(const Train*, bool&, bool, PBSTileInfo*);
