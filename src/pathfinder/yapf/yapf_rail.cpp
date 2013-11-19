@@ -397,18 +397,18 @@ public:
 		return 't';
 	}
 
-	static Trackdir stChooseRailTrack(const Train *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found, bool reserve_track, PBSTileInfo *target)
+	static Trackdir stChooseRailTrack(const Train *v, bool &path_found, bool reserve_track, PBSTileInfo *target)
 	{
 		/* create pathfinder instance */
 		Tpf pf1;
 #if !DEBUG_YAPF_CACHE
-		Trackdir result1 = pf1.ChooseRailTrack(v, tile, enterdir, trackdirs, path_found, reserve_track, target);
+		Trackdir result1 = pf1.ChooseRailTrack(v, path_found, reserve_track, target);
 
 #else
-		Trackdir result1 = pf1.ChooseRailTrack(v, tile, enterdir, trackdirs, path_found, false, NULL);
+		Trackdir result1 = pf1.ChooseRailTrack(v, path_found, false, NULL);
 		Tpf pf2;
 		pf2.DisableCache(true);
-		Trackdir result2 = pf2.ChooseRailTrack(v, tile, enterdir, trackdirs, path_found, reserve_track, target);
+		Trackdir result2 = pf2.ChooseRailTrack(v, path_found, reserve_track, target);
 		if (result1 != result2) {
 			DEBUG(yapf, 0, "CACHE ERROR: ChooseRailTrack() = [%d, %d]", result1, result2);
 			DumpState(pf1, pf2);
@@ -418,7 +418,7 @@ public:
 		return result1;
 	}
 
-	inline Trackdir ChooseRailTrack(const Train *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found, bool reserve_track, PBSTileInfo *target)
+	inline Trackdir ChooseRailTrack(const Train *v, bool &path_found, bool reserve_track, PBSTileInfo *target)
 	{
 		if (target != NULL) target->pos.tile = INVALID_TILE;
 
@@ -532,7 +532,7 @@ struct CYapfAnySafeTileRail2 : CYapfT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CF
 Trackdir YapfTrainChooseTrack(const Train *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found, bool reserve_track, PBSTileInfo *target)
 {
 	/* default is YAPF type 2 */
-	typedef Trackdir (*PfnChooseRailTrack)(const Train*, TileIndex, DiagDirection, TrackdirBits, bool&, bool, PBSTileInfo*);
+	typedef Trackdir (*PfnChooseRailTrack)(const Train*, bool&, bool, PBSTileInfo*);
 	PfnChooseRailTrack pfnChooseRailTrack = &CYapfRail1::stChooseRailTrack;
 
 	/* check if non-default YAPF type needed */
@@ -540,7 +540,7 @@ Trackdir YapfTrainChooseTrack(const Train *v, TileIndex tile, DiagDirection ente
 		pfnChooseRailTrack = &CYapfRail2::stChooseRailTrack; // Trackdir, forbid 90-deg
 	}
 
-	Trackdir td_ret = pfnChooseRailTrack(v, tile, enterdir, trackdirs, path_found, reserve_track, target);
+	Trackdir td_ret = pfnChooseRailTrack(v, path_found, reserve_track, target);
 	return (td_ret != INVALID_TRACKDIR) ? td_ret : FindFirstTrackdir(trackdirs);
 }
 
