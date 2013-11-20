@@ -2577,13 +2577,9 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 	bool changed_signal = false;
 
 	assert((trackdirs & ~DiagdirReachesTrackdirs(enterdir)) == 0);
+	assert((TrackBitsToTrackdirBits(GetReservedTrackbits(tile)) & DiagdirReachesTrackdirs(enterdir)) == TRACKDIR_BIT_NONE);
 
 	if (got_reservation != NULL) *got_reservation = false;
-
-	/* Don't use trackdirs here as the setting to forbid 90 deg turns might have been switched between reservation and now. */
-	TrackdirBits res_trackdirs = TrackBitsToTrackdirBits(GetReservedTrackbits(tile)) & DiagdirReachesTrackdirs(enterdir);
-	/* Do we have a suitable reserved trackdir? */
-	if (res_trackdirs != TRACKDIR_BIT_NONE) return FindFirstTrackdir(res_trackdirs);
 
 	/* Quick return in case only one possible trackdir is available */
 	if (KillFirstBit(trackdirs) == TRACKDIR_BIT_NONE) {
@@ -3448,9 +3444,17 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				if (prev == NULL) {
 					/* Currently the locomotive is active. Determine which one of the
 					 * available tracks to choose */
-					chosen_trackdir = ChooseTrainTrack(v, gp.new_tile, enterdir, trackdirbits, false, NULL, true);
-					assert(chosen_trackdir != INVALID_TRACKDIR);
-					assert(HasBit(trackdirbits | TrackBitsToTrackdirBits(GetReservedTrackbits(gp.new_tile)), chosen_trackdir));
+
+					/* Don't use trackdirbits here as the setting to forbid 90 deg turns might have been switched between reservation and now. */
+					TrackdirBits res_trackdirs = TrackBitsToTrackdirBits(GetReservedTrackbits(gp.new_tile)) & reachable_trackdirs;
+					/* Do we have a suitable reserved trackdir? */
+					if (res_trackdirs != TRACKDIR_BIT_NONE) {
+						chosen_trackdir = FindFirstTrackdir(res_trackdirs);
+					} else {
+						chosen_trackdir = ChooseTrainTrack(v, gp.new_tile, enterdir, trackdirbits, false, NULL, true);
+						assert(chosen_trackdir != INVALID_TRACKDIR);
+						assert(HasBit(trackdirbits, chosen_trackdir));
+					}
 
 					if (v->force_proceed != TFP_NONE) {
 						/* For each signal we find decrease the counter by one.
