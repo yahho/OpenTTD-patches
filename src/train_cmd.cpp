@@ -42,6 +42,7 @@
 #include "table/train_cmd.h"
 
 static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck);
+static bool TryPathReserveFromDepot(Train *v);
 static bool TrainCheckIfLineEnds(Train *v, bool reverse = true);
 static StationID TrainEnterTile(Train *v, TileIndex tile, int x, int y);
 bool TrainController(Train *v, Vehicle *nomove, bool reverse = true); // Also used in vehicle_sl.cpp.
@@ -2241,7 +2242,7 @@ static bool CheckTrainStayInDepot(Train *v)
 	}
 
 	/* Only leave when we can reserve a path to our destination. */
-	if (try_reserve && !TryPathReserve(v) && v->force_proceed == TFP_NONE) {
+	if (try_reserve && !TryPathReserveFromDepot(v) && v->force_proceed == TFP_NONE) {
 		/* No path and no force proceed. */
 		SetWindowClassesDirty(WC_TRAINS_LIST);
 		MarkTrainAsStuck(v);
@@ -2725,20 +2726,7 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 bool TryPathReserve(Train *v, bool mark_as_stuck, bool first_tile_okay)
 {
 	assert(v->IsFrontEngine());
-
-	/* We have to handle depots specially as the track follower won't look
-	 * at the depot tile itself but starts from the next tile. If we are still
-	 * inside the depot, a depot reservation can never be ours. */
-	if (v->trackdir == TRACKDIR_DEPOT) {
-		if (HasDepotReservation(v->tile)) {
-			if (mark_as_stuck) MarkTrainAsStuck(v);
-			return false;
-		} else {
-			/* Depot not reserved, but the next tile might be. */
-			TileIndex next_tile = TileAddByDiagDir(v->tile, GetGroundDepotDirection(v->tile));
-			if (HasReservedTracks(next_tile, DiagdirReachesTracks(GetGroundDepotDirection(v->tile)))) return false;
-		}
-	}
+	assert(v->trackdir != TRACKDIR_DEPOT);
 
 	Vehicle *other_train = NULL;
 	PBSTileInfo origin = FollowTrainReservation(v, &other_train);
@@ -2759,12 +2747,6 @@ bool TryPathReserve(Train *v, bool mark_as_stuck, bool first_tile_okay)
 		return true;
 	}
 
-	/* If we are in a depot, tentatively reserve the depot. */
-	if (v->trackdir == TRACKDIR_DEPOT) {
-		SetDepotReservation(v->tile, true);
-		if (_settings_client.gui.show_track_reservation) MarkTileDirtyByTile(v->tile);
-	}
-
 	DiagDirection exitdir = TrackdirToExitdir(origin.pos.td);
 	TileIndex     new_tile = TileAddByDiagDir(origin.pos.tile, exitdir);
 	TrackdirBits  reachable = TrackStatusToTrackdirBits(GetTileRailwayStatus(new_tile)) & DiagdirReachesTrackdirs(exitdir);
@@ -2774,9 +2756,51 @@ bool TryPathReserve(Train *v, bool mark_as_stuck, bool first_tile_okay)
 	bool res_made = false;
 	ChooseTrainTrack(v, new_tile, exitdir, reachable, true, &res_made, mark_as_stuck);
 
+	if (!res_made) return false;
+
+	if (HasBit(v->flags, VRF_TRAIN_STUCK)) {
+		v->wait_counter = 0;
+		SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
+	}
+	ClrBit(v->flags, VRF_TRAIN_STUCK);
+	return true;
+}
+
+/**
+ * Try to reserve a path to a safe position from a depot.
+ *
+ * @param v The vehicle
+ * @param mark_as_stuck Should the train be marked as stuck on a failed reservation?
+ * @param first_tile_okay True if no path should be reserved if the current tile is a safe position.
+ * @return True if a path could be reserved.
+ */
+static bool TryPathReserveFromDepot(Train *v)
+{
+	assert(v->IsFrontEngine());
+	assert(v->trackdir == TRACKDIR_DEPOT);
+
+	/* We have to handle depots specially as the track follower won't look
+	 * at the depot tile itself but starts from the next tile. If we are still
+	 * inside the depot, a depot reservation can never be ours. */
+	if (HasDepotReservation(v->tile)) return false;
+
+	/* Depot not reserved, but the next tile might be. */
+	DiagDirection exitdir = GetGroundDepotDirection(v->tile);
+	TileIndex new_tile = TileAddByDiagDir(v->tile, exitdir);
+	if (HasReservedTracks(new_tile, DiagdirReachesTracks(exitdir))) return false;
+
+	/* Tentatively reserve the depot. */
+	SetDepotReservation(v->tile, true);
+	if (_settings_client.gui.show_track_reservation) MarkTileDirtyByTile(v->tile);
+
+	TrackdirBits reachable = TrackStatusToTrackdirBits(GetTileRailwayStatus(new_tile)) & DiagdirReachesTrackdirs(exitdir);
+
+	bool res_made = false;
+	ChooseTrainTrack(v, new_tile, exitdir, reachable, true, &res_made, false);
+
 	if (!res_made) {
 		/* Free the depot reservation as well. */
-		if (v->trackdir == TRACKDIR_DEPOT) SetDepotReservation(v->tile, false);
+		SetDepotReservation(v->tile, false);
 		return false;
 	}
 
