@@ -3464,9 +3464,11 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 						bool at_signal;
 						if (IsRailwayTile(gp.new_tile)) {
 							Track track = TrackdirToTrack(chosen_trackdir);
+							/* However, we do not want to be stopped by PBS
+							 * signals entered via the back. */
 							at_signal = HasSignalOnTrack(gp.new_tile, track) &&
 								(GetSignalType(gp.new_tile, track) != SIGTYPE_PBS ||
-									!HasSignalOnTrackdir(gp.new_tile, ReverseTrackdir(chosen_trackdir)));
+									HasSignalOnTrackdir(gp.new_tile, chosen_trackdir));
 						} else if (maptile_is_rail_tunnel(gp.new_tile)) {
 							at_signal = maptile_has_tunnel_signals(gp.new_tile);
 						} else {
@@ -3474,8 +3476,6 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 						}
 
 						if (at_signal) {
-							/* However, we do not want to be stopped by PBS signals
-							 * entered via the back. */
 							v->force_proceed = (v->force_proceed == TFP_SIGNAL) ? TFP_STUCK : TFP_NONE;
 							SetWindowDirty(WC_VEHICLE_VIEW, v->index);
 						}
