@@ -3326,6 +3326,138 @@ static StationID TrainEnterTile(Train *v, TileIndex tile, int x, int y)
 }
 
 /**
+ * Choose the trackdir to follow when a train enters a new tile.
+ * @param v The train that enters the tile
+ * @param tile The tile entered
+ * @param enterdir The direction the train is moving between tiles
+ * @param tsdir The direction to use for GetTileRailwayStatus
+ * @param check_90deg Check for 90-degree turns and disallow them
+ * @param reverse Set to false to not execute the vehicle reversing. This does not change any other logic.
+ * @return The trackdir to use, or INVALID_TRACKDIR if the train cannot go forward
+ */
+static Trackdir TrainControllerChooseTrackdir(Train *v, TileIndex tile, DiagDirection enterdir, DiagDirection tsdir, bool check_90deg, bool reverse)
+{
+	/* Get the status of the tracks in the new tile and mask
+	 * away the bits that aren't reachable. */
+	TrackStatus ts = GetTileRailwayStatus(tile, tsdir);
+	TrackdirBits reachable_trackdirs = DiagdirReachesTrackdirs(enterdir);
+
+	TrackdirBits trackdirbits = TrackStatusToTrackdirBits(ts) & reachable_trackdirs;
+	if (check_90deg) trackdirbits &= ~TrackdirCrossesTrackdirs(v->trackdir);
+
+	TrackdirBits red_signals = TrackStatusToRedSignals(ts);
+
+	/* Check if the new tile constrains tracks that are compatible
+	 * with the current train, if not, bail out. */
+	if (trackdirbits == TRACKDIR_BIT_NONE || !CheckCompatibleRail(v, tile, TrackdirToTrack(FindFirstTrackdir(trackdirbits)))) {
+		if (reverse) {
+			v->wait_counter = 0;
+			v->cur_speed = 0;
+			v->subspeed = 0;
+			ReverseTrainDirection(v);
+		}
+
+		return INVALID_TRACKDIR;
+	}
+
+	Trackdir chosen_trackdir;
+
+	/* Don't use trackdirbits here as the setting to forbid 90 deg turns might have been switched between reservation and now. */
+	TrackdirBits res_trackdirs = TrackBitsToTrackdirBits(GetReservedTrackbits(tile)) & reachable_trackdirs;
+	/* Do we have a suitable reserved trackdir? */
+	if (res_trackdirs != TRACKDIR_BIT_NONE) {
+		chosen_trackdir = FindFirstTrackdir(res_trackdirs);
+	} else {
+		chosen_trackdir = ChooseTrainTrack(v, tile, enterdir, trackdirbits, false, NULL, true);
+		assert(chosen_trackdir != INVALID_TRACKDIR);
+		assert(HasBit(trackdirbits, chosen_trackdir));
+	}
+
+	/* Make sure chosen trackdir is a valid trackdir */
+	assert(IsValidTrackdir(chosen_trackdir));
+
+	if (v->force_proceed != TFP_NONE) {
+		/* For each signal we find decrease the counter by one.
+		 * We start at two, so the first signal we pass decreases
+		 * this to one, then if we reach the next signal it is
+		 * decreased to zero and we won't pass that new signal. */
+		bool at_signal;
+		if (IsRailwayTile(tile)) {
+			Track track = TrackdirToTrack(chosen_trackdir);
+			/* However, we do not want to be stopped by PBS
+			 * signals entered via the back. */
+			at_signal = HasSignalOnTrack(tile, track) &&
+				(GetSignalType(tile, track) != SIGTYPE_PBS ||
+					HasSignalOnTrackdir(tile, chosen_trackdir));
+		} else if (maptile_is_rail_tunnel(tile)) {
+			at_signal = maptile_has_tunnel_signals(tile);
+		} else {
+			at_signal = false;
+		}
+
+		if (at_signal) {
+			v->force_proceed = (v->force_proceed == TFP_SIGNAL) ? TFP_STUCK : TFP_NONE;
+			SetWindowDirty(WC_VEHICLE_VIEW, v->index);
+		}
+	}
+
+	/* Check if it's a red signal and if force proceed is clicked. */
+	if (!HasBit(red_signals, chosen_trackdir) || v->force_proceed != TFP_NONE) {
+		/* Proceed */
+		TryReserveRailTrack(tile, TrackdirToTrack(chosen_trackdir), false);
+		return chosen_trackdir;
+	}
+
+	/* In front of a red signal */
+	assert(trackdirbits == TrackdirToTrackdirBits(chosen_trackdir));
+
+	/* Don't handle stuck trains here. */
+	if (HasBit(v->flags, VRF_TRAIN_STUCK)) return INVALID_TRACKDIR;
+
+	if (!HasSignalOnTrackdir(tile, ReverseTrackdir(chosen_trackdir))) {
+		v->cur_speed = 0;
+		v->subspeed = 0;
+		v->progress = 255 - 100;
+		if (!_settings_game.pf.reverse_at_signals || ++v->wait_counter < _settings_game.pf.wait_oneway_signal * 20) return INVALID_TRACKDIR;
+	} else if (HasSignalOnTrackdir(tile, chosen_trackdir)) {
+		v->cur_speed = 0;
+		v->subspeed = 0;
+		v->progress = 255 - 10;
+		if (!_settings_game.pf.reverse_at_signals || ++v->wait_counter < _settings_game.pf.wait_twoway_signal * 73) {
+			DiagDirection exitdir = TrackdirToExitdir(chosen_trackdir);
+			TileIndex o_tile = TileAddByDiagDir(tile, exitdir);
+
+			exitdir = ReverseDiagDir(exitdir);
+
+			/* check if a train is waiting on the other side */
+			if (!HasVehicleOnPos(o_tile, &exitdir, &CheckTrainAtSignal)) return INVALID_TRACKDIR;
+		}
+	}
+
+	/* If we would reverse but are currently in a PBS block and
+	 * reversing of stuck trains is disabled, don't reverse.
+	 * This does not apply if the reason for reversing is a one-way
+	 * signal blocking us, because a train would then be stuck forever. */
+	if (!_settings_game.pf.reverse_at_signals && !HasOnewaySignalBlockingTrackdir(tile, chosen_trackdir)) {
+		assert(IsSignalBufferEmpty());
+		AddPosToSignalBuffer(v->GetPos(), v->owner);
+		if (UpdateSignalsInBuffer() == SIGSEG_PBS) {
+			v->wait_counter = 0;
+			return INVALID_TRACKDIR;
+		}
+	}
+
+	if (reverse) {
+		v->wait_counter = 0;
+		v->cur_speed = 0;
+		v->subspeed = 0;
+		ReverseTrainDirection(v);
+	}
+
+	return INVALID_TRACKDIR;
+}
+
+/**
  * Move a vehicle chain one movement stop forwards.
  * @param v First vehicle to move.
  * @param nomove Stop moving this and all following vehicles.
@@ -3424,108 +3556,8 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				if (prev == NULL) {
 					/* Currently the locomotive is active. Determine which one of the
 					 * available tracks to choose */
-
-					/* Get the status of the tracks in the new tile and mask
-					 * away the bits that aren't reachable. */
-					TrackStatus ts = GetTileRailwayStatus(gp.new_tile, tsdir);
-					TrackdirBits reachable_trackdirs = DiagdirReachesTrackdirs(enterdir);
-
-					TrackdirBits trackdirbits = TrackStatusToTrackdirBits(ts) & reachable_trackdirs;
-					TrackdirBits red_signals = TrackStatusToRedSignals(ts);
-
-					if (!old_in_wormhole && _settings_game.pf.forbid_90_deg) {
-						trackdirbits &= ~TrackdirCrossesTrackdirs(v->trackdir);
-					}
-
-					if (trackdirbits == TRACKDIR_BIT_NONE) goto reverse_train_direction;
-
-					/* Check if the new tile constrains tracks that are compatible
-					 * with the current train, if not, bail out. */
-					if (!CheckCompatibleRail(v, gp.new_tile, TrackdirToTrack(FindFirstTrackdir(trackdirbits)))) goto reverse_train_direction;
-
-					/* Don't use trackdirbits here as the setting to forbid 90 deg turns might have been switched between reservation and now. */
-					TrackdirBits res_trackdirs = TrackBitsToTrackdirBits(GetReservedTrackbits(gp.new_tile)) & reachable_trackdirs;
-					/* Do we have a suitable reserved trackdir? */
-					if (res_trackdirs != TRACKDIR_BIT_NONE) {
-						chosen_trackdir = FindFirstTrackdir(res_trackdirs);
-					} else {
-						chosen_trackdir = ChooseTrainTrack(v, gp.new_tile, enterdir, trackdirbits, false, NULL, true);
-						assert(chosen_trackdir != INVALID_TRACKDIR);
-						assert(HasBit(trackdirbits, chosen_trackdir));
-					}
-
-					/* Make sure chosen trackdir is a valid trackdir */
-					assert(IsValidTrackdir(chosen_trackdir));
-
-					if (v->force_proceed != TFP_NONE) {
-						/* For each signal we find decrease the counter by one.
-						 * We start at two, so the first signal we pass decreases
-						 * this to one, then if we reach the next signal it is
-						 * decreased to zero and we won't pass that new signal. */
-						bool at_signal;
-						if (IsRailwayTile(gp.new_tile)) {
-							Track track = TrackdirToTrack(chosen_trackdir);
-							/* However, we do not want to be stopped by PBS
-							 * signals entered via the back. */
-							at_signal = HasSignalOnTrack(gp.new_tile, track) &&
-								(GetSignalType(gp.new_tile, track) != SIGTYPE_PBS ||
-									HasSignalOnTrackdir(gp.new_tile, chosen_trackdir));
-						} else if (maptile_is_rail_tunnel(gp.new_tile)) {
-							at_signal = maptile_has_tunnel_signals(gp.new_tile);
-						} else {
-							at_signal = false;
-						}
-
-						if (at_signal) {
-							v->force_proceed = (v->force_proceed == TFP_SIGNAL) ? TFP_STUCK : TFP_NONE;
-							SetWindowDirty(WC_VEHICLE_VIEW, v->index);
-						}
-					}
-
-					/* Check if it's a red signal and that force proceed is not clicked. */
-					if (HasBit(red_signals, chosen_trackdir) && v->force_proceed == TFP_NONE) {
-						/* In front of a red signal */
-						assert(trackdirbits == TrackdirToTrackdirBits(chosen_trackdir));
-
-						/* Don't handle stuck trains here. */
-						if (HasBit(v->flags, VRF_TRAIN_STUCK)) return false;
-
-						if (!HasSignalOnTrackdir(gp.new_tile, ReverseTrackdir(chosen_trackdir))) {
-							v->cur_speed = 0;
-							v->subspeed = 0;
-							v->progress = 255 - 100;
-							if (!_settings_game.pf.reverse_at_signals || ++v->wait_counter < _settings_game.pf.wait_oneway_signal * 20) return false;
-						} else if (HasSignalOnTrackdir(gp.new_tile, chosen_trackdir)) {
-							v->cur_speed = 0;
-							v->subspeed = 0;
-							v->progress = 255 - 10;
-							if (!_settings_game.pf.reverse_at_signals || ++v->wait_counter < _settings_game.pf.wait_twoway_signal * 73) {
-								DiagDirection exitdir = TrackdirToExitdir(chosen_trackdir);
-								TileIndex o_tile = TileAddByDiagDir(gp.new_tile, exitdir);
-
-								exitdir = ReverseDiagDir(exitdir);
-
-								/* check if a train is waiting on the other side */
-								if (!HasVehicleOnPos(o_tile, &exitdir, &CheckTrainAtSignal)) return false;
-							}
-						}
-
-						/* If we would reverse but are currently in a PBS block and
-						 * reversing of stuck trains is disabled, don't reverse.
-						 * This does not apply if the reason for reversing is a one-way
-						 * signal blocking us, because a train would then be stuck forever. */
-						if (!_settings_game.pf.reverse_at_signals && !HasOnewaySignalBlockingTrackdir(gp.new_tile, chosen_trackdir)) {
-							assert(IsSignalBufferEmpty());
-							AddPosToSignalBuffer(v->GetPos(), v->owner);
-							if (UpdateSignalsInBuffer() == SIGSEG_PBS) {
-								v->wait_counter = 0;
-								return false;
-							}
-						}
-						goto reverse_train_direction;
-					} else {
-						TryReserveRailTrack(gp.new_tile, TrackdirToTrack(chosen_trackdir), false);
-					}
+					chosen_trackdir = TrainControllerChooseTrackdir(v, gp.new_tile, enterdir, tsdir, !old_in_wormhole && _settings_game.pf.forbid_90_deg, reverse);
+					if (chosen_trackdir == INVALID_TRACKDIR) return false;
 
 					if (HasPbsSignalOnTrackdir(gp.new_tile, chosen_trackdir)) {
 						SetSignalState(gp.new_tile, chosen_trackdir, SIGNAL_STATE_RED);
@@ -3718,16 +3750,6 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 	if (direction_changed) first->tcache.cached_max_curve_speed = first->GetCurveSpeedLimit();
 
 	return true;
-
-reverse_train_direction:
-	if (reverse) {
-		v->wait_counter = 0;
-		v->cur_speed = 0;
-		v->subspeed = 0;
-		ReverseTrainDirection(v);
-	}
-
-	return false;
 }
 
 /**
