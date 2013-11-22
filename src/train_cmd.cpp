@@ -3421,23 +3421,21 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 
 			Trackdir chosen_trackdir;
 			if (!new_in_wormhole) {
-				/* Get the status of the tracks in the new tile and mask
-				 * away the bits that aren't reachable. */
-				TrackStatus ts = GetTileRailwayStatus(gp.new_tile, tsdir);
-				TrackdirBits reachable_trackdirs = DiagdirReachesTrackdirs(enterdir);
-
-				TrackdirBits trackdirbits = TrackStatusToTrackdirBits(ts) & reachable_trackdirs;
-				TrackdirBits red_signals = TrackStatusToRedSignals(ts);
-
-				if (prev == NULL && !old_in_wormhole && _settings_game.pf.forbid_90_deg) {
-					/* We allow wagons to make 90 deg turns, because forbid_90_deg
-					 * can be switched on halfway a turn */
-					trackdirbits &= ~TrackdirCrossesTrackdirs(v->trackdir);
-				}
-
 				if (prev == NULL) {
 					/* Currently the locomotive is active. Determine which one of the
 					 * available tracks to choose */
+
+					/* Get the status of the tracks in the new tile and mask
+					 * away the bits that aren't reachable. */
+					TrackStatus ts = GetTileRailwayStatus(gp.new_tile, tsdir);
+					TrackdirBits reachable_trackdirs = DiagdirReachesTrackdirs(enterdir);
+
+					TrackdirBits trackdirbits = TrackStatusToTrackdirBits(ts) & reachable_trackdirs;
+					TrackdirBits red_signals = TrackStatusToRedSignals(ts);
+
+					if (!old_in_wormhole && _settings_game.pf.forbid_90_deg) {
+						trackdirbits &= ~TrackdirCrossesTrackdirs(v->trackdir);
+					}
 
 					if (trackdirbits == TRACKDIR_BIT_NONE) goto reverse_train_direction;
 
@@ -3455,6 +3453,9 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 						assert(chosen_trackdir != INVALID_TRACKDIR);
 						assert(HasBit(trackdirbits, chosen_trackdir));
 					}
+
+					/* Make sure chosen trackdir is a valid trackdir */
+					assert(IsValidTrackdir(chosen_trackdir));
 
 					if (v->force_proceed != TFP_NONE) {
 						/* For each signal we find decrease the counter by one.
@@ -3525,12 +3526,13 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					} else {
 						TryReserveRailTrack(gp.new_tile, TrackdirToTrack(chosen_trackdir), false);
 					}
+
+					if (HasPbsSignalOnTrackdir(gp.new_tile, chosen_trackdir)) {
+						SetSignalState(gp.new_tile, chosen_trackdir, SIGNAL_STATE_RED);
+						MarkTileDirtyByTile(gp.new_tile);
+					}
 				} else {
 					/* The wagon is active, simply follow the prev vehicle. */
-
-					assert(trackdirbits != TRACKDIR_BIT_NONE);
-					assert(CheckCompatibleRail(v, gp.new_tile, TrackdirToTrack(FindFirstTrackdir(trackdirbits))));
-
 					if (prev->tile == gp.new_tile) {
 						/* Choose the same track as prev */
 						assert(prev->trackdir != TRACKDIR_WORMHOLE);
@@ -3548,15 +3550,8 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 						chosen_trackdir = EnterdirExitdirToTrackdir(enterdir, exitdir);
 						assert(!IsReversingRoadTrackdir(chosen_trackdir));
 					}
-					assert(HasBit(trackdirbits, chosen_trackdir));
-				}
 
-				/* Make sure chosen trackdir is a valid trackdir */
-				assert(IsValidTrackdir(chosen_trackdir));
-
-				if (v->IsFrontEngine() && HasPbsSignalOnTrackdir(gp.new_tile, chosen_trackdir)) {
-					SetSignalState(gp.new_tile, chosen_trackdir, SIGNAL_STATE_RED);
-					MarkTileDirtyByTile(gp.new_tile);
+					assert(CheckCompatibleRail(v, gp.new_tile, TrackdirToTrack(chosen_trackdir)));
 				}
 			} else {
 				/* new_in_wormhole */
