@@ -3435,15 +3435,15 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					trackdirbits &= ~TrackdirCrossesTrackdirs(v->trackdir);
 				}
 
-				if (trackdirbits == TRACKDIR_BIT_NONE) goto invalid_rail;
-
-				/* Check if the new tile constrains tracks that are compatible
-				 * with the current train, if not, bail out. */
-				if (!CheckCompatibleRail(v, gp.new_tile, TrackdirToTrack(FindFirstTrackdir(trackdirbits)))) goto invalid_rail;
-
 				if (prev == NULL) {
 					/* Currently the locomotive is active. Determine which one of the
 					 * available tracks to choose */
+
+					if (trackdirbits == TRACKDIR_BIT_NONE) goto reverse_train_direction;
+
+					/* Check if the new tile constrains tracks that are compatible
+					 * with the current train, if not, bail out. */
+					if (!CheckCompatibleRail(v, gp.new_tile, TrackdirToTrack(FindFirstTrackdir(trackdirbits)))) goto reverse_train_direction;
 
 					/* Don't use trackdirbits here as the setting to forbid 90 deg turns might have been switched between reservation and now. */
 					TrackdirBits res_trackdirs = TrackBitsToTrackdirBits(GetReservedTrackbits(gp.new_tile)) & reachable_trackdirs;
@@ -3527,6 +3527,10 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					}
 				} else {
 					/* The wagon is active, simply follow the prev vehicle. */
+
+					assert(trackdirbits != TRACKDIR_BIT_NONE);
+					assert(CheckCompatibleRail(v, gp.new_tile, TrackdirToTrack(FindFirstTrackdir(trackdirbits))));
+
 					if (prev->tile == gp.new_tile) {
 						/* Choose the same track as prev */
 						assert(prev->trackdir != TRACKDIR_WORMHOLE);
@@ -3719,10 +3723,6 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 	if (direction_changed) first->tcache.cached_max_curve_speed = first->GetCurveSpeedLimit();
 
 	return true;
-
-invalid_rail:
-	/* We've reached end of line?? */
-	if (prev != NULL) error("Disconnecting train");
 
 reverse_train_direction:
 	if (reverse) {
