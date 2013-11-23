@@ -44,7 +44,7 @@ struct LoadCheckData {
 
 	Gamelog gamelog;                              ///< Gamelog
 
-	LoadCheckData() : grfconfig(NULL), gamelog()
+	LoadCheckData() : grfconfig(NULL), grf_compatibility(GLC_NOT_FOUND), gamelog()
 	{
 		this->Clear();
 	}
