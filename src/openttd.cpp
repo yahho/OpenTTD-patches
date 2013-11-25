@@ -637,8 +637,6 @@ int openttd_main(int argc, char *argv[])
 			}
 			break;
 		case 'q': {
-			delete scanner;
-
 			DeterminePaths(argv[0]);
 			if (StrEmpty(mgo.opt)) {
 				ret = 1;
@@ -688,7 +686,6 @@ int openttd_main(int argc, char *argv[])
 		BaseSounds::FindSets();
 		BaseMusic::FindSets();
 		ShowHelp();
-		delete scanner;
 
 		goto exit_noshutdown;
 	}
@@ -799,6 +796,7 @@ int openttd_main(int argc, char *argv[])
 
 	if (!HandleBootstrap()) {
 		ShutdownGame();
+
 		goto exit_bootstrap;
 	}
 
@@ -862,7 +860,9 @@ int openttd_main(int argc, char *argv[])
 
 	CheckForMissingGlyphs();
 
+	/* ScanNewGRFFiles now has control over the scanner. */
 	ScanNewGRFFiles(scanner);
+	scanner = NULL;
 
 	if (IsExperimentalSavegameVersion()) {
 		ErrorMessageData msg(STR_WARNING_EXPERIMENTAL_SAVEGAME_VERSION_1, STR_WARNING_EXPERIMENTAL_SAVEGAME_VERSION_2);
@@ -907,6 +907,8 @@ exit_normal:
 	free(_ini_sounddriver);
 	free(_ini_videodriver);
 	free(_ini_blitter);
+
+	delete scanner;
 
 	return ret;
 }
