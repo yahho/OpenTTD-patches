@@ -910,6 +910,13 @@ exit_normal:
 
 	delete scanner;
 
+#ifdef ENABLE_NETWORK
+	extern FILE *_log_fd;
+	if (_log_fd != NULL) {
+		fclose(_log_fd);
+	}
+#endif /* ENABLE_NETWORK */
+
 	return ret;
 }
 
