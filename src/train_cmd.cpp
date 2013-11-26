@@ -53,6 +53,11 @@ static void CheckNextTrainTile(Train *v);
 static const byte _vehicle_initial_x_fract[4] = {10, 8, 4,  8};
 static const byte _vehicle_initial_y_fract[4] = { 8, 4, 8, 10};
 
+template <>
+bool IsValidImageIndex<VEH_TRAIN>(uint8 image_index)
+{
+	return image_index < lengthof(_engine_sprite_base);
+}
 
 /**
  * Return the cargo weight multiplier to use for a rail vehicle
@@ -524,6 +529,7 @@ int Train::GetDisplayImageWidth(Point *offset) const
 
 static SpriteID GetDefaultTrainSprite(uint8 spritenum, Direction direction)
 {
+	assert(IsValidImageIndex<VEH_TRAIN>(spritenum));
 	return ((direction + _engine_sprite_add[spritenum]) & _engine_sprite_and[spritenum]) + _engine_sprite_base[spritenum];
 }
 
@@ -547,6 +553,7 @@ SpriteID Train::GetImage(Direction direction, EngineImageType image_type) const
 		spritenum = this->GetEngine()->original_image_index;
 	}
 
+	assert(IsValidImageIndex<VEH_TRAIN>(spritenum));
 	sprite = GetDefaultTrainSprite(spritenum, direction);
 
 	if (this->cargo.StoredCount() >= this->cargo_cap / 2U) sprite += _wagon_full_adder[spritenum];
