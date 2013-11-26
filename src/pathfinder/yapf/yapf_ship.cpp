@@ -150,7 +150,7 @@ public:
 		/* base tile cost depending on distance */
 		int c = IsDiagonalTrackdir(n.GetPos().td) ? YAPF_TILE_LENGTH : YAPF_TILE_CORNER_LENGTH;
 		/* additional penalty for curves */
-		if (n.m_parent != NULL && n.GetPos().td != NextTrackdir(n.m_parent->GetPos().td)) {
+		if (n.GetPos().td != NextTrackdir(n.m_parent->GetPos().td)) {
 			/* new trackdir does not match the next one when going straight */
 			c += YAPF_TILE_LENGTH;
 		}
