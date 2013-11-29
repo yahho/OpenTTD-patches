@@ -1497,7 +1497,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 			}
 
 			if (other_end != INVALID_TILE && HasReservedTrack(other_end, track)) {
-				v[1] = GetTrainForReservation(tile, track);
+				v[1] = GetTrainForReservation(other_end, track);
 				if (v[1] != NULL) FreeTrainTrackReservation(v[1]);
 			}
 
