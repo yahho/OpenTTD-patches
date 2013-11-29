@@ -208,10 +208,7 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 /** Follow a reservation starting from a specific tile to the end. */
 static PFPos FollowReservation(Owner o, RailTypes rts, const PFPos &pos, bool ignore_oneway = false)
 {
-	/* Start track not reserved? This can happen if two trains
-	 * are on the same tile. The reservation on the next tile
-	 * is not ours in this case, so exit. */
-	if (!HasReservedPos(pos)) return pos;
+	assert(HasReservedPos(pos));
 
 	/* Do not disallow 90 deg turns as the setting might have changed between reserving and now. */
 	CFollowTrackRail ft(o, true, rts);
@@ -353,7 +350,12 @@ PBSTileInfo FollowTrainReservation(const Train *v, Vehicle **train_on_res)
 	if (!pos.InWormhole() && IsRailDepotTile(pos.tile) && !HasDepotReservation(pos.tile)) return PBSTileInfo(pos, false);
 
 	FindTrainOnTrackInfo ftoti;
-	ftoti.pos = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, pos);
+
+	/* Start track not reserved? This can happen if two trains
+	 * are on the same tile. The reservation on the next tile
+	 * is not ours in this case. */
+	ftoti.pos = !HasReservedPos(pos) ? pos : FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, pos);
+
 	if (train_on_res != NULL) {
 		FindTrainOnPathEnd(&ftoti);
 		if (ftoti.best != NULL) *train_on_res = ftoti.best->First();
