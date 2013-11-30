@@ -2071,8 +2071,8 @@ static FindDepotData FindClosestTrainDepot(Train *v, int max_distance)
 
 	if (IsRailDepotTile(v->tile)) return FindDepotData(v->tile, 0);
 
-	PBSTileInfo origin = FollowTrainReservation(v);
-	if (IsRailDepotTile(origin.pos.tile)) return FindDepotData(origin.pos.tile, 0);
+	PFPos origin = FollowTrainReservation(v);
+	if (IsRailDepotTile(origin.tile)) return FindDepotData(origin.tile, 0);
 
 	switch (_settings_game.pf.pathfinder_for_trains) {
 		case VPF_NPF: return NPFTrainFindNearestDepot(v, max_distance);
@@ -2411,10 +2411,10 @@ static Trackdir DoTrainPathfind(const Train *v, bool &path_found, bool do_track_
  */
 static PBSTileInfo ExtendTrainReservation(const Train *v)
 {
-	PBSTileInfo origin = FollowTrainReservation(v);
+	PFPos origin = FollowTrainReservation(v);
 
 	CFollowTrackRail ft(v, !_settings_game.pf.forbid_90_deg);
-	ft.SetPos(origin.pos);
+	ft.SetPos(origin);
 
 	while (ft.FollowNext()) {
 		/* Station, depot or waypoint are a possible target. */
@@ -2456,7 +2456,7 @@ static PBSTileInfo ExtendTrainReservation(const Train *v)
 
 	/* Sorry, can't reserve path, back out. */
 	PFPos stopped = ft.m_old;
-	ft.SetPos(origin.pos);
+	ft.SetPos(origin);
 	while (ft.m_new != stopped) {
 		if (!ft.FollowNext()) NOT_REACHED();
 
@@ -2658,8 +2658,8 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 	/* No possible reservation target found, we are probably lost. */
 	if (res_dest.pos.tile == INVALID_TILE) {
 		/* Try to find any safe destination. */
-		PBSTileInfo origin = FollowTrainReservation(v);
-		if (TryReserveSafeTrack(v, origin.pos, false)) {
+		PFPos origin = FollowTrainReservation(v);
+		if (TryReserveSafeTrack(v, origin, false)) {
 			TrackBits res = GetReservedTrackbits(tile);
 			best_trackdir = FindFirstTrackdir(TrackBitsToTrackdirBits(res) & DiagdirReachesTrackdirs(enterdir));
 			TryReserveRailTrack(v->GetPos());
@@ -2725,7 +2725,7 @@ bool TryPathReserve(Train *v, bool mark_as_stuck, bool first_tile_okay)
 	assert(v->trackdir != TRACKDIR_DEPOT);
 
 	Vehicle *other_train = NULL;
-	PBSTileInfo origin = FollowTrainReservation(v, &other_train);
+	PFPos origin = FollowTrainReservation(v, &other_train);
 	/* The path we are driving on is already blocked by some other train.
 	 * This can only happen in certain situations when mixing path and
 	 * block signals or when changing tracks and/or signals.
@@ -2735,19 +2735,20 @@ bool TryPathReserve(Train *v, bool mark_as_stuck, bool first_tile_okay)
 		if (mark_as_stuck) MarkTrainAsStuck(v);
 		return false;
 	}
+
 	/* If we have a reserved path and the path ends at a safe tile, we are finished already. */
-	if (origin.okay && (v->tile != origin.pos.tile || first_tile_okay)) {
+	if ((v->tile != origin.tile || first_tile_okay) && IsSafeWaitingPosition(v, origin, _settings_game.pf.forbid_90_deg)) {
 		/* Can't be stuck then. */
 		if (HasBit(v->flags, VRF_TRAIN_STUCK)) SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
 		ClrBit(v->flags, VRF_TRAIN_STUCK);
 		return true;
 	}
 
-	DiagDirection exitdir = TrackdirToExitdir(origin.pos.td);
-	TileIndex     new_tile = TileAddByDiagDir(origin.pos.tile, exitdir);
+	DiagDirection exitdir = TrackdirToExitdir(origin.td);
+	TileIndex     new_tile = TileAddByDiagDir(origin.tile, exitdir);
 	TrackdirBits  reachable = TrackStatusToTrackdirBits(GetTileRailwayStatus(new_tile)) & DiagdirReachesTrackdirs(exitdir);
 
-	if (_settings_game.pf.forbid_90_deg) reachable &= ~TrackdirCrossesTrackdirs(origin.pos.td);
+	if (_settings_game.pf.forbid_90_deg) reachable &= ~TrackdirCrossesTrackdirs(origin.td);
 
 	bool res_made = false;
 	ChooseTrainTrack(v, new_tile, exitdir, reachable, true, &res_made, mark_as_stuck);

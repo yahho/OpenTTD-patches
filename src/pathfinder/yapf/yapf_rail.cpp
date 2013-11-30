@@ -423,8 +423,7 @@ public:
 		if (target != NULL) target->pos.tile = INVALID_TILE;
 
 		/* set origin and destination nodes */
-		PBSTileInfo origin = FollowTrainReservation(v);
-		Yapf().SetOrigin(origin.pos);
+		Yapf().SetOrigin(FollowTrainReservation(v));
 		Yapf().SetDestination(v);
 
 		/* find the best path */
@@ -596,7 +595,7 @@ FindDepotData YapfTrainFindNearestDepot(const Train *v, int max_penalty)
 {
 	FindDepotData fdd;
 
-	PBSTileInfo origin = FollowTrainReservation(v);
+	PFPos origin = FollowTrainReservation(v);
 	PFPos rev = v->Last()->GetReversePos();
 
 	typedef bool (*PfnFindNearestDepotTwoWay)(const Train*, const PFPos&, const PFPos&, int, int, TileIndex*, bool*);
@@ -607,7 +606,7 @@ FindDepotData YapfTrainFindNearestDepot(const Train *v, int max_penalty)
 		pfnFindNearestDepotTwoWay = &CYapfAnyDepotRail2::stFindNearestDepotTwoWay; // Trackdir, forbid 90-deg
 	}
 
-	bool ret = pfnFindNearestDepotTwoWay(v, origin.pos, rev, max_penalty, YAPF_INFINITE_PENALTY, &fdd.tile, &fdd.reverse);
+	bool ret = pfnFindNearestDepotTwoWay(v, origin, rev, max_penalty, YAPF_INFINITE_PENALTY, &fdd.tile, &fdd.reverse);
 	fdd.best_length = ret ? max_penalty / 2 : UINT_MAX; // some fake distance or NOT_FOUND
 	return fdd;
 }

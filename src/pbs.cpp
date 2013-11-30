@@ -341,7 +341,7 @@ static void FindTrainOnPathEnd(FindTrainOnTrackInfo *ftoti)
  * @param train_on_res Is set to a train we might encounter
  * @returns The last tile of the reservation or the current train tile if no reservation present.
  */
-PBSTileInfo FollowTrainReservation(const Train *v, Vehicle **train_on_res)
+PFPos FollowTrainReservation(const Train *v, Vehicle **train_on_res)
 {
 	assert(v->type == VEH_TRAIN);
 
@@ -359,8 +359,7 @@ PBSTileInfo FollowTrainReservation(const Train *v, Vehicle **train_on_res)
 		}
 	}
 
-	bool okay = IsSafeWaitingPosition(v, ftoti.pos, _settings_game.pf.forbid_90_deg);
-	return PBSTileInfo(ftoti.pos, okay);
+	return ftoti.pos;
 }
 
 /**
