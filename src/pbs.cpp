@@ -345,17 +345,14 @@ PBSTileInfo FollowTrainReservation(const Train *v, Vehicle **train_on_res)
 {
 	assert(v->type == VEH_TRAIN);
 
-	PFPos pos = v->GetPos();
-
 	FindTrainOnTrackInfo ftoti;
+	ftoti.pos = v->GetPos();
 
 	/* Start track not reserved? This can happen if two trains
 	 * are on the same tile. The reservation on the next tile
 	 * is not ours in this case. */
-	if (!HasReservedPos(pos)) {
-		ftoti.pos = pos;
-	} else {
-		ftoti.pos = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, pos);
+	if (HasReservedPos(ftoti.pos)) {
+		ftoti.pos = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, ftoti.pos);
 		if (train_on_res != NULL) {
 			FindTrainOnPathEnd(&ftoti);
 			if (ftoti.best != NULL) *train_on_res = ftoti.best->First();
