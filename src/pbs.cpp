@@ -347,8 +347,6 @@ PBSTileInfo FollowTrainReservation(const Train *v, Vehicle **train_on_res)
 
 	PFPos pos = v->GetPos();
 
-	if (!pos.InWormhole() && IsRailDepotTile(pos.tile) && !HasDepotReservation(pos.tile)) return PBSTileInfo(pos, false);
-
 	FindTrainOnTrackInfo ftoti;
 
 	/* Start track not reserved? This can happen if two trains
