@@ -429,7 +429,7 @@ PBSPositionState CheckWaitingPosition(const Train *v, const PFPos &pos, bool for
 		}
 	} else {
 		/* Depots are always safe, and free iff unreserved. */
-		if (IsRailDepotTile(pos.tile)) return HasDepotReservation(pos.tile) ? PBS_BUSY : PBS_FREE;
+		if (IsRailDepotTile(pos.tile) && pos.td == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(pos.tile)))) return HasDepotReservation(pos.tile) ? PBS_BUSY : PBS_FREE;
 
 		if (HasSignalAlongPos(pos) && !IsPbsSignal(GetSignalType(pos))) {
 			/* For non-pbs signals, stop on the signal tile. */
