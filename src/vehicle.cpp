@@ -309,23 +309,6 @@ const int HASH_RES = 0;
 
 static Vehicle *_vehicle_tile_hash[TOTAL_HASH_SIZE];
 
-static Vehicle *VehicleFromTileHash(int xl, int yl, int xu, int yu, void *data, VehicleFromPosProc *proc, bool find_first)
-{
-	for (int y = yl; ; y = (y + (1 << HASH_BITS)) & (HASH_MASK << HASH_BITS)) {
-		for (int x = xl; ; x = (x + 1) & HASH_MASK) {
-			Vehicle *v = _vehicle_tile_hash[(x + y) & TOTAL_HASH_MASK];
-			for (; v != NULL; v = v->hash_tile_next) {
-				Vehicle *a = proc(v, data);
-				if (find_first && a != NULL) return a;
-			}
-			if (x == xu) break;
-		}
-		if (y == yu) break;
-	}
-
-	return NULL;
-}
-
 
 /**
  * Helper function for FindVehicleOnPos/HasVehicleOnPos.
@@ -348,7 +331,19 @@ static Vehicle *VehicleFromPosXY(int x, int y, void *data, VehicleFromPosProc *p
 	int yl = GB((y - COLL_DIST) / TILE_SIZE, HASH_RES, HASH_BITS) << HASH_BITS;
 	int yu = GB((y + COLL_DIST) / TILE_SIZE, HASH_RES, HASH_BITS) << HASH_BITS;
 
-	return VehicleFromTileHash(xl, yl, xu, yu, data, proc, find_first);
+	for (int y = yl; ; y = (y + (1 << HASH_BITS)) & (HASH_MASK << HASH_BITS)) {
+		for (int x = xl; ; x = (x + 1) & HASH_MASK) {
+			Vehicle *v = _vehicle_tile_hash[(x + y) & TOTAL_HASH_MASK];
+			for (; v != NULL; v = v->hash_tile_next) {
+				Vehicle *a = proc(v, data);
+				if (find_first && a != NULL) return a;
+			}
+			if (x == xu) break;
+		}
+		if (y == yu) break;
+	}
+
+	return NULL;
 }
 
 /**
