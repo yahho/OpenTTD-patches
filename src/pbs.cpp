@@ -354,11 +354,14 @@ PBSTileInfo FollowTrainReservation(const Train *v, Vehicle **train_on_res)
 	/* Start track not reserved? This can happen if two trains
 	 * are on the same tile. The reservation on the next tile
 	 * is not ours in this case. */
-	ftoti.pos = !HasReservedPos(pos) ? pos : FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, pos);
-
-	if (train_on_res != NULL) {
-		FindTrainOnPathEnd(&ftoti);
-		if (ftoti.best != NULL) *train_on_res = ftoti.best->First();
+	if (!HasReservedPos(pos)) {
+		ftoti.pos = pos;
+	} else {
+		ftoti.pos = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, pos);
+		if (train_on_res != NULL) {
+			FindTrainOnPathEnd(&ftoti);
+			if (ftoti.best != NULL) *train_on_res = ftoti.best->First();
+		}
 	}
 
 	bool okay = IsSafeWaitingPosition(v, ftoti.pos, _settings_game.pf.forbid_90_deg);
