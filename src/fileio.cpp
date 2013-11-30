@@ -1178,14 +1178,17 @@ void DeterminePaths(const char *exe)
 		DEBUG(misc, 4, "%s added as search path", _searchpaths[sp]);
 	}
 
-	char *config_dir;
+	const char *config_dir;
 	if (_config_file != NULL) {
-		config_dir = strdup(_config_file);
-		char *end = strrchr(config_dir, PATHSEPCHAR);
+		char *end = strrchr(_config_file, PATHSEPCHAR);
 		if (end == NULL) {
-			config_dir[0] = '\0';
+			config_dir = "";
 		} else {
-			end[1] = '\0';
+			size_t n = (end - _config_file) + 1;
+			char *dir = (char*)malloc(n + 1);
+			memcpy(dir, _config_file, n);
+			dir[n] = '\0';
+			config_dir = dir;
 		}
 	} else {
 		char personal_dir[MAX_PATH];
