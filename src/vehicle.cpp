@@ -1083,7 +1083,7 @@ static void DoDrawVehicle(const Vehicle *v)
  * Add the vehicle sprites that should be drawn at a part of the screen.
  * @param dpi Rectangle being drawn.
  */
-void ViewportAddVehicles(DrawPixelInfo *dpi)
+void ViewportAddVehicles(const DrawPixelInfo *dpi)
 {
 	/* The bounding rectangle */
 	const int l = dpi->left;
