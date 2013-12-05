@@ -41,7 +41,7 @@
 #include "table/strings.h"
 #include "table/train_cmd.h"
 
-static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck);
+static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck);
 static bool TryPathReserveFromDepot(Train *v);
 static bool TrainCheckIfLineEnds(Train *v, bool reverse = true);
 static StationID TrainEnterTile(Train *v, TileIndex tile, int x, int y);
@@ -2172,7 +2172,7 @@ static void CheckNextTrainTile(Train *v)
 		if (!HasReservedPos(ft.m_new)) {
 			if (HasPbsSignalAlongPos(ft.m_new)) {
 				/* If the next tile is a PBS signal, try to make a reservation. */
-				ChooseTrainTrack(v, ft.m_new.tile, ft.m_exitdir, ft.m_new.trackdirs, false, NULL, false);
+				ChooseTrainTrack(v, ft.m_new.tile, ft.m_new.trackdirs, false, NULL, false);
 			}
 		}
 	}
@@ -2573,14 +2573,11 @@ public:
 };
 
 /* choose a track */
-static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck)
+static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck)
 {
 	Trackdir best_trackdir = INVALID_TRACKDIR;
 	bool do_track_reservation = _settings_game.pf.reserve_paths || force_res;
 	bool changed_signal = false;
-
-	assert((trackdirs & ~DiagdirReachesTrackdirs(enterdir)) == 0);
-	assert((TrackBitsToTrackdirBits(GetReservedTrackbits(tile)) & DiagdirReachesTrackdirs(enterdir)) == TRACKDIR_BIT_NONE);
 
 	if (got_reservation != NULL) *got_reservation = false;
 
@@ -2664,7 +2661,7 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdi
 		PFPos origin = FollowTrainReservation(v);
 		if (TryReserveSafeTrack(v, origin, false)) {
 			TrackBits res = GetReservedTrackbits(tile);
-			best_trackdir = FindFirstTrackdir(TrackBitsToTrackdirBits(res) & DiagdirReachesTrackdirs(enterdir));
+			best_trackdir = FindFirstTrackdir(TrackBitsToTrackdirBits(res) & trackdirs);
 			TryReserveRailTrack(v->GetPos());
 			if (got_reservation != NULL) *got_reservation = true;
 			if (changed_signal) MarkTileDirtyByTile(tile);
@@ -2754,7 +2751,7 @@ bool TryPathReserve(Train *v, bool mark_as_stuck, bool first_tile_okay)
 	if (_settings_game.pf.forbid_90_deg) reachable &= ~TrackdirCrossesTrackdirs(origin.td);
 
 	bool res_made = false;
-	ChooseTrainTrack(v, new_tile, exitdir, reachable, true, &res_made, mark_as_stuck);
+	ChooseTrainTrack(v, new_tile, reachable, true, &res_made, mark_as_stuck);
 
 	if (!res_made) return false;
 
@@ -2796,7 +2793,7 @@ static bool TryPathReserveFromDepot(Train *v)
 	TrackdirBits reachable = TrackStatusToTrackdirBits(GetTileRailwayStatus(new_tile)) & DiagdirReachesTrackdirs(exitdir);
 
 	bool res_made = false;
-	ChooseTrainTrack(v, new_tile, exitdir, reachable, true, &res_made, false);
+	ChooseTrainTrack(v, new_tile, reachable, true, &res_made, false);
 
 	if (!res_made) {
 		/* Free the depot reservation as well. */
@@ -3374,7 +3371,7 @@ static Trackdir TrainControllerChooseTrackdir(Train *v, TileIndex tile, DiagDire
 	if (res_trackdirs != TRACKDIR_BIT_NONE) {
 		chosen_trackdir = FindFirstTrackdir(res_trackdirs);
 	} else {
-		chosen_trackdir = ChooseTrainTrack(v, tile, enterdir, trackdirbits, false, NULL, true);
+		chosen_trackdir = ChooseTrainTrack(v, tile, trackdirbits, false, NULL, true);
 		assert(chosen_trackdir != INVALID_TRACKDIR);
 		assert(HasBit(trackdirbits, chosen_trackdir));
 	}
