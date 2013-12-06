@@ -2432,7 +2432,15 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, PFPos *pos
 	CFollowTrackRail ft(v, !_settings_game.pf.forbid_90_deg);
 	ft.SetPos(origin);
 
-	while (ft.FollowNext()) {
+	for (;;) {
+		if (!ft.FollowNext()) {
+			if (ft.m_err == CFollowTrackRail::EC_OWNER || ft.m_err == CFollowTrackRail::EC_NO_WAY) {
+				/* End of line, path valid and okay. */
+				return EXTEND_RESERVATION_SAFE;
+			}
+			break;
+		}
+
 		/* Station, depot or waypoint are a possible target. */
 		if (ft.m_flag == ft.TF_STATION || (!ft.m_new.InWormhole() && IsRailDepotTile(ft.m_new.tile)) || !ft.m_new.IsTrackdirSet()) {
 			/* Choice found or possible target encountered.
@@ -2464,11 +2472,6 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, PFPos *pos
 			/* Safe position is all good, path valid and okay. */
 			return EXTEND_RESERVATION_SAFE;
 		}
-	}
-
-	if (ft.m_err == CFollowTrackRail::EC_OWNER || ft.m_err == CFollowTrackRail::EC_NO_WAY) {
-		/* End of line, path valid and okay. */
-		return EXTEND_RESERVATION_SAFE;
 	}
 
 	/* Sorry, can't reserve path, back out. */
