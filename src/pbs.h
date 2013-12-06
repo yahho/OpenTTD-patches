@@ -86,7 +86,7 @@ struct PBSTileInfo {
 	PBSTileInfo(TileIndex _t, Trackdir _td, bool _okay) : pos(_t, _td), okay(_okay) {}
 };
 
-PFPos FollowTrainReservation(const Train *v, Vehicle **train_on_res = NULL);
+bool FollowTrainReservation(const Train *v, PFPos *pos, Vehicle **train_on_res = NULL);
 
 /** State of a waiting position wrt PBS. */
 enum PBSPositionState {

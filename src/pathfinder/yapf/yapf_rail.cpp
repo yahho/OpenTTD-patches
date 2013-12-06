@@ -423,7 +423,9 @@ public:
 		if (target != NULL) target->pos.tile = INVALID_TILE;
 
 		/* set origin and destination nodes */
-		Yapf().SetOrigin(FollowTrainReservation(v));
+		PFPos origin;
+		FollowTrainReservation(v, &origin);
+		Yapf().SetOrigin(origin);
 		Yapf().SetDestination(v);
 
 		/* find the best path */
@@ -595,7 +597,8 @@ FindDepotData YapfTrainFindNearestDepot(const Train *v, int max_penalty)
 {
 	FindDepotData fdd;
 
-	PFPos origin = FollowTrainReservation(v);
+	PFPos origin;
+	FollowTrainReservation(v, &origin);
 	PFPos rev = v->Last()->GetReversePos();
 
 	typedef bool (*PfnFindNearestDepotTwoWay)(const Train*, const PFPos&, const PFPos&, int, int, TileIndex*, bool*);

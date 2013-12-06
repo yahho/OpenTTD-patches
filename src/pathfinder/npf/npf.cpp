@@ -1253,7 +1253,8 @@ Trackdir NPFTrainChooseTrack(const Train *v, bool &path_found, bool reserve_trac
 	NPFFindStationOrTileData fstd;
 	NPFFillWithOrderData(&fstd, v, reserve_track);
 
-	PFPos origin = FollowTrainReservation(v);
+	PFPos origin;
+	FollowTrainReservation(v, &origin);
 	assert(IsValidTrackdir(origin.td));
 
 	NPFFoundTargetData ftd = NPFRouteToStationOrTile(origin, true, &fstd, TRANSPORT_RAIL, 0, v->owner, v->compatible_railtypes);

@@ -2074,7 +2074,8 @@ static FindDepotData FindClosestTrainDepot(Train *v, int max_distance)
 
 	if (IsRailDepotTile(v->tile)) return FindDepotData(v->tile, 0);
 
-	PFPos origin = FollowTrainReservation(v);
+	PFPos origin;
+	FollowTrainReservation(v, &origin);
 	if (IsRailDepotTile(origin.tile)) return FindDepotData(origin.tile, 0);
 
 	switch (_settings_game.pf.pathfinder_for_trains) {
@@ -2414,7 +2415,8 @@ static Trackdir DoTrainPathfind(const Train *v, bool &path_found, bool do_track_
  */
 static PBSTileInfo ExtendTrainReservation(const Train *v)
 {
-	PFPos origin = FollowTrainReservation(v);
+	PFPos origin;
+	FollowTrainReservation(v, &origin);
 
 	CFollowTrackRail ft(v, !_settings_game.pf.forbid_90_deg);
 	ft.SetPos(origin);
@@ -2658,7 +2660,8 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, TrackdirBits trackdir
 	/* No possible reservation target found, we are probably lost. */
 	if (res_dest.pos.tile == INVALID_TILE) {
 		/* Try to find any safe destination. */
-		PFPos origin = FollowTrainReservation(v);
+		PFPos origin;
+		FollowTrainReservation(v, &origin);
 		if (TryReserveSafeTrack(v, origin, false)) {
 			TrackBits res = GetReservedTrackbits(tile);
 			best_trackdir = FindFirstTrackdir(TrackBitsToTrackdirBits(res) & trackdirs);
@@ -2725,7 +2728,8 @@ bool TryPathReserve(Train *v, bool mark_as_stuck, bool first_tile_okay)
 	assert(v->trackdir != TRACKDIR_DEPOT);
 
 	Vehicle *other_train = NULL;
-	PFPos origin = FollowTrainReservation(v, &other_train);
+	PFPos origin;
+	FollowTrainReservation(v, &origin, &other_train);
 	/* The path we are driving on is already blocked by some other train.
 	 * This can only happen in certain situations when mixing path and
 	 * block signals or when changing tracks and/or signals.

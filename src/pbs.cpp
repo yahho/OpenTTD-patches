@@ -338,10 +338,11 @@ static void FindTrainOnPathEnd(FindTrainOnTrackInfo *ftoti)
  * Follow a train reservation to the last tile.
  *
  * @param v the vehicle
+ * @param pos Pointer to receive the last tile of the reservation or the current train tile if no reservation present
  * @param train_on_res Is set to a train we might encounter
- * @returns The last tile of the reservation or the current train tile if no reservation present.
+ * @returns Whether the train has a reservation at all
  */
-PFPos FollowTrainReservation(const Train *v, Vehicle **train_on_res)
+bool FollowTrainReservation(const Train *v, PFPos *pos, Vehicle **train_on_res)
 {
 	assert(v->type == VEH_TRAIN);
 
@@ -351,15 +352,18 @@ PFPos FollowTrainReservation(const Train *v, Vehicle **train_on_res)
 	/* Start track not reserved? This can happen if two trains
 	 * are on the same tile. The reservation on the next tile
 	 * is not ours in this case. */
-	if (HasReservedPos(ftoti.pos)) {
+	bool has_reservation = HasReservedPos(ftoti.pos);
+	if (has_reservation) {
 		ftoti.pos = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, ftoti.pos);
+		assert(HasReservedPos(ftoti.pos));
 		if (train_on_res != NULL) {
 			FindTrainOnPathEnd(&ftoti);
 			if (ftoti.best != NULL) *train_on_res = ftoti.best->First();
 		}
 	}
 
-	return ftoti.pos;
+	*pos = ftoti.pos;
+	return has_reservation;
 }
 
 /**
