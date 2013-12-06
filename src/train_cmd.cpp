@@ -2409,11 +2409,22 @@ static Trackdir DoTrainPathfind(const Train *v, bool &path_found, bool do_track_
 }
 
 /**
+ * Return value type for ExtendTrainReservation
+ */
+enum ExtendReservationResult {
+	EXTEND_RESERVATION_SAFE,   ///< Reservation extended to a safe tile
+	EXTEND_RESERVATION_UNSAFE, ///< Reservation extended to an unsafe tile
+	EXTEND_RESERVATION_FAILED, ///< Reservation could not be extended
+};
+
+/**
  * Extend a train path as far as possible. Stops on encountering a safe tile,
  * another reservation or a track choice.
- * @return A safe waiting position if the path could be extended to one; the first (unsafe, unreserved) choice or target tile; or INVALID_TILE if the reservation could not be extended to one of those.
+ * @param v The train whose reservation to extend
+ * @param pos First unsafe choice or possible target tile, if new reservation ends at such a tile
+ * @return An ExtendReservationResult value, showing reservation extension outcome
  */
-static PBSTileInfo ExtendTrainReservation(const Train *v)
+static ExtendReservationResult ExtendTrainReservation(const Train *v, PFPos *pos)
 {
 	PFPos origin;
 	FollowTrainReservation(v, &origin);
@@ -2437,7 +2448,8 @@ static PBSTileInfo ExtendTrainReservation(const Train *v)
 			if (ft.m_tiles_skipped != 0) ft.m_new.tile -= TileOffsByDiagDir(ft.m_exitdir) * ft.m_tiles_skipped;
 
 			/* Choice found, path valid but not okay. Save info about the choice tile as well. */
-			return PBSTileInfo(ft.m_new, false);
+			*pos = ft.m_new;
+			return EXTEND_RESERVATION_UNSAFE;
 		}
 
 		/* Possible signal tile. */
@@ -2450,13 +2462,13 @@ static PBSTileInfo ExtendTrainReservation(const Train *v)
 
 		if (state == PBS_FREE) {
 			/* Safe position is all good, path valid and okay. */
-			return PBSTileInfo(ft.m_new, true);
+			return EXTEND_RESERVATION_SAFE;
 		}
 	}
 
 	if (ft.m_err == CFollowTrackRail::EC_OWNER || ft.m_err == CFollowTrackRail::EC_NO_WAY) {
 		/* End of line, path valid and okay. */
-		return PBSTileInfo(ft.m_old, true);
+		return EXTEND_RESERVATION_SAFE;
 	}
 
 	/* Sorry, can't reserve path, back out. */
@@ -2472,7 +2484,7 @@ static PBSTileInfo ExtendTrainReservation(const Train *v)
 	}
 
 	/* Path invalid. */
-	return PBSTileInfo();
+	return EXTEND_RESERVATION_FAILED;
 }
 
 /**
@@ -2598,21 +2610,22 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, TrackdirBits trackdir
 
 	TileIndex new_tile = tile;
 	if (do_track_reservation) {
-		PBSTileInfo res_dest = ExtendTrainReservation(v);
-		if (res_dest.pos.tile == INVALID_TILE) {
-			/* Reservation failed? */
-			if (mark_stuck) MarkTrainAsStuck(v);
-			if (changed_signal) SetSignalState(tile, best_trackdir, SIGNAL_STATE_RED);
-			return FindFirstTrackdir(trackdirs);
+		PFPos res_dest;
+		switch (ExtendTrainReservation(v, &res_dest)) {
+			default: NOT_REACHED();
+			case EXTEND_RESERVATION_FAILED:
+				if (mark_stuck) MarkTrainAsStuck(v);
+				if (changed_signal) SetSignalState(tile, best_trackdir, SIGNAL_STATE_RED);
+				return FindFirstTrackdir(trackdirs);
+			case EXTEND_RESERVATION_SAFE:
+				if (got_reservation != NULL) *got_reservation = true;
+				if (changed_signal) MarkTileDirtyByTile(tile);
+				TryReserveRailTrack(v->GetPos());
+				return best_trackdir;
+			case EXTEND_RESERVATION_UNSAFE:
+				break;
 		}
-		if (res_dest.okay) {
-			/* Got a valid reservation that ends at a safe target, quick exit. */
-			if (got_reservation != NULL) *got_reservation = true;
-			if (changed_signal) MarkTileDirtyByTile(tile);
-			TryReserveRailTrack(v->GetPos());
-			return best_trackdir;
-		}
-		new_tile = res_dest.pos.tile;
+		new_tile = res_dest.tile;
 
 		/* Check if the train needs service here, so it has a chance to always find a depot.
 		 * Also check if the current order is a service order so we don't reserve a path to
