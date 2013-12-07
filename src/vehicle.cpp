@@ -55,7 +55,6 @@
 
 #include "table/strings.h"
 
-#define GEN_HASH(x, y) ((GB((y), 6 + ZOOM_LVL_SHIFT, 6) << 6) + GB((x), 7 + ZOOM_LVL_SHIFT, 6))
 
 VehicleID _new_vehicle_id;
 uint16 _returned_refit_capacity;      ///< Stores the capacity after a refit operation.
@@ -644,25 +643,39 @@ static void UpdateVehicleTileHash(Vehicle *v, bool remove)
 	v->hash_tile_current = new_hash;
 }
 
-static Vehicle *_vehicle_viewport_hash[0x1000];
+struct VehicleViewportHash {
+	Vehicle *buckets[0x1000];
 
-static void UpdateVehicleViewportHash(Vehicle *v, int x, int y)
-{
-	Vehicle **old_hash, **new_hash;
-	int old_x = v->coord.left;
-	int old_y = v->coord.top;
+	static inline uint hash (int x, int y)
+	{
+		return (GB(y, 6 + ZOOM_LVL_SHIFT, 6) << 6) + GB(x, 7 + ZOOM_LVL_SHIFT, 6);
+	}
 
-	new_hash = (x == INVALID_COORD) ? NULL : &_vehicle_viewport_hash[GEN_HASH(x, y)];
-	old_hash = (old_x == INVALID_COORD) ? NULL : &_vehicle_viewport_hash[GEN_HASH(old_x, old_y)];
+	inline Vehicle **get_bucket (int x, int y)
+	{
+		return (x == INVALID_COORD) ? NULL : &buckets[hash(x, y)];
+	}
 
-	UpdateVehicleHash(v, &Vehicle::hash_viewport_link, old_hash, new_hash);
-}
+	void update (Vehicle *v, int x, int y)
+	{
+		UpdateVehicleHash(v, &Vehicle::hash_viewport_link,
+			this->get_bucket (v->coord.left, v->coord.top),
+			this->get_bucket (x, y));
+	}
+
+	void reset()
+	{
+		memset (this->buckets, 0, sizeof(this->buckets));
+	}
+};
+
+static VehicleViewportHash vehicle_viewport_hash;
 
 void ResetVehicleHash()
 {
 	Vehicle *v;
 	FOR_ALL_VEHICLES(v) { v->hash_tile_current = NULL; }
-	memset(_vehicle_viewport_hash, 0, sizeof(_vehicle_viewport_hash));
+	vehicle_viewport_hash.reset();
 	memset(_vehicle_tile_hash, 0, sizeof(_vehicle_tile_hash));
 }
 
@@ -870,7 +883,7 @@ Vehicle::~Vehicle()
 	delete v;
 
 	UpdateVehicleTileHash(this, true);
-	UpdateVehicleViewportHash(this, INVALID_COORD, 0);
+	vehicle_viewport_hash.update (this, INVALID_COORD, 0);
 	DeleteVehicleNews(this->index, INVALID_STRING_ID);
 	DeleteNewGRFInspectWindow(GetGrfSpecFeature(this->type), this->index);
 }
@@ -1114,7 +1127,7 @@ void ViewportAddVehicles(const DrawPixelInfo *dpi)
 
 	for (int y = yl;; y = (y + (1 << 6)) & (0x3F << 6)) {
 		for (int x = xl;; x = (x + 1) & 0x3F) {
-			const Vehicle *v = _vehicle_viewport_hash[x + y]; // already masked & 0xFFF
+			const Vehicle *v = vehicle_viewport_hash.buckets[x + y]; // already masked & 0xFFF
 
 			while (v != NULL) {
 				if (!(v->vehstatus & VS_HIDDEN) &&
@@ -1541,7 +1554,7 @@ void VehicleUpdateViewport(Vehicle *v, bool dirty)
 	pt.x += spr->x_offs;
 	pt.y += spr->y_offs;
 
-	UpdateVehicleViewportHash(v, pt.x, pt.y);
+	vehicle_viewport_hash.update (v, pt.x, pt.y);
 
 	Rect old_coord = v->coord;
 	v->coord.left   = pt.x;
