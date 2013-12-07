@@ -295,6 +295,34 @@ byte VehicleRandomBits()
 	return GB(Random(), 0, 8);
 }
 
+
+/**
+ * Vehicle hash update template function
+ * @param v The vehicle to update
+ * @param link The vehicle link to update within Vehicle
+ * @param old_hash The hash to remove the vehicle from, if any
+ * @param new_hash The hash to add the vehicle to, if any
+ */
+static void UpdateVehicleHash(Vehicle *v, VehicleHashLink Vehicle::*link, Vehicle **old_hash, Vehicle **new_hash)
+{
+	if (old_hash == new_hash) return;
+
+	/* Remove from the old position in the hash table */
+	if (old_hash != NULL) {
+		if ((v->*link).next != NULL) ((v->*link).next->*link).pprev = (v->*link).pprev;
+		*(v->*link).pprev = (v->*link).next;
+	}
+
+	/* Insert vehicle at beginning of the new position in the hash table */
+	if (new_hash != NULL) {
+		(v->*link).next = *new_hash;
+		if ((v->*link).next != NULL) ((v->*link).next->*link).pprev = &(v->*link).next;
+		(v->*link).pprev = new_hash;
+		*new_hash = v;
+	}
+}
+
+
 /* Size of the hash, 6 = 64 x 64, 7 = 128 x 128. Larger sizes will (in theory) reduce hash
  * lookup times at the expense of memory usage. */
 const int HASH_BITS = 7;
@@ -610,21 +638,7 @@ static void UpdateVehicleTileHash(Vehicle *v, bool remove)
 		new_hash = &_vehicle_tile_hash[(x + y) & TOTAL_HASH_MASK];
 	}
 
-	if (old_hash == new_hash) return;
-
-	/* Remove from the old position in the hash table */
-	if (old_hash != NULL) {
-		if (v->hash_tile_link.next != NULL) v->hash_tile_link.next->hash_tile_link.pprev = v->hash_tile_link.pprev;
-		*v->hash_tile_link.pprev = v->hash_tile_link.next;
-	}
-
-	/* Insert vehicle at beginning of the new position in the hash table */
-	if (new_hash != NULL) {
-		v->hash_tile_link.next = *new_hash;
-		if (v->hash_tile_link.next != NULL) v->hash_tile_link.next->hash_tile_link.pprev = &v->hash_tile_link.next;
-		v->hash_tile_link.pprev = new_hash;
-		*new_hash = v;
-	}
+	UpdateVehicleHash(v, &Vehicle::hash_tile_link, old_hash, new_hash);
 
 	/* Remember current hash position */
 	v->hash_tile_current = new_hash;
@@ -641,21 +655,7 @@ static void UpdateVehicleViewportHash(Vehicle *v, int x, int y)
 	new_hash = (x == INVALID_COORD) ? NULL : &_vehicle_viewport_hash[GEN_HASH(x, y)];
 	old_hash = (old_x == INVALID_COORD) ? NULL : &_vehicle_viewport_hash[GEN_HASH(old_x, old_y)];
 
-	if (old_hash == new_hash) return;
-
-	/* remove from hash table? */
-	if (old_hash != NULL) {
-		if (v->hash_viewport_link.next != NULL) v->hash_viewport_link.next->hash_viewport_link.pprev = v->hash_viewport_link.pprev;
-		*v->hash_viewport_link.pprev = v->hash_viewport_link.next;
-	}
-
-	/* insert into hash table? */
-	if (new_hash != NULL) {
-		v->hash_viewport_link.next = *new_hash;
-		if (v->hash_viewport_link.next != NULL) v->hash_viewport_link.next->hash_viewport_link.pprev = &v->hash_viewport_link.next;
-		v->hash_viewport_link.pprev = new_hash;
-		*new_hash = v;
-	}
+	UpdateVehicleHash(v, &Vehicle::hash_viewport_link, old_hash, new_hash);
 }
 
 void ResetVehicleHash()
