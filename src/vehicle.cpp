@@ -321,6 +321,40 @@ static void UpdateVehicleHash(Vehicle *v, VehicleHashLink Vehicle::*link, Vehicl
 	}
 }
 
+/**
+ * Hash pack template class
+ * @tparam nx Number of bits to use for x.
+ * @tparam ny Number of bits to use for y.
+ */
+template <uint nx, uint ny>
+struct HashPack {
+	static const uint PACK_BIT0_X = 0;
+	static const uint PACK_BITS_X = nx;
+	static const uint PACK_MASK_X = ((1 << PACK_BITS_X) - 1) << PACK_BIT0_X;
+
+	static const uint PACK_BIT0_Y = PACK_BIT0_X + PACK_BITS_X;
+	static const uint PACK_BITS_Y = ny;
+	static const uint PACK_MASK_Y = ((1 << PACK_BITS_Y) - 1) << PACK_BIT0_Y;
+
+	static const uint PACK_BITS = PACK_BIT0_Y + PACK_BITS_Y;
+	static const uint PACK_SIZE = 1 << PACK_BITS;
+
+	static inline uint pack_x (uint x)
+	{
+		return (x << PACK_BIT0_X) & PACK_MASK_X;
+	}
+
+	static inline uint pack_y (uint y)
+	{
+		return (y << PACK_BIT0_Y) & PACK_MASK_Y;
+	}
+
+	static inline uint pack (uint x, uint y)
+	{
+		return pack_x(x) + pack_y(y);
+	}
+};
+
 
 /* Size of the hash, 6 = 64 x 64, 7 = 128 x 128. Larger sizes will (in theory) reduce hash
  * lookup times at the expense of memory usage. */
@@ -643,12 +677,20 @@ static void UpdateVehicleTileHash(Vehicle *v, bool remove)
 	v->hash_tile_current = new_hash;
 }
 
-struct VehicleViewportHash {
-	Vehicle *buckets[0x1000];
+struct VehicleViewportHash : HashPack <6, 6> {
+	static const uint HASH_OFFSET_X = 7 + ZOOM_LVL_SHIFT;
+	static const uint HASH_BITS_X   = PACK_BITS_X;
+
+	static const uint HASH_OFFSET_Y = 6 + ZOOM_LVL_SHIFT;
+	static const uint HASH_BITS_Y   = PACK_BITS_Y;
+
+	static const uint HASH_SIZE = PACK_SIZE;
+
+	Vehicle *buckets[HASH_SIZE];
 
 	static inline uint hash (int x, int y)
 	{
-		return (GB(y, 6 + ZOOM_LVL_SHIFT, 6) << 6) + GB(x, 7 + ZOOM_LVL_SHIFT, 6);
+		return pack (GB(x, HASH_OFFSET_X, HASH_BITS_X), GB(y, HASH_OFFSET_Y, HASH_BITS_Y));
 	}
 
 	inline Vehicle **get_bucket (int x, int y)
