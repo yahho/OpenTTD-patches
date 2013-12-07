@@ -334,7 +334,7 @@ static Vehicle *VehicleFromPosXY(int x, int y, void *data, VehicleFromPosProc *p
 	for (int y = yl; ; y = (y + (1 << HASH_BITS)) & (HASH_MASK << HASH_BITS)) {
 		for (int x = xl; ; x = (x + 1) & HASH_MASK) {
 			Vehicle *v = _vehicle_tile_hash[(x + y) & TOTAL_HASH_MASK];
-			for (; v != NULL; v = v->hash_tile_next) {
+			for (; v != NULL; v = v->hash_tile_link.next) {
 				Vehicle *a = proc(v, data);
 				if (find_first && a != NULL) return a;
 			}
@@ -397,7 +397,7 @@ static Vehicle *VehicleFromPos(TileIndex tile, void *data, VehicleFromPosProc *p
 	int y = GB(TileY(tile), HASH_RES, HASH_BITS) << HASH_BITS;
 
 	Vehicle *v = _vehicle_tile_hash[(x + y) & TOTAL_HASH_MASK];
-	for (; v != NULL; v = v->hash_tile_next) {
+	for (; v != NULL; v = v->hash_tile_link.next) {
 		if (v->tile != tile) continue;
 
 		Vehicle *a = proc(v, data);
@@ -614,15 +614,15 @@ static void UpdateVehicleTileHash(Vehicle *v, bool remove)
 
 	/* Remove from the old position in the hash table */
 	if (old_hash != NULL) {
-		if (v->hash_tile_next != NULL) v->hash_tile_next->hash_tile_prev = v->hash_tile_prev;
-		*v->hash_tile_prev = v->hash_tile_next;
+		if (v->hash_tile_link.next != NULL) v->hash_tile_link.next->hash_tile_link.pprev = v->hash_tile_link.pprev;
+		*v->hash_tile_link.pprev = v->hash_tile_link.next;
 	}
 
 	/* Insert vehicle at beginning of the new position in the hash table */
 	if (new_hash != NULL) {
-		v->hash_tile_next = *new_hash;
-		if (v->hash_tile_next != NULL) v->hash_tile_next->hash_tile_prev = &v->hash_tile_next;
-		v->hash_tile_prev = new_hash;
+		v->hash_tile_link.next = *new_hash;
+		if (v->hash_tile_link.next != NULL) v->hash_tile_link.next->hash_tile_link.pprev = &v->hash_tile_link.next;
+		v->hash_tile_link.pprev = new_hash;
 		*new_hash = v;
 	}
 
@@ -645,15 +645,15 @@ static void UpdateVehicleViewportHash(Vehicle *v, int x, int y)
 
 	/* remove from hash table? */
 	if (old_hash != NULL) {
-		if (v->hash_viewport_next != NULL) v->hash_viewport_next->hash_viewport_prev = v->hash_viewport_prev;
-		*v->hash_viewport_prev = v->hash_viewport_next;
+		if (v->hash_viewport_link.next != NULL) v->hash_viewport_link.next->hash_viewport_link.pprev = v->hash_viewport_link.pprev;
+		*v->hash_viewport_link.pprev = v->hash_viewport_link.next;
 	}
 
 	/* insert into hash table? */
 	if (new_hash != NULL) {
-		v->hash_viewport_next = *new_hash;
-		if (v->hash_viewport_next != NULL) v->hash_viewport_next->hash_viewport_prev = &v->hash_viewport_next;
-		v->hash_viewport_prev = new_hash;
+		v->hash_viewport_link.next = *new_hash;
+		if (v->hash_viewport_link.next != NULL) v->hash_viewport_link.next->hash_viewport_link.pprev = &v->hash_viewport_link.next;
+		v->hash_viewport_link.pprev = new_hash;
 		*new_hash = v;
 	}
 }
@@ -1124,7 +1124,7 @@ void ViewportAddVehicles(const DrawPixelInfo *dpi)
 						b >= v->coord.top) {
 					DoDrawVehicle(v);
 				}
-				v = v->hash_viewport_next;
+				v = v->hash_viewport_link.next;
 			}
 
 			if (x == xu) break;

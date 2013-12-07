@@ -138,6 +138,14 @@ struct RefitDesc {
 			cargo(cargo), capacity(capacity), remaining(remaining) {}
 };
 
+/**
+ * Link struct for vehicle hash chains
+ */
+struct VehicleHashLink {
+	Vehicle *next;
+	Vehicle **pprev;
+};
+
 /** %Vehicle data structure. */
 struct Vehicle : VehiclePool::PoolItem<&_vehicle_pool>, BaseVehicle, BaseConsist {
 private:
@@ -174,11 +182,9 @@ public:
 
 	Rect coord;                         ///< NOSAVE: Graphical bounding box of the vehicle, i.e. what to redraw on moves.
 
-	Vehicle *hash_viewport_next;        ///< NOSAVE: Next vehicle in the visual location hash.
-	Vehicle **hash_viewport_prev;       ///< NOSAVE: Previous vehicle in the visual location hash.
+	VehicleHashLink hash_viewport_link; ///< NOSAVE: Visual location hash link.
 
-	Vehicle *hash_tile_next;            ///< NOSAVE: Next vehicle in the tile location hash.
-	Vehicle **hash_tile_prev;           ///< NOSAVE: Previous vehicle in the tile location hash.
+	VehicleHashLink hash_tile_link;     ///< NOSAVE: Tile location hash link.
 	Vehicle **hash_tile_current;        ///< NOSAVE: Cache of the current hash chain.
 
 	SpriteID colourmap;                 ///< NOSAVE: cached colour mapping
