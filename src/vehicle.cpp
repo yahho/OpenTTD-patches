@@ -419,19 +419,28 @@ struct HashAreaIterator : HashPack <nx, ny> {
 const int HASH_BITS = 7;
 const int HASH_SIZE = 1 << HASH_BITS;
 const int HASH_MASK = HASH_SIZE - 1;
-const int TOTAL_HASH_SIZE = 1 << (HASH_BITS * 2);
-const int TOTAL_HASH_MASK = TOTAL_HASH_SIZE - 1;
 
 /* Resolution of the hash, 0 = 1*1 tile, 1 = 2*2 tiles, 2 = 4*4 tiles, etc.
  * Profiling results show that 0 is fastest. */
 const int HASH_RES = 0;
 
-struct VehicleTileHash {
-	Vehicle *buckets[TOTAL_HASH_SIZE];
+struct VehicleTileHash : HashPack <7, 7> {
+	/* Size of the hash, 6 = 64 x 64, 7 = 128 x 128. Larger sizes will (in theory) reduce hash
+	 * lookup times at the expense of memory usage. */
+
+	static const uint HASH_OFFSET_X = HASH_RES;
+	static const uint HASH_BITS_X   = PACK_BITS_X;
+
+	static const uint HASH_OFFSET_Y = HASH_RES;
+	static const uint HASH_BITS_Y   = PACK_BITS_Y;
+
+	static const uint HASH_SIZE = PACK_SIZE;
+
+	Vehicle *buckets[HASH_SIZE];
 
 	static inline uint hash (int x, int y)
 	{
-		return GB(x, HASH_RES, HASH_BITS) + (GB(y, HASH_RES, HASH_BITS) << HASH_BITS);
+		return pack (GB(x, HASH_OFFSET_X, HASH_BITS_X), GB(y, HASH_OFFSET_Y, HASH_BITS_Y));
 	}
 
 	static inline uint hash (TileIndex tile)
@@ -489,7 +498,7 @@ static Vehicle *VehicleFromPosXY(int x, int y, void *data, VehicleFromPosProc *p
 
 	for (int y = yl; ; y = (y + (1 << HASH_BITS)) & (HASH_MASK << HASH_BITS)) {
 		for (int x = xl; ; x = (x + 1) & HASH_MASK) {
-			Vehicle *v = vehicle_tile_hash.buckets[(x + y) & TOTAL_HASH_MASK];
+			Vehicle *v = vehicle_tile_hash.buckets[x + y];
 			for (; v != NULL; v = v->hash_tile_link.next) {
 				Vehicle *a = proc(v, data);
 				if (find_first && a != NULL) return a;
