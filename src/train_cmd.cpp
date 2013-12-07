@@ -2441,8 +2441,17 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, PFPos *pos
 			break;
 		}
 
-		/* Station, depot or waypoint are a possible target. */
-		if (ft.m_flag == ft.TF_STATION || (!ft.m_new.InWormhole() && IsRailDepotTile(ft.m_new.tile)) || !ft.m_new.IsTrackdirSet()) {
+		/* A depot is always a safe waiting position. */
+		if (!ft.m_new.InWormhole() && IsRailDepotTile(ft.m_new.tile)) {
+			/* Depot must be free for reservation to continue. */
+			if (HasDepotReservation(ft.m_new.tile)) break;
+
+			SetDepotReservation(ft.m_new.tile, true);
+			return EXTEND_RESERVATION_SAFE;
+		}
+
+		/* Station and waypoints are possible targets. */
+		if (ft.m_flag == ft.TF_STATION || !ft.m_new.IsTrackdirSet()) {
 			/* Choice found or possible target encountered.
 			 * On finding a possible target, we need to stop and let the pathfinder handle the
 			 * remaining path. This is because we don't know if this target is in one of our
