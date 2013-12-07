@@ -318,19 +318,18 @@ protected:
 	uint GetPageElementHeight(const StoryPageElement &pe, int max_width)
 	{
 		switch (pe.type) {
+			default:
+				NOT_REACHED();
+
 			case SPET_TEXT:
 				SetDParamStr(0, pe.text);
 				return GetStringHeight(STR_BLACK_RAW_STRING, max_width);
-				break;
 
 			case SPET_GOAL:
 			case SPET_LOCATION: {
 				Dimension sprite_dim = GetSpriteSize(GetPageElementSprite(pe));
 				return sprite_dim.height;
-				break;
 			}
-			default:
-				NOT_REACHED();
 		}
 	}
 
