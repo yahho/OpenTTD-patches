@@ -426,7 +426,44 @@ const int TOTAL_HASH_MASK = TOTAL_HASH_SIZE - 1;
  * Profiling results show that 0 is fastest. */
 const int HASH_RES = 0;
 
-static Vehicle *_vehicle_tile_hash[TOTAL_HASH_SIZE];
+struct VehicleTileHash {
+	Vehicle *buckets[TOTAL_HASH_SIZE];
+
+	static inline uint hash (int x, int y)
+	{
+		return GB(x, HASH_RES, HASH_BITS) + (GB(y, HASH_RES, HASH_BITS) << HASH_BITS);
+	}
+
+	static inline uint hash (TileIndex tile)
+	{
+		return hash (TileX(tile), TileY(tile));
+	}
+
+	inline Vehicle **get_bucket (TileIndex tile)
+	{
+		return &this->buckets[hash(tile)];
+	}
+
+	void update (Vehicle *v, bool remove = false)
+	{
+		Vehicle **new_hash = remove ? NULL : get_bucket(v->tile);
+
+		UpdateVehicleHash(v, &Vehicle::hash_tile_link,
+			v->hash_tile_current, new_hash);
+
+		/* Remember current hash position */
+		v->hash_tile_current = new_hash;
+	}
+
+	void reset()
+	{
+		Vehicle *v;
+		FOR_ALL_VEHICLES(v) { v->hash_tile_current = NULL; }
+		memset (this->buckets, 0, sizeof(this->buckets));
+	}
+};
+
+static VehicleTileHash vehicle_tile_hash;
 
 
 /**
@@ -452,7 +489,7 @@ static Vehicle *VehicleFromPosXY(int x, int y, void *data, VehicleFromPosProc *p
 
 	for (int y = yl; ; y = (y + (1 << HASH_BITS)) & (HASH_MASK << HASH_BITS)) {
 		for (int x = xl; ; x = (x + 1) & HASH_MASK) {
-			Vehicle *v = _vehicle_tile_hash[(x + y) & TOTAL_HASH_MASK];
+			Vehicle *v = vehicle_tile_hash.buckets[(x + y) & TOTAL_HASH_MASK];
 			for (; v != NULL; v = v->hash_tile_link.next) {
 				Vehicle *a = proc(v, data);
 				if (find_first && a != NULL) return a;
@@ -512,10 +549,7 @@ bool HasVehicleOnPosXY(int x, int y, void *data, VehicleFromPosProc *proc)
  */
 static Vehicle *VehicleFromPos(TileIndex tile, void *data, VehicleFromPosProc *proc, bool find_first)
 {
-	int x = GB(TileX(tile), HASH_RES, HASH_BITS);
-	int y = GB(TileY(tile), HASH_RES, HASH_BITS) << HASH_BITS;
-
-	Vehicle *v = _vehicle_tile_hash[(x + y) & TOTAL_HASH_MASK];
+	Vehicle *v = *vehicle_tile_hash.get_bucket(tile);
 	for (; v != NULL; v = v->hash_tile_link.next) {
 		if (v->tile != tile) continue;
 
@@ -716,24 +750,6 @@ CommandCost EnsureNoTrainOnTunnelBridgeMiddle(TileIndex tile1, TileIndex tile2)
 	return CommandCost();
 }
 
-static void UpdateVehicleTileHash(Vehicle *v, bool remove)
-{
-	Vehicle **old_hash = v->hash_tile_current;
-	Vehicle **new_hash;
-
-	if (remove) {
-		new_hash = NULL;
-	} else {
-		int x = GB(TileX(v->tile), HASH_RES, HASH_BITS);
-		int y = GB(TileY(v->tile), HASH_RES, HASH_BITS) << HASH_BITS;
-		new_hash = &_vehicle_tile_hash[(x + y) & TOTAL_HASH_MASK];
-	}
-
-	UpdateVehicleHash(v, &Vehicle::hash_tile_link, old_hash, new_hash);
-
-	/* Remember current hash position */
-	v->hash_tile_current = new_hash;
-}
 
 struct VehicleViewportHash : HashPack <6, 6> {
 	static const uint HASH_OFFSET_X = 7 + ZOOM_LVL_SHIFT;
@@ -799,10 +815,8 @@ static VehicleViewportHash vehicle_viewport_hash;
 
 void ResetVehicleHash()
 {
-	Vehicle *v;
-	FOR_ALL_VEHICLES(v) { v->hash_tile_current = NULL; }
 	vehicle_viewport_hash.reset();
-	memset(_vehicle_tile_hash, 0, sizeof(_vehicle_tile_hash));
+	vehicle_tile_hash.reset();
 }
 
 void ResetVehicleColourMap()
@@ -1008,7 +1022,7 @@ Vehicle::~Vehicle()
 
 	delete v;
 
-	UpdateVehicleTileHash(this, true);
+	vehicle_tile_hash.update (this, true);
 	vehicle_viewport_hash.update (this, INVALID_COORD, 0);
 	DeleteVehicleNews(this->index, INVALID_STRING_ID);
 	DeleteNewGRFInspectWindow(GetGrfSpecFeature(this->type), this->index);
@@ -1642,7 +1656,7 @@ void VehicleEnterDepot(Vehicle *v)
  */
 void VehicleUpdatePosition(Vehicle *v)
 {
-	UpdateVehicleTileHash(v, false);
+	vehicle_tile_hash.update(v);
 }
 
 /**
