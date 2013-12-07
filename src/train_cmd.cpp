@@ -2815,27 +2815,23 @@ static bool TryPathReserveFromDepot(Train *v)
 	TileIndex new_tile = TileAddByDiagDir(v->tile, exitdir);
 	if (HasReservedTracks(new_tile, DiagdirReachesTracks(exitdir))) return false;
 
-	/* Tentatively reserve the depot. */
-	SetDepotReservation(v->tile, true);
-	if (_settings_client.gui.show_track_reservation) MarkTileDirtyByTile(v->tile);
-
 	TrackdirBits reachable = TrackStatusToTrackdirBits(GetTileRailwayStatus(new_tile)) & DiagdirReachesTrackdirs(exitdir);
 
 	bool res_made = false;
 	ChooseTrainTrack(v, new_tile, reachable, true, &res_made, false);
 
-	if (!res_made) {
-		/* Free the depot reservation as well. */
-		SetDepotReservation(v->tile, false);
-		return false;
+	if (res_made) {
+		SetDepotReservation(v->tile, true);
+		if (_settings_client.gui.show_track_reservation) MarkTileDirtyByTile(v->tile);
+
+		if (HasBit(v->flags, VRF_TRAIN_STUCK)) {
+			v->wait_counter = 0;
+			SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
+			ClrBit(v->flags, VRF_TRAIN_STUCK);
+		}
 	}
 
-	if (HasBit(v->flags, VRF_TRAIN_STUCK)) {
-		v->wait_counter = 0;
-		SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
-	}
-	ClrBit(v->flags, VRF_TRAIN_STUCK);
-	return true;
+	return res_made;
 }
 
 
