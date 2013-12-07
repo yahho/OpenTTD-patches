@@ -321,6 +321,10 @@ static void UpdateVehicleHash(Vehicle *v, VehicleHashLink Vehicle::*link, Vehicl
 	}
 }
 
+/* Forward declaration for HashAreaIterator */
+template <uint nx, uint ny>
+struct HashAreaIterator;
+
 /**
  * Hash pack template class
  * @tparam nx Number of bits to use for x.
@@ -339,6 +343,8 @@ struct HashPack {
 	static const uint PACK_BITS = PACK_BIT0_Y + PACK_BITS_Y;
 	static const uint PACK_SIZE = 1 << PACK_BITS;
 
+	typedef HashAreaIterator <nx, ny> AreaIterator;
+
 	static inline uint pack_x (uint x)
 	{
 		return (x << PACK_BIT0_X) & PACK_MASK_X;
@@ -352,6 +358,58 @@ struct HashPack {
 	static inline uint pack (uint x, uint y)
 	{
 		return pack_x(x) + pack_y(y);
+	}
+
+	static inline uint next_x (uint x)
+	{
+		return (x + (1 << PACK_BIT0_X)) & PACK_MASK_X;
+	}
+
+	static inline uint next_y (uint y)
+	{
+		return (y + (1 << PACK_BIT0_Y)) & PACK_MASK_Y;
+	}
+};
+
+/**
+ * Area iterator for a hash class
+ * @tparam nx Number of bits to use for x.
+ * @tparam ny Number of bits to use for y.
+ */
+template <uint nx, uint ny>
+struct HashAreaIterator : HashPack <nx, ny> {
+	uint x0, x1, y0, y1;
+	uint x, y;
+
+	void reset (uint xx0, uint xx1, uint yy0, uint yy1)
+	{
+		x0 = this->pack_x (xx0);
+		x1 = this->pack_x (xx1);
+
+		y0 = this->pack_y (yy0);
+		y1 = this->pack_y (yy1);
+
+		x = x0;
+		y = y0;
+	}
+
+	uint get() const
+	{
+		return x + y;
+	}
+
+	bool next()
+	{
+		if (x != x1) {
+			x = this->next_x(x);
+			return true;
+		} else if (y != y1) {
+			y = this->next_y(y);
+			x = x0;
+			return true;
+		} else {
+			return false;
+		}
 	}
 };
 
@@ -708,6 +766,32 @@ struct VehicleViewportHash : HashPack <6, 6> {
 	void reset()
 	{
 		memset (this->buckets, 0, sizeof(this->buckets));
+	}
+
+	void setup_iter (AreaIterator *iter, int l, uint w, int t, uint h)
+	{
+		uint x0, x1, y0, y1;
+
+		if (w < (1 << (HASH_OFFSET_X + HASH_BITS_X))) {
+			x0 = GB(l,     HASH_OFFSET_X, HASH_BITS_X);
+			x1 = GB(l + w, HASH_OFFSET_X, HASH_BITS_X);
+		} else {
+			/* scan whole hash row */
+			x0 = 0;
+			x1 = (1 << HASH_BITS_X) - 1;
+		}
+
+		if (h < (1 << (HASH_OFFSET_Y + HASH_BITS_Y))) {
+			y0 = GB(t,     HASH_OFFSET_Y, HASH_BITS_Y);
+			y1 = GB(t + h, HASH_OFFSET_Y, HASH_BITS_Y);
+		} else {
+			/* scan whole column */
+			y0 = 0;
+			y1 = (1 << HASH_BITS_Y) - 1;
+		}
+
+		iter->reset (x0, x1, y0, y1);
+
 	}
 };
 
@@ -1147,46 +1231,26 @@ void ViewportAddVehicles(const DrawPixelInfo *dpi)
 	const int b = dpi->top + dpi->height;
 
 	/* The hash area to scan */
-	int xl, xu, yl, yu;
+	VehicleViewportHash::AreaIterator iter;
+	vehicle_viewport_hash.setup_iter (&iter,
+		l - (70 * ZOOM_LVL_BASE), dpi->width  + (70 * ZOOM_LVL_BASE),
+		t - (70 * ZOOM_LVL_BASE), dpi->height + (70 * ZOOM_LVL_BASE));
 
-	if (dpi->width + (70 * ZOOM_LVL_BASE) < (1 << (7 + 6 + ZOOM_LVL_SHIFT))) {
-		xl = GB(l - (70 * ZOOM_LVL_BASE), 7 + ZOOM_LVL_SHIFT, 6);
-		xu = GB(r,                        7 + ZOOM_LVL_SHIFT, 6);
-	} else {
-		/* scan whole hash row */
-		xl = 0;
-		xu = 0x3F;
-	}
+	do {
+		const Vehicle *v = vehicle_viewport_hash.buckets[iter.get()];
 
-	if (dpi->height + (70 * ZOOM_LVL_BASE) < (1 << (6 + 6 + ZOOM_LVL_SHIFT))) {
-		yl = GB(t - (70 * ZOOM_LVL_BASE), 6 + ZOOM_LVL_SHIFT, 6) << 6;
-		yu = GB(b,                        6 + ZOOM_LVL_SHIFT, 6) << 6;
-	} else {
-		/* scan whole column */
-		yl = 0;
-		yu = 0x3F << 6;
-	}
-
-	for (int y = yl;; y = (y + (1 << 6)) & (0x3F << 6)) {
-		for (int x = xl;; x = (x + 1) & 0x3F) {
-			const Vehicle *v = vehicle_viewport_hash.buckets[x + y]; // already masked & 0xFFF
-
-			while (v != NULL) {
-				if (!(v->vehstatus & VS_HIDDEN) &&
-						l <= v->coord.right &&
-						t <= v->coord.bottom &&
-						r >= v->coord.left &&
-						b >= v->coord.top) {
-					DoDrawVehicle(v);
-				}
-				v = v->hash_viewport_link.next;
+		while (v != NULL) {
+			if (!(v->vehstatus & VS_HIDDEN) &&
+					l <= v->coord.right &&
+					t <= v->coord.bottom &&
+					r >= v->coord.left &&
+					b >= v->coord.top) {
+				DoDrawVehicle(v);
 			}
-
-			if (x == xu) break;
+			v = v->hash_viewport_link.next;
 		}
 
-		if (y == yu) break;
-	}
+	} while (iter.next());
 }
 
 /**
