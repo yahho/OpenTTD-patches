@@ -414,19 +414,13 @@ struct HashAreaIterator : HashPack <nx, ny> {
 };
 
 
-/* Size of the hash, 6 = 64 x 64, 7 = 128 x 128. Larger sizes will (in theory) reduce hash
- * lookup times at the expense of memory usage. */
-const int HASH_BITS = 7;
-const int HASH_SIZE = 1 << HASH_BITS;
-const int HASH_MASK = HASH_SIZE - 1;
-
-/* Resolution of the hash, 0 = 1*1 tile, 1 = 2*2 tiles, 2 = 4*4 tiles, etc.
- * Profiling results show that 0 is fastest. */
-const int HASH_RES = 0;
-
 struct VehicleTileHash : HashPack <7, 7> {
 	/* Size of the hash, 6 = 64 x 64, 7 = 128 x 128. Larger sizes will (in theory) reduce hash
 	 * lookup times at the expense of memory usage. */
+
+	/* Resolution of the hash, 0 = 1*1 tile, 1 = 2*2 tiles, 2 = 4*4 tiles, etc.
+	 * Profiling results show that 0 is fastest. */
+	static const uint HASH_RES = 0;
 
 	static const uint HASH_OFFSET_X = HASH_RES;
 	static const uint HASH_BITS_X   = PACK_BITS_X;
@@ -470,6 +464,12 @@ struct VehicleTileHash : HashPack <7, 7> {
 		FOR_ALL_VEHICLES(v) { v->hash_tile_current = NULL; }
 		memset (this->buckets, 0, sizeof(this->buckets));
 	}
+
+	void setup_iter (AreaIterator *iter, int xl, int xu, int yl, int yu)
+	{
+		iter->reset (GB(xl, HASH_OFFSET_X, HASH_BITS_X), GB(xu, HASH_OFFSET_X, HASH_BITS_X),
+			     GB(yl, HASH_OFFSET_Y, HASH_BITS_Y), GB(yu, HASH_OFFSET_Y, HASH_BITS_Y));
+	}
 };
 
 static VehicleTileHash vehicle_tile_hash;
@@ -491,22 +491,18 @@ static Vehicle *VehicleFromPosXY(int x, int y, void *data, VehicleFromPosProc *p
 	const int COLL_DIST = 6;
 
 	/* Hash area to scan is from xl,yl to xu,yu */
-	int xl = GB((x - COLL_DIST) / TILE_SIZE, HASH_RES, HASH_BITS);
-	int xu = GB((x + COLL_DIST) / TILE_SIZE, HASH_RES, HASH_BITS);
-	int yl = GB((y - COLL_DIST) / TILE_SIZE, HASH_RES, HASH_BITS) << HASH_BITS;
-	int yu = GB((y + COLL_DIST) / TILE_SIZE, HASH_RES, HASH_BITS) << HASH_BITS;
+	VehicleTileHash::AreaIterator iter;
+	vehicle_tile_hash.setup_iter (&iter,
+		(x - COLL_DIST) / TILE_SIZE, (x + COLL_DIST) / TILE_SIZE,
+		(y - COLL_DIST) / TILE_SIZE, (y + COLL_DIST) / TILE_SIZE);
 
-	for (int y = yl; ; y = (y + (1 << HASH_BITS)) & (HASH_MASK << HASH_BITS)) {
-		for (int x = xl; ; x = (x + 1) & HASH_MASK) {
-			Vehicle *v = vehicle_tile_hash.buckets[x + y];
-			for (; v != NULL; v = v->hash_tile_link.next) {
-				Vehicle *a = proc(v, data);
-				if (find_first && a != NULL) return a;
-			}
-			if (x == xu) break;
+	do {
+		Vehicle *v = vehicle_tile_hash.buckets[iter.get()];
+		for (; v != NULL; v = v->hash_tile_link.next) {
+			Vehicle *a = proc(v, data);
+			if (find_first && a != NULL) return a;
 		}
-		if (y == yu) break;
-	}
+	} while (iter.next());
 
 	return NULL;
 }
