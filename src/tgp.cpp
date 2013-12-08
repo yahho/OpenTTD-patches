@@ -11,6 +11,7 @@
 
 #include "stdafx.h"
 #include "core/alloc_func.hpp"
+#include "core/mem_func.hpp"
 #include <math.h>
 #include "map/ground.h"
 #include "genworld.h"
