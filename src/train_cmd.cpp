@@ -351,105 +351,76 @@ int Train::GetCurveSpeedLimit() const
 	return max_speed;
 }
 
-struct TunnelPrevTrainEnumData {
-	int pos;
-	Vehicle *v;
-};
-
-static Vehicle *TunnelPrevTrainEnumSW(Vehicle *v, void *data)
-{
-	struct TunnelPrevTrainEnumData *tptedata = (TunnelPrevTrainEnumData*) data;
-
-	int pos = v->x_pos;
-	if (pos <= tptedata->pos) return NULL;
-	if (tptedata->v == NULL || pos < tptedata->v->x_pos) {
-		tptedata->v = v;
-	} else {
-		assert(pos != tptedata->v->x_pos);
-	}
-	return v;
-}
-
-static Vehicle *TunnelPrevTrainEnumSE(Vehicle *v, void *data)
-{
-	struct TunnelPrevTrainEnumData *tptedata = (TunnelPrevTrainEnumData*) data;
-
-	int pos = v->y_pos;
-	if (pos <= tptedata->pos) return NULL;
-	if (tptedata->v == NULL || pos < tptedata->v->y_pos) {
-		tptedata->v = v;
-	} else {
-		assert(pos != tptedata->v->y_pos);
-	}
-	return v;
-}
-
-static Vehicle *TunnelPrevTrainEnumNE(Vehicle *v, void *data)
-{
-	struct TunnelPrevTrainEnumData *tptedata = (TunnelPrevTrainEnumData*) data;
-
-	int pos = v->x_pos;
-	if (pos >= tptedata->pos) return NULL;
-	if (tptedata->v == NULL || pos > tptedata->v->x_pos) {
-		tptedata->v = v;
-	} else {
-		assert(pos != tptedata->v->x_pos);
-	}
-	return v;
-}
-
-static Vehicle *TunnelPrevTrainEnumNW(Vehicle *v, void *data)
-{
-	struct TunnelPrevTrainEnumData *tptedata = (TunnelPrevTrainEnumData*) data;
-
-	int pos = v->y_pos;
-	if (pos >= tptedata->pos) return NULL;
-	if (tptedata->v == NULL || pos > tptedata->v->y_pos) {
-		tptedata->v = v;
-	} else {
-		assert(pos != tptedata->v->y_pos);
-	}
-	return v;
-}
-
 static uint FindTunnelPrevTrain(const Train *t, Vehicle **vv = NULL)
 {
 	assert(maptile_is_rail_tunnel(t->tile));
 	assert(t->trackdir == TRACKDIR_WORMHOLE);
 
-	struct TunnelPrevTrainEnumData tptedata;
-	tptedata.v = NULL;
-
+	VehicleTileIterator iter (t->tile);
+	Vehicle *closest = NULL;
 	uint dist;
+
 	switch (GetTunnelBridgeDirection(t->tile)) {
 		default: NOT_REACHED();
 
 		case DIAGDIR_NE:
-			tptedata.pos = t->x_pos;
-			FindVehicleOnPos(t->tile, &tptedata, &TunnelPrevTrainEnumSW);
-			dist = tptedata.v == NULL ? UINT_MAX : tptedata.v->x_pos - tptedata.pos;
+			while (!iter.finished()) {
+				Vehicle *v = iter.next();
+				int pos = v->x_pos;
+				if (pos <= t->x_pos) continue; // v is behind
+				if (closest == NULL || pos < closest->x_pos) {
+					closest = v;
+				} else {
+					assert (pos != closest->x_pos);
+				}
+			}
+			dist = closest == NULL ? UINT_MAX : closest->x_pos - t->x_pos;
 			break;
 
 		case DIAGDIR_NW:
-			tptedata.pos = t->y_pos;
-			FindVehicleOnPos(t->tile, &tptedata, &TunnelPrevTrainEnumSE);
-			dist = tptedata.v == NULL ? UINT_MAX : tptedata.v->y_pos - tptedata.pos;
+			while (!iter.finished()) {
+				Vehicle *v = iter.next();
+				int pos = v->y_pos;
+				if (pos <= t->y_pos) continue; // v is behind
+				if (closest == NULL || pos < closest->y_pos) {
+					closest = v;
+				} else {
+					assert (pos != closest->y_pos);
+				}
+			}
+			dist = closest == NULL ? UINT_MAX : closest->y_pos - t->y_pos;
 			break;
 
 		case DIAGDIR_SW:
-			tptedata.pos = t->x_pos;
-			FindVehicleOnPos(t->tile, &tptedata, &TunnelPrevTrainEnumNE);
-			dist = tptedata.v == NULL ? UINT_MAX : tptedata.pos - tptedata.v->x_pos;
+			while (!iter.finished()) {
+				Vehicle *v = iter.next();
+				int pos = v->x_pos;
+				if (pos >= t->x_pos) continue; // v is behind
+				if (closest == NULL || pos > closest->x_pos) {
+					closest = v;
+				} else {
+					assert (pos != closest->x_pos);
+				}
+			}
+			dist = closest == NULL ? UINT_MAX : t->x_pos - closest->x_pos;
 			break;
 
 		case DIAGDIR_SE:
-			tptedata.pos = t->y_pos;
-			FindVehicleOnPos(t->tile, &tptedata, &TunnelPrevTrainEnumNW);
-			dist = tptedata.v == NULL ? UINT_MAX : tptedata.pos - tptedata.v->y_pos;
+			while (!iter.finished()) {
+				Vehicle *v = iter.next();
+				int pos = v->y_pos;
+				if (pos >= t->y_pos) continue; // v is behind
+				if (closest == NULL || pos > closest->y_pos) {
+					closest = v;
+				} else {
+					assert (pos != closest->y_pos);
+				}
+			}
+			dist = closest == NULL ? UINT_MAX : t->y_pos - closest->y_pos;
 			break;
 	}
 
-	if (vv != NULL) *vv = tptedata.v;
+	if (vv != NULL) *vv = closest;
 
 	return dist;
 }
