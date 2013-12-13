@@ -474,6 +474,15 @@ struct VehicleTileHash : HashPack <7, 7> {
 
 static VehicleTileHash vehicle_tile_hash;
 
+/**
+ * Get the first vehicle for a VehicleTileIterator
+ * @param tile The tile to iterate at
+ */
+Vehicle *VehicleTileIterator::first (TileIndex tile)
+{
+	return *vehicle_tile_hash.get_bucket(tile);
+}
+
 
 /**
  * Helper function for FindVehicleOnPos/HasVehicleOnPos.

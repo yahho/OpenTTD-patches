@@ -911,6 +911,52 @@ public:
 #define FOR_ALL_VEHICLES(var) FOR_ALL_VEHICLES_FROM(var, 0)
 
 /**
+ * Iterator for vehicles at a tile. This uses the tile hash VehicleTileHash
+ * defined in vehicle.cpp to run through all vehicles at a given tile.
+ *
+ * NOTE! The order in which vehicles are iterated over is unspecified, and
+ * can be different between machines. As such, and to prevent a simulation
+ * mismatch in multiplayer, you must ensure that whatever you are doing
+ * with the vehicles does not depend on their ordering. To help enforce
+ * this, the iterator will assert if you break the iteration before
+ * reaching the end.
+ */
+struct VehicleTileIterator {
+protected:
+	const TileIndex tile;
+	Vehicle *v;
+
+	static Vehicle *first (TileIndex tile);
+
+public:
+	VehicleTileIterator (TileIndex tile) : tile(tile), v(first(tile))
+	{
+		if (v != NULL && v->tile != tile) next();
+	}
+
+	~VehicleTileIterator()
+	{
+		assert(finished());
+	}
+
+	bool finished() const
+	{
+		return v == NULL;
+	}
+
+	Vehicle *next()
+	{
+		Vehicle *r = v;
+
+		do {
+			v = v->hash_tile_link.next;
+		} while (v != NULL && v->tile != tile);
+
+		return r;
+	}
+};
+
+/**
  * Class defining several overloaded accessors so we don't
  * have to cast vehicle types that often
  */
