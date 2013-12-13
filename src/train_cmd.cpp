@@ -3751,28 +3751,6 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 	return true;
 }
 
-/**
- * Collect trackbits of all crashed train vehicles on a tile
- * @param v Vehicle passed from Find/HasVehicleOnPos()
- * @param data trackdirbits for the result
- * @return NULL to iterate over all vehicles on the tile.
- */
-static Vehicle *CollectTrackbitsFromCrashedVehiclesEnum(Vehicle *v, void *data)
-{
-	TrackBits *trackbits = (TrackBits *)data;
-
-	if (v->type == VEH_TRAIN && (v->vehstatus & VS_CRASHED) != 0) {
-		Trackdir trackdir = Train::From(v)->trackdir;
-		if (trackdir == TRACKDIR_WORMHOLE) {
-			/* Vehicle is inside a wormhole, v->trackdir contains no useful value then. */
-			*trackbits |= DiagDirToDiagTrackBits(GetTunnelBridgeDirection(v->tile));
-		} else if (trackdir != TRACKDIR_DEPOT) {
-			*trackbits |= TrackToTrackBits(TrackdirToTrack(trackdir));
-		}
-	}
-
-	return NULL;
-}
 
 /**
  * Deletes/Clears the last wagon of a crashed train. It takes the engine of the
@@ -3841,7 +3819,19 @@ static void DeleteLastWagon(Train *v)
 
 		/* If there are still crashed vehicles on the tile, give the track reservation to them */
 		TrackBits remaining_trackbits = TRACK_BIT_NONE;
-		FindVehicleOnPos(tile, &remaining_trackbits, CollectTrackbitsFromCrashedVehiclesEnum);
+		VehicleTileIterator iter (tile);
+		while (!iter.finished()) {
+			Vehicle *v = iter.next();
+			if (v->type == VEH_TRAIN && (v->vehstatus & VS_CRASHED) != 0) {
+				Trackdir trackdir = Train::From(v)->trackdir;
+				if (trackdir == TRACKDIR_WORMHOLE) {
+					/* Vehicle is inside a wormhole, v->trackdir contains no useful value then. */
+					remaining_trackbits |= DiagDirToDiagTrackBits(GetTunnelBridgeDirection(v->tile));
+				} else if (trackdir != TRACKDIR_DEPOT) {
+					remaining_trackbits |= TrackToTrackBits(TrackdirToTrack(trackdir));
+				}
+			}
+		}
 
 		/* It is important that these two are the first in the loop, as reservation cannot deal with every trackbit combination */
 		assert(TRACK_BEGIN == TRACK_X && TRACK_Y == TRACK_BEGIN + 1);
