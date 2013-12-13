@@ -310,39 +310,6 @@ void RoadStop::Entry::Enter(const RoadVehicle *rv)
 			GetRoadStopAxis(next) == GetRoadStopAxis(rs);
 }
 
-typedef std::list<const RoadVehicle *> RVList; ///< A list of road vehicles
-
-/** Helper for finding RVs in a road stop. */
-struct RoadStopEntryRebuilderHelper {
-	RVList vehicles;   ///< The list of vehicles to possibly add to.
-	DiagDirection dir; ///< The direction the vehicle has to face to be added.
-};
-
-/**
- * Add road vehicles to the station's list if needed.
- * @param v the found vehicle
- * @param data the extra data used to make our decision
- * @return always NULL
- */
-Vehicle *FindVehiclesInRoadStop(Vehicle *v, void *data)
-{
-	RoadStopEntryRebuilderHelper *rserh = (RoadStopEntryRebuilderHelper*)data;
-	/* Not a RV or not in the right direction or crashed :( */
-	if (v->type != VEH_ROAD || DirToDiagDir(v->direction) != rserh->dir || !v->IsPrimaryVehicle() || (v->vehstatus & VS_CRASHED) != 0) return NULL;
-
-	RoadVehicle *rv = RoadVehicle::From(v);
-	/* Don't add ones not in a road stop */
-	if (rv->state < RVSB_IN_ROAD_STOP) return NULL;
-
-	/* Do not add duplicates! */
-	for (RVList::iterator it = rserh->vehicles.begin(); it != rserh->vehicles.end(); it++) {
-		if (rv == *it) return NULL;
-	}
-
-	rserh->vehicles.push_back(rv);
-	return NULL;
-}
-
 /**
  * Rebuild, from scratch, the vehicles and other metadata on this stop.
  * @param rs   the roadstop this entry is part of
@@ -350,23 +317,43 @@ Vehicle *FindVehiclesInRoadStop(Vehicle *v, void *data)
  */
 void RoadStop::Entry::Rebuild(const RoadStop *rs, int side)
 {
+	typedef std::list<const RoadVehicle *> RVList; ///< A list of road vehicles
+
 	assert(HasBit(rs->status, RSSFB_BASE_ENTRY));
 
 	DiagDirection dir = GetRoadStopDir(rs->xy);
-	if (side == -1) side = (rs->east == this);
+	TileIndexDiff offset = abs(TileOffsByDiagDir(dir));
 
-	RoadStopEntryRebuilderHelper rserh;
-	rserh.dir = side ? dir : ReverseDiagDir(dir);
+	if (side == -1) side = (rs->east == this);
+	if (side != 0) dir = ReverseDiagDir(dir);
 
 	this->length = 0;
-	TileIndexDiff offset = abs(TileOffsByDiagDir(dir));
+	RVList list;
 	for (TileIndex tile = rs->xy; IsDriveThroughRoadStopContinuation(rs->xy, tile); tile += offset) {
 		this->length += TILE_SIZE;
-		FindVehicleOnPos(tile, &rserh, FindVehiclesInRoadStop);
+		VehicleTileIterator iter (tile);
+		while (!iter.finished()) {
+			Vehicle *v = iter.next();
+
+			/* Not a RV or not in the right direction or crashed :( */
+			if (v->type != VEH_ROAD || DirToDiagDir(v->direction) != dir || !v->IsPrimaryVehicle() || (v->vehstatus & VS_CRASHED) != 0) continue;
+
+			RoadVehicle *rv = RoadVehicle::From(v);
+			/* Don't add ones not in a road stop */
+			if (rv->state < RVSB_IN_ROAD_STOP) continue;
+
+			/* Do not add duplicates! */
+			RVList::iterator it;
+			for (it = list.begin(); it != list.end(); it++) {
+				if (rv == *it) break;
+			}
+
+			if (it == list.end()) list.push_back(rv);
+		}
 	}
 
 	this->occupied = 0;
-	for (RVList::iterator it = rserh.vehicles.begin(); it != rserh.vehicles.end(); it++) {
+	for (RVList::iterator it = list.begin(); it != list.end(); it++) {
 		this->occupied += (*it)->gcache.cached_total_length;
 	}
 }
