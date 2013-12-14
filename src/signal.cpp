@@ -494,14 +494,6 @@ static SigFlags ExploreSegment(Owner owner)
 }
 
 
-/** Check whether there is a train on a given virtual tile. */
-static Vehicle *TrainOnVirtTileEnum(Vehicle *v, void *tile)
-{
-	if (v->type != VEH_TRAIN || TileVirtXY(v->x_pos, v->y_pos) != *(TileIndex*)tile) return NULL;
-
-	return v;
-}
-
 /**
  * Determine the state for a signal heading into a tunnel when there is a train in it
  * @param tile the tunnel tile
@@ -516,7 +508,12 @@ static SignalState GetTunnelSignalState(TileIndex tile)
 
 	/* otherwise, signal is red iff there is a train near the entry */
 	TileIndex tile2 = TileAddByDiagDir(tile, GetTunnelBridgeDirection(tile));
-	return HasVehicleOnPos(GetOtherTunnelEnd(tile), &tile2, &TrainOnVirtTileEnum) ? SIGNAL_STATE_RED : SIGNAL_STATE_GREEN;
+	VehicleTileFinder iter (GetOtherTunnelEnd(tile));
+	while (!iter.finished()) {
+		Vehicle *v = iter.next();
+		if (v->type == VEH_TRAIN && TileVirtXY(v->x_pos, v->y_pos) == tile2) iter.set_found();
+	}
+	return iter.was_found() ? SIGNAL_STATE_RED : SIGNAL_STATE_GREEN;
 }
 
 /**
