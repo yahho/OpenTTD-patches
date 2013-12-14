@@ -279,21 +279,23 @@ struct FindTrainOnTrackInfo {
 };
 
 /** Find a train on a specific tile track. */
-static void FindTrainOnTrack (TileIndex tile, FindTrainOnTrackInfo *info)
+static Train *FindTrainOnTrack (TileIndex tile, Track track)
 {
+	Train *best = NULL;
 	VehicleTileIterator iter (tile);
 	while (!iter.finished()) {
 		Vehicle *v = iter.next();
 		if (v->type != VEH_TRAIN || (v->vehstatus & VS_CRASHED)) continue;
 
 		Train *t = Train::From(v);
-		if (TrackdirToTrack(t->trackdir) != TrackdirToTrack(info->pos.td)) continue;
+		if (TrackdirToTrack(t->trackdir) != track) continue;
 
 		t = t->First();
 
 		/* ALWAYS return the lowest ID (anti-desync!) */
-		if (info->best == NULL || t->index < info->best->index) info->best = t;
+		if (best == NULL || t->index < best->index) best = t;
 	}
+	return best;
 }
 
 /** Find a train in a wormhole. */
@@ -324,14 +326,14 @@ static void FindTrainOnPathEnd(FindTrainOnTrackInfo *ftoti)
 		if (ftoti->best != NULL) return;
 		ftoti->best = FindTrainInWormhole (GetOtherTunnelBridgeEnd(ftoti->pos.wormhole));
 	} else {
-		FindTrainOnTrack (ftoti->pos.tile, ftoti);
+		ftoti->best = FindTrainOnTrack (ftoti->pos.tile, TrackdirToTrack(ftoti->pos.td));
 		if (ftoti->best != NULL) return;
 
 		/* Special case for stations: check the whole platform for a vehicle. */
 		if (IsRailStationTile(ftoti->pos.tile)) {
 			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(ftoti->pos.td)));
 			for (TileIndex tile = ftoti->pos.tile + diff; IsCompatibleTrainStationTile(tile, ftoti->pos.tile); tile += diff) {
-				FindTrainOnTrack (tile, ftoti);
+				ftoti->best = FindTrainOnTrack (tile, TrackdirToTrack(ftoti->pos.td));
 				if (ftoti->best != NULL) return;
 			}
 		}
