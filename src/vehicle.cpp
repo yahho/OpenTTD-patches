@@ -728,9 +728,14 @@ CommandCost EnsureNoTrainOnBridgeTrackBits(TileIndex tile1, TrackBits bits1, Til
 	return CommandCost();
 }
 
-static Vehicle *EnsureNoTrainOnTunnelBridgeMiddleProc(Vehicle *v, void *data)
+static bool EnsureNoTrainOnTunnelBridgeEndMiddle (TileIndex tile)
 {
-	return (v->type == VEH_TRAIN) && (Train::From(v)->trackdir == TRACKDIR_WORMHOLE) ? v : NULL;
+	VehicleTileFinder iter (tile);
+	while (!iter.finished()) {
+		Vehicle *v = iter.next();
+		if (v->type == VEH_TRAIN && Train::From(v)->trackdir == TRACKDIR_WORMHOLE) iter.set_found();
+	}
+	return !iter.was_found();
 }
 
 /**
@@ -741,8 +746,11 @@ static Vehicle *EnsureNoTrainOnTunnelBridgeMiddleProc(Vehicle *v, void *data)
  */
 CommandCost EnsureNoTrainOnTunnelBridgeMiddle(TileIndex tile1, TileIndex tile2)
 {
-	if (HasVehicleOnPos(tile1, NULL, &EnsureNoTrainOnTunnelBridgeMiddleProc)) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
-	if (HasVehicleOnPos(tile2, NULL, &EnsureNoTrainOnTunnelBridgeMiddleProc)) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+	if (!EnsureNoTrainOnTunnelBridgeEndMiddle(tile1) ||
+			!EnsureNoTrainOnTunnelBridgeEndMiddle(tile2)) {
+		return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+	}
+
 	return CommandCost();
 }
 
