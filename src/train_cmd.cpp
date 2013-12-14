@@ -1673,25 +1673,23 @@ static Vehicle *TrainOnTileEnum(Vehicle *v, void *)
 
 
 /**
- * Checks if a train is approaching a rail-road crossing
- * @param v vehicle on tile
- * @param data tile with crossing we are testing
- * @return v if it is approaching a crossing, NULL otherwise
+ * Checks whether a train is approaching a rail-road crossing from a neighbour tile
+ * @param tile the crossing tile
+ * @param from the neighbour tile
+ * @return true if a train is approaching the crossing
  */
-static Vehicle *TrainApproachingCrossingEnum(Vehicle *v, void *data)
+static bool TrainApproachingCrossingFrom (TileIndex tile, TileIndex from)
 {
-	if (v->type != VEH_TRAIN || (v->vehstatus & VS_CRASHED)) return NULL;
+	VehicleTileFinder iter (from);
+	while (!iter.finished()) {
+		Vehicle *v = iter.next();
+		if (v->type != VEH_TRAIN || (v->vehstatus & VS_CRASHED)) continue;
 
-	Train *t = Train::From(v);
-	if (!t->IsFrontEngine()) return NULL;
-
-	TileIndex tile = *(TileIndex *)data;
-
-	if (TrainApproachingCrossingTile(t) != tile) return NULL;
-
-	return t;
+		Train *t = Train::From(v);
+		if (t->IsFrontEngine() && TrainApproachingCrossingTile(t) == tile) iter.set_found();
+	}
+	return iter.was_found();
 }
-
 
 /**
  * Finds a vehicle approaching rail-road crossing
@@ -1703,15 +1701,9 @@ static bool TrainApproachingCrossing(TileIndex tile)
 {
 	assert(IsLevelCrossingTile(tile));
 
-	DiagDirection dir = AxisToDiagDir(GetCrossingRailAxis(tile));
-	TileIndex tile_from = tile + TileOffsByDiagDir(dir);
-
-	if (HasVehicleOnPos(tile_from, &tile, &TrainApproachingCrossingEnum)) return true;
-
-	dir = ReverseDiagDir(dir);
-	tile_from = tile + TileOffsByDiagDir(dir);
-
-	return HasVehicleOnPos(tile_from, &tile, &TrainApproachingCrossingEnum);
+	TileIndexDiff delta = TileOffsByDiagDir(AxisToDiagDir(GetCrossingRailAxis(tile)));
+	return  TrainApproachingCrossingFrom (tile, tile + delta) ||
+		TrainApproachingCrossingFrom (tile, tile - delta);
 }
 
 
