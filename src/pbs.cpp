@@ -267,17 +267,6 @@ static PFPos FollowReservation(Owner o, RailTypes rts, const PFPos &pos, bool ig
 	return cur;
 }
 
-/**
- * Helper struct for finding the best matching vehicle on a specific track.
- */
-struct FindTrainOnTrackInfo {
-	PFPos pos;       ///< Information about the track.
-	Train *best;     ///< The currently "best" vehicle we have found.
-
-	/** Init the best location to NULL always! */
-	FindTrainOnTrackInfo() : best(NULL) {}
-};
-
 /** Find a train on a specific tile track. */
 static Train *FindTrainOnTrack (TileIndex tile, Track track)
 {
@@ -354,23 +343,22 @@ bool FollowTrainReservation(const Train *v, PFPos *pos, Vehicle **train_on_res)
 {
 	assert(v->type == VEH_TRAIN);
 
-	FindTrainOnTrackInfo ftoti;
-	ftoti.pos = v->GetPos();
+	PFPos res = v->GetPos();
+	bool has_reservation = HasReservedPos(res);
 
 	/* Start track not reserved? This can happen if two trains
 	 * are on the same tile. The reservation on the next tile
 	 * is not ours in this case. */
-	bool has_reservation = HasReservedPos(ftoti.pos);
 	if (has_reservation) {
-		ftoti.pos = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, ftoti.pos);
-		assert(HasReservedPos(ftoti.pos));
+		res = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, res);
+		assert(HasReservedPos(res));
 		if (train_on_res != NULL) {
-			ftoti.best = FindTrainOnPathEnd(ftoti.pos);
-			if (ftoti.best != NULL) *train_on_res = ftoti.best->First();
+			Train *t = FindTrainOnPathEnd(res);
+			if (t != NULL) *train_on_res = t->First();
 		}
 	}
 
-	*pos = ftoti.pos;
+	*pos = res;
 	return has_reservation;
 }
 
@@ -396,11 +384,9 @@ Train *GetTrainForReservation(TileIndex tile, Track track)
 		 * search in this direction as the reservation can't come from this side.*/
 		if (HasOnewaySignalBlockingTrackdir(tile, ReverseTrackdir(trackdir)) && !HasPbsSignalOnTrackdir(tile, trackdir)) continue;
 
-		FindTrainOnTrackInfo ftoti;
-		ftoti.pos = FollowReservation(GetTileOwner(tile), rts, PFPos(tile, trackdir), true);
-
-		ftoti.best = FindTrainOnPathEnd(ftoti.pos);
-		if (ftoti.best != NULL) return ftoti.best;
+		PFPos pos = FollowReservation(GetTileOwner(tile), rts, PFPos(tile, trackdir), true);
+		Train *t = FindTrainOnPathEnd(pos);
+		if (t != NULL) return t;
 	}
 
 	return NULL;
