@@ -602,23 +602,27 @@ static void RoadVehFindCloseToCheck (RoadVehFindData *rvf, Vehicle *v)
 	static const int8 dist_x[] = { -4, -8, -4, -1, 4, 8, 4, 1 };
 	static const int8 dist_y[] = { -4, -1, 4, 8, 4, 1, -4, -8 };
 
-	short x_diff = v->x_pos - rvf->x;
-	short y_diff = v->y_pos - rvf->y;
-
 	if (v->type == VEH_ROAD &&
 			!v->IsInDepot() &&
 			abs(v->z_pos - rvf->veh->z_pos) < 6 &&
 			v->direction == rvf->dir &&
-			rvf->veh->First() != v->First() &&
-			(dist_x[v->direction] >= 0 || (x_diff > dist_x[v->direction] && x_diff <= 0)) &&
-			(dist_x[v->direction] <= 0 || (x_diff < dist_x[v->direction] && x_diff >= 0)) &&
-			(dist_y[v->direction] >= 0 || (y_diff > dist_y[v->direction] && y_diff <= 0)) &&
-			(dist_y[v->direction] <= 0 || (y_diff < dist_y[v->direction] && y_diff >= 0))) {
-		uint diff = abs(x_diff) + abs(y_diff);
+			rvf->veh->First() != v->First()) {
 
-		if (diff < rvf->best_diff || (diff == rvf->best_diff && v->index < rvf->best->index)) {
-			rvf->best = v;
-			rvf->best_diff = diff;
+		short x_diff = v->x_pos - rvf->x;
+		short y_diff = v->y_pos - rvf->y;
+
+		if ((dist_x[v->direction] > 0 ?
+					(x_diff >= 0 && x_diff < dist_x[v->direction]) :
+					(x_diff <= 0 && x_diff > dist_x[v->direction])) &&
+				(dist_y[v->direction] > 0 ?
+					(y_diff >= 0 && y_diff < dist_y[v->direction]) :
+					(y_diff <= 0 && y_diff > dist_y[v->direction]))) {
+			uint diff = abs(x_diff) + abs(y_diff);
+
+			if (diff < rvf->best_diff || (diff == rvf->best_diff && v->index < rvf->best->index)) {
+				rvf->best = v;
+				rvf->best_diff = diff;
+			}
 		}
 	}
 }
