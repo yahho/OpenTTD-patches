@@ -34,7 +34,6 @@ typedef Vehicle *VehicleFromPosProc(Vehicle *v, void *data);
 void VehicleServiceInDepot(Vehicle *v);
 uint CountVehiclesInChain(const Vehicle *v);
 void FindVehicleOnPosXY(int x, int y, void *data, VehicleFromPosProc *proc);
-bool HasVehicleOnPos(TileIndex tile, void *data, VehicleFromPosProc *proc);
 bool HasVehicleOnPosXY(int x, int y, void *data, VehicleFromPosProc *proc);
 void CallVehicleTicks();
 uint8 CalcPercentVehicleFilled(const Vehicle *v, StringID *colour);
