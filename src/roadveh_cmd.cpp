@@ -597,12 +597,10 @@ struct RoadVehFindData {
 	Direction dir;
 };
 
-static Vehicle *EnumCheckRoadVehClose(Vehicle *v, void *data)
+static void RoadVehFindCloseToCheck (RoadVehFindData *rvf, Vehicle *v)
 {
 	static const int8 dist_x[] = { -4, -8, -4, -1, 4, 8, 4, 1 };
 	static const int8 dist_y[] = { -4, -1, 4, 8, 4, 1, -4, -8 };
-
-	RoadVehFindData *rvf = (RoadVehFindData*)data;
 
 	short x_diff = v->x_pos - rvf->x;
 	short y_diff = v->y_pos - rvf->y;
@@ -623,6 +621,11 @@ static Vehicle *EnumCheckRoadVehClose(Vehicle *v, void *data)
 			rvf->best_diff = diff;
 		}
 	}
+}
+
+static Vehicle *EnumCheckRoadVehClose(Vehicle *v, void *data)
+{
+	RoadVehFindCloseToCheck ((RoadVehFindData*)data, v);
 
 	return NULL;
 }
@@ -641,8 +644,14 @@ static RoadVehicle *RoadVehFindCloseTo(RoadVehicle *v, int x, int y, Direction d
 	rvf.best_diff = UINT_MAX;
 
 	if (front->state == RVSB_WORMHOLE) {
-		FindVehicleOnPos(v->tile, &rvf, EnumCheckRoadVehClose);
-		FindVehicleOnPos(GetOtherTunnelBridgeEnd(v->tile), &rvf, EnumCheckRoadVehClose);
+		VehicleTileIterator iter1 (v->tile);
+		while (!iter1.finished()) {
+			RoadVehFindCloseToCheck (&rvf, iter1.next());
+		}
+		VehicleTileIterator iter2 (GetOtherTunnelBridgeEnd(v->tile));
+		while (!iter2.finished()) {
+			RoadVehFindCloseToCheck (&rvf, iter2.next());
+		}
 	} else {
 		FindVehicleOnPosXY(x, y, &rvf, EnumCheckRoadVehClose);
 	}
