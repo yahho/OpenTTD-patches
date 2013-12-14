@@ -692,15 +692,21 @@ CommandCost EnsureNoTrainOnTrackBits(TileIndex tile, TrackBits track_bits)
 	return CommandCost();
 }
 
-static Vehicle *EnsureNoTrainOnBridgeTrackProc(Vehicle *v, void *data)
+static bool EnsureNoTrainOnBridgeEndTrackBits (TileIndex tile, TrackBits bits)
 {
-	if (v->type != VEH_TRAIN) return NULL;
+	assert(bits != TRACK_BIT_NONE);
 
-	Track allowed = *(Track *)data;
-	Trackdir trackdir = Train::From(v)->trackdir;
-	if (TrackdirToTrack(trackdir) != allowed) return v;
+	Track allowed = AllowedNonOverlappingTrack(bits);
+	VehicleTileFinder iter (tile);
+	while (!iter.finished()) {
+		Vehicle *v = iter.next();
+		if (v->type != VEH_TRAIN) continue;
 
-	return NULL;
+		Trackdir trackdir = Train::From(v)->trackdir;
+		if (TrackdirToTrack(trackdir) != allowed) iter.set_found();
+	}
+
+	return !iter.was_found();
 }
 
 /**
@@ -714,14 +720,10 @@ static Vehicle *EnsureNoTrainOnBridgeTrackProc(Vehicle *v, void *data)
  */
 CommandCost EnsureNoTrainOnBridgeTrackBits(TileIndex tile1, TrackBits bits1, TileIndex tile2, TrackBits bits2)
 {
-	assert(bits1 != TRACK_BIT_NONE);
-	assert(bits2 != TRACK_BIT_NONE);
-
-	Track allowed = AllowedNonOverlappingTrack(bits1);
-	if (HasVehicleOnPos(tile1, &allowed, &EnsureNoTrainOnBridgeTrackProc)) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
-
-	allowed = AllowedNonOverlappingTrack(bits2);
-	if (HasVehicleOnPos(tile2, &allowed, &EnsureNoTrainOnBridgeTrackProc)) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+	if (!EnsureNoTrainOnBridgeEndTrackBits (tile1, bits1) ||
+			!EnsureNoTrainOnBridgeEndTrackBits (tile2, bits2)) {
+		return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+	}
 
 	return CommandCost();
 }
