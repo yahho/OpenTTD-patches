@@ -297,8 +297,9 @@ static void FindTrainOnTrack (TileIndex tile, FindTrainOnTrackInfo *info)
 }
 
 /** Find a train in a wormhole. */
-static void FindTrainInWormhole (TileIndex tile, FindTrainOnTrackInfo *info)
+static Train *FindTrainInWormhole (TileIndex tile)
 {
+	Train *best = NULL;
 	VehicleTileIterator iter (tile);
 	while (!iter.finished()) {
 		Vehicle *v = iter.next();
@@ -310,17 +311,18 @@ static void FindTrainInWormhole (TileIndex tile, FindTrainOnTrackInfo *info)
 		t = t->First();
 
 		/* ALWAYS return the lowest ID (anti-desync!) */
-		if (info->best == NULL || t->index < info->best->index) info->best = t;
+		if (best == NULL || t->index < best->index) best = t;
 	}
+	return best;
 }
 
 /** Find a train on a reserved path end */
 static void FindTrainOnPathEnd(FindTrainOnTrackInfo *ftoti)
 {
 	if (ftoti->pos.InWormhole()) {
-		FindTrainInWormhole (ftoti->pos.wormhole, ftoti);
+		ftoti->best = FindTrainInWormhole (ftoti->pos.wormhole);
 		if (ftoti->best != NULL) return;
-		FindTrainInWormhole (GetOtherTunnelBridgeEnd(ftoti->pos.wormhole), ftoti);
+		ftoti->best = FindTrainInWormhole (GetOtherTunnelBridgeEnd(ftoti->pos.wormhole));
 	} else {
 		FindTrainOnTrack (ftoti->pos.tile, ftoti);
 		if (ftoti->best != NULL) return;
