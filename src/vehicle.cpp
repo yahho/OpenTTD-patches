@@ -575,24 +575,6 @@ static Vehicle *VehicleFromPos(TileIndex tile, void *data, VehicleFromPosProc *p
 }
 
 /**
- * Find a vehicle from a specific location. It will call \a proc for ALL vehicles
- * on the tile and YOU must make SURE that the "best one" is stored in the
- * data value and is ALWAYS the same regardless of the order of the vehicles
- * where proc was called on!
- * When you fail to do this properly you create an almost untraceable DESYNC!
- * @note The return value of \a proc will be ignored.
- * @note Use this function when you have the intention that all vehicles
- *       should be iterated over.
- * @param tile The location on the map
- * @param data Arbitrary data passed to \a proc.
- * @param proc The proc that determines whether a vehicle will be "found".
- */
-void FindVehicleOnPos(TileIndex tile, void *data, VehicleFromPosProc *proc)
-{
-	VehicleFromPos(tile, data, proc, false);
-}
-
-/**
  * Checks whether a vehicle is on a specific location. It will call \a proc for
  * vehicles until it returns non-NULL.
  * @note Use #FindVehicleOnPos when you have the intention that all vehicles
