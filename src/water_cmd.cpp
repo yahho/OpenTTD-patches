@@ -927,20 +927,6 @@ static Vehicle *FloodVehicleProc(Vehicle *v, void *data)
 	switch (v->type) {
 		default: break;
 
-		case VEH_AIRCRAFT: {
-			if (!IsAirportTile(v->tile) || GetTileMaxZ(v->tile) != 0) break;
-			if (v->subtype == AIR_SHADOW) break;
-
-			/* We compare v->z_pos against delta_z + 1 because the shadow
-			 * is at delta_z and the actual aircraft at delta_z + 1. */
-			const Station *st = Station::GetByTile(v->tile);
-			const AirportFTAClass *airport = st->airport.GetFTA();
-			if (v->z_pos != airport->delta_z + 1) break;
-
-			FloodVehicle(v);
-			break;
-		}
-
 		case VEH_TRAIN:
 		case VEH_ROAD: {
 			int z = *(int*)data;
@@ -963,9 +949,25 @@ static void FloodVehicles(TileIndex tile)
 	int z = 0;
 
 	if (IsAirportTile(tile)) {
+		if (GetTileMaxZ(tile) != 0) return;
+
 		const Station *st = Station::GetByTile(tile);
 		TILE_AREA_LOOP(tile, st->airport) {
-			if (st->TileBelongsToAirport(tile)) FindVehicleOnPos(tile, &z, &FloodVehicleProc);
+			if (st->TileBelongsToAirport(tile)) {
+				VehicleTileIterator iter (tile);
+				while (!iter.finished()) {
+					Vehicle *v = iter.next();
+
+					if (v->type != VEH_AIRCRAFT) continue;
+					if (v->subtype == AIR_SHADOW) continue;
+					if ((v->vehstatus & VS_CRASHED) != 0) continue;
+
+					/* We compare v->z_pos against delta_z + 1 because the shadow
+					 * is at delta_z and the actual aircraft at delta_z + 1. */
+					const AirportFTAClass *airport = st->airport.GetFTA();
+					if (v->z_pos == airport->delta_z + 1) FloodVehicle(v);
+				}
+			}
 		}
 
 		/* No vehicle could be flooded on this airport anymore */
