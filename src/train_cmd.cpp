@@ -1662,15 +1662,19 @@ void ReverseTrainSwapVeh(Train *v, int l, int r)
 
 
 /**
- * Check if the vehicle is a train
- * @param v vehicle on tile
- * @return v if it is a train, NULL otherwise
+ * Check if there is a train on a tile
+ * @param tile the tile to check
+ * @return true if a train is on the tile
  */
-static Vehicle *TrainOnTileEnum(Vehicle *v, void *)
+static bool TrainOnTile (TileIndex tile)
 {
-	return (v->type == VEH_TRAIN) ? v : NULL;
+	VehicleTileFinder iter (tile);
+	while (!iter.finished()) {
+		Vehicle *v = iter.next();
+		if (v->type == VEH_TRAIN) iter.set_found();
+	}
+	return iter.was_found();
 }
-
 
 /**
  * Checks whether a train is approaching a rail-road crossing from a neighbour tile
@@ -1718,7 +1722,7 @@ void UpdateLevelCrossing(TileIndex tile, bool sound)
 	assert(IsLevelCrossingTile(tile));
 
 	/* reserved || train on crossing || train approaching crossing */
-	bool new_state = HasCrossingReservation(tile) || HasVehicleOnPos(tile, NULL, &TrainOnTileEnum) || TrainApproachingCrossing(tile);
+	bool new_state = HasCrossingReservation(tile) || TrainOnTile(tile) || TrainApproachingCrossing(tile);
 
 	if (new_state != IsCrossingBarred(tile)) {
 		if (new_state && sound) {
