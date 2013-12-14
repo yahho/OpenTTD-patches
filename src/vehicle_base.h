@@ -957,6 +957,39 @@ public:
 };
 
 /**
+ * Iterator for vehicles at a tile, to check if a vehicle matching given
+ * conditions exists on a tile.
+ *
+ * This iterator is designed to check if a vehicle that matches a given
+ * set of conditions exists on a tile. Since we are only interested in
+ * whether such a vehicle exists or not, it can break as soon as one is
+ * found, because ordering does not matter in that case.
+ */
+struct VehicleTileFinder : VehicleTileIterator {
+protected:
+	bool found;
+
+public:
+	VehicleTileFinder (TileIndex tile) : VehicleTileIterator(tile), found(false)
+	{
+	}
+
+	void set_found()
+	{
+		v = NULL; // stop iterating
+		found = true;
+	}
+
+	bool was_found () const
+	{
+		/* do not call this until finished */
+		assert(finished());
+
+		return found;
+	}
+};
+
+/**
  * Class defining several overloaded accessors so we don't
  * have to cast vehicle types that often
  */
