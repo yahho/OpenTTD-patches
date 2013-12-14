@@ -1946,15 +1946,17 @@ CommandCost CmdRemoveSignalTrack(TileIndex tile, DoCommandFlag flags, uint32 p1,
 	return CmdSignalTrackHelper(tile, flags, p1, SetBit(p2, 5), text); // bit 5 is remove bit
 }
 
-/** Update power of train under which is the railtype being converted */
-static Vehicle *UpdateTrainPowerProc(Vehicle *v, void *data)
+/** Update power of all trains on a tile under which railtype is converted. */
+static void UpdateTrainPower (TileIndex tile, TrainList *affected)
 {
-	if (v->type != VEH_TRAIN) return NULL;
+	VehicleTileIterator iter (tile);
+	while (!iter.finished()) {
+		Vehicle *v = iter.next();
 
-	TrainList *affected_trains = static_cast<TrainList*>(data);
-	affected_trains->Include(Train::From(v)->First());
+		if (v->type != VEH_TRAIN) continue;
 
-	return NULL;
+		affected->Include(Train::From(v)->First());
+	}
 }
 
 /** Check if the given tile track is reserved by a train which will be unpowered on the given railtype.
@@ -2096,7 +2098,7 @@ static CommandCost ConvertTrack(TileIndex tile, RailType totype, TrainList *affe
 		SetRailType(tile, totype);
 		MarkTileDirtyByTile(tile);
 		/* update power of train on this tile */
-		FindVehicleOnPos(tile, affected, &UpdateTrainPowerProc);
+		UpdateTrainPower (tile, affected);
 
 		/* notify YAPF about the track layout change */
 		TrackBits trackbits = GetTrackBits(tile);
@@ -2184,8 +2186,8 @@ static CommandCost ConvertBridge(TileIndex tile, TileIndex endtile, RailType tot
 		SetRailType(tile, totype);
 		SetRailType(endtile, totype);
 
-		FindVehicleOnPos(tile, affected, &UpdateTrainPowerProc);
-		FindVehicleOnPos(endtile, affected, &UpdateTrainPowerProc);
+		UpdateTrainPower (tile, affected);
+		UpdateTrainPower (endtile, affected);
 
 		/* notify YAPF about the track layout change */
 		TrackBits trackbits = GetTrackBits(tile);
@@ -2260,8 +2262,8 @@ static CommandCost ConvertTunnel(TileIndex tile, TileIndex endtile, RailType tot
 		SetRailType(tile, totype);
 		SetRailType(endtile, totype);
 
-		FindVehicleOnPos(tile, affected, &UpdateTrainPowerProc);
-		FindVehicleOnPos(endtile, affected, &UpdateTrainPowerProc);
+		UpdateTrainPower (tile, affected);
+		UpdateTrainPower (endtile, affected);
 
 		YapfNotifyTrackLayoutChange(tile, track);
 		YapfNotifyTrackLayoutChange(endtile, track);
@@ -2320,7 +2322,7 @@ static CommandCost ConvertGeneric(TileIndex tile, RailType totype, Track track, 
 		SetRailType(tile, totype);
 		MarkTileDirtyByTile(tile);
 		/* update power of train on this tile */
-		FindVehicleOnPos(tile, affected, &UpdateTrainPowerProc);
+		UpdateTrainPower (tile, affected);
 
 		/* notify YAPF about the track layout change */
 		YapfNotifyTrackLayoutChange(tile, track);
