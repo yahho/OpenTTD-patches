@@ -3133,20 +3133,6 @@ static bool CheckTrainCollision(Train *v)
 	return true;
 }
 
-static Vehicle *CheckTrainAtSignal(Vehicle *v, void *data)
-{
-	if (v->type != VEH_TRAIN || (v->vehstatus & VS_CRASHED)) return NULL;
-
-	Train *t = Train::From(v);
-	DiagDirection exitdir = *(DiagDirection *)data;
-
-	/* not front engine of a train, inside wormhole or depot, crashed */
-	if (!t->IsFrontEngine() || (t->trackdir >= TRACKDIR_END)) return NULL;
-
-	if (t->cur_speed > 5 || TrackdirToExitdir(t->trackdir) != exitdir) return NULL;
-
-	return t;
-}
 
 /**
  * Tile callback routine when vehicle enters a track tile
@@ -3441,7 +3427,17 @@ static Trackdir TrainControllerChooseTrackdir(Train *v, TileIndex tile, DiagDire
 			exitdir = ReverseDiagDir(exitdir);
 
 			/* check if a train is waiting on the other side */
-			if (!HasVehicleOnPos(o_tile, &exitdir, &CheckTrainAtSignal)) return INVALID_TRACKDIR;
+			VehicleTileFinder iter (o_tile);
+			while (!iter.finished()) {
+				Vehicle *v = iter.next();
+				if (v->type != VEH_TRAIN || (v->vehstatus & VS_CRASHED)) continue;
+
+				Train *t = Train::From(v);
+				if (t->IsFrontEngine() && (t->trackdir < TRACKDIR_END) && (t->cur_speed <= 5) && TrackdirToExitdir(t->trackdir) == exitdir) {
+					iter.set_found();
+				}
+			}
+			if (!iter.was_found()) return INVALID_TRACKDIR;
 		}
 	}
 
