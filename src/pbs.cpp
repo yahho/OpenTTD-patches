@@ -319,24 +319,26 @@ static Train *FindTrainInWormhole (TileIndex tile)
 }
 
 /** Find a train on a reserved path end */
-static void FindTrainOnPathEnd(FindTrainOnTrackInfo *ftoti)
+static Train *FindTrainOnPathEnd(const PFPos &pos)
 {
-	if (ftoti->pos.InWormhole()) {
-		ftoti->best = FindTrainInWormhole (ftoti->pos.wormhole);
-		if (ftoti->best != NULL) return;
-		ftoti->best = FindTrainInWormhole (GetOtherTunnelBridgeEnd(ftoti->pos.wormhole));
+	if (pos.InWormhole()) {
+		Train *t = FindTrainInWormhole (pos.wormhole);
+		if (t != NULL) return t;
+		return FindTrainInWormhole (GetOtherTunnelBridgeEnd(pos.wormhole));
 	} else {
-		ftoti->best = FindTrainOnTrack (ftoti->pos.tile, TrackdirToTrack(ftoti->pos.td));
-		if (ftoti->best != NULL) return;
+		Train *t = FindTrainOnTrack (pos.tile, TrackdirToTrack(pos.td));
+		if (t != NULL) return t;
 
 		/* Special case for stations: check the whole platform for a vehicle. */
-		if (IsRailStationTile(ftoti->pos.tile)) {
-			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(ftoti->pos.td)));
-			for (TileIndex tile = ftoti->pos.tile + diff; IsCompatibleTrainStationTile(tile, ftoti->pos.tile); tile += diff) {
-				ftoti->best = FindTrainOnTrack (tile, TrackdirToTrack(ftoti->pos.td));
-				if (ftoti->best != NULL) return;
+		if (IsRailStationTile(pos.tile)) {
+			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
+			for (TileIndex tile = pos.tile + diff; IsCompatibleTrainStationTile(tile, pos.tile); tile += diff) {
+				Train *t = FindTrainOnTrack (tile, TrackdirToTrack(pos.td));
+				if (t != NULL) return t;
 			}
 		}
+
+		return NULL;
 	}
 }
 
@@ -363,7 +365,7 @@ bool FollowTrainReservation(const Train *v, PFPos *pos, Vehicle **train_on_res)
 		ftoti.pos = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, ftoti.pos);
 		assert(HasReservedPos(ftoti.pos));
 		if (train_on_res != NULL) {
-			FindTrainOnPathEnd(&ftoti);
+			ftoti.best = FindTrainOnPathEnd(ftoti.pos);
 			if (ftoti.best != NULL) *train_on_res = ftoti.best->First();
 		}
 	}
@@ -397,7 +399,7 @@ Train *GetTrainForReservation(TileIndex tile, Track track)
 		FindTrainOnTrackInfo ftoti;
 		ftoti.pos = FollowReservation(GetTileOwner(tile), rts, PFPos(tile, trackdir), true);
 
-		FindTrainOnPathEnd(&ftoti);
+		ftoti.best = FindTrainOnPathEnd(ftoti.pos);
 		if (ftoti.best != NULL) return ftoti.best;
 	}
 
