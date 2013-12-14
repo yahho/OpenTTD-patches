@@ -278,21 +278,22 @@ struct FindTrainOnTrackInfo {
 	FindTrainOnTrackInfo() : best(NULL) {}
 };
 
-/** Callback for Has/FindVehicleOnPos to find a train on a specific track. */
-static Vehicle *FindTrainOnTrackEnum(Vehicle *v, void *data)
+/** Find a train on a specific tile track. */
+static void FindTrainOnTrack (TileIndex tile, FindTrainOnTrackInfo *info)
 {
-	FindTrainOnTrackInfo *info = (FindTrainOnTrackInfo *)data;
+	VehicleTileIterator iter (tile);
+	while (!iter.finished()) {
+		Vehicle *v = iter.next();
+		if (v->type != VEH_TRAIN || (v->vehstatus & VS_CRASHED)) continue;
 
-	if (v->type != VEH_TRAIN || (v->vehstatus & VS_CRASHED)) return NULL;
+		Train *t = Train::From(v);
+		if (TrackdirToTrack(t->trackdir) != TrackdirToTrack(info->pos.td)) continue;
 
-	Train *t = Train::From(v);
-	if (TrackdirToTrack(t->trackdir) != TrackdirToTrack(info->pos.td)) return NULL;
+		t = t->First();
 
-	t = t->First();
-
-	/* ALWAYS return the lowest ID (anti-desync!) */
-	if (info->best == NULL || t->index < info->best->index) info->best = t;
-	return t;
+		/* ALWAYS return the lowest ID (anti-desync!) */
+		if (info->best == NULL || t->index < info->best->index) info->best = t;
+	}
 }
 
 /** Find a train in a wormhole. */
@@ -321,14 +322,14 @@ static void FindTrainOnPathEnd(FindTrainOnTrackInfo *ftoti)
 		if (ftoti->best != NULL) return;
 		FindTrainInWormhole (GetOtherTunnelBridgeEnd(ftoti->pos.wormhole), ftoti);
 	} else {
-		FindVehicleOnPos(ftoti->pos.tile, ftoti, FindTrainOnTrackEnum);
+		FindTrainOnTrack (ftoti->pos.tile, ftoti);
 		if (ftoti->best != NULL) return;
 
 		/* Special case for stations: check the whole platform for a vehicle. */
 		if (IsRailStationTile(ftoti->pos.tile)) {
 			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(ftoti->pos.td)));
 			for (TileIndex tile = ftoti->pos.tile + diff; IsCompatibleTrainStationTile(tile, ftoti->pos.tile); tile += diff) {
-				FindVehicleOnPos(tile, ftoti, FindTrainOnTrackEnum);
+				FindTrainOnTrack (tile, ftoti);
 				if (ftoti->best != NULL) return;
 			}
 		}
