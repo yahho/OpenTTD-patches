@@ -915,28 +915,26 @@ static void FloodVehicle(Vehicle *v)
 }
 
 /**
- * Flood a vehicle if we are allowed to flood it, i.e. when it is on the ground.
- * @param v    The vehicle to test for flooding.
- * @param data The z of level to flood.
- * @return NULL as we always want to remove everything.
+ * Flood vehicles on a tile if we are allowed to flood them, i.e. when they are on the ground.
+ * @param tile The tile to flood.
+ * @param z The z of level to flood.
  */
-static Vehicle *FloodVehicleProc(Vehicle *v, void *data)
+static void FloodTileVehicles(TileIndex tile, int z)
 {
-	if ((v->vehstatus & VS_CRASHED) != 0) return NULL;
+	VehicleTileIterator iter (tile);
+	while (!iter.finished()) {
+		Vehicle *v = iter.next();
 
-	switch (v->type) {
-		default: break;
+		if ((v->vehstatus & VS_CRASHED) != 0) continue;
 
-		case VEH_TRAIN:
-		case VEH_ROAD: {
-			int z = *(int*)data;
-			if (v->z_pos > z) break;
-			FloodVehicle(v->First());
-			break;
+		switch (v->type) {
+			default: break;
+
+			case VEH_TRAIN:
+			case VEH_ROAD:
+				if (v->z_pos <= z) FloodVehicle(v->First());
 		}
 	}
-
-	return NULL;
 }
 
 /**
@@ -946,8 +944,6 @@ static Vehicle *FloodVehicleProc(Vehicle *v, void *data)
  */
 static void FloodVehicles(TileIndex tile)
 {
-	int z = 0;
-
 	if (IsAirportTile(tile)) {
 		if (GetTileMaxZ(tile) != 0) return;
 
@@ -975,15 +971,13 @@ static void FloodVehicles(TileIndex tile)
 	}
 
 	if (!IsBridgeHeadTile(tile)) {
-		FindVehicleOnPos(tile, &z, &FloodVehicleProc);
+		FloodTileVehicles (tile, 0);
 		return;
 	}
 
-	TileIndex end = GetOtherBridgeEnd(tile);
-	z = GetBridgePixelHeight(tile);
-
-	FindVehicleOnPos(tile, &z, &FloodVehicleProc);
-	FindVehicleOnPos(end, &z, &FloodVehicleProc);
+	int z = GetBridgePixelHeight(tile);
+	FloodTileVehicles (tile, z);
+	FloodTileVehicles (GetOtherBridgeEnd(tile), z);
 }
 
 /**
