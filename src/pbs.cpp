@@ -295,30 +295,31 @@ static Vehicle *FindTrainOnTrackEnum(Vehicle *v, void *data)
 	return t;
 }
 
-/** Callback for Has/FindVehicleOnPos to find a train in a wormhole. */
-static Vehicle *FindTrainInWormholeEnum(Vehicle *v, void *data)
+/** Find a train in a wormhole. */
+static void FindTrainInWormhole (TileIndex tile, FindTrainOnTrackInfo *info)
 {
-	FindTrainOnTrackInfo *info = (FindTrainOnTrackInfo *)data;
+	VehicleTileIterator iter (tile);
+	while (!iter.finished()) {
+		Vehicle *v = iter.next();
+		if (v->type != VEH_TRAIN || (v->vehstatus & VS_CRASHED)) continue;
 
-	if (v->type != VEH_TRAIN || (v->vehstatus & VS_CRASHED)) return NULL;
+		Train *t = Train::From(v);
+		if (t->trackdir != TRACKDIR_WORMHOLE) continue;
 
-	Train *t = Train::From(v);
-	if (t->trackdir != TRACKDIR_WORMHOLE) return NULL;
+		t = t->First();
 
-	t = t->First();
-
-	/* ALWAYS return the lowest ID (anti-desync!) */
-	if (info->best == NULL || t->index < info->best->index) info->best = t;
-	return t;
+		/* ALWAYS return the lowest ID (anti-desync!) */
+		if (info->best == NULL || t->index < info->best->index) info->best = t;
+	}
 }
 
 /** Find a train on a reserved path end */
 static void FindTrainOnPathEnd(FindTrainOnTrackInfo *ftoti)
 {
 	if (ftoti->pos.InWormhole()) {
-		FindVehicleOnPos(ftoti->pos.wormhole, ftoti, FindTrainInWormholeEnum);
+		FindTrainInWormhole (ftoti->pos.wormhole, ftoti);
 		if (ftoti->best != NULL) return;
-		FindVehicleOnPos(GetOtherTunnelBridgeEnd(ftoti->pos.wormhole), ftoti, FindTrainInWormholeEnum);
+		FindTrainInWormhole (GetOtherTunnelBridgeEnd(ftoti->pos.wormhole), ftoti);
 	} else {
 		FindVehicleOnPos(ftoti->pos.tile, ftoti, FindTrainOnTrackEnum);
 		if (ftoti->best != NULL) return;
