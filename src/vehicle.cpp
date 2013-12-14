@@ -663,19 +663,6 @@ static Track AllowedNonOverlappingTrack(TrackBits bits)
 	}
 }
 
-static Vehicle *EnsureNoTrainOnTrackProc(Vehicle *v, void *data)
-{
-	if (v->type != VEH_TRAIN) return NULL;
-
-	Trackdir trackdir = Train::From(v)->trackdir;
-	if (trackdir >= TRACKDIR_END) return NULL; // in wormhole or depot
-
-	Track allowed = *(Track *)data;
-	if (TrackdirToTrack(trackdir) != allowed) return v;
-
-	return NULL;
-}
-
 /**
  * Tests if a vehicle interacts with the specified track bits.
  * All track bits interact except parallel #TRACK_BIT_HORZ or #TRACK_BIT_VERT.
@@ -690,7 +677,18 @@ CommandCost EnsureNoTrainOnTrackBits(TileIndex tile, TrackBits track_bits)
 
 	Track allowed = AllowedNonOverlappingTrack(track_bits);
 
-	if (HasVehicleOnPos(tile, &allowed, &EnsureNoTrainOnTrackProc)) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+	VehicleTileFinder iter (tile);
+	while (!iter.finished()) {
+		Vehicle *v = iter.next();
+		if (v->type != VEH_TRAIN) continue;
+
+		Trackdir trackdir = Train::From(v)->trackdir;
+		if (trackdir >= TRACKDIR_END) continue; // in wormhole or depot
+
+		if (TrackdirToTrack(trackdir) != allowed) iter.set_found();
+	}
+
+	if (iter.was_found()) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
 	return CommandCost();
 }
 
