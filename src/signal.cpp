@@ -226,12 +226,17 @@ static SmallSet<SignalSide, SIG_GLOB_SIZE> _globset("_globset"); ///< set of pla
 static Owner _owner = INVALID_OWNER; ///< owner of tracks in _globset, or INVALID_OWNER if empty
 
 
-/** Check whether there is a train on rail, not in a depot */
-static Vehicle *TrainOnTileEnum(Vehicle *v, void *)
+/** Check if there is a train on a tile, not in a depot. */
+static bool HasTrainOnTile (TileIndex tile)
 {
-	if (v->type != VEH_TRAIN || Train::From(v)->trackdir == TRACKDIR_DEPOT) return NULL;
-
-	return v;
+	VehicleTileFinder iter (tile);
+	while (!iter.finished()) {
+		Vehicle *v = iter.next();
+		if (v->type == VEH_TRAIN && Train::From(v)->trackdir != TRACKDIR_DEPOT) {
+			iter.set_found();
+		}
+	}
+	return iter.was_found();
 }
 
 
@@ -360,7 +365,7 @@ static SigFlags ExploreSegment(Owner owner)
 						continue;
 					}
 				} else { // tile has overlapping tracks
-					if (!(flags & SF_TRAIN) && HasVehicleOnPos(ss.tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
+					if (!(flags & SF_TRAIN) && HasTrainOnTile(ss.tile)) flags |= SF_TRAIN;
 				}
 
 				SignalSideEnum enterdir = ss.side;
@@ -390,7 +395,7 @@ static SigFlags ExploreSegment(Owner owner)
 					case TT_MISC_CROSSING:
 						assert(IsValidDiagDirection((DiagDirection)ss.side));
 						if (DiagDirToAxis((DiagDirection)ss.side) == GetCrossingRoadAxis(ss.tile)) continue; // different axis
-						if (!(flags & SF_TRAIN) && HasVehicleOnPos(ss.tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
+						if (!(flags & SF_TRAIN) && HasTrainOnTile(ss.tile)) flags |= SF_TRAIN;
 						newss.side = ss.side;
 						ss.side = (SignalSideEnum)ReverseDiagDir((DiagDirection)ss.side); // exitdir
 						newss.tile += TileOffsByDiagDir((DiagDirection)ss.side);
@@ -452,13 +457,13 @@ static SigFlags ExploreSegment(Owner owner)
 					case TT_MISC_DEPOT:
 						if (!IsRailDepot(ss.tile)) continue;
 						if (ss.side == SIDE_DEPOT) { // from 'inside' - train just entered or left the depot
-							if (!(flags & SF_TRAIN) && HasVehicleOnPos(ss.tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
+							if (!(flags & SF_TRAIN) && HasTrainOnTile(ss.tile)) flags |= SF_TRAIN;
 							ss.side = (SignalSideEnum)GetGroundDepotDirection(ss.tile); // exitdir
 							newss.tile += TileOffsByDiagDir((DiagDirection)ss.side);
 							newss.side = (SignalSideEnum)ReverseDiagDir((DiagDirection)ss.side);
 							break;
 						} else if (ss.side == (SignalSideEnum)GetGroundDepotDirection(ss.tile)) { // entered a depot
-							if (!(flags & SF_TRAIN) && HasVehicleOnPos(ss.tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
+							if (!(flags & SF_TRAIN) && HasTrainOnTile(ss.tile)) flags |= SF_TRAIN;
 						}
 						continue;
 				}
@@ -472,7 +477,7 @@ static SigFlags ExploreSegment(Owner owner)
 				if (DiagDirToAxis((DiagDirection)ss.side) != GetRailStationAxis(ss.tile)) continue; // different axis
 				if (IsStationTileBlocked(ss.tile)) continue; // 'eye-candy' station tile
 
-				if (!(flags & SF_TRAIN) && HasVehicleOnPos(ss.tile, NULL, &TrainOnTileEnum)) flags |= SF_TRAIN;
+				if (!(flags & SF_TRAIN) && HasTrainOnTile(ss.tile)) flags |= SF_TRAIN;
 				newss.side = ss.side;
 				ss.side = (SignalSideEnum)ReverseDiagDir((DiagDirection)ss.side); // exitdir
 				newss.tile += TileOffsByDiagDir((DiagDirection)ss.side);
@@ -507,7 +512,7 @@ static SignalState GetTunnelSignalState(TileIndex tile)
 	assert(maptile_is_rail_tunnel(tile));
 
 	/* signal is red if there is a train on the initial tile */
-	if (HasVehicleOnPos(tile, NULL, &TrainOnTileEnum)) return SIGNAL_STATE_RED;
+	if (HasTrainOnTile(tile)) return SIGNAL_STATE_RED;
 
 	/* otherwise, signal is red iff there is a train near the entry */
 	TileIndex tile2 = TileAddByDiagDir(tile, GetTunnelBridgeDirection(tile));
