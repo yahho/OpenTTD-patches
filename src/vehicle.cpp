@@ -602,15 +602,6 @@ CommandCost EnsureNoVehicleOnGround(TileIndex tile)
 	return CommandCost();
 }
 
-/** Procedure called for every vehicle found in tunnel/bridge in the hash map */
-static Vehicle *GetVehicleTunnelBridgeProc(Vehicle *v, void *data)
-{
-	if (v->type != VEH_TRAIN && v->type != VEH_ROAD && v->type != VEH_SHIP) return NULL;
-	if (v == (const Vehicle *)data) return NULL;
-
-	return v;
-}
-
 /**
  * Finds vehicle in tunnel / bridge
  * @param tile first end
@@ -624,10 +615,30 @@ CommandCost TunnelBridgeIsFree(TileIndex tile, TileIndex endtile, const Vehicle 
 	 * error message only (which may be different for different machines).
 	 * Such a message does not affect MP synchronisation.
 	 */
-	Vehicle *v = VehicleFromPos(tile, const_cast<Vehicle *>(ignore), &GetVehicleTunnelBridgeProc, true);
-	if (v == NULL) v = VehicleFromPos(endtile, const_cast<Vehicle *>(ignore), &GetVehicleTunnelBridgeProc, true);
+	Vehicle *v = NULL;
 
-	if (v != NULL) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY + v->type);
+	VehicleTileFinder iter1 (tile);
+	while (!iter1.finished()) {
+		v = iter1.next();
+
+		if (v->type != VEH_TRAIN && v->type != VEH_ROAD && v->type != VEH_SHIP) continue;
+		if (v == ignore) continue;
+
+		iter1.set_found();
+	}
+	if (iter1.was_found()) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY + v->type);
+
+	VehicleTileFinder iter2 (tile);
+	while (!iter2.finished()) {
+		v = iter2.next();
+
+		if (v->type != VEH_TRAIN && v->type != VEH_ROAD && v->type != VEH_SHIP) continue;
+		if (v == ignore) continue;
+
+		iter2.set_found();
+	}
+	if (iter2.was_found()) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY + v->type);
+
 	return CommandCost();
 }
 
