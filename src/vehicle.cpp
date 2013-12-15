@@ -552,29 +552,6 @@ bool HasVehicleOnPosXY(int x, int y, void *data, VehicleFromPosProc *proc)
 }
 
 /**
- * Helper function for FindVehicleOnPos/HasVehicleOnPos.
- * @note Do not call this function directly!
- * @param tile The location on the map
- * @param data Arbitrary data passed to \a proc.
- * @param proc The proc that determines whether a vehicle will be "found".
- * @param find_first Whether to return on the first found or iterate over
- *                   all vehicles
- * @return the best matching or first vehicle (depending on find_first).
- */
-static Vehicle *VehicleFromPos(TileIndex tile, void *data, VehicleFromPosProc *proc, bool find_first)
-{
-	Vehicle *v = *vehicle_tile_hash.get_bucket(tile);
-	for (; v != NULL; v = v->hash_tile_link.next) {
-		if (v->tile != tile) continue;
-
-		Vehicle *a = proc(v, data);
-		if (find_first && a != NULL) return a;
-	}
-
-	return NULL;
-}
-
-/**
  * Ensure there is no vehicle at the ground at the given position.
  * @param tile Position to examine.
  * @return Succeeded command (ground is free) or failed command (a vehicle is found).
