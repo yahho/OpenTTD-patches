@@ -575,22 +575,6 @@ static Vehicle *VehicleFromPos(TileIndex tile, void *data, VehicleFromPosProc *p
 }
 
 /**
- * Callback that returns 'real' vehicles lower or at height \c *(int*)data .
- * @param v Vehicle to examine.
- * @param data Pointer to height data.
- * @return \a v if conditions are met, else \c NULL.
- */
-static Vehicle *EnsureNoVehicleProcZ(Vehicle *v, void *data)
-{
-	int z = *(int*)data;
-
-	if (v->type == VEH_DISASTER || (v->type == VEH_AIRCRAFT && v->subtype == AIR_SHADOW)) return NULL;
-	if (v->z_pos > z) return NULL;
-
-	return v;
-}
-
-/**
  * Ensure there is no vehicle at the ground at the given position.
  * @param tile Position to examine.
  * @return Succeeded command (ground is free) or failed command (a vehicle is found).
@@ -599,12 +583,22 @@ CommandCost EnsureNoVehicleOnGround(TileIndex tile)
 {
 	int z = GetTileMaxPixelZ(tile);
 
+	VehicleTileFinder iter (tile);
+	Vehicle *v = NULL;
+	while (!iter.finished()) {
+		v = iter.next();
+
+		if (v->type == VEH_DISASTER || (v->type == VEH_AIRCRAFT && v->subtype == AIR_SHADOW)) continue;
+		if (v->z_pos > z) continue;
+
+		iter.set_found();
+	}
+
 	/* Value v is not safe in MP games, however, it is used to generate a local
 	 * error message only (which may be different for different machines).
 	 * Such a message does not affect MP synchronisation.
 	 */
-	Vehicle *v = VehicleFromPos(tile, &z, &EnsureNoVehicleProcZ, true);
-	if (v != NULL) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY + v->type);
+	if (iter.was_found()) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY + v->type);
 	return CommandCost();
 }
 
