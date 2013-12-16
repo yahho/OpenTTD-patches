@@ -19,7 +19,7 @@ struct TileArea {
 	uint16 h;       ///< The height of the area
 
 	/** Just construct this tile area */
-	TileArea() {}
+	TileArea() : tile(INVALID_TILE), w(0), h(0) {}
 
 	/**
 	 * Construct this tile area with some set values
