@@ -86,7 +86,7 @@ DEPEND="depend$EXE"
 SETTINGSGEN="settings_gen$EXE"
 
 if [ -z "$sort" ]; then
-	PIPE_SORT="sed s@a@a@"
+	PIPE_SORT="cat"
 else
 	PIPE_SORT="$sort"
 fi
@@ -158,7 +158,7 @@ SRCS="`    echo \"$SRCS\" | $awk ' { ORS = \" \" } { print $0; }'`"
 
 # In makefiles, we always use -u for sort
 if [ -z "$sort" ]; then
-	sort="sed s@a@a@"
+	sort="cat"
 else
 	sort="$sort -u"
 fi
