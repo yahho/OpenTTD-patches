@@ -8,7 +8,7 @@
 # See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
 
 check_path_characters() {
-	if [ -n "`echo $ROOT_DIR | grep '[^-_A-Za-z0-9\/\\\.:]'`" ]; then
+	if echo $ROOT_DIR | grep -q '[^-_A-Za-z0-9\/\\\.:]'; then
 		echo "WARNING: The path contains a non-alphanumeric character that might cause"
 		echo "         failures in subsequent build stages. Any failures with the build"
 		echo "         will most likely be caused by this."
@@ -21,7 +21,7 @@ if [ "$0" != "$CONFIGURE_EXECUTABLE" ]; then
 	# On some systems, when ./configure is triggered from 'make'
 	#  the $_ is filled with 'make'. So if that is true, skip 'make'
 	#  and use $0 (and hope that is correct ;))
-	if [ -n "`echo $CONFIGURE_EXECUTABLE | grep make`" ]; then
+	if echo $CONFIGURE_EXECUTABLE | grep -q make; then
 		CONFIGURE_EXECUTABLE="$0"
 	else
 		CONFIGURE_EXECUTABLE="$CONFIGURE_EXECUTABLE $0"

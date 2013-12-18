@@ -72,7 +72,7 @@ ROOT_DIR=`pwd`
 MODIFIED="0"
 if [ -d "$ROOT_DIR/.svn" ] || [ -d "$ROOT_DIR/../.svn" ]; then
 	# We are an svn checkout
-	if [ -n "`svnversion | grep 'M'`" ]; then
+	if svnversion | grep -q 'M'; then
 		MODIFIED="2"
 	fi
 	# Find the revision like: rXXXXM-branch
@@ -106,7 +106,7 @@ elif [ -d "$ROOT_DIR/.git" ]; then
 	fi
 elif [ -d "$ROOT_DIR/.hg" ]; then
 	# We are a hg checkout
-	if [ -n "`hg status | grep -v '^?'`" ]; then
+	if hg status | grep -v -q '^?'; then
 		MODIFIED="2"
 	fi
 	HASH=`LC_ALL=C hg id -i | cut -c1-12`

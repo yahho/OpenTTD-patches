@@ -510,7 +510,7 @@ check_params() {
 	# Check if all params have valid values
 
 	# Endian only allows AUTO, LE and, BE
-	if [ -z "`echo $endian | egrep '^(AUTO|LE|BE|PREPROCESSOR)$'`" ]; then
+	if ! echo $endian | egrep -q '^(AUTO|LE|BE|PREPROCESSOR)$'; then
 		log 1 "configure: error: invalid option --endian=$endian"
 		log 1 " Available options are: --endian=[AUTO|LE|BE]"
 		exit 1
@@ -521,26 +521,26 @@ check_params() {
 		exit 1
 	fi
 	# OS only allows DETECT, UNIX, OSX, FREEBSD, OPENBSD, MORPHOS, BEOS, HAIKU, SUNOS, CYGWIN, MINGW, OS2, DOS, WINCE, and PSP
-	if [ -z "`echo $os | egrep '^(DETECT|UNIX|OSX|FREEBSD|OPENBSD|NETBSD|HPUX|MORPHOS|BEOS|HAIKU|SUNOS|CYGWIN|MINGW|OS2|DOS|WINCE|PSP)$'`" ]; then
+	if ! echo $os | egrep -q '^(DETECT|UNIX|OSX|FREEBSD|OPENBSD|NETBSD|HPUX|MORPHOS|BEOS|HAIKU|SUNOS|CYGWIN|MINGW|OS2|DOS|WINCE|PSP)$'; then
 		log 1 "configure: error: invalid option --os=$os"
 		log 1 " Available options are: --os=[DETECT|UNIX|OSX|FREEBSD|OPENBSD|NETBSD|HPUX|MORPHOS|BEOS|HAIKU|SUNOS|CYGWIN|MINGW|OS2|DOS|WINCE|PSP]"
 		exit 1
 	fi
 	# cpu_type can be either 32 or 64
-	if [ -z "`echo $cpu_type | egrep '^(32|64|DETECT)$'`" ]; then
+	if ! echo $cpu_type | egrep -q '^(32|64|DETECT)$'; then
 		log 1 "configure: error: invalid option --cpu-type=$cpu_type"
 		log 1 " Available options are: --cpu-type[=DETECT|32|64]"
 		exit 1
 	fi
 	# enable_debug should be between 0 and 4
-	if [ -z "`echo $enable_debug | egrep '^[0123]$'`" ]; then
+	if ! echo $enable_debug | egrep -q '^[0123]$'; then
 		log 1 "configure: error: invalid option --enable-debug=$enable_debug"
 		log 1 " Available options are: --enable-debug[=0123]"
 		exit 1
 	fi
 
 	# enable_desync_debug should be between 0 and 3
-	if [ -z "`echo $enable_desync_debug | egrep '^[012]$'`" ]; then
+	if ! echo $enable_desync_debug | egrep -q '^[012]$'; then
 		log 1 "configure: error: invalid option --enable-desync-debug=$enable_desync_debug"
 		log 1 " Available options are: --enable-desync-debug[=012]"
 		exit 1
@@ -645,8 +645,7 @@ check_params() {
 
 	if [ "$enable_lto" != "0" ]; then
 		# GCC 4.5 outputs '%{flto}', GCC 4.6 outputs '%{flto*}'
-		has_lto=`($cxx_build -dumpspecs 2>&1 | grep '\%{flto') || ($cxx_build -help ipo 2>&1 | grep '\-ipo')`
-		if [ -n "$has_lto" ]; then
+		if $cxx_build -dumpspecs 2>&1 | grep -q '\%{flto' || $cxx_build -help ipo 2>&1 | grep -q '\-ipo'; then
 			log 1 "using link time optimization... yes"
 		else
 			enable_lto="0"
@@ -1022,7 +1021,7 @@ check_params() {
 
 	if [ -d "$ROOT_DIR/.svn" ] && [ -n "`svn help 2>/dev/null`" ]; then
 		log 1 "checking revision... svn detection"
-	elif [ -d "$ROOT_DIR/../.svn" ] && [ -n "`svn help 2>/dev/null`" ] && [ -n "`LC_ALL=C svn info $ROOT_DIR/.. | grep '^URL:.*tags$'`" ]; then
+	elif [ -d "$ROOT_DIR/../.svn" ] && [ -n "`svn help 2>/dev/null`" ] && LC_ALL=C svn info $ROOT_DIR/.. | grep -q '^URL:.*tags$'; then
 		# subversion changed its behaviour; now not all folders have a .svn folder,
 		# but only the root folder. Since making tags requires a (sparse) checkout
 		# of the tags folder, the folder of the tag does not have a .svn folder
@@ -1248,15 +1247,12 @@ make_compiler_cflags() {
 			cxxflags="$cxxflags -std=c++0x"
 		fi
 
-		if [ "$enable_lto" != "0" ]; then
-			has_ipo=`$1 -help ipo | grep '\-ipo'`
-			if [ -n "$has_ipo" ]; then
-				# Use IPO (only if we see IPO exists and is requested)
-				flags="$flags -ipo"
-				features="$features lto"
-			fi
+		if [ "$enable_lto" != "0" ] && $1 -help ipo | grep -q '\-ipo'; then
+			# Use IPO (only if we see IPO exists and is requested)
+			flags="$flags -ipo"
+			features="$features lto"
 		fi
-	elif [ `basename $1 | grep 'clang'` ]; then
+	elif basename $1 | grep -q 'clang'; then
 		# Enable some things only for certain clang versions
 		cc_version="`$1 -v 2>&1 | head -n 1 | sed s@[^0-9]@@g | cut -c 1-2`"
 
@@ -1381,23 +1377,19 @@ make_compiler_cflags() {
 			flags="$flags -Wno-free-nonheap-object"
 		fi
 
-		if [ "$enable_lto" != "0" ]; then
-			# GCC 4.5 outputs '%{flto}', GCC 4.6 outputs '%{flto*}'
-			has_lto=`$1 -dumpspecs | grep '\%{flto'`
-			if [ -n "$has_lto" ]; then
-				# Use LTO only if we see LTO exists and is requested
-				if [ $cc_version -lt 46 ]; then
-					flags="$flags -flto"
-				else
-					flags="$flags -flto=jobserver"
-				fi
-				ldflags="$ldflags -fwhole-program"
-				features="$features lto"
+		# GCC 4.5 outputs '%{flto}', GCC 4.6 outputs '%{flto*}'
+		if [ "$enable_lto" != "0" ] && $1 -dumpspecs | grep -q '\%{flto'; then
+			# Use LTO only if we see LTO exists and is requested
+			if [ $cc_version -lt 46 ]; then
+				flags="$flags -flto"
+			else
+				flags="$flags -flto=jobserver"
 			fi
+			ldflags="$ldflags -fwhole-program"
+			features="$features lto"
 		fi
 
-		has_rdynamic=`$1 -dumpspecs | grep rdynamic`
-		if [ -n "$has_rdynamic" ]; then
+		if $1 -dumpspecs | grep -q rdynamic; then
 			# rdynamic is used to get useful stack traces from crash reports.
 			flags="$flags -rdynamic"
 			ldflags="$ldflags -rdynamic"
@@ -1465,16 +1457,14 @@ make_cflags_and_ldflags() {
 	fi
 
 	if [ $enable_debug -le 2 ]; then
-		cc_host_is_gcc=`basename "$cc_host" | grep "gcc" &>/dev/null`
-		if [ -n "$cc_host_is_gcc" ]; then
+		if basename "$cc_host" | grep -q "gcc"; then
 			# Define only when compiling with GCC. Some GLIBC versions use GNU
 			# extensions in a way that breaks build with at least ICC.
 			# This requires -O1 or more, so debug level 3 (-O0) is excluded.
 			CFLAGS="$CFLAGS -D_FORTIFY_SOURCE=2"
 		fi
 
-		cc_build_is_gcc=`basename "$cc_build" | grep "gcc" &>/dev/null`
-		if [ -n "$cc_build_is_gcc" ]; then
+		if basename "$cc_build" | grep -q "gcc"; then
 			# Just add -O1 to the tools needed for building.
 			CFLAGS_BUILD="$CFLAGS_BUILD -D_FORTIFY_SOURCE=2 -O1"
 		fi
@@ -1846,17 +1836,18 @@ make_cflags_and_ldflags() {
 	CFLAGS="$CFLAGS -DGLOBAL_DATA_DIR=\\\\\"$prefix_dir/$data_dir\\\\\""
 
 	if [ "$enable_lto" != "0" ]; then
-		lto_build=`echo "$FEATURES_BUILD" | grep "lto"`
-		lto_host=`echo "$FEATURES" | grep "lto"`
-		if [ -z "$lto_build$lto_host" ]; then
+		lto_warn=1
+		if echo "$FEATURES_BUILD" | grep -q "lto"; then
+			LDFLAGS_BUILD="$LDFLAGS_BUILD $CFLAGS_BUILD $CXXFLAGS_BUILD"
+			lto_warn=0
+		fi
+		if echo "$FEATURES" | grep -q "lto"; then
+			LDFLAGS="$LDFLAGS $CFLAGS $CXXFLAGS"
+			lto_warn=0
+		fi
+		if [ "$lto_warn" != "0" ]; then
 			log 1 "WARNING: you enabled LTO/IPO, but neither build nor host compiler supports it"
 			log 1 "WARNING: LTO/IPO has been disabled"
-		fi
-		if [ -n "$lto_build" ]; then
-			LDFLAGS_BUILD="$LDFLAGS_BUILD $CFLAGS_BUILD $CXXFLAGS_BUILD"
-		fi
-		if [ -n "$lto_host" ]; then
-			LDFLAGS="$LDFLAGS $CFLAGS $CXXFLAGS"
 		fi
 	fi
 
