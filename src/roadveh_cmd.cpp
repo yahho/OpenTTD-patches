@@ -740,6 +740,15 @@ int RoadVehicle::UpdateSpeed()
 	}
 }
 
+
+/** The returned bits of VehicleEnterTile. */
+enum VehicleEnterTileStatus {
+	VETS_CONTINUE         = 0, ///< The vehicle can continue normally
+	VETS_ENTERED_WORMHOLE = 1, ///< The vehicle either entered a bridge, tunnel or depot tile
+	VETS_CANNOT_ENTER     = 2, ///< The vehicle cannot enter the tile
+};
+DECLARE_ENUM_AS_BIT_SET(VehicleEnterTileStatus)
+
 static VehicleEnterTileStatus RoadVehEnter_Road(RoadVehicle *v, TileIndex tile, int x, int y)
 {
 	if (IsTileSubtype(tile, TT_TRACK)) return VETS_CONTINUE;

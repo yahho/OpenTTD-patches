@@ -19,14 +19,6 @@
 #include "slope_type.h"
 #include "map/class.h"
 
-/** The returned bits of VehicleEnterTile. */
-enum VehicleEnterTileStatus {
-	VETS_CONTINUE         = 0, ///< The vehicle can continue normally
-	VETS_ENTERED_WORMHOLE = 1, ///< The vehicle either entered a bridge, tunnel or depot tile
-	VETS_CANNOT_ENTER     = 2, ///< The vehicle cannot enter the tile
-};
-DECLARE_ENUM_AS_BIT_SET(VehicleEnterTileStatus)
-
 /** Tile information, used while rendering the tile */
 struct TileInfo {
 	uint x;         ///< X position of the tile in unit coordinates
