@@ -765,14 +765,6 @@ static VehicleEnterTileStatus RoadVehEnter_Road(RoadVehicle *v, TileIndex tile, 
 
 extern const byte _tunnel_visibility_frame[DIAGDIR_END];
 
-/**
- * Given the direction the road depot is pointing, this is the direction the
- * vehicle should be travelling in in order to enter the depot.
- */
-static const byte _roadveh_enter_depot_dir[4] = {
-	TRACKDIR_X_SW, TRACKDIR_Y_NW, TRACKDIR_X_NE, TRACKDIR_Y_SE
-};
-
 static VehicleEnterTileStatus RoadVehEnter_Misc(RoadVehicle *u, TileIndex tile, int x, int y)
 {
 	switch (GetTileSubtype(tile)) {
@@ -806,7 +798,7 @@ static VehicleEnterTileStatus RoadVehEnter_Misc(RoadVehicle *u, TileIndex tile, 
 			if (!IsRoadDepot(tile)) break;
 
 			if (u->frame == RVC_DEPOT_STOP_FRAME &&
-					_roadveh_enter_depot_dir[GetGroundDepotDirection(tile)] == u->state) {
+					u->state == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(tile)))) {
 				u->state = RVSB_IN_DEPOT;
 				u->vehstatus |= VS_HIDDEN;
 				u->direction = ReverseDir(u->direction);
