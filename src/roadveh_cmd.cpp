@@ -1169,6 +1169,22 @@ static Trackdir FollowPreviousRoadVehicle(const RoadVehicle *v, const RoadVehicl
 		} else {
 			assert(prev_state < TRACKDIR_END);
 			dir = (Trackdir)prev_state;
+
+			/* Some bends are so short that the vehicle ahead has
+			 * already left the tile when we reach it; this is
+			 * caught by the conditional prev->tile != tile above.
+			 * However, if the vehicle ahead turned around at the
+			 * tile edge instead of moving forward, it is still
+			 * in this tile but has switched to a reversing
+			 * trackdir. In such a case, we must not use its
+			 * trackdir, but head in the direction of the tile
+			 * side at which it is reversing. */
+			if (IsReversingRoadTrackdir(dir)) {
+				DiagDirection side = TrackdirToExitdir(dir);
+				assert (entry_dir != side);
+				side = ReverseDiagDir(side);
+				if (entry_dir != side) dir = EnterdirExitdirToTrackdir(entry_dir, side);
+			}
 		}
 	}
 
