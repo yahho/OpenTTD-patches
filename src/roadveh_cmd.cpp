@@ -1148,6 +1148,7 @@ static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 
 static Trackdir FollowPreviousRoadVehicle(const RoadVehicle *v, const RoadVehicle *prev, TileIndex tile, DiagDirection entry_dir)
 {
+	Trackdir dir;
 	if (prev->tile != tile) {
 		/*
 		 * The previous vehicle has already left the tile; follow
@@ -1155,13 +1156,12 @@ static Trackdir FollowPreviousRoadVehicle(const RoadVehicle *v, const RoadVehicl
 		 */
 		DiagDirection exitdir = DiagdirBetweenTiles(tile, prev->tile);
 		assert(IsValidDiagDirection(exitdir));
-		return EnterdirExitdirToTrackdir(entry_dir, exitdir);
+		dir = EnterdirExitdirToTrackdir(entry_dir, exitdir);
 	} else {
 		byte prev_state = prev->state;
 
 		assert(prev_state != RVSB_WORMHOLE);
 
-		Trackdir dir;
 		if (prev_state == RVSB_IN_DEPOT) {
 			dir = DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(tile)));
 		} else if (HasBit(prev_state, RVS_IN_DT_ROAD_STOP)) {
@@ -1170,18 +1170,18 @@ static Trackdir FollowPreviousRoadVehicle(const RoadVehicle *v, const RoadVehicl
 			assert(prev_state < TRACKDIR_END);
 			dir = (Trackdir)prev_state;
 		}
-
-		/* Do some sanity checking. */
-		static const RoadBits required_roadbits[] = {
-			ROAD_X,            ROAD_Y,            ROAD_NW | ROAD_NE, ROAD_SW | ROAD_SE,
-			ROAD_NW | ROAD_SW, ROAD_NE | ROAD_SE, ROAD_X,            ROAD_Y
-		};
-		RoadBits required = required_roadbits[dir & 0x07];
-
-		assert((required & GetAnyRoadBits(tile, v->roadtype, true)) != ROAD_NONE);
-
-		return dir;
 	}
+
+	/* Do some sanity checking. */
+	static const RoadBits required_roadbits[] = {
+		ROAD_X,            ROAD_Y,            ROAD_NW | ROAD_NE, ROAD_SW | ROAD_SE,
+		ROAD_NW | ROAD_SW, ROAD_NE | ROAD_SE, ROAD_X,            ROAD_Y
+	};
+	RoadBits required = required_roadbits[dir & 0x07];
+
+	assert((required & GetAnyRoadBits(tile, v->roadtype, true)) != ROAD_NONE);
+
+	return dir;
 }
 
 /**
