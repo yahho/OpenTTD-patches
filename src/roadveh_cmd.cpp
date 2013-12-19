@@ -1193,6 +1193,49 @@ static bool CanBuildTramTrackOnTile(CompanyID c, TileIndex t, RoadBits r)
 	return ret.Succeeded();
 }
 
+/**
+ * Make a road vehicle enter a wormhole.
+ * @param v The road vehicle
+ * @param end The other wormhole end
+ * @param is_bridge Whether the wormhole is a bridge (as opposed to a tunnel)
+ * @return Whether the vehicle moved at all
+ * @pre The vehicle must be at the last frame of a wormhole head tile
+ */
+static bool IndividualRoadVehicleControllerEnterWormhole(RoadVehicle *v, TileIndex end, bool is_bridge)
+{
+	VehiclePos gp = GetNewVehiclePos(v);
+
+	/* this should really bring us to a new virtual tile */
+	assert(gp.new_tile != v->tile);
+
+	if (v->IsFrontEngine()) {
+		const Vehicle *u = RoadVehFindCloseTo (v, gp.x, gp.y, v->direction);
+		if (u != NULL) {
+			v->cur_speed = u->First()->cur_speed;
+			return false;
+		}
+	}
+
+	v->tile  = end;
+	v->state = RVSB_WORMHOLE;
+	v->x_pos = gp.x;
+	v->y_pos = gp.y;
+
+	if (is_bridge) {
+		ClrBit(v->gv_flags, GVF_GOINGUP_BIT);
+		ClrBit(v->gv_flags, GVF_GOINGDOWN_BIT);
+
+		RoadVehicle *first = v->First();
+		first->cur_speed = min(first->cur_speed, GetBridgeSpec(GetRoadBridgeType(end))->speed * 2);
+
+		VehicleUpdatePositionAndViewport(v);
+	} else {
+		VehicleUpdatePosition(v);
+	}
+
+	return true;
+}
+
 static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *prev)
 {
 	if (v->overtaking != 0)  {
@@ -1258,52 +1301,13 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 				TileIndex end_tile = GetOtherTunnelEnd(v->tile);
 				if (end_tile != tile) {
 					/* Entering a tunnel */
-					VehiclePos gp = GetNewVehiclePos(v);
-					assert(gp.new_tile == tile);
-
-					if (v->IsFrontEngine()) {
-						const Vehicle *u = RoadVehFindCloseTo(v, gp.x, gp.y, v->direction);
-						if (u != NULL) {
-							v->cur_speed = u->First()->cur_speed;
-							return false;
-						}
-					}
-
-					v->tile = end_tile;
-					v->state = RVSB_WORMHOLE;
-
-					v->x_pos = gp.x;
-					v->y_pos = gp.y;
-					VehicleUpdatePosition(v);
-					return true;
+					return IndividualRoadVehicleControllerEnterWormhole (v, end_tile, false);
 				}
 			} else if (IsRoadBridgeTile(v->tile) && GetTunnelBridgeDirection(v->tile) == enterdir) {
 				TileIndex end_tile = GetOtherBridgeEnd(v->tile);
 				if (end_tile != tile) {
 					/* Entering a bridge */
-					VehiclePos gp = GetNewVehiclePos(v);
-					assert(gp.new_tile == tile);
-
-					if (v->IsFrontEngine()) {
-						const Vehicle *u = RoadVehFindCloseTo(v, gp.x, gp.y, v->direction);
-						if (u != NULL) {
-							v->cur_speed = u->First()->cur_speed;
-							return false;
-						}
-					}
-
-					v->tile = end_tile;
-					v->state = RVSB_WORMHOLE;
-					ClrBit(v->gv_flags, GVF_GOINGUP_BIT);
-					ClrBit(v->gv_flags, GVF_GOINGDOWN_BIT);
-
-					RoadVehicle *first = v->First();
-					first->cur_speed = min(first->cur_speed, GetBridgeSpec(GetRoadBridgeType(v->tile))->speed * 2);
-
-					v->x_pos = gp.x;
-					v->y_pos = gp.y;
-					VehicleUpdatePositionAndViewport(v);
-					return true;
+					return IndividualRoadVehicleControllerEnterWormhole (v, end_tile, true);
 				}
 			}
 		}
