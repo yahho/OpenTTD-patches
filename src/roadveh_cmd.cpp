@@ -1339,7 +1339,6 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 			dir = FollowPreviousRoadVehicle(v, prev, tile, enterdir);
 		}
 
-again:
 		uint start_frame = RVC_DEFAULT_START_FRAME;
 		if (IsReversingRoadTrackdir(dir)) {
 			/* When turning around we can't be overtaking. */
@@ -1420,13 +1419,9 @@ again:
 
 		uint32 r = RoadVehEnterTile(v, tile, x, y);
 		if (r == VETS_CANNOT_ENTER) {
-			if (!IsTunnelTile(tile) && !IsBridgeHeadTile(tile)) {
-				v->cur_speed = 0;
-				return false;
-			}
-			/* Try an about turn to re-enter the previous tile */
-			dir = _road_reverse_table[enterdir];
-			goto again;
+			assert(IsRoadStopTile(tile));
+			v->cur_speed = 0;
+			return false;
 		}
 
 		if (IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_DT_ROAD_STOP_END) && IsStationTile(v->tile)) {
