@@ -13,7 +13,7 @@
 #include "error.h"
 #include "articulated_vehicles.h"
 #include "command_func.h"
-#include "pathfinder/npf/npf_func.h"
+#include "pathfinder/npf/npf.h"
 #include "pathfinder/yapf/yapf.hpp"
 #include "news_func.h"
 #include "company_func.h"

@@ -2033,7 +2033,7 @@
       <ObjectFileName>$(IntDir)\pathfinder\npf\</ObjectFileName>
       <XMLDocumentationFileName>$(IntDir)\pathfinder\npf\</XMLDocumentationFileName>
     </ClCompile>
-    <ClInclude Include="..\src\pathfinder\npf\npf_func.h" />
+    <ClInclude Include="..\src\pathfinder\npf\npf.h" />
     <ClCompile Include="..\src\pathfinder\npf\queue.cpp">
       <AssemblerListingLocation>$(IntDir)\pathfinder\npf\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\pathfinder\npf\</ObjectFileName>

@@ -7,10 +7,10 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file npf_func.h Functions to access the new pathfinder. */
+/** @file npf.h Functions to access the new pathfinder. */
 
-#ifndef NPF_FUNC_H
-#define NPF_FUNC_H
+#ifndef NPF_H
+#define NPF_H
 
 #include "../../track_type.h"
 #include "../../direction_type.h"
@@ -93,4 +93,4 @@ bool NPFTrainCheckReverse(const Train *v);
  */
 Trackdir NPFTrainChooseTrack(const Train *v, bool &path_found, bool reserve_track, struct PBSTileInfo *target);
 
-#endif /* NPF_FUNC_H */
+#endif /* NPF_H */

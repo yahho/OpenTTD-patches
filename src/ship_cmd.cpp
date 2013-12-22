@@ -15,7 +15,7 @@
 #include "timetable.h"
 #include "news_func.h"
 #include "company_func.h"
-#include "pathfinder/npf/npf_func.h"
+#include "pathfinder/npf/npf.h"
 #include "depot_base.h"
 #include "station_base.h"
 #include "newgrf_engine.h"

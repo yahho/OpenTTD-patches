@@ -1048,7 +1048,7 @@ pathfinder/pf_performance_timer.hpp
 pathfinder/npf/aystar.cpp
 pathfinder/npf/aystar.h
 pathfinder/npf/npf.cpp
-pathfinder/npf/npf_func.h
+pathfinder/npf/npf.h
 pathfinder/npf/queue.cpp
 pathfinder/npf/queue.h
 

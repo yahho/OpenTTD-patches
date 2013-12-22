@@ -2967,7 +2967,7 @@
     <ClCompile Include="..\src\pathfinder\npf\npf.cpp">
       <Filter>NPF</Filter>
     </ClCompile>
-    <ClInclude Include="..\src\pathfinder\npf\npf_func.h">
+    <ClInclude Include="..\src\pathfinder\npf\npf.h">
       <Filter>NPF</Filter>
     </ClInclude>
     <ClCompile Include="..\src\pathfinder\npf\queue.cpp">

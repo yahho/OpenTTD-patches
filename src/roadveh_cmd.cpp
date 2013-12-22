@@ -13,7 +13,7 @@
 #include "roadveh.h"
 #include "command_func.h"
 #include "news_func.h"
-#include "pathfinder/npf/npf_func.h"
+#include "pathfinder/npf/npf.h"
 #include "station_base.h"
 #include "company_func.h"
 #include "articulated_vehicles.h"

@@ -12239,7 +12239,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\..\src\pathfinder\npf\npf_func.h"
+				RelativePath=".\..\src\pathfinder\npf\npf.h"
 				>
 			</File>
 			<File
