@@ -336,7 +336,7 @@ static bool FindClosestRoadDepot(const RoadVehicle *v, bool nearby, FindDepotDat
 	switch (_settings_game.pf.pathfinder_for_roadvehs) {
 		case VPF_NPF:
 			if (nearby) max_distance = _settings_game.pf.npf.maximum_go_to_depot_penalty;
-			*res = NPFRoadVehicleFindNearestDepot(v, max_distance);
+			if (!NPFRoadVehicleFindNearestDepot(v, max_distance, res)) return false;
 			break;
 
 		case VPF_YAPF:

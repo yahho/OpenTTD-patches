@@ -2059,7 +2059,7 @@ static bool FindClosestTrainDepot(Train *v, bool nearby, FindDepotData *res)
 	switch (_settings_game.pf.pathfinder_for_trains) {
 		case VPF_NPF:
 			if (nearby) max_distance = _settings_game.pf.npf.maximum_go_to_depot_penalty;
-			*res = NPFTrainFindNearestDepot(v, max_distance);
+			if (!NPFTrainFindNearestDepot(v, max_distance, res)) return false;
 			break;
 
 		case VPF_YAPF:

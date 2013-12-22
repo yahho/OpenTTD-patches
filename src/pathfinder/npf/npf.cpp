@@ -1104,7 +1104,7 @@ static void NPFFillWithOrderData(NPFFindStationOrTileData *fstd, const Vehicle *
 
 /*** Road vehicles ***/
 
-FindDepotData NPFRoadVehicleFindNearestDepot(const RoadVehicle *v, int max_penalty)
+bool NPFRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_penalty, FindDepotData *res)
 {
 	PFPos pos = v->GetPos();
 	PFPos rev = pos;
@@ -1112,14 +1112,15 @@ FindDepotData NPFRoadVehicleFindNearestDepot(const RoadVehicle *v, int max_penal
 
 	NPFFoundTargetData ftd = NPFRouteToDepotBreadthFirstTwoWay(pos, false, rev, false, NULL, TRANSPORT_ROAD, v->compatible_roadtypes, v->owner, INVALID_RAILTYPES, 0);
 
-	if (ftd.best_bird_dist != 0) return FindDepotData();
+	if (ftd.best_bird_dist != 0) return false;
 
 	/* Found target */
 	/* Our caller expects a number of tiles, so we just approximate that
 	 * number by this. It might not be completely what we want, but it will
 	 * work for now :-) We can possibly change this when the old pathfinder
 	 * is removed. */
-	return FindDepotData(ftd.node.pos.tile, ftd.best_path_dist);
+	*res = FindDepotData(ftd.node.pos.tile, ftd.best_path_dist);
+	return true;
 }
 
 Trackdir NPFRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)
@@ -1188,7 +1189,7 @@ bool NPFShipCheckReverse(const Ship *v)
 
 /*** Trains ***/
 
-FindDepotData NPFTrainFindNearestDepot(const Train *v, int max_penalty)
+bool NPFTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *res)
 {
 	PFPos pos = v->GetPos();
 	PFPos rev = v->Last()->GetReversePos();
@@ -1198,14 +1199,15 @@ FindDepotData NPFTrainFindNearestDepot(const Train *v, int max_penalty)
 
 	assert(pos.td != INVALID_TRACKDIR);
 	NPFFoundTargetData ftd = NPFRouteToDepotBreadthFirstTwoWay(pos, false, rev, false, &fstd, TRANSPORT_RAIL, 0, v->owner, v->compatible_railtypes, NPF_INFINITE_PENALTY);
-	if (ftd.best_bird_dist != 0) return FindDepotData();
+	if (ftd.best_bird_dist != 0) return false;
 
 	/* Found target */
 	/* Our caller expects a number of tiles, so we just approximate that
 	 * number by this. It might not be completely what we want, but it will
 	 * work for now :-) We can possibly change this when the old pathfinder
 	 * is removed. */
-	return FindDepotData(ftd.node.pos.tile, ftd.best_path_dist, NPFGetFlag(&ftd.node, NPF_FLAG_REVERSE));
+	*res = FindDepotData(ftd.node.pos.tile, ftd.best_path_dist, NPFGetFlag(&ftd.node, NPF_FLAG_REVERSE));
+	return true;
 }
 
 bool NPFTrainFindNearestSafeTile(const Train *v, const PFPos &pos, bool override_railtype)
