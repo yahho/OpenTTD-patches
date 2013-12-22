@@ -31,6 +31,7 @@
 #include "settings_internal.h"
 #include "command_func.h"
 #include "console_func.h"
+#include "pathfinder/npf/npf.h"
 #include "pathfinder/pathfinder_type.h"
 #include "genworld.h"
 #include "train.h"

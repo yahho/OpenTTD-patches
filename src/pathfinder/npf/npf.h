@@ -17,6 +17,17 @@
 #include "../../vehicle_type.h"
 #include "../pathfinder_type.h"
 
+/** Length (penalty) of one tile with NPF */
+static const int NPF_TILE_LENGTH = 100;
+
+/**
+ * This penalty is the equivalent of "infinite", which means that paths that
+ * get this penalty will be chosen, but only if there is no other route
+ * without it. Be careful with not applying this penalty to often, or the
+ * total path cost might overflow..
+ */
+static const int NPF_INFINITE_PENALTY = 1000 * NPF_TILE_LENGTH;
+
 /**
  * Used when user sends road vehicle to the nearest depot or if road vehicle needs servicing using NPF.
  * @param v            vehicle that needs to go to some depot
