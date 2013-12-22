@@ -2042,11 +2042,11 @@ static FindDepotData FindClosestTrainDepot(Train *v, int max_distance)
 {
 	assert(!(v->vehstatus & VS_CRASHED));
 
-	if (IsRailDepotTile(v->tile)) return FindDepotData(v->tile, 0);
+	if (IsRailDepotTile(v->tile) && v->trackdir == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(v->tile)))) return FindDepotData(v->tile, 0);
 
 	PFPos origin;
 	FollowTrainReservation(v, &origin);
-	if (IsRailDepotTile(origin.tile)) return FindDepotData(origin.tile, 0);
+	if (IsRailDepotTile(origin.tile) && origin.td == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(origin.tile)))) return FindDepotData(origin.tile, 0);
 
 	switch (_settings_game.pf.pathfinder_for_trains) {
 		case VPF_NPF: return NPFTrainFindNearestDepot(v, max_distance);
