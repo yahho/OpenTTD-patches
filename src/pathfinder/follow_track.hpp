@@ -467,6 +467,17 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 	/** return true if we successfully reversed at end of road/track */
 	inline bool CheckEndOfLine()
 	{
+		/* In case we can't enter the next tile, but are
+		 * a normal road vehicle, then we can actually
+		 * try to reverse as this is the end of the road.
+		 * Trams can only turn on the appropriate bits in
+		 * which case reaching this would mean a dead end
+		 * near a building and in that case there would
+		 * a "false" QueryNewTileTrackStatus result and
+		 * as such reversing is already tried. The fact
+		 * that function failed can have to do with a
+		 * missing road bit, or inability to connect the
+		 * different bits due to slopes. */
 		if (!IsTram()) {
 			/* if we reached the end of road, we can reverse the RV and continue moving */
 			m_exitdir = ReverseDiagDir(m_exitdir);
@@ -639,17 +650,6 @@ struct CFollowTrack : Base
 		}
 
 		if (!Base::CheckNewTile() || (Base::m_new.trackdirs &= DiagdirReachesTrackdirs(Base::m_exitdir)) == TRACKDIR_BIT_NONE) {
-			/* In case we can't enter the next tile, but are
-			 * a normal road vehicle, then we can actually
-			 * try to reverse as this is the end of the road.
-			 * Trams can only turn on the appropriate bits in
-			 * which case reaching this would mean a dead end
-			 * near a building and in that case there would
-			 * a "false" QueryNewTileTrackStatus result and
-			 * as such reversing is already tried. The fact
-			 * that function failed can have to do with a
-			 * missing road bit, or inability to connect the
-			 * different bits due to slopes. */
 			return Base::CheckEndOfLine();
 		}
 		if (!Base::Allow90deg()) {
