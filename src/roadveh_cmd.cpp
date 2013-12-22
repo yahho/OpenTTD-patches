@@ -327,7 +327,7 @@ CommandCost CmdBuildRoadVehicle(TileIndex tile, DoCommandFlag flags, const Engin
 
 static FindDepotData FindClosestRoadDepot(const RoadVehicle *v, int max_distance)
 {
-	if (IsRoadDepotTile(v->tile)) return FindDepotData(v->tile, 0);
+	if (IsRoadDepotTile(v->tile) && v->state == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(v->tile)))) return FindDepotData(v->tile, 0);
 
 	switch (_settings_game.pf.pathfinder_for_roadvehs) {
 		case VPF_NPF: return NPFRoadVehicleFindNearestDepot(v, max_distance);
