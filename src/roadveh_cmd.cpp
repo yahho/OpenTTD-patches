@@ -325,32 +325,35 @@ CommandCost CmdBuildRoadVehicle(TileIndex tile, DoCommandFlag flags, const Engin
 	return CommandCost();
 }
 
-static bool FindClosestRoadDepot(const RoadVehicle *v, uint max_distance, FindDepotData *res)
+static bool FindClosestRoadDepot(const RoadVehicle *v, bool nearby, FindDepotData *res)
 {
 	if (IsRoadDepotTile(v->tile) && v->state == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(v->tile)))) {
 		*res = FindDepotData(v->tile, 0);
 		return true;
 	}
 
+	uint max_distance = 0;
 	switch (_settings_game.pf.pathfinder_for_roadvehs) {
 		case VPF_NPF:
+			if (nearby) max_distance = _settings_game.pf.npf.maximum_go_to_depot_penalty;
 			*res = NPFRoadVehicleFindNearestDepot(v, max_distance);
 			break;
 
 		case VPF_YAPF:
+			if (nearby) max_distance = _settings_game.pf.yapf.maximum_go_to_depot_penalty;
 			*res = YapfRoadVehicleFindNearestDepot(v, max_distance);
 			break;
 
 		default: NOT_REACHED();
 	}
 
-	return (res->best_length != UINT_MAX) && (max_distance == 0 || res->best_length <= max_distance);
+	return (res->best_length != UINT_MAX) && (!nearby || res->best_length <= max_distance);
 }
 
 bool RoadVehicle::FindClosestDepot(TileIndex *location, DestinationID *destination, bool *reverse)
 {
 	FindDepotData rfdd;
-	if (!FindClosestRoadDepot(this, 0, &rfdd)) return false;
+	if (!FindClosestRoadDepot(this, false, &rfdd)) return false;
 
 	if (location    != NULL) *location    = rfdd.tile;
 	if (destination != NULL) *destination = GetDepotIndex(rfdd.tile);
@@ -1773,16 +1776,9 @@ static void CheckIfRoadVehNeedsService(RoadVehicle *v)
 		return;
 	}
 
-	uint max_penalty;
-	switch (_settings_game.pf.pathfinder_for_roadvehs) {
-		case VPF_NPF:  max_penalty = _settings_game.pf.npf.maximum_go_to_depot_penalty;  break;
-		case VPF_YAPF: max_penalty = _settings_game.pf.yapf.maximum_go_to_depot_penalty; break;
-		default: NOT_REACHED();
-	}
-
 	FindDepotData rfdd;
 	/* Only go to the depot if it is not too far out of our way. */
-	if (!FindClosestRoadDepot(v, max_penalty, &rfdd)) {
+	if (!FindClosestRoadDepot(v, true, &rfdd)) {
 		if (v->current_order.IsType(OT_GOTO_DEPOT)) {
 			/* If we were already heading for a depot but it has
 			 * suddenly moved farther away, we continue our normal
