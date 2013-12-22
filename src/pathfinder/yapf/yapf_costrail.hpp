@@ -14,6 +14,7 @@
 
 #include "../../map/slope.h"
 #include "../../pbs.h"
+#include "../../waypoint_base.h"
 
 template <class Types>
 class CYapfCostRailT

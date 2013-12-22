@@ -224,7 +224,7 @@ public:
 		if (v->current_order.IsType(OT_GOTO_STATION)) {
 			m_dest_station  = v->current_order.GetDestination();
 			m_bus           = v->IsBus();
-			m_destTile      = CalcClosestStationTile(m_dest_station, v->tile, m_bus ? STATION_BUS : STATION_TRUCK);
+			m_destTile      = Station::Get(m_dest_station)->GetClosestTile(v->tile, m_bus ? STATION_BUS : STATION_TRUCK);
 			m_non_artic     = !v->HasArticulatedPart();
 		} else {
 			m_dest_station  = INVALID_STATION;

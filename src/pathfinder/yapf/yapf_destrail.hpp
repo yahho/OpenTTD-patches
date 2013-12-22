@@ -146,8 +146,8 @@ public:
 				}
 				/* FALL THROUGH */
 			case OT_GOTO_STATION:
-				m_destTile = CalcClosestStationTile(v->current_order.GetDestination(), v->tile, v->current_order.IsType(OT_GOTO_STATION) ? STATION_RAIL : STATION_WAYPOINT);
 				m_dest_station_id = v->current_order.GetDestination();
+				m_destTile = BaseStation::Get(m_dest_station_id)->GetClosestTile(v->tile, v->current_order.IsType(OT_GOTO_STATION) ? STATION_RAIL : STATION_WAYPOINT);
 				break;
 
 			default:

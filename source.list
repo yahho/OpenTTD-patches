@@ -1041,7 +1041,6 @@ network/core/udp.h
 pathfinder/follow_track.hpp
 pathfinder/opf/opf_ship.cpp
 pathfinder/opf/opf_ship.h
-pathfinder/pathfinder_func.h
 pathfinder/pathfinder_type.h
 pathfinder/pf_performance_timer.hpp
 

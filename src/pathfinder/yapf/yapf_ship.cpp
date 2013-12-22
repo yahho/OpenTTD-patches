@@ -188,7 +188,7 @@ public:
 	{
 		if (v->current_order.IsType(OT_GOTO_STATION)) {
 			m_dest_station = v->current_order.GetDestination();
-			m_dest_tile    = CalcClosestStationTile(m_dest_station, v->tile, STATION_DOCK);
+			m_dest_tile    = Station::Get(m_dest_station)->GetClosestTile(v->tile, STATION_DOCK);
 		} else {
 			m_dest_station = INVALID_STATION;
 			m_dest_tile    = v->dest_tile;

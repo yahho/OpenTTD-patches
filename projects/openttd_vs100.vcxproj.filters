@@ -2952,9 +2952,6 @@
     <ClInclude Include="..\src\pathfinder\opf\opf_ship.h">
       <Filter>Pathfinder</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\pathfinder\pathfinder_func.h">
-      <Filter>Pathfinder</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\pathfinder\pathfinder_type.h">
       <Filter>Pathfinder</Filter>
     </ClInclude>

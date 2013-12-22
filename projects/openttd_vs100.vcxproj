@@ -2020,7 +2020,6 @@
       <XMLDocumentationFileName>$(IntDir)\pathfinder\opf\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\pathfinder\opf\opf_ship.h" />
-    <ClInclude Include="..\src\pathfinder\pathfinder_func.h" />
     <ClInclude Include="..\src\pathfinder\pathfinder_type.h" />
     <ClInclude Include="..\src\pathfinder\pf_performance_timer.hpp" />
     <ClCompile Include="..\src\pathfinder\npf\aystar.cpp">

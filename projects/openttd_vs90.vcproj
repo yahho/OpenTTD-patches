@@ -12132,10 +12132,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\pathfinder\pathfinder_func.h"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\pathfinder\pathfinder_type.h"
 				>
 			</File>

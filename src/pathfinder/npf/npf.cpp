@@ -16,7 +16,6 @@
 #include "../../ship.h"
 #include "../../roadstop_base.h"
 #include "../../bridge.h"
-#include "../pathfinder_func.h"
 #include "../pathfinder_type.h"
 #include "../follow_track.hpp"
 #include "aystar.h"
@@ -159,7 +158,7 @@ static int32 NPFCalcStationOrTileHeuristic(AyStar *as, AyStarNode *current, Open
 
 	/* for stations, aim for the closest station tile */
 	if (fstd->station_index != INVALID_STATION) {
-		to = CalcClosestStationTile(fstd->station_index, from, fstd->station_type);
+		to = BaseStation::Get(fstd->station_index)->GetClosestTile(from, fstd->station_type);
 	}
 
 	if (as->user_data[NPF_TYPE] == TRANSPORT_ROAD) {
@@ -1093,7 +1092,7 @@ static void NPFFillWithOrderData(NPFFindStationOrTileData *fstd, const Vehicle *
 			(RoadVehicle::From(v)->IsBus() ? STATION_BUS : STATION_TRUCK);
 		fstd->not_articulated = v->type == VEH_ROAD && !RoadVehicle::From(v)->HasArticulatedPart();
 		/* Let's take the closest tile of the station as our target for vehicles */
-		fstd->dest_coords = CalcClosestStationTile(fstd->station_index, v->tile, fstd->station_type);
+		fstd->dest_coords = BaseStation::Get(fstd->station_index)->GetClosestTile(v->tile, fstd->station_type);
 	} else {
 		fstd->dest_coords = v->dest_tile;
 		fstd->station_index = INVALID_STATION;
