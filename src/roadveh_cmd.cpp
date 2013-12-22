@@ -341,7 +341,7 @@ static bool FindClosestRoadDepot(const RoadVehicle *v, bool nearby, FindDepotDat
 
 		case VPF_YAPF:
 			if (nearby) max_distance = _settings_game.pf.yapf.maximum_go_to_depot_penalty;
-			*res = YapfRoadVehicleFindNearestDepot(v, max_distance);
+			if (!YapfRoadVehicleFindNearestDepot(v, max_distance, res)) return false;
 			break;
 
 		default: NOT_REACHED();

@@ -593,10 +593,8 @@ bool YapfTrainCheckReverse(const Train *v)
 	return reverse;
 }
 
-FindDepotData YapfTrainFindNearestDepot(const Train *v, int max_penalty)
+bool YapfTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *res)
 {
-	FindDepotData fdd;
-
 	PFPos origin;
 	FollowTrainReservation(v, &origin);
 	PFPos rev = v->Last()->GetReversePos();
@@ -609,9 +607,9 @@ FindDepotData YapfTrainFindNearestDepot(const Train *v, int max_penalty)
 		pfnFindNearestDepotTwoWay = &CYapfAnyDepotRail2::stFindNearestDepotTwoWay; // Trackdir, forbid 90-deg
 	}
 
-	bool ret = pfnFindNearestDepotTwoWay(v, origin, rev, max_penalty, YAPF_INFINITE_PENALTY, &fdd.tile, &fdd.reverse);
-	fdd.best_length = ret ? max_penalty / 2 : UINT_MAX; // some fake distance or NOT_FOUND
-	return fdd;
+	if (!pfnFindNearestDepotTwoWay(v, origin, rev, max_penalty, YAPF_INFINITE_PENALTY, &res->tile, &res->reverse)) return false;
+	res->best_length = max_penalty / 2; // some fake distance
+	return true;
 }
 
 bool YapfTrainFindNearestSafeTile(const Train *v, const PFPos &pos, bool override_railtype)

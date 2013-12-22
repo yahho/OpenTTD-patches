@@ -2064,7 +2064,7 @@ static bool FindClosestTrainDepot(Train *v, bool nearby, FindDepotData *res)
 
 		case VPF_YAPF:
 			if (nearby) max_distance = _settings_game.pf.yapf.maximum_go_to_depot_penalty;
-			*res = YapfTrainFindNearestDepot(v, max_distance);
+			if (!YapfTrainFindNearestDepot(v, max_distance, res)) return false;
 			break;
 
 		default: NOT_REACHED();

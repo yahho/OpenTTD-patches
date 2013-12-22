@@ -488,11 +488,11 @@ Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDi
 	return (td_ret != INVALID_TRACKDIR) ? td_ret : (Trackdir)FindFirstBit2x64(trackdirs);
 }
 
-FindDepotData YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, int max_distance)
+bool YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_distance, FindDepotData *res)
 {
 	PFPos pos = v->GetPos();
 	if ((TrackStatusToTrackdirBits(GetTileRoadStatus(pos.tile, v->compatible_roadtypes)) & TrackdirToTrackdirBits(pos.td)) == 0) {
-		return FindDepotData();
+		return false;
 	}
 
 	/* default is YAPF type 2 */
@@ -504,8 +504,7 @@ FindDepotData YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, int max_dist
 		pfnFindNearestDepot = &CYapfRoadAnyDepot1::stFindNearestDepot; // Trackdir, allow 90-deg
 	}
 
-	FindDepotData fdd;
-	bool ret = pfnFindNearestDepot(v, pos, max_distance, &fdd.tile);
-	fdd.best_length = ret ? max_distance / 2 : UINT_MAX; // some fake distance or NOT_FOUND
-	return fdd;
+	if (!pfnFindNearestDepot(v, pos, max_distance, &res->tile)) return false;
+	res->best_length = max_distance / 2; // some fake distance
+	return true;
 }

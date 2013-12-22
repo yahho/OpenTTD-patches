@@ -76,9 +76,10 @@ Trackdir YapfTrainChooseTrack(const Train *v, bool &path_found, bool reserve_tra
  * @param max_penalty  max distance (in pathfinder penalty) from the current vehicle position
  *                     (used also as optimization - the pathfinder can stop path finding if max_penalty
  *                     was reached and no depot was seen)
- * @return             the data about the depot
+ * @param res          pointer to store the data about the depot
+ * @return             whether a depot was found
  */
-FindDepotData YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, int max_penalty);
+bool YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_penalty, FindDepotData *res);
 
 /**
  * Used when user sends train to the nearest depot or if train needs servicing using YAPF.
@@ -86,9 +87,10 @@ FindDepotData YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, int max_pena
  * @param max_distance max distance (int pathfinder penalty) from the current train position
  *                     (used also as optimization - the pathfinder can stop path finding if max_penalty
  *                     was reached and no depot was seen)
- * @return             the data about the depot
+ * @param res          pointer to store the data about the depot
+ * @return             whether a depot was found
  */
-FindDepotData YapfTrainFindNearestDepot(const Train *v, int max_distance);
+bool YapfTrainFindNearestDepot(const Train *v, uint max_distance, FindDepotData *res);
 
 /**
  * Returns true if it is better to reverse the train before leaving station using YAPF.
