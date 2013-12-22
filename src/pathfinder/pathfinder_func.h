@@ -26,12 +26,7 @@
 static inline TileIndex CalcClosestStationTile(StationID station, TileIndex tile, StationType station_type)
 {
 	const BaseStation *st = BaseStation::Get(station);
-	TileArea ta;
-	st->GetTileArea(&ta, station_type);
-
-	/* If the rail station is (temporarily) not present, use the station sign to drive near the station */
-	tile = ta.get_closest_tile(tile);
-	return (tile != INVALID_TILE) ? tile : st->xy;
+	return st->GetClosestTile (tile, station_type);
 }
 
 #endif /* PATHFINDER_FUNC_H */

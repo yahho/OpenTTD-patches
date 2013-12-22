@@ -119,6 +119,22 @@ struct BaseStation : StationPool::PoolItem<&_station_pool> {
 	 */
 	virtual void GetTileArea(TileArea *ta, StationType type) const = 0;
 
+	/**
+	 * Calculates the tile of the given station type that is closest to a given tile.
+	 * @param tile The tile from where to calculate the distance
+	 * @param station_type the station type to get the closest tile of
+	 * @return The closest station tile to the given tile.
+	 */
+	TileIndex GetClosestTile(TileIndex tile, StationType station_type) const
+	{
+		TileArea ta;
+		this->GetTileArea(&ta, station_type);
+
+		/* If the station does not have the given station type, use the station sign */
+		tile = ta.get_closest_tile(tile);
+		return (tile != INVALID_TILE) ? tile : this->xy;
+	}
+
 
 	/**
 	 * Obtain the length of a platform
