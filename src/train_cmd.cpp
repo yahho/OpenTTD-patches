@@ -2035,22 +2035,33 @@ CommandCost CmdForceTrainProceed(TileIndex tile, DoCommandFlag flags, uint32 p1,
  * Try to find a depot nearby.
  * @param v %Train that wants a depot.
  * @param max_distance Maximal search distance.
- * @return Information where the closest train depot is located.
+ * @param res Pointer to store information where the closest train depot is located.
  * @pre The given vehicle must not be crashed!
  */
-static FindDepotData FindClosestTrainDepot(Train *v, int max_distance)
+static void FindClosestTrainDepot(Train *v, int max_distance, FindDepotData *res)
 {
 	assert(!(v->vehstatus & VS_CRASHED));
 
-	if (IsRailDepotTile(v->tile) && v->trackdir == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(v->tile)))) return FindDepotData(v->tile, 0);
+	if (IsRailDepotTile(v->tile) && v->trackdir == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(v->tile)))) {
+		*res = FindDepotData(v->tile, 0);
+		return;
+	}
 
 	PFPos origin;
 	FollowTrainReservation(v, &origin);
-	if (IsRailDepotTile(origin.tile) && origin.td == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(origin.tile)))) return FindDepotData(origin.tile, 0);
+	if (IsRailDepotTile(origin.tile) && origin.td == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(origin.tile)))) {
+		*res = FindDepotData(origin.tile, 0);
+		return;
+	}
 
 	switch (_settings_game.pf.pathfinder_for_trains) {
-		case VPF_NPF: return NPFTrainFindNearestDepot(v, max_distance);
-		case VPF_YAPF: return YapfTrainFindNearestDepot(v, max_distance);
+		case VPF_NPF:
+			*res = NPFTrainFindNearestDepot(v, max_distance);
+			break;
+
+		case VPF_YAPF:
+			*res = YapfTrainFindNearestDepot(v, max_distance);
+			break;
 
 		default: NOT_REACHED();
 	}
@@ -2065,7 +2076,8 @@ static FindDepotData FindClosestTrainDepot(Train *v, int max_distance)
  */
 bool Train::FindClosestDepot(TileIndex *location, DestinationID *destination, bool *reverse)
 {
-	FindDepotData tfdd = FindClosestTrainDepot(this, 0);
+	FindDepotData tfdd;
+	FindClosestTrainDepot(this, 0, &tfdd);
 	if (tfdd.best_length == UINT_MAX) return false;
 
 	if (location    != NULL) *location    = tfdd.tile;
@@ -4334,7 +4346,8 @@ static void CheckIfTrainNeedsService(Train *v)
 		default: NOT_REACHED();
 	}
 
-	FindDepotData tfdd = FindClosestTrainDepot(v, max_penalty);
+	FindDepotData tfdd;
+	FindClosestTrainDepot(v, max_penalty, &tfdd);
 	/* Only go to the depot if it is not too far out of our way. */
 	if (tfdd.best_length == UINT_MAX || tfdd.best_length > max_penalty) {
 		if (v->current_order.IsType(OT_GOTO_DEPOT)) {
