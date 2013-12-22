@@ -32,7 +32,7 @@
 #include "command_func.h"
 #include "console_func.h"
 #include "pathfinder/npf/npf.h"
-#include "pathfinder/pathfinder_type.h"
+#include "pathfinder/yapf/yapf.h"
 #include "genworld.h"
 #include "train.h"
 #include "news_func.h"

@@ -16,20 +16,6 @@
 #include "../track_type.h"
 #include "../track_func.h"
 
-/** Length (penalty) of one tile with YAPF */
-static const int YAPF_TILE_LENGTH = 100;
-
-/** Length (penalty) of a corner with YAPF */
-static const int YAPF_TILE_CORNER_LENGTH = 71;
-
-/**
- * This penalty is the equivalent of "infinite", which means that paths that
- * get this penalty will be chosen, but only if there is no other route
- * without it. Be careful with not applying this penalty to often, or the
- * total path cost might overflow..
- */
-static const int YAPF_INFINITE_PENALTY = 1000 * YAPF_TILE_LENGTH;
-
 /**
  * Helper container to find a depot
  */
