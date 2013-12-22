@@ -1104,7 +1104,7 @@ static void NPFFillWithOrderData(NPFFindStationOrTileData *fstd, const Vehicle *
 
 /*** Road vehicles ***/
 
-bool NPFRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_penalty, FindDepotData *res)
+TileIndex NPFRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_penalty)
 {
 	PFPos pos = v->GetPos();
 	PFPos rev = pos;
@@ -1119,8 +1119,7 @@ bool NPFRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_penalty, Find
 	 * number by this. It might not be completely what we want, but it will
 	 * work for now :-) We can possibly change this when the old pathfinder
 	 * is removed. */
-	*res = FindDepotData(ftd.node.pos.tile);
-	return max_penalty == 0 || ftd.best_path_dist <= max_penalty;
+	return (max_penalty == 0 || ftd.best_path_dist <= max_penalty) ? ftd.node.pos.tile : INVALID_TILE;
 }
 
 Trackdir NPFRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)

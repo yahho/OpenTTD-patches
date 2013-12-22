@@ -34,10 +34,9 @@ static const int NPF_INFINITE_PENALTY = 1000 * NPF_TILE_LENGTH;
  * @param max_penalty  max distance (in pathfinder penalty) from the current vehicle position
  *                     (used also as optimization - the pathfinder can stop path finding if max_penalty
  *                     was reached and no depot was seen)
- * @param res          pointer to store the data about the depot
- * @return             whether a depot was found
+ * @return             depot tile found, or INVALID_TILE if no depot was found
  */
-bool NPFRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_penalty, FindDepotData *res);
+TileIndex NPFRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_penalty);
 
 /**
  * Finds the best path for given road vehicle using NPF.

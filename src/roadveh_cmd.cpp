@@ -325,21 +325,20 @@ CommandCost CmdBuildRoadVehicle(TileIndex tile, DoCommandFlag flags, const Engin
 	return CommandCost();
 }
 
-static bool FindClosestRoadDepot(const RoadVehicle *v, bool nearby, FindDepotData *res)
+static TileIndex FindClosestRoadDepot(const RoadVehicle *v, bool nearby)
 {
 	if (IsRoadDepotTile(v->tile) && v->state == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(v->tile)))) {
-		*res = FindDepotData(v->tile);
-		return true;
+		return v->tile;
 	}
 
 	switch (_settings_game.pf.pathfinder_for_roadvehs) {
 		case VPF_NPF:
 			return NPFRoadVehicleFindNearestDepot(v,
-				nearby ? _settings_game.pf.npf.maximum_go_to_depot_penalty : 0, res);
+				nearby ? _settings_game.pf.npf.maximum_go_to_depot_penalty : 0);
 
 		case VPF_YAPF:
 			return YapfRoadVehicleFindNearestDepot(v,
-				nearby ? _settings_game.pf.yapf.maximum_go_to_depot_penalty : 0, res);
+				nearby ? _settings_game.pf.yapf.maximum_go_to_depot_penalty : 0);
 
 		default: NOT_REACHED();
 	}
@@ -347,11 +346,11 @@ static bool FindClosestRoadDepot(const RoadVehicle *v, bool nearby, FindDepotDat
 
 bool RoadVehicle::FindClosestDepot(TileIndex *location, DestinationID *destination, bool *reverse)
 {
-	FindDepotData rfdd;
-	if (!FindClosestRoadDepot(this, false, &rfdd)) return false;
+	TileIndex rfdd = FindClosestRoadDepot(this, false);
+	if (rfdd == INVALID_TILE) return false;
 
-	if (location    != NULL) *location    = rfdd.tile;
-	if (destination != NULL) *destination = GetDepotIndex(rfdd.tile);
+	if (location    != NULL) *location    = rfdd;
+	if (destination != NULL) *destination = GetDepotIndex(rfdd);
 
 	return true;
 }
@@ -1771,9 +1770,9 @@ static void CheckIfRoadVehNeedsService(RoadVehicle *v)
 		return;
 	}
 
-	FindDepotData rfdd;
 	/* Only go to the depot if it is not too far out of our way. */
-	if (!FindClosestRoadDepot(v, true, &rfdd)) {
+	TileIndex rfdd = FindClosestRoadDepot(v, true);
+	if (rfdd == INVALID_TILE) {
 		if (v->current_order.IsType(OT_GOTO_DEPOT)) {
 			/* If we were already heading for a depot but it has
 			 * suddenly moved farther away, we continue our normal
@@ -1784,7 +1783,7 @@ static void CheckIfRoadVehNeedsService(RoadVehicle *v)
 		return;
 	}
 
-	DepotID depot = GetDepotIndex(rfdd.tile);
+	DepotID depot = GetDepotIndex(rfdd);
 
 	if (v->current_order.IsType(OT_GOTO_DEPOT) &&
 			v->current_order.GetNonStopType() & ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS &&
@@ -1794,7 +1793,7 @@ static void CheckIfRoadVehNeedsService(RoadVehicle *v)
 
 	SetBit(v->gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
 	v->current_order.MakeGoToDepot(depot, ODTFB_SERVICE);
-	v->dest_tile = rfdd.tile;
+	v->dest_tile = rfdd;
 	SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
 }
 

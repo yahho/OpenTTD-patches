@@ -423,29 +423,27 @@ public:
 		return true;
 	}
 
-	static bool stFindNearestDepot(const RoadVehicle *v, const PFPos &pos, int max_distance, TileIndex *depot_tile)
+	static TileIndex stFindNearestDepot(const RoadVehicle *v, const PFPos &pos, int max_distance)
 	{
 		Tpf pf;
-		return pf.FindNearestDepot(v, pos, max_distance, depot_tile);
+		return pf.FindNearestDepot(v, pos, max_distance);
 	}
 
-	inline bool FindNearestDepot(const RoadVehicle *v, const PFPos &pos, int max_distance, TileIndex *depot_tile)
+	inline TileIndex FindNearestDepot(const RoadVehicle *v, const PFPos &pos, int max_distance)
 	{
 		/* set origin and destination nodes */
 		Yapf().SetOrigin(pos);
 
 		/* find the best path */
-		bool bFound = Yapf().FindPath(v);
-		if (!bFound) return false;
+		if (!Yapf().FindPath(v)) return INVALID_TILE;
 
 		/* some path found
 		 * get found depot tile */
 		Node *n = Yapf().GetBestNode();
 
-		if (max_distance > 0 && n->m_cost > max_distance * YAPF_TILE_LENGTH) return false;
+		if (max_distance > 0 && n->m_cost > max_distance * YAPF_TILE_LENGTH) return INVALID_TILE;
 
-		*depot_tile = n->m_segment_last.tile;
-		return true;
+		return n->m_segment_last.tile;
 	}
 };
 
@@ -488,7 +486,7 @@ Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDi
 	return (td_ret != INVALID_TRACKDIR) ? td_ret : (Trackdir)FindFirstBit2x64(trackdirs);
 }
 
-bool YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_distance, FindDepotData *res)
+TileIndex YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_distance)
 {
 	PFPos pos = v->GetPos();
 	if ((TrackStatusToTrackdirBits(GetTileRoadStatus(pos.tile, v->compatible_roadtypes)) & TrackdirToTrackdirBits(pos.td)) == 0) {
@@ -496,7 +494,7 @@ bool YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_distance, Fi
 	}
 
 	/* default is YAPF type 2 */
-	typedef bool (*PfnFindNearestDepot)(const RoadVehicle*, const PFPos&, int, TileIndex*);
+	typedef TileIndex (*PfnFindNearestDepot)(const RoadVehicle*, const PFPos&, int);
 	PfnFindNearestDepot pfnFindNearestDepot = &CYapfRoadAnyDepot2::stFindNearestDepot;
 
 	/* check if non-default YAPF type should be used */
@@ -504,5 +502,5 @@ bool YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_distance, Fi
 		pfnFindNearestDepot = &CYapfRoadAnyDepot1::stFindNearestDepot; // Trackdir, allow 90-deg
 	}
 
-	return pfnFindNearestDepot(v, pos, max_distance, &res->tile);
+	return pfnFindNearestDepot(v, pos, max_distance);
 }
