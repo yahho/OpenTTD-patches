@@ -1120,7 +1120,7 @@ bool NPFRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_penalty, Find
 	 * work for now :-) We can possibly change this when the old pathfinder
 	 * is removed. */
 	*res = FindDepotData(ftd.node.pos.tile, ftd.best_path_dist);
-	return true;
+	return max_penalty == 0 || ftd.best_path_dist <= max_penalty;
 }
 
 Trackdir NPFRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)
@@ -1207,7 +1207,7 @@ bool NPFTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *r
 	 * work for now :-) We can possibly change this when the old pathfinder
 	 * is removed. */
 	*res = FindDepotData(ftd.node.pos.tile, ftd.best_path_dist, NPFGetFlag(&ftd.node, NPF_FLAG_REVERSE));
-	return true;
+	return max_penalty == 0 || ftd.best_path_dist <= max_penalty;
 }
 
 bool NPFTrainFindNearestSafeTile(const Train *v, const PFPos &pos, bool override_railtype)

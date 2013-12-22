@@ -2055,22 +2055,17 @@ static bool FindClosestTrainDepot(Train *v, bool nearby, FindDepotData *res)
 		return true;
 	}
 
-	uint max_distance = 0;
 	switch (_settings_game.pf.pathfinder_for_trains) {
 		case VPF_NPF:
-			if (nearby) max_distance = _settings_game.pf.npf.maximum_go_to_depot_penalty;
-			if (!NPFTrainFindNearestDepot(v, max_distance, res)) return false;
-			break;
+			return NPFTrainFindNearestDepot(v,
+				nearby ? _settings_game.pf.npf.maximum_go_to_depot_penalty : 0, res);
 
 		case VPF_YAPF:
-			if (nearby) max_distance = _settings_game.pf.yapf.maximum_go_to_depot_penalty;
-			if (!YapfTrainFindNearestDepot(v, max_distance, res)) return false;
-			break;
+			return YapfTrainFindNearestDepot(v,
+				nearby ? _settings_game.pf.yapf.maximum_go_to_depot_penalty : 0, res);
 
 		default: NOT_REACHED();
 	}
-
-	return (res->best_length != UINT_MAX) && (!nearby || res->best_length <= max_distance);
 }
 
 /**

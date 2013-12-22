@@ -332,22 +332,17 @@ static bool FindClosestRoadDepot(const RoadVehicle *v, bool nearby, FindDepotDat
 		return true;
 	}
 
-	uint max_distance = 0;
 	switch (_settings_game.pf.pathfinder_for_roadvehs) {
 		case VPF_NPF:
-			if (nearby) max_distance = _settings_game.pf.npf.maximum_go_to_depot_penalty;
-			if (!NPFRoadVehicleFindNearestDepot(v, max_distance, res)) return false;
-			break;
+			return NPFRoadVehicleFindNearestDepot(v,
+				nearby ? _settings_game.pf.npf.maximum_go_to_depot_penalty : 0, res);
 
 		case VPF_YAPF:
-			if (nearby) max_distance = _settings_game.pf.yapf.maximum_go_to_depot_penalty;
-			if (!YapfRoadVehicleFindNearestDepot(v, max_distance, res)) return false;
-			break;
+			return YapfRoadVehicleFindNearestDepot(v,
+				nearby ? _settings_game.pf.yapf.maximum_go_to_depot_penalty : 0, res);
 
 		default: NOT_REACHED();
 	}
-
-	return (res->best_length != UINT_MAX) && (!nearby || res->best_length <= max_distance);
 }
 
 bool RoadVehicle::FindClosestDepot(TileIndex *location, DestinationID *destination, bool *reverse)
