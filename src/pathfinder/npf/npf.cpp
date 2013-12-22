@@ -1119,7 +1119,7 @@ bool NPFRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_penalty, Find
 	 * number by this. It might not be completely what we want, but it will
 	 * work for now :-) We can possibly change this when the old pathfinder
 	 * is removed. */
-	*res = FindDepotData(ftd.node.pos.tile, ftd.best_path_dist);
+	*res = FindDepotData(ftd.node.pos.tile);
 	return max_penalty == 0 || ftd.best_path_dist <= max_penalty;
 }
 
@@ -1206,7 +1206,7 @@ bool NPFTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *r
 	 * number by this. It might not be completely what we want, but it will
 	 * work for now :-) We can possibly change this when the old pathfinder
 	 * is removed. */
-	*res = FindDepotData(ftd.node.pos.tile, ftd.best_path_dist, NPFGetFlag(&ftd.node, NPF_FLAG_REVERSE));
+	*res = FindDepotData(ftd.node.pos.tile, NPFGetFlag(&ftd.node, NPF_FLAG_REVERSE));
 	return max_penalty == 0 || ftd.best_path_dist <= max_penalty;
 }
 

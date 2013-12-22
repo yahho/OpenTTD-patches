@@ -504,7 +504,5 @@ bool YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_distance, Fi
 		pfnFindNearestDepot = &CYapfRoadAnyDepot1::stFindNearestDepot; // Trackdir, allow 90-deg
 	}
 
-	if (!pfnFindNearestDepot(v, pos, max_distance, &res->tile)) return false;
-	res->best_length = max_distance / 2; // some fake distance
-	return true;
+	return pfnFindNearestDepot(v, pos, max_distance, &res->tile);
 }

@@ -2044,14 +2044,14 @@ static bool FindClosestTrainDepot(Train *v, bool nearby, FindDepotData *res)
 	assert(!(v->vehstatus & VS_CRASHED));
 
 	if (IsRailDepotTile(v->tile) && v->trackdir == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(v->tile)))) {
-		*res = FindDepotData(v->tile, 0);
+		*res = FindDepotData(v->tile);
 		return true;
 	}
 
 	PFPos origin;
 	FollowTrainReservation(v, &origin);
 	if (IsRailDepotTile(origin.tile) && origin.td == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(origin.tile)))) {
-		*res = FindDepotData(origin.tile, 0);
+		*res = FindDepotData(origin.tile);
 		return true;
 	}
 

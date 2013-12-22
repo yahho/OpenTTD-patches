@@ -328,7 +328,7 @@ CommandCost CmdBuildRoadVehicle(TileIndex tile, DoCommandFlag flags, const Engin
 static bool FindClosestRoadDepot(const RoadVehicle *v, bool nearby, FindDepotData *res)
 {
 	if (IsRoadDepotTile(v->tile) && v->state == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(v->tile)))) {
-		*res = FindDepotData(v->tile, 0);
+		*res = FindDepotData(v->tile);
 		return true;
 	}
 
