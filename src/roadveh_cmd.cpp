@@ -325,11 +325,11 @@ CommandCost CmdBuildRoadVehicle(TileIndex tile, DoCommandFlag flags, const Engin
 	return CommandCost();
 }
 
-static void FindClosestRoadDepot(const RoadVehicle *v, int max_distance, FindDepotData *res)
+static bool FindClosestRoadDepot(const RoadVehicle *v, uint max_distance, FindDepotData *res)
 {
 	if (IsRoadDepotTile(v->tile) && v->state == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(v->tile)))) {
 		*res = FindDepotData(v->tile, 0);
-		return;
+		return true;
 	}
 
 	switch (_settings_game.pf.pathfinder_for_roadvehs) {
@@ -343,13 +343,14 @@ static void FindClosestRoadDepot(const RoadVehicle *v, int max_distance, FindDep
 
 		default: NOT_REACHED();
 	}
+
+	return (res->best_length != UINT_MAX) && (max_distance == 0 || res->best_length <= max_distance);
 }
 
 bool RoadVehicle::FindClosestDepot(TileIndex *location, DestinationID *destination, bool *reverse)
 {
 	FindDepotData rfdd;
-	FindClosestRoadDepot(this, 0, &rfdd);
-	if (rfdd.best_length == UINT_MAX) return false;
+	if (!FindClosestRoadDepot(this, 0, &rfdd)) return false;
 
 	if (location    != NULL) *location    = rfdd.tile;
 	if (destination != NULL) *destination = GetDepotIndex(rfdd.tile);
@@ -1780,9 +1781,8 @@ static void CheckIfRoadVehNeedsService(RoadVehicle *v)
 	}
 
 	FindDepotData rfdd;
-	FindClosestRoadDepot(v, max_penalty, &rfdd);
 	/* Only go to the depot if it is not too far out of our way. */
-	if (rfdd.best_length == UINT_MAX || rfdd.best_length > max_penalty) {
+	if (!FindClosestRoadDepot(v, max_penalty, &rfdd)) {
 		if (v->current_order.IsType(OT_GOTO_DEPOT)) {
 			/* If we were already heading for a depot but it has
 			 * suddenly moved farther away, we continue our normal
