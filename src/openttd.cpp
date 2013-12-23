@@ -1351,7 +1351,7 @@ void StateGameLoop()
 	}
 	if (HasModalProgress()) return;
 
-	ClearStorageChanges(false);
+	ClearPersistentStorageChanges(false);
 
 	Layouter::ReduceLineCache();
 
@@ -1359,7 +1359,7 @@ void StateGameLoop()
 		RunTileLoop();
 		CallVehicleTicks();
 		CallLandscapeTick();
-		ClearStorageChanges(true);
+		ClearPersistentStorageChanges(true);
 		UpdateLandscapingLimits();
 
 		CallWindowTickEvent();
@@ -1383,7 +1383,7 @@ void StateGameLoop()
 		RunTileLoop();
 		CallVehicleTicks();
 		CallLandscapeTick();
-		ClearStorageChanges(true);
+		ClearPersistentStorageChanges(true);
 
 		AI::GameLoop();
 		Game::GameLoop();
