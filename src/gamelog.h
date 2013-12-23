@@ -42,7 +42,7 @@ enum GamelogEntryType {
 	GLOG_ENTRYTYPE_END, ///< So we know how many entry types there are
 };
 
-struct GamelogPrintBuffer;
+class GamelogPrintBuffer;
 
 /** Gamelog entry base class. */
 struct GamelogEntry {
