@@ -415,21 +415,33 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 					const Train *train = Train::From(fstd->v);
 					CFollowTrackRail ft(train);
 					ft.SetPos(pos);
-					while (ft.FollowNext()) {
+
+					bool add_extra_cost;
+					for (;;) {
+						if (!ft.FollowNext()) {
+							/* end of line */
+							add_extra_cost = !IsWaitingPositionFree(train, ft.m_old, _settings_game.pf.forbid_90_deg);
+							break;
+						}
+
 						assert(ft.m_old.tile != ft.m_new.tile);
 						if (!ft.m_new.IsTrackdirSet()) {
 							/* We encountered a junction; it's going to be too complex to
 							 * handle this perfectly, so just bail out. There is no simple
 							 * free path, so try the other possibilities. */
+							add_extra_cost = true;
 							break;
 						}
+
 						/* If this is a safe waiting position we're done searching for it */
-						if (IsSafeWaitingPosition(train, ft.m_new, _settings_game.pf.forbid_90_deg)) break;
+						PBSPositionState state = CheckWaitingPosition (train, ft.m_new, _settings_game.pf.forbid_90_deg);
+						if (state != PBS_UNSAFE) {
+							add_extra_cost = state == PBS_BUSY;
+							break;
+						}
 					}
-					if (!ft.m_new.IsTrackdirSet() ||
-							!IsFreeSafeWaitingPosition(train, ft.m_new, _settings_game.pf.forbid_90_deg)) {
-						cost += _settings_game.pf.npf.npf_rail_lastred_penalty;
-					}
+
+					if (add_extra_cost) cost += _settings_game.pf.npf.npf_rail_lastred_penalty;
 				}
 			}
 			break;
