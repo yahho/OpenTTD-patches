@@ -27,7 +27,7 @@ static void Load_PSAC(LoadBuffer *reader)
 
 	while ((index = reader->IterateChunk()) != -1) {
 		assert(PersistentStorage::CanAllocateItem());
-		PersistentStorage *ps = new (index) PersistentStorage(0);
+		PersistentStorage *ps = new (index) PersistentStorage(0, 0, 0);
 		reader->ReadObject(ps, _storage_desc);
 	}
 }

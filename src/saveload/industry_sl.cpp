@@ -98,7 +98,7 @@ static void Load_INDY(LoadBuffer *reader)
 		if (reader->IsOTTDVersionBefore(161) && !reader->IsOTTDVersionBefore(76)) {
 			/* Store the old persistent storage. The GRFID will be added later. */
 			assert(PersistentStorage::CanAllocateItem());
-			i->psa = new PersistentStorage(0);
+			i->psa = new PersistentStorage(0, 0, 0);
 			memcpy(i->psa->storage, _old_ind_persistent_storage.storage, sizeof(i->psa->storage));
 		}
 		Industry::IncIndustryTypeCount(i->type);
