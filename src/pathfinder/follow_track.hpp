@@ -195,7 +195,6 @@ struct CFollowTrackRailBase : CFollowTrackBase
 	/** return true if we successfully reversed at end of road/track */
 	inline bool CheckEndOfLine()
 	{
-		m_new.td = INVALID_TRACKDIR;
 		m_err = EC_NO_WAY;
 		return false;
 	}
@@ -493,7 +492,6 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 			m_new.SetTrackdir();
 			return true;
 		}
-		m_new.td = INVALID_TRACKDIR;
 		m_err = EC_NO_WAY;
 		return false;
 	}
@@ -574,7 +572,6 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 	/** return true if we successfully reversed at end of road/track */
 	inline bool CheckEndOfLine()
 	{
-		m_new.td = INVALID_TRACKDIR;
 		m_err = EC_NO_WAY;
 		return false;
 	}
