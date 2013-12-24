@@ -87,6 +87,11 @@ struct CFollowTrackRailBase : CFollowTrackBase
 		assert(railtype_override != INVALID_RAILTYPES);
 	}
 
+	static inline bool IsTrackBridgeTile(TileIndex tile)
+	{
+		return IsRailBridgeTile(tile);
+	}
+
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
 	{
 		return TrackStatusToTrackdirBits(GetTileRailwayStatus(tile));
@@ -335,6 +340,11 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 		assert(v != NULL);
 	}
 
+	static inline bool IsTrackBridgeTile(TileIndex tile)
+	{
+		return IsRoadBridgeTile(tile);
+	}
+
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
 	{
 		return TrackStatusToTrackdirBits(GetTileRoadStatus(tile, m_veh->compatible_roadtypes));
@@ -535,6 +545,11 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 	{
 	}
 
+	static inline bool IsTrackBridgeTile(TileIndex tile)
+	{
+		return IsAqueductTile(tile);
+	}
+
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
 	{
 		return TrackStatusToTrackdirBits(GetTileWaterwayStatus(tile));
@@ -680,7 +695,7 @@ protected:
 	{
 		assert(!Base::m_old.InWormhole());
 		/* extra handling for bridges in our direction */
-		if (IsBridgeHeadTile(Base::m_old.tile)) {
+		if (Base::IsTrackBridgeTile(Base::m_old.tile)) {
 			if (Base::m_exitdir == GetTunnelBridgeDirection(Base::m_old.tile)) {
 				/* we are entering the bridge */
 				Base::m_flag = Base::TF_BRIDGE;
@@ -730,7 +745,7 @@ protected:
 	inline void FollowWormhole()
 	{
 		assert(Base::m_old.InWormhole());
-		assert(IsBridgeHeadTile(Base::m_old.wormhole) || IsTunnelTile(Base::m_old.wormhole));
+		assert(Base::IsTrackBridgeTile(Base::m_old.wormhole) || IsTunnelTile(Base::m_old.wormhole));
 
 		Base::m_new.tile = Base::m_old.wormhole;
 		Base::m_new.wormhole = INVALID_TILE;
