@@ -1212,7 +1212,7 @@ void ConvertGroundTilesIntoWaterTiles()
 	}
 }
 
-static TrackStatus GetTileWaterwayStatus_Water(TileIndex tile, DiagDirection side)
+static TrackdirBits GetTileWaterwayStatus_Water(TileIndex tile, DiagDirection side)
 {
 	static const byte coast_tracks[] = {0, 32, 4, 0, 16, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0};
 
@@ -1223,7 +1223,7 @@ static TrackStatus GetTileWaterwayStatus_Water(TileIndex tile, DiagDirection sid
 		case WATER_TILE_COAST: ts = (TrackBits)coast_tracks[GetTileSlope(tile) & 0xF]; break;
 		case WATER_TILE_LOCK:  ts = DiagDirToDiagTrackBits(GetLockDirection(tile)); break;
 		case WATER_TILE_DEPOT: ts = DiagDirToDiagTrackBits(GetShipDepotDirection(tile)); break;
-		default: return 0;
+		default: return TRACKDIR_BIT_NONE;
 	}
 	if (TileX(tile) == 0) {
 		/* NE border: remove tracks that connects NE tile edge */
@@ -1233,7 +1233,7 @@ static TrackStatus GetTileWaterwayStatus_Water(TileIndex tile, DiagDirection sid
 		/* NW border: remove tracks that connects NW tile edge */
 		ts &= ~(TRACK_BIT_Y | TRACK_BIT_LEFT | TRACK_BIT_UPPER);
 	}
-	return CombineTrackStatus(TrackBitsToTrackdirBits(ts), TRACKDIR_BIT_NONE);
+	return TrackBitsToTrackdirBits(ts);
 }
 
 static bool ClickTile_Water(TileIndex tile)

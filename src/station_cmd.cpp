@@ -3156,9 +3156,9 @@ static TrackStatus GetTileRoadStatus_Station(TileIndex tile, uint sub_mode, Diag
 	return CombineTrackStatus(TrackBitsToTrackdirBits(trackbits), TRACKDIR_BIT_NONE);
 }
 
-static TrackStatus GetTileWaterwayStatus_Station(TileIndex tile, DiagDirection side)
+static TrackdirBits GetTileWaterwayStatus_Station(TileIndex tile, DiagDirection side)
 {
-	if (!IsBuoy(tile)) return 0;
+	if (!IsBuoy(tile)) return TRACKDIR_BIT_NONE;
 
 	/* buoy is coded as a station, it is always on open water */
 	TrackBits trackbits = TRACK_BIT_ALL;
@@ -3167,7 +3167,7 @@ static TrackStatus GetTileWaterwayStatus_Station(TileIndex tile, DiagDirection s
 	/* remove tracks that connect NW map edge */
 	if (TileY(tile) == 0) trackbits &= ~(TRACK_BIT_Y | TRACK_BIT_LEFT | TRACK_BIT_UPPER);
 
-	return CombineTrackStatus(TrackBitsToTrackdirBits(trackbits), TRACKDIR_BIT_NONE);
+	return TrackBitsToTrackdirBits(trackbits);
 }
 
 

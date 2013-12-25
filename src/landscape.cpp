@@ -525,16 +525,16 @@ TrackStatus GetTileRoadStatus(TileIndex tile, uint sub_mode, DiagDirection side)
 }
 
 /**
- * Returns information about waterway trackdirs and signal states.
+ * Returns information about waterway trackdirs.
  * If there is any trackbit at 'side', return all trackdirbits.
  * @param tile tile to get info about
  * @param side side we are entering from, INVALID_DIAGDIR to return all trackbits
- * @return trackdirbits and other info
+ * @return trackdirbits
  */
-TrackStatus GetTileWaterwayStatus(TileIndex tile, DiagDirection side)
+TrackdirBits GetTileWaterwayStatus(TileIndex tile, DiagDirection side)
 {
-	GetTileTrackStatusProc *proc = GetTileProcs(tile)->get_tile_waterway_status_proc;
-	return proc != NULL ? proc(tile, side) : 0;
+	GetTileWaterStatusProc *proc = GetTileProcs(tile)->get_tile_waterway_status_proc;
+	return proc != NULL ? proc(tile, side) : TRACKDIR_BIT_NONE;
 }
 
 /**

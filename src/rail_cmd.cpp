@@ -3511,7 +3511,7 @@ static TrackStatus GetTileRailwayStatus_Track(TileIndex tile, DiagDirection side
 	return CombineTrackStatus(TrackBitsToTrackdirBits(trackbits), red_signals);
 }
 
-static TrackStatus GetTileWaterwayStatus_Track(TileIndex tile, DiagDirection side)
+static TrackdirBits GetTileWaterwayStatus_Track(TileIndex tile, DiagDirection side)
 {
 	/* Case of half tile slope with water. */
 	if (IsTileSubtype(tile, TT_TRACK) && GetRailGroundType(tile) == RAIL_GROUND_WATER && IsSlopeWithOneCornerRaised(GetTileSlope(tile))) {
@@ -3523,10 +3523,10 @@ static TrackStatus GetTileWaterwayStatus_Track(TileIndex tile, DiagDirection sid
 			case TRACK_BIT_LEFT:  tb = TRACK_BIT_RIGHT; break;
 			case TRACK_BIT_RIGHT: tb = TRACK_BIT_LEFT;  break;
 		}
-		return CombineTrackStatus(TrackBitsToTrackdirBits(tb), TRACKDIR_BIT_NONE);
+		return TrackBitsToTrackdirBits(tb);
 	}
 
-	return 0;
+	return TRACKDIR_BIT_NONE;
 }
 
 static bool ClickTile_Track(TileIndex tile)

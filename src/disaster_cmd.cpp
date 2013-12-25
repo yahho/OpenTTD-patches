@@ -639,7 +639,7 @@ static bool DisasterTick_Submarine(DisasterVehicle *v)
 
 	TileIndex tile = v->tile + TileOffsByDiagDir(DirToDiagDir(v->direction));
 	if (IsValidTile(tile)) {
-		TrackBits trackbits = TrackStatusToTrackBits(GetTileWaterwayStatus(tile));
+		TrackBits trackbits = TrackdirBitsToTrackBits(GetTileWaterwayStatus(tile));
 		if (trackbits == TRACK_BIT_ALL && !Chance16(1, 90)) {
 			SetDisasterVehiclePosAuto(v);
 			return true;

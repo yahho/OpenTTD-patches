@@ -862,13 +862,13 @@ static TrackStatus GetTileRoadStatus_Misc(TileIndex tile, uint sub_mode, DiagDir
 	}
 }
 
-static TrackStatus GetTileWaterwayStatus_Misc(TileIndex tile, DiagDirection side)
+static TrackdirBits GetTileWaterwayStatus_Misc(TileIndex tile, DiagDirection side)
 {
-	if (!IsTileSubtype(tile, TT_MISC_AQUEDUCT)) return 0;
+	if (!IsTileSubtype(tile, TT_MISC_AQUEDUCT)) return TRACKDIR_BIT_NONE;
 
 	DiagDirection dir = GetTunnelBridgeDirection(tile);
-	if (side != INVALID_DIAGDIR && side != ReverseDiagDir(dir)) return 0;
-	return CombineTrackStatus(TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir)), TRACKDIR_BIT_NONE);
+	if (side != INVALID_DIAGDIR && side != ReverseDiagDir(dir)) return TRACKDIR_BIT_NONE;
+	return TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir));
 }
 
 

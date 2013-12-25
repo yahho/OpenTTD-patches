@@ -833,7 +833,7 @@ static TrackdirBits GetDriveableTrackdirBits(TileIndex dst_tile, Trackdir src_tr
 			break;
 
 		case TRANSPORT_WATER:
-			trackdirbits = TrackStatusToTrackdirBits(GetTileWaterwayStatus(dst_tile));
+			trackdirbits = GetTileWaterwayStatus(dst_tile);
 			break;
 	}
 

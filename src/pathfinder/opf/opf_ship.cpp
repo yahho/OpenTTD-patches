@@ -82,7 +82,7 @@ static void TPFModeShip(TrackPathFinder *tpf, TileIndex tile, DiagDirection dire
 
 	if (++tpf->rd.cur_length > 50) return;
 
-	TrackdirBits trackdirs = TrackStatusToTrackdirBits(GetTileWaterwayStatus(tile)) & DiagdirReachesTrackdirs(direction);
+	TrackdirBits trackdirs = GetTileWaterwayStatus(tile) & DiagdirReachesTrackdirs(direction);
 	if (trackdirs == TRACKDIR_BIT_NONE) return;
 
 	assert(TileX(tile) != MapMaxX() && TileY(tile) != MapMaxY());
@@ -191,7 +191,7 @@ Trackdir OPFShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterdi
 	/* Let's find out how far it would be if we would reverse first */
 	Trackdir trackdir = v->GetPos().td;
 	assert(HasBit(DiagdirReachesTrackdirs(ReverseDiagDir(enterdir)), ReverseTrackdir(trackdir)));
-	TrackdirBits b = TrackStatusToTrackdirBits(GetTileWaterwayStatus(v->tile)) & TrackdirToTrackdirBits(ReverseTrackdir(trackdir));
+	TrackdirBits b = GetTileWaterwayStatus(v->tile) & TrackdirToTrackdirBits(ReverseTrackdir(trackdir));
 
 	uint distr = UINT_MAX; // distance if we reversed
 	if (b != 0) {

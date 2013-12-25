@@ -69,7 +69,7 @@ typedef void GetTileDescProc(TileIndex tile, TileDesc *td);
 
 /**
  * Tile callback function signature for getting the possible tracks
- * that can be taken on a given tile by a given transport.
+ * that can be taken on a given tile by a train.
  *
  * The return value contains the existing trackdirs and signal states.
  *
@@ -93,6 +93,17 @@ typedef TrackStatus GetTileTrackStatusProc(TileIndex tile, DiagDirection side);
  * @return the track status information
  */
 typedef TrackStatus GetTileRoadStatusProc(TileIndex tile, uint sub_mode, DiagDirection side);
+
+/**
+ * Tile callback function signature for getting the possible tracks
+ * that can be taken on a given tile by a ship.
+ *
+ * The return value contains the existing trackdirs.
+ *
+ * @param tile     the tile to get the track status from
+ * @return the track status information
+ */
+typedef TrackdirBits GetTileWaterStatusProc(TileIndex tile, DiagDirection side);
 
 /**
  * Tile callback function signature for obtaining the produced cargo of a tile.
@@ -135,7 +146,7 @@ struct TileTypeProcs {
 	GetTileDescProc *get_tile_desc_proc;           ///< Get a description of a tile (for the 'land area information' tool)
 	GetTileTrackStatusProc *get_tile_railway_status_proc;  ///< Get available railway tracks and status of a tile
 	GetTileRoadStatusProc  *get_tile_road_status_proc;     ///< Get available road tracks and status of a tile
-	GetTileTrackStatusProc *get_tile_waterway_status_proc; ///< Get available waterway tracks and status of a tile
+	GetTileWaterStatusProc *get_tile_waterway_status_proc; ///< Get available waterway tracks and status of a tile
 	ClickTileProc *click_tile_proc;                ///< Called when tile is clicked
 	AnimateTileProc *animate_tile_proc;
 	TileLoopProc *tile_loop_proc;
@@ -154,7 +165,7 @@ static inline const TileTypeProcs *GetTileProcs(TileIndex tile)
 
 TrackStatus GetTileRailwayStatus(TileIndex tile, DiagDirection side = INVALID_DIAGDIR);
 TrackStatus GetTileRoadStatus(TileIndex tile, uint sub_mode, DiagDirection side = INVALID_DIAGDIR);
-TrackStatus GetTileWaterwayStatus(TileIndex tile, DiagDirection side = INVALID_DIAGDIR);
+TrackdirBits GetTileWaterwayStatus(TileIndex tile, DiagDirection side = INVALID_DIAGDIR);
 
 void ChangeTileOwner(TileIndex tile, Owner old_owner, Owner new_owner);
 void GetTileDesc(TileIndex tile, TileDesc *td);

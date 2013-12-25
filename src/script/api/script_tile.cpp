@@ -201,7 +201,7 @@
 	switch (transport_type) {
 		case TRANSPORT_RAIL:  return ::TrackStatusToTrackdirBits(::GetTileRailwayStatus(tile)) != TRACKDIR_BIT_NONE;
 		case TRANSPORT_ROAD:  return ::TrackStatusToTrackdirBits(::GetTileRoadStatus(tile, UINT32_MAX)) != TRACKDIR_BIT_NONE;
-		case TRANSPORT_WATER: return ::TrackStatusToTrackdirBits(::GetTileWaterwayStatus(tile)) != TRACKDIR_BIT_NONE;
+		case TRANSPORT_WATER: return ::GetTileWaterwayStatus(tile) != TRACKDIR_BIT_NONE;
 		default: return false;
 	}
 }

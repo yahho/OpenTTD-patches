@@ -594,7 +594,7 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
 	{
-		return TrackStatusToTrackdirBits(GetTileWaterwayStatus(tile));
+		return GetTileWaterwayStatus(tile);
 	}
 
 	/** check old tile */

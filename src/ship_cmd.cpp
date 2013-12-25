@@ -62,7 +62,7 @@ bool IsValidImageIndex<VEH_SHIP>(uint8 image_index)
 
 static inline TrackdirBits GetAvailShipTrackdirs(TileIndex tile, DiagDirection enterdir)
 {
-	return TrackStatusToTrackdirBits(GetTileWaterwayStatus(tile)) & DiagdirReachesTrackdirs(enterdir);
+	return GetTileWaterwayStatus(tile) & DiagdirReachesTrackdirs(enterdir);
 }
 
 static SpriteID GetShipIcon(EngineID engine, EngineImageType image_type)
