@@ -148,6 +148,7 @@ struct CFollowTrackRailBase : CFollowTrackBase
 			m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
 		}
 
+		m_new.trackdirs &= DiagdirReachesTrackdirs(m_exitdir);
 		if (m_new.trackdirs == TRACKDIR_BIT_NONE) return false;
 
 		perf.Stop();
@@ -461,13 +462,16 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 			 * As we cannot change it there (easily) without breaking something, change it here */
 			DiagDirection single_tram = GetSingleTramBit(m_new.tile);
 			if (single_tram == ReverseDiagDir(m_exitdir)) {
-				m_new.trackdirs = DiagDirToAxis(single_tram) == AXIS_X ? TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW : TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE;
+				m_new.trackdirs = TrackdirToTrackdirBits(DiagDirToDiagTrackdir(m_exitdir));
 				return true;
 			} else {
 				m_err = EC_NO_WAY;
 				return false;
 			}
 		}
+
+		m_new.trackdirs &= DiagdirReachesTrackdirs(m_exitdir);
+		if (m_new.trackdirs == TRACKDIR_BIT_NONE) return false;
 
 		if (IsStandardRoadStopTile(m_new.tile)) {
 			/* road stop can be entered from one direction only unless it's a drive-through stop */
@@ -605,8 +609,7 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
 	inline bool CheckNewTile()
 	{
-		m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
-
+		m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile) & DiagdirReachesTrackdirs(m_exitdir);
 		if (m_new.trackdirs == TRACKDIR_BIT_NONE) return false;
 
 		/* tunnel holes and bridge ramps can be entered only from proper direction */
@@ -731,9 +734,10 @@ struct CFollowTrack : Base
 			default: break;
 		}
 
-		if (!Base::CheckNewTile() || (Base::m_new.trackdirs &= DiagdirReachesTrackdirs(Base::m_exitdir)) == TRACKDIR_BIT_NONE) {
+		if (!Base::CheckNewTile()) {
 			return Base::CheckEndOfLine();
 		}
+
 		if (!Base::Allow90deg()) {
 			Base::m_new.trackdirs &= (TrackdirBits)~(int)TrackdirCrossesTrackdirs(Base::m_old.td);
 			if (Base::m_new.trackdirs == TRACKDIR_BIT_NONE) {
