@@ -665,8 +665,16 @@ struct CFollowTrack : Base
 	inline CFollowTrack (T1 t1, T2 t2, T3 t3, T4 t4) : Base (t1, t2, t3, t4) { }
 
 	/**
-	 * main follower routine. Fills all members and return true on success.
-	 *  Otherwise returns false if track can't be followed.
+	 * Main follower routine. Attempts to follow track at the given
+	 * pathfinder position. On return:
+	 *  * m_old is always set to the position given as argument.
+	 *  * On success, true is returned, and all fields are filled in as
+	 * appropriate. m_err is guaranteed to be EC_NONE, and m_exitdir may
+	 * not be the natural exit direction of m_old.td, if the track
+	 * follower had to reverse.
+	 *  * On failure, false is returned, and m_err is set to a value
+	 * indicating why the track could not be followed. The rest of the
+	 * fields should be considered undefined.
 	 */
 	inline bool Follow(const PFPos &pos)
 	{
