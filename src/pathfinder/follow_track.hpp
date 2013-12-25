@@ -149,7 +149,10 @@ struct CFollowTrackRailBase : CFollowTrackBase
 		}
 
 		m_new.trackdirs &= DiagdirReachesTrackdirs(m_exitdir);
-		if (m_new.trackdirs == TRACKDIR_BIT_NONE) return false;
+		if (m_new.trackdirs == TRACKDIR_BIT_NONE) {
+			m_err = EC_NO_WAY;
+			return false;
+		}
 
 		perf.Stop();
 
@@ -220,7 +223,6 @@ struct CFollowTrackRailBase : CFollowTrackBase
 	/** return true if we successfully reversed at end of road/track */
 	inline bool CheckEndOfLine()
 	{
-		m_err = EC_NO_WAY;
 		return false;
 	}
 
@@ -456,12 +458,9 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 		m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
 
 		if (m_new.trackdirs == TRACKDIR_BIT_NONE) {
-			if (!IsTram()) return false;
-
 			/* GetTileRoadStatus() returns 0 for single tram bits.
 			 * As we cannot change it there (easily) without breaking something, change it here */
-			DiagDirection single_tram = GetSingleTramBit(m_new.tile);
-			if (single_tram == ReverseDiagDir(m_exitdir)) {
+			if (IsTram() && GetSingleTramBit(m_new.tile) == ReverseDiagDir(m_exitdir)) {
 				m_new.trackdirs = TrackdirToTrackdirBits(DiagDirToDiagTrackdir(m_exitdir));
 				return true;
 			} else {
@@ -471,7 +470,10 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 		}
 
 		m_new.trackdirs &= DiagdirReachesTrackdirs(m_exitdir);
-		if (m_new.trackdirs == TRACKDIR_BIT_NONE) return false;
+		if (m_new.trackdirs == TRACKDIR_BIT_NONE) {
+			m_err = EC_NO_WAY;
+			return false;
+		}
 
 		if (IsStandardRoadStopTile(m_new.tile)) {
 			/* road stop can be entered from one direction only unless it's a drive-through stop */
@@ -543,7 +545,6 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 			m_new.SetTrackdir();
 			return true;
 		}
-		m_err = EC_NO_WAY;
 		return false;
 	}
 
@@ -610,7 +611,10 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 	inline bool CheckNewTile()
 	{
 		m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile) & DiagdirReachesTrackdirs(m_exitdir);
-		if (m_new.trackdirs == TRACKDIR_BIT_NONE) return false;
+		if (m_new.trackdirs == TRACKDIR_BIT_NONE) {
+			m_err = EC_NO_WAY;
+			return false;
+		}
 
 		/* tunnel holes and bridge ramps can be entered only from proper direction */
 		assert(m_flag == TF_NONE);
@@ -626,7 +630,6 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 	/** return true if we successfully reversed at end of road/track */
 	inline bool CheckEndOfLine()
 	{
-		m_err = EC_NO_WAY;
 		return false;
 	}
 
@@ -735,7 +738,10 @@ struct CFollowTrack : Base
 		}
 
 		if (!Base::CheckNewTile()) {
-			return Base::CheckEndOfLine();
+			assert(Base::m_err != Base::EC_NONE);
+			if (!Base::CheckEndOfLine()) return false;
+			Base::m_err = Base::EC_NONE; // clear error set by CheckNewTile
+			return false;
 		}
 
 		if (!Base::Allow90deg()) {
