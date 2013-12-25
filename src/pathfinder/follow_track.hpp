@@ -686,11 +686,11 @@ struct CFollowTrack : Base
 					return true;
 				case Base::TR_BRIDGE:
 					/* we are entering the bridge */
-					EnterWormhole(true);
+					if (EnterWormhole(true)) return true;
 					break;
 				case Base::TR_TUNNEL:
 					/* we are entering the tunnel */
-					EnterWormhole(false);
+					if (EnterWormhole(false)) return true;
 					break;
 				default:
 					/* normal or station tile, do one step */
@@ -703,12 +703,7 @@ struct CFollowTrack : Base
 			}
 		}
 
-		if (Base::m_new.InWormhole()) {
-			assert(Base::StepWormhole());
-			Base::m_new.td = DiagDirToDiagTrackdir(Base::m_exitdir);
-			Base::m_new.trackdirs = TrackdirToTrackdirBits(Base::m_new.td);
-			return true;
-		}
+		assert(!Base::m_new.InWormhole());
 
 		/* If we are not in a wormhole but m_flag is set to TF_BRIDGE
 		 * or TF_TUNNEL, then we must have just exited a wormhole, in
@@ -765,8 +760,9 @@ struct CFollowTrack : Base
 	}
 
 protected:
-	/** Enter a wormhole */
-	inline void EnterWormhole (bool is_bridge)
+	/** Enter a wormhole; return whether the new position is in the
+	 * wormhole, so there is nothing else to do */
+	inline bool EnterWormhole (bool is_bridge)
 	{
 		Base::m_flag = is_bridge ? Base::TF_BRIDGE : Base::TF_TUNNEL;
 		Base::m_new.tile = is_bridge ? GetOtherBridgeEnd(Base::m_old.tile) : GetOtherTunnelEnd(Base::m_old.tile);
@@ -776,8 +772,12 @@ protected:
 			Base::m_tiles_skipped--;
 			Base::m_new.wormhole = Base::m_new.tile;
 			Base::m_new.tile = TileAddByDiagDir (Base::m_new.tile, ReverseDiagDir(Base::m_exitdir));
+			Base::m_new.td = DiagDirToDiagTrackdir(Base::m_exitdir);
+			Base::m_new.trackdirs = TrackdirToTrackdirBits(Base::m_new.td);
+			return true;
 		} else {
 			Base::m_new.wormhole = INVALID_TILE;
+			return false;
 		}
 	}
 
