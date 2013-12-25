@@ -163,21 +163,17 @@ struct CFollowTrackRailBase : CFollowTrackBase
 		}
 
 		/* tunnel holes and bridge ramps can be entered only from proper direction */
+		assert(m_flag != TF_BRIDGE);
+		assert(m_flag != TF_TUNNEL);
 		if (IsTunnelTile(m_new.tile)) {
-			if (m_flag != TF_TUNNEL) {
-				DiagDirection tunnel_enterdir = GetTunnelBridgeDirection(m_new.tile);
-				if (tunnel_enterdir != m_exitdir) {
-					m_err = EC_NO_WAY;
-					return false;
-				}
+			if (GetTunnelBridgeDirection(m_new.tile) != m_exitdir) {
+				m_err = EC_NO_WAY;
+				return false;
 			}
 		} else if (IsRailBridgeTile(m_new.tile)) {
-			if (m_flag != TF_BRIDGE) {
-				DiagDirection ramp_enderdir = GetTunnelBridgeDirection(m_new.tile);
-				if (ramp_enderdir == ReverseDiagDir(m_exitdir)) {
-					m_err = EC_NO_WAY;
-					return false;
-				}
+			if (GetTunnelBridgeDirection(m_new.tile) == ReverseDiagDir(m_exitdir)) {
+				m_err = EC_NO_WAY;
+				return false;
 			}
 		}
 
@@ -452,21 +448,17 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 		}
 
 		/* tunnel holes and bridge ramps can be entered only from proper direction */
+		assert(m_flag != TF_BRIDGE);
+		assert(m_flag != TF_TUNNEL);
 		if (IsTunnelTile(m_new.tile)) {
-			if (m_flag != TF_TUNNEL) {
-				DiagDirection tunnel_enterdir = GetTunnelBridgeDirection(m_new.tile);
-				if (tunnel_enterdir != m_exitdir) {
-					m_err = EC_NO_WAY;
-					return false;
-				}
+			if (GetTunnelBridgeDirection(m_new.tile) != m_exitdir) {
+				m_err = EC_NO_WAY;
+				return false;
 			}
 		} else if (IsRoadBridgeTile(m_new.tile)) {
-			if (m_flag != TF_BRIDGE) {
-				DiagDirection ramp_enderdir = GetTunnelBridgeDirection(m_new.tile);
-				if (ramp_enderdir == ReverseDiagDir(m_exitdir)) {
-					m_err = EC_NO_WAY;
-					return false;
-				}
+			if (GetTunnelBridgeDirection(m_new.tile) == ReverseDiagDir(m_exitdir)) {
+				m_err = EC_NO_WAY;
+				return false;
 			}
 		}
 
@@ -571,14 +563,11 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 		if (m_new.trackdirs == TRACKDIR_BIT_NONE) return false;
 
 		/* tunnel holes and bridge ramps can be entered only from proper direction */
-		if (IsAqueductTile(m_new.tile)) {
-			if (m_flag != TF_BRIDGE) {
-				DiagDirection ramp_enderdir = GetTunnelBridgeDirection(m_new.tile);
-				if (ramp_enderdir == ReverseDiagDir(m_exitdir)) {
-					m_err = EC_NO_WAY;
-					return false;
-				}
-			}
+		assert(m_flag == TF_NONE);
+		if (IsAqueductTile(m_new.tile) &&
+				GetTunnelBridgeDirection(m_new.tile) == ReverseDiagDir(m_exitdir)) {
+			m_err = EC_NO_WAY;
+			return false;
 		}
 
 		return true;
@@ -659,6 +648,32 @@ struct CFollowTrack : Base
 			Base::m_new.td = DiagDirToDiagTrackdir(Base::m_exitdir);
 			Base::m_new.trackdirs = TrackdirToTrackdirBits(Base::m_new.td);
 			return true;
+		}
+
+		/* If we are not in a wormhole but m_flag is set to TF_BRIDGE
+		 * or TF_TUNNEL, then we must have just exited a wormhole, in
+		 * which case we can skip many checks below. */
+		switch (Base::m_flag) {
+			case Base::TF_BRIDGE:
+				assert(Base::IsTrackBridgeTile(Base::m_new.tile));
+				assert(Base::m_exitdir == ReverseDiagDir(GetTunnelBridgeDirection(Base::m_new.tile)));
+
+				Base::m_new.trackdirs = Base::GetTrackStatusTrackdirBits(Base::m_new.tile) & DiagdirReachesTrackdirs(Base::m_exitdir);
+				assert(Base::m_new.trackdirs != TRACKDIR_BIT_NONE);
+				/* Check if the resulting trackdirs is a single trackdir */
+				Base::m_new.SetTrackdir();
+				return true;
+
+			case Base::TF_TUNNEL:
+				assert(IsTunnelTile(Base::m_new.tile));
+				assert(Base::m_exitdir == ReverseDiagDir(GetTunnelBridgeDirection(Base::m_new.tile)));
+
+				Base::m_new.td = DiagDirToDiagTrackdir(Base::m_exitdir);
+				Base::m_new.trackdirs = TrackdirToTrackdirBits(Base::m_new.td);
+				assert(Base::m_new.trackdirs == (Base::GetTrackStatusTrackdirBits(Base::m_new.tile) & DiagdirReachesTrackdirs(Base::m_exitdir)));
+				return true;
+
+			default: break;
 		}
 
 		if (!Base::CheckNewTile() || (Base::m_new.trackdirs &= DiagdirReachesTrackdirs(Base::m_exitdir)) == TRACKDIR_BIT_NONE) {
