@@ -705,6 +705,22 @@ struct CFollowTrack : Base
 	}
 
 protected:
+	/** Enter a wormhole */
+	inline void EnterWormhole (bool is_bridge)
+	{
+		Base::m_flag = is_bridge ? Base::TF_BRIDGE : Base::TF_TUNNEL;
+		Base::m_new.tile = is_bridge ? GetOtherBridgeEnd(Base::m_old.tile) : GetOtherTunnelEnd(Base::m_old.tile);
+		Base::m_tiles_skipped = GetTunnelBridgeLength (Base::m_new.tile, Base::m_old.tile);
+
+		if (Base::StepWormhole() && Base::m_tiles_skipped > 0) {
+			Base::m_tiles_skipped--;
+			Base::m_new.wormhole = Base::m_new.tile;
+			Base::m_new.tile = TileAddByDiagDir (Base::m_new.tile, ReverseDiagDir(Base::m_exitdir));
+		} else {
+			Base::m_new.wormhole = INVALID_TILE;
+		}
+	}
+
 	/** Follow m_exitdir from m_old and fill m_new.tile and m_tiles_skipped */
 	inline void FollowTileExit()
 	{
@@ -713,16 +729,7 @@ protected:
 		if (Base::IsTrackBridgeTile(Base::m_old.tile)) {
 			if (Base::m_exitdir == GetTunnelBridgeDirection(Base::m_old.tile)) {
 				/* we are entering the bridge */
-				Base::m_flag = Base::TF_BRIDGE;
-				Base::m_new.tile = GetOtherBridgeEnd(Base::m_old.tile);
-				Base::m_tiles_skipped = GetTunnelBridgeLength(Base::m_new.tile, Base::m_old.tile);
-				if (Base::StepWormhole() && Base::m_tiles_skipped > 0) {
-					Base::m_tiles_skipped--;
-					Base::m_new.wormhole = Base::m_new.tile;
-					Base::m_new.tile = TILE_ADD(Base::m_new.tile, TileOffsByDiagDir(ReverseDiagDir(Base::m_exitdir)));
-				} else {
-					Base::m_new.wormhole = INVALID_TILE;
-				}
+				EnterWormhole(true);
 				return;
 			}
 		/* extra handling for tunnels in our direction */
@@ -730,16 +737,7 @@ protected:
 			DiagDirection enterdir = GetTunnelBridgeDirection(Base::m_old.tile);
 			if (enterdir == Base::m_exitdir) {
 				/* we are entering the tunnel */
-				Base::m_flag = Base::TF_TUNNEL;
-				Base::m_new.tile = GetOtherTunnelEnd(Base::m_old.tile);
-				Base::m_tiles_skipped = GetTunnelBridgeLength(Base::m_new.tile, Base::m_old.tile);
-				if (Base::StepWormhole() && Base::m_tiles_skipped > 0) {
-					Base::m_tiles_skipped--;
-					Base::m_new.wormhole = Base::m_new.tile;
-					Base::m_new.tile = TILE_ADD(Base::m_new.tile, TileOffsByDiagDir(ReverseDiagDir(Base::m_exitdir)));
-				} else {
-					Base::m_new.wormhole = INVALID_TILE;
-				}
+				EnterWormhole(false);
 				return;
 			}
 			assert(ReverseDiagDir(enterdir) == Base::m_exitdir);
