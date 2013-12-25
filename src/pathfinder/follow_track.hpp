@@ -49,6 +49,8 @@ struct CFollowTrackBase
 		TR_NORMAL,
 		TR_NO_WAY,
 		TR_REVERSE,
+		TR_BRIDGE,
+		TR_TUNNEL,
 	};
 
 	PFPos               m_old;           ///< the origin (vehicle moved from) before move
@@ -104,28 +106,35 @@ struct CFollowTrackRailBase : CFollowTrackBase
 		assert((GetTrackStatusTrackdirBits(m_old.tile) & TrackdirToTrackdirBits(m_old.td)) != 0);
 
 		switch (GetTileType(m_old.tile)) {
-			default: NOT_REACHED();
-
 			case TT_RAILWAY:
-				break;
+				return IsTileSubtype(m_old.tile, TT_BRIDGE) && m_exitdir == GetTunnelBridgeDirection(m_old.tile) ?
+						TR_BRIDGE : TR_NORMAL;
 
 			case TT_MISC:
-				if (IsTileSubtype(m_old.tile, TT_MISC_DEPOT)) {
-					/* depots cause reversing */
-					assert(IsRailDepot(m_old.tile));
-					DiagDirection exitdir = GetGroundDepotDirection(m_old.tile);
-					if (exitdir != m_exitdir) {
-						assert(exitdir == ReverseDiagDir(m_exitdir));
-						return TR_REVERSE;
+				switch (GetTileSubtype(m_old.tile)) {
+					case TT_MISC_TUNNEL: {
+						DiagDirection enterdir = GetTunnelBridgeDirection(m_old.tile);
+						if (enterdir == m_exitdir) return TR_TUNNEL;
+						assert(ReverseDiagDir(enterdir) == m_exitdir);
+						return TR_NORMAL;
 					}
+
+					case TT_MISC_DEPOT: {
+						/* depots cause reversing */
+						assert(IsRailDepot(m_old.tile));
+						DiagDirection exitdir = GetGroundDepotDirection(m_old.tile);
+						if (exitdir != m_exitdir) {
+							assert(exitdir == ReverseDiagDir(m_exitdir));
+							return TR_REVERSE;
+						}
+						return TR_NORMAL;
+					}
+
+					default: return TR_NORMAL;
 				}
-				break;
 
-			case TT_STATION:
-				break;
+			default: return TR_NORMAL;
 		}
-
-		return TR_NORMAL;
 	}
 
 	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
@@ -402,19 +411,31 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 						return TR_NO_WAY;
 					}
 				}
-				break;
+				return IsTileSubtype(m_old.tile, TT_BRIDGE) && m_exitdir == GetTunnelBridgeDirection(m_old.tile) ?
+						TR_BRIDGE : TR_NORMAL;
 
 			case TT_MISC:
-				if (IsTileSubtype(m_old.tile, TT_MISC_DEPOT)) {
-					/* depots cause reversing */
-					assert(IsRoadDepot(m_old.tile));
-					DiagDirection exitdir = GetGroundDepotDirection(m_old.tile);
-					if (exitdir != m_exitdir) {
-						assert(exitdir == ReverseDiagDir(m_exitdir));
-						return TR_REVERSE;
+				switch (GetTileSubtype(m_old.tile)) {
+					case TT_MISC_TUNNEL: {
+						DiagDirection enterdir = GetTunnelBridgeDirection(m_old.tile);
+						if (enterdir == m_exitdir) return TR_TUNNEL;
+						assert(ReverseDiagDir(enterdir) == m_exitdir);
+						return TR_NORMAL;
 					}
+
+					case TT_MISC_DEPOT: {
+						/* depots cause reversing */
+						assert(IsRoadDepot(m_old.tile));
+						DiagDirection exitdir = GetGroundDepotDirection(m_old.tile);
+						if (exitdir != m_exitdir) {
+							assert(exitdir == ReverseDiagDir(m_exitdir));
+							return TR_REVERSE;
+						}
+						return TR_NORMAL;
+					}
+
+					default: return TR_NORMAL;
 				}
-				break;
 
 			case TT_STATION:
 				/* road stop can be left at one direction only unless it's a drive-through stop */
@@ -424,10 +445,8 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 						return TR_NO_WAY;
 					}
 				}
-				break;
+				return TR_NORMAL;
 		}
-
-		return TR_NORMAL;
 	}
 
 	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
@@ -579,7 +598,8 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 		assert(!m_old.InWormhole());
 		assert((GetTrackStatusTrackdirBits(m_old.tile) & TrackdirToTrackdirBits(m_old.td)) != 0);
 
-		return TR_NORMAL;
+		return IsAqueductTile(m_old.tile) && m_exitdir == GetTunnelBridgeDirection(m_old.tile) ?
+				TR_BRIDGE : TR_NORMAL;
 	}
 
 	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
@@ -664,10 +684,23 @@ struct CFollowTrack : Base
 					Base::m_tiles_skipped = 0;
 					Base::m_flag = Base::TF_NONE;
 					return true;
+				case Base::TR_BRIDGE:
+					/* we are entering the bridge */
+					EnterWormhole(true);
+					break;
+				case Base::TR_TUNNEL:
+					/* we are entering the tunnel */
+					EnterWormhole(false);
+					break;
 				default:
+					/* normal or station tile, do one step */
+					Base::m_new.tile = TileAddByDiagDir (Base::m_old.tile, Base::m_exitdir);
+					Base::m_new.wormhole = INVALID_TILE;
+					Base::m_tiles_skipped = 0;
+					/* special handling for stations */
+					Base::m_flag = Base::CheckStation() ? Base::TF_STATION : Base::TF_NONE;
 					break;
 			}
-			FollowTileExit();
 		}
 
 		if (Base::m_new.InWormhole()) {
@@ -746,39 +779,6 @@ protected:
 		} else {
 			Base::m_new.wormhole = INVALID_TILE;
 		}
-	}
-
-	/** Follow m_exitdir from m_old and fill m_new.tile and m_tiles_skipped */
-	inline void FollowTileExit()
-	{
-		assert(!Base::m_old.InWormhole());
-		/* extra handling for bridges in our direction */
-		if (Base::IsTrackBridgeTile(Base::m_old.tile)) {
-			if (Base::m_exitdir == GetTunnelBridgeDirection(Base::m_old.tile)) {
-				/* we are entering the bridge */
-				EnterWormhole(true);
-				return;
-			}
-		/* extra handling for tunnels in our direction */
-		} else if (IsTunnelTile(Base::m_old.tile)) {
-			DiagDirection enterdir = GetTunnelBridgeDirection(Base::m_old.tile);
-			if (enterdir == Base::m_exitdir) {
-				/* we are entering the tunnel */
-				EnterWormhole(false);
-				return;
-			}
-			assert(ReverseDiagDir(enterdir) == Base::m_exitdir);
-		}
-
-		/* normal or station tile, do one step */
-		TileIndexDiff diff = TileOffsByDiagDir(Base::m_exitdir);
-		Base::m_new.tile = TILE_ADD(Base::m_old.tile, diff);
-		Base::m_new.wormhole = INVALID_TILE;
-
-		/* special handling for stations */
-		Base::m_flag = Base::CheckStation() ? Base::TF_STATION : Base::TF_NONE;
-
-		Base::m_tiles_skipped = 0;
 	}
 
 	/** Follow m_old when in a wormhole */
