@@ -3747,9 +3747,12 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 						 * such a strange network that it is not possible, the train
 						 * will be marked as stuck and the player has to deal with
 						 * the problem. */
-						if ((!HasReservedPos(pos) &&
-								!TryReserveRailTrack(pos)) ||
-								!TryPathReserve(v)) {
+						TryReserveRailTrack(pos);
+						/* Signals cannot be built on junctions, so
+						 * a track on which there is a signal either
+						 * is already reserved or can be reserved. */
+						assert (HasReservedPos(pos));
+						if (!TryPathReserve(v)) {
 							MarkTrainAsStuck(v);
 						}
 					}
