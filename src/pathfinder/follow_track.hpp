@@ -486,15 +486,15 @@ struct CFollowTrackRailBase : CFollowTrackBase
 	}
 };
 
-struct CFollowTrackAnyRailBase : CFollowTrackRailBase
+struct CFollowTrackAnyRailBase : CFollowTrack<CFollowTrackRailBase>
 {
 	inline CFollowTrackAnyRailBase(const Train *v, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
-		: CFollowTrackRailBase(v, allow_90deg, railtype_override, pPerf)
+		: CFollowTrack<CFollowTrackRailBase>(v, allow_90deg, railtype_override, pPerf)
 	{
 	}
 
 	inline CFollowTrackAnyRailBase(Owner o, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
-		: CFollowTrackRailBase(o, allow_90deg, railtype_override, pPerf)
+		: CFollowTrack<CFollowTrackRailBase>(o, allow_90deg, railtype_override, pPerf)
 	{
 	}
 
@@ -503,15 +503,15 @@ struct CFollowTrackAnyRailBase : CFollowTrackRailBase
 	inline bool MaskReservedTracks() { return true; }
 };
 
-struct CFollowTrackFreeRailBase : CFollowTrackRailBase
+struct CFollowTrackFreeRailBase : CFollowTrack<CFollowTrackRailBase>
 {
 	inline CFollowTrackFreeRailBase(const Train *v, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
-		: CFollowTrackRailBase(v, allow_90deg, railtype_override, pPerf)
+		: CFollowTrack<CFollowTrackRailBase>(v, allow_90deg, railtype_override, pPerf)
 	{
 	}
 
 	inline CFollowTrackFreeRailBase(Owner o, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES, CPerformanceTimer *pPerf = NULL)
-		: CFollowTrackRailBase(o, allow_90deg, railtype_override, pPerf)
+		: CFollowTrack<CFollowTrackRailBase>(o, allow_90deg, railtype_override, pPerf)
 	{
 	}
 
@@ -524,15 +524,15 @@ struct CFollowTrackFreeRailBase : CFollowTrackRailBase
 };
 
 template <class Base, bool T90deg_turns_allowed>
-struct CFollowTrackRailT : CFollowTrack<Base>
+struct CFollowTrackRailT : Base
 {
 	inline CFollowTrackRailT(const Train *v)
-		: CFollowTrack<Base>(v, T90deg_turns_allowed)
+		: Base(v, T90deg_turns_allowed)
 	{
 	}
 
 	inline CFollowTrackRailT(const Train *v, RailTypes railtype_override, CPerformanceTimer *pPerf = NULL)
-		: CFollowTrack<Base>(v, T90deg_turns_allowed, railtype_override, pPerf)
+		: Base(v, T90deg_turns_allowed, railtype_override, pPerf)
 	{
 	}
 
@@ -544,15 +544,15 @@ typedef CFollowTrackRailT<CFollowTrackAnyRailBase,  false> CFollowTrackRailNo90;
 typedef CFollowTrackRailT<CFollowTrackFreeRailBase, true > CFollowTrackFreeRail90;
 typedef CFollowTrackRailT<CFollowTrackFreeRailBase, false> CFollowTrackFreeRailNo90;
 
-struct CFollowTrackRail : CFollowTrack<CFollowTrackAnyRailBase>
+struct CFollowTrackRail : CFollowTrack<CFollowTrackRailBase>
 {
 	inline CFollowTrackRail(const Train *v = NULL, bool allow_90deg = true, bool railtype_override = false)
-		: CFollowTrack<CFollowTrackAnyRailBase>(v, allow_90deg, railtype_override ? GetRailTypeInfo(v->railtype)->compatible_railtypes : INVALID_RAILTYPES)
+		: CFollowTrack<CFollowTrackRailBase>(v, allow_90deg, railtype_override ? GetRailTypeInfo(v->railtype)->compatible_railtypes : INVALID_RAILTYPES)
 	{
 	}
 
 	inline CFollowTrackRail(Owner o, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES)
-		: CFollowTrack<CFollowTrackAnyRailBase>(o, allow_90deg, railtype_override)
+		: CFollowTrack<CFollowTrackRailBase>(o, allow_90deg, railtype_override)
 	{
 	}
 };
