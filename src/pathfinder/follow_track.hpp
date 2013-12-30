@@ -63,6 +63,179 @@ struct CFollowTrackBase
 
 
 /**
+ * Track follower helper template class (can serve pathfinders and vehicle
+ *  controllers). See 6 different typedefs below for 3 different transport
+ *  types w/ or w/o 90-deg turns allowed
+ */
+template <class Base>
+struct CFollowTrack : Base
+{
+	/* MSVC does not support variadic templates. Oh well... */
+
+	inline CFollowTrack() : Base() { }
+
+	template <typename T1>
+	inline CFollowTrack (T1 t1) : Base (t1) { }
+
+	template <typename T1, typename T2>
+	inline CFollowTrack (T1 t1, T2 t2) : Base (t1, t2) { }
+
+	template <typename T1, typename T2, typename T3>
+	inline CFollowTrack (T1 t1, T2 t2, T3 t3) : Base (t1, t2, t3) { }
+
+	template <typename T1, typename T2, typename T3, typename T4>
+	inline CFollowTrack (T1 t1, T2 t2, T3 t3, T4 t4) : Base (t1, t2, t3, t4) { }
+
+	/**
+	 * Main follower routine. Attempts to follow track at the given
+	 * pathfinder position. On return:
+	 *  * m_old is always set to the position given as argument.
+	 *  * On success, true is returned, and all fields are filled in as
+	 * appropriate. m_err is guaranteed to be EC_NONE, and m_exitdir may
+	 * not be the natural exit direction of m_old.td, if the track
+	 * follower had to reverse.
+	 *  * On failure, false is returned, and m_err is set to a value
+	 * indicating why the track could not be followed. The rest of the
+	 * fields should be considered undefined.
+	 */
+	inline bool Follow(const PFPos &pos)
+	{
+		Base::m_old = pos;
+		Base::m_err = Base::EC_NONE;
+		Base::m_exitdir = TrackdirToExitdir(Base::m_old.td);
+
+		if (Base::m_old.InWormhole()) {
+			FollowWormhole();
+		} else {
+			switch (Base::CheckOldTile()) {
+				case Base::TR_NO_WAY:
+					Base::m_err = Base::EC_NO_WAY;
+					return false;
+				case Base::TR_REVERSE:
+					Base::m_new.tile = Base::m_old.tile;
+					Base::m_new.wormhole = INVALID_TILE;
+					Base::m_new.td = ReverseTrackdir(Base::m_old.td);
+					Base::m_new.trackdirs = TrackdirToTrackdirBits(Base::m_new.td);
+					Base::m_exitdir = ReverseDiagDir(Base::m_exitdir);
+					Base::m_tiles_skipped = 0;
+					Base::m_flag = Base::TF_NONE;
+					return true;
+				case Base::TR_BRIDGE:
+					/* we are entering the bridge */
+					if (EnterWormhole(true)) return true;
+					break;
+				case Base::TR_TUNNEL:
+					/* we are entering the tunnel */
+					if (EnterWormhole(false)) return true;
+					break;
+				default:
+					/* normal or station tile, do one step */
+					Base::m_new.tile = TileAddByDiagDir (Base::m_old.tile, Base::m_exitdir);
+					Base::m_new.wormhole = INVALID_TILE;
+					Base::m_tiles_skipped = 0;
+					/* special handling for stations */
+					Base::m_flag = Base::CheckStation() ? Base::TF_STATION : Base::TF_NONE;
+					break;
+			}
+		}
+
+		assert(!Base::m_new.InWormhole());
+
+		/* If we are not in a wormhole but m_flag is set to TF_BRIDGE
+		 * or TF_TUNNEL, then we must have just exited a wormhole, in
+		 * which case we can skip many checks below. */
+		switch (Base::m_flag) {
+			case Base::TF_BRIDGE:
+				assert(Base::IsTrackBridgeTile(Base::m_new.tile));
+				assert(Base::m_exitdir == ReverseDiagDir(GetTunnelBridgeDirection(Base::m_new.tile)));
+
+				Base::m_new.trackdirs = Base::GetTrackStatusTrackdirBits(Base::m_new.tile) & DiagdirReachesTrackdirs(Base::m_exitdir);
+				assert(Base::m_new.trackdirs != TRACKDIR_BIT_NONE);
+				/* Check if the resulting trackdirs is a single trackdir */
+				Base::m_new.SetTrackdir();
+				return true;
+
+			case Base::TF_TUNNEL:
+				assert(IsTunnelTile(Base::m_new.tile));
+				assert(Base::m_exitdir == ReverseDiagDir(GetTunnelBridgeDirection(Base::m_new.tile)));
+
+				Base::m_new.td = DiagDirToDiagTrackdir(Base::m_exitdir);
+				Base::m_new.trackdirs = TrackdirToTrackdirBits(Base::m_new.td);
+				assert(Base::m_new.trackdirs == (Base::GetTrackStatusTrackdirBits(Base::m_new.tile) & DiagdirReachesTrackdirs(Base::m_exitdir)));
+				return true;
+
+			default: break;
+		}
+
+		if (!Base::CheckNewTile()) {
+			assert(Base::m_err != Base::EC_NONE);
+			if (!Base::CheckEndOfLine()) return false;
+			Base::m_err = Base::EC_NONE; // clear error set by CheckNewTile
+			return false;
+		}
+
+		if (!Base::Allow90deg()) {
+			Base::m_new.trackdirs &= (TrackdirBits)~(int)TrackdirCrossesTrackdirs(Base::m_old.td);
+			if (Base::m_new.trackdirs == TRACKDIR_BIT_NONE) {
+				Base::m_err = Base::EC_90DEG;
+				return false;
+			}
+		}
+		/* Check if the resulting trackdirs is a single trackdir */
+		Base::m_new.SetTrackdir();
+		return true;
+	}
+
+	inline bool FollowNext()
+	{
+		assert(Base::m_new.tile != INVALID_TILE);
+		assert(Base::m_new.IsTrackdirSet());
+		return Follow(Base::m_new);
+	}
+
+	inline void SetPos(const PFPos &pos)
+	{
+		Base::m_new.PFPos::operator = (pos);
+		Base::m_new.trackdirs = TrackdirToTrackdirBits(pos.td);
+	}
+
+protected:
+	/** Enter a wormhole; return whether the new position is in the
+	 * wormhole, so there is nothing else to do */
+	inline bool EnterWormhole (bool is_bridge)
+	{
+		Base::m_flag = is_bridge ? Base::TF_BRIDGE : Base::TF_TUNNEL;
+		Base::m_new.tile = is_bridge ? GetOtherBridgeEnd(Base::m_old.tile) : GetOtherTunnelEnd(Base::m_old.tile);
+		Base::m_tiles_skipped = GetTunnelBridgeLength (Base::m_new.tile, Base::m_old.tile);
+
+		if (Base::StepWormhole() && Base::m_tiles_skipped > 0) {
+			Base::m_tiles_skipped--;
+			Base::m_new.wormhole = Base::m_new.tile;
+			Base::m_new.tile = TileAddByDiagDir (Base::m_new.tile, ReverseDiagDir(Base::m_exitdir));
+			Base::m_new.td = DiagDirToDiagTrackdir(Base::m_exitdir);
+			Base::m_new.trackdirs = TrackdirToTrackdirBits(Base::m_new.td);
+			return true;
+		} else {
+			Base::m_new.wormhole = INVALID_TILE;
+			return false;
+		}
+	}
+
+	/** Follow m_old when in a wormhole */
+	inline void FollowWormhole()
+	{
+		assert(Base::m_old.InWormhole());
+		assert(Base::IsTrackBridgeTile(Base::m_old.wormhole) || IsTunnelTile(Base::m_old.wormhole));
+
+		Base::m_new.tile = Base::m_old.wormhole;
+		Base::m_new.wormhole = INVALID_TILE;
+		Base::m_flag = IsTileSubtype(Base::m_old.wormhole, TT_BRIDGE) ? Base::TF_BRIDGE : Base::TF_TUNNEL;
+		Base::m_tiles_skipped = GetTunnelBridgeLength(Base::m_new.tile, Base::m_old.tile);
+	}
+};
+
+
+/**
  * Track follower rail base class
  */
 struct CFollowTrackRailBase : CFollowTrackBase
@@ -345,6 +518,41 @@ struct CFollowTrackFreeRailBase : CFollowTrackRailBase
 	}
 };
 
+template <class Base, bool T90deg_turns_allowed>
+struct CFollowTrackRailT : CFollowTrack<Base>
+{
+	inline CFollowTrackRailT(const Train *v)
+		: CFollowTrack<Base>(v, T90deg_turns_allowed)
+	{
+	}
+
+	inline CFollowTrackRailT(const Train *v, RailTypes railtype_override, CPerformanceTimer *pPerf = NULL)
+		: CFollowTrack<Base>(v, T90deg_turns_allowed, railtype_override, pPerf)
+	{
+	}
+
+	inline static bool Allow90degTurns() { return T90deg_turns_allowed; }
+};
+
+typedef CFollowTrackRailT<CFollowTrackAnyRailBase,  true > CFollowTrackRail90;
+typedef CFollowTrackRailT<CFollowTrackAnyRailBase,  false> CFollowTrackRailNo90;
+typedef CFollowTrackRailT<CFollowTrackFreeRailBase, true > CFollowTrackFreeRail90;
+typedef CFollowTrackRailT<CFollowTrackFreeRailBase, false> CFollowTrackFreeRailNo90;
+
+struct CFollowTrackRail : CFollowTrack<CFollowTrackAnyRailBase>
+{
+	inline CFollowTrackRail(const Train *v = NULL, bool allow_90deg = true, bool railtype_override = false)
+		: CFollowTrack<CFollowTrackAnyRailBase>(v, allow_90deg, railtype_override ? GetRailTypeInfo(v->railtype)->compatible_railtypes : INVALID_RAILTYPES)
+	{
+	}
+
+	inline CFollowTrackRail(Owner o, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES)
+		: CFollowTrack<CFollowTrackAnyRailBase>(o, allow_90deg, railtype_override)
+	{
+	}
+};
+
+
 /**
  * Track follower road base class
  */
@@ -571,6 +779,9 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 	}
 };
 
+typedef CFollowTrack<CFollowTrackRoadBase> CFollowTrackRoad;
+
+
 /**
  * Track follower water base class
  */
@@ -639,179 +850,6 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 	}
 };
 
-
-/**
- * Track follower helper template class (can serve pathfinders and vehicle
- *  controllers). See 6 different typedefs below for 3 different transport
- *  types w/ or w/o 90-deg turns allowed
- */
-template <class Base>
-struct CFollowTrack : Base
-{
-	/* MSVC does not support variadic templates. Oh well... */
-
-	inline CFollowTrack() : Base() { }
-
-	template <typename T1>
-	inline CFollowTrack (T1 t1) : Base (t1) { }
-
-	template <typename T1, typename T2>
-	inline CFollowTrack (T1 t1, T2 t2) : Base (t1, t2) { }
-
-	template <typename T1, typename T2, typename T3>
-	inline CFollowTrack (T1 t1, T2 t2, T3 t3) : Base (t1, t2, t3) { }
-
-	template <typename T1, typename T2, typename T3, typename T4>
-	inline CFollowTrack (T1 t1, T2 t2, T3 t3, T4 t4) : Base (t1, t2, t3, t4) { }
-
-	/**
-	 * Main follower routine. Attempts to follow track at the given
-	 * pathfinder position. On return:
-	 *  * m_old is always set to the position given as argument.
-	 *  * On success, true is returned, and all fields are filled in as
-	 * appropriate. m_err is guaranteed to be EC_NONE, and m_exitdir may
-	 * not be the natural exit direction of m_old.td, if the track
-	 * follower had to reverse.
-	 *  * On failure, false is returned, and m_err is set to a value
-	 * indicating why the track could not be followed. The rest of the
-	 * fields should be considered undefined.
-	 */
-	inline bool Follow(const PFPos &pos)
-	{
-		Base::m_old = pos;
-		Base::m_err = Base::EC_NONE;
-		Base::m_exitdir = TrackdirToExitdir(Base::m_old.td);
-
-		if (Base::m_old.InWormhole()) {
-			FollowWormhole();
-		} else {
-			switch (Base::CheckOldTile()) {
-				case Base::TR_NO_WAY:
-					Base::m_err = Base::EC_NO_WAY;
-					return false;
-				case Base::TR_REVERSE:
-					Base::m_new.tile = Base::m_old.tile;
-					Base::m_new.wormhole = INVALID_TILE;
-					Base::m_new.td = ReverseTrackdir(Base::m_old.td);
-					Base::m_new.trackdirs = TrackdirToTrackdirBits(Base::m_new.td);
-					Base::m_exitdir = ReverseDiagDir(Base::m_exitdir);
-					Base::m_tiles_skipped = 0;
-					Base::m_flag = Base::TF_NONE;
-					return true;
-				case Base::TR_BRIDGE:
-					/* we are entering the bridge */
-					if (EnterWormhole(true)) return true;
-					break;
-				case Base::TR_TUNNEL:
-					/* we are entering the tunnel */
-					if (EnterWormhole(false)) return true;
-					break;
-				default:
-					/* normal or station tile, do one step */
-					Base::m_new.tile = TileAddByDiagDir (Base::m_old.tile, Base::m_exitdir);
-					Base::m_new.wormhole = INVALID_TILE;
-					Base::m_tiles_skipped = 0;
-					/* special handling for stations */
-					Base::m_flag = Base::CheckStation() ? Base::TF_STATION : Base::TF_NONE;
-					break;
-			}
-		}
-
-		assert(!Base::m_new.InWormhole());
-
-		/* If we are not in a wormhole but m_flag is set to TF_BRIDGE
-		 * or TF_TUNNEL, then we must have just exited a wormhole, in
-		 * which case we can skip many checks below. */
-		switch (Base::m_flag) {
-			case Base::TF_BRIDGE:
-				assert(Base::IsTrackBridgeTile(Base::m_new.tile));
-				assert(Base::m_exitdir == ReverseDiagDir(GetTunnelBridgeDirection(Base::m_new.tile)));
-
-				Base::m_new.trackdirs = Base::GetTrackStatusTrackdirBits(Base::m_new.tile) & DiagdirReachesTrackdirs(Base::m_exitdir);
-				assert(Base::m_new.trackdirs != TRACKDIR_BIT_NONE);
-				/* Check if the resulting trackdirs is a single trackdir */
-				Base::m_new.SetTrackdir();
-				return true;
-
-			case Base::TF_TUNNEL:
-				assert(IsTunnelTile(Base::m_new.tile));
-				assert(Base::m_exitdir == ReverseDiagDir(GetTunnelBridgeDirection(Base::m_new.tile)));
-
-				Base::m_new.td = DiagDirToDiagTrackdir(Base::m_exitdir);
-				Base::m_new.trackdirs = TrackdirToTrackdirBits(Base::m_new.td);
-				assert(Base::m_new.trackdirs == (Base::GetTrackStatusTrackdirBits(Base::m_new.tile) & DiagdirReachesTrackdirs(Base::m_exitdir)));
-				return true;
-
-			default: break;
-		}
-
-		if (!Base::CheckNewTile()) {
-			assert(Base::m_err != Base::EC_NONE);
-			if (!Base::CheckEndOfLine()) return false;
-			Base::m_err = Base::EC_NONE; // clear error set by CheckNewTile
-			return false;
-		}
-
-		if (!Base::Allow90deg()) {
-			Base::m_new.trackdirs &= (TrackdirBits)~(int)TrackdirCrossesTrackdirs(Base::m_old.td);
-			if (Base::m_new.trackdirs == TRACKDIR_BIT_NONE) {
-				Base::m_err = Base::EC_90DEG;
-				return false;
-			}
-		}
-		/* Check if the resulting trackdirs is a single trackdir */
-		Base::m_new.SetTrackdir();
-		return true;
-	}
-
-	inline bool FollowNext()
-	{
-		assert(Base::m_new.tile != INVALID_TILE);
-		assert(Base::m_new.IsTrackdirSet());
-		return Follow(Base::m_new);
-	}
-
-	inline void SetPos(const PFPos &pos)
-	{
-		Base::m_new.PFPos::operator = (pos);
-		Base::m_new.trackdirs = TrackdirToTrackdirBits(pos.td);
-	}
-
-protected:
-	/** Enter a wormhole; return whether the new position is in the
-	 * wormhole, so there is nothing else to do */
-	inline bool EnterWormhole (bool is_bridge)
-	{
-		Base::m_flag = is_bridge ? Base::TF_BRIDGE : Base::TF_TUNNEL;
-		Base::m_new.tile = is_bridge ? GetOtherBridgeEnd(Base::m_old.tile) : GetOtherTunnelEnd(Base::m_old.tile);
-		Base::m_tiles_skipped = GetTunnelBridgeLength (Base::m_new.tile, Base::m_old.tile);
-
-		if (Base::StepWormhole() && Base::m_tiles_skipped > 0) {
-			Base::m_tiles_skipped--;
-			Base::m_new.wormhole = Base::m_new.tile;
-			Base::m_new.tile = TileAddByDiagDir (Base::m_new.tile, ReverseDiagDir(Base::m_exitdir));
-			Base::m_new.td = DiagDirToDiagTrackdir(Base::m_exitdir);
-			Base::m_new.trackdirs = TrackdirToTrackdirBits(Base::m_new.td);
-			return true;
-		} else {
-			Base::m_new.wormhole = INVALID_TILE;
-			return false;
-		}
-	}
-
-	/** Follow m_old when in a wormhole */
-	inline void FollowWormhole()
-	{
-		assert(Base::m_old.InWormhole());
-		assert(Base::IsTrackBridgeTile(Base::m_old.wormhole) || IsTunnelTile(Base::m_old.wormhole));
-
-		Base::m_new.tile = Base::m_old.wormhole;
-		Base::m_new.wormhole = INVALID_TILE;
-		Base::m_flag = IsTileSubtype(Base::m_old.wormhole, TT_BRIDGE) ? Base::TF_BRIDGE : Base::TF_TUNNEL;
-		Base::m_tiles_skipped = GetTunnelBridgeLength(Base::m_new.tile, Base::m_old.tile);
-	}
-};
-
 template <bool T90deg_turns_allowed>
 struct CFollowTrackWaterT : CFollowTrack<CFollowTrackWaterBase>
 {
@@ -825,41 +863,5 @@ struct CFollowTrackWaterT : CFollowTrack<CFollowTrackWaterBase>
 
 typedef CFollowTrackWaterT<true>  CFollowTrackWater90;
 typedef CFollowTrackWaterT<false> CFollowTrackWaterNo90;
-
-typedef CFollowTrack<CFollowTrackRoadBase> CFollowTrackRoad;
-
-template <class Base, bool T90deg_turns_allowed>
-struct CFollowTrackRailT : CFollowTrack<Base>
-{
-	inline CFollowTrackRailT(const Train *v)
-		: CFollowTrack<Base>(v, T90deg_turns_allowed)
-	{
-	}
-
-	inline CFollowTrackRailT(const Train *v, RailTypes railtype_override, CPerformanceTimer *pPerf = NULL)
-		: CFollowTrack<Base>(v, T90deg_turns_allowed, railtype_override, pPerf)
-	{
-	}
-
-	inline static bool Allow90degTurns() { return T90deg_turns_allowed; }
-};
-
-typedef CFollowTrackRailT<CFollowTrackAnyRailBase,  true > CFollowTrackRail90;
-typedef CFollowTrackRailT<CFollowTrackAnyRailBase,  false> CFollowTrackRailNo90;
-typedef CFollowTrackRailT<CFollowTrackFreeRailBase, true > CFollowTrackFreeRail90;
-typedef CFollowTrackRailT<CFollowTrackFreeRailBase, false> CFollowTrackFreeRailNo90;
-
-struct CFollowTrackRail : CFollowTrack<CFollowTrackAnyRailBase>
-{
-	inline CFollowTrackRail(const Train *v = NULL, bool allow_90deg = true, bool railtype_override = false)
-		: CFollowTrack<CFollowTrackAnyRailBase>(v, allow_90deg, railtype_override ? GetRailTypeInfo(v->railtype)->compatible_railtypes : INVALID_RAILTYPES)
-	{
-	}
-
-	inline CFollowTrackRail(Owner o, bool allow_90deg = true, RailTypes railtype_override = INVALID_RAILTYPES)
-		: CFollowTrack<CFollowTrackAnyRailBase>(o, allow_90deg, railtype_override)
-	{
-	}
-};
 
 #endif /* FOLLOW_TRACK_HPP */
