@@ -2406,7 +2406,7 @@ enum ExtendReservationResult {
  * @param pos First unsafe choice or possible target tile, if new reservation ends at such a tile
  * @return An ExtendReservationResult value, showing reservation extension outcome
  */
-static ExtendReservationResult ExtendTrainReservation(const Train *v, PFPos *pos)
+static ExtendReservationResult ExtendTrainReservation(const Train *v, TileIndex *pos)
 {
 	PFPos origin;
 	FollowTrainReservation(v, &origin);
@@ -2447,7 +2447,7 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, PFPos *pos
 			ft.m_new.tile -= TileOffsByDiagDir(ft.m_exitdir) * ft.m_tiles_skipped;
 
 			/* Possible target found, path valid but not okay. */
-			*pos = ft.m_new;
+			*pos = ft.m_new.tile;
 			return EXTEND_RESERVATION_UNSAFE;
 		}
 
@@ -2458,7 +2458,7 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, PFPos *pos
 			assert(ft.m_tiles_skipped == 0);
 
 			/* Choice found, path valid but not okay. Save info about the choice tile as well. */
-			*pos = ft.m_new;
+			*pos = ft.m_new.tile;
 			return EXTEND_RESERVATION_UNSAFE;
 		}
 
@@ -2615,8 +2615,7 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, TrackdirBits trackdir
 
 	TileIndex new_tile = tile;
 	if (do_track_reservation) {
-		PFPos res_dest;
-		switch (ExtendTrainReservation(v, &res_dest)) {
+		switch (ExtendTrainReservation(v, &new_tile)) {
 			default: NOT_REACHED();
 			case EXTEND_RESERVATION_FAILED:
 				if (mark_stuck) MarkTrainAsStuck(v);
@@ -2630,7 +2629,6 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, TrackdirBits trackdir
 			case EXTEND_RESERVATION_UNSAFE:
 				break;
 		}
-		new_tile = res_dest.tile;
 
 		/* Check if the train needs service here, so it has a chance to always find a depot.
 		 * Also check if the current order is a service order so we don't reserve a path to
