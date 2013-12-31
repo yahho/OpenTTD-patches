@@ -392,18 +392,18 @@ public:
 		return 't';
 	}
 
-	static Trackdir stChooseRailTrack(const Train *v, bool &path_found, bool reserve_track, PBSTileInfo *target)
+	static Trackdir stChooseRailTrack(const Train *v, bool reserve_track, PFResult *target)
 	{
 		/* create pathfinder instance */
 		Tpf pf1;
 #if !DEBUG_YAPF_CACHE
-		Trackdir result1 = pf1.ChooseRailTrack(v, path_found, reserve_track, target);
+		Trackdir result1 = pf1.ChooseRailTrack(v, reserve_track, target);
 
 #else
-		Trackdir result1 = pf1.ChooseRailTrack(v, path_found, false, NULL);
+		Trackdir result1 = pf1.ChooseRailTrack(v, false, NULL);
 		Tpf pf2;
 		pf2.DisableCache(true);
-		Trackdir result2 = pf2.ChooseRailTrack(v, path_found, reserve_track, target);
+		Trackdir result2 = pf2.ChooseRailTrack(v, reserve_track, target);
 		if (result1 != result2) {
 			DEBUG(yapf, 0, "CACHE ERROR: ChooseRailTrack() = [%d, %d]", result1, result2);
 			DumpState(pf1, pf2);
@@ -413,7 +413,7 @@ public:
 		return result1;
 	}
 
-	inline Trackdir ChooseRailTrack(const Train *v, bool &path_found, bool reserve_track, PBSTileInfo *target)
+	inline Trackdir ChooseRailTrack(const Train *v, bool reserve_track, PFResult *target)
 	{
 		if (target != NULL) target->pos.tile = INVALID_TILE;
 
@@ -424,7 +424,7 @@ public:
 		Yapf().SetDestination(v);
 
 		/* find the best path */
-		path_found = Yapf().FindPath(v);
+		bool path_found = Yapf().FindPath(v);
 
 		/* if path not found - return INVALID_TRACKDIR */
 		Trackdir next_trackdir = INVALID_TRACKDIR;
@@ -453,7 +453,7 @@ public:
 		}
 
 		/* Treat the path as found if stopped on the first two way signal(s). */
-		path_found |= Yapf().m_stopped_on_first_two_way_signal;
+		if (target != NULL) target->found = path_found | Yapf().m_stopped_on_first_two_way_signal;
 		return next_trackdir;
 	}
 
@@ -528,10 +528,10 @@ struct CYapfAnySafeTileRail1 : CYapfT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CF
 struct CYapfAnySafeTileRail2 : CYapfT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90, CRailNodeListTrackDir, CYapfDestinationAnySafeTileRailT , CYapfFollowAnySafeTileRailT> > {};
 
 
-Trackdir YapfTrainChooseTrack(const Train *v, bool &path_found, bool reserve_track, PBSTileInfo *target)
+Trackdir YapfTrainChooseTrack(const Train *v, bool reserve_track, PFResult *target)
 {
 	/* default is YAPF type 2 */
-	typedef Trackdir (*PfnChooseRailTrack)(const Train*, bool&, bool, PBSTileInfo*);
+	typedef Trackdir (*PfnChooseRailTrack)(const Train*, bool, PFResult*);
 	PfnChooseRailTrack pfnChooseRailTrack = &CYapfRail1::stChooseRailTrack;
 
 	/* check if non-default YAPF type needed */
@@ -539,7 +539,7 @@ Trackdir YapfTrainChooseTrack(const Train *v, bool &path_found, bool reserve_tra
 		pfnChooseRailTrack = &CYapfRail2::stChooseRailTrack; // Trackdir, forbid 90-deg
 	}
 
-	return pfnChooseRailTrack(v, path_found, reserve_track, target);
+	return pfnChooseRailTrack(v, reserve_track, target);
 }
 
 bool YapfTrainCheckReverse(const Train *v)

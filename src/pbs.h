@@ -60,32 +60,6 @@ static inline void UnreserveRailTrack(const PFPos &pos)
 	}
 }
 
-/** This struct contains information about the end of a reserved path. */
-struct PBSTileInfo {
-	PFPos     pos;       ///< PFPos the path ends, INVALID_TILE if no valid path was found.
-	bool      okay;      ///< True if tile is a safe waiting position, false otherwise.
-
-	/**
-	 * Create an empty PBSTileInfo.
-	 */
-	PBSTileInfo() : pos(), okay(false) {}
-
-	/**
-	 * Create a PBSTileInfo with given position and safe waiting position information.
-	 * @param _pos The position where the path ends.
-	 * @param _okay Whether the tile is a safe waiting point or not.
-	 */
-	PBSTileInfo(const PFPos &_pos, bool _okay) : pos(_pos), okay(_okay) {}
-
-	/**
-	 * Create a PBSTileInfo with given tile, track direction and safe waiting position information.
-	 * @param _t The tile where the path ends.
-	 * @param _td The reserved track dir on the tile.
-	 * @param _okay Whether the tile is a safe waiting point or not.
-	 */
-	PBSTileInfo(TileIndex _t, Trackdir _td, bool _okay) : pos(_t, _td), okay(_okay) {}
-};
-
 bool FollowTrainReservation(const Train *v, PFPos *pos, Vehicle **train_on_res = NULL);
 
 /** State of a waiting position wrt PBS. */

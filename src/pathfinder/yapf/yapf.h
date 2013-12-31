@@ -63,12 +63,11 @@ Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDi
 /**
  * Finds the best path for given train using YAPF.
  * @param v        the train that needs to find a path
- * @param path_found [out] Whether a path has been found (true) or has been guessed (false)
  * @param reserve_track indicates whether YAPF should try to reserve the found path
  * @param target   [out] the target tile of the reservation, free is set to true if path was reserved
  * @return         the best trackdir for next turn
  */
-Trackdir YapfTrainChooseTrack(const Train *v, bool &path_found, bool reserve_track, struct PBSTileInfo *target);
+Trackdir YapfTrainChooseTrack(const Train *v, bool reserve_track, struct PFResult *target);
 
 /**
  * Used when user sends road vehicle to the nearest depot or if road vehicle needs servicing using YAPF.

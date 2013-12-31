@@ -91,4 +91,18 @@ struct PFNewPos : PFPos {
 	inline bool IsTrackdirSet() const { return td != INVALID_TRACKDIR; }
 };
 
+/**
+ * This struct contains information about the result of pathfinding.
+ */
+struct PFResult {
+	PFPos     pos;       ///< PFPos the reserved path ends, INVALID_TILE if no valid path was found.
+	bool      okay;      ///< True if tile is a safe waiting position, false otherwise.
+	bool      found;     ///< True if a path was actually found, false if it was only an estimate.
+
+	/**
+	 * Create an empty PFResult.
+	 */
+	PFResult() : pos(), okay(false), found(false) {}
+};
+
 #endif /* PATHFINDER_TYPE_H */

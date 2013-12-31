@@ -2375,16 +2375,15 @@ static const byte _initial_tile_subcoord[TRACKDIR_END][3] = {
  * Perform pathfinding for a train.
  *
  * @param v The train
- * @param path_found [out] Whether a path has been found or not.
  * @param do_track_reservation Path reservation is requested
  * @param dest [out] State and destination of the requested path
  * @return The best trackdir the train should follow
  */
-static Trackdir DoTrainPathfind(const Train *v, bool &path_found, bool do_track_reservation, PBSTileInfo *dest)
+static Trackdir DoTrainPathfind(const Train *v, bool do_track_reservation, PFResult *dest)
 {
 	switch (_settings_game.pf.pathfinder_for_trains) {
-		case VPF_NPF: return NPFTrainChooseTrack(v, path_found, do_track_reservation, dest);
-		case VPF_YAPF: return YapfTrainChooseTrack(v, path_found, do_track_reservation, dest);
+		case VPF_NPF: return NPFTrainChooseTrack(v, do_track_reservation, dest);
+		case VPF_YAPF: return YapfTrainChooseTrack(v, do_track_reservation, dest);
 
 		default: NOT_REACHED();
 	}
@@ -2656,12 +2655,11 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, TrackdirBits trackdir
 	}
 
 	/* Pathfinders are able to tell that route was only 'guessed'. */
-	bool path_found = true;
-	PBSTileInfo res_dest;
+	PFResult res_dest;
 
-	Trackdir next_trackdir = DoTrainPathfind(v, path_found, do_track_reservation, &res_dest);
+	Trackdir next_trackdir = DoTrainPathfind(v, do_track_reservation, &res_dest);
 	if (new_tile == tile) best_trackdir = next_trackdir != INVALID_TRACKDIR ? next_trackdir : FindFirstTrackdir(trackdirs);
-	v->HandlePathfindingResult(path_found);
+	v->HandlePathfindingResult(res_dest.found);
 
 	/* No track reservation requested -> finished. */
 	if (!do_track_reservation) return best_trackdir;
@@ -2699,9 +2697,8 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, TrackdirBits trackdir
 
 		/* Get next order with destination. */
 		if (orders.SwitchToNextOrder(true)) {
-			PBSTileInfo cur_dest;
-			bool path_found;
-			DoTrainPathfind(v, path_found, true, &cur_dest);
+			PFResult cur_dest;
+			DoTrainPathfind(v, true, &cur_dest);
 			if (cur_dest.pos.tile != INVALID_TILE) {
 				res_dest = cur_dest;
 				if (res_dest.okay) continue;

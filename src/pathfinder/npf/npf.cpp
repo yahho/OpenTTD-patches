@@ -1261,7 +1261,7 @@ bool NPFTrainCheckReverse(const Train *v)
 	return ftd.best_bird_dist == 0 && NPFGetFlag(&ftd.node, NPF_FLAG_REVERSE);
 }
 
-Trackdir NPFTrainChooseTrack(const Train *v, bool &path_found, bool reserve_track, struct PBSTileInfo *target)
+Trackdir NPFTrainChooseTrack(const Train *v, bool reserve_track, PFResult *target)
 {
 	NPFFindStationOrTileData fstd;
 	NPFFillWithOrderData(&fstd, v, reserve_track);
@@ -1272,16 +1272,14 @@ Trackdir NPFTrainChooseTrack(const Train *v, bool &path_found, bool reserve_trac
 
 	NPFFoundTargetData ftd = NPFRouteToStationOrTile(origin, true, &fstd, TRANSPORT_RAIL, 0, v->owner, v->compatible_railtypes);
 
-	if (target != NULL) {
-		target->pos  = ftd.node.pos;
-		target->okay = ftd.res_okay;
-	}
+	target->pos  = ftd.node.pos;
+	target->okay = ftd.res_okay;
 
 	if (ftd.best_trackdir == INVALID_TRACKDIR) {
 		/* We are already at our target. Just do something
 		 * @todo maybe display error?
 		 * @todo: go straight ahead if possible? */
-		path_found = true;
+		target->found = true;
 		return INVALID_TRACKDIR;
 	}
 
@@ -1289,6 +1287,6 @@ Trackdir NPFTrainChooseTrack(const Train *v, bool &path_found, bool reserve_trac
 	 * the direction we need to take to get there, if ftd.best_bird_dist is not 0,
 	 * we did not find our target, but ftd.best_trackdir contains the direction leading
 	 * to the tile closest to our target. */
-	path_found = (ftd.best_bird_dist == 0);
+	target->found = (ftd.best_bird_dist == 0);
 	return ftd.best_trackdir;
 }
