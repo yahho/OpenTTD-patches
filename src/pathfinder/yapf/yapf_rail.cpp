@@ -145,14 +145,11 @@ public:
 	}
 
 	/** Try to reserve the path till the reservation target. */
-	bool TryReservePath(PBSTileInfo *target, TileIndex origin)
+	bool TryReservePath(TileIndex origin, PFPos *target = NULL)
 	{
 		m_origin_tile = origin;
 
-		if (target != NULL) {
-			target->pos  = m_res_dest;
-			target->okay = false;
-		}
+		if (target != NULL) *target = m_res_dest;
 
 		/* Don't bother if the target is reserved. */
 		if (!IsWaitingPositionFree(Yapf().GetVehicle(), m_res_dest)) return false;
@@ -171,8 +168,6 @@ public:
 				return false;
 			}
 		}
-
-		if (target != NULL) target->okay = true;
 
 		if (Yapf().CanUseGlobalCache(*m_res_node)) {
 			YapfNotifyTrackLayoutChange(INVALID_TILE, INVALID_TRACK);
@@ -357,7 +352,7 @@ public:
 			this->FindSafePositionOnNode(pPrev);
 		}
 
-		return dont_reserve || this->TryReservePath(NULL, pNode->GetLastPos().tile);
+		return dont_reserve || this->TryReservePath(pNode->GetLastPos().tile);
 	}
 };
 
@@ -451,7 +446,10 @@ public:
 			Node& best_next_node = *pPrev;
 			next_trackdir = best_next_node.GetPos().td;
 
-			if (reserve_track && path_found) this->TryReservePath(target, pNode->GetLastPos().tile);
+			if (reserve_track && path_found) {
+				bool okay = this->TryReservePath(pNode->GetLastPos().tile, target != NULL ? &target->pos : NULL);
+				if (target != NULL) target->okay = okay;
+			}
 		}
 
 		/* Treat the path as found if stopped on the first two way signal(s). */
