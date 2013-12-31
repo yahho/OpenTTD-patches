@@ -445,13 +445,16 @@ struct CFollowTrackRailBase : CFollowTrackBase
 		if (m_flag == TF_STATION) {
 			/* Check skipped station tiles as well. */
 			TileIndexDiff diff = TileOffsByDiagDir(m_exitdir);
-			for (TileIndex tile = m_new.tile - diff * m_tiles_skipped; tile != m_new.tile; tile += diff) {
+			TileIndex tile = m_new.tile - diff * m_tiles_skipped;
+			for (;;) {
 				if (HasStationReservation(tile)) {
 					m_new.td = INVALID_TRACKDIR;
 					m_new.trackdirs = TRACKDIR_BIT_NONE;
 					m_err = EC_RESERVED;
 					return false;
 				}
+				if (tile == m_new.tile) return true;
+				tile += diff;
 			}
 		}
 
