@@ -2433,18 +2433,29 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, PFPos *pos
 		}
 
 		/* Station and waypoints are possible targets. */
-		if (ft.m_flag == ft.TF_STATION || !ft.m_new.IsTrackdirSet()) {
-			/* Choice found or possible target encountered.
+		if (ft.m_flag == ft.TF_STATION) {
+			/* Possible target encountered.
 			 * On finding a possible target, we need to stop and let the pathfinder handle the
 			 * remaining path. This is because we don't know if this target is in one of our
 			 * orders, so we might cause pathfinding to fail later on if we find a choice.
 			 * This failure would cause a bogous call to TryReserveSafePath which might reserve
 			 * a wrong path not leading to our next destination. */
-			if (HasReservedTracks(ft.m_new.tile, TrackdirBitsToTrackBits(ft.m_new.trackdirs))) break;
+			if (!ft.MaskReservedTracks()) break;
 
 			/* If we did skip some tiles, backtrack to the first skipped tile so the pathfinder
 			 * actually starts its search at the first unreserved tile. */
-			if (ft.m_tiles_skipped != 0) ft.m_new.tile -= TileOffsByDiagDir(ft.m_exitdir) * ft.m_tiles_skipped;
+			ft.m_new.tile -= TileOffsByDiagDir(ft.m_exitdir) * ft.m_tiles_skipped;
+
+			/* Possible target found, path valid but not okay. */
+			*pos = ft.m_new;
+			return EXTEND_RESERVATION_UNSAFE;
+		}
+
+		if (!ft.m_new.IsTrackdirSet()) {
+			/* Choice found. */
+			if (HasReservedTracks(ft.m_new.tile, TrackdirBitsToTrackBits(ft.m_new.trackdirs))) break;
+
+			assert(ft.m_tiles_skipped == 0);
 
 			/* Choice found, path valid but not okay. Save info about the choice tile as well. */
 			*pos = ft.m_new;
