@@ -2601,13 +2601,15 @@ static Trackdir ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, Trackdi
 	bool do_track_reservation = _settings_game.pf.reserve_paths || force_res;
 	bool changed_signal = false;
 
+	assert (trackdirs != TRACKDIR_BIT_NONE);
+
 	if (got_reservation != NULL) *got_reservation = false;
 
 	/* Quick return in case only one possible trackdir is available */
-	if (KillFirstBit(trackdirs) == TRACKDIR_BIT_NONE) {
+	if (HasAtMostOneBit(trackdirs)) {
 		best_trackdir = FindFirstTrackdir(trackdirs);
 		/* We need to check for signals only here, as a junction tile can't have signals. */
-		if (best_trackdir != INVALID_TRACKDIR && HasPbsSignalOnTrackdir(tile, best_trackdir)) {
+		if (HasPbsSignalOnTrackdir(tile, best_trackdir)) {
 			do_track_reservation = true;
 			changed_signal = true;
 			SetSignalState(tile, best_trackdir, SIGNAL_STATE_GREEN);
@@ -2771,10 +2773,12 @@ bool TryPathReserve(Train *v, bool mark_as_stuck, bool first_tile_okay)
 
 	if (_settings_game.pf.forbid_90_deg) reachable &= ~TrackdirCrossesTrackdirs(origin.td);
 
-	bool res_made = false;
-	ChooseTrainTrack(v, origin, new_tile, reachable, true, &res_made, mark_as_stuck);
+	if (reachable != TRACKDIR_BIT_NONE) {
+		bool res_made = false;
+		ChooseTrainTrack(v, origin, new_tile, reachable, true, &res_made, mark_as_stuck);
 
-	if (!res_made) return false;
+		if (!res_made) return false;
+	}
 
 	if (HasBit(v->flags, VRF_TRAIN_STUCK)) {
 		v->wait_counter = 0;
@@ -2809,21 +2813,23 @@ static bool TryPathReserveFromDepot(Train *v)
 
 	TrackdirBits reachable = TrackStatusToTrackdirBits(GetTileRailwayStatus(new_tile)) & DiagdirReachesTrackdirs(exitdir);
 
-	bool res_made = false;
-	ChooseTrainTrack(v, v->GetPos(), new_tile, reachable, true, &res_made, false);
+	if (reachable != TRACKDIR_BIT_NONE) {
+		bool res_made = false;
+		ChooseTrainTrack(v, v->GetPos(), new_tile, reachable, true, &res_made, false);
 
-	if (res_made) {
-		SetDepotReservation(v->tile, true);
-		if (_settings_client.gui.show_track_reservation) MarkTileDirtyByTile(v->tile);
-
-		if (HasBit(v->flags, VRF_TRAIN_STUCK)) {
-			v->wait_counter = 0;
-			SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
-			ClrBit(v->flags, VRF_TRAIN_STUCK);
-		}
+		if (!res_made) return false;
 	}
 
-	return res_made;
+	SetDepotReservation(v->tile, true);
+	if (_settings_client.gui.show_track_reservation) MarkTileDirtyByTile(v->tile);
+
+	if (HasBit(v->flags, VRF_TRAIN_STUCK)) {
+		v->wait_counter = 0;
+		SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
+		ClrBit(v->flags, VRF_TRAIN_STUCK);
+	}
+
+	return true;
 }
 
 
