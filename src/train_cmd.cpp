@@ -41,7 +41,7 @@
 #include "table/strings.h"
 #include "table/train_cmd.h"
 
-static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck);
+static Trackdir ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck);
 static bool TryPathReserveFromDepot(Train *v);
 static bool TrainCheckIfLineEnds(Train *v, bool reverse = true);
 static StationID TrainEnterTile(Train *v, TileIndex tile, int x, int y);
@@ -2155,7 +2155,7 @@ static void CheckNextTrainTile(Train *v)
 		if (!HasReservedPos(ft.m_new)) {
 			if (HasPbsSignalAlongPos(ft.m_new)) {
 				/* If the next tile is a PBS signal, try to make a reservation. */
-				ChooseTrainTrack(v, ft.m_new.tile, ft.m_new.trackdirs, false, NULL, false);
+				ChooseTrainTrack(v, pos, ft.m_new.tile, ft.m_new.trackdirs, false, NULL, false);
 			}
 		}
 	}
@@ -2375,15 +2375,16 @@ static const byte _initial_tile_subcoord[TRACKDIR_END][3] = {
  * Perform pathfinding for a train.
  *
  * @param v The train
+ * @param origin The end of the current reservation
  * @param do_track_reservation Path reservation is requested
  * @param dest [out] State and destination of the requested path
  * @return The best trackdir the train should follow
  */
-static Trackdir DoTrainPathfind(const Train *v, bool do_track_reservation, PFResult *dest)
+static Trackdir DoTrainPathfind(const Train *v, const PFPos &origin, bool do_track_reservation, PFResult *dest)
 {
 	switch (_settings_game.pf.pathfinder_for_trains) {
-		case VPF_NPF: return NPFTrainChooseTrack(v, do_track_reservation, dest);
-		case VPF_YAPF: return YapfTrainChooseTrack(v, do_track_reservation, dest);
+		case VPF_NPF: return NPFTrainChooseTrack(v, origin, do_track_reservation, dest);
+		case VPF_YAPF: return YapfTrainChooseTrack(v, origin, do_track_reservation, dest);
 
 		default: NOT_REACHED();
 	}
@@ -2402,21 +2403,20 @@ enum ExtendReservationResult {
  * Extend a train path as far as possible. Stops on encountering a safe tile,
  * another reservation or a track choice.
  * @param v The train whose reservation to extend
+ * @param origin The end of the current reservation, which will be updated
  * @param pos First unsafe choice or possible target tile, if new reservation ends at such a tile
  * @return An ExtendReservationResult value, showing reservation extension outcome
  */
-static ExtendReservationResult ExtendTrainReservation(const Train *v, TileIndex *pos)
+static ExtendReservationResult ExtendTrainReservation(const Train *v, PFPos *origin, TileIndex *pos)
 {
-	PFPos origin;
-	FollowTrainReservation(v, &origin);
-
 	CFollowTrackRail ft(v, !_settings_game.pf.forbid_90_deg);
-	ft.SetPos(origin);
+	ft.SetPos(*origin);
 
 	for (;;) {
 		if (!ft.FollowNext()) {
 			if (ft.m_err == CFollowTrackRail::EC_OWNER || ft.m_err == CFollowTrackRail::EC_NO_WAY) {
 				/* End of line, path valid and okay. */
+				*origin = ft.m_old;
 				return EXTEND_RESERVATION_SAFE;
 			}
 			break;
@@ -2428,6 +2428,7 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, TileIndex 
 			if (HasDepotReservation(ft.m_new.tile)) break;
 
 			SetDepotReservation(ft.m_new.tile, true);
+			*origin = ft.m_new;
 			return EXTEND_RESERVATION_SAFE;
 		}
 
@@ -2446,6 +2447,7 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, TileIndex 
 			ft.m_new.tile -= TileOffsByDiagDir(ft.m_exitdir) * ft.m_tiles_skipped;
 
 			/* Possible target found, path valid but not okay. */
+			*origin = ft.m_old;
 			*pos = ft.m_new.tile;
 			return EXTEND_RESERVATION_UNSAFE;
 		}
@@ -2457,6 +2459,7 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, TileIndex 
 			assert(ft.m_tiles_skipped == 0);
 
 			/* Choice found, path valid but not okay. Save info about the choice tile as well. */
+			*origin = ft.m_old;
 			*pos = ft.m_new.tile;
 			return EXTEND_RESERVATION_UNSAFE;
 		}
@@ -2471,13 +2474,14 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, TileIndex 
 
 		if (state == PBS_FREE) {
 			/* Safe position is all good, path valid and okay. */
+			*origin = ft.m_new;
 			return EXTEND_RESERVATION_SAFE;
 		}
 	}
 
 	/* Sorry, can't reserve path, back out. */
 	PFPos stopped = ft.m_old;
-	ft.SetPos(origin);
+	ft.SetPos(*origin);
 	while (ft.m_new != stopped) {
 		if (!ft.FollowNext()) NOT_REACHED();
 
@@ -2591,7 +2595,7 @@ public:
 };
 
 /* choose a track */
-static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck)
+static Trackdir ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck)
 {
 	Trackdir best_trackdir = INVALID_TRACKDIR;
 	bool do_track_reservation = _settings_game.pf.reserve_paths || force_res;
@@ -2614,7 +2618,7 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, TrackdirBits trackdir
 
 	TileIndex new_tile = tile;
 	if (do_track_reservation) {
-		switch (ExtendTrainReservation(v, &new_tile)) {
+		switch (ExtendTrainReservation(v, &origin, &new_tile)) {
 			default: NOT_REACHED();
 			case EXTEND_RESERVATION_FAILED:
 				if (mark_stuck) MarkTrainAsStuck(v);
@@ -2657,7 +2661,7 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, TrackdirBits trackdir
 	/* Pathfinders are able to tell that route was only 'guessed'. */
 	PFResult res_dest;
 
-	Trackdir next_trackdir = DoTrainPathfind(v, do_track_reservation, &res_dest);
+	Trackdir next_trackdir = DoTrainPathfind(v, origin, do_track_reservation, &res_dest);
 	if (new_tile == tile) best_trackdir = next_trackdir != INVALID_TRACKDIR ? next_trackdir : FindFirstTrackdir(trackdirs);
 	v->HandlePathfindingResult(res_dest.found);
 
@@ -2674,8 +2678,6 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, TrackdirBits trackdir
 	/* No possible reservation target found, we are probably lost. */
 	if (res_dest.pos.tile == INVALID_TILE) {
 		/* Try to find any safe destination. */
-		PFPos origin;
-		FollowTrainReservation(v, &origin);
 		if (TryReserveSafeTrack(v, origin, false)) {
 			TrackBits res = GetReservedTrackbits(tile);
 			best_trackdir = FindFirstTrackdir(TrackBitsToTrackdirBits(res) & trackdirs);
@@ -2690,18 +2692,20 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, TrackdirBits trackdir
 	}
 
 	if (got_reservation != NULL) *got_reservation = true;
+	origin = res_dest.pos;
 
 	/* Reservation target found and free, check if it is safe. */
-	while (!IsSafeWaitingPosition(v, res_dest.pos, _settings_game.pf.forbid_90_deg)) {
+	while (!IsSafeWaitingPosition(v, origin, _settings_game.pf.forbid_90_deg)) {
 		/* Extend reservation until we have found a safe position. */
 
 		/* Get next order with destination. */
 		if (orders.SwitchToNextOrder(true)) {
-			PFResult cur_dest;
-			DoTrainPathfind(v, true, &cur_dest);
-			if (cur_dest.pos.tile != INVALID_TILE) {
-				res_dest = cur_dest;
-				if (res_dest.okay) continue;
+			DoTrainPathfind(v, origin, true, &res_dest);
+			if (res_dest.pos.tile != INVALID_TILE) {
+				if (res_dest.okay) {
+					origin = res_dest.pos;
+					continue;
+				}
 				/* Path found, but could not be reserved. */
 				FreeTrainTrackReservation(v);
 				if (mark_stuck) MarkTrainAsStuck(v);
@@ -2711,7 +2715,7 @@ static Trackdir ChooseTrainTrack(Train *v, TileIndex tile, TrackdirBits trackdir
 			}
 		}
 		/* No order or no safe position found, try any position. */
-		if (!TryReserveSafeTrack(v, res_dest.pos, true)) {
+		if (!TryReserveSafeTrack(v, origin, true)) {
 			FreeTrainTrackReservation(v);
 			if (mark_stuck) MarkTrainAsStuck(v);
 			if (got_reservation != NULL) *got_reservation = false;
@@ -2768,7 +2772,7 @@ bool TryPathReserve(Train *v, bool mark_as_stuck, bool first_tile_okay)
 	if (_settings_game.pf.forbid_90_deg) reachable &= ~TrackdirCrossesTrackdirs(origin.td);
 
 	bool res_made = false;
-	ChooseTrainTrack(v, new_tile, reachable, true, &res_made, mark_as_stuck);
+	ChooseTrainTrack(v, origin, new_tile, reachable, true, &res_made, mark_as_stuck);
 
 	if (!res_made) return false;
 
@@ -2806,7 +2810,7 @@ static bool TryPathReserveFromDepot(Train *v)
 	TrackdirBits reachable = TrackStatusToTrackdirBits(GetTileRailwayStatus(new_tile)) & DiagdirReachesTrackdirs(exitdir);
 
 	bool res_made = false;
-	ChooseTrainTrack(v, new_tile, reachable, true, &res_made, false);
+	ChooseTrainTrack(v, v->GetPos(), new_tile, reachable, true, &res_made, false);
 
 	if (res_made) {
 		SetDepotReservation(v->tile, true);
@@ -3386,7 +3390,7 @@ static Trackdir TrainControllerChooseTrackdir(Train *v, TileIndex tile, DiagDire
 	if (res_trackdirs != TRACKDIR_BIT_NONE) {
 		chosen_trackdir = FindFirstTrackdir(res_trackdirs);
 	} else {
-		chosen_trackdir = ChooseTrainTrack(v, tile, trackdirbits, false, NULL, true);
+		chosen_trackdir = ChooseTrainTrack(v, v->GetPos(), tile, trackdirbits, false, NULL, true);
 		assert(chosen_trackdir != INVALID_TRACKDIR);
 		assert(HasBit(trackdirbits, chosen_trackdir));
 	}

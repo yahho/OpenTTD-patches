@@ -1261,14 +1261,10 @@ bool NPFTrainCheckReverse(const Train *v)
 	return ftd.best_bird_dist == 0 && NPFGetFlag(&ftd.node, NPF_FLAG_REVERSE);
 }
 
-Trackdir NPFTrainChooseTrack(const Train *v, bool reserve_track, PFResult *target)
+Trackdir NPFTrainChooseTrack(const Train *v, const PFPos &origin, bool reserve_track, PFResult *target)
 {
 	NPFFindStationOrTileData fstd;
 	NPFFillWithOrderData(&fstd, v, reserve_track);
-
-	PFPos origin;
-	FollowTrainReservation(v, &origin);
-	assert(IsValidTrackdir(origin.td));
 
 	NPFFoundTargetData ftd = NPFRouteToStationOrTile(origin, true, &fstd, TRANSPORT_RAIL, 0, v->owner, v->compatible_railtypes);
 

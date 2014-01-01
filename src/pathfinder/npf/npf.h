@@ -98,10 +98,11 @@ bool NPFTrainCheckReverse(const Train *v);
 /**
  * Finds the best path for given train using NPF.
  * @param v        the train that needs to find a path
+ * @param origin   the end of the current reservation
  * @param reserve_track indicates whether YAPF should try to reserve the found path
  * @param target   [out] the target tile of the reservation, free is set to true if path was reserved
  * @return         the best trackdir for next turn
  */
-Trackdir NPFTrainChooseTrack(const Train *v, bool reserve_track, PFResult *target);
+Trackdir NPFTrainChooseTrack(const Train *v, const PFPos &origin, bool reserve_track, PFResult *target);
 
 #endif /* NPF_H */
