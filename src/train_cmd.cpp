@@ -2404,10 +2404,9 @@ enum ExtendReservationResult {
  * another reservation or a track choice.
  * @param v The train whose reservation to extend
  * @param origin The end of the current reservation, which will be updated
- * @param pos First unsafe choice or possible target tile, if new reservation ends at such a tile
  * @return An ExtendReservationResult value, showing reservation extension outcome
  */
-static ExtendReservationResult ExtendTrainReservation(const Train *v, PFPos *origin, TileIndex *pos)
+static ExtendReservationResult ExtendTrainReservation(const Train *v, PFPos *origin)
 {
 	CFollowTrackRail ft(v, !_settings_game.pf.forbid_90_deg);
 	ft.SetPos(*origin);
@@ -2448,7 +2447,6 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, PFPos *ori
 
 			/* Possible target found, path valid but not okay. */
 			*origin = ft.m_old;
-			*pos = ft.m_new.tile;
 			return EXTEND_RESERVATION_UNSAFE;
 		}
 
@@ -2460,7 +2458,6 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, PFPos *ori
 
 			/* Choice found, path valid but not okay. Save info about the choice tile as well. */
 			*origin = ft.m_old;
-			*pos = ft.m_new.tile;
 			return EXTEND_RESERVATION_UNSAFE;
 		}
 
@@ -2618,9 +2615,8 @@ static Trackdir ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, Trackdi
 		}
 	}
 
-	TileIndex new_tile = tile;
 	if (do_track_reservation) {
-		switch (ExtendTrainReservation(v, &origin, &new_tile)) {
+		switch (ExtendTrainReservation(v, &origin)) {
 			default: NOT_REACHED();
 			case EXTEND_RESERVATION_FAILED:
 				if (mark_stuck) MarkTrainAsStuck(v);
@@ -2671,7 +2667,6 @@ static Trackdir ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, Trackdi
 		 * This means that ExtendTrainReservation cannot possibly
 		 * have extended the reservation, and we are pathfinding
 		 * at the original tile. */
-		assert (new_tile == tile);
 		best_trackdir = next_trackdir != INVALID_TRACKDIR ? next_trackdir : FindFirstTrackdir(trackdirs);
 	} else {
 		/* The initial tile only had one available trackdir, so we can
