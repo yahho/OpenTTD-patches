@@ -2597,7 +2597,6 @@ public:
 /* choose a track */
 static Trackdir ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck)
 {
-	Trackdir best_trackdir = INVALID_TRACKDIR;
 	bool do_track_reservation = _settings_game.pf.reserve_paths || force_res;
 	bool changed_signal = false;
 
@@ -2606,15 +2605,16 @@ static Trackdir ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, Trackdi
 	if (got_reservation != NULL) *got_reservation = false;
 
 	/* Quick return in case only one possible trackdir is available */
+	Trackdir single_trackdir = INVALID_TRACKDIR;
 	if (HasAtMostOneBit(trackdirs)) {
-		best_trackdir = FindFirstTrackdir(trackdirs);
+		single_trackdir = FindFirstTrackdir(trackdirs);
 		/* We need to check for signals only here, as a junction tile can't have signals. */
-		if (HasPbsSignalOnTrackdir(tile, best_trackdir)) {
+		if (HasPbsSignalOnTrackdir(tile, single_trackdir)) {
 			do_track_reservation = true;
 			changed_signal = true;
-			SetSignalState(tile, best_trackdir, SIGNAL_STATE_GREEN);
+			SetSignalState(tile, single_trackdir, SIGNAL_STATE_GREEN);
 		} else if (!do_track_reservation) {
-			return best_trackdir;
+			return single_trackdir;
 		}
 	}
 
@@ -2624,13 +2624,13 @@ static Trackdir ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, Trackdi
 			default: NOT_REACHED();
 			case EXTEND_RESERVATION_FAILED:
 				if (mark_stuck) MarkTrainAsStuck(v);
-				if (changed_signal) SetSignalState(tile, best_trackdir, SIGNAL_STATE_RED);
+				if (changed_signal) SetSignalState(tile, single_trackdir, SIGNAL_STATE_RED);
 				return FindFirstTrackdir(trackdirs);
 			case EXTEND_RESERVATION_SAFE:
 				if (got_reservation != NULL) *got_reservation = true;
 				if (changed_signal) MarkTileDirtyByTile(tile);
 				TryReserveRailTrack(v->GetPos());
-				return best_trackdir;
+				return single_trackdir; // should be valid
 			case EXTEND_RESERVATION_UNSAFE:
 				break;
 		}
@@ -2660,12 +2660,25 @@ static Trackdir ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, Trackdi
 		orders.SwitchToNextOrder(true);
 	}
 
-	/* Pathfinders are able to tell that route was only 'guessed'. */
+	/* Call the pathfinder... */
 	PFResult res_dest;
-
 	Trackdir next_trackdir = DoTrainPathfind(v, origin, do_track_reservation, &res_dest);
-	if (new_tile == tile) best_trackdir = next_trackdir != INVALID_TRACKDIR ? next_trackdir : FindFirstTrackdir(trackdirs);
 	v->HandlePathfindingResult(res_dest.found);
+	/* ...but only use the result if we were at the original tile. */
+	Trackdir best_trackdir;
+	if (single_trackdir == INVALID_TRACKDIR) {
+		/* The initial tile had more than one available trackdir.
+		 * This means that ExtendTrainReservation cannot possibly
+		 * have extended the reservation, and we are pathfinding
+		 * at the original tile. */
+		assert (new_tile == tile);
+		best_trackdir = next_trackdir != INVALID_TRACKDIR ? next_trackdir : FindFirstTrackdir(trackdirs);
+	} else {
+		/* The initial tile only had one available trackdir, so we can
+		 * use it as trackdir result whether ExtendTrainReservation
+		 * actually extended the reservation or not. */
+		best_trackdir = single_trackdir;
+	}
 
 	/* No track reservation requested -> finished. */
 	if (!do_track_reservation) return best_trackdir;
