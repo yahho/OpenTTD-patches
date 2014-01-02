@@ -1791,6 +1791,12 @@
       <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\blitter\32bpp_sse2.hpp" />
+    <ClCompile Include="..\src\blitter\32bpp_sse4.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\32bpp_sse4.hpp" />
     <ClCompile Include="..\src\blitter\32bpp_ssse3.cpp">
       <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
