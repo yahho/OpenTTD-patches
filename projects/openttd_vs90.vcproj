@@ -10512,6 +10512,54 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\blitter\32bpp_ssse3.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\blitter\"
+						ObjectFile="$(IntDir)\blitter\"
+						XMLDocumentationFileName="$(IntDir)\blitter\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\blitter\"
+						ObjectFile="$(IntDir)\blitter\"
+						XMLDocumentationFileName="$(IntDir)\blitter\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\blitter\"
+						ObjectFile="$(IntDir)\blitter\"
+						XMLDocumentationFileName="$(IntDir)\blitter\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\blitter\"
+						ObjectFile="$(IntDir)\blitter\"
+						XMLDocumentationFileName="$(IntDir)\blitter\"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\..\src\blitter\32bpp_ssse3.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\blitter\8bpp_base.cpp"
 				>
 				<FileConfiguration
