@@ -26,6 +26,7 @@ static FBlitter_32bppSSE2 iFBlitter_32bppSSE2;
  * @param bp further blitting parameters
  * @param zoom zoom level at which we are drawing
  */
+IGNORE_UNINITIALIZED_WARNING_START
 template <BlitterMode mode, Blitter_32bppSSE2::ReadMode read_mode, Blitter_32bppSSE2::BlockType bt_last>
 inline void Blitter_32bppSSE2::Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom)
 {
@@ -184,6 +185,7 @@ bmcr_alpha_blend_single:
 		dst_line += bp->pitch;
 	}
 }
+IGNORE_UNINITIALIZED_WARNING_STOP
 
 /**
  * Draws a sprite to a (screen) buffer. Calls adequate templated function.
@@ -336,6 +338,7 @@ inline Colour Blitter_32bppSSE2::AdjustBrightness(Colour colour, uint8 brightnes
 	return Blitter_32bppSSE2::ReallyAdjustBrightness(colour, brightness);
 }
 
+IGNORE_UNINITIALIZED_WARNING_START
 /* static */ Colour Blitter_32bppSSE2::ReallyAdjustBrightness(Colour colour, uint8 brightness)
 {
 	uint64 c16 = colour.b | (uint64) colour.g << 16 | (uint64) colour.r << 32;
@@ -375,5 +378,6 @@ inline Colour Blitter_32bppSSE2::AdjustBrightness(Colour colour, uint8 brightnes
 	ret = _mm_packus_epi16(ret, ret);      /* PACKUSWB, saturate and pack. */
 	return alpha32 | _mm_cvtsi128_si32(ret);
 }
+IGNORE_UNINITIALIZED_WARNING_STOP
 
 #endif /* WITH_SSE */
