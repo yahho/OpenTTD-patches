@@ -44,7 +44,8 @@ inline void Blitter_32bppSSE2::Draw(const Blitter::BlitterParams *bp, ZoomLevel 
 	}
 
 	/* Load these variables into register before loop. */
-	const __m128i clear_hi = CLEAR_HIGH_BYTE_MASK;
+	const __m128i clear_hi    = CLEAR_HIGH_BYTE_MASK;
+	const __m128i tr_nom_base = TRANSPARENT_NOM_BASE;
 
 	for (int y = bp->height; y != 0; y--) {
 		Colour *dst = dst_line;
@@ -141,18 +142,42 @@ bmcr_alpha_blend_single:
 				src_mv_line += si->sprite_width;
 				break;
 			}
-			case BM_TRANSPARENT:
-				/* Make the current colour a bit more black, so it looks like this image is transparent */
-				for (int x = bp->width; x != 0; x--) {
-					if (src->a == 255) {
-						*dst = MakeTransparent(*dst, 3, 4);
-					} else {
-						*dst = MakeTransparent(*dst, (256 * 4 - src->a), 256 * 4);
-					}
-					dst++;
-					src++;
+			case BM_TRANSPARENT: {
+				/* Make the current colour a bit more black, so it looks like this image is transparent.
+				 * rgb = rgb * ((256/4) * 4 - (alpha/4)) / ((256/4) * 4)
+				 */
+				for (uint x = (uint) bp->width / 2; x > 0; x--) {
+					__m128i srcABCD = _mm_loadl_epi64((const __m128i*) src);
+					__m128i dstABCD = _mm_loadl_epi64((__m128i*) dst);
+					__m128i srcAB = _mm_unpacklo_epi8(srcABCD, _mm_setzero_si128());
+					__m128i dstAB = _mm_unpacklo_epi8(dstABCD, _mm_setzero_si128());
+					__m128i alphaAB = _mm_shufflelo_epi16(srcAB, 0x3F);
+					alphaAB = _mm_shufflehi_epi16(alphaAB, 0x3F);
+					alphaAB = _mm_srli_epi16(alphaAB, 2); // Reduce to 64 levels of shades so the max value fits in 16 bits.
+					__m128i nom = _mm_sub_epi16(tr_nom_base, alphaAB);
+					dstAB = _mm_mullo_epi16(dstAB, nom);
+					dstAB = _mm_srli_epi16(dstAB, 8);
+					dstAB = _mm_packus_epi16(dstAB, dstAB);
+					_mm_storel_epi64((__m128i *) dst, dstAB);
+					src += 2;
+					dst += 2;
+				}
+				if (bp->width & 1) {
+					__m128i srcABCD = _mm_cvtsi32_si128(src->data);
+					__m128i dstABCD = _mm_cvtsi32_si128(dst->data);
+					__m128i srcAB = _mm_unpacklo_epi8(srcABCD, _mm_setzero_si128());
+					__m128i dstAB = _mm_unpacklo_epi8(dstABCD, _mm_setzero_si128());
+					__m128i alphaAB = _mm_shufflelo_epi16(srcAB, 0x3F);
+					alphaAB = _mm_shufflehi_epi16(alphaAB, 0x3F);
+					alphaAB = _mm_srli_epi16(alphaAB, 2);
+					__m128i nom = _mm_sub_epi16(tr_nom_base, alphaAB);
+					dstAB = _mm_mullo_epi16(dstAB, nom);
+					dstAB = _mm_srli_epi16(dstAB, 8);
+					dstAB = _mm_packus_epi16(dstAB, dstAB);
+					dst->data = _mm_cvtsi128_si32(dstAB);
 				}
 				break;
+			}
 		}
 
 		src_rgba_line = (const Colour*) ((const byte*) src_rgba_line + si->sprite_line_size);
