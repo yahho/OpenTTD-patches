@@ -325,7 +325,7 @@ void RoadStop::Entry::Rebuild(const RoadStop *rs, int side)
 	TileIndexDiff offset = abs(TileOffsByDiagDir(dir));
 
 	if (side == -1) side = (rs->east == this);
-	if (side != 0) dir = ReverseDiagDir(dir);
+	if (side == 0) dir = ReverseDiagDir(dir);
 
 	this->length = 0;
 	RVList list;
