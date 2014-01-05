@@ -1580,12 +1580,11 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 	if (new_dir != old_dir) {
 		v->direction = new_dir;
 		if (_settings_game.vehicle.roadveh_acceleration_model == AM_ORIGINAL) v->cur_speed -= v->cur_speed >> 2;
-		if (old_dir != v->state) {
-			/* The vehicle is in a road stop */
+		if (HasBit(v->state, RVS_IN_ROAD_STOP) && _road_stop_stop_frame[_settings_game.vehicle.road_side][v->state & RVSB_TRACKDIR_MASK] == v->frame) {
+			/* The vehicle is in a road stop, and at its stopping
+			 * frame. Make a delay here until the vehicle has
+			 * turned around. */
 			v->UpdateInclination(false, true);
-			/* Note, return here means that the frame counter is not incremented
-			 * for vehicles changing direction in a road stop. This causes frames to
-			 * be repeated. (XXX) Is this intended? */
 			return true;
 		}
 	}
