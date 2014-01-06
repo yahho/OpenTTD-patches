@@ -549,7 +549,7 @@ ChainLoadFilter* (*GetSavegameLoader(uint32 tag))(LoadFilter *chain)
 		}
 	}
 
-	return NULL;
+	throw SlCorrupt("Unknown savegame compression tag");
 }
 
 /**
