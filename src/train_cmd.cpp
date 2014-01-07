@@ -41,7 +41,7 @@
 #include "table/strings.h"
 #include "table/train_cmd.h"
 
-static bool ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, bool mark_stuck, Trackdir *best_trackdir = NULL);
+static bool ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, Trackdir *best_trackdir = NULL);
 static bool TryPathReserveFromDepot(Train *v);
 static bool TrainCheckIfLineEnds(Train *v, bool reverse = true);
 static StationID TrainEnterTile(Train *v, TileIndex tile, int x, int y);
@@ -2155,7 +2155,7 @@ static void CheckNextTrainTile(Train *v)
 		if (!HasReservedPos(ft.m_new)) {
 			if (HasPbsSignalAlongPos(ft.m_new)) {
 				/* If the next tile is a PBS signal, try to make a reservation. */
-				ChooseTrainTrack(v, pos, ft.m_new.tile, ft.m_new.trackdirs, false, false);
+				ChooseTrainTrack(v, pos, ft.m_new.tile, ft.m_new.trackdirs, false);
 			}
 		}
 	}
@@ -2592,7 +2592,7 @@ public:
 };
 
 /* choose a track */
-static bool ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, bool mark_stuck, Trackdir *best_trackdir)
+static bool ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, Trackdir *best_trackdir)
 {
 	bool do_track_reservation = _settings_game.pf.reserve_paths || force_res;
 	bool changed_signal = false;
@@ -2618,7 +2618,6 @@ static bool ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBit
 		switch (ExtendTrainReservation(v, &origin)) {
 			default: NOT_REACHED();
 			case EXTEND_RESERVATION_FAILED:
-				if (mark_stuck) MarkTrainAsStuck(v);
 				if (changed_signal) SetSignalState(tile, single_trackdir, SIGNAL_STATE_RED);
 				if (best_trackdir != NULL) *best_trackdir = FindFirstTrackdir(trackdirs);
 				return false;
@@ -2676,7 +2675,6 @@ static bool ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBit
 
 	/* A path was found, but could not be reserved. */
 	if (res_dest.pos.tile != INVALID_TILE && !res_dest.okay) {
-		if (mark_stuck) MarkTrainAsStuck(v);
 		FreeTrainTrackReservation(v);
 		return false;
 	}
@@ -2694,7 +2692,6 @@ static bool ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBit
 			return true;
 		} else {
 			FreeTrainTrackReservation(v);
-			if (mark_stuck) MarkTrainAsStuck(v);
 			return false;
 		}
 	}
@@ -2717,14 +2714,12 @@ static bool ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBit
 				}
 				/* Path found, but could not be reserved. */
 				FreeTrainTrackReservation(v);
-				if (mark_stuck) MarkTrainAsStuck(v);
 				return false;
 			}
 		}
 		/* No order or no safe position found, try any position. */
 		if (!TryReserveSafeTrack(v, origin, true)) {
 			FreeTrainTrackReservation(v);
-			if (mark_stuck) MarkTrainAsStuck(v);
 			return false;
 		}
 		break;
@@ -2775,7 +2770,8 @@ bool TryPathReserve(Train *v, bool mark_as_stuck, bool first_tile_okay)
 
 	if (_settings_game.pf.forbid_90_deg) reachable &= ~TrackdirCrossesTrackdirs(origin.td);
 
-	if (reachable != TRACKDIR_BIT_NONE && !ChooseTrainTrack(v, origin, new_tile, reachable, true, mark_as_stuck)) {
+	if (reachable != TRACKDIR_BIT_NONE && !ChooseTrainTrack(v, origin, new_tile, reachable, true)) {
+		if (mark_as_stuck) MarkTrainAsStuck(v);
 		return false;
 	}
 
@@ -2812,7 +2808,7 @@ static bool TryPathReserveFromDepot(Train *v)
 
 	TrackdirBits reachable = TrackStatusToTrackdirBits(GetTileRailwayStatus(new_tile)) & DiagdirReachesTrackdirs(exitdir);
 
-	if (reachable != TRACKDIR_BIT_NONE && !ChooseTrainTrack(v, v->GetPos(), new_tile, reachable, true, false)) {
+	if (reachable != TRACKDIR_BIT_NONE && !ChooseTrainTrack(v, v->GetPos(), new_tile, reachable, true)) {
 		return false;
 	}
 
@@ -3392,7 +3388,9 @@ static Trackdir TrainControllerChooseTrackdir(Train *v, TileIndex tile, DiagDire
 	if (res_trackdirs != TRACKDIR_BIT_NONE) {
 		chosen_trackdir = FindFirstTrackdir(res_trackdirs);
 	} else {
-		ChooseTrainTrack(v, v->GetPos(), tile, trackdirbits, false, true, &chosen_trackdir);
+		if (!ChooseTrainTrack(v, v->GetPos(), tile, trackdirbits, false, &chosen_trackdir)) {
+			MarkTrainAsStuck(v);
+		}
 		assert(chosen_trackdir != INVALID_TRACKDIR);
 		assert(HasBit(trackdirbits, chosen_trackdir));
 	}
