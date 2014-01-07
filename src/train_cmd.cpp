@@ -2705,6 +2705,8 @@ static void ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBit
 	if (got_reservation != NULL) *got_reservation = true;
 	origin = res_dest.pos;
 
+	TryReserveRailTrack(v->GetPos());
+
 	/* Reservation target found and free, check if it is safe. */
 	while (!IsSafeWaitingPosition(v, origin, _settings_game.pf.forbid_90_deg)) {
 		/* Extend reservation until we have found a safe position. */
@@ -2721,8 +2723,7 @@ static void ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBit
 				FreeTrainTrackReservation(v);
 				if (mark_stuck) MarkTrainAsStuck(v);
 				if (got_reservation != NULL) *got_reservation = false;
-				changed_signal = false;
-				break;
+				return;
 			}
 		}
 		/* No order or no safe position found, try any position. */
@@ -2730,12 +2731,10 @@ static void ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBit
 			FreeTrainTrackReservation(v);
 			if (mark_stuck) MarkTrainAsStuck(v);
 			if (got_reservation != NULL) *got_reservation = false;
-			changed_signal = false;
+			return;
 		}
 		break;
 	}
-
-	TryReserveRailTrack(v->GetPos());
 
 	if (changed_signal) MarkTileDirtyByTile(tile);
 }
