@@ -41,7 +41,7 @@
 #include "table/strings.h"
 #include "table/train_cmd.h"
 
-static Trackdir ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck);
+static void ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck, Trackdir *best_trackdir = NULL);
 static bool TryPathReserveFromDepot(Train *v);
 static bool TrainCheckIfLineEnds(Train *v, bool reverse = true);
 static StationID TrainEnterTile(Train *v, TileIndex tile, int x, int y);
@@ -2592,7 +2592,7 @@ public:
 };
 
 /* choose a track */
-static Trackdir ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck)
+static void ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck, Trackdir *best_trackdir)
 {
 	bool do_track_reservation = _settings_game.pf.reserve_paths || force_res;
 	bool changed_signal = false;
@@ -2605,13 +2605,14 @@ static Trackdir ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, Trackdi
 	Trackdir single_trackdir = INVALID_TRACKDIR;
 	if (HasAtMostOneBit(trackdirs)) {
 		single_trackdir = FindFirstTrackdir(trackdirs);
+		if (best_trackdir != NULL) *best_trackdir = single_trackdir;
 		/* We need to check for signals only here, as a junction tile can't have signals. */
 		if (HasPbsSignalOnTrackdir(tile, single_trackdir)) {
 			do_track_reservation = true;
 			changed_signal = true;
 			SetSignalState(tile, single_trackdir, SIGNAL_STATE_GREEN);
 		} else if (!do_track_reservation) {
-			return single_trackdir;
+			return;
 		}
 	}
 
@@ -2621,12 +2622,14 @@ static Trackdir ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, Trackdi
 			case EXTEND_RESERVATION_FAILED:
 				if (mark_stuck) MarkTrainAsStuck(v);
 				if (changed_signal) SetSignalState(tile, single_trackdir, SIGNAL_STATE_RED);
-				return FindFirstTrackdir(trackdirs);
+				if (best_trackdir != NULL) *best_trackdir = FindFirstTrackdir(trackdirs);
+				return;
 			case EXTEND_RESERVATION_SAFE:
 				if (got_reservation != NULL) *got_reservation = true;
 				if (changed_signal) MarkTileDirtyByTile(tile);
 				TryReserveRailTrack(v->GetPos());
-				return single_trackdir; // should be valid
+				assert (single_trackdir != INVALID_TRACKDIR);
+				return;
 			case EXTEND_RESERVATION_UNSAFE:
 				break;
 		}
@@ -2661,36 +2664,34 @@ static Trackdir ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, Trackdi
 	Trackdir next_trackdir = DoTrainPathfind(v, origin, do_track_reservation, &res_dest);
 	v->HandlePathfindingResult(res_dest.found);
 	/* ...but only use the result if we were at the original tile. */
-	Trackdir best_trackdir;
-	if (single_trackdir == INVALID_TRACKDIR) {
+	if (best_trackdir != NULL && single_trackdir == INVALID_TRACKDIR) {
 		/* The initial tile had more than one available trackdir.
 		 * This means that ExtendTrainReservation cannot possibly
 		 * have extended the reservation, and we are pathfinding
 		 * at the original tile. */
-		best_trackdir = next_trackdir != INVALID_TRACKDIR ? next_trackdir : FindFirstTrackdir(trackdirs);
-	} else {
-		/* The initial tile only had one available trackdir, so we can
-		 * use it as trackdir result whether ExtendTrainReservation
-		 * actually extended the reservation or not. */
-		best_trackdir = single_trackdir;
+		*best_trackdir = next_trackdir != INVALID_TRACKDIR ? next_trackdir : FindFirstTrackdir(trackdirs);
+		/* If the initial tile only had one available trackdir, then
+		 * *best_trackdir was set along with single_trackdir. */
 	}
 
 	/* No track reservation requested -> finished. */
-	if (!do_track_reservation) return best_trackdir;
+	if (!do_track_reservation) return;
 
 	/* A path was found, but could not be reserved. */
 	if (res_dest.pos.tile != INVALID_TILE && !res_dest.okay) {
 		if (mark_stuck) MarkTrainAsStuck(v);
 		FreeTrainTrackReservation(v);
-		return best_trackdir;
+		return;
 	}
 
 	/* No possible reservation target found, we are probably lost. */
 	if (res_dest.pos.tile == INVALID_TILE) {
 		/* Try to find any safe destination. */
 		if (TryReserveSafeTrack(v, origin, false)) {
-			TrackBits res = GetReservedTrackbits(tile);
-			best_trackdir = FindFirstTrackdir(TrackBitsToTrackdirBits(res) & trackdirs);
+			if (best_trackdir != NULL && single_trackdir == INVALID_TRACKDIR) {
+				TrackBits res = GetReservedTrackbits(tile);
+				*best_trackdir = FindFirstTrackdir(TrackBitsToTrackdirBits(res) & trackdirs);
+			}
 			TryReserveRailTrack(v->GetPos());
 			if (got_reservation != NULL) *got_reservation = true;
 			if (changed_signal) MarkTileDirtyByTile(tile);
@@ -2698,7 +2699,7 @@ static Trackdir ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, Trackdi
 			FreeTrainTrackReservation(v);
 			if (mark_stuck) MarkTrainAsStuck(v);
 		}
-		return best_trackdir;
+		return;
 	}
 
 	if (got_reservation != NULL) *got_reservation = true;
@@ -2737,8 +2738,6 @@ static Trackdir ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, Trackdi
 	TryReserveRailTrack(v->GetPos());
 
 	if (changed_signal) MarkTileDirtyByTile(tile);
-
-	return best_trackdir;
 }
 
 /**
@@ -3404,7 +3403,7 @@ static Trackdir TrainControllerChooseTrackdir(Train *v, TileIndex tile, DiagDire
 	if (res_trackdirs != TRACKDIR_BIT_NONE) {
 		chosen_trackdir = FindFirstTrackdir(res_trackdirs);
 	} else {
-		chosen_trackdir = ChooseTrainTrack(v, v->GetPos(), tile, trackdirbits, false, NULL, true);
+		ChooseTrainTrack(v, v->GetPos(), tile, trackdirbits, false, NULL, true, &chosen_trackdir);
 		assert(chosen_trackdir != INVALID_TRACKDIR);
 		assert(HasBit(trackdirbits, chosen_trackdir));
 	}
