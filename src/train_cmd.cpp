@@ -41,7 +41,7 @@
 #include "table/strings.h"
 #include "table/train_cmd.h"
 
-static void ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck, Trackdir *best_trackdir = NULL);
+static bool ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck, Trackdir *best_trackdir = NULL);
 static bool TryPathReserveFromDepot(Train *v);
 static bool TrainCheckIfLineEnds(Train *v, bool reverse = true);
 static StationID TrainEnterTile(Train *v, TileIndex tile, int x, int y);
@@ -2592,7 +2592,7 @@ public:
 };
 
 /* choose a track */
-static void ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck, Trackdir *best_trackdir)
+static bool ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, bool *got_reservation, bool mark_stuck, Trackdir *best_trackdir)
 {
 	bool do_track_reservation = _settings_game.pf.reserve_paths || force_res;
 	bool changed_signal = false;
@@ -2612,7 +2612,7 @@ static void ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBit
 			changed_signal = true;
 			SetSignalState(tile, single_trackdir, SIGNAL_STATE_GREEN);
 		} else if (!do_track_reservation) {
-			return;
+			return true;
 		}
 	}
 
@@ -2623,13 +2623,13 @@ static void ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBit
 				if (mark_stuck) MarkTrainAsStuck(v);
 				if (changed_signal) SetSignalState(tile, single_trackdir, SIGNAL_STATE_RED);
 				if (best_trackdir != NULL) *best_trackdir = FindFirstTrackdir(trackdirs);
-				return;
+				return false;
 			case EXTEND_RESERVATION_SAFE:
 				if (got_reservation != NULL) *got_reservation = true;
 				if (changed_signal) MarkTileDirtyByTile(tile);
 				TryReserveRailTrack(v->GetPos());
 				assert (single_trackdir != INVALID_TRACKDIR);
-				return;
+				return true;
 			case EXTEND_RESERVATION_UNSAFE:
 				break;
 		}
@@ -2675,13 +2675,13 @@ static void ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBit
 	}
 
 	/* No track reservation requested -> finished. */
-	if (!do_track_reservation) return;
+	if (!do_track_reservation) return true;
 
 	/* A path was found, but could not be reserved. */
 	if (res_dest.pos.tile != INVALID_TILE && !res_dest.okay) {
 		if (mark_stuck) MarkTrainAsStuck(v);
 		FreeTrainTrackReservation(v);
-		return;
+		return false;
 	}
 
 	/* No possible reservation target found, we are probably lost. */
@@ -2695,11 +2695,12 @@ static void ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBit
 			TryReserveRailTrack(v->GetPos());
 			if (got_reservation != NULL) *got_reservation = true;
 			if (changed_signal) MarkTileDirtyByTile(tile);
+			return true;
 		} else {
 			FreeTrainTrackReservation(v);
 			if (mark_stuck) MarkTrainAsStuck(v);
+			return false;
 		}
-		return;
 	}
 
 	if (got_reservation != NULL) *got_reservation = true;
@@ -2723,7 +2724,7 @@ static void ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBit
 				FreeTrainTrackReservation(v);
 				if (mark_stuck) MarkTrainAsStuck(v);
 				if (got_reservation != NULL) *got_reservation = false;
-				return;
+				return false;
 			}
 		}
 		/* No order or no safe position found, try any position. */
@@ -2731,12 +2732,14 @@ static void ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBit
 			FreeTrainTrackReservation(v);
 			if (mark_stuck) MarkTrainAsStuck(v);
 			if (got_reservation != NULL) *got_reservation = false;
-			return;
+			return false;
 		}
 		break;
 	}
 
 	if (changed_signal) MarkTileDirtyByTile(tile);
+
+	return true;
 }
 
 /**
