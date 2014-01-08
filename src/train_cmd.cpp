@@ -2702,38 +2702,41 @@ static bool ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBit
 		}
 	}
 
-	origin = res_dest.pos;
-
 	TryReserveRailTrack(v->GetPos());
 
-	/* Reservation target found and free, check if it is safe. */
-	while (!IsSafeWaitingPosition(v, origin, _settings_game.pf.forbid_90_deg)) {
-		/* Extend reservation until we have found a safe position. */
+	/* Extend reservation until we have found a safe position. */
+	bool safe = false;
+	for (;;) {
+		origin = res_dest.pos;
+		if (IsSafeWaitingPosition(v, origin, _settings_game.pf.forbid_90_deg)) {
+			safe = true;
+			break;
+		}
 
 		/* Get next order with destination. */
-		if (orders.SwitchToNextOrder(true)) {
-			DoTrainPathfind(v, origin, true, &res_dest);
-			if (res_dest.pos.tile != INVALID_TILE) {
-				if (res_dest.okay) {
-					origin = res_dest.pos;
-					continue;
-				}
-				/* Path found, but could not be reserved. */
-				FreeTrainTrackReservation(v);
-				return false;
-			}
-		}
-		/* No order or no safe position found, try any position. */
-		if (!TryReserveSafeTrack(v, origin, true)) {
+		if (!orders.SwitchToNextOrder(true)) break;
+
+		DoTrainPathfind(v, origin, true, &res_dest);
+		/* Break if no safe position was found. */
+		if (res_dest.pos.tile == INVALID_TILE) break;
+
+		if (!res_dest.okay) {
+			/* Path found, but could not be reserved. */
 			FreeTrainTrackReservation(v);
 			return false;
 		}
-		break;
 	}
 
-	if (change_signal) MarkTileDirtyByTile(tile);
+	/* No order or no safe position found, try any position. */
+	if (!safe) safe = TryReserveSafeTrack(v, origin, true);
 
-	return true;
+	if (!safe) {
+		FreeTrainTrackReservation(v);
+	} else if (change_signal) {
+		MarkTileDirtyByTile(tile);
+	}
+
+	return safe;
 }
 
 /**
