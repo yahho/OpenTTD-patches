@@ -16,7 +16,7 @@
 #include "../../ship.h"
 #include "../../roadstop_base.h"
 #include "../../bridge.h"
-#include "../pathfinder_type.h"
+#include "../types.h"
 #include "../follow_track.hpp"
 #include "aystar.h"
 #include "npf.h"

@@ -15,7 +15,7 @@
 #include "../../direction_type.h"
 #include "../../track_type.h"
 #include "../../vehicle_type.h"
-#include "../pathfinder_type.h"
+#include "../types.h"
 
 /** Length (penalty) of one tile with YAPF */
 static const int YAPF_TILE_LENGTH = 100;

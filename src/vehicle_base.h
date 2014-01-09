@@ -23,7 +23,7 @@
 #include "transport_type.h"
 #include "group_type.h"
 #include "base_consist.h"
-#include "pathfinder/pathfinder_type.h"
+#include "pathfinder/pos.h"
 #include <list>
 #include <map>
 

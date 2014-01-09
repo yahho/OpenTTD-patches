@@ -12080,6 +12080,10 @@
 			Name="Pathfinder"
 			>
 			<File
+				RelativePath=".\..\src\pathfinder\pos.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\pathfinder\follow_track.hpp"
 				>
 			</File>
@@ -12132,7 +12136,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\pathfinder\pathfinder_type.h"
+				RelativePath=".\..\src\pathfinder\types.h"
 				>
 			</File>
 			<File

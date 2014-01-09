@@ -21,7 +21,7 @@
 #include "../depot_func.h"
 #include "../bridge.h"
 #include "../ship.h"
-#include "pathfinder_type.h"
+#include "pos.h"
 #include "pf_performance_timer.hpp"
 
 /**

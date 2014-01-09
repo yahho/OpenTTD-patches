@@ -12,7 +12,7 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-#include "../pathfinder_type.h"
+#include "../pos.h"
 
 //#define HASH_STATS
 

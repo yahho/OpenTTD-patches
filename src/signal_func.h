@@ -16,7 +16,7 @@
 #include "track_type.h"
 #include "direction_type.h"
 #include "company_type.h"
-#include "pathfinder/pathfinder_type.h"
+#include "pathfinder/pos.h"
 
 /** State of the signal segment */
 enum SigSegState {

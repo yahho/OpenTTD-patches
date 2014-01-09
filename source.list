@@ -1038,10 +1038,11 @@ network/core/udp.cpp
 network/core/udp.h
 
 # Pathfinder
+pathfinder/pos.h
 pathfinder/follow_track.hpp
 pathfinder/opf/opf_ship.cpp
 pathfinder/opf/opf_ship.h
-pathfinder/pathfinder_type.h
+pathfinder/types.h
 pathfinder/pf_performance_timer.hpp
 
 # NPF

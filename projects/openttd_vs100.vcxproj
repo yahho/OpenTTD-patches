@@ -2013,6 +2013,7 @@
       <XMLDocumentationFileName>$(IntDir)\network\core\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\network\core\udp.h" />
+    <ClInclude Include="..\src\pathfinder\pos.h" />
     <ClInclude Include="..\src\pathfinder\follow_track.hpp" />
     <ClCompile Include="..\src\pathfinder\opf\opf_ship.cpp">
       <AssemblerListingLocation>$(IntDir)\pathfinder\opf\</AssemblerListingLocation>
@@ -2020,7 +2021,7 @@
       <XMLDocumentationFileName>$(IntDir)\pathfinder\opf\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\pathfinder\opf\opf_ship.h" />
-    <ClInclude Include="..\src\pathfinder\pathfinder_type.h" />
+    <ClInclude Include="..\src\pathfinder\types.h" />
     <ClInclude Include="..\src\pathfinder\pf_performance_timer.hpp" />
     <ClCompile Include="..\src\pathfinder\npf\aystar.cpp">
       <AssemblerListingLocation>$(IntDir)\pathfinder\npf\</AssemblerListingLocation>

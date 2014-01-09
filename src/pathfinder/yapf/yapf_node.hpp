@@ -12,7 +12,7 @@
 #ifndef YAPF_NODE_HPP
 #define YAPF_NODE_HPP
 
-#include "../pathfinder_type.h"
+#include "../pos.h"
 
 /** Yapf Node Key base class. */
 struct CYapfNodeKey : PFPos {

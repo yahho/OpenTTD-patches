@@ -2943,6 +2943,9 @@
     <ClInclude Include="..\src\network\core\udp.h">
       <Filter>Network Core</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\pathfinder\pos.h">
+      <Filter>Pathfinder</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\pathfinder\follow_track.hpp">
       <Filter>Pathfinder</Filter>
     </ClInclude>
@@ -2952,7 +2955,7 @@
     <ClInclude Include="..\src\pathfinder\opf\opf_ship.h">
       <Filter>Pathfinder</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\pathfinder\pathfinder_type.h">
+    <ClInclude Include="..\src\pathfinder\types.h">
       <Filter>Pathfinder</Filter>
     </ClInclude>
     <ClInclude Include="..\src\pathfinder\pf_performance_timer.hpp">

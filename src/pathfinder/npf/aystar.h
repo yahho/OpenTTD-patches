@@ -21,7 +21,7 @@
 #include "queue.h"
 #include "../../map/coord.h"
 #include "../../track_type.h"
-#include "../pathfinder_type.h"
+#include "../pos.h"
 
 //#define AYSTAR_DEBUG
 
