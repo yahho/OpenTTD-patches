@@ -33,7 +33,7 @@ static inline void SetSignalState(TileIndex tile, Trackdir trackdir, SignalState
 /**
  * Checks for the presence of signals along the given trackdir.
  */
-static inline bool HasSignalAlongPos(const PFPos &pos)
+static inline bool HasSignalAlongPos(const PathPos &pos)
 {
 	if (pos.InWormhole()) {
 		return false;
@@ -49,7 +49,7 @@ static inline bool HasSignalAlongPos(const PFPos &pos)
 /**
  * Checks for the presence of signals against the given trackdir.
  */
-static inline bool HasSignalAgainstPos(const PFPos &pos)
+static inline bool HasSignalAgainstPos(const PathPos &pos)
 {
 	if (pos.InWormhole()) {
 		return false;
@@ -65,7 +65,7 @@ static inline bool HasSignalAgainstPos(const PFPos &pos)
 /**
  * Checks for the presence of signals along or against the given trackdir.
  */
-static inline bool HasSignalOnPos(const PFPos &pos)
+static inline bool HasSignalOnPos(const PathPos &pos)
 {
 	if (pos.InWormhole()) {
 		return false;
@@ -78,7 +78,7 @@ static inline bool HasSignalOnPos(const PFPos &pos)
 	}
 }
 
-static inline SignalType GetSignalType(const PFPos &pos)
+static inline SignalType GetSignalType(const PathPos &pos)
 {
 	assert(HasSignalOnPos(pos));
 	return IsRailwayTile(pos.tile) ? GetSignalType(pos.tile, TrackdirToTrack(pos.td)) : maptile_get_tunnel_signal_type(pos.tile);
@@ -87,7 +87,7 @@ static inline SignalType GetSignalType(const PFPos &pos)
 /**
  * Gets the state of the signal along the given trackdir.
  */
-static inline SignalState GetSignalStateByPos(const PFPos &pos)
+static inline SignalState GetSignalStateByPos(const PathPos &pos)
 {
 	return IsRailwayTile(pos.tile) ? GetSignalStateByTrackdir(pos.tile, pos.td) :
 		maptile_get_tunnel_signal_state(pos.tile, TrackdirToExitdir(pos.td) == GetTunnelBridgeDirection(pos.tile));
@@ -110,7 +110,7 @@ static inline bool HasPbsSignalOnTrackdir(TileIndex tile, Trackdir td)
  * Is a pbs signal present along the trackdir?
  * @param pos the position to check
  */
-static inline bool HasPbsSignalAlongPos(const PFPos &pos)
+static inline bool HasPbsSignalAlongPos(const PathPos &pos)
 {
 	return !pos.InWormhole() && HasPbsSignalOnTrackdir(pos.tile, pos.td);
 }
@@ -119,7 +119,7 @@ static inline bool HasPbsSignalAlongPos(const PFPos &pos)
  * Is a pbs signal present against the trackdir?
  * @param pos the position to check
  */
-static inline bool HasPbsSignalAgainstPos(const PFPos &pos)
+static inline bool HasPbsSignalAgainstPos(const PathPos &pos)
 {
 	return !pos.InWormhole() && HasPbsSignalOnTrackdir(pos.tile, ReverseTrackdir(pos.td));
 }
@@ -148,7 +148,7 @@ static inline bool HasOnewaySignalBlockingTrackdir(TileIndex tile, Trackdir td)
  * trackdir against will block, but signals on both trackdirs won't.
  * @param pos the position to check
  */
-static inline bool HasOnewaySignalBlockingPos(const PFPos &pos)
+static inline bool HasOnewaySignalBlockingPos(const PathPos &pos)
 {
 	return !pos.InWormhole() && HasOnewaySignalBlockingTrackdir(pos.tile, pos.td);
 }

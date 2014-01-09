@@ -39,7 +39,7 @@ static const int AYSTAR_INVALID_NODE = -1; ///< Item is not valid (for example, 
 
 /** Node in the search. */
 struct AyStarNode {
-	PFPos pos;
+	PathPos pos;
 	uint user_data[2];
 };
 

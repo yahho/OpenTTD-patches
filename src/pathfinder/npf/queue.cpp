@@ -369,7 +369,7 @@ void Hash::Clear(bool free_values)
  * bucket, or NULL if it is empty. prev can also be NULL, in which case it is
  * not used for output.
  */
-HashNode *Hash::FindNode(const PFPos &key, HashNode** prev_out) const
+HashNode *Hash::FindNode(const PathPos &key, HashNode** prev_out) const
 {
 	uint hash = this->hash(key);
 	HashNode *result = NULL;
@@ -406,7 +406,7 @@ HashNode *Hash::FindNode(const PFPos &key, HashNode** prev_out) const
  * that value. Returns NULL when the value was not present. The value returned
  * is _not_ free()'d!
  */
-void *Hash::DeleteValue(const PFPos &key)
+void *Hash::DeleteValue(const PathPos &key)
 {
 	void *result;
 	HashNode *prev; // Used as output var for below function call
@@ -449,7 +449,7 @@ void *Hash::DeleteValue(const PFPos &key)
  * Sets the value associated with the given key to the given value.
  * Returns the old value if the value was replaced, NULL when it was not yet present.
  */
-void *Hash::Set(const PFPos &key, void *value)
+void *Hash::Set(const PathPos &key, void *value)
 {
 	HashNode *prev;
 	HashNode *node = this->FindNode(key, &prev);
@@ -483,7 +483,7 @@ void *Hash::Set(const PFPos &key, void *value)
  * Gets the value associated with the given key, or NULL when it is not
  * present.
  */
-void *Hash::Get(const PFPos &key) const
+void *Hash::Get(const PathPos &key) const
 {
 	HashNode *node = this->FindNode(key, NULL);
 

@@ -63,7 +63,7 @@ protected:
 	}
 
 public:
-	inline int SlopeCost(const PFPos &pos)
+	inline int SlopeCost(const PathPos &pos)
 	{
 		CPerfStart perf_cost(Yapf().m_perf_slope_cost);
 
@@ -106,7 +106,7 @@ public:
 		return cost;
 	}
 
-	inline int SwitchCost(const PFPos &pos1, const PFPos &pos2)
+	inline int SwitchCost(const PathPos &pos1, const PathPos &pos2)
 	{
 		if (!pos1.InWormhole() && IsRailwayTile(pos1.tile) && !pos2.InWormhole() && IsRailwayTile(pos2.tile)) {
 			DiagDirection exitdir = TrackdirToExitdir(pos1.td);
@@ -118,7 +118,7 @@ public:
 	}
 
 	/** Return one tile cost (base cost + level crossing penalty). */
-	inline int OneTileCost(const PFPos &pos)
+	inline int OneTileCost(const PathPos &pos)
 	{
 		int cost = 0;
 		/* set base cost */
@@ -136,7 +136,7 @@ public:
 	}
 
 	/** Check for a reserved station platform. */
-	inline bool IsAnyStationTileReserved(const PFPos &pos, int skipped)
+	inline bool IsAnyStationTileReserved(const PathPos &pos, int skipped)
 	{
 		TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
 		for (TileIndex tile = pos.tile; skipped >= 0; skipped--, tile += diff) {
@@ -146,7 +146,7 @@ public:
 	}
 
 	/** The cost for reserved tiles, including skipped ones. */
-	inline int ReservationCost(Node& n, const PFPos &pos, int skipped)
+	inline int ReservationCost(Node& n, const PathPos &pos, int skipped)
 	{
 		if (n.m_num_signals_passed >= m_sig_look_ahead_costs.Size() / 2) return 0;
 		if (!IsPbsSignal(n.m_last_signal_type)) return 0;
@@ -161,7 +161,7 @@ public:
 		return 0;
 	}
 
-	int SignalCost(Node& n, const PFPos &pos)
+	int SignalCost(Node& n, const PathPos &pos)
 	{
 		int cost = 0;
 		/* if there is one-way signal in the opposite direction, then it is not our way */
@@ -307,7 +307,7 @@ public:
 		const Train *v = Yapf().GetVehicle();
 
 		/* start at n and walk to the end of segment */
-		PFPos cur(n.GetPos());
+		PathPos cur(n.GetPos());
 
 		RailType rail_type = !cur.InWormhole() ? GetTileRailType(cur.tile, TrackdirToTrack(cur.td)) :
 			IsRailwayTile(cur.wormhole) ? GetBridgeRailType(cur.wormhole) : GetRailType(cur.wormhole);
@@ -320,7 +320,7 @@ public:
 
 		if (has_parent) {
 			/* First transition cost goes to segment entry cost */
-			PFPos ppos = n.m_parent->GetLastPos();
+			PathPos ppos = n.m_parent->GetLastPos();
 			segment_entry_cost = Yapf().CurveCost(ppos.td, cur.td);
 			segment_entry_cost += Yapf().SwitchCost(ppos, cur);
 
@@ -488,7 +488,7 @@ public:
 			}
 
 			/* Gather the next tile/trackdir. */
-			PFPos next(tf_local.m_new);
+			PathPos next(tf_local.m_new);
 
 			if (TrackFollower::DoTrackMasking()) {
 				if (HasSignalAlongPos(next) && IsPbsSignal(GetSignalType(next))) {

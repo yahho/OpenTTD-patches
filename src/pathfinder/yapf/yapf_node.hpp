@@ -15,12 +15,12 @@
 #include "../pos.h"
 
 /** Yapf Node Key base class. */
-struct CYapfNodeKey : PFPos {
+struct CYapfNodeKey : PathPos {
 	DiagDirection  exitdir;
 
-	inline void Set(const PFPos &pos)
+	inline void Set(const PathPos &pos)
 	{
-		PFPos::operator=(pos);
+		PathPos::operator=(pos);
 		exitdir = (pos.td == INVALID_TRACKDIR) ? INVALID_DIAGDIR : TrackdirToExitdir(pos.td);
 	}
 
@@ -58,7 +58,7 @@ struct CYapfNodeT {
 	int         m_cost;
 	int         m_estimate;
 
-	inline void Set(Node *parent, const PFPos &pos, bool is_choice)
+	inline void Set(Node *parent, const PathPos &pos, bool is_choice)
 	{
 		m_key.Set(pos);
 		m_hash_next = NULL;
@@ -69,7 +69,7 @@ struct CYapfNodeT {
 
 	inline Node *GetHashNext() {return m_hash_next;}
 	inline void SetHashNext(Node *pNext) {m_hash_next = pNext;}
-	inline const PFPos& GetPos() const {return m_key;}
+	inline const PathPos& GetPos() const {return m_key;}
 	inline const Tkey_& GetKey() const {return m_key;}
 	inline int GetCost() const {return m_cost;}
 	inline int GetCostEstimate() const {return m_estimate;}

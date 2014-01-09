@@ -484,7 +484,7 @@ public:
 	 * in depots), returns an invalid position.
 	 * @return the position of the vehicle
 	 */
-	virtual PFPos GetPos() const { return PFPos(); }
+	virtual PathPos GetPos() const { return PathPos(); }
 
 	/**
 	 * Gets the running cost of a vehicle  that can be sent into SetDParam for string processing.

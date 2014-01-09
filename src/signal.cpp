@@ -850,7 +850,7 @@ void AddTunnelToSignalBuffer(TileIndex tile, Owner owner)
  * @param pos position to add
  * @param owner owner whose signals we will update
  */
-void AddPosToSignalBuffer(const PFPos &pos, Owner owner)
+void AddPosToSignalBuffer(const PathPos &pos, Owner owner)
 {
 	SetBufferOwner(owner);
 

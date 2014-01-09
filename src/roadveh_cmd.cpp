@@ -1824,9 +1824,9 @@ void RoadVehicle::OnNewDay()
 	SetWindowClassesDirty(WC_ROADVEH_LIST);
 }
 
-PFPos RoadVehicle::GetPos() const
+PathPos RoadVehicle::GetPos() const
 {
-	if (this->vehstatus & VS_CRASHED) return PFPos();
+	if (this->vehstatus & VS_CRASHED) return PathPos();
 
 	Trackdir td;
 
@@ -1845,5 +1845,5 @@ PFPos RoadVehicle::GetPos() const
 		td = (Trackdir)((IsReversingRoadTrackdir((Trackdir)this->state)) ? (this->state - 6) : this->state);
 	}
 
-	return PFPos(this->tile, td);
+	return PathPos(this->tile, td);
 }

@@ -62,7 +62,7 @@ struct BinaryHeap {
  * Hash
  */
 struct HashNode {
-	PFPos key;
+	PathPos key;
 	void *value;
 	HashNode *next;
 };
@@ -70,7 +70,7 @@ struct HashNode {
  * Generates a hash code from the given key pair. You should make sure that
  * the resulting range is clearly defined.
  */
-typedef uint Hash_HashProc(const PFPos &key);
+typedef uint Hash_HashProc(const PathPos &key);
 struct Hash {
 	/* The hash function used */
 	Hash_HashProc *hash;
@@ -86,10 +86,10 @@ struct Hash {
 
 	void Init(Hash_HashProc *hash, uint num_buckets);
 
-	void *Get(const PFPos &key) const;
-	void *Set(const PFPos &key, void *value);
+	void *Get(const PathPos &key) const;
+	void *Set(const PathPos &key, void *value);
 
-	void *DeleteValue(const PFPos &key);
+	void *DeleteValue(const PathPos &key);
 
 	void Clear(bool free_values);
 	void Delete(bool free_values);
@@ -106,7 +106,7 @@ protected:
 #ifdef HASH_STATS
 	void PrintStatistics() const;
 #endif
-	HashNode *FindNode(const PFPos &key, HashNode** prev_out) const;
+	HashNode *FindNode(const PathPos &key, HashNode** prev_out) const;
 };
 
 #endif /* QUEUE_H */

@@ -130,7 +130,7 @@ static uint NPFDistanceTrack(TileIndex t0, TileIndex t1)
  *
  * @todo Think of a better hash.
  */
-static uint NPFHash(const PFPos &key)
+static uint NPFHash(const PathPos &key)
 {
 	/* TODO: think of a better hash? */
 	uint part1 = TileX(key.tile) & NPF_HASH_HALFMASK;
@@ -378,7 +378,7 @@ static int32 NPFRoadPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 /* Determine the cost of this node, for railway tracks */
 static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *parent)
 {
-	PFPos pos = current->pos;
+	PathPos pos = current->pos;
 	int32 cost = 0;
 	/* HACK: We create a OpenListNode manually, so we can call EndNodeCheck */
 	OpenListNode new_node;
@@ -860,7 +860,7 @@ static TrackdirBits GetDriveableTrackdirBits(TileIndex dst_tile, Trackdir src_tr
 static void NPFFollowTrack(AyStar *aystar, OpenListNode *current)
 {
 	/* We leave src in direction src_exitdir */
-	PFPos src = current->path.node.pos;
+	PathPos src = current->path.node.pos;
 	DiagDirection src_exitdir = TrackdirToExitdir(src.td);
 
 	/* Is src.tile valid, and can be used?
@@ -1031,7 +1031,7 @@ static NPFFoundTargetData NPFRouteInternal(AyStarNode *start1, bool ignore_start
 /* Will search as below, but with two start nodes, the second being the
  * reverse. Look at the NPF_FLAG_REVERSE flag in the result node to see which
  * direction was taken (NPFGetFlag(result.node, NPF_FLAG_REVERSE)) */
-static NPFFoundTargetData NPFRouteToStationOrTileTwoWay(const PFPos &pos1, bool ignore_start_tile1, const PFPos &pos2, bool ignore_start_tile2, NPFFindStationOrTileData *target, TransportType type, uint sub_type, Owner owner, RailTypes railtypes)
+static NPFFoundTargetData NPFRouteToStationOrTileTwoWay(const PathPos &pos1, bool ignore_start_tile1, const PathPos &pos2, bool ignore_start_tile2, NPFFindStationOrTileData *target, TransportType type, uint sub_type, Owner owner, RailTypes railtypes)
 {
 	AyStarNode start1;
 	AyStarNode start2;
@@ -1049,9 +1049,9 @@ static NPFFoundTargetData NPFRouteToStationOrTileTwoWay(const PFPos &pos1, bool 
 /* Will search from the given tile and direction, for a route to the given
  * station for the given transport type. See the declaration of
  * NPFFoundTargetData above for the meaning of the result. */
-static NPFFoundTargetData NPFRouteToStationOrTile(const PFPos &pos, bool ignore_start_tile, NPFFindStationOrTileData *target, TransportType type, uint sub_type, Owner owner, RailTypes railtypes)
+static NPFFoundTargetData NPFRouteToStationOrTile(const PathPos &pos, bool ignore_start_tile, NPFFindStationOrTileData *target, TransportType type, uint sub_type, Owner owner, RailTypes railtypes)
 {
-	return NPFRouteToStationOrTileTwoWay(pos, ignore_start_tile, PFPos(), false, target, type, sub_type, owner, railtypes);
+	return NPFRouteToStationOrTileTwoWay(pos, ignore_start_tile, PathPos(), false, target, type, sub_type, owner, railtypes);
 }
 
 /* Search using breadth first. Good for little track choice and inaccurate
@@ -1061,7 +1061,7 @@ static NPFFoundTargetData NPFRouteToStationOrTile(const PFPos &pos, bool ignore_
  * reverse_penalty applied (NPF_TILE_LENGTH is the equivalent of one full
  * tile).
  */
-static NPFFoundTargetData NPFRouteToDepotBreadthFirstTwoWay(const PFPos &pos1, bool ignore_start_tile1, const PFPos &pos2, bool ignore_start_tile2, NPFFindStationOrTileData *target, TransportType type, uint sub_type, Owner owner, RailTypes railtypes, uint reverse_penalty)
+static NPFFoundTargetData NPFRouteToDepotBreadthFirstTwoWay(const PathPos &pos1, bool ignore_start_tile1, const PathPos &pos2, bool ignore_start_tile2, NPFFindStationOrTileData *target, TransportType type, uint sub_type, Owner owner, RailTypes railtypes, uint reverse_penalty)
 {
 	AyStarNode start1;
 	AyStarNode start2;
@@ -1118,8 +1118,8 @@ static void NPFFillWithOrderData(NPFFindStationOrTileData *fstd, const Vehicle *
 
 TileIndex NPFRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_penalty)
 {
-	PFPos pos = v->GetPos();
-	PFPos rev = pos;
+	PathPos pos = v->GetPos();
+	PathPos rev = pos;
 	rev.td = ReverseTrackdir(rev.td);
 
 	NPFFoundTargetData ftd = NPFRouteToDepotBreadthFirstTwoWay(pos, false, rev, false, NULL, TRANSPORT_ROAD, v->compatible_roadtypes, v->owner, INVALID_RAILTYPES, 0);
@@ -1141,7 +1141,7 @@ Trackdir NPFRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDir
 	NPFFillWithOrderData(&fstd, v);
 	Trackdir trackdir = DiagDirToDiagTrackdir(enterdir);
 
-	NPFFoundTargetData ftd = NPFRouteToStationOrTile(PFPos(tile - TileOffsByDiagDir(enterdir), trackdir), true, &fstd, TRANSPORT_ROAD, v->compatible_roadtypes, v->owner, INVALID_RAILTYPES);
+	NPFFoundTargetData ftd = NPFRouteToStationOrTile(PathPos(tile - TileOffsByDiagDir(enterdir), trackdir), true, &fstd, TRANSPORT_ROAD, v->compatible_roadtypes, v->owner, INVALID_RAILTYPES);
 	if (ftd.best_trackdir == INVALID_TRACKDIR) {
 		/* We are already at our target. Just do something
 		 * @todo: maybe display error?
@@ -1164,7 +1164,7 @@ Trackdir NPFShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterdi
 {
 	NPFFindStationOrTileData fstd;
 
-	PFPos pos = v->GetPos();
+	PathPos pos = v->GetPos();
 	assert(pos.tile == TILE_ADD(tile, TileOffsByDiagDir(ReverseDiagDir(enterdir))));
 	assert(pos.td != INVALID_TRACKDIR); // Check that we are not in a depot
 
@@ -1187,10 +1187,10 @@ bool NPFShipCheckReverse(const Ship *v)
 
 	NPFFillWithOrderData(&fstd, v);
 
-	PFPos pos = v->GetPos();
+	PathPos pos = v->GetPos();
 	assert(pos.td != INVALID_TRACKDIR);
 
-	PFPos rev = pos;
+	PathPos rev = pos;
 	rev.td = ReverseTrackdir(rev.td);
 
 	ftd = NPFRouteToStationOrTileTwoWay(pos, false, rev, false, &fstd, TRANSPORT_WATER, 0, v->owner, INVALID_RAILTYPES);
@@ -1202,8 +1202,8 @@ bool NPFShipCheckReverse(const Ship *v)
 
 bool NPFTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *res)
 {
-	PFPos pos = v->GetPos();
-	PFPos rev = v->Last()->GetReversePos();
+	PathPos pos = v->GetPos();
+	PathPos rev = v->Last()->GetReversePos();
 	NPFFindStationOrTileData fstd;
 	fstd.v = v;
 	fstd.reserve_path = false;
@@ -1221,7 +1221,7 @@ bool NPFTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *r
 	return max_penalty == 0 || ftd.best_path_dist <= max_penalty;
 }
 
-bool NPFTrainFindNearestSafeTile(const Train *v, const PFPos &pos, bool override_railtype)
+bool NPFTrainFindNearestSafeTile(const Train *v, const PathPos &pos, bool override_railtype)
 {
 	assert(v->type == VEH_TRAIN);
 
@@ -1251,8 +1251,8 @@ bool NPFTrainCheckReverse(const Train *v)
 
 	NPFFillWithOrderData(&fstd, v);
 
-	PFPos pos = v->GetPos();
-	PFPos rev = v->Last()->GetReversePos();
+	PathPos pos = v->GetPos();
+	PathPos rev = v->Last()->GetReversePos();
 	assert(pos.td != INVALID_TRACKDIR);
 	assert(rev.td != INVALID_TRACKDIR);
 
@@ -1261,7 +1261,7 @@ bool NPFTrainCheckReverse(const Train *v)
 	return ftd.best_bird_dist == 0 && NPFGetFlag(&ftd.node, NPF_FLAG_REVERSE);
 }
 
-Trackdir NPFTrainChooseTrack(const Train *v, const PFPos &origin, bool reserve_track, PFResult *target)
+Trackdir NPFTrainChooseTrack(const Train *v, const PathPos &origin, bool reserve_track, PFResult *target)
 {
 	NPFFindStationOrTileData fstd;
 	NPFFillWithOrderData(&fstd, v, reserve_track);

@@ -41,7 +41,7 @@
 #include "table/strings.h"
 #include "table/train_cmd.h"
 
-static bool ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, Trackdir *best_trackdir = NULL);
+static bool ChooseTrainTrack(Train *v, PathPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, Trackdir *best_trackdir = NULL);
 static bool TryPathReserveFromDepot(Train *v);
 static bool TrainCheckIfLineEnds(Train *v, bool reverse = true);
 static StationID TrainEnterTile(Train *v, TileIndex tile, int x, int y);
@@ -1900,7 +1900,7 @@ void ReverseTrainDirection(Train *v)
 	AddPosToSignalBuffer(v->GetPos(), v->owner);
 
 	if (UpdateSignalsInBuffer() == SIGSEG_PBS || _settings_game.pf.reserve_paths) {
-		PFPos pos = v->GetPos();
+		PathPos pos = v->GetPos();
 
 		/* If we are currently on a tile with conventional signals, we can't treat the
 		 * current tile as a safe tile or we would enter a PBS block without a reservation. */
@@ -2048,7 +2048,7 @@ static bool FindClosestTrainDepot(Train *v, bool nearby, FindDepotData *res)
 		return true;
 	}
 
-	PFPos origin;
+	PathPos origin;
 	FollowTrainReservation(v, &origin);
 	if (IsRailDepotTile(origin.tile) && origin.td == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(origin.tile)))) {
 		*res = FindDepotData(origin.tile);
@@ -2140,7 +2140,7 @@ static void CheckNextTrainTile(Train *v)
 	/* Exit if we are on a station tile and are going to stop. */
 	if (IsRailStationTile(v->tile) && v->current_order.ShouldStopAtStation(v, GetStationIndex(v->tile))) return;
 
-	PFPos pos = v->GetPos();
+	PathPos pos = v->GetPos();
 
 	/* On a tile with a red non-pbs signal, don't look ahead. */
 	if (HasSignalAlongPos(pos) &&
@@ -2265,7 +2265,7 @@ static bool CheckTrainStayInDepot(Train *v)
  * @param v %Train owning the reservation.
  * @param pos position to clear.
  */
-static void ClearPathReservation(const Train *v, const PFPos &pos)
+static void ClearPathReservation(const Train *v, const PathPos &pos)
 {
 	DiagDirection dir = TrackdirToExitdir(pos.td);
 
@@ -2292,7 +2292,7 @@ void FreeTrainTrackReservation(const Train *v)
 {
 	assert(v->IsFrontEngine());
 
-	PFPos     pos = v->GetPos();
+	PathPos   pos = v->GetPos();
 	bool      first = true;
 
 	/* Can't be holding a reservation if we enter a depot. */
@@ -2380,7 +2380,7 @@ static const byte _initial_tile_subcoord[TRACKDIR_END][3] = {
  * @param dest [out] State and destination of the requested path
  * @return The best trackdir the train should follow
  */
-static Trackdir DoTrainPathfind(const Train *v, const PFPos &origin, bool do_track_reservation, PFResult *dest)
+static Trackdir DoTrainPathfind(const Train *v, const PathPos &origin, bool do_track_reservation, PFResult *dest)
 {
 	switch (_settings_game.pf.pathfinder_for_trains) {
 		case VPF_NPF: return NPFTrainChooseTrack(v, origin, do_track_reservation, dest);
@@ -2406,7 +2406,7 @@ enum ExtendReservationResult {
  * @param origin The end of the current reservation, which will be updated
  * @return An ExtendReservationResult value, showing reservation extension outcome
  */
-static ExtendReservationResult ExtendTrainReservation(const Train *v, PFPos *origin)
+static ExtendReservationResult ExtendTrainReservation(const Train *v, PathPos *origin)
 {
 	CFollowTrackRail ft(v, !_settings_game.pf.forbid_90_deg);
 	ft.SetPos(*origin);
@@ -2477,7 +2477,7 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, PFPos *ori
 	}
 
 	/* Sorry, can't reserve path, back out. */
-	PFPos stopped = ft.m_old;
+	PathPos stopped = ft.m_old;
 	ft.SetPos(*origin);
 	while (ft.m_new != stopped) {
 		if (!ft.FollowNext()) NOT_REACHED();
@@ -2501,7 +2501,7 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, PFPos *ori
  * @param override_railtype Whether all physically compatible railtypes should be followed.
  * @return True if a path to a safe stopping tile could be reserved.
  */
-static bool TryReserveSafeTrack(const Train *v, const PFPos &pos, bool override_tailtype)
+static bool TryReserveSafeTrack(const Train *v, const PathPos &pos, bool override_tailtype)
 {
 	switch (_settings_game.pf.pathfinder_for_trains) {
 		case VPF_NPF: return NPFTrainFindNearestSafeTile(v, pos, override_tailtype);
@@ -2592,7 +2592,7 @@ public:
 };
 
 /* choose a track */
-static bool ChooseTrainTrack(Train *v, PFPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, Trackdir *best_trackdir)
+static bool ChooseTrainTrack(Train *v, PathPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, Trackdir *best_trackdir)
 {
 	bool do_track_reservation = _settings_game.pf.reserve_paths || force_res;
 	bool change_signal = false;
@@ -2753,7 +2753,7 @@ bool TryPathReserve(Train *v, bool mark_as_stuck, bool first_tile_okay)
 	assert(v->trackdir != TRACKDIR_DEPOT);
 
 	Vehicle *other_train = NULL;
-	PFPos origin;
+	PathPos origin;
 	FollowTrainReservation(v, &origin, &other_train);
 	/* The path we are driving on is already blocked by some other train.
 	 * This can only happen in certain situations when mixing path and
@@ -3644,7 +3644,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				/* Clear any track reservation when the last vehicle leaves the tile */
 				ClearPathReservation(v, v->GetPos());
 
-				PFPos rev = v->GetReversePos();
+				PathPos rev = v->GetReversePos();
 				if (HasSignalOnPos(rev)) {
 					assert(IsSignalBufferEmpty());
 					AddPosToSignalBuffer(rev, v->owner);
@@ -3749,7 +3749,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			}
 
 			if (v->IsFrontEngine()) {
-				PFPos pos = v->GetPos();
+				PathPos pos = v->GetPos();
 				if (HasSignalOnPos(pos)) {
 					assert(IsSignalBufferEmpty());
 					AddPosToSignalBuffer(pos, v->owner);
@@ -4440,29 +4440,29 @@ Trackdir Train::GetTrackdir() const
 	return this->trackdir;
 }
 
-PFPos Train::GetPos() const
+PathPos Train::GetPos() const
 {
-	if (this->vehstatus & VS_CRASHED) return PFPos();
+	if (this->vehstatus & VS_CRASHED) return PathPos();
 
 	if (this->trackdir == TRACKDIR_WORMHOLE) {
 		DiagDirection rev = GetTunnelBridgeDirection(this->tile);
 		assert(ReverseDiagDir(rev) == DirToDiagDir(this->direction));
-		return PFPos(TILE_ADD(this->tile, TileOffsByDiagDir(rev)), DiagDirToDiagTrackdir(ReverseDiagDir(rev)), this->tile);
+		return PathPos(TILE_ADD(this->tile, TileOffsByDiagDir(rev)), DiagDirToDiagTrackdir(ReverseDiagDir(rev)), this->tile);
 	}
 
-	return PFPos(this->tile, this->GetTrackdir());
+	return PathPos(this->tile, this->GetTrackdir());
 }
 
-PFPos Train::GetReversePos() const
+PathPos Train::GetReversePos() const
 {
-	if (this->vehstatus & VS_CRASHED) return PFPos();
+	if (this->vehstatus & VS_CRASHED) return PathPos();
 
 	if (this->trackdir == TRACKDIR_WORMHOLE) {
 		TileIndex other_end = GetOtherTunnelBridgeEnd(this->tile);
 		DiagDirection dir = GetTunnelBridgeDirection(other_end);
 		assert(dir == DirToDiagDir(this->direction));
-		return PFPos(TILE_ADD(other_end, TileOffsByDiagDir(dir)), DiagDirToDiagTrackdir(ReverseDiagDir(dir)), other_end);
+		return PathPos(TILE_ADD(other_end, TileOffsByDiagDir(dir)), DiagDirToDiagTrackdir(ReverseDiagDir(dir)), other_end);
 	}
 
-	return PFPos(this->tile, ReverseTrackdir(this->GetTrackdir()));
+	return PathPos(this->tile, ReverseTrackdir(this->GetTrackdir()));
 }

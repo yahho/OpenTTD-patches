@@ -57,9 +57,9 @@ struct CYapfRailSegment
 	typedef CYapfRailSegmentKey Key;
 
 	CYapfRailSegmentKey    m_key;
-	PFPos                  m_last;
+	PathPos                m_last;
 	int                    m_cost;
-	PFPos                  m_last_signal;
+	PathPos                m_last_signal;
 	EndSegmentReasonBits   m_end_segment_reason;
 	CYapfRailSegment      *m_hash_next;
 
@@ -120,7 +120,7 @@ struct CYapfRailNodeT
 	SignalType        m_last_red_signal_type;
 	SignalType        m_last_signal_type;
 
-	inline void Set(CYapfRailNodeT *parent, const PFPos &pos, bool is_choice)
+	inline void Set(CYapfRailNodeT *parent, const PathPos &pos, bool is_choice)
 	{
 		base::Set(parent, pos, is_choice);
 		m_segment = NULL;
@@ -148,20 +148,20 @@ struct CYapfRailNodeT
 		flags_u.flags_s.m_choice_seen |= is_choice;
 	}
 
-	inline const PFPos& GetLastPos() const
+	inline const PathPos& GetLastPos() const
 	{
 		assert(m_segment != NULL);
 		return m_segment->m_last;
 	}
 
-	inline void SetLastTileTrackdir(const PFPos &pos)
+	inline void SetLastTileTrackdir(const PathPos &pos)
 	{
 		assert(m_segment != NULL);
 		m_segment->m_last = pos;
 	}
 
 	template <class Tbase, class Tfunc, class Tpf>
-	bool IterateTiles(const Train *v, Tpf &yapf, Tbase &obj, bool (Tfunc::*func)(const PFPos&, PFPos*), PFPos *pos = NULL) const
+	bool IterateTiles(const Train *v, Tpf &yapf, Tbase &obj, bool (Tfunc::*func)(const PathPos&, PathPos*), PathPos *pos = NULL) const
 	{
 		typename Tbase::TrackFollower ft(v, yapf.GetCompatibleRailTypes());
 		ft.SetPos(base::GetPos());

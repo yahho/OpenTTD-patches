@@ -22,7 +22,7 @@ public:
 	typedef typename Node::Key Key;               ///< key to hash tables
 
 protected:
-	PFPos        m_org;                           ///< origin position
+	PathPos      m_org;                           ///< origin position
 	TrackdirBits m_trackdirs;                     ///< origin trackdir mask
 
 	/** to access inherited path finder */
@@ -33,7 +33,7 @@ protected:
 
 public:
 	/** Set origin position */
-	void SetOrigin(const PFPos &pos)
+	void SetOrigin(const PathPos &pos)
 	{
 		m_org = pos;
 		m_trackdirs = TrackdirToTrackdirBits(pos.td);
@@ -42,7 +42,7 @@ public:
 	/** Set origin tile / trackdir mask */
 	void SetOrigin(TileIndex tile, TrackdirBits trackdirs)
 	{
-		m_org = PFPos(tile, (KillFirstBit(trackdirs) == TRACKDIR_BIT_NONE) ? FindFirstTrackdir(trackdirs) : INVALID_TRACKDIR);
+		m_org = PathPos(tile, (KillFirstBit(trackdirs) == TRACKDIR_BIT_NONE) ? FindFirstTrackdir(trackdirs) : INVALID_TRACKDIR);
 		m_trackdirs = trackdirs;
 	}
 
@@ -54,7 +54,7 @@ public:
 			n1.Set(NULL, m_org, false);
 			Yapf().AddStartupNode(n1);
 		} else {
-			PFPos pos = m_org;
+			PathPos pos = m_org;
 			for (TrackdirBits tdb = m_trackdirs; tdb != TRACKDIR_BIT_NONE; tdb = KillFirstBit(tdb)) {
 				pos.td = FindFirstTrackdir(tdb);
 				Node& n1 = Yapf().CreateNewNode();
@@ -75,8 +75,8 @@ public:
 	typedef typename Node::Key Key;               ///< key to hash tables
 
 protected:
-	PFPos       m_org;                            ///< first origin position
-	PFPos       m_rev;                            ///< second (reversed) origin position
+	PathPos     m_org;                            ///< first origin position
+	PathPos     m_rev;                            ///< second (reversed) origin position
 	int         m_reverse_penalty;                ///< penalty to be added for using the reversed origin
 	bool        m_treat_first_red_two_way_signal_as_eol; ///< in some cases (leaving station) we need to handle first two-way signal differently
 
@@ -88,7 +88,7 @@ protected:
 
 public:
 	/** set origin */
-	void SetOrigin(const PFPos &pos, const PFPos &rev = PFPos(), int reverse_penalty = 0, bool treat_first_red_two_way_signal_as_eol = true)
+	void SetOrigin(const PathPos &pos, const PathPos &rev = PathPos(), int reverse_penalty = 0, bool treat_first_red_two_way_signal_as_eol = true)
 	{
 		m_org = pos;
 		m_rev = rev;

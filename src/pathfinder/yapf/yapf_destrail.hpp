@@ -57,7 +57,7 @@ public:
 	}
 
 	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination(const PFPos &pos)
+	inline bool PfDetectDestination(const PathPos &pos)
 	{
 		return !pos.InWormhole() && IsRailDepotTile(pos.tile);
 	}
@@ -96,7 +96,7 @@ public:
 	}
 
 	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination(const PFPos &pos)
+	inline bool PfDetectDestination(const PathPos &pos)
 	{
 		return IsFreeSafeWaitingPosition(Yapf().GetVehicle(), pos, !TrackFollower::Allow90degTurns());
 	}
@@ -165,7 +165,7 @@ public:
 	}
 
 	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination(const PFPos &pos)
+	inline bool PfDetectDestination(const PathPos &pos)
 	{
 		bool bDest;
 		if (m_dest_station_id != INVALID_STATION) {

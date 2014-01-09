@@ -86,7 +86,7 @@ bool NPFTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *r
  * @param override_railtype Should all physically compatible railtypes be searched, even if the vehicle can't run on them on its own?
  * @return True if the path could be extended to a safe tile.
  */
-bool NPFTrainFindNearestSafeTile(const Train *v, const PFPos &pos, bool override_railtype);
+bool NPFTrainFindNearestSafeTile(const Train *v, const PathPos &pos, bool override_railtype);
 
 /**
  * Returns true if it is better to reverse the train before leaving station using NPF.
@@ -103,6 +103,6 @@ bool NPFTrainCheckReverse(const Train *v);
  * @param target   [out] the target tile of the reservation, free is set to true if path was reserved
  * @return         the best trackdir for next turn
  */
-Trackdir NPFTrainChooseTrack(const Train *v, const PFPos &origin, bool reserve_track, PFResult *target);
+Trackdir NPFTrainChooseTrack(const Train *v, const PathPos &origin, bool reserve_track, PFResult *target);
 
 #endif /* NPF_H */

@@ -53,8 +53,8 @@ struct CFollowTrackBase
 		TR_TUNNEL,
 	};
 
-	PFPos               m_old;           ///< the origin (vehicle moved from) before move
-	PFNewPos            m_new;           ///< the new tile (the vehicle has entered)
+	PathPos             m_old;           ///< the origin (vehicle moved from) before move
+	PathMPos            m_new;           ///< the new tile (the vehicle has entered)
 	DiagDirection       m_exitdir;       ///< exit direction (leaving the old tile)
 	TileFlag            m_flag;          ///< last turn passed station, tunnel or bridge
 	int                 m_tiles_skipped; ///< number of skipped tunnel or station tiles
@@ -98,7 +98,7 @@ struct CFollowTrack : Base
 	 * indicating why the track could not be followed. The rest of the
 	 * fields should be considered undefined.
 	 */
-	inline bool Follow(const PFPos &pos)
+	inline bool Follow(const PathPos &pos)
 	{
 		Base::m_old = pos;
 		Base::m_err = Base::EC_NONE;
@@ -193,9 +193,9 @@ struct CFollowTrack : Base
 		return Follow(Base::m_new);
 	}
 
-	inline void SetPos(const PFPos &pos)
+	inline void SetPos(const PathPos &pos)
 	{
-		Base::m_new.PFPos::operator = (pos);
+		Base::m_new.PathPos::operator = (pos);
 		Base::m_new.trackdirs = TrackdirToTrackdirBits(pos.td);
 	}
 

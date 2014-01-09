@@ -55,7 +55,7 @@ public:
 	static Trackdir ChooseShipTrack(const Ship *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)
 	{
 		/* move back to the old tile/trackdir (where ship is coming from) */
-		PFPos pos = v->GetPos();
+		PathPos pos = v->GetPos();
 		assert(pos.tile == TILE_ADD(tile, TileOffsByDiagDir(ReverseDiagDir(enterdir))));
 		assert(IsValidTrackdir(pos.td));
 
@@ -97,7 +97,7 @@ public:
 	 * @param pos Current position
 	 * @return true if the reverse direction is better
 	 */
-	static bool CheckShipReverse(const Ship *v, const PFPos &pos)
+	static bool CheckShipReverse(const Ship *v, const PathPos &pos)
 	{
 		/* create pathfinder instance */
 		Tpf pf;
@@ -203,7 +203,7 @@ protected:
 	}
 
 public:
-	inline bool PfDetectDestination(const PFPos &pos)
+	inline bool PfDetectDestination(const PathPos &pos)
 	{
 		if (pos.InWormhole()) return false;
 
@@ -300,9 +300,9 @@ Trackdir YapfShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterd
 
 bool YapfShipCheckReverse(const Ship *v)
 {
-	PFPos pos = v->GetPos();
+	PathPos pos = v->GetPos();
 
-	typedef bool (*PfnCheckReverseShip)(const Ship*, const PFPos&);
+	typedef bool (*PfnCheckReverseShip)(const Ship*, const PathPos&);
 	PfnCheckReverseShip pfnCheckReverseShip = CYapfShip2::CheckShipReverse; // default: ExitDir, allow 90-deg
 
 	/* check if non-default YAPF type needed */

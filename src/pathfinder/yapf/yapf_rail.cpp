@@ -55,11 +55,11 @@ protected:
 	}
 
 private:
-	PFPos     m_res_dest;         ///< The reservation target
+	PathPos   m_res_dest;         ///< The reservation target
 	Node      *m_res_node;        ///< The reservation target node
 	TileIndex m_origin_tile;      ///< Tile our reservation will originate from
 
-	bool FindSafePositionProc(const PFPos &pos, PFPos*)
+	bool FindSafePositionProc(const PathPos &pos, PathPos*)
 	{
 		if (IsSafeWaitingPosition(Yapf().GetVehicle(), pos, !TrackFollower::Allow90degTurns())) {
 			m_res_dest = pos;
@@ -69,7 +69,7 @@ private:
 	}
 
 	/** Try to reserve a single track/platform. */
-	bool ReserveSingleTrack(const PFPos &pos, PFPos *fail)
+	bool ReserveSingleTrack(const PathPos &pos, PathPos *fail)
 	{
 		if (!pos.InWormhole() && IsRailStationTile(pos.tile)) {
 			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
@@ -104,7 +104,7 @@ private:
 	}
 
 	/** Unreserve a single track/platform. Stops when the previous failer is reached. */
-	bool UnreserveSingleTrack(const PFPos &pos, PFPos *stop)
+	bool UnreserveSingleTrack(const PathPos &pos, PathPos *stop)
 	{
 		if (stop != NULL && pos == *stop) return false;
 
@@ -125,7 +125,7 @@ private:
 
 public:
 	/** Set the target to where the reservation should be extended. */
-	inline void SetReservationTarget(Node *node, const PFPos &pos)
+	inline void SetReservationTarget(Node *node, const PathPos &pos)
 	{
 		m_res_node = node;
 		m_res_dest = pos;
@@ -145,7 +145,7 @@ public:
 	}
 
 	/** Try to reserve the path till the reservation target. */
-	bool TryReservePath(TileIndex origin, PFPos *target = NULL)
+	bool TryReservePath(TileIndex origin, PathPos *target = NULL)
 	{
 		m_origin_tile = origin;
 
@@ -154,7 +154,7 @@ public:
 		/* Don't bother if the target is reserved. */
 		if (!IsWaitingPositionFree(Yapf().GetVehicle(), m_res_dest)) return false;
 
-		PFPos res_fail;
+		PathPos res_fail;
 
 		for (Node *node = m_res_node; node->m_parent != NULL; node = node->m_parent) {
 			node->IterateTiles(Yapf().GetVehicle(), Yapf(), *this, &CYapfReserveTrack<Types>::ReserveSingleTrack, &res_fail);
@@ -213,7 +213,7 @@ public:
 		return 't';
 	}
 
-	static bool stFindNearestDepotTwoWay(const Train *v, const PFPos &pos1, const PFPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
+	static bool stFindNearestDepotTwoWay(const Train *v, const PathPos &pos1, const PathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
 	{
 		Tpf pf1;
 		/*
@@ -243,7 +243,7 @@ public:
 		return result1;
 	}
 
-	inline bool FindNearestDepotTwoWay(const Train *v, const PFPos &pos1, const PFPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
+	inline bool FindNearestDepotTwoWay(const Train *v, const PathPos &pos1, const PathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
 	{
 		/* set origin and destination nodes */
 		Yapf().SetOrigin(pos1, pos2, reverse_penalty, true);
@@ -309,7 +309,7 @@ public:
 		return 't';
 	}
 
-	static bool stFindNearestSafeTile(const Train *v, const PFPos &pos, bool override_railtype)
+	static bool stFindNearestSafeTile(const Train *v, const PathPos &pos, bool override_railtype)
 	{
 		/* Create pathfinder instance */
 		Tpf pf1;
@@ -330,7 +330,7 @@ public:
 		return result1;
 	}
 
-	bool FindNearestSafeTile(const Train *v, const PFPos &pos, bool override_railtype, bool dont_reserve)
+	bool FindNearestSafeTile(const Train *v, const PathPos &pos, bool override_railtype, bool dont_reserve)
 	{
 		/* Set origin and destination. */
 		Yapf().SetOrigin(pos);
@@ -392,7 +392,7 @@ public:
 		return 't';
 	}
 
-	static Trackdir stChooseRailTrack(const Train *v, const PFPos &origin, bool reserve_track, PFResult *target)
+	static Trackdir stChooseRailTrack(const Train *v, const PathPos &origin, bool reserve_track, PFResult *target)
 	{
 		/* create pathfinder instance */
 		Tpf pf1;
@@ -413,7 +413,7 @@ public:
 		return result1;
 	}
 
-	inline Trackdir ChooseRailTrack(const Train *v, const PFPos &origin, bool reserve_track, PFResult *target)
+	inline Trackdir ChooseRailTrack(const Train *v, const PathPos &origin, bool reserve_track, PFResult *target)
 	{
 		if (target != NULL) target->pos.tile = INVALID_TILE;
 
@@ -455,7 +455,7 @@ public:
 		return next_trackdir;
 	}
 
-	static bool stCheckReverseTrain(const Train *v, const PFPos &pos1, const PFPos &pos2, int reverse_penalty)
+	static bool stCheckReverseTrain(const Train *v, const PathPos &pos1, const PathPos &pos2, int reverse_penalty)
 	{
 		Tpf pf1;
 		bool result1 = pf1.CheckReverseTrain(v, pos1, pos2, reverse_penalty);
@@ -473,7 +473,7 @@ public:
 		return result1;
 	}
 
-	inline bool CheckReverseTrain(const Train *v, const PFPos &pos1, const PFPos &pos2, int reverse_penalty)
+	inline bool CheckReverseTrain(const Train *v, const PathPos &pos1, const PathPos &pos2, int reverse_penalty)
 	{
 		/* create pathfinder instance
 		 * set origin and destination nodes */
@@ -526,10 +526,10 @@ struct CYapfAnySafeTileRail1 : CYapfT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CF
 struct CYapfAnySafeTileRail2 : CYapfT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90, CRailNodeListTrackDir, CYapfDestinationAnySafeTileRailT , CYapfFollowAnySafeTileRailT> > {};
 
 
-Trackdir YapfTrainChooseTrack(const Train *v, const PFPos &origin, bool reserve_track, PFResult *target)
+Trackdir YapfTrainChooseTrack(const Train *v, const PathPos &origin, bool reserve_track, PFResult *target)
 {
 	/* default is YAPF type 2 */
-	typedef Trackdir (*PfnChooseRailTrack)(const Train*, const PFPos&, bool, PFResult*);
+	typedef Trackdir (*PfnChooseRailTrack)(const Train*, const PathPos&, bool, PFResult*);
 	PfnChooseRailTrack pfnChooseRailTrack = &CYapfRail1::stChooseRailTrack;
 
 	/* check if non-default YAPF type needed */
@@ -545,8 +545,8 @@ bool YapfTrainCheckReverse(const Train *v)
 	const Train *last_veh = v->Last();
 
 	/* tiles where front and back are */
-	PFPos pos = v->GetPos();
-	PFPos rev = last_veh->GetReversePos();
+	PathPos pos = v->GetPos();
+	PathPos rev = last_veh->GetReversePos();
 
 	int reverse_penalty = 0;
 
@@ -573,7 +573,7 @@ bool YapfTrainCheckReverse(const Train *v)
 		reverse_penalty += DistanceManhattan(cur_tile, rev.tile) * YAPF_TILE_LENGTH;
 	}
 
-	typedef bool (*PfnCheckReverseTrain)(const Train*, const PFPos&, const PFPos&, int);
+	typedef bool (*PfnCheckReverseTrain)(const Train*, const PathPos&, const PathPos&, int);
 	PfnCheckReverseTrain pfnCheckReverseTrain = CYapfRail1::stCheckReverseTrain;
 
 	/* check if non-default YAPF type needed */
@@ -591,11 +591,11 @@ bool YapfTrainCheckReverse(const Train *v)
 
 bool YapfTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *res)
 {
-	PFPos origin;
+	PathPos origin;
 	FollowTrainReservation(v, &origin);
-	PFPos rev = v->Last()->GetReversePos();
+	PathPos rev = v->Last()->GetReversePos();
 
-	typedef bool (*PfnFindNearestDepotTwoWay)(const Train*, const PFPos&, const PFPos&, int, int, TileIndex*, bool*);
+	typedef bool (*PfnFindNearestDepotTwoWay)(const Train*, const PathPos&, const PathPos&, int, int, TileIndex*, bool*);
 	PfnFindNearestDepotTwoWay pfnFindNearestDepotTwoWay = &CYapfAnyDepotRail1::stFindNearestDepotTwoWay;
 
 	/* check if non-default YAPF type needed */
@@ -606,9 +606,9 @@ bool YapfTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *
 	return pfnFindNearestDepotTwoWay(v, origin, rev, max_penalty, YAPF_INFINITE_PENALTY, &res->tile, &res->reverse);
 }
 
-bool YapfTrainFindNearestSafeTile(const Train *v, const PFPos &pos, bool override_railtype)
+bool YapfTrainFindNearestSafeTile(const Train *v, const PathPos &pos, bool override_railtype)
 {
-	typedef bool (*PfnFindNearestSafeTile)(const Train*, const PFPos&, bool);
+	typedef bool (*PfnFindNearestSafeTile)(const Train*, const PathPos&, bool);
 	PfnFindNearestSafeTile pfnFindNearestSafeTile = CYapfAnySafeTileRail1::stFindNearestSafeTile;
 
 	/* check if non-default YAPF type needed */

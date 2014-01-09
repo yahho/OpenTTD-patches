@@ -1093,7 +1093,7 @@ static const uint RIVER_HASH_SIZE = 8; ///< The number of bits the hash for rive
  * @param pos The position to hash.
  * @return The hash for the tile.
  */
-static uint River_Hash(const PFPos &pos)
+static uint River_Hash(const PathPos &pos)
 {
 	return GB(TileHash(TileX(pos.tile), TileY(pos.tile)), 0, RIVER_HASH_SIZE);
 }

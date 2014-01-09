@@ -231,9 +231,9 @@ void Ship::OnNewDay()
 	SetWindowClassesDirty(WC_SHIPS_LIST);
 }
 
-PFPos Ship::GetPos() const
+PathPos Ship::GetPos() const
 {
-	if (this->vehstatus & VS_CRASHED) return PFPos();
+	if (this->vehstatus & VS_CRASHED) return PathPos();
 
 	Trackdir td;
 
@@ -247,7 +247,7 @@ PFPos Ship::GetPos() const
 		td = this->trackdir;
 	}
 
-	return PFPos(this->tile, td);
+	return PathPos(this->tile, td);
 }
 
 void Ship::MarkDirty()

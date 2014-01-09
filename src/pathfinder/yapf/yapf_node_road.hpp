@@ -19,9 +19,9 @@ struct CYapfRoadNodeT
 {
 	typedef CYapfNodeT<Tkey_, CYapfRoadNodeT<Tkey_> > base;
 
-	PFPos m_segment_last;
+	PathPos m_segment_last;
 
-	void Set(CYapfRoadNodeT *parent, const PFPos &pos, bool is_choice)
+	void Set(CYapfRoadNodeT *parent, const PathPos &pos, bool is_choice)
 	{
 		base::Set(parent, pos, is_choice);
 		m_segment_last = pos;
