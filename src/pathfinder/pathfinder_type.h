@@ -42,37 +42,27 @@ struct PFPos {
 	Trackdir td;
 	TileIndex wormhole;
 
-	/**
-	 * Create an empty PFPos
-	 */
+	/** Create an empty PFPos */
 	PFPos() : tile(INVALID_TILE), td(INVALID_TRACKDIR), wormhole(INVALID_TILE) { }
 
-	/**
-	 * Create a PFPos for a given tile and trackdir
-	 */
+	/** Create a PFPos for a given tile and trackdir */
 	PFPos(TileIndex t, Trackdir d) : tile(t), td(d), wormhole(INVALID_TILE) { }
 
-	/**
-	 * Create a PFPos in a wormhole
-	 */
+	/** Create a PFPos in a wormhole */
 	PFPos(TileIndex t, Trackdir d, TileIndex w) : tile(t), td(d), wormhole(w) { }
 
-	/**
-	 * Check if the PFPos is in a womrhole
-	 */
+	/** Check if the PFPos is in a womrhole */
 	bool InWormhole() const { return wormhole != INVALID_TILE; }
 
-	/**
-	 * Compare with another PFPos
-	 */
-	bool operator == (const PFPos &other) const {
+	/** Compare with another PFPos */
+	bool operator == (const PFPos &other) const
+	{
 		return (tile == other.tile) && (td == other.td) && (wormhole == other.wormhole);
 	}
 
-	/**
-	 * Compare with another PFPos
-	 */
-	bool operator != (const PFPos &other) const {
+	/** Compare with another PFPos */
+	bool operator != (const PFPos &other) const
+	{
 		return (tile != other.tile) || (td != other.td) || (wormhole != other.wormhole);
 	}
 };
