@@ -35,15 +35,29 @@ struct CYapfNodeKey : PathPos {
 /** Yapf Node Key that evaluates hash from (and compares) tile & exit dir. */
 struct CYapfNodeKeyExitDir : public CYapfNodeKey
 {
-	inline int CalcHash() const {return exitdir | (in_wormhole() ? 4 : 0) | (tile << 3);}
-	inline bool operator == (const CYapfNodeKeyExitDir& other) const {return (tile == other.tile) && (exitdir == other.exitdir);}
+	inline int CalcHash() const
+	{
+		return exitdir | (in_wormhole() ? 4 : 0) | (tile << 3);
+	}
+
+	inline bool operator == (const CYapfNodeKeyExitDir& other) const
+	{
+		return (tile == other.tile) && (exitdir == other.exitdir);
+	}
 };
 
 /** Yapf Node Key that evaluates hash from (and compares) tile & track dir. */
 struct CYapfNodeKeyTrackDir : public CYapfNodeKey
 {
-	inline int CalcHash() const {return (in_wormhole() ? (td + 6) : td) | (tile << 4);}
-	inline bool operator == (const CYapfNodeKeyTrackDir& other) const {return (tile == other.tile) && (td == other.td);}
+	inline int CalcHash() const
+	{
+		return (in_wormhole() ? (td + 6) : td) | (tile << 4);
+	}
+
+	inline bool operator == (const CYapfNodeKeyTrackDir& other) const
+	{
+		return (tile == other.tile) && (td == other.td);
+	}
 };
 
 /** Yapf Node base */
