@@ -156,8 +156,7 @@ struct CFollowTrack : Base
 				assert(IsTunnelTile(Base::m_new.tile));
 				assert(Base::m_exitdir == ReverseDiagDir(GetTunnelBridgeDirection(Base::m_new.tile)));
 
-				Base::m_new.td = DiagDirToDiagTrackdir(Base::m_exitdir);
-				Base::m_new.trackdirs = TrackdirToTrackdirBits(Base::m_new.td);
+				Base::m_new.set_trackdir (DiagDirToDiagTrackdir(Base::m_exitdir));
 				assert(Base::m_new.trackdirs == (Base::GetTrackStatusTrackdirBits(Base::m_new.tile) & DiagdirReachesTrackdirs(Base::m_exitdir)));
 				return true;
 
@@ -642,7 +641,7 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 			/* GetTileRoadStatus() returns 0 for single tram bits.
 			 * As we cannot change it there (easily) without breaking something, change it here */
 			if (IsTram() && GetSingleTramBit(m_new.tile) == ReverseDiagDir(m_exitdir)) {
-				m_new.trackdirs = TrackdirToTrackdirBits(DiagDirToDiagTrackdir(m_exitdir));
+				m_new.set_trackdir (DiagDirToDiagTrackdir(m_exitdir));
 				return true;
 			} else {
 				m_err = EC_NO_WAY;

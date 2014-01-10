@@ -126,6 +126,14 @@ struct PathMPos : PathPos {
 	}
 
 	inline bool IsTrackdirSet() const { return td != INVALID_TRACKDIR; }
+
+	/** Set trackdirs to a single trackdir */
+	void set_trackdir (Trackdir d)
+	{
+		assert (tile != INVALID_TILE); // tile should be already set
+		td = d;
+		trackdirs = TrackdirToTrackdirBits(d);
+	}
 };
 
 #endif /* PATHFINDER_POS_H */
