@@ -87,6 +87,20 @@ struct PathPos : PathTile {
 		td = d;
 	}
 
+	/** Set the tile of this position to a given tile */
+	void set_tile (TileIndex t)
+	{
+		PathTile::set(t);
+		td = INVALID_TRACKDIR; // trash previous trackdir
+	}
+
+	/** Set the tile of this position to a given tile */
+	void set_tile (TileIndex t, TileIndex w)
+	{
+		PathTile::set (t, w);
+		td = INVALID_TRACKDIR; // trash previous trackdir
+	}
+
 	/** Compare with another PathPos */
 	bool operator == (const PathPos &other) const
 	{

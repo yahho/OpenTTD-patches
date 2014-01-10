@@ -128,8 +128,7 @@ struct CFollowTrack : Base
 					break;
 				default:
 					/* normal or station tile, do one step */
-					Base::m_new.tile = TileAddByDiagDir (Base::m_old.tile, Base::m_exitdir);
-					Base::m_new.wormhole = INVALID_TILE;
+					Base::m_new.set_tile (TileAddByDiagDir (Base::m_old.tile, Base::m_exitdir));
 					Base::m_tiles_skipped = 0;
 					/* special handling for stations */
 					Base::m_flag = Base::CheckStation() ? Base::TF_STATION : Base::TF_NONE;
@@ -213,8 +212,7 @@ protected:
 			Base::m_new.trackdirs = TrackdirToTrackdirBits(Base::m_new.td);
 			return true;
 		} else {
-			Base::m_new.tile = other_end;
-			Base::m_new.wormhole = INVALID_TILE;
+			Base::m_new.set_tile (other_end);
 			return false;
 		}
 	}
@@ -225,8 +223,7 @@ protected:
 		assert(Base::m_old.in_wormhole());
 		assert(Base::IsTrackBridgeTile(Base::m_old.wormhole) || IsTunnelTile(Base::m_old.wormhole));
 
-		Base::m_new.tile = Base::m_old.wormhole;
-		Base::m_new.wormhole = INVALID_TILE;
+		Base::m_new.set_tile (Base::m_old.wormhole);
 		Base::m_flag = IsTileSubtype(Base::m_old.wormhole, TT_BRIDGE) ? Base::TF_BRIDGE : Base::TF_TUNNEL;
 		Base::m_tiles_skipped = GetTunnelBridgeLength(Base::m_new.tile, Base::m_old.tile);
 	}
@@ -718,8 +715,7 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 			/* if we reached the end of road, we can reverse the RV and continue moving */
 			m_exitdir = ReverseDiagDir(m_exitdir);
 			/* new tile will be the same as old one */
-			m_new.tile = m_old.tile;
-			m_new.wormhole = INVALID_TILE;
+			m_new.set_tile (m_old.tile);
 			/* set new trackdir bits to all reachable trackdirs */
 			m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
 			m_new.trackdirs &= DiagdirReachesTrackdirs(m_exitdir);
