@@ -42,7 +42,7 @@ struct CYapfNodeKeyExitDir : public CYapfNodeKey
 
 	inline bool operator == (const CYapfNodeKeyExitDir& other) const
 	{
-		return (tile == other.tile) && (exitdir == other.exitdir);
+		return PathTile::operator==(other) && (exitdir == other.exitdir);
 	}
 };
 
@@ -56,7 +56,7 @@ struct CYapfNodeKeyTrackDir : public CYapfNodeKey
 
 	inline bool operator == (const CYapfNodeKeyTrackDir& other) const
 	{
-		return (tile == other.tile) && (td == other.td);
+		return PathTile::operator==(other) && (td == other.td);
 	}
 };
 
