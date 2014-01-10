@@ -76,13 +76,13 @@ void SetRailStationPlatformReservation(TileIndex start, DiagDirection dir, bool 
 
 /**
  * Set the reservation for a complete station platform.
- * @pre !pos.InWormhole() && IsRailStationTile(pos.tile)
+ * @pre !pos.in_wormhole() && IsRailStationTile(pos.tile)
  * @param pos starting tile and direction of the platform
  * @param b the state the reservation should be set to
  */
 void SetRailStationPlatformReservation(const PathPos &pos, bool b)
 {
-	assert(!pos.InWormhole());
+	assert(!pos.in_wormhole());
 
 	SetRailStationPlatformReservation(pos.tile, TrackdirToExitdir(pos.td), b);
 }
@@ -217,7 +217,7 @@ static PathPos FollowReservation(Owner o, RailTypes rts, const PathPos &pos, boo
 	PathPos start;
 
 	while (ft.FollowNext()) {
-		if (ft.m_new.InWormhole()) {
+		if (ft.m_new.in_wormhole()) {
 			if (!HasReservedPos(ft.m_new)) break;
 		} else {
 			ft.m_new.trackdirs &= TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new.tile));
@@ -259,7 +259,7 @@ static PathPos FollowReservation(Owner o, RailTypes rts, const PathPos &pos, boo
 			if (cur == start) break;
 		}
 		/* Depot tile? Can't continue. */
-		if (!cur.InWormhole() && IsRailDepotTile(cur.tile)) break;
+		if (!cur.in_wormhole() && IsRailDepotTile(cur.tile)) break;
 		/* Non-pbs signal? Reservation can't continue. */
 		if (HasSignalAlongPos(cur) && !IsPbsSignal(GetSignalType(cur))) break;
 	}
@@ -310,7 +310,7 @@ static Train *FindTrainInWormhole (TileIndex tile)
 /** Find a train on a reserved path end */
 static Train *FindTrainOnPathEnd(const PathPos &pos)
 {
-	if (pos.InWormhole()) {
+	if (pos.in_wormhole()) {
 		Train *t = FindTrainInWormhole (pos.wormhole);
 		if (t != NULL) return t;
 		return FindTrainInWormhole (GetOtherTunnelBridgeEnd(pos.wormhole));
@@ -413,7 +413,7 @@ Train *GetTrainForReservation(TileIndex tile, Track track)
 PBSPositionState CheckWaitingPosition(const Train *v, const PathPos &pos, bool forbid_90deg, PBSCheckingBehaviour cb)
 {
 	PBSPositionState state;
-	if (pos.InWormhole()) {
+	if (pos.in_wormhole()) {
 		if ((cb != PBS_CHECK_SAFE) && HasReservedPos(pos)) {
 			/* Track reserved? Can never be a free waiting position. */
 			if (cb != PBS_CHECK_FULL) return PBS_BUSY;

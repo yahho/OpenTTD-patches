@@ -32,7 +32,7 @@ void UnreserveRailTrack(TileIndex tile, Track t);
 
 static inline bool TryReserveRailTrack(const PathPos &pos)
 {
-	if (!pos.InWormhole()) {
+	if (!pos.in_wormhole()) {
 		return TryReserveRailTrack(pos.tile, TrackdirToTrack(pos.td));
 	} else if (IsRailwayTile(pos.wormhole)) {
 		if (HasBridgeMiddleReservation(pos.wormhole)) return false;
@@ -49,7 +49,7 @@ static inline bool TryReserveRailTrack(const PathPos &pos)
 
 static inline void UnreserveRailTrack(const PathPos &pos)
 {
-	if (!pos.InWormhole()) {
+	if (!pos.in_wormhole()) {
 		UnreserveRailTrack(pos.tile, TrackdirToTrack(pos.td));
 	} else if (IsRailwayTile(pos.wormhole)) {
 		SetBridgeMiddleReservation(pos.wormhole, false);
@@ -128,7 +128,7 @@ static inline bool HasReservedTrack(TileIndex tile, Track track)
  */
 static inline bool HasReservedPos(const PathPos &pos)
 {
-	return !pos.InWormhole() ? HasReservedTrack(pos.tile, TrackdirToTrack(pos.td)) :
+	return !pos.in_wormhole() ? HasReservedTrack(pos.tile, TrackdirToTrack(pos.td)) :
 		IsRailwayTile(pos.wormhole) ? HasBridgeMiddleReservation(pos.wormhole) : HasTunnelMiddleReservation(pos.wormhole);
 }
 

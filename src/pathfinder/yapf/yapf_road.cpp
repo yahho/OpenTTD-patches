@@ -140,7 +140,7 @@ public:
 			tiles += F.m_tiles_skipped + 1;
 
 			/* add hilly terrain penalty */
-			if (!F.m_new.InWormhole()) segment_cost += Yapf().SlopeCost(pos, F.m_new.tile);
+			if (!F.m_new.in_wormhole()) segment_cost += Yapf().SlopeCost(pos, F.m_new.tile);
 
 			/* add min/max speed penalties */
 			int min_speed = 0;

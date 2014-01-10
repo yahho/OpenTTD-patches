@@ -1908,9 +1908,9 @@ void ReverseTrainDirection(Train *v)
 			!IsPbsSignal(GetSignalType(pos)));
 
 		/* If we are on a depot tile facing outwards, do not treat the current tile as safe. */
-		if (!pos.InWormhole() && IsRailDepotTile(pos.tile) && TrackdirToExitdir(pos.td) == GetGroundDepotDirection(pos.tile)) first_tile_okay = false;
+		if (!pos.in_wormhole() && IsRailDepotTile(pos.tile) && TrackdirToExitdir(pos.td) == GetGroundDepotDirection(pos.tile)) first_tile_okay = false;
 
-		if (!pos.InWormhole() && IsRailStationTile(pos.tile)) SetRailStationPlatformReservation(pos, true);
+		if (!pos.in_wormhole() && IsRailStationTile(pos.tile)) SetRailStationPlatformReservation(pos, true);
 		if (TryPathReserve(v, false, first_tile_okay)) {
 			/* Do a look-ahead now in case our current tile was already a safe tile. */
 			CheckNextTrainTile(v);
@@ -2269,7 +2269,7 @@ static void ClearPathReservation(const Train *v, const PathPos &pos)
 {
 	DiagDirection dir = TrackdirToExitdir(pos.td);
 
-	if (pos.InWormhole()) {
+	if (pos.in_wormhole()) {
 		UnreserveRailTrack(pos);
 	} else if (IsRailStationTile(pos.tile)) {
 		TileIndex new_tile = TileAddByDiagDir(pos.tile, dir);
@@ -2304,13 +2304,13 @@ void FreeTrainTrackReservation(const Train *v)
 		}
 	}
 	/* Don't free reservation if it's not ours. */
-	if (!pos.InWormhole() && TracksOverlap(GetReservedTrackbits(pos.tile) | TrackToTrackBits(TrackdirToTrack(pos.td)))) return;
+	if (!pos.in_wormhole() && TracksOverlap(GetReservedTrackbits(pos.tile) | TrackToTrackBits(TrackdirToTrack(pos.td)))) return;
 
 	CFollowTrackRail ft(v, true, true);
 	ft.SetPos(pos);
 
 	while (ft.FollowNext()) {
-		if (!ft.m_new.InWormhole()) {
+		if (!ft.m_new.in_wormhole()) {
 			ft.m_new.trackdirs &= TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new.tile));
 			if (ft.m_new.trackdirs == TRACKDIR_BIT_NONE) break;
 			assert(KillFirstBit(ft.m_new.trackdirs) == TRACKDIR_BIT_NONE);
@@ -2338,9 +2338,9 @@ void FreeTrainTrackReservation(const Train *v)
 
 		if (first) {
 			if (ft.m_flag == ft.TF_BRIDGE) {
-				assert(IsRailBridgeTile(ft.m_old.InWormhole() ? ft.m_old.wormhole : ft.m_old.tile));
+				assert(IsRailBridgeTile(ft.m_old.in_wormhole() ? ft.m_old.wormhole : ft.m_old.tile));
 			} else if (ft.m_flag == ft.TF_TUNNEL) {
-				assert(IsTunnelTile(ft.m_old.InWormhole() ? ft.m_old.wormhole : ft.m_old.tile));
+				assert(IsTunnelTile(ft.m_old.in_wormhole() ? ft.m_old.wormhole : ft.m_old.tile));
 			}
 		}
 
@@ -2422,7 +2422,7 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, PathPos *o
 		}
 
 		/* A depot is always a safe waiting position. */
-		if (!ft.m_new.InWormhole() && IsRailDepotTile(ft.m_new.tile)) {
+		if (!ft.m_new.in_wormhole() && IsRailDepotTile(ft.m_new.tile)) {
 			/* Depot must be free for reservation to continue. */
 			if (HasDepotReservation(ft.m_new.tile)) break;
 

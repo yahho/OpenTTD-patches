@@ -71,7 +71,7 @@ private:
 	/** Try to reserve a single track/platform. */
 	bool ReserveSingleTrack(const PathPos &pos, PathPos *fail)
 	{
-		if (!pos.InWormhole() && IsRailStationTile(pos.tile)) {
+		if (!pos.in_wormhole() && IsRailStationTile(pos.tile)) {
 			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
 			TileIndex t = pos.tile;
 
@@ -108,7 +108,7 @@ private:
 	{
 		if (stop != NULL && pos == *stop) return false;
 
-		if (!pos.InWormhole() && IsRailStationTile(pos.tile)) {
+		if (!pos.in_wormhole() && IsRailStationTile(pos.tile)) {
 			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
 			TileIndex     t = pos.tile;
 			while (IsCompatibleTrainStationTile(t, pos.tile) && t != m_origin_tile) {
@@ -550,7 +550,7 @@ bool YapfTrainCheckReverse(const Train *v)
 
 	int reverse_penalty = 0;
 
-	if (pos.InWormhole()) {
+	if (pos.in_wormhole()) {
 		/* front in tunnel / on bridge */
 		assert(TrackdirToExitdir(pos.td) == ReverseDiagDir(GetTunnelBridgeDirection(pos.wormhole)));
 
@@ -562,7 +562,7 @@ bool YapfTrainCheckReverse(const Train *v)
 		reverse_penalty -= DistanceManhattan(cur_tile, pos.tile) * YAPF_TILE_LENGTH;
 	}
 
-	if (rev.InWormhole()) {
+	if (rev.in_wormhole()) {
 		/* back in tunnel / on bridge */
 		assert(TrackdirToExitdir(rev.td) == ReverseDiagDir(GetTunnelBridgeDirection(rev.wormhole)));
 

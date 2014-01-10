@@ -59,7 +59,7 @@ public:
 	/** Called by YAPF to detect if node ends in the desired destination */
 	inline bool PfDetectDestination(const PathPos &pos)
 	{
-		return !pos.InWormhole() && IsRailDepotTile(pos.tile);
+		return !pos.in_wormhole() && IsRailDepotTile(pos.tile);
 	}
 
 	/**
@@ -169,11 +169,11 @@ public:
 	{
 		bool bDest;
 		if (m_dest_station_id != INVALID_STATION) {
-			bDest = !pos.InWormhole() && HasStationTileRail(pos.tile)
+			bDest = !pos.in_wormhole() && HasStationTileRail(pos.tile)
 				&& (GetStationIndex(pos.tile) == m_dest_station_id)
 				&& (GetRailStationTrack(pos.tile) == TrackdirToTrack(pos.td));
 		} else {
-			bDest = !pos.InWormhole() && (pos.tile == m_destTile);
+			bDest = !pos.in_wormhole() && (pos.tile == m_destTile);
 		}
 		return bDest;
 	}

@@ -31,8 +31,8 @@ struct PathPos {
 	/** Create a PathPos in a wormhole */
 	PathPos(TileIndex t, Trackdir d, TileIndex w) : tile(t), td(d), wormhole(w) { }
 
-	/** Check if the PathPos is in a womrhole */
-	bool InWormhole() const { return wormhole != INVALID_TILE; }
+	/** Check if the PathPos is in a wormhole */
+	bool in_wormhole() const { return wormhole != INVALID_TILE; }
 
 	/** Compare with another PathPos */
 	bool operator == (const PathPos &other) const

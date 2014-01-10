@@ -35,7 +35,7 @@ static inline void SetSignalState(TileIndex tile, Trackdir trackdir, SignalState
  */
 static inline bool HasSignalAlongPos(const PathPos &pos)
 {
-	if (pos.InWormhole()) {
+	if (pos.in_wormhole()) {
 		return false;
 	} else if (IsRailwayTile(pos.tile)) {
 		return HasSignalOnTrackdir(pos.tile, pos.td);
@@ -51,7 +51,7 @@ static inline bool HasSignalAlongPos(const PathPos &pos)
  */
 static inline bool HasSignalAgainstPos(const PathPos &pos)
 {
-	if (pos.InWormhole()) {
+	if (pos.in_wormhole()) {
 		return false;
 	} else if (IsRailwayTile(pos.tile)) {
 		return HasSignalOnTrackdir(pos.tile, ReverseTrackdir(pos.td));
@@ -67,7 +67,7 @@ static inline bool HasSignalAgainstPos(const PathPos &pos)
  */
 static inline bool HasSignalOnPos(const PathPos &pos)
 {
-	if (pos.InWormhole()) {
+	if (pos.in_wormhole()) {
 		return false;
 	} else if (IsRailwayTile(pos.tile)) {
 		return HasSignalOnTrack(pos.tile, TrackdirToTrack(pos.td));
@@ -112,7 +112,7 @@ static inline bool HasPbsSignalOnTrackdir(TileIndex tile, Trackdir td)
  */
 static inline bool HasPbsSignalAlongPos(const PathPos &pos)
 {
-	return !pos.InWormhole() && HasPbsSignalOnTrackdir(pos.tile, pos.td);
+	return !pos.in_wormhole() && HasPbsSignalOnTrackdir(pos.tile, pos.td);
 }
 
 /**
@@ -121,7 +121,7 @@ static inline bool HasPbsSignalAlongPos(const PathPos &pos)
  */
 static inline bool HasPbsSignalAgainstPos(const PathPos &pos)
 {
-	return !pos.InWormhole() && HasPbsSignalOnTrackdir(pos.tile, ReverseTrackdir(pos.td));
+	return !pos.in_wormhole() && HasPbsSignalOnTrackdir(pos.tile, ReverseTrackdir(pos.td));
 }
 
 
@@ -150,7 +150,7 @@ static inline bool HasOnewaySignalBlockingTrackdir(TileIndex tile, Trackdir td)
  */
 static inline bool HasOnewaySignalBlockingPos(const PathPos &pos)
 {
-	return !pos.InWormhole() && HasOnewaySignalBlockingTrackdir(pos.tile, pos.td);
+	return !pos.in_wormhole() && HasOnewaySignalBlockingTrackdir(pos.tile, pos.td);
 }
 
 #endif /* SIGNAL_MAP_H */

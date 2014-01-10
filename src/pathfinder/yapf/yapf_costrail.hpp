@@ -67,7 +67,7 @@ public:
 	{
 		CPerfStart perf_cost(Yapf().m_perf_slope_cost);
 
-		if (pos.InWormhole() || !IsDiagonalTrackdir(pos.td)) return 0;
+		if (pos.in_wormhole() || !IsDiagonalTrackdir(pos.td)) return 0;
 
 		/* Only rail tracks and bridgeheads can have sloped rail. */
 		if (!IsRailwayTile(pos.tile)) return 0;
@@ -108,7 +108,7 @@ public:
 
 	inline int SwitchCost(const PathPos &pos1, const PathPos &pos2)
 	{
-		if (!pos1.InWormhole() && IsRailwayTile(pos1.tile) && !pos2.InWormhole() && IsRailwayTile(pos2.tile)) {
+		if (!pos1.in_wormhole() && IsRailwayTile(pos1.tile) && !pos2.in_wormhole() && IsRailwayTile(pos2.tile)) {
 			DiagDirection exitdir = TrackdirToExitdir(pos1.td);
 			bool t1 = KillFirstBit(GetTrackBits(pos1.tile) & DiagdirReachesTracks(ReverseDiagDir(exitdir))) != TRACK_BIT_NONE;
 			bool t2 = KillFirstBit(GetTrackBits(pos2.tile) & DiagdirReachesTracks(exitdir)) != TRACK_BIT_NONE;
@@ -151,7 +151,7 @@ public:
 		if (n.m_num_signals_passed >= m_sig_look_ahead_costs.Size() / 2) return 0;
 		if (!IsPbsSignal(n.m_last_signal_type)) return 0;
 
-		if (!pos.InWormhole() && IsRailStationTile(pos.tile) && IsAnyStationTileReserved(pos, skipped)) {
+		if (!pos.in_wormhole() && IsRailStationTile(pos.tile) && IsAnyStationTileReserved(pos, skipped)) {
 			return Yapf().PfGetSettings().rail_pbs_station_penalty * (skipped + 1);
 		} else if (TrackOverlapsTracks(GetReservedTrackbits(pos.tile), TrackdirToTrack(pos.td))) {
 			int cost = Yapf().PfGetSettings().rail_pbs_cross_penalty;
@@ -309,7 +309,7 @@ public:
 		/* start at n and walk to the end of segment */
 		PathPos cur(n.GetPos());
 
-		RailType rail_type = !cur.InWormhole() ? GetTileRailType(cur.tile, TrackdirToTrack(cur.td)) :
+		RailType rail_type = !cur.in_wormhole() ? GetTileRailType(cur.tile, TrackdirToTrack(cur.td)) :
 			IsRailwayTile(cur.wormhole) ? GetBridgeRailType(cur.wormhole) : GetRailType(cur.wormhole);
 
 		EndSegmentReasonBits end_segment_reason = ESRB_NONE;
@@ -372,14 +372,14 @@ public:
 			/* Tests for 'potential target' reasons to close the segment. */
 			if (cur.tile == prev) {
 				/* Penalty for reversing in a depot. */
-				assert(!cur.InWormhole());
+				assert(!cur.in_wormhole());
 				assert(IsRailDepotTile(cur.tile));
 				assert(cur.td == DiagDirToDiagTrackdir(GetGroundDepotDirection(cur.tile)));
 				segment_cost += Yapf().PfGetSettings().rail_depot_reverse_penalty;
 				/* We will end in this pass (depot is possible target) */
 				end_segment_reason |= ESRB_DEPOT;
 
-			} else if (!cur.InWormhole() && IsRailWaypointTile(cur.tile)) {
+			} else if (!cur.in_wormhole() && IsRailWaypointTile(cur.tile)) {
 				if (v->current_order.IsType(OT_GOTO_WAYPOINT) &&
 						GetStationIndex(cur.tile) == v->current_order.GetDestination() &&
 						!Waypoint::Get(v->current_order.GetDestination())->IsSingleTile()) {
@@ -502,7 +502,7 @@ public:
 			}
 
 			/* Check the next tile for the rail type. */
-			if (next.InWormhole()) {
+			if (next.in_wormhole()) {
 				RailType next_rail_type = IsRailwayTile(next.wormhole) ? GetBridgeRailType(next.wormhole) : GetRailType(next.wormhole);
 				assert(next_rail_type == rail_type);
 			} else if (GetTileRailType(next.tile, TrackdirToTrack(next.td)) != rail_type) {
@@ -520,7 +520,7 @@ public:
 			if (segment_cost > s_max_segment_cost) {
 				/* Potentially in the infinite loop (or only very long segment?). We should
 				 * not force it to finish prematurely unless we are on a regular tile. */
-				if (!tf->m_new.InWormhole() && IsNormalRailTile(tf->m_new.tile)) {
+				if (!tf->m_new.in_wormhole() && IsNormalRailTile(tf->m_new.tile)) {
 					end_segment_reason |= ESRB_SEGMENT_TOO_LONG;
 					break;
 				}

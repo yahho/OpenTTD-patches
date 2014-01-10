@@ -205,7 +205,7 @@ protected:
 public:
 	inline bool PfDetectDestination(const PathPos &pos)
 	{
-		if (pos.InWormhole()) return false;
+		if (pos.in_wormhole()) return false;
 
 		if (m_dest_station == NULL) return pos.tile == m_dest_tile;
 

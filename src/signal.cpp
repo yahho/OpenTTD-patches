@@ -854,7 +854,7 @@ void AddPosToSignalBuffer(const PathPos &pos, Owner owner)
 {
 	SetBufferOwner(owner);
 
-	if (pos.InWormhole()) {
+	if (pos.in_wormhole()) {
 		_globset.Add(SignalSideFrom(pos.wormhole, IsRailwayTile(pos.wormhole) ? SIDE_INTO_BRIDGE : SIDE_INTO_TUNNEL));
 	} else if (IsRailDepotTile(pos.tile)) {
 		_globset.Add(SignalSideFrom(pos.tile, SIDE_DEPOT));

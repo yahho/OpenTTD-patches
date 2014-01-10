@@ -104,7 +104,7 @@ struct CFollowTrack : Base
 		Base::m_err = Base::EC_NONE;
 		Base::m_exitdir = TrackdirToExitdir(Base::m_old.td);
 
-		if (Base::m_old.InWormhole()) {
+		if (Base::m_old.in_wormhole()) {
 			FollowWormhole();
 		} else {
 			switch (Base::CheckOldTile()) {
@@ -139,7 +139,7 @@ struct CFollowTrack : Base
 			}
 		}
 
-		assert(!Base::m_new.InWormhole());
+		assert(!Base::m_new.in_wormhole());
 
 		/* If we are not in a wormhole but m_flag is set to TF_BRIDGE
 		 * or TF_TUNNEL, then we must have just exited a wormhole, in
@@ -224,7 +224,7 @@ protected:
 	/** Follow m_old when in a wormhole */
 	inline void FollowWormhole()
 	{
-		assert(Base::m_old.InWormhole());
+		assert(Base::m_old.in_wormhole());
 		assert(Base::IsTrackBridgeTile(Base::m_old.wormhole) || IsTunnelTile(Base::m_old.wormhole));
 
 		Base::m_new.tile = Base::m_old.wormhole;
@@ -275,7 +275,7 @@ struct CFollowTrackRailBase : CFollowTrackBase
 	/** check old tile */
 	inline TileResult CheckOldTile()
 	{
-		assert(!m_old.InWormhole());
+		assert(!m_old.in_wormhole());
 		assert((GetTrackStatusTrackdirBits(m_old.tile) & TrackdirToTrackdirBits(m_old.td)) != 0);
 
 		switch (GetTileType(m_old.tile)) {
@@ -411,7 +411,7 @@ struct CFollowTrackRailBase : CFollowTrackBase
 		TileIndex bridge_tile;
 		RailType rt;
 
-		if (!m_old.InWormhole()) {
+		if (!m_old.in_wormhole()) {
 			bridge_tile = IsRailBridgeTile(m_old.tile) ? m_old.tile : INVALID_TILE;
 			rt = GetRailType(m_old.tile, TrackdirToTrack(m_old.td));
 		} else if (IsTileSubtype(m_old.wormhole, TT_BRIDGE)) {
@@ -458,7 +458,7 @@ struct CFollowTrackRailBase : CFollowTrackBase
 			}
 		}
 
-		if (m_new.InWormhole()) {
+		if (m_new.in_wormhole()) {
 			assert(m_new.IsTrackdirSet());
 			if (HasReservedPos(m_new)) {
 				m_new.td = INVALID_TRACKDIR;
@@ -581,7 +581,7 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 	/** check old tile */
 	inline TileResult CheckOldTile()
 	{
-		assert(!m_old.InWormhole());
+		assert(!m_old.in_wormhole());
 		assert(((GetTrackStatusTrackdirBits(m_old.tile) & TrackdirToTrackdirBits(m_old.td)) != 0) ||
 		       (IsTram() && GetSingleTramBit(m_old.tile) != INVALID_DIAGDIR)); // Disable the assertion for single tram bits
 
@@ -789,7 +789,7 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 	/** check old tile */
 	inline TileResult CheckOldTile()
 	{
-		assert(!m_old.InWormhole());
+		assert(!m_old.in_wormhole());
 		assert((GetTrackStatusTrackdirBits(m_old.tile) & TrackdirToTrackdirBits(m_old.td)) != 0);
 
 		return IsAqueductTile(m_old.tile) && m_exitdir == GetTunnelBridgeDirection(m_old.tile) ?
