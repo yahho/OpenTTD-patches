@@ -20,7 +20,7 @@ struct CYapfNodeKey : PathPos {
 
 	inline void Set(const PathPos &pos)
 	{
-		PathPos::operator=(pos);
+		PathPos::set(pos);
 		exitdir = (pos.td == INVALID_TRACKDIR) ? INVALID_DIAGDIR : TrackdirToExitdir(pos.td);
 	}
 

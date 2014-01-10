@@ -31,6 +31,25 @@ struct PathPos {
 	/** Create a PathPos in a wormhole */
 	PathPos(TileIndex t, Trackdir d, TileIndex w) : tile(t), td(d), wormhole(w) { }
 
+	/** Set this position to another given position */
+	void set (const PathPos &pos) { *this = pos; }
+
+	/** Set this position to a given tile and trackdir */
+	void set (TileIndex t, Trackdir d)
+	{
+		tile = t;
+		td = d;
+		wormhole = INVALID_TILE;
+	}
+
+	/** Set this position to a given wormhole position */
+	void set (TileIndex t, Trackdir d, TileIndex w)
+	{
+		tile = t;
+		td = d;
+		wormhole = w;
+	}
+
 	/** Check if the PathPos is in a wormhole */
 	bool in_wormhole() const { return wormhole != INVALID_TILE; }
 

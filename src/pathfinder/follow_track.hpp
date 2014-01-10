@@ -112,9 +112,7 @@ struct CFollowTrack : Base
 					Base::m_err = Base::EC_NO_WAY;
 					return false;
 				case Base::TR_REVERSE:
-					Base::m_new.tile = Base::m_old.tile;
-					Base::m_new.wormhole = INVALID_TILE;
-					Base::m_new.td = ReverseTrackdir(Base::m_old.td);
+					Base::m_new.set (Base::m_old.tile, ReverseTrackdir(Base::m_old.td));
 					Base::m_new.trackdirs = TrackdirToTrackdirBits(Base::m_new.td);
 					Base::m_exitdir = ReverseDiagDir(Base::m_exitdir);
 					Base::m_tiles_skipped = 0;
@@ -195,7 +193,7 @@ struct CFollowTrack : Base
 
 	inline void SetPos(const PathPos &pos)
 	{
-		Base::m_new.PathPos::operator = (pos);
+		Base::m_new.set(pos);
 		Base::m_new.trackdirs = TrackdirToTrackdirBits(pos.td);
 	}
 
@@ -205,17 +203,17 @@ protected:
 	inline bool EnterWormhole (bool is_bridge)
 	{
 		Base::m_flag = is_bridge ? Base::TF_BRIDGE : Base::TF_TUNNEL;
-		Base::m_new.tile = is_bridge ? GetOtherBridgeEnd(Base::m_old.tile) : GetOtherTunnelEnd(Base::m_old.tile);
-		Base::m_tiles_skipped = GetTunnelBridgeLength (Base::m_new.tile, Base::m_old.tile);
+		TileIndex other_end = is_bridge ? GetOtherBridgeEnd(Base::m_old.tile) : GetOtherTunnelEnd(Base::m_old.tile);
+		Base::m_tiles_skipped = GetTunnelBridgeLength (Base::m_old.tile, other_end);
 
 		if (Base::StepWormhole() && Base::m_tiles_skipped > 0) {
 			Base::m_tiles_skipped--;
-			Base::m_new.wormhole = Base::m_new.tile;
-			Base::m_new.tile = TileAddByDiagDir (Base::m_new.tile, ReverseDiagDir(Base::m_exitdir));
-			Base::m_new.td = DiagDirToDiagTrackdir(Base::m_exitdir);
+			TileIndex last_tile = TileAddByDiagDir (other_end, ReverseDiagDir(Base::m_exitdir));
+			Base::m_new.set (last_tile, DiagDirToDiagTrackdir(Base::m_exitdir), other_end);
 			Base::m_new.trackdirs = TrackdirToTrackdirBits(Base::m_new.td);
 			return true;
 		} else {
+			Base::m_new.tile = other_end;
 			Base::m_new.wormhole = INVALID_TILE;
 			return false;
 		}
