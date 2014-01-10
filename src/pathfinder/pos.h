@@ -15,54 +15,88 @@
 #include "../track_func.h"
 
 /**
- * Path position (tile and trackdir)
+ * Path tile (real map tile or virtual tile in wormhole)
  */
-struct PathPos {
+struct PathTile {
 	TileIndex tile;
-	Trackdir td;
 	TileIndex wormhole;
 
+	/** Create a PathTile */
+	PathTile(TileIndex t = INVALID_TILE, TileIndex w = INVALID_TILE)
+		: tile(t), wormhole(w) { }
+
+	/** Set this tile to another given tile */
+	void set (const PathTile &tile) { *this = tile; }
+
+	/** Set this tile to a given tile */
+	void set (TileIndex t, TileIndex w = INVALID_TILE)
+	{
+		tile = t;
+		wormhole = w;
+	}
+
+	/** Check if this tile is in a wormhole */
+	bool in_wormhole() const { return wormhole != INVALID_TILE; }
+
+	/** Compare with another tile */
+	bool operator == (const PathTile &other) const
+	{
+		return (tile == other.tile) && (wormhole == other.wormhole);
+	}
+
+	/** Compare with another tile */
+	bool operator != (const PathTile &other) const
+	{
+		return (tile != other.tile) || (wormhole != other.wormhole);
+	}
+};
+
+/**
+ * Path position (tile and trackdir)
+ */
+struct PathPos : PathTile {
+	Trackdir td;
+
 	/** Create an empty PathPos */
-	PathPos() : tile(INVALID_TILE), td(INVALID_TRACKDIR), wormhole(INVALID_TILE) { }
+	PathPos() : PathTile(), td(INVALID_TRACKDIR) { }
 
 	/** Create a PathPos for a given tile and trackdir */
-	PathPos(TileIndex t, Trackdir d) : tile(t), td(d), wormhole(INVALID_TILE) { }
+	PathPos(TileIndex t, Trackdir d) : PathTile(t), td(d) { }
 
 	/** Create a PathPos in a wormhole */
-	PathPos(TileIndex t, Trackdir d, TileIndex w) : tile(t), td(d), wormhole(w) { }
+	PathPos(TileIndex t, Trackdir d, TileIndex w) : PathTile(t, w), td(d) { }
 
 	/** Set this position to another given position */
-	void set (const PathPos &pos) { *this = pos; }
+	void set (const PathPos &pos)
+	{
+		PathTile::set(pos);
+		td = pos.td;
+	}
 
 	/** Set this position to a given tile and trackdir */
 	void set (TileIndex t, Trackdir d)
 	{
-		tile = t;
+		PathTile::set(t);
 		td = d;
-		wormhole = INVALID_TILE;
 	}
 
 	/** Set this position to a given wormhole position */
 	void set (TileIndex t, Trackdir d, TileIndex w)
 	{
-		tile = t;
+		PathTile::set (t, w);
 		td = d;
-		wormhole = w;
 	}
-
-	/** Check if the PathPos is in a wormhole */
-	bool in_wormhole() const { return wormhole != INVALID_TILE; }
 
 	/** Compare with another PathPos */
 	bool operator == (const PathPos &other) const
 	{
-		return (tile == other.tile) && (td == other.td) && (wormhole == other.wormhole);
+		return PathTile::operator==(other) && (td == other.td);
 	}
 
 	/** Compare with another PathPos */
 	bool operator != (const PathPos &other) const
 	{
-		return (tile != other.tile) || (td != other.td) || (wormhole != other.wormhole);
+		return PathTile::operator!=(other) || (td != other.td);
 	}
 };
 
