@@ -120,6 +120,41 @@ struct PathPos : PathTile {
 struct PathMPos : PathPos {
 	TrackdirBits trackdirs;
 
+	/** Set this position to another given position */
+	void set (const PathMPos &pos)
+	{
+		PathPos::set(pos);
+		trackdirs = pos.trackdirs;
+	}
+
+	/** Set this position to another given position */
+	void set (const PathPos &pos)
+	{
+		PathPos::set(pos);
+		trackdirs = TrackdirToTrackdirBits(pos.td);
+	}
+
+	/** Set this position to a given tile and trackdir */
+	void set (TileIndex t, Trackdir d)
+	{
+		PathPos::set(t, d);
+		trackdirs = TrackdirToTrackdirBits(d);
+	}
+
+	/** Set this position to a given tile and trackdirs */
+	void set (TileIndex t, TrackdirBits s)
+	{
+		PathPos::set(t, HasExactlyOneBit(s) ? FindFirstTrackdir(s) : INVALID_TRACKDIR);
+		trackdirs = s;
+	}
+
+	/** Set this position to a given wormhole position */
+	void set (TileIndex t, Trackdir d, TileIndex w)
+	{
+		PathPos::set (t, d, w);
+		trackdirs = TrackdirToTrackdirBits(d);
+	}
+
 	/** Set trackdirs to a given set */
 	void set_trackdirs (TrackdirBits s)
 	{

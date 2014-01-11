@@ -113,7 +113,6 @@ struct CFollowTrack : Base
 					return false;
 				case Base::TR_REVERSE:
 					Base::m_new.set (Base::m_old.tile, ReverseTrackdir(Base::m_old.td));
-					Base::m_new.trackdirs = TrackdirToTrackdirBits(Base::m_new.td);
 					Base::m_exitdir = ReverseDiagDir(Base::m_exitdir);
 					Base::m_tiles_skipped = 0;
 					Base::m_flag = Base::TF_NONE;
@@ -190,7 +189,6 @@ struct CFollowTrack : Base
 	inline void SetPos(const PathPos &pos)
 	{
 		Base::m_new.set(pos);
-		Base::m_new.set_trackdirs (TrackdirToTrackdirBits(pos.td));
 	}
 
 protected:
@@ -206,7 +204,6 @@ protected:
 			Base::m_tiles_skipped--;
 			TileIndex last_tile = TileAddByDiagDir (other_end, ReverseDiagDir(Base::m_exitdir));
 			Base::m_new.set (last_tile, DiagDirToDiagTrackdir(Base::m_exitdir), other_end);
-			Base::m_new.trackdirs = TrackdirToTrackdirBits(Base::m_new.td);
 			return true;
 		} else {
 			Base::m_new.set_tile (other_end);
@@ -714,9 +711,7 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 			/* if we reached the end of road, we can reverse the RV and continue moving */
 			m_exitdir = ReverseDiagDir(m_exitdir);
 			/* new tile will be the same as old one */
-			m_new.set_tile (m_old.tile);
-			/* set new trackdir bits to all reachable trackdirs */
-			m_new.set_trackdirs (GetTrackStatusTrackdirBits(m_new.tile) & DiagdirReachesTrackdirs(m_exitdir));
+			m_new.set (m_old.tile, GetTrackStatusTrackdirBits(m_old.tile) & DiagdirReachesTrackdirs(m_exitdir));
 			/* we always have some trackdirs reachable after reversal */
 			assert(!m_new.is_empty());
 			return true;
