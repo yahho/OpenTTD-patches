@@ -220,10 +220,10 @@ static PathPos FollowReservation(Owner o, RailTypes rts, const PathPos &pos, boo
 		if (ft.m_new.in_wormhole()) {
 			if (!HasReservedPos(ft.m_new)) break;
 		} else {
-			ft.m_new.trackdirs &= TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new.tile));
+			TrackdirBits trackdirs = ft.m_new.trackdirs & TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new.tile));
 
 			/* No reservation --> path end found */
-			if (ft.m_new.trackdirs == TRACKDIR_BIT_NONE) {
+			if (trackdirs == TRACKDIR_BIT_NONE) {
 				if (ft.m_flag == ft.TF_STATION) {
 					/* Check skipped station tiles as well, maybe our reservation ends inside the station. */
 					TileIndexDiff diff = TileOffsByDiagDir(ft.m_exitdir);
@@ -239,7 +239,7 @@ static PathPos FollowReservation(Owner o, RailTypes rts, const PathPos &pos, boo
 			}
 
 			/* Can't have more than one reserved trackdir */
-			ft.m_new.td = FindFirstTrackdir(ft.m_new.trackdirs);
+			ft.m_new.set_trackdirs (trackdirs);
 		}
 
 		/* One-way signal against us. The reservation can't be ours as it is not

@@ -146,10 +146,8 @@ struct CFollowTrack : Base
 				assert(Base::IsTrackBridgeTile(Base::m_new.tile));
 				assert(Base::m_exitdir == ReverseDiagDir(GetTunnelBridgeDirection(Base::m_new.tile)));
 
-				Base::m_new.trackdirs = Base::GetTrackStatusTrackdirBits(Base::m_new.tile) & DiagdirReachesTrackdirs(Base::m_exitdir);
+				Base::m_new.set_trackdirs (Base::GetTrackStatusTrackdirBits(Base::m_new.tile) & DiagdirReachesTrackdirs(Base::m_exitdir));
 				assert(Base::m_new.trackdirs != TRACKDIR_BIT_NONE);
-				/* Check if the resulting trackdirs is a single trackdir */
-				Base::m_new.SetTrackdir();
 				return true;
 
 			case Base::TF_TUNNEL:
@@ -171,14 +169,14 @@ struct CFollowTrack : Base
 		}
 
 		if (!Base::Allow90deg()) {
-			Base::m_new.trackdirs &= (TrackdirBits)~(int)TrackdirCrossesTrackdirs(Base::m_old.td);
-			if (Base::m_new.trackdirs == TRACKDIR_BIT_NONE) {
+			TrackdirBits trackdirs = Base::m_new.trackdirs & (TrackdirBits)~(int)TrackdirCrossesTrackdirs(Base::m_old.td);
+			if (trackdirs == TRACKDIR_BIT_NONE) {
 				Base::m_err = Base::EC_90DEG;
 				return false;
 			}
+			Base::m_new.set_trackdirs (trackdirs);
 		}
-		/* Check if the resulting trackdirs is a single trackdir */
-		Base::m_new.SetTrackdir();
+
 		return true;
 	}
 
@@ -192,7 +190,7 @@ struct CFollowTrack : Base
 	inline void SetPos(const PathPos &pos)
 	{
 		Base::m_new.set(pos);
-		Base::m_new.trackdirs = TrackdirToTrackdirBits(pos.td);
+		Base::m_new.set_trackdirs (TrackdirToTrackdirBits(pos.td));
 	}
 
 protected:
@@ -309,17 +307,20 @@ struct CFollowTrackRailBase : CFollowTrackBase
 	{
 		CPerfStart perf(*m_pPerf);
 
+		TrackdirBits trackdirs;
 		if (IsNormalRailTile(m_new.tile)) {
-			m_new.trackdirs = TrackBitsToTrackdirBits(GetTrackBits(m_new.tile));
+			trackdirs = TrackBitsToTrackdirBits(GetTrackBits(m_new.tile));
 		} else {
-			m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
+			trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
 		}
 
-		m_new.trackdirs &= DiagdirReachesTrackdirs(m_exitdir);
-		if (m_new.trackdirs == TRACKDIR_BIT_NONE) {
+		trackdirs &= DiagdirReachesTrackdirs(m_exitdir);
+		if (trackdirs == TRACKDIR_BIT_NONE) {
 			m_err = EC_NO_WAY;
 			return false;
 		}
+
+		m_new.set_trackdirs (trackdirs);
 
 		perf.Stop();
 
@@ -466,19 +467,19 @@ struct CFollowTrackRailBase : CFollowTrackBase
 
 		TrackBits reserved = GetReservedTrackbits(m_new.tile);
 		/* Mask already reserved trackdirs. */
-		m_new.trackdirs &= ~TrackBitsToTrackdirBits(reserved);
+		TrackdirBits trackdirs = m_new.trackdirs & ~TrackBitsToTrackdirBits(reserved);
 		/* Mask out all trackdirs that conflict with the reservation. */
 		Track t;
-		FOR_EACH_SET_TRACK(t, TrackdirBitsToTrackBits(m_new.trackdirs)) {
-			if (TracksOverlap(reserved | TrackToTrackBits(t))) m_new.trackdirs &= ~TrackToTrackdirBits(t);
+		FOR_EACH_SET_TRACK(t, TrackdirBitsToTrackBits(trackdirs)) {
+			if (TracksOverlap(reserved | TrackToTrackBits(t))) trackdirs &= ~TrackToTrackdirBits(t);
 		}
-		if (m_new.trackdirs == TRACKDIR_BIT_NONE) {
+		if (trackdirs == TRACKDIR_BIT_NONE) {
+			m_new.trackdirs = TRACKDIR_BIT_NONE;
 			m_new.td = INVALID_TRACKDIR;
 			m_err = EC_RESERVED;
 			return false;
 		}
-		/* Check if the resulting trackdirs is a single trackdir */
-		m_new.SetTrackdir();
+		m_new.set_trackdirs (trackdirs);
 		return true;
 	}
 };
@@ -635,9 +636,9 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
 	inline bool CheckNewTile()
 	{
-		m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
+		TrackdirBits trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
 
-		if (m_new.trackdirs == TRACKDIR_BIT_NONE) {
+		if (trackdirs == TRACKDIR_BIT_NONE) {
 			/* GetTileRoadStatus() returns 0 for single tram bits.
 			 * As we cannot change it there (easily) without breaking something, change it here */
 			if (IsTram() && GetSingleTramBit(m_new.tile) == ReverseDiagDir(m_exitdir)) {
@@ -649,11 +650,13 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 			}
 		}
 
-		m_new.trackdirs &= DiagdirReachesTrackdirs(m_exitdir);
-		if (m_new.trackdirs == TRACKDIR_BIT_NONE) {
+		trackdirs &= DiagdirReachesTrackdirs(m_exitdir);
+		if (trackdirs == TRACKDIR_BIT_NONE) {
 			m_err = EC_NO_WAY;
 			return false;
 		}
+
+		m_new.set_trackdirs (trackdirs);
 
 		if (IsStandardRoadStopTile(m_new.tile)) {
 			/* road stop can be entered from one direction only unless it's a drive-through stop */
@@ -716,12 +719,9 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 			/* new tile will be the same as old one */
 			m_new.set_tile (m_old.tile);
 			/* set new trackdir bits to all reachable trackdirs */
-			m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
-			m_new.trackdirs &= DiagdirReachesTrackdirs(m_exitdir);
+			m_new.set_trackdirs (GetTrackStatusTrackdirBits(m_new.tile) & DiagdirReachesTrackdirs(m_exitdir));
 			/* we always have some trackdirs reachable after reversal */
 			assert(m_new.trackdirs != TRACKDIR_BIT_NONE);
-			/* check if the resulting trackdirs is a single trackdir */
-			m_new.SetTrackdir();
 			return true;
 		}
 		return false;
@@ -792,11 +792,13 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
 	inline bool CheckNewTile()
 	{
-		m_new.trackdirs = GetTrackStatusTrackdirBits(m_new.tile) & DiagdirReachesTrackdirs(m_exitdir);
-		if (m_new.trackdirs == TRACKDIR_BIT_NONE) {
+		TrackdirBits trackdirs = GetTrackStatusTrackdirBits(m_new.tile) & DiagdirReachesTrackdirs(m_exitdir);
+		if (trackdirs == TRACKDIR_BIT_NONE) {
 			m_err = EC_NO_WAY;
 			return false;
 		}
+
+		m_new.set_trackdirs (trackdirs);
 
 		/* tunnel holes and bridge ramps can be entered only from proper direction */
 		assert(m_flag == TF_NONE);

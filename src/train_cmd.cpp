@@ -2311,10 +2311,10 @@ void FreeTrainTrackReservation(const Train *v)
 
 	while (ft.FollowNext()) {
 		if (!ft.m_new.in_wormhole()) {
-			ft.m_new.trackdirs &= TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new.tile));
-			if (ft.m_new.trackdirs == TRACKDIR_BIT_NONE) break;
-			assert(KillFirstBit(ft.m_new.trackdirs) == TRACKDIR_BIT_NONE);
-			ft.m_new.td = FindFirstTrackdir(ft.m_new.trackdirs);
+			TrackdirBits trackdirs = ft.m_new.trackdirs & TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new.tile));
+			if (trackdirs == TRACKDIR_BIT_NONE) break;
+			ft.m_new.set_trackdirs (trackdirs);
+			assert(ft.m_new.IsTrackdirSet());
 		}
 
 		if (HasSignalAlongPos(ft.m_new) && !IsPbsSignal(GetSignalType(ft.m_new))) {

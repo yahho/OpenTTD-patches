@@ -115,17 +115,20 @@ struct PathPos : PathTile {
 };
 
 /**
- * Pathfinder new position; td will be INVALID_POSITION unless trackdirs has exactly one trackdir set
+ * Pathfinder new position; td will be INVALID_TRACKDIR unless trackdirs has exactly one trackdir set
  */
 struct PathMPos : PathPos {
 	TrackdirBits trackdirs;
 
-	inline void SetTrackdir()
-	{
-		td = (KillFirstBit(trackdirs) == TRACKDIR_BIT_NONE) ? FindFirstTrackdir(trackdirs) : INVALID_TRACKDIR;
-	}
-
 	inline bool IsTrackdirSet() const { return td != INVALID_TRACKDIR; }
+
+	/** Set trackdirs to a given set */
+	void set_trackdirs (TrackdirBits s)
+	{
+		assert (tile != INVALID_TILE); // tile should be already set
+		trackdirs = s;
+		td = HasExactlyOneBit(s) ? FindFirstTrackdir(s) : INVALID_TRACKDIR;
+	}
 
 	/** Set trackdirs to a single trackdir */
 	void set_trackdir (Trackdir d)
