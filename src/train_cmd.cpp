@@ -2150,7 +2150,7 @@ static void CheckNextTrainTile(Train *v)
 	CFollowTrackRail ft(v, !_settings_game.pf.forbid_90_deg);
 	if (!ft.Follow(pos)) return;
 
-	if (ft.m_new.IsTrackdirSet()) {
+	if (ft.m_new.is_single()) {
 		/* Next tile is not reserved. */
 		if (!HasReservedPos(ft.m_new)) {
 			if (HasPbsSignalAlongPos(ft.m_new)) {
@@ -2314,7 +2314,7 @@ void FreeTrainTrackReservation(const Train *v)
 			TrackdirBits trackdirs = ft.m_new.trackdirs & TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new.tile));
 			if (trackdirs == TRACKDIR_BIT_NONE) break;
 			ft.m_new.set_trackdirs (trackdirs);
-			assert(ft.m_new.IsTrackdirSet());
+			assert(ft.m_new.is_single());
 		}
 
 		if (HasSignalAlongPos(ft.m_new) && !IsPbsSignal(GetSignalType(ft.m_new))) {
@@ -2450,7 +2450,7 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, PathPos *o
 			return EXTEND_RESERVATION_UNSAFE;
 		}
 
-		if (!ft.m_new.IsTrackdirSet()) {
+		if (!ft.m_new.is_single()) {
 			/* Choice found. */
 			if (HasReservedTracks(ft.m_new.tile, TrackdirBitsToTrackBits(ft.m_new.trackdirs))) break;
 
@@ -2483,7 +2483,7 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, PathPos *o
 		if (!ft.FollowNext()) NOT_REACHED();
 
 		assert(!ft.m_new.is_empty());
-		assert(ft.m_new.IsTrackdirSet());
+		assert(ft.m_new.is_single());
 
 		UnreserveRailTrack(ft.m_new);
 	}

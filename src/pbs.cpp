@@ -452,7 +452,7 @@ PBSPositionState CheckWaitingPosition(const Train *v, const PathPos &pos, bool f
 	assert((state == PBS_FREE) || (cb == PBS_CHECK_FULL));
 
 	if (cb != PBS_CHECK_FREE) {
-		if (!ft.m_new.IsTrackdirSet()) return PBS_UNSAFE;
+		if (!ft.m_new.is_single()) return PBS_UNSAFE;
 
 		if (HasSignalAlongPos(ft.m_new)) {
 			/* PBS signal on next trackdir? Safe position. */
@@ -469,7 +469,7 @@ PBSPositionState CheckWaitingPosition(const Train *v, const PathPos &pos, bool f
 		if (state != PBS_FREE) return PBS_BUSY;
 	} else if (!IsStationTile(pos.tile)) {
 		/* With PBS_CHECK_FREE, all these should be true. */
-		assert(ft.m_new.IsTrackdirSet());
+		assert(ft.m_new.is_single());
 		assert(HasSignalOnPos(ft.m_new));
 		assert(IsPbsSignal(GetSignalType(ft.m_new)));
 	}

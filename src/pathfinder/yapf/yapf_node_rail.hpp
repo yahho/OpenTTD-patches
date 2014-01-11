@@ -169,7 +169,7 @@ struct CYapfRailNodeT
 		while (ft.m_new != GetLastPos()) {
 			if (!((obj.*func)(ft.m_new, pos))) return false;
 			ft.FollowNext();
-			assert(ft.m_new.IsTrackdirSet());
+			assert(ft.m_new.is_single());
 		}
 
 		return (obj.*func)(ft.m_new, pos);

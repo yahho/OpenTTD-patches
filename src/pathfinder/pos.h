@@ -120,8 +120,6 @@ struct PathPos : PathTile {
 struct PathMPos : PathPos {
 	TrackdirBits trackdirs;
 
-	inline bool IsTrackdirSet() const { return td != INVALID_TRACKDIR; }
-
 	/** Set trackdirs to a given set */
 	void set_trackdirs (TrackdirBits s)
 	{
@@ -150,6 +148,13 @@ struct PathMPos : PathPos {
 	bool is_empty() const
 	{
 		return trackdirs == TRACKDIR_BIT_NONE;
+	}
+
+	/** Check whether the position has exactly one trackdir */
+	bool is_single() const
+	{
+		assert (HasExactlyOneBit(trackdirs) == (td != INVALID_TRACKDIR));
+		return td != INVALID_TRACKDIR;
 	}
 };
 

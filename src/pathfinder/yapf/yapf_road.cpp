@@ -130,7 +130,7 @@ public:
 			if (!F.Follow(pos)) break;
 
 			/* if there are more trackdirs available & reachable, we are at the end of segment */
-			if (!F.m_new.IsTrackdirSet()) break;
+			if (!F.m_new.is_single()) break;
 
 			/* stop if RV is on simple loop with no junctions */
 			if (F.m_new == n.GetPos()) return false;

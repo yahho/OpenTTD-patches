@@ -183,7 +183,7 @@ struct CFollowTrack : Base
 	inline bool FollowNext()
 	{
 		assert(Base::m_new.tile != INVALID_TILE);
-		assert(Base::m_new.IsTrackdirSet());
+		assert(Base::m_new.is_single());
 		return Follow(Base::m_new);
 	}
 
@@ -453,7 +453,7 @@ struct CFollowTrackRailBase : CFollowTrackBase
 		}
 
 		if (m_new.in_wormhole()) {
-			assert(m_new.IsTrackdirSet());
+			assert(m_new.is_single());
 			if (HasReservedPos(m_new)) {
 				m_new.clear_trackdirs();
 				m_err = EC_RESERVED;

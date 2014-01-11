@@ -425,7 +425,7 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 						}
 
 						assert(ft.m_old.tile != ft.m_new.tile);
-						if (!ft.m_new.IsTrackdirSet()) {
+						if (!ft.m_new.is_single()) {
 							/* We encountered a junction; it's going to be too complex to
 							 * handle this perfectly, so just bail out. There is no simple
 							 * free path, so try the other possibilities. */

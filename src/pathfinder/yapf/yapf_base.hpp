@@ -214,7 +214,7 @@ public:
 	/** add multiple nodes - direct children of the given node */
 	inline void AddMultipleNodes(Node *parent, const TrackFollower &tf)
 	{
-		bool is_choice = !tf.m_new.IsTrackdirSet();
+		bool is_choice = !tf.m_new.is_single();
 		PathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.td = FindFirstTrackdir(rtds);
