@@ -448,7 +448,7 @@ PBSPositionState CheckWaitingPosition(const Train *v, const PathPos &pos, bool f
 	/* End of track? Safe position. */
 	if (!ft.Follow(pos)) return state;
 
-	assert(ft.m_new.trackdirs != TRACKDIR_BIT_NONE);
+	assert(!ft.m_new.is_empty());
 	assert((state == PBS_FREE) || (cb == PBS_CHECK_FULL));
 
 	if (cb != PBS_CHECK_FREE) {

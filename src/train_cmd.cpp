@@ -2482,7 +2482,7 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, PathPos *o
 	while (ft.m_new != stopped) {
 		if (!ft.FollowNext()) NOT_REACHED();
 
-		assert(ft.m_new.trackdirs != TRACKDIR_BIT_NONE);
+		assert(!ft.m_new.is_empty());
 		assert(ft.m_new.IsTrackdirSet());
 
 		UnreserveRailTrack(ft.m_new);

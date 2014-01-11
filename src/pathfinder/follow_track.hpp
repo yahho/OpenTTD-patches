@@ -147,7 +147,7 @@ struct CFollowTrack : Base
 				assert(Base::m_exitdir == ReverseDiagDir(GetTunnelBridgeDirection(Base::m_new.tile)));
 
 				Base::m_new.set_trackdirs (Base::GetTrackStatusTrackdirBits(Base::m_new.tile) & DiagdirReachesTrackdirs(Base::m_exitdir));
-				assert(Base::m_new.trackdirs != TRACKDIR_BIT_NONE);
+				assert(!Base::m_new.is_empty());
 				return true;
 
 			case Base::TF_TUNNEL:
@@ -718,7 +718,7 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 			/* set new trackdir bits to all reachable trackdirs */
 			m_new.set_trackdirs (GetTrackStatusTrackdirBits(m_new.tile) & DiagdirReachesTrackdirs(m_exitdir));
 			/* we always have some trackdirs reachable after reversal */
-			assert(m_new.trackdirs != TRACKDIR_BIT_NONE);
+			assert(!m_new.is_empty());
 			return true;
 		}
 		return false;

@@ -145,6 +145,12 @@ struct PathMPos : PathPos {
 		trackdirs = TRACKDIR_BIT_NONE;
 		td = INVALID_TRACKDIR;
 	}
+
+	/** Check whether the position has no trackdirs */
+	bool is_empty() const
+	{
+		return trackdirs == TRACKDIR_BIT_NONE;
+	}
 };
 
 #endif /* PATHFINDER_POS_H */
