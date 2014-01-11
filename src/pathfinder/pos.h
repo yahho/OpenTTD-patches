@@ -137,6 +137,14 @@ struct PathMPos : PathPos {
 		td = d;
 		trackdirs = TrackdirToTrackdirBits(d);
 	}
+
+	/** Clear trackdirs */
+	void clear_trackdirs()
+	{
+		assert (tile != INVALID_TILE); // tile should be already set
+		trackdirs = TRACKDIR_BIT_NONE;
+		td = INVALID_TRACKDIR;
+	}
 };
 
 #endif /* PATHFINDER_POS_H */

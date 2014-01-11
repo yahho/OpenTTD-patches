@@ -443,8 +443,7 @@ struct CFollowTrackRailBase : CFollowTrackBase
 			TileIndex tile = m_new.tile - diff * m_tiles_skipped;
 			for (;;) {
 				if (HasStationReservation(tile)) {
-					m_new.td = INVALID_TRACKDIR;
-					m_new.trackdirs = TRACKDIR_BIT_NONE;
+					m_new.clear_trackdirs();
 					m_err = EC_RESERVED;
 					return false;
 				}
@@ -456,8 +455,7 @@ struct CFollowTrackRailBase : CFollowTrackBase
 		if (m_new.in_wormhole()) {
 			assert(m_new.IsTrackdirSet());
 			if (HasReservedPos(m_new)) {
-				m_new.td = INVALID_TRACKDIR;
-				m_new.trackdirs = TRACKDIR_BIT_NONE;
+				m_new.clear_trackdirs();
 				m_err = EC_RESERVED;
 				return false;
 			} else {
@@ -474,8 +472,7 @@ struct CFollowTrackRailBase : CFollowTrackBase
 			if (TracksOverlap(reserved | TrackToTrackBits(t))) trackdirs &= ~TrackToTrackdirBits(t);
 		}
 		if (trackdirs == TRACKDIR_BIT_NONE) {
-			m_new.trackdirs = TRACKDIR_BIT_NONE;
-			m_new.td = INVALID_TRACKDIR;
+			m_new.clear_trackdirs();
 			m_err = EC_RESERVED;
 			return false;
 		}
