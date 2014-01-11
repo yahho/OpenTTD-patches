@@ -66,14 +66,16 @@ struct HashNode {
 	void *value;
 	HashNode *next;
 };
-/**
- * Generates a hash code from the given key pair. You should make sure that
- * the resulting range is clearly defined.
- */
-typedef uint Hash_HashProc(const PathPos &key);
+
 struct Hash {
+	/**
+	 * Generates a hash code from the given key pair. You should make
+	 * sure that the resulting range is clearly defined.
+	 */
+	typedef uint HashProc(const PathPos &key);
+
 	/* The hash function used */
-	Hash_HashProc *hash;
+	HashProc *hash;
 	/* The amount of items in the hash */
 	uint size;
 	/* The number of buckets allocated */
@@ -84,7 +86,7 @@ struct Hash {
 	 * there are any Nodes in the bucket */
 	bool *buckets_in_use;
 
-	void Init(Hash_HashProc *hash, uint num_buckets);
+	void Init(HashProc *hash, uint num_buckets);
 
 	void *Get(const PathPos &key) const;
 	void *Set(const PathPos &key, void *value);

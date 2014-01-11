@@ -227,7 +227,7 @@ void BinaryHeap::Init(uint max_size)
  * Builds a new hash in an existing struct. Make sure that hash() always
  * returns a hash less than num_buckets! Call delete_hash after use
  */
-void Hash::Init(Hash_HashProc *hash, uint num_buckets)
+void Hash::Init(HashProc *hash, uint num_buckets)
 {
 	/* Allocate space for the Hash, the buckets and the bucket flags */
 	uint i;
