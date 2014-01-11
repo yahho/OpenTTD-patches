@@ -446,7 +446,7 @@ public:
 				int max_speed = tf->GetSpeedLimit(&min_speed);
 				int max_veh_speed = v->GetDisplayMaxSpeed();
 				if (max_speed < max_veh_speed) {
-					extra_cost += YAPF_TILE_LENGTH * (max_veh_speed - max_speed) * (4 + tf->m_tiles_skipped) / max_veh_speed;
+					extra_cost += YAPF_TILE_LENGTH * (max_veh_speed - max_speed) * (1 + tf->m_tiles_skipped) / max_veh_speed;
 				}
 				if (min_speed > max_veh_speed) {
 					extra_cost += YAPF_TILE_LENGTH * (min_speed - max_veh_speed);
