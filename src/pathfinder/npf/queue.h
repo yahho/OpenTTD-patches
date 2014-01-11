@@ -61,13 +61,13 @@ struct BinaryHeap {
 /*
  * Hash
  */
-struct HashNode {
-	PathPos key;
-	void *value;
-	HashNode *next;
-};
-
 struct Hash {
+	struct Node {
+		PathPos key;
+		void *value;
+		Node *next;
+	};
+
 	/**
 	 * Generates a hash code from the given key pair. You should make
 	 * sure that the resulting range is clearly defined.
@@ -81,7 +81,7 @@ struct Hash {
 	/* The number of buckets allocated */
 	uint num_buckets;
 	/* A pointer to an array of num_buckets buckets. */
-	HashNode *buckets;
+	Node *buckets;
 	/* A pointer to an array of numbuckets booleans, which will be true if
 	 * there are any Nodes in the bucket */
 	bool *buckets_in_use;
@@ -108,7 +108,7 @@ protected:
 #ifdef HASH_STATS
 	void PrintStatistics() const;
 #endif
-	HashNode *FindNode(const PathPos &key, HashNode** prev_out) const;
+	Node *FindNode(const PathPos &key, Node** prev_out) const;
 };
 
 #endif /* QUEUE_H */

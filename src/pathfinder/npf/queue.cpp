@@ -238,7 +238,7 @@ void Hash::Init(HashProc *hash, uint num_buckets)
 	this->hash = hash;
 	this->size = 0;
 	this->num_buckets = num_buckets;
-	this->buckets = (HashNode*)MallocT<byte>(num_buckets * (sizeof(*this->buckets) + sizeof(*this->buckets_in_use)));
+	this->buckets = (Node*)MallocT<byte>(num_buckets * (sizeof(*this->buckets) + sizeof(*this->buckets_in_use)));
 	this->buckets_in_use = (bool*)(this->buckets + num_buckets);
 	for (i = 0; i < num_buckets; i++) this->buckets_in_use[i] = false;
 }
@@ -255,13 +255,13 @@ void Hash::Delete(bool free_values)
 	/* Iterate all buckets */
 	for (i = 0; i < this->num_buckets; i++) {
 		if (this->buckets_in_use[i]) {
-			HashNode *node;
+			Node *node;
 
 			/* Free the first value */
 			if (free_values) free(this->buckets[i].value);
 			node = this->buckets[i].next;
 			while (node != NULL) {
-				HashNode *prev = node;
+				Node *prev = node;
 
 				node = node->next;
 				/* Free the value */
@@ -289,7 +289,7 @@ void Hash::PrintStatistics() const
 	for (i = 0; i < this->num_buckets; i++) {
 		uint collision = 0;
 		if (this->buckets_in_use[i]) {
-			const HashNode *node;
+			const Node *node;
 
 			used_buckets++;
 			for (node = &this->buckets[i]; node != NULL; node = node->next) collision++;
@@ -341,14 +341,14 @@ void Hash::Clear(bool free_values)
 	/* Iterate all buckets */
 	for (i = 0; i < this->num_buckets; i++) {
 		if (this->buckets_in_use[i]) {
-			HashNode *node;
+			Node *node;
 
 			this->buckets_in_use[i] = false;
 			/* Free the first value */
 			if (free_values) free(this->buckets[i].value);
 			node = this->buckets[i].next;
 			while (node != NULL) {
-				HashNode *prev = node;
+				Node *prev = node;
 
 				node = node->next;
 				if (free_values) free(prev->value);
@@ -363,14 +363,14 @@ void Hash::Clear(bool free_values)
  * Finds the node that that saves this key. If it is not
  * found, returns NULL. If it is found, *prev is set to the
  * node before the one found, or if the node found was the first in the bucket
- * to NULL. If it is not found, *prev is set to the last HashNode in the
+ * to NULL. If it is not found, *prev is set to the last Node in the
  * bucket, or NULL if it is empty. prev can also be NULL, in which case it is
  * not used for output.
  */
-HashNode *Hash::FindNode(const PathPos &key, HashNode** prev_out) const
+Hash::Node *Hash::FindNode(const PathPos &key, Node** prev_out) const
 {
 	uint hash = this->hash(key);
-	HashNode *result = NULL;
+	Node *result = NULL;
 
 	/* Check if the bucket is empty */
 	if (!this->buckets_in_use[hash]) {
@@ -383,8 +383,8 @@ HashNode *Hash::FindNode(const PathPos &key, HashNode** prev_out) const
 		if (prev_out != NULL) *prev_out = NULL;
 	/* Check all other nodes */
 	} else {
-		HashNode *prev = this->buckets + hash;
-		HashNode *node;
+		Node *prev = this->buckets + hash;
+		Node *node;
 
 		for (node = prev->next; node != NULL; node = node->next) {
 			if (node->key == key) {
@@ -407,8 +407,8 @@ HashNode *Hash::FindNode(const PathPos &key, HashNode** prev_out) const
 void *Hash::DeleteValue(const PathPos &key)
 {
 	void *result;
-	HashNode *prev; // Used as output var for below function call
-	HashNode *node = this->FindNode(key, &prev);
+	Node *prev; // Used as output var for below function call
+	Node *node = this->FindNode(key, &prev);
 
 	if (node == NULL) {
 		/* not found */
@@ -419,7 +419,7 @@ void *Hash::DeleteValue(const PathPos &key)
 		/* Save the value */
 		result = node->value;
 		if (node->next != NULL) {
-			HashNode *next = node->next;
+			Node *next = node->next;
 			/* Copy the second to the first */
 			*node = *next;
 			/* Free the second */
@@ -449,8 +449,8 @@ void *Hash::DeleteValue(const PathPos &key)
  */
 void *Hash::Set(const PathPos &key, void *value)
 {
-	HashNode *prev;
-	HashNode *node = this->FindNode(key, &prev);
+	Node *prev;
+	Node *node = this->FindNode(key, &prev);
 
 	if (node != NULL) {
 		/* Found it */
@@ -467,7 +467,7 @@ void *Hash::Set(const PathPos &key, void *value)
 		node = this->buckets + hash;
 	} else {
 		/* Add it after prev */
-		node = MallocT<HashNode>(1);
+		node = MallocT<Node>(1);
 		prev->next = node;
 	}
 	node->next = NULL;
@@ -483,7 +483,7 @@ void *Hash::Set(const PathPos &key, void *value)
  */
 void *Hash::Get(const PathPos &key) const
 {
-	HashNode *node = this->FindNode(key, NULL);
+	Node *node = this->FindNode(key, NULL);
 
 	return (node != NULL) ? node->value : NULL;
 }
