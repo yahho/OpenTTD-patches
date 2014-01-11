@@ -218,8 +218,6 @@ void BinaryHeap::Init(uint max_size)
 	this->blocks = 1;
 }
 
-/* Because we don't want anyone else to bother with our defines */
-#undef BIN_HEAP_ARR
 
 /*
  * Hash
