@@ -557,7 +557,7 @@ cached_segment:
 			segment.m_cost = segment_cost;
 			segment.m_end_segment_reason = end_segment_reason & ESRB_CACHED_MASK;
 			/* Save end of segment back to the node. */
-			n.SetLastTileTrackdir(cur);
+			n.SetLastPos(cur);
 		}
 
 		/* Do we have an excuse why not to continue pathfinding in this direction? */

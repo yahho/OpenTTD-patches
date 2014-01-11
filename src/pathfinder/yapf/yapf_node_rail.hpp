@@ -154,7 +154,7 @@ struct CYapfRailNodeT
 		return m_segment->m_last;
 	}
 
-	inline void SetLastTileTrackdir(const PathPos &pos)
+	inline void SetLastPos(const PathPos &pos)
 	{
 		assert(m_segment != NULL);
 		m_segment->m_last = pos;
