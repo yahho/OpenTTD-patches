@@ -18,6 +18,7 @@
 #include "engine_base.h"
 #include "map/rail.h"
 #include "ground_vehicle.hpp"
+#include "pathfinder/pos.h"
 
 struct Train;
 

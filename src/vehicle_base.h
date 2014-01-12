@@ -23,7 +23,6 @@
 #include "transport_type.h"
 #include "group_type.h"
 #include "base_consist.h"
-#include "pathfinder/pos.h"
 #include <list>
 #include <map>
 
@@ -476,15 +475,6 @@ public:
 	 * @return the number of lost souls.
 	 */
 	virtual uint Crash(bool flooded = false);
-
-	/**
-	 * Returns the tile/trackdir on which the vehicle is currently located.
-	 * Works for road vehicles, trains and ships.
-	 * For other vehicles types, or vehicles with no clear trackdir (such as those
-	 * in depots), returns an invalid position.
-	 * @return the position of the vehicle
-	 */
-	virtual PathPos GetPos() const { return PathPos(); }
 
 	/**
 	 * Gets the running cost of a vehicle  that can be sent into SetDParam for string processing.

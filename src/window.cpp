@@ -20,6 +20,7 @@
 #include "blitter/factory.hpp"
 #include "zoom_func.h"
 #include "vehicle_base.h"
+#include "map/subcoord.h"
 #include "window_func.h"
 #include "tilehighlight_func.h"
 #include "network/network.h"

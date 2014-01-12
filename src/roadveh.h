@@ -18,6 +18,7 @@
 #include "track_func.h"
 #include "road_type.h"
 #include "newgrf_engine.h"
+#include "pathfinder/pos.h"
 
 struct RoadVehicle;
 

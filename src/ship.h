@@ -14,6 +14,7 @@
 
 #include "vehicle_base.h"
 #include "map/water.h"
+#include "pathfinder/pos.h"
 
 void GetShipSpriteSize(EngineID engine, uint &width, uint &height, int &xoffs, int &yoffs, EngineImageType image_type);
 WaterClass GetEffectiveWaterClass(TileIndex tile);
