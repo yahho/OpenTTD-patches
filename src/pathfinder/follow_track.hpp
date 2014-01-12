@@ -822,8 +822,6 @@ struct CFollowTrackWaterT : CFollowTrack<CFollowTrackWaterBase>
 		: CFollowTrack<CFollowTrackWaterBase>(T90deg_turns_allowed)
 	{
 	}
-
-	inline static bool Allow90degTurns() { return T90deg_turns_allowed; }
 };
 
 typedef CFollowTrackWaterT<true>  CFollowTrackWater90;
