@@ -198,17 +198,15 @@ protected:
 	{
 		Base::m_flag = is_bridge ? Base::TF_BRIDGE : Base::TF_TUNNEL;
 		TileIndex other_end = is_bridge ? GetOtherBridgeEnd(Base::m_old.tile) : GetOtherTunnelEnd(Base::m_old.tile);
-		Base::m_tiles_skipped = GetTunnelBridgeLength (Base::m_old.tile, other_end);
+		uint length = GetTunnelBridgeLength (Base::m_old.tile, other_end);
 
-		if (Base::StepWormhole() && Base::m_tiles_skipped > 0) {
-			Base::m_tiles_skipped--;
-			TileIndex last_tile = TileAddByDiagDir (other_end, ReverseDiagDir(Base::m_exitdir));
-			Base::m_new.set (last_tile, DiagDirToDiagTrackdir(Base::m_exitdir), other_end);
+		if (length > 0 && Base::EnterWormhole (is_bridge, other_end, length)) {
 			return true;
-		} else {
-			Base::m_new.set_tile (other_end);
-			return false;
 		}
+
+		Base::m_tiles_skipped = length;
+		Base::m_new.set_tile (other_end);
+		return false;
 	}
 };
 
@@ -218,8 +216,6 @@ protected:
  */
 struct CFollowTrackRailBase : CFollowTrackBase
 {
-	static inline bool StepWormhole() { return true; }
-
 	const Owner               m_veh_owner;     ///< owner of the vehicle
 	const bool                m_allow_90deg;
 	const RailTypes           m_railtypes;
@@ -380,6 +376,18 @@ struct CFollowTrackRailBase : CFollowTrackBase
 		return HasStationTileRail(m_new.tile);
 	}
 
+	/** Follow a track that heads into a wormhole */
+	inline bool EnterWormhole (bool is_bridge, TileIndex other_end, uint length)
+	{
+		assert (length > 0);
+
+		m_tiles_skipped = length - 1;
+		m_new.set (TileAddByDiagDir (other_end, ReverseDiagDir(m_exitdir)),
+				DiagDirToDiagTrackdir(m_exitdir), other_end);
+
+		return true;
+	}
+
 	/** Follow m_old when in a wormhole */
 	inline void FollowWormhole()
 	{
@@ -520,8 +528,6 @@ struct CFollowTrackRail : CFollowTrack<CFollowTrackRailBase>
  */
 struct CFollowTrackRoadBase : CFollowTrackBase
 {
-	static inline bool StepWormhole() { return false; }
-
 	const RoadVehicle *const m_veh; ///< moving vehicle
 
 	static inline bool Allow90deg() { return true; }
@@ -714,6 +720,12 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 		return IsRoadStopTile(m_new.tile);
 	}
 
+	/** Follow a track that heads into a wormhole */
+	static inline bool EnterWormhole (bool is_bridge, TileIndex other_end, uint length)
+	{
+		return false; // skip the wormhole
+	}
+
 	/** Follow m_old when in a wormhole */
 	static inline void FollowWormhole()
 	{
@@ -746,8 +758,6 @@ typedef CFollowTrack<CFollowTrackRoadBase> CFollowTrackRoad;
  */
 struct CFollowTrackWaterBase : CFollowTrackBase
 {
-	static inline bool StepWormhole() { return false; }
-
 	const bool m_allow_90deg;
 
 	inline bool Allow90deg() const { return m_allow_90deg; }
@@ -803,6 +813,12 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 	inline bool CheckStation()
 	{
 		return false;
+	}
+
+	/** Follow a track that heads into a wormhole */
+	static inline bool EnterWormhole (bool is_bridge, TileIndex other_end, uint length)
+	{
+		return false; // skip the wormhole
 	}
 
 	/** Follow m_old when in a wormhole */
