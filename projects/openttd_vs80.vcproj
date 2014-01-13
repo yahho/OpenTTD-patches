@@ -10515,6 +10515,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\blitter\32bpp_sse_func.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\blitter\32bpp_sse2.cpp"
 				>
 				<FileConfiguration
