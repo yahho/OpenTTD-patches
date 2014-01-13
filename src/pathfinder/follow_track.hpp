@@ -142,7 +142,7 @@ struct CFollowTrack : Base
 		 * which case we can skip many checks below. */
 		switch (Base::m_flag) {
 			case Base::TF_BRIDGE:
-				assert(Base::IsTrackBridgeTile(Base::m_new.tile));
+				assert(IsBridgeHeadTile(Base::m_new.tile));
 				assert(Base::m_exitdir == ReverseDiagDir(GetTunnelBridgeDirection(Base::m_new.tile)));
 
 				Base::m_new.set_trackdirs (Base::GetTrackStatusTrackdirBits(Base::m_new.tile) & DiagdirReachesTrackdirs(Base::m_exitdir));
@@ -238,11 +238,6 @@ struct CFollowTrackRailBase : CFollowTrackBase
 		: m_veh_owner(o), m_allow_90deg(allow_90deg), m_railtypes(railtype_override), m_pPerf(pPerf)
 	{
 		assert(railtype_override != INVALID_RAILTYPES);
-	}
-
-	static inline bool IsTrackBridgeTile(TileIndex tile)
-	{
-		return IsRailBridgeTile(tile);
 	}
 
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
@@ -537,11 +532,6 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 		assert(v != NULL);
 	}
 
-	static inline bool IsTrackBridgeTile(TileIndex tile)
-	{
-		return IsRoadBridgeTile(tile);
-	}
-
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
 	{
 		return TrackStatusToTrackdirBits(GetTileRoadStatus(tile, m_veh->compatible_roadtypes));
@@ -765,11 +755,6 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 	inline CFollowTrackWaterBase(bool allow_90deg = true)
 		: m_allow_90deg(allow_90deg)
 	{
-	}
-
-	static inline bool IsTrackBridgeTile(TileIndex tile)
-	{
-		return IsAqueductTile(tile);
 	}
 
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
