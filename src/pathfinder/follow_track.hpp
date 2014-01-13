@@ -373,7 +373,7 @@ struct CFollowTrackRailBase : CFollowTrackBase
 		if (m_flag == TF_STATION) {
 			/* entered railway station
 			 * get platform length */
-			uint length = BaseStation::GetByTile(m_new.tile)->GetPlatformLength(m_new.tile, TrackdirToExitdir(m_old.td));
+			uint length = BaseStation::GetByTile(m_new.tile)->GetPlatformLength(m_new.tile, m_exitdir);
 			/* how big step we must do to get to the last platform tile; */
 			m_tiles_skipped = length - 1;
 			/* move to the platform end */
