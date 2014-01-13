@@ -105,7 +105,7 @@ struct CFollowTrack : Base
 		Base::m_exitdir = TrackdirToExitdir(Base::m_old.td);
 
 		if (Base::m_old.in_wormhole()) {
-			FollowWormhole();
+			Base::FollowWormhole();
 		} else {
 			switch (Base::CheckOldTile()) {
 				case Base::TR_NO_WAY:
@@ -209,17 +209,6 @@ protected:
 			Base::m_new.set_tile (other_end);
 			return false;
 		}
-	}
-
-	/** Follow m_old when in a wormhole */
-	inline void FollowWormhole()
-	{
-		assert(Base::m_old.in_wormhole());
-		assert(Base::IsTrackBridgeTile(Base::m_old.wormhole) || IsTunnelTile(Base::m_old.wormhole));
-
-		Base::m_new.set_tile (Base::m_old.wormhole);
-		Base::m_flag = IsTileSubtype(Base::m_old.wormhole, TT_BRIDGE) ? Base::TF_BRIDGE : Base::TF_TUNNEL;
-		Base::m_tiles_skipped = GetTunnelBridgeLength(Base::m_new.tile, Base::m_old.tile);
 	}
 };
 
@@ -394,6 +383,17 @@ struct CFollowTrackRailBase : CFollowTrackBase
 	inline bool CheckStation()
 	{
 		return HasStationTileRail(m_new.tile);
+	}
+
+	/** Follow m_old when in a wormhole */
+	inline void FollowWormhole()
+	{
+		assert(m_old.in_wormhole());
+		assert(IsRailBridgeTile(m_old.wormhole) || IsTunnelTile(m_old.wormhole));
+
+		m_new.set_tile (m_old.wormhole);
+		m_flag = IsTileSubtype(m_old.wormhole, TT_BRIDGE) ? TF_BRIDGE : TF_TUNNEL;
+		m_tiles_skipped = GetTunnelBridgeLength(m_new.tile, m_old.tile);
 	}
 
 	/** Helper for pathfinders - get min/max speed on m_old */
@@ -724,6 +724,12 @@ struct CFollowTrackRoadBase : CFollowTrackBase
 		return IsRoadStopTile(m_new.tile);
 	}
 
+	/** Follow m_old when in a wormhole */
+	static inline void FollowWormhole()
+	{
+		NOT_REACHED();
+	}
+
 	/** Helper for pathfinders - get min/max speed on m_old */
 	int GetSpeedLimit(int *pmin_speed = NULL) const
 	{
@@ -812,6 +818,12 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 	inline bool CheckStation()
 	{
 		return false;
+	}
+
+	/** Follow m_old when in a wormhole */
+	static inline void FollowWormhole()
+	{
+		NOT_REACHED();
 	}
 };
 
