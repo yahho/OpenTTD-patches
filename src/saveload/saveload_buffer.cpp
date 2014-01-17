@@ -125,10 +125,10 @@ void LoadBuffer::ReadVar(void *ptr, VarType conv)
 /**
  * Load a string.
  * @param ptr the string being manipulated
- * @param length of the string (full length)
  * @param conv StrType type of the current element of the struct
+ * @param length buffer size for fixed-length strings
  */
-void LoadBuffer::ReadString(void *ptr, size_t length, StrType conv)
+void LoadBuffer::ReadString(void *ptr, StrType conv, size_t length)
 {
 	size_t len = this->ReadGamma();
 
@@ -329,7 +329,7 @@ bool LoadBuffer::ReadObjectMember(void *object, const SaveLoad *sld)
 		case SL_VAR: this->ReadVar(ptr, sld->conv); break;
 		case SL_REF: *(size_t *)ptr = this->ReadRef(); break;
 		case SL_ARR: this->ReadArray(ptr, sld->length, sld->conv); break;
-		case SL_STR: this->ReadString(ptr, sld->length, sld->conv); break;
+		case SL_STR: this->ReadString(ptr, sld->conv, sld->length); break;
 		case SL_LST: this->ReadList(ptr, (SLRefType)sld->conv); break;
 
 		case SL_WRITEBYTE:
@@ -471,10 +471,10 @@ void SaveDumper::WriteVar(const void *ptr, VarType conv)
 /**
  * Save a string.
  * @param ptr the string being manipulated
- * @param length of the string (full length)
  * @param conv StrType type of the current element of the struct
+ * @param length buffer size for fixed-length strings
  */
-void SaveDumper::WriteString(const void *ptr, size_t length, StrType conv)
+void SaveDumper::WriteString(const void *ptr, StrType conv, size_t length)
 {
 	const char *s;
 	size_t len;
@@ -599,7 +599,7 @@ void SaveDumper::WriteObjectMember(const void *object, const SaveLoad *sld)
 		case SL_VAR: this->WriteVar(ptr, sld->conv); break;
 		case SL_REF: this->WriteRef(*(const void * const*)ptr, (SLRefType)sld->conv); break;
 		case SL_ARR: this->WriteArray(ptr, sld->length, sld->conv); break;
-		case SL_STR: this->WriteString(ptr, sld->length, sld->conv); break;
+		case SL_STR: this->WriteString(ptr, sld->conv, sld->length); break;
 		case SL_LST: this->WriteList(ptr, (SLRefType)sld->conv); break;
 
 		case SL_WRITEBYTE:

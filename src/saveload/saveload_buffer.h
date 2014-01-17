@@ -129,7 +129,7 @@ struct LoadBuffer {
 	}
 
 	void ReadVar(void *ptr, VarType conv);
-	void ReadString(void *ptr, size_t length, StrType conv);
+	void ReadString(void *ptr, StrType conv, size_t length);
 	void ReadArray(void *ptr, size_t length, VarType conv);
 	void ReadList(void *ptr, SLRefType conv);
 
@@ -240,7 +240,7 @@ struct SaveDumper {
 	void WriteRef(const void *ptr, SLRefType ref);
 
 	void WriteVar(const void *ptr, VarType conv);
-	void WriteString(const void *ptr, size_t length, StrType conv);
+	void WriteString(const void *ptr, StrType conv, size_t length);
 	void WriteArray(const void *ptr, size_t length, VarType conv);
 	void WriteList(const void *ptr, SLRefType conv);
 
