@@ -133,6 +133,13 @@ struct LoadBuffer {
 	void ReadArray(void *ptr, size_t length, VarType conv);
 	void ReadList(void *ptr, SLRefType conv);
 
+	/** Helper to read a string stored through a pointer. */
+	inline void ReadString(char **ptr, StrType conv)
+	{
+		assert((conv & SLS_POINTER) != 0);
+		ReadString (ptr, conv, 0);
+	}
+
 	void BeginChunk();
 	void EndChunk();
 
@@ -243,6 +250,13 @@ struct SaveDumper {
 	void WriteString(const void *ptr, StrType conv, size_t length);
 	void WriteArray(const void *ptr, size_t length, VarType conv);
 	void WriteList(const void *ptr, SLRefType conv);
+
+	/** Helper to write a string stored through a pointer. */
+	inline void WriteString(const char *const *ptr, StrType conv)
+	{
+		assert((conv & SLS_POINTER) != 0);
+		WriteString (ptr, conv, 0);
+	}
 
 	void BeginChunk(uint type);
 	void EndChunk();
