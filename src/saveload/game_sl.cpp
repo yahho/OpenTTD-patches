@@ -128,11 +128,6 @@ static const SaveLoad _game_language_header[] = {
 	 SLE_END()
 };
 
-static const SaveLoad _game_language_string[] = {
-	 SLE_STR(GameSaveloadStrings, s, SLS_STR | SLS_ALLOW_CONTROL, 0),
-	 SLE_END()
-};
-
 static void Load_GSTR(LoadBuffer *reader)
 {
 	delete _current_data;
@@ -142,11 +137,14 @@ static void Load_GSTR(LoadBuffer *reader)
 		GameSaveloadStrings gss;
 		gss.s = NULL;
 		reader->ReadObject(&gss, _game_language_header);
-
 		LanguageStrings *ls = new LanguageStrings(gss.s != NULL ? gss.s : "");
+		free(gss.s);
+
 		for (uint i = 0; i < gss.n; i++) {
-			reader->ReadObject(&gss, _game_language_string);
-			*ls->lines.Append() = strdup(gss.s != NULL ? gss.s : "");
+			char **s = ls->lines.Append();
+			*s = NULL;
+			reader->ReadString (s, SLS_STR | SLS_ALLOW_CONTROL);
+			if (*s == NULL) *s = strdup("");
 		}
 
 		*_current_data->raw_strings.Append() = ls;
@@ -179,8 +177,7 @@ static void Save_GSTR(SaveDumper *dumper)
 		temp.WriteObject(&gss, _game_language_header);
 
 		for (uint j = 0; j < gss.n; j++) {
-			gss.s = ls->lines[j];
-			temp.WriteObject(&gss, _game_language_string);
+			temp.WriteString (&ls->lines[j], SLS_STR | SLS_ALLOW_CONTROL);
 		}
 
 		dumper->WriteElementHeader(i, temp.GetSize());
