@@ -144,6 +144,7 @@ void LoadBuffer::ReadString(void *ptr, size_t length, StrType conv)
 			this->CopyBytes(ptr, len);
 		}
 	} else {
+		assert (length > 0);
 		if (len >= length) {
 			DEBUG(sl, 1, "String length in savegame is bigger than buffer, truncating");
 			this->CopyBytes(ptr, length);
@@ -482,6 +483,7 @@ void SaveDumper::WriteString(const void *ptr, size_t length, StrType conv)
 		s = *(const char *const *)ptr;
 		len = (s != NULL) ? strlen(s) : 0;
 	} else {
+		assert (length > 0);
 		s = (const char *)ptr;
 		len = ttd_strnlen(s, length - 1);
 	}
