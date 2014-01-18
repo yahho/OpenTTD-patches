@@ -191,9 +191,10 @@ public:
 	 * Calls NodeList::CreateNewNode() - allocates new node that can be filled and used
 	 *  as argument for AddStartupNode() or AddNewNode()
 	 */
-	inline Node& CreateNewNode()
+	inline Node& CreateNewNode (Node *parent, const PathPos &pos, bool is_choice)
 	{
 		Node& node = *m_nodes.CreateNewNode();
+		node.Set (parent, pos, is_choice);
 		return node;
 	}
 
@@ -218,8 +219,7 @@ public:
 		PathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.td = FindFirstTrackdir(rtds);
-			Node& n = Yapf().CreateNewNode();
-			n.Set(parent, pos, is_choice);
+			Node& n = Yapf().CreateNewNode(parent, pos, is_choice);
 			Yapf().AddNewNode(n, tf);
 		}
 	}
