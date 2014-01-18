@@ -212,6 +212,14 @@ public:
 		}
 	}
 
+	/** Create and add a new node */
+	inline void AddStartupNode (const PathPos &pos, bool is_choice, int cost = 0)
+	{
+		Node &node = CreateNewNode (NULL, pos, is_choice);
+		node.m_cost = cost;
+		AddStartupNode (node);
+	}
+
 	/** add multiple nodes - direct children of the given node */
 	inline void AddMultipleNodes(Node *parent, const TrackFollower &tf)
 	{
