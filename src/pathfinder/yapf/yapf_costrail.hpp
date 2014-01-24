@@ -12,6 +12,7 @@
 #ifndef YAPF_COSTRAIL_HPP
 #define YAPF_COSTRAIL_HPP
 
+#include "../../misc/blob.hpp"
 #include "../../map/slope.h"
 #include "../../pbs.h"
 #include "../../waypoint_base.h"

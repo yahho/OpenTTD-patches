@@ -13,6 +13,8 @@
 #define YAPF_COSTCACHE_HPP
 
 #include "../../date_func.h"
+#include "../../misc/array.hpp"
+#include "../../misc/hashtable.hpp"
 
 /**
  * CYapfSegmentCostCacheNoneT - the formal only yapf cost cache provider that implements
