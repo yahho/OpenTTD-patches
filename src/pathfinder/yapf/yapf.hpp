@@ -20,7 +20,7 @@
 //#define inline inline
 
 #include "../../misc/dbg_helpers.h"
-#include "nodelist.hpp"
+#include "astar.hpp"
 #include "../follow_track.hpp"
 #include "yapf_type.hpp"
 #include "yapf_base.hpp"

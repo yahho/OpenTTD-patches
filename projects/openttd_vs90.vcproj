@@ -12300,7 +12300,7 @@
 			Name="YAPF"
 			>
 			<File
-				RelativePath=".\..\src\pathfinder\yapf\nodelist.hpp"
+				RelativePath=".\..\src\pathfinder\yapf\astar.hpp"
 				>
 			</File>
 			<File

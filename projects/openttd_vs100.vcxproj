@@ -2042,7 +2042,7 @@
       <XMLDocumentationFileName>$(IntDir)\pathfinder\npf\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\pathfinder\npf\queue.h" />
-    <ClInclude Include="..\src\pathfinder\yapf\nodelist.hpp" />
+    <ClInclude Include="..\src\pathfinder\yapf\astar.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf.h" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf_base.hpp" />

@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * This file is part of OpenTTD.
  * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -7,10 +5,10 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file nodelist.hpp List of nodes used for the A-star pathfinder. */
+/** @file astar.hpp A-star pathfinder implementation. */
 
-#ifndef NODELIST_HPP
-#define NODELIST_HPP
+#ifndef ASTAR_HPP
+#define ASTAR_HPP
 
 #include "../../misc/array.hpp"
 #include "../../misc/hashtable.hpp"
@@ -155,4 +153,4 @@ public:
 	}
 };
 
-#endif /* NODELIST_HPP */
+#endif /* ASTAR_HPP */

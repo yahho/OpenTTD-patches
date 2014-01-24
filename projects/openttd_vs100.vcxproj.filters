@@ -2982,7 +2982,7 @@
     <ClInclude Include="..\src\pathfinder\npf\queue.h">
       <Filter>NPF</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\pathfinder\yapf\nodelist.hpp">
+    <ClInclude Include="..\src\pathfinder\yapf\astar.hpp">
       <Filter>YAPF</Filter>
     </ClInclude>
     <ClInclude Include="..\src\pathfinder\yapf\yapf.h">

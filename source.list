@@ -1055,7 +1055,7 @@ pathfinder/npf/queue.cpp
 pathfinder/npf/queue.h
 
 # YAPF
-pathfinder/yapf/nodelist.hpp
+pathfinder/yapf/astar.hpp
 pathfinder/yapf/yapf.h
 pathfinder/yapf/yapf.hpp
 pathfinder/yapf/yapf_base.hpp
