@@ -28,24 +28,16 @@ public:
 	typedef Titem_ Titem;
 	/** make Titem_::Key a property of HashTable */
 	typedef typename Titem_::Key Key;
-	/** type that we will use as item container */
-	typedef SmallArray<Titem_, 65536, 256> CItemArray;
-	/** how pointers to open nodes will be stored */
-	typedef CHashTableT<Titem_, Thash_bits_open_  > COpenList;
-	/** how pointers to closed nodes will be stored */
-	typedef CHashTableT<Titem_, Thash_bits_closed_> CClosedList;
-	/** how the priority queue will be managed */
-	typedef CBinaryHeapT<Titem_> CPriorityQueue;
 
 protected:
 	/** here we store full item data (Titem_) */
-	CItemArray            m_arr;
+	SmallArray<Titem_, 65536, 256> m_arr;
 	/** hash table of pointers to open item data */
-	COpenList             m_open;
+	CHashTableT<Titem_, Thash_bits_open_  > m_open;
 	/** hash table of pointers to closed item data */
-	CClosedList           m_closed;
+	CHashTableT<Titem_, Thash_bits_closed_> m_closed;
 	/** priority queue of pointers to open item data */
-	CPriorityQueue        m_open_queue;
+	CBinaryHeapT<Titem_>  m_open_queue;
 	/** new open node under construction */
 	Titem                *m_new_node;
 public:
