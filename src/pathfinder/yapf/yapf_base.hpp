@@ -227,8 +227,8 @@ public:
 		PathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.td = FindFirstTrackdir(rtds);
-			Node& n = Yapf().CreateNewNode(parent, pos, is_choice);
-			Yapf().AddNewNode(n, tf);
+			Node& n = CreateNewNode(parent, pos, is_choice);
+			AddNewNode(n, tf);
 		}
 	}
 
@@ -242,8 +242,8 @@ public:
 	 */
 	void PruneIntermediateNodeBranch()
 	{
-		while (Yapf().m_pBestIntermediateNode != NULL && (Yapf().m_pBestIntermediateNode->m_segment->m_end_segment_reason & ESRB_CHOICE_FOLLOWS) == 0) {
-			Yapf().m_pBestIntermediateNode = Yapf().m_pBestIntermediateNode->m_parent;
+		while (m_pBestIntermediateNode != NULL && (m_pBestIntermediateNode->m_segment->m_end_segment_reason & ESRB_CHOICE_FOLLOWS) == 0) {
+			m_pBestIntermediateNode = m_pBestIntermediateNode->m_parent;
 		}
 	}
 

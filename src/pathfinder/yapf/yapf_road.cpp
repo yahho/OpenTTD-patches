@@ -113,7 +113,7 @@ public:
 
 		for (;;) {
 			/* base tile cost depending on distance between edges */
-			segment_cost += Yapf().OneTileCost(pos);
+			segment_cost += OneTileCost(pos);
 
 			const RoadVehicle *v = Yapf().GetVehicle();
 			/* we have reached the vehicle's destination - segment should end here to avoid target skipping */
@@ -140,7 +140,7 @@ public:
 			tiles += F.m_tiles_skipped + 1;
 
 			/* add hilly terrain penalty */
-			if (!F.m_new.in_wormhole()) segment_cost += Yapf().SlopeCost(pos, F.m_new.tile);
+			if (!F.m_new.in_wormhole()) segment_cost += SlopeCost(pos, F.m_new.tile);
 
 			/* add min/max speed penalties */
 			int min_speed = 0;

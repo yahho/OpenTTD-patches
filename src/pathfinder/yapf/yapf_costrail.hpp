@@ -321,8 +321,8 @@ public:
 		if (has_parent) {
 			/* First transition cost goes to segment entry cost */
 			PathPos ppos = n.m_parent->GetLastPos();
-			segment_entry_cost = Yapf().CurveCost(ppos.td, cur.td);
-			segment_entry_cost += Yapf().SwitchCost(ppos, cur);
+			segment_entry_cost = CurveCost(ppos.td, cur.td);
+			segment_entry_cost += SwitchCost(ppos, cur);
 
 			/* It is the right time now to look if we can reuse the cached segment cost. */
 			if (is_cached_segment) {
@@ -353,19 +353,19 @@ public:
 
 		for (;;) {
 			/* All other tile costs will be calculated here. */
-			segment_cost += Yapf().OneTileCost(cur);
+			segment_cost += OneTileCost(cur);
 
 			/* If we skipped some tunnel/bridge/station tiles, add their base cost */
 			segment_cost += YAPF_TILE_LENGTH * tf->m_tiles_skipped;
 
 			/* Slope cost. */
-			segment_cost += Yapf().SlopeCost(cur);
+			segment_cost += SlopeCost(cur);
 
 			/* Signal cost (routine can modify segment data). */
-			segment_cost += Yapf().SignalCost(n, cur);
+			segment_cost += SignalCost(n, cur);
 
 			/* Reserved tiles. */
-			segment_cost += Yapf().ReservationCost(n, cur, tf->m_tiles_skipped);
+			segment_cost += ReservationCost(n, cur, tf->m_tiles_skipped);
 
 			end_segment_reason = segment.m_end_segment_reason;
 
@@ -532,8 +532,8 @@ public:
 			}
 
 			/* Transition cost (cost of the move from previous tile) */
-			segment_cost += Yapf().CurveCost(cur.td, next.td);
-			segment_cost += Yapf().SwitchCost(cur, next);
+			segment_cost += CurveCost(cur.td, next.td);
+			segment_cost += SwitchCost(cur, next);
 
 			/* For the next loop set new prev and cur tile info. */
 			prev = cur.tile;
