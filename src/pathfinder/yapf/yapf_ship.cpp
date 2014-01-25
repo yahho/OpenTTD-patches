@@ -22,7 +22,7 @@ class CYapfFollowShipT
 public:
 	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
 	typedef typename Types::TrackFollower TrackFollower;
-	typedef typename Types::NodeList::Titem Node;        ///< this will be our node type
+	typedef typename Types::NodeList::Node Node;         ///< this will be our node type
 	typedef typename Node::Key Key;                      ///< key to hash tables
 
 protected:
@@ -129,7 +129,7 @@ class CYapfCostShipT
 public:
 	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
 	typedef typename Types::TrackFollower TrackFollower;
-	typedef typename Types::NodeList::Titem Node; ///< this will be our node type
+	typedef typename Types::NodeList::Node Node;  ///< this will be our node type
 	typedef typename Node::Key Key;               ///< key to hash tables
 
 protected:
@@ -175,7 +175,7 @@ class CYapfDestinationShipT
 {
 public:
 	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::NodeList::Titem Node; ///< this will be our node type
+	typedef typename Types::NodeList::Node Node;  ///< this will be our node type
 	typedef typename Node::Key Key;               ///< key to hash tables
 
 protected:

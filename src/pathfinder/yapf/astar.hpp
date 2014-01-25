@@ -89,25 +89,25 @@ struct AstarNodeBase {
  * such a class must derive from AstarNodeBase above, and provide a Key type
  * for hashes and a GetKey method to retrieve the key for a node.
  */
-template <class Titem_, int Thash_bits_open_, int Thash_bits_closed_>
+template <class TNode, int open_hash_bits, int closed_hash_bits>
 struct Astar {
 public:
-	/** make Titem_ visible from outside of class */
-	typedef Titem_ Titem;
-	/** make Titem_::Key a property of HashTable */
-	typedef typename Titem_::Key Key;
+	/** make TNode visible from outside of class */
+	typedef TNode Node;
+	/** make TNode::Key a property of HashTable */
+	typedef typename TNode::Key Key;
 
 protected:
-	/** here we store full item data (Titem_) */
-	SmallArray<Titem_, 65536, 256> m_arr;
+	/** here we store full item data (Node) */
+	SmallArray<Node, 65536, 256> m_arr;
 	/** hash table of pointers to open item data */
-	CHashTableT<Titem_, Thash_bits_open_  > m_open;
+	CHashTableT<Node, open_hash_bits  > m_open;
 	/** hash table of pointers to closed item data */
-	CHashTableT<Titem_, Thash_bits_closed_> m_closed;
+	CHashTableT<Node, closed_hash_bits> m_closed;
 	/** priority queue of pointers to open item data */
-	CBinaryHeapT<Titem_>  m_open_queue;
+	CBinaryHeapT<Node> m_open_queue;
 	/** new open node under construction */
-	Titem                *m_new_node;
+	Node              *m_new_node;
 
 public:
 	/** default constructor */
@@ -128,14 +128,14 @@ public:
 	}
 
 	/** allocate new data item from m_arr */
-	inline Titem_ *CreateNewNode()
+	inline Node *CreateNewNode()
 	{
 		if (m_new_node == NULL) m_new_node = m_arr.AppendC();
 		return m_new_node;
 	}
 
 	/** Notify the nodelist that we don't want to discard the given node. */
-	inline void FoundBestNode(Titem_& item)
+	inline void FoundBestNode(Node& item)
 	{
 		/* for now it is enough to invalidate m_new_node if it is our given node */
 		if (&item == m_new_node) {
@@ -145,7 +145,7 @@ public:
 	}
 
 	/** insert given item as open node (into m_open and m_open_queue) */
-	inline void InsertOpenNode(Titem_& item)
+	inline void InsertOpenNode(Node& item)
 	{
 		assert(m_closed.Find(item.GetKey()) == NULL);
 		m_open.Push(item);
@@ -156,7 +156,7 @@ public:
 	}
 
 	/** return the best open node */
-	inline Titem_ *GetBestOpenNode()
+	inline Node *GetBestOpenNode()
 	{
 		if (!m_open_queue.IsEmpty()) {
 			return m_open_queue.Begin();
@@ -165,10 +165,10 @@ public:
 	}
 
 	/** remove and return the best open node */
-	inline Titem_ *PopBestOpenNode()
+	inline Node *PopBestOpenNode()
 	{
 		if (!m_open_queue.IsEmpty()) {
-			Titem_ *item = m_open_queue.Shift();
+			Node *item = m_open_queue.Shift();
 			m_open.Pop(*item);
 			return item;
 		}
@@ -176,39 +176,39 @@ public:
 	}
 
 	/** return the open node specified by a key or NULL if not found */
-	inline Titem_ *FindOpenNode(const Key& key)
+	inline Node *FindOpenNode(const Key& key)
 	{
-		Titem_ *item = m_open.Find(key);
+		Node *item = m_open.Find(key);
 		return item;
 	}
 
 	/** remove and return the open node specified by a key */
-	inline Titem_& PopOpenNode(const Key& key)
+	inline Node& PopOpenNode(const Key& key)
 	{
-		Titem_& item = m_open.Pop(key);
+		Node& item = m_open.Pop(key);
 		uint idxPop = m_open_queue.FindIndex(item);
 		m_open_queue.Remove(idxPop);
 		return item;
 	}
 
 	/** close node */
-	inline void InsertClosedNode(Titem_& item)
+	inline void InsertClosedNode(Node& item)
 	{
 		assert(m_open.Find(item.GetKey()) == NULL);
 		m_closed.Push(item);
 	}
 
 	/** return the closed node specified by a key or NULL if not found */
-	inline Titem_ *FindClosedNode(const Key& key)
+	inline Node *FindClosedNode(const Key& key)
 	{
-		Titem_ *item = m_closed.Find(key);
+		Node *item = m_closed.Find(key);
 		return item;
 	}
 
 	/** The number of items. */
 	inline int TotalCount() {return m_arr.Length();}
 	/** Get a particular item. */
-	inline Titem_& ItemAt(int idx) {return m_arr[idx];}
+	inline Node& ItemAt(int idx) {return m_arr[idx];}
 
 	/** Helper for creating output of this array. */
 	template <class D> void Dump(D &dmp) const

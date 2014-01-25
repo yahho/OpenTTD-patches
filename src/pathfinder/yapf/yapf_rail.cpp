@@ -45,7 +45,7 @@ class CYapfReserveTrack
 public:
 	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
 	typedef typename Types::TrackFollower TrackFollower;
-	typedef typename Types::NodeList::Titem Node;        ///< this will be our node type
+	typedef typename Types::NodeList::Node Node;         ///< this will be our node type
 
 protected:
 	/** to access inherited pathfinder */
@@ -183,7 +183,7 @@ class CYapfFollowAnyDepotRailT
 public:
 	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
 	typedef typename Types::TrackFollower TrackFollower;
-	typedef typename Types::NodeList::Titem Node;        ///< this will be our node type
+	typedef typename Types::NodeList::Node Node;         ///< this will be our node type
 	typedef typename Node::Key Key;                      ///< key to hash tables
 
 protected:
@@ -279,7 +279,7 @@ class CYapfFollowAnySafeTileRailT : public CYapfReserveTrack<Types>
 public:
 	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
 	typedef typename Types::TrackFollower TrackFollower;
-	typedef typename Types::NodeList::Titem Node;        ///< this will be our node type
+	typedef typename Types::NodeList::Node Node;         ///< this will be our node type
 	typedef typename Node::Key Key;                      ///< key to hash tables
 
 protected:
@@ -362,7 +362,7 @@ class CYapfFollowRailT : public CYapfReserveTrack<Types>
 public:
 	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
 	typedef typename Types::TrackFollower TrackFollower;
-	typedef typename Types::NodeList::Titem Node;        ///< this will be our node type
+	typedef typename Types::NodeList::Node Node;         ///< this will be our node type
 	typedef typename Node::Key Key;                      ///< key to hash tables
 
 protected:

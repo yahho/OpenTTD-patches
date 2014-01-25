@@ -27,7 +27,7 @@ extern int _total_pf_time_us;
  *  The following types must be defined in the 'Types' argument:
  *    - Types::Tpf - your pathfinder derived from CYapfBaseT
  *    - Types::NodeList - open/closed node list
- *  NodeList needs to have defined local type Titem - defines the pathfinder node type.
+ *  NodeList needs to have defined local type Node - defines the pathfinder node type.
  *  Node needs to define local type Key - the node key in the collection ()
  *
  *
@@ -51,7 +51,7 @@ public:
 	typedef typename Types::TrackFollower TrackFollower;
 	typedef typename Types::NodeList NodeList; ///< our node list
 	typedef typename Types::VehicleType VehicleType; ///< the type of vehicle
-	typedef typename NodeList::Titem Node;     ///< this will be our node type
+	typedef typename NodeList::Node Node;      ///< this will be our node type
 	typedef typename Node::Key Key;            ///< key to hash tables
 
 
