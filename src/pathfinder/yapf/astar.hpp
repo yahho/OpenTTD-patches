@@ -224,6 +224,29 @@ public:
 		return item;
 	}
 
+	/** Insert a new initial node. */
+	inline void InsertInitialNode (Node *n)
+	{
+		/* closed list should be empty when adding initial nodes */
+		assert (m_closed.Count() == 0);
+
+		/* insert the new node only if it is not there yet */
+		Node *m = FindOpenNode(n->GetKey());
+		if (m == NULL) {
+			InsertOpenNode(*n);
+		} else {
+			/* two initial nodes with same key;
+			 * pick the one with the lowest cost */
+			if (n->GetCostEstimate() < m->GetCostEstimate()) {
+				/* update the old node with value from new one */
+				PopOpenNode(n->GetKey());
+				*m = *n;
+				/* add the updated old node back to open list */
+				InsertOpenNode(*m);
+			}
+		}
+	}
+
 	/** The number of items. */
 	inline int TotalCount() {return m_arr.Length();}
 	/** Get a particular item. */
