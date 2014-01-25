@@ -257,7 +257,7 @@ public:
 			if (m_pBestDestNode == NULL || n < *m_pBestDestNode) {
 				m_pBestDestNode = &n;
 			}
-			m_nodes.FoundBestNode(n);
+			m_nodes.FoundBestNode(&n);
 			return;
 		}
 

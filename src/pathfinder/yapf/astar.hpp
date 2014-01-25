@@ -154,13 +154,12 @@ public:
 	}
 
 	/** Notify the nodelist that we don't want to discard the given node. */
-	inline void FoundBestNode(Node& item)
+	inline void FoundBestNode (Node *n)
 	{
-		/* for now it is enough to invalidate m_new_node if it is our given node */
-		if (&item == m_new_node) {
-			m_new_node = NULL;
-		}
-		/* TODO: do we need to store best nodes found in some extra list/array? Probably not now. */
+		/* node should be a newly created one */
+		assert (n == m_new_node);
+
+		m_new_node = NULL;
 	}
 
 	/** insert given item as open node (into m_open and m_open_queue) */
@@ -202,6 +201,9 @@ public:
 	/** Insert a new initial node. */
 	inline void InsertInitialNode (Node *n)
 	{
+		/* node to insert should be a newly created one */
+		assert (n == m_new_node);
+
 		/* closed list should be empty when adding initial nodes */
 		assert (m_closed.Count() == 0);
 
@@ -226,6 +228,9 @@ public:
 	/** Insert a new node */
 	inline void InsertNode (Node *n)
 	{
+		/* node to insert should be a newly created one */
+		assert (n == m_new_node);
+
 		const Key key = n->GetKey();
 
 		/* check new node against open list */
