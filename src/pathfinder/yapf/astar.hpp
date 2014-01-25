@@ -110,8 +110,14 @@ protected:
 	Node              *m_new_node;
 
 public:
+	Node *best;              ///< pointer to the destination node found at last round
+	Node *best_intermediate; ///< here should be node closest to the destination if path not found
+	int   max_search_nodes;  ///< maximum number of nodes we are allowed to visit before we give up
+	int   num_steps;         ///< this is there for debugging purposes (hope it doesn't hurt)
+
 	/** default constructor */
-	Astar() : m_open_queue(2048), m_new_node(NULL)
+	Astar() : m_open_queue(2048), m_new_node(NULL), best(NULL),
+		best_intermediate(NULL), max_search_nodes(0), num_steps(0)
 	{
 	}
 
@@ -153,15 +159,6 @@ public:
 		return m_new_node;
 	}
 
-	/** Notify the nodelist that we don't want to discard the given node. */
-	inline void FoundBestNode (Node *n)
-	{
-		/* node should be a newly created one */
-		assert (n == m_new_node);
-
-		m_new_node = NULL;
-	}
-
 	/** insert given item as open node (into m_open and m_open_queue) */
 	inline void InsertOpenNode(Node& item)
 	{
@@ -171,15 +168,6 @@ public:
 		if (&item == m_new_node) {
 			m_new_node = NULL;
 		}
-	}
-
-	/** return the best open node */
-	inline Node *GetBestOpenNode()
-	{
-		if (!m_open_queue.IsEmpty()) {
-			return m_open_queue.Begin();
-		}
-		return NULL;
 	}
 
 	/** remove and return the open node specified by a key */
@@ -238,6 +226,10 @@ public:
 		/* node to insert should be a newly created one */
 		assert (n == m_new_node);
 
+		if (max_search_nodes > 0 && (best_intermediate == NULL || (best_intermediate->GetCostEstimate() - best_intermediate->GetCost()) > (n->GetCostEstimate() - n->GetCost()))) {
+			best_intermediate = n;
+		}
+
 		const Key key = n->GetKey();
 
 		/* check new node against open list */
@@ -265,10 +257,74 @@ public:
 		InsertOpenNode(*n);
 	}
 
+	/** Found target. */
+	inline void FoundTarget (Node *n)
+	{
+		/* node should be a newly created one */
+		assert (n == m_new_node);
+
+		if (best == NULL || *n < *best) best = n;
+
+		m_new_node = NULL;
+	}
+
+	/**
+	 * Find path.
+	 *
+	 * Call this method with a follow function to be used to find
+	 * neighbours, and an optional maximum number of nodes to visit,
+	 * after all initial nodes have been added with InsertInitialNode.
+	 * Function follow will be called with this Astar instance as
+	 * first argument and the node to follow as second argument, and
+	 * should find the neigbours of the given node, create a node
+	 * for each of them through CreateNewNode, compute their current
+	 * cost and estimated final cost to destination and then call
+	 * InsertNode to add them as open nodes; or, if one of them is a
+	 * destination, call FoundTarget.
+	 */
+	template <class T>
+	inline bool FindPath (void (*follow) (T*, Node*), uint max_nodes = 0)
+	{
+		max_search_nodes = max_nodes;
+
+		for (;;) {
+			num_steps++;
+			if (m_open_queue.IsEmpty()) {
+				return best != NULL;
+			}
+
+			Node *n = m_open_queue.Begin();
+
+			/* if the best open node was worse than the best path found, we can finish */
+			if (best != NULL && best->GetCost() < n->GetCostEstimate()) {
+				return true;
+			}
+
+			follow (this, n);
+
+			if (max_nodes > 0 && ClosedCount() >= max_nodes) {
+				return best != NULL;
+			}
+
+			PopOpenNode(n->GetKey());
+			InsertClosedNode(*n);
+		}
+	}
+
+	/**
+	 * If path was found return the best node that has reached the destination.
+	 * Otherwise return the best visited node (which was nearest to the destination).
+	 */
+	inline Node *GetBestNode() const
+	{
+		return (best != NULL) ? best : best_intermediate;
+	}
+
 	/** Helper for creating output of this array. */
 	template <class D> void Dump(D &dmp) const
 	{
 		dmp.WriteStructT("m_arr", &m_arr);
+		dmp.WriteLine("m_num_steps = %d", num_steps);
 	}
 };
 
