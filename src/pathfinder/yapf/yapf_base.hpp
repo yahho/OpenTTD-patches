@@ -45,7 +45,7 @@ extern int _total_pf_time_us;
  *  test_yapf.h (part or unittest project).
  */
 template <class Types>
-class CYapfBaseT {
+class CYapfBaseT : Types::NodeList {
 public:
 	typedef typename Types::Tpf Tpf;           ///< the pathfinder class (derived from THIS class)
 	typedef typename Types::TrackFollower TrackFollower;
@@ -54,8 +54,6 @@ public:
 	typedef typename NodeList::Node Node;      ///< this will be our node type
 	typedef typename Node::Key Key;            ///< key to hash tables
 
-
-	NodeList             m_nodes;              ///< node list multi-container
 protected:
 	Node                *m_pBestDestNode;      ///< pointer to the destination node found at last round
 	Node                *m_pBestIntermediateNode; ///< here should be node closest to the destination if path not found
@@ -129,7 +127,7 @@ public:
 
 		for (;;) {
 			m_num_steps++;
-			Node *n = m_nodes.GetBestOpenNode();
+			Node *n = NodeList::GetBestOpenNode();
 			if (n == NULL) {
 				break;
 			}
@@ -140,9 +138,9 @@ public:
 			}
 
 			Yapf().PfFollowNode(*n);
-			if (m_max_search_nodes == 0 || m_nodes.ClosedCount() < m_max_search_nodes) {
-				m_nodes.PopOpenNode(n->GetKey());
-				m_nodes.InsertClosedNode(*n);
+			if (m_max_search_nodes == 0 || NodeList::ClosedCount() < m_max_search_nodes) {
+				NodeList::PopOpenNode(n->GetKey());
+				NodeList::InsertClosedNode(*n);
 			} else {
 				bDestFound = false;
 				break;
@@ -165,7 +163,7 @@ public:
 				int dist = bDestFound ? m_pBestDestNode->m_estimate - m_pBestDestNode->m_cost : -1;
 
 				DEBUG(yapf, 3, "[YAPF%c]%c%4d- %d us - %d rounds - %d open - %d closed - CHR %4.1f%% - C %d D %d - c%d(sc%d, ts%d, o%d) -- ",
-					ttc, bDestFound ? '-' : '!', veh_idx, t, m_num_steps, m_nodes.OpenCount(), m_nodes.ClosedCount(),
+					ttc, bDestFound ? '-' : '!', veh_idx, t, m_num_steps, NodeList::OpenCount(), NodeList::ClosedCount(),
 					cache_hit_ratio, cost, dist, m_perf_cost.Get(1000000), m_perf_slope_cost.Get(1000000),
 					m_perf_ts_cost.Get(1000000), m_perf_other_cost.Get(1000000)
 				);
@@ -188,13 +186,13 @@ public:
 	inline void AddStartupNode(Node& n)
 	{
 		Yapf().PfNodeCacheFetch(n);
-		m_nodes.InsertInitialNode(&n);
+		NodeList::InsertInitialNode(&n);
 	}
 
 	/** Create and add a new node */
 	inline void AddStartupNode (const PathPos &pos, bool is_choice, int cost = 0)
 	{
-		Node &node = *m_nodes.CreateNewNode (NULL, pos, is_choice);
+		Node &node = *NodeList::CreateNewNode (NULL, pos, is_choice);
 		node.m_cost = cost;
 		AddStartupNode (node);
 	}
@@ -206,7 +204,7 @@ public:
 		PathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.td = FindFirstTrackdir(rtds);
-			Node& n = *m_nodes.CreateNewNode(parent, pos, is_choice);
+			Node& n = *NodeList::CreateNewNode(parent, pos, is_choice);
 			AddNewNode(n, tf);
 		}
 	}
@@ -257,7 +255,7 @@ public:
 			if (m_pBestDestNode == NULL || n < *m_pBestDestNode) {
 				m_pBestDestNode = &n;
 			}
-			m_nodes.FoundBestNode(&n);
+			NodeList::FoundBestNode(&n);
 			return;
 		}
 
@@ -265,7 +263,7 @@ public:
 			m_pBestIntermediateNode = &n;
 		}
 
-		m_nodes.InsertNode(&n);
+		NodeList::InsertNode(&n);
 	}
 
 	const VehicleType * GetVehicle() const
@@ -275,7 +273,7 @@ public:
 
 	void DumpBase(DumpTarget &dmp) const
 	{
-		dmp.WriteStructT("m_nodes", &m_nodes);
+		NodeList::Dump(dmp);
 		dmp.WriteLine("m_num_steps = %d", m_num_steps);
 	}
 
@@ -286,18 +284,18 @@ public:
 	inline void PfSetStartupNodes()
 	{
 		/* example: */
-		Node& n1 = *base::m_nodes.CreateNewNode();
+		Node& n1 = *base::NodeList::CreateNewNode();
 		.
 		. // setup node members here
 		.
-		base::m_nodes.InsertOpenNode(n1);
+		base::NodeList::InsertOpenNode(n1);
 	}
 
 	/** Example: PfFollowNode() - set following (child) nodes of the given node */
 	inline void PfFollowNode(Node& org)
 	{
 		for (each follower of node org) {
-			Node& n = *base::m_nodes.CreateNewNode();
+			Node& n = *base::NodeList::CreateNewNode();
 			.
 			. // setup node members here
 			.
