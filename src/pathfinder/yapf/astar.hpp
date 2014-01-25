@@ -198,6 +198,17 @@ public:
 		m_closed.Push(item);
 	}
 
+	/** Replace an existing (open) node. */
+	inline void ReplaceNode (const Key &key, Node *n1, const Node *n2)
+	{
+		/* pop old node from open list and queue */
+		PopOpenNode (key);
+		/* update old node with new data */
+		*n1 = *n2;
+		/* add updated node to open list and queue */
+		InsertOpenNode (*n1);
+	}
+
 	/** Insert a new initial node. */
 	inline void InsertInitialNode (Node *n)
 	{
@@ -216,11 +227,7 @@ public:
 			/* two initial nodes with same key;
 			 * pick the one with the lowest cost */
 			if (n->GetCostEstimate() < m->GetCostEstimate()) {
-				/* update the old node with value from new one */
-				PopOpenNode(key);
-				*m = *n;
-				/* add the updated old node back to open list */
-				InsertOpenNode(*m);
+				ReplaceNode (key, m, n);
 			}
 		}
 	}
@@ -239,11 +246,7 @@ public:
 			/* another node exists with the same key in the open list
 			 * is it better than new one? */
 			if (n->GetCostEstimate() < m->GetCostEstimate()) {
-				/* update the old node with value from new one */
-				PopOpenNode(key);
-				*m = *n;
-				/* add the updated old node back to open list */
-				InsertOpenNode(*m);
+				ReplaceNode (key, m, n);
 			}
 			return;
 		}
