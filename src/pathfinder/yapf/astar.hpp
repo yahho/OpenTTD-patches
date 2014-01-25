@@ -183,24 +183,6 @@ public:
 		return NULL;
 	}
 
-	/** remove and return the best open node */
-	inline Node *PopBestOpenNode()
-	{
-		if (!m_open_queue.IsEmpty()) {
-			Node *item = m_open_queue.Shift();
-			m_open.Pop(*item);
-			return item;
-		}
-		return NULL;
-	}
-
-	/** return the open node specified by a key or NULL if not found */
-	inline Node *FindOpenNode(const Key& key)
-	{
-		Node *item = m_open.Find(key);
-		return item;
-	}
-
 	/** remove and return the open node specified by a key */
 	inline Node& PopOpenNode(const Key& key)
 	{
@@ -217,13 +199,6 @@ public:
 		m_closed.Push(item);
 	}
 
-	/** return the closed node specified by a key or NULL if not found */
-	inline Node *FindClosedNode(const Key& key)
-	{
-		Node *item = m_closed.Find(key);
-		return item;
-	}
-
 	/** Insert a new initial node. */
 	inline void InsertInitialNode (Node *n)
 	{
@@ -231,7 +206,8 @@ public:
 		assert (m_closed.Count() == 0);
 
 		/* insert the new node only if it is not there yet */
-		Node *m = FindOpenNode(n->GetKey());
+		const Key key = n->GetKey();
+		Node *m = m_open.Find (key);
 		if (m == NULL) {
 			InsertOpenNode(*n);
 		} else {
@@ -239,7 +215,7 @@ public:
 			 * pick the one with the lowest cost */
 			if (n->GetCostEstimate() < m->GetCostEstimate()) {
 				/* update the old node with value from new one */
-				PopOpenNode(n->GetKey());
+				PopOpenNode(key);
 				*m = *n;
 				/* add the updated old node back to open list */
 				InsertOpenNode(*m);
@@ -250,14 +226,16 @@ public:
 	/** Insert a new node */
 	inline void InsertNode (Node *n)
 	{
+		const Key key = n->GetKey();
+
 		/* check new node against open list */
-		Node *m = FindOpenNode(n->GetKey());
+		Node *m = m_open.Find (key);
 		if (m != NULL) {
 			/* another node exists with the same key in the open list
 			 * is it better than new one? */
 			if (n->GetCostEstimate() < m->GetCostEstimate()) {
 				/* update the old node with value from new one */
-				PopOpenNode(n->GetKey());
+				PopOpenNode(key);
 				*m = *n;
 				/* add the updated old node back to open list */
 				InsertOpenNode(*m);
@@ -266,7 +244,7 @@ public:
 		}
 
 		/* check new node against closed list */
-		m = FindClosedNode(n->GetKey());
+		m = m_closed.Find(key);
 		if (m != NULL) {
 			/* another node exists with the same key in the closed list
 			 * is it better than new one? */
@@ -278,11 +256,6 @@ public:
 		 * add it to the open list */
 		InsertOpenNode(*n);
 	}
-
-	/** The number of items. */
-	inline int TotalCount() {return m_arr.Length();}
-	/** Get a particular item. */
-	inline Node& ItemAt(int idx) {return m_arr[idx];}
 
 	/** Helper for creating output of this array. */
 	template <class D> void Dump(D &dmp) const
