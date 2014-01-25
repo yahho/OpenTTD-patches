@@ -26,12 +26,9 @@ extern int _total_pf_time_us;
  *  ----------------------------------
  *  The following types must be defined in the 'Types' argument:
  *    - Types::Tpf - your pathfinder derived from CYapfBaseT
- *    - Types::NodeList - open/closed node list (look at CNodeList_HashTableT)
+ *    - Types::NodeList - open/closed node list
  *  NodeList needs to have defined local type Titem - defines the pathfinder node type.
  *  Node needs to define local type Key - the node key in the collection ()
- *
- *  For node list you can use template class CNodeList_HashTableT, for which
- *  you need to declare only your node type. Look at test_yapf.h for an example.
  *
  *
  *  Requirements to your pathfinder class derived from CYapfBaseT:

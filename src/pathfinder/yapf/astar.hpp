@@ -83,12 +83,14 @@ struct AstarNodeBase {
 };
 
 /**
- * Hash table based node list multi-container class.
- *  Implements open list, closed list and priority queue for A-star
- *  path finder.
+ * A-star pathfinder implementation class
+ *
+ * Instantiate this class by supplying your node class as template argument;
+ * such a class must derive from AstarNodeBase above, and provide a Key type
+ * for hashes and a GetKey method to retrieve the key for a node.
  */
 template <class Titem_, int Thash_bits_open_, int Thash_bits_closed_>
-class CNodeList_HashTableT {
+struct Astar {
 public:
 	/** make Titem_ visible from outside of class */
 	typedef Titem_ Titem;
@@ -106,16 +108,10 @@ protected:
 	CBinaryHeapT<Titem_>  m_open_queue;
 	/** new open node under construction */
 	Titem                *m_new_node;
+
 public:
 	/** default constructor */
-	CNodeList_HashTableT()
-		: m_open_queue(2048)
-	{
-		m_new_node = NULL;
-	}
-
-	/** destructor */
-	~CNodeList_HashTableT()
+	Astar() : m_open_queue(2048), m_new_node(NULL)
 	{
 	}
 
