@@ -26,10 +26,8 @@ extern int _total_pf_time_us;
  *  ----------------------------------
  *  The following types must be defined in the 'Types' argument:
  *    - Types::Tpf - your pathfinder derived from CYapfBaseT
- *    - Types::NodeList - open/closed node list
- *  NodeList needs to have defined local type Node - defines the pathfinder node type.
- *  Node needs to define local type Key - the node key in the collection ()
- *
+ *    - Types::Astar - base Astar class
+ *  Astar must be (a derived class of) class Astar.
  *
  *  Requirements to your pathfinder class derived from CYapfBaseT:
  *  --------------------------------------------------------------
@@ -45,13 +43,13 @@ extern int _total_pf_time_us;
  *  test_yapf.h (part or unittest project).
  */
 template <class Types>
-class CYapfBaseT : Types::NodeList {
+class CYapfBaseT : Types::Astar {
 public:
 	typedef typename Types::Tpf Tpf;           ///< the pathfinder class (derived from THIS class)
 	typedef typename Types::TrackFollower TrackFollower;
-	typedef typename Types::NodeList NodeList; ///< our node list
+	typedef typename Types::Astar Astar;       ///< our base pathfinder
 	typedef typename Types::VehicleType VehicleType; ///< the type of vehicle
-	typedef typename NodeList::Node Node;      ///< this will be our node type
+	typedef typename Astar::Node Node;         ///< this will be our node type
 	typedef typename Node::Key Key;            ///< key to hash tables
 
 protected:
@@ -95,7 +93,7 @@ public:
 	}
 
 	/** call the node follower */
-	static inline void Follow (NodeList *pf, Node *n)
+	static inline void Follow (Astar *pf, Node *n)
 	{
 		static_cast<Tpf*>(pf)->PfFollowNode(*n);
 	}
@@ -119,7 +117,7 @@ public:
 #endif /* !NO_DEBUG_MESSAGES */
 
 		Yapf().PfSetStartupNodes();
-		bool bDestFound = NodeList::FindPath (Follow, PfGetSettings().max_search_nodes);
+		bool bDestFound = Astar::FindPath (Follow, PfGetSettings().max_search_nodes);
 
 #ifndef NO_DEBUG_MESSAGES
 		perf.Stop();
@@ -131,11 +129,11 @@ public:
 				UnitID veh_idx = (m_veh != NULL) ? m_veh->unitnumber : 0;
 				char ttc = Yapf().TransportTypeChar();
 				float cache_hit_ratio = (m_stats_cache_hits == 0) ? 0.0f : ((float)m_stats_cache_hits / (float)(m_stats_cache_hits + m_stats_cost_calcs) * 100.0f);
-				int cost = bDestFound ? NodeList::best->m_cost : -1;
-				int dist = bDestFound ? NodeList::best->m_estimate - NodeList::best->m_cost : -1;
+				int cost = bDestFound ? Astar::best->m_cost : -1;
+				int dist = bDestFound ? Astar::best->m_estimate - Astar::best->m_cost : -1;
 
 				DEBUG(yapf, 3, "[YAPF%c]%c%4d- %d us - %d rounds - %d open - %d closed - CHR %4.1f%% - C %d D %d - c%d(sc%d, ts%d, o%d) -- ",
-					ttc, bDestFound ? '-' : '!', veh_idx, t, NodeList::num_steps, NodeList::OpenCount(), NodeList::ClosedCount(),
+					ttc, bDestFound ? '-' : '!', veh_idx, t, Astar::num_steps, Astar::OpenCount(), Astar::ClosedCount(),
 					cache_hit_ratio, cost, dist, m_perf_cost.Get(1000000), m_perf_slope_cost.Get(1000000),
 					m_perf_ts_cost.Get(1000000), m_perf_other_cost.Get(1000000)
 				);
@@ -151,20 +149,20 @@ public:
 	 */
 	inline Node *GetBestNode()
 	{
-		return NodeList::GetBestNode();
+		return Astar::GetBestNode();
 	}
 
 	/** Add new node (created by CreateNewNode and filled with data) into open list */
 	inline void AddStartupNode(Node& n)
 	{
 		Yapf().PfNodeCacheFetch(n);
-		NodeList::InsertInitialNode(&n);
+		Astar::InsertInitialNode(&n);
 	}
 
 	/** Create and add a new node */
 	inline void AddStartupNode (const PathPos &pos, bool is_choice, int cost = 0)
 	{
-		Node &node = *NodeList::CreateNewNode (NULL, pos, is_choice);
+		Node &node = *Astar::CreateNewNode (NULL, pos, is_choice);
 		node.m_cost = cost;
 		AddStartupNode (node);
 	}
@@ -176,7 +174,7 @@ public:
 		PathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.td = FindFirstTrackdir(rtds);
-			Node& n = *NodeList::CreateNewNode(parent, pos, is_choice);
+			Node& n = *Astar::CreateNewNode(parent, pos, is_choice);
 			AddNewNode(n, tf);
 		}
 	}
@@ -191,8 +189,8 @@ public:
 	 */
 	void PruneIntermediateNodeBranch()
 	{
-		while (NodeList::best_intermediate != NULL && (NodeList::best_intermediate->m_segment->m_end_segment_reason & ESRB_CHOICE_FOLLOWS) == 0) {
-			NodeList::best_intermediate = NodeList::best_intermediate->m_parent;
+		while (Astar::best_intermediate != NULL && (Astar::best_intermediate->m_segment->m_end_segment_reason & ESRB_CHOICE_FOLLOWS) == 0) {
+			Astar::best_intermediate = Astar::best_intermediate->m_parent;
 		}
 	}
 
@@ -223,9 +221,9 @@ public:
 
 		/* detect the destination */
 		if (Yapf().PfDetectDestination(n)) {
-			NodeList::FoundTarget(&n);
+			Astar::FoundTarget(&n);
 		} else {
-			NodeList::InsertNode(&n);
+			Astar::InsertNode(&n);
 		}
 	}
 
@@ -236,7 +234,7 @@ public:
 
 	void DumpBase(DumpTarget &dmp) const
 	{
-		NodeList::Dump(dmp);
+		Astar::Dump(dmp);
 	}
 
 	/* methods that should be implemented at derived class Types::Tpf (derived from CYapfBaseT) */
@@ -246,18 +244,18 @@ public:
 	inline void PfSetStartupNodes()
 	{
 		/* example: */
-		Node& n1 = *base::NodeList::CreateNewNode();
+		Node& n1 = *base::Astar::CreateNewNode();
 		.
 		. // setup node members here
 		.
-		base::NodeList::InsertOpenNode(n1);
+		base::Astar::InsertOpenNode(n1);
 	}
 
 	/** Example: PfFollowNode() - set following (child) nodes of the given node */
 	inline void PfFollowNode(Node& org)
 	{
 		for (each follower of node org) {
-			Node& n = *base::NodeList::CreateNewNode();
+			Node& n = *base::Astar::CreateNewNode();
 			.
 			. // setup node members here
 			.

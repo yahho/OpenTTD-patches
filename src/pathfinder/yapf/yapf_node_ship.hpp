@@ -24,9 +24,9 @@ struct CYapfShipNodeT
 typedef CYapfShipNodeT<CYapfNodeKeyExitDir>  CYapfShipNodeExitDir;
 typedef CYapfShipNodeT<CYapfNodeKeyTrackDir> CYapfShipNodeTrackDir;
 
-/* Default NodeList types */
-typedef Astar<CYapfShipNodeExitDir , 10, 12> CShipNodeListExitDir;
-typedef Astar<CYapfShipNodeTrackDir, 10, 12> CShipNodeListTrackDir;
+/* Default Astar types */
+typedef Astar<CYapfShipNodeExitDir , 10, 12> AstarShipExitDir;
+typedef Astar<CYapfShipNodeTrackDir, 10, 12> AstarShipTrackDir;
 
 
 #endif /* YAPF_NODE_SHIP_HPP */

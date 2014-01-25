@@ -26,7 +26,7 @@ class CYapfSegmentCostCacheNoneT
 {
 public:
 	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::NodeList::Node Node;  ///< this will be our node type
+	typedef typename Types::Astar::Node Node;     ///< this will be our node type
 
 	/**
 	 * Called by YAPF to attach cached or local segment cost data to the given node.
@@ -57,7 +57,7 @@ class CYapfSegmentCostCacheLocalT
 {
 public:
 	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::NodeList::Node Node;  ///< this will be our node type
+	typedef typename Types::Astar::Node Node;     ///< this will be our node type
 	typedef typename Node::Key Key;               ///< key to hash tables
 	typedef typename Node::CachedData CachedData;
 	typedef typename CachedData::Key CacheKey;
@@ -170,7 +170,7 @@ class CYapfSegmentCostCacheGlobalT
 public:
 	typedef CYapfSegmentCostCacheLocalT<Types> Tlocal;
 	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::NodeList::Node Node;  ///< this will be our node type
+	typedef typename Types::Astar::Node Node;     ///< this will be our node type
 	typedef typename Node::Key Key;    ///< key to hash tables
 	typedef typename Node::CachedData CachedData;
 	typedef typename CachedData::Key CacheKey;

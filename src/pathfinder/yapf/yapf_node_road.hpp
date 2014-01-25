@@ -32,8 +32,8 @@ struct CYapfRoadNodeT
 typedef CYapfRoadNodeT<CYapfNodeKeyExitDir>  CYapfRoadNodeExitDir;
 typedef CYapfRoadNodeT<CYapfNodeKeyTrackDir> CYapfRoadNodeTrackDir;
 
-/* Default NodeList types */
-typedef Astar<CYapfRoadNodeExitDir , 8, 10> CRoadNodeListExitDir;
-typedef Astar<CYapfRoadNodeTrackDir, 8, 10> CRoadNodeListTrackDir;
+/* Default Astar types */
+typedef Astar<CYapfRoadNodeExitDir , 8, 10> AstarRoadExitDir;
+typedef Astar<CYapfRoadNodeTrackDir, 8, 10> AstarRoadTrackDir;
 
 #endif /* YAPF_NODE_ROAD_HPP */

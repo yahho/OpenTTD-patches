@@ -191,8 +191,8 @@ struct CYapfRailNodeT
 typedef CYapfRailNodeT<CYapfNodeKeyExitDir>  CYapfRailNodeExitDir;
 typedef CYapfRailNodeT<CYapfNodeKeyTrackDir> CYapfRailNodeTrackDir;
 
-/* Default NodeList types */
-typedef Astar<CYapfRailNodeExitDir , 8, 10> CRailNodeListExitDir;
-typedef Astar<CYapfRailNodeTrackDir, 8, 10> CRailNodeListTrackDir;
+/* Default Astar types */
+typedef Astar<CYapfRailNodeExitDir , 8, 10> AstarRailExitDir;
+typedef Astar<CYapfRailNodeTrackDir, 8, 10> AstarRailTrackDir;
 
 #endif /* YAPF_NODE_RAIL_HPP */

@@ -41,7 +41,7 @@ class CYapfDestinationAnyDepotRailT
 {
 public:
 	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::NodeList::Node Node;  ///< this will be our node type
+	typedef typename Types::Astar::Node Node;     ///< this will be our node type
 	typedef typename Node::Key Key;               ///< key to hash tables
 
 	/** to access inherited path finder */
@@ -79,7 +79,7 @@ class CYapfDestinationAnySafeTileRailT
 {
 public:
 	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::NodeList::Node Node;  ///< this will be our node type
+	typedef typename Types::Astar::Node Node;     ///< this will be our node type
 	typedef typename Node::Key Key;               ///< key to hash tables
 	typedef typename Types::TrackFollower TrackFollower; ///< TrackFollower. Need to typedef for gcc 2.95
 
@@ -118,7 +118,7 @@ class CYapfDestinationTileOrStationRailT
 {
 public:
 	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::NodeList::Node Node;  ///< this will be our node type
+	typedef typename Types::Astar::Node Node;     ///< this will be our node type
 	typedef typename Node::Key Key;               ///< key to hash tables
 
 protected:

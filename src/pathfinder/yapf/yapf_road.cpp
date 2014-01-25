@@ -21,7 +21,7 @@ class CYapfCostRoadT
 public:
 	typedef typename Types::Tpf Tpf; ///< pathfinder (derived from THIS class)
 	typedef typename Types::TrackFollower TrackFollower; ///< track follower helper
-	typedef typename Types::NodeList::Node Node; ///< this will be our node type
+	typedef typename Types::Astar::Node Node; ///< this will be our node type
 	typedef typename Node::Key Key;    ///< key to hash tables
 
 protected:
@@ -171,7 +171,7 @@ class CYapfDestinationAnyDepotRoadT
 public:
 	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
 	typedef typename Types::TrackFollower TrackFollower;
-	typedef typename Types::NodeList::Node Node;         ///< this will be our node type
+	typedef typename Types::Astar::Node Node;            ///< this will be our node type
 	typedef typename Node::Key Key;                      ///< key to hash tables
 
 	/** to access inherited path finder */
@@ -209,7 +209,7 @@ class CYapfDestinationTileRoadT
 public:
 	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
 	typedef typename Types::TrackFollower TrackFollower;
-	typedef typename Types::NodeList::Node Node;         ///< this will be our node type
+	typedef typename Types::Astar::Node Node;            ///< this will be our node type
 	typedef typename Node::Key Key;                      ///< key to hash tables
 
 protected:
@@ -296,7 +296,7 @@ class CYapfFollowRoadT
 public:
 	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
 	typedef typename Types::TrackFollower TrackFollower;
-	typedef typename Types::NodeList::Node Node;         ///< this will be our node type
+	typedef typename Types::Astar::Node Node;            ///< this will be our node type
 	typedef typename Node::Key Key;                      ///< key to hash tables
 
 protected:
@@ -447,14 +447,14 @@ public:
 	}
 };
 
-template <class Tpf_, class Tnode_list, template <class Types> class Tdestination>
+template <class Tpf_, class TAstar, template <class Types> class Tdestination>
 struct CYapfRoad_TypesT
 {
-	typedef CYapfRoad_TypesT<Tpf_, Tnode_list, Tdestination>  Types;
+	typedef CYapfRoad_TypesT<Tpf_, TAstar, Tdestination>  Types;
 
 	typedef Tpf_                              Tpf;
 	typedef CFollowTrackRoad                  TrackFollower;
-	typedef Tnode_list                        NodeList;
+	typedef TAstar                            Astar;
 	typedef RoadVehicle                       VehicleType;
 	typedef CYapfBaseT<Types>                 PfBase;
 	typedef CYapfFollowRoadT<Types>           PfFollow;
@@ -464,11 +464,11 @@ struct CYapfRoad_TypesT
 	typedef CYapfCostRoadT<Types>             PfCost;
 };
 
-struct CYapfRoad1         : CYapfT<CYapfRoad_TypesT<CYapfRoad1        , CRoadNodeListTrackDir, CYapfDestinationTileRoadT    > > {};
-struct CYapfRoad2         : CYapfT<CYapfRoad_TypesT<CYapfRoad2        , CRoadNodeListExitDir , CYapfDestinationTileRoadT    > > {};
+struct CYapfRoad1         : CYapfT<CYapfRoad_TypesT<CYapfRoad1        , AstarRoadTrackDir, CYapfDestinationTileRoadT    > > {};
+struct CYapfRoad2         : CYapfT<CYapfRoad_TypesT<CYapfRoad2        , AstarRoadExitDir , CYapfDestinationTileRoadT    > > {};
 
-struct CYapfRoadAnyDepot1 : CYapfT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, CRoadNodeListTrackDir, CYapfDestinationAnyDepotRoadT> > {};
-struct CYapfRoadAnyDepot2 : CYapfT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, CRoadNodeListExitDir , CYapfDestinationAnyDepotRoadT> > {};
+struct CYapfRoadAnyDepot1 : CYapfT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir, CYapfDestinationAnyDepotRoadT> > {};
+struct CYapfRoadAnyDepot2 : CYapfT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir , CYapfDestinationAnyDepotRoadT> > {};
 
 
 Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)

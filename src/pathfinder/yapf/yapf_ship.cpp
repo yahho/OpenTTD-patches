@@ -22,7 +22,7 @@ class CYapfFollowShipT
 public:
 	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
 	typedef typename Types::TrackFollower TrackFollower;
-	typedef typename Types::NodeList::Node Node;         ///< this will be our node type
+	typedef typename Types::Astar::Node Node;            ///< this will be our node type
 	typedef typename Node::Key Key;                      ///< key to hash tables
 
 protected:
@@ -129,7 +129,7 @@ class CYapfCostShipT
 public:
 	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
 	typedef typename Types::TrackFollower TrackFollower;
-	typedef typename Types::NodeList::Node Node;  ///< this will be our node type
+	typedef typename Types::Astar::Node Node;     ///< this will be our node type
 	typedef typename Node::Key Key;               ///< key to hash tables
 
 protected:
@@ -175,7 +175,7 @@ class CYapfDestinationShipT
 {
 public:
 	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::NodeList::Node Node;  ///< this will be our node type
+	typedef typename Types::Astar::Node Node;     ///< this will be our node type
 	typedef typename Node::Key Key;               ///< key to hash tables
 
 protected:
@@ -252,18 +252,18 @@ public:
  * Config struct of YAPF for ships.
  *  Defines all 6 base YAPF modules as classes providing services for CYapfBaseT.
  */
-template <class Tpf_, class Ttrack_follower, class Tnode_list>
+template <class Tpf_, class Ttrack_follower, class TAstar>
 struct CYapfShip_TypesT
 {
 	/** Types - shortcut for this struct type */
-	typedef CYapfShip_TypesT<Tpf_, Ttrack_follower, Tnode_list>  Types;
+	typedef CYapfShip_TypesT<Tpf_, Ttrack_follower, TAstar>  Types;
 
 	/** Tpf - pathfinder type */
 	typedef Tpf_                              Tpf;
 	/** track follower helper class */
 	typedef Ttrack_follower                   TrackFollower;
 	/** node list type */
-	typedef Tnode_list                        NodeList;
+	typedef TAstar                            Astar;
 	typedef Ship                              VehicleType;
 	/** pathfinder components (modules) */
 	typedef CYapfBaseT<Types>                 PfBase;        // base pathfinder class
@@ -275,11 +275,11 @@ struct CYapfShip_TypesT
 };
 
 /* YAPF type 1 - uses TileIndex/Trackdir as Node key, allows 90-deg turns */
-struct CYapfShip1 : CYapfT<CYapfShip_TypesT<CYapfShip1, CFollowTrackWater90  , CShipNodeListTrackDir> > {};
+struct CYapfShip1 : CYapfT<CYapfShip_TypesT<CYapfShip1, CFollowTrackWater90  , AstarShipTrackDir> > {};
 /* YAPF type 2 - uses TileIndex/DiagDirection as Node key, allows 90-deg turns */
-struct CYapfShip2 : CYapfT<CYapfShip_TypesT<CYapfShip2, CFollowTrackWater90  , CShipNodeListExitDir > > {};
+struct CYapfShip2 : CYapfT<CYapfShip_TypesT<CYapfShip2, CFollowTrackWater90  , AstarShipExitDir > > {};
 /* YAPF type 3 - uses TileIndex/Trackdir as Node key, forbids 90-deg turns */
-struct CYapfShip3 : CYapfT<CYapfShip_TypesT<CYapfShip3, CFollowTrackWaterNo90, CShipNodeListTrackDir> > {};
+struct CYapfShip3 : CYapfT<CYapfShip_TypesT<CYapfShip3, CFollowTrackWaterNo90, AstarShipTrackDir> > {};
 
 /** Ship controller helper - path finder invoker */
 Trackdir YapfShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)
