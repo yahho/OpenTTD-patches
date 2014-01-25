@@ -97,7 +97,7 @@ public:
 	/** make TNode::Key a property of HashTable */
 	typedef typename TNode::Key Key;
 
-protected:
+private:
 	/** here we store full item data (Node) */
 	SmallArray<Node, 65536, 256> m_arr;
 	/** hash table of pointers to open item data */
@@ -159,31 +159,24 @@ public:
 		return m_new_node;
 	}
 
-	/** insert given item as open node (into m_open and m_open_queue) */
-	inline void InsertOpenNode(Node& item)
+private:
+	/** Insert given node as open node (into m_open and m_open_queue). */
+	inline void InsertOpenNode (Node *n)
 	{
-		assert(m_closed.Find(item.GetKey()) == NULL);
-		m_open.Push(item);
-		m_open_queue.Include(&item);
-		if (&item == m_new_node) {
+		assert (m_closed.Find(n->GetKey()) == NULL);
+		m_open.Push(*n);
+		m_open_queue.Include(n);
+		if (n == m_new_node) {
 			m_new_node = NULL;
 		}
 	}
 
-	/** remove and return the open node specified by a key */
-	inline Node& PopOpenNode(const Key& key)
+	/** Remove and return the open node specified by a key. */
+	inline void PopOpenNode (const Key &key)
 	{
 		Node& item = m_open.Pop(key);
 		uint idxPop = m_open_queue.FindIndex(item);
 		m_open_queue.Remove(idxPop);
-		return item;
-	}
-
-	/** close node */
-	inline void InsertClosedNode(Node& item)
-	{
-		assert(m_open.Find(item.GetKey()) == NULL);
-		m_closed.Push(item);
 	}
 
 	/** Replace an existing (open) node. */
@@ -194,9 +187,10 @@ public:
 		/* update old node with new data */
 		*n1 = *n2;
 		/* add updated node to open list and queue */
-		InsertOpenNode (*n1);
+		InsertOpenNode (n1);
 	}
 
+public:
 	/** Insert a new initial node. */
 	inline void InsertInitialNode (Node *n)
 	{
@@ -210,7 +204,7 @@ public:
 		const Key key = n->GetKey();
 		Node *m = m_open.Find (key);
 		if (m == NULL) {
-			InsertOpenNode(*n);
+			InsertOpenNode(n);
 		} else {
 			/* two initial nodes with same key;
 			 * pick the one with the lowest cost */
@@ -254,7 +248,7 @@ public:
 
 		/* the new node is really new
 		 * add it to the open list */
-		InsertOpenNode(*n);
+		InsertOpenNode(n);
 	}
 
 	/** Found target. */
@@ -307,7 +301,7 @@ public:
 			}
 
 			PopOpenNode(n->GetKey());
-			InsertClosedNode(*n);
+			m_closed.Push (*n);
 		}
 	}
 
