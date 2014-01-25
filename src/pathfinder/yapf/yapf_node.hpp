@@ -62,39 +62,26 @@ struct CYapfNodeKeyTrackDir : public CYapfNodeKey
 
 /** Yapf Node base */
 template <class Tkey_, class Tnode>
-struct CYapfNodeT {
+struct CYapfNodeT : AstarNodeBase<Tnode> {
+	typedef AstarNodeBase<Tnode> ABase;
 	typedef Tkey_ Key;
 	typedef Tnode Node;
 
 	Tkey_       m_key;
-	Node       *m_hash_next;
-	Node       *m_parent;
-	int         m_cost;
-	int         m_estimate;
 
 	inline void Set(Node *parent, const PathPos &pos, bool is_choice)
 	{
+		ABase::Set (parent);
 		m_key.Set(pos);
-		m_hash_next = NULL;
-		m_parent = parent;
-		m_cost = 0;
-		m_estimate = 0;
 	}
 
-	inline Node *GetHashNext() {return m_hash_next;}
-	inline void SetHashNext(Node *pNext) {m_hash_next = pNext;}
 	inline const PathPos& GetPos() const {return m_key;}
 	inline const Tkey_& GetKey() const {return m_key;}
-	inline int GetCost() const {return m_cost;}
-	inline int GetCostEstimate() const {return m_estimate;}
-	inline bool operator < (const Node& other) const {return m_estimate < other.m_estimate;}
 
 	void Dump(DumpTarget &dmp) const
 	{
+		ABase::Dump(dmp);
 		dmp.WriteStructT("m_key", &m_key);
-		dmp.WriteStructT("m_parent", m_parent);
-		dmp.WriteLine("m_cost = %d", m_cost);
-		dmp.WriteLine("m_estimate = %d", m_estimate);
 	}
 };
 

@@ -15,6 +15,74 @@
 #include "../../misc/binaryheap.hpp"
 
 /**
+ * A-star node template common base
+ *
+ * This struct contains the common fields that the A-star algorithm below
+ * requires a node to have. Users of the A-star pathfinder must define a
+ * node class that derives from this struct, using that node class itself
+ * as template argument. Such a class must define a Key type to be used in
+ * hashes, and a GetKey method to get the key for a particular node. It
+ * may also define a Set method to initalise the node, which must take a
+ * parent Node as first argument, and a Dump method to dump its contents;
+ * either one defined must hook into this base class's corresponding own
+ * method.
+ */
+template <class Node>
+struct AstarNodeBase {
+	Node *m_hash_next; ///< next node in hash bucket
+	Node *m_parent;    ///< parent node in path
+	int   m_cost;      ///< cost of this node
+	int   m_estimate;  ///< estimated cost to target
+
+	/** Initialise this node */
+	inline void Set (Node *parent)
+	{
+		m_hash_next = NULL;
+		m_parent = parent;
+		m_cost = 0;
+		m_estimate = 0;
+	}
+
+	/** Get the next node in the hash bucket, to be used internally */
+	inline Node *GetHashNext() const
+	{
+		return m_hash_next;
+	}
+
+	/** Set the next node in the hash bucket, to be used internally */
+	inline void SetHashNext (Node *next)
+	{
+		m_hash_next = next;
+	}
+
+	/** Get the cost of this node */
+	inline int GetCost() const
+	{
+		return m_cost;
+	}
+
+	/** Get the estimated final cost to the target */
+	inline int GetCostEstimate() const
+	{
+		return m_estimate;
+	}
+
+	/** Compare estimated final cost with another node */
+	inline bool operator < (const Node& other) const
+	{
+		return m_estimate < other.m_estimate;
+	}
+
+	/** Dump this node */
+	template <class D> void Dump (D &dmp) const
+	{
+		dmp.WriteStructT("m_parent", this->m_parent);
+		dmp.WriteLine("m_cost = %d", this->m_cost);
+		dmp.WriteLine("m_estimate = %d", this->m_estimate);
+	}
+};
+
+/**
  * Hash table based node list multi-container class.
  *  Implements open list, closed list and priority queue for A-star
  *  path finder.
