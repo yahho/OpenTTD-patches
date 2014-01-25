@@ -265,42 +265,7 @@ public:
 			m_pBestIntermediateNode = &n;
 		}
 
-		/* check new node against open list */
-		Node *openNode = m_nodes.FindOpenNode(n.GetKey());
-		if (openNode != NULL) {
-			/* another node exists with the same key in the open list
-			 * is it better than new one? */
-			if (n.GetCostEstimate() < openNode->GetCostEstimate()) {
-				/* update the old node by value from new one */
-				m_nodes.PopOpenNode(n.GetKey());
-				*openNode = n;
-				/* add the updated old node back to open list */
-				m_nodes.InsertOpenNode(*openNode);
-			}
-			return;
-		}
-
-		/* check new node against closed list */
-		Node *closedNode = m_nodes.FindClosedNode(n.GetKey());
-		if (closedNode != NULL) {
-			/* another node exists with the same key in the closed list
-			 * is it better than new one? */
-			int node_est = n.GetCostEstimate();
-			int closed_est = closedNode->GetCostEstimate();
-			if (node_est < closed_est) {
-				/* If this assert occurs, you have probably problem in
-				 * your Tderived::PfCalcCost() or Tderived::PfCalcEstimate().
-				 * The problem could be:
-				 *  - PfCalcEstimate() gives too large numbers
-				 *  - PfCalcCost() gives too small numbers
-				 *  - You have used negative cost penalty in some cases (cost bonus) */
-				NOT_REACHED();
-			}
-			return;
-		}
-		/* the new node is really new
-		 * add it to the open list */
-		m_nodes.InsertOpenNode(n);
+		m_nodes.InsertNode(&n);
 	}
 
 	const VehicleType * GetVehicle() const

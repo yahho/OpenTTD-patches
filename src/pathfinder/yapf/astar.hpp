@@ -247,6 +247,38 @@ public:
 		}
 	}
 
+	/** Insert a new node */
+	inline void InsertNode (Node *n)
+	{
+		/* check new node against open list */
+		Node *m = FindOpenNode(n->GetKey());
+		if (m != NULL) {
+			/* another node exists with the same key in the open list
+			 * is it better than new one? */
+			if (n->GetCostEstimate() < m->GetCostEstimate()) {
+				/* update the old node with value from new one */
+				PopOpenNode(n->GetKey());
+				*m = *n;
+				/* add the updated old node back to open list */
+				InsertOpenNode(*m);
+			}
+			return;
+		}
+
+		/* check new node against closed list */
+		m = FindClosedNode(n->GetKey());
+		if (m != NULL) {
+			/* another node exists with the same key in the closed list
+			 * is it better than new one? */
+			assert (m->GetCostEstimate() <= n->GetCostEstimate());
+			return;
+		}
+
+		/* the new node is really new
+		 * add it to the open list */
+		InsertOpenNode(*n);
+	}
+
 	/** The number of items. */
 	inline int TotalCount() {return m_arr.Length();}
 	/** Get a particular item. */
