@@ -127,10 +127,29 @@ public:
 		return m_closed.Count();
 	}
 
-	/** allocate new data item from m_arr */
-	inline Node *CreateNewNode()
+	/** Create a new node */
+	inline Node *CreateNewNode (Node *parent)
 	{
 		if (m_new_node == NULL) m_new_node = m_arr.AppendC();
+		m_new_node->Set (parent);
+		return m_new_node;
+	}
+
+	/** Create a new node, one parameter */
+	template <class T1>
+	inline Node *CreateNewNode (Node *parent, T1 t1)
+	{
+		if (m_new_node == NULL) m_new_node = m_arr.AppendC();
+		m_new_node->Set (parent, t1);
+		return m_new_node;
+	}
+
+	/** Create a new node, two parameters */
+	template <class T1, class T2>
+	inline Node *CreateNewNode (Node *parent, T1 t1, T2 t2)
+	{
+		if (m_new_node == NULL) m_new_node = m_arr.AppendC();
+		m_new_node->Set (parent, t1, t2);
 		return m_new_node;
 	}
 

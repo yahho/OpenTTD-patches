@@ -184,17 +184,6 @@ public:
 		return (m_pBestDestNode != NULL) ? m_pBestDestNode : m_pBestIntermediateNode;
 	}
 
-	/**
-	 * Calls NodeList::CreateNewNode() - allocates new node that can be filled and used
-	 *  as argument for AddStartupNode() or AddNewNode()
-	 */
-	inline Node& CreateNewNode (Node *parent, const PathPos &pos, bool is_choice)
-	{
-		Node& node = *m_nodes.CreateNewNode();
-		node.Set (parent, pos, is_choice);
-		return node;
-	}
-
 	/** Add new node (created by CreateNewNode and filled with data) into open list */
 	inline void AddStartupNode(Node& n)
 	{
@@ -212,7 +201,7 @@ public:
 	/** Create and add a new node */
 	inline void AddStartupNode (const PathPos &pos, bool is_choice, int cost = 0)
 	{
-		Node &node = CreateNewNode (NULL, pos, is_choice);
+		Node &node = *m_nodes.CreateNewNode (NULL, pos, is_choice);
 		node.m_cost = cost;
 		AddStartupNode (node);
 	}
@@ -224,7 +213,7 @@ public:
 		PathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.td = FindFirstTrackdir(rtds);
-			Node& n = CreateNewNode(parent, pos, is_choice);
+			Node& n = *m_nodes.CreateNewNode(parent, pos, is_choice);
 			AddNewNode(n, tf);
 		}
 	}
