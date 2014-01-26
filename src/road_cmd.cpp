@@ -2175,7 +2175,9 @@ static void GetTileDesc_Road(TileIndex tile, TileDesc *td)
 		}
 		td->str = _road_tile_strings[GetRoadside(tile)];
 	} else {
-		td->str = GetBridgeSpec(GetRoadBridgeType(tile))->transport_name[TRANSPORT_ROAD];
+		const BridgeSpec *spec = GetBridgeSpec(GetRoadBridgeType(tile));
+		td->str = spec->transport_name[TRANSPORT_ROAD];
+		td->road_speed = spec->speed;
 		if (!HasBit(rts, ROADTYPE_ROAD)) {
 			td->owner[0] = tram_owner;
 			return;
