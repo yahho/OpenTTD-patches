@@ -294,7 +294,7 @@ public:
 				return true;
 			}
 
-			follow (this, n);
+			follow (static_cast<T*>(this), n);
 
 			if (max_nodes > 0 && ClosedCount() >= max_nodes) {
 				return best != NULL;
