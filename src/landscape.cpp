@@ -1032,11 +1032,16 @@ static bool FlowsDown(TileIndex begin, TileIndex end)
 	Slope slopeBegin = GetTileSlope(begin, &heightBegin);
 	Slope slopeEnd   = GetTileSlope(end, &heightEnd);
 
-	return heightEnd <= heightBegin &&
-			/* Slope either is inclined or flat; rivers don't support other slopes. */
-			(slopeEnd == SLOPE_FLAT || IsInclinedSlope(slopeEnd)) &&
-			/* Slope continues, then it must be lower... or either end must be flat. */
-			((slopeEnd == slopeBegin && heightEnd < heightBegin) || slopeEnd == SLOPE_FLAT || slopeBegin == SLOPE_FLAT);
+	/* Slope is either inclined or flat; rivers don't support other slopes. */
+	if (slopeEnd == SLOPE_FLAT) {
+		return heightEnd <= heightBegin;
+	} else if (slopeBegin == SLOPE_FLAT) {
+		return heightEnd <= heightBegin && IsInclinedSlope(slopeEnd);
+	} else {
+		/* Slope continues, then it must be lower. */
+		assert (IsInclinedSlope(slopeBegin));
+		return heightEnd < heightBegin && slopeEnd == slopeBegin;
+	}
 }
 
 /** River node struct for Astar. */
