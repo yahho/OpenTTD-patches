@@ -167,9 +167,6 @@ protected:
 		return hash;
 	}
 
-	/** static helper - return hash for the given item modulo number of slots */
-	inline static int CalcHash(const Titem_& item) {return CalcHash(item.GetKey());}
-
 public:
 	/** item count */
 	inline int Count() const {return m_num_items;}
@@ -238,9 +235,10 @@ public:
 	/** add one item - copy it from the given item */
 	void Push(Titem_& new_item)
 	{
-		int hash = CalcHash(new_item);
+		const Tkey& key = new_item.GetKey();
+		int hash = CalcHash(key);
 		Slot& slot = m_slots[hash];
-		assert(slot.Find(new_item.GetKey()) == NULL);
+		assert(slot.Find(key) == NULL);
 		slot.Attach(new_item);
 		m_num_items++;
 	}
