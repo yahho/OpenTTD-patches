@@ -30,7 +30,7 @@
 #include "core/random_func.hpp"
 #include "object_base.h"
 #include "company_func.h"
-#include "pathfinder/npf/aystar.h"
+#include "pathfinder/yapf/astar.hpp"
 #include <list>
 
 #include "table/strings.h"
@@ -1039,63 +1039,62 @@ static bool FlowsDown(TileIndex begin, TileIndex end)
 			((slopeEnd == slopeBegin && heightEnd < heightBegin) || slopeEnd == SLOPE_FLAT || slopeBegin == SLOPE_FLAT);
 }
 
-/* AyStar callback for checking whether we reached our destination. */
-static int32 River_EndNodeCheck(AyStar *aystar, OpenListNode *current)
-{
-	return current->path.node.pos.tile == *(TileIndex*)aystar->user_target ? AYSTAR_FOUND_END_NODE : AYSTAR_DONE;
-}
+/** River node struct for Astar. */
+struct RiverNode : AstarNodeBase<RiverNode> {
+	typedef AstarNodeBase<RiverNode> Base;
+	typedef RiverNode Key; // we are our own key
 
-/* AyStar callback for getting the cost of the current node. */
-static int32 River_CalculateG(AyStar *aystar, AyStarNode *current, OpenListNode *parent)
-{
-	return 1 + RandomRange(_settings_game.game_creation.river_route_random);
-}
+	TileIndex tile;
 
-/* AyStar callback for getting the estimated cost to the destination. */
-static int32 River_CalculateH(AyStar *aystar, AyStarNode *current, OpenListNode *parent)
-{
-	return DistanceManhattan(*(TileIndex*)aystar->user_target, current->pos.tile);
-}
-
-/* AyStar callback for getting the neighbouring nodes of the given node. */
-static void River_GetNeighbours(AyStar *aystar, OpenListNode *current)
-{
-	TileIndex tile = current->path.node.pos.tile;
-
-	aystar->num_neighbours = 0;
-	for (DiagDirection d = DIAGDIR_BEGIN; d < DIAGDIR_END; d++) {
-		TileIndex t2 = tile + TileOffsByDiagDir(d);
-		if (IsValidTile(t2) && FlowsDown(tile, t2)) {
-			aystar->neighbours[aystar->num_neighbours].pos.tile = t2;
-			aystar->neighbours[aystar->num_neighbours].pos.td = INVALID_TRACKDIR;
-			aystar->num_neighbours++;
-		}
+	void Set (RiverNode *parent, TileIndex t)
+	{
+		Base::Set (parent);
+		tile = t;
 	}
-}
 
-/* AyStar callback when an route has been found. */
-static void River_FoundEndNode(AyStar *aystar, OpenListNode *current)
-{
-	for (PathNode *path = &current->path; path != NULL; path = path->parent) {
-		TileIndex tile = path->node.pos.tile;
-		if (!IsPlainWaterTile(tile)) {
-			MakeRiver(tile, Random());
-			/* Remove desert directly around the river tile. */
-			CircularTileSearch(&tile, 5, RiverModifyDesertZone, NULL);
-		}
+	bool operator == (const RiverNode &other) const
+	{
+		return tile == other.tile;
 	}
-}
 
-static const uint RIVER_HASH_SIZE = 8; ///< The number of bits the hash for river finding should have.
+	const Key& GetKey() const
+	{
+		return *this;
+	}
+
+	int CalcHash() const
+	{
+		return TileHash (TileX(tile), TileY(tile));
+	}
+};
+
+/** River pathfinder. */
+struct RiverAstar : Astar <RiverNode, 8, 8>
+{
+	const TileIndex target;
+
+	RiverAstar (TileIndex target) : target(target) { }
+};
 
 /**
- * Simple hash function for river tiles to be used by AyStar.
- * @param pos The position to hash.
- * @return The hash for the tile.
+ * River neighbour finder for the A-star algorithm
  */
-static uint River_Hash(const PathPos &pos)
+static void RiverFollow (RiverAstar *a, RiverNode *n)
 {
-	return GB(TileHash(TileX(pos.tile), TileY(pos.tile)), 0, RIVER_HASH_SIZE);
+	for (DiagDirection d = DIAGDIR_BEGIN; d < DIAGDIR_END; d++) {
+		TileIndex tile = TileAddByDiagDir (n->tile, d);
+		if (IsValidTile(tile) && FlowsDown(n->tile, tile)) {
+			RiverNode *m = a->CreateNewNode (n, tile);
+			m->m_cost = n->m_cost + 1 + RandomRange(_settings_game.game_creation.river_route_random);
+			if (tile == a->target) {
+				m->m_estimate = m->m_cost;
+				a->FoundTarget(m);
+			} else {
+				m->m_estimate = m->m_cost + DistanceManhattan(tile, a->target);
+				a->InsertNode(m);
+			}
+		}
+	}
 }
 
 /**
@@ -1105,23 +1104,19 @@ static uint River_Hash(const PathPos &pos)
  */
 static void BuildRiver(TileIndex begin, TileIndex end)
 {
-	AyStar finder;
-	MemSetT(&finder, 0);
-	finder.CalculateG = River_CalculateG;
-	finder.CalculateH = River_CalculateH;
-	finder.GetNeighbours = River_GetNeighbours;
-	finder.EndNodeCheck = River_EndNodeCheck;
-	finder.FoundEndNode = River_FoundEndNode;
-	finder.user_target = &end;
+	RiverAstar finder (end);
+	finder.InsertInitialNode (finder.CreateNewNode (NULL, begin));
 
-	finder.Init(River_Hash, 1 << RIVER_HASH_SIZE);
-
-	AyStarNode start;
-	start.pos.tile = begin;
-	start.pos.td = INVALID_TRACKDIR;
-	finder.AddStartNode(&start, 0);
-	finder.Main();
-	finder.Free();
+	if (finder.FindPath(&RiverFollow)) {
+		for (RiverNode *n = finder.best; n != NULL; n = n->m_parent) {
+			TileIndex tile = n->tile;
+			if (!IsPlainWaterTile(tile)) {
+				MakeRiver(tile, Random());
+				/* Remove desert directly around the river tile. */
+				CircularTileSearch(&tile, 5, RiverModifyDesertZone, NULL);
+			}
+		}
+	}
 }
 
 /**
