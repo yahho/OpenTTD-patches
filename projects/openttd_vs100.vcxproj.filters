@@ -3003,12 +3003,6 @@
     <ClInclude Include="..\src\pathfinder\yapf\yapf_costcache.hpp">
       <Filter>YAPF</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\pathfinder\yapf\yapf_costrail.hpp">
-      <Filter>YAPF</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\pathfinder\yapf\yapf_destrail.hpp">
-      <Filter>YAPF</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\pathfinder\yapf\yapf_node.hpp">
       <Filter>YAPF</Filter>
     </ClInclude>

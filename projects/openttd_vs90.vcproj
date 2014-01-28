@@ -12328,14 +12328,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\pathfinder\yapf\yapf_costrail.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\pathfinder\yapf\yapf_destrail.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\pathfinder\yapf\yapf_node.hpp"
 				>
 			</File>
