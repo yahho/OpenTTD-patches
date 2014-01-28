@@ -374,55 +374,6 @@ public:
 		return next_trackdir;
 	}
 
-	static uint stDistanceToTile(const RoadVehicle *v, TileIndex tile)
-	{
-		Tpf pf;
-		return pf.DistanceToTile(v, tile);
-	}
-
-	inline uint DistanceToTile(const RoadVehicle *v, TileIndex dst_tile)
-	{
-		/* handle special case - when current tile is the destination tile */
-		if (dst_tile == v->tile) {
-			/* distance is zero in this case */
-			return 0;
-		}
-
-		if (!SetOriginFromVehiclePos(v)) return UINT_MAX;
-
-		/* get available trackdirs on the destination tile */
-		Yapf().SetDestination(v);
-
-		/* if path not found - return distance = UINT_MAX */
-		uint dist = UINT_MAX;
-
-		/* find the best path */
-		if (!Yapf().FindPath(v)) return dist;
-
-		Node *pNode = Yapf().GetBestNode();
-		if (pNode != NULL) {
-			/* path was found
-			 * get the path cost estimate */
-			dist = pNode->GetCostEstimate();
-		}
-
-		return dist;
-	}
-
-	/** Return true if the valid origin (tile/trackdir) was set from the current vehicle position. */
-	inline bool SetOriginFromVehiclePos(const RoadVehicle *v)
-	{
-		/* set origin position */
-		PathPos pos = v->GetPos();
-		if ((TrackStatusToTrackdirBits(GetTileRoadStatus(pos.tile, v->compatible_roadtypes)) & TrackdirToTrackdirBits(pos.td)) == 0) {
-			/* sometimes the roadveh is not on the road (it resides on non-existing track)
-			 * how should we handle that situation? */
-			return false;
-		}
-		Yapf().SetOrigin(pos);
-		return true;
-	}
-
 	static TileIndex stFindNearestDepot(const RoadVehicle *v, const PathPos &pos, int max_distance)
 	{
 		Tpf pf;
