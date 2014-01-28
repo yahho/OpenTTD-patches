@@ -108,31 +108,55 @@ struct CSegmentCostCacheT
 	}
 };
 
-/**
- * CYapfSegmentCostCacheGlobalT - the yapf cost cache provider that adds the segment cost
- *  caching functionality to yapf. Using this class as base of your will provide the global
- *  segment cost caching services for your Nodes.
- */
+
 template <class Types>
-class CYapfSegmentCostCacheGlobalT
+class CYapfRailT
 {
 public:
 	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
+	typedef typename Types::TrackFollower TrackFollower;
 	typedef typename Types::Astar::Node Node;     ///< this will be our node type
-	typedef typename Node::Key Key;    ///< key to hash tables
+	typedef typename Node::Key Key;               ///< key to hash tables
 	typedef typename Node::CachedData CachedData;
 	typedef typename CachedData::Key CacheKey;
 	typedef CSegmentCostCacheT<CachedData> Cache;
 	typedef SmallArray<CachedData> LocalCache;
 
 protected:
-	Cache&      m_global_cache;
-	LocalCache  m_local_cache;
+	/**
+	 * @note maximum cost doesn't work with caching enabled
+	 * @todo fix maximum cost failing with caching (e.g. FS#2900)
+	 */
+	int           m_max_cost;
+	CBlobT<int>   m_sig_look_ahead_costs;
+	bool          m_disable_cache;
+	Cache&        m_global_cache;
+	LocalCache    m_local_cache;
 
-	inline CYapfSegmentCostCacheGlobalT() : m_global_cache(stGetGlobalCache()) {};
+public:
+	bool          m_stopped_on_first_two_way_signal;
+
+protected:
+	static const int s_max_segment_cost = 10000;
+
+	CYapfRailT()
+		: m_max_cost(0)
+		, m_disable_cache(false)
+		, m_global_cache(stGetGlobalCache())
+		, m_stopped_on_first_two_way_signal(false)
+	{
+		/* pre-compute look-ahead penalties into array */
+		int p0 = Yapf().PfGetSettings().rail_look_ahead_signal_p0;
+		int p1 = Yapf().PfGetSettings().rail_look_ahead_signal_p1;
+		int p2 = Yapf().PfGetSettings().rail_look_ahead_signal_p2;
+		int *pen = m_sig_look_ahead_costs.GrowSizeNC(Yapf().PfGetSettings().rail_look_ahead_max_signals);
+		for (uint i = 0; i < Yapf().PfGetSettings().rail_look_ahead_max_signals; i++) {
+			pen[i] = p0 + i * (p1 + i * p2);
+		}
+	}
 
 	/** to access inherited path finder */
-	inline Tpf& Yapf()
+	Tpf& Yapf()
 	{
 		return *static_cast<Tpf*>(this);
 	}
@@ -155,81 +179,8 @@ protected:
 			last_rail_change_counter = Cache::s_rail_change_counter;
 			C.Flush();
 		}
+
 		return C;
-	}
-
-public:
-	/**
-	 * Called by YAPF to attach cached or local segment cost data to the given node.
-	 *  @return true if globally cached data were used or false if local data was used
-	 */
-	inline bool PfNodeCacheFetch(Node& n)
-	{
-		CacheKey key(n.GetKey());
-		if (!Yapf().CanUseGlobalCache(n)) {
-			Yapf().ConnectNodeToCachedData(n, *new (m_local_cache.Append()) CachedData(key));
-			return false;
-		}
-		bool found;
-		CachedData& item = m_global_cache.Get(key, &found);
-		Yapf().ConnectNodeToCachedData(n, item);
-		return found;
-	}
-
-	/**
-	 * Called by YAPF to flush the cached segment cost data back into cache storage.
-	 *  Current cache implementation doesn't use that.
-	 */
-	inline void PfNodeCacheFlush(Node& n)
-	{
-	}
-};
-
-
-template <class Types>
-class CYapfRailT
-{
-public:
-	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::TrackFollower TrackFollower;
-	typedef typename Types::Astar::Node Node;     ///< this will be our node type
-	typedef typename Node::Key Key;               ///< key to hash tables
-	typedef typename Node::CachedData CachedData;
-
-protected:
-	/**
-	 * @note maximum cost doesn't work with caching enabled
-	 * @todo fix maximum cost failing with caching (e.g. FS#2900)
-	 */
-	int           m_max_cost;
-	CBlobT<int>   m_sig_look_ahead_costs;
-	bool          m_disable_cache;
-
-public:
-	bool          m_stopped_on_first_two_way_signal;
-
-protected:
-	static const int s_max_segment_cost = 10000;
-
-	CYapfRailT()
-		: m_max_cost(0)
-		, m_disable_cache(false)
-		, m_stopped_on_first_two_way_signal(false)
-	{
-		/* pre-compute look-ahead penalties into array */
-		int p0 = Yapf().PfGetSettings().rail_look_ahead_signal_p0;
-		int p1 = Yapf().PfGetSettings().rail_look_ahead_signal_p1;
-		int p2 = Yapf().PfGetSettings().rail_look_ahead_signal_p2;
-		int *pen = m_sig_look_ahead_costs.GrowSizeNC(Yapf().PfGetSettings().rail_look_ahead_max_signals);
-		for (uint i = 0; i < Yapf().PfGetSettings().rail_look_ahead_max_signals; i++) {
-			pen[i] = p0 + i * (p1 + i * p2);
-		}
-	}
-
-	/** to access inherited path finder */
-	Tpf& Yapf()
-	{
-		return *static_cast<Tpf*>(this);
 	}
 
 public:
@@ -792,6 +743,31 @@ cached_segment:
 	void DisableCache(bool disable)
 	{
 		m_disable_cache = disable;
+	}
+
+	/**
+	 * Called by YAPF to attach cached or local segment cost data to the given node.
+	 *  @return true if globally cached data were used or false if local data was used
+	 */
+	inline bool PfNodeCacheFetch(Node& n)
+	{
+		CacheKey key(n.GetKey());
+		if (!CanUseGlobalCache(n)) {
+			ConnectNodeToCachedData(n, *new (m_local_cache.Append()) CachedData(key));
+			return false;
+		}
+		bool found;
+		CachedData& item = m_global_cache.Get(key, &found);
+		ConnectNodeToCachedData(n, item);
+		return found;
+	}
+
+	/**
+	 * Called by YAPF to flush the cached segment cost data back into cache storage.
+	 *  Current cache implementation doesn't use that.
+	 */
+	inline void PfNodeCacheFlush(Node& n)
+	{
 	}
 };
 
@@ -1449,7 +1425,6 @@ struct CYapfRail_TypesT
 struct CYapfRail1
 	: CYapfBaseT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
 	, CYapfRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
-	, CYapfSegmentCostCacheGlobalT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
 	, CYapfOriginTileTwoWayT<CYapfRail1>
 	, CYapfDestinationTileOrStationRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
 	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
@@ -1459,7 +1434,6 @@ struct CYapfRail1
 struct CYapfRail2
 	: CYapfBaseT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
 	, CYapfRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
-	, CYapfSegmentCostCacheGlobalT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
 	, CYapfOriginTileTwoWayT<CYapfRail2>
 	, CYapfDestinationTileOrStationRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
 	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
@@ -1469,7 +1443,6 @@ struct CYapfRail2
 struct CYapfAnyDepotRail1
 	: CYapfBaseT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
 	, CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
-	, CYapfSegmentCostCacheGlobalT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
 	, CYapfOriginTileTwoWayT<CYapfAnyDepotRail1>
 	, CYapfDestinationAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
 	, CYapfFollowAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
@@ -1479,7 +1452,6 @@ struct CYapfAnyDepotRail1
 struct CYapfAnyDepotRail2
 	: CYapfBaseT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
 	, CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
-	, CYapfSegmentCostCacheGlobalT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
 	, CYapfOriginTileTwoWayT<CYapfAnyDepotRail2>
 	, CYapfDestinationAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
 	, CYapfFollowAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
@@ -1489,7 +1461,6 @@ struct CYapfAnyDepotRail2
 struct CYapfAnySafeTileRail1
 	: CYapfBaseT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
 	, CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
-	, CYapfSegmentCostCacheGlobalT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
 	, CYapfOriginTileTwoWayT<CYapfAnySafeTileRail1>
 	, CYapfDestinationAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
 	, CYapfFollowAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
@@ -1499,7 +1470,6 @@ struct CYapfAnySafeTileRail1
 struct CYapfAnySafeTileRail2
 	: CYapfBaseT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
 	, CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
-	, CYapfSegmentCostCacheGlobalT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
 	, CYapfOriginTileTwoWayT<CYapfAnySafeTileRail2>
 	, CYapfDestinationAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
 	, CYapfFollowAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
