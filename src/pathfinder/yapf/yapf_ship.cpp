@@ -139,6 +139,23 @@ public:
 		assert(n.m_estimate >= n.m_parent->m_estimate);
 		return true;
 	}
+
+	/**
+	 * Called by YAPF to attach cached or local segment cost data to the given node.
+	 *  @return true if globally cached data were used or false if local data was used
+	 */
+	inline bool PfNodeCacheFetch(Node& n)
+	{
+		return false;
+	}
+
+	/**
+	 * Called by YAPF to flush the cached segment cost data back into cache storage.
+	 *  Current cache implementation doesn't use that.
+	 */
+	inline void PfNodeCacheFlush(Node& n)
+	{
+	}
 };
 
 /**
@@ -164,7 +181,6 @@ struct CYapfShip_TypesT
 struct CYapfShip1
 	: CYapfBaseT<CYapfShip_TypesT<CYapfShip1, CFollowTrackWater90, AstarShipTrackDir> >
 	, CYapfShipT<CYapfShip_TypesT<CYapfShip1, CFollowTrackWater90, AstarShipTrackDir> >
-	, CYapfSegmentCostCacheNoneT<CYapfShip_TypesT<CYapfShip1, CFollowTrackWater90, AstarShipTrackDir> >
 	, CYapfOriginTileT<CYapfShip1>
 {
 };
@@ -173,7 +189,6 @@ struct CYapfShip1
 struct CYapfShip2
 	: CYapfBaseT<CYapfShip_TypesT<CYapfShip2, CFollowTrackWater90, AstarShipExitDir> >
 	, CYapfShipT<CYapfShip_TypesT<CYapfShip2, CFollowTrackWater90, AstarShipExitDir> >
-	, CYapfSegmentCostCacheNoneT<CYapfShip_TypesT<CYapfShip2, CFollowTrackWater90, AstarShipExitDir> >
 	, CYapfOriginTileT<CYapfShip2>
 {
 };
@@ -182,7 +197,6 @@ struct CYapfShip2
 struct CYapfShip3
 	: CYapfBaseT<CYapfShip_TypesT<CYapfShip3, CFollowTrackWaterNo90, AstarShipTrackDir> >
 	, CYapfShipT<CYapfShip_TypesT<CYapfShip3, CFollowTrackWaterNo90, AstarShipTrackDir> >
-	, CYapfSegmentCostCacheNoneT<CYapfShip_TypesT<CYapfShip3, CFollowTrackWaterNo90, AstarShipTrackDir> >
 	, CYapfOriginTileT<CYapfShip3>
 {
 };

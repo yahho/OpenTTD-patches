@@ -17,37 +17,6 @@
 #include "../../misc/hashtable.hpp"
 
 /**
- * CYapfSegmentCostCacheNoneT - the formal only yapf cost cache provider that implements
- * PfNodeCacheFetch() and PfNodeCacheFlush() callbacks. Used when nodes don't have CachedData
- * defined (they don't count with any segment cost caching).
- */
-template <class Types>
-class CYapfSegmentCostCacheNoneT
-{
-public:
-	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::Astar::Node Node;     ///< this will be our node type
-
-	/**
-	 * Called by YAPF to attach cached or local segment cost data to the given node.
-	 *  @return true if globally cached data were used or false if local data was used
-	 */
-	inline bool PfNodeCacheFetch(Node& n)
-	{
-		return false;
-	}
-
-	/**
-	 * Called by YAPF to flush the cached segment cost data back into cache storage.
-	 *  Current cache implementation doesn't use that.
-	 */
-	inline void PfNodeCacheFlush(Node& n)
-	{
-	}
-};
-
-
-/**
  * CYapfSegmentCostCacheLocalT - the yapf cost cache provider that implements fake segment
  * cost caching functionality for yapf. Used when node needs caching, but you don't want to
  * cache the segment costs.

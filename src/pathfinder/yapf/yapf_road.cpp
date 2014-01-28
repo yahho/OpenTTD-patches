@@ -182,6 +182,23 @@ public:
 		n.m_cost = parent_cost + segment_cost;
 		return true;
 	}
+
+	/**
+	 * Called by YAPF to attach cached or local segment cost data to the given node.
+	 *  @return true if globally cached data were used or false if local data was used
+	 */
+	inline bool PfNodeCacheFetch(Node& n)
+	{
+		return false;
+	}
+
+	/**
+	 * Called by YAPF to flush the cached segment cost data back into cache storage.
+	 *  Current cache implementation doesn't use that.
+	 */
+	inline void PfNodeCacheFlush(Node& n)
+	{
+	}
 };
 
 
@@ -323,7 +340,6 @@ struct CYapfRoad_TypesT
 struct CYapfRoad1
 	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
 	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
-	, CYapfSegmentCostCacheNoneT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
 	, CYapfOriginTileT<CYapfRoad1>
 	, CYapfDestinationTileRoadT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
 {
@@ -332,7 +348,6 @@ struct CYapfRoad1
 struct CYapfRoad2
 	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
 	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
-	, CYapfSegmentCostCacheNoneT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
 	, CYapfOriginTileT<CYapfRoad2>
 	, CYapfDestinationTileRoadT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
 {
@@ -341,7 +356,6 @@ struct CYapfRoad2
 struct CYapfRoadAnyDepot1
 	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
 	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
-	, CYapfSegmentCostCacheNoneT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
 	, CYapfOriginTileT<CYapfRoadAnyDepot1>
 	, CYapfDestinationAnyDepotRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
 {
@@ -350,7 +364,6 @@ struct CYapfRoadAnyDepot1
 struct CYapfRoadAnyDepot2
 	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
 	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
-	, CYapfSegmentCostCacheNoneT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
 	, CYapfOriginTileT<CYapfRoadAnyDepot2>
 	, CYapfDestinationAnyDepotRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
 {
