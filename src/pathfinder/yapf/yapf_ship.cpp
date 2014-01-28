@@ -63,8 +63,14 @@ public:
 	inline void PfFollowNode(Node& old_node)
 	{
 		TrackFollower F(Yapf().GetVehicle());
-		if (F.Follow(old_node.GetPos())) {
-			Yapf().AddMultipleNodes(&old_node, F);
+		if (!F.Follow(old_node.GetPos())) return;
+
+		bool is_choice = !F.m_new.is_single();
+		PathPos pos = F.m_new;
+		for (TrackdirBits rtds = F.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
+			pos.td = FindFirstTrackdir(rtds);
+			Node& n = *Types::Astar::CreateNewNode(&old_node, pos, is_choice);
+			Yapf().AddNewNode(n, F);
 		}
 	}
 
