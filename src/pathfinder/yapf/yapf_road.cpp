@@ -327,53 +327,6 @@ public:
 		return 'r';
 	}
 
-	static Trackdir stChooseRoadTrack(const RoadVehicle *v, TileIndex tile, DiagDirection enterdir, bool &path_found)
-	{
-		Tpf pf;
-		return pf.ChooseRoadTrack(v, tile, enterdir, path_found);
-	}
-
-	inline Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, DiagDirection enterdir, bool &path_found)
-	{
-		/* Handle special case - when next tile is destination tile.
-		 * However, when going to a station the (initial) destination
-		 * tile might not be a station, but a junction, in which case
-		 * this method forces the vehicle to jump in circles. */
-		if (tile == v->dest_tile && !v->current_order.IsType(OT_GOTO_STATION)) {
-			/* choose diagonal trackdir reachable from enterdir */
-			return DiagDirToDiagTrackdir(enterdir);
-		}
-		/* our source tile will be the next vehicle tile (should be the given one) */
-		TileIndex src_tile = tile;
-		/* get available trackdirs on the start tile */
-		TrackdirBits src_trackdirs = TrackStatusToTrackdirBits(GetTileRoadStatus(tile, v->compatible_roadtypes));
-		/* select reachable trackdirs only */
-		src_trackdirs &= DiagdirReachesTrackdirs(enterdir);
-
-		/* set origin and destination nodes */
-		Yapf().SetOrigin(src_tile, src_trackdirs);
-		Yapf().SetDestination(v);
-
-		/* find the best path */
-		path_found = Yapf().FindPath(v);
-
-		/* if path not found - return INVALID_TRACKDIR */
-		Trackdir next_trackdir = INVALID_TRACKDIR;
-		Node *pNode = Yapf().GetBestNode();
-		if (pNode != NULL) {
-			/* path was found or at least suggested
-			 * walk through the path back to its origin */
-			while (pNode->m_parent != NULL) {
-				pNode = pNode->m_parent;
-			}
-			/* return trackdir from the best origin node (one of start nodes) */
-			Node& best_next_node = *pNode;
-			assert(best_next_node.GetPos().tile == tile);
-			next_trackdir = best_next_node.GetPos().td;
-		}
-		return next_trackdir;
-	}
-
 	static TileIndex stFindNearestDepot(const RoadVehicle *v, const PathPos &pos, int max_distance)
 	{
 		Tpf pf;
@@ -450,15 +403,51 @@ struct CYapfRoadAnyDepot2
 };
 
 
+template <class Tpf>
+static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, DiagDirection enterdir, bool &path_found)
+{
+	/* Handle special case - when next tile is destination tile.
+	 * However, when going to a station the (initial) destination
+	 * tile might not be a station, but a junction, in which case
+	 * this method forces the vehicle to jump in circles. */
+	if (tile == v->dest_tile && !v->current_order.IsType(OT_GOTO_STATION)) {
+		/* choose diagonal trackdir reachable from enterdir */
+		return DiagDirToDiagTrackdir(enterdir);
+	}
+
+	Tpf pf;
+
+	/* set origin and destination nodes */
+	pf.SetOrigin(tile, TrackStatusToTrackdirBits(GetTileRoadStatus(tile, v->compatible_roadtypes)) & DiagdirReachesTrackdirs(enterdir));
+	pf.SetDestination(v);
+
+	/* find the best path */
+	path_found = pf.FindPath(v);
+
+	/* if path not found - return INVALID_TRACKDIR */
+	typename Tpf::Astar::Node *n = pf.GetBestNode();
+	if (n == NULL) return INVALID_TRACKDIR;
+
+	/* path was found or at least suggested
+	 * walk through the path back to its origin */
+	while (n->m_parent != NULL) {
+		n = n->m_parent;
+	}
+
+	/* return trackdir from the best origin node (one of start nodes) */
+	assert(n->GetPos().tile == tile);
+	return n->GetPos().td;
+}
+
 Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)
 {
 	/* default is YAPF type 2 */
 	typedef Trackdir (*PfnChooseRoadTrack)(const RoadVehicle*, TileIndex, DiagDirection, bool &path_found);
-	PfnChooseRoadTrack pfnChooseRoadTrack = &CYapfRoad2::stChooseRoadTrack; // default: ExitDir, allow 90-deg
+	PfnChooseRoadTrack pfnChooseRoadTrack = &ChooseRoadTrack<CYapfRoad2>; // default: ExitDir, allow 90-deg
 
 	/* check if non-default YAPF type should be used */
 	if (_settings_game.pf.yapf.disable_node_optimization) {
-		pfnChooseRoadTrack = &CYapfRoad1::stChooseRoadTrack; // Trackdir, allow 90-deg
+		pfnChooseRoadTrack = &ChooseRoadTrack<CYapfRoad1>; // Trackdir, allow 90-deg
 	}
 
 	Trackdir td_ret = pfnChooseRoadTrack(v, tile, enterdir, path_found);
