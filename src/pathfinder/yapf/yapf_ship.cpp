@@ -51,37 +51,6 @@ public:
 	{
 		return 'w';
 	}
-
-	/**
-	 * Check whether a ship should reverse to reach its destination.
-	 * Called when leaving depot.
-	 * @param v Ship
-	 * @param pos Current position
-	 * @return true if the reverse direction is better
-	 */
-	static bool CheckShipReverse(const Ship *v, const PathPos &pos)
-	{
-		/* create pathfinder instance */
-		Tpf pf;
-		/* set origin and destination nodes */
-		pf.SetOrigin(pos.tile, TrackdirToTrackdirBits(pos.td) | TrackdirToTrackdirBits(ReverseTrackdir(pos.td)));
-		pf.SetDestination(v);
-		/* find best path */
-		if (!pf.FindPath(v)) return false;
-
-		Node *pNode = pf.GetBestNode();
-		if (pNode == NULL) return false;
-
-		/* path was found
-		 * walk through the path back to the origin */
-		while (pNode->m_parent != NULL) {
-			pNode = pNode->m_parent;
-		}
-
-		Trackdir best_trackdir = pNode->GetPos().td;
-		assert(best_trackdir == pos.td || best_trackdir == ReverseTrackdir(pos.td));
-		return best_trackdir != pos.td;
-	}
 };
 
 /** Cost Provider module of YAPF for ships */
@@ -317,18 +286,50 @@ Trackdir YapfShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterd
 	return pfnChooseShipTrack(v, pos, enterdir, trackdirs, path_found);
 }
 
+
+/**
+ * Check whether a ship should reverse to reach its destination.
+ * Called when leaving depot.
+ * @param v Ship
+ * @param pos Current position
+ * @return true if the reverse direction is better
+ */
+template <class Tpf>
+static bool CheckShipReverse(const Ship *v, const PathPos &pos)
+{
+	/* create pathfinder instance */
+	Tpf pf;
+	/* set origin and destination nodes */
+	pf.SetOrigin(pos.tile, TrackdirToTrackdirBits(pos.td) | TrackdirToTrackdirBits(ReverseTrackdir(pos.td)));
+	pf.SetDestination(v);
+	/* find best path */
+	if (!pf.FindPath(v)) return false;
+
+	typename Tpf::Astar::Node *n = pf.GetBestNode();
+	if (n == NULL) return false;
+
+	/* path was found; walk through the path back to the origin */
+	while (n->m_parent != NULL) {
+		n = n->m_parent;
+	}
+
+	Trackdir best_trackdir = n->GetPos().td;
+	assert(best_trackdir == pos.td || best_trackdir == ReverseTrackdir(pos.td));
+	return best_trackdir != pos.td;
+}
+
 bool YapfShipCheckReverse(const Ship *v)
 {
 	PathPos pos = v->GetPos();
 
 	typedef bool (*PfnCheckReverseShip)(const Ship*, const PathPos&);
-	PfnCheckReverseShip pfnCheckReverseShip = CYapfShip2::CheckShipReverse; // default: ExitDir, allow 90-deg
+	PfnCheckReverseShip pfnCheckReverseShip = CheckShipReverse<CYapfShip2>; // default: ExitDir, allow 90-deg
 
 	/* check if non-default YAPF type needed */
 	if (_settings_game.pf.forbid_90_deg) {
-		pfnCheckReverseShip = &CYapfShip3::CheckShipReverse; // Trackdir, forbid 90-deg
+		pfnCheckReverseShip = &CheckShipReverse<CYapfShip3>; // Trackdir, forbid 90-deg
 	} else if (_settings_game.pf.yapf.disable_node_optimization) {
-		pfnCheckReverseShip = &CYapfShip1::CheckShipReverse; // Trackdir, allow 90-deg
+		pfnCheckReverseShip = &CheckShipReverse<CYapfShip1>; // Trackdir, allow 90-deg
 	}
 
 	bool reverse = pfnCheckReverseShip(v, pos);
