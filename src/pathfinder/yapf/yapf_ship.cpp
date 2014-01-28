@@ -17,7 +17,7 @@
 
 /** YAPF class for ships */
 template <class Types>
-class CYapfShipT
+class CYapfShipT : public Types::Astar
 {
 public:
 	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
@@ -211,9 +211,9 @@ static Trackdir ChooseShipTrack(const Ship *v, const PathPos &pos, DiagDirection
 	pf.SetOrigin(pos);
 	pf.SetDestination(v);
 	/* find best path */
-	path_found = pf.FindPath(v);
+	path_found = pf.CYapfBaseT<typename Tpf::TT>::FindPath(v);
 
-	typename Tpf::Astar::Node *n = pf.GetBestNode();
+	typename Tpf::TT::Astar::Node *n = pf.GetBestNode();
 	if (n == NULL) return INVALID_TRACKDIR; // path not found
 	assert (n->m_parent != NULL);
 
@@ -273,9 +273,9 @@ static bool CheckShipReverse(const Ship *v, const PathPos &pos)
 	pf.SetOrigin(pos.tile, TrackdirToTrackdirBits(pos.td) | TrackdirToTrackdirBits(ReverseTrackdir(pos.td)));
 	pf.SetDestination(v);
 	/* find best path */
-	if (!pf.FindPath(v)) return false;
+	if (!pf.CYapfBaseT<typename Tpf::TT>::FindPath(v)) return false;
 
-	typename Tpf::Astar::Node *n = pf.GetBestNode();
+	typename Tpf::TT::Astar::Node *n = pf.GetBestNode();
 	if (n == NULL) return false;
 
 	/* path was found; walk through the path back to the origin */

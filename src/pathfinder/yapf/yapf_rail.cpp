@@ -110,7 +110,7 @@ struct CSegmentCostCacheT
 
 
 template <class Types>
-class CYapfRailT
+class CYapfRailT : public Types::Astar
 {
 public:
 	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
@@ -1175,7 +1175,7 @@ public:
 		Yapf().SetMaxCost(max_penalty);
 
 		/* find the best path */
-		bool bFound = Yapf().FindPath(v);
+		bool bFound = Yapf().CYapfBaseT<Types>::FindPath(v);
 		if (!bFound) return false;
 
 		/* some path found
@@ -1254,7 +1254,7 @@ public:
 		Yapf().SetOrigin(pos);
 		Yapf().SetDestination(v, override_railtype);
 
-		bool bFound = Yapf().FindPath(v);
+		bool bFound = Yapf().CYapfBaseT<Types>::FindPath(v);
 		if (!bFound) return false;
 
 		/* Found a destination, set as reservation target. */
@@ -1334,7 +1334,7 @@ public:
 		Yapf().SetDestination(v);
 
 		/* find the best path */
-		bool path_found = Yapf().FindPath(v);
+		bool path_found = Yapf().CYapfBaseT<Types>::FindPath(v);
 
 		/* if path not found - return INVALID_TRACKDIR */
 		Trackdir next_trackdir = INVALID_TRACKDIR;
@@ -1393,7 +1393,7 @@ public:
 		Yapf().SetDestination(v);
 
 		/* find the best path */
-		bool bFound = Yapf().FindPath(v);
+		bool bFound = Yapf().CYapfBaseT<Types>::FindPath(v);
 
 		if (!bFound) return false;
 

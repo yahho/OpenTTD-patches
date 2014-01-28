@@ -43,8 +43,9 @@ extern int _total_pf_time_us;
  *  test_yapf.h (part or unittest project).
  */
 template <class Types>
-class CYapfBaseT : Types::Astar {
+class CYapfBaseT {
 public:
+	typedef Types TT;
 	typedef typename Types::Tpf Tpf;           ///< the pathfinder class (derived from THIS class)
 	typedef typename Types::TrackFollower TrackFollower;
 	typedef typename Types::Astar Astar;       ///< our base pathfinder
@@ -117,7 +118,7 @@ public:
 #endif /* !NO_DEBUG_MESSAGES */
 
 		Yapf().PfSetStartupNodes();
-		bool bDestFound = Astar::FindPath (Follow, PfGetSettings().max_search_nodes);
+		bool bDestFound = Yapf().Astar::FindPath (Follow, PfGetSettings().max_search_nodes);
 
 #ifndef NO_DEBUG_MESSAGES
 		perf.Stop();
@@ -129,11 +130,11 @@ public:
 				UnitID veh_idx = (m_veh != NULL) ? m_veh->unitnumber : 0;
 				char ttc = Yapf().TransportTypeChar();
 				float cache_hit_ratio = (m_stats_cache_hits == 0) ? 0.0f : ((float)m_stats_cache_hits / (float)(m_stats_cache_hits + m_stats_cost_calcs) * 100.0f);
-				int cost = bDestFound ? Astar::best->m_cost : -1;
-				int dist = bDestFound ? Astar::best->m_estimate - Astar::best->m_cost : -1;
+				int cost = bDestFound ? Yapf().Astar::best->m_cost : -1;
+				int dist = bDestFound ? Yapf().Astar::best->m_estimate - Yapf().Astar::best->m_cost : -1;
 
 				DEBUG(yapf, 3, "[YAPF%c]%c%4d- %d us - %d rounds - %d open - %d closed - CHR %4.1f%% - C %d D %d - c%d(sc%d, ts%d, o%d) -- ",
-					ttc, bDestFound ? '-' : '!', veh_idx, t, Astar::num_steps, Astar::OpenCount(), Astar::ClosedCount(),
+					ttc, bDestFound ? '-' : '!', veh_idx, t, Yapf().Astar::num_steps, Yapf().Astar::OpenCount(), Yapf().Astar::ClosedCount(),
 					cache_hit_ratio, cost, dist, m_perf_cost.Get(1000000), m_perf_slope_cost.Get(1000000),
 					m_perf_ts_cost.Get(1000000), m_perf_other_cost.Get(1000000)
 				);
@@ -143,26 +144,17 @@ public:
 		return bDestFound;
 	}
 
-	/**
-	 * If path was found return the best node that has reached the destination. Otherwise
-	 *  return the best visited node (which was nearest to the destination).
-	 */
-	inline Node *GetBestNode()
-	{
-		return Astar::GetBestNode();
-	}
-
 	/** Add new node (created by CreateNewNode and filled with data) into open list */
 	inline void AddStartupNode(Node& n)
 	{
 		Yapf().PfNodeCacheFetch(n);
-		Astar::InsertInitialNode(&n);
+		Yapf().Astar::InsertInitialNode(&n);
 	}
 
 	/** Create and add a new node */
 	inline void AddStartupNode (const PathPos &pos, bool is_choice, int cost = 0)
 	{
-		Node &node = *Astar::CreateNewNode (NULL, pos, is_choice);
+		Node &node = *Yapf().Astar::CreateNewNode (NULL, pos, is_choice);
 		node.m_cost = cost;
 		AddStartupNode (node);
 	}
@@ -174,7 +166,7 @@ public:
 		PathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.td = FindFirstTrackdir(rtds);
-			Node& n = *Astar::CreateNewNode(parent, pos, is_choice);
+			Node& n = *Yapf().Astar::CreateNewNode(parent, pos, is_choice);
 			AddNewNode(n, tf);
 		}
 	}
@@ -189,8 +181,8 @@ public:
 	 */
 	void PruneIntermediateNodeBranch()
 	{
-		while (Astar::best_intermediate != NULL && (Astar::best_intermediate->m_segment->m_end_segment_reason & ESRB_CHOICE_FOLLOWS) == 0) {
-			Astar::best_intermediate = Astar::best_intermediate->m_parent;
+		while (Yapf().Astar::best_intermediate != NULL && (Yapf().Astar::best_intermediate->m_segment->m_end_segment_reason & ESRB_CHOICE_FOLLOWS) == 0) {
+			Yapf().Astar::best_intermediate = Yapf().Astar::best_intermediate->m_parent;
 		}
 	}
 
@@ -221,9 +213,9 @@ public:
 
 		/* detect the destination */
 		if (Yapf().PfDetectDestination(n)) {
-			Astar::FoundTarget(&n);
+			Yapf().Astar::FoundTarget(&n);
 		} else {
-			Astar::InsertNode(&n);
+			Yapf().Astar::InsertNode(&n);
 		}
 	}
 
@@ -234,7 +226,7 @@ public:
 
 	void DumpBase(DumpTarget &dmp) const
 	{
-		Astar::Dump(dmp);
+		Yapf().Astar::Dump(dmp);
 	}
 
 	/* methods that should be implemented at derived class Types::Tpf (derived from CYapfBaseT) */

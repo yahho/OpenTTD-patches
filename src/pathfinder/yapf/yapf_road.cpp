@@ -15,7 +15,7 @@
 #include "../../roadstop_base.h"
 
 template <class Types>
-class CYapfRoadT
+class CYapfRoadT : public Types::Astar
 {
 public:
 	typedef typename Types::Tpf Tpf;                     ///< pathfinder (derived from THIS class)
@@ -380,10 +380,10 @@ static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, DiagDirect
 	pf.SetDestination(v);
 
 	/* find the best path */
-	path_found = pf.FindPath(v);
+	path_found = pf.CYapfBaseT<typename Tpf::TT>::FindPath(v);
 
 	/* if path not found - return INVALID_TRACKDIR */
-	typename Tpf::Astar::Node *n = pf.GetBestNode();
+	typename Tpf::TT::Astar::Node *n = pf.GetBestNode();
 	if (n == NULL) return INVALID_TRACKDIR;
 
 	/* path was found or at least suggested
@@ -431,10 +431,10 @@ static TileIndex FindNearestDepot(const RoadVehicle *v, const PathPos &pos, int 
 	pf.SetOrigin(pos);
 
 	/* find the best path */
-	if (!pf.FindPath(v)) return INVALID_TILE;
+	if (!pf.CYapfBaseT<typename Tpf::TT>::FindPath(v)) return INVALID_TILE;
 
 	/* some path found; get found depot tile */
-	typename Tpf::Astar::Node *n = pf.GetBestNode();
+	typename Tpf::TT::Astar::Node *n = pf.GetBestNode();
 
 	if (max_distance > 0 && n->m_cost > max_distance * YAPF_TILE_LENGTH) return INVALID_TILE;
 
