@@ -458,7 +458,7 @@ struct CYapfRoad_TypesT
 	typedef RoadVehicle                       VehicleType;
 	typedef CYapfBaseT<Types>                 PfBase;
 	typedef CYapfFollowRoadT<Types>           PfFollow;
-	typedef CYapfOriginTileT<Types>           PfOrigin;
+	typedef CYapfOriginTileT<Tpf_>            PfOrigin;
 	typedef Tdestination<Types>               PfDestination;
 	typedef CYapfSegmentCostCacheNoneT<Types> PfCache;
 	typedef CYapfCostRoadT<Types>             PfCost;

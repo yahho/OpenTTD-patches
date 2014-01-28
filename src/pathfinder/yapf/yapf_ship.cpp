@@ -268,7 +268,7 @@ struct CYapfShip_TypesT
 	/** pathfinder components (modules) */
 	typedef CYapfBaseT<Types>                 PfBase;        // base pathfinder class
 	typedef CYapfFollowShipT<Types>           PfFollow;      // node follower
-	typedef CYapfOriginTileT<Types>           PfOrigin;      // origin provider
+	typedef CYapfOriginTileT<Tpf_>            PfOrigin;      // origin provider
 	typedef CYapfDestinationShipT<Types>      PfDestination; // destination/distance provider
 	typedef CYapfSegmentCostCacheNoneT<Types> PfCache;       // segment cost cache provider
 	typedef CYapfCostShipT<Types>             PfCost;        // cost provider

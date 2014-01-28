@@ -510,7 +510,7 @@ struct CYapfRail_TypesT
 	typedef Train                               VehicleType;
 	typedef CYapfBaseT<Types>                   PfBase;
 	typedef TfollowT<Types>                     PfFollow;
-	typedef CYapfOriginTileTwoWayT<Types>       PfOrigin;
+	typedef CYapfOriginTileTwoWayT<Tpf_>        PfOrigin;
 	typedef TdestinationT<Types>                PfDestination;
 	typedef CYapfSegmentCostCacheGlobalT<Types> PfCache;
 	typedef CYapfCostRailT<Types>               PfCost;

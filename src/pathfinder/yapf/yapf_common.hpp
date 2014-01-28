@@ -13,14 +13,9 @@
 #define YAPF_COMMON_HPP
 
 /** YAPF origin provider base class - used when origin is one tile / multiple trackdirs */
-template <class Types>
+template <class Tpf>
 class CYapfOriginTileT
 {
-public:
-	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::Astar::Node Node;     ///< this will be our node type
-	typedef typename Node::Key Key;               ///< key to hash tables
-
 protected:
 	PathPos      m_org;                           ///< origin position
 	TrackdirBits m_trackdirs;                     ///< origin trackdir mask
@@ -62,14 +57,9 @@ public:
 };
 
 /** YAPF origin provider base class - used when there are two tile/trackdir origins */
-template <class Types>
+template <class Tpf>
 class CYapfOriginTileTwoWayT
 {
-public:
-	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::Astar::Node Node;     ///< this will be our node type
-	typedef typename Node::Key Key;               ///< key to hash tables
-
 protected:
 	PathPos     m_org;                            ///< first origin position
 	PathPos     m_rev;                            ///< second (reversed) origin position
