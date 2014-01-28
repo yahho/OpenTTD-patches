@@ -18,9 +18,12 @@
 #include "../../newgrf_station.h"
 #include "../../station_func.h"
 #include "../../misc/blob.hpp"
+#include "../../misc/array.hpp"
+#include "../../misc/hashtable.hpp"
 #include "../../map/slope.h"
 #include "../../pbs.h"
 #include "../../waypoint_base.h"
+#include "../../date_func.h"
 
 #define DEBUG_YAPF_CACHE 0
 
@@ -40,6 +43,147 @@ template <typename Tpf> void DumpState(Tpf &pf1, Tpf &pf2)
 #endif
 
 int _total_pf_time_us = 0;
+
+
+/**
+ * Base class for segment cost cache providers. Contains global counter
+ *  of track layout changes and static notification function called whenever
+ *  the track layout changes. It is implemented as base class because it needs
+ *  to be shared between all rail YAPF types (one shared counter, one notification
+ *  function.
+ */
+struct CSegmentCostCacheBase
+{
+	static int   s_rail_change_counter;
+
+	static void NotifyTrackLayoutChange(TileIndex tile, Track track)
+	{
+		s_rail_change_counter++;
+	}
+};
+
+/**
+ * CSegmentCostCacheT - template class providing hash-map and storage (heap)
+ *  of Tsegment structures. Each rail node contains pointer to the segment
+ *  that contains cached (or non-cached) segment cost information. Nodes can
+ *  differ by key type, but they use the same segment type. Segment key should
+ *  be always the same (TileIndex + DiagDirection) that represent the beginning
+ *  of the segment (origin tile and exit-dir from this tile).
+ *  Different CYapfCachedCostT types can share the same type of CSegmentCostCacheT.
+ *  Look at CYapfRailSegment (yapf_node_rail.hpp) for the segment example
+ */
+template <class Tsegment>
+struct CSegmentCostCacheT
+	: public CSegmentCostCacheBase
+{
+	static const int C_HASH_BITS = 14;
+
+	typedef CHashTableT<Tsegment, C_HASH_BITS> HashTable;
+	typedef SmallArray<Tsegment> Heap;
+	typedef typename Tsegment::Key Key;    ///< key to hash table
+
+	HashTable    m_map;
+	Heap         m_heap;
+
+	inline CSegmentCostCacheT() {}
+
+	/** flush (clear) the cache */
+	inline void Flush()
+	{
+		m_map.Clear();
+		m_heap.Clear();
+	}
+
+	inline Tsegment& Get(Key& key, bool *found)
+	{
+		Tsegment *item = m_map.Find(key);
+		if (item == NULL) {
+			*found = false;
+			item = new (m_heap.Append()) Tsegment(key);
+			m_map.Push(*item);
+		} else {
+			*found = true;
+		}
+		return *item;
+	}
+};
+
+/**
+ * CYapfSegmentCostCacheGlobalT - the yapf cost cache provider that adds the segment cost
+ *  caching functionality to yapf. Using this class as base of your will provide the global
+ *  segment cost caching services for your Nodes.
+ */
+template <class Types>
+class CYapfSegmentCostCacheGlobalT
+{
+public:
+	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
+	typedef typename Types::Astar::Node Node;     ///< this will be our node type
+	typedef typename Node::Key Key;    ///< key to hash tables
+	typedef typename Node::CachedData CachedData;
+	typedef typename CachedData::Key CacheKey;
+	typedef CSegmentCostCacheT<CachedData> Cache;
+	typedef SmallArray<CachedData> LocalCache;
+
+protected:
+	Cache&      m_global_cache;
+	LocalCache  m_local_cache;
+
+	inline CYapfSegmentCostCacheGlobalT() : m_global_cache(stGetGlobalCache()) {};
+
+	/** to access inherited path finder */
+	inline Tpf& Yapf()
+	{
+		return *static_cast<Tpf*>(this);
+	}
+
+	inline static Cache& stGetGlobalCache()
+	{
+		static int last_rail_change_counter = 0;
+		static Date last_date = 0;
+		static Cache C;
+
+		/* some statistics */
+		if (last_date != _date) {
+			last_date = _date;
+			DEBUG(yapf, 2, "Pf time today: %5d ms", _total_pf_time_us / 1000);
+			_total_pf_time_us = 0;
+		}
+
+		/* delete the cache sometimes... */
+		if (last_rail_change_counter != Cache::s_rail_change_counter) {
+			last_rail_change_counter = Cache::s_rail_change_counter;
+			C.Flush();
+		}
+		return C;
+	}
+
+public:
+	/**
+	 * Called by YAPF to attach cached or local segment cost data to the given node.
+	 *  @return true if globally cached data were used or false if local data was used
+	 */
+	inline bool PfNodeCacheFetch(Node& n)
+	{
+		CacheKey key(n.GetKey());
+		if (!Yapf().CanUseGlobalCache(n)) {
+			Yapf().ConnectNodeToCachedData(n, *new (m_local_cache.Append()) CachedData(key));
+			return false;
+		}
+		bool found;
+		CachedData& item = m_global_cache.Get(key, &found);
+		Yapf().ConnectNodeToCachedData(n, item);
+		return found;
+	}
+
+	/**
+	 * Called by YAPF to flush the cached segment cost data back into cache storage.
+	 *  Current cache implementation doesn't use that.
+	 */
+	inline void PfNodeCacheFlush(Node& n)
+	{
+	}
+};
 
 
 template <class Types>

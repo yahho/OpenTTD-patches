@@ -12324,10 +12324,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\pathfinder\yapf\yapf_costcache.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\pathfinder\yapf\yapf_node.hpp"
 				>
 			</File>

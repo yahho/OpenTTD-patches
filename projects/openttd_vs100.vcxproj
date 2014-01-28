@@ -2048,7 +2048,6 @@
     <ClInclude Include="..\src\pathfinder\yapf\yapf_base.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf_cache.h" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf_common.hpp" />
-    <ClInclude Include="..\src\pathfinder\yapf\yapf_costcache.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf_node.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf_node_rail.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf_node_road.hpp" />

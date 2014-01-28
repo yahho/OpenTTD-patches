@@ -37,6 +37,7 @@
 #include "signal_func.h"
 #include "station_func.h"
 #include "newgrf_debug.h"
+#include "date_func.h"
 
 #include "table/strings.h"
 #include "table/train_cmd.h"
