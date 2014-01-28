@@ -53,7 +53,7 @@ public:
 	typedef typename Astar::Node Node;         ///< this will be our node type
 	typedef typename Node::Key Key;            ///< key to hash tables
 
-protected:
+public:
 	const YAPFSettings  *m_settings;           ///< current settings (_settings_game.yapf)
 	const VehicleType   *m_veh;                ///< vehicle that we are trying to drive
 
@@ -157,39 +157,6 @@ public:
 		Node &node = *Yapf().Astar::CreateNewNode (NULL, pos, is_choice);
 		node.m_cost = cost;
 		AddStartupNode (node);
-	}
-
-	/**
-	 * AddNewNode() - called by Tderived::PfFollowNode() for each child node.
-	 *  Nodes are evaluated here and added into open list
-	 */
-	void AddNewNode(Node &n, const TrackFollower &tf)
-	{
-		/* evaluate the node */
-		bool bCached = Yapf().PfNodeCacheFetch(n);
-		if (!bCached) {
-			m_stats_cost_calcs++;
-		} else {
-			m_stats_cache_hits++;
-		}
-
-		bool bValid = Yapf().PfCalcCost(n, &tf);
-
-		if (bCached) {
-			Yapf().PfNodeCacheFlush(n);
-		}
-
-		if (bValid) bValid = Yapf().PfCalcEstimate(n);
-
-		/* have the cost or estimate callbacks marked this node as invalid? */
-		if (!bValid) return;
-
-		/* detect the destination */
-		if (Yapf().PfDetectDestination(n)) {
-			Yapf().Astar::FoundTarget(&n);
-		} else {
-			Yapf().Astar::InsertNode(&n);
-		}
 	}
 
 	const VehicleType * GetVehicle() const

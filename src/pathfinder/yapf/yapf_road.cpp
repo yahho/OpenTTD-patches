@@ -52,7 +52,32 @@ public:
 		for (TrackdirBits rtds = F.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.td = FindFirstTrackdir(rtds);
 			Node& n = *Types::Astar::CreateNewNode(&old_node, pos, is_choice);
-			Yapf().AddNewNode(n, F);
+
+			/* evaluate the node */
+			bool bCached = PfNodeCacheFetch(n);
+			if (!bCached) {
+				Yapf().m_stats_cost_calcs++;
+			} else {
+				Yapf().m_stats_cache_hits++;
+			}
+
+			bool bValid = PfCalcCost(n, &F);
+
+			if (bCached) {
+				PfNodeCacheFlush(n);
+			}
+
+			if (bValid) bValid = Yapf().PfCalcEstimate(n);
+
+			/* have the cost or estimate callbacks marked this node as invalid? */
+			if (!bValid) continue;
+
+			/* detect the destination */
+			if (Yapf().PfDetectDestination(n)) {
+				this->FoundTarget(&n);
+			} else {
+				this->InsertNode(&n);
+			}
 		}
 	}
 

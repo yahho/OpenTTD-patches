@@ -796,6 +796,39 @@ cached_segment:
 			Yapf().AddNewNode(n, tf);
 		}
 	}
+
+	/**
+	 * AddNewNode() - called by Tderived::PfFollowNode() for each child node.
+	 *  Nodes are evaluated here and added into open list
+	 */
+	void AddNewNode(Node &n, const TrackFollower &tf)
+	{
+		/* evaluate the node */
+		bool bCached = PfNodeCacheFetch(n);
+		if (!bCached) {
+			Yapf().m_stats_cost_calcs++;
+		} else {
+			Yapf().m_stats_cache_hits++;
+		}
+
+		bool bValid = PfCalcCost(n, &tf);
+
+		if (bCached) {
+			PfNodeCacheFlush(n);
+		}
+
+		if (bValid) bValid = Yapf().PfCalcEstimate(n);
+
+		/* have the cost or estimate callbacks marked this node as invalid? */
+		if (!bValid) return;
+
+		/* detect the destination */
+		if (Yapf().PfDetectDestination(n)) {
+			this->FoundTarget(&n);
+		} else {
+			this->InsertNode(&n);
+		}
+	}
 };
 
 
