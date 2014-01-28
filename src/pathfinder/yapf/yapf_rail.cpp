@@ -31,8 +31,8 @@
 template <typename Tpf> void DumpState(Tpf &pf1, Tpf &pf2)
 {
 	DumpTarget dmp1, dmp2;
-	pf1.DumpBase(dmp1);
-	pf2.DumpBase(dmp2);
+	pf1.Dump(dmp1);
+	pf2.Dump(dmp2);
 	FILE *f1 = fopen("yapf1.txt", "wt");
 	FILE *f2 = fopen("yapf2.txt", "wt");
 	fwrite(dmp1.m_out.Data(), 1, dmp1.m_out.Size(), f1);

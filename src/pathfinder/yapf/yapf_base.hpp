@@ -209,11 +209,6 @@ public:
 		return m_veh;
 	}
 
-	void DumpBase(DumpTarget &dmp) const
-	{
-		Yapf().Astar::Dump(dmp);
-	}
-
 	/* methods that should be implemented at derived class Types::Tpf (derived from CYapfBaseT) */
 
 #if 0
