@@ -406,15 +406,6 @@ struct CYapfRoadAnyDepot2
 template <class Tpf>
 static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, DiagDirection enterdir, bool &path_found)
 {
-	/* Handle special case - when next tile is destination tile.
-	 * However, when going to a station the (initial) destination
-	 * tile might not be a station, but a junction, in which case
-	 * this method forces the vehicle to jump in circles. */
-	if (tile == v->dest_tile && !v->current_order.IsType(OT_GOTO_STATION)) {
-		/* choose diagonal trackdir reachable from enterdir */
-		return DiagDirToDiagTrackdir(enterdir);
-	}
-
 	Tpf pf;
 
 	/* set origin and destination nodes */
@@ -441,6 +432,15 @@ static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, DiagDirect
 
 Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)
 {
+	/* Handle special case - when next tile is destination tile.
+	 * However, when going to a station the (initial) destination
+	 * tile might not be a station, but a junction, in which case
+	 * this method forces the vehicle to jump in circles. */
+	if (tile == v->dest_tile && !v->current_order.IsType(OT_GOTO_STATION)) {
+		/* choose diagonal trackdir reachable from enterdir */
+		return DiagDirToDiagTrackdir(enterdir);
+	}
+
 	/* default is YAPF type 2 */
 	typedef Trackdir (*PfnChooseRoadTrack)(const RoadVehicle*, TileIndex, DiagDirection, bool &path_found);
 	PfnChooseRoadTrack pfnChooseRoadTrack = &ChooseRoadTrack<CYapfRoad2>; // default: ExitDir, allow 90-deg
