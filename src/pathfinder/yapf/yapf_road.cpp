@@ -14,15 +14,14 @@
 #include "yapf_node_road.hpp"
 #include "../../roadstop_base.h"
 
-
 template <class Types>
-class CYapfCostRoadT
+class CYapfRoadT
 {
 public:
-	typedef typename Types::Tpf Tpf; ///< pathfinder (derived from THIS class)
+	typedef typename Types::Tpf Tpf;                     ///< pathfinder (derived from THIS class)
 	typedef typename Types::TrackFollower TrackFollower; ///< track follower helper
-	typedef typename Types::Astar::Node Node; ///< this will be our node type
-	typedef typename Node::Key Key;    ///< key to hash tables
+	typedef typename Types::Astar::Node Node;            ///< this will be our node type
+	typedef typename Node::Key Key;                      ///< key to hash tables
 
 protected:
 	/** to access inherited path finder */
@@ -31,6 +30,27 @@ protected:
 		return *static_cast<Tpf*>(this);
 	}
 
+public:
+	/** return debug report character to identify the transportation type */
+	inline char TransportTypeChar() const
+	{
+		return 'r';
+	}
+
+	/**
+	 * Called by YAPF to move from the given node to the next tile. For each
+	 *  reachable trackdir on the new tile creates new node, initializes it
+	 *  and adds it to the open list by calling Yapf().AddNewNode(n)
+	 */
+	inline void PfFollowNode(Node& old_node)
+	{
+		TrackFollower F(Yapf().GetVehicle());
+		if (F.Follow(old_node.m_segment_last)) {
+			Yapf().AddMultipleNodes(&old_node, F);
+		}
+	}
+
+protected:
 	int SlopeCost(const PathPos &pos, TileIndex next_tile)
 	{
 		/* height of the center of the current tile */
@@ -289,45 +309,6 @@ public:
 };
 
 
-
-template <class Types>
-class CYapfFollowRoadT
-{
-public:
-	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::TrackFollower TrackFollower;
-	typedef typename Types::Astar::Node Node;            ///< this will be our node type
-	typedef typename Node::Key Key;                      ///< key to hash tables
-
-protected:
-	/** to access inherited path finder */
-	inline Tpf& Yapf()
-	{
-		return *static_cast<Tpf*>(this);
-	}
-
-public:
-
-	/**
-	 * Called by YAPF to move from the given node to the next tile. For each
-	 *  reachable trackdir on the new tile creates new node, initializes it
-	 *  and adds it to the open list by calling Yapf().AddNewNode(n)
-	 */
-	inline void PfFollowNode(Node& old_node)
-	{
-		TrackFollower F(Yapf().GetVehicle());
-		if (F.Follow(old_node.m_segment_last)) {
-			Yapf().AddMultipleNodes(&old_node, F);
-		}
-	}
-
-	/** return debug report character to identify the transportation type */
-	inline char TransportTypeChar() const
-	{
-		return 'r';
-	}
-};
-
 template <class Tpf_, class TAstar>
 struct CYapfRoad_TypesT
 {
@@ -341,41 +322,37 @@ struct CYapfRoad_TypesT
 
 struct CYapfRoad1
 	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
-	, CYapfCostRoadT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
+	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
 	, CYapfSegmentCostCacheNoneT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
 	, CYapfOriginTileT<CYapfRoad1>
 	, CYapfDestinationTileRoadT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
-	, CYapfFollowRoadT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
 {
 };
 
 struct CYapfRoad2
 	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
-	, CYapfCostRoadT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
+	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
 	, CYapfSegmentCostCacheNoneT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
 	, CYapfOriginTileT<CYapfRoad2>
 	, CYapfDestinationTileRoadT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
-	, CYapfFollowRoadT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
 {
 };
 
 struct CYapfRoadAnyDepot1
 	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
-	, CYapfCostRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
+	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
 	, CYapfSegmentCostCacheNoneT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
 	, CYapfOriginTileT<CYapfRoadAnyDepot1>
 	, CYapfDestinationAnyDepotRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
-	, CYapfFollowRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
 {
 };
 
 struct CYapfRoadAnyDepot2
 	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
-	, CYapfCostRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
+	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
 	, CYapfSegmentCostCacheNoneT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
 	, CYapfOriginTileT<CYapfRoadAnyDepot2>
 	, CYapfDestinationAnyDepotRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
-	, CYapfFollowRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
 {
 };
 
