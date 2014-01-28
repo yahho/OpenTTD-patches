@@ -725,6 +725,21 @@ cached_segment:
 		return true;
 	}
 
+	/**
+	 * In some cases an intermediate node branch should be pruned.
+	 * The most prominent case is when a red EOL signal is encountered, but
+	 * there was a segment change (e.g. a rail type change) before that. If
+	 * the branch would not be pruned, the rail type change location would
+	 * remain the best intermediate node, and thus the vehicle would still
+	 * go towards the red EOL signal.
+	 */
+	void PruneIntermediateNodeBranch()
+	{
+		while (Types::Astar::best_intermediate != NULL && (Types::Astar::best_intermediate->m_segment->m_end_segment_reason & ESRB_CHOICE_FOLLOWS) == 0) {
+			Types::Astar::best_intermediate = Types::Astar::best_intermediate->m_parent;
+		}
+	}
+
 	inline bool CanUseGlobalCache(Node& n) const
 	{
 		return !m_disable_cache
