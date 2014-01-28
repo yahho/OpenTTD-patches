@@ -52,44 +52,6 @@ public:
 		return 'w';
 	}
 
-	static Trackdir ChooseShipTrack(const Ship *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)
-	{
-		/* move back to the old tile/trackdir (where ship is coming from) */
-		PathPos pos = v->GetPos();
-		assert(pos.tile == TILE_ADD(tile, TileOffsByDiagDir(ReverseDiagDir(enterdir))));
-		assert(IsValidTrackdir(pos.td));
-
-		/* handle special case - when next tile is destination tile */
-		if (tile == v->dest_tile) {
-			/* use vehicle's current direction if that's possible, otherwise use first usable one. */
-			Trackdir veh_dir = pos.td;
-			return ((trackdirs & TrackdirToTrackdirBits(veh_dir)) != 0) ? veh_dir : FindFirstTrackdir(trackdirs);
-		}
-
-		/* create pathfinder instance */
-		Tpf pf;
-		/* set origin and destination nodes */
-		pf.SetOrigin(pos);
-		pf.SetDestination(v);
-		/* find best path */
-		path_found = pf.FindPath(v);
-
-		Node *pNode = pf.GetBestNode();
-		if (pNode == NULL) return INVALID_TRACKDIR; // path not found
-
-		/* walk through the path back to the origin */
-		Node *pPrevNode = NULL;
-		while (pNode->m_parent != NULL) {
-			pPrevNode = pNode;
-			pNode = pNode->m_parent;
-		}
-
-		/* return trackdir from the best next node (direct child of origin) */
-		Node& best_next_node = *pPrevNode;
-		assert(best_next_node.GetPos().tile == tile);
-		return best_next_node.GetPos().td;
-	}
-
 	/**
 	 * Check whether a ship should reverse to reach its destination.
 	 * Called when leaving depot.
@@ -300,18 +262,56 @@ struct CYapfShip3
 {
 };
 
+
+template <class Tpf>
+static Trackdir ChooseShipTrack(const Ship *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)
+{
+	/* move back to the old tile/trackdir (where ship is coming from) */
+	PathPos pos = v->GetPos();
+	assert(pos.tile == TILE_ADD(tile, TileOffsByDiagDir(ReverseDiagDir(enterdir))));
+	assert(IsValidTrackdir(pos.td));
+
+	/* handle special case - when next tile is destination tile */
+	if (tile == v->dest_tile) {
+		/* use vehicle's current direction if that's possible, otherwise use first usable one. */
+		Trackdir veh_dir = pos.td;
+		return ((trackdirs & TrackdirToTrackdirBits(veh_dir)) != 0) ? veh_dir : FindFirstTrackdir(trackdirs);
+	}
+
+	/* create pathfinder instance */
+	Tpf pf;
+	/* set origin and destination nodes */
+	pf.SetOrigin(pos);
+	pf.SetDestination(v);
+	/* find best path */
+	path_found = pf.FindPath(v);
+
+	typename Tpf::Astar::Node *n = pf.GetBestNode();
+	if (n == NULL) return INVALID_TRACKDIR; // path not found
+	assert (n->m_parent != NULL);
+
+	/* walk through the path back to the origin */
+	while (n->m_parent->m_parent != NULL) {
+		n = n->m_parent;
+	}
+
+	/* return trackdir from the best next node (direct child of origin) */
+	assert(n->GetPos().tile == tile);
+	return n->GetPos().td;
+}
+
 /** Ship controller helper - path finder invoker */
 Trackdir YapfShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)
 {
 	/* default is YAPF type 2 */
 	typedef Trackdir (*PfnChooseShipTrack)(const Ship*, TileIndex, DiagDirection, TrackdirBits, bool &path_found);
-	PfnChooseShipTrack pfnChooseShipTrack = CYapfShip2::ChooseShipTrack; // default: ExitDir, allow 90-deg
+	PfnChooseShipTrack pfnChooseShipTrack = ChooseShipTrack<CYapfShip2>; // default: ExitDir, allow 90-deg
 
 	/* check if non-default YAPF type needed */
 	if (_settings_game.pf.forbid_90_deg) {
-		pfnChooseShipTrack = &CYapfShip3::ChooseShipTrack; // Trackdir, forbid 90-deg
+		pfnChooseShipTrack = &ChooseShipTrack<CYapfShip3>; // Trackdir, forbid 90-deg
 	} else if (_settings_game.pf.yapf.disable_node_optimization) {
-		pfnChooseShipTrack = &CYapfShip1::ChooseShipTrack; // Trackdir, allow 90-deg
+		pfnChooseShipTrack = &ChooseShipTrack<CYapfShip1>; // Trackdir, allow 90-deg
 	}
 
 	return pfnChooseShipTrack(v, tile, enterdir, trackdirs, path_found);
