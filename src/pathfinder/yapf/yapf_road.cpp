@@ -447,28 +447,56 @@ public:
 	}
 };
 
-template <class Tpf_, class TAstar, template <class Types> class Tdestination>
+template <class Tpf_, class TAstar>
 struct CYapfRoad_TypesT
 {
-	typedef CYapfRoad_TypesT<Tpf_, TAstar, Tdestination>  Types;
+	typedef CYapfRoad_TypesT<Tpf_, TAstar> Types;
 
 	typedef Tpf_                              Tpf;
 	typedef CFollowTrackRoad                  TrackFollower;
 	typedef TAstar                            Astar;
 	typedef RoadVehicle                       VehicleType;
-	typedef CYapfBaseT<Types>                 PfBase;
-	typedef CYapfFollowRoadT<Types>           PfFollow;
-	typedef CYapfOriginTileT<Tpf_>            PfOrigin;
-	typedef Tdestination<Types>               PfDestination;
-	typedef CYapfSegmentCostCacheNoneT<Types> PfCache;
-	typedef CYapfCostRoadT<Types>             PfCost;
 };
 
-struct CYapfRoad1         : CYapfT<CYapfRoad_TypesT<CYapfRoad1        , AstarRoadTrackDir, CYapfDestinationTileRoadT    > > {};
-struct CYapfRoad2         : CYapfT<CYapfRoad_TypesT<CYapfRoad2        , AstarRoadExitDir , CYapfDestinationTileRoadT    > > {};
+struct CYapfRoad1
+	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
+	, CYapfCostRoadT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
+	, CYapfSegmentCostCacheNoneT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
+	, CYapfOriginTileT<CYapfRoad1>
+	, CYapfDestinationTileRoadT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
+	, CYapfFollowRoadT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
+{
+};
 
-struct CYapfRoadAnyDepot1 : CYapfT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir, CYapfDestinationAnyDepotRoadT> > {};
-struct CYapfRoadAnyDepot2 : CYapfT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir , CYapfDestinationAnyDepotRoadT> > {};
+struct CYapfRoad2
+	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
+	, CYapfCostRoadT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
+	, CYapfSegmentCostCacheNoneT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
+	, CYapfOriginTileT<CYapfRoad2>
+	, CYapfDestinationTileRoadT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
+	, CYapfFollowRoadT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
+{
+};
+
+struct CYapfRoadAnyDepot1
+	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
+	, CYapfCostRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
+	, CYapfSegmentCostCacheNoneT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
+	, CYapfOriginTileT<CYapfRoadAnyDepot1>
+	, CYapfDestinationAnyDepotRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
+	, CYapfFollowRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
+{
+};
+
+struct CYapfRoadAnyDepot2
+	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
+	, CYapfCostRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
+	, CYapfSegmentCostCacheNoneT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
+	, CYapfOriginTileT<CYapfRoadAnyDepot2>
+	, CYapfDestinationAnyDepotRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
+	, CYapfFollowRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
+{
+};
 
 
 Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)

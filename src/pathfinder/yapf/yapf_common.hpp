@@ -100,23 +100,4 @@ public:
 	}
 };
 
-/**
- * YAPF template that uses Ttypes template argument to determine all YAPF
- *  components (base classes) from which the actual YAPF is composed.
- *  For example classes consult: CYapfRail_TypesT template and its instantiations:
- *  CYapfRail1, CYapfRail2, CYapfRail3, CYapfAnyDepotRail1, CYapfAnyDepotRail2, CYapfAnyDepotRail3
- */
-template <class Ttypes>
-class CYapfT
-	: public Ttypes::PfBase         ///< Instance of CYapfBaseT - main YAPF loop and support base class
-	, public Ttypes::PfCost         ///< Cost calculation provider base class
-	, public Ttypes::PfCache        ///< Segment cost cache provider
-	, public Ttypes::PfOrigin       ///< Origin (tile or two-tile origin)
-	, public Ttypes::PfDestination  ///< Destination detector and distance (estimate) calculation provider
-	, public Ttypes::PfFollow       ///< Node follower (stepping provider)
-{
-};
-
-
-
 #endif /* YAPF_COMMON_HPP */

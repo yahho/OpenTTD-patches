@@ -265,21 +265,40 @@ struct CYapfShip_TypesT
 	/** node list type */
 	typedef TAstar                            Astar;
 	typedef Ship                              VehicleType;
-	/** pathfinder components (modules) */
-	typedef CYapfBaseT<Types>                 PfBase;        // base pathfinder class
-	typedef CYapfFollowShipT<Types>           PfFollow;      // node follower
-	typedef CYapfOriginTileT<Tpf_>            PfOrigin;      // origin provider
-	typedef CYapfDestinationShipT<Types>      PfDestination; // destination/distance provider
-	typedef CYapfSegmentCostCacheNoneT<Types> PfCache;       // segment cost cache provider
-	typedef CYapfCostShipT<Types>             PfCost;        // cost provider
 };
 
 /* YAPF type 1 - uses TileIndex/Trackdir as Node key, allows 90-deg turns */
-struct CYapfShip1 : CYapfT<CYapfShip_TypesT<CYapfShip1, CFollowTrackWater90  , AstarShipTrackDir> > {};
+struct CYapfShip1
+	: CYapfBaseT<CYapfShip_TypesT<CYapfShip1, CFollowTrackWater90, AstarShipTrackDir> >
+	, CYapfCostShipT<CYapfShip_TypesT<CYapfShip1, CFollowTrackWater90, AstarShipTrackDir> >
+	, CYapfSegmentCostCacheNoneT<CYapfShip_TypesT<CYapfShip1, CFollowTrackWater90, AstarShipTrackDir> >
+	, CYapfOriginTileT<CYapfShip1>
+	, CYapfDestinationShipT<CYapfShip_TypesT<CYapfShip1, CFollowTrackWater90, AstarShipTrackDir> >
+	, CYapfFollowShipT<CYapfShip_TypesT<CYapfShip1, CFollowTrackWater90, AstarShipTrackDir> >
+{
+};
+
 /* YAPF type 2 - uses TileIndex/DiagDirection as Node key, allows 90-deg turns */
-struct CYapfShip2 : CYapfT<CYapfShip_TypesT<CYapfShip2, CFollowTrackWater90  , AstarShipExitDir > > {};
+struct CYapfShip2
+	: CYapfBaseT<CYapfShip_TypesT<CYapfShip2, CFollowTrackWater90, AstarShipExitDir> >
+	, CYapfCostShipT<CYapfShip_TypesT<CYapfShip2, CFollowTrackWater90, AstarShipExitDir> >
+	, CYapfSegmentCostCacheNoneT<CYapfShip_TypesT<CYapfShip2, CFollowTrackWater90, AstarShipExitDir> >
+	, CYapfOriginTileT<CYapfShip2>
+	, CYapfDestinationShipT<CYapfShip_TypesT<CYapfShip2, CFollowTrackWater90, AstarShipExitDir> >
+	, CYapfFollowShipT<CYapfShip_TypesT<CYapfShip2, CFollowTrackWater90, AstarShipExitDir> >
+{
+};
+
 /* YAPF type 3 - uses TileIndex/Trackdir as Node key, forbids 90-deg turns */
-struct CYapfShip3 : CYapfT<CYapfShip_TypesT<CYapfShip3, CFollowTrackWaterNo90, AstarShipTrackDir> > {};
+struct CYapfShip3
+	: CYapfBaseT<CYapfShip_TypesT<CYapfShip3, CFollowTrackWaterNo90, AstarShipTrackDir> >
+	, CYapfCostShipT<CYapfShip_TypesT<CYapfShip3, CFollowTrackWaterNo90, AstarShipTrackDir> >
+	, CYapfSegmentCostCacheNoneT<CYapfShip_TypesT<CYapfShip3, CFollowTrackWaterNo90, AstarShipTrackDir> >
+	, CYapfOriginTileT<CYapfShip3>
+	, CYapfDestinationShipT<CYapfShip_TypesT<CYapfShip3, CFollowTrackWaterNo90, AstarShipTrackDir> >
+	, CYapfFollowShipT<CYapfShip_TypesT<CYapfShip3, CFollowTrackWaterNo90, AstarShipTrackDir> >
+{
+};
 
 /** Ship controller helper - path finder invoker */
 Trackdir YapfShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)
