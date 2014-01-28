@@ -43,7 +43,7 @@ int _total_pf_time_us = 0;
 
 
 template <class Types>
-class CYapfCostRailT
+class CYapfRailT
 {
 public:
 	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
@@ -63,11 +63,11 @@ protected:
 
 public:
 	bool          m_stopped_on_first_two_way_signal;
-protected:
 
+protected:
 	static const int s_max_segment_cost = 10000;
 
-	CYapfCostRailT()
+	CYapfRailT()
 		: m_max_cost(0)
 		, m_disable_cache(false)
 		, m_stopped_on_first_two_way_signal(false)
@@ -89,6 +89,12 @@ protected:
 	}
 
 public:
+	/** return debug report character to identify the transportation type */
+	inline char TransportTypeChar() const
+	{
+		return 't';
+	}
+
 	inline int SlopeCost(const PathPos &pos)
 	{
 		CPerfStart perf_cost(Yapf().m_perf_slope_cost);
@@ -1011,12 +1017,6 @@ public:
 		}
 	}
 
-	/** return debug report character to identify the transportation type */
-	inline char TransportTypeChar() const
-	{
-		return 't';
-	}
-
 	static bool stFindNearestDepotTwoWay(const Train *v, const PathPos &pos1, const PathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
 	{
 		Tpf pf1;
@@ -1107,12 +1107,6 @@ public:
 		}
 	}
 
-	/** Return debug report character to identify the transportation type */
-	inline char TransportTypeChar() const
-	{
-		return 't';
-	}
-
 	static bool stFindNearestSafeTile(const Train *v, const PathPos &pos, bool override_railtype)
 	{
 		/* Create pathfinder instance */
@@ -1188,12 +1182,6 @@ public:
 		if (F.Follow(old_node.GetLastPos())) {
 			Yapf().AddMultipleNodes(&old_node, F);
 		}
-	}
-
-	/** return debug report character to identify the transportation type */
-	inline char TransportTypeChar() const
-	{
-		return 't';
 	}
 
 	static Trackdir stChooseRailTrack(const Train *v, const PathPos &origin, bool reserve_track, PFResult *target)
@@ -1316,7 +1304,7 @@ struct CYapfRail_TypesT
 
 struct CYapfRail1
 	: CYapfBaseT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
-	, CYapfCostRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
+	, CYapfRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
 	, CYapfSegmentCostCacheGlobalT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
 	, CYapfOriginTileTwoWayT<CYapfRail1>
 	, CYapfDestinationTileOrStationRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
@@ -1326,7 +1314,7 @@ struct CYapfRail1
 
 struct CYapfRail2
 	: CYapfBaseT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
-	, CYapfCostRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
+	, CYapfRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
 	, CYapfSegmentCostCacheGlobalT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
 	, CYapfOriginTileTwoWayT<CYapfRail2>
 	, CYapfDestinationTileOrStationRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
@@ -1336,7 +1324,7 @@ struct CYapfRail2
 
 struct CYapfAnyDepotRail1
 	: CYapfBaseT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
-	, CYapfCostRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
+	, CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
 	, CYapfSegmentCostCacheGlobalT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
 	, CYapfOriginTileTwoWayT<CYapfAnyDepotRail1>
 	, CYapfDestinationAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
@@ -1346,7 +1334,7 @@ struct CYapfAnyDepotRail1
 
 struct CYapfAnyDepotRail2
 	: CYapfBaseT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
-	, CYapfCostRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
+	, CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
 	, CYapfSegmentCostCacheGlobalT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
 	, CYapfOriginTileTwoWayT<CYapfAnyDepotRail2>
 	, CYapfDestinationAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
@@ -1356,7 +1344,7 @@ struct CYapfAnyDepotRail2
 
 struct CYapfAnySafeTileRail1
 	: CYapfBaseT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
-	, CYapfCostRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
+	, CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
 	, CYapfSegmentCostCacheGlobalT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
 	, CYapfOriginTileTwoWayT<CYapfAnySafeTileRail1>
 	, CYapfDestinationAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
@@ -1366,7 +1354,7 @@ struct CYapfAnySafeTileRail1
 
 struct CYapfAnySafeTileRail2
 	: CYapfBaseT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
-	, CYapfCostRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
+	, CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
 	, CYapfSegmentCostCacheGlobalT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
 	, CYapfOriginTileTwoWayT<CYapfAnySafeTileRail2>
 	, CYapfDestinationAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
