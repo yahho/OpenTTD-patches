@@ -126,6 +126,11 @@ protected:
 	const YAPFSettings *m_settings; ///< current settings (_settings_game.yapf)
 	const Train        *m_veh;      ///< vehicle that we are trying to drive
 
+	PathPos m_org;                            ///< first origin position
+	PathPos m_rev;                            ///< second (reversed) origin position
+	int     m_reverse_penalty;                ///< penalty to be added for using the reversed origin
+	bool    m_treat_first_red_two_way_signal_as_eol; ///< in some cases (leaving station) we need to handle first two-way signal differently
+
 	/**
 	 * @note maximum cost doesn't work with caching enabled
 	 * @todo fix maximum cost failing with caching (e.g. FS#2900)
@@ -208,6 +213,32 @@ public:
 	const Train * GetVehicle() const
 	{
 		return m_veh;
+	}
+
+	/** set origin */
+	void SetOrigin(const PathPos &pos, const PathPos &rev = PathPos(), int reverse_penalty = 0, bool treat_first_red_two_way_signal_as_eol = true)
+	{
+		m_org = pos;
+		m_rev = rev;
+		m_reverse_penalty = reverse_penalty;
+		m_treat_first_red_two_way_signal_as_eol = treat_first_red_two_way_signal_as_eol;
+	}
+
+	/** Called when YAPF needs to place origin nodes into open list */
+	void PfSetStartupNodes()
+	{
+		if (m_org.tile != INVALID_TILE && m_org.td != INVALID_TRACKDIR) {
+			Yapf().AddStartupNode(m_org, false);
+		}
+		if (m_rev.tile != INVALID_TILE && m_rev.td != INVALID_TRACKDIR) {
+			Yapf().AddStartupNode(m_rev, false, m_reverse_penalty);
+		}
+	}
+
+	/** return true if first two-way signal should be treated as dead end */
+	inline bool TreatFirstRedTwoWaySignalAsEOL()
+	{
+		return Yapf().PfGetSettings().rail_firstred_twoway_eol && m_treat_first_red_two_way_signal_as_eol;
 	}
 
 	inline int SlopeCost(const PathPos &pos)
@@ -1540,7 +1571,6 @@ struct CYapfRail_TypesT
 struct CYapfRail1
 	: CYapfBaseT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
 	, CYapfRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
-	, CYapfOriginTileTwoWayT<CYapfRail1>
 	, CYapfDestinationTileOrStationRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
 	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
 {
@@ -1549,7 +1579,6 @@ struct CYapfRail1
 struct CYapfRail2
 	: CYapfBaseT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
 	, CYapfRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
-	, CYapfOriginTileTwoWayT<CYapfRail2>
 	, CYapfDestinationTileOrStationRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
 	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
 {
@@ -1558,7 +1587,6 @@ struct CYapfRail2
 struct CYapfAnyDepotRail1
 	: CYapfBaseT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
 	, CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
-	, CYapfOriginTileTwoWayT<CYapfAnyDepotRail1>
 	, CYapfDestinationAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
 	, CYapfFollowAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
 {
@@ -1567,7 +1595,6 @@ struct CYapfAnyDepotRail1
 struct CYapfAnyDepotRail2
 	: CYapfBaseT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
 	, CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
-	, CYapfOriginTileTwoWayT<CYapfAnyDepotRail2>
 	, CYapfDestinationAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
 	, CYapfFollowAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
 {
@@ -1576,7 +1603,6 @@ struct CYapfAnyDepotRail2
 struct CYapfAnySafeTileRail1
 	: CYapfBaseT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
 	, CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
-	, CYapfOriginTileTwoWayT<CYapfAnySafeTileRail1>
 	, CYapfDestinationAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
 	, CYapfFollowAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
 {
@@ -1585,7 +1611,6 @@ struct CYapfAnySafeTileRail1
 struct CYapfAnySafeTileRail2
 	: CYapfBaseT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
 	, CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
-	, CYapfOriginTileTwoWayT<CYapfAnySafeTileRail2>
 	, CYapfDestinationAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
 	, CYapfFollowAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
 {
