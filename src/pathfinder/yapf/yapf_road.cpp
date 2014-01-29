@@ -27,9 +27,6 @@ protected:
 	const YAPFSettings *m_settings; ///< current settings (_settings_game.yapf)
 	const RoadVehicle  *m_veh;      ///< vehicle that we are trying to drive
 
-	int                  m_stats_cost_calcs;   ///< stats - how many node's costs were calculated
-	int                  m_stats_cache_hits;   ///< stats - how many node's costs were reused from cache
-
 protected:
 	/** to access inherited path finder */
 	Tpf& Yapf()
@@ -40,8 +37,6 @@ protected:
 	CYapfRoadT()
 		: m_settings(&_settings_game.pf.yapf)
 		, m_veh(NULL)
-		, m_stats_cost_calcs(0)
-		, m_stats_cache_hits(0)
 	{
 	}
 
@@ -74,13 +69,6 @@ public:
 			Node& n = *Types::Astar::CreateNewNode(&old_node, pos, is_choice);
 
 			/* evaluate the node */
-			bool bCached = PfNodeCacheFetch(n);
-			if (!bCached) {
-				Yapf().m_stats_cost_calcs++;
-			} else {
-				Yapf().m_stats_cache_hits++;
-			}
-
 			bool bValid = PfCalcCost(n, &F) && Yapf().PfCalcEstimate(n);
 
 			/* have the cost or estimate callbacks marked this node as invalid? */
@@ -272,13 +260,12 @@ public:
 
 			if (_debug_yapf_level >= 3) {
 				UnitID veh_idx = (m_veh != NULL) ? m_veh->unitnumber : 0;
-				float cache_hit_ratio = (m_stats_cache_hits == 0) ? 0.0f : ((float)m_stats_cache_hits / (float)(m_stats_cache_hits + m_stats_cost_calcs) * 100.0f);
 				int cost = bDestFound ? Types::Astar::best->m_cost : -1;
 				int dist = bDestFound ? Types::Astar::best->m_estimate - Types::Astar::best->m_cost : -1;
 
-				DEBUG(yapf, 3, "[YAPFr]%c%4d- %d us - %d rounds - %d open - %d closed - CHR %4.1f%% - C %d D %d - c0(sc0, ts0, o0) -- ",
+				DEBUG(yapf, 3, "[YAPFr]%c%4d- %d us - %d rounds - %d open - %d closed - CHR  0.0%% - C %d D %d - c0(sc0, ts0, o0) -- ",
 					bDestFound ? '-' : '!', veh_idx, t, Types::Astar::num_steps, Types::Astar::OpenCount(), Types::Astar::ClosedCount(),
-					cache_hit_ratio, cost, dist
+					cost, dist
 				);
 			}
 		}
