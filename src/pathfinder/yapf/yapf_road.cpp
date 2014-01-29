@@ -249,7 +249,6 @@ public:
 		perf.Start();
 #endif /* !NO_DEBUG_MESSAGES */
 
-		Yapf().PfSetStartupNodes();
 		bool bDestFound = Types::Astar::FindPath (Follow, PfGetSettings().max_search_nodes);
 
 #ifndef NO_DEBUG_MESSAGES
@@ -412,7 +411,6 @@ struct CYapfRoad_TypesT
 struct CYapfRoad1
 	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
 	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
-	, CYapfOriginTileT<CYapfRoad1>
 	, CYapfDestinationTileRoadT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
 {
 };
@@ -420,7 +418,6 @@ struct CYapfRoad1
 struct CYapfRoad2
 	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
 	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
-	, CYapfOriginTileT<CYapfRoad2>
 	, CYapfDestinationTileRoadT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
 {
 };
@@ -428,7 +425,6 @@ struct CYapfRoad2
 struct CYapfRoadAnyDepot1
 	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
 	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
-	, CYapfOriginTileT<CYapfRoadAnyDepot1>
 	, CYapfDestinationAnyDepotRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
 {
 };
@@ -436,7 +432,6 @@ struct CYapfRoadAnyDepot1
 struct CYapfRoadAnyDepot2
 	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
 	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
-	, CYapfOriginTileT<CYapfRoadAnyDepot2>
 	, CYapfDestinationAnyDepotRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
 {
 };
@@ -448,7 +443,16 @@ static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, DiagDirect
 	Tpf pf;
 
 	/* set origin and destination nodes */
-	pf.SetOrigin(tile, TrackStatusToTrackdirBits(GetTileRoadStatus(tile, v->compatible_roadtypes)) & DiagdirReachesTrackdirs(enterdir));
+	TrackdirBits trackdirs = TrackStatusToTrackdirBits(GetTileRoadStatus(tile, v->compatible_roadtypes)) & DiagdirReachesTrackdirs(enterdir);
+	assert (!HasAtMostOneBit(trackdirs));
+
+	PathPos pos;
+	pos.tile = tile;
+	for (TrackdirBits tdb = trackdirs; tdb != TRACKDIR_BIT_NONE; tdb = KillFirstBit(tdb)) {
+		pos.td = FindFirstTrackdir(tdb);
+		pf.InsertInitialNode (pf.CreateNewNode (NULL, pos, true));
+	}
+
 	pf.SetDestination(v);
 
 	/* find the best path */
@@ -500,7 +504,7 @@ static TileIndex FindNearestDepot(const RoadVehicle *v, const PathPos &pos, int 
 	Tpf pf;
 
 	/* set origin and destination nodes */
-	pf.SetOrigin(pos);
+	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos, false));
 
 	/* find the best path */
 	if (!pf.FindPath(v)) return INVALID_TILE;
