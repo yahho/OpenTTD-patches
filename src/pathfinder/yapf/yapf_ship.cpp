@@ -32,11 +32,6 @@ protected:
 	int                  m_stats_cost_calcs;   ///< stats - how many node's costs were calculated
 	int                  m_stats_cache_hits;   ///< stats - how many node's costs were reused from cache
 
-	CPerformanceTimer    m_perf_cost;          ///< stats - total CPU time of this run
-	CPerformanceTimer    m_perf_slope_cost;    ///< stats - slope calculation CPU time
-	CPerformanceTimer    m_perf_ts_cost;       ///< stats - GetTrackStatus() CPU time
-	CPerformanceTimer    m_perf_other_cost;    ///< stats - other CPU time
-
 protected:
 	/** to access inherited path finder */
 	inline Tpf& Yapf()
@@ -259,10 +254,9 @@ public:
 				int cost = bDestFound ? Types::Astar::best->m_cost : -1;
 				int dist = bDestFound ? Types::Astar::best->m_estimate - Types::Astar::best->m_cost : -1;
 
-				DEBUG(yapf, 3, "[YAPF%c]%c%4d- %d us - %d rounds - %d open - %d closed - CHR %4.1f%% - C %d D %d - c%d(sc%d, ts%d, o%d) -- ",
+				DEBUG(yapf, 3, "[YAPF%c]%c%4d- %d us - %d rounds - %d open - %d closed - CHR %4.1f%% - C %d D %d - c0(sc0, ts0, o0) -- ",
 					ttc, bDestFound ? '-' : '!', veh_idx, t, Types::Astar::num_steps, Types::Astar::OpenCount(), Types::Astar::ClosedCount(),
-					cache_hit_ratio, cost, dist, m_perf_cost.Get(1000000), m_perf_slope_cost.Get(1000000),
-					m_perf_ts_cost.Get(1000000), m_perf_other_cost.Get(1000000)
+					cache_hit_ratio, cost, dist
 				);
 			}
 		}
