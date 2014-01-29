@@ -81,13 +81,7 @@ public:
 				Yapf().m_stats_cache_hits++;
 			}
 
-			bool bValid = PfCalcCost(n, &F);
-
-			if (bCached) {
-				PfNodeCacheFlush(n);
-			}
-
-			if (bValid) bValid = Yapf().PfCalcEstimate(n);
+			bool bValid = PfCalcCost(n, &F) && Yapf().PfCalcEstimate(n);
 
 			/* have the cost or estimate callbacks marked this node as invalid? */
 			if (!bValid) continue;
@@ -241,14 +235,6 @@ public:
 	inline bool PfNodeCacheFetch(Node& n)
 	{
 		return false;
-	}
-
-	/**
-	 * Called by YAPF to flush the cached segment cost data back into cache storage.
-	 *  Current cache implementation doesn't use that.
-	 */
-	inline void PfNodeCacheFlush(Node& n)
-	{
 	}
 
 	/** call the node follower */

@@ -797,14 +797,6 @@ cached_segment:
 		return found;
 	}
 
-	/**
-	 * Called by YAPF to flush the cached segment cost data back into cache storage.
-	 *  Current cache implementation doesn't use that.
-	 */
-	inline void PfNodeCacheFlush(Node& n)
-	{
-	}
-
 	/** add multiple nodes - direct children of the given node */
 	inline void AddMultipleNodes(Node *parent, const TrackFollower &tf)
 	{
@@ -831,13 +823,7 @@ cached_segment:
 			Yapf().m_stats_cache_hits++;
 		}
 
-		bool bValid = PfCalcCost(n, &tf);
-
-		if (bCached) {
-			PfNodeCacheFlush(n);
-		}
-
-		if (bValid) bValid = Yapf().PfCalcEstimate(n);
+		bool bValid = PfCalcCost(n, &tf) && Yapf().PfCalcEstimate(n);
 
 		/* have the cost or estimate callbacks marked this node as invalid? */
 		if (!bValid) return;
