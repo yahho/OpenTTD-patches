@@ -49,7 +49,6 @@ public:
 	typedef typename Types::Tpf Tpf;           ///< the pathfinder class (derived from THIS class)
 	typedef typename Types::TrackFollower TrackFollower;
 	typedef typename Types::Astar Astar;       ///< our base pathfinder
-	typedef typename Types::VehicleType VehicleType; ///< the type of vehicle
 	typedef typename Astar::Node Node;         ///< this will be our node type
 	typedef typename Node::Key Key;            ///< key to hash tables
 

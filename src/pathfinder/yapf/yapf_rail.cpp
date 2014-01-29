@@ -123,8 +123,8 @@ public:
 	typedef SmallArray<CachedData> LocalCache;
 
 protected:
-	const YAPFSettings                *m_settings; ///< current settings (_settings_game.yapf)
-	const typename Types::VehicleType *m_veh;      ///< vehicle that we are trying to drive
+	const YAPFSettings *m_settings; ///< current settings (_settings_game.yapf)
+	const Train        *m_veh;      ///< vehicle that we are trying to drive
 
 	/**
 	 * @note maximum cost doesn't work with caching enabled
@@ -205,7 +205,7 @@ public:
 		return *m_settings;
 	}
 
-	const typename Types::VehicleType * GetVehicle() const
+	const Train * GetVehicle() const
 	{
 		return m_veh;
 	}
@@ -871,7 +871,7 @@ cached_segment:
 	 *      - or the maximum amount of loops reached - m_max_search_nodes (default = 10000)
 	 * @return true if the path was found
 	 */
-	inline bool FindPath(const typename Types::VehicleType *v)
+	inline bool FindPath(const Train *v)
 	{
 		m_veh = v;
 
@@ -1556,7 +1556,6 @@ struct CYapfRail_TypesT
 	typedef Tpf_                                Tpf;
 	typedef Ttrack_follower                     TrackFollower;
 	typedef AstarRailTrackDir                   Astar;
-	typedef Train                               VehicleType;
 };
 
 struct CYapfRail1

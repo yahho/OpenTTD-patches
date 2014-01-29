@@ -26,8 +26,8 @@ public:
 	typedef typename Node::Key Key;                      ///< key to hash tables
 
 protected:
-	const YAPFSettings                *m_settings; ///< current settings (_settings_game.yapf)
-	const typename Types::VehicleType *m_veh;      ///< vehicle that we are trying to drive
+	const YAPFSettings *m_settings; ///< current settings (_settings_game.yapf)
+	const Ship         *m_veh;      ///< vehicle that we are trying to drive
 
 	int                  m_stats_cost_calcs;   ///< stats - how many node's costs were calculated
 	int                  m_stats_cache_hits;   ///< stats - how many node's costs were reused from cache
@@ -62,7 +62,7 @@ protected:
 		return *m_settings;
 	}
 
-	const typename Types::VehicleType * GetVehicle() const
+	const Ship * GetVehicle() const
 	{
 		return m_veh;
 	}
@@ -234,7 +234,7 @@ public:
 	 *      - or the maximum amount of loops reached - m_max_search_nodes (default = 10000)
 	 * @return true if the path was found
 	 */
-	inline bool FindPath(const typename Types::VehicleType *v)
+	inline bool FindPath(const Ship *v)
 	{
 		m_veh = v;
 
@@ -287,7 +287,6 @@ struct CYapfShip_TypesT
 	typedef Ttrack_follower                   TrackFollower;
 	/** node list type */
 	typedef TAstar                            Astar;
-	typedef Ship                              VehicleType;
 };
 
 /* YAPF type 1 - uses TileIndex/Trackdir as Node key, allows 90-deg turns */
