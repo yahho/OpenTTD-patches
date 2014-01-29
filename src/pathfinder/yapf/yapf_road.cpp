@@ -24,10 +24,41 @@ public:
 	typedef typename Node::Key Key;                      ///< key to hash tables
 
 protected:
+	const YAPFSettings                *m_settings; ///< current settings (_settings_game.yapf)
+	const typename Types::VehicleType *m_veh;      ///< vehicle that we are trying to drive
+
+	int                  m_stats_cost_calcs;   ///< stats - how many node's costs were calculated
+	int                  m_stats_cache_hits;   ///< stats - how many node's costs were reused from cache
+
+	CPerformanceTimer    m_perf_cost;          ///< stats - total CPU time of this run
+	CPerformanceTimer    m_perf_slope_cost;    ///< stats - slope calculation CPU time
+	CPerformanceTimer    m_perf_ts_cost;       ///< stats - GetTrackStatus() CPU time
+	CPerformanceTimer    m_perf_other_cost;    ///< stats - other CPU time
+
+protected:
 	/** to access inherited path finder */
 	Tpf& Yapf()
 	{
 		return *static_cast<Tpf*>(this);
+	}
+
+	CYapfRoadT()
+		: m_settings(&_settings_game.pf.yapf)
+		, m_veh(NULL)
+		, m_stats_cost_calcs(0)
+		, m_stats_cache_hits(0)
+	{
+	}
+
+	/** return current settings (can be custom - company based - but later) */
+	inline const YAPFSettings& PfGetSettings() const
+	{
+		return *m_settings;
+	}
+
+	const typename Types::VehicleType * GetVehicle() const
+	{
+		return m_veh;
 	}
 
 public:
@@ -230,6 +261,57 @@ public:
 	inline void PfNodeCacheFlush(Node& n)
 	{
 	}
+
+	/** call the node follower */
+	static inline void Follow (Tpf *pf, Node *n)
+	{
+		pf->PfFollowNode(*n);
+	}
+
+	/**
+	 * Main pathfinder routine:
+	 *   - set startup node(s)
+	 *   - main loop that stops if:
+	 *      - the destination was found
+	 *      - or the open list is empty (no route to destination).
+	 *      - or the maximum amount of loops reached - m_max_search_nodes (default = 10000)
+	 * @return true if the path was found
+	 */
+	inline bool FindPath(const typename Types::VehicleType *v)
+	{
+		m_veh = v;
+
+#ifndef NO_DEBUG_MESSAGES
+		CPerformanceTimer perf;
+		perf.Start();
+#endif /* !NO_DEBUG_MESSAGES */
+
+		Yapf().PfSetStartupNodes();
+		bool bDestFound = Types::Astar::FindPath (Follow, PfGetSettings().max_search_nodes);
+
+#ifndef NO_DEBUG_MESSAGES
+		perf.Stop();
+		if (_debug_yapf_level >= 2) {
+			int t = perf.Get(1000000);
+			_total_pf_time_us += t;
+
+			if (_debug_yapf_level >= 3) {
+				UnitID veh_idx = (m_veh != NULL) ? m_veh->unitnumber : 0;
+				char ttc = Yapf().TransportTypeChar();
+				float cache_hit_ratio = (m_stats_cache_hits == 0) ? 0.0f : ((float)m_stats_cache_hits / (float)(m_stats_cache_hits + m_stats_cost_calcs) * 100.0f);
+				int cost = bDestFound ? Types::Astar::best->m_cost : -1;
+				int dist = bDestFound ? Types::Astar::best->m_estimate - Types::Astar::best->m_cost : -1;
+
+				DEBUG(yapf, 3, "[YAPF%c]%c%4d- %d us - %d rounds - %d open - %d closed - CHR %4.1f%% - C %d D %d - c%d(sc%d, ts%d, o%d) -- ",
+					ttc, bDestFound ? '-' : '!', veh_idx, t, Types::Astar::num_steps, Types::Astar::OpenCount(), Types::Astar::ClosedCount(),
+					cache_hit_ratio, cost, dist, m_perf_cost.Get(1000000), m_perf_slope_cost.Get(1000000),
+					m_perf_ts_cost.Get(1000000), m_perf_other_cost.Get(1000000)
+				);
+			}
+		}
+#endif /* !NO_DEBUG_MESSAGES */
+		return bDestFound;
+	}
 };
 
 
@@ -411,7 +493,7 @@ static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, DiagDirect
 	pf.SetDestination(v);
 
 	/* find the best path */
-	path_found = pf.CYapfBaseT<typename Tpf::TT>::FindPath(v);
+	path_found = pf.FindPath(v);
 
 	/* if path not found - return INVALID_TRACKDIR */
 	typename Tpf::TT::Astar::Node *n = pf.GetBestNode();
@@ -462,7 +544,7 @@ static TileIndex FindNearestDepot(const RoadVehicle *v, const PathPos &pos, int 
 	pf.SetOrigin(pos);
 
 	/* find the best path */
-	if (!pf.CYapfBaseT<typename Tpf::TT>::FindPath(v)) return INVALID_TILE;
+	if (!pf.FindPath(v)) return INVALID_TILE;
 
 	/* some path found; get found depot tile */
 	typename Tpf::TT::Astar::Node *n = pf.GetBestNode();
