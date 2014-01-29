@@ -12,50 +12,6 @@
 #ifndef YAPF_COMMON_HPP
 #define YAPF_COMMON_HPP
 
-/** YAPF origin provider base class - used when origin is one tile / multiple trackdirs */
-template <class Tpf>
-class CYapfOriginTileT
-{
-protected:
-	PathPos      m_org;                           ///< origin position
-	TrackdirBits m_trackdirs;                     ///< origin trackdir mask
-
-	/** to access inherited path finder */
-	inline Tpf& Yapf()
-	{
-		return *static_cast<Tpf*>(this);
-	}
-
-public:
-	/** Set origin position */
-	void SetOrigin(const PathPos &pos)
-	{
-		m_org = pos;
-		m_trackdirs = TrackdirToTrackdirBits(pos.td);
-	}
-
-	/** Set origin tile / trackdir mask */
-	void SetOrigin(TileIndex tile, TrackdirBits trackdirs)
-	{
-		m_org = PathPos(tile, (KillFirstBit(trackdirs) == TRACKDIR_BIT_NONE) ? FindFirstTrackdir(trackdirs) : INVALID_TRACKDIR);
-		m_trackdirs = trackdirs;
-	}
-
-	/** Called when YAPF needs to place origin nodes into open list */
-	void PfSetStartupNodes()
-	{
-		if (m_org.td != INVALID_TRACKDIR) {
-			Yapf().AddStartupNode(m_org, false);
-		} else {
-			PathPos pos = m_org;
-			for (TrackdirBits tdb = m_trackdirs; tdb != TRACKDIR_BIT_NONE; tdb = KillFirstBit(tdb)) {
-				pos.td = FindFirstTrackdir(tdb);
-				Yapf().AddStartupNode(pos, true);
-			}
-		}
-	}
-};
-
 /** YAPF origin provider base class - used when there are two tile/trackdir origins */
 template <class Tpf>
 class CYapfOriginTileTwoWayT
