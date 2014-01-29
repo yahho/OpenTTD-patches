@@ -206,7 +206,6 @@ public:
 		perf.Start();
 #endif /* !NO_DEBUG_MESSAGES */
 
-		Yapf().PfSetStartupNodes();
 		bool bDestFound = Types::Astar::FindPath (Follow, PfGetSettings().max_search_nodes);
 
 #ifndef NO_DEBUG_MESSAGES
@@ -253,7 +252,6 @@ struct CYapfShip_TypesT
 struct CYapfShip1
 	: CYapfBaseT<CYapfShip_TypesT<CYapfShip1, CFollowTrackWater90, AstarShipTrackDir> >
 	, CYapfShipT<CYapfShip_TypesT<CYapfShip1, CFollowTrackWater90, AstarShipTrackDir> >
-	, CYapfOriginTileT<CYapfShip1>
 {
 };
 
@@ -261,7 +259,6 @@ struct CYapfShip1
 struct CYapfShip2
 	: CYapfBaseT<CYapfShip_TypesT<CYapfShip2, CFollowTrackWater90, AstarShipExitDir> >
 	, CYapfShipT<CYapfShip_TypesT<CYapfShip2, CFollowTrackWater90, AstarShipExitDir> >
-	, CYapfOriginTileT<CYapfShip2>
 {
 };
 
@@ -269,7 +266,6 @@ struct CYapfShip2
 struct CYapfShip3
 	: CYapfBaseT<CYapfShip_TypesT<CYapfShip3, CFollowTrackWaterNo90, AstarShipTrackDir> >
 	, CYapfShipT<CYapfShip_TypesT<CYapfShip3, CFollowTrackWaterNo90, AstarShipTrackDir> >
-	, CYapfOriginTileT<CYapfShip3>
 {
 };
 
@@ -280,7 +276,7 @@ static Trackdir ChooseShipTrack(const Ship *v, const PathPos &pos, DiagDirection
 	/* create pathfinder instance */
 	Tpf pf;
 	/* set origin and destination nodes */
-	pf.SetOrigin(pos);
+	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos, false));
 	pf.SetDestination(v);
 	/* find best path */
 	path_found = pf.FindPath(v);
@@ -342,7 +338,8 @@ static bool CheckShipReverse(const Ship *v, const PathPos &pos)
 	/* create pathfinder instance */
 	Tpf pf;
 	/* set origin and destination nodes */
-	pf.SetOrigin(pos.tile, TrackdirToTrackdirBits(pos.td) | TrackdirToTrackdirBits(ReverseTrackdir(pos.td)));
+	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos, true));
+	pf.InsertInitialNode (pf.CreateNewNode (NULL, PathPos(pos.tile, ReverseTrackdir(pos.td)), true));
 	pf.SetDestination(v);
 	/* find best path */
 	if (!pf.FindPath(v)) return false;
