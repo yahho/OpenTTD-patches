@@ -25,14 +25,14 @@ public:
 protected:
 	const YAPFSettings *const m_settings; ///< current settings (_settings_game.yapf)
 	const Ship         *const m_veh;      ///< vehicle that we are trying to drive
-
-protected:
-	Station *m_dest_station;
-	TileIndex m_dest_tile;
+	const Station      *const m_dest_station; ///< destination station, or NULL
+	const TileIndex           m_dest_tile;    ///< destination tile
 
 	CYapfShipT (const Ship *ship)
 		: m_settings(&_settings_game.pf.yapf)
 		, m_veh(ship)
+		, m_dest_station (ship->current_order.IsType(OT_GOTO_STATION) ? Station::Get(ship->current_order.GetDestination()) : NULL)
+		, m_dest_tile    (ship->current_order.IsType(OT_GOTO_STATION) ? m_dest_station->GetClosestTile(ship->tile, STATION_DOCK) : ship->dest_tile)
 	{
 	}
 
@@ -43,18 +43,6 @@ protected:
 	}
 
 public:
-	/** set the destination tile */
-	void SetDestination(const Ship *v)
-	{
-		if (v->current_order.IsType(OT_GOTO_STATION)) {
-			m_dest_station = Station::Get(v->current_order.GetDestination());
-			m_dest_tile    = m_dest_station->GetClosestTile(v->tile, STATION_DOCK);
-		} else {
-			m_dest_station = NULL;
-			m_dest_tile    = v->dest_tile;
-		}
-	}
-
 	/**
 	 * Called by YAPF to move from the given node to the next tile. For each
 	 *  reachable trackdir on the new tile creates new node, initializes it
@@ -213,9 +201,8 @@ static Trackdir ChooseShipTrack(const Ship *v, const PathPos &pos, DiagDirection
 {
 	/* create pathfinder instance */
 	Tpf pf (v);
-	/* set origin and destination nodes */
+	/* set origin node */
 	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos, false));
-	pf.SetDestination(v);
 	/* find best path */
 	path_found = pf.FindPath();
 
@@ -275,10 +262,9 @@ static bool CheckShipReverse(const Ship *v, const PathPos &pos)
 {
 	/* create pathfinder instance */
 	Tpf pf (v);
-	/* set origin and destination nodes */
+	/* set origin nodes */
 	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos, true));
 	pf.InsertInitialNode (pf.CreateNewNode (NULL, PathPos(pos.tile, ReverseTrackdir(pos.td)), true));
-	pf.SetDestination(v);
 	/* find best path */
 	if (!pf.FindPath()) return false;
 
