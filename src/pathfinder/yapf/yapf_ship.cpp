@@ -27,12 +27,14 @@ protected:
 	const Ship         *const m_veh;      ///< vehicle that we are trying to drive
 	const Station      *const m_dest_station; ///< destination station, or NULL
 	const TileIndex           m_dest_tile;    ///< destination tile
+	TrackFollower             tf;             ///< track follower
 
 	CYapfShipT (const Ship *ship)
 		: m_settings(&_settings_game.pf.yapf)
 		, m_veh(ship)
 		, m_dest_station (ship->current_order.IsType(OT_GOTO_STATION) ? Station::Get(ship->current_order.GetDestination()) : NULL)
 		, m_dest_tile    (ship->current_order.IsType(OT_GOTO_STATION) ? m_dest_station->GetClosestTile(ship->tile, STATION_DOCK) : ship->dest_tile)
+		, tf(ship)
 	{
 	}
 
@@ -40,7 +42,6 @@ public:
 	/** Called by the A-star underlying class to find the neighbours of a node. */
 	inline void Follow (Node *old_node)
 	{
-		TrackFollower tf (m_veh);
 		if (!tf.Follow(old_node->GetPos())) return;
 
 		/* precompute trackdir-independent costs */
