@@ -16,7 +16,7 @@
 #include "yapf_node_ship.hpp"
 
 /** YAPF class for ships */
-template <class Tpf, class TAstar>
+template <class TAstar>
 class CYapfShipT : public TAstar
 {
 public:
@@ -104,7 +104,7 @@ public:
 
 
 	/** Call the node follower */
-	static inline void Follow (Tpf *pf, Node *n)
+	static inline void Follow (CYapfShipT *pf, Node *n)
 	{
 		pf->Follow(n);
 	}
@@ -141,31 +141,28 @@ public:
 };
 
 /* YAPF type 1 - uses TileIndex/Trackdir as Node key, allows 90-deg turns */
-struct CYapfShip1
-	: CYapfShipT<CYapfShip1, AstarShipTrackDir>
+struct CYapfShip1 : CYapfShipT<AstarShipTrackDir>
 {
 	CYapfShip1 (const Ship *ship)
-		: CYapfShipT<CYapfShip1, AstarShipTrackDir> (ship, true)
+		: CYapfShipT<AstarShipTrackDir> (ship, true)
 	{
 	}
 };
 
 /* YAPF type 2 - uses TileIndex/DiagDirection as Node key, allows 90-deg turns */
-struct CYapfShip2
-	: CYapfShipT<CYapfShip2, AstarShipExitDir>
+struct CYapfShip2 : CYapfShipT<AstarShipExitDir>
 {
 	CYapfShip2 (const Ship *ship)
-		: CYapfShipT<CYapfShip2, AstarShipExitDir> (ship, true)
+		: CYapfShipT<AstarShipExitDir> (ship, true)
 	{
 	}
 };
 
 /* YAPF type 3 - uses TileIndex/Trackdir as Node key, forbids 90-deg turns */
-struct CYapfShip3
-	: CYapfShipT<CYapfShip3, AstarShipTrackDir>
+struct CYapfShip3 : CYapfShipT<AstarShipTrackDir>
 {
 	CYapfShip3 (const Ship *ship)
-		: CYapfShipT<CYapfShip3, AstarShipTrackDir> (ship, false)
+		: CYapfShipT<AstarShipTrackDir> (ship, false)
 	{
 	}
 };
