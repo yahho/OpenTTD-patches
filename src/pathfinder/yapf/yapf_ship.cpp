@@ -28,6 +28,7 @@ protected:
 	const Station      *const m_dest_station; ///< destination station, or NULL
 	const TileIndex           m_dest_tile;    ///< destination tile
 	TrackFollower             tf;             ///< track follower
+	const ShipVehicleInfo *const svi;         ///< ship vehicle info
 
 	CYapfShipT (const Ship *ship)
 		: m_settings(&_settings_game.pf.yapf)
@@ -35,6 +36,7 @@ protected:
 		, m_dest_station (ship->current_order.IsType(OT_GOTO_STATION) ? Station::Get(ship->current_order.GetDestination()) : NULL)
 		, m_dest_tile    (ship->current_order.IsType(OT_GOTO_STATION) ? m_dest_station->GetClosestTile(ship->tile, STATION_DOCK) : ship->dest_tile)
 		, tf(ship)
+		, svi(ShipVehInfo(ship->engine_type))
 	{
 	}
 
@@ -48,7 +50,6 @@ public:
 		int cc = old_node->m_cost + YAPF_TILE_LENGTH * tf.m_tiles_skipped;
 
 		/* Ocean/canal speed penalty. */
-		const ShipVehicleInfo *svi = ShipVehInfo(m_veh->engine_type);
 		byte speed_frac = (GetEffectiveWaterClass(tf.m_new.tile) == WATER_CLASS_SEA) ? svi->ocean_speed_frac : svi->canal_speed_frac;
 		if (speed_frac > 0) cc += YAPF_TILE_LENGTH * (1 + tf.m_tiles_skipped) * speed_frac / (256 - speed_frac);
 
