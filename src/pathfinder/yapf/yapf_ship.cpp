@@ -30,13 +30,6 @@ protected:
 	const Ship         *m_veh;      ///< vehicle that we are trying to drive
 
 protected:
-	/** to access inherited path finder */
-	inline Tpf& Yapf()
-	{
-		return *static_cast<Tpf*>(this);
-	}
-
-protected:
 	Station *m_dest_station;
 	TileIndex m_dest_tile;
 
@@ -77,7 +70,7 @@ public:
 	 */
 	inline void PfFollowNode(Node& old_node)
 	{
-		TrackFollower F(Yapf().GetVehicle());
+		TrackFollower F(GetVehicle());
 		if (!F.Follow(old_node.GetPos())) return;
 
 		bool is_choice = !F.m_new.is_single();
@@ -120,7 +113,7 @@ public:
 		c += YAPF_TILE_LENGTH * tf->m_tiles_skipped;
 
 		/* Ocean/canal speed penalty. */
-		const ShipVehicleInfo *svi = ShipVehInfo(Yapf().GetVehicle()->engine_type);
+		const ShipVehicleInfo *svi = ShipVehInfo(GetVehicle()->engine_type);
 		byte speed_frac = (GetEffectiveWaterClass(n.GetPos().tile) == WATER_CLASS_SEA) ? svi->ocean_speed_frac : svi->canal_speed_frac;
 		if (speed_frac > 0) c += YAPF_TILE_LENGTH * (1 + tf->m_tiles_skipped) * speed_frac / (256 - speed_frac);
 
