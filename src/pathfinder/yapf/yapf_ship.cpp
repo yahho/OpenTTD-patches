@@ -169,7 +169,7 @@ struct CYapfShip3 : CYapfShipT<AstarShipTrackDir>
 
 
 template <class Tpf>
-static Trackdir ChooseShipTrack(const Ship *v, const PathPos &pos, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)
+static Trackdir ChooseShipTrack(const Ship *v, const PathPos &pos, TrackdirBits trackdirs, bool &path_found)
 {
 	/* create pathfinder instance */
 	Tpf pf (v);
@@ -208,7 +208,7 @@ Trackdir YapfShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterd
 	}
 
 	/* default is YAPF type 2 */
-	typedef Trackdir (*PfnChooseShipTrack)(const Ship*, const PathPos&, DiagDirection, TrackdirBits, bool &path_found);
+	typedef Trackdir (*PfnChooseShipTrack)(const Ship*, const PathPos&, TrackdirBits, bool &path_found);
 	PfnChooseShipTrack pfnChooseShipTrack = ChooseShipTrack<CYapfShip2>; // default: ExitDir, allow 90-deg
 
 	/* check if non-default YAPF type needed */
@@ -218,7 +218,7 @@ Trackdir YapfShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterd
 		pfnChooseShipTrack = &ChooseShipTrack<CYapfShip1>; // Trackdir, allow 90-deg
 	}
 
-	return pfnChooseShipTrack(v, pos, enterdir, trackdirs, path_found);
+	return pfnChooseShipTrack(v, pos, trackdirs, path_found);
 }
 
 
