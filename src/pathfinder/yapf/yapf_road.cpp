@@ -29,6 +29,50 @@ static int SlopeCost(const YAPFSettings *settings, TileIndex tile, TileIndex nex
 	return (z2 - z1 > 1) ? settings->road_slope_penalty : 0;
 }
 
+/** return one tile cost */
+static int OneTileCost(const YAPFSettings *settings, const PathPos &pos)
+{
+	int cost = 0;
+	/* set base cost */
+	if (IsDiagonalTrackdir(pos.td)) {
+		cost += YAPF_TILE_LENGTH;
+		switch (GetTileType(pos.tile)) {
+			case TT_MISC:
+				/* Increase the cost for level crossings */
+				if (IsLevelCrossingTile(pos.tile)) {
+					cost += settings->road_crossing_penalty;
+				}
+				break;
+
+			case TT_STATION: {
+				const RoadStop *rs = RoadStop::GetByTile(pos.tile, GetRoadStopType(pos.tile));
+				if (IsDriveThroughStopTile(pos.tile)) {
+					/* Increase the cost for drive-through road stops */
+					cost += settings->road_stop_penalty;
+					DiagDirection dir = TrackdirToExitdir(pos.td);
+					if (!RoadStop::IsDriveThroughRoadStopContinuation(pos.tile, pos.tile - TileOffsByDiagDir(dir))) {
+						/* When we're the first road stop in a 'queue' of them we increase
+						 * cost based on the fill percentage of the whole queue. */
+						const RoadStop::Entry *entry = rs->GetEntry(dir);
+						cost += entry->GetOccupied() * settings->road_stop_occupied_penalty / entry->GetLength();
+					}
+				} else {
+					/* Increase cost for filled road stops */
+					cost += settings->road_stop_bay_occupied_penalty * (!rs->IsFreeBay(0) + !rs->IsFreeBay(1)) / 2;
+				}
+				break;
+			}
+
+			default:
+				break;
+		}
+	} else {
+		/* non-diagonal trackdir */
+		cost = YAPF_TILE_CORNER_LENGTH + settings->road_curve_penalty;
+	}
+	return cost;
+}
+
 
 template <class Types>
 class CYapfRoadT : public Types::Astar
@@ -99,52 +143,6 @@ public:
 		}
 	}
 
-protected:
-	/** return one tile cost */
-	inline int OneTileCost(const PathPos &pos)
-	{
-		int cost = 0;
-		/* set base cost */
-		if (IsDiagonalTrackdir(pos.td)) {
-			cost += YAPF_TILE_LENGTH;
-			switch (GetTileType(pos.tile)) {
-				case TT_MISC:
-					/* Increase the cost for level crossings */
-					if (IsLevelCrossingTile(pos.tile)) {
-						cost += Yapf().PfGetSettings().road_crossing_penalty;
-					}
-					break;
-
-				case TT_STATION: {
-					const RoadStop *rs = RoadStop::GetByTile(pos.tile, GetRoadStopType(pos.tile));
-					if (IsDriveThroughStopTile(pos.tile)) {
-						/* Increase the cost for drive-through road stops */
-						cost += Yapf().PfGetSettings().road_stop_penalty;
-						DiagDirection dir = TrackdirToExitdir(pos.td);
-						if (!RoadStop::IsDriveThroughRoadStopContinuation(pos.tile, pos.tile - TileOffsByDiagDir(dir))) {
-							/* When we're the first road stop in a 'queue' of them we increase
-							 * cost based on the fill percentage of the whole queue. */
-							const RoadStop::Entry *entry = rs->GetEntry(dir);
-							cost += entry->GetOccupied() * Yapf().PfGetSettings().road_stop_occupied_penalty / entry->GetLength();
-						}
-					} else {
-						/* Increase cost for filled road stops */
-						cost += Yapf().PfGetSettings().road_stop_bay_occupied_penalty * (!rs->IsFreeBay(0) + !rs->IsFreeBay(1)) / 2;
-					}
-					break;
-				}
-
-				default:
-					break;
-			}
-		} else {
-			/* non-diagonal trackdir */
-			cost = YAPF_TILE_CORNER_LENGTH + Yapf().PfGetSettings().road_curve_penalty;
-		}
-		return cost;
-	}
-
-public:
 	/**
 	 * Called by YAPF to calculate the cost from the origin to the given node.
 	 *  Calculates only the cost of given node, adds it to the parent node cost
@@ -163,7 +161,7 @@ public:
 
 		for (;;) {
 			/* base tile cost depending on distance between edges */
-			segment_cost += OneTileCost(pos);
+			segment_cost += OneTileCost (&Yapf().PfGetSettings(), pos);
 
 			const RoadVehicle *v = Yapf().GetVehicle();
 			/* we have reached the vehicle's destination - segment should end here to avoid target skipping */
