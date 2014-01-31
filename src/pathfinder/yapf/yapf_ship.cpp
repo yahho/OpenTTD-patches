@@ -65,6 +65,20 @@ public:
 		TrackFollower tf (m_veh);
 		if (!tf.Follow(old_node.GetPos())) return;
 
+		/* precompute trackdir-independent costs */
+		int cc = old_node.m_cost + YAPF_TILE_LENGTH * tf.m_tiles_skipped;
+
+		/* Ocean/canal speed penalty. */
+		const ShipVehicleInfo *svi = ShipVehInfo(m_veh->engine_type);
+		byte speed_frac = (GetEffectiveWaterClass(tf.m_new.tile) == WATER_CLASS_SEA) ? svi->ocean_speed_frac : svi->canal_speed_frac;
+		if (speed_frac > 0) cc += YAPF_TILE_LENGTH * (1 + tf.m_tiles_skipped) * speed_frac / (256 - speed_frac);
+
+		/* the ship track follower does not step into wormholes */
+		assert (!tf.m_new.in_wormhole());
+
+		/* detect destination */
+		bool is_target = (m_dest_station == NULL) ? (tf.m_new.tile == m_dest_tile) : m_dest_station->IsDockingTile(tf.m_new.tile);
+
 		bool is_choice = !tf.m_new.is_single();
 		PathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
@@ -79,19 +93,11 @@ public:
 				c += YAPF_TILE_LENGTH;
 			}
 
-			/* Skipped tile cost for aqueducts. */
-			c += YAPF_TILE_LENGTH * tf.m_tiles_skipped;
-
-			/* Ocean/canal speed penalty. */
-			const ShipVehicleInfo *svi = ShipVehInfo(m_veh->engine_type);
-			byte speed_frac = (GetEffectiveWaterClass(n->GetPos().tile) == WATER_CLASS_SEA) ? svi->ocean_speed_frac : svi->canal_speed_frac;
-			if (speed_frac > 0) c += YAPF_TILE_LENGTH * (1 + tf.m_tiles_skipped) * speed_frac / (256 - speed_frac);
-
 			/* apply it */
-			n->m_cost = n->m_parent->m_cost + c;
+			n->m_cost = cc + c;
 
 			/* compute estimated cost */
-			if (PfDetectDestination(*n)) {
+			if (is_target) {
 				n->m_estimate = n->m_cost;
 				TAstar::FoundTarget(n);
 			} else {
@@ -114,21 +120,6 @@ public:
 				TAstar::InsertNode(n);
 			}
 		}
-	}
-
-	inline bool PfDetectDestination(const PathPos &pos)
-	{
-		if (pos.in_wormhole()) return false;
-
-		if (m_dest_station == NULL) return pos.tile == m_dest_tile;
-
-		return m_dest_station->IsDockingTile(pos.tile);
-	}
-
-	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination(Node& n)
-	{
-		return PfDetectDestination(n.GetPos());
 	}
 
 	/**
