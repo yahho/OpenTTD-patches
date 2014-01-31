@@ -23,16 +23,16 @@ public:
 	typedef typename TAstar::Node Node; ///< this will be our node type
 
 protected:
-	const YAPFSettings *m_settings; ///< current settings (_settings_game.yapf)
-	const Ship         *m_veh;      ///< vehicle that we are trying to drive
+	const YAPFSettings *const m_settings; ///< current settings (_settings_game.yapf)
+	const Ship         *const m_veh;      ///< vehicle that we are trying to drive
 
 protected:
 	Station *m_dest_station;
 	TileIndex m_dest_tile;
 
-	CYapfShipT()
+	CYapfShipT (const Ship *ship)
 		: m_settings(&_settings_game.pf.yapf)
-		, m_veh(NULL)
+		, m_veh(ship)
 	{
 	}
 
@@ -146,10 +146,8 @@ public:
 	 *      - or the maximum amount of loops reached - m_max_search_nodes (default = 10000)
 	 * @return true if the path was found
 	 */
-	inline bool FindPath(const Ship *v)
+	inline bool FindPath (void)
 	{
-		m_veh = v;
-
 #ifndef NO_DEBUG_MESSAGES
 		CPerformanceTimer perf;
 		perf.Start();
@@ -183,18 +181,30 @@ public:
 struct CYapfShip1
 	: CYapfShipT<CYapfShip1, CFollowTrackWater90, AstarShipTrackDir>
 {
+	CYapfShip1 (const Ship *ship)
+		: CYapfShipT<CYapfShip1, CFollowTrackWater90, AstarShipTrackDir> (ship)
+	{
+	}
 };
 
 /* YAPF type 2 - uses TileIndex/DiagDirection as Node key, allows 90-deg turns */
 struct CYapfShip2
 	: CYapfShipT<CYapfShip2, CFollowTrackWater90, AstarShipExitDir>
 {
+	CYapfShip2 (const Ship *ship)
+		: CYapfShipT<CYapfShip2, CFollowTrackWater90, AstarShipExitDir> (ship)
+	{
+	}
 };
 
 /* YAPF type 3 - uses TileIndex/Trackdir as Node key, forbids 90-deg turns */
 struct CYapfShip3
 	: CYapfShipT<CYapfShip3, CFollowTrackWaterNo90, AstarShipTrackDir>
 {
+	CYapfShip3 (const Ship *ship)
+		: CYapfShipT<CYapfShip3, CFollowTrackWaterNo90, AstarShipTrackDir> (ship)
+	{
+	}
 };
 
 
@@ -202,12 +212,12 @@ template <class Tpf>
 static Trackdir ChooseShipTrack(const Ship *v, const PathPos &pos, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)
 {
 	/* create pathfinder instance */
-	Tpf pf;
+	Tpf pf (v);
 	/* set origin and destination nodes */
 	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos, false));
 	pf.SetDestination(v);
 	/* find best path */
-	path_found = pf.FindPath(v);
+	path_found = pf.FindPath();
 
 	typename Tpf::Node *n = pf.GetBestNode();
 	if (n == NULL) return INVALID_TRACKDIR; // path not found
@@ -264,13 +274,13 @@ template <class Tpf>
 static bool CheckShipReverse(const Ship *v, const PathPos &pos)
 {
 	/* create pathfinder instance */
-	Tpf pf;
+	Tpf pf (v);
 	/* set origin and destination nodes */
 	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos, true));
 	pf.InsertInitialNode (pf.CreateNewNode (NULL, PathPos(pos.tile, ReverseTrackdir(pos.td)), true));
 	pf.SetDestination(v);
 	/* find best path */
-	if (!pf.FindPath(v)) return false;
+	if (!pf.FindPath()) return false;
 
 	typename Tpf::Node *n = pf.GetBestNode();
 	if (n == NULL) return false;
