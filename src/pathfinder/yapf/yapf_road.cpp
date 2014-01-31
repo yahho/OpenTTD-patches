@@ -87,6 +87,11 @@ protected:
 	const YAPFSettings *m_settings; ///< current settings (_settings_game.yapf)
 	const RoadVehicle  *m_veh;      ///< vehicle that we are trying to drive
 
+	StationID    m_dest_station; ///< destination station id, or INVALID_STATION if target is not a station
+	TileIndex    m_dest_tile;    ///< destination tile, or the special marker INVALID_TILE to search for any depot
+	bool         m_bus;          ///< whether m_veh is a bus
+	bool         m_non_artic;    ///< whether m_veh is articulated
+
 protected:
 	/** to access inherited path finder */
 	Tpf& Yapf()
@@ -97,6 +102,8 @@ protected:
 	CYapfRoadT()
 		: m_settings(&_settings_game.pf.yapf)
 		, m_veh(NULL)
+		, m_dest_station(INVALID_STATION)
+		, m_dest_tile(INVALID_TILE)
 	{
 	}
 
@@ -107,6 +114,73 @@ protected:
 	}
 
 public:
+	void SetDestination(const RoadVehicle *v)
+	{
+		if (v->current_order.IsType(OT_GOTO_STATION)) {
+			m_dest_station  = v->current_order.GetDestination();
+			m_dest_tile     = Station::Get(m_dest_station)->GetClosestTile(v->tile, m_bus ? STATION_BUS : STATION_TRUCK);
+			m_bus           = v->IsBus();
+			m_non_artic     = !v->HasArticulatedPart();
+		} else {
+			m_dest_station  = INVALID_STATION;
+			m_dest_tile     = v->dest_tile;
+		}
+	}
+
+	inline bool PfDetectDestinationTile(TileIndex tile)
+	{
+		if (m_dest_station != INVALID_STATION) {
+			return IsStationTile(tile) &&
+				GetStationIndex(tile) == m_dest_station &&
+				(m_bus ? IsBusStop(tile) : IsTruckStop(tile)) &&
+				(m_non_artic || IsDriveThroughStopTile(tile));
+		} else if (m_dest_tile != INVALID_TILE) {
+			return tile == m_dest_tile;
+		} else {
+			return IsRoadDepotTile(tile);
+		}
+	}
+
+	inline bool PfDetectDestinationTile(const PathPos &pos)
+	{
+		return PfDetectDestinationTile(pos.tile);
+	}
+
+	/** Called by YAPF to detect if node ends in the desired destination */
+	inline bool PfDetectDestination(Node& n)
+	{
+		return PfDetectDestinationTile(n.m_segment_last.tile);
+	}
+
+	/**
+	 * Called by YAPF to calculate cost estimate. Calculates distance to the destination
+	 *  adds it to the actual cost from origin and stores the sum to the Node::m_estimate
+	 */
+	inline bool PfCalcEstimate(Node& n)
+	{
+		static const int dg_dir_to_x_offs[] = {-1, 0, 1, 0};
+		static const int dg_dir_to_y_offs[] = {0, 1, 0, -1};
+		if (m_dest_tile == INVALID_TILE || PfDetectDestination(n)) {
+			n.m_estimate = n.m_cost;
+			return true;
+		}
+
+		TileIndex tile = n.m_segment_last.tile;
+		DiagDirection exitdir = TrackdirToExitdir(n.m_segment_last.td);
+		int x1 = 2 * TileX(tile) + dg_dir_to_x_offs[(int)exitdir];
+		int y1 = 2 * TileY(tile) + dg_dir_to_y_offs[(int)exitdir];
+		int x2 = 2 * TileX(m_dest_tile);
+		int y2 = 2 * TileY(m_dest_tile);
+		int dx = abs(x1 - x2);
+		int dy = abs(y1 - y2);
+		int dmin = min(dx, dy);
+		int dxy = abs(dx - dy);
+		int d = dmin * YAPF_TILE_CORNER_LENGTH + (dxy - 1) * (YAPF_TILE_LENGTH / 2);
+		n.m_estimate = n.m_cost + d;
+		assert(n.m_estimate >= n.m_parent->m_estimate);
+		return true;
+	}
+
 	/**
 	 * Called by YAPF to move from the given node to the next tile. For each
 	 *  reachable trackdir on the new tile creates new node, initializes it
@@ -240,130 +314,6 @@ public:
 };
 
 
-template <class Types>
-class CYapfDestinationAnyDepotRoadT
-{
-public:
-	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::TrackFollower TrackFollower;
-	typedef typename Types::Astar::Node Node;            ///< this will be our node type
-	typedef typename Node::Key Key;                      ///< key to hash tables
-
-	/** to access inherited path finder */
-	Tpf& Yapf()
-	{
-		return *static_cast<Tpf*>(this);
-	}
-
-	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination(Node& n)
-	{
-		return IsRoadDepotTile(n.m_segment_last.tile);
-	}
-
-	inline bool PfDetectDestinationTile(const PathPos &pos)
-	{
-		return IsRoadDepotTile(pos.tile);
-	}
-
-	/**
-	 * Called by YAPF to calculate cost estimate. Calculates distance to the destination
-	 *  adds it to the actual cost from origin and stores the sum to the Node::m_estimate
-	 */
-	inline bool PfCalcEstimate(Node& n)
-	{
-		n.m_estimate = n.m_cost;
-		return true;
-	}
-};
-
-
-template <class Types>
-class CYapfDestinationTileRoadT
-{
-public:
-	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::TrackFollower TrackFollower;
-	typedef typename Types::Astar::Node Node;            ///< this will be our node type
-	typedef typename Node::Key Key;                      ///< key to hash tables
-
-protected:
-	TileIndex    m_destTile;
-	StationID    m_dest_station;
-	bool         m_bus;
-	bool         m_non_artic;
-
-public:
-	void SetDestination(const RoadVehicle *v)
-	{
-		if (v->current_order.IsType(OT_GOTO_STATION)) {
-			m_dest_station  = v->current_order.GetDestination();
-			m_bus           = v->IsBus();
-			m_destTile      = Station::Get(m_dest_station)->GetClosestTile(v->tile, m_bus ? STATION_BUS : STATION_TRUCK);
-			m_non_artic     = !v->HasArticulatedPart();
-		} else {
-			m_dest_station  = INVALID_STATION;
-			m_destTile      = v->dest_tile;
-		}
-	}
-
-protected:
-	/** to access inherited path finder */
-	Tpf& Yapf()
-	{
-		return *static_cast<Tpf*>(this);
-	}
-
-public:
-	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination(Node& n)
-	{
-		return PfDetectDestinationTile(n.m_segment_last);
-	}
-
-	inline bool PfDetectDestinationTile(const PathPos &pos)
-	{
-		if (m_dest_station != INVALID_STATION) {
-			return IsStationTile(pos.tile) &&
-				GetStationIndex(pos.tile) == m_dest_station &&
-				(m_bus ? IsBusStop(pos.tile) : IsTruckStop(pos.tile)) &&
-				(m_non_artic || IsDriveThroughStopTile(pos.tile));
-		}
-
-		return pos.tile == m_destTile;
-	}
-
-	/**
-	 * Called by YAPF to calculate cost estimate. Calculates distance to the destination
-	 *  adds it to the actual cost from origin and stores the sum to the Node::m_estimate
-	 */
-	inline bool PfCalcEstimate(Node& n)
-	{
-		static const int dg_dir_to_x_offs[] = {-1, 0, 1, 0};
-		static const int dg_dir_to_y_offs[] = {0, 1, 0, -1};
-		if (PfDetectDestination(n)) {
-			n.m_estimate = n.m_cost;
-			return true;
-		}
-
-		TileIndex tile = n.m_segment_last.tile;
-		DiagDirection exitdir = TrackdirToExitdir(n.m_segment_last.td);
-		int x1 = 2 * TileX(tile) + dg_dir_to_x_offs[(int)exitdir];
-		int y1 = 2 * TileY(tile) + dg_dir_to_y_offs[(int)exitdir];
-		int x2 = 2 * TileX(m_destTile);
-		int y2 = 2 * TileY(m_destTile);
-		int dx = abs(x1 - x2);
-		int dy = abs(y1 - y2);
-		int dmin = min(dx, dy);
-		int dxy = abs(dx - dy);
-		int d = dmin * YAPF_TILE_CORNER_LENGTH + (dxy - 1) * (YAPF_TILE_LENGTH / 2);
-		n.m_estimate = n.m_cost + d;
-		assert(n.m_estimate >= n.m_parent->m_estimate);
-		return true;
-	}
-};
-
-
 template <class Tpf_, class TAstar>
 struct CYapfRoad_TypesT
 {
@@ -377,28 +327,24 @@ struct CYapfRoad_TypesT
 struct CYapfRoad1
 	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
 	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
-	, CYapfDestinationTileRoadT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
 {
 };
 
 struct CYapfRoad2
 	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
 	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
-	, CYapfDestinationTileRoadT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
 {
 };
 
 struct CYapfRoadAnyDepot1
 	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
 	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
-	, CYapfDestinationAnyDepotRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
 {
 };
 
 struct CYapfRoadAnyDepot2
 	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
 	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
-	, CYapfDestinationAnyDepotRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
 {
 };
 
