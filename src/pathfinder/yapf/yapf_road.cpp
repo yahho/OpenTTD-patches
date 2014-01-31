@@ -106,11 +106,6 @@ protected:
 		return *m_settings;
 	}
 
-	const RoadVehicle * GetVehicle() const
-	{
-		return m_veh;
-	}
-
 public:
 	/**
 	 * Called by YAPF to move from the given node to the next tile. For each
@@ -119,96 +114,81 @@ public:
 	 */
 	inline void PfFollowNode(Node& old_node)
 	{
-		TrackFollower F(Yapf().GetVehicle());
-		if (!F.Follow(old_node.m_segment_last)) return;
+		TrackFollower tf (m_veh);
+		if (!tf.Follow(old_node.m_segment_last)) return;
 
-		bool is_choice = !F.m_new.is_single();
-		PathPos pos = F.m_new;
-		for (TrackdirBits rtds = F.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
+		bool is_choice = !tf.m_new.is_single();
+		uint initial_skipped_tiles = tf.m_tiles_skipped;
+		PathPos pos = tf.m_new;
+		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.td = FindFirstTrackdir(rtds);
-			Node& n = *Types::Astar::CreateNewNode(&old_node, pos, is_choice);
+			Node *n = Types::Astar::CreateNewNode(&old_node, pos, is_choice);
+
+			uint tiles = initial_skipped_tiles;
+			int segment_cost = tiles * YAPF_TILE_LENGTH;
+
+			/* start at pos and walk to the end of segment */
+			n->m_segment_last = pos;
+			tf.SetPos (pos);
+
+			for (;;) {
+				/* base tile cost depending on distance between edges */
+				segment_cost += OneTileCost (&Yapf().PfGetSettings(), tf.m_new);
+
+				/* we have reached the vehicle's destination - segment should end here to avoid target skipping */
+				if (Yapf().PfDetectDestinationTile(tf.m_new)) break;
+
+				/* stop if we have just entered the depot */
+				if (IsRoadDepotTile(tf.m_new.tile) && tf.m_new.td == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(tf.m_new.tile)))) {
+					/* next time we will reverse and leave the depot */
+					break;
+				}
+
+				/* if there are no reachable trackdirs on new tile, we have end of road */
+				if (!tf.FollowNext()) break;
+
+				/* if there are more trackdirs available & reachable, we are at the end of segment */
+				if (!tf.m_new.is_single()) break;
+
+				/* stop if RV is on simple loop with no junctions */
+				if (tf.m_new == pos) return;
+
+				/* if we skipped some tunnel tiles, add their cost */
+				segment_cost += tf.m_tiles_skipped * YAPF_TILE_LENGTH;
+				tiles += tf.m_tiles_skipped + 1;
+
+				/* add hilly terrain penalty */
+				assert (!tf.m_new.in_wormhole());
+				segment_cost += SlopeCost(&Yapf().PfGetSettings(), tf.m_old.tile, tf.m_new.tile);
+
+				/* add min/max speed penalties */
+				int min_speed = 0;
+				int max_veh_speed = m_veh->GetDisplayMaxSpeed();
+				int max_speed = tf.GetSpeedLimit(&min_speed);
+				if (max_speed < max_veh_speed) segment_cost += 1 * (max_veh_speed - max_speed);
+				if (min_speed > max_veh_speed) segment_cost += 10 * (min_speed - max_veh_speed);
+
+				/* move to the next tile */
+				n->m_segment_last = tf.m_new;
+				if (tiles > MAX_MAP_SIZE) break;
+			}
+
+			/* save also tile cost */
+			n->m_cost = old_node.m_cost + segment_cost;
 
 			/* evaluate the node */
-			bool bValid = PfCalcCost(n, &F) && Yapf().PfCalcEstimate(n);
+			bool bValid = Yapf().PfCalcEstimate(*n);
 
-			/* have the cost or estimate callbacks marked this node as invalid? */
+			/* has the estimate callback marked this node as invalid? */
 			if (!bValid) continue;
 
 			/* detect the destination */
-			if (Yapf().PfDetectDestination(n)) {
-				this->FoundTarget(&n);
+			if (Yapf().PfDetectDestination(*n)) {
+				Types::Astar::FoundTarget(n);
 			} else {
-				this->InsertNode(&n);
+				Types::Astar::InsertNode(n);
 			}
 		}
-	}
-
-	/**
-	 * Called by YAPF to calculate the cost from the origin to the given node.
-	 *  Calculates only the cost of given node, adds it to the parent node cost
-	 *  and stores the result into Node::m_cost member
-	 */
-	inline bool PfCalcCost(Node& n, const TrackFollower *tf)
-	{
-		int segment_cost = 0;
-		uint tiles = 0;
-		/* start at n and walk to the end of segment */
-		PathPos pos = n.GetPos();
-
-		if (IsRoadBridgeTile(pos.tile) && TrackdirToExitdir(ReverseTrackdir(pos.td)) == GetTunnelBridgeDirection(pos.tile)) {
-			segment_cost = GetTunnelBridgeLength(pos.tile, GetOtherBridgeEnd(pos.tile)) * YAPF_TILE_LENGTH;
-		}
-
-		for (;;) {
-			/* base tile cost depending on distance between edges */
-			segment_cost += OneTileCost (&Yapf().PfGetSettings(), pos);
-
-			const RoadVehicle *v = Yapf().GetVehicle();
-			/* we have reached the vehicle's destination - segment should end here to avoid target skipping */
-			if (Yapf().PfDetectDestinationTile(pos)) break;
-
-			/* stop if we have just entered the depot */
-			if (IsRoadDepotTile(pos.tile) && pos.td == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(pos.tile)))) {
-				/* next time we will reverse and leave the depot */
-				break;
-			}
-
-			/* if there are no reachable trackdirs on new tile, we have end of road */
-			TrackFollower F(Yapf().GetVehicle());
-			if (!F.Follow(pos)) break;
-
-			/* if there are more trackdirs available & reachable, we are at the end of segment */
-			if (!F.m_new.is_single()) break;
-
-			/* stop if RV is on simple loop with no junctions */
-			if (F.m_new == n.GetPos()) return false;
-
-			/* if we skipped some tunnel tiles, add their cost */
-			segment_cost += F.m_tiles_skipped * YAPF_TILE_LENGTH;
-			tiles += F.m_tiles_skipped + 1;
-
-			/* add hilly terrain penalty */
-			if (!F.m_new.in_wormhole()) segment_cost += SlopeCost(&Yapf().PfGetSettings(), pos.tile, F.m_new.tile);
-
-			/* add min/max speed penalties */
-			int min_speed = 0;
-			int max_veh_speed = v->GetDisplayMaxSpeed();
-			int max_speed = F.GetSpeedLimit(&min_speed);
-			if (max_speed < max_veh_speed) segment_cost += 1 * (max_veh_speed - max_speed);
-			if (min_speed > max_veh_speed) segment_cost += 10 * (min_speed - max_veh_speed);
-
-			/* move to the next tile */
-			pos = F.m_new;
-			if (tiles > MAX_MAP_SIZE) break;
-		}
-
-		/* save end of segment back to the node */
-		n.m_segment_last = pos;
-
-		/* save also tile cost */
-		int parent_cost = (n.m_parent != NULL) ? n.m_parent->m_cost : 0;
-		n.m_cost = parent_cost + segment_cost;
-		return true;
 	}
 
 	/** call the node follower */
