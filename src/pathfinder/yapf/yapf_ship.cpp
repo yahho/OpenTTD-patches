@@ -16,14 +16,11 @@
 #include "yapf_node_ship.hpp"
 
 /** YAPF class for ships */
-template <class Types>
-class CYapfShipT : public Types::Astar
+template <class Tpf, class TrackFollower, class TAstar>
+class CYapfShipT : public TAstar
 {
 public:
-	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::TrackFollower TrackFollower;
-	typedef typename Types::Astar::Node Node;            ///< this will be our node type
-	typedef typename Node::Key Key;                      ///< key to hash tables
+	typedef typename TAstar::Node Node; ///< this will be our node type
 
 protected:
 	const YAPFSettings *m_settings; ///< current settings (_settings_game.yapf)
@@ -77,7 +74,7 @@ public:
 		PathPos pos = F.m_new;
 		for (TrackdirBits rtds = F.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.td = FindFirstTrackdir(rtds);
-			Node& n = *Types::Astar::CreateNewNode(&old_node, pos, is_choice);
+			Node& n = *TAstar::CreateNewNode(&old_node, pos, is_choice);
 
 			/* evaluate the node */
 			bool bValid = PfCalcCost(n, &F) && PfCalcEstimate(n);
@@ -199,7 +196,7 @@ public:
 		perf.Start();
 #endif /* !NO_DEBUG_MESSAGES */
 
-		bool bDestFound = Types::Astar::FindPath (Follow, PfGetSettings().max_search_nodes);
+		bool bDestFound = TAstar::FindPath (Follow, PfGetSettings().max_search_nodes);
 
 #ifndef NO_DEBUG_MESSAGES
 		perf.Stop();
@@ -209,11 +206,11 @@ public:
 
 			if (_debug_yapf_level >= 3) {
 				UnitID veh_idx = (m_veh != NULL) ? m_veh->unitnumber : 0;
-				int cost = bDestFound ? Types::Astar::best->m_cost : -1;
-				int dist = bDestFound ? Types::Astar::best->m_estimate - Types::Astar::best->m_cost : -1;
+				int cost = bDestFound ? TAstar::best->m_cost : -1;
+				int dist = bDestFound ? TAstar::best->m_estimate - TAstar::best->m_cost : -1;
 
 				DEBUG(yapf, 3, "[YAPFw]%c%4d- %d us - %d rounds - %d open - %d closed - CHR  0.0%% - C %d D %d - c0(sc0, ts0, o0) -- ",
-					bDestFound ? '-' : '!', veh_idx, t, Types::Astar::num_steps, Types::Astar::OpenCount(), Types::Astar::ClosedCount(),
+					bDestFound ? '-' : '!', veh_idx, t, TAstar::num_steps, TAstar::OpenCount(), TAstar::ClosedCount(),
 					cost, dist
 				);
 			}
@@ -223,42 +220,21 @@ public:
 	}
 };
 
-/**
- * Config struct of YAPF for ships.
- *  Defines all 6 base YAPF modules as classes providing services for CYapfBaseT.
- */
-template <class Tpf_, class Ttrack_follower, class TAstar>
-struct CYapfShip_TypesT
-{
-	/** Types - shortcut for this struct type */
-	typedef CYapfShip_TypesT<Tpf_, Ttrack_follower, TAstar>  Types;
-
-	/** Tpf - pathfinder type */
-	typedef Tpf_                              Tpf;
-	/** track follower helper class */
-	typedef Ttrack_follower                   TrackFollower;
-	/** node list type */
-	typedef TAstar                            Astar;
-};
-
 /* YAPF type 1 - uses TileIndex/Trackdir as Node key, allows 90-deg turns */
 struct CYapfShip1
-	: CYapfBaseT<CYapfShip_TypesT<CYapfShip1, CFollowTrackWater90, AstarShipTrackDir> >
-	, CYapfShipT<CYapfShip_TypesT<CYapfShip1, CFollowTrackWater90, AstarShipTrackDir> >
+	: CYapfShipT<CYapfShip1, CFollowTrackWater90, AstarShipTrackDir>
 {
 };
 
 /* YAPF type 2 - uses TileIndex/DiagDirection as Node key, allows 90-deg turns */
 struct CYapfShip2
-	: CYapfBaseT<CYapfShip_TypesT<CYapfShip2, CFollowTrackWater90, AstarShipExitDir> >
-	, CYapfShipT<CYapfShip_TypesT<CYapfShip2, CFollowTrackWater90, AstarShipExitDir> >
+	: CYapfShipT<CYapfShip2, CFollowTrackWater90, AstarShipExitDir>
 {
 };
 
 /* YAPF type 3 - uses TileIndex/Trackdir as Node key, forbids 90-deg turns */
 struct CYapfShip3
-	: CYapfBaseT<CYapfShip_TypesT<CYapfShip3, CFollowTrackWaterNo90, AstarShipTrackDir> >
-	, CYapfShipT<CYapfShip_TypesT<CYapfShip3, CFollowTrackWaterNo90, AstarShipTrackDir> >
+	: CYapfShipT<CYapfShip3, CFollowTrackWaterNo90, AstarShipTrackDir>
 {
 };
 
@@ -274,7 +250,7 @@ static Trackdir ChooseShipTrack(const Ship *v, const PathPos &pos, DiagDirection
 	/* find best path */
 	path_found = pf.FindPath(v);
 
-	typename Tpf::TT::Astar::Node *n = pf.GetBestNode();
+	typename Tpf::Node *n = pf.GetBestNode();
 	if (n == NULL) return INVALID_TRACKDIR; // path not found
 	assert (n->m_parent != NULL);
 
@@ -337,7 +313,7 @@ static bool CheckShipReverse(const Ship *v, const PathPos &pos)
 	/* find best path */
 	if (!pf.FindPath(v)) return false;
 
-	typename Tpf::TT::Astar::Node *n = pf.GetBestNode();
+	typename Tpf::Node *n = pf.GetBestNode();
 	if (n == NULL) return false;
 
 	/* path was found; walk through the path back to the origin */
