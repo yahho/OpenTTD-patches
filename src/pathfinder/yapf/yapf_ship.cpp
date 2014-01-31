@@ -16,7 +16,7 @@
 #include "yapf_node_ship.hpp"
 
 /** YAPF class for ships */
-template <class Tpf, class TAstar, bool T90deg_turns_allowed>
+template <class Tpf, class TAstar>
 class CYapfShipT : public TAstar
 {
 public:
@@ -30,12 +30,12 @@ protected:
 	CFollowTrackWater         tf;             ///< track follower
 	const ShipVehicleInfo *const svi;         ///< ship vehicle info
 
-	CYapfShipT (const Ship *ship)
+	CYapfShipT (const Ship *ship, bool allow_90deg)
 		: m_settings(&_settings_game.pf.yapf)
 		, m_veh(ship)
 		, m_dest_station (ship->current_order.IsType(OT_GOTO_STATION) ? Station::Get(ship->current_order.GetDestination()) : NULL)
 		, m_dest_tile    (ship->current_order.IsType(OT_GOTO_STATION) ? m_dest_station->GetClosestTile(ship->tile, STATION_DOCK) : ship->dest_tile)
-		, tf(T90deg_turns_allowed)
+		, tf(allow_90deg)
 		, svi(ShipVehInfo(ship->engine_type))
 	{
 	}
@@ -142,30 +142,30 @@ public:
 
 /* YAPF type 1 - uses TileIndex/Trackdir as Node key, allows 90-deg turns */
 struct CYapfShip1
-	: CYapfShipT<CYapfShip1, AstarShipTrackDir, true>
+	: CYapfShipT<CYapfShip1, AstarShipTrackDir>
 {
 	CYapfShip1 (const Ship *ship)
-		: CYapfShipT<CYapfShip1, AstarShipTrackDir, true> (ship)
+		: CYapfShipT<CYapfShip1, AstarShipTrackDir> (ship, true)
 	{
 	}
 };
 
 /* YAPF type 2 - uses TileIndex/DiagDirection as Node key, allows 90-deg turns */
 struct CYapfShip2
-	: CYapfShipT<CYapfShip2, AstarShipExitDir, true>
+	: CYapfShipT<CYapfShip2, AstarShipExitDir>
 {
 	CYapfShip2 (const Ship *ship)
-		: CYapfShipT<CYapfShip2, AstarShipExitDir, true> (ship)
+		: CYapfShipT<CYapfShip2, AstarShipExitDir> (ship, true)
 	{
 	}
 };
 
 /* YAPF type 3 - uses TileIndex/Trackdir as Node key, forbids 90-deg turns */
 struct CYapfShip3
-	: CYapfShipT<CYapfShip3, AstarShipTrackDir, false>
+	: CYapfShipT<CYapfShip3, AstarShipTrackDir>
 {
 	CYapfShip3 (const Ship *ship)
-		: CYapfShipT<CYapfShip3, AstarShipTrackDir, false> (ship)
+		: CYapfShipT<CYapfShip3, AstarShipTrackDir> (ship, false)
 	{
 	}
 };
