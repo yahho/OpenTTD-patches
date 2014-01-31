@@ -42,11 +42,6 @@ protected:
 		return *m_settings;
 	}
 
-	const Ship * GetVehicle() const
-	{
-		return m_veh;
-	}
-
 public:
 	/** set the destination tile */
 	void SetDestination(const Ship *v)
@@ -67,56 +62,58 @@ public:
 	 */
 	inline void PfFollowNode(Node& old_node)
 	{
-		TrackFollower F(GetVehicle());
-		if (!F.Follow(old_node.GetPos())) return;
+		TrackFollower tf (m_veh);
+		if (!tf.Follow(old_node.GetPos())) return;
 
-		bool is_choice = !F.m_new.is_single();
-		PathPos pos = F.m_new;
-		for (TrackdirBits rtds = F.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
+		bool is_choice = !tf.m_new.is_single();
+		PathPos pos = tf.m_new;
+		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.td = FindFirstTrackdir(rtds);
-			Node& n = *TAstar::CreateNewNode(&old_node, pos, is_choice);
+			Node *n = TAstar::CreateNewNode(&old_node, pos, is_choice);
 
-			/* evaluate the node */
-			bool bValid = PfCalcCost(n, &F) && PfCalcEstimate(n);
+			/* base tile cost depending on distance */
+			int c = IsDiagonalTrackdir(n->GetPos().td) ? YAPF_TILE_LENGTH : YAPF_TILE_CORNER_LENGTH;
+			/* additional penalty for curves */
+			if (n->GetPos().td != NextTrackdir(n->m_parent->GetPos().td)) {
+				/* new trackdir does not match the next one when going straight */
+				c += YAPF_TILE_LENGTH;
+			}
 
-			/* have the cost or estimate callbacks marked this node as invalid? */
-			if (!bValid) continue;
+			/* Skipped tile cost for aqueducts. */
+			c += YAPF_TILE_LENGTH * tf.m_tiles_skipped;
 
-			/* detect the destination */
-			if (PfDetectDestination(n)) {
-				this->FoundTarget(&n);
+			/* Ocean/canal speed penalty. */
+			const ShipVehicleInfo *svi = ShipVehInfo(m_veh->engine_type);
+			byte speed_frac = (GetEffectiveWaterClass(n->GetPos().tile) == WATER_CLASS_SEA) ? svi->ocean_speed_frac : svi->canal_speed_frac;
+			if (speed_frac > 0) c += YAPF_TILE_LENGTH * (1 + tf.m_tiles_skipped) * speed_frac / (256 - speed_frac);
+
+			/* apply it */
+			n->m_cost = n->m_parent->m_cost + c;
+
+			/* compute estimated cost */
+			if (PfDetectDestination(*n)) {
+				n->m_estimate = n->m_cost;
+				TAstar::FoundTarget(n);
 			} else {
-				this->InsertNode(&n);
+				static const int dg_dir_to_x_offs[] = {-1, 0, 1, 0};
+				static const int dg_dir_to_y_offs[] = {0, 1, 0, -1};
+
+				TileIndex tile = n->GetPos().tile;
+				DiagDirection exitdir = TrackdirToExitdir(n->GetPos().td);
+				int x1 = 2 * TileX(tile) + dg_dir_to_x_offs[(int)exitdir];
+				int y1 = 2 * TileY(tile) + dg_dir_to_y_offs[(int)exitdir];
+				int x2 = 2 * TileX(m_dest_tile);
+				int y2 = 2 * TileY(m_dest_tile);
+				int dx = abs(x1 - x2);
+				int dy = abs(y1 - y2);
+				int dmin = min(dx, dy);
+				int dxy = abs(dx - dy);
+				int d = dmin * YAPF_TILE_CORNER_LENGTH + (dxy - 1) * (YAPF_TILE_LENGTH / 2);
+				n->m_estimate = n->m_cost + d;
+				assert(n->m_estimate >= n->m_parent->m_estimate);
+				TAstar::InsertNode(n);
 			}
 		}
-	}
-
-	/**
-	 * Called by YAPF to calculate the cost from the origin to the given node.
-	 *  Calculates only the cost of given node, adds it to the parent node cost
-	 *  and stores the result into Node::m_cost member
-	 */
-	inline bool PfCalcCost(Node& n, const TrackFollower *tf)
-	{
-		/* base tile cost depending on distance */
-		int c = IsDiagonalTrackdir(n.GetPos().td) ? YAPF_TILE_LENGTH : YAPF_TILE_CORNER_LENGTH;
-		/* additional penalty for curves */
-		if (n.GetPos().td != NextTrackdir(n.m_parent->GetPos().td)) {
-			/* new trackdir does not match the next one when going straight */
-			c += YAPF_TILE_LENGTH;
-		}
-
-		/* Skipped tile cost for aqueducts. */
-		c += YAPF_TILE_LENGTH * tf->m_tiles_skipped;
-
-		/* Ocean/canal speed penalty. */
-		const ShipVehicleInfo *svi = ShipVehInfo(GetVehicle()->engine_type);
-		byte speed_frac = (GetEffectiveWaterClass(n.GetPos().tile) == WATER_CLASS_SEA) ? svi->ocean_speed_frac : svi->canal_speed_frac;
-		if (speed_frac > 0) c += YAPF_TILE_LENGTH * (1 + tf->m_tiles_skipped) * speed_frac / (256 - speed_frac);
-
-		/* apply it */
-		n.m_cost = n.m_parent->m_cost + c;
-		return true;
 	}
 
 	inline bool PfDetectDestination(const PathPos &pos)
@@ -132,35 +129,6 @@ public:
 	inline bool PfDetectDestination(Node& n)
 	{
 		return PfDetectDestination(n.GetPos());
-	}
-
-	/**
-	 * Called by YAPF to calculate cost estimate. Calculates distance to the destination
-	 *  adds it to the actual cost from origin and stores the sum to the Node::m_estimate
-	 */
-	inline bool PfCalcEstimate(Node& n)
-	{
-		static const int dg_dir_to_x_offs[] = {-1, 0, 1, 0};
-		static const int dg_dir_to_y_offs[] = {0, 1, 0, -1};
-		if (PfDetectDestination(n)) {
-			n.m_estimate = n.m_cost;
-			return true;
-		}
-
-		TileIndex tile = n.GetPos().tile;
-		DiagDirection exitdir = TrackdirToExitdir(n.GetPos().td);
-		int x1 = 2 * TileX(tile) + dg_dir_to_x_offs[(int)exitdir];
-		int y1 = 2 * TileY(tile) + dg_dir_to_y_offs[(int)exitdir];
-		int x2 = 2 * TileX(m_dest_tile);
-		int y2 = 2 * TileY(m_dest_tile);
-		int dx = abs(x1 - x2);
-		int dy = abs(y1 - y2);
-		int dmin = min(dx, dy);
-		int dxy = abs(dx - dy);
-		int d = dmin * YAPF_TILE_CORNER_LENGTH + (dxy - 1) * (YAPF_TILE_LENGTH / 2);
-		n.m_estimate = n.m_cost + d;
-		assert(n.m_estimate >= n.m_parent->m_estimate);
-		return true;
 	}
 
 	/**
