@@ -216,15 +216,6 @@ public:
 		return true;
 	}
 
-	/**
-	 * Called by YAPF to attach cached or local segment cost data to the given node.
-	 *  @return true if globally cached data were used or false if local data was used
-	 */
-	inline bool PfNodeCacheFetch(Node& n)
-	{
-		return false;
-	}
-
 	/** call the node follower */
 	static inline void Follow (Tpf *pf, Node *n)
 	{
