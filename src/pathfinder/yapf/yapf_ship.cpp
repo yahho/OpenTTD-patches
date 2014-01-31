@@ -126,12 +126,11 @@ public:
 			_total_pf_time_us += t;
 
 			if (_debug_yapf_level >= 3) {
-				UnitID veh_idx = (m_veh != NULL) ? m_veh->unitnumber : 0;
 				int cost = bDestFound ? TAstar::best->m_cost : -1;
 				int dist = bDestFound ? TAstar::best->m_estimate - TAstar::best->m_cost : -1;
 
 				DEBUG(yapf, 3, "[YAPFw]%c%4d- %d us - %d rounds - %d open - %d closed - CHR  0.0%% - C %d D %d - c0(sc0, ts0, o0) -- ",
-					bDestFound ? '-' : '!', veh_idx, t, TAstar::num_steps, TAstar::OpenCount(), TAstar::ClosedCount(),
+					bDestFound ? '-' : '!', m_veh->unitnumber, t, TAstar::num_steps, TAstar::OpenCount(), TAstar::ClosedCount(),
 					cost, dist
 				);
 			}
