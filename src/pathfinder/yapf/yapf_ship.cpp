@@ -36,25 +36,15 @@ protected:
 	{
 	}
 
-	/** return current settings (can be custom - company based - but later) */
-	inline const YAPFSettings& PfGetSettings() const
-	{
-		return *m_settings;
-	}
-
 public:
-	/**
-	 * Called by YAPF to move from the given node to the next tile. For each
-	 *  reachable trackdir on the new tile creates new node, initializes it
-	 *  and adds it to the open list by calling Yapf().AddNewNode(n)
-	 */
-	inline void PfFollowNode(Node& old_node)
+	/** Called by the A-star underlying class to find the neighbours of a node. */
+	inline void Follow (Node *old_node)
 	{
 		TrackFollower tf (m_veh);
-		if (!tf.Follow(old_node.GetPos())) return;
+		if (!tf.Follow(old_node->GetPos())) return;
 
 		/* precompute trackdir-independent costs */
-		int cc = old_node.m_cost + YAPF_TILE_LENGTH * tf.m_tiles_skipped;
+		int cc = old_node->m_cost + YAPF_TILE_LENGTH * tf.m_tiles_skipped;
 
 		/* Ocean/canal speed penalty. */
 		const ShipVehicleInfo *svi = ShipVehInfo(m_veh->engine_type);
@@ -71,7 +61,7 @@ public:
 		PathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.td = FindFirstTrackdir(rtds);
-			Node *n = TAstar::CreateNewNode(&old_node, pos, is_choice);
+			Node *n = TAstar::CreateNewNode(old_node, pos, is_choice);
 
 			/* base tile cost depending on distance */
 			int c = IsDiagonalTrackdir(n->GetPos().td) ? YAPF_TILE_LENGTH : YAPF_TILE_CORNER_LENGTH;
@@ -110,30 +100,14 @@ public:
 		}
 	}
 
-	/**
-	 * Called by YAPF to attach cached or local segment cost data to the given node.
-	 *  @return true if globally cached data were used or false if local data was used
-	 */
-	inline bool PfNodeCacheFetch(Node& n)
-	{
-		return false;
-	}
 
-	/** call the node follower */
+	/** Call the node follower */
 	static inline void Follow (Tpf *pf, Node *n)
 	{
-		pf->PfFollowNode(*n);
+		pf->Follow(n);
 	}
 
-	/**
-	 * Main pathfinder routine:
-	 *   - set startup node(s)
-	 *   - main loop that stops if:
-	 *      - the destination was found
-	 *      - or the open list is empty (no route to destination).
-	 *      - or the maximum amount of loops reached - m_max_search_nodes (default = 10000)
-	 * @return true if the path was found
-	 */
+	/** Invoke the underlying pathfinder. */
 	inline bool FindPath (void)
 	{
 #ifndef NO_DEBUG_MESSAGES
@@ -141,7 +115,7 @@ public:
 		perf.Start();
 #endif /* !NO_DEBUG_MESSAGES */
 
-		bool bDestFound = TAstar::FindPath (Follow, PfGetSettings().max_search_nodes);
+		bool bDestFound = TAstar::FindPath (Follow, m_settings->max_search_nodes);
 
 #ifndef NO_DEBUG_MESSAGES
 		perf.Stop();
