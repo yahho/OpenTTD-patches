@@ -14,6 +14,22 @@
 #include "yapf_node_road.hpp"
 #include "../../roadstop_base.h"
 
+static int SlopeCost(const YAPFSettings *settings, TileIndex tile, TileIndex next)
+{
+	/* height of the center of the current tile */
+	int x1 = TileX(tile) * TILE_SIZE;
+	int y1 = TileY(tile) * TILE_SIZE;
+	int z1 = GetSlopePixelZ(x1 + TILE_SIZE / 2, y1 + TILE_SIZE / 2);
+
+	/* height of the center of the next tile */
+	int x2 = TileX(next) * TILE_SIZE;
+	int y2 = TileY(next) * TILE_SIZE;
+	int z2 = GetSlopePixelZ(x2 + TILE_SIZE / 2, y2 + TILE_SIZE / 2);
+
+	return (z2 - z1 > 1) ? settings->road_slope_penalty : 0;
+}
+
+
 template <class Types>
 class CYapfRoadT : public Types::Astar
 {
@@ -84,25 +100,6 @@ public:
 	}
 
 protected:
-	int SlopeCost(const PathPos &pos, TileIndex next_tile)
-	{
-		/* height of the center of the current tile */
-		int x1 = TileX(pos.tile) * TILE_SIZE;
-		int y1 = TileY(pos.tile) * TILE_SIZE;
-		int z1 = GetSlopePixelZ(x1 + TILE_SIZE / 2, y1 + TILE_SIZE / 2);
-
-		/* height of the center of the next tile */
-		int x2 = TileX(next_tile) * TILE_SIZE;
-		int y2 = TileY(next_tile) * TILE_SIZE;
-		int z2 = GetSlopePixelZ(x2 + TILE_SIZE / 2, y2 + TILE_SIZE / 2);
-
-		if (z2 - z1 > 1) {
-			/* Slope up */
-			return Yapf().PfGetSettings().road_slope_penalty;
-		}
-		return 0;
-	}
-
 	/** return one tile cost */
 	inline int OneTileCost(const PathPos &pos)
 	{
@@ -193,7 +190,7 @@ public:
 			tiles += F.m_tiles_skipped + 1;
 
 			/* add hilly terrain penalty */
-			if (!F.m_new.in_wormhole()) segment_cost += SlopeCost(pos, F.m_new.tile);
+			if (!F.m_new.in_wormhole()) segment_cost += SlopeCost(&Yapf().PfGetSettings(), pos.tile, F.m_new.tile);
 
 			/* add min/max speed penalties */
 			int min_speed = 0;
