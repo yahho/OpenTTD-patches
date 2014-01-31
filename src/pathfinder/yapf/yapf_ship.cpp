@@ -16,7 +16,7 @@
 #include "yapf_node_ship.hpp"
 
 /** YAPF class for ships */
-template <class Tpf, class TrackFollower, class TAstar>
+template <class Tpf, class TAstar, bool T90deg_turns_allowed>
 class CYapfShipT : public TAstar
 {
 public:
@@ -27,7 +27,7 @@ protected:
 	const Ship         *const m_veh;      ///< vehicle that we are trying to drive
 	const Station      *const m_dest_station; ///< destination station, or NULL
 	const TileIndex           m_dest_tile;    ///< destination tile
-	TrackFollower             tf;             ///< track follower
+	CFollowTrackWater         tf;             ///< track follower
 	const ShipVehicleInfo *const svi;         ///< ship vehicle info
 
 	CYapfShipT (const Ship *ship)
@@ -35,7 +35,7 @@ protected:
 		, m_veh(ship)
 		, m_dest_station (ship->current_order.IsType(OT_GOTO_STATION) ? Station::Get(ship->current_order.GetDestination()) : NULL)
 		, m_dest_tile    (ship->current_order.IsType(OT_GOTO_STATION) ? m_dest_station->GetClosestTile(ship->tile, STATION_DOCK) : ship->dest_tile)
-		, tf(ship)
+		, tf(T90deg_turns_allowed)
 		, svi(ShipVehInfo(ship->engine_type))
 	{
 	}
@@ -142,30 +142,30 @@ public:
 
 /* YAPF type 1 - uses TileIndex/Trackdir as Node key, allows 90-deg turns */
 struct CYapfShip1
-	: CYapfShipT<CYapfShip1, CFollowTrackWater90, AstarShipTrackDir>
+	: CYapfShipT<CYapfShip1, AstarShipTrackDir, true>
 {
 	CYapfShip1 (const Ship *ship)
-		: CYapfShipT<CYapfShip1, CFollowTrackWater90, AstarShipTrackDir> (ship)
+		: CYapfShipT<CYapfShip1, AstarShipTrackDir, true> (ship)
 	{
 	}
 };
 
 /* YAPF type 2 - uses TileIndex/DiagDirection as Node key, allows 90-deg turns */
 struct CYapfShip2
-	: CYapfShipT<CYapfShip2, CFollowTrackWater90, AstarShipExitDir>
+	: CYapfShipT<CYapfShip2, AstarShipExitDir, true>
 {
 	CYapfShip2 (const Ship *ship)
-		: CYapfShipT<CYapfShip2, CFollowTrackWater90, AstarShipExitDir> (ship)
+		: CYapfShipT<CYapfShip2, AstarShipExitDir, true> (ship)
 	{
 	}
 };
 
 /* YAPF type 3 - uses TileIndex/Trackdir as Node key, forbids 90-deg turns */
 struct CYapfShip3
-	: CYapfShipT<CYapfShip3, CFollowTrackWaterNo90, AstarShipTrackDir>
+	: CYapfShipT<CYapfShip3, AstarShipTrackDir, false>
 {
 	CYapfShip3 (const Ship *ship)
-		: CYapfShipT<CYapfShip3, CFollowTrackWaterNo90, AstarShipTrackDir> (ship)
+		: CYapfShipT<CYapfShip3, AstarShipTrackDir, false> (ship)
 	{
 	}
 };

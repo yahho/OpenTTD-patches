@@ -828,16 +828,6 @@ struct CFollowTrackWaterBase : CFollowTrackBase
 	}
 };
 
-template <bool T90deg_turns_allowed>
-struct CFollowTrackWaterT : CFollowTrack<CFollowTrackWaterBase>
-{
-	inline CFollowTrackWaterT(const Ship *v)
-		: CFollowTrack<CFollowTrackWaterBase>(T90deg_turns_allowed)
-	{
-	}
-};
-
-typedef CFollowTrackWaterT<true>  CFollowTrackWater90;
-typedef CFollowTrackWaterT<false> CFollowTrackWaterNo90;
+typedef CFollowTrack<CFollowTrackWaterBase> CFollowTrackWater;
 
 #endif /* FOLLOW_TRACK_HPP */
