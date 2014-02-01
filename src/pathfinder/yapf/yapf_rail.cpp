@@ -54,13 +54,22 @@ int _total_pf_time_us = 0;
  */
 struct CSegmentCostCacheBase
 {
-	static int   s_rail_change_counter;
+	static int s_rail_change_counter;
 
 	static void NotifyTrackLayoutChange(TileIndex tile, Track track)
 	{
 		s_rail_change_counter++;
 	}
 };
+
+/** if any track changes, this counter is incremented - that will invalidate segment cost cache */
+int CSegmentCostCacheBase::s_rail_change_counter = 0;
+
+void YapfNotifyTrackLayoutChange(TileIndex tile, Track track)
+{
+	CSegmentCostCacheBase::NotifyTrackLayoutChange(tile, track);
+}
+
 
 /**
  * CSegmentCostCacheT - template class providing hash-map and storage (heap)
@@ -1708,12 +1717,4 @@ bool YapfTrainFindNearestSafeTile(const Train *v, const PathPos &pos, bool overr
 	}
 
 	return pfnFindNearestSafeTile(v, pos, override_railtype);
-}
-
-/** if any track changes, this counter is incremented - that will invalidate segment cost cache */
-int CSegmentCostCacheBase::s_rail_change_counter = 0;
-
-void YapfNotifyTrackLayoutChange(TileIndex tile, Track track)
-{
-	CSegmentCostCacheBase::NotifyTrackLayoutChange(tile, track);
 }
