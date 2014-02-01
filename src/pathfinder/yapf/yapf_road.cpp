@@ -81,8 +81,8 @@ public:
 	typedef typename TAstar::Node Node; ///< this will be our node type
 
 protected:
-	const YAPFSettings *m_settings; ///< current settings (_settings_game.yapf)
-	const RoadVehicle  *m_veh;      ///< vehicle that we are trying to drive
+	const YAPFSettings *const m_settings; ///< current settings (_settings_game.yapf)
+	const RoadVehicle  *const m_veh;      ///< vehicle that we are trying to drive
 
 	StationID    m_dest_station; ///< destination station id, or INVALID_STATION if target is not a station
 	TileIndex    m_dest_tile;    ///< destination tile, or the special marker INVALID_TILE to search for any depot
@@ -90,9 +90,9 @@ protected:
 	bool         m_non_artic;    ///< whether m_veh is articulated
 
 public:
-	CYapfRoadT()
+	CYapfRoadT (const RoadVehicle *rv)
 		: m_settings(&_settings_game.pf.yapf)
-		, m_veh(NULL)
+		, m_veh(rv)
 		, m_dest_station(INVALID_STATION)
 		, m_dest_tile(INVALID_TILE)
 	{
@@ -263,10 +263,8 @@ public:
 	 *      - or the maximum amount of loops reached - m_max_search_nodes (default = 10000)
 	 * @return true if the path was found
 	 */
-	inline bool FindPath(const RoadVehicle *v)
+	inline bool FindPath (void)
 	{
-		m_veh = v;
-
 #ifndef NO_DEBUG_MESSAGES
 		CPerformanceTimer perf;
 		perf.Start();
@@ -307,7 +305,7 @@ typedef CYapfRoadT<AstarRoadExitDir > CYapfRoadAnyDepot2;
 template <class Tpf>
 static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, DiagDirection enterdir, bool &path_found)
 {
-	Tpf pf;
+	Tpf pf (v);
 
 	/* set origin and destination nodes */
 	TrackdirBits trackdirs = TrackStatusToTrackdirBits(GetTileRoadStatus(tile, v->compatible_roadtypes)) & DiagdirReachesTrackdirs(enterdir);
@@ -323,7 +321,7 @@ static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, DiagDirect
 	pf.SetDestination(v);
 
 	/* find the best path */
-	path_found = pf.FindPath(v);
+	path_found = pf.FindPath();
 
 	/* if path not found - return INVALID_TRACKDIR */
 	typename Tpf::Node *n = pf.GetBestNode();
@@ -368,13 +366,13 @@ Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDi
 template <class Tpf>
 static TileIndex FindNearestDepot(const RoadVehicle *v, const PathPos &pos, int max_distance)
 {
-	Tpf pf;
+	Tpf pf (v);
 
 	/* set origin and destination nodes */
 	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos, false));
 
 	/* find the best path */
-	if (!pf.FindPath(v)) return INVALID_TILE;
+	if (!pf.FindPath()) return INVALID_TILE;
 
 	/* some path found; get found depot tile */
 	typename Tpf::Node *n = pf.GetBestNode();
