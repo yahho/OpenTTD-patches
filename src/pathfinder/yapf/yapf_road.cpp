@@ -93,12 +93,6 @@ protected:
 	bool         m_non_artic;    ///< whether m_veh is articulated
 
 protected:
-	/** to access inherited path finder */
-	Tpf& Yapf()
-	{
-		return *static_cast<Tpf*>(this);
-	}
-
 	CYapfRoadT()
 		: m_settings(&_settings_game.pf.yapf)
 		, m_veh(NULL)
@@ -207,10 +201,10 @@ public:
 
 			for (;;) {
 				/* base tile cost depending on distance between edges */
-				segment_cost += OneTileCost (&Yapf().PfGetSettings(), tf.m_new);
+				segment_cost += OneTileCost (&PfGetSettings(), tf.m_new);
 
 				/* we have reached the vehicle's destination - segment should end here to avoid target skipping */
-				if (Yapf().PfDetectDestinationTile(tf.m_new)) break;
+				if (PfDetectDestinationTile(tf.m_new)) break;
 
 				/* stop if we have just entered the depot */
 				if (IsRoadDepotTile(tf.m_new.tile) && tf.m_new.td == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(tf.m_new.tile)))) {
@@ -233,7 +227,7 @@ public:
 
 				/* add hilly terrain penalty */
 				assert (!tf.m_new.in_wormhole());
-				segment_cost += SlopeCost(&Yapf().PfGetSettings(), tf.m_old.tile, tf.m_new.tile);
+				segment_cost += SlopeCost(&PfGetSettings(), tf.m_old.tile, tf.m_new.tile);
 
 				/* add min/max speed penalties */
 				int min_speed = 0;
@@ -251,13 +245,13 @@ public:
 			n->m_cost = old_node.m_cost + segment_cost;
 
 			/* evaluate the node */
-			bool bValid = Yapf().PfCalcEstimate(*n);
+			bool bValid = PfCalcEstimate(*n);
 
 			/* has the estimate callback marked this node as invalid? */
 			if (!bValid) continue;
 
 			/* detect the destination */
-			if (Yapf().PfDetectDestination(*n)) {
+			if (PfDetectDestination(*n)) {
 				Types::Astar::FoundTarget(n);
 			} else {
 				Types::Astar::InsertNode(n);
