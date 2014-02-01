@@ -83,18 +83,27 @@ public:
 protected:
 	const YAPFSettings *const m_settings; ///< current settings (_settings_game.yapf)
 	const RoadVehicle  *const m_veh;      ///< vehicle that we are trying to drive
-
-	StationID    m_dest_station; ///< destination station id, or INVALID_STATION if target is not a station
-	TileIndex    m_dest_tile;    ///< destination tile, or the special marker INVALID_TILE to search for any depot
-	bool         m_bus;          ///< whether m_veh is a bus
-	bool         m_non_artic;    ///< whether m_veh is articulated
+	const bool          m_bus;            ///< whether m_veh is a bus
+	const bool          m_artic;          ///< whether m_veh is articulated
+	const StationID     m_dest_station;   ///< destination station id, or INVALID_STATION if target is not a station
+	const TileIndex     m_dest_tile;      ///< destination tile, or the special marker INVALID_TILE to search for any depot
 
 public:
-	CYapfRoadT (const RoadVehicle *rv)
+	/**
+	 * Construct an instance of CYapfRoadT
+	 * @param rv The road vehicle to pathfind for
+	 * @param depot Look for any depot, else use current vehicle order
+	 */
+	CYapfRoadT (const RoadVehicle *rv, bool depot = false)
 		: m_settings(&_settings_game.pf.yapf)
 		, m_veh(rv)
-		, m_dest_station(INVALID_STATION)
-		, m_dest_tile(INVALID_TILE)
+		, m_bus(rv->IsBus())
+		, m_artic(rv->HasArticulatedPart())
+		, m_dest_station(!depot && rv->current_order.IsType(OT_GOTO_STATION) ? rv->current_order.GetDestination() : INVALID_STATION)
+		, m_dest_tile(depot ? INVALID_TILE :
+			rv->current_order.IsType(OT_GOTO_STATION) ?
+				Station::Get(m_dest_station)->GetClosestTile(rv->tile, m_bus ? STATION_BUS : STATION_TRUCK) :
+				rv->dest_tile)
 	{
 	}
 
@@ -106,26 +115,13 @@ protected:
 	}
 
 public:
-	void SetDestination(const RoadVehicle *v)
-	{
-		if (v->current_order.IsType(OT_GOTO_STATION)) {
-			m_dest_station  = v->current_order.GetDestination();
-			m_dest_tile     = Station::Get(m_dest_station)->GetClosestTile(v->tile, m_bus ? STATION_BUS : STATION_TRUCK);
-			m_bus           = v->IsBus();
-			m_non_artic     = !v->HasArticulatedPart();
-		} else {
-			m_dest_station  = INVALID_STATION;
-			m_dest_tile     = v->dest_tile;
-		}
-	}
-
 	inline bool PfDetectDestinationTile(TileIndex tile)
 	{
 		if (m_dest_station != INVALID_STATION) {
 			return IsStationTile(tile) &&
 				GetStationIndex(tile) == m_dest_station &&
 				(m_bus ? IsBusStop(tile) : IsTruckStop(tile)) &&
-				(m_non_artic || IsDriveThroughStopTile(tile));
+				(!m_artic || IsDriveThroughStopTile(tile));
 		} else if (m_dest_tile != INVALID_TILE) {
 			return tile == m_dest_tile;
 		} else {
@@ -307,7 +303,7 @@ static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, DiagDirect
 {
 	Tpf pf (v);
 
-	/* set origin and destination nodes */
+	/* set origin nodes */
 	TrackdirBits trackdirs = TrackStatusToTrackdirBits(GetTileRoadStatus(tile, v->compatible_roadtypes)) & DiagdirReachesTrackdirs(enterdir);
 	assert (!HasAtMostOneBit(trackdirs));
 
@@ -317,8 +313,6 @@ static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, DiagDirect
 		pos.td = FindFirstTrackdir(tdb);
 		pf.InsertInitialNode (pf.CreateNewNode (NULL, pos, true));
 	}
-
-	pf.SetDestination(v);
 
 	/* find the best path */
 	path_found = pf.FindPath();
@@ -366,9 +360,9 @@ Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDi
 template <class Tpf>
 static TileIndex FindNearestDepot(const RoadVehicle *v, const PathPos &pos, int max_distance)
 {
-	Tpf pf (v);
+	Tpf pf (v, true);
 
-	/* set origin and destination nodes */
+	/* set origin node */
 	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos, false));
 
 	/* find the best path */
