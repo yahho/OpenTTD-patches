@@ -449,17 +449,15 @@ public:
 		assert(tf->m_new.tile == n.GetPos().tile);
 		assert(tf->m_new.wormhole == n.GetPos().wormhole);
 		assert((TrackdirToTrackdirBits(n.GetPos().td) & tf->m_new.trackdirs) != TRACKDIR_BIT_NONE);
+		assert(n.m_parent != NULL);
 
 		CPerfStart perf_cost(Yapf().m_perf_cost);
-
-		/* Does the node have some parent node? */
-		bool has_parent = (n.m_parent != NULL);
 
 		/* Do we already have a cached segment? */
 		CachedData &segment = *n.m_segment;
 		bool is_cached_segment = (segment.m_cost >= 0);
 
-		int parent_cost = has_parent ? n.m_parent->m_cost : 0;
+		int parent_cost = n.m_parent->m_cost;
 
 		/* Each node cost contains 2 or 3 main components:
 		 *  1. Transition cost - cost of the move from previous node (tile):
@@ -487,9 +485,6 @@ public:
 		 * and last), and the 'Transition cost' between its tiles. The first transition
 		 * cost of segment entry (move from the 'parent' node) is not included!
 		 */
-		int segment_entry_cost = 0;
-		int segment_cost = 0;
-
 		const Train *v = Yapf().GetVehicle();
 
 		/* start at n and walk to the end of segment */
@@ -504,38 +499,33 @@ public:
 
 		TileIndex prev;
 
-		if (has_parent) {
-			/* First transition cost goes to segment entry cost */
-			PathPos ppos = n.m_parent->GetLastPos();
-			segment_entry_cost = CurveCost(ppos.td, cur.td);
-			segment_entry_cost += SwitchCost(ppos, cur);
+		/* First transition cost goes to segment entry cost */
+		PathPos ppos = n.m_parent->GetLastPos();
+		int segment_entry_cost = CurveCost(ppos.td, cur.td) + SwitchCost(ppos, cur);
+		int segment_cost = 0;
 
-			/* It is the right time now to look if we can reuse the cached segment cost. */
-			if (is_cached_segment) {
-				/* Yes, we already know the segment cost. */
-				segment_cost = segment.m_cost;
-				/* We know also the reason why the segment ends. */
-				end_segment_reason = segment.m_end_segment_reason;
-				/* We will need also some information about the last signal (if it was red). */
-				if (segment.m_last_signal.tile != INVALID_TILE) {
-					assert(HasSignalAlongPos(segment.m_last_signal));
-					SignalState sig_state = GetSignalStateByPos(segment.m_last_signal);
-					bool is_red = (sig_state == SIGNAL_STATE_RED);
-					n.flags_u.flags_s.m_last_signal_was_red = is_red;
-					if (is_red) {
-						n.m_last_red_signal_type = GetSignalType(segment.m_last_signal);
-					}
+		/* It is the right time now to look if we can reuse the cached segment cost. */
+		if (is_cached_segment) {
+			/* Yes, we already know the segment cost. */
+			segment_cost = segment.m_cost;
+			/* We know also the reason why the segment ends. */
+			end_segment_reason = segment.m_end_segment_reason;
+			/* We will need also some information about the last signal (if it was red). */
+			if (segment.m_last_signal.tile != INVALID_TILE) {
+				assert(HasSignalAlongPos(segment.m_last_signal));
+				SignalState sig_state = GetSignalStateByPos(segment.m_last_signal);
+				bool is_red = (sig_state == SIGNAL_STATE_RED);
+				n.flags_u.flags_s.m_last_signal_was_red = is_red;
+				if (is_red) {
+					n.m_last_red_signal_type = GetSignalType(segment.m_last_signal);
 				}
-				/* No further calculation needed. */
-				cur = n.GetLastPos();
-				goto cached_segment;
 			}
-
-			prev = ppos.tile;
-		} else {
-			assert(!is_cached_segment);
-			prev = INVALID_TILE;
+			/* No further calculation needed. */
+			cur = n.GetLastPos();
+			goto cached_segment;
 		}
+
+		prev = ppos.tile;
 
 		for (;;) {
 			/* All other tile costs will be calculated here. */
