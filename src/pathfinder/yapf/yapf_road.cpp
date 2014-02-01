@@ -268,9 +268,6 @@ public:
 typedef CYapfRoadT<AstarRoadTrackDir> CYapfRoad1;
 typedef CYapfRoadT<AstarRoadExitDir > CYapfRoad2;
 
-typedef CYapfRoadT<AstarRoadTrackDir> CYapfRoadAnyDepot1;
-typedef CYapfRoadT<AstarRoadExitDir > CYapfRoadAnyDepot2;
-
 
 template <class Tpf>
 static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, DiagDirection enterdir, bool &path_found)
@@ -359,11 +356,11 @@ TileIndex YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_distanc
 
 	/* default is YAPF type 2 */
 	typedef TileIndex (*PfnFindNearestDepot)(const RoadVehicle*, const PathPos&, int);
-	PfnFindNearestDepot pfnFindNearestDepot = &FindNearestDepot<CYapfRoadAnyDepot2>;
+	PfnFindNearestDepot pfnFindNearestDepot = &FindNearestDepot<CYapfRoad2>;
 
 	/* check if non-default YAPF type should be used */
 	if (_settings_game.pf.yapf.disable_node_optimization) {
-		pfnFindNearestDepot = &FindNearestDepot<CYapfRoadAnyDepot1>; // Trackdir, allow 90-deg
+		pfnFindNearestDepot = &FindNearestDepot<CYapfRoad1>; // Trackdir, allow 90-deg
 	}
 
 	return pfnFindNearestDepot(v, pos, max_distance);
