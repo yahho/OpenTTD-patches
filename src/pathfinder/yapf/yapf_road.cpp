@@ -87,6 +87,7 @@ protected:
 	const bool          m_artic;          ///< whether m_veh is articulated
 	const StationID     m_dest_station;   ///< destination station id, or INVALID_STATION if target is not a station
 	const TileIndex     m_dest_tile;      ///< destination tile, or the special marker INVALID_TILE to search for any depot
+	CFollowTrackRoad    tf;               ///< track follower
 
 public:
 	/**
@@ -104,6 +105,7 @@ public:
 			rv->current_order.IsType(OT_GOTO_STATION) ?
 				Station::Get(m_dest_station)->GetClosestTile(rv->tile, m_bus ? STATION_BUS : STATION_TRUCK) :
 				rv->dest_tile)
+		, tf(rv)
 	{
 	}
 
@@ -129,7 +131,6 @@ public:
 	/** Called by the A-star underlying class to find the neighbours of a node. */
 	inline void Follow (Node *old_node)
 	{
-		CFollowTrackRoad tf (m_veh);
 		if (!tf.Follow(old_node->m_segment_last)) return;
 
 		bool is_choice = !tf.m_new.is_single();
