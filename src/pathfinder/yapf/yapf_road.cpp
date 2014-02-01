@@ -168,12 +168,16 @@ public:
 			n->m_segment_last = pos;
 			tf.SetPos (pos);
 
+			bool is_target = false;
 			for (;;) {
 				/* base tile cost depending on distance between edges */
 				segment_cost += OneTileCost (&PfGetSettings(), tf.m_new);
 
 				/* we have reached the vehicle's destination - segment should end here to avoid target skipping */
-				if (PfDetectDestinationTile(tf.m_new)) break;
+				if (PfDetectDestinationTile(tf.m_new)) {
+					is_target = true;
+					break;
+				}
 
 				/* stop if we have just entered the depot */
 				if (IsRoadDepotTile(tf.m_new.tile) && tf.m_new.td == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(tf.m_new.tile)))) {
@@ -214,7 +218,7 @@ public:
 			n->m_cost = old_node.m_cost + segment_cost;
 
 			/* compute estimated cost */
-			if (PfDetectDestination(*n)) {
+			if (is_target) {
 				n->m_estimate = n->m_cost;
 				TAstar::FoundTarget(n);
 			} else {
