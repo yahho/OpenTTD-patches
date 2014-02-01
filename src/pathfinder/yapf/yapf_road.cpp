@@ -145,35 +145,6 @@ public:
 	}
 
 	/**
-	 * Called by YAPF to calculate cost estimate. Calculates distance to the destination
-	 *  adds it to the actual cost from origin and stores the sum to the Node::m_estimate
-	 */
-	inline bool PfCalcEstimate(Node& n)
-	{
-		static const int dg_dir_to_x_offs[] = {-1, 0, 1, 0};
-		static const int dg_dir_to_y_offs[] = {0, 1, 0, -1};
-		if (m_dest_tile == INVALID_TILE || PfDetectDestination(n)) {
-			n.m_estimate = n.m_cost;
-			return true;
-		}
-
-		TileIndex tile = n.m_segment_last.tile;
-		DiagDirection exitdir = TrackdirToExitdir(n.m_segment_last.td);
-		int x1 = 2 * TileX(tile) + dg_dir_to_x_offs[(int)exitdir];
-		int y1 = 2 * TileY(tile) + dg_dir_to_y_offs[(int)exitdir];
-		int x2 = 2 * TileX(m_dest_tile);
-		int y2 = 2 * TileY(m_dest_tile);
-		int dx = abs(x1 - x2);
-		int dy = abs(y1 - y2);
-		int dmin = min(dx, dy);
-		int dxy = abs(dx - dy);
-		int d = dmin * YAPF_TILE_CORNER_LENGTH + (dxy - 1) * (YAPF_TILE_LENGTH / 2);
-		n.m_estimate = n.m_cost + d;
-		assert(n.m_estimate >= n.m_parent->m_estimate);
-		return true;
-	}
-
-	/**
 	 * Called by YAPF to move from the given node to the next tile. For each
 	 *  reachable trackdir on the new tile creates new node, initializes it
 	 *  and adds it to the open list by calling Yapf().AddNewNode(n)
@@ -242,16 +213,32 @@ public:
 			/* save also tile cost */
 			n->m_cost = old_node.m_cost + segment_cost;
 
-			/* evaluate the node */
-			bool bValid = PfCalcEstimate(*n);
-
-			/* has the estimate callback marked this node as invalid? */
-			if (!bValid) continue;
-
-			/* detect the destination */
+			/* compute estimated cost */
 			if (PfDetectDestination(*n)) {
+				n->m_estimate = n->m_cost;
 				TAstar::FoundTarget(n);
 			} else {
+				if (m_dest_tile == INVALID_TILE) {
+					n->m_estimate = n->m_cost;
+				} else {
+					static const int dg_dir_to_x_offs[] = {-1, 0, 1, 0};
+					static const int dg_dir_to_y_offs[] = {0, 1, 0, -1};
+
+					TileIndex tile = n->m_segment_last.tile;
+					DiagDirection exitdir = TrackdirToExitdir(n->m_segment_last.td);
+					int x1 = 2 * TileX(tile) + dg_dir_to_x_offs[(int)exitdir];
+					int y1 = 2 * TileY(tile) + dg_dir_to_y_offs[(int)exitdir];
+					int x2 = 2 * TileX(m_dest_tile);
+					int y2 = 2 * TileY(m_dest_tile);
+					int dx = abs(x1 - x2);
+					int dy = abs(y1 - y2);
+					int dmin = min(dx, dy);
+					int dxy = abs(dx - dy);
+					int d = dmin * YAPF_TILE_CORNER_LENGTH + (dxy - 1) * (YAPF_TILE_LENGTH / 2);
+					n->m_estimate = n->m_cost + d;
+					assert(n->m_estimate >= old_node.m_estimate);
+				}
+
 				TAstar::InsertNode(n);
 			}
 		}
