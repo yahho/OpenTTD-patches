@@ -74,14 +74,11 @@ static int OneTileCost(const YAPFSettings *settings, const PathPos &pos)
 }
 
 
-template <class Types>
-class CYapfRoadT : public Types::Astar
+template <class TAstar>
+class CYapfRoadT : public TAstar
 {
 public:
-	typedef typename Types::Tpf Tpf;                     ///< pathfinder (derived from THIS class)
-	typedef typename Types::TrackFollower TrackFollower; ///< track follower helper
-	typedef typename Types::Astar::Node Node;            ///< this will be our node type
-	typedef typename Node::Key Key;                      ///< key to hash tables
+	typedef typename TAstar::Node Node; ///< this will be our node type
 
 protected:
 	const YAPFSettings *m_settings; ///< current settings (_settings_game.yapf)
@@ -92,7 +89,7 @@ protected:
 	bool         m_bus;          ///< whether m_veh is a bus
 	bool         m_non_artic;    ///< whether m_veh is articulated
 
-protected:
+public:
 	CYapfRoadT()
 		: m_settings(&_settings_game.pf.yapf)
 		, m_veh(NULL)
@@ -101,6 +98,7 @@ protected:
 	{
 	}
 
+protected:
 	/** return current settings (can be custom - company based - but later) */
 	inline const YAPFSettings& PfGetSettings() const
 	{
@@ -182,7 +180,7 @@ public:
 	 */
 	inline void PfFollowNode(Node& old_node)
 	{
-		TrackFollower tf (m_veh);
+		CFollowTrackRoad tf (m_veh);
 		if (!tf.Follow(old_node.m_segment_last)) return;
 
 		bool is_choice = !tf.m_new.is_single();
@@ -190,7 +188,7 @@ public:
 		PathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.td = FindFirstTrackdir(rtds);
-			Node *n = Types::Astar::CreateNewNode(&old_node, pos, is_choice);
+			Node *n = TAstar::CreateNewNode(&old_node, pos, is_choice);
 
 			uint tiles = initial_skipped_tiles;
 			int segment_cost = tiles * YAPF_TILE_LENGTH;
@@ -252,15 +250,15 @@ public:
 
 			/* detect the destination */
 			if (PfDetectDestination(*n)) {
-				Types::Astar::FoundTarget(n);
+				TAstar::FoundTarget(n);
 			} else {
-				Types::Astar::InsertNode(n);
+				TAstar::InsertNode(n);
 			}
 		}
 	}
 
 	/** call the node follower */
-	static inline void Follow (Tpf *pf, Node *n)
+	static inline void Follow (CYapfRoadT *pf, Node *n)
 	{
 		pf->PfFollowNode(*n);
 	}
@@ -283,7 +281,7 @@ public:
 		perf.Start();
 #endif /* !NO_DEBUG_MESSAGES */
 
-		bool bDestFound = Types::Astar::FindPath (Follow, PfGetSettings().max_search_nodes);
+		bool bDestFound = TAstar::FindPath (Follow, PfGetSettings().max_search_nodes);
 
 #ifndef NO_DEBUG_MESSAGES
 		perf.Stop();
@@ -293,11 +291,11 @@ public:
 
 			if (_debug_yapf_level >= 3) {
 				UnitID veh_idx = (m_veh != NULL) ? m_veh->unitnumber : 0;
-				int cost = bDestFound ? Types::Astar::best->m_cost : -1;
-				int dist = bDestFound ? Types::Astar::best->m_estimate - Types::Astar::best->m_cost : -1;
+				int cost = bDestFound ? TAstar::best->m_cost : -1;
+				int dist = bDestFound ? TAstar::best->m_estimate - TAstar::best->m_cost : -1;
 
 				DEBUG(yapf, 3, "[YAPFr]%c%4d- %d us - %d rounds - %d open - %d closed - CHR  0.0%% - C %d D %d - c0(sc0, ts0, o0) -- ",
-					bDestFound ? '-' : '!', veh_idx, t, Types::Astar::num_steps, Types::Astar::OpenCount(), Types::Astar::ClosedCount(),
+					bDestFound ? '-' : '!', veh_idx, t, TAstar::num_steps, TAstar::OpenCount(), TAstar::ClosedCount(),
 					cost, dist
 				);
 			}
@@ -308,39 +306,11 @@ public:
 };
 
 
-template <class Tpf_, class TAstar>
-struct CYapfRoad_TypesT
-{
-	typedef CYapfRoad_TypesT<Tpf_, TAstar> Types;
+typedef CYapfRoadT<AstarRoadTrackDir> CYapfRoad1;
+typedef CYapfRoadT<AstarRoadExitDir > CYapfRoad2;
 
-	typedef Tpf_                              Tpf;
-	typedef CFollowTrackRoad                  TrackFollower;
-	typedef TAstar                            Astar;
-};
-
-struct CYapfRoad1
-	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
-	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoad1, AstarRoadTrackDir> >
-{
-};
-
-struct CYapfRoad2
-	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
-	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoad2, AstarRoadExitDir> >
-{
-};
-
-struct CYapfRoadAnyDepot1
-	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
-	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot1, AstarRoadTrackDir> >
-{
-};
-
-struct CYapfRoadAnyDepot2
-	: CYapfBaseT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
-	, CYapfRoadT<CYapfRoad_TypesT<CYapfRoadAnyDepot2, AstarRoadExitDir> >
-{
-};
+typedef CYapfRoadT<AstarRoadTrackDir> CYapfRoadAnyDepot1;
+typedef CYapfRoadT<AstarRoadExitDir > CYapfRoadAnyDepot2;
 
 
 template <class Tpf>
@@ -365,7 +335,7 @@ static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, DiagDirect
 	path_found = pf.FindPath(v);
 
 	/* if path not found - return INVALID_TRACKDIR */
-	typename Tpf::TT::Astar::Node *n = pf.GetBestNode();
+	typename Tpf::Node *n = pf.GetBestNode();
 	if (n == NULL) return INVALID_TRACKDIR;
 
 	/* path was found or at least suggested
@@ -416,7 +386,7 @@ static TileIndex FindNearestDepot(const RoadVehicle *v, const PathPos &pos, int 
 	if (!pf.FindPath(v)) return INVALID_TILE;
 
 	/* some path found; get found depot tile */
-	typename Tpf::TT::Astar::Node *n = pf.GetBestNode();
+	typename Tpf::Node *n = pf.GetBestNode();
 
 	if (max_distance > 0 && n->m_cost > max_distance * YAPF_TILE_LENGTH) return INVALID_TILE;
 
