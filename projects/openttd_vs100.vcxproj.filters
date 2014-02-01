@@ -2994,9 +2994,6 @@
     <ClInclude Include="..\src\pathfinder\yapf\yapf_base.hpp">
       <Filter>YAPF</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\pathfinder\yapf\yapf_cache.h">
-      <Filter>YAPF</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\pathfinder\yapf\yapf_node.hpp">
       <Filter>YAPF</Filter>
     </ClInclude>

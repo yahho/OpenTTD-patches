@@ -16,7 +16,7 @@
 #include "viewport_func.h"
 #include "command_func.h"
 #include "depot_base.h"
-#include "pathfinder/yapf/yapf_cache.h"
+#include "pathfinder/yapf/yapf.h"
 #include "newgrf_debug.h"
 #include "newgrf_railtype.h"
 #include "train.h"

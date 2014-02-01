@@ -108,4 +108,11 @@ bool YapfTrainCheckReverse(const Train *v);
  */
 bool YapfTrainFindNearestSafeTile(const Train *v, const PathPos &pos, bool override_railtype);
 
+/**
+ * Use this function to notify YAPF that track layout (or signal configuration) has change.
+ * @param tile  the tile that is changed
+ * @param track what piece of track is changed
+ */
+void YapfNotifyTrackLayoutChange(TileIndex tile, Track track);
+
 #endif /* YAPF_H */

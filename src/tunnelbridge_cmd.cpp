@@ -20,7 +20,7 @@
 #include "command_func.h"
 #include "town.h"
 #include "train.h"
-#include "pathfinder/yapf/yapf_cache.h"
+#include "pathfinder/yapf/yapf.h"
 #include "autoslope.h"
 #include "map/tunnelbridge.h"
 #include "map/water.h"

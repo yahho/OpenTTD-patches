@@ -38,7 +38,7 @@
 #include "sound_func.h"
 #include "newgrf_sound.h"
 
-#include "pathfinder/yapf/yapf_cache.h"
+#include "pathfinder/yapf/yapf.h"
 
 #include "table/strings.h"
 #include "table/track_land.h"

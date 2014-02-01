@@ -18,7 +18,7 @@
 #include "map/slope.h"
 #include "town.h"
 #include "waypoint_base.h"
-#include "pathfinder/yapf/yapf_cache.h"
+#include "pathfinder/yapf/yapf.h"
 #include "strings_func.h"
 #include "viewport_func.h"
 #include "window_func.h"

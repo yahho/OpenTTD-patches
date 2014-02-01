@@ -14,7 +14,7 @@
 #include "road_internal.h"
 #include "viewport_func.h"
 #include "command_func.h"
-#include "pathfinder/yapf/yapf_cache.h"
+#include "pathfinder/yapf/yapf.h"
 #include "depot_base.h"
 #include "newgrf.h"
 #include "autoslope.h"

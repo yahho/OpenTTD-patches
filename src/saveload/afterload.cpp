@@ -32,7 +32,7 @@
 #include "../map/road.h"
 #include "../map/bridge.h"
 #include "../map/tunnelbridge.h"
-#include "../pathfinder/yapf/yapf_cache.h"
+#include "../pathfinder/yapf/yapf.h"
 #include "../elrail_func.h"
 #include "../signs_func.h"
 #include "../aircraft.h"

@@ -24,7 +24,7 @@
 #include "newgrf_debug.h"
 #include "newgrf_station.h"
 #include "newgrf_canal.h" /* For the buoy */
-#include "pathfinder/yapf/yapf_cache.h"
+#include "pathfinder/yapf/yapf.h"
 #include "road_internal.h" /* For drawing catenary/checking road removal */
 #include "autoslope.h"
 #include "water.h"
