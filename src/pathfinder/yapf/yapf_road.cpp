@@ -107,15 +107,7 @@ public:
 	{
 	}
 
-protected:
-	/** return current settings (can be custom - company based - but later) */
-	inline const YAPFSettings& PfGetSettings() const
-	{
-		return *m_settings;
-	}
-
-public:
-	inline bool PfDetectDestinationTile(TileIndex tile)
+	inline bool IsDestinationTile(TileIndex tile) const
 	{
 		if (m_dest_station != INVALID_STATION) {
 			return IsStationTile(tile) &&
@@ -129,33 +121,23 @@ public:
 		}
 	}
 
-	inline bool PfDetectDestinationTile(const PathPos &pos)
+	inline bool IsDestination(const PathPos &pos) const
 	{
-		return PfDetectDestinationTile(pos.tile);
+		return IsDestinationTile(pos.tile);
 	}
 
-	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination(Node& n)
-	{
-		return PfDetectDestinationTile(n.m_segment_last.tile);
-	}
-
-	/**
-	 * Called by YAPF to move from the given node to the next tile. For each
-	 *  reachable trackdir on the new tile creates new node, initializes it
-	 *  and adds it to the open list by calling Yapf().AddNewNode(n)
-	 */
-	inline void PfFollowNode(Node& old_node)
+	/** Called by the A-star underlying class to find the neighbours of a node. */
+	inline void Follow (Node *old_node)
 	{
 		CFollowTrackRoad tf (m_veh);
-		if (!tf.Follow(old_node.m_segment_last)) return;
+		if (!tf.Follow(old_node->m_segment_last)) return;
 
 		bool is_choice = !tf.m_new.is_single();
 		uint initial_skipped_tiles = tf.m_tiles_skipped;
 		PathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.td = FindFirstTrackdir(rtds);
-			Node *n = TAstar::CreateNewNode(&old_node, pos, is_choice);
+			Node *n = TAstar::CreateNewNode(old_node, pos, is_choice);
 
 			uint tiles = initial_skipped_tiles;
 			int segment_cost = tiles * YAPF_TILE_LENGTH;
@@ -167,10 +149,10 @@ public:
 			bool is_target = false;
 			for (;;) {
 				/* base tile cost depending on distance between edges */
-				segment_cost += OneTileCost (&PfGetSettings(), tf.m_new);
+				segment_cost += OneTileCost (m_settings, tf.m_new);
 
 				/* we have reached the vehicle's destination - segment should end here to avoid target skipping */
-				if (PfDetectDestinationTile(tf.m_new)) {
+				if (IsDestination(tf.m_new)) {
 					is_target = true;
 					break;
 				}
@@ -196,7 +178,7 @@ public:
 
 				/* add hilly terrain penalty */
 				assert (!tf.m_new.in_wormhole());
-				segment_cost += SlopeCost(&PfGetSettings(), tf.m_old.tile, tf.m_new.tile);
+				segment_cost += SlopeCost(m_settings, tf.m_old.tile, tf.m_new.tile);
 
 				/* add min/max speed penalties */
 				int min_speed = 0;
@@ -211,7 +193,7 @@ public:
 			}
 
 			/* save also tile cost */
-			n->m_cost = old_node.m_cost + segment_cost;
+			n->m_cost = old_node->m_cost + segment_cost;
 
 			/* compute estimated cost */
 			if (is_target) {
@@ -236,7 +218,7 @@ public:
 					int dxy = abs(dx - dy);
 					int d = dmin * YAPF_TILE_CORNER_LENGTH + (dxy - 1) * (YAPF_TILE_LENGTH / 2);
 					n->m_estimate = n->m_cost + d;
-					assert(n->m_estimate >= old_node.m_estimate);
+					assert(n->m_estimate >= old_node->m_estimate);
 				}
 
 				TAstar::InsertNode(n);
@@ -247,18 +229,10 @@ public:
 	/** call the node follower */
 	static inline void Follow (CYapfRoadT *pf, Node *n)
 	{
-		pf->PfFollowNode(*n);
+		pf->Follow(n);
 	}
 
-	/**
-	 * Main pathfinder routine:
-	 *   - set startup node(s)
-	 *   - main loop that stops if:
-	 *      - the destination was found
-	 *      - or the open list is empty (no route to destination).
-	 *      - or the maximum amount of loops reached - m_max_search_nodes (default = 10000)
-	 * @return true if the path was found
-	 */
+	/** Invoke the underlying pathfinder. */
 	inline bool FindPath (void)
 	{
 #ifndef NO_DEBUG_MESSAGES
@@ -266,7 +240,7 @@ public:
 		perf.Start();
 #endif /* !NO_DEBUG_MESSAGES */
 
-		bool bDestFound = TAstar::FindPath (Follow, PfGetSettings().max_search_nodes);
+		bool bDestFound = TAstar::FindPath (Follow, m_settings->max_search_nodes);
 
 #ifndef NO_DEBUG_MESSAGES
 		perf.Stop();
