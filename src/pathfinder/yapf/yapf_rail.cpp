@@ -281,6 +281,24 @@ public:
 		assert(IsValidTrackdir(pos1.td));
 		assert(IsValidTrackdir(pos2.td));
 
+		if (pos1.in_wormhole() || !IsRailwayTile(pos1.tile)) {
+			assert(IsDiagonalTrackdir(pos1.td));
+			if (pos2.in_wormhole() || !IsRailwayTile(pos2.tile)) {
+				/* compare only the tracks, as depots cause reversing */
+				assert(TrackdirToTrack(pos1.td) == TrackdirToTrack(pos2.td));
+				return 0;
+			} else {
+				return (pos1.td == pos2.td) ? 0 : Yapf().PfGetSettings().rail_curve45_penalty;
+			}
+		} else {
+			if (pos2.in_wormhole() || !IsRailwayTile(pos2.tile)) {
+				assert(IsDiagonalTrackdir(pos2.td));
+				return (pos1.td == pos2.td) ? 0 : Yapf().PfGetSettings().rail_curve45_penalty;
+			}
+		}
+
+		/* both tiles are railway tiles */
+
 		int cost = 0;
 		if (TrackFollower::Allow90degTurns()
 				&& ((TrackdirToTrackdirBits(pos2.td) & (TrackdirBits)TrackdirCrossesTrackdirs(pos1.td)) != 0)) {
@@ -291,12 +309,10 @@ public:
 			cost += Yapf().PfGetSettings().rail_curve45_penalty;
 		}
 
-		if (!pos1.in_wormhole() && IsRailwayTile(pos1.tile) && !pos2.in_wormhole() && IsRailwayTile(pos2.tile)) {
-			DiagDirection exitdir = TrackdirToExitdir(pos1.td);
-			bool t1 = KillFirstBit(GetTrackBits(pos1.tile) & DiagdirReachesTracks(ReverseDiagDir(exitdir))) != TRACK_BIT_NONE;
-			bool t2 = KillFirstBit(GetTrackBits(pos2.tile) & DiagdirReachesTracks(exitdir)) != TRACK_BIT_NONE;
-			if (t1 && t2) cost += Yapf().PfGetSettings().rail_doubleslip_penalty;
-		}
+		DiagDirection exitdir = TrackdirToExitdir(pos1.td);
+		bool t1 = KillFirstBit(GetTrackBits(pos1.tile) & DiagdirReachesTracks(ReverseDiagDir(exitdir))) != TRACK_BIT_NONE;
+		bool t2 = KillFirstBit(GetTrackBits(pos2.tile) & DiagdirReachesTracks(exitdir)) != TRACK_BIT_NONE;
+		if (t1 && t2) cost += Yapf().PfGetSettings().rail_doubleslip_penalty;
 
 		return cost;
 	}
