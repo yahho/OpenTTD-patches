@@ -687,13 +687,12 @@ public:
 			}
 
 			/* Gather the next tile/trackdir. */
-			PathPos next(tf_local.m_new);
 
 			if (TrackFollower::DoTrackMasking()) {
-				if (HasSignalAlongPos(next) && IsPbsSignal(GetSignalType(next))) {
+				if (HasSignalAlongPos(tf_local.m_new) && IsPbsSignal(GetSignalType(tf_local.m_new))) {
 					/* Possible safe tile. */
 					segment_data.end_reason |= ESRB_SAFE_TILE;
-				} else if (HasSignalAgainstPos(next) && GetSignalType(next) == SIGTYPE_PBS_ONEWAY) {
+				} else if (HasSignalAgainstPos(tf_local.m_new) && GetSignalType(tf_local.m_new) == SIGTYPE_PBS_ONEWAY) {
 					/* Possible safe tile, but not so good as it's the back of a signal... */
 					segment_data.end_reason |= ESRB_SAFE_TILE | ESRB_DEAD_END;
 					segment_data.extra_cost += Yapf().PfGetSettings().rail_lastred_exit_penalty;
@@ -701,17 +700,17 @@ public:
 			}
 
 			/* Check the next tile for the rail type. */
-			if (next.in_wormhole()) {
-				RailType next_rail_type = IsRailwayTile(next.wormhole) ? GetBridgeRailType(next.wormhole) : GetRailType(next.wormhole);
+			if (tf_local.m_new.in_wormhole()) {
+				RailType next_rail_type = IsRailwayTile(tf_local.m_new.wormhole) ? GetBridgeRailType(tf_local.m_new.wormhole) : GetRailType(tf_local.m_new.wormhole);
 				assert(next_rail_type == rail_type);
-			} else if (GetTileRailType(next.tile, TrackdirToTrack(next.td)) != rail_type) {
+			} else if (GetTileRailType(tf_local.m_new.tile, TrackdirToTrack(tf_local.m_new.td)) != rail_type) {
 				/* Segment must consist from the same rail_type tiles. */
 				segment_data.end_reason |= ESRB_RAIL_TYPE;
 				break;
 			}
 
 			/* Avoid infinite looping. */
-			if (next == n.GetPos()) {
+			if (tf_local.m_new == n.GetPos()) {
 				segment_data.end_reason |= ESRB_INFINITE_LOOP;
 				break;
 			}
@@ -731,11 +730,11 @@ public:
 			}
 
 			/* Transition cost (cost of the move from previous tile) */
-			segment_data.segment_cost += TransitionCost (segment_data.pos, next);
+			segment_data.segment_cost += TransitionCost (segment_data.pos, tf_local.m_new);
 
 			/* For the next loop set new prev and cur tile info. */
 			prev = segment_data.pos.tile;
-			segment_data.pos = next;
+			segment_data.pos = tf_local.m_new;
 		} // for (;;)
 
 cached_segment:
