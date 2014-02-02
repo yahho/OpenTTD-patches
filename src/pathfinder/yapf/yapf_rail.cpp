@@ -249,6 +249,16 @@ public:
 		return Yapf().PfGetSettings().rail_firstred_twoway_eol && m_treat_first_red_two_way_signal_as_eol;
 	}
 
+	struct NodeData {
+		int parent_cost;
+		int entry_cost;
+		int segment_cost;
+		int extra_cost;
+		PathPos pos;
+		PathPos last_signal;
+		EndSegmentReasonBits end_reason;
+	};
+
 	inline int SlopeCost(const PathPos &pos)
 	{
 		CPerfStart perf_cost(Yapf().m_perf_slope_cost);
@@ -361,7 +371,7 @@ public:
 		return 0;
 	}
 
-	int SignalCost(Node& n, const PathPos &pos)
+	int SignalCost(Node& n, const PathPos &pos, NodeData *data)
 	{
 		int cost = 0;
 		/* if there is one-way signal in the opposite direction, then it is not our way */
@@ -389,7 +399,7 @@ public:
 				if (!IsPbsSignal(sig_type) && Yapf().TreatFirstRedTwoWaySignalAsEOL() && n.flags_u.flags_s.m_choice_seen && HasSignalAgainstPos(pos) && n.m_num_signals_passed == 0) {
 					/* yes, the first signal is two-way red signal => DEAD END. Prune this branch... */
 					Yapf().PruneIntermediateNodeBranch();
-					n.m_segment->m_end_segment_reason |= ESRB_DEAD_END;
+					data->end_reason |= ESRB_DEAD_END;
 					Yapf().m_stopped_on_first_two_way_signal = true;
 					return -1;
 				}
@@ -415,11 +425,11 @@ public:
 			}
 
 			n.m_num_signals_passed++;
-			n.m_segment->m_last_signal = pos;
+			data->last_signal = pos;
 		} else if (HasSignalAgainstPos(pos)) {
 			if (GetSignalType(pos) != SIGTYPE_PBS) {
 				/* one-way signal in opposite direction */
-				n.m_segment->m_end_segment_reason |= ESRB_DEAD_END;
+				data->end_reason |= ESRB_DEAD_END;
 			} else {
 				cost += n.m_num_signals_passed < Yapf().PfGetSettings().rail_look_ahead_max_signals ? Yapf().PfGetSettings().rail_pbs_signal_back_penalty : 0;
 			}
@@ -471,7 +481,8 @@ public:
 		CachedData &segment = *n.m_segment;
 		bool is_cached_segment = (segment.m_cost >= 0);
 
-		int parent_cost = n.m_parent->m_cost;
+		NodeData segment_data;
+		segment_data.parent_cost = n.m_parent->m_cost;
 
 		/* Each node cost contains 2 or 3 main components:
 		 *  1. Transition cost - cost of the move from previous node (tile):
@@ -492,7 +503,7 @@ public:
 		 *    - last red signal penalty
 		 *    - penalty for too long or too short platform on the destination station
 		 */
-		int extra_cost = 0;
+		segment_data.extra_cost = 0;
 
 		/* Segment: one or more tiles connected by contiguous tracks of the same type.
 		 * Each segment cost includes 'Tile cost' for all its tiles (including the first
@@ -502,12 +513,12 @@ public:
 		const Train *v = Yapf().GetVehicle();
 
 		/* start at n and walk to the end of segment */
-		PathPos cur(n.GetPos());
+		segment_data.pos = n.GetPos();
 
-		RailType rail_type = !cur.in_wormhole() ? GetTileRailType(cur.tile, TrackdirToTrack(cur.td)) :
-			IsRailwayTile(cur.wormhole) ? GetBridgeRailType(cur.wormhole) : GetRailType(cur.wormhole);
+		RailType rail_type = !segment_data.pos.in_wormhole() ? GetTileRailType(segment_data.pos.tile, TrackdirToTrack(segment_data.pos.td)) :
+			IsRailwayTile(segment_data.pos.wormhole) ? GetBridgeRailType(segment_data.pos.wormhole) : GetRailType(segment_data.pos.wormhole);
 
-		EndSegmentReasonBits end_segment_reason = ESRB_NONE;
+		segment_data.end_reason = ESRB_NONE;
 
 		TrackFollower tf_local(v, Yapf().GetCompatibleRailTypes(), &Yapf().m_perf_ts_cost);
 
@@ -515,15 +526,15 @@ public:
 
 		/* First transition cost goes to segment entry cost */
 		PathPos ppos = n.m_parent->GetLastPos();
-		int segment_entry_cost = TransitionCost (ppos, cur);
-		int segment_cost = 0;
+		segment_data.entry_cost = TransitionCost (ppos, segment_data.pos);
+		segment_data.segment_cost = 0;
 
 		/* It is the right time now to look if we can reuse the cached segment cost. */
 		if (is_cached_segment) {
 			/* Yes, we already know the segment cost. */
-			segment_cost = segment.m_cost;
+			segment_data.segment_cost = segment.m_cost;
 			/* We know also the reason why the segment ends. */
-			end_segment_reason = segment.m_end_segment_reason;
+			segment_data.end_reason = segment.m_end_segment_reason;
 			/* We will need also some information about the last signal (if it was red). */
 			if (segment.m_last_signal.tile != INVALID_TILE) {
 				assert(HasSignalAlongPos(segment.m_last_signal));
@@ -535,7 +546,7 @@ public:
 				}
 			}
 			/* No further calculation needed. */
-			cur = n.GetLastPos();
+			segment_data.pos = n.GetLastPos();
 			goto cached_segment;
 		}
 
@@ -543,41 +554,39 @@ public:
 
 		for (;;) {
 			/* All other tile costs will be calculated here. */
-			segment_cost += OneTileCost(cur);
+			segment_data.segment_cost += OneTileCost(segment_data.pos);
 
 			/* If we skipped some tunnel/bridge/station tiles, add their base cost */
-			segment_cost += YAPF_TILE_LENGTH * tf->m_tiles_skipped;
+			segment_data.segment_cost += YAPF_TILE_LENGTH * tf->m_tiles_skipped;
 
 			/* Slope cost. */
-			segment_cost += SlopeCost(cur);
+			segment_data.segment_cost += SlopeCost(segment_data.pos);
 
 			/* Signal cost (routine can modify segment data). */
-			segment_cost += SignalCost(n, cur);
+			segment_data.segment_cost += SignalCost(n, segment_data.pos, &segment_data);
 
 			/* Reserved tiles. */
-			segment_cost += ReservationCost(n, cur, tf->m_tiles_skipped);
-
-			end_segment_reason = segment.m_end_segment_reason;
+			segment_data.segment_cost += ReservationCost(n, segment_data.pos, tf->m_tiles_skipped);
 
 			/* Tests for 'potential target' reasons to close the segment. */
-			if (cur.tile == prev) {
+			if (segment_data.pos.tile == prev) {
 				/* Penalty for reversing in a depot. */
-				assert(!cur.in_wormhole());
-				assert(IsRailDepotTile(cur.tile));
-				assert(cur.td == DiagDirToDiagTrackdir(GetGroundDepotDirection(cur.tile)));
-				segment_cost += Yapf().PfGetSettings().rail_depot_reverse_penalty;
+				assert(!segment_data.pos.in_wormhole());
+				assert(IsRailDepotTile(segment_data.pos.tile));
+				assert(segment_data.pos.td == DiagDirToDiagTrackdir(GetGroundDepotDirection(segment_data.pos.tile)));
+				segment_data.segment_cost += Yapf().PfGetSettings().rail_depot_reverse_penalty;
 				/* We will end in this pass (depot is possible target) */
-				end_segment_reason |= ESRB_DEPOT;
+				segment_data.end_reason |= ESRB_DEPOT;
 
-			} else if (!cur.in_wormhole() && IsRailWaypointTile(cur.tile)) {
+			} else if (!segment_data.pos.in_wormhole() && IsRailWaypointTile(segment_data.pos.tile)) {
 				if (v->current_order.IsType(OT_GOTO_WAYPOINT) &&
-						GetStationIndex(cur.tile) == v->current_order.GetDestination() &&
+						GetStationIndex(segment_data.pos.tile) == v->current_order.GetDestination() &&
 						!Waypoint::Get(v->current_order.GetDestination())->IsSingleTile()) {
 					/* This waypoint is our destination; maybe this isn't an unreserved
 					 * one, so check that and if so see that as the last signal being
 					 * red. This way waypoints near stations should work better. */
 					CFollowTrackRail ft(v);
-					ft.SetPos(cur);
+					ft.SetPos(segment_data.pos);
 
 					bool add_extra_cost;
 					for (;;) {
@@ -607,24 +616,24 @@ public:
 					/* In the case this platform is (possibly) occupied we add penalty so the
 					 * other platforms of this waypoint are evaluated as well, i.e. we assume
 					 * that there is a red signal in the waypoint when it's occupied. */
-					if (add_extra_cost) extra_cost += Yapf().PfGetSettings().rail_lastred_penalty;
+					if (add_extra_cost) segment_data.extra_cost += Yapf().PfGetSettings().rail_lastred_penalty;
 				}
 				/* Waypoint is also a good reason to finish. */
-				end_segment_reason |= ESRB_WAYPOINT;
+				segment_data.end_reason |= ESRB_WAYPOINT;
 
 			} else if (tf->m_flag == tf->TF_STATION) {
 				/* Station penalties. */
 				uint platform_length = tf->m_tiles_skipped + 1;
 				/* We don't know yet if the station is our target or not. Act like
 				 * if it is pass-through station (not our destination). */
-				segment_cost += Yapf().PfGetSettings().rail_station_penalty * platform_length;
+				segment_data.segment_cost += Yapf().PfGetSettings().rail_station_penalty * platform_length;
 				/* We will end in this pass (station is possible target) */
-				end_segment_reason |= ESRB_STATION;
+				segment_data.end_reason |= ESRB_STATION;
 
 			} else if (TrackFollower::DoTrackMasking()) {
 				/* Searching for a safe tile? */
-				if (HasSignalAlongPos(cur) && !IsPbsSignal(GetSignalType(cur))) {
-					end_segment_reason |= ESRB_SAFE_TILE;
+				if (HasSignalAlongPos(segment_data.pos) && !IsPbsSignal(GetSignalType(segment_data.pos))) {
+					segment_data.end_reason |= ESRB_SAFE_TILE;
 				}
 			}
 
@@ -636,17 +645,17 @@ public:
 				int max_speed = tf->GetSpeedLimit(&min_speed);
 				int max_veh_speed = v->GetDisplayMaxSpeed();
 				if (max_speed < max_veh_speed) {
-					extra_cost += YAPF_TILE_LENGTH * (max_veh_speed - max_speed) * (1 + tf->m_tiles_skipped) / max_veh_speed;
+					segment_data.extra_cost += YAPF_TILE_LENGTH * (max_veh_speed - max_speed) * (1 + tf->m_tiles_skipped) / max_veh_speed;
 				}
 				if (min_speed > max_veh_speed) {
-					extra_cost += YAPF_TILE_LENGTH * (min_speed - max_veh_speed);
+					segment_data.extra_cost += YAPF_TILE_LENGTH * (min_speed - max_veh_speed);
 				}
 			}
 
 			/* Finish if we already exceeded the maximum path cost (i.e. when
 			 * searching for the nearest depot). */
-			if (m_max_cost > 0 && (parent_cost + segment_entry_cost + segment_cost) > m_max_cost) {
-				end_segment_reason |= ESRB_PATH_TOO_LONG;
+			if (m_max_cost > 0 && (segment_data.parent_cost + segment_data.entry_cost + segment_data.segment_cost) > m_max_cost) {
+				segment_data.end_reason |= ESRB_PATH_TOO_LONG;
 			}
 
 			/* Move to the next tile/trackdir. */
@@ -655,17 +664,17 @@ public:
 			assert(tf_local.m_railtypes == Yapf().GetCompatibleRailTypes());
 			assert(tf_local.m_pPerf == &Yapf().m_perf_ts_cost);
 
-			if (!tf_local.Follow(cur)) {
+			if (!tf_local.Follow(segment_data.pos)) {
 				assert(tf_local.m_err != TrackFollower::EC_NONE);
 				/* Can't move to the next tile (EOL?). */
 				if (tf_local.m_err == TrackFollower::EC_RAIL_TYPE) {
-					end_segment_reason |= ESRB_RAIL_TYPE;
+					segment_data.end_reason |= ESRB_RAIL_TYPE;
 				} else {
-					end_segment_reason |= ESRB_DEAD_END;
+					segment_data.end_reason |= ESRB_DEAD_END;
 				}
 
-				if (TrackFollower::DoTrackMasking() && !HasOnewaySignalBlockingPos(cur)) {
-					end_segment_reason |= ESRB_SAFE_TILE;
+				if (TrackFollower::DoTrackMasking() && !HasOnewaySignalBlockingPos(segment_data.pos)) {
+					segment_data.end_reason |= ESRB_SAFE_TILE;
 				}
 				break;
 			}
@@ -673,7 +682,7 @@ public:
 			/* Check if the next tile is not a choice. */
 			if (!tf_local.m_new.is_single()) {
 				/* More than one segment will follow. Close this one. */
-				end_segment_reason |= ESRB_CHOICE_FOLLOWS;
+				segment_data.end_reason |= ESRB_CHOICE_FOLLOWS;
 				break;
 			}
 
@@ -683,11 +692,11 @@ public:
 			if (TrackFollower::DoTrackMasking()) {
 				if (HasSignalAlongPos(next) && IsPbsSignal(GetSignalType(next))) {
 					/* Possible safe tile. */
-					end_segment_reason |= ESRB_SAFE_TILE;
+					segment_data.end_reason |= ESRB_SAFE_TILE;
 				} else if (HasSignalAgainstPos(next) && GetSignalType(next) == SIGTYPE_PBS_ONEWAY) {
 					/* Possible safe tile, but not so good as it's the back of a signal... */
-					end_segment_reason |= ESRB_SAFE_TILE | ESRB_DEAD_END;
-					extra_cost += Yapf().PfGetSettings().rail_lastred_exit_penalty;
+					segment_data.end_reason |= ESRB_SAFE_TILE | ESRB_DEAD_END;
+					segment_data.extra_cost += Yapf().PfGetSettings().rail_lastred_exit_penalty;
 				}
 			}
 
@@ -697,44 +706,44 @@ public:
 				assert(next_rail_type == rail_type);
 			} else if (GetTileRailType(next.tile, TrackdirToTrack(next.td)) != rail_type) {
 				/* Segment must consist from the same rail_type tiles. */
-				end_segment_reason |= ESRB_RAIL_TYPE;
+				segment_data.end_reason |= ESRB_RAIL_TYPE;
 				break;
 			}
 
 			/* Avoid infinite looping. */
 			if (next == n.GetPos()) {
-				end_segment_reason |= ESRB_INFINITE_LOOP;
+				segment_data.end_reason |= ESRB_INFINITE_LOOP;
 				break;
 			}
 
-			if (segment_cost > s_max_segment_cost) {
+			if (segment_data.segment_cost > s_max_segment_cost) {
 				/* Potentially in the infinite loop (or only very long segment?). We should
 				 * not force it to finish prematurely unless we are on a regular tile. */
 				if (!tf->m_new.in_wormhole() && IsNormalRailTile(tf->m_new.tile)) {
-					end_segment_reason |= ESRB_SEGMENT_TOO_LONG;
+					segment_data.end_reason |= ESRB_SEGMENT_TOO_LONG;
 					break;
 				}
 			}
 
 			/* Any other reason bit set? */
-			if (end_segment_reason != ESRB_NONE) {
+			if (segment_data.end_reason != ESRB_NONE) {
 				break;
 			}
 
 			/* Transition cost (cost of the move from previous tile) */
-			segment_cost += TransitionCost (cur, next);
+			segment_data.segment_cost += TransitionCost (segment_data.pos, next);
 
 			/* For the next loop set new prev and cur tile info. */
-			prev = cur.tile;
-			cur = next;
+			prev = segment_data.pos.tile;
+			segment_data.pos = next;
 		} // for (;;)
 
 cached_segment:
 
 		bool target_seen = false;
-		if ((end_segment_reason & ESRB_POSSIBLE_TARGET) != ESRB_NONE) {
+		if ((segment_data.end_reason & ESRB_POSSIBLE_TARGET) != ESRB_NONE) {
 			/* Depot, station or waypoint. */
-			if (Yapf().PfDetectDestination(cur)) {
+			if (Yapf().PfDetectDestination(segment_data.pos)) {
 				/* Destination found. */
 				target_seen = true;
 			}
@@ -743,14 +752,15 @@ cached_segment:
 		/* Update the segment if needed. */
 		if (!is_cached_segment) {
 			/* Write back the segment information so it can be reused the next time. */
-			segment.m_cost = segment_cost;
-			segment.m_end_segment_reason = end_segment_reason & ESRB_CACHED_MASK;
+			segment.m_cost = segment_data.segment_cost;
+			segment.m_last_signal = segment_data.last_signal;
+			segment.m_end_segment_reason = segment_data.end_reason & ESRB_CACHED_MASK;
 			/* Save end of segment back to the node. */
-			n.SetLastPos(cur);
+			n.SetLastPos(segment_data.pos);
 		}
 
 		/* Do we have an excuse why not to continue pathfinding in this direction? */
-		if (!target_seen && (end_segment_reason & ESRB_ABORT_PF_MASK) != ESRB_NONE) {
+		if (!target_seen && (segment_data.end_reason & ESRB_ABORT_PF_MASK) != ESRB_NONE) {
 			/* Reason to not continue. Stop this PF branch. */
 			return false;
 		}
@@ -762,27 +772,27 @@ cached_segment:
 			if (n.flags_u.flags_s.m_last_signal_was_red) {
 				if (n.m_last_red_signal_type == SIGTYPE_EXIT) {
 					/* last signal was red pre-signal-exit */
-					extra_cost += Yapf().PfGetSettings().rail_lastred_exit_penalty;
+					segment_data.extra_cost += Yapf().PfGetSettings().rail_lastred_exit_penalty;
 				} else if (!IsPbsSignal(n.m_last_red_signal_type)) {
 					/* Last signal was red, but not exit or path signal. */
-					extra_cost += Yapf().PfGetSettings().rail_lastred_penalty;
+					segment_data.extra_cost += Yapf().PfGetSettings().rail_lastred_penalty;
 				}
 			}
 
 			/* Station platform-length penalty. */
-			if ((end_segment_reason & ESRB_STATION) != ESRB_NONE) {
+			if ((segment_data.end_reason & ESRB_STATION) != ESRB_NONE) {
 				const BaseStation *st = BaseStation::GetByTile(n.GetLastPos().tile);
 				assert(st != NULL);
 				uint platform_length = st->GetPlatformLength(n.GetLastPos().tile, ReverseDiagDir(TrackdirToExitdir(n.GetLastPos().td)));
 				/* Reduce the extra cost caused by passing-station penalty (each station receives it in the segment cost). */
-				extra_cost -= Yapf().PfGetSettings().rail_station_penalty * platform_length;
+				segment_data.extra_cost -= Yapf().PfGetSettings().rail_station_penalty * platform_length;
 				/* Add penalty for the inappropriate platform length. */
-				extra_cost += PlatformLengthPenalty(platform_length);
+				segment_data.extra_cost += PlatformLengthPenalty(platform_length);
 			}
 		}
 
 		/* total node cost */
-		n.m_cost = parent_cost + segment_entry_cost + segment_cost + extra_cost;
+		n.m_cost = segment_data.parent_cost + segment_data.entry_cost + segment_data.segment_cost + segment_data.extra_cost;
 
 		return true;
 	}
