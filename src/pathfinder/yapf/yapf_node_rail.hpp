@@ -154,12 +154,6 @@ struct CYapfRailNodeT
 		return m_segment->m_last;
 	}
 
-	inline void SetLastPos(const PathPos &pos)
-	{
-		assert(m_segment != NULL);
-		m_segment->m_last = pos;
-	}
-
 	template <class Tbase, class Tfunc, class Tpf>
 	bool IterateTiles(const Train *v, Tpf &yapf, Tbase &obj, bool (Tfunc::*func)(const PathPos&, PathPos*), PathPos *pos = NULL) const
 	{

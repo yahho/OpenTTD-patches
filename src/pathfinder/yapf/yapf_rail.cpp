@@ -752,11 +752,10 @@ cached_segment:
 		/* Update the segment if needed. */
 		if (!is_cached_segment) {
 			/* Write back the segment information so it can be reused the next time. */
+			segment.m_last = segment_data.pos;
 			segment.m_cost = segment_data.segment_cost;
 			segment.m_last_signal = segment_data.last_signal;
 			segment.m_end_segment_reason = segment_data.end_reason & ESRB_CACHED_MASK;
-			/* Save end of segment back to the node. */
-			n.SetLastPos(segment_data.pos);
 		}
 
 		/* Do we have an excuse why not to continue pathfinding in this direction? */
