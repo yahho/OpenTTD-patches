@@ -276,31 +276,29 @@ public:
 		return uphill ? Yapf().PfGetSettings().rail_slope_penalty : 0;
 	}
 
-	inline int CurveCost(Trackdir td1, Trackdir td2)
+	inline int TransitionCost (const PathPos &pos1, const PathPos &pos2)
 	{
-		assert(IsValidTrackdir(td1));
-		assert(IsValidTrackdir(td2));
+		assert(IsValidTrackdir(pos1.td));
+		assert(IsValidTrackdir(pos2.td));
+
 		int cost = 0;
 		if (TrackFollower::Allow90degTurns()
-				&& ((TrackdirToTrackdirBits(td2) & (TrackdirBits)TrackdirCrossesTrackdirs(td1)) != 0)) {
+				&& ((TrackdirToTrackdirBits(pos2.td) & (TrackdirBits)TrackdirCrossesTrackdirs(pos1.td)) != 0)) {
 			/* 90-deg curve penalty */
 			cost += Yapf().PfGetSettings().rail_curve90_penalty;
-		} else if (td2 != NextTrackdir(td1)) {
+		} else if (pos2.td != NextTrackdir(pos1.td)) {
 			/* 45-deg curve penalty */
 			cost += Yapf().PfGetSettings().rail_curve45_penalty;
 		}
-		return cost;
-	}
 
-	inline int SwitchCost(const PathPos &pos1, const PathPos &pos2)
-	{
 		if (!pos1.in_wormhole() && IsRailwayTile(pos1.tile) && !pos2.in_wormhole() && IsRailwayTile(pos2.tile)) {
 			DiagDirection exitdir = TrackdirToExitdir(pos1.td);
 			bool t1 = KillFirstBit(GetTrackBits(pos1.tile) & DiagdirReachesTracks(ReverseDiagDir(exitdir))) != TRACK_BIT_NONE;
 			bool t2 = KillFirstBit(GetTrackBits(pos2.tile) & DiagdirReachesTracks(exitdir)) != TRACK_BIT_NONE;
-			if (t1 && t2) return Yapf().PfGetSettings().rail_doubleslip_penalty;
+			if (t1 && t2) cost += Yapf().PfGetSettings().rail_doubleslip_penalty;
 		}
-		return 0;
+
+		return cost;
 	}
 
 	/** Return one tile cost (base cost + level crossing penalty). */
@@ -501,7 +499,7 @@ public:
 
 		/* First transition cost goes to segment entry cost */
 		PathPos ppos = n.m_parent->GetLastPos();
-		int segment_entry_cost = CurveCost(ppos.td, cur.td) + SwitchCost(ppos, cur);
+		int segment_entry_cost = TransitionCost (ppos, cur);
 		int segment_cost = 0;
 
 		/* It is the right time now to look if we can reuse the cached segment cost. */
@@ -708,8 +706,7 @@ public:
 			}
 
 			/* Transition cost (cost of the move from previous tile) */
-			segment_cost += CurveCost(cur.td, next.td);
-			segment_cost += SwitchCost(cur, next);
+			segment_cost += TransitionCost (cur, next);
 
 			/* For the next loop set new prev and cur tile info. */
 			prev = cur.tile;
