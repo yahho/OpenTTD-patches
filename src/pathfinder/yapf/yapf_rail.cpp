@@ -1214,7 +1214,6 @@ protected:
 private:
 	PathPos   m_res_dest;         ///< The reservation target
 	Node      *m_res_node;        ///< The reservation target node
-	TileIndex m_origin_tile;      ///< Tile our reservation will originate from
 
 public:
 	/** Set the target to where the reservation should be extended. */
@@ -1250,8 +1249,6 @@ public:
 	/** Try to reserve the path till the reservation target. */
 	bool TryReservePath(TileIndex origin, PathPos *target = NULL)
 	{
-		m_origin_tile = origin;
-
 		if (target != NULL) *target = m_res_dest;
 
 		/* Don't bother if the target is reserved. */
@@ -1263,14 +1260,14 @@ public:
 		for (Node *node = m_res_node; node->m_parent != NULL; node = node->m_parent) {
 			ft.SetPos (node->GetPos());
 			for (;;) {
-				if (!ReserveSingleTrack (ft.m_new, m_origin_tile)) {
+				if (!ReserveSingleTrack (ft.m_new, origin)) {
 					/* Reservation failed, undo. */
 					Node *failed_node = node;
 					PathPos res_fail = ft.m_new;
 					for (node = m_res_node; node != failed_node; node = node->m_parent) {
 						ft.SetPos (node->GetPos());
 						for (;;) {
-							UnreserveSingleTrack (ft.m_new, m_origin_tile);
+							UnreserveSingleTrack (ft.m_new, origin);
 							if (ft.m_new == m_res_dest) break;
 							if (ft.m_new == node->GetLastPos()) break;
 							ft.FollowNext();
@@ -1280,7 +1277,7 @@ public:
 					while (ft.m_new != res_fail) {
 						assert (ft.m_new != m_res_dest);
 						assert (ft.m_new != node->GetLastPos());
-						UnreserveSingleTrack (ft.m_new, m_origin_tile);
+						UnreserveSingleTrack (ft.m_new, origin);
 						ft.FollowNext();
 					}
 					return false;
