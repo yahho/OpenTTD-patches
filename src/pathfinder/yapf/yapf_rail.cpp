@@ -1159,15 +1159,6 @@ private:
 	Node      *m_res_node;        ///< The reservation target node
 	TileIndex m_origin_tile;      ///< Tile our reservation will originate from
 
-	bool FindSafePositionProc(const PathPos &pos, PathPos*)
-	{
-		if (IsSafeWaitingPosition(Yapf().GetVehicle(), pos, !TrackFollower::Allow90degTurns())) {
-			m_res_dest = pos;
-			return false;   // Stop iterating segment
-		}
-		return true;
-	}
-
 	/** Try to reserve a single track/platform. */
 	bool ReserveSingleTrack(const PathPos &pos, PathPos *fail)
 	{
@@ -1239,9 +1230,19 @@ public:
 		/* We will never pass more than two signals, no need to check for a safe tile. */
 		if (node->m_parent->m_num_signals_passed >= 2) return;
 
-		if (!node->IterateTiles(Yapf().GetVehicle(), Yapf(), *this, &CYapfReserveTrack<Types>::FindSafePositionProc)) {
-			m_res_node = node;
+		const Train *v = Yapf().GetVehicle();
+		TrackFollower ft (v, Yapf().GetCompatibleRailTypes());
+		ft.SetPos (node->GetPos());
+
+		while (!IsSafeWaitingPosition(v, ft.m_new, !TrackFollower::Allow90degTurns())) {
+			if (ft.m_new == node->GetLastPos()) return; // no safe position found in node
+			bool follow = ft.FollowNext();
+			assert (follow);
+			assert (ft.m_new.is_single());
 		}
+
+		m_res_dest = ft.m_new;
+		m_res_node = node;
 	}
 
 	/** Try to reserve the path till the reservation target. */
