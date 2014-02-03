@@ -1195,10 +1195,8 @@ private:
 	}
 
 	/** Unreserve a single track/platform. Stops when the previous failer is reached. */
-	bool UnreserveSingleTrack(const PathPos &pos, PathPos *stop)
+	bool UnreserveSingleTrack(const PathPos &pos)
 	{
-		if (stop != NULL && pos == *stop) return false;
-
 		if (!pos.in_wormhole() && IsRailStationTile(pos.tile)) {
 			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
 			TileIndex     t = pos.tile;
@@ -1267,12 +1265,12 @@ public:
 					Node *failed_node = node;
 					for (node = m_res_node; node != failed_node; node = node->m_parent) {
 						ft.SetPos (node->GetPos());
-						while (UnreserveSingleTrack(ft.m_new, NULL) && ft.m_new != node->GetLastPos()) {
+						while (UnreserveSingleTrack(ft.m_new) && ft.m_new != node->GetLastPos()) {
 							ft.FollowNext();
 						}
 					}
 					ft.SetPos (failed_node->GetPos());
-					while (UnreserveSingleTrack(ft.m_new, &res_fail) && ft.m_new != node->GetLastPos()) {
+					while (ft.m_new != res_fail && UnreserveSingleTrack(ft.m_new) && ft.m_new != node->GetLastPos()) {
 						ft.FollowNext();
 					}
 					return false;
