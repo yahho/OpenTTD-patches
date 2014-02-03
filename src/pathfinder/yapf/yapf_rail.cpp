@@ -1195,7 +1195,7 @@ private:
 	}
 
 	/** Unreserve a single track/platform. Stops when the previous failer is reached. */
-	bool UnreserveSingleTrack(const PathPos &pos)
+	void UnreserveSingleTrack(const PathPos &pos)
 	{
 		if (!pos.in_wormhole() && IsRailStationTile(pos.tile)) {
 			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
@@ -1208,8 +1208,6 @@ private:
 		} else {
 			UnreserveRailTrack(pos);
 		}
-
-		return pos != m_res_dest;
 	}
 
 public:
@@ -1265,12 +1263,18 @@ public:
 					Node *failed_node = node;
 					for (node = m_res_node; node != failed_node; node = node->m_parent) {
 						ft.SetPos (node->GetPos());
-						while (UnreserveSingleTrack(ft.m_new) && ft.m_new != node->GetLastPos()) {
+						for (;;) {
+							UnreserveSingleTrack(ft.m_new);
+							if (ft.m_new == m_res_dest) break;
+							if (ft.m_new == node->GetLastPos()) break;
 							ft.FollowNext();
 						}
 					}
 					ft.SetPos (failed_node->GetPos());
-					while (ft.m_new != res_fail && UnreserveSingleTrack(ft.m_new) && ft.m_new != node->GetLastPos()) {
+					while (ft.m_new != res_fail) {
+						assert (ft.m_new != m_res_dest);
+						assert (ft.m_new != node->GetLastPos());
+						UnreserveSingleTrack(ft.m_new);
 						ft.FollowNext();
 					}
 					return false;
