@@ -1191,7 +1191,7 @@ private:
 			}
 		}
 
-		return pos != m_res_dest;
+		return true;
 	}
 
 	/** Unreserve a single track/platform. Stops when the previous failer is reached. */
@@ -1253,20 +1253,36 @@ public:
 		if (target != NULL) *target = m_res_dest;
 
 		/* Don't bother if the target is reserved. */
-		if (!IsWaitingPositionFree(Yapf().GetVehicle(), m_res_dest)) return false;
+		const Train *v = Yapf().GetVehicle();
+		if (!IsWaitingPositionFree(v, m_res_dest)) return false;
 
+		TrackFollower ft (v, Yapf().GetCompatibleRailTypes());
 		PathPos res_fail;
 
 		for (Node *node = m_res_node; node->m_parent != NULL; node = node->m_parent) {
-			node->IterateTiles(Yapf().GetVehicle(), Yapf(), *this, &CYapfReserveTrack<Types>::ReserveSingleTrack, &res_fail);
-			if (res_fail.tile != INVALID_TILE) {
-				/* Reservation failed, undo. */
-				Node *failed_node = node;
-				for (node = m_res_node; node != failed_node; node = node->m_parent) {
-					node->IterateTiles(Yapf().GetVehicle(), Yapf(), *this, &CYapfReserveTrack<Types>::UnreserveSingleTrack, NULL);
+			ft.SetPos (node->GetPos());
+			for (;;) {
+				if (!ReserveSingleTrack (ft.m_new, &res_fail)) {
+					/* Reservation failed, undo. */
+					Node *failed_node = node;
+					for (node = m_res_node; node != failed_node; node = node->m_parent) {
+						ft.SetPos (node->GetPos());
+						while (UnreserveSingleTrack(ft.m_new, NULL) && ft.m_new != node->GetLastPos()) {
+							ft.FollowNext();
+						}
+					}
+					ft.SetPos (failed_node->GetPos());
+					while (UnreserveSingleTrack(ft.m_new, &res_fail) && ft.m_new != node->GetLastPos()) {
+						ft.FollowNext();
+					}
+					return false;
 				}
-				failed_node->IterateTiles(Yapf().GetVehicle(), Yapf(), *this, &CYapfReserveTrack<Types>::UnreserveSingleTrack, &res_fail);
-				return false;
+
+				if (ft.m_new == m_res_dest) break;
+				if (ft.m_new == node->GetLastPos()) break;
+				bool follow = ft.FollowNext();
+				assert (follow);
+				assert (ft.m_new.is_single());
 			}
 		}
 

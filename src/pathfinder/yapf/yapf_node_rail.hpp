@@ -154,21 +154,6 @@ struct CYapfRailNodeT
 		return m_segment->m_last;
 	}
 
-	template <class Tbase, class Tfunc, class Tpf>
-	bool IterateTiles(const Train *v, Tpf &yapf, Tbase &obj, bool (Tfunc::*func)(const PathPos&, PathPos*), PathPos *pos = NULL) const
-	{
-		typename Tbase::TrackFollower ft(v, yapf.GetCompatibleRailTypes());
-		ft.SetPos(base::GetPos());
-
-		while (ft.m_new != GetLastPos()) {
-			if (!((obj.*func)(ft.m_new, pos))) return false;
-			ft.FollowNext();
-			assert(ft.m_new.is_single());
-		}
-
-		return (obj.*func)(ft.m_new, pos);
-	}
-
 	void Dump(DumpTarget &dmp) const
 	{
 		base::Dump(dmp);
