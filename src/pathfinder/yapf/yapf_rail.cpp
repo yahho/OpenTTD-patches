@@ -232,14 +232,23 @@ public:
 		m_treat_first_red_two_way_signal_as_eol = treat_first_red_two_way_signal_as_eol;
 	}
 
+	/** Create and add a new node */
+	inline void AddStartupNode (const PathPos &pos, bool is_choice, int cost = 0)
+	{
+		Node *node = Types::Astar::CreateNewNode (NULL, pos, is_choice);
+		node->m_cost = cost;
+		PfNodeCacheFetch(*node);
+		Types::Astar::InsertInitialNode(node);
+	}
+
 	/** Called when YAPF needs to place origin nodes into open list */
 	void PfSetStartupNodes()
 	{
 		if (m_org.tile != INVALID_TILE && m_org.td != INVALID_TRACKDIR) {
-			Yapf().AddStartupNode(m_org, false);
+			AddStartupNode(m_org, false);
 		}
 		if (m_rev.tile != INVALID_TILE && m_rev.td != INVALID_TRACKDIR) {
-			Yapf().AddStartupNode(m_rev, false, m_reverse_penalty);
+			AddStartupNode(m_rev, false, m_reverse_penalty);
 		}
 	}
 
@@ -1583,48 +1592,42 @@ struct CYapfRail_TypesT
 };
 
 struct CYapfRail1
-	: CYapfBaseT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
-	, CYapfRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
 	, CYapfDestinationTileOrStationRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
 	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
 {
 };
 
 struct CYapfRail2
-	: CYapfBaseT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
-	, CYapfRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
 	, CYapfDestinationTileOrStationRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
 	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
 {
 };
 
 struct CYapfAnyDepotRail1
-	: CYapfBaseT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
-	, CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
 	, CYapfDestinationAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
 	, CYapfFollowAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
 {
 };
 
 struct CYapfAnyDepotRail2
-	: CYapfBaseT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
-	, CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
 	, CYapfDestinationAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
 	, CYapfFollowAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
 {
 };
 
 struct CYapfAnySafeTileRail1
-	: CYapfBaseT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
-	, CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
 	, CYapfDestinationAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
 	, CYapfFollowAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
 {
 };
 
 struct CYapfAnySafeTileRail2
-	: CYapfBaseT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
-	, CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
 	, CYapfDestinationAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
 	, CYapfFollowAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
 {

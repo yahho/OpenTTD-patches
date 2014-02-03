@@ -60,21 +60,6 @@ protected:
 	}
 
 public:
-	/** Add new node (created by CreateNewNode and filled with data) into open list */
-	inline void AddStartupNode(Node& n)
-	{
-		Yapf().PfNodeCacheFetch(n);
-		Yapf().Astar::InsertInitialNode(&n);
-	}
-
-	/** Create and add a new node */
-	inline void AddStartupNode (const PathPos &pos, bool is_choice, int cost = 0)
-	{
-		Node &node = *Yapf().Astar::CreateNewNode (NULL, pos, is_choice);
-		node.m_cost = cost;
-		AddStartupNode (node);
-	}
-
 	/* methods that should be implemented at derived class Types::Tpf (derived from CYapfBaseT) */
 
 #if 0
