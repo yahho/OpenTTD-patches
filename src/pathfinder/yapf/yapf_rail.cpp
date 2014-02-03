@@ -1139,6 +1139,42 @@ public:
 };
 
 
+/**
+ * Try to reserve a single track/platform
+ * @param pos The position to reserve (last tile for platforms)
+ * @param origin If pos is a platform, consider the platform to begin right after this tile
+ * @return Whether reservation succeeded
+ */
+static bool ReserveSingleTrack (const PathPos &pos, TileIndex origin = INVALID_TILE)
+{
+	if (pos.in_wormhole() || !IsRailStationTile(pos.tile)) {
+		return TryReserveRailTrack(pos);
+	}
+
+	TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
+	TileIndex t = pos.tile;
+
+	do {
+		if (HasStationReservation(t)) {
+			/* Platform could not be reserved, undo. */
+			diff = -diff;
+			while (t != pos.tile) {
+				t = TILE_ADD(t, diff);
+				SetRailStationReservation(t, false);
+			}
+			return false;
+		}
+
+		SetRailStationReservation(t, true);
+		MarkTileDirtyByTile(t);
+		t = TILE_ADD(t, diff);
+	} while (IsCompatibleTrainStationTile(t, pos.tile) && t != origin);
+
+	TriggerStationRandomisation(NULL, pos.tile, SRT_PATH_RESERVATION);
+
+	return true;
+}
+
 template <class Types>
 class CYapfReserveTrack
 {
@@ -1158,39 +1194,6 @@ private:
 	PathPos   m_res_dest;         ///< The reservation target
 	Node      *m_res_node;        ///< The reservation target node
 	TileIndex m_origin_tile;      ///< Tile our reservation will originate from
-
-	/** Try to reserve a single track/platform. */
-	bool ReserveSingleTrack(const PathPos &pos)
-	{
-		if (!pos.in_wormhole() && IsRailStationTile(pos.tile)) {
-			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
-			TileIndex t = pos.tile;
-
-			do {
-				if (HasStationReservation(t)) {
-					/* Platform could not be reserved, undo. */
-					TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(pos.td));
-					while (t != pos.tile) {
-						t = TILE_ADD(t, diff);
-						SetRailStationReservation(t, false);
-					}
-					return false;
-				}
-				SetRailStationReservation(t, true);
-				MarkTileDirtyByTile(t);
-				t = TILE_ADD(t, diff);
-			} while (IsCompatibleTrainStationTile(t, pos.tile) && t != m_origin_tile);
-
-			TriggerStationRandomisation(NULL, pos.tile, SRT_PATH_RESERVATION);
-		} else {
-			if (!TryReserveRailTrack(pos)) {
-				/* Tile couldn't be reserved, undo. */
-				return false;
-			}
-		}
-
-		return true;
-	}
 
 	/** Unreserve a single track/platform. Stops when the previous failer is reached. */
 	void UnreserveSingleTrack(const PathPos &pos)
@@ -1255,7 +1258,7 @@ public:
 		for (Node *node = m_res_node; node->m_parent != NULL; node = node->m_parent) {
 			ft.SetPos (node->GetPos());
 			for (;;) {
-				if (!ReserveSingleTrack(ft.m_new)) {
+				if (!ReserveSingleTrack (ft.m_new, m_origin_tile)) {
 					/* Reservation failed, undo. */
 					Node *failed_node = node;
 					PathPos res_fail = ft.m_new;
