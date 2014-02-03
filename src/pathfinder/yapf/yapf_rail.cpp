@@ -1160,7 +1160,7 @@ private:
 	TileIndex m_origin_tile;      ///< Tile our reservation will originate from
 
 	/** Try to reserve a single track/platform. */
-	bool ReserveSingleTrack(const PathPos &pos, PathPos *fail)
+	bool ReserveSingleTrack(const PathPos &pos)
 	{
 		if (!pos.in_wormhole() && IsRailStationTile(pos.tile)) {
 			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
@@ -1174,7 +1174,6 @@ private:
 						t = TILE_ADD(t, diff);
 						SetRailStationReservation(t, false);
 					}
-					*fail = pos;
 					return false;
 				}
 				SetRailStationReservation(t, true);
@@ -1186,7 +1185,6 @@ private:
 		} else {
 			if (!TryReserveRailTrack(pos)) {
 				/* Tile couldn't be reserved, undo. */
-				*fail = pos;
 				return false;
 			}
 		}
@@ -1253,14 +1251,14 @@ public:
 		if (!IsWaitingPositionFree(v, m_res_dest)) return false;
 
 		TrackFollower ft (v, Yapf().GetCompatibleRailTypes());
-		PathPos res_fail;
 
 		for (Node *node = m_res_node; node->m_parent != NULL; node = node->m_parent) {
 			ft.SetPos (node->GetPos());
 			for (;;) {
-				if (!ReserveSingleTrack (ft.m_new, &res_fail)) {
+				if (!ReserveSingleTrack(ft.m_new)) {
 					/* Reservation failed, undo. */
 					Node *failed_node = node;
+					PathPos res_fail = ft.m_new;
 					for (node = m_res_node; node != failed_node; node = node->m_parent) {
 						ft.SetPos (node->GetPos());
 						for (;;) {
