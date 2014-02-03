@@ -2045,7 +2045,6 @@
     <ClInclude Include="..\src\pathfinder\yapf\astar.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf.h" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf.hpp" />
-    <ClInclude Include="..\src\pathfinder\yapf\yapf_base.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf_node.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf_node_rail.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf_node_road.hpp" />

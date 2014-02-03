@@ -12312,10 +12312,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\pathfinder\yapf\yapf_base.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\pathfinder\yapf\yapf_node.hpp"
 				>
 			</File>

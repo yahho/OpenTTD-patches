@@ -1058,7 +1058,6 @@ pathfinder/npf/queue.h
 pathfinder/yapf/astar.hpp
 pathfinder/yapf/yapf.h
 pathfinder/yapf/yapf.hpp
-pathfinder/yapf/yapf_base.hpp
 pathfinder/yapf/yapf_node.hpp
 pathfinder/yapf/yapf_node_rail.hpp
 pathfinder/yapf/yapf_node_road.hpp
