@@ -1175,6 +1175,27 @@ static bool ReserveSingleTrack (const PathPos &pos, TileIndex origin = INVALID_T
 	return true;
 }
 
+/**
+ * Unreserve a single track/platform
+ * @param pos The position to reserve (last tile for platforms)
+ * @param origin If pos is a platform, consider the platform to begin right after this tile
+ */
+static void UnreserveSingleTrack (const PathPos &pos, TileIndex origin = INVALID_TILE)
+{
+	if (pos.in_wormhole() || !IsRailStationTile(pos.tile)) {
+		UnreserveRailTrack(pos);
+		return;
+	}
+
+	TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
+	TileIndex     t = pos.tile;
+	while (IsCompatibleTrainStationTile(t, pos.tile) && t != origin) {
+		assert(HasStationReservation(t));
+		SetRailStationReservation(t, false);
+		t = TILE_ADD(t, diff);
+	}
+}
+
 template <class Types>
 class CYapfReserveTrack
 {
@@ -1194,22 +1215,6 @@ private:
 	PathPos   m_res_dest;         ///< The reservation target
 	Node      *m_res_node;        ///< The reservation target node
 	TileIndex m_origin_tile;      ///< Tile our reservation will originate from
-
-	/** Unreserve a single track/platform. Stops when the previous failer is reached. */
-	void UnreserveSingleTrack(const PathPos &pos)
-	{
-		if (!pos.in_wormhole() && IsRailStationTile(pos.tile)) {
-			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
-			TileIndex     t = pos.tile;
-			while (IsCompatibleTrainStationTile(t, pos.tile) && t != m_origin_tile) {
-				assert(HasStationReservation(t));
-				SetRailStationReservation(t, false);
-				t = TILE_ADD(t, diff);
-			}
-		} else {
-			UnreserveRailTrack(pos);
-		}
-	}
 
 public:
 	/** Set the target to where the reservation should be extended. */
@@ -1265,7 +1270,7 @@ public:
 					for (node = m_res_node; node != failed_node; node = node->m_parent) {
 						ft.SetPos (node->GetPos());
 						for (;;) {
-							UnreserveSingleTrack(ft.m_new);
+							UnreserveSingleTrack (ft.m_new, m_origin_tile);
 							if (ft.m_new == m_res_dest) break;
 							if (ft.m_new == node->GetLastPos()) break;
 							ft.FollowNext();
@@ -1275,7 +1280,7 @@ public:
 					while (ft.m_new != res_fail) {
 						assert (ft.m_new != m_res_dest);
 						assert (ft.m_new != node->GetLastPos());
-						UnreserveSingleTrack(ft.m_new);
+						UnreserveSingleTrack (ft.m_new, m_origin_tile);
 						ft.FollowNext();
 					}
 					return false;
