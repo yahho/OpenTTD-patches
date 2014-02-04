@@ -222,9 +222,9 @@ public:
 	}
 
 	/** Create and add a new node */
-	inline void AddStartupNode (const PathPos &pos, bool is_choice, int cost = 0)
+	inline void AddStartupNode (const PathPos &pos, int cost = 0)
 	{
-		Node *node = Types::Astar::CreateNewNode (NULL, pos, is_choice);
+		Node *node = Types::Astar::CreateNewNode (NULL, pos, false);
 		node->m_cost = cost;
 		PfNodeCacheFetch(*node);
 		Types::Astar::InsertInitialNode(node);
@@ -233,7 +233,7 @@ public:
 	/** set origin */
 	void SetOrigin(const PathPos &pos)
 	{
-		AddStartupNode (pos, false);
+		AddStartupNode (pos);
 	}
 
 	/** set origin */
@@ -241,8 +241,8 @@ public:
 	{
 		m_treat_first_red_two_way_signal_as_eol = treat_first_red_two_way_signal_as_eol;
 
-		AddStartupNode (pos, false);
-		AddStartupNode (rev, false, reverse_penalty);
+		AddStartupNode (pos);
+		AddStartupNode (rev, reverse_penalty);
 	}
 
 	/** return true if first two-way signal should be treated as dead end */
