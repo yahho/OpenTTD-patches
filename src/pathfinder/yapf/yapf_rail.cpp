@@ -1413,6 +1413,8 @@ public:
 	 */
 	inline void PfFollowNode(Node& old_node)
 	{
+		assert (TrackFollower::DoTrackMasking());
+
 		TrackFollower F(Yapf().GetVehicle(), Yapf().GetCompatibleRailTypes());
 		if (F.Follow(old_node.GetLastPos()) && F.MaskReservedTracks()) {
 			Yapf().AddMultipleNodes(&old_node, F);

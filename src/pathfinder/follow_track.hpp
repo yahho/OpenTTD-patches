@@ -497,11 +497,6 @@ struct CFollowTrackRailT : CFollowTrack<CFollowTrackRailBase>
 	inline static bool Allow90degTurns() { return T90deg_turns_allowed; }
 
 	static inline bool DoTrackMasking() { return Tmask_reserved_tracks; }
-
-	inline bool MaskReservedTracks()
-	{
-		return !Tmask_reserved_tracks || CFollowTrackRailBase::MaskReservedTracks();
-	}
 };
 
 typedef CFollowTrackRailT<false, true > CFollowTrackRail90;
