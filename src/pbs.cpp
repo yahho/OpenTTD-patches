@@ -443,7 +443,7 @@ PBSPositionState CheckWaitingPosition(const Train *v, const PathPos &pos, bool f
 	}
 
 	/* Check next tile. */
-	CFollowTrackRail ft(v, !forbid_90deg, true);
+	CFollowTrackRail ft(v, !forbid_90deg, v->railtype);
 
 	/* End of track? Safe position. */
 	if (!ft.Follow(pos)) return state;

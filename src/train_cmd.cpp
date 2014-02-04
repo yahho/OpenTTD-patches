@@ -2307,7 +2307,7 @@ void FreeTrainTrackReservation(const Train *v)
 	/* Don't free reservation if it's not ours. */
 	if (!pos.in_wormhole() && TracksOverlap(GetReservedTrackbits(pos.tile) | TrackToTrackBits(TrackdirToTrack(pos.td)))) return;
 
-	CFollowTrackRail ft(v, true, true);
+	CFollowTrackRail ft(v, true, v->railtype);
 	ft.SetPos(pos);
 
 	while (ft.FollowNext()) {
