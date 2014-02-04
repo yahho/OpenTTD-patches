@@ -134,9 +134,6 @@ protected:
 	const YAPFSettings *m_settings; ///< current settings (_settings_game.yapf)
 	const Train        *m_veh;      ///< vehicle that we are trying to drive
 
-	PathPos m_org;                            ///< first origin position
-	PathPos m_rev;                            ///< second (reversed) origin position
-	int     m_reverse_penalty;                ///< penalty to be added for using the reversed origin
 	bool    m_treat_first_red_two_way_signal_as_eol; ///< in some cases (leaving station) we need to handle first two-way signal differently
 
 	/**
@@ -166,6 +163,7 @@ protected:
 	CYapfRailT()
 		: m_settings(&_settings_game.pf.yapf)
 		, m_veh(NULL)
+		, m_treat_first_red_two_way_signal_as_eol(true)
 		, m_max_cost(0)
 		, m_disable_cache(false)
 		, m_global_cache(stGetGlobalCache())
@@ -223,15 +221,6 @@ public:
 		return m_veh;
 	}
 
-	/** set origin */
-	void SetOrigin(const PathPos &pos, const PathPos &rev = PathPos(), int reverse_penalty = 0, bool treat_first_red_two_way_signal_as_eol = true)
-	{
-		m_org = pos;
-		m_rev = rev;
-		m_reverse_penalty = reverse_penalty;
-		m_treat_first_red_two_way_signal_as_eol = treat_first_red_two_way_signal_as_eol;
-	}
-
 	/** Create and add a new node */
 	inline void AddStartupNode (const PathPos &pos, bool is_choice, int cost = 0)
 	{
@@ -241,15 +230,19 @@ public:
 		Types::Astar::InsertInitialNode(node);
 	}
 
-	/** Called when YAPF needs to place origin nodes into open list */
-	void PfSetStartupNodes()
+	/** set origin */
+	void SetOrigin(const PathPos &pos)
 	{
-		if (m_org.tile != INVALID_TILE && m_org.td != INVALID_TRACKDIR) {
-			AddStartupNode(m_org, false);
-		}
-		if (m_rev.tile != INVALID_TILE && m_rev.td != INVALID_TRACKDIR) {
-			AddStartupNode(m_rev, false, m_reverse_penalty);
-		}
+		AddStartupNode (pos, false);
+	}
+
+	/** set origin */
+	void SetOrigin(const PathPos &pos, const PathPos &rev, int reverse_penalty, bool treat_first_red_two_way_signal_as_eol)
+	{
+		m_treat_first_red_two_way_signal_as_eol = treat_first_red_two_way_signal_as_eol;
+
+		AddStartupNode (pos, false);
+		AddStartupNode (rev, false, reverse_penalty);
 	}
 
 	/** return true if first two-way signal should be treated as dead end */
@@ -914,7 +907,6 @@ public:
 		perf.Start();
 #endif /* !NO_DEBUG_MESSAGES */
 
-		Yapf().PfSetStartupNodes();
 		bool bDestFound = Types::Astar::FindPath (Follow, PfGetSettings().max_search_nodes);
 
 #ifndef NO_DEBUG_MESSAGES
