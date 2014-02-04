@@ -117,7 +117,7 @@ struct CSegmentCostCacheT
 };
 
 
-template <class Types>
+template <class Types, bool Tmask_reserved_tracks>
 class CYapfRailT : public Types::Astar
 {
 public:
@@ -566,7 +566,7 @@ public:
 				/* We will end in this pass (station is possible target) */
 				segment->end_reason |= ESRB_STATION;
 
-			} else if (TrackFollower::DoTrackMasking()) {
+			} else if (Tmask_reserved_tracks) {
 				/* Searching for a safe tile? */
 				if (HasSignalAlongPos(segment->pos) && !IsPbsSignal(GetSignalType(segment->pos))) {
 					segment->end_reason |= ESRB_SAFE_TILE;
@@ -609,7 +609,7 @@ public:
 					segment->end_reason |= ESRB_DEAD_END;
 				}
 
-				if (TrackFollower::DoTrackMasking() && !HasOnewaySignalBlockingPos(segment->pos)) {
+				if (Tmask_reserved_tracks && !HasOnewaySignalBlockingPos(segment->pos)) {
 					segment->end_reason |= ESRB_SAFE_TILE;
 				}
 				break;
@@ -624,7 +624,7 @@ public:
 
 			/* Gather the next tile/trackdir. */
 
-			if (TrackFollower::DoTrackMasking()) {
+			if (Tmask_reserved_tracks) {
 				if (HasSignalAlongPos(tf_local.m_new) && IsPbsSignal(GetSignalType(tf_local.m_new))) {
 					/* Possible safe tile. */
 					segment->end_reason |= ESRB_SAFE_TILE;
@@ -1413,8 +1413,6 @@ public:
 	 */
 	inline void PfFollowNode(Node& old_node)
 	{
-		assert (TrackFollower::DoTrackMasking());
-
 		TrackFollower F(Yapf().GetVehicle(), Yapf().GetCompatibleRailTypes());
 		if (F.Follow(old_node.GetLastPos()) && F.MaskReservedTracks()) {
 			Yapf().AddMultipleNodes(&old_node, F);
@@ -1616,44 +1614,44 @@ struct CYapfRail_TypesT
 };
 
 struct CYapfRail1
-	: CYapfRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90>, false>
 	, CYapfDestinationTileOrStationRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
 	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
 {
 };
 
 struct CYapfRail2
-	: CYapfRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90>, false>
 	, CYapfDestinationTileOrStationRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
 	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
 {
 };
 
 struct CYapfAnyDepotRail1
-	: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90>, false>
 	, CYapfDestinationAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
 	, CYapfFollowAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
 {
 };
 
 struct CYapfAnyDepotRail2
-	: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90>, false>
 	, CYapfDestinationAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
 	, CYapfFollowAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
 {
 };
 
 struct CYapfAnySafeTileRail1
-	: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
-	, CYapfDestinationAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
-	, CYapfFollowAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackFreeRail90> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackRail90>, true>
+	, CYapfDestinationAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackRail90> >
+	, CYapfFollowAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackRail90> >
 {
 };
 
 struct CYapfAnySafeTileRail2
-	: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
-	, CYapfDestinationAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
-	, CYapfFollowAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackFreeRailNo90> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackRailNo90>, true>
+	, CYapfDestinationAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackRailNo90> >
+	, CYapfFollowAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackRailNo90> >
 {
 };
 

@@ -481,7 +481,7 @@ struct CFollowTrackRailBase : CFollowTrackBase
 	}
 };
 
-template <bool Tmask_reserved_tracks, bool T90deg_turns_allowed>
+template <bool T90deg_turns_allowed>
 struct CFollowTrackRailT : CFollowTrack<CFollowTrackRailBase>
 {
 	inline CFollowTrackRailT(const Train *v)
@@ -495,14 +495,10 @@ struct CFollowTrackRailT : CFollowTrack<CFollowTrackRailBase>
 	}
 
 	inline static bool Allow90degTurns() { return T90deg_turns_allowed; }
-
-	static inline bool DoTrackMasking() { return Tmask_reserved_tracks; }
 };
 
-typedef CFollowTrackRailT<false, true > CFollowTrackRail90;
-typedef CFollowTrackRailT<false, false> CFollowTrackRailNo90;
-typedef CFollowTrackRailT<true,  true > CFollowTrackFreeRail90;
-typedef CFollowTrackRailT<true,  false> CFollowTrackFreeRailNo90;
+typedef CFollowTrackRailT<true > CFollowTrackRail90;
+typedef CFollowTrackRailT<false> CFollowTrackRailNo90;
 
 struct CFollowTrackRail : CFollowTrack<CFollowTrackRailBase>
 {
