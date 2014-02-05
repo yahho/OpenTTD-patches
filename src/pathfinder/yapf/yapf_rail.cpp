@@ -500,6 +500,116 @@ public:
 		return cost;
 	}
 
+	/** Compute cost and modify node state for a position. */
+	void HandleNodeTile (Node *n, const TrackFollower *tf, NodeData *segment, TileIndex prev, bool mask_reserved_tracks)
+	{
+		/* All other tile costs will be calculated here. */
+		segment->segment_cost += OneTileCost(segment->pos);
+
+		/* If we skipped some tunnel/bridge/station tiles, add their base cost */
+		segment->segment_cost += YAPF_TILE_LENGTH * tf->m_tiles_skipped;
+
+		/* Slope cost. */
+		segment->segment_cost += SlopeCost(segment->pos);
+
+		/* Signal cost (routine can modify segment data). */
+		segment->segment_cost += SignalCost(*n, segment->pos, segment);
+
+		/* Reserved tiles. */
+		segment->segment_cost += ReservationCost(*n, segment->pos, tf->m_tiles_skipped);
+
+		/* Tests for 'potential target' reasons to close the segment. */
+		if (segment->pos.tile == prev) {
+			/* Penalty for reversing in a depot. */
+			assert(!segment->pos.in_wormhole());
+			assert(IsRailDepotTile(segment->pos.tile));
+			assert(segment->pos.td == DiagDirToDiagTrackdir(GetGroundDepotDirection(segment->pos.tile)));
+			segment->segment_cost += m_settings->rail_depot_reverse_penalty;
+			/* We will end in this pass (depot is possible target) */
+			segment->end_reason |= ESRB_DEPOT;
+
+		} else if (!segment->pos.in_wormhole() && IsRailWaypointTile(segment->pos.tile)) {
+			const Train *v = m_veh;
+			if (v->current_order.IsType(OT_GOTO_WAYPOINT) &&
+					GetStationIndex(segment->pos.tile) == v->current_order.GetDestination() &&
+					!Waypoint::Get(v->current_order.GetDestination())->IsSingleTile()) {
+				/* This waypoint is our destination; maybe this isn't an unreserved
+				 * one, so check that and if so see that as the last signal being
+				 * red. This way waypoints near stations should work better. */
+				CFollowTrackRail ft(v);
+				ft.SetPos(segment->pos);
+
+				bool add_extra_cost;
+				for (;;) {
+					if (!ft.FollowNext()) {
+						/* end of line */
+						add_extra_cost = !IsWaitingPositionFree(v, ft.m_old, _settings_game.pf.forbid_90_deg);
+						break;
+					}
+
+					assert(ft.m_old.tile != ft.m_new.tile);
+					if (!ft.m_new.is_single()) {
+						/* We encountered a junction; it's going to be too complex to
+						 * handle this perfectly, so just bail out. There is no simple
+						 * free path, so try the other possibilities. */
+						add_extra_cost = true;
+						break;
+					}
+
+					/* If this is a safe waiting position we're done searching for it */
+					PBSPositionState state = CheckWaitingPosition (v, ft.m_new, _settings_game.pf.forbid_90_deg);
+					if (state != PBS_UNSAFE) {
+						add_extra_cost = state == PBS_BUSY;
+						break;
+					}
+				}
+
+				/* In the case this platform is (possibly) occupied we add penalty so the
+				 * other platforms of this waypoint are evaluated as well, i.e. we assume
+				 * that there is a red signal in the waypoint when it's occupied. */
+				if (add_extra_cost) segment->extra_cost += m_settings->rail_lastred_penalty;
+			}
+			/* Waypoint is also a good reason to finish. */
+			segment->end_reason |= ESRB_WAYPOINT;
+
+		} else if (tf->m_flag == tf->TF_STATION) {
+			/* Station penalties. */
+			uint platform_length = tf->m_tiles_skipped + 1;
+			/* We don't know yet if the station is our target or not. Act like
+			 * if it is pass-through station (not our destination). */
+			segment->segment_cost += m_settings->rail_station_penalty * platform_length;
+			/* We will end in this pass (station is possible target) */
+			segment->end_reason |= ESRB_STATION;
+
+		} else if (mask_reserved_tracks) {
+			/* Searching for a safe tile? */
+			if (HasSignalAlongPos(segment->pos) && !IsPbsSignal(GetSignalType(segment->pos))) {
+				segment->end_reason |= ESRB_SAFE_TILE;
+			}
+		}
+
+		/* Apply min/max speed penalties only when inside the look-ahead radius. Otherwise
+		 * it would cause desync in MP. */
+		if (n->m_num_signals_passed < m_sig_look_ahead_costs.Size())
+		{
+			int min_speed = 0;
+			int max_speed = tf->GetSpeedLimit(&min_speed);
+			int max_veh_speed = m_veh->GetDisplayMaxSpeed();
+			if (max_speed < max_veh_speed) {
+				segment->extra_cost += YAPF_TILE_LENGTH * (max_veh_speed - max_speed) * (1 + tf->m_tiles_skipped) / max_veh_speed;
+			}
+			if (min_speed > max_veh_speed) {
+				segment->extra_cost += YAPF_TILE_LENGTH * (min_speed - max_veh_speed);
+			}
+		}
+
+		/* Finish if we already exceeded the maximum path cost (i.e. when
+		 * searching for the nearest depot). */
+		if (m_max_cost > 0 && (segment->parent_cost + segment->entry_cost + segment->segment_cost) > m_max_cost) {
+			segment->end_reason |= ESRB_PATH_TOO_LONG;
+		}
+	}
+
 	inline void PfCalcSegment (Node &n, const TrackFollower *tf, NodeData *segment, bool mask_reserved_tracks)
 	{
 		const Train *v = m_veh;
@@ -518,110 +628,7 @@ public:
 			IsRailwayTile(segment->pos.wormhole) ? GetBridgeRailType(segment->pos.wormhole) : GetRailType(segment->pos.wormhole);
 
 		for (;;) {
-			/* All other tile costs will be calculated here. */
-			segment->segment_cost += OneTileCost(segment->pos);
-
-			/* If we skipped some tunnel/bridge/station tiles, add their base cost */
-			segment->segment_cost += YAPF_TILE_LENGTH * tf->m_tiles_skipped;
-
-			/* Slope cost. */
-			segment->segment_cost += SlopeCost(segment->pos);
-
-			/* Signal cost (routine can modify segment data). */
-			segment->segment_cost += SignalCost(n, segment->pos, segment);
-
-			/* Reserved tiles. */
-			segment->segment_cost += ReservationCost(n, segment->pos, tf->m_tiles_skipped);
-
-			/* Tests for 'potential target' reasons to close the segment. */
-			if (segment->pos.tile == prev) {
-				/* Penalty for reversing in a depot. */
-				assert(!segment->pos.in_wormhole());
-				assert(IsRailDepotTile(segment->pos.tile));
-				assert(segment->pos.td == DiagDirToDiagTrackdir(GetGroundDepotDirection(segment->pos.tile)));
-				segment->segment_cost += m_settings->rail_depot_reverse_penalty;
-				/* We will end in this pass (depot is possible target) */
-				segment->end_reason |= ESRB_DEPOT;
-
-			} else if (!segment->pos.in_wormhole() && IsRailWaypointTile(segment->pos.tile)) {
-				if (v->current_order.IsType(OT_GOTO_WAYPOINT) &&
-						GetStationIndex(segment->pos.tile) == v->current_order.GetDestination() &&
-						!Waypoint::Get(v->current_order.GetDestination())->IsSingleTile()) {
-					/* This waypoint is our destination; maybe this isn't an unreserved
-					 * one, so check that and if so see that as the last signal being
-					 * red. This way waypoints near stations should work better. */
-					CFollowTrackRail ft(v);
-					ft.SetPos(segment->pos);
-
-					bool add_extra_cost;
-					for (;;) {
-						if (!ft.FollowNext()) {
-							/* end of line */
-							add_extra_cost = !IsWaitingPositionFree(v, ft.m_old, _settings_game.pf.forbid_90_deg);
-							break;
-						}
-
-						assert(ft.m_old.tile != ft.m_new.tile);
-						if (!ft.m_new.is_single()) {
-							/* We encountered a junction; it's going to be too complex to
-							 * handle this perfectly, so just bail out. There is no simple
-							 * free path, so try the other possibilities. */
-							add_extra_cost = true;
-							break;
-						}
-
-						/* If this is a safe waiting position we're done searching for it */
-						PBSPositionState state = CheckWaitingPosition (v, ft.m_new, _settings_game.pf.forbid_90_deg);
-						if (state != PBS_UNSAFE) {
-							add_extra_cost = state == PBS_BUSY;
-							break;
-						}
-					}
-
-					/* In the case this platform is (possibly) occupied we add penalty so the
-					 * other platforms of this waypoint are evaluated as well, i.e. we assume
-					 * that there is a red signal in the waypoint when it's occupied. */
-					if (add_extra_cost) segment->extra_cost += m_settings->rail_lastred_penalty;
-				}
-				/* Waypoint is also a good reason to finish. */
-				segment->end_reason |= ESRB_WAYPOINT;
-
-			} else if (tf->m_flag == tf->TF_STATION) {
-				/* Station penalties. */
-				uint platform_length = tf->m_tiles_skipped + 1;
-				/* We don't know yet if the station is our target or not. Act like
-				 * if it is pass-through station (not our destination). */
-				segment->segment_cost += m_settings->rail_station_penalty * platform_length;
-				/* We will end in this pass (station is possible target) */
-				segment->end_reason |= ESRB_STATION;
-
-			} else if (mask_reserved_tracks) {
-				/* Searching for a safe tile? */
-				if (HasSignalAlongPos(segment->pos) && !IsPbsSignal(GetSignalType(segment->pos))) {
-					segment->end_reason |= ESRB_SAFE_TILE;
-				}
-			}
-
-			/* Apply min/max speed penalties only when inside the look-ahead radius. Otherwise
-			 * it would cause desync in MP. */
-			if (n.m_num_signals_passed < m_sig_look_ahead_costs.Size())
-			{
-				int min_speed = 0;
-				int max_speed = tf->GetSpeedLimit(&min_speed);
-				int max_veh_speed = v->GetDisplayMaxSpeed();
-				if (max_speed < max_veh_speed) {
-					segment->extra_cost += YAPF_TILE_LENGTH * (max_veh_speed - max_speed) * (1 + tf->m_tiles_skipped) / max_veh_speed;
-				}
-				if (min_speed > max_veh_speed) {
-					segment->extra_cost += YAPF_TILE_LENGTH * (min_speed - max_veh_speed);
-				}
-			}
-
-			/* Finish if we already exceeded the maximum path cost (i.e. when
-			 * searching for the nearest depot). */
-			if (m_max_cost > 0 && (segment->parent_cost + segment->entry_cost + segment->segment_cost) > m_max_cost) {
-				segment->end_reason |= ESRB_PATH_TOO_LONG;
-			}
+			HandleNodeTile (&n, tf, segment, prev, mask_reserved_tracks);
 
 			/* Move to the next tile/trackdir. */
 			tf = &tf_local;
