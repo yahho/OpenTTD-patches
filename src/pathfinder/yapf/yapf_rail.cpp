@@ -132,6 +132,7 @@ protected:
 	const YAPFSettings *const m_settings; ///< current settings (_settings_game.yapf)
 	const Train        *const m_veh;      ///< vehicle that we are trying to drive
 	const RailTypes           m_compatible_railtypes;
+	const bool                mask_reserved_tracks;
 	bool          m_treat_first_red_two_way_signal_as_eol; ///< in some cases (leaving station) we need to handle first two-way signal differently
 public:
 	bool          m_stopped_on_first_two_way_signal;
@@ -180,10 +181,11 @@ protected:
 		return C;
 	}
 
-	CYapfRailBaseT (const Train *v, bool override_rail_type = false)
+	CYapfRailBaseT (const Train *v, bool override_rail_type, bool mask_reserved_tracks)
 		: m_settings(&_settings_game.pf.yapf)
 		, m_veh(v)
 		, m_compatible_railtypes(v->compatible_railtypes | (override_rail_type ? GetRailTypeInfo(v->railtype)->compatible_railtypes : RAILTYPES_NONE))
+		, mask_reserved_tracks(mask_reserved_tracks)
 		, m_treat_first_red_two_way_signal_as_eol(true)
 		, m_stopped_on_first_two_way_signal(false)
 		, m_disable_cache(false)
@@ -501,7 +503,7 @@ public:
 	}
 
 	/** Compute cost and modify node state for a position. */
-	void HandleNodeTile (Node *n, const TrackFollower *tf, NodeData *segment, TileIndex prev, bool mask_reserved_tracks)
+	void HandleNodeTile (Node *n, const TrackFollower *tf, NodeData *segment, TileIndex prev)
 	{
 		/* All other tile costs will be calculated here. */
 		segment->segment_cost += OneTileCost(segment->pos);
@@ -610,7 +612,7 @@ public:
 		}
 	}
 
-	inline void PfCalcSegment (Node &n, const TrackFollower *tf, NodeData *segment, bool mask_reserved_tracks)
+	inline void PfCalcSegment (Node &n, const TrackFollower *tf, NodeData *segment)
 	{
 		const Train *v = m_veh;
 		TrackFollower tf_local(v, m_compatible_railtypes, &m_perf_ts_cost);
@@ -628,7 +630,7 @@ public:
 			IsRailwayTile(segment->pos.wormhole) ? GetBridgeRailType(segment->pos.wormhole) : GetRailType(segment->pos.wormhole);
 
 		for (;;) {
-			HandleNodeTile (&n, tf, segment, prev, mask_reserved_tracks);
+			HandleNodeTile (&n, tf, segment, prev);
 
 			/* Move to the next tile/trackdir. */
 			tf = &tf_local;
@@ -728,7 +730,7 @@ public:
 
 protected:
 	CYapfRailT (const Train *v, bool override_rail_type = false)
-		: Base (v, override_rail_type)
+		: Base (v, override_rail_type, Tmask_reserved_tracks)
 	{
 	}
 
@@ -823,7 +825,7 @@ public:
 			}
 			/* No further calculation needed. */
 		} else {
-			Base::PfCalcSegment (n, tf, &segment_data, Tmask_reserved_tracks);
+			Base::PfCalcSegment (n, tf, &segment_data);
 
 			/* Write back the segment information so it can be reused the next time. */
 			segment.m_last = segment_data.pos;
