@@ -612,6 +612,73 @@ public:
 		}
 	}
 
+	/** Check for possible reasons to end a segment at the next tile. */
+	bool HandleNodeNextTile (Node *n, TrackFollower *tf, NodeData *segment, RailType rail_type)
+	{
+		if (!tf->Follow(segment->pos)) {
+			assert(tf->m_err != TrackFollower::EC_NONE);
+			/* Can't move to the next tile (EOL?). */
+			if (tf->m_err == TrackFollower::EC_RAIL_TYPE) {
+				segment->end_reason |= ESRB_RAIL_TYPE;
+			} else {
+				segment->end_reason |= ESRB_DEAD_END;
+			}
+
+			if (mask_reserved_tracks && !HasOnewaySignalBlockingPos(segment->pos)) {
+				segment->end_reason |= ESRB_SAFE_TILE;
+			}
+			return false;
+		}
+
+		/* Check if the next tile is not a choice. */
+		if (!tf->m_new.is_single()) {
+			/* More than one segment will follow. Close this one. */
+			segment->end_reason |= ESRB_CHOICE_FOLLOWS;
+			return false;
+		}
+
+		/* Gather the next tile/trackdir. */
+
+		if (mask_reserved_tracks) {
+			if (HasSignalAlongPos(tf->m_new) && IsPbsSignal(GetSignalType(tf->m_new))) {
+				/* Possible safe tile. */
+				segment->end_reason |= ESRB_SAFE_TILE;
+			} else if (HasSignalAgainstPos(tf->m_new) && GetSignalType(tf->m_new) == SIGTYPE_PBS_ONEWAY) {
+				/* Possible safe tile, but not so good as it's the back of a signal... */
+				segment->end_reason |= ESRB_SAFE_TILE | ESRB_DEAD_END;
+				segment->extra_cost += m_settings->rail_lastred_exit_penalty;
+			}
+		}
+
+		/* Check the next tile for the rail type. */
+		if (tf->m_new.in_wormhole()) {
+			RailType next_rail_type = IsRailwayTile(tf->m_new.wormhole) ? GetBridgeRailType(tf->m_new.wormhole) : GetRailType(tf->m_new.wormhole);
+			assert(next_rail_type == rail_type);
+		} else if (GetTileRailType(tf->m_new.tile, TrackdirToTrack(tf->m_new.td)) != rail_type) {
+			/* Segment must consist from the same rail_type tiles. */
+			segment->end_reason |= ESRB_RAIL_TYPE;
+			return false;
+		}
+
+		/* Avoid infinite looping. */
+		if (tf->m_new == n->GetPos()) {
+			segment->end_reason |= ESRB_INFINITE_LOOP;
+			return false;
+		}
+
+		if (segment->segment_cost > s_max_segment_cost) {
+			/* Potentially in the infinite loop (or only very long segment?). We should
+			 * not force it to finish prematurely unless we are on a regular tile. */
+			if (!tf->m_new.in_wormhole() && IsNormalRailTile(tf->m_new.tile)) {
+				segment->end_reason |= ESRB_SEGMENT_TOO_LONG;
+				return false;
+			}
+		}
+
+		/* Any other reason bit set? */
+		return segment->end_reason == ESRB_NONE;
+	}
+
 	inline void PfCalcSegment (Node &n, const TrackFollower *tf, NodeData *segment)
 	{
 		const Train *v = m_veh;
@@ -638,70 +705,7 @@ public:
 			assert(tf_local.m_railtypes == m_compatible_railtypes);
 			assert(tf_local.m_pPerf == &m_perf_ts_cost);
 
-			if (!tf_local.Follow(segment->pos)) {
-				assert(tf_local.m_err != TrackFollower::EC_NONE);
-				/* Can't move to the next tile (EOL?). */
-				if (tf_local.m_err == TrackFollower::EC_RAIL_TYPE) {
-					segment->end_reason |= ESRB_RAIL_TYPE;
-				} else {
-					segment->end_reason |= ESRB_DEAD_END;
-				}
-
-				if (mask_reserved_tracks && !HasOnewaySignalBlockingPos(segment->pos)) {
-					segment->end_reason |= ESRB_SAFE_TILE;
-				}
-				break;
-			}
-
-			/* Check if the next tile is not a choice. */
-			if (!tf_local.m_new.is_single()) {
-				/* More than one segment will follow. Close this one. */
-				segment->end_reason |= ESRB_CHOICE_FOLLOWS;
-				break;
-			}
-
-			/* Gather the next tile/trackdir. */
-
-			if (mask_reserved_tracks) {
-				if (HasSignalAlongPos(tf_local.m_new) && IsPbsSignal(GetSignalType(tf_local.m_new))) {
-					/* Possible safe tile. */
-					segment->end_reason |= ESRB_SAFE_TILE;
-				} else if (HasSignalAgainstPos(tf_local.m_new) && GetSignalType(tf_local.m_new) == SIGTYPE_PBS_ONEWAY) {
-					/* Possible safe tile, but not so good as it's the back of a signal... */
-					segment->end_reason |= ESRB_SAFE_TILE | ESRB_DEAD_END;
-					segment->extra_cost += m_settings->rail_lastred_exit_penalty;
-				}
-			}
-
-			/* Check the next tile for the rail type. */
-			if (tf_local.m_new.in_wormhole()) {
-				RailType next_rail_type = IsRailwayTile(tf_local.m_new.wormhole) ? GetBridgeRailType(tf_local.m_new.wormhole) : GetRailType(tf_local.m_new.wormhole);
-				assert(next_rail_type == rail_type);
-			} else if (GetTileRailType(tf_local.m_new.tile, TrackdirToTrack(tf_local.m_new.td)) != rail_type) {
-				/* Segment must consist from the same rail_type tiles. */
-				segment->end_reason |= ESRB_RAIL_TYPE;
-				break;
-			}
-
-			/* Avoid infinite looping. */
-			if (tf_local.m_new == n.GetPos()) {
-				segment->end_reason |= ESRB_INFINITE_LOOP;
-				break;
-			}
-
-			if (segment->segment_cost > s_max_segment_cost) {
-				/* Potentially in the infinite loop (or only very long segment?). We should
-				 * not force it to finish prematurely unless we are on a regular tile. */
-				if (!tf->m_new.in_wormhole() && IsNormalRailTile(tf->m_new.tile)) {
-					segment->end_reason |= ESRB_SEGMENT_TOO_LONG;
-					break;
-				}
-			}
-
-			/* Any other reason bit set? */
-			if (segment->end_reason != ESRB_NONE) {
-				break;
-			}
+			if (!HandleNodeNextTile (&n, &tf_local, segment, rail_type)) break;
 
 			/* Transition cost (cost of the move from previous tile) */
 			segment->segment_cost += TransitionCost (segment->pos, tf_local.m_new);
