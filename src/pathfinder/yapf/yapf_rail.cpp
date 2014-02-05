@@ -117,13 +117,11 @@ struct CSegmentCostCacheT
 };
 
 
-template <class Types, bool Tmask_reserved_tracks>
-class CYapfRailT : public Types::Astar
+template <class TAstar, class TrackFollower>
+class CYapfRailBaseT : public TAstar
 {
 public:
-	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::TrackFollower TrackFollower;
-	typedef typename Types::Astar::Node Node;     ///< this will be our node type
+	typedef typename TAstar::Node Node;           ///< this will be our node type
 	typedef typename Node::Key Key;               ///< key to hash tables
 	typedef typename Node::CachedData CachedData;
 	typedef typename CachedData::Key CacheKey;
@@ -131,10 +129,17 @@ public:
 	typedef SmallArray<CachedData> LocalCache;
 
 protected:
-	const YAPFSettings *m_settings; ///< current settings (_settings_game.yapf)
-	const Train        *m_veh;      ///< vehicle that we are trying to drive
+	const YAPFSettings *const m_settings; ///< current settings (_settings_game.yapf)
+	const Train        *const m_veh;      ///< vehicle that we are trying to drive
+	const RailTypes           m_compatible_railtypes;
+	bool          m_treat_first_red_two_way_signal_as_eol; ///< in some cases (leaving station) we need to handle first two-way signal differently
+public:
+	bool          m_stopped_on_first_two_way_signal;
 
-	bool    m_treat_first_red_two_way_signal_as_eol; ///< in some cases (leaving station) we need to handle first two-way signal differently
+protected:
+	bool          m_disable_cache;
+	Cache&        m_global_cache;
+	LocalCache    m_local_cache;
 
 	/**
 	 * @note maximum cost doesn't work with caching enabled
@@ -142,9 +147,6 @@ protected:
 	 */
 	int           m_max_cost;
 	CBlobT<int>   m_sig_look_ahead_costs;
-	bool          m_disable_cache;
-	Cache&        m_global_cache;
-	LocalCache    m_local_cache;
 
 	int                  m_stats_cost_calcs;   ///< stats - how many node's costs were calculated
 	int                  m_stats_cache_hits;   ///< stats - how many node's costs were reused from cache
@@ -154,38 +156,7 @@ protected:
 	CPerformanceTimer    m_perf_ts_cost;       ///< stats - GetTrackStatus() CPU time
 	CPerformanceTimer    m_perf_other_cost;    ///< stats - other CPU time
 
-public:
-	bool          m_stopped_on_first_two_way_signal;
-
-protected:
 	static const int s_max_segment_cost = 10000;
-
-	CYapfRailT()
-		: m_settings(&_settings_game.pf.yapf)
-		, m_veh(NULL)
-		, m_treat_first_red_two_way_signal_as_eol(true)
-		, m_max_cost(0)
-		, m_disable_cache(false)
-		, m_global_cache(stGetGlobalCache())
-		, m_stats_cost_calcs(0)
-		, m_stats_cache_hits(0)
-		, m_stopped_on_first_two_way_signal(false)
-	{
-		/* pre-compute look-ahead penalties into array */
-		int p0 = Yapf().PfGetSettings().rail_look_ahead_signal_p0;
-		int p1 = Yapf().PfGetSettings().rail_look_ahead_signal_p1;
-		int p2 = Yapf().PfGetSettings().rail_look_ahead_signal_p2;
-		int *pen = m_sig_look_ahead_costs.GrowSizeNC(Yapf().PfGetSettings().rail_look_ahead_max_signals);
-		for (uint i = 0; i < Yapf().PfGetSettings().rail_look_ahead_max_signals; i++) {
-			pen[i] = p0 + i * (p1 + i * p2);
-		}
-	}
-
-	/** to access inherited path finder */
-	Tpf& Yapf()
-	{
-		return *static_cast<Tpf*>(this);
-	}
 
 	inline static Cache& stGetGlobalCache()
 	{
@@ -209,25 +180,70 @@ protected:
 		return C;
 	}
 
+	CYapfRailBaseT (const Train *v, bool override_rail_type = false)
+		: m_settings(&_settings_game.pf.yapf)
+		, m_veh(v)
+		, m_compatible_railtypes(v->compatible_railtypes | (override_rail_type ? GetRailTypeInfo(v->railtype)->compatible_railtypes : RAILTYPES_NONE))
+		, m_treat_first_red_two_way_signal_as_eol(true)
+		, m_stopped_on_first_two_way_signal(false)
+		, m_disable_cache(false)
+		, m_global_cache(stGetGlobalCache())
+		, m_max_cost(0)
+		, m_stats_cost_calcs(0)
+		, m_stats_cache_hits(0)
+	{
+		/* pre-compute look-ahead penalties into array */
+		int p0 = m_settings->rail_look_ahead_signal_p0;
+		int p1 = m_settings->rail_look_ahead_signal_p1;
+		int p2 = m_settings->rail_look_ahead_signal_p2;
+		int *pen = m_sig_look_ahead_costs.GrowSizeNC(m_settings->rail_look_ahead_max_signals);
+		for (uint i = 0; i < m_settings->rail_look_ahead_max_signals; i++) {
+			pen[i] = p0 + i * (p1 + i * p2);
+		}
+	}
+
 public:
-	/** return current settings (can be custom - company based - but later) */
-	inline const YAPFSettings& PfGetSettings() const
+	inline bool CanUseGlobalCache(Node& n) const
 	{
-		return *m_settings;
+		return !m_disable_cache
+			&& (n.m_parent != NULL)
+			&& (n.m_parent->m_num_signals_passed >= m_sig_look_ahead_costs.Size());
 	}
 
-	const Train * GetVehicle() const
+protected:
+	inline void ConnectNodeToCachedData(Node& n, CachedData& ci)
 	{
-		return m_veh;
+		n.m_segment = &ci;
+		if (n.m_segment->m_cost < 0) {
+			n.m_segment->m_last = n.GetPos();
+		}
 	}
 
+	/**
+	 * Called by YAPF to attach cached or local segment cost data to the given node.
+	 *  @return true if globally cached data were used or false if local data was used
+	 */
+	inline bool PfNodeCacheFetch(Node& n)
+	{
+		CacheKey key(n.GetKey());
+		if (!CanUseGlobalCache(n)) {
+			ConnectNodeToCachedData(n, *new (m_local_cache.Append()) CachedData(key));
+			return false;
+		}
+		bool found;
+		CachedData& item = m_global_cache.Get(key, &found);
+		ConnectNodeToCachedData(n, item);
+		return found;
+	}
+
+public:
 	/** Create and add a new node */
 	inline void AddStartupNode (const PathPos &pos, int cost = 0)
 	{
-		Node *node = Types::Astar::CreateNewNode (NULL, pos, false);
+		Node *node = TAstar::CreateNewNode (NULL, pos, false);
 		node->m_cost = cost;
 		PfNodeCacheFetch(*node);
-		Types::Astar::InsertInitialNode(node);
+		TAstar::InsertInitialNode(node);
 	}
 
 	/** set origin */
@@ -246,9 +262,34 @@ public:
 	}
 
 	/** return true if first two-way signal should be treated as dead end */
-	inline bool TreatFirstRedTwoWaySignalAsEOL()
+	inline bool TreatFirstRedTwoWaySignalAsEOL() const
 	{
-		return Yapf().PfGetSettings().rail_firstred_twoway_eol && m_treat_first_red_two_way_signal_as_eol;
+		return m_settings->rail_firstred_twoway_eol && m_treat_first_red_two_way_signal_as_eol;
+	}
+
+	inline void SetMaxCost (int max_cost)
+	{
+		m_max_cost = max_cost;
+	}
+
+	inline void DisableCache(bool disable)
+	{
+		m_disable_cache = disable;
+	}
+
+	/**
+	 * In some cases an intermediate node branch should be pruned.
+	 * The most prominent case is when a red EOL signal is encountered, but
+	 * there was a segment change (e.g. a rail type change) before that. If
+	 * the branch would not be pruned, the rail type change location would
+	 * remain the best intermediate node, and thus the vehicle would still
+	 * go towards the red EOL signal.
+	 */
+	void PruneIntermediateNodeBranch()
+	{
+		while (TAstar::best_intermediate != NULL && (TAstar::best_intermediate->m_segment->m_end_segment_reason & ESRB_CHOICE_FOLLOWS) == 0) {
+			TAstar::best_intermediate = TAstar::best_intermediate->m_parent;
+		}
 	}
 
 	struct NodeData {
@@ -261,9 +302,70 @@ public:
 		EndSegmentReasonBits end_reason;
 	};
 
-	inline int SlopeCost(const PathPos &pos)
+	/** Return the transition cost from one tile to another. */
+	inline int TransitionCost (const PathPos &pos1, const PathPos &pos2) const
 	{
-		CPerfStart perf_cost(Yapf().m_perf_slope_cost);
+		assert(IsValidTrackdir(pos1.td));
+		assert(IsValidTrackdir(pos2.td));
+
+		if (pos1.in_wormhole() || !IsRailwayTile(pos1.tile)) {
+			assert(IsDiagonalTrackdir(pos1.td));
+			if (pos2.in_wormhole() || !IsRailwayTile(pos2.tile)) {
+				/* compare only the tracks, as depots cause reversing */
+				assert(TrackdirToTrack(pos1.td) == TrackdirToTrack(pos2.td));
+				return 0;
+			} else {
+				return (pos1.td == pos2.td) ? 0 : m_settings->rail_curve45_penalty;
+			}
+		} else {
+			if (pos2.in_wormhole() || !IsRailwayTile(pos2.tile)) {
+				assert(IsDiagonalTrackdir(pos2.td));
+				return (pos1.td == pos2.td) ? 0 : m_settings->rail_curve45_penalty;
+			}
+		}
+
+		/* both tiles are railway tiles */
+
+		int cost = 0;
+		if (TrackFollower::Allow90degTurns()
+				&& ((TrackdirToTrackdirBits(pos2.td) & (TrackdirBits)TrackdirCrossesTrackdirs(pos1.td)) != 0)) {
+			/* 90-deg curve penalty */
+			cost += m_settings->rail_curve90_penalty;
+		} else if (pos2.td != NextTrackdir(pos1.td)) {
+			/* 45-deg curve penalty */
+			cost += m_settings->rail_curve45_penalty;
+		}
+
+		DiagDirection exitdir = TrackdirToExitdir(pos1.td);
+		bool t1 = KillFirstBit(GetTrackBits(pos1.tile) & DiagdirReachesTracks(ReverseDiagDir(exitdir))) != TRACK_BIT_NONE;
+		bool t2 = KillFirstBit(GetTrackBits(pos2.tile) & DiagdirReachesTracks(exitdir)) != TRACK_BIT_NONE;
+		if (t1 && t2) cost += m_settings->rail_doubleslip_penalty;
+
+		return cost;
+	}
+
+	/** Return one tile cost (base cost + level crossing penalty). */
+	inline int OneTileCost (const PathPos &pos) const
+	{
+		int cost = 0;
+		/* set base cost */
+		if (IsDiagonalTrackdir(pos.td)) {
+			cost += YAPF_TILE_LENGTH;
+			if (IsLevelCrossingTile(pos.tile)) {
+				/* Increase the cost for level crossings */
+				cost += m_settings->rail_crossing_penalty;
+			}
+		} else {
+			/* non-diagonal trackdir */
+			cost = YAPF_TILE_CORNER_LENGTH;
+		}
+		return cost;
+	}
+
+	/** Return slope cost for a tile. */
+	inline int SlopeCost (const PathPos &pos)
+	{
+		CPerfStart perf_cost(m_perf_slope_cost);
 
 		if (pos.in_wormhole() || !IsDiagonalTrackdir(pos.td)) return 0;
 
@@ -285,70 +387,11 @@ public:
 			uphill = IsUphillTrackdir(tile_slope, pos.td); // slopes uphill => apply penalty
 		}
 
-		return uphill ? Yapf().PfGetSettings().rail_slope_penalty : 0;
-	}
-
-	inline int TransitionCost (const PathPos &pos1, const PathPos &pos2)
-	{
-		assert(IsValidTrackdir(pos1.td));
-		assert(IsValidTrackdir(pos2.td));
-
-		if (pos1.in_wormhole() || !IsRailwayTile(pos1.tile)) {
-			assert(IsDiagonalTrackdir(pos1.td));
-			if (pos2.in_wormhole() || !IsRailwayTile(pos2.tile)) {
-				/* compare only the tracks, as depots cause reversing */
-				assert(TrackdirToTrack(pos1.td) == TrackdirToTrack(pos2.td));
-				return 0;
-			} else {
-				return (pos1.td == pos2.td) ? 0 : Yapf().PfGetSettings().rail_curve45_penalty;
-			}
-		} else {
-			if (pos2.in_wormhole() || !IsRailwayTile(pos2.tile)) {
-				assert(IsDiagonalTrackdir(pos2.td));
-				return (pos1.td == pos2.td) ? 0 : Yapf().PfGetSettings().rail_curve45_penalty;
-			}
-		}
-
-		/* both tiles are railway tiles */
-
-		int cost = 0;
-		if (TrackFollower::Allow90degTurns()
-				&& ((TrackdirToTrackdirBits(pos2.td) & (TrackdirBits)TrackdirCrossesTrackdirs(pos1.td)) != 0)) {
-			/* 90-deg curve penalty */
-			cost += Yapf().PfGetSettings().rail_curve90_penalty;
-		} else if (pos2.td != NextTrackdir(pos1.td)) {
-			/* 45-deg curve penalty */
-			cost += Yapf().PfGetSettings().rail_curve45_penalty;
-		}
-
-		DiagDirection exitdir = TrackdirToExitdir(pos1.td);
-		bool t1 = KillFirstBit(GetTrackBits(pos1.tile) & DiagdirReachesTracks(ReverseDiagDir(exitdir))) != TRACK_BIT_NONE;
-		bool t2 = KillFirstBit(GetTrackBits(pos2.tile) & DiagdirReachesTracks(exitdir)) != TRACK_BIT_NONE;
-		if (t1 && t2) cost += Yapf().PfGetSettings().rail_doubleslip_penalty;
-
-		return cost;
-	}
-
-	/** Return one tile cost (base cost + level crossing penalty). */
-	inline int OneTileCost(const PathPos &pos)
-	{
-		int cost = 0;
-		/* set base cost */
-		if (IsDiagonalTrackdir(pos.td)) {
-			cost += YAPF_TILE_LENGTH;
-			if (IsLevelCrossingTile(pos.tile)) {
-				/* Increase the cost for level crossings */
-				cost += Yapf().PfGetSettings().rail_crossing_penalty;
-			}
-		} else {
-			/* non-diagonal trackdir */
-			cost = YAPF_TILE_CORNER_LENGTH;
-		}
-		return cost;
+		return uphill ? m_settings->rail_slope_penalty : 0;
 	}
 
 	/** Check for a reserved station platform. */
-	inline bool IsAnyStationTileReserved(const PathPos &pos, int skipped)
+	static inline bool IsAnyStationTileReserved (const PathPos &pos, int skipped)
 	{
 		TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
 		for (TileIndex tile = pos.tile; skipped >= 0; skipped--, tile += diff) {
@@ -358,26 +401,43 @@ public:
 	}
 
 	/** The cost for reserved tiles, including skipped ones. */
-	inline int ReservationCost(Node& n, const PathPos &pos, int skipped)
+	inline int ReservationCost(Node& n, const PathPos &pos, int skipped) const
 	{
 		if (n.m_num_signals_passed >= m_sig_look_ahead_costs.Size() / 2) return 0;
 		if (!IsPbsSignal(n.m_last_signal_type)) return 0;
 
 		if (!pos.in_wormhole() && IsRailStationTile(pos.tile) && IsAnyStationTileReserved(pos, skipped)) {
-			return Yapf().PfGetSettings().rail_pbs_station_penalty * (skipped + 1);
+			return m_settings->rail_pbs_station_penalty * (skipped + 1);
 		} else if (TrackOverlapsTracks(GetReservedTrackbits(pos.tile), TrackdirToTrack(pos.td))) {
-			int cost = Yapf().PfGetSettings().rail_pbs_cross_penalty;
+			int cost = m_settings->rail_pbs_cross_penalty;
 			if (!IsDiagonalTrackdir(pos.td)) cost = (cost * YAPF_TILE_CORNER_LENGTH) / YAPF_TILE_LENGTH;
 			return cost * (skipped + 1);
 		}
 		return 0;
 	}
 
+	/** Penalty for platform shorter/longer than needed. */
+	inline int PlatformLengthPenalty (int platform_length) const
+	{
+		int cost = 0;
+		const Train *v = m_veh;
+		assert(v->gcache.cached_total_length != 0);
+		int missing_platform_length = CeilDiv(v->gcache.cached_total_length, TILE_SIZE) - platform_length;
+		if (missing_platform_length < 0) {
+			/* apply penalty for longer platform than needed */
+			cost += m_settings->rail_longer_platform_penalty + m_settings->rail_longer_platform_per_tile_penalty * -missing_platform_length;
+		} else if (missing_platform_length > 0) {
+			/* apply penalty for shorter platform than needed */
+			cost += m_settings->rail_shorter_platform_penalty + m_settings->rail_shorter_platform_per_tile_penalty * missing_platform_length;
+		}
+		return cost;
+	}
+
 	int SignalCost(Node& n, const PathPos &pos, NodeData *data)
 	{
 		int cost = 0;
 		/* if there is one-way signal in the opposite direction, then it is not our way */
-		CPerfStart perf_cost(Yapf().m_perf_other_cost);
+		CPerfStart perf_cost(m_perf_other_cost);
 
 		if (HasSignalAlongPos(pos)) {
 			SignalState sig_state = GetSignalStateByPos(pos);
@@ -398,11 +458,11 @@ public:
 			} else {
 				/* we have a red signal in our direction
 				 * was it first signal which is two-way? */
-				if (!IsPbsSignal(sig_type) && Yapf().TreatFirstRedTwoWaySignalAsEOL() && n.flags_u.flags_s.m_choice_seen && HasSignalAgainstPos(pos) && n.m_num_signals_passed == 0) {
+				if (!IsPbsSignal(sig_type) && TreatFirstRedTwoWaySignalAsEOL() && n.flags_u.flags_s.m_choice_seen && HasSignalAgainstPos(pos) && n.m_num_signals_passed == 0) {
 					/* yes, the first signal is two-way red signal => DEAD END. Prune this branch... */
-					Yapf().PruneIntermediateNodeBranch();
+					PruneIntermediateNodeBranch();
 					data->end_reason |= ESRB_DEAD_END;
-					Yapf().m_stopped_on_first_two_way_signal = true;
+					m_stopped_on_first_two_way_signal = true;
 					return -1;
 				}
 				n.m_last_red_signal_type = sig_type;
@@ -418,9 +478,9 @@ public:
 				if (n.m_num_signals_passed == 0) {
 					switch (sig_type) {
 						case SIGTYPE_COMBO:
-						case SIGTYPE_EXIT:   cost += Yapf().PfGetSettings().rail_firstred_exit_penalty; break; // first signal is red pre-signal-exit
+						case SIGTYPE_EXIT:   cost += m_settings->rail_firstred_exit_penalty; break; // first signal is red pre-signal-exit
 						case SIGTYPE_NORMAL:
-						case SIGTYPE_ENTRY:  cost += Yapf().PfGetSettings().rail_firstred_penalty; break;
+						case SIGTYPE_ENTRY:  cost += m_settings->rail_firstred_penalty; break;
 						default: break;
 					}
 				}
@@ -433,41 +493,17 @@ public:
 				/* one-way signal in opposite direction */
 				data->end_reason |= ESRB_DEAD_END;
 			} else {
-				cost += n.m_num_signals_passed < Yapf().PfGetSettings().rail_look_ahead_max_signals ? Yapf().PfGetSettings().rail_pbs_signal_back_penalty : 0;
+				cost += n.m_num_signals_passed < m_settings->rail_look_ahead_max_signals ? m_settings->rail_pbs_signal_back_penalty : 0;
 			}
 		}
 
 		return cost;
 	}
 
-	inline int PlatformLengthPenalty(int platform_length)
+	inline void PfCalcSegment (Node &n, const TrackFollower *tf, NodeData *segment, bool mask_reserved_tracks)
 	{
-		int cost = 0;
-		const Train *v = Yapf().GetVehicle();
-		assert(v != NULL);
-		assert(v->type == VEH_TRAIN);
-		assert(v->gcache.cached_total_length != 0);
-		int missing_platform_length = CeilDiv(v->gcache.cached_total_length, TILE_SIZE) - platform_length;
-		if (missing_platform_length < 0) {
-			/* apply penalty for longer platform than needed */
-			cost += Yapf().PfGetSettings().rail_longer_platform_penalty + Yapf().PfGetSettings().rail_longer_platform_per_tile_penalty * -missing_platform_length;
-		} else if (missing_platform_length > 0) {
-			/* apply penalty for shorter platform than needed */
-			cost += Yapf().PfGetSettings().rail_shorter_platform_penalty + Yapf().PfGetSettings().rail_shorter_platform_per_tile_penalty * missing_platform_length;
-		}
-		return cost;
-	}
-
-public:
-	inline void SetMaxCost(int max_cost)
-	{
-		m_max_cost = max_cost;
-	}
-
-	inline void PfCalcSegment (Node &n, const TrackFollower *tf, NodeData *segment)
-	{
-		const Train *v = Yapf().GetVehicle();
-		TrackFollower tf_local(v, Yapf().GetCompatibleRailTypes(), &Yapf().m_perf_ts_cost);
+		const Train *v = m_veh;
+		TrackFollower tf_local(v, m_compatible_railtypes, &m_perf_ts_cost);
 
 		TileIndex prev = n.m_parent->GetLastPos().tile;
 
@@ -503,7 +539,7 @@ public:
 				assert(!segment->pos.in_wormhole());
 				assert(IsRailDepotTile(segment->pos.tile));
 				assert(segment->pos.td == DiagDirToDiagTrackdir(GetGroundDepotDirection(segment->pos.tile)));
-				segment->segment_cost += Yapf().PfGetSettings().rail_depot_reverse_penalty;
+				segment->segment_cost += m_settings->rail_depot_reverse_penalty;
 				/* We will end in this pass (depot is possible target) */
 				segment->end_reason |= ESRB_DEPOT;
 
@@ -545,7 +581,7 @@ public:
 					/* In the case this platform is (possibly) occupied we add penalty so the
 					 * other platforms of this waypoint are evaluated as well, i.e. we assume
 					 * that there is a red signal in the waypoint when it's occupied. */
-					if (add_extra_cost) segment->extra_cost += Yapf().PfGetSettings().rail_lastred_penalty;
+					if (add_extra_cost) segment->extra_cost += m_settings->rail_lastred_penalty;
 				}
 				/* Waypoint is also a good reason to finish. */
 				segment->end_reason |= ESRB_WAYPOINT;
@@ -555,11 +591,11 @@ public:
 				uint platform_length = tf->m_tiles_skipped + 1;
 				/* We don't know yet if the station is our target or not. Act like
 				 * if it is pass-through station (not our destination). */
-				segment->segment_cost += Yapf().PfGetSettings().rail_station_penalty * platform_length;
+				segment->segment_cost += m_settings->rail_station_penalty * platform_length;
 				/* We will end in this pass (station is possible target) */
 				segment->end_reason |= ESRB_STATION;
 
-			} else if (Tmask_reserved_tracks) {
+			} else if (mask_reserved_tracks) {
 				/* Searching for a safe tile? */
 				if (HasSignalAlongPos(segment->pos) && !IsPbsSignal(GetSignalType(segment->pos))) {
 					segment->end_reason |= ESRB_SAFE_TILE;
@@ -590,8 +626,8 @@ public:
 			/* Move to the next tile/trackdir. */
 			tf = &tf_local;
 			assert(tf_local.m_veh_owner == v->owner);
-			assert(tf_local.m_railtypes == Yapf().GetCompatibleRailTypes());
-			assert(tf_local.m_pPerf == &Yapf().m_perf_ts_cost);
+			assert(tf_local.m_railtypes == m_compatible_railtypes);
+			assert(tf_local.m_pPerf == &m_perf_ts_cost);
 
 			if (!tf_local.Follow(segment->pos)) {
 				assert(tf_local.m_err != TrackFollower::EC_NONE);
@@ -602,7 +638,7 @@ public:
 					segment->end_reason |= ESRB_DEAD_END;
 				}
 
-				if (Tmask_reserved_tracks && !HasOnewaySignalBlockingPos(segment->pos)) {
+				if (mask_reserved_tracks && !HasOnewaySignalBlockingPos(segment->pos)) {
 					segment->end_reason |= ESRB_SAFE_TILE;
 				}
 				break;
@@ -617,14 +653,14 @@ public:
 
 			/* Gather the next tile/trackdir. */
 
-			if (Tmask_reserved_tracks) {
+			if (mask_reserved_tracks) {
 				if (HasSignalAlongPos(tf_local.m_new) && IsPbsSignal(GetSignalType(tf_local.m_new))) {
 					/* Possible safe tile. */
 					segment->end_reason |= ESRB_SAFE_TILE;
 				} else if (HasSignalAgainstPos(tf_local.m_new) && GetSignalType(tf_local.m_new) == SIGTYPE_PBS_ONEWAY) {
 					/* Possible safe tile, but not so good as it's the back of a signal... */
 					segment->end_reason |= ESRB_SAFE_TILE | ESRB_DEAD_END;
-					segment->extra_cost += Yapf().PfGetSettings().rail_lastred_exit_penalty;
+					segment->extra_cost += m_settings->rail_lastred_exit_penalty;
 				}
 			}
 
@@ -665,6 +701,51 @@ public:
 			prev = segment->pos.tile;
 			segment->pos = tf_local.m_new;
 		} // for (;;)
+	}
+};
+
+
+template <class Types, bool Tmask_reserved_tracks>
+class CYapfRailT : public CYapfRailBaseT <typename Types::Astar, typename Types::TrackFollower>
+{
+public:
+	typedef CYapfRailBaseT <typename Types::Astar, typename Types::TrackFollower> Base;
+	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
+	typedef typename Types::TrackFollower TrackFollower;
+	typedef typename Types::Astar::Node Node;     ///< this will be our node type
+	typedef typename Node::Key Key;               ///< key to hash tables
+	typedef typename Node::CachedData CachedData;
+	typedef typename CachedData::Key CacheKey;
+	typedef CSegmentCostCacheT<CachedData> Cache;
+	typedef SmallArray<CachedData> LocalCache;
+
+protected:
+	CYapfRailT (const Train *v, bool override_rail_type = false)
+		: Base (v, override_rail_type)
+	{
+	}
+
+	/** to access inherited path finder */
+	Tpf& Yapf()
+	{
+		return *static_cast<Tpf*>(this);
+	}
+
+public:
+	/** return current settings (can be custom - company based - but later) */
+	inline const YAPFSettings& PfGetSettings() const
+	{
+		return *Base::m_settings;
+	}
+
+	const Train * GetVehicle() const
+	{
+		return Base::m_veh;
+	}
+
+	RailTypes GetCompatibleRailTypes() const
+	{
+		return Base::m_compatible_railtypes;
 	}
 
 	/**
@@ -712,9 +793,9 @@ public:
 		 * cost of segment entry (move from the 'parent' node) is not included!
 		 */
 
-		NodeData segment_data;
+		typename Base::NodeData segment_data;
 		segment_data.parent_cost = n.m_parent->m_cost;
-		segment_data.entry_cost = TransitionCost (n.m_parent->GetLastPos(), n.GetPos());
+		segment_data.entry_cost = Base::TransitionCost (n.m_parent->GetLastPos(), n.GetPos());
 
 		/* It is the right time now to look if we can reuse the cached segment cost. */
 		if (is_cached_segment) {
@@ -735,7 +816,7 @@ public:
 			}
 			/* No further calculation needed. */
 		} else {
-			PfCalcSegment (n, tf, &segment_data);
+			Base::PfCalcSegment (n, tf, &segment_data, Tmask_reserved_tracks);
 
 			/* Write back the segment information so it can be reused the next time. */
 			segment.m_last = segment_data.pos;
@@ -782,7 +863,7 @@ public:
 				/* Reduce the extra cost caused by passing-station penalty (each station receives it in the segment cost). */
 				segment_data.extra_cost -= Yapf().PfGetSettings().rail_station_penalty * platform_length;
 				/* Add penalty for the inappropriate platform length. */
-				segment_data.extra_cost += PlatformLengthPenalty(platform_length);
+				segment_data.extra_cost += Base::PlatformLengthPenalty(platform_length);
 			}
 		}
 
@@ -790,58 +871,6 @@ public:
 		n.m_cost = segment_data.parent_cost + segment_data.entry_cost + segment_data.segment_cost + segment_data.extra_cost;
 
 		return true;
-	}
-
-	/**
-	 * In some cases an intermediate node branch should be pruned.
-	 * The most prominent case is when a red EOL signal is encountered, but
-	 * there was a segment change (e.g. a rail type change) before that. If
-	 * the branch would not be pruned, the rail type change location would
-	 * remain the best intermediate node, and thus the vehicle would still
-	 * go towards the red EOL signal.
-	 */
-	void PruneIntermediateNodeBranch()
-	{
-		while (Types::Astar::best_intermediate != NULL && (Types::Astar::best_intermediate->m_segment->m_end_segment_reason & ESRB_CHOICE_FOLLOWS) == 0) {
-			Types::Astar::best_intermediate = Types::Astar::best_intermediate->m_parent;
-		}
-	}
-
-	inline bool CanUseGlobalCache(Node& n) const
-	{
-		return !m_disable_cache
-			&& (n.m_parent != NULL)
-			&& (n.m_parent->m_num_signals_passed >= m_sig_look_ahead_costs.Size());
-	}
-
-	inline void ConnectNodeToCachedData(Node& n, CachedData& ci)
-	{
-		n.m_segment = &ci;
-		if (n.m_segment->m_cost < 0) {
-			n.m_segment->m_last = n.GetPos();
-		}
-	}
-
-	void DisableCache(bool disable)
-	{
-		m_disable_cache = disable;
-	}
-
-	/**
-	 * Called by YAPF to attach cached or local segment cost data to the given node.
-	 *  @return true if globally cached data were used or false if local data was used
-	 */
-	inline bool PfNodeCacheFetch(Node& n)
-	{
-		CacheKey key(n.GetKey());
-		if (!CanUseGlobalCache(n)) {
-			ConnectNodeToCachedData(n, *new (m_local_cache.Append()) CachedData(key));
-			return false;
-		}
-		bool found;
-		CachedData& item = m_global_cache.Get(key, &found);
-		ConnectNodeToCachedData(n, item);
-		return found;
 	}
 
 	/** add multiple nodes - direct children of the given node */
@@ -863,7 +892,7 @@ public:
 	void AddNewNode(Node &n, const TrackFollower &tf)
 	{
 		/* evaluate the node */
-		bool bCached = PfNodeCacheFetch(n);
+		bool bCached = Base::PfNodeCacheFetch(n);
 		if (!bCached) {
 			Yapf().m_stats_cost_calcs++;
 		} else {
@@ -900,8 +929,6 @@ public:
 	 */
 	inline bool FindPath(const Train *v)
 	{
-		m_veh = v;
-
 #ifndef NO_DEBUG_MESSAGES
 		CPerformanceTimer perf;
 		perf.Start();
@@ -916,15 +943,15 @@ public:
 			_total_pf_time_us += t;
 
 			if (_debug_yapf_level >= 3) {
-				UnitID veh_idx = (m_veh != NULL) ? m_veh->unitnumber : 0;
-				float cache_hit_ratio = (m_stats_cache_hits == 0) ? 0.0f : ((float)m_stats_cache_hits / (float)(m_stats_cache_hits + m_stats_cost_calcs) * 100.0f);
+				UnitID veh_idx = (Base::m_veh != NULL) ? Base::m_veh->unitnumber : 0;
+				float cache_hit_ratio = (Base::m_stats_cache_hits == 0) ? 0.0f : ((float)Base::m_stats_cache_hits / (float)(Base::m_stats_cache_hits + Base::m_stats_cost_calcs) * 100.0f);
 				int cost = bDestFound ? Types::Astar::best->m_cost : -1;
 				int dist = bDestFound ? Types::Astar::best->m_estimate - Types::Astar::best->m_cost : -1;
 
 				DEBUG(yapf, 3, "[YAPFt]%c%4d- %d us - %d rounds - %d open - %d closed - CHR %4.1f%% - C %d D %d - c%d(sc%d, ts%d, o%d) -- ",
 					bDestFound ? '-' : '!', veh_idx, t, Types::Astar::num_steps, Types::Astar::OpenCount(), Types::Astar::ClosedCount(),
-					cache_hit_ratio, cost, dist, m_perf_cost.Get(1000000), m_perf_slope_cost.Get(1000000),
-					m_perf_ts_cost.Get(1000000), m_perf_other_cost.Get(1000000)
+					cache_hit_ratio, cost, dist, Base::m_perf_cost.Get(1000000), Base::m_perf_slope_cost.Get(1000000),
+					Base::m_perf_ts_cost.Get(1000000), Base::m_perf_other_cost.Get(1000000)
 				);
 			}
 		}
@@ -934,32 +961,8 @@ public:
 };
 
 
-class CYapfDestinationRailBase
-{
-protected:
-	RailTypes m_compatible_railtypes;
-
-public:
-	void SetDestination(const Train *v, bool override_rail_type = false)
-	{
-		m_compatible_railtypes = v->compatible_railtypes;
-		if (override_rail_type) m_compatible_railtypes |= GetRailTypeInfo(v->railtype)->compatible_railtypes;
-	}
-
-	bool IsCompatibleRailType(RailType rt)
-	{
-		return HasBit(m_compatible_railtypes, rt);
-	}
-
-	RailTypes GetCompatibleRailTypes() const
-	{
-		return m_compatible_railtypes;
-	}
-};
-
 template <class Types>
 class CYapfDestinationAnyDepotRailT
-	: public CYapfDestinationRailBase
 {
 public:
 	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
@@ -997,7 +1000,6 @@ public:
 
 template <class Types>
 class CYapfDestinationAnySafeTileRailT
-	: public CYapfDestinationRailBase
 {
 public:
 	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
@@ -1036,7 +1038,6 @@ public:
 
 template <class Types>
 class CYapfDestinationTileOrStationRailT
-	: public CYapfDestinationRailBase
 {
 public:
 	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
@@ -1077,7 +1078,6 @@ public:
 				m_dest_station_id = INVALID_STATION;
 				break;
 		}
-		CYapfDestinationRailBase::SetDestination(v);
 	}
 
 	/** Called by YAPF to detect if node ends in the desired destination */
@@ -1323,7 +1323,7 @@ public:
 
 	static bool stFindNearestDepotTwoWay(const Train *v, const PathPos &pos1, const PathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
 	{
-		Tpf pf1;
+		Tpf pf1 (v);
 		/*
 		 * With caching enabled it simply cannot get a reliable result when you
 		 * have limited the distance a train may travel. This means that the
@@ -1337,7 +1337,7 @@ public:
 		bool result1 = pf1.FindNearestDepotTwoWay(v, pos1, pos2, max_penalty, reverse_penalty, depot_tile, reversed);
 
 #if DEBUG_YAPF_CACHE
-		Tpf pf2;
+		Tpf pf2 (v);
 		TileIndex depot_tile2 = INVALID_TILE;
 		bool reversed2 = false;
 		pf2.DisableCache(true);
@@ -1355,7 +1355,6 @@ public:
 	{
 		/* set origin and destination nodes */
 		Yapf().SetOrigin(pos1, pos2, reverse_penalty, true);
-		Yapf().SetDestination(v);
 		Yapf().SetMaxCost(max_penalty);
 
 		/* find the best path */
@@ -1414,13 +1413,13 @@ public:
 	static bool stFindNearestSafeTile(const Train *v, const PathPos &pos, bool override_railtype)
 	{
 		/* Create pathfinder instance */
-		Tpf pf1;
+		Tpf pf1 (v, override_railtype);
 #if !DEBUG_YAPF_CACHE
 		bool result1 = pf1.FindNearestSafeTile(v, pos, override_railtype, false);
 
 #else
 		bool result2 = pf1.FindNearestSafeTile(v, pos, override_railtype, true);
-		Tpf pf2;
+		Tpf pf2 (v, override_railtype);
 		pf2.DisableCache(true);
 		bool result1 = pf2.FindNearestSafeTile(v, pos, override_railtype, false);
 		if (result1 != result2) {
@@ -1436,7 +1435,6 @@ public:
 	{
 		/* Set origin and destination. */
 		Yapf().SetOrigin(pos);
-		Yapf().SetDestination(v, override_railtype);
 
 		bool bFound = Yapf().FindPath(v);
 		if (!bFound) return false;
@@ -1491,13 +1489,13 @@ public:
 	static Trackdir stChooseRailTrack(const Train *v, const PathPos &origin, bool reserve_track, PFResult *target)
 	{
 		/* create pathfinder instance */
-		Tpf pf1;
+		Tpf pf1 (v);
 #if !DEBUG_YAPF_CACHE
 		Trackdir result1 = pf1.ChooseRailTrack(v, origin, reserve_track, target);
 
 #else
 		Trackdir result1 = pf1.ChooseRailTrack(v, origin, false, NULL);
-		Tpf pf2;
+		Tpf pf2 (v);
 		pf2.DisableCache(true);
 		Trackdir result2 = pf2.ChooseRailTrack(v, origin, reserve_track, target);
 		if (result1 != result2) {
@@ -1553,11 +1551,11 @@ public:
 
 	static bool stCheckReverseTrain(const Train *v, const PathPos &pos1, const PathPos &pos2, int reverse_penalty)
 	{
-		Tpf pf1;
+		Tpf pf1 (v);
 		bool result1 = pf1.CheckReverseTrain(v, pos1, pos2, reverse_penalty);
 
 #if DEBUG_YAPF_CACHE
-		Tpf pf2;
+		Tpf pf2 (v);
 		pf2.DisableCache(true);
 		bool result2 = pf2.CheckReverseTrain(v, pos1, pos2, reverse_penalty);
 		if (result1 != result2) {
@@ -1610,6 +1608,10 @@ struct CYapfRail1
 	, CYapfDestinationTileOrStationRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
 	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
 {
+	CYapfRail1 (const Train *v)
+		: CYapfRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90>, false> (v)
+	{
+	}
 };
 
 struct CYapfRail2
@@ -1617,6 +1619,10 @@ struct CYapfRail2
 	, CYapfDestinationTileOrStationRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
 	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
 {
+	CYapfRail2 (const Train *v)
+		: CYapfRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90>, false> (v)
+	{
+	}
 };
 
 struct CYapfAnyDepotRail1
@@ -1624,6 +1630,10 @@ struct CYapfAnyDepotRail1
 	, CYapfDestinationAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
 	, CYapfFollowAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
 {
+	CYapfAnyDepotRail1 (const Train *v)
+		: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90>, false> (v)
+	{
+	}
 };
 
 struct CYapfAnyDepotRail2
@@ -1631,6 +1641,10 @@ struct CYapfAnyDepotRail2
 	, CYapfDestinationAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
 	, CYapfFollowAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
 {
+	CYapfAnyDepotRail2 (const Train *v)
+		: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90>, false> (v)
+	{
+	}
 };
 
 struct CYapfAnySafeTileRail1
@@ -1638,6 +1652,10 @@ struct CYapfAnySafeTileRail1
 	, CYapfDestinationAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackRail90> >
 	, CYapfFollowAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackRail90> >
 {
+	CYapfAnySafeTileRail1 (const Train *v, bool override_railtype)
+		: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackRail90>, true> (v, override_railtype)
+	{
+	}
 };
 
 struct CYapfAnySafeTileRail2
@@ -1645,6 +1663,10 @@ struct CYapfAnySafeTileRail2
 	, CYapfDestinationAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackRailNo90> >
 	, CYapfFollowAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackRailNo90> >
 {
+	CYapfAnySafeTileRail2 (const Train *v, bool override_railtype)
+		: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackRailNo90>, true> (v, override_railtype)
+	{
+	}
 };
 
 
