@@ -667,25 +667,55 @@ public:
 		return segment->end_reason == ESRB_NONE;
 	}
 
-	inline void PfCalcSegment (Node &n, const TrackFollower *tf, NodeData *segment)
+	/** Compute all costs for a newly-allocated (not cached) segment. */
+	inline EndSegmentReasonBits CalcSegment (Node *n, const TrackFollower *tf)
 	{
 		const Train *v = m_veh;
 		TrackFollower tf_local(v, m_compatible_railtypes, &m_perf_ts_cost);
 
-		TileIndex prev = n.m_parent->GetLastPos().tile;
+		/* Each node cost contains 2 or 3 main components:
+		 *  1. Transition cost - cost of the move from previous node (tile):
+		 *    - curve cost (or zero for straight move)
+		 *  2. Tile cost:
+		 *    - base tile cost
+		 *      - YAPF_TILE_LENGTH for diagonal tiles
+		 *      - YAPF_TILE_CORNER_LENGTH for non-diagonal tiles
+		 *    - tile penalties
+		 *      - tile slope penalty (upward slopes)
+		 *      - red signal penalty
+		 *      - level crossing penalty
+		 *      - speed-limit penalty (bridges)
+		 *      - station platform penalty
+		 *      - penalty for reversing in the depot
+		 *      - etc.
+		 *  3. Extra cost (applies to the last node only)
+		 *    - last red signal penalty
+		 *    - penalty for too long or too short platform on the destination station
+		 */
+
+		/* Segment: one or more tiles connected by contiguous tracks of the same type.
+		 * Each segment cost includes 'Tile cost' for all its tiles (including the first
+		 * and last), and the 'Transition cost' between its tiles. The first transition
+		 * cost of segment entry (move from the 'parent' node) is not included!
+		 */
 
 		/* start at n and walk to the end of segment */
-		segment->segment_cost = 0;
-		segment->extra_cost = 0;
-		segment->pos = n.GetPos();
-		segment->last_signal = PathPos();
-		segment->end_reason = ESRB_NONE;
+		NodeData segment;
+		segment.parent_cost = n->m_parent->m_cost;
+		segment.entry_cost = TransitionCost (n->m_parent->GetLastPos(), n->GetPos());
+		segment.segment_cost = 0;
+		segment.extra_cost = 0;
+		segment.pos = n->GetPos();
+		segment.last_signal = PathPos();
+		segment.end_reason = ESRB_NONE;
 
-		RailType rail_type = !segment->pos.in_wormhole() ? GetTileRailType(segment->pos.tile, TrackdirToTrack(segment->pos.td)) :
-			IsRailwayTile(segment->pos.wormhole) ? GetBridgeRailType(segment->pos.wormhole) : GetRailType(segment->pos.wormhole);
+		TileIndex prev = n->m_parent->GetLastPos().tile;
+
+		RailType rail_type = !segment.pos.in_wormhole() ? GetTileRailType(segment.pos.tile, TrackdirToTrack(segment.pos.td)) :
+			IsRailwayTile(segment.pos.wormhole) ? GetBridgeRailType(segment.pos.wormhole) : GetRailType(segment.pos.wormhole);
 
 		for (;;) {
-			HandleNodeTile (&n, tf, segment, prev);
+			HandleNodeTile (n, tf, &segment, prev);
 
 			/* Move to the next tile/trackdir. */
 			tf = &tf_local;
@@ -693,15 +723,25 @@ public:
 			assert(tf_local.m_railtypes == m_compatible_railtypes);
 			assert(tf_local.m_pPerf == &m_perf_ts_cost);
 
-			if (!HandleNodeNextTile (&n, &tf_local, segment, rail_type)) break;
+			if (!HandleNodeNextTile (n, &tf_local, &segment, rail_type)) break;
 
 			/* Transition cost (cost of the move from previous tile) */
-			segment->segment_cost += TransitionCost (segment->pos, tf_local.m_new);
+			segment.segment_cost += TransitionCost (segment.pos, tf_local.m_new);
 
 			/* For the next loop set new prev and cur tile info. */
-			prev = segment->pos.tile;
-			segment->pos = tf_local.m_new;
+			prev = segment.pos.tile;
+			segment.pos = tf_local.m_new;
 		} // for (;;)
+
+		/* Write back the segment information so it can be reused the next time. */
+		n->m_segment->m_last = segment.pos;
+		n->m_segment->m_cost = segment.segment_cost;
+		n->m_segment->m_last_signal = segment.last_signal;
+		n->m_segment->m_end_segment_reason = segment.end_reason & ESRB_CACHED_MASK;
+
+		/* total node cost */
+		n->m_cost = segment.parent_cost + segment.entry_cost + segment.segment_cost + segment.extra_cost;
+		return segment.end_reason;
 	}
 };
 
@@ -767,32 +807,6 @@ public:
 		/* Do we already have a cached segment? */
 		bool is_cached_segment = (n.m_segment->m_cost >= 0);
 
-		/* Each node cost contains 2 or 3 main components:
-		 *  1. Transition cost - cost of the move from previous node (tile):
-		 *    - curve cost (or zero for straight move)
-		 *  2. Tile cost:
-		 *    - base tile cost
-		 *      - YAPF_TILE_LENGTH for diagonal tiles
-		 *      - YAPF_TILE_CORNER_LENGTH for non-diagonal tiles
-		 *    - tile penalties
-		 *      - tile slope penalty (upward slopes)
-		 *      - red signal penalty
-		 *      - level crossing penalty
-		 *      - speed-limit penalty (bridges)
-		 *      - station platform penalty
-		 *      - penalty for reversing in the depot
-		 *      - etc.
-		 *  3. Extra cost (applies to the last node only)
-		 *    - last red signal penalty
-		 *    - penalty for too long or too short platform on the destination station
-		 */
-
-		/* Segment: one or more tiles connected by contiguous tracks of the same type.
-		 * Each segment cost includes 'Tile cost' for all its tiles (including the first
-		 * and last), and the 'Transition cost' between its tiles. The first transition
-		 * cost of segment entry (move from the 'parent' node) is not included!
-		 */
-
 		EndSegmentReasonBits end_reason;
 
 		/* It is the right time now to look if we can reuse the cached segment cost. */
@@ -812,22 +826,7 @@ public:
 			/* No further calculation needed. */
 			end_reason = n.m_segment->m_end_segment_reason;
 		} else {
-			typename Base::NodeData segment_data;
-
-			segment_data.parent_cost = n.m_parent->m_cost;
-			segment_data.entry_cost = Base::TransitionCost (n.m_parent->GetLastPos(), n.GetPos());
-
-			Base::PfCalcSegment (n, tf, &segment_data);
-
-			/* Write back the segment information so it can be reused the next time. */
-			n.m_segment->m_last = segment_data.pos;
-			n.m_segment->m_cost = segment_data.segment_cost;
-			n.m_segment->m_last_signal = segment_data.last_signal;
-			n.m_segment->m_end_segment_reason = segment_data.end_reason & ESRB_CACHED_MASK;
-
-			/* total node cost */
-			n.m_cost = segment_data.parent_cost + segment_data.entry_cost + segment_data.segment_cost + segment_data.extra_cost;
-			end_reason = segment_data.end_reason;
+			end_reason = Base::CalcSegment (&n, tf);
 		}
 
 		bool target_seen = false;
