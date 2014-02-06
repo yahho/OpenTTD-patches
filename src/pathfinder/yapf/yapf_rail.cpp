@@ -743,6 +743,25 @@ public:
 		n->m_cost = segment.parent_cost + segment.entry_cost + segment.segment_cost + segment.extra_cost;
 		return segment.end_reason;
 	}
+
+	/** Fill in a node from cached data. */
+	inline EndSegmentReasonBits RestoreCachedNode (Node *n)
+	{
+		/* total node cost */
+		n->m_cost = n->m_parent->m_cost + TransitionCost (n->m_parent->GetLastPos(), n->GetPos()) + n->m_segment->m_cost;
+		/* We will need also some information about the last signal (if it was red). */
+		if (n->m_segment->m_last_signal.tile != INVALID_TILE) {
+			assert(HasSignalAlongPos(n->m_segment->m_last_signal));
+			SignalState sig_state = GetSignalStateByPos(n->m_segment->m_last_signal);
+			bool is_red = (sig_state == SIGNAL_STATE_RED);
+			n->flags_u.flags_s.m_last_signal_was_red = is_red;
+			if (is_red) {
+				n->m_last_red_signal_type = GetSignalType(n->m_segment->m_last_signal);
+			}
+		}
+		/* No further calculation needed. */
+		return n->m_segment->m_end_segment_reason;
+	}
 };
 
 
@@ -811,20 +830,7 @@ public:
 
 		/* It is the right time now to look if we can reuse the cached segment cost. */
 		if (is_cached_segment) {
-			/* total node cost */
-			n.m_cost = n.m_parent->m_cost + Base::TransitionCost (n.m_parent->GetLastPos(), n.GetPos()) + n.m_segment->m_cost;
-			/* We will need also some information about the last signal (if it was red). */
-			if (n.m_segment->m_last_signal.tile != INVALID_TILE) {
-				assert(HasSignalAlongPos(n.m_segment->m_last_signal));
-				SignalState sig_state = GetSignalStateByPos(n.m_segment->m_last_signal);
-				bool is_red = (sig_state == SIGNAL_STATE_RED);
-				n.flags_u.flags_s.m_last_signal_was_red = is_red;
-				if (is_red) {
-					n.m_last_red_signal_type = GetSignalType(n.m_segment->m_last_signal);
-				}
-			}
-			/* No further calculation needed. */
-			end_reason = n.m_segment->m_end_segment_reason;
+			end_reason = Base::RestoreCachedNode (&n);
 		} else {
 			end_reason = Base::CalcSegment (&n, tf);
 		}
