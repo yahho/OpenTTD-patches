@@ -765,8 +765,7 @@ public:
 		CPerfStart perf_cost(Yapf().m_perf_cost);
 
 		/* Do we already have a cached segment? */
-		CachedData &segment = *n.m_segment;
-		bool is_cached_segment = (segment.m_cost >= 0);
+		bool is_cached_segment = (n.m_segment->m_cost >= 0);
 
 		/* Each node cost contains 2 or 3 main components:
 		 *  1. Transition cost - cost of the move from previous node (tile):
@@ -794,50 +793,54 @@ public:
 		 * cost of segment entry (move from the 'parent' node) is not included!
 		 */
 
-		typename Base::NodeData segment_data;
-		segment_data.parent_cost = n.m_parent->m_cost;
-		segment_data.entry_cost = Base::TransitionCost (n.m_parent->GetLastPos(), n.GetPos());
+		EndSegmentReasonBits end_reason;
 
 		/* It is the right time now to look if we can reuse the cached segment cost. */
 		if (is_cached_segment) {
-			segment_data.segment_cost = segment.m_cost;
-			segment_data.extra_cost = 0;
-			segment_data.pos = n.GetLastPos();
-			segment_data.last_signal = segment.m_last_signal;
-			segment_data.end_reason = segment.m_end_segment_reason;
+			/* total node cost */
+			n.m_cost = n.m_parent->m_cost + Base::TransitionCost (n.m_parent->GetLastPos(), n.GetPos()) + n.m_segment->m_cost;
 			/* We will need also some information about the last signal (if it was red). */
-			if (segment.m_last_signal.tile != INVALID_TILE) {
-				assert(HasSignalAlongPos(segment.m_last_signal));
-				SignalState sig_state = GetSignalStateByPos(segment.m_last_signal);
+			if (n.m_segment->m_last_signal.tile != INVALID_TILE) {
+				assert(HasSignalAlongPos(n.m_segment->m_last_signal));
+				SignalState sig_state = GetSignalStateByPos(n.m_segment->m_last_signal);
 				bool is_red = (sig_state == SIGNAL_STATE_RED);
 				n.flags_u.flags_s.m_last_signal_was_red = is_red;
 				if (is_red) {
-					n.m_last_red_signal_type = GetSignalType(segment.m_last_signal);
+					n.m_last_red_signal_type = GetSignalType(n.m_segment->m_last_signal);
 				}
 			}
 			/* No further calculation needed. */
+			end_reason = n.m_segment->m_end_segment_reason;
 		} else {
+			typename Base::NodeData segment_data;
+
+			segment_data.parent_cost = n.m_parent->m_cost;
+			segment_data.entry_cost = Base::TransitionCost (n.m_parent->GetLastPos(), n.GetPos());
+
 			Base::PfCalcSegment (n, tf, &segment_data);
 
 			/* Write back the segment information so it can be reused the next time. */
-			segment.m_last = segment_data.pos;
-			segment.m_cost = segment_data.segment_cost;
-			segment.m_last_signal = segment_data.last_signal;
-			segment.m_end_segment_reason = segment_data.end_reason & ESRB_CACHED_MASK;
+			n.m_segment->m_last = segment_data.pos;
+			n.m_segment->m_cost = segment_data.segment_cost;
+			n.m_segment->m_last_signal = segment_data.last_signal;
+			n.m_segment->m_end_segment_reason = segment_data.end_reason & ESRB_CACHED_MASK;
 
+			/* total node cost */
+			n.m_cost = segment_data.parent_cost + segment_data.entry_cost + segment_data.segment_cost + segment_data.extra_cost;
+			end_reason = segment_data.end_reason;
 		}
 
 		bool target_seen = false;
-		if ((segment_data.end_reason & ESRB_POSSIBLE_TARGET) != ESRB_NONE) {
+		if ((end_reason & ESRB_POSSIBLE_TARGET) != ESRB_NONE) {
 			/* Depot, station or waypoint. */
-			if (Yapf().PfDetectDestination(segment_data.pos)) {
+			if (Yapf().PfDetectDestination(n.GetLastPos())) {
 				/* Destination found. */
 				target_seen = true;
 			}
 		}
 
 		/* Do we have an excuse why not to continue pathfinding in this direction? */
-		if (!target_seen && (segment_data.end_reason & ESRB_ABORT_PF_MASK) != ESRB_NONE) {
+		if (!target_seen && (end_reason & ESRB_ABORT_PF_MASK) != ESRB_NONE) {
 			/* Reason to not continue. Stop this PF branch. */
 			return false;
 		}
@@ -849,27 +852,24 @@ public:
 			if (n.flags_u.flags_s.m_last_signal_was_red) {
 				if (n.m_last_red_signal_type == SIGTYPE_EXIT) {
 					/* last signal was red pre-signal-exit */
-					segment_data.extra_cost += Yapf().PfGetSettings().rail_lastred_exit_penalty;
+					n.m_cost += Yapf().PfGetSettings().rail_lastred_exit_penalty;
 				} else if (!IsPbsSignal(n.m_last_red_signal_type)) {
 					/* Last signal was red, but not exit or path signal. */
-					segment_data.extra_cost += Yapf().PfGetSettings().rail_lastred_penalty;
+					n.m_cost += Yapf().PfGetSettings().rail_lastred_penalty;
 				}
 			}
 
 			/* Station platform-length penalty. */
-			if ((segment_data.end_reason & ESRB_STATION) != ESRB_NONE) {
+			if ((end_reason & ESRB_STATION) != ESRB_NONE) {
 				const BaseStation *st = BaseStation::GetByTile(n.GetLastPos().tile);
 				assert(st != NULL);
 				uint platform_length = st->GetPlatformLength(n.GetLastPos().tile, ReverseDiagDir(TrackdirToExitdir(n.GetLastPos().td)));
 				/* Reduce the extra cost caused by passing-station penalty (each station receives it in the segment cost). */
-				segment_data.extra_cost -= Yapf().PfGetSettings().rail_station_penalty * platform_length;
+				n.m_cost -= Yapf().PfGetSettings().rail_station_penalty * platform_length;
 				/* Add penalty for the inappropriate platform length. */
-				segment_data.extra_cost += Base::PlatformLengthPenalty(platform_length);
+				n.m_cost += Base::PlatformLengthPenalty(platform_length);
 			}
 		}
-
-		/* total node cost */
-		n.m_cost = segment_data.parent_cost + segment_data.entry_cost + segment_data.segment_cost + segment_data.extra_cost;
 
 		return true;
 	}
