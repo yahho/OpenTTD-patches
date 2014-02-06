@@ -102,17 +102,13 @@ struct CSegmentCostCacheT
 		m_heap.Clear();
 	}
 
-	inline Tsegment& Get(Key& key, bool *found)
+	inline bool Get(const Key& key, Tsegment **item)
 	{
-		Tsegment *item = m_map.Find(key);
-		if (item == NULL) {
-			*found = false;
-			item = new (m_heap.Append()) Tsegment(key);
-			m_map.Push(*item);
-		} else {
-			*found = true;
-		}
-		return *item;
+		*item = m_map.Find(key);
+		if (*item != NULL) return true;
+		*item = new (m_heap.Append()) Tsegment(key);
+		m_map.Push(**item);
+		return false;
 	}
 };
 
@@ -213,28 +209,20 @@ public:
 	}
 
 protected:
-	inline void ConnectNodeToCachedData(Node& n, CachedData& ci)
-	{
-		n.m_segment = &ci;
-		if (n.m_segment->m_cost < 0) {
-			n.m_segment->m_last = n.GetPos();
-		}
-	}
-
 	/**
 	 * Called by YAPF to attach cached or local segment cost data to the given node.
 	 *  @return true if globally cached data were used or false if local data was used
 	 */
-	inline bool PfNodeCacheFetch(Node& n)
+	inline bool AttachSegmentToNode(Node *n)
 	{
-		CacheKey key(n.GetKey());
-		if (!CanUseGlobalCache(n)) {
-			ConnectNodeToCachedData(n, *new (m_local_cache.Append()) CachedData(key));
+		CacheKey key(n->GetKey());
+		if (!CanUseGlobalCache(*n)) {
+			n->m_segment = new (m_local_cache.Append()) CachedData(key);
+			n->m_segment->m_last = n->GetPos();
 			return false;
 		}
-		bool found;
-		CachedData& item = m_global_cache.Get(key, &found);
-		ConnectNodeToCachedData(n, item);
+		bool found = m_global_cache.Get(key, &n->m_segment);
+		if (!found) n->m_segment->m_last = n->GetPos();
 		return found;
 	}
 
@@ -244,7 +232,7 @@ public:
 	{
 		Node *node = TAstar::CreateNewNode (NULL, pos, false);
 		node->m_cost = cost;
-		PfNodeCacheFetch(*node);
+		AttachSegmentToNode(node);
 		TAstar::InsertInitialNode(node);
 	}
 
@@ -905,7 +893,7 @@ public:
 	void AddNewNode(Node &n, const TrackFollower &tf)
 	{
 		/* evaluate the node */
-		bool bCached = Base::PfNodeCacheFetch(n);
+		bool bCached = Base::AttachSegmentToNode(&n);
 		if (!bCached) {
 			Yapf().m_stats_cost_calcs++;
 		} else {
