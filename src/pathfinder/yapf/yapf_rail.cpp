@@ -762,6 +762,34 @@ public:
 		/* No further calculation needed. */
 		return n->m_segment->m_end_segment_reason;
 	}
+
+	/** Add special extra cost when the segment reaches our target. */
+	inline void AddTargetCost (Node *n, bool is_station)
+	{
+		n->flags_u.flags_s.m_targed_seen = true;
+
+		/* Last-red and last-red-exit penalties. */
+		if (n->flags_u.flags_s.m_last_signal_was_red) {
+			if (n->m_last_red_signal_type == SIGTYPE_EXIT) {
+				/* last signal was red pre-signal-exit */
+				n->m_cost += m_settings->rail_lastred_exit_penalty;
+			} else if (!IsPbsSignal(n->m_last_red_signal_type)) {
+				/* Last signal was red, but not exit or path signal. */
+				n->m_cost += m_settings->rail_lastred_penalty;
+			}
+		}
+
+		/* Station platform-length penalty. */
+		if (is_station) {
+			const BaseStation *st = BaseStation::GetByTile(n->GetLastPos().tile);
+			assert(st != NULL);
+			uint platform_length = st->GetPlatformLength(n->GetLastPos().tile, ReverseDiagDir(TrackdirToExitdir(n->GetLastPos().td)));
+			/* Reduce the extra cost caused by passing-station penalty (each station receives it in the segment cost). */
+			n->m_cost -= m_settings->rail_station_penalty * platform_length;
+			/* Add penalty for the inappropriate platform length. */
+			n->m_cost += PlatformLengthPenalty(platform_length);
+		}
+	}
 };
 
 
@@ -852,28 +880,7 @@ public:
 
 		/* Special costs for the case we have reached our target. */
 		if (target_seen) {
-			n.flags_u.flags_s.m_targed_seen = true;
-			/* Last-red and last-red-exit penalties. */
-			if (n.flags_u.flags_s.m_last_signal_was_red) {
-				if (n.m_last_red_signal_type == SIGTYPE_EXIT) {
-					/* last signal was red pre-signal-exit */
-					n.m_cost += Yapf().PfGetSettings().rail_lastred_exit_penalty;
-				} else if (!IsPbsSignal(n.m_last_red_signal_type)) {
-					/* Last signal was red, but not exit or path signal. */
-					n.m_cost += Yapf().PfGetSettings().rail_lastred_penalty;
-				}
-			}
-
-			/* Station platform-length penalty. */
-			if ((end_reason & ESRB_STATION) != ESRB_NONE) {
-				const BaseStation *st = BaseStation::GetByTile(n.GetLastPos().tile);
-				assert(st != NULL);
-				uint platform_length = st->GetPlatformLength(n.GetLastPos().tile, ReverseDiagDir(TrackdirToExitdir(n.GetLastPos().td)));
-				/* Reduce the extra cost caused by passing-station penalty (each station receives it in the segment cost). */
-				n.m_cost -= Yapf().PfGetSettings().rail_station_penalty * platform_length;
-				/* Add penalty for the inappropriate platform length. */
-				n.m_cost += Base::PlatformLengthPenalty(platform_length);
-			}
+			Base::AddTargetCost (&n, (end_reason & ESRB_STATION) != ESRB_NONE);
 		}
 
 		return true;
