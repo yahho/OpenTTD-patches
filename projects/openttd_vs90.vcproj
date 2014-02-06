@@ -7520,6 +7520,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\script\api\script_storypageelementlist.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\script\api\script_subsidy.hpp"
 				>
 			</File>
@@ -9613,6 +9617,50 @@
 			</File>
 			<File
 				RelativePath=".\..\src\script\api\script_storypagelist.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\script\api\"
+						ObjectFile="$(IntDir)\script\api\"
+						XMLDocumentationFileName="$(IntDir)\script\api\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\script\api\"
+						ObjectFile="$(IntDir)\script\api\"
+						XMLDocumentationFileName="$(IntDir)\script\api\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\script\api\"
+						ObjectFile="$(IntDir)\script\api\"
+						XMLDocumentationFileName="$(IntDir)\script\api\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\script\api\"
+						ObjectFile="$(IntDir)\script\api\"
+						XMLDocumentationFileName="$(IntDir)\script\api\"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\..\src\script\api\script_storypageelementlist.cpp"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
