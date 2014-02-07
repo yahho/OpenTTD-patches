@@ -862,23 +862,23 @@ public:
 				end_reason = Base::CalcSegment (n, &tf);
 			}
 
+			assert (((end_reason & ESRB_POSSIBLE_TARGET) != ESRB_NONE) || !Yapf().PfDetectDestination(n->GetLastPos()));
+
 			if (((end_reason & ESRB_POSSIBLE_TARGET) != ESRB_NONE) &&
 					Yapf().PfDetectDestination(n->GetLastPos())) {
 				/* Special costs for the case we have reached our target. */
 				Base::AddTargetCost (n, (end_reason & ESRB_STATION) != ESRB_NONE);
+				perf_cost.Stop();
+				n->m_estimate = n->m_cost;
+				this->FoundTarget(n);
+
 			} else if ((end_reason & ESRB_ABORT_PF_MASK) != ESRB_NONE) {
 				/* Reason to not continue. Stop this PF branch. */
 				continue;
-			}
 
-			perf_cost.Stop();
-
-			Yapf().PfCalcEstimate(*n);
-
-			/* detect the destination */
-			if (Yapf().PfDetectDestination(*n)) {
-				this->FoundTarget(n);
 			} else {
+				perf_cost.Stop();
+				Yapf().PfCalcEstimate(*n);
 				this->InsertNode(n);
 			}
 		}
@@ -948,12 +948,6 @@ public:
 	}
 
 	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination(Node& n)
-	{
-		return PfDetectDestination(n.GetLastPos());
-	}
-
-	/** Called by YAPF to detect if node ends in the desired destination */
 	inline bool PfDetectDestination(const PathPos &pos)
 	{
 		return !pos.in_wormhole() && IsRailDepotTile(pos.tile);
@@ -982,12 +976,6 @@ public:
 	Tpf& Yapf()
 	{
 		return *static_cast<Tpf*>(this);
-	}
-
-	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination(Node& n)
-	{
-		return PfDetectDestination(n.GetLastPos());
 	}
 
 	/** Called by YAPF to detect if node ends in the desired destination */
@@ -1051,12 +1039,6 @@ public:
 	}
 
 	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination(Node& n)
-	{
-		return PfDetectDestination(n.GetLastPos());
-	}
-
-	/** Called by YAPF to detect if node ends in the desired destination */
 	inline bool PfDetectDestination(const PathPos &pos)
 	{
 		bool bDest;
@@ -1078,10 +1060,6 @@ public:
 	{
 		static const int dg_dir_to_x_offs[] = {-1, 0, 1, 0};
 		static const int dg_dir_to_y_offs[] = {0, 1, 0, -1};
-		if (PfDetectDestination(n)) {
-			n.m_estimate = n.m_cost;
-			return;
-		}
 
 		TileIndex tile = n.GetLastPos().tile;
 		DiagDirection exitdir = TrackdirToExitdir(n.GetLastPos().td);
