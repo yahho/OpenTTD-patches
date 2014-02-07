@@ -153,6 +153,8 @@ protected:
 	CPerformanceTimer    m_perf_ts_cost;       ///< stats - GetTrackStatus() CPU time
 	CPerformanceTimer    m_perf_other_cost;    ///< stats - other CPU time
 
+	TrackFollower tf;       ///< track follower to be used by Follow
+
 	static const int s_max_segment_cost = 10000;
 
 	inline static Cache& stGetGlobalCache()
@@ -189,6 +191,7 @@ protected:
 		, m_max_cost(0)
 		, m_stats_cost_calcs(0)
 		, m_stats_cache_hits(0)
+		, tf (v, mask_reserved_tracks ? m_compatible_railtypes : v->compatible_railtypes)
 	{
 		/* pre-compute look-ahead penalties into array */
 		int p0 = m_settings->rail_look_ahead_signal_p0;
@@ -888,14 +891,12 @@ public:
 	inline void Follow (Node *old_node)
 	{
 		if (Tmask_reserved_tracks) {
-			TrackFollower F(Yapf().GetVehicle(), Yapf().GetCompatibleRailTypes());
-			if (F.Follow(old_node->GetLastPos()) && F.MaskReservedTracks()) {
-				Yapf().AddMultipleNodes(old_node, F);
+			if (Base::tf.Follow(old_node->GetLastPos()) && Base::tf.MaskReservedTracks()) {
+				Yapf().AddMultipleNodes(old_node, Base::tf);
 			}
 		} else {
-			TrackFollower F(Yapf().GetVehicle());
-			if (F.Follow(old_node->GetLastPos())) {
-				Yapf().AddMultipleNodes(old_node, F);
+			if (Base::tf.Follow(old_node->GetLastPos())) {
+				Yapf().AddMultipleNodes(old_node, Base::tf);
 			}
 		}
 	}
