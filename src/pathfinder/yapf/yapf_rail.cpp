@@ -839,14 +839,17 @@ public:
 		return Base::m_compatible_railtypes;
 	}
 
-	/** add multiple nodes - direct children of the given node */
-	inline void AddMultipleNodes(Node *parent, const TrackFollower &tf)
+	/** Called by the A-star underlying class to find the neighbours of a node. */
+	inline void Follow (Node *old_node)
 	{
-		bool is_choice = !tf.m_new.is_single();
-		PathPos pos = tf.m_new;
-		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
+		if (!Base::tf.Follow(old_node->GetLastPos())) return;
+		if (Tmask_reserved_tracks && !Base::tf.MaskReservedTracks()) return;
+
+		bool is_choice = !Base::tf.m_new.is_single();
+		PathPos pos = Base::tf.m_new;
+		for (TrackdirBits rtds = Base::tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.td = FindFirstTrackdir(rtds);
-			Node *n = Types::Astar::CreateNewNode(parent, pos, is_choice);
+			Node *n = Types::Astar::CreateNewNode(old_node, pos, is_choice);
 
 			/* evaluate the node */
 			bool cached = Base::AttachSegmentToNode(n);
@@ -862,7 +865,7 @@ public:
 			if (cached) {
 				end_reason = Base::RestoreCachedNode (n);
 			} else {
-				end_reason = Base::CalcSegment (n, &tf);
+				end_reason = Base::CalcSegment (n, &this->tf);
 			}
 
 			assert (((end_reason & ESRB_POSSIBLE_TARGET) != ESRB_NONE) || !Yapf().PfDetectDestination(n->GetLastPos()));
@@ -883,20 +886,6 @@ public:
 				perf_cost.Stop();
 				Yapf().PfCalcEstimate(*n);
 				this->InsertNode(n);
-			}
-		}
-	}
-
-	/** Called by the A-star underlying class to find the neighbours of a node. */
-	inline void Follow (Node *old_node)
-	{
-		if (Tmask_reserved_tracks) {
-			if (Base::tf.Follow(old_node->GetLastPos()) && Base::tf.MaskReservedTracks()) {
-				Yapf().AddMultipleNodes(old_node, Base::tf);
-			}
-		} else {
-			if (Base::tf.Follow(old_node->GetLastPos())) {
-				Yapf().AddMultipleNodes(old_node, Base::tf);
 			}
 		}
 	}
