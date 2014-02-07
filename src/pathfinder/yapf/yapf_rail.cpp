@@ -836,56 +836,6 @@ public:
 		return Base::m_compatible_railtypes;
 	}
 
-	/**
-	 * Called by YAPF to calculate the cost from the origin to the given node.
-	 *  Calculates only the cost of given node, adds it to the parent node cost
-	 *  and stores the result into Node::m_cost member
-	 */
-	inline bool PfCalcCost(Node &n, const TrackFollower *tf)
-	{
-		assert(!n.flags_u.flags_s.m_targed_seen);
-		assert(tf->m_new.tile == n.GetPos().tile);
-		assert(tf->m_new.wormhole == n.GetPos().wormhole);
-		assert((TrackdirToTrackdirBits(n.GetPos().td) & tf->m_new.trackdirs) != TRACKDIR_BIT_NONE);
-		assert(n.m_parent != NULL);
-
-		CPerfStart perf_cost(Yapf().m_perf_cost);
-
-		/* Do we already have a cached segment? */
-		bool is_cached_segment = (n.m_segment->m_cost >= 0);
-
-		EndSegmentReasonBits end_reason;
-
-		/* It is the right time now to look if we can reuse the cached segment cost. */
-		if (is_cached_segment) {
-			end_reason = Base::RestoreCachedNode (&n);
-		} else {
-			end_reason = Base::CalcSegment (&n, tf);
-		}
-
-		bool target_seen = false;
-		if ((end_reason & ESRB_POSSIBLE_TARGET) != ESRB_NONE) {
-			/* Depot, station or waypoint. */
-			if (Yapf().PfDetectDestination(n.GetLastPos())) {
-				/* Destination found. */
-				target_seen = true;
-			}
-		}
-
-		/* Do we have an excuse why not to continue pathfinding in this direction? */
-		if (!target_seen && (end_reason & ESRB_ABORT_PF_MASK) != ESRB_NONE) {
-			/* Reason to not continue. Stop this PF branch. */
-			return false;
-		}
-
-		/* Special costs for the case we have reached our target. */
-		if (target_seen) {
-			Base::AddTargetCost (&n, (end_reason & ESRB_STATION) != ESRB_NONE);
-		}
-
-		return true;
-	}
-
 	/** add multiple nodes - direct children of the given node */
 	inline void AddMultipleNodes(Node *parent, const TrackFollower &tf)
 	{
@@ -893,35 +843,47 @@ public:
 		PathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.td = FindFirstTrackdir(rtds);
-			Node& n = *Types::Astar::CreateNewNode(parent, pos, is_choice);
-			Yapf().AddNewNode(n, tf);
-		}
-	}
+			Node *n = Types::Astar::CreateNewNode(parent, pos, is_choice);
 
-	/**
-	 * AddNewNode() - called by Tderived::PfFollowNode() for each child node.
-	 *  Nodes are evaluated here and added into open list
-	 */
-	void AddNewNode(Node &n, const TrackFollower &tf)
-	{
-		/* evaluate the node */
-		bool bCached = Base::AttachSegmentToNode(&n);
-		if (!bCached) {
-			Yapf().m_stats_cost_calcs++;
-		} else {
-			Yapf().m_stats_cache_hits++;
-		}
+			/* evaluate the node */
+			bool cached = Base::AttachSegmentToNode(n);
+			if (!cached) {
+				Yapf().m_stats_cost_calcs++;
+			} else {
+				Yapf().m_stats_cache_hits++;
+			}
 
-		bool bValid = PfCalcCost(n, &tf) && Yapf().PfCalcEstimate(n);
+			CPerfStart perf_cost(Yapf().m_perf_cost);
 
-		/* have the cost or estimate callbacks marked this node as invalid? */
-		if (!bValid) return;
+			EndSegmentReasonBits end_reason;
+			if (cached) {
+				end_reason = Base::RestoreCachedNode (n);
+			} else {
+				end_reason = Base::CalcSegment (n, &tf);
+			}
 
-		/* detect the destination */
-		if (Yapf().PfDetectDestination(n)) {
-			this->FoundTarget(&n);
-		} else {
-			this->InsertNode(&n);
+			if (((end_reason & ESRB_POSSIBLE_TARGET) != ESRB_NONE) &&
+					Yapf().PfDetectDestination(n->GetLastPos())) {
+				/* Special costs for the case we have reached our target. */
+				Base::AddTargetCost (n, (end_reason & ESRB_STATION) != ESRB_NONE);
+			} else if ((end_reason & ESRB_ABORT_PF_MASK) != ESRB_NONE) {
+				/* Reason to not continue. Stop this PF branch. */
+				continue;
+			}
+
+			perf_cost.Stop();
+
+			bool bValid = Yapf().PfCalcEstimate(*n);
+
+			/* have the cost or estimate callbacks marked this node as invalid? */
+			if (!bValid) continue;
+
+			/* detect the destination */
+			if (Yapf().PfDetectDestination(*n)) {
+				this->FoundTarget(n);
+			} else {
+				this->InsertNode(n);
+			}
 		}
 	}
 
