@@ -408,7 +408,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 				Train *t = Train::From(v);
 				if (t->IsFrontEngine() || t->IsFreeWagon()) {
 					t->gcache.last_speed = t->cur_speed; // update displayed train speed
-					t->ConsistChanged(false);
+					t->ConsistChanged(CCF_SAVELOAD);
 				}
 				break;
 			}
@@ -579,7 +579,7 @@ void FixupTrainLengths()
 			}
 
 			/* Update all cached properties after moving the vehicle chain around. */
-			Train::From(v)->ConsistChanged(true);
+			Train::From(v)->ConsistChanged(CCF_TRACK);
 		}
 	}
 }

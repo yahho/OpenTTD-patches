@@ -1275,7 +1275,7 @@ static void CheckCaches()
 		}
 
 		switch (v->type) {
-			case VEH_TRAIN:    Train::From(v)->ConsistChanged(true);     break;
+			case VEH_TRAIN:    Train::From(v)->ConsistChanged(CCF_TRACK); break;
 			case VEH_ROAD:     RoadVehUpdateCache(RoadVehicle::From(v)); break;
 			case VEH_AIRCRAFT: UpdateAircraftCache(Aircraft::From(v));   break;
 			case VEH_SHIP:     Ship::From(v)->UpdateCache();             break;
