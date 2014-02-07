@@ -873,10 +873,7 @@ public:
 
 			perf_cost.Stop();
 
-			bool bValid = Yapf().PfCalcEstimate(*n);
-
-			/* have the cost or estimate callbacks marked this node as invalid? */
-			if (!bValid) continue;
+			Yapf().PfCalcEstimate(*n);
 
 			/* detect the destination */
 			if (Yapf().PfDetectDestination(*n)) {
@@ -966,10 +963,9 @@ public:
 	 * Called by YAPF to calculate cost estimate. Calculates distance to the destination
 	 *  adds it to the actual cost from origin and stores the sum to the Node::m_estimate
 	 */
-	inline bool PfCalcEstimate(Node& n)
+	inline void PfCalcEstimate(Node& n)
 	{
 		n.m_estimate = n.m_cost;
-		return true;
 	}
 };
 
@@ -1004,10 +1000,9 @@ public:
 	 * Called by YAPF to calculate cost estimate. Calculates distance to the destination
 	 *  adds it to the actual cost from origin and stores the sum to the Node::m_estimate.
 	 */
-	inline bool PfCalcEstimate(Node& n)
+	inline void PfCalcEstimate(Node& n)
 	{
 		n.m_estimate = n.m_cost;
-		return true;
 	}
 };
 
@@ -1079,13 +1074,13 @@ public:
 	 * Called by YAPF to calculate cost estimate. Calculates distance to the destination
 	 *  adds it to the actual cost from origin and stores the sum to the Node::m_estimate
 	 */
-	inline bool PfCalcEstimate(Node& n)
+	inline void PfCalcEstimate(Node& n)
 	{
 		static const int dg_dir_to_x_offs[] = {-1, 0, 1, 0};
 		static const int dg_dir_to_y_offs[] = {0, 1, 0, -1};
 		if (PfDetectDestination(n)) {
 			n.m_estimate = n.m_cost;
-			return true;
+			return;
 		}
 
 		TileIndex tile = n.GetLastPos().tile;
@@ -1101,7 +1096,6 @@ public:
 		int d = dmin * YAPF_TILE_CORNER_LENGTH + (dxy - 1) * (YAPF_TILE_LENGTH / 2);
 		n.m_estimate = n.m_cost + d;
 		assert(n.m_estimate >= n.m_parent->m_estimate);
-		return true;
 	}
 };
 
