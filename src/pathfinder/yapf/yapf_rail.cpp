@@ -884,10 +884,26 @@ public:
 		}
 	}
 
+	/** Called by the A-star underlying class to find the neighbours of a node. */
+	inline void Follow (Node *old_node)
+	{
+		if (Tmask_reserved_tracks) {
+			TrackFollower F(Yapf().GetVehicle(), Yapf().GetCompatibleRailTypes());
+			if (F.Follow(old_node->GetLastPos()) && F.MaskReservedTracks()) {
+				Yapf().AddMultipleNodes(old_node, F);
+			}
+		} else {
+			TrackFollower F(Yapf().GetVehicle());
+			if (F.Follow(old_node->GetLastPos())) {
+				Yapf().AddMultipleNodes(old_node, F);
+			}
+		}
+	}
+
 	/** call the node follower */
 	static inline void Follow (Tpf *pf, Node *n)
 	{
-		pf->PfFollowNode(*n);
+		pf->Follow(n);
 	}
 
 	/**
@@ -1255,19 +1271,6 @@ protected:
 	}
 
 public:
-	/**
-	 * Called by YAPF to move from the given node to the next tile. For each
-	 *  reachable trackdir on the new tile creates new node, initializes it
-	 *  and adds it to the open list by calling Yapf().AddNewNode(n)
-	 */
-	inline void PfFollowNode(Node& old_node)
-	{
-		TrackFollower F(Yapf().GetVehicle());
-		if (F.Follow(old_node.GetLastPos())) {
-			Yapf().AddMultipleNodes(&old_node, F);
-		}
-	}
-
 	static bool stFindNearestDepotTwoWay(const Train *v, const PathPos &pos1, const PathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
 	{
 		Tpf pf1 (v);
@@ -1344,19 +1347,6 @@ protected:
 	}
 
 public:
-	/**
-	 * Called by YAPF to move from the given node to the next tile. For each
-	 *  reachable trackdir on the new tile creates new node, initializes it
-	 *  and adds it to the open list by calling Yapf().AddNewNode(n)
-	 */
-	inline void PfFollowNode(Node& old_node)
-	{
-		TrackFollower F(Yapf().GetVehicle(), Yapf().GetCompatibleRailTypes());
-		if (F.Follow(old_node.GetLastPos()) && F.MaskReservedTracks()) {
-			Yapf().AddMultipleNodes(&old_node, F);
-		}
-	}
-
 	static bool stFindNearestSafeTile(const Train *v, const PathPos &pos, bool override_railtype)
 	{
 		/* Create pathfinder instance */
@@ -1420,19 +1410,6 @@ protected:
 	}
 
 public:
-	/**
-	 * Called by YAPF to move from the given node to the next tile. For each
-	 *  reachable trackdir on the new tile creates new node, initializes it
-	 *  and adds it to the open list by calling Yapf().AddNewNode(n)
-	 */
-	inline void PfFollowNode(Node& old_node)
-	{
-		TrackFollower F(Yapf().GetVehicle());
-		if (F.Follow(old_node.GetLastPos())) {
-			Yapf().AddMultipleNodes(&old_node, F);
-		}
-	}
-
 	static Trackdir stChooseRailTrack(const Train *v, const PathPos &origin, bool reserve_track, PFResult *target)
 	{
 		/* create pathfinder instance */
