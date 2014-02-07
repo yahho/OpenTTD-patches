@@ -949,151 +949,6 @@ public:
 };
 
 
-template <class Types>
-class CYapfDestinationAnyDepotRailT
-{
-public:
-	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::Astar::Node Node;     ///< this will be our node type
-	typedef typename Node::Key Key;               ///< key to hash tables
-
-	/** to access inherited path finder */
-	Tpf& Yapf()
-	{
-		return *static_cast<Tpf*>(this);
-	}
-
-	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination(const PathPos &pos)
-	{
-		return !pos.in_wormhole() && IsRailDepotTile(pos.tile);
-	}
-
-	/**
-	 * Called by YAPF to calculate cost estimate. Calculates distance to the destination
-	 *  adds it to the actual cost from origin and stores the sum to the Node::m_estimate
-	 */
-	inline void PfCalcEstimate(Node& n)
-	{
-		n.m_estimate = n.m_cost;
-	}
-};
-
-template <class Types>
-class CYapfDestinationAnySafeTileRailT
-{
-public:
-	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::Astar::Node Node;     ///< this will be our node type
-	typedef typename Node::Key Key;               ///< key to hash tables
-	typedef typename Types::TrackFollower TrackFollower; ///< TrackFollower. Need to typedef for gcc 2.95
-
-	/** to access inherited path finder */
-	Tpf& Yapf()
-	{
-		return *static_cast<Tpf*>(this);
-	}
-
-	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination(const PathPos &pos)
-	{
-		return IsFreeSafeWaitingPosition(Yapf().GetVehicle(), pos, !TrackFollower::Allow90degTurns());
-	}
-
-	/**
-	 * Called by YAPF to calculate cost estimate. Calculates distance to the destination
-	 *  adds it to the actual cost from origin and stores the sum to the Node::m_estimate.
-	 */
-	inline void PfCalcEstimate(Node& n)
-	{
-		n.m_estimate = n.m_cost;
-	}
-};
-
-template <class Types>
-class CYapfDestinationTileOrStationRailT
-{
-public:
-	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::Astar::Node Node;     ///< this will be our node type
-	typedef typename Node::Key Key;               ///< key to hash tables
-
-protected:
-	TileIndex    m_destTile;
-	StationID    m_dest_station_id;
-
-	/** to access inherited path finder */
-	Tpf& Yapf()
-	{
-		return *static_cast<Tpf*>(this);
-	}
-
-public:
-	void SetDestination(const Train *v)
-	{
-		switch (v->current_order.GetType()) {
-			case OT_GOTO_WAYPOINT:
-				if (!Waypoint::Get(v->current_order.GetDestination())->IsSingleTile()) {
-					/* In case of 'complex' waypoints we need to do a look
-					 * ahead. This look ahead messes a bit about, which
-					 * means that it 'corrupts' the cache. To prevent this
-					 * we disable caching when we're looking for a complex
-					 * waypoint. */
-					Yapf().DisableCache(true);
-				}
-				/* FALL THROUGH */
-			case OT_GOTO_STATION:
-				m_dest_station_id = v->current_order.GetDestination();
-				m_destTile = BaseStation::Get(m_dest_station_id)->GetClosestTile(v->tile, v->current_order.IsType(OT_GOTO_STATION) ? STATION_RAIL : STATION_WAYPOINT);
-				break;
-
-			default:
-				m_destTile = v->dest_tile;
-				m_dest_station_id = INVALID_STATION;
-				break;
-		}
-	}
-
-	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination(const PathPos &pos)
-	{
-		bool bDest;
-		if (m_dest_station_id != INVALID_STATION) {
-			bDest = !pos.in_wormhole() && HasStationTileRail(pos.tile)
-				&& (GetStationIndex(pos.tile) == m_dest_station_id)
-				&& (GetRailStationTrack(pos.tile) == TrackdirToTrack(pos.td));
-		} else {
-			bDest = !pos.in_wormhole() && (pos.tile == m_destTile);
-		}
-		return bDest;
-	}
-
-	/**
-	 * Called by YAPF to calculate cost estimate. Calculates distance to the destination
-	 *  adds it to the actual cost from origin and stores the sum to the Node::m_estimate
-	 */
-	inline void PfCalcEstimate(Node& n)
-	{
-		static const int dg_dir_to_x_offs[] = {-1, 0, 1, 0};
-		static const int dg_dir_to_y_offs[] = {0, 1, 0, -1};
-
-		TileIndex tile = n.GetLastPos().tile;
-		DiagDirection exitdir = TrackdirToExitdir(n.GetLastPos().td);
-		int x1 = 2 * TileX(tile) + dg_dir_to_x_offs[(int)exitdir];
-		int y1 = 2 * TileY(tile) + dg_dir_to_y_offs[(int)exitdir];
-		int x2 = 2 * TileX(m_destTile);
-		int y2 = 2 * TileY(m_destTile);
-		int dx = abs(x1 - x2);
-		int dy = abs(y1 - y2);
-		int dmin = min(dx, dy);
-		int dxy = abs(dx - dy);
-		int d = dmin * YAPF_TILE_CORNER_LENGTH + (dxy - 1) * (YAPF_TILE_LENGTH / 2);
-		n.m_estimate = n.m_cost + d;
-		assert(n.m_estimate >= n.m_parent->m_estimate);
-	}
-};
-
-
 /**
  * Try to reserve a single track/platform
  * @param pos The position to reserve (last tile for platforms)
@@ -1254,8 +1109,9 @@ public:
 	}
 };
 
+
 template <class Types>
-class CYapfFollowAnyDepotRailT
+class CYapfAnyDepotRailT
 {
 public:
 	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
@@ -1271,6 +1127,21 @@ protected:
 	}
 
 public:
+	/** Called by YAPF to detect if node ends in the desired destination */
+	inline bool PfDetectDestination(const PathPos &pos)
+	{
+		return !pos.in_wormhole() && IsRailDepotTile(pos.tile);
+	}
+
+	/**
+	 * Called by YAPF to calculate cost estimate. Calculates distance to the destination
+	 *  adds it to the actual cost from origin and stores the sum to the Node::m_estimate
+	 */
+	inline void PfCalcEstimate(Node& n)
+	{
+		n.m_estimate = n.m_cost;
+	}
+
 	static bool stFindNearestDepotTwoWay(const Train *v, const PathPos &pos1, const PathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
 	{
 		Tpf pf1 (v);
@@ -1330,8 +1201,9 @@ public:
 	}
 };
 
+
 template <class Types>
-class CYapfFollowAnySafeTileRailT : public CYapfReserveTrack<Types>
+class CYapfAnySafeTileRailT : public CYapfReserveTrack<Types>
 {
 public:
 	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
@@ -1347,6 +1219,21 @@ protected:
 	}
 
 public:
+	/** Called by YAPF to detect if node ends in the desired destination */
+	inline bool PfDetectDestination(const PathPos &pos)
+	{
+		return IsFreeSafeWaitingPosition(Yapf().GetVehicle(), pos, !TrackFollower::Allow90degTurns());
+	}
+
+	/**
+	 * Called by YAPF to calculate cost estimate. Calculates distance to the destination
+	 *  adds it to the actual cost from origin and stores the sum to the Node::m_estimate.
+	 */
+	inline void PfCalcEstimate(Node& n)
+	{
+		n.m_estimate = n.m_cost;
+	}
+
 	static bool stFindNearestSafeTile(const Train *v, const PathPos &pos, bool override_railtype)
 	{
 		/* Create pathfinder instance */
@@ -1393,6 +1280,7 @@ public:
 	}
 };
 
+
 template <class Types>
 class CYapfFollowRailT : public CYapfReserveTrack<Types>
 {
@@ -1403,6 +1291,9 @@ public:
 	typedef typename Node::Key Key;                      ///< key to hash tables
 
 protected:
+	TileIndex    m_destTile;
+	StationID    m_dest_station_id;
+
 	/** to access inherited path finder */
 	inline Tpf& Yapf()
 	{
@@ -1410,6 +1301,69 @@ protected:
 	}
 
 public:
+	void SetDestination(const Train *v)
+	{
+		switch (v->current_order.GetType()) {
+			case OT_GOTO_WAYPOINT:
+				if (!Waypoint::Get(v->current_order.GetDestination())->IsSingleTile()) {
+					/* In case of 'complex' waypoints we need to do a look
+					 * ahead. This look ahead messes a bit about, which
+					 * means that it 'corrupts' the cache. To prevent this
+					 * we disable caching when we're looking for a complex
+					 * waypoint. */
+					Yapf().DisableCache(true);
+				}
+				/* FALL THROUGH */
+			case OT_GOTO_STATION:
+				m_dest_station_id = v->current_order.GetDestination();
+				m_destTile = BaseStation::Get(m_dest_station_id)->GetClosestTile(v->tile, v->current_order.IsType(OT_GOTO_STATION) ? STATION_RAIL : STATION_WAYPOINT);
+				break;
+
+			default:
+				m_destTile = v->dest_tile;
+				m_dest_station_id = INVALID_STATION;
+				break;
+		}
+	}
+
+	/** Called by YAPF to detect if node ends in the desired destination */
+	inline bool PfDetectDestination(const PathPos &pos)
+	{
+		bool bDest;
+		if (m_dest_station_id != INVALID_STATION) {
+			bDest = !pos.in_wormhole() && HasStationTileRail(pos.tile)
+				&& (GetStationIndex(pos.tile) == m_dest_station_id)
+				&& (GetRailStationTrack(pos.tile) == TrackdirToTrack(pos.td));
+		} else {
+			bDest = !pos.in_wormhole() && (pos.tile == m_destTile);
+		}
+		return bDest;
+	}
+
+	/**
+	 * Called by YAPF to calculate cost estimate. Calculates distance to the destination
+	 *  adds it to the actual cost from origin and stores the sum to the Node::m_estimate
+	 */
+	inline void PfCalcEstimate(Node& n)
+	{
+		static const int dg_dir_to_x_offs[] = {-1, 0, 1, 0};
+		static const int dg_dir_to_y_offs[] = {0, 1, 0, -1};
+
+		TileIndex tile = n.GetLastPos().tile;
+		DiagDirection exitdir = TrackdirToExitdir(n.GetLastPos().td);
+		int x1 = 2 * TileX(tile) + dg_dir_to_x_offs[(int)exitdir];
+		int y1 = 2 * TileY(tile) + dg_dir_to_y_offs[(int)exitdir];
+		int x2 = 2 * TileX(m_destTile);
+		int y2 = 2 * TileY(m_destTile);
+		int dx = abs(x1 - x2);
+		int dy = abs(y1 - y2);
+		int dmin = min(dx, dy);
+		int dxy = abs(dx - dy);
+		int d = dmin * YAPF_TILE_CORNER_LENGTH + (dxy - 1) * (YAPF_TILE_LENGTH / 2);
+		n.m_estimate = n.m_cost + d;
+		assert(n.m_estimate >= n.m_parent->m_estimate);
+	}
+
 	static Trackdir stChooseRailTrack(const Train *v, const PathPos &origin, bool reserve_track, PFResult *target)
 	{
 		/* create pathfinder instance */
@@ -1517,6 +1471,7 @@ public:
 	}
 };
 
+
 template <class Tpf_, class Ttrack_follower>
 struct CYapfRail_TypesT
 {
@@ -1529,7 +1484,6 @@ struct CYapfRail_TypesT
 
 struct CYapfRail1
 	: CYapfRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90>, false>
-	, CYapfDestinationTileOrStationRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
 	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
 {
 	CYapfRail1 (const Train *v)
@@ -1540,7 +1494,6 @@ struct CYapfRail1
 
 struct CYapfRail2
 	: CYapfRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90>, false>
-	, CYapfDestinationTileOrStationRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
 	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
 {
 	CYapfRail2 (const Train *v)
@@ -1551,8 +1504,7 @@ struct CYapfRail2
 
 struct CYapfAnyDepotRail1
 	: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90>, false>
-	, CYapfDestinationAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
-	, CYapfFollowAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
+	, CYapfAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
 {
 	CYapfAnyDepotRail1 (const Train *v)
 		: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90>, false> (v)
@@ -1562,8 +1514,7 @@ struct CYapfAnyDepotRail1
 
 struct CYapfAnyDepotRail2
 	: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90>, false>
-	, CYapfDestinationAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
-	, CYapfFollowAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
+	, CYapfAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
 {
 	CYapfAnyDepotRail2 (const Train *v)
 		: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90>, false> (v)
@@ -1573,8 +1524,7 @@ struct CYapfAnyDepotRail2
 
 struct CYapfAnySafeTileRail1
 	: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackRail90>, true>
-	, CYapfDestinationAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackRail90> >
-	, CYapfFollowAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackRail90> >
+	, CYapfAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackRail90> >
 {
 	CYapfAnySafeTileRail1 (const Train *v, bool override_railtype)
 		: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackRail90>, true> (v, override_railtype)
@@ -1584,8 +1534,7 @@ struct CYapfAnySafeTileRail1
 
 struct CYapfAnySafeTileRail2
 	: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackRailNo90>, true>
-	, CYapfDestinationAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackRailNo90> >
-	, CYapfFollowAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackRailNo90> >
+	, CYapfAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackRailNo90> >
 {
 	CYapfAnySafeTileRail2 (const Train *v, bool override_railtype)
 		: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackRailNo90>, true> (v, override_railtype)
