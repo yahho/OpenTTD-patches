@@ -154,6 +154,7 @@ protected:
 	CPerformanceTimer    m_perf_other_cost;    ///< stats - other CPU time
 
 	TrackFollower tf;       ///< track follower to be used by Follow
+	TrackFollower tf_local; ///< track follower to be used by CalcSegment
 
 	static const int s_max_segment_cost = 10000;
 
@@ -192,6 +193,7 @@ protected:
 		, m_stats_cost_calcs(0)
 		, m_stats_cache_hits(0)
 		, tf (v, mask_reserved_tracks ? m_compatible_railtypes : v->compatible_railtypes)
+		, tf_local (v, m_compatible_railtypes, &m_perf_ts_cost)
 	{
 		/* pre-compute look-ahead penalties into array */
 		int p0 = m_settings->rail_look_ahead_signal_p0;
@@ -673,9 +675,6 @@ public:
 	/** Compute all costs for a newly-allocated (not cached) segment. */
 	inline EndSegmentReasonBits CalcSegment (Node *n, const TrackFollower *tf)
 	{
-		const Train *v = m_veh;
-		TrackFollower tf_local(v, m_compatible_railtypes, &m_perf_ts_cost);
-
 		/* Each node cost contains 2 or 3 main components:
 		 *  1. Transition cost - cost of the move from previous node (tile):
 		 *    - curve cost (or zero for straight move)
@@ -722,7 +721,7 @@ public:
 
 			/* Move to the next tile/trackdir. */
 			tf = &tf_local;
-			assert(tf_local.m_veh_owner == v->owner);
+			assert(tf_local.m_veh_owner == m_veh->owner);
 			assert(tf_local.m_railtypes == m_compatible_railtypes);
 			assert(tf_local.m_pPerf == &m_perf_ts_cost);
 
