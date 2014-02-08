@@ -494,22 +494,6 @@ struct CFollowTrackRailBase : CFollowTrackBase
 
 typedef CFollowTrack<CFollowTrackRailBase> CFollowTrackRail;
 
-template <bool T90deg_turns_allowed>
-struct CFollowTrackRailT : CFollowTrackRail
-{
-	inline CFollowTrackRailT(const Train *v)
-		: CFollowTrackRail(v, T90deg_turns_allowed)
-	{
-	}
-
-	inline CFollowTrackRailT(const Train *v, RailTypes railtype_override, CPerformanceTimer *pPerf = NULL)
-		: CFollowTrackRail(v, T90deg_turns_allowed, railtype_override, pPerf)
-	{
-	}
-
-	inline static bool Allow90degTurns() { return T90deg_turns_allowed; }
-};
-
 
 /**
  * Track follower road base class
