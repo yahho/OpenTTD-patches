@@ -792,7 +792,185 @@ public:
 			n->m_cost += PlatformLengthPenalty(platform_length);
 		}
 	}
+
+	/** Struct to store a position in a path (node and path position). */
+	struct NodePos {
+		PathPos pos;  ///< position (tile and trackdir)
+		Node   *node; ///< node where the position is
+	};
+
+	/* Find the earliest safe position on a path. */
+	Node *FindSafePositionOnPath (Node *node, NodePos *res);
+
+	/* Try to reserve the path up to a given position. */
+	bool TryReservePath (TileIndex origin, const NodePos *res);
 };
+
+
+/**
+ * Find the earliest safe position on a path.
+ * @param node Node to start searching back from (usually the best found node).
+ * @param res Where to store the safe position found.
+ * @return The first node in the path after the initial node.
+ */
+template <class TAstar, class TrackFollower>
+inline typename TAstar::Node *CYapfRailBaseT<TAstar, TrackFollower>::FindSafePositionOnPath (Node *node, NodePos *res)
+{
+	/* We will never pass more than two signals, no need to check for a safe tile. */
+	assert (node->m_parent != NULL);
+	while (node->m_parent->m_num_signals_passed >= 2) {
+		node = node->m_parent;
+		/* If the parent node has passed at least 2 signals, it
+		 * cannot be a root node, because root nodes are single-tile
+		 * nodes and can therefore have only one signal, if any. */
+		assert (node->m_parent != NULL);
+	}
+
+	/* Default safe position if no other, earlier one is found. */
+	res->node = node;
+	res->pos  = node->GetLastPos();
+
+	/* Walk through the path back to the origin. */
+	TrackFollower ft (m_veh, m_compatible_railtypes);
+
+	for (;;) {
+		Node *parent = node->m_parent;
+		assert (parent != NULL);
+
+		/* Search node for a safe position. */
+		ft.SetPos (node->GetPos());
+		for (;;) {
+			if (IsSafeWaitingPosition (m_veh, ft.m_new, !TrackFollower::Allow90degTurns())) {
+				/* Found a safe position in this node. */
+				res->node = node;
+				res->pos  = ft.m_new;
+				break;
+			}
+
+			if (ft.m_new == node->GetLastPos()) break; // no safe position found in node
+
+			bool follow = ft.FollowNext();
+			assert (follow);
+			assert (ft.m_new.is_single());
+		}
+
+		/* Stop at node after initial node. */
+		if (parent->m_parent == NULL) return node;
+		node = parent;
+	}
+}
+
+/**
+ * Try to reserve a single track/platform
+ * @param pos The position to reserve (last tile for platforms)
+ * @param origin If pos is a platform, consider the platform to begin right after this tile
+ * @return Whether reservation succeeded
+ */
+static bool ReserveSingleTrack (const PathPos &pos, TileIndex origin = INVALID_TILE)
+{
+	if (pos.in_wormhole() || !IsRailStationTile(pos.tile)) {
+		return TryReserveRailTrack(pos);
+	}
+
+	TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
+	TileIndex t = pos.tile;
+
+	do {
+		if (HasStationReservation(t)) {
+			/* Platform could not be reserved, undo. */
+			diff = -diff;
+			while (t != pos.tile) {
+				t = TILE_ADD(t, diff);
+				SetRailStationReservation(t, false);
+			}
+			return false;
+		}
+
+		SetRailStationReservation(t, true);
+		MarkTileDirtyByTile(t);
+		t = TILE_ADD(t, diff);
+	} while (IsCompatibleTrainStationTile(t, pos.tile) && t != origin);
+
+	TriggerStationRandomisation(NULL, pos.tile, SRT_PATH_RESERVATION);
+
+	return true;
+}
+
+/**
+ * Unreserve a single track/platform
+ * @param pos The position to reserve (last tile for platforms)
+ * @param origin If pos is a platform, consider the platform to begin right after this tile
+ */
+static void UnreserveSingleTrack (const PathPos &pos, TileIndex origin = INVALID_TILE)
+{
+	if (pos.in_wormhole() || !IsRailStationTile(pos.tile)) {
+		UnreserveRailTrack(pos);
+		return;
+	}
+
+	TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
+	TileIndex     t = pos.tile;
+	while (IsCompatibleTrainStationTile(t, pos.tile) && t != origin) {
+		assert(HasStationReservation(t));
+		SetRailStationReservation(t, false);
+		t = TILE_ADD(t, diff);
+	}
+}
+
+/**
+ * Try to reserve the path up to a given position.
+ * @param origin Starting tile for the reservation.
+ * @param res Target tile for the reservation.
+ * @return Whether reservation succeeded.
+ */
+template <class TAstar, class TrackFollower>
+bool CYapfRailBaseT<TAstar, TrackFollower>::TryReservePath (TileIndex origin, const NodePos *res)
+{
+	/* Don't bother if the target is reserved. */
+	if (!IsWaitingPositionFree(m_veh, res->pos)) return false;
+
+	TrackFollower ft (m_veh, m_compatible_railtypes);
+
+	for (Node *node = res->node; node->m_parent != NULL; node = node->m_parent) {
+		ft.SetPos (node->GetPos());
+		for (;;) {
+			if (!ReserveSingleTrack (ft.m_new, origin)) {
+				/* Reservation failed, undo. */
+				Node *failed_node = node;
+				PathPos res_fail = ft.m_new;
+				for (node = res->node; node != failed_node; node = node->m_parent) {
+					ft.SetPos (node->GetPos());
+					for (;;) {
+						UnreserveSingleTrack (ft.m_new, origin);
+						if (ft.m_new == res->pos) break;
+						if (ft.m_new == node->GetLastPos()) break;
+						ft.FollowNext();
+					}
+				}
+				ft.SetPos (failed_node->GetPos());
+				while (ft.m_new != res_fail) {
+					assert (ft.m_new != res->pos);
+					assert (ft.m_new != node->GetLastPos());
+					UnreserveSingleTrack (ft.m_new, origin);
+					ft.FollowNext();
+				}
+				return false;
+			}
+
+			if (ft.m_new == res->pos) break;
+			if (ft.m_new == node->GetLastPos()) break;
+			bool follow = ft.FollowNext();
+			assert (follow);
+			assert (ft.m_new.is_single());
+		}
+	}
+
+	if (CanUseGlobalCache(*res->node)) {
+		YapfNotifyTrackLayoutChange(INVALID_TILE, INVALID_TRACK);
+	}
+
+	return true;
+}
 
 
 template <class Types, bool Tmask_reserved_tracks>
@@ -938,186 +1116,6 @@ public:
 };
 
 
-/**
- * Try to reserve a single track/platform
- * @param pos The position to reserve (last tile for platforms)
- * @param origin If pos is a platform, consider the platform to begin right after this tile
- * @return Whether reservation succeeded
- */
-static bool ReserveSingleTrack (const PathPos &pos, TileIndex origin = INVALID_TILE)
-{
-	if (pos.in_wormhole() || !IsRailStationTile(pos.tile)) {
-		return TryReserveRailTrack(pos);
-	}
-
-	TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
-	TileIndex t = pos.tile;
-
-	do {
-		if (HasStationReservation(t)) {
-			/* Platform could not be reserved, undo. */
-			diff = -diff;
-			while (t != pos.tile) {
-				t = TILE_ADD(t, diff);
-				SetRailStationReservation(t, false);
-			}
-			return false;
-		}
-
-		SetRailStationReservation(t, true);
-		MarkTileDirtyByTile(t);
-		t = TILE_ADD(t, diff);
-	} while (IsCompatibleTrainStationTile(t, pos.tile) && t != origin);
-
-	TriggerStationRandomisation(NULL, pos.tile, SRT_PATH_RESERVATION);
-
-	return true;
-}
-
-/**
- * Unreserve a single track/platform
- * @param pos The position to reserve (last tile for platforms)
- * @param origin If pos is a platform, consider the platform to begin right after this tile
- */
-static void UnreserveSingleTrack (const PathPos &pos, TileIndex origin = INVALID_TILE)
-{
-	if (pos.in_wormhole() || !IsRailStationTile(pos.tile)) {
-		UnreserveRailTrack(pos);
-		return;
-	}
-
-	TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
-	TileIndex     t = pos.tile;
-	while (IsCompatibleTrainStationTile(t, pos.tile) && t != origin) {
-		assert(HasStationReservation(t));
-		SetRailStationReservation(t, false);
-		t = TILE_ADD(t, diff);
-	}
-}
-
-template <class Types>
-class CYapfReserveTrack
-{
-public:
-	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::TrackFollower TrackFollower;
-	typedef typename Types::Astar::Node Node;            ///< this will be our node type
-
-protected:
-	/** to access inherited pathfinder */
-	inline Tpf& Yapf()
-	{
-		return *static_cast<Tpf*>(this);
-	}
-
-private:
-	PathPos   m_res_dest;         ///< The reservation target
-	Node      *m_res_node;        ///< The reservation target node
-
-public:
-	/** Find the earliest safe position on a path. */
-	inline Node *FindSafePositionOnPath (Node *node)
-	{
-		/* We will never pass more than two signals, no need to check for a safe tile. */
-		assert (node->m_parent != NULL);
-		while (node->m_parent->m_num_signals_passed >= 2) {
-			node = node->m_parent;
-			/* If the parent node has passed at least 2 signals,
-			 * it cannot be a root node, because root nodes are
-			 * single-tile nodes and can therefore have only one
-			 * signal, if any. */
-			assert (node->m_parent != NULL);
-		}
-
-		/* Default safe position if no other, earlier one is found. */
-		m_res_node = node;
-		m_res_dest = node->GetLastPos();
-
-		/* Walk through the path back to the origin. */
-		const Train *v = Yapf().GetVehicle();
-		TrackFollower ft (v, Yapf().GetCompatibleRailTypes());
-
-		for (;;) {
-			Node *parent = node->m_parent;
-			assert (parent != NULL);
-
-			/* Search node for a safe position. */
-			ft.SetPos (node->GetPos());
-			for (;;) {
-				if (IsSafeWaitingPosition (v, ft.m_new, !TrackFollower::Allow90degTurns())) {
-					/* Found a safe position in this node. */
-					m_res_node = node;
-					m_res_dest = ft.m_new;
-					break;
-				}
-
-				if (ft.m_new == node->GetLastPos()) break; // no safe position found in node
-
-				bool follow = ft.FollowNext();
-				assert (follow);
-				assert (ft.m_new.is_single());
-			}
-
-			/* Stop at node after initial node. */
-			if (parent->m_parent == NULL) return node;
-			node = parent;
-		}
-	}
-
-	/** Try to reserve the path till the reservation target. */
-	bool TryReservePath(TileIndex origin, PathPos *target = NULL)
-	{
-		if (target != NULL) *target = m_res_dest;
-
-		/* Don't bother if the target is reserved. */
-		const Train *v = Yapf().GetVehicle();
-		if (!IsWaitingPositionFree(v, m_res_dest)) return false;
-
-		TrackFollower ft (v, Yapf().GetCompatibleRailTypes());
-
-		for (Node *node = m_res_node; node->m_parent != NULL; node = node->m_parent) {
-			ft.SetPos (node->GetPos());
-			for (;;) {
-				if (!ReserveSingleTrack (ft.m_new, origin)) {
-					/* Reservation failed, undo. */
-					Node *failed_node = node;
-					PathPos res_fail = ft.m_new;
-					for (node = m_res_node; node != failed_node; node = node->m_parent) {
-						ft.SetPos (node->GetPos());
-						for (;;) {
-							UnreserveSingleTrack (ft.m_new, origin);
-							if (ft.m_new == m_res_dest) break;
-							if (ft.m_new == node->GetLastPos()) break;
-							ft.FollowNext();
-						}
-					}
-					ft.SetPos (failed_node->GetPos());
-					while (ft.m_new != res_fail) {
-						assert (ft.m_new != m_res_dest);
-						assert (ft.m_new != node->GetLastPos());
-						UnreserveSingleTrack (ft.m_new, origin);
-						ft.FollowNext();
-					}
-					return false;
-				}
-
-				if (ft.m_new == m_res_dest) break;
-				if (ft.m_new == node->GetLastPos()) break;
-				bool follow = ft.FollowNext();
-				assert (follow);
-				assert (ft.m_new.is_single());
-			}
-		}
-
-		if (Yapf().CanUseGlobalCache(*m_res_node)) {
-			YapfNotifyTrackLayoutChange(INVALID_TILE, INVALID_TRACK);
-		}
-
-		return true;
-	}
-};
-
-
 template <class Types>
 class CYapfAnyDepotRailT
 {
@@ -1211,7 +1209,7 @@ public:
 
 
 template <class Types>
-class CYapfAnySafeTileRailT : public CYapfReserveTrack<Types>
+class CYapfAnySafeTileRailT
 {
 public:
 	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
@@ -1275,17 +1273,18 @@ public:
 
 		/* Found a destination, search for a reservation target. */
 		Node *pNode = Yapf().GetBestNode();
-		pNode = this->FindSafePositionOnPath(pNode)->m_parent;
+		typename Tpf::NodePos res;
+		pNode = Yapf().FindSafePositionOnPath(pNode, &res)->m_parent;
 		assert (pNode->GetPos() == pos);
 		assert (pNode->GetLastPos() == pos);
 
-		return this->TryReservePath(pos.tile);
+		return Yapf().TryReservePath (pos.tile, &res);
 	}
 };
 
 
 template <class Types>
-class CYapfFollowRailT : public CYapfReserveTrack<Types>
+class CYapfFollowRailT
 {
 public:
 	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
@@ -1404,13 +1403,15 @@ public:
 		Node *pNode = Yapf().GetBestNode();
 		if (pNode != NULL) {
 			if (reserve_track && path_found) {
-				Node *best_next_node = this->FindSafePositionOnPath (pNode);
+				typename Tpf::NodePos res;
+				Node *best_next_node = Yapf().FindSafePositionOnPath (pNode, &res);
+				if (target != NULL) target->pos = res.pos;
 				/* return trackdir from the best origin node (one of start nodes) */
 				next_trackdir = best_next_node->GetPos().td;
 
 				assert (best_next_node->m_parent->GetPos() == origin);
 				assert (best_next_node->m_parent->GetLastPos() == origin);
-				bool okay = this->TryReservePath(origin.tile, target != NULL ? &target->pos : NULL);
+				bool okay = Yapf().TryReservePath (origin.tile, &res);
 				if (target != NULL) target->okay = okay;
 			} else {
 				while (pNode->m_parent->m_parent != NULL) {
