@@ -1085,7 +1085,7 @@ public:
 	 *      - or the maximum amount of loops reached - m_max_search_nodes (default = 10000)
 	 * @return true if the path was found
 	 */
-	inline bool FindPath(const Train *v)
+	inline bool FindPath (void)
 	{
 #ifndef NO_DEBUG_MESSAGES
 		CPerformanceTimer perf;
@@ -1163,14 +1163,14 @@ public:
 		 * depot orders and you do not disable automatic servicing.
 		 */
 		if (max_penalty != 0) pf1.DisableCache(true);
-		bool result1 = pf1.FindNearestDepotTwoWay(v, pos1, pos2, max_penalty, reverse_penalty, depot_tile, reversed);
+		bool result1 = pf1.FindNearestDepotTwoWay(pos1, pos2, max_penalty, reverse_penalty, depot_tile, reversed);
 
 #if DEBUG_YAPF_CACHE
 		Tpf pf2 (v);
 		TileIndex depot_tile2 = INVALID_TILE;
 		bool reversed2 = false;
 		pf2.DisableCache(true);
-		bool result2 = pf2.FindNearestDepotTwoWay(v, pos1, pos2, max_penalty, reverse_penalty, &depot_tile2, &reversed2);
+		bool result2 = pf2.FindNearestDepotTwoWay(pos1, pos2, max_penalty, reverse_penalty, &depot_tile2, &reversed2);
 		if (result1 != result2 || (result1 && (*depot_tile != depot_tile2 || *reversed != reversed2))) {
 			DEBUG(yapf, 0, "CACHE ERROR: FindNearestDepotTwoWay() = [%s, %s]", result1 ? "T" : "F", result2 ? "T" : "F");
 			DumpState(pf1, pf2);
@@ -1180,14 +1180,14 @@ public:
 		return result1;
 	}
 
-	inline bool FindNearestDepotTwoWay(const Train *v, const PathPos &pos1, const PathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
+	inline bool FindNearestDepotTwoWay(const PathPos &pos1, const PathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
 	{
 		/* set origin and destination nodes */
 		Yapf().SetOrigin(pos1, pos2, reverse_penalty, true);
 		Yapf().SetMaxCost(max_penalty);
 
 		/* find the best path */
-		bool bFound = Yapf().FindPath(v);
+		bool bFound = Yapf().FindPath();
 		if (!bFound) return false;
 
 		/* some path found
@@ -1246,13 +1246,13 @@ public:
 		/* Create pathfinder instance */
 		Tpf pf1 (v, override_railtype);
 #if !DEBUG_YAPF_CACHE
-		bool result1 = pf1.FindNearestSafeTile(v, pos, override_railtype, false);
+		bool result1 = pf1.FindNearestSafeTile(pos, override_railtype, false);
 
 #else
-		bool result2 = pf1.FindNearestSafeTile(v, pos, override_railtype, true);
+		bool result2 = pf1.FindNearestSafeTile(pos, override_railtype, true);
 		Tpf pf2 (v, override_railtype);
 		pf2.DisableCache(true);
-		bool result1 = pf2.FindNearestSafeTile(v, pos, override_railtype, false);
+		bool result1 = pf2.FindNearestSafeTile(pos, override_railtype, false);
 		if (result1 != result2) {
 			DEBUG(yapf, 0, "CACHE ERROR: FindSafeTile() = [%s, %s]", result2 ? "T" : "F", result1 ? "T" : "F");
 			DumpState(pf1, pf2);
@@ -1262,12 +1262,12 @@ public:
 		return result1;
 	}
 
-	bool FindNearestSafeTile(const Train *v, const PathPos &pos, bool override_railtype, bool dont_reserve)
+	bool FindNearestSafeTile(const PathPos &pos, bool override_railtype, bool dont_reserve)
 	{
 		/* Set origin and destination. */
 		Yapf().SetOrigin(pos);
 
-		bool bFound = Yapf().FindPath(v);
+		bool bFound = Yapf().FindPath();
 		if (!bFound) return false;
 
 		if (dont_reserve) return true;
@@ -1371,13 +1371,13 @@ public:
 		/* create pathfinder instance */
 		Tpf pf1 (v);
 #if !DEBUG_YAPF_CACHE
-		Trackdir result1 = pf1.ChooseRailTrack(v, origin, reserve_track, target);
+		Trackdir result1 = pf1.ChooseRailTrack(origin, reserve_track, target);
 
 #else
-		Trackdir result1 = pf1.ChooseRailTrack(v, origin, false, NULL);
+		Trackdir result1 = pf1.ChooseRailTrack(origin, false, NULL);
 		Tpf pf2 (v);
 		pf2.DisableCache(true);
-		Trackdir result2 = pf2.ChooseRailTrack(v, origin, reserve_track, target);
+		Trackdir result2 = pf2.ChooseRailTrack(origin, reserve_track, target);
 		if (result1 != result2) {
 			DEBUG(yapf, 0, "CACHE ERROR: ChooseRailTrack() = [%d, %d]", result1, result2);
 			DumpState(pf1, pf2);
@@ -1387,7 +1387,7 @@ public:
 		return result1;
 	}
 
-	inline Trackdir ChooseRailTrack(const Train *v, const PathPos &origin, bool reserve_track, PFResult *target)
+	inline Trackdir ChooseRailTrack(const PathPos &origin, bool reserve_track, PFResult *target)
 	{
 		if (target != NULL) target->pos.tile = INVALID_TILE;
 
@@ -1395,7 +1395,7 @@ public:
 		Yapf().SetOrigin(origin);
 
 		/* find the best path */
-		bool path_found = Yapf().FindPath(v);
+		bool path_found = Yapf().FindPath();
 
 		/* if path not found - return INVALID_TRACKDIR */
 		Trackdir next_trackdir = INVALID_TRACKDIR;
@@ -1431,12 +1431,12 @@ public:
 	static bool stCheckReverseTrain(const Train *v, const PathPos &pos1, const PathPos &pos2, int reverse_penalty)
 	{
 		Tpf pf1 (v);
-		bool result1 = pf1.CheckReverseTrain(v, pos1, pos2, reverse_penalty);
+		bool result1 = pf1.CheckReverseTrain(pos1, pos2, reverse_penalty);
 
 #if DEBUG_YAPF_CACHE
 		Tpf pf2 (v);
 		pf2.DisableCache(true);
-		bool result2 = pf2.CheckReverseTrain(v, pos1, pos2, reverse_penalty);
+		bool result2 = pf2.CheckReverseTrain(pos1, pos2, reverse_penalty);
 		if (result1 != result2) {
 			DEBUG(yapf, 0, "CACHE ERROR: CheckReverseTrain() = [%s, %s]", result1 ? "T" : "F", result2 ? "T" : "F");
 			DumpState(pf1, pf2);
@@ -1446,14 +1446,14 @@ public:
 		return result1;
 	}
 
-	inline bool CheckReverseTrain(const Train *v, const PathPos &pos1, const PathPos &pos2, int reverse_penalty)
+	inline bool CheckReverseTrain(const PathPos &pos1, const PathPos &pos2, int reverse_penalty)
 	{
 		/* create pathfinder instance
 		 * set origin and destination nodes */
 		Yapf().SetOrigin(pos1, pos2, reverse_penalty, false);
 
 		/* find the best path */
-		bool bFound = Yapf().FindPath(v);
+		bool bFound = Yapf().FindPath();
 
 		if (!bFound) return false;
 
