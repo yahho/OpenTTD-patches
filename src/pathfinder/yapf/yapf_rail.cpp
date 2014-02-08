@@ -1474,72 +1474,72 @@ public:
 };
 
 
-template <class Tpf_, class Ttrack_follower>
+template <class Tpf_, bool T90deg_turns_allowed>
 struct CYapfRail_TypesT
 {
-	typedef CYapfRail_TypesT<Tpf_, Ttrack_follower> Types;
+	typedef CYapfRail_TypesT<Tpf_, T90deg_turns_allowed> Types;
 
-	typedef Tpf_                                Tpf;
-	typedef Ttrack_follower                     TrackFollower;
-	typedef AstarRailTrackDir                   Astar;
+	typedef Tpf_                                    Tpf;
+	typedef CFollowTrackRailT<T90deg_turns_allowed> TrackFollower;
+	typedef AstarRailTrackDir                       Astar;
 };
 
 struct CYapfRail1
-	: CYapfRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90>, false>
-	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfRail1, true>, false>
+	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail1, true> >
 {
 	CYapfRail1 (const Train *v)
-		: CYapfRailT<CYapfRail_TypesT<CYapfRail1, CFollowTrackRail90>, false> (v)
+		: CYapfRailT<CYapfRail_TypesT<CYapfRail1, true>, false> (v)
 	{
 	}
 };
 
 struct CYapfRail2
-	: CYapfRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90>, false>
-	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfRail2, false>, false>
+	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail2, false> >
 {
 	CYapfRail2 (const Train *v)
-		: CYapfRailT<CYapfRail_TypesT<CYapfRail2, CFollowTrackRailNo90>, false> (v)
+		: CYapfRailT<CYapfRail_TypesT<CYapfRail2, false>, false> (v)
 	{
 	}
 };
 
 struct CYapfAnyDepotRail1
-	: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90>, false>
-	, CYapfAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, true>, false>
+	, CYapfAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, true> >
 {
 	CYapfAnyDepotRail1 (const Train *v)
-		: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, CFollowTrackRail90>, false> (v)
+		: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, true>, false> (v)
 	{
 	}
 };
 
 struct CYapfAnyDepotRail2
-	: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90>, false>
-	, CYapfAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, false>, false>
+	, CYapfAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, false> >
 {
 	CYapfAnyDepotRail2 (const Train *v)
-		: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, CFollowTrackRailNo90>, false> (v)
+		: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, false>, false> (v)
 	{
 	}
 };
 
 struct CYapfAnySafeTileRail1
-	: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackRail90>, true>
-	, CYapfAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackRail90> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, true>, true>
+	, CYapfAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, true> >
 {
 	CYapfAnySafeTileRail1 (const Train *v, bool override_railtype)
-		: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, CFollowTrackRail90>, true> (v, override_railtype)
+		: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, true>, true> (v, override_railtype)
 	{
 	}
 };
 
 struct CYapfAnySafeTileRail2
-	: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackRailNo90>, true>
-	, CYapfAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackRailNo90> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, false>, true>
+	, CYapfAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, false> >
 {
 	CYapfAnySafeTileRail2 (const Train *v, bool override_railtype)
-		: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, CFollowTrackRailNo90>, true> (v, override_railtype)
+		: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, false>, true> (v, override_railtype)
 	{
 	}
 };

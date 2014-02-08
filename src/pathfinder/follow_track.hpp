@@ -510,9 +510,6 @@ struct CFollowTrackRailT : CFollowTrackRail
 	inline static bool Allow90degTurns() { return T90deg_turns_allowed; }
 };
 
-typedef CFollowTrackRailT<true > CFollowTrackRail90;
-typedef CFollowTrackRailT<false> CFollowTrackRailNo90;
-
 
 /**
  * Track follower road base class
