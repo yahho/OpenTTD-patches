@@ -1271,11 +1271,15 @@ public:
 		bool bFound = Yapf().FindPath(v);
 		if (!bFound) return false;
 
+		if (dont_reserve) return true;
+
 		/* Found a destination, search for a reservation target. */
 		Node *pNode = Yapf().GetBestNode();
 		pNode = this->FindSafePositionOnPath(pNode)->m_parent;
+		assert (pNode->GetPos() == pos);
+		assert (pNode->GetLastPos() == pos);
 
-		return dont_reserve || this->TryReservePath(pNode->GetLastPos().tile);
+		return this->TryReservePath(pos.tile);
 	}
 };
 
@@ -1399,14 +1403,23 @@ public:
 		Trackdir next_trackdir = INVALID_TRACKDIR;
 		Node *pNode = Yapf().GetBestNode();
 		if (pNode != NULL) {
-			Node *best_next_node = this->FindSafePositionOnPath (pNode);
-			/* return trackdir from the best origin node (one of start nodes) */
-			next_trackdir = best_next_node->GetPos().td;
-
-			pNode = best_next_node->m_parent;
 			if (reserve_track && path_found) {
-				bool okay = this->TryReservePath(pNode->GetLastPos().tile, target != NULL ? &target->pos : NULL);
+				Node *best_next_node = this->FindSafePositionOnPath (pNode);
+				/* return trackdir from the best origin node (one of start nodes) */
+				next_trackdir = best_next_node->GetPos().td;
+
+				assert (best_next_node->m_parent->GetPos() == origin);
+				assert (best_next_node->m_parent->GetLastPos() == origin);
+				bool okay = this->TryReservePath(origin.tile, target != NULL ? &target->pos : NULL);
 				if (target != NULL) target->okay = okay;
+			} else {
+				while (pNode->m_parent->m_parent != NULL) {
+					pNode = pNode->m_parent;
+				}
+				assert (pNode->m_parent->GetPos() == origin);
+				assert (pNode->m_parent->GetLastPos() == origin);
+				/* return trackdir from the best origin node (one of start nodes) */
+				next_trackdir = pNode->GetPos().td;
 			}
 		}
 
