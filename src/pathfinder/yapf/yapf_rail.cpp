@@ -113,7 +113,7 @@ struct CSegmentCostCacheT
 };
 
 
-template <class TAstar, class TrackFollower>
+template <class TAstar>
 class CYapfRailBaseT : public TAstar
 {
 public:
@@ -153,8 +153,8 @@ protected:
 	CPerformanceTimer    m_perf_ts_cost;       ///< stats - GetTrackStatus() CPU time
 	CPerformanceTimer    m_perf_other_cost;    ///< stats - other CPU time
 
-	TrackFollower tf;       ///< track follower to be used by Follow
-	TrackFollower tf_local; ///< track follower to be used by CalcSegment
+	CFollowTrackRail tf;       ///< track follower to be used by Follow
+	CFollowTrackRail tf_local; ///< track follower to be used by CalcSegment
 
 	static const int s_max_segment_cost = 10000;
 
@@ -180,7 +180,7 @@ protected:
 		return C;
 	}
 
-	CYapfRailBaseT (const Train *v, bool override_rail_type, bool mask_reserved_tracks)
+	CYapfRailBaseT (const Train *v, bool allow_90deg, bool override_rail_type, bool mask_reserved_tracks)
 		: m_settings(&_settings_game.pf.yapf)
 		, m_veh(v)
 		, m_compatible_railtypes(v->compatible_railtypes | (override_rail_type ? GetRailTypeInfo(v->railtype)->compatible_railtypes : RAILTYPES_NONE))
@@ -192,8 +192,8 @@ protected:
 		, m_max_cost(0)
 		, m_stats_cost_calcs(0)
 		, m_stats_cache_hits(0)
-		, tf (v, mask_reserved_tracks ? m_compatible_railtypes : v->compatible_railtypes)
-		, tf_local (v, m_compatible_railtypes, &m_perf_ts_cost)
+		, tf (v, allow_90deg, mask_reserved_tracks ? m_compatible_railtypes : v->compatible_railtypes)
+		, tf_local (v, allow_90deg, m_compatible_railtypes, &m_perf_ts_cost)
 	{
 		/* pre-compute look-ahead penalties into array */
 		int p0 = m_settings->rail_look_ahead_signal_p0;
@@ -203,6 +203,11 @@ protected:
 		for (uint i = 0; i < m_settings->rail_look_ahead_max_signals; i++) {
 			pen[i] = p0 + i * (p1 + i * p2);
 		}
+	}
+
+	inline bool Allow90degTurns (void) const
+	{
+		return tf.m_allow_90deg;
 	}
 
 public:
@@ -322,8 +327,7 @@ public:
 		/* both tiles are railway tiles */
 
 		int cost = 0;
-		if (TrackFollower::Allow90degTurns()
-				&& ((TrackdirToTrackdirBits(pos2.td) & (TrackdirBits)TrackdirCrossesTrackdirs(pos1.td)) != 0)) {
+		if ((TrackdirToTrackdirBits(pos2.td) & (TrackdirBits)TrackdirCrossesTrackdirs(pos1.td)) != 0) {
 			/* 90-deg curve penalty */
 			cost += m_settings->rail_curve90_penalty;
 		} else if (pos2.td != NextTrackdir(pos1.td)) {
@@ -496,7 +500,7 @@ public:
 	}
 
 	/** Compute cost and modify node state for a position. */
-	void HandleNodeTile (Node *n, const TrackFollower *tf, NodeData *segment, TileIndex prev)
+	void HandleNodeTile (Node *n, const CFollowTrackRail *tf, NodeData *segment, TileIndex prev)
 	{
 		/* All other tile costs will be calculated here. */
 		segment->segment_cost += OneTileCost(segment->pos);
@@ -606,12 +610,12 @@ public:
 	}
 
 	/** Check for possible reasons to end a segment at the next tile. */
-	bool HandleNodeNextTile (Node *n, TrackFollower *tf, NodeData *segment, RailType rail_type)
+	bool HandleNodeNextTile (Node *n, CFollowTrackRail *tf, NodeData *segment, RailType rail_type)
 	{
 		if (!tf->Follow(segment->pos)) {
-			assert(tf->m_err != TrackFollower::EC_NONE);
+			assert(tf->m_err != CFollowTrackRail::EC_NONE);
 			/* Can't move to the next tile (EOL?). */
-			if (tf->m_err == TrackFollower::EC_RAIL_TYPE) {
+			if (tf->m_err == CFollowTrackRail::EC_RAIL_TYPE) {
 				segment->end_reason |= ESRB_RAIL_TYPE;
 			} else {
 				segment->end_reason |= ESRB_DEAD_END;
@@ -673,7 +677,7 @@ public:
 	}
 
 	/** Compute all costs for a newly-allocated (not cached) segment. */
-	inline EndSegmentReasonBits CalcSegment (Node *n, const TrackFollower *tf)
+	inline EndSegmentReasonBits CalcSegment (Node *n, const CFollowTrackRail *tf)
 	{
 		/* Each node cost contains 2 or 3 main components:
 		 *  1. Transition cost - cost of the move from previous node (tile):
@@ -813,8 +817,8 @@ public:
  * @param res Where to store the safe position found.
  * @return The first node in the path after the initial node.
  */
-template <class TAstar, class TrackFollower>
-inline typename TAstar::Node *CYapfRailBaseT<TAstar, TrackFollower>::FindSafePositionOnPath (Node *node, NodePos *res)
+template <class TAstar>
+inline typename TAstar::Node *CYapfRailBaseT<TAstar>::FindSafePositionOnPath (Node *node, NodePos *res)
 {
 	/* We will never pass more than two signals, no need to check for a safe tile. */
 	assert (node->m_parent != NULL);
@@ -831,7 +835,7 @@ inline typename TAstar::Node *CYapfRailBaseT<TAstar, TrackFollower>::FindSafePos
 	res->pos  = node->GetLastPos();
 
 	/* Walk through the path back to the origin. */
-	TrackFollower ft (m_veh, m_compatible_railtypes);
+	CFollowTrackRail ft (m_veh, Allow90degTurns(), m_compatible_railtypes);
 
 	for (;;) {
 		Node *parent = node->m_parent;
@@ -840,7 +844,7 @@ inline typename TAstar::Node *CYapfRailBaseT<TAstar, TrackFollower>::FindSafePos
 		/* Search node for a safe position. */
 		ft.SetPos (node->GetPos());
 		for (;;) {
-			if (IsSafeWaitingPosition (m_veh, ft.m_new, !TrackFollower::Allow90degTurns())) {
+			if (IsSafeWaitingPosition (m_veh, ft.m_new, !Allow90degTurns())) {
 				/* Found a safe position in this node. */
 				res->node = node;
 				res->pos  = ft.m_new;
@@ -923,13 +927,13 @@ static void UnreserveSingleTrack (const PathPos &pos, TileIndex origin = INVALID
  * @param res Target tile for the reservation.
  * @return Whether reservation succeeded.
  */
-template <class TAstar, class TrackFollower>
-bool CYapfRailBaseT<TAstar, TrackFollower>::TryReservePath (TileIndex origin, const NodePos *res)
+template <class TAstar>
+bool CYapfRailBaseT<TAstar>::TryReservePath (TileIndex origin, const NodePos *res)
 {
 	/* Don't bother if the target is reserved. */
 	if (!IsWaitingPositionFree(m_veh, res->pos)) return false;
 
-	TrackFollower ft (m_veh, m_compatible_railtypes);
+	CFollowTrackRail ft (m_veh, Allow90degTurns(), m_compatible_railtypes);
 
 	for (Node *node = res->node; node->m_parent != NULL; node = node->m_parent) {
 		ft.SetPos (node->GetPos());
@@ -974,10 +978,10 @@ bool CYapfRailBaseT<TAstar, TrackFollower>::TryReservePath (TileIndex origin, co
 
 
 template <class Types, bool Tmask_reserved_tracks>
-class CYapfRailT : public CYapfRailBaseT <typename Types::Astar, typename Types::TrackFollower>
+class CYapfRailT : public CYapfRailBaseT <typename Types::Astar>
 {
 public:
-	typedef CYapfRailBaseT <typename Types::Astar, typename Types::TrackFollower> Base;
+	typedef CYapfRailBaseT <typename Types::Astar> Base;
 	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
 	typedef typename Types::TrackFollower TrackFollower;
 	typedef typename Types::Astar::Node Node;     ///< this will be our node type
@@ -989,7 +993,7 @@ public:
 
 protected:
 	CYapfRailT (const Train *v, bool override_rail_type = false)
-		: Base (v, override_rail_type, Tmask_reserved_tracks)
+		: Base (v, TrackFollower::Allow90degTurns(), override_rail_type, Tmask_reserved_tracks)
 	{
 	}
 
