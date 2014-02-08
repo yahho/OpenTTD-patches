@@ -1015,34 +1015,53 @@ private:
 	Node      *m_res_node;        ///< The reservation target node
 
 public:
-	/** Set the target to where the reservation should be extended. */
-	inline void SetReservationTarget(Node *node, const PathPos &pos)
+	/** Find the earliest safe position on a path. */
+	inline Node *FindSafePositionOnPath (Node *node)
 	{
-		m_res_node = node;
-		m_res_dest = pos;
-	}
-
-	/** Check the node for a possible reservation target. */
-	inline void FindSafePositionOnNode(Node *node)
-	{
-		assert(node->m_parent != NULL);
-
 		/* We will never pass more than two signals, no need to check for a safe tile. */
-		if (node->m_parent->m_num_signals_passed >= 2) return;
-
-		const Train *v = Yapf().GetVehicle();
-		TrackFollower ft (v, Yapf().GetCompatibleRailTypes());
-		ft.SetPos (node->GetPos());
-
-		while (!IsSafeWaitingPosition(v, ft.m_new, !TrackFollower::Allow90degTurns())) {
-			if (ft.m_new == node->GetLastPos()) return; // no safe position found in node
-			bool follow = ft.FollowNext();
-			assert (follow);
-			assert (ft.m_new.is_single());
+		assert (node->m_parent != NULL);
+		while (node->m_parent->m_num_signals_passed >= 2) {
+			node = node->m_parent;
+			/* If the parent node has passed at least 2 signals,
+			 * it cannot be a root node, because root nodes are
+			 * single-tile nodes and can therefore have only one
+			 * signal, if any. */
+			assert (node->m_parent != NULL);
 		}
 
-		m_res_dest = ft.m_new;
+		/* Default safe position if no other, earlier one is found. */
 		m_res_node = node;
+		m_res_dest = node->GetLastPos();
+
+		/* Walk through the path back to the origin. */
+		const Train *v = Yapf().GetVehicle();
+		TrackFollower ft (v, Yapf().GetCompatibleRailTypes());
+
+		for (;;) {
+			Node *parent = node->m_parent;
+			assert (parent != NULL);
+
+			/* Search node for a safe position. */
+			ft.SetPos (node->GetPos());
+			for (;;) {
+				if (IsSafeWaitingPosition (v, ft.m_new, !TrackFollower::Allow90degTurns())) {
+					/* Found a safe position in this node. */
+					m_res_node = node;
+					m_res_dest = ft.m_new;
+					break;
+				}
+
+				if (ft.m_new == node->GetLastPos()) break; // no safe position found in node
+
+				bool follow = ft.FollowNext();
+				assert (follow);
+				assert (ft.m_new.is_single());
+			}
+
+			/* Stop at node after initial node. */
+			if (parent->m_parent == NULL) return node;
+			node = parent;
+		}
 	}
 
 	/** Try to reserve the path till the reservation target. */
@@ -1252,18 +1271,9 @@ public:
 		bool bFound = Yapf().FindPath(v);
 		if (!bFound) return false;
 
-		/* Found a destination, set as reservation target. */
+		/* Found a destination, search for a reservation target. */
 		Node *pNode = Yapf().GetBestNode();
-		this->SetReservationTarget(pNode, pNode->GetLastPos());
-
-		/* Walk through the path back to the origin. */
-		Node *pPrev = NULL;
-		while (pNode->m_parent != NULL) {
-			pPrev = pNode;
-			pNode = pNode->m_parent;
-
-			this->FindSafePositionOnNode(pPrev);
-		}
+		pNode = this->FindSafePositionOnPath(pNode)->m_parent;
 
 		return dont_reserve || this->TryReservePath(pNode->GetLastPos().tile);
 	}
@@ -1389,22 +1399,11 @@ public:
 		Trackdir next_trackdir = INVALID_TRACKDIR;
 		Node *pNode = Yapf().GetBestNode();
 		if (pNode != NULL) {
-			/* reserve till end of path */
-			this->SetReservationTarget(pNode, pNode->GetLastPos());
-
-			/* path was found or at least suggested
-			 * walk through the path back to the origin */
-			Node *pPrev = NULL;
-			while (pNode->m_parent != NULL) {
-				pPrev = pNode;
-				pNode = pNode->m_parent;
-
-				this->FindSafePositionOnNode(pPrev);
-			}
+			Node *best_next_node = this->FindSafePositionOnPath (pNode);
 			/* return trackdir from the best origin node (one of start nodes) */
-			Node& best_next_node = *pPrev;
-			next_trackdir = best_next_node.GetPos().td;
+			next_trackdir = best_next_node->GetPos().td;
 
+			pNode = best_next_node->m_parent;
 			if (reserve_track && path_found) {
 				bool okay = this->TryReservePath(pNode->GetLastPos().tile, target != NULL ? &target->pos : NULL);
 				if (target != NULL) target->okay = okay;
