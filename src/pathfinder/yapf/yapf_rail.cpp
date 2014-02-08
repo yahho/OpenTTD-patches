@@ -1303,7 +1303,7 @@ protected:
 	}
 
 public:
-	void SetDestination(const Train *v)
+	CYapfFollowRailT (const Train *v)
 	{
 		switch (v->current_order.GetType()) {
 			case OT_GOTO_WAYPOINT:
@@ -1393,7 +1393,6 @@ public:
 
 		/* set origin and destination nodes */
 		Yapf().SetOrigin(origin);
-		Yapf().SetDestination(v);
 
 		/* find the best path */
 		bool path_found = Yapf().FindPath(v);
@@ -1452,7 +1451,6 @@ public:
 		/* create pathfinder instance
 		 * set origin and destination nodes */
 		Yapf().SetOrigin(pos1, pos2, reverse_penalty, false);
-		Yapf().SetDestination(v);
 
 		/* find the best path */
 		bool bFound = Yapf().FindPath(v);
@@ -1489,6 +1487,7 @@ struct CYapfRail1
 {
 	CYapfRail1 (const Train *v)
 		: CYapfRailT<CYapfRail_TypesT<CYapfRail1>, false> (v, true)
+		, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail1> > (v)
 	{
 	}
 };
@@ -1499,6 +1498,7 @@ struct CYapfRail2
 {
 	CYapfRail2 (const Train *v)
 		: CYapfRailT<CYapfRail_TypesT<CYapfRail2>, false> (v, false)
+		, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail2> > (v)
 	{
 	}
 };
