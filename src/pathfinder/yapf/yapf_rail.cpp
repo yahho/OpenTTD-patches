@@ -205,12 +205,12 @@ protected:
 		}
 	}
 
+public:
 	inline bool Allow90degTurns (void) const
 	{
 		return tf.m_allow_90deg;
 	}
 
-public:
 	inline bool CanUseGlobalCache(Node& n) const
 	{
 		return !m_disable_cache
@@ -983,7 +983,6 @@ class CYapfRailT : public CYapfRailBaseT <typename Types::Astar>
 public:
 	typedef CYapfRailBaseT <typename Types::Astar> Base;
 	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::TrackFollower TrackFollower;
 	typedef typename Types::Astar::Node Node;     ///< this will be our node type
 	typedef typename Node::Key Key;               ///< key to hash tables
 	typedef typename Node::CachedData CachedData;
@@ -992,8 +991,8 @@ public:
 	typedef SmallArray<CachedData> LocalCache;
 
 protected:
-	CYapfRailT (const Train *v, bool override_rail_type = false)
-		: Base (v, TrackFollower::Allow90degTurns(), override_rail_type, Tmask_reserved_tracks)
+	CYapfRailT (const Train *v, bool allow_90deg, bool override_rail_type = false)
+		: Base (v, allow_90deg, override_rail_type, Tmask_reserved_tracks)
 	{
 	}
 
@@ -1125,7 +1124,6 @@ class CYapfAnyDepotRailT
 {
 public:
 	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::TrackFollower TrackFollower;
 	typedef typename Types::Astar::Node Node;            ///< this will be our node type
 	typedef typename Node::Key Key;                      ///< key to hash tables
 
@@ -1217,7 +1215,6 @@ class CYapfAnySafeTileRailT
 {
 public:
 	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::TrackFollower TrackFollower;
 	typedef typename Types::Astar::Node Node;            ///< this will be our node type
 	typedef typename Node::Key Key;                      ///< key to hash tables
 
@@ -1232,7 +1229,7 @@ public:
 	/** Called by YAPF to detect if node ends in the desired destination */
 	inline bool PfDetectDestination(const PathPos &pos)
 	{
-		return IsFreeSafeWaitingPosition(Yapf().GetVehicle(), pos, !TrackFollower::Allow90degTurns());
+		return IsFreeSafeWaitingPosition(Yapf().GetVehicle(), pos, Yapf().Allow90degTurns());
 	}
 
 	/**
@@ -1292,7 +1289,6 @@ class CYapfFollowRailT
 {
 public:
 	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::TrackFollower TrackFollower;
 	typedef typename Types::Astar::Node Node;            ///< this will be our node type
 	typedef typename Node::Key Key;                      ///< key to hash tables
 
@@ -1478,72 +1474,71 @@ public:
 };
 
 
-template <class Tpf_, bool T90deg_turns_allowed>
+template <class Tpf_>
 struct CYapfRail_TypesT
 {
-	typedef CYapfRail_TypesT<Tpf_, T90deg_turns_allowed> Types;
+	typedef CYapfRail_TypesT<Tpf_> Types;
 
 	typedef Tpf_                                    Tpf;
-	typedef CFollowTrackRailT<T90deg_turns_allowed> TrackFollower;
 	typedef AstarRailTrackDir                       Astar;
 };
 
 struct CYapfRail1
-	: CYapfRailT<CYapfRail_TypesT<CYapfRail1, true>, false>
-	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail1, true> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfRail1>, false>
+	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail1> >
 {
 	CYapfRail1 (const Train *v)
-		: CYapfRailT<CYapfRail_TypesT<CYapfRail1, true>, false> (v)
+		: CYapfRailT<CYapfRail_TypesT<CYapfRail1>, false> (v, true)
 	{
 	}
 };
 
 struct CYapfRail2
-	: CYapfRailT<CYapfRail_TypesT<CYapfRail2, false>, false>
-	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail2, false> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfRail2>, false>
+	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail2> >
 {
 	CYapfRail2 (const Train *v)
-		: CYapfRailT<CYapfRail_TypesT<CYapfRail2, false>, false> (v)
+		: CYapfRailT<CYapfRail_TypesT<CYapfRail2>, false> (v, false)
 	{
 	}
 };
 
 struct CYapfAnyDepotRail1
-	: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, true>, false>
-	, CYapfAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, true> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1>, false>
+	, CYapfAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1> >
 {
 	CYapfAnyDepotRail1 (const Train *v)
-		: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1, true>, false> (v)
+		: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1>, false> (v, true)
 	{
 	}
 };
 
 struct CYapfAnyDepotRail2
-	: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, false>, false>
-	, CYapfAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, false> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2>, false>
+	, CYapfAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2> >
 {
 	CYapfAnyDepotRail2 (const Train *v)
-		: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2, false>, false> (v)
+		: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2>, false> (v, false)
 	{
 	}
 };
 
 struct CYapfAnySafeTileRail1
-	: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, true>, true>
-	, CYapfAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, true> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1>, true>
+	, CYapfAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1> >
 {
 	CYapfAnySafeTileRail1 (const Train *v, bool override_railtype)
-		: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1, true>, true> (v, override_railtype)
+		: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1>, true> (v, true, override_railtype)
 	{
 	}
 };
 
 struct CYapfAnySafeTileRail2
-	: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, false>, true>
-	, CYapfAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, false> >
+	: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2>, true>
+	, CYapfAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2> >
 {
 	CYapfAnySafeTileRail2 (const Train *v, bool override_railtype)
-		: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2, false>, true> (v, override_railtype)
+		: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2>, true> (v, false, override_railtype)
 	{
 	}
 };
