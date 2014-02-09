@@ -1361,16 +1361,6 @@ public:
 };
 
 
-template <class Tpf_>
-struct CYapfRail_TypesT
-{
-	typedef CYapfRail_TypesT<Tpf_> Types;
-
-	typedef Tpf_                                    Tpf;
-	typedef AstarRailTrackDir                       Astar;
-};
-
-
 Trackdir YapfTrainChooseTrack(const Train *v, const PathPos &origin, bool reserve_track, PFResult *target)
 {
 	/* create pathfinder instance */
