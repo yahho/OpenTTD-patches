@@ -1118,59 +1118,6 @@ public:
 };
 
 
-template <class Types>
-class CYapfAnySafeTileRailT
-{
-public:
-	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::Astar::Node Node;            ///< this will be our node type
-	typedef typename Node::Key Key;                      ///< key to hash tables
-
-protected:
-	/** to access inherited path finder */
-	inline Tpf& Yapf()
-	{
-		return *static_cast<Tpf*>(this);
-	}
-
-public:
-	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination(const PathPos &pos)
-	{
-		return IsFreeSafeWaitingPosition(Yapf().GetVehicle(), pos, Yapf().Allow90degTurns());
-	}
-
-	/**
-	 * Called by YAPF to calculate cost estimate. Calculates distance to the destination
-	 *  adds it to the actual cost from origin and stores the sum to the Node::m_estimate.
-	 */
-	inline void PfCalcEstimate(Node& n)
-	{
-		n.m_estimate = n.m_cost;
-	}
-
-	bool FindNearestSafeTile(const PathPos &pos, bool override_railtype, bool dont_reserve)
-	{
-		/* Set origin and destination. */
-		Yapf().SetOrigin(pos);
-
-		bool bFound = Yapf().FindPath();
-		if (!bFound) return false;
-
-		if (dont_reserve) return true;
-
-		/* Found a destination, search for a reservation target. */
-		Node *pNode = Yapf().GetBestNode();
-		typename Tpf::NodePos res;
-		pNode = Yapf().FindSafePositionOnPath(pNode, &res)->m_parent;
-		assert (pNode->GetPos() == pos);
-		assert (pNode->GetLastPos() == pos);
-
-		return Yapf().TryReservePath (pos.tile, &res);
-	}
-};
-
-
 struct CYapfRail
 	: CYapfRailT <CYapfRail, AstarRailTrackDir, false>
 {
@@ -1367,6 +1314,53 @@ public:
 };
 
 
+struct CYapfAnySafeTileRail
+	: CYapfRailT <CYapfAnySafeTileRail, AstarRailTrackDir, true>
+{
+public:
+	typedef CYapfRailT <CYapfAnySafeTileRail, AstarRailTrackDir, true> Base;
+	typedef AstarRailTrackDir TAstar;
+	typedef TAstar::Node      Node;
+
+	CYapfAnySafeTileRail (const Train *v, bool allow_90deg, bool override_railtype)
+		: Base (v, allow_90deg, override_railtype)
+	{
+	}
+
+	/** Called by YAPF to detect if node ends in the desired destination */
+	inline bool PfDetectDestination (const PathPos &pos) const
+	{
+		return IsFreeSafeWaitingPosition(Base::GetVehicle(), pos, Base::Allow90degTurns());
+	}
+
+	/** Called by YAPF to calculate cost estimate. */
+	inline void PfCalcEstimate (Node &n) const
+	{
+		n.m_estimate = n.m_cost;
+	}
+
+	bool FindNearestSafeTile(const PathPos &pos, bool override_railtype, bool dont_reserve)
+	{
+		/* Set origin and destination. */
+		Base::SetOrigin(pos);
+
+		bool bFound = Base::FindPath();
+		if (!bFound) return false;
+
+		if (dont_reserve) return true;
+
+		/* Found a destination, search for a reservation target. */
+		Node *pNode = Base::GetBestNode();
+		typename Base::NodePos res;
+		pNode = Base::FindSafePositionOnPath(pNode, &res)->m_parent;
+		assert (pNode->GetPos() == pos);
+		assert (pNode->GetLastPos() == pos);
+
+		return Base::TryReservePath (pos.tile, &res);
+	}
+};
+
+
 template <class Tpf_>
 struct CYapfRail_TypesT
 {
@@ -1374,16 +1368,6 @@ struct CYapfRail_TypesT
 
 	typedef Tpf_                                    Tpf;
 	typedef AstarRailTrackDir                       Astar;
-};
-
-struct CYapfAnySafeTileRail
-	: CYapfRailT <CYapfAnySafeTileRail, AstarRailTrackDir, true>
-	, CYapfAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail> >
-{
-	CYapfAnySafeTileRail (const Train *v, bool allow_90deg, bool override_railtype)
-		: CYapfRailT <CYapfAnySafeTileRail, AstarRailTrackDir, true> (v, allow_90deg, override_railtype)
-	{
-	}
 };
 
 
