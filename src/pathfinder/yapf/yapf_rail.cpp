@@ -977,13 +977,12 @@ bool CYapfRailBaseT<TAstar>::TryReservePath (TileIndex origin, const NodePos *re
 }
 
 
-template <class Types, bool Tmask_reserved_tracks>
-class CYapfRailT : public CYapfRailBaseT <typename Types::Astar>
+template <class Tpf, class TAstar, bool Tmask_reserved_tracks>
+class CYapfRailT : public CYapfRailBaseT <TAstar>
 {
 public:
-	typedef CYapfRailBaseT <typename Types::Astar> Base;
-	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::Astar::Node Node;     ///< this will be our node type
+	typedef CYapfRailBaseT <TAstar> Base;
+	typedef typename TAstar::Node Node;           ///< this will be our node type
 	typedef typename Node::Key Key;               ///< key to hash tables
 	typedef typename Node::CachedData CachedData;
 	typedef typename CachedData::Key CacheKey;
@@ -1029,7 +1028,7 @@ public:
 		PathPos pos = Base::tf.m_new;
 		for (TrackdirBits rtds = Base::tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.td = FindFirstTrackdir(rtds);
-			Node *n = Types::Astar::CreateNewNode(old_node, pos, is_choice);
+			Node *n = TAstar::CreateNewNode(old_node, pos, is_choice);
 
 			/* evaluate the node */
 			bool cached = Base::AttachSegmentToNode(n);
@@ -1092,7 +1091,7 @@ public:
 		perf.Start();
 #endif /* !NO_DEBUG_MESSAGES */
 
-		bool bDestFound = Types::Astar::FindPath (Follow, PfGetSettings().max_search_nodes);
+		bool bDestFound = TAstar::FindPath (Follow, PfGetSettings().max_search_nodes);
 
 #ifndef NO_DEBUG_MESSAGES
 		perf.Stop();
@@ -1103,11 +1102,11 @@ public:
 			if (_debug_yapf_level >= 3) {
 				UnitID veh_idx = (Base::m_veh != NULL) ? Base::m_veh->unitnumber : 0;
 				float cache_hit_ratio = (Base::m_stats_cache_hits == 0) ? 0.0f : ((float)Base::m_stats_cache_hits / (float)(Base::m_stats_cache_hits + Base::m_stats_cost_calcs) * 100.0f);
-				int cost = bDestFound ? Types::Astar::best->m_cost : -1;
-				int dist = bDestFound ? Types::Astar::best->m_estimate - Types::Astar::best->m_cost : -1;
+				int cost = bDestFound ? TAstar::best->m_cost : -1;
+				int dist = bDestFound ? TAstar::best->m_estimate - TAstar::best->m_cost : -1;
 
 				DEBUG(yapf, 3, "[YAPFt]%c%4d- %d us - %d rounds - %d open - %d closed - CHR %4.1f%% - C %d D %d - c%d(sc%d, ts%d, o%d) -- ",
-					bDestFound ? '-' : '!', veh_idx, t, Types::Astar::num_steps, Types::Astar::OpenCount(), Types::Astar::ClosedCount(),
+					bDestFound ? '-' : '!', veh_idx, t, TAstar::num_steps, TAstar::OpenCount(), TAstar::ClosedCount(),
 					cache_hit_ratio, cost, dist, Base::m_perf_cost.Get(1000000), Base::m_perf_slope_cost.Get(1000000),
 					Base::m_perf_ts_cost.Get(1000000), Base::m_perf_other_cost.Get(1000000)
 				);
@@ -1482,63 +1481,63 @@ struct CYapfRail_TypesT
 };
 
 struct CYapfRail1
-	: CYapfRailT<CYapfRail_TypesT<CYapfRail1>, false>
+	: CYapfRailT <CYapfRail1, AstarRailTrackDir, false>
 	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail1> >
 {
 	CYapfRail1 (const Train *v)
-		: CYapfRailT<CYapfRail_TypesT<CYapfRail1>, false> (v, true)
+		: CYapfRailT <CYapfRail1, AstarRailTrackDir, false> (v, true)
 		, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail1> > (v)
 	{
 	}
 };
 
 struct CYapfRail2
-	: CYapfRailT<CYapfRail_TypesT<CYapfRail2>, false>
+	: CYapfRailT <CYapfRail2, AstarRailTrackDir, false>
 	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail2> >
 {
 	CYapfRail2 (const Train *v)
-		: CYapfRailT<CYapfRail_TypesT<CYapfRail2>, false> (v, false)
+		: CYapfRailT <CYapfRail2, AstarRailTrackDir, false> (v, false)
 		, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail2> > (v)
 	{
 	}
 };
 
 struct CYapfAnyDepotRail1
-	: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1>, false>
+	: CYapfRailT <CYapfAnyDepotRail1, AstarRailTrackDir, false>
 	, CYapfAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1> >
 {
 	CYapfAnyDepotRail1 (const Train *v)
-		: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail1>, false> (v, true)
+		: CYapfRailT <CYapfAnyDepotRail1, AstarRailTrackDir, false> (v, true)
 	{
 	}
 };
 
 struct CYapfAnyDepotRail2
-	: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2>, false>
+	: CYapfRailT <CYapfAnyDepotRail2, AstarRailTrackDir, false>
 	, CYapfAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2> >
 {
 	CYapfAnyDepotRail2 (const Train *v)
-		: CYapfRailT<CYapfRail_TypesT<CYapfAnyDepotRail2>, false> (v, false)
+		: CYapfRailT <CYapfAnyDepotRail2, AstarRailTrackDir, false> (v, false)
 	{
 	}
 };
 
 struct CYapfAnySafeTileRail1
-	: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1>, true>
+	: CYapfRailT <CYapfAnySafeTileRail1, AstarRailTrackDir, true>
 	, CYapfAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1> >
 {
 	CYapfAnySafeTileRail1 (const Train *v, bool override_railtype)
-		: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1>, true> (v, true, override_railtype)
+		: CYapfRailT <CYapfAnySafeTileRail1, AstarRailTrackDir, true> (v, true, override_railtype)
 	{
 	}
 };
 
 struct CYapfAnySafeTileRail2
-	: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2>, true>
+	: CYapfRailT <CYapfAnySafeTileRail2, AstarRailTrackDir, true>
 	, CYapfAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2> >
 {
 	CYapfAnySafeTileRail2 (const Train *v, bool override_railtype)
-		: CYapfRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2>, true> (v, false, override_railtype)
+		: CYapfRailT <CYapfAnySafeTileRail2, AstarRailTrackDir, true> (v, false, override_railtype)
 	{
 	}
 };
