@@ -1070,7 +1070,6 @@ STR_CONFIG_SETTING_TYPE_GAME_INGAME                             :Pelin asetus (t
 STR_CONFIG_SETTING_TYPE_COMPANY_MENU                            :Yhtiön asetus (tallennetaan tallenteisiin; vaikuttaa vain uusiin peleihin)
 STR_CONFIG_SETTING_TYPE_COMPANY_INGAME                          :Yhtiön asetus (tallennetaan tallenteeseen; vaikuttaa vain nykyiseen yhtiöön)
 
-STR_CONFIG_SETTING_RESTRICT_LABEL                               :{BLACK}Näytä:
 STR_CONFIG_SETTING_RESTRICT_DROPDOWN_HELPTEXT                   :{BLACK}Rajaa alla olevaa listaa ja näyttää vain muutetut asetukset
 STR_CONFIG_SETTING_RESTRICT_BASIC                               :Perusasetukset
 STR_CONFIG_SETTING_RESTRICT_ADVANCED                            :Lisäasetukset

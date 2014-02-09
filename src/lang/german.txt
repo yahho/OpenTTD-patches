@@ -1071,7 +1071,6 @@ STR_CONFIG_SETTING_TYPE_GAME_INGAME                             :Karten-Einstell
 STR_CONFIG_SETTING_TYPE_COMPANY_MENU                            :Firmen-Einstellung (in Spielständen gespeichert; beeinflußt nur neue Spiele)
 STR_CONFIG_SETTING_TYPE_COMPANY_INGAME                          :Firmen-Einstellung (im Spielstand gespeichert; beeinflußt nur aktuelle Firma)
 
-STR_CONFIG_SETTING_RESTRICT_LABEL                               :{BLACK}Zeige:
 STR_CONFIG_SETTING_RESTRICT_DROPDOWN_HELPTEXT                   :{BLACK}Beschränkt die Liste auf geänderte Einstellungen
 STR_CONFIG_SETTING_RESTRICT_BASIC                               :Grundlegende Einstellungen
 STR_CONFIG_SETTING_RESTRICT_ADVANCED                            :Erweiterte Einstellungen
