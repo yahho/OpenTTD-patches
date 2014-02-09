@@ -1406,24 +1406,6 @@ public:
 		return next_trackdir;
 	}
 
-	static bool stCheckReverseTrain(const Train *v, bool allow_90deg, const PathPos &pos1, const PathPos &pos2, int reverse_penalty)
-	{
-		Tpf pf1 (v, allow_90deg);
-		bool result1 = pf1.CheckReverseTrain(pos1, pos2, reverse_penalty);
-
-#if DEBUG_YAPF_CACHE
-		Tpf pf2 (v, allow_90deg);
-		pf2.DisableCache(true);
-		bool result2 = pf2.CheckReverseTrain(pos1, pos2, reverse_penalty);
-		if (result1 != result2) {
-			DEBUG(yapf, 0, "CACHE ERROR: CheckReverseTrain() = [%s, %s]", result1 ? "T" : "F", result2 ? "T" : "F");
-			DumpState(pf1, pf2);
-		}
-#endif
-
-		return result1;
-	}
-
 	inline bool CheckReverseTrain(const PathPos &pos1, const PathPos &pos2, int reverse_penalty)
 	{
 		/* create pathfinder instance
@@ -1568,8 +1550,20 @@ bool YapfTrainCheckReverse(const Train *v)
 	/* slightly hackish: If the pathfinders finds a path, the cost of the first node is tested to distinguish between forward- and reverse-path. */
 	if (reverse_penalty == 0) reverse_penalty = 1;
 
-	return CYapfRail::stCheckReverseTrain (v,
-		!_settings_game.pf.forbid_90_deg, pos, rev, reverse_penalty);
+	CYapfRail pf1 (v, !_settings_game.pf.forbid_90_deg);
+	bool result1 = pf1.CheckReverseTrain(pos, rev, reverse_penalty);
+
+#if DEBUG_YAPF_CACHE
+	CYapfRail pf2 (v, !_settings_game.pf.forbid_90_deg);
+	pf2.DisableCache(true);
+	bool result2 = pf2.CheckReverseTrain(pos, rev, reverse_penalty);
+	if (result1 != result2) {
+		DEBUG(yapf, 0, "CACHE ERROR: CheckReverseTrain() = [%s, %s]", result1 ? "T" : "F", result2 ? "T" : "F");
+		DumpState(pf1, pf2);
+	}
+#endif
+
+	return result1;
 }
 
 bool YapfTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *res)
