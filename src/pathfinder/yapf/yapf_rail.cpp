@@ -1210,27 +1210,6 @@ public:
 		n.m_estimate = n.m_cost;
 	}
 
-	static bool stFindNearestSafeTile(const Train *v, bool allow_90deg, const PathPos &pos, bool override_railtype)
-	{
-		/* Create pathfinder instance */
-		Tpf pf1 (v, allow_90deg, override_railtype);
-#if !DEBUG_YAPF_CACHE
-		bool result1 = pf1.FindNearestSafeTile(pos, override_railtype, false);
-
-#else
-		bool result2 = pf1.FindNearestSafeTile(pos, override_railtype, true);
-		Tpf pf2 (v, allow_90deg, override_railtype);
-		pf2.DisableCache(true);
-		bool result1 = pf2.FindNearestSafeTile(pos, override_railtype, false);
-		if (result1 != result2) {
-			DEBUG(yapf, 0, "CACHE ERROR: FindSafeTile() = [%s, %s]", result2 ? "T" : "F", result1 ? "T" : "F");
-			DumpState(pf1, pf2);
-		}
-#endif
-
-		return result1;
-	}
-
 	bool FindNearestSafeTile(const PathPos &pos, bool override_railtype, bool dont_reserve)
 	{
 		/* Set origin and destination. */
@@ -1552,5 +1531,21 @@ bool YapfTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *
 
 bool YapfTrainFindNearestSafeTile(const Train *v, const PathPos &pos, bool override_railtype)
 {
-	return CYapfAnySafeTileRail::stFindNearestSafeTile (v, !_settings_game.pf.forbid_90_deg, pos, override_railtype);
+	/* Create pathfinder instance */
+	CYapfAnySafeTileRail pf1 (v, !_settings_game.pf.forbid_90_deg, override_railtype);
+#if !DEBUG_YAPF_CACHE
+	bool result1 = pf1.FindNearestSafeTile(pos, override_railtype, false);
+
+#else
+	bool result2 = pf1.FindNearestSafeTile(pos, override_railtype, true);
+	CYapfAnySafeTileRail pf2 (v, !_settings_game.pf.forbid_90_deg, override_railtype);
+	pf2.DisableCache(true);
+	bool result1 = pf2.FindNearestSafeTile(pos, override_railtype, false);
+	if (result1 != result2) {
+		DEBUG(yapf, 0, "CACHE ERROR: FindSafeTile() = [%s, %s]", result2 ? "T" : "F", result1 ? "T" : "F");
+		DumpState(pf1, pf2);
+	}
+#endif
+
+	return result1;
 }
