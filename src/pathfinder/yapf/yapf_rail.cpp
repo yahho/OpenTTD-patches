@@ -1259,108 +1259,6 @@ public:
 	}
 };
 
-
-struct CYapfAnyDepotRail
-	: CYapfRailT <CYapfAnyDepotRail, AstarRailTrackDir, false>
-{
-public:
-	typedef CYapfRailT <CYapfAnyDepotRail, AstarRailTrackDir, false> Base;
-	typedef AstarRailTrackDir TAstar;
-	typedef TAstar::Node      Node;
-
-	CYapfAnyDepotRail (const Train *v, bool allow_90deg)
-		: Base (v, allow_90deg)
-	{
-	}
-
-	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination (const PathPos &pos) const
-	{
-		return !pos.in_wormhole() && IsRailDepotTile(pos.tile);
-	}
-
-	/** Called by YAPF to calculate cost estimate. */
-	inline void PfCalcEstimate (Node &n) const
-	{
-		n.m_estimate = n.m_cost;
-	}
-
-	inline bool FindNearestDepotTwoWay(const PathPos &pos1, const PathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
-	{
-		/* set origin and destination nodes */
-		Base::SetOrigin (pos1, pos2, reverse_penalty, true);
-		Base::SetMaxCost(max_penalty);
-
-		/* find the best path */
-		bool bFound = Base::FindPath();
-		if (!bFound) return false;
-
-		/* some path found
-		 * get found depot tile */
-		Node *n = Base::GetBestNode();
-		*depot_tile = n->GetLastPos().tile;
-
-		/* walk through the path back to the origin */
-		while (n->m_parent != NULL) {
-			n = n->m_parent;
-		}
-
-		/* if the origin node is our front vehicle tile/Trackdir then we didn't reverse
-		 * but we can also look at the cost (== 0 -> not reversed, == reverse_penalty -> reversed) */
-		*reversed = (n->m_cost != 0);
-
-		return true;
-	}
-};
-
-
-struct CYapfAnySafeTileRail
-	: CYapfRailT <CYapfAnySafeTileRail, AstarRailTrackDir, true>
-{
-public:
-	typedef CYapfRailT <CYapfAnySafeTileRail, AstarRailTrackDir, true> Base;
-	typedef AstarRailTrackDir TAstar;
-	typedef TAstar::Node      Node;
-
-	CYapfAnySafeTileRail (const Train *v, bool allow_90deg, bool override_railtype)
-		: Base (v, allow_90deg, override_railtype)
-	{
-	}
-
-	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination (const PathPos &pos) const
-	{
-		return IsFreeSafeWaitingPosition(Base::GetVehicle(), pos, Base::Allow90degTurns());
-	}
-
-	/** Called by YAPF to calculate cost estimate. */
-	inline void PfCalcEstimate (Node &n) const
-	{
-		n.m_estimate = n.m_cost;
-	}
-
-	bool FindNearestSafeTile(const PathPos &pos, bool override_railtype, bool dont_reserve)
-	{
-		/* Set origin and destination. */
-		Base::SetOrigin(pos);
-
-		bool bFound = Base::FindPath();
-		if (!bFound) return false;
-
-		if (dont_reserve) return true;
-
-		/* Found a destination, search for a reservation target. */
-		Node *pNode = Base::GetBestNode();
-		typename Base::NodePos res;
-		pNode = Base::FindSafePositionOnPath(pNode, &res)->m_parent;
-		assert (pNode->GetPos() == pos);
-		assert (pNode->GetLastPos() == pos);
-
-		return Base::TryReservePath (pos.tile, &res);
-	}
-};
-
-
 Trackdir YapfTrainChooseTrack(const Train *v, const PathPos &origin, bool reserve_track, PFResult *target)
 {
 	/* create pathfinder instance */
@@ -1434,6 +1332,60 @@ bool YapfTrainCheckReverse(const Train *v)
 	return result1;
 }
 
+
+struct CYapfAnyDepotRail
+	: CYapfRailT <CYapfAnyDepotRail, AstarRailTrackDir, false>
+{
+public:
+	typedef CYapfRailT <CYapfAnyDepotRail, AstarRailTrackDir, false> Base;
+	typedef AstarRailTrackDir TAstar;
+	typedef TAstar::Node      Node;
+
+	CYapfAnyDepotRail (const Train *v, bool allow_90deg)
+		: Base (v, allow_90deg)
+	{
+	}
+
+	/** Called by YAPF to detect if node ends in the desired destination */
+	inline bool PfDetectDestination (const PathPos &pos) const
+	{
+		return !pos.in_wormhole() && IsRailDepotTile(pos.tile);
+	}
+
+	/** Called by YAPF to calculate cost estimate. */
+	inline void PfCalcEstimate (Node &n) const
+	{
+		n.m_estimate = n.m_cost;
+	}
+
+	inline bool FindNearestDepotTwoWay(const PathPos &pos1, const PathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
+	{
+		/* set origin and destination nodes */
+		Base::SetOrigin (pos1, pos2, reverse_penalty, true);
+		Base::SetMaxCost(max_penalty);
+
+		/* find the best path */
+		bool bFound = Base::FindPath();
+		if (!bFound) return false;
+
+		/* some path found
+		 * get found depot tile */
+		Node *n = Base::GetBestNode();
+		*depot_tile = n->GetLastPos().tile;
+
+		/* walk through the path back to the origin */
+		while (n->m_parent != NULL) {
+			n = n->m_parent;
+		}
+
+		/* if the origin node is our front vehicle tile/Trackdir then we didn't reverse
+		 * but we can also look at the cost (== 0 -> not reversed, == reverse_penalty -> reversed) */
+		*reversed = (n->m_cost != 0);
+
+		return true;
+	}
+};
+
 bool YapfTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *res)
 {
 	PathPos origin;
@@ -1467,6 +1419,53 @@ bool YapfTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *
 
 	return result1;
 }
+
+
+struct CYapfAnySafeTileRail
+	: CYapfRailT <CYapfAnySafeTileRail, AstarRailTrackDir, true>
+{
+public:
+	typedef CYapfRailT <CYapfAnySafeTileRail, AstarRailTrackDir, true> Base;
+	typedef AstarRailTrackDir TAstar;
+	typedef TAstar::Node      Node;
+
+	CYapfAnySafeTileRail (const Train *v, bool allow_90deg, bool override_railtype)
+		: Base (v, allow_90deg, override_railtype)
+	{
+	}
+
+	/** Called by YAPF to detect if node ends in the desired destination */
+	inline bool PfDetectDestination (const PathPos &pos) const
+	{
+		return IsFreeSafeWaitingPosition(Base::GetVehicle(), pos, Base::Allow90degTurns());
+	}
+
+	/** Called by YAPF to calculate cost estimate. */
+	inline void PfCalcEstimate (Node &n) const
+	{
+		n.m_estimate = n.m_cost;
+	}
+
+	bool FindNearestSafeTile(const PathPos &pos, bool override_railtype, bool dont_reserve)
+	{
+		/* Set origin and destination. */
+		Base::SetOrigin(pos);
+
+		bool bFound = Base::FindPath();
+		if (!bFound) return false;
+
+		if (dont_reserve) return true;
+
+		/* Found a destination, search for a reservation target. */
+		Node *pNode = Base::GetBestNode();
+		typename Base::NodePos res;
+		pNode = Base::FindSafePositionOnPath(pNode, &res)->m_parent;
+		assert (pNode->GetPos() == pos);
+		assert (pNode->GetLastPos() == pos);
+
+		return Base::TryReservePath (pos.tile, &res);
+	}
+};
 
 bool YapfTrainFindNearestSafeTile(const Train *v, const PathPos &pos, bool override_railtype)
 {
