@@ -1365,16 +1365,16 @@ public:
 		assert(n.m_estimate >= n.m_parent->m_estimate);
 	}
 
-	static Trackdir stChooseRailTrack(const Train *v, const PathPos &origin, bool reserve_track, PFResult *target)
+	static Trackdir stChooseRailTrack(const Train *v, bool allow_90deg, const PathPos &origin, bool reserve_track, PFResult *target)
 	{
 		/* create pathfinder instance */
-		Tpf pf1 (v);
+		Tpf pf1 (v, allow_90deg);
 #if !DEBUG_YAPF_CACHE
 		Trackdir result1 = pf1.ChooseRailTrack(origin, reserve_track, target);
 
 #else
 		Trackdir result1 = pf1.ChooseRailTrack(origin, false, NULL);
-		Tpf pf2 (v);
+		Tpf pf2 (v, allow_90deg);
 		pf2.DisableCache(true);
 		Trackdir result2 = pf2.ChooseRailTrack(origin, reserve_track, target);
 		if (result1 != result2) {
@@ -1427,13 +1427,13 @@ public:
 		return next_trackdir;
 	}
 
-	static bool stCheckReverseTrain(const Train *v, const PathPos &pos1, const PathPos &pos2, int reverse_penalty)
+	static bool stCheckReverseTrain(const Train *v, bool allow_90deg, const PathPos &pos1, const PathPos &pos2, int reverse_penalty)
 	{
-		Tpf pf1 (v);
+		Tpf pf1 (v, allow_90deg);
 		bool result1 = pf1.CheckReverseTrain(pos1, pos2, reverse_penalty);
 
 #if DEBUG_YAPF_CACHE
-		Tpf pf2 (v);
+		Tpf pf2 (v, allow_90deg);
 		pf2.DisableCache(true);
 		bool result2 = pf2.CheckReverseTrain(pos1, pos2, reverse_penalty);
 		if (result1 != result2) {
@@ -1480,24 +1480,13 @@ struct CYapfRail_TypesT
 	typedef AstarRailTrackDir                       Astar;
 };
 
-struct CYapfRail1
-	: CYapfRailT <CYapfRail1, AstarRailTrackDir, false>
-	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail1> >
+struct CYapfRail
+	: CYapfRailT <CYapfRail, AstarRailTrackDir, false>
+	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail> >
 {
-	CYapfRail1 (const Train *v)
-		: CYapfRailT <CYapfRail1, AstarRailTrackDir, false> (v, true)
-		, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail1> > (v)
-	{
-	}
-};
-
-struct CYapfRail2
-	: CYapfRailT <CYapfRail2, AstarRailTrackDir, false>
-	, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail2> >
-{
-	CYapfRail2 (const Train *v)
-		: CYapfRailT <CYapfRail2, AstarRailTrackDir, false> (v, false)
-		, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail2> > (v)
+	CYapfRail (const Train *v, bool allow_90deg)
+		: CYapfRailT <CYapfRail, AstarRailTrackDir, false> (v, allow_90deg)
+		, CYapfFollowRailT<CYapfRail_TypesT<CYapfRail> > (v)
 	{
 	}
 };
@@ -1545,16 +1534,8 @@ struct CYapfAnySafeTileRail2
 
 Trackdir YapfTrainChooseTrack(const Train *v, const PathPos &origin, bool reserve_track, PFResult *target)
 {
-	/* default is YAPF type 2 */
-	typedef Trackdir (*PfnChooseRailTrack)(const Train*, const PathPos&, bool, PFResult*);
-	PfnChooseRailTrack pfnChooseRailTrack = &CYapfRail1::stChooseRailTrack;
-
-	/* check if non-default YAPF type needed */
-	if (_settings_game.pf.forbid_90_deg) {
-		pfnChooseRailTrack = &CYapfRail2::stChooseRailTrack; // Trackdir, forbid 90-deg
-	}
-
-	return pfnChooseRailTrack(v, origin, reserve_track, target);
+	return CYapfRail::stChooseRailTrack (v,
+		!_settings_game.pf.forbid_90_deg, origin, reserve_track, target);
 }
 
 bool YapfTrainCheckReverse(const Train *v)
@@ -1590,20 +1571,11 @@ bool YapfTrainCheckReverse(const Train *v)
 		reverse_penalty += DistanceManhattan(cur_tile, rev.tile) * YAPF_TILE_LENGTH;
 	}
 
-	typedef bool (*PfnCheckReverseTrain)(const Train*, const PathPos&, const PathPos&, int);
-	PfnCheckReverseTrain pfnCheckReverseTrain = CYapfRail1::stCheckReverseTrain;
-
-	/* check if non-default YAPF type needed */
-	if (_settings_game.pf.forbid_90_deg) {
-		pfnCheckReverseTrain = &CYapfRail2::stCheckReverseTrain; // Trackdir, forbid 90-deg
-	}
-
 	/* slightly hackish: If the pathfinders finds a path, the cost of the first node is tested to distinguish between forward- and reverse-path. */
 	if (reverse_penalty == 0) reverse_penalty = 1;
 
-	bool reverse = pfnCheckReverseTrain(v, pos, rev, reverse_penalty);
-
-	return reverse;
+	return CYapfRail::stCheckReverseTrain (v,
+		!_settings_game.pf.forbid_90_deg, pos, rev, reverse_penalty);
 }
 
 bool YapfTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *res)
