@@ -1444,8 +1444,8 @@ void GameLoop()
 
 	/* autosave game? */
 	if (_do_autosave) {
-		_do_autosave = false;
 		DoAutosave();
+		_do_autosave = false;
 		SetWindowDirty(WC_STATUS_BAR, 0);
 	}
 
