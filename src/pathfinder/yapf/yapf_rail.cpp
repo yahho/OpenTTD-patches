@@ -1365,27 +1365,6 @@ public:
 		assert(n.m_estimate >= n.m_parent->m_estimate);
 	}
 
-	static Trackdir stChooseRailTrack(const Train *v, bool allow_90deg, const PathPos &origin, bool reserve_track, PFResult *target)
-	{
-		/* create pathfinder instance */
-		Tpf pf1 (v, allow_90deg);
-#if !DEBUG_YAPF_CACHE
-		Trackdir result1 = pf1.ChooseRailTrack(origin, reserve_track, target);
-
-#else
-		Trackdir result1 = pf1.ChooseRailTrack(origin, false, NULL);
-		Tpf pf2 (v, allow_90deg);
-		pf2.DisableCache(true);
-		Trackdir result2 = pf2.ChooseRailTrack(origin, reserve_track, target);
-		if (result1 != result2) {
-			DEBUG(yapf, 0, "CACHE ERROR: ChooseRailTrack() = [%d, %d]", result1, result2);
-			DumpState(pf1, pf2);
-		}
-#endif
-
-		return result1;
-	}
-
 	inline Trackdir ChooseRailTrack(const PathPos &origin, bool reserve_track, PFResult *target)
 	{
 		if (target != NULL) target->pos.tile = INVALID_TILE;
@@ -1534,8 +1513,23 @@ struct CYapfAnySafeTileRail2
 
 Trackdir YapfTrainChooseTrack(const Train *v, const PathPos &origin, bool reserve_track, PFResult *target)
 {
-	return CYapfRail::stChooseRailTrack (v,
-		!_settings_game.pf.forbid_90_deg, origin, reserve_track, target);
+	/* create pathfinder instance */
+	CYapfRail pf1 (v, !_settings_game.pf.forbid_90_deg);
+#if !DEBUG_YAPF_CACHE
+	Trackdir result1 = pf1.ChooseRailTrack(origin, reserve_track, target);
+
+#else
+	Trackdir result1 = pf1.ChooseRailTrack(origin, false, NULL);
+	CYapfRail pf2 (v, !_settings_game.pf.forbid_90_deg);
+	pf2.DisableCache(true);
+	Trackdir result2 = pf2.ChooseRailTrack(origin, reserve_track, target);
+	if (result1 != result2) {
+		DEBUG(yapf, 0, "CACHE ERROR: ChooseRailTrack() = [%d, %d]", result1, result2);
+		DumpState(pf1, pf2);
+	}
+#endif
+
+	return result1;
 }
 
 bool YapfTrainCheckReverse(const Train *v)
