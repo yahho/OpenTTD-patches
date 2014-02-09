@@ -1149,36 +1149,6 @@ public:
 		n.m_estimate = n.m_cost;
 	}
 
-	static bool stFindNearestDepotTwoWay(const Train *v, bool allow_90deg, const PathPos &pos1, const PathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
-	{
-		Tpf pf1 (v, allow_90deg);
-		/*
-		 * With caching enabled it simply cannot get a reliable result when you
-		 * have limited the distance a train may travel. This means that the
-		 * cached result does not match uncached result in all cases and that
-		 * causes desyncs. So disable caching when finding for a depot that is
-		 * nearby. This only happens with automatic servicing of vehicles,
-		 * so it will only impact performance when you do not manually set
-		 * depot orders and you do not disable automatic servicing.
-		 */
-		if (max_penalty != 0) pf1.DisableCache(true);
-		bool result1 = pf1.FindNearestDepotTwoWay(pos1, pos2, max_penalty, reverse_penalty, depot_tile, reversed);
-
-#if DEBUG_YAPF_CACHE
-		Tpf pf2 (v, allow_90deg);
-		TileIndex depot_tile2 = INVALID_TILE;
-		bool reversed2 = false;
-		pf2.DisableCache(true);
-		bool result2 = pf2.FindNearestDepotTwoWay(pos1, pos2, max_penalty, reverse_penalty, &depot_tile2, &reversed2);
-		if (result1 != result2 || (result1 && (*depot_tile != depot_tile2 || *reversed != reversed2))) {
-			DEBUG(yapf, 0, "CACHE ERROR: FindNearestDepotTwoWay() = [%s, %s]", result1 ? "T" : "F", result2 ? "T" : "F");
-			DumpState(pf1, pf2);
-		}
-#endif
-
-		return result1;
-	}
-
 	inline bool FindNearestDepotTwoWay(const PathPos &pos1, const PathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
 	{
 		/* set origin and destination nodes */
@@ -1562,7 +1532,32 @@ bool YapfTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *
 	FollowTrainReservation(v, &origin);
 	PathPos rev = v->Last()->GetReversePos();
 
-	return CYapfAnyDepotRail::stFindNearestDepotTwoWay (v, !_settings_game.pf.forbid_90_deg, origin, rev, max_penalty, YAPF_INFINITE_PENALTY, &res->tile, &res->reverse);
+	CYapfAnyDepotRail pf1 (v, !_settings_game.pf.forbid_90_deg);
+	/*
+	 * With caching enabled it simply cannot get a reliable result when you
+	 * have limited the distance a train may travel. This means that the
+	 * cached result does not match uncached result in all cases and that
+	 * causes desyncs. So disable caching when finding for a depot that is
+	 * nearby. This only happens with automatic servicing of vehicles,
+	 * so it will only impact performance when you do not manually set
+	 * depot orders and you do not disable automatic servicing.
+	 */
+	if (max_penalty != 0) pf1.DisableCache(true);
+	bool result1 = pf1.FindNearestDepotTwoWay (origin, rev, max_penalty, YAPF_INFINITE_PENALTY, &res->tile, &res->reverse);
+
+#if DEBUG_YAPF_CACHE
+	CYapfAnyDepotRail pf2 (v, !_settings_game.pf.forbid_90_deg);
+	TileIndex depot_tile2 = INVALID_TILE;
+	bool reversed2 = false;
+	pf2.DisableCache(true);
+	bool result2 = pf2.FindNearestDepotTwoWay (origin, rev, max_penalty, YAPF_INFINITE_PENALTY, &depot_tile2, &reversed2);
+	if (result1 != result2 || (result1 && (res->tile != depot_tile2 || res->reverse != reversed2))) {
+		DEBUG(yapf, 0, "CACHE ERROR: FindNearestDepotTwoWay() = [%s, %s]", result1 ? "T" : "F", result2 ? "T" : "F");
+		DumpState(pf1, pf2);
+	}
+#endif
+
+	return result1;
 }
 
 bool YapfTrainFindNearestSafeTile(const Train *v, const PathPos &pos, bool override_railtype)
