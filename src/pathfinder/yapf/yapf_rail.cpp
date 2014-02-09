@@ -1149,9 +1149,9 @@ public:
 		n.m_estimate = n.m_cost;
 	}
 
-	static bool stFindNearestDepotTwoWay(const Train *v, const PathPos &pos1, const PathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
+	static bool stFindNearestDepotTwoWay(const Train *v, bool allow_90deg, const PathPos &pos1, const PathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
 	{
-		Tpf pf1 (v);
+		Tpf pf1 (v, allow_90deg);
 		/*
 		 * With caching enabled it simply cannot get a reliable result when you
 		 * have limited the distance a train may travel. This means that the
@@ -1165,7 +1165,7 @@ public:
 		bool result1 = pf1.FindNearestDepotTwoWay(pos1, pos2, max_penalty, reverse_penalty, depot_tile, reversed);
 
 #if DEBUG_YAPF_CACHE
-		Tpf pf2 (v);
+		Tpf pf2 (v, allow_90deg);
 		TileIndex depot_tile2 = INVALID_TILE;
 		bool reversed2 = false;
 		pf2.DisableCache(true);
@@ -1452,22 +1452,12 @@ struct CYapfRail
 	}
 };
 
-struct CYapfAnyDepotRail1
-	: CYapfRailT <CYapfAnyDepotRail1, AstarRailTrackDir, false>
-	, CYapfAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail1> >
+struct CYapfAnyDepotRail
+	: CYapfRailT <CYapfAnyDepotRail, AstarRailTrackDir, false>
+	, CYapfAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail> >
 {
-	CYapfAnyDepotRail1 (const Train *v)
-		: CYapfRailT <CYapfAnyDepotRail1, AstarRailTrackDir, false> (v, true)
-	{
-	}
-};
-
-struct CYapfAnyDepotRail2
-	: CYapfRailT <CYapfAnyDepotRail2, AstarRailTrackDir, false>
-	, CYapfAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail2> >
-{
-	CYapfAnyDepotRail2 (const Train *v)
-		: CYapfRailT <CYapfAnyDepotRail2, AstarRailTrackDir, false> (v, false)
+	CYapfAnyDepotRail (const Train *v, bool allow_90deg)
+		: CYapfRailT <CYapfAnyDepotRail, AstarRailTrackDir, false> (v, allow_90deg)
 	{
 	}
 };
@@ -1572,15 +1562,7 @@ bool YapfTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *
 	FollowTrainReservation(v, &origin);
 	PathPos rev = v->Last()->GetReversePos();
 
-	typedef bool (*PfnFindNearestDepotTwoWay)(const Train*, const PathPos&, const PathPos&, int, int, TileIndex*, bool*);
-	PfnFindNearestDepotTwoWay pfnFindNearestDepotTwoWay = &CYapfAnyDepotRail1::stFindNearestDepotTwoWay;
-
-	/* check if non-default YAPF type needed */
-	if (_settings_game.pf.forbid_90_deg) {
-		pfnFindNearestDepotTwoWay = &CYapfAnyDepotRail2::stFindNearestDepotTwoWay; // Trackdir, forbid 90-deg
-	}
-
-	return pfnFindNearestDepotTwoWay(v, origin, rev, max_penalty, YAPF_INFINITE_PENALTY, &res->tile, &res->reverse);
+	return CYapfAnyDepotRail::stFindNearestDepotTwoWay (v, !_settings_game.pf.forbid_90_deg, origin, rev, max_penalty, YAPF_INFINITE_PENALTY, &res->tile, &res->reverse);
 }
 
 bool YapfTrainFindNearestSafeTile(const Train *v, const PathPos &pos, bool override_railtype)
