@@ -1119,67 +1119,6 @@ public:
 
 
 template <class Types>
-class CYapfAnyDepotRailT
-{
-public:
-	typedef typename Types::Tpf Tpf;                     ///< the pathfinder class (derived from THIS class)
-	typedef typename Types::Astar::Node Node;            ///< this will be our node type
-	typedef typename Node::Key Key;                      ///< key to hash tables
-
-protected:
-	/** to access inherited path finder */
-	inline Tpf& Yapf()
-	{
-		return *static_cast<Tpf*>(this);
-	}
-
-public:
-	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination(const PathPos &pos)
-	{
-		return !pos.in_wormhole() && IsRailDepotTile(pos.tile);
-	}
-
-	/**
-	 * Called by YAPF to calculate cost estimate. Calculates distance to the destination
-	 *  adds it to the actual cost from origin and stores the sum to the Node::m_estimate
-	 */
-	inline void PfCalcEstimate(Node& n)
-	{
-		n.m_estimate = n.m_cost;
-	}
-
-	inline bool FindNearestDepotTwoWay(const PathPos &pos1, const PathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
-	{
-		/* set origin and destination nodes */
-		Yapf().SetOrigin(pos1, pos2, reverse_penalty, true);
-		Yapf().SetMaxCost(max_penalty);
-
-		/* find the best path */
-		bool bFound = Yapf().FindPath();
-		if (!bFound) return false;
-
-		/* some path found
-		 * get found depot tile */
-		Node *n = Yapf().GetBestNode();
-		*depot_tile = n->GetLastPos().tile;
-
-		/* walk through the path back to the origin */
-		Node *pNode = n;
-		while (pNode->m_parent != NULL) {
-			pNode = pNode->m_parent;
-		}
-
-		/* if the origin node is our front vehicle tile/Trackdir then we didn't reverse
-		 * but we can also look at the cost (== 0 -> not reversed, == reverse_penalty -> reversed) */
-		*reversed = (pNode->m_cost != 0);
-
-		return true;
-	}
-};
-
-
-template <class Types>
 class CYapfAnySafeTileRailT
 {
 public:
@@ -1374,6 +1313,60 @@ public:
 };
 
 
+struct CYapfAnyDepotRail
+	: CYapfRailT <CYapfAnyDepotRail, AstarRailTrackDir, false>
+{
+public:
+	typedef CYapfRailT <CYapfAnyDepotRail, AstarRailTrackDir, false> Base;
+	typedef AstarRailTrackDir TAstar;
+	typedef TAstar::Node      Node;
+
+	CYapfAnyDepotRail (const Train *v, bool allow_90deg)
+		: Base (v, allow_90deg)
+	{
+	}
+
+	/** Called by YAPF to detect if node ends in the desired destination */
+	inline bool PfDetectDestination (const PathPos &pos) const
+	{
+		return !pos.in_wormhole() && IsRailDepotTile(pos.tile);
+	}
+
+	/** Called by YAPF to calculate cost estimate. */
+	inline void PfCalcEstimate (Node &n) const
+	{
+		n.m_estimate = n.m_cost;
+	}
+
+	inline bool FindNearestDepotTwoWay(const PathPos &pos1, const PathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
+	{
+		/* set origin and destination nodes */
+		Base::SetOrigin (pos1, pos2, reverse_penalty, true);
+		Base::SetMaxCost(max_penalty);
+
+		/* find the best path */
+		bool bFound = Base::FindPath();
+		if (!bFound) return false;
+
+		/* some path found
+		 * get found depot tile */
+		Node *n = Base::GetBestNode();
+		*depot_tile = n->GetLastPos().tile;
+
+		/* walk through the path back to the origin */
+		while (n->m_parent != NULL) {
+			n = n->m_parent;
+		}
+
+		/* if the origin node is our front vehicle tile/Trackdir then we didn't reverse
+		 * but we can also look at the cost (== 0 -> not reversed, == reverse_penalty -> reversed) */
+		*reversed = (n->m_cost != 0);
+
+		return true;
+	}
+};
+
+
 template <class Tpf_>
 struct CYapfRail_TypesT
 {
@@ -1381,16 +1374,6 @@ struct CYapfRail_TypesT
 
 	typedef Tpf_                                    Tpf;
 	typedef AstarRailTrackDir                       Astar;
-};
-
-struct CYapfAnyDepotRail
-	: CYapfRailT <CYapfAnyDepotRail, AstarRailTrackDir, false>
-	, CYapfAnyDepotRailT<CYapfRail_TypesT<CYapfAnyDepotRail> >
-{
-	CYapfAnyDepotRail (const Train *v, bool allow_90deg)
-		: CYapfRailT <CYapfAnyDepotRail, AstarRailTrackDir, false> (v, allow_90deg)
-	{
-	}
 };
 
 struct CYapfAnySafeTileRail
