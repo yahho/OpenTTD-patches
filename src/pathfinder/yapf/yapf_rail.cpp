@@ -1210,16 +1210,16 @@ public:
 		n.m_estimate = n.m_cost;
 	}
 
-	static bool stFindNearestSafeTile(const Train *v, const PathPos &pos, bool override_railtype)
+	static bool stFindNearestSafeTile(const Train *v, bool allow_90deg, const PathPos &pos, bool override_railtype)
 	{
 		/* Create pathfinder instance */
-		Tpf pf1 (v, override_railtype);
+		Tpf pf1 (v, allow_90deg, override_railtype);
 #if !DEBUG_YAPF_CACHE
 		bool result1 = pf1.FindNearestSafeTile(pos, override_railtype, false);
 
 #else
 		bool result2 = pf1.FindNearestSafeTile(pos, override_railtype, true);
-		Tpf pf2 (v, override_railtype);
+		Tpf pf2 (v, allow_90deg, override_railtype);
 		pf2.DisableCache(true);
 		bool result1 = pf2.FindNearestSafeTile(pos, override_railtype, false);
 		if (result1 != result2) {
@@ -1432,22 +1432,12 @@ struct CYapfAnyDepotRail
 	}
 };
 
-struct CYapfAnySafeTileRail1
-	: CYapfRailT <CYapfAnySafeTileRail1, AstarRailTrackDir, true>
-	, CYapfAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail1> >
+struct CYapfAnySafeTileRail
+	: CYapfRailT <CYapfAnySafeTileRail, AstarRailTrackDir, true>
+	, CYapfAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail> >
 {
-	CYapfAnySafeTileRail1 (const Train *v, bool override_railtype)
-		: CYapfRailT <CYapfAnySafeTileRail1, AstarRailTrackDir, true> (v, true, override_railtype)
-	{
-	}
-};
-
-struct CYapfAnySafeTileRail2
-	: CYapfRailT <CYapfAnySafeTileRail2, AstarRailTrackDir, true>
-	, CYapfAnySafeTileRailT<CYapfRail_TypesT<CYapfAnySafeTileRail2> >
-{
-	CYapfAnySafeTileRail2 (const Train *v, bool override_railtype)
-		: CYapfRailT <CYapfAnySafeTileRail2, AstarRailTrackDir, true> (v, false, override_railtype)
+	CYapfAnySafeTileRail (const Train *v, bool allow_90deg, bool override_railtype)
+		: CYapfRailT <CYapfAnySafeTileRail, AstarRailTrackDir, true> (v, allow_90deg, override_railtype)
 	{
 	}
 };
@@ -1562,13 +1552,5 @@ bool YapfTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *
 
 bool YapfTrainFindNearestSafeTile(const Train *v, const PathPos &pos, bool override_railtype)
 {
-	typedef bool (*PfnFindNearestSafeTile)(const Train*, const PathPos&, bool);
-	PfnFindNearestSafeTile pfnFindNearestSafeTile = CYapfAnySafeTileRail1::stFindNearestSafeTile;
-
-	/* check if non-default YAPF type needed */
-	if (_settings_game.pf.forbid_90_deg) {
-		pfnFindNearestSafeTile = &CYapfAnySafeTileRail2::stFindNearestSafeTile;
-	}
-
-	return pfnFindNearestSafeTile(v, pos, override_railtype);
+	return CYapfAnySafeTileRail::stFindNearestSafeTile (v, !_settings_game.pf.forbid_90_deg, pos, override_railtype);
 }
