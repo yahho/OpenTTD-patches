@@ -261,12 +261,6 @@ public:
 		AddStartupNode (rev, reverse_penalty);
 	}
 
-	/** return true if first two-way signal should be treated as dead end */
-	inline bool TreatFirstRedTwoWaySignalAsEOL() const
-	{
-		return m_settings->rail_firstred_twoway_eol && m_treat_first_red_two_way_signal_as_eol;
-	}
-
 	inline void SetMaxCost (int max_cost)
 	{
 		m_max_cost = max_cost;
@@ -457,7 +451,12 @@ public:
 			} else {
 				/* we have a red signal in our direction
 				 * was it first signal which is two-way? */
-				if (!IsPbsSignal(sig_type) && TreatFirstRedTwoWaySignalAsEOL() && n.flags_u.flags_s.m_choice_seen && HasSignalAgainstPos(pos) && n.m_num_signals_passed == 0) {
+				if (!IsPbsSignal(sig_type)
+						&& m_settings->rail_firstred_twoway_eol
+						&& m_treat_first_red_two_way_signal_as_eol
+						&& n.flags_u.flags_s.m_choice_seen
+						&& HasSignalAgainstPos(pos)
+						&& n.m_num_signals_passed == 0) {
 					/* yes, the first signal is two-way red signal => DEAD END. Prune this branch... */
 					PruneIntermediateNodeBranch();
 					data->end_reason |= ESRB_DEAD_END;
