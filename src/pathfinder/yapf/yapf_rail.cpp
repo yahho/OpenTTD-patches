@@ -1002,22 +1002,6 @@ protected:
 	}
 
 public:
-	/** return current settings (can be custom - company based - but later) */
-	inline const YAPFSettings& PfGetSettings() const
-	{
-		return *Base::m_settings;
-	}
-
-	const Train * GetVehicle() const
-	{
-		return Base::m_veh;
-	}
-
-	RailTypes GetCompatibleRailTypes() const
-	{
-		return Base::m_compatible_railtypes;
-	}
-
 	/** Called by the A-star underlying class to find the neighbours of a node. */
 	inline void Follow (Node *old_node)
 	{
@@ -1091,7 +1075,7 @@ public:
 		perf.Start();
 #endif /* !NO_DEBUG_MESSAGES */
 
-		bool bDestFound = TAstar::FindPath (Follow, PfGetSettings().max_search_nodes);
+		bool bDestFound = TAstar::FindPath (Follow, Base::m_settings->max_search_nodes);
 
 #ifndef NO_DEBUG_MESSAGES
 		perf.Stop();
@@ -1437,7 +1421,7 @@ public:
 	/** Called by YAPF to detect if node ends in the desired destination */
 	inline bool PfDetectDestination (const PathPos &pos) const
 	{
-		return IsFreeSafeWaitingPosition(Base::GetVehicle(), pos, Base::Allow90degTurns());
+		return IsFreeSafeWaitingPosition(Base::m_veh, pos, Base::Allow90degTurns());
 	}
 
 	/** Called by YAPF to calculate cost estimate. */
