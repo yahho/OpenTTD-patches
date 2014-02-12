@@ -475,7 +475,7 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node& n, const PathPos &pos, NodeD
 		int look_ahead_cost = (n.m_num_signals_passed < m_sig_look_ahead_costs.Size()) ? m_sig_look_ahead_costs.Data()[n.m_num_signals_passed] : 0;
 		if (sig_state != SIGNAL_STATE_RED) {
 			/* green signal */
-			n.flags_u.flags_s.m_last_signal_was_red = false;
+			n.flags.reset (n.FLAG_LAST_SIGNAL_WAS_RED);
 			/* negative look-ahead red-signal penalties would cause problems later, so use them as positive penalties for green signal */
 			if (look_ahead_cost < 0) {
 				/* add its negation to the cost */
@@ -487,7 +487,7 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node& n, const PathPos &pos, NodeD
 			if (!IsPbsSignal(sig_type)
 					&& m_settings->rail_firstred_twoway_eol
 					&& m_treat_first_red_two_way_signal_as_eol
-					&& n.flags_u.flags_s.m_choice_seen
+					&& n.flags.test(n.FLAG_CHOICE_SEEN)
 					&& HasSignalAgainstPos(pos)
 					&& n.m_num_signals_passed == 0) {
 				/* yes, the first signal is two-way red signal => DEAD END. Prune this branch... */
@@ -497,7 +497,7 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node& n, const PathPos &pos, NodeD
 				return -1;
 			}
 			n.m_last_red_signal_type = sig_type;
-			n.flags_u.flags_s.m_last_signal_was_red = true;
+			n.flags.set (n.FLAG_LAST_SIGNAL_WAS_RED);
 
 			/* look-ahead signal penalty */
 			if (!IsPbsSignal(sig_type) && look_ahead_cost > 0) {
@@ -796,7 +796,7 @@ inline EndSegmentReasonBits CYapfRailBaseT<TAstar>::RestoreCachedNode (Node *n)
 		assert(HasSignalAlongPos(n->m_segment->m_last_signal));
 		SignalState sig_state = GetSignalStateByPos(n->m_segment->m_last_signal);
 		bool is_red = (sig_state == SIGNAL_STATE_RED);
-		n->flags_u.flags_s.m_last_signal_was_red = is_red;
+		n->flags.set (n->FLAG_LAST_SIGNAL_WAS_RED, is_red);
 		if (is_red) {
 			n->m_last_red_signal_type = GetSignalType(n->m_segment->m_last_signal);
 		}
@@ -809,10 +809,10 @@ inline EndSegmentReasonBits CYapfRailBaseT<TAstar>::RestoreCachedNode (Node *n)
 template <class TAstar>
 inline void CYapfRailBaseT<TAstar>::AddTargetCost (Node *n, bool is_station)
 {
-	n->flags_u.flags_s.m_targed_seen = true;
+	n->flags.set (n->FLAG_TARGET_SEEN);
 
 	/* Last-red and last-red-exit penalties. */
-	if (n->flags_u.flags_s.m_last_signal_was_red) {
+	if (n->flags.test (n->FLAG_LAST_SIGNAL_WAS_RED)) {
 		if (n->m_last_red_signal_type == SIGTYPE_EXIT) {
 			/* last signal was red pre-signal-exit */
 			n->m_cost += m_settings->rail_lastred_exit_penalty;

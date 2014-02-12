@@ -12,6 +12,8 @@
 #ifndef YAPF_NODE_RAIL_HPP
 #define YAPF_NODE_RAIL_HPP
 
+#include <bitset>
+
 /** key for cached segment cost for rail YAPF */
 struct CYapfRailSegmentKey
 {
@@ -107,16 +109,16 @@ struct CYapfRailNodeT
 	typedef CYapfNodeT<Tkey_, CYapfRailNodeT<Tkey_> > base;
 	typedef CYapfRailSegment CachedData;
 
+	enum {
+		FLAG_TARGET_SEEN,
+		FLAG_CHOICE_SEEN,
+		FLAG_LAST_SIGNAL_WAS_RED,
+		NFLAGS
+	};
+
 	CYapfRailSegment *m_segment;
 	uint16            m_num_signals_passed;
-	union {
-		uint32          m_inherited_flags;
-		struct {
-			bool          m_targed_seen : 1;
-			bool          m_choice_seen : 1;
-			bool          m_last_signal_was_red : 1;
-		} flags_s;
-	} flags_u;
+	std::bitset<NFLAGS> flags;
 	SignalType        m_last_red_signal_type;
 	SignalType        m_last_signal_type;
 
@@ -126,7 +128,7 @@ struct CYapfRailNodeT
 		m_segment = NULL;
 		if (parent == NULL) {
 			m_num_signals_passed      = 0;
-			flags_u.m_inherited_flags = 0;
+			flags                     = 0;
 			m_last_red_signal_type    = SIGTYPE_NORMAL;
 			/* We use PBS as initial signal type because if we are in
 			 * a PBS section and need to route, i.e. we're at a safe
@@ -141,11 +143,11 @@ struct CYapfRailNodeT
 			m_last_signal_type        = SIGTYPE_PBS;
 		} else {
 			m_num_signals_passed      = parent->m_num_signals_passed;
-			flags_u.m_inherited_flags = parent->flags_u.m_inherited_flags;
+			flags                     = parent->flags;
 			m_last_red_signal_type    = parent->m_last_red_signal_type;
 			m_last_signal_type        = parent->m_last_signal_type;
 		}
-		flags_u.flags_s.m_choice_seen |= is_choice;
+		flags.set (FLAG_CHOICE_SEEN, is_choice);
 	}
 
 	inline const PathPos& GetLastPos() const
@@ -159,9 +161,9 @@ struct CYapfRailNodeT
 		base::Dump(dmp);
 		dmp.WriteStructT("m_segment", m_segment);
 		dmp.WriteLine("m_num_signals_passed = %d", m_num_signals_passed);
-		dmp.WriteLine("m_targed_seen = %s", flags_u.flags_s.m_targed_seen ? "Yes" : "No");
-		dmp.WriteLine("m_choice_seen = %s", flags_u.flags_s.m_choice_seen ? "Yes" : "No");
-		dmp.WriteLine("m_last_signal_was_red = %s", flags_u.flags_s.m_last_signal_was_red ? "Yes" : "No");
+		dmp.WriteLine("m_target_seen = %s", flags.test(FLAG_TARGET_SEEN) ? "Yes" : "No");
+		dmp.WriteLine("m_choice_seen = %s", flags.test(FLAG_CHOICE_SEEN) ? "Yes" : "No");
+		dmp.WriteLine("m_last_signal_was_red = %s", flags.test(FLAG_LAST_SIGNAL_WAS_RED) ? "Yes" : "No");
 		dmp.WriteEnumT("m_last_red_signal_type", m_last_red_signal_type);
 	}
 };
