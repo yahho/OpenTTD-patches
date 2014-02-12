@@ -270,14 +270,11 @@ typedef CYapfRoadT<AstarRoadExitDir > CYapfRoad2;
 
 
 template <class Tpf>
-static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, DiagDirection enterdir, bool &path_found)
+static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, TrackdirBits trackdirs, bool &path_found)
 {
 	Tpf pf (v);
 
 	/* set origin nodes */
-	TrackdirBits trackdirs = TrackStatusToTrackdirBits(GetTileRoadStatus(tile, v->compatible_roadtypes)) & DiagdirReachesTrackdirs(enterdir);
-	assert (!HasAtMostOneBit(trackdirs));
-
 	PathPos pos;
 	pos.tile = tile;
 	for (TrackdirBits tdb = trackdirs; tdb != TRACKDIR_BIT_NONE; tdb = KillFirstBit(tdb)) {
@@ -305,6 +302,9 @@ static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, DiagDirect
 
 Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)
 {
+	/* We really should not be called unless there is a choice to make. */
+	assert (!HasAtMostOneBit(trackdirs));
+
 	/* Handle special case - when next tile is destination tile.
 	 * However, when going to a station the (initial) destination
 	 * tile might not be a station, but a junction, in which case
@@ -315,7 +315,7 @@ Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDi
 	}
 
 	/* default is YAPF type 2 */
-	typedef Trackdir (*PfnChooseRoadTrack)(const RoadVehicle*, TileIndex, DiagDirection, bool &path_found);
+	typedef Trackdir (*PfnChooseRoadTrack)(const RoadVehicle*, TileIndex, TrackdirBits, bool &path_found);
 	PfnChooseRoadTrack pfnChooseRoadTrack = &ChooseRoadTrack<CYapfRoad2>; // default: ExitDir, allow 90-deg
 
 	/* check if non-default YAPF type should be used */
@@ -323,7 +323,7 @@ Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDi
 		pfnChooseRoadTrack = &ChooseRoadTrack<CYapfRoad1>; // Trackdir, allow 90-deg
 	}
 
-	Trackdir td_ret = pfnChooseRoadTrack(v, tile, enterdir, path_found);
+	Trackdir td_ret = pfnChooseRoadTrack(v, tile, trackdirs, path_found);
 	return (td_ret != INVALID_TRACKDIR) ? td_ret : (Trackdir)FindFirstBit2x64(trackdirs);
 }
 
