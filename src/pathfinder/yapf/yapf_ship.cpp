@@ -59,11 +59,10 @@ public:
 		/* detect destination */
 		bool is_target = (m_dest_station == NULL) ? (tf.m_new.tile == m_dest_tile) : m_dest_station->IsDockingTile(tf.m_new.tile);
 
-		bool is_choice = !tf.m_new.is_single();
 		PathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.td = FindFirstTrackdir(rtds);
-			Node *n = TAstar::CreateNewNode(old_node, pos, is_choice);
+			Node *n = TAstar::CreateNewNode(old_node, pos);
 
 			/* base tile cost depending on distance */
 			int c = IsDiagonalTrackdir(n->GetPos().td) ? YAPF_TILE_LENGTH : YAPF_TILE_CORNER_LENGTH;
@@ -174,7 +173,7 @@ static Trackdir ChooseShipTrack(const Ship *v, const PathPos &pos, TrackdirBits 
 	/* create pathfinder instance */
 	Tpf pf (v);
 	/* set origin node */
-	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos, false));
+	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos));
 	/* find best path */
 	path_found = pf.FindPath();
 
@@ -235,8 +234,8 @@ static bool CheckShipReverse(const Ship *v, const PathPos &pos)
 	/* create pathfinder instance */
 	Tpf pf (v);
 	/* set origin nodes */
-	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos, true));
-	pf.InsertInitialNode (pf.CreateNewNode (NULL, PathPos(pos.tile, ReverseTrackdir(pos.td)), true));
+	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos));
+	pf.InsertInitialNode (pf.CreateNewNode (NULL, PathPos(pos.tile, ReverseTrackdir(pos.td))));
 	/* find best path */
 	if (!pf.FindPath()) return false;
 

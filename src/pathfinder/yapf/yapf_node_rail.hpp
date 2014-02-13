@@ -124,7 +124,7 @@ struct CYapfRailNodeT
 
 	inline void Set(CYapfRailNodeT *parent, const PathPos &pos, bool is_choice)
 	{
-		base::Set(parent, pos, is_choice);
+		base::Set(parent, pos);
 		m_segment = NULL;
 		if (parent == NULL) {
 			m_num_signals_passed      = 0;

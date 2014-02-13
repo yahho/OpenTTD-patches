@@ -133,12 +133,11 @@ public:
 	{
 		if (!tf.Follow(old_node->m_segment_last)) return;
 
-		bool is_choice = !tf.m_new.is_single();
 		uint initial_skipped_tiles = tf.m_tiles_skipped;
 		PathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.td = FindFirstTrackdir(rtds);
-			Node *n = TAstar::CreateNewNode(old_node, pos, is_choice);
+			Node *n = TAstar::CreateNewNode(old_node, pos);
 
 			uint tiles = initial_skipped_tiles;
 			int segment_cost = tiles * YAPF_TILE_LENGTH;
@@ -279,7 +278,7 @@ static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, TrackdirBi
 	pos.tile = tile;
 	for (TrackdirBits tdb = trackdirs; tdb != TRACKDIR_BIT_NONE; tdb = KillFirstBit(tdb)) {
 		pos.td = FindFirstTrackdir(tdb);
-		pf.InsertInitialNode (pf.CreateNewNode (NULL, pos, true));
+		pf.InsertInitialNode (pf.CreateNewNode (NULL, pos));
 	}
 
 	/* find the best path */
@@ -334,7 +333,7 @@ static TileIndex FindNearestDepot(const RoadVehicle *v, const PathPos &pos, int 
 	Tpf pf (v, true);
 
 	/* set origin node */
-	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos, false));
+	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos));
 
 	/* find the best path */
 	if (!pf.FindPath()) return INVALID_TILE;

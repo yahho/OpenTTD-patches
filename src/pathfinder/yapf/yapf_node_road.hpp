@@ -21,9 +21,9 @@ struct CYapfRoadNodeT
 
 	PathPos m_segment_last;
 
-	void Set(CYapfRoadNodeT *parent, const PathPos &pos, bool is_choice)
+	void Set(CYapfRoadNodeT *parent, const PathPos &pos)
 	{
-		base::Set(parent, pos, is_choice);
+		base::Set(parent, pos);
 		m_segment_last = pos;
 	}
 };

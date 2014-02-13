@@ -69,7 +69,7 @@ struct CYapfNodeT : AstarNodeBase<Tnode> {
 
 	Tkey_       m_key;
 
-	inline void Set(Node *parent, const PathPos &pos, bool is_choice)
+	inline void Set(Node *parent, const PathPos &pos)
 	{
 		ABase::Set (parent);
 		m_key.Set(pos);
