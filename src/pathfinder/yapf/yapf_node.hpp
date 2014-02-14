@@ -16,25 +16,29 @@
 
 /** Yapf Node Key base class. */
 struct CYapfNodeKey : PathPos {
-	DiagDirection  exitdir;
-
 	inline void Set(const PathPos &pos)
 	{
 		PathPos::set(pos);
-		exitdir = (pos.td == INVALID_TRACKDIR) ? INVALID_DIAGDIR : TrackdirToExitdir(pos.td);
 	}
 
 	void Dump(DumpTarget &dmp) const
 	{
 		dmp.WriteTile("m_tile", tile);
 		dmp.WriteEnumT("m_td", td);
-		dmp.WriteEnumT("m_exitdir", exitdir);
 	}
 };
 
 /** Yapf Node Key that evaluates hash from (and compares) tile & exit dir. */
 struct CYapfNodeKeyExitDir : public CYapfNodeKey
 {
+	DiagDirection  exitdir;
+
+	inline void Set(const PathPos &pos)
+	{
+		CYapfNodeKey::Set(pos);
+		exitdir = (pos.td == INVALID_TRACKDIR) ? INVALID_DIAGDIR : TrackdirToExitdir(pos.td);
+	}
+
 	inline int CalcHash() const
 	{
 		return exitdir | (in_wormhole() ? 4 : 0) | (tile << 3);
@@ -43,6 +47,12 @@ struct CYapfNodeKeyExitDir : public CYapfNodeKey
 	inline bool operator == (const CYapfNodeKeyExitDir& other) const
 	{
 		return PathTile::operator==(other) && (exitdir == other.exitdir);
+	}
+
+	void Dump(DumpTarget &dmp) const
+	{
+		CYapfNodeKey::Dump(dmp);
+		dmp.WriteEnumT("m_exitdir", exitdir);
 	}
 };
 
