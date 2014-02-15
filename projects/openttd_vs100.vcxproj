@@ -2026,24 +2026,6 @@
     <ClInclude Include="..\src\pathfinder\opf\opf_ship.h" />
     <ClInclude Include="..\src\pathfinder\types.h" />
     <ClInclude Include="..\src\pathfinder\pf_performance_timer.hpp" />
-    <ClCompile Include="..\src\pathfinder\npf\aystar.cpp">
-      <AssemblerListingLocation>$(IntDir)\pathfinder\npf\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\pathfinder\npf\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\pathfinder\npf\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\pathfinder\npf\aystar.h" />
-    <ClCompile Include="..\src\pathfinder\npf\npf.cpp">
-      <AssemblerListingLocation>$(IntDir)\pathfinder\npf\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\pathfinder\npf\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\pathfinder\npf\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\pathfinder\npf\npf.h" />
-    <ClCompile Include="..\src\pathfinder\npf\queue.cpp">
-      <AssemblerListingLocation>$(IntDir)\pathfinder\npf\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\pathfinder\npf\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\pathfinder\npf\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\pathfinder\npf\queue.h" />
     <ClInclude Include="..\src\pathfinder\yapf\astar.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf.h" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf.hpp" />

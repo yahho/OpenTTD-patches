@@ -1650,7 +1650,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}도시
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}산업시설
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :오리지널
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(추천)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :열차에 사용할 경로 탐색법: {STRING}

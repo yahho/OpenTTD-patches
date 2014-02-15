@@ -1636,7 +1636,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Cidades
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Industrias
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Orixinal
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(Recomendado)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :Buscador de ruta para trens: {STRING}

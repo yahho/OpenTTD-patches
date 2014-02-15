@@ -1649,7 +1649,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}街
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}産業
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :オリジナル
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF{BLUE}(おすすめ)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :列車の経路探索アルゴリズム: {STRING}

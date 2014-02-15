@@ -1623,9 +1623,7 @@ static SettingEntry _settings_ai[] = {
 static SettingsPage _settings_ai_page = {_settings_ai, lengthof(_settings_ai)};
 
 static SettingEntry _settings_vehicles_routing[] = {
-	SettingEntry("pf.pathfinder_for_trains"),
 	SettingEntry("pf.forbid_90_deg"),
-	SettingEntry("pf.pathfinder_for_roadvehs"),
 	SettingEntry("pf.roadveh_queue"),
 	SettingEntry("pf.pathfinder_for_ships"),
 };

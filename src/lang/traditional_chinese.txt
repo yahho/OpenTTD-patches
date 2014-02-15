@@ -1649,7 +1649,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}市鎮
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}工業
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :預設
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(建議)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :列車的路徑搜尋方式：{STRING}

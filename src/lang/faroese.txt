@@ -1542,7 +1542,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Bygdir
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Ídnaðir
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Upprunaligur
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(Viðmældur)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :Leiðbeinari fyri tok: {STRING}

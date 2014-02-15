@@ -1494,7 +1494,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Byar
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Industriar
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Original
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(Anbefalt)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :Vegfinnar for tog: {STRING}

@@ -1649,7 +1649,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Towns
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Industries
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Original
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(Recommended)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :Pathfinder for trains: {STRING}

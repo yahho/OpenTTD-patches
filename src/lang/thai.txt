@@ -1649,7 +1649,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}เม�
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}อุตสาหกรรม
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :ดั้งเดิม
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(แนะนำ)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :ตัวค้นหาเส้นทางสำหรับรถไฟ: {STRING}

@@ -1717,7 +1717,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Mestá
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Priemysel
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Pôvodný
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(odporučený)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :Algoritmus hľadania cesty pre vlaky: {STRING}

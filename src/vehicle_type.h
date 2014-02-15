@@ -59,8 +59,7 @@ static const VehicleID INVALID_VEHICLE = 0xFFFFF; ///< Constant representing a n
 /** Pathfinding option states */
 enum VehiclePathFinders {
 	VPF_OPF  = 0, ///< The Original PathFinder (only for ships)
-	VPF_NPF  = 1, ///< New PathFinder
-	VPF_YAPF = 2, ///< Yet Another PathFinder
+	VPF_YAPF = 1, ///< Yet Another PathFinder
 };
 
 /** Flags to add to p1 for goto depot commands. */

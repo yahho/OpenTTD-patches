@@ -1706,7 +1706,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Linnad
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Tööstused
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Algne
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(soovitatud)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :Rongide marsruudileidja: {STRING}

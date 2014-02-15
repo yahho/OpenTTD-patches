@@ -1409,7 +1409,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Bandar-
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Industri-industri
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Asal
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(Disyorkan)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :Pencari laluan untuk keretapi: {STRING}

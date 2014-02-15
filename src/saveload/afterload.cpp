@@ -533,6 +533,15 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		_settings_game.linkgraph.distribution_default = DT_MANUAL;
 	}
 
+	if (IsOTTDSavegameVersionBefore(stv, 87)) {
+		/* Convert old PF settings to new */
+		_settings_game.pf.pathfinder_for_ships =
+			(_settings_game.pf.yapf.ship_use_yapf || _settings_game.pf.new_pathfinding_all) ?
+				VPF_YAPF : VPF_OPF;
+	} else if (IsFullSavegameVersionBefore(stv, 16)) {
+		_settings_game.pf.pathfinder_for_ships = (_settings_game.pf.pathfinder_for_ships > 0) ? VPF_YAPF : VPF_OPF;
+	}
+
 	/* Load the sprites */
 	GfxLoadSprites();
 	LoadStringWidthTable();
@@ -1191,25 +1200,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 			} else if (IsNormalRailTile(t)) {
 				if (!Company::IsValidID(GetTileOwner(t))) FixOwnerOfRailTrack(t);
 			}
-		}
-
-		/* Convert old PF settings to new */
-		if (_settings_game.pf.yapf.rail_use_yapf || IsOTTDSavegameVersionBefore(stv, 28)) {
-			_settings_game.pf.pathfinder_for_trains = VPF_YAPF;
-		} else {
-			_settings_game.pf.pathfinder_for_trains = VPF_NPF;
-		}
-
-		if (_settings_game.pf.yapf.road_use_yapf || IsOTTDSavegameVersionBefore(stv, 28)) {
-			_settings_game.pf.pathfinder_for_roadvehs = VPF_YAPF;
-		} else {
-			_settings_game.pf.pathfinder_for_roadvehs = VPF_NPF;
-		}
-
-		if (_settings_game.pf.yapf.ship_use_yapf) {
-			_settings_game.pf.pathfinder_for_ships = VPF_YAPF;
-		} else {
-			_settings_game.pf.pathfinder_for_ships = (_settings_game.pf.new_pathfinding_all ? VPF_NPF : VPF_OPF);
 		}
 	}
 

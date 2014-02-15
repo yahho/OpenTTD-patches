@@ -255,7 +255,7 @@
 
 	switch (GetVehicleType(engine_id)) {
 		case ScriptVehicle::VT_WATER:
-			return _settings_game.pf.pathfinder_for_ships != VPF_NPF ? 129 : 0;
+			return 129;
 
 		case ScriptVehicle::VT_AIR:
 			return ::Engine::Get(engine_id)->GetRange() * ::Engine::Get(engine_id)->GetRange();

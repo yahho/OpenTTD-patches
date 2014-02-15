@@ -620,7 +620,6 @@ STR_CONFIG_SETTING_VEHICLES_AUTORENEW                           :{ORANGE}Авт�
 STR_CONFIG_SETTING_VEHICLES_TRAINS                              :{ORANGE}Пуйӑссем
 STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Хуласем
 
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 
 
 

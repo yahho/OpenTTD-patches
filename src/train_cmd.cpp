@@ -13,7 +13,6 @@
 #include "error.h"
 #include "articulated_vehicles.h"
 #include "command_func.h"
-#include "pathfinder/npf/npf.h"
 #include "pathfinder/yapf/yapf.hpp"
 #include "news_func.h"
 #include "company_func.h"
@@ -2056,17 +2055,8 @@ static bool FindClosestTrainDepot(Train *v, bool nearby, FindDepotData *res)
 		return true;
 	}
 
-	switch (_settings_game.pf.pathfinder_for_trains) {
-		case VPF_NPF:
-			return NPFTrainFindNearestDepot(v,
-				nearby ? _settings_game.pf.npf.maximum_go_to_depot_penalty : 0, res);
-
-		case VPF_YAPF:
-			return YapfTrainFindNearestDepot(v,
-				nearby ? _settings_game.pf.yapf.maximum_go_to_depot_penalty : 0, res);
-
-		default: NOT_REACHED();
-	}
+	return YapfTrainFindNearestDepot(v,
+		nearby ? _settings_game.pf.yapf.maximum_go_to_depot_penalty : 0, res);
 }
 
 /**
@@ -2383,12 +2373,7 @@ static const byte _initial_tile_subcoord[TRACKDIR_END][3] = {
  */
 static Trackdir DoTrainPathfind(const Train *v, const PathPos &origin, bool do_track_reservation, PFResult *dest)
 {
-	switch (_settings_game.pf.pathfinder_for_trains) {
-		case VPF_NPF: return NPFTrainChooseTrack(v, origin, do_track_reservation, dest);
-		case VPF_YAPF: return YapfTrainChooseTrack(v, origin, do_track_reservation, dest);
-
-		default: NOT_REACHED();
-	}
+	return YapfTrainChooseTrack(v, origin, do_track_reservation, dest);
 }
 
 /**
@@ -2504,12 +2489,7 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, PathPos *o
  */
 static bool TryReserveSafeTrack(const Train *v, const PathPos &pos, bool override_tailtype)
 {
-	switch (_settings_game.pf.pathfinder_for_trains) {
-		case VPF_NPF: return NPFTrainFindNearestSafeTile(v, pos, override_tailtype);
-		case VPF_YAPF: return YapfTrainFindNearestSafeTile(v, pos, override_tailtype);
-
-		default: NOT_REACHED();
-	}
+	return YapfTrainFindNearestSafeTile(v, pos, override_tailtype);
 }
 
 /** This class will save the current order of a vehicle and restore it on destruction. */
@@ -2845,12 +2825,7 @@ static bool CheckReverseTrain(const Train *v)
 
 	assert(IsValidTrackdir(v->trackdir));
 
-	switch (_settings_game.pf.pathfinder_for_trains) {
-		case VPF_NPF: return NPFTrainCheckReverse(v);
-		case VPF_YAPF: return YapfTrainCheckReverse(v);
-
-		default: NOT_REACHED();
-	}
+	return YapfTrainCheckReverse(v);
 }
 
 /**

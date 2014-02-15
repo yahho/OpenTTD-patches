@@ -1851,7 +1851,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Bailtea
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Gnìomhachasan
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Tùsail
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(molta)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :Lorg shlighean aig trèanaichean: {STRING}

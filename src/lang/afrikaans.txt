@@ -1650,7 +1650,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Dorpe
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Nywerhede
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Oorspronklik
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(Aanbevole)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :Padvinder vir treine: {STRING}

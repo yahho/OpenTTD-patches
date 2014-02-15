@@ -1573,7 +1573,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Bæir
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Iðnaður
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Upprunalegt
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(Ráðlegt)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :Leiðsögukerfi lesta: {STRING}

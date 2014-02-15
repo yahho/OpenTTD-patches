@@ -1649,7 +1649,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Kota
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Industri
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Asli
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(Recommended)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :Pencari jejak untuk kereta: {STRING}

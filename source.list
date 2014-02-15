@@ -1050,14 +1050,6 @@ pathfinder/opf/opf_ship.h
 pathfinder/types.h
 pathfinder/pf_performance_timer.hpp
 
-# NPF
-pathfinder/npf/aystar.cpp
-pathfinder/npf/aystar.h
-pathfinder/npf/npf.cpp
-pathfinder/npf/npf.h
-pathfinder/npf/queue.cpp
-pathfinder/npf/queue.h
-
 # YAPF
 pathfinder/yapf/astar.hpp
 pathfinder/yapf/yapf.h

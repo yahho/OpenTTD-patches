@@ -1634,7 +1634,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Oraşe
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Industrii
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Original
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(Recomandat)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :Algoritm de rutare pentru trenuri: {STRING}

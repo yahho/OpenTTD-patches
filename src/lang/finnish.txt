@@ -1649,7 +1649,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Kaupung
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Laitokset
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Alkuperäinen
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(Suositeltu)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :Junien käyttämä reitinetsijä: {STRING}

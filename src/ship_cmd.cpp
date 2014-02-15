@@ -15,7 +15,6 @@
 #include "timetable.h"
 #include "news_func.h"
 #include "company_func.h"
-#include "pathfinder/npf/npf.h"
 #include "depot_base.h"
 #include "station_base.h"
 #include "newgrf_engine.h"
@@ -160,7 +159,6 @@ static void CheckIfShipNeedsService(Vehicle *v)
 	uint max_distance;
 	switch (_settings_game.pf.pathfinder_for_ships) {
 		case VPF_OPF:  max_distance = 12; break;
-		case VPF_NPF:  max_distance = _settings_game.pf.npf.maximum_go_to_depot_penalty  / NPF_TILE_LENGTH;  break;
 		case VPF_YAPF: max_distance = _settings_game.pf.yapf.maximum_go_to_depot_penalty / YAPF_TILE_LENGTH; break;
 		default: NOT_REACHED();
 	}
@@ -330,7 +328,6 @@ static bool CheckShipLeaveDepot(Ship *v)
 		bool path_found;
 		switch (_settings_game.pf.pathfinder_for_ships) {
 			case VPF_OPF: reverse = OPFShipChooseTrack(v, north_neighbour, north_dir, north_trackdirs, path_found) == INVALID_TRACKDIR; break; // OPF always allows reversing
-			case VPF_NPF: reverse = NPFShipCheckReverse(v); break;
 			case VPF_YAPF: reverse = YapfShipCheckReverse(v); break;
 			default: NOT_REACHED();
 		}
@@ -429,7 +426,6 @@ static Trackdir ChooseShipTrack(Ship *v, TileIndex tile, DiagDirection enterdir,
 	Trackdir trackdir;
 	switch (_settings_game.pf.pathfinder_for_ships) {
 		case VPF_OPF: trackdir = OPFShipChooseTrack(v, tile, enterdir, trackdirs, path_found); break;
-		case VPF_NPF: trackdir = NPFShipChooseTrack(v, tile, enterdir, trackdirs, path_found); break;
 		case VPF_YAPF: trackdir = YapfShipChooseTrack(v, tile, enterdir, trackdirs, path_found); break;
 		default: NOT_REACHED();
 	}

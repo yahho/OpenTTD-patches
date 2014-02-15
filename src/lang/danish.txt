@@ -1574,7 +1574,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Byer
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Industrier
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Original
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(Anbefalet)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :Stifinder til tog: {STRING}

@@ -1675,7 +1675,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Πόλ�
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Βιομηχανίες
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Αρχικό
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(Συνίσταται)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :Μέθοδος δρομολόγησης για τρένα: {STRING}

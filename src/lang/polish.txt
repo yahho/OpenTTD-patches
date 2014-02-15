@@ -2029,7 +2029,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Miasta
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Przedsiębiorstwa
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Oryginalne
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(Zalecane)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :Wytyczanie drogi dla pociągów: {STRING}

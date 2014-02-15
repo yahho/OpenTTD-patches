@@ -13,7 +13,6 @@
 #include "roadveh.h"
 #include "command_func.h"
 #include "news_func.h"
-#include "pathfinder/npf/npf.h"
 #include "station_base.h"
 #include "company_func.h"
 #include "articulated_vehicles.h"
@@ -331,17 +330,8 @@ static TileIndex FindClosestRoadDepot(const RoadVehicle *v, bool nearby)
 		return v->tile;
 	}
 
-	switch (_settings_game.pf.pathfinder_for_roadvehs) {
-		case VPF_NPF:
-			return NPFRoadVehicleFindNearestDepot(v,
-				nearby ? _settings_game.pf.npf.maximum_go_to_depot_penalty : 0);
-
-		case VPF_YAPF:
-			return YapfRoadVehicleFindNearestDepot(v,
-				nearby ? _settings_game.pf.yapf.maximum_go_to_depot_penalty : 0);
-
-		default: NOT_REACHED();
-	}
+	return YapfRoadVehicleFindNearestDepot(v,
+		nearby ? _settings_game.pf.yapf.maximum_go_to_depot_penalty : 0);
 }
 
 bool RoadVehicle::FindClosestDepot(TileIndex *location, DestinationID *destination, bool *reverse)
@@ -1077,12 +1067,7 @@ static Trackdir RoadFindPathToDest(RoadVehicle *v, TileIndex tile, DiagDirection
 		return_track(FindFirstBit2x64(trackdirs));
 	}
 
-	switch (_settings_game.pf.pathfinder_for_roadvehs) {
-		case VPF_NPF:  best_track = NPFRoadVehicleChooseTrack(v, tile, enterdir, trackdirs, path_found); break;
-		case VPF_YAPF: best_track = YapfRoadVehicleChooseTrack(v, tile, enterdir, trackdirs, path_found); break;
-
-		default: NOT_REACHED();
-	}
+	best_track = YapfRoadVehicleChooseTrack(v, tile, enterdir, trackdirs, path_found);
 	v->HandlePathfindingResult(path_found);
 
 found_best_track:;

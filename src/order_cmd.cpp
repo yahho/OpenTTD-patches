@@ -900,7 +900,7 @@ CommandCost CmdInsertOrder(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 	if (!Order::CanAllocateItem()) return_cmd_error(STR_ERROR_NO_MORE_SPACE_FOR_ORDERS);
 	if (v->orders.list == NULL && !OrderList::CanAllocateItem()) return_cmd_error(STR_ERROR_NO_MORE_SPACE_FOR_ORDERS);
 
-	if (v->type == VEH_SHIP && _settings_game.pf.pathfinder_for_ships != VPF_NPF) {
+	if (v->type == VEH_SHIP) {
 		/* Make sure the new destination is not too far away from the previous */
 		const Order *prev = NULL;
 		uint n = 0;

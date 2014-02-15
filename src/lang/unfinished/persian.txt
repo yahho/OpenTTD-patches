@@ -1361,7 +1361,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}شهر�
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}صنایع
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :اصلی
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(توصیه می گردد)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :مسیریاب برای قطارها: {STRING}

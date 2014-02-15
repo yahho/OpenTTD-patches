@@ -1774,7 +1774,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Міс�
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Підприємства
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :стандартний
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(рекомендовано)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :Алгоритм пошуку шляху для поїздів: {STRING}

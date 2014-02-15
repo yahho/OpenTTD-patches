@@ -1801,7 +1801,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Гор�
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Предприятия
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :оригинальный
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(Рекомендуется)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :Алгоритм поиска пути для поездов: {STRING}

@@ -1858,7 +1858,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Miestai
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Gamyklos
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Originalus
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(Rekomenduojama)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :Traukinių maršrutų paieškos algoritmas: {STRING}

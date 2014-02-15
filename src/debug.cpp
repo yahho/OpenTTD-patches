@@ -31,7 +31,6 @@ int _debug_misc_level;
 int _debug_net_level;
 int _debug_sprite_level;
 int _debug_oldloader_level;
-int _debug_npf_level;
 int _debug_yapf_level;
 int _debug_freetype_level;
 int _debug_script_level;
@@ -59,7 +58,6 @@ struct DebugLevel {
 	DEBUG_LEVEL(net),
 	DEBUG_LEVEL(sprite),
 	DEBUG_LEVEL(oldloader),
-	DEBUG_LEVEL(npf),
 	DEBUG_LEVEL(yapf),
 	DEBUG_LEVEL(freetype),
 	DEBUG_LEVEL(script),

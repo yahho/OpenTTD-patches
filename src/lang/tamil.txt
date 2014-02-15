@@ -1445,7 +1445,6 @@ STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}நக�
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}தொழிற்சாலைகள்
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :அசல்
-STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(பரிந்துரைக்கப்பட்டது)
 
 STR_CONFIG_SETTING_PATHFINDER_FOR_TRAINS                        :இரயில்களுக்கான வழிகண்டுபிடிப்பான்: {STRING}
