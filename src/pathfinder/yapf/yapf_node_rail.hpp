@@ -14,6 +14,9 @@
 
 #include <bitset>
 
+/** key for YAPF rail nodes */
+typedef CYapfNodeKeyTrackDir CYapfRailKey;
+
 /** key for cached segment cost for rail YAPF */
 struct CYapfRailSegmentKey
 {
@@ -21,7 +24,7 @@ struct CYapfRailSegmentKey
 
 	inline CYapfRailSegmentKey(const CYapfRailSegmentKey& src) : m_value(src.m_value) {}
 
-	inline CYapfRailSegmentKey(const CYapfNodeKeyTrackDir& node_key)
+	inline CYapfRailSegmentKey(const CYapfRailKey& node_key)
 	{
 		Set(node_key);
 	}
@@ -31,7 +34,7 @@ struct CYapfRailSegmentKey
 		m_value = src.m_value;
 	}
 
-	inline void Set(const CYapfNodeKeyTrackDir& node_key)
+	inline void Set(const CYapfRailKey& node_key)
 	{
 		m_value = node_key.CalcHash();
 	}
@@ -102,11 +105,10 @@ struct CYapfRailSegment
 };
 
 /** Yapf Node for rail YAPF */
-template <class Tkey_>
-struct CYapfRailNodeT
-	: CYapfNodeT<Tkey_, CYapfRailNodeT<Tkey_> >
+struct CYapfRailNodeTrackDir
+	: CYapfNodeT<CYapfRailKey, CYapfRailNodeTrackDir>
 {
-	typedef CYapfNodeT<Tkey_, CYapfRailNodeT<Tkey_> > base;
+	typedef CYapfNodeT<CYapfRailKey, CYapfRailNodeTrackDir> base;
 	typedef CYapfRailSegment CachedData;
 
 	enum {
@@ -122,7 +124,7 @@ struct CYapfRailNodeT
 	SignalType        m_last_red_signal_type;
 	SignalType        m_last_signal_type;
 
-	inline void Set(CYapfRailNodeT *parent, const PathPos &pos, bool is_choice)
+	inline void Set(CYapfRailNodeTrackDir *parent, const PathPos &pos, bool is_choice)
 	{
 		base::Set(parent, pos);
 		m_segment = NULL;
@@ -168,12 +170,7 @@ struct CYapfRailNodeT
 	}
 };
 
-/* now define two major node types (that differ by key type) */
-typedef CYapfRailNodeT<CYapfNodeKeyExitDir>  CYapfRailNodeExitDir;
-typedef CYapfRailNodeT<CYapfNodeKeyTrackDir> CYapfRailNodeTrackDir;
-
-/* Default Astar types */
-typedef Astar<CYapfRailNodeExitDir , 8, 10> AstarRailExitDir;
+/* Default Astar type */
 typedef Astar<CYapfRailNodeTrackDir, 8, 10> AstarRailTrackDir;
 
 #endif /* YAPF_NODE_RAIL_HPP */
