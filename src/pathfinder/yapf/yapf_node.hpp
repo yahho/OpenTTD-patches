@@ -41,7 +41,7 @@ struct CYapfNodeKeyExitDir : public CYapfNodeKey
 
 	inline int CalcHash() const
 	{
-		return exitdir | (in_wormhole() ? 4 : 0) | (tile << 3);
+		return exitdir | (tile << 2);
 	}
 
 	inline bool operator == (const CYapfNodeKeyExitDir& other) const
