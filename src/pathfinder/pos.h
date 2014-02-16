@@ -57,7 +57,10 @@ struct PathTile {
 /**
  * Path position (tile and trackdir)
  */
-struct PathPos : PathTile {
+template <class PTile>
+struct PathPos : PTile {
+	typedef PTile PathTile;
+
 	Trackdir td;
 
 	/** Create an empty PathPos */
@@ -209,8 +212,8 @@ struct PathMPos : BasePos {
 };
 
 /* Pathfinder positions for the various transport types--all equal for now. */
-typedef PathPos RailPathPos;
-typedef PathPos RoadPathPos;
-typedef PathPos ShipPathPos;
+typedef PathPos<PathTile> RailPathPos;
+typedef PathPos<PathTile> RoadPathPos;
+typedef PathPos<PathTile> ShipPathPos;
 
 #endif /* PATHFINDER_POS_H */
