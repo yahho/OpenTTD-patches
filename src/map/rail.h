@@ -383,28 +383,4 @@ static inline void MakeRailBridgeFromRail(TileIndex t, uint bridgetype, DiagDire
 	tile_make_rail_bridge_from_track(&_mc[t], bridgetype, d);
 }
 
-
-/**
- * Return the rail type of tile, or INVALID_RAILTYPE if this is no rail tile.
- */
-static inline RailType GetTileRailType(TileIndex tile, Track track = INVALID_TRACK)
-{
-	switch (GetTileType(tile)) {
-		case TT_RAILWAY:
-			return GetRailType(tile, track);
-
-		case TT_MISC:
-			if (IsLevelCrossingTile(tile) || maptile_is_rail_tunnel(tile) || IsRailDepotTile(tile)) return GetRailType(tile);
-			break;
-
-		case TT_STATION:
-			if (HasStationRail(tile)) return GetRailType(tile);
-			break;
-
-		default:
-			break;
-	}
-	return INVALID_RAILTYPE;
-}
-
 #endif /* MAP_RAIL_H */
