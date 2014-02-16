@@ -1146,6 +1146,9 @@ void TileLoop_Water(TileIndex tile)
 				/* do not try to flood water tiles - increases performance a lot */
 				if (IsWaterTile(dest)) continue;
 
+				/* GROUND_SHORE is the sign of a previous flood. */
+				if ((IsClearTile(dest) || IsTreeTile(dest)) && IsClearGround (dest, GROUND_SHORE)) continue;
+
 				int z_dest;
 				Slope slope_dest = GetFoundationSlope(dest, &z_dest) & ~SLOPE_HALFTILE_MASK & ~SLOPE_STEEP;
 				if (z_dest > 0) continue;
