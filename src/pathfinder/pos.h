@@ -134,62 +134,63 @@ struct PathPos : PathTile {
 /**
  * Pathfinder new position; td will be INVALID_TRACKDIR unless trackdirs has exactly one trackdir set
  */
-struct PathMPos : PathPos {
+template <class BasePos>
+struct PathMPos : BasePos {
 	TrackdirBits trackdirs;
 
 	/** Set this position to another given position */
 	void set (const PathMPos &pos)
 	{
-		PathPos::set(pos);
+		BasePos::set(pos);
 		trackdirs = pos.trackdirs;
 	}
 
 	/** Set this position to another given position */
-	void set (const PathPos &pos)
+	void set (const BasePos &pos)
 	{
-		PathPos::set(pos);
+		BasePos::set(pos);
 		trackdirs = TrackdirToTrackdirBits(pos.td);
 	}
 
 	/** Set this position to a given tile and trackdir */
 	void set (TileIndex t, Trackdir d)
 	{
-		PathPos::set(t, d);
+		BasePos::set(t, d);
 		trackdirs = TrackdirToTrackdirBits(d);
 	}
 
 	/** Set this position to a given tile and trackdirs */
 	void set (TileIndex t, TrackdirBits s)
 	{
-		PathPos::set(t, HasExactlyOneBit(s) ? FindFirstTrackdir(s) : INVALID_TRACKDIR);
+		BasePos::set(t, HasExactlyOneBit(s) ? FindFirstTrackdir(s) : INVALID_TRACKDIR);
 		trackdirs = s;
 	}
 
 	/** Set this position to a given wormhole position */
 	void set (TileIndex t, Trackdir d, TileIndex w)
 	{
-		PathPos::set (t, d, w);
+		BasePos::set (t, d, w);
 		trackdirs = TrackdirToTrackdirBits(d);
 	}
 
 	/** Set trackdirs to a given set */
 	void set_trackdirs (TrackdirBits s)
 	{
-		PathPos::set_trackdir (HasExactlyOneBit(s) ? FindFirstTrackdir(s) : INVALID_TRACKDIR);
+		BasePos::set_trackdir (HasExactlyOneBit(s) ? FindFirstTrackdir(s) : INVALID_TRACKDIR);
 		trackdirs = s;
 	}
 
 	/** Set trackdirs to a single trackdir */
 	void set_trackdir (Trackdir d)
 	{
-		PathPos::set_trackdir (d);
+		BasePos::set_trackdir (d);
 		trackdirs = TrackdirToTrackdirBits(d);
 	}
 
 	/** Clear trackdirs */
 	void clear_trackdirs()
 	{
-		PathPos::clear_trackdir();
+		BasePos::clear_trackdir();
 		trackdirs = TRACKDIR_BIT_NONE;
 	}
 
@@ -202,8 +203,8 @@ struct PathMPos : PathPos {
 	/** Check whether the position has exactly one trackdir */
 	bool is_single() const
 	{
-		assert (HasExactlyOneBit(trackdirs) == (td != INVALID_TRACKDIR));
-		return td != INVALID_TRACKDIR;
+		assert (HasExactlyOneBit(trackdirs) == (BasePos::td != INVALID_TRACKDIR));
+		return BasePos::td != INVALID_TRACKDIR;
 	}
 };
 

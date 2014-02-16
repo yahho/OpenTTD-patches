@@ -54,7 +54,7 @@ struct CFollowTrackBase
 	};
 
 	PathPos             m_old;           ///< the origin (vehicle moved from) before move
-	PathMPos            m_new;           ///< the new tile (the vehicle has entered)
+	PathMPos<PathPos>   m_new;           ///< the new tile (the vehicle has entered)
 	DiagDirection       m_exitdir;       ///< exit direction (leaving the old tile)
 	TileFlag            m_flag;          ///< last turn passed station, tunnel or bridge
 	int                 m_tiles_skipped; ///< number of skipped tunnel or station tiles
