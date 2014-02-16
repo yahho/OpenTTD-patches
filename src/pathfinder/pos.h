@@ -155,6 +155,12 @@ struct PathPos : PTile {
 		td = INVALID_TRACKDIR;
 	}
 
+	/** Check if this position has had its tile initialised */
+	bool is_valid_tile() const { return PathTile::is_valid(); }
+
+	/** Check if this position is fully initialised */
+	bool is_valid() const { return is_valid_tile() && td != INVALID_TRACKDIR; }
+
 	/** Compare with another PathPos */
 	bool operator == (const PathPos &other) const
 	{
@@ -230,6 +236,13 @@ struct PathMPos : BasePos {
 		BasePos::clear_trackdir();
 		trackdirs = TRACKDIR_BIT_NONE;
 	}
+
+	/**
+	 * Check if this position has been initialised. We need this to
+	 * override PathPos::is_valid, because it is fine that PathMPos
+	 * does not have td set (if there are several trackdirs).
+	 */
+	bool is_valid() const { return BasePos::is_valid_tile(); }
 
 	/** Check whether the position has no trackdirs */
 	bool is_empty() const

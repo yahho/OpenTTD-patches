@@ -2661,13 +2661,13 @@ static bool ChooseTrainTrack(Train *v, RailPathPos origin, TileIndex tile, Track
 	if (change_signal) SetSignalState(tile, single_trackdir, SIGNAL_STATE_GREEN);
 
 	/* A path was found, but could not be reserved. */
-	if (res_dest.pos.is_valid() && !res_dest.okay) {
+	if (res_dest.pos.is_valid_tile() && !res_dest.okay) {
 		FreeTrainTrackReservation(v);
 		return false;
 	}
 
 	/* No possible reservation target found, we are probably lost. */
-	if (!res_dest.pos.is_valid()) {
+	if (!res_dest.pos.is_valid_tile()) {
 		/* Try to find any safe destination. */
 		if (TryReserveSafeTrack(v, origin, false)) {
 			if (best_trackdir != NULL && single_trackdir == INVALID_TRACKDIR) {
@@ -2699,7 +2699,7 @@ static bool ChooseTrainTrack(Train *v, RailPathPos origin, TileIndex tile, Track
 
 		DoTrainPathfind(v, origin, true, &res_dest);
 		/* Break if no safe position was found. */
-		if (!res_dest.pos.is_valid()) break;
+		if (!res_dest.pos.is_valid_tile()) break;
 
 		if (!res_dest.okay) {
 			/* Path found, but could not be reserved. */
