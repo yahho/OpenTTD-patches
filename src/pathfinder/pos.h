@@ -15,18 +15,52 @@
 #include "../track_func.h"
 
 /**
+ * Path tile (real map tile)
+ */
+struct PathMTile {
+	TileIndex tile;
+
+	/** Create a PathMTile */
+	PathMTile(TileIndex t = INVALID_TILE) : tile(t) { }
+
+	/** Set this tile to another given tile */
+	void set (const PathMTile &tile) { *this = tile; }
+
+	/** Set this tile to a given tile */
+	void set (TileIndex t) { tile = t; }
+
+	/** Check if this tile is initialised */
+	bool is_valid() const { return tile != INVALID_TILE; }
+
+	/** Check if this tile is in a wormhole */
+	static bool in_wormhole() { return false; }
+
+	/** Compare with another tile */
+	bool operator == (const PathMTile &other) const
+	{
+		return tile == other.tile;
+	}
+
+	/** Compare with another tile */
+	bool operator != (const PathMTile &other) const
+	{
+		return tile != other.tile;
+	}
+};
+
+/**
  * Path tile (real map tile or virtual tile in wormhole)
  */
-struct PathTile {
+struct PathVTile {
 	TileIndex tile;
 	TileIndex wormhole;
 
-	/** Create a PathTile */
-	PathTile(TileIndex t = INVALID_TILE, TileIndex w = INVALID_TILE)
+	/** Create a PathVTile */
+	PathVTile(TileIndex t = INVALID_TILE, TileIndex w = INVALID_TILE)
 		: tile(t), wormhole(w) { }
 
 	/** Set this tile to another given tile */
-	void set (const PathTile &tile) { *this = tile; }
+	void set (const PathVTile &tile) { *this = tile; }
 
 	/** Set this tile to a given tile */
 	void set (TileIndex t, TileIndex w = INVALID_TILE)
@@ -42,13 +76,13 @@ struct PathTile {
 	bool in_wormhole() const { return wormhole != INVALID_TILE; }
 
 	/** Compare with another tile */
-	bool operator == (const PathTile &other) const
+	bool operator == (const PathVTile &other) const
 	{
 		return (tile == other.tile) && (wormhole == other.wormhole);
 	}
 
 	/** Compare with another tile */
-	bool operator != (const PathTile &other) const
+	bool operator != (const PathVTile &other) const
 	{
 		return (tile != other.tile) || (wormhole != other.wormhole);
 	}
@@ -211,9 +245,9 @@ struct PathMPos : BasePos {
 	}
 };
 
-/* Pathfinder positions for the various transport types--all equal for now. */
-typedef PathPos<PathTile> RailPathPos;
-typedef PathPos<PathTile> RoadPathPos;
-typedef PathPos<PathTile> ShipPathPos;
+/* Pathfinder positions for the various transport types. */
+typedef PathPos<PathVTile> RailPathPos;
+typedef PathPos<PathMTile> RoadPathPos;
+typedef PathPos<PathMTile> ShipPathPos;
 
 #endif /* PATHFINDER_POS_H */
