@@ -15,33 +15,37 @@
 #include "../pos.h"
 
 /** Yapf Node Key base class. */
-struct CYapfNodeKey : PathPos {
-	inline void Set(const PathPos &pos)
+template <class PPos>
+struct CYapfNodeKey : PPos {
+	typedef PPos Pos;
+
+	inline void Set(const Pos &pos)
 	{
-		PathPos::set(pos);
+		Pos::set(pos);
 	}
 
 	void Dump(DumpTarget &dmp) const
 	{
-		dmp.WriteTile("m_tile", tile);
-		dmp.WriteEnumT("m_td", td);
+		dmp.WriteTile("m_tile", Pos::tile);
+		dmp.WriteEnumT("m_td", Pos::td);
 	}
 };
 
 /** Yapf Node Key that evaluates hash from (and compares) tile & exit dir. */
-struct CYapfNodeKeyExitDir : public CYapfNodeKey
+template <class PPos>
+struct CYapfNodeKeyExitDir : public CYapfNodeKey<PPos>
 {
 	DiagDirection  exitdir;
 
-	inline void Set(const PathPos &pos)
+	inline void Set(const PPos &pos)
 	{
-		CYapfNodeKey::Set(pos);
+		CYapfNodeKey<PPos>::Set(pos);
 		exitdir = (pos.td == INVALID_TRACKDIR) ? INVALID_DIAGDIR : TrackdirToExitdir(pos.td);
 	}
 
 	inline int CalcHash() const
 	{
-		return exitdir | (tile << 2);
+		return exitdir | (PPos::tile << 2);
 	}
 
 	inline bool operator == (const CYapfNodeKeyExitDir& other) const
@@ -51,22 +55,23 @@ struct CYapfNodeKeyExitDir : public CYapfNodeKey
 
 	void Dump(DumpTarget &dmp) const
 	{
-		CYapfNodeKey::Dump(dmp);
+		CYapfNodeKey<PPos>::Dump(dmp);
 		dmp.WriteEnumT("m_exitdir", exitdir);
 	}
 };
 
 /** Yapf Node Key that evaluates hash from (and compares) tile & track dir. */
-struct CYapfNodeKeyTrackDir : public CYapfNodeKey
+template <class PPos>
+struct CYapfNodeKeyTrackDir : public CYapfNodeKey<PPos>
 {
 	inline int CalcHash() const
 	{
-		return (in_wormhole() ? (td + 6) : td) | (tile << 4);
+		return (PPos::in_wormhole() ? (PPos::td + 6) : PPos::td) | (PPos::tile << 4);
 	}
 
 	inline bool operator == (const CYapfNodeKeyTrackDir& other) const
 	{
-		return PathTile::operator==(other) && (td == other.td);
+		return PathTile::operator==(other) && (PPos::td == other.td);
 	}
 };
 

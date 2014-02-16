@@ -29,8 +29,8 @@ struct CYapfRoadNodeT
 };
 
 /* now define two major node types (that differ by key type) */
-typedef CYapfRoadNodeT<CYapfNodeKeyExitDir>  CYapfRoadNodeExitDir;
-typedef CYapfRoadNodeT<CYapfNodeKeyTrackDir> CYapfRoadNodeTrackDir;
+typedef CYapfRoadNodeT<CYapfNodeKeyExitDir <PathPos> > CYapfRoadNodeExitDir;
+typedef CYapfRoadNodeT<CYapfNodeKeyTrackDir<PathPos> > CYapfRoadNodeTrackDir;
 
 /* Default Astar types */
 typedef Astar<CYapfRoadNodeExitDir , 8, 10> AstarRoadExitDir;

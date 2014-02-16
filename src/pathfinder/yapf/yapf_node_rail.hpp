@@ -15,7 +15,7 @@
 #include <bitset>
 
 /** key for YAPF rail nodes */
-typedef CYapfNodeKeyTrackDir CYapfRailKey;
+typedef CYapfNodeKeyTrackDir<PathPos> CYapfRailKey;
 
 /** key for cached segment cost for rail YAPF */
 struct CYapfRailSegmentKey
