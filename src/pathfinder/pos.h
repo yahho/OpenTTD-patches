@@ -35,6 +35,9 @@ struct PathTile {
 		wormhole = w;
 	}
 
+	/** Check if this tile is initialised */
+	bool is_valid() const { return tile != INVALID_TILE; }
+
 	/** Check if this tile is in a wormhole */
 	bool in_wormhole() const { return wormhole != INVALID_TILE; }
 
@@ -158,7 +161,7 @@ struct PathMPos : PathPos {
 	/** Set trackdirs to a given set */
 	void set_trackdirs (TrackdirBits s)
 	{
-		assert (tile != INVALID_TILE); // tile should be already set
+		assert (PathTile::is_valid()); // tile should be already set
 		trackdirs = s;
 		td = HasExactlyOneBit(s) ? FindFirstTrackdir(s) : INVALID_TRACKDIR;
 	}
@@ -166,7 +169,7 @@ struct PathMPos : PathPos {
 	/** Set trackdirs to a single trackdir */
 	void set_trackdir (Trackdir d)
 	{
-		assert (tile != INVALID_TILE); // tile should be already set
+		assert (PathTile::is_valid()); // tile should be already set
 		td = d;
 		trackdirs = TrackdirToTrackdirBits(d);
 	}
@@ -174,7 +177,7 @@ struct PathMPos : PathPos {
 	/** Clear trackdirs */
 	void clear_trackdirs()
 	{
-		assert (tile != INVALID_TILE); // tile should be already set
+		assert (PathTile::is_valid()); // tile should be already set
 		trackdirs = TRACKDIR_BIT_NONE;
 		td = INVALID_TRACKDIR;
 	}

@@ -792,7 +792,7 @@ inline EndSegmentReasonBits CYapfRailBaseT<TAstar>::RestoreCachedNode (Node *n)
 	/* total node cost */
 	n->m_cost = n->m_parent->m_cost + TransitionCost (n->m_parent->GetLastPos(), n->GetPos()) + n->m_segment->m_cost;
 	/* We will need also some information about the last signal (if it was red). */
-	if (n->m_segment->m_last_signal.tile != INVALID_TILE) {
+	if (n->m_segment->m_last_signal.is_valid()) {
 		assert(HasSignalAlongPos(n->m_segment->m_last_signal));
 		SignalState sig_state = GetSignalStateByPos(n->m_segment->m_last_signal);
 		bool is_red = (sig_state == SIGNAL_STATE_RED);

@@ -181,7 +181,7 @@ struct CFollowTrack : Base
 
 	inline bool FollowNext()
 	{
-		assert(Base::m_new.tile != INVALID_TILE);
+		assert(Base::m_new.is_valid());
 		assert(Base::m_new.is_single());
 		return Follow(Base::m_new);
 	}

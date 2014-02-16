@@ -248,7 +248,7 @@ static PathPos FollowReservation(Owner o, RailTypes rts, const PathPos &pos, boo
 
 		cur = ft.m_new;
 
-		if (start.tile == INVALID_TILE) {
+		if (!start.is_valid()) {
 			/* Update the start tile after we followed the track the first
 			 * time. This is necessary because the track follower can skip
 			 * tiles (in stations for example) which means that we might
