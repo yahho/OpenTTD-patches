@@ -238,7 +238,7 @@ protected:
 
 public:
 	/** Create and add a new node */
-	inline void AddStartupNode (const PathPos &pos, int cost = 0)
+	inline void AddStartupNode (const RailPathPos &pos, int cost = 0)
 	{
 		Node *node = TAstar::CreateNewNode (NULL, pos, false);
 		node->m_cost = cost;
@@ -247,13 +247,13 @@ public:
 	}
 
 	/** set origin */
-	void SetOrigin(const PathPos &pos)
+	void SetOrigin(const RailPathPos &pos)
 	{
 		AddStartupNode (pos);
 	}
 
 	/** set origin */
-	void SetOrigin(const PathPos &pos, const PathPos &rev, int reverse_penalty, bool treat_first_red_two_way_signal_as_eol)
+	void SetOrigin(const RailPathPos &pos, const RailPathPos &rev, int reverse_penalty, bool treat_first_red_two_way_signal_as_eol)
 	{
 		m_treat_first_red_two_way_signal_as_eol = treat_first_red_two_way_signal_as_eol;
 
@@ -291,13 +291,13 @@ public:
 		int entry_cost;
 		int segment_cost;
 		int extra_cost;
-		PathPos pos;
-		PathPos last_signal;
+		RailPathPos pos;
+		RailPathPos last_signal;
 		EndSegmentReasonBits end_reason;
 	};
 
 	/** Return the transition cost from one tile to another. */
-	inline int TransitionCost (const PathPos &pos1, const PathPos &pos2) const
+	inline int TransitionCost (const RailPathPos &pos1, const RailPathPos &pos2) const
 	{
 		assert(IsValidTrackdir(pos1.td));
 		assert(IsValidTrackdir(pos2.td));
@@ -338,7 +338,7 @@ public:
 	}
 
 	/** Return one tile cost (base cost + level crossing penalty). */
-	inline int OneTileCost (const PathPos &pos) const
+	inline int OneTileCost (const RailPathPos &pos) const
 	{
 		int cost = 0;
 		/* set base cost */
@@ -356,7 +356,7 @@ public:
 	}
 
 	/** Return slope cost for a tile. */
-	inline int SlopeCost (const PathPos &pos)
+	inline int SlopeCost (const RailPathPos &pos)
 	{
 		CPerfStart perf_cost(m_perf_slope_cost);
 
@@ -384,7 +384,7 @@ public:
 	}
 
 	/** Check for a reserved station platform. */
-	static inline bool IsAnyStationTileReserved (const PathPos &pos, int skipped)
+	static inline bool IsAnyStationTileReserved (const RailPathPos &pos, int skipped)
 	{
 		TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(pos.td)));
 		for (TileIndex tile = pos.tile; skipped >= 0; skipped--, tile += diff) {
@@ -394,7 +394,7 @@ public:
 	}
 
 	/** The cost for reserved tiles, including skipped ones. */
-	inline int ReservationCost(Node& n, const PathPos &pos, int skipped) const
+	inline int ReservationCost(Node& n, const RailPathPos &pos, int skipped) const
 	{
 		if (n.m_num_signals_passed >= m_sig_look_ahead_costs.Size() / 2) return 0;
 		if (!IsPbsSignal(n.m_last_signal_type)) return 0;
@@ -427,7 +427,7 @@ public:
 	}
 
 	/* Compute cost and modify node state for a signal. */
-	inline int SignalCost(Node& n, const PathPos &pos, NodeData *data);
+	inline int SignalCost(Node& n, const RailPathPos &pos, NodeData *data);
 
 	/* Compute cost and modify node state for a position. */
 	inline void HandleNodeTile (Node *n, const CFollowTrackRail *tf, NodeData *segment, TileIndex prev);
@@ -446,8 +446,8 @@ public:
 
 	/** Struct to store a position in a path (node and path position). */
 	struct NodePos {
-		PathPos pos;  ///< position (tile and trackdir)
-		Node   *node; ///< node where the position is
+		RailPathPos pos;  ///< position (tile and trackdir)
+		Node       *node; ///< node where the position is
 	};
 
 	/* Find the earliest safe position on a path. */
@@ -459,7 +459,7 @@ public:
 
 /** Compute cost and modify node state for a signal. */
 template <class TAstar>
-inline int CYapfRailBaseT<TAstar>::SignalCost(Node& n, const PathPos &pos, NodeData *data)
+inline int CYapfRailBaseT<TAstar>::SignalCost(Node& n, const RailPathPos &pos, NodeData *data)
 {
 	int cost = 0;
 	/* if there is one-way signal in the opposite direction, then it is not our way */
@@ -747,7 +747,7 @@ inline EndSegmentReasonBits CYapfRailBaseT<TAstar>::CalcSegment (Node *n, const 
 	segment.segment_cost = 0;
 	segment.extra_cost = 0;
 	segment.pos = n->GetPos();
-	segment.last_signal = PathPos();
+	segment.last_signal = RailPathPos();
 	segment.end_reason = ESRB_NONE;
 
 	TileIndex prev = n->m_parent->GetLastPos().tile;
@@ -893,7 +893,7 @@ inline typename TAstar::Node *CYapfRailBaseT<TAstar>::FindSafePositionOnPath (No
  * @param origin If pos is a platform, consider the platform to begin right after this tile
  * @return Whether reservation succeeded
  */
-static bool ReserveSingleTrack (const PathPos &pos, TileIndex origin = INVALID_TILE)
+static bool ReserveSingleTrack (const RailPathPos &pos, TileIndex origin = INVALID_TILE)
 {
 	if (pos.in_wormhole() || !IsRailStationTile(pos.tile)) {
 		return TryReserveRailTrack(pos);
@@ -928,7 +928,7 @@ static bool ReserveSingleTrack (const PathPos &pos, TileIndex origin = INVALID_T
  * @param pos The position to reserve (last tile for platforms)
  * @param origin If pos is a platform, consider the platform to begin right after this tile
  */
-static void UnreserveSingleTrack (const PathPos &pos, TileIndex origin = INVALID_TILE)
+static void UnreserveSingleTrack (const RailPathPos &pos, TileIndex origin = INVALID_TILE)
 {
 	if (pos.in_wormhole() || !IsRailStationTile(pos.tile)) {
 		UnreserveRailTrack(pos);
@@ -964,7 +964,7 @@ bool CYapfRailBaseT<TAstar>::TryReservePath (TileIndex origin, const NodePos *re
 			if (!ReserveSingleTrack (ft.m_new, origin)) {
 				/* Reservation failed, undo. */
 				Node *failed_node = node;
-				PathPos res_fail = ft.m_new;
+				RailPathPos res_fail = ft.m_new;
 				for (node = res->node; node != failed_node; node = node->m_parent) {
 					ft.SetPos (node->GetPos());
 					for (;;) {
@@ -1032,7 +1032,7 @@ public:
 		if (Tmask_reserved_tracks && !Base::tf.MaskReservedTracks()) return;
 
 		bool is_choice = !Base::tf.m_new.is_single();
-		PathPos pos = Base::tf.m_new;
+		RailPathPos pos = Base::tf.m_new;
 		for (TrackdirBits rtds = Base::tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.set_trackdir (FindFirstTrackdir(rtds));
 			Node *n = TAstar::CreateNewNode(old_node, pos, is_choice);
@@ -1165,7 +1165,7 @@ public:
 	}
 
 	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination (const PathPos &pos) const
+	inline bool PfDetectDestination (const RailPathPos &pos) const
 	{
 		if (m_dest_station_id != INVALID_STATION) {
 			return !pos.in_wormhole() && HasStationTileRail(pos.tile)
@@ -1200,7 +1200,7 @@ public:
 		assert(n.m_estimate >= n.m_parent->m_estimate);
 	}
 
-	inline Trackdir ChooseRailTrack(const PathPos &origin, bool reserve_track, PFResult *target)
+	inline Trackdir ChooseRailTrack(const RailPathPos &origin, bool reserve_track, PFResult *target)
 	{
 		if (target != NULL) target->pos.tile = INVALID_TILE;
 
@@ -1241,7 +1241,7 @@ public:
 		return next_trackdir;
 	}
 
-	inline bool CheckReverseTrain(const PathPos &pos1, const PathPos &pos2, int reverse_penalty)
+	inline bool CheckReverseTrain(const RailPathPos &pos1, const RailPathPos &pos2, int reverse_penalty)
 	{
 		/* create pathfinder instance
 		 * set origin and destination nodes */
@@ -1266,7 +1266,7 @@ public:
 	}
 };
 
-Trackdir YapfTrainChooseTrack(const Train *v, const PathPos &origin, bool reserve_track, PFResult *target)
+Trackdir YapfTrainChooseTrack(const Train *v, const RailPathPos &origin, bool reserve_track, PFResult *target)
 {
 	/* create pathfinder instance */
 	CYapfRail pf1 (v, !_settings_game.pf.forbid_90_deg);
@@ -1292,8 +1292,8 @@ bool YapfTrainCheckReverse(const Train *v)
 	const Train *last_veh = v->Last();
 
 	/* tiles where front and back are */
-	PathPos pos = v->GetPos();
-	PathPos rev = last_veh->GetReversePos();
+	RailPathPos pos = v->GetPos();
+	RailPathPos rev = last_veh->GetReversePos();
 
 	int reverse_penalty = 0;
 
@@ -1354,7 +1354,7 @@ public:
 	}
 
 	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination (const PathPos &pos) const
+	inline bool PfDetectDestination (const RailPathPos &pos) const
 	{
 		return !pos.in_wormhole() && IsRailDepotTile(pos.tile);
 	}
@@ -1365,7 +1365,7 @@ public:
 		n.m_estimate = n.m_cost;
 	}
 
-	inline bool FindNearestDepotTwoWay(const PathPos &pos1, const PathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
+	inline bool FindNearestDepotTwoWay(const RailPathPos &pos1, const RailPathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
 	{
 		/* set origin and destination nodes */
 		Base::SetOrigin (pos1, pos2, reverse_penalty, true);
@@ -1395,9 +1395,9 @@ public:
 
 bool YapfTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *res)
 {
-	PathPos origin;
+	RailPathPos origin;
 	FollowTrainReservation(v, &origin);
-	PathPos rev = v->Last()->GetReversePos();
+	RailPathPos rev = v->Last()->GetReversePos();
 
 	CYapfAnyDepotRail pf1 (v, !_settings_game.pf.forbid_90_deg);
 	/*
@@ -1442,7 +1442,7 @@ public:
 	}
 
 	/** Called by YAPF to detect if node ends in the desired destination */
-	inline bool PfDetectDestination (const PathPos &pos) const
+	inline bool PfDetectDestination (const RailPathPos &pos) const
 	{
 		return IsFreeSafeWaitingPosition(Base::m_veh, pos, Base::Allow90degTurns());
 	}
@@ -1453,7 +1453,7 @@ public:
 		n.m_estimate = n.m_cost;
 	}
 
-	bool FindNearestSafeTile(const PathPos &pos, bool override_railtype, bool dont_reserve)
+	bool FindNearestSafeTile(const RailPathPos &pos, bool override_railtype, bool dont_reserve)
 	{
 		/* Set origin and destination. */
 		Base::SetOrigin(pos);
@@ -1474,7 +1474,7 @@ public:
 	}
 };
 
-bool YapfTrainFindNearestSafeTile(const Train *v, const PathPos &pos, bool override_railtype)
+bool YapfTrainFindNearestSafeTile(const Train *v, const RailPathPos &pos, bool override_railtype)
 {
 	/* Create pathfinder instance */
 	CYapfAnySafeTileRail pf1 (v, !_settings_game.pf.forbid_90_deg, override_railtype);

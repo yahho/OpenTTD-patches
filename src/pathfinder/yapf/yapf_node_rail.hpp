@@ -15,7 +15,7 @@
 #include <bitset>
 
 /** key for YAPF rail nodes */
-typedef CYapfNodeKeyTrackDir<PathPos> CYapfRailKey;
+typedef CYapfNodeKeyTrackDir<RailPathPos> CYapfRailKey;
 
 /** key for cached segment cost for rail YAPF */
 struct CYapfRailSegmentKey
@@ -62,9 +62,9 @@ struct CYapfRailSegment
 	typedef CYapfRailSegmentKey Key;
 
 	CYapfRailSegmentKey    m_key;
-	PathPos                m_last;
+	RailPathPos            m_last;
 	int                    m_cost;
-	PathPos                m_last_signal;
+	RailPathPos            m_last_signal;
 	EndSegmentReasonBits   m_end_segment_reason;
 	CYapfRailSegment      *m_hash_next;
 
@@ -124,7 +124,7 @@ struct CYapfRailNodeTrackDir
 	SignalType        m_last_red_signal_type;
 	SignalType        m_last_signal_type;
 
-	inline void Set(CYapfRailNodeTrackDir *parent, const PathPos &pos, bool is_choice)
+	inline void Set(CYapfRailNodeTrackDir *parent, const RailPathPos &pos, bool is_choice)
 	{
 		base::Set(parent, pos);
 		m_segment = NULL;
@@ -152,7 +152,7 @@ struct CYapfRailNodeTrackDir
 		flags.set (FLAG_CHOICE_SEEN, is_choice);
 	}
 
-	inline const PathPos& GetLastPos() const
+	inline const RailPathPos& GetLastPos() const
 	{
 		assert(m_segment != NULL);
 		return m_segment->m_last;

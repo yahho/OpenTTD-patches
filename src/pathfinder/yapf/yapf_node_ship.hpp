@@ -21,8 +21,8 @@ struct CYapfShipNodeT
 };
 
 /* now define two major node types (that differ by key type) */
-typedef CYapfShipNodeT<CYapfNodeKeyExitDir <PathPos> > CYapfShipNodeExitDir;
-typedef CYapfShipNodeT<CYapfNodeKeyTrackDir<PathPos> > CYapfShipNodeTrackDir;
+typedef CYapfShipNodeT<CYapfNodeKeyExitDir <ShipPathPos> > CYapfShipNodeExitDir;
+typedef CYapfShipNodeT<CYapfNodeKeyTrackDir<ShipPathPos> > CYapfShipNodeTrackDir;
 
 /* Default Astar types */
 typedef Astar<CYapfShipNodeExitDir , 10, 12> AstarShipExitDir;

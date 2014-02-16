@@ -33,7 +33,7 @@ void AddSideToSignalBuffer(TileIndex tile, DiagDirection side, Owner owner);
 void AddDepotToSignalBuffer(TileIndex tile, Owner owner);
 void AddBridgeToSignalBuffer(TileIndex tile, Owner owner);
 void AddTunnelToSignalBuffer(TileIndex tile, Owner owner);
-void AddPosToSignalBuffer(const PathPos &pos, Owner owner);
+void AddPosToSignalBuffer(const RailPathPos &pos, Owner owner);
 SigSegState UpdateSignalsInBuffer();
 
 #endif /* SIGNAL_FUNC_H */

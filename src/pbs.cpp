@@ -80,7 +80,7 @@ void SetRailStationPlatformReservation(TileIndex start, DiagDirection dir, bool 
  * @param pos starting tile and direction of the platform
  * @param b the state the reservation should be set to
  */
-void SetRailStationPlatformReservation(const PathPos &pos, bool b)
+void SetRailStationPlatformReservation(const RailPathPos &pos, bool b)
 {
 	assert(!pos.in_wormhole());
 
@@ -206,15 +206,15 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 
 
 /** Follow a reservation starting from a specific tile to the end. */
-static PathPos FollowReservation(Owner o, RailTypes rts, const PathPos &pos, bool ignore_oneway = false)
+static RailPathPos FollowReservation(Owner o, RailTypes rts, const RailPathPos &pos, bool ignore_oneway = false)
 {
 	assert(HasReservedPos(pos));
 
 	/* Do not disallow 90 deg turns as the setting might have changed between reserving and now. */
 	CFollowTrackRail ft(o, true, rts);
 	ft.SetPos(pos);
-	PathPos cur = pos;
-	PathPos start;
+	RailPathPos cur = pos;
+	RailPathPos start;
 
 	while (ft.FollowNext()) {
 		if (ft.m_new.in_wormhole()) {
@@ -308,7 +308,7 @@ static Train *FindTrainInWormhole (TileIndex tile)
 }
 
 /** Find a train on a reserved path end */
-static Train *FindTrainOnPathEnd(const PathPos &pos)
+static Train *FindTrainOnPathEnd(const RailPathPos &pos)
 {
 	if (pos.in_wormhole()) {
 		Train *t = FindTrainInWormhole (pos.wormhole);
@@ -339,11 +339,11 @@ static Train *FindTrainOnPathEnd(const PathPos &pos)
  * @param train_on_res Is set to a train we might encounter
  * @returns Whether the train has a reservation at all
  */
-bool FollowTrainReservation(const Train *v, PathPos *pos, Vehicle **train_on_res)
+bool FollowTrainReservation(const Train *v, RailPathPos *pos, Vehicle **train_on_res)
 {
 	assert(v->type == VEH_TRAIN);
 
-	PathPos res = v->GetPos();
+	RailPathPos res = v->GetPos();
 	bool has_reservation = HasReservedPos(res);
 
 	/* Start track not reserved? This can happen if two trains
@@ -384,7 +384,7 @@ Train *GetTrainForReservation(TileIndex tile, Track track)
 		 * search in this direction as the reservation can't come from this side.*/
 		if (HasOnewaySignalBlockingTrackdir(tile, ReverseTrackdir(trackdir)) && !HasPbsSignalOnTrackdir(tile, trackdir)) continue;
 
-		PathPos pos = FollowReservation(GetTileOwner(tile), rts, PathPos(tile, trackdir), true);
+		RailPathPos pos = FollowReservation(GetTileOwner(tile), rts, RailPathPos(tile, trackdir), true);
 		Train *t = FindTrainOnPathEnd(pos);
 		if (t != NULL) return t;
 	}
@@ -410,7 +410,7 @@ Train *GetTrainForReservation(TileIndex tile, Track track)
  *  * PBS_CHECK_SAFE_FREE: Check if the position is both safe and free.
  *    Return PBS_FREE iff it is.
  */
-PBSPositionState CheckWaitingPosition(const Train *v, const PathPos &pos, bool forbid_90deg, PBSCheckingBehaviour cb)
+PBSPositionState CheckWaitingPosition(const Train *v, const RailPathPos &pos, bool forbid_90deg, PBSCheckingBehaviour cb)
 {
 	PBSPositionState state;
 	if (pos.in_wormhole()) {

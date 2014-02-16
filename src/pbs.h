@@ -25,12 +25,12 @@
 TrackBits GetReservedTrackbits(TileIndex t);
 
 void SetRailStationPlatformReservation(TileIndex start, DiagDirection dir, bool b);
-void SetRailStationPlatformReservation(const PathPos &pos, bool b);
+void SetRailStationPlatformReservation(const RailPathPos &pos, bool b);
 
 bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations = true);
 void UnreserveRailTrack(TileIndex tile, Track t);
 
-static inline bool TryReserveRailTrack(const PathPos &pos)
+static inline bool TryReserveRailTrack(const RailPathPos &pos)
 {
 	if (!pos.in_wormhole()) {
 		return TryReserveRailTrack(pos.tile, TrackdirToTrack(pos.td));
@@ -47,7 +47,7 @@ static inline bool TryReserveRailTrack(const PathPos &pos)
 	}
 }
 
-static inline void UnreserveRailTrack(const PathPos &pos)
+static inline void UnreserveRailTrack(const RailPathPos &pos)
 {
 	if (!pos.in_wormhole()) {
 		UnreserveRailTrack(pos.tile, TrackdirToTrack(pos.td));
@@ -60,7 +60,7 @@ static inline void UnreserveRailTrack(const PathPos &pos)
 	}
 }
 
-bool FollowTrainReservation(const Train *v, PathPos *pos, Vehicle **train_on_res = NULL);
+bool FollowTrainReservation(const Train *v, RailPathPos *pos, Vehicle **train_on_res = NULL);
 
 /** State of a waiting position wrt PBS. */
 enum PBSPositionState {
@@ -77,19 +77,19 @@ enum PBSCheckingBehaviour {
 	PBS_CHECK_SAFE_FREE, ///< Check if the waiting position is both safe and free
 };
 
-PBSPositionState CheckWaitingPosition(const Train *v, const PathPos &pos, bool forbid_90deg = false, PBSCheckingBehaviour cb = PBS_CHECK_FULL);
+PBSPositionState CheckWaitingPosition(const Train *v, const RailPathPos &pos, bool forbid_90deg = false, PBSCheckingBehaviour cb = PBS_CHECK_FULL);
 
-static inline bool IsSafeWaitingPosition(const Train *v, const PathPos &pos, bool forbid_90deg = false)
+static inline bool IsSafeWaitingPosition(const Train *v, const RailPathPos &pos, bool forbid_90deg = false)
 {
 	return CheckWaitingPosition(v, pos, forbid_90deg, PBS_CHECK_SAFE) != PBS_UNSAFE;
 }
 
-static inline bool IsWaitingPositionFree(const Train *v, const PathPos &pos, bool forbid_90deg = false)
+static inline bool IsWaitingPositionFree(const Train *v, const RailPathPos &pos, bool forbid_90deg = false)
 {
 	return CheckWaitingPosition(v, pos, forbid_90deg, PBS_CHECK_FREE) == PBS_FREE;
 }
 
-static inline bool IsFreeSafeWaitingPosition(const Train *v, const PathPos &pos, bool forbid_90deg = false)
+static inline bool IsFreeSafeWaitingPosition(const Train *v, const RailPathPos &pos, bool forbid_90deg = false)
 {
 	return CheckWaitingPosition(v, pos, forbid_90deg, PBS_CHECK_SAFE_FREE) == PBS_FREE;
 }
@@ -126,7 +126,7 @@ static inline bool HasReservedTrack(TileIndex tile, Track track)
  * @param pos the position
  * @return true if the track is reserved
  */
-static inline bool HasReservedPos(const PathPos &pos)
+static inline bool HasReservedPos(const RailPathPos &pos)
 {
 	return !pos.in_wormhole() ? HasReservedTrack(pos.tile, TrackdirToTrack(pos.td)) :
 		IsRailwayTile(pos.wormhole) ? HasBridgeMiddleReservation(pos.wormhole) : HasTunnelMiddleReservation(pos.wormhole);

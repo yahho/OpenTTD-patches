@@ -68,7 +68,7 @@ Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDi
  * @param target   [out] the target tile of the reservation, free is set to true if path was reserved
  * @return         the best trackdir for next turn
  */
-Trackdir YapfTrainChooseTrack(const Train *v, const PathPos &origin, bool reserve_track, struct PFResult *target);
+Trackdir YapfTrainChooseTrack(const Train *v, const RailPathPos &origin, bool reserve_track, struct PFResult *target);
 
 /**
  * Used when user sends road vehicle to the nearest depot or if road vehicle needs servicing using YAPF.
@@ -106,7 +106,7 @@ bool YapfTrainCheckReverse(const Train *v);
  * @param override_railtype Should all physically compatible railtypes be searched, even if the vehicle can't run on them on its own?
  * @return True if the path could be extended to a safe tile.
  */
-bool YapfTrainFindNearestSafeTile(const Train *v, const PathPos &pos, bool override_railtype);
+bool YapfTrainFindNearestSafeTile(const Train *v, const RailPathPos &pos, bool override_railtype);
 
 /**
  * Use this function to notify YAPF that track layout (or signal configuration) has change.

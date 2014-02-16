@@ -80,17 +80,18 @@ template <class Tkey_, class Tnode>
 struct CYapfNodeT : AstarNodeBase<Tnode> {
 	typedef AstarNodeBase<Tnode> ABase;
 	typedef Tkey_ Key;
+	typedef typename Key::Pos Pos;
 	typedef Tnode Node;
 
 	Tkey_       m_key;
 
-	inline void Set(Node *parent, const PathPos &pos)
+	inline void Set(Node *parent, const Pos &pos)
 	{
 		ABase::Set (parent);
 		m_key.Set(pos);
 	}
 
-	inline const PathPos& GetPos() const {return m_key;}
+	inline const Pos& GetPos() const {return m_key;}
 	inline const Tkey_& GetKey() const {return m_key;}
 
 	void Dump(DumpTarget &dmp) const

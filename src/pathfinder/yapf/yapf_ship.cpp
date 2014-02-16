@@ -59,7 +59,7 @@ public:
 		/* detect destination */
 		bool is_target = (m_dest_station == NULL) ? (tf.m_new.tile == m_dest_tile) : m_dest_station->IsDockingTile(tf.m_new.tile);
 
-		PathPos pos = tf.m_new;
+		ShipPathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.set_trackdir (FindFirstTrackdir(rtds));
 			Node *n = TAstar::CreateNewNode(old_node, pos);
@@ -168,7 +168,7 @@ struct CYapfShip3 : CYapfShipT<AstarShipTrackDir>
 
 
 template <class Tpf>
-static Trackdir ChooseShipTrack(const Ship *v, const PathPos &pos, TrackdirBits trackdirs, bool &path_found)
+static Trackdir ChooseShipTrack(const Ship *v, const ShipPathPos &pos, TrackdirBits trackdirs, bool &path_found)
 {
 	/* create pathfinder instance */
 	Tpf pf (v);
@@ -195,7 +195,7 @@ static Trackdir ChooseShipTrack(const Ship *v, const PathPos &pos, TrackdirBits 
 Trackdir YapfShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found)
 {
 	/* move back to the old tile/trackdir (where ship is coming from) */
-	PathPos pos = v->GetPos();
+	ShipPathPos pos = v->GetPos();
 	assert(pos.tile == TileAddByDiagDir (tile, ReverseDiagDir(enterdir)));
 	assert(IsValidTrackdir(pos.td));
 
@@ -207,7 +207,7 @@ Trackdir YapfShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterd
 	}
 
 	/* default is YAPF type 2 */
-	typedef Trackdir (*PfnChooseShipTrack)(const Ship*, const PathPos&, TrackdirBits, bool &path_found);
+	typedef Trackdir (*PfnChooseShipTrack)(const Ship*, const ShipPathPos&, TrackdirBits, bool &path_found);
 	PfnChooseShipTrack pfnChooseShipTrack = ChooseShipTrack<CYapfShip2>; // default: ExitDir, allow 90-deg
 
 	/* check if non-default YAPF type needed */
@@ -229,13 +229,13 @@ Trackdir YapfShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterd
  * @return true if the reverse direction is better
  */
 template <class Tpf>
-static bool CheckShipReverse(const Ship *v, const PathPos &pos)
+static bool CheckShipReverse(const Ship *v, const ShipPathPos &pos)
 {
 	/* create pathfinder instance */
 	Tpf pf (v);
 	/* set origin nodes */
 	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos));
-	pf.InsertInitialNode (pf.CreateNewNode (NULL, PathPos(pos.tile, ReverseTrackdir(pos.td))));
+	pf.InsertInitialNode (pf.CreateNewNode (NULL, ShipPathPos(pos.tile, ReverseTrackdir(pos.td))));
 	/* find best path */
 	if (!pf.FindPath()) return false;
 
@@ -254,9 +254,9 @@ static bool CheckShipReverse(const Ship *v, const PathPos &pos)
 
 bool YapfShipCheckReverse(const Ship *v)
 {
-	PathPos pos = v->GetPos();
+	ShipPathPos pos = v->GetPos();
 
-	typedef bool (*PfnCheckReverseShip)(const Ship*, const PathPos&);
+	typedef bool (*PfnCheckReverseShip)(const Ship*, const ShipPathPos&);
 	PfnCheckReverseShip pfnCheckReverseShip = CheckShipReverse<CYapfShip2>; // default: ExitDir, allow 90-deg
 
 	/* check if non-default YAPF type needed */

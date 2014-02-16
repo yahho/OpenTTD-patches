@@ -19,9 +19,9 @@ struct CYapfRoadNodeT
 {
 	typedef CYapfNodeT<Tkey_, CYapfRoadNodeT<Tkey_> > base;
 
-	PathPos m_segment_last;
+	RoadPathPos m_segment_last;
 
-	void Set(CYapfRoadNodeT *parent, const PathPos &pos)
+	void Set(CYapfRoadNodeT *parent, const RoadPathPos &pos)
 	{
 		base::Set(parent, pos);
 		m_segment_last = pos;
@@ -29,8 +29,8 @@ struct CYapfRoadNodeT
 };
 
 /* now define two major node types (that differ by key type) */
-typedef CYapfRoadNodeT<CYapfNodeKeyExitDir <PathPos> > CYapfRoadNodeExitDir;
-typedef CYapfRoadNodeT<CYapfNodeKeyTrackDir<PathPos> > CYapfRoadNodeTrackDir;
+typedef CYapfRoadNodeT<CYapfNodeKeyExitDir <RoadPathPos> > CYapfRoadNodeExitDir;
+typedef CYapfRoadNodeT<CYapfNodeKeyTrackDir<RoadPathPos> > CYapfRoadNodeTrackDir;
 
 /* Default Astar types */
 typedef Astar<CYapfRoadNodeExitDir , 8, 10> AstarRoadExitDir;

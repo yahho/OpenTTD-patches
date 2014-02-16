@@ -30,7 +30,7 @@ static int SlopeCost(const YAPFSettings *settings, TileIndex tile, TileIndex nex
 }
 
 /** return one tile cost */
-static int OneTileCost(const YAPFSettings *settings, const PathPos &pos)
+static int OneTileCost(const YAPFSettings *settings, const RoadPathPos &pos)
 {
 	int cost = 0;
 	/* set base cost */
@@ -123,7 +123,7 @@ public:
 		}
 	}
 
-	inline bool IsDestination(const PathPos &pos) const
+	inline bool IsDestination(const RoadPathPos &pos) const
 	{
 		return IsDestinationTile(pos.tile);
 	}
@@ -134,7 +134,7 @@ public:
 		if (!tf.Follow(old_node->m_segment_last)) return;
 
 		uint initial_skipped_tiles = tf.m_tiles_skipped;
-		PathPos pos = tf.m_new;
+		RoadPathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.set_trackdir (FindFirstTrackdir(rtds));
 			Node *n = TAstar::CreateNewNode(old_node, pos);
@@ -274,7 +274,7 @@ static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, TrackdirBi
 	Tpf pf (v);
 
 	/* set origin nodes */
-	PathPos pos;
+	RoadPathPos pos;
 	pos.tile = tile;
 	for (TrackdirBits tdb = trackdirs; tdb != TRACKDIR_BIT_NONE; tdb = KillFirstBit(tdb)) {
 		pos.set_trackdir (FindFirstTrackdir(tdb));
@@ -328,7 +328,7 @@ Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDi
 
 
 template <class Tpf>
-static TileIndex FindNearestDepot(const RoadVehicle *v, const PathPos &pos, int max_distance)
+static TileIndex FindNearestDepot(const RoadVehicle *v, const RoadPathPos &pos, int max_distance)
 {
 	Tpf pf (v, true);
 
@@ -348,13 +348,13 @@ static TileIndex FindNearestDepot(const RoadVehicle *v, const PathPos &pos, int 
 
 TileIndex YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_distance)
 {
-	PathPos pos = v->GetPos();
+	RoadPathPos pos = v->GetPos();
 	if ((TrackStatusToTrackdirBits(GetTileRoadStatus(pos.tile, v->compatible_roadtypes)) & TrackdirToTrackdirBits(pos.td)) == 0) {
 		return false;
 	}
 
 	/* default is YAPF type 2 */
-	typedef TileIndex (*PfnFindNearestDepot)(const RoadVehicle*, const PathPos&, int);
+	typedef TileIndex (*PfnFindNearestDepot)(const RoadVehicle*, const RoadPathPos&, int);
 	PfnFindNearestDepot pfnFindNearestDepot = &FindNearestDepot<CYapfRoad2>;
 
 	/* check if non-default YAPF type should be used */

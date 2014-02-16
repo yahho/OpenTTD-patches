@@ -1143,21 +1143,21 @@ static void FreeTrainReservation(Train *v)
 {
 	FreeTrainTrackReservation(v);
 
-	const PathPos pos = v->GetPos();
+	const RailPathPos pos = v->GetPos();
 	if (!pos.in_wormhole() && IsRailStationTile(pos.tile)) SetRailStationPlatformReservation(pos, false);
 
-	const PathPos rev = v->Last()->GetReversePos();
+	const RailPathPos rev = v->Last()->GetReversePos();
 	if (!rev.in_wormhole() && IsRailStationTile(rev.tile)) SetRailStationPlatformReservation(rev, false);
 }
 
 static void RestoreTrainReservation(Train *v)
 {
-	const PathPos pos = v->GetPos();
+	const RailPathPos pos = v->GetPos();
 	if (!pos.in_wormhole() && IsRailStationTile(pos.tile)) SetRailStationPlatformReservation(pos, true);
 
 	TryPathReserve(v, true, true);
 
-	const PathPos rev = v->Last()->GetReversePos();
+	const RailPathPos rev = v->Last()->GetReversePos();
 	if (!rev.in_wormhole() && IsRailStationTile(rev.tile)) SetRailStationPlatformReservation(rev, true);
 }
 

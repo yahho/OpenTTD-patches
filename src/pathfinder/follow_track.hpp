@@ -223,7 +223,7 @@ protected:
 /**
  * Track follower rail base class
  */
-struct CFollowTrackRailBase : CFollowTrackBase<PathPos>
+struct CFollowTrackRailBase : CFollowTrackBase<RailPathPos>
 {
 	const Owner               m_veh_owner;     ///< owner of the vehicle
 	const bool                m_allow_90deg;
@@ -507,7 +507,7 @@ typedef CFollowTrack<CFollowTrackRailBase> CFollowTrackRail;
 /**
  * Track follower road base class
  */
-struct CFollowTrackRoadBase : CFollowTrackBase<PathPos>
+struct CFollowTrackRoadBase : CFollowTrackBase<RoadPathPos>
 {
 	const RoadVehicle *const m_veh; ///< moving vehicle
 
@@ -737,7 +737,7 @@ typedef CFollowTrack<CFollowTrackRoadBase> CFollowTrackRoad;
 /**
  * Track follower water base class
  */
-struct CFollowTrackWaterBase : CFollowTrackBase<PathPos>
+struct CFollowTrackWaterBase : CFollowTrackBase<ShipPathPos>
 {
 	const bool m_allow_90deg;
 
