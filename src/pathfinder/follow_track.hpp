@@ -25,9 +25,9 @@
 #include "pf_performance_timer.hpp"
 
 /**
- * Track follower common base class
+ * Track follower types base class
  */
-struct CFollowTrackBase
+struct CFollowTrackTypes
 {
 	enum TileFlag {
 		TF_NONE,
@@ -52,9 +52,18 @@ struct CFollowTrackBase
 		TR_BRIDGE,
 		TR_TUNNEL,
 	};
+};
 
-	PathPos             m_old;           ///< the origin (vehicle moved from) before move
-	PathMPos<PathPos>   m_new;           ///< the new tile (the vehicle has entered)
+/**
+ * Track follower common base class
+ */
+template <class PPos>
+struct CFollowTrackBase : CFollowTrackTypes
+{
+	typedef PPos Pos;
+
+	Pos                 m_old;           ///< the origin (vehicle moved from) before move
+	PathMPos<Pos>       m_new;           ///< the new tile (the vehicle has entered)
 	DiagDirection       m_exitdir;       ///< exit direction (leaving the old tile)
 	TileFlag            m_flag;          ///< last turn passed station, tunnel or bridge
 	int                 m_tiles_skipped; ///< number of skipped tunnel or station tiles
@@ -98,7 +107,7 @@ struct CFollowTrack : Base
 	 * indicating why the track could not be followed. The rest of the
 	 * fields should be considered undefined.
 	 */
-	inline bool Follow(const PathPos &pos)
+	inline bool Follow(const typename Base::Pos &pos)
 	{
 		Base::m_old = pos;
 		Base::m_err = Base::EC_NONE;
@@ -186,7 +195,7 @@ struct CFollowTrack : Base
 		return Follow(Base::m_new);
 	}
 
-	inline void SetPos(const PathPos &pos)
+	inline void SetPos(const typename Base::Pos &pos)
 	{
 		Base::m_new.set(pos);
 	}
@@ -214,7 +223,7 @@ protected:
 /**
  * Track follower rail base class
  */
-struct CFollowTrackRailBase : CFollowTrackBase
+struct CFollowTrackRailBase : CFollowTrackBase<PathPos>
 {
 	const Owner               m_veh_owner;     ///< owner of the vehicle
 	const bool                m_allow_90deg;
@@ -498,7 +507,7 @@ typedef CFollowTrack<CFollowTrackRailBase> CFollowTrackRail;
 /**
  * Track follower road base class
  */
-struct CFollowTrackRoadBase : CFollowTrackBase
+struct CFollowTrackRoadBase : CFollowTrackBase<PathPos>
 {
 	const RoadVehicle *const m_veh; ///< moving vehicle
 
@@ -728,7 +737,7 @@ typedef CFollowTrack<CFollowTrackRoadBase> CFollowTrackRoad;
 /**
  * Track follower water base class
  */
-struct CFollowTrackWaterBase : CFollowTrackBase
+struct CFollowTrackWaterBase : CFollowTrackBase<PathPos>
 {
 	const bool m_allow_90deg;
 
