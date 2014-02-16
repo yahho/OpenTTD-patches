@@ -104,6 +104,20 @@ struct PathPos : PathTile {
 		td = INVALID_TRACKDIR; // trash previous trackdir
 	}
 
+	/** Set the trackdir of this position to a given trackdir */
+	void set_trackdir (Trackdir d)
+	{
+		assert (PathTile::is_valid()); // tile should be already set
+		td = d;
+	}
+
+	/** Clear the trackdir of this position */
+	void clear_trackdir()
+	{
+		assert (PathTile::is_valid()); // tile should be already set
+		td = INVALID_TRACKDIR;
+	}
+
 	/** Compare with another PathPos */
 	bool operator == (const PathPos &other) const
 	{
@@ -161,25 +175,22 @@ struct PathMPos : PathPos {
 	/** Set trackdirs to a given set */
 	void set_trackdirs (TrackdirBits s)
 	{
-		assert (PathTile::is_valid()); // tile should be already set
+		PathPos::set_trackdir (HasExactlyOneBit(s) ? FindFirstTrackdir(s) : INVALID_TRACKDIR);
 		trackdirs = s;
-		td = HasExactlyOneBit(s) ? FindFirstTrackdir(s) : INVALID_TRACKDIR;
 	}
 
 	/** Set trackdirs to a single trackdir */
 	void set_trackdir (Trackdir d)
 	{
-		assert (PathTile::is_valid()); // tile should be already set
-		td = d;
+		PathPos::set_trackdir (d);
 		trackdirs = TrackdirToTrackdirBits(d);
 	}
 
 	/** Clear trackdirs */
 	void clear_trackdirs()
 	{
-		assert (PathTile::is_valid()); // tile should be already set
+		PathPos::clear_trackdir();
 		trackdirs = TRACKDIR_BIT_NONE;
-		td = INVALID_TRACKDIR;
 	}
 
 	/** Check whether the position has no trackdirs */

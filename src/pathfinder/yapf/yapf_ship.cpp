@@ -61,7 +61,7 @@ public:
 
 		PathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
-			pos.td = FindFirstTrackdir(rtds);
+			pos.set_trackdir (FindFirstTrackdir(rtds));
 			Node *n = TAstar::CreateNewNode(old_node, pos);
 
 			/* base tile cost depending on distance */

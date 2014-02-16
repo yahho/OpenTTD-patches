@@ -136,7 +136,7 @@ public:
 		uint initial_skipped_tiles = tf.m_tiles_skipped;
 		PathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
-			pos.td = FindFirstTrackdir(rtds);
+			pos.set_trackdir (FindFirstTrackdir(rtds));
 			Node *n = TAstar::CreateNewNode(old_node, pos);
 
 			uint tiles = initial_skipped_tiles;
@@ -277,7 +277,7 @@ static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, TrackdirBi
 	PathPos pos;
 	pos.tile = tile;
 	for (TrackdirBits tdb = trackdirs; tdb != TRACKDIR_BIT_NONE; tdb = KillFirstBit(tdb)) {
-		pos.td = FindFirstTrackdir(tdb);
+		pos.set_trackdir (FindFirstTrackdir(tdb));
 		pf.InsertInitialNode (pf.CreateNewNode (NULL, pos));
 	}
 
