@@ -978,6 +978,17 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			}
 		}
 	}
+
+	/* New storage scheme for reserved tracks */
+	if (IsFullSavegameVersionBefore(stv, 17)) {
+		static const byte restracks[16] = { 0, 1, 2, 5, 6, 9, 10, 0,  0, 0, 0, 7, 7, 11, 11, 0 };
+
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsTileType(t, TT_RAILWAY)) {
+				SB(_mc[t].m2, 8, 4, restracks[GB(_mc[t].m2, 8, 4)]);
+			}
+		}
+	}
 }
 
 

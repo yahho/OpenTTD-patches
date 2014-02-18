@@ -134,6 +134,14 @@ static inline RailType tile_get_bridge_rail_type(const Tile *t)
 }
 
 
+/* We need these to hold for storage of reserved tracks */
+assert_compile (TRACK_BIT_X == (1 << 0));
+assert_compile (TRACK_BIT_Y == (1 << 1));
+assert_compile (TRACK_BIT_UPPER == (1 << 2));
+assert_compile (TRACK_BIT_LOWER == (1 << 3));
+assert_compile (TRACK_BIT_LEFT  == (1 << 4));
+assert_compile (TRACK_BIT_RIGHT == (1 << 5));
+
 /**
  * Get the rail reservation track bits for a tile
  * @param t The tile whose reservation track bits to get
@@ -143,10 +151,7 @@ static inline RailType tile_get_bridge_rail_type(const Tile *t)
 static inline TrackBits tile_get_reservation_trackbits(const Tile *t)
 {
 	assert(tile_is_railway(t));
-	byte track_b = GB(t->m2, 8, 3);
-	if (track_b == 0) return TRACK_BIT_NONE;
-	Track track = (Track)(track_b - 1);    // map array saves Track+1
-	return (TrackBits)(TrackToTrackBits(track) | (HasBit(t->m2, 11) ? TrackToTrackBits(TrackToOppositeTrack(track)) : 0));
+	return (TrackBits) (GB(t->m2, 8, 2) << (2 * GB(t->m2, 10, 2)));
 }
 
 /**
@@ -160,9 +165,9 @@ static inline void tile_set_reservation_trackbits(Tile *t, TrackBits b)
 	assert(tile_is_railway(t));
 	assert(b != INVALID_TRACK_BIT);
 	assert(!TracksOverlap(b));
-	Track track = RemoveFirstTrack(&b);
-	SB(t->m2, 8, 3, track == INVALID_TRACK ? 0 : track + 1);
-	SB(t->m2, 11, 1, (byte)(b != TRACK_BIT_NONE));
+	uint r = (b & TRACK_BIT_VERT) ? ((1 << 3) | (b >> 4)) :
+		 (b & TRACK_BIT_HORZ) ? ((1 << 2) | (b >> 2)) : b;
+	SB(t->m2, 8, 4, r);
 }
 
 
