@@ -200,7 +200,9 @@ Trackdir YapfShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterd
 	assert(IsValidTrackdir(pos.td));
 
 	/* handle special case - when next tile is destination tile */
-	if (tile == v->dest_tile) {
+	if (v->current_order.IsType(OT_GOTO_STATION) ?
+			Station::Get(v->current_order.GetDestination())->IsDockingTile(tile) :
+			tile == v->dest_tile) {
 		/* use vehicle's current direction if that's possible, otherwise use first usable one. */
 		Trackdir veh_dir = pos.td;
 		return ((trackdirs & TrackdirToTrackdirBits(veh_dir)) != 0) ? veh_dir : FindFirstTrackdir(trackdirs);
