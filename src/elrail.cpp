@@ -72,13 +72,23 @@
 #include "table/elrail_data.h"
 
 /**
- * Get the tile location group of a tile.
- * @param t The tile to get the tile location group of.
- * @return The tile location group.
+ * Check if a tile is on an odd X coordinate.
+ * @param t The tile to check
+ * @return Whether the tile is on an odd X coordinate
  */
-static inline TLG GetTLG(TileIndex t)
+static inline bool IsOddX (TileIndex t)
 {
-	return (TLG)((HasBit(TileX(t), 0) << 1) + HasBit(TileY(t), 0));
+	return HasBit (TileX(t), 0);
+}
+
+/**
+ * Check if a tile is on an odd Y coordinate.
+ * @param t The tile to check
+ * @return Whether the tile is on an odd Y coordinate
+ */
+static inline bool IsOddY (TileIndex t)
+{
+	return HasBit (TileY(t), 0);
 }
 
 /**
@@ -302,7 +312,7 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 	/* Note that ti->tileh has already been adjusted for Foundations */
 	home.tileh = ti->tileh;
 
-	TLG tlg = GetTLG(ti->tile);
+	TLG tlg = (TLG)((IsOddX(ti->tile) << 1) + IsOddY(ti->tile));
 	byte PCPstatus = 0;
 	DiagDirection overridePCP = INVALID_DIAGDIR;
 
@@ -601,10 +611,10 @@ void DrawCatenaryOnBridge(const TileInfo *ti)
 	Direction PPPpos;
 	if (axis == AXIS_X) {
 		PCPpos = DIAGDIR_NE;
-		PPPpos = HasBit(GetTLG(ti->tile), 0) ? DIR_SE : DIR_NW;
+		PPPpos = IsOddY(ti->tile) ? DIR_SE : DIR_NW;
 	} else {
 		PCPpos = DIAGDIR_NW;
-		PPPpos = HasBit(GetTLG(ti->tile), 1) ? DIR_SW : DIR_NE;
+		PPPpos = IsOddX(ti->tile) ? DIR_SW : DIR_NE;
 	}
 
 	SpriteID pylon = GetPylonBase(end, TCX_ON_BRIDGE) + pylon_sprites[PPPpos];
