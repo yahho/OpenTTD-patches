@@ -305,8 +305,6 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 	TLG tlg = GetTLG(ti->tile);
 	byte PCPstatus = 0;
 	byte OverridePCP = 0;
-	byte PPPpreferred[DIAGDIR_END];
-	byte PPPallowed[DIAGDIR_END];
 
 	/* Find which rail bits are present, and select the override points.
 	 * We don't draw a pylon:
@@ -390,8 +388,8 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 			nbconfig.isflat = ((nbconfig.tracks & (TRACK_BIT_HORZ | TRACK_BIT_VERT)) != 0);
 		}
 
-		PPPpreferred[i] = 0xFF; // We start with preferring everything (end-of-line in any direction)
-		PPPallowed[i] = AllowedPPPonPCP[i];
+		byte PPPpreferred = 0xFF; // We start with preferring everything (end-of-line in any direction)
+		byte PPPallowed = AllowedPPPonPCP[i];
 
 		/* We cycle through all the existing tracks at a PCP and see what
 		 * PPPs we want to have, or may not have at all */
@@ -403,10 +401,10 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 			if (HasBit(home.wires, track)) {
 				/* track found */
 				SetBit(PCPstatus, i); // This PCP is in use
-				PPPpreferred[i] &= PreferredPPPofTrackAtPCP[track][i];
+				PPPpreferred &= PreferredPPPofTrackAtPCP[track][i];
 			}
 			if (HasBit(home.tracks, track)) {
-				PPPallowed[i] &= AllowedPPPofTrackAtPCP[track];
+				PPPallowed &= AllowedPPPofTrackAtPCP[track];
 			}
 		}
 
@@ -424,18 +422,18 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 				/* track found, adjust the number
 				 * of the PCP for preferred/allowed determination*/
 				SetBit(PCPstatus, i); // This PCP is in use
-				PPPpreferred[i] &= PreferredPPPofTrackAtPCP[track][PCPpos];
+				PPPpreferred &= PreferredPPPofTrackAtPCP[track][PCPpos];
 			}
 
 			if (HasBit(nbconfig.tracks, track)) {
-				PPPallowed[i] &= AllowedPPPofTrackAtPCP[track];
+				PPPallowed &= AllowedPPPofTrackAtPCP[track];
 			}
 		}
 
 		/* Deactivate all PPPs if PCP is not used */
 		if (!HasBit(PCPstatus, i)) {
-			PPPpreferred[i] = 0;
-			PPPallowed[i] = 0;
+			PPPpreferred = 0;
+			PPPallowed = 0;
 		}
 
 		Foundation foundation = FOUNDATION_NONE;
@@ -464,7 +462,7 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 		 * Level means that the slope is the same, or the track is flat */
 		if (home.tileh == nbconfig.tileh || (home.isflat && nbconfig.isflat)) {
 			for (uint k = 0; k < NUM_IGNORE_GROUPS; k++) {
-				if (PPPpreferred[i] == IgnoredPCP[tlg][i][k]) ClrBit(PCPstatus, i);
+				if (PPPpreferred == IgnoredPCP[tlg][i][k]) ClrBit(PCPstatus, i);
 			}
 		}
 
@@ -472,7 +470,7 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 		 * In that case, we try the any of the allowed ones. if they don't exist either, don't draw
 		 * anything. Note that the preferred PPPs still contain the end-of-line markers.
 		 * Remove those (simply by ANDing with allowed, since these markers are never allowed) */
-		if ((PPPallowed[i] & PPPpreferred[i]) != 0) PPPallowed[i] &= PPPpreferred[i];
+		if ((PPPallowed & PPPpreferred) != 0) PPPallowed &= PPPpreferred;
 
 		if (HasBridgeAbove(ti->tile)) {
 			Track bridgetrack = GetBridgeAxis(ti->tile) == AXIS_X ? TRACK_X : TRACK_Y;
@@ -484,12 +482,12 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 			}
 		}
 
-		if (PPPallowed[i] != 0 && HasBit(PCPstatus, i) && !HasBit(OverridePCP, i) &&
+		if (PPPallowed != 0 && HasBit(PCPstatus, i) && !HasBit(OverridePCP, i) &&
 				(!IsRailStationTile(ti->tile) || CanStationTileHavePylons(ti->tile))) {
 			for (Direction k = DIR_BEGIN; k < DIR_END; k++) {
 				byte temp = PPPorder[i][GetTLG(ti->tile)][k];
 
-				if (HasBit(PPPallowed[i], temp)) {
+				if (HasBit(PPPallowed, temp)) {
 					uint x  = ti->x + x_pcp_offsets[i] + x_ppp_offsets[temp];
 					uint y  = ti->y + y_pcp_offsets[i] + y_ppp_offsets[temp];
 
