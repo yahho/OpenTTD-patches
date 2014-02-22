@@ -15,18 +15,6 @@
 #ifndef ELRAIL_DATA_H
 #define ELRAIL_DATA_H
 
-/**
- * Tile Location group.
- * This defines whether the X and or Y coordinate of a tile is even
- */
-enum TLG {
-	XEVEN_YEVEN = 0,
-	XEVEN_YODD  = 1,
-	XODD_YEVEN  = 2,
-	XODD_YODD   = 3,
-	TLG_END
-};
-
 static const uint NUM_TRACKS_PER_SIDE = 3;
 
 /* This array stores which tracks can meet at a tile edge */
@@ -155,29 +143,34 @@ static const byte AllowedPPPofTrackAtPCP[TRACK_END] = {
 };
 
 /* Several PPPs maybe exist, here they are sorted in order of preference. */
-static const Direction PPPorder[DIAGDIR_END][TLG_END][DIR_END] = {    //  X  -  Y
-	{   // PCP 0
-		{DIR_NE, DIR_NW, DIR_SE, DIR_SW, DIR_N, DIR_E, DIR_S, DIR_W}, // evn - evn
-		{DIR_NE, DIR_SE, DIR_SW, DIR_NW, DIR_S, DIR_W, DIR_N, DIR_E}, // evn - odd
-		{DIR_SW, DIR_NW, DIR_NE, DIR_SE, DIR_S, DIR_W, DIR_N, DIR_E}, // odd - evn
-		{DIR_SW, DIR_SE, DIR_NE, DIR_NW, DIR_N, DIR_E, DIR_S, DIR_W}, // odd - odd
-	}, {// PCP 1
-		{DIR_NE, DIR_NW, DIR_SE, DIR_SW, DIR_S, DIR_E, DIR_N, DIR_W}, // evn - evn
-		{DIR_NE, DIR_SE, DIR_SW, DIR_NW, DIR_N, DIR_W, DIR_S, DIR_E}, // evn - odd
-		{DIR_SW, DIR_NW, DIR_NE, DIR_SE, DIR_N, DIR_W, DIR_S, DIR_E}, // odd - evn
-		{DIR_SW, DIR_SE, DIR_NE, DIR_NW, DIR_S, DIR_E, DIR_N, DIR_W}, // odd - odd
-	}, {// PCP 2
-		{DIR_NE, DIR_NW, DIR_SE, DIR_SW, DIR_S, DIR_W, DIR_N, DIR_E}, // evn - evn
-		{DIR_NE, DIR_SE, DIR_SW, DIR_NW, DIR_N, DIR_E, DIR_S, DIR_W}, // evn - odd
-		{DIR_SW, DIR_NW, DIR_NE, DIR_SE, DIR_N, DIR_E, DIR_S, DIR_W}, // odd - evn
-		{DIR_SW, DIR_SE, DIR_NE, DIR_NW, DIR_S, DIR_W, DIR_N, DIR_E}, // odd - odd
-	}, {// PCP 3
-		{DIR_NE, DIR_NW, DIR_SE, DIR_SW, DIR_N, DIR_W, DIR_S, DIR_E}, // evn - evn
-		{DIR_NE, DIR_SE, DIR_SW, DIR_NW, DIR_S, DIR_E, DIR_N, DIR_W}, // evn - odd
-		{DIR_SW, DIR_NW, DIR_NE, DIR_SE, DIR_S, DIR_E, DIR_N, DIR_W}, // odd - evn
-		{DIR_SW, DIR_SE, DIR_NE, DIR_NW, DIR_N, DIR_W, DIR_S, DIR_E}, // odd - odd
+static const Direction PPPorder[2][2][DIAGDIR_END][DIR_END] = {
+	{    // X even
+		{    // Y even
+			{DIR_NE, DIR_NW, DIR_SE, DIR_SW, DIR_N, DIR_E, DIR_S, DIR_W}, // NE
+			{DIR_NE, DIR_NW, DIR_SE, DIR_SW, DIR_S, DIR_E, DIR_N, DIR_W}, // SE
+			{DIR_NE, DIR_NW, DIR_SE, DIR_SW, DIR_S, DIR_W, DIR_N, DIR_E}, // SW
+			{DIR_NE, DIR_NW, DIR_SE, DIR_SW, DIR_N, DIR_W, DIR_S, DIR_E}, // NW
+		}, { // Y odd
+			{DIR_NE, DIR_SE, DIR_SW, DIR_NW, DIR_S, DIR_W, DIR_N, DIR_E}, // NE
+			{DIR_NE, DIR_SE, DIR_SW, DIR_NW, DIR_N, DIR_W, DIR_S, DIR_E}, // SE
+			{DIR_NE, DIR_SE, DIR_SW, DIR_NW, DIR_N, DIR_E, DIR_S, DIR_W}, // SW
+			{DIR_NE, DIR_SE, DIR_SW, DIR_NW, DIR_S, DIR_E, DIR_N, DIR_W}, // NW
+		}
+	}, { // X odd
+		{    // Y even
+			{DIR_SW, DIR_NW, DIR_NE, DIR_SE, DIR_S, DIR_W, DIR_N, DIR_E}, // NE
+			{DIR_SW, DIR_NW, DIR_NE, DIR_SE, DIR_N, DIR_W, DIR_S, DIR_E}, // SE
+			{DIR_SW, DIR_NW, DIR_NE, DIR_SE, DIR_N, DIR_E, DIR_S, DIR_W}, // SW
+			{DIR_SW, DIR_NW, DIR_NE, DIR_SE, DIR_S, DIR_E, DIR_N, DIR_W}, // NW
+		}, { // Y odd
+			{DIR_SW, DIR_SE, DIR_NE, DIR_NW, DIR_N, DIR_E, DIR_S, DIR_W}, // NE
+			{DIR_SW, DIR_SE, DIR_NE, DIR_NW, DIR_S, DIR_E, DIR_N, DIR_W}, // SE
+			{DIR_SW, DIR_SE, DIR_NE, DIR_NW, DIR_S, DIR_W, DIR_N, DIR_E}, // SW
+			{DIR_SW, DIR_SE, DIR_NE, DIR_NW, DIR_N, DIR_W, DIR_S, DIR_E}, // NW
+		}
 	}
 };
+
 /* Geometric placement of the PCP relative to the tile origin */
 static const int8 x_pcp_offsets[DIAGDIR_END] = {0,  8, 16, 8};
 static const int8 y_pcp_offsets[DIAGDIR_END] = {8, 16,  8, 0};

@@ -315,7 +315,6 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 	bool odd[AXIS_END];
 	odd[AXIS_X] = IsOddX(ti->tile);
 	odd[AXIS_Y] = IsOddY(ti->tile);
-	TLG tlg = (TLG)((odd[AXIS_X] << 1) + odd[AXIS_Y]);
 	byte PCPstatus = 0;
 	DiagDirection overridePCP = INVALID_DIAGDIR;
 
@@ -506,7 +505,7 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 		}
 
 		for (Direction k = DIR_BEGIN; k < DIR_END; k++) {
-			byte temp = PPPorder[i][tlg][k];
+			byte temp = PPPorder[odd[AXIS_X]][odd[AXIS_Y]][i][k];
 
 			if (!HasBit(PPPallowed, temp)) continue;
 
