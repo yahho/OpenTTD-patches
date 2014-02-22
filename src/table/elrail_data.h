@@ -111,92 +111,38 @@ static const byte PreferredPPPofTrackAtPCP[TRACK_END][DIAGDIR_END] = {
 
 
 #define NUM_IGNORE_GROUPS 3
-#define IGNORE_NONE 0xFF
+
 /**
  * In case we have a straight line, we place pylon only every two tiles,
  * so there are certain tiles which we ignore. A straight line is found if
  * we have exactly two PPPs.
  */
-static const byte IgnoredPCP[TLG_END][DIAGDIR_END][NUM_IGNORE_GROUPS] = {
-	{   // X even, Y even
-		{    // DIAGDIR_NE
-			IGNORE_NONE,              // Ignore group 1, X and Y tracks
-			1 << DIR_E  | 1 << DIR_W, // Ignore group 2, LEFT and RIGHT tracks
-			1 << DIR_N  | 1 << DIR_S, // Ignore group 3, UPPER and LOWER tracks
-		}, { // DIAGDIR_SE
-			1 << DIR_NE | 1 << DIR_SW,
-			IGNORE_NONE,
-			1 << DIR_N  | 1 << DIR_S,
-		}, { // DIAGDIR_SW
-			1 << DIR_NW | 1 << DIR_SE,
-			IGNORE_NONE,
-			IGNORE_NONE,
-		}, { // DIAGDIR_NW
-			IGNORE_NONE,
-			1 << DIR_E  | 1 << DIR_W,
-			IGNORE_NONE,
-		}
-	},
-	{   // X even, Y odd
-		{    // DIAGDIR_NE
-			IGNORE_NONE,
-			IGNORE_NONE,
-			IGNORE_NONE,
-		}, { // DIAGDIR_SE
-			IGNORE_NONE,
-			1 << DIR_E  | 1 << DIR_W,
-			IGNORE_NONE,
-		}, { // DIAGDIR_SW
-			1 << DIR_NW | 1 << DIR_SE,
-			1 << DIR_E  | 1 << DIR_W,
-			1 << DIR_N  | 1 << DIR_S,
-		}, { // DIAGDIR_NW
-			1 << DIR_NE | 1 << DIR_SW,
-			IGNORE_NONE,
-			1 << DIR_N  | 1 << DIR_S,
-		}
-	},
-	{   // X odd, Y even
-		{    // DIAGDIR_NE
-			1 << DIR_NW | 1 << DIR_SE,
-			IGNORE_NONE,
-			IGNORE_NONE,
-		}, { // DIAGDIR_SE
-			1 << DIR_NE | 1 << DIR_SW,
-			1 << DIR_E  | 1 << DIR_W,
-			IGNORE_NONE,
-		}, { // DIAGDIR_SW
-			IGNORE_NONE,
-			1 << DIR_E  | 1 << DIR_W,
-			1 << DIR_N  | 1 << DIR_S,
-		}, { // DIAGDIR_NW
-			IGNORE_NONE,
-			IGNORE_NONE,
-			1 << DIR_N  | 1 << DIR_S,
-		}
-	},
-	{   // X odd, Y odd
-		{    // DIAGDIR_NE
-			1 << DIR_NW | 1 << DIR_SE,
-			1 << DIR_E  | 1 << DIR_W,
-			1 << DIR_N  | 1 << DIR_S,
-		}, { // DIAGDIR_SE
-			IGNORE_NONE,
-			IGNORE_NONE,
-			1 << DIR_N  | 1 << DIR_S,
-		}, { // DIAGDIR_SW
-			IGNORE_NONE,
-			IGNORE_NONE,
-			IGNORE_NONE,
-		}, { // DIAGDIR_NW
-			1 << DIR_NE | 1 << DIR_SW,
-			1 << DIR_E  | 1 << DIR_W,
-			IGNORE_NONE,
-		}
-	},
+static const byte IgnoredPCPconfigs[AXIS_END][NUM_IGNORE_GROUPS] = {
+	{    // X axis
+		1 << DIR_NW | 1 << DIR_SE,
+		1 << DIR_E  | 1 << DIR_W,
+		1 << DIR_N  | 1 << DIR_S,
+	}, { // Y axis
+		1 << DIR_NE | 1 << DIR_SW,
+		1 << DIR_E  | 1 << DIR_W,
+		1 << DIR_N  | 1 << DIR_S,
+	}
 };
 
-#undef NO_IGNORE
+/**
+ * In case we have a straight line, we place pylon only every two tiles,
+ * so there are certain tiles which we ignore. This struct encodes on
+ * which tile sides pylons are omitted.
+ */
+static const byte IgnoredPCP[AXIS_END][2] = {
+	{    // X axis
+		0x6, // configurations to ignore on even X and even Y tile sides
+		  0, // configurations to ignore on even X and odd Y tile sides
+	}, { // Y axis
+		0x5, // configurations to ignore on odd Y and even X tile sides
+		0x3, // configurations to ignore on odd Y and odd X tile sides
+	}
+};
 
 /** Which pylons can definitely NOT be built */
 static const byte AllowedPPPofTrackAtPCP[TRACK_END] = {

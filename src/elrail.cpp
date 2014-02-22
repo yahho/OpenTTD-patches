@@ -312,7 +312,10 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 	/* Note that ti->tileh has already been adjusted for Foundations */
 	home.tileh = ti->tileh;
 
-	TLG tlg = (TLG)((IsOddX(ti->tile) << 1) + IsOddY(ti->tile));
+	bool odd[AXIS_END];
+	odd[AXIS_X] = IsOddX(ti->tile);
+	odd[AXIS_Y] = IsOddY(ti->tile);
+	TLG tlg = (TLG)((odd[AXIS_X] << 1) + odd[AXIS_Y]);
 	byte PCPstatus = 0;
 	DiagDirection overridePCP = INVALID_DIAGDIR;
 
@@ -468,8 +471,15 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 		 * Delete the PCP if this is the case.
 		 * Level means that the slope is the same, or the track is flat */
 		if (home.tileh == nbconfig.tileh || (home.isflat && nbconfig.isflat)) {
+			Axis axis = DiagDirToAxis(i);
 			for (uint k = 0; k < NUM_IGNORE_GROUPS; k++) {
-				if (PPPpreferred == IgnoredPCP[tlg][i][k]) ClrBit(PCPstatus, i);
+				if (PPPpreferred == IgnoredPCPconfigs[axis][k] ) {
+					/* This configuration may be subject to pylon elision. */
+					bool ignore = HasBit (IgnoredPCP[axis][odd[OtherAxis(axis)]], k);
+					/* Toggle ignore if we are in an odd row, or heading the other way. */
+					if (ignore ^ odd[axis] ^ HasBit(i, 1)) ClrBit(PCPstatus, i);
+					break;
+				}
 			}
 			if (!HasBit(PCPstatus, i)) continue;
 		}
