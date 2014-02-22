@@ -486,24 +486,22 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 		}
 
 		for (Direction k = DIR_BEGIN; k < DIR_END; k++) {
-			byte temp = PPPorder[i][GetTLG(ti->tile)][k];
+			byte temp = PPPorder[i][tlg][k];
 
-			if (HasBit(PPPallowed, temp)) {
+			if (!HasBit(PPPallowed, temp)) continue;
+
+			/* Don't build the pylon if it would be outside the tile */
+			if (HasBit(OwnedPPPonPCP[i], temp)) {
 				uint x  = ti->x + x_pcp_offsets[i] + x_ppp_offsets[temp];
 				uint y  = ti->y + y_pcp_offsets[i] + y_ppp_offsets[temp];
 
-				/* Don't build the pylon if it would be outside the tile */
-				if (!HasBit(OwnedPPPonPCP[i], temp)) {
-					/* We have a neighbour that will draw it, bail out */
-					if (nbconfig.tracks != TRACK_BIT_NONE) break;
-					continue; // No neighbour, go looking for a better position
-				}
-
 				AddSortableSpriteToDraw(pylon_base + pylon_sprites[temp], PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE,
 					elevation, IsTransparencySet(TO_CATENARY), -1, -1);
-
 				break; // We already have drawn a pylon, bail out
 			}
+
+			/* We have a neighbour that will draw it, bail out */
+			if (nbconfig.tracks != TRACK_BIT_NONE) break;
 		}
 	}
 
