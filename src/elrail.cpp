@@ -431,10 +431,7 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 		}
 
 		/* Deactivate all PPPs if PCP is not used */
-		if (!HasBit(PCPstatus, i)) {
-			PPPpreferred = 0;
-			PPPallowed = 0;
-		}
+		if (!HasBit(PCPstatus, i)) continue;
 
 		Foundation foundation = FOUNDATION_NONE;
 
@@ -464,13 +461,19 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 			for (uint k = 0; k < NUM_IGNORE_GROUPS; k++) {
 				if (PPPpreferred == IgnoredPCP[tlg][i][k]) ClrBit(PCPstatus, i);
 			}
+			if (!HasBit(PCPstatus, i)) continue;
 		}
+
+		if (HasBit(OverridePCP, i)) continue;
 
 		/* Now decide where we draw our pylons. First try the preferred PPPs, but they may not exist.
 		 * In that case, we try the any of the allowed ones. if they don't exist either, don't draw
 		 * anything. Note that the preferred PPPs still contain the end-of-line markers.
 		 * Remove those (simply by ANDing with allowed, since these markers are never allowed) */
+		if (PPPallowed == 0) continue;
 		if ((PPPallowed & PPPpreferred) != 0) PPPallowed &= PPPpreferred;
+
+		if (IsRailStationTile(ti->tile) && !CanStationTileHavePylons(ti->tile)) continue;
 
 		if (HasBridgeAbove(ti->tile)) {
 			Track bridgetrack = GetBridgeAxis(ti->tile) == AXIS_X ? TRACK_X : TRACK_Y;
@@ -478,31 +481,28 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 
 			if ((height <= GetTileMaxZ(ti->tile) + 1) &&
 					(i == PCPpositions[bridgetrack][0] || i == PCPpositions[bridgetrack][1])) {
-				SetBit(OverridePCP, i);
+				continue;
 			}
 		}
 
-		if (PPPallowed != 0 && HasBit(PCPstatus, i) && !HasBit(OverridePCP, i) &&
-				(!IsRailStationTile(ti->tile) || CanStationTileHavePylons(ti->tile))) {
-			for (Direction k = DIR_BEGIN; k < DIR_END; k++) {
-				byte temp = PPPorder[i][GetTLG(ti->tile)][k];
+		for (Direction k = DIR_BEGIN; k < DIR_END; k++) {
+			byte temp = PPPorder[i][GetTLG(ti->tile)][k];
 
-				if (HasBit(PPPallowed, temp)) {
-					uint x  = ti->x + x_pcp_offsets[i] + x_ppp_offsets[temp];
-					uint y  = ti->y + y_pcp_offsets[i] + y_ppp_offsets[temp];
+			if (HasBit(PPPallowed, temp)) {
+				uint x  = ti->x + x_pcp_offsets[i] + x_ppp_offsets[temp];
+				uint y  = ti->y + y_pcp_offsets[i] + y_ppp_offsets[temp];
 
-					/* Don't build the pylon if it would be outside the tile */
-					if (!HasBit(OwnedPPPonPCP[i], temp)) {
-						/* We have a neighbour that will draw it, bail out */
-						if (nbconfig.tracks != TRACK_BIT_NONE) break;
-						continue; // No neighbour, go looking for a better position
-					}
-
-					AddSortableSpriteToDraw(pylon_base + pylon_sprites[temp], PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE,
-						elevation, IsTransparencySet(TO_CATENARY), -1, -1);
-
-					break; // We already have drawn a pylon, bail out
+				/* Don't build the pylon if it would be outside the tile */
+				if (!HasBit(OwnedPPPonPCP[i], temp)) {
+					/* We have a neighbour that will draw it, bail out */
+					if (nbconfig.tracks != TRACK_BIT_NONE) break;
+					continue; // No neighbour, go looking for a better position
 				}
+
+				AddSortableSpriteToDraw(pylon_base + pylon_sprites[temp], PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE,
+					elevation, IsTransparencySet(TO_CATENARY), -1, -1);
+
+				break; // We already have drawn a pylon, bail out
 			}
 		}
 	}
