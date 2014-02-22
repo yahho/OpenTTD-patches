@@ -88,7 +88,7 @@ static inline TLG GetTLG(TileIndex t)
  * @param override pointer to PCP override, can be NULL
  * @return trackbits of tile if it is electrified
  */
-static TrackBits GetRailTrackBitsUniversal(TileIndex t, DiagDirection dir, byte *override = NULL)
+static TrackBits GetRailTrackBitsUniversal(TileIndex t, DiagDirection dir, DiagDirection *override = NULL)
 {
 	switch (GetTileType(t)) {
 		case TT_RAILWAY: {
@@ -98,7 +98,7 @@ static TrackBits GetRailTrackBitsUniversal(TileIndex t, DiagDirection dir, byte 
 			if (HasCatenary(GetRailType(t, TRACK_LOWER))) result |= present & (TRACK_BIT_LOWER | TRACK_BIT_RIGHT);
 
 			if (IsTileSubtype(t, TT_BRIDGE) && (override != NULL) && GetTunnelBridgeLength(t, GetOtherBridgeEnd(t)) > 0) {
-				*override = 1 << GetTunnelBridgeDirection(t);
+				*override = GetTunnelBridgeDirection(t);
 			}
 
 			return result;
@@ -118,7 +118,7 @@ static TrackBits GetRailTrackBitsUniversal(TileIndex t, DiagDirection dir, byte 
 					/* ignore tunnels facing the wrong way for neighbouring tiles */
 					if (dir != INVALID_DIAGDIR && dir != GetTunnelBridgeDirection(t)) return TRACK_BIT_NONE;
 					if (override != NULL) {
-						*override = 1 << GetTunnelBridgeDirection(t);
+						*override = GetTunnelBridgeDirection(t);
 					}
 					return DiagDirToDiagTrackBits(GetTunnelBridgeDirection(t));
 			}
@@ -304,7 +304,7 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 
 	TLG tlg = GetTLG(ti->tile);
 	byte PCPstatus = 0;
-	byte OverridePCP = 0;
+	DiagDirection overridePCP = INVALID_DIAGDIR;
 
 	/* Find which rail bits are present, and select the override points.
 	 * We don't draw a pylon:
@@ -312,7 +312,7 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 	 * 2) on the "far" end of a bridge head (the one that connects to bridge middle),
 	 *    because that one is drawn on the bridge. Exception is for length 0 bridges
 	 *    which have no middle tiles */
-	home.tracks = GetRailTrackBitsUniversal(ti->tile, INVALID_DIAGDIR, &OverridePCP);
+	home.tracks = GetRailTrackBitsUniversal(ti->tile, INVALID_DIAGDIR, &overridePCP);
 	home.wires = MaskWireBits(ti->tile, home.tracks);
 	/* If a track bit is present that is not in the main direction, the track is level */
 	home.isflat = ((home.tracks & (TRACK_BIT_HORZ | TRACK_BIT_VERT)) != 0);
@@ -464,7 +464,7 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 			if (!HasBit(PCPstatus, i)) continue;
 		}
 
-		if (HasBit(OverridePCP, i)) continue;
+		if (overridePCP == i) continue;
 
 		/* Now decide where we draw our pylons. First try the preferred PPPs, but they may not exist.
 		 * In that case, we try the any of the allowed ones. if they don't exist either, don't draw
