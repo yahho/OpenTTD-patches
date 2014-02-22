@@ -199,13 +199,13 @@ static const byte IgnoredPCP[TLG_END][DIAGDIR_END][NUM_IGNORE_GROUPS] = {
 #undef NO_IGNORE
 
 /** Which pylons can definitely NOT be built */
-static const byte DisallowedPPPofTrackAtPCP[TRACK_END] = {
-	1 << DIR_SW | 1 << DIR_NE, // X
-	1 << DIR_NW | 1 << DIR_SE, // Y
-	1 << DIR_W  | 1 << DIR_E , // UPPER
-	1 << DIR_W  | 1 << DIR_E , // LOWER
-	1 << DIR_S  | 1 << DIR_N , // LEFT
-	1 << DIR_S  | 1 << DIR_N , // RIGHT
+static const byte AllowedPPPofTrackAtPCP[TRACK_END] = {
+	1 << DIR_N  | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_S  | 1 << DIR_W  | 1 << DIR_NW, // X
+	1 << DIR_N  | 1 << DIR_NE | 1 << DIR_E  | 1 << DIR_S  | 1 << DIR_SW | 1 << DIR_W,  // Y
+	1 << DIR_N  | 1 << DIR_NE | 1 << DIR_SE | 1 << DIR_S  | 1 << DIR_SW | 1 << DIR_NW, // UPPER
+	1 << DIR_N  | 1 << DIR_NE | 1 << DIR_SE | 1 << DIR_S  | 1 << DIR_SW | 1 << DIR_NW, // LOWER
+	1 << DIR_NE | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_SW | 1 << DIR_W  | 1 << DIR_NW, // LEFT
+	1 << DIR_NE | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_SW | 1 << DIR_W  | 1 << DIR_NW, // RIGHT
 };
 
 /* Several PPPs maybe exist, here they are sorted in order of preference. */

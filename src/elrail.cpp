@@ -406,7 +406,7 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 				PPPpreferred[i] &= PreferredPPPofTrackAtPCP[track][i];
 			}
 			if (HasBit(home.tracks, track)) {
-				PPPallowed[i] &= ~DisallowedPPPofTrackAtPCP[track];
+				PPPallowed[i] &= AllowedPPPofTrackAtPCP[track];
 			}
 		}
 
@@ -428,7 +428,7 @@ static void DrawCatenaryRailway(const TileInfo *ti)
 			}
 
 			if (HasBit(nbconfig.tracks, track)) {
-				PPPallowed[i] &= ~DisallowedPPPofTrackAtPCP[track];
+				PPPallowed[i] &= AllowedPPPofTrackAtPCP[track];
 			}
 		}
 
