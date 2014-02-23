@@ -1346,7 +1346,9 @@ void StateGameLoop()
 	/* don't execute the state loop during pause */
 	if (_pause_mode != PM_UNPAUSED) {
 		UpdateLandscapingLimits();
+#ifndef DEBUG_DUMP_COMMANDS
 		Game::GameLoop();
+#endif
 		CallWindowTickEvent();
 		return;
 	}
@@ -1386,8 +1388,10 @@ void StateGameLoop()
 		CallLandscapeTick();
 		ClearPersistentStorageChanges(true);
 
+#ifndef DEBUG_DUMP_COMMANDS
 		AI::GameLoop();
 		Game::GameLoop();
+#endif
 		UpdateLandscapingLimits();
 
 		CallWindowTickEvent();
