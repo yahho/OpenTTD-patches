@@ -18,7 +18,7 @@
  * @param x1 final x of the area
  * @param y1 final y of the area
  */
-inline void TileArea::Set(uint x0, uint y0, uint x1, uint y1)
+inline void OrthogonalTileArea::Set(uint x0, uint y0, uint x1, uint y1)
 {
 	this->tile = TileXY(x0, y0);
 	this->w = x1 - x0 + 1;
@@ -30,7 +30,7 @@ inline void TileArea::Set(uint x0, uint y0, uint x1, uint y1)
  * @param start the start of the area
  * @param end   the end of the area
  */
-TileArea::TileArea(TileIndex start, TileIndex end)
+OrthogonalTileArea::OrthogonalTileArea(TileIndex start, TileIndex end)
 {
 	uint sx = TileX(start);
 	uint sy = TileY(start);
@@ -47,7 +47,7 @@ TileArea::TileArea(TileIndex start, TileIndex end)
  * Add a single tile to a tile area; enlarge if needed.
  * @param to_add The tile to add
  */
-void TileArea::Add(TileIndex to_add)
+void OrthogonalTileArea::Add(TileIndex to_add)
 {
 	if (this->tile == INVALID_TILE) {
 		this->tile = to_add;
@@ -71,7 +71,7 @@ void TileArea::Add(TileIndex to_add)
  * Add another tile area to a tile area; enlarge if needed.
  * @param to_add The tile area to add
  */
-void TileArea::Add(const TileArea &to_add)
+void OrthogonalTileArea::Add(const OrthogonalTileArea &to_add)
 {
 	if (to_add.tile == INVALID_TILE) return;
 
@@ -100,7 +100,7 @@ void TileArea::Add(const TileArea &to_add)
  * @param ta the other tile area to check against.
  * @return true if they intersect.
  */
-bool TileArea::Intersects(const TileArea &ta) const
+bool OrthogonalTileArea::Intersects(const OrthogonalTileArea &ta) const
 {
 	if (ta.w == 0 || this->w == 0) return false;
 
@@ -129,7 +129,7 @@ bool TileArea::Intersects(const TileArea &ta) const
  * @param tile Tile to test for.
  * @return True if the tile is inside the area.
  */
-bool TileArea::Contains(TileIndex tile) const
+bool OrthogonalTileArea::Contains(TileIndex tile) const
 {
 	if (this->w == 0) return false;
 
@@ -146,7 +146,7 @@ bool TileArea::Contains(TileIndex tile) const
 /**
  * Clamp the tile area to map borders.
  */
-void TileArea::ClampToMap()
+void OrthogonalTileArea::ClampToMap()
 {
 	assert(this->tile < MapSize());
 	this->w = min(this->w, MapSizeX() - TileX(this->tile));

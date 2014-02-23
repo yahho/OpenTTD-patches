@@ -13,13 +13,13 @@
 #include "coord.h"
 
 /** Represents the covered area of e.g. a rail station */
-struct TileArea {
+struct OrthogonalTileArea {
 	TileIndex tile; ///< The base tile of the area
 	uint16 w;       ///< The width of the area
 	uint16 h;       ///< The height of the area
 
 	/** Just construct this tile area */
-	TileArea() : tile(INVALID_TILE), w(0), h(0) {}
+	OrthogonalTileArea() : tile(INVALID_TILE), w(0), h(0) {}
 
 	/**
 	 * Construct this tile area with some set values
@@ -27,15 +27,15 @@ struct TileArea {
 	 * @param w the width
 	 * @param h the height
 	 */
-	TileArea(TileIndex tile, uint8 w, uint8 h) : tile(tile), w(w), h(h) {}
+	OrthogonalTileArea(TileIndex tile, uint8 w, uint8 h) : tile(tile), w(w), h(h) {}
 
-	TileArea(TileIndex start, TileIndex end);
+	OrthogonalTileArea(TileIndex start, TileIndex end);
 
 	void Set(uint x0, uint y0, uint x1, uint y1);
 
 	void Add(TileIndex to_add);
 
-	void Add(const TileArea &to_add);
+	void Add(const OrthogonalTileArea &to_add);
 
 	/**
 	 * Clears the 'tile area', i.e. make the tile invalid.
@@ -47,7 +47,7 @@ struct TileArea {
 		this->h    = 0;
 	}
 
-	bool Intersects(const TileArea &ta) const;
+	bool Intersects(const OrthogonalTileArea &ta) const;
 
 	bool Contains(TileIndex tile) const;
 
@@ -83,6 +83,10 @@ struct TileArea {
 		return TileXY(x, y);
 	}
 };
+
+/** Shorthand for the much more common orthogonal tile area. */
+typedef OrthogonalTileArea TileArea;
+
 
 /** Base class for tile iterators. */
 class TileIterator {
@@ -164,7 +168,7 @@ public:
 	 * Construct the iterator.
 	 * @param ta Area, i.e. begin point and width/height of to-be-iterated area.
 	 */
-	OrthogonalTileIterator(const TileArea &ta)
+	OrthogonalTileIterator(const OrthogonalTileArea &ta)
 		: TileIterator(ta.w == 0 || ta.h == 0 ? INVALID_TILE : ta.tile),
 			w(ta.w), rowdiff(TileDiffXY(1, 1) - ta.w), x(ta.w), y(ta.h)
 	{
