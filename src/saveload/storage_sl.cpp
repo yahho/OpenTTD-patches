@@ -39,6 +39,7 @@ static void Save_PSAC(SaveDumper *dumper)
 
 	/* Write the industries */
 	FOR_ALL_STORAGES(ps) {
+		ps->ClearChanges();
 		dumper->WriteElement(ps->index, ps, _storage_desc);
 	}
 }
