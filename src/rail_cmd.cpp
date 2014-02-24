@@ -2348,6 +2348,7 @@ static CommandCost ConvertGeneric(TileIndex tile, RailType totype, Track track, 
 CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
 {
 	RailType totype = Extract<RailType, 0, 4>(p2);
+	bool rotated = HasBit(p2, 4);
 
 	if (!ValParamRailtype(totype)) return CMD_ERROR;
 	if (p1 >= MapSize()) return CMD_ERROR;
@@ -2356,8 +2357,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 	CommandCost err = CommandCost(STR_ERROR_NO_SUITABLE_RAILROAD_TRACK); // by default, there is no track to convert.
-	TileArea ta(tile, p1);
-	TileIterator *iter = HasBit(p2, 4) ? (TileIterator *)new DiagonalTileIterator(tile, p1) : new OrthogonalTileIterator(ta);
+	TileAreaIterator *iter = rotated ? (TileAreaIterator *)new DiagonalTileAreaIterator(tile, p1) : new OrthogonalTileAreaIterator(tile, p1);
 	for (; (tile = *iter) != INVALID_TILE; ++(*iter)) {
 		CommandCost ret;
 
@@ -2373,8 +2373,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 					/* If both ends of bridge are in the range, do not try to convert twice -
 					 * it would cause assert because of different test and exec runs */
 					TileIndex endtile = GetOtherBridgeEnd(tile);
-					if (endtile < tile && TileX(endtile) >= TileX(ta.tile) && TileX(endtile) < TileX(ta.tile) + ta.w &&
-							TileY(endtile) >= TileY(ta.tile) && TileY(endtile) < TileY(ta.tile) + ta.h) continue;
+					if (endtile < tile && iter->Contains(endtile)) continue;
 
 					ret = ConvertBridge(tile, endtile, totype, &affected_trains, flags);
 				}
@@ -2399,8 +2398,7 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 						/* If both ends of tunnel are in the range, do not try to convert twice -
 						 * it would cause assert because of different test and exec runs */
 						TileIndex endtile = GetOtherTunnelEnd(tile);
-						if (endtile < tile && TileX(endtile) >= TileX(ta.tile) && TileX(endtile) < TileX(ta.tile) + ta.w &&
-								TileY(endtile) >= TileY(ta.tile) && TileY(endtile) < TileY(ta.tile) + ta.h) continue;
+						if (endtile < tile && iter->Contains(endtile)) continue;
 
 						ret = ConvertTunnel(tile, endtile, totype, &affected_trains, flags);
 						break;
