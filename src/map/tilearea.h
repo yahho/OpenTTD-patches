@@ -215,6 +215,81 @@ public:
 	}
 };
 
+
+/** Base class for iterators that also contain the area they iterate over. */
+class TileAreaIterator {
+public:
+	virtual ~TileAreaIterator() { }
+
+protected:
+	virtual TileIterator *GetIterator() = 0;
+
+	const TileIterator *GetIterator() const
+	{
+		return const_cast<TileAreaIterator*>(this)->GetIterator();
+	}
+
+public:
+	virtual bool Contains (TileIndex tile) const = 0;
+
+	/**
+	 * Get the tile we are currently at.
+	 * @return The tile we are at, or INVALID_TILE when we're done.
+	 */
+	inline operator TileIndex () const
+	{
+		return *GetIterator();
+	}
+
+	/**
+	 * Move ourselves to the next tile in the rectangle on the map.
+	 */
+	TileAreaIterator& operator++()
+	{
+		++*GetIterator();
+		return *this;
+	}
+};
+
+/** Orthogonal tile area iterator. */
+class OrthogonalTileAreaIterator FINAL : public OrthogonalTileArea, public OrthogonalTileIterator, public TileAreaIterator {
+public:
+	OrthogonalTileAreaIterator (TileIndex begin, TileIndex end)
+		: OrthogonalTileArea (begin, end), OrthogonalTileIterator(*static_cast<OrthogonalTileArea*>(this))
+	{
+	}
+
+	OrthogonalTileIterator *GetIterator() FINAL_OVERRIDE
+	{
+		return this;
+	}
+
+	bool Contains (TileIndex tile) const FINAL_OVERRIDE
+	{
+		return OrthogonalTileArea::Contains(tile);
+	}
+};
+
+/** Diagonal tile area iterator. */
+class DiagonalTileAreaIterator FINAL : public DiagonalTileArea, public DiagonalTileIterator, public TileAreaIterator {
+public:
+	DiagonalTileAreaIterator (TileIndex begin, TileIndex end)
+		: DiagonalTileArea (begin, end), DiagonalTileIterator (begin, end)
+	{
+	}
+
+	DiagonalTileIterator *GetIterator() FINAL_OVERRIDE
+	{
+		return this;
+	}
+
+	bool Contains (TileIndex tile) const FINAL_OVERRIDE
+	{
+		return DiagonalTileArea::Contains(tile);
+	}
+};
+
+
 /**
  * A loop which iterates over the tiles of a TileArea.
  * @param var The name of the variable which contains the current tile.
