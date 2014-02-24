@@ -84,6 +84,16 @@ struct OrthogonalTileArea {
 	}
 };
 
+/** Represents a diagonal tile area. */
+struct DiagonalTileArea {
+	int a0, b0; ///< Lower left corner in transformed coordinate space
+	int a1, b1; ///< Upper right corner in transformed coordinate space
+
+	DiagonalTileArea (TileIndex start, TileIndex end);
+
+	bool Contains (TileIndex tile) const;
+};
+
 /** Shorthand for the much more common orthogonal tile area. */
 typedef OrthogonalTileArea TileArea;
 

@@ -154,6 +154,48 @@ void OrthogonalTileArea::ClampToMap()
 }
 
 
+/**
+ * Construct this tile area based on two points.
+ * @param start the start of the area
+ * @param end   the end of the area
+ */
+DiagonalTileArea::DiagonalTileArea (TileIndex start, TileIndex end)
+{
+	uint sx = TileX(start);
+	uint sy = TileY(start);
+	int sa = sx + sy;
+	int sb = sx - sy;
+
+	uint ex = TileX(end);
+	uint ey = TileY(end);
+	int ea = ex + ey;
+	int eb = ex - ey;
+
+	if (sa > ea) Swap(sa, ea);
+	if (sb > eb) Swap(sb, eb);
+
+	a0 = sa;
+	a1 = ea;
+	b0 = sb;
+	b1 = eb;
+}
+
+/**
+ * Does this tile area contain a tile?
+ * @param tile Tile to test for.
+ * @return True if the tile is inside the area.
+ */
+bool DiagonalTileArea::Contains (TileIndex tile) const
+{
+	uint x = TileX(tile);
+	uint y = TileY(tile);
+	int a = x + y;
+	int b = x - y;
+
+	return a >= a0 && a <= a1 && b >= b0 && b <= b1;
+}
+
+
 /*
  * There are two possibilities for a diagonal iterator: an "even" area or
  * an "odd" area, where even/odd is determined by the parity of the sum of
