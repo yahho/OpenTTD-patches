@@ -11,12 +11,13 @@
 
 #include "../../stdafx.h"
 
+#include <vector>
+
 #include "yapf.hpp"
 #include "yapf_node_rail.hpp"
 #include "../../viewport_func.h"
 #include "../../newgrf_station.h"
 #include "../../station_func.h"
-#include "../../misc/blob.hpp"
 #include "../../misc/array.hpp"
 #include "../../misc/hashtable.hpp"
 #include "../../map/slope.h"
@@ -142,8 +143,8 @@ protected:
 	 * @note maximum cost doesn't work with caching enabled
 	 * @todo fix maximum cost failing with caching (e.g. FS#2900)
 	 */
-	int           m_max_cost;
-	CBlobT<int>   m_sig_look_ahead_costs;
+	int                  m_max_cost;
+	std::vector<int>     m_sig_look_ahead_costs;
 
 	int                  m_stats_cost_calcs;   ///< stats - how many node's costs were calculated
 	int                  m_stats_cache_hits;   ///< stats - how many node's costs were reused from cache
@@ -190,6 +191,7 @@ protected:
 		, m_disable_cache(false)
 		, m_global_cache(stGetGlobalCache())
 		, m_max_cost(0)
+		, m_sig_look_ahead_costs(m_settings->rail_look_ahead_max_signals)
 		, m_stats_cost_calcs(0)
 		, m_stats_cache_hits(0)
 		, tf (v, allow_90deg, mask_reserved_tracks ? m_compatible_railtypes : v->compatible_railtypes)
@@ -199,9 +201,8 @@ protected:
 		int p0 = m_settings->rail_look_ahead_signal_p0;
 		int p1 = m_settings->rail_look_ahead_signal_p1;
 		int p2 = m_settings->rail_look_ahead_signal_p2;
-		int *pen = m_sig_look_ahead_costs.GrowSizeNC(m_settings->rail_look_ahead_max_signals);
 		for (uint i = 0; i < m_settings->rail_look_ahead_max_signals; i++) {
-			pen[i] = p0 + i * (p1 + i * p2);
+			m_sig_look_ahead_costs[i] = p0 + i * (p1 + i * p2);
 		}
 	}
 
@@ -215,7 +216,7 @@ public:
 	{
 		return !m_disable_cache
 			&& (n.m_parent != NULL)
-			&& (n.m_parent->m_num_signals_passed >= m_sig_look_ahead_costs.Size());
+			&& (n.m_parent->m_num_signals_passed >= m_sig_look_ahead_costs.size());
 	}
 
 protected:
@@ -396,7 +397,7 @@ public:
 	/** The cost for reserved tiles, including skipped ones. */
 	inline int ReservationCost(Node& n, const RailPathPos &pos, int skipped) const
 	{
-		if (n.m_num_signals_passed >= m_sig_look_ahead_costs.Size() / 2) return 0;
+		if (n.m_num_signals_passed >= m_sig_look_ahead_costs.size() / 2) return 0;
 		if (!IsPbsSignal(n.m_last_signal_type)) return 0;
 
 		if (!pos.in_wormhole() && IsRailStationTile(pos.tile) && IsAnyStationTileReserved(pos, skipped)) {
@@ -472,7 +473,7 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node& n, const RailPathPos &pos, N
 		n.m_last_signal_type = sig_type;
 
 		/* cache the look-ahead polynomial constant only if we didn't pass more signals than the look-ahead limit is */
-		int look_ahead_cost = (n.m_num_signals_passed < m_sig_look_ahead_costs.Size()) ? m_sig_look_ahead_costs.Data()[n.m_num_signals_passed] : 0;
+		int look_ahead_cost = (n.m_num_signals_passed < m_sig_look_ahead_costs.size()) ? m_sig_look_ahead_costs[n.m_num_signals_passed] : 0;
 		if (sig_state != SIGNAL_STATE_RED) {
 			/* green signal */
 			n.flags.reset (n.FLAG_LAST_SIGNAL_WAS_RED);
@@ -622,7 +623,7 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeTile (Node *n, const CFollowTrackR
 
 	/* Apply min/max speed penalties only when inside the look-ahead radius. Otherwise
 	 * it would cause desync in MP. */
-	if (n->m_num_signals_passed < m_sig_look_ahead_costs.Size())
+	if (n->m_num_signals_passed < m_sig_look_ahead_costs.size())
 	{
 		int min_speed = 0;
 		int max_speed = tf->GetSpeedLimit(&min_speed);
