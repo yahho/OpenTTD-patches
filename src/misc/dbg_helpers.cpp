@@ -129,7 +129,12 @@ void DumpTarget::WriteValue(const char *name, const char *value_str)
 void DumpTarget::WriteTile(const char *name, TileIndex tile)
 {
 	WriteIndent();
-	fprintf (f, "%s = 0x%04X (%d, %d)\n", name, tile, TileX(tile), TileY(tile));
+	fputs (name, f);
+	if (tile == INVALID_TILE) {
+		fputs (" = INVALID_TILE\n", f);
+	} else {
+		fprintf (f, " = 0x%04X (%d, %d)\n", tile, TileX(tile), TileY(tile));
+	}
 }
 
 /**
