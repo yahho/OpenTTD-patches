@@ -14,6 +14,7 @@
 
 #include <map>
 #include <stack>
+#include <string>
 
 #include "str.hpp"
 
@@ -127,12 +128,12 @@ struct DumpTarget {
 		}
 	};
 
-	typedef std::map<KnownStructKey, CStrA> KNOWN_NAMES;
+	typedef std::map<KnownStructKey, std::string> KNOWN_NAMES;
 
-	FILE              *f;             ///< the output file
-	int                m_indent;      ///< current indent/nesting level
-	std::stack<CStrA>  m_cur_struct;  ///< here we will track the current structure name
-	KNOWN_NAMES        m_known_names; ///< map of known object instances and their structured names
+	FILE                   *f;             ///< the output file
+	int                     m_indent;      ///< current indent/nesting level
+	std::stack<std::string> m_cur_struct;  ///< here we will track the current structure name
+	KNOWN_NAMES             m_known_names; ///< map of known object instances and their structured names
 
 	DumpTarget (const char *path)
 		: m_indent(0)
@@ -146,8 +147,8 @@ struct DumpTarget {
 	}
 
 	static size_t& LastTypeId();
-	CStrA GetCurrentStructName();
-	bool FindKnownName(size_t type_id, const void *ptr, CStrA &name);
+	std::string GetCurrentStructName();
+	bool FindKnownName(size_t type_id, const void *ptr, std::string &name);
 
 	void WriteIndent();
 
@@ -176,10 +177,10 @@ struct DumpTarget {
 			WriteLine("%s = <null>", name);
 			return;
 		}
-		CStrA known_as;
+		std::string known_as;
 		if (FindKnownName(type_id, s, known_as)) {
 			/* We already know this one, no need to dump it. */
-			WriteLine("%s = known_as.%s", name, known_as.Data());
+			WriteLine("%s = known_as.%s", name, known_as.c_str());
 		} else {
 			/* Still unknown, dump it */
 			BeginStruct(type_id, name, s);

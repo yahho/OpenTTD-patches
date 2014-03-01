@@ -66,21 +66,21 @@ void WriteValueStr(SignalType t, FILE *f)
 }
 
 /** Return structured name of the current class/structure. */
-CStrA DumpTarget::GetCurrentStructName()
+std::string DumpTarget::GetCurrentStructName()
 {
-	CStrA out;
+	std::string out;
 	if (!m_cur_struct.empty()) {
 		/* we are inside some named struct, return its name */
 		out = m_cur_struct.top();
 	}
-	return out.Transfer();
+	return out;
 }
 
 /**
  * Find the given instance in our anti-recursion repository.
  * Return true and set name when object was found.
  */
-bool DumpTarget::FindKnownName(size_t type_id, const void *ptr, CStrA &name)
+bool DumpTarget::FindKnownName(size_t type_id, const void *ptr, std::string &name)
 {
 	KNOWN_NAMES::const_iterator it = m_known_names.find(KnownStructKey(type_id, ptr));
 	if (it != m_known_names.end()) {
@@ -137,12 +137,12 @@ void DumpTarget::WriteTile(const char *name, TileIndex tile)
 void DumpTarget::BeginStruct(size_t type_id, const char *name, const void *ptr)
 {
 	/* make composite name */
-	CStrA cur_name = GetCurrentStructName().Transfer();
-	if (cur_name.Size() > 0) {
+	std::string cur_name = GetCurrentStructName();
+	if (cur_name.size() > 0) {
 		/* add name delimiter (we use structured names) */
-		cur_name.AppendStr(".");
+		cur_name.append(".");
 	}
-	cur_name.AppendStr(name);
+	cur_name.append(name);
 
 	/* put the name onto stack (as current struct name) */
 	m_cur_struct.push(cur_name);
