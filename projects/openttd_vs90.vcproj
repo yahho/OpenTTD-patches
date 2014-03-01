@@ -11680,10 +11680,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\misc\blob.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\misc\countedobj.cpp"
 				>
 				<FileConfiguration
@@ -11833,10 +11829,6 @@
 			</File>
 			<File
 				RelativePath=".\..\src\misc\hashtable.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\misc\str.hpp"
 				>
 			</File>
 		</Filter>

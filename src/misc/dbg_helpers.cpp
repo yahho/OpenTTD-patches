@@ -10,6 +10,7 @@
 /** @file dbg_helpers.cpp Helpers for outputting debug information. */
 
 #include "../stdafx.h"
+#include <stdarg.h>
 #include "dbg_helpers.h"
 
 /** Trackdir & TrackdirBits short names. */
@@ -162,6 +163,3 @@ void DumpTarget::EndStruct()
 	/* remove current struct name from the stack */
 	m_cur_struct.pop();
 }
-
-/** Just to silence an unsilencable GCC 4.4+ warning */
-/* static */ ByteBlob::BlobHeader ByteBlob::hdrEmpty[] = {{0, 0}, {0, 0}};

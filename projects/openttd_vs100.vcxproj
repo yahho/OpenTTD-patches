@@ -1963,7 +1963,6 @@
     <ClInclude Include="..\src\signal_map.h" />
     <ClInclude Include="..\src\misc\array.hpp" />
     <ClInclude Include="..\src\misc\binaryheap.hpp" />
-    <ClInclude Include="..\src\misc\blob.hpp" />
     <ClCompile Include="..\src\misc\countedobj.cpp">
       <AssemblerListingLocation>$(IntDir)\misc\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\misc\</ObjectFileName>
@@ -1984,7 +1983,6 @@
     </ClCompile>
     <ClInclude Include="..\src\misc\getoptdata.h" />
     <ClInclude Include="..\src\misc\hashtable.hpp" />
-    <ClInclude Include="..\src\misc\str.hpp" />
     <ClCompile Include="..\src\network\core\address.cpp">
       <AssemblerListingLocation>$(IntDir)\network\core\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\network\core\</ObjectFileName>

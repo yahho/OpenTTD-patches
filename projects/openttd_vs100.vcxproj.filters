@@ -2886,9 +2886,6 @@
     <ClInclude Include="..\src\misc\binaryheap.hpp">
       <Filter>Misc</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\misc\blob.hpp">
-      <Filter>Misc</Filter>
-    </ClInclude>
     <ClCompile Include="..\src\misc\countedobj.cpp">
       <Filter>Misc</Filter>
     </ClCompile>
@@ -2911,9 +2908,6 @@
       <Filter>Misc</Filter>
     </ClInclude>
     <ClInclude Include="..\src\misc\hashtable.hpp">
-      <Filter>Misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\misc\str.hpp">
       <Filter>Misc</Filter>
     </ClInclude>
     <ClCompile Include="..\src\network\core\address.cpp">
