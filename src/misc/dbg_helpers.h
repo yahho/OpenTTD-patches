@@ -122,14 +122,21 @@ struct DumpTarget {
 
 	typedef std::map<KnownStructKey, CStrA> KNOWN_NAMES;
 
-	CStrA              m_out;         ///< the output string
+	FILE              *f;             ///< the output file
 	int                m_indent;      ///< current indent/nesting level
 	std::stack<CStrA>  m_cur_struct;  ///< here we will track the current structure name
 	KNOWN_NAMES        m_known_names; ///< map of known object instances and their structured names
 
-	DumpTarget()
+	DumpTarget (const char *path)
 		: m_indent(0)
-	{}
+	{
+		f = fopen (path, "wt");
+	}
+
+	~DumpTarget()
+	{
+		fclose(f);
+	}
 
 	static size_t& LastTypeId();
 	CStrA GetCurrentStructName();

@@ -109,8 +109,9 @@ bool DumpTarget::FindKnownName(size_t type_id, const void *ptr, CStrA &name)
 void DumpTarget::WriteIndent()
 {
 	int num_spaces = 2 * m_indent;
-	if (num_spaces > 0) {
-		memset(m_out.GrowSizeNC(num_spaces), ' ', num_spaces);
+	while (num_spaces > 0) {
+		putc (' ', f);
+		num_spaces--;
 	}
 }
 
@@ -120,23 +121,23 @@ void DumpTarget::WriteLine(const char *format, ...)
 	WriteIndent();
 	va_list args;
 	va_start(args, format);
-	m_out.AddFormatL(format, args);
+	vfprintf (f, format, args);
 	va_end(args);
-	m_out.AppendStr("\n");
+	putc ('\n', f);
 }
 
 /** Write 'name = value' with indent and new-line. */
 void DumpTarget::WriteValue(const char *name, const char *value_str)
 {
 	WriteIndent();
-	m_out.AddFormat("%s = %s\n", name, value_str);
+	fprintf (f, "%s = %s\n", name, value_str);
 }
 
 /** Write name & TileIndex to the output. */
 void DumpTarget::WriteTile(const char *name, TileIndex tile)
 {
 	WriteIndent();
-	m_out.AddFormat("%s = %s\n", name, TileStr(tile).Data());
+	fprintf (f, "%s = %s\n", name, TileStr(tile).Data());
 }
 
 /**
@@ -159,7 +160,7 @@ void DumpTarget::BeginStruct(size_t type_id, const char *name, const void *ptr)
 	m_known_names.insert(KNOWN_NAMES::value_type(KnownStructKey(type_id, ptr), cur_name));
 
 	WriteIndent();
-	m_out.AddFormat("%s = {\n", name);
+	fprintf (f, "%s = {\n", name);
 	m_indent++;
 }
 
@@ -170,7 +171,7 @@ void DumpTarget::EndStruct()
 {
 	m_indent--;
 	WriteIndent();
-	m_out.AddFormat("}\n");
+	fputs ("}\n", f);
 
 	/* remove current struct name from the stack */
 	m_cur_struct.pop();
