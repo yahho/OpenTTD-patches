@@ -63,14 +63,6 @@ CStrA ValueStr(SignalType t)
 }
 
 
-/** Translate TileIndex into string. */
-CStrA TileStr(TileIndex tile)
-{
-	CStrA out;
-	out.Format("0x%04X (%d, %d)", tile, TileX(tile), TileY(tile));
-	return out.Transfer();
-}
-
 /**
  * Keep track of the last assigned type_id. Used for anti-recursion.
  *static*/ size_t& DumpTarget::LastTypeId()
@@ -137,7 +129,7 @@ void DumpTarget::WriteValue(const char *name, const char *value_str)
 void DumpTarget::WriteTile(const char *name, TileIndex tile)
 {
 	WriteIndent();
-	fprintf (f, "%s = %s\n", name, TileStr(tile).Data());
+	fprintf (f, "%s = 0x%04X (%d, %d)\n", name, tile, TileX(tile), TileY(tile));
 }
 
 /**
