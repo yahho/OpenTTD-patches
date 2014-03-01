@@ -148,7 +148,7 @@ struct DumpTarget {
 
 	static size_t& LastTypeId();
 	std::string GetCurrentStructName();
-	bool FindKnownName(size_t type_id, const void *ptr, std::string &name);
+	const std::string *FindKnownName(size_t type_id, const void *ptr);
 
 	void WriteIndent();
 
@@ -177,10 +177,10 @@ struct DumpTarget {
 			WriteLine("%s = <null>", name);
 			return;
 		}
-		std::string known_as;
-		if (FindKnownName(type_id, s, known_as)) {
+		const std::string *known_as = FindKnownName (type_id, s);
+		if (known_as != NULL) {
 			/* We already know this one, no need to dump it. */
-			WriteLine("%s = known_as.%s", name, known_as.c_str());
+			WriteLine("%s = known_as.%s", name, known_as->c_str());
 		} else {
 			/* Still unknown, dump it */
 			BeginStruct(type_id, name, s);

@@ -78,17 +78,12 @@ std::string DumpTarget::GetCurrentStructName()
 
 /**
  * Find the given instance in our anti-recursion repository.
- * Return true and set name when object was found.
+ * Return a pointer to the name if found, else NULL.
  */
-bool DumpTarget::FindKnownName(size_t type_id, const void *ptr, std::string &name)
+const std::string *DumpTarget::FindKnownName(size_t type_id, const void *ptr)
 {
 	KNOWN_NAMES::const_iterator it = m_known_names.find(KnownStructKey(type_id, ptr));
-	if (it != m_known_names.end()) {
-		/* we have found it */
-		name = (*it).second;
-		return true;
-	}
-	return false;
+	return it != m_known_names.end() ? &it->second : NULL;
 }
 
 /** Write some leading spaces into the output. */
