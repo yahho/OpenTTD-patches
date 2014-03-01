@@ -105,8 +105,8 @@ public:
 	~ThreadMutexLocker() { this->mutex->EndCritical(); }
 
 private:
-	ThreadMutexLocker(const ThreadMutexLocker &) { NOT_REACHED(); }
-	ThreadMutexLocker &operator=(const ThreadMutexLocker &) { NOT_REACHED(); return *this; }
+	ThreadMutexLocker(const ThreadMutexLocker &) DELETED;
+	ThreadMutexLocker &operator=(const ThreadMutexLocker &) DELETED;
 	ThreadMutex *mutex;
 };
 
