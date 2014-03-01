@@ -27,7 +27,9 @@ void WriteValueStr(Trackdir td, FILE *f)
 /** Write composed name of given TrackdirBits. */
 void WriteValueStr(TrackdirBits td_bits, FILE *f)
 {
-	fprintf (f, "%d (%s)", td_bits, ComposeNameT(td_bits, trackdir_names, "UNK", INVALID_TRACKDIR_BIT, "INV").Data());
+	fprintf (f, "%d (", td_bits);
+	ComposeNameT (f, td_bits, trackdir_names, "UNK", INVALID_TRACKDIR_BIT, "INV");
+	putc (')', f);
 }
 
 

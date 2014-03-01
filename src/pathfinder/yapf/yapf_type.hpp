@@ -12,8 +12,6 @@
 #ifndef YAPF_TYPE_HPP
 #define YAPF_TYPE_HPP
 
-#include "../../misc/str.hpp"
-
 /* Enum used in PfCalcCost() to see why was the segment closed. */
 enum EndSegmentReason {
 	/* The following reasons can be saved into cached segment */
@@ -78,7 +76,9 @@ inline void WriteValueStr(EndSegmentReasonBits bits, FILE *f)
 		"PATH_TOO_LONG", "FIRST_TWO_WAY_RED", "LOOK_AHEAD_END", "TARGET_REACHED"
 	};
 
-	fprintf (f, "0x%04X (%s)", bits, ComposeNameT(bits, end_segment_reason_names, "UNK", ESRB_NONE, "NONE").Data());
+	fprintf (f, "0x%04X (", bits);
+	ComposeNameT (f, bits, end_segment_reason_names, "UNK", ESRB_NONE, "NONE");
+	putc (')', f);
 }
 
 #endif /* YAPF_TYPE_HPP */

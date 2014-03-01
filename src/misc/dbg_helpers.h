@@ -69,22 +69,29 @@ inline typename ArrayT<T>::item_t ItemAtT(E idx, const T &t, typename ArrayT<T>:
  * or t_unk when index is out of bounds.
  */
 template <typename E, typename T>
-inline CStrA ComposeNameT(E value, T &t, const char *t_unk, E val_inv, const char *name_inv)
+inline void ComposeNameT(FILE *f, E value, const T &t, const char *t_unk, E val_inv, const char *name_inv)
 {
-	CStrA out;
 	if (value == val_inv) {
-		out = name_inv;
+		fputs (name_inv, f);
 	} else if (value == 0) {
-		out = "<none>";
+		fputs ("<none>", f);
 	} else {
+		bool join = false;
 		for (size_t i = 0; i < ArrayT<T>::length; i++) {
 			if ((value & (1 << i)) == 0) continue;
-			out.AddFormat("%s%s", (out.Size() > 0 ? "+" : ""), (const char*)t[i]);
+			if (join) {
+				putc ('+', f);
+			} else {
+				join = true;
+			}
+			fputs ((const char*)t[i], f);
 			value &= ~(E)(1 << i);
 		}
-		if (value != 0) out.AddFormat("%s%s", (out.Size() > 0 ? "+" : ""), t_unk);
+		if (value != 0) {
+			if (join) putc ('+', f);
+			fputs (t_unk, f);
+		}
 	}
-	return out.Transfer();
 }
 
 void WriteValueStr(Trackdir td, FILE *f);
