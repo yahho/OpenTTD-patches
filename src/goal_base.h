@@ -16,11 +16,8 @@
 #include "goal_type.h"
 #include "core/pool_type.hpp"
 
-typedef Pool<Goal, GoalID, 64, 64000> GoalPool;
-extern GoalPool _goal_pool;
-
 /** Struct about goals, current and completed */
-struct Goal : GoalPool::PoolItem<&_goal_pool> {
+struct Goal : PooledItem <Goal, GoalID, 64, 64000> {
 	CompanyByte company; ///< Goal is for a specific company; INVALID_COMPANY if it is global
 	GoalTypeByte type;   ///< Type of the goal
 	GoalTypeID dst;      ///< Index of type

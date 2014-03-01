@@ -62,11 +62,9 @@ struct ResolverObject;
 /* SPRITE_WIDTH is 24. ECS has roughly 30 sprite groups per real sprite.
  * Adding an 'extra' margin would be assuming 64 sprite groups per real
  * sprite. 64 = 2^6, so 2^30 should be enough (for now) */
-typedef Pool<SpriteGroup, SpriteGroupID, 1024, 1 << 30, PT_DATA> SpriteGroupPool;
-extern SpriteGroupPool _spritegroup_pool;
 
 /* Common wrapper for all the different sprite group types */
-struct SpriteGroup : SpriteGroupPool::PoolItem<&_spritegroup_pool> {
+struct SpriteGroup : PooledItem <SpriteGroup, SpriteGroupID, 1024, 1 << 30, PT_DATA> {
 protected:
 	SpriteGroup(SpriteGroupType type) : type(type) {}
 	/** Base sprite group resolver */

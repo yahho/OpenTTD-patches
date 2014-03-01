@@ -18,9 +18,6 @@
 #include "map/tilearea.h"
 
 
-typedef Pool<Industry, IndustryID, 64, 64000> IndustryPool;
-extern IndustryPool _industry_pool;
-
 /**
  * Production level maximum, minimum and default values.
  * It is not a value been really used in order to change, but rather an indicator
@@ -36,7 +33,7 @@ enum ProductionLevels {
 /**
  * Defines the internal data of a functional industry.
  */
-struct Industry : IndustryPool::PoolItem<&_industry_pool> {
+struct Industry : PooledItem <Industry, IndustryID, 64, 64000> {
 	TileArea location;                  ///< Location of the industry
 	Town *town;                         ///< Nearest town
 	CargoID produced_cargo[2];          ///< 2 production cargo slots

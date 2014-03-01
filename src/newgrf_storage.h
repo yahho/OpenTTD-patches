@@ -196,15 +196,10 @@ typedef PersistentStorageArray<int32, 16> OldPersistentStorage;
 
 typedef uint32 PersistentStorageID;
 
-struct PersistentStorage;
-typedef Pool<PersistentStorage, PersistentStorageID, 1, 0xFF000> PersistentStoragePool;
-
-extern PersistentStoragePool _persistent_storage_pool;
-
 /**
  * Class for pooled persistent storage of data.
  */
-struct PersistentStorage : PersistentStorageArray<int32, 16>, PersistentStoragePool::PoolItem<&_persistent_storage_pool> {
+struct PersistentStorage : PersistentStorageArray<int32, 16>, PooledItem <PersistentStorage, PersistentStorageID, 1, 0xFF000> {
 	/** We don't want GCC to zero our struct! It already is zeroed and has an index! */
 	PersistentStorage(const uint32 new_grfid, byte feature, TileIndex tile)
 	{

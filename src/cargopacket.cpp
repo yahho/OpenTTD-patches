@@ -18,7 +18,7 @@
 #include "order_type.h"
 
 /* Initialize the cargopacket-pool */
-CargoPacketPool _cargopacket_pool("CargoPacket");
+template<> CargoPacket::Pool CargoPacket::PoolItem::pool ("CargoPacket");
 INSTANTIATE_POOL_METHODS(CargoPacket)
 
 /**

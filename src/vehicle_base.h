@@ -114,10 +114,6 @@ struct VehicleCache {
 	byte cached_vis_effect;  ///< Visual effect to show (see #VisualEffect)
 };
 
-/** A vehicle pool for a little over 1 million vehicles. */
-typedef Pool<Vehicle, VehicleID, 512, 0xFF000> VehiclePool;
-extern VehiclePool _vehicle_pool;
-
 /* Some declarations of functions, so we can make them friendly */
 struct SaveLoad;
 struct GroundVehicleCache;
@@ -148,7 +144,7 @@ struct VehicleHashLink {
 };
 
 /** %Vehicle data structure. */
-struct Vehicle : VehiclePool::PoolItem<&_vehicle_pool>, BaseVehicle, BaseConsist {
+struct Vehicle : PooledItem <Vehicle, VehicleID, 512, 0xFF000>, BaseVehicle, BaseConsist {
 private:
 	typedef std::list<RefitDesc> RefitList;
 	typedef std::map<CargoID, uint> CapacitiesMap;

@@ -18,11 +18,8 @@
 #include "town_type.h"
 #include "date_type.h"
 
-typedef Pool<Object, ObjectID, 64, 0xFF0000> ObjectPool;
-extern ObjectPool _object_pool;
-
 /** An object, such as transmitter, on the map. */
-struct Object : ObjectPool::PoolItem<&_object_pool> {
+struct Object : PooledItem <Object, ObjectID, 64, 0xFF0000> {
 	ObjectType type;    ///< Type of the object
 	Town *town;         ///< Town the object is built in
 	TileArea location;  ///< Location of the object

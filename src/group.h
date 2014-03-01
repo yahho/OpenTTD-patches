@@ -18,9 +18,6 @@
 #include "vehicle_type.h"
 #include "engine_type.h"
 
-typedef Pool<Group, GroupID, 16, 64000> GroupPool;
-extern GroupPool _group_pool; ///< Pool of groups.
-
 /** Statistics and caches on the vehicles in a group. */
 struct GroupStatistics {
 	uint16 num_vehicle;                     ///< Number of vehicles.
@@ -63,7 +60,7 @@ struct GroupStatistics {
 };
 
 /** Group data. */
-struct Group : GroupPool::PoolItem<&_group_pool> {
+struct Group : PooledItem <Group, GroupID, 16, 64000> {
 	char *name;                             ///< Group Name
 	OwnerByte owner;                        ///< Group Owner
 	VehicleTypeByte vehicle_type;           ///< Vehicle type of the group

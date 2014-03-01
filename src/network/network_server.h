@@ -21,12 +21,9 @@
 class ServerNetworkGameSocketHandler;
 /** Make the code look slightly nicer/simpler. */
 typedef ServerNetworkGameSocketHandler NetworkClientSocket;
-/** Pool with all client sockets. */
-typedef Pool<NetworkClientSocket, ClientIndex, 8, MAX_CLIENT_SLOTS, PT_NCLIENT> NetworkClientSocketPool;
-extern NetworkClientSocketPool _networkclientsocket_pool;
 
 /** Class for handling the server side of the game connection. */
-class ServerNetworkGameSocketHandler : public NetworkClientSocketPool::PoolItem<&_networkclientsocket_pool>, public NetworkGameSocketHandler, public TCPListenHandler<ServerNetworkGameSocketHandler, PACKET_SERVER_FULL, PACKET_SERVER_BANNED> {
+class ServerNetworkGameSocketHandler : public PooledItem <NetworkClientSocket, ClientIndex, 8, MAX_CLIENT_SLOTS, PT_NCLIENT>, public NetworkGameSocketHandler, public TCPListenHandler<ServerNetworkGameSocketHandler, PACKET_SERVER_FULL, PACKET_SERVER_BANNED> {
 protected:
 	virtual NetworkRecvStatus Receive_CLIENT_JOIN(Packet *p);
 	virtual NetworkRecvStatus Receive_CLIENT_COMPANY_INFO(Packet *p);

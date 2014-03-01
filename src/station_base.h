@@ -21,9 +21,6 @@
 #include "newgrf_storage.h"
 #include <map>
 
-typedef Pool<BaseStation, StationID, 32, 64000> StationPool;
-extern StationPool _station_pool;
-
 static const byte INITIAL_STATION_RATING = 175;
 
 /**
@@ -294,12 +291,8 @@ struct GoodsEntry {
 	}
 };
 
-struct Dock;
-typedef Pool<Dock, DockID, 32, 64000> DockPool;
-extern DockPool _dock_pool;
-
 /** A Dock */
-struct Dock : DockPool::PoolItem<&_dock_pool> {
+struct Dock : PooledItem <Dock, DockID, 32, 64000> {
 	TileIndex    xy;    ///< Position on the map
 	struct Dock *next;  ///< Next dock at this station
 

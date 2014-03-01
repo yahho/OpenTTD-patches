@@ -47,7 +47,7 @@ CompanyManagerFace _company_manager_face; ///< for company manager face storage 
 uint _next_competitor_start;              ///< the number of ticks before the next AI is started
 uint _cur_company_tick_index;             ///< used to generate a name for one company that doesn't have a name yet per tick
 
-CompanyPool _company_pool("Company"); ///< Pool of companies.
+template<> Company::Pool Company::PoolItem::pool ("Company");
 INSTANTIATE_POOL_METHODS(Company)
 
 /**

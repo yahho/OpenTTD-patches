@@ -27,7 +27,7 @@
 
 #include "table/strings.h"
 
-SubsidyPool _subsidy_pool("Subsidy"); ///< Pool for the subsidies.
+template<> Subsidy::Pool Subsidy::PoolItem::pool ("Subsidy");
 INSTANTIATE_POOL_METHODS(Subsidy)
 
 /**

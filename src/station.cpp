@@ -31,7 +31,7 @@
 #include "table/strings.h"
 
 /** The pool of stations. */
-StationPool _station_pool("Station");
+template<> BaseStation::Pool BaseStation::PoolItem::pool ("Station");
 INSTANTIATE_POOL_METHODS(Station)
 
 typedef StationIDStack::SmallStackPool StationIDStackPool;
@@ -553,7 +553,7 @@ StationRect& StationRect::operator = (const Rect &src)
 }
 
 /** The pool of docks. */
-DockPool _dock_pool("Dock");
+template<> Dock::Pool Dock::PoolItem::pool ("Dock");
 INSTANTIATE_POOL_METHODS(Dock)
 
 /**

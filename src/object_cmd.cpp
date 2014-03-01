@@ -39,7 +39,7 @@
 #include "table/strings.h"
 #include "table/object_land.h"
 
-ObjectPool _object_pool("Object");
+template<> Object::Pool Object::PoolItem::pool ("Object");
 INSTANTIATE_POOL_METHODS(Object)
 uint16 Object::counts[NUM_OBJECTS];
 

@@ -17,11 +17,8 @@
 #include "subsidy_type.h"
 #include "core/pool_type.hpp"
 
-typedef Pool<Subsidy, SubsidyID, 1, 256> SubsidyPool;
-extern SubsidyPool _subsidy_pool;
-
 /** Struct about subsidies, offered and awarded */
-struct Subsidy : SubsidyPool::PoolItem<&_subsidy_pool> {
+struct Subsidy : PooledItem <Subsidy, SubsidyID, 1, 256> {
 	CargoID cargo_type;      ///< Cargo type involved in this subsidy, CT_INVALID for invalid subsidy
 	byte remaining;          ///< Remaining months when this subsidy is valid
 	CompanyByte awarded;     ///< Subsidy is awarded to this company; INVALID_COMPANY if it's not awarded to anyone

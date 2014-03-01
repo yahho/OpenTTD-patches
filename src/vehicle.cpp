@@ -62,7 +62,7 @@ uint16 _returned_mail_refit_capacity; ///< Stores the mail capacity after a refi
 
 
 /** The pool with all our precious vehicles. */
-VehiclePool _vehicle_pool("Vehicle");
+template<> Vehicle::Pool Vehicle::PoolItem::pool ("Vehicle");
 INSTANTIATE_POOL_METHODS(Vehicle)
 
 /**

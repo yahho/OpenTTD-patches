@@ -45,7 +45,7 @@
 #include "table/industry_land.h"
 #include "table/build_industry.h"
 
-IndustryPool _industry_pool("Industry");
+template<> Industry::Pool Industry::PoolItem::pool ("Industry");
 INSTANTIATE_POOL_METHODS(Industry)
 
 void ShowIndustryViewWindow(int industry);
@@ -1975,7 +1975,7 @@ static uint GetNumberOfIndustries()
 
 	assert(lengthof(numof_industry_table) == ID_END);
 	uint difficulty = (_game_mode != GM_EDITOR) ? _settings_game.difficulty.industry_density : (uint)ID_VERY_LOW;
-	return min(IndustryPool::MAX_SIZE, ScaleByMapSize(numof_industry_table[difficulty]));
+	return min(Industry::Pool::MAX_SIZE, ScaleByMapSize(numof_industry_table[difficulty]));
 }
 
 /**

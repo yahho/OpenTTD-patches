@@ -17,11 +17,8 @@
 #include "core/bitmath_func.hpp"
 #include "vehicle_type.h"
 
-typedef Pool<RoadStop, RoadStopID, 32, 64000> RoadStopPool;
-extern RoadStopPool _roadstop_pool;
-
 /** A Stop for a Road Vehicle */
-struct RoadStop : RoadStopPool::PoolItem<&_roadstop_pool> {
+struct RoadStop : PooledItem <RoadStop, RoadStopID, 32, 64000> {
 	enum RoadStopStatusFlags {
 		RSSFB_BAY0_FREE  = 0, ///< Non-zero when bay 0 is free
 		RSSFB_BAY1_FREE  = 1, ///< Non-zero when bay 1 is free

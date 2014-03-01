@@ -290,7 +290,7 @@ void Load_BKOR(LoadBuffer *reader)
 	 * a previously saved-by-server savegame. There are
 	 * no clients with a backup anymore, so clear it. */
 	if (!_networking || _network_server) {
-		_order_backup_pool.CleanPool();
+		OrderBackup::pool.CleanPool();
 	}
 }
 

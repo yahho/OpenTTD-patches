@@ -38,9 +38,6 @@ static const uint TOWN_GROWTH_DESERT = 0xFFFFFFFF; ///< The town needs the cargo
 static const uint16 TOWN_GROW_RATE_CUSTOM      = 0x8000; ///< If this mask is applied to Town::growth_rate, the grow_counter will not be calculated by the system (but assumed to be set by scripts)
 static const uint16 TOWN_GROW_RATE_CUSTOM_NONE = 0xFFFF; ///< Special value for Town::growth_rate to disable town growth.
 
-typedef Pool<Town, TownID, 64, 64000> TownPool;
-extern TownPool _town_pool;
-
 /** Data structure with cached data of towns. */
 struct TownCache {
 	uint32 num_houses;                        ///< Amount of houses
@@ -52,7 +49,7 @@ struct TownCache {
 };
 
 /** Town data structure. */
-struct Town : TownPool::PoolItem<&_town_pool> {
+struct Town : PooledItem <Town, TownID, 64, 64000> {
 	TileIndex xy;                  ///< town center tile
 
 	TownCache cache; ///< Container for all cacheable data.

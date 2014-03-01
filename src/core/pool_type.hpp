@@ -68,6 +68,10 @@ private:
 	PoolBase(const PoolBase &other);
 };
 
+/* Forward declaration of PooledItem. */
+template <class Titem, typename Tindex, size_t Tgrowth_step, size_t Tmax_size, PoolType Tpool_type, bool Tcache, bool Tzero>
+struct PooledItem;
+
 /**
  * Base class for all pools.
  * @tparam Titem        Type of the class/struct that is going to be pooled
@@ -138,156 +142,6 @@ struct Pool : PoolBase {
 		return ret;
 	}
 
-	/**
-	 * Base class for all PoolItems
-	 * @tparam Tpool The pool this item is going to be part of
-	 */
-	template <struct Pool<Titem, Tindex, Tgrowth_step, Tmax_size, Tpool_type, Tcache, Tzero> *Tpool>
-	struct PoolItem {
-		Tindex index; ///< Index of this pool item
-
-		/**
-		 * Allocates space for new Titem
-		 * @param size size of Titem
-		 * @return pointer to allocated memory
-		 * @note can never fail (return NULL), use CanAllocate() to check first!
-		 */
-		inline void *operator new(size_t size)
-		{
-			return Tpool->GetNew(size);
-		}
-
-		/**
-		 * Marks Titem as free. Its memory is released
-		 * @param p memory to free
-		 * @note the item has to be allocated in the pool!
-		 */
-		inline void operator delete(void *p)
-		{
-			if (p == NULL) return;
-			Titem *pn = (Titem *)p;
-			assert(pn == Tpool->Get(pn->index));
-			Tpool->FreeItem(pn->index);
-		}
-
-		/**
-		 * Allocates space for new Titem with given index
-		 * @param size size of Titem
-		 * @param index index of item
-		 * @return pointer to allocated memory
-		 * @note can never fail (return NULL), use CanAllocate() to check first!
-		 * @pre index has to be unused! Else it will crash
-		 */
-		inline void *operator new(size_t size, size_t index)
-		{
-			return Tpool->GetNew(size, index);
-		}
-
-		/**
-		 * Allocates space for new Titem at given memory address
-		 * @param size size of Titem
-		 * @param ptr where are we allocating the item?
-		 * @return pointer to allocated memory (== ptr)
-		 * @note use of this is strongly discouraged
-		 * @pre the memory must not be allocated in the Pool!
-		 */
-		inline void *operator new(size_t size, void *ptr)
-		{
-			for (size_t i = 0; i < Tpool->first_unused; i++) {
-				/* Don't allow creating new objects over existing.
-				 * Even if we called the destructor and reused this memory,
-				 * we don't know whether 'size' and size of currently allocated
-				 * memory are the same (because of possible inheritance).
-				 * Use { size_t index = item->index; delete item; new (index) item; }
-				 * instead to make sure destructor is called and no memory leaks. */
-				assert(ptr != Tpool->data[i]);
-			}
-			return ptr;
-		}
-
-
-		/** Helper functions so we can use PoolItem::Function() instead of _poolitem_pool.Function() */
-
-		/**
-		 * Tests whether we can allocate 'n' items
-		 * @param n number of items we want to allocate
-		 * @return true if 'n' items can be allocated
-		 */
-		static inline bool CanAllocateItem(size_t n = 1)
-		{
-			return Tpool->CanAllocate(n);
-		}
-
-		/**
-		 * Returns current state of pool cleaning - yes or no
-		 * @return true iff we are cleaning the pool now
-		 */
-		static inline bool CleaningPool()
-		{
-			return Tpool->cleaning;
-		}
-
-		/**
-		 * Tests whether given index can be used to get valid (non-NULL) Titem
-		 * @param index index to examine
-		 * @return true if PoolItem::Get(index) will return non-NULL pointer
-		 */
-		static inline bool IsValidID(size_t index)
-		{
-			return Tpool->IsValidID(index);
-		}
-
-		/**
-		 * Returns Titem with given index
-		 * @param index of item to get
-		 * @return pointer to Titem
-		 * @pre index < this->first_unused
-		 */
-		static inline Titem *Get(size_t index)
-		{
-			return Tpool->Get(index);
-		}
-
-		/**
-		 * Returns Titem with given index
-		 * @param index of item to get
-		 * @return pointer to Titem
-		 * @note returns NULL for invalid index
-		 */
-		static inline Titem *GetIfValid(size_t index)
-		{
-			return index < Tpool->first_unused ? Tpool->Get(index) : NULL;
-		}
-
-		/**
-		 * Returns first unused index. Useful when iterating over
-		 * all pool items.
-		 * @return first unused index
-		 */
-		static inline size_t GetPoolSize()
-		{
-			return Tpool->first_unused;
-		}
-
-		/**
-		 * Returns number of valid items in the pool
-		 * @return number of valid items in the pool
-		 */
-		static inline size_t GetNumItems()
-		{
-			return Tpool->items;
-		}
-
-		/**
-		 * Dummy function called after destructor of each member.
-		 * If you want to use it, override it in PoolItem's subclass.
-		 * @param index index of deleted item
-		 * @note when this function is called, PoolItem::Get(index) == NULL.
-		 * @note it's called only when !CleaningPool()
-		 */
-		static inline void PostDestructor(size_t index) { }
-	};
-
 private:
 	static const size_t NO_FREE_ITEM = MAX_UVALUE(size_t); ///< Constant to indicate we can't allocate any more items
 
@@ -311,6 +165,8 @@ private:
 	void *GetNew(size_t size, size_t index);
 
 	void FreeItem(size_t index);
+
+	friend struct PooledItem <Titem, Tindex, Tgrowth_step, Tmax_size, Tpool_type, Tcache, Tzero>;
 };
 
 #define FOR_ALL_ITEMS_FROM(type, iter, var, start) \
@@ -318,5 +174,167 @@ private:
 		if ((var = type::Get(iter)) != NULL)
 
 #define FOR_ALL_ITEMS(type, iter, var) FOR_ALL_ITEMS_FROM(type, iter, var, 0)
+
+/**
+ * Base class for all pooled items
+ * @tparam Titem        Type of the class/struct that is going to be pooled
+ * @tparam Tindex       Type of the index for this pool
+ * @tparam Tgrowth_step Size of growths; if the pool is full increase the size by this amount
+ * @tparam Tmax_size    Maximum size of the pool
+ * @tparam Tpool_type   Type of this pool
+ * @tparam Tcache       Whether to perform 'alloc' caching, i.e. don't actually free/malloc just reuse the memory
+ * @tparam Tzero        Whether to zero the memory
+ * @warning when Tcache is enabled *all* instances of this pool's item must be of the same size.
+ */
+template <class Titem, typename Tindex, size_t Tgrowth_step, size_t Tmax_size, PoolType Tpool_type = PT_NORMAL, bool Tcache = false, bool Tzero = true>
+struct PooledItem {
+	typedef PooledItem PoolItem;
+	typedef ::Pool <Titem, Tindex, Tgrowth_step, Tmax_size, Tpool_type, Tcache, Tzero> Pool;
+
+	static Pool pool;
+
+	Tindex index; ///< Index of this pool item
+
+	/**
+	 * Allocates space for new Titem
+	 * @param size size of Titem
+	 * @return pointer to allocated memory
+	 * @note can never fail (return NULL), use CanAllocate() to check first!
+	 */
+	inline void *operator new(size_t size)
+	{
+		return pool.GetNew(size);
+	}
+
+	/**
+	 * Marks Titem as free. Its memory is released
+	 * @param p memory to free
+	 * @note the item has to be allocated in the pool!
+	 */
+	inline void operator delete(void *p)
+	{
+		if (p == NULL) return;
+		Titem *pn = (Titem *)p;
+		assert(pn == pool.Get(pn->index));
+		pool.FreeItem(pn->index);
+	}
+
+	/**
+	 * Allocates space for new Titem with given index
+	 * @param size size of Titem
+	 * @param index index of item
+	 * @return pointer to allocated memory
+	 * @note can never fail (return NULL), use CanAllocate() to check first!
+	 * @pre index has to be unused! Else it will crash
+	 */
+	inline void *operator new(size_t size, size_t index)
+	{
+		return pool.GetNew(size, index);
+	}
+
+	/**
+	 * Allocates space for new Titem at given memory address
+	 * @param size size of Titem
+	 * @param ptr where are we allocating the item?
+	 * @return pointer to allocated memory (== ptr)
+	 * @note use of this is strongly discouraged
+	 * @pre the memory must not be allocated in the Pool!
+	 */
+	inline void *operator new(size_t size, void *ptr)
+	{
+		for (size_t i = 0; i < pool.first_unused; i++) {
+			/* Don't allow creating new objects over existing.
+			 * Even if we called the destructor and reused this memory,
+			 * we don't know whether 'size' and size of currently allocated
+			 * memory are the same (because of possible inheritance).
+			 * Use { size_t index = item->index; delete item; new (index) item; }
+			 * instead to make sure destructor is called and no memory leaks. */
+			assert(ptr != pool.data[i]);
+		}
+		return ptr;
+	}
+
+
+	/** Helper functions so we can use PooledItem::Function() instead of PooledItem::pool.Function() */
+
+	/**
+	 * Tests whether we can allocate 'n' items
+	 * @param n number of items we want to allocate
+	 * @return true if 'n' items can be allocated
+	 */
+	static inline bool CanAllocateItem(size_t n = 1)
+	{
+		return pool.CanAllocate(n);
+	}
+
+	/**
+	 * Returns current state of pool cleaning - yes or no
+	 * @return true iff we are cleaning the pool now
+	 */
+	static inline bool CleaningPool()
+	{
+		return pool.cleaning;
+	}
+
+	/**
+	 * Tests whether given index can be used to get valid (non-NULL) Titem
+	 * @param index index to examine
+	 * @return true if PooledItem::Get(index) will return non-NULL pointer
+	 */
+	static inline bool IsValidID(size_t index)
+	{
+		return pool.IsValidID(index);
+	}
+
+	/**
+	 * Returns Titem with given index
+	 * @param index of item to get
+	 * @return pointer to Titem
+	 * @pre index < this->first_unused
+	 */
+	static inline Titem *Get(size_t index)
+	{
+		return pool.Get(index);
+	}
+
+	/**
+	 * Returns Titem with given index
+	 * @param index of item to get
+	 * @return pointer to Titem
+	 * @note returns NULL for invalid index
+	 */
+	static inline Titem *GetIfValid(size_t index)
+	{
+		return index < pool.first_unused ? pool.Get(index) : NULL;
+	}
+
+	/**
+	 * Returns first unused index. Useful when iterating over
+	 * all pool items.
+	 * @return first unused index
+	 */
+	static inline size_t GetPoolSize()
+	{
+		return pool.first_unused;
+	}
+
+	/**
+	 * Returns number of valid items in the pool
+	 * @return number of valid items in the pool
+	 */
+	static inline size_t GetNumItems()
+	{
+		return pool.items;
+	}
+
+	/**
+	 * Dummy function called after destructor of each member.
+	 * If you want to use it, override it in PooledItem's subclass.
+	 * @param index index of deleted item
+	 * @note when this function is called, PooledItem::Get(index) == NULL.
+	 * @note it's called only when !CleaningPool()
+	 */
+	static inline void PostDestructor(size_t index) { }
+};
 
 #endif /* POOL_TYPE_HPP */

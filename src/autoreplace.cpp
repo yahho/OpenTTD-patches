@@ -16,7 +16,7 @@
 #include "core/pool_func.hpp"
 
 /** The pool of autoreplace "orders". */
-EngineRenewPool _enginerenew_pool("EngineRenew");
+template<> EngineRenew::Pool EngineRenew::PoolItem::pool ("EngineRenew");
 INSTANTIATE_POOL_METHODS(EngineRenew)
 
 /**

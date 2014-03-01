@@ -26,11 +26,6 @@
 typedef uint32 CargoPacketID;
 struct CargoPacket;
 
-/** Type of the pool for cargo packets for a little over 16 million packets. */
-typedef Pool<CargoPacket, CargoPacketID, 1024, 0xFFF000, PT_NORMAL, true, false> CargoPacketPool;
-/** The actual pool with cargo packets. */
-extern CargoPacketPool _cargopacket_pool;
-
 struct GoodsEntry; // forward-declare for Stage() and RerouteStalePackets()
 
 template <class Tinst, class Tcont> class CargoList;
@@ -42,7 +37,7 @@ typedef uint32 TileOrStationID;
 /**
  * Container for cargo from the same location and time.
  */
-struct CargoPacket : CargoPacketPool::PoolItem<&_cargopacket_pool> {
+struct CargoPacket : PooledItem <CargoPacket, CargoPacketID, 1024, 0xFFF000, PT_NORMAL, true, false> {
 private:
 	Money feeder_share;         ///< Value of feeder pickup to be paid for on delivery of cargo.
 	uint16 count;               ///< The amount of cargo in this packet.

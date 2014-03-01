@@ -16,7 +16,7 @@
 #include "../station_func.h"
 
 /* Initialize the link-graph-job-pool */
-LinkGraphJobPool _link_graph_job_pool("LinkGraphJob");
+template<> LinkGraphJob::Pool LinkGraphJob::PoolItem::pool ("LinkGraphJob");
 INSTANTIATE_POOL_METHODS(LinkGraphJob)
 
 /**

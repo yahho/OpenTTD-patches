@@ -20,13 +20,8 @@
 
 extern AdminIndex _redirect_console_to_admin;
 
-class ServerNetworkAdminSocketHandler;
-/** Pool with all admin connections. */
-typedef Pool<ServerNetworkAdminSocketHandler, AdminIndex, 2, MAX_ADMINS, PT_NADMIN> NetworkAdminSocketPool;
-extern NetworkAdminSocketPool _networkadminsocket_pool;
-
 /** Class for handling the server side of the game connection. */
-class ServerNetworkAdminSocketHandler : public NetworkAdminSocketPool::PoolItem<&_networkadminsocket_pool>, public NetworkAdminSocketHandler, public TCPListenHandler<ServerNetworkAdminSocketHandler, ADMIN_PACKET_SERVER_FULL, ADMIN_PACKET_SERVER_BANNED> {
+class ServerNetworkAdminSocketHandler : public PooledItem <ServerNetworkAdminSocketHandler, AdminIndex, 2, MAX_ADMINS, PT_NADMIN>, public NetworkAdminSocketHandler, public TCPListenHandler<ServerNetworkAdminSocketHandler, ADMIN_PACKET_SERVER_FULL, ADMIN_PACKET_SERVER_BANNED> {
 protected:
 	virtual NetworkRecvStatus Receive_ADMIN_JOIN(Packet *p);
 	virtual NetworkRecvStatus Receive_ADMIN_QUIT(Packet *p);

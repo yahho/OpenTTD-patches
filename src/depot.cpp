@@ -19,7 +19,7 @@
 #include "vehiclelist.h"
 
 /** All our depots tucked away in a pool. */
-DepotPool _depot_pool("Depot");
+template<> Depot::Pool Depot::PoolItem::pool ("Depot");
 INSTANTIATE_POOL_METHODS(Depot)
 
 /**

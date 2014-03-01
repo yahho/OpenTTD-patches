@@ -17,10 +17,7 @@
 #include "core/pool_type.hpp"
 #include "company_type.h"
 
-typedef Pool<Sign, SignID, 16, 64000> SignPool;
-extern SignPool _sign_pool;
-
-struct Sign : SignPool::PoolItem<&_sign_pool> {
+struct Sign : PooledItem <Sign, SignID, 16, 64000> {
 	char *name;
 	ViewportSign sign;
 	int32        x;

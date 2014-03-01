@@ -19,7 +19,7 @@
 #include "window_func.h"
 #include "station_func.h"
 
-OrderBackupPool _order_backup_pool("BackupOrder");
+template<> OrderBackup::Pool OrderBackup::PoolItem::pool ("BackupOrder");
 INSTANTIATE_POOL_METHODS(OrderBackup)
 
 /** Free everything that is allocated. */

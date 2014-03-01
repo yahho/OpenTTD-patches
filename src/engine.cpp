@@ -35,7 +35,7 @@
 #include "table/strings.h"
 #include "table/engines.h"
 
-EnginePool _engine_pool("Engine");
+template<> Engine::Pool Engine::PoolItem::pool ("Engine");
 INSTANTIATE_POOL_METHODS(Engine)
 
 EngineOverrideManager _engine_mngr;
@@ -528,7 +528,7 @@ bool EngineOverrideManager::ResetToCurrentNewGRFConfig()
 void SetupEngines()
 {
 	DeleteWindowByClass(WC_ENGINE_PREVIEW);
-	_engine_pool.CleanPool();
+	Engine::pool.CleanPool();
 
 	assert(_engine_mngr.Length() >= _engine_mngr.NUM_DEFAULT_ENGINES);
 	const EngineIDMapping *end = _engine_mngr.End();

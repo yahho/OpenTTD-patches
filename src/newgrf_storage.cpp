@@ -16,7 +16,7 @@
 #include "debug.h"
 #include <set>
 
-PersistentStoragePool _persistent_storage_pool("PersistentStorage");
+template<> PersistentStorage::Pool PersistentStorage::PoolItem::pool ("PersistentStorage");
 INSTANTIATE_POOL_METHODS(PersistentStorage)
 
 /** The changed storage arrays */

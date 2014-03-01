@@ -117,8 +117,8 @@ protected:
 	 */
 	StoryPage *GetSelPage() const
 	{
-		if (!_story_page_pool.IsValidID(selected_page_id)) return NULL;
-		return _story_page_pool.Get(selected_page_id);
+		if (!StoryPage::pool.IsValidID(selected_page_id)) return NULL;
+		return StoryPage::pool.Get(selected_page_id);
 	}
 
 	/**
@@ -144,7 +144,7 @@ protected:
 	bool IsFirstPageSelected()
 	{
 		/* Verify that the selected page exist. */
-		if (!_story_page_pool.IsValidID(this->selected_page_id)) return false;
+		if (!StoryPage::pool.IsValidID(this->selected_page_id)) return false;
 
 		return (*this->story_pages.Begin())->index == this->selected_page_id;
 	}
@@ -155,7 +155,7 @@ protected:
 	bool IsLastPageSelected()
 	{
 		/* Verify that the selected page exist. */
-		if (!_story_page_pool.IsValidID(this->selected_page_id)) return false;
+		if (!StoryPage::pool.IsValidID(this->selected_page_id)) return false;
 
 		if (this->story_pages.Length() <= 1) return true;
 		const StoryPage *last = *(this->story_pages.End() - 1);
@@ -188,7 +188,7 @@ protected:
 	 */
 	void SelectPrevPage()
 	{
-		if (!_story_page_pool.IsValidID(this->selected_page_id)) return;
+		if (!StoryPage::pool.IsValidID(this->selected_page_id)) return;
 
 		/* Find the last available page which is previous to the current selected page. */
 		const StoryPage *last_available;
@@ -209,7 +209,7 @@ protected:
 	 */
 	void SelectNextPage()
 	{
-		if (!_story_page_pool.IsValidID(this->selected_page_id)) return;
+		if (!StoryPage::pool.IsValidID(this->selected_page_id)) return;
 
 		/* Find selected page. */
 		for (const StoryPage *const*iter = this->story_pages.Begin(); iter != this->story_pages.End(); iter++) {
@@ -695,7 +695,7 @@ public:
 			}
 
 			/* Verify page selection. */
-			if (!_story_page_pool.IsValidID(this->selected_page_id)) {
+			if (!StoryPage::pool.IsValidID(this->selected_page_id)) {
 				this->selected_page_id = INVALID_STORY_PAGE;
 			}
 			if (this->selected_page_id == INVALID_STORY_PAGE && this->story_pages.Length() > 0) {

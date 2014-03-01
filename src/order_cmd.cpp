@@ -36,9 +36,9 @@
 assert_compile(sizeof(DestinationID) >= sizeof(DepotID));
 assert_compile(sizeof(DestinationID) >= sizeof(StationID));
 
-OrderPool _order_pool("Order");
+template<> Order::Pool Order::PoolItem::pool ("Order");
 INSTANTIATE_POOL_METHODS(Order)
-OrderListPool _orderlist_pool("OrderList");
+template<> OrderList::Pool OrderList::PoolItem::pool ("OrderList");
 INSTANTIATE_POOL_METHODS(OrderList)
 
 /** Clean everything up. */

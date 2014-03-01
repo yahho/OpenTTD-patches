@@ -45,10 +45,10 @@ bool _ddc_fastforward = true;
 #endif /* DEBUG_DUMP_COMMANDS */
 
 /** Make sure both pools have the same size. */
-assert_compile(NetworkClientInfoPool::MAX_SIZE == NetworkClientSocketPool::MAX_SIZE);
+assert_compile(NetworkClientInfo::Pool::MAX_SIZE == NetworkClientSocket::Pool::MAX_SIZE);
 
 /** The pool with client information. */
-NetworkClientInfoPool _networkclientinfo_pool("NetworkClientInfo");
+template<> NetworkClientInfo::Pool NetworkClientInfo::PoolItem::pool ("NetworkClientInfo");
 INSTANTIATE_POOL_METHODS(NetworkClientInfo)
 
 bool _networking;         ///< are we in networking mode?

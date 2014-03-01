@@ -20,19 +20,11 @@
 typedef uint16 EngineRenewID;
 
 /**
- * Memory pool for engine renew elements. DO NOT USE outside of engine.c. Is
- * placed here so the only exception to this rule, the saveload code, can use
- * it.
- */
-typedef Pool<EngineRenew, EngineRenewID, 16, 64000> EngineRenewPool;
-extern EngineRenewPool _enginerenew_pool;
-
-/**
  * Struct to store engine replacements. DO NOT USE outside of engine.c. Is
  * placed here so the only exception to this rule, the saveload code, can use
  * it.
  */
-struct EngineRenew : EngineRenewPool::PoolItem<&_enginerenew_pool> {
+struct EngineRenew : PooledItem <EngineRenew, EngineRenewID, 16, 64000> {
 	EngineID from;
 	EngineID to;
 	EngineRenew *next;

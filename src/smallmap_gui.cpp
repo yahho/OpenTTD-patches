@@ -1105,7 +1105,7 @@ SmallMapWindow::SmallMapWindow(WindowDesc *desc, int window_number) : Window(des
 			StringID str;
 			if (i == SMT_INDUSTRY) {
 				SetDParam(0, tbl->legend);
-				SetDParam(1, IndustryPool::MAX_SIZE);
+				SetDParam(1, Industry::Pool::MAX_SIZE);
 				str = STR_SMALLMAP_INDUSTRY;
 			} else if (i == SMT_LINKSTATS) {
 				SetDParam(0, tbl->legend);

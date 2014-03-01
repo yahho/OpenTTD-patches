@@ -27,7 +27,7 @@
 
 GoalID _new_goal_id;
 
-GoalPool _goal_pool("Goal");
+template<> Goal::Pool Goal::PoolItem::pool ("Goal");
 INSTANTIATE_POOL_METHODS(Goal)
 
 /**

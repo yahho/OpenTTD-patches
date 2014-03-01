@@ -30,9 +30,9 @@ StoryPageID _new_story_page_id;
 uint32 _story_page_element_next_sort_value;
 uint32 _story_page_next_sort_value;
 
-StoryPageElementPool _story_page_element_pool("StoryPageElement");
-StoryPagePool _story_page_pool("StoryPage");
+template<> StoryPageElement::Pool StoryPageElement::PoolItem::pool ("StoryPageElement");
 INSTANTIATE_POOL_METHODS(StoryPageElement)
+template<> StoryPage::Pool StoryPage::PoolItem::pool ("StoryPage");;
 INSTANTIATE_POOL_METHODS(StoryPage)
 
 /**
@@ -112,7 +112,7 @@ CommandCost CmdCreateStoryPage(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 	if (company != INVALID_COMPANY && !Company::IsValidID(company)) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
-		if (_story_page_pool.items == 0) {
+		if (StoryPage::pool.items == 0) {
 			/* Initialize the next sort value variable. */
 			_story_page_next_sort_value = 0;
 		}
@@ -168,7 +168,7 @@ CommandCost CmdCreateStoryPageElement(TileIndex tile, DoCommandFlag flags, uint3
 	if (!VerifyElementContentParameters(page_id, type, tile, p2, text)) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
-		if (_story_page_element_pool.items == 0) {
+		if (StoryPageElement::pool.items == 0) {
 			/* Initialize the next sort value variable. */
 			_story_page_element_next_sort_value = 0;
 		}

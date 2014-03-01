@@ -22,17 +22,12 @@
 #include "date_type.h"
 #include "saveload/saveload_buffer.h"
 
-typedef Pool<Order, OrderID, 256, 64000> OrderPool;
-typedef Pool<OrderList, OrderListID, 128, 64000> OrderListPool;
-extern OrderPool _order_pool;
-extern OrderListPool _orderlist_pool;
-
 /* If you change this, keep in mind that it is saved on 3 places:
  * - Load_ORDR, all the global orders
  * - Vehicle -> current_order
  * - REF_ORDER (all REFs are currently limited to 16 bits!!)
  */
-struct Order : OrderPool::PoolItem<&_order_pool> {
+struct Order : PooledItem <Order, OrderID, 256, 64000> {
 private:
 	friend const struct SaveLoad *GetVehicleDescription(VehicleType vt); ///< Saving and loading the current order of vehicles.
 	friend void Load_VEHS(LoadBuffer *reader);                           ///< Loading of ancient vehicles.
@@ -197,7 +192,7 @@ void DeleteOrder(Vehicle *v, VehicleOrderID sel_ord);
  * Shared order list linking together the linked list of orders and the list
  *  of vehicles sharing this order list.
  */
-struct OrderList : OrderListPool::PoolItem<&_orderlist_pool> {
+struct OrderList : PooledItem <OrderList, OrderListID, 128, 64000> {
 private:
 	friend void AfterLoadVehicles(const SavegameTypeVersion *stv); ///< For instantiating the shared vehicle chain
 	friend const struct SaveLoad *GetOrderListDescription(); ///< Saving and loading of order lists.

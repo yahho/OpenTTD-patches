@@ -20,15 +20,10 @@ class LinkGraphJob;
 class Path;
 typedef std::list<Path *> PathList;
 
-/** Type of the pool for link graph jobs. */
-typedef Pool<LinkGraphJob, LinkGraphJobID, 32, 0xFFFF> LinkGraphJobPool;
-/** The actual pool with link graph jobs. */
-extern LinkGraphJobPool _link_graph_job_pool;
-
 /**
  * Class for calculation jobs to be run on link graphs.
  */
-class LinkGraphJob : public LinkGraphJobPool::PoolItem<&_link_graph_job_pool>{
+class LinkGraphJob : public PooledItem <LinkGraphJob, LinkGraphJobID, 32, 0xFFFF> {
 private:
 	/**
 	 * Annotation for a link graph edge.

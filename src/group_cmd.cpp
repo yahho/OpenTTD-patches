@@ -26,7 +26,7 @@
 
 GroupID _new_group_id;
 
-GroupPool _group_pool("Group");
+template<> Group::Pool Group::PoolItem::pool ("Group");
 INSTANTIATE_POOL_METHODS(Group)
 
 GroupStatistics::GroupStatistics()

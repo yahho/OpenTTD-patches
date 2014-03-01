@@ -34,8 +34,8 @@ AdminIndex _redirect_console_to_admin = INVALID_ADMIN_ID;
 byte _network_admins_connected = 0;
 
 /** The pool with sockets/clients. */
-NetworkAdminSocketPool _networkadminsocket_pool("NetworkAdminSocket");
-INSTANTIATE_POOL_METHODS(NetworkAdminSocket)
+template<> ServerNetworkAdminSocketHandler::Pool ServerNetworkAdminSocketHandler::PoolItem::pool ("NetworkAdminSocket");
+INSTANTIATE_POOL_METHODS(ServerNetworkAdminSocketHandler)
 
 /** The timeout for authorisation of the client. */
 static const int ADMIN_AUTHORISATION_TIMEOUT = 10000;
@@ -87,7 +87,7 @@ ServerNetworkAdminSocketHandler::~ServerNetworkAdminSocketHandler()
 	bool accept = !StrEmpty(_settings_client.network.admin_password) && _network_admins_connected < MAX_ADMINS;
 	/* We can't go over the MAX_ADMINS limit here. However, if we accept
 	 * the connection, there has to be space in the pool. */
-	assert_compile(NetworkAdminSocketPool::MAX_SIZE == MAX_ADMINS);
+	assert_compile(ServerNetworkAdminSocketHandler::Pool::MAX_SIZE == MAX_ADMINS);
 	assert(!accept || ServerNetworkAdminSocketHandler::CanAllocateItem());
 	return accept;
 }

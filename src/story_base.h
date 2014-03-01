@@ -17,10 +17,6 @@
 #include "date_type.h"
 #include "core/pool_type.hpp"
 
-typedef Pool<StoryPageElement, StoryPageElementID, 64, 64000> StoryPageElementPool;
-typedef Pool<StoryPage, StoryPageID, 64, 64000> StoryPagePool;
-extern StoryPageElementPool _story_page_element_pool;
-extern StoryPagePool _story_page_pool;
 extern uint32 _story_page_element_next_sort_value;
 extern uint32 _story_page_next_sort_value;
 
@@ -44,7 +40,7 @@ typedef TinyEnumT<StoryPageElementType> StoryPageElementTypeByte; ///< typedefin
  * Each StoryPage is composed of one or more page elements that provide
  * page content. Each element only contain one type of content.
  **/
-struct StoryPageElement : StoryPageElementPool::PoolItem<&_story_page_element_pool> {
+struct StoryPageElement : PooledItem <StoryPageElement, StoryPageElementID, 64, 64000> {
 	uint32 sort_value;   ///< A number that increases for every created story page element. Used for sorting. The id of a story page element is the pool index.
 	StoryPageID page; ///< Id of the page which the page element belongs to
 	StoryPageElementTypeByte type; ///< Type of page element
@@ -67,7 +63,7 @@ struct StoryPageElement : StoryPageElementPool::PoolItem<&_story_page_element_po
 #define FOR_ALL_STORY_PAGE_ELEMENTS(var) FOR_ALL_STORY_PAGE_ELEMENTS_FROM(var, 0)
 
 /** Struct about stories, current and completed */
-struct StoryPage : StoryPagePool::PoolItem<&_story_page_pool> {
+struct StoryPage : PooledItem <StoryPage, StoryPageID, 64, 64000> {
 	uint32 sort_value;   ///< A number that increases for every created story page. Used for sorting. The id of a story page is the pool index.
 	Date date;           ///< Date when the page was created.
 	CompanyByte company; ///< StoryPage is for a specific company; INVALID_COMPANY if it is global

@@ -56,7 +56,7 @@
 
 
 /* Initialize the cargo payment-pool */
-CargoPaymentPool _cargo_payment_pool("CargoPayment");
+template<> CargoPayment::Pool CargoPayment::PoolItem::pool ("CargoPayment");
 INSTANTIATE_POOL_METHODS(CargoPayment)
 
 /**
@@ -1230,7 +1230,7 @@ void PrepareUnload(Vehicle *front_v)
 	assert(front_v->cargo_payment == NULL);
 	/* One CargoPayment per vehicle and the vehicle limit equals the
 	 * limit in number of CargoPayments. Can't go wrong. */
-	assert_compile(CargoPaymentPool::MAX_SIZE == VehiclePool::MAX_SIZE);
+	assert_compile(CargoPayment::Pool::MAX_SIZE == Vehicle::Pool::MAX_SIZE);
 	assert(CargoPayment::CanAllocateItem());
 	front_v->cargo_payment = new CargoPayment(front_v);
 

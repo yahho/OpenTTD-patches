@@ -21,8 +21,8 @@ void AfterLoadStoryBook(const SavegameTypeVersion *stv)
 		/* Trash all story pages and page elements because
 		 * they were saved with wrong data types.
 		 */
-		_story_page_element_pool.CleanPool();
-		_story_page_pool.CleanPool();
+		StoryPageElement::pool.CleanPool();
+		StoryPage::pool.CleanPool();
 	}
 }
 

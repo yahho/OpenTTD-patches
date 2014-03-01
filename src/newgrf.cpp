@@ -8118,7 +8118,7 @@ void ResetNewGRFData()
 	_grf_id_overrides.clear();
 
 	InitializeSoundPool();
-	_spritegroup_pool.CleanPool();
+	SpriteGroup::pool.CleanPool();
 }
 
 /**

@@ -58,7 +58,7 @@ TownID _new_town_id;
 uint32 _town_cargoes_accepted; ///< Bitmap of all cargoes accepted by houses.
 
 /* Initialize the town-pool */
-TownPool _town_pool("Town");
+template<> Town::Pool Town::PoolItem::pool ("Town");
 INSTANTIATE_POOL_METHODS(Town)
 
 Town::~Town()
@@ -1876,7 +1876,7 @@ bool GenerateTowns(TownLayout layout)
 	uint current_number = 0;
 	uint difficulty = (_game_mode != GM_EDITOR) ? _settings_game.difficulty.number_towns : 0;
 	uint total = (difficulty == (uint)CUSTOM_TOWN_NUMBER_DIFFICULTY) ? _settings_game.game_creation.custom_town_number : ScaleByMapSize(_num_initial_towns[difficulty] + (Random() & 7));
-	total = min(TownPool::MAX_SIZE, total);
+	total = min(Town::Pool::MAX_SIZE, total);
 	uint32 townnameparts;
 	TownNames town_names;
 

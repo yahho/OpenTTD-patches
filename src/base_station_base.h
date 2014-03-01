@@ -19,9 +19,6 @@
 #include "station_type.h"
 #include "map/station.h"
 
-typedef Pool<BaseStation, StationID, 32, 64000> StationPool;
-extern StationPool _station_pool;
-
 struct StationSpecList {
 	const StationSpec *spec;
 	uint32 grfid;      ///< GRF ID of this custom station
@@ -53,7 +50,7 @@ struct StationRect : public Rect {
 };
 
 /** Base class for all station-ish types */
-struct BaseStation : StationPool::PoolItem<&_station_pool> {
+struct BaseStation : PooledItem <BaseStation, StationID, 32, 64000> {
 	TileIndex xy;                   ///< Base tile of the station
 	ViewportSign sign;              ///< NOSAVE: Dimensions of sign
 	byte delete_ctr;                ///< Delete counter. If greater than 0 then it is decremented until it reaches 0; the waypoint is then is deleted.

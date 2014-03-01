@@ -18,7 +18,7 @@
 #include "map/road.h"
 
 /** The pool of roadstops. */
-RoadStopPool _roadstop_pool("RoadStop");
+template<> RoadStop::Pool RoadStop::PoolItem::pool ("RoadStop");
 INSTANTIATE_POOL_METHODS(RoadStop)
 
 /**

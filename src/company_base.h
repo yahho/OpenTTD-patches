@@ -45,9 +45,6 @@ struct CompanyInfrastructure {
 	}
 };
 
-typedef Pool<Company, CompanyByte, 1, MAX_COMPANIES> CompanyPool;
-extern CompanyPool _company_pool;
-
 
 /** Statically loadable part of Company pool item */
 struct CompanyProperties {
@@ -107,7 +104,7 @@ struct CompanyProperties {
 	}
 };
 
-struct Company : CompanyPool::PoolItem<&_company_pool>, CompanyProperties {
+struct Company : PooledItem <Company, CompanyByte, 1, MAX_COMPANIES>, CompanyProperties {
 	Company(uint16 name_1 = 0, bool is_ai = false);
 	~Company();
 

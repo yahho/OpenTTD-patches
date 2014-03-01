@@ -14,7 +14,7 @@
 #include "linkgraph.h"
 
 /* Initialize the link-graph-pool */
-LinkGraphPool _link_graph_pool("LinkGraph");
+template<> LinkGraph::Pool LinkGraph::PoolItem::pool ("LinkGraph");
 INSTANTIATE_POOL_METHODS(LinkGraph)
 
 /**

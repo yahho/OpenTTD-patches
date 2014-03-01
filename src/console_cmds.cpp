@@ -1137,7 +1137,7 @@ DEF_CONSOLE_CMD(ConStartAI)
 		return true;
 	}
 
-	if (Company::GetNumItems() == CompanyPool::MAX_SIZE) {
+	if (Company::GetNumItems() == Company::Pool::MAX_SIZE) {
 		IConsoleWarning("Can't start a new AI (no more free slots).");
 		return true;
 	}

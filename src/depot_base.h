@@ -20,10 +20,7 @@
 #include "station_func.h"
 #include "core/pool_type.hpp"
 
-typedef Pool<Depot, DepotID, 64, 64000> DepotPool;
-extern DepotPool _depot_pool;
-
-struct Depot : DepotPool::PoolItem<&_depot_pool> {
+struct Depot : PooledItem <Depot, DepotID, 64, 64000> {
 	Town *town;
 	char *name;
 

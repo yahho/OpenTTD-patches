@@ -222,9 +222,9 @@ DEFINE_POOL_METHOD(void)::CleanPool()
  * forcefully instantiated.
  */
 #define INSTANTIATE_POOL_METHODS(name) \
-	template void * name ## Pool::GetNew(size_t size); \
-	template void * name ## Pool::GetNew(size_t size, size_t index); \
-	template void name ## Pool::FreeItem(size_t index); \
-	template void name ## Pool::CleanPool();
+	template void * name::Pool::GetNew(size_t size); \
+	template void * name::Pool::GetNew(size_t size, size_t index); \
+	template void name::Pool::FreeItem(size_t index); \
+	template void name::Pool::CleanPool();
 
 #endif /* POOL_FUNC_HPP */
