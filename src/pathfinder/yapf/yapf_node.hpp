@@ -96,7 +96,9 @@ struct CYapfNodeT : AstarNodeBase<Tnode> {
 
 	void Dump(DumpTarget &dmp) const
 	{
-		ABase::Dump(dmp);
+		dmp.WriteStructT("m_parent", ABase::m_parent);
+		dmp.WriteLine("m_cost = %d", ABase::m_cost);
+		dmp.WriteLine("m_estimate = %d", ABase::m_estimate);
 		dmp.WriteStructT("m_key", &m_key);
 	}
 };

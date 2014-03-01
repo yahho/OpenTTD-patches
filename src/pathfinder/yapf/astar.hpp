@@ -23,9 +23,8 @@
  * as template argument. Such a class must define a Key type to be used in
  * hashes, and a GetKey method to get the key for a particular node. It
  * may also define a Set method to initalise the node, which must take a
- * parent Node as first argument, and a Dump method to dump its contents;
- * either one defined must hook into this base class's corresponding own
- * method.
+ * parent Node as first argument; if defined, it must hook into this base
+ * class's own Set method.
  */
 template <class Node>
 struct AstarNodeBase {
@@ -71,14 +70,6 @@ struct AstarNodeBase {
 	inline bool operator < (const Node& other) const
 	{
 		return m_estimate < other.m_estimate;
-	}
-
-	/** Dump this node */
-	template <class D> void Dump (D &dmp) const
-	{
-		dmp.WriteStructT("m_parent", this->m_parent);
-		dmp.WriteLine("m_cost = %d", this->m_cost);
-		dmp.WriteLine("m_estimate = %d", this->m_estimate);
 	}
 };
 
@@ -314,11 +305,10 @@ public:
 		return (best != NULL) ? best : best_intermediate;
 	}
 
-	/** Helper for creating output of this array. */
-	template <class D> void Dump(D &dmp) const
+	/** Grant (const) access to the item array for debugging purposes. */
+	const SmallArray<Node, 65536, 256> *GetArray() const
 	{
-		dmp.WriteStructT("m_arr", &m_arr);
-		dmp.WriteLine("m_num_steps = %d", num_steps);
+		return &m_arr;
 	}
 };
 

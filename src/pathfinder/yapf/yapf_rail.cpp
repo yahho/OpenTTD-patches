@@ -31,8 +31,10 @@
 template <typename Tpf> void DumpState(Tpf &pf1, Tpf &pf2)
 {
 	DumpTarget dmp1, dmp2;
-	pf1.Dump(dmp1);
-	pf2.Dump(dmp2);
+	dmp1.WriteStructT("m_arr", pf1.GetArray());
+	dmp1.WriteLine("m_num_steps = %d", pf1.num_steps);
+	dmp2.WriteStructT("m_arr", pf2.GetArray());
+	dmp2.WriteLine("m_num_steps = %d", pf2.num_steps);
 	FILE *f1 = fopen("yapf1.txt", "wt");
 	FILE *f2 = fopen("yapf2.txt", "wt");
 	fwrite(dmp1.m_out.Data(), 1, dmp1.m_out.Size(), f1);
