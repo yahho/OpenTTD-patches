@@ -100,34 +100,16 @@ void WriteValueStr(TrackdirBits td_bits, FILE *f);
 void WriteValueStr(DiagDirection dd, FILE *f);
 void WriteValueStr(SignalType t, FILE *f);
 
+static inline bool operator < (const std::pair <size_t, const void*> &p1, const std::pair <size_t, const void*> &p2)
+{
+	if ((size_t)p1.second < (size_t)p2.second) return true;
+	if ((size_t)p2.second > (size_t)p2.second) return false;
+	return p1.first < p2.first;
+}
+
 /** Class that represents the dump-into-string target. */
 struct DumpTarget {
-
-	/** Used as a key into map of known object instances. */
-	struct KnownStructKey {
-		size_t      m_type_id;
-		const void *m_ptr;
-
-		KnownStructKey(size_t type_id, const void *ptr)
-			: m_type_id(type_id)
-			, m_ptr(ptr)
-		{}
-
-		KnownStructKey(const KnownStructKey &src)
-		{
-			m_type_id = src.m_type_id;
-			m_ptr = src.m_ptr;
-		}
-
-		bool operator < (const KnownStructKey &other) const
-		{
-			if ((size_t)m_ptr < (size_t)other.m_ptr) return true;
-			if ((size_t)m_ptr > (size_t)other.m_ptr) return false;
-			if (m_type_id < other.m_type_id) return true;
-			return false;
-		}
-	};
-
+	typedef std::pair <size_t, const void*> KnownStructKey;
 	typedef std::map<KnownStructKey, std::string> KNOWN_NAMES;
 
 	FILE                   *f;             ///< the output file
