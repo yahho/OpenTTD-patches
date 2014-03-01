@@ -70,7 +70,7 @@ enum EndSegmentReasonBits {
 
 DECLARE_ENUM_AS_BIT_SET(EndSegmentReasonBits)
 
-inline CStrA ValueStr(EndSegmentReasonBits bits)
+inline void WriteValueStr(EndSegmentReasonBits bits, FILE *f)
 {
 	static const char * const end_segment_reason_names[] = {
 		"DEAD_END", "RAIL_TYPE", "INFINITE_LOOP", "SEGMENT_TOO_LONG", "CHOICE_FOLLOWS",
@@ -78,9 +78,7 @@ inline CStrA ValueStr(EndSegmentReasonBits bits)
 		"PATH_TOO_LONG", "FIRST_TWO_WAY_RED", "LOOK_AHEAD_END", "TARGET_REACHED"
 	};
 
-	CStrA out;
-	out.Format("0x%04X (%s)", bits, ComposeNameT(bits, end_segment_reason_names, "UNK", ESRB_NONE, "NONE").Data());
-	return out.Transfer();
+	fprintf (f, "0x%04X (%s)", bits, ComposeNameT(bits, end_segment_reason_names, "UNK", ESRB_NONE, "NONE").Data());
 }
 
 #endif /* YAPF_TYPE_HPP */

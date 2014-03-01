@@ -87,10 +87,10 @@ inline CStrA ComposeNameT(E value, T &t, const char *t_unk, E val_inv, const cha
 	return out.Transfer();
 }
 
-CStrA ValueStr(Trackdir td);
-CStrA ValueStr(TrackdirBits td_bits);
-CStrA ValueStr(DiagDirection dd);
-CStrA ValueStr(SignalType t);
+void WriteValueStr(Trackdir td, FILE *f);
+void WriteValueStr(TrackdirBits td_bits, FILE *f);
+void WriteValueStr(DiagDirection dd, FILE *f);
+void WriteValueStr(SignalType t, FILE *f);
 
 /** Class that represents the dump-into-string target. */
 struct DumpTarget {
@@ -145,13 +145,15 @@ struct DumpTarget {
 	void WriteIndent();
 
 	void CDECL WriteLine(const char *format, ...) WARN_FORMAT(2, 3);
-	void WriteValue(const char *name, const char *value_str);
+	void WriteValue(const char *name);
 	void WriteTile(const char *name, TileIndex t);
 
 	/** Dump given enum value (as a number and as named value) */
 	template <typename E> void WriteEnumT(const char *name, E e)
 	{
-		WriteValue(name, ValueStr(e).Data());
+		WriteValue(name);
+		WriteValueStr (e, f);
+		putc ('\n', f);
 	}
 
 	void BeginStruct(size_t type_id, const char *name, const void *ptr);

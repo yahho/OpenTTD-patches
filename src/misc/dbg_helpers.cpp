@@ -18,20 +18,16 @@ static const char * const trackdir_names[] = {
 	"SW", "NW", "UW", "LW", "LN", "RN", "rsw", "rnw",
 };
 
-/** Return name of given Trackdir. */
-CStrA ValueStr(Trackdir td)
+/** Write name of given Trackdir. */
+void WriteValueStr(Trackdir td, FILE *f)
 {
-	CStrA out;
-	out.Format("%d (%s)", td, ItemAtT(td, trackdir_names, "UNK", INVALID_TRACKDIR, "INV"));
-	return out.Transfer();
+	fprintf (f, "%d (%s)", td, ItemAtT(td, trackdir_names, "UNK", INVALID_TRACKDIR, "INV"));
 }
 
-/** Return composed name of given TrackdirBits. */
-CStrA ValueStr(TrackdirBits td_bits)
+/** Write composed name of given TrackdirBits. */
+void WriteValueStr(TrackdirBits td_bits, FILE *f)
 {
-	CStrA out;
-	out.Format("%d (%s)", td_bits, ComposeNameT(td_bits, trackdir_names, "UNK", INVALID_TRACKDIR_BIT, "INV").Data());
-	return out.Transfer();
+	fprintf (f, "%d (%s)", td_bits, ComposeNameT(td_bits, trackdir_names, "UNK", INVALID_TRACKDIR_BIT, "INV").Data());
 }
 
 
@@ -40,12 +36,10 @@ static const char * const diagdir_names[] = {
 	"NE", "SE", "SW", "NW",
 };
 
-/** Return name of given DiagDirection. */
-CStrA ValueStr(DiagDirection dd)
+/** Write name of given DiagDirection. */
+void WriteValueStr(DiagDirection dd, FILE *f)
 {
-	CStrA out;
-	out.Format("%d (%s)", dd, ItemAtT(dd, diagdir_names, "UNK", INVALID_DIAGDIR, "INV"));
-	return out.Transfer();
+	fprintf (f, "%d (%s)", dd, ItemAtT(dd, diagdir_names, "UNK", INVALID_DIAGDIR, "INV"));
 }
 
 
@@ -54,12 +48,10 @@ static const char * const signal_type_names[] = {
 	"NORMAL", "ENTRY", "EXIT", "COMBO", "PBS", "NOENTRY",
 };
 
-/** Return name of given SignalType. */
-CStrA ValueStr(SignalType t)
+/** Write name of given SignalType. */
+void WriteValueStr(SignalType t, FILE *f)
 {
-	CStrA out;
-	out.Format("%d (%s)", t, ItemAtT(t, signal_type_names, "UNK"));
-	return out.Transfer();
+	fprintf (f, "%d (%s)", t, ItemAtT(t, signal_type_names, "UNK"));
 }
 
 
@@ -118,11 +110,11 @@ void DumpTarget::WriteLine(const char *format, ...)
 	putc ('\n', f);
 }
 
-/** Write 'name = value' with indent and new-line. */
-void DumpTarget::WriteValue(const char *name, const char *value_str)
+/** Write 'name = ' with indent. */
+void DumpTarget::WriteValue(const char *name)
 {
 	WriteIndent();
-	fprintf (f, "%s = %s\n", name, value_str);
+	fprintf (f, "%s = ", name);
 }
 
 /** Write name & TileIndex to the output. */
