@@ -13,7 +13,6 @@
 #define ARRAY_HPP
 
 #include "fixedsizearray.hpp"
-#include "str.hpp"
 
 /**
  * Flexible array with size limit. Implemented as fixed size
@@ -85,11 +84,11 @@ public:
 		dmp.WriteLine("capacity = %d", Tcapacity);
 		uint num_items = Length();
 		dmp.WriteLine("num_items = %d", num_items);
-		CStrA name;
+		char name [24];
 		for (uint i = 0; i < num_items; i++) {
 			const T& item = (*this)[i];
-			name.Format("item[%d]", i);
-			dmp.WriteStructT(name.Data(), &item);
+			snprintf (name, sizeof(name), "item[%d]", i);
+			dmp.WriteStructT(name, &item);
 		}
 	}
 };
