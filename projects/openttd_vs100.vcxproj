@@ -730,6 +730,7 @@
     <ClInclude Include="..\src\core\endian_func.hpp" />
     <ClInclude Include="..\src\core\endian_type.hpp" />
     <ClInclude Include="..\src\core\enum_type.hpp" />
+    <ClInclude Include="..\src\core\forward_list.h" />
     <ClCompile Include="..\src\core\geometry_func.cpp">
       <AssemblerListingLocation>$(IntDir)\core\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\core\</ObjectFileName>

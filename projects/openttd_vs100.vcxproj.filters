@@ -1203,6 +1203,9 @@
     <ClInclude Include="..\src\core\enum_type.hpp">
       <Filter>Core Source Code</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\core\forward_list.h">
+      <Filter>Core Source Code</Filter>
+    </ClInclude>
     <ClCompile Include="..\src\core\geometry_func.cpp">
       <Filter>Core Source Code</Filter>
     </ClCompile>

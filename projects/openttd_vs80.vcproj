@@ -2631,6 +2631,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\core\forward_list.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\core\geometry_func.cpp"
 				>
 				<FileConfiguration
