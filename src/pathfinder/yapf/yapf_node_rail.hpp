@@ -57,7 +57,7 @@ struct CYapfRailSegmentKey
 };
 
 /** cached segment cost for rail YAPF */
-struct CYapfRailSegment
+struct CYapfRailSegment : CHashTableEntryT <CYapfRailSegment>
 {
 	typedef CYapfRailSegmentKey Key;
 
@@ -66,7 +66,6 @@ struct CYapfRailSegment
 	int                    m_cost;
 	RailPathPos            m_last_signal;
 	EndSegmentReasonBits   m_end_segment_reason;
-	CYapfRailSegment      *m_hash_next;
 
 	inline CYapfRailSegment(const CYapfRailSegmentKey& key)
 		: m_key(key)
@@ -74,22 +73,11 @@ struct CYapfRailSegment
 		, m_cost(-1)
 		, m_last_signal()
 		, m_end_segment_reason(ESRB_NONE)
-		, m_hash_next(NULL)
 	{}
 
 	inline const Key& GetKey() const
 	{
 		return m_key;
-	}
-
-	inline CYapfRailSegment *GetHashNext()
-	{
-		return m_hash_next;
-	}
-
-	inline void SetHashNext(CYapfRailSegment *next)
-	{
-		m_hash_next = next;
 	}
 
 	void Dump(DumpTarget &dmp) const

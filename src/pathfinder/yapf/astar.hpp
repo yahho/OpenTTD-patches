@@ -27,8 +27,7 @@
  * class's own Set method.
  */
 template <class Node>
-struct AstarNodeBase {
-	Node *m_hash_next; ///< next node in hash bucket
+struct AstarNodeBase : CHashTableEntryT<Node> {
 	Node *m_parent;    ///< parent node in path
 	int   m_cost;      ///< cost of this node
 	int   m_estimate;  ///< estimated cost to target
@@ -36,22 +35,9 @@ struct AstarNodeBase {
 	/** Initialise this node */
 	inline void Set (Node *parent)
 	{
-		m_hash_next = NULL;
 		m_parent = parent;
 		m_cost = 0;
 		m_estimate = 0;
-	}
-
-	/** Get the next node in the hash bucket, to be used internally */
-	inline Node *GetHashNext() const
-	{
-		return m_hash_next;
-	}
-
-	/** Set the next node in the hash bucket, to be used internally */
-	inline void SetHashNext (Node *next)
-	{
-		m_hash_next = next;
 	}
 
 	/** Get the cost of this node */

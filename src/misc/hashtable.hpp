@@ -15,6 +15,27 @@
 #include "../core/math_func.hpp"
 
 template <class Titem_>
+struct CHashTableEntryT
+{
+	Titem_ *next; ///< next node in hash bucket
+
+	/** Default constructor. */
+	CHashTableEntryT() : next(NULL) { }
+
+	/** Get the next node in the hash bucket, to be used internally. */
+	inline Titem_ *GetHashNext() const
+	{
+		return next;
+	}
+
+	/** Set the next node in the hash bucket, to be used internally. */
+	inline void SetHashNext (Titem_ *n)
+	{
+		next = n;
+	}
+};
+
+template <class Titem_>
 struct CHashTableSlotT
 {
 	typedef typename Titem_::Key Key;          // make Titem_::Key a property of HashTable
