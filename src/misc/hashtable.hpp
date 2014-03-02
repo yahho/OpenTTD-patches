@@ -12,121 +12,14 @@
 #ifndef HASHTABLE_HPP
 #define HASHTABLE_HPP
 
+#include <functional>
+
 #include "../core/math_func.hpp"
+#include "../core/forward_list.h"
 
 template <class Titem_>
-struct CHashTableEntryT
+struct CHashTableEntryT : ForwardListLink <Titem_, CHashTableEntryT<Titem_> >
 {
-	Titem_ *next; ///< next node in hash bucket
-
-	/** Default constructor. */
-	CHashTableEntryT() : next(NULL) { }
-
-	/** Get the next node in the hash bucket, to be used internally. */
-	inline Titem_ *GetHashNext() const
-	{
-		return next;
-	}
-
-	/** Set the next node in the hash bucket, to be used internally. */
-	inline void SetHashNext (Titem_ *n)
-	{
-		next = n;
-	}
-};
-
-template <class Titem_>
-struct CHashTableSlotT
-{
-	typedef typename Titem_::Key Key;          // make Titem_::Key a property of HashTable
-
-	Titem_ *m_pFirst;
-
-	inline CHashTableSlotT() : m_pFirst(NULL) {}
-
-	/** hash table slot helper - clears the slot by simple forgetting its items */
-	inline void Clear() {m_pFirst = NULL;}
-
-	/** hash table slot helper - linear search for item with given key through the given blob - const version */
-	inline const Titem_ *Find(const Key& key) const
-	{
-		for (const Titem_ *pItem = m_pFirst; pItem != NULL; pItem = pItem->GetHashNext()) {
-			if (pItem->GetKey() == key) {
-				/* we have found the item, return it */
-				return pItem;
-			}
-		}
-		return NULL;
-	}
-
-	/** hash table slot helper - linear search for item with given key through the given blob - non-const version */
-	inline Titem_ *Find(const Key& key)
-	{
-		for (Titem_ *pItem = m_pFirst; pItem != NULL; pItem = pItem->GetHashNext()) {
-			if (pItem->GetKey() == key) {
-				/* we have found the item, return it */
-				return pItem;
-			}
-		}
-		return NULL;
-	}
-
-	/** hash table slot helper - add new item to the slot */
-	inline void Attach(Titem_& new_item)
-	{
-		assert(new_item.GetHashNext() == NULL);
-		new_item.SetHashNext(m_pFirst);
-		m_pFirst = &new_item;
-	}
-
-	/** hash table slot helper - remove item from a slot */
-	inline bool Detach(Titem_& item_to_remove)
-	{
-		if (m_pFirst == &item_to_remove) {
-			m_pFirst = item_to_remove.GetHashNext();
-			item_to_remove.SetHashNext(NULL);
-			return true;
-		}
-		Titem_ *pItem = m_pFirst;
-		for (;;) {
-			if (pItem == NULL) {
-				return false;
-			}
-			Titem_ *pNextItem = pItem->GetHashNext();
-			if (pNextItem == &item_to_remove) break;
-			pItem = pNextItem;
-		}
-		pItem->SetHashNext(item_to_remove.GetHashNext());
-		item_to_remove.SetHashNext(NULL);
-		return true;
-	}
-
-	/** hash table slot helper - remove and return item from a slot */
-	inline Titem_ *Detach(const Key& key)
-	{
-		/* do we have any items? */
-		if (m_pFirst == NULL) {
-			return NULL;
-		}
-		/* is it our first item? */
-		if (m_pFirst->GetKey() == key) {
-			Titem_& ret_item = *m_pFirst;
-			m_pFirst = m_pFirst->GetHashNext();
-			ret_item.SetHashNext(NULL);
-			return &ret_item;
-		}
-		/* find it in the following items */
-		Titem_ *pPrev = m_pFirst;
-		for (Titem_ *pItem = m_pFirst->GetHashNext(); pItem != NULL; pPrev = pItem, pItem = pItem->GetHashNext()) {
-			if (pItem->GetKey() == key) {
-				/* we have found the item, unlink and return it */
-				pPrev->SetHashNext(pItem->GetHashNext());
-				pItem->SetHashNext(NULL);
-				return pItem;
-			}
-		}
-		return NULL;
-	}
 };
 
 /**
@@ -161,10 +54,9 @@ public:
 
 protected:
 	/**
-	 * each slot contains pointer to the first item in the list,
-	 *  Titem contains pointer to the next item - GetHashNext(), SetHashNext()
+	 * each slot contains pointer to the first item in the list
 	 */
-	typedef CHashTableSlotT<Titem_> Slot;
+	typedef ForwardList <CHashTableEntryT<Titem_> > Slot;
 
 	Slot  m_slots[Tcapacity]; // here we store our data (array of blobs)
 	int   m_num_items;        // item counter
@@ -188,37 +80,51 @@ protected:
 		return hash;
 	}
 
+private:
+	/** predicate function for item search */
+	static bool IsKey (const Titem_ *item, const Tkey *key)
+	{
+		return item->GetKey() == *key;
+	}
+
+	/** helper function to find a key in a slot */
+	static Titem_ *FindKeyInSlot (Slot *slot, const Tkey &key)
+	{
+		return slot->find_pred (std::bind2nd (std::ptr_fun(&IsKey), &key));
+	}
+
+	/** helper function to remove a key from a slot */
+	static Titem_ *RemoveKeyFromSlot (Slot *slot, const Tkey &key)
+	{
+		return slot->remove_pred (std::bind2nd (std::ptr_fun(&IsKey), &key));
+	}
+
 public:
 	/** item count */
 	inline int Count() const {return m_num_items;}
 
 	/** simple clear - forget all items - used by CSegmentCostCacheT.Flush() */
-	inline void Clear() {for (int i = 0; i < Tcapacity; i++) m_slots[i].Clear();}
+	inline void Clear() {for (int i = 0; i < Tcapacity; i++) m_slots[i].detach_all();}
 
 	/** const item search */
 	const Titem_ *Find(const Tkey& key) const
 	{
 		int hash = CalcHash(key);
-		const Slot& slot = m_slots[hash];
-		const Titem_ *item = slot.Find(key);
-		return item;
+		return FindKeyInSlot (&m_slots[hash], key);
 	}
 
 	/** non-const item search */
 	Titem_ *Find(const Tkey& key)
 	{
 		int hash = CalcHash(key);
-		Slot& slot = m_slots[hash];
-		Titem_ *item = slot.Find(key);
-		return item;
+		return FindKeyInSlot (&m_slots[hash], key);
 	}
 
 	/** non-const item search & optional removal (if found) */
 	Titem_ *TryPop(const Tkey& key)
 	{
 		int hash = CalcHash(key);
-		Slot& slot = m_slots[hash];
-		Titem_ *item = slot.Detach(key);
+		Titem_ *item = RemoveKeyFromSlot (&m_slots[hash], key);
 		if (item != NULL) {
 			m_num_items--;
 		}
@@ -238,12 +144,9 @@ public:
 	{
 		const Tkey& key = item.GetKey();
 		int hash = CalcHash(key);
-		Slot& slot = m_slots[hash];
-		bool ret = slot.Detach(item);
-		if (ret) {
-			m_num_items--;
-		}
-		return ret;
+		if (m_slots[hash].remove(&item) == NULL) return false;
+		m_num_items--;
+		return true;
 	}
 
 	/** non-const item search & removal */
@@ -258,9 +161,8 @@ public:
 	{
 		const Tkey& key = new_item.GetKey();
 		int hash = CalcHash(key);
-		Slot& slot = m_slots[hash];
-		assert(slot.Find(key) == NULL);
-		slot.Attach(new_item);
+		assert(FindKeyInSlot (&m_slots[hash], key) == NULL);
+		m_slots[hash].prepend (&new_item);
 		m_num_items++;
 	}
 };
