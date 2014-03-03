@@ -642,7 +642,7 @@ static CommandCost BuildStationPart(Station **st, DoCommandFlag flags, bool reus
 		if (flags & DC_EXEC) {
 			*st = new Station(area.tile);
 
-			(*st)->town = ClosestTownFromTile(area.tile, UINT_MAX);
+			(*st)->town = ClosestTownFromTile(area.tile);
 			(*st)->string_id = GenerateStationName(*st, area.tile, name_class);
 
 			if (Company::IsValidID(_current_company)) {
@@ -2056,7 +2056,7 @@ CommandCost CmdRemoveRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 		quantity++;
 		/* If the stop was a drive-through stop replace the road */
 		if ((flags & DC_EXEC) && is_drive_through) {
-			MakeRoadNormal(cur_tile, road_bits, rts, ClosestTownFromTile(cur_tile, UINT_MAX)->index,
+			MakeRoadNormal(cur_tile, road_bits, rts, ClosestTownFromTile(cur_tile)->index,
 					road_owner, tram_owner);
 
 			/* Update company infrastructure counts. */
@@ -2297,7 +2297,7 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 			authority_refuse_town = nearest;
 		}
 	} else if (action != AIRPORT_UPGRADE) {
-		Town *t = ClosestTownFromTile(tile, UINT_MAX);
+		Town *t = ClosestTownFromTile(tile);
 		uint num = 0;
 		const Station *st;
 		FOR_ALL_STATIONS(st) {
@@ -3925,7 +3925,7 @@ void BuildOilRig(TileIndex tile)
 	}
 
 	Station *st = new Station(tile);
-	st->town = ClosestTownFromTile(tile, UINT_MAX);
+	st->town = ClosestTownFromTile(tile);
 
 	st->string_id = GenerateStationName(st, tile, STATIONNAMING_OILRIG);
 

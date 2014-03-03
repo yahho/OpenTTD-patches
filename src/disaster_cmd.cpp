@@ -528,7 +528,7 @@ static bool DisasterTick_Big_Ufo(DisasterVehicle *v)
 			}
 		}
 
-		Town *t = ClosestTownFromTile(v->dest_tile, UINT_MAX);
+		Town *t = ClosestTownFromTile(v->dest_tile);
 		SetDParam(0, t->index);
 		AddTileNewsItem(STR_NEWS_DISASTER_BIG_UFO, NT_ACCIDENT, v->tile);
 

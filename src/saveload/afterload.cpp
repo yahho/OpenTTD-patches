@@ -774,7 +774,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	if (IsOTTDSavegameVersionBefore(stv, 42)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsRoadTile(t) && GetTownIndex(t) == INVALID_TOWN) {
-				SetTownIndex(t, IsTileOwner(t, OWNER_TOWN) ? ClosestTownFromTile(t, UINT_MAX)->index : 0);
+				SetTownIndex(t, IsTileOwner(t, OWNER_TOWN) ? ClosestTownFromTile(t)->index : 0);
 			}
 		}
 	}

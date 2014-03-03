@@ -266,7 +266,7 @@ static uint32 GetCountAndDistanceOfClosestInstance(byte local_id, uint32 grfid, 
 			case 0x45:
 			case 0x46:
 				if (!IsValidTile(this->tile)) goto unhandled;
-				t = ClosestTownFromTile(this->tile, UINT_MAX);
+				t = ClosestTownFromTile(this->tile);
 				break;
 
 			/* Construction date */
@@ -408,7 +408,7 @@ TownScopeResolver *ObjectResolverObject::GetTown()
 		if (this->object_scope.obj != NULL) {
 			t = this->object_scope.obj->town;
 		} else {
-			t = ClosestTownFromTile(this->object_scope.tile, UINT_MAX);
+			t = ClosestTownFromTile(this->object_scope.tile);
 		}
 		if (t == NULL) return NULL;
 		this->town_scope = new TownScopeResolver(*this, t, this->object_scope.obj == NULL);

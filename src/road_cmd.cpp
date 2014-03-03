@@ -128,7 +128,7 @@ CommandCost CheckAllowRemoveRoad(TileIndex tile, RoadBits remove, Owner owner, R
 
 	if (_cheats.magic_bulldozer.value) return CommandCost();
 
-	Town *t = ClosestTownFromTile(tile, UINT_MAX);
+	Town *t = ClosestTownFromTile(tile);
 	if (t == NULL) return CommandCost();
 
 	/* check if you're allowed to remove the street owned by a town
@@ -1571,7 +1571,7 @@ static CommandCost ClearTile_Road(TileIndex tile, DoCommandFlag flags)
 		if (ret.Failed()) return ret;
 
 		if (IsTileOwner(tile, OWNER_TOWN) && _game_mode != GM_EDITOR) {
-			Town *t = ClosestTownFromTile(tile, UINT_MAX); // town penalty rating
+			Town *t = ClosestTownFromTile(tile); // town penalty rating
 
 			/* Check if you are allowed to remove the bridge owned by a town
 			 * Removal depends on difficulty settings */
@@ -2047,7 +2047,7 @@ static void TileLoop_Road(TileIndex tile)
 
 	if (!IsTileSubtype(tile, TT_TRACK)) return;
 
-	const Town *t = ClosestTownFromTile(tile, UINT_MAX);
+	const Town *t = ClosestTownFromTile(tile);
 	if (!HasRoadWorks(tile)) {
 		HouseZonesBits grp = HZB_TOWN_EDGE;
 

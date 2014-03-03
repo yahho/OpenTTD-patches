@@ -189,7 +189,7 @@ void UpdateTownCargoes(Town *t);
 void UpdateTownCargoTotal(Town *t);
 void UpdateTownCargoBitmap();
 CommandCost CheckIfAuthorityAllowsNewStation(TileIndex tile, DoCommandFlag flags);
-Town *ClosestTownFromTile(TileIndex tile, uint threshold);
+Town *ClosestTownFromTile(TileIndex tile, uint threshold = UINT_MAX);
 void ChangeTownRating(Town *t, int add, int max, DoCommandFlag flags);
 HouseZonesBits GetTownRadiusGroup(const Town *t, TileIndex tile);
 void SetTownRatingTestMode(bool mode);
@@ -234,7 +234,7 @@ void MakeDefaultName(T *obj)
 	/* We only want to set names if it hasn't been set before, or when we're calling from afterload. */
 	assert(obj->name == NULL || obj->town_cn == UINT16_MAX);
 
-	obj->town = ClosestTownFromTile(obj->xy, UINT_MAX);
+	obj->town = ClosestTownFromTile(obj->xy);
 
 	/* Find first unused number belonging to this town. This can never fail,
 	 * as long as there can be at most 65535 waypoints/depots in total.

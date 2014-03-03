@@ -1302,7 +1302,7 @@ static CheckNewIndustryProc * const _check_new_industry_procs[CHECK_END] = {
  */
 static CommandCost FindTownForIndustry(TileIndex tile, int type, Town **t)
 {
-	*t = ClosestTownFromTile(tile, UINT_MAX);
+	*t = ClosestTownFromTile(tile);
 
 	if (_settings_game.economy.multiple_industry_per_town) return CommandCost();
 

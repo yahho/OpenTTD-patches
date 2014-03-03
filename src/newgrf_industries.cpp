@@ -455,7 +455,7 @@ TownScopeResolver *IndustriesResolverObject::GetTown()
 			t = this->industries_scope.industry->town;
 			readonly = this->industries_scope.industry->index == INVALID_INDUSTRY;
 		} else if (this->industries_scope.tile != INVALID_TILE) {
-			t = ClosestTownFromTile(this->industries_scope.tile, UINT_MAX);
+			t = ClosestTownFromTile(this->industries_scope.tile);
 		}
 		if (t == NULL) return NULL;
 		this->town_scope = new TownScopeResolver(*this, t, readonly);
@@ -520,7 +520,7 @@ CommandCost CheckIfCallBackAllowsCreation(TileIndex tile, IndustryType type, uin
 	ind.location.w = 0; // important to mark the industry invalid
 	ind.type = type;
 	ind.selected_layout = layout;
-	ind.town = ClosestTownFromTile(tile, UINT_MAX);
+	ind.town = ClosestTownFromTile(tile);
 	ind.random = initial_random_bits;
 	ind.founder = founder;
 	ind.psa = NULL;

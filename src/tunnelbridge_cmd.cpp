@@ -105,7 +105,7 @@ static CommandCost BuildRoadBridge(TileIndex tile_start, TileIndex tile_end, Bri
 				GetBridgeSpec(bridge_type)->speed < GetBridgeSpec(GetRoadBridgeType(tile_start))->speed &&
 				_game_mode != GM_EDITOR) {
 			if (owner_road == OWNER_TOWN) {
-				Town *t = ClosestTownFromTile(tile_start, UINT_MAX);
+				Town *t = ClosestTownFromTile(tile_start);
 
 				if (t == NULL) return CMD_ERROR;
 

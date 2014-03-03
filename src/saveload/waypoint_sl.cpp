@@ -195,7 +195,7 @@ static void Ptrs_WAYP(const SavegameTypeVersion *stv)
 
 		if (IsOTTDSavegameVersionBefore(stv, 12)) {
 			wp->town_cn = (wp->string_id & 0xC000) == 0xC000 ? (wp->string_id >> 8) & 0x3F : 0;
-			wp->town = ClosestTownFromTile(wp->xy, UINT_MAX);
+			wp->town = ClosestTownFromTile(wp->xy);
 		} else if (IsOTTDSavegameVersionBefore(stv, 122)) {
 			/* Only for versions 12 .. 122 */
 			if (!Town::IsValidID(wp->town_index)) {

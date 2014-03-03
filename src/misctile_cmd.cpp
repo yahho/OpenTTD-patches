@@ -466,7 +466,7 @@ static CommandCost RemoveTunnel(TileIndex tile, DoCommandFlag flags)
 
 	Town *t = NULL;
 	if (IsTileOwner(tile, OWNER_TOWN) && _game_mode != GM_EDITOR) {
-		t = ClosestTownFromTile(tile, UINT_MAX); // town penalty rating
+		t = ClosestTownFromTile(tile); // town penalty rating
 
 		/* Check if you are allowed to remove the tunnel owned by a town
 		 * Removal depends on difficulty settings */
@@ -902,7 +902,7 @@ static void TileLoop_Misc(TileIndex tile)
 	}
 
 	if (IsTileSubtype(tile, TT_MISC_CROSSING)) {
-		const Town *t = ClosestTownFromTile(tile, UINT_MAX);
+		const Town *t = ClosestTownFromTile(tile);
 		UpdateRoadSide(tile, t != NULL ? GetTownRadiusGroup(t, tile) : HZB_TOWN_EDGE);
 	}
 }

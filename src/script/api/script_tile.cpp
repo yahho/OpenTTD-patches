@@ -303,7 +303,7 @@
 {
 	if (!::IsValidTile(tile)) return INVALID_TOWN;
 
-	Town *town = ::ClosestTownFromTile(tile, UINT_MAX);
+	Town *town = ::ClosestTownFromTile(tile);
 	if (town == NULL) return INVALID_TOWN;
 
 	return town->index;

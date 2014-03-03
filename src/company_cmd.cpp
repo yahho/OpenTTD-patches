@@ -288,7 +288,7 @@ void GetNameOfOwner(Owner owner, TileIndex tile)
 		}
 	} else {
 		assert(tile != 0);
-		const Town *t = ClosestTownFromTile(tile, UINT_MAX);
+		const Town *t = ClosestTownFromTile(tile);
 
 		SetDParam(0, STR_TOWN_NAME);
 		SetDParam(1, t->index);
@@ -348,7 +348,7 @@ static void GenerateCompanyName(Company *c)
 	if (c->name_1 != STR_SV_UNNAMED) return;
 	if (c->last_build_coordinate == 0) return;
 
-	Town *t = ClosestTownFromTile(c->last_build_coordinate, UINT_MAX);
+	Town *t = ClosestTownFromTile(c->last_build_coordinate);
 
 	StringID str;
 	uint32 strp;

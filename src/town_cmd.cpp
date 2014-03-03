@@ -88,7 +88,7 @@ Town::~Town()
 			switch (GetTileType(tile)) {
 				case TT_MISC:
 					if (IsTunnelTile(tile)) {
-						assert(!IsTileOwner(tile, OWNER_TOWN) || ClosestTownFromTile(tile, UINT_MAX) != this);
+						assert(!IsTileOwner(tile, OWNER_TOWN) || ClosestTownFromTile(tile) != this);
 						break;
 					}
 					if (!IsLevelCrossingTile(tile)) break;
@@ -2634,7 +2634,7 @@ CommandCost CmdDeleteTown(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 			switch (GetTileType(tile)) {
 				case TT_MISC:
 					if (IsTunnelTile(tile)) {
-						try_clear = IsTileOwner(tile, OWNER_TOWN) && ClosestTownFromTile(tile, UINT_MAX) == t;
+						try_clear = IsTileOwner(tile, OWNER_TOWN) && ClosestTownFromTile(tile) == t;
 						break;
 					}
 					if (!IsLevelCrossingTile(tile)) break;

@@ -47,7 +47,7 @@
 			if (IsRailDepotTile(this->tile)) {
 				t = Depot::GetByTile(this->tile)->town;
 			} else if (IsLevelCrossingTile(this->tile)) {
-				t = ClosestTownFromTile(this->tile, UINT_MAX);
+				t = ClosestTownFromTile(this->tile);
 			}
 			return t != NULL ? GetTownRadiusGroup(t, this->tile) : HZB_TOWN_EDGE;
 		}
