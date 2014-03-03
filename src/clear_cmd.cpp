@@ -65,7 +65,7 @@ static CommandCost ClearTile_Clear(TileIndex tile, DoCommandFlag flags)
 
 		case TT_GROUND_TREES:
 			if (Company::IsValidID(_current_company)) {
-				Town *t = ClosestTownFromTile(tile, _settings_game.economy.dist_local_authority);
+				Town *t = LocalAuthorityTownFromTile(tile);
 				if (t != NULL) ChangeTownRating(t, RATING_TREE_DOWN_STEP, RATING_TREE_MINIMUM, flags);
 			}
 			cost = GetTreeCount(tile) * _price[PR_CLEAR_TREES];

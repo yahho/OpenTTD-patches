@@ -433,7 +433,7 @@ CommandCost CmdPlantTree(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 		}
 
 		if (_game_mode != GM_EDITOR && Company::IsValidID(_current_company)) {
-			Town *t = ClosestTownFromTile(tile, _settings_game.economy.dist_local_authority);
+			Town *t = LocalAuthorityTownFromTile(tile);
 			if (t != NULL) ChangeTownRating(t, RATING_TREE_UP_STEP, RATING_TREE_MAXIMUM, flags);
 		}
 

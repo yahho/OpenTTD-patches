@@ -293,7 +293,7 @@
 {
 	if (!::IsValidTile(tile)) return INVALID_TOWN;
 
-	Town *town = ::ClosestTownFromTile(tile, _settings_game.economy.dist_local_authority);
+	Town *town = ::LocalAuthorityTownFromTile(tile);
 	if (town == NULL) return INVALID_TOWN;
 
 	return town->index;

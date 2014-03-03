@@ -190,6 +190,12 @@ void UpdateTownCargoTotal(Town *t);
 void UpdateTownCargoBitmap();
 CommandCost CheckIfAuthorityAllowsNewStation(TileIndex tile, DoCommandFlag flags);
 Town *ClosestTownFromTile(TileIndex tile, uint threshold = UINT_MAX);
+
+static inline Town *LocalAuthorityTownFromTile (TileIndex tile)
+{
+	return ClosestTownFromTile (tile, _settings_game.economy.dist_local_authority);
+}
+
 void ChangeTownRating(Town *t, int add, int max, DoCommandFlag flags);
 HouseZonesBits GetTownRadiusGroup(const Town *t, TileIndex tile);
 void SetTownRatingTestMode(bool mode);

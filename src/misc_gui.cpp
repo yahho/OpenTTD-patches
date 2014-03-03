@@ -134,7 +134,7 @@ public:
 
 	virtual void OnInit()
 	{
-		Town *t = ClosestTownFromTile(tile, _settings_game.economy.dist_local_authority);
+		Town *t = LocalAuthorityTownFromTile(tile);
 
 		/* Because build_date is not set yet in every TileDesc, we make sure it is empty */
 		TileDesc td;

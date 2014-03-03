@@ -3130,7 +3130,7 @@ CommandCost CheckIfAuthorityAllowsNewStation(TileIndex tile, DoCommandFlag flags
 {
 	if (!Company::IsValidID(_current_company) || (flags & DC_NO_TEST_TOWN_RATING)) return CommandCost();
 
-	Town *t = ClosestTownFromTile(tile, _settings_game.economy.dist_local_authority);
+	Town *t = LocalAuthorityTownFromTile(tile);
 	if (t == NULL) return CommandCost();
 
 	if (t->ratings[_current_company] > RATING_VERYPOOR) return CommandCost();
