@@ -187,7 +187,7 @@ CommandCost CheckforTownRating(DoCommandFlag flags, Town *t, TownRatingCheckType
 
 TileIndexDiff GetHouseNorthPart(HouseID &house);
 
-Town *CalcClosestTownFromTile(TileIndex tile, uint threshold = UINT_MAX);
+Town *CalcClosestTownFromTile(TileIndex tile);
 
 static inline TownID CalcClosestTownIDFromTile(TileIndex tile)
 {

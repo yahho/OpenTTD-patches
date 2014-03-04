@@ -3127,17 +3127,16 @@ CommandCost CheckIfAuthorityAllowsNewStation(TileIndex tile, DoCommandFlag flags
 }
 
 /**
- * Return the town closest to the given tile within \a threshold.
- * @param tile      Starting point of the search.
- * @param threshold Biggest allowed distance to the town.
- * @return Closest town to \a tile within \a threshold, or \c NULL if there is no such town.
+ * Return the town closest to the given tile.
+ * @param tile Starting point of the search.
+ * @return Closest town to \a tile, or \c NULL if there are no towns.
  *
  * @note This function only uses distance, the #ClosestTownFromTile function also takes town ownership into account.
  */
-Town *CalcClosestTownFromTile(TileIndex tile, uint threshold)
+Town *CalcClosestTownFromTile(TileIndex tile)
 {
 	Town *t;
-	uint best = threshold;
+	uint best = UINT_MAX;
 	Town *best_town = NULL;
 
 	FOR_ALL_TOWNS(t) {
