@@ -11331,6 +11331,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\map\tileset.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\map\tilearea.cpp"
 				>
 				<FileConfiguration

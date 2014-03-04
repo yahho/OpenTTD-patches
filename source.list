@@ -993,6 +993,7 @@ map/map.cpp
 map/map.h
 map/coord.cpp
 map/coord.h
+map/tileset.h
 map/tilearea.cpp
 map/tilearea.h
 map/subcoord.h

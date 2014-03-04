@@ -2805,6 +2805,9 @@
     <ClInclude Include="..\src\map\coord.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\map\tileset.h">
+      <Filter>Map Accessors</Filter>
+    </ClInclude>
     <ClCompile Include="..\src\map\tilearea.cpp">
       <Filter>Map Accessors</Filter>
     </ClCompile>

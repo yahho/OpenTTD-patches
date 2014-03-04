@@ -1912,6 +1912,7 @@
       <XMLDocumentationFileName>$(IntDir)\map\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\map\coord.h" />
+    <ClInclude Include="..\src\map\tileset.h" />
     <ClCompile Include="..\src\map\tilearea.cpp">
       <AssemblerListingLocation>$(IntDir)\map\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\map\</ObjectFileName>

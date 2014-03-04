@@ -13,12 +13,15 @@
 #include "../core/bitmath_func.hpp"
 #include "../core/math_func.hpp"
 #include "map.h"
+#include "tileset.h"
 
 MapSizeParams map_size;
 
 TileZH *_mth = NULL; ///< Tile zones and heights
 Tile   *_mc  = NULL; ///< Tile contents
 
+uint TileSetBase::tileset_count = 0;
+TileSetBase *TileSetBase::tilesets[];
 
 /**
  * (Re)allocates a map with the given dimension
@@ -58,4 +61,6 @@ void AllocateMap(uint size_x, uint size_y)
 
 	_mth = CallocT<TileZH>(map_size.size);
 	_mc = CallocT<Tile>(map_size.size);
+
+	TileSetBase::reset_all();
 }
