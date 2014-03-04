@@ -126,7 +126,7 @@ void Town::PostDestructor(size_t index)
 	/* Give objects a new home! */
 	Object *o;
 	FOR_ALL_OBJECTS(o) {
-		if (o->town == NULL) o->town = CalcClosestTownFromTile(o->location.tile, UINT_MAX);
+		if (o->town == NULL) o->town = CalcClosestTownFromTile(o->location.tile);
 	}
 }
 

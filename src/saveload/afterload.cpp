@@ -1347,7 +1347,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 					o->location.w    = size;
 					o->location.h    = size;
 					o->build_date    = _date;
-					o->town          = type == OBJECT_STATUE ? Town::Get(_mc[t].m2) : CalcClosestTownFromTile(t, UINT_MAX);
+					o->town          = type == OBJECT_STATUE ? Town::Get(_mc[t].m2) : CalcClosestTownFromTile(t);
 					_mc[t].m2 = o->index;
 					Object::IncTypeCount(type);
 				} else {
