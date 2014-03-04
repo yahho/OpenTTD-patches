@@ -646,6 +646,7 @@ static bool LoadOldTown(LoadgameState *ls, int num)
 			/* 0x10B6 is auto-generated name, others are custom names */
 			t->townnametype = t->townnametype == 0x10B6 ? 0x20C1 : t->townnametype + 0x2A00;
 		}
+		t->add_to_tileset();
 	} else {
 		delete t;
 	}

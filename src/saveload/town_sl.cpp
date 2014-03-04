@@ -272,6 +272,7 @@ static void Load_TOWN(LoadBuffer *reader)
 	while ((index = reader->IterateChunk()) != -1) {
 		Town *t = new (index) Town();
 		reader->ReadObject(t, _town_desc);
+		t->add_to_tileset();
 
 		for (CargoID i = 0; i < NUM_CARGO; i++) {
 			reader->ReadObject(&t->supplied[i], _town_supplied_desc);

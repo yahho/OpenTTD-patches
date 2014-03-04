@@ -18,6 +18,7 @@
 #include "newgrf_storage.h"
 #include "cargotype.h"
 #include "tilematrix_type.hpp"
+#include "map/tileset.h"
 #include <list>
 
 template <typename T>
@@ -48,8 +49,11 @@ struct TownCache {
 	BuildingCounts<uint16> building_counts;   ///< The number of each type of building in the town
 };
 
+/* Forward declaration. */
+inline TileIndex get_town_tile (const Town*);
+
 /** Town data structure. */
-struct Town : PooledItem <Town, TownID, 64, 64000> {
+struct Town : PooledItem <Town, TownID, 64, 64000>, TileSetObject <Town, get_town_tile> {
 	TileIndex xy;                  ///< town center tile
 
 	TownCache cache; ///< Container for all cacheable data.
@@ -103,7 +107,15 @@ struct Town : PooledItem <Town, TownID, 64, 64000> {
 	 * Creates a new town.
 	 * @param tile center tile of the town
 	 */
-	Town(TileIndex tile = INVALID_TILE) : xy(tile) { }
+	Town(TileIndex tile) : xy(tile)
+	{
+		add_to_tileset();
+	}
+
+	/**
+	 * Creates an unplaced town (during game loading)
+	 */
+	Town() : xy(INVALID_TILE) { }
 
 	/** Destroy the town. */
 	~Town();
@@ -134,6 +146,12 @@ struct Town : PooledItem <Town, TownID, 64, 64000> {
 	static Town *GetRandom();
 	static void PostDestructor(size_t index);
 };
+
+/** Get the tile where a town is located. */
+inline TileIndex get_town_tile (const Town *t)
+{
+	return t->xy;
+}
 
 uint32 GetWorldPopulation();
 

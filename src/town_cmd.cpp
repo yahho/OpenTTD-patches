@@ -72,6 +72,9 @@ Town::~Town()
 	 * and remove from list of sorted towns */
 	DeleteWindowById(WC_TOWN_VIEW, this->index);
 
+	/* Delete from town set */
+	this->remove_from_tileset();
+
 	/* Check no industry is related to us. */
 	const Industry *i;
 	FOR_ALL_INDUSTRIES(i) assert(i->town != this);
@@ -336,22 +339,6 @@ static void AnimateTile_Town(TileIndex tile)
 	}
 
 	MarkTileDirtyByTile(tile);
-}
-
-/**
- * Determines if a town is close to a tile
- * @param tile TileIndex of the tile to query
- * @param dist maximum distance to be accepted
- * @returns true if the tile correspond to the distance criteria
- */
-static bool IsCloseToTown(TileIndex tile, uint dist)
-{
-	const Town *t;
-
-	FOR_ALL_TOWNS(t) {
-		if (DistanceManhattan(tile, t->xy) < dist) return true;
-	}
-	return false;
 }
 
 /**
@@ -1565,7 +1552,7 @@ static CommandCost TownCanBePlacedHere(TileIndex tile)
 	}
 
 	/* Check distance to all other towns. */
-	if (IsCloseToTown(tile, 20)) {
+	if (Town::find_any<DistanceManhattan> (tile, 19)) {
 		return_cmd_error(STR_ERROR_TOO_CLOSE_TO_ANOTHER_TOWN);
 	}
 
@@ -3183,7 +3170,7 @@ Town *ClosestTownFromTile(TileIndex tile, uint threshold)
 
 		if (tid == (TownID)INVALID_TOWN) {
 			/* in the case we are generating "many random towns", this value may be INVALID_TOWN */
-			if (_generating_world) return CalcClosestTownFromTile(tile, threshold);
+			if (_generating_world) return threshold == UINT_MAX ? CalcClosestTownFromTile(tile) : Town::find_closest<DistanceManhattan> (tile, threshold - 1);
 			assert(Town::GetNumItems() == 0);
 			return NULL;
 		}
@@ -3196,7 +3183,7 @@ Town *ClosestTownFromTile(TileIndex tile, uint threshold)
 		return town;
 	}
 
-	return CalcClosestTownFromTile(tile, threshold);
+	return threshold == UINT_MAX ? CalcClosestTownFromTile(tile) : Town::find_closest<DistanceManhattan> (tile, threshold - 1);
 }
 
 static bool _town_rating_test = false; ///< If \c true, town rating is in test-mode.
