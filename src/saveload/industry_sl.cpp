@@ -93,6 +93,7 @@ static void Load_INDY(LoadBuffer *reader)
 	while ((index = reader->IterateChunk()) != -1) {
 		Industry *i = new (index) Industry();
 		reader->ReadObject(i, _industry_desc);
+		i->add_to_tileset();
 
 		/* Before legacy savegame version 161, persistent storages were not stored in a pool. */
 		if (reader->IsOTTDVersionBefore(161) && !reader->IsOTTDVersionBefore(76)) {

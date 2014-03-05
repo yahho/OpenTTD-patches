@@ -16,7 +16,7 @@
 #include "subsidy_type.h"
 #include "industrytype.h"
 #include "map/tilearea.h"
-
+#include "map/tileset.h"
 
 /**
  * Production level maximum, minimum and default values.
@@ -30,10 +30,13 @@ enum ProductionLevels {
 	PRODLEVEL_MAXIMUM = 0x80,  ///< the industry is running at full speed
 };
 
+/* Forward declaration. */
+inline TileIndex get_industry_tile (const Industry*);
+
 /**
  * Defines the internal data of a functional industry.
  */
-struct Industry : PooledItem <Industry, IndustryID, 64, 64000> {
+struct Industry : PooledItem <Industry, IndustryID, 64, 64000>, TileSetObject <Industry, get_industry_tile> {
 	TileArea location;                  ///< Location of the industry
 	Town *town;                         ///< Nearest town
 	CargoID produced_cargo[2];          ///< 2 production cargo slots
@@ -68,7 +71,13 @@ struct Industry : PooledItem <Industry, IndustryID, 64, 64000> {
 
 	PersistentStorage *psa;             ///< Persistent storage for NewGRF industries.
 
-	Industry(TileIndex tile = INVALID_TILE) : location(tile, 0, 0) {}
+	Industry() : location() {}
+
+	Industry(TileIndex tile) : location(tile, 0, 0)
+	{
+		add_to_tileset();
+	}
+
 	~Industry();
 
 	void RecomputeProductionMultipliers();
@@ -139,6 +148,12 @@ struct Industry : PooledItem <Industry, IndustryID, 64, 64000> {
 protected:
 	static uint16 counts[NUM_INDUSTRYTYPES]; ///< Number of industries per type ingame
 };
+
+/** Get the tile where an industry is located. */
+inline TileIndex get_industry_tile (const Industry *i)
+{
+	return i->location.tile;
+}
 
 void PlantRandomFarmField(const Industry *i);
 

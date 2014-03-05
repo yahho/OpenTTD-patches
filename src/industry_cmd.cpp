@@ -139,6 +139,8 @@ Industry::~Industry()
 	 * Also we must not decrement industry counts in that case. */
 	if (this->location.w == 0) return;
 
+	remove_from_tileset();
+
 	TILE_AREA_LOOP(tile_cur, this->location) {
 		if (IsIndustryTile(tile_cur)) {
 			if (GetIndustryIndex(tile_cur) == this->index) {
@@ -1543,8 +1545,10 @@ static bool CheckIfCanLevelIndustryPlatform(TileIndex tile, DoCommandFlag flags,
 static CommandCost CheckIfFarEnoughFromConflictingIndustry(TileIndex tile, int type)
 {
 	const IndustrySpec *indspec = GetIndustrySpec(type);
-	const Industry *i;
-	FOR_ALL_INDUSTRIES(i) {
+
+	for (Industry::TileSet::Iterator iter (&Industry::set, tile, 14); iter.get_item() != NULL; iter.next()) {
+		const Industry *i = iter.get_item();
+
 		/* Within 14 tiles from another industry is considered close */
 		if (DistanceMax(tile, i->location.tile) > 14) continue;
 
