@@ -15,7 +15,7 @@
 #include "stdafx.h"
 #include "signal_type.h"
 #include "map/rail.h"
-#include "pathfinder/pos.h"
+#include "pathfinder/railpos.h"
 
 /**
  * Sets the state of the signal along the given trackdir.

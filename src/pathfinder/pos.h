@@ -259,8 +259,8 @@ struct PathMPos : BasePos {
 };
 
 /* Pathfinder positions for the various transport types. */
-typedef PathPos<PathVTile> RailPathPos;
 typedef PathPos<PathMTile> RoadPathPos;
 typedef PathPos<PathMTile> ShipPathPos;
+/* RailPathPos is defined in railpos.h. */
 
 #endif /* PATHFINDER_POS_H */

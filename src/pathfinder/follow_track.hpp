@@ -22,6 +22,7 @@
 #include "../bridge.h"
 #include "../ship.h"
 #include "pos.h"
+#include "railpos.h"
 #include "pf_performance_timer.hpp"
 
 /**

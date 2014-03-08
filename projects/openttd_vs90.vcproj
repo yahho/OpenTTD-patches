@@ -12392,6 +12392,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\pathfinder\railpos.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\pathfinder\follow_track.hpp"
 				>
 			</File>

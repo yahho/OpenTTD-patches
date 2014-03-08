@@ -11,7 +11,7 @@
 #define PATHFINDER_TYPES_H
 
 #include "../map/coord.h"
-#include "pos.h"
+#include "railpos.h"
 
 /**
  * Helper container to find a depot

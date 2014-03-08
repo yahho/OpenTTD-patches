@@ -2055,6 +2055,7 @@
     </ClCompile>
     <ClInclude Include="..\src\network\core\udp.h" />
     <ClInclude Include="..\src\pathfinder\pos.h" />
+    <ClInclude Include="..\src\pathfinder\railpos.h" />
     <ClInclude Include="..\src\pathfinder\follow_track.hpp" />
     <ClCompile Include="..\src\pathfinder\opf\opf_ship.cpp">
       <AssemblerListingLocation>$(IntDir)\pathfinder\opf\</AssemblerListingLocation>

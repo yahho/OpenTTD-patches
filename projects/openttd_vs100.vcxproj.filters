@@ -2994,6 +2994,9 @@
     <ClInclude Include="..\src\pathfinder\pos.h">
       <Filter>Pathfinder</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\pathfinder\railpos.h">
+      <Filter>Pathfinder</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\pathfinder\follow_track.hpp">
       <Filter>Pathfinder</Filter>
     </ClInclude>

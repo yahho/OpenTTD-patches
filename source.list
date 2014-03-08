@@ -1062,6 +1062,7 @@ network/core/udp.h
 
 # Pathfinder
 pathfinder/pos.h
+pathfinder/railpos.h
 pathfinder/follow_track.hpp
 pathfinder/opf/opf_ship.cpp
 pathfinder/opf/opf_ship.h

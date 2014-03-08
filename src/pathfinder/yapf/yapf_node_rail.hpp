@@ -14,6 +14,8 @@
 
 #include <bitset>
 
+#include "../railpos.h"
+
 /** key for YAPF rail nodes */
 typedef CYapfNodeKeyTrackDir<RailPathPos> CYapfRailKey;
 

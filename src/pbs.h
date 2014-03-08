@@ -17,7 +17,7 @@
 #include "track_type.h"
 #include "track_func.h"
 #include "vehicle_type.h"
-#include "pathfinder/pos.h"
+#include "pathfinder/railpos.h"
 #include "map/bridge.h"
 #include "map/tunnelbridge.h"
 #include "signal_map.h"
