@@ -2153,7 +2153,7 @@ static void CheckNextTrainTile(Train *v)
 	if (ft.m_new.is_single()) {
 		/* Next tile is not reserved. */
 		if (!HasReservedPos(ft.m_new)) {
-			if (HasPbsSignalAlongPos(ft.m_new)) {
+			if (ft.m_new.has_signal_along() && IsPbsSignal(ft.m_new.get_signal_type())) {
 				/* If the next tile is a PBS signal, try to make a reservation. */
 				ChooseTrainTrack(v, pos, ft.m_new.tile, ft.m_new.trackdirs, false);
 			}
@@ -2323,7 +2323,7 @@ void FreeTrainTrackReservation(const Train *v)
 			break;
 		}
 
-		if (HasPbsSignalAlongPos(ft.m_new)) {
+		if (ft.m_new.has_signal_along() && IsPbsSignal(ft.m_new.get_signal_type())) {
 			if (ft.m_new.get_signal_state() == SIGNAL_STATE_RED) {
 				/* Red PBS signal? Can't be our reservation, would be green then. */
 				break;

@@ -42,24 +42,6 @@ static inline bool HasPbsSignalOnTrackdir(TileIndex tile, Trackdir td)
 			maptile_is_rail_tunnel(tile) && maptile_has_tunnel_signal(tile, TrackdirToExitdir(td) == GetTunnelBridgeDirection(tile)) && IsPbsSignal(maptile_get_tunnel_signal_type(tile));
 }
 
-/**
- * Is a pbs signal present along the trackdir?
- * @param pos the position to check
- */
-static inline bool HasPbsSignalAlongPos(const RailPathPos &pos)
-{
-	return !pos.in_wormhole() && HasPbsSignalOnTrackdir(pos.tile, pos.td);
-}
-
-/**
- * Is a pbs signal present against the trackdir?
- * @param pos the position to check
- */
-static inline bool HasPbsSignalAgainstPos(const RailPathPos &pos)
-{
-	return !pos.in_wormhole() && HasPbsSignalOnTrackdir(pos.tile, ReverseTrackdir(pos.td));
-}
-
 
 /**
  * Is a one-way signal blocking the trackdir? A one-way signal on the
