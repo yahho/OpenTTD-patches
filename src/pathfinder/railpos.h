@@ -11,6 +11,9 @@
 #define PATHFINDER_RAILPOS_H
 
 #include "pos.h"
+#include "../rail_type.h"
+#include "../track_func.h"
+#include "../map/rail.h"
 
 struct RailPathPos : PathPos<PathVTile> {
 	typedef PathPos<PathVTile> Base;
@@ -23,6 +26,14 @@ struct RailPathPos : PathPos<PathVTile> {
 
 	/** Create a PathPos in a wormhole */
 	RailPathPos (TileIndex t, Trackdir d, TileIndex w) : Base (t, d, w) { }
+
+	/** Get the rail type for this position. */
+	RailType get_railtype() const
+	{
+		assert (is_valid());
+		return !in_wormhole() ? GetRailType (tile, TrackdirToTrack(td)) :
+			IsRailwayTile(wormhole) ? GetBridgeRailType(wormhole) : GetRailType(wormhole);
+	}
 };
 
 #endif /* PATHFINDER_RAILPOS_H */

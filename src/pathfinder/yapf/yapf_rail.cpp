@@ -682,9 +682,9 @@ inline bool CYapfRailBaseT<TAstar>::HandleNodeNextTile (Node *n, CFollowTrackRai
 
 	/* Check the next tile for the rail type. */
 	if (tf->m_new.in_wormhole()) {
-		RailType next_rail_type = IsRailwayTile(tf->m_new.wormhole) ? GetBridgeRailType(tf->m_new.wormhole) : GetRailType(tf->m_new.wormhole);
+		RailType next_rail_type = tf->m_new.get_railtype();
 		assert(next_rail_type == rail_type);
-	} else if (GetRailType(tf->m_new.tile, TrackdirToTrack(tf->m_new.td)) != rail_type) {
+	} else if (tf->m_new.get_railtype() != rail_type) {
 		/* Segment must consist from the same rail_type tiles. */
 		segment->end_reason |= ESRB_RAIL_TYPE;
 		return false;
@@ -751,8 +751,7 @@ inline EndSegmentReasonBits CYapfRailBaseT<TAstar>::CalcSegment (Node *n, const 
 
 	TileIndex prev = n->m_parent->GetLastPos().tile;
 
-	RailType rail_type = !segment.pos.in_wormhole() ? GetRailType(segment.pos.tile, TrackdirToTrack(segment.pos.td)) :
-		IsRailwayTile(segment.pos.wormhole) ? GetBridgeRailType(segment.pos.wormhole) : GetRailType(segment.pos.wormhole);
+	RailType rail_type = segment.pos.get_railtype();
 
 	for (;;) {
 		HandleNodeTile (n, tf, &segment, prev);

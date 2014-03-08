@@ -429,7 +429,7 @@ struct CFollowTrackRailBase : CFollowTrackBase<RailPathPos>
 
 		if (!m_old.in_wormhole()) {
 			bridge_tile = IsRailBridgeTile(m_old.tile) ? m_old.tile : INVALID_TILE;
-			rt = GetRailType(m_old.tile, TrackdirToTrack(m_old.td));
+			rt = m_old.get_railtype();
 		} else if (IsTileSubtype(m_old.wormhole, TT_BRIDGE)) {
 			bridge_tile = m_old.wormhole;
 			rt = GetBridgeRailType(bridge_tile);
