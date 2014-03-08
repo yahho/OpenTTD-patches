@@ -2314,14 +2314,12 @@ void FreeTrainTrackReservation(const Train *v)
 			assert(ft.m_new.is_single());
 		}
 
-		if (ft.m_new.has_signal_along() && !IsPbsSignal(ft.m_new.get_signal_type())) {
-			/* Conventional signal along trackdir: remove reservation and stop. */
-			UnreserveRailTrack(ft.m_new);
-			break;
-		}
-
-		if (ft.m_new.has_signal_along() && IsPbsSignal(ft.m_new.get_signal_type())) {
-			if (ft.m_new.get_signal_state() == SIGNAL_STATE_RED) {
+		if (ft.m_new.has_signal_along()) {
+			if (!IsPbsSignal(ft.m_new.get_signal_type())) {
+				/* Conventional signal along trackdir: remove reservation and stop. */
+				UnreserveRailTrack(ft.m_new);
+				break;
+			} else if (ft.m_new.get_signal_state() == SIGNAL_STATE_RED) {
 				/* Red PBS signal? Can't be our reservation, would be green then. */
 				break;
 			} else {
