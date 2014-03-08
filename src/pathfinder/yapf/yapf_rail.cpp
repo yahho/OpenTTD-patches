@@ -464,9 +464,9 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node& n, const RailPathPos &pos, N
 	/* if there is one-way signal in the opposite direction, then it is not our way */
 	CPerfStart perf_cost(m_perf_other_cost);
 
-	if (HasSignalAlongPos(pos)) {
-		SignalState sig_state = GetSignalStateByPos(pos);
-		SignalType sig_type = GetSignalType(pos);
+	if (pos.has_signal_along()) {
+		SignalState sig_state = pos.get_signal_state();
+		SignalType sig_type = pos.get_signal_type();
 
 		n.m_last_signal_type = sig_type;
 
@@ -487,7 +487,7 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node& n, const RailPathPos &pos, N
 					&& m_settings->rail_firstred_twoway_eol
 					&& m_treat_first_red_two_way_signal_as_eol
 					&& n.flags.test(n.FLAG_CHOICE_SEEN)
-					&& HasSignalAgainstPos(pos)
+					&& pos.has_signal_against()
 					&& n.m_num_signals_passed == 0) {
 				/* yes, the first signal is two-way red signal => DEAD END. Prune this branch... */
 				PruneIntermediateNodeBranch();
@@ -518,8 +518,8 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node& n, const RailPathPos &pos, N
 
 		n.m_num_signals_passed++;
 		data->last_signal = pos;
-	} else if (HasSignalAgainstPos(pos)) {
-		if (GetSignalType(pos) != SIGTYPE_PBS) {
+	} else if (pos.has_signal_against()) {
+		if (pos.get_signal_type() != SIGTYPE_PBS) {
 			/* one-way signal in opposite direction */
 			data->end_reason |= ESRB_DEAD_END;
 		} else {
@@ -614,7 +614,7 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeTile (Node *n, const CFollowTrackR
 
 	} else if (mask_reserved_tracks) {
 		/* Searching for a safe tile? */
-		if (HasSignalAlongPos(segment->pos) && !IsPbsSignal(GetSignalType(segment->pos))) {
+		if (segment->pos.has_signal_along() && !IsPbsSignal(segment->pos.get_signal_type())) {
 			segment->end_reason |= ESRB_SAFE_TILE;
 		}
 	}
@@ -670,10 +670,10 @@ inline bool CYapfRailBaseT<TAstar>::HandleNodeNextTile (Node *n, CFollowTrackRai
 	/* Gather the next tile/trackdir. */
 
 	if (mask_reserved_tracks) {
-		if (HasSignalAlongPos(tf->m_new) && IsPbsSignal(GetSignalType(tf->m_new))) {
+		if (tf->m_new.has_signal_along() && IsPbsSignal(tf->m_new.get_signal_type())) {
 			/* Possible safe tile. */
 			segment->end_reason |= ESRB_SAFE_TILE;
-		} else if (HasSignalAgainstPos(tf->m_new) && GetSignalType(tf->m_new) == SIGTYPE_PBS_ONEWAY) {
+		} else if (tf->m_new.has_signal_against() && tf->m_new.get_signal_type() == SIGTYPE_PBS_ONEWAY) {
 			/* Possible safe tile, but not so good as it's the back of a signal... */
 			segment->end_reason |= ESRB_SAFE_TILE | ESRB_DEAD_END;
 			segment->extra_cost += m_settings->rail_lastred_exit_penalty;
@@ -791,12 +791,12 @@ inline EndSegmentReasonBits CYapfRailBaseT<TAstar>::RestoreCachedNode (Node *n)
 	n->m_cost = n->m_parent->m_cost + TransitionCost (n->m_parent->GetLastPos(), n->GetPos()) + n->m_segment->m_cost;
 	/* We will need also some information about the last signal (if it was red). */
 	if (n->m_segment->m_last_signal.is_valid_tile()) {
-		assert(HasSignalAlongPos(n->m_segment->m_last_signal));
-		SignalState sig_state = GetSignalStateByPos(n->m_segment->m_last_signal);
+		assert(n->m_segment->m_last_signal.has_signal_along());
+		SignalState sig_state = n->m_segment->m_last_signal.get_signal_state();
 		bool is_red = (sig_state == SIGNAL_STATE_RED);
 		n->flags.set (n->FLAG_LAST_SIGNAL_WAS_RED, is_red);
 		if (is_red) {
-			n->m_last_red_signal_type = GetSignalType(n->m_segment->m_last_signal);
+			n->m_last_red_signal_type = n->m_segment->m_last_signal.get_signal_type();
 		}
 	}
 	/* No further calculation needed. */

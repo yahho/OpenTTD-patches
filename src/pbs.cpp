@@ -261,7 +261,7 @@ static RailPathPos FollowReservation(Owner o, RailTypes rts, const RailPathPos &
 		/* Depot tile? Can't continue. */
 		if (!cur.in_wormhole() && IsRailDepotTile(cur.tile)) break;
 		/* Non-pbs signal? Reservation can't continue. */
-		if (HasSignalAlongPos(cur) && !IsPbsSignal(GetSignalType(cur))) break;
+		if (cur.has_signal_along() && !IsPbsSignal(cur.get_signal_type())) break;
 	}
 
 	return cur;
@@ -426,7 +426,7 @@ PBSPositionState CheckWaitingPosition(const Train *v, const RailPathPos &pos, bo
 		/* Depots are always safe, and free iff unreserved. */
 		if (IsRailDepotTile(pos.tile) && pos.td == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(pos.tile)))) return HasDepotReservation(pos.tile) ? PBS_BUSY : PBS_FREE;
 
-		if (HasSignalAlongPos(pos) && !IsPbsSignal(GetSignalType(pos))) {
+		if (pos.has_signal_along() && !IsPbsSignal(pos.get_signal_type())) {
 			/* For non-pbs signals, stop on the signal tile. */
 			if (cb == PBS_CHECK_SAFE) return PBS_FREE;
 			return HasReservedTrack(pos.tile, TrackdirToTrack(pos.td)) ? PBS_BUSY : PBS_FREE;
@@ -454,12 +454,12 @@ PBSPositionState CheckWaitingPosition(const Train *v, const RailPathPos &pos, bo
 	if (cb != PBS_CHECK_FREE) {
 		if (!ft.m_new.is_single()) return PBS_UNSAFE;
 
-		if (HasSignalAlongPos(ft.m_new)) {
+		if (ft.m_new.has_signal_along()) {
 			/* PBS signal on next trackdir? Safe position. */
-			if (!IsPbsSignal(GetSignalType(ft.m_new))) return PBS_UNSAFE;
-		} else if (HasSignalAgainstPos(ft.m_new)) {
+			if (!IsPbsSignal(ft.m_new.get_signal_type())) return PBS_UNSAFE;
+		} else if (ft.m_new.has_signal_against()) {
 			/* One-way PBS signal against us? Safe position. */
-			if (GetSignalType(ft.m_new) != SIGTYPE_PBS_ONEWAY) return PBS_UNSAFE;
+			if (ft.m_new.get_signal_type() != SIGTYPE_PBS_ONEWAY) return PBS_UNSAFE;
 		} else {
 			/* No signal at all? Unsafe position. */
 			return PBS_UNSAFE;
@@ -470,8 +470,8 @@ PBSPositionState CheckWaitingPosition(const Train *v, const RailPathPos &pos, bo
 	} else if (!IsStationTile(pos.tile)) {
 		/* With PBS_CHECK_FREE, all these should be true. */
 		assert(ft.m_new.is_single());
-		assert(HasSignalOnPos(ft.m_new));
-		assert(IsPbsSignal(GetSignalType(ft.m_new)));
+		assert(ft.m_new.has_signals());
+		assert(IsPbsSignal(ft.m_new.get_signal_type()));
 	}
 
 	assert(state == PBS_FREE);

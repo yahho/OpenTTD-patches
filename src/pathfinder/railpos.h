@@ -34,6 +34,56 @@ struct RailPathPos : PathPos<PathVTile> {
 		return !in_wormhole() ? GetRailType (tile, TrackdirToTrack(td)) :
 			IsRailwayTile(wormhole) ? GetBridgeRailType(wormhole) : GetRailType(wormhole);
 	}
+
+	/** Check if there are signals at a position */
+	bool has_signals() const
+	{
+		if (in_wormhole()) {
+			return false;
+		} else if (IsRailwayTile(tile)) {
+			return HasSignalOnTrack (tile, TrackdirToTrack(td));
+		} else if (maptile_is_rail_tunnel(tile)) {
+			return maptile_has_tunnel_signals (tile);
+		} else {
+			return false;
+		}
+	}
+
+	/** Get the type of signals at a position */
+	SignalType get_signal_type() const
+	{
+		assert(has_signals());
+		return IsRailwayTile(tile) ?
+			GetSignalType (tile, TrackdirToTrack(td)) :
+			maptile_get_tunnel_signal_type(tile);
+	}
+
+	/** Check if there is a signal along/against a position */
+	bool has_signal_along (bool along = true) const
+	{
+		if (in_wormhole()) {
+			return false;
+		} else if (IsRailwayTile(tile)) {
+			return HasSignalOnTrackdir (tile, along ? td : ReverseTrackdir(td));
+		} else if (maptile_is_rail_tunnel(tile)) {
+			bool inwards = TrackdirToExitdir(td) == GetTunnelBridgeDirection(tile);
+			return maptile_has_tunnel_signal (tile, along ^ inwards);
+		} else {
+			return false;
+		}
+	}
+
+	/** Check if there is a signal against a position */
+	bool has_signal_against() const { return has_signal_along(false); }
+
+	/** Get the state of the signal along a position */
+	SignalState get_signal_state() const
+	{
+		assert(has_signal_along());
+		return IsRailwayTile(tile) ?
+			GetSignalStateByTrackdir (tile, td) :
+			maptile_get_tunnel_signal_state (tile, TrackdirToExitdir(td) == GetTunnelBridgeDirection(tile));
+	}
 };
 
 #endif /* PATHFINDER_RAILPOS_H */

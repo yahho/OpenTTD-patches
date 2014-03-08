@@ -1913,8 +1913,8 @@ void ReverseTrainDirection(Train *v)
 
 		/* If we are currently on a tile with conventional signals, we can't treat the
 		 * current tile as a safe tile or we would enter a PBS block without a reservation. */
-		bool first_tile_okay = !(HasSignalAlongPos(pos) &&
-			!IsPbsSignal(GetSignalType(pos)));
+		bool first_tile_okay = !(pos.has_signal_along() &&
+			!IsPbsSignal(pos.get_signal_type()));
 
 		/* If we are on a depot tile facing outwards, do not treat the current tile as safe. */
 		if (!pos.in_wormhole() && IsRailDepotTile(pos.tile) && TrackdirToExitdir(pos.td) == GetGroundDepotDirection(pos.tile)) first_tile_okay = false;
@@ -2143,9 +2143,9 @@ static void CheckNextTrainTile(Train *v)
 	RailPathPos pos = v->GetPos();
 
 	/* On a tile with a red non-pbs signal, don't look ahead. */
-	if (HasSignalAlongPos(pos) &&
-			!IsPbsSignal(GetSignalType(pos)) &&
-			GetSignalStateByPos(pos) == SIGNAL_STATE_RED) return;
+	if (pos.has_signal_along() &&
+			!IsPbsSignal(pos.get_signal_type()) &&
+			pos.get_signal_state() == SIGNAL_STATE_RED) return;
 
 	CFollowTrackRail ft(v, !_settings_game.pf.forbid_90_deg);
 	if (!ft.Follow(pos)) return;
@@ -2317,14 +2317,14 @@ void FreeTrainTrackReservation(const Train *v)
 			assert(ft.m_new.is_single());
 		}
 
-		if (HasSignalAlongPos(ft.m_new) && !IsPbsSignal(GetSignalType(ft.m_new))) {
+		if (ft.m_new.has_signal_along() && !IsPbsSignal(ft.m_new.get_signal_type())) {
 			/* Conventional signal along trackdir: remove reservation and stop. */
 			UnreserveRailTrack(ft.m_new);
 			break;
 		}
 
 		if (HasPbsSignalAlongPos(ft.m_new)) {
-			if (GetSignalStateByPos(ft.m_new) == SIGNAL_STATE_RED) {
+			if (ft.m_new.get_signal_state() == SIGNAL_STATE_RED) {
 				/* Red PBS signal? Can't be our reservation, would be green then. */
 				break;
 			} else {
@@ -2332,7 +2332,7 @@ void FreeTrainTrackReservation(const Train *v)
 				SetSignalState(ft.m_new.tile, ft.m_new.td, SIGNAL_STATE_RED);
 				MarkTileDirtyByTile(ft.m_new.tile);
 			}
-		} else if (HasSignalAgainstPos(ft.m_new) && IsOnewaySignal(GetSignalType(ft.m_new))) {
+		} else if (ft.m_new.has_signal_against() && IsOnewaySignal(ft.m_new.get_signal_type())) {
 			break;
 		}
 
@@ -3630,7 +3630,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				ClearPathReservation(v, v->GetPos());
 
 				RailPathPos rev = v->GetReversePos();
-				if (HasSignalOnPos(rev)) {
+				if (rev.has_signals()) {
 					assert(IsSignalBufferEmpty());
 					AddPosToSignalBuffer(rev, v->owner);
 					/* Defer actual updating of signals until the train has moved */
@@ -3735,14 +3735,14 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 
 			if (v->IsFrontEngine()) {
 				RailPathPos pos = v->GetPos();
-				if (HasSignalOnPos(pos)) {
+				if (pos.has_signals()) {
 					assert(IsSignalBufferEmpty());
 					AddPosToSignalBuffer(pos, v->owner);
 
 					if (UpdateSignalsInBuffer() == SIGSEG_PBS &&
-							HasSignalAlongPos(pos) &&
+							pos.has_signal_along() &&
 							/* A PBS block with a non-PBS signal facing us? */
-							!IsPbsSignal(GetSignalType(pos))) {
+							!IsPbsSignal(pos.get_signal_type())) {
 						/* We are entering a block with PBS signals right now, but
 						 * not through a PBS signal. This means we don't have a
 						 * reservation right now. As a conventional signal will only
