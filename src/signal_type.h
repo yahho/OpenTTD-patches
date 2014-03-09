@@ -29,9 +29,7 @@ enum SignalType {
 	SIGTYPE_COMBO      = 3, ///< presignal inter-block
 	SIGTYPE_PBS        = 4, ///< normal pbs signal
 	SIGTYPE_PBS_ONEWAY = 5, ///< no-entry signal
-
 	SIGTYPE_END,
-	SIGTYPE_LAST       = SIGTYPE_PBS_ONEWAY,
 };
 /** Helper information for extract tool. */
 template <> struct EnumPropsT<SignalType> : MakeEnumPropsT<SignalType, byte, SIGTYPE_NORMAL, SIGTYPE_END, SIGTYPE_END, 3> {};

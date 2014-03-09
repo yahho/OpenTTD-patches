@@ -1288,7 +1288,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 	SignalPair signals;
 	TileIndex other_end;
 	if (IsRailwayTile(tile)) {
-		if (sigtype > SIGTYPE_LAST) return CMD_ERROR;
+		if (sigtype >= SIGTYPE_END) return CMD_ERROR;
 
 		if (!ValParamTrackOrientation(track) || !HasTrack(tile, track)) {
 			return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
@@ -1659,7 +1659,7 @@ static CommandCost CmdSignalTrackHelper(TileIndex tile, DoCommandFlag flags, uin
 	if (!HasTrack(tile, track)) return CMD_ERROR;
 
 	SignalType sigtype = (SignalType)GB(p2, 7, 3);
-	if (sigtype > SIGTYPE_LAST) return CMD_ERROR;
+	if (sigtype >= SIGTYPE_END) return CMD_ERROR;
 
 	byte signals_ref;
 	/* copy the signal-style of the first rail-piece if existing */

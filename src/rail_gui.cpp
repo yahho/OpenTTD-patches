@@ -1543,7 +1543,7 @@ public:
 			case WID_BS_ELECTRIC_PBS_OWAY:
 				this->RaiseWidget((_cur_signal_variant == SIG_ELECTRIC ? WID_BS_ELECTRIC_NORM : WID_BS_SEMAPHORE_NORM) + _cur_signal_type);
 
-				_cur_signal_type = (SignalType)((uint)((widget - WID_BS_SEMAPHORE_NORM) % (SIGTYPE_LAST + 1)));
+				_cur_signal_type = (SignalType)((uint)((widget - WID_BS_SEMAPHORE_NORM) % SIGTYPE_END));
 				_cur_signal_variant = widget >= WID_BS_ELECTRIC_NORM ? SIG_ELECTRIC : SIG_SEMAPHORE;
 
 				/* If 'remove' button of rail build toolbar is active, disable it. */
