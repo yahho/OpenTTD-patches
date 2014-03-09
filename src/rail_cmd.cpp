@@ -3477,7 +3477,7 @@ static TrackStatus GetTileRailwayStatus_Track(TileIndex tile, DiagDirection side
 	TrackBits trackbits = GetTrackBits(tile);
 	TrackdirBits red_signals = TRACKDIR_BIT_NONE;
 
-	uint a, b;
+	uint a;
 
 	a = GetPresentSignals(tile, TRACK_UPPER);
 	/* When signals are not present (in neither direction),
@@ -3485,26 +3485,22 @@ static TrackStatus GetTileRailwayStatus_Track(TileIndex tile, DiagDirection side
 	 * the signal type. For signals that are only active from
 	 * one side, we set the missing signals explicitly to
 	 * `green'. Otherwise, they implicitly become `red'. */
-	if (a == 0) {
-		b = 3;
-	} else {
-		b = GetSignalStates(tile, TRACK_UPPER) & a;
-		if (!IsOnewaySignal(GetSignalType(tile, TRACK_UPPER))) b |= ~a;
-	}
+	if (a != 0) {
+		uint b = GetSignalStates (tile, TRACK_UPPER);
+		b = IsOnewaySignal(GetSignalType(tile, TRACK_UPPER)) ? (b & a) : (b | ~a);
 
-	if ((b & 0x2) == 0) red_signals |= (TRACKDIR_BIT_LEFT_N | TRACKDIR_BIT_X_NE | TRACKDIR_BIT_Y_SE | TRACKDIR_BIT_UPPER_E);
-	if ((b & 0x1) == 0) red_signals |= (TRACKDIR_BIT_LEFT_S | TRACKDIR_BIT_X_SW | TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_UPPER_W);
+		if ((b & 0x2) == 0) red_signals |= (TRACKDIR_BIT_LEFT_N | TRACKDIR_BIT_X_NE | TRACKDIR_BIT_Y_SE | TRACKDIR_BIT_UPPER_E);
+		if ((b & 0x1) == 0) red_signals |= (TRACKDIR_BIT_LEFT_S | TRACKDIR_BIT_X_SW | TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_UPPER_W);
+	}
 
 	a = GetPresentSignals(tile, TRACK_LOWER);
-	if (a == 0) {
-		b = 3;
-	} else {
-		b = GetSignalStates(tile, TRACK_LOWER) & a;
-		if (!IsOnewaySignal(GetSignalType(tile, TRACK_LOWER))) b |= ~a;
-	}
+	if (a != 0) {
+		uint b = GetSignalStates (tile, TRACK_LOWER);
+		b = IsOnewaySignal(GetSignalType(tile, TRACK_LOWER)) ? (b & a) : (b | ~a);
 
-	if ((b & 0x2) == 0) red_signals |= (TRACKDIR_BIT_RIGHT_N | TRACKDIR_BIT_LOWER_E);
-	if ((b & 0x1) == 0) red_signals |= (TRACKDIR_BIT_RIGHT_S | TRACKDIR_BIT_LOWER_W);
+		if ((b & 0x2) == 0) red_signals |= (TRACKDIR_BIT_RIGHT_N | TRACKDIR_BIT_LOWER_E);
+		if ((b & 0x1) == 0) red_signals |= (TRACKDIR_BIT_RIGHT_S | TRACKDIR_BIT_LOWER_W);
+	}
 
 	return CombineTrackStatus(TrackBitsToTrackdirBits(trackbits), red_signals);
 }
