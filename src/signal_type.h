@@ -51,7 +51,7 @@ enum SignalState {
 
 static inline bool IsPbsSignal(SignalType s)
 {
-	return s == SIGTYPE_PBS || s == SIGTYPE_PBS_ONEWAY;
+	return s >= SIGTYPE_PBS;
 }
 
 static inline bool IsPresignalEntry(SignalType s)
