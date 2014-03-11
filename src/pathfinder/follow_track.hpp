@@ -420,8 +420,8 @@ struct CFollowTrackRailBase : CFollowTrackBase<RailPathPos>
 		m_tiles_skipped = GetTunnelBridgeLength(m_new.tile, m_old.tile);
 	}
 
-	/** Helper for pathfinders - get min/max speed on m_old */
-	int GetSpeedLimit(int *pmin_speed = NULL) const
+	/** Helper for pathfinders - get max speed on m_old */
+	int GetSpeedLimit (void) const
 	{
 		/* Check for on-bridge and railtype speed limit */
 		TileIndex bridge_tile;
@@ -451,8 +451,6 @@ struct CFollowTrackRailBase : CFollowTrackBase<RailPathPos>
 		uint16 rail_speed = GetRailTypeInfo(rt)->max_speed;
 		if (rail_speed > 0) max_speed = min(max_speed, rail_speed);
 
-		/* if min speed was requested, return it */
-		if (pmin_speed != NULL) *pmin_speed = 0;
 		return max_speed;
 	}
 
@@ -714,8 +712,8 @@ struct CFollowTrackRoadBase : CFollowTrackBase<RoadPathPos>
 		NOT_REACHED();
 	}
 
-	/** Helper for pathfinders - get min/max speed on m_old */
-	int GetSpeedLimit(int *pmin_speed = NULL) const
+	/** Helper for pathfinders - get max speed on m_old */
+	int GetSpeedLimit (void) const
 	{
 		int max_speed;
 
@@ -726,8 +724,6 @@ struct CFollowTrackRoadBase : CFollowTrackBase<RoadPathPos>
 			max_speed = INT_MAX; // no limit
 		}
 
-		/* if min speed was requested, return it */
-		if (pmin_speed != NULL) *pmin_speed = 0;
 		return max_speed;
 	}
 };

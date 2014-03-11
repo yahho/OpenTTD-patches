@@ -619,18 +619,14 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeTile (Node *n, const CFollowTrackR
 		}
 	}
 
-	/* Apply min/max speed penalties only when inside the look-ahead radius. Otherwise
-	 * it would cause desync in MP. */
+	/* Apply max speed penalty only when inside the look-ahead radius.
+	 * Otherwise it would cause desync in MP. */
 	if (n->m_num_signals_passed < m_sig_look_ahead_costs.size())
 	{
-		int min_speed = 0;
-		int max_speed = tf->GetSpeedLimit(&min_speed);
+		int max_speed = tf->GetSpeedLimit();
 		int max_veh_speed = m_veh->GetDisplayMaxSpeed();
 		if (max_speed < max_veh_speed) {
 			segment->extra_cost += YAPF_TILE_LENGTH * (max_veh_speed - max_speed) * (1 + tf->m_tiles_skipped) / max_veh_speed;
-		}
-		if (min_speed > max_veh_speed) {
-			segment->extra_cost += YAPF_TILE_LENGTH * (min_speed - max_veh_speed);
 		}
 	}
 

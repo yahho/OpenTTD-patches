@@ -180,12 +180,10 @@ public:
 				assert (!tf.m_new.in_wormhole());
 				segment_cost += SlopeCost(m_settings, tf.m_old.tile, tf.m_new.tile);
 
-				/* add min/max speed penalties */
-				int min_speed = 0;
+				/* add max speed penalty */
 				int max_veh_speed = m_veh->GetDisplayMaxSpeed();
-				int max_speed = tf.GetSpeedLimit(&min_speed);
+				int max_speed = tf.GetSpeedLimit();
 				if (max_speed < max_veh_speed) segment_cost += 1 * (max_veh_speed - max_speed);
-				if (min_speed > max_veh_speed) segment_cost += 10 * (min_speed - max_veh_speed);
 
 				/* move to the next tile */
 				n->m_segment_last = tf.m_new;
