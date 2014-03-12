@@ -1808,27 +1808,3 @@ void RoadVehicle::OnNewDay()
 	SetWindowDirty(WC_VEHICLE_DETAILS, this->index);
 	SetWindowClassesDirty(WC_ROADVEH_LIST);
 }
-
-RoadPathPos RoadVehicle::GetPos() const
-{
-	if (this->vehstatus & VS_CRASHED) return RoadPathPos();
-
-	Trackdir td;
-
-	if (this->IsInDepot()) {
-		/* We'll assume the road vehicle is facing outwards */
-		td = DiagDirToDiagTrackdir(GetGroundDepotDirection(this->tile));
-	} else if (IsStandardRoadStopTile(this->tile)) {
-		/* We'll assume the road vehicle is facing outwards */
-		td = DiagDirToDiagTrackdir(GetRoadStopDir(this->tile)); // Road vehicle in a station
-	} else if (this->state > RVSB_TRACKDIR_MASK) {
-		/* Drive through road stops / wormholes (tunnels) */
-		td = DiagDirToDiagTrackdir(DirToDiagDir(this->direction));
-	} else {
-		/* If vehicle's state is a valid track direction (vehicle is not turning around) return it,
-		 * otherwise transform it into a valid track direction */
-		td = (Trackdir)((IsReversingRoadTrackdir((Trackdir)this->state)) ? (this->state - 6) : this->state);
-	}
-
-	return RoadPathPos(this->tile, td);
-}

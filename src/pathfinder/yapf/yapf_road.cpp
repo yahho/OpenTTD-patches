@@ -326,12 +326,54 @@ Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDi
 
 
 template <class Tpf>
-static TileIndex FindNearestDepot(const RoadVehicle *v, const RoadPathPos &pos, int max_distance)
+static TileIndex FindNearestDepot(const RoadVehicle *v, int max_distance)
 {
 	Tpf pf (v, true);
 
 	/* set origin node */
-	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos));
+	if (v->state == RVSB_WORMHOLE) {
+		if ((v->vehstatus & VS_HIDDEN) == 0) {
+			/* on a bridge */
+			TrackdirBits trackdirs = TrackStatusToTrackdirBits(GetTileRoadStatus (v->tile, v->compatible_roadtypes)) & DiagdirReachesTrackdirs(DirToDiagDir(v->direction));
+			assert (trackdirs != TRACKDIR_BIT_NONE);
+			RoadPathPos pos;
+			pos.set_tile (v->tile);
+			while (trackdirs != TRACKDIR_BIT_NONE) {
+				pos.set_trackdir (FindFirstTrackdir (trackdirs));
+				pf.InsertInitialNode (pf.CreateNewNode (NULL, pos));
+				trackdirs = KillFirstBit (trackdirs);
+			}
+		} else {
+			/* in a tunnel */
+			Trackdir td = DiagDirToDiagTrackdir(DirToDiagDir(v->direction));
+			pf.InsertInitialNode (pf.CreateNewNode (NULL, RoadPathPos (v->tile, td)));
+		}
+	} else {
+		Trackdir td;
+
+		if (v->state == RVSB_IN_DEPOT) {
+			/* We'll assume the road vehicle is facing outwards */
+			assert (IsRoadDepotTile (v->tile));
+			td = DiagDirToDiagTrackdir(GetGroundDepotDirection(v->tile));
+		} else if (IsStandardRoadStopTile(v->tile)) {
+			/* We'll assume the road vehicle is facing outwards */
+			td = DiagDirToDiagTrackdir(GetRoadStopDir(v->tile)); // Road vehicle in a station
+		} else if (v->state > RVSB_TRACKDIR_MASK) {
+			/* Drive-through road stops */
+			td = DiagDirToDiagTrackdir(DirToDiagDir(v->direction));
+		} else {
+			/* If vehicle's state is a valid track direction (vehicle is not turning around) return it,
+			 * otherwise transform it into a valid track direction */
+			td = (Trackdir)((IsReversingRoadTrackdir((Trackdir)v->state)) ? (v->state - 6) : v->state);
+		}
+
+		RoadPathPos pos (v->tile, td);
+		if ((TrackStatusToTrackdirBits(GetTileRoadStatus(pos.tile, v->compatible_roadtypes)) & TrackdirToTrackdirBits(pos.td)) == 0) {
+			return INVALID_TILE;
+		}
+
+		pf.InsertInitialNode (pf.CreateNewNode (NULL, pos));
+	}
 
 	/* find the best path */
 	if (!pf.FindPath()) return INVALID_TILE;
@@ -346,13 +388,8 @@ static TileIndex FindNearestDepot(const RoadVehicle *v, const RoadPathPos &pos, 
 
 TileIndex YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_distance)
 {
-	RoadPathPos pos = v->GetPos();
-	if ((TrackStatusToTrackdirBits(GetTileRoadStatus(pos.tile, v->compatible_roadtypes)) & TrackdirToTrackdirBits(pos.td)) == 0) {
-		return false;
-	}
-
 	/* default is YAPF type 2 */
-	typedef TileIndex (*PfnFindNearestDepot)(const RoadVehicle*, const RoadPathPos&, int);
+	typedef TileIndex (*PfnFindNearestDepot)(const RoadVehicle*, int);
 	PfnFindNearestDepot pfnFindNearestDepot = &FindNearestDepot<CYapfRoad2>;
 
 	/* check if non-default YAPF type should be used */
@@ -360,5 +397,5 @@ TileIndex YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_distanc
 		pfnFindNearestDepot = &FindNearestDepot<CYapfRoad1>; // Trackdir, allow 90-deg
 	}
 
-	return pfnFindNearestDepot(v, pos, max_distance);
+	return pfnFindNearestDepot(v, max_distance);
 }

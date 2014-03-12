@@ -115,7 +115,6 @@ struct RoadVehicle FINAL : public GroundVehicle<RoadVehicle, VEH_ROAD> {
 	bool Tick();
 	void OnNewDay();
 	uint Crash(bool flooded = false);
-	RoadPathPos GetPos() const;
 	TileIndex GetOrderStationLocation(StationID station);
 	bool FindClosestDepot(TileIndex *location, DestinationID *destination, bool *reverse);
 
