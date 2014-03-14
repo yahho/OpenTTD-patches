@@ -38,6 +38,7 @@ enum EditorTerraformToolbarWidgets {
 	WID_ETT_PLACE_ROCKS,                         ///< Place rocks button.
 	WID_ETT_PLACE_DESERT,                        ///< Place desert button (in tropical climate).
 	WID_ETT_PLACE_OBJECT,                        ///< Place transmitter button.
+	WID_ETT_PLACE_HOUSE,                         ///< Place house button.
 	WID_ETT_BUTTONS_END,                         ///< End of pushable buttons.
 	WID_ETT_START = WID_ETT_BUTTONS_END,         ///< Used for iterations.
 	WID_ETT_INCREASE_SIZE = WID_ETT_START,       ///< Upwards arrow button to increase terraforming size.

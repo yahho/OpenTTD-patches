@@ -1136,6 +1136,7 @@ static void SQGSWindow_Register (Squirrel *engine)
 	engine->AddConst ("WID_ETT_PLACE_ROCKS",                       ScriptWindow::WID_ETT_PLACE_ROCKS);
 	engine->AddConst ("WID_ETT_PLACE_DESERT",                      ScriptWindow::WID_ETT_PLACE_DESERT);
 	engine->AddConst ("WID_ETT_PLACE_OBJECT",                      ScriptWindow::WID_ETT_PLACE_OBJECT);
+	engine->AddConst ("WID_ETT_PLACE_HOUSE",                       ScriptWindow::WID_ETT_PLACE_HOUSE);
 	engine->AddConst ("WID_ETT_BUTTONS_END",                       ScriptWindow::WID_ETT_BUTTONS_END);
 	engine->AddConst ("WID_ETT_INCREASE_SIZE",                     ScriptWindow::WID_ETT_INCREASE_SIZE);
 	engine->AddConst ("WID_ETT_DECREASE_SIZE",                     ScriptWindow::WID_ETT_DECREASE_SIZE);

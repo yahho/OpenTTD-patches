@@ -2332,6 +2332,7 @@ public:
 		WID_ETT_PLACE_ROCKS                          = ::WID_ETT_PLACE_ROCKS,                          ///< Place rocks button.
 		WID_ETT_PLACE_DESERT                         = ::WID_ETT_PLACE_DESERT,                         ///< Place desert button (in tropical climate).
 		WID_ETT_PLACE_OBJECT                         = ::WID_ETT_PLACE_OBJECT,                         ///< Place transmitter button.
+		WID_ETT_PLACE_HOUSE                          = ::WID_ETT_PLACE_HOUSE,                          ///< Place house button.
 		WID_ETT_BUTTONS_END                          = ::WID_ETT_BUTTONS_END,                          ///< End of pushable buttons.
 		WID_ETT_INCREASE_SIZE                        = ::WID_ETT_INCREASE_SIZE,                        ///< Upwards arrow button to increase terraforming size.
 		WID_ETT_DECREASE_SIZE                        = ::WID_ETT_DECREASE_SIZE,                        ///< Downwards arrow button to decrease terraforming size.

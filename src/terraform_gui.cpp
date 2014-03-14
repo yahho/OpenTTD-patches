@@ -465,6 +465,8 @@ static const NWidgetPart _nested_scen_edit_land_gen_widgets[] = {
 			EndContainer(),
 			NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_ETT_PLACE_OBJECT), SetMinimalSize(23, 22),
 										SetFill(0, 1), SetDataTip(SPR_IMG_TRANSMITTER, STR_SCENEDIT_TOOLBAR_PLACE_OBJECT),
+			NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_ETT_PLACE_HOUSE), SetMinimalSize(23, 22),
+										SetFill(0, 1), SetDataTip(SPR_IMG_TOWN, STR_SCENEDIT_TOOLBAR_PLACE_HOUSE),
 			NWidget(NWID_SPACER), SetFill(1, 0),
 		EndContainer(),
 		NWidget(NWID_HORIZONTAL),
@@ -610,6 +612,9 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 				ShowBuildObjectPicker();
 				break;
 
+			case WID_ETT_PLACE_HOUSE: // Place house button
+				break;
+
 			case WID_ETT_INCREASE_SIZE:
 			case WID_ETT_DECREASE_SIZE: { // Increase/Decrease terraform size
 				int size = (widget == WID_ETT_INCREASE_SIZE) ? 1 : -1;
@@ -715,6 +720,7 @@ static Hotkey terraform_editor_hotkeys[] = {
 	Hotkey('R', "rocky", WID_ETT_PLACE_ROCKS),
 	Hotkey('T', "desert", WID_ETT_PLACE_DESERT),
 	Hotkey('O', "object", WID_ETT_PLACE_OBJECT),
+	Hotkey('H', "house", WID_ETT_PLACE_HOUSE),
 	HOTKEY_LIST_END
 };
 
