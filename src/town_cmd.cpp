@@ -2287,6 +2287,45 @@ StringID IsNewTownHouseAllowed (const Town *t, HouseID house)
 }
 
 /**
+ * Really build a house.
+ * @param t town to build house in
+ * @param tile house location
+ * @param house house type
+ * @param random_bits random bits for the house
+ */
+void DoBuildHouse(Town *t, TileIndex tile, HouseID house, byte random_bits)
+{
+	t->cache.num_houses++;
+
+	const HouseSpec *hs = HouseSpec::Get(house);
+
+	/* Special houses that there can be only one of. */
+	uint oneof = GetHouseUniqueFlags (hs);
+	assert ((t->flags & oneof) == 0);
+	t->flags |= oneof;
+
+	byte construction_counter = 0;
+	byte construction_stage = 0;
+
+	if (_generating_world || _game_mode == GM_EDITOR) {
+		uint32 r = Random();
+
+		construction_stage = TOWN_HOUSE_COMPLETED;
+		if (Chance16(1, 7)) construction_stage = GB(r, 0, 2);
+
+		if (construction_stage == TOWN_HOUSE_COMPLETED) {
+			ChangePopulation(t, hs->population);
+		} else {
+			construction_counter = GB(r, 2, 2);
+		}
+	}
+
+	MakeTownHouse(tile, t, construction_counter, construction_stage, house, random_bits);
+	UpdateTownRadius(t);
+	UpdateTownCargoes(t, tile);
+}
+
+/**
  * Tries to build a house at this tile
  * @param t town the house will belong to
  * @param tile where the house will be built
@@ -2392,34 +2431,7 @@ static bool BuildTownHouse(Town *t, TileIndex tile)
 			if (callback_res != CALLBACK_FAILED && !Convert8bitBooleanCallback(hs->grf_prop.grffile, CBID_HOUSE_ALLOW_CONSTRUCTION, callback_res)) continue;
 		}
 
-		/* build the house */
-		t->cache.num_houses++;
-
-		/* Special houses that there can be only one of. */
-		uint oneof = GetHouseUniqueFlags (hs);
-		assert ((t->flags & oneof) == 0);
-		t->flags |= oneof;
-
-		byte construction_counter = 0;
-		byte construction_stage = 0;
-
-		if (_generating_world || _game_mode == GM_EDITOR) {
-			uint32 r = Random();
-
-			construction_stage = TOWN_HOUSE_COMPLETED;
-			if (Chance16(1, 7)) construction_stage = GB(r, 0, 2);
-
-			if (construction_stage == TOWN_HOUSE_COMPLETED) {
-				ChangePopulation(t, hs->population);
-			} else {
-				construction_counter = GB(r, 2, 2);
-			}
-		}
-
-		MakeTownHouse(tile, t, construction_counter, construction_stage, house, random_bits);
-		UpdateTownRadius(t);
-		UpdateTownCargoes(t, tile);
-
+		DoBuildHouse(t, tile, house, random_bits);
 		return true;
 	}
 
