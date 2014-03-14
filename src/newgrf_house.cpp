@@ -387,6 +387,68 @@ static uint32 GetDistanceFromNearbyHouse(uint8 parameter, TileIndex tile, HouseI
 	return UINT_MAX;
 }
 
+
+/**
+ * @note Used by the resolver to get values for feature 07 deterministic spritegroups.
+ */
+/* virtual */ uint32 FakeHouseScopeResolver::GetVariable(byte variable, uint32 parameter, bool *available) const
+{
+	switch (variable) {
+		/* Construction stage. */
+		case 0x40: return TOWN_HOUSE_COMPLETED;
+
+		/* Building age. */
+		case 0x41: return 0;
+
+		/* Town zone */
+		case 0x42: return FIND_FIRST_BIT(HouseSpec::Get(this->house_id)->building_availability & HZ_ZONALL); // first available
+
+		/* Terrain type */
+		case 0x43: return _settings_game.game_creation.landscape == LT_ARCTIC && (HouseSpec::Get(house_id)->building_availability & (HZ_SUBARTC_ABOVE | HZ_SUBARTC_BELOW)) == HZ_SUBARTC_ABOVE ? 4 : 0;
+
+		/* Number of this type of building on the map. */
+		case 0x44: return 0;
+
+		/* Whether the town is being created or just expanded. */
+		case 0x45: return 0;
+
+		/* Current animation frame. */
+		case 0x46: return 0;
+
+		/* Position of the house */
+		case 0x47: return 0xFFFFFFFF;
+
+		/* Building counts for old houses with id = parameter. */
+		case 0x60: return 0;
+
+		/* Building counts for new houses with id = parameter. */
+		case 0x61: return 0;
+
+		/* Land info for nearby tiles. */
+		case 0x62: return 0;
+
+		/* Current animation frame of nearby house tiles */
+		case 0x63: return 0;
+
+		/* Cargo acceptance history of nearby stations */
+		case 0x64: return 0;
+
+		/* Distance test for some house types */
+		case 0x65: return 0;
+
+		/* Class and ID of nearby house tile */
+		case 0x66: return 0xFFFFFFFF;
+
+		/* GRFID of nearby house tile */
+		case 0x67: return 0xFFFFFFFF;
+	}
+
+	DEBUG(grf, 1, "Unhandled house variable 0x%X", variable);
+
+	*available = false;
+	return UINT_MAX;
+}
+
 uint16 GetHouseCallback(CallbackID callback, uint32 param1, uint32 param2, HouseID house_id, Town *town, TileIndex tile,
 		bool not_yet_constructed, uint8 initial_random_bits, uint32 watched_cargo_triggers)
 {

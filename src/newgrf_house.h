@@ -36,6 +36,28 @@ struct HouseScopeResolver : public ScopeResolver {
 	/* virtual */ void SetTriggers(int triggers) const;
 };
 
+/**
+ * Fake scope resolver for nonexistent houses.
+ *
+ * The purpose of this class is to provide a house resolver for a given house
+ * type but not an actual house instantiation. We need this when e.g. drawing
+ * houses in the GUI to keep backward compatibility with GRFs that were
+ * created before this functionality. When querying house sprites, certain
+ * GRFs may read various house variables e.g. the town zone where the
+ * building is located or the XY coordinates. Since the building doesn't
+ * exist we have no real values that we can return. Instead of failing, this
+ * resolver will return fake values.
+ */
+struct FakeHouseScopeResolver : public ScopeResolver {
+	HouseID house_id; ///< Type of house being queried.
+
+	FakeHouseScopeResolver(ResolverObject &ro, HouseID house_id)
+		: ScopeResolver(ro), house_id(house_id)
+	{ }
+
+	/* virtual */ uint32 GetVariable(byte variable, uint32 parameter, bool *available) const;
+};
+
 /** Resolver object to be used for houses (feature 07 spritegroups). */
 struct HouseResolverObject : public ResolverObject {
 	HouseScopeResolver house_scope;
