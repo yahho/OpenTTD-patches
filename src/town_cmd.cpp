@@ -50,6 +50,7 @@
 #include "game/game.hpp"
 #include "bridge.h"
 #include "map/util.h"
+#include "zoom_func.h"
 
 #include "table/strings.h"
 #include "table/town_land.h"
@@ -254,6 +255,88 @@ static void DrawTile_Town(TileInfo *ti)
 
 		if (proc >= 0) _town_draw_tile_procs[proc](ti);
 	}
+}
+
+static void DrawOldHouseTileInGUI(int x, int y, HouseID house_id, bool ground)
+{
+	/* Retrieve pointer to the draw town tile struct */
+	const DrawBuildingsTileStruct *dcts = town_draw_tile_data[house_id][0][TOWN_HOUSE_COMPLETED];
+	if (ground) {
+		/* Draw the ground sprite */
+		DrawSprite(dcts->ground.sprite, dcts->ground.pal, x, y);
+	} else {
+		/* Add a house on top of the ground? */
+		if (dcts->building.sprite != 0) {
+			DrawSprite (dcts->building.sprite, dcts->building.pal,
+					x + ScaleGUITrad (2 * (dcts->subtile_y - dcts->subtile_x)),
+					y + ScaleGUITrad (dcts->subtile_x + dcts->subtile_y));
+		}
+		/* Draw the lift */
+		if (dcts->draw_proc == 1) DrawSprite(SPR_LIFT, PAL_NONE, x - 18, y + 7);
+	}
+}
+
+/**
+ * Draw image of a house. Image will be centered between the \c left and the \c right and verticaly aligned to the \c bottom.
+ *
+ * @param house_id house type
+ * @param left left bound of the drawing area
+ * @param top top bound of the drawing area
+ * @param right right bound of the drawing area
+ * @param bottom bottom bound of the drawing area
+ */
+void DrawHouseImage(HouseID house_id, int left, int top, int right, int bottom)
+{
+	DrawPixelInfo tmp_dpi;
+	if (!FillDrawPixelInfo(&tmp_dpi, left, top, right - left + 1, bottom - top + 1)) return;
+	DrawPixelInfo *old_dpi = _cur_dpi;
+	_cur_dpi = &tmp_dpi;
+
+	const HouseSpec *hs = HouseSpec::Get(house_id);
+
+	/* sprites are relative to the topmost pixel of the ground tile */
+	uint x = (right - left + 1) / 2 - ScaleGUITrad (1);
+	uint y = bottom - top + 1 - ScaleGUITrad (TILE_PIXELS - 1);
+	uint half_tile_offset = ScaleGUITrad (TILE_PIXELS / 2);
+	if (hs->building_flags & TILE_SIZE_1x2) x -= half_tile_offset;
+	if (hs->building_flags & TILE_SIZE_2x1) x += half_tile_offset;
+	if (hs->building_flags & BUILDING_HAS_2_TILES) y -= half_tile_offset;
+	if (hs->building_flags & BUILDING_HAS_4_TILES) y -= half_tile_offset;
+
+	bool new_house = false;
+	if (house_id >= NEW_HOUSE_OFFSET) {
+		/* Houses don't necessarily need new graphics. If they don't
+		 * have a spritegroup associated with them, then the sprite
+		 * for the substitute house id is drawn instead. */
+		if (hs->grf_prop.spritegroup[0] != NULL) {
+			new_house = true;
+		} else {
+			house_id = hs->grf_prop.subst_id;
+		}
+	}
+
+	uint num_row = (hs->building_flags & BUILDING_2_TILES_X) ? 2 : 1;
+	uint num_col = (hs->building_flags & BUILDING_2_TILES_Y) ? 2 : 1;
+
+	for (bool ground = true; ; ground = !ground) {
+		HouseID hid = house_id;
+		for (uint row = 0; row < num_row; row++) {
+			for (uint col = 0; col < num_col; col++) {
+				Point offset = RemapCoords(row * TILE_SIZE, col * TILE_SIZE, 0); // offset for current tile
+				offset.x = UnScaleByZoom(offset.x, ZOOM_LVL_GUI);
+				offset.y = UnScaleByZoom(offset.y, ZOOM_LVL_GUI);
+				if (new_house) {
+					DrawNewHouseTileInGUI(x + offset.x, y + offset.y, hid, ground);
+				} else {
+					DrawOldHouseTileInGUI(x + offset.x, y + offset.y, hid, ground);
+				}
+				hid++;
+			}
+		}
+		if (!ground) break;
+	}
+
+	_cur_dpi = old_dpi;
 }
 
 static int GetSlopePixelZ_Town(TileIndex tile, uint x, uint y)

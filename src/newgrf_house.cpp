@@ -512,6 +512,34 @@ static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *grou
 	DrawNewGRFTileSeq(ti, dts, TO_HOUSES, stage, palette);
 }
 
+static void DrawTileLayoutInGUI(int x, int y, const TileLayoutSpriteGroup *group, HouseID house_id, bool ground)
+{
+	byte stage = TOWN_HOUSE_COMPLETED;
+	const DrawTileSprites *dts = group->ProcessRegisters(&stage);
+
+	const HouseSpec *hs = HouseSpec::Get(house_id);
+	PaletteID palette = hs->random_colour[0] + PALETTE_RECOLOUR_START;
+	if (HasBit(hs->callback_mask, CBM_HOUSE_COLOUR)) {
+		uint16 callback = GetHouseCallback(CBID_HOUSE_COLOUR, 0, 0, house_id);
+		if (callback != CALLBACK_FAILED) {
+			/* If bit 14 is set, we should use a 2cc colour map, else use the callback value. */
+			palette = HasBit(callback, 14) ? GB(callback, 0, 8) + SPR_2CCMAP_BASE : callback;
+		}
+	}
+
+	if (ground) {
+		PalSpriteID image = dts->ground;
+		if (HasBit(image.sprite, SPRITE_MODIFIER_CUSTOM_SPRITE)) image.sprite += stage;
+		if (HasBit(image.pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) image.pal += stage;
+
+		if (GB(image.sprite, 0, SPRITE_WIDTH) != 0) {
+			DrawSprite(image.sprite, GroundSpritePaletteTransform(image.sprite, image.pal, palette), x, y);
+		}
+	} else {
+		DrawNewGRFTileSeqInGUI(x, y, dts, stage, palette);
+	}
+}
+
 void DrawNewHouseTile(TileInfo *ti, HouseID house_id)
 {
 	const HouseSpec *hs = HouseSpec::Get(house_id);
@@ -535,6 +563,15 @@ void DrawNewHouseTile(TileInfo *ti, HouseID house_id)
 		const TileLayoutSpriteGroup *tlgroup = (const TileLayoutSpriteGroup *)group;
 		byte stage = GetHouseBuildingStage(ti->tile);
 		DrawTileLayout(ti, tlgroup, stage, house_id);
+	}
+}
+
+void DrawNewHouseTileInGUI(int x, int y, HouseID house_id, bool ground)
+{
+	FakeHouseResolverObject object(house_id);
+	const SpriteGroup *group = object.Resolve();
+	if (group != NULL && group->type == SGT_TILELAYOUT) {
+		DrawTileLayoutInGUI(x, y, (const TileLayoutSpriteGroup*)group, house_id, ground);
 	}
 }
 
