@@ -1000,11 +1000,6 @@ class CYapfRailT : public CYapfRailBaseT <TAstar>
 public:
 	typedef CYapfRailBaseT <TAstar> Base;
 	typedef typename TAstar::Node Node;           ///< this will be our node type
-	typedef typename Node::Key Key;               ///< key to hash tables
-	typedef typename Node::CachedData CachedData;
-	typedef typename CachedData::Key CacheKey;
-	typedef CSegmentCostCacheT<CachedData> Cache;
-	typedef SmallArray<CachedData> LocalCache;
 
 protected:
 	CYapfRailT (const Train *v, bool allow_90deg, bool override_rail_type = false)
