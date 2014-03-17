@@ -27,7 +27,6 @@
 
 #define DEBUG_YAPF_CACHE 0
 
-#if DEBUG_YAPF_CACHE
 template <typename Tpf> void DumpState(Tpf &pf1, Tpf &pf2)
 {
 	DumpTarget dmp1 ("yapf1.txt");
@@ -38,7 +37,6 @@ template <typename Tpf> void DumpState(Tpf &pf1, Tpf &pf2)
 	dmp2.WriteStructT("m_arr", pf2.GetArray());
 	dmp2.WriteLine("m_num_steps = %d", pf2.num_steps);
 }
-#endif
 
 int _total_pf_time_us = 0;
 
