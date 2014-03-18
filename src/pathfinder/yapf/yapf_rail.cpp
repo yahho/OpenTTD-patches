@@ -1109,6 +1109,113 @@ public:
 #endif /* !NO_DEBUG_MESSAGES */
 		return bDestFound;
 	}
+
+	/** Pathfind, then return the trackdir that leads into the shortest path. */
+	Trackdir ChooseRailTrack (const RailPathPos &origin, bool reserve_track, PFResult *target)
+	{
+		if (target != NULL) target->pos.tile = INVALID_TILE;
+
+		/* set origin node */
+		Base::SetOrigin(origin);
+
+		/* find the best path */
+		bool path_found = FindPath();
+
+		/* if path not found - return INVALID_TRACKDIR */
+		Trackdir next_trackdir = INVALID_TRACKDIR;
+		Node *pNode = Base::GetBestNode();
+		if (pNode != NULL) {
+			if (reserve_track && path_found) {
+				typename Base::NodePos res;
+				Node *best_next_node = Base::FindSafePositionOnPath (pNode, &res);
+				if (target != NULL) target->pos = res.pos;
+				/* return trackdir from the best origin node (one of start nodes) */
+				next_trackdir = best_next_node->GetPos().td;
+
+				assert (best_next_node->m_parent->GetPos() == origin);
+				assert (best_next_node->m_parent->GetLastPos() == origin);
+				bool okay = Base::TryReservePath (origin.tile, &res);
+				if (target != NULL) target->okay = okay;
+			} else {
+				while (pNode->m_parent->m_parent != NULL) {
+					pNode = pNode->m_parent;
+				}
+				assert (pNode->m_parent->GetPos() == origin);
+				assert (pNode->m_parent->GetLastPos() == origin);
+				/* return trackdir from the best origin node (one of start nodes) */
+				next_trackdir = pNode->GetPos().td;
+			}
+		}
+
+		/* Treat the path as found if stopped on the first two way signal(s). */
+		if (target != NULL) target->found = path_found | Base::m_stopped_on_first_two_way_signal;
+		return next_trackdir;
+	}
+
+	/** Pathfind, then return whether return whether to use the second origin. */
+	bool CheckReverseTrain (const RailPathPos &pos1, const RailPathPos &pos2, int reverse_penalty)
+	{
+		/* set origin nodes */
+		Base::SetOrigin (pos1, pos2, reverse_penalty, false);
+
+		/* find the best path */
+		if (!FindPath()) return false;
+
+		/* path found; walk through the path back to the origin */
+		Node *pNode = Base::GetBestNode();
+		while (pNode->m_parent != NULL) {
+			pNode = pNode->m_parent;
+		}
+
+		/* check if it was reversed origin */
+		return pNode->m_cost != 0;
+	}
+
+	/** Pathfind, then store nearest target. */
+	bool FindNearestTargetTwoWay (const RailPathPos &pos1, const RailPathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *target_tile, bool *reversed)
+	{
+		/* set origin node */
+		Base::SetOrigin (pos1, pos2, reverse_penalty, true);
+		Base::SetMaxCost(max_penalty);
+
+		/* find the best path */
+		if (!FindPath()) return false;
+
+		/* path found; get found target tile */
+		Node *n = Base::GetBestNode();
+		*target_tile = n->GetLastPos().tile;
+
+		/* walk through the path back to the origin */
+		while (n->m_parent != NULL) {
+			n = n->m_parent;
+		}
+
+		/* if the origin node is our front vehicle tile/Trackdir then we didn't reverse
+		 * but we can also look at the cost (== 0 -> not reversed, == reverse_penalty -> reversed) */
+		*reversed = (n->m_cost != 0);
+
+		return true;
+	}
+
+	/** Pathfind, then optionally try to reserve the path found. */
+	bool FindNearestSafeTile (const RailPathPos &pos, bool reserve)
+	{
+		/* Set origin. */
+		Base::SetOrigin(pos);
+
+		if (!FindPath()) return false;
+
+		if (!reserve) return true;
+
+		/* Found a destination, search for a reservation target. */
+		Node *pNode = Base::GetBestNode();
+		typename Base::NodePos res;
+		pNode = Base::FindSafePositionOnPath(pNode, &res)->m_parent;
+		assert (pNode->GetPos() == pos);
+		assert (pNode->GetLastPos() == pos);
+
+		return Base::TryReservePath (pos.tile, &res);
+	}
 };
 
 
@@ -1185,71 +1292,6 @@ public:
 		int d = dmin * YAPF_TILE_CORNER_LENGTH + (dxy - 1) * (YAPF_TILE_LENGTH / 2);
 		n.m_estimate = n.m_cost + d;
 		assert(n.m_estimate >= n.m_parent->m_estimate);
-	}
-
-	inline Trackdir ChooseRailTrack(const RailPathPos &origin, bool reserve_track, PFResult *target)
-	{
-		if (target != NULL) target->pos.tile = INVALID_TILE;
-
-		/* set origin and destination nodes */
-		Base::SetOrigin(origin);
-
-		/* find the best path */
-		bool path_found = Base::FindPath();
-
-		/* if path not found - return INVALID_TRACKDIR */
-		Trackdir next_trackdir = INVALID_TRACKDIR;
-		Node *pNode = Base::GetBestNode();
-		if (pNode != NULL) {
-			if (reserve_track && path_found) {
-				typename Base::NodePos res;
-				Node *best_next_node = Base::FindSafePositionOnPath (pNode, &res);
-				if (target != NULL) target->pos = res.pos;
-				/* return trackdir from the best origin node (one of start nodes) */
-				next_trackdir = best_next_node->GetPos().td;
-
-				assert (best_next_node->m_parent->GetPos() == origin);
-				assert (best_next_node->m_parent->GetLastPos() == origin);
-				bool okay = Base::TryReservePath (origin.tile, &res);
-				if (target != NULL) target->okay = okay;
-			} else {
-				while (pNode->m_parent->m_parent != NULL) {
-					pNode = pNode->m_parent;
-				}
-				assert (pNode->m_parent->GetPos() == origin);
-				assert (pNode->m_parent->GetLastPos() == origin);
-				/* return trackdir from the best origin node (one of start nodes) */
-				next_trackdir = pNode->GetPos().td;
-			}
-		}
-
-		/* Treat the path as found if stopped on the first two way signal(s). */
-		if (target != NULL) target->found = path_found | Base::m_stopped_on_first_two_way_signal;
-		return next_trackdir;
-	}
-
-	inline bool CheckReverseTrain(const RailPathPos &pos1, const RailPathPos &pos2, int reverse_penalty)
-	{
-		/* create pathfinder instance
-		 * set origin and destination nodes */
-		Base::SetOrigin(pos1, pos2, reverse_penalty, false);
-
-		/* find the best path */
-		bool bFound = Base::FindPath();
-
-		if (!bFound) return false;
-
-		/* path was found
-		 * walk through the path back to the origin */
-		Node *pNode = Base::GetBestNode();
-		while (pNode->m_parent != NULL) {
-			pNode = pNode->m_parent;
-		}
-
-		/* check if it was reversed origin */
-		Node& best_org_node = *pNode;
-		bool reversed = (best_org_node.m_cost != 0);
-		return reversed;
 	}
 };
 
@@ -1351,33 +1393,6 @@ public:
 	{
 		n.m_estimate = n.m_cost;
 	}
-
-	inline bool FindNearestDepotTwoWay(const RailPathPos &pos1, const RailPathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *depot_tile, bool *reversed)
-	{
-		/* set origin and destination nodes */
-		Base::SetOrigin (pos1, pos2, reverse_penalty, true);
-		Base::SetMaxCost(max_penalty);
-
-		/* find the best path */
-		bool bFound = Base::FindPath();
-		if (!bFound) return false;
-
-		/* some path found
-		 * get found depot tile */
-		Node *n = Base::GetBestNode();
-		*depot_tile = n->GetLastPos().tile;
-
-		/* walk through the path back to the origin */
-		while (n->m_parent != NULL) {
-			n = n->m_parent;
-		}
-
-		/* if the origin node is our front vehicle tile/Trackdir then we didn't reverse
-		 * but we can also look at the cost (== 0 -> not reversed, == reverse_penalty -> reversed) */
-		*reversed = (n->m_cost != 0);
-
-		return true;
-	}
 };
 
 bool YapfTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *res)
@@ -1397,14 +1412,14 @@ bool YapfTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *
 	 * depot orders and you do not disable automatic servicing.
 	 */
 	if (max_penalty != 0) pf1.DisableCache(true);
-	bool result1 = pf1.FindNearestDepotTwoWay (origin, rev, max_penalty, YAPF_INFINITE_PENALTY, &res->tile, &res->reverse);
+	bool result1 = pf1.FindNearestTargetTwoWay (origin, rev, max_penalty, YAPF_INFINITE_PENALTY, &res->tile, &res->reverse);
 
 #if DEBUG_YAPF_CACHE
 	CYapfAnyDepotRail pf2 (v, !_settings_game.pf.forbid_90_deg);
 	TileIndex depot_tile2 = INVALID_TILE;
 	bool reversed2 = false;
 	pf2.DisableCache(true);
-	bool result2 = pf2.FindNearestDepotTwoWay (origin, rev, max_penalty, YAPF_INFINITE_PENALTY, &depot_tile2, &reversed2);
+	bool result2 = pf2.FindNearestTargetTwoWay (origin, rev, max_penalty, YAPF_INFINITE_PENALTY, &depot_tile2, &reversed2);
 	if (result1 != result2 || (result1 && (res->tile != depot_tile2 || res->reverse != reversed2))) {
 		DEBUG(yapf, 0, "CACHE ERROR: FindNearestDepotTwoWay() = [%s, %s]", result1 ? "T" : "F", result2 ? "T" : "F");
 		DumpState(pf1, pf2);
@@ -1438,26 +1453,6 @@ public:
 	inline void PfCalcEstimate (Node &n) const
 	{
 		n.m_estimate = n.m_cost;
-	}
-
-	bool FindNearestSafeTile(const RailPathPos &pos, bool reserve)
-	{
-		/* Set origin and destination. */
-		Base::SetOrigin(pos);
-
-		bool bFound = Base::FindPath();
-		if (!bFound) return false;
-
-		if (!reserve) return true;
-
-		/* Found a destination, search for a reservation target. */
-		Node *pNode = Base::GetBestNode();
-		typename Base::NodePos res;
-		pNode = Base::FindSafePositionOnPath(pNode, &res)->m_parent;
-		assert (pNode->GetPos() == pos);
-		assert (pNode->GetLastPos() == pos);
-
-		return Base::TryReservePath (pos.tile, &res);
 	}
 };
 
