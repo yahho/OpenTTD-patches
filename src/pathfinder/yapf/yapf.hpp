@@ -23,9 +23,98 @@
 #include "../../misc/dbg_helpers.h"
 #include "../../settings_type.h"
 #include "astar.hpp"
+#include "../pos.h"
 #include "../follow_track.hpp"
-#include "yapf_node.hpp"
 
 extern int _total_pf_time_us;
+
+/** Yapf Node Key base class. */
+template <class PPos>
+struct CYapfNodeKey : PPos {
+	typedef PPos Pos;
+
+	inline void Set(const Pos &pos)
+	{
+		Pos::set(pos);
+	}
+
+	void Dump(DumpTarget &dmp) const
+	{
+		dmp.WriteTile("m_tile", Pos::tile);
+		dmp.WriteEnumT("m_td", Pos::td);
+	}
+};
+
+/** Yapf Node Key that evaluates hash from (and compares) tile & exit dir. */
+template <class PPos>
+struct CYapfNodeKeyExitDir : public CYapfNodeKey<PPos>
+{
+	DiagDirection  exitdir;
+
+	inline void Set(const PPos &pos)
+	{
+		CYapfNodeKey<PPos>::Set(pos);
+		exitdir = (pos.td == INVALID_TRACKDIR) ? INVALID_DIAGDIR : TrackdirToExitdir(pos.td);
+	}
+
+	inline int CalcHash() const
+	{
+		return exitdir | (PPos::tile << 2);
+	}
+
+	inline bool operator == (const CYapfNodeKeyExitDir& other) const
+	{
+		return PPos::PathTile::operator==(other) && (exitdir == other.exitdir);
+	}
+
+	void Dump(DumpTarget &dmp) const
+	{
+		CYapfNodeKey<PPos>::Dump(dmp);
+		dmp.WriteEnumT("m_exitdir", exitdir);
+	}
+};
+
+/** Yapf Node Key that evaluates hash from (and compares) tile & track dir. */
+template <class PPos>
+struct CYapfNodeKeyTrackDir : public CYapfNodeKey<PPos>
+{
+	inline int CalcHash() const
+	{
+		return (PPos::in_wormhole() ? (PPos::td + 6) : PPos::td) | (PPos::tile << 4);
+	}
+
+	inline bool operator == (const CYapfNodeKeyTrackDir& other) const
+	{
+		return PPos::PathTile::operator==(other) && (PPos::td == other.td);
+	}
+};
+
+/** Yapf Node base */
+template <class Tkey_, class Tnode>
+struct CYapfNodeT : AstarNodeBase<Tnode> {
+	typedef AstarNodeBase<Tnode> ABase;
+	typedef Tkey_ Key;
+	typedef typename Key::Pos Pos;
+	typedef Tnode Node;
+
+	Tkey_       m_key;
+
+	inline void Set(Node *parent, const Pos &pos)
+	{
+		ABase::Set (parent);
+		m_key.Set(pos);
+	}
+
+	inline const Pos& GetPos() const {return m_key;}
+	inline const Tkey_& GetKey() const {return m_key;}
+
+	void Dump(DumpTarget &dmp) const
+	{
+		dmp.WriteStructT("m_parent", ABase::m_parent);
+		dmp.WriteLine("m_cost = %d", ABase::m_cost);
+		dmp.WriteLine("m_estimate = %d", ABase::m_estimate);
+		dmp.WriteStructT("m_key", &m_key);
+	}
+};
 
 #endif /* YAPF_HPP */
