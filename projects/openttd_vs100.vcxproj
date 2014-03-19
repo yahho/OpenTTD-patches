@@ -2087,7 +2087,6 @@
       <ObjectFileName>$(IntDir)\pathfinder\yapf\</ObjectFileName>
       <XMLDocumentationFileName>$(IntDir)\pathfinder\yapf\</XMLDocumentationFileName>
     </ClCompile>
-    <ClInclude Include="..\src\pathfinder\yapf\yapf_type.hpp" />
     <ClCompile Include="..\src\video\dedicated_v.cpp">
       <AssemblerListingLocation>$(IntDir)\video\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\video\</ObjectFileName>

@@ -12619,10 +12619,6 @@
 					/>
 				</FileConfiguration>
 			</File>
-			<File
-				RelativePath=".\..\src\pathfinder\yapf\yapf_type.hpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Video"

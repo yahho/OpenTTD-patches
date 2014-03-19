@@ -24,7 +24,6 @@
 #include "../../settings_type.h"
 #include "astar.hpp"
 #include "../follow_track.hpp"
-#include "yapf_type.hpp"
 #include "yapf_node.hpp"
 
 extern int _total_pf_time_us;
