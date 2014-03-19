@@ -117,4 +117,28 @@ struct CYapfNodeT : AstarNodeBase<Tnode> {
 	}
 };
 
+/** Cost estimation helper. */
+static inline int YapfCalcEstimate (TileIndex src, DiagDirection dir, TileIndex dst)
+{
+	static const int dg_dir_to_x_offs[] = {-1, 0, 1, 0};
+	static const int dg_dir_to_y_offs[] = {0, 1, 0, -1};
+
+	int x1 = 2 * TileX(src) + dg_dir_to_x_offs[(int)dir];
+	int y1 = 2 * TileY(src) + dg_dir_to_y_offs[(int)dir];
+	int x2 = 2 * TileX(dst);
+	int y2 = 2 * TileY(dst);
+	int dx = abs(x1 - x2);
+	int dy = abs(y1 - y2);
+	int dmin = min(dx, dy);
+	int dxy = abs(dx - dy);
+	return dmin * YAPF_TILE_CORNER_LENGTH + (dxy - 1) * (YAPF_TILE_LENGTH / 2);
+}
+
+/** Cost estimation helper. */
+template <class Pos>
+static inline int YapfCalcEstimate (const Pos &pos, TileIndex dst)
+{
+	return YapfCalcEstimate (pos.tile, TrackdirToExitdir(pos.td), dst);
+}
+
 #endif /* YAPF_HPP */
