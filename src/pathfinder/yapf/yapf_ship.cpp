@@ -13,7 +13,22 @@
 #include "../../ship.h"
 
 #include "yapf.hpp"
-#include "yapf_node_ship.hpp"
+
+/** Yapf Node for ships */
+template <class Tkey_>
+struct CYapfShipNodeT
+	: CYapfNodeT<Tkey_, CYapfShipNodeT<Tkey_> >
+{
+};
+
+/* now define two major node types (that differ by key type) */
+typedef CYapfShipNodeT<CYapfNodeKeyExitDir <ShipPathPos> > CYapfShipNodeExitDir;
+typedef CYapfShipNodeT<CYapfNodeKeyTrackDir<ShipPathPos> > CYapfShipNodeTrackDir;
+
+/* Default Astar types */
+typedef Astar<CYapfShipNodeExitDir , 10, 12> AstarShipExitDir;
+typedef Astar<CYapfShipNodeTrackDir, 10, 12> AstarShipTrackDir;
+
 
 /** YAPF class for ships */
 template <class TAstar>

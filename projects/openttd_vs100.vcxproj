@@ -2069,9 +2069,6 @@
     <ClInclude Include="..\src\pathfinder\yapf\yapf.h" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf_node.hpp" />
-    <ClInclude Include="..\src\pathfinder\yapf\yapf_node_rail.hpp" />
-    <ClInclude Include="..\src\pathfinder\yapf\yapf_node_road.hpp" />
-    <ClInclude Include="..\src\pathfinder\yapf\yapf_node_ship.hpp" />
     <ClCompile Include="..\src\pathfinder\yapf\yapf_rail.cpp">
       <AssemblerListingLocation>$(IntDir)\pathfinder\yapf\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\pathfinder\yapf\</ObjectFileName>

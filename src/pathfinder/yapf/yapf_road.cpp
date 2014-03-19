@@ -11,8 +11,32 @@
 
 #include "../../stdafx.h"
 #include "yapf.hpp"
-#include "yapf_node_road.hpp"
 #include "../../roadstop_base.h"
+
+/** Yapf Node for road YAPF */
+template <class Tkey_>
+struct CYapfRoadNodeT
+	: CYapfNodeT<Tkey_, CYapfRoadNodeT<Tkey_> >
+{
+	typedef CYapfNodeT<Tkey_, CYapfRoadNodeT<Tkey_> > base;
+
+	RoadPathPos m_segment_last;
+
+	void Set(CYapfRoadNodeT *parent, const RoadPathPos &pos)
+	{
+		base::Set(parent, pos);
+		m_segment_last = pos;
+	}
+};
+
+/* now define two major node types (that differ by key type) */
+typedef CYapfRoadNodeT<CYapfNodeKeyExitDir <RoadPathPos> > CYapfRoadNodeExitDir;
+typedef CYapfRoadNodeT<CYapfNodeKeyTrackDir<RoadPathPos> > CYapfRoadNodeTrackDir;
+
+/* Default Astar types */
+typedef Astar<CYapfRoadNodeExitDir , 8, 10> AstarRoadExitDir;
+typedef Astar<CYapfRoadNodeTrackDir, 8, 10> AstarRoadTrackDir;
+
 
 static int SlopeCost(const YAPFSettings *settings, TileIndex tile, TileIndex next)
 {

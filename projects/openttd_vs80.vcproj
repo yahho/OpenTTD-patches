@@ -12479,18 +12479,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\pathfinder\yapf\yapf_node_rail.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\pathfinder\yapf\yapf_node_road.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\pathfinder\yapf\yapf_node_ship.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\pathfinder\yapf\yapf_rail.cpp"
 				>
 				<FileConfiguration
