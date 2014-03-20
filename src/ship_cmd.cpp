@@ -122,17 +122,31 @@ SpriteID Ship::GetImage(Direction direction, EngineImageType image_type) const
 	return _ship_sprites[spritenum] + direction;
 }
 
-static const Depot *FindClosestShipDepot(const Vehicle *v, uint max_distance)
+static const Depot *FindClosestShipDepot (const Ship *v, bool nearby = false)
 {
 	/* Find the closest depot */
 	const Depot *depot;
 	const Depot *best_depot = NULL;
-	/* If we don't have a maximum distance, i.e. distance = 0,
-	 * we want to find any depot so the best distance of no
-	 * depot must be more than any correct distance. On the
-	 * other hand if we have set a maximum distance, any depot
-	 * further away than max_distance can safely be ignored. */
-	uint best_dist = max_distance == 0 ? UINT_MAX : max_distance + 1;
+
+	/* If we don't have a maximum distance, we want to find any depot
+	 * so the best distance of no depot must be more than any correct
+	 * distance. On the other hand if we have set a maximum distance,
+	 * any depot further away than the maximum allowed distance can
+	 * safely be ignored. */
+	uint best_dist;
+	if (nearby) {
+		switch (_settings_game.pf.pathfinder_for_ships) {
+			case VPF_OPF:  best_dist = 12 + 1; break;
+			case VPF_YAPF: {
+				uint max_distance = _settings_game.pf.yapf.maximum_go_to_depot_penalty / YAPF_TILE_LENGTH;
+				best_dist = max_distance == 0 ? UINT_MAX : max_distance + 1;
+				break;
+			}
+			default: NOT_REACHED();
+		}
+	} else {
+		best_dist = UINT_MAX;
+	}
 
 	FOR_ALL_DEPOTS(depot) {
 		TileIndex tile = depot->xy;
@@ -148,7 +162,7 @@ static const Depot *FindClosestShipDepot(const Vehicle *v, uint max_distance)
 	return best_depot;
 }
 
-static void CheckIfShipNeedsService(Vehicle *v)
+static void CheckIfShipNeedsService (Ship *v)
 {
 	if (Company::Get(v->owner)->settings.vehicle.servint_ships == 0 || !v->NeedsAutomaticServicing()) return;
 	if (v->IsChainInDepot()) {
@@ -156,14 +170,7 @@ static void CheckIfShipNeedsService(Vehicle *v)
 		return;
 	}
 
-	uint max_distance;
-	switch (_settings_game.pf.pathfinder_for_ships) {
-		case VPF_OPF:  max_distance = 12; break;
-		case VPF_YAPF: max_distance = _settings_game.pf.yapf.maximum_go_to_depot_penalty / YAPF_TILE_LENGTH; break;
-		default: NOT_REACHED();
-	}
-
-	const Depot *depot = FindClosestShipDepot(v, max_distance);
+	const Depot *depot = FindClosestShipDepot (v, true);
 
 	if (depot == NULL) {
 		if (v->current_order.IsType(OT_GOTO_DEPOT)) {
@@ -665,7 +672,7 @@ CommandCost CmdBuildShip(TileIndex tile, DoCommandFlag flags, const Engine *e, u
 
 bool Ship::FindClosestDepot(TileIndex *location, DestinationID *destination, bool *reverse)
 {
-	const Depot *depot = FindClosestShipDepot(this, 0);
+	const Depot *depot = FindClosestShipDepot(this);
 
 	if (depot == NULL) return false;
 
