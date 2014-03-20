@@ -140,32 +140,24 @@ public:
 	}
 };
 
-/* YAPF type 1 - uses TileIndex/Trackdir as Node key, allows 90-deg turns */
-struct CYapfShip1 : CYapfShipT<AstarShipTrackDir>
+/* Template proxy */
+template <class TAstar, bool allow_90deg>
+struct CYapfShip : CYapfShipT<TAstar>
 {
-	CYapfShip1 (const Ship *ship)
-		: CYapfShipT<AstarShipTrackDir> (ship, true)
+	CYapfShip (const Ship *ship)
+		: CYapfShipT<TAstar> (ship, allow_90deg)
 	{
 	}
 };
+
+/* YAPF type 1 - uses TileIndex/Trackdir as Node key, allows 90-deg turns */
+typedef CYapfShip <AstarShipTrackDir, true>  CYapfShip1;
 
 /* YAPF type 2 - uses TileIndex/DiagDirection as Node key, allows 90-deg turns */
-struct CYapfShip2 : CYapfShipT<AstarShipExitDir>
-{
-	CYapfShip2 (const Ship *ship)
-		: CYapfShipT<AstarShipExitDir> (ship, true)
-	{
-	}
-};
+typedef CYapfShip <AstarShipExitDir,  true>  CYapfShip2;
 
 /* YAPF type 3 - uses TileIndex/Trackdir as Node key, forbids 90-deg turns */
-struct CYapfShip3 : CYapfShipT<AstarShipTrackDir>
-{
-	CYapfShip3 (const Ship *ship)
-		: CYapfShipT<AstarShipTrackDir> (ship, false)
-	{
-	}
-};
+typedef CYapfShip <AstarShipTrackDir, false> CYapfShip3;
 
 
 template <class Tpf>
