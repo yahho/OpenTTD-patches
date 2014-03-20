@@ -124,7 +124,14 @@ SpriteID Ship::GetImage(Direction direction, EngineImageType image_type) const
 
 static const Depot *FindClosestShipDepot (const Ship *v, bool nearby = false)
 {
-	/* Find the closest depot */
+	if (_settings_game.pf.pathfinder_for_ships != VPF_OPF) {
+		assert (_settings_game.pf.pathfinder_for_ships == VPF_YAPF);
+
+		TileIndex depot = YapfShipFindNearestDepot (v, nearby ? _settings_game.pf.yapf.maximum_go_to_depot_penalty : 0);
+		return depot == INVALID_TILE ? NULL : Depot::GetByTile(depot);
+	}
+
+	/* The original pathfinder cannot look for the nearest depot. */
 	const Depot *depot;
 	const Depot *best_depot = NULL;
 
@@ -133,21 +140,7 @@ static const Depot *FindClosestShipDepot (const Ship *v, bool nearby = false)
 	 * distance. On the other hand if we have set a maximum distance,
 	 * any depot further away than the maximum allowed distance can
 	 * safely be ignored. */
-	uint best_dist;
-	if (nearby) {
-		switch (_settings_game.pf.pathfinder_for_ships) {
-			case VPF_OPF:  best_dist = 12 + 1; break;
-			case VPF_YAPF: {
-				uint max_distance = _settings_game.pf.yapf.maximum_go_to_depot_penalty / YAPF_TILE_LENGTH;
-				best_dist = max_distance == 0 ? UINT_MAX : max_distance + 1;
-				break;
-			}
-			default: NOT_REACHED();
-		}
-	} else {
-		best_dist = UINT_MAX;
-	}
-
+	uint best_dist = nearby ? (12 + 1) : UINT_MAX;
 	FOR_ALL_DEPOTS(depot) {
 		TileIndex tile = depot->xy;
 		if (IsShipDepotTile(tile) && IsTileOwner(tile, v->owner)) {

@@ -50,6 +50,14 @@ Trackdir YapfShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterd
 bool YapfShipCheckReverse(const Ship *v);
 
 /**
+ * Find the nearest depot to a ship
+ * @param v the ship looking for a depot
+ * @param max_distance maximum allowed distance, or 0 for any distance
+ * @return the tile of the nearest depot
+ */
+TileIndex YapfShipFindNearestDepot (const Ship *v, uint max_distance);
+
+/**
  * Finds the best path for given road vehicle using YAPF.
  * @param v         the RV that needs to find a path
  * @param tile      the tile to find the path from (should be next tile the RV is about to enter)

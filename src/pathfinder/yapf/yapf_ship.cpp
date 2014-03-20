@@ -40,16 +40,16 @@ public:
 protected:
 	const YAPFSettings *const m_settings; ///< current settings (_settings_game.yapf)
 	const Ship         *const m_veh;      ///< vehicle that we are trying to drive
-	const Station      *const m_dest_station; ///< destination station, or NULL
-	const TileIndex           m_dest_tile;    ///< destination tile
+	const Station      *const m_dest_station; ///< destination station, or NULL if target is not a station
+	const TileIndex           m_dest_tile;    ///< destination tile, or the special marker INVALID_TILE to search for any depot
 	CFollowTrackWater         tf;             ///< track follower
 	const ShipVehicleInfo *const svi;         ///< ship vehicle info
 
-	CYapfShipT (const Ship *ship, bool allow_90deg)
+	CYapfShipT (const Ship *ship, bool allow_90deg, bool depot = false)
 		: m_settings(&_settings_game.pf.yapf)
 		, m_veh(ship)
-		, m_dest_station (ship->current_order.IsType(OT_GOTO_STATION) ? Station::Get(ship->current_order.GetDestination()) : NULL)
-		, m_dest_tile    (ship->current_order.IsType(OT_GOTO_STATION) ? m_dest_station->GetClosestTile(ship->tile, STATION_DOCK) : ship->dest_tile)
+		, m_dest_station (!depot && ship->current_order.IsType(OT_GOTO_STATION) ? Station::Get(ship->current_order.GetDestination()) : NULL)
+		, m_dest_tile    (depot ? INVALID_TILE : ship->current_order.IsType(OT_GOTO_STATION) ? m_dest_station->GetClosestTile(ship->tile, STATION_DOCK) : ship->dest_tile)
 		, tf(allow_90deg)
 		, svi(ShipVehInfo(ship->engine_type))
 	{
@@ -72,7 +72,9 @@ public:
 		assert (!tf.m_new.in_wormhole());
 
 		/* detect destination */
-		bool is_target = (m_dest_station == NULL) ? (tf.m_new.tile == m_dest_tile) : m_dest_station->IsDockingTile(tf.m_new.tile);
+		bool is_target = (m_dest_station != NULL) ? m_dest_station->IsDockingTile(tf.m_new.tile) :
+			m_dest_tile != INVALID_TILE ? tf.m_new.tile == m_dest_tile :
+				IsShipDepotTile(tf.m_new.tile) && IsTileOwner(tf.m_new.tile, m_veh->owner);
 
 		ShipPathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
@@ -95,8 +97,13 @@ public:
 				n->m_estimate = n->m_cost;
 				TAstar::FoundTarget(n);
 			} else {
-				n->m_estimate = n->m_cost + YapfCalcEstimate (n->GetPos(), m_dest_tile);
-				assert(n->m_estimate >= n->m_parent->m_estimate);
+				if (m_dest_tile == INVALID_TILE) {
+					n->m_estimate = n->m_cost;
+				} else {
+					n->m_estimate = n->m_cost + YapfCalcEstimate (n->GetPos(), m_dest_tile);
+					assert(n->m_estimate >= n->m_parent->m_estimate);
+				}
+
 				TAstar::InsertNode(n);
 			}
 		}
@@ -144,8 +151,8 @@ public:
 template <class TAstar, bool allow_90deg>
 struct CYapfShip : CYapfShipT<TAstar>
 {
-	CYapfShip (const Ship *ship)
-		: CYapfShipT<TAstar> (ship, allow_90deg)
+	CYapfShip (const Ship *ship, bool depot = false)
+		: CYapfShipT<TAstar> (ship, allow_90deg, depot)
 	{
 	}
 };
@@ -264,4 +271,35 @@ bool YapfShipCheckReverse(const Ship *v)
 	bool reverse = pfnCheckReverseShip(v, pos);
 
 	return reverse;
+}
+
+
+/**
+ * Find the nearest depot to a ship
+ * @param v ship
+ * @param max_distance maximum allowed distance, or 0 for any distance
+ * @return the tile of the nearest depot
+ */
+template <class Tpf>
+static TileIndex FindNearestDepot (const Ship *v, uint max_distance)
+{
+	Tpf pf (v, true);
+	pf.InsertInitialNode (pf.CreateNewNode (NULL, v->GetPos()));
+	if (!pf.FindPath()) return INVALID_TILE;
+
+	/* some path found; get found depot tile */
+	typename Tpf::Node *n = pf.GetBestNode();
+	if (max_distance > 0 && n->m_cost > max_distance) return INVALID_TILE;
+	return n->GetPos().tile;
+}
+
+TileIndex YapfShipFindNearestDepot (const Ship *v, uint max_distance)
+{
+	if (_settings_game.pf.forbid_90_deg) {
+		return FindNearestDepot<CYapfShip3> (v, max_distance);
+	} else if (_settings_game.pf.yapf.disable_node_optimization) {
+		return FindNearestDepot<CYapfShip1> (v, max_distance);
+	} else {
+		return FindNearestDepot<CYapfShip2> (v, max_distance);
+	}
 }
