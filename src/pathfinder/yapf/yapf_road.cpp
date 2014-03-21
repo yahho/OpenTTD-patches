@@ -391,7 +391,7 @@ static TileIndex FindNearestDepot(const RoadVehicle *v, int max_distance)
 	/* some path found; get found depot tile */
 	typename Tpf::Node *n = pf.GetBestNode();
 
-	if (max_distance > 0 && n->m_cost > max_distance * YAPF_TILE_LENGTH) return INVALID_TILE;
+	if (max_distance > 0 && n->m_cost > max_distance) return INVALID_TILE;
 
 	return n->m_segment_last.tile;
 }
