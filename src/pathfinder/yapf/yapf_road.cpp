@@ -143,7 +143,7 @@ public:
 		} else if (m_dest_tile != INVALID_TILE) {
 			return tile == m_dest_tile;
 		} else {
-			return IsRoadDepotTile(tile);
+			return IsRoadDepotTile(tile) && IsTileOwner(tile, m_veh->owner);
 		}
 	}
 
