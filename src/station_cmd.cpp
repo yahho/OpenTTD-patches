@@ -540,14 +540,8 @@ void UpdateStationAcceptance(Station *st, bool show_msg)
 
 	/* Adjust in case our station only accepts fewer kinds of goods */
 	for (CargoID i = 0; i < NUM_CARGO; i++) {
-		uint amt = acceptance[i];
-
 		/* Make sure the station can accept the goods type. */
-		bool is_passengers = IsCargoInClass(i, CC_PASSENGERS);
-		if ((!is_passengers && !(st->facilities & ~FACIL_BUS_STOP)) ||
-				(is_passengers && !(st->facilities & ~FACIL_TRUCK_STOP))) {
-			amt = 0;
-		}
+		uint amt = st->CanHandleCargo(i) ? acceptance[i] : 0;
 
 		GoodsEntry &ge = st->goods[i];
 		SB(ge.acceptance_pickup, GoodsEntry::GES_ACCEPTANCE, 1, amt >= 8);
@@ -3874,11 +3868,7 @@ uint MoveGoodsToStation(CargoID type, uint amount, SourceType source_type, Sourc
 
 		if (_settings_game.order.selectgoods && !st->goods[type].HasVehicleEverTriedLoading()) continue; // Selectively servicing stations, and not this one
 
-		if (IsCargoInClass(type, CC_PASSENGERS)) {
-			if (st->facilities == FACIL_TRUCK_STOP) continue; // passengers are never served by just a truck stop
-		} else {
-			if (st->facilities == FACIL_BUS_STOP) continue; // non-passengers are never served by just a bus stop
-		}
+		if (!st->CanHandleCargo(type)) continue; // passengers on truck stop or freight on bus stop
 
 		/* This station can be used, add it to st1/st2 */
 		if (st1 == NULL || st->goods[type].rating >= best_rating1) {

@@ -487,6 +487,12 @@ public:
 
 	void UpdateVirtCoord();
 
+	bool CanHandleCargo (CargoID cargo) const
+	{
+		StationFacility f = IsCargoInClass (cargo, CC_PASSENGERS) ? ~FACIL_TRUCK_STOP : ~FACIL_BUS_STOP;
+		return (this->facilities & f) != 0;
+	}
+
 	/* virtual */ uint GetPlatformLength(TileIndex tile, DiagDirection dir) const;
 	/* virtual */ uint GetPlatformLength(TileIndex tile) const;
 	void RecomputeIndustriesNear();
