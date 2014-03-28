@@ -643,7 +643,7 @@ public:
 	}
 
 	/* Compute cost and modify node state for a signal. */
-	inline int SignalCost(Node& n, const RailPathPos &pos, NodeData *data);
+	inline int SignalCost(Node *n, const RailPathPos &pos, NodeData *data);
 
 	/* Compute cost and modify node state for a position. */
 	inline void HandleNodeTile (Node *n, const CFollowTrackRail *tf, NodeData *segment, TileIndex prev);
@@ -675,7 +675,7 @@ public:
 
 /** Compute cost and modify node state for a signal. */
 template <class TAstar>
-inline int CYapfRailBaseT<TAstar>::SignalCost(Node& n, const RailPathPos &pos, NodeData *data)
+inline int CYapfRailBaseT<TAstar>::SignalCost(Node *n, const RailPathPos &pos, NodeData *data)
 {
 	int cost = 0;
 	/* if there is one-way signal in the opposite direction, then it is not our way */
@@ -685,13 +685,13 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node& n, const RailPathPos &pos, N
 		SignalState sig_state = pos.get_signal_state();
 		SignalType sig_type = pos.get_signal_type();
 
-		n.m_last_signal_type = sig_type;
+		n->m_last_signal_type = sig_type;
 
 		/* cache the look-ahead polynomial constant only if we didn't pass more signals than the look-ahead limit is */
-		int look_ahead_cost = (n.m_num_signals_passed < m_sig_look_ahead_costs.size()) ? m_sig_look_ahead_costs[n.m_num_signals_passed] : 0;
+		int look_ahead_cost = (n->m_num_signals_passed < m_sig_look_ahead_costs.size()) ? m_sig_look_ahead_costs[n->m_num_signals_passed] : 0;
 		if (sig_state != SIGNAL_STATE_RED) {
 			/* green signal */
-			n.flags.reset (n.FLAG_LAST_SIGNAL_WAS_RED);
+			n->flags.reset (n->FLAG_LAST_SIGNAL_WAS_RED);
 			/* negative look-ahead red-signal penalties would cause problems later, so use them as positive penalties for green signal */
 			if (look_ahead_cost < 0) {
 				/* add its negation to the cost */
@@ -703,17 +703,17 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node& n, const RailPathPos &pos, N
 			if (!IsPbsSignal(sig_type)
 					&& m_settings->rail_firstred_twoway_eol
 					&& m_treat_first_red_two_way_signal_as_eol
-					&& n.flags.test(n.FLAG_CHOICE_SEEN)
+					&& n->flags.test(n->FLAG_CHOICE_SEEN)
 					&& pos.has_signal_against()
-					&& n.m_num_signals_passed == 0) {
+					&& n->m_num_signals_passed == 0) {
 				/* yes, the first signal is two-way red signal => DEAD END. Prune this branch... */
 				PruneIntermediateNodeBranch();
 				data->end_reason |= ESRB_DEAD_END;
 				m_stopped_on_first_two_way_signal = true;
 				return -1;
 			}
-			n.m_last_red_signal_type = sig_type;
-			n.flags.set (n.FLAG_LAST_SIGNAL_WAS_RED);
+			n->m_last_red_signal_type = sig_type;
+			n->flags.set (n->FLAG_LAST_SIGNAL_WAS_RED);
 
 			/* look-ahead signal penalty */
 			if (!IsPbsSignal(sig_type) && look_ahead_cost > 0) {
@@ -722,7 +722,7 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node& n, const RailPathPos &pos, N
 			}
 
 			/* special signal penalties */
-			if (n.m_num_signals_passed == 0) {
+			if (n->m_num_signals_passed == 0) {
 				switch (sig_type) {
 					case SIGTYPE_COMBO:
 					case SIGTYPE_EXIT:   cost += m_settings->rail_firstred_exit_penalty; break; // first signal is red pre-signal-exit
@@ -733,14 +733,14 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node& n, const RailPathPos &pos, N
 			}
 		}
 
-		n.m_num_signals_passed++;
+		n->m_num_signals_passed++;
 		data->last_signal = pos;
 	} else if (pos.has_signal_against()) {
 		if (pos.get_signal_type() != SIGTYPE_PBS) {
 			/* one-way signal in opposite direction */
 			data->end_reason |= ESRB_DEAD_END;
 		} else {
-			cost += n.m_num_signals_passed < m_settings->rail_look_ahead_max_signals ? m_settings->rail_pbs_signal_back_penalty : 0;
+			cost += n->m_num_signals_passed < m_settings->rail_look_ahead_max_signals ? m_settings->rail_pbs_signal_back_penalty : 0;
 		}
 	}
 
@@ -761,7 +761,7 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeTile (Node *n, const CFollowTrackR
 	segment->segment_cost += SlopeCost(segment->pos);
 
 	/* Signal cost (routine can modify segment data). */
-	segment->segment_cost += SignalCost(*n, segment->pos, segment);
+	segment->segment_cost += SignalCost(n, segment->pos, segment);
 
 	/* Reserved tiles. */
 	segment->segment_cost += ReservationCost(*n, segment->pos, tf->m_tiles_skipped);
