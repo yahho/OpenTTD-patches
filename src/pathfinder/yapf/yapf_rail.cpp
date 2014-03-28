@@ -487,21 +487,6 @@ public:
 		m_disable_cache = disable;
 	}
 
-	/**
-	 * In some cases an intermediate node branch should be pruned.
-	 * The most prominent case is when a red EOL signal is encountered, but
-	 * there was a segment change (e.g. a rail type change) before that. If
-	 * the branch would not be pruned, the rail type change location would
-	 * remain the best intermediate node, and thus the vehicle would still
-	 * go towards the red EOL signal.
-	 */
-	void PruneIntermediateNodeBranch()
-	{
-		while (TAstar::best_intermediate != NULL && (TAstar::best_intermediate->m_segment->m_end_segment_reason & ESRB_CHOICE_FOLLOWS) == 0) {
-			TAstar::best_intermediate = TAstar::best_intermediate->m_parent;
-		}
-	}
-
 	struct NodeData {
 		int parent_cost;
 		int entry_cost;
@@ -706,10 +691,16 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node *n, const RailPathPos &pos, N
 					&& n->flags.test(n->FLAG_CHOICE_SEEN)
 					&& pos.has_signal_against()
 					&& n->m_num_signals_passed == 0) {
-				/* yes, the first signal is two-way red signal => DEAD END. Prune this branch... */
-				PruneIntermediateNodeBranch();
+				/* yes, the first signal is two-way red signal => DEAD END */
 				data->end_reason |= ESRB_DEAD_END;
 				m_stopped_on_first_two_way_signal = true;
+				/* prune this branch, so that we will not follow a best
+				 * intermediate node that heads straight into this one */
+				bool found_intermediate = false;
+				for (n = n->m_parent; n != NULL && (n->m_segment->m_end_segment_reason & ESRB_CHOICE_FOLLOWS) == 0; n = n->m_parent) {
+					if (n == TAstar::best_intermediate) found_intermediate = true;
+				}
+				if (found_intermediate) TAstar::best_intermediate = n;
 				return -1;
 			}
 			n->m_last_red_signal_type = sig_type;
