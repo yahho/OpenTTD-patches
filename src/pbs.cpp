@@ -206,14 +206,14 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 
 
 /** Follow a reservation starting from a specific tile to the end. */
-static RailPathPos FollowReservation(Owner o, RailTypes rts, const RailPathPos &pos, bool ignore_oneway = false)
+static void FollowReservation(Owner o, RailTypes rts, RailPathPos *pos, bool ignore_oneway = false)
 {
-	assert(HasReservedPos(pos));
+	assert(HasReservedPos(*pos));
 
 	/* Do not disallow 90 deg turns as the setting might have changed between reserving and now. */
 	CFollowTrackRail ft(o, true, rts);
-	ft.SetPos(pos);
-	RailPathPos cur = pos;
+	ft.SetPos(*pos);
+	RailPathPos cur = *pos;
 	RailPathPos start;
 
 	while (ft.FollowNext()) {
@@ -261,7 +261,7 @@ static RailPathPos FollowReservation(Owner o, RailTypes rts, const RailPathPos &
 		if (cur.has_signal_along() && !IsPbsSignal(cur.get_signal_type())) break;
 	}
 
-	return cur;
+	*pos = cur;
 }
 
 /** Find a train on a specific tile track. */
@@ -347,7 +347,7 @@ bool FollowTrainReservation(const Train *v, RailPathPos *pos, Vehicle **train_on
 	 * are on the same tile. The reservation on the next tile
 	 * is not ours in this case. */
 	if (has_reservation) {
-		res = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, res);
+		FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, &res);
 		assert(HasReservedPos(res));
 		if (train_on_res != NULL) {
 			Train *t = FindTrainOnPathEnd(res);
@@ -381,7 +381,8 @@ Train *GetTrainForReservation(TileIndex tile, Track track)
 		 * search in this direction as the reservation can't come from this side.*/
 		if (HasOnewaySignalBlockingTrackdir(tile, ReverseTrackdir(trackdir)) && !HasPbsSignalOnTrackdir(tile, trackdir)) continue;
 
-		RailPathPos pos = FollowReservation(GetTileOwner(tile), rts, RailPathPos(tile, trackdir), true);
+		RailPathPos pos = RailPathPos(tile, trackdir);
+		FollowReservation(GetTileOwner(tile), rts, &pos, true);
 		Train *t = FindTrainOnPathEnd(pos);
 		if (t != NULL) return t;
 	}
