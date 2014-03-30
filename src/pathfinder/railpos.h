@@ -67,7 +67,7 @@ struct RailPathPos : PathPos<PathVTile> {
 			return HasSignalOnTrackdir (tile, along ? td : ReverseTrackdir(td));
 		} else if (maptile_is_rail_tunnel(tile)) {
 			bool inwards = TrackdirToExitdir(td) == GetTunnelBridgeDirection(tile);
-			return maptile_has_tunnel_signal (tile, along ^ inwards);
+			return maptile_has_tunnel_signal (tile, along == inwards);
 		} else {
 			return false;
 		}
