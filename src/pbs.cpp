@@ -206,7 +206,7 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 
 
 /** Follow a reservation starting from a specific tile to the end. */
-static void FollowReservation(Owner o, RailTypes rts, RailPathPos *pos, bool ignore_oneway = false)
+static bool FollowReservation(Owner o, RailTypes rts, RailPathPos *pos, bool ignore_oneway = false)
 {
 	assert(HasReservedPos(*pos));
 
@@ -262,6 +262,8 @@ static void FollowReservation(Owner o, RailTypes rts, RailPathPos *pos, bool ign
 	}
 
 	*pos = cur;
+	/* return whether there was any further reservation at all */
+	return start.is_valid_tile();
 }
 
 /** Find a train on a specific tile track. */
@@ -344,12 +346,16 @@ bool FollowTrainReservation(const Train *v, RailPathPos *pos, Vehicle **train_on
 	bool has_reservation = HasReservedPos(res);
 
 	/* Start track not reserved? This can happen if two trains
-	 * are on the same tile. The reservation on the next tile
-	 * is not ours in this case. */
+	 * are on the same tile, on trackdirs ending on the same side.
+	 * The reservation on the next tile is not ours in this case.
+	 * Also, if the reservation ends on the starting position, we
+	 * will not look for a train on it, or else a train behind us
+	 * on the same track can appear to block our way, because it
+	 * would seem that our reservation ends in an occupied position. */
 	if (has_reservation) {
-		FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, &res);
+		bool ext = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, &res);
 		assert(HasReservedPos(res));
-		if (train_on_res != NULL) {
+		if (ext && train_on_res != NULL) {
 			Train *t = FindTrainOnPathEnd(res);
 			if (t != NULL) *train_on_res = t->First();
 		}
