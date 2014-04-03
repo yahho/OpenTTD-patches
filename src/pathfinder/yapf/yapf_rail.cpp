@@ -80,9 +80,6 @@ enum EndSegmentReasonBits {
 	/* What reasons mean that the target can be found and needs to be detected. */
 	ESRB_POSSIBLE_TARGET = ESRB_DEPOT | ESRB_WAYPOINT | ESRB_STATION | ESRB_SAFE_TILE,
 
-	/* What reasons can be stored back into cached segment. */
-	ESRB_CACHED_MASK = ESRB_DEAD_END | ESRB_RAIL_TYPE | ESRB_INFINITE_LOOP | ESRB_SEGMENT_TOO_LONG | ESRB_CHOICE_FOLLOWS | ESRB_DEPOT | ESRB_WAYPOINT | ESRB_STATION | ESRB_SAFE_TILE,
-
 	/* Reasons to abort pathfinding in this direction. */
 	ESRB_ABORT_PF_MASK = ESRB_DEAD_END | ESRB_PATH_TOO_LONG | ESRB_INFINITE_LOOP,
 };
@@ -628,7 +625,7 @@ public:
 	inline void HandleNodeNextTile (Node *n, CFollowTrackRail *tf, NodeData *segment, RailType rail_type);
 
 	/** Compute all costs for a newly-allocated (not cached) segment. */
-	inline EndSegmentReasonBits CalcSegment (Node *n, const CFollowTrackRail *tf);
+	inline bool CalcSegment (Node *n, const CFollowTrackRail *tf);
 
 	/* Fill in a node from cached data. */
 	inline EndSegmentReasonBits RestoreCachedNode (Node *n);
@@ -893,7 +890,7 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeNextTile (Node *n, CFollowTrackRai
 
 /** Compute all costs for a newly-allocated (not cached) segment. */
 template <class TAstar>
-inline EndSegmentReasonBits CYapfRailBaseT<TAstar>::CalcSegment (Node *n, const CFollowTrackRail *tf)
+inline bool CYapfRailBaseT<TAstar>::CalcSegment (Node *n, const CFollowTrackRail *tf)
 {
 	/* Each node cost contains 2 or 3 main components:
 	 *  1. Transition cost - cost of the move from previous node (tile):
@@ -935,6 +932,8 @@ inline EndSegmentReasonBits CYapfRailBaseT<TAstar>::CalcSegment (Node *n, const 
 
 	RailType rail_type = segment.pos.get_railtype();
 
+	bool path_too_long;
+
 	for (;;) {
 		HandleNodeTile (n, tf, &segment, prev);
 
@@ -948,12 +947,10 @@ inline EndSegmentReasonBits CYapfRailBaseT<TAstar>::CalcSegment (Node *n, const 
 
 		/* Finish if we already exceeded the maximum path cost
 		 * (i.e. when searching for the nearest depot). */
-		if (m_max_cost > 0 && (segment.parent_cost + segment.entry_cost + segment.segment_cost) > m_max_cost) {
-			segment.end_reason |= ESRB_PATH_TOO_LONG;
-		}
+		path_too_long = m_max_cost > 0 && (segment.parent_cost + segment.entry_cost + segment.segment_cost) > m_max_cost;
 
 		/* Any reason to end the segment? */
-		if (segment.end_reason != ESRB_NONE) break;
+		if (path_too_long || (segment.end_reason != ESRB_NONE)) break;
 
 		/* Transition cost (cost of the move from previous tile) */
 		segment.segment_cost += TransitionCost (segment.pos, tf_local.m_new);
@@ -967,11 +964,11 @@ inline EndSegmentReasonBits CYapfRailBaseT<TAstar>::CalcSegment (Node *n, const 
 	n->m_segment->m_last = segment.pos;
 	n->m_segment->m_cost = segment.segment_cost;
 	n->m_segment->m_last_signal = segment.last_signal;
-	n->m_segment->m_end_segment_reason = segment.end_reason & ESRB_CACHED_MASK;
+	n->m_segment->m_end_segment_reason = segment.end_reason;
 
 	/* total node cost */
 	n->m_cost = segment.parent_cost + segment.entry_cost + segment.segment_cost + segment.extra_cost;
-	return segment.end_reason;
+	return path_too_long;
 }
 
 /** Fill in a node from cached data. */
@@ -1337,7 +1334,9 @@ struct CYapfRailT : public Base
 			if (cached) {
 				end_reason = Base::RestoreCachedNode (n);
 			} else {
-				end_reason = Base::CalcSegment (n, &this->tf);
+				bool path_too_long = Base::CalcSegment (n, &this->tf);
+				end_reason = n->m_segment->m_end_segment_reason;
+				if (path_too_long) end_reason |= ESRB_PATH_TOO_LONG;
 			}
 
 			assert (((end_reason & ESRB_POSSIBLE_TARGET) != ESRB_NONE) || !Base::IsDestination(n->GetLastPos()));
