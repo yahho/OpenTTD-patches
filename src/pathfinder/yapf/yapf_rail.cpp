@@ -625,7 +625,7 @@ public:
 	inline void HandleNodeTile (Node *n, const CFollowTrackRail *tf, NodeData *segment, TileIndex prev);
 
 	/* Check for possible reasons to end a segment at the next tile. */
-	inline bool HandleNodeNextTile (Node *n, CFollowTrackRail *tf, NodeData *segment, RailType rail_type);
+	inline void HandleNodeNextTile (Node *n, CFollowTrackRail *tf, NodeData *segment, RailType rail_type);
 
 	/** Compute all costs for a newly-allocated (not cached) segment. */
 	inline EndSegmentReasonBits CalcSegment (Node *n, const CFollowTrackRail *tf);
@@ -838,7 +838,7 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeTile (Node *n, const CFollowTrackR
 
 /** Check for possible reasons to end a segment at the next tile. */
 template <class TAstar>
-inline bool CYapfRailBaseT<TAstar>::HandleNodeNextTile (Node *n, CFollowTrackRail *tf, NodeData *segment, RailType rail_type)
+inline void CYapfRailBaseT<TAstar>::HandleNodeNextTile (Node *n, CFollowTrackRail *tf, NodeData *segment, RailType rail_type)
 {
 	if (!tf->Follow(segment->pos)) {
 		assert(tf->m_err != CFollowTrackRail::EC_NONE);
@@ -852,14 +852,14 @@ inline bool CYapfRailBaseT<TAstar>::HandleNodeNextTile (Node *n, CFollowTrackRai
 		if (mask_reserved_tracks && !HasOnewaySignalBlockingPos(segment->pos)) {
 			segment->end_reason |= ESRB_SAFE_TILE;
 		}
-		return false;
+		return;
 	}
 
 	/* Check if the next tile is not a choice. */
 	if (!tf->m_new.is_single()) {
 		/* More than one segment will follow. Close this one. */
 		segment->end_reason |= ESRB_CHOICE_FOLLOWS;
-		return false;
+		return;
 	}
 
 	/* Gather the next tile/trackdir. */
@@ -882,26 +882,19 @@ inline bool CYapfRailBaseT<TAstar>::HandleNodeNextTile (Node *n, CFollowTrackRai
 	} else if (tf->m_new.get_railtype() != rail_type) {
 		/* Segment must consist from the same rail_type tiles. */
 		segment->end_reason |= ESRB_RAIL_TYPE;
-		return false;
+		return;
 	}
 
 	/* Avoid infinite looping. */
 	if (tf->m_new == n->GetPos()) {
 		segment->end_reason |= ESRB_INFINITE_LOOP;
-		return false;
-	}
-
-	if (segment->segment_cost > s_max_segment_cost) {
+	} else if (segment->segment_cost > s_max_segment_cost) {
 		/* Potentially in the infinite loop (or only very long segment?). We should
 		 * not force it to finish prematurely unless we are on a regular tile. */
 		if (!tf->m_new.in_wormhole() && IsNormalRailTile(tf->m_new.tile)) {
 			segment->end_reason |= ESRB_SEGMENT_TOO_LONG;
-			return false;
 		}
 	}
-
-	/* Any other reason bit set? */
-	return segment->end_reason == ESRB_NONE;
 }
 
 /** Compute all costs for a newly-allocated (not cached) segment. */
@@ -957,7 +950,10 @@ inline EndSegmentReasonBits CYapfRailBaseT<TAstar>::CalcSegment (Node *n, const 
 		assert(tf_local.m_railtypes == m_compatible_railtypes);
 		assert(tf_local.m_pPerf == &m_perf_ts_cost);
 
-		if (!HandleNodeNextTile (n, &tf_local, &segment, rail_type)) break;
+		HandleNodeNextTile (n, &tf_local, &segment, rail_type);
+
+		/* Any reason to end the segment? */
+		if (segment.end_reason != ESRB_NONE) break;
 
 		/* Transition cost (cost of the move from previous tile) */
 		segment.segment_cost += TransitionCost (segment.pos, tf_local.m_new);
