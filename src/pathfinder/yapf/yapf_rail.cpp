@@ -58,12 +58,6 @@ enum EndSegmentReason {
 	/* The following reasons are used only internally by PfCalcCost().
 	 *  They should not be found in the cached segment. */
 	ESR_PATH_TOO_LONG,     ///< the path is too long (searching for the nearest depot in the given radius)
-	ESR_FIRST_TWO_WAY_RED, ///< first signal was 2-way and it was red
-	ESR_LOOK_AHEAD_END,    ///< we have just passed the last look-ahead signal
-	ESR_TARGET_REACHED,    ///< we have just reached the destination
-
-	/* Special values */
-	ESR_NONE = 0xFF,          ///< no reason to end the segment here
 };
 
 enum EndSegmentReasonBits {
@@ -80,9 +74,6 @@ enum EndSegmentReasonBits {
 	ESRB_SAFE_TILE         = 1 << ESR_SAFE_TILE,
 
 	ESRB_PATH_TOO_LONG     = 1 << ESR_PATH_TOO_LONG,
-	ESRB_FIRST_TWO_WAY_RED = 1 << ESR_FIRST_TWO_WAY_RED,
-	ESRB_LOOK_AHEAD_END    = 1 << ESR_LOOK_AHEAD_END,
-	ESRB_TARGET_REACHED    = 1 << ESR_TARGET_REACHED,
 
 	/* Additional (composite) values. */
 
@@ -93,7 +84,7 @@ enum EndSegmentReasonBits {
 	ESRB_CACHED_MASK = ESRB_DEAD_END | ESRB_RAIL_TYPE | ESRB_INFINITE_LOOP | ESRB_SEGMENT_TOO_LONG | ESRB_CHOICE_FOLLOWS | ESRB_DEPOT | ESRB_WAYPOINT | ESRB_STATION | ESRB_SAFE_TILE,
 
 	/* Reasons to abort pathfinding in this direction. */
-	ESRB_ABORT_PF_MASK = ESRB_DEAD_END | ESRB_PATH_TOO_LONG | ESRB_INFINITE_LOOP | ESRB_FIRST_TWO_WAY_RED,
+	ESRB_ABORT_PF_MASK = ESRB_DEAD_END | ESRB_PATH_TOO_LONG | ESRB_INFINITE_LOOP,
 };
 
 DECLARE_ENUM_AS_BIT_SET(EndSegmentReasonBits)
@@ -103,7 +94,7 @@ inline void WriteValueStr(EndSegmentReasonBits bits, FILE *f)
 	static const char * const end_segment_reason_names[] = {
 		"DEAD_END", "RAIL_TYPE", "INFINITE_LOOP", "SEGMENT_TOO_LONG", "CHOICE_FOLLOWS",
 		"DEPOT", "WAYPOINT", "STATION", "SAFE_TILE",
-		"PATH_TOO_LONG", "FIRST_TWO_WAY_RED", "LOOK_AHEAD_END", "TARGET_REACHED"
+		"PATH_TOO_LONG"
 	};
 
 	fprintf (f, "0x%04X (", bits);
