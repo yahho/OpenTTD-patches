@@ -628,7 +628,7 @@ public:
 	inline bool CalcSegment (Node *n, const CFollowTrackRail *tf);
 
 	/* Fill in a node from cached data. */
-	inline EndSegmentReasonBits RestoreCachedNode (Node *n);
+	inline void RestoreCachedNode (Node *n);
 
 	/* Add special extra cost when the segment reaches our target. */
 	inline void AddTargetCost (Node *n, bool is_station);
@@ -973,7 +973,7 @@ inline bool CYapfRailBaseT<TAstar>::CalcSegment (Node *n, const CFollowTrackRail
 
 /** Fill in a node from cached data. */
 template <class TAstar>
-inline EndSegmentReasonBits CYapfRailBaseT<TAstar>::RestoreCachedNode (Node *n)
+inline void CYapfRailBaseT<TAstar>::RestoreCachedNode (Node *n)
 {
 	/* total node cost */
 	n->m_cost = n->m_parent->m_cost + TransitionCost (n->m_parent->GetLastPos(), n->GetPos()) + n->m_segment->m_cost;
@@ -988,7 +988,6 @@ inline EndSegmentReasonBits CYapfRailBaseT<TAstar>::RestoreCachedNode (Node *n)
 		}
 	}
 	/* No further calculation needed. */
-	return n->m_segment->m_end_segment_reason;
 }
 
 /** Add special extra cost when the segment reaches our target. */
@@ -1332,7 +1331,8 @@ struct CYapfRailT : public Base
 
 			EndSegmentReasonBits end_reason;
 			if (cached) {
-				end_reason = Base::RestoreCachedNode (n);
+				Base::RestoreCachedNode (n);
+				end_reason = n->m_segment->m_end_segment_reason;
 			} else {
 				bool path_too_long = Base::CalcSegment (n, &this->tf);
 				end_reason = n->m_segment->m_end_segment_reason;
