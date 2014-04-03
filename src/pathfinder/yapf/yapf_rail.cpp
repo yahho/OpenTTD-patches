@@ -44,7 +44,6 @@ int _total_pf_time_us = 0;
 
 /* Enum used in PfCalcCost() to see why was the segment closed. */
 enum EndSegmentReason {
-	/* The following reasons can be saved into cached segment */
 	ESR_DEAD_END = 0,      ///< track ends here
 	ESR_RAIL_TYPE,         ///< the next tile has a different rail type than our tiles
 	ESR_INFINITE_LOOP,     ///< infinite loop detected
@@ -54,10 +53,6 @@ enum EndSegmentReason {
 	ESR_WAYPOINT,          ///< waypoint encountered (could be a target next time)
 	ESR_STATION,           ///< station encountered (could be a target next time)
 	ESR_SAFE_TILE,         ///< safe waiting position found (could be a target)
-
-	/* The following reasons are used only internally by PfCalcCost().
-	 *  They should not be found in the cached segment. */
-	ESR_PATH_TOO_LONG,     ///< the path is too long (searching for the nearest depot in the given radius)
 };
 
 enum EndSegmentReasonBits {
@@ -73,15 +68,13 @@ enum EndSegmentReasonBits {
 	ESRB_STATION           = 1 << ESR_STATION,
 	ESRB_SAFE_TILE         = 1 << ESR_SAFE_TILE,
 
-	ESRB_PATH_TOO_LONG     = 1 << ESR_PATH_TOO_LONG,
-
 	/* Additional (composite) values. */
 
 	/* What reasons mean that the target can be found and needs to be detected. */
 	ESRB_POSSIBLE_TARGET = ESRB_DEPOT | ESRB_WAYPOINT | ESRB_STATION | ESRB_SAFE_TILE,
 
 	/* Reasons to abort pathfinding in this direction. */
-	ESRB_ABORT_PF_MASK = ESRB_DEAD_END | ESRB_PATH_TOO_LONG | ESRB_INFINITE_LOOP,
+	ESRB_ABORT_PF_MASK = ESRB_DEAD_END | ESRB_INFINITE_LOOP,
 };
 
 DECLARE_ENUM_AS_BIT_SET(EndSegmentReasonBits)
@@ -91,7 +84,6 @@ inline void WriteValueStr(EndSegmentReasonBits bits, FILE *f)
 	static const char * const end_segment_reason_names[] = {
 		"DEAD_END", "RAIL_TYPE", "INFINITE_LOOP", "SEGMENT_TOO_LONG", "CHOICE_FOLLOWS",
 		"DEPOT", "WAYPOINT", "STATION", "SAFE_TILE",
-		"PATH_TOO_LONG"
 	};
 
 	fprintf (f, "0x%04X (", bits);
@@ -1321,25 +1313,22 @@ struct CYapfRailT : public Base
 
 			/* evaluate the node */
 			bool cached = Base::AttachSegmentToNode(n);
-			if (!cached) {
-				Base::m_stats_cost_calcs++;
-			} else {
-				Base::m_stats_cache_hits++;
-			}
 
 			CPerfStart perf_cost(Base::m_perf_cost);
 
-			EndSegmentReasonBits end_reason;
+			bool path_too_long;
 			if (cached) {
+				Base::m_stats_cache_hits++;
+				assert (Base::m_max_cost == 0);
 				Base::RestoreCachedNode (n);
-				end_reason = n->m_segment->m_end_segment_reason;
+				path_too_long = false;
 			} else {
-				bool path_too_long = Base::CalcSegment (n, &this->tf);
-				end_reason = n->m_segment->m_end_segment_reason;
-				if (path_too_long) end_reason |= ESRB_PATH_TOO_LONG;
+				Base::m_stats_cost_calcs++;
+				path_too_long = Base::CalcSegment (n, &this->tf);
 			}
 
-			assert (((end_reason & ESRB_POSSIBLE_TARGET) != ESRB_NONE) || !Base::IsDestination(n->GetLastPos()));
+			EndSegmentReasonBits end_reason = n->m_segment->m_end_segment_reason;
+			assert (path_too_long || (end_reason != ESRB_NONE));
 
 			if (((end_reason & ESRB_POSSIBLE_TARGET) != ESRB_NONE) &&
 					Base::IsDestination(n->GetLastPos())) {
@@ -1349,7 +1338,7 @@ struct CYapfRailT : public Base
 				n->m_estimate = n->m_cost;
 				this->FoundTarget(n);
 
-			} else if ((end_reason & ESRB_ABORT_PF_MASK) != ESRB_NONE) {
+			} else if (path_too_long || (end_reason & ESRB_ABORT_PF_MASK) != ESRB_NONE) {
 				/* Reason to not continue. Stop this PF branch. */
 				continue;
 
