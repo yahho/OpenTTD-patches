@@ -828,12 +828,6 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeTile (Node *n, const CFollowTrackR
 			segment->extra_cost += YAPF_TILE_LENGTH * (max_veh_speed - max_speed) * (1 + tf->m_tiles_skipped) / max_veh_speed;
 		}
 	}
-
-	/* Finish if we already exceeded the maximum path cost (i.e. when
-	 * searching for the nearest depot). */
-	if (m_max_cost > 0 && (segment->parent_cost + segment->entry_cost + segment->segment_cost) > m_max_cost) {
-		segment->end_reason |= ESRB_PATH_TOO_LONG;
-	}
 }
 
 /** Check for possible reasons to end a segment at the next tile. */
@@ -951,6 +945,12 @@ inline EndSegmentReasonBits CYapfRailBaseT<TAstar>::CalcSegment (Node *n, const 
 		assert(tf_local.m_pPerf == &m_perf_ts_cost);
 
 		HandleNodeNextTile (n, &tf_local, &segment, rail_type);
+
+		/* Finish if we already exceeded the maximum path cost
+		 * (i.e. when searching for the nearest depot). */
+		if (m_max_cost > 0 && (segment.parent_cost + segment.entry_cost + segment.segment_cost) > m_max_cost) {
+			segment.end_reason |= ESRB_PATH_TOO_LONG;
+		}
 
 		/* Any reason to end the segment? */
 		if (segment.end_reason != ESRB_NONE) break;
