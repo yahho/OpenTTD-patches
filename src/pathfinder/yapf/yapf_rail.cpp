@@ -588,23 +588,6 @@ public:
 		return 0;
 	}
 
-	/** Penalty for platform shorter/longer than needed. */
-	inline int PlatformLengthPenalty (int platform_length) const
-	{
-		int cost = 0;
-		const Train *v = m_veh;
-		assert(v->gcache.cached_total_length != 0);
-		int missing_platform_length = CeilDiv(v->gcache.cached_total_length, TILE_SIZE) - platform_length;
-		if (missing_platform_length < 0) {
-			/* apply penalty for longer platform than needed */
-			cost += m_settings->rail_longer_platform_penalty + m_settings->rail_longer_platform_per_tile_penalty * -missing_platform_length;
-		} else if (missing_platform_length > 0) {
-			/* apply penalty for shorter platform than needed */
-			cost += m_settings->rail_shorter_platform_penalty + m_settings->rail_shorter_platform_per_tile_penalty * missing_platform_length;
-		}
-		return cost;
-	}
-
 	/* Compute cost and modify node state for a signal. */
 	inline int SignalCost(Node *n, const RailPathPos &pos, NodeData *data);
 
@@ -1227,8 +1210,9 @@ public:
 	/** Add special extra cost when the segment reaches our target. */
 	inline void AddTargetCost (Node *n)
 	{
+		const Train *v = Base::m_veh;
 		/* Station platform-length penalty. */
-		if (Base::m_veh->current_order.GetType() == OT_GOTO_STATION) {
+		if (v->current_order.GetType() == OT_GOTO_STATION) {
 			const RailPathPos &pos = n->GetLastPos();
 			assert (GetStationIndex(pos.tile) == m_dest_station_id);
 			const BaseStation *st = BaseStation::Get(m_dest_station_id);
@@ -1237,7 +1221,15 @@ public:
 			/* Reduce the extra cost caused by passing-station penalty (each station receives it in the segment cost). */
 			n->m_cost -= Base::m_settings->rail_station_penalty * platform_length;
 			/* Add penalty for the inappropriate platform length. */
-			n->m_cost += Base::PlatformLengthPenalty(platform_length);
+			assert (v->gcache.cached_total_length != 0);
+			int missing_platform_length = CeilDiv(v->gcache.cached_total_length, TILE_SIZE) - platform_length;
+			if (missing_platform_length < 0) {
+				/* apply penalty for longer platform than needed */
+				n->m_cost += Base::m_settings->rail_longer_platform_penalty + Base::m_settings->rail_longer_platform_per_tile_penalty * -missing_platform_length;
+			} else if (missing_platform_length > 0) {
+				/* apply penalty for shorter platform than needed */
+				n->m_cost += Base::m_settings->rail_shorter_platform_penalty + Base::m_settings->rail_shorter_platform_per_tile_penalty * missing_platform_length;
+			}
 		}
 	}
 };
