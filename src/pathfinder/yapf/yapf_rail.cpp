@@ -623,8 +623,9 @@ public:
 	/* Set target flag on node, and add last signal costs. */
 	inline void SetTarget (Node *n);
 
-	/* Add special extra cost when the segment reaches our target. */
-	inline void AddTargetCost (Node *n, bool is_station);
+	/** Add special extra cost when the segment reaches our target.
+	 * (dummy version for derived classes that do not need it). */
+	static inline void AddTargetCost (Node *n) { }
 
 	/** Struct to store a position in a path (node and path position). */
 	struct NodePos {
@@ -1000,22 +1001,6 @@ inline void CYapfRailBaseT<TAstar>::SetTarget (Node *n)
 	}
 }
 
-/** Add special extra cost when the segment reaches our target. */
-template <class TAstar>
-inline void CYapfRailBaseT<TAstar>::AddTargetCost (Node *n, bool is_station)
-{
-	/* Station platform-length penalty. */
-	if (is_station) {
-		const BaseStation *st = BaseStation::GetByTile(n->GetLastPos().tile);
-		assert(st != NULL);
-		uint platform_length = st->GetPlatformLength(n->GetLastPos().tile, ReverseDiagDir(TrackdirToExitdir(n->GetLastPos().td)));
-		/* Reduce the extra cost caused by passing-station penalty (each station receives it in the segment cost). */
-		n->m_cost -= m_settings->rail_station_penalty * platform_length;
-		/* Add penalty for the inappropriate platform length. */
-		n->m_cost += PlatformLengthPenalty(platform_length);
-	}
-}
-
 /**
  * Find the earliest safe position on a path.
  * @param node Node to start searching back from (usually the best found node).
@@ -1238,6 +1223,23 @@ public:
 		n->m_estimate = n->m_cost + YapfCalcEstimate (n->GetLastPos(), m_dest_tile);
 		assert (n->m_estimate >= n->m_parent->m_estimate);
 	}
+
+	/** Add special extra cost when the segment reaches our target. */
+	inline void AddTargetCost (Node *n)
+	{
+		/* Station platform-length penalty. */
+		if (Base::m_veh->current_order.GetType() == OT_GOTO_STATION) {
+			const RailPathPos &pos = n->GetLastPos();
+			assert (GetStationIndex(pos.tile) == m_dest_station_id);
+			const BaseStation *st = BaseStation::Get(m_dest_station_id);
+			assert(st != NULL);
+			uint platform_length = st->GetPlatformLength(pos.tile, ReverseDiagDir(TrackdirToExitdir(pos.td)));
+			/* Reduce the extra cost caused by passing-station penalty (each station receives it in the segment cost). */
+			n->m_cost -= Base::m_settings->rail_station_penalty * platform_length;
+			/* Add penalty for the inappropriate platform length. */
+			n->m_cost += Base::PlatformLengthPenalty(platform_length);
+		}
+	}
 };
 
 template <class TAstar>
@@ -1339,7 +1341,7 @@ struct CYapfRailT : public Base
 					Base::IsDestination(n->GetLastPos())) {
 				Base::SetTarget (n);
 				/* Special costs for the case we have reached our target. */
-				Base::AddTargetCost (n, (end_reason & ESRB_STATION) != ESRB_NONE);
+				Base::AddTargetCost (n);
 				perf_cost.Stop();
 				n->m_estimate = n->m_cost;
 				this->FoundTarget(n);
