@@ -733,46 +733,6 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeTile (Node *n, const CFollowTrackR
 		segment->end_reason |= ESRB_DEPOT;
 
 	} else if (!segment->pos.in_wormhole() && IsRailWaypointTile(segment->pos.tile)) {
-		const Train *v = m_veh;
-		if (v->current_order.IsType(OT_GOTO_WAYPOINT) &&
-				GetStationIndex(segment->pos.tile) == v->current_order.GetDestination() &&
-				!Waypoint::Get(v->current_order.GetDestination())->IsSingleTile()) {
-			/* This waypoint is our destination; maybe this isn't an unreserved
-			 * one, so check that and if so see that as the last signal being
-			 * red. This way waypoints near stations should work better. */
-			CFollowTrackRail ft(v);
-			ft.SetPos(segment->pos);
-
-			bool add_extra_cost;
-			for (;;) {
-				if (!ft.FollowNext()) {
-					/* end of line */
-					add_extra_cost = !IsWaitingPositionFree(v, ft.m_old, _settings_game.pf.forbid_90_deg);
-					break;
-				}
-
-				assert(ft.m_old.tile != ft.m_new.tile);
-				if (!ft.m_new.is_single()) {
-					/* We encountered a junction; it's going to be too complex to
-					 * handle this perfectly, so just bail out. There is no simple
-					 * free path, so try the other possibilities. */
-					add_extra_cost = true;
-					break;
-				}
-
-				/* If this is a safe waiting position we're done searching for it */
-				PBSPositionState state = CheckWaitingPosition (v, ft.m_new, _settings_game.pf.forbid_90_deg);
-				if (state != PBS_UNSAFE) {
-					add_extra_cost = state == PBS_BUSY;
-					break;
-				}
-			}
-
-			/* In the case this platform is (possibly) occupied we add penalty so the
-			 * other platforms of this waypoint are evaluated as well, i.e. we assume
-			 * that there is a red signal in the waypoint when it's occupied. */
-			if (add_extra_cost) segment->extra_cost += m_settings->rail_lastred_penalty;
-		}
 		/* Waypoint is also a good reason to finish. */
 		segment->end_reason |= ESRB_WAYPOINT;
 
@@ -1167,15 +1127,6 @@ public:
 	{
 		switch (v->current_order.GetType()) {
 			case OT_GOTO_WAYPOINT:
-				if (!Waypoint::Get(v->current_order.GetDestination())->IsSingleTile()) {
-					/* In case of 'complex' waypoints we need to do a look
-					 * ahead. This look ahead messes a bit about, which
-					 * means that it 'corrupts' the cache. To prevent this
-					 * we disable caching when we're looking for a complex
-					 * waypoint. */
-					Base::DisableCache(true);
-				}
-				/* FALL THROUGH */
 			case OT_GOTO_STATION:
 				m_dest_station_id = v->current_order.GetDestination();
 				m_dest_tile = BaseStation::Get(m_dest_station_id)->GetClosestTile(v->tile, v->current_order.IsType(OT_GOTO_STATION) ? STATION_RAIL : STATION_WAYPOINT);
@@ -1229,6 +1180,46 @@ public:
 			} else if (missing_platform_length > 0) {
 				/* apply penalty for shorter platform than needed */
 				n->m_cost += Base::m_settings->rail_shorter_platform_penalty + Base::m_settings->rail_shorter_platform_per_tile_penalty * missing_platform_length;
+			}
+		} else if (v->current_order.IsType(OT_GOTO_WAYPOINT)) {
+			const RailPathPos &pos = n->GetLastPos();
+			assert (GetStationIndex(pos.tile) == m_dest_station_id);
+			if (!Waypoint::Get(m_dest_station_id)->IsSingleTile()) {
+				/* This waypoint is our destination; maybe this isn't an unreserved
+				 * one, so check that and if so see that as the last signal being
+				 * red. This way waypoints near stations should work better. */
+				CFollowTrackRail ft(v);
+				ft.SetPos(pos);
+
+				bool add_extra_cost;
+				for (;;) {
+					if (!ft.FollowNext()) {
+						/* end of line */
+						add_extra_cost = !IsWaitingPositionFree(v, ft.m_old, _settings_game.pf.forbid_90_deg);
+						break;
+					}
+
+					assert(ft.m_old.tile != ft.m_new.tile);
+					if (!ft.m_new.is_single()) {
+						/* We encountered a junction; it's going to be too complex to
+						 * handle this perfectly, so just bail out. There is no simple
+						 * free path, so try the other possibilities. */
+						add_extra_cost = true;
+						break;
+					}
+
+					/* If this is a safe waiting position we're done searching for it */
+					PBSPositionState state = CheckWaitingPosition (v, ft.m_new, _settings_game.pf.forbid_90_deg);
+					if (state != PBS_UNSAFE) {
+						add_extra_cost = state == PBS_BUSY;
+						break;
+					}
+				}
+
+				/* In the case this platform is (possibly) occupied we add penalty so the
+				 * other platforms of this waypoint are evaluated as well, i.e. we assume
+				 * that there is a red signal in the waypoint when it's occupied. */
+				if (add_extra_cost) n->m_cost += Base::m_settings->rail_lastred_penalty;
 			}
 		}
 	}
