@@ -468,8 +468,6 @@ public:
 	}
 
 	struct NodeData {
-		int parent_cost;
-		int entry_cost;
 		int segment_cost;
 		int extra_cost;
 		RailPathPos pos;
@@ -911,9 +909,8 @@ inline bool CYapfRailBaseT<TAstar>::CalcSegment (Node *n, const CFollowTrackRail
 	 */
 
 	/* start at n and walk to the end of segment */
+	int entry_cost = n->m_parent->m_cost + TransitionCost (n->m_parent->GetLastPos(), n->GetPos());
 	NodeData segment;
-	segment.parent_cost = n->m_parent->m_cost;
-	segment.entry_cost = TransitionCost (n->m_parent->GetLastPos(), n->GetPos());
 	segment.segment_cost = 0;
 	segment.extra_cost = 0;
 	segment.pos = n->GetPos();
@@ -939,7 +936,7 @@ inline bool CYapfRailBaseT<TAstar>::CalcSegment (Node *n, const CFollowTrackRail
 
 		/* Finish if we already exceeded the maximum path cost
 		 * (i.e. when searching for the nearest depot). */
-		path_too_long = m_max_cost > 0 && (segment.parent_cost + segment.entry_cost + segment.segment_cost) > m_max_cost;
+		path_too_long = m_max_cost > 0 && (entry_cost + segment.segment_cost) > m_max_cost;
 
 		/* Any reason to end the segment? */
 		if (path_too_long || (segment.end_reason != ESRB_NONE)) break;
@@ -959,7 +956,7 @@ inline bool CYapfRailBaseT<TAstar>::CalcSegment (Node *n, const CFollowTrackRail
 	n->m_segment->m_end_segment_reason = segment.end_reason;
 
 	/* total node cost */
-	n->m_cost = segment.parent_cost + segment.entry_cost + segment.segment_cost + segment.extra_cost;
+	n->m_cost = entry_cost + segment.segment_cost + segment.extra_cost;
 	return path_too_long;
 }
 
