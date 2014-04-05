@@ -620,6 +620,9 @@ public:
 	/* Fill in a node from cached data. */
 	inline void RestoreCachedNode (Node *n);
 
+	/* Set target flag on node, and add last signal costs. */
+	inline void SetTarget (Node *n);
+
 	/* Add special extra cost when the segment reaches our target. */
 	inline void AddTargetCost (Node *n, bool is_station);
 
@@ -979,9 +982,9 @@ inline void CYapfRailBaseT<TAstar>::RestoreCachedNode (Node *n)
 	/* No further calculation needed. */
 }
 
-/** Add special extra cost when the segment reaches our target. */
+/** Set target flag on node, and add last signal costs. */
 template <class TAstar>
-inline void CYapfRailBaseT<TAstar>::AddTargetCost (Node *n, bool is_station)
+inline void CYapfRailBaseT<TAstar>::SetTarget (Node *n)
 {
 	n->flags.set (n->FLAG_TARGET_SEEN);
 
@@ -995,7 +998,12 @@ inline void CYapfRailBaseT<TAstar>::AddTargetCost (Node *n, bool is_station)
 			n->m_cost += m_settings->rail_lastred_penalty;
 		}
 	}
+}
 
+/** Add special extra cost when the segment reaches our target. */
+template <class TAstar>
+inline void CYapfRailBaseT<TAstar>::AddTargetCost (Node *n, bool is_station)
+{
 	/* Station platform-length penalty. */
 	if (is_station) {
 		const BaseStation *st = BaseStation::GetByTile(n->GetLastPos().tile);
@@ -1329,6 +1337,7 @@ struct CYapfRailT : public Base
 
 			if (((end_reason & ESRB_POSSIBLE_TARGET) != ESRB_NONE) &&
 					Base::IsDestination(n->GetLastPos())) {
+				Base::SetTarget (n);
 				/* Special costs for the case we have reached our target. */
 				Base::AddTargetCost (n, (end_reason & ESRB_STATION) != ESRB_NONE);
 				perf_cost.Stop();
