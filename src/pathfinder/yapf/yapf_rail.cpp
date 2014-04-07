@@ -409,7 +409,11 @@ public:
 
 	inline bool CanUseGlobalCache(Node& n) const
 	{
-		return !m_disable_cache
+		/* Disable the cache if explicitly asked to; if the node has
+		 * no parent (initial node) or is within the signal lookahead
+		 * threshold; or if we are masking reserved tracks (because
+		 * that makes segments end prematurely at the first signal). */
+		return !m_disable_cache && !mask_reserved_tracks
 			&& (n.m_parent != NULL)
 			&& (n.m_parent->m_num_signals_passed >= m_sig_look_ahead_costs.size());
 	}
@@ -1100,10 +1104,6 @@ bool CYapfRailBaseT<TAstar>::TryReservePath (TileIndex origin, const NodePos *re
 			assert (follow);
 			assert (ft.m_new.is_single());
 		}
-	}
-
-	if (CanUseGlobalCache(*res->node)) {
-		YapfNotifyTrackLayoutChange(INVALID_TILE, INVALID_TRACK);
 	}
 
 	return true;
