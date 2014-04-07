@@ -298,13 +298,19 @@ struct CSegmentCostCacheT
 		m_heap.Clear();
 	}
 
-	inline bool Get(const Key& key, Tsegment **item)
+	/** find a key in the cache */
+	inline Tsegment *Find (const Key &key)
 	{
-		*item = m_map.Find(key);
-		if (*item != NULL) return true;
-		*item = new (m_heap.Append()) Tsegment(key);
-		m_map.Push(**item);
-		return false;
+		return m_map.Find (key);
+	}
+
+	/** create an entry in the cache for a key */
+	inline Tsegment *Create (const Key &key)
+	{
+		assert (Find(key) == NULL);
+		Tsegment *item = new (m_heap.Append()) Tsegment(key);
+		m_map.Push (*item);
+		return item;
 	}
 };
 
@@ -431,9 +437,11 @@ protected:
 			n->m_segment->m_last = n->GetPos();
 			return false;
 		}
-		bool found = m_global_cache.Get(key, &n->m_segment);
-		if (!found) n->m_segment->m_last = n->GetPos();
-		return found;
+		n->m_segment = m_global_cache.Find (key);
+		if (n->m_segment != NULL) return true;
+		n->m_segment = m_global_cache.Create (key);
+		n->m_segment->m_last = n->GetPos();
+		return false;
 	}
 
 public:
