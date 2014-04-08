@@ -68,6 +68,8 @@ struct Group : PooledItem <Group, GroupID, 16, 64000> {
 	bool replace_protection;                ///< If set to true, the global autoreplace have no effect on the group
 	GroupStatistics statistics;             ///< NOSAVE: Statistics and caches on the vehicles in the group.
 
+	GroupID parent;                         ///< Parent group
+
 	Group(CompanyID owner = INVALID_COMPANY);
 	~Group();
 };
@@ -98,6 +100,7 @@ void SetTrainGroupID(Train *v, GroupID grp);
 void UpdateTrainGroupID(Train *v);
 void RemoveVehicleFromGroup(const Vehicle *v);
 void RemoveAllGroupsForCompany(const CompanyID company);
+bool GroupIsInGroup(GroupID search, GroupID group);
 
 extern GroupID _new_group_id;
 
