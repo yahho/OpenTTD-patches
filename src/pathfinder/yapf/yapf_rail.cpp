@@ -130,10 +130,10 @@ struct CYapfRailSegment : CHashTableEntryT <CYapfRailSegment>
 	RailPathPos            m_last_signal;
 	EndSegmentReasonBits   m_end_segment_reason;
 
-	inline CYapfRailSegment(const CYapfRailSegmentKey& key)
+	inline CYapfRailSegment (const CYapfRailKey &key)
 		: m_key(key)
-		, m_last()
-		, m_cost(-1)
+		, m_last(key)
+		, m_cost(0)
 		, m_last_signal()
 		, m_end_segment_reason(ESRB_NONE)
 	{}
@@ -286,8 +286,9 @@ struct CSegmentCostCacheT
 		return m_map.Find (key);
 	}
 
-	/** create an entry in the cache for a key */
-	inline Tsegment *Create (const Key &key)
+	/** create an entry in the cache for a node */
+	template <class NodeKey>
+	inline Tsegment *Create (const NodeKey &key)
 	{
 		assert (Find(key) == NULL);
 		Tsegment *item = new (m_heap.Append()) Tsegment(key);
@@ -304,7 +305,6 @@ public:
 	typedef typename TAstar::Node Node;           ///< this will be our node type
 	typedef typename Node::Key Key;               ///< key to hash tables
 	typedef typename Node::CachedData CachedData;
-	typedef typename CachedData::Key CacheKey;
 	typedef CSegmentCostCacheT<CachedData> Cache;
 	typedef SmallArray<CachedData> LocalCache;
 
@@ -413,16 +413,14 @@ protected:
 	 */
 	inline bool AttachSegmentToNode(Node *n)
 	{
-		CacheKey key(n->GetKey());
+		const Key &key = n->GetKey();
 		if (!CanUseGlobalCache(*n)) {
 			n->m_segment = new (m_local_cache.Append()) CachedData(key);
-			n->m_segment->m_last = n->GetPos();
 			return false;
 		}
 		n->m_segment = m_global_cache.Find (key);
 		if (n->m_segment != NULL) return true;
 		n->m_segment = m_global_cache.Create (key);
-		n->m_segment->m_last = n->GetPos();
 		return false;
 	}
 
