@@ -100,22 +100,7 @@ struct CYapfRailSegmentKey
 {
 	uint32    m_value;
 
-	inline CYapfRailSegmentKey(const CYapfRailSegmentKey& src) : m_value(src.m_value) {}
-
-	inline CYapfRailSegmentKey(const CYapfRailKey& node_key)
-	{
-		Set(node_key);
-	}
-
-	inline void Set(const CYapfRailSegmentKey& src)
-	{
-		m_value = src.m_value;
-	}
-
-	inline void Set(const CYapfRailKey& node_key)
-	{
-		m_value = node_key.CalcHash();
-	}
+	inline CYapfRailSegmentKey(const CYapfRailKey& node_key) : m_value(node_key.CalcHash()) { }
 
 	inline int32 CalcHash() const
 	{
