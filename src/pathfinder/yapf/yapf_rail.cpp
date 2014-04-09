@@ -187,7 +187,6 @@ struct CYapfRailNodeTrackDir
 	CYapfRailSegment *m_segment;
 	uint16            m_num_signals_passed;
 	std::bitset<NFLAGS> flags;
-	SignalType        m_last_red_signal_type;
 	SignalType        m_last_signal_type;
 
 	inline void Set(CYapfRailNodeTrackDir *parent, const RailPathPos &pos, bool is_choice)
@@ -197,7 +196,6 @@ struct CYapfRailNodeTrackDir
 		if (parent == NULL) {
 			m_num_signals_passed      = 0;
 			flags                     = 0;
-			m_last_red_signal_type    = SIGTYPE_NORMAL;
 			/* We use PBS as initial signal type because if we are in
 			 * a PBS section and need to route, i.e. we're at a safe
 			 * waiting point of a station, we need to account for the
@@ -212,7 +210,6 @@ struct CYapfRailNodeTrackDir
 		} else {
 			m_num_signals_passed      = parent->m_num_signals_passed;
 			flags                     = parent->flags;
-			m_last_red_signal_type    = parent->m_last_red_signal_type;
 			m_last_signal_type        = parent->m_last_signal_type;
 		}
 		flags.set (FLAG_CHOICE_SEEN, is_choice);
@@ -232,7 +229,7 @@ struct CYapfRailNodeTrackDir
 		dmp.WriteLine("m_target_seen = %s", flags.test(FLAG_TARGET_SEEN) ? "Yes" : "No");
 		dmp.WriteLine("m_choice_seen = %s", flags.test(FLAG_CHOICE_SEEN) ? "Yes" : "No");
 		dmp.WriteLine("m_last_signal_was_red = %s", flags.test(FLAG_LAST_SIGNAL_WAS_RED) ? "Yes" : "No");
-		dmp.WriteEnumT("m_last_red_signal_type", m_last_red_signal_type);
+		dmp.WriteEnumT("m_last_signal_type", m_last_signal_type);
 	}
 };
 
@@ -680,7 +677,6 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node *n, const RailPathPos &pos, N
 				if (found_intermediate) TAstar::best_intermediate = n;
 				return -1;
 			}
-			n->m_last_red_signal_type = sig_type;
 			n->flags.set (n->FLAG_LAST_SIGNAL_WAS_RED);
 
 			/* look-ahead signal penalty */
@@ -929,11 +925,8 @@ inline void CYapfRailBaseT<TAstar>::RestoreCachedNode (Node *n)
 	if (n->m_segment->m_last_signal.is_valid_tile()) {
 		assert(n->m_segment->m_last_signal.has_signal_along());
 		SignalState sig_state = n->m_segment->m_last_signal.get_signal_state();
-		bool is_red = (sig_state == SIGNAL_STATE_RED);
-		n->flags.set (n->FLAG_LAST_SIGNAL_WAS_RED, is_red);
-		if (is_red) {
-			n->m_last_red_signal_type = n->m_segment->m_last_signal.get_signal_type();
-		}
+		n->flags.set (n->FLAG_LAST_SIGNAL_WAS_RED, sig_state == SIGNAL_STATE_RED);
+		n->m_last_signal_type = n->m_segment->m_last_signal.get_signal_type();
 	}
 	/* No further calculation needed. */
 }
@@ -946,10 +939,10 @@ inline void CYapfRailBaseT<TAstar>::SetTarget (Node *n)
 
 	/* Last-red and last-red-exit penalties. */
 	if (n->flags.test (n->FLAG_LAST_SIGNAL_WAS_RED)) {
-		if (n->m_last_red_signal_type == SIGTYPE_EXIT) {
+		if (n->m_last_signal_type == SIGTYPE_EXIT) {
 			/* last signal was red pre-signal-exit */
 			n->m_cost += m_settings->rail_lastred_exit_penalty;
-		} else if (!IsPbsSignal(n->m_last_red_signal_type)) {
+		} else if (!IsPbsSignal(n->m_last_signal_type)) {
 			/* Last signal was red, but not exit or path signal. */
 			n->m_cost += m_settings->rail_lastred_penalty;
 		}
