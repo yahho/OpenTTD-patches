@@ -143,6 +143,15 @@ struct CYapfRailSegment : CHashTableEntryT <CYapfRailSegment>
 		return m_key;
 	}
 
+	inline bool operator == (const CYapfRailSegment &other)
+	{
+		return  m_key == other.m_key &&
+			m_last == other.m_last &&
+			m_cost == other.m_cost &&
+			m_last_signal == other.m_last_signal &&
+			m_end_segment_reason == other.m_end_segment_reason;
+	}
+
 	void Dump(DumpTarget &dmp) const
 	{
 		dmp.WriteStructT("m_key", &m_key);
@@ -921,6 +930,20 @@ inline bool CYapfRailBaseT<TAstar>::CalcNode (Node *n)
 			m_stats_cache_hits++;
 			assert (m_max_cost == 0);
 			RestoreCachedNode (n);
+			if (DEBUG_YAPF_CACHE) {
+				Node test (*n);
+				CachedData segment (test.GetKey());
+				test.m_segment = &segment;
+				CalcSegment (&test, &this->tf);
+				/* m_num_signals_passed can differ when cached */
+				if (!(*n->m_segment == *test.m_segment) || n->flags != test.flags || n->m_last_signal_type != test.m_last_signal_type) {
+					DumpTarget dmp ("yapf.txt");
+					dmp.WriteLine ("num_steps = %d", TAstar::num_steps);
+					dmp.WriteStructT ("array", TAstar::GetArray());
+					dmp.WriteStructT ("test_node", &test);
+					NOT_REACHED();
+				}
+			}
 			return false;
 		}
 
