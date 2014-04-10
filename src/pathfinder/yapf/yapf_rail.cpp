@@ -28,17 +28,6 @@
 
 #define DEBUG_YAPF_CACHE 0
 
-template <typename Tpf> void DumpState(Tpf &pf1, Tpf &pf2)
-{
-	DumpTarget dmp1 ("yapf1.txt");
-	dmp1.WriteStructT("m_arr", pf1.GetArray());
-	dmp1.WriteLine("m_num_steps = %d", pf1.num_steps);
-
-	DumpTarget dmp2 ("yapf2.txt");
-	dmp2.WriteStructT("m_arr", pf2.GetArray());
-	dmp2.WriteLine("m_num_steps = %d", pf2.num_steps);
-}
-
 int _total_pf_time_us = 0;
 
 
@@ -1519,22 +1508,8 @@ typedef CYapfRailT <CYapfRailOrderT <AstarRailTrackDir> > CYapfRail;
 Trackdir YapfTrainChooseTrack(const Train *v, const RailPathPos &origin, bool reserve_track, PFResult *target)
 {
 	/* create pathfinder instance */
-	CYapfRail pf1 (v, !_settings_game.pf.forbid_90_deg);
-#if !DEBUG_YAPF_CACHE
-	Trackdir result1 = pf1.ChooseRailTrack(origin, reserve_track, target);
-
-#else
-	Trackdir result1 = pf1.ChooseRailTrack(origin, false, NULL);
-	CYapfRail pf2 (v, !_settings_game.pf.forbid_90_deg);
-	pf2.DisableCache(true);
-	Trackdir result2 = pf2.ChooseRailTrack(origin, reserve_track, target);
-	if (result1 != result2) {
-		DEBUG(yapf, 0, "CACHE ERROR: ChooseRailTrack() = [%d, %d]", result1, result2);
-		DumpState(pf1, pf2);
-	}
-#endif
-
-	return result1;
+	CYapfRail pf (v, !_settings_game.pf.forbid_90_deg);
+	return pf.ChooseRailTrack(origin, reserve_track, target);
 }
 
 bool YapfTrainCheckReverse(const Train *v)
@@ -1573,20 +1548,8 @@ bool YapfTrainCheckReverse(const Train *v)
 	/* slightly hackish: If the pathfinders finds a path, the cost of the first node is tested to distinguish between forward- and reverse-path. */
 	if (reverse_penalty == 0) reverse_penalty = 1;
 
-	CYapfRail pf1 (v, !_settings_game.pf.forbid_90_deg);
-	bool result1 = pf1.CheckReverseTrain(pos, rev, reverse_penalty);
-
-#if DEBUG_YAPF_CACHE
-	CYapfRail pf2 (v, !_settings_game.pf.forbid_90_deg);
-	pf2.DisableCache(true);
-	bool result2 = pf2.CheckReverseTrain(pos, rev, reverse_penalty);
-	if (result1 != result2) {
-		DEBUG(yapf, 0, "CACHE ERROR: CheckReverseTrain() = [%s, %s]", result1 ? "T" : "F", result2 ? "T" : "F");
-		DumpState(pf1, pf2);
-	}
-#endif
-
-	return result1;
+	CYapfRail pf (v, !_settings_game.pf.forbid_90_deg);
+	return pf.CheckReverseTrain(pos, rev, reverse_penalty);
 }
 
 
@@ -1598,7 +1561,7 @@ bool YapfTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *
 	FollowTrainReservation(v, &origin);
 	RailPathPos rev = v->Last()->GetReversePos();
 
-	CYapfAnyDepotRail pf1 (v, !_settings_game.pf.forbid_90_deg);
+	CYapfAnyDepotRail pf (v, !_settings_game.pf.forbid_90_deg);
 	/*
 	 * With caching enabled it simply cannot get a reliable result when you
 	 * have limited the distance a train may travel. This means that the
@@ -1608,22 +1571,8 @@ bool YapfTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *
 	 * so it will only impact performance when you do not manually set
 	 * depot orders and you do not disable automatic servicing.
 	 */
-	if (max_penalty != 0) pf1.DisableCache(true);
-	bool result1 = pf1.FindNearestTargetTwoWay (origin, rev, max_penalty, YAPF_INFINITE_PENALTY, &res->tile, &res->reverse);
-
-#if DEBUG_YAPF_CACHE
-	CYapfAnyDepotRail pf2 (v, !_settings_game.pf.forbid_90_deg);
-	TileIndex depot_tile2 = INVALID_TILE;
-	bool reversed2 = false;
-	pf2.DisableCache(true);
-	bool result2 = pf2.FindNearestTargetTwoWay (origin, rev, max_penalty, YAPF_INFINITE_PENALTY, &depot_tile2, &reversed2);
-	if (result1 != result2 || (result1 && (res->tile != depot_tile2 || res->reverse != reversed2))) {
-		DEBUG(yapf, 0, "CACHE ERROR: FindNearestDepotTwoWay() = [%s, %s]", result1 ? "T" : "F", result2 ? "T" : "F");
-		DumpState(pf1, pf2);
-	}
-#endif
-
-	return result1;
+	if (max_penalty != 0) pf.DisableCache(true);
+	return pf.FindNearestTargetTwoWay (origin, rev, max_penalty, YAPF_INFINITE_PENALTY, &res->tile, &res->reverse);
 }
 
 
@@ -1632,20 +1581,6 @@ typedef CYapfRailT <CYapfAnySafeTileRailT <AstarRailTrackDir> > CYapfAnySafeTile
 bool YapfTrainFindNearestSafeTile(const Train *v, const RailPathPos &pos, bool override_railtype)
 {
 	/* Create pathfinder instance */
-	CYapfAnySafeTileRail pf1 (v, !_settings_game.pf.forbid_90_deg, override_railtype);
-#if !DEBUG_YAPF_CACHE
-	bool result1 = pf1.FindNearestSafeTile(pos, true);
-
-#else
-	bool result2 = pf1.FindNearestSafeTile(pos, false);
-	CYapfAnySafeTileRail pf2 (v, !_settings_game.pf.forbid_90_deg, override_railtype);
-	pf2.DisableCache(true);
-	bool result1 = pf2.FindNearestSafeTile(pos, true);
-	if (result1 != result2) {
-		DEBUG(yapf, 0, "CACHE ERROR: FindSafeTile() = [%s, %s]", result2 ? "T" : "F", result1 ? "T" : "F");
-		DumpState(pf1, pf2);
-	}
-#endif
-
-	return result1;
+	CYapfAnySafeTileRail pf (v, !_settings_game.pf.forbid_90_deg, override_railtype);
+	return pf.FindNearestSafeTile(pos, true);
 }
