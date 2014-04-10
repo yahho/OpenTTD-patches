@@ -595,6 +595,9 @@ public:
 	/* Fill in a node from cached data. */
 	inline void RestoreCachedNode (Node *n);
 
+	/* Compute all costs for a segment or retrieve it from cache. */
+	inline bool CalcNode (Node *n);
+
 	/* Set target flag on node, and add last signal costs. */
 	inline void SetTarget (Node *n);
 
@@ -912,6 +915,21 @@ inline void CYapfRailBaseT<TAstar>::RestoreCachedNode (Node *n)
 		n->m_last_signal_type = n->m_segment->m_last_signal.get_signal_type();
 	}
 	/* No further calculation needed. */
+}
+
+/** Compute all costs for a segment or retrieve it from cache. */
+template <class TAstar>
+inline bool CYapfRailBaseT<TAstar>::CalcNode (Node *n)
+{
+	if (AttachSegmentToNode(n)) {
+		m_stats_cache_hits++;
+		assert (m_max_cost == 0);
+		RestoreCachedNode (n);
+		return false;
+	} else {
+		m_stats_cost_calcs++;
+		return CalcSegment (n, &this->tf);
+	}
 }
 
 /** Set target flag on node, and add last signal costs. */
@@ -1286,20 +1304,9 @@ struct CYapfRailT : public Base
 			Node *n = Base::CreateNewNode(old_node, pos, is_choice);
 
 			/* evaluate the node */
-			bool cached = Base::AttachSegmentToNode(n);
-
 			CPerfStart perf_cost(Base::m_perf_cost);
 
-			bool path_too_long;
-			if (cached) {
-				Base::m_stats_cache_hits++;
-				assert (Base::m_max_cost == 0);
-				Base::RestoreCachedNode (n);
-				path_too_long = false;
-			} else {
-				Base::m_stats_cost_calcs++;
-				path_too_long = Base::CalcSegment (n, &this->tf);
-			}
+			bool path_too_long = Base::CalcNode(n);
 
 			EndSegmentReasonBits end_reason = n->m_segment->m_end_segment_reason;
 			assert (path_too_long || (end_reason != ESRB_NONE));
