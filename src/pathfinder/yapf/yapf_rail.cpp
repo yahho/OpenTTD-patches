@@ -395,42 +395,31 @@ public:
 		return tf.m_allow_90deg;
 	}
 
-	inline bool CanUseGlobalCache(Node& n) const
+	inline bool FindCachedSegment (Node *n)
 	{
-		/* Disable the cache if explicitly asked to; if the node has
-		 * no parent (initial node) or is within the signal lookahead
-		 * threshold; or if we are masking reserved tracks (because
-		 * that makes segments end prematurely at the first signal). */
-		return !m_disable_cache && !mask_reserved_tracks
-			&& (n.m_parent != NULL)
-			&& (n.m_parent->m_num_signals_passed >= m_sig_look_ahead_costs.size());
+		CachedData *segment = m_global_cache.Find (n->GetKey());
+		if (segment == NULL) return false;
+		n->m_segment = segment;
+		return true;
 	}
 
-protected:
-	/**
-	 * Called by YAPF to attach cached or local segment cost data to the given node.
-	 *  @return true if globally cached data were used or false if local data was used
-	 */
-	inline bool AttachSegmentToNode(Node *n)
+	inline void AttachCachedSegment (Node *n)
 	{
-		const Key &key = n->GetKey();
-		if (!CanUseGlobalCache(*n)) {
-			n->m_segment = new (m_local_cache.Append()) CachedData(key);
-			return false;
-		}
-		n->m_segment = m_global_cache.Find (key);
-		if (n->m_segment != NULL) return true;
-		n->m_segment = m_global_cache.Create (key);
-		return false;
+		n->m_segment = m_global_cache.Create (n->GetKey());
 	}
 
-public:
+	inline void AttachLocalSegment (Node *n)
+	{
+		n->m_segment = new (m_local_cache.Append()) CachedData(n->GetKey());
+	}
+
 	/** Create and add a new node */
 	inline void AddStartupNode (const RailPathPos &pos, int cost = 0)
 	{
 		Node *node = TAstar::CreateNewNode (NULL, pos, false);
 		node->m_cost = cost;
-		AttachSegmentToNode(node);
+		/* initial nodes can never be used from the cache */
+		AttachLocalSegment(node);
 		TAstar::InsertInitialNode(node);
 	}
 
@@ -921,15 +910,29 @@ inline void CYapfRailBaseT<TAstar>::RestoreCachedNode (Node *n)
 template <class TAstar>
 inline bool CYapfRailBaseT<TAstar>::CalcNode (Node *n)
 {
-	if (AttachSegmentToNode(n)) {
-		m_stats_cache_hits++;
-		assert (m_max_cost == 0);
-		RestoreCachedNode (n);
-		return false;
+	/* Disable the cache if explicitly asked to; if the node has
+	 * no parent (initial node) or is within the signal lookahead
+	 * threshold; or if we are masking reserved tracks (because
+	 * that makes segments end prematurely at the first signal). */
+	if (!m_disable_cache && !mask_reserved_tracks
+			&& (n->m_parent->m_num_signals_passed >= m_sig_look_ahead_costs.size())) {
+		/* look for the segment in the cache */
+		if (FindCachedSegment(n)) {
+			m_stats_cache_hits++;
+			assert (m_max_cost == 0);
+			RestoreCachedNode (n);
+			return false;
+		}
+
+		/* segment not found, but we can cache it for next time */
+		AttachCachedSegment(n);
 	} else {
-		m_stats_cost_calcs++;
-		return CalcSegment (n, &this->tf);
+		/* segment not cacheable */
+		AttachLocalSegment(n);
 	}
+
+	m_stats_cost_calcs++;
+	return CalcSegment (n, &this->tf);
 }
 
 /** Set target flag on node, and add last signal costs. */
