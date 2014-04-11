@@ -161,9 +161,9 @@ struct CYapfRailNodeTrackDir
 	typedef CYapfRailSegment CachedData;
 
 	enum {
-		FLAG_TARGET_SEEN,
-		FLAG_CHOICE_SEEN,
-		FLAG_LAST_SIGNAL_WAS_RED,
+		FLAG_CHOICE_SEEN,         ///< node starts at a junction
+		FLAG_TARGET_SEEN,         ///< node ends at a target
+		FLAG_LAST_SIGNAL_WAS_RED, ///< last signal in node was red
 		NFLAGS
 	};
 
