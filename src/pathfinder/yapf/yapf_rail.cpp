@@ -1393,26 +1393,6 @@ struct CYapfRailT : public Base
 #endif /* !NO_DEBUG_MESSAGES */
 		return bDestFound;
 	}
-
-	/** Pathfind, then optionally try to reserve the path found. */
-	bool FindNearestSafeTile (const RailPathPos &pos, bool reserve)
-	{
-		/* Set origin. */
-		Base::SetOrigin(pos);
-
-		if (!FindPath()) return false;
-
-		if (!reserve) return true;
-
-		/* Found a destination, search for a reservation target. */
-		Node *pNode = Base::GetBestNode();
-		typename Base::NodePos res;
-		pNode = Base::FindSafePositionOnPath(pNode, &res)->m_parent;
-		assert (pNode->GetPos() == pos);
-		assert (pNode->GetLastPos() == pos);
-
-		return Base::TryReservePath (pos.tile, &res);
-	}
 };
 
 
@@ -1567,5 +1547,18 @@ bool YapfTrainFindNearestSafeTile(const Train *v, const RailPathPos &pos, bool o
 {
 	/* Create pathfinder instance */
 	CYapfAnySafeTileRail pf (v, !_settings_game.pf.forbid_90_deg, override_railtype);
-	return pf.FindNearestSafeTile(pos, true);
+
+	/* Set origin. */
+	pf.SetOrigin(pos);
+
+	if (!pf.FindPath()) return false;
+
+	/* Found a destination, search for a reservation target. */
+	CYapfAnySafeTileRail::Node *node = pf.GetBestNode();
+	CYapfAnySafeTileRail::NodePos res;
+	node = pf.FindSafePositionOnPath(node, &res)->m_parent;
+	assert (node->GetPos() == pos);
+	assert (node->GetLastPos() == pos);
+
+	return pf.TryReservePath (pos.tile, &res);
 }
