@@ -1394,32 +1394,6 @@ struct CYapfRailT : public Base
 		return bDestFound;
 	}
 
-	/** Pathfind, then store nearest target. */
-	bool FindNearestTargetTwoWay (const RailPathPos &pos1, const RailPathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *target_tile, bool *reversed)
-	{
-		/* set origin node */
-		Base::SetOrigin (pos1, pos2, reverse_penalty, true);
-		Base::SetMaxCost(max_penalty);
-
-		/* find the best path */
-		if (!FindPath()) return false;
-
-		/* path found; get found target tile */
-		Node *n = Base::GetBestNode();
-		*target_tile = n->GetLastPos().tile;
-
-		/* walk through the path back to the origin */
-		while (n->m_parent != NULL) {
-			n = n->m_parent;
-		}
-
-		/* if the origin node is our front vehicle tile/Trackdir then we didn't reverse
-		 * but we can also look at the cost (== 0 -> not reversed, == reverse_penalty -> reversed) */
-		*reversed = (n->m_cost != 0);
-
-		return true;
-	}
-
 	/** Pathfind, then optionally try to reserve the path found. */
 	bool FindNearestSafeTile (const RailPathPos &pos, bool reserve)
 	{
@@ -1562,7 +1536,28 @@ bool YapfTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *
 	 * depot orders and you do not disable automatic servicing.
 	 */
 	if (max_penalty != 0) pf.DisableCache(true);
-	return pf.FindNearestTargetTwoWay (origin, rev, max_penalty, YAPF_INFINITE_PENALTY, &res->tile, &res->reverse);
+
+	/* set origin node */
+	pf.SetOrigin (origin, rev, YAPF_INFINITE_PENALTY, true);
+	pf.SetMaxCost(max_penalty);
+
+	/* find the best path */
+	if (!pf.FindPath()) return false;
+
+	/* path found; get found target tile */
+	CYapfAnyDepotRail::Node *n = pf.GetBestNode();
+	res->tile = n->GetLastPos().tile;
+
+	/* walk through the path back to the origin */
+	while (n->m_parent != NULL) {
+		n = n->m_parent;
+	}
+
+	/* if the origin node is our front vehicle tile/Trackdir then we didn't reverse
+	 * but we can also look at the cost (== 0 -> not reversed, == reverse_penalty -> reversed) */
+	res->reverse = (n->m_cost != 0);
+
+	return true;
 }
 
 
