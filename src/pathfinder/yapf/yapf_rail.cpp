@@ -1394,48 +1394,6 @@ struct CYapfRailT : public Base
 		return bDestFound;
 	}
 
-	/** Pathfind, then return the trackdir that leads into the shortest path. */
-	Trackdir ChooseRailTrack (const RailPathPos &origin, bool reserve_track, PFResult *target)
-	{
-		if (target != NULL) target->pos.tile = INVALID_TILE;
-
-		/* set origin node */
-		Base::SetOrigin(origin);
-
-		/* find the best path */
-		bool path_found = FindPath();
-
-		/* if path not found - return INVALID_TRACKDIR */
-		Trackdir next_trackdir = INVALID_TRACKDIR;
-		Node *pNode = Base::GetBestNode();
-		if (pNode != NULL) {
-			if (reserve_track && path_found) {
-				typename Base::NodePos res;
-				Node *best_next_node = Base::FindSafePositionOnPath (pNode, &res);
-				if (target != NULL) target->pos = res.pos;
-				/* return trackdir from the best origin node (one of start nodes) */
-				next_trackdir = best_next_node->GetPos().td;
-
-				assert (best_next_node->m_parent->GetPos() == origin);
-				assert (best_next_node->m_parent->GetLastPos() == origin);
-				bool okay = Base::TryReservePath (origin.tile, &res);
-				if (target != NULL) target->okay = okay;
-			} else {
-				while (pNode->m_parent->m_parent != NULL) {
-					pNode = pNode->m_parent;
-				}
-				assert (pNode->m_parent->GetPos() == origin);
-				assert (pNode->m_parent->GetLastPos() == origin);
-				/* return trackdir from the best origin node (one of start nodes) */
-				next_trackdir = pNode->GetPos().td;
-			}
-		}
-
-		/* Treat the path as found if stopped on the first two way signal(s). */
-		if (target != NULL) target->found = path_found | Base::m_stopped_on_first_two_way_signal;
-		return next_trackdir;
-	}
-
 	/** Pathfind, then return whether return whether to use the second origin. */
 	bool CheckReverseTrain (const RailPathPos &pos1, const RailPathPos &pos2, int reverse_penalty)
 	{
@@ -1507,9 +1465,46 @@ typedef CYapfRailT <CYapfRailOrderT <AstarRailTrackDir> > CYapfRail;
 
 Trackdir YapfTrainChooseTrack(const Train *v, const RailPathPos &origin, bool reserve_track, PFResult *target)
 {
+	if (target != NULL) target->pos.tile = INVALID_TILE;
+
 	/* create pathfinder instance */
 	CYapfRail pf (v, !_settings_game.pf.forbid_90_deg);
-	return pf.ChooseRailTrack(origin, reserve_track, target);
+
+	/* set origin node */
+	pf.SetOrigin(origin);
+
+	/* find the best path */
+	bool path_found = pf.FindPath();
+
+	/* if path not found - return INVALID_TRACKDIR */
+	Trackdir next_trackdir = INVALID_TRACKDIR;
+	CYapfRail::Node *node = pf.GetBestNode();
+	if (node != NULL) {
+		if (reserve_track && path_found) {
+			CYapfRail::NodePos res;
+			CYapfRail::Node *best_next_node = pf.FindSafePositionOnPath (node, &res);
+			if (target != NULL) target->pos = res.pos;
+			/* return trackdir from the best origin node (one of start nodes) */
+			next_trackdir = best_next_node->GetPos().td;
+
+			assert (best_next_node->m_parent->GetPos() == origin);
+			assert (best_next_node->m_parent->GetLastPos() == origin);
+			bool okay = pf.TryReservePath (origin.tile, &res);
+			if (target != NULL) target->okay = okay;
+		} else {
+			while (node->m_parent->m_parent != NULL) {
+				node = node->m_parent;
+			}
+			assert (node->m_parent->GetPos() == origin);
+			assert (node->m_parent->GetLastPos() == origin);
+			/* return trackdir from the best origin node (one of start nodes) */
+			next_trackdir = node->GetPos().td;
+		}
+	}
+
+	/* Treat the path as found if stopped on the first two way signal(s). */
+	if (target != NULL) target->found = path_found | pf.m_stopped_on_first_two_way_signal;
+	return next_trackdir;
 }
 
 bool YapfTrainCheckReverse(const Train *v)
