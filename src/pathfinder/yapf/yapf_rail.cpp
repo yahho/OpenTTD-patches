@@ -316,7 +316,6 @@ public:
 	bool          m_stopped_on_first_two_way_signal;
 
 protected:
-	bool          m_disable_cache;
 	Cache&        m_global_cache;
 	LocalCache    m_local_cache;
 
@@ -369,7 +368,6 @@ protected:
 		, mask_reserved_tracks(mask_reserved_tracks)
 		, m_treat_first_red_two_way_signal_as_eol(true)
 		, m_stopped_on_first_two_way_signal(false)
-		, m_disable_cache(false)
 		, m_global_cache(stGetGlobalCache())
 		, m_max_cost(0)
 		, m_sig_look_ahead_costs(m_settings->rail_look_ahead_max_signals)
@@ -439,11 +437,6 @@ public:
 	inline void SetMaxCost (int max_cost)
 	{
 		m_max_cost = max_cost;
-	}
-
-	inline void DisableCache(bool disable)
-	{
-		m_disable_cache = disable;
 	}
 
 	struct NodeData {
@@ -908,11 +901,12 @@ inline void CYapfRailBaseT<TAstar>::RestoreCachedNode (Node *n)
 template <class TAstar>
 inline bool CYapfRailBaseT<TAstar>::CalcNode (Node *n)
 {
-	/* Disable the cache if explicitly asked to; if the node has
-	 * no parent (initial node) or is within the signal lookahead
-	 * threshold; or if we are masking reserved tracks (because
-	 * that makes segments end prematurely at the first signal). */
-	if (!m_disable_cache && !mask_reserved_tracks
+	/* Disable the cache if the node is within the signal lookahead
+	 * threshold; if we are masking reserved tracks (because that makes
+	 * segments end prematurely at the first signal); or if we have a
+	 * maximum cost (because that may also make a segment end prematurely
+	 * if the maximum cost is reached when computing its cost). */
+	if (m_max_cost == 0 && !mask_reserved_tracks
 			&& (n->m_parent->m_num_signals_passed >= m_sig_look_ahead_costs.size())) {
 		/* look for the segment in the cache */
 		if (FindCachedSegment(n)) {
@@ -1506,16 +1500,6 @@ bool YapfTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *
 	RailPathPos rev = v->Last()->GetReversePos();
 
 	CYapfAnyDepotRail pf (v, !_settings_game.pf.forbid_90_deg);
-	/*
-	 * With caching enabled it simply cannot get a reliable result when you
-	 * have limited the distance a train may travel. This means that the
-	 * cached result does not match uncached result in all cases and that
-	 * causes desyncs. So disable caching when finding for a depot that is
-	 * nearby. This only happens with automatic servicing of vehicles,
-	 * so it will only impact performance when you do not manually set
-	 * depot orders and you do not disable automatic servicing.
-	 */
-	if (max_penalty != 0) pf.DisableCache(true);
 
 	/* set origin node */
 	pf.SetOrigin (origin, rev, YAPF_INFINITE_PENALTY, true);
