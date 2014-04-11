@@ -1394,25 +1394,6 @@ struct CYapfRailT : public Base
 		return bDestFound;
 	}
 
-	/** Pathfind, then return whether return whether to use the second origin. */
-	bool CheckReverseTrain (const RailPathPos &pos1, const RailPathPos &pos2, int reverse_penalty)
-	{
-		/* set origin nodes */
-		Base::SetOrigin (pos1, pos2, reverse_penalty, false);
-
-		/* find the best path */
-		if (!FindPath()) return false;
-
-		/* path found; walk through the path back to the origin */
-		Node *pNode = Base::GetBestNode();
-		while (pNode->m_parent != NULL) {
-			pNode = pNode->m_parent;
-		}
-
-		/* check if it was reversed origin */
-		return pNode->m_cost != 0;
-	}
-
 	/** Pathfind, then store nearest target. */
 	bool FindNearestTargetTwoWay (const RailPathPos &pos1, const RailPathPos &pos2, int max_penalty, int reverse_penalty, TileIndex *target_tile, bool *reversed)
 	{
@@ -1544,7 +1525,21 @@ bool YapfTrainCheckReverse(const Train *v)
 	if (reverse_penalty == 0) reverse_penalty = 1;
 
 	CYapfRail pf (v, !_settings_game.pf.forbid_90_deg);
-	return pf.CheckReverseTrain(pos, rev, reverse_penalty);
+
+	/* set origin nodes */
+	pf.SetOrigin (pos, rev, reverse_penalty, false);
+
+	/* find the best path */
+	if (!pf.FindPath()) return false;
+
+	/* path found; walk through the path back to the origin */
+	CYapfRail::Node *node = pf.GetBestNode();
+	while (node->m_parent != NULL) {
+		node = node->m_parent;
+	}
+
+	/* check if it was reversed origin */
+	return node->m_cost != 0;
 }
 
 
