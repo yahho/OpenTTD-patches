@@ -33,15 +33,15 @@ int _total_pf_time_us = 0;
 
 /* Enum used in PfCalcCost() to see why was the segment closed. */
 enum EndSegmentReason {
-	ESR_DEAD_END = 0,      ///< track ends here
-	ESR_RAIL_TYPE,         ///< the next tile has a different rail type than our tiles
-	ESR_INFINITE_LOOP,     ///< infinite loop detected
-	ESR_SEGMENT_TOO_LONG,  ///< the segment is too long (possible infinite loop)
-	ESR_CHOICE_FOLLOWS,    ///< the next tile contains a choice (the track splits to more than one segments)
-	ESR_DEPOT,             ///< stop in the depot (could be a target next time)
-	ESR_WAYPOINT,          ///< waypoint encountered (could be a target next time)
-	ESR_STATION,           ///< station encountered (could be a target next time)
-	ESR_SAFE_TILE,         ///< safe waiting position found (could be a target)
+	ESR_DEAD_END,  ///< track ends here
+	ESR_RAIL_TYPE, ///< the next tile has a different rail type than our tiles
+	ESR_LOOP,      ///< loop detected
+	ESR_TOO_LONG,  ///< the segment is too long (possible loop)
+	ESR_CHOICE,    ///< the next tile contains a choice (the track splits to more than one segment)
+	ESR_DEPOT,     ///< stop in the depot (could be a target next time)
+	ESR_WAYPOINT,  ///< waypoint encountered (could be a target next time)
+	ESR_STATION,   ///< station encountered (could be a target next time)
+	ESR_SAFE_TILE, ///< safe waiting position found (could be a target)
 	ESR__N
 };
 
@@ -53,12 +53,12 @@ static const uint ESRB_POSSIBLE_TARGET =
 
 /* Reasons to abort pathfinding in this direction. */
 static const uint ESRB_ABORT_PF_MASK =
-	(1 << ESR_DEAD_END) | (1 << ESR_INFINITE_LOOP);
+	(1 << ESR_DEAD_END) | (1 << ESR_LOOP);
 
 inline void WriteValueStr(EndSegmentReasonBits bits, FILE *f)
 {
 	static const char * const end_segment_reason_names[] = {
-		"DEAD_END", "RAIL_TYPE", "INFINITE_LOOP", "SEGMENT_TOO_LONG", "CHOICE_FOLLOWS",
+		"DEAD_END", "RAIL_TYPE", "LOOP", "TOO_LONG", "CHOICE",
 		"DEPOT", "WAYPOINT", "STATION", "SAFE_TILE",
 	};
 
@@ -626,7 +626,7 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node *n, const RailPathPos &pos)
 				/* prune this branch, so that we will not follow a best
 				 * intermediate node that heads straight into this one */
 				bool found_intermediate = false;
-				for (n = n->m_parent; n != NULL && !n->m_segment->m_end_segment_reason.test(ESR_CHOICE_FOLLOWS); n = n->m_parent) {
+				for (n = n->m_parent; n != NULL && !n->m_segment->m_end_segment_reason.test(ESR_CHOICE); n = n->m_parent) {
 					if (n == TAstar::best_intermediate) found_intermediate = true;
 				}
 				if (found_intermediate) TAstar::best_intermediate = n;
@@ -757,7 +757,7 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeNextTile (Node *n, CFollowTrackRai
 	/* Check if the next tile is not a choice. */
 	if (!tf->m_new.is_single()) {
 		/* More than one segment will follow. Close this one. */
-		n->m_segment->m_end_segment_reason.set(ESR_CHOICE_FOLLOWS);
+		n->m_segment->m_end_segment_reason.set(ESR_CHOICE);
 		return;
 	}
 
@@ -788,12 +788,12 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeNextTile (Node *n, CFollowTrackRai
 
 	/* Avoid infinite looping. */
 	if (tf->m_new == n->GetPos()) {
-		n->m_segment->m_end_segment_reason.set(ESR_INFINITE_LOOP);
+		n->m_segment->m_end_segment_reason.set(ESR_LOOP);
 	} else if (n->m_segment->m_cost > s_max_segment_cost) {
 		/* Potentially in the infinite loop (or only very long segment?). We should
 		 * not force it to finish prematurely unless we are on a regular tile. */
 		if (!tf->m_new.in_wormhole() && IsNormalRailTile(tf->m_new.tile)) {
-			n->m_segment->m_end_segment_reason.set(ESR_SEGMENT_TOO_LONG);
+			n->m_segment->m_end_segment_reason.set(ESR_TOO_LONG);
 		}
 	}
 }
