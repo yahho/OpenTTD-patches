@@ -42,31 +42,18 @@ enum EndSegmentReason {
 	ESR_WAYPOINT,          ///< waypoint encountered (could be a target next time)
 	ESR_STATION,           ///< station encountered (could be a target next time)
 	ESR_SAFE_TILE,         ///< safe waiting position found (could be a target)
+	ESR__N
 };
 
-enum EndSegmentReasonBits {
-	ESRB_NONE = 0,
+typedef std::bitset<ESR__N> EndSegmentReasonBits;
 
-	ESRB_DEAD_END          = 1 << ESR_DEAD_END,
-	ESRB_RAIL_TYPE         = 1 << ESR_RAIL_TYPE,
-	ESRB_INFINITE_LOOP     = 1 << ESR_INFINITE_LOOP,
-	ESRB_SEGMENT_TOO_LONG  = 1 << ESR_SEGMENT_TOO_LONG,
-	ESRB_CHOICE_FOLLOWS    = 1 << ESR_CHOICE_FOLLOWS,
-	ESRB_DEPOT             = 1 << ESR_DEPOT,
-	ESRB_WAYPOINT          = 1 << ESR_WAYPOINT,
-	ESRB_STATION           = 1 << ESR_STATION,
-	ESRB_SAFE_TILE         = 1 << ESR_SAFE_TILE,
+/* What reasons mean that the target can be found and needs to be detected. */
+static const uint ESRB_POSSIBLE_TARGET =
+	(1 << ESR_DEPOT) | (1 << ESR_WAYPOINT) | (1 << ESR_STATION) | (1 << ESR_SAFE_TILE);
 
-	/* Additional (composite) values. */
-
-	/* What reasons mean that the target can be found and needs to be detected. */
-	ESRB_POSSIBLE_TARGET = ESRB_DEPOT | ESRB_WAYPOINT | ESRB_STATION | ESRB_SAFE_TILE,
-
-	/* Reasons to abort pathfinding in this direction. */
-	ESRB_ABORT_PF_MASK = ESRB_DEAD_END | ESRB_INFINITE_LOOP,
-};
-
-DECLARE_ENUM_AS_BIT_SET(EndSegmentReasonBits)
+/* Reasons to abort pathfinding in this direction. */
+static const uint ESRB_ABORT_PF_MASK =
+	(1 << ESR_DEAD_END) | (1 << ESR_INFINITE_LOOP);
 
 inline void WriteValueStr(EndSegmentReasonBits bits, FILE *f)
 {
@@ -75,8 +62,9 @@ inline void WriteValueStr(EndSegmentReasonBits bits, FILE *f)
 		"DEPOT", "WAYPOINT", "STATION", "SAFE_TILE",
 	};
 
-	fprintf (f, "0x%04X (", bits);
-	ComposeNameT (f, bits, end_segment_reason_names, "UNK", ESRB_NONE, "NONE");
+	int esr = bits.to_ulong();
+	fprintf (f, "0x%04X (", esr);
+	ComposeNameT (f, esr, end_segment_reason_names, "UNK", 0, "NONE");
 	putc (')', f);
 }
 
@@ -124,7 +112,7 @@ struct CYapfRailSegment : CHashTableEntryT <CYapfRailSegment>
 		, m_last(key)
 		, m_cost(0)
 		, m_last_signal()
-		, m_end_segment_reason(ESRB_NONE)
+		, m_end_segment_reason()
 	{}
 
 	inline const Key& GetKey() const
@@ -633,12 +621,12 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node *n, const RailPathPos &pos)
 					&& pos.has_signal_against()
 					&& n->m_num_signals_passed == 0) {
 				/* yes, the first signal is two-way red signal => DEAD END */
-				n->m_segment->m_end_segment_reason |= ESRB_DEAD_END;
+				n->m_segment->m_end_segment_reason.set(ESR_DEAD_END);
 				m_stopped_on_first_two_way_signal = true;
 				/* prune this branch, so that we will not follow a best
 				 * intermediate node that heads straight into this one */
 				bool found_intermediate = false;
-				for (n = n->m_parent; n != NULL && (n->m_segment->m_end_segment_reason & ESRB_CHOICE_FOLLOWS) == 0; n = n->m_parent) {
+				for (n = n->m_parent; n != NULL && !n->m_segment->m_end_segment_reason.test(ESR_CHOICE_FOLLOWS); n = n->m_parent) {
 					if (n == TAstar::best_intermediate) found_intermediate = true;
 				}
 				if (found_intermediate) TAstar::best_intermediate = n;
@@ -669,7 +657,7 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node *n, const RailPathPos &pos)
 	} else if (pos.has_signal_against()) {
 		if (pos.get_signal_type() != SIGTYPE_PBS) {
 			/* one-way signal in opposite direction */
-			n->m_segment->m_end_segment_reason |= ESRB_DEAD_END;
+			n->m_segment->m_end_segment_reason.set(ESR_DEAD_END);
 		} else {
 			cost += n->m_num_signals_passed < m_settings->rail_look_ahead_max_signals ? m_settings->rail_pbs_signal_back_penalty : 0;
 		}
@@ -709,11 +697,11 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeTile (Node *n, const CFollowTrackR
 		assert(pos.td == DiagDirToDiagTrackdir(GetGroundDepotDirection(pos.tile)));
 		cost += m_settings->rail_depot_reverse_penalty;
 		/* We will end in this pass (depot is possible target) */
-		n->m_segment->m_end_segment_reason |= ESRB_DEPOT;
+		n->m_segment->m_end_segment_reason.set(ESR_DEPOT);
 
 	} else if (!pos.in_wormhole() && IsRailWaypointTile(pos.tile)) {
 		/* Waypoint is also a good reason to finish. */
-		n->m_segment->m_end_segment_reason |= ESRB_WAYPOINT;
+		n->m_segment->m_end_segment_reason.set(ESR_WAYPOINT);
 
 	} else if (tf->m_flag == tf->TF_STATION) {
 		/* Station penalties. */
@@ -722,13 +710,13 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeTile (Node *n, const CFollowTrackR
 		 * if it is pass-through station (not our destination). */
 		cost += m_settings->rail_station_penalty * platform_length;
 		/* We will end in this pass (station is possible target) */
-		n->m_segment->m_end_segment_reason |= ESRB_STATION;
+		n->m_segment->m_end_segment_reason.set(ESR_STATION);
 
 	} else if (mask_reserved_tracks) {
 		assert (!IsNodeCached(n));
 		/* Searching for a safe tile? */
 		if (pos.has_signal_along() && !IsPbsSignal(pos.get_signal_type())) {
-			n->m_segment->m_end_segment_reason |= ESRB_SAFE_TILE;
+			n->m_segment->m_end_segment_reason.set(ESR_SAFE_TILE);
 		}
 	}
 
@@ -755,13 +743,13 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeNextTile (Node *n, CFollowTrackRai
 		assert(tf->m_err != CFollowTrackRail::EC_NONE);
 		/* Can't move to the next tile (EOL?). */
 		if (tf->m_err == CFollowTrackRail::EC_RAIL_TYPE) {
-			n->m_segment->m_end_segment_reason |= ESRB_RAIL_TYPE;
+			n->m_segment->m_end_segment_reason.set(ESR_RAIL_TYPE);
 		} else {
-			n->m_segment->m_end_segment_reason |= ESRB_DEAD_END;
+			n->m_segment->m_end_segment_reason.set(ESR_DEAD_END);
 		}
 
 		if (mask_reserved_tracks && !HasOnewaySignalBlockingPos(tf->m_old)) {
-			n->m_segment->m_end_segment_reason |= ESRB_SAFE_TILE;
+			n->m_segment->m_end_segment_reason.set(ESR_SAFE_TILE);
 		}
 		return;
 	}
@@ -769,7 +757,7 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeNextTile (Node *n, CFollowTrackRai
 	/* Check if the next tile is not a choice. */
 	if (!tf->m_new.is_single()) {
 		/* More than one segment will follow. Close this one. */
-		n->m_segment->m_end_segment_reason |= ESRB_CHOICE_FOLLOWS;
+		n->m_segment->m_end_segment_reason.set(ESR_CHOICE_FOLLOWS);
 		return;
 	}
 
@@ -779,10 +767,11 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeNextTile (Node *n, CFollowTrackRai
 		assert (!IsNodeCached(n));
 		if (tf->m_new.has_signal_along() && IsPbsSignal(tf->m_new.get_signal_type())) {
 			/* Possible safe tile. */
-			n->m_segment->m_end_segment_reason |= ESRB_SAFE_TILE;
+			n->m_segment->m_end_segment_reason.set(ESR_SAFE_TILE);
 		} else if (tf->m_new.has_signal_against() && tf->m_new.get_signal_type() == SIGTYPE_PBS_ONEWAY) {
 			/* Possible safe tile, but not so good as it's the back of a signal... */
-			n->m_segment->m_end_segment_reason |= ESRB_SAFE_TILE | ESRB_DEAD_END;
+			n->m_segment->m_end_segment_reason.set(ESR_SAFE_TILE);
+			n->m_segment->m_end_segment_reason.set(ESR_DEAD_END);
 			n->m_segment->m_cost += m_settings->rail_lastred_exit_penalty;
 		}
 	}
@@ -793,18 +782,18 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeNextTile (Node *n, CFollowTrackRai
 		assert(next_rail_type == rail_type);
 	} else if (tf->m_new.get_railtype() != rail_type) {
 		/* Segment must consist from the same rail_type tiles. */
-		n->m_segment->m_end_segment_reason |= ESRB_RAIL_TYPE;
+		n->m_segment->m_end_segment_reason.set(ESR_RAIL_TYPE);
 		return;
 	}
 
 	/* Avoid infinite looping. */
 	if (tf->m_new == n->GetPos()) {
-		n->m_segment->m_end_segment_reason |= ESRB_INFINITE_LOOP;
+		n->m_segment->m_end_segment_reason.set(ESR_INFINITE_LOOP);
 	} else if (n->m_segment->m_cost > s_max_segment_cost) {
 		/* Potentially in the infinite loop (or only very long segment?). We should
 		 * not force it to finish prematurely unless we are on a regular tile. */
 		if (!tf->m_new.in_wormhole() && IsNormalRailTile(tf->m_new.tile)) {
-			n->m_segment->m_end_segment_reason |= ESRB_SEGMENT_TOO_LONG;
+			n->m_segment->m_end_segment_reason.set(ESR_SEGMENT_TOO_LONG);
 		}
 	}
 }
@@ -842,7 +831,7 @@ inline bool CYapfRailBaseT<TAstar>::CalcSegment (Node *n, const CFollowTrackRail
 	assert (n->m_segment->m_last == n->GetPos());
 	assert (n->m_segment->m_cost == 0);
 	assert (!n->m_segment->m_last_signal.is_valid_tile());
-	assert (n->m_segment->m_end_segment_reason == ESRB_NONE);
+	assert (n->m_segment->m_end_segment_reason.none());
 
 	/* start at n and walk to the end of segment */
 	int entry_cost = n->m_parent->m_cost + TransitionCost (n->m_parent->GetLastPos(), n->GetPos());
@@ -870,7 +859,7 @@ inline bool CYapfRailBaseT<TAstar>::CalcSegment (Node *n, const CFollowTrackRail
 		path_too_long = m_max_cost > 0 && (entry_cost + n->m_segment->m_cost) > m_max_cost;
 
 		/* Any reason to end the segment? */
-		if (path_too_long || (n->m_segment->m_end_segment_reason != ESRB_NONE)) break;
+		if (path_too_long || n->m_segment->m_end_segment_reason.any()) break;
 
 		/* Transition cost (cost of the move from previous tile) */
 		n->m_segment->m_cost += TransitionCost (tf_local.m_old, tf_local.m_new);
@@ -1321,10 +1310,10 @@ struct CYapfRailT : public Base
 
 			bool path_too_long = Base::CalcNode(n);
 
-			EndSegmentReasonBits end_reason = n->m_segment->m_end_segment_reason;
-			assert (path_too_long || (end_reason != ESRB_NONE));
+			uint end_reason = n->m_segment->m_end_segment_reason.to_ulong();
+			assert (path_too_long || (end_reason != 0));
 
-			if (((end_reason & ESRB_POSSIBLE_TARGET) != ESRB_NONE) &&
+			if (((end_reason & ESRB_POSSIBLE_TARGET) != 0) &&
 					Base::IsDestination(n->GetLastPos())) {
 				Base::SetTarget (n);
 				/* Special costs for the case we have reached our target. */
@@ -1333,7 +1322,7 @@ struct CYapfRailT : public Base
 				n->m_estimate = n->m_cost;
 				this->FoundTarget(n);
 
-			} else if (path_too_long || (end_reason & ESRB_ABORT_PF_MASK) != ESRB_NONE) {
+			} else if (path_too_long || (end_reason & ESRB_ABORT_PF_MASK) != 0) {
 				/* Reason to not continue. Stop this PF branch. */
 				continue;
 
