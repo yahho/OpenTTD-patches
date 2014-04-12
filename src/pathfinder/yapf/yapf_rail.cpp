@@ -562,9 +562,6 @@ public:
 	/** Compute all costs for a newly-allocated (not cached) segment. */
 	inline void CalcSegment (Node *n, const CFollowTrackRail *tf);
 
-	/* Fill in a node from cached data. */
-	inline void RestoreCachedNode (Node *n);
-
 	/* Compute all costs for a segment or retrieve it from cache. */
 	inline void CalcNode (Node *n);
 
@@ -879,22 +876,6 @@ inline void CYapfRailBaseT<TAstar>::CalcSegment (Node *n, const CFollowTrackRail
 	n->m_cost = entry_cost + n->m_segment->m_cost;
 }
 
-/** Fill in a node from cached data. */
-template <class TAstar>
-inline void CYapfRailBaseT<TAstar>::RestoreCachedNode (Node *n)
-{
-	/* total node cost */
-	n->m_cost = n->m_parent->m_cost + TransitionCost (n->m_parent->GetLastPos(), n->GetPos()) + n->m_segment->m_cost;
-	/* We will need also some information about the last signal (if it was red). */
-	if (n->m_segment->m_last_signal.is_valid_tile()) {
-		assert(n->m_segment->m_last_signal.has_signal_along());
-		SignalState sig_state = n->m_segment->m_last_signal.get_signal_state();
-		n->flags.set (n->FLAG_LAST_SIGNAL_WAS_RED, sig_state == SIGNAL_STATE_RED);
-		n->m_last_signal_type = n->m_segment->m_last_signal.get_signal_type();
-	}
-	/* No further calculation needed. */
-}
-
 /** Compute all costs for a segment or retrieve it from cache. */
 template <class TAstar>
 inline void CYapfRailBaseT<TAstar>::CalcNode (Node *n)
@@ -909,8 +890,17 @@ inline void CYapfRailBaseT<TAstar>::CalcNode (Node *n)
 		/* look for the segment in the cache */
 		if (FindCachedSegment(n)) {
 			m_stats_cache_hits++;
-			RestoreCachedNode (n);
 			assert (!n->m_segment->m_end_segment_reason.test(ESR_MAX_COST));
+			/* total node cost */
+			n->m_cost = n->m_parent->m_cost + TransitionCost (n->m_parent->GetLastPos(), n->GetPos()) + n->m_segment->m_cost;
+			/* We will need also some information about the last signal (if it was red). */
+			if (n->m_segment->m_last_signal.is_valid_tile()) {
+				assert(n->m_segment->m_last_signal.has_signal_along());
+				SignalState sig_state = n->m_segment->m_last_signal.get_signal_state();
+				n->flags.set (n->FLAG_LAST_SIGNAL_WAS_RED, sig_state == SIGNAL_STATE_RED);
+				n->m_last_signal_type = n->m_segment->m_last_signal.get_signal_type();
+			}
+			/* No further calculation needed. */
 			if (DEBUG_YAPF_CACHE) {
 				Node test (*n);
 				CachedData segment (test.GetKey());
