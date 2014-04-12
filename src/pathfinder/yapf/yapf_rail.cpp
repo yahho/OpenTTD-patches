@@ -399,9 +399,16 @@ public:
 		return true;
 	}
 
+	/** Check if a node (usually under construction) is being cached. */
+	inline bool IsNodeCached (const Node *n) const
+	{
+		return n->m_segment == m_global_cache.Find (n->GetKey());
+	}
+
 	inline void AttachCachedSegment (Node *n)
 	{
 		n->m_segment = m_global_cache.Create (n->GetKey());
+		assert (IsNodeCached(n));
 	}
 
 	inline void AttachLocalSegment (Node *n)
@@ -542,6 +549,8 @@ public:
 		if (n.m_num_signals_passed >= m_sig_look_ahead_costs.size() / 2) return 0;
 		if (!IsPbsSignal(n.m_last_signal_type)) return 0;
 
+		assert (!IsNodeCached(&n));
+
 		if (!pos.in_wormhole() && IsRailStationTile(pos.tile) && IsAnyStationTileReserved(pos, skipped)) {
 			return m_settings->rail_pbs_station_penalty * (skipped + 1);
 		} else if (TrackOverlapsTracks(GetReservedTrackbits(pos.tile), TrackdirToTrack(pos.td))) {
@@ -666,6 +675,7 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node *n, const RailPathPos &pos)
 		}
 	}
 
+	assert ((cost == 0) || !IsNodeCached(n));
 	return cost;
 }
 
@@ -715,6 +725,7 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeTile (Node *n, const CFollowTrackR
 		n->m_segment->m_end_segment_reason |= ESRB_STATION;
 
 	} else if (mask_reserved_tracks) {
+		assert (!IsNodeCached(n));
 		/* Searching for a safe tile? */
 		if (pos.has_signal_along() && !IsPbsSignal(pos.get_signal_type())) {
 			n->m_segment->m_end_segment_reason |= ESRB_SAFE_TILE;
@@ -725,6 +736,7 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeTile (Node *n, const CFollowTrackR
 	 * Otherwise it would cause desync in MP. */
 	if (n->m_num_signals_passed < m_sig_look_ahead_costs.size())
 	{
+		assert (!IsNodeCached(n));
 		int max_speed = tf->GetSpeedLimit();
 		int max_veh_speed = m_veh->GetDisplayMaxSpeed();
 		if (max_speed < max_veh_speed) {
@@ -764,6 +776,7 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeNextTile (Node *n, CFollowTrackRai
 	/* Gather the next tile/trackdir. */
 
 	if (mask_reserved_tracks) {
+		assert (!IsNodeCached(n));
 		if (tf->m_new.has_signal_along() && IsPbsSignal(tf->m_new.get_signal_type())) {
 			/* Possible safe tile. */
 			n->m_segment->m_end_segment_reason |= ESRB_SAFE_TILE;
