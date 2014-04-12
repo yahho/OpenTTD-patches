@@ -308,10 +308,6 @@ protected:
 	Cache&        m_global_cache;
 	LocalCache    m_local_cache;
 
-	/**
-	 * @note maximum cost doesn't work with caching enabled
-	 * @todo fix maximum cost failing with caching (e.g. FS#2900)
-	 */
 	int                  m_max_cost;
 	std::vector<int>     m_sig_look_ahead_costs;
 
@@ -883,43 +879,58 @@ inline void CYapfRailBaseT<TAstar>::CalcNode (Node *n)
 	/* Disable the cache if the node is within the signal lookahead
 	 * threshold; if we are masking reserved tracks (because that makes
 	 * segments end prematurely at the first signal); or if we have a
+	 * maximum cost and the node is not already cached and within the
 	 * maximum cost (because that may also make a segment end prematurely
 	 * if the maximum cost is reached when computing its cost). */
 	if (m_max_cost == 0 && !mask_reserved_tracks
 			&& (n->m_parent->m_num_signals_passed >= m_sig_look_ahead_costs.size())) {
 		/* look for the segment in the cache */
 		if (FindCachedSegment(n)) {
-			m_stats_cache_hits++;
 			assert (!n->m_segment->m_end_segment_reason.test(ESR_MAX_COST));
-			/* total node cost */
-			n->m_cost = n->m_parent->m_cost + TransitionCost (n->m_parent->GetLastPos(), n->GetPos()) + n->m_segment->m_cost;
-			/* We will need also some information about the last signal (if it was red). */
-			if (n->m_segment->m_last_signal.is_valid_tile()) {
-				assert(n->m_segment->m_last_signal.has_signal_along());
-				SignalState sig_state = n->m_segment->m_last_signal.get_signal_state();
-				n->flags.set (n->FLAG_LAST_SIGNAL_WAS_RED, sig_state == SIGNAL_STATE_RED);
-				n->m_last_signal_type = n->m_segment->m_last_signal.get_signal_type();
-			}
-			/* No further calculation needed. */
-			if (DEBUG_YAPF_CACHE) {
-				Node test (*n);
-				CachedData segment (test.GetKey());
-				test.m_segment = &segment;
-				CalcSegment (&test, &this->tf);
-				/* m_num_signals_passed can differ when cached */
-				if (!(*n->m_segment == *test.m_segment) || n->flags != test.flags || n->m_last_signal_type != test.m_last_signal_type) {
-					DumpTarget dmp ("yapf.txt");
-					dmp.WriteLine ("num_steps = %d", TAstar::num_steps);
-					dmp.WriteStructT ("array", TAstar::GetArray());
-					dmp.WriteStructT ("test_node", &test);
-					NOT_REACHED();
+			/* The segment was found in the cache, but we can
+			 * only use it if it does not exceed the maximum cost
+			 * (otherwise, a fresh computation could stop midway). */
+			int cost = n->m_parent->m_cost + TransitionCost (n->m_parent->GetLastPos(), n->GetPos()) + n->m_segment->m_cost;
+			if ((m_max_cost == 0) || (cost < m_max_cost)) {
+				m_stats_cache_hits++;
+				/* total node cost */
+				n->m_cost = cost;
+				/* We will need also some information about the last signal (if it was red). */
+				if (n->m_segment->m_last_signal.is_valid_tile()) {
+					assert(n->m_segment->m_last_signal.has_signal_along());
+					SignalState sig_state = n->m_segment->m_last_signal.get_signal_state();
+					n->flags.set (n->FLAG_LAST_SIGNAL_WAS_RED, sig_state == SIGNAL_STATE_RED);
+					n->m_last_signal_type = n->m_segment->m_last_signal.get_signal_type();
 				}
+				/* No further calculation needed. */
+				if (DEBUG_YAPF_CACHE) {
+					Node test (*n);
+					CachedData segment (test.GetKey());
+					test.m_segment = &segment;
+					CalcSegment (&test, &this->tf);
+					/* m_num_signals_passed can differ when cached */
+					if (!(*n->m_segment == *test.m_segment) || n->flags != test.flags || n->m_last_signal_type != test.m_last_signal_type) {
+						DumpTarget dmp ("yapf.txt");
+						dmp.WriteLine ("num_steps = %d", TAstar::num_steps);
+						dmp.WriteStructT ("array", TAstar::GetArray());
+						dmp.WriteStructT ("test_node", &test);
+						NOT_REACHED();
+					}
+				}
+				return;
 			}
-			return;
 		}
 
-		/* segment not found, but we can cache it for next time */
-		AttachCachedSegment(n);
+		/* segment not found, or not usable */
+		if (m_max_cost == 0) {
+			/* segment not found, but we can cache it for next time */
+			AttachCachedSegment(n);
+		} else {
+			/* If m_max_cost is not zero, CalcSegment may abort
+			 * early without reaching the end of the segment;
+			 * do not store it in the cache. */
+			AttachLocalSegment(n);
+		}
 	} else {
 		/* segment not cacheable */
 		AttachLocalSegment(n);
