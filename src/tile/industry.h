@@ -47,13 +47,12 @@ static inline bool tile_is_industry_completed(const Tile *t)
 /**
  * Set the completion state of an industry tile
  * @param t The tile whose completion state to set
- * @param b The completion state to set
  * @pre tile_is_industry(t)
  */
-static inline void tile_set_industry_completed(Tile *t, bool b)
+static inline void tile_set_industry_completed(Tile *t)
 {
 	assert(tile_is_industry(t));
-	SB(t->m1, 7, 1, b ? 1 : 0);
+	SetBit(t->m1, 7);
 }
 
 /**

@@ -44,12 +44,11 @@ static inline bool IsIndustryCompleted(TileIndex t)
 /**
  * Set if the industry that owns the tile as under construction or not
  * @param tile the tile to query
- * @param isCompleted whether it is completed or not
  * @pre IsIndustryTile(tile)
  */
-static inline void SetIndustryCompleted(TileIndex tile, bool isCompleted)
+static inline void SetIndustryCompleted(TileIndex tile)
 {
-	tile_set_industry_completed(&_mc[tile], isCompleted);
+	tile_set_industry_completed(&_mc[tile]);
 }
 
 /**
