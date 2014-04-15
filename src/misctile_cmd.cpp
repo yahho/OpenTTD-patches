@@ -968,41 +968,42 @@ static void ChangeTileOwner_Misc(TileIndex tile, Owner old_owner, Owner new_owne
 			 * don't want to update the infrastructure counts twice. */
 			uint num_pieces = tile < other_end ? (GetTunnelBridgeLength(tile, other_end) + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR : 0;
 
-			for (RoadType rt = ROADTYPE_ROAD; rt < ROADTYPE_END; rt++) {
-				/* Update all roadtypes, no matter if they are present */
-				if (GetRoadOwner(tile, rt) == old_owner) {
-					if (HasBit(GetRoadTypes(tile), rt)) {
-						/* Update company infrastructure counts. A full diagonal road tile has two road bits.
-						 * No need to dirty windows here, we'll redraw the whole screen anyway. */
-						Company::Get(old_owner)->infrastructure.road[rt] -= num_pieces * 2;
-						if (new_owner != INVALID_OWNER) Company::Get(new_owner)->infrastructure.road[rt] += num_pieces * 2;
+			if (GetTunnelTransportType(tile) != TRANSPORT_RAIL) {
+				/* A full diagonal road tile has two road bits. */
+				num_pieces *= 2;
+				if (new_owner == INVALID_OWNER) new_owner = OWNER_NONE;
+
+				for (RoadType rt = ROADTYPE_ROAD; rt < ROADTYPE_END; rt++) {
+					/* Update all roadtypes, no matter if they are present */
+					if (GetRoadOwner(tile, rt) == old_owner) {
+						if (HasBit(GetRoadTypes(tile), rt)) {
+							/* Update company infrastructure counts.
+							 * No need to dirty windows here, we'll redraw the whole screen anyway. */
+							Company::Get(old_owner)->infrastructure.road[rt] -= num_pieces;
+							if (new_owner != OWNER_NONE) Company::Get(new_owner)->infrastructure.road[rt] += num_pieces;
+						}
+
+						SetRoadOwner(tile, rt, new_owner);
 					}
-
-					SetRoadOwner(tile, rt, new_owner == INVALID_OWNER ? OWNER_NONE : new_owner);
 				}
-			}
 
-			if (!IsTileOwner(tile, old_owner)) return;
+				if (IsTileOwner(tile, old_owner)) {
+					SetTileOwner (tile, new_owner);
+				}
 
-			/* Update company infrastructure counts for rail and water as well.
-			 * No need to dirty windows here, we'll redraw the whole screen anyway. */
-			TransportType tt = GetTunnelTransportType(tile);
-			Company *old = Company::Get(old_owner);
-			if (tt == TRANSPORT_RAIL) {
-				old->infrastructure.rail[GetRailType(tile)] -= num_pieces;
-				if (new_owner != INVALID_OWNER) Company::Get(new_owner)->infrastructure.rail[GetRailType(tile)] += num_pieces;
-			}
+			} else if (IsTileOwner(tile, old_owner)) {
+				/* No need to dirty windows here, we'll redraw the whole screen anyway. */
+				Company::Get(old_owner)->infrastructure.rail[GetRailType(tile)] -= num_pieces;
 
-			if (new_owner != INVALID_OWNER) {
-				SetTileOwner(tile, new_owner);
-			} else if (tt == TRANSPORT_RAIL) {
-				/* Since all of our vehicles have been removed, it is safe to remove the rail
-				 * tunnel. */
-				CommandCost ret = DoCommand(tile, 0, 0, DC_EXEC | DC_BANKRUPT, CMD_LANDSCAPE_CLEAR);
-				assert(ret.Succeeded());
-			} else {
-				/* In any other case, we can safely reassign the ownership to OWNER_NONE. */
-				SetTileOwner(tile, OWNER_NONE);
+				if (new_owner != INVALID_OWNER) {
+					Company::Get(new_owner)->infrastructure.rail[GetRailType(tile)] += num_pieces;
+					SetTileOwner(tile, new_owner);
+				} else {
+					/* Since all of our vehicles have been removed,
+					 * it is safe to remove the rail tunnel. */
+					CommandCost ret = DoCommand(tile, 0, 0, DC_EXEC | DC_BANKRUPT, CMD_LANDSCAPE_CLEAR);
+					assert(ret.Succeeded());
+				}
 			}
 
 			break;
