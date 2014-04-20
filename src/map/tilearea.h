@@ -84,6 +84,22 @@ struct OrthogonalTileArea {
 		/* return the tile of our target coordinates */
 		return TileXY(x, y);
 	}
+
+	/** Get the maximum distance from a tile in the area to any border. */
+	uint get_radius_max (TileIndex t) const
+	{
+		assert (this->tile != INVALID_TILE);
+
+		uint dx = TileX(t) - TileX(this->tile);
+		assert (dx < this->w); // unsigned comparison
+		if (dx < this->w / 2) dx = this->w - 1 - dx;
+
+		uint dy = TileY(t) - TileY(this->tile);
+		assert (dy < this->h); // unsigned comparison
+		if (dy < this->h / 2) dy = this->h - 1 - dy;
+
+		return max (dx, dy);
+	}
 };
 
 /** Represents a diagonal tile area. */
