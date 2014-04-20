@@ -6737,7 +6737,7 @@ static void ParamSet(ByteReader *buf)
 			if ((int32)src2 < 0) {
 				res = src1 >> -(int32)src2;
 			} else {
-				res = src1 << src2;
+				res = src1 << (src2 & 0x1F); // Same behaviour as in EvalAdjustT, mask 'value' to 5 bits, which should behave the same on all architectures.
 			}
 			break;
 
@@ -6745,7 +6745,7 @@ static void ParamSet(ByteReader *buf)
 			if ((int32)src2 < 0) {
 				res = (int32)src1 >> -(int32)src2;
 			} else {
-				res = (int32)src1 << src2;
+				res = (int32)src1 << (src2 & 0x1F); // Same behaviour as in EvalAdjustT, mask 'value' to 5 bits, which should behave the same on all architectures.
 			}
 			break;
 
