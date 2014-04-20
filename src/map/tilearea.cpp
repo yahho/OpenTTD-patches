@@ -153,6 +153,30 @@ void OrthogonalTileArea::ClampToMap()
 	this->h = min(this->h, MapSizeY() - TileY(this->tile));
 }
 
+/** Expand the area by a given amount. */
+void OrthogonalTileArea::expand (uint radius)
+{
+	uint x = TileX(this->tile);
+	if (x < radius) {
+		this->w = min (this->w + x + radius, MapSizeX());
+		x = 0;
+	} else {
+		x -= radius;
+		this->w = min (this->w + 2 * radius, MapSizeX() - x);
+	}
+
+	uint y = TileY(this->tile);
+	if (y < radius) {
+		this->h = min (this->h + y + radius, MapSizeY());
+		y = 0;
+	} else {
+		y -= radius;
+		this->h = min (this->h + 2 * radius, MapSizeY() - y);
+	}
+
+	this->tile = TileXY (x, y);
+}
+
 
 /**
  * Construct this tile area based on two points.

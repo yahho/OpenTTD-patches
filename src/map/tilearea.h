@@ -53,6 +53,8 @@ struct OrthogonalTileArea {
 
 	void ClampToMap();
 
+	void expand (uint radius);
+
 	/**
 	 * Get the center tile.
 	 * @return The tile at the center, or just north of it.
