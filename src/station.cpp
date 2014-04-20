@@ -290,29 +290,24 @@ uint Station::GetCatchmentRadius() const
 }
 
 /**
- * Determines catchment rectangle of this station
+ * Determines the catchment area of this station
  * @return clamped catchment rectangle
  */
-Rect Station::GetCatchmentRect() const
+TileArea Station::GetCatchmentArea() const
 {
 	assert(!this->rect.IsEmpty());
 
-	/* Compute acceptance rectangle */
-	int catchment_radius = this->GetCatchmentRadius();
+	TileArea catchment (TileXY (this->rect.left, this->rect.top),
+		this->rect.right - this->rect.left   + 1,
+		this->rect.top   - this->rect.bottom + 1);
 
-	Rect ret = {
-		max<int>(this->rect.left   - catchment_radius, 0),
-		max<int>(this->rect.top    - catchment_radius, 0),
-		min<int>(this->rect.right  + catchment_radius, MapMaxX()),
-		min<int>(this->rect.bottom + catchment_radius, MapMaxY())
-	};
-
-	return ret;
+	catchment.expand (this->GetCatchmentRadius());
+	return catchment;
 }
 
-/** Rect and pointer to IndustryVector */
-struct RectAndIndustryVector {
-	Rect rect;                       ///< The rectangle to search the industries in.
+/** Tile area and pointer to IndustryVector */
+struct TileAreaAndIndustryVector {
+	TileArea area;                   ///< The rectangle to search the industries in.
 	IndustryVector *industries_near; ///< The nearby industries.
 };
 
@@ -329,16 +324,14 @@ static bool FindIndustryToDeliver(TileIndex ind_tile, void *user_data)
 	/* Only process industry tiles */
 	if (!IsIndustryTile(ind_tile)) return false;
 
-	RectAndIndustryVector *riv = (RectAndIndustryVector *)user_data;
+	TileAreaAndIndustryVector *riv = (TileAreaAndIndustryVector *)user_data;
 	Industry *ind = Industry::GetByTile(ind_tile);
 
 	/* Don't check further if this industry is already in the list */
 	if (riv->industries_near->Contains(ind)) return false;
 
 	/* Only process tiles in the station acceptance rectangle */
-	int x = TileX(ind_tile);
-	int y = TileY(ind_tile);
-	if (x < riv->rect.left || x > riv->rect.right || y < riv->rect.top || y > riv->rect.bottom) return false;
+	if (!riv->area.Contains(ind_tile)) return false;
 
 	/* Include only industries that can accept cargo */
 	uint cargo_index;
@@ -361,17 +354,14 @@ void Station::RecomputeIndustriesNear()
 	this->industries_near.Clear();
 	if (this->rect.IsEmpty()) return;
 
-	RectAndIndustryVector riv = {
-		this->GetCatchmentRect(),
+	TileAreaAndIndustryVector riv = {
+		this->GetCatchmentArea(),
 		&this->industries_near
 	};
 
 	/* Compute maximum extent of acceptance rectangle wrt. station sign */
 	TileIndex start_tile = this->xy;
-	uint max_radius = max(
-		max(DistanceManhattan(start_tile, TileXY(riv.rect.left,  riv.rect.top)), DistanceManhattan(start_tile, TileXY(riv.rect.left,  riv.rect.bottom))),
-		max(DistanceManhattan(start_tile, TileXY(riv.rect.right, riv.rect.top)), DistanceManhattan(start_tile, TileXY(riv.rect.right, riv.rect.bottom)))
-	);
+	uint max_radius = riv.area.get_radius_max (start_tile);
 
 	CircularTileSearch(&start_tile, 2 * max_radius + 1, &FindIndustryToDeliver, &riv);
 }

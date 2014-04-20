@@ -19,6 +19,7 @@
 #include "industry_type.h"
 #include "linkgraph/linkgraph_type.h"
 #include "newgrf_storage.h"
+#include "map/tilearea.h"
 #include <map>
 
 static const byte INITIAL_STATION_RATING = 175;
@@ -499,7 +500,7 @@ public:
 	static void RecomputeIndustriesNearForAll();
 
 	uint GetCatchmentRadius() const;
-	Rect GetCatchmentRect() const;
+	TileArea GetCatchmentArea() const;
 
 	/* virtual */ inline bool TileBelongsToRailStation(TileIndex tile) const
 	{

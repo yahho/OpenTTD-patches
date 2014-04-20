@@ -3247,8 +3247,7 @@ void TriggerWatchedCargoCallbacks(Station *st)
 	if (cargoes == 0) return;
 
 	/* Loop over all houses in the catchment. */
-	Rect r = st->GetCatchmentRect();
-	TileArea ta(TileXY(r.left, r.top), TileXY(r.right, r.bottom));
+	TileArea ta = st->GetCatchmentArea();
 	TILE_AREA_LOOP(tile, ta) {
 		if (IsHouseTile(tile)) {
 			WatchedCargoCallback(tile, cargoes);
