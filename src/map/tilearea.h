@@ -37,6 +37,14 @@ struct OrthogonalTileArea {
 
 	void Add(const OrthogonalTileArea &to_add);
 
+	/** Check if this tile area is empty. */
+	bool empty (void) const
+	{
+		assert ((this->tile == INVALID_TILE) == (this->w == 0));
+		assert ((this->tile == INVALID_TILE) == (this->h == 0));
+		return this->tile == INVALID_TILE;
+	}
+
 	/**
 	 * Clears the 'tile area', i.e. make the tile invalid.
 	 */
@@ -71,7 +79,7 @@ struct OrthogonalTileArea {
 	 */
 	TileIndex get_closest_tile(TileIndex t) const
 	{
-		if (this->tile == INVALID_TILE) return INVALID_TILE;
+		if (this->empty()) return INVALID_TILE;
 
 		/* clamp x coordinate */
 		uint x = TileX(this->tile);
@@ -88,7 +96,7 @@ struct OrthogonalTileArea {
 	/** Get the maximum distance from a tile in the area to any border. */
 	uint get_radius_max (TileIndex t) const
 	{
-		assert (this->tile != INVALID_TILE);
+		assert (!this->empty());
 
 		uint dx = TileX(t) - TileX(this->tile);
 		assert (dx < this->w); // unsigned comparison

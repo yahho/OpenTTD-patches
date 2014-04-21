@@ -49,7 +49,9 @@ OrthogonalTileArea::OrthogonalTileArea(TileIndex start, TileIndex end)
  */
 void OrthogonalTileArea::Add(TileIndex to_add)
 {
-	if (this->tile == INVALID_TILE) {
+	assert (to_add != INVALID_TILE);
+
+	if (this->empty()) {
 		this->tile = to_add;
 		this->w = 1;
 		this->h = 1;
@@ -73,9 +75,9 @@ void OrthogonalTileArea::Add(TileIndex to_add)
  */
 void OrthogonalTileArea::Add(const OrthogonalTileArea &to_add)
 {
-	if (to_add.tile == INVALID_TILE) return;
+	if (to_add.empty()) return;
 
-	if (this->tile == INVALID_TILE) {
+	if (this->empty()) {
 		this->tile = to_add.tile;
 		this->w = to_add.w;
 		this->h = to_add.h;
