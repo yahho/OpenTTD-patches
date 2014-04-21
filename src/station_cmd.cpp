@@ -476,27 +476,10 @@ CargoArray GetAcceptanceAroundTiles(TileIndex tile, int w, int h, int rad, uint3
 	CargoArray acceptance;
 	if (always_accepted != NULL) *always_accepted = 0;
 
-	int x = TileX(tile);
-	int y = TileY(tile);
+	TileArea ta (tile, w, h);
+	ta.expand (rad);
 
-	/* expand the region by rad tiles on each side
-	 * while making sure that we remain inside the board. */
-	int x2 = min(x + w + rad, MapSizeX());
-	int y2 = min(y + h + rad, MapSizeY());
-	int x1 = max(x - rad, 0);
-	int y1 = max(y - rad, 0);
-
-	assert(x1 < x2);
-	assert(y1 < y2);
-	assert(w > 0);
-	assert(h > 0);
-
-	for (int yc = y1; yc != y2; yc++) {
-		for (int xc = x1; xc != x2; xc++) {
-			TileIndex tile = TileXY(xc, yc);
-			AddAcceptedCargo(tile, acceptance, always_accepted);
-		}
-	}
+	TILE_AREA_LOOP(tile, ta) AddAcceptedCargo(tile, acceptance, always_accepted);
 
 	return acceptance;
 }
