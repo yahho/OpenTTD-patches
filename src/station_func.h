@@ -66,12 +66,11 @@ static inline CargoArray GetProductionAroundTiles(TileIndex tile, int w, int h, 
  * @param w X extent of area
  * @param h Y extent of area
  * @param rad Search radius in addition to given area
- * @param always_accepted bitmask of cargo accepted by houses and headquarters; can be NULL
  */
-static inline CargoArray GetAcceptanceAroundTiles(TileIndex tile, int w, int h, int rad, uint32 *always_accepted = NULL)
+static inline CargoArray GetAcceptanceAroundTiles(TileIndex tile, int w, int h, int rad)
 {
 	TileArea ta (tile, w, h);
-	return GetAreaAcceptance (ta, rad, always_accepted);
+	return GetAreaAcceptance (ta, rad);
 }
 
 void UpdateStationAcceptance(Station *st, bool show_msg);
