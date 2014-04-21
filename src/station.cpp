@@ -471,7 +471,7 @@ CommandCost StationRect::BeforeAddRect(TileIndex tile, int w, int h, StationRect
 	return false;
 }
 
-bool StationRect::AfterRemoveTile(BaseStation *st, TileIndex tile)
+void StationRect::AfterRemoveTile(BaseStation *st, TileIndex tile)
 {
 	int x = TileX(tile);
 	int y = TileY(tile);
@@ -515,20 +515,18 @@ bool StationRect::AfterRemoveTile(BaseStation *st, TileIndex tile)
 		if (left > right || top > bottom) {
 			/* can't continue, if the remaining rectangle is empty */
 			this->MakeEmpty();
-			return true; // empty remaining rect
+			return;
 		}
 	}
-	return false; // non-empty remaining rect
 }
 
-bool StationRect::AfterRemoveRect(BaseStation *st, TileArea ta)
+void StationRect::AfterRemoveRect(BaseStation *st, TileArea ta)
 {
 	assert(this->PtInExtendedRect(TileX(ta.tile), TileY(ta.tile)));
 	assert(this->PtInExtendedRect(TileX(ta.tile) + ta.w - 1, TileY(ta.tile) + ta.h - 1));
 
-	bool empty = this->AfterRemoveTile(st, ta.tile);
-	if (ta.w != 1 || ta.h != 1) empty = empty || this->AfterRemoveTile(st, TILE_ADDXY(ta.tile, ta.w - 1, ta.h - 1));
-	return empty;
+	this->AfterRemoveTile(st, ta.tile);
+	if (ta.w != 1 || ta.h != 1) this->AfterRemoveTile(st, TILE_ADDXY(ta.tile, ta.w - 1, ta.h - 1));
 }
 
 StationRect& StationRect::operator = (const Rect &src)

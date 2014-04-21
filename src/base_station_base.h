@@ -41,8 +41,8 @@ struct StationRect : public Rect {
 	bool IsEmpty() const;
 	CommandCost BeforeAddTile(TileIndex tile, StationRectMode mode);
 	CommandCost BeforeAddRect(TileIndex tile, int w, int h, StationRectMode mode);
-	bool AfterRemoveTile(BaseStation *st, TileIndex tile);
-	bool AfterRemoveRect(BaseStation *st, TileArea ta);
+	void AfterRemoveTile(BaseStation *st, TileIndex tile);
+	void AfterRemoveRect(BaseStation *st, TileArea ta);
 
 	static bool ScanForStationTiles(StationID st_id, int left_a, int top_a, int right_a, int bottom_a);
 
