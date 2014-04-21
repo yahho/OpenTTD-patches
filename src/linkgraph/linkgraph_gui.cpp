@@ -58,7 +58,7 @@ void LinkGraphOverlay::RebuildCache()
 
 	const Station *sta;
 	FOR_ALL_STATIONS(sta) {
-		if (sta->rect.IsEmpty()) continue;
+		if (sta->rect.empty()) continue;
 
 		Point pta = this->GetStationMiddle(sta);
 
@@ -85,7 +85,7 @@ void LinkGraphOverlay::RebuildCache()
 
 				/* Show links between stations of selected companies or "neutral" ones like oilrigs. */
 				if (stb->owner != OWNER_NONE && sta->owner != OWNER_NONE && !HasBit(this->company_mask, stb->owner)) continue;
-				if (stb->rect.IsEmpty()) continue;
+				if (stb->rect.empty()) continue;
 
 				if (!this->IsLinkVisible(pta, this->GetStationMiddle(stb), &dpi)) continue;
 

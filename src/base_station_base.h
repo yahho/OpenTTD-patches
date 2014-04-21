@@ -13,11 +13,11 @@
 #define BASE_STATION_BASE_H
 
 #include "core/pool_type.hpp"
-#include "core/geometry_type.hpp"
 #include "command_type.h"
 #include "viewport_type.h"
 #include "station_type.h"
 #include "map/station.h"
+#include "map/tilearea.h"
 
 struct StationSpecList {
 	const StationSpec *spec;
@@ -27,7 +27,7 @@ struct StationSpecList {
 
 
 /** StationRect - used to track station spread out rectangle - cheaper than scanning whole map */
-struct StationRect : public Rect {
+struct StationRect : TileArea {
 	enum StationRectMode
 	{
 		ADD_TEST = 0,
@@ -35,18 +35,20 @@ struct StationRect : public Rect {
 		ADD_FORCE
 	};
 
-	StationRect();
-	void MakeEmpty();
-	bool PtInExtendedRect(int x, int y) const;
-	bool IsEmpty() const;
 	CommandCost BeforeAddTile(TileIndex tile, StationRectMode mode);
 	CommandCost BeforeAddRect(TileIndex tile, int w, int h, StationRectMode mode);
-	void AfterRemoveTile(BaseStation *st, TileIndex tile);
-	void AfterRemoveRect(BaseStation *st, TileArea ta);
+	void AfterRemoveTiles(BaseStation *st, TileIndex tile1, TileIndex tile2);
 
-	static bool ScanForStationTiles(StationID st_id, int left_a, int top_a, int right_a, int bottom_a);
+	void AfterRemoveTile (BaseStation *st, TileIndex tile)
+	{
+		AfterRemoveTiles (st, tile, tile);
+	}
 
-	StationRect& operator = (const Rect &src);
+	void AfterRemoveRect (BaseStation *st, TileArea ta)
+	{
+		TileIndex last = TILE_ADDXY (ta.tile, ta.w - 1, ta.h - 1);
+		AfterRemoveTiles (st, ta.tile, last);
+	}
 };
 
 /** Base class for all station-ish types */

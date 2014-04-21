@@ -295,12 +295,9 @@ uint Station::GetCatchmentRadius() const
  */
 TileArea Station::GetCatchmentArea() const
 {
-	assert(!this->rect.IsEmpty());
+	assert(!this->rect.empty());
 
-	TileArea catchment (TileXY (this->rect.left, this->rect.top),
-		this->rect.right - this->rect.left   + 1,
-		this->rect.top   - this->rect.bottom + 1);
-
+	TileArea catchment (this->rect);
 	catchment.expand (this->GetCatchmentRadius());
 	return catchment;
 }
@@ -352,7 +349,7 @@ static bool FindIndustryToDeliver(TileIndex ind_tile, void *user_data)
 void Station::RecomputeIndustriesNear()
 {
 	this->industries_near.Clear();
-	if (this->rect.IsEmpty()) return;
+	if (this->rect.empty()) return;
 
 	TileAreaAndIndustryVector riv = {
 		this->GetCatchmentArea(),
@@ -379,53 +376,19 @@ void Station::RecomputeIndustriesNear()
 /*                     StationRect implementation                       */
 /************************************************************************/
 
-StationRect::StationRect()
-{
-	this->MakeEmpty();
-}
-
-void StationRect::MakeEmpty()
-{
-	this->left = this->top = this->right = this->bottom = 0;
-}
-
-/**
- * Determines whether a given point (x, y) is within the station rectangle.
- * @note x and y are in Tile coordinates
- * @param x X coordinate
- * @param y Y coordinate
- * @return true if the point is within the station rectangle
- */
-bool StationRect::PtInExtendedRect(int x, int y) const
-{
-	return this->left <= x && x <= this->right &&
-			this->top <= y && y <= this->bottom;
-}
-
-bool StationRect::IsEmpty() const
-{
-	return this->left == 0 || this->left > this->right || this->top > this->bottom;
-}
-
 CommandCost StationRect::BeforeAddTile(TileIndex tile, StationRectMode mode)
 {
-	int x = TileX(tile);
-	int y = TileY(tile);
-	if (this->IsEmpty()) {
+	if (this->empty()) {
 		/* we are adding the first station tile */
-		if (mode != ADD_TEST) {
-			this->left = this->right = x;
-			this->top = this->bottom = y;
-		}
-	} else if (!this->PtInExtendedRect(x, y)) {
+		if (mode != ADD_TEST) this->Add(tile);
+	} else if (!this->Contains(tile)) {
 		/* current rect is not empty and new point is outside this rect
 		 * make new spread-out rectangle */
-		Rect new_rect = {min(x, this->left), min(y, this->top), max(x, this->right), max(y, this->bottom)};
+		StationRect new_rect (*this);
+		new_rect.Add(tile);
 
 		/* check new rect dimensions against preset max */
-		int w = new_rect.right - new_rect.left + 1;
-		int h = new_rect.bottom - new_rect.top + 1;
-		if (mode != ADD_FORCE && (w > _settings_game.station.station_spread || h > _settings_game.station.station_spread)) {
+		if (mode != ADD_FORCE && (new_rect.w > _settings_game.station.station_spread || new_rect.h > _settings_game.station.station_spread)) {
 			assert(mode != ADD_TRY);
 			return_cmd_error(STR_ERROR_STATION_TOO_SPREAD_OUT);
 		}
@@ -452,90 +415,83 @@ CommandCost StationRect::BeforeAddRect(TileIndex tile, int w, int h, StationRect
 	return CommandCost();
 }
 
-/**
- * Check whether station tiles of the given station id exist in the given rectangle
- * @param st_id    Station ID to look for in the rectangle
- * @param left_a   Minimal tile X edge of the rectangle
- * @param top_a    Minimal tile Y edge of the rectangle
- * @param right_a  Maximal tile X edge of the rectangle (inclusive)
- * @param bottom_a Maximal tile Y edge of the rectangle (inclusive)
- * @return \c true if a station tile with the given \a st_id exists in the rectangle, \c false otherwise
- */
-/* static */ bool StationRect::ScanForStationTiles(StationID st_id, int left_a, int top_a, int right_a, int bottom_a)
+/** Scan a tile row/column for station tiles. */
+static bool ScanForStationTiles (StationID st, TileIndex tile, uint diff, uint n)
 {
-	TileArea ta(TileXY(left_a, top_a), TileXY(right_a, bottom_a));
-	TILE_AREA_LOOP(tile, ta) {
-		if (IsStationTile(tile) && GetStationIndex(tile) == st_id) return true;
+	while (n > 0) {
+		if (IsStationTile(tile) && GetStationIndex(tile) == st) return true;
+		tile += diff;
+		n--;
 	}
 
 	return false;
 }
 
-void StationRect::AfterRemoveTile(BaseStation *st, TileIndex tile)
+/** Shrink station area after removal of a rectangle. */
+void StationRect::AfterRemoveTiles (BaseStation *st, TileIndex tile1, TileIndex tile2)
 {
-	int x = TileX(tile);
-	int y = TileY(tile);
+	assert (TileX(tile1) <= TileX(tile2));
+	assert (TileY(tile1) <= TileY(tile2));
 
-	/* look if removed tile was on the bounding rect edge
-	 * and try to reduce the rect by this edge
-	 * do it until we have empty rect or nothing to do */
-	for (;;) {
-		/* check if removed tile is on rect edge */
-		bool left_edge = (x == this->left);
-		bool right_edge = (x == this->right);
-		bool top_edge = (y == this->top);
-		bool bottom_edge = (y == this->bottom);
+	assert (this->Contains(tile1));
+	assert (this->Contains(tile2));
 
-		/* can we reduce the rect in either direction? */
-		bool reduce_x = ((left_edge || right_edge) && !ScanForStationTiles(st->index, x, this->top, x, this->bottom));
-		bool reduce_y = ((top_edge || bottom_edge) && !ScanForStationTiles(st->index, this->left, y, this->right, y));
-		if (!(reduce_x || reduce_y)) break; // nothing to do (can't reduce)
+	const TileIndexDiff diff_x = TileDiffXY (1, 0); // rightwards
+	const TileIndexDiff diff_y = TileDiffXY (0, 1); // upwards
 
-		if (reduce_x) {
-			/* reduce horizontally */
-			if (left_edge) {
-				/* move left edge right */
-				this->left = x = x + 1;
-			} else {
-				/* move right edge left */
-				this->right = x = x - 1;
+	if (TileX(tile1) == TileX(this->tile)) {
+		/* scan initial columns for station tiles */
+		for (;;) {
+			if (ScanForStationTiles (st->index, this->tile, diff_y, this->h)) break;
+			this->tile += diff_x;
+			this->w--;
+			if (this->w == 0) {
+				this->Clear();
+				return;
 			}
-		}
-		if (reduce_y) {
-			/* reduce vertically */
-			if (top_edge) {
-				/* move top edge down */
-				this->top = y = y + 1;
-			} else {
-				/* move bottom edge up */
-				this->bottom = y = y - 1;
-			}
-		}
-
-		if (left > right || top > bottom) {
-			/* can't continue, if the remaining rectangle is empty */
-			this->MakeEmpty();
-			return;
 		}
 	}
-}
 
-void StationRect::AfterRemoveRect(BaseStation *st, TileArea ta)
-{
-	assert(this->PtInExtendedRect(TileX(ta.tile), TileY(ta.tile)));
-	assert(this->PtInExtendedRect(TileX(ta.tile) + ta.w - 1, TileY(ta.tile) + ta.h - 1));
+	if (TileX(tile2) == TileX(this->tile) + this->w - 1) {
+		/* scan final columns for station tiles */
+		TileIndex t = this->tile + (this->w - 1) * diff_x;
+		for (;;) {
+			if (ScanForStationTiles (st->index, t, diff_y, this->h)) break;
+			t -= diff_x;
+			this->w--;
+			if (this->w == 0) {
+				this->Clear();
+				return;
+			}
+		}
+	}
 
-	this->AfterRemoveTile(st, ta.tile);
-	if (ta.w != 1 || ta.h != 1) this->AfterRemoveTile(st, TILE_ADDXY(ta.tile, ta.w - 1, ta.h - 1));
-}
+	if (TileY(tile1) == TileY(this->tile)) {
+		/* scan initial rows for station tiles */
+		for (;;) {
+			if (ScanForStationTiles (st->index, this->tile, diff_x, this->w)) break;
+			this->tile += diff_y;
+			this->h--;
+			if (this->h == 0) {
+				this->Clear();
+				return;
+			}
+		}
+	}
 
-StationRect& StationRect::operator = (const Rect &src)
-{
-	this->left = src.left;
-	this->top = src.top;
-	this->right = src.right;
-	this->bottom = src.bottom;
-	return *this;
+	if (TileY(tile2) == TileY(this->tile) + this->h - 1) {
+		/* scan final rows for station tiles */
+		TileIndex t = this->tile + (this->h - 1) * diff_y;
+		for (;;) {
+			if (ScanForStationTiles (st->index, t, diff_x, this->w)) break;
+			t -= diff_y;
+			this->h--;
+			if (this->h == 0) {
+				this->Clear();
+				return;
+			}
+		}
+	}
 }
 
 /** The pool of docks. */

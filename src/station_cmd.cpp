@@ -492,14 +492,9 @@ void UpdateStationAcceptance(Station *st, bool show_msg)
 
 	/* And retrieve the acceptance. */
 	CargoArray acceptance;
-	if (!st->rect.IsEmpty()) {
-		acceptance = GetAcceptanceAroundTiles(
-			TileXY(st->rect.left, st->rect.top),
-			st->rect.right  - st->rect.left + 1,
-			st->rect.bottom - st->rect.top  + 1,
-			st->GetCatchmentRadius(),
-			&st->always_accepted
-		);
+	if (!st->rect.empty()) {
+		acceptance = GetAreaAcceptance (st->rect,
+			st->GetCatchmentRadius(), &st->always_accepted);
 	}
 
 	/* Adjust in case our station only accepts fewer kinds of goods */
@@ -565,10 +560,10 @@ static void UpdateStationSignCoord(BaseStation *st)
 {
 	const StationRect *r = &st->rect;
 
-	if (r->IsEmpty()) return; // no tiles belong to this station
+	if (r->empty()) return; // no tiles belong to this station
 
 	/* clamp sign coord to be inside the station rect */
-	st->xy = TileXY(ClampU(TileX(st->xy), r->left, r->right), ClampU(TileY(st->xy), r->top, r->bottom));
+	st->xy = st->rect.get_closest_tile(st->xy);
 	st->UpdateVirtCoord();
 
 	if (!Station::IsExpected(st)) return;

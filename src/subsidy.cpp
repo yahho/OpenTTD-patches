@@ -559,7 +559,7 @@ bool CheckSubsidised(CargoID cargo_type, CompanyID company, SourceType src_type,
 	/* Remember all towns near this station (at least one house in its catchment radius)
 	 * which are destination of subsidised path. Do that only if needed */
 	SmallVector<const Town *, 2> towns_near;
-	if (!st->rect.IsEmpty()) {
+	if (!st->rect.empty()) {
 		Subsidy *s;
 		FOR_ALL_SUBSIDIES(s) {
 			/* Don't create the cache if there is no applicable subsidy with town as destination */

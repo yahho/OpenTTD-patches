@@ -115,8 +115,6 @@ ScriptTileList_StationType::ScriptTileList_StationType(StationID station_id, Scr
 {
 	if (!ScriptStation::IsValidStation(station_id)) return;
 
-	const StationRect *rect = &::Station::Get(station_id)->rect;
-
 	uint station_type_value = 0;
 	/* Convert ScriptStation::StationType to ::StationType, but do it in a
 	 *  bitmask, so we can scan for multiple entries at the same time. */
@@ -126,8 +124,7 @@ ScriptTileList_StationType::ScriptTileList_StationType(StationID station_id, Scr
 	if ((station_type & ScriptStation::STATION_AIRPORT) != 0)    station_type_value |= (1 << ::STATION_AIRPORT) | (1 << ::STATION_OILRIG);
 	if ((station_type & ScriptStation::STATION_DOCK) != 0)       station_type_value |= (1 << ::STATION_DOCK)    | (1 << ::STATION_OILRIG);
 
-	TileArea ta(::TileXY(rect->left, rect->top), rect->right - rect->left + 1, rect->bottom - rect->top + 1);
-	TILE_AREA_LOOP(cur_tile, ta) {
+	TILE_AREA_LOOP(cur_tile, ::Station::Get(station_id)->rect) {
 		if (!::IsStationTile(cur_tile)) continue;
 		if (::GetStationIndex(cur_tile) != station_id) continue;
 		if (!HasBit(station_type_value, ::GetStationType(cur_tile))) continue;

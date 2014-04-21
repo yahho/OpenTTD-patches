@@ -1631,9 +1631,8 @@ void SmallMapWindow::SmallMapCenterOnCurrentPos()
  */
 Point SmallMapWindow::GetStationMiddle(const Station *st) const
 {
-	int x = (st->rect.right + st->rect.left + 1) / 2;
-	int y = (st->rect.bottom + st->rect.top + 1) / 2;
-	Point ret = this->RemapTile(x, y);
+	TileIndex tile = st->rect.GetCenterTile();
+	Point ret = this->RemapTile(TileX(tile), TileY(tile));
 
 	/* Same magic 3 as in DrawVehicles; that's where I got it from.
 	 * No idea what it is, but without it the result looks bad.
