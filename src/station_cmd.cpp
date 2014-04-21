@@ -437,23 +437,8 @@ CargoArray GetProductionAroundTiles(TileIndex tile, int w, int h, int rad)
 {
 	CargoArray produced;
 
-	int x = TileX(tile);
-	int y = TileY(tile);
-
-	/* expand the region by rad tiles on each side
-	 * while making sure that we remain inside the board. */
-	int x2 = min(x + w + rad, MapSizeX());
-	int x1 = max(x - rad, 0);
-
-	int y2 = min(y + h + rad, MapSizeY());
-	int y1 = max(y - rad, 0);
-
-	assert(x1 < x2);
-	assert(y1 < y2);
-	assert(w > 0);
-	assert(h > 0);
-
-	TileArea ta(TileXY(x1, y1), TileXY(x2 - 1, y2 - 1));
+	TileArea ta (tile, w, h);
+	ta.expand (rad);
 
 	/* Loop over all tiles to get the produced cargo of
 	 * everything except industries */
