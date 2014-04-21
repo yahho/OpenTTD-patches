@@ -31,7 +31,6 @@ struct StationRect : TileArea {
 	enum StationRectMode
 	{
 		ADD_TEST = 0,
-		ADD_TRY,
 	};
 
 	CommandCost BeforeAddTile(TileIndex tile, StationRectMode mode);

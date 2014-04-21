@@ -380,7 +380,6 @@ CommandCost StationRect::BeforeAddTile(TileIndex tile, StationRectMode mode)
 {
 	if (this->empty()) {
 		/* we are adding the first station tile */
-		if (mode != ADD_TEST) this->Add(tile);
 	} else if (!this->Contains(tile)) {
 		/* current rect is not empty and new point is outside this rect
 		 * make new spread-out rectangle */
@@ -389,15 +388,10 @@ CommandCost StationRect::BeforeAddTile(TileIndex tile, StationRectMode mode)
 
 		/* check new rect dimensions against preset max */
 		if (new_rect.w > _settings_game.station.station_spread || new_rect.h > _settings_game.station.station_spread) {
-			assert(mode != ADD_TRY);
 			return_cmd_error(STR_ERROR_STATION_TOO_SPREAD_OUT);
 		}
 
 		/* spread-out ok, return true */
-		if (mode != ADD_TEST) {
-			/* we should update the station rect */
-			*this = new_rect;
-		}
 	} else {
 		; // new point is inside the rect, we don't need to do anything
 	}

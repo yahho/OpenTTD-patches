@@ -1242,7 +1242,7 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 		st->train_station = new_location;
 		st->AddFacility(FACIL_TRAIN, new_location.tile);
 
-		st->rect.BeforeAddRect(tile_org, w_org, h_org, StationRect::ADD_TRY);
+		st->rect.Add (TileArea (tile_org, w_org, h_org));
 
 		if (statspec != NULL) {
 			/* Include this station spec's animation trigger bitmask
@@ -1817,7 +1817,7 @@ CommandCost CmdBuildRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 			/* Initialize an empty station. */
 			st->AddFacility((type) ? FACIL_TRUCK_STOP : FACIL_BUS_STOP, cur_tile);
 
-			st->rect.BeforeAddTile(cur_tile, StationRect::ADD_TRY);
+			st->rect.Add (cur_tile);
 
 			RoadStopType rs_type = type ? ROADSTOP_TRUCK : ROADSTOP_BUS;
 			if (is_drive_through) {
@@ -2326,7 +2326,7 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 		st->airport.flags = 0;
 		st->airport.rotation = rotation;
 
-		st->rect.BeforeAddRect(tile, w, h, StationRect::ADD_TRY);
+		st->rect.Add (TileArea (tile, w, h));
 
 		for (AirportTileTableIterator iter(as->table[layout], tile); iter != INVALID_TILE; ++iter) {
 			MakeAirport(iter, st->owner, st->index, iter.GetStationGfx(), WATER_CLASS_INVALID);
@@ -2571,7 +2571,7 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 
 		st->AddFacility(FACIL_DOCK, tile);
 
-		st->rect.BeforeAddRect(dock_area.tile, dock_area.w, dock_area.h, StationRect::ADD_TRY);
+		st->rect.Add (dock_area);
 
 		/* If the water part of the dock is on a canal, update infrastructure counts.
 		 * This is needed as we've unconditionally cleared that tile before. */

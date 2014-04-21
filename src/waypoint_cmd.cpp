@@ -232,7 +232,7 @@ CommandCost CmdBuildRailWaypoint(TileIndex start_tile, DoCommandFlag flags, uint
 		}
 		wp->owner = GetTileOwner(start_tile);
 
-		wp->rect.BeforeAddRect(start_tile, width, height, StationRect::ADD_TRY);
+		wp->rect.Add (TileArea (start_tile, width, height));
 
 		wp->delete_ctr = 0;
 		wp->facilities |= FACIL_TRAIN;
@@ -312,7 +312,7 @@ CommandCost CmdBuildBuoy(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 			wp->xy = tile;
 			InvalidateWindowData(WC_WAYPOINT_VIEW, wp->index);
 		}
-		wp->rect.BeforeAddTile(tile, StationRect::ADD_TRY);
+		wp->rect.Add (tile);
 
 		wp->string_id = STR_SV_STNAME_BUOY;
 
