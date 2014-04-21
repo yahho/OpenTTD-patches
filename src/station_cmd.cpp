@@ -427,17 +427,15 @@ static void ShowRejectOrAcceptNews(const Station *st, uint num_items, CargoID *c
 }
 
 /**
- * Get the cargo types being produced around the tile (in a rectangle).
- * @param tile Northtile of area
- * @param w X extent of the area
- * @param h Y extent of the area
+ * Get the cargo types being produced around a tile area.
+ * @param area Tile area
  * @param rad Search radius in addition to the given area
  */
-CargoArray GetProductionAroundTiles(TileIndex tile, int w, int h, int rad)
+CargoArray GetAreaProduction (const TileArea &area, int rad)
 {
 	CargoArray produced;
 
-	TileArea ta (tile, w, h);
+	TileArea ta (area);
 	ta.expand (rad);
 
 	/* Loop over all tiles to get the produced cargo of
@@ -464,19 +462,17 @@ CargoArray GetProductionAroundTiles(TileIndex tile, int w, int h, int rad)
 }
 
 /**
- * Get the acceptance of cargoes around the tile in 1/8.
- * @param tile Center of the search area
- * @param w X extent of area
- * @param h Y extent of area
+ * Get the acceptance of cargoes around a tile area in 1/8.
+ * @param area Tile area
  * @param rad Search radius in addition to given area
  * @param always_accepted bitmask of cargo accepted by houses and headquarters; can be NULL
  */
-CargoArray GetAcceptanceAroundTiles(TileIndex tile, int w, int h, int rad, uint32 *always_accepted)
+CargoArray GetAreaAcceptance (const TileArea &area, int rad, uint32 *always_accepted)
 {
 	CargoArray acceptance;
 	if (always_accepted != NULL) *always_accepted = 0;
 
-	TileArea ta (tile, w, h);
+	TileArea ta (area);
 	ta.expand (rad);
 
 	TILE_AREA_LOOP(tile, ta) AddAcceptedCargo(tile, acceptance, always_accepted);
