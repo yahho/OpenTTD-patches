@@ -635,7 +635,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 			BaseStation *bst = BaseStation::GetByTile(t);
 
 			/* Set up station spread */
-			bst->rect.BeforeAddTile(t, StationRect::ADD_FORCE);
+			bst->rect.Add(t);
 
 			/* Waypoints don't have road stops/oil rigs in the old format */
 			if (!Station::IsExpected(bst)) continue;

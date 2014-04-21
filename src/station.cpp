@@ -388,7 +388,7 @@ CommandCost StationRect::BeforeAddTile(TileIndex tile, StationRectMode mode)
 		new_rect.Add(tile);
 
 		/* check new rect dimensions against preset max */
-		if (mode != ADD_FORCE && (new_rect.w > _settings_game.station.station_spread || new_rect.h > _settings_game.station.station_spread)) {
+		if (new_rect.w > _settings_game.station.station_spread || new_rect.h > _settings_game.station.station_spread) {
 			assert(mode != ADD_TRY);
 			return_cmd_error(STR_ERROR_STATION_TOO_SPREAD_OUT);
 		}
@@ -406,7 +406,7 @@ CommandCost StationRect::BeforeAddTile(TileIndex tile, StationRectMode mode)
 
 CommandCost StationRect::BeforeAddRect(TileIndex tile, int w, int h, StationRectMode mode)
 {
-	if (mode == ADD_FORCE || (w <= _settings_game.station.station_spread && h <= _settings_game.station.station_spread)) {
+	if (w <= _settings_game.station.station_spread && h <= _settings_game.station.station_spread) {
 		/* Important when the old rect is completely inside the new rect, resp. the old one was empty. */
 		CommandCost ret = this->BeforeAddTile(tile, mode);
 		if (ret.Succeeded()) ret = this->BeforeAddTile(TILE_ADDXY(tile, w - 1, h - 1), mode);

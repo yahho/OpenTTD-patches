@@ -127,7 +127,7 @@ void MoveWaypointsToBaseStations(const SavegameTypeVersion *stv)
 			if (wp->spec != NULL) {
 				SetCustomStationSpecIndex(t, AllocateSpecToStation(wp->spec, new_wp, true));
 			}
-			new_wp->rect.BeforeAddTile(t, StationRect::ADD_FORCE);
+			new_wp->rect.Add(t);
 		}
 
 		wp->new_index = new_wp->index;

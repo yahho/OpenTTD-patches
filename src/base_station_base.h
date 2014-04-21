@@ -32,7 +32,6 @@ struct StationRect : TileArea {
 	{
 		ADD_TEST = 0,
 		ADD_TRY,
-		ADD_FORCE
 	};
 
 	CommandCost BeforeAddTile(TileIndex tile, StationRectMode mode);

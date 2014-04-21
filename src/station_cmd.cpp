@@ -3897,7 +3897,7 @@ void BuildOilRig(TileIndex tile)
 	st->facilities = FACIL_AIRPORT | FACIL_DOCK;
 	st->build_date = _date;
 
-	st->rect.BeforeAddTile(tile, StationRect::ADD_FORCE);
+	st->rect.Add(tile);
 
 	st->UpdateVirtCoord();
 	UpdateStationAcceptance(st, false);
