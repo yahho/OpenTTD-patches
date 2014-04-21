@@ -37,7 +37,7 @@ struct StationRect : public Rect {
 
 	StationRect();
 	void MakeEmpty();
-	bool PtInExtendedRect(int x, int y, int distance = 0) const;
+	bool PtInExtendedRect(int x, int y) const;
 	bool IsEmpty() const;
 	CommandCost BeforeAddTile(TileIndex tile, StationRectMode mode);
 	CommandCost BeforeAddRect(TileIndex tile, int w, int h, StationRectMode mode);

@@ -390,18 +390,16 @@ void StationRect::MakeEmpty()
 }
 
 /**
- * Determines whether a given point (x, y) is within a certain distance of
- * the station rectangle.
+ * Determines whether a given point (x, y) is within the station rectangle.
  * @note x and y are in Tile coordinates
  * @param x X coordinate
  * @param y Y coordinate
- * @param distance The maximum distance a point may have (L1 norm)
- * @return true if the point is within distance tiles of the station rectangle
+ * @return true if the point is within the station rectangle
  */
-bool StationRect::PtInExtendedRect(int x, int y, int distance) const
+bool StationRect::PtInExtendedRect(int x, int y) const
 {
-	return this->left - distance <= x && x <= this->right + distance &&
-			this->top - distance <= y && y <= this->bottom + distance;
+	return this->left <= x && x <= this->right &&
+			this->top <= y && y <= this->bottom;
 }
 
 bool StationRect::IsEmpty() const
