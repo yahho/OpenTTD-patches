@@ -594,8 +594,9 @@ static CommandCost BuildStationPart(Station **st, DoCommandFlag flags, bool reus
 			return_cmd_error(STR_ERROR_TOO_CLOSE_TO_ANOTHER_STATION);
 		}
 
-		CommandCost ret = (*st)->rect.BeforeAddRect(area.tile, area.w, area.h, StationRect::ADD_TEST);
-		if (ret.Failed()) return ret;
+		if (!(*st)->rect.BeforeAddRect(area)) {
+			return_cmd_error(STR_ERROR_STATION_TOO_SPREAD_OUT);
+		}
 	} else {
 		/* allocate and initialize new station */
 		if (!Station::CanAllocateItem()) return_cmd_error(STR_ERROR_TOO_MANY_STATIONS_LOADING);

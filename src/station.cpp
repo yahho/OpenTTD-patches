@@ -376,37 +376,24 @@ void Station::RecomputeIndustriesNear()
 /*                     StationRect implementation                       */
 /************************************************************************/
 
-CommandCost StationRect::BeforeAddTile(TileIndex tile, StationRectMode mode)
+bool StationRect::BeforeAddRect (const TileArea &ta)
 {
-	if (this->empty()) {
-		/* we are adding the first station tile */
-	} else if (!this->Contains(tile)) {
-		/* current rect is not empty and new point is outside this rect
-		 * make new spread-out rectangle */
-		StationRect new_rect (*this);
-		new_rect.Add(tile);
+	assert (ta.w <= _settings_game.station.station_spread);
+	assert (ta.h <= _settings_game.station.station_spread);
 
-		/* check new rect dimensions against preset max */
-		if (new_rect.w > _settings_game.station.station_spread || new_rect.h > _settings_game.station.station_spread) {
-			return_cmd_error(STR_ERROR_STATION_TOO_SPREAD_OUT);
-		}
+	if (this->empty()) return true;
 
-		/* spread-out ok, return true */
-	} else {
-		; // new point is inside the rect, we don't need to do anything
+	StationRect new_rect (*this);
+	new_rect.Add (ta);
+
+	/* special case when new area is already contained in old area */
+	if (new_rect.tile == this->tile && new_rect.w == this->w && new_rect.h == this->h) {
+		return true;
 	}
-	return CommandCost();
-}
 
-CommandCost StationRect::BeforeAddRect(TileIndex tile, int w, int h, StationRectMode mode)
-{
-	if (w <= _settings_game.station.station_spread && h <= _settings_game.station.station_spread) {
-		/* Important when the old rect is completely inside the new rect, resp. the old one was empty. */
-		CommandCost ret = this->BeforeAddTile(tile, mode);
-		if (ret.Succeeded()) ret = this->BeforeAddTile(TILE_ADDXY(tile, w - 1, h - 1), mode);
-		return ret;
-	}
-	return CommandCost();
+	/* check new rect dimensions against preset max */
+	return  new_rect.w <= _settings_game.station.station_spread &&
+		new_rect.h <= _settings_game.station.station_spread;
 }
 
 /** Scan a tile row/column for station tiles. */

@@ -28,13 +28,8 @@ struct StationSpecList {
 
 /** StationRect - used to track station spread out rectangle - cheaper than scanning whole map */
 struct StationRect : TileArea {
-	enum StationRectMode
-	{
-		ADD_TEST = 0,
-	};
+	bool BeforeAddRect (const TileArea &ta);
 
-	CommandCost BeforeAddTile(TileIndex tile, StationRectMode mode);
-	CommandCost BeforeAddRect(TileIndex tile, int w, int h, StationRectMode mode);
 	void AfterRemoveTiles(BaseStation *st, TileIndex tile1, TileIndex tile2);
 
 	void AfterRemoveTile (BaseStation *st, TileIndex tile)
