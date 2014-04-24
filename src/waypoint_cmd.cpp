@@ -216,7 +216,7 @@ CommandCost CmdBuildRailWaypoint(TileIndex start_tile, DoCommandFlag flags, uint
 			if (ret.Failed()) return ret;
 		}
 
-		if (!wp->rect.BeforeAddRect (TileArea (start_tile, width, height))) {
+		if (!wp->TestAddRect (TileArea (start_tile, width, height))) {
 			return_cmd_error(STR_ERROR_STATION_TOO_SPREAD_OUT);
 		}
 	} else {
@@ -364,7 +364,7 @@ CommandCost RemoveBuoy(TileIndex tile, DoCommandFlag flags)
 		 * remove it and flood the land (if the canal edge is at level 0) */
 		MakeWaterKeepingClass(tile, GetTileOwner(tile));
 
-		wp->rect.AfterRemoveTile(wp, tile);
+		wp->AfterRemoveTile(tile);
 
 		wp->UpdateVirtCoord();
 		wp->delete_ctr = 0;

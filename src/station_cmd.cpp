@@ -558,7 +558,7 @@ void UpdateStationAcceptance(Station *st, bool show_msg)
 
 static void UpdateStationSignCoord(BaseStation *st)
 {
-	const StationRect *r = &st->rect;
+	const TileArea *r = &st->rect;
 
 	if (r->empty()) return; // no tiles belong to this station
 
@@ -594,7 +594,7 @@ static CommandCost BuildStationPart(Station **st, DoCommandFlag flags, bool reus
 			return_cmd_error(STR_ERROR_TOO_CLOSE_TO_ANOTHER_STATION);
 		}
 
-		if (!(*st)->rect.BeforeAddRect(area)) {
+		if (!(*st)->TestAddRect(area)) {
 			return_cmd_error(STR_ERROR_STATION_TOO_SPREAD_OUT);
 		}
 	} else {
@@ -1497,7 +1497,7 @@ CommandCost RemoveFromRailBaseStation(TileArea ta, SmallVector<T *, 4> &affected
 			Company::Get(owner)->infrastructure.station--;
 			DirtyCompanyInfrastructureWindows(owner);
 
-			st->rect.AfterRemoveTile(st, tile);
+			st->AfterRemoveTile(tile);
 			AddTrackToSignalBuffer(tile, track, owner);
 			YapfNotifyTrackLayoutChange(tile, track);
 
@@ -1642,7 +1642,7 @@ CommandCost RemoveRailStation(T *st, DoCommandFlag flags)
 	}
 
 	if (flags & DC_EXEC) {
-		st->rect.AfterRemoveRect(st, st->train_station);
+		st->AfterRemoveRect(st->train_station);
 
 		st->train_station.Clear();
 
@@ -1955,7 +1955,7 @@ static CommandCost RemoveRoadStop(TileIndex tile, DoCommandFlag flags)
 			}
 		}
 
-		st->rect.AfterRemoveTile(st, tile);
+		st->AfterRemoveTile(tile);
 
 		st->UpdateVirtCoord();
 		st->RecomputeIndustriesNear();
@@ -2314,7 +2314,7 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 				);
 			}
 
-			st->rect.AfterRemoveRect(st, st->airport);
+			st->AfterRemoveRect(st->airport);
 			st->airport.Clear();
 		}
 
@@ -2409,7 +2409,7 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
 			);
 		}
 
-		st->rect.AfterRemoveRect(st, st->airport);
+		st->AfterRemoveRect(st->airport);
 
 		st->airport.Clear();
 		st->facilities &= ~FACIL_AIRPORT;
@@ -2628,8 +2628,8 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 		MarkTileDirtyByTile(tile1);
 		MakeWaterKeepingClass(tile2, st->owner);
 
-		st->rect.AfterRemoveTile(st, tile1);
-		st->rect.AfterRemoveTile(st, tile2);
+		st->AfterRemoveTile(tile1);
+		st->AfterRemoveTile(tile2);
 
 		Dock *next = (*d)->next;
 		delete *d;
@@ -3918,7 +3918,7 @@ void DeleteOilRig(TileIndex tile)
 	st->facilities &= ~(FACIL_AIRPORT | FACIL_DOCK);
 	st->airport.flags = 0;
 
-	st->rect.AfterRemoveTile(st, tile);
+	st->AfterRemoveTile(tile);
 
 	st->UpdateVirtCoord();
 	st->RecomputeIndustriesNear();

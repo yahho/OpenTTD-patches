@@ -26,24 +26,6 @@ struct StationSpecList {
 };
 
 
-/** StationRect - used to track station spread out rectangle - cheaper than scanning whole map */
-struct StationRect : TileArea {
-	bool BeforeAddRect (const TileArea &ta);
-
-	void AfterRemoveTiles(BaseStation *st, TileIndex tile1, TileIndex tile2);
-
-	void AfterRemoveTile (BaseStation *st, TileIndex tile)
-	{
-		AfterRemoveTiles (st, tile, tile);
-	}
-
-	void AfterRemoveRect (BaseStation *st, TileArea ta)
-	{
-		TileIndex last = TILE_ADDXY (ta.tile, ta.w - 1, ta.h - 1);
-		AfterRemoveTiles (st, ta.tile, last);
-	}
-};
-
 /** Base class for all station-ish types */
 struct BaseStation : PooledItem <BaseStation, StationID, 32, 64000> {
 	TileIndex xy;                   ///< Base tile of the station
@@ -68,7 +50,7 @@ struct BaseStation : PooledItem <BaseStation, StationID, 32, 64000> {
 	uint32 cached_cargo_triggers;   ///< NOSAVE: Combined cargo trigger bitmask
 
 	TileArea train_station;         ///< Tile area the train 'station' part covers
-	StationRect rect;               ///< NOSAVE: Station spread out rectangle maintained by StationRect::xxx() functions
+	TileArea rect;                  ///< NOSAVE: Station spread out rectangle
 
 	/**
 	 * Initialize the base station.
@@ -110,6 +92,25 @@ struct BaseStation : PooledItem <BaseStation, StationID, 32, 64000> {
 	 * @param type the type of the area
 	 */
 	virtual void GetTileArea(TileArea *ta, StationType type) const = 0;
+
+	/* Test if adding an area would exceed the maximum station spread. */
+	bool TestAddRect (const TileArea &ta);
+
+	/* Update station area after removing a rectangle (implementation). */
+	void AfterRemoveTiles (TileIndex tile1, TileIndex tile2);
+
+	/** Update station area after removing a tile. */
+	void AfterRemoveTile (TileIndex tile)
+	{
+		this->AfterRemoveTiles (tile, tile);
+	}
+
+	/** Update station area after removing a rectangle. */
+	void AfterRemoveRect (const TileArea &ta)
+	{
+		TileIndex last = TILE_ADDXY (ta.tile, ta.w - 1, ta.h - 1);
+		this->AfterRemoveTiles (ta.tile, last);
+	}
 
 	/**
 	 * Calculates the tile of the given station type that is closest to a given tile.

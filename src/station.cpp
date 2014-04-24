@@ -372,22 +372,19 @@ void Station::RecomputeIndustriesNear()
 	FOR_ALL_STATIONS(st) st->RecomputeIndustriesNear();
 }
 
-/************************************************************************/
-/*                     StationRect implementation                       */
-/************************************************************************/
-
-bool StationRect::BeforeAddRect (const TileArea &ta)
+/** Test if adding an area would exceed the maximum station spread. */
+bool BaseStation::TestAddRect (const TileArea &ta)
 {
 	assert (ta.w <= _settings_game.station.station_spread);
 	assert (ta.h <= _settings_game.station.station_spread);
 
-	if (this->empty()) return true;
+	if (this->rect.empty()) return true;
 
-	StationRect new_rect (*this);
+	TileArea new_rect (this->rect);
 	new_rect.Add (ta);
 
 	/* special case when new area is already contained in old area */
-	if (new_rect.tile == this->tile && new_rect.w == this->w && new_rect.h == this->h) {
+	if (new_rect.tile == this->rect.tile && new_rect.w == this->rect.w && new_rect.h == this->rect.h) {
 		return true;
 	}
 
@@ -409,66 +406,66 @@ static bool ScanForStationTiles (StationID st, TileIndex tile, uint diff, uint n
 }
 
 /** Shrink station area after removal of a rectangle. */
-void StationRect::AfterRemoveTiles (BaseStation *st, TileIndex tile1, TileIndex tile2)
+void BaseStation::AfterRemoveTiles (TileIndex tile1, TileIndex tile2)
 {
 	assert (TileX(tile1) <= TileX(tile2));
 	assert (TileY(tile1) <= TileY(tile2));
 
-	assert (this->Contains(tile1));
-	assert (this->Contains(tile2));
+	assert (this->rect.Contains(tile1));
+	assert (this->rect.Contains(tile2));
 
 	const TileIndexDiff diff_x = TileDiffXY (1, 0); // rightwards
 	const TileIndexDiff diff_y = TileDiffXY (0, 1); // upwards
 
-	if (TileX(tile1) == TileX(this->tile)) {
+	if (TileX(tile1) == TileX(this->rect.tile)) {
 		/* scan initial columns for station tiles */
 		for (;;) {
-			if (ScanForStationTiles (st->index, this->tile, diff_y, this->h)) break;
-			this->tile += diff_x;
-			this->w--;
-			if (this->w == 0) {
-				this->Clear();
+			if (ScanForStationTiles (this->index, this->rect.tile, diff_y, this->rect.h)) break;
+			this->rect.tile += diff_x;
+			this->rect.w--;
+			if (this->rect.w == 0) {
+				this->rect.Clear();
 				return;
 			}
 		}
 	}
 
-	if (TileX(tile2) == TileX(this->tile) + this->w - 1) {
+	if (TileX(tile2) == TileX(this->rect.tile) + this->rect.w - 1) {
 		/* scan final columns for station tiles */
-		TileIndex t = this->tile + (this->w - 1) * diff_x;
+		TileIndex t = this->rect.tile + (this->rect.w - 1) * diff_x;
 		for (;;) {
-			if (ScanForStationTiles (st->index, t, diff_y, this->h)) break;
+			if (ScanForStationTiles (this->index, t, diff_y, this->rect.h)) break;
 			t -= diff_x;
-			this->w--;
-			if (this->w == 0) {
-				this->Clear();
+			this->rect.w--;
+			if (this->rect.w == 0) {
+				this->rect.Clear();
 				return;
 			}
 		}
 	}
 
-	if (TileY(tile1) == TileY(this->tile)) {
+	if (TileY(tile1) == TileY(this->rect.tile)) {
 		/* scan initial rows for station tiles */
 		for (;;) {
-			if (ScanForStationTiles (st->index, this->tile, diff_x, this->w)) break;
-			this->tile += diff_y;
-			this->h--;
-			if (this->h == 0) {
-				this->Clear();
+			if (ScanForStationTiles (this->index, this->rect.tile, diff_x, this->rect.w)) break;
+			this->rect.tile += diff_y;
+			this->rect.h--;
+			if (this->rect.h == 0) {
+				this->rect.Clear();
 				return;
 			}
 		}
 	}
 
-	if (TileY(tile2) == TileY(this->tile) + this->h - 1) {
+	if (TileY(tile2) == TileY(this->rect.tile) + this->rect.h - 1) {
 		/* scan final rows for station tiles */
-		TileIndex t = this->tile + (this->h - 1) * diff_y;
+		TileIndex t = this->rect.tile + (this->rect.h - 1) * diff_y;
 		for (;;) {
-			if (ScanForStationTiles (st->index, t, diff_x, this->w)) break;
+			if (ScanForStationTiles (this->index, t, diff_x, this->rect.w)) break;
 			t -= diff_y;
-			this->h--;
-			if (this->h == 0) {
-				this->Clear();
+			this->rect.h--;
+			if (this->rect.h == 0) {
+				this->rect.Clear();
 				return;
 			}
 		}
