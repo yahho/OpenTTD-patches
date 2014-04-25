@@ -725,22 +725,23 @@ void RemoveAllGroupsForCompany(const CompanyID company)
 
 
 /**
- * Test if GroupID group is a descendant of (or is) GroupID search
- * @param search The GroupID to search in
- * @param group The GroupID to search for
- * @return True iff group is search or a descendant of search
+ * Test if GroupID needle is a descendant of (or is) GroupID haystack
+ * @param needle The GroupID to search for
+ * @param haystack The GroupID to search in
+ * @return True iff needle is haystack or a descendant of haystack
  */
-bool GroupIsInGroup(GroupID search, GroupID group)
+bool GroupIsInGroup (GroupID needle, GroupID haystack)
 {
-	if (search == NEW_GROUP ||
-	    search == ALL_GROUP ||
-	    search == DEFAULT_GROUP ||
-	    search == INVALID_GROUP) return search == group;
+	if (needle == haystack) return true;
 
-	do {
-		if (search == group) return true;
-		search = Group::Get(search)->parent;
-	} while (search != INVALID_GROUP);
+	if (needle == NEW_GROUP ||
+	    needle == ALL_GROUP ||
+	    needle == DEFAULT_GROUP ||
+	    needle == INVALID_GROUP) return false;
 
-	return false;
+	for (;;) {
+		needle = Group::Get(needle)->parent;
+		if (needle == INVALID_GROUP) return false;
+		if (needle == haystack) return true;
+	}
 }
