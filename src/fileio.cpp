@@ -841,9 +841,9 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 				if (destpos == NULL) destpos = dest;
 				*destpos = '\0';
 
-				char *pos = link;
-				while (*pos != '\0') {
-					char *next = strchr(link, PATHSEPCHAR);
+				const char *pos = link;
+				for (;;) {
+					const char *next = strchr (pos, PATHSEPCHAR);
 					if (next == NULL) next = pos + strlen(pos);
 
 					/* Skip '.' (current dir) */
@@ -868,7 +868,9 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 						*destpos = '\0';
 					}
 
-					pos = next;
+					if (*next == '\0') break;
+
+					pos = next + 1;
 				}
 
 				/* Store links in temporary list */
