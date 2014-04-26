@@ -742,6 +742,8 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 		char unused[12];
 	};
 
+	assert_compile (sizeof(TarHeader) == 512);
+
 	/* Check if we already seen this file */
 	TarList::iterator it = _tar_list[this->subdir].find(filename);
 	if (it != _tar_list[this->subdir].end()) return false;
