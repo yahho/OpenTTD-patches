@@ -768,20 +768,19 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 	char dest[sizeof(th.prefix) + 1 + sizeof(th.name) + 1 + 1 + sizeof(th.linkname) + 1];
 	size_t num = 0, pos = 0;
 
-	/* Make a char of 512 empty bytes */
-	char empty[512];
-	memset(&empty[0], 0, sizeof(empty));
-
 	for (;;) { // Note: feof() always returns 'false' after 'fseek()'. Cool, isn't it?
 		size_t num_bytes_read = fread(&th, 1, 512, f);
 		if (num_bytes_read != 512) break;
 		pos += num_bytes_read;
 
-		/* Check if we have the new tar-format (ustar) or the old one (a lot of zeros after 'link' field) */
-		if (strncmp(th.magic, "ustar", 5) != 0 && memcmp(&th.magic, &empty[0], 512 - offsetof(TarHeader, magic)) != 0) {
-			DEBUG(misc, 0, "The file '%s' isn't a valid tar-file", filename);
-			fclose(f);
-			return false;
+		/* Check if we have the new tar-format (ustar). */
+		if (strncmp(th.magic, "ustar", 5) != 0) {
+			/* Check if we have the old one (header zeroed after 'link' field). */
+			if ((th.magic[0] != '\0') || (memcmp (&th.magic[0], &th.magic[1], 511 - offsetof(TarHeader, magic)) != 0)) {
+				DEBUG(misc, 0, "The file '%s' isn't a valid tar-file", filename);
+				fclose(f);
+				return false;
+			}
 		}
 
 		name[0] = '\0';
