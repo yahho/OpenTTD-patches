@@ -777,9 +777,6 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 
 		/* Check if we have the new tar-format (ustar) or the old one (a lot of zeros after 'link' field) */
 		if (strncmp(th.magic, "ustar", 5) != 0 && memcmp(&th.magic, &empty[0], 512 - offsetof(TarHeader, magic)) != 0) {
-			/* If we have only zeros in the block, it can be an end-of-file indicator */
-			if (memcmp(&th, &empty[0], 512) == 0) continue;
-
 			DEBUG(misc, 0, "The file '%s' isn't a valid tar-file", filename);
 			fclose(f);
 			return false;
