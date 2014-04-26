@@ -790,9 +790,9 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 		ttd_strlcat(name, th.name, lengthof(name));
 
 		/* Calculate the size of the file.. for some strange reason this is stored as a string */
-		char buf[sizeof(th.name) + 1], *end;
+		char buf[sizeof(th.name) + 1];
 		ttd_strlcpy(buf, th.size, lengthof(buf));
-		size_t skip = strtoul(buf, &end, 8);
+		size_t skip = strtoul(buf, NULL, 8);
 
 		switch (th.typeflag) {
 			case '\0':
