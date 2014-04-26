@@ -835,7 +835,7 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 
 				/* Process relative path.
 				 * Note: The destination of links must not contain any directory-links. */
-				char dest[sizeof(th.prefix) + 1 + sizeof(th.name) + 1 + 1 + sizeof(th.linkname) + 1];
+				char dest[sizeof(name) + 1 + sizeof(th.linkname) + 1];
 				ttd_strlcpy(dest, name, lengthof(dest));
 				char *destpos = strrchr(dest, PATHSEPCHAR);
 				if (destpos == NULL) destpos = dest;
