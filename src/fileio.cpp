@@ -769,9 +769,8 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 	size_t num = 0, pos = 0;
 
 	for (;;) { // Note: feof() always returns 'false' after 'fseek()'. Cool, isn't it?
-		size_t num_bytes_read = fread(&th, 1, 512, f);
-		if (num_bytes_read != 512) break;
-		pos += num_bytes_read;
+		if (fread (&th, 1, 512, f) != 512) break;
+		pos += 512;
 
 		/* Check if we have the new tar-format (ustar). */
 		if (strncmp(th.magic, "ustar", 5) != 0) {
