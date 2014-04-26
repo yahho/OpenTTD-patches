@@ -760,15 +760,10 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 	_tar_list[this->subdir][filename].dirname = NULL;
 
 	TarLinkList links; ///< Temporary list to collect links
-
-	TarHeader th;
-	char buf[sizeof(th.name) + 1], *end;
-	char name[sizeof(th.prefix) + 1 + sizeof(th.name) + 1];
-	char link[sizeof(th.linkname) + 1];
-	char dest[sizeof(th.prefix) + 1 + sizeof(th.name) + 1 + 1 + sizeof(th.linkname) + 1];
 	size_t num = 0, pos = 0;
 
 	for (;;) { // Note: feof() always returns 'false' after 'fseek()'. Cool, isn't it?
+		TarHeader th;
 		if (fread (&th, 1, 512, f) != 512) break;
 		pos += 512;
 
@@ -782,6 +777,7 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 			}
 		}
 
+		char name[sizeof(th.prefix) + 1 + sizeof(th.name) + 1];
 		name[0] = '\0';
 
 		/* The prefix contains the directory-name */
@@ -794,6 +790,7 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 		ttd_strlcat(name, th.name, lengthof(name));
 
 		/* Calculate the size of the file.. for some strange reason this is stored as a string */
+		char buf[sizeof(th.name) + 1], *end;
 		ttd_strlcpy(buf, th.size, lengthof(buf));
 		size_t skip = strtoul(buf, &end, 8);
 
@@ -823,6 +820,7 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 			case '1': // hard links
 			case '2': { // symbolic links
 				/* Copy the destination of the link in a safe way at the end of 'linkname' */
+				char link[sizeof(th.linkname) + 1];
 				ttd_strlcpy(link, th.linkname, lengthof(link));
 
 				if (strlen(name) == 0 || strlen(link) == 0) break;
@@ -839,6 +837,7 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 
 				/* Process relative path.
 				 * Note: The destination of links must not contain any directory-links. */
+				char dest[sizeof(th.prefix) + 1 + sizeof(th.name) + 1 + 1 + sizeof(th.linkname) + 1];
 				ttd_strlcpy(dest, name, lengthof(dest));
 				char *destpos = strrchr(dest, PATHSEPCHAR);
 				if (destpos == NULL) destpos = dest;
