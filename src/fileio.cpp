@@ -777,17 +777,15 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 			}
 		}
 
-		char name[sizeof(th.prefix) + 1 + sizeof(th.name) + 1];
-		name[0] = '\0';
-
 		/* The prefix contains the directory-name */
+		char name[sizeof(th.prefix) + 1 + sizeof(th.name) + 1];
 		if (th.prefix[0] != '\0') {
-			ttd_strlcpy(name, th.prefix, lengthof(name));
-			ttd_strlcat(name, PATHSEP, lengthof(name));
+			snprintf (name, sizeof(name), "%.*s" PATHSEP "%.*s",
+				sizeof(th.prefix), th.prefix,
+				sizeof(th.name), th.name);
+		} else {
+			snprintf (name, sizeof(name), "%.*s", sizeof(th.name), th.name);
 		}
-
-		/* Copy the name of the file in a safe way at the end of 'name' */
-		ttd_strlcat(name, th.name, lengthof(name));
 
 		/* Calculate the size of the file.. for some strange reason this is stored as a string */
 		char buf[sizeof(th.size) + 1];
