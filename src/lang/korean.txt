@@ -1808,6 +1808,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :화물 전차
 STR_FACE_CAPTION                                                :{WHITE}얼굴 선택
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}새 얼굴 선택을 취소합니다.
 STR_FACE_OK_TOOLTIP                                             :{BLACK}이 얼굴을 선택합니다.
+STR_FACE_RANDOM                                                 :{BLACK}무작위화
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}남성
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}남성 얼굴 선택

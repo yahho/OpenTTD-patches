@@ -1463,6 +1463,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Frajttramo
 STR_FACE_CAPTION                                                :{WHITE}Elekto de Vizaĝo
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Nuligu elekton de nova vizaĝo
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Akceptu elekton de nova vizaĝo
+STR_FACE_RANDOM                                                 :{BLACK}Hazardigu
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Vira
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Elektu virajn vizaĝojn

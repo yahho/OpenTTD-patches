@@ -1725,6 +1725,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Farmsporvagn
 STR_FACE_CAPTION                                                :{WHITE}Andlitsval
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Hætta við andlitsval
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Samþykkja andlitsval
+STR_FACE_RANDOM                                                 :{BLACK}Nýtt raðnúmer
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Karlmaður
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Velja karlmannsandlit

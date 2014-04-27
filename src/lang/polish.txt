@@ -2187,6 +2187,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Tramwaj towarow
 STR_FACE_CAPTION                                                :{WHITE}Wybór twarzy
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Anuluj wybór nowej twarzy
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Zatwierdź wybór nowej twarzy
+STR_FACE_RANDOM                                                 :{BLACK}Losuj
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Mężczyzna
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Wybierz męską twarz

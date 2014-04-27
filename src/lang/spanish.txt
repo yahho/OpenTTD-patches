@@ -1808,6 +1808,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Tranvía de Car
 STR_FACE_CAPTION                                                :{WHITE}Selección de cara
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Cancelar selección de nueva cara
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Aceptar selección de nueva cara
+STR_FACE_RANDOM                                                 :{BLACK}Aleatorio
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Hombre
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Selecciona cara masculina

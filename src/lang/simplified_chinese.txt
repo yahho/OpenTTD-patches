@@ -1807,6 +1807,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :货运电车
 STR_FACE_CAPTION                                                :{WHITE}选择头像
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}放弃新的头像
 STR_FACE_OK_TOOLTIP                                             :{BLACK}使用新的头像
+STR_FACE_RANDOM                                                 :{BLACK}随机种子
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}男性
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}选择男性的头像

@@ -1864,6 +1864,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Kaubatramm
 STR_FACE_CAPTION                                                :{WHITE}Näo valik
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Tühista uue näo valimine
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Uue näo valimine
+STR_FACE_RANDOM                                                 :{BLACK}Suvaline
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Mees
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Vali mehe nägu

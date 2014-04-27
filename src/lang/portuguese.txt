@@ -1808,6 +1808,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Eléctrico de M
 STR_FACE_CAPTION                                                :{WHITE}Selecção de Cara
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Cancelar selecção da nova cara
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Aceitar selecção da nova cara
+STR_FACE_RANDOM                                                 :{BLACK}Gerar aleatório
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Masculino
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Seleccionar caras masculinas

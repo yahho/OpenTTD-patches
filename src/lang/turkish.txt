@@ -1808,6 +1808,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Yük Tramvayı
 STR_FACE_CAPTION                                                :{WHITE}Surat Seçimi
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Seçimi iptal et
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Seçimi Kabul et
+STR_FACE_RANDOM                                                 :{BLACK}Rastgele
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Erkek
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Erkek suratlarıni seç

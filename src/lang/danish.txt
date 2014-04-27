@@ -1804,6 +1804,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Fragt-sporvogn
 STR_FACE_CAPTION                                                :{WHITE}Ansigtsvalg
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Annuller nyt valg af ansigt
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Accepter nyt ansigtsvalg
+STR_FACE_RANDOM                                                 :{BLACK}Tilfældig
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Mand
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Vælg mandlige ansigter

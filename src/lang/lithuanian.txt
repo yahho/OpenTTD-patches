@@ -2016,6 +2016,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Krovininis tram
 STR_FACE_CAPTION                                                :{WHITE}Veido pasirinkimas
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Nutraukia veido pasirinkimą
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Užbaigia veido pasirinkimą
+STR_FACE_RANDOM                                                 :{BLACK}Atsitiktinai
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Vyras
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Pasirink vyro veidą

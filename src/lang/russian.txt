@@ -1959,6 +1959,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Грузово�
 STR_FACE_CAPTION                                                :{WHITE}Внешний вид
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Не менять внешность
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Применить новую внешность
+STR_FACE_RANDOM                                                 :{BLACK}Случайное
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Мужское
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Выбор мужских лиц

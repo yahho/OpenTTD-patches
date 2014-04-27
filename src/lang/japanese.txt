@@ -1807,6 +1807,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :貨物用路面
 STR_FACE_CAPTION                                                :{WHITE}顔の変更
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}顔の変更をキャンセルします
 STR_FACE_OK_TOOLTIP                                             :{BLACK}顔の変更を適用します
+STR_FACE_RANDOM                                                 :{BLACK}ランダム
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}男性
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}男性顔を表示します

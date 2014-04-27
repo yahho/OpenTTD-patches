@@ -1786,6 +1786,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Tramvai marfă
 STR_FACE_CAPTION                                                :{WHITE}Alegerea pozei
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Anulează alegerea unei poze noi
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Acceptă poza selectată
+STR_FACE_RANDOM                                                 :{BLACK}Aleator
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Bărbat
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Alege figură masculină

@@ -1917,6 +1917,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Teretni Tramvaj
 STR_FACE_CAPTION                                                :{WHITE}Izbor lica
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Poništi ovo lice
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Prihvati ovo lice
+STR_FACE_RANDOM                                                 :{BLACK}Proizvoljno
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Muško
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Izbor muškog lica

@@ -1427,6 +1427,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Tram Lastais
 STR_FACE_CAPTION                                                :{WHITE}Aghaidh a Roghnú
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Cealaigh roghnúchán aghaidhe nua
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Glac leis an aghaidh nua
+STR_FACE_RANDOM                                                 :{BLACK}Déan randamú
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Fear
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Roghnaigh aghaidheanna fir

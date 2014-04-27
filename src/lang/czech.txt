@@ -1894,6 +1894,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Nákladní tram
 STR_FACE_CAPTION                                                :{WHITE}Volba tváře
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Zrušit volbu nového obličeje
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Potvrdit výběr obličeje
+STR_FACE_RANDOM                                                 :{BLACK}Nové číslo
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Mužská
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Zvolit mužské obličeje

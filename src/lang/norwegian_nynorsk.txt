@@ -1727,6 +1727,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Varetrikk
 STR_FACE_CAPTION                                                :{WHITE}Vel utsjånad
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Avbryt val av utsjånad
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Godta ny utsjånad
+STR_FACE_RANDOM                                                 :{BLACK}Tilferdiggjer
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Mann
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Vel mannsandlet

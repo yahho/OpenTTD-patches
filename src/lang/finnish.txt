@@ -1807,6 +1807,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Raitiotavaravau
 STR_FACE_CAPTION                                                :{WHITE}Kasvojen valinta
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Peruuta uusien kasvojen valinta.
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Hyväksy uusien kasvojen valinta.
+STR_FACE_RANDOM                                                 :{BLACK}Satunnainen
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Mies
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Valitse miehen kasvot.

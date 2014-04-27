@@ -1928,6 +1928,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Вантажн�
 STR_FACE_CAPTION                                                :{WHITE}Вибір обличчя
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Відмінити вибір нового обличчя
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Підтвердити вибір нового обличчя
+STR_FACE_RANDOM                                                 :{BLACK}Випадково
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Чоловік
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Вибрати чоловіче обличчя

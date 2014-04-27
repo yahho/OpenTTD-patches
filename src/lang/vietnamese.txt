@@ -1807,6 +1807,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Tàu Hàng Đi�
 STR_FACE_CAPTION                                                :{WHITE}Chọn Vẻ Mặt
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Bỏ qua lựa chọn vẻ mặt
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Lựa chọn vẻ mặt mới
+STR_FACE_RANDOM                                                 :{BLACK}Sinh Ngẫu Nhiên
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Nam
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Chọn vẻ mặt nam

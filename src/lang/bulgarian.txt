@@ -1776,6 +1776,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Товарен 
 STR_FACE_CAPTION                                                :{WHITE}Избор на лице
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Прекъсване избора на ново лице
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Признавам избора на ново лице
+STR_FACE_RANDOM                                                 :{BLACK}Произволно
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Мъж
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Избери мъжки лица

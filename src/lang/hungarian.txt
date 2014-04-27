@@ -1871,6 +1871,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Teherszállít�
 STR_FACE_CAPTION                                                :{WHITE}Arcválasztás
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Új arc elvetése
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Új arc elfogadása
+STR_FACE_RANDOM                                                 :{BLACK}Új véletlen alapszám
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Férfi
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Férfi arcok kiválasztása

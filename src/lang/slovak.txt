@@ -1875,6 +1875,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Nákladná elek
 STR_FACE_CAPTION                                                :{WHITE}Výber tváre
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Zrušiť výber novej tváre
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Potvrdiť výber tváre
+STR_FACE_RANDOM                                                 :{BLACK}Nový kód
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Muž
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Výber mužských tvárí

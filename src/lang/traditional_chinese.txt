@@ -1807,6 +1807,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :載貨電車
 STR_FACE_CAPTION                                                :{WHITE}選擇臉孔
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}取消選擇新臉孔
 STR_FACE_OK_TOOLTIP                                             :{BLACK}接受新臉孔
+STR_FACE_RANDOM                                                 :{BLACK}亂數化
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}男性
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}選擇男性臉孔

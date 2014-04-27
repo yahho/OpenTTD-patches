@@ -1831,6 +1831,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Tram merci
 STR_FACE_CAPTION                                                :{WHITE}Seleziona faccia
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Annulla la selezione della nuova faccia
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Accetta la selezione della nuova faccia
+STR_FACE_RANDOM                                                 :{BLACK}Scegli a caso
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Maschio
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Seleziona fra volti maschili

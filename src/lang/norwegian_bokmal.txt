@@ -1809,6 +1809,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Varetrikk
 STR_FACE_CAPTION                                                :{WHITE}Velg ansikt
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Avbryt ansiktsvalg
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Godta nytt ansikt
+STR_FACE_RANDOM                                                 :{BLACK}Tilfeldiggjør
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Mann
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Velg mannsansikter

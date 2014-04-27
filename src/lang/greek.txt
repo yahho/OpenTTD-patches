@@ -1837,6 +1837,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Εμπορικ�
 STR_FACE_CAPTION                                                :{WHITE}Επιλογή Προσώπου
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Ακύρωση επιλογής νέου προσώπου
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Αποδοχή νέου προσώπου
+STR_FACE_RANDOM                                                 :{BLACK}Τυχαίος
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Αρσενικό
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Επιλογή αρσενικών προσώπων

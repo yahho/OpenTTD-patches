@@ -1807,6 +1807,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Trem Barang
 STR_FACE_CAPTION                                                :{WHITE}Pilihan Wajah
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Batalkan pemilihan wajah baru
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Terima pilihan wajah baru
+STR_FACE_RANDOM                                                 :{BLACK}Acak angka
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Pria
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Pilih wajah pria

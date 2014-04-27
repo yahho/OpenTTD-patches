@@ -1681,6 +1681,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :{G=m}Góðs spo
 STR_FACE_CAPTION                                                :{WHITE}Andlits úrval
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Angra nýtt andlits val
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Góðtak nýtt andlits val
+STR_FACE_RANDOM                                                 :{BLACK}Blanda
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Kallkyn
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Vel kallkyns andlit

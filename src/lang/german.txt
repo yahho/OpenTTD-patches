@@ -1808,6 +1808,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Frachtstraßenb
 STR_FACE_CAPTION                                                :{WHITE}Gesicht auswählen
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Gesichtswahl abbrechen
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Gesichtswahl übernehmen
+STR_FACE_RANDOM                                                 :{BLACK}Zufällig
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Männlich
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Wähle männliches Gesicht aus

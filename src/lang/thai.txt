@@ -1801,6 +1801,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :รถราง
 STR_FACE_CAPTION                                                :{WHITE}เลือกใบหน้า
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}ยกเลิการเลือกใบหน้าใหม่
 STR_FACE_OK_TOOLTIP                                             :{BLACK}ยอมรับการเลือกใบหน้าใหม่
+STR_FACE_RANDOM                                                 :{BLACK}สุ่ม
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}ผู้ชาย
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}เลือกใบหน้าผู้ชาย

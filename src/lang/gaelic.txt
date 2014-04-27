@@ -2009,6 +2009,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Trama carago
 STR_FACE_CAPTION                                                :{WHITE}Taghadh aodainn
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Sguir dhen taghadh aodainn ùir
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Gabh ris an taghadh aodainn ùir
+STR_FACE_RANDOM                                                 :{BLACK}Cuir sìol air thuaiream
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Fireannach
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Tagh aodann fireannaich

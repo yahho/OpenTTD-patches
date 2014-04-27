@@ -1903,6 +1903,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Teretni tramvaj
 STR_FACE_CAPTION                                                :{WHITE}Izbor lica
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Odustani od izbora novog lica
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Prihvati izbor novog lica
+STR_FACE_RANDOM                                                 :{BLACK}Nasumično
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Muško
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Odaberi muška lica

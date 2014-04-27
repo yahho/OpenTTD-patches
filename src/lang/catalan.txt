@@ -1808,6 +1808,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Tramvia de càr
 STR_FACE_CAPTION                                                :{WHITE}Selecció de cares
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Cancel·la la selecció de nova cara
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Accepta la selecció de nova cara
+STR_FACE_RANDOM                                                 :{BLACK}Aleatoritza
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Home
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Selecciona cares d'home

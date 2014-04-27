@@ -1808,6 +1808,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Vrag Trem
 STR_FACE_CAPTION                                                :{WHITE}Gesig Keuse
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}Kanselleer nuwe gesig keuse
 STR_FACE_OK_TOOLTIP                                             :{BLACK}Aanvar nuwe gesig keuse
+STR_FACE_RANDOM                                                 :{BLACK}Lukraake
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}Manlik
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}Kies manlik gesigte

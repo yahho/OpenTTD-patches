@@ -1582,6 +1582,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :சரக்க
 STR_FACE_CAPTION                                                :{WHITE}முகம் தேர்ந்தெடுத்தல்
 STR_FACE_CANCEL_TOOLTIP                                         :{BLACK}புதிய முக தேர்ந்தெடுத்தலை இரத்து செய்
 STR_FACE_OK_TOOLTIP                                             :{BLACK}புதிய முக தேந்தெடுத்தலை ஏற்றுக்கொள்
+STR_FACE_RANDOM                                                 :{BLACK}ஏதோவொன்று
 
 STR_FACE_MALE_BUTTON                                            :{BLACK}ஆண்
 STR_FACE_MALE_TOOLTIP                                           :{BLACK}ஆண் முகங்களை தேர்ந்தெடு
