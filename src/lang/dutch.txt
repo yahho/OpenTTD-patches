@@ -1630,27 +1630,30 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :Imperial (ft)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :Metrisch (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :SI (m)
 
-STR_CONFIG_SETTING_INTERFACE                                    :{ORANGE}Interface
 STR_CONFIG_SETTING_LOCALISATION                                 :{ORANGE}Lokalisatie
+STR_CONFIG_SETTING_GRAPHICS                                     :{ORANGE}Graphics
+STR_CONFIG_SETTING_SOUND                                        :{ORANGE}Geluid
+STR_CONFIG_SETTING_INTERFACE                                    :{ORANGE}Interface
+STR_CONFIG_SETTING_INTERFACE_GENERAL                            :{ORANGE}Algemeen
+STR_CONFIG_SETTING_INTERFACE_VIEWPORTS                          :{ORANGE}Kijkvensters
 STR_CONFIG_SETTING_INTERFACE_CONSTRUCTION                       :{ORANGE}Constructie
+STR_CONFIG_SETTING_ADVISORS                                     :{ORANGE}Nieuws / Adviseurs
+STR_CONFIG_SETTING_COMPANY                                      :{ORANGE}Bedrijf
+STR_CONFIG_SETTING_ACCOUNTING                                   :{ORANGE}Boekhouding
 STR_CONFIG_SETTING_VEHICLES                                     :{ORANGE}Voertuigen
-STR_CONFIG_SETTING_STATIONS                                     :{ORANGE}Stations
-STR_CONFIG_SETTING_ECONOMY                                      :{ORANGE}Economie
-STR_CONFIG_SETTING_ENVIRONMENT_CARGODIST                        :{ORANGE}Vrachtdistributie
-STR_CONFIG_SETTING_AI                                           :{ORANGE}Tegenstanders
-STR_CONFIG_SETTING_DISPLAY_OPTIONS                              :{ORANGE}Weergave-opties
-STR_CONFIG_SETTING_INTERACTION                                  :{ORANGE}Interactie
-STR_CONFIG_SETTING_SOUND                                        :{ORANGE}Geluidseffecten
-STR_CONFIG_SETTING_NEWS                                         :{ORANGE}Nieuws en berichten
-STR_CONFIG_SETTING_CONSTRUCTION_SIGNALS                         :{ORANGE}Seinen
 STR_CONFIG_SETTING_STATIONS_CARGOHANDLING                       :{ORANGE}Vrachtafhandeling
-STR_CONFIG_SETTING_AI_NPC                                       :{ORANGE}Computerspelers
-STR_CONFIG_SETTING_VEHICLES_AUTORENEW                           :{ORANGE}Automatisch vervangen
-STR_CONFIG_SETTING_VEHICLES_SERVICING                           :{ORANGE}Onderhoud
+STR_CONFIG_SETTING_STATIONS                                     :{ORANGE}Stations
+STR_CONFIG_SETTING_VEHICLES_PHYSICS                             :{ORANGE}Physics
 STR_CONFIG_SETTING_VEHICLES_ROUTING                             :{ORANGE}Routebepaling
-STR_CONFIG_SETTING_VEHICLES_TRAINS                              :{ORANGE}Treinen
+STR_CONFIG_SETTING_ACCIDENTS                                    :{ORANGE}Rampen / Ongelukken
+STR_CONFIG_SETTING_GENWORLD                                     :{ORANGE}Wereld generatie
+STR_CONFIG_SETTING_ENVIRONMENT                                  :{ORANGE}Omgeving
+STR_CONFIG_SETTING_ENVIRONMENT_AUTHORITIES                      :{ORANGE}Autoriteiten
 STR_CONFIG_SETTING_ENVIRONMENT_TOWNS                            :{ORANGE}Steden
 STR_CONFIG_SETTING_ENVIRONMENT_INDUSTRIES                       :{ORANGE}Industrieën
+STR_CONFIG_SETTING_ENVIRONMENT_CARGODIST                        :{ORANGE}Vrachtdistributie
+STR_CONFIG_SETTING_AI                                           :{ORANGE}Tegenstanders
+STR_CONFIG_SETTING_AI_NPC                                       :{ORANGE}Computerspelers
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Origineel
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(Aanbevolen)

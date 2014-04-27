@@ -613,10 +613,8 @@ STR_CONFIG_SETTING_INTERFACE                                    :{ORANGE}Инт�
 STR_CONFIG_SETTING_INTERFACE_CONSTRUCTION                       :{ORANGE}Лартӑм
 STR_CONFIG_SETTING_VEHICLES                                     :{ORANGE}Ҫул-йӗр:
 STR_CONFIG_SETTING_STATIONS                                     :{ORANGE}Станцисем:
-STR_CONFIG_SETTING_AI                                           :{ORANGE}Ӑмӑртуҫӑсем
-STR_CONFIG_SETTING_VEHICLES_AUTORENEW                           :{ORANGE}Автоҫӗнет
-STR_CONFIG_SETTING_VEHICLES_TRAINS                              :{ORANGE}Пуйӑссем
 STR_CONFIG_SETTING_ENVIRONMENT_TOWNS                            :{ORANGE}Хуласем
+STR_CONFIG_SETTING_AI                                           :{ORANGE}Ӑмӑртуҫӑсем
 
 
 

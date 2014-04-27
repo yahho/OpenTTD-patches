@@ -1630,27 +1630,30 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :ヤード・ポ
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :メートル法 (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :国際単位系 (m)
 
-STR_CONFIG_SETTING_INTERFACE                                    :{ORANGE}インターフェース
 STR_CONFIG_SETTING_LOCALISATION                                 :{ORANGE}多国籍対応
-STR_CONFIG_SETTING_INTERFACE_CONSTRUCTION                       :{ORANGE}建設
-STR_CONFIG_SETTING_VEHICLES                                     :{ORANGE}輸送機器
-STR_CONFIG_SETTING_STATIONS                                     :{ORANGE}停留施設
-STR_CONFIG_SETTING_ECONOMY                                      :{ORANGE}経済
-STR_CONFIG_SETTING_ENVIRONMENT_CARGODIST                        :{ORANGE}貨物配送先
-STR_CONFIG_SETTING_AI                                           :{ORANGE}競争会社
-STR_CONFIG_SETTING_DISPLAY_OPTIONS                              :{ORANGE}表示設定
-STR_CONFIG_SETTING_INTERACTION                                  :{ORANGE}インターフェース
+STR_CONFIG_SETTING_GRAPHICS                                     :{ORANGE}グラフィック
 STR_CONFIG_SETTING_SOUND                                        :{ORANGE}効果音
-STR_CONFIG_SETTING_NEWS                                         :{ORANGE}ニュース/メッセージ
-STR_CONFIG_SETTING_CONSTRUCTION_SIGNALS                         :{ORANGE}信号
+STR_CONFIG_SETTING_INTERFACE                                    :{ORANGE}インターフェース
+STR_CONFIG_SETTING_INTERFACE_GENERAL                            :{ORANGE}一般
+STR_CONFIG_SETTING_INTERFACE_VIEWPORTS                          :{ORANGE}画面表示
+STR_CONFIG_SETTING_INTERFACE_CONSTRUCTION                       :{ORANGE}建設
+STR_CONFIG_SETTING_ADVISORS                                     :{ORANGE}ニュース/アドバイス
+STR_CONFIG_SETTING_COMPANY                                      :{ORANGE}会社
+STR_CONFIG_SETTING_ACCOUNTING                                   :{ORANGE}会計
+STR_CONFIG_SETTING_VEHICLES                                     :{ORANGE}輸送機器
 STR_CONFIG_SETTING_STATIONS_CARGOHANDLING                       :{ORANGE}貨物取扱
-STR_CONFIG_SETTING_AI_NPC                                       :{ORANGE}コンピュータプレイヤー
-STR_CONFIG_SETTING_VEHICLES_AUTORENEW                           :{ORANGE}自動更新
-STR_CONFIG_SETTING_VEHICLES_SERVICING                           :{ORANGE}点検
+STR_CONFIG_SETTING_STATIONS                                     :{ORANGE}停留施設
+STR_CONFIG_SETTING_VEHICLES_PHYSICS                             :{ORANGE}物理モデル
 STR_CONFIG_SETTING_VEHICLES_ROUTING                             :{ORANGE}経路構築
-STR_CONFIG_SETTING_VEHICLES_TRAINS                              :{ORANGE}列車
+STR_CONFIG_SETTING_ACCIDENTS                                    :{ORANGE}災害/事故
+STR_CONFIG_SETTING_GENWORLD                                     :{ORANGE}マップ生成
+STR_CONFIG_SETTING_ENVIRONMENT                                  :{ORANGE}環境
+STR_CONFIG_SETTING_ENVIRONMENT_AUTHORITIES                      :{ORANGE}地方自治体
 STR_CONFIG_SETTING_ENVIRONMENT_TOWNS                            :{ORANGE}街
 STR_CONFIG_SETTING_ENVIRONMENT_INDUSTRIES                       :{ORANGE}産業
+STR_CONFIG_SETTING_ENVIRONMENT_CARGODIST                        :{ORANGE}貨物配送先
+STR_CONFIG_SETTING_AI                                           :{ORANGE}競争会社
+STR_CONFIG_SETTING_AI_NPC                                       :{ORANGE}コンピュータプレイヤー
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :オリジナル
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF{BLUE}(おすすめ)

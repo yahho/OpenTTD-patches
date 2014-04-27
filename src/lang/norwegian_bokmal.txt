@@ -1632,27 +1632,30 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :Det britiske im
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :Metrisk (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :SI (m)
 
-STR_CONFIG_SETTING_INTERFACE                                    :{ORANGE}Grensesnitt
 STR_CONFIG_SETTING_LOCALISATION                                 :{ORANGE}Lokalisering
-STR_CONFIG_SETTING_INTERFACE_CONSTRUCTION                       :{ORANGE}Konstruksjon
-STR_CONFIG_SETTING_VEHICLES                                     :{ORANGE}Kjøretøy
-STR_CONFIG_SETTING_STATIONS                                     :{ORANGE}Stasjoner
-STR_CONFIG_SETTING_ECONOMY                                      :{ORANGE}Økonomi
-STR_CONFIG_SETTING_ENVIRONMENT_CARGODIST                        :{ORANGE}Gods-distribusjon
-STR_CONFIG_SETTING_AI                                           :{ORANGE}Motstandere
-STR_CONFIG_SETTING_DISPLAY_OPTIONS                              :{ORANGE}Visningsinnstillinger
-STR_CONFIG_SETTING_INTERACTION                                  :{ORANGE}Samhandling
+STR_CONFIG_SETTING_GRAPHICS                                     :{ORANGE}Grafikk
 STR_CONFIG_SETTING_SOUND                                        :{ORANGE}Lydeffekter
-STR_CONFIG_SETTING_NEWS                                         :{ORANGE}Nyheter og meldinger
-STR_CONFIG_SETTING_CONSTRUCTION_SIGNALS                         :{ORANGE}Signaler
+STR_CONFIG_SETTING_INTERFACE                                    :{ORANGE}Grensesnitt
+STR_CONFIG_SETTING_INTERFACE_GENERAL                            :{ORANGE}Generelt
+STR_CONFIG_SETTING_INTERFACE_VIEWPORTS                          :{ORANGE}Synsfelt
+STR_CONFIG_SETTING_INTERFACE_CONSTRUCTION                       :{ORANGE}Konstruksjon
+STR_CONFIG_SETTING_ADVISORS                                     :{ORANGE}Nyheter / Rådgivere
+STR_CONFIG_SETTING_COMPANY                                      :{ORANGE}Firma
+STR_CONFIG_SETTING_ACCOUNTING                                   :{ORANGE}Regnskap
+STR_CONFIG_SETTING_VEHICLES                                     :{ORANGE}Kjøretøy
 STR_CONFIG_SETTING_STATIONS_CARGOHANDLING                       :{ORANGE}Varehåndtering
-STR_CONFIG_SETTING_AI_NPC                                       :{ORANGE}Datamaskinstyrte spillere
-STR_CONFIG_SETTING_VEHICLES_AUTORENEW                           :{ORANGE}Autoforny
-STR_CONFIG_SETTING_VEHICLES_SERVICING                           :{ORANGE}Vedlikehold
+STR_CONFIG_SETTING_STATIONS                                     :{ORANGE}Stasjoner
+STR_CONFIG_SETTING_VEHICLES_PHYSICS                             :{ORANGE}Fysikk
 STR_CONFIG_SETTING_VEHICLES_ROUTING                             :{ORANGE}Ruting
-STR_CONFIG_SETTING_VEHICLES_TRAINS                              :{ORANGE}Tog
+STR_CONFIG_SETTING_ACCIDENTS                                    :{ORANGE}Katastrofer / Ulykker
+STR_CONFIG_SETTING_GENWORLD                                     :{ORANGE}Verdensgenerering
+STR_CONFIG_SETTING_ENVIRONMENT                                  :{ORANGE}Miljø
+STR_CONFIG_SETTING_ENVIRONMENT_AUTHORITIES                      :{ORANGE}Myndigheter
 STR_CONFIG_SETTING_ENVIRONMENT_TOWNS                            :{ORANGE}Byer
 STR_CONFIG_SETTING_ENVIRONMENT_INDUSTRIES                       :{ORANGE}Industrier
+STR_CONFIG_SETTING_ENVIRONMENT_CARGODIST                        :{ORANGE}Gods-distribusjon
+STR_CONFIG_SETTING_AI                                           :{ORANGE}Motstandere
+STR_CONFIG_SETTING_AI_NPC                                       :{ORANGE}Datamaskinstyrte spillere
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Original
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(Anbefalt)

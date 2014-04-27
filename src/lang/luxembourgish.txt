@@ -1630,27 +1630,30 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :Britësch (ft)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :Metrësch (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :SI (m)
 
-STR_CONFIG_SETTING_INTERFACE                                    :{ORANGE}Interface
 STR_CONFIG_SETTING_LOCALISATION                                 :{ORANGE}Lokaliséirung
-STR_CONFIG_SETTING_INTERFACE_CONSTRUCTION                       :{ORANGE}Konstruktioun
-STR_CONFIG_SETTING_VEHICLES                                     :{ORANGE}Gefierer
-STR_CONFIG_SETTING_STATIONS                                     :{ORANGE}Statiounen
-STR_CONFIG_SETTING_ECONOMY                                      :{ORANGE}Economie
-STR_CONFIG_SETTING_ENVIRONMENT_CARGODIST                        :{ORANGE}Wuerendistributioun
-STR_CONFIG_SETTING_AI                                           :{ORANGE}Géigner
-STR_CONFIG_SETTING_DISPLAY_OPTIONS                              :{ORANGE}Displayoptiounen
-STR_CONFIG_SETTING_INTERACTION                                  :{ORANGE}Interaktioun
+STR_CONFIG_SETTING_GRAPHICS                                     :{ORANGE}Graphik
 STR_CONFIG_SETTING_SOUND                                        :{ORANGE}Soundeffekter
-STR_CONFIG_SETTING_NEWS                                         :{ORANGE}News an Messagen
-STR_CONFIG_SETTING_CONSTRUCTION_SIGNALS                         :{ORANGE}Signaler
+STR_CONFIG_SETTING_INTERFACE                                    :{ORANGE}Interface
+STR_CONFIG_SETTING_INTERFACE_GENERAL                            :{ORANGE}Generell
+STR_CONFIG_SETTING_INTERFACE_VIEWPORTS                          :{ORANGE}Usiicht
+STR_CONFIG_SETTING_INTERFACE_CONSTRUCTION                       :{ORANGE}Konstruktioun
+STR_CONFIG_SETTING_ADVISORS                                     :{ORANGE}News / Meldungen
+STR_CONFIG_SETTING_COMPANY                                      :{ORANGE}Firma
+STR_CONFIG_SETTING_ACCOUNTING                                   :{ORANGE}Compta
+STR_CONFIG_SETTING_VEHICLES                                     :{ORANGE}Gefierer
 STR_CONFIG_SETTING_STATIONS_CARGOHANDLING                       :{ORANGE}Luedungshandhabung
-STR_CONFIG_SETTING_AI_NPC                                       :{ORANGE}Computerspiller
-STR_CONFIG_SETTING_VEHICLES_AUTORENEW                           :{ORANGE}Autoerneieren
-STR_CONFIG_SETTING_VEHICLES_SERVICING                           :{ORANGE}Revisiounen
+STR_CONFIG_SETTING_STATIONS                                     :{ORANGE}Statiounen
+STR_CONFIG_SETTING_VEHICLES_PHYSICS                             :{ORANGE}Physik
 STR_CONFIG_SETTING_VEHICLES_ROUTING                             :{ORANGE}Routenplangung
-STR_CONFIG_SETTING_VEHICLES_TRAINS                              :{ORANGE}Zich
+STR_CONFIG_SETTING_ACCIDENTS                                    :{ORANGE}Katastrophen / Accidenter
+STR_CONFIG_SETTING_GENWORLD                                     :{ORANGE}Welt Generatioun
+STR_CONFIG_SETTING_ENVIRONMENT                                  :{ORANGE}Emwelt
+STR_CONFIG_SETTING_ENVIRONMENT_AUTHORITIES                      :{ORANGE}Autoritéiten
 STR_CONFIG_SETTING_ENVIRONMENT_TOWNS                            :{ORANGE}Stied
 STR_CONFIG_SETTING_ENVIRONMENT_INDUSTRIES                       :{ORANGE}Industrien
+STR_CONFIG_SETTING_ENVIRONMENT_CARGODIST                        :{ORANGE}Wuerenverdeelung
+STR_CONFIG_SETTING_AI                                           :{ORANGE}Géigner
+STR_CONFIG_SETTING_AI_NPC                                       :{ORANGE}Computerspiller
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Original
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(recommandéiert)

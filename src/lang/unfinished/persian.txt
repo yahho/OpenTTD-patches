@@ -1371,25 +1371,18 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :امپریال 
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :متریک (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :متر (m)
 
-STR_CONFIG_SETTING_INTERFACE                                    :{ORANGE}واسط کاربری
 STR_CONFIG_SETTING_LOCALISATION                                 :{ORANGE}بومی سازی
+STR_CONFIG_SETTING_INTERFACE                                    :{ORANGE}واسط کاربری
 STR_CONFIG_SETTING_INTERFACE_CONSTRUCTION                       :{ORANGE}ساخت و ساز
 STR_CONFIG_SETTING_VEHICLES                                     :{ORANGE}وسایل نقلیه
-STR_CONFIG_SETTING_STATIONS                                     :{ORANGE}ایستگاه ها
-STR_CONFIG_SETTING_ECONOMY                                      :{ORANGE}اقتصاد
-STR_CONFIG_SETTING_ENVIRONMENT_CARGODIST                        :{ORANGE}توزیع محموله
-STR_CONFIG_SETTING_AI                                           :{ORANGE}رقیبان
-STR_CONFIG_SETTING_DISPLAY_OPTIONS                              :{ORANGE}نمایش گزینه ها
-STR_CONFIG_SETTING_INTERACTION                                  :{ORANGE}اثرمتقابل
-STR_CONFIG_SETTING_CONSTRUCTION_SIGNALS                         :{ORANGE}نشانگرها
 STR_CONFIG_SETTING_STATIONS_CARGOHANDLING                       :{ORANGE}مدیریت محموله
-STR_CONFIG_SETTING_AI_NPC                                       :{ORANGE}بازیگران رایانه
-STR_CONFIG_SETTING_VEHICLES_AUTORENEW                           :{ORANGE}نوسازی خودکار
-STR_CONFIG_SETTING_VEHICLES_SERVICING                           :{ORANGE}تعمیر و بازبینی
+STR_CONFIG_SETTING_STATIONS                                     :{ORANGE}ایستگاه ها
 STR_CONFIG_SETTING_VEHICLES_ROUTING                             :{ORANGE}مسیریابی
-STR_CONFIG_SETTING_VEHICLES_TRAINS                              :{ORANGE}قطارها
 STR_CONFIG_SETTING_ENVIRONMENT_TOWNS                            :{ORANGE}شهرها
 STR_CONFIG_SETTING_ENVIRONMENT_INDUSTRIES                       :{ORANGE}صنایع
+STR_CONFIG_SETTING_ENVIRONMENT_CARGODIST                        :{ORANGE}توزیع محموله
+STR_CONFIG_SETTING_AI                                           :{ORANGE}رقیبان
+STR_CONFIG_SETTING_AI_NPC                                       :{ORANGE}بازیگران رایانه
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :اصلی
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(توصیه می گردد)

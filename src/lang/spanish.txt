@@ -1630,27 +1630,29 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :Imperial (pies)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :Métrico (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :SI (m)
 
-STR_CONFIG_SETTING_INTERFACE                                    :{ORANGE}Interfaz
 STR_CONFIG_SETTING_LOCALISATION                                 :{ORANGE}Localización
-STR_CONFIG_SETTING_INTERFACE_CONSTRUCTION                       :{ORANGE}Construcción
-STR_CONFIG_SETTING_VEHICLES                                     :{ORANGE}Vehículos
-STR_CONFIG_SETTING_STATIONS                                     :{ORANGE}Estaciones
-STR_CONFIG_SETTING_ECONOMY                                      :{ORANGE}Economía
-STR_CONFIG_SETTING_ENVIRONMENT_CARGODIST                        :{ORANGE}Distribución de Carga
-STR_CONFIG_SETTING_AI                                           :{ORANGE}Competidores
-STR_CONFIG_SETTING_DISPLAY_OPTIONS                              :{ORANGE}Opciones de visualización
-STR_CONFIG_SETTING_INTERACTION                                  :{ORANGE}Interacción
+STR_CONFIG_SETTING_GRAPHICS                                     :{ORANGE}Gráficos
 STR_CONFIG_SETTING_SOUND                                        :{ORANGE}Efectos de sonido
-STR_CONFIG_SETTING_NEWS                                         :{ORANGE}Noticias y mensajes
-STR_CONFIG_SETTING_CONSTRUCTION_SIGNALS                         :{ORANGE}Señales
+STR_CONFIG_SETTING_INTERFACE                                    :{ORANGE}Interfaz
+STR_CONFIG_SETTING_INTERFACE_GENERAL                            :{ORANGE}General
+STR_CONFIG_SETTING_INTERFACE_VIEWPORTS                          :{ORANGE}Ventanas de visualización
+STR_CONFIG_SETTING_INTERFACE_CONSTRUCTION                       :{ORANGE}Construcción
+STR_CONFIG_SETTING_ADVISORS                                     :{ORANGE}Noticias / Consejos
+STR_CONFIG_SETTING_COMPANY                                      :{ORANGE}Empresa
+STR_CONFIG_SETTING_ACCOUNTING                                   :{ORANGE}Contabilidad
+STR_CONFIG_SETTING_VEHICLES                                     :{ORANGE}Vehículos
 STR_CONFIG_SETTING_STATIONS_CARGOHANDLING                       :{ORANGE}Manejo de carga
-STR_CONFIG_SETTING_AI_NPC                                       :{ORANGE}Jugadores de la CPU (IAs)
-STR_CONFIG_SETTING_VEHICLES_AUTORENEW                           :{ORANGE}Renovación automática
-STR_CONFIG_SETTING_VEHICLES_SERVICING                           :{ORANGE}Servicio
+STR_CONFIG_SETTING_STATIONS                                     :{ORANGE}Estaciones
+STR_CONFIG_SETTING_VEHICLES_PHYSICS                             :{ORANGE}Leyes físicas
 STR_CONFIG_SETTING_VEHICLES_ROUTING                             :{ORANGE}Encaminamiento
-STR_CONFIG_SETTING_VEHICLES_TRAINS                              :{ORANGE}Trenes
+STR_CONFIG_SETTING_ACCIDENTS                                    :{ORANGE}Desastres / Accidentes
+STR_CONFIG_SETTING_GENWORLD                                     :{ORANGE}Generación de mundo
+STR_CONFIG_SETTING_ENVIRONMENT_AUTHORITIES                      :{ORANGE}Autoridades
 STR_CONFIG_SETTING_ENVIRONMENT_TOWNS                            :{ORANGE}Pueblos
 STR_CONFIG_SETTING_ENVIRONMENT_INDUSTRIES                       :{ORANGE}Industrias
+STR_CONFIG_SETTING_ENVIRONMENT_CARGODIST                        :{ORANGE}Distribución de carga
+STR_CONFIG_SETTING_AI                                           :{ORANGE}Competidores
+STR_CONFIG_SETTING_AI_NPC                                       :{ORANGE}Jugadores de la CPU (IAs)
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Original
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(Recomendado)

@@ -1631,27 +1631,30 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :임페리얼법
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :미터법 (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :국제표준규격 (m)
 
-STR_CONFIG_SETTING_INTERFACE                                    :{ORANGE}인터페이스
 STR_CONFIG_SETTING_LOCALISATION                                 :{ORANGE}단위 설정
-STR_CONFIG_SETTING_INTERFACE_CONSTRUCTION                       :{ORANGE}건설
-STR_CONFIG_SETTING_VEHICLES                                     :{ORANGE}차량
-STR_CONFIG_SETTING_STATIONS                                     :{ORANGE}역
-STR_CONFIG_SETTING_ECONOMY                                      :{ORANGE}경제
-STR_CONFIG_SETTING_ENVIRONMENT_CARGODIST                        :{ORANGE}화물 분배
-STR_CONFIG_SETTING_AI                                           :{ORANGE}경쟁자
-STR_CONFIG_SETTING_DISPLAY_OPTIONS                              :{ORANGE}디스플레이 옵션
-STR_CONFIG_SETTING_INTERACTION                                  :{ORANGE}조작 옵션
+STR_CONFIG_SETTING_GRAPHICS                                     :{ORANGE}그래픽
 STR_CONFIG_SETTING_SOUND                                        :{ORANGE}효과음
-STR_CONFIG_SETTING_NEWS                                         :{ORANGE}뉴스와 메시지
-STR_CONFIG_SETTING_CONSTRUCTION_SIGNALS                         :{ORANGE}신호기
+STR_CONFIG_SETTING_INTERFACE                                    :{ORANGE}인터페이스
+STR_CONFIG_SETTING_INTERFACE_GENERAL                            :{ORANGE}일반
+STR_CONFIG_SETTING_INTERFACE_VIEWPORTS                          :{ORANGE}게임 화면
+STR_CONFIG_SETTING_INTERFACE_CONSTRUCTION                       :{ORANGE}건설
+STR_CONFIG_SETTING_ADVISORS                                     :{ORANGE}뉴스 / 정보
+STR_CONFIG_SETTING_COMPANY                                      :{ORANGE}회사
+STR_CONFIG_SETTING_ACCOUNTING                                   :{ORANGE}회계
+STR_CONFIG_SETTING_VEHICLES                                     :{ORANGE}차량
 STR_CONFIG_SETTING_STATIONS_CARGOHANDLING                       :{ORANGE}화물
-STR_CONFIG_SETTING_AI_NPC                                       :{ORANGE}컴퓨터 플레이어
-STR_CONFIG_SETTING_VEHICLES_AUTORENEW                           :{ORANGE}자동 교체
-STR_CONFIG_SETTING_VEHICLES_SERVICING                           :{ORANGE}정비
+STR_CONFIG_SETTING_STATIONS                                     :{ORANGE}역
+STR_CONFIG_SETTING_VEHICLES_PHYSICS                             :{ORANGE}물리
 STR_CONFIG_SETTING_VEHICLES_ROUTING                             :{ORANGE}경로
-STR_CONFIG_SETTING_VEHICLES_TRAINS                              :{G=f}{ORANGE}열차
+STR_CONFIG_SETTING_ACCIDENTS                                    :{ORANGE}재앙 / 사고
+STR_CONFIG_SETTING_GENWORLD                                     :{ORANGE}세계 제작
+STR_CONFIG_SETTING_ENVIRONMENT                                  :{ORANGE}환경
+STR_CONFIG_SETTING_ENVIRONMENT_AUTHORITIES                      :{ORANGE}지역 당국
 STR_CONFIG_SETTING_ENVIRONMENT_TOWNS                            :{ORANGE}도시
 STR_CONFIG_SETTING_ENVIRONMENT_INDUSTRIES                       :{ORANGE}산업시설
+STR_CONFIG_SETTING_ENVIRONMENT_CARGODIST                        :{ORANGE}화물 분배
+STR_CONFIG_SETTING_AI                                           :{ORANGE}경쟁자
+STR_CONFIG_SETTING_AI_NPC                                       :{ORANGE}컴퓨터 플레이어
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :오리지널
 STR_CONFIG_SETTING_PATHFINDER_YAPF_RECOMMENDED                  :YAPF {BLUE}(추천)
