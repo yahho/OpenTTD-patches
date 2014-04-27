@@ -1133,7 +1133,7 @@ STR_CONFIG_SETTING_CITY_APPROVAL_HELPTEXT                       :Escull quin niv
 
 STR_CONFIG_SETTING_BUILDONSLOPES                                :Permet construir en desnivells i costes: {STRING}
 STR_CONFIG_SETTING_BUILDONSLOPES_HELPTEXT                       :Si està activat, les vies i les estacions poden ser construïdes en la majoria de pendents. Si està desactivat, només està permès en aquells pendents que coincideixin amb la direcció de la via i no necessitin fonaments
-STR_CONFIG_SETTING_AUTOSLOPE                                    :Permet modelar el terreny sota edificis, rails, etc. (autopendent): {STRING}
+STR_CONFIG_SETTING_AUTOSLOPE                                    :Permet modificar el terreny sota edificis, rails, etc.: {STRING}
 STR_CONFIG_SETTING_AUTOSLOPE_HELPTEXT                           :Permetre modelar el terreny sota edificis i rails, sense eliminar-los
 STR_CONFIG_SETTING_CATCHMENT                                    :Permet una mida més real de l'àrea d'influència: {STRING}
 STR_CONFIG_SETTING_CATCHMENT_HELPTEXT                           :Tenir diferents mides de zones de captació per a diferents tipus d'estacions i aeroports
@@ -1307,7 +1307,7 @@ STR_CONFIG_SETTING_SMOOTH_SCROLLING                             :Desplaçament s
 STR_CONFIG_SETTING_SMOOTH_SCROLLING_HELPTEXT                    :Controla com la vista principal es desplaça a una posició específica quan es clica al mapa petit o quan s'envia una ordre de desplaçar-se a un objecte específic al mapa. Si està activat, la vista es desplaça suaument, si està desactivat salta directament al punt assenyalat
 STR_CONFIG_SETTING_MEASURE_TOOLTIP                              :Mostra un cartell de mesura quan estiguis utilitzant vàries eines de construcció: {STRING}
 STR_CONFIG_SETTING_MEASURE_TOOLTIP_HELPTEXT                     :Mostra les distàncies-cel·la i les diferències d'alçada quan s'arrossegui durant la construcció
-STR_CONFIG_SETTING_LIVERIES                                     :Mostra la decoració de la companyia: {STRING}
+STR_CONFIG_SETTING_LIVERIES                                     :Mostra la decoració específica del tipus de vehicle: {STRING}
 STR_CONFIG_SETTING_LIVERIES_HELPTEXT                            :Controla la utilització de les decoracions específiques d'un tipus de vehicle (en oposició a específic d'una companyia)
 STR_CONFIG_SETTING_LIVERIES_NONE                                :Cap
 STR_CONFIG_SETTING_LIVERIES_OWN                                 :Pròpia companyia
@@ -1356,7 +1356,7 @@ STR_CONFIG_SETTING_COMMAND_PAUSE_LEVEL_NO_ACTIONS               :Sense accions
 STR_CONFIG_SETTING_COMMAND_PAUSE_LEVEL_ALL_NON_CONSTRUCTION     :Totes les accions no-constructores
 STR_CONFIG_SETTING_COMMAND_PAUSE_LEVEL_ALL_NON_LANDSCAPING      :Tot menys les accions modificadores del paisatge
 STR_CONFIG_SETTING_COMMAND_PAUSE_LEVEL_ALL_ACTIONS              :Totes les accions
-STR_CONFIG_SETTING_ADVANCED_VEHICLE_LISTS                       :Utilitza la llista de vehicles avançada: {STRING}
+STR_CONFIG_SETTING_ADVANCED_VEHICLE_LISTS                       :Mostra els grups en el llistat de vehicles de la companyia: {STRING}
 STR_CONFIG_SETTING_ADVANCED_VEHICLE_LISTS_HELPTEXT              :Activa la utilització de llistes de vehicles avançades per agrupar vehicles
 STR_CONFIG_SETTING_LOADING_INDICATORS                           :Utilitza indicadors de càrrega: {STRING}
 STR_CONFIG_SETTING_LOADING_INDICATORS_HELPTEXT                  :Selecciona si els indicadors de càrrega seran mostrats sobre els vehicles en càrrega o descàrrega
@@ -1371,7 +1371,7 @@ STR_CONFIG_SETTING_DEFAULT_RAIL_TYPE_HELPTEXT                   :Tipus de via a 
 STR_CONFIG_SETTING_DEFAULT_RAIL_TYPE_FIRST                      :El més antic disponible
 STR_CONFIG_SETTING_DEFAULT_RAIL_TYPE_LAST                       :El més modern disponible
 STR_CONFIG_SETTING_DEFAULT_RAIL_TYPE_MOST_USED                  :El més utilitzat disponible
-STR_CONFIG_SETTING_SHOW_TRACK_RESERVATION                       :Mostra les vies reservades: {STRING}
+STR_CONFIG_SETTING_SHOW_TRACK_RESERVATION                       :Mostra els camins reservats: {STRING}
 STR_CONFIG_SETTING_SHOW_TRACK_RESERVATION_HELPTEXT              :Dóna a les vies reservades un color diferent per ajudar en problemes de trens que refusen entrar en blocs basats en camí
 STR_CONFIG_SETTING_PERSISTENT_BUILDINGTOOLS                     :Mantingues les eines de construcció actives després del seu ús: {STRING}
 STR_CONFIG_SETTING_PERSISTENT_BUILDINGTOOLS_HELPTEXT            :Mantingues les eines de construcció pels ponts, túnels, etc. obertes després d'utilitzar-les
@@ -3695,8 +3695,8 @@ STR_ORDER_TOOLTIP_UNLOAD                                        :{BLACK}Canvia e
 
 STR_ORDER_REFIT                                                 :{BLACK}Remodela
 STR_ORDER_REFIT_TOOLTIP                                         :{BLACK}Selecciona quin tipus de càrrega vols remodelar en aquesta ordre. Control+Clic per eliminar l'ordre de remodelar
-STR_ORDER_REFIT_AUTO                                            :{BLACK}Auto-remodela
-STR_ORDER_REFIT_AUTO_TOOLTIP                                    :{BLACK}Selecciona quin tipus de càrrega s'ha d'auto-remodelar en aquesta ordre. Ctrl+Clic per treure l'instrucció remodela. Auto-remodela només serà aplicat si el vehicle ho permet
+STR_ORDER_REFIT_AUTO                                            :{BLACK}Remodela a l'estació
+STR_ORDER_REFIT_AUTO_TOOLTIP                                    :{BLACK}Selecciona a quin tipus de càrrega s'ha de remodelar en aquesta ordre. Ctrl+Clic per treure la instrucció "remodela". El remodelat en estacions només serà aplicat si el vehicle ho permet
 STR_ORDER_DROP_REFIT_AUTO                                       :Càrrega fixa
 STR_ORDER_DROP_REFIT_AUTO_ANY                                   :Càrrega disponible
 
@@ -3757,7 +3757,7 @@ STR_ORDER_SERVICE_NON_STOP_AT                                   :Revisió sense 
 
 STR_ORDER_NEAREST_DEPOT                                         :el més proper
 STR_ORDER_NEAREST_HANGAR                                        :l'hangar més proper
-STR_ORDER_TRAIN_DEPOT                                           :Cotxeres de tren
+STR_ORDER_TRAIN_DEPOT                                           :Cotxeres de Tren
 STR_ORDER_ROAD_VEHICLE_DEPOT                                    :Cotxera de Vehicles
 STR_ORDER_SHIP_DEPOT                                            :Drassanes
 STR_ORDER_GO_TO_NEAREST_DEPOT_FORMAT                            :{STRING} {STRING} {STRING}
@@ -3787,18 +3787,18 @@ STR_ORDER_NO_UNLOAD_FULL_LOAD                                   :(No descarregui
 STR_ORDER_NO_UNLOAD_FULL_LOAD_ANY                               :(No descarreguis i espera carregar del tot qualsevol càrrega)
 STR_ORDER_NO_UNLOAD_NO_LOAD                                     :(No descarreguis i no carreguis)
 
-STR_ORDER_AUTO_REFIT                                            :(Auto-remodela a {STRING})
-STR_ORDER_FULL_LOAD_REFIT                                       :(Càrrega completa amb auto-remodela a {STRING})
-STR_ORDER_FULL_LOAD_ANY_REFIT                                   :(Càrrega completa de qualsevol càrrega amb auto-remodela a {STRING})
-STR_ORDER_UNLOAD_REFIT                                          :(Descarrega i pren la càrrega amb auto-remodela a {STRING})
-STR_ORDER_UNLOAD_FULL_LOAD_REFIT                                :(Descarrega i espera fins a càrrega completa amb auto-remodela a {STRING})
-STR_ORDER_UNLOAD_FULL_LOAD_ANY_REFIT                            :(Descarrega i espera fins a càrrega completa qualsevol amb auto-remodela a {STRING})
-STR_ORDER_TRANSFER_REFIT                                        :(Transfereix i pren la càrrega amb auto-remodela a {STRING})
-STR_ORDER_TRANSFER_FULL_LOAD_REFIT                              :(Transfereix i espera a càrrega completa amb auto-remodela a {STRING})
-STR_ORDER_TRANSFER_FULL_LOAD_ANY_REFIT                          :(Transfereix i espera a càrrega completa qualsevol amb auto-remodela a {STRING})
-STR_ORDER_NO_UNLOAD_REFIT                                       :(No descarreguis i pren càrrega amb auto-remodela a {STRING})
-STR_ORDER_NO_UNLOAD_FULL_LOAD_REFIT                             :(No descarreguis i espera càrrega completa amb auto-remodela a {STRING})
-STR_ORDER_NO_UNLOAD_FULL_LOAD_ANY_REFIT                         :(No descarreguis i espera càrrega completa qualsevol amb auto-remodela a {STRING})
+STR_ORDER_AUTO_REFIT                                            :(Remodelació a {STRING})
+STR_ORDER_FULL_LOAD_REFIT                                       :(Càrrega completa amb remodelació a {STRING})
+STR_ORDER_FULL_LOAD_ANY_REFIT                                   :(Càrrega completa de qualsevol càrrega amb remodelació a {STRING})
+STR_ORDER_UNLOAD_REFIT                                          :(Descarrega i pren la càrrega amb remodelació a {STRING})
+STR_ORDER_UNLOAD_FULL_LOAD_REFIT                                :(Descarrega i espera fins a càrrega completa amb remodelació a {STRING})
+STR_ORDER_UNLOAD_FULL_LOAD_ANY_REFIT                            :(Descarrega i espera fins a càrrega completa qualsevol amb remodelació a {STRING})
+STR_ORDER_TRANSFER_REFIT                                        :(Transfereix i pren la càrrega amb remodelació a {STRING})
+STR_ORDER_TRANSFER_FULL_LOAD_REFIT                              :(Transfereix i espera a càrrega completa amb remodelació a {STRING})
+STR_ORDER_TRANSFER_FULL_LOAD_ANY_REFIT                          :(Transfereix i espera a càrrega completa qualsevol amb remodelació a {STRING})
+STR_ORDER_NO_UNLOAD_REFIT                                       :(No descarreguis i pren càrrega amb remodelació a {STRING})
+STR_ORDER_NO_UNLOAD_FULL_LOAD_REFIT                             :(No descarreguis i espera càrrega completa amb remodelació a {STRING})
+STR_ORDER_NO_UNLOAD_FULL_LOAD_ANY_REFIT                         :(No descarreguis i espera càrrega completa qualsevol amb remodelació a {STRING})
 
 STR_ORDER_AUTO_REFIT_ANY                                        :càrrega disponible
 
