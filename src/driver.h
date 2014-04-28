@@ -60,6 +60,10 @@ DECLARE_POSTFIX_INCREMENT(Driver::Type)
 /** Base for all driver factories. */
 class DriverFactoryBase {
 private:
+	friend class MusicDriver;
+	friend class SoundDriver;
+	friend class VideoDriver;
+
 	Driver::Type type;       ///< The type of driver.
 	int priority;            ///< The priority of this factory.
 	const char *name;        ///< The name of the drivers of this factory.
@@ -98,6 +102,8 @@ private:
 		return driver_type_name[type];
 	}
 
+	static bool SelectDriverImpl(const char *name, Driver::Type type);
+
 protected:
 	DriverFactoryBase(Driver::Type type, int priority, const char *name, const char *description);
 
@@ -115,7 +121,7 @@ public:
 		}
 	}
 
-	static Driver *SelectDriver(const char *name, Driver::Type type);
+	static void SelectDriver(const char *name, Driver::Type type);
 	static void GetDriversInfo (stringb *buf);
 
 	/**
