@@ -24,6 +24,7 @@
 #include "map/depot.h"
 #include "map/station.h"
 #include "map/tilearea.h"
+#include "linkgraph/linkgraph_type.h"
 
 bool IsHangar(TileIndex t);
 
@@ -125,7 +126,7 @@ void UpdateAirportsNoise();
 bool SplitGroundSpriteForOverlay(const TileInfo *ti, SpriteID *ground, RailTrackOffset *overlay_offset);
 
 void IncreaseStats(Station *st, const Vehicle *v, StationID next_station_id);
-void IncreaseStats(Station *st, CargoID cargo, StationID next_station_id, uint capacity, uint usage);
+void IncreaseStats(Station *st, CargoID cargo, StationID next_station_id, uint capacity, uint usage, EdgeUpdateMode mode);
 void RerouteCargo(Station *st, CargoID c, StationID avoid, StationID avoid2);
 
 /**
