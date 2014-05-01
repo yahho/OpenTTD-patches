@@ -183,6 +183,10 @@ static void Load_ORDR(LoadBuffer *reader)
 		while ((index = reader->IterateChunk()) != -1) {
 			Order *order = new (index) Order();
 			reader->ReadObject(order, GetOrderDescription());
+			if (reader->IsVersionBefore (19, 190)) {
+				order->SetTravelTimetabled(order->GetTravelTime() > 0);
+				order->SetWaitTimetabled(order->GetWaitTime() > 0);
+			}
 		}
 	}
 }
