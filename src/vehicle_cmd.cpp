@@ -727,7 +727,7 @@ static void CloneVehicleName(const Vehicle *src, Vehicle *dst)
 	/* Format buffer and determine starting number. */
 	int num;
 	byte padding = 0;
-	if (number_position == strlen(src->name)) {
+	if (src->name[number_position] == '\0') {
 		/* No digit at the end, so start at number 2. */
 		strecpy(buf, src->name, lastof(buf));
 		strecat(buf, " ", lastof(buf));
