@@ -79,21 +79,19 @@ struct DebugLevel {
  */
 char *DumpDebugFacilityNames(char *buf, char *last)
 {
-	size_t length = 0;
-	for (const DebugLevel *i = debug_level; i != endof(debug_level); ++i) {
-		if (length == 0) {
-			buf = strecpy(buf, "List of debug facility names:\n", last);
-		} else {
-			buf = strecpy(buf, ", ", last);
-			length += 2;
-		}
+	/* No debug facilities? */
+	if (debug_level == endof(debug_level)) return buf;
+
+	buf = strecpy(buf, "List of debug facility names:\n", last);
+
+	const DebugLevel *i = debug_level;
+	for (;;) {
 		buf = strecpy(buf, i->name, last);
-		length += strlen(i->name);
+		if (++i == endof(debug_level)) break;
+		buf = strecpy(buf, ", ", last);
 	}
-	if (length > 0) {
-		buf = strecpy(buf, "\n\n", last);
-	}
-	return buf;
+
+	return strecpy(buf, "\n\n", last);
 }
 
 #if !defined(NO_DEBUG_MESSAGES)
