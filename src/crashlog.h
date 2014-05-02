@@ -37,14 +37,6 @@ protected:
 	virtual char *LogOSVersion(char *buffer, const char *last) const = 0;
 
 	/**
-	 * Writes compiler (and its version, if available) to the buffer.
-	 * @param buffer The begin where to write at.
-	 * @param last   The last position in the buffer to write to.
-	 * @return the position of the \c '\0' character after the buffer.
-	 */
-	virtual char *LogCompiler(char *buffer, const char *last) const;
-
-	/**
 	 * Writes actually encountered error to the buffer.
 	 * @param buffer  The begin where to write at.
 	 * @param last    The last position in the buffer to write to.
@@ -79,11 +71,6 @@ protected:
 	 * @return the position of the \c '\0' character after the buffer.
 	 */
 	virtual char *LogModules(char *buffer, const char *last) const;
-
-
-	char *LogOpenTTDVersion(char *buffer, const char *last) const;
-	char *LogConfiguration(char *buffer, const char *last) const;
-	char *LogLibraries(char *buffer, const char *last) const;
 
 public:
 	/** Stub destructor to silence some compilers. */

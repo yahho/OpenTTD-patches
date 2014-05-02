@@ -39,7 +39,13 @@
 /* static */ char *CrashLog::gamelog_buffer = NULL;
 /* static */ const char *CrashLog::gamelog_last = NULL;
 
-char *CrashLog::LogCompiler(char *buffer, const char *last) const
+/**
+ * Writes compiler (and its version, if available) to the buffer.
+ * @param buffer The begin where to write at.
+ * @param last   The last position in the buffer to write to.
+ * @return the position of the \c '\0' character after the buffer.
+ */
+static char *LogCompiler(char *buffer, const char *last)
 {
 			buffer += seprintf(buffer, last, " Compiler: "
 #if defined(_MSC_VER)
@@ -81,7 +87,7 @@ char *CrashLog::LogCompiler(char *buffer, const char *last) const
  * @param last   The last position in the buffer to write to.
  * @return the position of the \c '\0' character after the buffer.
  */
-char *CrashLog::LogOpenTTDVersion(char *buffer, const char *last) const
+static char *LogVersion(char *buffer, const char *last)
 {
 	return buffer + seprintf(buffer, last,
 			"OpenTTD version:\n"
@@ -120,7 +126,7 @@ char *CrashLog::LogOpenTTDVersion(char *buffer, const char *last) const
  * @param last   The last position in the buffer to write to.
  * @return the position of the \c '\0' character after the buffer.
  */
-char *CrashLog::LogConfiguration(char *buffer, const char *last) const
+static char *LogConfiguration(char *buffer, const char *last)
 {
 	buffer += seprintf(buffer, last,
 			"Configuration:\n"
@@ -216,7 +222,7 @@ char *CrashLog::LogConfiguration(char *buffer, const char *last) const
  * @param last   The last position in the buffer to write to.
  * @return the position of the \c '\0' character after the buffer.
  */
-char *CrashLog::LogLibraries(char *buffer, const char *last) const
+static char *LogLibraries(char *buffer, const char *last)
 {
 	buffer += seprintf(buffer, last, "Libraries:\n");
 
@@ -304,13 +310,13 @@ char *CrashLog::FillCrashLog(char *buffer, const char *last) const
 	buffer += seprintf(buffer, last, "In game date: %i-%02i-%02i (%i)\n\n", ymd.year, ymd.month + 1, ymd.day, _date_fract);
 
 	buffer = this->LogError(buffer, last, CrashLog::message);
-	buffer = this->LogOpenTTDVersion(buffer, last);
+	buffer = LogVersion(buffer, last);
 	buffer = this->LogRegisters(buffer, last);
 	buffer = this->LogStacktrace(buffer, last);
 	buffer = this->LogOSVersion(buffer, last);
-	buffer = this->LogCompiler(buffer, last);
-	buffer = this->LogConfiguration(buffer, last);
-	buffer = this->LogLibraries(buffer, last);
+	buffer = LogCompiler(buffer, last);
+	buffer = LogConfiguration(buffer, last);
+	buffer = LogLibraries(buffer, last);
 	buffer = this->LogModules(buffer, last);
 
 	/* Write the gamelog data to the buffer. */
