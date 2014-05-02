@@ -288,20 +288,6 @@ char *CrashLog::LogLibraries(char *buffer, const char *last) const
 }
 
 /**
- * Writes the gamelog data to the buffer.
- * @param buffer The begin where to write at.
- * @param last   The last position in the buffer to write to.
- * @return the position of the \c '\0' character after the buffer.
- */
-char *CrashLog::LogGamelog(char *buffer, const char *last) const
-{
-	CrashLog::gamelog_buffer = buffer;
-	CrashLog::gamelog_last = last;
-	GamelogPrint(&CrashLog::GamelogFillCrashLog);
-	return CrashLog::gamelog_buffer + seprintf(CrashLog::gamelog_buffer, last, "\n");
-}
-
-/**
  * Fill the crash log buffer with all data of a crash log.
  * @param buffer The begin where to write at.
  * @param last   The last position in the buffer to write to.
@@ -326,7 +312,12 @@ char *CrashLog::FillCrashLog(char *buffer, const char *last) const
 	buffer = this->LogConfiguration(buffer, last);
 	buffer = this->LogLibraries(buffer, last);
 	buffer = this->LogModules(buffer, last);
-	buffer = this->LogGamelog(buffer, last);
+
+	/* Write the gamelog data to the buffer. */
+	CrashLog::gamelog_buffer = buffer;
+	CrashLog::gamelog_last = last;
+	GamelogPrint(&CrashLog::GamelogFillCrashLog);
+	buffer = CrashLog::gamelog_buffer + seprintf(CrashLog::gamelog_buffer, last, "\n");
 
 	buffer += seprintf(buffer, last, "*** End of OpenTTD Crash Report ***\n");
 	return buffer;
