@@ -82,7 +82,7 @@ static char *LogCompiler(char *buffer, const char *last)
 }
 
 /**
- * Writes OpenTTD's version to the buffer.
+ * Writes version and compilation information to the buffer.
  * @param buffer The begin where to write at.
  * @param last   The last position in the buffer to write to.
  * @return the position of the \c '\0' character after the buffer.
@@ -90,31 +90,27 @@ static char *LogCompiler(char *buffer, const char *last)
 static char *LogVersion(char *buffer, const char *last)
 {
 	return buffer + seprintf(buffer, last,
-			"OpenTTD version:\n"
+			"Binary:\n"
 			" Version:    %s (%d)\n"
 			" NewGRF ver: %08x\n"
-			" Bits:       %d\n"
-			" Endian:     %s\n"
-			" Dedicated:  %s\n"
-			" Build date: %s\n\n",
-			_openttd_revision,
-			_openttd_revision_modified,
-			_openttd_newgrf_version,
+			" Build date: %s\n\n"
+			" Flags:     "
 #ifdef _SQ64
-			64,
+			" 64-bit"
 #else
-			32,
+			" 32-bit"
 #endif
 #if (TTD_ENDIAN == TTD_LITTLE_ENDIAN)
-			"little",
+			" little-endian"
 #else
-			"big",
+			" big-endian"
 #endif
 #ifdef DEDICATED
-			"yes",
-#else
-			"no",
+			" dedicated"
 #endif
+			,
+			_openttd_revision, _openttd_revision_modified,
+			_openttd_newgrf_version,
 			_openttd_build_date
 	);
 }
