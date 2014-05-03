@@ -9,7 +9,6 @@
 
 /** @file extmidi.cpp Playing music via an external player. */
 
-#ifndef __MORPHOS__
 #include "../stdafx.h"
 #include "../debug.h"
 #include "../string.h"
@@ -133,5 +132,3 @@ void MusicDriver_ExtMidi::DoStop()
 	waitpid(this->pid, NULL, 0);
 	this->pid = -1;
 }
-
-#endif /* __MORPHOS__ */
