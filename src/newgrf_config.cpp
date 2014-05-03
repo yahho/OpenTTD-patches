@@ -552,55 +552,54 @@ GRFListCompatibility IsGoodGRFConfigList(GRFConfig *grfconfig)
 			/* If we have not found the exactly matching GRF try to find one with the
 			 * same grfid, as it most likely is compatible */
 			f = FindGRFConfig(c->ident.grfid, FGCM_COMPATIBLE, NULL, c->version);
-			if (f != NULL) {
+			if (f == NULL) {
+				/* No compatible grf was found, mark it as disabled */
 				md5sumToString(buf, lastof(buf), c->ident.md5sum);
-				DEBUG(grf, 1, "NewGRF %08X (%s) not found; checksum %s. Compatibility mode on", BSWAP32(c->ident.grfid), c->filename, buf);
-				if (!HasBit(c->flags, GCF_COMPATIBLE)) {
-					/* Preserve original_md5sum after it has been assigned */
-					SetBit(c->flags, GCF_COMPATIBLE);
-					memcpy(c->original_md5sum, c->ident.md5sum, sizeof(c->original_md5sum));
-				}
+				DEBUG(grf, 0, "NewGRF %08X (%s) not found; checksum %s", BSWAP32(c->ident.grfid), c->filename, buf);
 
-				/* Non-found has precedence over compatibility load */
-				if (res != GLC_NOT_FOUND) res = GLC_COMPATIBLE;
-				goto compatible_grf;
+				c->status = GCS_NOT_FOUND;
+				res = GLC_NOT_FOUND;
+				continue;
 			}
 
-			/* No compatible grf was found, mark it as disabled */
 			md5sumToString(buf, lastof(buf), c->ident.md5sum);
-			DEBUG(grf, 0, "NewGRF %08X (%s) not found; checksum %s", BSWAP32(c->ident.grfid), c->filename, buf);
+			DEBUG(grf, 1, "NewGRF %08X (%s) not found; checksum %s. Compatibility mode on", BSWAP32(c->ident.grfid), c->filename, buf);
+			if (!HasBit(c->flags, GCF_COMPATIBLE)) {
+				/* Preserve original_md5sum after it has been assigned */
+				SetBit(c->flags, GCF_COMPATIBLE);
+				memcpy(c->original_md5sum, c->ident.md5sum, sizeof(c->original_md5sum));
+			}
 
-			c->status = GCS_NOT_FOUND;
-			res = GLC_NOT_FOUND;
-		} else {
-compatible_grf:
-			DEBUG(grf, 1, "Loading GRF %08X from %s", BSWAP32(f->ident.grfid), f->filename);
-			/* The filename could be the filename as in the savegame. As we need
-			 * to load the GRF here, we need the correct filename, so overwrite that
-			 * in any case and set the name and info when it is not set already.
-			 * When the GCF_COPY flag is set, it is certain that the filename is
-			 * already a local one, so there is no need to replace it. */
-			if (!HasBit(c->flags, GCF_COPY)) {
-				free(c->filename);
-				c->filename = strdup(f->filename);
-				memcpy(c->ident.md5sum, f->ident.md5sum, sizeof(c->ident.md5sum));
-				c->name->Release();
-				c->name = f->name;
-				c->name->AddRef();
-				c->info->Release();
-				c->info = f->name;
-				c->info->AddRef();
-				c->error = NULL;
-				c->version = f->version;
-				c->min_loadable_version = f->min_loadable_version;
-				c->num_valid_params = f->num_valid_params;
-				c->has_param_defaults = f->has_param_defaults;
-				for (uint i = 0; i < f->param_info.Length(); i++) {
-					if (f->param_info[i] == NULL) {
-						*c->param_info.Append() = NULL;
-					} else {
-						*c->param_info.Append() = new GRFParameterInfo(*f->param_info[i]);
-					}
+			/* Non-found has precedence over compatibility load */
+			if (res != GLC_NOT_FOUND) res = GLC_COMPATIBLE;
+		}
+
+		DEBUG(grf, 1, "Loading GRF %08X from %s", BSWAP32(f->ident.grfid), f->filename);
+		/* The filename could be the filename as in the savegame. As we need
+		 * to load the GRF here, we need the correct filename, so overwrite that
+		 * in any case and set the name and info when it is not set already.
+		 * When the GCF_COPY flag is set, it is certain that the filename is
+		 * already a local one, so there is no need to replace it. */
+		if (!HasBit(c->flags, GCF_COPY)) {
+			free(c->filename);
+			c->filename = strdup(f->filename);
+			memcpy(c->ident.md5sum, f->ident.md5sum, sizeof(c->ident.md5sum));
+			c->name->Release();
+			c->name = f->name;
+			c->name->AddRef();
+			c->info->Release();
+			c->info = f->name;
+			c->info->AddRef();
+			c->error = NULL;
+			c->version = f->version;
+			c->min_loadable_version = f->min_loadable_version;
+			c->num_valid_params = f->num_valid_params;
+			c->has_param_defaults = f->has_param_defaults;
+			for (uint i = 0; i < f->param_info.Length(); i++) {
+				if (f->param_info[i] == NULL) {
+					*c->param_info.Append() = NULL;
+				} else {
+					*c->param_info.Append() = new GRFParameterInfo(*f->param_info[i]);
 				}
 			}
 		}
