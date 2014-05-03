@@ -134,7 +134,7 @@ static void ParseHotkeys(Hotkey *hotkey, const char *value)
 }
 
 /**
- * Convert a hotkey to it's string representation so it can be written to the
+ * Convert a hotkey to its string representation so it can be written to the
  * config file. Separate parts of the keycode (like "CTRL" and "F1" are split
  * by a '+'.
  * @param keycode The keycode to convert to a string.
@@ -146,34 +146,14 @@ static const char *KeycodeToString(uint16 keycode)
 {
 	static char buf[32];
 	buf[0] = '\0';
-	bool first = true;
-	if (keycode & WKC_GLOBAL_HOTKEY) {
-		strecat(buf, "GLOBAL", lastof(buf));
-		first = false;
-	}
-	if (keycode & WKC_SHIFT) {
-		if (!first) strecat(buf, "+", lastof(buf));
-		strecat(buf, "SHIFT", lastof(buf));
-		first = false;
-	}
-	if (keycode & WKC_CTRL) {
-		if (!first) strecat(buf, "+", lastof(buf));
-		strecat(buf, "CTRL", lastof(buf));
-		first = false;
-	}
-	if (keycode & WKC_ALT) {
-		if (!first) strecat(buf, "+", lastof(buf));
-		strecat(buf, "ALT", lastof(buf));
-		first = false;
-	}
-	if (keycode & WKC_META) {
-		if (!first) strecat(buf, "+", lastof(buf));
-		strecat(buf, "META", lastof(buf));
-		first = false;
-	}
-	if (!first) strecat(buf, "+", lastof(buf));
-	keycode = keycode & ~WKC_SPECIAL_KEYS;
 
+	if (keycode & WKC_GLOBAL_HOTKEY) strecat(buf, "GLOBAL+", lastof(buf));
+	if (keycode & WKC_SHIFT) strecat(buf, "SHIFT+", lastof(buf));
+	if (keycode & WKC_CTRL)  strecat(buf, "CTRL+", lastof(buf));
+	if (keycode & WKC_ALT)   strecat(buf, "ALT+", lastof(buf));
+	if (keycode & WKC_META)  strecat(buf, "META+", lastof(buf));
+
+	keycode = keycode & ~WKC_SPECIAL_KEYS;
 	for (uint i = 0; i < lengthof(_keycode_to_name); i++) {
 		if (_keycode_to_name[i].keycode == keycode) {
 			strecat(buf, _keycode_to_name[i].name, lastof(buf));
