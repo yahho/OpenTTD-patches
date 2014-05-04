@@ -57,16 +57,13 @@ static WindowDesc _land_info_desc(
 );
 
 class LandInfoWindow : public Window {
-	enum LandInfoLines {
-		LAND_INFO_CENTERED_LINES   = 32,                       ///< Up to 32 centered lines (arbitrary limit)
-		LAND_INFO_MULTICENTER_LINE = LAND_INFO_CENTERED_LINES, ///< One multicenter line
-		LAND_INFO_LINE_END,
-	};
+	static const uint LAND_INFO_CENTERED_LINES = 32; ///< Up to 32 centered lines (arbitrary limit)
 
 	static const uint LAND_INFO_LINE_BUFF_SIZE = 512;
 
 public:
-	char landinfo_data[LAND_INFO_LINE_END][LAND_INFO_LINE_BUFF_SIZE];
+	char landinfo_data[LAND_INFO_CENTERED_LINES][LAND_INFO_LINE_BUFF_SIZE];
+	char landinfo_multicenter[LAND_INFO_LINE_BUFF_SIZE];
 	TileIndex tile;
 
 	virtual void DrawWidget(const Rect &r, int widget) const
@@ -82,8 +79,8 @@ public:
 			if (i == 0) y += 4;
 		}
 
-		if (!StrEmpty(this->landinfo_data[LAND_INFO_MULTICENTER_LINE])) {
-			SetDParamStr(0, this->landinfo_data[LAND_INFO_MULTICENTER_LINE]);
+		if (!StrEmpty(this->landinfo_multicenter)) {
+			SetDParamStr(0, this->landinfo_multicenter);
 			DrawStringMultiLine(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, r.bottom - WD_TEXTPANEL_BOTTOM, STR_JUST_RAW_STRING, TC_FROMSTRING, SA_CENTER);
 		}
 	}
@@ -103,10 +100,10 @@ public:
 			if (i == 0) size->height += 4;
 		}
 
-		if (!StrEmpty(this->landinfo_data[LAND_INFO_MULTICENTER_LINE])) {
-			uint width = GetStringBoundingBox(this->landinfo_data[LAND_INFO_MULTICENTER_LINE]).width + WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT;
+		if (!StrEmpty(this->landinfo_multicenter)) {
+			uint width = GetStringBoundingBox(this->landinfo_multicenter).width + WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT;
 			size->width = max(size->width, min(300u, width));
-			SetDParamStr(0, this->landinfo_data[LAND_INFO_MULTICENTER_LINE]);
+			SetDParamStr(0, this->landinfo_multicenter);
 			size->height += GetStringHeight(STR_JUST_RAW_STRING, size->width - WD_FRAMETEXT_LEFT - WD_FRAMETEXT_RIGHT);
 		}
 	}
@@ -296,7 +293,7 @@ public:
 		this->landinfo_data[line_nr][0] = '\0';
 
 		/* Cargo acceptance is displayed in a extra multiline */
-		char *strp = GetString(this->landinfo_data[LAND_INFO_MULTICENTER_LINE], STR_LAND_AREA_INFORMATION_CARGO_ACCEPTED, lastof(this->landinfo_data[LAND_INFO_MULTICENTER_LINE]));
+		char *strp = GetString(this->landinfo_multicenter, STR_LAND_AREA_INFORMATION_CARGO_ACCEPTED, lastof(this->landinfo_multicenter));
 		bool found = false;
 
 		for (CargoID i = 0; i < NUM_CARGO; ++i) {
@@ -312,13 +309,13 @@ public:
 				if (acceptance[i] < 8) {
 					SetDParam(0, acceptance[i]);
 					SetDParam(1, CargoSpec::Get(i)->name);
-					strp = GetString(strp, STR_LAND_AREA_INFORMATION_CARGO_EIGHTS, lastof(this->landinfo_data[LAND_INFO_MULTICENTER_LINE]));
+					strp = GetString(strp, STR_LAND_AREA_INFORMATION_CARGO_EIGHTS, lastof(this->landinfo_multicenter));
 				} else {
-					strp = GetString(strp, CargoSpec::Get(i)->name, lastof(this->landinfo_data[LAND_INFO_MULTICENTER_LINE]));
+					strp = GetString(strp, CargoSpec::Get(i)->name, lastof(this->landinfo_multicenter));
 				}
 			}
 		}
-		if (!found) this->landinfo_data[LAND_INFO_MULTICENTER_LINE][0] = '\0';
+		if (!found) this->landinfo_multicenter[0] = '\0';
 	}
 
 	virtual bool IsNewGRFInspectable() const
