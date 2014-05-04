@@ -1025,6 +1025,8 @@ STR_WARNING_NO_SUITABLE_AI                                      :{WHITE}Níl aon
 # Advanced settings window
 STR_CONFIG_SETTING_CAPTION                                      :{WHITE}Ardsocruithe
 
+STR_CONFIG_SETTING_RESTRICT_CATEGORY                            :{BLACK}Catagóir:
+STR_CONFIG_SETTING_RESTRICT_TYPE                                :{BLACK}Cineál:
 
 STR_CONFIG_SETTING_TYPE_DROPDOWN_HELPTEXT                       :{BLACK}Srian ar an liosta thíos le cineálacha áirithe a leagan síos
 STR_CONFIG_SETTING_TYPE_DROPDOWN_ALL                            :Ulig na Suímh
@@ -1033,6 +1035,7 @@ STR_CONFIG_SETTING_TYPE_DROPDOWN_GAME_MENU                      :Suímh Cliche(s
 STR_CONFIG_SETTING_TYPE_DROPDOWN_GAME_INGAME                    :Suímh Cliche(stóráil i Sábhálann; ni tionchar ach an cliche faoi láthair)
 STR_CONFIG_SETTING_TYPE_DROPDOWN_COMPANY_MENU                   :Suímh Cuideachta (stóráil i Sábhálann; ni tionchar ach an cuideachta faoi láthair)
 STR_CONFIG_SETTING_TYPE_DROPDOWN_COMPANY_INGAME                 :Suímh Cuideachta (stóráil i saibhail; ni tionchar ach chuideachta reatha)
+STR_CONFIG_SETTINGS_NONE                                        :{WHITE}- Ceann ar bith -
 
 STR_CONFIG_SETTING_OFF                                          :As
 STR_CONFIG_SETTING_ON                                           :Air
@@ -1661,6 +1664,7 @@ STR_NETWORK_CLIENT                                              :Cliant
 STR_NETWORK_SPECTATORS                                          :Féachadóirí
 
 STR_NETWORK_GIVE_MONEY_CAPTION                                  :{WHITE}Iontráil an méid airgid is mian leat a thabhairt
+STR_NETWORK_TOOLBAR_LIST_SPECTATOR                              :{BLACK}Féachadóir
 
 # Network set password
 STR_COMPANY_PASSWORD_CANCEL                                     :{BLACK}Ná sábháil an pasfhocal a iontráladh
@@ -2128,6 +2132,7 @@ STR_LAND_AREA_INFORMATION_NEWGRF_NAME                           :{BLACK}NewGRF: 
 STR_LAND_AREA_INFORMATION_CARGO_ACCEPTED                        :{BLACK}Lastas a ghlactar leis: {LTBLUE}
 STR_LAND_AREA_INFORMATION_CARGO_EIGHTS                          :({COMMA}/8 {STRING})
 STR_LANG_AREA_INFORMATION_RAIL_SPEED_LIMIT                      :{BLACK}Teorainn luais iarnróid: {LTBLUE}{VELOCITY}
+STR_LANG_AREA_INFORMATION_ROAD_SPEED_LIMIT                      :{BLACK}Teorainn luais na mbóithre: {LTBLUE}{VELOCITY}
 
 # Description of land area of different tiles
 STR_LAI_CLEAR_DESCRIPTION_ROCKS                                 :Carraigeacha
@@ -2219,6 +2224,7 @@ STR_SAVELOAD_SAVE_BUTTON                                        :{BLACK}Sábhái
 STR_SAVELOAD_SAVE_TOOLTIP                                       :{BLACK}Sábháil an cluiche reatha, ag úsáid an t-ainm roghnaithe
 STR_SAVELOAD_LOAD_BUTTON                                        :{BLACK}Lódáil
 STR_SAVELOAD_LOAD_TOOLTIP                                       :{BLACK}Lódáil an cluiche roghnaithe
+STR_SAVELOAD_LOAD_HEIGHTMAP_TOOLTIP                             :{BLACK}Lódáil an mapa airde roghnaithe
 STR_SAVELOAD_DETAIL_CAPTION                                     :{BLACK}Sonraí an Chluiche
 STR_SAVELOAD_DETAIL_NOT_AVAILABLE                               :{BLACK}Níl aon fhaisnéis le fáil.
 STR_SAVELOAD_DETAIL_COMPANY_INDEX                               :{SILVER}{COMMA}: {WHITE}{STRING}
@@ -2434,6 +2440,7 @@ STR_NEWGRF_INVALID_ENGINE                                       :<samhail feithi
 STR_NEWGRF_INVALID_INDUSTRYTYPE                                 :<tionscal neamhbhailí>
 
 # Placeholders for other invalid stuff, e.g. vehicles that have gone (Game Script).
+STR_INVALID_VEHICLE                                             :<feithicil neamhbhailí>
 
 # NewGRF scanning window
 
@@ -2526,6 +2533,7 @@ STR_SUBSIDIES_SUBSIDISED_FROM_TO                                :{ORANGE}{STRING
 STR_SUBSIDIES_TOOLTIP_CLICK_ON_SERVICE_TO_CENTER                :{BLACK}Cliceáil ar sheirbhís chun an t-amharc a lárú ar thionscal/bhaile. Déantar amharc nua a oscailt ar shuíomh an tionscail/bhaile le Ctrl+Cliceáil
 
 # Story book window
+STR_STORY_BOOK_INVALID_GOAL_REF                                 :{RED}Tagairt neamhbhailí spriocanna
 
 # Station list window
 STR_STATION_LIST_TOOLTIP                                        :{BLACK}Ainmneacha na stáisiún - cliceáil ar ainm chun an t-amharc a lárú ar stáisiún. Osclaítear amharc nua ar shuíomh an stáisiúin le Ctrl+Cliceáil
@@ -2738,6 +2746,9 @@ STR_GROUP_CREATE_TOOLTIP                                        :{BLACK}Cliceái
 STR_GROUP_DELETE_TOOLTIP                                        :{BLACK}Scrios an grúpa roghnaithe
 STR_GROUP_RENAME_TOOLTIP                                        :{BLACK}Athainmnigh an grúpa roghnaithe
 STR_GROUP_REPLACE_PROTECTION_TOOLTIP                            :{BLACK}Cliceáil chun an grúpa seo a chosaint ón uathionadú uilíoch
+
+STR_QUERY_GROUP_DELETE_CAPTION                                  :{WHITE}Scrios Grúpa
+STR_GROUP_DELETE_QUERY_TEXT                                     :{WHITE}Am bhfuil tú cinnte gur mhaith leat an grúpa seo agus aon fhoghrúpaí a scriosadh??
 
 STR_GROUP_ADD_SHARED_VEHICLE                                    :Cuir le feithiclí comhroinnte
 STR_GROUP_REMOVE_ALL_VEHICLES                                   :Bain gach feithicil
@@ -3225,9 +3236,13 @@ STR_TIMETABLE_TOOLTIP                                           :{BLACK}Amchlár
 STR_TIMETABLE_NO_TRAVEL                                         :Ná taisteal
 STR_TIMETABLE_NOT_TIMETABLEABLE                                 :Taisteal (uathoibríoch; curtha ar an gclár ama ag an chéad ordú de láimh eile)
 STR_TIMETABLE_TRAVEL_NOT_TIMETABLED                             :Taisteal (gan amchlár)
-STR_TIMETABLE_TRAVEL_NOT_TIMETABLED_SPEED                       :Taisteal le {2:VELOCITY} ar a mhéad (gan amchlár)
+STR_TIMETABLE_TRAVEL_NOT_TIMETABLED_SPEED                       :Taisteal (gan amchlár) ag {2:VELOCITY} ar a mhéad
 STR_TIMETABLE_TRAVEL_FOR                                        :Taisteal ar feadh {STRING}
 STR_TIMETABLE_TRAVEL_FOR_SPEED                                  :Taisteal ar feadh {STRING} le {VELOCITY} ar a mhéad
+STR_TIMETABLE_TRAVEL_FOR_ESTIMATED                              :Taisteal (ar feadh {STRING}, gan amchlár)
+STR_TIMETABLE_TRAVEL_FOR_SPEED_ESTIMATED                        :Taisteal (ar feadh {STRING}, gan amchlár) ag {VELOCITY} ar a mhéad
+STR_TIMETABLE_STAY_FOR_ESTIMATED                                :(fan ar feadh {STRING}, gan amchlár)
+STR_TIMETABLE_AND_TRAVEL_FOR_ESTIMATED                          :(taisteal ar feadh {STRING}, gan amchlár)
 STR_TIMETABLE_STAY_FOR                                          :agus fan ar feadh {STRING}
 STR_TIMETABLE_AND_TRAVEL_FOR                                    :agus taisteal ar feadh {STRING}
 STR_TIMETABLE_DAYS                                              :{COMMA} lá{P "" "" "" "" ""}
@@ -3338,6 +3353,8 @@ STR_AI_SETTINGS_SETTING                                         :{STRING}: {ORAN
 STR_TEXTFILE_README_CAPTION                                     :{WHITE}{STRING} léigh mé de {STRING}
 STR_TEXTFILE_CHANGELOG_CAPTION                                  :{WHITE}{STRING} loga athruithe de {STRING}
 STR_TEXTFILE_LICENCE_CAPTION                                    :{WHITE}{STRING} ceadúnas de {STRING}
+STR_TEXTFILE_WRAP_TEXT                                          :{WHITE}Timthriall téacs
+STR_TEXTFILE_WRAP_TEXT_TOOLTIP                                  :{BLACK}Timthriall téacs na fuinneoige sa chaoi go mbeidh sé ar fad ann gan gá duit scrollú
 STR_TEXTFILE_VIEW_README                                        :{BLACK}Amharc ar léigh mé
 STR_TEXTFILE_VIEW_CHANGELOG                                     :{BLACK}Loga na n-athruithe
 STR_TEXTFILE_VIEW_LICENCE                                       :{BLACK}Ceadúnas
@@ -3645,6 +3662,7 @@ STR_ERROR_YOU_ALREADY_OWN_IT                                    :{WHITE}... is l
 STR_ERROR_GROUP_CAN_T_CREATE                                    :{WHITE}Ní féidir an grúpa a chruthú...
 STR_ERROR_GROUP_CAN_T_DELETE                                    :{WHITE}Ní féidir an grúpa seo a scriosadh...
 STR_ERROR_GROUP_CAN_T_RENAME                                    :{WHITE}Ní féidir an grúpa a athainmniú...
+STR_ERROR_GROUP_CAN_T_SET_PARENT                                :{WHITE}Ní féidir máthairghrúpa a shocrú...
 STR_ERROR_GROUP_CAN_T_REMOVE_ALL_VEHICLES                       :{WHITE}Ní féidir gach feithicil a bhaint ón ngrúpa seo...
 STR_ERROR_GROUP_CAN_T_ADD_VEHICLE                               :{WHITE}Ní féidir an fheithicil a chur leis an ngrúpa seo...
 STR_ERROR_GROUP_CAN_T_ADD_SHARED_VEHICLE                        :{WHITE}Ní féidir feithiclí comhroinnte a chur le grúpa...
@@ -3700,6 +3718,7 @@ STR_ERROR_CAN_T_CHANGE_SERVICING                                :{WHITE}Ní féi
 
 STR_ERROR_VEHICLE_IS_DESTROYED                                  :{WHITE}... tá an fheithicil scriosta
 
+STR_ERROR_NO_VEHICLES_AVAILABLE_AT_ALL_EXPLANATION              :{WHITE}Athraigh do chumraíocht NewGRF
 
 # Specific vehicle errors
 STR_ERROR_CAN_T_MAKE_TRAIN_PASS_SIGNAL                          :{WHITE}Ní féidir iallach a chur ar thraein dul thar comhartha agus contúirt ann...
