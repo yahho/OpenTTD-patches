@@ -1068,18 +1068,15 @@ DEF_CONSOLE_CMD(ConRestart)
 /**
  * Print a text buffer line by line to the console. Lines are separated by '\n'.
  * @param buf The buffer to print.
- * @note All newlines are replace by '\0' characters.
  */
-static void PrintLineByLine(char *buf)
+static void PrintLineByLine (const char *buf)
 {
-	char *p = buf;
+	const char *p;
 	/* Print output line by line */
-	for (char *p2 = buf; *p2 != '\0'; p2++) {
-		if (*p2 == '\n') {
-			*p2 = '\0';
-			IConsolePrintF(CC_DEFAULT, "%s", p);
-			p = p2 + 1;
-		}
+	while ((p = strchr (buf, '\n')) != NULL) {
+		int len = p - buf;
+		IConsolePrintF (CC_DEFAULT, "%.*s", len, buf);
+		buf = p + 1;
 	}
 }
 
