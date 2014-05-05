@@ -1136,7 +1136,7 @@ STR_CONFIG_SETTING_TYPE_COMPANY_INGAME                          :Vállalat beál
 
 STR_CONFIG_SETTING_RESTRICT_CATEGORY                            :{BLACK}Kategória:
 STR_CONFIG_SETTING_RESTRICT_TYPE                                :{BLACK}Típus:
-STR_CONFIG_SETTING_RESTRICT_DROPDOWN_HELPTEXT                   :{BLACK}Leszűkíti a listát a módosított értékekkel rendelkező opciókra
+STR_CONFIG_SETTING_RESTRICT_DROPDOWN_HELPTEXT                   :{BLACK}Leszűkíti a listát a megadott szűrők segítségével
 STR_CONFIG_SETTING_RESTRICT_BASIC                               :Alapbeállítások
 STR_CONFIG_SETTING_RESTRICT_ADVANCED                            :Haladó beállítások
 STR_CONFIG_SETTING_RESTRICT_ALL                                 :Szakértő beállítások / minden beállítás
@@ -3851,11 +3851,11 @@ STR_ORDER_NO_UNLOAD_FULL_LOAD_ANY                               :(Ki nem rakodá
 STR_ORDER_NO_UNLOAD_NO_LOAD                                     :(Nincs ki- és berakodás)
 
 STR_ORDER_AUTO_REFIT                                            :(Átalakítás {STRING} szállítására)
-STR_ORDER_FULL_LOAD_REFIT                                       :(Kirakodás, mindenből teljes berakodás és átalakítás {STRING} rakományra)
-STR_ORDER_FULL_LOAD_ANY_REFIT                                   :(Kirakodás, bármiből teljes berakodás és átalakítás {STRING} rakományra)
+STR_ORDER_FULL_LOAD_REFIT                                       :(Mindenből teljes berakodás és átalakítás {STRING} rakományra)
+STR_ORDER_FULL_LOAD_ANY_REFIT                                   :(Bármiből teljes berakodás és átalakítás {STRING} rakományra)
 STR_ORDER_UNLOAD_REFIT                                          :(Kirakodás, rakományfelvétel és átalakítás {STRING} rakományra)
-STR_ORDER_UNLOAD_FULL_LOAD_REFIT                                :(Ki nem rakodás, mindenből teljes berakodás és átalakítás {STRING} rakományra)
-STR_ORDER_UNLOAD_FULL_LOAD_ANY_REFIT                            :(Ki nem rakodás, bármiből teljes berakodás és átalakítás {STRING} rakományra)
+STR_ORDER_UNLOAD_FULL_LOAD_REFIT                                :(Kirakodás, mindenből teljes berakodás és átalakítás {STRING} rakományra)
+STR_ORDER_UNLOAD_FULL_LOAD_ANY_REFIT                            :(Kirakodás, bármiből teljes berakodás és átalakítás {STRING} rakományra)
 STR_ORDER_TRANSFER_REFIT                                        :(Elszállítás, rakományfelvétel és átalakítás {STRING} rakományra)
 STR_ORDER_TRANSFER_FULL_LOAD_REFIT                              :(Elszállítás, bármiből teljes berakodás és átalakítás {STRING} rakományra)
 STR_ORDER_TRANSFER_FULL_LOAD_ANY_REFIT                          :(Elszállítás, mindenből teljes berakodás és átalakítás {STRING} rakományra)
@@ -3890,6 +3890,10 @@ STR_TIMETABLE_TRAVEL_NOT_TIMETABLED                             :Következő cé
 STR_TIMETABLE_TRAVEL_NOT_TIMETABLED_SPEED                       :Menet {2:VELOCITY} max. sebességgel (nincs menetrend)
 STR_TIMETABLE_TRAVEL_FOR                                        :Menetidő: {STRING}
 STR_TIMETABLE_TRAVEL_FOR_SPEED                                  :Menetidő: {STRING} {VELOCITY} max. sebességgel
+STR_TIMETABLE_TRAVEL_FOR_ESTIMATED                              :Menet ({STRING}ig, időzítetlen)
+STR_TIMETABLE_TRAVEL_FOR_SPEED_ESTIMATED                        :Menet ({STRING}ig, időzítetlen) {VELOCITY} max. sebességgel
+STR_TIMETABLE_STAY_FOR_ESTIMATED                                :(ottmarad {STRING}ig, időzítetlen)
+STR_TIMETABLE_AND_TRAVEL_FOR_ESTIMATED                          :({STRING} utazás, időzítetlen)
 STR_TIMETABLE_STAY_FOR                                          :állomásra és maradj ott {STRING}ig
 STR_TIMETABLE_AND_TRAVEL_FOR                                    :és a menetidő: {STRING}
 STR_TIMETABLE_DAYS                                              :{COMMA} nap
