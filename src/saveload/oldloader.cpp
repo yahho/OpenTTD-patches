@@ -235,10 +235,7 @@ static inline bool CheckOldSavegameType(LoadFilter *reader, char *temp, const ch
 {
 	assert(last - temp + 1 >= (int)len);
 
-	if (reader->Read((byte*)temp, len) != len) {
-		temp[0] = '\0'; // if reading failed, make the name empty
-		return false;
-	}
+	if (reader->Read((byte*)temp, len) != len) return false;
 
 	bool ret = VerifyOldNameChecksum(temp, len);
 	temp[len - 2] = '\0'; // name is null-terminated in savegame, but it's better to be sure
@@ -250,26 +247,27 @@ static inline bool CheckOldSavegameType(LoadFilter *reader, char *temp, const ch
 static SavegameType DetermineOldSavegameType(LoadFilter *reader, char *title, const char *last)
 {
 	assert_compile(TTD_HEADER_SIZE >= TTO_HEADER_SIZE);
-	char temp[TTD_HEADER_SIZE] = "Unknown";
+	char temp[TTD_HEADER_SIZE];
 
-	SavegameType type = SGT_TTO;
+	SavegameType type;
+	const char *desc;
 
-	if (!CheckOldSavegameType(reader, temp, lastof(temp), TTO_HEADER_SIZE)) {
-		type = SGT_TTD;
+	if (CheckOldSavegameType(reader, temp, lastof(temp), TTO_HEADER_SIZE)) {
+		type = SGT_TTO;
+		desc = "(TTO) ";
+	} else {
 		reader->Reset();
-		if (!CheckOldSavegameType(reader, temp, lastof(temp), TTD_HEADER_SIZE)) {
+		if (CheckOldSavegameType(reader, temp, lastof(temp), TTD_HEADER_SIZE)) {
+			type = SGT_TTD;
+			desc = "(TTD) ";
+		} else {
 			type = SGT_INVALID;
+			desc = "(broken)";
+			temp[0] = '\0';
 		}
 	}
 
-	if (title != NULL) {
-		switch (type) {
-			case SGT_TTO: title = strecpy(title, "(TTO) ", last);    break;
-			case SGT_TTD: title = strecpy(title, "(TTD) ", last);    break;
-			default:      title = strecpy(title, "(broken) ", last); break;
-		}
-		title = strecpy(title, temp, last);
-	}
+	if (title != NULL) seprintf (title, last, "%s%s", desc, temp);
 
 	return type;
 }
