@@ -231,15 +231,16 @@ static bool VerifyOldNameChecksum(char *title, uint len)
 	return sum == sum2;
 }
 
-static inline bool CheckOldSavegameType(LoadFilter *reader, char *temp, const char *last, uint len)
+static inline bool CheckOldSavegameType (LoadFilter *reader, char (*buf)[TTD_HEADER_SIZE], uint len)
 {
-	assert(last - temp + 1 >= (int)len);
+	assert (len <= TTD_HEADER_SIZE);
 
+	char *temp = &(*buf)[0];
 	if (reader->Read((byte*)temp, len) != len) return false;
 
 	bool ret = VerifyOldNameChecksum(temp, len);
 	temp[len - 2] = '\0'; // name is null-terminated in savegame, but it's better to be sure
-	str_validate(temp, last);
+	str_validate (temp, temp + TTD_HEADER_SIZE - 1);
 
 	return ret;
 }
@@ -252,12 +253,12 @@ static SavegameType DetermineOldSavegameType(LoadFilter *reader, char *title, co
 	SavegameType type;
 	const char *desc;
 
-	if (CheckOldSavegameType(reader, temp, lastof(temp), TTO_HEADER_SIZE)) {
+	if (CheckOldSavegameType (reader, &temp, TTO_HEADER_SIZE)) {
 		type = SGT_TTO;
 		desc = "(TTO) ";
 	} else {
 		reader->Reset();
-		if (CheckOldSavegameType(reader, temp, lastof(temp), TTD_HEADER_SIZE)) {
+		if (CheckOldSavegameType (reader, &temp, TTD_HEADER_SIZE)) {
 			type = SGT_TTD;
 			desc = "(TTD) ";
 		} else {
