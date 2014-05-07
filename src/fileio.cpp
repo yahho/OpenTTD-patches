@@ -1013,7 +1013,7 @@ static bool ChangeWorkingDirectoryToExecutable(const char *exe)
  * OpenTTD directories.
  * @return true if it should be scanned.
  */
-bool DoScanWorkingDirectory()
+static bool DoScanWorkingDirectory()
 {
 	/* No working directory, so nothing to do. */
 	if (_searchpaths[SP_WORKING_DIR] == NULL) return false;
@@ -1034,7 +1034,7 @@ bool DoScanWorkingDirectory()
  * Determine the base (personal dir and game data dir) paths
  * @param exe the path to the executable
  */
-void DetermineBasePaths(const char *exe)
+static void DetermineBasePaths(const char *exe)
 {
 	char tmp[MAX_PATH];
 #if defined(WITH_XDG_BASEDIR) && defined(WITH_PERSONAL_DIR)
