@@ -584,18 +584,6 @@ bool AppendPathSeparator(char *buf, size_t buflen)
 }
 
 
-/**
- * Find the first directory in a tar archive.
- * @param tarname the name of the tar archive to look in.
- * @param subdir  the subdirectory to look in.
- */
-const char *FioTarFirstDir(const char *tarname, Subdirectory subdir)
-{
-	TarList::iterator it = _tar_list[subdir].find(tarname);
-	if (it == _tar_list[subdir].end()) return NULL;
-	return (*it).second.dirname;
-}
-
 static void TarAddLink(const std::string &srcParam, const std::string &destParam, Subdirectory subdir)
 {
 	std::string src = srcParam;
@@ -615,11 +603,6 @@ static void TarAddLink(const std::string &srcParam, const std::string &destParam
 		const std::string dst_path = (dest.length() == 0 ? "" : ((*dest.rbegin() == PATHSEPCHAR) ? dest : dest + PATHSEPCHAR));
 		_tar_linklist[subdir].insert(TarLinkList::value_type(src_path, dst_path));
 	}
-}
-
-void FioTarAddLink(const char *src, const char *dest, Subdirectory subdir)
-{
-	TarAddLink(src, dest, subdir);
 }
 
 /**
