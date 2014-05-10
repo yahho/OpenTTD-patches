@@ -568,7 +568,7 @@ static void FioCreateDirectory(const char *name)
  * @param buflen the length of \a buf.
  * @return true iff the operation succeeded
  */
-bool AppendPathSeparator(char *buf, size_t buflen)
+static bool AppendPathSeparator (char *buf, size_t buflen)
 {
 	size_t s = strlen(buf);
 
@@ -581,6 +581,43 @@ bool AppendPathSeparator(char *buf, size_t buflen)
 	}
 
 	return true;
+}
+
+/**
+ * Construct a path by concatenating the given parts with intervening and
+ * trailing path separators, and return it in an newly allocated buffer.
+ * @param n the number of components to concatenate
+ * @param parts the strings to concatenate
+ * @return the resulting path, in a buffer allocated with malloc
+ */
+char *BuildDirPath (uint n, const char *const *parts)
+{
+	/* some sanity checks */
+	assert (n > 0);
+	assert (parts[0][0] != '\0'); // the first string must not be empty
+
+	size_t lengths [4];
+	/* change and recompile if you need something bigger */
+	assert (n <= lengthof(lengths));
+
+	size_t total = n + 1; // account for path separators and trailing null
+	for (uint i = 0; i < n; i++) {
+		total += lengths[i] = strlen (parts[i]);
+	}
+
+	char *buf = MallocT<char> (total);
+	char *p = buf;
+
+	for (uint i = 0; i < n; i++) {
+		assert (p + lengths[i] + 1 < buf + total);
+		memcpy (p, parts[i], lengths[i]);
+		p += lengths[i];
+		/* the first string is not empty, so p > buf */
+		if (p[-1] != PATHSEPCHAR) *p++ = PATHSEPCHAR;
+	}
+
+	*p = '\0';
+	return buf;
 }
 
 
@@ -1035,8 +1072,7 @@ static char *dupcwd (void)
 {
 	char tmp [MAX_PATH];
 	if (getcwd (tmp, MAX_PATH) == NULL) *tmp = '\0';
-	AppendPathSeparator (tmp, MAX_PATH);
-	return strdup(tmp);
+	return BuildDirPath (tmp);
 }
 
 /**
@@ -1045,15 +1081,11 @@ static char *dupcwd (void)
  */
 static void DetermineBasePaths(const char *exe)
 {
-	char tmp[MAX_PATH];
 #if defined(WITH_XDG_BASEDIR) && defined(WITH_PERSONAL_DIR)
 	const char *xdg_data_home = xdgDataHome(NULL);
-	snprintf(tmp, MAX_PATH, "%s" PATHSEP "%s", xdg_data_home,
+	_searchpaths[SP_PERSONAL_DIR_XDG] = BuildDirPath (xdg_data_home,
 			PERSONAL_DIR[0] == '.' ? &PERSONAL_DIR[1] : PERSONAL_DIR);
 	free(xdg_data_home);
-
-	AppendPathSeparator(tmp, MAX_PATH);
-	_searchpaths[SP_PERSONAL_DIR_XDG] = strdup(tmp);
 #endif
 #if defined(__MORPHOS__) || defined(__AMIGA__) || defined(DOS) || defined(OS2) || !defined(WITH_PERSONAL_DIR)
 	_searchpaths[SP_PERSONAL_DIR] = NULL;
@@ -1080,10 +1112,7 @@ static void DetermineBasePaths(const char *exe)
 
 	if (homedir != NULL) {
 		ValidateString(homedir);
-		snprintf(tmp, MAX_PATH, "%s" PATHSEP "%s", homedir, PERSONAL_DIR);
-		AppendPathSeparator(tmp, MAX_PATH);
-
-		_searchpaths[SP_PERSONAL_DIR] = strdup(tmp);
+		_searchpaths[SP_PERSONAL_DIR] = BuildDirPath (homedir, PERSONAL_DIR);
 		free(homedir);
 	} else {
 		_searchpaths[SP_PERSONAL_DIR] = NULL;
@@ -1091,9 +1120,7 @@ static void DetermineBasePaths(const char *exe)
 #endif
 
 #if defined(WITH_SHARED_DIR)
-	snprintf(tmp, MAX_PATH, "%s", SHARED_DIR);
-	AppendPathSeparator(tmp, MAX_PATH);
-	_searchpaths[SP_SHARED_DIR] = strdup(tmp);
+	_searchpaths[SP_SHARED_DIR] = BuildDirPath (SHARED_DIR);
 #else
 	_searchpaths[SP_SHARED_DIR] = NULL;
 #endif
@@ -1123,9 +1150,7 @@ static void DetermineBasePaths(const char *exe)
 #if defined(__MORPHOS__) || defined(__AMIGA__) || defined(DOS) || defined(OS2)
 	_searchpaths[SP_INSTALLATION_DIR] = NULL;
 #else
-	snprintf(tmp, MAX_PATH, "%s", GLOBAL_DATA_DIR);
-	AppendPathSeparator(tmp, MAX_PATH);
-	_searchpaths[SP_INSTALLATION_DIR] = strdup(tmp);
+	_searchpaths[SP_INSTALLATION_DIR] = BuildDirPath (GLOBAL_DATA_DIR);
 #endif
 #ifdef WITH_COCOA
 extern void cocoaSetApplicationBundleDir();

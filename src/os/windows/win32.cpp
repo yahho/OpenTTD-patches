@@ -489,15 +489,10 @@ char *getcwd(char *buf, size_t size)
 static const char *DeterminePersonalPath (int csidl)
 {
 #ifdef WITH_PERSONAL_DIR
-	char tmp[MAX_PATH];
 	TCHAR path[MAX_PATH];
 
 	if (SUCCEEDED(OTTDSHGetFolderPath(NULL, csidl, NULL, SHGFP_TYPE_CURRENT, path))) {
-		strecpy(tmp, FS2OTTD(path), lastof(tmp));
-		AppendPathSeparator(tmp, MAX_PATH);
-		ttd_strlcat(tmp, PERSONAL_DIR, MAX_PATH);
-		AppendPathSeparator(tmp, MAX_PATH);
-		return strdup(tmp);
+		return BuildDirPath (FS2OTTD(path), PERSONAL_DIR);
 	} else {
 		return NULL;
 	}
@@ -516,8 +511,7 @@ void DetermineBasePaths(const char *exe)
 
 	/* Get the path to working directory of OpenTTD */
 	getcwd(tmp, lengthof(tmp));
-	AppendPathSeparator(tmp, MAX_PATH);
-	_searchpaths[SP_WORKING_DIR] = strdup(tmp);
+	_searchpaths[SP_WORKING_DIR] = BuildDirPath (tmp);
 
 	if (!GetModuleFileName(NULL, path, lengthof(path))) {
 		DEBUG(misc, 0, "GetModuleFileName failed (%lu)\n", GetLastError());

@@ -59,7 +59,20 @@ char *FioGetDirectory(char *buf, size_t buflen, Subdirectory subdir);
 const char *FiosGetScreenshotDir();
 
 void SanitizeFilename(char *filename);
-bool AppendPathSeparator(char *buf, size_t buflen);
+
+char *BuildDirPath (uint n, const char *const *parts);
+
+static inline char *BuildDirPath (const char *part0)
+{
+	return BuildDirPath (1, &part0);
+}
+
+static inline char *BuildDirPath (const char *part0, const char *part1)
+{
+	const char *const parts [2] = { part0, part1 };
+	return BuildDirPath (2, parts);
+}
+
 void DeterminePaths(const char *exe);
 void *ReadFileToMem(const char *filename, size_t *lenp, size_t maxsize);
 bool FileExists(const char *filename);
