@@ -1030,6 +1030,15 @@ static bool DoScanWorkingDirectory()
 	return strcmp(tmp, _searchpaths[SP_PERSONAL_DIR]) != 0;
 }
 
+/** strdup the current working directory, with a trailing path separator. */
+static char *dupcwd (void)
+{
+	char tmp [MAX_PATH];
+	if (getcwd (tmp, MAX_PATH) == NULL) *tmp = '\0';
+	AppendPathSeparator (tmp, MAX_PATH);
+	return strdup(tmp);
+}
+
 /**
  * Determine the base (personal dir and game data dir) paths
  * @param exe the path to the executable
@@ -1092,18 +1101,14 @@ static void DetermineBasePaths(const char *exe)
 #if defined(__MORPHOS__) || defined(__AMIGA__)
 	_searchpaths[SP_WORKING_DIR] = NULL;
 #else
-	if (getcwd(tmp, MAX_PATH) == NULL) *tmp = '\0';
-	AppendPathSeparator(tmp, MAX_PATH);
-	_searchpaths[SP_WORKING_DIR] = strdup(tmp);
+	_searchpaths[SP_WORKING_DIR] = dupcwd();
 #endif
 
 	_do_scan_working_directory = DoScanWorkingDirectory();
 
 	/* Change the working directory to that one of the executable */
 	if (ChangeWorkingDirectoryToExecutable(exe)) {
-		if (getcwd(tmp, MAX_PATH) == NULL) *tmp = '\0';
-		AppendPathSeparator(tmp, MAX_PATH);
-		_searchpaths[SP_BINARY_DIR] = strdup(tmp);
+		_searchpaths[SP_BINARY_DIR] = dupcwd();
 	} else {
 		_searchpaths[SP_BINARY_DIR] = NULL;
 	}
