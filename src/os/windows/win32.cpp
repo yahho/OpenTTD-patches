@@ -486,34 +486,33 @@ char *getcwd(char *buf, size_t size)
 }
 
 
+static const char *DeterminePersonalPath (int csidl)
+{
+#ifdef WITH_PERSONAL_DIR
+	char tmp[MAX_PATH];
+	TCHAR path[MAX_PATH];
+
+	if (SUCCEEDED(OTTDSHGetFolderPath(NULL, csidl, NULL, SHGFP_TYPE_CURRENT, path))) {
+		strecpy(tmp, FS2OTTD(path), lastof(tmp));
+		AppendPathSeparator(tmp, MAX_PATH);
+		ttd_strlcat(tmp, PERSONAL_DIR, MAX_PATH);
+		AppendPathSeparator(tmp, MAX_PATH);
+		return strdup(tmp);
+	} else {
+		return NULL;
+	}
+#else
+	return NULL;
+#endif
+}
+
 void DetermineBasePaths(const char *exe)
 {
 	char tmp[MAX_PATH];
 	TCHAR path[MAX_PATH];
-#ifdef WITH_PERSONAL_DIR
-	if (SUCCEEDED(OTTDSHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, path))) {
-		strecpy(tmp, FS2OTTD(path), lastof(tmp));
-		AppendPathSeparator(tmp, MAX_PATH);
-		ttd_strlcat(tmp, PERSONAL_DIR, MAX_PATH);
-		AppendPathSeparator(tmp, MAX_PATH);
-		_searchpaths[SP_PERSONAL_DIR] = strdup(tmp);
-	} else {
-		_searchpaths[SP_PERSONAL_DIR] = NULL;
-	}
 
-	if (SUCCEEDED(OTTDSHGetFolderPath(NULL, CSIDL_COMMON_DOCUMENTS, NULL, SHGFP_TYPE_CURRENT, path))) {
-		strecpy(tmp, FS2OTTD(path), lastof(tmp));
-		AppendPathSeparator(tmp, MAX_PATH);
-		ttd_strlcat(tmp, PERSONAL_DIR, MAX_PATH);
-		AppendPathSeparator(tmp, MAX_PATH);
-		_searchpaths[SP_SHARED_DIR] = strdup(tmp);
-	} else {
-		_searchpaths[SP_SHARED_DIR] = NULL;
-	}
-#else
-	_searchpaths[SP_PERSONAL_DIR] = NULL;
-	_searchpaths[SP_SHARED_DIR]   = NULL;
-#endif
+	_searchpaths[SP_PERSONAL_DIR] = DeterminePersonalPath (CSIDL_PERSONAL);
+	_searchpaths[SP_SHARED_DIR]   = DeterminePersonalPath (CSIDL_COMMON_DOCUMENTS);
 
 	/* Get the path to working directory of OpenTTD */
 	getcwd(tmp, lengthof(tmp));
