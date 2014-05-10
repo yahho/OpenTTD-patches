@@ -522,7 +522,7 @@ static FiosType FiosGetHeightmapListCallback(SaveLoadDialogMode mode, const char
 		Searchpath sp;
 		FOR_ALL_SEARCHPATHS(sp) {
 			char buf[MAX_PATH];
-			FioAppendDirectory(buf, sizeof(buf), sp, HEIGHTMAP_DIR);
+			FioGetFullPath (buf, sizeof(buf), sp, HEIGHTMAP_DIR);
 
 			if (strncmp(buf, it->second.tar_filename, strlen(buf)) == 0) {
 				match = true;

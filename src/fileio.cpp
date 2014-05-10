@@ -342,13 +342,12 @@ void FioFCloseFile(FILE *f)
 	fclose(f);
 }
 
-char *FioGetFullPath(char *buf, size_t buflen, Searchpath sp, Subdirectory subdir, const char *filename)
+int FioGetFullPath (char *buf, size_t buflen, Searchpath sp, Subdirectory subdir, const char *filename)
 {
 	assert(subdir < NUM_SUBDIRS);
 	assert(sp < NUM_SEARCHPATHS);
 
-	snprintf(buf, buflen, "%s%s%s", _searchpaths[sp], _subdirs[subdir], filename);
-	return buf;
+	return snprintf (buf, buflen, "%s%s%s", _searchpaths[sp], _subdirs[subdir], filename != NULL ? filename : "");
 }
 
 /**
@@ -378,23 +377,14 @@ char *FioFindFullPath(char *buf, size_t buflen, Subdirectory subdir, const char 
 	return NULL;
 }
 
-char *FioAppendDirectory(char *buf, size_t buflen, Searchpath sp, Subdirectory subdir)
-{
-	assert(subdir < NUM_SUBDIRS);
-	assert(sp < NUM_SEARCHPATHS);
-
-	snprintf(buf, buflen, "%s%s", _searchpaths[sp], _subdirs[subdir]);
-	return buf;
-}
-
 char *FioGetDirectory(char *buf, size_t buflen, Subdirectory subdir)
 {
 	Searchpath sp;
 
 	/* Find and return the first valid directory */
 	FOR_ALL_SEARCHPATHS(sp) {
-		char *ret = FioAppendDirectory(buf, buflen, sp, subdir);
-		if (FileExists(buf)) return ret;
+		FioGetFullPath (buf, buflen, sp, subdir);
+		if (FileExists(buf)) return buf;
 	}
 
 	/* Could not find the directory, fall back to a base path */
@@ -1434,7 +1424,7 @@ uint FileScanner::Scan(const char *extension, Subdirectory sd, bool tars, bool r
 		/* Don't search in the working directory */
 		if (sp == SP_WORKING_DIR && !_do_scan_working_directory) continue;
 
-		FioAppendDirectory(path, MAX_PATH, sp, sd);
+		FioGetFullPath (path, MAX_PATH, sp, sd);
 		num += ScanPath(this, extension, path, strlen(path), recursive);
 	}
 

@@ -1952,7 +1952,7 @@ void InitializeLanguagePacks()
 
 	FOR_ALL_SEARCHPATHS(sp) {
 		char path[MAX_PATH];
-		FioAppendDirectory(path, lengthof(path), sp, LANG_DIR);
+		FioGetFullPath (path, lengthof(path), sp, LANG_DIR);
 		GetLanguageList(path);
 	}
 	if (_languages.Length() == 0) usererror("No available language packs (invalid versions?)");
