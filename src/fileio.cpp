@@ -1168,15 +1168,7 @@ void DeterminePaths(const char *exe)
 	const char *config_dir;
 	if (_config_file != NULL) {
 		char *end = strrchr(_config_file, PATHSEPCHAR);
-		if (end == NULL) {
-			config_dir = "";
-		} else {
-			size_t n = (end - _config_file) + 1;
-			char *dir = (char*)malloc(n + 1);
-			memcpy(dir, _config_file, n);
-			dir[n] = '\0';
-			config_dir = dir;
-		}
+		config_dir = (end == NULL) ? "" : strndup (_config_file, end - _config_file);
 	} else {
 		char personal_dir[MAX_PATH];
 		if (FioFindFullPath(personal_dir, lengthof(personal_dir), BASE_DIR, "openttd.cfg") != NULL) {
