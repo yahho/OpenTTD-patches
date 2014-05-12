@@ -669,19 +669,23 @@ void ClientNetworkContentSocketHandler::OnReceiveData(const char *data, size_t l
 		check_not_null(p);
 		p++; // Start after the '/'
 
-		char tmp[MAX_PATH];
-		if (strecpy(tmp, p, lastof(tmp)) == lastof(tmp)) {
+		/* Remove two extensions from the string. */
+		const char *last_dot = NULL;
+		const char *prev_dot = NULL;
+		for (const char *scan = p; *scan != '\0'; scan++) {
+			if (*scan == '.') {
+				prev_dot = last_dot;
+				last_dot = scan;
+			}
+		}
+
+		if (prev_dot == NULL) {
 			this->OnFailure();
 			return;
 		}
-		/* Remove the extension from the string. */
-		for (uint i = 0; i < 2; i++) {
-			p = strrchr(tmp, '.');
-			check_and_terminate(p);
-		}
 
 		/* Copy the string, without extension, to the filename. */
-		strecpy(this->curInfo->filename, tmp, lastof(this->curInfo->filename));
+		seprintf(this->curInfo->filename, lastof(this->curInfo->filename), "%.*s", (int)(prev_dot - p), p);
 
 		/* Request the next file. */
 		if (!this->BeforeDownload()) {
