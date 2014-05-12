@@ -224,16 +224,25 @@ void ServerNetworkUDPSocketHandler::Receive_CLIENT_DETAIL_INFO(Packet *p, Networ
 
 		/* At this moment the company names might not fit in the
 		 * packet. Check whether that is really the case. */
+		size_t name_lengths [MAX_COMPANIES];
+		Company *company;
+		FOR_ALL_COMPANIES(company) {
+			char company_name[NETWORK_COMPANY_NAME_LENGTH];
+			SetDParam(0, company->index);
+			GetString(company_name, STR_COMPANY_NAME, lastof(company_name));
+			name_lengths[company->index] = strlen (company_name);
+		}
 
 		for (;;) {
 			int free = SEND_MTU - packet.size;
-			Company *company;
 			FOR_ALL_COMPANIES(company) {
-				char company_name[NETWORK_COMPANY_NAME_LENGTH];
-				SetDParam(0, company->index);
-				GetString(company_name, STR_COMPANY_NAME, company_name + max_cname_length - 1);
 				free -= MIN_CI_SIZE;
-				free -= (int)strlen(company_name);
+				size_t name_length = name_lengths[company->index];
+				if (name_length >= max_cname_length) {
+					free -= max_cname_length - 1;
+				} else {
+					free -= name_length;
+				}
 			}
 			if (free >= 0) break;
 
