@@ -234,17 +234,17 @@ void ServerNetworkUDPSocketHandler::Receive_CLIENT_DETAIL_INFO(Packet *p, Networ
 		}
 
 		for (;;) {
-			int free = SEND_MTU - packet.size;
+			size_t size = packet.size;
 			FOR_ALL_COMPANIES(company) {
-				free -= MIN_CI_SIZE;
+				size += MIN_CI_SIZE;
 				size_t name_length = name_lengths[company->index];
 				if (name_length >= max_cname_length) {
-					free -= max_cname_length - 1;
+					size += max_cname_length - 1;
 				} else {
-					free -= name_length;
+					size += name_length;
 				}
 			}
-			if (free >= 0) break;
+			if (size <= SEND_MTU) break;
 
 			/* Try again, with slightly shorter strings. */
 			assert(max_cname_length > 0);
