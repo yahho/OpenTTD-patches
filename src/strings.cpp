@@ -379,9 +379,9 @@ static char *FormatBytes(char *buff, int64 number, const char *last)
 		return buff;
 	}
 
-	/*                                   1   2^10  2^20  2^30  2^40  2^50  2^60 */
-	const char * const iec_prefixes[] = {"", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei"};
-	uint id = 1;
+	/*                                 2^10 2^20 2^30 2^40 2^50 2^60 */
+	static const char iec_prefixes[] = {'K', 'M', 'G', 'T', 'P', 'E'};
+	uint id = 0;
 	while (number >= 1024 * 1024) {
 		number /= 1024;
 		id++;
@@ -400,7 +400,7 @@ static char *FormatBytes(char *buff, int64 number, const char *last)
 	}
 
 	assert(id < lengthof(iec_prefixes));
-	buff += seprintf(buff, last, " %sB", iec_prefixes[id]);
+	buff += seprintf(buff, last, " %ciB", iec_prefixes[id]);
 
 	return buff;
 }
