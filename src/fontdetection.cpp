@@ -69,7 +69,7 @@ const char *GetShortPath(const TCHAR *long_path)
  * font for all font sizes */
 #define FONT_DIR_NT "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts"
 #define FONT_DIR_9X "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Fonts"
-FT_Error GetFontByFaceName(const char *font_name, FT_Face *face)
+static FT_Error GetFontByFaceName (const char *font_name, const char *alt_name, FT_Face *face)
 {
 	FT_Error err = FT_Err_Cannot_Open_Resource;
 	HKEY hKey;
@@ -144,7 +144,7 @@ FT_Error GetFontByFaceName(const char *font_name, FT_Face *face)
 
 		if (strncasecmp(font_name, (*face)->family_name, strlen((*face)->family_name)) == 0) break;
 		/* Try english name if font name failed */
-		if (strncasecmp(font_name + strlen(font_name) + 1, (*face)->family_name, strlen((*face)->family_name)) == 0) break;
+		if (alt_name != NULL && strncasecmp(alt_name, (*face)->family_name, strlen((*face)->family_name)) == 0) break;
 		err = FT_Err_Cannot_Open_Resource;
 
 	} while ((FT_Long)++index != (*face)->num_faces);
@@ -155,6 +155,11 @@ registry_no_font_found:
 	free(font_namep);
 	RegCloseKey(hKey);
 	return err;
+}
+
+FT_Error GetFontByFaceName (const char *font_name, FT_Face *face)
+{
+	return GetFontByFaceName (font_name, NULL, face);
 }
 
 /**
@@ -317,14 +322,13 @@ static int CALLBACK EnumFontCallback(const ENUMLOGFONTEX *logfont, const NEWTEXT
 
 	/* Add english name after font name */
 	const char *english_name = GetEnglishFontName(logfont);
-	strecpy(font_name + strlen(font_name) + 1, english_name, lastof(font_name));
 
 	/* Check whether we can actually load the font. */
 	bool ft_init = _library != NULL;
 	bool found = false;
 	FT_Face face;
 	/* Init FreeType if needed. */
-	if ((ft_init || FT_Init_FreeType(&_library) == FT_Err_Ok) && GetFontByFaceName(font_name, &face) == FT_Err_Ok) {
+	if ((ft_init || FT_Init_FreeType(&_library) == FT_Err_Ok) && GetFontByFaceName (font_name, english_name, &face) == FT_Err_Ok) {
 		FT_Done_Face(face);
 		found = true;
 	}
