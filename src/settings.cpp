@@ -289,11 +289,10 @@ static void MakeOneOfMany(char *buf, const char *last, const char *many, int id)
 
 	/* Look for the id'th element */
 	while (--id >= 0) {
-		for (; *many != '|'; many++) {
-			if (*many == '\0') { // not found
-				seprintf(buf, last, "%d", orig_id);
-				return;
-			}
+		many = strchr (many, '|');
+		if (many == NULL) { // not found
+			seprintf(buf, last, "%d", orig_id);
+			return;
 		}
 		many++; // pass the |-character
 	}
