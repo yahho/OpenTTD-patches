@@ -250,14 +250,16 @@ static bool LoadIntList(const char *str, void *array, int nelems, VarType type)
 /**
  * Convert an integer-array (intlist) to a string representation. Each value
  * is separated by a comma or a space character
- * @param buf output buffer where the string-representation will be stored
- * @param last last item to write to in the output buffer
  * @param array pointer to the integer-arrays that is read from
  * @param nelems the number of elements the array holds.
  * @param type the type of elements the array holds (eg INT8, UINT16, etc.)
+ * @return the string representation in newly-allocated storage
  */
-static void MakeIntList(char *buf, const char *last, const void *array, int nelems, VarType type)
+static char *MakeIntList (const void *array, int nelems, VarType type)
 {
+	char buffer[512];
+	char *buf = buffer;
+
 	int i, v = 0;
 	const byte *p = (const byte *)array;
 
@@ -272,18 +274,19 @@ static void MakeIntList(char *buf, const char *last, const void *array, int nele
 			case SLE_VAR_U32: v = *(const uint32 *)p; p += 4; break;
 			default: NOT_REACHED();
 		}
-		buf += seprintf(buf, last, (i == 0) ? "%d" : ",%d", v);
+		buf += seprintf(buf, lastof(buffer), (i == 0) ? "%d" : ",%d", v);
 	}
+
+	return strdup (buffer);
 }
 
 /**
  * Convert a ONEofMANY structure to a string representation.
- * @param buf output buffer where the string-representation will be stored
- * @param last last item to write to in the output buffer
  * @param many the full-domain string of possible values
  * @param id the value of the variable and whose string-representation must be found
+ * @return the string representation in newly-allocated storage
  */
-static void MakeOneOfMany(char *buf, const char *last, const char *many, int id)
+static char *MakeOneOfMany (const char *many, int id)
 {
 	int orig_id = id;
 
@@ -291,40 +294,42 @@ static void MakeOneOfMany(char *buf, const char *last, const char *many, int id)
 	while (--id >= 0) {
 		many = strchr (many, '|');
 		if (many == NULL) { // not found
-			seprintf(buf, last, "%d", orig_id);
-			return;
+			return str_fmt ("%d", orig_id);
 		}
 		many++; // pass the |-character
 	}
 
 	/* copy string until next item (|) or the end of the list if this is the last one */
-	while (*many != '\0' && *many != '|' && buf < last) *buf++ = *many++;
-	*buf = '\0';
+	const char *end = strchr (many, '|');
+	if (end == NULL) {
+		return strdup (many);
+	} else {
+		return strndup (many, end - many);
+	}
 }
 
 /**
  * Convert a MANYofMANY structure to a string representation.
- * @param buf output buffer where the string-representation will be stored
- * @param last last item to write to in the output buffer
  * @param many the full-domain string of possible values
  * @param x the value of the variable and whose string-representation must
  *        be found in the bitmasked many string
+ * @return the string representation in newly-allocated storage
  */
-static void MakeManyOfMany(char *buf, const char *last, const char *many, uint32 x)
+static char *MakeManyOfMany (const char *many, uint32 x)
 {
-	const char *start;
+	char buffer[512];
+	char *buf = buffer;
+
 	int i = 0;
-	bool init = true;
 
 	for (; x != 0; x >>= 1, i++) {
-		start = many;
+		const char *start = many;
 		while (*many != 0 && *many != '|') many++; // advance to the next element
 
 		if (HasBit(x, 0)) { // item found, copy it
-			if (!init) buf += seprintf(buf, last, "|");
-			init = false;
+			if (buf != buffer) buf += seprintf(buf, lastof(buffer), "|");
 			if (start == many) {
-				buf += seprintf(buf, last, "%d", i);
+				buf += seprintf(buf, lastof(buffer), "%d", i);
 			} else {
 				memcpy(buf, start, many - start);
 				buf += many - start;
@@ -335,6 +340,8 @@ static void MakeManyOfMany(char *buf, const char *last, const char *many, uint32
 	}
 
 	*buf = '\0';
+
+	return strdup (buffer);
 }
 
 /**
@@ -569,7 +576,6 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 {
 	IniGroup *group_def = NULL, *group;
 	IniItem *item;
-	char buf[512];
 	const char *s;
 	void *ptr;
 
@@ -637,6 +643,7 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 		}
 
 		/* Value has changed, get the new value and put it into a buffer */
+		char *new_value;
 		switch (sdb->cmd) {
 			case SDT_BOOLX:
 			case SDT_NUMX:
@@ -645,10 +652,10 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 				uint32 i = (uint32)ReadValue(ptr, sld->conv);
 
 				switch (sdb->cmd) {
-					case SDT_BOOLX:      strecpy(buf, (i != 0) ? "true" : "false", lastof(buf)); break;
-					case SDT_NUMX:       seprintf(buf, lastof(buf), IsSignedVarMemType(sld->conv) ? "%d" : "%u", i); break;
-					case SDT_ONEOFMANY:  MakeOneOfMany(buf, lastof(buf), sdb->many, i); break;
-					case SDT_MANYOFMANY: MakeManyOfMany(buf, lastof(buf), sdb->many, i); break;
+					case SDT_BOOLX:      new_value = strdup ((i != 0) ? "true" : "false"); break;
+					case SDT_NUMX:       new_value = str_fmt (IsSignedVarMemType(sld->conv) ? "%d" : "%u", i); break;
+					case SDT_ONEOFMANY:  new_value = MakeOneOfMany  (sdb->many, i); break;
+					case SDT_MANYOFMANY: new_value = MakeManyOfMany (sdb->many, i); break;
 					default: NOT_REACHED();
 				}
 				break;
@@ -658,8 +665,9 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 				if (sld->type != SL_STR) {
 					assert(sld->type == SL_VAR);
 					assert(GetVarMemType(sld->conv) == SLE_VAR_CHAR);
-					buf[0] = *(char*)ptr;
-					buf[1] = '\0';
+					new_value = MallocT<char> (2);
+					new_value[0] = *(char*)ptr;
+					new_value[1] = '\0';
 				} else {
 					const char *s;
 
@@ -671,18 +679,18 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 
 					if (sld->conv & SLS_QUOTED) {
 						if (s == NULL) {
-							buf[0] = '\0';
+							new_value = strdup ("");
 						} else {
-							seprintf(buf, lastof(buf), "\"%s\"", s);
+							new_value = str_fmt ("\"%s\"", s);
 						}
 					} else {
-						strecpy(buf, s, lastof(buf));
+						new_value = strdup (s);
 					}
 				}
 				break;
 
 			case SDT_INTLIST:
-				MakeIntList(buf, lastof(buf), ptr, sld->length, GetVarMemType(sld->conv));
+				new_value = MakeIntList (ptr, sld->length, GetVarMemType(sld->conv));
 				break;
 
 			default: NOT_REACHED();
@@ -690,7 +698,7 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 
 		/* The value is different, that means we have to write it to the ini */
 		free(item->value);
-		item->value = strdup(buf);
+		item->value = new_value;
 	}
 }
 
