@@ -432,7 +432,7 @@ static int DrawLayoutLine(const ParagraphLayouter::Line *line, int y, int left, 
 		int dpi_left  = dpi->left;
 		int dpi_right = dpi->left + dpi->width - 1;
 
-		draw_shadow = fc->GetDrawGlyphShadow() && colour != TC_BLACK;
+		draw_shadow = colour != TC_BLACK && fc->GetDrawGlyphShadow();
 
 		for (int i = 0; i < run->GetGlyphCount(); i++) {
 			GlyphID glyph = run->GetGlyphs()[i];
