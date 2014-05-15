@@ -72,16 +72,16 @@ private:
 public:
 	SpriteFontCache(FontSize fs);
 	~SpriteFontCache();
-	virtual SpriteID GetUnicodeGlyph(WChar key);
+	virtual SpriteID GetUnicodeGlyph(WChar key) const;
 	virtual void SetUnicodeGlyph(WChar key, SpriteID sprite);
 	virtual void InitializeUnicodeGlyphMap();
 	virtual void ClearFontCache();
 	virtual const Sprite *GetGlyph(GlyphID key);
 	virtual uint GetGlyphWidth(GlyphID key);
-	virtual bool GetDrawGlyphShadow();
-	virtual GlyphID MapCharToGlyph(WChar key) { assert(IsPrintable(key)); return SPRITE_GLYPH | key; }
+	virtual bool GetDrawGlyphShadow() const;
+	virtual GlyphID MapCharToGlyph(WChar key) const { assert(IsPrintable(key)); return SPRITE_GLYPH | key; }
 	virtual const void *GetFontTable(uint32 tag, size_t &length) { length = 0; return NULL; }
-	virtual const char *GetFontName() { return "sprite"; }
+	virtual const char *GetFontName() const { return "sprite"; }
 };
 
 /**
@@ -101,7 +101,7 @@ SpriteFontCache::~SpriteFontCache()
 	this->ClearGlyphToSpriteMap();
 }
 
-SpriteID SpriteFontCache::GetUnicodeGlyph(GlyphID key)
+SpriteID SpriteFontCache::GetUnicodeGlyph(GlyphID key) const
 {
 	if (this->glyph_to_spriteid_map[GB(key, 8, 8)] == NULL) return 0;
 	return this->glyph_to_spriteid_map[GB(key, 8, 8)][GB(key, 0, 8)];
@@ -182,7 +182,7 @@ uint SpriteFontCache::GetGlyphWidth(GlyphID key)
 	return SpriteExists(sprite) ? GetSprite(sprite, ST_FONT)->width + (this->fs != FS_NORMAL) : 0;
 }
 
-bool SpriteFontCache::GetDrawGlyphShadow()
+bool SpriteFontCache::GetDrawGlyphShadow() const
 {
 	return false;
 }
@@ -231,16 +231,16 @@ private:
 public:
 	FreeTypeFontCache(FontSize fs, FT_Face face, int pixels);
 	~FreeTypeFontCache();
-	virtual SpriteID GetUnicodeGlyph(WChar key) { return this->parent->GetUnicodeGlyph(key); }
+	virtual SpriteID GetUnicodeGlyph(WChar key) const { return this->parent->GetUnicodeGlyph(key); }
 	virtual void SetUnicodeGlyph(WChar key, SpriteID sprite) { this->parent->SetUnicodeGlyph(key, sprite); }
 	virtual void InitializeUnicodeGlyphMap() { this->parent->InitializeUnicodeGlyphMap(); }
 	virtual void ClearFontCache();
 	virtual const Sprite *GetGlyph(GlyphID key);
 	virtual uint GetGlyphWidth(GlyphID key);
-	virtual bool GetDrawGlyphShadow();
-	virtual GlyphID MapCharToGlyph(WChar key);
+	virtual bool GetDrawGlyphShadow() const;
+	virtual GlyphID MapCharToGlyph(WChar key) const;
 	virtual const void *GetFontTable(uint32 tag, size_t &length);
-	virtual const char *GetFontName() { return face->family_name; }
+	virtual const char *GetFontName() const { return face->family_name; }
 };
 
 FT_Library _library = NULL;
@@ -572,7 +572,7 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 }
 
 
-bool FreeTypeFontCache::GetDrawGlyphShadow()
+bool FreeTypeFontCache::GetDrawGlyphShadow() const
 {
 	return this->fs == FS_NORMAL && GetFontAAState(FS_NORMAL);
 }
@@ -591,7 +591,7 @@ uint FreeTypeFontCache::GetGlyphWidth(GlyphID key)
 	return glyph->width;
 }
 
-GlyphID FreeTypeFontCache::MapCharToGlyph(WChar key)
+GlyphID FreeTypeFontCache::MapCharToGlyph(WChar key) const
 {
 	assert(IsPrintable(key));
 

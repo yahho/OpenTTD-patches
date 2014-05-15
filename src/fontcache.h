@@ -69,7 +69,7 @@ public:
 	 * @param key The key to get the sprite for.
 	 * @return The sprite.
 	 */
-	virtual SpriteID GetUnicodeGlyph(WChar key) = 0;
+	virtual SpriteID GetUnicodeGlyph(WChar key) const = 0;
 
 	/**
 	 * Map a SpriteID to the key
@@ -102,14 +102,14 @@ public:
 	 * Do we need to draw a glyph shadow?
 	 * @return True if it has to be done, otherwise false.
 	 */
-	virtual bool GetDrawGlyphShadow() = 0;
+	virtual bool GetDrawGlyphShadow() const = 0;
 
 	/**
 	 * Map a character into a glyph.
 	 * @param key The character.
 	 * @return The glyph ID used to draw the character.
 	 */
-	virtual GlyphID MapCharToGlyph(WChar key) = 0;
+	virtual GlyphID MapCharToGlyph(WChar key) const = 0;
 
 	/**
 	 * Read a font table from the font.
@@ -123,7 +123,7 @@ public:
 	 * Get the name of this font.
 	 * @return The name of the font.
 	 */
-	virtual const char *GetFontName() = 0;
+	virtual const char *GetFontName() const = 0;
 
 	/**
 	 * Get the font cache of a given font size.
@@ -139,7 +139,7 @@ public:
 	/**
 	 * Check whether the font cache has a parent.
 	 */
-	inline bool HasParent()
+	inline bool HasParent() const
 	{
 		return this->parent != NULL;
 	}
