@@ -21,7 +21,13 @@
 bool ScriptScanner::AddFile(const char *filename, size_t basepath_length, const char *tar_filename)
 {
 	free(this->main_script);
-	this->main_script = strdup(filename);
+
+	const char *sep = strrchr (filename, PATHSEPCHAR);
+	if (sep == NULL) {
+		this->main_script = strdup ("main.nut");
+	} else {
+		this->main_script = str_fmt ("%.*smain.nut", (int)(sep - filename + 1), filename);
+	}
 	if (this->main_script == NULL) return false;
 
 	free(this->tar_file);
@@ -31,17 +37,6 @@ bool ScriptScanner::AddFile(const char *filename, size_t basepath_length, const 
 	} else {
 		this->tar_file = NULL;
 	}
-
-	const char *end = this->main_script + strlen(this->main_script) + 1;
-	char *p = strrchr(this->main_script, PATHSEPCHAR);
-	if (p == NULL) {
-		p = this->main_script;
-	} else {
-		/* Skip over the path separator character. We don't need that. */
-		p++;
-	}
-
-	strecpy(p, "main.nut", end);
 
 	if (!FioCheckFileExists(filename, this->subdir) || !FioCheckFileExists(this->main_script, this->subdir)) return false;
 
