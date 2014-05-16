@@ -329,7 +329,7 @@ static const SaveLoad _company_desc[] = {
 
 	SLE_VAR(CompanyProperties, colour,                SLE_UINT8),
 	SLE_VAR(CompanyProperties, money_fraction,        SLE_UINT8),
-	SLE_VAR(CompanyProperties, avail_railtypes,       SLE_UINT8,                   , ,   0,  57),
+	SLE_VAR(CompanyProperties, avail_railtypes,       SLE_VAR_I32 | SLE_FILE_I8,   , ,   0,  57),
 	SLE_VAR(CompanyProperties, block_preview,         SLE_UINT8),
 
 	SLE_NULL(2, , ,  0,  93), ///< cargo_types
