@@ -15,8 +15,8 @@
 #include "saveload_buffer.h"
 
 static const SaveLoad _goals_desc[] = {
-	SLE_VAR(Goal, company,   SLE_UINT16),
-	SLE_VAR(Goal, type,      SLE_UINT16),
+	SLE_VAR(Goal, company,   SLE_FILE_U16 | SLE_VAR_U8),
+	SLE_VAR(Goal, type,      SLE_FILE_U16 | SLE_VAR_U8),
 	SLE_VAR(Goal, dst,       SLE_UINT32),
 	SLE_STR(Goal, text,      SLS_STR | SLS_ALLOW_CONTROL, 0),
 	SLE_STR(Goal, progress,  SLS_STR | SLS_ALLOW_CONTROL, 0, 0, , 182, ),
