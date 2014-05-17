@@ -14,7 +14,8 @@
 
 #include "string_type.h"
 #include "strings_type.h"
-#include "string_base.h"
+
+class StringIterator;
 
 /**
  * Return values for Textbuf::HandleKeypress

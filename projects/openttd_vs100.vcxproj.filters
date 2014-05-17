@@ -1008,9 +1008,6 @@
     <ClInclude Include="..\src\strgen\strgen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\string_base.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\string_func.h">
       <Filter>Header Files</Filter>
     </ClInclude>

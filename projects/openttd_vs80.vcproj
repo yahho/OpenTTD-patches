@@ -2287,10 +2287,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\string_base.h"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\string_func.h"
 				>
 			</File>
