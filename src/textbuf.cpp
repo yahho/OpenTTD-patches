@@ -33,9 +33,8 @@ bool GetClipboardContents(char *buffer, size_t buff_len);
 int _caret_timer;
 
 
-/** Class for iterating over different kind of parts of a string. */
-class StringIterator {
-public:
+/** Base class for iterating over different kind of parts of a string. */
+struct BaseStringIterator {
 	/** Type of the iterator. */
 	enum IterType {
 		ITER_CHARACTER, ///< Iterate over characters (or more exactly grapheme clusters).
@@ -44,44 +43,6 @@ public:
 
 	/** Sentinel to indicate end-of-iteration. */
 	static const size_t END = SIZE_MAX;
-
-	/**
-	 * Create a new iterator instance.
-	 * @return New iterator instance.
-	 */
-	static StringIterator *Create();
-
-	virtual ~StringIterator() {}
-
-	/**
-	 * Set a new iteration string. Must also be called if the string contents
-	 * changed. The cursor is reset to the start of the string.
-	 * @param s New string.
-	 */
-	virtual void SetString(const char *s) = 0;
-
-	/**
-	 * Change the current string cursor.
-	 * @param p New cursor position.
-	 * @return Actual new cursor position at the next valid character boundary.
-	 * @pre p has to be inside the current string.
-	 */
-	virtual size_t SetCurPosition(size_t pos) = 0;
-
-	/**
-	 * Advance the cursor by one iteration unit.
-	 * @return New cursor position (in bytes) or #END if the cursor is already at the end of the string.
-	 */
-	virtual size_t Next(IterType what = ITER_CHARACTER) = 0;
-
-	/**
-	 * Move the cursor back by one iteration unit.
-	 * @return New cursor position (in bytes) or #END if the cursor is already at the start of the string.
-	 */
-	virtual size_t Prev(IterType what = ITER_CHARACTER) = 0;
-
-protected:
-	StringIterator() {}
 };
 
 
@@ -91,7 +52,7 @@ protected:
 #include <unicode/brkiter.h>
 
 /** String iterator using ICU as a backend. */
-class IcuStringIterator : public StringIterator
+class IcuStringIterator : public BaseStringIterator
 {
 	icu::BreakIterator *char_itr; ///< ICU iterator for characters.
 	icu::BreakIterator *word_itr; ///< ICU iterator for words.
@@ -111,13 +72,13 @@ public:
 		*this->utf16_to_utf8.Append() = 0;
 	}
 
-	virtual ~IcuStringIterator()
+	~IcuStringIterator()
 	{
 		delete this->char_itr;
 		delete this->word_itr;
 	}
 
-	virtual void SetString(const char *s)
+	void SetString(const char *s)
 	{
 		this->string = s;
 
@@ -154,7 +115,7 @@ public:
 		this->word_itr->first();
 	}
 
-	virtual size_t SetCurPosition(size_t pos)
+	size_t SetCurPosition(size_t pos)
 	{
 		/* Convert incoming position to an UTF-16 string index. */
 		uint utf16_pos = 0;
@@ -172,7 +133,7 @@ public:
 		return this->utf16_to_utf8[this->char_itr->current()];
 	}
 
-	virtual size_t Next(IterType what)
+	size_t Next(IterType what)
 	{
 		int32_t pos;
 		switch (what) {
@@ -204,7 +165,7 @@ public:
 		return pos == icu::BreakIterator::DONE ? END : this->utf16_to_utf8[pos];
 	}
 
-	virtual size_t Prev(IterType what)
+	size_t Prev(IterType what)
 	{
 		int32_t pos;
 		switch (what) {
@@ -237,15 +198,10 @@ public:
 	}
 };
 
-/* static */ StringIterator *StringIterator::Create()
-{
-	return new IcuStringIterator();
-}
-
 #else
 
 /** Fallback simple string iterator. */
-class DefaultStringIterator : public StringIterator
+class DefaultStringIterator : public BaseStringIterator
 {
 	const char *string; ///< Current string.
 	size_t len;         ///< String length.
@@ -256,14 +212,14 @@ public:
 	{
 	}
 
-	virtual void SetString(const char *s)
+	void SetString(const char *s)
 	{
 		this->string = s;
 		this->len = strlen(s);
 		this->cur_pos = 0;
 	}
 
-	virtual size_t SetCurPosition(size_t pos)
+	size_t SetCurPosition(size_t pos)
 	{
 		assert(this->string != NULL && pos <= this->len);
 		/* Sanitize in case we get a position inside an UTF-8 sequence. */
@@ -271,7 +227,7 @@ public:
 		return this->cur_pos = pos;
 	}
 
-	virtual size_t Next(IterType what)
+	size_t Next(IterType what)
 	{
 		assert(this->string != NULL);
 
@@ -309,7 +265,7 @@ public:
 		return END;
 	}
 
-	virtual size_t Prev(IterType what)
+	size_t Prev(IterType what)
 	{
 		assert(this->string != NULL);
 
@@ -346,11 +302,6 @@ public:
 		return END;
 	}
 };
-
-/* static */ StringIterator *StringIterator::Create()
-{
-	return new DefaultStringIterator();
-}
 
 #endif
 
@@ -697,7 +648,7 @@ Textbuf::Textbuf(uint16 max_bytes, uint16 max_chars)
 	assert(max_bytes != 0);
 	assert(max_chars != 0);
 
-	this->char_iter = StringIterator::Create();
+	this->char_iter = new StringIterator;
 
 	this->afilter    = CS_ALPHANUMERAL;
 	this->max_bytes  = max_bytes;

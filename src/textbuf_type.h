@@ -15,7 +15,13 @@
 #include "string_type.h"
 #include "strings_type.h"
 
-class StringIterator;
+#ifdef WITH_ICU
+class IcuStringIterator;
+typedef IcuStringIterator StringIterator;
+#else
+class DefaultStringIterator;
+typedef DefaultStringIterator StringIterator;
+#endif
 
 /**
  * Return values for Textbuf::HandleKeypress
