@@ -39,8 +39,8 @@ enum HandleKeyPressResult
 struct Textbuf {
 	CharSetFilter afilter;    ///< Allowed characters
 	char * const buf;         ///< buffer in which text is saved
-	uint16 max_bytes;         ///< the maximum size of the buffer in bytes (including terminating '\0')
-	uint16 max_chars;         ///< the maximum size of the buffer in characters (including terminating '\0')
+	const uint16 max_bytes;   ///< the maximum size of the buffer in bytes (including terminating '\0')
+	const uint16 max_chars;   ///< the maximum size of the buffer in characters (including terminating '\0')
 	uint16 bytes;             ///< the current size of the string in bytes (including terminating '\0')
 	uint16 chars;             ///< the current size of the string in characters (including terminating '\0')
 	uint16 pixels;            ///< the current size of the string in pixels
