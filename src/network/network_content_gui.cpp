@@ -330,7 +330,7 @@ class NetworkContentListWindow : public Window, ContentCallback {
 			pos = strecpy(pos, "do=searchtext&q=", last);
 
 			/* Escape search term */
-			for (const char *search = this->filter_editbox.text.buf; *search != '\0'; search++) {
+			for (const char *search = this->filter_editbox.GetText(); *search != '\0'; search++) {
 				/* Remove quotes */
 				if (*search == '\'' || *search == '"') continue;
 
@@ -862,7 +862,7 @@ public:
 	virtual void OnEditboxChanged(int wid)
 	{
 		if (wid == WID_NCL_FILTER) {
-			this->string_filter.SetFilterTerm(this->filter_editbox.text.buf);
+			this->string_filter.SetFilterTerm(this->filter_editbox.GetText());
 			this->content.SetFilterState(!this->string_filter.IsEmpty());
 			this->content.ForceRebuild();
 			this->InvalidateData();

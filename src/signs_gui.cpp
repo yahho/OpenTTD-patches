@@ -298,7 +298,7 @@ struct SignListWindow : Window, SignList {
 
 	virtual void OnEditboxChanged(int widget)
 	{
-		if (widget == WID_SIL_FILTER_TEXT) this->SetFilterString(this->filter_editbox.text.buf);
+		if (widget == WID_SIL_FILTER_TEXT) this->SetFilterString(this->filter_editbox.GetText());
 	}
 
 	void BuildSortSignList()
@@ -512,7 +512,7 @@ struct SignWindow : Window, SignList {
 				break;
 
 			case WID_QES_OK:
-				if (RenameSign(this->cur_sign, this->name_editbox.text.buf)) break;
+				if (RenameSign(this->cur_sign, this->name_editbox.GetText())) break;
 				/* FALL THROUGH */
 
 			case WID_QES_CANCEL:

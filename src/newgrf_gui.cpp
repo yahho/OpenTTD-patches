@@ -1291,7 +1291,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 	{
 		if (!this->editable) return;
 
-		string_filter.SetFilterTerm(this->filter_editbox.text.buf);
+		string_filter.SetFilterTerm(this->filter_editbox.GetText());
 		this->avails.SetFilterState(!string_filter.IsEmpty());
 		this->avails.ForceRebuild();
 		this->InvalidateData(0);

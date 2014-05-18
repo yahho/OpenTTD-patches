@@ -75,6 +75,37 @@ struct Textbuf {
 
 	void DiscardMarkedText(bool update = true);
 
+	/**
+	 * Get the current text.
+	 * @return Current text.
+	 */
+	const char *GetText() const
+	{
+		return this->buf;
+	}
+
+	/**
+	 * Get the position of the caret in the text buffer.
+	 * @return Pointer to the caret in the text buffer.
+	 */
+	const char *GetCaret() const
+	{
+		return this->buf + this->caretpos;
+	}
+
+	/**
+	 * Get the currently marked text.
+	 * @param[out] length Length of the marked text.
+	 * @return Begining of the marked area or NULL if no text is marked.
+	 */
+	const char *GetMarkedText (size_t *length) const
+	{
+		if (this->markend == 0) return NULL;
+
+		*length = this->markend - this->markpos;
+		return this->buf + this->markpos;
+	}
+
 private:
 	StringIterator *char_iter;
 

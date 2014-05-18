@@ -2275,7 +2275,7 @@ struct GameSettingsWindow : Window {
 	virtual void OnEditboxChanged(int wid)
 	{
 		if (wid == WID_GS_FILTER) {
-			this->filter.string.SetFilterTerm(this->filter_editbox.text.buf);
+			this->filter.string.SetFilterTerm(this->filter_editbox.GetText());
 			if (!this->filter.string.IsEmpty() && !this->manually_changed_folding) {
 				/* User never expanded/collapsed single pages and entered a filter term.
 				 * Expand everything, to save weird expand clicks, */

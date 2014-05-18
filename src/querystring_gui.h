@@ -64,7 +64,7 @@ public:
 	 */
 	const char *GetText() const
 	{
-		return this->text.buf;
+		return this->text.GetText();
 	}
 
 	/**
@@ -73,7 +73,7 @@ public:
 	 */
 	const char *GetCaret() const
 	{
-		return this->text.buf + this->text.caretpos;
+		return this->text.GetCaret();
 	}
 
 	/**
@@ -83,10 +83,7 @@ public:
 	 */
 	const char *GetMarkedText(size_t *length) const
 	{
-		if (this->text.markend == 0) return NULL;
-
-		*length = this->text.markend - this->text.markpos;
-		return this->text.buf + this->text.markpos;
+		return this->text.GetMarkedText(length);
 	}
 };
 

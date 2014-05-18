@@ -784,7 +784,7 @@ void QueryString::DrawEditBox(const Window *w, int wid) const
 	/* If we have a marked area, draw a background highlight. */
 	if (tb->marklength != 0) GfxFillRect(delta + tb->markxoffs, 0, delta + tb->markxoffs + tb->marklength - 1, bottom - top, PC_GREY);
 
-	DrawString(delta, tb->pixels, 0, tb->buf, TC_YELLOW);
+	DrawString(delta, tb->pixels, 0, tb->GetText(), TC_YELLOW);
 	bool focussed = w->IsWidgetGloballyFocused(wid) || IsOSKOpenedFor(w, wid);
 	if (focussed && tb->caret) {
 		int caret_width = GetStringBoundingBox("_").width;
@@ -852,8 +852,8 @@ Rect QueryString::GetBoundingRect(const Window *w, int wid, const char *from, co
 	if (tb->caretxoffs + delta < 0) delta = -tb->caretxoffs;
 
 	/* Get location of first and last character. */
-	Point p1 = GetCharPosInString(tb->buf, from, FS_NORMAL);
-	Point p2 = from != to ? GetCharPosInString(tb->buf, to, FS_NORMAL) : p1;
+	Point p1 = GetCharPosInString(tb->GetText(), from, FS_NORMAL);
+	Point p2 = from != to ? GetCharPosInString(tb->GetText(), to, FS_NORMAL) : p1;
 
 	Rect r = { Clamp(left + p1.x + delta + WD_FRAMERECT_LEFT, left, right), top, Clamp(left + p2.x + delta + WD_FRAMERECT_LEFT, left, right - WD_FRAMERECT_RIGHT), bottom };
 
@@ -890,7 +890,7 @@ const char *QueryString::GetCharAtPosition(const Window *w, int wid, const Point
 	int delta = min(0, (right - left) - tb->pixels - 10);
 	if (tb->caretxoffs + delta < 0) delta = -tb->caretxoffs;
 
-	return ::GetCharAtPosition(tb->buf, pt.x - delta - left);
+	return ::GetCharAtPosition(tb->GetText(), pt.x - delta - left);
 }
 
 void QueryString::ClickEditBox(Window *w, Point pt, int wid, int click_count, bool focus_changed)

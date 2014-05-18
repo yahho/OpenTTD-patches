@@ -1102,12 +1102,12 @@ public:
 		const char *name = NULL;
 
 		if (!this->townnamevalid) {
-			name = this->townname_editbox.text.buf;
+			name = this->townname_editbox.GetText();
 		} else {
 			/* If user changed the name, send it */
 			char buf[MAX_LENGTH_TOWN_NAME_CHARS * MAX_CHAR_LENGTH];
 			GetTownName(buf, &this->params, this->townnameparts, lastof(buf));
-			if (strcmp(buf, this->townname_editbox.text.buf) != 0) name = this->townname_editbox.text.buf;
+			if (strcmp(buf, this->townname_editbox.GetText()) != 0) name = this->townname_editbox.GetText();
 		}
 
 		bool success = DoCommandP(tile, this->town_size | this->city << 2 | this->town_layout << 3 | random << 6,

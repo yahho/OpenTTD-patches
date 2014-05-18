@@ -251,7 +251,7 @@ protected:
 
 		/* Apply the filter condition immediately, if a search string has been provided. */
 		StringFilter sf;
-		sf.SetFilterTerm(this->filter_editbox.text.buf);
+		sf.SetFilterTerm(this->filter_editbox.GetText());
 
 		if (!sf.IsEmpty()) {
 			this->servers.SetFilterState(true);
@@ -873,8 +873,8 @@ public:
 
 			case WID_NG_CLIENT:
 				/* Make sure the name does not start with a space, so TAB completion works */
-				if (!StrEmpty(this->name_editbox.text.buf) && this->name_editbox.text.buf[0] != ' ') {
-					strecpy(_settings_client.network.client_name, this->name_editbox.text.buf, lastof(_settings_client.network.client_name));
+				if (!StrEmpty(this->name_editbox.GetText()) && this->name_editbox.GetText()[0] != ' ') {
+					strecpy(_settings_client.network.client_name, this->name_editbox.GetText(), lastof(_settings_client.network.client_name));
 				} else {
 					strecpy(_settings_client.network.client_name, "Player", lastof(_settings_client.network.client_name));
 				}
@@ -1210,7 +1210,7 @@ struct NetworkStartServerWindow : public Window {
 	virtual void OnEditboxChanged(int wid)
 	{
 		if (wid == WID_NSS_GAMENAME) {
-			strecpy(_settings_client.network.server_name, this->name_editbox.text.buf, lastof(_settings_client.network.server_name));
+			strecpy(_settings_client.network.server_name, this->name_editbox.GetText(), lastof(_settings_client.network.server_name));
 		}
 	}
 
@@ -2155,10 +2155,10 @@ struct NetworkCompanyPasswordWindow : public Window {
 	void OnOk()
 	{
 		if (this->IsWidgetLowered(WID_NCP_SAVE_AS_DEFAULT_PASSWORD)) {
-			strecpy(_settings_client.network.default_company_pass, this->password_editbox.text.buf, lastof(_settings_client.network.default_company_pass));
+			strecpy(_settings_client.network.default_company_pass, this->password_editbox.GetText(), lastof(_settings_client.network.default_company_pass));
 		}
 
-		NetworkChangeCompanyPassword(_local_company, this->password_editbox.text.buf);
+		NetworkChangeCompanyPassword(_local_company, this->password_editbox.GetText());
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

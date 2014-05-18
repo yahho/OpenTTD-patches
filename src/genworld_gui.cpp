@@ -700,7 +700,7 @@ struct GenerateLandscapeWindow : public Window {
 			 * As UINT32_MAX is a 'magic' value (use random seed) it
 			 * should not be possible to be entered into the input
 			 * field; the generate seed button can be used instead. */
-			_settings_newgame.game_creation.generation_seed = minu(strtoul(this->seed_editbox.text.buf, NULL, 10), UINT32_MAX - 1);
+			_settings_newgame.game_creation.generation_seed = minu(strtoul(this->seed_editbox.GetText(), NULL, 10), UINT32_MAX - 1);
 		}
 	}
 

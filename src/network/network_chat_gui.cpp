@@ -389,7 +389,7 @@ struct NetworkChatWindow : public Window {
 		item = 0;
 
 		/* Copy the buffer so we can modify it without damaging the real data */
-		pre_buf = (_chat_tab_completion_active) ? strdup(_chat_tab_completion_buf) : strdup(tb->buf);
+		pre_buf = (_chat_tab_completion_active) ? strdup(_chat_tab_completion_buf) : strdup(tb->GetText());
 
 		tb_buf  = ChatTabCompletionFindText(pre_buf);
 		tb_len  = strlen(tb_buf);
@@ -415,7 +415,7 @@ struct NetworkChatWindow : public Window {
 					}
 
 					/* Compare if we have a match */
-					if (strlen(cur_name) == length && strncmp(cur_name, tb->buf + offset, length) == 0) second_scan = true;
+					if (strlen(cur_name) == length && strncmp(cur_name, tb->GetText() + offset, length) == 0) second_scan = true;
 
 					continue;
 				}
@@ -426,7 +426,7 @@ struct NetworkChatWindow : public Window {
 			len = strlen(cur_name);
 			if (tb_len < len && strncasecmp(cur_name, tb_buf, tb_len) == 0) {
 				/* Save the data it was before completion */
-				if (!second_scan) snprintf(_chat_tab_completion_buf, lengthof(_chat_tab_completion_buf), "%s", tb->buf);
+				if (!second_scan) snprintf(_chat_tab_completion_buf, lengthof(_chat_tab_completion_buf), "%s", tb->GetText());
 				_chat_tab_completion_active = true;
 
 				/* Change to the found name. Add ': ' if we are at the start of the line (pretty) */
@@ -485,7 +485,7 @@ struct NetworkChatWindow : public Window {
 	{
 		switch (widget) {
 			/* Send */
-			case WID_NC_SENDBUTTON: SendChat(this->message_editbox.text.buf, this->dtype, this->dest);
+			case WID_NC_SENDBUTTON: SendChat(this->message_editbox.GetText(), this->dtype, this->dest);
 				/* FALL THROUGH */
 			case WID_NC_CLOSE: /* Cancel */ delete this; break;
 		}
