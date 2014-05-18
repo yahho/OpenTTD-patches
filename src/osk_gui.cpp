@@ -37,7 +37,6 @@ struct OskWindow : public Window {
 	StringID caption;      ///< the caption for this window.
 	QueryString *qs;       ///< text-input
 	int text_btn;          ///< widget number of parent's text field
-	Textbuf *text;         ///< pointer to parent's textbuffer (to update caret position)
 	char *orig_str_buf;    ///< Original string.
 	bool shift;            ///< Is the shift effectively pressed?
 
@@ -53,7 +52,6 @@ struct OskWindow : public Window {
 		this->qs         = parent->querystrings.Find(button)->second;
 		this->caption = (par_wid->widget_data != STR_NULL) ? par_wid->widget_data : this->qs->caption;
 		this->text_btn   = button;
-		this->text       = &this->qs->text;
 		this->querystrings[WID_OSK_TEXT] = this->qs;
 
 		/* make a copy in case we need to reset later */
