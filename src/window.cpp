@@ -2479,7 +2479,7 @@ EventState Window::HandleEditBoxKey(int wid, WChar key, uint16 keycode)
 
 	int action = QueryString::ACTION_NOTHING;
 
-	switch (query->text.HandleKeyPress(key, keycode)) {
+	switch (query->HandleKeyPress(key, keycode)) {
 		case HKPR_EDITING:
 			this->SetWidgetDirty(wid);
 			this->OnEditboxChanged(wid);
@@ -2523,11 +2523,11 @@ EventState Window::HandleEditBoxKey(int wid, WChar key, uint16 keycode)
 			break;
 
 		case QueryString::ACTION_CLEAR:
-			if (query->text.bytes <= 1) {
+			if (query->bytes <= 1) {
 				/* If already empty, unfocus instead */
 				this->UnfocusFocusedWidget();
 			} else {
-				query->text.DeleteAll();
+				query->DeleteAll();
 				this->SetWidgetDirty(wid);
 				this->OnEditboxChanged(wid);
 			}
@@ -2621,7 +2621,7 @@ void HandleCtrlChanged()
 	QueryString *query = this->GetQueryString(wid);
 	if (query == NULL) return;
 
-	if (query->text.InsertString(str, marked, caret, insert_location, replacement_end) || marked) {
+	if (query->InsertString(str, marked, caret, insert_location, replacement_end) || marked) {
 		this->SetWidgetDirty(wid);
 		this->OnEditboxChanged(wid);
 	}

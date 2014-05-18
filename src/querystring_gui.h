@@ -19,7 +19,7 @@
 /**
  * Data stored about a string that can be modified in the GUI
  */
-struct QueryString {
+struct QueryString : Textbuf {
 	/* Special actions when hitting ENTER or ESC. (only keyboard, not OSK) */
 	static const int ACTION_NOTHING  = -1; ///< Nothing.
 	static const int ACTION_DESELECT = -2; ///< Deselect editbox.
@@ -28,7 +28,6 @@ struct QueryString {
 	StringID caption;
 	int ok_button;      ///< Widget button of parent window to simulate when pressing OK in OSK.
 	int cancel_button;  ///< Widget button of parent window to simulate when pressing CANCEL in OSK.
-	Textbuf text;
 	const char *orig;
 	bool handled;
 
@@ -37,7 +36,7 @@ struct QueryString {
 	 * @param size Maximum size in bytes.
 	 * @param chars Maximum size in chars.
 	 */
-	QueryString(uint16 size, uint16 chars = UINT16_MAX) : ok_button(ACTION_NOTHING), cancel_button(ACTION_DESELECT), text(size, chars), orig(NULL)
+	QueryString(uint16 size, uint16 chars = UINT16_MAX) : Textbuf(size, chars), ok_button(ACTION_NOTHING), cancel_button(ACTION_DESELECT), orig(NULL)
 	{
 	}
 
@@ -57,34 +56,6 @@ public:
 	Point GetCaretPosition(const Window *w, int wid) const;
 	Rect GetBoundingRect(const Window *w, int wid, const char *from, const char *to) const;
 	const char *GetCharAtPosition(const Window *w, int wid, const Point &pt) const;
-
-	/**
-	 * Get the current text.
-	 * @return Current text.
-	 */
-	const char *GetText() const
-	{
-		return this->text.GetText();
-	}
-
-	/**
-	 * Get the position of the caret in the text buffer.
-	 * @return Pointer to the caret in the text buffer.
-	 */
-	const char *GetCaret() const
-	{
-		return this->text.GetCaret();
-	}
-
-	/**
-	 * Get the currently marked text.
-	 * @param[out] length Length of the marked text.
-	 * @return Begining of the marked area or NULL if no text is marked.
-	 */
-	const char *GetMarkedText(size_t *length) const
-	{
-		return this->text.GetMarkedText(length);
-	}
 };
 
 void ShowOnScreenKeyboard(Window *parent, int button);

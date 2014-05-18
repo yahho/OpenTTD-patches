@@ -377,9 +377,9 @@ struct NetworkChatWindow : public Window {
 	void ChatTabCompletion()
 	{
 		static char _chat_tab_completion_buf[NETWORK_CHAT_LENGTH];
-		assert(this->message_editbox.text.max_bytes == lengthof(_chat_tab_completion_buf));
+		assert(this->message_editbox.max_bytes == lengthof(_chat_tab_completion_buf));
 
-		Textbuf *tb = &this->message_editbox.text;
+		Textbuf *tb = &this->message_editbox;
 		size_t len, tb_len;
 		uint item;
 		char *tb_buf, *pre_buf;
@@ -431,9 +431,9 @@ struct NetworkChatWindow : public Window {
 
 				/* Change to the found name. Add ': ' if we are at the start of the line (pretty) */
 				if (pre_buf == tb_buf) {
-					this->message_editbox.text.Print("%s: ", cur_name);
+					this->message_editbox.Print("%s: ", cur_name);
 				} else {
-					this->message_editbox.text.Print("%s %s", pre_buf, cur_name);
+					this->message_editbox.Print("%s %s", pre_buf, cur_name);
 				}
 
 				this->SetDirty();
@@ -444,7 +444,7 @@ struct NetworkChatWindow : public Window {
 
 		if (second_scan) {
 			/* We walked all possibilities, and the user presses tab again.. revert to original text */
-			this->message_editbox.text.Assign(_chat_tab_completion_buf);
+			this->message_editbox.Assign(_chat_tab_completion_buf);
 			_chat_tab_completion_active = false;
 
 			this->SetDirty();

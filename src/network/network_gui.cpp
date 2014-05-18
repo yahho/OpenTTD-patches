@@ -459,7 +459,7 @@ public:
 		this->FinishInitNested(WN_NETWORK_WINDOW_GAME);
 
 		this->querystrings[WID_NG_CLIENT] = &this->name_editbox;
-		this->name_editbox.text.Assign(_settings_client.network.client_name);
+		this->name_editbox.Assign(_settings_client.network.client_name);
 
 		this->querystrings[WID_NG_FILTER] = &this->filter_editbox;
 		this->filter_editbox.cancel_button = QueryString::ACTION_CLEAR;
@@ -1045,7 +1045,7 @@ struct NetworkStartServerWindow : public Window {
 		this->InitNested(WN_NETWORK_WINDOW_START);
 
 		this->querystrings[WID_NSS_GAMENAME] = &this->name_editbox;
-		this->name_editbox.text.Assign(_settings_client.network.server_name);
+		this->name_editbox.Assign(_settings_client.network.server_name);
 
 		this->SetFocusedWidget(WID_NSS_GAMENAME);
 	}

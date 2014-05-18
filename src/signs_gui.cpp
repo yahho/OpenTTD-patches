@@ -439,9 +439,9 @@ struct SignWindow : Window, SignList {
 		/* Display an empty string when the sign hasn't been edited yet */
 		if (si->name != NULL) {
 			SetDParam(0, si->index);
-			this->name_editbox.text.Assign(STR_SIGN_NAME);
+			this->name_editbox.Assign(STR_SIGN_NAME);
 		} else {
-			this->name_editbox.text.DeleteAll();
+			this->name_editbox.DeleteAll();
 		}
 
 		this->cur_sign = si->index;

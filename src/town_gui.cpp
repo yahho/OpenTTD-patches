@@ -1065,10 +1065,10 @@ public:
 		this->townnamevalid = GenerateTownName(&this->townnameparts);
 
 		if (!this->townnamevalid) {
-			this->townname_editbox.text.DeleteAll();
+			this->townname_editbox.DeleteAll();
 		} else {
-			GetTownName(this->townname_editbox.text.buf, &this->params, this->townnameparts, &this->townname_editbox.text.buf[this->townname_editbox.text.max_bytes - 1]);
-			this->townname_editbox.text.UpdateSize();
+			GetTownName(this->townname_editbox.buf, &this->params, this->townnameparts, &this->townname_editbox.buf[this->townname_editbox.max_bytes - 1]);
+			this->townname_editbox.UpdateSize();
 		}
 		UpdateOSKOriginalText(this, WID_TF_TOWN_NAME_EDITBOX);
 

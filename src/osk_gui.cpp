@@ -82,9 +82,9 @@ struct OskWindow : public Window {
 
 		for (uint i = 0; i < OSK_KEYBOARD_ENTRIES; i++) {
 			this->SetWidgetDisabledState(WID_OSK_LETTERS + i,
-					!IsValidChar(_keyboard[this->shift][i], this->qs->text.afilter) || _keyboard[this->shift][i] == ' ');
+					!IsValidChar(_keyboard[this->shift][i], this->qs->afilter) || _keyboard[this->shift][i] == ' ');
 		}
-		this->SetWidgetDisabledState(WID_OSK_SPACE, !IsValidChar(' ', this->qs->text.afilter));
+		this->SetWidgetDisabledState(WID_OSK_SPACE, !IsValidChar(' ', this->qs->afilter));
 
 		this->SetWidgetLoweredState(WID_OSK_SHIFT, HasBit(_keystate, KEYS_SHIFT));
 		this->SetWidgetLoweredState(WID_OSK_CAPS, HasBit(_keystate, KEYS_CAPS));
@@ -112,9 +112,9 @@ struct OskWindow : public Window {
 		if (widget >= WID_OSK_LETTERS) {
 			WChar c = _keyboard[this->shift][widget - WID_OSK_LETTERS];
 
-			if (!IsValidChar(c, this->qs->text.afilter)) return;
+			if (!IsValidChar(c, this->qs->afilter)) return;
 
-			if (this->qs->text.InsertChar(c)) this->OnEditboxChanged(WID_OSK_TEXT);
+			if (this->qs->InsertChar(c)) this->OnEditboxChanged(WID_OSK_TEXT);
 
 			if (HasBit(_keystate, KEYS_SHIFT)) {
 				ToggleBit(_keystate, KEYS_SHIFT);
@@ -126,7 +126,7 @@ struct OskWindow : public Window {
 
 		switch (widget) {
 			case WID_OSK_BACKSPACE:
-				if (this->qs->text.DeleteChar(WKC_BACKSPACE)) this->OnEditboxChanged(WID_OSK_TEXT);
+				if (this->qs->DeleteChar(WKC_BACKSPACE)) this->OnEditboxChanged(WID_OSK_TEXT);
 				break;
 
 			case WID_OSK_SPECIAL:
@@ -150,15 +150,15 @@ struct OskWindow : public Window {
 				break;
 
 			case WID_OSK_SPACE:
-				if (this->qs->text.InsertChar(' ')) this->OnEditboxChanged(WID_OSK_TEXT);
+				if (this->qs->InsertChar(' ')) this->OnEditboxChanged(WID_OSK_TEXT);
 				break;
 
 			case WID_OSK_LEFT:
-				if (this->qs->text.MovePos(WKC_LEFT)) this->InvalidateData();
+				if (this->qs->MovePos(WKC_LEFT)) this->InvalidateData();
 				break;
 
 			case WID_OSK_RIGHT:
-				if (this->qs->text.MovePos(WKC_RIGHT)) this->InvalidateData();
+				if (this->qs->MovePos(WKC_RIGHT)) this->InvalidateData();
 				break;
 
 			case WID_OSK_OK:
@@ -179,8 +179,8 @@ struct OskWindow : public Window {
 					/* Window gets deleted when the parent window removes itself. */
 					return;
 				} else { // or reset to original string
-					qs->text.Assign(this->orig_str_buf);
-					qs->text.MovePos(WKC_END);
+					qs->Assign(this->orig_str_buf);
+					qs->MovePos(WKC_END);
 					this->OnEditboxChanged(WID_OSK_TEXT);
 					delete this;
 				}

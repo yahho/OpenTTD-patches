@@ -241,8 +241,8 @@ public:
 	/** Generate a default save filename. */
 	void GenerateFileName()
 	{
-		GenerateDefaultSaveName(this->filename_editbox.text.buf, &this->filename_editbox.text.buf[this->filename_editbox.text.max_bytes - 1]);
-		this->filename_editbox.text.UpdateSize();
+		GenerateDefaultSaveName(this->filename_editbox.buf, &this->filename_editbox.buf[this->filename_editbox.max_bytes - 1]);
+		this->filename_editbox.UpdateSize();
 	}
 
 	SaveLoadWindow(WindowDesc *desc, SaveLoadDialogMode mode) : Window(desc), filename_editbox(64)
@@ -262,7 +262,7 @@ public:
 		switch (mode) {
 			case SLD_SAVE_GAME:     this->GenerateFileName(); break;
 			case SLD_SAVE_HEIGHTMAP:
-			case SLD_SAVE_SCENARIO: this->filename_editbox.text.Assign("UNNAMED"); break;
+			case SLD_SAVE_SCENARIO: this->filename_editbox.Assign("UNNAMED"); break;
 			default:                break;
 		}
 
@@ -575,7 +575,7 @@ public:
 						}
 						if (_saveload_mode == SLD_SAVE_GAME || _saveload_mode == SLD_SAVE_SCENARIO || _saveload_mode == SLD_SAVE_HEIGHTMAP) {
 							/* Copy clicked name to editbox */
-							this->filename_editbox.text.Assign(file->title);
+							this->filename_editbox.Assign(file->title);
 							this->SetWidgetDirty(WID_SL_SAVE_OSK_TITLE);
 						}
 					} else if (!_load_check_data.HasErrors()) {

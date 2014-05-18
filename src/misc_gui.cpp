@@ -734,7 +734,7 @@ void GuiShowTooltips(Window *parent, StringID str, uint paramcount, const uint64
 
 void QueryString::HandleEditBox(Window *w, int wid)
 {
-	if (w->IsWidgetGloballyFocused(wid) && this->text.HandleCaret()) {
+	if (w->IsWidgetGloballyFocused(wid) && this->HandleCaret()) {
 		w->SetWidgetDirty(wid);
 
 		/* For the OSK also invalidate the parent window */
@@ -762,7 +762,7 @@ void QueryString::DrawEditBox(const Window *w, int wid) const
 
 	DrawFrameRect(clearbtn_left, top, clearbtn_right, bottom, wi->colour, wi->IsLowered() ? FR_LOWERED : FR_NONE);
 	DrawSprite(rtl ? SPR_IMG_DELETE_RIGHT : SPR_IMG_DELETE_LEFT, PAL_NONE, clearbtn_left + WD_IMGBTN_LEFT + (wi->IsLowered() ? 1 : 0), (top + bottom - sprite_size.height) / 2 + (wi->IsLowered() ? 1 : 0));
-	if (this->text.bytes == 1) GfxFillRect(clearbtn_left + 1, top + 1, clearbtn_right - 1, bottom - 1, _colour_gradient[wi->colour & 0xF][2], FILLRECT_CHECKER);
+	if (this->bytes == 1) GfxFillRect(clearbtn_left + 1, top + 1, clearbtn_right - 1, bottom - 1, _colour_gradient[wi->colour & 0xF][2], FILLRECT_CHECKER);
 
 	DrawFrameRect(left, top, right, bottom, wi->colour, FR_LOWERED | FR_DARKENED);
 	GfxFillRect(left + 1, top + 1, right - 1, bottom - 1, PC_BLACK);
@@ -776,19 +776,18 @@ void QueryString::DrawEditBox(const Window *w, int wid) const
 
 	/* We will take the current widget length as maximum width, with a small
 	 * space reserved at the end for the caret to show */
-	const Textbuf *tb = &this->text;
-	int delta = min(0, (right - left) - tb->pixels - 10);
+	int delta = min(0, (right - left) - this->pixels - 10);
 
-	if (tb->caretxoffs + delta < 0) delta = -tb->caretxoffs;
+	if (this->caretxoffs + delta < 0) delta = -this->caretxoffs;
 
 	/* If we have a marked area, draw a background highlight. */
-	if (tb->marklength != 0) GfxFillRect(delta + tb->markxoffs, 0, delta + tb->markxoffs + tb->marklength - 1, bottom - top, PC_GREY);
+	if (this->marklength != 0) GfxFillRect(delta + this->markxoffs, 0, delta + this->markxoffs + this->marklength - 1, bottom - top, PC_GREY);
 
-	DrawString(delta, tb->pixels, 0, tb->GetText(), TC_YELLOW);
+	DrawString(delta, this->pixels, 0, this->GetText(), TC_YELLOW);
 	bool focussed = w->IsWidgetGloballyFocused(wid) || IsOSKOpenedFor(w, wid);
-	if (focussed && tb->caret) {
+	if (focussed && this->caret) {
 		int caret_width = GetStringBoundingBox("_").width;
-		DrawString(tb->caretxoffs + delta, tb->caretxoffs + delta + caret_width, 0, "_", TC_WHITE);
+		DrawString(this->caretxoffs + delta, this->caretxoffs + delta + caret_width, 0, "_", TC_WHITE);
 	}
 
 	_cur_dpi = old_dpi;
@@ -814,11 +813,10 @@ Point QueryString::GetCaretPosition(const Window *w, int wid) const
 	int right  = wi->pos_x + (rtl ? wi->current_x : wi->current_x - clearbtn_width) - 1;
 
 	/* Clamp caret position to be inside out current width. */
-	const Textbuf *tb = &this->text;
-	int delta = min(0, (right - left) - tb->pixels - 10);
-	if (tb->caretxoffs + delta < 0) delta = -tb->caretxoffs;
+	int delta = min(0, (right - left) - this->pixels - 10);
+	if (this->caretxoffs + delta < 0) delta = -this->caretxoffs;
 
-	Point pt = {left + WD_FRAMERECT_LEFT + tb->caretxoffs + delta, wi->pos_y + WD_FRAMERECT_TOP};
+	Point pt = {left + WD_FRAMERECT_LEFT + this->caretxoffs + delta, wi->pos_y + WD_FRAMERECT_TOP};
 	return pt;
 }
 
@@ -847,13 +845,12 @@ Rect QueryString::GetBoundingRect(const Window *w, int wid, const char *from, co
 	int bottom = wi->pos_y + wi->current_y - 1 - WD_FRAMERECT_BOTTOM;
 
 	/* Clamp caret position to be inside our current width. */
-	const Textbuf *tb = &this->text;
-	int delta = min(0, (right - left) - tb->pixels - 10);
-	if (tb->caretxoffs + delta < 0) delta = -tb->caretxoffs;
+	int delta = min(0, (right - left) - this->pixels - 10);
+	if (this->caretxoffs + delta < 0) delta = -this->caretxoffs;
 
 	/* Get location of first and last character. */
-	Point p1 = GetCharPosInString(tb->GetText(), from, FS_NORMAL);
-	Point p2 = from != to ? GetCharPosInString(tb->GetText(), to, FS_NORMAL) : p1;
+	Point p1 = GetCharPosInString(this->GetText(), from, FS_NORMAL);
+	Point p2 = from != to ? GetCharPosInString(this->GetText(), to, FS_NORMAL) : p1;
 
 	Rect r = { Clamp(left + p1.x + delta + WD_FRAMERECT_LEFT, left, right), top, Clamp(left + p2.x + delta + WD_FRAMERECT_LEFT, left, right - WD_FRAMERECT_RIGHT), bottom };
 
@@ -886,11 +883,10 @@ const char *QueryString::GetCharAtPosition(const Window *w, int wid, const Point
 	if (!IsInsideMM(pt.y, top, bottom)) return NULL;
 
 	/* Clamp caret position to be inside our current width. */
-	const Textbuf *tb = &this->text;
-	int delta = min(0, (right - left) - tb->pixels - 10);
-	if (tb->caretxoffs + delta < 0) delta = -tb->caretxoffs;
+	int delta = min(0, (right - left) - this->pixels - 10);
+	if (this->caretxoffs + delta < 0) delta = -this->caretxoffs;
 
-	return ::GetCharAtPosition(tb->GetText(), pt.x - delta - left);
+	return ::GetCharAtPosition(this->GetText(), pt.x - delta - left);
 }
 
 void QueryString::ClickEditBox(Window *w, Point pt, int wid, int click_count, bool focus_changed)
@@ -905,8 +901,8 @@ void QueryString::ClickEditBox(Window *w, Point pt, int wid, int click_count, bo
 	int clearbtn_left  = wi->pos_x + (rtl ? 0 : wi->current_x - clearbtn_width);
 
 	if (IsInsideBS(pt.x, clearbtn_left, clearbtn_width)) {
-		if (this->text.bytes > 1) {
-			this->text.DeleteAll();
+		if (this->bytes > 1) {
+			this->DeleteAll();
 			w->HandleButtonClick(wid);
 			w->OnEditboxChanged(wid);
 		}
@@ -930,25 +926,25 @@ struct QueryStringWindow : public Window
 	QueryStringWindow(StringID str, StringID caption, uint max_bytes, uint max_chars, WindowDesc *desc, Window *parent, CharSetFilter afilter, QueryStringFlags flags) :
 			Window(desc), editbox(max_bytes, max_chars)
 	{
-		char *last_of = &this->editbox.text.buf[this->editbox.text.max_bytes - 1];
-		GetString(this->editbox.text.buf, str, last_of);
-		str_validate(this->editbox.text.buf, last_of, SVS_NONE);
+		char *last_of = &this->editbox.buf[this->editbox.max_bytes - 1];
+		GetString(this->editbox.buf, str, last_of);
+		str_validate(this->editbox.buf, last_of, SVS_NONE);
 
 		/* Make sure the name isn't too long for the text buffer in the number of
 		 * characters (not bytes). max_chars also counts the '\0' characters. */
-		while (Utf8StringLength(this->editbox.text.buf) + 1 > this->editbox.text.max_chars) {
-			*Utf8PrevChar(this->editbox.text.buf + strlen(this->editbox.text.buf)) = '\0';
+		while (Utf8StringLength(this->editbox.buf) + 1 > this->editbox.max_chars) {
+			*Utf8PrevChar(this->editbox.buf + strlen(this->editbox.buf)) = '\0';
 		}
 
-		this->editbox.text.UpdateSize();
+		this->editbox.UpdateSize();
 
-		if ((flags & QSF_ACCEPT_UNCHANGED) == 0) this->editbox.orig = strdup(this->editbox.text.buf);
+		if ((flags & QSF_ACCEPT_UNCHANGED) == 0) this->editbox.orig = strdup(this->editbox.buf);
 
 		this->querystrings[WID_QS_TEXT] = &this->editbox;
 		this->editbox.caption = caption;
 		this->editbox.cancel_button = WID_QS_CANCEL;
 		this->editbox.ok_button = WID_QS_OK;
-		this->editbox.text.afilter = afilter;
+		this->editbox.afilter = afilter;
 		this->flags = flags;
 
 		this->InitNested(WN_QUERY_STRING);
@@ -975,13 +971,13 @@ struct QueryStringWindow : public Window
 
 	void OnOk()
 	{
-		if (this->editbox.orig == NULL || strcmp(this->editbox.text.buf, this->editbox.orig) != 0) {
+		if (this->editbox.orig == NULL || strcmp(this->editbox.buf, this->editbox.orig) != 0) {
 			/* If the parent is NULL, the editbox is handled by general function
 			 * HandleOnEditText */
 			if (this->parent != NULL) {
-				this->parent->OnQueryTextFinished(this->editbox.text.buf);
+				this->parent->OnQueryTextFinished(this->editbox.buf);
 			} else {
-				HandleOnEditText(this->editbox.text.buf);
+				HandleOnEditText(this->editbox.buf);
 			}
 			this->editbox.handled = true;
 		}
@@ -991,7 +987,7 @@ struct QueryStringWindow : public Window
 	{
 		switch (widget) {
 			case WID_QS_DEFAULT:
-				this->editbox.text.DeleteAll();
+				this->editbox.DeleteAll();
 				/* FALL THROUGH */
 			case WID_QS_OK:
 				this->OnOk();
