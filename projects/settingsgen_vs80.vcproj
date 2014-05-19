@@ -130,7 +130,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\src\string_func.h"
+			RelativePath="..\src\string.h"
 			>
 		</File>
 		<File

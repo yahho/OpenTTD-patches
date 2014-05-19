@@ -19,7 +19,7 @@
 #include "network/core/config.h"
 #include "saveload/saveload_data.h"
 #include "gamelog.h"
-#include "string_func.h"
+#include "string.h"
 
 extern const uint16 SAVEGAME_VERSION;  ///< current savegame version
 

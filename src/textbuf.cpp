@@ -13,7 +13,7 @@
 #include <stdarg.h>
 
 #include "textbuf_type.h"
-#include "string_func.h"
+#include "string.h"
 #include "strings_func.h"
 #include "gfx_type.h"
 #include "gfx_func.h"

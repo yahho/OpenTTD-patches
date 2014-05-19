@@ -26,7 +26,7 @@
     <ClInclude Include="..\src\misc\getoptdata.h" />
     <ClInclude Include="..\src\ini_type.h" />
     <ClInclude Include="..\src\core\smallvec_type.hpp" />
-    <ClInclude Include="..\src\string_func.h" />
+    <ClInclude Include="..\src\string.h" />
     <ClInclude Include="..\src\strings_type.h" />
   </ItemGroup>
 </Project>

@@ -16,7 +16,7 @@
 #include "news_func.h"
 #include "settings_type.h"
 #include "date_func.h"
-#include "string_type.h"
+#include "string.h"
 
 #include "table/strings.h"
 

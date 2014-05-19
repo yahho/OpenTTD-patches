@@ -13,7 +13,7 @@
 #include "script_basestation.hpp"
 #include "script_error.hpp"
 #include "../../station_base.h"
-#include "../../string_func.h"
+#include "../../string.h"
 #include "../../strings_func.h"
 #include "table/strings.h"
 

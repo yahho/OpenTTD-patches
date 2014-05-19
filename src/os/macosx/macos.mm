@@ -13,7 +13,7 @@
 #include "../../core/bitmath_func.hpp"
 #include "../../rev.h"
 #include "macos.h"
-#include "../../string_func.h"
+#include "../../string.h"
 
 #define Rect  OTTDRect
 #define Point OTTDPoint

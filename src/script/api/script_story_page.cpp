@@ -19,7 +19,7 @@
 #include "../script_instance.hpp"
 #include "../../story_base.h"
 #include "../../goal_base.h"
-#include "../../string_func.h"
+#include "../../string.h"
 #include "../../map/class.h"
 
 /* static */ bool ScriptStoryPage::IsValidStoryPage(StoryPageID story_page_id)

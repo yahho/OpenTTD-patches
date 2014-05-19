@@ -20,7 +20,7 @@
 #include "../../object_type.h"
 #include "../../strings_func.h"
 #include "../../map/class.h"
-#include "../../string_func.h"
+#include "../../string.h"
 #include "../../settings_func.h"
 #include "table/strings.h"
 

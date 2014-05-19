@@ -13,7 +13,7 @@
 #include "../debug.h"
 #include "saveload_buffer.h"
 #include "saveload_error.h"
-#include "../string_func.h"
+#include "../string.h"
 
 #include "../game/game.hpp"
 #include "../game/game_config.hpp"

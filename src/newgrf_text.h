@@ -12,7 +12,7 @@
 #ifndef NEWGRF_TEXT_H
 #define NEWGRF_TEXT_H
 
-#include "string_type.h"
+#include "string.h"
 #include "strings_type.h"
 #include "core/smallvec_type.hpp"
 #include "table/control_codes.h"

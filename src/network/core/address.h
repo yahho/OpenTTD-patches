@@ -14,7 +14,7 @@
 
 #include "os_abstraction.h"
 #include "config.h"
-#include "../../string_func.h"
+#include "../../string.h"
 #include "../../core/smallmap_type.hpp"
 
 #ifdef ENABLE_NETWORK

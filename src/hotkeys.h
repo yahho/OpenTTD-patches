@@ -15,7 +15,7 @@
 #include "core/smallvec_type.hpp"
 #include "gfx_type.h"
 #include "window_type.h"
-#include "string_type.h"
+#include "string.h"
 
 /**
  * All data for a single hotkey. The name (for saving/loading a configfile),

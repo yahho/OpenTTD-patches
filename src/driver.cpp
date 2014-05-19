@@ -14,7 +14,7 @@
 #include "sound/sound_driver.hpp"
 #include "music/music_driver.hpp"
 #include "video/video_driver.hpp"
-#include "string_func.h"
+#include "string.h"
 
 VideoDriver *_video_driver; ///< The currently active video driver.
 char *_ini_videodriver;     ///< The video driver a stored in the configuration file.

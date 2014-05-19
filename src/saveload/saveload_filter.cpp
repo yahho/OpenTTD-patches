@@ -14,7 +14,7 @@
 #include "../error.h"
 #include "../core/endian_func.hpp"
 #include "../core/math_func.hpp"
-#include "../string_func.h"
+#include "../string.h"
 #include "../strings_func.h"
 
 #include "table/strings.h"

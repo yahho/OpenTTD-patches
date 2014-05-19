@@ -15,7 +15,7 @@
 #include "error.h"
 #include "viewport_func.h"
 #include "gfx_func.h"
-#include "string_func.h"
+#include "string.h"
 #include "company_base.h"
 #include "company_manager_face.h"
 #include "strings_func.h"

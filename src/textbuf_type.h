@@ -12,7 +12,7 @@
 #ifndef TEXTBUF_TYPE_H
 #define TEXTBUF_TYPE_H
 
-#include "string_type.h"
+#include "string.h"
 #include "strings_type.h"
 
 #ifdef WITH_ICU

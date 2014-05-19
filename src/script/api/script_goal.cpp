@@ -18,7 +18,7 @@
 #include "script_story_page.hpp"
 #include "../script_instance.hpp"
 #include "../../goal_base.h"
-#include "../../string_func.h"
+#include "../../string.h"
 
 /* static */ bool ScriptGoal::IsValidGoal(GoalID goal_id)
 {

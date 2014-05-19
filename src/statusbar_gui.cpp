@@ -14,7 +14,7 @@
 #include "gfx_func.h"
 #include "news_func.h"
 #include "company_func.h"
-#include "string_func.h"
+#include "string.h"
 #include "strings_func.h"
 #include "company_base.h"
 #include "tilehighlight_func.h"

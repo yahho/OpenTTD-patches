@@ -24,7 +24,7 @@
 #include "../../core/alloc_func.hpp"
 #include "../../openttd.h"
 #include "../../core/random_func.hpp"
-#include "../../string_func.h"
+#include "../../string.h"
 #include "../../crashlog.h"
 #include <errno.h>
 #include <sys/stat.h>

@@ -17,7 +17,7 @@
 #include "command_func.h"
 #include "tilehighlight_func.h"
 #include "window_func.h"
-#include "string_func.h"
+#include "string.h"
 
 #include "table/strings.h"
 

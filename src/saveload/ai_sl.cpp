@@ -14,7 +14,7 @@
 #include "../debug.h"
 #include "saveload_buffer.h"
 #include "saveload_error.h"
-#include "../string_func.h"
+#include "../string.h"
 
 #include "../ai/ai.hpp"
 #include "../ai/ai_config.hpp"

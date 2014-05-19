@@ -10,7 +10,7 @@
 /** @file townname.cpp %Town name generators. */
 
 #include "stdafx.h"
-#include "string_func.h"
+#include "string.h"
 #include "townname_type.h"
 #include "town.h"
 #include "strings_func.h"

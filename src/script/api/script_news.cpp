@@ -13,7 +13,7 @@
 #include "script_news.hpp"
 #include "script_error.hpp"
 #include "../../command_type.h"
-#include "../../string_func.h"
+#include "../../string.h"
 
 /* static */ bool ScriptNews::Create(NewsType type, Text *text, ScriptCompany::CompanyID company)
 {

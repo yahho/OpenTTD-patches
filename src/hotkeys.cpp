@@ -13,7 +13,7 @@
 #include "openttd.h"
 #include "hotkeys.h"
 #include "ini_type.h"
-#include "string_func.h"
+#include "string.h"
 #include "window_gui.h"
 
 char *_hotkeys_file;

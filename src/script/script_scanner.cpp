@@ -11,7 +11,7 @@
 
 #include "../stdafx.h"
 #include "../debug.h"
-#include "../string_func.h"
+#include "../string.h"
 #include "../settings_type.h"
 
 #include "../script/squirrel.hpp"

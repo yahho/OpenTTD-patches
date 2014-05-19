@@ -12,7 +12,7 @@
 #include "../stdafx.h"
 #include "../debug.h"
 #include "../strings_type.h"
-#include "../string_func.h"
+#include "../string.h"
 #include "../settings_type.h"
 #include "../fileio_func.h"
 

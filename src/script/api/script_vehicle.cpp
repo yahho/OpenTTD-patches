@@ -15,7 +15,7 @@
 #include "script_gamesettings.hpp"
 #include "script_group.hpp"
 #include "../script_instance.hpp"
-#include "../../string_func.h"
+#include "../../string.h"
 #include "../../strings_func.h"
 #include "../../command_func.h"
 #include "../../roadveh.h"

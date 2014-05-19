@@ -13,7 +13,7 @@
 #include "fileio_func.h"
 #include "debug.h"
 #include "fios.h"
-#include "string_func.h"
+#include "string.h"
 #include "tar_type.h"
 #ifdef WIN32
 #include <windows.h>

@@ -14,7 +14,7 @@
 #include "win32.h"
 #include "../../core/alloc_func.hpp"
 #include "../../core/math_func.hpp"
-#include "../../string_func.h"
+#include "../../string.h"
 #include "../../fileio_func.h"
 #include "../../strings_func.h"
 #include "../../gamelog.h"

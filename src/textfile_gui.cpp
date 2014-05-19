@@ -14,7 +14,7 @@
 #include "fontcache.h"
 #include "gfx_type.h"
 #include "gfx_func.h"
-#include "string_func.h"
+#include "string.h"
 #include "textfile_gui.h"
 
 #include "widgets/misc_widget.h"

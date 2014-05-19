@@ -15,7 +15,7 @@
 #include "console_gui.h"
 #include "console_internal.h"
 #include "window_func.h"
-#include "string_func.h"
+#include "string.h"
 #include "strings_func.h"
 #include "gfx_func.h"
 #include "settings_type.h"

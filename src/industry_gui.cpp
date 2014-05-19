@@ -27,7 +27,7 @@
 #include "strings_func.h"
 #include "company_func.h"
 #include "tilehighlight_func.h"
-#include "string_func.h"
+#include "string.h"
 #include "sortlist_type.h"
 #include "widgets/dropdown_func.h"
 #include "company_base.h"

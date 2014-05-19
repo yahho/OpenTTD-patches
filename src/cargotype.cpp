@@ -12,7 +12,7 @@
 #include "stdafx.h"
 #include "cargotype.h"
 #include "newgrf_cargo.h"
-#include "string_func.h"
+#include "string.h"
 #include "strings_func.h"
 #include "core/sort_func.hpp"
 

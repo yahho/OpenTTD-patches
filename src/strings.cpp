@@ -30,7 +30,7 @@
 #include "engine_base.h"
 #include "language.h"
 #include "townname_func.h"
-#include "string_func.h"
+#include "string.h"
 #include "company_base.h"
 #include "smallmap_gui.h"
 #include "window_func.h"

@@ -17,7 +17,7 @@
 #include "fileio_func.h"
 #include "tar_type.h"
 #include "screenshot.h"
-#include "string_func.h"
+#include "string.h"
 #include <sys/stat.h>
 
 #ifndef WIN32

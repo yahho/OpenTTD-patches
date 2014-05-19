@@ -21,7 +21,7 @@
 #include "../map/ground.h"
 #include "../map/slope.h"
 #include "../vehicle_func.h"
-#include "../string_func.h"
+#include "../string.h"
 #include "../date_func.h"
 #include "../roadveh.h"
 #include "../train.h"

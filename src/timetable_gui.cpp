@@ -17,7 +17,7 @@
 #include "textbuf_gui.h"
 #include "strings_func.h"
 #include "vehicle_base.h"
-#include "string_func.h"
+#include "string.h"
 #include "gfx_func.h"
 #include "company_func.h"
 #include "date_func.h"

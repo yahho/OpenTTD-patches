@@ -10,7 +10,7 @@
 /** @file script_text.cpp Implementation of ScriptText. */
 
 #include "../../stdafx.h"
-#include "../../string_func.h"
+#include "../../string.h"
 #include "../../strings_func.h"
 #include "script_text.hpp"
 #include "../../table/control_codes.h"

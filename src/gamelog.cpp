@@ -11,7 +11,7 @@
 
 #include "stdafx.h"
 #include "saveload/saveload.h"
-#include "string_func.h"
+#include "string.h"
 #include "settings_type.h"
 #include "gamelog_entries.h"
 #include "console_func.h"

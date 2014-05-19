@@ -17,7 +17,7 @@
 #include "command_func.h"
 #include "company_func.h"
 #include "town.h"
-#include "string_func.h"
+#include "string.h"
 #include "company_base.h"
 #include "texteff.hpp"
 #include "strings_func.h"

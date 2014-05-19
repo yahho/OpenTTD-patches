@@ -23,7 +23,7 @@
 #include "newgrf_storage.h"
 #include "newgrf_text.h"
 #include "newgrf_cargo.h"
-#include "string_func.h"
+#include "string.h"
 #include "date_type.h"
 #include "debug.h"
 #include "core/alloc_type.hpp"

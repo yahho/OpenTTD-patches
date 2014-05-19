@@ -14,7 +14,7 @@
 #include "../debug.h"
 #include "squirrel_std.hpp"
 #include "../fileio_func.h"
-#include "../string_func.h"
+#include "../string.h"
 #include <sqstdaux.h>
 #include <../squirrel/sqpcheader.h>
 #include <../squirrel/sqvm.h>

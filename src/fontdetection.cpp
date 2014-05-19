@@ -14,7 +14,7 @@
 #include "stdafx.h"
 #include "debug.h"
 #include "fontdetection.h"
-#include "string_func.h"
+#include "string.h"
 #include "strings_func.h"
 
 extern FT_Library _library;

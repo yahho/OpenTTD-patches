@@ -15,7 +15,7 @@
 #include "window_func.h"
 #include "fileio_func.h"
 #include "spritecache.h"
-#include "string_func.h"
+#include "string.h"
 #include "strings_func.h"
 #include "textbuf_gui.h"
 #include "vehicle_gui.h"

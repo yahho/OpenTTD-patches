@@ -22,7 +22,7 @@
 #include "newgrf_engine.h"
 #include "newgrf_text.h"
 #include "group.h"
-#include "string_func.h"
+#include "string.h"
 #include "strings_func.h"
 #include "window_func.h"
 #include "date_func.h"

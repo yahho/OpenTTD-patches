@@ -19,7 +19,7 @@
 #include "date_func.h"
 #include "sound_func.h"
 #include "fios.h"
-#include "string_func.h"
+#include "string.h"
 #include "widgets/dropdown_type.h"
 #include "widgets/dropdown_func.h"
 #include "querystring_gui.h"

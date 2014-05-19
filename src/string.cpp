@@ -13,7 +13,7 @@
 #include "debug.h"
 #include "core/alloc_func.hpp"
 #include "core/math_func.hpp"
-#include "string_func.h"
+#include "string.h"
 
 #include "table/control_codes.h"
 

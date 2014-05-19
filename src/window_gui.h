@@ -19,7 +19,7 @@
 #include "widget_type.h"
 #include "core/smallvec_type.hpp"
 #include "core/smallmap_type.hpp"
-#include "string_type.h"
+#include "string.h"
 
 /**
  * Flags to describe the look of the frame

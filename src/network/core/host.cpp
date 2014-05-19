@@ -150,7 +150,7 @@ static void NetworkFindBroadcastIPsInternal(NetworkAddressList *broadcast) // Wi
 
 #else /* not HAVE_GETIFADDRS */
 
-#include "../../string_func.h"
+#include "../../string.h"
 
 static void NetworkFindBroadcastIPsInternal(NetworkAddressList *broadcast) // !GETIFADDRS implementation
 {

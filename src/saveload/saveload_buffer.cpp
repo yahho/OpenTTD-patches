@@ -13,7 +13,7 @@
 
 #include "../stdafx.h"
 #include "../debug.h"
-#include "../string_func.h"
+#include "../string.h"
 #include "../network/network.h"
 #include "../town.h"
 #include "../vehicle_base.h"

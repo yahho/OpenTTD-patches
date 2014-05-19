@@ -14,7 +14,7 @@
 #include "table/strings.h"
 #include "../script_instance.hpp"
 #include "../../signs_base.h"
-#include "../../string_func.h"
+#include "../../string.h"
 #include "../../strings_func.h"
 #include "../../map/subcoord.h"
 #include "../../map/class.h"

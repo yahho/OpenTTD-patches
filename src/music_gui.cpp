@@ -21,7 +21,7 @@
 #include "core/random_func.hpp"
 #include "error.h"
 #include "core/geometry_func.hpp"
-#include "string_func.h"
+#include "string.h"
 #include "settings_type.h"
 
 #include "widgets/music_widget.h"

@@ -10,7 +10,7 @@
 /** @file script_controller.cpp Implementation of ScriptControler. */
 
 #include "../../stdafx.h"
-#include "../../string_func.h"
+#include "../../string.h"
 #include "../../script/squirrel.hpp"
 #include "../../rev.h"
 

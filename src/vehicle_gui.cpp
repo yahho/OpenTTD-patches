@@ -26,7 +26,7 @@
 #include "strings_func.h"
 #include "vehicle_func.h"
 #include "autoreplace_gui.h"
-#include "string_func.h"
+#include "string.h"
 #include "widgets/dropdown_func.h"
 #include "timetable.h"
 #include "articulated_vehicles.h"

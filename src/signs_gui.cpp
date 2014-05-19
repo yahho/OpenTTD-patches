@@ -22,7 +22,7 @@
 #include "querystring_gui.h"
 #include "sortlist_type.h"
 #include "stringfilter_type.h"
-#include "string_func.h"
+#include "string.h"
 #include "core/geometry_func.hpp"
 #include "hotkeys.h"
 #include "transparency.h"

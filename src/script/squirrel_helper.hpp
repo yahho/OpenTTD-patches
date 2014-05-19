@@ -15,7 +15,7 @@
 #include "squirrel.hpp"
 #include "../core/smallvec_type.hpp"
 #include "../economy_type.h"
-#include "../string_func.h"
+#include "../string.h"
 #include "squirrel_helper_type.hpp"
 
 template <class CL, ScriptType ST> const char *GetClassName();

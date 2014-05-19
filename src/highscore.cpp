@@ -14,7 +14,7 @@
 #include "company_base.h"
 #include "company_func.h"
 #include "cheat_func.h"
-#include "string_func.h"
+#include "string.h"
 #include "strings_func.h"
 #include "table/strings.h"
 #include "core/sort_func.hpp"

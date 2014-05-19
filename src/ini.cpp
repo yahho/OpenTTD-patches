@@ -12,7 +12,7 @@
 #include "stdafx.h"
 #include "debug.h"
 #include "ini_type.h"
-#include "string_func.h"
+#include "string.h"
 #include "fileio_func.h"
 
 #if (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 199309L) || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 500)

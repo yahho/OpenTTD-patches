@@ -13,7 +13,7 @@
 #include <stdarg.h>
 #include "console_func.h"
 #include "debug.h"
-#include "string_func.h"
+#include "string.h"
 #include "fileio_func.h"
 #include "settings_type.h"
 

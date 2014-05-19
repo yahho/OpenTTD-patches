@@ -12,7 +12,7 @@
 #include <squirrel.h>
 #include "../stdafx.h"
 
-#include "../string_func.h"
+#include "../string.h"
 #include "../strings_func.h"
 
 /* The reason this exists in C++, is that a user can trash his ai/ or game/ dir,

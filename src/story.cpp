@@ -16,7 +16,7 @@
 #include "command_func.h"
 #include "company_base.h"
 #include "company_func.h"
-#include "string_func.h"
+#include "string.h"
 #include "date_func.h"
 #include "map/class.h"
 #include "goal_type.h"

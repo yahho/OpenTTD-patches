@@ -24,7 +24,7 @@
 #include "window_func.h"
 #include "date_func.h"
 #include "vehicle_func.h"
-#include "string_func.h"
+#include "string.h"
 #include "company_func.h"
 #include "newgrf_station.h"
 #include "company_base.h"

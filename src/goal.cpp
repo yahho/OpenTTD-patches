@@ -20,7 +20,7 @@
 #include "command_func.h"
 #include "company_base.h"
 #include "story_base.h"
-#include "string_func.h"
+#include "string.h"
 #include "gui.h"
 #include "network/network.h"
 

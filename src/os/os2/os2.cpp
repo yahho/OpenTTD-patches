@@ -16,7 +16,7 @@
 #include "../../fios.h"
 #include "../../openttd.h"
 #include "../../core/random_func.hpp"
-#include "../../string_func.h"
+#include "../../string.h"
 #include "../../textbuf_gui.h"
 
 #include "table/strings.h"

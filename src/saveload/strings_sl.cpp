@@ -10,7 +10,7 @@
 /** @file strings_sl.cpp Code handling saving and loading of strings */
 
 #include "../stdafx.h"
-#include "../string_func.h"
+#include "../string.h"
 #include "saveload_internal.h"
 #include "saveload_error.h"
 

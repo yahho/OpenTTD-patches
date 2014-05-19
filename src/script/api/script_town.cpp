@@ -15,7 +15,7 @@
 #include "script_error.hpp"
 #include "../../town.h"
 #include "../../townname_func.h"
-#include "../../string_func.h"
+#include "../../string.h"
 #include "../../strings_func.h"
 #include "../../station_base.h"
 #include "../../map/zoneheight.h"

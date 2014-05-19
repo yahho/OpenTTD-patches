@@ -32,7 +32,7 @@
 #include "map/tunnelbridge.h"
 #include "strings_func.h"
 #include "window_func.h"
-#include "string_func.h"
+#include "string.h"
 #include "newgrf_cargo.h"
 #include "cheat_type.h"
 #include "animated_tile_func.h"

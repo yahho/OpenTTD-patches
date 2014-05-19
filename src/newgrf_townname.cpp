@@ -17,7 +17,7 @@
 #include "stdafx.h"
 #include "newgrf_townname.h"
 #include "core/alloc_func.hpp"
-#include "string_func.h"
+#include "string.h"
 
 static GRFTownName *_grf_townnames = NULL;
 

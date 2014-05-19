@@ -39,7 +39,7 @@
 #include "fios.h"
 #include "strings_func.h"
 #include "date_func.h"
-#include "string_func.h"
+#include "string.h"
 #include "network/network.h"
 #include <map>
 #include "smallmap_gui.h"

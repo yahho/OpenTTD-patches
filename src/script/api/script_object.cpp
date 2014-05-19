@@ -16,7 +16,7 @@
 #include "../../company_base.h"
 #include "../../network/network.h"
 #include "../../genworld.h"
-#include "../../string_func.h"
+#include "../../string.h"
 #include "../../strings_func.h"
 
 #include "../script_storage.hpp"

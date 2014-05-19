@@ -11,7 +11,7 @@
 
 #include "../../stdafx.h"
 #include "../../crashlog.h"
-#include "../../string_func.h"
+#include "../../string.h"
 #include "../../gamelog.h"
 #include "../../saveload/saveload.h"
 

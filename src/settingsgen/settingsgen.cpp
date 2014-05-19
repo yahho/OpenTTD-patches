@@ -10,7 +10,7 @@
 /** @file settingsgen.cpp Tool to create computer-readable settings. */
 
 #include "../stdafx.h"
-#include "../string_func.h"
+#include "../string.h"
 #include "../strings_type.h"
 #include "../misc/getoptdata.h"
 #include "../ini_type.h"

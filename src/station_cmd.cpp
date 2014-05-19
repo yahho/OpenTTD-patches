@@ -32,7 +32,7 @@
 #include "clear_func.h"
 #include "date_func.h"
 #include "vehicle_func.h"
-#include "string_func.h"
+#include "string.h"
 #include "animated_tile_func.h"
 #include "elrail_func.h"
 #include "station_base.h"

@@ -16,7 +16,7 @@
 
 #include "config.h"
 #include "core.h"
-#include "../../string_type.h"
+#include "../../string.h"
 
 #ifdef ENABLE_NETWORK
 

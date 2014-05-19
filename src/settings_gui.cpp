@@ -22,7 +22,7 @@
 #include "newgrf_townname.h"
 #include "strings_func.h"
 #include "window_func.h"
-#include "string_func.h"
+#include "string.h"
 #include "widgets/dropdown_type.h"
 #include "widgets/dropdown_func.h"
 #include "highscore.h"

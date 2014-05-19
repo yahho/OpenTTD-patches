@@ -44,7 +44,7 @@
 
 #include "gfx_type.h"
 #include "strings_type.h"
-#include "string_type.h"
+#include "string.h"
 
 void GameLoop();
 

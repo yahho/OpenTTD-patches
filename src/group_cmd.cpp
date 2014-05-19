@@ -17,7 +17,7 @@
 #include "vehicle_func.h"
 #include "autoreplace_base.h"
 #include "autoreplace_func.h"
-#include "string_func.h"
+#include "string.h"
 #include "company_func.h"
 #include "core/pool_func.hpp"
 #include "order_backup.h"

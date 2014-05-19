@@ -11,7 +11,7 @@
 
 #include "../stdafx.h"
 #include "../core/endian_func.hpp"
-#include "../string_func.h"
+#include "../string.h"
 #include "../strings_type.h"
 #include "../misc/getoptdata.h"
 #include "../table/control_codes.h"

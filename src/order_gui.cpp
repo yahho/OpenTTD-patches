@@ -19,7 +19,7 @@
 #include "widgets/dropdown_type.h"
 #include "widgets/dropdown_func.h"
 #include "textbuf_gui.h"
-#include "string_func.h"
+#include "string.h"
 #include "tilehighlight_func.h"
 #include "network/network.h"
 #include "station_base.h"

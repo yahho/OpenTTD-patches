@@ -11,7 +11,7 @@
 
 #include "stdafx.h"
 #include "gfx_layout.h"
-#include "string_func.h"
+#include "string.h"
 #include "strings_func.h"
 #include "debug.h"
 

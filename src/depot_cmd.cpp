@@ -13,7 +13,7 @@
 #include "command_func.h"
 #include "depot_base.h"
 #include "company_func.h"
-#include "string_func.h"
+#include "string.h"
 #include "town.h"
 #include "vehicle_gui.h"
 #include "vehiclelist.h"

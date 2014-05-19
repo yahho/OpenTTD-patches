@@ -21,7 +21,7 @@
 #include "window_func.h"
 #include "date_func.h"
 #include "autoreplace_gui.h"
-#include "string_func.h"
+#include "string.h"
 #include "ai/ai.hpp"
 #include "core/pool_func.hpp"
 #include "engine_gui.h"

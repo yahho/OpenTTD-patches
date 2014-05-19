@@ -10,7 +10,7 @@
 /** @file stringfilter.cpp Searching and filtering using a stringterm. */
 
 #include "stdafx.h"
-#include "string_func.h"
+#include "string.h"
 #include "strings_func.h"
 #include "stringfilter_type.h"
 #include "gfx_func.h"

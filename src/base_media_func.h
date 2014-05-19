@@ -15,7 +15,7 @@
 #include "base_media_base.h"
 #include "debug.h"
 #include "ini_type.h"
-#include "string_func.h"
+#include "string.h"
 
 template <class Tbase_set> /* static */ const char *BaseMedia<Tbase_set>::ini_set;
 template <class Tbase_set> /* static */ const Tbase_set *BaseMedia<Tbase_set>::used_set;

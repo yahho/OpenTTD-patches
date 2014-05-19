@@ -22,7 +22,7 @@
 #include "industry.h"
 #include "town.h"
 #include "sound_func.h"
-#include "string_func.h"
+#include "string.h"
 #include "widgets/dropdown_func.h"
 #include "statusbar_gui.h"
 #include "company_manager_face.h"
