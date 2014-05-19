@@ -49,6 +49,9 @@ enum CharSetFilter {
 /** Type for wide characters, i.e. non-UTF8 encoded unicode characters. */
 typedef uint32 WChar;
 
+/** Max. length of UTF-8 encoded unicode character. */
+static const uint MAX_CHAR_LENGTH = 4;
+
 /* The following are directional formatting codes used to get the LTR and RTL strings right:
  * http://www.unicode.org/unicode/reports/tr9/#Directional_Formatting_Codes */
 static const WChar CHAR_TD_LRM = 0x200E; ///< The next character acts like a left-to-right character.

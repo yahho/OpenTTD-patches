@@ -12,6 +12,7 @@
 #ifndef HIGHSCORE_H
 #define HIGHSCORE_H
 
+#include "string.h"
 #include "strings_type.h"
 #include "company_type.h"
 #include "settings_type.h"

@@ -12,6 +12,7 @@
 #ifndef COMMAND_TYPE_H
 #define COMMAND_TYPE_H
 
+#include "string.h"
 #include "map/coord.h"
 #include "economy_type.h"
 #include "strings_type.h"
