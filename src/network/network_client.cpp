@@ -969,7 +969,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_CHAT(Packet *p)
 				StringID str = Company::IsValidID(ci_to->client_playas) ? STR_COMPANY_NAME : STR_NETWORK_SPECTATORS;
 				SetDParam(0, ci_to->client_playas);
 
-				GetString(name, str, lastof(name));
+				GetString (name, str);
 				ci = NetworkClientInfo::GetByClientID(_network_own_client_id);
 				break;
 			}

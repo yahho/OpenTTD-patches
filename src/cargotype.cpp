@@ -141,8 +141,8 @@ static int CDECL CargoSpecNameSorter(const CargoSpec * const *a, const CargoSpec
 	static char a_name[64];
 	static char b_name[64];
 
-	GetString(a_name, (*a)->name, lastof(a_name));
-	GetString(b_name, (*b)->name, lastof(b_name));
+	GetString (a_name, (*a)->name);
+	GetString (b_name, (*b)->name);
 
 	int res = strnatcmp(a_name, b_name); // Sort by name (natural sorting).
 

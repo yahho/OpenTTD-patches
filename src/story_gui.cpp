@@ -171,7 +171,7 @@ protected:
 		StoryPage *page = this->GetSelPage();
 		if (page != NULL && page->title == NULL) {
 			SetDParam(0, GetSelPageNum() + 1);
-			GetString(selected_generic_title, STR_STORY_BOOK_GENERIC_PAGE_ITEM, lastof(selected_generic_title));
+			GetString (selected_generic_title, STR_STORY_BOOK_GENERIC_PAGE_ITEM);
 		}
 
 		this->story_page_elements.ForceRebuild();

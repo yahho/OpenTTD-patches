@@ -244,11 +244,11 @@ void ShowNewGrfVehicleError(EngineID engine, StringID part1, StringID part2, GRF
 	char buffer[512];
 
 	SetDParamStr(0, grfconfig->GetName());
-	GetString(buffer, part1, lastof(buffer));
+	GetString (buffer, part1);
 	DEBUG(grf, 0, "%s", buffer + 3);
 
 	SetDParam(1, engine);
-	GetString(buffer, part2, lastof(buffer));
+	GetString (buffer, part2);
 	DEBUG(grf, 0, "%s", buffer + 3);
 }
 

@@ -960,7 +960,7 @@ static void DrawNewsString(uint left, uint right, int y, TextColour colour, cons
 	CopyInDParam(0, ni->params, lengthof(ni->params));
 	str = ni->string_id;
 
-	GetString(buffer, str, lastof(buffer));
+	GetString (buffer, str);
 	/* Copy the just gotten string to another buffer to remove any formatting
 	 * from it such as big fonts, etc. */
 	const char *ptr = buffer;

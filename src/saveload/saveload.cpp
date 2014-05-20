@@ -362,7 +362,7 @@ const char *GetSaveLoadErrorString()
 	SetDParamStr(0, _sl.error.data);
 
 	static char err_str[512];
-	GetString(err_str, _sl.error.str, lastof(err_str));
+	GetString (err_str, _sl.error.str);
 	return err_str;
 }
 

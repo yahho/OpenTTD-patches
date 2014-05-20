@@ -136,7 +136,7 @@ NetworkRecvStatus ServerNetworkAdminSocketHandler::SendError(NetworkErrorCode er
 
 	char str[100];
 	StringID strid = GetNetworkErrorMsg(error);
-	GetString(str, strid, lastof(str));
+	GetString (str, strid);
 
 	DEBUG(net, 1, "[admin] the admin '%s' (%s) made an error and has been disconnected. Reason: '%s'", this->admin_name, this->admin_version, str);
 
@@ -321,10 +321,10 @@ NetworkRecvStatus ServerNetworkAdminSocketHandler::SendCompanyInfo(const Company
 	char manager_name[NETWORK_COMPANY_NAME_LENGTH];
 
 	SetDParam(0, c->index);
-	GetString(company_name, STR_COMPANY_NAME, lastof(company_name));
+	GetString (company_name, STR_COMPANY_NAME);
 
 	SetDParam(0, c->index);
-	GetString(manager_name, STR_PRESIDENT_NAME, lastof(manager_name));
+	GetString (manager_name, STR_PRESIDENT_NAME);
 
 	Packet *p = new Packet(ADMIN_PACKET_SERVER_COMPANY_INFO);
 
@@ -357,10 +357,10 @@ NetworkRecvStatus ServerNetworkAdminSocketHandler::SendCompanyUpdate(const Compa
 	char manager_name[NETWORK_COMPANY_NAME_LENGTH];
 
 	SetDParam(0, c->index);
-	GetString(company_name, STR_COMPANY_NAME, lastof(company_name));
+	GetString (company_name, STR_COMPANY_NAME);
 
 	SetDParam(0, c->index);
-	GetString(manager_name, STR_PRESIDENT_NAME, lastof(manager_name));
+	GetString (manager_name, STR_PRESIDENT_NAME);
 
 	Packet *p = new Packet(ADMIN_PACKET_SERVER_COMPANY_UPDATE);
 

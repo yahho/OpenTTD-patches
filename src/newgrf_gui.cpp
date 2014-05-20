@@ -75,7 +75,7 @@ static void ShowNewGRFInfo(const GRFConfig *c, uint x, uint y, uint right, uint 
 		for (uint i = 0; i < lengthof(c->error->param_value); i++) {
 			SetDParam(3 + i, c->error->param_value[i]);
 		}
-		GetString(message, c->error->custom_message == NULL ? c->error->message : STR_JUST_RAW_STRING, lastof(message));
+		GetString (message, c->error->custom_message == NULL ? c->error->message : STR_JUST_RAW_STRING);
 
 		SetDParamStr(0, message);
 		y = DrawStringMultiLine(x, right, y, bottom, c->error->severity);
@@ -2034,7 +2034,7 @@ struct ScanProgressWindow : public Window {
 		free(this->last_name);
 		if (name == NULL) {
 			char buf[256];
-			GetString(buf, STR_NEWGRF_SCAN_ARCHIVES, lastof(buf));
+			GetString (buf, STR_NEWGRF_SCAN_ARCHIVES);
 			this->last_name = strdup(buf);
 		} else {
 			this->last_name = strdup(name);

@@ -52,7 +52,7 @@ void DrawRoadVehDetails(const Vehicle *v, int left, int right, int y)
 			}
 		}
 
-		GetString(capacity, STR_VEHICLE_DETAILS_TRAIN_ARTICULATED_RV_CAPACITY, lastof(capacity));
+		GetString (capacity, STR_VEHICLE_DETAILS_TRAIN_ARTICULATED_RV_CAPACITY);
 
 		bool first = true;
 		for (CargoID i = 0; i < NUM_CARGO; i++) {
@@ -61,13 +61,13 @@ void DrawRoadVehDetails(const Vehicle *v, int left, int right, int y)
 
 				SetDParam(0, i);
 				SetDParam(1, max_cargo[i]);
-				GetString(buffer, STR_JUST_CARGO, lastof(buffer));
+				GetString (buffer, STR_JUST_CARGO);
 
 				if (!first) strecat(capacity, ", ", lastof(capacity));
 				strecat(capacity, buffer, lastof(capacity));
 
 				if (subtype_text[i] != 0) {
-					GetString(buffer, subtype_text[i], lastof(buffer));
+					GetString (buffer, subtype_text[i]);
 					strecat(capacity, buffer, lastof(capacity));
 				}
 

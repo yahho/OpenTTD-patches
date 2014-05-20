@@ -55,7 +55,7 @@ void CcGiveMoney(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
 	/* Inform the company of the action of one of its clients (controllers). */
 	char msg[64];
 	SetDParam(0, p2);
-	GetString(msg, STR_COMPANY_NAME, lastof(msg));
+	GetString (msg, STR_COMPANY_NAME);
 
 	if (!_network_server) {
 		NetworkClientSendChat(NETWORK_ACTION_GIVE_MONEY, DESTTYPE_TEAM, p2, msg, p1);

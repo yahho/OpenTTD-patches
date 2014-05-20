@@ -516,7 +516,7 @@ struct NewGRFInspectWindow : Window {
 				}
 
 				char buffer[64];
-				GetString(buffer, string, lastof(buffer));
+				GetString (buffer, string);
 				this->DrawString(r, i++, "  %02x: %s (%s)", nip->prop, buffer, nip->name);
 			}
 		}

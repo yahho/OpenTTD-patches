@@ -32,7 +32,7 @@ void DropDownListItem::Draw(int left, int right, int top, int bottom, bool sel, 
 uint DropDownListStringItem::Width() const
 {
 	char buffer[512];
-	GetString(buffer, this->String(), lastof(buffer));
+	GetString (buffer, this->String());
 	return GetStringBoundingBox(buffer).width;
 }
 
@@ -51,8 +51,8 @@ void DropDownListStringItem::Draw(int left, int right, int top, int bottom, bool
 /* static */ int DropDownListStringItem::NatSortFunc(const DropDownListItem * const *first, const DropDownListItem * const * second)
 {
 	char buffer1[512], buffer2[512];
-	GetString(buffer1, static_cast<const DropDownListStringItem*>(*first)->String(), lastof(buffer1));
-	GetString(buffer2, static_cast<const DropDownListStringItem*>(*second)->String(), lastof(buffer2));
+	GetString (buffer1, static_cast<const DropDownListStringItem*>(*first)->String());
+	GetString (buffer2, static_cast<const DropDownListStringItem*>(*second)->String());
 	return strnatcmp(buffer1, buffer2);
 }
 

@@ -76,12 +76,12 @@ struct SignList {
 		char buf[64];
 
 		SetDParam(0, (*a)->index);
-		GetString(buf, STR_SIGN_NAME, lastof(buf));
+		GetString (buf, STR_SIGN_NAME);
 
 		if (*b != last_sign) {
 			last_sign = *b;
 			SetDParam(0, (*b)->index);
-			GetString(buf_cache, STR_SIGN_NAME, lastof(buf_cache));
+			GetString (buf_cache, STR_SIGN_NAME);
 		}
 
 		int r = strnatcmp(buf, buf_cache); // Sort by name (natural sorting).
@@ -103,7 +103,7 @@ struct SignList {
 		/* Get sign string */
 		char buf1[MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH];
 		SetDParam(0, (*a)->index);
-		GetString(buf1, STR_SIGN_NAME, lastof(buf1));
+		GetString (buf1, STR_SIGN_NAME);
 
 		filter.ResetState();
 		filter.AddLine(buf1);

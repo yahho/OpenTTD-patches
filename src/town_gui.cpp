@@ -674,7 +674,7 @@ private:
 		char buf[64];
 
 		SetDParam(0, ta->index);
-		GetString(buf, STR_TOWN_NAME, lastof(buf));
+		GetString (buf, STR_TOWN_NAME);
 
 		/* If 'b' is the same town as in the last round, use the cached value
 		 * We do this to speed stuff up ('b' is called with the same value a lot of
@@ -682,7 +682,7 @@ private:
 		if (tb != last_town) {
 			last_town = tb;
 			SetDParam(0, tb->index);
-			GetString(buf_cache, STR_TOWN_NAME, lastof(buf_cache));
+			GetString (buf_cache, STR_TOWN_NAME);
 		}
 
 		return strnatcmp(buf, buf_cache); // Sort by name (natural sorting).

@@ -260,7 +260,7 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 /* static */ char *ScriptObject::GetString(StringID string)
 {
 	char buffer[64];
-	::GetString(buffer, string, lastof(buffer));
+	::GetString (buffer, string);
 	::str_validate(buffer, lastof(buffer), SVS_NONE);
 	return ::strdup(buffer);
 }

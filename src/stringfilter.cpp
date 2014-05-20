@@ -130,6 +130,6 @@ void StringFilter::AddLine(const char *str)
 void StringFilter::AddLine(StringID str)
 {
 	char buffer[DRAW_STRING_BUFFER];
-	GetString(buffer, str, lastof(buffer));
+	GetString (buffer, str);
 	AddLine(buffer);
 }

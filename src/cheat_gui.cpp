@@ -207,7 +207,6 @@ struct CheatWindow : Window {
 
 				default: {
 					int32 val = (int32)ReadValue(ce->variable, ce->type);
-					char buf[512];
 
 					/* Draw [<][>] boxes for settings of an integer-type */
 					DrawArrowButtons(button_left, y, COLOUR_YELLOW, clicked - (i * 2), true, true);
@@ -218,8 +217,9 @@ struct CheatWindow : Window {
 
 						/* Draw coloured flag for change company cheat */
 						case STR_CHEAT_CHANGE_COMPANY: {
+							char buf[512];
 							SetDParam(0, val + 1);
-							GetString(buf, STR_CHEAT_CHANGE_COMPANY, lastof(buf));
+							GetString (buf, STR_CHEAT_CHANGE_COMPANY);
 							uint offset = 10 + GetStringBoundingBox(buf).width;
 							DrawCompanyIcon(_local_company, rtl ? text_right - offset - 10 : text_left + offset, y + 2);
 							break;

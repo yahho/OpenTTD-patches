@@ -357,13 +357,13 @@ void GetKeyboardLayout()
 	bool has_error = false; // true when an invalid char is detected
 
 	if (StrEmpty(_keyboard_opt[0])) {
-		GetString(keyboard[0], STR_OSK_KEYBOARD_LAYOUT, lastof(keyboard[0]));
+		GetString (keyboard[0], STR_OSK_KEYBOARD_LAYOUT);
 	} else {
 		bstrcpy (keyboard[0], _keyboard_opt[0]);
 	}
 
 	if (StrEmpty(_keyboard_opt[1])) {
-		GetString(keyboard[1], STR_OSK_KEYBOARD_LAYOUT_CAPS, lastof(keyboard[1]));
+		GetString (keyboard[1], STR_OSK_KEYBOARD_LAYOUT_CAPS);
 	} else {
 		bstrcpy (keyboard[1], _keyboard_opt[1]);
 	}

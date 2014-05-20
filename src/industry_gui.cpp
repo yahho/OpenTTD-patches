@@ -118,11 +118,11 @@ static int CDECL IndustryTypeNameSorter(const IndustryType *a, const IndustryTyp
 
 	const IndustrySpec *indsp1 = GetIndustrySpec(*a);
 	SetDParam(0, indsp1->name);
-	GetString(industry_name[0], STR_JUST_STRING, lastof(industry_name[0]));
+	GetString (industry_name[0], STR_JUST_STRING);
 
 	const IndustrySpec *indsp2 = GetIndustrySpec(*b);
 	SetDParam(0, indsp2->name);
-	GetString(industry_name[1], STR_JUST_STRING, lastof(industry_name[1]));
+	GetString (industry_name[1], STR_JUST_STRING);
 
 	int r = strnatcmp(industry_name[0], industry_name[1]); // Sort by name (natural sorting).
 
@@ -1147,12 +1147,12 @@ protected:
 		static char buf[96];
 
 		SetDParam(0, (*a)->index);
-		GetString(buf, STR_INDUSTRY_NAME, lastof(buf));
+		GetString (buf, STR_INDUSTRY_NAME);
 
 		if (*b != last_industry) {
 			last_industry = *b;
 			SetDParam(0, (*b)->index);
-			GetString(buf_cache, STR_INDUSTRY_NAME, lastof(buf_cache));
+			GetString (buf_cache, STR_INDUSTRY_NAME);
 		}
 
 		return strnatcmp(buf, buf_cache); // Sort by name (natural sorting).

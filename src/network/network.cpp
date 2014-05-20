@@ -380,7 +380,7 @@ void NetworkHandlePauseChange(PauseMode prev_mode, PauseMode changed_mode)
 			}
 
 			char buffer[DRAW_STRING_BUFFER];
-			GetString(buffer, str, lastof(buffer));
+			GetString (buffer, str);
 			NetworkTextMessage(NETWORK_ACTION_SERVER_MESSAGE, CC_DEFAULT, false, NULL, buffer);
 			break;
 		}

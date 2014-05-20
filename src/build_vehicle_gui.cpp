@@ -143,13 +143,13 @@ static int CDECL EngineNameSorter(const EngineID *a, const EngineID *b)
 	if (va != last_engine[0]) {
 		last_engine[0] = va;
 		SetDParam(0, va);
-		GetString(last_name[0], STR_ENGINE_NAME, lastof(last_name[0]));
+		GetString (last_name[0], STR_ENGINE_NAME);
 	}
 
 	if (vb != last_engine[1]) {
 		last_engine[1] = vb;
 		SetDParam(0, vb);
-		GetString(last_name[1], STR_ENGINE_NAME, lastof(last_name[1]));
+		GetString (last_name[1], STR_ENGINE_NAME);
 	}
 
 	int r = strnatcmp(last_name[0], last_name[1]); // Sort by name (natural sorting).

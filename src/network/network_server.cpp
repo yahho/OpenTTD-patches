@@ -437,7 +437,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendError(NetworkErrorCode err
 	this->SendPacket(p);
 
 	StringID strid = GetNetworkErrorMsg(error);
-	GetString(str, strid, lastof(str));
+	GetString (str, strid);
 
 	/* Only send when the current client was in game */
 	if (this->status > STATUS_AUTHORIZED) {
@@ -1165,7 +1165,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::Receive_CLIENT_ERROR(Packet *p
 	this->GetClientName(client_name, sizeof(client_name));
 
 	StringID strid = GetNetworkErrorMsg(errorno);
-	GetString(str, strid, lastof(str));
+	GetString (str, strid);
 
 	DEBUG(net, 2, "'%s' reported an error and is closing its connection (%s)", client_name, str);
 
@@ -1347,7 +1347,7 @@ void NetworkServerSendChat(NetworkAction action, DestType desttype, int dest, co
 					char name[NETWORK_NAME_LENGTH];
 					StringID str = Company::IsValidID(ci_to->client_playas) ? STR_COMPANY_NAME : STR_NETWORK_SPECTATORS;
 					SetDParam(0, ci_to->client_playas);
-					GetString(name, str, lastof(name));
+					GetString (name, str);
 					NetworkTextMessage(action, GetDrawStringCompanyColour(ci_own->client_playas), true, name, msg, data);
 				} else {
 					FOR_ALL_CLIENT_SOCKETS(cs) {

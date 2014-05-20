@@ -158,7 +158,7 @@ void CopyOutDParam(uint64 *dst, int offs, int num)
 void CopyOutDParam(uint64 *dst, const char **strings, StringID string, int num)
 {
 	char buf[DRAW_STRING_BUFFER];
-	GetString(buf, string, lastof(buf));
+	GetString (buf, string);
 
 	MemCpyT(dst, _global_string_params.GetPointerToOffset(0), num);
 	for (int i = 0; i < num; i++) {
@@ -1868,8 +1868,8 @@ int CDECL StringIDSorter(const StringID *a, const StringID *b)
 {
 	char stra[512];
 	char strb[512];
-	GetString(stra, *a, lastof(stra));
-	GetString(strb, *b, lastof(strb));
+	GetString (stra, *a);
+	GetString (strb, *b);
 
 	return strcmp(stra, strb);
 }

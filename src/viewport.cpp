@@ -1223,7 +1223,7 @@ void ViewportSign::UpdatePosition(int center, int top, StringID str)
 
 	char buffer[DRAW_STRING_BUFFER];
 
-	GetString(buffer, str, lastof(buffer));
+	GetString (buffer, str);
 	this->width_normal = VPSM_LEFT + Align(GetStringBoundingBox(buffer).width, 2) + VPSM_RIGHT;
 	this->center = center;
 

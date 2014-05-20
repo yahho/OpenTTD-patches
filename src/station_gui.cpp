@@ -212,12 +212,12 @@ protected:
 		char buf[64];
 
 		SetDParam(0, (*a)->index);
-		GetString(buf, STR_STATION_NAME, lastof(buf));
+		GetString (buf, STR_STATION_NAME);
 
 		if (*b != last_station) {
 			last_station = *b;
 			SetDParam(0, (*b)->index);
-			GetString(buf_cache, STR_STATION_NAME, lastof(buf_cache));
+			GetString (buf_cache, STR_STATION_NAME);
 		}
 
 		return strcmp(buf, buf_cache);
@@ -1179,9 +1179,9 @@ bool CargoSorter::SortStation(StationID st1, StationID st2) const
 	}
 
 	SetDParam(0, st1);
-	GetString(buf1, STR_STATION_NAME, lastof(buf1));
+	GetString (buf1, STR_STATION_NAME);
 	SetDParam(0, st2);
-	GetString(buf2, STR_STATION_NAME, lastof(buf2));
+	GetString (buf2, STR_STATION_NAME);
 
 	int res = strcmp(buf1, buf2);
 	if (res == 0) {

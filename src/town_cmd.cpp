@@ -1677,7 +1677,7 @@ CommandCost CmdFoundTown(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 			assert(!random);
 			char company_name[MAX_LENGTH_COMPANY_NAME_CHARS * MAX_CHAR_LENGTH];
 			SetDParam(0, _current_company);
-			GetString(company_name, STR_COMPANY_NAME, lastof(company_name));
+			GetString (company_name, STR_COMPANY_NAME);
 
 			char *cn = strdup(company_name);
 			SetDParamStr(0, cn);
@@ -2706,7 +2706,7 @@ static CommandCost TownActionRoadRebuild(Town *t, DoCommandFlag flags)
 
 		char company_name[MAX_LENGTH_COMPANY_NAME_CHARS * MAX_CHAR_LENGTH];
 		SetDParam(0, _current_company);
-		GetString(company_name, STR_COMPANY_NAME, lastof(company_name));
+		GetString (company_name, STR_COMPANY_NAME);
 
 		char *cn = strdup(company_name);
 		SetDParam(0, t->index);

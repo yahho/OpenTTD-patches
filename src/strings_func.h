@@ -134,6 +134,19 @@ char *GetString(char *buffr, StringID string, const char *last);
 char *GetStringWithArgs(char *buffr, StringID string, StringParameters *args, const char *last, uint case_index = 0, bool game_script = false);
 const char *GetStringPtr(StringID string);
 
+template <uint N>
+static inline void GetString (char (*buf) [N], StringID string)
+{
+	assert_tcompile (N > 0);
+	GetString (&(*buf)[0], string, &(*buf)[N - 1]);
+}
+
+template <uint N>
+static inline void GetString (char (&buf) [N], StringID string)
+{
+	GetString (&buf, string);
+}
+
 uint ConvertKmhishSpeedToDisplaySpeed(uint speed);
 uint ConvertDisplaySpeedToKmhishSpeed(uint speed);
 

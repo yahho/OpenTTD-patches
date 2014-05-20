@@ -533,7 +533,7 @@ int DrawString(int left, int right, int top, const char *str, TextColour colour,
 int DrawString(int left, int right, int top, StringID str, TextColour colour, StringAlignment align, bool underline, FontSize fontsize)
 {
 	char buffer[DRAW_STRING_BUFFER];
-	GetString(buffer, str, lastof(buffer));
+	GetString (buffer, str);
 	return DrawString(left, right, top, buffer, colour, align, underline, fontsize);
 }
 
@@ -558,7 +558,7 @@ int GetStringHeight(const char *str, int maxw, FontSize fontsize)
 int GetStringHeight(StringID str, int maxw)
 {
 	char buffer[DRAW_STRING_BUFFER];
-	GetString(buffer, str, lastof(buffer));
+	GetString (buffer, str);
 	return GetStringHeight(buffer, maxw);
 }
 
@@ -571,7 +571,7 @@ int GetStringHeight(StringID str, int maxw)
 int GetStringLineCount(StringID str, int maxw)
 {
 	char buffer[DRAW_STRING_BUFFER];
-	GetString(buffer, str, lastof(buffer));
+	GetString (buffer, str);
 
 	Layouter layout(buffer, maxw);
 	return layout.Length();
@@ -681,7 +681,7 @@ int DrawStringMultiLine(int left, int right, int top, int bottom, const char *st
 int DrawStringMultiLine(int left, int right, int top, int bottom, StringID str, TextColour colour, StringAlignment align, bool underline, FontSize fontsize)
 {
 	char buffer[DRAW_STRING_BUFFER];
-	GetString(buffer, str, lastof(buffer));
+	GetString (buffer, str);
 	return DrawStringMultiLine(left, right, top, bottom, buffer, colour, align, underline, fontsize);
 }
 
@@ -711,7 +711,7 @@ Dimension GetStringBoundingBox(StringID strid)
 {
 	char buffer[DRAW_STRING_BUFFER];
 
-	GetString(buffer, strid, lastof(buffer));
+	GetString (buffer, strid);
 	return GetStringBoundingBox(buffer);
 }
 

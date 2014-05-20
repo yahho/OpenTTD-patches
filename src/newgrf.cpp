@@ -7239,7 +7239,7 @@ static void TranslateGRFStrings(ByteReader *buf)
 		GRFError *error = DisableGrf(STR_NEWGRF_ERROR_LOAD_AFTER);
 
 		char tmp[256];
-		GetString(tmp, STR_NEWGRF_ERROR_AFTER_TRANSLATED_FILE, lastof(tmp));
+		GetString (tmp, STR_NEWGRF_ERROR_AFTER_TRANSLATED_FILE);
 		error->data = strdup(tmp);
 
 		return;

@@ -169,8 +169,7 @@ public:
 
 		/* Tiletype */
 		SetDParam(0, td.dparam[0]);
-		GetString(this->landinfo_data[line_nr], td.str, lastof(this->landinfo_data[line_nr]));
-		line_nr++;
+		GetString (this->landinfo_data[line_nr++], td.str);
 
 		/* Up to four owners */
 		for (uint i = 0; i < 4; i++) {
@@ -178,8 +177,7 @@ public:
 
 			SetDParam(0, STR_LAND_AREA_INFORMATION_OWNER_N_A);
 			if (td.owner[i] != OWNER_NONE && td.owner[i] != OWNER_WATER) GetNameOfOwner(td.owner[i], tile);
-			GetString(this->landinfo_data[line_nr], td.owner_type[i], lastof(this->landinfo_data[line_nr]));
-			line_nr++;
+			GetString (this->landinfo_data[line_nr++], td.owner_type[i]);
 		}
 
 		/* Cost to clear/revenue when cleared */
@@ -202,8 +200,7 @@ public:
 				SetDParam(0, cost);
 			}
 		}
-		GetString(this->landinfo_data[line_nr], str, lastof(this->landinfo_data[line_nr]));
-		line_nr++;
+		GetString (this->landinfo_data[line_nr++], str);
 
 		/* Location */
 		char tmp[16];
@@ -212,8 +209,7 @@ public:
 		SetDParam(1, TileY(tile));
 		SetDParam(2, GetTileZ(tile));
 		SetDParamStr(3, tmp);
-		GetString(this->landinfo_data[line_nr], STR_LAND_AREA_INFORMATION_LANDINFO_COORDS, lastof(this->landinfo_data[line_nr]));
-		line_nr++;
+		GetString (this->landinfo_data[line_nr++], STR_LAND_AREA_INFORMATION_LANDINFO_COORDS);
 
 		/* Local authority */
 		SetDParam(0, STR_LAND_AREA_INFORMATION_LOCAL_AUTHORITY_NONE);
@@ -221,70 +217,60 @@ public:
 			SetDParam(0, STR_TOWN_NAME);
 			SetDParam(1, t->index);
 		}
-		GetString(this->landinfo_data[line_nr], STR_LAND_AREA_INFORMATION_LOCAL_AUTHORITY, lastof(this->landinfo_data[line_nr]));
-		line_nr++;
+		GetString (this->landinfo_data[line_nr++], STR_LAND_AREA_INFORMATION_LOCAL_AUTHORITY);
 
 		/* Build date */
 		if (td.build_date != INVALID_DATE) {
 			SetDParam(0, td.build_date);
-			GetString(this->landinfo_data[line_nr], STR_LAND_AREA_INFORMATION_BUILD_DATE, lastof(this->landinfo_data[line_nr]));
-			line_nr++;
+			GetString (this->landinfo_data[line_nr++], STR_LAND_AREA_INFORMATION_BUILD_DATE);
 		}
 
 		/* Station class */
 		if (td.station_class != STR_NULL) {
 			SetDParam(0, td.station_class);
-			GetString(this->landinfo_data[line_nr], STR_LAND_AREA_INFORMATION_STATION_CLASS, lastof(this->landinfo_data[line_nr]));
-			line_nr++;
+			GetString (this->landinfo_data[line_nr++], STR_LAND_AREA_INFORMATION_STATION_CLASS);
 		}
 
 		/* Station type name */
 		if (td.station_name != STR_NULL) {
 			SetDParam(0, td.station_name);
-			GetString(this->landinfo_data[line_nr], STR_LAND_AREA_INFORMATION_STATION_TYPE, lastof(this->landinfo_data[line_nr]));
-			line_nr++;
+			GetString (this->landinfo_data[line_nr++], STR_LAND_AREA_INFORMATION_STATION_TYPE);
 		}
 
 		/* Airport class */
 		if (td.airport_class != STR_NULL) {
 			SetDParam(0, td.airport_class);
-			GetString(this->landinfo_data[line_nr], STR_LAND_AREA_INFORMATION_AIRPORT_CLASS, lastof(this->landinfo_data[line_nr]));
-			line_nr++;
+			GetString (this->landinfo_data[line_nr++], STR_LAND_AREA_INFORMATION_AIRPORT_CLASS);
 		}
 
 		/* Airport name */
 		if (td.airport_name != STR_NULL) {
 			SetDParam(0, td.airport_name);
-			GetString(this->landinfo_data[line_nr], STR_LAND_AREA_INFORMATION_AIRPORT_NAME, lastof(this->landinfo_data[line_nr]));
-			line_nr++;
+			GetString (this->landinfo_data[line_nr++], STR_LAND_AREA_INFORMATION_AIRPORT_NAME);
 		}
 
 		/* Airport tile name */
 		if (td.airport_tile_name != STR_NULL) {
 			SetDParam(0, td.airport_tile_name);
-			GetString(this->landinfo_data[line_nr], STR_LAND_AREA_INFORMATION_AIRPORTTILE_NAME, lastof(this->landinfo_data[line_nr]));
-			line_nr++;
+			GetString (this->landinfo_data[line_nr++], STR_LAND_AREA_INFORMATION_AIRPORTTILE_NAME);
 		}
 
 		/* Rail speed limit */
 		if (td.rail_speed != 0) {
 			SetDParam(0, td.rail_speed);
-			GetString(this->landinfo_data[line_nr], STR_LANG_AREA_INFORMATION_RAIL_SPEED_LIMIT, lastof(this->landinfo_data[line_nr]));
-			line_nr++;
+			GetString (this->landinfo_data[line_nr++], STR_LANG_AREA_INFORMATION_RAIL_SPEED_LIMIT);
 		}
 
 		/* Road speed limit */
 		if (td.road_speed != 0) {
 			SetDParam(0, td.road_speed);
-			GetString(this->landinfo_data[line_nr], STR_LANG_AREA_INFORMATION_ROAD_SPEED_LIMIT, lastof(this->landinfo_data[line_nr]));
-			line_nr++;
+			GetString (this->landinfo_data[line_nr++], STR_LANG_AREA_INFORMATION_ROAD_SPEED_LIMIT);
 		}
 
 		/* NewGRF name */
 		if (td.grf != NULL) {
 			SetDParamStr(0, td.grf);
-			GetString(this->landinfo_data[line_nr], STR_LAND_AREA_INFORMATION_NEWGRF_NAME, lastof(this->landinfo_data[line_nr]));
-			line_nr++;
+			GetString (this->landinfo_data[line_nr++], STR_LAND_AREA_INFORMATION_NEWGRF_NAME);
 		}
 
 		assert(line_nr < LAND_INFO_CENTERED_LINES);

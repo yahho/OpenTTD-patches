@@ -66,7 +66,7 @@ int8 SaveHighScoreValue(const Company *c)
 			memmove(&hs[i + 1], &hs[i], sizeof(HighScore) * (lengthof(_highscore_table[0]) - i - 1));
 			SetDParam(0, c->index);
 			SetDParam(1, c->index);
-			GetString(hs[i].company, STR_HIGHSCORE_NAME, lastof(hs[i].company)); // get manager/company name string
+			GetString (hs[i].company, STR_HIGHSCORE_NAME); // get manager/company name string
 			hs[i].score = score;
 			hs[i].title = EndGameGetPerformanceTitleFromValue(score);
 			return i;
@@ -109,7 +109,7 @@ int8 SaveHighScoreValueNetwork()
 
 			SetDParam(0, cl[i]->index);
 			SetDParam(1, cl[i]->index);
-			GetString(hs->company, STR_HIGHSCORE_NAME, lastof(hs->company)); // get manager/company name string
+			GetString (hs->company, STR_HIGHSCORE_NAME); // get manager/company name string
 			hs->score = cl[i]->old_economy[0].performance_history;
 			hs->title = EndGameGetPerformanceTitleFromValue(hs->score);
 

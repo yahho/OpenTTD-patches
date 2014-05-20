@@ -37,7 +37,7 @@ static bool DrawScrollingStatusText(const NewsItem *ni, int scroll_pos, int left
 	StringID str = ni->string_id;
 
 	char buf[512];
-	GetString(buf, str, lastof(buf));
+	GetString (buf, str);
 	const char *s = buf;
 
 	char buffer[256];

@@ -43,7 +43,7 @@ void Subsidy::AwardTo(CompanyID company)
 
 	char company_name[MAX_LENGTH_COMPANY_NAME_CHARS * MAX_CHAR_LENGTH];
 	SetDParam(0, company);
-	GetString(company_name, STR_COMPANY_NAME, lastof(company_name));
+	GetString (company_name, STR_COMPANY_NAME);
 
 	char *cn = strdup(company_name);
 

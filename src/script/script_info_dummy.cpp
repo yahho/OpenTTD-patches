@@ -63,7 +63,7 @@ void Script_CreateDummy(HSQUIRRELVM vm, StringID string, const char *type)
 	 * 1) We get the error message
 	 */
 	char error_message[1024];
-	GetString(error_message, string, lastof(error_message));
+	GetString (error_message, string);
 
 	/* Make escapes for all quotes and slashes. */
 	char safe_error_message[1024];

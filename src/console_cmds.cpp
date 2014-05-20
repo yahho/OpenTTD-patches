@@ -1538,7 +1538,7 @@ DEF_CONSOLE_CMD(ConCompanies)
 		/* Grab the company name */
 		char company_name[512];
 		SetDParam(0, c->index);
-		GetString(company_name, STR_COMPANY_NAME, lastof(company_name));
+		GetString (company_name, STR_COMPANY_NAME);
 
 		const char *password_state = "";
 		if (c->is_ai) {
@@ -1551,7 +1551,7 @@ DEF_CONSOLE_CMD(ConCompanies)
 #endif
 
 		char colour[512];
-		GetString(colour, STR_COLOUR_DARK_BLUE + _company_colours[c->index], lastof(colour));
+		GetString (colour, STR_COLOUR_DARK_BLUE + _company_colours[c->index]);
 		IConsolePrintF(CC_INFO, "#:%d(%s) Company Name: '%s'  Year Founded: %d  Money: " OTTD_PRINTF64 "  Loan: " OTTD_PRINTF64 "  Value: " OTTD_PRINTF64 "  (T:%d, R:%d, P:%d, S:%d) %s",
 			c->index + 1, colour, company_name,
 			c->inaugurated_year, (int64)c->money, (int64)c->current_loan, (int64)CalculateCompanyValue(c),

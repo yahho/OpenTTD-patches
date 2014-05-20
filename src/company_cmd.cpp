@@ -364,7 +364,7 @@ verify_name:;
 			if (cc->name_1 == str && cc->name_2 == strp) goto bad_town_name;
 		}
 
-		GetString(buffer, str, lastof(buffer));
+		GetString (buffer, str);
 		if (Utf8StringLength(buffer) >= MAX_LENGTH_COMPANY_NAME_CHARS) goto bad_town_name;
 
 set_name:;
@@ -490,7 +490,7 @@ restart:;
 		 * to detect too long president name. */
 		char buffer[(MAX_LENGTH_PRESIDENT_NAME_CHARS + 1) * MAX_CHAR_LENGTH];
 		SetDParam(0, c->index);
-		GetString(buffer, STR_PRESIDENT_NAME, lastof(buffer));
+		GetString (buffer, STR_PRESIDENT_NAME);
 		if (Utf8StringLength(buffer) >= MAX_LENGTH_PRESIDENT_NAME_CHARS) continue;
 
 		Company *cc;
@@ -499,7 +499,7 @@ restart:;
 				/* Reserve extra space so even overlength president names can be compared. */
 				char buffer2[(MAX_LENGTH_PRESIDENT_NAME_CHARS + 1) * MAX_CHAR_LENGTH];
 				SetDParam(0, cc->index);
-				GetString(buffer2, STR_PRESIDENT_NAME, lastof(buffer2));
+				GetString (buffer2, STR_PRESIDENT_NAME);
 				if (strcmp(buffer2, buffer) == 0) goto restart;
 			}
 		}
@@ -746,18 +746,18 @@ void CompaniesYearlyLoop()
 void CompanyNewsInformation::FillData(const Company *c, const Company *other)
 {
 	SetDParam(0, c->index);
-	GetString(this->company_name, STR_COMPANY_NAME, lastof(this->company_name));
+	GetString (this->company_name, STR_COMPANY_NAME);
 
 	if (other == NULL) {
 		*this->other_company_name = '\0';
 	} else {
 		SetDParam(0, other->index);
-		GetString(this->other_company_name, STR_COMPANY_NAME, lastof(this->other_company_name));
+		GetString (this->other_company_name, STR_COMPANY_NAME);
 		c = other;
 	}
 
 	SetDParam(0, c->index);
-	GetString(this->president_name, STR_PRESIDENT_NAME_MANAGER, lastof(this->president_name));
+	GetString (this->president_name, STR_PRESIDENT_NAME_MANAGER);
 
 	this->colour = c->colour;
 	this->face = c->face;

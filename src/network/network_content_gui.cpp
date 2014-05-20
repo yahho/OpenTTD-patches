@@ -401,8 +401,8 @@ class NetworkContentListWindow : public Window, ContentCallback {
 		if ((*a)->type != (*b)->type) {
 			char a_str[64];
 			char b_str[64];
-			GetString(a_str, STR_CONTENT_TYPE_BASE_GRAPHICS + (*a)->type - CONTENT_TYPE_BASE_GRAPHICS, lastof(a_str));
-			GetString(b_str, STR_CONTENT_TYPE_BASE_GRAPHICS + (*b)->type - CONTENT_TYPE_BASE_GRAPHICS, lastof(b_str));
+			GetString (a_str, STR_CONTENT_TYPE_BASE_GRAPHICS + (*a)->type - CONTENT_TYPE_BASE_GRAPHICS);
+			GetString (b_str, STR_CONTENT_TYPE_BASE_GRAPHICS + (*b)->type - CONTENT_TYPE_BASE_GRAPHICS);
 			r = strnatcmp(a_str, b_str);
 		}
 		if (r == 0) r = NameSorter(a, b);
