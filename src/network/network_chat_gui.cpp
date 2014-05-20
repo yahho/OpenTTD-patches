@@ -14,6 +14,7 @@
 #ifdef ENABLE_NETWORK
 
 #include "../stdafx.h"
+#include "../string.h"
 #include "../strings_func.h"
 #include "../blitter/factory.hpp"
 #include "../console_func.h"
@@ -96,7 +97,7 @@ void CDECL NetworkAddChatMessage(TextColour colour, uint duration, const char *m
 	}
 
 	ChatMessage *cmsg = &_chatmsg_list[msg_count++];
-	strecpy(cmsg->message, buf, lastof(cmsg->message));
+	bstrcpy (cmsg->message, buf);
 	cmsg->colour = (colour & TC_IS_PALETTE_COLOUR) ? colour : TC_WHITE;
 	cmsg->remove_time = _realtime_tick + duration * 1000;
 
@@ -426,7 +427,7 @@ struct NetworkChatWindow : public Window {
 			len = strlen(cur_name);
 			if (tb_len < len && strncasecmp(cur_name, tb_buf, tb_len) == 0) {
 				/* Save the data it was before completion */
-				if (!second_scan) snprintf(_chat_tab_completion_buf, lengthof(_chat_tab_completion_buf), "%s", tb->GetText());
+				if (!second_scan) bstrcpy (_chat_tab_completion_buf, tb->GetText());
 				_chat_tab_completion_active = true;
 
 				/* Change to the found name. Add ': ' if we are at the start of the line (pretty) */

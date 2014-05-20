@@ -1793,7 +1793,7 @@ bool ReadLanguagePack(const LanguageMetadata *lang)
 	_current_language = lang;
 	_current_text_dir = (TextDirection)_current_language->text_dir;
 	const char *c_file = strrchr(_current_language->file, PATHSEPCHAR) + 1;
-	strecpy(_config_language_file, c_file, lastof(_config_language_file));
+	bstrcpy (_config_language_file, c_file);
 	SetCurrentGrfLangID(_current_language->newgrflangid);
 
 #ifdef WITH_ICU
@@ -2073,9 +2073,9 @@ class LanguagePackGlyphSearcher : public MissingGlyphSearcher {
 	/* virtual */ void SetFontNames(FreeTypeSettings *settings, const char *font_name)
 	{
 #ifdef WITH_FREETYPE
-		strecpy(settings->small.font,  font_name, lastof(settings->small.font));
-		strecpy(settings->medium.font, font_name, lastof(settings->medium.font));
-		strecpy(settings->large.font,  font_name, lastof(settings->large.font));
+		bstrcpy (settings->small.font,  font_name);
+		bstrcpy (settings->medium.font, font_name);
+		bstrcpy (settings->large.font,  font_name);
 #endif /* WITH_FREETYPE */
 	}
 };

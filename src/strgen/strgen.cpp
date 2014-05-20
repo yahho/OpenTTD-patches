@@ -142,11 +142,11 @@ void FileStringReader::HandlePragma(char *str)
 	if (!memcmp(str, "id ", 3)) {
 		this->data.next_string_id = strtoul(str + 3, NULL, 0);
 	} else if (!memcmp(str, "name ", 5)) {
-		strecpy(_lang.name, str + 5, lastof(_lang.name));
+		bstrcpy (_lang.name, str + 5);
 	} else if (!memcmp(str, "ownname ", 8)) {
-		strecpy(_lang.own_name, str + 8, lastof(_lang.own_name));
+		bstrcpy (_lang.own_name, str + 8);
 	} else if (!memcmp(str, "isocode ", 8)) {
-		strecpy(_lang.isocode, str + 8, lastof(_lang.isocode));
+		bstrcpy (_lang.isocode, str + 8);
 	} else if (!memcmp(str, "textdir ", 8)) {
 		if (!memcmp(str + 8, "ltr", 3)) {
 			_lang.text_dir = TD_LTR;
@@ -157,13 +157,13 @@ void FileStringReader::HandlePragma(char *str)
 		}
 	} else if (!memcmp(str, "digitsep ", 9)) {
 		str += 9;
-		strecpy(_lang.digit_group_separator, strcmp(str, "{NBSP}") == 0 ? NBSP : str, lastof(_lang.digit_group_separator));
+		bstrcpy (_lang.digit_group_separator, strcmp(str, "{NBSP}") == 0 ? NBSP : str);
 	} else if (!memcmp(str, "digitsepcur ", 12)) {
 		str += 12;
-		strecpy(_lang.digit_group_separator_currency, strcmp(str, "{NBSP}") == 0 ? NBSP : str, lastof(_lang.digit_group_separator_currency));
+		bstrcpy (_lang.digit_group_separator_currency, strcmp(str, "{NBSP}") == 0 ? NBSP : str);
 	} else if (!memcmp(str, "decimalsep ", 11)) {
 		str += 11;
-		strecpy(_lang.digit_decimal_separator, strcmp(str, "{NBSP}") == 0 ? NBSP : str, lastof(_lang.digit_decimal_separator));
+		bstrcpy (_lang.digit_decimal_separator, strcmp(str, "{NBSP}") == 0 ? NBSP : str);
 	} else if (!memcmp(str, "winlangid ", 10)) {
 		const char *buf = str + 10;
 		long langid = strtol(buf, NULL, 16);
@@ -187,7 +187,7 @@ void FileStringReader::HandlePragma(char *str)
 
 			if (s == NULL) break;
 			if (_lang.num_genders >= MAX_NUM_GENDERS) error("Too many genders, max %d", MAX_NUM_GENDERS);
-			strecpy(_lang.genders[_lang.num_genders], s, lastof(_lang.genders[_lang.num_genders]));
+			bstrcpy (_lang.genders[_lang.num_genders], s);
 			_lang.num_genders++;
 		}
 	} else if (!memcmp(str, "case ", 5)) {
@@ -199,7 +199,7 @@ void FileStringReader::HandlePragma(char *str)
 
 			if (s == NULL) break;
 			if (_lang.num_cases >= MAX_NUM_CASES) error("Too many cases, max %d", MAX_NUM_CASES);
-			strecpy(_lang.cases[_lang.num_cases], s, lastof(_lang.cases[_lang.num_cases]));
+			bstrcpy (_lang.cases[_lang.num_cases], s);
 			_lang.num_cases++;
 		}
 	} else {

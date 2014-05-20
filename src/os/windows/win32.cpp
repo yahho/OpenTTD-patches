@@ -210,8 +210,8 @@ void FiosGetDrives()
 	FiosItem *fios = _fios_items.Append();
 	fios->type = FIOS_TYPE_DRIVE;
 	fios->mtime = 0;
-	snprintf(fios->name, lengthof(fios->name), PATHSEP "");
-	strecpy(fios->title, fios->name, lastof(fios->title));
+	bstrcpy (fios->name, PATHSEP);
+	bstrcpy (fios->title, fios->name);
 #else
 	TCHAR drives[256];
 	const TCHAR *s;
@@ -222,7 +222,7 @@ void FiosGetDrives()
 		fios->type = FIOS_TYPE_DRIVE;
 		fios->mtime = 0;
 		snprintf(fios->name, lengthof(fios->name),  "%c:", s[0] & 0xFF);
-		strecpy(fios->title, fios->name, lastof(fios->title));
+		bstrcpy (fios->title, fios->name);
 		while (*s++ != '\0') { /* Nothing */ }
 	}
 #endif
@@ -523,7 +523,7 @@ void DetermineBasePaths(const char *exe)
 			DEBUG(misc, 0, "GetFullPathName failed (%lu)\n", GetLastError());
 			_searchpaths[SP_BINARY_DIR] = NULL;
 		} else {
-			strecpy(tmp, convert_from_fs(exec_dir, tmp, lengthof(tmp)), lastof(tmp));
+			bstrcpy (tmp, convert_from_fs(exec_dir, tmp, lengthof(tmp)));
 			char *s = strrchr(tmp, PATHSEPCHAR);
 			*(s + 1) = '\0';
 			_searchpaths[SP_BINARY_DIR] = strdup(tmp);

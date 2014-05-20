@@ -94,7 +94,7 @@ static void Save_GSDT(SaveDumper *dumper)
 	GameSaveload gsl;
 
 	if (config->HasScript()) {
-		ttd_strlcpy(gsl.name, config->GetName(), lengthof(gsl.name));
+		bstrcpy (gsl.name, config->GetName());
 		gsl.version = config->GetVersion();
 	} else {
 		/* No GameScript is configured for this so store an empty string as name. */

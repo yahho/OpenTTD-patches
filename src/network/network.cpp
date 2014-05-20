@@ -13,6 +13,7 @@
 
 #ifdef ENABLE_NETWORK
 
+#include "../string.h"
 #include "../strings_func.h"
 #include "../command_func.h"
 #include "../date_func.h"
@@ -615,9 +616,9 @@ void NetworkAddServer(const char *b)
 		char host[NETWORK_HOSTNAME_LENGTH];
 		uint16 rport;
 
-		strecpy(host, b, lastof(host));
+		bstrcpy (host, b);
 
-		strecpy(_settings_client.network.connect_to_ip, b, lastof(_settings_client.network.connect_to_ip));
+		bstrcpy (_settings_client.network.connect_to_ip, b);
 		rport = NETWORK_DEFAULT_PORT;
 
 		ParseConnectionString(&company, &port, host);
@@ -683,7 +684,7 @@ void NetworkClientConnectGame(NetworkAddress address, CompanyID join_as, const c
 
 	if (address.GetPort() == 0) return;
 
-	strecpy(_settings_client.network.last_host, address.GetHostname(), lastof(_settings_client.network.last_host));
+	bstrcpy (_settings_client.network.last_host, address.GetHostname());
 	_settings_client.network.last_port = address.GetPort();
 	_network_join_as = join_as;
 	_network_join_server_password = join_server_password;
@@ -701,7 +702,7 @@ void NetworkClientConnectGame(NetworkAddress address, CompanyID join_as, const c
 static void NetworkInitGameInfo()
 {
 	if (StrEmpty(_settings_client.network.server_name)) {
-		snprintf(_settings_client.network.server_name, sizeof(_settings_client.network.server_name), "Unnamed Server");
+		bstrcpy (_settings_client.network.server_name, "Unnamed Server");
 	}
 
 	/* The server is a client too */
@@ -712,7 +713,7 @@ static void NetworkInitGameInfo()
 	NetworkClientInfo *ci = new NetworkClientInfo(CLIENT_ID_SERVER);
 	ci->client_playas = _network_dedicated ? COMPANY_SPECTATOR : _local_company;
 
-	strecpy(ci->client_name, _settings_client.network.client_name, lastof(ci->client_name));
+	bstrcpy (ci->client_name, _settings_client.network.client_name);
 }
 
 bool NetworkServerStart()
@@ -1037,7 +1038,7 @@ static void NetworkGenerateServerId()
 	}
 
 	/* _settings_client.network.network_id is our id */
-	snprintf(_settings_client.network.network_id, sizeof(_settings_client.network.network_id), "%s", hex_output);
+	bstrcpy (_settings_client.network.network_id, hex_output);
 }
 
 void NetworkStartDebugLog(NetworkAddress address)

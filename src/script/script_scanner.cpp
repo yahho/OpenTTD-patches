@@ -248,7 +248,7 @@ static bool IsSameScript(const ContentInfo *ci, bool md5sum, ScriptInfo *info, S
 		}
 	} else {
 		char path[MAX_PATH];
-		strecpy(path, info->GetMainScript(), lastof(path));
+		bstrcpy (path, info->GetMainScript());
 		/* There'll always be at least 1 path separator character in a script
 		 * main script name as the search algorithm requires the main script to
 		 * be in a subdirectory of the script directory; so <dir>/<path>/main.nut. */

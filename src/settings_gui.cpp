@@ -2564,15 +2564,15 @@ struct CustomCurrencyWindow : Window {
 				break;
 
 			case WID_CC_SEPARATOR: // Thousands separator
-				strecpy(_custom_currency.separator, str, lastof(_custom_currency.separator));
+				bstrcpy (_custom_currency.separator, str);
 				break;
 
 			case WID_CC_PREFIX:
-				strecpy(_custom_currency.prefix, str, lastof(_custom_currency.prefix));
+				bstrcpy (_custom_currency.prefix, str);
 				break;
 
 			case WID_CC_SUFFIX:
-				strecpy(_custom_currency.suffix, str, lastof(_custom_currency.suffix));
+				bstrcpy (_custom_currency.suffix, str);
 				break;
 
 			case WID_CC_YEAR: { // Year to switch to euro

@@ -430,13 +430,13 @@ bool SetFallbackFont(FreeTypeSettings *settings, const char *language_isocode, i
 		char lang[16];
 		if (strcmp(language_isocode, "zh_TW") == 0) {
 			/* Traditional Chinese */
-			strecpy(lang, "zh-Hant", lastof(lang));
+			bstrcpy (lang, "zh-Hant");
 		} else if (strcmp(language_isocode, "zh_CN") == 0) {
 			/* Simplified Chinese */
-			strecpy(lang, "zh-Hans", lastof(lang));
+			bstrcpy (lang, "zh-Hans");
 		} else {
 			/* Just copy the first part of the isocode. */
-			strecpy(lang, language_isocode, lastof(lang));
+			bstrcpy (lang, language_isocode);
 			char *sep = strchr(lang, '_');
 			if (sep != NULL) *sep = '\0';
 		}

@@ -84,7 +84,7 @@ public:
 		/* Also handle IPv6 bracket enclosed hostnames */
 		if (StrEmpty(hostname)) hostname = "";
 		if (*hostname == '[') hostname++;
-		strecpy(this->hostname, StrEmpty(hostname) ? "" : hostname, lastof(this->hostname));
+		bstrcpy (this->hostname, StrEmpty(hostname) ? "" : hostname);
 		char *tmp = strrchr(this->hostname, ']');
 		if (tmp != NULL) *tmp = '\0';
 

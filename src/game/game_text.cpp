@@ -11,6 +11,7 @@
 
 #include "../stdafx.h"
 #include "../strgen/strgen.h"
+#include "../string.h"
 #include "../debug.h"
 #include "../fileio_func.h"
 #include "../tar_type.h"
@@ -257,7 +258,7 @@ GameStrings *LoadTranslations()
 {
 	const GameInfo *info = Game::GetInfo();
 	char filename[512];
-	strecpy(filename, info->GetMainScript(), lastof(filename));
+	bstrcpy (filename, info->GetMainScript());
 	char *e = strrchr(filename, PATHSEPCHAR);
 	if (e == NULL) return NULL;
 	e++; // Make 'e' point after the PATHSEPCHAR
@@ -377,7 +378,7 @@ void ReconsiderGameScriptLanguage()
 	if (_current_data == NULL) return;
 
 	char temp[MAX_PATH];
-	strecpy(temp, _current_language->file, temp + sizeof(temp));
+	bstrcpy (temp, _current_language->file);
 
 	/* Remove the extension */
 	char *l = strrchr(temp, '.');

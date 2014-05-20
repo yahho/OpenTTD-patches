@@ -11,6 +11,7 @@
 
 #if defined(ENABLE_NETWORK)
 #include "../stdafx.h"
+#include "../string.h"
 #include "../strings_func.h"
 #include "../gfx_func.h"
 #include "../window_func.h"
@@ -144,7 +145,7 @@ BaseNetworkContentDownloadStatusWindow::~BaseNetworkContentDownloadStatusWindow(
 /* virtual */ void BaseNetworkContentDownloadStatusWindow::OnDownloadProgress(const ContentInfo *ci, int bytes)
 {
 	if (ci->id != this->cur_id) {
-		strecpy(this->name, ci->filename, lastof(this->name));
+		bstrcpy (this->name, ci->filename);
 		this->cur_id = ci->id;
 		this->downloaded_files++;
 	}

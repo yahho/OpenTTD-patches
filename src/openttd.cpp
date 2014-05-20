@@ -18,6 +18,7 @@
 
 #include "fontcache.h"
 #include "error.h"
+#include "string.h"
 #include "gui.h"
 
 #include "base_media_base.h"
@@ -615,7 +616,7 @@ int openttd_main(int argc, char *argv[])
 		case 'e': _switch_mode = (_switch_mode == SM_LOAD_GAME || _switch_mode == SM_LOAD_SCENARIO ? SM_LOAD_SCENARIO : SM_EDITOR); break;
 		case 'g':
 			if (mgo.opt != NULL) {
-				strecpy(_file_to_saveload.name, mgo.opt, lastof(_file_to_saveload.name));
+				bstrcpy (_file_to_saveload.name, mgo.opt);
 				_switch_mode = (_switch_mode == SM_EDITOR || _switch_mode == SM_LOAD_SCENARIO ? SM_LOAD_SCENARIO : SM_LOAD_GAME);
 				_file_to_saveload.mode = SL_LOAD;
 
@@ -1087,7 +1088,7 @@ void SwitchToMode(SwitchMode new_mode)
 		case SM_NEWGAME: // New Game --> 'Random game'
 #ifdef ENABLE_NETWORK
 			if (_network_server) {
-				snprintf(_network_game_info.map_name, lengthof(_network_game_info.map_name), "Random Map");
+				bstrcpy (_network_game_info.map_name, "Random Map");
 			}
 #endif /* ENABLE_NETWORK */
 			MakeNewGame(false, new_mode == SM_NEWGAME);

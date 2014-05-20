@@ -359,13 +359,13 @@ void GetKeyboardLayout()
 	if (StrEmpty(_keyboard_opt[0])) {
 		GetString(keyboard[0], STR_OSK_KEYBOARD_LAYOUT, lastof(keyboard[0]));
 	} else {
-		strecpy(keyboard[0], _keyboard_opt[0], lastof(keyboard[0]));
+		bstrcpy (keyboard[0], _keyboard_opt[0]);
 	}
 
 	if (StrEmpty(_keyboard_opt[1])) {
 		GetString(keyboard[1], STR_OSK_KEYBOARD_LAYOUT_CAPS, lastof(keyboard[1]));
 	} else {
-		strecpy(keyboard[1], _keyboard_opt[1], lastof(keyboard[1]));
+		bstrcpy (keyboard[1], _keyboard_opt[1]);
 	}
 
 	for (uint j = 0; j < 2; j++) {

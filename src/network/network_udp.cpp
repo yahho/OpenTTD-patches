@@ -18,6 +18,7 @@
 
 #include "../stdafx.h"
 #include "../date_func.h"
+#include "../string.h"
 #include "../debug.h"
 #include "network_gamelist.h"
 #include "network_internal.h"
@@ -74,7 +75,7 @@ static void NetworkUDPQueryServer(NetworkAddress *address, bool needs_mutex, boo
 	/* Clear item in gamelist */
 	NetworkGameList *item = CallocT<NetworkGameList>(1);
 	address->GetAddressAsString(item->info.server_name, lastof(item->info.server_name));
-	strecpy(item->info.hostname, address->GetHostname(), lastof(item->info.hostname));
+	bstrcpy (item->info.hostname, address->GetHostname());
 	item->address = *address;
 	item->manually = manually;
 	NetworkGameListAddItemDelayed(item);
@@ -186,9 +187,9 @@ void ServerNetworkUDPSocketHandler::Receive_CLIENT_FIND_SERVER(Packet *p, Networ
 	ngi.dedicated      = _network_dedicated;
 	ngi.grfconfig      = _grfconfig;
 
-	strecpy(ngi.map_name, _network_game_info.map_name, lastof(ngi.map_name));
-	strecpy(ngi.server_name, _settings_client.network.server_name, lastof(ngi.server_name));
-	strecpy(ngi.server_revision, _openttd_revision, lastof(ngi.server_revision));
+	bstrcpy (ngi.map_name, _network_game_info.map_name);
+	bstrcpy (ngi.server_name, _settings_client.network.server_name);
+	bstrcpy (ngi.server_revision, _openttd_revision);
 
 	Packet packet(PACKET_UDP_SERVER_RESPONSE);
 	this->SendNetworkGameInfo(&packet, &ngi);
@@ -319,7 +320,7 @@ void ServerNetworkUDPSocketHandler::Receive_CLIENT_GET_NEWGRFS(Packet *p, Networ
 		char name[NETWORK_GRF_NAME_LENGTH];
 
 		/* The name could be an empty string, if so take the filename */
-		strecpy(name, in_reply[i]->GetName(), lastof(name));
+		bstrcpy (name, in_reply[i]->GetName());
 		this->SendGRFIdentifier(&packet, &in_reply[i]->ident);
 		packet.Send_string(name);
 	}
@@ -390,7 +391,7 @@ void ClientNetworkUDPSocketHandler::Receive_SERVER_RESPONSE(Packet *p, NetworkAd
 	}
 
 	if (item->info.hostname[0] == '\0') {
-		snprintf(item->info.hostname, sizeof(item->info.hostname), "%s", client_addr->GetHostname());
+		bstrcpy (item->info.hostname, client_addr->GetHostname());
 	}
 
 	if (client_addr->GetAddress()->ss_family == AF_INET6) {

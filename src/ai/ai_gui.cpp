@@ -10,6 +10,7 @@
 /** @file ai_gui.cpp %Window for configuring the AIs */
 
 #include "../stdafx.h"
+#include "../string.h"
 #include "../table/sprites.h"
 #include "../error.h"
 #include "../settings_gui.h"
@@ -1311,7 +1312,7 @@ struct AIDebugWindow : public Window {
 	{
 		if (wid == WID_AID_BREAK_STR_EDIT_BOX) {
 			/* Save the current string to static member so it can be restored next time the window is opened. */
-			strecpy(this->break_string, this->break_editbox.GetText(), lastof(this->break_string));
+			bstrcpy (this->break_string, this->break_editbox.GetText());
 			break_string_filter.SetFilterTerm(this->break_string);
 		}
 	}

@@ -308,4 +308,21 @@ char *strcasestr(const char *haystack, const char *needle);
 
 int strnatcmp(const char *s1, const char *s2, bool ignore_garbage_at_front = false);
 
+
+/* buffer-aware string functions */
+
+/** Copy a string, pointer version. */
+template <uint N>
+static inline void bstrcpy (char (*dest) [N], const char *src)
+{
+	snprintf (&(*dest)[0], N, "%s", src);
+}
+
+/** Copy a string, reference version. */
+template <uint N>
+static inline void bstrcpy (char (&dest) [N], const char *src)
+{
+	bstrcpy (&dest, src);
+}
+
 #endif /* STRING_H */

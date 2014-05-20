@@ -11,6 +11,7 @@
 
 #include "stdafx.h"
 #include "console_internal.h"
+#include "string.h"
 #include "debug.h"
 #include "engine_func.h"
 #include "landscape.h"
@@ -366,8 +367,8 @@ DEF_CONSOLE_CMD(ConLoad)
 				_switch_mode = SM_LOAD_GAME;
 				SetFiosType(item->type);
 
-				strecpy(_file_to_saveload.name, FiosBrowseTo(item), lastof(_file_to_saveload.name));
-				strecpy(_file_to_saveload.title, item->title, lastof(_file_to_saveload.title));
+				bstrcpy (_file_to_saveload.name, FiosBrowseTo(item));
+				bstrcpy (_file_to_saveload.title, item->title);
 				break;
 			}
 			default: IConsolePrintF(CC_ERROR, "%s: Not a savegame.", file);

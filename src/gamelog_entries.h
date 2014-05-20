@@ -83,7 +83,7 @@ struct GamelogEntryRevision : GamelogEntry {
 			slver(SAVEGAME_VERSION),
 			modified(_openttd_revision_modified) {
 		memset(this->text, 0, sizeof(this->text));
-		strecpy(this->text, _openttd_revision, lastof(this->text));
+		bstrcpy (this->text, _openttd_revision);
 	}
 
 	void Print(GamelogPrintBuffer *buf);

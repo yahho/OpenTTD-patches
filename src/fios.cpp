@@ -270,7 +270,7 @@ bool FiosFileScanner::AddFile(const char *filename, size_t basepath_length, cons
 	}
 
 	fios->type = type;
-	strecpy(fios->name, filename, lastof(fios->name));
+	bstrcpy (fios->name, filename);
 
 	/* If the file doesn't have a title, use its filename */
 	const char *t = fios_title;
@@ -278,7 +278,7 @@ bool FiosFileScanner::AddFile(const char *filename, size_t basepath_length, cons
 		t = strrchr(filename, PATHSEPCHAR);
 		t = (t == NULL) ? filename : (t + 1);
 	}
-	strecpy(fios->title, t, lastof(fios->title));
+	bstrcpy (fios->title, t);
 	str_validate(fios->title, lastof(fios->title));
 
 	return true;
@@ -307,14 +307,14 @@ static void FiosGetFileList(SaveLoadDialogMode mode, fios_getlist_callback_proc 
 		fios = _fios_items.Append();
 		fios->type = FIOS_TYPE_PARENT;
 		fios->mtime = 0;
-		strecpy(fios->name, "..", lastof(fios->name));
-		strecpy(fios->title, ".. (Parent directory)", lastof(fios->title));
+		bstrcpy (fios->name, "..");
+		bstrcpy (fios->title, ".. (Parent directory)");
 	}
 
 	/* Show subdirectories */
 	if ((dir = ttd_opendir(_fios_path)) != NULL) {
 		while ((dirent = readdir(dir)) != NULL) {
-			strecpy(d_name, FS2OTTD(dirent->d_name), lastof(d_name));
+			bstrcpy (d_name, FS2OTTD(dirent->d_name));
 
 			/* found file must be directory, but not '.' or '..' */
 			if (FiosIsValidFile(_fios_path, dirent, &sb) && S_ISDIR(sb.st_mode) &&
@@ -323,7 +323,7 @@ static void FiosGetFileList(SaveLoadDialogMode mode, fios_getlist_callback_proc 
 				fios = _fios_items.Append();
 				fios->type = FIOS_TYPE_DIR;
 				fios->mtime = 0;
-				strecpy(fios->name, d_name, lastof(fios->name));
+				bstrcpy (fios->name, d_name);
 				snprintf(fios->title, lengthof(fios->title), "%s" PATHSEP " (Directory)", d_name);
 				str_validate(fios->title, lastof(fios->title));
 			}
@@ -627,7 +627,7 @@ public:
 		int fret = fscanf(f, "%i", &id.scenid);
 		FioFCloseFile(f);
 		if (fret != 1) return false;
-		strecpy(id.filename, filename, lastof(id.filename));
+		bstrcpy (id.filename, filename);
 
 		Md5 checksum;
 		uint8 buffer[1024];
@@ -637,7 +637,7 @@ public:
 		/* open the scenario file, but first get the name.
 		 * This is safe as we check on extension which
 		 * must always exist. */
-		strecpy(basename, filename, lastof(basename));
+		bstrcpy (basename, filename);
 		*strrchr(basename, '.') = '\0';
 		f = FioFOpenFile(basename, "rb", SCENARIO_DIR, &size);
 		if (f == NULL) return false;

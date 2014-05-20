@@ -10,6 +10,7 @@
 /** @file fios_gui.cpp GUIs for loading/saving games, scenarios, heightmaps, ... */
 
 #include "stdafx.h"
+#include "string.h"
 #include "saveload/saveload.h"
 #include "error.h"
 #include "gui.h"
@@ -307,7 +308,7 @@ public:
 				break;
 
 			default:
-				strecpy(o_dir.name, _personal_dir, lastof(o_dir.name));
+				bstrcpy (o_dir.name, _personal_dir);
 		}
 
 		/* Focus the edit box by default in the save windows */
@@ -524,8 +525,8 @@ public:
 					const char *name = FiosBrowseTo(this->selected);
 					SetFiosType(this->selected->type);
 
-					strecpy(_file_to_saveload.name, name, lastof(_file_to_saveload.name));
-					strecpy(_file_to_saveload.title, this->selected->title, lastof(_file_to_saveload.title));
+					bstrcpy (_file_to_saveload.name, name);
+					bstrcpy (_file_to_saveload.title, this->selected->title);
 
 					if (_saveload_mode == SLD_LOAD_HEIGHTMAP) {
 						delete this;
@@ -584,8 +585,8 @@ public:
 							this->OnClick(pt, WID_SL_LOAD_BUTTON, 1);
 						} else if (_saveload_mode == SLD_LOAD_HEIGHTMAP) {
 							SetFiosType(file->type);
-							strecpy(_file_to_saveload.name, name, lastof(_file_to_saveload.name));
-							strecpy(_file_to_saveload.title, file->title, lastof(_file_to_saveload.title));
+							bstrcpy (_file_to_saveload.name, name);
+							bstrcpy (_file_to_saveload.title, file->title);
 
 							delete this;
 							ShowHeightmapLoad();

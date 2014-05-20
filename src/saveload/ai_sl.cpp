@@ -103,7 +103,7 @@ static void Save_AIPL(SaveDumper *dumper)
 		AIConfig *config = AIConfig::GetConfig((CompanyID)i);
 
 		if (config->HasScript()) {
-			ttd_strlcpy(aisl.name, config->GetName(), lengthof(aisl.name));
+			bstrcpy (aisl.name, config->GetName());
 			aisl.version = config->GetVersion();
 		} else {
 			/* No AI is configured for this so store an empty string as name. */

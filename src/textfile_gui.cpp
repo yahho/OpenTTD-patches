@@ -187,7 +187,7 @@ void TextfileWindow::SetupScrollbars()
 /* virtual */ void TextfileWindow::SetFontNames(FreeTypeSettings *settings, const char *font_name)
 {
 #ifdef WITH_FREETYPE
-	strecpy(settings->mono.font, font_name, lastof(settings->mono.font));
+	bstrcpy (settings->mono.font, font_name);
 #endif /* WITH_FREETYPE */
 }
 
@@ -257,7 +257,7 @@ const char *GetTextfile(TextfileType type, Subdirectory dir, const char *filenam
 	if (filename == NULL) return NULL;
 
 	static char file_path[MAX_PATH];
-	strecpy(file_path, filename, lastof(file_path));
+	bstrcpy (file_path, filename);
 
 	char *slash = strrchr(file_path, PATHSEPCHAR);
 	if (slash == NULL) return NULL;

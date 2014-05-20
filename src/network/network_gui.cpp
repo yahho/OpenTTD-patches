@@ -11,6 +11,7 @@
 
 #ifdef ENABLE_NETWORK
 #include "../stdafx.h"
+#include "../string.h"
 #include "../strings_func.h"
 #include "../date_func.h"
 #include "../fios.h"
@@ -754,7 +755,7 @@ public:
 
 			case WID_NG_JOIN: // Join Game
 				if (this->server != NULL) {
-					snprintf(_settings_client.network.last_host, sizeof(_settings_client.network.last_host), "%s", this->server->address.GetHostname());
+					bstrcpy (_settings_client.network.last_host, this->server->address.GetHostname());
 					_settings_client.network.last_port = this->server->address.GetPort();
 					ShowNetworkLobbyWindow(this->server);
 				}
@@ -874,9 +875,9 @@ public:
 			case WID_NG_CLIENT:
 				/* Make sure the name does not start with a space, so TAB completion works */
 				if (!StrEmpty(this->name_editbox.GetText()) && this->name_editbox.GetText()[0] != ' ') {
-					strecpy(_settings_client.network.client_name, this->name_editbox.GetText(), lastof(_settings_client.network.client_name));
+					bstrcpy (_settings_client.network.client_name, this->name_editbox.GetText());
 				} else {
-					strecpy(_settings_client.network.client_name, "Player", lastof(_settings_client.network.client_name));
+					bstrcpy (_settings_client.network.client_name, "Player");
 				}
 				break;
 		}
@@ -1210,7 +1211,7 @@ struct NetworkStartServerWindow : public Window {
 	virtual void OnEditboxChanged(int wid)
 	{
 		if (wid == WID_NSS_GAMENAME) {
-			strecpy(_settings_client.network.server_name, this->name_editbox.GetText(), lastof(_settings_client.network.server_name));
+			bstrcpy (_settings_client.network.server_name, this->name_editbox.GetText());
 		}
 	}
 
@@ -1230,7 +1231,7 @@ struct NetworkStartServerWindow : public Window {
 		if (str == NULL) return;
 
 		if (this->widget_id == WID_NSS_SETPWD) {
-			strecpy(_settings_client.network.server_password, str, lastof(_settings_client.network.server_password));
+			bstrcpy (_settings_client.network.server_password, str);
 		} else {
 			int32 value = atoi(str);
 			this->SetWidgetDirty(this->widget_id);
@@ -2155,7 +2156,7 @@ struct NetworkCompanyPasswordWindow : public Window {
 	void OnOk()
 	{
 		if (this->IsWidgetLowered(WID_NCP_SAVE_AS_DEFAULT_PASSWORD)) {
-			strecpy(_settings_client.network.default_company_pass, this->password_editbox.GetText(), lastof(_settings_client.network.default_company_pass));
+			bstrcpy (_settings_client.network.default_company_pass, this->password_editbox.GetText());
 		}
 
 		NetworkChangeCompanyPassword(_local_company, this->password_editbox.GetText());

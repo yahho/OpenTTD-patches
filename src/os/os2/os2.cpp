@@ -81,7 +81,7 @@ void FiosGetDrives()
 #else
 			snprintf(fios->name, lengthof(fios->name),  "%c:", disk);
 #endif
-			strecpy(fios->title, fios->name, lastof(fios->title));
+			bstrcpy (fios->title, fios->name);
 		}
 	}
 

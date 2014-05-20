@@ -830,7 +830,7 @@ static void _ShowGenerateLandscape(GenenerateLandscapeWindowMode mode)
 	if (mode == GLWM_HEIGHTMAP) {
 		w->x = x;
 		w->y = y;
-		strecpy(w->name, _file_to_saveload.title, lastof(w->name));
+		bstrcpy (w->name, _file_to_saveload.title);
 	}
 
 	SetWindowDirty(WC_GENERATE_LANDSCAPE, mode);

@@ -12,6 +12,7 @@
 #ifdef ENABLE_NETWORK
 
 #include "../stdafx.h"
+#include "../string.h"
 #include "../strings_func.h"
 #include "../date_func.h"
 #include "network_admin.h"
@@ -375,7 +376,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendCompanyInfo()
 	/* Add the local player (if not dedicated) */
 	const NetworkClientInfo *ci = NetworkClientInfo::GetByClientID(CLIENT_ID_SERVER);
 	if (ci != NULL && Company::IsValidID(ci->client_playas)) {
-		strecpy(clients[ci->client_playas], ci->client_name, lastof(clients[ci->client_playas]));
+		bstrcpy (clients[ci->client_playas], ci->client_name);
 	}
 
 	FOR_ALL_CLIENT_SOCKETS(csi) {
@@ -938,7 +939,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::Receive_CLIENT_JOIN(Packet *p)
 	}
 
 	/* We need a valid name.. make it Player */
-	if (StrEmpty(name)) strecpy(name, "Player", lastof(name));
+	if (StrEmpty(name)) bstrcpy (name, "Player");
 
 	if (!NetworkFindName(name)) { // Change name if duplicate
 		/* We could not create a name for this client */
@@ -949,7 +950,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::Receive_CLIENT_JOIN(Packet *p)
 	NetworkClientInfo *ci = new NetworkClientInfo(this->client_id);
 	this->SetInfo(ci);
 	ci->join_date = _date;
-	strecpy(ci->client_name, name, lastof(ci->client_name));
+	bstrcpy (ci->client_name, name);
 	ci->client_playas = playas;
 	ci->client_lang = client_lang;
 	DEBUG(desync, 1, "client: %08x; %02x; %02x; %04x", _date, _date_fract, (int)ci->client_playas, ci->index);
@@ -1444,7 +1445,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::Receive_CLIENT_SET_NAME(Packet
 		/* Display change */
 		if (NetworkFindName(client_name)) {
 			NetworkTextMessage(NETWORK_ACTION_NAME_CHANGE, CC_DEFAULT, false, ci->client_name, client_name);
-			strecpy(ci->client_name, client_name, lastof(ci->client_name));
+			bstrcpy (ci->client_name, client_name);
 			NetworkUpdateClientInfo(ci->client_id);
 		}
 	}
@@ -1706,10 +1707,10 @@ bool NetworkFindName(char new_name[NETWORK_CLIENT_NAME_LENGTH])
 {
 	bool found_name = false;
 	uint number = 0;
-	char original_name[NETWORK_CLIENT_NAME_LENGTH];
 
 	/* We use NETWORK_CLIENT_NAME_LENGTH in here, because new_name is really a pointer */
-	ttd_strlcpy(original_name, new_name, NETWORK_CLIENT_NAME_LENGTH);
+	char original_name[NETWORK_CLIENT_NAME_LENGTH];
+	bstrcpy (original_name, new_name);
 
 	while (!found_name) {
 		const NetworkClientInfo *ci;
@@ -1759,7 +1760,7 @@ bool NetworkServerChangeClientName(ClientID client_id, const char *new_name)
 
 	NetworkTextMessage(NETWORK_ACTION_NAME_CHANGE, CC_DEFAULT, true, ci->client_name, new_name);
 
-	strecpy(ci->client_name, new_name, lastof(ci->client_name));
+	bstrcpy (ci->client_name, new_name);
 
 	NetworkUpdateClientInfo(client_id);
 	return true;
@@ -1779,7 +1780,7 @@ void NetworkServerSetCompanyPassword(CompanyID company_id, const char *password,
 		password = GenerateCompanyPasswordHash(password, _settings_client.network.network_id, _settings_game.game_creation.generation_seed);
 	}
 
-	strecpy(_network_company_states[company_id].password, password, lastof(_network_company_states[company_id].password));
+	bstrcpy (_network_company_states[company_id].password, password);
 	NetworkServerUpdateCompanyPassworded(company_id, !StrEmpty(_network_company_states[company_id].password));
 }
 

@@ -121,7 +121,7 @@ Driver *DriverFactoryBase::SelectDriver(const char *name, Driver::Type type)
 		const char *parms[32];
 
 		/* Extract the driver name and put parameter list in parm */
-		strecpy(buffer, name, lastof(buffer));
+		bstrcpy (buffer, name);
 		parm = strchr(buffer, ':');
 		parms[0] = NULL;
 		if (parm != NULL) {

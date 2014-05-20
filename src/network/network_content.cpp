@@ -13,6 +13,7 @@
 
 #include "../stdafx.h"
 #include "../rev.h"
+#include "../string.h"
 #include "../ai/ai.hpp"
 #include "../game/game.hpp"
 #include "../window_func.h"
@@ -142,7 +143,7 @@ bool ClientNetworkContentSocketHandler::Receive_SERVER_INFO(Packet *p)
 		if (ici->type == ci->type && ici->unique_id == ci->unique_id &&
 				memcmp(ci->md5sum, ici->md5sum, sizeof(ci->md5sum)) == 0) {
 			/* Preserve the name if possible */
-			if (StrEmpty(ci->name)) strecpy(ci->name, ici->name, lastof(ci->name));
+			if (StrEmpty(ci->name)) bstrcpy (ci->name, ici->name);
 			if (ici->IsSelected()) ci->state = ici->state;
 
 			/*

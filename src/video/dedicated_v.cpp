@@ -13,6 +13,7 @@
 
 #ifdef ENABLE_NETWORK
 
+#include "../string.h"
 #include "../gfx_func.h"
 #include "../network/network.h"
 #include "../network/network_internal.h"
@@ -239,7 +240,7 @@ static void DedicatedHandleKeyInput()
 #else
 	/* Handle console input, and signal console thread, it can accept input again */
 	assert_compile(lengthof(_win_console_thread_buffer) <= lengthof(input_line));
-	strecpy(input_line, _win_console_thread_buffer, lastof(input_line));
+	bstrcpy (input_line, _win_console_thread_buffer);
 	SetEvent(_hWaitForInputHandling);
 #endif
 

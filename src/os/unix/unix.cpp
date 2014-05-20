@@ -173,7 +173,8 @@ static const char *convert_tofrom_fs(iconv_t convd, const char *name)
 	size_t outlen = sizeof(buf) - 1;
 	size_t inlen  = strlen(name);
 
-	strecpy(outbuf, name, outbuf + outlen);
+	/* XXX why is this needed? iconv below should overwrite it */
+	bstrcpy (buf, name);
 
 	iconv(convd, NULL, NULL, NULL, NULL);
 	if (iconv(convd, &inbuf, &inlen, &outbuf, &outlen) == (size_t)(-1)) {

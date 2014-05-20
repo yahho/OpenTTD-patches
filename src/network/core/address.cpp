@@ -240,12 +240,12 @@ SOCKET NetworkAddress::Resolve(int family, int socktype, int flags, SocketList *
 		reset_hostname = true;
 		int fam = this->address.ss_family;
 		if (fam == AF_UNSPEC) fam = family;
-		strecpy(this->hostname, fam == AF_INET ? "0.0.0.0" : "::", lastof(this->hostname));
+		bstrcpy (this->hostname, fam == AF_INET ? "0.0.0.0" : "::");
 	}
 
 	int e = getaddrinfo(StrEmpty(this->hostname) ? NULL : this->hostname, port_name, &hints, &ai);
 
-	if (reset_hostname) strecpy(this->hostname, "", lastof(this->hostname));
+	if (reset_hostname) bstrcpy (this->hostname, "");
 
 	if (e != 0) {
 		if (func != ResolveLoopProc) {

@@ -10,6 +10,7 @@
 /** @file music.cpp The songs that OpenTTD knows. */
 
 #include "stdafx.h"
+#include "string.h"
 
 /** The type of set we're replacing */
 #define SET_TYPE "music"
@@ -89,7 +90,7 @@ bool MusicSet::FillSetDetails(IniFile *ini, const char *path, const char *full_f
 				return false;
 			}
 
-			strecpy(this->song_name[i], item->value, lastof(this->song_name[i]));
+			bstrcpy (this->song_name[i], item->value);
 			this->track_nr[i] = j++;
 			this->num_available++;
 		}

@@ -12,6 +12,7 @@
 #ifdef ENABLE_NETWORK
 
 #include "../stdafx.h"
+#include "../string.h"
 #include "network_gui.h"
 #include "../saveload/saveload.h"
 #include "../saveload/saveload_filter.h"
@@ -609,7 +610,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_CLIENT_INFO(Pac
 		if (client_id == _network_own_client_id) SetLocalCompany(!Company::IsValidID(playas) ? COMPANY_SPECTATOR : playas);
 
 		ci->client_playas = playas;
-		strecpy(ci->client_name, name, lastof(ci->client_name));
+		bstrcpy (ci->client_name, name);
 
 		SetWindowDirty(WC_CLIENT_LIST, 0);
 
@@ -628,7 +629,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_CLIENT_INFO(Pac
 	ci->client_playas = playas;
 	if (client_id == _network_own_client_id) this->SetInfo(ci);
 
-	strecpy(ci->client_name, name, lastof(ci->client_name));
+	bstrcpy (ci->client_name, name);
 
 	SetWindowDirty(WC_CLIENT_LIST, 0);
 
@@ -956,7 +957,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_CHAT(Packet *p)
 		switch (action) {
 			case NETWORK_ACTION_CHAT_CLIENT:
 				/* For speaking to client we need the client-name */
-				snprintf(name, sizeof(name), "%s", ci_to->client_name);
+				bstrcpy (name, ci_to->client_name);
 				ci = NetworkClientInfo::GetByClientID(_network_own_client_id);
 				break;
 
@@ -977,7 +978,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_CHAT(Packet *p)
 		}
 	} else {
 		/* Display message from somebody else */
-		snprintf(name, sizeof(name), "%s", ci_to->client_name);
+		bstrcpy (name, ci_to->client_name);
 		ci = ci_to;
 	}
 
@@ -1231,7 +1232,7 @@ void NetworkUpdateClientName()
 		} else {
 			if (NetworkFindName(_settings_client.network.client_name)) {
 				NetworkTextMessage(NETWORK_ACTION_NAME_CHANGE, CC_DEFAULT, false, ci->client_name, _settings_client.network.client_name);
-				strecpy(ci->client_name, _settings_client.network.client_name, lastof(ci->client_name));
+				bstrcpy (ci->client_name, _settings_client.network.client_name);
 				NetworkUpdateClientInfo(CLIENT_ID_SERVER);
 			}
 		}

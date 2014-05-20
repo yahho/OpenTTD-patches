@@ -10,6 +10,7 @@
 /** @file game_scanner.cpp allows scanning Game scripts */
 
 #include "../stdafx.h"
+#include "../string.h"
 
 #include "../script/squirrel_class.hpp"
 #include "game_info.hpp"
@@ -37,7 +38,7 @@ GameInfo *GameScannerInfo::FindInfo(const char *nameParam, int versionParam, boo
 	if (nameParam == NULL) return NULL;
 
 	char game_name[1024];
-	ttd_strlcpy(game_name, nameParam, sizeof(game_name));
+	bstrcpy (game_name, nameParam);
 	strtolower(game_name);
 
 	GameInfo *info = NULL;

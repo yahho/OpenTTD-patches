@@ -407,7 +407,7 @@ static FILE *FioFOpenFileSp(const char *filename, const char *mode, Searchpath s
 	char buf[MAX_PATH];
 
 	if (subdir == NO_DIRECTORY) {
-		strecpy(buf, filename, lastof(buf));
+		bstrcpy (buf, filename);
 	} else {
 		snprintf(buf, lengthof(buf), "%s%s%s", _searchpaths[sp], _subdirs[subdir], filename);
 	}
@@ -477,7 +477,7 @@ FILE *FioFOpenFile(const char *filename, const char *mode, Subdirectory subdir, 
 		char resolved_name[MAX_RESOLVED_LENGTH];
 
 		/* Filenames in tars are always forced to be lowercase */
-		strecpy(resolved_name, filename, lastof(resolved_name));
+		bstrcpy (resolved_name, filename);
 		strtolower(resolved_name);
 
 		size_t resolved_len = strlen(resolved_name);
@@ -490,7 +490,7 @@ FILE *FioFOpenFile(const char *filename, const char *mode, Subdirectory subdir, 
 				/* Apply link */
 				char resolved_name2[MAX_RESOLVED_LENGTH];
 				const std::string &dest = link->second;
-				strecpy(resolved_name2, &(resolved_name[len]), lastof(resolved_name2));
+				bstrcpy (resolved_name2, &(resolved_name[len]));
 				strecpy(resolved_name, dest.c_str(), lastof(resolved_name));
 				strecpy(&(resolved_name[dest.length()]), resolved_name2, lastof(resolved_name));
 				break; // Only resolve one level
@@ -538,7 +538,7 @@ static void FioCreateDirectory(const char *name)
 	mkdir(OTTD2FS(name));
 #elif defined(__MORPHOS__) || defined(__AMIGAOS__)
 	char buf[MAX_PATH];
-	ttd_strlcpy(buf, name, MAX_PATH);
+	bstrcpy (buf, name);
 
 	size_t len = strlen(name) - 1;
 	if (buf[len] == '/') {
@@ -775,7 +775,7 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 
 		/* Calculate the size of the file.. for some strange reason this is stored as a string */
 		char buf[sizeof(th.size) + 1];
-		ttd_strlcpy(buf, th.size, lengthof(buf));
+		bstrcpy (buf, th.size);
 		size_t skip = strtoul(buf, NULL, 8);
 
 		switch (th.typeflag) {
@@ -805,7 +805,7 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 			case '2': { // symbolic links
 				/* Copy the destination of the link in a safe way at the end of 'linkname' */
 				char link[sizeof(th.linkname) + 1];
-				ttd_strlcpy(link, th.linkname, lengthof(link));
+				bstrcpy (link, th.linkname);
 
 				if (strlen(name) == 0 || strlen(link) == 0) break;
 
@@ -822,7 +822,7 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 				/* Process relative path.
 				 * Note: The destination of links must not contain any directory-links. */
 				char dest[sizeof(name) + 1 + sizeof(th.linkname) + 1];
-				ttd_strlcpy(dest, name, lengthof(dest));
+				bstrcpy (dest, name);
 				char *destpos = strrchr(dest, PATHSEPCHAR);
 				if (destpos == NULL) destpos = dest;
 				*destpos = '\0';
@@ -930,7 +930,7 @@ bool ExtractTar(const char *tar_filename, Subdirectory subdir)
 	if (dirname == NULL) return false;
 
 	char filename[MAX_PATH];
-	strecpy(filename, tar_filename, lastof(filename));
+	bstrcpy (filename, tar_filename);
 	char *p = strrchr(filename, PATHSEPCHAR);
 	/* The file's path does not have a separator? */
 	if (p == NULL) return false;
@@ -1459,7 +1459,7 @@ uint FileScanner::Scan(const char *extension, Subdirectory sd, bool tars, bool r
 uint FileScanner::Scan(const char *extension, const char *directory, bool recursive)
 {
 	char path[MAX_PATH];
-	strecpy(path, directory, lastof(path));
+	bstrcpy (path, directory);
 	if (!AppendPathSeparator(path, lengthof(path))) return 0;
 	return ScanPath(this, extension, path, strlen(path), recursive);
 }

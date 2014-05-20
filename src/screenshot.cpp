@@ -10,6 +10,7 @@
 /** @file screenshot.cpp The creation of screenshots! */
 
 #include "stdafx.h"
+#include "string.h"
 #include "fileio_func.h"
 #include "viewport_func.h"
 #include "gfx_func.h"
@@ -625,7 +626,7 @@ void SetScreenshotFormat(uint i)
 {
 	assert(i < _num_screenshot_formats);
 	_cur_screenshot_format = i;
-	strecpy(_screenshot_format_name, _screenshot_formats[i].extension, lastof(_screenshot_format_name));
+	bstrcpy (_screenshot_format_name, _screenshot_formats[i].extension);
 }
 
 /**
@@ -708,7 +709,7 @@ static const char *MakeScreenshotName(const char *default_fn, const char *ext, b
 
 	if (generate) {
 		if (_game_mode == GM_EDITOR || _game_mode == GM_MENU || _local_company == COMPANY_SPECTATOR) {
-			strecpy(_screenshot_name, default_fn, lastof(_screenshot_name));
+			bstrcpy (_screenshot_name, default_fn);
 		} else {
 			GenerateDefaultSaveName(_screenshot_name, lastof(_screenshot_name));
 		}
@@ -859,7 +860,7 @@ bool MakeScreenshot(ScreenshotType t, const char *name)
 	}
 
 	_screenshot_name[0] = '\0';
-	if (name != NULL) strecpy(_screenshot_name, name, lastof(_screenshot_name));
+	if (name != NULL) bstrcpy (_screenshot_name, name);
 
 	bool ret;
 	switch (t) {

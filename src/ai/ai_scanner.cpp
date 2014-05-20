@@ -10,6 +10,7 @@
 /** @file ai_scanner.cpp allows scanning AI scripts */
 
 #include "../stdafx.h"
+#include "../string.h"
 #include "../debug.h"
 #include "../network/network.h"
 #include "../core/random_func.hpp"
@@ -96,7 +97,7 @@ AIInfo *AIScannerInfo::FindInfo(const char *nameParam, int versionParam, bool fo
 	if (nameParam == NULL) return NULL;
 
 	char ai_name[1024];
-	ttd_strlcpy(ai_name, nameParam, sizeof(ai_name));
+	bstrcpy (ai_name, nameParam);
 	strtolower(ai_name);
 
 	AIInfo *info = NULL;
