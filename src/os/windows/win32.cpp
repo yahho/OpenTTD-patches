@@ -221,7 +221,7 @@ void FiosGetDrives()
 		FiosItem *fios = _fios_items.Append();
 		fios->type = FIOS_TYPE_DRIVE;
 		fios->mtime = 0;
-		snprintf(fios->name, lengthof(fios->name),  "%c:", s[0] & 0xFF);
+		bstrfmt (fios->name, "%c:", s[0] & 0xFF);
 		bstrcpy (fios->title, fios->name);
 		while (*s++ != '\0') { /* Nothing */ }
 	}

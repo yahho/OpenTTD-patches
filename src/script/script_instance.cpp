@@ -10,6 +10,7 @@
 /** @file script_instance.cpp Implementation of ScriptInstance. */
 
 #include "../stdafx.h"
+#include "../string.h"
 #include "../debug.h"
 #include "../saveload/saveload.h"
 
@@ -110,7 +111,7 @@ void ScriptInstance::RegisterAPI()
 bool ScriptInstance::LoadCompatibilityScripts(const char *api_version, Subdirectory dir)
 {
 	char script_name[32];
-	seprintf(script_name, lastof(script_name), "compat_%s.nut", api_version);
+	bstrfmt (script_name, "compat_%s.nut", api_version);
 	char buf[MAX_PATH];
 	Searchpath sp;
 	FOR_ALL_SEARCHPATHS(sp) {

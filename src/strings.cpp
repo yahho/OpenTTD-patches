@@ -1929,7 +1929,7 @@ static void GetLanguageList(const char *path)
 			if (extension == NULL || strcmp(extension, ".lng") != 0) continue;
 
 			LanguageMetadata lmd;
-			seprintf(lmd.file, lastof(lmd.file), "%s%s", path, d_name);
+			bstrfmt (lmd.file, "%s%s", path, d_name);
 
 			/* Check whether the file is of the correct version */
 			if (!GetLanguageFileHeader(lmd.file, &lmd)) {

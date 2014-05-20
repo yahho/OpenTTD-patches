@@ -341,4 +341,31 @@ static inline void bstrvfmt (char (&dest) [N], const char *fmt, va_list args)
 	bstrvfmt (&dest, fmt, args);
 }
 
+/* The following one must be a macro because there is no variadic template
+ * support in MSVC. */
+
+/** Get the pointer and size to use for a static buffer, pointer version. */
+template <uint N>
+static inline void bstrptr (char (*dest) [N], char **buffer, uint *size)
+{
+	*buffer = &(*dest)[0];
+	*size = N;
+}
+
+/** Get the pointer and size to use for a static buffer, reference version. */
+template <uint N>
+static inline void bstrptr (char (&dest) [N], char **buffer, uint *size)
+{
+	*buffer = &(dest)[0];
+	*size = N;
+}
+
+/** Format a string. */
+#define bstrfmt(dest, ...) do {                                 \
+	char *bstrfmt__buffer;                                  \
+	uint  bstrfmt__size;                                    \
+	bstrptr (dest, &bstrfmt__buffer, &bstrfmt__size);       \
+	snprintf (bstrfmt__buffer, bstrfmt__size, __VA_ARGS__); \
+	} while(0)
+
 #endif /* STRING_H */

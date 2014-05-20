@@ -47,9 +47,8 @@ bool IniFile::SaveToDisk(const char *filename)
 	 * you end up with a truncated configuration file.
 	 */
 	char file_new[MAX_PATH];
+	bstrfmt (file_new, "%s.new", filename);
 
-	strecpy(file_new, filename, lastof(file_new));
-	strecat(file_new, ".new", lastof(file_new));
 	FILE *f = fopen(file_new, "w");
 	if (f == NULL) return false;
 

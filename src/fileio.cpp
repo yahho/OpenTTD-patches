@@ -409,7 +409,7 @@ static FILE *FioFOpenFileSp(const char *filename, const char *mode, Searchpath s
 	if (subdir == NO_DIRECTORY) {
 		bstrcpy (buf, filename);
 	} else {
-		snprintf(buf, lengthof(buf), "%s%s%s", _searchpaths[sp], _subdirs[subdir], filename);
+		bstrfmt (buf, "%s%s%s", _searchpaths[sp], _subdirs[subdir], filename);
 	}
 
 #if defined(WIN32)
@@ -766,11 +766,11 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 		/* The prefix contains the directory-name */
 		char name[sizeof(th.prefix) + 1 + sizeof(th.name) + 1];
 		if (th.prefix[0] != '\0') {
-			snprintf (name, sizeof(name), "%.*s" PATHSEP "%.*s",
+			bstrfmt (name, "%.*s" PATHSEP "%.*s",
 				sizeof(th.prefix), th.prefix,
 				sizeof(th.name), th.name);
 		} else {
-			snprintf (name, sizeof(name), "%.*s", sizeof(th.name), th.name);
+			bstrfmt (name, "%.*s", sizeof(th.name), th.name);
 		}
 
 		/* Calculate the size of the file.. for some strange reason this is stored as a string */
@@ -1052,7 +1052,7 @@ static bool DoScanWorkingDirectory()
 	if (_searchpaths[SP_PERSONAL_DIR] == NULL) return true;
 
 	char tmp[MAX_PATH];
-	snprintf(tmp, lengthof(tmp), "%s%s", _searchpaths[SP_WORKING_DIR], PERSONAL_DIR);
+	bstrfmt (tmp, "%s%s", _searchpaths[SP_WORKING_DIR], PERSONAL_DIR);
 	AppendPathSeparator(tmp, MAX_PATH);
 	return strcmp(tmp, _searchpaths[SP_PERSONAL_DIR]) != 0;
 }
@@ -1167,7 +1167,7 @@ void DeterminePaths(const char *exe)
 	char config_home[MAX_PATH];
 
 	const char *xdg_config_home = xdgConfigHome(NULL);
-	snprintf(config_home, MAX_PATH, "%s" PATHSEP "%s", xdg_config_home,
+	bstrfmt (config_home, "%s" PATHSEP "%s", xdg_config_home,
 			PERSONAL_DIR[0] == '.' ? &PERSONAL_DIR[1] : PERSONAL_DIR);
 	free(xdg_config_home);
 
@@ -1367,7 +1367,7 @@ static uint ScanPath(FileScanner *fs, const char *extension, const char *path, s
 
 		if (!FiosIsValidFile(path, dirent, &sb)) continue;
 
-		snprintf(filename, lengthof(filename), "%s%s", path, d_name);
+		bstrfmt (filename, "%s%s", path, d_name);
 
 		if (S_ISDIR(sb.st_mode)) {
 			/* Directory */

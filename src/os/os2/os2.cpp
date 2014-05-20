@@ -77,9 +77,9 @@ void FiosGetDrives()
 			fios->type = FIOS_TYPE_DRIVE;
 			fios->mtime = 0;
 #ifndef __INNOTEK_LIBC__
-			snprintf(fios->name, lengthof(fios->name),  "%c:", 'A' + disk - 1);
+			bstrfmt (fios->name, "%c:", 'A' + disk - 1);
 #else
-			snprintf(fios->name, lengthof(fios->name),  "%c:", disk);
+			bstrfmt (fios->name, "%c:", disk);
 #endif
 			bstrcpy (fios->title, fios->name);
 		}
@@ -125,7 +125,7 @@ bool FiosIsValidFile(const char *path, const struct dirent *ent, struct stat *sb
 {
 	char filename[MAX_PATH];
 
-	snprintf(filename, lengthof(filename), "%s" PATHSEP "%s", path, ent->d_name);
+	bstrfmt (filename, "%s" PATHSEP "%s", path, ent->d_name);
 	return stat(filename, sb) == 0;
 }
 

@@ -10,6 +10,7 @@
 /** @file company_cmd.cpp Handling of companies. */
 
 #include "stdafx.h"
+#include "string.h"
 #include "company_base.h"
 #include "company_func.h"
 #include "company_gui.h"
@@ -1166,8 +1167,7 @@ CommandCost CmdRenamePresident(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 
 			if (c->name_1 == STR_SV_UNNAMED && c->name == NULL) {
 				char buf[80];
-
-				snprintf(buf, lengthof(buf), "%s Transport", text);
+				bstrfmt (buf, "%s Transport", text);
 				DoCommand(0, 0, 0, DC_EXEC, CMD_RENAME_COMPANY, buf);
 			}
 		}

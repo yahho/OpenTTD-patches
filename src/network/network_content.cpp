@@ -686,7 +686,7 @@ void ClientNetworkContentSocketHandler::OnReceiveData(const char *data, size_t l
 		}
 
 		/* Copy the string, without extension, to the filename. */
-		seprintf(this->curInfo->filename, lastof(this->curInfo->filename), "%.*s", (int)(prev_dot - p), p);
+		bstrfmt (this->curInfo->filename, "%.*s", (int)(prev_dot - p), p);
 
 		/* Request the next file. */
 		if (!this->BeforeDownload()) {

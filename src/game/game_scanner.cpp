@@ -60,7 +60,7 @@ GameInfo *GameScannerInfo::FindInfo(const char *nameParam, int versionParam, boo
 	if (force_exact_match) {
 		/* Try to find a direct 'name.version' match */
 		char game_name_tmp[1024];
-		snprintf(game_name_tmp, sizeof(game_name_tmp), "%s.%d", game_name, versionParam);
+		bstrfmt (game_name_tmp, "%s.%d", game_name, versionParam);
 		strtolower(game_name_tmp);
 		if (this->info_list.find(game_name_tmp) != this->info_list.end()) return static_cast<GameInfo *>(this->info_list[game_name_tmp]);
 	}
@@ -100,7 +100,7 @@ GameLibrary *GameScannerLibrary::FindLibrary(const char *library, int version)
 {
 	/* Internally we store libraries as 'library.version' */
 	char library_name[1024];
-	snprintf(library_name, sizeof(library_name), "%s.%d", library, version);
+	bstrfmt (library_name, "%s.%d", library, version);
 	strtolower(library_name);
 
 	/* Check if the library + version exists */

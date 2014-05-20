@@ -219,8 +219,7 @@ DriverFactoryBase::~DriverFactoryBase()
 {
 	/* Prefix the name with driver type to make it unique */
 	char buf[32];
-	strecpy(buf, GetDriverTypeName(type), lastof(buf));
-	strecpy(buf + 5, this->name, lastof(buf));
+	bstrfmt (buf, "%s%s", GetDriverTypeName(type),  this->name);
 
 	Drivers::iterator it = GetDrivers().find(buf);
 	assert(it != GetDrivers().end());

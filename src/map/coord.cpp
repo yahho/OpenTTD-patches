@@ -8,6 +8,7 @@
 /** @file map/coord.cpp Map coordinate data. */
 
 #include "../stdafx.h"
+#include "../string.h"
 #include "../debug.h"
 #include "coord.h"
 
@@ -35,7 +36,7 @@ TileIndex TileAdd(TileIndex tile, TileIndexDiff add,
 	if (x >= MapSizeX() || y >= MapSizeY()) {
 		char buf[512];
 
-		snprintf(buf, lengthof(buf), "TILE_ADD(%s) when adding 0x%.4X and 0x%.4X failed",
+		bstrfmt (buf, "TILE_ADD(%s) when adding 0x%.4X and 0x%.4X failed",
 			exp, tile, add);
 #if !defined(_MSC_VER) || defined(WINCE)
 		fprintf(stderr, "%s:%d %s\n", file, line, buf);

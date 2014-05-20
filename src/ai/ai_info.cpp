@@ -14,6 +14,7 @@
 #include "../script/squirrel_class.hpp"
 #include "ai_info.hpp"
 #include "ai_scanner.hpp"
+#include "../string.h"
 #include "../debug.h"
 #include "../rev.h"
 
@@ -114,7 +115,7 @@ template <> const char *GetClassName<AIInfo, ST_AI>() { return "AIInfo"; }
 	if (res != 0) return res;
 
 	char buf[8];
-	seprintf(buf, lastof(buf), "%d.%d", GB(_openttd_newgrf_version, 28, 4), GB(_openttd_newgrf_version, 24, 4));
+	bstrfmt (buf, "%d.%d", GB(_openttd_newgrf_version, 28, 4), GB(_openttd_newgrf_version, 24, 4));
 	info->api_version = strdup(buf);
 
 	/* Remove the link to the real instance, else it might get deleted by RegisterAI() */

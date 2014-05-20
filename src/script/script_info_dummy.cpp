@@ -28,16 +28,17 @@
 void Script_CreateDummyInfo(HSQUIRRELVM vm, const char *type, const char *dir)
 {
 	char dummy_script[4096];
-	char *dp = dummy_script;
-	dp += seprintf(dp, lastof(dummy_script), "class Dummy%s extends %sInfo {\n", type, type);
-	dp += seprintf(dp, lastof(dummy_script), "function GetAuthor()      { return \"OpenTTD Developers Team\"; }\n");
-	dp += seprintf(dp, lastof(dummy_script), "function GetName()        { return \"Dummy%s\"; }\n", type);
-	dp += seprintf(dp, lastof(dummy_script), "function GetShortName()   { return \"DUMM\"; }\n");
-	dp += seprintf(dp, lastof(dummy_script), "function GetDescription() { return \"A Dummy %s that is loaded when your %s/ dir is empty\"; }\n", type, dir);
-	dp += seprintf(dp, lastof(dummy_script), "function GetVersion()     { return 1; }\n");
-	dp += seprintf(dp, lastof(dummy_script), "function GetDate()        { return \"2008-07-26\"; }\n");
-	dp += seprintf(dp, lastof(dummy_script), "function CreateInstance() { return \"Dummy%s\"; }\n", type);
-	dp += seprintf(dp, lastof(dummy_script), "} RegisterDummy%s(Dummy%s());\n", type, type);
+	bstrfmt (dummy_script,
+		"class Dummy%s extends %sInfo {\n"
+			"function GetAuthor()      { return \"OpenTTD Developers Team\"; }\n"
+			"function GetName()        { return \"Dummy%s\"; }\n"
+			"function GetShortName()   { return \"DUMM\"; }\n"
+			"function GetDescription() { return \"A Dummy %s that is loaded when your %s/ dir is empty\"; }\n"
+			"function GetVersion()     { return 1; }\n"
+			"function GetDate()        { return \"2008-07-26\"; }\n"
+			"function CreateInstance() { return \"Dummy%s\"; }\n"
+		"} RegisterDummy%s(Dummy%s());\n",
+		type, type, type, type, dir, type, type, type);
 
 	const SQChar *sq_dummy_script = OTTD2SQ(dummy_script);
 

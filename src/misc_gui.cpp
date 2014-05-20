@@ -207,7 +207,7 @@ public:
 
 		/* Location */
 		char tmp[16];
-		snprintf(tmp, lengthof(tmp), "0x%.4X", tile);
+		bstrfmt (tmp, "0x%.4X", tile);
 		SetDParam(0, TileX(tile));
 		SetDParam(1, TileY(tile));
 		SetDParam(2, GetTileZ(tile));

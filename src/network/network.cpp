@@ -1027,7 +1027,7 @@ static void NetworkGenerateServerId()
 	char coding_string[NETWORK_NAME_LENGTH];
 	int di;
 
-	snprintf(coding_string, sizeof(coding_string), "%d%s", (uint)Random(), "OpenTTD Server ID");
+	bstrfmt (coding_string, "%d%s", (uint)Random(), "OpenTTD Server ID");
 
 	/* Generate the MD5 hash */
 	checksum.Append((const uint8*)coding_string, strlen(coding_string));

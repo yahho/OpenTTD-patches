@@ -12,6 +12,7 @@
 #ifndef ARRAY_HPP
 #define ARRAY_HPP
 
+#include "../string.h"
 #include "fixedsizearray.hpp"
 
 /**
@@ -87,7 +88,7 @@ public:
 		char name [24];
 		for (uint i = 0; i < num_items; i++) {
 			const T& item = (*this)[i];
-			snprintf (name, sizeof(name), "item[%d]", i);
+			bstrfmt (name, "item[%d]", i);
 			dmp.WriteStructT(name, &item);
 		}
 	}

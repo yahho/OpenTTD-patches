@@ -14,6 +14,7 @@
 #ifdef ENABLE_NETWORK
 
 #include "address.h"
+#include "../../string.h"
 #include "../../debug.h"
 
 /**
@@ -230,7 +231,7 @@ SOCKET NetworkAddress::Resolve(int family, int socktype, int flags, SocketList *
 
 	/* The port needs to be a string. Six is enough to contain all characters + '\0'. */
 	char port_name[6];
-	seprintf(port_name, lastof(port_name), "%u", this->GetPort());
+	bstrfmt (port_name, "%u", this->GetPort());
 
 	bool reset_hostname = false;
 	/* Setting both hostname to NULL and port to 0 is not allowed.

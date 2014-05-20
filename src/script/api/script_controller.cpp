@@ -51,7 +51,7 @@
 	ScriptObject::GetActiveInstance()->Pause();
 
 	char log_message[1024];
-	snprintf(log_message, sizeof(log_message), "Break: %s", message);
+	bstrfmt (log_message, "Break: %s", message);
 	ScriptLog::Log(ScriptLog::LOG_SQ_ERROR, log_message);
 
 	/* Inform script developer that his script has been paused and
@@ -113,13 +113,13 @@ ScriptController::~ScriptController()
 
 	/* Internally we store libraries as 'library.version' */
 	char library_name[1024];
-	snprintf(library_name, sizeof(library_name), "%s.%d", library, version);
+	bstrfmt (library_name, "%s.%d", library, version);
 	strtolower(library_name);
 
 	ScriptInfo *lib = ScriptObject::GetActiveInstance()->FindLibrary(library, version);
 	if (lib == NULL) {
 		char error[1024];
-		snprintf(error, sizeof(error), "couldn't find library '%s' with version %d", library, version);
+		bstrfmt (error, "couldn't find library '%s' with version %d", library, version);
 		throw sq_throwerror(vm, OTTD2SQ(error));
 	}
 
@@ -136,7 +136,7 @@ ScriptController::~ScriptController()
 		int next_number = ++controller->loaded_library_count;
 
 		/* Create a new fake internal name */
-		snprintf(fake_class, sizeof(fake_class), "_internalNA%d", next_number);
+		bstrfmt (fake_class, "_internalNA%d", next_number);
 
 		/* Load the library in a 'fake' namespace, so we can link it to the name the user requested */
 		sq_pushroottable(vm);
@@ -145,7 +145,7 @@ ScriptController::~ScriptController()
 		/* Load the library */
 		if (!engine->LoadScript(vm, lib->GetMainScript(), false)) {
 			char error[1024];
-			snprintf(error, sizeof(error), "there was a compile error when importing '%s' version %d", library, version);
+			bstrfmt (error, "there was a compile error when importing '%s' version %d", library, version);
 			throw sq_throwerror(vm, OTTD2SQ(error));
 		}
 		/* Create the fake class */
@@ -164,7 +164,7 @@ ScriptController::~ScriptController()
 	sq_pushstring(vm, OTTD2SQ(lib->GetInstanceName()), -1);
 	if (SQ_FAILED(sq_get(vm, -2))) {
 		char error[1024];
-		snprintf(error, sizeof(error), "unable to find class '%s' in the library '%s' version %d", lib->GetInstanceName(), library, version);
+		bstrfmt (error, "unable to find class '%s' in the library '%s' version %d", lib->GetInstanceName(), library, version);
 		throw sq_throwerror(vm, OTTD2SQ(error));
 	}
 	HSQOBJECT obj;

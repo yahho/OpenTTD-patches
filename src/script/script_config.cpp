@@ -186,7 +186,7 @@ void ScriptConfig::SettingsToString(char *string, size_t size) const
 	string[0] = '\0';
 	for (SettingValueList::const_iterator it = this->settings.begin(); it != this->settings.end(); it++) {
 		char no[10];
-		snprintf(no, sizeof(no), "%d", (*it).second);
+		bstrfmt (no, "%d", (*it).second);
 
 		/* Check if the string would fit in the destination */
 		size_t needed_size = strlen((*it).first) + 1 + strlen(no) + 1;

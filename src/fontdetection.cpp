@@ -625,7 +625,7 @@ bool SetFallbackFont(FreeTypeSettings *settings, const char *language_isocode, i
 	 * before the _ of e.g. en_GB is used, so "remove" everything after
 	 * the _. */
 	char lang[16];
-	seprintf(lang, lastof(lang), ":lang=%s", language_isocode);
+	bstrfmt (lang, ":lang=%s", language_isocode);
 	char *split = strchr(lang, '_');
 	if (split != NULL) *split = '\0';
 

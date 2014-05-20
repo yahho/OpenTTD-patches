@@ -10,6 +10,7 @@
 /** @file script_info.cpp Implementation of ScriptInfo. */
 
 #include "../stdafx.h"
+#include "../string.h"
 #include "../settings_type.h"
 
 #include "squirrel_helper.hpp"
@@ -48,7 +49,7 @@ bool ScriptInfo::CheckMethod(const char *name) const
 {
 	if (!this->engine->MethodExists(*this->SQ_instance, name)) {
 		char error[1024];
-		snprintf(error, sizeof(error), "your info.nut/library.nut doesn't have the method '%s'", name);
+		bstrfmt (error, "your info.nut/library.nut doesn't have the method '%s'", name);
 		this->engine->ThrowError(error);
 		return false;
 	}
@@ -193,7 +194,7 @@ SQInteger ScriptInfo::AddSetting(HSQUIRRELVM vm)
 			items |= 0x100;
 		} else {
 			char error[1024];
-			snprintf(error, sizeof(error), "unknown setting property '%s'", key);
+			bstrfmt (error, "unknown setting property '%s'", key);
 			this->engine->ThrowError(error);
 			return SQ_ERROR;
 		}
@@ -206,7 +207,7 @@ SQInteger ScriptInfo::AddSetting(HSQUIRRELVM vm)
 	 * be set for the same config item. */
 	if ((items & 0x200) != 0 && (config.flags & SCRIPTCONFIG_RANDOM) != 0) {
 		char error[1024];
-		snprintf(error, sizeof(error), "Setting both random_deviation and SCRIPTCONFIG_RANDOM is not allowed");
+		bstrfmt (error, "Setting both random_deviation and SCRIPTCONFIG_RANDOM is not allowed");
 		this->engine->ThrowError(error);
 		return SQ_ERROR;
 	}
@@ -217,7 +218,7 @@ SQInteger ScriptInfo::AddSetting(HSQUIRRELVM vm)
 	uint mask = (config.flags & SCRIPTCONFIG_BOOLEAN) ? 0x1F3 : 0x1FF;
 	if (items != mask) {
 		char error[1024];
-		snprintf(error, sizeof(error), "please define all properties of a setting (min/max not allowed for booleans)");
+		bstrfmt (error, "please define all properties of a setting (min/max not allowed for booleans)");
 		this->engine->ThrowError(error);
 		return SQ_ERROR;
 	}
@@ -240,7 +241,7 @@ SQInteger ScriptInfo::AddLabels(HSQUIRRELVM vm)
 
 	if (config == NULL) {
 		char error[1024];
-		snprintf(error, sizeof(error), "Trying to add labels for non-defined setting '%s'", setting_name);
+		bstrfmt (error, "Trying to add labels for non-defined setting '%s'", setting_name);
 		this->engine->ThrowError(error);
 		return SQ_ERROR;
 	}

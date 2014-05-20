@@ -195,8 +195,7 @@ void FiosMakeSavegameName(char *buf, const char *name, size_t size)
 void FiosMakeHeightmapName(char *buf, const char *name, size_t size)
 {
 	char ext[5];
-	ext[0] = '.';
-	strecpy(ext + 1, GetCurrentScreenshotExtension(), lastof(ext));
+	bstrfmt (ext, ".%s", GetCurrentScreenshotExtension());
 
 	FiosMakeFilename(buf, _fios_path, name, ext, size);
 }
@@ -324,7 +323,7 @@ static void FiosGetFileList(SaveLoadDialogMode mode, fios_getlist_callback_proc 
 				fios->type = FIOS_TYPE_DIR;
 				fios->mtime = 0;
 				bstrcpy (fios->name, d_name);
-				snprintf(fios->title, lengthof(fios->title), "%s" PATHSEP " (Directory)", d_name);
+				bstrfmt (fios->title, "%s" PATHSEP " (Directory)", d_name);
 				str_validate(fios->title, lastof(fios->title));
 			}
 		}
@@ -369,8 +368,7 @@ static void FiosGetFileList(SaveLoadDialogMode mode, fios_getlist_callback_proc 
 static void GetFileTitle(const char *file, char *title, const char *last, Subdirectory subdir)
 {
 	char buf[MAX_PATH];
-	strecpy(buf, file, lastof(buf));
-	strecat(buf, ".title", lastof(buf));
+	bstrfmt (buf, "%s.title", file);
 
 	FILE *f = FioFOpenFile(buf, "r", subdir);
 	if (f == NULL) return;

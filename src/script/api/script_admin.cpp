@@ -10,6 +10,7 @@
 /** @file script_admin.cpp Implementation of ScriptAdmin. */
 
 #include "../../stdafx.h"
+#include "../../string.h"
 #include "script_admin.hpp"
 #include "script_log.hpp"
 #include "../../network/network_admin.h"
@@ -28,7 +29,7 @@
 			sq_getinteger(vm, index, &res);
 
 			char buf[10];
-			snprintf(buf, sizeof(buf), "%d", (int32)res);
+			bstrfmt (buf, "%d", (int32)res);
 			data = buf;
 			return true;
 		}
