@@ -691,7 +691,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_CHECK_NEWGRFS(P
 		if (f == NULL) {
 			/* We do not know this GRF, bail out of initialization */
 			char buf[sizeof(c.md5sum) * 2 + 1];
-			md5sumToString(buf, lastof(buf), c.md5sum);
+			md5sumToString (buf, c.md5sum);
 			DEBUG(grf, 0, "NewGRF %08X not found; checksum %s", BSWAP32(c.grfid), buf);
 			ret = NETWORK_RECV_STATUS_NEWGRF_MISMATCH;
 		}

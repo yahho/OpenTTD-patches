@@ -143,10 +143,9 @@ public:
  */
 static void PrintGrfInfo(GamelogPrintBuffer *buf, uint grfid, const uint8 *md5sum, const GRFConfig *gc)
 {
-	char txt[40];
-
 	if (md5sum != NULL) {
-		md5sumToString(txt, lastof(txt), md5sum);
+		char txt [40];
+		md5sumToString (txt, md5sum);
 		buf->append("GRF ID %08X, checksum %s", BSWAP32(grfid), txt);
 	} else {
 		buf->append("GRF ID %08X", BSWAP32(grfid));

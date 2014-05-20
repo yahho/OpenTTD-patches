@@ -547,14 +547,14 @@ GRFListCompatibility IsGoodGRFConfigList(GRFConfig *grfconfig)
 	for (GRFConfig *c = grfconfig; c != NULL; c = c->next) {
 		const GRFConfig *f = FindGRFConfig(c->ident.grfid, FGCM_EXACT, c->ident.md5sum);
 		if (f == NULL || HasBit(f->flags, GCF_INVALID)) {
-			char buf[256];
+			char buf [36];
+			md5sumToString (buf, c->ident.md5sum);
 
 			/* If we have not found the exactly matching GRF try to find one with the
 			 * same grfid, as it most likely is compatible */
 			f = FindGRFConfig(c->ident.grfid, FGCM_COMPATIBLE, NULL, c->version);
 			if (f == NULL) {
 				/* No compatible grf was found, mark it as disabled */
-				md5sumToString(buf, lastof(buf), c->ident.md5sum);
 				DEBUG(grf, 0, "NewGRF %08X (%s) not found; checksum %s", BSWAP32(c->ident.grfid), c->filename, buf);
 
 				c->status = GCS_NOT_FOUND;
@@ -562,7 +562,6 @@ GRFListCompatibility IsGoodGRFConfigList(GRFConfig *grfconfig)
 				continue;
 			}
 
-			md5sumToString(buf, lastof(buf), c->ident.md5sum);
 			DEBUG(grf, 1, "NewGRF %08X (%s) not found; checksum %s. Compatibility mode on", BSWAP32(c->ident.grfid), c->filename, buf);
 			if (!HasBit(c->flags, GCF_COMPATIBLE)) {
 				/* Preserve original_md5sum after it has been assigned */

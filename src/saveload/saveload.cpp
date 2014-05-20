@@ -627,12 +627,12 @@ static void CDECL HandleSavegameLoadCrash(int signum)
 			if (HasBit(c->flags, GCF_COMPATIBLE)) {
 				const GRFIdentifier *replaced = GetOverriddenIdentifier(c);
 				char buf[40];
-				md5sumToString(buf, lastof(buf), replaced->md5sum);
+				md5sumToString (buf, replaced->md5sum);
 				p += seprintf(p, lastof(buffer), "NewGRF %08X (checksum %s) not found.\n  Loaded NewGRF \"%s\" with same GRF ID instead.\n", BSWAP32(c->ident.grfid), buf, c->filename);
 			}
 			if (c->status == GCS_NOT_FOUND) {
 				char buf[40];
-				md5sumToString(buf, lastof(buf), c->ident.md5sum);
+				md5sumToString (buf, c->ident.md5sum);
 				p += seprintf(p, lastof(buffer), "NewGRF %08X (%s) not found; checksum %s.\n", BSWAP32(c->ident.grfid), c->filename, buf);
 			}
 		}

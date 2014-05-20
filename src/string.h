@@ -120,6 +120,21 @@ static inline size_t ttd_strnlen(const char *str, size_t maxlen)
 
 char *md5sumToString(char *buf, const char *last, const uint8 md5sum[16]);
 
+/** Convert the md5sum to a hexadecimal string representation, pointer version. */
+template <uint N>
+static inline void md5sumToString (char (*buf) [N], const uint8 md5sum [16])
+{
+	assert_tcompile (N > 2 * 16);
+	md5sumToString (&(*buf)[0], &(*buf)[N - 1], md5sum);
+}
+
+/** Convert the md5sum to a hexadecimal string representation, reference version. */
+template <uint N>
+static inline void md5sumToString (char (&buf) [N], const uint8 md5sum [16])
+{
+	md5sumToString (&buf, md5sum);
+}
+
 bool IsValidChar(WChar key, CharSetFilter afilter);
 
 size_t Utf8Decode(WChar *c, const char *s);
