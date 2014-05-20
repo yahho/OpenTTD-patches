@@ -157,7 +157,7 @@ void CDECL debug(const char *dbg, const char *format, ...)
 
 	va_list va;
 	va_start(va, format);
-	vsnprintf(buf, lengthof(buf), format, va);
+	bstrvfmt (buf, format, va);
 	va_end(va);
 
 	debug_print(dbg, buf);

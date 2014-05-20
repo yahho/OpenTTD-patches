@@ -10,6 +10,7 @@
 /** @file console.cpp Handling of the in-game console. */
 
 #include "stdafx.h"
+#include "string.h"
 #include "console_internal.h"
 #include "network/network.h"
 #include "network/network_func.h"
@@ -135,7 +136,7 @@ void CDECL IConsolePrintF(TextColour colour_code, const char *format, ...)
 	char buf[ICON_MAX_STREAMSIZE];
 
 	va_start(va, format);
-	vsnprintf(buf, sizeof(buf), format, va);
+	bstrvfmt (buf, format, va);
 	va_end(va);
 
 	IConsolePrint(colour_code, buf);

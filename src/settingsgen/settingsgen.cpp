@@ -40,7 +40,7 @@ void NORETURN CDECL error(const char *s, ...)
 	char buf[1024];
 	va_list va;
 	va_start(va, s);
-	vsnprintf(buf, lengthof(buf), s, va);
+	bstrvfmt (buf, s, va);
 	va_end(va);
 	fprintf(stderr, "FATAL: %s\n", buf);
 	exit(1);

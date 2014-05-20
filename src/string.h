@@ -26,6 +26,8 @@
 #ifndef STRING_H
 #define STRING_H
 
+#include <stdarg.h>
+
 #include "core/bitmath_func.hpp"
 #include "core/enum_type.hpp"
 
@@ -323,6 +325,20 @@ template <uint N>
 static inline void bstrcpy (char (&dest) [N], const char *src)
 {
 	bstrcpy (&dest, src);
+}
+
+/** Format a string from a va_list, pointer version. */
+template <uint N>
+static inline void bstrvfmt (char (*dest) [N], const char *fmt, va_list args)
+{
+	vsnprintf (&(*dest)[0], N, fmt, args);
+}
+
+/** Format a string from a va_list, reference version. */
+template <uint N>
+static inline void bstrvfmt (char (&dest) [N], const char *fmt, va_list args)
+{
+	bstrvfmt (&dest, fmt, args);
 }
 
 #endif /* STRING_H */

@@ -85,7 +85,7 @@ void CDECL NetworkAddChatMessage(TextColour colour, uint duration, const char *m
 	va_list va;
 
 	va_start(va, message);
-	vsnprintf(buf, lengthof(buf), message, va);
+	bstrvfmt (buf, message, va);
 	va_end(va);
 
 	Utf8TrimString(buf, DRAW_STRING_BUFFER);

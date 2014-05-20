@@ -10,6 +10,7 @@
 /** @file os2_m.cpp Music playback on OS/2. */
 
 #include "../stdafx.h"
+#include "../string.h"
 #include "../openttd.h"
 #include "os2_m.h"
 
@@ -39,7 +40,7 @@ static long CDECL MidiSendCommand(const char *cmd, ...)
 	va_list va;
 	char buf[512];
 	va_start(va, cmd);
-	vseprintf(buf, lastof(buf), cmd, va);
+	bstrvfmt (buf, cmd, va);
 	va_end(va);
 	return mciSendString(buf, NULL, 0, NULL, 0);
 }
