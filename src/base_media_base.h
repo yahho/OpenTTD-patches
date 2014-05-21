@@ -12,6 +12,7 @@
 #ifndef BASE_MEDIA_BASE_H
 #define BASE_MEDIA_BASE_H
 
+#include "string.h"
 #include "fileio_func.h"
 #include "core/smallmap_type.hpp"
 #include "gfx_type.h"
@@ -204,7 +205,7 @@ public:
 	static Tbase_set *GetAvailableSets();
 
 	static bool SetSet(const char *name);
-	static char *GetSetsList(char *p, const char *last);
+	static void GetSetsList (stringb *buf);
 	static int GetNumSets();
 	static int GetIndexOfUsedSet();
 	static const Tbase_set *GetSet(int index);

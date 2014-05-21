@@ -1083,40 +1083,40 @@ static void PrintLineByLine (const char *buf)
 
 DEF_CONSOLE_CMD(ConListAILibs)
 {
-	char buf[4096];
-	AI::GetConsoleLibraryList(buf, lastof(buf));
+	sstring<4096> buf;
+	AI::GetConsoleLibraryList (&buf);
 
-	PrintLineByLine(buf);
+	PrintLineByLine (buf.c_str());
 
 	return true;
 }
 
 DEF_CONSOLE_CMD(ConListAI)
 {
-	char buf[4096];
-	AI::GetConsoleList(buf, lastof(buf));
+	sstring<4096> buf;
+	AI::GetConsoleList (&buf);
 
-	PrintLineByLine(buf);
+	PrintLineByLine (buf.c_str());
 
 	return true;
 }
 
 DEF_CONSOLE_CMD(ConListGameLibs)
 {
-	char buf[4096];
-	Game::GetConsoleLibraryList(buf, lastof(buf));
+	sstring<4096> buf;
+	Game::GetConsoleLibraryList (&buf);
 
-	PrintLineByLine(buf);
+	PrintLineByLine (buf.c_str());
 
 	return true;
 }
 
 DEF_CONSOLE_CMD(ConListGame)
 {
-	char buf[4096];
-	Game::GetConsoleList(buf, lastof(buf));
+	sstring<4096> buf;
+	Game::GetConsoleList (&buf);
 
-	PrintLineByLine(buf);
+	PrintLineByLine (buf.c_str());
 
 	return true;
 }

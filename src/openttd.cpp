@@ -141,11 +141,10 @@ void CDECL ShowInfoF(const char *str, ...)
  */
 static void ShowHelp()
 {
-	char buf[8192];
-	char *p = buf;
+	sstring<8192> buf;
 
-	p += seprintf(p, lastof(buf), "OpenTTD %s\n", _openttd_revision);
-	p = strecpy(p,
+	buf.fmt ("OpenTTD %s\n", _openttd_revision);
+	buf.append (
 		"\n"
 		"\n"
 		"Command line options:\n"
@@ -176,44 +175,43 @@ static void ShowHelp()
 		"  -c config_file      = Use 'config_file' instead of 'openttd.cfg'\n"
 		"  -x                  = Do not automatically save to config file on exit\n"
 		"  -q savegame         = Write some information about the savegame and exit\n"
-		"\n",
-		lastof(buf)
+		"\n"
 	);
 
 	/* List the graphics packs */
-	p = BaseGraphics::GetSetsList(p, lastof(buf));
+	BaseGraphics::GetSetsList (&buf);
 
 	/* List the sounds packs */
-	p = BaseSounds::GetSetsList(p, lastof(buf));
+	BaseSounds::GetSetsList (&buf);
 
 	/* List the music packs */
-	p = BaseMusic::GetSetsList(p, lastof(buf));
+	BaseMusic::GetSetsList (&buf);
 
 	/* List the drivers */
-	p = DriverFactoryBase::GetDriversInfo(p, lastof(buf));
+	DriverFactoryBase::GetDriversInfo (&buf);
 
 	/* List the blitters */
-	p = BlitterFactory::GetBlittersInfo(p, lastof(buf));
+	BlitterFactory::GetBlittersInfo (&buf);
 
 	/* List the debug facilities. */
-	p = DumpDebugFacilityNames(p, lastof(buf));
+	DumpDebugFacilityNames (&buf);
 
 	/* We need to initialize the AI, so it finds the AIs */
 	AI::Initialize();
-	p = AI::GetConsoleList(p, lastof(buf), true);
+	AI::GetConsoleList (&buf, true);
 	AI::Uninitialize(true);
 
 	/* We need to initialize the GameScript, so it finds the GSs */
 	Game::Initialize();
-	p = Game::GetConsoleList(p, lastof(buf), true);
+	Game::GetConsoleList (&buf, true);
 	Game::Uninitialize(true);
 
 	/* ShowInfo put output to stderr, but version information should go
 	 * to stdout; this is the only exception */
 #if !defined(WIN32) && !defined(WIN64)
-	printf("%s\n", buf);
+	printf("%s\n", buf.c_str());
 #else
-	ShowInfo(buf);
+	ShowInfo(buf.c_str());
 #endif
 }
 

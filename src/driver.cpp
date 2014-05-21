@@ -166,14 +166,12 @@ Driver *DriverFactoryBase::SelectDriver(const char *name, Driver::Type type)
 
 /**
  * Build a human readable list of available drivers, grouped by type.
- * @param p The buffer to write to.
- * @param last The last element in the buffer.
- * @return The end of the written buffer.
+ * @param buf The buffer to write to.
  */
-char *DriverFactoryBase::GetDriversInfo(char *p, const char *last)
+void DriverFactoryBase::GetDriversInfo (stringb *buf)
 {
 	for (Driver::Type type = Driver::DT_BEGIN; type != Driver::DT_END; type++) {
-		p += seprintf(p, last, "List of %s drivers:\n", GetDriverTypeName(type));
+		buf->append_fmt ("List of %s drivers:\n", GetDriverTypeName(type));
 
 		for (int priority = 10; priority >= 0; priority--) {
 			Drivers::iterator it = GetDrivers().begin();
@@ -181,14 +179,12 @@ char *DriverFactoryBase::GetDriversInfo(char *p, const char *last)
 				DriverFactoryBase *d = (*it).second;
 				if (d->type != type) continue;
 				if (d->priority != priority) continue;
-				p += seprintf(p, last, "%18s: %s\n", d->name, d->GetDescription());
+				buf->append_fmt ("%18s: %s\n", d->name, d->GetDescription());
 			}
 		}
 
-		p += seprintf(p, last, "\n");
+		buf->append ('\n');
 	}
-
-	return p;
 }
 
 /**

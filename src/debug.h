@@ -13,6 +13,7 @@
 #define DEBUG_H
 
 #include "cpu.h"
+#include "string.h"
 
 /* Debugging messages policy:
  * These should be the severities used for direct DEBUG() calls
@@ -59,7 +60,7 @@
 	void CDECL debug(const char *dbg, const char *format, ...) WARN_FORMAT(2, 3);
 #endif /* NO_DEBUG_MESSAGES */
 
-char *DumpDebugFacilityNames(char *buf, char *last);
+void DumpDebugFacilityNames (stringb *buf);
 void SetDebugString(const char *s);
 const char *GetDebugString();
 

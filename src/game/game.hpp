@@ -15,6 +15,7 @@
 #include "../core/string_compare_type.hpp"
 #include "game_scanner.hpp"
 #include <map>
+#include "../string.h"
 #include "../saveload/saveload_buffer.h"
 
 /** A list that maps AI names to their AIInfo object. */
@@ -96,9 +97,9 @@ public:
 	static void Load(LoadBuffer *reader, int version);
 
 	/** Wrapper function for GameScanner::GetConsoleList */
-	static char *GetConsoleList(char *p, const char *last, bool newest_only = false);
+	static void GetConsoleList (stringb *buf, bool newest_only = false);
 	/** Wrapper function for GameScanner::GetConsoleLibraryList */
-	static char *GetConsoleLibraryList(char *p, const char *last);
+	static void GetConsoleLibraryList (stringb *buf);
 	/** Wrapper function for GameScanner::GetInfoList */
 	static const ScriptInfoList *GetInfoList();
 	/** Wrapper function for GameScanner::GetUniqueInfoList */

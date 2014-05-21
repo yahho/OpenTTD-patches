@@ -312,14 +312,14 @@
 	return DAYS_IN_YEAR;
 }
 
-/* static */ char *AI::GetConsoleList(char *p, const char *last, bool newest_only)
+/* static */ void AI::GetConsoleList (stringb *buf, bool newest_only)
 {
-	return AI::scanner_info->GetConsoleList(p, last, newest_only);
+	AI::scanner_info->GetConsoleList (buf, newest_only);
 }
 
-/* static */ char *AI::GetConsoleLibraryList(char *p, const char *last)
+/* static */ void AI::GetConsoleLibraryList (stringb *buf)
 {
-	 return AI::scanner_library->GetConsoleList(p, last, true);
+	AI::scanner_library->GetConsoleList (buf, true);
 }
 
 /* static */ const ScriptInfoList *AI::GetInfoList()

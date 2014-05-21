@@ -16,6 +16,7 @@
 #include "../core/string_compare_type.hpp"
 #include "ai_scanner.hpp"
 #include <map>
+#include "../string.h"
 #include "../saveload/saveload_buffer.h"
 
 /** A list that maps AI names to their AIInfo object. */
@@ -142,9 +143,9 @@ public:
 	static int GetStartNextTime();
 
 	/** Wrapper function for AIScanner::GetAIConsoleList */
-	static char *GetConsoleList(char *p, const char *last, bool newest_only = false);
+	static void GetConsoleList (stringb *buf, bool newest_only = false);
 	/** Wrapper function for AIScanner::GetAIConsoleLibraryList */
-	static char *GetConsoleLibraryList(char *p, const char *last);
+	static void GetConsoleLibraryList (stringb *buf);
 	/** Wrapper function for AIScanner::GetAIInfoList */
 	static const ScriptInfoList *GetInfoList();
 	/** Wrapper function for AIScanner::GetUniqueAIInfoList */

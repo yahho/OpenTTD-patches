@@ -216,14 +216,14 @@
 	}
 }
 
-/* static */ char *Game::GetConsoleList(char *p, const char *last, bool newest_only)
+/* static */ void Game::GetConsoleList (stringb *buf, bool newest_only)
 {
-	return Game::scanner_info->GetConsoleList(p, last, newest_only);
+	Game::scanner_info->GetConsoleList (buf, newest_only);
 }
 
-/* static */ char *Game::GetConsoleLibraryList(char *p, const char *last)
+/* static */ void Game::GetConsoleLibraryList (stringb *buf)
 {
-	 return Game::scanner_library->GetConsoleList(p, last, true);
+	Game::scanner_library->GetConsoleList (buf, true);
 }
 
 /* static */ const ScriptInfoList *Game::GetInfoList()

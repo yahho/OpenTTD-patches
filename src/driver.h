@@ -15,6 +15,7 @@
 #include "core/enum_type.hpp"
 #include "core/string_compare_type.hpp"
 #include <map>
+#include "string.h"
 
 const char *GetDriverParam(const char * const *parm, const char *name);
 bool GetDriverParamBool(const char * const *parm, const char *name);
@@ -115,7 +116,7 @@ public:
 	}
 
 	static Driver *SelectDriver(const char *name, Driver::Type type);
-	static char *GetDriversInfo(char *p, const char *last);
+	static void GetDriversInfo (stringb *buf);
 
 	/**
 	 * Get a nice description of the driver-class.

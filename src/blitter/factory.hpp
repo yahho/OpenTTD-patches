@@ -151,21 +151,17 @@ public:
 
 	/**
 	 * Fill a buffer with information about the blitters.
-	 * @param p The buffer to fill.
-	 * @param last The last element of the buffer.
-	 * @return p The location till where we filled the buffer.
+	 * @param buf The buffer to fill.
 	 */
-	static char *GetBlittersInfo(char *p, const char *last)
+	static void GetBlittersInfo (stringb *buf)
 	{
-		p += seprintf(p, last, "List of blitters:\n");
+		buf->append ("List of blitters:\n");
 		Blitters::iterator it = GetBlitters().begin();
 		for (; it != GetBlitters().end(); it++) {
 			BlitterFactory *b = (*it).second;
-			p += seprintf(p, last, "%18s: %s\n", b->name, b->GetDescription());
+			buf->append_fmt ("%18s: %s\n", b->name, b->GetDescription());
 		}
-		p += seprintf(p, last, "\n");
-
-		return p;
+		buf->append ('\n');
 	}
 
 	/**

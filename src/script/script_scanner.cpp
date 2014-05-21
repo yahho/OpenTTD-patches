@@ -150,18 +150,16 @@ void ScriptScanner::RegisterScript(ScriptInfo *info)
 	}
 }
 
-char *ScriptScanner::GetConsoleList(char *p, const char *last, bool newest_only) const
+void ScriptScanner::GetConsoleList (stringb *buf, bool newest_only) const
 {
-	p += seprintf(p, last, "List of %s:\n", this->GetScannerName());
+	buf->append_fmt ("List of %s:\n", this->GetScannerName());
 	const ScriptInfoList &list = newest_only ? this->info_single_list : this->info_list;
 	ScriptInfoList::const_iterator it = list.begin();
 	for (; it != list.end(); it++) {
 		ScriptInfo *i = (*it).second;
-		p += seprintf(p, last, "%10s (v%d): %s\n", i->GetName(), i->GetVersion(), i->GetDescription());
+		buf->append_fmt ("%10s (v%d): %s\n", i->GetName(), i->GetVersion(), i->GetDescription());
 	}
-	p += seprintf(p, last, "\n");
-
-	return p;
+	buf->append ('\n');
 }
 
 #if defined(ENABLE_NETWORK)

@@ -253,31 +253,27 @@ template <class Tbase_set>
 
 /**
  * Returns a list with the sets.
- * @param p    where to print to
- * @param last the last character to print to
- * @return the last printed character
+ * @param buf where to print to
  */
 template <class Tbase_set>
-/* static */ char *BaseMedia<Tbase_set>::GetSetsList(char *p, const char *last)
+/* static */ void BaseMedia<Tbase_set>::GetSetsList (stringb *buf)
 {
-	p += seprintf(p, last, "List of " SET_TYPE " sets:\n");
+	buf->append ("List of " SET_TYPE " sets:\n");
 	for (const Tbase_set *s = BaseMedia<Tbase_set>::available_sets; s != NULL; s = s->next) {
-		p += seprintf(p, last, "%18s: %s", s->name, s->GetDescription());
+		buf->append_fmt ("%18s: %s", s->name, s->GetDescription());
 		int invalid = s->GetNumInvalid();
 		if (invalid != 0) {
 			int missing = s->GetNumMissing();
 			if (missing == 0) {
-				p += seprintf(p, last, " (%i corrupt file%s)\n", invalid, invalid == 1 ? "" : "s");
+				buf->append_fmt (" (%i corrupt file%s)\n", invalid, invalid == 1 ? "" : "s");
 			} else {
-				p += seprintf(p, last, " (unusable: %i missing file%s)\n", missing, missing == 1 ? "" : "s");
+				buf->append_fmt (" (unusable: %i missing file%s)\n", missing, missing == 1 ? "" : "s");
 			}
 		} else {
-			p += seprintf(p, last, "\n");
+			buf->append ('\n');
 		}
 	}
-	p += seprintf(p, last, "\n");
-
-	return p;
+	buf->append ('\n');
 }
 
 #if defined(ENABLE_NETWORK)
@@ -403,7 +399,7 @@ template <class Tbase_set>
 	template bool repl_type::AddFile(const char *filename, size_t pathlength, const char *tar_filename); \
 	template bool repl_type::HasSet(const struct ContentInfo *ci, bool md5sum); \
 	template bool repl_type::SetSet(const char *name); \
-	template char *repl_type::GetSetsList(char *p, const char *last); \
+	template void repl_type::GetSetsList (stringb *buf); \
 	template int repl_type::GetNumSets(); \
 	template int repl_type::GetIndexOfUsedSet(); \
 	template const set_type *repl_type::GetSet(int index); \

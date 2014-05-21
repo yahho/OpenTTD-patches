@@ -13,6 +13,7 @@
 #define SCRIPT_SCANNER_HPP
 
 #include <map>
+#include "../string.h"
 #include "../fileio_func.h"
 #include "../core/string_compare_type.hpp"
 
@@ -59,7 +60,7 @@ public:
 	/**
 	 * Get the list of registered scripts to print on the console.
 	 */
-	char *GetConsoleList(char *p, const char *last, bool newest_only) const;
+	void GetConsoleList (stringb *buf, bool newest_only) const;
 
 	/**
 	 * Check whether we have a script with the exact characteristics as ci.
