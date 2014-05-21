@@ -12,6 +12,8 @@
 #ifndef CRASHLOG_H
 #define CRASHLOG_H
 
+#include "string.h"
+
 /**
  * Helper class for creating crash logs.
  */
@@ -77,20 +79,19 @@ public:
 	virtual ~CrashLog() {}
 
 	char *FillCrashLog(char *buffer, const char *last) const;
-	bool WriteCrashLog(const char *buffer, char *filename, const char *filename_last) const;
+	bool WriteCrashLog (const char *buffer, stringb *filename) const;
 
 	/**
 	 * Write the (crash) dump to a file.
 	 * @note On success the filename will be filled with the full path of the
 	 *       crash dump file. Make sure filename is at least \c MAX_PATH big.
-	 * @param filename      Output for the filename of the written file.
-	 * @param filename_last The last position in the filename buffer.
+	 * @param filename Output for the filename of the written file.
 	 * @return if less than 0, error. If 0 no dump is made, otherwise the dump
 	 *         was successful (not all OSes support dumping files).
 	 */
-	virtual int WriteCrashDump(char *filename, const char *filename_last) const;
-	bool WriteSavegame(char *filename, const char *filename_last) const;
-	bool WriteScreenshot(char *filename, const char *filename_last) const;
+	virtual int WriteCrashDump (stringb *filename) const;
+	bool WriteSavegame (stringb *filename) const;
+	bool WriteScreenshot (stringb *filename) const;
 
 	bool MakeCrashLog() const;
 

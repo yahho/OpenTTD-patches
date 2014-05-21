@@ -330,15 +330,14 @@ char *CrashLog::FillCrashLog(char *buffer, const char *last) const
  * @note On success the filename will be filled with the full path of the
  *       crash log file. Make sure filename is at least \c MAX_PATH big.
  * @param buffer The begin of the buffer to write to the disk.
- * @param filename      Output for the filename of the written file.
- * @param filename_last The last position in the filename buffer.
+ * @param filename Output for the filename of the written file.
  * @return true when the crash log was successfully written.
  */
-bool CrashLog::WriteCrashLog(const char *buffer, char *filename, const char *filename_last) const
+bool CrashLog::WriteCrashLog (const char *buffer, stringb *filename) const
 {
-	seprintf(filename, filename_last, "%scrash.log", _personal_dir);
+	filename->fmt ("%scrash.log", _personal_dir);
 
-	FILE *file = FioFOpenFile(filename, "w", NO_DIRECTORY);
+	FILE *file = FioFOpenFile (filename->c_str(), "w", NO_DIRECTORY);
 	if (file == NULL) return false;
 
 	size_t len = strlen(buffer);
@@ -348,7 +347,7 @@ bool CrashLog::WriteCrashLog(const char *buffer, char *filename, const char *fil
 	return len == written;
 }
 
-/* virtual */ int CrashLog::WriteCrashDump(char *filename, const char *filename_last) const
+/* virtual */ int CrashLog::WriteCrashDump (stringb *filename) const
 {
 	/* Stub implementation; not all OSes support this. */
 	return 0;
@@ -358,11 +357,10 @@ bool CrashLog::WriteCrashLog(const char *buffer, char *filename, const char *fil
  * Write the (crash) savegame to a file.
  * @note On success the filename will be filled with the full path of the
  *       crash save file. Make sure filename is at least \c MAX_PATH big.
- * @param filename      Output for the filename of the written file.
- * @param filename_last The last position in the filename buffer.
+ * @param filename Output for the filename of the written file.
  * @return true when the crash save was successfully made.
  */
-bool CrashLog::WriteSavegame(char *filename, const char *filename_last) const
+bool CrashLog::WriteSavegame (stringb *filename) const
 {
 	/* If the map array doesn't exist, saving will fail too. If the map got
 	 * initialised, there is a big chance the rest is initialised too. */
@@ -371,10 +369,10 @@ bool CrashLog::WriteSavegame(char *filename, const char *filename_last) const
 	try {
 		GamelogEmergency();
 
-		seprintf(filename, filename_last, "%scrash.sav", _personal_dir);
+		filename->fmt ("%scrash.sav", _personal_dir);
 
 		/* Don't do a threaded saveload. */
-		return SaveGame(filename, NO_DIRECTORY, false);
+		return SaveGame(filename->c_str(), NO_DIRECTORY, false);
 	} catch (...) {
 		return false;
 	}
@@ -384,17 +382,16 @@ bool CrashLog::WriteSavegame(char *filename, const char *filename_last) const
  * Write the (crash) screenshot to a file.
  * @note On success the filename will be filled with the full path of the
  *       screenshot. Make sure filename is at least \c MAX_PATH big.
- * @param filename      Output for the filename of the written file.
- * @param filename_last The last position in the filename buffer.
+ * @param filename Output for the filename of the written file.
  * @return true when the crash screenshot was successfully made.
  */
-bool CrashLog::WriteScreenshot(char *filename, const char *filename_last) const
+bool CrashLog::WriteScreenshot (stringb *filename) const
 {
 	/* Don't draw when we have invalid screen size */
 	if (_screen.width < 1 || _screen.height < 1 || _screen.dst_ptr == NULL) return false;
 
 	bool res = MakeScreenshot(SC_CRASHLOG, "crash");
-	if (res) strecpy(filename, _full_screenshot_name, filename_last);
+	if (res) filename->copy (_full_screenshot_name);
 	return res;
 }
 
@@ -411,7 +408,7 @@ bool CrashLog::MakeCrashLog() const
 	if (crashlogged) return false;
 	crashlogged = true;
 
-	char filename[MAX_PATH];
+	sstring<MAX_PATH> filename;
 	char buffer[65536];
 	bool ret = true;
 
@@ -421,36 +418,36 @@ bool CrashLog::MakeCrashLog() const
 	printf("Crash log generated.\n\n");
 
 	printf("Writing crash log to disk...\n");
-	bool bret = this->WriteCrashLog(buffer, filename, lastof(filename));
+	bool bret = this->WriteCrashLog (buffer, &filename);
 	if (bret) {
-		printf("Crash log written to %s. Please add this file to any bug reports.\n\n", filename);
+		printf("Crash log written to %s. Please add this file to any bug reports.\n\n", filename.c_str());
 	} else {
 		printf("Writing crash log failed. Please attach the output above to any bug reports.\n\n");
 		ret = false;
 	}
 
 	/* Don't mention writing crash dumps because not all platforms support it. */
-	int dret = this->WriteCrashDump(filename, lastof(filename));
+	int dret = this->WriteCrashDump (&filename);
 	if (dret < 0) {
 		printf("Writing crash dump failed.\n\n");
 		ret = false;
 	} else if (dret > 0) {
-		printf("Crash dump written to %s. Please add this file to any bug reports.\n\n", filename);
+		printf("Crash dump written to %s. Please add this file to any bug reports.\n\n", filename.c_str());
 	}
 
 	printf("Writing crash savegame...\n");
-	bret = this->WriteSavegame(filename, lastof(filename));
+	bret = this->WriteSavegame (&filename);
 	if (bret) {
-		printf("Crash savegame written to %s. Please add this file and the last (auto)save to any bug reports.\n\n", filename);
+		printf("Crash savegame written to %s. Please add this file and the last (auto)save to any bug reports.\n\n", filename.c_str());
 	} else {
 		ret = false;
 		printf("Writing crash savegame failed. Please attach the last (auto)save to any bug reports.\n\n");
 	}
 
 	printf("Writing crash screenshot...\n");
-	bret = this->WriteScreenshot(filename, lastof(filename));
+	bret = this->WriteScreenshot (&filename);
 	if (bret) {
-		printf("Crash screenshot written to %s. Please add this file to any bug reports.\n\n", filename);
+		printf("Crash screenshot written to %s. Please add this file to any bug reports.\n\n", filename.c_str());
 	} else {
 		ret = false;
 		printf("Writing crash screenshot failed.\n\n");

@@ -48,7 +48,7 @@ class CrashLogWindows : public CrashLog {
 	/* virtual */ char *LogModules(char *buffer, const char *last) const;
 public:
 #if defined(_MSC_VER)
-	/* virtual */ int WriteCrashDump(char *filename, const char *filename_last) const;
+	/* virtual */ int WriteCrashDump (stringb *filename) const;
 	char *AppendDecodedStacktrace(char *buffer, const char *last) const;
 #else
 	char *AppendDecodedStacktrace(char *buffer, const char *last) const { return buffer; }
@@ -57,23 +57,21 @@ public:
 	/** Buffer for the generated crash log */
 	char crashlog[65536];
 	/** Buffer for the filename of the crash log */
-	char crashlog_filename[MAX_PATH];
+	sstring<MAX_PATH> crashlog_filename;
 	/** Buffer for the filename of the crash dump */
-	char crashdump_filename[MAX_PATH];
+	sstring<MAX_PATH> crashdump_filename;
 	/** Buffer for the filename of the crash screenshot */
-	char screenshot_filename[MAX_PATH];
+	sstring<MAX_PATH> screenshot_filename;
 
 	/**
 	 * A crash log is always generated when it's generated.
 	 * @param ep the data related to the exception.
 	 */
 	CrashLogWindows(EXCEPTION_POINTERS *ep = NULL) :
-		ep(ep)
+		ep(ep),
+		crashlog_filename(), crashdump_filename(), screenshot_filename()
 	{
 		this->crashlog[0] = '\0';
-		this->crashlog_filename[0] = '\0';
-		this->crashdump_filename[0] = '\0';
-		this->screenshot_filename[0] = '\0';
 	}
 
 	/**
@@ -435,7 +433,7 @@ char *CrashLogWindows::AppendDecodedStacktrace(char *buffer, const char *last) c
 	return buffer + seprintf(buffer, last, "\n*** End of additional info ***\n");
 }
 
-/* virtual */ int CrashLogWindows::WriteCrashDump(char *filename, const char *filename_last) const
+/* virtual */ int CrashLogWindows::WriteCrashDump (stringb *filename) const
 {
 	int ret = 0;
 	HMODULE dbghelp = LoadLibrary(_T("dbghelp.dll"));
@@ -447,8 +445,8 @@ char *CrashLogWindows::AppendDecodedStacktrace(char *buffer, const char *last) c
 				CONST PMINIDUMP_CALLBACK_INFORMATION);
 		MiniDumpWriteDump_t funcMiniDumpWriteDump = (MiniDumpWriteDump_t)GetProcAddress(dbghelp, "MiniDumpWriteDump");
 		if (funcMiniDumpWriteDump != NULL) {
-			seprintf(filename, filename_last, "%scrash.dmp", _personal_dir);
-			HANDLE file  = CreateFile(OTTD2FS(filename), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, 0);
+			filename->fmt ("%scrash.dmp", _personal_dir);
+			HANDLE file  = CreateFile(OTTD2FS(filename->c_str()), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, 0);
 			HANDLE proc  = GetCurrentProcess();
 			DWORD procid = GetCurrentProcessId();
 			MINIDUMP_EXCEPTION_INFORMATION mdei;
@@ -513,10 +511,10 @@ static LONG WINAPI ExceptionHandler(EXCEPTION_POINTERS *ep)
 	CrashLogWindows *log = new CrashLogWindows(ep);
 	CrashLogWindows::current = log;
 	char *buf = log->FillCrashLog(log->crashlog, lastof(log->crashlog));
-	log->WriteCrashDump(log->crashdump_filename, lastof(log->crashdump_filename));
+	log->WriteCrashDump (&log->crashdump_filename);
 	log->AppendDecodedStacktrace(buf, lastof(log->crashlog));
-	log->WriteCrashLog(log->crashlog, log->crashlog_filename, lastof(log->crashlog_filename));
-	log->WriteScreenshot(log->screenshot_filename, lastof(log->screenshot_filename));
+	log->WriteCrashLog (log->crashlog, &log->crashlog_filename);
+	log->WriteScreenshot (&log->screenshot_filename);
 
 	/* Close any possible log files */
 	CloseConsoleLogIfActive();
@@ -631,19 +629,19 @@ static INT_PTR CALLBACK CrashDialogFunc(HWND wnd, UINT msg, WPARAM wParam, LPARA
 
 			/* Add path to crash.log and crash.dmp (if any) to the crash window text */
 			size_t len = _tcslen(_crash_desc) + 2;
-			len += _tcslen(OTTD2FS(CrashLogWindows::current->crashlog_filename)) + 2;
-			len += _tcslen(OTTD2FS(CrashLogWindows::current->crashdump_filename)) + 2;
-			len += _tcslen(OTTD2FS(CrashLogWindows::current->screenshot_filename)) + 1;
+			len += _tcslen(OTTD2FS(CrashLogWindows::current->crashlog_filename.c_str())) + 2;
+			len += _tcslen(OTTD2FS(CrashLogWindows::current->crashdump_filename.c_str())) + 2;
+			len += _tcslen(OTTD2FS(CrashLogWindows::current->screenshot_filename.c_str())) + 1;
 
 			TCHAR *text = AllocaM(TCHAR, len);
-			_sntprintf(text, len, _crash_desc, OTTD2FS(CrashLogWindows::current->crashlog_filename));
-			if (OTTD2FS(CrashLogWindows::current->crashdump_filename)[0] != _T('\0')) {
+			_sntprintf(text, len, _crash_desc, OTTD2FS(CrashLogWindows::current->crashlog_filename.c_str()));
+			if (OTTD2FS(CrashLogWindows::current->crashdump_filename.c_str())[0] != _T('\0')) {
 				_tcscat(text, _T("\n"));
-				_tcscat(text, OTTD2FS(CrashLogWindows::current->crashdump_filename));
+				_tcscat(text, OTTD2FS(CrashLogWindows::current->crashdump_filename.c_str()));
 			}
-			if (OTTD2FS(CrashLogWindows::current->screenshot_filename)[0] != _T('\0')) {
+			if (OTTD2FS(CrashLogWindows::current->screenshot_filename.c_str())[0] != _T('\0')) {
 				_tcscat(text, _T("\n"));
-				_tcscat(text, OTTD2FS(CrashLogWindows::current->screenshot_filename));
+				_tcscat(text, OTTD2FS(CrashLogWindows::current->screenshot_filename.c_str()));
 			}
 
 			SetDlgItemText(wnd, 10, text);
@@ -656,17 +654,18 @@ static INT_PTR CALLBACK CrashDialogFunc(HWND wnd, UINT msg, WPARAM wParam, LPARA
 				case 12: // Close
 					CrashLog::AfterCrashLogCleanup();
 					ExitProcess(2);
-				case 13: // Emergency save
-					char filename[MAX_PATH];
-					if (CrashLogWindows::current->WriteSavegame(filename, lastof(filename))) {
-						size_t len = _tcslen(_save_succeeded) + _tcslen(OTTD2FS(filename)) + 1;
+				case 13: { // Emergency save
+					sstring<MAX_PATH> filename;
+					if (CrashLogWindows::current->WriteSavegame(&filename)) {
+						size_t len = _tcslen(_save_succeeded) + _tcslen(OTTD2FS(filename.c_str())) + 1;
 						TCHAR *text = AllocaM(TCHAR, len);
-						_sntprintf(text, len, _save_succeeded, OTTD2FS(filename));
+						_sntprintf(text, len, _save_succeeded, OTTD2FS(filename.c_str()));
 						MessageBox(wnd, text, _T("Save successful"), MB_ICONINFORMATION);
 					} else {
 						MessageBox(wnd, _T("Save failed"), _T("Save failed"), MB_ICONINFORMATION);
 					}
 					break;
+				}
 				case 15: // Expand window to show crash-message
 					_expanded ^= 1;
 					SetWndSize(wnd, _expanded);
