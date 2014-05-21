@@ -650,3 +650,58 @@ int strnatcmp(const char *s1, const char *s2, bool ignore_garbage_at_front)
 	/* Do a normal comparison if ICU is missing or if we cannot create a collator. */
 	return strcasecmp(s1, s2);
 }
+
+
+/** Set this string according to a format and args. */
+bool stringb::fmt (const char *fmt, ...)
+{
+	va_list args;
+	va_start (args, fmt);
+	bool r = vfmt (fmt, args);
+	va_end (args);
+	return r;
+}
+
+/** Append to this string according to a format and args. */
+bool stringb::append_fmt (const char *fmt, ...)
+{
+	va_list args;
+	va_start (args, fmt);
+	bool r = append_vfmt (fmt, args);
+	va_end (args);
+	return r;
+}
+
+/** Append a unicode character encoded as utf-8 to the string. */
+bool stringb::append_utf8 (WChar c)
+{
+	assert (len < capacity);
+	size_t left = capacity - len;
+
+	if (c < 0x80) {
+		if (left <= 1) return false;
+		buffer[len++] = c;
+	} else if (c < 0x800) {
+		if (left <= 2) return false;
+		buffer[len++] = 0xC0 + GB(c,  6, 5);
+		buffer[len++] = 0x80 + GB(c,  0, 6);
+	} else if (c < 0x10000) {
+		if (left <= 3) return false;
+		buffer[len++] = 0xE0 + GB(c, 12, 4);
+		buffer[len++] = 0x80 + GB(c,  6, 6);
+		buffer[len++] = 0x80 + GB(c,  0, 6);
+	} else if (c < 0x110000) {
+		if (left <= 4) return false;
+		buffer[len++] = 0xF0 + GB(c, 18, 3);
+		buffer[len++] = 0x80 + GB(c, 12, 6);
+		buffer[len++] = 0x80 + GB(c,  6, 6);
+		buffer[len++] = 0x80 + GB(c,  0, 6);
+	} else {
+		/* DEBUG(misc, 1, "[utf8] can't UTF-8 encode value 0x%X", c); */
+		if (left <= 1) return false;
+		buffer[len++] = '?';
+	}
+
+	buffer[len] = '\0';
+	return true;
+}

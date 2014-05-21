@@ -228,15 +228,14 @@ const char *GetDebugString()
 {
 	const DebugLevel *i;
 	static char dbgstr[150];
-	char dbgval[20];
+	stringb dbgsb (dbgstr);
 
-	memset(dbgstr, 0, sizeof(dbgstr));
+	dbgsb.zerofill();
 	i = debug_level;
-	snprintf(dbgstr, sizeof(dbgstr), "%s=%d", i->name, *i->level);
+	dbgsb.fmt ("%s=%d", i->name, *i->level);
 
 	for (i++; i != endof(debug_level); i++) {
-		snprintf(dbgval, sizeof(dbgval), ", %s=%d", i->name, *i->level);
-		strecat(dbgstr, dbgval, lastof(dbgstr));
+		dbgsb.append_fmt (", %s=%d", i->name, *i->level);
 	}
 
 	return dbgstr;

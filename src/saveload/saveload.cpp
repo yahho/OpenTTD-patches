@@ -601,16 +601,15 @@ static void CDECL HandleSavegameLoadCrash(int signum)
 {
 	ResetSignalHandlers();
 
-	char buffer[8192];
-	char *p = buffer;
-	p += seprintf(p, lastof(buffer), "Loading your savegame caused OpenTTD to crash.\n");
+	sstring<8192> buffer;
+	buffer.copy ("Loading your savegame caused OpenTTD to crash.\n");
 
 	for (const GRFConfig *c = _grfconfig; !_saveload_crash_with_missing_newgrfs && c != NULL; c = c->next) {
 		_saveload_crash_with_missing_newgrfs = HasBit(c->flags, GCF_COMPATIBLE) || c->status == GCS_NOT_FOUND;
 	}
 
 	if (_saveload_crash_with_missing_newgrfs) {
-		p += seprintf(p, lastof(buffer),
+		buffer.append (
 			"This is most likely caused by a missing NewGRF or a NewGRF that\n"
 			"has been loaded as replacement for a missing NewGRF. OpenTTD\n"
 			"cannot easily determine whether a replacement NewGRF is of a newer\n"
@@ -628,21 +627,21 @@ static void CDECL HandleSavegameLoadCrash(int signum)
 				const GRFIdentifier *replaced = GetOverriddenIdentifier(c);
 				char buf[40];
 				md5sumToString (buf, replaced->md5sum);
-				p += seprintf(p, lastof(buffer), "NewGRF %08X (checksum %s) not found.\n  Loaded NewGRF \"%s\" with same GRF ID instead.\n", BSWAP32(c->ident.grfid), buf, c->filename);
+				buffer.append_fmt ("NewGRF %08X (checksum %s) not found.\n  Loaded NewGRF \"%s\" with same GRF ID instead.\n", BSWAP32(c->ident.grfid), buf, c->filename);
 			}
 			if (c->status == GCS_NOT_FOUND) {
 				char buf[40];
 				md5sumToString (buf, c->ident.md5sum);
-				p += seprintf(p, lastof(buffer), "NewGRF %08X (%s) not found; checksum %s.\n", BSWAP32(c->ident.grfid), c->filename, buf);
+				buffer.append_fmt ("NewGRF %08X (%s) not found; checksum %s.\n", BSWAP32(c->ident.grfid), c->filename, buf);
 			}
 		}
 	} else {
-		p += seprintf(p, lastof(buffer),
+		buffer.append (
 			"This is probably caused by a corruption in the savegame.\n"
 			"Please file a bug report and attach this savegame.\n");
 	}
 
-	ShowInfo(buffer);
+	ShowInfo (buffer.c_str());
 
 	SignalHandlerPointer call = NULL;
 	switch (signum) {

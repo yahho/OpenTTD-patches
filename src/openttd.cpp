@@ -225,32 +225,31 @@ static void WriteSavegameInfo(const char *name)
 
 	GamelogInfo(&_load_check_data.gamelog, &last_ottd_rev, &ever_modified, &removed_newgrfs);
 
-	char buf[8192];
-	char *p = buf;
-	p += seprintf(p, lastof(buf), "Name:         %s\n", name);
-	p += seprintf(p, lastof(buf), "Savegame ver: %c%d\n", _load_check_data.sl_version.type == SGT_FTTD ? 'F' : 'O', _load_check_data.sl_version.fttd.version);
-	p += seprintf(p, lastof(buf), "NewGRF ver:   0x%08X\n", last_ottd_rev);
-	p += seprintf(p, lastof(buf), "Modified:     %d\n", ever_modified);
+	sstring<8192> buf;
+	buf.append_fmt ("Name:         %s\n", name);
+	buf.append_fmt ("Savegame ver: %c%d\n", _load_check_data.sl_version.type == SGT_FTTD ? 'F' : 'O', _load_check_data.sl_version.fttd.version);
+	buf.append_fmt ("NewGRF ver:   0x%08X\n", last_ottd_rev);
+	buf.append_fmt ("Modified:     %d\n", ever_modified);
 
 	if (removed_newgrfs) {
-		p += seprintf(p, lastof(buf), "NewGRFs have been removed\n");
+		buf.append ("NewGRFs have been removed\n");
 	}
 
-	p = strecpy(p, "NewGRFs:\n", lastof(buf));
+	buf.append ("NewGRFs:\n");
 	if (_load_check_data.HasNewGrfs()) {
 		for (GRFConfig *c = _load_check_data.grfconfig; c != NULL; c = c->next) {
 			char md5sum[33];
 			md5sumToString (md5sum, HasBit(c->flags, GCF_COMPATIBLE) ? c->original_md5sum : c->ident.md5sum);
-			p += seprintf(p, lastof(buf), "%08X %s %s\n", c->ident.grfid, md5sum, c->filename);
+			buf.append_fmt ("%08X %s %s\n", c->ident.grfid, md5sum, c->filename);
 		}
 	}
 
 	/* ShowInfo put output to stderr, but version information should go
 	 * to stdout; this is the only exception */
 #if !defined(WIN32) && !defined(WIN64)
-	printf("%s\n", buf);
+	printf("%s\n", buf.c_str());
 #else
-	ShowInfo(buf);
+	ShowInfo(buf.c_str());
 #endif
 }
 

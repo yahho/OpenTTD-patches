@@ -714,8 +714,6 @@ static bool IsUniqueVehicleName(const char *name)
  */
 static void CloneVehicleName(const Vehicle *src, Vehicle *dst)
 {
-	char buf[256];
-
 	/* Find the position of the first digit in the last group of digits. */
 	size_t number_position;
 	for (number_position = strlen(src->name); number_position > 0; number_position--) {
@@ -725,18 +723,18 @@ static void CloneVehicleName(const Vehicle *src, Vehicle *dst)
 	}
 
 	/* Format buffer and determine starting number. */
-	int num;
-	byte padding = 0;
+	sstring<256> buf;
+	int num, padding;
+	buf.copy (src->name);
 	if (src->name[number_position] == '\0') {
 		/* No digit at the end, so start at number 2. */
-		strecpy(buf, src->name, lastof(buf));
-		strecat(buf, " ", lastof(buf));
-		number_position = strlen(buf);
+		buf.append (' ');
+		number_position = buf.length();
 		num = 2;
+		padding = 0;
 	} else {
 		/* Found digits, parse them and start at the next number. */
-		strecpy(buf, src->name, lastof(buf));
-		buf[number_position] = '\0';
+		buf.truncate (number_position);
 		char *endptr;
 		num = strtol(&src->name[number_position], &endptr, 10) + 1;
 		padding = endptr - &src->name[number_position];
@@ -745,13 +743,16 @@ static void CloneVehicleName(const Vehicle *src, Vehicle *dst)
 	/* Check if this name is already taken. */
 	for (int max_iterations = 1000; max_iterations > 0; max_iterations--, num++) {
 		/* Attach the number to the temporary name. */
-		seprintf(&buf[number_position], lastof(buf), "%0*d", padding, num);
+		assert (buf.length() == number_position);
+		buf.append_fmt ("%0*d", padding, num);
 
 		/* Check the name is unique. */
-		if (IsUniqueVehicleName(buf)) {
-			dst->name = strdup(buf);
+		if (IsUniqueVehicleName (buf.c_str())) {
+			dst->name = strdup (buf.c_str());
 			break;
 		}
+
+		buf.truncate (number_position);
 	}
 
 	/* All done. If we didn't find a name, it'll just use its default. */

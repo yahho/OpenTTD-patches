@@ -332,11 +332,10 @@ void ClientNetworkContentSocketHandler::DownloadSelectedContentHTTP(const Conten
 	 * multiply that all with the count and then add the '\0'. */
 	uint bytes = (10 + 1) * count + 1;
 	char *content_request = MallocT<char>(bytes);
-	const char *lastof = content_request + bytes - 1;
+	stringb buffer (bytes, content_request);
 
-	char *p = content_request;
 	for (const ContentID *id = content.Begin(); id != content.End(); id++) {
-		p += seprintf(p, lastof, "%d\n", *id);
+		buffer.append_fmt ("%d\n", *id);
 	}
 
 	this->http_response_index = -1;

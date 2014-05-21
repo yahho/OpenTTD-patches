@@ -383,4 +383,246 @@ static inline void bstrptr (char (&dest) [N], char **buffer, uint *size)
 	snprintf (bstrfmt__buffer, bstrfmt__size, __VA_ARGS__); \
 	} while(0)
 
+
+/** Fixed buffer string template class. */
+template <class T>
+struct stringt : T {
+	stringt (void) : T() { }
+
+	template <class T1>
+	stringt (T1 t1) : T (t1) { }
+
+	template <class T1, class T2>
+	stringt (T1 t1, T2 t2) : T (t1, t2) { }
+
+	/** Get the storage size. */
+	size_t get__capacity (void) const
+	{
+		return T::get_capacity();
+	}
+
+	/** Get the storage buffer. */
+	char *get__buffer (void)
+	{
+		return T::get_buffer();
+	}
+
+	/** Get the storage buffer, const version. */
+	const char *get__buffer (void) const
+	{
+		return const_cast<stringt*>(this)->get__buffer();
+	}
+
+	const char *c_str() const
+	{
+		return get__buffer();
+	}
+
+	/** Get the current length of the string. */
+	size_t length (void) const
+	{
+		return T::len;
+	}
+
+	/** Check if this string is empty. */
+	bool empty (void) const
+	{
+		return length() == 0;
+	}
+
+	/** Check if this string is full. */
+	bool full (void) const
+	{
+		return length() == get__capacity() - 1;
+	}
+
+	/** Reset the string. */
+	void clear (void)
+	{
+		T::len = 0;
+		get__buffer()[0] = '\0';
+	}
+
+	/** Fill the string with zeroes (to avoid undefined contents). */
+	void zerofill (void)
+	{
+		T::len = 0;
+		memset (get__buffer(), 0, get__capacity());
+	}
+
+	/** Truncate the string to a given length. */
+	void truncate (size_t newlen)
+	{
+		assert (newlen <= T::len);
+		T::len = newlen;
+		get__buffer()[T::len] = '\0';
+	}
+
+	/** Set string length and provide return value. */
+	bool set__return (uint n)
+	{
+		const size_t m = get__capacity();
+		if (n < m) {
+			T::len = n;
+			return true;
+		} else {
+			T::len = m - 1;
+			return false;
+		}
+	}
+
+	/** Copy a given string into this one. */
+	bool copy (const char *src)
+	{
+		uint n = snprintf (get__buffer(), get__capacity(), "%s", src);
+		return set__return (n);
+	}
+
+	/** Set this string according to a format and args. */
+	bool vfmt (const char *fmt, va_list args) WARN_FORMAT(2, 0)
+	{
+		uint n = vsnprintf (get__buffer(), get__capacity(), fmt, args);
+		return set__return (n);
+	}
+
+	/** Append a single char to the string. */
+	bool append (char c)
+	{
+		assert (T::len < get__capacity());
+		if (full()) return false;
+		char *data = get__buffer();
+		data[T::len++] = c;
+		data[T::len] = '\0';
+		return true;
+	}
+
+	/** Update string length and provide return value when appending. */
+	bool append__return (uint n)
+	{
+		const size_t m = get__capacity();
+		if (n < m - T::len) {
+			T::len += n;
+			return true;
+		} else {
+			T::len = m - 1;
+			return false;
+		}
+	}
+
+	/** Append a given string to this one. */
+	bool append (const char *src)
+	{
+		assert (T::len < get__capacity());
+		uint n = snprintf (get__buffer() + T::len,
+			get__capacity() - T::len, "%s", src);
+		return append__return (n);
+	}
+
+	/** Append to this string according to a format and args. */
+	bool append_vfmt (const char *fmt, va_list args) WARN_FORMAT(2, 0)
+	{
+		assert (T::len < get__capacity());
+		uint n = vsnprintf (get__buffer() + T::len,
+			get__capacity() - T::len, fmt, args);
+		return append__return (n);
+	}
+
+	/** Replace invalid chars in string. */
+	void validate (StringValidationSettings settings = SVS_REPLACE_WITH_QUESTION_MARK)
+	{
+		assert (T::len < get__capacity());
+		char *buffer = get__buffer();
+		str_validate (buffer, buffer + T::len, settings);
+	}
+
+	/** Convert string to lowercase. */
+	void tolower (void)
+	{
+		strtolower (get__buffer());
+	}
+};
+
+/** Fixed buffer string base class. */
+struct stringb_ {
+	size_t       len;      ///< current string length
+	const size_t capacity; ///< allocated storage capacity
+	char * const buffer;   ///< allocated storage buffer
+
+	size_t get_capacity (void) const
+	{
+		return capacity;
+	}
+
+	char *get_buffer (void)
+	{
+		return buffer;
+	}
+
+	stringb_ (size_t capacity, char *buffer)
+		: len(0), capacity(capacity), buffer(buffer)
+	{
+		assert (capacity > 0);
+		buffer[0] = '\0';
+	}
+
+	stringb_ (const stringb_ &) : len(0), capacity(0), buffer(NULL)
+	{
+		NOT_REACHED();
+	}
+};
+
+/** Fixed buffer string class. */
+struct stringb : stringt<stringb_> {
+	stringb (size_t capacity, char *buffer)
+		: stringt<stringb_> (capacity, buffer)
+	{
+	}
+
+	template <uint N>
+	stringb (char (*buffer) [N]) : stringt<stringb_> (N, &(*buffer)[0])
+	{
+	}
+
+	template <uint N>
+	stringb (char (&buffer) [N]) : stringt<stringb_> (N, &buffer[0])
+	{
+	}
+
+	/* Set this string according to a format and args. */
+	bool fmt (const char *fmt, ...) WARN_FORMAT(2, 3);
+
+	/* Append to this string according to a format and args. */
+	bool append_fmt (const char *fmt, ...) WARN_FORMAT(2, 3);
+
+	/* Append a unicode character encoded as utf-8 to the string. */
+	bool append_utf8 (WChar c);
+};
+
+/** Static string with (some) built-in bounds checking. */
+template <uint N>
+struct sstring_ : stringb {
+	char data[N]; ///< string storage
+
+	sstring_ (void) : stringb (N, data)
+	{
+		assert_tcompile (N > 0);
+		assert (data[0] == '\0'); // should have been set by stringb constructor
+	}
+
+	static inline size_t get_capacity (void)
+	{
+		return N;
+	}
+
+	inline char *get_buffer (void)
+	{
+		return data;
+	}
+};
+
+/** Static string with (some) built-in bounds checking. */
+template <uint N>
+struct sstring : stringt<sstring_<N> > {
+};
+
 #endif /* STRING_H */

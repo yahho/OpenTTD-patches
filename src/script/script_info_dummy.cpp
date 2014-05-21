@@ -75,9 +75,8 @@ void Script_CreateDummy(HSQUIRRELVM vm, StringID string, const char *type)
 	*q = '\0';
 
 	/* 2) We construct the AI's code. This is done by merging a header, body and footer */
-	char dummy_script[4096];
-	char *dp = dummy_script;
-	dp += seprintf(dp, lastof(dummy_script), "class Dummy%s extends %sController {\n  function Start()\n  {\n", type, type);
+	sstring<4096> dummy_script;
+	dummy_script.fmt ("class Dummy%s extends %sController {\n  function Start()\n  {\n", type, type);
 
 	/* As special trick we need to split the error message on newlines and
 	 * emit each newline as a separate error printing string. */
@@ -87,16 +86,16 @@ void Script_CreateDummy(HSQUIRRELVM vm, StringID string, const char *type)
 		newline = strchr(p, '\n');
 		if (newline != NULL) *newline = '\0';
 
-		dp += seprintf(dp, lastof(dummy_script), "    %sLog.Error(\"%s\");\n", type, p);
+		dummy_script.append_fmt ("    %sLog.Error(\"%s\");\n", type, p);
 		p = newline + 1;
 	} while (newline != NULL);
 
-	dp = strecpy(dp, "  }\n}\n", lastof(dummy_script));
+	dummy_script.append ("  }\n}\n");
 
 	/* 3) We translate the error message in the character format that Squirrel wants.
 	 *    We can use the fact that the wchar string printing also uses %s to print
 	 *    old style char strings, which is what was generated during the script generation. */
-	const SQChar *sq_dummy_script = OTTD2SQ(dummy_script);
+	const SQChar *sq_dummy_script = OTTD2SQ(dummy_script.c_str());
 
 	/* And finally we load and run the script */
 	sq_pushroottable(vm);

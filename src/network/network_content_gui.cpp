@@ -669,8 +669,7 @@ public:
 
 		if (this->selected->dependency_count != 0) {
 			/* List dependencies */
-			char buf[DRAW_STRING_BUFFER] = "";
-			char *p = buf;
+			sstring<DRAW_STRING_BUFFER> buf;
 			for (uint i = 0; i < this->selected->dependency_count; i++) {
 				ContentID cid = this->selected->dependencies[i];
 
@@ -680,22 +679,21 @@ public:
 					const ContentInfo *ci = *iter;
 					if (ci->id != cid) continue;
 
-					p += seprintf(p, lastof(buf), p == buf ? "%s" : ", %s", (*iter)->name);
+					buf.append_fmt (buf.empty() ? "%s" : ", %s", ci->name);
 					break;
 				}
 			}
-			SetDParamStr(0, buf);
+			SetDParamStr (0, buf.c_str());
 			y = DrawStringMultiLine(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_DEPENDENCIES);
 		}
 
 		if (this->selected->tag_count != 0) {
 			/* List all tags */
-			char buf[DRAW_STRING_BUFFER] = "";
-			char *p = buf;
+			sstring<DRAW_STRING_BUFFER> buf;
 			for (uint i = 0; i < this->selected->tag_count; i++) {
-				p += seprintf(p, lastof(buf), i == 0 ? "%s" : ", %s", this->selected->tags[i]);
+				buf.append_fmt (i == 0 ? "%s" : ", %s", this->selected->tags[i]);
 			}
-			SetDParamStr(0, buf);
+			SetDParamStr (0, buf.c_str());
 			y = DrawStringMultiLine(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_TAGS);
 		}
 
@@ -704,16 +702,15 @@ public:
 			ConstContentVector tree;
 			_network_content_client.ReverseLookupTreeDependency(tree, this->selected);
 
-			char buf[DRAW_STRING_BUFFER] = "";
-			char *p = buf;
+			sstring<DRAW_STRING_BUFFER> buf;
 			for (ConstContentIterator iter = tree.Begin(); iter != tree.End(); iter++) {
 				const ContentInfo *ci = *iter;
 				if (ci == this->selected || ci->state != ContentInfo::SELECTED) continue;
 
-				p += seprintf(p, lastof(buf), buf == p ? "%s" : ", %s", ci->name);
+				buf.append_fmt (buf.empty() ? "%s" : ", %s", ci->name);
 			}
-			if (p != buf) {
-				SetDParamStr(0, buf);
+			if (!buf.empty()) {
+				SetDParamStr (0, buf.c_str());
 				y = DrawStringMultiLine(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_SELECTED_BECAUSE_OF);
 			}
 		}

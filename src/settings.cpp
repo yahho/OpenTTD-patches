@@ -258,8 +258,7 @@ static bool LoadIntList(const char *str, void *array, int nelems, VarType type)
  */
 static char *MakeIntList (const void *array, int nelems, VarType type)
 {
-	char buffer[512];
-	char *buf = buffer;
+	sstring<512> buffer;
 
 	int i, v = 0;
 	const byte *p = (const byte *)array;
@@ -275,10 +274,10 @@ static char *MakeIntList (const void *array, int nelems, VarType type)
 			case SLE_VAR_U32: v = *(const uint32 *)p; p += 4; break;
 			default: NOT_REACHED();
 		}
-		buf += seprintf(buf, lastof(buffer), (i == 0) ? "%d" : ",%d", v);
+		buffer.append_fmt ((i == 0) ? "%d" : ",%d", v);
 	}
 
-	return strdup (buffer);
+	return strdup (buffer.c_str());
 }
 
 /**
@@ -318,9 +317,7 @@ static char *MakeOneOfMany (const char *many, int id)
  */
 static char *MakeManyOfMany (const char *many, uint32 x)
 {
-	char buffer[512];
-	char *buf = buffer;
-
+	sstring<512> buffer;
 	int i = 0;
 
 	for (; x != 0; x >>= 1, i++) {
@@ -328,21 +325,18 @@ static char *MakeManyOfMany (const char *many, uint32 x)
 		while (*many != 0 && *many != '|') many++; // advance to the next element
 
 		if (HasBit(x, 0)) { // item found, copy it
-			if (buf != buffer) buf += seprintf(buf, lastof(buffer), "|");
+			if (!buffer.empty()) buffer.append ('|');
 			if (start == many) {
-				buf += seprintf(buf, lastof(buffer), "%d", i);
+				buffer.append_fmt ("%d", i);
 			} else {
-				memcpy(buf, start, many - start);
-				buf += many - start;
+				buffer.append_fmt ("%.*s", (int)(many - start), start);
 			}
 		}
 
 		if (*many == '|') many++;
 	}
 
-	*buf = '\0';
-
-	return strdup (buffer);
+	return strdup (buffer.c_str());
 }
 
 /**

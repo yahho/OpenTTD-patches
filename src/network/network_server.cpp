@@ -369,16 +369,15 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendCompanyInfo()
 	NetworkPopulateCompanyStats(company_stats);
 
 	/* Make a list of all clients per company */
-	char clients[MAX_COMPANIES][NETWORK_CLIENTS_LENGTH];
-	NetworkClientSocket *csi;
-	memset(clients, 0, sizeof(clients));
+	sstring<NETWORK_CLIENTS_LENGTH> clients [MAX_COMPANIES];
 
 	/* Add the local player (if not dedicated) */
 	const NetworkClientInfo *ci = NetworkClientInfo::GetByClientID(CLIENT_ID_SERVER);
 	if (ci != NULL && Company::IsValidID(ci->client_playas)) {
-		bstrcpy (clients[ci->client_playas], ci->client_name);
+		clients[ci->client_playas].copy (ci->client_name);
 	}
 
+	NetworkClientSocket *csi;
 	FOR_ALL_CLIENT_SOCKETS(csi) {
 		char client_name[NETWORK_CLIENT_NAME_LENGTH];
 
@@ -386,11 +385,11 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendCompanyInfo()
 
 		ci = csi->GetInfo();
 		if (ci != NULL && Company::IsValidID(ci->client_playas)) {
-			if (!StrEmpty(clients[ci->client_playas])) {
-				strecat(clients[ci->client_playas], ", ", lastof(clients[ci->client_playas]));
+			if (!clients[ci->client_playas].empty()) {
+				clients[ci->client_playas].append (", ");
 			}
 
-			strecat(clients[ci->client_playas], client_name, lastof(clients[ci->client_playas]));
+			clients[ci->client_playas].append (client_name);
 		}
 	}
 
@@ -406,10 +405,10 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendCompanyInfo()
 		p->Send_bool  (true);
 		this->SendCompanyInformation(p, company, &company_stats[company->index]);
 
-		if (StrEmpty(clients[company->index])) {
+		if (clients[company->index].empty()) {
 			p->Send_string("<none>");
 		} else {
-			p->Send_string(clients[company->index]);
+			p->Send_string (clients[company->index].c_str());
 		}
 
 		this->SendPacket(p);

@@ -145,26 +145,23 @@ static void ParseHotkeys(Hotkey *hotkey, const char *value)
 static const char *KeycodeToString(uint16 keycode)
 {
 	static char buf[32];
-	buf[0] = '\0';
+	stringb sb (buf);
 
-	if (keycode & WKC_GLOBAL_HOTKEY) strecat(buf, "GLOBAL+", lastof(buf));
-	if (keycode & WKC_SHIFT) strecat(buf, "SHIFT+", lastof(buf));
-	if (keycode & WKC_CTRL)  strecat(buf, "CTRL+", lastof(buf));
-	if (keycode & WKC_ALT)   strecat(buf, "ALT+", lastof(buf));
-	if (keycode & WKC_META)  strecat(buf, "META+", lastof(buf));
+	if (keycode & WKC_GLOBAL_HOTKEY) sb.append ("GLOBAL+");
+	if (keycode & WKC_SHIFT) sb.append ("SHIFT+");
+	if (keycode & WKC_CTRL)  sb.append ("CTRL+");
+	if (keycode & WKC_ALT)   sb.append ("ALT+");
+	if (keycode & WKC_META)  sb.append ("META+");
 
 	keycode = keycode & ~WKC_SPECIAL_KEYS;
 	for (uint i = 0; i < lengthof(_keycode_to_name); i++) {
 		if (_keycode_to_name[i].keycode == keycode) {
-			strecat(buf, _keycode_to_name[i].name, lastof(buf));
+			sb.append (_keycode_to_name[i].name);
 			return buf;
 		}
 	}
 	assert(keycode < 128);
-	char key[2];
-	key[0] = keycode;
-	key[1] = '\0';
-	strecat(buf, key, lastof(buf));
+	sb.append (keycode);
 	return buf;
 }
 
@@ -179,11 +176,11 @@ static const char *KeycodeToString(uint16 keycode)
 const char *SaveKeycodes(const Hotkey *hotkey)
 {
 	static char buf[128];
-	buf[0] = '\0';
+	stringb sb (buf);
 	for (uint i = 0; i < hotkey->keycodes.Length(); i++) {
 		const char *str = KeycodeToString(hotkey->keycodes[i]);
-		if (i > 0) strecat(buf, ",", lastof(buf));
-		strecat(buf, str, lastof(buf));
+		if (i > 0) sb.append (',');
+		sb.append (str);
 	}
 	return buf;
 }

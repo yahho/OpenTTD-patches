@@ -474,30 +474,27 @@ FILE *FioFOpenFile(const char *filename, const char *mode, Subdirectory subdir, 
 	/* We can only use .tar in case of data-dir, and read-mode */
 	if (f == NULL && mode[0] == 'r' && subdir != NO_DIRECTORY) {
 		static const uint MAX_RESOLVED_LENGTH = 2 * (100 + 100 + 155) + 1; // Enough space to hold two filenames plus link. See 'TarHeader'.
-		char resolved_name[MAX_RESOLVED_LENGTH];
+		sstring<MAX_RESOLVED_LENGTH> resolved_name;
 
 		/* Filenames in tars are always forced to be lowercase */
-		bstrcpy (resolved_name, filename);
-		strtolower(resolved_name);
-
-		size_t resolved_len = strlen(resolved_name);
+		resolved_name.copy (filename);
+		resolved_name.tolower();
 
 		/* Resolve ONE directory link */
 		for (TarLinkList::iterator link = _tar_linklist[subdir].begin(); link != _tar_linklist[subdir].end(); link++) {
 			const std::string &src = link->first;
 			size_t len = src.length();
-			if (resolved_len >= len && resolved_name[len - 1] == PATHSEPCHAR && strncmp(src.c_str(), resolved_name, len) == 0) {
+			if (resolved_name.length() >= len && resolved_name.c_str()[len - 1] == PATHSEPCHAR && memcmp (src.c_str(), resolved_name.c_str(), len) == 0) {
 				/* Apply link */
 				char resolved_name2[MAX_RESOLVED_LENGTH];
-				const std::string &dest = link->second;
-				bstrcpy (resolved_name2, &(resolved_name[len]));
-				strecpy(resolved_name, dest.c_str(), lastof(resolved_name));
-				strecpy(&(resolved_name[dest.length()]), resolved_name2, lastof(resolved_name));
+				bstrcpy (resolved_name2, resolved_name.c_str() + len);
+				resolved_name.copy (link->second.c_str());
+				resolved_name.append (resolved_name2);
 				break; // Only resolve one level
 			}
 		}
 
-		TarFileList::iterator it = _tar_filelist[subdir].find(resolved_name);
+		TarFileList::iterator it = _tar_filelist[subdir].find(resolved_name.c_str());
 		if (it != _tar_filelist[subdir].end()) {
 			f = FioFOpenFileTar(&((*it).second), filesize);
 		}
