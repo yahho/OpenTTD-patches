@@ -198,11 +198,7 @@ DriverFactoryBase::DriverFactoryBase(Driver::Type type, int priority, const char
 	type(type), priority(priority), name(name), description(description)
 {
 	/* Prefix the name with driver type to make it unique */
-	char buf[32];
-	strecpy(buf, GetDriverTypeName(type), lastof(buf));
-	strecpy(buf + 5, name, lastof(buf));
-
-	const char *longname = strdup(buf);
+	const char *longname = str_fmt ("%s%s", GetDriverTypeName(type), name);
 
 	std::pair<Drivers::iterator, bool> P = GetDrivers().insert(Drivers::value_type(longname, this));
 	assert(P.second);
