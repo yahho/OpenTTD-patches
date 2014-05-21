@@ -71,9 +71,10 @@ void GamelogInfo(const Gamelog *gamelog, uint32 *last_rev, byte *ever_modified, 
 /**
  * Callback for printing text.
  * @param s The string to print.
+ * @param data User data.
  */
-typedef void GamelogPrintProc(const char *s);
-void GamelogPrint(GamelogPrintProc *proc); // needed for WIN32 / WINCE crash.log
+typedef void GamelogPrintProc (const char *s, void *data);
+void GamelogPrint (GamelogPrintProc *proc, void *data); // needed for WIN32 / WINCE crash.log
 
 void GamelogPrintDebug(int level);
 void GamelogPrintConsole();

@@ -22,10 +22,6 @@ private:
 	/** Pointer to the error message. */
 	static const char *message;
 
-	/** Temporary 'local' location of the buffer. */
-	static stringb *gamelog_buffer;
-
-	static void GamelogFillCrashLog(const char *s);
 protected:
 	/**
 	 * Writes OS' version to the buffer.

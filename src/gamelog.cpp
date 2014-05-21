@@ -108,10 +108,6 @@ typedef SmallMap<uint32, GRFPresence> GrfIDMapping;
 struct GamelogPrintBuffer : sstring<1024> {
 	GrfIDMapping grf_names; ///< keep track of this so that inconsistencies can be detected
 	bool in_load;           ///< currently printing between GLOG_LOAD and GLOG_LOADED
-
-	void dump(GamelogPrintProc *proc) {
-		proc(this->buffer);
-	}
 };
 
 /**
@@ -147,23 +143,23 @@ static void PrintGrfInfo(GamelogPrintBuffer *buf, uint grfid, const uint8 *md5su
  * Prints active gamelog
  * @param proc the procedure to draw with
  */
-void GamelogPrint(GamelogPrintProc *proc)
+void GamelogPrint (GamelogPrintProc *proc, void *data)
 {
 	GamelogPrintBuffer buf;
 
-	proc("---- gamelog start ----");
+	proc ("---- gamelog start ----", data);
 
 	for (Gamelog::const_iterator entry = _gamelog.cbegin(); entry != _gamelog.cend(); entry++) {
 		buf.clear();
 		(*entry)->Print(&buf);
-		buf.dump(proc);
+		proc (buf.c_str(), data);
 	}
 
-	proc("---- gamelog end ----");
+	proc ("---- gamelog end ----", data);
 }
 
 
-static void GamelogPrintConsoleProc(const char *s)
+static void GamelogPrintConsoleProc (const char *s, void*)
 {
 	IConsolePrint(CC_WARNING, s);
 }
@@ -171,14 +167,12 @@ static void GamelogPrintConsoleProc(const char *s)
 /** Print the gamelog data to the console. */
 void GamelogPrintConsole()
 {
-	GamelogPrint(&GamelogPrintConsoleProc);
+	GamelogPrint (&GamelogPrintConsoleProc, NULL);
 }
 
-static int _gamelog_print_level = 0; ///< gamelog debug level we need to print stuff
-
-static void GamelogPrintDebugProc(const char *s)
+static void GamelogPrintDebugProc (const char *s, void *level)
 {
-	DEBUG(gamelog, _gamelog_print_level, "%s", s);
+	DEBUG(gamelog, *(int*)level, "%s", s);
 }
 
 /**
@@ -189,8 +183,7 @@ static void GamelogPrintDebugProc(const char *s)
  */
 void GamelogPrintDebug(int level)
 {
-	_gamelog_print_level = level;
-	GamelogPrint(&GamelogPrintDebugProc);
+	GamelogPrint (&GamelogPrintDebugProc, &level);
 }
 
 

@@ -36,7 +36,6 @@
 #include <time.h>
 
 /* static */ const char *CrashLog::message = NULL;
-/* static */ stringb *CrashLog::gamelog_buffer = NULL;
 
 /**
  * Writes compiler (and its version, if available) to the buffer.
@@ -269,10 +268,11 @@ static void LogLibraries (stringb *buffer)
 /**
  * Helper function for printing the gamelog.
  * @param s the string to print.
+ * @param buffer the buffer where to print.
  */
-/* static */ void CrashLog::GamelogFillCrashLog(const char *s)
+static void GamelogFillCrashLog (const char *s, void *buffer)
 {
-	CrashLog::gamelog_buffer->append_fmt ("%s\n", s);
+	((stringb*)buffer)->append_fmt ("%s\n", s);
 }
 
 /**
@@ -300,8 +300,7 @@ void CrashLog::FillCrashLog (stringb *buffer) const
 	this->LogModules(buffer);
 
 	/* Write the gamelog data to the buffer. */
-	CrashLog::gamelog_buffer = buffer;
-	GamelogPrint(&CrashLog::GamelogFillCrashLog);
+	GamelogPrint (&GamelogFillCrashLog, buffer);
 
 	buffer->append ("\n*** End of OpenTTD Crash Report ***\n");
 }
