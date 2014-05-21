@@ -105,29 +105,9 @@ typedef SmallMap<uint32, GRFPresence> GrfIDMapping;
 
 
 /** Gamelog print buffer */
-class GamelogPrintBuffer {
-	static const uint LENGTH = 1024; ///< length of buffer for one line of text
-
-	char buffer[LENGTH]; ///< output buffer
-	uint offset;         ///< offset in buffer
-
-public:
+struct GamelogPrintBuffer : sstring<1024> {
 	GrfIDMapping grf_names; ///< keep track of this so that inconsistencies can be detected
 	bool in_load;           ///< currently printing between GLOG_LOAD and GLOG_LOADED
-
-	void reset() {
-		this->offset = 0;
-	}
-
-	void append(const char *s, ...) WARN_FORMAT(2, 3) {
-		if (this->offset >= this->LENGTH) return;
-
-		va_list va;
-
-		va_start(va, s);
-		this->offset += vsnprintf(this->buffer + this->offset, this->LENGTH - this->offset, s, va);
-		va_end(va);
-	}
 
 	void dump(GamelogPrintProc *proc) {
 		proc(this->buffer);
@@ -146,17 +126,17 @@ static void PrintGrfInfo(GamelogPrintBuffer *buf, uint grfid, const uint8 *md5su
 	if (md5sum != NULL) {
 		char txt [40];
 		md5sumToString (txt, md5sum);
-		buf->append("GRF ID %08X, checksum %s", BSWAP32(grfid), txt);
+		buf->append_fmt ("GRF ID %08X, checksum %s", BSWAP32(grfid), txt);
 	} else {
-		buf->append("GRF ID %08X", BSWAP32(grfid));
+		buf->append_fmt ("GRF ID %08X", BSWAP32(grfid));
 	}
 
 	if (gc != NULL) {
-		buf->append(", filename: %s (md5sum matches)", gc->filename);
+		buf->append_fmt (", filename: %s (md5sum matches)", gc->filename);
 	} else {
 		gc = FindGRFConfig(grfid, FGCM_ANY);
 		if (gc != NULL) {
-			buf->append(", filename: %s (matches GRFID only)", gc->filename);
+			buf->append_fmt (", filename: %s (matches GRFID only)", gc->filename);
 		} else {
 			buf->append(", unknown GRF");
 		}
@@ -174,7 +154,7 @@ void GamelogPrint(GamelogPrintProc *proc)
 	proc("---- gamelog start ----");
 
 	for (Gamelog::const_iterator entry = _gamelog.cbegin(); entry != _gamelog.cend(); entry++) {
-		buf.reset();
+		buf.clear();
 		(*entry)->Print(&buf);
 		buf.dump(proc);
 	}
@@ -220,7 +200,7 @@ void GamelogPrintDebug(int level)
 /* Gamelog entry base class for entries with tick information. */
 
 void GamelogEntryTimed::PrependTick(GamelogPrintBuffer *buf) {
-	buf->append("Tick %u: ", (uint)this->tick);
+	buf->append_fmt ("Tick %u: ", (uint)this->tick);
 }
 
 
@@ -278,7 +258,7 @@ void GamelogAddLoaded()
 /* Gamelog entry for mode switch between scenario editor and game */
 
 void GamelogEntryMode::Print(GamelogPrintBuffer *buf) {
-	buf->append("    New game mode %u, landscape %u",
+	buf->append_fmt ("    New game mode %u, landscape %u",
 		(uint)this->mode, (uint)this->landscape);
 }
 
@@ -311,7 +291,7 @@ void GamelogTestMode()
 /* Gamelog entry for game revision string */
 
 void GamelogEntryRevision::Print(GamelogPrintBuffer *buf) {
-	buf->append("    Revision text changed to %s, savegame version %u, %smodified, newgrf version 0x%08x",
+	buf->append_fmt ("    Revision text changed to %s, savegame version %u, %smodified, newgrf version 0x%08x",
 		this->text, this->slver,
 		(this->modified == 0) ? "not " : (this->modified == 1) ? "maybe " : "",
 		this->newgrf);
@@ -350,7 +330,7 @@ void GamelogTestRevision()
 /* Gamelog entry for game revision string (legacy) */
 
 void GamelogEntryLegacyRev::Print(GamelogPrintBuffer *buf) {
-	buf->append("    Revision text changed to %s (legacy), savegame version %u, %smodified, newgrf version 0x%08x",
+	buf->append_fmt ("    Revision text changed to %s (legacy), savegame version %u, %smodified, newgrf version 0x%08x",
 		this->text, this->slver,
 		(this->modified == 0) ? "not " : (this->modified == 1) ? "maybe " : "",
 		this->newgrf);
@@ -371,7 +351,7 @@ void GamelogEntryOldVer::Print(GamelogPrintBuffer *buf) {
 
 		case SGT_TTDP1:
 		case SGT_TTDP2:
-			buf->append("    Conversion from %s TTDP savegame version %u.%u.%u.%u",
+			buf->append_fmt ("    Conversion from %s TTDP savegame version %u.%u.%u.%u",
 				(this->type == SGT_TTDP1) ? "old" : "new",
 				GB(this->version, 24,  8),
 				GB(this->version, 20,  4),
@@ -381,7 +361,7 @@ void GamelogEntryOldVer::Print(GamelogPrintBuffer *buf) {
 
 		default: NOT_REACHED();
 		case SGT_OTTD:
-			buf->append("    Conversion from OTTD savegame without gamelog, version %u, %u",
+			buf->append_fmt ("    Conversion from OTTD savegame without gamelog, version %u, %u",
 				GB(this->version, 8, 16), GB(this->version, 0, 8));
 			break;
 	}
@@ -428,7 +408,7 @@ bool GamelogTestEmergency()
 
 void GamelogEntrySetting::Print(GamelogPrintBuffer *buf) {
 	this->PrependTick(buf);
-	buf->append("Setting '%s' changed from %d to %d",
+	buf->append_fmt ("Setting '%s' changed from %d to %d",
 		this->name, this->oldval, this->newval);
 }
 
@@ -600,7 +580,7 @@ static void GamelogGRFParameters(uint32 grfid)
 
 void GamelogEntryGRFMove::Print(GamelogPrintBuffer *buf) {
 	GrfIDMapping::Pair *gm = buf->grf_names.Find(this->grfid);
-	buf->append("GRF order changed: %08X moved %d places %s, ",
+	buf->append_fmt ("GRF order changed: %08X moved %d places %s, ",
 		BSWAP32(this->grfid), abs(this->offset), this->offset >= 0 ? "down" : "up");
 	PrintGrfInfo(buf, this->grfid, NULL, gm != buf->grf_names.End() ? gm->second.gc : NULL);
 	if (gm == buf->grf_names.End()) buf->append(" (inconsistency: never added)");
@@ -734,7 +714,7 @@ void GamelogEntryGRFBug::Print(GamelogPrintBuffer *buf) {
 	switch (this->bug) {
 		default: NOT_REACHED();
 		case GBUG_VEH_LENGTH:
-			buf->append("Rail vehicle changes length outside a depot: GRF ID %08X, internal ID 0x%X", BSWAP32(this->grfid), (uint)this->data);
+			buf->append_fmt ("Rail vehicle changes length outside a depot: GRF ID %08X, internal ID 0x%X", BSWAP32(this->grfid), (uint)this->data);
 			break;
 	}
 	PrintGrfInfo(buf, this->grfid, NULL, gm != buf->grf_names.End() ? gm->second.gc : NULL);
