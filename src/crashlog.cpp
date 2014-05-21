@@ -36,18 +36,15 @@
 #include <time.h>
 
 /* static */ const char *CrashLog::message = NULL;
-/* static */ char *CrashLog::gamelog_buffer = NULL;
-/* static */ const char *CrashLog::gamelog_last = NULL;
+/* static */ stringb *CrashLog::gamelog_buffer = NULL;
 
 /**
  * Writes compiler (and its version, if available) to the buffer.
- * @param buffer The begin where to write at.
- * @param last   The last position in the buffer to write to.
- * @return the position of the \c '\0' character after the buffer.
+ * @param buffer The string where to write.
  */
-static char *LogCompiler(char *buffer, const char *last)
+static void LogCompiler (stringb *buffer)
 {
-			buffer += seprintf(buffer, last, " Compiler: "
+	buffer->append_fmt (" Compiler: "
 #if defined(_MSC_VER)
 			"MSVC %d", _MSC_VER
 #elif defined(__ICC) && defined(__GNUC__)
@@ -63,33 +60,29 @@ static char *LogCompiler(char *buffer, const char *last)
 #endif
 			);
 #if defined(__VERSION__)
-			return buffer + seprintf(buffer, last,  " \"" __VERSION__ "\"\n\n");
+	buffer->append (" \"" __VERSION__ "\"\n\n");
 #else
-			return buffer + seprintf(buffer, last,  "\n\n");
+	buffer->append ("\n\n");
 #endif
 }
 
-/* virtual */ char *CrashLog::LogRegisters(char *buffer, const char *last) const
+/* virtual */ void CrashLog::LogRegisters (stringb *buffer) const
 {
 	/* Stub implementation; not all OSes support this. */
-	return buffer;
 }
 
-/* virtual */ char *CrashLog::LogModules(char *buffer, const char *last) const
+/* virtual */ void CrashLog::LogModules (stringb *buffer) const
 {
 	/* Stub implementation; not all OSes support this. */
-	return buffer;
 }
 
 /**
  * Writes version and compilation information to the buffer.
- * @param buffer The begin where to write at.
- * @param last   The last position in the buffer to write to.
- * @return the position of the \c '\0' character after the buffer.
+ * @param buffer The string where to write.
  */
-static char *LogVersion(char *buffer, const char *last)
+static void LogVersion (stringb *buffer)
 {
-	return buffer + seprintf(buffer, last,
+	buffer->append_fmt (
 			"Binary:\n"
 			" Version:    %s (%d)\n"
 			" NewGRF ver: %08x\n"
@@ -118,13 +111,11 @@ static char *LogVersion(char *buffer, const char *last)
 /**
  * Writes the (important) configuration settings to the buffer.
  * E.g. graphics set, sound set, blitter and AIs.
- * @param buffer The begin where to write at.
- * @param last   The last position in the buffer to write to.
- * @return the position of the \c '\0' character after the buffer.
+ * @param buffer The string where to write.
  */
-static char *LogConfiguration(char *buffer, const char *last)
+static void LogConfiguration (stringb *buffer)
 {
-	buffer += seprintf(buffer, last,
+	buffer->append_fmt (
 			"Configuration:\n"
 			" Blitter:      %s\n"
 			" Graphics set: %s (%u)\n"
@@ -149,7 +140,7 @@ static char *LogConfiguration(char *buffer, const char *last)
 			_video_driver == NULL ? "none" : _video_driver->GetName()
 	);
 
-	buffer += seprintf(buffer, last,
+	buffer->append_fmt (
 			"Fonts:\n"
 			" Small:  %s\n"
 			" Medium: %s\n"
@@ -161,22 +152,20 @@ static char *LogConfiguration(char *buffer, const char *last)
 			FontCache::Get(FS_MONO)->GetFontName()
 	);
 
-	buffer += seprintf(buffer, last, "AI Configuration (local: %i):\n", (int)_local_company);
+	buffer->append_fmt ("AI Configuration (local: %i):\n", (int)_local_company);
 	const Company *c;
 	FOR_ALL_COMPANIES(c) {
 		if (c->ai_info == NULL) {
-			buffer += seprintf(buffer, last, " %2i: Human\n", (int)c->index);
+			buffer->append_fmt (" %2i: Human\n", (int)c->index);
 		} else {
-			buffer += seprintf(buffer, last, " %2i: %s (v%d)\n", (int)c->index, c->ai_info->GetName(), c->ai_info->GetVersion());
+			buffer->append_fmt (" %2i: %s (v%d)\n", (int)c->index, c->ai_info->GetName(), c->ai_info->GetVersion());
 		}
 	}
 
 	if (Game::GetInfo() != NULL) {
-		buffer += seprintf(buffer, last, " GS: %s (v%d)\n", Game::GetInfo()->GetName(), Game::GetInfo()->GetVersion());
+		buffer->append_fmt (" GS: %s (v%d)\n", Game::GetInfo()->GetName(), Game::GetInfo()->GetVersion());
 	}
-	buffer += seprintf(buffer, last, "\n");
-
-	return buffer;
+	buffer->append ('\n');
 }
 
 /* Include these here so it's close to where it's actually used. */
@@ -214,21 +203,19 @@ static char *LogConfiguration(char *buffer, const char *last)
 
 /**
  * Writes information (versions) of the used libraries.
- * @param buffer The begin where to write at.
- * @param last   The last position in the buffer to write to.
- * @return the position of the \c '\0' character after the buffer.
+ * @param buffer The string where to write.
  */
-static char *LogLibraries(char *buffer, const char *last)
+static void LogLibraries (stringb *buffer)
 {
-	buffer += seprintf(buffer, last, "Libraries:\n");
+	buffer->append ("Libraries:\n");
 
 #ifdef WITH_ALLEGRO
-	buffer += seprintf(buffer, last, " Allegro:    %s\n", allegro_id);
+	buffer->append_fmt (" Allegro:    %s\n", allegro_id);
 #endif /* WITH_ALLEGRO */
 
 #ifdef WITH_FONTCONFIG
 	int version = FcGetVersion();
-	buffer += seprintf(buffer, last, " FontConfig: %d.%d.%d\n", version / 10000, (version / 100) % 100, version % 100);
+	buffer->append_fmt (" FontConfig: %d.%d.%d\n", version / 10000, (version / 100) % 100, version % 100);
 #endif /* WITH_FONTCONFIG */
 
 #ifdef WITH_FREETYPE
@@ -237,7 +224,7 @@ static char *LogLibraries(char *buffer, const char *last)
 	FT_Init_FreeType(&library);
 	FT_Library_Version(library, &major, &minor, &patch);
 	FT_Done_FreeType(library);
-	buffer += seprintf(buffer, last, " FreeType:   %d.%d.%d\n", major, minor, patch);
+	buffer->append_fmt (" FreeType:   %d.%d.%d\n", major, minor, patch);
 #endif /* WITH_FREETYPE */
 
 #ifdef WITH_ICU
@@ -246,19 +233,19 @@ static char *LogLibraries(char *buffer, const char *last)
 	UVersionInfo ver;
 	u_getVersion(ver);
 	u_versionToString(ver, buf);
-	buffer += seprintf(buffer, last, " ICU:        %s\n", buf);
+	buffer->append_fmt (" ICU:        %s\n", buf);
 #endif /* WITH_ICU */
 
 #ifdef WITH_LZMA
-	buffer += seprintf(buffer, last, " LZMA:       %s\n", lzma_version_string());
+	buffer->append_fmt (" LZMA:       %s\n", lzma_version_string());
 #endif
 
 #ifdef WITH_LZO
-	buffer += seprintf(buffer, last, " LZO:        %s\n", lzo_version_string());
+	buffer->append_fmt (" LZO:        %s\n", lzo_version_string());
 #endif
 
 #ifdef WITH_PNG
-	buffer += seprintf(buffer, last, " PNG:        %s\n", png_get_libpng_ver(NULL));
+	buffer->append_fmt (" PNG:        %s\n", png_get_libpng_ver(NULL));
 #endif /* WITH_PNG */
 
 #ifdef WITH_SDL
@@ -268,16 +255,15 @@ static char *LogLibraries(char *buffer, const char *last)
 	{
 #endif
 		const SDL_version *v = SDL_CALL SDL_Linked_Version();
-		buffer += seprintf(buffer, last, " SDL:        %d.%d.%d\n", v->major, v->minor, v->patch);
+		buffer->append_fmt (" SDL:        %d.%d.%d\n", v->major, v->minor, v->patch);
 	}
 #endif /* WITH_SDL */
 
 #ifdef WITH_ZLIB
-	buffer += seprintf(buffer, last, " Zlib:       %s\n", zlibVersion());
+	buffer->append_fmt (" Zlib:       %s\n", zlibVersion());
 #endif
 
-	buffer += seprintf(buffer, last, "\n");
-	return buffer;
+	buffer->append ('\n');
 }
 
 /**
@@ -286,43 +272,38 @@ static char *LogLibraries(char *buffer, const char *last)
  */
 /* static */ void CrashLog::GamelogFillCrashLog(const char *s)
 {
-	CrashLog::gamelog_buffer += seprintf(CrashLog::gamelog_buffer, CrashLog::gamelog_last, "%s\n", s);
+	CrashLog::gamelog_buffer->append_fmt ("%s\n", s);
 }
 
 /**
  * Fill the crash log buffer with all data of a crash log.
- * @param buffer The begin where to write at.
- * @param last   The last position in the buffer to write to.
- * @return the position of the \c '\0' character after the buffer.
+ * @param buffer The string where to write.
  */
-char *CrashLog::FillCrashLog(char *buffer, const char *last) const
+void CrashLog::FillCrashLog (stringb *buffer) const
 {
 	time_t cur_time = time(NULL);
-	buffer += seprintf(buffer, last, "*** OpenTTD Crash Report ***\n\n");
-	buffer += seprintf(buffer, last, "Crash at: %s", asctime(gmtime(&cur_time)));
+	buffer->append ("*** OpenTTD Crash Report ***\n\n");
+	buffer->append_fmt ("Crash at: %s", asctime(gmtime(&cur_time)));
 
 	YearMonthDay ymd;
 	ConvertDateToYMD(_date, &ymd);
-	buffer += seprintf(buffer, last, "In game date: %i-%02i-%02i (%i)\n\n", ymd.year, ymd.month + 1, ymd.day, _date_fract);
+	buffer->append_fmt ("In game date: %i-%02i-%02i (%i)\n\n", ymd.year, ymd.month + 1, ymd.day, _date_fract);
 
-	buffer = this->LogError(buffer, last, CrashLog::message);
-	buffer = LogVersion(buffer, last);
-	buffer = this->LogRegisters(buffer, last);
-	buffer = this->LogStacktrace(buffer, last);
-	buffer = this->LogOSVersion(buffer, last);
-	buffer = LogCompiler(buffer, last);
-	buffer = LogConfiguration(buffer, last);
-	buffer = LogLibraries(buffer, last);
-	buffer = this->LogModules(buffer, last);
+	this->LogError(buffer, CrashLog::message);
+	LogVersion(buffer);
+	this->LogRegisters(buffer);
+	this->LogStacktrace(buffer);
+	this->LogOSVersion(buffer);
+	LogCompiler(buffer);
+	LogConfiguration(buffer);
+	LogLibraries(buffer);
+	this->LogModules(buffer);
 
 	/* Write the gamelog data to the buffer. */
 	CrashLog::gamelog_buffer = buffer;
-	CrashLog::gamelog_last = last;
 	GamelogPrint(&CrashLog::GamelogFillCrashLog);
-	buffer = CrashLog::gamelog_buffer + seprintf(CrashLog::gamelog_buffer, last, "\n");
 
-	buffer += seprintf(buffer, last, "*** End of OpenTTD Crash Report ***\n");
-	return buffer;
+	buffer->append ("\n*** End of OpenTTD Crash Report ***\n");
 }
 
 /**
@@ -409,16 +390,16 @@ bool CrashLog::MakeCrashLog() const
 	crashlogged = true;
 
 	sstring<MAX_PATH> filename;
-	char buffer[65536];
+	sstring<65536> buffer;
 	bool ret = true;
 
 	printf("Crash encountered, generating crash log...\n");
-	this->FillCrashLog(buffer, lastof(buffer));
-	printf("%s\n", buffer);
+	this->FillCrashLog (&buffer);
+	printf("%s\n", buffer.c_str());
 	printf("Crash log generated.\n\n");
 
 	printf("Writing crash log to disk...\n");
-	bool bret = this->WriteCrashLog (buffer, &filename);
+	bool bret = this->WriteCrashLog (buffer.c_str(), &filename);
 	if (bret) {
 		printf("Crash log written to %s. Please add this file to any bug reports.\n\n", filename.c_str());
 	} else {

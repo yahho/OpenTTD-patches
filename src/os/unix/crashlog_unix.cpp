@@ -38,14 +38,15 @@ class CrashLogUnix : public CrashLog {
 	/** Signal that has been thrown. */
 	int signum;
 
-	/* virtual */ char *LogOSVersion(char *buffer, const char *last) const
+	/* virtual */ void LogOSVersion (stringb *buffer) const
 	{
 		struct utsname name;
 		if (uname(&name) < 0) {
-			return buffer + seprintf(buffer, last, "Could not get OS version: %s\n", strerror(errno));
+			buffer->append_fmt ("Could not get OS version: %s\n", strerror(errno));
+			return;
 		}
 
-		return buffer + seprintf(buffer, last,
+		buffer->append_fmt (
 				"Operating system:\n"
 				" Name:     %s\n"
 				" Release:  %s\n"
@@ -58,9 +59,9 @@ class CrashLogUnix : public CrashLog {
 		);
 	}
 
-	/* virtual */ char *LogError(char *buffer, const char *last, const char *message) const
+	/* virtual */ void LogError (stringb *buffer, const char *message) const
 	{
-		return buffer + seprintf(buffer, last,
+		buffer->append_fmt (
 				"Crash reason:\n"
 				" Signal:  %s (%d)\n"
 				" Message: %s\n\n",
@@ -73,8 +74,7 @@ class CrashLogUnix : public CrashLog {
 #if defined(SUNOS)
 	/** Data needed while walking up the stack */
 	struct StackWalkerParams {
-		char **bufptr;    ///< Buffer
-		const char *last; ///< End of buffer
+		stringb *bufptr; ///< Buffer
 		int counter;      ///< We are at counter-th stack level
 	};
 
@@ -92,10 +92,10 @@ class CrashLogUnix : public CrashLog {
 		/* Resolve program counter to file and nearest symbol (if possible) */
 		Dl_info dli;
 		if (dladdr((void *)pc, &dli) != 0) {
-			*wp->bufptr += seprintf(*wp->bufptr, wp->last, " [%02i] %s(%s+0x%x) [0x%x]\n",
+			wp->bufptr->append_fmt (" [%02i] %s(%s+0x%x) [0x%x]\n",
 					wp->counter, dli.dli_fname, dli.dli_sname, (int)((byte *)pc - (byte *)dli.dli_saddr), (uint)pc);
 		} else {
-			*wp->bufptr += seprintf(*wp->bufptr, wp->last, " [%02i] [0x%x]\n", wp->counter, (uint)pc);
+			wp->bufptr->append_fmt (" [%02i] [0x%x]\n", wp->counter, (uint)pc);
 		}
 		wp->counter++;
 
@@ -103,31 +103,31 @@ class CrashLogUnix : public CrashLog {
 	}
 #endif
 
-	/* virtual */ char *LogStacktrace(char *buffer, const char *last) const
+	/* virtual */ void LogStacktrace (stringb *buffer) const
 	{
-		buffer += seprintf(buffer, last, "Stacktrace:\n");
+		buffer->append ("Stacktrace:\n");
 #if defined(__GLIBC__)
 		void *trace[64];
 		int trace_size = backtrace(trace, lengthof(trace));
 
 		char **messages = backtrace_symbols(trace, trace_size);
 		for (int i = 0; i < trace_size; i++) {
-			buffer += seprintf(buffer, last, " [%02i] %s\n", i, messages[i]);
+			buffer->append_fmt (" [%02i] %s\n", i, messages[i]);
 		}
 		free(messages);
 #elif defined(SUNOS)
 		ucontext_t uc;
 		if (getcontext(&uc) != 0) {
-			buffer += seprintf(buffer, last, " getcontext() failed\n\n");
-			return buffer;
+			buffer->append (" getcontext() failed\n\n");
+			return;
 		}
 
-		StackWalkerParams wp = { &buffer, last, 0 };
+		StackWalkerParams wp = { buffer, 0 };
 		walkcontext(&uc, &CrashLogUnix::SunOSStackWalker, &wp);
 #else
-		buffer += seprintf(buffer, last, " Not supported.\n");
+		buffer->append (" Not supported.\n");
 #endif
-		return buffer + seprintf(buffer, last, "\n");
+		buffer->append ('\n');
 	}
 public:
 	/**

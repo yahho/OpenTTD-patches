@@ -23,62 +23,49 @@ private:
 	static const char *message;
 
 	/** Temporary 'local' location of the buffer. */
-	static char *gamelog_buffer;
-
-	/** Temporary 'local' location of the end of the buffer. */
-	static const char *gamelog_last;
+	static stringb *gamelog_buffer;
 
 	static void GamelogFillCrashLog(const char *s);
 protected:
 	/**
 	 * Writes OS' version to the buffer.
-	 * @param buffer The begin where to write at.
-	 * @param last   The last position in the buffer to write to.
-	 * @return the position of the \c '\0' character after the buffer.
+	 * @param buffer The string where to write.
 	 */
-	virtual char *LogOSVersion(char *buffer, const char *last) const = 0;
+	virtual void LogOSVersion (stringb *buffer) const = 0;
 
 	/**
 	 * Writes actually encountered error to the buffer.
-	 * @param buffer  The begin where to write at.
-	 * @param last    The last position in the buffer to write to.
+	 * @param buffer The string where to write.
 	 * @param message Message passed to use for possible errors. Can be NULL.
-	 * @return the position of the \c '\0' character after the buffer.
 	 */
-	virtual char *LogError(char *buffer, const char *last, const char *message) const = 0;
+	virtual void LogError (stringb *buffer, const char *message) const = 0;
 
 	/**
 	 * Writes the stack trace to the buffer, if there is information about it
 	 * available.
-	 * @param buffer The begin where to write at.
-	 * @param last   The last position in the buffer to write to.
-	 * @return the position of the \c '\0' character after the buffer.
+	 * @param buffer The string where to write.
 	 */
-	virtual char *LogStacktrace(char *buffer, const char *last) const = 0;
+	virtual void LogStacktrace (stringb *buffer) const = 0;
 
 	/**
 	 * Writes information about the data in the registers, if there is
 	 * information about it available.
-	 * @param buffer The begin where to write at.
-	 * @param last   The last position in the buffer to write to.
-	 * @return the position of the \c '\0' character after the buffer.
+	 * @param buffer The string where to write.
 	 */
-	virtual char *LogRegisters(char *buffer, const char *last) const;
+	virtual void LogRegisters (stringb *buffer) const;
 
 	/**
 	 * Writes the dynamically linked libraries/modules to the buffer, if there
 	 * is information about it available.
-	 * @param buffer The begin where to write at.
-	 * @param last   The last position in the buffer to write to.
-	 * @return the position of the \c '\0' character after the buffer.
+	 * @param buffer The string where to write.
 	 */
-	virtual char *LogModules(char *buffer, const char *last) const;
+	virtual void LogModules (stringb *buffer) const;
 
 public:
 	/** Stub destructor to silence some compilers. */
 	virtual ~CrashLog() {}
 
-	char *FillCrashLog(char *buffer, const char *last) const;
+	void FillCrashLog (stringb *buffer) const;
 	bool WriteCrashLog (const char *buffer, stringb *filename) const;
 
 	/**

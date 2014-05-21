@@ -50,14 +50,14 @@ class CrashLogOSX : public CrashLog {
 	sstring<MAX_PATH> filename_save;       ///< Path of crash.sav
 	sstring<MAX_PATH> filename_screenshot; ///< Path of crash.(png|bmp|pcx)
 
-	/* virtual */ char *LogOSVersion(char *buffer, const char *last) const
+	/* virtual */ void LogOSVersion (stringb *buffer) const
 	{
 		int ver_maj, ver_min, ver_bug;
 		GetMacOSVersion(&ver_maj, &ver_min, &ver_bug);
 
 		const NXArchInfo *arch = NXGetLocalArchInfo();
 
-		return buffer + seprintf(buffer, last,
+		buffer->append_fmt (
 				"Operating system:\n"
 				" Name:     Mac OS X\n"
 				" Release:  %d.%d.%d\n"
@@ -69,9 +69,9 @@ class CrashLogOSX : public CrashLog {
 		);
 	}
 
-	/* virtual */ char *LogError(char *buffer, const char *last, const char *message) const
+	/* virtual */ void LogError (stringb *buffer, const char *message) const
 	{
-		return buffer + seprintf(buffer, last,
+		buffer->append_fmt (
 				"Crash reason:\n"
 				" Signal:  %s (%d)\n"
 				" Message: %s\n\n",
@@ -81,13 +81,13 @@ class CrashLogOSX : public CrashLog {
 		);
 	}
 
-	/* virtual */ char *LogStacktrace(char *buffer, const char *last) const
+	/* virtual */ void LogStacktrace (stringb *buffer) const
 	{
 		/* As backtrace() is only implemented in 10.5 or later,
 		 * we're rolling our own here. Mostly based on
 		 * http://stackoverflow.com/questions/289820/getting-the-current-stack-trace-on-mac-os-x
 		 * and some details looked up in the Darwin sources. */
-		buffer += seprintf(buffer, last, "\nStacktrace:\n");
+		buffer->append ("\nStacktrace:\n");
 
 		void **frame;
 #if defined(__ppc__) || defined(__ppc64__)
@@ -107,7 +107,7 @@ class CrashLogOSX : public CrashLog {
 			if (ip == NULL) break;
 
 			/* Print running index. */
-			buffer += seprintf(buffer, last, " [%02d]", i);
+			buffer->append_fmt (" [%02d]", i);
 
 			Dl_info dli;
 			bool dl_valid = dladdr(ip, &dli) != 0;
@@ -123,7 +123,7 @@ class CrashLogOSX : public CrashLog {
 				}
 			}
 			/* Print image name and IP. */
-			buffer += seprintf(buffer, last, " %-20s " PRINTF_PTR, fname, (uintptr_t)ip);
+			buffer->append_fmt (" %-20s " PRINTF_PTR, fname, (uintptr_t)ip);
 
 			/* Print function offset if information is available. */
 			if (dl_valid && dli.dli_sname != NULL && dli.dli_saddr != NULL) {
@@ -132,11 +132,11 @@ class CrashLogOSX : public CrashLog {
 				char *func_name = abi::__cxa_demangle(dli.dli_sname, NULL, 0, &status);
 
 				long int offset = (intptr_t)ip - (intptr_t)dli.dli_saddr;
-				buffer += seprintf(buffer, last, " (%s + %ld)", func_name != NULL ? func_name : dli.dli_sname, offset);
+				buffer->append_fmt (" (%s + %ld)", func_name != NULL ? func_name : dli.dli_sname, offset);
 
 				free(func_name);
 			}
-			buffer += seprintf(buffer, last, "\n");
+			buffer->append ('\n');
 
 			/* Get address of next stack frame. */
 			void **next = (void **)frame[0];
@@ -145,7 +145,7 @@ class CrashLogOSX : public CrashLog {
 			frame = next;
 		}
 
-		return buffer + seprintf(buffer, last, "\n");
+		buffer->append ('\n');
 	}
 
 public:
@@ -161,16 +161,16 @@ public:
 	/** Generate the crash log. */
 	bool MakeCrashLog()
 	{
-		char buffer[65536];
+		sstring<65536> buffer;
 		bool ret = true;
 
 		printf("Crash encountered, generating crash log...\n");
-		this->FillCrashLog(buffer, lastof(buffer));
-		printf("%s\n", buffer);
+		this->FillCrashLog (&buffer);
+		printf("%s\n", buffer.c_str());
 		printf("Crash log generated.\n\n");
 
 		printf("Writing crash log to disk...\n");
-		if (!this->WriteCrashLog (buffer, &filename_log)) {
+		if (!this->WriteCrashLog (buffer.c_str(), &filename_log)) {
 			filename_log.clear();
 			ret = false;
 		}

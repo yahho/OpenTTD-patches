@@ -41,21 +41,21 @@ class CrashLogWindows : public CrashLog {
 	/** Information about the encountered exception */
 	EXCEPTION_POINTERS *ep;
 
-	/* virtual */ char *LogOSVersion(char *buffer, const char *last) const;
-	/* virtual */ char *LogError(char *buffer, const char *last, const char *message) const;
-	/* virtual */ char *LogStacktrace(char *buffer, const char *last) const;
-	/* virtual */ char *LogRegisters(char *buffer, const char *last) const;
-	/* virtual */ char *LogModules(char *buffer, const char *last) const;
+	/* virtual */ void LogOSVersion  (stringb *buffer) const;
+	/* virtual */ void LogError      (stringb *buffer, const char *message) const;
+	/* virtual */ void LogStacktrace (stringb *buffer) const;
+	/* virtual */ void LogRegisters  (stringb *buffer) const;
+	/* virtual */ void LogModules    (stringb *buffer) const;
 public:
 #if defined(_MSC_VER)
 	/* virtual */ int WriteCrashDump (stringb *filename) const;
-	char *AppendDecodedStacktrace(char *buffer, const char *last) const;
+	void AppendDecodedStacktrace (stringb *buffer) const;
 #else
-	char *AppendDecodedStacktrace(char *buffer, const char *last) const { return buffer; }
+	void AppendDecodedStacktrace (stringb *buffer) const { }
 #endif /* _MSC_VER */
 
 	/** Buffer for the generated crash log */
-	char crashlog[65536];
+	sstring<65536> crashlog;
 	/** Buffer for the filename of the crash log */
 	sstring<MAX_PATH> crashlog_filename;
 	/** Buffer for the filename of the crash dump */
@@ -68,10 +68,9 @@ public:
 	 * @param ep the data related to the exception.
 	 */
 	CrashLogWindows(EXCEPTION_POINTERS *ep = NULL) :
-		ep(ep),
+		ep(ep), crashlog(),
 		crashlog_filename(), crashdump_filename(), screenshot_filename()
 	{
-		this->crashlog[0] = '\0';
 	}
 
 	/**
@@ -82,13 +81,13 @@ public:
 
 /* static */ CrashLogWindows *CrashLogWindows::current = NULL;
 
-/* virtual */ char *CrashLogWindows::LogOSVersion(char *buffer, const char *last) const
+/* virtual */ void CrashLogWindows::LogOSVersion (stringb *buffer) const
 {
 	_OSVERSIONINFOA os;
 	os.dwOSVersionInfoSize = sizeof(os);
 	GetVersionExA(&os);
 
-	return buffer + seprintf(buffer, last,
+	buffer->append_fmt (
 			"Operating system:\n"
 			" Name:     Windows\n"
 			" Release:  %d.%d.%d (%s)\n",
@@ -100,9 +99,9 @@ public:
 
 }
 
-/* virtual */ char *CrashLogWindows::LogError(char *buffer, const char *last, const char *message) const
+/* virtual */ void CrashLogWindows::LogError (stringb *buffer, const char *message) const
 {
-	return buffer + seprintf(buffer, last,
+	buffer->append_fmt (
 			"Crash reason:\n"
 			" Exception: %.8X\n"
 #ifdef _M_AMD64
@@ -181,14 +180,14 @@ static void GetFileInfo(DebugFileInfo *dfi, const TCHAR *filename)
 }
 
 
-static char *PrintModuleInfo(char *output, const char *last, HMODULE mod)
+static void PrintModuleInfo (stringb *output, HMODULE mod)
 {
 	TCHAR buffer[MAX_PATH];
 	DebugFileInfo dfi;
 
 	GetModuleFileName(mod, buffer, MAX_PATH);
 	GetFileInfo(&dfi, buffer);
-	output += seprintf(output, last, " %-20s handle: %p size: %d crc: %.8X date: %d-%.2d-%.2d %.2d:%.2d:%.2d\n",
+	output->append_fmt (" %-20s handle: %p size: %d crc: %.8X date: %d-%.2d-%.2d %.2d:%.2d:%.2d\n",
 		FS2OTTD(buffer),
 		mod,
 		dfi.size,
@@ -200,15 +199,14 @@ static char *PrintModuleInfo(char *output, const char *last, HMODULE mod)
 		dfi.file_time.wMinute,
 		dfi.file_time.wSecond
 	);
-	return output;
 }
 
-/* virtual */ char *CrashLogWindows::LogModules(char *output, const char *last) const
+/* virtual */ void CrashLogWindows::LogModules (stringb *output) const
 {
 	MakeCRCTable(AllocaM(uint32, 256));
 	BOOL (WINAPI *EnumProcessModules)(HANDLE, HMODULE*, DWORD, LPDWORD);
 
-	output += seprintf(output, last, "Module information:\n");
+	output->append ("Module information:\n");
 
 	if (LoadLibraryList((Function*)&EnumProcessModules, "psapi.dll\0EnumProcessModules\0\0")) {
 		HMODULE modules[100];
@@ -222,20 +220,21 @@ static char *PrintModuleInfo(char *output, const char *last, HMODULE mod)
 			if (res) {
 				size_t count = min(needed / sizeof(HMODULE), lengthof(modules));
 
-				for (size_t i = 0; i != count; i++) output = PrintModuleInfo(output, last, modules[i]);
-				return output + seprintf(output, last, "\n");
+				for (size_t i = 0; i != count; i++) PrintModuleInfo (output, modules[i]);
+				output->append ('\n');
+				return;
 			}
 		}
 	}
-	output = PrintModuleInfo(output, last, NULL);
-	return output + seprintf(output, last, "\n");
+	PrintModuleInfo (output, NULL);
+	output->append ('\n');
 }
 
-/* virtual */ char *CrashLogWindows::LogRegisters(char *buffer, const char *last) const
+/* virtual */ void CrashLogWindows::LogRegisters (stringb *buffer) const
 {
-	buffer += seprintf(buffer, last, "Registers:\n");
+	buffer->append ("Registers:\n");
 #ifdef _M_AMD64
-	buffer += seprintf(buffer, last,
+	buffer->append_fmt (
 		" RAX: %.16I64X RBX: %.16I64X RCX: %.16I64X RDX: %.16I64X\n"
 		" RSI: %.16I64X RDI: %.16I64X RBP: %.16I64X RSP: %.16I64X\n"
 		" R8:  %.16I64X R9:  %.16I64X R10: %.16I64X R11: %.16I64X\n"
@@ -261,7 +260,7 @@ static char *PrintModuleInfo(char *output, const char *last, HMODULE mod)
 		ep->ContextRecord->EFlags
 	);
 #else
-	buffer += seprintf(buffer, last,
+	buffer->append_fmt (
 		" EAX: %.8X EBX: %.8X ECX: %.8X EDX: %.8X\n"
 		" ESI: %.8X EDI: %.8X EBP: %.8X ESP: %.8X\n"
 		" EIP: %.8X EFLAGS: %.8X\n",
@@ -278,7 +277,7 @@ static char *PrintModuleInfo(char *output, const char *last, HMODULE mod)
 	);
 #endif
 
-	buffer += seprintf(buffer, last, "\n Bytes at instruction pointer:\n");
+	buffer->append ("\n Bytes at instruction pointer:\n");
 #ifdef _M_AMD64
 	byte *b = (byte*)ep->ContextRecord->Rip;
 #else
@@ -286,18 +285,18 @@ static char *PrintModuleInfo(char *output, const char *last, HMODULE mod)
 #endif
 	for (int i = 0; i != 24; i++) {
 		if (IsBadReadPtr(b, 1)) {
-			buffer += seprintf(buffer, last, " ??"); // OCR: WAS: , 0);
+			buffer->append (" ??"); // OCR: WAS: , 0);
 		} else {
-			buffer += seprintf(buffer, last, " %.2X", *b);
+			buffer->append_fmt (" %.2X", *b);
 		}
 		b++;
 	}
-	return buffer + seprintf(buffer, last, "\n\n");
+	buffer->append ("\n\n");
 }
 
-/* virtual */ char *CrashLogWindows::LogStacktrace(char *buffer, const char *last) const
+/* virtual */ void CrashLogWindows::LogStacktrace (stringb *buffer) const
 {
-	buffer += seprintf(buffer, last, "Stack trace:\n");
+	buffer->append ("Stack trace:\n");
 #ifdef _M_AMD64
 	uint32 *b = (uint32*)ep->ContextRecord->Rsp;
 #else
@@ -306,21 +305,21 @@ static char *PrintModuleInfo(char *output, const char *last, HMODULE mod)
 	for (int j = 0; j != 24; j++) {
 		for (int i = 0; i != 8; i++) {
 			if (IsBadReadPtr(b, sizeof(uint32))) {
-				buffer += seprintf(buffer, last, " ????????"); // OCR: WAS - , 0);
+				buffer->append (" ????????"); // OCR: WAS - , 0);
 			} else {
-				buffer += seprintf(buffer, last, " %.8X", *b);
+				buffer->append_fmt (" %.8X", *b);
 			}
 			b++;
 		}
-		buffer += seprintf(buffer, last, "\n");
+		buffer->append ('\n');
 	}
-	return buffer + seprintf(buffer, last, "\n");
+	buffer->append ('\n');
 }
 
 #if defined(_MSC_VER)
 #include <dbghelp.h>
 
-char *CrashLogWindows::AppendDecodedStacktrace(char *buffer, const char *last) const
+void CrashLogWindows::AppendDecodedStacktrace (stringb *buffer) const
 {
 #define M(x) x "\0"
 	static const char dbg_import[] =
@@ -350,7 +349,7 @@ char *CrashLogWindows::AppendDecodedStacktrace(char *buffer, const char *last) c
 		BOOL (WINAPI * pSymGetLineFromAddr64)(HANDLE, DWORD64, PDWORD, PIMAGEHLP_LINE64);
 	} proc;
 
-	buffer += seprintf(buffer, last, "\nDecoded stack trace:\n");
+	buffer->append ("\nDecoded stack trace:\n");
 
 	/* Try to load the functions from the DLL, if that fails because of a too old dbghelp.dll, just skip it. */
 	if (LoadLibraryList((Function*)&proc, dbg_import)) {
@@ -396,7 +395,7 @@ char *CrashLogWindows::AppendDecodedStacktrace(char *buffer, const char *last) c
 				hCur, GetCurrentThread(), &frame, &ctx, NULL, proc.pSymFunctionTableAccess64, proc.pSymGetModuleBase64, NULL)) break;
 
 			if (frame.AddrPC.Offset == frame.AddrReturn.Offset) {
-				buffer += seprintf(buffer, last, " <infinite loop>\n");
+				buffer->append (" <infinite loop>\n");
 				break;
 			}
 
@@ -410,27 +409,27 @@ char *CrashLogWindows::AppendDecodedStacktrace(char *buffer, const char *last) c
 			}
 
 			/* Print module and instruction pointer. */
-			buffer += seprintf(buffer, last, "[%02d] %-20s " PRINTF_PTR, num, mod_name, frame.AddrPC.Offset);
+			buffer->append_fmt ("[%02d] %-20s " PRINTF_PTR, num, mod_name, frame.AddrPC.Offset);
 
 			/* Get symbol name and line info if possible. */
 			DWORD64 offset;
 			if (proc.pSymGetSymFromAddr64(hCur, frame.AddrPC.Offset, &offset, sym_info)) {
-				buffer += seprintf(buffer, last, " %s + %I64u", sym_info->Name, offset);
+				buffer->append_fmt (" %s + %I64u", sym_info->Name, offset);
 
 				DWORD line_offs;
 				IMAGEHLP_LINE64 line;
 				line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
 				if (proc.pSymGetLineFromAddr64(hCur, frame.AddrPC.Offset, &line_offs, &line)) {
-					buffer += seprintf(buffer, last, " (%s:%d)", line.FileName, line.LineNumber);
+					buffer->append_fmt (" (%s:%d)", line.FileName, line.LineNumber);
 				}
 			}
-			buffer += seprintf(buffer, last, "\n");
+			buffer->append ('\n');
 		}
 
 		proc.pSymCleanup(hCur);
 	}
 
-	return buffer + seprintf(buffer, last, "\n*** End of additional info ***\n");
+	buffer->append ("\n*** End of additional info ***\n");
 }
 
 /* virtual */ int CrashLogWindows::WriteCrashDump (stringb *filename) const
@@ -454,8 +453,8 @@ char *CrashLogWindows::AppendDecodedStacktrace(char *buffer, const char *last) c
 			MINIDUMP_USER_STREAM_INFORMATION musi;
 
 			userstream.Type        = LastReservedStream + 1;
-			userstream.Buffer      = (void*)this->crashlog;
-			userstream.BufferSize  = (ULONG)strlen(this->crashlog) + 1;
+			userstream.Buffer      = (void*)this->crashlog.c_str();
+			userstream.BufferSize  = (ULONG)this->crashlog.length() + 1;
 
 			musi.UserStreamCount   = 1;
 			musi.UserStreamArray   = &userstream;
@@ -510,10 +509,10 @@ static LONG WINAPI ExceptionHandler(EXCEPTION_POINTERS *ep)
 
 	CrashLogWindows *log = new CrashLogWindows(ep);
 	CrashLogWindows::current = log;
-	char *buf = log->FillCrashLog(log->crashlog, lastof(log->crashlog));
+	log->FillCrashLog (&log->crashlog);
 	log->WriteCrashDump (&log->crashdump_filename);
-	log->AppendDecodedStacktrace(buf, lastof(log->crashlog));
-	log->WriteCrashLog (log->crashlog, &log->crashlog_filename);
+	log->AppendDecodedStacktrace (&log->crashlog);
+	log->WriteCrashLog (log->crashlog.c_str(), &log->crashlog_filename);
 	log->WriteScreenshot (&log->screenshot_filename);
 
 	/* Close any possible log files */
@@ -615,10 +614,10 @@ static INT_PTR CALLBACK CrashDialogFunc(HWND wnd, UINT msg, WPARAM wParam, LPARA
 		case WM_INITDIALOG: {
 			/* We need to put the crash-log in a separate buffer because the default
 			 * buffer in MB_TO_WIDE is not large enough (512 chars) */
-			TCHAR crash_msgW[lengthof(CrashLogWindows::current->crashlog)];
+			TCHAR crash_msgW[lengthof(CrashLogWindows::current->crashlog.data)];
 			/* Convert unix -> dos newlines because the edit box only supports that properly :( */
-			const char *unix_nl = CrashLogWindows::current->crashlog;
-			char dos_nl[lengthof(CrashLogWindows::current->crashlog)];
+			const char *unix_nl = CrashLogWindows::current->crashlog.c_str();
+			char dos_nl[lengthof(CrashLogWindows::current->crashlog.data)];
 			char *p = dos_nl;
 			WChar c;
 			while ((c = Utf8Consume(&unix_nl)) && p < lastof(dos_nl) - 4) { // 4 is max number of bytes per character
