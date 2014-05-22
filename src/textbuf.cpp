@@ -666,8 +666,7 @@ Textbuf::~Textbuf()
  */
 void Textbuf::Assign(StringID string)
 {
-	GetString(this->buffer, string, &this->buffer[this->capacity - 1]);
-	this->len = strlen (this->c_str());
+	GetString (this, string);
 	this->UpdateSize();
 }
 

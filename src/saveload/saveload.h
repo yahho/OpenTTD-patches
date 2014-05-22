@@ -12,6 +12,7 @@
 #ifndef SAVELOAD_H
 #define SAVELOAD_H
 
+#include "../string.h"
 #include "../fileio_type.h"
 #include "../strings_type.h"
 #include "saveload_data.h"
@@ -55,7 +56,7 @@ enum LoadMode {
 	SL_LOAD_CHECK =  4, ///< Load for game preview.
 };
 
-void GenerateDefaultSaveName(char *buf, const char *last);
+void GenerateDefaultSaveName (stringb *buf);
 const char *GetSaveLoadErrorString();
 bool SaveGame(const char *filename, Subdirectory sb, bool threaded = true);
 bool LoadGame(const char *filename, int mode, Subdirectory sb);

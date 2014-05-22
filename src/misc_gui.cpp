@@ -63,7 +63,7 @@ class LandInfoWindow : public Window {
 
 public:
 	char landinfo_data[LAND_INFO_CENTERED_LINES][LAND_INFO_LINE_BUFF_SIZE];
-	char landinfo_multicenter[LAND_INFO_LINE_BUFF_SIZE];
+	sstring<LAND_INFO_LINE_BUFF_SIZE> landinfo_multicenter;
 	TileIndex tile;
 
 	virtual void DrawWidget(const Rect &r, int widget) const
@@ -79,8 +79,8 @@ public:
 			if (i == 0) y += 4;
 		}
 
-		if (!StrEmpty(this->landinfo_multicenter)) {
-			SetDParamStr(0, this->landinfo_multicenter);
+		if (!this->landinfo_multicenter.empty()) {
+			SetDParamStr(0, this->landinfo_multicenter.c_str());
 			DrawStringMultiLine(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, r.bottom - WD_TEXTPANEL_BOTTOM, STR_JUST_RAW_STRING, TC_FROMSTRING, SA_CENTER);
 		}
 	}
@@ -100,10 +100,10 @@ public:
 			if (i == 0) size->height += 4;
 		}
 
-		if (!StrEmpty(this->landinfo_multicenter)) {
-			uint width = GetStringBoundingBox(this->landinfo_multicenter).width + WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT;
+		if (!this->landinfo_multicenter.empty()) {
+			uint width = GetStringBoundingBox(this->landinfo_multicenter.c_str()).width + WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT;
 			size->width = max(size->width, min(300u, width));
-			SetDParamStr(0, this->landinfo_multicenter);
+			SetDParamStr(0, this->landinfo_multicenter.c_str());
 			size->height += GetStringHeight(STR_JUST_RAW_STRING, size->width - WD_FRAMETEXT_LEFT - WD_FRAMETEXT_RIGHT);
 		}
 	}
@@ -279,29 +279,26 @@ public:
 		this->landinfo_data[line_nr][0] = '\0';
 
 		/* Cargo acceptance is displayed in a extra multiline */
-		char *strp = GetString(this->landinfo_multicenter, STR_LAND_AREA_INFORMATION_CARGO_ACCEPTED, lastof(this->landinfo_multicenter));
+		GetString (&this->landinfo_multicenter, STR_LAND_AREA_INFORMATION_CARGO_ACCEPTED);
 		bool found = false;
 
 		for (CargoID i = 0; i < NUM_CARGO; ++i) {
 			if (acceptance[i] > 0) {
 				/* Add a comma between each item. */
-				if (found) {
-					*strp++ = ',';
-					*strp++ = ' ';
-				}
+				if (found) this->landinfo_multicenter.append (", ");
 				found = true;
 
 				/* If the accepted value is less than 8, show it in 1/8:ths */
 				if (acceptance[i] < 8) {
 					SetDParam(0, acceptance[i]);
 					SetDParam(1, CargoSpec::Get(i)->name);
-					strp = GetString(strp, STR_LAND_AREA_INFORMATION_CARGO_EIGHTS, lastof(this->landinfo_multicenter));
+					AppendString (&this->landinfo_multicenter, STR_LAND_AREA_INFORMATION_CARGO_EIGHTS);
 				} else {
-					strp = GetString(strp, CargoSpec::Get(i)->name, lastof(this->landinfo_multicenter));
+					AppendString (&this->landinfo_multicenter, CargoSpec::Get(i)->name);
 				}
 			}
 		}
-		if (!found) this->landinfo_multicenter[0] = '\0';
+		if (!found) this->landinfo_multicenter.clear();
 	}
 
 	virtual bool IsNewGRFInspectable() const
@@ -912,10 +909,8 @@ struct QueryStringWindow : public Window
 	QueryStringWindow(StringID str, StringID caption, uint max_bytes, uint max_chars, WindowDesc *desc, Window *parent, CharSetFilter afilter, QueryStringFlags flags) :
 			Window(desc), editbox(max_bytes, max_chars)
 	{
-		char *last_of = &this->editbox.buffer[this->editbox.capacity - 1];
-		GetString(this->editbox.buffer, str, last_of);
-		this->editbox.len = strlen (this->editbox.c_str());
-		str_validate(this->editbox.buffer, last_of, SVS_NONE);
+		GetString (&this->editbox, str);
+		this->editbox.validate (SVS_NONE);
 
 		/* Make sure the name isn't too long for the text buffer in the number of
 		 * characters (not bytes). max_chars also counts the '\0' characters. */

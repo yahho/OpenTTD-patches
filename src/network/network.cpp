@@ -264,7 +264,7 @@ void NetworkTextMessage(NetworkAction action, TextColour colour, bool self_send,
 		default:                            strid = STR_NETWORK_CHAT_ALL; break;
 	}
 
-	char message[1024];
+	sstring<1024> message;
 	SetDParamStr(0, name);
 	SetDParamStr(1, str);
 	SetDParam(2, data);
@@ -273,12 +273,12 @@ void NetworkTextMessage(NetworkAction action, TextColour colour, bool self_send,
 	 * right-to-left characters depending on the context. As the next text might be an user's name, the
 	 * user name's characters will influence the direction of the "***" instead of the language setting
 	 * of the game. Manually set the direction of the "***" by inserting a text-direction marker. */
-	char *msg_ptr = message + Utf8Encode(message, _current_text_dir == TD_LTR ? CHAR_TD_LRM : CHAR_TD_RLM);
-	GetString(msg_ptr, strid, lastof(message));
+	message.append_utf8 (_current_text_dir == TD_LTR ? CHAR_TD_LRM : CHAR_TD_RLM);
+	AppendString (&message, strid);
 
-	DEBUG(desync, 1, "msg: %08x; %02x; %s", _date, _date_fract, message);
-	IConsolePrintF(colour, "%s", message);
-	NetworkAddChatMessage((TextColour)colour, _settings_client.gui.network_chat_timeout, "%s", message);
+	DEBUG(desync, 1, "msg: %08x; %02x; %s", _date, _date_fract, message.c_str());
+	IConsolePrintF(colour, "%s", message.c_str());
+	NetworkAddChatMessage((TextColour)colour, _settings_client.gui.network_chat_timeout, "%s", message.c_str());
 }
 
 /* Calculate the frame-lag of a client */

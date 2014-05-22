@@ -908,9 +908,8 @@ void DoExitSave()
 /**
  * Fill the buffer with the default name for a savegame *or* screenshot.
  * @param buf the buffer to write to.
- * @param last the last element in the buffer.
  */
-void GenerateDefaultSaveName(char *buf, const char *last)
+void GenerateDefaultSaveName (stringb *buf)
 {
 	/* Check if we have a name for this map, which is the name of the first
 	 * available company. When there's no company available we'll use
@@ -936,6 +935,6 @@ void GenerateDefaultSaveName(char *buf, const char *last)
 	SetDParam(2, _date);
 
 	/* Get the correct string (special string for when there's not company) */
-	GetString(buf, !Company::IsValidID(cid) ? STR_SAVEGAME_NAME_SPECTATOR : STR_SAVEGAME_NAME_DEFAULT, last);
-	SanitizeFilename(buf);
+	GetString (buf, !Company::IsValidID(cid) ? STR_SAVEGAME_NAME_SPECTATOR : STR_SAVEGAME_NAME_DEFAULT);
+	SanitizeFilename (buf->buffer);
 }

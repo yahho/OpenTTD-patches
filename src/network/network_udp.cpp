@@ -228,10 +228,10 @@ void ServerNetworkUDPSocketHandler::Receive_CLIENT_DETAIL_INFO(Packet *p, Networ
 		size_t name_lengths [MAX_COMPANIES];
 		Company *company;
 		FOR_ALL_COMPANIES(company) {
-			char company_name[NETWORK_COMPANY_NAME_LENGTH];
+			sstring<NETWORK_COMPANY_NAME_LENGTH> company_name;
 			SetDParam(0, company->index);
-			GetString(company_name, STR_COMPANY_NAME, lastof(company_name));
-			name_lengths[company->index] = strlen (company_name);
+			GetString (&company_name, STR_COMPANY_NAME);
+			name_lengths[company->index] = company_name.length();
 		}
 
 		for (;;) {

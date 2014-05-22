@@ -15,6 +15,7 @@
 #ifndef NEWGRF_TOWNNAME_H
 #define NEWGRF_TOWNNAME_H
 
+#include "string.h"
 #include "strings_type.h"
 
 struct NamePart {
@@ -48,7 +49,7 @@ GRFTownName *GetGRFTownName(uint32 grfid);
 void DelGRFTownName(uint32 grfid);
 void CleanUpGRFTownNames();
 StringID *GetGRFTownNameList();
-char *GRFTownNameGenerate(char *buf, uint32 grfid, uint16 gen, uint32 seed, const char *last);
+void GRFTownNameGenerate (stringb *buf, uint32 grfid, uint16 gen, uint32 seed);
 uint32 GetGRFTownNameId(int gen);
 uint16 GetGRFTownNameType(int gen);
 

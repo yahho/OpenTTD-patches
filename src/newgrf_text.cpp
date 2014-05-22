@@ -960,14 +960,14 @@ void RewindTextRefStack()
 /**
  * FormatString for NewGRF specific "magic" string control codes
  * @param scc   the string control code that has been read
- * @param buff  the buffer we're writing to
+ * @param buf   the buffer we're writing to
  * @param str   the string that we need to write
  * @param argv  the OpenTTD stack of values
  * @param argv_size space on the stack \a argv
  * @param modify_argv When true, modify the OpenTTD stack.
  * @return the string control code to "execute" now
  */
-uint RemapNewGRFStringControlCode(uint scc, char *buf_start, char **buff, const char **str, int64 *argv, uint argv_size, bool modify_argv)
+uint RemapNewGRFStringControlCode (uint scc, stringb *buf, const char **str, int64 *argv, uint argv_size, bool modify_argv)
 {
 	switch (scc) {
 		default: break;
@@ -1045,7 +1045,16 @@ uint RemapNewGRFStringControlCode(uint scc, char *buf_start, char **buff, const 
 
 			case SCC_NEWGRF_ROTATE_TOP_4_WORDS:     _newgrf_textrefstack.RotateTop4Words(); break;
 			case SCC_NEWGRF_PUSH_WORD:              _newgrf_textrefstack.PushWord(Utf8Consume(str)); break;
-			case SCC_NEWGRF_UNPRINT:                *buff = max(*buff - Utf8Consume(str), buf_start); break;
+
+			case SCC_NEWGRF_UNPRINT: {
+				size_t unprint = Utf8Consume(str);
+				if (unprint < buf->length()) {
+					buf->truncate (buf->length() - unprint);
+				} else {
+					buf->clear();
+				}
+				break;
+			}
 
 			case SCC_NEWGRF_PRINT_WORD_CARGO_LONG:
 			case SCC_NEWGRF_PRINT_WORD_CARGO_SHORT:

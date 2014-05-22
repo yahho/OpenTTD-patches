@@ -1406,7 +1406,7 @@ void StateGameLoop()
  */
 static void DoAutosave()
 {
-	char buf[MAX_PATH];
+	sstring<MAX_PATH> buf;
 
 #if defined(PSP)
 	/* Autosaving in networking is too time expensive for the PSP */
@@ -1414,19 +1414,19 @@ static void DoAutosave()
 #endif /* PSP */
 
 	if (_settings_client.gui.keep_all_autosave) {
-		GenerateDefaultSaveName(buf, lastof(buf));
-		strecat(buf, ".sav", lastof(buf));
+		GenerateDefaultSaveName (&buf);
+		buf.append (".sav");
 	} else {
 		static int _autosave_ctr = 0;
 
 		/* generate a savegame name and number according to _settings_client.gui.max_num_autosaves */
-		bstrfmt (buf, "autosave%d.sav", _autosave_ctr);
+		buf.fmt ("autosave%d.sav", _autosave_ctr);
 
 		if (++_autosave_ctr >= _settings_client.gui.max_num_autosaves) _autosave_ctr = 0;
 	}
 
-	DEBUG(sl, 2, "Autosaving to '%s'", buf);
-	if (!SaveGame(buf, AUTOSAVE_DIR)) {
+	DEBUG(sl, 2, "Autosaving to '%s'", buf.c_str());
+	if (!SaveGame(buf.c_str(), AUTOSAVE_DIR)) {
 		ShowErrorMessage(STR_ERROR_AUTOSAVE_FAILED, INVALID_STRING_ID, WL_ERROR);
 	}
 }

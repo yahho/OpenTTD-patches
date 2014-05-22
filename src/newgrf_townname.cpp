@@ -66,7 +66,7 @@ void DelGRFTownName(uint32 grfid)
 	}
 }
 
-static char *RandomPart(char *buf, GRFTownName *t, uint32 seed, byte id, const char *last)
+static void RandomPart (stringb *buf, GRFTownName *t, uint32 seed, byte id)
 {
 	assert(t != NULL);
 	for (int i = 0; i < t->nbparts[id]; i++) {
@@ -78,27 +78,24 @@ static char *RandomPart(char *buf, GRFTownName *t, uint32 seed, byte id, const c
 			maxprob -= GB(prob, 0, 7);
 			if (maxprob > r) continue;
 			if (HasBit(prob, 7)) {
-				buf = RandomPart(buf, t, seed, t->partlist[id][i].parts[j].data.id, last);
+				RandomPart (buf, t, seed, t->partlist[id][i].parts[j].data.id);
 			} else {
-				buf = strecat(buf, t->partlist[id][i].parts[j].data.text, last);
+				buf->append (t->partlist[id][i].parts[j].data.text);
 			}
 			break;
 		}
 	}
-	return buf;
 }
 
-char *GRFTownNameGenerate(char *buf, uint32 grfid, uint16 gen, uint32 seed, const char *last)
+void GRFTownNameGenerate (stringb *buf, uint32 grfid, uint16 gen, uint32 seed)
 {
-	strecpy(buf, "", last);
 	for (GRFTownName *t = _grf_townnames; t != NULL; t = t->next) {
 		if (t->grfid == grfid) {
 			assert(gen < t->nb_gen);
-			buf = RandomPart(buf, t, seed, t->id[gen], last);
+			RandomPart (buf, t, seed, t->id[gen]);
 			break;
 		}
 	}
-	return buf;
 }
 
 StringID *GetGRFTownNameList()

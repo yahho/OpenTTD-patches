@@ -242,8 +242,7 @@ public:
 	/** Generate a default save filename. */
 	void GenerateFileName()
 	{
-		GenerateDefaultSaveName(this->filename_editbox.buffer, &this->filename_editbox.buffer[this->filename_editbox.capacity - 1]);
-		this->filename_editbox.len = strlen (this->filename_editbox.c_str());
+		GenerateDefaultSaveName (&this->filename_editbox);
 		this->filename_editbox.UpdateSize();
 	}
 

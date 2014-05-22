@@ -76,11 +76,12 @@
 {
 	company = ResolveCompanyID(company);
 
-	static const int len = 64;
+	static const size_t len = 64;
 	char *president_name = MallocT<char>(len);
 	if (company != COMPANY_INVALID) {
+		stringb tmp (len, president_name);
 		::SetDParam(0, company);
-		::GetString(president_name, STR_PRESIDENT_NAME, &president_name[len - 1]);
+		::GetString (&tmp, STR_PRESIDENT_NAME);
 	} else {
 		*president_name = '\0';
 	}

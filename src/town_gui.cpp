@@ -1067,8 +1067,7 @@ public:
 		if (!this->townnamevalid) {
 			this->townname_editbox.DeleteAll();
 		} else {
-			GetTownName(this->townname_editbox.buffer, &this->params, this->townnameparts, &this->townname_editbox.buffer[this->townname_editbox.capacity - 1]);
-			this->townname_editbox.len = strlen (this->townname_editbox.c_str());
+			AppendTownName (&this->townname_editbox, &this->params, this->townnameparts);
 			this->townname_editbox.UpdateSize();
 		}
 		UpdateOSKOriginalText(this, WID_TF_TOWN_NAME_EDITBOX);
@@ -1106,9 +1105,9 @@ public:
 			name = this->townname_editbox.GetText();
 		} else {
 			/* If user changed the name, send it */
-			char buf[MAX_LENGTH_TOWN_NAME_CHARS * MAX_CHAR_LENGTH];
-			GetTownName(buf, &this->params, this->townnameparts, lastof(buf));
-			if (strcmp(buf, this->townname_editbox.GetText()) != 0) name = this->townname_editbox.GetText();
+			sstring<MAX_LENGTH_TOWN_NAME_CHARS * MAX_CHAR_LENGTH> buf;
+			AppendTownName (&buf, &this->params, this->townnameparts);
+			if (strcmp (buf.c_str(), this->townname_editbox.GetText()) != 0) name = this->townname_editbox.GetText();
 		}
 
 		bool success = DoCommandP(tile, this->town_size | this->city << 2 | this->town_layout << 3 | random << 6,

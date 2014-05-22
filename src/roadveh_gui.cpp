@@ -40,7 +40,7 @@ void DrawRoadVehDetails(const Vehicle *v, int left, int right, int y)
 	if (v->HasArticulatedPart()) {
 		CargoArray max_cargo;
 		StringID subtype_text[NUM_CARGO];
-		char capacity[512];
+		sstring<512> capacity;
 
 		memset(subtype_text, 0, sizeof(subtype_text));
 
@@ -52,7 +52,7 @@ void DrawRoadVehDetails(const Vehicle *v, int left, int right, int y)
 			}
 		}
 
-		GetString (capacity, STR_VEHICLE_DETAILS_TRAIN_ARTICULATED_RV_CAPACITY);
+		GetString (&capacity, STR_VEHICLE_DETAILS_TRAIN_ARTICULATED_RV_CAPACITY);
 
 		bool first = true;
 		for (CargoID i = 0; i < NUM_CARGO; i++) {
@@ -63,19 +63,19 @@ void DrawRoadVehDetails(const Vehicle *v, int left, int right, int y)
 				SetDParam(1, max_cargo[i]);
 				GetString (buffer, STR_JUST_CARGO);
 
-				if (!first) strecat(capacity, ", ", lastof(capacity));
-				strecat(capacity, buffer, lastof(capacity));
+				if (!first) capacity.append (", ");
+				capacity.append (buffer);
 
 				if (subtype_text[i] != 0) {
 					GetString (buffer, subtype_text[i]);
-					strecat(capacity, buffer, lastof(capacity));
+					capacity.append (buffer);
 				}
 
 				first = false;
 			}
 		}
 
-		DrawString(left, right, y + FONT_HEIGHT_NORMAL + y_offset, capacity, TC_BLUE);
+		DrawString(left, right, y + FONT_HEIGHT_NORMAL + y_offset, capacity.c_str(), TC_BLUE);
 
 		for (const Vehicle *u = v; u != NULL; u = u->Next()) {
 			if (u->cargo_cap == 0) continue;

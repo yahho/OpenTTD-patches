@@ -1512,12 +1512,14 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::Receive_CLIENT_MOVE(Packet *p)
  */
 void NetworkSocketHandler::SendCompanyInformation(Packet *p, const Company *c, const NetworkCompanyStats *stats, uint max_len)
 {
-	/* Grab the company name */
-	char company_name[NETWORK_COMPANY_NAME_LENGTH];
-	SetDParam(0, c->index);
+	assert (max_len > 0);
+	assert (max_len <= NETWORK_COMPANY_NAME_LENGTH);
 
-	assert(max_len <= lengthof(company_name));
-	GetString(company_name, STR_COMPANY_NAME, company_name + max_len - 1);
+	/* Grab the company name */
+	sstring<NETWORK_COMPANY_NAME_LENGTH> company_name;
+	SetDParam(0, c->index);
+	GetString (&company_name, STR_COMPANY_NAME);
+	if (company_name.length() >= max_len) company_name.truncate (max_len - 1);
 
 	/* Get the income */
 	Money income = 0;
@@ -1534,7 +1536,7 @@ void NetworkSocketHandler::SendCompanyInformation(Packet *p, const Company *c, c
 
 	/* Send the information */
 	p->Send_uint8 (c->index);
-	p->Send_string(company_name);
+	p->Send_string(company_name.c_str());
 	p->Send_uint32(c->inaugurated_year);
 	p->Send_uint64(c->old_economy[0].company_value);
 	p->Send_uint64(c->money);

@@ -35,7 +35,7 @@ static const char * const HEIGHTMAP_NAME  = "heightmap";  ///< Default filename 
 char _screenshot_format_name[8];      ///< Extension of the current screenshot format (corresponds with #_cur_screenshot_format).
 uint _num_screenshot_formats;         ///< Number of available screenshot formats.
 uint _cur_screenshot_format;          ///< Index of the currently selected screenshot format in #_screenshot_formats.
-static char _screenshot_name[128];    ///< Filename of the screenshot file.
+static sstring<128> _screenshot_name;///< Filename of the screenshot file.
 char _full_screenshot_name[MAX_PATH]; ///< Pathname of the screenshot file.
 
 /**
@@ -705,24 +705,24 @@ static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, ui
  */
 static const char *MakeScreenshotName(const char *default_fn, const char *ext, bool crashlog = false)
 {
-	bool generate = StrEmpty(_screenshot_name);
+	bool generate = _screenshot_name.empty();
 
 	if (generate) {
 		if (_game_mode == GM_EDITOR || _game_mode == GM_MENU || _local_company == COMPANY_SPECTATOR) {
-			bstrcpy (_screenshot_name, default_fn);
+			_screenshot_name.copy (default_fn);
 		} else {
-			GenerateDefaultSaveName(_screenshot_name, lastof(_screenshot_name));
+			GenerateDefaultSaveName (&_screenshot_name);
 		}
 	}
 
 	/* Add extension to screenshot file */
-	size_t len = strlen(_screenshot_name);
-	snprintf(&_screenshot_name[len], lengthof(_screenshot_name) - len, ".%s", ext);
+	size_t len = _screenshot_name.length();
+	_screenshot_name.append_fmt (".%s", ext);
 
 	const char *screenshot_dir = crashlog ? _personal_dir : FiosGetScreenshotDir();
 
 	for (uint serial = 1;; serial++) {
-		if (snprintf(_full_screenshot_name, lengthof(_full_screenshot_name), "%s%s", screenshot_dir, _screenshot_name) >= (int)lengthof(_full_screenshot_name)) {
+		if (snprintf(_full_screenshot_name, lengthof(_full_screenshot_name), "%s%s", screenshot_dir, _screenshot_name.c_str()) >= (int)lengthof(_full_screenshot_name)) {
 			/* We need more characters than MAX_PATH -> end with error */
 			_full_screenshot_name[0] = '\0';
 			break;
@@ -730,7 +730,8 @@ static const char *MakeScreenshotName(const char *default_fn, const char *ext, b
 		if (!generate) break; // allow overwriting of non-automatic filenames
 		if (!FileExists(_full_screenshot_name)) break;
 		/* If file exists try another one with same name, but just with a higher index */
-		snprintf(&_screenshot_name[len], lengthof(_screenshot_name) - len, "#%u.%s", serial, ext);
+		_screenshot_name.truncate (len);
+		_screenshot_name.append_fmt ("#%u.%s", serial, ext);
 	}
 
 	return _full_screenshot_name;
@@ -859,8 +860,8 @@ bool MakeScreenshot(ScreenshotType t, const char *name)
 		DrawDirtyBlocks();
 	}
 
-	_screenshot_name[0] = '\0';
-	if (name != NULL) bstrcpy (_screenshot_name, name);
+	_screenshot_name.clear();
+	if (name != NULL) _screenshot_name.copy (name);
 
 	bool ret;
 	switch (t) {
@@ -889,7 +890,7 @@ bool MakeScreenshot(ScreenshotType t, const char *name)
 	}
 
 	if (ret) {
-		SetDParamStr(0, _screenshot_name);
+		SetDParamStr(0, _screenshot_name.c_str());
 		ShowErrorMessage(STR_MESSAGE_SCREENSHOT_SUCCESSFULLY, INVALID_STRING_ID, WL_WARNING);
 	} else {
 		ShowErrorMessage(STR_ERROR_SCREENSHOT_FAILED, INVALID_STRING_ID, WL_ERROR);

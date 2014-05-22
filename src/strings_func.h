@@ -130,15 +130,21 @@ public:
 };
 extern StringParameters _global_string_params;
 
-char *GetString(char *buffr, StringID string, const char *last);
-char *GetStringWithArgs(char *buffr, StringID string, StringParameters *args, const char *last, uint case_index = 0, bool game_script = false);
 const char *GetStringPtr(StringID string);
+
+void AppendString (stringb *buf, StringID string);
+
+static inline void GetString (stringb *buf, StringID string)
+{
+	buf->clear();
+	AppendString (buf, string);
+}
 
 template <uint N>
 static inline void GetString (char (*buf) [N], StringID string)
 {
-	assert_tcompile (N > 0);
-	GetString (&(*buf)[0], string, &(*buf)[N - 1]);
+	stringb tmp (N, &(*buf)[0]);
+	GetString (&tmp, string);
 }
 
 template <uint N>
@@ -146,6 +152,8 @@ static inline void GetString (char (&buf) [N], StringID string)
 {
 	GetString (&buf, string);
 }
+
+void AppendStringWithArgs (stringb *buf, StringID string, StringParameters *args, uint case_index = 0, bool game_script = false);
 
 uint ConvertKmhishSpeedToDisplaySpeed(uint speed);
 uint ConvertDisplaySpeedToKmhishSpeed(uint speed);
