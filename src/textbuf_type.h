@@ -36,12 +36,9 @@ enum HandleKeyPressResult
 };
 
 /** Helper/buffer for input fields. */
-struct Textbuf {
+struct Textbuf : stringp {
 	CharSetFilter afilter;    ///< Allowed characters
-	char * const buf;         ///< buffer in which text is saved
-	const uint16 max_bytes;   ///< the maximum size of the buffer in bytes (including terminating '\0')
 	const uint16 max_chars;   ///< the maximum size of the buffer in characters (including terminating '\0')
-	uint16 bytes;             ///< the current size of the string in bytes (including terminating '\0')
 	uint16 chars;             ///< the current size of the string in characters (including terminating '\0')
 	uint16 pixels;            ///< the current size of the string in pixels
 	bool caret;               ///< is the caret ("_") visible or not
@@ -81,7 +78,7 @@ struct Textbuf {
 	 */
 	const char *GetText() const
 	{
-		return this->buf;
+		return this->c_str();
 	}
 
 	/**
@@ -90,7 +87,7 @@ struct Textbuf {
 	 */
 	const char *GetCaret() const
 	{
-		return this->buf + this->caretpos;
+		return this->c_str() + this->caretpos;
 	}
 
 	/**
@@ -103,7 +100,7 @@ struct Textbuf {
 		if (this->markend == 0) return NULL;
 
 		*length = this->markend - this->markpos;
-		return this->buf + this->markpos;
+		return this->c_str() + this->markpos;
 	}
 
 private:

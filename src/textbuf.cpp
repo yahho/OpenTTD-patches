@@ -313,7 +313,7 @@ public:
  */
 bool Textbuf::CanDelChar(bool backspace)
 {
-	return backspace ? this->caretpos != 0 : this->caretpos < this->bytes - 1;
+	return backspace ? this->caretpos != 0 : this->caretpos < this->length();
 }
 
 /**
@@ -333,7 +333,7 @@ bool Textbuf::DeleteChar(uint16 keycode)
 
 	if (!CanDelChar(backspace)) return false;
 
-	char *s = this->buf + this->caretpos;
+	char *s = this->buffer + this->caretpos;
 	uint16 len = 0;
 
 	if (word) {
@@ -369,8 +369,8 @@ bool Textbuf::DeleteChar(uint16 keycode)
 	}
 
 	/* Move the remaining characters over the marker */
-	memmove(s, s + len, this->bytes - (s - this->buf) - len);
-	this->bytes -= len;
+	memmove(s, s + len, this->len + 1 - (s - this->buffer) - len);
+	this->len -= len;
 
 	if (backspace) this->caretpos -= len;
 
@@ -387,8 +387,8 @@ bool Textbuf::DeleteChar(uint16 keycode)
  */
 void Textbuf::DeleteAll()
 {
-	memset(this->buf, 0, this->max_bytes);
-	this->bytes = this->chars = 1;
+	this->zerofill();
+	this->chars = 1;
 	this->pixels = this->caretpos = this->caretxoffs = 0;
 	this->markpos = this->markend = this->markxoffs = this->marklength = 0;
 	this->UpdateStringIter();
@@ -404,11 +404,11 @@ void Textbuf::DeleteAll()
 bool Textbuf::InsertChar(WChar key)
 {
 	uint16 len = (uint16)Utf8CharLen(key);
-	if (this->bytes + len <= this->max_bytes && this->chars + 1 <= this->max_chars) {
-		memmove(this->buf + this->caretpos + len, this->buf + this->caretpos, this->bytes - this->caretpos);
-		Utf8Encode(this->buf + this->caretpos, key);
+	if (this->len + len < this->capacity && this->chars + 1 <= this->max_chars) {
+		memmove(this->buffer + this->caretpos + len, this->buffer + this->caretpos, this->len + 1 - this->caretpos);
+		Utf8Encode(this->buffer + this->caretpos, key);
 		this->chars++;
-		this->bytes    += len;
+		this->len      += len;
 		this->caretpos += len;
 
 		this->UpdateStringIter();
@@ -435,11 +435,11 @@ bool Textbuf::InsertString(const char *str, bool marked, const char *caret, cons
 {
 	uint16 insertpos = (marked && this->marklength != 0) ? this->markpos : this->caretpos;
 	if (insert_location != NULL) {
-		insertpos = insert_location - this->buf;
-		if (insertpos > this->bytes) return false;
+		insertpos = insert_location - this->buffer;
+		if (insertpos > this->len + 1) return false;
 
 		if (replacement_end != NULL) {
-			this->DeleteText(insertpos, replacement_end - this->buf, str == NULL);
+			this->DeleteText(insertpos, replacement_end - this->buffer, str == NULL);
 		}
 	} else {
 		if (marked) this->DiscardMarkedText(str == NULL);
@@ -453,7 +453,7 @@ bool Textbuf::InsertString(const char *str, bool marked, const char *caret, cons
 		if (!IsValidChar(c, this->afilter)) break;
 
 		byte len = Utf8CharLen(c);
-		if (this->bytes + bytes + len > this->max_bytes) break;
+		if (this->len   + bytes + len >= this->capacity) break;
 		if (this->chars + chars + 1   > this->max_chars) break;
 
 		bytes += len;
@@ -470,15 +470,15 @@ bool Textbuf::InsertString(const char *str, bool marked, const char *caret, cons
 		this->markend = insertpos + bytes;
 	}
 
-	memmove(this->buf + insertpos + bytes, this->buf + insertpos, this->bytes - insertpos);
-	memcpy(this->buf + insertpos, str, bytes);
+	memmove(this->buffer + insertpos + bytes, this->buffer + insertpos, this->len + 1 - insertpos);
+	memcpy(this->buffer + insertpos, str, bytes);
 
-	this->bytes += bytes;
+	this->len   += bytes;
 	this->chars += chars;
 	if (!marked && caret == NULL) this->caretpos += bytes;
-	assert(this->bytes <= this->max_bytes);
+	assert(this->len   <  this->capacity);
 	assert(this->chars <= this->max_chars);
-	this->buf[this->bytes - 1] = '\0'; // terminating zero
+	this->buffer[this->len] = '\0'; // terminating zero
 
 	this->UpdateStringIter();
 	this->UpdateWidth();
@@ -512,15 +512,15 @@ bool Textbuf::InsertClipboard()
 void Textbuf::DeleteText(uint16 from, uint16 to, bool update)
 {
 	uint c = 0;
-	const char *s = this->buf + from;
-	while (s < this->buf + to) {
+	const char *s = this->buffer + from;
+	while (s < this->buffer + to) {
 		Utf8Consume(&s);
 		c++;
 	}
 
 	/* Strip marked characters from buffer. */
-	memmove(this->buf + from, this->buf + to, this->bytes - to);
-	this->bytes -= to - from;
+	memmove(this->buffer + from, this->buffer + to, this->len + 1 - to);
+	this->len   -= to - from;
 	this->chars -= c;
 
 	/* Fixup caret if needed. */
@@ -554,7 +554,7 @@ void Textbuf::DiscardMarkedText(bool update)
 /** Update the character iter after the text has changed. */
 void Textbuf::UpdateStringIter()
 {
-	this->char_iter->SetString(this->buf);
+	this->char_iter->SetString(this->buffer);
 	size_t pos = this->char_iter->SetCurPosition(this->caretpos);
 	this->caretpos = pos == StringIterator::END ? 0 : (uint16)pos;
 }
@@ -562,21 +562,21 @@ void Textbuf::UpdateStringIter()
 /** Update pixel width of the text. */
 void Textbuf::UpdateWidth()
 {
-	this->pixels = GetStringBoundingBox(this->buf, FS_NORMAL).width;
+	this->pixels = GetStringBoundingBox(this->buffer, FS_NORMAL).width;
 }
 
 /** Update pixel position of the caret. */
 void Textbuf::UpdateCaretPosition()
 {
-	this->caretxoffs = this->chars > 1 ? GetCharPosInString(this->buf, this->buf + this->caretpos, FS_NORMAL).x : 0;
+	this->caretxoffs = this->chars > 1 ? GetCharPosInString(this->buffer, this->buffer + this->caretpos, FS_NORMAL).x : 0;
 }
 
 /** Update pixel positions of the marked text area. */
 void Textbuf::UpdateMarkedText()
 {
 	if (this->markend != 0) {
-		this->markxoffs  = GetCharPosInString(this->buf, this->buf + this->markpos, FS_NORMAL).x;
-		this->marklength = GetCharPosInString(this->buf, this->buf + this->markend, FS_NORMAL).x - this->markxoffs;
+		this->markxoffs  = GetCharPosInString(this->buffer, this->buffer + this->markpos, FS_NORMAL).x;
+		this->marklength = GetCharPosInString(this->buffer, this->buffer + this->markend, FS_NORMAL).x - this->markxoffs;
 	} else {
 		this->markxoffs = this->marklength = 0;
 	}
@@ -605,7 +605,7 @@ bool Textbuf::MovePos(uint16 keycode)
 
 		case WKC_RIGHT:
 		case WKC_CTRL | WKC_RIGHT: {
-			if (this->caretpos >= this->bytes - 1) break;
+			if (this->caretpos >= this->length()) break;
 
 			size_t pos = this->char_iter->Next(keycode & WKC_CTRL ? StringIterator::ITER_WORD : StringIterator::ITER_CHARACTER);
 			if (pos == StringIterator::END) return true;
@@ -622,7 +622,7 @@ bool Textbuf::MovePos(uint16 keycode)
 			return true;
 
 		case WKC_END:
-			this->caretpos = this->bytes - 1;
+			this->caretpos = this->length();
 			this->char_iter->SetCurPosition(this->caretpos);
 			this->UpdateCaretPosition();
 			return true;
@@ -642,7 +642,7 @@ bool Textbuf::MovePos(uint16 keycode)
  * @param max_chars maximum size in chars, including terminating '\0'
  */
 Textbuf::Textbuf(uint16 max_bytes, uint16 max_chars)
-	: buf(MallocT<char>(max_bytes)), max_bytes(max_bytes),
+	: stringp(max_bytes),
 	  max_chars(max_chars == UINT16_MAX ? max_bytes : max_chars)
 {
 	assert(max_bytes != 0);
@@ -658,7 +658,6 @@ Textbuf::Textbuf(uint16 max_bytes, uint16 max_chars)
 Textbuf::~Textbuf()
 {
 	delete this->char_iter;
-	free(this->buf);
 }
 
 /**
@@ -667,7 +666,8 @@ Textbuf::~Textbuf()
  */
 void Textbuf::Assign(StringID string)
 {
-	GetString(this->buf, string, &this->buf[this->max_bytes - 1]);
+	GetString(this->buffer, string, &this->buffer[this->capacity - 1]);
+	this->len = strlen (this->c_str());
 	this->UpdateSize();
 }
 
@@ -677,7 +677,7 @@ void Textbuf::Assign(StringID string)
  */
 void Textbuf::Assign(const char *text)
 {
-	ttd_strlcpy(this->buf, text, this->max_bytes);
+	this->copy (text);
 	this->UpdateSize();
 }
 
@@ -688,7 +688,7 @@ void Textbuf::Print(const char *format, ...)
 {
 	va_list va;
 	va_start(va, format);
-	vsnprintf(this->buf, this->max_bytes, format, va);
+	this->vfmt (format, va);
 	va_end(va);
 	this->UpdateSize();
 }
@@ -701,19 +701,19 @@ void Textbuf::Print(const char *format, ...)
  */
 void Textbuf::UpdateSize()
 {
-	const char *buf = this->buf;
+	const char *buf = this->buffer;
+	assert (strlen(buf) == this->len);
+	assert (this->len < this->capacity);
 
-	this->chars = this->bytes = 1; // terminating zero
+	this->chars = 1; // terminating zero
 
-	WChar c;
-	while ((c = Utf8Consume(&buf)) != '\0') {
-		this->bytes += Utf8CharLen(c);
+	while (Utf8Consume(&buf) != '\0') {
 		this->chars++;
 	}
-	assert(this->bytes <= this->max_bytes);
+	assert(buf == this->buffer + this->len + 1);
 	assert(this->chars <= this->max_chars);
 
-	this->caretpos = this->bytes - 1;
+	this->caretpos = this->len;
 	this->UpdateStringIter();
 	this->UpdateWidth();
 	this->UpdateMarkedText();

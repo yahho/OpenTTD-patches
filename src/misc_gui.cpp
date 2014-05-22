@@ -748,7 +748,7 @@ void QueryString::DrawEditBox(const Window *w, int wid) const
 
 	DrawFrameRect(clearbtn_left, top, clearbtn_right, bottom, wi->colour, wi->IsLowered() ? FR_LOWERED : FR_NONE);
 	DrawSprite(rtl ? SPR_IMG_DELETE_RIGHT : SPR_IMG_DELETE_LEFT, PAL_NONE, clearbtn_left + WD_IMGBTN_LEFT + (wi->IsLowered() ? 1 : 0), (top + bottom - sprite_size.height) / 2 + (wi->IsLowered() ? 1 : 0));
-	if (this->bytes == 1) GfxFillRect(clearbtn_left + 1, top + 1, clearbtn_right - 1, bottom - 1, _colour_gradient[wi->colour & 0xF][2], FILLRECT_CHECKER);
+	if (this->empty()) GfxFillRect(clearbtn_left + 1, top + 1, clearbtn_right - 1, bottom - 1, _colour_gradient[wi->colour & 0xF][2], FILLRECT_CHECKER);
 
 	DrawFrameRect(left, top, right, bottom, wi->colour, FR_LOWERED | FR_DARKENED);
 	GfxFillRect(left + 1, top + 1, right - 1, bottom - 1, PC_BLACK);
@@ -887,7 +887,7 @@ void QueryString::ClickEditBox(Window *w, Point pt, int wid, int click_count, bo
 	int clearbtn_left  = wi->pos_x + (rtl ? 0 : wi->current_x - clearbtn_width);
 
 	if (IsInsideBS(pt.x, clearbtn_left, clearbtn_width)) {
-		if (this->bytes > 1) {
+		if (!this->empty()) {
 			this->DeleteAll();
 			w->HandleButtonClick(wid);
 			w->OnEditboxChanged(wid);
@@ -912,19 +912,20 @@ struct QueryStringWindow : public Window
 	QueryStringWindow(StringID str, StringID caption, uint max_bytes, uint max_chars, WindowDesc *desc, Window *parent, CharSetFilter afilter, QueryStringFlags flags) :
 			Window(desc), editbox(max_bytes, max_chars)
 	{
-		char *last_of = &this->editbox.buf[this->editbox.max_bytes - 1];
-		GetString(this->editbox.buf, str, last_of);
-		str_validate(this->editbox.buf, last_of, SVS_NONE);
+		char *last_of = &this->editbox.buffer[this->editbox.capacity - 1];
+		GetString(this->editbox.buffer, str, last_of);
+		this->editbox.len = strlen (this->editbox.c_str());
+		str_validate(this->editbox.buffer, last_of, SVS_NONE);
 
 		/* Make sure the name isn't too long for the text buffer in the number of
 		 * characters (not bytes). max_chars also counts the '\0' characters. */
-		while (Utf8StringLength(this->editbox.buf) + 1 > this->editbox.max_chars) {
-			*Utf8PrevChar(this->editbox.buf + strlen(this->editbox.buf)) = '\0';
+		while (Utf8StringLength(this->editbox.buffer) + 1 > this->editbox.max_chars) {
+			*Utf8PrevChar(this->editbox.buffer + this->editbox.length()) = '\0';
 		}
 
 		this->editbox.UpdateSize();
 
-		if ((flags & QSF_ACCEPT_UNCHANGED) == 0) this->editbox.orig = strdup(this->editbox.buf);
+		if ((flags & QSF_ACCEPT_UNCHANGED) == 0) this->editbox.orig = strdup(this->editbox.buffer);
 
 		this->querystrings[WID_QS_TEXT] = &this->editbox;
 		this->editbox.caption = caption;
@@ -957,13 +958,13 @@ struct QueryStringWindow : public Window
 
 	void OnOk()
 	{
-		if (this->editbox.orig == NULL || strcmp(this->editbox.buf, this->editbox.orig) != 0) {
+		if (this->editbox.orig == NULL || strcmp(this->editbox.c_str(), this->editbox.orig) != 0) {
 			/* If the parent is NULL, the editbox is handled by general function
 			 * HandleOnEditText */
 			if (this->parent != NULL) {
-				this->parent->OnQueryTextFinished(this->editbox.buf);
+				this->parent->OnQueryTextFinished(this->editbox.buffer);
 			} else {
-				HandleOnEditText(this->editbox.buf);
+				HandleOnEditText(this->editbox.c_str());
 			}
 			this->editbox.handled = true;
 		}

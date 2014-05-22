@@ -1067,7 +1067,8 @@ public:
 		if (!this->townnamevalid) {
 			this->townname_editbox.DeleteAll();
 		} else {
-			GetTownName(this->townname_editbox.buf, &this->params, this->townnameparts, &this->townname_editbox.buf[this->townname_editbox.max_bytes - 1]);
+			GetTownName(this->townname_editbox.buffer, &this->params, this->townnameparts, &this->townname_editbox.buffer[this->townname_editbox.capacity - 1]);
+			this->townname_editbox.len = strlen (this->townname_editbox.c_str());
 			this->townname_editbox.UpdateSize();
 		}
 		UpdateOSKOriginalText(this, WID_TF_TOWN_NAME_EDITBOX);

@@ -30,6 +30,7 @@
 
 #include "core/bitmath_func.hpp"
 #include "core/enum_type.hpp"
+#include "core/alloc_func.hpp"
 
 /** A non-breaking space. */
 #define NBSP "\xC2\xA0"
@@ -623,6 +624,19 @@ struct sstring_ : stringb {
 /** Static string with (some) built-in bounds checking. */
 template <uint N>
 struct sstring : stringt<sstring_<N> > {
+};
+
+/** Fixed allocated string with (some) built-in bounds checking. */
+struct stringp : stringb {
+	stringp (size_t capacity) : stringb (capacity, MallocT<char>(capacity))
+	{
+		assert (buffer[0] == '\0'); // should have been set by stringb constructor
+	}
+
+	~stringp()
+	{
+		free (buffer);
+	}
 };
 
 #endif /* STRING_H */

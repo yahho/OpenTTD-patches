@@ -378,7 +378,7 @@ struct NetworkChatWindow : public Window {
 	void ChatTabCompletion()
 	{
 		static char _chat_tab_completion_buf[NETWORK_CHAT_LENGTH];
-		assert(this->message_editbox.max_bytes == lengthof(_chat_tab_completion_buf));
+		assert(this->message_editbox.capacity == lengthof(_chat_tab_completion_buf));
 
 		Textbuf *tb = &this->message_editbox;
 		size_t len, tb_len;
@@ -408,11 +408,11 @@ struct NetworkChatWindow : public Window {
 					/* If we are completing at the begin of the line, skip the ': ' we added */
 					if (tb_buf == pre_buf) {
 						offset = 0;
-						length = (tb->bytes - 1) - 2;
+						length = tb->length() - 2;
 					} else {
 						/* Else, find the place we are completing at */
 						offset = strlen(pre_buf) + 1;
-						length = (tb->bytes - 1) - offset;
+						length = tb->length() - offset;
 					}
 
 					/* Compare if we have a match */
