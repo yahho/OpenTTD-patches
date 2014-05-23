@@ -926,36 +926,36 @@ bool ExtractTar(const char *tar_filename, Subdirectory subdir)
 	/* The file doesn't have a sub directory! */
 	if (dirname == NULL) return false;
 
-	char filename[MAX_PATH];
-	bstrcpy (filename, tar_filename);
-	char *p = strrchr(filename, PATHSEPCHAR);
+	const char *p = strrchr (tar_filename, PATHSEPCHAR);
 	/* The file's path does not have a separator? */
 	if (p == NULL) return false;
+	size_t base_length = p - tar_filename + 1;
 
-	p++;
-	strecpy(p, dirname, lastof(filename));
-	DEBUG(misc, 8, "Extracting %s to directory %s", tar_filename, filename);
-	FioCreateDirectory(filename);
+	sstring<MAX_PATH> filename;
+	filename.fmt ("%.*s%s", (int)base_length, tar_filename, dirname);
+	DEBUG (misc, 8, "Extracting %s to directory %s", tar_filename, filename.c_str());
+	FioCreateDirectory (filename.c_str());
 
 	for (TarFileList::iterator it2 = _tar_filelist[subdir].begin(); it2 != _tar_filelist[subdir].end(); it2++) {
 		if (strcmp((*it2).second.tar_filename, tar_filename) != 0) continue;
 
-		strecpy(p, (*it2).first.c_str(), lastof(filename));
+		filename.truncate (base_length);
+		filename.append ((*it2).first.c_str());
 
-		DEBUG(misc, 9, "  extracting %s", filename);
+		DEBUG(misc, 9, "  extracting %s", filename.c_str());
 
 		/* First open the file in the .tar. */
 		size_t to_copy = 0;
 		FILE *in = FioFOpenFileTar(&(*it2).second, &to_copy);
 		if (in == NULL) {
-			DEBUG(misc, 6, "Extracting %s failed; could not open %s", filename, tar_filename);
+			DEBUG(misc, 6, "Extracting %s failed; could not open %s", filename.c_str(), tar_filename);
 			return false;
 		}
 
 		/* Now open the 'output' file. */
-		FILE *out = fopen(filename, "wb");
+		FILE *out = fopen (filename.c_str(), "wb");
 		if (out == NULL) {
-			DEBUG(misc, 6, "Extracting %s failed; could not open %s", filename, filename);
+			DEBUG(misc, 6, "Extracting %s failed; could not open %s", filename.c_str(), filename.c_str());
 			fclose(in);
 			return false;
 		}
@@ -973,7 +973,7 @@ bool ExtractTar(const char *tar_filename, Subdirectory subdir)
 		fclose(out);
 
 		if (to_copy != 0) {
-			DEBUG(misc, 6, "Extracting %s failed; still %i bytes to copy", filename, (int)to_copy);
+			DEBUG(misc, 6, "Extracting %s failed; still %i bytes to copy", filename.c_str(), (int)to_copy);
 			return false;
 		}
 	}
