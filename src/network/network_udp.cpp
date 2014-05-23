@@ -74,7 +74,8 @@ static void NetworkUDPQueryServer(NetworkAddress *address, bool needs_mutex, boo
 {
 	/* Clear item in gamelist */
 	NetworkGameList *item = CallocT<NetworkGameList>(1);
-	address->GetAddressAsString(item->info.server_name, lastof(item->info.server_name));
+	stringb server_name (item->info.server_name);
+	address->GetAddressAsString (&server_name);
 	bstrcpy (item->info.hostname, address->GetHostname());
 	item->address = *address;
 	item->manually = manually;

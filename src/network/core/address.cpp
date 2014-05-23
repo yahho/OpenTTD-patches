@@ -74,15 +74,14 @@ void NetworkAddress::SetPort(uint16 port)
 /**
  * Get the address as a string, e.g. 127.0.0.1:12345.
  * @param buffer the buffer to write to
- * @param last the last element in the buffer
  * @param with_family whether to add the family (e.g. IPvX).
  */
-void NetworkAddress::GetAddressAsString(char *buffer, const char *last, bool with_family)
+void NetworkAddress::GetAddressAsString (stringb *buffer, bool with_family)
 {
-	if (this->GetAddress()->ss_family == AF_INET6) buffer = strecpy(buffer, "[", last);
-	buffer = strecpy(buffer, this->GetHostname(), last);
-	if (this->GetAddress()->ss_family == AF_INET6) buffer = strecpy(buffer, "]", last);
-	buffer += seprintf(buffer, last, ":%d", this->GetPort());
+	if (this->GetAddress()->ss_family == AF_INET6) buffer->append ('[');
+	buffer->append (this->GetHostname());
+	if (this->GetAddress()->ss_family == AF_INET6) buffer->append (']');
+	buffer->append_fmt (":%d", this->GetPort());
 
 	if (with_family) {
 		char family;
@@ -91,7 +90,7 @@ void NetworkAddress::GetAddressAsString(char *buffer, const char *last, bool wit
 			case AF_INET6: family = '6'; break;
 			default:       family = '?'; break;
 		}
-		seprintf(buffer, last, " (IPv%c)", family);
+		buffer->append_fmt (" (IPv%c)", family);
 	}
 }
 
@@ -105,7 +104,8 @@ const char *NetworkAddress::GetAddressAsString(bool with_family)
 {
 	/* 6 = for the : and 5 for the decimal port number */
 	static char buf[NETWORK_HOSTNAME_LENGTH + 6 + 7];
-	this->GetAddressAsString(buf, lastof(buf), with_family);
+	stringb sb (buf);
+	this->GetAddressAsString (&sb, with_family);
 	return buf;
 }
 

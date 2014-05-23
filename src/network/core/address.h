@@ -103,7 +103,7 @@ public:
 	}
 
 	const char *GetHostname();
-	void GetAddressAsString(char *buffer, const char *last, bool with_family = true);
+	void GetAddressAsString (stringb *buffer, bool with_family = true);
 	const char *GetAddressAsString(bool with_family = true);
 	const sockaddr_storage *GetAddress();
 
