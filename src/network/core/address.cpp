@@ -78,14 +78,13 @@ void NetworkAddress::SetPort(uint16 port)
  */
 void NetworkAddress::GetAddressAsString (stringb *buffer, bool with_family)
 {
-	if (this->GetAddress()->ss_family == AF_INET6) buffer->append ('[');
-	buffer->append (this->GetHostname());
-	if (this->GetAddress()->ss_family == AF_INET6) buffer->append (']');
-	buffer->append_fmt (":%d", this->GetPort());
+	const sockaddr_storage *address = this->GetAddress();
+	buffer->fmt (address->ss_family == AF_INET6 ? "[%s]:%d" : "%s:%d",
+		this->GetHostname(), this->GetPort());
 
 	if (with_family) {
 		char family;
-		switch (this->address.ss_family) {
+		switch (address->ss_family) {
 			case AF_INET:  family = '4'; break;
 			case AF_INET6: family = '6'; break;
 			default:       family = '?'; break;
