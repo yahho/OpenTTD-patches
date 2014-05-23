@@ -257,23 +257,24 @@ public:
 GameStrings *LoadTranslations()
 {
 	const GameInfo *info = Game::GetInfo();
-	char filename[512];
-	bstrcpy (filename, info->GetMainScript());
-	char *e = strrchr(filename, PATHSEPCHAR);
+	const char *script = info->GetMainScript();
+	const char *e = strrchr (script, PATHSEPCHAR);
 	if (e == NULL) return NULL;
-	e++; // Make 'e' point after the PATHSEPCHAR
+	size_t base_length = e - script + 1; // point after the path separator
 
-	strecpy(e, "lang" PATHSEP "english.txt", lastof(filename));
-	if (!FioCheckFileExists(filename, GAME_DIR)) return NULL;
+	sstring<512> filename;
+	filename.fmt ("%.*s" "lang" PATHSEP, (int)base_length, script);
+	base_length = filename.length();
+	filename.append ("english.txt");
+	if (!FioCheckFileExists (filename.c_str(), GAME_DIR)) return NULL;
 
 	GameStrings *gs = new GameStrings();
 	try {
-		*gs->raw_strings.Append() = ReadRawLanguageStrings(filename);
+		*gs->raw_strings.Append() = ReadRawLanguageStrings(filename.c_str());
 
 		/* Scan for other language files */
-		LanguageScanner scanner(gs, filename);
-		strecpy(e, "lang" PATHSEP, lastof(filename));
-		size_t len = strlen(filename);
+		LanguageScanner scanner (gs, filename.c_str());
+		filename.truncate (base_length);
 
 		const char *tar_filename = info->GetTarFile();
 		TarList::iterator iter;
@@ -286,14 +287,14 @@ GameStrings *LoadTranslations()
 				if (tar->second.tar_filename != iter->first) continue;
 
 				/* Check the path and extension. */
-				if (tar->first.size() <= len || tar->first.compare(0, len, filename) != 0) continue;
+				if (tar->first.size() <= base_length || tar->first.compare(0, base_length, filename.c_str()) != 0) continue;
 				if (tar->first.compare(tar->first.size() - 4, 4, ".txt") != 0) continue;
 
 				scanner.AddFile(tar->first.c_str(), 0, tar_filename);
 			}
 		} else {
 			/* Scan filesystem */
-			scanner.Scan(filename);
+			scanner.Scan (filename.c_str());
 		}
 
 		gs->Compile();
