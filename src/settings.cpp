@@ -1563,10 +1563,9 @@ static void GRFSaveConfig(IniFile *ini, const char *grpname, const GRFConfig *li
 	const GRFConfig *c;
 
 	for (c = list; c != NULL; c = c->next) {
-		char params[512];
-		GRFBuildParamList(params, c, lastof(params));
-
-		group->GetItem(c->filename, true)->SetValue(params);
+		sstring<512> params;
+		GRFBuildParamList (&params, c);
+		group->GetItem(c->filename, true)->SetValue(params.c_str());
 	}
 }
 

@@ -12,6 +12,7 @@
 #ifndef NEWGRF_CONFIG_H
 #define NEWGRF_CONFIG_H
 
+#include "string.h"
 #include "strings_type.h"
 #include "core/alloc_type.hpp"
 #include "core/smallmap_type.hpp"
@@ -224,7 +225,7 @@ void ClearGRFConfigList(GRFConfig **config);
 void ResetGRFConfig(bool defaults);
 GRFListCompatibility IsGoodGRFConfigList(GRFConfig *grfconfig);
 bool FillGRFDetails(GRFConfig *config, bool is_static, Subdirectory subdir = NEWGRF_DIR);
-char *GRFBuildParamList(char *dst, const GRFConfig *c, const char *last);
+void GRFBuildParamList (stringb *dst, const GRFConfig *c);
 
 /* In newgrf_gui.cpp */
 void ShowNewGRFSettings(bool editable, bool show_params, bool exec_changes, GRFConfig **config);

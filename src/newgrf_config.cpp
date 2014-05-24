@@ -883,18 +883,19 @@ GRFConfig *GetGRFConfig(uint32 grfid, uint32 mask)
 
 
 /** Build a string containing space separated parameter values, and terminate */
-char *GRFBuildParamList(char *dst, const GRFConfig *c, const char *last)
+void GRFBuildParamList (stringb *dst, const GRFConfig *c)
 {
-	uint i;
-
 	/* Return an empty string if there are no parameters */
-	if (c->num_params == 0) return strecpy(dst, "", last);
-
-	for (i = 0; i < c->num_params; i++) {
-		if (i > 0) dst = strecpy(dst, " ", last);
-		dst += seprintf(dst, last, "%d", c->param[i]);
+	if (c->num_params == 0) {
+		dst->clear();
+		return;
 	}
-	return dst;
+
+	dst->fmt ("%d", c->param[0]);
+
+	for (uint i = 1; i < c->num_params; i++) {
+		dst->append_fmt (" %d", c->param[i]);
+	}
 }
 
 /** Base GRF ID for OpenTTD's base graphics GRFs. */

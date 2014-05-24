@@ -88,7 +88,7 @@ static void ShowNewGRFInfo(const GRFConfig *c, uint x, uint y, uint right, uint 
 	}
 
 	/* Prepare and draw GRF ID */
-	char buff[256];
+	char buff [36];
 	bstrfmt (buff, "%08X", BSWAP32(c->ident.grfid));
 	SetDParamStr(0, buff);
 	y = DrawStringMultiLine(x, right, y, bottom, STR_NEWGRF_SETTINGS_GRF_ID);
@@ -109,10 +109,11 @@ static void ShowNewGRFInfo(const GRFConfig *c, uint x, uint y, uint right, uint 
 
 	/* Show GRF parameter list */
 	if (show_params) {
+		sstring<512> buff;
 		if (c->num_params > 0) {
-			GRFBuildParamList(buff, c, lastof(buff));
+			GRFBuildParamList (&buff, c);
 			SetDParam(0, STR_JUST_RAW_STRING);
-			SetDParamStr(1, buff);
+			SetDParamStr (1, buff.c_str());
 		} else {
 			SetDParam(0, STR_LAND_AREA_INFORMATION_LOCAL_AUTHORITY_NONE);
 		}
