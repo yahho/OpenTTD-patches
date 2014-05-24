@@ -119,23 +119,6 @@ static inline size_t ttd_strnlen(const char *str, size_t maxlen)
 	return t - str;
 }
 
-char *md5sumToString(char *buf, const char *last, const uint8 md5sum[16]);
-
-/** Convert the md5sum to a hexadecimal string representation, pointer version. */
-template <uint N>
-static inline void md5sumToString (char (*buf) [N], const uint8 md5sum [16])
-{
-	assert_tcompile (N > 2 * 16);
-	md5sumToString (&(*buf)[0], &(*buf)[N - 1], md5sum);
-}
-
-/** Convert the md5sum to a hexadecimal string representation, reference version. */
-template <uint N>
-static inline void md5sumToString (char (&buf) [N], const uint8 md5sum [16])
-{
-	md5sumToString (&buf, md5sum);
-}
-
 bool IsValidChar(WChar key, CharSetFilter afilter);
 
 size_t Utf8Decode(WChar *c, const char *s);
@@ -597,6 +580,9 @@ struct stringb : stringt<stringb_> {
 
 	/* Append a unicode character encoded as utf-8 to the string. */
 	bool append_utf8 (WChar c);
+
+	/* Append the hexadecimal representation of an md5sum. */
+	bool append_md5sum (const uint8 md5sum [16]);
 };
 
 /** Static string with (some) built-in bounds checking. */
@@ -638,5 +624,22 @@ struct stringp : stringb {
 		free (buffer);
 	}
 };
+
+
+/** Convert the md5sum to a hexadecimal string representation, pointer version. */
+template <uint N>
+static inline void md5sumToString (char (*buf) [N], const uint8 md5sum [16])
+{
+	assert_tcompile (N > 2 * 16);
+	stringb tmp (N, &(*buf)[0]);
+	tmp.append_md5sum (md5sum);
+}
+
+/** Convert the md5sum to a hexadecimal string representation, reference version. */
+template <uint N>
+static inline void md5sumToString (char (&buf) [N], const uint8 md5sum [16])
+{
+	md5sumToString (&buf, md5sum);
+}
 
 #endif /* STRING_H */

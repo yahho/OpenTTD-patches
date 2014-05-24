@@ -449,25 +449,6 @@ int CDECL seprintf(char *str, const char *last, const char *format, ...)
 }
 
 
-/**
- * Convert the md5sum to a hexadecimal string representation
- * @param buf buffer to put the md5sum into
- * @param last last character of buffer (usually lastof(buf))
- * @param md5sum the md5sum itself
- * @return a pointer to the next character after the md5sum
- */
-char *md5sumToString(char *buf, const char *last, const uint8 md5sum[16])
-{
-	char *p = buf;
-
-	for (uint i = 0; i < 16; i++) {
-		p += seprintf(p, last, "%02X", md5sum[i]);
-	}
-
-	return p;
-}
-
-
 /* UTF-8 handling routines */
 
 
@@ -703,5 +684,15 @@ bool stringb::append_utf8 (WChar c)
 	}
 
 	buffer[len] = '\0';
+	return true;
+}
+
+/** Append the hexadecimal representation of an md5sum. */
+bool stringb::append_md5sum (const uint8 md5sum [16])
+{
+	for (uint i = 0; i < 16; i++) {
+		if (!append_fmt ("%02X", md5sum[i])) return false;
+	}
+
 	return true;
 }
