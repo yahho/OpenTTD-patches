@@ -14,6 +14,7 @@
 
 #include "script_object.hpp"
 #include "../../core/alloc_type.hpp"
+#include "../../string.h"
 
 /**
  * Internal parent object of all Text-like objects.
@@ -137,12 +138,10 @@ private:
 	/**
 	 * Internal function for recursive calling this function over multiple
 	 *  instances, while writing in the same buffer.
-	 * @param p The current position in the buffer.
-	 * @param lastofp The last position valid in the buffer.
+	 * @param buf The buffer.
 	 * @param param_count The number of parameters that are in the string.
-	 * @return The new current position in the buffer.
 	 */
-	char *_GetEncodedText(char *p, char *lastofp, int &param_count);
+	void _GetEncodedText (stringb *buf, int &param_count);
 
 	/**
 	 * Set a parameter, where the value is the first item on the stack.

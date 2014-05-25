@@ -170,31 +170,30 @@ SQInteger ScriptText::_set(HSQUIRRELVM vm)
 const char *ScriptText::GetEncodedText()
 {
 	static char buf[1024];
+	stringb aux (buf);
 	int param_count = 0;
-	this->_GetEncodedText(buf, lastof(buf), param_count);
+	this->_GetEncodedText (&aux, param_count);
 	return (param_count > SCRIPT_TEXT_MAX_PARAMETERS) ? NULL : buf;
 }
 
-char *ScriptText::_GetEncodedText(char *p, char *lastofp, int &param_count)
+void ScriptText::_GetEncodedText (stringb *buf, int &param_count)
 {
-	p += Utf8Encode(p, SCC_ENCODED);
-	p += seprintf(p, lastofp, "%X", this->string);
+	buf->append_utf8 (SCC_ENCODED);
+	buf->append_fmt ("%X", this->string);
 	for (int i = 0; i < this->paramc; i++) {
 		if (this->params[i] != NULL) {
-			p += seprintf(p, lastofp, ":\"%s\"", this->params[i]);
+			buf->append_fmt (":\"%s\"", this->params[i]);
 			param_count++;
 			continue;
 		}
 		if (this->paramt[i] != NULL) {
-			p += seprintf(p, lastofp, ":");
-			p = this->paramt[i]->_GetEncodedText(p, lastofp, param_count);
+			buf->append (':');
+			this->paramt[i]->_GetEncodedText (buf, param_count);
 			continue;
 		}
-		p += seprintf(p, lastofp,":%X", (uint32)this->parami[i]);
+		buf->append_fmt (":%X", (uint32)this->parami[i]);
 		param_count++;
 	}
-
-	return p;
 }
 
 const char *Text::GetDecodedText()
