@@ -252,22 +252,24 @@ const char *GetTextfile(TextfileType type, Subdirectory dir, const char *filenam
 	};
 	assert_compile(lengthof(prefixes) == TFT_END);
 
-	const char *prefix = prefixes[type];
-
 	if (filename == NULL) return NULL;
 
-	static char file_path[MAX_PATH];
-	bstrcpy (file_path, filename);
-
-	char *slash = strrchr(file_path, PATHSEPCHAR);
+	const char *slash = strrchr (filename, PATHSEPCHAR);
 	if (slash == NULL) return NULL;
 
-	seprintf(slash + 1, lastof(file_path), "%s_%s.txt", prefix, GetCurrentLanguageIsoCode());
+	static char file_path[MAX_PATH];
+	stringb buf (file_path);
+	buf.fmt ("%.*s%s", (int)(slash - filename + 1), filename, prefixes[type]);
+
+	size_t base_length = buf.length();
+	buf.append_fmt ("_%s.txt", GetCurrentLanguageIsoCode());
 	if (FioCheckFileExists(file_path, dir)) return file_path;
 
-	seprintf(slash + 1, lastof(file_path), "%s_%.2s.txt", prefix, GetCurrentLanguageIsoCode());
+	buf.truncate (base_length);
+	buf.append_fmt ("_%.2s.txt", GetCurrentLanguageIsoCode());
 	if (FioCheckFileExists(file_path, dir)) return file_path;
 
-	seprintf(slash + 1, lastof(file_path), "%s.txt", prefix);
+	buf.truncate (base_length);
+	buf.append (".txt");
 	return FioCheckFileExists(file_path, dir) ? file_path : NULL;
 }
