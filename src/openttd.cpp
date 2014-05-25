@@ -620,7 +620,7 @@ int openttd_main(int argc, char *argv[])
 				/* if the file doesn't exist or it is not a valid savegame, let the saveload code show an error */
 				const char *t = strrchr(_file_to_saveload.name, '.');
 				if (t != NULL) {
-					FiosType ft = FiosGetSavegameListCallback(SLD_LOAD_GAME, _file_to_saveload.name, t, NULL, NULL);
+					FiosType ft = FiosGetSavegameListCallback(SLD_LOAD_GAME, _file_to_saveload.name, t);
 					if (ft != FIOS_TYPE_INVALID) SetFiosType(ft);
 				}
 
@@ -640,9 +640,8 @@ int openttd_main(int argc, char *argv[])
 				goto exit_noshutdown;
 			}
 
-			char title[80];
-			title[0] = '\0';
-			FiosGetSavegameListCallback(SLD_LOAD_GAME, mgo.opt, strrchr(mgo.opt, '.'), title, lastof(title));
+			sstring<80> title;
+			FiosGetSavegameListCallback (SLD_LOAD_GAME, mgo.opt, strrchr(mgo.opt, '.'), &title);
 
 			_load_check_data.Clear();
 			bool res = LoadGame(mgo.opt, SL_LOAD_CHECK, SAVE_DIR);
@@ -657,7 +656,7 @@ int openttd_main(int argc, char *argv[])
 				goto exit_noshutdown;
 			}
 
-			WriteSavegameInfo(title);
+			WriteSavegameInfo (title.c_str());
 
 			goto exit_noshutdown;
 		}

@@ -245,7 +245,7 @@ static inline bool CheckOldSavegameType (LoadFilter *reader, char (*buf)[TTD_HEA
 	return ret;
 }
 
-static SavegameType DetermineOldSavegameType(LoadFilter *reader, char *title, const char *last)
+static SavegameType DetermineOldSavegameType (LoadFilter *reader, stringb *title = NULL)
 {
 	assert_compile(TTD_HEADER_SIZE >= TTO_HEADER_SIZE);
 	char temp[TTD_HEADER_SIZE];
@@ -268,7 +268,7 @@ static SavegameType DetermineOldSavegameType(LoadFilter *reader, char *title, co
 		}
 	}
 
-	if (title != NULL) seprintf (title, last, "%s%s", desc, temp);
+	if (title != NULL) title->fmt ("%s%s", desc, temp);
 
 	return type;
 }
@@ -283,7 +283,7 @@ bool LoadOldSaveGame(LoadFilter *reader, SavegameTypeVersion *stv, SlErrorData *
 
 	InitLoading(&ls, reader, stv);
 
-	ls.stv->type = DetermineOldSavegameType(ls.reader, NULL, NULL);
+	ls.stv->type = DetermineOldSavegameType (ls.reader);
 
 	LoadOldMainProc *proc = NULL;
 
@@ -310,15 +310,15 @@ bool LoadOldSaveGame(LoadFilter *reader, SavegameTypeVersion *stv, SlErrorData *
 	return true;
 }
 
-void GetOldSaveGameName(const char *file, char *title, const char *last)
+void GetOldSaveGameName (const char *file, stringb *title)
 {
 	FILE *f = FioFOpenFile(file, "rb", NO_DIRECTORY);
 
 	if (f == NULL) {
-		*title = '\0';
+		title->clear();
 		return;
 	}
 
 	FileReader reader(f);
-	DetermineOldSavegameType(&reader, title, last);
+	DetermineOldSavegameType (&reader, title);
 }

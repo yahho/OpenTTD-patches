@@ -175,7 +175,7 @@ bool FiosDelete(const char *name);
 void FiosMakeHeightmapName(char *buf, const char *name, size_t size);
 void FiosMakeSavegameName(char *buf, const char *name, size_t size);
 
-FiosType FiosGetSavegameListCallback(SaveLoadDialogMode mode, const char *file, const char *ext, char *title, const char *last);
+FiosType FiosGetSavegameListCallback (SaveLoadDialogMode mode, const char *file, const char *ext, stringb *title = NULL);
 
 int CDECL CompareFiosItems(const FiosItem *a, const FiosItem *b);
 
