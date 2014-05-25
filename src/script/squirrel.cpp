@@ -341,12 +341,17 @@ bool Squirrel::CreateClassInstance(const char *class_name, void *real_instance, 
 }
 
 Squirrel::Squirrel(const char *APIName) :
-	global_pointer(NULL),
-	print_func(NULL),
-	crashed(false),
-	overdrawn_ops(0),
 	APIName(APIName)
 {
+	this->Initialize();
+}
+
+void Squirrel::Initialize()
+{
+	this->global_pointer = NULL;
+	this->print_func = NULL;
+	this->crashed = false;
+	this->overdrawn_ops = 0;
 	this->vm = sq_open(1024);
 
 	/* Handle compile-errors ourself, so we can display it nicely */
@@ -555,9 +560,20 @@ bool Squirrel::LoadScript(const char *script)
 
 Squirrel::~Squirrel()
 {
+	this->Uninitialize();
+}
+
+void Squirrel::Uninitialize()
+{
 	/* Clean up the stuff */
 	sq_pop(this->vm, 1);
 	sq_close(this->vm);
+}
+
+void Squirrel::Reset()
+{
+	this->Uninitialize();
+	this->Initialize();
 }
 
 void Squirrel::InsertResult(bool result)
@@ -591,11 +607,6 @@ bool Squirrel::IsSuspended()
 bool Squirrel::HasScriptCrashed()
 {
 	return this->crashed;
-}
-
-void Squirrel::ResetCrashed()
-{
-	this->crashed = false;
 }
 
 void Squirrel::CrashOccurred()
