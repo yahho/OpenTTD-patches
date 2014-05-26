@@ -32,49 +32,6 @@
 #endif /* WITH_ICU */
 
 /**
- * Safer implementation of vsnprintf; same as vsnprintf except:
- * - last instead of size, i.e. replace sizeof with lastof.
- * - return gives the amount of characters added, not what it would add.
- * @param str    buffer to write to up to last
- * @param last   last character we may write to
- * @param format the formatting (see snprintf)
- * @param ap     the list of arguments for the format
- * @return the number of added characters
- */
-static int CDECL vseprintf(char *str, const char *last, const char *format, va_list ap)
-{
-	ptrdiff_t diff = last - str;
-	if (diff < 0) return 0;
-	return min((int)diff, vsnprintf(str, diff + 1, format, ap));
-}
-
-/**
- * Appends characters from one string to another.
- *
- * Appends the source string to the destination string with respect of the
- * terminating null-character and the maximum size of the destination
- * buffer.
- *
- * @note usage ttd_strlcat(dst, src, lengthof(dst));
- * @note lengthof() applies only to fixed size arrays
- *
- * @param dst The buffer containing the target string
- * @param src The buffer containing the string to append
- * @param size The maximum size of the destination buffer
- */
-void ttd_strlcat(char *dst, const char *src, size_t size)
-{
-	assert(size > 0);
-	while (size > 0 && *dst != '\0') {
-		size--;
-		dst++;
-	}
-
-	ttd_strlcpy(dst, src, size);
-}
-
-
-/**
  * Copies characters from one buffer to another.
  *
  * Copies the source string to the destination buffer with respect of the
@@ -99,68 +56,6 @@ void ttd_strlcpy(char *dst, const char *src, size_t size)
 
 
 /**
- * Appends characters from one string to another.
- *
- * Appends the source string to the destination string with respect of the
- * terminating null-character and and the last pointer to the last element
- * in the destination buffer. If the last pointer is set to NULL no
- * boundary check is performed.
- *
- * @note usage: strecat(dst, src, lastof(dst));
- * @note lastof() applies only to fixed size arrays
- *
- * @param dst The buffer containing the target string
- * @param src The buffer containing the string to append
- * @param last The pointer to the last element of the destination buffer
- * @return The pointer to the terminating null-character in the destination buffer
- */
-char *strecat(char *dst, const char *src, const char *last)
-{
-	assert(dst <= last);
-	while (*dst != '\0') {
-		if (dst == last) return dst;
-		dst++;
-	}
-
-	return strecpy(dst, src, last);
-}
-
-
-/**
- * Copies characters from one buffer to another.
- *
- * Copies the source string to the destination buffer with respect of the
- * terminating null-character and the last pointer to the last element in
- * the destination buffer. If the last pointer is set to NULL no boundary
- * check is performed.
- *
- * @note usage: strecpy(dst, src, lastof(dst));
- * @note lastof() applies only to fixed size arrays
- *
- * @param dst The destination buffer
- * @param src The buffer containing the string to copy
- * @param last The pointer to the last element of the destination buffer
- * @return The pointer to the terminating null-character in the destination buffer
- */
-char *strecpy(char *dst, const char *src, const char *last)
-{
-	assert(dst <= last);
-	while (dst != last && *src != '\0') {
-		*dst++ = *src++;
-	}
-	*dst = '\0';
-
-	if (dst == last && *src != '\0') {
-#if defined(STRGEN) || defined(SETTINGSGEN)
-		error("String too long for destination buffer");
-#else /* STRGEN || SETTINGSGEN */
-		DEBUG(misc, 0, "String too long for destination buffer");
-#endif /* STRGEN || SETTINGSGEN */
-	}
-	return dst;
-}
-
-/**
  * Format, "printf", into a newly allocated string.
  * @param str The formatting string.
  * @return The formatted string. You must free this!
@@ -171,7 +66,7 @@ char *CDECL str_fmt(const char *str, ...)
 	va_list va;
 
 	va_start(va, str);
-	int len = vseprintf(buf, lastof(buf), str, va);
+	int len = vsnprintf(buf, lengthof(buf), str, va);
 	va_end(va);
 	char *p = MallocT<char>(len + 1);
 	memcpy(p, buf, len + 1);
@@ -428,25 +323,6 @@ int CDECL vsnprintf(char *str, size_t size, const char *format, va_list ap)
 #endif /* _MSC_VER */
 
 #endif /* WIN32 */
-
-/**
- * Safer implementation of snprintf; same as snprintf except:
- * - last instead of size, i.e. replace sizeof with lastof.
- * - return gives the amount of characters added, not what it would add.
- * @param str    buffer to write to up to last
- * @param last   last character we may write to
- * @param format the formatting (see snprintf)
- * @return the number of added characters
- */
-int CDECL seprintf(char *str, const char *last, const char *format, ...)
-{
-	va_list ap;
-
-	va_start(ap, format);
-	int ret = vseprintf(str, last, format, ap);
-	va_end(ap);
-	return ret;
-}
 
 
 /* UTF-8 handling routines */

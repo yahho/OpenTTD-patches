@@ -396,7 +396,9 @@ void ClientNetworkUDPSocketHandler::Receive_SERVER_RESPONSE(Packet *p, NetworkAd
 	}
 
 	if (client_addr->GetAddress()->ss_family == AF_INET6) {
-		strecat(item->info.server_name, " (IPv6)", lastof(item->info.server_name));
+		size_t len = strlen (item->info.server_name);
+		assert (len < lengthof(item->info.server_name));
+		snprintf (item->info.server_name + len, lengthof(item->info.server_name) - len, " (IPv6)");
 	}
 
 	/* Check if we are allowed on this server based on the revision-match */

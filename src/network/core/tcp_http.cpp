@@ -48,9 +48,9 @@ NetworkHTTPSocketHandler::NetworkHTTPSocketHandler(SOCKET s,
 
 	DEBUG(net, 7, "[tcp/http] requesting %s%s", host, url);
 	if (data != NULL) {
-		seprintf(buffer, buffer + bufferSize - 1, "POST %s HTTP/1.0\r\nHost: %s\r\nUser-Agent: OpenTTD/%s\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s\r\n", url, host, _openttd_revision, (int)strlen(data), data);
+		snprintf(buffer, bufferSize, "POST %s HTTP/1.0\r\nHost: %s\r\nUser-Agent: OpenTTD/%s\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s\r\n", url, host, _openttd_revision, (int)strlen(data), data);
 	} else {
-		seprintf(buffer, buffer + bufferSize - 1, "GET %s HTTP/1.0\r\nHost: %s\r\nUser-Agent: OpenTTD/%s\r\n\r\n", url, host, _openttd_revision);
+		snprintf(buffer, bufferSize, "GET %s HTTP/1.0\r\nHost: %s\r\nUser-Agent: OpenTTD/%s\r\n\r\n", url, host, _openttd_revision);
 	}
 
 	ssize_t size = strlen(buffer);
