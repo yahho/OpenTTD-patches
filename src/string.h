@@ -14,26 +14,68 @@
 
 #include <stdarg.h>
 
+/* Needed for NetBSD version (so feature) testing */
+#if defined(__NetBSD__) || defined(__FreeBSD__)
+#include <sys/param.h>
+#endif
+
 #include "core/bitmath_func.hpp"
 #include "core/enum_type.hpp"
 #include "core/alloc_func.hpp"
 
-/** A non-breaking space. */
-#define NBSP "\xC2\xA0"
-
-/** A left-to-right marker, marks the next character as left-to-right. */
-#define LRM "\xE2\x80\x8E"
 
 /**
- * Valid filter types for IsValidChar.
+ * Get the length of a string, within a limited buffer.
+ *
+ * @param str The pointer to the first element of the buffer
+ * @param maxlen The maximum size of the buffer
+ * @return The length of the string
  */
-enum CharSetFilter {
-	CS_ALPHANUMERAL,      ///< Both numeric and alphabetic and spaces and stuff
-	CS_NUMERAL,           ///< Only numeric ones
-	CS_NUMERAL_SPACE,     ///< Only numbers and spaces
-	CS_ALPHA,             ///< Only alphabetic values
-	CS_HEXADECIMAL,       ///< Only hexadecimal characters
-};
+static inline size_t ttd_strnlen(const char *str, size_t maxlen)
+{
+	const char *t;
+	for (t = str; (size_t)(t - str) < maxlen && *t != '\0'; t++) {}
+	return t - str;
+}
+
+void ttd_strlcpy(char *dst, const char *src, size_t size);
+
+char *CDECL str_fmt(const char *str, ...) WARN_FORMAT(1, 2);
+
+/* strndup is a GNU extension */
+#if defined(_GNU_SOURCE) || (defined(__NetBSD_Version__) && 400000000 <= __NetBSD_Version__) || (defined(__FreeBSD_version) && 701101 <= __FreeBSD_version) || (defined(__DARWIN_C_LEVEL) && __DARWIN_C_LEVEL >= 200809L)
+#	undef DEFINE_STRNDUP
+#else
+#	define DEFINE_STRNDUP
+char *strndup(const char *s, size_t len);
+#endif /* strndup is available */
+
+/* strcasestr is available for _GNU_SOURCE, BSD and some Apple */
+#if defined(_GNU_SOURCE) || (defined(__BSD_VISIBLE) && __BSD_VISIBLE) || (defined(__APPLE__) && (!defined(_POSIX_C_SOURCE) || defined(_DARWIN_C_SOURCE))) || defined(_NETBSD_SOURCE)
+#	undef DEFINE_STRCASESTR
+#else
+#	define DEFINE_STRCASESTR
+char *strcasestr(const char *haystack, const char *needle);
+#endif /* strcasestr is available */
+
+int strnatcmp(const char *s1, const char *s2, bool ignore_garbage_at_front = false);
+
+bool strtolower(char *str);
+
+/**
+ * Check if a string buffer is empty.
+ *
+ * @param s The pointer to the first element of the buffer
+ * @return true if the buffer starts with the terminating null-character or
+ *         if the given pointer points to NULL else return false
+ */
+static inline bool StrEmpty(const char *s)
+{
+	return s == NULL || s[0] == '\0';
+}
+
+
+/* UTF-8 handling */
 
 /** Type for wide characters, i.e. non-UTF8 encoded unicode characters. */
 typedef uint32 WChar;
@@ -51,67 +93,11 @@ static const WChar CHAR_TD_LRO = 0x202D; ///< Force the following characters to 
 static const WChar CHAR_TD_RLO = 0x202E; ///< Force the following characters to be treated as right-to-left characters.
 static const WChar CHAR_TD_PDF = 0x202C; ///< Restore the text-direction state to before the last LRE, RLE, LRO or RLO.
 
-/** Settings for the string validation. */
-enum StringValidationSettings {
-	SVS_NONE                       = 0,      ///< Allow nothing and replace nothing.
-	SVS_REPLACE_WITH_QUESTION_MARK = 1 << 0, ///< Replace the unknown/bad bits with question marks.
-	SVS_ALLOW_NEWLINE              = 1 << 1, ///< Allow newlines.
-	SVS_ALLOW_CONTROL_CODE         = 1 << 2, ///< Allow the special control codes.
-};
-DECLARE_ENUM_AS_BIT_SET(StringValidationSettings)
+/** A non-breaking space. */
+#define NBSP "\xC2\xA0"
 
-void ttd_strlcpy(char *dst, const char *src, size_t size);
-
-char *CDECL str_fmt(const char *str, ...) WARN_FORMAT(1, 2);
-
-void str_validate(char *str, const char *last, StringValidationSettings settings = SVS_REPLACE_WITH_QUESTION_MARK);
-void ValidateString(const char *str);
-
-void str_fix_scc_encoded(char *str, const char *last);
-void str_strip_colours(char *str);
-bool strtolower(char *str);
-
-bool StrValid(const char *str, const char *last);
-
-/**
- * Check if a string buffer is empty.
- *
- * @param s The pointer to the first element of the buffer
- * @return true if the buffer starts with the terminating null-character or
- *         if the given pointer points to NULL else return false
- */
-static inline bool StrEmpty(const char *s)
-{
-	return s == NULL || s[0] == '\0';
-}
-
-/**
- * Get the length of a string, within a limited buffer.
- *
- * @param str The pointer to the first element of the buffer
- * @param maxlen The maximum size of the buffer
- * @return The length of the string
- */
-static inline size_t ttd_strnlen(const char *str, size_t maxlen)
-{
-	const char *t;
-	for (t = str; (size_t)(t - str) < maxlen && *t != '\0'; t++) {}
-	return t - str;
-}
-
-bool IsValidChar(WChar key, CharSetFilter afilter);
-
-size_t Utf8Decode(WChar *c, const char *s);
-size_t Utf8Encode(char *buf, WChar c);
-size_t Utf8TrimString(char *s, size_t maxlen);
-
-
-static inline WChar Utf8Consume(const char **s)
-{
-	WChar c;
-	*s += Utf8Decode(&c, *s);
-	return c;
-}
+/** A left-to-right marker, marks the next character as left-to-right. */
+#define LRM "\xE2\x80\x8E"
 
 /**
  * Return the length of a UTF-8 encoded character.
@@ -128,7 +114,6 @@ static inline int8 Utf8CharLen(WChar c)
 	/* Invalid valid, we encode as a '?' */
 	return 1;
 }
-
 
 /**
  * Return the length of an UTF-8 encoded value based on a single char. This
@@ -147,7 +132,6 @@ static inline int8 Utf8EncodedCharLen(char c)
 	/* Invalid UTF8 start encoding */
 	return 0;
 }
-
 
 /* Check if the given character is part of a UTF8 sequence */
 static inline bool IsUtf8Part(char c)
@@ -176,7 +160,90 @@ static inline const char *Utf8PrevChar(const char *s)
 	return ret;
 }
 
+size_t Utf8Decode(WChar *c, const char *s);
+size_t Utf8Encode(char *buf, WChar c);
+size_t Utf8TrimString(char *s, size_t maxlen);
+
+static inline WChar Utf8Consume(const char **s)
+{
+	WChar c;
+	*s += Utf8Decode(&c, *s);
+	return c;
+}
+
 size_t Utf8StringLength(const char *s);
+
+/**
+ * Is the given character a text direction character.
+ * @param c The character to test.
+ * @return true iff the character is used to influence
+ *         the text direction.
+ */
+static inline bool IsTextDirectionChar(WChar c)
+{
+	switch (c) {
+		case CHAR_TD_LRM:
+		case CHAR_TD_RLM:
+		case CHAR_TD_LRE:
+		case CHAR_TD_RLE:
+		case CHAR_TD_LRO:
+		case CHAR_TD_RLO:
+		case CHAR_TD_PDF:
+			return true;
+
+		default:
+			return false;
+	}
+}
+
+static inline bool IsPrintable(WChar c)
+{
+	if (c < 0x20)   return false;
+	if (c < 0xE000) return true;
+	if (c < 0xE200) return false;
+	return true;
+}
+
+/**
+ * Check whether UNICODE character is whitespace or not, i.e. whether
+ * this is a potential line-break character.
+ * @param c UNICODE character to check
+ * @return a boolean value whether 'c' is a whitespace character or not
+ * @see http://www.fileformat.info/info/unicode/category/Zs/list.htm
+ */
+static inline bool IsWhitespace(WChar c)
+{
+	return c == 0x0020 /* SPACE */ || c == 0x3000; /* IDEOGRAPHIC SPACE */
+}
+
+/**
+ * Valid filter types for IsValidChar.
+ */
+enum CharSetFilter {
+	CS_ALPHANUMERAL,      ///< Both numeric and alphabetic and spaces and stuff
+	CS_NUMERAL,           ///< Only numeric ones
+	CS_NUMERAL_SPACE,     ///< Only numbers and spaces
+	CS_ALPHA,             ///< Only alphabetic values
+	CS_HEXADECIMAL,       ///< Only hexadecimal characters
+};
+
+bool IsValidChar(WChar key, CharSetFilter afilter);
+
+/** Settings for the string validation. */
+enum StringValidationSettings {
+	SVS_NONE                       = 0,      ///< Allow nothing and replace nothing.
+	SVS_REPLACE_WITH_QUESTION_MARK = 1 << 0, ///< Replace the unknown/bad bits with question marks.
+	SVS_ALLOW_NEWLINE              = 1 << 1, ///< Allow newlines.
+	SVS_ALLOW_CONTROL_CODE         = 1 << 2, ///< Allow the special control codes.
+};
+DECLARE_ENUM_AS_BIT_SET(StringValidationSettings)
+
+bool StrValid(const char *str, const char *last);
+void str_validate(char *str, const char *last, StringValidationSettings settings = SVS_REPLACE_WITH_QUESTION_MARK);
+void ValidateString(const char *str);
+
+void str_fix_scc_encoded(char *str, const char *last);
+void str_strip_colours(char *str);
 
 /**
  * Is the given character a lead surrogate code point?
@@ -222,72 +289,6 @@ static inline WChar Utf16DecodeChar(const uint16 *c)
 		return *c;
 	}
 }
-
-/**
- * Is the given character a text direction character.
- * @param c The character to test.
- * @return true iff the character is used to influence
- *         the text direction.
- */
-static inline bool IsTextDirectionChar(WChar c)
-{
-	switch (c) {
-		case CHAR_TD_LRM:
-		case CHAR_TD_RLM:
-		case CHAR_TD_LRE:
-		case CHAR_TD_RLE:
-		case CHAR_TD_LRO:
-		case CHAR_TD_RLO:
-		case CHAR_TD_PDF:
-			return true;
-
-		default:
-			return false;
-	}
-}
-
-static inline bool IsPrintable(WChar c)
-{
-	if (c < 0x20)   return false;
-	if (c < 0xE000) return true;
-	if (c < 0xE200) return false;
-	return true;
-}
-
-/**
- * Check whether UNICODE character is whitespace or not, i.e. whether
- * this is a potential line-break character.
- * @param c UNICODE character to check
- * @return a boolean value whether 'c' is a whitespace character or not
- * @see http://www.fileformat.info/info/unicode/category/Zs/list.htm
- */
-static inline bool IsWhitespace(WChar c)
-{
-	return c == 0x0020 /* SPACE */ || c == 0x3000; /* IDEOGRAPHIC SPACE */
-}
-
-/* Needed for NetBSD version (so feature) testing */
-#if defined(__NetBSD__) || defined(__FreeBSD__)
-#include <sys/param.h>
-#endif
-
-/* strndup is a GNU extension */
-#if defined(_GNU_SOURCE) || (defined(__NetBSD_Version__) && 400000000 <= __NetBSD_Version__) || (defined(__FreeBSD_version) && 701101 <= __FreeBSD_version) || (defined(__DARWIN_C_LEVEL) && __DARWIN_C_LEVEL >= 200809L)
-#	undef DEFINE_STRNDUP
-#else
-#	define DEFINE_STRNDUP
-char *strndup(const char *s, size_t len);
-#endif /* strndup is available */
-
-/* strcasestr is available for _GNU_SOURCE, BSD and some Apple */
-#if defined(_GNU_SOURCE) || (defined(__BSD_VISIBLE) && __BSD_VISIBLE) || (defined(__APPLE__) && (!defined(_POSIX_C_SOURCE) || defined(_DARWIN_C_SOURCE))) || defined(_NETBSD_SOURCE)
-#	undef DEFINE_STRCASESTR
-#else
-#	define DEFINE_STRCASESTR
-char *strcasestr(const char *haystack, const char *needle);
-#endif /* strcasestr is available */
-
-int strnatcmp(const char *s1, const char *s2, bool ignore_garbage_at_front = false);
 
 
 /* buffer-aware string functions */
