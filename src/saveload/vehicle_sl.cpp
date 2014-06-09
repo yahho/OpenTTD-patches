@@ -869,8 +869,10 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 		 SLE_VAR(Vehicle, age,                SLE_INT32,                  0, ,  31,    ),
 		 SLE_VAR(Vehicle, tick_counter,       SLE_UINT8),
 
-		 SLE_VAR(DisasterVehicle, image_override,            SLE_UINT16),
-		 SLE_VAR(DisasterVehicle, big_ufo_destroyer_target,  SLE_UINT16),
+		 SLE_VAR(DisasterVehicle, image_override,            SLE_FILE_U16 | SLE_VAR_U32,  0, 19,   0, 190),
+		 SLE_VAR(DisasterVehicle, image_override,            SLE_UINT32,                 20,   , 191,    ),
+		 SLE_VAR(DisasterVehicle, big_ufo_destroyer_target,  SLE_FILE_U16 | SLE_VAR_U32,  0, 19,   0, 190),
+		 SLE_VAR(DisasterVehicle, big_ufo_destroyer_target,  SLE_UINT32,                 20,   , 191,    ),
 
 		SLE_NULL(16,                                                       , ,   2, 143), // old reserved space
 
