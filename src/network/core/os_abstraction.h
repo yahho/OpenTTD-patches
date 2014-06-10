@@ -83,12 +83,12 @@ static inline int OTTDgetaddrinfo(const char *nodename, const char *servname, co
 		ip = (*(struct in_addr *)he->h_addr).s_addr;
 	}
 
-	struct sockaddr_in *sin = CallocT<struct sockaddr_in>(1);
+	struct sockaddr_in *sin = xcalloct<struct sockaddr_in>();
 	sin->sin_family = AF_INET;
 	sin->sin_port = htons(strtoul(servname, NULL, 10));
 	sin->sin_addr.s_addr = ip;
 
-	struct addrinfo *ai = CallocT<struct addrinfo>(1);
+	struct addrinfo *ai = xcalloct<struct addrinfo>();
 	ai->ai_family = PF_INET;
 	ai->ai_addr = (struct sockaddr*)sin;
 	ai->ai_addrlen = sizeof(*sin);

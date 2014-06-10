@@ -348,7 +348,7 @@ bool LoadBuffer::ReadObjectMember(void *object, const SaveLoad *sld)
 
 void SaveDumper::AllocBuffer()
 {
-	this->buf = CallocT<byte>(this->alloc_size);
+	this->buf = xcalloct<byte>(this->alloc_size);
 	*this->blocks.Append() = this->buf;
 	this->bufe = this->buf + this->alloc_size;
 }

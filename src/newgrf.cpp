@@ -1854,7 +1854,7 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 	}
 
 	/* Allocate station specs if necessary */
-	if (_cur.grffile->stations == NULL) _cur.grffile->stations = CallocT<StationSpec*>(NUM_STATIONS_PER_GRF);
+	if (_cur.grffile->stations == NULL) _cur.grffile->stations = xcalloct<StationSpec*>(NUM_STATIONS_PER_GRF);
 
 	for (int i = 0; i < numinfo; i++) {
 		StationSpec *statspec = _cur.grffile->stations[stid + i];
@@ -1870,7 +1870,7 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 				StationSpec **spec = &_cur.grffile->stations[stid + i];
 
 				/* Property 0x08 is special; it is where the station is allocated */
-				if (*spec == NULL) *spec = CallocT<StationSpec>(1);
+				if (*spec == NULL) *spec = xcalloct<StationSpec>();
 
 				/* Swap classid because we read it in BE meaning WAYP or DFLT */
 				uint32 classid = buf->ReadDWord();
@@ -2171,7 +2171,7 @@ static ChangeInfoResult BridgeChangeInfo(uint brid, int numinfo, int prop, ByteR
 
 				if (bridge->sprite_table == NULL) {
 					/* Allocate memory for sprite table pointers and zero out */
-					bridge->sprite_table = CallocT<PalSpriteID*>(7);
+					bridge->sprite_table = xcalloct<PalSpriteID*>(7);
 				}
 
 				for (; numtables-- != 0; tableid++) {
@@ -2312,7 +2312,7 @@ static ChangeInfoResult TownHouseChangeInfo(uint hid, int numinfo, int prop, Byt
 
 	/* Allocate house specs if they haven't been allocated already. */
 	if (_cur.grffile->housespec == NULL) {
-		_cur.grffile->housespec = CallocT<HouseSpec*>(NUM_HOUSES_PER_GRF);
+		_cur.grffile->housespec = xcalloct<HouseSpec*>(NUM_HOUSES_PER_GRF);
 	}
 
 	for (int i = 0; i < numinfo; i++) {
@@ -2342,7 +2342,7 @@ static ChangeInfoResult TownHouseChangeInfo(uint hid, int numinfo, int prop, Byt
 				}
 
 				/* Allocate space for this house. */
-				if (*house == NULL) *house = CallocT<HouseSpec>(1);
+				if (*house == NULL) *house = xcalloct<HouseSpec>();
 
 				housespec = *house;
 
@@ -3101,7 +3101,7 @@ static ChangeInfoResult IndustrytilesChangeInfo(uint indtid, int numinfo, int pr
 
 	/* Allocate industry tile specs if they haven't been allocated already. */
 	if (_cur.grffile->indtspec == NULL) {
-		_cur.grffile->indtspec = CallocT<IndustryTileSpec*>(NUM_INDUSTRYTILES_PER_GRF);
+		_cur.grffile->indtspec = xcalloct<IndustryTileSpec*>(NUM_INDUSTRYTILES_PER_GRF);
 	}
 
 	for (int i = 0; i < numinfo; i++) {
@@ -3126,7 +3126,7 @@ static ChangeInfoResult IndustrytilesChangeInfo(uint indtid, int numinfo, int pr
 
 				/* Allocate space for this industry. */
 				if (*tilespec == NULL) {
-					*tilespec = CallocT<IndustryTileSpec>(1);
+					*tilespec = xcalloct<IndustryTileSpec>();
 					tsp = *tilespec;
 
 					memcpy(tsp, &_industry_tile_specs[subs_id], sizeof(_industry_tile_specs[subs_id]));
@@ -3339,7 +3339,7 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 
 	/* Allocate industry specs if they haven't been allocated already. */
 	if (_cur.grffile->industryspec == NULL) {
-		_cur.grffile->industryspec = CallocT<IndustrySpec*>(NUM_INDUSTRYTYPES_PER_GRF);
+		_cur.grffile->industryspec = xcalloct<IndustrySpec*>(NUM_INDUSTRYTYPES_PER_GRF);
 	}
 
 	for (int i = 0; i < numinfo; i++) {
@@ -3371,7 +3371,7 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 				 * Only need to do it once. If ever it is called again, it should not
 				 * do anything */
 				if (*indspec == NULL) {
-					*indspec = CallocT<IndustrySpec>(1);
+					*indspec = xcalloct<IndustrySpec>();
 					indsp = *indspec;
 
 					memcpy(indsp, &_origin_industry_specs[subs_id], sizeof(_industry_specs[subs_id]));
@@ -3407,8 +3407,8 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 				 * newgrf contains more data. Each tile uses either 3 or 5
 				 * bytes, so to play it safe we assume 3. */
 				uint32 def_num_tiles = buf->ReadDWord() / 3 + 1;
-				IndustryTileTable **tile_table = CallocT<IndustryTileTable*>(new_num_layouts); // Table with tiles to compose an industry
-				IndustryTileTable *itt = CallocT<IndustryTileTable>(def_num_tiles); // Temporary array to read the tile layouts from the GRF
+				IndustryTileTable **tile_table = xcalloct<IndustryTileTable*>(new_num_layouts); // Table with tiles to compose an industry
+				IndustryTileTable *itt = xcalloct<IndustryTileTable>(def_num_tiles); // Temporary array to read the tile layouts from the GRF
 				uint size;
 				const IndustryTileTable *copy_from;
 
@@ -3479,7 +3479,7 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 							new_num_layouts--;
 							j--;
 						} else {
-							tile_table[j] = CallocT<IndustryTileTable>(size);
+							tile_table[j] = xcalloct<IndustryTileTable>(size);
 							memcpy(tile_table[j], copy_from, sizeof(*copy_from) * size);
 						}
 					}
@@ -3678,7 +3678,7 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 
 	/* Allocate industry specs if they haven't been allocated already. */
 	if (_cur.grffile->airportspec == NULL) {
-		_cur.grffile->airportspec = CallocT<AirportSpec*>(NUM_AIRPORTS_PER_GRF);
+		_cur.grffile->airportspec = xcalloct<AirportSpec*>(NUM_AIRPORTS_PER_GRF);
 	}
 
 	for (int i = 0; i < numinfo; i++) {
@@ -3729,8 +3729,8 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 				as->num_table = buf->ReadByte(); // Number of layaouts
 				as->rotation = xmalloct<Direction>(as->num_table);
 				uint32 defsize = buf->ReadDWord();  // Total size of the definition
-				AirportTileTable **tile_table = CallocT<AirportTileTable*>(as->num_table); // Table with tiles to compose the airport
-				AirportTileTable *att = CallocT<AirportTileTable>(defsize); // Temporary array to read the tile layouts from the GRF
+				AirportTileTable **tile_table = xcalloct<AirportTileTable*>(as->num_table); // Table with tiles to compose the airport
+				AirportTileTable *att = xcalloct<AirportTileTable>(defsize); // Temporary array to read the tile layouts from the GRF
 				int size;
 				const AirportTileTable *copy_from;
 				try {
@@ -3782,7 +3782,7 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 								as->size_y = max<byte>(as->size_y, att[k].ti.y + 1);
 							}
 						}
-						tile_table[j] = CallocT<AirportTileTable>(size);
+						tile_table[j] = xcalloct<AirportTileTable>(size);
 						memcpy(tile_table[j], copy_from, sizeof(*copy_from) * size);
 					}
 					/* Install final layout construction in the airport spec */
@@ -3897,7 +3897,7 @@ static ChangeInfoResult ObjectChangeInfo(uint id, int numinfo, int prop, ByteRea
 
 	/* Allocate object specs if they haven't been allocated already. */
 	if (_cur.grffile->objectspec == NULL) {
-		_cur.grffile->objectspec = CallocT<ObjectSpec*>(NUM_OBJECTS_PER_GRF);
+		_cur.grffile->objectspec = xcalloct<ObjectSpec*>(NUM_OBJECTS_PER_GRF);
 	}
 
 	for (int i = 0; i < numinfo; i++) {
@@ -3916,7 +3916,7 @@ static ChangeInfoResult ObjectChangeInfo(uint id, int numinfo, int prop, ByteRea
 
 				/* Allocate space for this object. */
 				if (*ospec == NULL) {
-					*ospec = CallocT<ObjectSpec>(1);
+					*ospec = xcalloct<ObjectSpec>();
 					(*ospec)->views = 1; // Default for NewGRFs that don't set it.
 				}
 
@@ -4238,7 +4238,7 @@ static ChangeInfoResult AirportTilesChangeInfo(uint airtid, int numinfo, int pro
 
 	/* Allocate airport tile specs if they haven't been allocated already. */
 	if (_cur.grffile->airtspec == NULL) {
-		_cur.grffile->airtspec = CallocT<AirportTileSpec*>(NUM_AIRPORTTILES_PER_GRF);
+		_cur.grffile->airtspec = xcalloct<AirportTileSpec*>(NUM_AIRPORTTILES_PER_GRF);
 	}
 
 	for (int i = 0; i < numinfo; i++) {
@@ -4262,7 +4262,7 @@ static ChangeInfoResult AirportTilesChangeInfo(uint airtid, int numinfo, int pro
 
 				/* Allocate space for this airport tile. */
 				if (*tilespec == NULL) {
-					*tilespec = CallocT<AirportTileSpec>(1);
+					*tilespec = xcalloct<AirportTileSpec>();
 					tsp = *tilespec;
 
 					memcpy(tsp, AirportTileSpec::Get(subs_id), sizeof(AirportTileSpec));
@@ -4669,7 +4669,7 @@ static void NewSpriteGroup(ByteReader *buf)
 			MemCpyT(group->adjusts, adjusts.Begin(), group->num_adjusts);
 
 			group->num_ranges = buf->ReadByte();
-			if (group->num_ranges > 0) group->ranges = CallocT<DeterministicSpriteGroupRange>(group->num_ranges);
+			if (group->num_ranges > 0) group->ranges = xcalloct<DeterministicSpriteGroupRange>(group->num_ranges);
 
 			for (uint i = 0; i < group->num_ranges; i++) {
 				group->ranges[i].group = GetGroupFromGroupID(setid, type, buf->ReadWord());
@@ -4701,7 +4701,7 @@ static void NewSpriteGroup(ByteReader *buf)
 			group->cmp_mode       = HasBit(triggers, 7) ? RSG_CMP_ALL : RSG_CMP_ANY;
 			group->lowest_randbit = buf->ReadByte();
 			group->num_groups     = buf->ReadByte();
-			group->groups = CallocT<const SpriteGroup*>(group->num_groups);
+			group->groups = xcalloct<const SpriteGroup*>(group->num_groups);
 
 			for (uint i = 0; i < group->num_groups; i++) {
 				group->groups[i] = GetGroupFromGroupID(setid, type, buf->ReadWord());
@@ -4738,8 +4738,8 @@ static void NewSpriteGroup(ByteReader *buf)
 
 					group->num_loaded  = num_loaded;
 					group->num_loading = num_loading;
-					if (num_loaded  > 0) group->loaded = CallocT<const SpriteGroup*>(num_loaded);
-					if (num_loading > 0) group->loading = CallocT<const SpriteGroup*>(num_loading);
+					if (num_loaded  > 0) group->loaded = xcalloct<const SpriteGroup*>(num_loaded);
+					if (num_loading > 0) group->loading = xcalloct<const SpriteGroup*>(num_loading);
 
 					grfmsg(6, "NewSpriteGroup: New SpriteGroup 0x%02X, %u loaded, %u loading",
 							setid, num_loaded, num_loading);
@@ -6940,7 +6940,7 @@ static void FeatureTownName(ByteReader *buf)
 	grfmsg(6, "FeatureTownName: %u parts", nb);
 
 	townname->nbparts[id] = nb;
-	townname->partlist[id] = CallocT<NamePartList>(nb);
+	townname->partlist[id] = xcalloct<NamePartList>(nb);
 
 	for (int i = 0; i < nb; i++) {
 		byte nbtext =  buf->ReadByte();
@@ -6948,7 +6948,7 @@ static void FeatureTownName(ByteReader *buf)
 		townname->partlist[id][i].bitcount  = buf->ReadByte();
 		townname->partlist[id][i].maxprob   = 0;
 		townname->partlist[id][i].partcount = nbtext;
-		townname->partlist[id][i].parts     = CallocT<NamePart>(nbtext);
+		townname->partlist[id][i].parts     = xcalloct<NamePart>(nbtext);
 		grfmsg(6, "FeatureTownName: part %d contains %d texts and will use GB(seed, %d, %d)", i, nbtext, townname->partlist[id][i].bitstart, townname->partlist[id][i].bitcount);
 
 		for (int j = 0; j < nbtext; j++) {
@@ -8046,7 +8046,7 @@ void ResetNewGRFData()
 	ResetRailTypes();
 
 	/* Allocate temporary refit/cargo class data */
-	_gted = CallocT<GRFTempEngineData>(Engine::GetPoolSize());
+	_gted = xcalloct<GRFTempEngineData>(Engine::GetPoolSize());
 
 	/* Fill rail type label temporary data for default trains */
 	Engine *e;

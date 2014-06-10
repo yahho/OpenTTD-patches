@@ -358,7 +358,7 @@ static void Load_STNS(LoadBuffer *reader)
 
 		if (st->num_specs != 0) {
 			/* Allocate speclist memory when loading a game */
-			st->speclist = CallocT<StationSpecList>(st->num_specs);
+			st->speclist = xcalloct<StationSpecList>(st->num_specs);
 			for (uint i = 0; i < st->num_specs; i++) {
 				reader->ReadObject(&st->speclist[i], _station_speclist_desc);
 			}
@@ -551,7 +551,7 @@ static void Load_STNN(LoadBuffer *reader)
 
 		if (bst->num_specs != 0) {
 			/* Allocate speclist memory when loading a game */
-			bst->speclist = CallocT<StationSpecList>(bst->num_specs);
+			bst->speclist = xcalloct<StationSpecList>(bst->num_specs);
 			for (uint i = 0; i < bst->num_specs; i++) {
 				reader->ReadObject(&bst->speclist[i], _station_speclist_desc);
 			}

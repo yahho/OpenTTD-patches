@@ -171,7 +171,7 @@ void InitializeWindowViewport(Window *w, int x, int y,
 {
 	assert(w->viewport == NULL);
 
-	ViewportData *vp = CallocT<ViewportData>(1);
+	ViewportData *vp = xcalloct<ViewportData>();
 
 	vp->left = x + w->left;
 	vp->top = y + w->top;

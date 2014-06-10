@@ -376,7 +376,7 @@ static bool MakePNGImage(const char *name, ScreenshotCallback *callb, void *user
 	maxlines = Clamp(65536 / w, 16, 128);
 
 	/* now generate the bitmap bits */
-	void *buff = CallocT<uint8>(w * maxlines * bpp); // by default generate 128 lines at a time.
+	void *buff = xcalloct<uint8>(w * maxlines * bpp); // by default generate 128 lines at a time.
 
 	y = 0;
 	do {
@@ -483,7 +483,7 @@ static bool MakePCXImage(const char *name, ScreenshotCallback *callb, void *user
 	maxlines = Clamp(65536 / w, 16, 128);
 
 	/* now generate the bitmap bits */
-	uint8 *buff = CallocT<uint8>(w * maxlines); // by default generate 128 lines at a time.
+	uint8 *buff = xcalloct<uint8>(w * maxlines); // by default generate 128 lines at a time.
 
 	y = 0;
 	do {

@@ -36,8 +36,8 @@
 		ScriptObject::GetLogPointer() = new LogData();
 		LogData *log = (LogData *)ScriptObject::GetLogPointer();
 
-		log->lines = CallocT<char *>(400);
-		log->type = CallocT<ScriptLog::ScriptLogType>(400);
+		log->lines = xcalloct<char *>(400);
+		log->type = xcalloct<ScriptLog::ScriptLogType>(400);
 		log->count = 400;
 		log->pos = log->count - 1;
 		log->used = 0;

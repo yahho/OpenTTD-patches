@@ -116,7 +116,7 @@ static inline DIR *dir_calloc()
 	DIR *d;
 
 	if (InterlockedExchange(&_global_dir_is_in_use, true) == (LONG)true) {
-		d = CallocT<DIR>(1);
+		d = xcalloct<DIR>();
 	} else {
 		d = &_global_dir;
 		memset(d, 0, sizeof(*d));

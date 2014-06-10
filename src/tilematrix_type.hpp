@@ -46,7 +46,7 @@ class TileMatrix {
 		this->area.Add(TileXY(grid_x + N - 1, grid_y + N - 1));
 
 		/* Allocate new storage. */
-		T *new_data = CallocT<T>(this->area.w / N * this->area.h / N);
+		T *new_data = xcalloct<T>(this->area.w / N * this->area.h / N);
 
 		if (old_w > 0) {
 			/* Copy old data if present. */

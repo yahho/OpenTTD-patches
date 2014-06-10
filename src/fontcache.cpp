@@ -109,8 +109,8 @@ SpriteID SpriteFontCache::GetUnicodeGlyph(GlyphID key) const
 
 void SpriteFontCache::SetUnicodeGlyph(GlyphID key, SpriteID sprite)
 {
-	if (this->glyph_to_spriteid_map == NULL) this->glyph_to_spriteid_map = CallocT<SpriteID*>(256);
-	if (this->glyph_to_spriteid_map[GB(key, 8, 8)] == NULL) this->glyph_to_spriteid_map[GB(key, 8, 8)] = CallocT<SpriteID>(256);
+	if (this->glyph_to_spriteid_map == NULL) this->glyph_to_spriteid_map = xcalloct<SpriteID*>(256);
+	if (this->glyph_to_spriteid_map[GB(key, 8, 8)] == NULL) this->glyph_to_spriteid_map[GB(key, 8, 8)] = xcalloct<SpriteID>(256);
 	this->glyph_to_spriteid_map[GB(key, 8, 8)][GB(key, 0, 8)] = sprite;
 }
 
@@ -427,12 +427,12 @@ void FreeTypeFontCache::SetGlyphPtr(GlyphID key, const GlyphEntry *glyph, bool d
 {
 	if (this->glyph_to_sprite == NULL) {
 		DEBUG(freetype, 3, "Allocating root glyph cache for size %u", this->fs);
-		this->glyph_to_sprite = CallocT<GlyphEntry*>(256);
+		this->glyph_to_sprite = xcalloct<GlyphEntry*>(256);
 	}
 
 	if (this->glyph_to_sprite[GB(key, 8, 8)] == NULL) {
 		DEBUG(freetype, 3, "Allocating glyph cache for range 0x%02X00, size %u", GB(key, 8, 8), this->fs);
-		this->glyph_to_sprite[GB(key, 8, 8)] = CallocT<GlyphEntry>(256);
+		this->glyph_to_sprite[GB(key, 8, 8)] = xcalloct<GlyphEntry>(256);
 	}
 
 	DEBUG(freetype, 4, "Set glyph for unicode character 0x%04X, size %u", key, this->fs);

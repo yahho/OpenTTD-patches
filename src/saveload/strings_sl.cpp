@@ -116,7 +116,7 @@ void ResetOldNames()
 void InitializeOldNames()
 {
 	free(_old_name_array);
-	_old_name_array = CallocT<char>(NUM_OLD_STRINGS * LEN_OLD_STRINGS); // 200 * 24 would be enough for TTO savegames
+	_old_name_array = xcalloct<char>(NUM_OLD_STRINGS * LEN_OLD_STRINGS); // 200 * 24 would be enough for TTO savegames
 }
 
 /**

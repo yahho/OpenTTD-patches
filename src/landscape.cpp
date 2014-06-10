@@ -571,7 +571,7 @@ bool IsSnowLineSet()
  */
 void SetSnowLine(byte table[SNOW_LINE_MONTHS][SNOW_LINE_DAYS])
 {
-	_snow_line = CallocT<SnowLine>(1);
+	_snow_line = xcalloct<SnowLine>();
 	_snow_line->lowest_value = 0xFF;
 	memcpy(_snow_line->table, table, sizeof(_snow_line->table));
 

@@ -73,7 +73,7 @@ struct NetworkUDPQueryServerInfo : NetworkAddress {
 static void NetworkUDPQueryServer(NetworkAddress *address, bool needs_mutex, bool manually)
 {
 	/* Clear item in gamelist */
-	NetworkGameList *item = CallocT<NetworkGameList>(1);
+	NetworkGameList *item = xcalloct<NetworkGameList>();
 	stringb server_name (item->info.server_name);
 	address->GetAddressAsString (&server_name);
 	bstrcpy (item->info.hostname, address->GetHostname());

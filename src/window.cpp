@@ -1399,7 +1399,7 @@ void Window::InitializeData(WindowNumber window_number)
 	this->OnInit();
 	/* Initialize nested widget tree. */
 	if (this->nested_array == NULL) {
-		this->nested_array = CallocT<NWidgetBase *>(this->nested_array_size);
+		this->nested_array = xcalloct<NWidgetBase *>(this->nested_array_size);
 		this->nested_root->SetupSmallestSize(this, true);
 	} else {
 		this->nested_root->SetupSmallestSize(this, false);
@@ -1731,7 +1731,7 @@ void Window::CreateNestedTree(bool fill_nested)
 	this->nested_array_size = (uint)(biggest_index + 1);
 
 	if (fill_nested) {
-		this->nested_array = CallocT<NWidgetBase *>(this->nested_array_size);
+		this->nested_array = xcalloct<NWidgetBase *>(this->nested_array_size);
 		this->nested_root->FillNestedArray(this->nested_array, this->nested_array_size);
 	}
 }

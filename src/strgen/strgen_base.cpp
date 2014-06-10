@@ -87,8 +87,8 @@ void LangString::FreeTranslation()
  */
 StringData::StringData(size_t tabs) : tabs(tabs), max_strings(tabs * TAB_SIZE)
 {
-	this->strings = CallocT<LangString *>(max_strings);
-	this->hash_heads = CallocT<uint16>(max_strings);
+	this->strings = xcalloct<LangString *>(max_strings);
+	this->hash_heads = xcalloct<uint16>(max_strings);
 	this->next_string_id = 0;
 }
 

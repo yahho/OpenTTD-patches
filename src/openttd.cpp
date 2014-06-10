@@ -1247,10 +1247,10 @@ static void CheckCaches()
 		uint length = 0;
 		for (const Vehicle *u = v; u != NULL; u = u->Next()) length++;
 
-		NewGRFCache        *grf_cache = CallocT<NewGRFCache>(length);
-		VehicleCache       *veh_cache = CallocT<VehicleCache>(length);
-		GroundVehicleCache *gro_cache = CallocT<GroundVehicleCache>(length);
-		TrainCache         *tra_cache = CallocT<TrainCache>(length);
+		NewGRFCache        *grf_cache = xcalloct<NewGRFCache>(length);
+		VehicleCache       *veh_cache = xcalloct<VehicleCache>(length);
+		GroundVehicleCache *gro_cache = xcalloct<GroundVehicleCache>(length);
+		TrainCache         *tra_cache = xcalloct<TrainCache>(length);
 
 		length = 0;
 		for (const Vehicle *u = v; u != NULL; u = u->Next()) {

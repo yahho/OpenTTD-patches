@@ -739,7 +739,7 @@ bool NetworkServerStart()
 	DEBUG(net, 1, "starting listeners for incoming server queries");
 	_network_udp_server = _udp_server_socket->Listen();
 
-	_network_company_states = CallocT<NetworkCompanyState>(MAX_COMPANIES);
+	_network_company_states = xcalloct<NetworkCompanyState>(MAX_COMPANIES);
 	_network_server = true;
 	_networking = true;
 	_frame_counter = 0;
@@ -930,7 +930,7 @@ void NetworkGameLoop()
 			}
 
 			if (strncmp(p, "cmd: ", 5) == 0) {
-				cp = CallocT<CommandPacket>(1);
+				cp = xcalloct<CommandPacket>();
 				int company;
 				int ret = sscanf(p + 5, "%x; %x; %x; %x; %x; %x; %x; \"%[^\"]\"", &next_date, &next_date_fract, &company, &cp->tile, &cp->p1, &cp->p2, &cp->cmd, cp->text);
 				/* There are 8 pieces of data to read, however the last is a
@@ -943,7 +943,7 @@ void NetworkGameLoop()
 				int ret = sscanf(p + 6, "%x; %x", &next_date, &next_date_fract);
 				assert(ret == 2);
 				DEBUG(net, 0, "injecting pause for join at %08x:%02x; please join when paused", next_date, next_date_fract);
-				cp = CallocT<CommandPacket>(1);
+				cp = xcalloct<CommandPacket>();
 				cp->company = COMPANY_SPECTATOR;
 				cp->cmd = CMD_PAUSE;
 				cp->p1 = PM_PAUSED_NORMAL;

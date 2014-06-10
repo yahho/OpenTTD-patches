@@ -37,6 +37,15 @@ void *xmalloc (size_t n, size_t size)
 	return xmalloc (total);
 }
 
+/** Allocate zeroed dynamic memory, and error out on failure. */
+void *xcalloc (size_t n, size_t size)
+{
+	if (n == 0 || size == 0) return NULL;
+	void *p = calloc (n, size);
+	if (p == NULL) out_of_memory();
+	return p;
+}
+
 
 /**
  * Function to exit with an error message after malloc() or calloc() have failed

@@ -59,8 +59,8 @@ void AllocateMap(uint size_x, uint size_y)
 	free(_mth);
 	free(_mc);
 
-	_mth = CallocT<TileZH>(map_size.size);
-	_mc = CallocT<Tile>(map_size.size);
+	_mth = xcalloct<TileZH>(map_size.size);
+	_mc = xcalloct<Tile>(map_size.size);
 
 	TileSetBase::reset_all();
 }

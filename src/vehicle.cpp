@@ -1753,7 +1753,7 @@ FreeUnitIDGenerator::FreeUnitIDGenerator(VehicleType type, CompanyID owner) : ca
 	/* Reserving 'maxid + 2' because we need:
 	 * - space for the last item (with v->unitnumber == maxid)
 	 * - one free slot working as loop terminator in FreeUnitIDGenerator::NextID() */
-	this->cache = CallocT<bool>(this->maxid + 2);
+	this->cache = xcalloct<bool>(this->maxid + 2);
 
 	/* Fill the cache */
 	FOR_ALL_VEHICLES(v) {

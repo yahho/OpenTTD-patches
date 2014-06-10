@@ -848,7 +848,7 @@ GRFTextWrapper *FindUnknownGRFName(uint32 grfid, uint8 *md5sum, bool create)
 
 	if (!create) return NULL;
 
-	grf = CallocT<UnknownGRF>(1);
+	grf = xcalloct<UnknownGRF>();
 	grf->grfid = grfid;
 	grf->next  = unknown_grfs;
 	grf->name = new GRFTextWrapper();

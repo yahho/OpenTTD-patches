@@ -125,7 +125,7 @@ public:
 	{
 		if (this->count < count) {
 			free(this->buffer);
-			this->buffer = CallocT<T>(count);
+			this->buffer = xcalloct<T>(count);
 			this->count = count;
 		} else {
 			memset(this->buffer, 0, sizeof(T) * count);
@@ -158,14 +158,14 @@ public:
 	 * @param size the amount of bytes to allocate.
 	 * @return the given amounts of bytes zeroed.
 	 */
-	inline void *operator new(size_t size) { return CallocT<byte>(size); }
+	inline void *operator new(size_t size) { return xcalloct<byte>(size); }
 
 	/**
 	 * Memory allocator for an array of class instances.
 	 * @param size the amount of bytes to allocate.
 	 * @return the given amounts of bytes zeroed.
 	 */
-	inline void *operator new[](size_t size) { return CallocT<byte>(size); }
+	inline void *operator new[](size_t size) { return xcalloct<byte>(size); }
 
 	/**
 	 * Memory release for a single class instance.

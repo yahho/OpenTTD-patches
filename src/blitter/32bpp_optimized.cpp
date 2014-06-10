@@ -277,8 +277,8 @@ Sprite *Blitter_32bppOptimized::Encode(const SpriteLoader::Sprite *sprite, Alloc
 
 		uint size = src_orig->height * src_orig->width;
 
-		dst_px_orig[z] = CallocT<Colour>(size + src_orig->height * 2);
-		dst_n_orig[z]  = CallocT<uint16>(size * 2 + src_orig->height * 4 * 2);
+		dst_px_orig[z] = xcalloct<Colour>(size + src_orig->height * 2);
+		dst_n_orig[z]  = xcalloct<uint16>(size * 2 + src_orig->height * 4 * 2);
 
 		uint32 *dst_px_ln = (uint32 *)dst_px_orig[z];
 		uint32 *dst_n_ln  = (uint32 *)dst_n_orig[z];

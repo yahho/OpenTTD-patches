@@ -116,7 +116,7 @@ DEFINE_POOL_METHOD(inline void *)::AllocateItem(size_t size, size_t index)
 			memset((void *)item, 0, sizeof(Titem));
 		}
 	} else if (Tzero) {
-		item = (Titem *)CallocT<byte>(size);
+		item = (Titem *)xcalloct<byte>(size);
 	} else {
 		item = (Titem *) xmalloc (size);
 	}

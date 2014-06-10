@@ -78,7 +78,7 @@ struct PacketReader : LoadFilter {
 		/* Allocate a new chunk and add the remaining data. */
 		pbuf += to_write;
 		to_write   = in_packet - to_write;
-		this->buf  = *this->blocks.Append() = CallocT<byte>(CHUNK);
+		this->buf  = *this->blocks.Append() = xcalloct<byte>(CHUNK);
 		this->bufe = this->buf + CHUNK;
 
 		memcpy(this->buf, pbuf, to_write);

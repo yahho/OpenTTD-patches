@@ -26,6 +26,15 @@ static inline T *xmalloct (size_t n = 1)
 	}
 }
 
+void *xcalloc (size_t n, size_t size);
+
+/** Allocate zeroed dynamic memory for a given type, and error out on failure. */
+template <typename T>
+static inline T *xcalloct (size_t n = 1)
+{
+	return (T*) xcalloc (n, sizeof(T));
+}
+
 /*
  * Functions to exit badly with an error message.
  * It has to be linked so the error messages are not
@@ -57,31 +66,6 @@ template <typename T>
 static inline void CheckAllocationConstraints(size_t num_elements)
 {
 	CheckAllocationConstraints(sizeof(T), num_elements);
-}
-
-/**
- * Simplified allocation function that allocates the specified number of
- * elements of the given type. It also explicitly casts it to the requested
- * type.
- * @note throws an error when there is no memory anymore.
- * @note the memory contains all zero values.
- * @tparam T the type of the variable(s) to allocation.
- * @param num_elements the number of elements to allocate of the given type.
- * @return NULL when num_elements == 0, non-NULL otherwise.
- */
-template <typename T>
-static inline T *CallocT(size_t num_elements)
-{
-	/*
-	 * MorphOS cannot handle 0 elements allocations, or rather that always
-	 * returns NULL. So we do that for *all* allocations, thus causing it
-	 * to behave the same on all OSes.
-	 */
-	if (num_elements == 0) return NULL;
-
-	T *t_ptr = (T*)calloc(num_elements, sizeof(T));
-	if (t_ptr == NULL) MallocError(num_elements * sizeof(T));
-	return t_ptr;
 }
 
 /**

@@ -95,7 +95,7 @@ NetworkGameList *NetworkGameListAddItem(NetworkAddress address)
 		prev_item = item;
 	}
 
-	item = CallocT<NetworkGameList>(1);
+	item = xcalloct<NetworkGameList>();
 	item->next = NULL;
 	item->address = address;
 

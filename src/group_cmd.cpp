@@ -31,7 +31,7 @@ INSTANTIATE_POOL_METHODS(Group)
 
 GroupStatistics::GroupStatistics()
 {
-	this->num_engines = CallocT<uint16>(Engine::GetPoolSize());
+	this->num_engines = xcalloct<uint16>(Engine::GetPoolSize());
 }
 
 GroupStatistics::~GroupStatistics()
@@ -50,7 +50,7 @@ void GroupStatistics::Clear()
 
 	/* This is also called when NewGRF change. So the number of engines might have changed. Reallocate. */
 	free(this->num_engines);
-	this->num_engines = CallocT<uint16>(Engine::GetPoolSize());
+	this->num_engines = xcalloct<uint16>(Engine::GetPoolSize());
 }
 
 /**

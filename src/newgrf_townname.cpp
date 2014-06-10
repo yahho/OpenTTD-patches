@@ -34,7 +34,7 @@ GRFTownName *AddGRFTownName(uint32 grfid)
 {
 	GRFTownName *t = GetGRFTownName(grfid);
 	if (t == NULL) {
-		t = CallocT<GRFTownName>(1);
+		t = xcalloct<GRFTownName>();
 		t->grfid = grfid;
 		t->next = _grf_townnames;
 		_grf_townnames = t;

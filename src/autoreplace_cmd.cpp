@@ -450,8 +450,8 @@ static CommandCost ReplaceChain(Vehicle **chain, DoCommandFlag flags, bool wagon
 		int num_units = 0; ///< Number of units in the chain
 		for (Train *w = Train::From(old_head); w != NULL; w = w->GetNextUnit()) num_units++;
 
-		Train **old_vehs = CallocT<Train *>(num_units); ///< Will store vehicles of the old chain in their order
-		Train **new_vehs = CallocT<Train *>(num_units); ///< New vehicles corresponding to old_vehs or NULL if no replacement
+		Train **old_vehs = xcalloct<Train *>(num_units); ///< Will store vehicles of the old chain in their order
+		Train **new_vehs = xcalloct<Train *>(num_units); ///< New vehicles corresponding to old_vehs or NULL if no replacement
 		Money *new_costs = xmalloct<Money>(num_units);   ///< Costs for buying and refitting the new vehicles
 
 		/* Collect vehicles and build replacements
