@@ -71,21 +71,3 @@ void *xrealloc (void *p, size_t n, size_t size)
 	if (total / size != n) out_of_memory();
 	return xrealloc (p, total);
 }
-
-/**
- * Function to exit with an error message after malloc() or calloc() have failed
- * @param size number of bytes we tried to allocate
- */
-void NORETURN MallocError(size_t size)
-{
-	error("Out of memory. Cannot allocate " PRINTF_SIZE " bytes", size);
-}
-
-/**
- * Function to exit with an error message after realloc() have failed
- * @param size number of bytes we tried to allocate
- */
-void NORETURN ReallocError(size_t size)
-{
-	error("Out of memory. Cannot reallocate " PRINTF_SIZE " bytes", size);
-}

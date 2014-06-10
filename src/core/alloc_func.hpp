@@ -49,42 +49,21 @@ static inline T *xrealloct (T *p, size_t n)
 	}
 }
 
-/*
- * Functions to exit badly with an error message.
- * It has to be linked so the error messages are not
- * duplicated in each object file making the final
- * binary needlessly large.
- */
-
-void NORETURN MallocError(size_t size);
-void NORETURN ReallocError(size_t size);
-
 /**
  * Checks whether allocating memory would overflow size_t.
  *
  * @param element_size Size of the structure to allocate.
  * @param num_elements Number of elements to allocate.
  */
-static inline void CheckAllocationConstraints(size_t element_size, size_t num_elements)
+static inline void alloca_check (size_t element_size, size_t num_elements)
 {
-	if (num_elements > SIZE_MAX / element_size) MallocError(SIZE_MAX);
-}
-
-/**
- * Checks whether allocating memory would overflow size_t.
- *
- * @tparam T Structure to allocate.
- * @param num_elements Number of elements to allocate.
- */
-template <typename T>
-static inline void CheckAllocationConstraints(size_t num_elements)
-{
-	CheckAllocationConstraints(sizeof(T), num_elements);
+	/* alloca is not the right thing to use way before we reach this limit */
+	assert (num_elements < SIZE_MAX / element_size);
 }
 
 /** alloca() has to be called in the parent function, so define AllocaM() as a macro */
 #define AllocaM(T, num_elements) \
-	(CheckAllocationConstraints<T>(num_elements), \
+	(alloca_check (sizeof(T), num_elements), \
 	(T*)alloca((num_elements) * sizeof(T)))
 
 #endif /* ALLOC_FUNC_HPP */
