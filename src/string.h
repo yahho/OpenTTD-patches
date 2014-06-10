@@ -24,6 +24,9 @@
 #include "core/alloc_func.hpp"
 
 
+#ifdef _GNU_SOURCE
+#define ttd_strnlen strnlen
+#else
 /**
  * Get the length of a string, within a limited buffer.
  *
@@ -37,6 +40,7 @@ static inline size_t ttd_strnlen(const char *str, size_t maxlen)
 	for (t = str; (size_t)(t - str) < maxlen && *t != '\0'; t++) {}
 	return t - str;
 }
+#endif
 
 void ttd_strlcpy(char *dst, const char *src, size_t size);
 
