@@ -85,7 +85,7 @@ public:
 		if (num_items > this->capacity) {
 			this->capacity = num_items;
 			free(this->data);
-			this->data = MallocT<T>(num_items);
+			this->data = xmalloct<T>(num_items);
 			MemCpyT(this->data, other[0], num_items);
 		} else if (num_items > 0) {
 			MemCpyT(this->data, other[0], num_items);
@@ -220,7 +220,7 @@ public:
 		void (*copy)(T *dest, const T *src, size_t count) = NULL;
 		if (new_capacity > this->capacity) {
 			/* If the data doesn't fit into current capacity, resize and copy ... */
-			new_data = MallocT<T>(new_capacity);
+			new_data = xmalloct<T>(new_capacity);
 			copy = &MemCpyT<T>;
 		} else {
 			/* ... otherwise just move the columns around, if necessary. */

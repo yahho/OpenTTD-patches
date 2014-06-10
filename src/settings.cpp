@@ -660,7 +660,7 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 				if (sld->type != SL_STR) {
 					assert(sld->type == SL_VAR);
 					assert(GetVarMemType(sld->conv) == SLE_VAR_CHAR);
-					new_value = MallocT<char> (2);
+					new_value = xmalloc (2);
 					new_value[0] = *(char*)ptr;
 					new_value[1] = '\0';
 				} else {

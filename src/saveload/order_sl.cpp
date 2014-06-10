@@ -141,7 +141,7 @@ static void Load_ORDR(LoadBuffer *reader)
 			/* Pre-version 5 had another layout for orders
 			 * (uint16 instead of uint32) */
 			len /= sizeof(uint16);
-			uint16 *orders = MallocT<uint16>(len + 1);
+			uint16 *orders = xmalloct<uint16>(len + 1);
 
 			reader->ReadArray(orders, len, SLE_UINT16);
 
@@ -153,7 +153,7 @@ static void Load_ORDR(LoadBuffer *reader)
 			free(orders);
 		} else if (reader->IsOTTDVersionBefore(5, 2)) {
 			len /= sizeof(uint32);
-			uint32 *orders = MallocT<uint32>(len + 1);
+			uint32 *orders = xmalloct<uint32>(len + 1);
 
 			reader->ReadArray(orders, len, SLE_UINT32);
 

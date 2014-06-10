@@ -182,7 +182,7 @@ static bool MakeBMPImage(const char *name, ScreenshotCallback *callb, void *user
 	/* Try to use 64k of memory, store between 16 and 128 lines */
 	uint maxlines = Clamp(65536 / (w * pixelformat / 8), 16, 128); // number of lines per iteration
 
-	uint8 *buff = MallocT<uint8>(maxlines * w * pixelformat / 8); // buffer which is rendered to
+	uint8 *buff = xmalloct<uint8>(maxlines * w * pixelformat / 8); // buffer which is rendered to
 	uint8 *line = AllocaM(uint8, bytewidth); // one line, stored to file
 	memset(line, 0, bytewidth);
 

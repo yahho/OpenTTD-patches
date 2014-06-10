@@ -46,7 +46,7 @@ void SetWagonOverrideSprites(EngineID engine, CargoID cargo, const SpriteGroup *
 	wo->group = group;
 	wo->cargo = cargo;
 	wo->trains = trains;
-	wo->train_id = MallocT<EngineID>(trains);
+	wo->train_id = xmalloct<EngineID>(trains);
 	memcpy(wo->train_id, train_id, trains * sizeof *train_id);
 }
 

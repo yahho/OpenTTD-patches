@@ -132,7 +132,7 @@ private:
 	 */
 	void *operator new(size_t size, size_t extra)
 	{
-		return MallocT<byte>(size + extra);
+		return xmalloct<byte>(size + extra);
 	}
 
 public:
@@ -336,7 +336,7 @@ struct UnmappedChoiceList : ZeroedMemoryAllocator {
  */
 char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newlines, const char *str, int *olen, StringControlCode byte80)
 {
-	char *tmp = MallocT<char>(strlen(str) * 10 + 1); // Allocate space to allow for expansion
+	char *tmp = xmalloc (strlen(str) * 10 + 1); // Allocate space to allow for expansion
 	char *d = tmp;
 	bool unicode = false;
 	WChar c;
@@ -485,7 +485,7 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 								grfmsg(1, "duplicate choice list string, ignoring");
 								d++;
 							} else {
-								d = mapping->strings[index] = MallocT<char>(strlen(str) * 10 + 1);
+								d = mapping->strings[index] = xmalloc (strlen(str) * 10 + 1);
 							}
 						}
 						break;

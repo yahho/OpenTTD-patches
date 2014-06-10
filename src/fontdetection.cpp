@@ -194,7 +194,7 @@ static const char *GetEnglishFontName(const ENUMLOGFONTEX *logfont)
 	dw = GetFontData(dc, 'eman', 0, NULL, 0);
 	if (dw == GDI_ERROR) goto err2;
 
-	buf = MallocT<byte>(dw);
+	buf = xmalloct<byte>(dw);
 	dw = GetFontData(dc, 'eman', 0, buf, dw);
 	if (dw == GDI_ERROR) goto err3;
 

@@ -722,7 +722,7 @@ void DoScanNewGRFFiles(void *callback)
 		/* Sort the linked list using quicksort.
 		* For that we first have to make an array, then sort and
 		* then remake the linked list. */
-		GRFConfig **to_sort = MallocT<GRFConfig*>(num);
+		GRFConfig **to_sort = xmalloct<GRFConfig*>(num);
 
 		uint i = 0;
 		for (GRFConfig *p = _all_grfs; p != NULL; p = p->next, i++) {

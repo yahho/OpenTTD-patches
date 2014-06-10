@@ -102,7 +102,7 @@ StringID *GetGRFTownNameList()
 {
 	int nb_names = 0, n = 0;
 	for (GRFTownName *t = _grf_townnames; t != NULL; t = t->next) nb_names += t->nb_gen;
-	StringID *list = MallocT<StringID>(nb_names + 1);
+	StringID *list = xmalloct<StringID>(nb_names + 1);
 	for (GRFTownName *t = _grf_townnames; t != NULL; t = t->next) {
 		for (int j = 0; j < t->nb_gen; j++) list[n++] = t->name[j];
 	}

@@ -607,7 +607,7 @@ static GRFList *GenerateGRFList(const GRFConfig *grfc)
 		if (IsLoggableGrfConfig(g)) n++;
 	}
 
-	GRFList *list = (GRFList*)MallocT<byte>(sizeof(GRFList) + n * sizeof(GRFConfig*));
+	GRFList *list = (GRFList*) xmalloc (sizeof(GRFList) + n * sizeof(GRFConfig*));
 
 	list->n = 0;
 	for (const GRFConfig *g = grfc; g != NULL; g = g->next) {

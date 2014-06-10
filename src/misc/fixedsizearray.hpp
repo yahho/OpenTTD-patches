@@ -57,7 +57,7 @@ public:
 		assert_compile(C < (SIZE_MAX - HeaderSize) / Tsize);
 
 		/* allocate block for header + items (don't construct items) */
-		data = (T*)((MallocT<byte>(HeaderSize + C * Tsize)) + HeaderSize);
+		data = (T*)(xmalloc (HeaderSize + C * Tsize) + HeaderSize);
 		SizeRef() = 0; // initial number of items
 		RefCnt() = 1; // initial reference counter
 	}

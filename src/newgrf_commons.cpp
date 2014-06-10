@@ -45,7 +45,7 @@ OverrideManagerBase::OverrideManagerBase(uint16 offset, uint16 maximum, uint16 i
 	invalid_ID = invalid;
 
 	mapping_ID = CallocT<EntityIDMapping>(max_new_entities);
-	entity_overrides = MallocT<uint16>(max_offset);
+	entity_overrides = xmalloct<uint16>(max_offset);
 	for (size_t i = 0; i < max_offset; i++) entity_overrides[i] = invalid;
 	grfid_overrides = CallocT<uint32>(max_offset);
 }
@@ -581,7 +581,7 @@ void NewGRFSpriteLayout::Clone(const DrawTileSeqStruct *source)
 	const DrawTileSeqStruct *element;
 	foreach_draw_tile_seq(element, source) count++;
 
-	DrawTileSeqStruct *sprites = MallocT<DrawTileSeqStruct>(count);
+	DrawTileSeqStruct *sprites = xmalloct<DrawTileSeqStruct>(count);
 	MemCpyT(sprites, source, count);
 	this->seq = sprites;
 }
@@ -599,7 +599,7 @@ void NewGRFSpriteLayout::Clone(const NewGRFSpriteLayout *source)
 		const DrawTileSeqStruct *element;
 		foreach_draw_tile_seq(element, source->seq) count++;
 
-		TileLayoutRegisters *regs = MallocT<TileLayoutRegisters>(count);
+		TileLayoutRegisters *regs = xmalloct<TileLayoutRegisters>(count);
 		MemCpyT(regs, source->registers, count);
 		this->registers = regs;
 	}

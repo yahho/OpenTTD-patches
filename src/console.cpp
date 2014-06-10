@@ -254,7 +254,7 @@ char *RemoveUnderscores(char *name)
  */
 void IConsoleCmdRegister(const char *name, IConsoleCmdProc *proc, IConsoleHook *hook)
 {
-	IConsoleCmd *item_new = MallocT<IConsoleCmd>(1);
+	IConsoleCmd *item_new = xmalloct<IConsoleCmd>();
 	item_new->name = RemoveUnderscores(strdup(name));
 	item_new->next = NULL;
 	item_new->proc = proc;
@@ -292,7 +292,7 @@ void IConsoleAliasRegister(const char *name, const char *cmd)
 
 	char *new_alias = RemoveUnderscores(strdup(name));
 	char *cmd_aliased = strdup(cmd);
-	IConsoleAlias *item_new = MallocT<IConsoleAlias>(1);
+	IConsoleAlias *item_new = xmalloct<IConsoleAlias>();
 
 	item_new->next = NULL;
 	item_new->cmdline = cmd_aliased;

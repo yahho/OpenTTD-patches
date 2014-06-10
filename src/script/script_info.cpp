@@ -59,7 +59,7 @@ bool ScriptInfo::CheckMethod(const char *name) const
 /* static */ SQInteger ScriptInfo::Constructor(HSQUIRRELVM vm, ScriptInfo *info)
 {
 	/* Set some basic info from the parent */
-	info->SQ_instance = MallocT<SQObject>(1);
+	info->SQ_instance = xmalloct<SQObject>();
 	Squirrel::GetInstance(vm, info->SQ_instance, 2);
 	/* Make sure the instance stays alive over time */
 	sq_addref(vm, info->SQ_instance);

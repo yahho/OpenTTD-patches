@@ -59,7 +59,7 @@ static CommandCallback * const _callback_table[] = {
  */
 void CommandQueue::Append(CommandPacket *p)
 {
-	CommandPacket *add = MallocT<CommandPacket>(1);
+	CommandPacket *add = xmalloct<CommandPacket>();
 	*add = *p;
 	add->next = NULL;
 	if (this->first == NULL) {

@@ -558,7 +558,7 @@ static void ReadTTDPatchFlags(SavegameTypeVersion *stv)
 	 * and 1 becomes 2. The rest of the values are okay */
 	if (_old_vehicle_multiplier < 2) _old_vehicle_multiplier++;
 
-	_old_vehicle_names = MallocT<StringID>(_old_vehicle_multiplier * 850);
+	_old_vehicle_names = xmalloct<StringID>(_old_vehicle_multiplier * 850);
 
 	/* TTDPatch increases the Vehicle-part in the middle of the game,
 	 * so if the multiplier is anything else but 1, the assert fails..

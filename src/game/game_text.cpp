@@ -190,7 +190,7 @@ struct TranslationWriter : LanguageWriter {
 
 	void Write(const byte *buffer, size_t length)
 	{
-		char *dest = MallocT<char>(length + 1);
+		char *dest = xmalloc (length + 1);
 		memcpy(dest, buffer, length);
 		dest[length] = '\0';
 		*this->strings->Append() = dest;

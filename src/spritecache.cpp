@@ -225,7 +225,7 @@ static bool PadSingleSprite(SpriteLoader::Sprite *sprite, ZoomLevel zoom, uint p
 	if (width > UINT16_MAX || height > UINT16_MAX) return false;
 
 	/* Copy source data and reallocate sprite memory. */
-	SpriteLoader::CommonPixel *src_data = MallocT<SpriteLoader::CommonPixel>(sprite->width * sprite->height);
+	SpriteLoader::CommonPixel *src_data = xmalloct<SpriteLoader::CommonPixel>(sprite->width * sprite->height);
 	MemCpyT(src_data, sprite->data, sprite->width * sprite->height);
 	sprite->AllocateData(zoom, width * height);
 

@@ -592,7 +592,7 @@ char *BuildDirPath (uint n, const char *const *parts)
 		total += lengths[i] = strlen (parts[i]);
 	}
 
-	char *buf = MallocT<char> (total);
+	char *buf = xmalloc (total);
 	char *p = buf;
 
 	for (uint i = 0; i < n; i++) {
@@ -1311,7 +1311,7 @@ void *ReadFileToMem(const char *filename, size_t *lenp, size_t maxsize)
 		fclose(in);
 		return NULL;
 	}
-	byte *mem = MallocT<byte>(len + 1);
+	byte *mem = xmalloct<byte>(len + 1);
 	mem[len] = 0;
 	if (fread(mem, len, 1, in) != 1) {
 		fclose(in);

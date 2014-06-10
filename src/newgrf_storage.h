@@ -107,7 +107,7 @@ struct PersistentStorageArray : BasePersistentStorageArray {
 		if (AreChangesPersistent()) {
 			assert(this->prev_storage == NULL);
 		} else if (this->prev_storage == NULL) {
-			this->prev_storage = MallocT<TYPE>(SIZE);
+			this->prev_storage = xmalloct<TYPE>(SIZE);
 			memcpy(this->prev_storage, this->storage, sizeof(this->storage));
 
 			/* We only need to register ourselves when we made the backup

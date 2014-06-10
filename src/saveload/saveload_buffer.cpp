@@ -139,7 +139,7 @@ void LoadBuffer::ReadString(void *ptr, StrType conv, size_t length)
 			*pptr = NULL;
 			return;
 		} else {
-			*pptr = MallocT<char>(len + 1); // terminating '\0'
+			*pptr = xmalloc (len + 1); // terminating '\0'
 			ptr = *pptr;
 			this->CopyBytes(ptr, len);
 		}

@@ -67,7 +67,7 @@ static bool WarnCorruptSprite(uint8 file_slot, size_t file_pos, int line)
  */
 bool DecodeSingleSprite(SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_pos, SpriteType sprite_type, int64 num, byte type, ZoomLevel zoom_lvl, byte colour_fmt, byte container_format)
 {
-	AutoFreePtr<byte> dest_orig(MallocT<byte>(num));
+	AutoFreePtr<byte> dest_orig(xmalloct<byte>(num));
 	byte *dest = dest_orig;
 	const int64 dest_size = num;
 

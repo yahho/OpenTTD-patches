@@ -33,7 +33,7 @@ static void PrepareHeader(WAVEHDR *hdr)
 {
 	hdr->dwBufferLength = _bufsize * 4;
 	hdr->dwFlags = 0;
-	hdr->lpData = MallocT<char>(_bufsize * 4);
+	hdr->lpData = xmalloc (_bufsize * 4);
 	if (waveOutPrepareHeader(_waveout, hdr, sizeof(WAVEHDR)) != MMSYSERR_NOERROR) throw "waveOutPrepareHeader failed";
 }
 

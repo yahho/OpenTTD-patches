@@ -118,7 +118,7 @@ DEFINE_POOL_METHOD(inline void *)::AllocateItem(size_t size, size_t index)
 	} else if (Tzero) {
 		item = (Titem *)CallocT<byte>(size);
 	} else {
-		item = (Titem *)MallocT<byte>(size);
+		item = (Titem *) xmalloc (size);
 	}
 	this->data[index] = item;
 	item->index = (uint)index;

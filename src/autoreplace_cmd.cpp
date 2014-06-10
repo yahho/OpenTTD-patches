@@ -452,7 +452,7 @@ static CommandCost ReplaceChain(Vehicle **chain, DoCommandFlag flags, bool wagon
 
 		Train **old_vehs = CallocT<Train *>(num_units); ///< Will store vehicles of the old chain in their order
 		Train **new_vehs = CallocT<Train *>(num_units); ///< New vehicles corresponding to old_vehs or NULL if no replacement
-		Money *new_costs = MallocT<Money>(num_units);   ///< Costs for buying and refitting the new vehicles
+		Money *new_costs = xmalloct<Money>(num_units);   ///< Costs for buying and refitting the new vehicles
 
 		/* Collect vehicles and build replacements
 		 * Note: The replacement vehicles can only successfully build as long as the old vehicles are still in their chain */

@@ -88,7 +88,7 @@ void ScriptInstance::Initialize(const char *main_script, const char *instance_na
 		}
 
 		/* Create the main-class */
-		this->instance = MallocT<SQObject>(1);
+		this->instance = xmalloct<SQObject>();
 		if (!this->engine->CreateClassInstance(instance_name, this->controller, this->instance)) {
 			this->Died();
 			return;

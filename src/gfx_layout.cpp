@@ -288,11 +288,11 @@ public:
 FallbackParagraphLayout::FallbackVisualRun::FallbackVisualRun(Font *font, const WChar *chars, int char_count, int x) :
 		font(font), glyph_count(char_count)
 {
-	this->glyphs = MallocT<GlyphID>(this->glyph_count);
-	this->glyph_to_char = MallocT<int>(this->glyph_count);
+	this->glyphs = xmalloct<GlyphID>(this->glyph_count);
+	this->glyph_to_char = xmalloct<int>(this->glyph_count);
 
 	/* Positions contains the location of the begin of each of the glyphs, and the end of the last one. */
-	this->positions = MallocT<float>(this->glyph_count * 2 + 2);
+	this->positions = xmalloct<float>(this->glyph_count * 2 + 2);
 	this->positions[0] = x;
 	this->positions[1] = 0;
 
@@ -573,7 +573,7 @@ static inline void GetLayouter(Layouter::LineCacheItem &line, const char *&str, 
 {
 	if (line.buffer != NULL) free(line.buffer);
 
-	typename T::CharType *buff_begin = MallocT<typename T::CharType>(DRAW_STRING_BUFFER);
+	typename T::CharType *buff_begin = xmalloct<typename T::CharType>(DRAW_STRING_BUFFER);
 	const typename T::CharType *buffer_last = buff_begin + DRAW_STRING_BUFFER;
 	typename T::CharType *buff = buff_begin;
 	FontMap &fontMapping = line.runs;

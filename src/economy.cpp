@@ -566,7 +566,7 @@ static void CompanyCheckBankrupt(Company *c)
 
 		/* Warn about bankruptcy after 3 months */
 		case 4: {
-			CompanyNewsInformation *cni = MallocT<CompanyNewsInformation>(1);
+			CompanyNewsInformation *cni = xmalloct<CompanyNewsInformation>();
 			cni->FillData(c);
 			SetDParam(0, STR_NEWS_COMPANY_IN_TROUBLE_TITLE);
 			SetDParam(1, STR_NEWS_COMPANY_IN_TROUBLE_DESCRIPTION);
@@ -1808,7 +1808,7 @@ static void DoAcquireCompany(Company *c)
 {
 	CompanyID ci = c->index;
 
-	CompanyNewsInformation *cni = MallocT<CompanyNewsInformation>(1);
+	CompanyNewsInformation *cni = xmalloct<CompanyNewsInformation>();
 	cni->FillData(c, Company::Get(_current_company));
 
 	SetDParam(0, STR_NEWS_COMPANY_MERGER_TITLE);

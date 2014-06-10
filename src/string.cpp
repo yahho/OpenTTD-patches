@@ -120,7 +120,7 @@ char *CDECL str_fmt(const char *str, ...)
 	va_start(va, str);
 	int len = vsnprintf(buf, lengthof(buf), str, va);
 	va_end(va);
-	char *p = MallocT<char>(len + 1);
+	char *p = xmalloc (len + 1);
 	memcpy(p, buf, len + 1);
 	return p;
 }

@@ -66,11 +66,11 @@ bool ClientNetworkContentSocketHandler::Receive_SERVER_INFO(Packet *p)
 	}
 
 	ci->dependency_count = p->Recv_uint8();
-	ci->dependencies = MallocT<ContentID>(ci->dependency_count);
+	ci->dependencies = xmalloct<ContentID>(ci->dependency_count);
 	for (uint i = 0; i < ci->dependency_count; i++) ci->dependencies[i] = (ContentID)p->Recv_uint32();
 
 	ci->tag_count = p->Recv_uint8();
-	ci->tags = MallocT<char[32]>(ci->tag_count);
+	ci->tags = xmalloct<char[32]>(ci->tag_count);
 	for (uint i = 0; i < ci->tag_count; i++) p->Recv_string(ci->tags[i], lengthof(*ci->tags));
 
 	if (!ci->IsValid()) {
@@ -331,7 +331,7 @@ void ClientNetworkContentSocketHandler::DownloadSelectedContentHTTP(const Conten
 	 * which is uint32 so 10 characters long. Then the newlines and
 	 * multiply that all with the count and then add the '\0'. */
 	uint bytes = (10 + 1) * count + 1;
-	char *content_request = MallocT<char>(bytes);
+	char *content_request = xmalloc (bytes);
 	stringb buffer (bytes, content_request);
 
 	for (const ContentID *id = content.Begin(); id != content.End(); id++) {

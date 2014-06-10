@@ -425,7 +425,7 @@ void FiosGetSavegameList(SaveLoadDialogMode mode)
 	static char *fios_save_path = NULL;
 
 	if (fios_save_path == NULL) {
-		fios_save_path = MallocT<char>(MAX_PATH);
+		fios_save_path = xmalloc (MAX_PATH);
 		FioGetDirectory(fios_save_path, MAX_PATH, SAVE_DIR);
 	}
 
@@ -476,7 +476,7 @@ void FiosGetScenarioList(SaveLoadDialogMode mode)
 
 	/* Copy the default path on first run or on 'New Game' */
 	if (fios_scn_path == NULL) {
-		fios_scn_path = MallocT<char>(MAX_PATH);
+		fios_scn_path = xmalloc (MAX_PATH);
 		FioGetDirectory(fios_scn_path, MAX_PATH, SCENARIO_DIR);
 	}
 
@@ -541,7 +541,7 @@ void FiosGetHeightmapList(SaveLoadDialogMode mode)
 	static char *fios_hmap_path = NULL;
 
 	if (fios_hmap_path == NULL) {
-		fios_hmap_path = MallocT<char>(MAX_PATH);
+		fios_hmap_path = xmalloc (MAX_PATH);
 		FioGetDirectory(fios_hmap_path, MAX_PATH, HEIGHTMAP_DIR);
 	}
 
@@ -562,7 +562,7 @@ const char *FiosGetScreenshotDir()
 	static char *fios_screenshot_path = NULL;
 
 	if (fios_screenshot_path == NULL) {
-		fios_screenshot_path = MallocT<char>(MAX_PATH);
+		fios_screenshot_path = xmalloc (MAX_PATH);
 		FioGetDirectory(fios_screenshot_path, MAX_PATH, SCREENSHOT_DIR);
 	}
 

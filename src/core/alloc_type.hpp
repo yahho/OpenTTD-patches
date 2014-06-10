@@ -35,7 +35,7 @@ struct SmallStackSafeStackAlloc {
 	size_t len;
 
 	/** Allocating the memory */
-	SmallStackSafeStackAlloc() : data(MallocT<T>(length)), len(length) {}
+	SmallStackSafeStackAlloc() : data(xmalloct<T>(length)), len(length) {}
 
 	/** And freeing when it goes out of scope */
 	~SmallStackSafeStackAlloc()
@@ -108,7 +108,7 @@ public:
 	{
 		if (this->count < count) {
 			free(this->buffer);
-			this->buffer = MallocT<T>(count);
+			this->buffer = xmalloct<T>(count);
 			this->count = count;
 		}
 		return this->buffer;

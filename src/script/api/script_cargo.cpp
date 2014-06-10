@@ -32,7 +32,7 @@
 
 	/* cargo->label is a uint32 packing a 4 character non-terminated string,
 	 * like "PASS", "COAL", "OIL_". New ones can be defined by NewGRFs */
-	char *cargo_label = MallocT<char>(sizeof(cargo->label) + 1);
+	char *cargo_label = xmalloc (sizeof(cargo->label) + 1);
 	for (uint i = 0; i < sizeof(cargo->label); i++) {
 		cargo_label[i] = GB(cargo->label, (uint8)(sizeof(cargo->label) - i - 1) * 8, 8);
 	}

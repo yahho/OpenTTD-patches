@@ -1739,7 +1739,7 @@ bool ReadLanguagePack(const LanguageMetadata *lang)
 	}
 
 	/* Allocate offsets */
-	char **langpack_offs = MallocT<char *>(count);
+	char **langpack_offs = xmalloct<char *>(count);
 
 	/* Fill offsets */
 	char *s = lang_pack->data;

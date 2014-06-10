@@ -65,7 +65,7 @@ public:
 		: items(0)
 		, capacity(max_items)
 	{
-		this->data = MallocT<T *>(max_items + 1);
+		this->data = xmalloct<T *>(max_items + 1);
 	}
 
 	~CBinaryHeapT()

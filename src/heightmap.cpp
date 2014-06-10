@@ -154,7 +154,7 @@ static bool ReadHeightmapPNG(char *filename, uint *x, uint *y, byte **map)
 	}
 
 	if (map != NULL) {
-		*map = MallocT<byte>(width * height);
+		*map = xmalloct<byte>(width * height);
 		ReadHeightmapPNGImageData(*map, png_ptr, info_ptr);
 	}
 
@@ -270,7 +270,7 @@ static bool ReadHeightmapBMP(char *filename, uint *x, uint *y, byte **map)
 			return false;
 		}
 
-		*map = MallocT<byte>(info.width * info.height);
+		*map = xmalloct<byte>(info.width * info.height);
 		ReadHeightmapBMPImageData(*map, &info, &data);
 	}
 

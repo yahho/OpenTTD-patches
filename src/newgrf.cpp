@@ -1985,7 +1985,7 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 					}
 
 					p = 0;
-					layout = MallocT<byte>(length * number);
+					layout = xmalloct<byte>(length * number);
 					try {
 						for (l = 0; l < length; l++) {
 							for (p = 0; p < number; p++) {
@@ -2182,7 +2182,7 @@ static ChangeInfoResult BridgeChangeInfo(uint brid, int numinfo, int prop, ByteR
 					}
 
 					if (bridge->sprite_table[tableid] == NULL) {
-						bridge->sprite_table[tableid] = MallocT<PalSpriteID>(32);
+						bridge->sprite_table[tableid] = xmalloct<PalSpriteID>(32);
 					}
 
 					for (byte sprite = 0; sprite < 32; sprite++) {
@@ -3546,7 +3546,7 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 
 			case 0x15: { // Random sound effects
 				indsp->number_of_sounds = buf->ReadByte();
-				uint8 *sounds = MallocT<uint8>(indsp->number_of_sounds);
+				uint8 *sounds = xmalloct<uint8>(indsp->number_of_sounds);
 
 				try {
 					for (uint8 j = 0; j < indsp->number_of_sounds; j++) {
@@ -3643,18 +3643,18 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
  */
 static void DuplicateTileTable(AirportSpec *as)
 {
-	AirportTileTable **table_list = MallocT<AirportTileTable*>(as->num_table);
+	AirportTileTable **table_list = xmalloct<AirportTileTable*>(as->num_table);
 	for (int i = 0; i < as->num_table; i++) {
 		uint num_tiles = 1;
 		const AirportTileTable *it = as->table[0];
 		do {
 			num_tiles++;
 		} while ((++it)->ti.x != -0x80);
-		table_list[i] = MallocT<AirportTileTable>(num_tiles);
+		table_list[i] = xmalloct<AirportTileTable>(num_tiles);
 		MemCpyT(table_list[i], as->table[i], num_tiles);
 	}
 	as->table = table_list;
-	HangarTileTable *depot_table = MallocT<HangarTileTable>(as->nof_depots);
+	HangarTileTable *depot_table = xmalloct<HangarTileTable>(as->nof_depots);
 	MemCpyT(depot_table, as->depot_table, as->nof_depots);
 	as->depot_table = depot_table;
 }
@@ -3709,7 +3709,7 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 				 * Only need to do it once. If ever it is called again, it should not
 				 * do anything */
 				if (*spec == NULL) {
-					*spec = MallocT<AirportSpec>(1);
+					*spec = xmalloct<AirportSpec>();
 					as = *spec;
 
 					memcpy(as, AirportSpec::GetWithoutOverride(subs_id), sizeof(*as));
@@ -3727,7 +3727,7 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 
 			case 0x0A: { // Set airport layout
 				as->num_table = buf->ReadByte(); // Number of layaouts
-				as->rotation = MallocT<Direction>(as->num_table);
+				as->rotation = xmalloct<Direction>(as->num_table);
 				uint32 defsize = buf->ReadDWord();  // Total size of the definition
 				AirportTileTable **tile_table = CallocT<AirportTileTable*>(as->num_table); // Table with tiles to compose the airport
 				AirportTileTable *att = CallocT<AirportTileTable>(defsize); // Temporary array to read the tile layouts from the GRF
@@ -4665,7 +4665,7 @@ static void NewSpriteGroup(ByteReader *buf)
 			} while (HasBit(varadjust, 5));
 
 			group->num_adjusts = adjusts.Length();
-			group->adjusts = MallocT<DeterministicSpriteGroupAdjust>(group->num_adjusts);
+			group->adjusts = xmalloct<DeterministicSpriteGroupAdjust>(group->num_adjusts);
 			MemCpyT(group->adjusts, adjusts.Begin(), group->num_adjusts);
 
 			group->num_ranges = buf->ReadByte();
@@ -5918,7 +5918,7 @@ static void CfgApply(ByteReader *buf)
 
 	/* Check if the sprite is a pseudo sprite. We can't operate on real sprites. */
 	if (type == 0xFF) {
-		preload_sprite = MallocT<byte>(num);
+		preload_sprite = xmalloct<byte>(num);
 		FioReadBlock(preload_sprite, num);
 	}
 
@@ -6988,7 +6988,7 @@ static void DefineGotoLabel(ByteReader *buf)
 
 	byte nfo_label = buf->ReadByte();
 
-	GRFLabel *label = MallocT<GRFLabel>(1);
+	GRFLabel *label = xmalloct<GRFLabel>();
 	label->label    = nfo_label;
 	label->nfo_line = _cur.nfo_line;
 	label->pos      = FioGetPos();

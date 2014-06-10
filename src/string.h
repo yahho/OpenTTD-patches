@@ -595,7 +595,7 @@ struct sstring : stringt<sstring_<N> > {
 
 /** Fixed allocated string with (some) built-in bounds checking. */
 struct stringp : stringb {
-	stringp (size_t capacity) : stringb (capacity, MallocT<char>(capacity))
+	stringp (size_t capacity) : stringb (capacity, xmalloc(capacity))
 	{
 		assert (buffer[0] == '\0'); // should have been set by stringb constructor
 	}

@@ -30,7 +30,7 @@ Packet::Packet(NetworkSocketHandler *cs)
 	this->next   = NULL;
 	this->pos    = 0; // We start reading from here
 	this->size   = 0;
-	this->buffer = MallocT<byte>(SEND_MTU);
+	this->buffer = xmalloct<byte>(SEND_MTU);
 }
 
 /**
@@ -45,7 +45,7 @@ Packet::Packet(PacketType type)
 	/* Skip the size so we can write that in before sending the packet */
 	this->pos                  = 0;
 	this->size                 = sizeof(PacketSize);
-	this->buffer               = MallocT<byte>(SEND_MTU);
+	this->buffer               = xmalloct<byte>(SEND_MTU);
 	this->buffer[this->size++] = type;
 }
 

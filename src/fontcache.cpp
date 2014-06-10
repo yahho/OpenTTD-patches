@@ -443,7 +443,7 @@ void FreeTypeFontCache::SetGlyphPtr(GlyphID key, const GlyphEntry *glyph, bool d
 
 static void *AllocateFont(size_t size)
 {
-	return MallocT<byte>(size);
+	return xmalloc (size);
 }
 
 
@@ -616,7 +616,7 @@ const void *FreeTypeFontCache::GetFontTable(uint32 tag, size_t &length)
 	FT_Load_Sfnt_Table(this->face, tag, 0, NULL, &len);
 
 	if (len > 0) {
-		result = MallocT<FT_Byte>(len);
+		result = xmalloct<FT_Byte>(len);
 		FT_Load_Sfnt_Table(this->face, tag, 0, result, &len);
 	}
 	length = len;

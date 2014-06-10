@@ -77,7 +77,7 @@
 	company = ResolveCompanyID(company);
 
 	static const size_t len = 64;
-	char *president_name = MallocT<char>(len);
+	char *president_name = xmalloc (len);
 	if (company != COMPANY_INVALID) {
 		stringb tmp (len, president_name);
 		::SetDParam(0, company);

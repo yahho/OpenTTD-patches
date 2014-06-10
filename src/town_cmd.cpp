@@ -2841,7 +2841,7 @@ static CommandCost TownActionBuyRights(Town *t, DoCommandFlag flags)
 		SetWindowClassesDirty(WC_STATION_VIEW);
 
 		/* Spawn news message */
-		CompanyNewsInformation *cni = MallocT<CompanyNewsInformation>(1);
+		CompanyNewsInformation *cni = xmalloct<CompanyNewsInformation>();
 		cni->FillData(Company::Get(_current_company));
 		SetDParam(0, STR_NEWS_EXCLUSIVE_RIGHTS_TITLE);
 		SetDParam(1, STR_NEWS_EXCLUSIVE_RIGHTS_DESCRIPTION);

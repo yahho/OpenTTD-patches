@@ -11,6 +11,33 @@
 
 #include "../stdafx.h"
 
+#include <stdlib.h>
+
+/** Trigger an abort on out of memory. */
+static void NORETURN out_of_memory (void)
+{
+	error ("Out of memory.");
+}
+
+/** Allocate uninitialised dynamic memory, and error out on failure. */
+char *xmalloc (size_t size)
+{
+	if (size == 0) return NULL;
+	void *p = malloc (size);
+	if (p == NULL) out_of_memory();
+	return (char*) p;
+}
+
+/** Allocate uninitialised dynamic memory, and error out on failure. */
+void *xmalloc (size_t n, size_t size)
+{
+	if (n == 0 || size == 0) return NULL;
+	size_t total = n * size;
+	if (total / size != n) out_of_memory();
+	return xmalloc (total);
+}
+
+
 /**
  * Function to exit with an error message after malloc() or calloc() have failed
  * @param size number of bytes we tried to allocate

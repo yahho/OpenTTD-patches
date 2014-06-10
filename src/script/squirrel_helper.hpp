@@ -145,7 +145,7 @@ namespace SQConvert {
 		}
 		sq_pop(vm, 2);
 
-		Array *arr = (Array*)MallocT<byte>(sizeof(Array) + sizeof(int32) * data.Length());
+		Array *arr = (Array*) xmalloc (sizeof(Array) + sizeof(int32) * data.Length());
 		arr->size = data.Length();
 		memcpy(arr->array, data.Begin(), sizeof(int32) * data.Length());
 

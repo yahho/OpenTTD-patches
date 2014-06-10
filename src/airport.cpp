@@ -170,7 +170,7 @@ static uint16 AirportGetNofElements(const AirportFTAbuildup *apFA)
  */
 static AirportFTA *AirportBuildAutomata(uint nofelements, const AirportFTAbuildup *apFA)
 {
-	AirportFTA *FAutomata = MallocT<AirportFTA>(nofelements);
+	AirportFTA *FAutomata = xmalloct<AirportFTA>(nofelements);
 	uint16 internalcounter = 0;
 
 	for (uint i = 0; i < nofelements; i++) {
@@ -182,7 +182,7 @@ static AirportFTA *AirportBuildAutomata(uint nofelements, const AirportFTAbuildu
 
 		/* outgoing nodes from the same position, create linked list */
 		while (current->position == apFA[internalcounter + 1].position) {
-			AirportFTA *newNode = MallocT<AirportFTA>(1);
+			AirportFTA *newNode = xmalloct<AirportFTA>();
 
 			newNode->position      = apFA[internalcounter + 1].position;
 			newNode->heading       = apFA[internalcounter + 1].heading;

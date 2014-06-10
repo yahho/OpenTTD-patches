@@ -113,7 +113,7 @@ static bool SetBankSource(MixerChannel *mc, const SoundEntry *sound)
 	/* Check for valid sound size. */
 	if (sound->file_size == 0 || sound->file_size > ((size_t)-1) - 2) return false;
 
-	int8 *mem = MallocT<int8>(sound->file_size + 2);
+	int8 *mem = xmalloct<int8>(sound->file_size + 2);
 	/* Add two extra bytes so rate conversion can read these
 	 * without reading out of its input buffer. */
 	mem[sound->file_size    ] = 0;
