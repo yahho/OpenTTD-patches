@@ -46,6 +46,31 @@ void *xcalloc (size_t n, size_t size)
 	return p;
 }
 
+/** Reallocate dynamic memory, and error out on failure. */
+char *xrealloc (void *p, size_t size)
+{
+	if (size == 0) {
+		free (p);
+		return NULL;
+	}
+
+	void *q = realloc (p, size);
+	if (q == NULL) out_of_memory();
+	return (char*) q;
+}
+
+/** Reallocate dynamic memory, and error out on failure. */
+void *xrealloc (void *p, size_t n, size_t size)
+{
+	if (n == 0 || size == 0) {
+		free (p);
+		return NULL;
+	}
+
+	size_t total = n * size;
+	if (total / size != n) out_of_memory();
+	return xrealloc (p, total);
+}
 
 /**
  * Function to exit with an error message after malloc() or calloc() have failed

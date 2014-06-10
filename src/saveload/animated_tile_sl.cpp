@@ -50,7 +50,7 @@ static void Load_ANIT(LoadBuffer *reader)
 	_animated_tile_allocated = 256;
 	while (_animated_tile_allocated < _animated_tile_count) _animated_tile_allocated *= 2;
 
-	_animated_tile_list = ReallocT<TileIndex>(_animated_tile_list, _animated_tile_allocated);
+	_animated_tile_list = xrealloct<TileIndex>(_animated_tile_list, _animated_tile_allocated);
 	reader->ReadArray(_animated_tile_list, _animated_tile_count, SLE_UINT32);
 }
 

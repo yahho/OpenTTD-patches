@@ -57,7 +57,7 @@ void AddAnimatedTile(TileIndex tile)
 	/* Table not large enough, so make it larger */
 	if (_animated_tile_count == _animated_tile_allocated) {
 		_animated_tile_allocated *= 2;
-		_animated_tile_list = ReallocT<TileIndex>(_animated_tile_list, _animated_tile_allocated);
+		_animated_tile_list = xrealloct<TileIndex>(_animated_tile_list, _animated_tile_allocated);
 	}
 
 	_animated_tile_list[_animated_tile_count] = tile;
@@ -91,7 +91,7 @@ void AnimateAnimatedTiles()
  */
 void InitializeAnimatedTiles()
 {
-	_animated_tile_list = ReallocT<TileIndex>(_animated_tile_list, 256);
+	_animated_tile_list = xrealloct<TileIndex>(_animated_tile_list, 256);
 	_animated_tile_count = 0;
 	_animated_tile_allocated = 256;
 }

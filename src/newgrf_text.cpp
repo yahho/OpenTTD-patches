@@ -566,7 +566,7 @@ string_end:
 
 	*d = '\0';
 	if (olen != NULL) *olen = d - tmp + 1;
-	tmp = ReallocT(tmp, d - tmp + 1);
+	tmp = xrealloc (tmp, d - tmp + 1);
 	return tmp;
 }
 

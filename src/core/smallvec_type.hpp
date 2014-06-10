@@ -123,7 +123,7 @@ public:
 		if (capacity >= this->capacity) return;
 
 		this->capacity = capacity;
-		this->data = ReallocT(this->data, this->capacity);
+		this->data = xrealloct (this->data, this->capacity);
 	}
 
 	/**
@@ -138,7 +138,7 @@ public:
 
 		if (this->items > this->capacity) {
 			this->capacity = Align(this->items, S);
-			this->data = ReallocT(this->data, this->capacity);
+			this->data = xrealloct (this->data, this->capacity);
 		}
 
 		return &this->data[begin];
@@ -154,7 +154,7 @@ public:
 
 		if (this->items > this->capacity) {
 			this->capacity = Align(this->items, S);
-			this->data = ReallocT(this->data, this->capacity);
+			this->data = xrealloct (this->data, this->capacity);
 		}
 	}
 

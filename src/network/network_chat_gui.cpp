@@ -109,7 +109,7 @@ void NetworkReInitChatBoxSize()
 {
 	_chatmsg_box.y       = 3 * FONT_HEIGHT_NORMAL;
 	_chatmsg_box.height  = MAX_CHAT_MESSAGES * (FONT_HEIGHT_NORMAL + NETWORK_CHAT_LINE_SPACING) + 2;
-	_chatmessage_backup  = ReallocT(_chatmessage_backup, _chatmsg_box.width * _chatmsg_box.height * BlitterFactory::GetCurrentBlitter()->GetBytesPerPixel());
+	_chatmessage_backup  = xrealloct (_chatmessage_backup, _chatmsg_box.width * _chatmsg_box.height * BlitterFactory::GetCurrentBlitter()->GetBytesPerPixel());
 }
 
 /** Initialize all buffers of the chat visualisation. */
@@ -117,7 +117,7 @@ void NetworkInitChatMessage()
 {
 	MAX_CHAT_MESSAGES    = _settings_client.gui.network_chat_box_height;
 
-	_chatmsg_list        = ReallocT(_chatmsg_list, _settings_client.gui.network_chat_box_height);
+	_chatmsg_list        = xrealloct (_chatmsg_list, _settings_client.gui.network_chat_box_height);
 	_chatmsg_box.x       = 10;
 	_chatmsg_box.width   = _settings_client.gui.network_chat_box_width;
 	NetworkReInitChatBoxSize();

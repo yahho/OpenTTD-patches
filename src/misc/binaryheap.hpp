@@ -207,7 +207,7 @@ public:
 			assert(this->capacity < UINT_MAX / 2);
 
 			this->capacity *= 2;
-			this->data = ReallocT<T*>(this->data, this->capacity + 1);
+			this->data = xrealloct<T*>(this->data, this->capacity + 1);
 		}
 
 		/* Make place for new item. A gap is now at the end of the tree. */

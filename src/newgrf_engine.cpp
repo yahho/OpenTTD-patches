@@ -40,7 +40,7 @@ void SetWagonOverrideSprites(EngineID engine, CargoID cargo, const SpriteGroup *
 	assert(cargo < NUM_CARGO + 2); // Include CT_DEFAULT and CT_PURCHASE pseudo cargoes.
 
 	e->overrides_count++;
-	e->overrides = ReallocT(e->overrides, e->overrides_count);
+	e->overrides = xrealloct (e->overrides, e->overrides_count);
 
 	wo = &e->overrides[e->overrides_count - 1];
 	wo->group = group;

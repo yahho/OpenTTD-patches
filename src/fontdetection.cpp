@@ -271,7 +271,7 @@ public:
 
 		if (this->items == this->capacity) {
 			this->capacity += 10;
-			this->fonts = ReallocT(this->fonts, this->capacity);
+			this->fonts = xrealloct (this->fonts, this->capacity);
 		}
 
 		this->fonts[this->items++] = _tcsdup(font);

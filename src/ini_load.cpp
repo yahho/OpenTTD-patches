@@ -247,7 +247,7 @@ void IniLoadFile::LoadFromDisk(const char *filename, Subdirectory subdir)
 			if (ns > a) {
 				a = max(a, 128U);
 				do a *= 2; while (a < ns);
-				comment = ReallocT(comment, comment_alloc = a);
+				comment = xrealloct (comment, comment_alloc = a);
 			}
 			uint pos = comment_size;
 			comment_size += (e - s + 1);

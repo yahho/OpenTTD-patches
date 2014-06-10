@@ -123,7 +123,7 @@ public:
 		uint capacity = this->height * this->width;
 		if (capacity >= this->capacity) return;
 		this->capacity = capacity;
-		this->data = ReallocT(this->data, this->capacity);
+		this->data = xrealloct (this->data, this->capacity);
 	}
 
 	/**

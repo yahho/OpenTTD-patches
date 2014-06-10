@@ -78,7 +78,7 @@ DEFINE_NEWGRF_CLASS_METHOD(Tid)::Allocate(uint32 global_id)
 DEFINE_NEWGRF_CLASS_METHOD(void)::Insert(Tspec *spec)
 {
 	uint i = this->count++;
-	this->spec = ReallocT(this->spec, this->count);
+	this->spec = xrealloct (this->spec, this->count);
 
 	this->spec[i] = spec;
 

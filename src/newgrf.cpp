@@ -660,7 +660,7 @@ static Engine *GetNewEngine(const GRFFile *file, VehicleType type, uint16 intern
 
 	if (engine_pool_size != Engine::GetPoolSize()) {
 		/* Resize temporary engine data ... */
-		_gted = ReallocT(_gted, Engine::GetPoolSize());
+		_gted = xrealloct (_gted, Engine::GetPoolSize());
 
 		/* and blank the new block. */
 		size_t len = (Engine::GetPoolSize() - engine_pool_size) * sizeof(*_gted);
@@ -1964,10 +1964,10 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 					if (length == 0 || number == 0) break;
 
 					if (length > statspec->lengths) {
-						statspec->platforms = ReallocT(statspec->platforms, length);
+						statspec->platforms = xrealloct (statspec->platforms, length);
 						memset(statspec->platforms + statspec->lengths, 0, length - statspec->lengths);
 
-						statspec->layouts = ReallocT(statspec->layouts, length);
+						statspec->layouts = xrealloct (statspec->layouts, length);
 						memset(statspec->layouts + statspec->lengths, 0,
 						       (length - statspec->lengths) * sizeof(*statspec->layouts));
 
@@ -1976,7 +1976,7 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 					l = length - 1; // index is zero-based
 
 					if (number > statspec->platforms[l]) {
-						statspec->layouts[l] = ReallocT(statspec->layouts[l], number);
+						statspec->layouts[l] = xrealloct (statspec->layouts[l], number);
 						/* We expect NULL being 0 here, but C99 guarantees that. */
 						memset(statspec->layouts[l] + statspec->platforms[l], 0,
 						       (number - statspec->platforms[l]) * sizeof(**statspec->layouts));
@@ -3419,7 +3419,7 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 								grfmsg(3, "IndustriesChangeInfo: Incorrect size for industry tile layout definition for industry %u.", indid);
 								/* Size reported by newgrf was not big enough so enlarge the array. */
 								def_num_tiles *= 2;
-								itt = ReallocT<IndustryTileTable>(itt, def_num_tiles);
+								itt = xrealloct<IndustryTileTable>(itt, def_num_tiles);
 							}
 
 							itt[k].ti.x = buf->ReadByte(); // Offsets from northermost tile
@@ -4902,7 +4902,7 @@ static void VehicleMapSpriteGroup(ByteReader *buf, byte feature, uint8 idcount)
 				last_engines_count, idcount);
 	} else {
 		if (last_engines_count != idcount) {
-			last_engines = ReallocT(last_engines, idcount);
+			last_engines = xrealloct (last_engines, idcount);
 			last_engines_count = idcount;
 		}
 	}

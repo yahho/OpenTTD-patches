@@ -710,7 +710,7 @@ int AllocateSpecToStation(const StationSpec *statspec, BaseStation *st, bool exe
 	if (exec) {
 		if (i >= st->num_specs) {
 			st->num_specs = i + 1;
-			st->speclist = ReallocT(st->speclist, st->num_specs);
+			st->speclist = xrealloct (st->speclist, st->num_specs);
 
 			if (st->num_specs == 2) {
 				/* Initial allocation */
@@ -760,7 +760,7 @@ void DeallocateSpecFromStation(BaseStation *st, byte specindex)
 		for (; st->speclist[st->num_specs - 1].grfid == 0 && st->num_specs > 1; st->num_specs--) {}
 
 		if (st->num_specs > 1) {
-			st->speclist = ReallocT(st->speclist, st->num_specs);
+			st->speclist = xrealloct (st->speclist, st->num_specs);
 		} else {
 			free(st->speclist);
 			st->num_specs = 0;

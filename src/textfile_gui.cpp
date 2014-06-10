@@ -205,7 +205,7 @@ void TextfileWindow::SetupScrollbars()
 	FILE *handle = FioFOpenFile(textfile, "rb", dir, &filesize);
 	if (handle == NULL) return;
 
-	this->text = ReallocT(this->text, filesize + 1);
+	this->text = xrealloc (this->text, filesize + 1);
 	size_t read = fread(this->text, 1, filesize, handle);
 	fclose(handle);
 

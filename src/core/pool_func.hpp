@@ -56,7 +56,7 @@ DEFINE_POOL_METHOD(inline void)::ResizeFor(size_t index)
 
 	size_t new_size = min(Tmax_size, Align(index + 1, Tgrowth_step));
 
-	this->data = ReallocT(this->data, new_size);
+	this->data = xrealloct (this->data, new_size);
 	MemSetT(this->data + this->size, 0, new_size - this->size);
 
 	this->size = new_size;

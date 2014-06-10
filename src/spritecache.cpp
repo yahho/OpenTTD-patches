@@ -63,7 +63,7 @@ static SpriteCache *AllocateSpriteCache(uint index)
 
 		DEBUG(sprite, 4, "Increasing sprite cache to %u items (" PRINTF_SIZE " bytes)", items, items * sizeof(*_spritecache));
 
-		_spritecache = ReallocT(_spritecache, items);
+		_spritecache = xrealloct (_spritecache, items);
 
 		/* Reset the new items and update the count */
 		memset(_spritecache + _spritecache_items, 0, (items - _spritecache_items) * sizeof(*_spritecache));

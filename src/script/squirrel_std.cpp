@@ -63,7 +63,7 @@ SQInteger SquirrelStd::require(HSQUIRRELVM vm)
 	}
 	/* And now we concat, so we are relative from the current script
 	 * First, we have to make sure we have enough space for the full path */
-	real_filename = ReallocT(real_filename, scstrlen(real_filename) + scstrlen(filename) + 1);
+	real_filename = xrealloct (real_filename, scstrlen(real_filename) + scstrlen(filename) + 1);
 	scstrcat(real_filename, filename);
 	/* Tars dislike opening files with '/' on Windows.. so convert it to '\\' ;) */
 	char *filen = strdup(SQ2OTTD(real_filename));

@@ -1164,7 +1164,7 @@ void GetBroadestDigit(uint *front, uint *next, FontSize size)
 void ScreenSizeChanged()
 {
 	_dirty_bytes_per_line = CeilDiv(_screen.width, DIRTY_BLOCK_WIDTH);
-	_dirty_blocks = ReallocT<byte>(_dirty_blocks, _dirty_bytes_per_line * CeilDiv(_screen.height, DIRTY_BLOCK_HEIGHT));
+	_dirty_blocks = xrealloct<byte>(_dirty_blocks, _dirty_bytes_per_line * CeilDiv(_screen.height, DIRTY_BLOCK_HEIGHT));
 
 	/* check the dirty rect */
 	if (_invalid_rect.right >= _screen.width) _invalid_rect.right = _screen.width;

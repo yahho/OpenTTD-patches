@@ -35,6 +35,20 @@ static inline T *xcalloct (size_t n = 1)
 	return (T*) xcalloc (n, sizeof(T));
 }
 
+char *xrealloc (void *p, size_t size);
+void *xrealloc (void *p, size_t n, size_t size);
+
+/** Reallocate dynamic memory for a given type, and error out on failure. */
+template <typename T>
+static inline T *xrealloct (T *p, size_t n)
+{
+	if (sizeof(T) == 1) {
+		return (T*) xrealloc (p, n);
+	} else {
+		return (T*) xrealloc (p, n, sizeof(T));
+	}
+}
+
 /*
  * Functions to exit badly with an error message.
  * It has to be linked so the error messages are not
@@ -66,38 +80,6 @@ template <typename T>
 static inline void CheckAllocationConstraints(size_t num_elements)
 {
 	CheckAllocationConstraints(sizeof(T), num_elements);
-}
-
-/**
- * Simplified reallocation function that allocates the specified number of
- * elements of the given type. It also explicitly casts it to the requested
- * type. It extends/shrinks the memory allocation given in t_ptr.
- * @note throws an error when there is no memory anymore.
- * @note the pointer to the data may change, but the data will remain valid.
- * @tparam T the type of the variable(s) to allocation.
- * @param t_ptr the previous allocation to extend/shrink.
- * @param num_elements the number of elements to allocate of the given type.
- * @return NULL when num_elements == 0, non-NULL otherwise.
- */
-template <typename T>
-static inline T *ReallocT(T *t_ptr, size_t num_elements)
-{
-	/*
-	 * MorphOS cannot handle 0 elements allocations, or rather that always
-	 * returns NULL. So we do that for *all* allocations, thus causing it
-	 * to behave the same on all OSes.
-	 */
-	if (num_elements == 0) {
-		free(t_ptr);
-		return NULL;
-	}
-
-	/* Ensure the size does not overflow. */
-	CheckAllocationConstraints<T>(num_elements);
-
-	t_ptr = (T*)realloc(t_ptr, num_elements * sizeof(T));
-	if (t_ptr == NULL) ReallocError(num_elements * sizeof(T));
-	return t_ptr;
 }
 
 /** alloca() has to be called in the parent function, so define AllocaM() as a macro */
