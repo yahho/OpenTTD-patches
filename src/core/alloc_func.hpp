@@ -12,6 +12,8 @@
 #ifndef ALLOC_FUNC_HPP
 #define ALLOC_FUNC_HPP
 
+void NORETURN out_of_memory (void);
+
 char *xmalloc (size_t size);
 void *xmalloc (size_t n, size_t size);
 

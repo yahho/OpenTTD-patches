@@ -136,6 +136,20 @@ char *xstrndup (const char *s, size_t n)
 	return xstrmemdup (s, ttd_strnlen (s, n));
 }
 
+/** Allocate a formatted string. */
+static char *str_vfmt (const char *fmt, va_list args)
+{
+#ifdef _GNU_SOURCE
+	char *s;
+	if (vasprintf (&s, fmt, args) == -1) out_of_memory();
+	return s;
+#else
+	char buf[4096];
+	int len = vsnprintf (buf, lengthof(buf), fmt, args);
+	return (char*) xmemdup (buf, len + 1);
+#endif
+}
+
 /**
  * Format, "printf", into a newly allocated string.
  * @param str The formatting string.
@@ -143,13 +157,11 @@ char *xstrndup (const char *s, size_t n)
  */
 char *CDECL str_fmt(const char *str, ...)
 {
-	char buf[4096];
 	va_list va;
-
 	va_start(va, str);
-	int len = vsnprintf(buf, lengthof(buf), str, va);
+	char *s = str_vfmt (str, va);
 	va_end(va);
-	return (char*) xmemdup (buf, len + 1);
+	return s;
 }
 
 

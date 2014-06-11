@@ -13,8 +13,10 @@
 
 #include <stdlib.h>
 
+#include "alloc_func.hpp"
+
 /** Trigger an abort on out of memory. */
-static void NORETURN out_of_memory (void)
+void NORETURN out_of_memory (void)
 {
 	error ("Out of memory.");
 }
