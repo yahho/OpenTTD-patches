@@ -304,7 +304,7 @@ static char *MakeOneOfMany (const char *many, int id)
 	if (end == NULL) {
 		return xstrdup (many);
 	} else {
-		return strndup (many, end - many);
+		return xstrmemdup (many, end - many);
 	}
 }
 

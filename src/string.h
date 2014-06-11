@@ -60,6 +60,7 @@ void ttd_strlcpy(char *dst, const char *src, size_t size);
 
 
 char *xstrdup (const char *s);
+char *xstrmemdup (const char *s, size_t n);
 
 char *CDECL str_fmt(const char *str, ...) WARN_FORMAT(1, 2);
 

@@ -114,6 +114,21 @@ char *xstrdup (const char *s)
 	return (char*) xmemdup (s, strlen(s) + 1);
 }
 
+/**
+ * Allocate a copy of a given string, with bounded size, and error out
+ * on failure.
+ *
+ * Note! This is not the same as strndup, because it assumes that the
+ * string passed in is at least of the required size, unlike strndup,
+ * which will check if there is a null in the requested initial segment.
+ */
+char *xstrmemdup (const char *s, size_t n)
+{
+	char *p = xmalloc (n + 1);
+	memcpy (p, s, n);
+	p[n] = '\0';
+	return p;
+}
 
 /**
  * Format, "printf", into a newly allocated string.
@@ -134,10 +149,7 @@ char *CDECL str_fmt(const char *str, ...)
 #ifdef DEFINE_STRNDUP
 char *strndup(const char *s, size_t len)
 {
-	len = ttd_strnlen(s, len);
-	char *tmp = xcalloct<char>(len + 1);
-	memcpy(tmp, s, len);
-	return tmp;
+	return xstrmemdup (s, ttd_strnlen (s, len));
 }
 #endif /* DEFINE_STRNDUP */
 

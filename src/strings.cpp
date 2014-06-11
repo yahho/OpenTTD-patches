@@ -880,8 +880,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 
 						sub_args.SetParam(i++, param);
 					} else {
-						char *g = strdup(s);
-						g[p - s] = '\0';
+						char *g = xstrmemdup (s, p - s);
 
 						sub_args_need_free[i] = true;
 						sub_args.SetParam(i++, (uint64)(size_t)g);
