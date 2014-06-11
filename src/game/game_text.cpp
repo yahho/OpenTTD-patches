@@ -65,7 +65,7 @@ void NORETURN CDECL strgen_fatal(const char *s, ...)
  */
 LanguageStrings::LanguageStrings(const char *language, const char *end)
 {
-	this->language = end == NULL ? xstrdup(language) : strndup(language, end - language);
+	this->language = end == NULL ? xstrdup(language) : xstrndup(language, end - language);
 }
 
 /** Free everything. */
@@ -114,7 +114,7 @@ LanguageStrings *ReadRawLanguageStrings(const char *file)
 			while (i > 0 && (buffer[i - 1] == '\r' || buffer[i - 1] == '\n' || buffer[i - 1] == ' ')) i--;
 			buffer[i] = '\0';
 
-			*ret->lines.Append() = strndup(buffer, to_read);
+			*ret->lines.Append() = xstrndup(buffer, to_read);
 
 			if (len > to_read) {
 				to_read = 0;

@@ -61,16 +61,10 @@ void ttd_strlcpy(char *dst, const char *src, size_t size);
 
 char *xstrdup (const char *s);
 char *xstrmemdup (const char *s, size_t n);
+char *xstrndup (const char *s, size_t n);
 
 char *CDECL str_fmt(const char *str, ...) WARN_FORMAT(1, 2);
 
-/* strndup is a GNU extension */
-#if defined(_GNU_SOURCE) || (defined(__NetBSD_Version__) && 400000000 <= __NetBSD_Version__) || (defined(__FreeBSD_version) && 701101 <= __FreeBSD_version) || (defined(__DARWIN_C_LEVEL) && __DARWIN_C_LEVEL >= 200809L)
-#	undef DEFINE_STRNDUP
-#else
-#	define DEFINE_STRNDUP
-char *strndup(const char *s, size_t len);
-#endif /* strndup is available */
 
 /* strcasestr is available for _GNU_SOURCE, BSD and some Apple */
 #if defined(_GNU_SOURCE) || (defined(__BSD_VISIBLE) && __BSD_VISIBLE) || (defined(__APPLE__) && (!defined(_POSIX_C_SOURCE) || defined(_DARWIN_C_SOURCE))) || defined(_NETBSD_SOURCE)

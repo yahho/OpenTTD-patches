@@ -130,6 +130,12 @@ char *xstrmemdup (const char *s, size_t n)
 	return p;
 }
 
+/** Allocate a copy of a given string, with bounded size, and error out on failure. */
+char *xstrndup (const char *s, size_t n)
+{
+	return xstrmemdup (s, ttd_strnlen (s, n));
+}
+
 /**
  * Format, "printf", into a newly allocated string.
  * @param str The formatting string.
@@ -146,12 +152,6 @@ char *CDECL str_fmt(const char *str, ...)
 	return (char*) xmemdup (buf, len + 1);
 }
 
-#ifdef DEFINE_STRNDUP
-char *strndup(const char *s, size_t len)
-{
-	return xstrmemdup (s, ttd_strnlen (s, len));
-}
-#endif /* DEFINE_STRNDUP */
 
 #ifdef DEFINE_STRCASESTR
 char *strcasestr(const char *haystack, const char *needle)

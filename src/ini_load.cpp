@@ -25,8 +25,8 @@ IniItem::IniItem(IniGroup *parent, const char *name, size_t len) : next(NULL), v
 {
 	if (len == 0) len = strlen(name);
 
-	this->name = strndup(name, len);
-	if (this->name != NULL) str_validate(this->name, this->name + len);
+	this->name = xstrndup(name, len);
+	str_validate(this->name, this->name + len);
 
 	*parent->last_item = this;
 	parent->last_item = &this->next;
@@ -62,8 +62,8 @@ IniGroup::IniGroup(IniLoadFile *parent, const char *name, size_t len) : next(NUL
 {
 	if (len == 0) len = strlen(name);
 
-	this->name = strndup(name, len);
-	if (this->name != NULL) str_validate(this->name, this->name + len);
+	this->name = xstrndup(name, len);
+	str_validate(this->name, this->name + len);
 
 	this->last_item = &this->item;
 	*parent->last_group = this;
@@ -266,7 +266,7 @@ void IniLoadFile::LoadFromDisk(const char *filename, Subdirectory subdir)
 			s++; // skip [
 			group = new IniGroup(this, s, e - s);
 			if (comment_size != 0) {
-				group->comment = strndup(comment, comment_size);
+				group->comment = xstrndup(comment, comment_size);
 				comment_size = 0;
 			}
 		} else if (group != NULL) {
@@ -274,7 +274,7 @@ void IniLoadFile::LoadFromDisk(const char *filename, Subdirectory subdir)
 				/* A sequence group, use the line as item name without further interpretation. */
 				IniItem *item = new IniItem(group, buffer, e - buffer);
 				if (comment_size) {
-					item->comment = strndup(comment, comment_size);
+					item->comment = xstrndup(comment, comment_size);
 					comment_size = 0;
 				}
 				continue;
@@ -292,7 +292,7 @@ void IniLoadFile::LoadFromDisk(const char *filename, Subdirectory subdir)
 			/* it's an item in an existing group */
 			IniItem *item = new IniItem(group, s, t - s);
 			if (comment_size != 0) {
-				item->comment = strndup(comment, comment_size);
+				item->comment = xstrndup(comment, comment_size);
 				comment_size = 0;
 			}
 
@@ -308,7 +308,7 @@ void IniLoadFile::LoadFromDisk(const char *filename, Subdirectory subdir)
 			*e = '\0';
 
 			/* If the value was not quoted and empty, it must be NULL */
-			item->value = (!quoted && e == t) ? NULL : strndup(t, e - t);
+			item->value = (!quoted && e == t) ? NULL : xstrndup(t, e - t);
 			if (item->value != NULL) str_validate(item->value, item->value + strlen(item->value));
 		} else {
 			/* it's an orphan item */
@@ -317,7 +317,7 @@ void IniLoadFile::LoadFromDisk(const char *filename, Subdirectory subdir)
 	}
 
 	if (comment_size > 0) {
-		this->comment = strndup(comment, comment_size);
+		this->comment = xstrndup(comment, comment_size);
 		comment_size = 0;
 	}
 
