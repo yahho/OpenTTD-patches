@@ -68,7 +68,7 @@ CommandCost CmdRenameDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 			d->name = NULL;
 			MakeDefaultName(d);
 		} else {
-			d->name = strdup(text);
+			d->name = xstrdup(text);
 		}
 
 		/* Update the orders and depot */

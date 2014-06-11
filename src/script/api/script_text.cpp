@@ -71,7 +71,7 @@ SQInteger ScriptText::_SetParam(int parameter, HSQUIRRELVM vm)
 			const SQChar *value;
 			sq_getstring(vm, -1, &value);
 
-			this->params[parameter] = strdup(SQ2OTTD(value));
+			this->params[parameter] = xstrdup(SQ2OTTD(value));
 			ValidateString(this->params[parameter]);
 			break;
 		}

@@ -107,7 +107,7 @@ void AIConfig::SetSetting(const char *name, int value)
 		if (it != this->settings.end()) {
 			(*it).second = value;
 		} else {
-			this->settings[strdup(name)] = value;
+			this->settings[xstrdup(name)] = value;
 		}
 
 		return;

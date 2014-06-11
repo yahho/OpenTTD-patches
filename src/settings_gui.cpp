@@ -458,7 +458,7 @@ struct GameOptionsWindow : Window {
 			const char *name = T::GetSet(index)->name;
 
 			free(T::ini_set);
-			T::ini_set = strdup(name);
+			T::ini_set = xstrdup(name);
 
 			T::SetSet(name);
 			this->reload = true;

@@ -79,10 +79,10 @@ static void UpdateElement(StoryPageElement &pe, TileIndex tile, uint32 reference
 {
 	switch (pe.type) {
 		case SPET_TEXT:
-			pe.text = strdup(text);
+			pe.text = xstrdup(text);
 			break;
 		case SPET_LOCATION:
-			pe.text = strdup(text);
+			pe.text = xstrdup(text);
 			pe.referenced_id = tile;
 			break;
 		case SPET_GOAL:
@@ -124,7 +124,7 @@ CommandCost CmdCreateStoryPage(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 		if (StrEmpty(text)) {
 			s->title = NULL;
 		} else {
-			s->title = strdup(text);
+			s->title = xstrdup(text);
 		}
 
 		InvalidateWindowClassesData(WC_STORY_BOOK, -1);
@@ -241,7 +241,7 @@ CommandCost CmdSetStoryPageTitle(TileIndex tile, DoCommandFlag flags, uint32 p1,
 		if (StrEmpty(text)) {
 			p->title = NULL;
 		} else {
-			p->title = strdup(text);
+			p->title = xstrdup(text);
 		}
 
 		InvalidateWindowClassesData(WC_STORY_BOOK, page_id);

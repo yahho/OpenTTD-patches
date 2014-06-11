@@ -49,7 +49,7 @@ IniItem::~IniItem()
 void IniItem::SetValue(const char *value)
 {
 	free(this->value);
-	this->value = strdup(value);
+	this->value = xstrdup(value);
 }
 
 /**
@@ -170,7 +170,7 @@ IniGroup *IniLoadFile::GetGroup(const char *name, size_t len, bool create_new)
 
 	/* otherwise make a new one */
 	IniGroup *group = new IniGroup(this, name, len);
-	group->comment = strdup("\n");
+	group->comment = xstrdup("\n");
 	return group;
 }
 

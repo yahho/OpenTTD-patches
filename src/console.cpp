@@ -104,7 +104,7 @@ void IConsolePrint(TextColour colour_code, const char *string)
 
 	/* Create a copy of the string, strip if of colours and invalid
 	 * characters and (when applicable) assign it to the console buffer */
-	str = strdup(string);
+	str = xstrdup(string);
 	str_strip_colours(str);
 	str_validate(str, str + strlen(str));
 
@@ -255,7 +255,7 @@ char *RemoveUnderscores(char *name)
 void IConsoleCmdRegister(const char *name, IConsoleCmdProc *proc, IConsoleHook *hook)
 {
 	IConsoleCmd *item_new = xmalloct<IConsoleCmd>();
-	item_new->name = RemoveUnderscores(strdup(name));
+	item_new->name = RemoveUnderscores(xstrdup(name));
 	item_new->next = NULL;
 	item_new->proc = proc;
 	item_new->hook = hook;
@@ -290,8 +290,8 @@ void IConsoleAliasRegister(const char *name, const char *cmd)
 		return;
 	}
 
-	char *new_alias = RemoveUnderscores(strdup(name));
-	char *cmd_aliased = strdup(cmd);
+	char *new_alias = RemoveUnderscores(xstrdup(name));
+	char *cmd_aliased = xstrdup(cmd);
 	IConsoleAlias *item_new = xmalloct<IConsoleAlias>();
 
 	item_new->next = NULL;

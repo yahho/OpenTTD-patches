@@ -2103,7 +2103,7 @@ uint NetworkServerKickOrBanIP(const char *ip, bool ban)
 				break;
 			}
 		}
-		if (!contains) *_network_ban_list.Append() = strdup(ip);
+		if (!contains) *_network_ban_list.Append() = xstrdup(ip);
 	}
 
 	uint n = 0;

@@ -18,7 +18,7 @@
 void ScriptConfig::Change(const char *name, int version, bool force_exact_match, bool is_random)
 {
 	free(this->name);
-	this->name = (name == NULL) ? NULL : strdup(name);
+	this->name = (name == NULL) ? NULL : xstrdup(name);
 	this->info = (name == NULL) ? NULL : this->FindInfo(this->name, version, force_exact_match);
 	this->version = (info == NULL) ? -1 : info->GetVersion();
 	this->is_random = is_random;
@@ -42,14 +42,14 @@ void ScriptConfig::Change(const char *name, int version, bool force_exact_match,
 
 ScriptConfig::ScriptConfig(const ScriptConfig *config)
 {
-	this->name = (config->name == NULL) ? NULL : strdup(config->name);
+	this->name = (config->name == NULL) ? NULL : xstrdup(config->name);
 	this->info = config->info;
 	this->version = config->version;
 	this->config_list = NULL;
 	this->is_random = config->is_random;
 
 	for (SettingValueList::const_iterator it = config->settings.begin(); it != config->settings.end(); it++) {
-		this->settings[strdup((*it).first)] = (*it).second;
+		this->settings[xstrdup((*it).first)] = (*it).second;
 	}
 	this->AddRandomDeviation();
 }
@@ -114,7 +114,7 @@ void ScriptConfig::SetSetting(const char *name, int value)
 	if (it != this->settings.end()) {
 		(*it).second = value;
 	} else {
-		this->settings[strdup(name)] = value;
+		this->settings[xstrdup(name)] = value;
 	}
 }
 
@@ -157,7 +157,7 @@ int ScriptConfig::GetVersion() const
 
 void ScriptConfig::StringToSettings(const char *value)
 {
-	char *value_copy = strdup(value);
+	char *value_copy = xstrdup(value);
 	char *s = value_copy;
 
 	while (s != NULL) {

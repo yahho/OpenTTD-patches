@@ -55,7 +55,7 @@ struct OskWindow : public Window {
 		this->querystrings[WID_OSK_TEXT] = this->qs;
 
 		/* make a copy in case we need to reset later */
-		this->orig_str_buf = strdup(this->qs->GetText());
+		this->orig_str_buf = xstrdup(this->qs->GetText());
 
 		this->InitNested(0);
 		this->SetFocusedWidget(WID_OSK_TEXT);
@@ -426,7 +426,7 @@ void UpdateOSKOriginalText(const Window *parent, int button)
 	if (osk == NULL || osk->parent != parent || osk->text_btn != button) return;
 
 	free(osk->orig_str_buf);
-	osk->orig_str_buf = strdup(osk->qs->GetText());
+	osk->orig_str_buf = xstrdup(osk->qs->GetText());
 
 	osk->SetDirty();
 }

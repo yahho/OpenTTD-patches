@@ -263,7 +263,7 @@ void FioOpenFile(int slot, const char *filename, Subdirectory subdir)
 
 	/* Store the filename without path and extension */
 	const char *t = strrchr(filename, PATHSEPCHAR);
-	_fio.shortnames[slot] = strdup(t == NULL ? filename : t);
+	_fio.shortnames[slot] = xstrdup(t == NULL ? filename : t);
 	char *t2 = strrchr(_fio.shortnames[slot], '.');
 	if (t2 != NULL) *t2 = '\0';
 	strtolower(_fio.shortnames[slot]);
@@ -738,7 +738,7 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 	 * been given read access. */
 	if (f == NULL) return false;
 
-	const char *dupped_filename = strdup(filename);
+	const char *dupped_filename = xstrdup(filename);
 	_tar_list[this->subdir][filename].filename = dupped_filename;
 	_tar_list[this->subdir][filename].dirname = NULL;
 
@@ -869,7 +869,7 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 
 				/* Store the first directory name we detect */
 				DEBUG(misc, 6, "Found dir in tar: %s", name);
-				if (_tar_list[this->subdir][filename].dirname == NULL) _tar_list[this->subdir][filename].dirname = strdup(name);
+				if (_tar_list[this->subdir][filename].dirname == NULL) _tar_list[this->subdir][filename].dirname = xstrdup(name);
 				break;
 
 			default:
@@ -1080,7 +1080,7 @@ static void DetermineBasePaths(const char *exe)
 #ifdef __HAIKU__
 	BPath path;
 	find_directory(B_USER_SETTINGS_DIRECTORY, &path);
-	const char *homedir = strdup(path.Path());
+	const char *homedir = xstrdup(path.Path());
 #else
 	/* getenv is highly unsafe; duplicate it as soon as possible,
 	 * or at least before something else touches the environment
@@ -1093,7 +1093,7 @@ static void DetermineBasePaths(const char *exe)
 
 	if (homedir == NULL) {
 		const struct passwd *pw = getpwuid(getuid());
-		homedir = (pw == NULL) ? NULL : strdup(pw->pw_dir);
+		homedir = (pw == NULL) ? NULL : xstrdup(pw->pw_dir);
 	}
 #endif
 
@@ -1186,7 +1186,7 @@ void DeterminePaths(const char *exe)
 		if (FioFindFullPath(personal_dir, lengthof(personal_dir), BASE_DIR, "openttd.cfg") != NULL) {
 			char *end = strrchr(personal_dir, PATHSEPCHAR);
 			if (end != NULL) end[1] = '\0';
-			config_dir = strdup(personal_dir);
+			config_dir = xstrdup(personal_dir);
 			_config_file = str_fmt("%sopenttd.cfg", config_dir);
 		} else {
 #if defined(WITH_XDG_BASEDIR) && defined(WITH_PERSONAL_DIR)
@@ -1200,7 +1200,7 @@ void DeterminePaths(const char *exe)
 			config_dir = NULL;
 			for (uint i = 0; i < lengthof(new_openttd_cfg_order); i++) {
 				if (IsValidSearchPath(new_openttd_cfg_order[i])) {
-					config_dir = strdup(_searchpaths[new_openttd_cfg_order[i]]);
+					config_dir = xstrdup(_searchpaths[new_openttd_cfg_order[i]]);
 					break;
 				}
 			}

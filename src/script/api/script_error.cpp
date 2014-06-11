@@ -10,6 +10,7 @@
 /** @file script_error.cpp Implementation of ScriptError. */
 
 #include "../../stdafx.h"
+#include "../../string.h"
 #include "script_error.hpp"
 #include "../../core/bitmath_func.hpp"
 
@@ -23,7 +24,7 @@ ScriptError::ScriptErrorMapString ScriptError::error_map_string = ScriptError::S
 
 /* static */ char *ScriptError::GetLastErrorString()
 {
-	return strdup((*error_map_string.find(ScriptError::GetLastError())).second);
+	return xstrdup((*error_map_string.find(ScriptError::GetLastError())).second);
 }
 
 /* static */ ScriptErrorType ScriptError::StringToError(StringID internal_string_id)

@@ -45,7 +45,7 @@ void Subsidy::AwardTo(CompanyID company)
 	SetDParam(0, company);
 	GetString (company_name, STR_COMPANY_NAME);
 
-	char *cn = strdup(company_name);
+	char *cn = xstrdup(company_name);
 
 	/* Add a news item */
 	Pair reftype = SetupSubsidyDecodeParam(this, false);

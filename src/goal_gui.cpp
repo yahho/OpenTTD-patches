@@ -362,7 +362,7 @@ struct GoalQuestionWindow : public Window {
 	GoalQuestionWindow(WindowDesc *desc, WindowNumber window_number, byte type, uint32 button_mask, const char *question) : Window(desc), type(type)
 	{
 		assert(type < GOAL_QUESTION_TYPE_COUNT);
-		this->question = strdup(question);
+		this->question = xstrdup(question);
 
 		/* Figure out which buttons we have to enable. */
 		uint bit;

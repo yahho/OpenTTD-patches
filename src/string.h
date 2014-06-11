@@ -58,6 +58,9 @@ static inline size_t ttd_strnlen(const char *str, size_t maxlen)
 
 void ttd_strlcpy(char *dst, const char *src, size_t size);
 
+
+char *xstrdup (const char *s);
+
 char *CDECL str_fmt(const char *str, ...) WARN_FORMAT(1, 2);
 
 /* strndup is a GNU extension */

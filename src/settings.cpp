@@ -277,7 +277,7 @@ static char *MakeIntList (const void *array, int nelems, VarType type)
 		buffer.append_fmt ((i == 0) ? "%d" : ",%d", v);
 	}
 
-	return strdup (buffer.c_str());
+	return xstrdup (buffer.c_str());
 }
 
 /**
@@ -302,7 +302,7 @@ static char *MakeOneOfMany (const char *many, int id)
 	/* copy string until next item (|) or the end of the list if this is the last one */
 	const char *end = strchr (many, '|');
 	if (end == NULL) {
-		return strdup (many);
+		return xstrdup (many);
 	} else {
 		return strndup (many, end - many);
 	}
@@ -336,7 +336,7 @@ static char *MakeManyOfMany (const char *many, uint32 x)
 		if (*many == '|') many++;
 	}
 
-	return strdup (buffer.c_str());
+	return xstrdup (buffer.c_str());
 }
 
 /**
@@ -531,7 +531,7 @@ static void IniLoadSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 					if (p != NULL) *(char *)ptr = *(const char *)p;
 				} else if (sld->conv & SLS_POINTER) {
 					free(*(char**)ptr);
-					*(char**)ptr = p == NULL ? NULL : strdup((const char*)p);
+					*(char**)ptr = p == NULL ? NULL : xstrdup((const char*)p);
 				} else {
 					if (p != NULL) ttd_strlcpy((char*)ptr, (const char*)p, sld->length);
 				}
@@ -647,7 +647,7 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 				uint32 i = (uint32)ReadValue(ptr, sld->conv);
 
 				switch (sdb->cmd) {
-					case SDT_BOOLX:      new_value = strdup ((i != 0) ? "true" : "false"); break;
+					case SDT_BOOLX:      new_value = xstrdup ((i != 0) ? "true" : "false"); break;
 					case SDT_NUMX:       new_value = str_fmt (IsSignedVarMemType(sld->conv) ? "%d" : "%u", i); break;
 					case SDT_ONEOFMANY:  new_value = MakeOneOfMany  (sdb->many, i); break;
 					case SDT_MANYOFMANY: new_value = MakeManyOfMany (sdb->many, i); break;
@@ -674,12 +674,12 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 
 					if (sld->conv & SLS_QUOTED) {
 						if (s == NULL) {
-							new_value = strdup ("");
+							new_value = xstrdup ("");
 						} else {
 							new_value = str_fmt ("\"%s\"", s);
 						}
 					} else {
-						new_value = strdup (s);
+						new_value = xstrdup (s);
 					}
 				}
 				break;
@@ -715,7 +715,7 @@ static void IniLoadSettingList(IniFile *ini, const char *grpname, StringList *li
 	list->Clear();
 
 	for (const IniItem *item = group->item; item != NULL; item = item->next) {
-		if (item->name != NULL) *list->Append() = strdup(item->name);
+		if (item->name != NULL) *list->Append() = xstrdup(item->name);
 	}
 }
 
@@ -1664,7 +1664,7 @@ void GetGRFPresetList(GRFPresetList *list)
 	IniGroup *group;
 	for (group = ini->group; group != NULL; group = group->next) {
 		if (strncmp(group->name, "preset-", 7) == 0) {
-			*list->Append() = strdup(group->name + 7);
+			*list->Append() = xstrdup(group->name + 7);
 		}
 	}
 
@@ -1929,7 +1929,7 @@ bool SetSettingValue(uint index, const char *value, bool force_newgame)
 	if ((sd->save.type == SL_STR) && (sd->save.conv & SLS_POINTER)) {
 		char **var = (char**)GetVariableAddress(&sd->save, (_game_mode == GM_MENU || force_newgame) ? &_settings_newgame : &_settings_game);
 		free(*var);
-		*var = strcmp(value, "(null)") == 0 ? NULL : strdup(value);
+		*var = strcmp(value, "(null)") == 0 ? NULL : xstrdup(value);
 	} else {
 		char *var = (char*)GetVariableAddress(&sd->save);
 		ttd_strlcpy(var, value, sd->save.length);

@@ -65,7 +65,7 @@ void NORETURN CDECL strgen_fatal(const char *s, ...)
  */
 LanguageStrings::LanguageStrings(const char *language, const char *end)
 {
-	this->language = end == NULL ? strdup(language) : strndup(language, end - language);
+	this->language = end == NULL ? xstrdup(language) : strndup(language, end - language);
 }
 
 /** Free everything. */
@@ -211,7 +211,7 @@ struct StringNameWriter : HeaderWriter {
 
 	void WriteStringID(const char *name, int stringid)
 	{
-		if (stringid == (int)this->strings->Length()) *this->strings->Append() = strdup(name);
+		if (stringid == (int)this->strings->Length()) *this->strings->Append() = xstrdup(name);
 	}
 
 	void Finalise(const StringData &data)
@@ -230,7 +230,7 @@ private:
 
 public:
 	/** Initialise */
-	LanguageScanner(GameStrings *gs, const char *exclude) : gs(gs), exclude(strdup(exclude)) {}
+	LanguageScanner(GameStrings *gs, const char *exclude) : gs(gs), exclude(xstrdup(exclude)) {}
 	~LanguageScanner() { free(exclude); }
 
 	/**

@@ -44,7 +44,7 @@ public:
 class RawText : public Text {
 public:
 	RawText(const char *text) :
-	  text(strdup(text)) {}
+	  text(xstrdup(text)) {}
 	~RawText() { free(this->text); }
 
 	/* virtual */ const char *GetEncodedText() { return this->text; }

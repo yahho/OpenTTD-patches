@@ -104,7 +104,7 @@ void CopyTempEngineData()
 		e->preview_company     = se->preview_company;
 		e->preview_wait        = se->preview_wait;
 		e->company_avail       = se->company_avail;
-		if (se->name != NULL) e->name = strdup(se->name);
+		if (se->name != NULL) e->name = xstrdup(se->name);
 	}
 
 	/* Get rid of temporary data */

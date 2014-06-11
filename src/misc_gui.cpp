@@ -920,7 +920,7 @@ struct QueryStringWindow : public Window
 
 		this->editbox.UpdateSize();
 
-		if ((flags & QSF_ACCEPT_UNCHANGED) == 0) this->editbox.orig = strdup(this->editbox.buffer);
+		if ((flags & QSF_ACCEPT_UNCHANGED) == 0) this->editbox.orig = xstrdup(this->editbox.buffer);
 
 		this->querystrings[WID_QS_TEXT] = &this->editbox;
 		this->editbox.caption = caption;

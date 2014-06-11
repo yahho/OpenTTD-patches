@@ -841,7 +841,7 @@ public:
 	 */
 	ScriptEventAdminPort(const char *json) :
 		ScriptEvent(ET_ADMIN_PORT),
-		json(strdup(json))
+		json(xstrdup(json))
 	{}
 
 	~ScriptEventAdminPort()

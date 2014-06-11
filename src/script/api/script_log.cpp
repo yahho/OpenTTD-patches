@@ -51,7 +51,7 @@
 
 	/* Free last message, and write new message */
 	free(log->lines[log->pos]);
-	log->lines[log->pos] = strdup(message);
+	log->lines[log->pos] = xstrdup(message);
 	log->type[log->pos] = level;
 
 	/* Cut string after first \n */

@@ -24,7 +24,7 @@ bool ScriptScanner::AddFile(const char *filename, size_t basepath_length, const 
 
 	const char *sep = strrchr (filename, PATHSEPCHAR);
 	if (sep == NULL) {
-		this->main_script = strdup ("main.nut");
+		this->main_script = xstrdup ("main.nut");
 	} else {
 		this->main_script = str_fmt ("%.*smain.nut", (int)(sep - filename + 1), filename);
 	}
@@ -32,8 +32,7 @@ bool ScriptScanner::AddFile(const char *filename, size_t basepath_length, const 
 
 	free(this->tar_file);
 	if (tar_filename != NULL) {
-		this->tar_file = strdup(tar_filename);
-		if (this->tar_file == NULL) return false;
+		this->tar_file = xstrdup(tar_filename);
 	} else {
 		this->tar_file = NULL;
 	}
@@ -137,13 +136,13 @@ void ScriptScanner::RegisterScript(ScriptInfo *info)
 		return;
 	}
 
-	this->info_list[strdup(script_name)] = info;
+	this->info_list[xstrdup(script_name)] = info;
 
 	if (!info->IsDeveloperOnly() || _settings_client.gui.ai_developer_tools) {
 		/* Add the script to the 'unique' script list, where only the highest version
 		 *  of the script is registered. */
 		if (this->info_single_list.find(script_original_name) == this->info_single_list.end()) {
-			this->info_single_list[strdup(script_original_name)] = info;
+			this->info_single_list[xstrdup(script_original_name)] = info;
 		} else if (this->info_single_list[script_original_name]->GetVersion() < info->GetVersion()) {
 			this->info_single_list[script_original_name] = info;
 		}

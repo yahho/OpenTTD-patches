@@ -144,7 +144,7 @@ static void Load_GSTR(LoadBuffer *reader)
 			char **s = ls->lines.Append();
 			*s = NULL;
 			reader->ReadString (s, SLS_STR | SLS_ALLOW_CONTROL);
-			if (*s == NULL) *s = strdup("");
+			if (*s == NULL) *s = xstrdup("");
 		}
 
 		*_current_data->raw_strings.Append() = ls;

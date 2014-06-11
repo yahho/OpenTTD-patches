@@ -433,7 +433,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	/* Convert the command line to UTF-8. We need a dedicated buffer
 	 * for this because argv[] points into this buffer and this needs to
 	 * be available between subsequent calls to FS2OTTD(). */
-	char *cmdline = strdup(FS2OTTD(GetCommandLine()));
+	char *cmdline = xstrdup(FS2OTTD(GetCommandLine()));
 
 #if defined(_DEBUG)
 	CreateConsole();
@@ -526,7 +526,7 @@ void DetermineBasePaths(const char *exe)
 			bstrcpy (tmp, convert_from_fs(exec_dir, tmp, lengthof(tmp)));
 			char *s = strrchr(tmp, PATHSEPCHAR);
 			*(s + 1) = '\0';
-			_searchpaths[SP_BINARY_DIR] = strdup(tmp);
+			_searchpaths[SP_BINARY_DIR] = xstrdup(tmp);
 		}
 	}
 

@@ -390,7 +390,7 @@ struct NetworkChatWindow : public Window {
 		item = 0;
 
 		/* Copy the buffer so we can modify it without damaging the real data */
-		pre_buf = (_chat_tab_completion_active) ? strdup(_chat_tab_completion_buf) : strdup(tb->GetText());
+		pre_buf = (_chat_tab_completion_active) ? xstrdup(_chat_tab_completion_buf) : xstrdup(tb->GetText());
 
 		tb_buf  = ChatTabCompletionFindText(pre_buf);
 		tb_len  = strlen(tb_buf);

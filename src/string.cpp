@@ -107,6 +107,14 @@ void ttd_strlcpy(char *dst, const char *src, size_t size)
 	*dst = '\0';
 }
 
+
+/** Allocate a copy of a given string, and error out on failure. */
+char *xstrdup (const char *s)
+{
+	return (char*) xmemdup (s, strlen(s) + 1);
+}
+
+
 /**
  * Format, "printf", into a newly allocated string.
  * @param str The formatting string.

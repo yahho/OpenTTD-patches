@@ -142,7 +142,7 @@ struct GamelogEntrySetting : GamelogEntryTimed {
 
 	GamelogEntrySetting(const char *name, int32 oldval, int32 newval) :
 		GamelogEntryTimed(GLOG_SETTING),
-		name(strdup(name)), oldval(oldval), newval(newval) { }
+		name(xstrdup(name)), oldval(oldval), newval(newval) { }
 
 	~GamelogEntrySetting() {
 		free(this->name);

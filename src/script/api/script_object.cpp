@@ -262,7 +262,7 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 	char buffer[64];
 	::GetString (buffer, string);
 	::str_validate(buffer, lastof(buffer), SVS_NONE);
-	return ::strdup(buffer);
+	return ::xstrdup(buffer);
 }
 
 /* static */ void ScriptObject::SetCallbackVariable(int index, int value)
