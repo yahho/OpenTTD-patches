@@ -3126,10 +3126,9 @@ static ChangeInfoResult IndustrytilesChangeInfo(uint indtid, int numinfo, int pr
 
 				/* Allocate space for this industry. */
 				if (*tilespec == NULL) {
-					*tilespec = xcalloct<IndustryTileSpec>();
+					*tilespec = xmemdupt (&_industry_tile_specs[subs_id]);
 					tsp = *tilespec;
 
-					memcpy(tsp, &_industry_tile_specs[subs_id], sizeof(_industry_tile_specs[subs_id]));
 					tsp->enabled = true;
 
 					/* A copied tile should not have the animation infos copied too.
@@ -3371,10 +3370,9 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 				 * Only need to do it once. If ever it is called again, it should not
 				 * do anything */
 				if (*indspec == NULL) {
-					*indspec = xcalloct<IndustrySpec>();
+					*indspec = xmemdupt (&_origin_industry_specs[subs_id]);
 					indsp = *indspec;
 
-					memcpy(indsp, &_origin_industry_specs[subs_id], sizeof(_industry_specs[subs_id]));
 					indsp->enabled = true;
 					indsp->grf_prop.local_id = indid + i;
 					indsp->grf_prop.subst_id = subs_id;
@@ -3479,8 +3477,7 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 							new_num_layouts--;
 							j--;
 						} else {
-							tile_table[j] = xcalloct<IndustryTileTable>(size);
-							memcpy(tile_table[j], copy_from, sizeof(*copy_from) * size);
+							tile_table[j] = xmemdupt (copy_from, size);
 						}
 					}
 				} catch (...) {
@@ -3650,13 +3647,10 @@ static void DuplicateTileTable(AirportSpec *as)
 		do {
 			num_tiles++;
 		} while ((++it)->ti.x != -0x80);
-		table_list[i] = xmalloct<AirportTileTable>(num_tiles);
-		MemCpyT(table_list[i], as->table[i], num_tiles);
+		table_list[i] = xmemdupt (as->table[i], num_tiles);
 	}
 	as->table = table_list;
-	HangarTileTable *depot_table = xmalloct<HangarTileTable>(as->nof_depots);
-	MemCpyT(depot_table, as->depot_table, as->nof_depots);
-	as->depot_table = depot_table;
+	as->depot_table = xmemdupt (as->depot_table, as->nof_depots);
 }
 
 /**
@@ -3709,10 +3703,9 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 				 * Only need to do it once. If ever it is called again, it should not
 				 * do anything */
 				if (*spec == NULL) {
-					*spec = xmalloct<AirportSpec>();
+					*spec = xmemdupt (AirportSpec::GetWithoutOverride(subs_id));
 					as = *spec;
 
-					memcpy(as, AirportSpec::GetWithoutOverride(subs_id), sizeof(*as));
 					as->enabled = true;
 					as->grf_prop.local_id = airport + i;
 					as->grf_prop.subst_id = subs_id;
@@ -3782,8 +3775,7 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 								as->size_y = max<byte>(as->size_y, att[k].ti.y + 1);
 							}
 						}
-						tile_table[j] = xcalloct<AirportTileTable>(size);
-						memcpy(tile_table[j], copy_from, sizeof(*copy_from) * size);
+						tile_table[j] = xmemdupt (copy_from, size);
 					}
 					/* Install final layout construction in the airport spec */
 					as->table = tile_table;
@@ -4262,10 +4254,9 @@ static ChangeInfoResult AirportTilesChangeInfo(uint airtid, int numinfo, int pro
 
 				/* Allocate space for this airport tile. */
 				if (*tilespec == NULL) {
-					*tilespec = xcalloct<AirportTileSpec>();
+					*tilespec = xmemdupt (AirportTileSpec::Get(subs_id));
 					tsp = *tilespec;
 
-					memcpy(tsp, AirportTileSpec::Get(subs_id), sizeof(AirportTileSpec));
 					tsp->enabled = true;
 
 					tsp->animation.status = ANIM_STATUS_NO_ANIMATION;
@@ -4665,8 +4656,7 @@ static void NewSpriteGroup(ByteReader *buf)
 			} while (HasBit(varadjust, 5));
 
 			group->num_adjusts = adjusts.Length();
-			group->adjusts = xmalloct<DeterministicSpriteGroupAdjust>(group->num_adjusts);
-			MemCpyT(group->adjusts, adjusts.Begin(), group->num_adjusts);
+			group->adjusts = xmemdupt (adjusts.Begin(), group->num_adjusts);
 
 			group->num_ranges = buf->ReadByte();
 			if (group->num_ranges > 0) group->ranges = xcalloct<DeterministicSpriteGroupRange>(group->num_ranges);

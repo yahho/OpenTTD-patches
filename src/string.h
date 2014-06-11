@@ -24,6 +24,20 @@
 #include "core/alloc_func.hpp"
 
 
+/** Allocate dynamic memory with a copy of given data, and error out on failure. */
+static inline void *xmemdup (const void *src, size_t size)
+{
+	return memcpy (xmalloc(size), src, size);
+}
+
+/** Allocate dynamic memory with a copy of given type data, and error out on failure. */
+template <typename T>
+static inline T *xmemdupt (const T *src, size_t size = 1)
+{
+	return (T*) memcpy (xmalloct<T>(size), src, size * sizeof(T));
+}
+
+
 #ifdef _GNU_SOURCE
 #define ttd_strnlen strnlen
 #else

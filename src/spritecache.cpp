@@ -10,6 +10,7 @@
 /** @file spritecache.cpp Caching of sprites. */
 
 #include "stdafx.h"
+#include "string.h"
 #include "fileio_func.h"
 #include "spriteloader/grf.hpp"
 #include "gfx_func.h"
@@ -225,8 +226,7 @@ static bool PadSingleSprite(SpriteLoader::Sprite *sprite, ZoomLevel zoom, uint p
 	if (width > UINT16_MAX || height > UINT16_MAX) return false;
 
 	/* Copy source data and reallocate sprite memory. */
-	SpriteLoader::CommonPixel *src_data = xmalloct<SpriteLoader::CommonPixel>(sprite->width * sprite->height);
-	MemCpyT(src_data, sprite->data, sprite->width * sprite->height);
+	SpriteLoader::CommonPixel *src_data = xmemdupt (sprite->data, sprite->width * sprite->height);
 	sprite->AllocateData(zoom, width * height);
 
 	/* Copy with padding to destination. */

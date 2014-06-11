@@ -13,6 +13,7 @@
  */
 
 #include "stdafx.h"
+#include "string.h"
 #include "debug.h"
 #include "landscape.h"
 #include "house.h"
@@ -581,9 +582,7 @@ void NewGRFSpriteLayout::Clone(const DrawTileSeqStruct *source)
 	const DrawTileSeqStruct *element;
 	foreach_draw_tile_seq(element, source) count++;
 
-	DrawTileSeqStruct *sprites = xmalloct<DrawTileSeqStruct>(count);
-	MemCpyT(sprites, source, count);
-	this->seq = sprites;
+	this->seq = xmemdupt (source, count);
 }
 
 /**
@@ -599,9 +598,7 @@ void NewGRFSpriteLayout::Clone(const NewGRFSpriteLayout *source)
 		const DrawTileSeqStruct *element;
 		foreach_draw_tile_seq(element, source->seq) count++;
 
-		TileLayoutRegisters *regs = xmalloct<TileLayoutRegisters>(count);
-		MemCpyT(regs, source->registers, count);
-		this->registers = regs;
+		this->registers = xmemdupt (source->registers, count);
 	}
 }
 

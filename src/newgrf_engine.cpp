@@ -10,6 +10,7 @@
 /** @file newgrf_engine.cpp NewGRF handling of engines. */
 
 #include "stdafx.h"
+#include "string.h"
 #include "debug.h"
 #include "train.h"
 #include "roadveh.h"
@@ -46,8 +47,7 @@ void SetWagonOverrideSprites(EngineID engine, CargoID cargo, const SpriteGroup *
 	wo->group = group;
 	wo->cargo = cargo;
 	wo->trains = trains;
-	wo->train_id = xmalloct<EngineID>(trains);
-	memcpy(wo->train_id, train_id, trains * sizeof *train_id);
+	wo->train_id = xmemdupt (train_id, trains);
 }
 
 const SpriteGroup *GetWagonOverrideSpriteSet(EngineID engine, CargoID cargo, EngineID overriding_engine)
