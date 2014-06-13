@@ -183,25 +183,17 @@ void ScriptConfig::StringToSettings(const char *value)
 
 void ScriptConfig::SettingsToString(char *string, size_t size) const
 {
-	string[0] = '\0';
+	stringb buf (size, string);
 	for (SettingValueList::const_iterator it = this->settings.begin(); it != this->settings.end(); it++) {
-		char no[10];
-		bstrfmt (no, "%d", (*it).second);
-
-		/* Check if the string would fit in the destination */
-		size_t needed_size = strlen((*it).first) + 1 + strlen(no) + 1;
-		/* If it doesn't fit, skip the next settings */
-		if (size <= needed_size) break;
-		size -= needed_size;
-
-		strcat(string, (*it).first);
-		strcat(string, "=");
-		strcat(string, no);
-		strcat(string, ",");
+		/* Check if the string fits. */
+		size_t len = buf.length();
+		if (!buf.append_fmt ("%s=%d,", (*it).first, (*it).second)) {
+			/* If it doesn't, rewind and skip this setting. */
+			buf.truncate (len);
+		}
 	}
 	/* Remove the last ',', but only if at least one setting was saved. */
-	size_t len = strlen(string);
-	if (len > 0) string[len - 1] = '\0';
+	if (!buf.empty()) buf.truncate (buf.length() - 1);
 }
 
 const char *ScriptConfig::GetTextfile(TextfileType type, CompanyID slot) const
