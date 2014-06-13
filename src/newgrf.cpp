@@ -3115,7 +3115,6 @@ static ChangeInfoResult IndustrytilesChangeInfo(uint indtid, int numinfo, int pr
 
 		switch (prop) {
 			case 0x08: { // Substitute industry tile type
-				IndustryTileSpec **tilespec = &_cur.grffile->indtspec[indtid + i];
 				byte subs_id = buf->ReadByte();
 
 				if (subs_id >= NEW_INDUSTRYTILEOFFSET) {
@@ -3125,9 +3124,9 @@ static ChangeInfoResult IndustrytilesChangeInfo(uint indtid, int numinfo, int pr
 				}
 
 				/* Allocate space for this industry. */
-				if (*tilespec == NULL) {
-					*tilespec = xmemdupt (&_industry_tile_specs[subs_id]);
-					tsp = *tilespec;
+				if (tsp == NULL) {
+					tsp = xmemdupt (&_industry_tile_specs[subs_id]);
+					_cur.grffile->indtspec[indtid + i] = tsp;
 
 					tsp->enabled = true;
 
@@ -3352,7 +3351,6 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 
 		switch (prop) {
 			case 0x08: { // Substitute industry type
-				IndustrySpec **indspec = &_cur.grffile->industryspec[indid + i];
 				byte subs_id = buf->ReadByte();
 
 				if (subs_id == 0xFF) {
@@ -3369,9 +3367,9 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 				/* Allocate space for this industry.
 				 * Only need to do it once. If ever it is called again, it should not
 				 * do anything */
-				if (*indspec == NULL) {
-					*indspec = xmemdupt (&_origin_industry_specs[subs_id]);
-					indsp = *indspec;
+				if (indsp == NULL) {
+					indsp = xmemdupt (&_origin_industry_specs[subs_id]);
+					_cur.grffile->industryspec[indid + i] = indsp;
 
 					indsp->enabled = true;
 					indsp->grf_prop.local_id = indid + i;
@@ -3698,13 +3696,12 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 					continue;
 				}
 
-				AirportSpec **spec = &_cur.grffile->airportspec[airport + i];
 				/* Allocate space for this airport.
 				 * Only need to do it once. If ever it is called again, it should not
 				 * do anything */
-				if (*spec == NULL) {
-					*spec = xmemdupt (AirportSpec::GetWithoutOverride(subs_id));
-					as = *spec;
+				if (as == NULL) {
+					as = xmemdupt (AirportSpec::GetWithoutOverride(subs_id));
+					_cur.grffile->airportspec[airport + i] = as;
 
 					as->enabled = true;
 					as->grf_prop.local_id = airport + i;
@@ -4243,7 +4240,6 @@ static ChangeInfoResult AirportTilesChangeInfo(uint airtid, int numinfo, int pro
 
 		switch (prop) {
 			case 0x08: { // Substitute airport tile type
-				AirportTileSpec **tilespec = &_cur.grffile->airtspec[airtid + i];
 				byte subs_id = buf->ReadByte();
 
 				if (subs_id >= NEW_AIRPORTTILE_OFFSET) {
@@ -4253,9 +4249,9 @@ static ChangeInfoResult AirportTilesChangeInfo(uint airtid, int numinfo, int pro
 				}
 
 				/* Allocate space for this airport tile. */
-				if (*tilespec == NULL) {
-					*tilespec = xmemdupt (AirportTileSpec::Get(subs_id));
-					tsp = *tilespec;
+				if (tsp == NULL) {
+					tsp = xmemdupt (AirportTileSpec::Get(subs_id));
+					_cur.grffile->airtspec[airtid + i] = tsp;
 
 					tsp->enabled = true;
 
