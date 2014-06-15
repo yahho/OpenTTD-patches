@@ -189,34 +189,38 @@ static inline int32 SeedChanceBias(byte shift_by, int max, uint32 seed, int bias
 
 
 /**
- * Replaces a string beginning in 'org' with 'rep'.
- * @param org string to replace, has to be 4 characters long
- * @param rep string to be replaced with, has to be 4 characters long
- * @param buf buffer with string
- */
-static void ReplaceWords(const char *org, const char *rep, char *buf)
-{
-	if (strncmp(buf, org, 4) == 0) strncpy(buf, rep, 4); // Safe as the string in buf is always more than 4 characters long.
-}
-
-
-/**
  * Replaces english curses and ugly letter combinations by nicer ones.
  * @param buf buffer with town name
  * @param original English (Original) generator was used
  */
 static void ReplaceEnglishWords(char *buf, bool original)
 {
-	ReplaceWords("Cunt", "East", buf);
-	ReplaceWords("Slag", "Pits", buf);
-	ReplaceWords("Slut", "Edin", buf);
-	if (!original) ReplaceWords("Fart", "Boot", buf); // never happens with 'English (Original)'
-	ReplaceWords("Drar", "Quar", buf);
-	ReplaceWords("Dreh", "Bash", buf);
-	ReplaceWords("Frar", "Shor", buf);
-	ReplaceWords("Grar", "Aber", buf);
-	ReplaceWords("Brar", "Over", buf);
-	ReplaceWords("Wrar", original ? "Inve" : "Stan", buf);
+	static const uint N = 9;
+	static const char org[N + 1][4] = {
+		{'C','u','n','t'}, {'S','l','a','g'}, {'S','l','u','t'},
+		{'F','a','r','t'}, {'D','r','a','r'}, {'D','r','e','h'},
+		{'F','r','a','r'}, {'G','r','a','r'}, {'B','r','a','r'},
+		{'W','r','a','r'}
+	};
+	static const char rep[N + 2][4] = {
+		{'E','a','s','t'}, {'P','i','t','s'}, {'E','d','i','n'},
+		{'B','o','o','t'}, {'Q','u','a','r'}, {'B','a','s','h'},
+		{'S','h','o','r'}, {'A','b','e','r'}, {'O','v','e','r'},
+		{'I','n','v','e'}, {'S','t','a','n'}
+	};
+
+	assert (strlen(buf) >= 4);
+
+	for (uint i = 0; i < N; i++) {
+		if (memcmp (buf, org[i], 4) == 0) {
+			memcpy (buf, rep[i], 4);
+			return;
+		}
+	}
+
+	if (memcmp (buf, org[N], 4) == 0) {
+		memcpy (buf, rep[original ? N : N + 1], 4);
+	}
 }
 
 /**
