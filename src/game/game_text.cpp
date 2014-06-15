@@ -375,21 +375,17 @@ void ReconsiderGameScriptLanguage()
 {
 	if (_current_data == NULL) return;
 
-	char temp[MAX_PATH];
-	bstrcpy (temp, _current_language->file);
-
-	/* Remove the extension */
-	char *l = strrchr(temp, '.');
-	assert(l != NULL);
-	*l = '\0';
-
-	/* Skip the path */
-	char *language = strrchr(temp, PATHSEPCHAR);
-	assert(language != NULL);
+	const char *language = strrchr (_current_language->file, PATHSEPCHAR);
+	assert (language != NULL);
 	language++;
 
+	const char *dot = strrchr (language, '.');
+	assert (dot != NULL);
+	size_t len = dot - language;
+
 	for (LanguageStrings **p = _current_data->compiled_strings.Begin(); p != _current_data->compiled_strings.End(); p++) {
-		if (strcmp((*p)->language, language) == 0) {
+		if (memcmp ((*p)->language, language, len) == 0
+				&& (*p)->language[len] == '\0') {
 			_current_data->cur_language = *p;
 			return;
 		}
