@@ -1080,18 +1080,16 @@ static void DetermineBasePaths(const char *exe)
 #ifdef __HAIKU__
 	BPath path;
 	find_directory(B_USER_SETTINGS_DIRECTORY, &path);
-	const char *homedir = xstrdup(path.Path());
+	char *homedir = xstrdup(path.Path());
 #else
 	/* getenv is highly unsafe; duplicate it as soon as possible,
 	 * or at least before something else touches the environment
 	 * variables in any way. It can also contain all kinds of
 	 * unvalidated data we rather not want internally. */
-	const char *homedir = getenv("HOME");
+	char *homedir = getenv("HOME");
 	if (homedir != NULL) {
-		homedir = xstrndup(homedir, MAX_PATH);
-	}
-
-	if (homedir == NULL) {
+		homedir = xstrdup (homedir);
+	} else {
 		const struct passwd *pw = getpwuid(getuid());
 		homedir = (pw == NULL) ? NULL : xstrdup(pw->pw_dir);
 	}
