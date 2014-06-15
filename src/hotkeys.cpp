@@ -26,13 +26,14 @@ static SmallVector<HotkeyList*, 16> *_hotkey_lists = NULL;
 
 /** String representation of a keycode */
 struct KeycodeNames {
-	const char *name;       ///< Name of the keycode
-	WindowKeyCodes keycode; ///< The keycode
+	WindowKeyCodes keycode; ///< Keycode
+	uint namelen;           ///< Length of keycode name
+	const char *name;       ///< Name of keycode
 };
 
 /** Array of non-standard keycodes that can be used in the hotkeys config file. */
 static const KeycodeNames _keycode_to_name[] = {
-#define DEFINE_HOTKEY(keycode,name) { name, keycode }
+#define DEFINE_HOTKEY(keycode,name) { keycode, sizeof name - 1, name }
 	DEFINE_HOTKEY (WKC_SHIFT,     "SHIFT"),
 	DEFINE_HOTKEY (WKC_CTRL,      "CTRL"),
 	DEFINE_HOTKEY (WKC_ALT,       "ALT"),
@@ -74,12 +75,13 @@ static uint16 ParseCode(const char *start, const char *end)
 	assert(start <= end);
 	while (start < end && *start == ' ') start++;
 	while (end > start && *end == ' ') end--;
+	size_t len = end - start;
 	for (uint i = 0; i < lengthof(_keycode_to_name); i++) {
-		if (strlen(_keycode_to_name[i].name) == (size_t)(end - start) && strncasecmp(start, _keycode_to_name[i].name, end - start) == 0) {
+		if (_keycode_to_name[i].namelen == len && strncasecmp(start, _keycode_to_name[i].name, len) == 0) {
 			return _keycode_to_name[i].keycode;
 		}
 	}
-	if (end - start == 1) {
+	if (len == 1) {
 		if (*start >= 'a' && *start <= 'z') return *start - ('a'-'A');
 		/* Ignore invalid keycodes */
 		if (*(const uint8 *)start < 128) return *start;
