@@ -24,15 +24,16 @@ char *_hotkeys_file;
  */
 static SmallVector<HotkeyList*, 16> *_hotkey_lists = NULL;
 
+
 /** String representation of a keycode */
-struct KeycodeNames {
+struct KeycodeName {
 	WindowKeyCodes keycode; ///< Keycode
 	uint namelen;           ///< Length of keycode name
 	const char *name;       ///< Name of keycode
 };
 
-/** Array of non-standard keycodes that can be used in the hotkeys config file. */
-static const KeycodeNames _keycode_to_name[] = {
+/** Array of non-standard keys that can be used in the hotkeys config file. */
+static const KeycodeName special_keys[] = {
 #define DEFINE_HOTKEY(keycode,name) { keycode, sizeof name - 1, name }
 	DEFINE_HOTKEY (WKC_SHIFT,     "SHIFT"),
 	DEFINE_HOTKEY (WKC_CTRL,      "CTRL"),
@@ -64,6 +65,29 @@ static const KeycodeNames _keycode_to_name[] = {
 #undef DEFINE_HOTKEY
 };
 
+static const KeycodeName *find_special_key_by_keycode (uint16 keycode)
+{
+	for (uint i = 0; i < lengthof(special_keys); i++) {
+		if (special_keys[i].keycode == keycode) {
+			return &special_keys[i];
+		}
+	}
+
+	return NULL;
+}
+
+static const KeycodeName *find_special_key_by_name (const char *name, size_t len)
+{
+	for (uint i = 0; i < lengthof(special_keys); i++) {
+		if (special_keys[i].namelen == len && strncasecmp (name, special_keys[i].name, len) == 0) {
+			return &special_keys[i];
+		}
+	}
+
+	return NULL;
+}
+
+
 /**
  * Try to parse a single part of a keycode.
  * @param start Start of the string to parse.
@@ -76,11 +100,10 @@ static uint16 ParseCode(const char *start, const char *end)
 	while (start < end && *start == ' ') start++;
 	while (end > start && *end == ' ') end--;
 	size_t len = end - start;
-	for (uint i = 0; i < lengthof(_keycode_to_name); i++) {
-		if (_keycode_to_name[i].namelen == len && strncasecmp(start, _keycode_to_name[i].name, len) == 0) {
-			return _keycode_to_name[i].keycode;
-		}
-	}
+
+	const KeycodeName *key = find_special_key_by_name (start, len);
+	if (key != NULL) return key->keycode;
+
 	if (len == 1) {
 		if (*start >= 'a' && *start <= 'z') return *start - ('a'-'A');
 		/* Ignore invalid keycodes */
@@ -158,11 +181,10 @@ static const char *KeycodeToString(uint16 keycode)
 	if (keycode & WKC_META)  sb.append ("META+");
 
 	keycode = keycode & ~WKC_SPECIAL_KEYS;
-	for (uint i = 0; i < lengthof(_keycode_to_name); i++) {
-		if (_keycode_to_name[i].keycode == keycode) {
-			sb.append (_keycode_to_name[i].name);
-			return buf;
-		}
+	const KeycodeName *key = find_special_key_by_keycode (keycode);
+	if (key != NULL) {
+		sb.append (key->name);
+		return buf;
 	}
 	assert(keycode < 128);
 	sb.append (keycode);
