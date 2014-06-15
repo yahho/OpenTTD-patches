@@ -845,7 +845,9 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 						} else {
 							/* Append at end of 'dest' */
 							if (destpos != dest) *(destpos++) = PATHSEPCHAR;
-							strncpy(destpos, pos, next - pos); // Safe as we do '\0'-termination ourselves
+							uint len = next - pos;
+							assert (destpos + len < endof(dest));
+							memcpy (destpos, pos, len); // Safe as we do '\0'-termination ourselves
 							destpos += next - pos;
 						}
 						*destpos = '\0';
