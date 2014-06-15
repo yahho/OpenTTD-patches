@@ -161,37 +161,6 @@ static void ParseHotkeys(Hotkey *hotkey, const char *value)
 }
 
 /**
- * Convert a hotkey to its string representation so it can be written to the
- * config file. Separate parts of the keycode (like "CTRL" and "F1" are split
- * by a '+'.
- * @param keycode The keycode to convert to a string.
- * @return A string representation of this keycode.
- * @note The return value is a static buffer, strdup the result before calling
- *  this function again.
- */
-static const char *KeycodeToString(uint16 keycode)
-{
-	static char buf[32];
-	stringb sb (buf);
-
-	if (keycode & WKC_GLOBAL_HOTKEY) sb.append ("GLOBAL+");
-	if (keycode & WKC_SHIFT) sb.append ("SHIFT+");
-	if (keycode & WKC_CTRL)  sb.append ("CTRL+");
-	if (keycode & WKC_ALT)   sb.append ("ALT+");
-	if (keycode & WKC_META)  sb.append ("META+");
-
-	keycode = keycode & ~WKC_SPECIAL_KEYS;
-	const KeycodeName *key = find_special_key_by_keycode (keycode);
-	if (key != NULL) {
-		sb.append (key->name);
-		return buf;
-	}
-	assert(keycode < 128);
-	sb.append (keycode);
-	return buf;
-}
-
-/**
  * Convert all keycodes attached to a hotkey to a single string. If multiple
  * keycodes are attached to the hotkey they are split by a comma.
  * @param hotkey The keycodes of this hotkey need to be converted to a string.
@@ -204,9 +173,24 @@ const char *SaveKeycodes(const Hotkey *hotkey)
 	static char buf[128];
 	stringb sb (buf);
 	for (uint i = 0; i < hotkey->keycodes.Length(); i++) {
-		const char *str = KeycodeToString(hotkey->keycodes[i]);
 		if (i > 0) sb.append (',');
-		sb.append (str);
+
+		uint16 keycode = hotkey->keycodes[i];
+
+		if (keycode & WKC_GLOBAL_HOTKEY) sb.append ("GLOBAL+");
+		if (keycode & WKC_SHIFT) sb.append ("SHIFT+");
+		if (keycode & WKC_CTRL)  sb.append ("CTRL+");
+		if (keycode & WKC_ALT)   sb.append ("ALT+");
+		if (keycode & WKC_META)  sb.append ("META+");
+
+		keycode &= ~WKC_SPECIAL_KEYS;
+		const KeycodeName *key = find_special_key_by_keycode (keycode);
+		if (key != NULL) {
+			sb.append (key->name);
+		} else {
+			assert(keycode < 128);
+			sb.append (keycode);
+		}
 	}
 	return buf;
 }
