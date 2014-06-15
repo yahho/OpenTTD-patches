@@ -194,10 +194,7 @@ void FiosMakeSavegameName(char *buf, const char *name, size_t size)
  */
 void FiosMakeHeightmapName(char *buf, const char *name, size_t size)
 {
-	char ext[5];
-	bstrfmt (ext, ".%s", GetCurrentScreenshotExtension());
-
-	FiosMakeFilename(buf, _fios_path, name, ext, size);
+	FiosMakeFilename (buf, _fios_path, name, GetCurrentScreenshotExtension(), size);
 }
 
 /**

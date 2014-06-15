@@ -64,7 +64,7 @@ typedef bool ScreenshotHandlerProc(const char *name, ScreenshotCallback *callb, 
 /** Screenshot format information. */
 struct ScreenshotFormat {
 	const char *name;            ///< Name of the format.
-	const char *extension;       ///< File extension.
+	const char *extension;       ///< File extension, including leading dot.
 	ScreenshotHandlerProc *proc; ///< Function for writing the screenshot.
 	bool supports_32bpp;         ///< Does this format support 32bpp images?
 };
@@ -571,10 +571,10 @@ static bool MakePCXImage(const char *name, ScreenshotCallback *callb, void *user
 /** Available screenshot formats. */
 static const ScreenshotFormat _screenshot_formats[] = {
 #if defined(WITH_PNG)
-	{"PNG", "png", &MakePNGImage, true},
+	{"PNG", ".png", &MakePNGImage, true},
 #endif
-	{"BMP", "bmp", &MakeBMPImage, true},
-	{"PCX", "pcx", &MakePCXImage, false},
+	{"BMP", ".bmp", &MakeBMPImage, true},
+	{"PCX", ".pcx", &MakePCXImage, false},
 };
 
 /** Get filename extension of current screenshot file format. */
@@ -588,7 +588,8 @@ void InitializeScreenshotFormats()
 {
 	uint j = 0;
 	for (uint i = 0; i < lengthof(_screenshot_formats); i++) {
-		if (!strcmp(_screenshot_format_name, _screenshot_formats[i].extension)) {
+		/* skip leading dot when comparing */
+		if (!strcmp (_screenshot_format_name, _screenshot_formats[i].extension + 1)) {
 			j = i;
 			break;
 		}
@@ -625,7 +626,8 @@ void SetScreenshotFormat(uint i)
 {
 	assert(i < _num_screenshot_formats);
 	_cur_screenshot_format = i;
-	bstrcpy (_screenshot_format_name, _screenshot_formats[i].extension);
+	/* skip leading dot */
+	bstrcpy (_screenshot_format_name, _screenshot_formats[i].extension + 1);
 }
 
 /**
@@ -698,7 +700,7 @@ static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, ui
 /**
  * Construct a pathname for a screenshot file.
  * @param default_fn Default filename.
- * @param ext        Extension to use.
+ * @param ext        Extension to use, including leading dot.
  * @param crashlog   Create path for crash.png
  * @return Pathname for a screenshot file.
  */
@@ -716,7 +718,7 @@ static const char *MakeScreenshotName(const char *default_fn, const char *ext, b
 
 	/* Add extension to screenshot file */
 	size_t len = _screenshot_name.length();
-	_screenshot_name.append_fmt (".%s", ext);
+	_screenshot_name.append (ext);
 
 	const char *screenshot_dir = crashlog ? _personal_dir : FiosGetScreenshotDir();
 
@@ -730,7 +732,7 @@ static const char *MakeScreenshotName(const char *default_fn, const char *ext, b
 		if (!FileExists(_full_screenshot_name)) break;
 		/* If file exists try another one with same name, but just with a higher index */
 		_screenshot_name.truncate (len);
-		_screenshot_name.append_fmt ("#%u.%s", serial, ext);
+		_screenshot_name.append_fmt ("#%u%s", serial, ext);
 	}
 
 	return _full_screenshot_name;
