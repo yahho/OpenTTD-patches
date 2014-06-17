@@ -289,7 +289,7 @@ static TileIndex FindNearestDepot (const Ship *v, uint max_distance)
 
 	/* some path found; get found depot tile */
 	typename Tpf::Node *n = pf.GetBestNode();
-	if (max_distance > 0 && n->m_cost > max_distance) return INVALID_TILE;
+	if (max_distance > 0 && n->m_cost > 0 && (uint)n->m_cost > max_distance) return INVALID_TILE;
 	return n->GetPos().tile;
 }
 
