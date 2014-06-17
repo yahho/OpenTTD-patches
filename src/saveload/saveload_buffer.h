@@ -328,7 +328,7 @@ struct SaveDumper {
 /** Return how many bytes used to encode a gamma value */
 static inline uint GetGammaLength(size_t i)
 {
-	return 1 + (i >= (1 << 7)) + (i >= (1 << 14)) + (i >= (1 << 21));
+	return 1 + (i >= (1 << 7)) + (i >= (1 << 14)) + (i >= (1 << 21)) + (i >= (1 << 28));
 }
 
 typedef void ChunkSaveProc(SaveDumper*);

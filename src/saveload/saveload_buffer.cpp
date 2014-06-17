@@ -59,7 +59,11 @@ uint LoadBuffer::ReadGamma()
 			if (HasBit(i, 5)) {
 				i &= ~0x20;
 				if (HasBit(i, 4)) {
-					throw SlCorrupt("Unsupported gamma");
+					i &= ~0x10;
+					if (HasBit(i, 3)) {
+						throw SlCorrupt("Unsupported gamma");
+					}
+					i = this->ReadByte(); // 32 bits only.
 				}
 				i = (i << 8) | this->ReadByte();
 			}
@@ -368,6 +372,11 @@ void SaveDumper::AllocBuffer()
  * 10xxxxxx xxxxxxxx
  * 110xxxxx xxxxxxxx xxxxxxxx
  * 1110xxxx xxxxxxxx xxxxxxxx xxxxxxxx
+ * 11110--- xxxxxxxx xxxxxxxx xxxxxxxx xxxxxxxx
+ * We could extend the scheme ad infinum to support arbitrarily
+ * large chunks, but as sizeof(size_t) == 4 is still very common
+ * we don't support anything above 32 bits. That's why in the last
+ * case the 3 most significant bits are unused.
  * @param i Index being written
  */
 
@@ -376,8 +385,14 @@ void SaveDumper::WriteGamma(size_t i)
 	if (i >= (1 << 7)) {
 		if (i >= (1 << 14)) {
 			if (i >= (1 << 21)) {
-				assert(i < (1 << 28));
-				this->WriteByte((byte)(0xE0 | (i >> 24)));
+				if (i >= (1 << 28)) {
+					assert(i <= UINT32_MAX); // We can only support 32 bits for now.
+					this->WriteByte((byte)(0xF0));
+					this->WriteByte((byte)(i >> 24));
+				} else {
+					this->WriteByte((byte)(0xE0 | (i >> 24)));
+				}
+
 				this->WriteByte((byte)(i >> 16));
 			} else {
 				this->WriteByte((byte)(0xC0 | (i >> 16)));
