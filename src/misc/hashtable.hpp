@@ -59,7 +59,7 @@ protected:
 	typedef ForwardList <CHashTableEntryT<Titem_> > Slot;
 
 	Slot  m_slots[Tcapacity]; // here we store our data (array of blobs)
-	int   m_num_items;        // item counter
+	uint  m_num_items;        // item counter
 
 public:
 	/* default constructor */
@@ -101,7 +101,7 @@ private:
 
 public:
 	/** item count */
-	inline int Count() const {return m_num_items;}
+	inline uint Count() const {return m_num_items;}
 
 	/** simple clear - forget all items - used by CSegmentCostCacheT.Flush() */
 	inline void Clear() {for (int i = 0; i < Tcapacity; i++) m_slots[i].detach_all();}

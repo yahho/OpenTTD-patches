@@ -99,13 +99,13 @@ public:
 	}
 
 	/** return number of open nodes */
-	inline int OpenCount()
+	inline uint OpenCount()
 	{
 		return m_open.Count();
 	}
 
 	/** return number of closed nodes */
-	inline int ClosedCount()
+	inline uint ClosedCount()
 	{
 		return m_closed.Count();
 	}
