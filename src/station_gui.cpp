@@ -2391,15 +2391,10 @@ static bool StationJoinerNeeded(const CommandContainer &cmd, TileArea ta)
 	/* Test for adjacent station or station below selection.
 	 * If adjacent-stations is disabled and we are building next to a station, do not show the selection window.
 	 * but join the other station immediately. */
-	const T *st = FindStationInArea<T> (ta);
-	if (st != NULL) {
-		_stations_nearby_list.Clear();
-		_deleted_stations_nearby.Clear();
-	} else {
-		FindStationsNearby<T> (ta, false);
-	}
+	if (FindStationInArea<T> (ta) != NULL) return false;
 
-	return st == NULL && (_settings_game.station.adjacent_stations || _stations_nearby_list.Length() == 0);
+	FindStationsNearby<T> (ta, false);
+	return _settings_game.station.adjacent_stations || _stations_nearby_list.Length() == 0;
 }
 
 /**
