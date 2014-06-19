@@ -2201,8 +2201,7 @@ static void FindStationsNearby(TileArea ta, bool distant_join)
 				ts->station = st->index;
 
 				/* Add the station when it's within where we're going to build */
-				if (IsInsideBS(TileX(st->xy), TileX(ctx.tile), ctx.w) &&
-						IsInsideBS(TileY(st->xy), TileY(ctx.tile), ctx.h)) {
+				if (ctx.Contains (st->xy)) {
 					AddNearbyStation<T>(st->xy, &ctx);
 				}
 			}
