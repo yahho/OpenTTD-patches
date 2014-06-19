@@ -37,6 +37,7 @@
 
 #include "table/strings.h"
 
+#include <utility>
 #include <set>
 #include <vector>
 
@@ -2126,16 +2127,10 @@ static const T *FindStationInArea (const TileArea &ta)
 	return NULL;
 }
 
-/** Struct containing TileIndex and StationID */
-struct TileAndStation {
-	TileIndex tile;    ///< TileIndex
-	StationID station; ///< StationID
-};
-
 /** Helper struct for AddNearbyStation. */
 struct FindNearbyStationsData {
 	const TileArea *ta;
-	SmallVector<TileAndStation, 8> deleted;
+	std::vector <std::pair <TileIndex, StationID> > deleted;
 };
 
 /**
@@ -2151,12 +2146,10 @@ static bool AddNearbyStation(TileIndex tile, void *user_data)
 	FindNearbyStationsData *data = (FindNearbyStationsData *) user_data;
 
 	/* First check if there were deleted stations here */
-	for (uint i = 0; i < data->deleted.Length(); i++) {
-		TileAndStation *ts = data->deleted.Get(i);
-		if (ts->tile == tile) {
-			*_stations_nearby_list.Append() = ts->station;
-			data->deleted.Erase(ts);
-			i--;
+	for (uint i = 0; i < data->deleted.size(); i++) {
+		const std::pair <TileIndex, StationID> &ts = data->deleted[i];
+		if (ts.first == tile) {
+			*_stations_nearby_list.Append() = ts.second;
 		}
 	}
 
@@ -2205,9 +2198,7 @@ static void FindStationsNearby(TileArea ta, bool distant_join)
 				if (ta.Contains (st->xy)) {
 					*_stations_nearby_list.Append() = st->index;
 				} else {
-					TileAndStation *ts = data.deleted.Append();
-					ts->tile = st->xy;
-					ts->station = st->index;
+					data.deleted.push_back (std::make_pair (st->xy, st->index));
 				}
 			}
 		}
