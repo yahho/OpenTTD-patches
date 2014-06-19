@@ -2183,7 +2183,7 @@ static bool AddNearbyStation(TileIndex tile, void *user_data)
  * @tparam T the type of station to look for
  */
 template <class T>
-static const T *FindStationsNearby(TileArea ta, bool distant_join)
+static void FindStationsNearby(TileArea ta, bool distant_join)
 {
 	TileArea ctx = ta;
 
@@ -2212,13 +2212,11 @@ static const T *FindStationsNearby(TileArea ta, bool distant_join)
 	/* Only search tiles where we have a chance to stay within the station spread.
 	 * The complete check needs to be done in the callback as we don't know the
 	 * extent of the found station, yet. */
-	if (distant_join && min(ta.w, ta.h) >= _settings_game.station.station_spread) return NULL;
+	if (distant_join && min(ta.w, ta.h) >= _settings_game.station.station_spread) return;
 	uint max_dist = distant_join ? _settings_game.station.station_spread - min(ta.w, ta.h) : 1;
 
 	TileIndex tile = TILE_ADD(ctx.tile, TileOffsByDir(DIR_N));
 	CircularTileSearch(&tile, max_dist, ta.w, ta.h, AddNearbyStation<T>, &ctx);
-
-	return NULL;
 }
 
 static const NWidgetPart _nested_select_station_widgets[] = {
@@ -2398,7 +2396,7 @@ static bool StationJoinerNeeded(const CommandContainer &cmd, TileArea ta)
 		_stations_nearby_list.Clear();
 		_deleted_stations_nearby.Clear();
 	} else {
-		st = FindStationsNearby<T> (ta, false);
+		FindStationsNearby<T> (ta, false);
 	}
 
 	return st == NULL && (_settings_game.station.adjacent_stations || _stations_nearby_list.Length() == 0);
