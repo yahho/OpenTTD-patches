@@ -2190,10 +2190,6 @@ static const T *FindStationsNearby(TileArea ta, bool distant_join)
 	_stations_nearby_list.Clear();
 	_deleted_stations_nearby.Clear();
 
-	/* Check the inside, to return, if we sit on another station */
-	const T *s = FindStationInArea<T> (ta);
-	if (s != NULL) return s;
-
 	/* Look for deleted stations */
 	const BaseStation *st;
 	FOR_ALL_BASE_STATIONS(st) {
@@ -2345,7 +2341,14 @@ struct SelectStationWindow : Window {
 	virtual void OnInvalidateData(int data = 0, bool gui_scope = true)
 	{
 		if (!gui_scope) return;
-		FindStationsNearby<T>(this->area, true);
+
+		if (FindStationInArea<T> (this->area) != NULL) {
+			_stations_nearby_list.Clear();
+			_deleted_stations_nearby.Clear();
+		} else {
+			FindStationsNearby<T>(this->area, true);
+		}
+
 		this->vscroll->SetCount(_stations_nearby_list.Length() + 1);
 		this->SetDirty();
 	}
@@ -2390,7 +2393,14 @@ static bool StationJoinerNeeded(const CommandContainer &cmd, TileArea ta)
 	/* Test for adjacent station or station below selection.
 	 * If adjacent-stations is disabled and we are building next to a station, do not show the selection window.
 	 * but join the other station immediately. */
-	const T *st = FindStationsNearby<T>(ta, false);
+	const T *st = FindStationInArea<T> (ta);
+	if (st != NULL) {
+		_stations_nearby_list.Clear();
+		_deleted_stations_nearby.Clear();
+	} else {
+		st = FindStationsNearby<T> (ta, false);
+	}
+
 	return st == NULL && (_settings_game.station.adjacent_stations || _stations_nearby_list.Length() == 0);
 }
 
