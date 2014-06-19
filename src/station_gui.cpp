@@ -2118,6 +2118,22 @@ static SmallVector<TileAndStation, 8> _deleted_stations_nearby;
 static SmallVector<StationID, 8> _stations_nearby_list;
 
 /**
+ * Find a station of the given type in the given area.
+ * @tparam T the type of station to look for
+ * @param ta Base tile area of the to-be-built station
+ * @return Station found if any, else NULL
+ */
+template <class T>
+static const T *FindStationInArea (const TileArea &ta)
+{
+	TILE_AREA_LOOP(t, ta) {
+		if (IsStationTile(t) && T::IsValidID(GetStationIndex(t))) return T::GetByTile(t);
+	}
+
+	return NULL;
+}
+
+/**
  * Add station on this tile to _stations_nearby_list if it's fully within the
  * station spread.
  * @param tile Tile just being checked
@@ -2175,9 +2191,8 @@ static const T *FindStationsNearby(TileArea ta, bool distant_join)
 	_deleted_stations_nearby.Clear();
 
 	/* Check the inside, to return, if we sit on another station */
-	TILE_AREA_LOOP(t, ta) {
-		if (t < MapSize() && IsStationTile(t) && T::IsValidID(GetStationIndex(t))) return T::GetByTile(t);
-	}
+	const T *s = FindStationInArea<T> (ta);
+	if (s != NULL) return s;
 
 	/* Look for deleted stations */
 	const BaseStation *st;
