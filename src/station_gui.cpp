@@ -2196,13 +2196,13 @@ static void FindStationsNearby(TileArea ta, bool distant_join)
 		if (T::IsExpected(st) && !st->IsInUse() && st->owner == _local_company) {
 			/* Include only within station spread (yes, it is strictly less than) */
 			if (max(DistanceMax(ta.tile, st->xy), DistanceMax(TILE_ADDXY(ta.tile, ta.w - 1, ta.h - 1), st->xy)) < _settings_game.station.station_spread) {
-				TileAndStation *ts = _deleted_stations_nearby.Append();
-				ts->tile = st->xy;
-				ts->station = st->index;
-
 				/* Add the station when it's within where we're going to build */
 				if (ctx.Contains (st->xy)) {
-					AddNearbyStation<T>(st->xy, &ctx);
+					*_stations_nearby_list.Append() = st->index;
+				} else {
+					TileAndStation *ts = _deleted_stations_nearby.Append();
+					ts->tile = st->xy;
+					ts->station = st->index;
 				}
 			}
 		}
