@@ -2355,43 +2355,6 @@ static WindowDesc _select_station_desc(
 
 
 /**
- * Check whether we need to show the station selection window.
- * @param cmd Command to build the station.
- * @param ta Tile area of the to-be-built station
- * @tparam T the type of station
- * @return whether we need to show the station selection window.
- */
-template <class T>
-static bool StationJoinerNeeded(const CommandContainer &cmd, TileArea ta)
-{
-	/* Only show selection if distant join is enabled in the settings */
-	if (!_settings_game.station.distant_join_stations) return false;
-
-	/* If a window is already opened and we didn't ctrl-click,
-	 * return true (i.e. just flash the old window) */
-	Window *selection_window = FindWindowById(WC_SELECT_STATION, 0);
-	if (selection_window != NULL) {
-		/* Abort current distant-join and start new one */
-		delete selection_window;
-		UpdateTileSelection();
-	}
-
-	/* only show the popup, if we press ctrl */
-	if (!_ctrl_pressed) return false;
-
-	/* Now check if we could build there */
-	if (DoCommand(&cmd, CommandFlagsToDCFlags(GetCommandFlags(cmd.cmd))).Failed()) return false;
-
-	/* Test for adjacent station or station below selection.
-	 * If adjacent-stations is disabled and we are building next to a station, do not show the selection window.
-	 * but join the other station immediately. */
-	if (FindStationInArea<T> (ta) != NULL) return false;
-
-	FindStationsNearby<T> (ta, false);
-	return _settings_game.station.adjacent_stations || _stations_nearby_list.Length() == 0;
-}
-
-/**
  * Show the station selection window when needed. If not, build the station.
  * @param cmd Command to build the station.
  * @param ta Area to build the station in
@@ -2400,12 +2363,34 @@ static bool StationJoinerNeeded(const CommandContainer &cmd, TileArea ta)
 template <class T>
 void ShowSelectBaseStationIfNeeded(const CommandContainer &cmd, TileArea ta)
 {
-	if (StationJoinerNeeded<T>(cmd, ta)) {
-		if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
-		new SelectStationWindow<T>(&_select_station_desc, cmd, ta);
-	} else {
-		DoCommandP(&cmd);
+	/* Only show selection if distant join is enabled in the settings */
+	if (_settings_game.station.distant_join_stations) {
+		/* If a window is already opened and we didn't ctrl-click,
+		 * return true (i.e. just flash the old window) */
+		Window *selection_window = FindWindowById(WC_SELECT_STATION, 0);
+		if (selection_window != NULL) {
+			/* Abort current distant-join and start new one */
+			delete selection_window;
+			UpdateTileSelection();
+		}
+
+		/* Only show the popup if we press ctrl and we can build there. */
+		if (_ctrl_pressed && DoCommand(&cmd, CommandFlagsToDCFlags(GetCommandFlags(cmd.cmd))).Succeeded()
+				/* Test for adjacent station or station below selection.
+				 * If adjacent-stations is disabled and we are building
+				 * next to a station, do not show the selection window
+				 * but join the other station immediately. */
+				&& FindStationInArea<T> (ta) == NULL) {
+			FindStationsNearby<T> (ta, false);
+			if (_settings_game.station.adjacent_stations || _stations_nearby_list.Length() == 0) {
+				if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+				new SelectStationWindow<T>(&_select_station_desc, cmd, ta);
+				return;
+			}
+		}
 	}
+
+	DoCommandP(&cmd);
 }
 
 /**
