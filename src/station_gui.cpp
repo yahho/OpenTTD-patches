@@ -2108,13 +2108,6 @@ void ShowStationViewWindow(StationID station)
 	AllocateWindowDescFront<StationViewWindow>(&_station_view_desc, station);
 }
 
-/** Struct containing TileIndex and StationID */
-struct TileAndStation {
-	TileIndex tile;    ///< TileIndex
-	StationID station; ///< StationID
-};
-
-static SmallVector<TileAndStation, 8> _deleted_stations_nearby;
 static SmallVector<StationID, 8> _stations_nearby_list;
 
 /**
@@ -2133,24 +2126,36 @@ static const T *FindStationInArea (const TileArea &ta)
 	return NULL;
 }
 
+/** Struct containing TileIndex and StationID */
+struct TileAndStation {
+	TileIndex tile;    ///< TileIndex
+	StationID station; ///< StationID
+};
+
+/** Helper struct for AddNearbyStation. */
+struct FindNearbyStationsData {
+	const TileArea *ta;
+	SmallVector<TileAndStation, 8> deleted;
+};
+
 /**
  * Add station on this tile to _stations_nearby_list if it's fully within the
  * station spread.
  * @param tile Tile just being checked
- * @param user_data Pointer to TileArea context
+ * @param user_data Pointer to FindNearbyStationsData
  * @tparam T the type of station to look for
  */
 template <class T>
 static bool AddNearbyStation(TileIndex tile, void *user_data)
 {
-	TileArea *ctx = (TileArea *)user_data;
+	FindNearbyStationsData *data = (FindNearbyStationsData *) user_data;
 
 	/* First check if there were deleted stations here */
-	for (uint i = 0; i < _deleted_stations_nearby.Length(); i++) {
-		TileAndStation *ts = _deleted_stations_nearby.Get(i);
+	for (uint i = 0; i < data->deleted.Length(); i++) {
+		TileAndStation *ts = data->deleted.Get(i);
 		if (ts->tile == tile) {
-			*_stations_nearby_list.Append() = _deleted_stations_nearby[i].station;
-			_deleted_stations_nearby.Erase(ts);
+			*_stations_nearby_list.Append() = ts->station;
+			data->deleted.Erase(ts);
 			i--;
 		}
 	}
@@ -2166,7 +2171,7 @@ static bool AddNearbyStation(TileIndex tile, void *user_data)
 	T *st = T::Get(sid);
 	if (st->owner != _local_company || _stations_nearby_list.Contains(sid)) return false;
 
-	if (st->TestAddRect(*ctx)) {
+	if (st->TestAddRect(*data->ta)) {
 		*_stations_nearby_list.Append() = sid;
 	}
 
@@ -2185,10 +2190,10 @@ static bool AddNearbyStation(TileIndex tile, void *user_data)
 template <class T>
 static void FindStationsNearby(TileArea ta, bool distant_join)
 {
-	TileArea ctx = ta;
+	FindNearbyStationsData data;
+	data.ta = &ta;
 
 	_stations_nearby_list.Clear();
-	_deleted_stations_nearby.Clear();
 
 	/* Look for deleted stations */
 	const BaseStation *st;
@@ -2197,10 +2202,10 @@ static void FindStationsNearby(TileArea ta, bool distant_join)
 			/* Include only within station spread (yes, it is strictly less than) */
 			if (max(DistanceMax(ta.tile, st->xy), DistanceMax(TILE_ADDXY(ta.tile, ta.w - 1, ta.h - 1), st->xy)) < _settings_game.station.station_spread) {
 				/* Add the station when it's within where we're going to build */
-				if (ctx.Contains (st->xy)) {
+				if (ta.Contains (st->xy)) {
 					*_stations_nearby_list.Append() = st->index;
 				} else {
-					TileAndStation *ts = _deleted_stations_nearby.Append();
+					TileAndStation *ts = data.deleted.Append();
 					ts->tile = st->xy;
 					ts->station = st->index;
 				}
@@ -2214,8 +2219,8 @@ static void FindStationsNearby(TileArea ta, bool distant_join)
 	if (distant_join && min(ta.w, ta.h) >= _settings_game.station.station_spread) return;
 	uint max_dist = distant_join ? _settings_game.station.station_spread - min(ta.w, ta.h) : 1;
 
-	TileIndex tile = TILE_ADD(ctx.tile, TileOffsByDir(DIR_N));
-	CircularTileSearch(&tile, max_dist, ta.w, ta.h, AddNearbyStation<T>, &ctx);
+	TileIndex tile = TILE_ADD(ta.tile, TileOffsByDir(DIR_N));
+	CircularTileSearch(&tile, max_dist, ta.w, ta.h, AddNearbyStation<T>, &data);
 }
 
 static const NWidgetPart _nested_select_station_widgets[] = {
@@ -2341,7 +2346,6 @@ struct SelectStationWindow : Window {
 
 		if (FindStationInArea<T> (this->area) != NULL) {
 			_stations_nearby_list.Clear();
-			_deleted_stations_nearby.Clear();
 		} else {
 			FindStationsNearby<T>(this->area, true);
 		}
