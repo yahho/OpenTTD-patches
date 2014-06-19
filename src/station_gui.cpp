@@ -2109,8 +2109,6 @@ void ShowStationViewWindow(StationID station)
 	AllocateWindowDescFront<StationViewWindow>(&_station_view_desc, station);
 }
 
-static SmallVector<StationID, 8> _stations_nearby_list;
-
 /**
  * Find a station of the given type in the given area.
  * @tparam T the type of station to look for
@@ -2130,6 +2128,7 @@ static const T *FindStationInArea (const TileArea &ta)
 /** Helper struct for AddNearbyStation. */
 struct FindNearbyStationsData {
 	const TileArea *ta;
+	std::vector <StationID> *list;
 	std::vector <std::pair <TileIndex, StationID> > deleted;
 };
 
@@ -2149,7 +2148,7 @@ static bool AddNearbyStation(TileIndex tile, void *user_data)
 	for (uint i = 0; i < data->deleted.size(); i++) {
 		const std::pair <TileIndex, StationID> &ts = data->deleted[i];
 		if (ts.first == tile) {
-			*_stations_nearby_list.Append() = ts.second;
+			data->list->push_back (ts.second);
 		}
 	}
 
@@ -2162,10 +2161,14 @@ static bool AddNearbyStation(TileIndex tile, void *user_data)
 	if (!T::IsValidID(sid)) return false;
 
 	T *st = T::Get(sid);
-	if (st->owner != _local_company || _stations_nearby_list.Contains(sid)) return false;
+	if (st->owner != _local_company) return false;
+
+	for (std::vector<StationID>::const_iterator iter = data->list->begin(); iter < data->list->end(); iter++) {
+		if (*iter == sid) return false; // already there
+	}
 
 	if (st->TestAddRect(*data->ta)) {
-		*_stations_nearby_list.Append() = sid;
+		data->list->push_back (sid);
 	}
 
 	return false; // We want to include *all* nearby stations
@@ -2181,12 +2184,13 @@ static bool AddNearbyStation(TileIndex tile, void *user_data)
  * @tparam T the type of station to look for
  */
 template <class T>
-static void FindStationsNearby(TileArea ta, bool distant_join)
+static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta, bool distant_join)
 {
 	FindNearbyStationsData data;
 	data.ta = &ta;
+	data.list = list;
 
-	_stations_nearby_list.Clear();
+	list->clear();
 
 	/* Look for deleted stations */
 	const BaseStation *st;
@@ -2196,7 +2200,7 @@ static void FindStationsNearby(TileArea ta, bool distant_join)
 			if (max(DistanceMax(ta.tile, st->xy), DistanceMax(TILE_ADDXY(ta.tile, ta.w - 1, ta.h - 1), st->xy)) < _settings_game.station.station_spread) {
 				/* Add the station when it's within where we're going to build */
 				if (ta.Contains (st->xy)) {
-					*_stations_nearby_list.Append() = st->index;
+					list->push_back (st->index);
 				} else {
 					data.deleted.push_back (std::make_pair (st->xy, st->index));
 				}
@@ -2237,12 +2241,14 @@ template <class T>
 struct SelectStationWindow : Window {
 	CommandContainer select_station_cmd; ///< Command to build new station
 	TileArea area; ///< Location of new station
+	std::vector<StationID> list; ///< List of nearby stations
 	Scrollbar *vscroll;
 
-	SelectStationWindow(WindowDesc *desc, const CommandContainer &cmd, TileArea ta) :
+	SelectStationWindow (WindowDesc *desc, const CommandContainer &cmd, const TileArea &ta, const std::vector<StationID> &list) :
 		Window(desc),
 		select_station_cmd(cmd),
-		area(ta)
+		area(ta),
+		list(list)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_JS_SCROLLBAR);
@@ -2257,8 +2263,8 @@ struct SelectStationWindow : Window {
 
 		/* Determine the widest string */
 		Dimension d = GetStringBoundingBox(T::EXPECTED_FACIL == FACIL_WAYPOINT ? STR_JOIN_WAYPOINT_CREATE_SPLITTED_WAYPOINT : STR_JOIN_STATION_CREATE_SPLITTED_STATION);
-		for (uint i = 0; i < _stations_nearby_list.Length(); i++) {
-			const T *st = T::Get(_stations_nearby_list[i]);
+		for (uint i = 0; i < this->list.size(); i++) {
+			const T *st = T::Get(this->list[i]);
 			SetDParam(0, st->index);
 			SetDParam(1, st->facilities);
 			d = maxdim(d, GetStringBoundingBox(T::EXPECTED_FACIL == FACIL_WAYPOINT ? STR_STATION_LIST_WAYPOINT : STR_STATION_LIST_STATION));
@@ -2281,11 +2287,11 @@ struct SelectStationWindow : Window {
 			y += this->resize.step_height;
 		}
 
-		for (uint i = max<uint>(1, this->vscroll->GetPosition()); i <= _stations_nearby_list.Length(); ++i, y += this->resize.step_height) {
+		for (uint i = max<uint>(1, this->vscroll->GetPosition()); i <= this->list.size(); ++i, y += this->resize.step_height) {
 			/* Don't draw anything if it extends past the end of the window. */
 			if (i - this->vscroll->GetPosition() >= this->vscroll->GetCapacity()) break;
 
-			const T *st = T::Get(_stations_nearby_list[i - 1]);
+			const T *st = T::Get(this->list[i - 1]);
 			SetDParam(0, st->index);
 			SetDParam(1, st->facilities);
 			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, T::EXPECTED_FACIL == FACIL_WAYPOINT ? STR_STATION_LIST_WAYPOINT : STR_STATION_LIST_STATION);
@@ -2300,11 +2306,11 @@ struct SelectStationWindow : Window {
 		bool distant_join = (st_index > 0);
 		if (distant_join) st_index--;
 
-		if (distant_join && st_index >= _stations_nearby_list.Length()) return;
+		if (distant_join && st_index >= this->list.size()) return;
 
 		/* Insert station to be joined into stored command */
 		SB(this->select_station_cmd.p2, 16, 16,
-		   (distant_join ? _stations_nearby_list[st_index] : NEW_STATION));
+			(distant_join ? this->list[st_index] : NEW_STATION));
 
 		/* Execute stored Command */
 		DoCommandP(&this->select_station_cmd);
@@ -2336,12 +2342,12 @@ struct SelectStationWindow : Window {
 		if (!gui_scope) return;
 
 		if (FindStationInArea<T> (this->area) != NULL) {
-			_stations_nearby_list.Clear();
+			this->list.clear();
 		} else {
-			FindStationsNearby<T>(this->area, true);
+			FindStationsNearby<T> (&this->list, this->area, true);
 		}
 
-		this->vscroll->SetCount(_stations_nearby_list.Length() + 1);
+		this->vscroll->SetCount (this->list.size() + 1);
 		this->SetDirty();
 	}
 };
@@ -2381,10 +2387,11 @@ void ShowSelectBaseStationIfNeeded(const CommandContainer &cmd, TileArea ta)
 				 * next to a station, do not show the selection window
 				 * but join the other station immediately. */
 				&& FindStationInArea<T> (ta) == NULL) {
-			FindStationsNearby<T> (ta, false);
-			if (_settings_game.station.adjacent_stations || _stations_nearby_list.Length() == 0) {
+			std::vector<StationID> list;
+			FindStationsNearby<T> (&list, ta, false);
+			if (_settings_game.station.adjacent_stations || list.size() == 0) {
 				if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
-				new SelectStationWindow<T>(&_select_station_desc, cmd, ta);
+				new SelectStationWindow<T> (&_select_station_desc, cmd, ta, list);
 				return;
 			}
 		}
