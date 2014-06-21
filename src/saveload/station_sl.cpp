@@ -460,7 +460,7 @@ static void Save_STNN(SaveDumper *dumper)
 	FOR_ALL_BASE_STATIONS(bst) {
 		SaveDumper temp(1024);
 
-		bool waypoint = (bst->facilities & FACIL_WAYPOINT) != 0;
+		bool waypoint = bst->IsWaypoint();
 		temp.WriteObject(bst, waypoint ? _waypoint_desc : _station_desc);
 
 		if (!waypoint) {

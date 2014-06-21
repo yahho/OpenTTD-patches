@@ -3180,7 +3180,7 @@ static bool ClickTile_Station(TileIndex tile)
 {
 	const BaseStation *bst = BaseStation::GetByTile(tile);
 
-	if (bst->facilities & FACIL_WAYPOINT) {
+	if (bst->IsWaypoint()) {
 		ShowWaypointWindow(Waypoint::From(bst));
 	} else if (IsHangar(tile)) {
 		const Station *st = Station::From(bst);
@@ -3237,7 +3237,7 @@ static bool StationHandleBigTick(BaseStation *st)
 	}
 
 
-	if ((st->facilities & FACIL_WAYPOINT) == 0) UpdateStationAcceptance(Station::From(st), true);
+	if (!st->IsWaypoint()) UpdateStationAcceptance(Station::From(st), true);
 
 	return true;
 }
@@ -3586,7 +3586,7 @@ void IncreaseStats(Station *st, const Vehicle *front, StationID next_station_id)
 /* called for every station each tick */
 static void StationHandleSmallTick(BaseStation *st)
 {
-	if ((st->facilities & FACIL_WAYPOINT) != 0 || !st->IsInUse()) return;
+	if (st->IsWaypoint() || !st->IsInUse()) return;
 
 	byte b = st->delete_ctr + 1;
 	if (b >= STATION_RATING_TICKS) b = 0;

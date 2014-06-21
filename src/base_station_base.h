@@ -156,6 +156,12 @@ struct BaseStation : PooledItem <BaseStation, StationID, 32, 64000> {
 		return BaseStation::Get(GetStationIndex(tile));
 	}
 
+	/** Check if this station is a waypoint. */
+	inline bool IsWaypoint (void) const
+	{
+		return (this->facilities & FACIL_WAYPOINT) != 0;
+	}
+
 	/**
 	 * Check whether the base station currently is in use; in use means
 	 * that it is not scheduled for deletion and that it still has some
