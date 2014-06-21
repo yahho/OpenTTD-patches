@@ -104,6 +104,16 @@ static inline bool IsShipDepotTile(TileIndex t)
 	return tile_is_ship_depot(&_mc[t]);
 }
 
+/**
+ * Is it a lock tile?
+ * @param t Tile to query.
+ * @return \c true if it is a lock tile.
+ */
+static inline bool IsLockTile(TileIndex t)
+{
+	return tile_is_lock(&_mc[t]);
+}
+
 
 /**
  * Checks whether the tile has an waterclass associated.
@@ -232,17 +242,6 @@ static inline DiagDirection GetLockDirection(TileIndex t)
 	return tile_get_lock_direction(&_mc[t]);
 }
 
-/**
- * Get the part of a lock.
- * @param t Water tile to query.
- * @return The part.
- * @pre IsWaterTile(t) && IsLock(t)
- */
-static inline byte GetLockPart(TileIndex t)
-{
-	return tile_get_lock_part(&_mc[t]);
-}
-
 
 /**
  * Get the random bits of the water tile.
@@ -342,7 +341,7 @@ static inline void MakeShipDepot(TileIndex t, Owner o, uint did, DiagDirection d
  * @param original_water_class Original water class.
  * @see MakeLock
  */
-static inline void MakeLockTile(TileIndex t, Owner o, LockPart part, DiagDirection dir, WaterClass original_water_class)
+static inline void MakeLockTile(TileIndex t, Owner o, WaterTileType part, DiagDirection dir, WaterClass original_water_class)
 {
 	tile_make_lock(&_mc[t], o, part, dir, original_water_class);
 }
@@ -362,9 +361,9 @@ static inline void MakeLock(TileIndex t, Owner o, DiagDirection d, WaterClass wc
 
 	/* Keep the current waterclass and owner for the tiles.
 	 * It allows to restore them after the lock is deleted */
-	MakeLockTile(t, o, LOCK_PART_MIDDLE, d, wc_middle);
-	MakeLockTile(t - delta, IsPlainWaterTile(t - delta) ? GetTileOwner(t - delta) : o, LOCK_PART_LOWER, d, wc_lower);
-	MakeLockTile(t + delta, IsPlainWaterTile(t + delta) ? GetTileOwner(t + delta) : o, LOCK_PART_UPPER, d, wc_upper);
+	MakeLockTile(t, o, WATER_TILE_LOCK_MIDDLE, d, wc_middle);
+	MakeLockTile(t - delta, IsPlainWaterTile(t - delta) ? GetTileOwner(t - delta) : o, WATER_TILE_LOCK_LOWER, d, wc_lower);
+	MakeLockTile(t + delta, IsPlainWaterTile(t + delta) ? GetTileOwner(t + delta) : o, WATER_TILE_LOCK_UPPER, d, wc_upper);
 }
 
 #endif /* MAP_WATER_H */

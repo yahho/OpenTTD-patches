@@ -504,20 +504,28 @@ static CommandCost ClearTile_Water(TileIndex tile, DoCommandFlag flags)
 			}
 		}
 
-		case WATER_TILE_LOCK:
-			if (flags & DC_AUTO) return_cmd_error(STR_ERROR_BUILDING_MUST_BE_DEMOLISHED);
-			if (_current_company == OWNER_WATER) return CMD_ERROR;
-			/* move to the middle tile.. */
-			switch (GetLockPart(tile)) {
-				case LOCK_PART_LOWER: tile += TileOffsByDiagDir(GetLockDirection(tile)); break;
-				case LOCK_PART_UPPER: tile -= TileOffsByDiagDir(GetLockDirection(tile)); break;
-				default: break;
-			}
-			return RemoveLock(tile, flags);
-
 		case WATER_TILE_DEPOT:
 			if (flags & DC_AUTO) return_cmd_error(STR_ERROR_BUILDING_MUST_BE_DEMOLISHED);
 			return RemoveShipDepot(tile, flags);
+
+		case WATER_TILE_LOCK_MIDDLE:
+			if (flags & DC_AUTO) return_cmd_error(STR_ERROR_BUILDING_MUST_BE_DEMOLISHED);
+			if (_current_company == OWNER_WATER) return CMD_ERROR;
+			return RemoveLock(tile, flags);
+
+		case WATER_TILE_LOCK_LOWER:
+			if (flags & DC_AUTO) return_cmd_error(STR_ERROR_BUILDING_MUST_BE_DEMOLISHED);
+			if (_current_company == OWNER_WATER) return CMD_ERROR;
+			/* move to the middle tile.. */
+			tile += TileOffsByDiagDir(GetLockDirection(tile));
+			return RemoveLock(tile, flags);
+
+		case WATER_TILE_LOCK_UPPER:
+			if (flags & DC_AUTO) return_cmd_error(STR_ERROR_BUILDING_MUST_BE_DEMOLISHED);
+			if (_current_company == OWNER_WATER) return CMD_ERROR;
+			/* move to the middle tile.. */
+			tile -= TileOffsByDiagDir(GetLockDirection(tile));
+			return RemoveLock(tile, flags);
 
 		default:
 			NOT_REACHED();
@@ -549,9 +557,9 @@ bool IsWateredTile(TileIndex tile, Direction from)
 
 		case TT_WATER:
 			switch (GetWaterTileType(tile)) {
-				default: NOT_REACHED();
-				case WATER_TILE_DEPOT: case WATER_TILE_CLEAR: return true;
-				case WATER_TILE_LOCK: return DiagDirToAxis(GetLockDirection(tile)) == DiagDirToAxis(DirToDiagDir(from));
+				case WATER_TILE_CLEAR:
+				case WATER_TILE_DEPOT:
+					return true;
 
 				case WATER_TILE_COAST:
 					switch (GetTileSlope(tile)) {
@@ -561,6 +569,9 @@ bool IsWateredTile(TileIndex tile, Direction from)
 						case SLOPE_N: return (from == DIR_SW) || (from == DIR_S) || (from == DIR_SE);
 						default: return false;
 					}
+
+				default:
+					return DiagDirToAxis(GetLockDirection(tile)) == DiagDirToAxis(DirToDiagDir(from));
 			}
 
 		case TT_RAILWAY:
@@ -720,8 +731,8 @@ static void DrawWaterTileStruct(const TileInfo *ti, const DrawTileSeqStruct *dts
 /** Draw a lock tile. */
 static void DrawWaterLock(const TileInfo *ti)
 {
-	int part = GetLockPart(ti->tile);
-	const DrawTileSprites &dts = _lock_display_data[part][GetLockDirection(ti->tile)];
+	WaterTileType part = GetWaterTileType (ti->tile);
+	const DrawTileSprites &dts = _lock_display_data[part - WATER_TILE_LOCK_MIDDLE][GetLockDirection(ti->tile)];
 
 	/* Draw ground sprite. */
 	SpriteID image = dts.ground.sprite;
@@ -749,7 +760,7 @@ static void DrawWaterLock(const TileInfo *ti)
 	if (base == 0) {
 		/* If no custom graphics, use defaults. */
 		base = SPR_LOCK_BASE;
-		uint8 z_threshold = part == LOCK_PART_UPPER ? 8 : 0;
+		uint8 z_threshold = part == WATER_TILE_LOCK_UPPER ? 8 : 0;
 		zoffs = ti->z > z_threshold ? 24 : 0;
 	}
 
@@ -842,12 +853,12 @@ static void DrawTile_Water(TileInfo *ti)
 			break;
 		}
 
-		case WATER_TILE_LOCK:
-			DrawWaterLock(ti);
-			break;
-
 		case WATER_TILE_DEPOT:
 			DrawWaterDepot(ti);
+			break;
+
+		default:
+			DrawWaterLock(ti);
 			break;
 	}
 }
@@ -886,12 +897,11 @@ static void GetTileDesc_Water(TileIndex tile, TileDesc *td)
 			}
 			break;
 		case WATER_TILE_COAST: td->str = STR_LAI_WATER_DESCRIPTION_COAST_OR_RIVERBANK; break;
-		case WATER_TILE_LOCK : td->str = STR_LAI_WATER_DESCRIPTION_LOCK;               break;
 		case WATER_TILE_DEPOT:
 			td->str = STR_LAI_WATER_DESCRIPTION_SHIP_DEPOT;
 			td->build_date = Depot::GetByTile(tile)->build_date;
 			break;
-		default: NOT_REACHED(); break;
+		default: td->str = STR_LAI_WATER_DESCRIPTION_LOCK; break;
 	}
 
 	td->owner[0] = GetTileOwner(tile);
@@ -1224,9 +1234,8 @@ static TrackdirBits GetTileWaterwayStatus_Water(TileIndex tile, DiagDirection si
 	switch (GetWaterTileType(tile)) {
 		case WATER_TILE_CLEAR: ts = IsTileFlat(tile) ? TRACK_BIT_ALL : TRACK_BIT_NONE; break;
 		case WATER_TILE_COAST: ts = (TrackBits)coast_tracks[GetTileSlope(tile) & 0xF]; break;
-		case WATER_TILE_LOCK:  ts = DiagDirToDiagTrackBits(GetLockDirection(tile)); break;
 		case WATER_TILE_DEPOT: ts = DiagDirToDiagTrackBits(GetShipDepotDirection(tile)); break;
-		default: return TRACKDIR_BIT_NONE;
+		default:               ts = DiagDirToDiagTrackBits(GetLockDirection(tile)); break;
 	}
 	if (TileX(tile) == 0) {
 		/* NE border: remove tracks that connects NE tile edge */
@@ -1241,7 +1250,7 @@ static TrackdirBits GetTileWaterwayStatus_Water(TileIndex tile, DiagDirection si
 
 static bool ClickTile_Water(TileIndex tile)
 {
-	if (GetWaterTileType(tile) == WATER_TILE_DEPOT) {
+	if (IsShipDepot(tile)) {
 		ShowDepotWindow(GetShipDepotNorthTile(tile), VEH_SHIP);
 		return true;
 	}
@@ -1252,7 +1261,7 @@ static void ChangeTileOwner_Water(TileIndex tile, Owner old_owner, Owner new_own
 {
 	if (!IsTileOwner(tile, old_owner)) return;
 
-	bool is_lock_middle = IsLock(tile) && GetLockPart(tile) == LOCK_PART_MIDDLE;
+	bool is_lock_middle = GetWaterTileType(tile) == WATER_TILE_LOCK_MIDDLE;
 
 	/* No need to dirty company windows here, we'll redraw the whole screen anyway. */
 	if (is_lock_middle) Company::Get(old_owner)->infrastructure.water -= 3 * LOCK_DEPOT_TILE_FACTOR; // Lock has three parts.

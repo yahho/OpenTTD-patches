@@ -989,6 +989,34 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			}
 		}
 	}
+
+	/* New storage scheme for water tiles */
+	if (IsFullSavegameVersionBefore (stv, 19)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsTileType (t, TT_WATER)) {
+				byte old = _mc[t].m5;
+				switch (GB(old, 4, 4)) {
+					case 0: // nothing or coast
+						_mc[t].m4 = old;
+						_mc[t].m5 = 0;
+						break;
+
+					case 1: // lock
+						_mc[t].m4 = 3 + GB(old, 2, 2);
+						_mc[t].m5 = old & 3;
+						break;
+
+					case 8: // depot
+						_mc[t].m4 = 2;
+						_mc[t].m5 = old & 3;
+						break;
+
+					default:
+						throw SlCorrupt ("Invalid water tile type");
+				}
+			}
+		}
+	}
 }
 
 

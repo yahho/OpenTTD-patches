@@ -19,31 +19,14 @@
 #include "../direction_func.h"
 #include "../company_type.h"
 
-/**
- * Bit field layout of m5 for water tiles.
- */
-enum WaterTileTypeBitLayout {
-	WBL_TYPE_BEGIN        = 4,   ///< Start of the 'type' bitfield.
-	WBL_TYPE_COUNT        = 4,   ///< Length of the 'type' bitfield.
-
-	WBL_TYPE_NORMAL       = 0x0, ///< Clear water or coast ('type' bitfield).
-	WBL_TYPE_LOCK         = 0x1, ///< Lock ('type' bitfield).
-	WBL_TYPE_DEPOT        = 0x8, ///< Depot ('type' bitfield).
-
-	WBL_COAST_FLAG        = 0,   ///< Flag for coast.
-
-	WBL_ORIENT_BEGIN      = 0,   ///< Start of depot/lock orientiation bitfield.
-	WBL_ORIENT_COUNT      = 2,   ///< Length of depot/lock orientiation bitfield.
-	WBL_LOCK_PART_BEGIN   = 2,   ///< Start of lock part bitfield.
-	WBL_LOCK_PART_COUNT   = 2,   ///< Length of lock part bitfield.
-};
-
 /** Available water tile types. */
 enum WaterTileType {
-	WATER_TILE_CLEAR, ///< Plain water.
-	WATER_TILE_COAST, ///< Coast.
-	WATER_TILE_LOCK,  ///< Water lock.
-	WATER_TILE_DEPOT, ///< Water Depot.
+	WATER_TILE_CLEAR,       ///< nothing (plain water)
+	WATER_TILE_COAST,       ///< coast
+	WATER_TILE_DEPOT,       ///< ship depot
+	WATER_TILE_LOCK_MIDDLE, ///< water lock, middle part
+	WATER_TILE_LOCK_LOWER,  ///< water lock, lower part
+	WATER_TILE_LOCK_UPPER,  ///< water lock, upper part
 };
 
 /** classes of water (for #WATER_TILE_CLEAR water tile type). */
@@ -56,13 +39,6 @@ enum WaterClass {
 /** Helper information for extract tool. */
 template <> struct EnumPropsT<WaterClass> : MakeEnumPropsT<WaterClass, byte, WATER_CLASS_SEA, WATER_CLASS_INVALID, WATER_CLASS_INVALID, 2> {};
 
-/** Sections of the water lock. */
-enum LockPart {
-	LOCK_PART_MIDDLE = 0, ///< Middle part of a lock.
-	LOCK_PART_LOWER  = 1, ///< Lower part of a lock.
-	LOCK_PART_UPPER  = 2, ///< Upper part of a lock.
-};
-
 
 /**
  * Get the water type of a tile
@@ -73,13 +49,7 @@ enum LockPart {
 static inline WaterTileType tile_get_water_type(const Tile *t)
 {
 	assert(tile_is_water(t));
-
-	switch (GB(t->m5, WBL_TYPE_BEGIN, WBL_TYPE_COUNT)) {
-		case WBL_TYPE_NORMAL: return HasBit(t->m5, WBL_COAST_FLAG) ? WATER_TILE_COAST : WATER_TILE_CLEAR;
-		case WBL_TYPE_LOCK:   return WATER_TILE_LOCK;
-		case WBL_TYPE_DEPOT:  return WATER_TILE_DEPOT;
-		default: NOT_REACHED();
-	}
+	return (WaterTileType)t->m4;
 }
 
 /**
@@ -123,7 +93,7 @@ static inline bool tile_water_is_depot(const Tile *t)
  */
 static inline bool tile_water_is_lock(const Tile *t)
 {
-	return tile_get_water_type(t) == WATER_TILE_LOCK;
+	return (uint)(tile_get_water_type(t) - WATER_TILE_LOCK_MIDDLE) < 3;
 }
 
 /**
@@ -256,7 +226,7 @@ static inline bool tile_water_is_river(const Tile *t)
 static inline DiagDirection tile_get_ship_depot_direction(const Tile *t)
 {
 	assert(tile_is_ship_depot(t));
-	return (DiagDirection)GB(t->m5, WBL_ORIENT_BEGIN, WBL_ORIENT_COUNT);
+	return (DiagDirection)t->m5;
 }
 
 
@@ -269,19 +239,7 @@ static inline DiagDirection tile_get_ship_depot_direction(const Tile *t)
 static inline DiagDirection tile_get_lock_direction(const Tile *t)
 {
 	assert(tile_is_lock(t));
-	return (DiagDirection)GB(t->m5, WBL_ORIENT_BEGIN, WBL_ORIENT_COUNT);
-}
-
-/**
- * Get the part of a lock
- * @param t The tile whose lock to get the part of
- * @pre tile_is_lock(t)
- * @return The part of the lock
- */
-static inline byte tile_get_lock_part(const Tile *t)
-{
-	assert(tile_is_lock(t));
-	return GB(t->m5, WBL_LOCK_PART_BEGIN, WBL_LOCK_PART_COUNT);
+	return (DiagDirection)t->m5;
 }
 
 
@@ -298,8 +256,8 @@ static inline void tile_make_water(Tile *t, Owner o, WaterClass wc, byte random_
 	t->m1 = (wc << 5) | o;
 	t->m2 = 0;
 	t->m3 = random_bits;
-	t->m4 = 0;
-	t->m5 = WBL_TYPE_NORMAL << WBL_TYPE_BEGIN;
+	t->m4 = WATER_TILE_CLEAR;
+	t->m5 = 0;
 	t->m7 = 0;
 }
 
@@ -344,8 +302,8 @@ static inline void tile_make_shore(Tile *t)
 	t->m1 = (WATER_CLASS_SEA << 5) | OWNER_WATER;
 	t->m2 = 0;
 	t->m3 = 0;
-	t->m4 = 0;
-	t->m5 = WBL_TYPE_NORMAL << WBL_TYPE_BEGIN | 1 << WBL_COAST_FLAG;
+	t->m4 = WATER_TILE_COAST;
+	t->m5 = 0;
 	t->m7 = 0;
 }
 
@@ -363,8 +321,8 @@ static inline void tile_make_ship_depot(Tile *t, Owner o, uint id, DiagDirection
 	t->m1 = (wc << 5) | o;
 	t->m2 = id;
 	t->m3 = 0;
-	t->m4 = 0;
-	t->m5 = WBL_TYPE_DEPOT << WBL_TYPE_BEGIN | dir << WBL_ORIENT_BEGIN;
+	t->m4 = WATER_TILE_DEPOT;
+	t->m5 = dir;
 	t->m7 = 0;
 }
 
@@ -376,14 +334,14 @@ static inline void tile_make_ship_depot(Tile *t, Owner o, uint id, DiagDirection
  * @param dir The orientation of this part of the lock
  * @param wc The original water class
  */
-static inline void tile_make_lock(Tile *t, Owner o, LockPart part, DiagDirection dir, WaterClass wc)
+static inline void tile_make_lock(Tile *t, Owner o, WaterTileType part, DiagDirection dir, WaterClass wc)
 {
 	t->m0 = TT_WATER << 4;
 	t->m1 = (wc << 5) | o;
 	t->m2 = 0;
 	t->m3 = 0;
-	t->m4 = 0;
-	t->m5 = WBL_TYPE_LOCK << WBL_TYPE_BEGIN | part << WBL_LOCK_PART_BEGIN | dir << WBL_ORIENT_BEGIN;
+	t->m4 = part;
+	t->m5 = dir;
 	t->m7 = 0;
 }
 

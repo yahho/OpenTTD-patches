@@ -21,7 +21,7 @@
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return ::IsWaterTile(tile) && ::GetWaterTileType(tile) == WATER_TILE_DEPOT;
+	return ::IsShipDepotTile(tile);
 }
 
 /* static */ bool ScriptMarine::IsDockTile(TileIndex tile)
@@ -42,7 +42,7 @@
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return ::IsWaterTile(tile) && ::GetWaterTileType(tile) == WATER_TILE_LOCK;
+	return ::IsLockTile(tile);
 }
 
 /* static */ bool ScriptMarine::IsCanalTile(TileIndex tile)

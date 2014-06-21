@@ -284,7 +284,7 @@ void AfterLoadCompanyStats()
 					c = Company::GetIfValid(GetTileOwner(tile));
 					if (c != NULL) {
 						if (IsShipDepot(tile)) c->infrastructure.water += LOCK_DEPOT_TILE_FACTOR;
-						if (IsLock(tile) && GetLockPart(tile) == LOCK_PART_MIDDLE) {
+						else if (GetWaterTileType(tile) == WATER_TILE_LOCK_MIDDLE) {
 							/* The middle tile specifies the owner of the lock. */
 							c->infrastructure.water += 3 * LOCK_DEPOT_TILE_FACTOR; // the middle tile specifies the owner of the
 							break; // do not count the middle tile as canal

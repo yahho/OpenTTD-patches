@@ -170,10 +170,11 @@ below.
     <td> <span class="free">0</span><span
         title="Water class (sea, canal or river)">~~</span><a
         href="#owner" title="Owner">[ownr]</a>
-    <td> <span class="free">0000-0000-0000-0000</span>
+    <td> <span title="Depot index (for ship depots)">[---depot-index---]</span>
     <td> <span title="Random data for canal or river tiles">[random-]</span>
-    <td> <span class="free">0000-0000</span>
     <td> <a href="#water" title="Tile type">[-type--]</a>
+    <td> <span class="free">0000-00</span><a href="#direction"
+        title="Direction (for depots and locks)">&lt;&gt;</a>
     <td> <span class="free">0000-0000</span>
 
   <!-- (free) -->
@@ -506,24 +507,12 @@ fully grown; 4&hellip;7 for withering).
 
 <table class="field">
   <tr> <th> Value <th> Meaning
-  <tr> <td class="mono"> 00 <td class="text"> Water, canal or river
-  <tr> <td class="mono"> 01 <td class="text"> Coast or riverbank
-  <tr> <td class="mono"> 10 <td class="text"> Canal lock, middle part, SW-NE
-  <tr> <td class="mono"> 11 <td class="text"> Canal lock, middle part, NW-SE
-  <tr> <td class="mono"> 12 <td class="text"> Canal lock, middle part, NE-SW
-  <tr> <td class="mono"> 13 <td class="text"> Canal lock, middle part, SE-NW
-  <tr> <td class="mono"> 14 <td class="text"> Canal lock, lower part, SW-NE
-  <tr> <td class="mono"> 15 <td class="text"> Canal lock, lower part, NW-SE
-  <tr> <td class="mono"> 16 <td class="text"> Canal lock, lower part, NE-SW
-  <tr> <td class="mono"> 17 <td class="text"> Canal lock, lower part, SE-NW
-  <tr> <td class="mono"> 18 <td class="text"> Canal lock, upper part, SW-NE
-  <tr> <td class="mono"> 19 <td class="text"> Canal lock, upper part, NW-SE
-  <tr> <td class="mono"> 1A <td class="text"> Canal lock, upper part, NE-SW
-  <tr> <td class="mono"> 1B <td class="text"> Canal lock, upper part, SE-NW
-  <tr> <td class="mono"> 80 <td class="text"> Ship depot, X direction, NE part
-  <tr> <td class="mono"> 81 <td class="text"> Ship depot, Y direction, SE part
-  <tr> <td class="mono"> 82 <td class="text"> Ship depot, X direction, SW part
-  <tr> <td class="mono"> 83 <td class="text"> Ship depot, Y direction, NW part
+  <tr> <td class="mono"> 0 <td class="text"> Plain water (water, canal or river)
+  <tr> <td class="mono"> 1 <td class="text"> Coast or riverbank
+  <tr> <td class="mono"> 2 <td class="text"> Depot part
+  <tr> <td class="mono"> 3 <td class="text"> Canal lock, middle part
+  <tr> <td class="mono"> 4 <td class="text"> Canal lock, lower part
+  <tr> <td class="mono"> 5 <td class="text"> Canal lock, upper part
 </table>
 
 

@@ -61,7 +61,7 @@ struct CanalResolverObject : public ResolverObject {
 		case 0x80: {
 			int z = GetTileZ(this->tile);
 			/* Return consistent height within locks */
-			if (IsWaterTile(this->tile) && IsLock(this->tile) && GetLockPart(this->tile) == LOCK_PART_UPPER) z--;
+			if (IsWaterTile(this->tile) && GetWaterTileType(this->tile) == WATER_TILE_LOCK_UPPER) z--;
 			return z;
 		}
 
