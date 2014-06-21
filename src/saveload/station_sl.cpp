@@ -117,7 +117,7 @@ void AfterLoadStations()
 			st->speclist[i].spec = StationClass::GetByGrf(st->speclist[i].grfid, st->speclist[i].localidx, NULL);
 		}
 
-		if (Station::IsExpected(st)) {
+		if (!st->IsWaypoint()) {
 			Station *sta = Station::From(st);
 			for (const RoadStop *rs = sta->bus_stops; rs != NULL; rs = rs->next) sta->bus_station.Add(rs->xy);
 			for (const RoadStop *rs = sta->truck_stops; rs != NULL; rs = rs->next) sta->truck_station.Add(rs->xy);

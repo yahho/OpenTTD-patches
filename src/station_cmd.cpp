@@ -566,7 +566,7 @@ static void UpdateStationSignCoord(BaseStation *st)
 	st->xy = st->rect.get_closest_tile(st->xy);
 	st->UpdateVirtCoord();
 
-	if (!Station::IsExpected(st)) return;
+	if (st->IsWaypoint()) return;
 	Station *full_station = Station::From(st);
 	for (CargoID c = 0; c < NUM_CARGO; ++c) {
 		LinkGraphID lg = full_station->goods[c].link_graph;
@@ -3228,16 +3228,15 @@ static bool StationHandleBigTick(BaseStation *st)
 		return false;
 	}
 
-	if (Station::IsExpected(st)) {
+	if (!st->IsWaypoint()) {
 		TriggerWatchedCargoCallbacks(Station::From(st));
 
 		for (CargoID i = 0; i < NUM_CARGO; i++) {
 			ClrBit(Station::From(st)->goods[i].acceptance_pickup, GoodsEntry::GES_ACCEPTED_BIGTICK);
 		}
+
+		UpdateStationAcceptance(Station::From(st), true);
 	}
-
-
-	if (!st->IsWaypoint()) UpdateStationAcceptance(Station::From(st), true);
 
 	return true;
 }
@@ -3604,7 +3603,7 @@ void OnTick_Station()
 		StationHandleSmallTick(st);
 
 		/* Clean up the link graph about once a week. */
-		if (Station::IsExpected(st) && (_tick_counter + st->index) % STATION_LINKGRAPH_TICKS == 0) {
+		if (!st->IsWaypoint() && (_tick_counter + st->index) % STATION_LINKGRAPH_TICKS == 0) {
 			DeleteStaleLinks(Station::From(st));
 		};
 
@@ -3615,7 +3614,7 @@ void OnTick_Station()
 			/* Stop processing this station if it was deleted */
 			if (!StationHandleBigTick(st)) continue;
 			TriggerStationAnimation(st, st->xy, SAT_250_TICKS);
-			if (Station::IsExpected(st)) AirportAnimationTrigger(Station::From(st), AAT_STATION_250_TICKS);
+			if (!st->IsWaypoint()) AirportAnimationTrigger(Station::From(st), AAT_STATION_250_TICKS);
 		}
 	}
 }

@@ -1524,7 +1524,7 @@ public:
 						break;
 
 					case VL_STATION_LIST: // Station/Waypoint Name
-						SetDParam(0, Station::IsExpected(BaseStation::Get(this->vli.index)) ? STR_STATION_NAME : STR_WAYPOINT_NAME);
+						SetDParam(0, BaseStation::Get(this->vli.index)->IsWaypoint() ? STR_WAYPOINT_NAME : STR_STATION_NAME);
 						SetDParam(1, this->vli.index);
 						SetDParam(3, this->vscroll->GetCount());
 						break;

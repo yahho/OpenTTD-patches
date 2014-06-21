@@ -85,7 +85,7 @@ struct ETileArea : TileArea {
 			}
 
 			case TA_WHOLE:
-				st->GetTileArea(this, Station::IsExpected(st) ? STATION_RAIL : STATION_WAYPOINT);
+				st->GetTileArea(this, st->IsWaypoint() ? STATION_WAYPOINT : STATION_RAIL);
 				break;
 		}
 	}
@@ -558,7 +558,7 @@ StationResolverObject::StationResolverObject(const StationSpec *statspec, BaseSt
 	if (this->station_scope.st == NULL) {
 		/* No station, so we are in a purchase list */
 		ctype = CT_PURCHASE;
-	} else if (Station::IsExpected(this->station_scope.st)) {
+	} else if (!this->station_scope.st->IsWaypoint()) {
 		const Station *st = Station::From(this->station_scope.st);
 		/* Pick the first cargo that we have waiting */
 		const CargoSpec *cs;

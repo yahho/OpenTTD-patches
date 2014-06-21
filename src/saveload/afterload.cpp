@@ -638,7 +638,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 			bst->rect.Add(t);
 
 			/* Waypoints don't have road stops/oil rigs in the old format */
-			if (!Station::IsExpected(bst)) continue;
+			if (bst->IsWaypoint()) continue;
 			Station *st = Station::From(bst);
 
 			switch (GetStationType(t)) {

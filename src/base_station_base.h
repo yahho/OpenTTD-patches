@@ -184,7 +184,7 @@ struct BaseStation : PooledItem <BaseStation, StationID, 32, 64000> {
  */
 template <class T, bool Tis_waypoint>
 struct SpecializedStation : public BaseStation {
-	static const StationFacility EXPECTED_FACIL = Tis_waypoint ? FACIL_WAYPOINT : FACIL_NONE; ///< Specialized type
+	static const bool IS_WAYPOINT = Tis_waypoint;
 
 	/**
 	 * Set station type correctly
@@ -193,17 +193,7 @@ struct SpecializedStation : public BaseStation {
 	inline SpecializedStation<T, Tis_waypoint>(TileIndex tile) :
 			BaseStation(tile)
 	{
-		this->facilities = EXPECTED_FACIL;
-	}
-
-	/**
-	 * Helper for checking whether the given station is of this type.
-	 * @param st the station to check.
-	 * @return true if the station is the type we expect it to be.
-	 */
-	static inline bool IsExpected(const BaseStation *st)
-	{
-		return (st->facilities & FACIL_WAYPOINT) == EXPECTED_FACIL;
+		this->facilities = Tis_waypoint ? FACIL_WAYPOINT : FACIL_NONE;
 	}
 
 	/**
@@ -213,7 +203,7 @@ struct SpecializedStation : public BaseStation {
 	 */
 	static inline bool IsValidID(size_t index)
 	{
-		return BaseStation::IsValidID(index) && IsExpected(BaseStation::Get(index));
+		return BaseStation::IsValidID(index) && BaseStation::Get(index)->IsWaypoint() == IS_WAYPOINT;
 	}
 
 	/**
@@ -251,7 +241,7 @@ struct SpecializedStation : public BaseStation {
 	 */
 	static inline T *From(BaseStation *st)
 	{
-		assert(IsExpected(st));
+		assert(st->IsWaypoint() == IS_WAYPOINT);
 		return (T *)st;
 	}
 
@@ -262,11 +252,11 @@ struct SpecializedStation : public BaseStation {
 	 */
 	static inline const T *From(const BaseStation *st)
 	{
-		assert(IsExpected(st));
+		assert(st->IsWaypoint() == IS_WAYPOINT);
 		return (const T *)st;
 	}
 };
 
-#define FOR_ALL_BASE_STATIONS_OF_TYPE(name, var) FOR_ALL_ITEMS_FROM(name, station_index, var, 0) if (name::IsExpected(var))
+#define FOR_ALL_BASE_STATIONS_OF_TYPE(name, var) FOR_ALL_ITEMS_FROM(name, station_index, var, 0) if (var->IsWaypoint() == name::IS_WAYPOINT)
 
 #endif /* BASE_STATION_BASE_H */

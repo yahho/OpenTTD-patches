@@ -1174,7 +1174,7 @@ static void ViewportAddStationNames(DrawPixelInfo *dpi)
 	const BaseStation *st;
 	FOR_ALL_BASE_STATIONS(st) {
 		/* Check whether the base station is a station or a waypoint */
-		bool is_station = Station::IsExpected(st);
+		bool is_station = !st->IsWaypoint();
 
 		/* Don't draw if the display options are disabled */
 		if (!HasBit(_display_opt, is_station ? DO_SHOW_STATION_NAMES : DO_SHOW_WAYPOINT_NAMES)) continue;
@@ -1881,7 +1881,7 @@ static bool CheckClickOnStation(const ViewPort *vp, int x, int y)
 	const BaseStation *st;
 	FOR_ALL_BASE_STATIONS(st) {
 		/* Check whether the base station is a station or a waypoint */
-		bool is_station = Station::IsExpected(st);
+		bool is_station = !st->IsWaypoint();
 
 		/* Don't check if the display options are disabled */
 		if (!HasBit(_display_opt, is_station ? DO_SHOW_STATION_NAMES : DO_SHOW_WAYPOINT_NAMES)) continue;
