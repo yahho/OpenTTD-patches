@@ -2111,15 +2111,17 @@ void ShowStationViewWindow(StationID station)
 
 /**
  * Find a station of the given type in the given area.
- * @tparam T the type of station to look for
  * @param ta Base tile area of the to-be-built station
+ * @param waypoint Look for a waypoint, else a station
  * @return Station found if any, else NULL
  */
-template <class T>
-static const T *FindStationInArea (const TileArea &ta)
+static const BaseStation *FindStationInArea (const TileArea &ta, bool waypoint)
 {
 	TILE_AREA_LOOP(t, ta) {
-		if (IsStationTile(t) && T::IsValidID(GetStationIndex(t))) return T::GetByTile(t);
+		if (IsStationTile(t)) {
+			BaseStation *bst = BaseStation::GetByTile(t);
+			if (bst->IsWaypoint() == waypoint) return bst;
+		}
 	}
 
 	return NULL;
@@ -2130,6 +2132,7 @@ struct FindNearbyStationsData {
 	const TileArea *ta;
 	std::vector <StationID> *list;
 	std::vector <std::pair <TileIndex, StationID> > deleted;
+	bool waypoint;
 };
 
 /**
@@ -2137,9 +2140,7 @@ struct FindNearbyStationsData {
  * station spread.
  * @param tile Tile just being checked
  * @param user_data Pointer to FindNearbyStationsData
- * @tparam T the type of station to look for
  */
-template <class T>
 static bool AddNearbyStation(TileIndex tile, void *user_data)
 {
 	FindNearbyStationsData *data = (FindNearbyStationsData *) user_data;
@@ -2156,11 +2157,11 @@ static bool AddNearbyStation(TileIndex tile, void *user_data)
 	if (!IsStationTile(tile)) return false;
 
 	StationID sid = GetStationIndex(tile);
+	BaseStation *st = BaseStation::Get(sid);
 
 	/* This station is (likely) a waypoint */
-	if (!T::IsValidID(sid)) return false;
+	if (st->IsWaypoint() != data->waypoint) return false;
 
-	T *st = T::Get(sid);
 	if (st->owner != _local_company) return false;
 
 	for (std::vector<StationID>::const_iterator iter = data->list->begin(); iter < data->list->end(); iter++) {
@@ -2181,21 +2182,21 @@ static bool AddNearbyStation(TileIndex tile, void *user_data)
  * @param ta Base tile area of the to-be-built station
  * @param distant_join Search for adjacent stations (false) or stations fully
  *                     within station spread
- * @tparam T the type of station to look for
+ * @param waypoint Look for a waypoint, else a station
  */
-template <class T>
-static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta, bool distant_join)
+static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta, bool distant_join, bool waypoint)
 {
 	FindNearbyStationsData data;
 	data.ta = &ta;
 	data.list = list;
+	data.waypoint = waypoint;
 
 	list->clear();
 
 	/* Look for deleted stations */
 	const BaseStation *st;
 	FOR_ALL_BASE_STATIONS(st) {
-		if (T::IsExpected(st) && !st->IsInUse() && st->owner == _local_company) {
+		if (st->IsWaypoint() == waypoint && !st->IsInUse() && st->owner == _local_company) {
 			/* Include only within station spread (yes, it is strictly less than) */
 			if (max(DistanceMax(ta.tile, st->xy), DistanceMax(TILE_ADDXY(ta.tile, ta.w - 1, ta.h - 1), st->xy)) < _settings_game.station.station_spread) {
 				/* Add the station when it's within where we're going to build */
@@ -2215,7 +2216,7 @@ static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta
 	uint max_dist = distant_join ? _settings_game.station.station_spread - min(ta.w, ta.h) : 1;
 
 	TileIndex tile = TILE_ADD(ta.tile, TileOffsByDir(DIR_N));
-	CircularTileSearch(&tile, max_dist, ta.w, ta.h, AddNearbyStation<T>, &data);
+	CircularTileSearch(&tile, max_dist, ta.w, ta.h, AddNearbyStation, &data);
 }
 
 static const NWidgetPart _nested_select_station_widgets[] = {
@@ -2235,24 +2236,24 @@ static const NWidgetPart _nested_select_station_widgets[] = {
 
 /**
  * Window for selecting stations/waypoints to (distant) join to.
- * @tparam T The type of station to join with
  */
-template <class T>
 struct SelectStationWindow : Window {
 	CommandContainer select_station_cmd; ///< Command to build new station
-	TileArea area; ///< Location of new station
+	const TileArea area; ///< Location of new station
+	const bool waypoint; ///< Select waypoints, else stations
 	std::vector<StationID> list; ///< List of nearby stations
 	Scrollbar *vscroll;
 
-	SelectStationWindow (WindowDesc *desc, const CommandContainer &cmd, const TileArea &ta, const std::vector<StationID> &list) :
+	SelectStationWindow (WindowDesc *desc, const CommandContainer &cmd, const TileArea &ta, bool waypoint, const std::vector<StationID> &list) :
 		Window(desc),
 		select_station_cmd(cmd),
 		area(ta),
+		waypoint(waypoint),
 		list(list)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_JS_SCROLLBAR);
-		this->GetWidget<NWidgetCore>(WID_JS_CAPTION)->widget_data = T::EXPECTED_FACIL == FACIL_WAYPOINT ? STR_JOIN_WAYPOINT_CAPTION : STR_JOIN_STATION_CAPTION;
+		this->GetWidget<NWidgetCore>(WID_JS_CAPTION)->widget_data = waypoint ? STR_JOIN_WAYPOINT_CAPTION : STR_JOIN_STATION_CAPTION;
 		this->FinishInitNested(0);
 		this->OnInvalidateData(0);
 	}
@@ -2262,12 +2263,12 @@ struct SelectStationWindow : Window {
 		if (widget != WID_JS_PANEL) return;
 
 		/* Determine the widest string */
-		Dimension d = GetStringBoundingBox(T::EXPECTED_FACIL == FACIL_WAYPOINT ? STR_JOIN_WAYPOINT_CREATE_SPLITTED_WAYPOINT : STR_JOIN_STATION_CREATE_SPLITTED_STATION);
+		Dimension d = GetStringBoundingBox(this->waypoint ? STR_JOIN_WAYPOINT_CREATE_SPLITTED_WAYPOINT : STR_JOIN_STATION_CREATE_SPLITTED_STATION);
 		for (uint i = 0; i < this->list.size(); i++) {
-			const T *st = T::Get(this->list[i]);
+			const BaseStation *st = BaseStation::Get(this->list[i]);
 			SetDParam(0, st->index);
 			SetDParam(1, st->facilities);
-			d = maxdim(d, GetStringBoundingBox(T::EXPECTED_FACIL == FACIL_WAYPOINT ? STR_STATION_LIST_WAYPOINT : STR_STATION_LIST_STATION));
+			d = maxdim(d, GetStringBoundingBox(this->waypoint ? STR_STATION_LIST_WAYPOINT : STR_STATION_LIST_STATION));
 		}
 
 		resize->height = d.height;
@@ -2283,7 +2284,7 @@ struct SelectStationWindow : Window {
 
 		uint y = r.top + WD_FRAMERECT_TOP;
 		if (this->vscroll->GetPosition() == 0) {
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, T::EXPECTED_FACIL == FACIL_WAYPOINT ? STR_JOIN_WAYPOINT_CREATE_SPLITTED_WAYPOINT : STR_JOIN_STATION_CREATE_SPLITTED_STATION);
+			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, this->waypoint ? STR_JOIN_WAYPOINT_CREATE_SPLITTED_WAYPOINT : STR_JOIN_STATION_CREATE_SPLITTED_STATION);
 			y += this->resize.step_height;
 		}
 
@@ -2291,10 +2292,10 @@ struct SelectStationWindow : Window {
 			/* Don't draw anything if it extends past the end of the window. */
 			if (i - this->vscroll->GetPosition() >= this->vscroll->GetCapacity()) break;
 
-			const T *st = T::Get(this->list[i - 1]);
+			const BaseStation *st = BaseStation::Get(this->list[i - 1]);
 			SetDParam(0, st->index);
 			SetDParam(1, st->facilities);
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, T::EXPECTED_FACIL == FACIL_WAYPOINT ? STR_STATION_LIST_WAYPOINT : STR_STATION_LIST_STATION);
+			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, this->waypoint ? STR_STATION_LIST_WAYPOINT : STR_STATION_LIST_STATION);
 		}
 	}
 
@@ -2341,10 +2342,10 @@ struct SelectStationWindow : Window {
 	{
 		if (!gui_scope) return;
 
-		if (FindStationInArea<T> (this->area) != NULL) {
+		if (FindStationInArea (this->area, this->waypoint) != NULL) {
 			this->list.clear();
 		} else {
-			FindStationsNearby<T> (&this->list, this->area, true);
+			FindStationsNearby (&this->list, this->area, true, this->waypoint);
 		}
 
 		this->vscroll->SetCount (this->list.size() + 1);
@@ -2364,10 +2365,9 @@ static WindowDesc _select_station_desc(
  * Show the station selection window when needed. If not, build the station.
  * @param cmd Command to build the station.
  * @param ta Area to build the station in
- * @tparam the class to find stations for
+ * @param waypoint Look for waypoints, else stations
  */
-template <class T>
-void ShowSelectBaseStationIfNeeded(const CommandContainer &cmd, TileArea ta)
+void ShowSelectBaseStationIfNeeded (const CommandContainer &cmd, const TileArea &ta, bool waypoint)
 {
 	/* Only show selection if distant join is enabled in the settings */
 	if (_settings_game.station.distant_join_stations) {
@@ -2386,36 +2386,16 @@ void ShowSelectBaseStationIfNeeded(const CommandContainer &cmd, TileArea ta)
 				 * If adjacent-stations is disabled and we are building
 				 * next to a station, do not show the selection window
 				 * but join the other station immediately. */
-				&& FindStationInArea<T> (ta) == NULL) {
+				&& FindStationInArea (ta, waypoint) == NULL) {
 			std::vector<StationID> list;
-			FindStationsNearby<T> (&list, ta, false);
+			FindStationsNearby (&list, ta, false, waypoint);
 			if (_settings_game.station.adjacent_stations || list.size() == 0) {
 				if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
-				new SelectStationWindow<T> (&_select_station_desc, cmd, ta, list);
+				new SelectStationWindow (&_select_station_desc, cmd, ta, waypoint, list);
 				return;
 			}
 		}
 	}
 
 	DoCommandP(&cmd);
-}
-
-/**
- * Show the station selection window when needed. If not, build the station.
- * @param cmd Command to build the station.
- * @param ta Area to build the station in
- */
-void ShowSelectStationIfNeeded(const CommandContainer &cmd, TileArea ta)
-{
-	ShowSelectBaseStationIfNeeded<Station>(cmd, ta);
-}
-
-/**
- * Show the waypoint selection window when needed. If not, build the waypoint.
- * @param cmd Command to build the waypoint.
- * @param ta Area to build the waypoint in
- */
-void ShowSelectWaypointIfNeeded(const CommandContainer &cmd, TileArea ta)
-{
-	ShowSelectBaseStationIfNeeded<Waypoint>(cmd, ta);
 }

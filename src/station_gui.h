@@ -27,7 +27,26 @@ enum StationCoverageType {
 int DrawStationCoverageAreaText(int left, int right, int top, StationCoverageType sct, int rad, bool supplies);
 void CheckRedrawStationCoverage(const Window *w);
 
-void ShowSelectStationIfNeeded(const CommandContainer &cmd, TileArea ta);
-void ShowSelectWaypointIfNeeded(const CommandContainer &cmd, TileArea ta);
+void ShowSelectBaseStationIfNeeded (const CommandContainer &cmd, const TileArea &ta, bool waypoint);
+
+/**
+ * Show the station selection window when needed. If not, build the station.
+ * @param cmd Command to build the station.
+ * @param ta Area to build the station in
+ */
+static inline void ShowSelectStationIfNeeded (const CommandContainer &cmd, const TileArea &ta)
+{
+	ShowSelectBaseStationIfNeeded (cmd, ta, false);
+}
+
+/**
+ * Show the waypoint selection window when needed. If not, build the waypoint.
+ * @param cmd Command to build the waypoint.
+ * @param ta Area to build the waypoint in
+ */
+static inline void ShowSelectWaypointIfNeeded (const CommandContainer &cmd, const TileArea &ta)
+{
+	ShowSelectBaseStationIfNeeded (cmd, ta, true);
+}
 
 #endif /* STATION_GUI_H */
