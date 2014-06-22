@@ -156,25 +156,9 @@ public:
 		Blitters::iterator it = GetBlitters().begin();
 		for (; it != GetBlitters().end(); it++) {
 			BlitterFactory *b = (*it).second;
-			buf->append_fmt ("%18s: %s\n", b->name, b->GetDescription());
+			buf->append_fmt ("%18s: %s\n", b->name, b->description);
 		}
 		buf->append ('\n');
-	}
-
-	/**
-	 * Get the long, human readable, name for the Blitter-class.
-	 */
-	const char *GetName() const
-	{
-		return this->name;
-	}
-
-	/**
-	 * Get a nice description of the blitter-class.
-	 */
-	const char *GetDescription() const
-	{
-		return this->description;
 	}
 
 	/**
