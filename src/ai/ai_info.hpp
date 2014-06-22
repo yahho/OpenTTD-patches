@@ -18,7 +18,6 @@
 class AIInfo : public ScriptInfo {
 public:
 	AIInfo();
-	~AIInfo();
 
 	/**
 	 * Register the functions of this class.

@@ -275,6 +275,21 @@ bool Squirrel::CallBoolMethod(HSQOBJECT instance, const char *method_name, bool 
 	return true;
 }
 
+bool Squirrel::CallStringMethodFromSet (HSQOBJECT instance, const char *method_name, size_t n, const char *const *val, const char **res, int suspend)
+{
+	HSQOBJECT ret;
+	if (!this->CallMethod(instance, method_name, &ret, suspend)) return false;
+	if (ret._type != OT_STRING) return false;
+	const char *s = ObjectToString(&ret);
+	for (size_t i = 0; i < n; i++) {
+		if (strcmp (s, val[i]) == 0) {
+			*res = val[i];
+			return true;
+		}
+	}
+	return false;
+}
+
 /* static */ bool Squirrel::CreateClassInstanceVM(HSQUIRRELVM vm, const char *class_name, void *real_instance, HSQOBJECT *instance, SQRELEASEHOOK release_hook, bool prepend_API_name)
 {
 	Squirrel *engine = (Squirrel *)sq_getforeignptr(vm);

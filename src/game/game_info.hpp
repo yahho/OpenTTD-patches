@@ -18,7 +18,6 @@
 class GameInfo : public ScriptInfo {
 public:
 	GameInfo();
-	~GameInfo();
 
 	/**
 	 * Register the functions of this class.

@@ -18,16 +18,8 @@
 #include "../debug.h"
 #include "../rev.h"
 
-/**
- * Check if the API version provided by the AI is supported.
- * @param api_version The API version as provided by the AI.
- */
-static bool CheckAPIVersion(const char *api_version)
-{
-	return strcmp(api_version, "0.7") == 0 || strcmp(api_version, "1.0") == 0 || strcmp(api_version, "1.1") == 0 ||
-			strcmp(api_version, "1.2") == 0 || strcmp(api_version, "1.3") == 0 || strcmp(api_version, "1.4") == 0 ||
-			strcmp(api_version, "1.5") == 0;
-}
+static const char *const ai_api_versions[] =
+	{ "0.7", "1.0", "1.1", "1.2", "1.3", "1.4", "1.5" };
 
 #if defined(WIN32)
 #undef GetClassName
@@ -87,13 +79,12 @@ template <> const char *GetClassName<AIInfo, ST_AI>() { return "AIInfo"; }
 	}
 	/* Try to get the API version the AI is written for. */
 	if (info->engine->MethodExists(*info->SQ_instance, "GetAPIVersion")) {
-		if (!info->engine->CallStringMethodStrdup(*info->SQ_instance, "GetAPIVersion", &info->api_version, MAX_GET_OPS)) return SQ_ERROR;
-		if (!CheckAPIVersion(info->api_version)) {
+		if (!info->engine->CallStringMethodFromSet (*info->SQ_instance, "GetAPIVersion", ai_api_versions, &info->api_version, MAX_GET_OPS)) {
 			DEBUG(script, 1, "Loading info.nut from (%s.%d): GetAPIVersion returned invalid version", info->GetName(), info->GetVersion());
 			return SQ_ERROR;
 		}
 	} else {
-		info->api_version = xstrdup("0.7");
+		info->api_version = ai_api_versions[0];
 	}
 
 	/* Remove the link to the real instance, else it might get deleted by RegisterAI() */
@@ -114,9 +105,7 @@ template <> const char *GetClassName<AIInfo, ST_AI>() { return "AIInfo"; }
 	SQInteger res = ScriptInfo::Constructor(vm, info);
 	if (res != 0) return res;
 
-	char buf[8];
-	bstrfmt (buf, "%d.%d", GB(_openttd_newgrf_version, 28, 4), GB(_openttd_newgrf_version, 24, 4));
-	info->api_version = xstrdup(buf);
+	info->api_version = *lastof(ai_api_versions);
 
 	/* Remove the link to the real instance, else it might get deleted by RegisterAI() */
 	sq_setinstanceup(vm, 2, NULL);
@@ -130,11 +119,6 @@ AIInfo::AIInfo() :
 	use_as_random(false),
 	api_version(NULL)
 {
-}
-
-AIInfo::~AIInfo()
-{
-	free(this->api_version);
 }
 
 bool AIInfo::CanLoadFromVersion(int version) const
