@@ -27,8 +27,8 @@ bool QZ_CanDisplay8bpp();
  */
 class BlitterFactory {
 private:
-	const char *name;        ///< The name of the blitter factory.
-	const char *description; ///< The description of the blitter.
+	const char *const name;        ///< The name of the blitter factory.
+	const char *const description; ///< The description of the blitter.
 
 	typedef std::map<const char *, BlitterFactory *, StringCompare> Blitters; ///< Map of blitter factories.
 
@@ -63,7 +63,7 @@ protected:
 	 * @pre There is no blitter registered with this name.
 	 */
 	BlitterFactory(const char *name, const char *description, bool usable = true) :
-			name(xstrdup(name)), description(xstrdup(description))
+			name(name), description(description)
 	{
 		if (usable) {
 			/*
@@ -83,9 +83,6 @@ public:
 	{
 		GetBlitters().erase(this->name);
 		if (GetBlitters().empty()) delete &GetBlitters();
-
-		free(this->name);
-		free(this->description);
 	}
 
 	/**
