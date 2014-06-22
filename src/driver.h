@@ -64,10 +64,10 @@ private:
 	friend class SoundDriver;
 	friend class VideoDriver;
 
-	Driver::Type type;       ///< The type of driver.
-	int priority;            ///< The priority of this factory.
-	const char *name;        ///< The name of the drivers of this factory.
-	const char *description; ///< The description of this driver.
+	Driver::Type type;             ///< The type of driver.
+	int priority;                  ///< The priority of this factory.
+	const char *const name;        ///< The name of the drivers of this factory.
+	const char *const description; ///< The description of this driver.
 
 	typedef std::map<const char *, DriverFactoryBase *, StringCompare> Drivers; ///< Type for a map of drivers.
 
