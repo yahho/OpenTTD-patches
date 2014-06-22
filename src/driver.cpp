@@ -195,7 +195,7 @@ void DriverFactoryBase::GetDriversInfo (stringb *buf)
 				DriverFactoryBase *d = (*it).second;
 				if (d->type != type) continue;
 				if (d->priority != priority) continue;
-				buf->append_fmt ("%18s: %s\n", d->name, d->GetDescription());
+				buf->append_fmt ("%18s: %s\n", d->name, d->description);
 			}
 		}
 

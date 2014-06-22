@@ -125,15 +125,6 @@ public:
 	static void GetDriversInfo (stringb *buf);
 
 	/**
-	 * Get a nice description of the driver-class.
-	 * @return The description.
-	 */
-	const char *GetDescription() const
-	{
-		return this->description;
-	}
-
-	/**
 	 * Create an instance of this driver-class.
 	 * @return The instance.
 	 */
