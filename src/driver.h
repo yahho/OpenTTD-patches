@@ -74,10 +74,11 @@ private:
 	/**
 	 * Get the map with drivers.
 	 */
-	static Drivers &GetDrivers()
+	static Drivers &GetDrivers (Driver::Type type)
 	{
-		static Drivers &s_drivers = *new Drivers();
-		return s_drivers;
+		static Drivers *const s_drivers [Driver::DT_END] =
+			{ new Drivers(), new Drivers(), new Drivers() };
+		return *s_drivers[type];
 	}
 
 	/**

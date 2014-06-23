@@ -101,17 +101,16 @@ void DriverFactoryBase::SelectDriver(const char *name, Driver::Type type)
  */
 bool DriverFactoryBase::SelectDriverImpl(const char *name, Driver::Type type)
 {
-	if (GetDrivers().size() == 0) return false;
+	assert (type < Driver::DT_END);
+
+	if (GetDrivers(type).empty()) return false;
 
 	if (StrEmpty(name)) {
 		/* Probe for this driver, but do not fall back to dedicated/null! */
 		for (int priority = 10; priority > 0; priority--) {
-			Drivers::iterator it = GetDrivers().begin();
-			for (; it != GetDrivers().end(); ++it) {
+			Drivers::iterator it = GetDrivers(type).begin();
+			for (; it != GetDrivers(type).end(); ++it) {
 				DriverFactoryBase *d = (*it).second;
-
-				/* Check driver type */
-				if (d->type != type) continue;
 				if (d->priority != priority) continue;
 
 				Driver *oldd = *GetActiveDriver(type);
@@ -152,12 +151,9 @@ bool DriverFactoryBase::SelectDriverImpl(const char *name, Driver::Type type)
 		}
 
 		/* Find this driver */
-		Drivers::iterator it = GetDrivers().begin();
-		for (; it != GetDrivers().end(); ++it) {
+		Drivers::iterator it = GetDrivers(type).begin();
+		for (; it != GetDrivers(type).end(); ++it) {
 			DriverFactoryBase *d = (*it).second;
-
-			/* Check driver type */
-			if (d->type != type) continue;
 
 			/* Check driver name */
 			if (strcasecmp(buffer, d->name) != 0) continue;
@@ -190,8 +186,8 @@ void DriverFactoryBase::GetDriversInfo (stringb *buf)
 		buf->append_fmt ("List of %s drivers:\n", GetDriverTypeName(type));
 
 		for (int priority = 10; priority >= 0; priority--) {
-			Drivers::iterator it = GetDrivers().begin();
-			for (; it != GetDrivers().end(); it++) {
+			Drivers::iterator it = GetDrivers(type).begin();
+			for (; it != GetDrivers(type).end(); it++) {
 				DriverFactoryBase *d = (*it).second;
 				if (d->type != type) continue;
 				if (d->priority != priority) continue;
@@ -213,10 +209,12 @@ void DriverFactoryBase::GetDriversInfo (stringb *buf)
 DriverFactoryBase::DriverFactoryBase(Driver::Type type, int priority, const char *name, const char *description) :
 	type(type), priority(priority), name(name), description(description)
 {
+	assert (type < Driver::DT_END);
+
 	/* Prefix the name with driver type to make it unique */
 	const char *longname = str_fmt ("%s%s", GetDriverTypeName(type), name);
 
-	std::pair<Drivers::iterator, bool> P = GetDrivers().insert(Drivers::value_type(longname, this));
+	std::pair<Drivers::iterator, bool> P = GetDrivers(type).insert(Drivers::value_type(longname, this));
 	assert(P.second);
 }
 
@@ -229,13 +227,13 @@ DriverFactoryBase::~DriverFactoryBase()
 	char buf[32];
 	bstrfmt (buf, "%s%s", GetDriverTypeName(type),  this->name);
 
-	Drivers::iterator it = GetDrivers().find(buf);
-	assert(it != GetDrivers().end());
+	Drivers::iterator it = GetDrivers(this->type).find(buf);
+	assert(it != GetDrivers(this->type).end());
 
 	const char *longname = (*it).first;
 
-	GetDrivers().erase(it);
+	GetDrivers(this->type).erase(it);
 	free(longname);
 
-	if (GetDrivers().empty()) delete &GetDrivers();
+	if (GetDrivers(this->type).empty()) delete &GetDrivers(this->type);
 }
