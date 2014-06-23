@@ -211,29 +211,17 @@ DriverFactoryBase::DriverFactoryBase(Driver::Type type, int priority, const char
 {
 	assert (type < Driver::DT_END);
 
-	/* Prefix the name with driver type to make it unique */
-	const char *longname = str_fmt ("%s%s", GetDriverTypeName(type), name);
-
-	std::pair<Drivers::iterator, bool> P = GetDrivers(type).insert(Drivers::value_type(longname, this));
+	std::pair<Drivers::iterator, bool> P = GetDrivers(type).insert(Drivers::value_type(name, this));
 	assert(P.second);
 }
 
-/**
- * Frees memory used for this->name
- */
+/** Destruct a DriverFactory. */
 DriverFactoryBase::~DriverFactoryBase()
 {
-	/* Prefix the name with driver type to make it unique */
-	char buf[32];
-	bstrfmt (buf, "%s%s", GetDriverTypeName(type),  this->name);
-
-	Drivers::iterator it = GetDrivers(this->type).find(buf);
+	Drivers::iterator it = GetDrivers(this->type).find(this->name);
 	assert(it != GetDrivers(this->type).end());
 
-	const char *longname = (*it).first;
-
 	GetDrivers(this->type).erase(it);
-	free(longname);
 
 	if (GetDrivers(this->type).empty()) delete &GetDrivers(this->type);
 }
