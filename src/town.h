@@ -279,28 +279,24 @@ void MakeDefaultName(T *obj)
 	do {
 		T *lobj = T::GetIfValid(cid);
 
-		/* check only valid waypoints... */
-		if (lobj != NULL && obj != lobj) {
-			/* only objects within the same city and with the same type */
-			if (lobj->town == obj->town && lobj->IsOfType(obj)) {
-				/* if lobj->town_cn < next, uint will overflow to '+inf' */
-				uint i = (uint)lobj->town_cn - next;
+		/* check only valid objects, within the same city and of the same type */
+		if (lobj != NULL && lobj->town == obj->town && lobj->IsOfType(obj) && obj != lobj) {
+			/* if lobj->town_cn < next, uint will overflow to '+inf' */
+			uint i = (uint)lobj->town_cn - next;
 
-				if (i < 32) {
-					SetBit(used, i); // update bitmap
-					if (i == 0) {
-						/* shift bitmap while the lowest bit is '1';
-						 * increase the base of the bitmap too */
-						do {
-							used >>= 1;
-							next++;
-						} while (HasBit(used, 0));
-						/* when we are at 'idx' again at end of the loop and
-						 * 'next' hasn't changed, then no object had town_cn == next,
-						 * so we can safely use it */
-						idx = cid;
-					}
-				}
+			if (i == 0) {
+				/* shift bitmap while the lowest bit is '1';
+				 * increase the base of the bitmap too */
+				do {
+					used >>= 1;
+					next++;
+				} while (HasBit(used, 0));
+				/* when we are at 'idx' again at end of the loop and
+				 * 'next' hasn't changed, then no object had town_cn == next,
+				 * so we can safely use it */
+				idx = cid;
+			} else if (i < 32) {
+				SetBit(used, i); // update bitmap
 			}
 		}
 
