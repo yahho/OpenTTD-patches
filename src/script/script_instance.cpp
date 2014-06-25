@@ -343,8 +343,7 @@ enum SQSaveLoadType {
 			sq_getinteger(vm, index, &res);
 			if (dumper != NULL) {
 				dumper->WriteByte(SQSL_INT);
-				int value = (int)res;
-				dumper->WriteVar(&value, SLE_INT32);
+				dumper->WriteUint32 ((int)res);
 			}
 			return true;
 		}
@@ -363,7 +362,7 @@ enum SQSaveLoadType {
 			if (dumper != NULL) {
 				dumper->WriteByte(SQSL_STRING);
 				dumper->WriteByte(len);
-				dumper->WriteArray(const_cast<char *>(buf), len, SLE_CHAR);
+				dumper->CopyBytes (buf, len);
 			}
 			return true;
 		}
@@ -528,8 +527,7 @@ bool ScriptInstance::IsPaused()
 {
 	switch (reader->ReadByte()) {
 		case SQSL_INT: {
-			int value;
-			reader->ReadVar(&value, SLE_INT32);
+			int value = reader->ReadUint32();
 			if (vm != NULL) sq_pushinteger(vm, (SQInteger)value);
 			return true;
 		}
@@ -537,7 +535,7 @@ bool ScriptInstance::IsPaused()
 		case SQSL_STRING: {
 			byte len = reader->ReadByte();
 			static char buf[256];
-			reader->ReadArray(buf, len, SLE_CHAR);
+			reader->CopyBytes (buf, len);
 			if (vm != NULL) sq_pushstring(vm, OTTD2SQ(buf), -1);
 			return true;
 		}
