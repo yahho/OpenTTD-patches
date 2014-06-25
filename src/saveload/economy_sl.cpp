@@ -19,18 +19,14 @@
 static void Load_PRIC(LoadBuffer *reader)
 {
 	/* Old games store 49 base prices, very old games store them as int32 */
-	int vt = reader->IsOTTDVersionBefore(65) ? SLE_FILE_I32 : SLE_FILE_I64;
-	reader->ReadArray(NULL, 49, vt | SLE_VAR_NULL);
-	reader->ReadArray(NULL, 49, SLE_FILE_U16 | SLE_VAR_NULL);
+	reader->Skip (49 * ((reader->IsOTTDVersionBefore(65) ? 4 : 8) + 2));
 }
 
 /** Cargo payment rates in pre 126 savegames */
 static void Load_CAPR(LoadBuffer *reader)
 {
 	uint num_cargo = reader->IsOTTDVersionBefore(55) ? 12 : NUM_CARGO;
-	int vt = reader->IsOTTDVersionBefore(65) ? SLE_FILE_I32 : SLE_FILE_I64;
-	reader->ReadArray(NULL, num_cargo, vt | SLE_VAR_NULL);
-	reader->ReadArray(NULL, num_cargo, SLE_FILE_U16 | SLE_VAR_NULL);
+	reader->Skip (num_cargo * ((reader->IsOTTDVersionBefore(65) ? 4 : 8) + 2));
 }
 
 static const SaveLoad _economy_desc[] = {
