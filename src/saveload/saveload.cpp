@@ -64,15 +64,6 @@ static const uint16 OTTD_SAVEGAME_VERSION = 190; ///< Maximum supported OTTD ver
 char _savegame_format[8]; ///< how to compress savegames
 bool _do_autosave;        ///< are we doing an autosave at the moment?
 
-/** What are we currently doing? */
-enum SaveLoadAction {
-	SLA_LOAD,        ///< loading
-	SLA_SAVE,        ///< saving
-	SLA_PTRS,        ///< fixing pointers
-	SLA_NULL,        ///< null all pointers (on loading error)
-	SLA_LOAD_CHECK,  ///< partial loading into #_load_check_data
-};
-
 /** The saveload struct, containing reader-writer functions, buffer, version, etc. */
 struct SaveLoadParams {
 	SlErrorData error;                   ///< the error to show
