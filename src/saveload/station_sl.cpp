@@ -460,10 +460,11 @@ static void Save_STNN(SaveDumper *dumper)
 	FOR_ALL_BASE_STATIONS(bst) {
 		SaveDumper temp(1024);
 
-		bool waypoint = bst->IsWaypoint();
-		temp.WriteObject(bst, waypoint ? _waypoint_desc : _station_desc);
+		if (bst->IsWaypoint()) {
+			temp.WriteObject(bst, _waypoint_desc);
+		} else {
+			temp.WriteObject(bst, _station_desc);
 
-		if (!waypoint) {
 			Station *st = Station::From(bst);
 			for (CargoID i = 0; i < NUM_CARGO; i++) {
 				_num_dests = (uint32)st->goods[i].cargo.Packets()->MapSize();
@@ -506,13 +507,14 @@ static void Load_STNN(LoadBuffer *reader)
 	int index;
 
 	while ((index = reader->IterateChunk()) != -1) {
-		bool waypoint = (reader->ReadByte() & FACIL_WAYPOINT) != 0;
-
-		BaseStation *bst = waypoint ? (BaseStation *)new (index) Waypoint() : new (index) Station();
-		reader->ReadObject(bst, waypoint ? _waypoint_desc : _station_desc);
-
-		if (!waypoint) {
-			Station *st = Station::From(bst);
+		BaseStation *bst;
+		if ((reader->ReadByte() & FACIL_WAYPOINT) != 0) {
+			bst = new (index) Waypoint();
+			reader->ReadObject(bst, _waypoint_desc);
+		} else {
+			Station *st = new (index) Station();
+			bst = st;
+			reader->ReadObject(bst, _station_desc);
 
 			/* Before legacy savegame version 161, persistent storages were not stored in a pool. */
 			if (reader->IsOTTDVersionBefore(161) && !reader->IsOTTDVersionBefore(145) && st->facilities & FACIL_AIRPORT) {
