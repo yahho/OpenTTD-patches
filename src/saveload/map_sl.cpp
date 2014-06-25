@@ -832,7 +832,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 
 				case OLD_MP_STATION: {
 					uint type = GB(_mc[t].m0, 2, 4);
-					if ((type == STATION_WAYPOINT) && IsOTTDSavegameVersionBefore(stv, 123)) {
+					if (((type >> 1) == STATION_WAYPOINT) && IsOTTDSavegameVersionBefore(stv, 123)) {
 						throw SlCorrupt("Invalid station type");
 					}
 					_mc[t].m0 = type | (TT_STATION << 4);

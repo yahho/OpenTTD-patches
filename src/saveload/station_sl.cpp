@@ -93,7 +93,7 @@ void MoveBuoysToWaypoints()
 			TILE_AREA_LOOP(t, train_st) {
 				if (!IsStationTile(t) || GetStationIndex(t) != index) continue;
 
-				SB(_mc[t].m0, 3, 3, STATION_WAYPOINT);
+				SB(_mc[t].m0, 1, 3, STATION_WAYPOINT);
 				wp->rect.Add(t);
 			}
 
