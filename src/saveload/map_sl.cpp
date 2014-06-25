@@ -1074,7 +1074,7 @@ static void Load_MAP1(LoadBuffer *reader)
 	TileIndex size = MapSize();
 
 	for (TileIndex i = 0; i != size;) {
-		reader->ReadArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m1 = buf[j];
 	}
 }
@@ -1087,7 +1087,7 @@ static void Save_MAP1(SaveDumper *dumper)
 	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m1;
-		dumper->WriteArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
 	}
 }
 
@@ -1123,7 +1123,7 @@ static void Load_MAP3(LoadBuffer *reader)
 	TileIndex size = MapSize();
 
 	for (TileIndex i = 0; i != size;) {
-		reader->ReadArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m3 = buf[j];
 	}
 }
@@ -1136,7 +1136,7 @@ static void Save_MAP3(SaveDumper *dumper)
 	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m3;
-		dumper->WriteArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
 	}
 }
 
@@ -1146,7 +1146,7 @@ static void Load_MAP4(LoadBuffer *reader)
 	TileIndex size = MapSize();
 
 	for (TileIndex i = 0; i != size;) {
-		reader->ReadArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m4 = buf[j];
 	}
 }
@@ -1159,7 +1159,7 @@ static void Save_MAP4(SaveDumper *dumper)
 	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m4;
-		dumper->WriteArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
 	}
 }
 
@@ -1169,7 +1169,7 @@ static void Load_MAP5(LoadBuffer *reader)
 	TileIndex size = MapSize();
 
 	for (TileIndex i = 0; i != size;) {
-		reader->ReadArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m5 = buf[j];
 	}
 }
@@ -1182,7 +1182,7 @@ static void Save_MAP5(SaveDumper *dumper)
 	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m5;
-		dumper->WriteArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
 	}
 }
 
@@ -1194,7 +1194,7 @@ static void Load_MAP0(LoadBuffer *reader)
 	if (reader->IsOTTDVersionBefore(42)) {
 		for (TileIndex i = 0; i != size;) {
 			/* 1024, otherwise we overflow on 64x64 maps! */
-			reader->ReadArray(buf, 1024, SLE_UINT8);
+			reader->CopyBytes (buf, 1024);
 			for (uint j = 0; j != 1024; j++) {
 				_mc[i++].m0 = GB(buf[j], 0, 2);
 				_mc[i++].m0 = GB(buf[j], 2, 2);
@@ -1204,7 +1204,7 @@ static void Load_MAP0(LoadBuffer *reader)
 		}
 	} else {
 		for (TileIndex i = 0; i != size;) {
-			reader->ReadArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+			reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
 			for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m0 = buf[j];
 		}
 	}
@@ -1218,7 +1218,7 @@ static void Save_MAP0(SaveDumper *dumper)
 	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m0;
-		dumper->WriteArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
 	}
 }
 
@@ -1228,7 +1228,7 @@ static void Load_MAP7(LoadBuffer *reader)
 	TileIndex size = MapSize();
 
 	for (TileIndex i = 0; i != size;) {
-		reader->ReadArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m7 = buf[j];
 	}
 }
@@ -1241,7 +1241,7 @@ static void Save_MAP7(SaveDumper *dumper)
 	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m7;
-		dumper->WriteArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
 	}
 }
 

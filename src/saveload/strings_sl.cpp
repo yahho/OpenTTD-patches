@@ -132,7 +132,7 @@ static void Load_NAME(LoadBuffer *reader)
 		size_t elemsize = reader->GetElementSize();
 		if (elemsize > (uint)LEN_OLD_STRINGS) throw SlCorrupt("Invalid old name length");
 
-		reader->ReadArray(&_old_name_array[LEN_OLD_STRINGS * index], elemsize, SLE_UINT8);
+		reader->CopyBytes (&_old_name_array[LEN_OLD_STRINGS * index], elemsize);
 		/* Make sure the old name is null terminated */
 		_old_name_array[LEN_OLD_STRINGS * index + LEN_OLD_STRINGS - 1] = '\0';
 	}
