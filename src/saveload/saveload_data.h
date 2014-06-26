@@ -261,6 +261,10 @@ struct SaveLoad {
 	struct VersionRange {
 		uint16 from; ///< save/load the variable starting from this savegame version
 		uint16 to;   ///< save/load the variable until this savegame version
+
+		VersionRange (void) : from(0), to(UINT16_MAX) { }
+
+		VersionRange (uint16 from, uint16 to) : from(from), to(to) { }
 	};
 
 	SaveLoadType type;     ///< object type
@@ -275,6 +279,22 @@ struct SaveLoad {
 	 * that is called to save it. address: global=true, offset: global=false.
 	 * For SL_INCLUDE, this points to the SaveLoad object to be included. */
 	void *address;         ///< address of variable OR offset of variable in the struct (max offset is 65536)
+
+	SaveLoad (void) : type(SL_END) { }
+
+	SaveLoad (const SaveLoad *include)
+		: type(SL_INCLUDE), address(const_cast<SaveLoad *>(include))
+	{
+	}
+
+	SaveLoad (SaveLoadTypes type, void *address, byte conv, byte flags,
+			uint16 length, uint16 from, uint16 to,
+			uint16 lfrom, uint16 lto)
+		: type(type), conv(conv), flags(flags), length(length),
+			version (from, to), legacy (lfrom, lto),
+			address(address)
+	{
+	}
 };
 
 /** Highest possible savegame version. */
@@ -299,7 +319,7 @@ struct SaveLoad {
  * @param lto      Last legacy savegame version that has the field, empty for maximum possible value.
  * @note This macro should not be used directly.
  */
-#define SLE_ANY_2(type, address, conv, flags, length, from, to, lfrom, lto) {type, conv, flags, length, {SLE_DEFAULT_IF_EMPTY(from, SL_MAX_VERSION), SLE_DEFAULT_IF_EMPTY(to, SL_MAX_VERSION)}, {lfrom, SLE_DEFAULT_IF_EMPTY(lto, SL_MAX_VERSION)}, address}
+#define SLE_ANY_2(type, address, conv, flags, length, from, to, lfrom, lto) SaveLoad (type, address, conv, flags, length, SLE_DEFAULT_IF_EMPTY(from, SL_MAX_VERSION), SLE_DEFAULT_IF_EMPTY(to, SL_MAX_VERSION), lfrom, SLE_DEFAULT_IF_EMPTY(lto, SL_MAX_VERSION))
 
 /**
  * Generic SaveLoad object, with version range.
@@ -449,10 +469,10 @@ struct SaveLoad {
 #define SLE_WRITEBYTE(base, variable, value) SLE_GENERAL(SL_WRITEBYTE, base, variable, value, 0, 0)
 
 /** Include another SaveLoad object. */
-#define SLE_INCLUDE(include) {SL_INCLUDE, 0, 0, 0, {0, SL_MAX_VERSION}, {0, SL_MAX_VERSION}, const_cast<SaveLoad *>(include)}
+#define SLE_INCLUDE(include) SaveLoad(include)
 
 /** End marker of a struct/class save or load. */
-#define SLE_END() {SL_END, 0, 0, 0, {0, 0}, {0, 0}, NULL}
+#define SLE_END() SaveLoad()
 
 /**
  * Storage of global simple variables, references (pointers), and arrays.
