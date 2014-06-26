@@ -441,7 +441,6 @@ static void Write_ValidateSetting(void *ptr, const SettingDesc *sd, int32 val)
 		 * 32-bit variable
 		 * TODO: Support 64-bit settings/variables */
 		switch (GetVarMemType(sd->save.conv)) {
-			case SLE_VAR_NULL: return;
 			case SLE_VAR_BL:
 			case SLE_VAR_I8:
 			case SLE_VAR_U8:

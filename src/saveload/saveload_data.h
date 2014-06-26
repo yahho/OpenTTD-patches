@@ -119,9 +119,8 @@ enum VarTypes {
 	SLE_VAR_U32   =  6 << 4,
 	SLE_VAR_I64   =  7 << 4,
 	SLE_VAR_U64   =  8 << 4,
-	SLE_VAR_NULL  =  9 << 4, ///< useful to write zeros in savegame.
 	SLE_VAR_NAME  = 10 << 4, ///< old custom name to be converted to a char pointer
-	/* 5 more possible memory-primitives */
+	/* 6 more possible memory-primitives */
 
 	/* Shortcut values */
 	SLE_VAR_CHAR = SLE_VAR_I8,
@@ -516,9 +515,10 @@ static inline bool IsNumericType(VarType conv)
  */
 static inline uint SlCalcConvMemLen(VarType conv)
 {
+	assert(IsNumericType(conv));
+
 	extern const byte _conv_mem_size[];
 	byte length = GB(conv, 4, 4);
-	assert(length <= SLE_VAR_NULL);
 	return _conv_mem_size[length];
 }
 

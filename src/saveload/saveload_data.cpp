@@ -24,7 +24,7 @@
 #include "../linkgraph/linkgraph.h"
 #include "../linkgraph/linkgraphjob.h"
 
-extern const byte _conv_mem_size[] = {1, 1, 1, 2, 2, 4, 4, 8, 8, 0};
+extern const byte _conv_mem_size[] = {1, 1, 1, 2, 2, 4, 4, 8, 8};
 extern const byte _conv_file_size[] = {1, 1, 2, 2, 4, 4, 8, 8, 2};
 
 /**
@@ -46,7 +46,6 @@ int64 ReadValue(const void *ptr, VarType conv)
 		case SLE_VAR_U32: return *(const uint32*)ptr;
 		case SLE_VAR_I64: return *(const int64 *)ptr;
 		case SLE_VAR_U64: return *(const uint64*)ptr;
-		case SLE_VAR_NULL:return 0;
 		default: NOT_REACHED();
 	}
 }
@@ -70,7 +69,6 @@ void WriteValue(void *ptr, VarType conv, int64 val)
 		case SLE_VAR_U32: *(uint32*)ptr = val; break;
 		case SLE_VAR_I64: *(int64 *)ptr = val; break;
 		case SLE_VAR_U64: *(uint64*)ptr = val; break;
-		case SLE_VAR_NULL: break;
 		default: NOT_REACHED();
 	}
 }
