@@ -316,6 +316,37 @@ struct SaveLoad {
 	{
 		return this->get_variable_address (const_cast<void *>(object));
 	}
+
+	/** Check if this object is valid in a certain savegame version. */
+	bool is_valid (const SavegameTypeVersion *stv) const
+	{
+		switch (stv->type) {
+			default:
+				if (0 < this->legacy.from) return false;
+				break;
+
+			case SGT_OTTD:
+				if (stv->ottd.version < this->legacy.from || stv->ottd.version > this->legacy.to) return false;
+				break;
+
+			case SGT_FTTD:
+				if (stv->fttd.version < this->version.from || stv->fttd.version > this->version.to) return false;
+				break;
+		}
+
+		if (this->flags & SLF_NOT_IN_SAVE) return false;
+
+		return true;
+	}
+
+	/** Check if this object is valid in the current savegame version. */
+	bool is_currently_valid (void) const
+	{
+		extern const uint16 SAVEGAME_VERSION;
+		if (SAVEGAME_VERSION < this->version.from || SAVEGAME_VERSION > this->version.to) return false;
+
+		return true;
+	}
 };
 
 /** Highest possible savegame version. */
@@ -578,41 +609,6 @@ struct SaveLoad {
  */
 #define SLEG_LST(...) SLE_EXPAND(SLEG_LST_(__VA_ARGS__, ))
 #define SLEG_LST_(variable, reftype, ...) SLE_EXPAND(SLEG_GENERAL_(SL_LST, variable, reftype, 0, 0, __VA_ARGS__))
-
-/** Is this object valid in a certain savegame version? */
-static inline bool SlIsObjectValidInSavegame(const SavegameTypeVersion *stv, const SaveLoad *sld)
-{
-	switch (stv->type) {
-		default:
-			if (0 < sld->legacy.from) return false;
-			break;
-
-		case SGT_OTTD:
-			if (stv->ottd.version < sld->legacy.from || stv->ottd.version > sld->legacy.to) return false;
-			break;
-
-		case SGT_FTTD:
-			if (stv->fttd.version < sld->version.from || stv->fttd.version > sld->version.to) return false;
-			break;
-	}
-
-	if (sld->flags & SLF_NOT_IN_SAVE) return false;
-
-	return true;
-}
-
-/**
- * Checks if a SaveLoad object is active in the current savegame version.
- * @param sld SaveLoad object to check
- * @return Whether the object is active in the current savegame version.
- */
-static inline bool SlIsObjectCurrentlyValid(const SaveLoad *sld)
-{
-	extern const uint16 SAVEGAME_VERSION;
-	if (SAVEGAME_VERSION < sld->version.from || SAVEGAME_VERSION > sld->version.to) return false;
-
-	return true;
-}
 
 size_t SlCalcObjLength(const void *object, const SaveLoad *sld);
 

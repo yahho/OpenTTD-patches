@@ -137,7 +137,7 @@ size_t SlCalcObjLength(const void *object, const SaveLoad *sld)
 
 	/* Need to determine the length and write a length tag. */
 	for (; sld->type != SL_END; sld++) {
-		if (!SlIsObjectCurrentlyValid(sld)) continue;
+		if (!sld->is_currently_valid()) continue;
 		if (sld->flags & SLF_NOT_IN_SAVE) continue;
 
 		switch (sld->type) {
@@ -250,7 +250,7 @@ static void *IntToReference(size_t index, SLRefType rt, const SavegameTypeVersio
 void SlObjectPtrs(void *object, const SaveLoad *sld, const SavegameTypeVersion *stv)
 {
 	for (; sld->type != SL_END; sld++) {
-		if ((stv != NULL) ? !SlIsObjectValidInSavegame(stv, sld) : !SlIsObjectCurrentlyValid(sld)) continue;
+		if ((stv != NULL) ? !sld->is_valid(stv) : !sld->is_currently_valid()) continue;
 
 		switch (sld->type) {
 			case SL_REF: {

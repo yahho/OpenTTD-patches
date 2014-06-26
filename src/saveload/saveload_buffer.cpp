@@ -313,7 +313,7 @@ void LoadBuffer::SkipChunk()
 
 bool LoadBuffer::ReadObjectMember(void *object, const SaveLoad *sld)
 {
-	if (!SlIsObjectValidInSavegame(this->stv, sld)) return false;
+	if (!sld->is_valid (this->stv)) return false;
 
 	if ((sld->flags & SLF_NO_NETWORK_SYNC) && _networking && !_network_server) {
 		assert((sld->type == SL_ARR) || (sld->type == SL_STR));
@@ -591,7 +591,7 @@ void SaveDumper::WriteElementHeader(uint index, size_t length)
 
 void SaveDumper::WriteObjectMember(const void *object, const SaveLoad *sld)
 {
-	if (!SlIsObjectCurrentlyValid(sld)) return;
+	if (!sld->is_currently_valid())   return;
 	if (sld->flags & SLF_NOT_IN_SAVE) return;
 
 	const void *ptr = sld->get_variable_address (object);
