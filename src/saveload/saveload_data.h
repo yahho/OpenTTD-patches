@@ -287,57 +287,74 @@ struct SaveLoad {
 	{
 	}
 
+	/** Address constructor for a global variable. */
+	static inline void *saveload_address (void *address)
+	{
+		return address;
+	}
+
+	/** Address constructor for a struct variable. */
+	static inline void *saveload_address (size_t offset)
+	{
+		return (void*) offset;
+	}
+
 	/* Dummy template struct for disambiguating the constructor. */
 	template <SaveLoadTypes type>
 	struct TypeSelector { };
 
 	/** Construct a saveload object for a variable. */
-	SaveLoad (const TypeSelector<SL_VAR> *, void *address,
+	template <typename ADDR>
+	SaveLoad (const TypeSelector<SL_VAR> *, ADDR address,
 			VarTypes conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_VAR), conv(conv), flags(flags), length(length),
 			version (from, to), legacy (lfrom, lto),
-			address(address)
+			address(saveload_address(address))
 	{
 	}
 
 	/** Construct a saveload object for a reference. */
-	SaveLoad (const TypeSelector<SL_REF> *, void *address,
+	template <typename ADDR>
+	SaveLoad (const TypeSelector<SL_REF> *, ADDR address,
 			SLRefType conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_REF), conv(conv), flags(flags), length(length),
 			version (from, to), legacy (lfrom, lto),
-			address(address)
+			address(saveload_address(address))
 	{
 	}
 
 	/** Construct a saveload object for an array. */
-	SaveLoad (const TypeSelector<SL_ARR> *, void *address,
+	template <typename ADDR>
+	SaveLoad (const TypeSelector<SL_ARR> *, ADDR address,
 			VarTypes conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_ARR), conv(conv), flags(flags), length(length),
 			version (from, to), legacy (lfrom, lto),
-			address(address)
+			address(saveload_address(address))
 	{
 	}
 
 	/** Construct a saveload object for a string. */
-	SaveLoad (const TypeSelector<SL_STR> *, void *address,
+	template <typename ADDR>
+	SaveLoad (const TypeSelector<SL_STR> *, ADDR address,
 			StrTypes conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_STR), conv(conv), flags(flags), length(length),
 			version (from, to), legacy (lfrom, lto),
-			address(address)
+			address(saveload_address(address))
 	{
 	}
 
 	/** Construct a saveload object for a reference list. */
-	SaveLoad (const TypeSelector<SL_LST> *, void *address,
+	template <typename ADDR>
+	SaveLoad (const TypeSelector<SL_LST> *, ADDR address,
 			SLRefType conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_LST), conv(conv), flags(flags), length(length),
 			version (from, to), legacy (lfrom, lto),
-			address(address)
+			address(saveload_address(address))
 	{
 	}
 
@@ -352,13 +369,13 @@ struct SaveLoad {
 		assert (length > 0);
 	}
 
-	/** Construct a saveload object for a constant byte. */
-	SaveLoad (const TypeSelector<SL_WRITEBYTE> *, void *address,
+	/** Construct a saveload object for a struct constant byte. */
+	SaveLoad (const TypeSelector<SL_WRITEBYTE> *, size_t offset,
 			byte conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_WRITEBYTE), conv(conv), flags(flags), length(length),
 			version (from, to), legacy (lfrom, lto),
-			address(address)
+			address(saveload_address(offset))
 	{
 	}
 
@@ -497,7 +514,7 @@ struct SaveLoad {
  * @note In general, it is better to use one of the SLE_* macros below.
  */
 #define SLE_GENERAL(...) SLE_EXPAND(SLE_GENERAL_(__VA_ARGS__, ))
-#define SLE_GENERAL_(type, base, variable, conv, flags, length, ...) SLE_EXPAND(SLE_ANY_(type, ((void*)cpp_offsetof(base, variable)), conv, flags, length, __VA_ARGS__))
+#define SLE_GENERAL_(type, base, variable, conv, flags, length, ...) SLE_EXPAND(SLE_ANY_(type, cpp_offsetof(base, variable), conv, flags, length, __VA_ARGS__))
 
 /**
  * Storage of a variable.
@@ -607,7 +624,7 @@ struct SaveLoad {
  * @note In general, it is better to use one of the SLEG_* macros below.
  */
 #define SLEG_GENERAL(...) SLE_EXPAND(SLEG_GENERAL_(__VA_ARGS__, ))
-#define SLEG_GENERAL_(type, variable, conv, flags, length, ...) SLE_EXPAND(SLE_ANY_(type, (void*)&variable, conv, (flags) | SLF_GLOBAL, length, __VA_ARGS__))
+#define SLEG_GENERAL_(type, variable, conv, flags, length, ...) SLE_EXPAND(SLE_ANY_(type, &variable, conv, (flags) | SLF_GLOBAL, length, __VA_ARGS__))
 
 /**
  * Storage of a global variable.
