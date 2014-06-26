@@ -323,7 +323,7 @@ bool LoadBuffer::ReadObjectMember(void *object, const SaveLoad *sld)
 		return false;
 	}
 
-	void *ptr = GetVariableAddress(sld, object);
+	void *ptr = sld->get_variable_address (object);
 
 	switch (sld->type) {
 		case SL_VAR: this->ReadVar(ptr, sld->conv); break;
@@ -594,7 +594,7 @@ void SaveDumper::WriteObjectMember(const void *object, const SaveLoad *sld)
 	if (!SlIsObjectCurrentlyValid(sld)) return;
 	if (sld->flags & SLF_NOT_IN_SAVE) return;
 
-	const void *ptr = GetVariableAddress(sld, object);
+	const void *ptr = sld->get_variable_address (object);
 
 	switch (sld->type) {
 		case SL_VAR: this->WriteVar(ptr, sld->conv); break;

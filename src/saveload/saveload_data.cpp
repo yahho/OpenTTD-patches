@@ -144,8 +144,8 @@ size_t SlCalcObjLength(const void *object, const SaveLoad *sld)
 			case SL_VAR: length += SlCalcConvFileLen(sld->conv); break;
 			case SL_REF: length += REF_LENGTH; break;
 			case SL_ARR: length += SlCalcArrayLen(sld->length, sld->conv); break;
-			case SL_STR: length += SlCalcStringLen(GetVariableAddress(sld, object), sld->length, sld->conv); break;
-			case SL_LST: length += SlCalcListLen(GetVariableAddress(sld, object)); break;
+			case SL_STR: length += SlCalcStringLen(sld->get_variable_address(object), sld->length, sld->conv); break;
+			case SL_LST: length += SlCalcListLen(sld->get_variable_address(object)); break;
 			case SL_NULL: length += sld->length; break;
 			case SL_WRITEBYTE: length++; break; // a byte is logically of size 1
 			case SL_INCLUDE:   length += SlCalcObjLength(object, (SaveLoad*)sld->address); break;
@@ -254,7 +254,7 @@ void SlObjectPtrs(void *object, const SaveLoad *sld, const SavegameTypeVersion *
 
 		switch (sld->type) {
 			case SL_REF: {
-				void **ptr = (void **)GetVariableAddress(sld, object);
+				void **ptr = (void **) sld->get_variable_address (object);
 
 				if (stv != NULL) {
 					*ptr = IntToReference(*(size_t *)ptr, (SLRefType)sld->conv, stv);
@@ -266,7 +266,7 @@ void SlObjectPtrs(void *object, const SaveLoad *sld, const SavegameTypeVersion *
 
 			case SL_LST: {
 				typedef std::list<void *> PtrList;
-				PtrList *l = (PtrList *)GetVariableAddress(sld, object);
+				PtrList *l = (PtrList *) sld->get_variable_address (object);
 
 				if (stv != NULL) {
 					PtrList temp = *l;

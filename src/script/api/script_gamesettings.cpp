@@ -29,7 +29,7 @@
 	uint index;
 	const SettingDesc *sd = GetSettingFromName(setting, &index);
 
-	void *ptr = GetVariableAddress(&sd->save, &_settings_game);
+	void *ptr = sd->save.get_variable_address (&_settings_game);
 	if (sd->desc.cmd == SDT_BOOLX) return *(bool*)ptr;
 
 	return (int32)ReadValue(ptr, sd->save.conv);

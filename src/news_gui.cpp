@@ -252,7 +252,7 @@ NewsDisplay NewsTypeData::GetDisplay() const
 	uint index;
 	const SettingDesc *sd = GetSettingFromName(this->name, &index);
 	assert(sd != NULL);
-	void *ptr = GetVariableAddress(&sd->save);
+	void *ptr = sd->save.get_variable_address();
 	return (NewsDisplay)ReadValue(ptr, sd->save.conv);
 }
 

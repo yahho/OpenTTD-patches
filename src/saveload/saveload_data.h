@@ -295,6 +295,27 @@ struct SaveLoad {
 			address(address)
 	{
 	}
+
+	/**
+	 * Get the address of the variable that this saveload description
+	 * encodes for a given object. If the saveload description encodes
+	 * a global object, its address is returned (and object can be NULL).
+	 * If the saveload description encodes a struct variable, then the
+	 * address of the corresponding field in the given object is returned
+	 * (and object cannot be NULL).
+	 * @param object The object to which this description applies.
+	 * @return The address of the encoded variable in the given object.
+	 */
+	void *get_variable_address (void *object = NULL) const
+	{
+		return (this->flags & SLF_GLOBAL) ? this->address :
+			((byte*)object + (ptrdiff_t)this->address);
+	}
+
+	const void *get_variable_address (const void *object) const
+	{
+		return this->get_variable_address (const_cast<void *>(object));
+	}
 };
 
 /** Highest possible savegame version. */
@@ -557,22 +578,6 @@ struct SaveLoad {
  */
 #define SLEG_LST(...) SLE_EXPAND(SLEG_LST_(__VA_ARGS__, ))
 #define SLEG_LST_(variable, reftype, ...) SLE_EXPAND(SLEG_GENERAL_(SL_LST, variable, reftype, 0, 0, __VA_ARGS__))
-
-/**
- * Get the address of the variable. Which one to pick depends on the object
- * pointer. If it is NULL we are dealing with global variables so the address
- * is taken. If non-null only the offset is stored in the union and we need
- * to add this to the address of the object
- */
-static inline void *GetVariableAddress(const SaveLoad *sld, void *object = NULL)
-{
-	return (sld->flags & SLF_GLOBAL) ? sld->address : ((byte*)object + (ptrdiff_t)sld->address);
-}
-
-static inline const void *GetVariableAddress(const SaveLoad *sld, const void *object)
-{
-	return GetVariableAddress(sld, const_cast<void *>(object));
-}
 
 /** Is this object valid in a certain savegame version? */
 static inline bool SlIsObjectValidInSavegame(const SavegameTypeVersion *stv, const SaveLoad *sld)
