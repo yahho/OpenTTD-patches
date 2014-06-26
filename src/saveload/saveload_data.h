@@ -149,6 +149,70 @@ enum VarTypes {
 typedef byte VarType;
 
 /**
+ * Get the NumberType of a setting. This describes the integer type
+ * as it is represented in memory
+ * @param type VarType holding information about the variable-type
+ * @return return the SLE_VAR_* part of a variable-type description
+ */
+static inline VarType GetVarMemType(VarType type)
+{
+	return type & 0xF0; // GB(type, 4, 4) << 4;
+}
+
+/**
+ * Get the #FileType of a setting. This describes the integer type
+ * as it is represented in a savegame/file
+ * @param type VarType holding information about the file-type
+ * @param return the SLE_FILE_* part of a variable-type description
+ */
+static inline VarType GetVarFileType(VarType type)
+{
+	return type & 0xF; // GB(type, 0, 4);
+}
+
+/**
+ * Check if the given saveload type is a numeric type.
+ * @param conv the type to check
+ * @return True if it's a numeric type.
+ */
+static inline bool IsNumericType(VarType conv)
+{
+	return GetVarMemType(conv) <= SLE_VAR_U64;
+}
+
+/**
+ * Return the size in bytes of a certain type of normal/atomic variable
+ * as it appears in memory. See VarTypes
+ * @param conv VarType type of variable that is used for calculating the size
+ * @return Return the size of this type in bytes
+ */
+static inline uint SlCalcConvMemLen(VarType conv)
+{
+	assert(IsNumericType(conv));
+
+	extern const byte _conv_mem_size[];
+	byte length = GB(conv, 4, 4);
+	return _conv_mem_size[length];
+}
+
+/**
+ * Return the size in bytes of a certain type of normal/atomic variable
+ * as it appears in a saved game. See VarTypes
+ * @param conv VarType type of variable that is used for calculating the size
+ * @return Return the size of this type in bytes
+ */
+static inline byte SlCalcConvFileLen(VarType conv)
+{
+	extern const byte _conv_file_size[];
+	byte length = GB(conv, 0, 4);
+	assert(length <= SLE_FILE_STRINGID);
+	return _conv_file_size[length];
+}
+
+int64 ReadValue(const void *ptr, VarType conv);
+void WriteValue(void *ptr, VarType conv, int64 val);
+
+/**
  * StrTypes encodes information about saving and loading of strings (#SLE_STR).
  */
 enum StrTypes {
@@ -474,70 +538,6 @@ struct SaveLoad {
  */
 #define SLEG_LST(...) SLE_EXPAND(SLEG_LST_(__VA_ARGS__, ))
 #define SLEG_LST_(variable, reftype, ...) SLE_EXPAND(SLEG_GENERAL_(SL_LST, variable, reftype, 0, 0, __VA_ARGS__))
-
-/**
- * Get the NumberType of a setting. This describes the integer type
- * as it is represented in memory
- * @param type VarType holding information about the variable-type
- * @return return the SLE_VAR_* part of a variable-type description
- */
-static inline VarType GetVarMemType(VarType type)
-{
-	return type & 0xF0; // GB(type, 4, 4) << 4;
-}
-
-/**
- * Get the #FileType of a setting. This describes the integer type
- * as it is represented in a savegame/file
- * @param type VarType holding information about the file-type
- * @param return the SLE_FILE_* part of a variable-type description
- */
-static inline VarType GetVarFileType(VarType type)
-{
-	return type & 0xF; // GB(type, 0, 4);
-}
-
-/**
- * Check if the given saveload type is a numeric type.
- * @param conv the type to check
- * @return True if it's a numeric type.
- */
-static inline bool IsNumericType(VarType conv)
-{
-	return GetVarMemType(conv) <= SLE_VAR_U64;
-}
-
-/**
- * Return the size in bytes of a certain type of normal/atomic variable
- * as it appears in memory. See VarTypes
- * @param conv VarType type of variable that is used for calculating the size
- * @return Return the size of this type in bytes
- */
-static inline uint SlCalcConvMemLen(VarType conv)
-{
-	assert(IsNumericType(conv));
-
-	extern const byte _conv_mem_size[];
-	byte length = GB(conv, 4, 4);
-	return _conv_mem_size[length];
-}
-
-/**
- * Return the size in bytes of a certain type of normal/atomic variable
- * as it appears in a saved game. See VarTypes
- * @param conv VarType type of variable that is used for calculating the size
- * @return Return the size of this type in bytes
- */
-static inline byte SlCalcConvFileLen(VarType conv)
-{
-	extern const byte _conv_file_size[];
-	byte length = GB(conv, 0, 4);
-	assert(length <= SLE_FILE_STRINGID);
-	return _conv_file_size[length];
-}
-
-int64 ReadValue(const void *ptr, VarType conv);
-void WriteValue(void *ptr, VarType conv, int64 val);
 
 /**
  * Get the address of the variable. Which one to pick depends on the object
