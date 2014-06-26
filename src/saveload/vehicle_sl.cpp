@@ -681,8 +681,8 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 		 SLE_VAR(Vehicle, current_order.max_speed,     SLE_UINT16,           0, , 174,    ),
 		 SLE_VAR(Vehicle, timetable_start,       SLE_INT32,                  0, , 129,    ),
 
-		 SLE_REF(Vehicle, orders,                REF_ORDER,                   , ,   0, 104),
-		 SLE_REF(Vehicle, orders,                REF_ORDERLIST,              0, , 105,    ),
+		 SLE_REF(Vehicle, orders.old,            REF_ORDER,                   , ,   0, 104),
+		 SLE_REF(Vehicle, orders.list,           REF_ORDERLIST,              0, , 105,    ),
 
 		 SLE_VAR(Vehicle, age,                   SLE_FILE_U16 | SLE_VAR_I32,  , ,   0,  30),
 		 SLE_VAR(Vehicle, age,                   SLE_INT32,                  0, ,  31,    ),
