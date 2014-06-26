@@ -256,20 +256,19 @@ enum SaveLoadFlags {
 	SLF_NO_NETWORK_SYNC = 1 << 3, ///< do not synchronize over network (but it is saved if SLF_NOT_IN_SAVE is not set)
 };
 
-/** Version range for SaveLoad objects */
-struct SaveLoadRange {
-	uint16 from; ///< save/load the variable starting from this savegame version
-	uint16 to;   ///< save/load the variable until this savegame version
-};
-
 /** SaveLoad type struct. Do NOT use this directly but use the SLE_ macros defined just below! */
 struct SaveLoad {
+	struct VersionRange {
+		uint16 from; ///< save/load the variable starting from this savegame version
+		uint16 to;   ///< save/load the variable until this savegame version
+	};
+
 	SaveLoadType type;     ///< object type
 	byte conv;             ///< object subtype/conversion
 	byte flags;            ///< save/load flags
 	uint16 length;         ///< (conditional) length of the variable (eg. arrays) (max array size is 65536 elements)
-	SaveLoadRange version; ///< save/load the variable in this version range
-	SaveLoadRange legacy;  ///< save/load the variable in this legacy version range
+	VersionRange version;  ///< save/load the variable in this version range
+	VersionRange legacy;   ///< save/load the variable in this legacy version range
 	/* NOTE: This element either denotes the address of the variable for a global
 	 * variable, or the offset within a struct which is then bound to a variable
 	 * during runtime. Decision on which one to use is controlled by the function
