@@ -66,8 +66,8 @@ static const SaveLoad _glog_legacyrev[] = {
 
 static const SaveLoad _glog_oldver[] = {
 	SLE_WRITEBYTE(GamelogEntryOldVer, type, GLOG_OLDVER),
-	SLE_VAR(GamelogEntryOldVer, type,    SLE_UINT32),
-	SLE_VAR(GamelogEntryOldVer, version, SLE_UINT32),
+	SLE_VAR(GamelogEntryOldVer, savetype, SLE_UINT32),
+	SLE_VAR(GamelogEntryOldVer, version,  SLE_UINT32),
 	SLE_END()
 };
 

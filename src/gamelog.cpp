@@ -333,7 +333,7 @@ void GamelogEntryLegacyRev::Print(GamelogPrintBuffer *buf) {
 /* Gamelog entry for savegames without log */
 
 void GamelogEntryOldVer::Print(GamelogPrintBuffer *buf) {
-	switch (this->type) {
+	switch (this->savetype) {
 		case SGT_TTO:
 			buf->append("    Conversion from TTO savegame");
 			break;
@@ -345,7 +345,7 @@ void GamelogEntryOldVer::Print(GamelogPrintBuffer *buf) {
 		case SGT_TTDP1:
 		case SGT_TTDP2:
 			buf->append_fmt ("    Conversion from %s TTDP savegame version %u.%u.%u.%u",
-				(this->type == SGT_TTDP1) ? "old" : "new",
+				(this->savetype == SGT_TTDP1) ? "old" : "new",
 				GB(this->version, 24,  8),
 				GB(this->version, 20,  4),
 				GB(this->version, 16,  4),

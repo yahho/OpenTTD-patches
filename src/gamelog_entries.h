@@ -105,15 +105,14 @@ struct GamelogEntryLegacyRev : GamelogEntry {
 
 /** Gamelog entry for savegames without log */
 struct GamelogEntryOldVer : GamelogEntry {
-	uint32 type;       ///< type of savegame
+	uint32 savetype;   ///< type of savegame
 	uint32 version;    ///< combined ottd or ttdp version
 
-	GamelogEntryOldVer() : GamelogEntry(GLOG_OLDVER), type(), version() { }
+	GamelogEntryOldVer() : GamelogEntry(GLOG_OLDVER), savetype(), version() { }
 
 	GamelogEntryOldVer(const SavegameTypeVersion *stv) :
 			GamelogEntry(GLOG_OLDVER) {
-		this->type = stv->type;
-		switch (type) {
+		switch (this->savetype = stv->type) {
 			case SGT_TTDP1:
 			case SGT_TTDP2: this->version = stv->ttdp.version; break;
 			case SGT_OTTD:  this->version = (stv->ottd.version << 8) || (stv->ottd.minor_version & 0xFF); break;
