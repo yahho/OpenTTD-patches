@@ -74,15 +74,15 @@ static inline bool IsOTTDSavegameVersionBefore(const SavegameTypeVersion *stv, u
 
 /** Type of data saved. */
 enum SaveLoadTypes {
-	SL_VAR         =  0, ///< Save/load a variable.
-	SL_REF         =  1, ///< Save/load a reference.
-	SL_ARR         =  2, ///< Save/load an array.
-	SL_STR         =  3, ///< Save/load a string.
-	SL_LST         =  4, ///< Save/load a list.
+	SL_VAR,       ///< Save/load a variable
+	SL_REF,       ///< Save/load a reference
+	SL_ARR,       ///< Save/load an array
+	SL_STR,       ///< Save/load a string
+	SL_LST,       ///< Save/load a list
 	/* non-normal save-load types */
-	SL_WRITEBYTE   =  8,
-	SL_INCLUDE     =  9,
-	SL_END         = 15
+	SL_WRITEBYTE, ///< Save/load a constant byte
+	SL_INCLUDE,   ///< Include another SaveLoad description
+	SL_END        ///< SaveLoad chunk end marker
 };
 
 typedef byte SaveLoadType; ///< Save/load type. @see SaveLoadTypes
