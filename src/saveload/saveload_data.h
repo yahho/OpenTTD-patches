@@ -79,6 +79,7 @@ enum SaveLoadTypes {
 	SL_ARR,       ///< Save/load an array
 	SL_STR,       ///< Save/load a string
 	SL_LST,       ///< Save/load a list
+	SL_NULL,      ///< Skip over bytes in the savegame
 	/* non-normal save-load types */
 	SL_WRITEBYTE, ///< Save/load a constant byte
 	SL_INCLUDE,   ///< Include another SaveLoad description
@@ -380,7 +381,7 @@ struct SaveLoad {
  * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLE_NULL(...) SLE_EXPAND(SLE_NULL_(__VA_ARGS__, ))
-#define SLE_NULL_(length, ...) SLE_EXPAND(SLE_ANY_(SL_ARR, (void*)NULL, SLE_FILE_U8 | SLE_VAR_NULL, SLF_NOT_IN_CONFIG, length, __VA_ARGS__))
+#define SLE_NULL_(length, ...) SLE_EXPAND(SLE_ANY_(SL_NULL, (void*)NULL, 0, SLF_NOT_IN_CONFIG, length, __VA_ARGS__))
 
 /** Translate values ingame to different values in the savegame and vv. */
 #define SLE_WRITEBYTE(base, variable, value) SLE_GENERAL(SL_WRITEBYTE, base, variable, value, 0, 0)

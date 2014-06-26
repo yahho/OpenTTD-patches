@@ -148,6 +148,7 @@ size_t SlCalcObjLength(const void *object, const SaveLoad *sld)
 			case SL_ARR: length += SlCalcArrayLen(sld->length, sld->conv); break;
 			case SL_STR: length += SlCalcStringLen(GetVariableAddress(sld, object), sld->length, sld->conv); break;
 			case SL_LST: length += SlCalcListLen(GetVariableAddress(sld, object)); break;
+			case SL_NULL: length += sld->length; break;
 			case SL_WRITEBYTE: length++; break; // a byte is logically of size 1
 			case SL_INCLUDE:   length += SlCalcObjLength(object, (SaveLoad*)sld->address); break;
 			default: NOT_REACHED();

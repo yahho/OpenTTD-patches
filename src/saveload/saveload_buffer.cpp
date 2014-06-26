@@ -331,6 +331,7 @@ bool LoadBuffer::ReadObjectMember(void *object, const SaveLoad *sld)
 		case SL_ARR: this->ReadArray(ptr, sld->length, sld->conv); break;
 		case SL_STR: this->ReadString(ptr, sld->conv, sld->length); break;
 		case SL_LST: this->ReadList(ptr, (SLRefType)sld->conv); break;
+		case SL_NULL: this->Skip (sld->length); break;
 
 		case SL_WRITEBYTE:
 			*(byte *)ptr = sld->conv;
@@ -601,6 +602,14 @@ void SaveDumper::WriteObjectMember(const void *object, const SaveLoad *sld)
 		case SL_ARR: this->WriteArray(ptr, sld->length, sld->conv); break;
 		case SL_STR: this->WriteString(ptr, sld->conv, sld->length); break;
 		case SL_LST: this->WriteList(ptr, (SLRefType)sld->conv); break;
+
+		case SL_NULL:
+			/* Writing nulls to savegames should be rare enough;
+			 * don't bother with memset. */
+			for (uint i = 0; i < sld->length; i++) {
+				this->WriteByte (0);
+			}
+			break;
 
 		case SL_WRITEBYTE:
 			this->WriteByte(sld->conv);
