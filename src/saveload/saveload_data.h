@@ -287,10 +287,76 @@ struct SaveLoad {
 	{
 	}
 
-	SaveLoad (SaveLoadTypes type, void *address, byte conv, byte flags,
-			uint16 length, uint16 from, uint16 to,
-			uint16 lfrom, uint16 lto)
-		: type(type), conv(conv), flags(flags), length(length),
+	/* Dummy template struct for disambiguating the constructor. */
+	template <SaveLoadTypes type>
+	struct TypeSelector { };
+
+	/** Construct a saveload object for a variable. */
+	SaveLoad (const TypeSelector<SL_VAR> *, void *address,
+			VarTypes conv, byte flags, uint16 length,
+			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
+		: type(SL_VAR), conv(conv), flags(flags), length(length),
+			version (from, to), legacy (lfrom, lto),
+			address(address)
+	{
+	}
+
+	/** Construct a saveload object for a reference. */
+	SaveLoad (const TypeSelector<SL_REF> *, void *address,
+			SLRefType conv, byte flags, uint16 length,
+			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
+		: type(SL_REF), conv(conv), flags(flags), length(length),
+			version (from, to), legacy (lfrom, lto),
+			address(address)
+	{
+	}
+
+	/** Construct a saveload object for an array. */
+	SaveLoad (const TypeSelector<SL_ARR> *, void *address,
+			VarTypes conv, byte flags, uint16 length,
+			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
+		: type(SL_ARR), conv(conv), flags(flags), length(length),
+			version (from, to), legacy (lfrom, lto),
+			address(address)
+	{
+	}
+
+	/** Construct a saveload object for a string. */
+	SaveLoad (const TypeSelector<SL_STR> *, void *address,
+			StrTypes conv, byte flags, uint16 length,
+			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
+		: type(SL_STR), conv(conv), flags(flags), length(length),
+			version (from, to), legacy (lfrom, lto),
+			address(address)
+	{
+	}
+
+	/** Construct a saveload object for a reference list. */
+	SaveLoad (const TypeSelector<SL_LST> *, void *address,
+			SLRefType conv, byte flags, uint16 length,
+			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
+		: type(SL_LST), conv(conv), flags(flags), length(length),
+			version (from, to), legacy (lfrom, lto),
+			address(address)
+	{
+	}
+
+	/** Construct a saveload object for a null byte sequence. */
+	SaveLoad (const TypeSelector<SL_NULL> *, void *address,
+			byte conv, byte flags, uint16 length,
+			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
+		: type(SL_NULL), conv(conv), flags(flags), length(length),
+			version (from, to), legacy (lfrom, lto),
+			address(address)
+	{
+		assert (length > 0);
+	}
+
+	/** Construct a saveload object for a constant byte. */
+	SaveLoad (const TypeSelector<SL_WRITEBYTE> *, void *address,
+			byte conv, byte flags, uint16 length,
+			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
+		: type(SL_WRITEBYTE), conv(conv), flags(flags), length(length),
 			version (from, to), legacy (lfrom, lto),
 			address(address)
 	{
@@ -371,7 +437,7 @@ struct SaveLoad {
  * @param lto      Last legacy savegame version that has the field, empty for maximum possible value.
  * @note This macro should not be used directly.
  */
-#define SLE_ANY_2(type, address, conv, flags, length, from, to, lfrom, lto) SaveLoad (type, address, conv, flags, length, SLE_DEFAULT_IF_EMPTY(from, SL_MAX_VERSION), SLE_DEFAULT_IF_EMPTY(to, SL_MAX_VERSION), lfrom, SLE_DEFAULT_IF_EMPTY(lto, SL_MAX_VERSION))
+#define SLE_ANY_2(type, address, conv, flags, length, from, to, lfrom, lto) SaveLoad ((const SaveLoad::TypeSelector<type> *)NULL, address, conv, flags, length, SLE_DEFAULT_IF_EMPTY(from, SL_MAX_VERSION), SLE_DEFAULT_IF_EMPTY(to, SL_MAX_VERSION), lfrom, SLE_DEFAULT_IF_EMPTY(lto, SL_MAX_VERSION))
 
 /**
  * Generic SaveLoad object, with version range.
@@ -445,7 +511,7 @@ struct SaveLoad {
  * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLE_VAR(...) SLE_EXPAND(SLE_VAR_(__VA_ARGS__, ))
-#define SLE_VAR_(base, variable, conv, ...) SLE_EXPAND(SLE_GENERAL_(SL_VAR, base, variable, conv, 0, 0, __VA_ARGS__))
+#define SLE_VAR_(base, variable, conv, ...) SLE_EXPAND(SLE_GENERAL_(SL_VAR, base, variable, (VarTypes)(conv), 0, 0, __VA_ARGS__))
 
 /**
  * Storage of a reference.
@@ -474,7 +540,7 @@ struct SaveLoad {
  * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLE_ARR(...) SLE_EXPAND(SLE_ARR_(__VA_ARGS__, ))
-#define SLE_ARR_(base, variable, conv, length, ...) SLE_EXPAND(SLE_GENERAL_(SL_ARR, base, variable, conv, 0, length, __VA_ARGS__))
+#define SLE_ARR_(base, variable, conv, length, ...) SLE_EXPAND(SLE_GENERAL_(SL_ARR, base, variable, (VarTypes)(conv), 0, length, __VA_ARGS__))
 
 /**
  * Storage of a string.
@@ -489,7 +555,7 @@ struct SaveLoad {
  * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLE_STR(...) SLE_EXPAND(SLE_STR_(__VA_ARGS__, ))
-#define SLE_STR_(base, variable, conv, length, ...) SLE_EXPAND(SLE_GENERAL_(SL_STR, base, variable, conv, 0, length, __VA_ARGS__))
+#define SLE_STR_(base, variable, conv, length, ...) SLE_EXPAND(SLE_GENERAL_(SL_STR, base, variable, (StrTypes)(conv), 0, length, __VA_ARGS__))
 
 /**
  * Storage of a list.
@@ -554,7 +620,7 @@ struct SaveLoad {
  * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLEG_VAR(...) SLE_EXPAND(SLEG_VAR_(__VA_ARGS__, ))
-#define SLEG_VAR_(variable, conv, ...) SLE_EXPAND(SLEG_GENERAL_(SL_VAR, variable, conv, 0, 0, __VA_ARGS__))
+#define SLEG_VAR_(variable, conv, ...) SLE_EXPAND(SLEG_GENERAL_(SL_VAR, variable, (VarTypes)(conv), 0, 0, __VA_ARGS__))
 
 /**
  * Storage of a global reference.
@@ -581,7 +647,7 @@ struct SaveLoad {
  * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLEG_ARR(...) SLE_EXPAND(SLEG_ARR_(__VA_ARGS__, ))
-#define SLEG_ARR_(variable, conv, length, ...) SLE_EXPAND(SLEG_GENERAL_(SL_ARR, variable, conv, 0, length, __VA_ARGS__))
+#define SLEG_ARR_(variable, conv, length, ...) SLE_EXPAND(SLEG_GENERAL_(SL_ARR, variable, (VarTypes)(conv), 0, length, __VA_ARGS__))
 
 /**
  * Storage of a global string.
@@ -595,7 +661,7 @@ struct SaveLoad {
  * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLEG_STR(...) SLE_EXPAND(SLEG_STR_(__VA_ARGS__, ))
-#define SLEG_STR_(variable, conv, length, ...) SLE_EXPAND(SLEG_GENERAL_(SL_STR, variable, conv, 0, length, __VA_ARGS__))
+#define SLEG_STR_(variable, conv, length, ...) SLE_EXPAND(SLEG_GENERAL_(SL_STR, variable, (StrTypes)(conv), 0, length, __VA_ARGS__))
 
 /**
  * Storage of a global list.
