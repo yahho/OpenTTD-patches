@@ -46,7 +46,7 @@ struct GamelogPrintBuffer;
 
 /** Gamelog entry base class. */
 struct GamelogEntry {
-	GamelogEntryType type;
+	byte type;
 
 	GamelogEntry(GamelogEntryType t) : type(t) { }
 
