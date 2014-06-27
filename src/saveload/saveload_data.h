@@ -214,6 +214,31 @@ static inline byte SlCalcConvFileLen(VarType conv)
 int64 ReadValue(const void *ptr, VarType conv);
 void WriteValue(void *ptr, VarType conv, int64 val);
 
+template <typename T>
+static inline void assert_vartype (VarTypes conv)
+{
+	assert (IsNumericType (conv));
+	assert (SlCalcConvMemLen(conv) == sizeof(T));
+}
+
+template <>
+inline void assert_vartype<char*> (VarTypes conv)
+{
+	assert (GetVarMemType(conv) == SLE_VAR_NAME);
+}
+
+template <typename T>
+static inline void assert_arrtype (const T *, VarTypes conv, uint length)
+{
+	assert (SlCalcConvMemLen(conv) * length <= sizeof(T));
+}
+
+template <typename T, uint N>
+static inline void assert_arrtype (const T (*) [N], VarTypes conv, uint length)
+{
+	assert (SlCalcConvMemLen(conv) * length <= sizeof(T) * N);
+}
+
 /**
  * StrTypes encodes information about saving and loading of strings (#SLE_STR).
  */
@@ -314,6 +339,7 @@ struct SaveLoad {
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(address))
 	{
+		if (!(flags & SLF_NOT_IN_SAVE)) assert_vartype<T> (conv);
 	}
 
 	/** Construct a saveload object for a reference. */
@@ -329,13 +355,15 @@ struct SaveLoad {
 
 	/** Construct a saveload object for an array. */
 	template <typename T, typename ADDR>
-	SaveLoad (const TypeSelector<SL_ARR> *, const T *, ADDR address,
+	SaveLoad (const TypeSelector<SL_ARR> *, const T *p, ADDR address,
 			VarTypes conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_ARR), conv(conv), flags(flags), length(length),
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(address))
 	{
+		assert_arrtype (p, conv, length);
+		assert (length > 0);
 	}
 
 	/** Construct a saveload object for a string. */
