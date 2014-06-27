@@ -12,6 +12,8 @@
 #ifndef SAVELOAD_DATA_H
 #define SAVELOAD_DATA_H
 
+#include <list>
+
 #include "../core/bitmath_func.hpp"
 
 /** Types of save games. */
@@ -304,8 +306,8 @@ struct SaveLoad {
 	struct TypeSelector { };
 
 	/** Construct a saveload object for a variable. */
-	template <typename ADDR>
-	SaveLoad (const TypeSelector<SL_VAR> *, ADDR address,
+	template <typename T, typename ADDR>
+	SaveLoad (const TypeSelector<SL_VAR> *, const T *, ADDR address,
 			VarTypes conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_VAR), conv(conv), flags(flags), length(length),
@@ -315,8 +317,8 @@ struct SaveLoad {
 	}
 
 	/** Construct a saveload object for a reference. */
-	template <typename ADDR>
-	SaveLoad (const TypeSelector<SL_REF> *, ADDR address,
+	template <typename T, typename ADDR>
+	SaveLoad (const TypeSelector<SL_REF> *, T *const *, ADDR address,
 			SLRefType conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_REF), conv(conv), flags(flags), length(length),
@@ -326,8 +328,8 @@ struct SaveLoad {
 	}
 
 	/** Construct a saveload object for an array. */
-	template <typename ADDR>
-	SaveLoad (const TypeSelector<SL_ARR> *, ADDR address,
+	template <typename T, typename ADDR>
+	SaveLoad (const TypeSelector<SL_ARR> *, const T *, ADDR address,
 			VarTypes conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_ARR), conv(conv), flags(flags), length(length),
@@ -337,8 +339,8 @@ struct SaveLoad {
 	}
 
 	/** Construct a saveload object for a string. */
-	template <typename ADDR>
-	SaveLoad (const TypeSelector<SL_STR> *, ADDR address,
+	template <typename T, typename ADDR>
+	SaveLoad (const TypeSelector<SL_STR> *, const T *, ADDR address,
 			StrTypes conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_STR), conv(conv), flags(flags), length(length),
@@ -348,8 +350,8 @@ struct SaveLoad {
 	}
 
 	/** Construct a saveload object for a reference list. */
-	template <typename ADDR>
-	SaveLoad (const TypeSelector<SL_LST> *, ADDR address,
+	template <typename T, typename ADDR>
+	SaveLoad (const TypeSelector<SL_LST> *, const std::list<T*> *, ADDR address,
 			SLRefType conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_LST), conv(conv), flags(flags), length(length),
@@ -359,7 +361,7 @@ struct SaveLoad {
 	}
 
 	/** Construct a saveload object for a null byte sequence. */
-	SaveLoad (const TypeSelector<SL_NULL> *, void *address,
+	SaveLoad (const TypeSelector<SL_NULL> *, const void *, void *address,
 			byte conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_NULL), conv(conv), flags(flags), length(length),
@@ -370,13 +372,15 @@ struct SaveLoad {
 	}
 
 	/** Construct a saveload object for a struct constant byte. */
-	SaveLoad (const TypeSelector<SL_WRITEBYTE> *, size_t offset,
+	template <typename T>
+	SaveLoad (const TypeSelector<SL_WRITEBYTE> *, const T *, size_t offset,
 			byte conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_WRITEBYTE), conv(conv), flags(flags), length(length),
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(offset))
 	{
+		assert_tcompile (sizeof(T) == 1);
 	}
 
 	/**
@@ -444,6 +448,7 @@ struct SaveLoad {
 /**
  * Generic SaveLoad object, with version range and legacy version range.
  * @param type     Load/save type. @see SaveLoadType
+ * @param pointer  Random pointer to variable type (value will never be used).
  * @param address  Address of variable or offset of variable in the struct
  * @param conv     Subtype/conversion of the data between memory and savegame.
  * @param flags    Save/load flags
@@ -454,11 +459,12 @@ struct SaveLoad {
  * @param lto      Last legacy savegame version that has the field, empty for maximum possible value.
  * @note This macro should not be used directly.
  */
-#define SLE_ANY_2(type, address, conv, flags, length, from, to, lfrom, lto) SaveLoad ((const SaveLoad::TypeSelector<type> *)NULL, address, conv, flags, length, SLE_DEFAULT_IF_EMPTY(from, SL_MAX_VERSION), SLE_DEFAULT_IF_EMPTY(to, SL_MAX_VERSION), lfrom, SLE_DEFAULT_IF_EMPTY(lto, SL_MAX_VERSION))
+#define SLE_ANY_2(type, pointer, address, conv, flags, length, from, to, lfrom, lto) SaveLoad ((const SaveLoad::TypeSelector<type> *)NULL, pointer, address, conv, flags, length, SLE_DEFAULT_IF_EMPTY(from, SL_MAX_VERSION), SLE_DEFAULT_IF_EMPTY(to, SL_MAX_VERSION), lfrom, SLE_DEFAULT_IF_EMPTY(lto, SL_MAX_VERSION))
 
 /**
  * Generic SaveLoad object, with version range.
  * @param type     Load/save type. @see SaveLoadType
+ * @param pointer  Random pointer to variable type (value will never be used).
  * @param address  Address of variable or offset of variable in the struct
  * @param conv     Subtype/conversion of the data between memory and savegame.
  * @param flags    Save/load flags
@@ -467,22 +473,24 @@ struct SaveLoad {
  * @param to       Last savegame version that has the field, empty for maximum possible value.
  * @note This macro should not be used directly.
  */
-#define SLE_ANY_1(type, address, conv, flags, length, from, to, ...) SLE_ANY_2(type, address, conv, flags, length, from, to, SL_MAX_VERSION, 0)
+#define SLE_ANY_1(type, pointer, address, conv, flags, length, from, to, ...) SLE_ANY_2(type, pointer, address, conv, flags, length, from, to, SL_MAX_VERSION, 0)
 
 /**
  * Generic SaveLoad object, without version range.
  * @param type     Load/save type. @see SaveLoadType
+ * @param pointer  Random pointer to variable type (value will never be used).
  * @param address  Address of variable or offset of variable in the struct
  * @param conv     Subtype/conversion of the data between memory and savegame.
  * @param flags    Save/load flags
  * @param length   Length of object (for arrays and strings)
  * @note This macro should not be used directly.
  */
-#define SLE_ANY_0(type, address, conv, flags, length, ...) SLE_ANY_2(type, address, conv, flags, length, 0, , 0, )
+#define SLE_ANY_0(type, pointer, address, conv, flags, length, ...) SLE_ANY_2(type, pointer, address, conv, flags, length, 0, , 0, )
 
 /**
  * Generic SaveLoad object, with or without version range.
  * @param type     Load/save type. @see SaveLoadType
+ * @param pointer  Random pointer to variable type (value will never be used).
  * @param address  Address of variable or offset of variable in the struct
  * @param conv     Subtype/conversion of the data between memory and savegame.
  * @param flags    Save/load flags
@@ -495,8 +503,8 @@ struct SaveLoad {
  * @note There should be a trailing empty argument to this macro.
  * @note This macro should not be used directly.
  */
-#define SLE_ANY_(type, address, conv, flags, ...) SLE_EXPAND(SLE_ANY(type, address, conv, flags, __VA_ARGS__ 2, INVALID, 1, INVALID, 0, INVALID, ))
-#define SLE_ANY(type, address, conv, flags, length, from, to, lfrom, lto, n, ...) SLE_ANY_##n(type, address, conv, flags, length, from, to, lfrom, lto)
+#define SLE_ANY_(type, pointer, address, conv, flags, ...) SLE_EXPAND(SLE_ANY(type, pointer, address, conv, flags, __VA_ARGS__ 2, INVALID, 1, INVALID, 0, INVALID, ))
+#define SLE_ANY(type, pointer, address, conv, flags, length, from, to, lfrom, lto, n, ...) SLE_ANY_##n(type, pointer, address, conv, flags, length, from, to, lfrom, lto)
 
 /**
  * Storage of simple variables, references (pointers), and arrays.
@@ -514,7 +522,7 @@ struct SaveLoad {
  * @note In general, it is better to use one of the SLE_* macros below.
  */
 #define SLE_GENERAL(...) SLE_EXPAND(SLE_GENERAL_(__VA_ARGS__, ))
-#define SLE_GENERAL_(type, base, variable, conv, flags, length, ...) SLE_EXPAND(SLE_ANY_(type, cpp_offsetof(base, variable), conv, flags, length, __VA_ARGS__))
+#define SLE_GENERAL_(type, base, variable, conv, flags, length, ...) SLE_EXPAND(SLE_ANY_(type, &((base*)(char*)8)->variable, cpp_offsetof(base, variable), conv, flags, length, __VA_ARGS__))
 
 /**
  * Storage of a variable.
@@ -598,7 +606,7 @@ struct SaveLoad {
  * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLE_NULL(...) SLE_EXPAND(SLE_NULL_(__VA_ARGS__, ))
-#define SLE_NULL_(length, ...) SLE_EXPAND(SLE_ANY_(SL_NULL, (void*)NULL, 0, SLF_NOT_IN_CONFIG, length, __VA_ARGS__))
+#define SLE_NULL_(length, ...) SLE_EXPAND(SLE_ANY_(SL_NULL, (void*)NULL, (void*)NULL, 0, SLF_NOT_IN_CONFIG, length, __VA_ARGS__))
 
 /** Translate values ingame to different values in the savegame and vv. */
 #define SLE_WRITEBYTE(base, variable, value) SLE_GENERAL(SL_WRITEBYTE, base, variable, value, 0, 0)
@@ -624,7 +632,7 @@ struct SaveLoad {
  * @note In general, it is better to use one of the SLEG_* macros below.
  */
 #define SLEG_GENERAL(...) SLE_EXPAND(SLEG_GENERAL_(__VA_ARGS__, ))
-#define SLEG_GENERAL_(type, variable, conv, flags, length, ...) SLE_EXPAND(SLE_ANY_(type, &variable, conv, (flags) | SLF_GLOBAL, length, __VA_ARGS__))
+#define SLEG_GENERAL_(type, variable, conv, flags, length, ...) SLE_EXPAND(SLE_ANY_(type, &variable, &variable, conv, (flags) | SLF_GLOBAL, length, __VA_ARGS__))
 
 /**
  * Storage of a global variable.
