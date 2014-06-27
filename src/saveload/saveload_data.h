@@ -289,6 +289,35 @@ enum SLRefType {
 	REF_LINK_GRAPH_JOB = 12, ///< Load/save a reference to a link graph job.
 };
 
+template <class T>
+static inline void assert_reftype (SLRefType);
+
+#define DEFINE_REF_STRUCT(T,r) \
+T; \
+template<> inline void assert_reftype<T> (SLRefType rt) { assert (rt == r); }
+
+DEFINE_REF_STRUCT (struct Order,             REF_ORDER)
+DEFINE_REF_STRUCT (struct Station,           REF_STATION)
+DEFINE_REF_STRUCT (struct Town,              REF_TOWN)
+DEFINE_REF_STRUCT (struct RoadStop,          REF_ROADSTOPS)
+DEFINE_REF_STRUCT (struct Dock,              REF_DOCKS)
+DEFINE_REF_STRUCT (struct EngineRenew,       REF_ENGINE_RENEWS)
+DEFINE_REF_STRUCT (struct CargoPacket,       REF_CARGO_PACKET)
+DEFINE_REF_STRUCT (struct OrderList,         REF_ORDERLIST)
+DEFINE_REF_STRUCT (struct PersistentStorage, REF_STORAGE)
+DEFINE_REF_STRUCT (class  LinkGraph,         REF_LINK_GRAPH)
+DEFINE_REF_STRUCT (class  LinkGraphJob,      REF_LINK_GRAPH_JOB)
+
+#undef DEFINE_REF_STRUCT
+
+struct Vehicle;
+
+template<>
+inline void assert_reftype<Vehicle> (SLRefType rt)
+{
+	assert (rt == REF_VEHICLE || rt == REF_VEHICLE_OLD);
+}
+
 /** Flags directing saving/loading of a variable */
 enum SaveLoadFlags {
 	SLF_GLOBAL          = 1 << 0, ///< global variable, instead of a struct field
@@ -365,6 +394,7 @@ struct SaveLoad {
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(address))
 	{
+		assert_reftype<T> (conv);
 	}
 
 	/** Construct a saveload object for an array. */
@@ -401,6 +431,7 @@ struct SaveLoad {
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(address))
 	{
+		assert_reftype<T> (conv);
 	}
 
 	/** Construct a saveload object for a null byte sequence. */
