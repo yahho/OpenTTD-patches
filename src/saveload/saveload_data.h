@@ -258,6 +258,20 @@ enum StrTypes {
 
 typedef byte StrType;
 
+template <uint N>
+static inline void assert_strtype (const char (*) [N], StrTypes conv, uint length)
+{
+	assert (!(conv & SLS_POINTER));
+	assert (length == N);
+	assert_tcompile (N > 0);
+}
+
+static inline void assert_strtype (const char *const *, StrTypes conv, uint length)
+{
+	assert (conv & SLS_POINTER);
+	assert (length == 0);
+}
+
 /** Type of reference (#SLE_REF, #SLE_CONDREF). */
 enum SLRefType {
 	REF_ORDER          =  0, ///< Load/save a reference to an order.
@@ -368,13 +382,14 @@ struct SaveLoad {
 
 	/** Construct a saveload object for a string. */
 	template <typename T, typename ADDR>
-	SaveLoad (const TypeSelector<SL_STR> *, const T *, ADDR address,
+	SaveLoad (const TypeSelector<SL_STR> *, const T *p, ADDR address,
 			StrTypes conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_STR), conv(conv), flags(flags), length(length),
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(address))
 	{
+		assert_strtype (p, conv, length);
 	}
 
 	/** Construct a saveload object for a reference list. */
