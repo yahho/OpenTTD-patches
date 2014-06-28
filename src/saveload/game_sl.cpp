@@ -177,7 +177,7 @@ static void Save_GSTR(SaveDumper *dumper)
 		temp.WriteObject(&gss, _game_language_header);
 
 		for (uint j = 0; j < gss.n; j++) {
-			temp.WriteString (&ls->lines[j], SLS_STR | SLS_ALLOW_CONTROL);
+			temp.WriteString (ls->lines[j]);
 		}
 
 		dumper->WriteElementHeader(i, temp.GetSize());

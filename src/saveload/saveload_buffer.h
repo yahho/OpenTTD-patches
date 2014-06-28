@@ -256,12 +256,7 @@ struct SaveDumper {
 	void WriteArray(const void *ptr, size_t length, VarType conv);
 	void WriteList(const void *ptr, SLRefType conv);
 
-	/** Helper to write a string stored through a pointer. */
-	inline void WriteString(const char *const *ptr, StrType conv)
-	{
-		assert((conv & SLS_POINTER) != 0);
-		WriteString (ptr, conv, 0);
-	}
+	void WriteString (const char *s);
 
 	void BeginChunk(uint type);
 	void EndChunk();

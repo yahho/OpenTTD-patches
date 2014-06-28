@@ -494,6 +494,21 @@ void SaveDumper::WriteString(const void *ptr, StrType conv, size_t length)
 }
 
 /**
+ * Save a simple string.
+ * @param s The string to write
+ */
+void SaveDumper::WriteString (const char *s)
+{
+	if (s == NULL) {
+		this->WriteGamma (0);
+	} else {
+		size_t len = strlen (s);
+		this->WriteGamma (len);
+		this->CopyBytes (s, len);
+	}
+}
+
+/**
  * Save an array.
  * @param array The array being manipulated
  * @param length The length of the array in elements
