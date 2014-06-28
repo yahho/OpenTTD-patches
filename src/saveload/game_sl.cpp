@@ -141,10 +141,8 @@ static void Load_GSTR(LoadBuffer *reader)
 		free(gss.s);
 
 		for (uint i = 0; i < gss.n; i++) {
-			char **s = ls->lines.Append();
-			*s = NULL;
-			reader->ReadString (s, SLS_STR | SLS_ALLOW_CONTROL);
-			if (*s == NULL) *s = xstrdup("");
+			char *s = reader->ReadString (SLS_STR | SLS_ALLOW_CONTROL);
+			*ls->lines.Append() = (s != NULL) ? s : xstrdup("");
 		}
 
 		*_current_data->raw_strings.Append() = ls;

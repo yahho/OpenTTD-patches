@@ -139,10 +139,11 @@ struct LoadBuffer {
 	void ReadList(void *ptr, SLRefType conv);
 
 	/** Helper to read a string stored through a pointer. */
-	inline void ReadString(char **ptr, StrType conv)
+	inline char *ReadString (StrType conv)
 	{
-		assert((conv & SLS_POINTER) != 0);
-		ReadString (ptr, conv, 0);
+		char *s = NULL;
+		ReadString (&s, conv | SLS_POINTER, 0);
+		return s;
 	}
 
 	void BeginChunk();
