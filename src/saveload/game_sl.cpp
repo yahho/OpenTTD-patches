@@ -117,30 +117,17 @@ static void Save_GSDT(SaveDumper *dumper)
 
 extern GameStrings *_current_data;
 
-struct GameSaveloadStrings {
-	const char *s;
-	uint n;
-};
-
-static const SaveLoad _game_language_header[] = {
-	 SLE_STR(GameSaveloadStrings, s, SLS_STR, 0),
-	 SLE_VAR(GameSaveloadStrings, n, SLE_UINT32),
-	 SLE_END()
-};
-
 static void Load_GSTR(LoadBuffer *reader)
 {
 	delete _current_data;
 	_current_data = new GameStrings();
 
 	while (reader->IterateChunk() != -1) {
-		GameSaveloadStrings gss;
-		gss.s = NULL;
-		reader->ReadObject(&gss, _game_language_header);
-		LanguageStrings *ls = new LanguageStrings(gss.s != NULL ? gss.s : "");
-		free(gss.s);
+		char *s = reader->ReadString (SLS_STR);
+		LanguageStrings *ls = new LanguageStrings (s != NULL ? s : "");
+		free (s);
 
-		for (uint i = 0; i < gss.n; i++) {
+		for (uint n = reader->ReadUint32(); n > 0; n--) {
 			char *s = reader->ReadString (SLS_STR | SLS_ALLOW_CONTROL);
 			*ls->lines.Append() = (s != NULL) ? s : xstrdup("");
 		}
@@ -168,13 +155,12 @@ static void Save_GSTR(SaveDumper *dumper)
 
 		SaveDumper temp(1024);
 
-		GameSaveloadStrings gss;
-		gss.s = ls->language;
-		gss.n = ls->lines.Length();
+		temp.WriteString (ls->language);
 
-		temp.WriteObject(&gss, _game_language_header);
+		uint n = ls->lines.Length();
+		temp.WriteUint32 (n);
 
-		for (uint j = 0; j < gss.n; j++) {
+		for (uint j = 0; j < n; j++) {
 			temp.WriteString (ls->lines[j]);
 		}
 
