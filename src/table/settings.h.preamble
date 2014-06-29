@@ -59,6 +59,9 @@ static size_t ConvertLandscape(const char *value);
 #define NSD_GENERAL(name, def, cmd, guiflags, min, max, interval, many, str, strhelp, strval, proc, load, cat)\
 	{name, (const void*)(size_t)(def), {(byte)cmd}, {(uint16)guiflags}, min, max, interval, many, str, strhelp, strval, proc, load, cat}
 
+#define SDT_NULL(length, vfrom, vto, lfrom, lto)\
+	{{"", NULL, {0}, {0}, 0, 0, 0, NULL, STR_NULL, STR_NULL, STR_NULL, NULL, NULL, SC_NONE}, SLE_NULL(length, vfrom, vto, lfrom, lto)}
+
 #define SDT_END() {{NULL, NULL, {0}, {0}, 0, 0, 0, NULL, STR_NULL, STR_NULL, STR_NULL, NULL, NULL, SC_NONE}, SLE_END()}
 
 /* Macros for various objects to go in the configuration file.
@@ -83,9 +86,6 @@ static size_t ConvertLandscape(const char *value);
 
 #define SDTG_MMANY(name, conv, flags, guiflags, var, def, full, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
 	SDTG_GENERAL(name, SDT_MANYOFMANY, SL_VAR, (VarTypes)(conv), flags, guiflags, var, 0, def, 0, 0, 0, full, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)
-
-#define SDTG_NULL(length, vfrom, vto, lfrom, lto)\
-	{{"", NULL, {0}, {0}, 0, 0, 0, NULL, STR_NULL, STR_NULL, STR_NULL, NULL, NULL, SC_NONE}, SLE_NULL(length, vfrom, vto, lfrom, lto)}
 
 /* Macros for various objects to go in the configuration file.
  * This section is for structures where their various members are saved */
@@ -112,9 +112,6 @@ static size_t ConvertLandscape(const char *value);
 
 #define SDT_MMANY(base, var, conv, flags, guiflags, def, full, str, proc, strhelp, strval, vfrom, vto, lfrom, lto, cat)\
 	SDT_GENERAL(#var, SDT_MANYOFMANY, SL_VAR, (VarTypes)(conv), flags, guiflags, base, var, 1, def, 0, 0, 0, full, str, strhelp, strval, proc, NULL, vfrom, vto, lfrom, lto, cat)
-
-#define SDT_NULL(length, vfrom, vto, lfrom, lto)\
-	{{"", NULL, {0}, {0}, 0, 0, 0, NULL, STR_NULL, STR_NULL, STR_NULL, NULL, NULL, SC_NONE}, SLE_NULL(length, vfrom, vto, lfrom, lto)}
 
 
 #define SDTC_VAR(var, conv, flags, guiflags, def, min, max, interval, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
