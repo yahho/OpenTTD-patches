@@ -1020,37 +1020,24 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 }
 
 
-struct MapDim {
-	uint32 x, y;
-};
-
-static const SaveLoad _map_dimensions[] = {
-	SLE_VAR(MapDim, x, SLE_UINT32, 0, , 6, ),
-	SLE_VAR(MapDim, y, SLE_UINT32, 0, , 6, ),
-	SLE_END()
-};
-
 static void Save_MAPS(SaveDumper *dumper)
 {
-	MapDim map_dim;
-	map_dim.x = MapSizeX();
-	map_dim.y = MapSizeY();
-	dumper->WriteRIFFObject(&map_dim, _map_dimensions);
+	dumper->WriteRIFFSize (2 * sizeof(uint32));
+	dumper->WriteUint32 (MapSizeX());
+	dumper->WriteUint32 (MapSizeY());
 }
 
 static void Load_MAPS(LoadBuffer *reader)
 {
-	MapDim map_dim;
-	reader->ReadObject(&map_dim, _map_dimensions);
-	AllocateMap(map_dim.x, map_dim.y);
+	uint32 x = reader->ReadUint32();
+	uint32 y = reader->ReadUint32();
+	AllocateMap (x, y);
 }
 
 static void Check_MAPS(LoadBuffer *reader)
 {
-	MapDim map_dim;
-	reader->ReadObject(&map_dim, _map_dimensions);
-	_load_check_data.map_size_x = map_dim.x;
-	_load_check_data.map_size_y = map_dim.y;
+	_load_check_data.map_size_x = reader->ReadUint32();
+	_load_check_data.map_size_y = reader->ReadUint32();
 }
 
 static const uint MAP_SL_BUF_SIZE = 4096;
