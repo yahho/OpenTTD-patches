@@ -125,22 +125,17 @@ static void Ptrs_INDY(const SavegameTypeVersion *stv)
 	}
 }
 
-/** Description of the data to save and load in #IndustryBuildData. */
-static const SaveLoad _industry_builder_desc[] = {
-	SLEG_VAR(_industry_builder.wanted_inds, SLE_UINT32),
-	 SLE_END()
-};
-
 /** Save industry builder. */
 static void Save_IBLD(SaveDumper *dumper)
 {
-	dumper->WriteRIFFObject(NULL, _industry_builder_desc);
+	dumper->WriteRIFFSize (sizeof(uint32));
+	dumper->WriteUint32 (_industry_builder.wanted_inds);
 }
 
 /** Load industry builder. */
 static void Load_IBLD(LoadBuffer *reader)
 {
-	reader->ReadObject(NULL, _industry_builder_desc);
+	_industry_builder.wanted_inds = reader->ReadUint32();
 }
 
 /** Description of the data to save and load in #IndustryTypeBuildData. */
