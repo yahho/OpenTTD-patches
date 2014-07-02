@@ -448,6 +448,16 @@ assert_compile(SIZE_MAX >= UINT32_MAX);
  */
 #define cpp_lengthof(base, variable) (cpp_sizeof(base, variable) / cpp_sizeof(base, variable[0]))
 
+/**
+ * Construct a pointer to a field in a (nonexistent) object of a given type.
+ * Since the object does not exist, you should only use this pointer for its
+ * type information or, if it points to a class, to access its static members.
+ * @param base     The struct that contains the field.
+ * @param variable The field in the struct.
+ * @return A pointer to the field in a nonexistent object.
+ */
+#define cpp_pointer(base, variable) (&((base*)(char*)8)->variable)
+
 
 /* take care of some name clashes on MacOS */
 #if defined(__APPLE__)

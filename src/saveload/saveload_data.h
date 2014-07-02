@@ -596,7 +596,7 @@ struct SaveLoad {
  * @note In general, it is better to use one of the SLE_* macros below.
  */
 #define SLE_GENERAL(...) SLE_EXPAND(SLE_GENERAL_(__VA_ARGS__, ))
-#define SLE_GENERAL_(type, base, variable, conv, flags, length, ...) SLE_EXPAND(SLE_ANY_(type, &((base*)(char*)8)->variable, cpp_offsetof(base, variable), conv, flags, length, __VA_ARGS__))
+#define SLE_GENERAL_(type, base, variable, conv, flags, length, ...) SLE_EXPAND(SLE_ANY_(type, cpp_pointer(base, variable), cpp_offsetof(base, variable), conv, flags, length, __VA_ARGS__))
 
 /**
  * Storage of a variable.
