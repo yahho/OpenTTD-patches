@@ -27,14 +27,14 @@ static const SaveLoad _cargomonitor_pair_desc[] = {
 	SLE_END()
 };
 
-/** Save the #_cargo_deliveries monitoring map. */
-static void SaveDelivery(SaveDumper *dumper)
+/** Save a cargo monitor map. */
+static void SaveCargoMonitorMap (SaveDumper *dumper, const CargoMonitorMap *map)
 {
 	TempStorage storage;
 
 	int i = 0;
-	CargoMonitorMap::const_iterator iter = _cargo_deliveries.begin();
-	while (iter != _cargo_deliveries.end()) {
+	CargoMonitorMap::const_iterator iter = map->begin();
+	while (iter != map->end()) {
 		storage.number = iter->first;
 		storage.amount = iter->second;
 
@@ -43,6 +43,12 @@ static void SaveDelivery(SaveDumper *dumper)
 		i++;
 		iter++;
 	}
+}
+
+/** Save the #_cargo_deliveries monitoring map. */
+static void SaveDelivery(SaveDumper *dumper)
+{
+	SaveCargoMonitorMap (dumper, &_cargo_deliveries);
 }
 
 /** Load the #_cargo_deliveries monitoring map. */
@@ -64,19 +70,7 @@ static void LoadDelivery(LoadBuffer *reader)
 /** Save the #_cargo_pickups monitoring map. */
 static void SavePickup(SaveDumper *dumper)
 {
-	TempStorage storage;
-
-	int i = 0;
-	CargoMonitorMap::const_iterator iter = _cargo_pickups.begin();
-	while (iter != _cargo_pickups.end()) {
-		storage.number = iter->first;
-		storage.amount = iter->second;
-
-		dumper->WriteElement(i, &storage, _cargomonitor_pair_desc);
-
-		i++;
-		iter++;
-	}
+	SaveCargoMonitorMap (dumper, &_cargo_pickups);
 }
 
 /** Load the #_cargo_pickups monitoring map. */
