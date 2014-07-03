@@ -45,6 +45,20 @@ static void SaveCargoMonitorMap (SaveDumper *dumper, const CargoMonitorMap *map)
 	}
 }
 
+/** Load a cargo monitor map. */
+static void LoadCargoMonitorMap (LoadBuffer *reader, CargoMonitorMap *map)
+{
+	TempStorage storage;
+
+	for (;;) {
+		if (reader->IterateChunk() < 0) break;
+		reader->ReadObject(&storage, _cargomonitor_pair_desc);
+
+		std::pair<CargoMonitorID, uint32> p(storage.number, storage.amount);
+		map->insert(p);
+	}
+}
+
 /** Save the #_cargo_deliveries monitoring map. */
 static void SaveDelivery(SaveDumper *dumper)
 {
@@ -54,18 +68,9 @@ static void SaveDelivery(SaveDumper *dumper)
 /** Load the #_cargo_deliveries monitoring map. */
 static void LoadDelivery(LoadBuffer *reader)
 {
-	TempStorage storage;
-
 	ClearCargoDeliveryMonitoring();
-	for (;;) {
-		if (reader->IterateChunk() < 0) break;
-		reader->ReadObject(&storage, _cargomonitor_pair_desc);
-
-		std::pair<CargoMonitorID, uint32> p(storage.number, storage.amount);
-		_cargo_deliveries.insert(p);
-	}
+	LoadCargoMonitorMap (reader, &_cargo_deliveries);
 }
-
 
 /** Save the #_cargo_pickups monitoring map. */
 static void SavePickup(SaveDumper *dumper)
@@ -76,16 +81,8 @@ static void SavePickup(SaveDumper *dumper)
 /** Load the #_cargo_pickups monitoring map. */
 static void LoadPickup(LoadBuffer *reader)
 {
-	TempStorage storage;
-
 	ClearCargoPickupMonitoring();
-	for (;;) {
-		if (reader->IterateChunk() < 0) break;
-		reader->ReadObject(&storage, _cargomonitor_pair_desc);
-
-		std::pair<CargoMonitorID, uint32> p(storage.number, storage.amount);
-		_cargo_pickups.insert(p);
-	}
+	LoadCargoMonitorMap (reader, &_cargo_pickups);
 }
 
 /** Chunk definition of the cargomonitoring maps. */
