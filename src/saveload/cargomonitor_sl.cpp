@@ -14,31 +14,15 @@
 
 #include "saveload_buffer.h"
 
-/** Temporary storage of cargo monitoring data for loading or saving it. */
-struct TempStorage {
-	CargoMonitorID number;
-	uint32 amount;
-};
-
-/** Description of the #TempStorage structure for the purpose of load and save. */
-static const SaveLoad _cargomonitor_pair_desc[] = {
-	SLE_VAR(TempStorage, number, SLE_UINT32),
-	SLE_VAR(TempStorage, amount, SLE_UINT32),
-	SLE_END()
-};
-
 /** Save a cargo monitor map. */
 static void SaveCargoMonitorMap (SaveDumper *dumper, const CargoMonitorMap *map)
 {
-	TempStorage storage;
-
 	int i = 0;
 	CargoMonitorMap::const_iterator iter = map->begin();
 	while (iter != map->end()) {
-		storage.number = iter->first;
-		storage.amount = iter->second;
-
-		dumper->WriteElement(i, &storage, _cargomonitor_pair_desc);
+		dumper->WriteElementHeader (i, 2 * sizeof(uint32));
+		dumper->WriteUint32 (iter->first);
+		dumper->WriteUint32 (iter->second);
 
 		i++;
 		iter++;
@@ -48,13 +32,11 @@ static void SaveCargoMonitorMap (SaveDumper *dumper, const CargoMonitorMap *map)
 /** Load a cargo monitor map. */
 static void LoadCargoMonitorMap (LoadBuffer *reader, CargoMonitorMap *map)
 {
-	TempStorage storage;
-
 	for (;;) {
 		if (reader->IterateChunk() < 0) break;
-		reader->ReadObject(&storage, _cargomonitor_pair_desc);
-
-		std::pair<CargoMonitorID, uint32> p(storage.number, storage.amount);
+		CargoMonitorID number = reader->ReadUint32();
+		uint32 amount = reader->ReadUint32();
+		std::pair<CargoMonitorID, uint32> p (number, amount);
 		map->insert(p);
 	}
 }
