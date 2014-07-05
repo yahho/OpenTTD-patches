@@ -316,10 +316,14 @@ bool LoadBuffer::ReadObjectMember(void *object, const SaveLoad *sld)
 	if (!sld->is_valid (this->stv)) return false;
 
 	if ((sld->flags & SLF_NO_NETWORK_SYNC) && _networking && !_network_server) {
-		assert((sld->type == SL_ARR) || (sld->type == SL_STR));
-		size_t skip = (sld->type == SL_STR) ?
-			this->ReadGamma() : SlCalcConvFileLen(sld->conv);
-		this->Skip(skip * sld->length);
+		size_t skip;
+		switch (sld->type) {
+			case SL_VAR: skip = SlCalcConvFileLen (sld->conv); break;
+			case SL_ARR: skip = SlCalcConvFileLen (sld->conv) * sld->length; break;
+			case SL_STR: skip = this->ReadGamma(); break;
+			default: NOT_REACHED();
+		}
+		this->Skip (skip);
 		return false;
 	}
 
