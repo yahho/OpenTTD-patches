@@ -42,7 +42,7 @@ void GamelogReset()
  */
 void GamelogInfo(const Gamelog *gamelog, uint32 *last_rev, byte *ever_modified, bool *removed_newgrfs)
 {
-	for (Gamelog::const_iterator entry = gamelog->cbegin(); entry != gamelog->cend(); entry++) {
+	for (Gamelog::const_iterator entry = gamelog->begin(); entry != gamelog->end(); entry++) {
 		switch ((*entry)->type) {
 			default: break;
 
@@ -149,7 +149,7 @@ void GamelogPrint (GamelogPrintProc *proc, void *data)
 
 	proc ("---- gamelog start ----", data);
 
-	for (Gamelog::const_iterator entry = _gamelog.cbegin(); entry != _gamelog.cend(); entry++) {
+	for (Gamelog::const_iterator entry = _gamelog.begin(); entry != _gamelog.end(); entry++) {
 		buf.clear();
 		(*entry)->Print(&buf);
 		proc (buf.c_str(), data);
@@ -271,7 +271,7 @@ void GamelogTestMode()
 {
 	const GamelogEntryMode *mode = NULL;
 
-	for (Gamelog::const_iterator entry = _gamelog.cbegin(); entry != _gamelog.cend(); entry++) {
+	for (Gamelog::const_iterator entry = _gamelog.begin(); entry != _gamelog.end(); entry++) {
 		if ((*entry)->type == GLOG_MODE) {
 			mode = (GamelogEntryMode*)entry->get();
 		}
@@ -306,7 +306,7 @@ void GamelogTestRevision()
 {
 	const GamelogEntryRevision *rev = NULL;
 
-	for (Gamelog::const_iterator entry = _gamelog.cbegin(); entry != _gamelog.cend(); entry++) {
+	for (Gamelog::const_iterator entry = _gamelog.begin(); entry != _gamelog.end(); entry++) {
 		if ((*entry)->type == GLOG_REVISION) {
 			rev = (GamelogEntryRevision*)entry->get();
 		}
@@ -389,7 +389,7 @@ void GamelogEmergency()
  */
 bool GamelogTestEmergency()
 {
-	for (Gamelog::const_iterator entry = _gamelog.cbegin(); entry != _gamelog.cend(); entry++) {
+	for (Gamelog::const_iterator entry = _gamelog.begin(); entry != _gamelog.end(); entry++) {
 		if ((*entry)->type == GLOG_EMERGENCY) return true;
 	}
 
@@ -736,7 +736,7 @@ static inline void GamelogGRFBug(uint32 grfid, byte bug, uint64 data)
  */
 bool GamelogGRFBugReverse(uint32 grfid, uint16 internal_id)
 {
-	for (Gamelog::const_iterator entry = _gamelog.cbegin(); entry != _gamelog.end(); entry++) {
+	for (Gamelog::const_iterator entry = _gamelog.begin(); entry != _gamelog.end(); entry++) {
 		if ((*entry)->type == GLOG_GRFBUG) {
 			const GamelogEntryGRFBug *bug = (GamelogEntryGRFBug*)entry->get();
 			if (bug->bug == GBUG_VEH_LENGTH && bug->grfid == grfid && bug->data == internal_id) {

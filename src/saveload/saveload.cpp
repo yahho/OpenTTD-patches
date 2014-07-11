@@ -554,12 +554,12 @@ static const GRFIdentifier *GetOverriddenIdentifier(const GRFConfig *c)
 {
 	extern Gamelog _gamelog;
 
-	Gamelog::const_reverse_iterator entry = _gamelog.crbegin();
+	Gamelog::const_reverse_iterator entry = _gamelog.rbegin();
 
 	if ((*entry)->type != GLOG_LOADED) return &c->ident;
 	entry++;
 
-	while (entry != _gamelog.crend() && (*entry)->type != GLOG_LOAD) {
+	while (entry != _gamelog.rend() && (*entry)->type != GLOG_LOAD) {
 		if ((*entry)->type == GLOG_GRFCOMPAT) {
 			const GamelogEntryGRFCompat *compat = (GamelogEntryGRFCompat*)entry->get();
 			if (compat->grf.grfid == c->ident.grfid) return &compat->grf;

@@ -175,10 +175,10 @@ assert_compile(lengthof(_glog_desc) == GLOG_ENTRYTYPE_END);
 
 static void Save_GLOG(SaveDumper *dumper)
 {
-	Gamelog::const_iterator entry = _gamelog.cbegin();
+	Gamelog::const_iterator entry = _gamelog.begin();
 	uint i = 0;
 
-	while (entry != _gamelog.cend()) {
+	while (entry != _gamelog.end()) {
 		const GamelogEntry *e = (entry++)->get();
 		dumper->WriteElement(i++, e, _glog_desc[e->type]);
 	}
