@@ -9,9 +9,10 @@
 
 /** @file saveload_data.cpp Saveload data definitions. */
 
+#include "../stdafx.h"
+
 #include <list>
 
-#include "../stdafx.h"
 #include "../string.h"
 #include "saveload_data.h"
 #include "saveload_internal.h"

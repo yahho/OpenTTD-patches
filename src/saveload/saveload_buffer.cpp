@@ -9,9 +9,10 @@
 
 /** @file saveload_buffer.cpp Saveload buffer definitions. */
 
+#include "../stdafx.h"
+
 #include <list>
 
-#include "../stdafx.h"
 #include "../debug.h"
 #include "../string.h"
 #include "../network/network.h"
