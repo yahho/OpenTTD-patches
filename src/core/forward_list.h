@@ -57,7 +57,11 @@ struct ForwardList {
 
 	ForwardList() : head(NULL) { }
 
-	ForwardList (const ForwardList &) DELETED;
+	ForwardList (const ForwardList &other) : head(NULL)
+	{
+		assert (other.head == NULL);
+	}
+
 	ForwardList& operator = (const ForwardList &) DELETED;
 
 private:
