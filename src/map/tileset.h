@@ -197,26 +197,31 @@ struct TileSet : TileSetBase {
 	struct Iterator {
 		AreaIterator area_iter;
 		TileSet *const set;
-		T *item;
+		typename Bucket::iterator item;
+
+		Bucket *get_current_bucket (void)
+		{
+			return &set->buckets[area_iter.get_index()];
+		}
 
 		Iterator (TileSet *set, TileIndex tile, uint radius)
 			: area_iter (tile, radius), set(set)
 		{
 			do {
-				item = set->buckets[area_iter.get_index()].head;
-			} while ((item == NULL) && area_iter.next());
+				item = get_current_bucket()->begin();
+			} while ((item == get_current_bucket()->end()) && area_iter.next());
 		}
 
 		T *get_item (void) const
 		{
-			return item;
+			return &*item;
 		}
 
 		void next (void)
 		{
-			item = item->Link::next;
-			while ((item == NULL) && area_iter.next()) {
-				item = set->buckets[area_iter.get_index()].head;
+			item++;
+			while ((item == get_current_bucket()->end()) && area_iter.next()) {
+				item = get_current_bucket()->begin();
 			}
 		}
 	};

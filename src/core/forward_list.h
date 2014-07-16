@@ -53,8 +53,10 @@ struct ForwardList {
 	typedef TLink Link;
 	typedef typename Link::Type Type;
 
+private:
 	Type *head;
 
+public:
 	ForwardList() : head(NULL) { }
 
 	ForwardList (const ForwardList &other) : head(NULL)
@@ -171,6 +173,88 @@ public:
 		Type *r = head;
 		head = NULL;
 		return r;
+	}
+
+private:
+	/** Iterator class. */
+	template <typename T, typename C>
+	struct iterator_t {
+		T *p;
+
+		iterator_t (C *list) : p(list->head)
+		{
+		}
+
+		iterator_t (void) : p(NULL)
+		{
+		}
+
+		T& operator * (void) const
+		{
+			return *p;
+		}
+
+		T* operator -> (void) const
+		{
+			return p;
+		}
+
+		bool operator == (const iterator_t &other) const
+		{
+			return p == other.p;
+		}
+
+		bool operator != (const iterator_t &other) const
+		{
+			return p != other.p;
+		}
+
+		iterator_t& operator ++ (void)
+		{
+			p = p->Link::Next;
+			return *this;
+		}
+
+		iterator_t operator ++ (int)
+		{
+			iterator_t r (*this);
+			p = p->Link::next;
+			return r;
+		}
+	};
+
+public:
+	typedef iterator_t <Type, ForwardList> iterator;
+	typedef iterator_t <const Type, const ForwardList> const_iterator;
+
+	iterator begin (void)
+	{
+		return iterator (this);
+	}
+
+	const_iterator begin (void) const
+	{
+		return const_iterator (this);
+	}
+
+	const_iterator cbegin (void) const
+	{
+		return const_iterator (this);
+	}
+
+	iterator end (void)
+	{
+		return iterator();
+	}
+
+	const_iterator end (void) const
+	{
+		return const_iterator();
+	}
+
+	const_iterator cend (void) const
+	{
+		return const_iterator();
 	}
 };
 
