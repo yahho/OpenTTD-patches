@@ -194,16 +194,17 @@ struct TileSet : TileSetBase {
 	}
 
 	/** Iterator over the items in a square area of tiles. */
-	struct Iterator : AreaIterator {
+	struct Iterator {
+		AreaIterator area_iter;
 		TileSet *const set;
 		T *item;
 
 		Iterator (TileSet *set, TileIndex tile, uint radius)
-			: AreaIterator (tile, radius), set(set)
+			: area_iter (tile, radius), set(set)
 		{
 			do {
-				item = set->buckets[AreaIterator::get_index()].head;
-			} while ((item == NULL) && AreaIterator::next());
+				item = set->buckets[area_iter.get_index()].head;
+			} while ((item == NULL) && area_iter.next());
 		}
 
 		T *get_item (void) const
@@ -214,8 +215,8 @@ struct TileSet : TileSetBase {
 		void next (void)
 		{
 			item = item->Link::next;
-			while ((item == NULL) && AreaIterator::next()) {
-				item = set->buckets[AreaIterator::get_index()].head;
+			while ((item == NULL) && area_iter.next()) {
+				item = set->buckets[area_iter.get_index()].head;
 			}
 		}
 	};
