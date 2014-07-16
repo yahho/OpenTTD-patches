@@ -345,7 +345,12 @@ void DrawOrderString(const Vehicle *v, const Order *order, int order_index, int 
 	DrawString(rtl ? left : middle, rtl ? middle : right, y, STR_ORDER_TEXT, colour);
 }
 
-
+/**
+ * Get the order command a vehicle can do in a given tile.
+ * @param v Vehicle involved.
+ * @param tile Tile being queried.
+ * @return The order associated to vehicle v in given tile (or empty order if vehicle can do nothing in the tile).
+ */
 static Order GetOrderCmdFromTile(const Vehicle *v, TileIndex tile)
 {
 	/* Hack-ish; unpack order 0, so everything gets initialised with either zero
