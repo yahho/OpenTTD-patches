@@ -33,7 +33,7 @@ struct ForwardListLink {
 	}
 };
 
-/**
+/*
  * Implementation of a generic forward list.
  *
  * We have a hand-written implementation of a forward list for the following
@@ -45,36 +45,48 @@ struct ForwardListLink {
  * 2. The implementation of a forward list below has the next element pointer
  * embedded in the struct, and it must be defined by the struct itself. This
  * allows a struct to be part of more than one list at the same time.
- *
- * @tparam TLink The link type; must derive from ForwardListLink.
  */
+
+/**
+ * Generic forward list base with and without tail.
+ * @tparam TLink The link type; must derive from ForwardListLink.
+ * @tparam Tail Whether to store a pointer to the tail of the list.
+ */
+template <class TLink, bool Tail>
+struct ForwardListBase;
+
 template <class TLink>
-struct ForwardList {
+struct ForwardListBase <TLink, false> {
 	typedef TLink Link;
 	typedef typename Link::Type Type;
 
-private:
+protected:
 	Type *head;
 
 public:
-	ForwardList() : head(NULL) { }
+	ForwardListBase() : head(NULL) { }
 
-	ForwardList (const ForwardList &other) : head(NULL)
+	ForwardListBase (const ForwardListBase &other) : head(NULL)
 	{
 		assert (other.head == NULL);
 	}
 
-	ForwardList& operator = (const ForwardList &) DELETED;
+	ForwardListBase& operator = (const ForwardListBase &) DELETED;
 
-private:
 	/** Internal find function. */
-	Type **find_internal (const Type *t)
+	static Type **find_internal (Type **head, const Type *t)
 	{
-		Type **p = &head;
+		Type **p = head;
 		while (*p != NULL && *p != t) {
 			p = &(*p)->Link::next;
 		}
 		return p;
+	}
+
+	/** Internal find function. */
+	Type **find_internal (const Type *t)
+	{
+		return find_internal (&head, t);
 	}
 
 	/** Internal find tail function. */
@@ -94,23 +106,11 @@ private:
 		return p;
 	}
 
-	/** Internal remove function. */
-	Type *remove_internal (Type **p)
+	/** Internal set tail function. */
+	static void set_tail (Type **)
 	{
-		Type *r = *p;
-		if (r == NULL) return NULL;
-		*p = r->Link::next;
-		r->Link::next = NULL;
-		return r;
-	}
-
-	/** Internal detach function. */
-	Type *detach_internal (Type **p)
-	{
-		Type *r = *p;
-		if (r == NULL) return NULL;
-		*p = NULL;
-		return r;
+		/* If you call this function, you are doing something wrong. */
+		NOT_REACHED();
 	}
 
 public:
@@ -118,14 +118,6 @@ public:
 	void append (Type *t)
 	{
 		*find_tail() = t;
-	}
-
-	/** Prepend an item. */
-	void prepend (Type *t)
-	{
-		assert (t->Link::next == NULL);
-		t->Link::next = head;
-		head = t;
 	}
 
 	/** Find an item. */
@@ -139,40 +131,6 @@ public:
 	Type *find_pred (Pred pred)
 	{
 		return *find_pred_internal(pred);
-	}
-
-	/** Remove an item. */
-	Type *remove (const Type *t)
-	{
-		return remove_internal (find_internal (t));
-	}
-
-	/** Remove an item. */
-	template <class Pred>
-	Type *remove_pred (Pred pred)
-	{
-		return remove_internal (find_pred_internal (pred));
-	}
-
-	/** Detach an item chain. */
-	Type *detach (const Type *t)
-	{
-		return detach_internal (find_internal (t));
-	}
-
-	/** Detach an item chain. */
-	template <class Pred>
-	Type *detach_pred (Pred pred)
-	{
-		return detach_internal (find_pred_internal (pred));
-	}
-
-	/** Detach the whole list. */
-	Type *detach_all (void)
-	{
-		Type *r = head;
-		head = NULL;
-		return r;
 	}
 
 private:
@@ -224,8 +182,8 @@ private:
 	};
 
 public:
-	typedef iterator_t <Type, ForwardList> iterator;
-	typedef iterator_t <const Type, const ForwardList> const_iterator;
+	typedef iterator_t <Type, ForwardListBase> iterator;
+	typedef iterator_t <const Type, const ForwardListBase> const_iterator;
 
 	iterator begin (void)
 	{
@@ -255,6 +213,134 @@ public:
 	const_iterator cend (void) const
 	{
 		return const_iterator();
+	}
+};
+
+template <class TLink>
+struct ForwardListBase <TLink, true> : ForwardListBase <TLink, false> {
+	typedef TLink Link;
+	typedef typename Link::Type Type;
+	typedef ForwardListBase <Link, false> Base;
+
+protected:
+	Type **tail;
+
+	ForwardListBase() : Base(), tail(&this->Base::head) { }
+
+	ForwardListBase (const ForwardListBase &other)
+		: Base(other), tail(&this->Base::head)
+	{
+		assert (other.head == NULL);
+		assert (other.tail == &other.head);
+	}
+
+	ForwardListBase& operator = (const ForwardListBase &) DELETED;
+
+	/** Internal find tail function. */
+	Type **find_tail (void)
+	{
+		return tail;
+	}
+
+	/** Internal set tail function. */
+	void set_tail (Type **p)
+	{
+		tail = p;
+	}
+
+public:
+	/** Append an item or chain of items. */
+	void append (Type *t)
+	{
+		*tail = t;
+		tail = Base::find_internal (tail, NULL);
+	}
+};
+
+/**
+ * Generic forward list.
+ * @tparam TLink The link type; must derive from ForwardListLink.
+ * @tparam Tail Whether to store a pointer to the tail of the list.
+ */
+template <class TLink, bool Tail = false>
+struct ForwardList : ForwardListBase <TLink, Tail> {
+	typedef TLink Link;
+	typedef typename Link::Type Type;
+	typedef ForwardListBase <Link, Tail> Base;
+
+private:
+	/** Internal remove function. */
+	Type *remove_internal (Type **p)
+	{
+		Type *r = *p;
+		if (r == NULL) return NULL;
+		*p = r->Link::next;
+		if (Tail && *p == NULL) {
+			assert (Base::find_tail() == &r->Link::next);
+			Base::set_tail (p);
+		}
+		r->Link::next = NULL;
+		return r;
+	}
+
+	/** Internal detach function. */
+	Type *detach_internal (Type **p)
+	{
+		Type *r = *p;
+		if (r == NULL) return NULL;
+		if (Tail) Base::set_tail (p);
+		*p = NULL;
+		return r;
+	}
+
+public:
+	/** Prepend an item. */
+	void prepend (Type *t)
+	{
+		assert (t != NULL);
+		assert (t->Link::next == NULL);
+		if (Tail && Base::head == NULL) {
+			assert (Base::find_tail() == &this->Base::head);
+			Base::set_tail (&t->Link::next);
+		} else {
+			t->Link::next = Base::head;
+		}
+		Base::head = t;
+	}
+
+	/** Remove an item. */
+	Type *remove (const Type *t)
+	{
+		return remove_internal (Base::find_internal (t));
+	}
+
+	/** Remove an item. */
+	template <class Pred>
+	Type *remove_pred (Pred pred)
+	{
+		return remove_internal (Base::find_pred_internal (pred));
+	}
+
+	/** Detach an item chain. */
+	Type *detach (const Type *t)
+	{
+		return detach_internal (Base::find_internal (t));
+	}
+
+	/** Detach an item chain. */
+	template <class Pred>
+	Type *detach_pred (Pred pred)
+	{
+		return detach_internal (Base::find_pred_internal (pred));
+	}
+
+	/** Detach the whole list. */
+	Type *detach_all (void)
+	{
+		Type *r = Base::head;
+		Base::head = NULL;
+		if (Tail) Base::set_tail (&this->Base::head);
+		return r;
 	}
 };
 
