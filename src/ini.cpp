@@ -55,7 +55,7 @@ bool IniFile::SaveToDisk(const char *filename)
 	for (const IniGroup *group = this->group; group != NULL; group = group->next) {
 		if (group->comment) fputs(group->comment, f);
 		fprintf(f, "[%s]\n", group->name);
-		for (const IniItem *item = group->item; item != NULL; item = item->next) {
+		for (IniItem::const_iterator item = group->items.cbegin(); item != group->items.cend(); item++) {
 			if (item->comment != NULL) fputs(item->comment, f);
 
 			/* protect item->name with quotes if needed */

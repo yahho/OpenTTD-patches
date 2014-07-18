@@ -57,7 +57,7 @@ bool BaseSet<T, Tnum_files, Tsearch_in_tars>::FillSetDetails(IniFile *ini, const
 	this->description[xstrdup("")] = xstrdup(item->value);
 
 	/* Add the translations of the descriptions too. */
-	for (const IniItem *item = metadata->item; item != NULL; item = item->next) {
+	for (IniItem::const_iterator item = metadata->items.cbegin(); item != metadata->items.cend(); item++) {
 		if (strncmp("description.", item->name, 12) != 0) continue;
 
 		this->description[xstrdup(item->name + 12)] = xstrdup(item->value);

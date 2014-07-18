@@ -10,6 +10,9 @@
 /** @file ini_load.cpp Definition of the #IniLoadFile class, related to reading and storing '*.ini' files. */
 
 #include "stdafx.h"
+
+#include <functional>
+
 #include "core/alloc_func.hpp"
 #include "core/mem_func.hpp"
 #include "ini_type.h"
@@ -21,15 +24,15 @@
  * @param name   the name of the item
  * @param len    the length of the name of the item
  */
-IniItem::IniItem(IniGroup *parent, const char *name, size_t len) : next(NULL), value(NULL), comment(NULL)
+IniItem::IniItem(IniGroup *parent, const char *name, size_t len)
+	: ForwardListLink<IniItem>(), value(NULL), comment(NULL)
 {
 	if (len == 0) len = strlen(name);
 
 	this->name = xstrndup(name, len);
 	str_validate(this->name, this->name + len);
 
-	*parent->last_item = this;
-	parent->last_item = &this->next;
+	parent->items.append (this);
 }
 
 /** Free everything we loaded. */
@@ -58,14 +61,14 @@ void IniItem::SetValue(const char *value)
  * @param name   the name of the group
  * @param len    the length of the name of the group
  */
-IniGroup::IniGroup(IniLoadFile *parent, const char *name, size_t len) : next(NULL), type(IGT_VARIABLES), item(NULL), comment(NULL)
+IniGroup::IniGroup(IniLoadFile *parent, const char *name, size_t len)
+	: next(NULL), type(IGT_VARIABLES), items(), comment(NULL)
 {
 	if (len == 0) len = strlen(name);
 
 	this->name = xstrndup(name, len);
 	str_validate(this->name, this->name + len);
 
-	this->last_item = &this->item;
 	*parent->last_group = this;
 	parent->last_group = &this->next;
 
@@ -93,7 +96,7 @@ IniGroup::~IniGroup()
 	free(this->name);
 	free(this->comment);
 
-	delete this->item;
+	delete this->items.detach_all();
 	delete this->next;
 }
 
@@ -106,11 +109,8 @@ IniGroup::~IniGroup()
  */
 IniItem *IniGroup::GetItem(const char *name, bool create)
 {
-	for (IniItem *item = this->item; item != NULL; item = item->next) {
-		if (strcmp(item->name, name) == 0) return item;
-	}
-
-	if (!create) return NULL;
+	IniItem *item = this->items.find_pred (std::bind2nd (std::mem_fun (&IniItem::IsName), name));
+	if (!create || item != NULL) return item;
 
 	/* otherwise make a new one */
 	return new IniItem(this, name, strlen(name));
@@ -121,9 +121,7 @@ IniItem *IniGroup::GetItem(const char *name, bool create)
  */
 void IniGroup::Clear()
 {
-	delete this->item;
-	this->item = NULL;
-	this->last_item = &this->item;
+	delete this->items.detach_all();
 }
 
 /**

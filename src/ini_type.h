@@ -12,6 +12,8 @@
 #ifndef INI_TYPE_H
 #define INI_TYPE_H
 
+#include "core/forward_list.h"
+
 #include "fileio_type.h"
 
 /** Types of groups */
@@ -22,14 +24,21 @@ enum IniGroupType {
 };
 
 /** A single "line" in an ini file. */
-struct IniItem {
-	IniItem *next; ///< The next item in this group
+struct IniItem : ForwardListLink<IniItem> {
+	typedef ForwardList<IniItem>::iterator iterator;
+	typedef ForwardList<IniItem>::const_iterator const_iterator;
+
 	char *name;    ///< The name of this item
 	char *value;   ///< The value of this item
 	char *comment; ///< The comment associated with this item
 
 	IniItem(struct IniGroup *parent, const char *name, size_t len = 0);
 	~IniItem();
+
+	bool IsName (const char *name) const
+	{
+		return strcmp (this->name, name) == 0;
+	}
 
 	void SetValue(const char *value);
 };
@@ -38,8 +47,7 @@ struct IniItem {
 struct IniGroup {
 	IniGroup *next;      ///< the next group within this file
 	IniGroupType type;   ///< type of group
-	IniItem *item;       ///< the first item in the group
-	IniItem **last_item; ///< the last item in the group
+	ForwardList <IniItem, true> items; ///< list of items in the group
 	char *name;          ///< name of group
 	char *comment;       ///< comment for group
 

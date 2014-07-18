@@ -713,7 +713,7 @@ static void IniLoadSettingList(IniFile *ini, const char *grpname, StringList *li
 
 	list->Clear();
 
-	for (const IniItem *item = group->item; item != NULL; item = item->next) {
+	for (IniItem::const_iterator item = group->items.cbegin(); item != group->items.cend(); item++) {
 		if (item->name != NULL) *list->Append() = xstrdup(item->name);
 	}
 }
@@ -1361,7 +1361,6 @@ static void HandleOldDiffCustom(const SavegameTypeVersion *stv)
 static void AILoadConfig(IniFile *ini, const char *grpname)
 {
 	IniGroup *group = ini->GetGroup(grpname);
-	IniItem *item;
 
 	/* Clean any configured AI */
 	for (CompanyID c = COMPANY_FIRST; c < MAX_COMPANIES; c++) {
@@ -1372,7 +1371,7 @@ static void AILoadConfig(IniFile *ini, const char *grpname)
 	if (group == NULL) return;
 
 	CompanyID c = COMPANY_FIRST;
-	for (item = group->item; c < MAX_COMPANIES && item != NULL; c++, item = item->next) {
+	for (IniItem::iterator item = group->items.begin(); c < MAX_COMPANIES && item != group->items.end(); c++, item++) {
 		AIConfig *config = AIConfig::GetConfig(c, AIConfig::SSS_FORCE_NEWGAME);
 
 		config->Change(item->name);
@@ -1389,7 +1388,6 @@ static void AILoadConfig(IniFile *ini, const char *grpname)
 static void GameLoadConfig(IniFile *ini, const char *grpname)
 {
 	IniGroup *group = ini->GetGroup(grpname);
-	IniItem *item;
 
 	/* Clean any configured GameScript */
 	GameConfig::GetConfig(GameConfig::SSS_FORCE_NEWGAME)->Change(NULL);
@@ -1397,8 +1395,8 @@ static void GameLoadConfig(IniFile *ini, const char *grpname)
 	/* If no group exists, return */
 	if (group == NULL) return;
 
-	item = group->item;
-	if (item == NULL) return;
+	IniItem::iterator item = group->items.begin();
+	if (item == group->items.end()) return;
 
 	GameConfig *config = GameConfig::GetConfig(AIConfig::SSS_FORCE_NEWGAME);
 
@@ -1421,13 +1419,12 @@ static void GameLoadConfig(IniFile *ini, const char *grpname)
 static GRFConfig *GRFLoadConfig(IniFile *ini, const char *grpname, bool is_static)
 {
 	IniGroup *group = ini->GetGroup(grpname);
-	IniItem *item;
 	GRFConfig *first = NULL;
 	GRFConfig **curr = &first;
 
 	if (group == NULL) return NULL;
 
-	for (item = group->item; item != NULL; item = item->next) {
+	for (IniItem::iterator item = group->items.begin(); item != group->items.end(); item++) {
 		GRFConfig *c = new GRFConfig(item->name);
 
 		/* Parse parameters */
