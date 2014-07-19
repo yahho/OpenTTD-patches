@@ -18,13 +18,20 @@
 
 /** Base class for named entities (items, groups) in an ini file. */
 struct IniName {
+private:
 	char *const name; ///< the name of this item
 
+public:
 	IniName (const char *name, size_t len = 0);
 
 	~IniName (void)
 	{
 		free (this->name);
+	}
+
+	const char *get_name (void) const
+	{
+		return name;
 	}
 
 	bool is_name (const char *name) const

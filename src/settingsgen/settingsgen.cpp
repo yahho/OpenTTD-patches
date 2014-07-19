@@ -225,7 +225,7 @@ static void DumpGroup(IniLoadFile *ifile, const char * const group_name)
 	IniGroup *grp = ifile->GetGroup(group_name, 0, false);
 	if (grp != NULL && grp->type == IGT_SEQUENCE) {
 		for (IniItem::iterator item = grp->items.begin(); item != grp->items.end(); item++) {
-			_stored_output.Add(item->name);
+			_stored_output.Add(item->get_name());
 			_stored_output.Add("\n", 1);
 		}
 	}
@@ -265,9 +265,9 @@ static void DumpSections(IniLoadFile *ifile)
 		for (sgn = special_group_names; *sgn != NULL; sgn++) if (grp->is_name(*sgn)) break;
 		if (*sgn != NULL) continue;
 
-		IniItem *template_item = templates_grp->GetItem(grp->name, false); // Find template value.
+		IniItem *template_item = templates_grp->GetItem(grp->get_name(), false); // Find template value.
 		if (template_item == NULL || template_item->value == NULL) {
-			fprintf(stderr, "settingsgen: Warning: Cannot find template %s\n", grp->name);
+			fprintf(stderr, "settingsgen: Warning: Cannot find template %s\n", grp->get_name());
 			continue;
 		}
 

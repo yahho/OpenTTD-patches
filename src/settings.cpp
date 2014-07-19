@@ -714,7 +714,7 @@ static void IniLoadSettingList(IniFile *ini, const char *grpname, StringList *li
 	list->Clear();
 
 	for (IniItem::const_iterator item = group->items.cbegin(); item != group->items.cend(); item++) {
-		*list->Append() = xstrdup(item->name);
+		*list->Append() = xstrdup(item->get_name());
 	}
 }
 
@@ -1374,10 +1374,10 @@ static void AILoadConfig(IniFile *ini, const char *grpname)
 	for (IniItem::iterator item = group->items.begin(); c < MAX_COMPANIES && item != group->items.end(); c++, item++) {
 		AIConfig *config = AIConfig::GetConfig(c, AIConfig::SSS_FORCE_NEWGAME);
 
-		config->Change(item->name);
+		config->Change(item->get_name());
 		if (!config->HasScript()) {
 			if (!item->is_name("none")) {
-				DEBUG(script, 0, "The AI by the name '%s' was no longer found, and removed from the list.", item->name);
+				DEBUG(script, 0, "The AI by the name '%s' was no longer found, and removed from the list.", item->get_name());
 				continue;
 			}
 		}
@@ -1400,10 +1400,10 @@ static void GameLoadConfig(IniFile *ini, const char *grpname)
 
 	GameConfig *config = GameConfig::GetConfig(AIConfig::SSS_FORCE_NEWGAME);
 
-	config->Change(item->name);
+	config->Change(item->get_name());
 	if (!config->HasScript()) {
 		if (!item->is_name("none")) {
-			DEBUG(script, 0, "The GameScript by the name '%s' was no longer found, and removed from the list.", item->name);
+			DEBUG(script, 0, "The GameScript by the name '%s' was no longer found, and removed from the list.", item->get_name());
 			return;
 		}
 	}
@@ -1425,13 +1425,13 @@ static GRFConfig *GRFLoadConfig(IniFile *ini, const char *grpname, bool is_stati
 	if (group == NULL) return NULL;
 
 	for (IniItem::iterator item = group->items.begin(); item != group->items.end(); item++) {
-		GRFConfig *c = new GRFConfig(item->name);
+		GRFConfig *c = new GRFConfig(item->get_name());
 
 		/* Parse parameters */
 		if (!StrEmpty(item->value)) {
 			c->num_params = ParseIntList(item->value, (int*)c->param, lengthof(c->param));
 			if (c->num_params == (byte)-1) {
-				SetDParamStr(0, item->name);
+				SetDParamStr(0, item->get_name());
 				ShowErrorMessage(STR_CONFIG_ERROR, STR_CONFIG_ERROR_ARRAY, WL_CRITICAL);
 				c->num_params = 0;
 			}
@@ -1451,7 +1451,7 @@ static GRFConfig *GRFLoadConfig(IniFile *ini, const char *grpname, bool is_stati
 				SetDParam(1, STR_CONFIG_ERROR_INVALID_GRF_UNKNOWN);
 			}
 
-			SetDParamStr(0, item->name);
+			SetDParamStr(0, item->get_name());
 			ShowErrorMessage(STR_CONFIG_ERROR, STR_CONFIG_ERROR_INVALID_GRF, WL_CRITICAL);
 			delete c;
 			continue;
@@ -1461,7 +1461,7 @@ static GRFConfig *GRFLoadConfig(IniFile *ini, const char *grpname, bool is_stati
 		bool duplicate = false;
 		for (const GRFConfig *gc = first; gc != NULL; gc = gc->next) {
 			if (gc->ident.grfid == c->ident.grfid) {
-				SetDParamStr(0, item->name);
+				SetDParamStr(0, item->get_name());
 				SetDParamStr(1, gc->filename);
 				ShowErrorMessage(STR_CONFIG_ERROR, STR_CONFIG_ERROR_DUPLICATE_GRFID, WL_CRITICAL);
 				duplicate = true;
@@ -1658,8 +1658,8 @@ void GetGRFPresetList(GRFPresetList *list)
 
 	IniFile *ini = IniLoadConfig();
 	for (IniGroup::const_iterator group = ini->groups.cbegin(); group != ini->groups.cend(); group++) {
-		if (strncmp(group->name, "preset-", 7) == 0) {
-			*list->Append() = xstrdup(group->name + 7);
+		if (strncmp(group->get_name(), "preset-", 7) == 0) {
+			*list->Append() = xstrdup(group->get_name() + 7);
 		}
 	}
 
