@@ -225,10 +225,8 @@ static void DumpGroup(IniLoadFile *ifile, const char * const group_name)
 	IniGroup *grp = ifile->GetGroup(group_name, 0, false);
 	if (grp != NULL && grp->type == IGT_SEQUENCE) {
 		for (IniItem::iterator item = grp->items.begin(); item != grp->items.end(); item++) {
-			if (item->name) {
-				_stored_output.Add(item->name);
-				_stored_output.Add("\n", 1);
-			}
+			_stored_output.Add(item->name);
+			_stored_output.Add("\n", 1);
 		}
 	}
 }

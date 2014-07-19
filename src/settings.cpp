@@ -714,7 +714,7 @@ static void IniLoadSettingList(IniFile *ini, const char *grpname, StringList *li
 	list->Clear();
 
 	for (IniItem::const_iterator item = group->items.cbegin(); item != group->items.cend(); item++) {
-		if (item->name != NULL) *list->Append() = xstrdup(item->name);
+		*list->Append() = xstrdup(item->name);
 	}
 }
 
