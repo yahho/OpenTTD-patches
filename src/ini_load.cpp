@@ -18,6 +18,28 @@
 #include "ini_type.h"
 #include "string.h"
 
+
+/** IniName constructor helper (see IniName::IniName below). */
+static inline char *ini_name_helper (const char *name, size_t len)
+{
+	if (len == 0) len = strlen (name);
+
+	char *s = xstrndup (name, len);
+	str_validate (s, s + len);
+	return s;
+}
+
+/**
+ * IniName constructor.
+ * @param name the name of the item
+ * @param len  the length of the name of the item, or 0 to use the full name length
+ */
+IniName::IniName (const char *name, size_t len)
+	: name (ini_name_helper (name, len))
+{
+}
+
+
 /**
  * Construct a new in-memory item of an Ini file.
  * @param parent the group we belong to
@@ -25,20 +47,15 @@
  * @param len    the length of the name of the item
  */
 IniItem::IniItem(IniGroup *parent, const char *name, size_t len)
-	: ForwardListLink<IniItem>(), value(NULL), comment(NULL)
+	: ForwardListLink<IniItem>(), IniName (name, len),
+		value(NULL), comment(NULL)
 {
-	if (len == 0) len = strlen(name);
-
-	this->name = xstrndup(name, len);
-	str_validate(this->name, this->name + len);
-
 	parent->items.append (this);
 }
 
 /** Free everything we loaded. */
 IniItem::~IniItem()
 {
-	free(this->name);
 	free(this->value);
 	free(this->comment);
 
@@ -62,18 +79,14 @@ void IniItem::SetValue(const char *value)
  * @param len    the length of the name of the group
  */
 IniGroup::IniGroup(IniLoadFile *parent, const char *name, size_t len)
-	: ForwardListLink<IniGroup>(), type(IGT_VARIABLES), items(), comment(NULL)
+	: ForwardListLink<IniGroup>(), IniName (name, len),
+		type(IGT_VARIABLES), items(), comment(NULL)
 {
-	if (len == 0) len = strlen(name);
-
-	this->name = xstrndup(name, len);
-	str_validate(this->name, this->name + len);
-
 	parent->groups.append (this);
 
 	if (parent->list_group_names != NULL) {
 		for (uint i = 0; parent->list_group_names[i] != NULL; i++) {
-			if (strcmp(this->name, parent->list_group_names[i]) == 0) {
+			if (this->is_name (parent->list_group_names[i])) {
 				this->type = IGT_LIST;
 				return;
 			}
@@ -81,7 +94,7 @@ IniGroup::IniGroup(IniLoadFile *parent, const char *name, size_t len)
 	}
 	if (parent->seq_group_names != NULL) {
 		for (uint i = 0; parent->seq_group_names[i] != NULL; i++) {
-			if (strcmp(this->name, parent->seq_group_names[i]) == 0) {
+			if (this->is_name (parent->seq_group_names[i])) {
 				this->type = IGT_SEQUENCE;
 				return;
 			}
@@ -92,7 +105,6 @@ IniGroup::IniGroup(IniLoadFile *parent, const char *name, size_t len)
 /** Free everything we loaded. */
 IniGroup::~IniGroup()
 {
-	free(this->name);
 	free(this->comment);
 
 	delete this->items.detach_all();
@@ -108,7 +120,7 @@ IniGroup::~IniGroup()
  */
 IniItem *IniGroup::GetItem(const char *name, bool create)
 {
-	IniItem *item = this->items.find_pred (std::bind2nd (std::mem_fun (&IniItem::IsName), name));
+	IniItem *item = this->items.find_pred (std::bind2nd (std::mem_fun (&IniItem::is_name), name));
 	if (!create || item != NULL) return item;
 
 	/* otherwise make a new one */

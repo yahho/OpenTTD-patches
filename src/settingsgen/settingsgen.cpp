@@ -264,7 +264,7 @@ static void DumpSections(IniLoadFile *ifile)
 	/* Output every group, using its name as template name. */
 	for (IniGroup::iterator grp = ifile->groups.begin(); grp != ifile->groups.end(); grp++) {
 		const char * const *sgn;
-		for (sgn = special_group_names; *sgn != NULL; sgn++) if (strcmp(grp->name, *sgn) == 0) break;
+		for (sgn = special_group_names; *sgn != NULL; sgn++) if (grp->is_name(*sgn)) break;
 		if (*sgn != NULL) continue;
 
 		IniItem *template_item = templates_grp->GetItem(grp->name, false); // Find template value.

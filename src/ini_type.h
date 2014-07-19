@@ -16,45 +16,26 @@
 
 #include "fileio_type.h"
 
-/** Types of groups */
-enum IniGroupType {
-	IGT_VARIABLES = 0, ///< Values of the form "landscape = hilly".
-	IGT_LIST      = 1, ///< A list of values, separated by \n and terminated by the next group block.
-	IGT_SEQUENCE  = 2, ///< A list of uninterpreted lines, terminated by the next group block.
-};
+/** Base class for named entities (items, groups) in an ini file. */
+struct IniName {
+	char *const name; ///< the name of this item
 
-/** A single "line" in an ini file. */
-struct IniItem : ForwardListLink<IniItem> {
-	typedef ForwardList<IniItem>::iterator iterator;
-	typedef ForwardList<IniItem>::const_iterator const_iterator;
+	IniName (const char *name, size_t len = 0);
 
-	char *name;    ///< The name of this item
-	char *value;   ///< The value of this item
-	char *comment; ///< The comment associated with this item
+	~IniName (void)
+	{
+		free (this->name);
+	}
 
-	IniItem(struct IniGroup *parent, const char *name, size_t len = 0);
-	~IniItem();
-
-	bool IsName (const char *name) const
+	bool is_name (const char *name) const
 	{
 		return strcmp (this->name, name) == 0;
 	}
 
-	void SetValue(const char *value);
-};
-
-/** A group within an ini file. */
-struct IniGroup : ForwardListLink<IniGroup> {
-	typedef ForwardList<IniGroup>::iterator iterator;
-	typedef ForwardList<IniGroup>::const_iterator const_iterator;
-
-	IniGroupType type;   ///< type of group
-	ForwardList <IniItem, true> items; ///< list of items in the group
-	char *name;          ///< name of group
-	char *comment;       ///< comment for group
-
-	IniGroup(struct IniLoadFile *parent, const char *name, size_t len = 0);
-	~IniGroup();
+	bool is_name (const char *name, size_t len) const
+	{
+		return strncmp (this->name, name, len) == 0 && this->name[len] == 0;
+	}
 
 	struct NamePred {
 		const char *const name;
@@ -65,11 +46,46 @@ struct IniGroup : ForwardListLink<IniGroup> {
 		{
 		}
 
-		bool operator() (const IniGroup *group) const
+		bool operator() (const IniName *item) const
 		{
-			return strncmp (group->name, name, len) == 0 && group->name[len] == '\0';
+			return item->is_name (this->name, this->len);
 		}
 	};
+};
+
+
+/** Types of groups */
+enum IniGroupType {
+	IGT_VARIABLES = 0, ///< Values of the form "landscape = hilly".
+	IGT_LIST      = 1, ///< A list of values, separated by \n and terminated by the next group block.
+	IGT_SEQUENCE  = 2, ///< A list of uninterpreted lines, terminated by the next group block.
+};
+
+/** A single "line" in an ini file. */
+struct IniItem : ForwardListLink<IniItem>, IniName {
+	typedef ForwardList<IniItem>::iterator iterator;
+	typedef ForwardList<IniItem>::const_iterator const_iterator;
+
+	char *value;   ///< The value of this item
+	char *comment; ///< The comment associated with this item
+
+	IniItem(struct IniGroup *parent, const char *name, size_t len = 0);
+	~IniItem();
+
+	void SetValue(const char *value);
+};
+
+/** A group within an ini file. */
+struct IniGroup : ForwardListLink<IniGroup>, IniName {
+	typedef ForwardList<IniGroup>::iterator iterator;
+	typedef ForwardList<IniGroup>::const_iterator const_iterator;
+
+	IniGroupType type;   ///< type of group
+	ForwardList <IniItem, true> items; ///< list of items in the group
+	char *comment;       ///< comment for group
+
+	IniGroup(struct IniLoadFile *parent, const char *name, size_t len = 0);
+	~IniGroup();
 
 	IniItem *GetItem(const char *name, bool create);
 	void Clear();
