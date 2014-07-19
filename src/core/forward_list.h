@@ -18,9 +18,9 @@
  */
 template <class T, typename S = void>
 struct ForwardListLink {
-	typedef T Type;
+	typedef T ForwardListLinkType;
 
-	Type *next;
+	ForwardListLinkType *next;
 
 	ForwardListLink() : next(NULL) { }
 
@@ -58,7 +58,7 @@ struct ForwardListBase;
 template <class TLink>
 struct ForwardListBase <TLink, false> {
 	typedef TLink Link;
-	typedef typename Link::Type Type;
+	typedef typename Link::ForwardListLinkType Type;
 
 protected:
 	Type *head;
@@ -219,7 +219,7 @@ public:
 template <class TLink>
 struct ForwardListBase <TLink, true> : ForwardListBase <TLink, false> {
 	typedef TLink Link;
-	typedef typename Link::Type Type;
+	typedef typename Link::ForwardListLinkType Type;
 	typedef ForwardListBase <Link, false> Base;
 
 protected:
@@ -265,7 +265,7 @@ public:
 template <class TLink, bool Tail = false>
 struct ForwardList : ForwardListBase <TLink, Tail> {
 	typedef TLink Link;
-	typedef typename Link::Type Type;
+	typedef typename Link::ForwardListLinkType Type;
 	typedef ForwardListBase <Link, Tail> Base;
 
 private:
