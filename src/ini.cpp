@@ -52,7 +52,7 @@ bool IniFile::SaveToDisk(const char *filename)
 	FILE *f = fopen(file_new, "w");
 	if (f == NULL) return false;
 
-	for (const IniGroup *group = this->group; group != NULL; group = group->next) {
+	for (IniGroup::const_iterator group = this->groups.cbegin(); group != this->groups.cend(); group++) {
 		if (group->comment) fputs(group->comment, f);
 		fprintf(f, "[%s]\n", group->name);
 		for (IniItem::const_iterator item = group->items.cbegin(); item != group->items.cend(); item++) {

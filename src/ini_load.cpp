@@ -62,15 +62,14 @@ void IniItem::SetValue(const char *value)
  * @param len    the length of the name of the group
  */
 IniGroup::IniGroup(IniLoadFile *parent, const char *name, size_t len)
-	: next(NULL), type(IGT_VARIABLES), items(), comment(NULL)
+	: ForwardListLink<IniGroup>(), type(IGT_VARIABLES), items(), comment(NULL)
 {
 	if (len == 0) len = strlen(name);
 
 	this->name = xstrndup(name, len);
 	str_validate(this->name, this->name + len);
 
-	*parent->last_group = this;
-	parent->last_group = &this->next;
+	parent->groups.append (this);
 
 	if (parent->list_group_names != NULL) {
 		for (uint i = 0; parent->list_group_names[i] != NULL; i++) {
@@ -130,19 +129,18 @@ void IniGroup::Clear()
  * @param seq_group_names  A \c NULL terminated list with group names that should be loaded as lists of names. @see IGT_SEQUENCE
  */
 IniLoadFile::IniLoadFile(const char * const *list_group_names, const char * const *seq_group_names) :
-		group(NULL),
+		groups(),
 		comment(NULL),
 		list_group_names(list_group_names),
 		seq_group_names(seq_group_names)
 {
-	this->last_group = &this->group;
 }
 
 /** Free everything we loaded. */
 IniLoadFile::~IniLoadFile()
 {
 	free(this->comment);
-	delete this->group;
+	delete this->groups.detach_all();
 }
 
 /**
@@ -158,16 +156,11 @@ IniGroup *IniLoadFile::GetGroup(const char *name, size_t len, bool create_new)
 	if (len == 0) len = strlen(name);
 
 	/* does it exist already? */
-	for (IniGroup *group = this->group; group != NULL; group = group->next) {
-		if (!strncmp(group->name, name, len) && group->name[len] == 0) {
-			return group;
-		}
-	}
-
-	if (!create_new) return NULL;
+	IniGroup *group = this->groups.find_pred (IniGroup::NamePred (name, len));
+	if (!create_new || group != NULL) return group;
 
 	/* otherwise make a new one */
-	IniGroup *group = new IniGroup(this, name, len);
+	group = new IniGroup(this, name, len);
 	group->comment = xstrdup("\n");
 	return group;
 }
@@ -179,28 +172,8 @@ IniGroup *IniLoadFile::GetGroup(const char *name, size_t len, bool create_new)
 void IniLoadFile::RemoveGroup(const char *name)
 {
 	size_t len = strlen(name);
-	IniGroup *prev = NULL;
-	IniGroup *group;
 
-	/* does it exist already? */
-	for (group = this->group; group != NULL; prev = group, group = group->next) {
-		if (strncmp(group->name, name, len) == 0) {
-			break;
-		}
-	}
-
-	if (group == NULL) return;
-
-	if (prev != NULL) {
-		prev->next = prev->next->next;
-		if (this->last_group == &group->next) this->last_group = &prev->next;
-	} else {
-		this->group = this->group->next;
-		if (this->last_group == &group->next) this->last_group = &this->group;
-	}
-
-	group->next = NULL;
-	delete group;
+	delete this->groups.remove_pred (IniGroup::NamePred (name, len));
 }
 
 /**
@@ -211,7 +184,7 @@ void IniLoadFile::RemoveGroup(const char *name)
  */
 void IniLoadFile::LoadFromDisk(const char *filename, Subdirectory subdir)
 {
-	assert(this->last_group == &this->group);
+	assert (this->groups.begin() == this->groups.end());
 
 	char buffer[1024];
 	IniGroup *group = NULL;

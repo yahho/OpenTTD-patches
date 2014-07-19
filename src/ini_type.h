@@ -44,8 +44,10 @@ struct IniItem : ForwardListLink<IniItem> {
 };
 
 /** A group within an ini file. */
-struct IniGroup {
-	IniGroup *next;      ///< the next group within this file
+struct IniGroup : ForwardListLink<IniGroup> {
+	typedef ForwardList<IniGroup>::iterator iterator;
+	typedef ForwardList<IniGroup>::const_iterator const_iterator;
+
 	IniGroupType type;   ///< type of group
 	ForwardList <IniItem, true> items; ///< list of items in the group
 	char *name;          ///< name of group
@@ -54,14 +56,28 @@ struct IniGroup {
 	IniGroup(struct IniLoadFile *parent, const char *name, size_t len = 0);
 	~IniGroup();
 
+	struct NamePred {
+		const char *const name;
+		const size_t len;
+
+		NamePred (const char *name, size_t len)
+			: name(name), len(len)
+		{
+		}
+
+		bool operator() (const IniGroup *group) const
+		{
+			return strncmp (group->name, name, len) == 0 && group->name[len] == '\0';
+		}
+	};
+
 	IniItem *GetItem(const char *name, bool create);
 	void Clear();
 };
 
 /** Ini file that only supports loading. */
 struct IniLoadFile {
-	IniGroup *group;                      ///< the first group in the ini
-	IniGroup **last_group;                ///< the last group in the ini
+	ForwardList <IniGroup, true> groups;  ///< list of groups in the ini
 	char *comment;                        ///< last comment in file
 	const char * const *list_group_names; ///< NULL terminated list with group names that are lists
 	const char * const *seq_group_names;  ///< NULL terminated list with group names that are sequences.

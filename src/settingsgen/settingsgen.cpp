@@ -262,7 +262,7 @@ static void DumpSections(IniLoadFile *ifile)
 	if (templates_grp == NULL) return;
 
 	/* Output every group, using its name as template name. */
-	for (IniGroup *grp = ifile->group; grp != NULL; grp = grp->next) {
+	for (IniGroup::iterator grp = ifile->groups.begin(); grp != ifile->groups.end(); grp++) {
 		const char * const *sgn;
 		for (sgn = special_group_names; *sgn != NULL; sgn++) if (strcmp(grp->name, *sgn) == 0) break;
 		if (*sgn != NULL) continue;
@@ -277,7 +277,7 @@ static void DumpSections(IniLoadFile *ifile)
 		static const char * const pp_lines[] = {"if", "ifdef", "ifndef", NULL};
 		int count = 0;
 		for (const char * const *name = pp_lines; *name != NULL; name++) {
-			const char *condition = FindItemValue(*name, grp, default_grp);
+			const char *condition = FindItemValue(*name, &*grp, default_grp);
 			if (condition != NULL) {
 				_stored_output.Add("#", 1);
 				_stored_output.Add(*name);
@@ -316,7 +316,7 @@ static void DumpSections(IniLoadFile *ifile)
 
 			if (i > 0) {
 				/* Find the text to output. */
-				const char *valitem = FindItemValue(variable, grp, default_grp);
+				const char *valitem = FindItemValue(variable, &*grp, default_grp);
 				if (valitem != NULL) _stored_output.Add(valitem);
 			} else {
 				_stored_output.Add("$", 1);

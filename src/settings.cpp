@@ -1657,8 +1657,7 @@ void GetGRFPresetList(GRFPresetList *list)
 	list->Clear();
 
 	IniFile *ini = IniLoadConfig();
-	IniGroup *group;
-	for (group = ini->group; group != NULL; group = group->next) {
+	for (IniGroup::const_iterator group = ini->groups.cbegin(); group != ini->groups.cend(); group++) {
 		if (strncmp(group->name, "preset-", 7) == 0) {
 			*list->Append() = xstrdup(group->name + 7);
 		}
