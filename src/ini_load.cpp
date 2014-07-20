@@ -42,15 +42,13 @@ IniName::IniName (const char *name, size_t len)
 
 /**
  * Construct a new in-memory item of an Ini file.
- * @param parent the group we belong to
  * @param name   the name of the item
  * @param len    the length of the name of the item
  */
-IniItem::IniItem(IniGroup *parent, const char *name, size_t len)
+IniItem::IniItem (const char *name, size_t len)
 	: ForwardListLink<IniItem>(), IniName (name, len),
 		value(NULL), comment(NULL)
 {
-	parent->items.append (this);
 }
 
 /** Free everything we loaded. */
@@ -124,7 +122,9 @@ IniItem *IniGroup::GetItem(const char *name, bool create)
 	if (!create || item != NULL) return item;
 
 	/* otherwise make a new one */
-	return new IniItem(this, name, strlen(name));
+	item = new IniItem (name, strlen(name));
+	this->items.append (item);
+	return item;
 }
 
 /**
@@ -255,7 +255,8 @@ void IniLoadFile::LoadFromDisk(const char *filename, Subdirectory subdir)
 		} else if (group != NULL) {
 			if (group->type == IGT_SEQUENCE) {
 				/* A sequence group, use the line as item name without further interpretation. */
-				IniItem *item = new IniItem(group, buffer, e - buffer);
+				IniItem *item = new IniItem (buffer, e - buffer);
+				group->items.append (item);
 				if (comment_size) {
 					item->comment = xstrndup(comment, comment_size);
 					comment_size = 0;
@@ -273,7 +274,8 @@ void IniLoadFile::LoadFromDisk(const char *filename, Subdirectory subdir)
 			}
 
 			/* it's an item in an existing group */
-			IniItem *item = new IniItem(group, s, t - s);
+			IniItem *item = new IniItem (s, t - s);
+			group->items.append (item);
 			if (comment_size != 0) {
 				item->comment = xstrndup(comment, comment_size);
 				comment_size = 0;

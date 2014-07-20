@@ -76,7 +76,7 @@ struct IniItem : ForwardListLink<IniItem>, IniName {
 	char *value;   ///< The value of this item
 	char *comment; ///< The comment associated with this item
 
-	IniItem(struct IniGroup *parent, const char *name, size_t len = 0);
+	IniItem (const char *name, size_t len = 0);
 	~IniItem();
 
 	void SetValue(const char *value);
