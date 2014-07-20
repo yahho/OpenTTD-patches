@@ -122,9 +122,7 @@ IniItem *IniGroup::GetItem(const char *name, bool create)
 	if (!create || item != NULL) return item;
 
 	/* otherwise make a new one */
-	item = new IniItem (name, strlen(name));
-	this->items.append (item);
-	return item;
+	return this->append (name);
 }
 
 /**
@@ -255,8 +253,7 @@ void IniLoadFile::LoadFromDisk(const char *filename, Subdirectory subdir)
 		} else if (group != NULL) {
 			if (group->type == IGT_SEQUENCE) {
 				/* A sequence group, use the line as item name without further interpretation. */
-				IniItem *item = new IniItem (buffer, e - buffer);
-				group->items.append (item);
+				IniItem *item = group->append (buffer, e - buffer);
 				if (comment_size) {
 					item->comment = xstrndup(comment, comment_size);
 					comment_size = 0;
@@ -274,8 +271,7 @@ void IniLoadFile::LoadFromDisk(const char *filename, Subdirectory subdir)
 			}
 
 			/* it's an item in an existing group */
-			IniItem *item = new IniItem (s, t - s);
-			group->items.append (item);
+			IniItem *item = group->append (s, t - s);
 			if (comment_size != 0) {
 				item->comment = xstrndup(comment, comment_size);
 				comment_size = 0;

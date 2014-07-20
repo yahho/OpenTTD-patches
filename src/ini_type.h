@@ -96,6 +96,13 @@ struct IniGroup : ForwardListLink<IniGroup>, IniName {
 
 	IniItem *GetItem(const char *name, bool create);
 	void Clear();
+
+	IniItem *append (const char *name, size_t len = 0)
+	{
+		IniItem *item = new IniItem (name, len);
+		this->items.append (item);
+		return item;
+	}
 };
 
 /** Ini file that only supports loading. */
