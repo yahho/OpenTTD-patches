@@ -220,11 +220,11 @@ static IniLoadFile *LoadIniFile(const char *filename)
  * @param ifile      Loaded INI data.
  * @param group_name Name of the group to copy.
  */
-static void DumpGroup(IniLoadFile *ifile, const char * const group_name)
+static void DumpGroup (const IniLoadFile *ifile, const char * const group_name)
 {
-	IniGroup *grp = ifile->find (group_name);
+	const IniGroup *grp = ifile->find (group_name);
 	if (grp != NULL && grp->type == IGT_SEQUENCE) {
-		for (IniItem::iterator item = grp->begin(); item != grp->end(); item++) {
+		for (IniItem::const_iterator item = grp->cbegin(); item != grp->cend(); item++) {
 			_stored_output.Add(item->get_name());
 			_stored_output.Add("\n", 1);
 		}
@@ -238,7 +238,7 @@ static void DumpGroup(IniLoadFile *ifile, const char * const group_name)
  * @param defaults Fallback group to search, \c NULL skips the search.
  * @return Text of the item if found, else \c NULL.
  */
-static const char *FindItemValue(const char *name, IniGroup *grp, IniGroup *defaults)
+static const char *FindItemValue (const char *name, const IniGroup *grp, const IniGroup *defaults)
 {
 	const IniItem *item = grp->find (name);
 	if (item == NULL && defaults != NULL) item = defaults->find (name);
@@ -250,17 +250,17 @@ static const char *FindItemValue(const char *name, IniGroup *grp, IniGroup *defa
  * Output all non-special sections through the template / template variable expansion system.
  * @param ifile Loaded INI data.
  */
-static void DumpSections(IniLoadFile *ifile)
+static void DumpSections (const IniLoadFile *ifile)
 {
 	static const int MAX_VAR_LENGTH = 64;
 	static const char * const special_group_names[] = {PREAMBLE_GROUP_NAME, POSTAMBLE_GROUP_NAME, DEFAULTS_GROUP_NAME, TEMPLATES_GROUP_NAME, NULL};
 
-	IniGroup *default_grp = ifile->find (DEFAULTS_GROUP_NAME);
-	IniGroup *templates_grp  = ifile->find (TEMPLATES_GROUP_NAME);
+	const IniGroup *default_grp = ifile->find (DEFAULTS_GROUP_NAME);
+	const IniGroup *templates_grp  = ifile->find (TEMPLATES_GROUP_NAME);
 	if (templates_grp == NULL) return;
 
 	/* Output every group, using its name as template name. */
-	for (IniGroup::iterator grp = ifile->begin(); grp != ifile->end(); grp++) {
+	for (IniGroup::const_iterator grp = ifile->cbegin(); grp != ifile->cend(); grp++) {
 		const char * const *sgn;
 		for (sgn = special_group_names; *sgn != NULL; sgn++) if (grp->is_name(*sgn)) break;
 		if (*sgn != NULL) continue;
@@ -422,7 +422,7 @@ static const OptionData _opts[] = {
  */
 static void ProcessIniFile(const char *fname)
 {
-	IniLoadFile *ini_data = LoadIniFile(fname);
+	const IniLoadFile *ini_data = LoadIniFile(fname);
 	DumpGroup(ini_data, PREAMBLE_GROUP_NAME);
 	DumpSections(ini_data);
 	DumpGroup(ini_data, POSTAMBLE_GROUP_NAME);
