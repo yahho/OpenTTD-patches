@@ -175,9 +175,7 @@ IniGroup *IniLoadFile::GetGroup(const char *name, size_t len, bool create_new)
 	if (!create_new || group != NULL) return group;
 
 	/* otherwise make a new one */
-	IniGroupType type = this->get_group_type (name, len);
-	group = new IniGroup (type, name, len);
-	this->groups.append (group);
+	group = this->append (name, len);
 	group->comment = xstrdup("\n");
 	return group;
 }
@@ -252,9 +250,7 @@ void IniLoadFile::LoadFromDisk(const char *filename, Subdirectory subdir)
 				e--;
 			}
 			s++; // skip [
-			IniGroupType type = this->get_group_type (s, e - s);
-			group = new IniGroup (type, s, e - s);
-			this->groups.append (group);
+			group = this->append (s, e - s);
 			if (comment_size != 0) {
 				group->comment = xstrndup(comment, comment_size);
 				comment_size = 0;

@@ -120,6 +120,14 @@ struct IniLoadFile {
 	IniGroup *GetGroup(const char *name, size_t len = 0, bool create_new = true);
 	void RemoveGroup(const char *name);
 
+	IniGroup *append (const char *name, size_t len)
+	{
+		IniGroupType type = this->get_group_type (name, len);
+		IniGroup *group = new IniGroup (type, name, len);
+		this->groups.append (group);
+		return group;
+	}
+
 	void LoadFromDisk(const char *filename, Subdirectory subdir);
 
 	/**
