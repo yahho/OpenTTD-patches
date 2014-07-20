@@ -476,12 +476,7 @@ static void Write_ValidateSetting(void *ptr, const SettingDesc *sd, int32 val)
  */
 static void IniLoadSettings(IniFile *ini, const SettingDesc *sd, const char *grpname, void *object)
 {
-	IniGroup *group;
 	IniGroup *group_def = ini->GetGroup(grpname);
-	IniItem *item;
-	const void *p;
-	void *ptr;
-	const char *s;
 
 	for (; sd->save.type != SL_END; sd++) {
 		const SettingDescBase *sdb = &sd->desc;
@@ -490,7 +485,8 @@ static void IniLoadSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 		if (!sld->is_currently_valid()) continue;
 
 		/* For settings.xx.yy load the settings from [xx] yy = ? */
-		s = strchr(sdb->name, '.');
+		const char *s = strchr(sdb->name, '.');
+		IniGroup *group;
 		if (s != NULL) {
 			group = ini->GetGroup(sdb->name, s - sdb->name);
 			s++;
@@ -499,7 +495,7 @@ static void IniLoadSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 			group = group_def;
 		}
 
-		item = group->GetItem(s, false);
+		IniItem *item = group->GetItem(s, false);
 		if (item == NULL && group != group_def) {
 			/* For settings.xx.yy load the settings from [settingss] yy = ? in case the previous
 			 * did not exist (e.g. loading old config files with a [settings] section */
@@ -512,8 +508,8 @@ static void IniLoadSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 			if (sc != NULL) item = ini->GetGroup(s, sc - s)->GetItem(sc + 1, false);
 		}
 
-		p = (item == NULL) ? sdb->def : StringToVal(sdb, item->value);
-		ptr = sld->get_variable_address (object);
+		const void *p = (item == NULL) ? sdb->def : StringToVal(sdb, item->value);
+		void *ptr = sld->get_variable_address (object);
 
 		switch (sdb->cmd) {
 			case SDT_BOOLX: // All four are various types of (integer) numbers
@@ -568,10 +564,7 @@ static void IniLoadSettings(IniFile *ini, const SettingDesc *sd, const char *grp
  */
 static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grpname, void *object)
 {
-	IniGroup *group_def = NULL, *group;
-	IniItem *item;
-	const char *s;
-	void *ptr;
+	IniGroup *group_def = NULL;
 
 	for (; sd->save.type != SL_END; sd++) {
 		const SettingDescBase *sdb = &sd->desc;
@@ -583,7 +576,8 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 		if (sld->flags & SLF_NOT_IN_CONFIG) continue;
 
 		/* XXX - wtf is this?? (group override?) */
-		s = strchr(sdb->name, '.');
+		const char *s = strchr(sdb->name, '.');
+		IniGroup *group;
 		if (s != NULL) {
 			group = ini->GetGroup(sdb->name, s - sdb->name);
 			s++;
@@ -593,8 +587,8 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 			group = group_def;
 		}
 
-		item = group->GetItem(s, true);
-		ptr = sld->get_variable_address (object);
+		IniItem *item = group->GetItem(s, true);
+		void *ptr = sld->get_variable_address (object);
 
 		if (item->value != NULL) {
 			/* check if the value is the same as the old value */
