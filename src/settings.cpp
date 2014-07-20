@@ -476,7 +476,7 @@ static void Write_ValidateSetting(void *ptr, const SettingDesc *sd, int32 val)
  */
 static void IniLoadSettings(IniFile *ini, const SettingDesc *sd, const char *grpname, void *object)
 {
-	IniGroup *group_def = ini->GetGroup(grpname);
+	const IniGroup *group_def = ini->get_group (grpname);
 
 	for (; sd->save.type != SL_END; sd++) {
 		const SettingDescBase *sdb = &sd->desc;
@@ -486,26 +486,26 @@ static void IniLoadSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 
 		/* For settings.xx.yy load the settings from [xx] yy = ? */
 		const char *s = strchr(sdb->name, '.');
-		IniGroup *group;
+		const IniGroup *group;
 		if (s != NULL) {
-			group = ini->GetGroup(sdb->name, s - sdb->name);
+			group = ini->get_group (sdb->name, s - sdb->name);
 			s++;
 		} else {
 			s = sdb->name;
 			group = group_def;
 		}
 
-		IniItem *item = group->GetItem(s, false);
+		const IniItem *item = group->find (s);
 		if (item == NULL && group != group_def) {
 			/* For settings.xx.yy load the settings from [settingss] yy = ? in case the previous
 			 * did not exist (e.g. loading old config files with a [settings] section */
-			item = group_def->GetItem(s, false);
+			item = group_def->find (s);
 		}
 		if (item == NULL) {
 			/* For settings.xx.zz.yy load the settings from [zz] yy = ? in case the previous
 			 * did not exist (e.g. loading old config files with a [yapf] section */
 			const char *sc = strchr(s, '.');
-			if (sc != NULL) item = ini->GetGroup(s, sc - s)->GetItem(sc + 1, false);
+			if (sc != NULL) item = ini->get_group (s, sc - s)->find (sc + 1);
 		}
 
 		const void *p = (item == NULL) ? sdb->def : StringToVal(sdb, item->value);
@@ -579,15 +579,15 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 		const char *s = strchr(sdb->name, '.');
 		IniGroup *group;
 		if (s != NULL) {
-			group = ini->GetGroup(sdb->name, s - sdb->name);
+			group = ini->get_group (sdb->name, s - sdb->name);
 			s++;
 		} else {
-			if (group_def == NULL) group_def = ini->GetGroup(grpname);
+			if (group_def == NULL) group_def = ini->get_group (grpname);
 			s = sdb->name;
 			group = group_def;
 		}
 
-		IniItem *item = group->GetItem(s, true);
+		IniItem *item = group->get_item (s);
 		void *ptr = sld->get_variable_address (object);
 
 		if (item->value != NULL) {
@@ -701,13 +701,13 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
  */
 static void IniLoadSettingList(IniFile *ini, const char *grpname, StringList *list)
 {
-	IniGroup *group = ini->GetGroup(grpname);
+	const IniGroup *group = ini->get_group (grpname);
 
 	if (group == NULL || list == NULL) return;
 
 	list->Clear();
 
-	for (IniItem::const_iterator item = group->items.cbegin(); item != group->items.cend(); item++) {
+	for (IniItem::const_iterator item = group->cbegin(); item != group->cend(); item++) {
 		*list->Append() = xstrdup(item->get_name());
 	}
 }
@@ -723,13 +723,13 @@ static void IniLoadSettingList(IniFile *ini, const char *grpname, StringList *li
  */
 static void IniSaveSettingList(IniFile *ini, const char *grpname, StringList *list)
 {
-	IniGroup *group = ini->GetGroup(grpname);
+	IniGroup *group = ini->get_group (grpname);
 
 	if (group == NULL || list == NULL) return;
-	group->Clear();
+	group->clear();
 
 	for (char **iter = list->Begin(); iter != list->End(); iter++) {
-		group->GetItem(*iter, true)->SetValue("");
+		group->get_item(*iter)->SetValue("");
 	}
 }
 
@@ -1354,7 +1354,7 @@ static void HandleOldDiffCustom(const SavegameTypeVersion *stv)
 
 static void AILoadConfig(IniFile *ini, const char *grpname)
 {
-	IniGroup *group = ini->GetGroup(grpname);
+	const IniGroup *group = ini->get_group (grpname);
 
 	/* Clean any configured AI */
 	for (CompanyID c = COMPANY_FIRST; c < MAX_COMPANIES; c++) {
@@ -1365,7 +1365,7 @@ static void AILoadConfig(IniFile *ini, const char *grpname)
 	if (group == NULL) return;
 
 	CompanyID c = COMPANY_FIRST;
-	for (IniItem::iterator item = group->items.begin(); c < MAX_COMPANIES && item != group->items.end(); c++, item++) {
+	for (IniItem::const_iterator item = group->cbegin(); c < MAX_COMPANIES && item != group->cend(); c++, item++) {
 		AIConfig *config = AIConfig::GetConfig(c, AIConfig::SSS_FORCE_NEWGAME);
 
 		config->Change(item->get_name());
@@ -1381,7 +1381,7 @@ static void AILoadConfig(IniFile *ini, const char *grpname)
 
 static void GameLoadConfig(IniFile *ini, const char *grpname)
 {
-	IniGroup *group = ini->GetGroup(grpname);
+	const IniGroup *group = ini->get_group (grpname);
 
 	/* Clean any configured GameScript */
 	GameConfig::GetConfig(GameConfig::SSS_FORCE_NEWGAME)->Change(NULL);
@@ -1389,8 +1389,8 @@ static void GameLoadConfig(IniFile *ini, const char *grpname)
 	/* If no group exists, return */
 	if (group == NULL) return;
 
-	IniItem::iterator item = group->items.begin();
-	if (item == group->items.end()) return;
+	IniItem::const_iterator item = group->cbegin();
+	if (item == group->cend()) return;
 
 	GameConfig *config = GameConfig::GetConfig(AIConfig::SSS_FORCE_NEWGAME);
 
@@ -1412,13 +1412,13 @@ static void GameLoadConfig(IniFile *ini, const char *grpname)
  */
 static GRFConfig *GRFLoadConfig(IniFile *ini, const char *grpname, bool is_static)
 {
-	IniGroup *group = ini->GetGroup(grpname);
+	const IniGroup *group = ini->get_group (grpname);
 	GRFConfig *first = NULL;
 	GRFConfig **curr = &first;
 
 	if (group == NULL) return NULL;
 
-	for (IniItem::iterator item = group->items.begin(); item != group->items.end(); item++) {
+	for (IniItem::const_iterator item = group->cbegin(); item != group->cend(); item++) {
 		GRFConfig *c = new GRFConfig(item->get_name());
 
 		/* Parse parameters */
@@ -1480,10 +1480,10 @@ static GRFConfig *GRFLoadConfig(IniFile *ini, const char *grpname, bool is_stati
 
 static void AISaveConfig(IniFile *ini, const char *grpname)
 {
-	IniGroup *group = ini->GetGroup(grpname);
+	IniGroup *group = ini->get_group (grpname);
 
 	if (group == NULL) return;
-	group->Clear();
+	group->clear();
 
 	for (CompanyID c = COMPANY_FIRST; c < MAX_COMPANIES; c++) {
 		AIConfig *config = AIConfig::GetConfig(c, AIConfig::SSS_FORCE_NEWGAME);
@@ -1504,10 +1504,10 @@ static void AISaveConfig(IniFile *ini, const char *grpname)
 
 static void GameSaveConfig(IniFile *ini, const char *grpname)
 {
-	IniGroup *group = ini->GetGroup(grpname);
+	IniGroup *group = ini->get_group (grpname);
 
 	if (group == NULL) return;
-	group->Clear();
+	group->clear();
 
 	GameConfig *config = GameConfig::GetConfig(AIConfig::SSS_FORCE_NEWGAME);
 	const char *name;
@@ -1530,7 +1530,7 @@ static void GameSaveConfig(IniFile *ini, const char *grpname)
  */
 static void SaveVersionInConfig(IniFile *ini)
 {
-	IniGroup *group = ini->GetGroup("version");
+	IniGroup *group = ini->get_group ("version");
 
 	char version[9];
 	bstrfmt (version, "%08X", _openttd_newgrf_version);
@@ -1541,21 +1541,21 @@ static void SaveVersionInConfig(IniFile *ini)
 	};
 
 	for (uint i = 0; i < lengthof(versions); i++) {
-		group->GetItem(versions[i][0], true)->SetValue(versions[i][1]);
+		group->get_item(versions[i][0])->SetValue(versions[i][1]);
 	}
 }
 
 /* Save a GRF configuration to the given group name */
 static void GRFSaveConfig(IniFile *ini, const char *grpname, const GRFConfig *list)
 {
-	ini->RemoveGroup(grpname);
-	IniGroup *group = ini->GetGroup(grpname);
+	ini->remove (grpname);
+	IniGroup *group = ini->get_group (grpname);
 	const GRFConfig *c;
 
 	for (c = list; c != NULL; c = c->next) {
 		sstring<512> params;
 		GRFBuildParamList (&params, c);
-		group->GetItem(c->filename, true)->SetValue(params.c_str());
+		group->get_item(c->filename)->SetValue(params.c_str());
 	}
 }
 
@@ -1628,9 +1628,9 @@ void SaveToConfig()
 	IniFile *ini = IniLoadConfig();
 
 	/* Remove some obsolete groups. These have all been loaded into other groups. */
-	ini->RemoveGroup("patches");
-	ini->RemoveGroup("yapf");
-	ini->RemoveGroup("gameopt");
+	ini->remove ("patches");
+	ini->remove ("yapf");
+	ini->remove ("gameopt");
 
 	HandleSettingDescs(ini, IniSaveSettings, IniSaveSettingList);
 	GRFSaveConfig(ini, "newgrf", _grfconfig_newgame);
@@ -1651,7 +1651,7 @@ void GetGRFPresetList(GRFPresetList *list)
 	list->Clear();
 
 	IniFile *ini = IniLoadConfig();
-	for (IniGroup::const_iterator group = ini->groups.cbegin(); group != ini->groups.cend(); group++) {
+	for (IniGroup::const_iterator group = ini->cbegin(); group != ini->cend(); group++) {
 		if (strncmp(group->get_name(), "preset-", 7) == 0) {
 			*list->Append() = xstrdup(group->get_name() + 7);
 		}
@@ -1705,7 +1705,7 @@ void DeleteGRFPresetFromConfig(const char *config_name)
 	sprintf(section, "preset-%s", config_name);
 
 	IniFile *ini = IniLoadConfig();
-	ini->RemoveGroup(section);
+	ini->remove (section);
 	ini->SaveToDisk(_config_file);
 	delete ini;
 }

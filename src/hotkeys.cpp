@@ -253,9 +253,9 @@ HotkeyList::~HotkeyList()
  */
 void HotkeyList::Load(IniFile *ini)
 {
-	IniGroup *group = ini->GetGroup(this->ini_group);
+	const IniGroup *group = ini->get_group (this->ini_group);
 	for (Hotkey *hotkey = this->items; hotkey->name != NULL; ++hotkey) {
-		IniItem *item = group->GetItem(hotkey->name, false);
+		const IniItem *item = group->find (hotkey->name);
 		if (item != NULL) {
 			hotkey->keycodes.Clear();
 			if (item->value != NULL) ParseHotkeys(hotkey, item->value);
@@ -269,9 +269,9 @@ void HotkeyList::Load(IniFile *ini)
  */
 void HotkeyList::Save(IniFile *ini) const
 {
-	IniGroup *group = ini->GetGroup(this->ini_group);
+	IniGroup *group = ini->get_group (this->ini_group);
 	for (const Hotkey *hotkey = this->items; hotkey->name != NULL; ++hotkey) {
-		IniItem *item = group->GetItem(hotkey->name, true);
+		IniItem *item = group->get_item (hotkey->name);
 		item->SetValue(SaveKeycodes(hotkey));
 	}
 }

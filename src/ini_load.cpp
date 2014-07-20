@@ -11,8 +11,6 @@
 
 #include "stdafx.h"
 
-#include <functional>
-
 #include "core/alloc_func.hpp"
 #include "core/mem_func.hpp"
 #include "ini_type.h"
@@ -78,7 +76,7 @@ void IniItem::SetValue(const char *value)
  */
 IniGroup::IniGroup (IniGroupType type, const char *name, size_t len)
 	: ForwardListLink<IniGroup>(), IniName (name, len),
-		type(type), items(), comment(NULL)
+		IniList<IniItem>(), type(type), comment(NULL)
 {
 }
 
@@ -87,33 +85,23 @@ IniGroup::~IniGroup()
 {
 	free(this->comment);
 
-	delete this->items.detach_all();
 	delete this->next;
 }
 
 /**
- * Get the item with the given name, and if it doesn't exist
- * and create is true it creates a new item.
- * @param name   name of the item to find.
- * @param create whether to create an item when not found or not.
- * @return the requested item or NULL if not found.
+ * Get the item with the given name, and create it if it doesn't exist
+ * @param name name of the item to find.
+ * @return the requested item
  */
-IniItem *IniGroup::GetItem(const char *name, bool create)
+IniItem *IniGroup::get_item (const char *name)
 {
-	IniItem *item = this->items.find_pred (std::bind2nd (std::mem_fun (&IniItem::is_name), name));
-	if (!create || item != NULL) return item;
+	IniItem *item = this->find (name);
+	if (item != NULL) return item;
 
 	/* otherwise make a new one */
 	return this->append (name);
 }
 
-/**
- * Clear all items in the group
- */
-void IniGroup::Clear()
-{
-	delete this->items.detach_all();
-}
 
 /**
  * Construct a new in-memory Ini file representation.
@@ -121,7 +109,7 @@ void IniGroup::Clear()
  * @param seq_group_names  A \c NULL terminated list with group names that should be loaded as lists of names. @see IGT_SEQUENCE
  */
 IniLoadFile::IniLoadFile(const char * const *list_group_names, const char * const *seq_group_names) :
-		groups(),
+		IniList<IniGroup>(),
 		comment(NULL),
 		list_group_names(list_group_names),
 		seq_group_names(seq_group_names)
@@ -132,7 +120,6 @@ IniLoadFile::IniLoadFile(const char * const *list_group_names, const char * cons
 IniLoadFile::~IniLoadFile()
 {
 	free(this->comment);
-	delete this->groups.detach_all();
 }
 
 /**
@@ -159,36 +146,23 @@ IniGroupType IniLoadFile::get_group_type (const char *name, size_t len) const
 }
 
 /**
- * Get the group with the given name. If it doesn't exist
- * and \a create_new is \c true create a new group.
+ * Get the group with the given name. If it doesn't exist, create a new group.
  * @param name name of the group to find.
  * @param len  the maximum length of said name (\c 0 means length of the string).
- * @param create_new Allow creation of group if it does not exist.
- * @return The requested group if it exists or was created, else \c NULL.
+ * @return The requested group.
  */
-IniGroup *IniLoadFile::GetGroup(const char *name, size_t len, bool create_new)
+IniGroup *IniLoadFile::get_group (const char *name, size_t len)
 {
 	if (len == 0) len = strlen(name);
 
 	/* does it exist already? */
-	IniGroup *group = this->groups.find_pred (IniGroup::NamePred (name, len));
-	if (!create_new || group != NULL) return group;
+	IniGroup *group = this->find (name, len);
+	if (group != NULL) return group;
 
 	/* otherwise make a new one */
 	group = this->append (name, len);
 	group->comment = xstrdup("\n");
 	return group;
-}
-
-/**
- * Remove the group with the given name.
- * @param name name of the group to remove.
- */
-void IniLoadFile::RemoveGroup(const char *name)
-{
-	size_t len = strlen(name);
-
-	delete this->groups.remove_pred (IniGroup::NamePred (name, len));
 }
 
 /**
@@ -199,7 +173,7 @@ void IniLoadFile::RemoveGroup(const char *name)
  */
 void IniLoadFile::LoadFromDisk(const char *filename, Subdirectory subdir)
 {
-	assert (this->groups.begin() == this->groups.end());
+	assert (this->begin() == this->end());
 
 	char buffer[1024];
 	IniGroup *group = NULL;

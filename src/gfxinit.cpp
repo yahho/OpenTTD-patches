@@ -319,14 +319,14 @@ bool GraphicsSet::FillSetDetails(IniFile *ini, const char *path, const char *ful
 {
 	bool ret = this->BaseSet<GraphicsSet, MAX_GFT, true>::FillSetDetails(ini, path, full_filename, false);
 	if (ret) {
-		IniGroup *metadata = ini->GetGroup("metadata");
-		IniItem *item;
+		const IniGroup *metadata = ini->get_group ("metadata");
+		const IniItem *item;
 
 		fetch_metadata("palette");
 		this->palette = (*item->value == 'D' || *item->value == 'd') ? PAL_DOS : PAL_WINDOWS;
 
 		/* Get optional blitter information. */
-		item = metadata->GetItem("blitter", false);
+		item = metadata->find ("blitter");
 		this->blitter = (item != NULL && *item->value == '3') ? BLT_32BPP : BLT_8BPP;
 	}
 	return ret;

@@ -64,7 +64,7 @@ bool MusicSet::FillSetDetails(IniFile *ini, const char *path, const char *full_f
 	bool ret = this->BaseSet<MusicSet, NUM_SONGS_AVAILABLE, false>::FillSetDetails(ini, path, full_filename);
 	if (ret) {
 		this->num_available = 0;
-		IniGroup *names = ini->GetGroup("names");
+		const IniGroup *names = ini->get_group ("names");
 		for (uint i = 0, j = 1; i < lengthof(this->song_name); i++) {
 			const char *filename = this->files[i].filename;
 			if (names == NULL || StrEmpty(filename)) {
@@ -72,7 +72,7 @@ bool MusicSet::FillSetDetails(IniFile *ini, const char *path, const char *full_f
 				continue;
 			}
 
-			IniItem *item = NULL;
+			const IniItem *item = NULL;
 			/* As we possibly add a path to the filename and we compare
 			 * on the filename with the path as in the .obm, we need to
 			 * keep stripping path elements until we find a match. */
@@ -81,7 +81,7 @@ bool MusicSet::FillSetDetails(IniFile *ini, const char *path, const char *full_f
 				 * the beginning, so we don't start reading e.g. root. */
 				while (*p == PATHSEPCHAR) p++;
 
-				item = names->GetItem(p, false);
+				item = names->find (p);
 				if (item != NULL && !StrEmpty(item->value)) break;
 			}
 

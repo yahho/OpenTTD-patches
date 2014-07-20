@@ -27,7 +27,7 @@ template <class Tbase_set> /* static */ Tbase_set *BaseMedia<Tbase_set>::duplica
  * @param name the name of the item to fetch.
  */
 #define fetch_metadata(name) \
-	item = metadata->GetItem(name, false); \
+	item = metadata->find (name); \
 	if (item == NULL || StrEmpty(item->value)) { \
 		DEBUG(grf, 0, "Base " SET_TYPE "set detail loading: %s field missing.", name); \
 		DEBUG(grf, 0, "  Is %s readable for the user running OpenTTD?", full_filename); \
@@ -47,8 +47,8 @@ bool BaseSet<T, Tnum_files, Tsearch_in_tars>::FillSetDetails(IniFile *ini, const
 {
 	memset(this, 0, sizeof(*this));
 
-	IniGroup *metadata = ini->GetGroup("metadata");
-	IniItem *item;
+	const IniGroup *metadata = ini->get_group ("metadata");
+	const IniItem *item;
 
 	fetch_metadata("name");
 	this->name = xstrdup(item->value);
@@ -57,7 +57,7 @@ bool BaseSet<T, Tnum_files, Tsearch_in_tars>::FillSetDetails(IniFile *ini, const
 	this->description[xstrdup("")] = xstrdup(item->value);
 
 	/* Add the translations of the descriptions too. */
-	for (IniItem::const_iterator item = metadata->items.cbegin(); item != metadata->items.cend(); item++) {
+	for (IniItem::const_iterator item = metadata->cbegin(); item != metadata->cend(); item++) {
 		if (strncmp("description.", item->get_name(), 12) != 0) continue;
 
 		this->description[xstrdup(item->get_name() + 12)] = xstrdup(item->value);
@@ -71,17 +71,17 @@ bool BaseSet<T, Tnum_files, Tsearch_in_tars>::FillSetDetails(IniFile *ini, const
 	fetch_metadata("version");
 	this->version = atoi(item->value);
 
-	item = metadata->GetItem("fallback", false);
+	item = metadata->find ("fallback");
 	this->fallback = (item != NULL && strcmp(item->value, "0") != 0 && strcmp(item->value, "false") != 0);
 
 	/* For each of the file types we want to find the file, MD5 checksums and warning messages. */
-	IniGroup *files  = ini->GetGroup("files");
-	IniGroup *md5s   = ini->GetGroup("md5s");
-	IniGroup *origin = ini->GetGroup("origin");
+	const IniGroup *files  = ini->get_group ("files");
+	const IniGroup *md5s   = ini->get_group ("md5s");
+	const IniGroup *origin = ini->get_group ("origin");
 	for (uint i = 0; i < Tnum_files; i++) {
 		MD5File *file = &this->files[i];
 		/* Find the filename first. */
-		item = files->GetItem(BaseSet<T, Tnum_files, Tsearch_in_tars>::file_names[i], false);
+		item = files->find (BaseSet<T, Tnum_files, Tsearch_in_tars>::file_names[i]);
 		if (item == NULL || (item->value == NULL && !allow_empty_filename)) {
 			DEBUG(grf, 0, "No " SET_TYPE " file for: %s (in %s)", BaseSet<T, Tnum_files, Tsearch_in_tars>::file_names[i], full_filename);
 			return false;
@@ -99,7 +99,7 @@ bool BaseSet<T, Tnum_files, Tsearch_in_tars>::FillSetDetails(IniFile *ini, const
 		file->filename = str_fmt("%s%s", path, filename);
 
 		/* Then find the MD5 checksum */
-		item = md5s->GetItem(filename, false);
+		item = md5s->find (filename);
 		if (item == NULL) {
 			DEBUG(grf, 0, "No MD5 checksum specified for: %s (in %s)", filename, full_filename);
 			return false;
@@ -125,8 +125,8 @@ bool BaseSet<T, Tnum_files, Tsearch_in_tars>::FillSetDetails(IniFile *ini, const
 		}
 
 		/* Then find the warning message when the file's missing */
-		item = origin->GetItem(filename, false);
-		if (item == NULL) item = origin->GetItem("default", false);
+		item = origin->find (filename);
+		if (item == NULL) item = origin->find ("default");
 		if (item == NULL) {
 			DEBUG(grf, 1, "No origin warning message specified for: %s", filename);
 			file->missing_warning = xstrdup("");

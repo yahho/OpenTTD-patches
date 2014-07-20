@@ -12,6 +12,8 @@
 #ifndef INI_TYPE_H
 #define INI_TYPE_H
 
+#include <functional>
+
 #include "core/forward_list.h"
 
 #include "fileio_type.h"
@@ -61,6 +63,63 @@ public:
 };
 
 
+/** Base class for entity lists (items, groups) in an ini file. */
+template <typename T>
+struct IniList : ForwardList <T, true> {
+	/** Clear this IniList. */
+	void clear (void)
+	{
+		delete this->detach_all();
+	}
+
+	/** IniList destructor. */
+	~IniList()
+	{
+		this->clear();
+	}
+
+	/**
+	 * Find an entry by name.
+	 * @param name the name to search for
+	 * @return the item by that name, or NULL if none was found
+	 */
+	T *find (const char *name)
+	{
+		return this->find_pred (std::bind2nd (std::mem_fun (&T::IniName::is_name), name));
+	}
+
+	const T *find (const char *name) const
+	{
+		return const_cast<IniList*>(this)->find (name);
+	}
+
+	/**
+	 * Find an entry by name.
+	 * @param name the name to search for
+	 * @param len use only this many chars of name
+	 * @return the item by that name, or NULL if none was found
+	 */
+	T *find (const char *name, size_t len)
+	{
+		return this->find_pred (typename T::IniName::NamePred (name, len));
+	}
+
+	const T *find (const char *name, size_t len) const
+	{
+		return const_cast<IniList*>(this)->find (name, len);
+	}
+
+	/**
+	 * Remove an entry by name.
+	 * @param name the name to remove
+	 */
+	T *remove (const char *name)
+	{
+		return this->remove_pred (std::bind2nd (std::mem_fun (&T::IniName::is_name), name));
+	}
+};
+
+
 /** Types of groups */
 enum IniGroupType {
 	IGT_VARIABLES = 0, ///< Values of the form "landscape = hilly".
@@ -83,31 +142,28 @@ struct IniItem : ForwardListLink<IniItem>, IniName {
 };
 
 /** A group within an ini file. */
-struct IniGroup : ForwardListLink<IniGroup>, IniName {
+struct IniGroup : ForwardListLink<IniGroup>, IniName, IniList<IniItem> {
 	typedef ForwardList<IniGroup>::iterator iterator;
 	typedef ForwardList<IniGroup>::const_iterator const_iterator;
 
 	const IniGroupType type;   ///< type of group
-	ForwardList <IniItem, true> items; ///< list of items in the group
 	char *comment;       ///< comment for group
 
 	IniGroup (IniGroupType type, const char *name, size_t len = 0);
 	~IniGroup();
 
-	IniItem *GetItem(const char *name, bool create);
-	void Clear();
+	IniItem *get_item (const char *name);
 
 	IniItem *append (const char *name, size_t len = 0)
 	{
 		IniItem *item = new IniItem (name, len);
-		this->items.append (item);
+		this->IniList<IniItem>::append (item);
 		return item;
 	}
 };
 
 /** Ini file that only supports loading. */
-struct IniLoadFile {
-	ForwardList <IniGroup, true> groups;  ///< list of groups in the ini
+struct IniLoadFile : IniList<IniGroup> {
 	char *comment;                        ///< last comment in file
 	const char * const *const list_group_names; ///< NULL terminated list with group names that are lists
 	const char * const *const seq_group_names;  ///< NULL terminated list with group names that are sequences.
@@ -117,14 +173,13 @@ struct IniLoadFile {
 
 	IniGroupType get_group_type (const char *name, size_t len) const;
 
-	IniGroup *GetGroup(const char *name, size_t len = 0, bool create_new = true);
-	void RemoveGroup(const char *name);
+	IniGroup *get_group (const char *name, size_t len = 0);
 
 	IniGroup *append (const char *name, size_t len)
 	{
 		IniGroupType type = this->get_group_type (name, len);
 		IniGroup *group = new IniGroup (type, name, len);
-		this->groups.append (group);
+		this->IniList<IniGroup>::append (group);
 		return group;
 	}
 

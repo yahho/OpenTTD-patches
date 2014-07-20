@@ -222,9 +222,9 @@ static IniLoadFile *LoadIniFile(const char *filename)
  */
 static void DumpGroup(IniLoadFile *ifile, const char * const group_name)
 {
-	IniGroup *grp = ifile->GetGroup(group_name, 0, false);
+	IniGroup *grp = ifile->find (group_name);
 	if (grp != NULL && grp->type == IGT_SEQUENCE) {
-		for (IniItem::iterator item = grp->items.begin(); item != grp->items.end(); item++) {
+		for (IniItem::iterator item = grp->begin(); item != grp->end(); item++) {
 			_stored_output.Add(item->get_name());
 			_stored_output.Add("\n", 1);
 		}
@@ -240,8 +240,8 @@ static void DumpGroup(IniLoadFile *ifile, const char * const group_name)
  */
 static const char *FindItemValue(const char *name, IniGroup *grp, IniGroup *defaults)
 {
-	IniItem *item = grp->GetItem(name, false);
-	if (item == NULL && defaults != NULL) item = defaults->GetItem(name, false);
+	const IniItem *item = grp->find (name);
+	if (item == NULL && defaults != NULL) item = defaults->find (name);
 	if (item == NULL || item->value == NULL) return NULL;
 	return item->value;
 }
@@ -255,17 +255,17 @@ static void DumpSections(IniLoadFile *ifile)
 	static const int MAX_VAR_LENGTH = 64;
 	static const char * const special_group_names[] = {PREAMBLE_GROUP_NAME, POSTAMBLE_GROUP_NAME, DEFAULTS_GROUP_NAME, TEMPLATES_GROUP_NAME, NULL};
 
-	IniGroup *default_grp = ifile->GetGroup(DEFAULTS_GROUP_NAME, 0, false);
-	IniGroup *templates_grp  = ifile->GetGroup(TEMPLATES_GROUP_NAME, 0, false);
+	IniGroup *default_grp = ifile->find (DEFAULTS_GROUP_NAME);
+	IniGroup *templates_grp  = ifile->find (TEMPLATES_GROUP_NAME);
 	if (templates_grp == NULL) return;
 
 	/* Output every group, using its name as template name. */
-	for (IniGroup::iterator grp = ifile->groups.begin(); grp != ifile->groups.end(); grp++) {
+	for (IniGroup::iterator grp = ifile->begin(); grp != ifile->end(); grp++) {
 		const char * const *sgn;
 		for (sgn = special_group_names; *sgn != NULL; sgn++) if (grp->is_name(*sgn)) break;
 		if (*sgn != NULL) continue;
 
-		IniItem *template_item = templates_grp->GetItem(grp->get_name(), false); // Find template value.
+		const IniItem *template_item = templates_grp->find (grp->get_name()); // Find template value.
 		if (template_item == NULL || template_item->value == NULL) {
 			fprintf(stderr, "settingsgen: Warning: Cannot find template %s\n", grp->get_name());
 			continue;

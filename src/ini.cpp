@@ -52,10 +52,10 @@ bool IniFile::SaveToDisk(const char *filename)
 	FILE *f = fopen(file_new, "w");
 	if (f == NULL) return false;
 
-	for (IniGroup::const_iterator group = this->groups.cbegin(); group != this->groups.cend(); group++) {
+	for (IniGroup::const_iterator group = this->cbegin(); group != this->cend(); group++) {
 		if (group->comment) fputs(group->comment, f);
 		fprintf(f, "[%s]\n", group->get_name());
-		for (IniItem::const_iterator item = group->items.cbegin(); item != group->items.cend(); item++) {
+		for (IniItem::const_iterator item = group->cbegin(); item != group->cend(); item++) {
 			if (item->comment != NULL) fputs(item->comment, f);
 
 			/* protect item->name with quotes if needed */
