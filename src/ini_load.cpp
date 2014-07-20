@@ -78,26 +78,10 @@ void IniItem::SetValue(const char *value)
  */
 IniGroup::IniGroup(IniLoadFile *parent, const char *name, size_t len)
 	: ForwardListLink<IniGroup>(), IniName (name, len),
-		type(IGT_VARIABLES), items(), comment(NULL)
+		type(parent->get_group_type(IniName::get_name())),
+		items(), comment(NULL)
 {
 	parent->groups.append (this);
-
-	if (parent->list_group_names != NULL) {
-		for (uint i = 0; parent->list_group_names[i] != NULL; i++) {
-			if (this->is_name (parent->list_group_names[i])) {
-				this->type = IGT_LIST;
-				return;
-			}
-		}
-	}
-	if (parent->seq_group_names != NULL) {
-		for (uint i = 0; parent->seq_group_names[i] != NULL; i++) {
-			if (this->is_name (parent->seq_group_names[i])) {
-				this->type = IGT_SEQUENCE;
-				return;
-			}
-		}
-	}
 }
 
 /** Free everything we loaded. */
@@ -151,6 +135,28 @@ IniLoadFile::~IniLoadFile()
 {
 	free(this->comment);
 	delete this->groups.detach_all();
+}
+
+/**
+ * Get the type a group in this file is.
+ * @param name the name of the group
+ * @return the type of the group by that name
+ */
+IniGroupType IniLoadFile::get_group_type (const char *name) const
+{
+	if (this->list_group_names != NULL) {
+		for (const char *const *p = this->list_group_names; *p != NULL; p++) {
+			if (strcmp (*p, name) == 0) return IGT_LIST;
+		}
+	}
+
+	if (this->seq_group_names != NULL) {
+		for (const char *const *p = this->seq_group_names; *p != NULL; p++) {
+			if (strcmp (*p, name) == 0) return IGT_SEQUENCE;
+		}
+	}
+
+	return IGT_VARIABLES;
 }
 
 /**

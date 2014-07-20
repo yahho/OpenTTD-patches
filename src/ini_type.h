@@ -87,7 +87,7 @@ struct IniGroup : ForwardListLink<IniGroup>, IniName {
 	typedef ForwardList<IniGroup>::iterator iterator;
 	typedef ForwardList<IniGroup>::const_iterator const_iterator;
 
-	IniGroupType type;   ///< type of group
+	const IniGroupType type;   ///< type of group
 	ForwardList <IniItem, true> items; ///< list of items in the group
 	char *comment;       ///< comment for group
 
@@ -109,11 +109,13 @@ struct IniGroup : ForwardListLink<IniGroup>, IniName {
 struct IniLoadFile {
 	ForwardList <IniGroup, true> groups;  ///< list of groups in the ini
 	char *comment;                        ///< last comment in file
-	const char * const *list_group_names; ///< NULL terminated list with group names that are lists
-	const char * const *seq_group_names;  ///< NULL terminated list with group names that are sequences.
+	const char * const *const list_group_names; ///< NULL terminated list with group names that are lists
+	const char * const *const seq_group_names;  ///< NULL terminated list with group names that are sequences.
 
 	IniLoadFile(const char * const *list_group_names = NULL, const char * const *seq_group_names = NULL);
 	virtual ~IniLoadFile();
+
+	IniGroupType get_group_type (const char *name) const;
 
 	IniGroup *GetGroup(const char *name, size_t len = 0, bool create_new = true);
 	void RemoveGroup(const char *name);
