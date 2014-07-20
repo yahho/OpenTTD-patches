@@ -91,7 +91,7 @@ struct IniGroup : ForwardListLink<IniGroup>, IniName {
 	ForwardList <IniItem, true> items; ///< list of items in the group
 	char *comment;       ///< comment for group
 
-	IniGroup(struct IniLoadFile *parent, const char *name, size_t len = 0);
+	IniGroup (IniGroupType type, const char *name, size_t len = 0);
 	~IniGroup();
 
 	IniItem *GetItem(const char *name, bool create);
@@ -115,7 +115,7 @@ struct IniLoadFile {
 	IniLoadFile(const char * const *list_group_names = NULL, const char * const *seq_group_names = NULL);
 	virtual ~IniLoadFile();
 
-	IniGroupType get_group_type (const char *name) const;
+	IniGroupType get_group_type (const char *name, size_t len) const;
 
 	IniGroup *GetGroup(const char *name, size_t len = 0, bool create_new = true);
 	void RemoveGroup(const char *name);

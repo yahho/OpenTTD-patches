@@ -76,12 +76,10 @@ void IniItem::SetValue(const char *value)
  * @param name   the name of the group
  * @param len    the length of the name of the group
  */
-IniGroup::IniGroup(IniLoadFile *parent, const char *name, size_t len)
+IniGroup::IniGroup (IniGroupType type, const char *name, size_t len)
 	: ForwardListLink<IniGroup>(), IniName (name, len),
-		type(parent->get_group_type(IniName::get_name())),
-		items(), comment(NULL)
+		type(type), items(), comment(NULL)
 {
-	parent->groups.append (this);
 }
 
 /** Free everything we loaded. */
@@ -140,19 +138,20 @@ IniLoadFile::~IniLoadFile()
 /**
  * Get the type a group in this file is.
  * @param name the name of the group
+ * @param len use only this many chars of name
  * @return the type of the group by that name
  */
-IniGroupType IniLoadFile::get_group_type (const char *name) const
+IniGroupType IniLoadFile::get_group_type (const char *name, size_t len) const
 {
 	if (this->list_group_names != NULL) {
 		for (const char *const *p = this->list_group_names; *p != NULL; p++) {
-			if (strcmp (*p, name) == 0) return IGT_LIST;
+			if (strncmp (*p, name, len) == 0 && (*p)[len] == 0) return IGT_LIST;
 		}
 	}
 
 	if (this->seq_group_names != NULL) {
 		for (const char *const *p = this->seq_group_names; *p != NULL; p++) {
-			if (strcmp (*p, name) == 0) return IGT_SEQUENCE;
+			if (strncmp (*p, name, len) == 0 && (*p)[len] == 0) return IGT_SEQUENCE;
 		}
 	}
 
@@ -176,7 +175,9 @@ IniGroup *IniLoadFile::GetGroup(const char *name, size_t len, bool create_new)
 	if (!create_new || group != NULL) return group;
 
 	/* otherwise make a new one */
-	group = new IniGroup(this, name, len);
+	IniGroupType type = this->get_group_type (name, len);
+	group = new IniGroup (type, name, len);
+	this->groups.append (group);
 	group->comment = xstrdup("\n");
 	return group;
 }
@@ -251,7 +252,9 @@ void IniLoadFile::LoadFromDisk(const char *filename, Subdirectory subdir)
 				e--;
 			}
 			s++; // skip [
-			group = new IniGroup(this, s, e - s);
+			IniGroupType type = this->get_group_type (s, e - s);
+			group = new IniGroup (type, s, e - s);
+			this->groups.append (group);
 			if (comment_size != 0) {
 				group->comment = xstrndup(comment, comment_size);
 				comment_size = 0;
