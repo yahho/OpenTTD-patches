@@ -69,7 +69,12 @@ struct IniList : ForwardList <T, true> {
 	/** Clear this IniList. */
 	void clear (void)
 	{
-		delete this->detach_all();
+		T *p = this->detach_all();
+		while (p != NULL) {
+			T *next = p->next;
+			delete p;
+			p = next;
+		}
 	}
 
 	/** IniList destructor. */

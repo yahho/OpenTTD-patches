@@ -54,8 +54,6 @@ IniItem::~IniItem()
 {
 	free(this->value);
 	free(this->comment);
-
-	delete this->next;
 }
 
 /**
@@ -84,8 +82,6 @@ IniGroup::IniGroup (IniGroupType type, const char *name, size_t len)
 IniGroup::~IniGroup()
 {
 	free(this->comment);
-
-	delete this->next;
 }
 
 /**
