@@ -1458,18 +1458,14 @@ static GRFConfig *GRFLoadConfig(IniFile *ini, const char *grpname, bool is_stati
 
 		uint8 grfid_buf[4], md5sum[16];
 		const char *filename = item->get_name();
-		bool has_grfid = false;
-		bool has_md5sum = false;
 
 		/* Try reading "<grfid>|" and on success, "<md5sum>|". */
-		has_grfid = DecodeHexText(filename, grfid_buf, lengthof(grfid_buf));
-		if (has_grfid) {
+		if (DecodeHexText(filename, grfid_buf, lengthof(grfid_buf))) {
 			filename += 1 + 2 * lengthof(grfid_buf);
-			has_md5sum = DecodeHexText(filename, md5sum, lengthof(md5sum));
-			if (has_md5sum) filename += 1 + 2 * lengthof(md5sum);
-
 			uint32 grfid = grfid_buf[0] | (grfid_buf[1] << 8) | (grfid_buf[2] << 16) | (grfid_buf[3] << 24);
-			if (has_md5sum) {
+
+			if (DecodeHexText(filename, md5sum, lengthof(md5sum))) {
+				filename += 1 + 2 * lengthof(md5sum);
 				const GRFConfig *s = FindGRFConfig(grfid, FGCM_EXACT, md5sum);
 				if (s != NULL) c = new GRFConfig(*s);
 			}
