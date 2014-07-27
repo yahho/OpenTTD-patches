@@ -520,11 +520,8 @@ static void IniLoadSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 				break;
 
 			case SDT_STRING:
-				if (sld->type != SL_STR) {
-					assert(sld->type == SL_VAR);
-					assert(GetVarMemType(sld->conv) == SLE_VAR_CHAR);
-					if (p != NULL) *(char *)ptr = *(const char *)p;
-				} else if (sld->conv & SLS_POINTER) {
+				assert (sld->type == SL_STR);
+				if (sld->conv & SLS_POINTER) {
 					free(*(char**)ptr);
 					*(char**)ptr = p == NULL ? NULL : xstrdup((const char*)p);
 				} else {
@@ -649,33 +646,28 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 				break;
 			}
 
-			case SDT_STRING:
-				if (sld->type != SL_STR) {
-					assert(sld->type == SL_VAR);
-					assert(GetVarMemType(sld->conv) == SLE_VAR_CHAR);
-					new_value = xmalloc (2);
-					new_value[0] = *(char*)ptr;
-					new_value[1] = '\0';
+			case SDT_STRING: {
+				assert (sld->type == SL_STR);
+
+				const char *s;
+
+				if (sld->conv & SLS_POINTER) {
+					s = *(const char *const *)ptr;
 				} else {
-					const char *s;
+					s = (const char *)ptr;
+				}
 
-					if (sld->conv & SLS_POINTER) {
-						s = *(const char *const *)ptr;
+				if (sld->conv & SLS_QUOTED) {
+					if (s == NULL) {
+						new_value = xstrdup ("");
 					} else {
-						s = (const char *)ptr;
+						new_value = str_fmt ("\"%s\"", s);
 					}
-
-					if (sld->conv & SLS_QUOTED) {
-						if (s == NULL) {
-							new_value = xstrdup ("");
-						} else {
-							new_value = str_fmt ("\"%s\"", s);
-						}
-					} else {
-						new_value = xstrdup (s);
-					}
+				} else {
+					new_value = xstrdup (s);
 				}
 				break;
+			}
 
 			case SDT_INTLIST:
 				new_value = MakeIntList (ptr, sld->length, GetVarMemType(sld->conv));
@@ -1976,8 +1968,9 @@ bool SetSettingValue(uint index, const char *value, bool force_newgame)
 {
 	const SettingDesc *sd = &_settings[index];
 	assert(sd->save.flags & SLF_NO_NETWORK_SYNC);
+	assert(sd->save.type == SL_STR);
 
-	if ((sd->save.type == SL_STR) && (sd->save.conv & SLS_POINTER)) {
+	if (sd->save.conv & SLS_POINTER) {
 		char **var = (char**) sd->save.get_variable_address ((_game_mode == GM_MENU || force_newgame) ? &_settings_newgame : &_settings_game);
 		free(*var);
 		*var = strcmp(value, "(null)") == 0 ? NULL : xstrdup(value);
