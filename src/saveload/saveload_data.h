@@ -382,7 +382,7 @@ struct SaveLoad {
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(address))
 	{
-		if (!(flags & SLF_NOT_IN_SAVE)) assert_vartype<T> (conv);
+		assert_vartype<T> (conv);
 	}
 
 	/** Construct a saveload object for a reference. */
