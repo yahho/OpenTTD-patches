@@ -98,20 +98,11 @@ static size_t ConvertLandscape(const char *value);
 #define SDT_BOOL(base, var, flags, guiflags, def, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
 	SDT_GENERAL(#var, SDT_BOOLX, SL_VAR, SLE_BOOL, flags, guiflags, base, var, 1, def, 0, 1, 0, NULL, str, strhelp, strval, proc, NULL, vfrom, vto, lfrom, lto, cat)
 
-#define SDT_LIST(base, var, conv, flags, guiflags, def, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	SDT_GENERAL(#var, SDT_INTLIST, SL_ARR, (VarTypes)(conv), flags, guiflags, base, var, cpp_lengthof(base, var), def, 0, 0, 0, NULL, str, strhelp, strval, proc, NULL, vfrom, vto, lfrom, lto, cat)
-
 #define SDT_STR(base, var, conv, flags, guiflags, def, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
 	SDT_GENERAL(#var, SDT_STRING, SL_STR, (StrTypes)(conv), flags, guiflags, base, var, (conv & SLS_POINTER) ? 0 : cpp_lengthof(base, var), def, 0, 0, 0, NULL, str, strhelp, strval, proc, NULL, vfrom, vto, lfrom, lto, cat)
 
-#define SDT_CHR(base, var, flags, guiflags, def, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	SDT_GENERAL(#var, SDT_STRING, SL_VAR, SLE_CHAR, flags, guiflags, base, var, 1, def, 0, 0, 0, NULL, str, strhelp, strval, proc, NULL, vfrom, vto, lfrom, lto, cat)
-
 #define SDT_OMANY(base, var, conv, flags, guiflags, def, max, full, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, load, cat)\
 	SDT_GENERAL(#var, SDT_ONEOFMANY, SL_VAR, (VarTypes)(conv), flags, guiflags, base, var, 1, def, 0, max, 0, full, str, strhelp, strval, proc, load, vfrom, vto, lfrom, lto, cat)
-
-#define SDT_MMANY(base, var, conv, flags, guiflags, def, full, str, proc, strhelp, strval, vfrom, vto, lfrom, lto, cat)\
-	SDT_GENERAL(#var, SDT_MANYOFMANY, SL_VAR, (VarTypes)(conv), flags, guiflags, base, var, 1, def, 0, 0, 0, full, str, strhelp, strval, proc, NULL, vfrom, vto, lfrom, lto, cat)
 
 
 #define SDTC_VAR(var, conv, flags, guiflags, def, min, max, interval, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
