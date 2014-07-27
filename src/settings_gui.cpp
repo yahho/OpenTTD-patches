@@ -2513,6 +2513,7 @@ struct CustomCurrencyWindow : Window {
 		int len = 0;
 		StringID str = 0;
 		CharSetFilter afilter = CS_ALPHANUMERAL;
+		QueryStringFlags flags = QSF_NONE;
 
 		switch (widget) {
 			case WID_CC_RATE_DOWN:
@@ -2541,6 +2542,7 @@ struct CustomCurrencyWindow : Window {
 				str = STR_JUST_RAW_STRING;
 				len = 1;
 				line = WID_CC_SEPARATOR;
+				flags = QSF_LEN_IN_CHARS;
 				break;
 
 			case WID_CC_PREFIX_EDIT:
@@ -2582,7 +2584,7 @@ struct CustomCurrencyWindow : Window {
 
 		if (len != 0) {
 			this->query_widget = line;
-			ShowQueryString(str, STR_CURRENCY_CHANGE_PARAMETER, len + 1, this, afilter, QSF_NONE);
+			ShowQueryString(str, STR_CURRENCY_CHANGE_PARAMETER, len + 1, this, afilter, flags);
 		}
 
 		this->SetTimeout();
