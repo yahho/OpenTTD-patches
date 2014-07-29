@@ -364,13 +364,10 @@ void Station::GetTileArea(TileArea *ta, StationType type) const
 		case STATION_DOCK:
 		case STATION_OILRIG:
 			*ta = this->dock_area;
-			break;
+			return;
 
 		default: NOT_REACHED();
 	}
-
-	ta->w = 1;
-	ta->h = 1;
 }
 
 /**
