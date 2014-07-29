@@ -21,6 +21,9 @@ struct OrthogonalTileArea {
 	/** Just construct this tile area */
 	OrthogonalTileArea() : tile(INVALID_TILE), w(0), h(0) {}
 
+	/** Construct this tile area with a single tile */
+	OrthogonalTileArea (TileIndex tile) : tile(tile), w(1), h(1) { }
+
 	/**
 	 * Construct this tile area with some set values
 	 * @param tile the base tile
