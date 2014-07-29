@@ -1432,11 +1432,12 @@ restart:
  * @param flags the command flags.
  * @param removal_cost the cost for removing the tile, including the rail.
  * @param keep_rail whether to keep the rail of the station.
- * @tparam T the type of station to remove.
+ * @param waypoint remove waypoints, else stations
  * @return the number of cleared tiles or an error.
  */
-template <class T>
-CommandCost RemoveFromRailBaseStation(TileArea ta, SmallVector<T *, 4> &affected_stations, DoCommandFlag flags, Money removal_cost, bool keep_rail)
+CommandCost RemoveFromRailBaseStation (const TileArea &ta,
+	SmallVector <BaseStation*, 4> &affected_stations, DoCommandFlag flags,
+	Money removal_cost, bool keep_rail, bool waypoint)
 {
 	/* Count of the number of tiles removed */
 	int quantity = 0;
@@ -1457,8 +1458,8 @@ CommandCost RemoveFromRailBaseStation(TileArea ta, SmallVector<T *, 4> &affected
 		if (ret.Failed()) continue;
 
 		/* Check ownership of station */
-		T *st = T::GetByTile(tile);
-		if (st == NULL) continue;
+		BaseStation *st = BaseStation::GetByTile (tile);
+		if (st == NULL || st->IsWaypoint() != waypoint) continue;
 
 		if (_current_company != OWNER_WATER) {
 			CommandCost ret = CheckOwnership(st->owner);
@@ -1511,8 +1512,8 @@ CommandCost RemoveFromRailBaseStation(TileArea ta, SmallVector<T *, 4> &affected
 
 	if (quantity == 0) return error.Failed() ? error : CommandCost(STR_ERROR_THERE_IS_NO_STATION);
 
-	for (T **stp = affected_stations.Begin(); stp != affected_stations.End(); stp++) {
-		T *st = *stp;
+	for (BaseStation **stp = affected_stations.Begin(); stp != affected_stations.End(); stp++) {
+		BaseStation *st = *stp;
 
 		/* now we need to make the "spanned" area of the railway station smaller
 		 * if we deleted something at the edges.
@@ -1550,14 +1551,14 @@ CommandCost CmdRemoveFromRailStation(TileIndex start, DoCommandFlag flags, uint3
 	if (start >= MapSize() || end >= MapSize()) return CMD_ERROR;
 
 	TileArea ta(start, end);
-	SmallVector<Station *, 4> affected_stations;
+	SmallVector<BaseStation *, 4> affected_stations;
 
-	CommandCost ret = RemoveFromRailBaseStation(ta, affected_stations, flags, _price[PR_CLEAR_STATION_RAIL], HasBit(p2, 0));
+	CommandCost ret = RemoveFromRailBaseStation(ta, affected_stations, flags, _price[PR_CLEAR_STATION_RAIL], HasBit(p2, 0), false);
 	if (ret.Failed()) return ret;
 
 	/* Do all station specific functions here. */
-	for (Station **stp = affected_stations.Begin(); stp != affected_stations.End(); stp++) {
-		Station *st = *stp;
+	for (BaseStation **stp = affected_stations.Begin(); stp != affected_stations.End(); stp++) {
+		Station *st = Station::From(*stp);
 
 		if (st->train_station.tile == INVALID_TILE) SetWindowWidgetDirty(WC_STATION_VIEW, st->index, WID_SV_TRAINS);
 		st->MarkTilesDirty(false);
@@ -1585,9 +1586,9 @@ CommandCost CmdRemoveFromRailWaypoint(TileIndex start, DoCommandFlag flags, uint
 	if (start >= MapSize() || end >= MapSize()) return CMD_ERROR;
 
 	TileArea ta(start, end);
-	SmallVector<Waypoint *, 4> affected_stations;
+	SmallVector<BaseStation *, 4> affected_stations;
 
-	return RemoveFromRailBaseStation(ta, affected_stations, flags, _price[PR_CLEAR_WAYPOINT_RAIL], HasBit(p2, 0));
+	return RemoveFromRailBaseStation(ta, affected_stations, flags, _price[PR_CLEAR_WAYPOINT_RAIL], HasBit(p2, 0), true);
 }
 
 
