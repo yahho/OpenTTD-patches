@@ -1590,11 +1590,9 @@ CommandCost CmdRemoveFromRailWaypoint(TileIndex start, DoCommandFlag flags, uint
  * Remove a rail station/waypoint
  * @param st The station/waypoint to remove the rail part from
  * @param flags operation to perform
- * @tparam T the type of station to remove
  * @return cost or failure of operation
  */
-template <class T>
-CommandCost RemoveRailStation(T *st, DoCommandFlag flags)
+static CommandCost RemoveRailStation (BaseStation *st, DoCommandFlag flags)
 {
 	/* Current company owns the station? */
 	if (_current_company != OWNER_WATER) {
