@@ -69,6 +69,16 @@ struct BaseStation : PooledItem <BaseStation, StationID, 32, 64000> {
 	 * @param tile the tile to check
 	 * @return true if the tile belongs to this station
 	 */
+	bool TileBelongsToStation (TileIndex tile) const
+	{
+		return IsStationTile(tile) && GetStationIndex(tile) == this->index;
+	}
+
+	/**
+	 * Check whether a specific tile belongs to this rail station.
+	 * @param tile the tile to check
+	 * @return true if the tile belongs to this station
+	 */
 	bool TileBelongsToRailStation(TileIndex tile) const
 	{
 		return HasStationTileRail(tile) && GetStationIndex(tile) == this->index;
