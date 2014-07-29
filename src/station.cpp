@@ -10,6 +10,9 @@
 /** @file station.cpp Implementation of the station base class. */
 
 #include "stdafx.h"
+
+#include <functional>
+
 #include "company_func.h"
 #include "company_base.h"
 #include "roadveh.h"
@@ -393,84 +396,12 @@ bool BaseStation::TestAddRect (const TileArea &ta)
 		new_rect.h <= _settings_game.station.station_spread;
 }
 
-/** Scan a tile row/column for station tiles. */
-static bool ScanForStationTiles (StationID st, TileIndex tile, uint diff, uint n)
+/** Update station area after removing a rectangle. */
+void BaseStation::AfterRemoveRect (const TileArea &ta)
 {
-	while (n > 0) {
-		if (IsStationTile(tile) && GetStationIndex(tile) == st) return true;
-		tile += diff;
-		n--;
-	}
-
-	return false;
+	this->rect.shrink_span (std::bind1st (std::mem_fun (&BaseStation::TileBelongsToStation), this), ta);
 }
 
-/** Shrink station area after removal of a rectangle. */
-void BaseStation::AfterRemoveTiles (TileIndex tile1, TileIndex tile2)
-{
-	assert (TileX(tile1) <= TileX(tile2));
-	assert (TileY(tile1) <= TileY(tile2));
-
-	assert (this->rect.Contains(tile1));
-	assert (this->rect.Contains(tile2));
-
-	const TileIndexDiff diff_x = TileDiffXY (1, 0); // rightwards
-	const TileIndexDiff diff_y = TileDiffXY (0, 1); // upwards
-
-	if (TileX(tile1) == TileX(this->rect.tile)) {
-		/* scan initial columns for station tiles */
-		for (;;) {
-			if (ScanForStationTiles (this->index, this->rect.tile, diff_y, this->rect.h)) break;
-			this->rect.tile += diff_x;
-			this->rect.w--;
-			if (this->rect.w == 0) {
-				this->rect.Clear();
-				return;
-			}
-		}
-	}
-
-	if (TileX(tile2) == TileX(this->rect.tile) + this->rect.w - 1) {
-		/* scan final columns for station tiles */
-		TileIndex t = this->rect.tile + (this->rect.w - 1) * diff_x;
-		for (;;) {
-			if (ScanForStationTiles (this->index, t, diff_y, this->rect.h)) break;
-			t -= diff_x;
-			this->rect.w--;
-			if (this->rect.w == 0) {
-				this->rect.Clear();
-				return;
-			}
-		}
-	}
-
-	if (TileY(tile1) == TileY(this->rect.tile)) {
-		/* scan initial rows for station tiles */
-		for (;;) {
-			if (ScanForStationTiles (this->index, this->rect.tile, diff_x, this->rect.w)) break;
-			this->rect.tile += diff_y;
-			this->rect.h--;
-			if (this->rect.h == 0) {
-				this->rect.Clear();
-				return;
-			}
-		}
-	}
-
-	if (TileY(tile2) == TileY(this->rect.tile) + this->rect.h - 1) {
-		/* scan final rows for station tiles */
-		TileIndex t = this->rect.tile + (this->rect.h - 1) * diff_y;
-		for (;;) {
-			if (ScanForStationTiles (this->index, t, diff_x, this->rect.w)) break;
-			t -= diff_y;
-			this->rect.h--;
-			if (this->rect.h == 0) {
-				this->rect.Clear();
-				return;
-			}
-		}
-	}
-}
 
 /** The pool of docks. */
 template<> Dock::Pool Dock::PoolItem::pool ("Dock");

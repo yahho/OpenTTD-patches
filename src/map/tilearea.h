@@ -111,6 +111,121 @@ struct OrthogonalTileArea {
 
 		return max (dx, dy);
 	}
+
+	/** Scan for tiles in a given row or column (internal). */
+	template <class Pred>
+	static bool scan_row_column (TileIndex tile, uint diff, uint n, Pred pred)
+	{
+		while (n > 0) {
+			if (pred(tile)) return true;
+			tile += diff;
+			n--;
+		}
+		return false;
+	}
+
+	/**
+	 * Shrink the tile area spanned by a set of tiles when tiles are
+	 * removed from the set (internal).
+	 * @param pred   Set predicate.
+	 * @param left   Area may shrink from the left.
+	 * @param right  Area may shrink from the right.
+	 * @param bottom Area may shrink from the bottom.
+	 * @param top    Area may shrink from the top.
+	 */
+	template <class Pred>
+	void shrink_span (Pred pred, bool left, bool right, bool bottom, bool top)
+	{
+		const TileIndexDiff diff_x = TileDiffXY (1, 0); // rightwards
+		const TileIndexDiff diff_y = TileDiffXY (0, 1); // upwards
+
+		if (left) {
+			/* scan initial columns for tiles in the set */
+			for (;;) {
+				if (scan_row_column (this->tile, diff_y, this->h, pred)) break;
+				this->tile += diff_x;
+				this->w--;
+				if (this->w == 0) {
+					this->Clear();
+					return;
+				}
+			}
+		}
+
+		if (right) {
+			/* scan final columns for tiles in the set */
+			TileIndex t = this->tile + (this->w - 1) * diff_x;
+			for (;;) {
+				if (scan_row_column (t, diff_y, this->h, pred)) break;
+				t -= diff_x;
+				this->w--;
+				if (this->w == 0) {
+					this->Clear();
+					return;
+				}
+			}
+		}
+
+		if (bottom) {
+			/* scan initial rows for tiles in the set */
+			for (;;) {
+				if (scan_row_column (this->tile, diff_x, this->w, pred)) break;
+				this->tile += diff_y;
+				this->h--;
+				if (this->h == 0) {
+					this->Clear();
+					return;
+				}
+			}
+		}
+
+		if (top) {
+			/* scan final rows for tiles in the set */
+			TileIndex t = this->tile + (this->h - 1) * diff_y;
+			for (;;) {
+				if (scan_row_column (t, diff_x, this->w, pred)) break;
+				t -= diff_y;
+				this->h--;
+				if (this->h == 0) {
+					this->Clear();
+					return;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Shrink the tile area spanned by a set of tiles when tiles are
+	 * removed from the set.
+	 * @param pred Set predicate.
+	 * @param removed Area containing all removed tiles.
+	 */
+	template <class Pred>
+	void shrink_span (Pred pred, const OrthogonalTileArea &removed)
+	{
+		uint tx = TileX(this->tile);
+		uint rx = TileX(removed.tile);
+		bool left  = rx <= tx;
+		bool right = rx + removed.w >= tx + this->w;
+
+		uint ty = TileY(this->tile);
+		uint ry = TileY(removed.tile);
+		bool bottom = ry <= ty;
+		bool top    = ry + removed.h >= ty + this->h;
+
+		shrink_span (pred, left, right, bottom, top);
+	}
+
+	/**
+	 * Shrink the tile area spanned by a set of tiles when tiles are
+	 * removed from the set.
+	 * @param pred Set predicate.
+	 */
+	template <class Pred>
+	void shrink_span (Pred pred)
+	{
+		shrink_span (pred, true, true, true, true);
+	}
 };
 
 /** Represents a diagonal tile area. */

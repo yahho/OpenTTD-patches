@@ -109,20 +109,13 @@ struct BaseStation : PooledItem <BaseStation, StationID, 32, 64000> {
 	/* Test if adding an area would exceed the maximum station spread. */
 	bool TestAddRect (const TileArea &ta);
 
-	/* Update station area after removing a rectangle (implementation). */
-	void AfterRemoveTiles (TileIndex tile1, TileIndex tile2);
+	/* Update station area after removing a rectangle. */
+	void AfterRemoveRect (const TileArea &ta);
 
 	/** Update station area after removing a tile. */
 	void AfterRemoveTile (TileIndex tile)
 	{
-		this->AfterRemoveTiles (tile, tile);
-	}
-
-	/** Update station area after removing a rectangle. */
-	void AfterRemoveRect (const TileArea &ta)
-	{
-		TileIndex last = TILE_ADDXY (ta.tile, ta.w - 1, ta.h - 1);
-		this->AfterRemoveTiles (ta.tile, last);
+		this->AfterRemoveRect (TileArea(tile));
 	}
 
 	/**

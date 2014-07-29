@@ -10,6 +10,9 @@
 /** @file station_cmd.cpp Handling of station tiles. */
 
 #include "stdafx.h"
+
+#include <functional>
+
 #include "aircraft.h"
 #include "cmd_helper.h"
 #include "viewport_func.h"
@@ -1373,58 +1376,6 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 	return cost;
 }
 
-static void MakeRailStationAreaSmaller(BaseStation *st)
-{
-	TileArea ta = st->train_station;
-
-restart:
-
-	/* too small? */
-	if (ta.w != 0 && ta.h != 0) {
-		/* check the left side, x = constant, y changes */
-		for (uint i = 0; !st->TileBelongsToRailStation(ta.tile + TileDiffXY(0, i));) {
-			/* the left side is unused? */
-			if (++i == ta.h) {
-				ta.tile += TileDiffXY(1, 0);
-				ta.w--;
-				goto restart;
-			}
-		}
-
-		/* check the right side, x = constant, y changes */
-		for (uint i = 0; !st->TileBelongsToRailStation(ta.tile + TileDiffXY(ta.w - 1, i));) {
-			/* the right side is unused? */
-			if (++i == ta.h) {
-				ta.w--;
-				goto restart;
-			}
-		}
-
-		/* check the upper side, y = constant, x changes */
-		for (uint i = 0; !st->TileBelongsToRailStation(ta.tile + TileDiffXY(i, 0));) {
-			/* the left side is unused? */
-			if (++i == ta.w) {
-				ta.tile += TileDiffXY(0, 1);
-				ta.h--;
-				goto restart;
-			}
-		}
-
-		/* check the lower side, y = constant, x changes */
-		for (uint i = 0; !st->TileBelongsToRailStation(ta.tile + TileDiffXY(i, ta.h - 1));) {
-			/* the left side is unused? */
-			if (++i == ta.w) {
-				ta.h--;
-				goto restart;
-			}
-		}
-	} else {
-		ta.Clear();
-	}
-
-	st->train_station = ta;
-}
-
 /**
  * Remove a number of tiles from any rail station or waypoint within the area.
  * @param start tile of station piece to remove
@@ -1525,7 +1476,7 @@ static CommandCost RemoveFromRailBaseStation (TileIndex start,
 		/* now we need to make the "spanned" area of the railway station smaller
 		 * if we deleted something at the edges.
 		 * we also need to adjust train_tile. */
-		MakeRailStationAreaSmaller(st);
+		st->train_station.shrink_span (std::bind1st (std::mem_fun (&BaseStation::TileBelongsToRailStation), st));
 		UpdateStationSignCoord(st);
 
 		/* if we deleted the whole station, delete the train facility. */
