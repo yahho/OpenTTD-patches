@@ -27,7 +27,7 @@ struct Waypoint FINAL : SpecializedStation<Waypoint, true> {
 
 	void UpdateVirtCoord();
 
-	/* virtual */ inline bool TileBelongsToRailStation(TileIndex tile) const
+	inline bool TileBelongsToRailStation(TileIndex tile) const
 	{
 		return IsRailWaypointTile(tile) && GetStationIndex(tile) == this->index;
 	}

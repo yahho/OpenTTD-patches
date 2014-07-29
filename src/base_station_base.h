@@ -69,7 +69,10 @@ struct BaseStation : PooledItem <BaseStation, StationID, 32, 64000> {
 	 * @param tile the tile to check
 	 * @return true if the tile belongs to this station
 	 */
-	virtual bool TileBelongsToRailStation(TileIndex tile) const = 0;
+	bool TileBelongsToRailStation(TileIndex tile) const
+	{
+		return HasStationTileRail(tile) && GetStationIndex(tile) == this->index;
+	}
 
 	/**
 	 * Helper function to get a NewGRF variable that isn't implemented by the base class.

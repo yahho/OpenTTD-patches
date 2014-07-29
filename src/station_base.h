@@ -503,7 +503,7 @@ public:
 	uint GetCatchmentRadius() const;
 	TileArea GetCatchmentArea() const;
 
-	/* virtual */ inline bool TileBelongsToRailStation(TileIndex tile) const
+	inline bool TileBelongsToRailStation(TileIndex tile) const
 	{
 		return IsRailStationTile(tile) && GetStationIndex(tile) == this->index;
 	}
