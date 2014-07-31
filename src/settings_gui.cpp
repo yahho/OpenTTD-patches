@@ -58,7 +58,21 @@ int _nb_orig_names = SPECSTR_TOWNNAME_LAST - SPECSTR_TOWNNAME_START + 1; ///< Nu
 static StringID *_grf_names = NULL; ///< Pointer to town names defined by NewGRFs.
 static int _nb_grf_names = 0;       ///< Number of town names defined by NewGRFs.
 
-static const void *ResolveVariableAddress(const GameSettings *settings_ptr, const SettingDesc *sd);
+/** Read the variable encoded in a setting description. */
+static int64 ReadVariable (const GameSettings *settings_ptr, const SettingDesc *sd)
+{
+	const void *object;
+	if ((sd->desc.flags & SGF_PER_COMPANY) == 0) {
+		object = settings_ptr;
+	} else if (Company::IsValidID(_local_company) && _game_mode != GM_MENU) {
+		object = &Company::Get(_local_company)->settings;
+	} else {
+		object = &_settings_client.company;
+	}
+
+	const void *ptr = sd->save.get_variable_address (object);
+	return ReadValue (ptr, sd->save.conv);
+}
 
 /** Allocate memory for the NewGRF town names. */
 void InitGRFTownGeneratorNames()
@@ -1006,8 +1020,7 @@ bool SettingEntry::IsVisibleByRestrictionMode(RestrictionMode mode) const
 	if (mode == RM_ADVANCED) return (this->d.entry.setting->desc.cat & SC_ADVANCED_LIST) != 0;
 
 	/* Read the current value. */
-	const void *var = ResolveVariableAddress(settings_ptr, sd);
-	int64 current_value = ReadValue(var, sd->save.conv);
+	int64 current_value = ReadVariable (settings_ptr, sd);
 
 	int64 filter_value;
 
@@ -1025,8 +1038,7 @@ bool SettingEntry::IsVisibleByRestrictionMode(RestrictionMode mode) const
 		assert(settings_ptr != &_settings_newgame);
 
 		/* Read the new game's value. */
-		var = ResolveVariableAddress(&_settings_newgame, sd);
-		filter_value = ReadValue(var, sd->save.conv);
+		filter_value = ReadVariable (&_settings_newgame, sd);
 	}
 
 	return current_value != filter_value;
@@ -1172,19 +1184,6 @@ uint SettingEntry::Draw(GameSettings *settings_ptr, int left, int right, int bas
 	return cur_row;
 }
 
-static const void *ResolveVariableAddress(const GameSettings *settings_ptr, const SettingDesc *sd)
-{
-	if ((sd->desc.flags & SGF_PER_COMPANY) != 0) {
-		if (Company::IsValidID(_local_company) && _game_mode != GM_MENU) {
-			return sd->save.get_variable_address (&Company::Get(_local_company)->settings);
-		} else {
-			return sd->save.get_variable_address (&_settings_client.company);
-		}
-	} else {
-		return sd->save.get_variable_address (settings_ptr);
-	}
-}
-
 /**
  * Set the DParams for drawing the value of a setting.
  * @param first_param First DParam to use
@@ -1222,7 +1221,7 @@ void SettingEntry::DrawSetting(GameSettings *settings_ptr, int left, int right, 
 {
 	const SettingDesc *sd = this->d.entry.setting;
 	const SettingDescBase *sdb = &sd->desc;
-	const void *var = ResolveVariableAddress(settings_ptr, sd);
+	int32 value = ReadVariable (settings_ptr, sd);
 
 	bool rtl = _current_text_dir == TD_RTL;
 	uint buttons_left = rtl ? right + 1 - SETTING_BUTTON_WIDTH : left;
@@ -1234,7 +1233,6 @@ void SettingEntry::DrawSetting(GameSettings *settings_ptr, int left, int right, 
 	bool editable = sd->IsEditable();
 
 	SetDParam(0, highlight ? STR_ORANGE_STRING1_WHITE : STR_ORANGE_STRING1_LTBLUE);
-	int32 value = (int32)ReadValue(var, sd->save.conv);
 	if (sdb->cmd == SDT_BOOLX) {
 		/* Draw checkbox for boolean-value either on/off */
 		DrawBoolButton(buttons_left, button_y, value != 0, editable);
@@ -2066,8 +2064,7 @@ struct GameSettingsWindow : Window {
 			return;
 		}
 
-		const void *var = ResolveVariableAddress(settings_ptr, sd);
-		int32 value = (int32)ReadValue(var, sd->save.conv);
+		int32 value = ReadVariable (settings_ptr, sd);
 
 		/* clicked on the icon on the left side. Either scroller, bool on/off or dropdown */
 		if (x < SETTING_BUTTON_WIDTH && (sd->desc.flags & SGF_MULTISTRING)) {
