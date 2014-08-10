@@ -195,24 +195,6 @@ NodeID LinkGraph::AddNode(const Station *st)
 }
 
 /**
- * Fill an edge with values from a link. Set the restricted or unrestricted
- * update timestamp according to the given update mode.
- * @param to Destination node of the link.
- * @param capacity Capacity of the link.
- * @param usage Usage to be added.
- * @param mode Update mode to be used.
- */
-void LinkGraph::Node::AddEdge(NodeID to, uint capacity, uint usage, EdgeUpdateMode mode)
-{
-	assert(this->index != to);
-	BaseEdge &edge = this->edges[to];
-	BaseEdge &first = this->edges[this->index];
-	edge.Set (capacity, usage, mode);
-	edge.next_edge = first.next_edge;
-	first.next_edge = to;
-}
-
-/**
  * Creates an edge if none exists yet or updates an existing edge.
  * @param to Target node.
  * @param capacity Capacity of the link.
@@ -221,10 +203,15 @@ void LinkGraph::Node::AddEdge(NodeID to, uint capacity, uint usage, EdgeUpdateMo
  */
 void LinkGraph::Node::UpdateEdge(NodeID to, uint capacity, uint usage, EdgeUpdateMode mode)
 {
+	assert(this->index != to);
 	assert(capacity > 0);
 	assert(usage <= capacity);
 	if (this->edges[to].capacity == 0) {
-		this->AddEdge(to, capacity, usage, mode);
+		BaseEdge &edge = this->edges[to];
+		BaseEdge &first = this->edges[this->index];
+		edge.Set (capacity, usage, mode);
+		edge.next_edge = first.next_edge;
+		first.next_edge = to;
 	} else {
 		(*this)[to].Update(capacity, usage, mode);
 	}

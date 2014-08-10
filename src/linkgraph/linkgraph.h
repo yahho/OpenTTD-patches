@@ -394,7 +394,6 @@ public:
 			this->node.SetDemand (demand);
 		}
 
-		void AddEdge(NodeID to, uint capacity, uint usage, EdgeUpdateMode mode);
 		void UpdateEdge(NodeID to, uint capacity, uint usage, EdgeUpdateMode mode);
 		void RemoveEdge(NodeID to);
 	};
