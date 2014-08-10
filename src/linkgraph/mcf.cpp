@@ -134,7 +134,7 @@ public:
 	FlowEdgeIterator(LinkGraphJob &job) : job(job)
 	{
 		for (NodeID i = 0; i < job.Size(); ++i) {
-			this->station_to_node[job[i].Station()] = i;
+			this->station_to_node[job[i]->Station()] = i;
 		}
 	}
 
@@ -162,7 +162,7 @@ public:
 		{
 			static const FlowStat::SharesMap empty;
 			const FlowStatMap &flows = f.job[node].Flows();
-			FlowStatMap::const_iterator it = flows.find(f.job[source].Station());
+			FlowStatMap::const_iterator it = flows.find(f.job[source]->Station());
 			if (it != flows.end()) {
 				this->it = it->second.GetShares()->begin();
 				this->end = it->second.GetShares()->end();

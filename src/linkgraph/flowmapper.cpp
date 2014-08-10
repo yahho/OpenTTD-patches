@@ -20,15 +20,15 @@ void FlowMapper::Run(LinkGraphJob &job) const
 {
 	for (NodeID node_id = 0; node_id < job.Size(); ++node_id) {
 		LinkGraphJob::Node prev_node = job[node_id];
-		StationID prev = prev_node.Station();
+		StationID prev = prev_node->Station();
 		PathList &paths = prev_node.Paths();
 		for (PathList::iterator i = paths.begin(); i != paths.end(); ++i) {
 			Path *path = *i;
 			uint flow = path->GetFlow();
 			if (flow == 0) break;
 			LinkGraphJob::Node node = job[path->GetNode()];
-			StationID via = node.Station();
-			StationID origin = job[path->GetOrigin()].Station();
+			StationID via = node->Station();
+			StationID origin = job[path->GetOrigin()]->Station();
 			assert(prev != via && via != origin);
 			/* Mark all of the flow for local consumption at "first". */
 			node.Flows().AddFlow(origin, via, flow);
@@ -47,7 +47,7 @@ void FlowMapper::Run(LinkGraphJob &job) const
 		/* Remove local consumption shares marked as invalid. */
 		LinkGraphJob::Node node = job[node_id];
 		FlowStatMap &flows = node.Flows();
-		flows.FinalizeLocalConsumption(node.Station());
+		flows.FinalizeLocalConsumption(node->Station());
 		if (this->scale) {
 			/* Scale by time the graph has been running without being compressed. Add 1 to avoid
 			 * division by 0 if spawn date == last compression date. This matches

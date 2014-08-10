@@ -146,30 +146,6 @@ public:
 		 */
 		NodeWrapper(Tnode &node, Tedge *edges, NodeID index) : node(node),
 			edges(edges), index(index) {}
-
-		/**
-		 * Get supply of wrapped node.
-		 * @return Supply.
-		 */
-		uint Supply() const { return this->node.Supply(); }
-
-		/**
-		 * Get demand of wrapped node.
-		 * @return Demand.
-		 */
-		uint Demand() const { return this->node.Demand(); }
-
-		/**
-		 * Get ID of station belonging to wrapped node.
-		 * @return ID of node's station.
-		 */
-		StationID Station() const { return this->node.Station(); }
-
-		/**
-		 * Get node's last update.
-		 * @return Last update.
-		 */
-		Date LastUpdate() const { return this->node.LastUpdate(); }
 	};
 
 	/**
@@ -312,6 +288,12 @@ public:
 			NodeWrapper<const BaseNode, const BaseEdge>(lg->nodes[node], lg->edges[node], node)
 		{}
 
+		/** Get the underlying node. */
+		const BaseNode &operator* (void) const { return this->node; }
+
+		/** Get the underlying node. */
+		const BaseNode *operator-> (void) const { return &this->node; }
+
 		/**
 		 * Get an edge.
 		 * @param to ID of end node of edge.
@@ -345,6 +327,12 @@ public:
 		NodeRef (LinkGraph *lg, NodeID node) :
 			NodeWrapper<BaseNode, BaseEdge>(lg->nodes[node], lg->edges[node], node)
 		{}
+
+		/** Get the underlying node. */
+		BaseNode &operator* (void) { return this->node; }
+
+		/** Get the underlying node. */
+		BaseNode *operator-> (void) { return &this->node; }
 
 		/**
 		 * Get an edge.

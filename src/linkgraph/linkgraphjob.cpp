@@ -97,7 +97,7 @@ LinkGraphJob::~LinkGraphJob()
 		Node from = (*this)[node_id];
 
 		/* The station can have been deleted. Remove all flows originating from it then. */
-		Station *st = Station::GetIfValid(from.Station());
+		Station *st = Station::GetIfValid(from->Station());
 		if (st == NULL) {
 			this->EraseFlows(node_id);
 			continue;
@@ -116,7 +116,7 @@ LinkGraphJob::~LinkGraphJob()
 
 		for (EdgeIterator it(from.Begin()); it != from.End(); ++it) {
 			if (from[it.get_id()].Flow() == 0) continue;
-			StationID to = (*this)[it.get_id()].Station();
+			StationID to = (*this)[it.get_id()]->Station();
 			Station *st2 = Station::GetIfValid(to);
 			if (st2 == NULL || st2->goods[this->Cargo()].link_graph != this->link_graph.index ||
 					st2->goods[this->Cargo()].node != it.get_id() ||
@@ -174,7 +174,7 @@ void LinkGraphJob::Init()
 	this->nodes.Resize(size);
 	this->edges.Resize(size, size);
 	for (uint i = 0; i < size; ++i) {
-		this->nodes[i].Init(this->link_graph[i].Supply());
+		this->nodes[i].Init(this->link_graph[i]->Supply());
 		EdgeAnnotation *node_edges = this->edges[i];
 		for (uint j = 0; j < size; ++j) {
 			node_edges[j].Init();

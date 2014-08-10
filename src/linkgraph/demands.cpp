@@ -36,7 +36,7 @@ public:
 	 */
 	inline void AddNode(const Node &node)
 	{
-		this->supply_sum += node.Supply();
+		this->supply_sum += node->Supply();
 	}
 
 	/**
@@ -57,7 +57,7 @@ public:
 	 */
 	inline uint EffectiveSupply(const Node &from, const Node &to)
 	{
-		return max(from.Supply() * max(1U, to.Supply()) * this->mod_size / 100 / this->demand_per_node, 1U);
+		return max(from->Supply() * max(1U, to->Supply()) * this->mod_size / 100 / this->demand_per_node, 1U);
 	}
 
 	/**
@@ -69,7 +69,7 @@ public:
 	 */
 	inline bool HasDemandLeft(const Node &to)
 	{
-		return (to.Supply() == 0 || to.UndeliveredSupply() > 0) && to.Demand() > 0;
+		return (to->Supply() == 0 || to.UndeliveredSupply() > 0) && to->Demand() > 0;
 	}
 
 	void SetDemands(LinkGraphJob &job, NodeID from, NodeID to, uint demand_forw);
@@ -108,7 +108,7 @@ public:
 	 */
 	inline uint EffectiveSupply(const Node &from, const Node &)
 	{
-		return from.Supply();
+		return from->Supply();
 	}
 
 	/**
@@ -117,7 +117,7 @@ public:
 	 * @param to The node to be checked.
 	 * @param to_anno Unused.
 	 */
-	inline bool HasDemandLeft(const Node &to) { return to.Demand() > 0; }
+	inline bool HasDemandLeft(const Node &to) { return to->Demand() > 0; }
 };
 
 /**
@@ -130,7 +130,7 @@ public:
  */
 void SymmetricScaler::SetDemands(LinkGraphJob &job, NodeID from_id, NodeID to_id, uint demand_forw)
 {
-	if (job[from_id].Demand() > 0) {
+	if (job[from_id]->Demand() > 0) {
 		uint demand_back = demand_forw * this->mod_size / 100;
 		uint undelivered = job[to_id].UndeliveredSupply();
 		if (demand_back > undelivered) {
@@ -171,11 +171,11 @@ void DemandCalculator::CalcDemand(LinkGraphJob &job, Tscaler scaler)
 
 	for (NodeID node = 0; node < job.Size(); node++) {
 		scaler.AddNode(job[node]);
-		if (job[node].Supply() > 0) {
+		if (job[node]->Supply() > 0) {
 			supplies.push_back(node);
 			num_supplies++;
 		}
-		if (job[node].Demand() > 0) {
+		if (job[node]->Demand() > 0) {
 			demands.push_back(node);
 			num_demands++;
 		}
