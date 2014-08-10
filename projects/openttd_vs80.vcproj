@@ -1847,10 +1847,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\linkgraph\linkgraph_base.h"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\linkgraph\linkgraph_gui.h"
 				>
 			</File>

@@ -218,7 +218,6 @@ linkgraph/demands.h
 linkgraph/flowmapper.h
 linkgraph/init.h
 linkgraph/linkgraph.h
-linkgraph/linkgraph_base.h
 linkgraph/linkgraph_gui.h
 linkgraph/linkgraph_type.h
 linkgraph/linkgraphjob.h

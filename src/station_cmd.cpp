@@ -52,7 +52,8 @@
 #include "order_backup.h"
 #include "newgrf_house.h"
 #include "company_gui.h"
-#include "linkgraph/linkgraph_base.h"
+#include "linkgraph/linkgraph.h"
+#include "linkgraph/linkgraphschedule.h"
 #include "linkgraph/refresh.h"
 #include "widgets/station_widget.h"
 #include "signal_func.h"
@@ -3404,8 +3405,8 @@ void DeleteStaleLinks(Station *from)
 		GoodsEntry &ge = from->goods[c];
 		LinkGraph *lg = LinkGraph::GetIfValid(ge.link_graph);
 		if (lg == NULL) continue;
-		Node node = (*lg)[ge.node];
-		for (EdgeIterator it(node.Begin()); it != node.End();) {
+		LinkGraph::Node node = (*lg)[ge.node];
+		for (LinkGraph::EdgeIterator it(node.Begin()); it != node.End();) {
 			LinkGraph::BaseEdge *edge = it->second;
 			Station *to = Station::Get((*lg)[it->first].Station());
 			assert(to->goods[c].node == it->first);

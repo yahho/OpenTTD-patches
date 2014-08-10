@@ -678,9 +678,6 @@
     <ClInclude Include="..\src\linkgraph\linkgraph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\linkgraph\linkgraph_base.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\linkgraph\linkgraph_gui.h">
       <Filter>Header Files</Filter>
     </ClInclude>

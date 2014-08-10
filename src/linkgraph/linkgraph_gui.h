@@ -15,7 +15,8 @@
 #include "../company_func.h"
 #include "../station_base.h"
 #include "../widget_type.h"
-#include "linkgraph_base.h"
+#include "linkgraph.h"
+#include "linkgraphschedule.h"
 #include <map>
 #include <list>
 
