@@ -147,7 +147,7 @@ void LinkGraphOverlay::AddLinks(const Station *from, const Station *to)
 			continue;
 		}
 		const LinkGraph &lg = *LinkGraph::Get(ge.link_graph);
-		ConstEdge edge = lg[ge.node][to->goods[c].node];
+		const LinkGraph::BaseEdge &edge = lg[ge.node][to->goods[c].node];
 		if (edge.Capacity() > 0) {
 			this->AddStats(lg.Monthly(edge.Capacity()), lg.Monthly(edge.Usage()),
 					ge.GetSumFlowVia(to->index), from->owner == OWNER_NONE || to->owner == OWNER_NONE,

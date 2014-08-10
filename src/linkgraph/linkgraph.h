@@ -88,68 +88,6 @@ public:
 	};
 
 	/**
-	 * Wrapper for an edge (const or not) allowing retrieval, but no modification.
-	 * @tparam Tedge Actual edge class, may be "const BaseEdge" or just "BaseEdge".
-	 */
-	template<typename Tedge>
-	class EdgeWrapper {
-	protected:
-		Tedge &edge; ///< Actual edge to be used.
-
-	public:
-
-		/**
-		 * Wrap a an edge.
-		 * @param edge Edge to be wrapped.
-		 */
-		EdgeWrapper (Tedge &edge) : edge(edge) {}
-
-		/**
-		 * Get edge's capacity.
-		 * @return Capacity.
-		 */
-		uint Capacity() const { return this->edge.Capacity(); }
-
-		/**
-		 * Get edge's usage.
-		 * @return Usage.
-		 */
-		uint Usage() const { return this->edge.Usage(); }
-
-		/**
-		 * Get edge's distance.
-		 * @return Distance.
-		 */
-		uint Distance() const { return this->edge.Distance(); }
-
-		/**
-		 * Get the date of the last update to the edge's unrestricted capacity.
-		 * @return Last update.
-		 */
-		Date LastUnrestrictedUpdate() const { return this->edge.LastUnrestrictedUpdate(); }
-
-		/**
-		 * Get the date of the last update to the edge's restricted capacity.
-		 * @return Last update.
-		 */
-		Date LastRestrictedUpdate() const { return this->edge.LastRestrictedUpdate(); }
-
-		/**
-		 * Get the date of the last update to any part of the edge's capacity.
-		 * @return Last update.
-		 */
-		Date LastUpdate() const { return this->edge.LastUpdate(); }
-
-		void Update (uint capacity, uint usage, EdgeUpdateMode mode)
-		{
-			this->edge.Update (capacity, usage, mode);
-		}
-
-		void Restrict() { this->edge.Restrict(); }
-		void Release() { this->edge.Release(); }
-	};
-
-	/**
 	 * Wrapper for a node (const or not) allowing retrieval, but no modification.
 	 * @tparam Tedge Actual node class, may be "const BaseNode" or just "BaseNode".
 	 * @tparam Tedge Actual edge class, may be "const BaseEdge" or just "BaseEdge".
@@ -309,16 +247,6 @@ public:
 	};
 
 	/**
-	 * A constant edge class.
-	 */
-	typedef EdgeWrapper<const BaseEdge> ConstEdge;
-
-	/**
-	 * An updatable edge class.
-	 */
-	typedef EdgeWrapper<BaseEdge> Edge;
-
-	/**
 	 * An iterator for const edges. Cannot be typedef'ed because of
 	 * template-reference to ConstEdgeIterator itself.
 	 */
@@ -364,12 +292,11 @@ public:
 		{}
 
 		/**
-		 * Get a ConstEdge. This is not a reference as the wrapper objects are
-		 * not actually persistent.
+		 * Get an edge.
 		 * @param to ID of end node of edge.
-		 * @return Constant edge wrapper.
+		 * @return Constant edge.
 		 */
-		ConstEdge operator[](NodeID to) const { return ConstEdge(this->edges[to]); }
+		const BaseEdge &operator[](NodeID to) const { return this->edges[to]; }
 
 		/**
 		 * Get an iterator pointing to the start of the edges array.
@@ -399,12 +326,11 @@ public:
 		{}
 
 		/**
-		 * Get an Edge. This is not a reference as the wrapper objects are not
-		 * actually persistent.
+		 * Get an edge.
 		 * @param to ID of end node of edge.
-		 * @return Edge wrapper.
+		 * @return Edge.
 		 */
-		Edge operator[](NodeID to) { return Edge(this->edges[to]); }
+		BaseEdge &operator[](NodeID to) { return this->edges[to]; }
 
 		/**
 		 * Get an iterator pointing to the start of the edges array.

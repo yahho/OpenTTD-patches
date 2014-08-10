@@ -16,11 +16,9 @@
 #include "linkgraphschedule.h"
 
 typedef LinkGraph::Node Node;
-typedef LinkGraph::Edge Edge;
 typedef LinkGraph::EdgeIterator EdgeIterator;
 
 typedef LinkGraph::ConstNode ConstNode;
-typedef LinkGraph::ConstEdge ConstEdge;
 typedef LinkGraph::ConstEdgeIterator ConstEdgeIterator;
 
 
