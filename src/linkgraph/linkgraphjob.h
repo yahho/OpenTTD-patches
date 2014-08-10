@@ -69,7 +69,9 @@ public:
 	 * A job edge. Wraps a link graph edge and an edge annotation. The
 	 * annotation can be modified, the edge is constant.
 	 */
-	class Edge : public LinkGraph::ConstEdge {
+	class Edge {
+	public:
+		const LinkGraph::BaseEdge &edge;
 	private:
 		EdgeAnnotation &anno; ///< Annotation being wrapped.
 	public:
@@ -79,7 +81,13 @@ public:
 		 * @param anno Annotation to be wrapped.
 		 */
 		Edge(const LinkGraph::BaseEdge &edge, EdgeAnnotation &anno) :
-				LinkGraph::ConstEdge(edge), anno(anno) {}
+				edge(edge), anno(anno) {}
+
+		/** Get edge capacity. */
+		uint Capacity() const { return this->edge.capacity; }
+
+		/** Get edge distance. */
+		uint Distance() const { return this->edge.distance; }
 
 		/**
 		 * Get the transport demand between end the points of the edge.
