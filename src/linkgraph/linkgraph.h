@@ -61,6 +61,30 @@ public:
 		Date last_restricted_update;   ///< When the restricted part of the link was last updated.
 		NodeID next_edge;              ///< Destination of next valid edge starting at the same source node.
 		void Init(uint distance = 0);
+
+		/** Get edge capacity. */
+		uint Capacity() const { return this->capacity; }
+
+		/** Get edge usage. */
+		uint Usage() const { return this->usage; }
+
+		/** Get edge distance. */
+		uint Distance() const { return this->distance; }
+
+		/** Get the date of the last unrestricted capacity update. */
+		Date LastUnrestrictedUpdate() const { return this->last_unrestricted_update; }
+
+		/** Get the date of the last restricted capacity update. */
+		Date LastRestrictedUpdate() const { return this->last_restricted_update; }
+
+		/** Get the date of the last capacity update. */
+		Date LastUpdate() const { return max (this->last_unrestricted_update, this->last_restricted_update); }
+
+		void Update (uint capacity, uint usage, EdgeUpdateMode mode);
+
+		void Restrict() { this->last_unrestricted_update = INVALID_DATE; }
+
+		void Release() { this->last_restricted_update = INVALID_DATE; }
 	};
 
 	/**
@@ -84,37 +108,45 @@ public:
 		 * Get edge's capacity.
 		 * @return Capacity.
 		 */
-		uint Capacity() const { return this->edge.capacity; }
+		uint Capacity() const { return this->edge.Capacity(); }
 
 		/**
 		 * Get edge's usage.
 		 * @return Usage.
 		 */
-		uint Usage() const { return this->edge.usage; }
+		uint Usage() const { return this->edge.Usage(); }
 
 		/**
 		 * Get edge's distance.
 		 * @return Distance.
 		 */
-		uint Distance() const { return this->edge.distance; }
+		uint Distance() const { return this->edge.Distance(); }
 
 		/**
 		 * Get the date of the last update to the edge's unrestricted capacity.
 		 * @return Last update.
 		 */
-		Date LastUnrestrictedUpdate() const { return this->edge.last_unrestricted_update; }
+		Date LastUnrestrictedUpdate() const { return this->edge.LastUnrestrictedUpdate(); }
 
 		/**
 		 * Get the date of the last update to the edge's restricted capacity.
 		 * @return Last update.
 		 */
-		Date LastRestrictedUpdate() const { return this->edge.last_restricted_update; }
+		Date LastRestrictedUpdate() const { return this->edge.LastRestrictedUpdate(); }
 
 		/**
 		 * Get the date of the last update to any part of the edge's capacity.
 		 * @return Last update.
 		 */
-		Date LastUpdate() const { return max(this->edge.last_unrestricted_update, this->edge.last_restricted_update); }
+		Date LastUpdate() const { return this->edge.LastUpdate(); }
+
+		void Update (uint capacity, uint usage, EdgeUpdateMode mode)
+		{
+			this->edge.Update (capacity, usage, mode);
+		}
+
+		void Restrict() { this->edge.Restrict(); }
+		void Release() { this->edge.Release(); }
 	};
 
 	/**
@@ -284,17 +316,7 @@ public:
 	/**
 	 * An updatable edge class.
 	 */
-	class Edge : public EdgeWrapper<BaseEdge> {
-	public:
-		/**
-		 * Constructor
-		 * @param edge Edge to be wrapped.
-		 */
-		Edge(BaseEdge &edge) : EdgeWrapper<BaseEdge>(edge) {}
-		void Update(uint capacity, uint usage, EdgeUpdateMode mode);
-		void Restrict() { this->edge.last_unrestricted_update = INVALID_DATE; }
-		void Release() { this->edge.last_restricted_update = INVALID_DATE; }
-	};
+	typedef EdgeWrapper<BaseEdge> Edge;
 
 	/**
 	 * An iterator for const edges. Cannot be typedef'ed because of

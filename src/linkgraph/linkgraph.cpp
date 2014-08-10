@@ -266,26 +266,24 @@ void LinkGraph::Node::RemoveEdge(NodeID to)
  * least the given capacity and usage, otherwise add the capacity and usage.
  * In any case set the respective update timestamp(s), according to the given
  * mode.
- * @param from Start node of the edge.
- * @param to End node of the edge.
  * @param capacity Capacity to be added/updated.
  * @param usage Usage to be added.
  * @param mode Update mode to be applied.
  */
-void LinkGraph::Edge::Update(uint capacity, uint usage, EdgeUpdateMode mode)
+void LinkGraph::BaseEdge::Update (uint capacity, uint usage, EdgeUpdateMode mode)
 {
-	assert(this->edge.capacity > 0);
-	assert(capacity >= usage);
+	assert (this->capacity > 0);
+	assert (capacity >= usage);
 
 	if (mode & EUM_INCREASE) {
-		this->edge.capacity += capacity;
-		this->edge.usage += usage;
+		this->capacity += capacity;
+		this->usage += usage;
 	} else if (mode & EUM_REFRESH) {
-		this->edge.capacity = max(this->edge.capacity, capacity);
-		this->edge.usage = max(this->edge.usage, usage);
+		this->capacity = max (this->capacity, capacity);
+		this->usage = max (this->usage, usage);
 	}
-	if (mode & EUM_UNRESTRICTED) this->edge.last_unrestricted_update = _date;
-	if (mode & EUM_RESTRICTED) this->edge.last_restricted_update = _date;
+	if (mode & EUM_UNRESTRICTED) this->last_unrestricted_update = _date;
+	if (mode & EUM_RESTRICTED) this->last_restricted_update = _date;
 }
 
 /**
