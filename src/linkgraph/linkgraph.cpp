@@ -207,12 +207,9 @@ void LinkGraph::Node::AddEdge(NodeID to, uint capacity, uint usage, EdgeUpdateMo
 	assert(this->index != to);
 	BaseEdge &edge = this->edges[to];
 	BaseEdge &first = this->edges[this->index];
-	edge.capacity = capacity;
-	edge.usage = usage;
+	edge.Set (capacity, usage, mode);
 	edge.next_edge = first.next_edge;
 	first.next_edge = to;
-	if (mode & EUM_UNRESTRICTED)  edge.last_unrestricted_update = _date;
-	if (mode & EUM_RESTRICTED) edge.last_restricted_update = _date;
 }
 
 /**
@@ -259,6 +256,21 @@ void LinkGraph::Node::RemoveEdge(NodeID to)
 			next = this->edges[next].next_edge;
 		}
 	}
+}
+
+/**
+ * Set an edge. Set the restricted or unrestricted update timestamp according
+ * to the given update mode.
+ * @param capacity Capacity to be set.
+ * @param usage Usage to be set.
+ * @param mode Update mode to be applied.
+ */
+void LinkGraph::BaseEdge::Set (uint capacity, uint usage, EdgeUpdateMode mode)
+{
+	this->capacity = capacity;
+	this->usage = usage;
+	if (mode & EUM_UNRESTRICTED) this->last_unrestricted_update = _date;
+	if (mode & EUM_RESTRICTED)   this->last_restricted_update   = _date;
 }
 
 /**

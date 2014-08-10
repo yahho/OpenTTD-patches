@@ -111,6 +111,7 @@ public:
 		/** Get the date of the last capacity update. */
 		Date LastUpdate() const { return max (this->last_unrestricted_update, this->last_restricted_update); }
 
+		void Set (uint capacity, uint usage, EdgeUpdateMode mode);
 		void Update (uint capacity, uint usage, EdgeUpdateMode mode);
 
 		void Restrict() { this->last_unrestricted_update = INVALID_DATE; }
