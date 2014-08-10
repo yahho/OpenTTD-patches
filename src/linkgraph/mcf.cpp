@@ -110,7 +110,7 @@ public:
 		 */
 		NodeID Next()
 		{
-			return this->it != this->end ? (this->it++)->first : INVALID_NODE;
+			return this->it != this->end ? (this->it++).get_id() : INVALID_NODE;
 		}
 	};
 };

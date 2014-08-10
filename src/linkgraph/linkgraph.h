@@ -185,28 +185,6 @@ public:
 		Tedge *base;    ///< Array of edges being iterated.
 		NodeID current; ///< Current offset in edges array.
 
-		/**
-		 * A "fake" pointer to enable operator-> on temporaries. As the objects
-		 * returned from operator* aren't references but real objects, we have
-		 * to return something that implements operator->, but isn't a pointer
-		 * from operator->. A fake pointer.
-		 */
-		class FakePointer : public SmallPair<NodeID, Tedge*> {
-		public:
-
-			/**
-			 * Construct a fake pointer from a pair of NodeID and edge.
-			 * @param pair Pair to be "pointed" to (in fact shallow-copied).
-			 */
-			FakePointer(const SmallPair<NodeID, Tedge*> &pair) : SmallPair<NodeID, Tedge*>(pair) {}
-
-			/**
-			 * Retrieve the pair by operator->.
-			 * @return Pair being "pointed" to.
-			 */
-			SmallPair<NodeID, Tedge*> *operator->() { return this; }
-		};
-
 	public:
 		/**
 		 * Constructor.
@@ -265,21 +243,27 @@ public:
 			return this->base != other.base || this->current != other.current;
 		}
 
+		/** Get current edge target node id. */
+		NodeID get_id (void) const
+		{
+			return this->current;
+		}
+
 		/**
 		 * Dereference with operator*.
 		 * @return Pair of current target NodeID and edge object.
 		 */
-		SmallPair<NodeID, Tedge*> operator*() const
+		Tedge &operator*() const
 		{
-			return SmallPair<NodeID, Tedge*>(this->current, this->base + this->current);
+			return this->base[this->current];
 		}
 
 		/**
 		 * Dereference with operator->.
 		 * @return Fake pointer to Pair of current target NodeID and edge object.
 		 */
-		FakePointer operator->() const {
-			return FakePointer(this->operator*());
+		Tedge *operator->() const {
+			return this->base + this->current;
 		}
 	};
 

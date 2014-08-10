@@ -75,7 +75,7 @@ void LinkGraphOverlay::RebuildCache()
 			LinkGraph::ConstNodeRef from_node = lg[sta->goods[c].node];
 			supply += lg.Monthly(from_node.Supply());
 			for (LinkGraph::ConstEdgeIterator i = from_node.Begin(); i != from_node.End(); ++i) {
-				StationID to = lg[i->first].Station();
+				StationID to = lg[i.get_id()].Station();
 				assert(from != to);
 				if (!Station::IsValidID(to) || seen_links.find(to) != seen_links.end()) {
 					continue;

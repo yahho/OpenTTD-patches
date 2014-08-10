@@ -115,19 +115,19 @@ LinkGraphJob::~LinkGraphJob()
 		FlowStatMap &flows = from.Flows();
 
 		for (EdgeIterator it(from.Begin()); it != from.End(); ++it) {
-			if (from[it->first].Flow() == 0) continue;
-			StationID to = (*this)[it->first].Station();
+			if (from[it.get_id()].Flow() == 0) continue;
+			StationID to = (*this)[it.get_id()].Station();
 			Station *st2 = Station::GetIfValid(to);
 			if (st2 == NULL || st2->goods[this->Cargo()].link_graph != this->link_graph.index ||
-					st2->goods[this->Cargo()].node != it->first ||
-					(*lg)[node_id][it->first].LastUpdate() == INVALID_DATE) {
+					st2->goods[this->Cargo()].node != it.get_id() ||
+					(*lg)[node_id][it.get_id()].LastUpdate() == INVALID_DATE) {
 				/* Edge has been removed. Delete flows. */
 				StationIDStack erased = flows.DeleteFlows(to);
 				/* Delete old flows for source stations which have been deleted
 				 * from the new flows. This avoids flow cycles between old and
 				 * new flows. */
 				while (!erased.IsEmpty()) ge.flows.erase(erased.Pop());
-			} else if ((*lg)[node_id][it->first].LastUnrestrictedUpdate() == INVALID_DATE) {
+			} else if ((*lg)[node_id][it.get_id()].LastUnrestrictedUpdate() == INVALID_DATE) {
 				/* Edge is fully restricted. */
 				flows.RestrictFlows(to);
 			}
