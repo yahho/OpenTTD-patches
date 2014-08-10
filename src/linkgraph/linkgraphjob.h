@@ -178,20 +178,6 @@ public:
 		Edge operator[](NodeID to) const { return Edge(this->edges[to], this->edge_annos[to]); }
 
 		/**
-		 * Iterator for the "begin" of the edge array. Only edges with capacity
-		 * are iterated. The others are skipped.
-		 * @return Iterator pointing to the first edge.
-		 */
-		EdgeIterator Begin() const { return EdgeIterator(this->edges, index); }
-
-		/**
-		 * Iterator for the "end" of the edge array. Only edges with capacity
-		 * are iterated. The others are skipped.
-		 * @return Iterator pointing beyond the last edge.
-		 */
-		EdgeIterator End() const { return EdgeIterator(this->edges, INVALID_NODE); }
-
-		/**
 		 * Get amount of supply that hasn't been delivered, yet.
 		 * @return Undelivered supply.
 		 */

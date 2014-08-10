@@ -122,7 +122,7 @@ void LinkGraph::RemoveNode(NodeID id)
 
 	NodeID last_node = this->Size() - 1;
 	for (NodeID i = 0; i <= last_node; ++i) {
-		(*this)[i].RemoveEdge(id);
+		(*this)[i].unlink(id);
 		BaseEdge *node_edges = this->edges[i];
 		NodeID prev = i;
 		NodeID next = node_edges[i].next_edge;
@@ -219,31 +219,18 @@ void LinkGraph::UpdateEdge (NodeID from, NodeID to, uint capacity, uint usage, E
 }
 
 /**
- * Remove an outgoing edge from this node.
+ * Remove an edge from the graph.
+ * @param from ID of source node.
  * @param to ID of destination node.
  */
-void LinkGraph::NodeRef::RemoveEdge (NodeID to)
+void LinkGraph::RemoveEdge (NodeID from, NodeID to)
 {
-	if (this->index == to) return;
-	BaseEdge &edge = this->edges[to];
-	edge.capacity = 0;
-	edge.last_unrestricted_update = INVALID_DATE;
-	edge.last_restricted_update = INVALID_DATE;
-	edge.usage = 0;
-
-	NodeID prev = this->index;
-	NodeID next = this->edges[this->index].next_edge;
-	while (next != INVALID_NODE) {
-		if (next == to) {
-			/* Will be removed, skip it. */
-			this->edges[prev].next_edge = edge.next_edge;
-			edge.next_edge = INVALID_NODE;
-			break;
-		} else {
-			prev = next;
-			next = this->edges[next].next_edge;
-		}
-	}
+	assert(from != to);
+	BaseEdge *edge = (*this)[from].unlink(to);
+	edge->capacity = 0;
+	edge->last_unrestricted_update = INVALID_DATE;
+	edge->last_restricted_update = INVALID_DATE;
+	edge->usage = 0;
 }
 
 /**
@@ -291,11 +278,9 @@ void LinkGraph::BaseEdge::Update (uint capacity, uint usage, EdgeUpdateMode mode
  * loading from save games. The component is expected to be empty before.
  * @param size New size of the component.
  */
-void LinkGraph::Init(uint size)
+void LinkGraph::Resize(uint size)
 {
-	assert(this->Size() == 0);
-	this->edges.Resize(size, size);
-	this->nodes.Resize(size);
+	Graph <LinkGraphNode, LinkGraphEdge>::Resize (size);
 
 	for (uint i = 0; i < size; ++i) {
 		this->nodes[i].Init();

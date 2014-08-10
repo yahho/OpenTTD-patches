@@ -545,6 +545,7 @@
     <ClInclude Include="..\src\language.h" />
     <ClInclude Include="..\src\linkgraph\demands.h" />
     <ClInclude Include="..\src\linkgraph\flowmapper.h" />
+    <ClInclude Include="..\src\linkgraph\graph.h" />
     <ClInclude Include="..\src\linkgraph\init.h" />
     <ClInclude Include="..\src\linkgraph\linkgraph.h" />
     <ClInclude Include="..\src\linkgraph\linkgraph_gui.h" />

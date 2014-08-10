@@ -672,6 +672,9 @@
     <ClInclude Include="..\src\linkgraph\flowmapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\linkgraph\graph.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\linkgraph\init.h">
       <Filter>Header Files</Filter>
     </ClInclude>

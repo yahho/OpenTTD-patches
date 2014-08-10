@@ -1836,6 +1836,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\linkgraph\graph.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\linkgraph\init.h"
 				>
 			</File>

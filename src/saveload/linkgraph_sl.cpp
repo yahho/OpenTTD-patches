@@ -173,7 +173,7 @@ static void Load_LGRP(LoadBuffer *reader)
 		}
 		LinkGraph *lg = new (index) LinkGraph();
 		reader->ReadObject(lg, GetLinkGraphDesc());
-		lg->Init(_num_nodes);
+		lg->Resize(_num_nodes);
 		Load_LinkGraph(reader, *lg);
 	}
 }
@@ -193,7 +193,7 @@ static void Load_LGRJ(LoadBuffer *reader)
 		reader->ReadObject(lgj, GetLinkGraphJobDesc());
 		LinkGraph &lg = const_cast<LinkGraph &>(lgj->Graph());
 		reader->ReadObject(&lg, GetLinkGraphDesc());
-		lg.Init(_num_nodes);
+		lg.Resize(_num_nodes);
 		Load_LinkGraph(reader, lg);
 	}
 }

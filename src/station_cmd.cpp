@@ -506,7 +506,7 @@ void UpdateStationAcceptance(Station *st, bool show_msg)
 		GoodsEntry &ge = st->goods[i];
 		SB(ge.status, GoodsEntry::GES_ACCEPTANCE, 1, amt >= 8);
 		if (LinkGraph::IsValidID(ge.link_graph)) {
-			(*LinkGraph::Get(ge.link_graph))[ge.node].SetDemand(amt / 8);
+			(*LinkGraph::Get(ge.link_graph))[ge.node]->SetDemand(amt / 8);
 		}
 	}
 
@@ -3446,7 +3446,7 @@ void DeleteStaleLinks(Station *from)
 				}
 				if (!updated) {
 					/* If it's still considered dead remove it. */
-					node.RemoveEdge(to->goods[c].node);
+					lg->RemoveEdge (ge.node, to->goods[c].node);
 					ge.flows.DeleteFlows(to->index);
 					RerouteCargo(from, c, to->index, from->index);
 				}
@@ -3641,7 +3641,7 @@ static uint UpdateStationWaiting(Station *st, CargoID type, uint amount, SourceT
 	} else {
 		lg = LinkGraph::Get(ge.link_graph);
 	}
-	if (lg != NULL) (*lg)[ge.node].UpdateSupply(amount);
+	if (lg != NULL) (*lg)[ge.node]->UpdateSupply(amount);
 
 	if (!ge.HasRating()) {
 		InvalidateWindowData(WC_STATION_LIST, st->index);
