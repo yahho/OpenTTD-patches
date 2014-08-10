@@ -3406,13 +3406,13 @@ void DeleteStaleLinks(Station *from)
 		if (lg == NULL) continue;
 		Node node = (*lg)[ge.node];
 		for (EdgeIterator it(node.Begin()); it != node.End();) {
-			Edge edge = it->second;
+			LinkGraph::BaseEdge *edge = it->second;
 			Station *to = Station::Get((*lg)[it->first].Station());
 			assert(to->goods[c].node == it->first);
 			++it; // Do that before removing the edge. Anything else may crash.
-			assert(_date >= edge.LastUpdate());
+			assert(_date >= edge->LastUpdate());
 			uint timeout = LinkGraph::MIN_TIMEOUT_DISTANCE + (DistanceManhattan(from->xy, to->xy) >> 3);
-			if ((uint)(_date - edge.LastUpdate()) > timeout) {
+			if ((uint)(_date - edge->LastUpdate()) > timeout) {
 				/* Have all vehicles refresh their next hops before deciding to
 				 * remove the node. */
 				bool updated = false;
@@ -3439,7 +3439,7 @@ void DeleteStaleLinks(Station *from)
 						 *   same list already and if the consist can actually carry the cargo we're looking
 						 *   for. With conditional and refit orders this is not quite trivial, though. */
 						LinkRefresher::Run(v, false); // Don't allow merging. Otherwise lg might get deleted.
-						if (edge.LastUpdate() == _date) updated = true;
+						if (edge->LastUpdate() == _date) updated = true;
 					}
 					if (updated) break;
 				}
@@ -3449,12 +3449,12 @@ void DeleteStaleLinks(Station *from)
 					ge.flows.DeleteFlows(to->index);
 					RerouteCargo(from, c, to->index, from->index);
 				}
-			} else if (edge.LastUnrestrictedUpdate() != INVALID_DATE && (uint)(_date - edge.LastUnrestrictedUpdate()) > timeout) {
-				edge.Restrict();
+			} else if (edge->LastUnrestrictedUpdate() != INVALID_DATE && (uint)(_date - edge->LastUnrestrictedUpdate()) > timeout) {
+				edge->Restrict();
 				ge.flows.RestrictFlows(to->index);
 				RerouteCargo(from, c, to->index, from->index);
-			} else if (edge.LastRestrictedUpdate() != INVALID_DATE && (uint)(_date - edge.LastRestrictedUpdate()) > timeout) {
-				edge.Release();
+			} else if (edge->LastRestrictedUpdate() != INVALID_DATE && (uint)(_date - edge->LastRestrictedUpdate()) > timeout) {
+				edge->Release();
 			}
 		}
 		assert(_date >= lg->LastCompression());

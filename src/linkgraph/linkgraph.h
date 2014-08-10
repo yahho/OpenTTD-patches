@@ -216,20 +216,20 @@ public:
 		 * to return something that implements operator->, but isn't a pointer
 		 * from operator->. A fake pointer.
 		 */
-		class FakePointer : public SmallPair<NodeID, Tedge> {
+		class FakePointer : public SmallPair<NodeID, Tedge*> {
 		public:
 
 			/**
 			 * Construct a fake pointer from a pair of NodeID and edge.
 			 * @param pair Pair to be "pointed" to (in fact shallow-copied).
 			 */
-			FakePointer(const SmallPair<NodeID, Tedge> &pair) : SmallPair<NodeID, Tedge>(pair) {}
+			FakePointer(const SmallPair<NodeID, Tedge*> &pair) : SmallPair<NodeID, Tedge*>(pair) {}
 
 			/**
 			 * Retrieve the pair by operator->.
 			 * @return Pair being "pointed" to.
 			 */
-			SmallPair<NodeID, Tedge> *operator->() { return this; }
+			SmallPair<NodeID, Tedge*> *operator->() { return this; }
 		};
 
 	public:
@@ -294,9 +294,9 @@ public:
 		 * Dereference with operator*.
 		 * @return Pair of current target NodeID and edge object.
 		 */
-		SmallPair<NodeID, Tedge> operator*() const
+		SmallPair<NodeID, Tedge*> operator*() const
 		{
-			return SmallPair<NodeID, Tedge>(this->current, this->base[this->current]);
+			return SmallPair<NodeID, Tedge*>(this->current, this->base + this->current);
 		}
 
 		/**
