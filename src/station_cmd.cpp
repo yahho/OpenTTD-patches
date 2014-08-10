@@ -3405,7 +3405,7 @@ void DeleteStaleLinks(Station *from)
 		GoodsEntry &ge = from->goods[c];
 		LinkGraph *lg = LinkGraph::GetIfValid(ge.link_graph);
 		if (lg == NULL) continue;
-		LinkGraph::Node node = (*lg)[ge.node];
+		LinkGraph::NodeRef node = (*lg)[ge.node];
 		for (LinkGraph::EdgeIterator it(node.Begin()); it != node.End();) {
 			LinkGraph::BaseEdge *edge = it->second;
 			Station *to = Station::Get((*lg)[it->first].Station());

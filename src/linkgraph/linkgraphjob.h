@@ -153,7 +153,7 @@ public:
 	 * Link graph job node. Wraps a constant link graph node and a modifiable
 	 * node annotation.
 	 */
-	class Node : public LinkGraph::ConstNode {
+	class Node : public LinkGraph::ConstNodeRef {
 	private:
 		NodeAnnotation &node_anno;  ///< Annotation being wrapped.
 		EdgeAnnotation *edge_annos; ///< Edge annotations belonging to this node.
@@ -165,7 +165,7 @@ public:
 		 * @param node ID of the node.
 		 */
 		Node (LinkGraphJob *lgj, NodeID node) :
-			LinkGraph::ConstNode(&lgj->link_graph, node),
+			LinkGraph::ConstNodeRef (&lgj->link_graph, node),
 			node_anno(lgj->nodes[node]), edge_annos(lgj->edges[node])
 		{}
 

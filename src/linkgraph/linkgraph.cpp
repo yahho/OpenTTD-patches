@@ -222,7 +222,7 @@ void LinkGraph::UpdateEdge (NodeID from, NodeID to, uint capacity, uint usage, E
  * Remove an outgoing edge from this node.
  * @param to ID of destination node.
  */
-void LinkGraph::Node::RemoveEdge(NodeID to)
+void LinkGraph::NodeRef::RemoveEdge (NodeID to)
 {
 	if (this->index == to) return;
 	BaseEdge &edge = this->edges[to];

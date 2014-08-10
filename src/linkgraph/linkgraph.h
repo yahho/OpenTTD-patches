@@ -317,14 +317,14 @@ public:
 	 * Constant node class. Only retrieval operations are allowed on both the
 	 * node itself and its edges.
 	 */
-	class ConstNode : public NodeWrapper<const BaseNode, const BaseEdge> {
+	class ConstNodeRef : public NodeWrapper<const BaseNode, const BaseEdge> {
 	public:
 		/**
 		 * Constructor.
 		 * @param lg LinkGraph to get the node from.
 		 * @param node ID of the node.
 		 */
-		ConstNode(const LinkGraph *lg, NodeID node) :
+		ConstNodeRef (const LinkGraph *lg, NodeID node) :
 			NodeWrapper<const BaseNode, const BaseEdge>(lg->nodes[node], lg->edges[node], node)
 		{}
 
@@ -351,14 +351,14 @@ public:
 	/**
 	 * Updatable node class. The node itself as well as its edges can be modified.
 	 */
-	class Node : public NodeWrapper<BaseNode, BaseEdge> {
+	class NodeRef : public NodeWrapper<BaseNode, BaseEdge> {
 	public:
 		/**
 		 * Constructor.
 		 * @param lg LinkGraph to get the node from.
 		 * @param node ID of the node.
 		 */
-		Node(LinkGraph *lg, NodeID node) :
+		NodeRef (LinkGraph *lg, NodeID node) :
 			NodeWrapper<BaseNode, BaseEdge>(lg->nodes[node], lg->edges[node], node)
 		{}
 
@@ -450,14 +450,14 @@ public:
 	 * @param num ID of the node.
 	 * @return the Requested node.
 	 */
-	inline Node operator[](NodeID num) { return Node(this, num); }
+	inline NodeRef operator[](NodeID num) { return NodeRef (this, num); }
 
 	/**
 	 * Get a const reference to a node with the specified id.
 	 * @param num ID of the node.
 	 * @return the Requested node.
 	 */
-	inline ConstNode operator[](NodeID num) const { return ConstNode(this, num); }
+	inline ConstNodeRef operator[](NodeID num) const { return ConstNodeRef (this, num); }
 
 	/**
 	 * Get the current size of the component.
@@ -493,8 +493,8 @@ public:
 	void UpdateEdge(NodeID from, NodeID to, uint capacity, uint usage, EdgeUpdateMode mode);
 
 protected:
-	friend class LinkGraph::ConstNode;
-	friend class LinkGraph::Node;
+	friend class LinkGraph::ConstNodeRef;
+	friend class LinkGraph::NodeRef;
 	friend const SaveLoad *GetLinkGraphDesc();
 	friend const SaveLoad *GetLinkGraphJobDesc();
 	friend void Save_LinkGraph(SaveDumper *dumper, const LinkGraph &lg);
