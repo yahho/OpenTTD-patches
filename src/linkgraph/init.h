@@ -3,7 +3,9 @@
 #ifndef INIT_H
 #define INIT_H
 
-#include "linkgraphjob_base.h"
+#include "linkgraph.h"
+#include "linkgraphjob.h"
+#include "linkgraphschedule.h"
 
 /**
  * Stateless, thread safe initialization hander. Initializes node and edge

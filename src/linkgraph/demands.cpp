@@ -11,6 +11,8 @@ typedef std::list<NodeID> NodeList;
  */
 class Scaler {
 public:
+	typedef LinkGraphJob::Node Node;
+
 	void SetDemands(LinkGraphJob &job, NodeID from, NodeID to, uint demand_forw);
 };
 

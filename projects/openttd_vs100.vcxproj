@@ -550,7 +550,6 @@
     <ClInclude Include="..\src\linkgraph\linkgraph_gui.h" />
     <ClInclude Include="..\src\linkgraph\linkgraph_type.h" />
     <ClInclude Include="..\src\linkgraph\linkgraphjob.h" />
-    <ClInclude Include="..\src\linkgraph\linkgraphjob_base.h" />
     <ClInclude Include="..\src\linkgraph\linkgraphschedule.h" />
     <ClInclude Include="..\src\linkgraph\mcf.h" />
     <ClInclude Include="..\src\linkgraph\refresh.h" />
