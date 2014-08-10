@@ -25,6 +25,94 @@ struct LoadBuffer;
 struct SaveDumper;
 class LinkGraph;
 
+
+/**
+ * Node of the link graph. contains all relevant information from the associated
+ * station. It's copied so that the link graph job can work on its own data set
+ * in a separate thread.
+ */
+struct LinkGraphNode {
+	uint supply;             ///< Supply at the station.
+	uint demand;             ///< Acceptance at the station.
+	StationID station;       ///< Station ID.
+	Date last_update;        ///< When the supply was last updated.
+	void Init(StationID st = INVALID_STATION, uint demand = 0);
+
+	/** Get supply of node. */
+	uint Supply() const { return this->supply; }
+
+	/** Get demand of node. */
+	uint Demand() const { return this->demand; }
+
+	/** Get ID of node station. */
+	StationID Station() const { return this->station; }
+
+	/** Get the date of the last node update. */
+	Date LastUpdate() const { return this->last_update; }
+
+	/**
+	 * Update the node's supply and set last_update to the current date.
+	 * @param supply Supply to be added.
+	 */
+	void UpdateSupply (uint supply)
+	{
+		this->supply += supply;
+		this->last_update = _date;
+	}
+
+	/**
+	 * Set the node's demand.
+	 * @param demand New demand for the node.
+	 */
+	void SetDemand (uint demand)
+	{
+		this->demand = demand;
+	}
+};
+
+
+/**
+ * An edge in the link graph. Corresponds to a link between two stations or at
+ * least the distance between them. Edges from one node to itself contain the
+ * ID of the opposite Node of the first active edge (i.e. not just distance) in
+ * the column as next_edge.
+ */
+struct LinkGraphEdge {
+	uint distance;                 ///< Length of the link.
+	uint capacity;                 ///< Capacity of the link.
+	uint usage;                    ///< Usage of the link.
+	Date last_unrestricted_update; ///< When the unrestricted part of the link was last updated.
+	Date last_restricted_update;   ///< When the restricted part of the link was last updated.
+	NodeID next_edge;              ///< Destination of next valid edge starting at the same source node.
+	void Init(uint distance = 0);
+
+	/** Get edge capacity. */
+	uint Capacity() const { return this->capacity; }
+
+	/** Get edge usage. */
+	uint Usage() const { return this->usage; }
+
+	/** Get edge distance. */
+	uint Distance() const { return this->distance; }
+
+	/** Get the date of the last unrestricted capacity update. */
+	Date LastUnrestrictedUpdate() const { return this->last_unrestricted_update; }
+
+	/** Get the date of the last restricted capacity update. */
+	Date LastRestrictedUpdate() const { return this->last_restricted_update; }
+
+	/** Get the date of the last capacity update. */
+	Date LastUpdate() const { return max (this->last_unrestricted_update, this->last_restricted_update); }
+
+	void Set (uint capacity, uint usage, EdgeUpdateMode mode);
+	void Update (uint capacity, uint usage, EdgeUpdateMode mode);
+
+	void Restrict() { this->last_unrestricted_update = INVALID_DATE; }
+
+	void Release() { this->last_restricted_update = INVALID_DATE; }
+};
+
+
 /**
  * A connected component of a link graph. Contains a complete set of stations
  * connected by links as nodes and edges. Each component also holds a copy of
@@ -33,91 +121,8 @@ class LinkGraph;
  */
 class LinkGraph : public PooledItem <LinkGraph, LinkGraphID, 32, 0xFFFF> {
 public:
-
-	/**
-	 * Node of the link graph. contains all relevant information from the associated
-	 * station. It's copied so that the link graph job can work on its own data set
-	 * in a separate thread.
-	 */
-	struct BaseNode {
-		uint supply;             ///< Supply at the station.
-		uint demand;             ///< Acceptance at the station.
-		StationID station;       ///< Station ID.
-		Date last_update;        ///< When the supply was last updated.
-		void Init(StationID st = INVALID_STATION, uint demand = 0);
-
-		/** Get supply of node. */
-		uint Supply() const { return this->supply; }
-
-		/** Get demand of node. */
-		uint Demand() const { return this->demand; }
-
-		/** Get ID of node station. */
-		StationID Station() const { return this->station; }
-
-		/** Get the date of the last node update. */
-		Date LastUpdate() const { return this->last_update; }
-
-		/**
-		 * Update the node's supply and set last_update to the current date.
-		 * @param supply Supply to be added.
-		 */
-		void UpdateSupply (uint supply)
-		{
-			this->supply += supply;
-			this->last_update = _date;
-		}
-
-		/**
-		 * Set the node's demand.
-		 * @param demand New demand for the node.
-		 */
-		void SetDemand (uint demand)
-		{
-			this->demand = demand;
-		}
-	};
-
-	/**
-	 * An edge in the link graph. Corresponds to a link between two stations or at
-	 * least the distance between them. Edges from one node to itself contain the
-	 * ID of the opposite Node of the first active edge (i.e. not just distance) in
-	 * the column as next_edge.
-	 */
-	struct BaseEdge {
-		uint distance;                 ///< Length of the link.
-		uint capacity;                 ///< Capacity of the link.
-		uint usage;                    ///< Usage of the link.
-		Date last_unrestricted_update; ///< When the unrestricted part of the link was last updated.
-		Date last_restricted_update;   ///< When the restricted part of the link was last updated.
-		NodeID next_edge;              ///< Destination of next valid edge starting at the same source node.
-		void Init(uint distance = 0);
-
-		/** Get edge capacity. */
-		uint Capacity() const { return this->capacity; }
-
-		/** Get edge usage. */
-		uint Usage() const { return this->usage; }
-
-		/** Get edge distance. */
-		uint Distance() const { return this->distance; }
-
-		/** Get the date of the last unrestricted capacity update. */
-		Date LastUnrestrictedUpdate() const { return this->last_unrestricted_update; }
-
-		/** Get the date of the last restricted capacity update. */
-		Date LastRestrictedUpdate() const { return this->last_restricted_update; }
-
-		/** Get the date of the last capacity update. */
-		Date LastUpdate() const { return max (this->last_unrestricted_update, this->last_restricted_update); }
-
-		void Set (uint capacity, uint usage, EdgeUpdateMode mode);
-		void Update (uint capacity, uint usage, EdgeUpdateMode mode);
-
-		void Restrict() { this->last_unrestricted_update = INVALID_DATE; }
-
-		void Release() { this->last_restricted_update = INVALID_DATE; }
-	};
+	typedef LinkGraphNode BaseNode;
+	typedef LinkGraphEdge BaseEdge;
 
 	/**
 	 * Wrapper for a node (const or not) allowing retrieval, but no modification.
