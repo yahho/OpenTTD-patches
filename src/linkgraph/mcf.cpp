@@ -77,8 +77,6 @@ public:
 class GraphEdgeIterator {
 private:
 	LinkGraphJob &job;              ///< Job being executed
-	LinkGraphJob::EdgeIterator i;   ///< Iterator pointing to current edge.
-	LinkGraphJob::EdgeIterator end; ///< Iterator pointing beyond last edge.
 
 public:
 
@@ -86,29 +84,35 @@ public:
 	 * Construct a GraphEdgeIterator.
 	 * @param job Job to iterate on.
 	 */
-	GraphEdgeIterator(LinkGraphJob &job) : job(job),
-		i(NULL, INVALID_NODE), end(NULL, INVALID_NODE)
+	GraphEdgeIterator(LinkGraphJob &job) : job(job)
 	{}
 
-	/**
-	 * Setup the node to start iterating at.
-	 * @param source Unused.
-	 * @param node Node to start iterating at.
-	 */
-	void SetNode(NodeID source, NodeID node)
-	{
-		this->i = this->job[node].Begin();
-		this->end = this->job[node].End();
-	}
+	class Iterator {
+	private:
+		LinkGraphJob::EdgeIterator it;  ///< Iterator pointing to current edge.
+		LinkGraphJob::EdgeIterator end; ///< Iterator pointing beyond last edge.
 
-	/**
-	 * Retrieve the ID of the node the next edge points to.
-	 * @return Next edge's target node ID or INVALID_NODE.
-	 */
-	NodeID Next()
-	{
-		return this->i != this->end ? (this->i++)->first : INVALID_NODE;
-	}
+	public:
+		/**
+		 * Setup the node to start iterating at.
+		 * @param g Parent GraphEdgeIterator.
+		 * @param source Unused.
+		 * @param node Node to start iterating at.
+		 */
+		Iterator (const GraphEdgeIterator &g, NodeID source, NodeID node)
+			: it(g.job[node].Begin()), end(g.job[node].End())
+		{
+		}
+
+		/**
+		 * Retrieve the ID of the node the next edge points to.
+		 * @return Next edge's target node ID or INVALID_NODE.
+		 */
+		NodeID Next()
+		{
+			return this->it != this->end ? (this->it++)->first : INVALID_NODE;
+		}
+	};
 };
 
 /**
@@ -121,11 +125,6 @@ private:
 	/** Lookup table for getting NodeIDs from StationIDs. */
 	std::map<StationID, NodeID> station_to_node;
 
-	/** Current iterator in the shares map. */
-	FlowStat::SharesMap::const_iterator it;
-
-	/** End of the shares map. */
-	FlowStat::SharesMap::const_iterator end;
 public:
 
 	/**
@@ -139,34 +138,50 @@ public:
 		}
 	}
 
-	/**
-	 * Setup the node to retrieve edges from.
-	 * @param source Root of the current path tree.
-	 * @param node Current node to be checked for outgoing flows.
-	 */
-	void SetNode(NodeID source, NodeID node)
-	{
-		static const FlowStat::SharesMap empty;
-		const FlowStatMap &flows = this->job[node].Flows();
-		FlowStatMap::const_iterator it = flows.find(this->job[source].Station());
-		if (it != flows.end()) {
-			this->it = it->second.GetShares()->begin();
-			this->end = it->second.GetShares()->end();
-		} else {
-			this->it = empty.begin();
-			this->end = empty.end();
-		}
-	}
+	class Iterator {
+	private:
+		/** Lookup table for getting NodeIDs from StationIDs. */
+		std::map<StationID, NodeID> *const station_to_node;
 
-	/**
-	 * Get the next node for which a flow exists.
-	 * @return ID of next node with flow.
-	 */
-	NodeID Next()
-	{
-		if (this->it == this->end) return INVALID_NODE;
-		return this->station_to_node[(this->it++)->second];
-	}
+		/** Current iterator in the shares map. */
+		FlowStat::SharesMap::const_iterator it;
+
+		/** End of the shares map. */
+		FlowStat::SharesMap::const_iterator end;
+
+	public:
+
+		/**
+		 * Setup the node to retrieve edges from.
+		 * @param f Parent FlowEdgeIterator.
+		 * @param source Root of the current path tree.
+		 * @param node Current node to be checked for outgoing flows.
+		 */
+		Iterator (FlowEdgeIterator &f, NodeID source, NodeID node)
+			: station_to_node(&f.station_to_node)
+		{
+			static const FlowStat::SharesMap empty;
+			const FlowStatMap &flows = f.job[node].Flows();
+			FlowStatMap::const_iterator it = flows.find(f.job[source].Station());
+			if (it != flows.end()) {
+				this->it = it->second.GetShares()->begin();
+				this->end = it->second.GetShares()->end();
+			} else {
+				this->it = empty.begin();
+				this->end = empty.end();
+			}
+		}
+
+		/**
+		 * Get the next node for which a flow exists.
+		 * @return ID of next node with flow.
+		 */
+		NodeID Next()
+		{
+			if (this->it == this->end) return INVALID_NODE;
+			return (*this->station_to_node)[(this->it++)->second];
+		}
+	};
 };
 
 /**
@@ -239,7 +254,7 @@ template<class Tannotation, class Tedge_iterator>
 void MultiCommodityFlow::Dijkstra(NodeID source_node, PathVector &paths)
 {
 	typedef std::set<Tannotation *, typename Tannotation::Comparator> AnnoSet;
-	Tedge_iterator iter(this->job);
+	Tedge_iterator iterf (this->job);
 	uint size = this->job.Size();
 	AnnoSet annos;
 	paths.resize(size, NULL);
@@ -253,7 +268,7 @@ void MultiCommodityFlow::Dijkstra(NodeID source_node, PathVector &paths)
 		Tannotation *source = *i;
 		annos.erase(i);
 		NodeID from = source->GetNode();
-		iter.SetNode(source_node, from);
+		typename Tedge_iterator::Iterator iter (iterf, source_node, from);
 		for (NodeID to = iter.Next(); to != INVALID_NODE; to = iter.Next()) {
 			if (to == from) continue; // Not a real edge but a consumption sign.
 			LinkGraphJob::Edge edge = this->job[from][to];
