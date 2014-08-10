@@ -394,7 +394,6 @@ public:
 			this->node.SetDemand (demand);
 		}
 
-		void UpdateEdge(NodeID to, uint capacity, uint usage, EdgeUpdateMode mode);
 		void RemoveEdge(NodeID to);
 	};
 
@@ -486,6 +485,7 @@ public:
 	NodeID AddNode(const Station *st);
 	void RemoveNode(NodeID id);
 	void UpdateDistances(NodeID id, TileIndex xy);
+	void UpdateEdge(NodeID from, NodeID to, uint capacity, uint usage, EdgeUpdateMode mode);
 
 protected:
 	friend class LinkGraph::ConstNode;

@@ -196,24 +196,25 @@ NodeID LinkGraph::AddNode(const Station *st)
 
 /**
  * Creates an edge if none exists yet or updates an existing edge.
+ * @param from Source node.
  * @param to Target node.
  * @param capacity Capacity of the link.
  * @param usage Usage to be added.
  * @param mode Update mode to be used.
  */
-void LinkGraph::Node::UpdateEdge(NodeID to, uint capacity, uint usage, EdgeUpdateMode mode)
+void LinkGraph::UpdateEdge (NodeID from, NodeID to, uint capacity, uint usage, EdgeUpdateMode mode)
 {
-	assert(this->index != to);
+	assert(from != to);
 	assert(capacity > 0);
 	assert(usage <= capacity);
-	if (this->edges[to].capacity == 0) {
-		BaseEdge &edge = this->edges[to];
-		BaseEdge &first = this->edges[this->index];
-		edge.Set (capacity, usage, mode);
-		edge.next_edge = first.next_edge;
-		first.next_edge = to;
+
+	BaseEdge *edges = this->edges[from];
+	if (edges[to].capacity == 0) {
+		edges[to].Set (capacity, usage, mode);
+		edges[to].next_edge = edges[from].next_edge;
+		edges[from].next_edge = to;
 	} else {
-		(*this)[to].Update(capacity, usage, mode);
+		edges[to].Update(capacity, usage, mode);
 	}
 }
 

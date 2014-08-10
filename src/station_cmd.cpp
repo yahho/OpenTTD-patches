@@ -3515,7 +3515,7 @@ void IncreaseStats(Station *st, CargoID cargo, StationID next_station_id, uint c
 		}
 	}
 	if (lg != NULL) {
-		(*lg)[ge1.node].UpdateEdge(ge2.node, capacity, usage, mode);
+		lg->UpdateEdge (ge1.node, ge2.node, capacity, usage, mode);
 	}
 }
 
