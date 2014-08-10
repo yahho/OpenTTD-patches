@@ -45,6 +45,37 @@ public:
 		StationID station;       ///< Station ID.
 		Date last_update;        ///< When the supply was last updated.
 		void Init(StationID st = INVALID_STATION, uint demand = 0);
+
+		/** Get supply of node. */
+		uint Supply() const { return this->supply; }
+
+		/** Get demand of node. */
+		uint Demand() const { return this->demand; }
+
+		/** Get ID of node station. */
+		StationID Station() const { return this->station; }
+
+		/** Get the date of the last node update. */
+		Date LastUpdate() const { return this->last_update; }
+
+		/**
+		 * Update the node's supply and set last_update to the current date.
+		 * @param supply Supply to be added.
+		 */
+		void UpdateSupply (uint supply)
+		{
+			this->supply += supply;
+			this->last_update = _date;
+		}
+
+		/**
+		 * Set the node's demand.
+		 * @param demand New demand for the node.
+		 */
+		void SetDemand (uint demand)
+		{
+			this->demand = demand;
+		}
 	};
 
 	/**
@@ -114,25 +145,25 @@ public:
 		 * Get supply of wrapped node.
 		 * @return Supply.
 		 */
-		uint Supply() const { return this->node.supply; }
+		uint Supply() const { return this->node.Supply(); }
 
 		/**
 		 * Get demand of wrapped node.
 		 * @return Demand.
 		 */
-		uint Demand() const { return this->node.demand; }
+		uint Demand() const { return this->node.Demand(); }
 
 		/**
 		 * Get ID of station belonging to wrapped node.
 		 * @return ID of node's station.
 		 */
-		StationID Station() const { return this->node.station; }
+		StationID Station() const { return this->node.Station(); }
 
 		/**
 		 * Get node's last update.
 		 * @return Last update.
 		 */
-		Date LastUpdate() const { return this->node.last_update; }
+		Date LastUpdate() const { return this->node.LastUpdate(); }
 	};
 
 	/**
@@ -350,8 +381,7 @@ public:
 		 */
 		void UpdateSupply(uint supply)
 		{
-			this->node.supply += supply;
-			this->node.last_update = _date;
+			this->node.UpdateSupply (supply);
 		}
 
 		/**
@@ -360,7 +390,7 @@ public:
 		 */
 		void SetDemand(uint demand)
 		{
-			this->node.demand = demand;
+			this->node.SetDemand (demand);
 		}
 
 		void AddEdge(NodeID to, uint capacity, uint usage, EdgeUpdateMode mode);
