@@ -87,7 +87,7 @@ public:
 	 * @param job Job to iterate on.
 	 */
 	GraphEdgeIterator(LinkGraphJob &job) : job(job),
-		i(NULL, NULL, INVALID_NODE), end(NULL, NULL, INVALID_NODE)
+		i(NULL, INVALID_NODE), end(NULL, INVALID_NODE)
 	{}
 
 	/**

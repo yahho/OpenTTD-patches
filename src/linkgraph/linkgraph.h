@@ -172,7 +172,7 @@ public:
 	 * @tparam Tedge Actual edge class. May be "BaseEdge" or "const BaseEdge".
 	 * @tparam Titer Actual iterator class.
 	 */
-	template <class Tedge, class Tedge_wrapper, class Titer>
+	template <class Tedge, class Titer>
 	class BaseEdgeIterator {
 	protected:
 		Tedge *base;    ///< Array of edges being iterated.
@@ -184,20 +184,20 @@ public:
 		 * to return something that implements operator->, but isn't a pointer
 		 * from operator->. A fake pointer.
 		 */
-		class FakePointer : public SmallPair<NodeID, Tedge_wrapper> {
+		class FakePointer : public SmallPair<NodeID, Tedge> {
 		public:
 
 			/**
 			 * Construct a fake pointer from a pair of NodeID and edge.
 			 * @param pair Pair to be "pointed" to (in fact shallow-copied).
 			 */
-			FakePointer(const SmallPair<NodeID, Tedge_wrapper> &pair) : SmallPair<NodeID, Tedge_wrapper>(pair) {}
+			FakePointer(const SmallPair<NodeID, Tedge> &pair) : SmallPair<NodeID, Tedge>(pair) {}
 
 			/**
 			 * Retrieve the pair by operator->.
 			 * @return Pair being "pointed" to.
 			 */
-			SmallPair<NodeID, Tedge_wrapper> *operator->() { return this; }
+			SmallPair<NodeID, Tedge> *operator->() { return this; }
 		};
 
 	public:
@@ -262,9 +262,9 @@ public:
 		 * Dereference with operator*.
 		 * @return Pair of current target NodeID and edge object.
 		 */
-		SmallPair<NodeID, Tedge_wrapper> operator*() const
+		SmallPair<NodeID, Tedge> operator*() const
 		{
-			return SmallPair<NodeID, Tedge_wrapper>(this->current, Tedge_wrapper(this->base[this->current]));
+			return SmallPair<NodeID, Tedge>(this->current, this->base[this->current]);
 		}
 
 		/**
@@ -300,7 +300,7 @@ public:
 	 * An iterator for const edges. Cannot be typedef'ed because of
 	 * template-reference to ConstEdgeIterator itself.
 	 */
-	class ConstEdgeIterator : public BaseEdgeIterator<const BaseEdge, ConstEdge, ConstEdgeIterator> {
+	class ConstEdgeIterator : public BaseEdgeIterator<const BaseEdge, ConstEdgeIterator> {
 	public:
 		/**
 		 * Constructor.
@@ -308,14 +308,14 @@ public:
 		 * @param current ID of current edge's end node.
 		 */
 		ConstEdgeIterator(const BaseEdge *edges, NodeID current) :
-			BaseEdgeIterator<const BaseEdge, ConstEdge, ConstEdgeIterator>(edges, current) {}
+			BaseEdgeIterator<const BaseEdge, ConstEdgeIterator>(edges, current) {}
 	};
 
 	/**
 	 * An iterator for non-const edges. Cannot be typedef'ed because of
 	 * template-reference to EdgeIterator itself.
 	 */
-	class EdgeIterator : public BaseEdgeIterator<BaseEdge, Edge, EdgeIterator> {
+	class EdgeIterator : public BaseEdgeIterator<BaseEdge, EdgeIterator> {
 	public:
 		/**
 		 * Constructor.
@@ -323,7 +323,7 @@ public:
 		 * @param current ID of current edge's end node.
 		 */
 		EdgeIterator(BaseEdge *edges, NodeID current) :
-			BaseEdgeIterator<BaseEdge, Edge, EdgeIterator>(edges, current) {}
+			BaseEdgeIterator<BaseEdge, EdgeIterator>(edges, current) {}
 	};
 
 	/**

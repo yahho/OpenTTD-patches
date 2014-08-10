@@ -139,38 +139,7 @@ public:
 	/**
 	 * Iterator for job edges.
 	 */
-	class EdgeIterator : public LinkGraph::BaseEdgeIterator<const LinkGraph::BaseEdge, Edge, EdgeIterator> {
-		EdgeAnnotation *base_anno; ///< Array of annotations to be (indirectly) iterated.
-	public:
-		/**
-		 * Constructor.
-		 * @param base Array of edges to be iterated.
-		 * @param base_anno Array of annotations to be iterated.
-		 * @param current Start offset of iteration.
-		 */
-		EdgeIterator(const LinkGraph::BaseEdge *base, EdgeAnnotation *base_anno, NodeID current) :
-				LinkGraph::BaseEdgeIterator<const LinkGraph::BaseEdge, Edge, EdgeIterator>(base, current),
-				base_anno(base_anno) {}
-
-		/**
-		 * Dereference.
-		 * @return Pair of the edge currently pointed to and the ID of its
-		 *         other end.
-		 */
-		SmallPair<NodeID, Edge> operator*() const
-		{
-			return SmallPair<NodeID, Edge>(this->current, Edge(this->base[this->current], this->base_anno[this->current]));
-		}
-
-		/**
-		 * Dereference. Has to be repeated here as operator* is different than
-		 * in LinkGraph::EdgeWrapper.
-		 * @return Fake pointer to pair of NodeID/Edge.
-		 */
-		FakePointer operator->() const {
-			return FakePointer(this->operator*());
-		}
-	};
+	typedef LinkGraph::ConstEdgeIterator EdgeIterator;
 
 	/**
 	 * Link graph job node. Wraps a constant link graph node and a modifiable
@@ -205,14 +174,14 @@ public:
 		 * are iterated. The others are skipped.
 		 * @return Iterator pointing to the first edge.
 		 */
-		EdgeIterator Begin() const { return EdgeIterator(this->edges, this->edge_annos, index); }
+		EdgeIterator Begin() const { return EdgeIterator(this->edges, index); }
 
 		/**
 		 * Iterator for the "end" of the edge array. Only edges with capacity
 		 * are iterated. The others are skipped.
 		 * @return Iterator pointing beyond the last edge.
 		 */
-		EdgeIterator End() const { return EdgeIterator(this->edges, this->edge_annos, INVALID_NODE); }
+		EdgeIterator End() const { return EdgeIterator(this->edges, INVALID_NODE); }
 
 		/**
 		 * Get amount of supply that hasn't been delivered, yet.
