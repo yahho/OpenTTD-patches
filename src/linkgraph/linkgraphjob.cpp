@@ -29,7 +29,6 @@ INSTANTIATE_POOL_METHODS(LinkGraphJob)
 LinkGraphJob::LinkGraphJob(const LinkGraph &orig) :
 		/* Copying the link graph here also copies its index member.
 		 * This is on purpose. */
-		link_graph(orig),
 		settings(_settings_game.linkgraph),
 		link_graph_id(orig.index),
 		cargo(orig.Cargo()),
@@ -37,6 +36,17 @@ LinkGraphJob::LinkGraphJob(const LinkGraph &orig) :
 		thread(NULL),
 		join_date(_date + _settings_game.linkgraph.recalc_time)
 {
+	uint size = orig.Size();
+	this->link_graph.Resize (size);
+
+	for (uint i = 0; i < size; ++i) {
+		const LinkGraph::ConstNodeRef src (orig[i]);
+		BaseGraph::NodeRef node (this->link_graph[i]);
+		node->Copy (*src);
+		for (uint j = 0; j < size; ++j) {
+			node[j].Copy (src[j]);
+		}
+	}
 }
 
 /**

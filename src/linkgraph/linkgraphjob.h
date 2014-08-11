@@ -21,6 +21,75 @@ class LinkGraphJob;
 class Path;
 typedef std::list<Path *> PathList;
 
+
+/** Node of a link graph job. */
+struct LinkGraphJobNode {
+	uint supply;                   ///< Supply at the station.
+	uint demand;                   ///< Acceptance at the station.
+	StationID station;             ///< Station ID.
+	Date last_update;              ///< When the supply was last updated.
+
+	void Copy (const LinkGraphNode &src)
+	{
+		this->supply = src.supply;
+		this->demand = src.demand;
+		this->station = src.station;
+		this->last_update = src.last_update;
+	}
+
+	/** Get supply of node. */
+	uint Supply() const { return this->supply; }
+
+	/** Get demand of node. */
+	uint Demand() const { return this->demand; }
+
+	/** Get ID of node station. */
+	StationID Station() const { return this->station; }
+
+	/** Get the date of the last node update. */
+	Date LastUpdate() const { return this->last_update; }
+};
+
+
+/** Edge of a link graph job. */
+struct LinkGraphJobEdge {
+	uint distance;                 ///< Length of the link.
+	uint capacity;                 ///< Capacity of the link.
+	uint usage;                    ///< Usage of the link.
+	Date last_unrestricted_update; ///< When the unrestricted part of the link was last updated.
+	Date last_restricted_update;   ///< When the restricted part of the link was last updated.
+	NodeID next_edge;              ///< Destination of next valid edge starting at the same source node.
+
+	void Copy (const LinkGraphEdge &src)
+	{
+		this->distance = src.distance;
+		this->capacity = src.capacity;
+		this->usage = src.usage;
+		this->last_unrestricted_update = src.last_unrestricted_update;
+		this->last_restricted_update = src.last_restricted_update;
+		this->next_edge = src.next_edge;
+	}
+
+	/** Get edge capacity. */
+	uint Capacity() const { return this->capacity; }
+
+	/** Get edge usage. */
+	uint Usage() const { return this->usage; }
+
+	/** Get edge distance. */
+	uint Distance() const { return this->distance; }
+
+	/** Get the date of the last unrestricted capacity update. */
+	Date LastUnrestrictedUpdate() const { return this->last_unrestricted_update; }
+
+	/** Get the date of the last restricted capacity update. */
+	Date LastRestrictedUpdate() const { return this->last_restricted_update; }
+
+	/** Get the date of the last capacity update. */
+	Date LastUpdate() const { return max (this->last_unrestricted_update, this->last_restricted_update); }
+};
+
+
 /**
  * Class for calculation jobs to be run on link graphs.
  */
@@ -53,7 +122,8 @@ private:
 	friend class LinkGraphSchedule;
 
 protected:
-	const ::Graph <LinkGraphNode, LinkGraphEdge> link_graph; ///< Link graph to by analyzed. Is copied when job is started and mustn't be modified later.
+	typedef ::Graph <LinkGraphJobNode, LinkGraphJobEdge> BaseGraph;
+	BaseGraph link_graph;             ///< Link graph to by analyzed. Is copied when job is started and mustn't be modified later.
 	const LinkGraphSettings settings; ///< Copy of _settings_game.linkgraph at spawn time.
 	const LinkGraphID link_graph_id;  ///< Link graph id this job is a copy of.
 	const CargoID cargo;              ///< Cargo of this component's link graph.
@@ -76,7 +146,7 @@ public:
 	 */
 	class EdgeRef {
 	public:
-		const LinkGraph::BaseEdge &edge;
+		const LinkGraphJobEdge &edge;
 	private:
 		EdgeAnnotation &anno; ///< Annotation being wrapped.
 	public:
@@ -85,7 +155,7 @@ public:
 		 * @param edge Link graph edge to be wrapped.
 		 * @param anno Annotation to be wrapped.
 		 */
-		EdgeRef(const LinkGraph::BaseEdge &edge, EdgeAnnotation &anno) :
+		EdgeRef(const LinkGraphJobEdge &edge, EdgeAnnotation &anno) :
 				edge(edge), anno(anno) {}
 
 		/** Get edge capacity. */
@@ -152,13 +222,13 @@ public:
 	/**
 	 * Iterator for job edges.
 	 */
-	typedef LinkGraph::ConstEdgeIterator EdgeIterator;
+	typedef BaseGraph::ConstEdgeIterator EdgeIterator;
 
 	/**
 	 * Link graph job node. Wraps a constant link graph node and a modifiable
 	 * node annotation.
 	 */
-	class NodeRef : public LinkGraph::ConstNodeRef {
+	class NodeRef : public BaseGraph::ConstNodeRef {
 	private:
 		NodeAnnotation &node_anno;  ///< Annotation being wrapped.
 		EdgeAnnotation *edge_annos; ///< Edge annotations belonging to this node.
@@ -170,7 +240,7 @@ public:
 		 * @param node ID of the node.
 		 */
 		NodeRef (LinkGraphJob *lgj, NodeID node) :
-			LinkGraph::ConstNodeRef (&lgj->link_graph, node),
+			BaseGraph::ConstNodeRef (&lgj->link_graph, node),
 			node_anno(lgj->nodes[node]), edge_annos(lgj->edges[node])
 		{}
 
@@ -297,7 +367,7 @@ public:
 	 * Get a reference to the underlying link graph. Only use this for save/load.
 	 * @return Link graph.
 	 */
-	inline const ::Graph <LinkGraphNode, LinkGraphEdge> &Graph() const { return this->link_graph; }
+	inline const BaseGraph &Graph() const { return this->link_graph; }
 };
 
 #define FOR_ALL_LINK_GRAPH_JOBS(var) FOR_ALL_ITEMS_FROM(LinkGraphJob, link_graph_job_index, var, 0)
