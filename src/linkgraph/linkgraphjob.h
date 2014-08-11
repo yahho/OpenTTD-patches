@@ -14,6 +14,7 @@
 
 #include "../thread/thread.h"
 #include "linkgraph.h"
+#include "graph.h"
 #include <list>
 
 class LinkGraphJob;
@@ -52,8 +53,12 @@ private:
 	friend class LinkGraphSchedule;
 
 protected:
-	const LinkGraph link_graph;       ///< Link graph to by analyzed. Is copied when job is started and mustn't be modified later.
+	const ::Graph <LinkGraphNode, LinkGraphEdge> link_graph; ///< Link graph to by analyzed. Is copied when job is started and mustn't be modified later.
 	const LinkGraphSettings settings; ///< Copy of _settings_game.linkgraph at spawn time.
+	const LinkGraphID link_graph_id;  ///< Link graph id this job is a copy of.
+	const CargoID cargo;              ///< Cargo of this component's link graph.
+	const Date last_compression;      ///< Last time the capacities and supplies were compressed.
+
 	ThreadObject *thread;             ///< Thread the job is running in or NULL if it's running in the main thread.
 	Date join_date;                   ///< Date when the job is to be joined.
 	NodeAnnotationVector nodes;       ///< Extra node data necessary for link graph calculation.
@@ -224,8 +229,9 @@ public:
 	 * Bare constructor, only for save/load. link_graph, join_date and actually
 	 * settings have to be brutally const-casted in order to populate them.
 	 */
-	LinkGraphJob() : settings(_settings_game.linkgraph), thread(NULL),
-			join_date(INVALID_DATE) {}
+	LinkGraphJob() : settings(_settings_game.linkgraph),
+		link_graph_id(INVALID_LINK_GRAPH), cargo(INVALID_CARGO), last_compression(INVALID_DATE),
+		thread(NULL), join_date(INVALID_DATE) {}
 
 	LinkGraphJob(const LinkGraph &orig);
 	~LinkGraphJob();
@@ -273,25 +279,25 @@ public:
 	 * Get the cargo of the underlying link graph.
 	 * @return Cargo.
 	 */
-	inline CargoID Cargo() const { return this->link_graph.Cargo(); }
+	inline CargoID Cargo() const { return this->cargo; }
 
 	/**
 	 * Get the date when the underlying link graph was last compressed.
 	 * @return Compression date.
 	 */
-	inline Date LastCompression() const { return this->link_graph.LastCompression(); }
+	inline Date LastCompression() const { return this->last_compression; }
 
 	/**
 	 * Get the ID of the underlying link graph.
 	 * @return Link graph ID.
 	 */
-	inline LinkGraphID LinkGraphIndex() const { return this->link_graph.index; }
+	inline LinkGraphID LinkGraphIndex() const { return this->link_graph_id; }
 
 	/**
 	 * Get a reference to the underlying link graph. Only use this for save/load.
 	 * @return Link graph.
 	 */
-	inline const LinkGraph &Graph() const { return this->link_graph; }
+	inline const ::Graph <LinkGraphNode, LinkGraphEdge> &Graph() const { return this->link_graph; }
 };
 
 #define FOR_ALL_LINK_GRAPH_JOBS(var) FOR_ALL_ITEMS_FROM(LinkGraphJob, link_graph_job_index, var, 0)

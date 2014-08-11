@@ -31,6 +31,9 @@ LinkGraphJob::LinkGraphJob(const LinkGraph &orig) :
 		 * This is on purpose. */
 		link_graph(orig),
 		settings(_settings_game.linkgraph),
+		link_graph_id(orig.index),
+		cargo(orig.Cargo()),
+		last_compression(orig.LastCompression()),
 		thread(NULL),
 		join_date(_date + _settings_game.linkgraph.recalc_time)
 {
@@ -90,7 +93,7 @@ LinkGraphJob::~LinkGraphJob()
 	if (CleaningPool()) return;
 
 	/* Link graph has been merged into another one. */
-	if (!LinkGraph::IsValidID(this->link_graph.index)) return;
+	if (!LinkGraph::IsValidID(this->link_graph_id)) return;
 
 	uint size = this->Size();
 	for (NodeID node_id = 0; node_id < size; ++node_id) {
@@ -106,7 +109,7 @@ LinkGraphJob::~LinkGraphJob()
 		/* Link graph merging and station deletion may change around IDs. Make
 		 * sure that everything is still consistent or ignore it otherwise. */
 		GoodsEntry &ge = st->goods[this->Cargo()];
-		if (ge.link_graph != this->link_graph.index || ge.node != node_id) {
+		if (ge.link_graph != this->link_graph_id || ge.node != node_id) {
 			this->EraseFlows(node_id);
 			continue;
 		}
@@ -118,7 +121,7 @@ LinkGraphJob::~LinkGraphJob()
 			if (from[it.get_id()].Flow() == 0) continue;
 			StationID to = (*this)[it.get_id()]->Station();
 			Station *st2 = Station::GetIfValid(to);
-			if (st2 == NULL || st2->goods[this->Cargo()].link_graph != this->link_graph.index ||
+			if (st2 == NULL || st2->goods[this->Cargo()].link_graph != this->link_graph_id ||
 					st2->goods[this->Cargo()].node != it.get_id() ||
 					(*lg)[node_id][it.get_id()].LastUpdate() == INVALID_DATE) {
 				/* Edge has been removed. Delete flows. */

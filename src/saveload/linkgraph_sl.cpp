@@ -75,7 +75,7 @@ const SaveLoad *GetLinkGraphJobDesc()
 
 		static const SaveLoad job_desc[] = {
 			SLE_VAR(LinkGraphJob, join_date,        SLE_INT32),
-			SLE_VAR(LinkGraphJob, link_graph.index, SLE_UINT16),
+			SLE_VAR(LinkGraphJob, link_graph_id,    SLE_UINT16),
 			SLE_END()
 		};
 
@@ -131,7 +131,7 @@ static const SaveLoad _edge_desc[] = {
  * Save a link graph.
  * @param comp Link graph to be saved.
  */
-void Save_LinkGraph(SaveDumper *dumper, const LinkGraph &lg)
+void Save_LinkGraph(SaveDumper *dumper, const Graph <LinkGraphNode, LinkGraphEdge> &lg)
 {
 	uint size = lg.Size();
 	for (NodeID from = 0; from < size; ++from) {
@@ -150,7 +150,7 @@ void Save_LinkGraph(SaveDumper *dumper, const LinkGraph &lg)
  * @param reader Reader to load the link graph from.
  * @param comp Link graph to be loaded.
  */
-void Load_LinkGraph(LoadBuffer *reader, LinkGraph &lg)
+void Load_LinkGraph(LoadBuffer *reader, Graph <LinkGraphNode, LinkGraphEdge> &lg)
 {
 	uint size = lg.Size();
 	for (NodeID from = 0; from < size; ++from) {
@@ -195,7 +195,7 @@ static void Load_LGRJ(LoadBuffer *reader)
 		}
 		LinkGraphJob *lgj = new (index) LinkGraphJob();
 		reader->ReadObject(lgj, GetLinkGraphJobDesc());
-		LinkGraph &lg = const_cast<LinkGraph &>(lgj->Graph());
+		Graph <LinkGraphNode, LinkGraphEdge> &lg = const_cast<Graph <LinkGraphNode, LinkGraphEdge> &>(lgj->Graph());
 		reader->ReadObject(&lg, GetLinkGraphDesc());
 		lg.Resize(_num_nodes);
 		Load_LinkGraph(reader, lg);
