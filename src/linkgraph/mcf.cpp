@@ -271,7 +271,7 @@ void MultiCommodityFlow::Dijkstra(NodeID source_node, PathVector &paths)
 		typename Tedge_iterator::Iterator iter (iterf, source_node, from);
 		for (NodeID to = iter.Next(); to != INVALID_NODE; to = iter.Next()) {
 			if (to == from) continue; // Not a real edge but a consumption sign.
-			LinkGraphJob::Edge edge = this->job[from][to];
+			LinkGraphJob::EdgeRef edge = this->job[from][to];
 			assert(edge.Distance() < UINT_MAX);
 			uint capacity = edge.Capacity();
 			if (this->max_saturation != UINT_MAX) {
@@ -327,7 +327,7 @@ void MultiCommodityFlow::CleanupPaths(NodeID source_id, PathVector &paths)
  * @param max_saturation If < UINT_MAX only push flow up to the given
  * 	                     saturation, otherwise the path can be "overloaded".
  */
-uint MultiCommodityFlow::PushFlow(LinkGraphJob::Edge &edge, Path *path, uint accuracy,
+uint MultiCommodityFlow::PushFlow(LinkGraphJob::EdgeRef &edge, Path *path, uint accuracy,
 		uint max_saturation)
 {
 	assert(edge.UnsatisfiedDemand() > 0);
@@ -377,7 +377,7 @@ void MCF1stPass::EliminateCycle(PathVector &path, Path *cycle_begin, uint flow)
 			}
 		}
 		cycle_begin = path[prev];
-		LinkGraphJob::Edge edge = this->job[prev][cycle_begin->GetNode()];
+		LinkGraphJob::EdgeRef edge = this->job[prev][cycle_begin->GetNode()];
 		edge.RemoveFlow(flow);
 	} while (cycle_begin != cycle_end);
 }
@@ -497,7 +497,7 @@ MCF1stPass::MCF1stPass(LinkGraphJob &job) : MultiCommodityFlow(job)
 			this->Dijkstra<DistanceAnnotation, GraphEdgeIterator>(source, paths);
 
 			for (NodeID dest = 0; dest < size; ++dest) {
-				LinkGraphJob::Edge edge = job[source][dest];
+				LinkGraphJob::EdgeRef edge = job[source][dest];
 				if (edge.UnsatisfiedDemand() > 0) {
 					Path *path = paths[dest];
 					assert(path != NULL);
@@ -537,7 +537,7 @@ MCF2ndPass::MCF2ndPass(LinkGraphJob &job) : MultiCommodityFlow(job)
 		for (NodeID source = 0; source < size; ++source) {
 			this->Dijkstra<CapacityAnnotation, FlowEdgeIterator>(source, paths);
 			for (NodeID dest = 0; dest < size; ++dest) {
-				LinkGraphJob::Edge edge = this->job[source][dest];
+				LinkGraphJob::EdgeRef edge = this->job[source][dest];
 				Path *path = paths[dest];
 				if (edge.UnsatisfiedDemand() > 0 && path->GetFreeCapacity() > INT_MIN) {
 					this->PushFlow(edge, path, accuracy, UINT_MAX);

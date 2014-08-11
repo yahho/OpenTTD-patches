@@ -69,7 +69,7 @@ public:
 	 * A job edge. Wraps a link graph edge and an edge annotation. The
 	 * annotation can be modified, the edge is constant.
 	 */
-	class Edge {
+	class EdgeRef {
 	public:
 		const LinkGraph::BaseEdge &edge;
 	private:
@@ -80,7 +80,7 @@ public:
 		 * @param edge Link graph edge to be wrapped.
 		 * @param anno Annotation to be wrapped.
 		 */
-		Edge(const LinkGraph::BaseEdge &edge, EdgeAnnotation &anno) :
+		EdgeRef(const LinkGraph::BaseEdge &edge, EdgeAnnotation &anno) :
 				edge(edge), anno(anno) {}
 
 		/** Get edge capacity. */
@@ -153,7 +153,7 @@ public:
 	 * Link graph job node. Wraps a constant link graph node and a modifiable
 	 * node annotation.
 	 */
-	class Node : public LinkGraph::ConstNodeRef {
+	class NodeRef : public LinkGraph::ConstNodeRef {
 	private:
 		NodeAnnotation &node_anno;  ///< Annotation being wrapped.
 		EdgeAnnotation *edge_annos; ///< Edge annotations belonging to this node.
@@ -164,7 +164,7 @@ public:
 		 * @param lgj Job to take the node from.
 		 * @param node ID of the node.
 		 */
-		Node (LinkGraphJob *lgj, NodeID node) :
+		NodeRef (LinkGraphJob *lgj, NodeID node) :
 			LinkGraph::ConstNodeRef (&lgj->link_graph, node),
 			node_anno(lgj->nodes[node]), edge_annos(lgj->edges[node])
 		{}
@@ -175,7 +175,7 @@ public:
 		 * @param to Remote end of the edge.
 		 * @return Edge between this node and "to".
 		 */
-		Edge operator[](NodeID to) const { return Edge(this->edges[to], this->edge_annos[to]); }
+		EdgeRef operator[](NodeID to) const { return EdgeRef(this->edges[to], this->edge_annos[to]); }
 
 		/**
 		 * Get amount of supply that hasn't been delivered, yet.
@@ -261,7 +261,7 @@ public:
 	 * @param num ID of the node.
 	 * @return the Requested node.
 	 */
-	inline Node operator[](NodeID num) { return Node(this, num); }
+	inline NodeRef operator[](NodeID num) { return NodeRef(this, num); }
 
 	/**
 	 * Get the size of the underlying link graph.

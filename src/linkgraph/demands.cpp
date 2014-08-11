@@ -11,7 +11,7 @@ typedef std::list<NodeID> NodeList;
  */
 class Scaler {
 public:
-	typedef LinkGraphJob::Node Node;
+	typedef LinkGraphJob::NodeRef NodeRef;
 
 	void SetDemands(LinkGraphJob &job, NodeID from, NodeID to, uint demand_forw);
 };
@@ -34,7 +34,7 @@ public:
 	 * Count a node's supply into the sum of supplies.
 	 * @param node Node.
 	 */
-	inline void AddNode(const Node &node)
+	inline void AddNode(const NodeRef &node)
 	{
 		this->supply_sum += node->Supply();
 	}
@@ -55,7 +55,7 @@ public:
 	 * @param to The receiving node.
 	 * @return Effective supply.
 	 */
-	inline uint EffectiveSupply(const Node &from, const Node &to)
+	inline uint EffectiveSupply(const NodeRef &from, const NodeRef &to)
 	{
 		return max(from->Supply() * max(1U, to->Supply()) * this->mod_size / 100 / this->demand_per_node, 1U);
 	}
@@ -67,7 +67,7 @@ public:
 	 * @param to Node to be checked.
 	 * @return If demand is left.
 	 */
-	inline bool HasDemandLeft(const Node &to)
+	inline bool HasDemandLeft(const NodeRef &to)
 	{
 		return (to->Supply() == 0 || to.UndeliveredSupply() > 0) && to->Demand() > 0;
 	}
@@ -89,7 +89,7 @@ public:
 	 * Nothing to do here.
 	 * @param unused.
 	 */
-	inline void AddNode(const Node &)
+	inline void AddNode(const NodeRef &)
 	{
 	}
 
@@ -106,7 +106,7 @@ public:
 	 * @param from The supplying node.
 	 * @param unused.
 	 */
-	inline uint EffectiveSupply(const Node &from, const Node &)
+	inline uint EffectiveSupply(const NodeRef &from, const NodeRef &)
 	{
 		return from->Supply();
 	}
@@ -117,7 +117,7 @@ public:
 	 * @param to The node to be checked.
 	 * @param to_anno Unused.
 	 */
-	inline bool HasDemandLeft(const Node &to) { return to->Demand() > 0; }
+	inline bool HasDemandLeft(const NodeRef &to) { return to->Demand() > 0; }
 };
 
 /**

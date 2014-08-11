@@ -94,7 +94,7 @@ LinkGraphJob::~LinkGraphJob()
 
 	uint size = this->Size();
 	for (NodeID node_id = 0; node_id < size; ++node_id) {
-		Node from = (*this)[node_id];
+		NodeRef from = (*this)[node_id];
 
 		/* The station can have been deleted. Remove all flows originating from it then. */
 		Station *st = Station::GetIfValid(from->Station());
@@ -237,7 +237,7 @@ void Path::Fork(Path *base, uint cap, int free_cap, uint dist)
 uint Path::AddFlow(uint new_flow, LinkGraphJob &job, uint max_saturation)
 {
 	if (this->parent != NULL) {
-		LinkGraphJob::Edge edge = job[this->parent->node][this->node];
+		LinkGraphJob::EdgeRef edge = job[this->parent->node][this->node];
 		if (max_saturation != UINT_MAX) {
 			uint usable_cap = edge.Capacity() * max_saturation / 100;
 			if (usable_cap > edge.Flow()) {
