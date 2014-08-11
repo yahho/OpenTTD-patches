@@ -58,7 +58,11 @@ struct LinkGraphJobEdge {
 	uint usage;                    ///< Usage of the link.
 	Date last_unrestricted_update; ///< When the unrestricted part of the link was last updated.
 	Date last_restricted_update;   ///< When the restricted part of the link was last updated.
+
 	NodeID next_edge;              ///< Destination of next valid edge starting at the same source node.
+	uint demand;                   ///< Transport demand between the nodes.
+	uint unsatisfied_demand;       ///< Demand over this edge that hasn't been satisfied yet.
+	uint flow;                     ///< Planned flow over this edge.
 
 	void Copy (const LinkGraphEdge &src)
 	{
@@ -69,6 +73,8 @@ struct LinkGraphJobEdge {
 		this->last_restricted_update = src.last_restricted_update;
 		this->next_edge = src.next_edge;
 	}
+
+	void Init();
 
 	/** Get edge capacity. */
 	uint Capacity() const { return this->capacity; }
@@ -96,16 +102,6 @@ struct LinkGraphJobEdge {
 class LinkGraphJob : public PooledItem <LinkGraphJob, LinkGraphJobID, 32, 0xFFFF> {
 private:
 	/**
-	 * Annotation for a link graph edge.
-	 */
-	struct EdgeAnnotation {
-		uint demand;             ///< Transport demand between the nodes.
-		uint unsatisfied_demand; ///< Demand over this edge that hasn't been satisfied yet.
-		uint flow;               ///< Planned flow over this edge.
-		void Init();
-	};
-
-	/**
 	 * Annotation for a link graph node.
 	 */
 	struct NodeAnnotation {
@@ -116,7 +112,6 @@ private:
 	};
 
 	typedef SmallVector<NodeAnnotation, 16> NodeAnnotationVector;
-	typedef SmallMatrix<EdgeAnnotation> EdgeAnnotationMatrix;
 
 	friend const SaveLoad *GetLinkGraphJobDesc();
 	friend class LinkGraphSchedule;
@@ -132,7 +127,6 @@ protected:
 	ThreadObject *thread;             ///< Thread the job is running in or NULL if it's running in the main thread.
 	Date join_date;                   ///< Date when the job is to be joined.
 	NodeAnnotationVector nodes;       ///< Extra node data necessary for link graph calculation.
-	EdgeAnnotationMatrix edges;       ///< Extra edge data necessary for link graph calculation.
 
 	void EraseFlows(NodeID from);
 	void JoinThread();
@@ -146,17 +140,15 @@ public:
 	 */
 	class EdgeRef {
 	public:
-		const LinkGraphJobEdge &edge;
-	private:
-		EdgeAnnotation &anno; ///< Annotation being wrapped.
-	public:
+		LinkGraphJobEdge &edge;
+
 		/**
 		 * Constructor.
 		 * @param edge Link graph edge to be wrapped.
 		 * @param anno Annotation to be wrapped.
 		 */
-		EdgeRef(const LinkGraphJobEdge &edge, EdgeAnnotation &anno) :
-				edge(edge), anno(anno) {}
+		EdgeRef(LinkGraphJobEdge &edge) :
+				edge(edge) {}
 
 		/** Get edge capacity. */
 		uint Capacity() const { return this->edge.capacity; }
@@ -168,25 +160,25 @@ public:
 		 * Get the transport demand between end the points of the edge.
 		 * @return Demand.
 		 */
-		uint Demand() const { return this->anno.demand; }
+		uint Demand() const { return this->edge.demand; }
 
 		/**
 		 * Get the transport demand that hasn't been satisfied by flows, yet.
 		 * @return Unsatisfied demand.
 		 */
-		uint UnsatisfiedDemand() const { return this->anno.unsatisfied_demand; }
+		uint UnsatisfiedDemand() const { return this->edge.unsatisfied_demand; }
 
 		/**
 		 * Get the total flow on the edge.
 		 * @return Flow.
 		 */
-		uint Flow() const { return this->anno.flow; }
+		uint Flow() const { return this->edge.flow; }
 
 		/**
 		 * Add some flow.
 		 * @param flow Flow to be added.
 		 */
-		void AddFlow(uint flow) { this->anno.flow += flow; }
+		void AddFlow(uint flow) { this->edge.flow += flow; }
 
 		/**
 		 * Remove some flow.
@@ -194,8 +186,8 @@ public:
 		 */
 		void RemoveFlow(uint flow)
 		{
-			assert(flow <= this->anno.flow);
-			this->anno.flow -= flow;
+			assert(flow <= this->edge.flow);
+			this->edge.flow -= flow;
 		}
 
 		/**
@@ -204,8 +196,8 @@ public:
 		 */
 		void AddDemand(uint demand)
 		{
-			this->anno.demand += demand;
-			this->anno.unsatisfied_demand += demand;
+			this->edge.demand += demand;
+			this->edge.unsatisfied_demand += demand;
 		}
 
 		/**
@@ -214,24 +206,23 @@ public:
 		 */
 		void SatisfyDemand(uint demand)
 		{
-			assert(demand <= this->anno.unsatisfied_demand);
-			this->anno.unsatisfied_demand -= demand;
+			assert(demand <= this->edge.unsatisfied_demand);
+			this->edge.unsatisfied_demand -= demand;
 		}
 	};
 
 	/**
 	 * Iterator for job edges.
 	 */
-	typedef BaseGraph::ConstEdgeIterator EdgeIterator;
+	typedef BaseGraph::EdgeIterator EdgeIterator;
 
 	/**
 	 * Link graph job node. Wraps a constant link graph node and a modifiable
 	 * node annotation.
 	 */
-	class NodeRef : public BaseGraph::ConstNodeRef {
+	class NodeRef : public BaseGraph::NodeRef {
 	private:
 		NodeAnnotation &node_anno;  ///< Annotation being wrapped.
-		EdgeAnnotation *edge_annos; ///< Edge annotations belonging to this node.
 	public:
 
 		/**
@@ -240,8 +231,8 @@ public:
 		 * @param node ID of the node.
 		 */
 		NodeRef (LinkGraphJob *lgj, NodeID node) :
-			BaseGraph::ConstNodeRef (&lgj->link_graph, node),
-			node_anno(lgj->nodes[node]), edge_annos(lgj->edges[node])
+			BaseGraph::NodeRef (&lgj->link_graph, node),
+			node_anno(lgj->nodes[node])
 		{}
 
 		/**
@@ -250,7 +241,7 @@ public:
 		 * @param to Remote end of the edge.
 		 * @return Edge between this node and "to".
 		 */
-		EdgeRef operator[](NodeID to) const { return EdgeRef(this->edges[to], this->edge_annos[to]); }
+		EdgeRef operator[](NodeID to) const { return EdgeRef(this->edges[to]); }
 
 		/**
 		 * Get amount of supply that hasn't been delivered, yet.

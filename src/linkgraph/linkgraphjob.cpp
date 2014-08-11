@@ -185,12 +185,11 @@ void LinkGraphJob::Init()
 {
 	uint size = this->Size();
 	this->nodes.Resize(size);
-	this->edges.Resize(size, size);
 	for (uint i = 0; i < size; ++i) {
 		this->nodes[i].Init(this->link_graph[i]->Supply());
-		EdgeAnnotation *node_edges = this->edges[i];
+		NodeRef ref ((*this)[i]);
 		for (uint j = 0; j < size; ++j) {
-			node_edges[j].Init();
+			ref[j].edge.Init();
 		}
 	}
 }
@@ -198,7 +197,7 @@ void LinkGraphJob::Init()
 /**
  * Initialize a linkgraph job edge.
  */
-void LinkGraphJob::EdgeAnnotation::Init()
+void LinkGraphJobEdge::Init()
 {
 	this->demand = 0;
 	this->flow = 0;
