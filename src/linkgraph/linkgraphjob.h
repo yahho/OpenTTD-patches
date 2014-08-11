@@ -157,14 +157,13 @@ struct LinkGraphJobEdge {
 /**
  * Class for calculation jobs to be run on link graphs.
  */
-class LinkGraphJob : public PooledItem <LinkGraphJob, LinkGraphJobID, 32, 0xFFFF> {
+class LinkGraphJob : public PooledItem <LinkGraphJob, LinkGraphJobID, 32, 0xFFFF>,
+	public Graph <LinkGraphJobNode, LinkGraphJobEdge> {
 private:
 	friend const SaveLoad *GetLinkGraphJobDesc();
 	friend class LinkGraphSchedule;
 
 protected:
-	typedef ::Graph <LinkGraphJobNode, LinkGraphJobEdge> BaseGraph;
-	BaseGraph link_graph;             ///< Link graph to by analyzed. Is copied when job is started and mustn't be modified later.
 	const LinkGraphSettings settings; ///< Copy of _settings_game.linkgraph at spawn time.
 	const LinkGraphID link_graph_id;  ///< Link graph id this job is a copy of.
 	const CargoID cargo;              ///< Cargo of this component's link graph.
@@ -178,36 +177,6 @@ protected:
 	void SpawnThread();
 
 public:
-	/**
-	 * Iterator for job edges.
-	 */
-	typedef BaseGraph::EdgeIterator EdgeIterator;
-
-	/**
-	 * Link graph job node. Wraps a constant link graph node and a modifiable
-	 * node annotation.
-	 */
-	class NodeRef : public BaseGraph::NodeRef {
-	public:
-
-		/**
-		 * Constructor.
-		 * @param lgj Job to take the node from.
-		 * @param node ID of the node.
-		 */
-		NodeRef (LinkGraphJob *lgj, NodeID node) :
-			BaseGraph::NodeRef (&lgj->link_graph, node)
-		{}
-
-		/**
-		 * Retrieve an edge starting at this node. Mind that this returns an
-		 * object, not a reference.
-		 * @param to Remote end of the edge.
-		 * @return Edge between this node and "to".
-		 */
-		LinkGraphJobEdge &operator[](NodeID to) const { return this->edges[to]; }
-	};
-
 	/**
 	 * Bare constructor, only for save/load. link_graph, join_date and actually
 	 * settings have to be brutally const-casted in order to populate them.
@@ -246,19 +215,6 @@ public:
 	inline const LinkGraphSettings &Settings() const { return this->settings; }
 
 	/**
-	 * Get a node abstraction with the specified id.
-	 * @param num ID of the node.
-	 * @return the Requested node.
-	 */
-	inline NodeRef operator[](NodeID num) { return NodeRef(this, num); }
-
-	/**
-	 * Get the size of the underlying link graph.
-	 * @return Size.
-	 */
-	inline uint Size() const { return this->link_graph.Size(); }
-
-	/**
 	 * Get the cargo of the underlying link graph.
 	 * @return Cargo.
 	 */
@@ -275,12 +231,6 @@ public:
 	 * @return Link graph ID.
 	 */
 	inline LinkGraphID LinkGraphIndex() const { return this->link_graph_id; }
-
-	/**
-	 * Get a reference to the underlying link graph. Only use this for save/load.
-	 * @return Link graph.
-	 */
-	inline const BaseGraph &Graph() const { return this->link_graph; }
 
 	/**
 	 * Deliver some supply, adding demand to the respective edge.

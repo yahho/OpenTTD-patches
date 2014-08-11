@@ -74,9 +74,12 @@ const SaveLoad *GetLinkGraphJobDesc()
 		}
 
 		static const SaveLoad job_desc[] = {
-			SLE_VAR(LinkGraphJob, join_date,        SLE_INT32),
-			SLE_VAR(LinkGraphJob, link_graph_id,    SLE_UINT16),
-			SLE_END()
+			 SLE_VAR(LinkGraphJob, join_date,        SLE_INT32),
+			 SLE_VAR(LinkGraphJob, link_graph_id,    SLE_UINT16),
+			 SLE_VAR(LinkGraphJob, last_compression, SLE_INT32),
+			SLEG_VAR(_num_nodes,                     SLE_UINT16),
+			 SLE_VAR(LinkGraphJob, cargo,            SLE_UINT8),
+			 SLE_END()
 		};
 
 		for (uint i = 0; i < lengthof(job_desc); i++) {
@@ -191,10 +194,8 @@ static void Load_LGRJ(LoadBuffer *reader)
 		}
 		LinkGraphJob *lgj = new (index) LinkGraphJob();
 		reader->ReadObject(lgj, GetLinkGraphJobDesc());
-		Graph <LinkGraphJobNode, LinkGraphJobEdge> &lg = const_cast<Graph <LinkGraphJobNode, LinkGraphJobEdge> &>(lgj->Graph());
-		reader->ReadObject(&lg, GetLinkGraphDesc());
-		lg.Resize(_num_nodes);
-		uint size = lg.Size();
+		lgj->Resize(_num_nodes);
+		uint size = lgj->Size();
 		for (NodeID from = 0; from < size; ++from) {
 			LinkGraphJob::NodeRef ref ((*lgj)[from]);
 			LinkGraphJobNode *node = const_cast<LinkGraphJobNode*>(&*ref);
@@ -260,11 +261,9 @@ static void Save_LGRJ(SaveDumper *dumper)
 	FOR_ALL_LINK_GRAPH_JOBS(lgj) {
 		SaveDumper temp(1024);
 
-		temp.WriteObject(lgj, GetLinkGraphJobDesc());
 		_num_nodes = lgj->Size();
-		temp.WriteObject(&lgj->Graph(), GetLinkGraphDesc());
-		const Graph <LinkGraphJobNode, LinkGraphJobEdge> &lg = lgj->Graph();
-		uint size = lg.Size();
+		temp.WriteObject(lgj, GetLinkGraphJobDesc());
+		uint size = lgj->Size();
 		for (NodeID from = 0; from < size; ++from) {
 			LinkGraphJob::NodeRef ref ((*lgj)[from]);
 			const LinkGraphJobNode *node = &*ref;

@@ -37,14 +37,13 @@ LinkGraphJob::LinkGraphJob(const LinkGraph &orig) :
 		join_date(_date + _settings_game.linkgraph.recalc_time)
 {
 	uint size = orig.Size();
-	this->link_graph.Resize (size);
+	this->Resize (size);
 
 	for (uint i = 0; i < size; ++i) {
 		const LinkGraph::ConstNodeRef src (orig[i]);
-		BaseGraph::NodeRef node (this->link_graph[i]);
-		node->Copy (*src);
+		this->nodes[i].Copy (*src);
 		for (uint j = 0; j < size; ++j) {
-			node[j].Copy (src[j]);
+			this->edges[i][j].Copy (src[j]);
 		}
 	}
 }
@@ -56,7 +55,7 @@ LinkGraphJob::LinkGraphJob(const LinkGraph &orig) :
 void LinkGraphJob::EraseFlows(NodeID from)
 {
 	for (NodeID node_id = 0; node_id < this->Size(); ++node_id) {
-		(*this)[node_id]->Flows().erase(from);
+		this->nodes[node_id].Flows().erase(from);
 	}
 }
 
@@ -185,10 +184,9 @@ void LinkGraphJob::Init()
 {
 	uint size = this->Size();
 	for (uint i = 0; i < size; ++i) {
-		NodeRef ref ((*this)[i]);
-		ref->Init(this->link_graph[i]->Supply());
+		this->nodes[i].Init (this->nodes[i].Supply());
 		for (uint j = 0; j < size; ++j) {
-			ref[j].Init();
+			this->edges[i][j].Init();
 		}
 	}
 }
