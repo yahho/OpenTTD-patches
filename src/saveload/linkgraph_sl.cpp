@@ -135,10 +135,12 @@ void Save_LinkGraph(SaveDumper *dumper, const LinkGraph &lg)
 {
 	uint size = lg.Size();
 	for (NodeID from = 0; from < size; ++from) {
-		const Node *node = &lg.nodes[from];
+		LinkGraph::ConstNodeRef ref (lg[from]);
+		const Node *node = &*ref;
 		dumper->WriteObject(node, _node_desc);
 		for (NodeID to = 0; to < size; ++to) {
-			dumper->WriteObject(&lg.edges[from][to], _edge_desc);
+			const Edge *edge = &ref[to];
+			dumper->WriteObject (edge, _edge_desc);
 		}
 	}
 }
@@ -152,10 +154,12 @@ void Load_LinkGraph(LoadBuffer *reader, LinkGraph &lg)
 {
 	uint size = lg.Size();
 	for (NodeID from = 0; from < size; ++from) {
-		Node *node = &lg.nodes[from];
+		LinkGraph::NodeRef ref (lg[from]);
+		Node *node = &*ref;
 		reader->ReadObject(node, _node_desc);
 		for (NodeID to = 0; to < size; ++to) {
-			reader->ReadObject(&lg.edges[from][to], _edge_desc);
+			Edge *edge = &ref[to];
+			reader->ReadObject (edge, _edge_desc);
 		}
 	}
 }
