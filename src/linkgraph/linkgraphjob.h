@@ -218,17 +218,6 @@ public:
 		 * @return Paths.
 		 */
 		const PathList &Paths() const { return this->node->paths; }
-
-		/**
-		 * Deliver some supply, adding demand to the respective edge.
-		 * @param to Destination for supply.
-		 * @param amount Amount of supply to be delivered.
-		 */
-		void DeliverSupply(NodeID to, uint amount)
-		{
-			this->node->undelivered_supply -= amount;
-			(*this)[to].AddDemand(amount);
-		}
 	};
 
 	/**
@@ -304,6 +293,19 @@ public:
 	 * @return Link graph.
 	 */
 	inline const BaseGraph &Graph() const { return this->link_graph; }
+
+	/**
+	 * Deliver some supply, adding demand to the respective edge.
+	 * @param from Source of supply.
+	 * @param to Destination for supply.
+	 * @param amount Amount of supply to be delivered.
+	 */
+	void DeliverSupply (NodeID from, NodeID to, uint amount)
+	{
+		NodeRef ref (this, from);
+		ref->undelivered_supply -= amount;
+		ref[to].AddDemand (amount);
+	}
 };
 
 #define FOR_ALL_LINK_GRAPH_JOBS(var) FOR_ALL_ITEMS_FROM(LinkGraphJob, link_graph_job_index, var, 0)

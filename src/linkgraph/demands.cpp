@@ -153,7 +153,7 @@ void SymmetricScaler::SetDemands(LinkGraphJob &job, NodeID from_id, NodeID to_id
  */
 inline void Scaler::SetDemands(LinkGraphJob &job, NodeID from_id, NodeID to_id, uint demand_forw)
 {
-	job[from_id].DeliverSupply(to_id, demand_forw);
+	job.DeliverSupply (from_id, to_id, demand_forw);
 }
 
 /**
