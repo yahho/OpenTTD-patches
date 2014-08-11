@@ -189,7 +189,7 @@ void LinkGraphJob::Init()
 		this->nodes[i].Init(this->link_graph[i]->Supply());
 		NodeRef ref ((*this)[i]);
 		for (uint j = 0; j < size; ++j) {
-			ref[j].edge.Init();
+			ref[j].Init();
 		}
 	}
 }
@@ -249,7 +249,7 @@ void Path::Fork(Path *base, uint cap, int free_cap, uint dist)
 uint Path::AddFlow(uint new_flow, LinkGraphJob &job, uint max_saturation)
 {
 	if (this->parent != NULL) {
-		LinkGraphJob::EdgeRef edge = job[this->parent->node][this->node];
+		LinkGraphJobEdge &edge = job[this->parent->node][this->node];
 		if (max_saturation != UINT_MAX) {
 			uint usable_cap = edge.Capacity() * max_saturation / 100;
 			if (usable_cap > edge.Flow()) {

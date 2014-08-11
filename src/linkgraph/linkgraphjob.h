@@ -93,6 +93,39 @@ struct LinkGraphJobEdge {
 
 	/** Get the date of the last capacity update. */
 	Date LastUpdate() const { return max (this->last_unrestricted_update, this->last_restricted_update); }
+
+	/** Get the transport demand between the endpoints of the edge. */
+	uint Demand() const { return this->demand; }
+
+	/** Get the transport demand that hasn't been satisfied by flows yet. */
+	uint UnsatisfiedDemand() const { return this->unsatisfied_demand; }
+
+	/** Get the total flow on the edge. */
+	uint Flow() const { return this->flow; }
+
+	/** Add some flow. */
+	void AddFlow (uint flow) { this->flow += flow; }
+
+	/** Remove some flow. */
+	void RemoveFlow (uint flow)
+	{
+		assert (flow <= this->flow);
+		this->flow -= flow;
+	}
+
+	/** Add some (not yet satisfied) demand. */
+	void AddDemand (uint demand)
+	{
+		this->demand += demand;
+		this->unsatisfied_demand += demand;
+	}
+
+	/** Satisfy some demand. */
+	void SatisfyDemand (uint demand)
+	{
+		assert (demand <= this->unsatisfied_demand);
+		this->unsatisfied_demand -= demand;
+	}
 };
 
 
@@ -133,84 +166,6 @@ protected:
 	void SpawnThread();
 
 public:
-
-	/**
-	 * A job edge. Wraps a link graph edge and an edge annotation. The
-	 * annotation can be modified, the edge is constant.
-	 */
-	class EdgeRef {
-	public:
-		LinkGraphJobEdge &edge;
-
-		/**
-		 * Constructor.
-		 * @param edge Link graph edge to be wrapped.
-		 * @param anno Annotation to be wrapped.
-		 */
-		EdgeRef(LinkGraphJobEdge &edge) :
-				edge(edge) {}
-
-		/** Get edge capacity. */
-		uint Capacity() const { return this->edge.capacity; }
-
-		/** Get edge distance. */
-		uint Distance() const { return this->edge.distance; }
-
-		/**
-		 * Get the transport demand between end the points of the edge.
-		 * @return Demand.
-		 */
-		uint Demand() const { return this->edge.demand; }
-
-		/**
-		 * Get the transport demand that hasn't been satisfied by flows, yet.
-		 * @return Unsatisfied demand.
-		 */
-		uint UnsatisfiedDemand() const { return this->edge.unsatisfied_demand; }
-
-		/**
-		 * Get the total flow on the edge.
-		 * @return Flow.
-		 */
-		uint Flow() const { return this->edge.flow; }
-
-		/**
-		 * Add some flow.
-		 * @param flow Flow to be added.
-		 */
-		void AddFlow(uint flow) { this->edge.flow += flow; }
-
-		/**
-		 * Remove some flow.
-		 * @param flow Flow to be removed.
-		 */
-		void RemoveFlow(uint flow)
-		{
-			assert(flow <= this->edge.flow);
-			this->edge.flow -= flow;
-		}
-
-		/**
-		 * Add some (not yet satisfied) demand.
-		 * @param demand Demand to be added.
-		 */
-		void AddDemand(uint demand)
-		{
-			this->edge.demand += demand;
-			this->edge.unsatisfied_demand += demand;
-		}
-
-		/**
-		 * Satisfy some demand.
-		 * @param demand Demand to be satisfied.
-		 */
-		void SatisfyDemand(uint demand)
-		{
-			assert(demand <= this->edge.unsatisfied_demand);
-			this->edge.unsatisfied_demand -= demand;
-		}
-	};
-
 	/**
 	 * Iterator for job edges.
 	 */
@@ -241,7 +196,7 @@ public:
 		 * @param to Remote end of the edge.
 		 * @return Edge between this node and "to".
 		 */
-		EdgeRef operator[](NodeID to) const { return EdgeRef(this->edges[to]); }
+		LinkGraphJobEdge &operator[](NodeID to) const { return this->edges[to]; }
 
 		/**
 		 * Get amount of supply that hasn't been delivered, yet.

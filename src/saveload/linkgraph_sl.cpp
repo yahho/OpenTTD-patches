@@ -200,8 +200,8 @@ static void Load_LGRJ(LoadBuffer *reader)
 			LinkGraphJobNode *node = const_cast<LinkGraphJobNode*>(&*ref);
 			reader->ReadObject(node, _job_node_desc);
 			for (NodeID to = 0; to < size; ++to) {
-				LinkGraphJob::EdgeRef edge = ref[to];
-				reader->ReadObject (const_cast<LinkGraphJobEdge*>(&edge.edge), _job_edge_desc);
+				LinkGraphJobEdge *edge = &ref[to];
+				reader->ReadObject (edge, _job_edge_desc);
 			}
 		}
 	}
@@ -270,8 +270,8 @@ static void Save_LGRJ(SaveDumper *dumper)
 			const LinkGraphJobNode *node = &*ref;
 			temp.WriteObject(node, _job_node_desc);
 			for (NodeID to = 0; to < size; ++to) {
-				LinkGraphJob::EdgeRef edge = ref[to];
-				temp.WriteObject (&edge.edge, _job_edge_desc);
+				const LinkGraphJobEdge *edge = &ref[to];
+				temp.WriteObject (edge, _job_edge_desc);
 			}
 		}
 
