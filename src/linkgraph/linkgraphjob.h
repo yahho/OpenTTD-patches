@@ -27,7 +27,6 @@ struct LinkGraphJobNode {
 	uint supply;                   ///< Supply at the station.
 	uint demand;                   ///< Acceptance at the station.
 	StationID station;             ///< Station ID.
-	Date last_update;              ///< When the supply was last updated.
 
 	uint undelivered_supply;       ///< Amount of supply that hasn't been distributed yet.
 	PathList paths;                ///< Paths through this node, sorted so that those with flow == 0 are in the back.
@@ -38,7 +37,6 @@ struct LinkGraphJobNode {
 		this->supply = src.supply;
 		this->demand = src.demand;
 		this->station = src.station;
-		this->last_update = src.last_update;
 	}
 
 	void Init();
@@ -51,9 +49,6 @@ struct LinkGraphJobNode {
 
 	/** Get ID of node station. */
 	StationID Station() const { return this->station; }
-
-	/** Get the date of the last node update. */
-	Date LastUpdate() const { return this->last_update; }
 
 	/** Get amount of supply that hasn't been delivered yet. */
 	uint UndeliveredSupply() const { return this->undelivered_supply; }
@@ -80,9 +75,6 @@ struct LinkGraphJobNode {
 struct LinkGraphJobEdge {
 	uint distance;                 ///< Length of the link.
 	uint capacity;                 ///< Capacity of the link.
-	uint usage;                    ///< Usage of the link.
-	Date last_unrestricted_update; ///< When the unrestricted part of the link was last updated.
-	Date last_restricted_update;   ///< When the restricted part of the link was last updated.
 
 	NodeID next_edge;              ///< Destination of next valid edge starting at the same source node.
 	uint demand;                   ///< Transport demand between the nodes.
@@ -93,9 +85,6 @@ struct LinkGraphJobEdge {
 	{
 		this->distance = src.distance;
 		this->capacity = src.capacity;
-		this->usage = src.usage;
-		this->last_unrestricted_update = src.last_unrestricted_update;
-		this->last_restricted_update = src.last_restricted_update;
 		this->next_edge = src.next_edge;
 	}
 
@@ -104,20 +93,8 @@ struct LinkGraphJobEdge {
 	/** Get edge capacity. */
 	uint Capacity() const { return this->capacity; }
 
-	/** Get edge usage. */
-	uint Usage() const { return this->usage; }
-
 	/** Get edge distance. */
 	uint Distance() const { return this->distance; }
-
-	/** Get the date of the last unrestricted capacity update. */
-	Date LastUnrestrictedUpdate() const { return this->last_unrestricted_update; }
-
-	/** Get the date of the last restricted capacity update. */
-	Date LastRestrictedUpdate() const { return this->last_restricted_update; }
-
-	/** Get the date of the last capacity update. */
-	Date LastUpdate() const { return max (this->last_unrestricted_update, this->last_restricted_update); }
 
 	/** Get the transport demand between the endpoints of the edge. */
 	uint Demand() const { return this->demand; }

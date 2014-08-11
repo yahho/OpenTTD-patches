@@ -132,24 +132,23 @@ static const SaveLoad _edge_desc[] = {
  * SaveLoad desc for a link graph job node.
  */
 static const SaveLoad _job_node_desc[] = {
-	SLE_VAR(LinkGraphJobNode, supply,      SLE_UINT32),
-	SLE_VAR(LinkGraphJobNode, demand,      SLE_UINT32),
-	SLE_VAR(LinkGraphJobNode, station,     SLE_UINT16),
-	SLE_VAR(LinkGraphJobNode, last_update, SLE_INT32),
-	SLE_END()
+	 SLE_VAR(LinkGraphJobNode, supply,      SLE_UINT32),
+	 SLE_VAR(LinkGraphJobNode, demand,      SLE_UINT32),
+	 SLE_VAR(LinkGraphJobNode, station,     SLE_UINT16),
+	SLE_NULL(4, 0, 19, 0, ), // last_update
+	 SLE_END()
 };
 
 /**
  * SaveLoad desc for a link graph job edge.
  */
 static const SaveLoad _job_edge_desc[] = {
-	SLE_VAR(LinkGraphJobEdge, distance,                 SLE_UINT32),
-	SLE_VAR(LinkGraphJobEdge, capacity,                 SLE_UINT32),
-	SLE_VAR(LinkGraphJobEdge, usage,                    SLE_UINT32),
-	SLE_VAR(LinkGraphJobEdge, last_unrestricted_update, SLE_INT32),
-	SLE_VAR(LinkGraphJobEdge, last_restricted_update,   SLE_INT32,  13, , 187, ),
-	SLE_VAR(LinkGraphJobEdge, next_edge,                SLE_UINT16),
-	SLE_END()
+	 SLE_VAR(LinkGraphJobEdge, distance,                 SLE_UINT32),
+	 SLE_VAR(LinkGraphJobEdge, capacity,                 SLE_UINT32),
+	SLE_NULL(8,  0, 19,   0, ), // usage, last_unrestricted_update
+	SLE_NULL(4, 13, 19, 187, ), // last_restricted_update
+	 SLE_VAR(LinkGraphJobEdge, next_edge,                SLE_UINT16),
+	 SLE_END()
 };
 
 /**
