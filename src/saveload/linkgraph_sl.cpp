@@ -128,43 +128,6 @@ static const SaveLoad _edge_desc[] = {
 };
 
 /**
- * Save a link graph.
- * @param comp Link graph to be saved.
- */
-void Save_LinkGraph(SaveDumper *dumper, const Graph <LinkGraphNode, LinkGraphEdge> &lg)
-{
-	uint size = lg.Size();
-	for (NodeID from = 0; from < size; ++from) {
-		LinkGraph::ConstNodeRef ref (lg[from]);
-		const Node *node = &*ref;
-		dumper->WriteObject(node, _node_desc);
-		for (NodeID to = 0; to < size; ++to) {
-			const Edge *edge = &ref[to];
-			dumper->WriteObject (edge, _edge_desc);
-		}
-	}
-}
-
-/**
- * Load a link graph.
- * @param reader Reader to load the link graph from.
- * @param comp Link graph to be loaded.
- */
-void Load_LinkGraph(LoadBuffer *reader, Graph <LinkGraphNode, LinkGraphEdge> &lg)
-{
-	uint size = lg.Size();
-	for (NodeID from = 0; from < size; ++from) {
-		LinkGraph::NodeRef ref (lg[from]);
-		Node *node = &*ref;
-		reader->ReadObject(node, _node_desc);
-		for (NodeID to = 0; to < size; ++to) {
-			Edge *edge = &ref[to];
-			reader->ReadObject (edge, _edge_desc);
-		}
-	}
-}
-
-/**
  * Load all link graphs.
  */
 static void Load_LGRP(LoadBuffer *reader)
@@ -178,7 +141,16 @@ static void Load_LGRP(LoadBuffer *reader)
 		LinkGraph *lg = new (index) LinkGraph();
 		reader->ReadObject(lg, GetLinkGraphDesc());
 		lg->Resize(_num_nodes);
-		Load_LinkGraph(reader, *lg);
+		uint size = lg->Size();
+		for (NodeID from = 0; from < size; ++from) {
+			LinkGraph::NodeRef ref ((*lg)[from]);
+			Node *node = &*ref;
+			reader->ReadObject(node, _node_desc);
+			for (NodeID to = 0; to < size; ++to) {
+				Edge *edge = &ref[to];
+				reader->ReadObject (edge, _edge_desc);
+			}
+		}
 	}
 }
 
@@ -198,7 +170,16 @@ static void Load_LGRJ(LoadBuffer *reader)
 		Graph <LinkGraphNode, LinkGraphEdge> &lg = const_cast<Graph <LinkGraphNode, LinkGraphEdge> &>(lgj->Graph());
 		reader->ReadObject(&lg, GetLinkGraphDesc());
 		lg.Resize(_num_nodes);
-		Load_LinkGraph(reader, lg);
+		uint size = lg.Size();
+		for (NodeID from = 0; from < size; ++from) {
+			LinkGraph::NodeRef ref (lg[from]);
+			Node *node = &*ref;
+			reader->ReadObject(node, _node_desc);
+			for (NodeID to = 0; to < size; ++to) {
+				Edge *edge = &ref[to];
+				reader->ReadObject (edge, _edge_desc);
+			}
+		}
 	}
 }
 
@@ -224,13 +205,22 @@ void AfterLoadLinkGraphs()
  */
 static void Save_LGRP(SaveDumper *dumper)
 {
-	LinkGraph *lg;
+	const LinkGraph *lg;
 	FOR_ALL_LINK_GRAPHS(lg) {
 		SaveDumper temp(1024);
 
 		_num_nodes = lg->Size();
 		temp.WriteObject(lg, GetLinkGraphDesc());
-		Save_LinkGraph(&temp, *lg);
+		uint size = lg->Size();
+		for (NodeID from = 0; from < size; ++from) {
+			LinkGraph::ConstNodeRef ref ((*lg)[from]);
+			const Node *node = &*ref;
+			temp.WriteObject(node, _node_desc);
+			for (NodeID to = 0; to < size; ++to) {
+				const Edge *edge = &ref[to];
+				temp.WriteObject (edge, _edge_desc);
+			}
+		}
 
 		dumper->WriteElementHeader(lg->index, temp.GetSize());
 		temp.Dump(dumper);
@@ -249,7 +239,17 @@ static void Save_LGRJ(SaveDumper *dumper)
 		temp.WriteObject(lgj, GetLinkGraphJobDesc());
 		_num_nodes = lgj->Size();
 		temp.WriteObject(&lgj->Graph(), GetLinkGraphDesc());
-		Save_LinkGraph(&temp, lgj->Graph());
+		const Graph <LinkGraphNode, LinkGraphEdge> &lg = lgj->Graph();
+		uint size = lg.Size();
+		for (NodeID from = 0; from < size; ++from) {
+			LinkGraph::ConstNodeRef ref (lg[from]);
+			const Node *node = &*ref;
+			temp.WriteObject(node, _node_desc);
+			for (NodeID to = 0; to < size; ++to) {
+				const Edge *edge = &ref[to];
+				temp.WriteObject (edge, _edge_desc);
+			}
+		}
 
 		dumper->WriteElementHeader(lgj->index, temp.GetSize());
 		temp.Dump(dumper);
