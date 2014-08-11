@@ -161,7 +161,7 @@ public:
 			: station_to_node(&f.station_to_node)
 		{
 			static const FlowStat::SharesMap empty;
-			const FlowStatMap &flows = f.job[node].Flows();
+			const FlowStatMap &flows = f.job[node]->Flows();
 			FlowStatMap::const_iterator it = flows.find(f.job[source]->Station());
 			if (it != flows.end()) {
 				this->it = it->second.GetShares()->begin();
@@ -367,7 +367,7 @@ void MCF1stPass::EliminateCycle(PathVector &path, Path *cycle_begin, uint flow)
 		NodeID prev = cycle_begin->GetNode();
 		cycle_begin->ReduceFlow(flow);
 		if (cycle_begin->GetFlow() == 0) {
-			PathList &node_paths = this->job[cycle_begin->GetParent()->GetNode()].Paths();
+			PathList &node_paths = this->job[cycle_begin->GetParent()->GetNode()]->Paths();
 			for (PathList::iterator i = node_paths.begin(); i != node_paths.end(); ++i) {
 				if (*i == cycle_begin) {
 					node_paths.erase(i);
@@ -402,7 +402,7 @@ bool MCF1stPass::EliminateCycles(PathVector &path, NodeID origin_id, NodeID next
 	if (at_next_pos == NULL) {
 		/* Summarize paths; add up the paths with the same source and next hop
 		 * in one path each. */
-		PathList &paths = this->job[next_id].Paths();
+		PathList &paths = this->job[next_id]->Paths();
 		PathViaMap next_hops;
 		for (PathList::iterator i = paths.begin(); i != paths.end();) {
 			Path *new_child = *i;

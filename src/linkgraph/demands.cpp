@@ -69,7 +69,7 @@ public:
 	 */
 	inline bool HasDemandLeft(const NodeRef &to)
 	{
-		return (to->Supply() == 0 || to.UndeliveredSupply() > 0) && to->Demand() > 0;
+		return (to->Supply() == 0 || to->UndeliveredSupply() > 0) && to->Demand() > 0;
 	}
 
 	void SetDemands(LinkGraphJob &job, NodeID from, NodeID to, uint demand_forw);
@@ -132,7 +132,7 @@ void SymmetricScaler::SetDemands(LinkGraphJob &job, NodeID from_id, NodeID to_id
 {
 	if (job[from_id]->Demand() > 0) {
 		uint demand_back = demand_forw * this->mod_size / 100;
-		uint undelivered = job[to_id].UndeliveredSupply();
+		uint undelivered = job[to_id]->UndeliveredSupply();
 		if (demand_back > undelivered) {
 			demand_back = undelivered;
 			demand_forw = max(1U, demand_back * 100 / this->mod_size);
@@ -230,7 +230,7 @@ void DemandCalculator::CalcDemand(LinkGraphJob &job, Tscaler scaler)
 				demand_forw = 1;
 			}
 
-			demand_forw = min(demand_forw, job[from_id].UndeliveredSupply());
+			demand_forw = min(demand_forw, job[from_id]->UndeliveredSupply());
 
 			scaler.SetDemands(job, from_id, to_id, demand_forw);
 
@@ -240,10 +240,10 @@ void DemandCalculator::CalcDemand(LinkGraphJob &job, Tscaler scaler)
 				num_demands--;
 			}
 
-			if (job[from_id].UndeliveredSupply() == 0) break;
+			if (job[from_id]->UndeliveredSupply() == 0) break;
 		}
 
-		if (job[from_id].UndeliveredSupply() != 0) {
+		if (job[from_id]->UndeliveredSupply() != 0) {
 			supplies.push_back(from_id);
 		} else {
 			num_supplies--;

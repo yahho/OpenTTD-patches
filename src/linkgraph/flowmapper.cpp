@@ -21,7 +21,7 @@ void FlowMapper::Run(LinkGraphJob &job) const
 	for (NodeID node_id = 0; node_id < job.Size(); ++node_id) {
 		LinkGraphJob::NodeRef prev_node = job[node_id];
 		StationID prev = prev_node->Station();
-		PathList &paths = prev_node.Paths();
+		PathList &paths = prev_node->Paths();
 		for (PathList::iterator i = paths.begin(); i != paths.end(); ++i) {
 			Path *path = *i;
 			uint flow = path->GetFlow();
@@ -31,14 +31,14 @@ void FlowMapper::Run(LinkGraphJob &job) const
 			StationID origin = job[path->GetOrigin()]->Station();
 			assert(prev != via && via != origin);
 			/* Mark all of the flow for local consumption at "first". */
-			node.Flows().AddFlow(origin, via, flow);
+			node->Flows().AddFlow(origin, via, flow);
 			if (prev != origin) {
 				/* Pass some of the flow marked for local consumption at "prev" on
 				 * to this node. */
-				prev_node.Flows().PassOnFlow(origin, via, flow);
+				prev_node->Flows().PassOnFlow(origin, via, flow);
 			} else {
 				/* Prev node is origin. Simply add flow. */
-				prev_node.Flows().AddFlow(origin, via, flow);
+				prev_node->Flows().AddFlow(origin, via, flow);
 			}
 		}
 	}
@@ -46,7 +46,7 @@ void FlowMapper::Run(LinkGraphJob &job) const
 	for (NodeID node_id = 0; node_id < job.Size(); ++node_id) {
 		/* Remove local consumption shares marked as invalid. */
 		LinkGraphJob::NodeRef node = job[node_id];
-		FlowStatMap &flows = node.Flows();
+		FlowStatMap &flows = node->Flows();
 		flows.FinalizeLocalConsumption(node->Station());
 		if (this->scale) {
 			/* Scale by time the graph has been running without being compressed. Add 1 to avoid
@@ -58,7 +58,7 @@ void FlowMapper::Run(LinkGraphJob &job) const
 			}
 		}
 		/* Clear paths. */
-		PathList &paths = node.Paths();
+		PathList &paths = node->Paths();
 		for (PathList::iterator i = paths.begin(); i != paths.end(); ++i) {
 			delete *i;
 		}

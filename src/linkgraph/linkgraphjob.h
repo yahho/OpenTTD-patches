@@ -54,6 +54,25 @@ struct LinkGraphJobNode {
 
 	/** Get the date of the last node update. */
 	Date LastUpdate() const { return this->last_update; }
+
+	/** Get amount of supply that hasn't been delivered yet. */
+	uint UndeliveredSupply() const { return this->undelivered_supply; }
+
+	/** Get the flows running through this node. */
+	FlowStatMap &Flows() { return this->flows; }
+
+	/** Get a constant version of the flows running through this node. */
+	const FlowStatMap &Flows() const { return this->flows; }
+
+	/**
+	 * Get the paths this node is part of. Paths are always expected to be
+	 * sorted so that those with flow == 0 are in the back of the list.
+	 * @return Paths.
+	 */
+	PathList &Paths() { return this->paths; }
+
+	/** Get a constant version of the paths this node is part of. */
+	const PathList &Paths() const { return this->paths; }
 };
 
 
@@ -187,37 +206,6 @@ public:
 		 * @return Edge between this node and "to".
 		 */
 		LinkGraphJobEdge &operator[](NodeID to) const { return this->edges[to]; }
-
-		/**
-		 * Get amount of supply that hasn't been delivered, yet.
-		 * @return Undelivered supply.
-		 */
-		uint UndeliveredSupply() const { return this->node->undelivered_supply; }
-
-		/**
-		 * Get the flows running through this node.
-		 * @return Flows.
-		 */
-		FlowStatMap &Flows() { return this->node->flows; }
-
-		/**
-		 * Get a constant version of the flows running through this node.
-		 * @return Flows.
-		 */
-		const FlowStatMap &Flows() const { return this->node->flows; }
-
-		/**
-		 * Get the paths this node is part of. Paths are always expected to be
-		 * sorted so that those with flow == 0 are in the back of the list.
-		 * @return Paths.
-		 */
-		PathList &Paths() { return this->node->paths; }
-
-		/**
-		 * Get a constant version of the paths this node is part of.
-		 * @return Paths.
-		 */
-		const PathList &Paths() const { return this->node->paths; }
 	};
 
 	/**

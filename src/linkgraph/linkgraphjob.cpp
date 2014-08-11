@@ -56,7 +56,7 @@ LinkGraphJob::LinkGraphJob(const LinkGraph &orig) :
 void LinkGraphJob::EraseFlows(NodeID from)
 {
 	for (NodeID node_id = 0; node_id < this->Size(); ++node_id) {
-		(*this)[node_id].Flows().erase(from);
+		(*this)[node_id]->Flows().erase(from);
 	}
 }
 
@@ -125,7 +125,7 @@ LinkGraphJob::~LinkGraphJob()
 		}
 
 		LinkGraph *lg = LinkGraph::Get(ge.link_graph);
-		FlowStatMap &flows = from.Flows();
+		FlowStatMap &flows = from->Flows();
 
 		for (EdgeIterator it(from.Begin()); it != from.End(); ++it) {
 			if (from[it.get_id()].Flow() == 0) continue;
@@ -259,7 +259,7 @@ uint Path::AddFlow(uint new_flow, LinkGraphJob &job, uint max_saturation)
 		}
 		new_flow = this->parent->AddFlow(new_flow, job, max_saturation);
 		if (this->flow == 0 && new_flow > 0) {
-			job[this->parent->node].Paths().push_front(this);
+			job[this->parent->node]->Paths().push_front(this);
 		}
 		edge.AddFlow(new_flow);
 	}
