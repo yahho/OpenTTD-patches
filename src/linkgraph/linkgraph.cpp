@@ -22,7 +22,7 @@ INSTANTIATE_POOL_METHODS(LinkGraph)
  * @param st ID of the associated station.
  * @param demand Demand for cargo at the station.
  */
-inline void LinkGraph::BaseNode::Init(StationID st, uint demand)
+inline void LinkGraphNode::Init(StationID st, uint demand)
 {
 	this->supply = 0;
 	this->demand = demand;
@@ -34,7 +34,7 @@ inline void LinkGraph::BaseNode::Init(StationID st, uint demand)
  * Create an edge.
  * @param distance Length of the link as manhattan distance.
  */
-inline void LinkGraph::BaseEdge::Init(uint distance)
+inline void LinkGraphEdge::Init(uint distance)
 {
 	this->distance = distance;
 	this->capacity = 0;
@@ -53,10 +53,10 @@ void LinkGraph::ShiftDates(int interval)
 {
 	this->last_compression += interval;
 	for (NodeID node1 = 0; node1 < this->Size(); ++node1) {
-		BaseNode &source = this->nodes[node1];
+		Node &source = this->nodes[node1];
 		if (source.last_update != INVALID_DATE) source.last_update += interval;
 		for (NodeID node2 = 0; node2 < this->Size(); ++node2) {
-			BaseEdge &edge = this->edges[node1][node2];
+			Edge &edge = this->edges[node1][node2];
 			if (edge.last_unrestricted_update != INVALID_DATE) edge.last_unrestricted_update += interval;
 			if (edge.last_restricted_update != INVALID_DATE) edge.last_restricted_update += interval;
 		}
@@ -69,7 +69,7 @@ void LinkGraph::Compress()
 	for (NodeID node1 = 0; node1 < this->Size(); ++node1) {
 		this->nodes[node1].supply /= 2;
 		for (NodeID node2 = 0; node2 < this->Size(); ++node2) {
-			BaseEdge &edge = this->edges[node1][node2];
+			Edge &edge = this->edges[node1][node2];
 			if (edge.capacity > 0) {
 				edge.capacity = max(1U, edge.capacity / 2);
 				edge.usage /= 2;
@@ -94,8 +94,8 @@ void LinkGraph::Merge(LinkGraph *other)
 		st->goods[this->cargo].link_graph = this->index;
 		st->goods[this->cargo].node = new_node;
 		for (NodeID node2 = 0; node2 < node1; ++node2) {
-			BaseEdge &forward = this->edges[new_node][first + node2];
-			BaseEdge &backward = this->edges[first + node2][new_node];
+			Edge &forward = this->edges[new_node][first + node2];
+			Edge &backward = this->edges[first + node2][new_node];
 			forward = other->edges[node1][node2];
 			backward = other->edges[node2][node1];
 			forward.capacity = LinkGraph::Scale(forward.capacity, age, other_age);
@@ -105,7 +105,7 @@ void LinkGraph::Merge(LinkGraph *other)
 			backward.usage = LinkGraph::Scale(backward.usage, age, other_age);
 			if (backward.next_edge != INVALID_NODE) backward.next_edge += first;
 		}
-		BaseEdge &new_start = this->edges[new_node][new_node];
+		Edge &new_start = this->edges[new_node][new_node];
 		new_start = other->edges[node1][node1];
 		if (new_start.next_edge != INVALID_NODE) new_start.next_edge += first;
 	}
@@ -123,7 +123,7 @@ void LinkGraph::RemoveNode(NodeID id)
 	NodeID last_node = this->Size() - 1;
 	for (NodeID i = 0; i <= last_node; ++i) {
 		(*this)[i].unlink(id);
-		BaseEdge *node_edges = this->edges[i];
+		Edge *node_edges = this->edges[i];
 		NodeID prev = i;
 		NodeID next = node_edges[i].next_edge;
 		while (next != INVALID_NODE) {
@@ -181,7 +181,7 @@ NodeID LinkGraph::AddNode(const Station *st)
 	this->nodes[new_node].Init(st->index,
 			HasBit(good.status, GoodsEntry::GES_ACCEPTANCE));
 
-	BaseEdge *new_edges = this->edges[new_node];
+	Edge *new_edges = this->edges[new_node];
 
 	/* Reset the first edge starting at the new node */
 	new_edges[new_node].next_edge = INVALID_NODE;
@@ -208,7 +208,7 @@ void LinkGraph::UpdateEdge (NodeID from, NodeID to, uint capacity, uint usage, E
 	assert(capacity > 0);
 	assert(usage <= capacity);
 
-	BaseEdge *edges = this->edges[from];
+	Edge *edges = this->edges[from];
 	if (edges[to].capacity == 0) {
 		edges[to].Set (capacity, usage, mode);
 		edges[to].next_edge = edges[from].next_edge;
@@ -226,7 +226,7 @@ void LinkGraph::UpdateEdge (NodeID from, NodeID to, uint capacity, uint usage, E
 void LinkGraph::RemoveEdge (NodeID from, NodeID to)
 {
 	assert(from != to);
-	BaseEdge *edge = (*this)[from].unlink(to);
+	Edge *edge = (*this)[from].unlink(to);
 	edge->capacity = 0;
 	edge->last_unrestricted_update = INVALID_DATE;
 	edge->last_restricted_update = INVALID_DATE;
@@ -240,7 +240,7 @@ void LinkGraph::RemoveEdge (NodeID from, NodeID to)
  * @param usage Usage to be set.
  * @param mode Update mode to be applied.
  */
-void LinkGraph::BaseEdge::Set (uint capacity, uint usage, EdgeUpdateMode mode)
+void LinkGraphEdge::Set (uint capacity, uint usage, EdgeUpdateMode mode)
 {
 	this->capacity = capacity;
 	this->usage = usage;
@@ -257,7 +257,7 @@ void LinkGraph::BaseEdge::Set (uint capacity, uint usage, EdgeUpdateMode mode)
  * @param usage Usage to be added.
  * @param mode Update mode to be applied.
  */
-void LinkGraph::BaseEdge::Update (uint capacity, uint usage, EdgeUpdateMode mode)
+void LinkGraphEdge::Update (uint capacity, uint usage, EdgeUpdateMode mode)
 {
 	assert (this->capacity > 0);
 	assert (capacity >= usage);
@@ -284,7 +284,7 @@ void LinkGraph::Resize(uint size)
 
 	for (uint i = 0; i < size; ++i) {
 		this->nodes[i].Init();
-		BaseEdge *column = this->edges[i];
+		Edge *column = this->edges[i];
 		for (uint j = 0; j < size; ++j) column[j].Init();
 	}
 }

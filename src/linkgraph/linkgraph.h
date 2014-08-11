@@ -122,9 +122,6 @@ struct LinkGraphEdge {
 class LinkGraph : public PooledItem <LinkGraph, LinkGraphID, 32, 0xFFFF>,
 	public Graph <LinkGraphNode, LinkGraphEdge> {
 public:
-	typedef Node BaseNode;
-	typedef Edge BaseEdge;
-
 	/** Minimum effective distance for timeout calculation. */
 	static const uint MIN_TIMEOUT_DISTANCE = 32;
 

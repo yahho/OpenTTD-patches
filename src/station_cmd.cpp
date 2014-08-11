@@ -3407,7 +3407,7 @@ void DeleteStaleLinks(Station *from)
 		if (lg == NULL) continue;
 		LinkGraph::NodeRef node = (*lg)[ge.node];
 		for (LinkGraph::EdgeIterator it(node.Begin()); it != node.End();) {
-			LinkGraph::BaseEdge *edge = &*it;
+			LinkGraph::Edge *edge = &*it;
 			Station *to = Station::Get((*lg)[it.get_id()]->Station());
 			assert(to->goods[c].node == it.get_id());
 			++it; // Do that before removing the edge. Anything else may crash.

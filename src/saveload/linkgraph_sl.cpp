@@ -17,8 +17,6 @@
 #include "saveload_buffer.h"
 #include "saveload_error.h"
 
-typedef LinkGraph::BaseNode Node;
-typedef LinkGraph::BaseEdge Edge;
 
 const SettingDesc *GetSettingDescription(uint index);
 
@@ -110,10 +108,10 @@ const SaveLoad *GetLinkGraphScheduleDesc()
  * SaveLoad desc for a link graph node.
  */
 static const SaveLoad _node_desc[] = {
-	SLE_VAR(Node, supply,      SLE_UINT32),
-	SLE_VAR(Node, demand,      SLE_UINT32),
-	SLE_VAR(Node, station,     SLE_UINT16),
-	SLE_VAR(Node, last_update, SLE_INT32),
+	SLE_VAR(LinkGraphNode, supply,      SLE_UINT32),
+	SLE_VAR(LinkGraphNode, demand,      SLE_UINT32),
+	SLE_VAR(LinkGraphNode, station,     SLE_UINT16),
+	SLE_VAR(LinkGraphNode, last_update, SLE_INT32),
 	SLE_END()
 };
 
@@ -121,12 +119,12 @@ static const SaveLoad _node_desc[] = {
  * SaveLoad desc for a link graph edge.
  */
 static const SaveLoad _edge_desc[] = {
-	SLE_VAR(Edge, distance,                 SLE_UINT32),
-	SLE_VAR(Edge, capacity,                 SLE_UINT32),
-	SLE_VAR(Edge, usage,                    SLE_UINT32),
-	SLE_VAR(Edge, last_unrestricted_update, SLE_INT32),
-	SLE_VAR(Edge, last_restricted_update,   SLE_INT32,  13, , 187, ),
-	SLE_VAR(Edge, next_edge,                SLE_UINT16),
+	SLE_VAR(LinkGraphEdge, distance,                 SLE_UINT32),
+	SLE_VAR(LinkGraphEdge, capacity,                 SLE_UINT32),
+	SLE_VAR(LinkGraphEdge, usage,                    SLE_UINT32),
+	SLE_VAR(LinkGraphEdge, last_unrestricted_update, SLE_INT32),
+	SLE_VAR(LinkGraphEdge, last_restricted_update,   SLE_INT32,  13, , 187, ),
+	SLE_VAR(LinkGraphEdge, next_edge,                SLE_UINT16),
 	SLE_END()
 };
 
@@ -171,10 +169,10 @@ static void Load_LGRP(LoadBuffer *reader)
 		uint size = lg->Size();
 		for (NodeID from = 0; from < size; ++from) {
 			LinkGraph::NodeRef ref ((*lg)[from]);
-			Node *node = &*ref;
+			LinkGraphNode *node = &*ref;
 			reader->ReadObject(node, _node_desc);
 			for (NodeID to = 0; to < size; ++to) {
-				Edge *edge = &ref[to];
+				LinkGraphEdge *edge = &ref[to];
 				reader->ReadObject (edge, _edge_desc);
 			}
 		}
@@ -239,10 +237,10 @@ static void Save_LGRP(SaveDumper *dumper)
 		uint size = lg->Size();
 		for (NodeID from = 0; from < size; ++from) {
 			LinkGraph::ConstNodeRef ref ((*lg)[from]);
-			const Node *node = &*ref;
+			const LinkGraphNode *node = &*ref;
 			temp.WriteObject(node, _node_desc);
 			for (NodeID to = 0; to < size; ++to) {
-				const Edge *edge = &ref[to];
+				const LinkGraphEdge *edge = &ref[to];
 				temp.WriteObject (edge, _edge_desc);
 			}
 		}
