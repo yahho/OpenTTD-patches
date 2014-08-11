@@ -41,7 +41,7 @@ struct LinkGraphJobNode {
 		this->last_update = src.last_update;
 	}
 
-	void Init(uint supply);
+	void Init();
 
 	/** Get supply of node. */
 	uint Supply() const { return this->supply; }

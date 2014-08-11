@@ -184,7 +184,7 @@ void LinkGraphJob::Init()
 {
 	uint size = this->Size();
 	for (uint i = 0; i < size; ++i) {
-		this->nodes[i].Init (this->nodes[i].Supply());
+		this->nodes[i].Init();
 		for (uint j = 0; j < size; ++j) {
 			this->edges[i][j].Init();
 		}
@@ -206,9 +206,9 @@ void LinkGraphJobEdge::Init()
  * freshly allocated, without any constructors having been called.
  * @param supply Initial undelivered supply.
  */
-void LinkGraphJobNode::Init(uint supply)
+void LinkGraphJobNode::Init()
 {
-	this->undelivered_supply = supply;
+	this->undelivered_supply = this->supply;
 	new (&this->flows) FlowStatMap;
 	new (&this->paths) PathList;
 }
