@@ -29,6 +29,10 @@ struct LinkGraphJobNode {
 	StationID station;             ///< Station ID.
 	Date last_update;              ///< When the supply was last updated.
 
+	uint undelivered_supply;       ///< Amount of supply that hasn't been distributed yet.
+	PathList paths;                ///< Paths through this node, sorted so that those with flow == 0 are in the back.
+	FlowStatMap flows;             ///< Planned flows to other nodes.
+
 	void Copy (const LinkGraphNode &src)
 	{
 		this->supply = src.supply;
@@ -36,6 +40,8 @@ struct LinkGraphJobNode {
 		this->station = src.station;
 		this->last_update = src.last_update;
 	}
+
+	void Init(uint supply);
 
 	/** Get supply of node. */
 	uint Supply() const { return this->supply; }
@@ -134,18 +140,6 @@ struct LinkGraphJobEdge {
  */
 class LinkGraphJob : public PooledItem <LinkGraphJob, LinkGraphJobID, 32, 0xFFFF> {
 private:
-	/**
-	 * Annotation for a link graph node.
-	 */
-	struct NodeAnnotation {
-		uint undelivered_supply; ///< Amount of supply that hasn't been distributed yet.
-		PathList paths;          ///< Paths through this node, sorted so that those with flow == 0 are in the back.
-		FlowStatMap flows;       ///< Planned flows to other nodes.
-		void Init(uint supply);
-	};
-
-	typedef SmallVector<NodeAnnotation, 16> NodeAnnotationVector;
-
 	friend const SaveLoad *GetLinkGraphJobDesc();
 	friend class LinkGraphSchedule;
 
@@ -159,7 +153,6 @@ protected:
 
 	ThreadObject *thread;             ///< Thread the job is running in or NULL if it's running in the main thread.
 	Date join_date;                   ///< Date when the job is to be joined.
-	NodeAnnotationVector nodes;       ///< Extra node data necessary for link graph calculation.
 
 	void EraseFlows(NodeID from);
 	void JoinThread();
@@ -176,8 +169,6 @@ public:
 	 * node annotation.
 	 */
 	class NodeRef : public BaseGraph::NodeRef {
-	private:
-		NodeAnnotation &node_anno;  ///< Annotation being wrapped.
 	public:
 
 		/**
@@ -186,8 +177,7 @@ public:
 		 * @param node ID of the node.
 		 */
 		NodeRef (LinkGraphJob *lgj, NodeID node) :
-			BaseGraph::NodeRef (&lgj->link_graph, node),
-			node_anno(lgj->nodes[node])
+			BaseGraph::NodeRef (&lgj->link_graph, node)
 		{}
 
 		/**
@@ -202,32 +192,32 @@ public:
 		 * Get amount of supply that hasn't been delivered, yet.
 		 * @return Undelivered supply.
 		 */
-		uint UndeliveredSupply() const { return this->node_anno.undelivered_supply; }
+		uint UndeliveredSupply() const { return this->node->undelivered_supply; }
 
 		/**
 		 * Get the flows running through this node.
 		 * @return Flows.
 		 */
-		FlowStatMap &Flows() { return this->node_anno.flows; }
+		FlowStatMap &Flows() { return this->node->flows; }
 
 		/**
 		 * Get a constant version of the flows running through this node.
 		 * @return Flows.
 		 */
-		const FlowStatMap &Flows() const { return this->node_anno.flows; }
+		const FlowStatMap &Flows() const { return this->node->flows; }
 
 		/**
 		 * Get the paths this node is part of. Paths are always expected to be
 		 * sorted so that those with flow == 0 are in the back of the list.
 		 * @return Paths.
 		 */
-		PathList &Paths() { return this->node_anno.paths; }
+		PathList &Paths() { return this->node->paths; }
 
 		/**
 		 * Get a constant version of the paths this node is part of.
 		 * @return Paths.
 		 */
-		const PathList &Paths() const { return this->node_anno.paths; }
+		const PathList &Paths() const { return this->node->paths; }
 
 		/**
 		 * Deliver some supply, adding demand to the respective edge.
@@ -236,7 +226,7 @@ public:
 		 */
 		void DeliverSupply(NodeID to, uint amount)
 		{
-			this->node_anno.undelivered_supply -= amount;
+			this->node->undelivered_supply -= amount;
 			(*this)[to].AddDemand(amount);
 		}
 	};

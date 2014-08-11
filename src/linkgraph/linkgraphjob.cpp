@@ -184,10 +184,9 @@ LinkGraphJob::~LinkGraphJob()
 void LinkGraphJob::Init()
 {
 	uint size = this->Size();
-	this->nodes.Resize(size);
 	for (uint i = 0; i < size; ++i) {
-		this->nodes[i].Init(this->link_graph[i]->Supply());
 		NodeRef ref ((*this)[i]);
+		ref->Init(this->link_graph[i]->Supply());
 		for (uint j = 0; j < size; ++j) {
 			ref[j].Init();
 		}
@@ -209,7 +208,7 @@ void LinkGraphJobEdge::Init()
  * freshly allocated, without any constructors having been called.
  * @param supply Initial undelivered supply.
  */
-void LinkGraphJob::NodeAnnotation::Init(uint supply)
+void LinkGraphJobNode::Init(uint supply)
 {
 	this->undelivered_supply = supply;
 	new (&this->flows) FlowStatMap;
