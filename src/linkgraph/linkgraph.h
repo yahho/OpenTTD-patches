@@ -37,7 +37,7 @@ struct LinkGraphNode {
 	StationID station;       ///< Station ID.
 	Date last_update;        ///< When the supply was last updated.
 
-	void Init (StationID st, uint demand);
+	void Init (const ::Station *st, uint demand);
 
 	void Init (void);
 

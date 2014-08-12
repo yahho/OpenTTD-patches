@@ -19,14 +19,14 @@ INSTANTIATE_POOL_METHODS(LinkGraph)
 
 /**
  * Create a node.
- * @param st ID of the associated station.
+ * @param st Associated station.
  * @param demand Demand for cargo at the station.
  */
-inline void LinkGraphNode::Init(StationID st, uint demand)
+inline void LinkGraphNode::Init (const ::Station *st, uint demand)
 {
 	this->supply = 0;
 	this->demand = demand;
-	this->station = st;
+	this->station = st->index;
 	this->last_update = INVALID_DATE;
 }
 
@@ -189,7 +189,7 @@ NodeID LinkGraph::AddNode(const Station *st)
 	this->edges.Resize(new_node + 1U,
 			max(new_node + 1U, this->edges.Height()));
 
-	this->nodes[new_node].Init(st->index,
+	this->nodes[new_node].Init (st,
 			HasBit(good.status, GoodsEntry::GES_ACCEPTANCE));
 
 	Edge *new_edges = this->edges[new_node];
