@@ -18,7 +18,7 @@ template<> LinkGraph::Pool LinkGraph::PoolItem::pool ("LinkGraph");
 INSTANTIATE_POOL_METHODS(LinkGraph)
 
 /**
- * Create a node or clear it.
+ * Create a node.
  * @param st ID of the associated station.
  * @param demand Demand for cargo at the station.
  */
@@ -27,6 +27,17 @@ inline void LinkGraphNode::Init(StationID st, uint demand)
 	this->supply = 0;
 	this->demand = demand;
 	this->station = st;
+	this->last_update = INVALID_DATE;
+}
+
+/**
+ * Clear a node.
+ */
+inline void LinkGraphNode::Init (void)
+{
+	this->supply = 0;
+	this->demand = 0;
+	this->station = INVALID_STATION;
 	this->last_update = INVALID_DATE;
 }
 

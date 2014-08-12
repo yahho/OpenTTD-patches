@@ -36,7 +36,10 @@ struct LinkGraphNode {
 	uint demand;             ///< Acceptance at the station.
 	StationID station;       ///< Station ID.
 	Date last_update;        ///< When the supply was last updated.
-	void Init(StationID st = INVALID_STATION, uint demand = 0);
+
+	void Init (StationID st, uint demand);
+
+	void Init (void);
 
 	/** Get supply of node. */
 	uint Supply() const { return this->supply; }
