@@ -43,11 +43,9 @@ inline void LinkGraphNode::Init (void)
 
 /**
  * Create an edge.
- * @param distance Length of the link as manhattan distance.
  */
-inline void LinkGraphEdge::Init(uint distance)
+inline void LinkGraphEdge::Init()
 {
-	this->distance = distance;
 	this->capacity = 0;
 	this->usage = 0;
 	this->last_unrestricted_update = INVALID_DATE;
@@ -156,21 +154,6 @@ void LinkGraph::RemoveNode(NodeID id)
 }
 
 /**
- * Update distances between the given node and all others.
- * @param id Node that changed position.
- * @param xy New position of the node.
- */
-void LinkGraph::UpdateDistances(NodeID id, TileIndex xy)
-{
-	assert(id < this->Size());
-	for (NodeID other = 0; other < this->Size(); ++other) {
-		if (other == id) continue;
-		this->edges[id][other].distance = this->edges[other][id].distance =
-				DistanceMaxPlusManhattan(xy, Station::Get(this->nodes[other].station)->xy);
-	}
-}
-
-/**
  * Add a node to the component and create empty edges associated with it. Set
  * the station's last_component to this component. Calculate the distances to all
  * other nodes. The distances to _all_ nodes are important as the demand
@@ -198,9 +181,8 @@ NodeID LinkGraph::AddNode(const Station *st)
 	new_edges[new_node].next_edge = INVALID_NODE;
 
 	for (NodeID i = 0; i <= new_node; ++i) {
-		uint distance = DistanceMaxPlusManhattan(st->xy, Station::Get(this->nodes[i].station)->xy);
-		new_edges[i].Init(distance);
-		this->edges[i][new_node].Init(distance);
+		new_edges[i].Init();
+		this->edges[i][new_node].Init();
 	}
 	return new_node;
 }

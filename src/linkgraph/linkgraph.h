@@ -75,28 +75,24 @@ struct LinkGraphNode {
 
 
 /**
- * An edge in the link graph. Corresponds to a link between two stations or at
- * least the distance between them. Edges from one node to itself contain the
- * ID of the opposite Node of the first active edge (i.e. not just distance) in
- * the column as next_edge.
+ * An edge in the link graph. Corresponds to a link between two stations.
+ * Edges from one node to itself contain the ID of the opposite Node of the
+ * first active edge (i.e. not just distance) in the column as next_edge.
  */
 struct LinkGraphEdge {
-	uint distance;                 ///< Length of the link.
 	uint capacity;                 ///< Capacity of the link.
 	uint usage;                    ///< Usage of the link.
 	Date last_unrestricted_update; ///< When the unrestricted part of the link was last updated.
 	Date last_restricted_update;   ///< When the restricted part of the link was last updated.
 	NodeID next_edge;              ///< Destination of next valid edge starting at the same source node.
-	void Init(uint distance = 0);
+
+	void Init();
 
 	/** Get edge capacity. */
 	uint Capacity() const { return this->capacity; }
 
 	/** Get edge usage. */
 	uint Usage() const { return this->usage; }
-
-	/** Get edge distance. */
-	uint Distance() const { return this->distance; }
 
 	/** Get the date of the last unrestricted capacity update. */
 	Date LastUnrestrictedUpdate() const { return this->last_unrestricted_update; }
@@ -189,7 +185,6 @@ public:
 
 	NodeID AddNode(const Station *st);
 	void RemoveNode(NodeID id);
-	void UpdateDistances(NodeID id, TileIndex xy);
 	void UpdateEdge(NodeID from, NodeID to, uint capacity, uint usage, EdgeUpdateMode mode);
 	void RemoveEdge(NodeID from, NodeID to);
 
