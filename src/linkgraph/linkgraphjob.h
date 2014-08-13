@@ -78,7 +78,6 @@ struct LinkGraphJobNode {
 
 /** Edge of a link graph job. */
 struct LinkGraphJobEdge {
-	uint distance;                 ///< Length of the link.
 	uint capacity;                 ///< Capacity of the link.
 
 	NodeID next_edge;              ///< Destination of next valid edge starting at the same source node.
@@ -88,7 +87,6 @@ struct LinkGraphJobEdge {
 
 	void Copy (const LinkGraphEdge &src)
 	{
-		this->distance = src.distance;
 		this->capacity = src.capacity;
 		this->next_edge = src.next_edge;
 	}
@@ -97,9 +95,6 @@ struct LinkGraphJobEdge {
 
 	/** Get edge capacity. */
 	uint Capacity() const { return this->capacity; }
-
-	/** Get edge distance. */
-	uint Distance() const { return this->distance; }
 
 	/** Get the transport demand between the endpoints of the edge. */
 	uint Demand() const { return this->demand; }

@@ -144,7 +144,7 @@ static const SaveLoad _job_node_desc[] = {
  * SaveLoad desc for a link graph job edge.
  */
 static const SaveLoad _job_edge_desc[] = {
-	 SLE_VAR(LinkGraphJobEdge, distance,                 SLE_UINT32),
+	SLE_NULL(4,  0, 19,   0, ), // distance
 	 SLE_VAR(LinkGraphJobEdge, capacity,                 SLE_UINT32),
 	SLE_NULL(8,  0, 19,   0, ), // usage, last_unrestricted_update
 	SLE_NULL(4, 13, 19, 187, ), // last_restricted_update
