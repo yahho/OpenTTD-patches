@@ -53,21 +53,24 @@ uint LoadBuffer::ReadGamma()
 {
 	uint i = this->ReadByte();
 	if (HasBit(i, 7)) {
-		i &= ~0x80;
 		if (HasBit(i, 6)) {
-			i &= ~0x40;
 			if (HasBit(i, 5)) {
-				i &= ~0x20;
 				if (HasBit(i, 4)) {
-					i &= ~0x10;
+					i &= 0x0F;
 					if (HasBit(i, 3)) {
 						throw SlCorrupt("Unsupported gamma");
 					}
 					i = this->ReadByte(); // 32 bits only.
+				} else {
+					i &= 0x1F;
 				}
 				i = (i << 8) | this->ReadByte();
+			} else {
+				i &= 0x3F;
 			}
 			i = (i << 8) | this->ReadByte();
+		} else {
+			i &= 0x7F;
 		}
 		i = (i << 8) | this->ReadByte();
 	}
