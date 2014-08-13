@@ -162,9 +162,21 @@ static void LoadGraph (LoadBuffer *reader, G *g,
 		typename G::NodeRef ref ((*g)[from]);
 		typename G::Node *node = &*ref;
 		reader->ReadObject (node, node_desc);
-		for (NodeID to = 0; to < size; ++to) {
-			typename G::Edge *edge = &ref[to];
-			reader->ReadObject (edge, edge_desc);
+		if (reader->IsVersionBefore (20)) {
+			/* We used to save the full matrix ... */
+			for (NodeID to = 0; to < size; ++to) {
+				typename G::Edge *edge = &ref[to];
+				reader->ReadObject (edge, edge_desc);
+			}
+		} else {
+			/* ... but as that wasted a lot of space we save a sparse matrix now. */
+			NodeID to = from;
+			assert (to != INVALID_NODE);
+			do {
+				typename G::Edge *edge = &ref[to];
+				reader->ReadObject (edge, edge_desc);
+				to = edge->next_edge;
+			} while (to != INVALID_NODE);
 		}
 	}
 }
@@ -243,10 +255,14 @@ static void SaveGraph (SaveDumper *dumper, const G *g,
 		typename G::ConstNodeRef ref ((*g)[from]);
 		const typename G::Node *node = &*ref;
 		dumper->WriteObject (node, node_desc);
-		for (NodeID to = 0; to < size; ++to) {
+		/* Save a sparse matrix. */
+		NodeID to = from;
+		assert (to != INVALID_NODE);
+		do {
 			const typename G::Edge *edge = &ref[to];
 			dumper->WriteObject (edge, edge_desc);
-		}
+			to = edge->next_edge;
+		} while (to != INVALID_NODE);
 	}
 }
 
