@@ -210,7 +210,7 @@ void DemandCalculator::CalcDemand(LinkGraphJob &job, Tscaler scaler)
 
 			/* Scale the distance by mod_dist around max_distance */
 			int32 distance = this->max_distance - (this->max_distance -
-					(int32)job[from_id][to_id].Distance()) * this->mod_dist / 100;
+					(int32)job.EdgeDistance (from_id, to_id)) * this->mod_dist / 100;
 
 			/* Scale the accuracy by distance around accuracy / 2 */
 			int32 divisor = this->accuracy * (this->mod_dist - 50) / 100 +

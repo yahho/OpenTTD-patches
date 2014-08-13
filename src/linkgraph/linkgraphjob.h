@@ -215,6 +215,14 @@ public:
 	inline LinkGraphID LinkGraphIndex() const { return this->link_graph_id; }
 
 	/**
+	 * Compute the distance of a graph edge.
+	 */
+	unsigned EdgeDistance (NodeID from, NodeID to)
+	{
+		return DistanceMaxPlusManhattan (this->nodes[from].XY(), this->nodes[to].XY());
+	}
+
+	/**
 	 * Deliver some supply, adding demand to the respective edge.
 	 * @param from Source of supply.
 	 * @param to Destination for supply.
