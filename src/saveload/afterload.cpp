@@ -2228,7 +2228,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 
 	InitializeWindowsAndCaches();
 
-	AfterLoadLinkGraphs();
+	AfterLoadLinkGraphs (stv);
 }
 
 /**

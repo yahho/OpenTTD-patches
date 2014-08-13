@@ -132,6 +132,7 @@ static const SaveLoad _edge_desc[] = {
  * SaveLoad desc for a link graph job node.
  */
 static const SaveLoad _job_node_desc[] = {
+	 SLE_VAR(LinkGraphJobNode, xy,          SLE_UINT32,  20, ),
 	 SLE_VAR(LinkGraphJobNode, supply,      SLE_UINT32),
 	 SLE_VAR(LinkGraphJobNode, demand,      SLE_UINT32),
 	 SLE_VAR(LinkGraphJobNode, station,     SLE_UINT16),
@@ -216,8 +217,19 @@ static void Load_LGRS(LoadBuffer *reader)
  * Spawn the threads for running link graph calculations.
  * Has to be done after loading as the cargo classes might have changed.
  */
-void AfterLoadLinkGraphs()
+void AfterLoadLinkGraphs (const SavegameTypeVersion *stv)
 {
+	if (IsFullSavegameVersionBefore (stv, 20)) {
+		LinkGraphJob *lgj;
+		FOR_ALL_LINK_GRAPH_JOBS(lgj) {
+			for (NodeID i = 0; i < lgj->Size(); ++i) {
+				LinkGraphJob::NodeRef node ((*lgj)[i]);
+				const Station *st = Station::GetIfValid (node->Station());
+				node->xy = (st == NULL) ? INVALID_TILE : st->xy;
+			}
+		}
+	}
+
 	LinkGraphSchedule::Instance()->SpawnAll();
 }
 

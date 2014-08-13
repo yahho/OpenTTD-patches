@@ -27,6 +27,7 @@ struct LinkGraphJobNode {
 	uint supply;                   ///< Supply at the station.
 	uint demand;                   ///< Acceptance at the station.
 	StationID station;             ///< Station ID.
+	TileIndex xy;                  ///< Location of the station.
 
 	uint undelivered_supply;       ///< Amount of supply that hasn't been distributed yet.
 	PathList paths;                ///< Paths through this node, sorted so that those with flow == 0 are in the back.
@@ -37,6 +38,7 @@ struct LinkGraphJobNode {
 		this->supply = src.supply;
 		this->demand = src.demand;
 		this->station = src.station;
+		this->xy = Station::Get(src.station)->xy;
 	}
 
 	void Init();
@@ -49,6 +51,9 @@ struct LinkGraphJobNode {
 
 	/** Get ID of node station. */
 	StationID Station() const { return this->station; }
+
+	/** Get location of node station. */
+	TileIndex XY() const { return this->xy; }
 
 	/** Get amount of supply that hasn't been delivered yet. */
 	uint UndeliveredSupply() const { return this->undelivered_supply; }

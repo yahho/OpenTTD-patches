@@ -33,7 +33,7 @@ void AfterLoadStations();
 void AfterLoadRoadStops();
 void AfterLoadLabelMaps();
 void AfterLoadStoryBook(const SavegameTypeVersion *stv);
-void AfterLoadLinkGraphs();
+void AfterLoadLinkGraphs(const SavegameTypeVersion *stv);
 void AfterLoadCompanyStats();
 void UpdateHousesAndTowns();
 
