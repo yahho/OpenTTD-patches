@@ -57,7 +57,7 @@ uint LoadBuffer::ReadGamma()
 			if (HasBit(i, 5)) {
 				if (HasBit(i, 4)) {
 					i &= 0x0F;
-					if (HasBit(i, 3)) {
+					if (i != 0) {
 						throw SlCorrupt("Unsupported gamma");
 					}
 					i = this->ReadByte(); // 32 bits only.
