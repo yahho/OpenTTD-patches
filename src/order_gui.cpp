@@ -354,75 +354,72 @@ static Order GetOrderCmdFromTile(const Vehicle *v, TileIndex tile)
 	Order order(0);
 	order.index = 0;
 
-	/* check depot first */
 	switch (GetTileType(tile)) {
 		case TT_MISC:
 			if (!IsTileSubtype(tile, TT_MISC_DEPOT)) break;
-
-			if (v->type == (IsRailDepot(tile) ? VEH_TRAIN : VEH_ROAD) && IsTileOwner(tile, _local_company)) {
-				order.MakeGoToDepot(GetDepotIndex(tile), ODTFB_PART_OF_ORDERS,
-						_settings_client.gui.new_nonstop ? ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS : ONSF_STOP_EVERYWHERE);
-				if (_ctrl_pressed) order.SetDepotOrderType((OrderDepotTypeFlags)(order.GetDepotOrderType() ^ ODTFB_SERVICE));
-				return order;
-			}
-			break;
-
-		case TT_STATION:
-			if (v->type != VEH_AIRCRAFT) break;
-			if (IsHangar(tile) && IsTileOwner(tile, _local_company)) {
-				order.MakeGoToDepot(GetStationIndex(tile), ODTFB_PART_OF_ORDERS, ONSF_STOP_EVERYWHERE);
-				if (_ctrl_pressed) order.SetDepotOrderType((OrderDepotTypeFlags)(order.GetDepotOrderType() ^ ODTFB_SERVICE));
-				return order;
-			}
-			break;
+			if (v->type != (IsRailDepot(tile) ? VEH_TRAIN : VEH_ROAD)) break;
+			if (!IsTileOwner (tile, _local_company)) break;
+			order.MakeGoToDepot (GetDepotIndex (tile), ODTFB_PART_OF_ORDERS,
+				_settings_client.gui.new_nonstop ? ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS : ONSF_STOP_EVERYWHERE);
+			if (_ctrl_pressed) order.SetDepotOrderType((OrderDepotTypeFlags)(order.GetDepotOrderType() ^ ODTFB_SERVICE));
+			return order;
 
 		case TT_WATER:
 			if (v->type != VEH_SHIP) break;
-			if (IsShipDepot(tile) && IsTileOwner(tile, _local_company)) {
-				order.MakeGoToDepot(GetDepotIndex(tile), ODTFB_PART_OF_ORDERS, ONSF_STOP_EVERYWHERE);
-				if (_ctrl_pressed) order.SetDepotOrderType((OrderDepotTypeFlags)(order.GetDepotOrderType() ^ ODTFB_SERVICE));
-				return order;
+			if (!IsShipDepot (tile)) break;
+			if (!IsTileOwner (tile, _local_company)) break;
+			order.MakeGoToDepot (GetDepotIndex (tile), ODTFB_PART_OF_ORDERS, ONSF_STOP_EVERYWHERE);
+			if (_ctrl_pressed) order.SetDepotOrderType ((OrderDepotTypeFlags)(order.GetDepotOrderType() ^ ODTFB_SERVICE));
+			return order;
+
+		case TT_STATION: {
+			StationID st_index = GetStationIndex (tile);
+			switch (GetStationType (tile)) {
+				case STATION_WAYPOINT:
+					/* check waypoint */
+					if (v->type != VEH_TRAIN) break;
+					if (!IsTileOwner (tile, _local_company)) break;
+					order.MakeGoToWaypoint (st_index);
+					if (_settings_client.gui.new_nonstop != _ctrl_pressed) order.SetNonStopType (ONSF_NO_STOP_AT_ANY_STATION);
+					return order;
+
+				case STATION_BUOY:
+					/* check buoy (no ownership) */
+					if (v->type != VEH_SHIP) break;
+					order.MakeGoToWaypoint (st_index);
+					return order;
+
+				case STATION_AIRPORT:
+					/* special case for hangars */
+					if (v->type == VEH_AIRCRAFT && IsTileOwner (tile, _local_company) && IsHangar(tile)) {
+						order.MakeGoToDepot (st_index, ODTFB_PART_OF_ORDERS, ONSF_STOP_EVERYWHERE);
+						if (_ctrl_pressed) order.SetDepotOrderType ((OrderDepotTypeFlags)(order.GetDepotOrderType() ^ ODTFB_SERVICE));
+						return order;
+					}
+					/* fall through */
+				default:
+					const Station *st = Station::Get (st_index);
+					if (st->owner != _local_company && st->owner != OWNER_NONE) break;
+
+					byte facil = (v->type == VEH_SHIP) ? FACIL_DOCK :
+						(v->type == VEH_TRAIN)     ? FACIL_TRAIN :
+						(v->type == VEH_AIRCRAFT)  ? FACIL_AIRPORT :
+						RoadVehicle::From(v)->IsBus() ? FACIL_BUS_STOP : FACIL_TRUCK_STOP;
+
+					if (st->facilities & facil) {
+						order.MakeGoToStation (st_index);
+						if (_ctrl_pressed) order.SetLoadType(OLF_FULL_LOAD_ANY);
+						if (_settings_client.gui.new_nonstop && v->IsGroundVehicle()) order.SetNonStopType(ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS);
+						order.SetStopLocation(v->type == VEH_TRAIN ? (OrderStopLocation)(_settings_client.gui.stop_location) : OSL_PLATFORM_FAR_END);
+						return order;
+					}
 			}
+
 			break;
+		}
 
 		default:
 			break;
-	}
-
-	/* check waypoint */
-	if (IsRailWaypointTile(tile) &&
-			v->type == VEH_TRAIN &&
-			IsTileOwner(tile, _local_company)) {
-		order.MakeGoToWaypoint(Waypoint::GetByTile(tile)->index);
-		if (_settings_client.gui.new_nonstop != _ctrl_pressed) order.SetNonStopType(ONSF_NO_STOP_AT_ANY_STATION);
-		return order;
-	}
-
-	/* check buoy (no ownership) */
-	if (IsBuoyTile(tile) && v->type == VEH_SHIP) {
-		order.MakeGoToWaypoint(GetStationIndex(tile));
-		return order;
-	}
-
-	if (IsStationTile(tile)) {
-		StationID st_index = GetStationIndex(tile);
-		const Station *st = Station::Get(st_index);
-
-		if (st->owner == _local_company || st->owner == OWNER_NONE) {
-			byte facil;
-			(facil = FACIL_DOCK, v->type == VEH_SHIP) ||
-			(facil = FACIL_TRAIN, v->type == VEH_TRAIN) ||
-			(facil = FACIL_AIRPORT, v->type == VEH_AIRCRAFT) ||
-			(facil = FACIL_BUS_STOP, v->type == VEH_ROAD && RoadVehicle::From(v)->IsBus()) ||
-			(facil = FACIL_TRUCK_STOP, 1);
-			if (st->facilities & facil) {
-				order.MakeGoToStation(st_index);
-				if (_ctrl_pressed) order.SetLoadType(OLF_FULL_LOAD_ANY);
-				if (_settings_client.gui.new_nonstop && v->IsGroundVehicle()) order.SetNonStopType(ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS);
-				order.SetStopLocation(v->type == VEH_TRAIN ? (OrderStopLocation)(_settings_client.gui.stop_location) : OSL_PLATFORM_FAR_END);
-				return order;
-			}
-		}
 	}
 
 	/* not found */
