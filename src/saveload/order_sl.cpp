@@ -15,6 +15,7 @@
 #include "../network/network.h"
 
 #include "saveload_internal.h"
+#include "saveload_error.h"
 
 /**
  * Converts this order from an old savegame's version;
@@ -281,20 +282,24 @@ static void Save_BKOR(SaveDumper *dumper)
 
 void Load_BKOR(LoadBuffer *reader)
 {
-	int index;
-
-	while ((index = reader->IterateChunk()) != -1) {
-		/* set num_orders to 0 so it's a valid OrderList */
-		OrderBackup *ob = new (index) OrderBackup();
-		reader->ReadObject(ob, GetOrderBackupDescription());
-	}
-
-	/* Only load order-backups for network clients.
-	 * If we are a network server or not networking, then we just loaded
-	 * a previously saved-by-server savegame. There are
-	 * no clients with a backup anymore, so clear it. */
+	/* Only load order backups in network clients, to prevent desyncs.
+	 * If we are loading a savegame from disk, they are not needed and
+	 * it does not make much sense to load them. */
 	if (!_networking || _network_server) {
-		OrderBackup::pool.CleanPool();
+		reader->SkipChunk();
+	} else {
+		/* Note that this chunk will never be loaded in a different
+		 * version that it was saved. */
+		if (!IsCurrentSavegameVersion (reader->stv)) {
+			throw SlCorrupt ("Invalid savegame version");
+		}
+
+		int index;
+		while ((index = reader->IterateChunk()) != -1) {
+			/* set num_orders to 0 so it's a valid OrderList */
+			OrderBackup *ob = new (index) OrderBackup();
+			reader->ReadObject(ob, GetOrderBackupDescription());
+		}
 	}
 }
 

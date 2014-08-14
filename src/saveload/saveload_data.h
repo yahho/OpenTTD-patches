@@ -73,6 +73,16 @@ static inline bool IsOTTDSavegameVersionBefore(const SavegameTypeVersion *stv, u
 	return IsFullSavegameVersionBefore(stv, 0, major, minor);
 }
 
+/**
+ * Checks whether a given savegame version is the current savegame version.
+ * @param stv Savegame version to check.
+ */
+static inline bool IsCurrentSavegameVersion (const SavegameTypeVersion *stv)
+{
+	extern const uint16 SAVEGAME_VERSION;
+	return (stv->type == SGT_FTTD) && (stv->fttd.version == SAVEGAME_VERSION);
+}
+
 
 /** Type of data saved. */
 enum SaveLoadTypes {
