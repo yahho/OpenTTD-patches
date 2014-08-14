@@ -37,24 +37,6 @@ static inline bool CanBuildDepotByTileh(DiagDirection direction, Slope tileh)
 }
 
 /**
- * Check if a tile is a depot and it is a depot of the given type.
- */
-static inline bool IsDepotTypeTile(TileIndex tile, TransportType type)
-{
-	switch (type) {
-		default: NOT_REACHED();
-		case TRANSPORT_RAIL:
-			return IsRailDepotTile(tile);
-
-		case TRANSPORT_ROAD:
-			return IsRoadDepotTile(tile);
-
-		case TRANSPORT_WATER:
-			return IsShipDepotTile(tile);
-	}
-}
-
-/**
  * Get the type of vehicles that can use a depot
  * @param t The tile
  * @pre IsGroundDepotTile(t) || IsShipDepotTile(t) || IsStationTile(t)
