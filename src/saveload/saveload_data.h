@@ -328,6 +328,12 @@ inline void assert_reftype<Vehicle> (SLRefType rt)
 	assert (rt == REF_VEHICLE || rt == REF_VEHICLE_OLD);
 }
 
+template<>
+inline void assert_reftype<const Vehicle> (SLRefType rt)
+{
+	assert (rt == REF_VEHICLE || rt == REF_VEHICLE_OLD);
+}
+
 /** Flags directing saving/loading of a variable */
 enum SaveLoadFlags {
 	SLF_GLOBAL          = 1 << 0, ///< global variable, instead of a struct field
