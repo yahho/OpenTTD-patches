@@ -246,6 +246,8 @@ static void Ptrs_ORDL(const SavegameTypeVersion *stv)
 
 const SaveLoad *GetOrderBackupDescription()
 {
+	/* Note that this chunk will never be loaded in a different version
+	 * that it was saved (see Load_BKOR). */
 	static const SaveLoad _order_backup_desc[] = {
 		SLE_VAR(OrderBackup, user,                     SLE_UINT32),
 		SLE_VAR(OrderBackup, tile,                     SLE_UINT32),
@@ -254,12 +256,11 @@ const SaveLoad *GetOrderBackupDescription()
 		SLE_STR(OrderBackup, name,                     SLS_STR, 0),
 		SLE_VAR(OrderBackup, clone,                    SLE_UINT16),
 		SLE_VAR(OrderBackup, cur_real_order_index,     SLE_UINT8),
-		SLE_VAR(OrderBackup, cur_implicit_order_index, SLE_UINT8,                 0, , 176,    ),
-		SLE_VAR(OrderBackup, current_order_time,       SLE_UINT32,                0, , 176,    ),
-		SLE_VAR(OrderBackup, lateness_counter,         SLE_INT32,                 0, , 176,    ),
-		SLE_VAR(OrderBackup, timetable_start,          SLE_INT32,                 0, , 176,    ),
-		SLE_VAR(OrderBackup, vehicle_flags,            SLE_FILE_U8 | SLE_VAR_U16,  , , 176, 179),
-		SLE_VAR(OrderBackup, vehicle_flags,            SLE_UINT16,                0, , 180,    ),
+		SLE_VAR(OrderBackup, cur_implicit_order_index, SLE_UINT8),
+		SLE_VAR(OrderBackup, current_order_time,       SLE_UINT32),
+		SLE_VAR(OrderBackup, lateness_counter,         SLE_INT32),
+		SLE_VAR(OrderBackup, timetable_start,          SLE_INT32),
+		SLE_VAR(OrderBackup, vehicle_flags,            SLE_UINT16),
 		SLE_REF(OrderBackup, orders,                   REF_ORDER),
 		SLE_END()
 	};
