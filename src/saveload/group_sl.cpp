@@ -15,13 +15,13 @@
 #include "saveload_buffer.h"
 
 static const SaveLoad _group_desc[] = {
-	 SLE_VAR(Group, name,               SLE_NAME,                        , ,   0,  83),
-	 SLE_STR(Group, name,               SLS_STR | SLS_ALLOW_CONTROL,    0, ,  84,    ),
-	SLE_NULL(2,                                                          , ,   0, 163), // num_vehicle
+	 SLE_VAR(Group, name,               SLE_NAME,            , ,   0,  83),
+	 SLE_STR(Group, name,               SLS_ALLOW_CONTROL,  0, ,  84,    ),
+	SLE_NULL(2,                                              , ,   0, 163), // num_vehicle
 	 SLE_VAR(Group, owner,              SLE_UINT8),
 	 SLE_VAR(Group, vehicle_type,       SLE_UINT8),
 	 SLE_VAR(Group, replace_protection, SLE_BOOL),
-	 SLE_VAR(Group, parent,             SLE_UINT16,                    18, , 189,    ),
+	 SLE_VAR(Group, parent,             SLE_UINT16,        18, , 189,    ),
 	 SLE_END()
 };
 

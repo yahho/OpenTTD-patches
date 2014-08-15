@@ -124,7 +124,7 @@ static const SaveLoad _town_desc[] = {
 	SLE_VAR(Town, townnamegrfid, SLE_UINT32, 0, , 66, ),
 	SLE_VAR(Town, townnametype,  SLE_UINT16),
 	SLE_VAR(Town, townnameparts, SLE_UINT32),
-	SLE_STR(Town, name,          SLS_STR | SLS_ALLOW_CONTROL, 0, , 84,    ),
+	SLE_STR(Town, name,          SLS_ALLOW_CONTROL,          0, ,  84,    ),
 
 	SLE_VAR(Town, flags,         SLE_UINT8),
 	SLE_VAR(Town, statues,       SLE_FILE_U8  | SLE_VAR_U16,  , ,   0, 103),
@@ -167,7 +167,7 @@ static const SaveLoad _town_desc[] = {
 
 	SLE_ARR(Town, goal,                  SLE_UINT32, NUM_TE,         0, , 165,    ),
 
-	SLE_STR(Town, text,                  SLS_STR | SLS_ALLOW_CONTROL, 0, , 168,   ),
+	SLE_STR(Town, text,                  SLS_ALLOW_CONTROL,          0, , 168,    ),
 
 	SLE_VAR(Town, time_until_rebuild,    SLE_FILE_U8 | SLE_VAR_U16,   , ,   0,  53),
 	SLE_VAR(Town, grow_counter,          SLE_FILE_U8 | SLE_VAR_U16,   , ,   0,  53),

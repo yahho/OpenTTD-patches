@@ -29,8 +29,8 @@ struct GameSaveload {
 };
 
 static const SaveLoad _game_script[] = {
-	     SLE_STR(GameSaveload, name,        SLS_STRB),
-	     SLE_STR(GameSaveload, settings,    SLS_STRB),
+	     SLE_STR(GameSaveload, name,        SLS_NONE),
+	     SLE_STR(GameSaveload, settings,    SLS_NONE),
 	     SLE_VAR(GameSaveload, version,   SLE_UINT32),
 	     SLE_VAR(GameSaveload, is_random,   SLE_BOOL),
 	     SLE_END()
@@ -123,12 +123,12 @@ static void Load_GSTR(LoadBuffer *reader)
 	_current_data = new GameStrings();
 
 	while (reader->IterateChunk() != -1) {
-		char *s = reader->ReadString (SLS_STR);
+		char *s = reader->ReadString (SLS_NONE);
 		LanguageStrings *ls = new LanguageStrings (s != NULL ? s : "");
 		free (s);
 
 		for (uint n = reader->ReadUint32(); n > 0; n--) {
-			char *s = reader->ReadString (SLS_STR | SLS_ALLOW_CONTROL);
+			char *s = reader->ReadString (SLS_ALLOW_CONTROL);
 			*ls->lines.Append() = (s != NULL) ? s : xstrdup("");
 		}
 

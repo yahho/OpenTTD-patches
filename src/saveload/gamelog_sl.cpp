@@ -80,7 +80,7 @@ static const SaveLoad _glog_emergency[] = {
 static const SaveLoad _glog_setting[] = {
 	SLE_WRITEBYTE(GamelogEntrySetting, type, GLOG_SETTING),
 	SLE_VAR(GamelogEntrySetting, tick,   SLE_UINT16),
-	SLE_STR(GamelogEntrySetting, name,   SLS_STR),
+	SLE_STR(GamelogEntrySetting, name,   SLS_NONE),
 	SLE_VAR(GamelogEntrySetting, oldval, SLE_INT32),
 	SLE_VAR(GamelogEntrySetting, newval, SLE_INT32),
 	SLE_END()

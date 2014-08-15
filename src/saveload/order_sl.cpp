@@ -253,7 +253,7 @@ const SaveLoad *GetOrderBackupDescription()
 		SLE_VAR(OrderBackup, tile,                     SLE_UINT32),
 		SLE_VAR(OrderBackup, group,                    SLE_UINT16),
 		SLE_VAR(OrderBackup, service_interval,         SLE_UINT16),
-		SLE_STR(OrderBackup, name,                     SLS_STR),
+		SLE_STR(OrderBackup, name,                     SLS_NONE),
 		SLE_REF(OrderBackup, clone,                    REF_VEHICLE),
 		SLE_VAR(OrderBackup, cur_real_order_index,     SLE_UINT8),
 		SLE_VAR(OrderBackup, cur_implicit_order_index, SLE_UINT8),

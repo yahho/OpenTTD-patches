@@ -134,13 +134,13 @@ void LoadBuffer::ReadVar(void *ptr, VarType conv)
  * Load a string.
  * @param ptr the string being manipulated
  * @param conv StrType type of the current element of the struct
- * @param length buffer size for fixed-length strings
+ * @param length buffer size for fixed-length strings, else 0
  */
 void LoadBuffer::ReadString(void *ptr, StrType conv, size_t length)
 {
 	size_t len = this->ReadGamma();
 
-	if ((conv & SLS_POINTER) != 0) { // Malloc'd string, free previous incarnation, and allocate
+	if (length == 0) { // Malloc'd string, free previous incarnation, and allocate
 		char **pptr = (char **)ptr;
 		free(*pptr);
 		if (len == 0) {
@@ -152,7 +152,6 @@ void LoadBuffer::ReadString(void *ptr, StrType conv, size_t length)
 			this->CopyBytes(ptr, len);
 		}
 	} else {
-		assert (length > 0);
 		if (len >= length) {
 			DEBUG(sl, 1, "String length in savegame is bigger than buffer, truncating");
 			this->CopyBytes(ptr, length);
@@ -495,19 +494,17 @@ void SaveDumper::WriteVar(const void *ptr, VarType conv)
 /**
  * Save a string.
  * @param ptr the string being manipulated
- * @param conv StrType type of the current element of the struct
- * @param length buffer size for fixed-length strings
+ * @param length buffer size for fixed-length strings, else 0
  */
-void SaveDumper::WriteString(const void *ptr, StrType conv, size_t length)
+void SaveDumper::WriteString (const void *ptr, size_t length)
 {
 	const char *s;
 	size_t len;
 
-	if (conv & SLS_POINTER) {
+	if (length == 0) {
 		s = *(const char *const *)ptr;
 		len = (s != NULL) ? strlen(s) : 0;
 	} else {
-		assert (length > 0);
 		s = (const char *)ptr;
 		len = ttd_strnlen(s, length - 1);
 	}
@@ -638,7 +635,7 @@ void SaveDumper::WriteObjectMember(const void *object, const SaveLoad *sld)
 		case SL_VAR: this->WriteVar(ptr, sld->conv); break;
 		case SL_REF: this->WriteRef(*(const void * const*)ptr, (SLRefType)sld->conv); break;
 		case SL_ARR: this->WriteArray(ptr, sld->length, sld->conv); break;
-		case SL_STR: this->WriteString(ptr, sld->conv, sld->length); break;
+		case SL_STR: this->WriteString(ptr, sld->length); break;
 		case SL_LST: this->WriteList(ptr, (SLRefType)sld->conv); break;
 
 		case SL_NULL:

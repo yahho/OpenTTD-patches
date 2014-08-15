@@ -521,7 +521,7 @@ static void IniLoadSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 
 			case SDT_STRING:
 				assert (sld->type == SL_STR);
-				if (sld->conv & SLS_POINTER) {
+				if (sld->length == 0) {
 					free(*(char**)ptr);
 					*(char**)ptr = p == NULL ? NULL : xstrdup((const char*)p);
 				} else {
@@ -651,7 +651,7 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 
 				const char *s;
 
-				if (sld->conv & SLS_POINTER) {
+				if (sld->length == 0) {
 					s = *(const char *const *)ptr;
 				} else {
 					s = (const char *)ptr;
@@ -1970,7 +1970,7 @@ bool SetSettingValue(uint index, const char *value, bool force_newgame)
 	assert(sd->save.flags & SLF_NO_NETWORK_SYNC);
 	assert(sd->save.type == SL_STR);
 
-	if (sd->save.conv & SLS_POINTER) {
+	if (sd->save.length == 0) {
 		char **var = (char**) sd->save.get_variable_address ((_game_mode == GM_MENU || force_newgame) ? &_settings_newgame : &_settings_game);
 		free(*var);
 		*var = strcmp(value, "(null)") == 0 ? NULL : xstrdup(value);
@@ -2084,7 +2084,7 @@ void IConsoleGetSetting(const char *name, bool force_newgame)
 	ptr = sd->save.get_variable_address ((_game_mode == GM_MENU || force_newgame) ? &_settings_newgame : &_settings_game);
 
 	if (sd->desc.cmd == SDT_STRING) {
-		IConsolePrintF(CC_WARNING, "Current value for '%s' is: '%s'", name, (sd->save.conv & SLS_POINTER) ? *(const char * const *)ptr : (const char *)ptr);
+		IConsolePrintF(CC_WARNING, "Current value for '%s' is: '%s'", name, (sd->save.length == 0) ? *(const char * const *)ptr : (const char *)ptr);
 	} else {
 		if (sd->desc.cmd == SDT_BOOLX) {
 			bstrfmt (value, (*(const bool*)ptr != 0) ? "on" : "off");
@@ -2115,7 +2115,7 @@ void IConsoleListSettings(const char *prefilter)
 		if (sd->desc.cmd == SDT_BOOLX) {
 			bstrfmt (value, (*(const bool *)ptr != 0) ? "on" : "off");
 		} else if (sd->desc.cmd == SDT_STRING) {
-			bstrfmt (value, "%s", (sd->save.conv & SLS_POINTER) ? *(const char * const *)ptr : (const char *)ptr);
+			bstrfmt (value, "%s", (sd->save.length == 0) ? *(const char * const *)ptr : (const char *)ptr);
 		} else {
 			bstrfmt (value, sd->desc.min < 0 ? "%d" : "%u", (int32)ReadValue(ptr, sd->save.conv));
 		}

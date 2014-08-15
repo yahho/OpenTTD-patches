@@ -182,7 +182,7 @@ static const SaveLoad _old_station_desc[] = {
 	SLE_NULL(1, , , 0, 3),  ///< alpha_order
 
 	SLE_VAR(Station, string_id,           SLE_STRINGID),
-	SLE_STR(Station, name,                SLS_STR | SLS_ALLOW_CONTROL, 0, , 84,   ),
+	SLE_STR(Station, name,                SLS_ALLOW_CONTROL,         0, ,  84,    ),
 	SLE_VAR(Station, indtype,             SLE_UINT8,                 0, , 103,    ),
 	SLE_VAR(Station, had_vehicle_of_type, SLE_FILE_U16 | SLE_VAR_U8,  , ,   0, 121),
 	SLE_VAR(Station, had_vehicle_of_type, SLE_UINT8,                 0, , 122,    ),
@@ -390,7 +390,7 @@ static const SaveLoad _base_station_desc[] = {
 	SLE_VAR(BaseStation, xy,               SLE_UINT32),
 	SLE_REF(BaseStation, town,             REF_TOWN),
 	SLE_VAR(BaseStation, string_id,        SLE_STRINGID),
-	SLE_STR(BaseStation, name,             SLS_STR | SLS_ALLOW_CONTROL),
+	SLE_STR(BaseStation, name,             SLS_ALLOW_CONTROL),
 	SLE_VAR(BaseStation, delete_ctr,       SLE_UINT8),
 	SLE_VAR(BaseStation, owner,            SLE_UINT8),
 	SLE_VAR(BaseStation, facilities,       SLE_UINT8),

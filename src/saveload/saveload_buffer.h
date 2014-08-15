@@ -142,7 +142,7 @@ struct LoadBuffer {
 	inline char *ReadString (StrType conv)
 	{
 		char *s = NULL;
-		ReadString (&s, conv | SLS_POINTER, 0);
+		ReadString (&s, conv, 0);
 		return s;
 	}
 
@@ -253,7 +253,7 @@ struct SaveDumper {
 	void WriteRef(const void *ptr, SLRefType ref);
 
 	void WriteVar(const void *ptr, VarType conv);
-	void WriteString(const void *ptr, StrType conv, size_t length);
+	void WriteString(const void *ptr, size_t length);
 	void WriteArray(const void *ptr, size_t length, VarType conv);
 	void WriteList(const void *ptr, SLRefType conv);
 

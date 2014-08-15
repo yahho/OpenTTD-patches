@@ -605,7 +605,7 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 
 		 SLE_REF(Vehicle, next,                  REF_VEHICLE_OLD),
 		 SLE_VAR(Vehicle, name,                  SLE_NAME,                    , ,   0,  83),
-		 SLE_STR(Vehicle, name,                  SLS_STR | SLS_ALLOW_CONTROL, 0, , 84,    ),
+		 SLE_STR(Vehicle, name,                  SLS_ALLOW_CONTROL,          0, ,  84,    ),
 		 SLE_VAR(Vehicle, unitnumber,            SLE_FILE_U8  | SLE_VAR_U16,  , ,   0,   7),
 		 SLE_VAR(Vehicle, unitnumber,            SLE_UINT16,                 0, ,   8,    ),
 		 SLE_VAR(Vehicle, owner,                 SLE_UINT8),

@@ -30,8 +30,8 @@ struct AiSaveload {
 };
 
 static const SaveLoad _ai_company[] = {
-	SLE_STR(AiSaveload, name,        SLS_STRB),
-	SLE_STR(AiSaveload, settings,    SLS_STRB),
+	SLE_STR(AiSaveload, name,        SLS_NONE),
+	SLE_STR(AiSaveload, settings,    SLS_NONE),
 	SLE_VAR(AiSaveload, version,   SLE_UINT32, 0, , 108, ),
 	SLE_VAR(AiSaveload, is_random,   SLE_BOOL, 0, , 136, ),
 	SLE_END()

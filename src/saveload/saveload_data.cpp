@@ -94,15 +94,14 @@ static inline size_t SlCalcArrayLen(size_t length, VarType conv)
  * and the length that the index will occupy.
  * @param ptr pointer to the stringbuffer
  * @param length maximum length of the string (buffer size, etc.)
- * @param conv type of data been used
  * @return return the gross length of the string
  */
-static inline size_t SlCalcStringLen(const void *ptr, size_t length, StrType conv)
+static inline size_t SlCalcStringLen (const void *ptr, size_t length)
 {
 	size_t len;
 	const char *str;
 
-	if (conv & SLS_POINTER) {
+	if (length == 0) {
 		str = *(const char * const *)ptr;
 		len = (str != NULL) ? strlen(str) : 0;
 	} else {
@@ -145,7 +144,7 @@ size_t SlCalcObjLength(const void *object, const SaveLoad *sld)
 			case SL_VAR: length += SlCalcConvFileLen(sld->conv); break;
 			case SL_REF: length += REF_LENGTH; break;
 			case SL_ARR: length += SlCalcArrayLen(sld->length, sld->conv); break;
-			case SL_STR: length += SlCalcStringLen(sld->get_variable_address(object), sld->length, sld->conv); break;
+			case SL_STR: length += SlCalcStringLen(sld->get_variable_address(object), sld->length); break;
 			case SL_LST: length += SlCalcListLen(sld->get_variable_address(object)); break;
 			case SL_NULL: length += sld->length; break;
 			case SL_WRITEBYTE: length++; break; // a byte is logically of size 1

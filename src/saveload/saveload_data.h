@@ -302,17 +302,11 @@ static inline void assert_arrtype (const T (*) [N], VarTypes conv, uint length)
  * StrTypes encodes information about saving and loading of strings (#SLE_STR).
  */
 enum StrTypes {
+	SLS_NONE          = 0,
 	SLS_QUOTED        = 1 << 0, ///< string is enclosed in quotes
-	SLS_POINTER       = 1 << 1, ///< string is stored as a pointer (as opposed to a fixed buffer)
-
-	SLS_STRB  = 0,                        ///< string (with pre-allocated buffer)
-	SLS_STRBQ = SLS_QUOTED,               ///< string enclosed in quotes (with pre-allocated buffer)
-	SLS_STR   = SLS_POINTER,              ///< string pointer
-	SLS_STRQ  = SLS_POINTER | SLS_QUOTED, ///< string pointer enclosed in quotes
-
-	SLS_ALLOW_CONTROL = 1 << 2, ///< allow control codes in the string
-	SLS_ALLOW_NEWLINE = 1 << 3, ///< allow newlines in the string
-	/* 4 more possible flags */
+	SLS_ALLOW_CONTROL = 1 << 1, ///< allow control codes in the string
+	SLS_ALLOW_NEWLINE = 1 << 2, ///< allow newlines in the string
+	/* 5 more possible flags */
 };
 
 typedef byte StrType;
@@ -471,7 +465,6 @@ struct SaveLoad {
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(address))
 	{
-		assert (!(conv & SLS_POINTER));
 		assert_tcompile (N > 0);
 		assert_tcompile (N <= UINT16_MAX);
 	}
@@ -486,7 +479,6 @@ struct SaveLoad {
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(address))
 	{
-		assert (conv & SLS_POINTER);
 	}
 
 	/** Construct a saveload object for a reference list. */
