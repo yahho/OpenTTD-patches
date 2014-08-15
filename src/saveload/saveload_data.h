@@ -317,20 +317,6 @@ enum StrTypes {
 
 typedef byte StrType;
 
-template <uint N>
-static inline void assert_strtype (const char (*) [N], StrTypes conv, uint length)
-{
-	assert (!(conv & SLS_POINTER));
-	assert (length == N);
-	assert_tcompile (N > 0);
-}
-
-static inline void assert_strtype (const char *const *, StrTypes conv, uint length)
-{
-	assert (conv & SLS_POINTER);
-	assert (length == 0);
-}
-
 /** Type of reference (#SLE_REF, #SLE_CONDREF). */
 enum SLRefType {
 	REF_ORDER          =  0, ///< Load/save a reference to an order.
@@ -475,9 +461,9 @@ struct SaveLoad {
 		assert (length > 0);
 	}
 
-	/** Construct a saveload object for a string. */
-	template <typename T, typename ADDR>
-	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_STR> *, const T *p,
+	/** Construct a saveload object for a fixed-buffer string. */
+	template <uint N, typename ADDR>
+	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_STR> *, const char (*) [N],
 			ADDR address, byte flags,
 			StrTypes conv,
 			uint16 length,
@@ -486,7 +472,24 @@ struct SaveLoad {
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(address))
 	{
-		assert_strtype (p, conv, length);
+		assert (!(conv & SLS_POINTER));
+		assert (length == N);
+		assert_tcompile (N > 0);
+	}
+
+	/** Construct a saveload object for an allocated string. */
+	template <typename ADDR>
+	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_STR> *, const char *const *,
+			ADDR address, byte flags,
+			StrTypes conv,
+			uint16 length,
+			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
+		: type(SL_STR), conv(conv), flags(flags), length(length),
+			version (from, to), legacy (lfrom, lto),
+			address(saveload_address(address))
+	{
+		assert (conv & SLS_POINTER);
+		assert (length == 0);
 	}
 
 	/** Construct a saveload object for a reference list. */
