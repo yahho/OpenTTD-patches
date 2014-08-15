@@ -84,6 +84,55 @@ static inline bool IsCurrentSavegameVersion (const SavegameTypeVersion *stv)
 }
 
 
+/**
+ * Constructor disambiguation helper struct.
+ *
+ * Constructor templates cannot be explicitly selected on construction.
+ * If you have, say,
+ *     struct S {
+ *         template <uint N>
+ *         S (...);
+ *     };
+ * then you cannot say
+ *     S<3> s (...);
+ * because that is interpreted as if S were a class template, which it is
+ * not, and not to choose a specialisation of the constructor. This means
+ * that the only template parameters that are useful in a constructor are
+ * those that can be deduced automatically. This is easy when the template
+ * parameter is a type, but not so when it is an integral value.
+ *
+ * The following struct helps define template constructors that depend on
+ * a value, and not on a type, by turning values into types. Instead of
+ * the above, you now write
+ *     struct S {
+ *         template <uint N>
+ *         S (const CDIS<uint>::VAL<N> *, ...);
+ *     };
+ *     S s (CDIS<uint>::VAL<3>::null(), ...);
+ * and everything works, because now the template argument can be deduced
+ * (at the cost of extra typing).
+ *
+ * This trick can also be used when there are no templates but you want a
+ * set of overloaded functions that cannot be told apart just by their
+ * signature.
+ */
+template <typename T>
+struct CDIS {
+	static const CDIS *null (void)
+	{
+		return (const CDIS*) NULL;
+	}
+
+	template <T t>
+	struct VAL {
+		static const VAL *null (void)
+		{
+			return (const VAL*) NULL;
+		}
+	};
+};
+
+
 /** Type of data saved. */
 enum SaveLoadTypes {
 	SL_VAR,       ///< Save/load a variable
@@ -385,14 +434,10 @@ struct SaveLoad {
 		return (void*) offset;
 	}
 
-	/* Dummy template struct for disambiguating the constructor. */
-	template <SaveLoadTypes type>
-	struct TypeSelector { };
-
 	/** Construct a saveload object for a variable. */
 	template <typename T, typename ADDR>
-	SaveLoad (const TypeSelector<SL_VAR> *, const T *, ADDR address,
-			VarTypes conv, byte flags, uint16 length,
+	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_VAR> *, const T *,
+			ADDR address, VarTypes conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_VAR), conv(conv), flags(flags), length(length),
 			version (from, to), legacy (lfrom, lto),
@@ -403,8 +448,8 @@ struct SaveLoad {
 
 	/** Construct a saveload object for a reference. */
 	template <typename T, typename ADDR>
-	SaveLoad (const TypeSelector<SL_REF> *, T *const *, ADDR address,
-			SLRefType conv, byte flags, uint16 length,
+	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_REF> *, T *const *,
+			ADDR address, SLRefType conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_REF), conv(conv), flags(flags), length(length),
 			version (from, to), legacy (lfrom, lto),
@@ -415,8 +460,8 @@ struct SaveLoad {
 
 	/** Construct a saveload object for an array. */
 	template <typename T, typename ADDR>
-	SaveLoad (const TypeSelector<SL_ARR> *, const T *p, ADDR address,
-			VarTypes conv, byte flags, uint16 length,
+	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_ARR> *, const T *p,
+			ADDR address, VarTypes conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_ARR), conv(conv), flags(flags), length(length),
 			version (from, to), legacy (lfrom, lto),
@@ -428,8 +473,8 @@ struct SaveLoad {
 
 	/** Construct a saveload object for a string. */
 	template <typename T, typename ADDR>
-	SaveLoad (const TypeSelector<SL_STR> *, const T *p, ADDR address,
-			StrTypes conv, byte flags, uint16 length,
+	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_STR> *, const T *p,
+			ADDR address, StrTypes conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_STR), conv(conv), flags(flags), length(length),
 			version (from, to), legacy (lfrom, lto),
@@ -440,8 +485,8 @@ struct SaveLoad {
 
 	/** Construct a saveload object for a reference list. */
 	template <typename T, typename ADDR>
-	SaveLoad (const TypeSelector<SL_LST> *, const std::list<T*> *, ADDR address,
-			SLRefType conv, byte flags, uint16 length,
+	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_LST> *, const std::list<T*> *,
+			ADDR address, SLRefType conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_LST), conv(conv), flags(flags), length(length),
 			version (from, to), legacy (lfrom, lto),
@@ -451,8 +496,8 @@ struct SaveLoad {
 	}
 
 	/** Construct a saveload object for a null byte sequence. */
-	SaveLoad (const TypeSelector<SL_NULL> *, const void *, void *address,
-			byte conv, byte flags, uint16 length,
+	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_NULL> *, const void *,
+			void *address, byte conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_NULL), conv(conv), flags(flags), length(length),
 			version (from, to), legacy (lfrom, lto),
@@ -463,8 +508,8 @@ struct SaveLoad {
 
 	/** Construct a saveload object for a struct constant byte. */
 	template <typename T>
-	SaveLoad (const TypeSelector<SL_WRITEBYTE> *, const T *, size_t offset,
-			byte conv, byte flags, uint16 length,
+	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_WRITEBYTE> *, const T *,
+			size_t offset, byte conv, byte flags, uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_WRITEBYTE), conv(conv), flags(flags), length(length),
 			version (from, to), legacy (lfrom, lto),
@@ -549,7 +594,7 @@ struct SaveLoad {
  * @param lto      Last legacy savegame version that has the field, empty for maximum possible value.
  * @note This macro should not be used directly.
  */
-#define SLE_ANY_2(type, pointer, address, conv, flags, length, from, to, lfrom, lto) SaveLoad ((const SaveLoad::TypeSelector<type> *)NULL, pointer, address, conv, flags, length, SLE_DEFAULT_IF_EMPTY(from, SL_MAX_VERSION), SLE_DEFAULT_IF_EMPTY(to, SL_MAX_VERSION), lfrom, SLE_DEFAULT_IF_EMPTY(lto, SL_MAX_VERSION))
+#define SLE_ANY_2(type, pointer, address, conv, flags, length, from, to, lfrom, lto) SaveLoad (CDIS<SaveLoadTypes>::VAL<type>::null(), pointer, address, conv, flags, length, SLE_DEFAULT_IF_EMPTY(from, SL_MAX_VERSION), SLE_DEFAULT_IF_EMPTY(to, SL_MAX_VERSION), lfrom, SLE_DEFAULT_IF_EMPTY(lto, SL_MAX_VERSION))
 
 /**
  * Generic SaveLoad object, with version range.
