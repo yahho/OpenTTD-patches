@@ -44,10 +44,8 @@ static size_t ConvertLandscape(const char *value);
  * A bit more difficult to use are MMANY (meaning ManyOfMany) and OMANY (OneOfMany)
  * These are actually normal numbers, only bitmasked. In MMANY several bits can
  * be set, in the other only one.
- * If nothing fits you, you can use the GENERAL macros, but it exposes the
- * internal structure somewhat so it needs a little looking. There are _NULL()
- * macros as well, these fill up space so you can add more settings there (in
- * place) and you DON'T have to increase the savegame version.
+ * There are _NULL() macros as well, these fill up space so you can add more
+ * settings there (in place) and you DON'T have to increase the savegame version.
  *
  * While reading values from openttd.cfg, some values may not be converted
  * properly, for any kind of reasons.  In order to allow a process of self-cleaning
@@ -66,57 +64,51 @@ static size_t ConvertLandscape(const char *value);
 
 /* Macros for various objects to go in the configuration file.
  * This section is for global variables */
-#define SDTG_GENERAL(name, sdt_cmd, sle_cmd, conv, flags, guiflags, var, length, def, min, max, interval, full, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	{NSD_GENERAL(name, def, sdt_cmd, guiflags, min, max, interval, full, str, strhelp, strval, proc, NULL, cat), SLEG_GENERAL(sle_cmd, var, conv, flags, length, vfrom, vto, lfrom, lto)}
-
 #define SDTG_VAR(name, conv, flags, guiflags, var, def, min, max, interval, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	SDTG_GENERAL(name, SDT_NUMX, SL_VAR, (VarTypes)(conv), flags, guiflags, var, 0, def, min, max, interval, NULL, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)
+	{NSD_GENERAL(name, def, SDT_NUMX, guiflags, min, max, interval, NULL, str, strhelp, strval, proc, NULL, cat), SLEGF_VAR(var, flags, (VarTypes)(conv), vfrom, vto, lfrom, lto)}
 
 #define SDTG_BOOL(name, flags, guiflags, var, def, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	SDTG_GENERAL(name, SDT_BOOLX, SL_VAR, SLE_BOOL, flags, guiflags, var, 0, def, 0, 1, 0, NULL, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)
+	{NSD_GENERAL(name, def, SDT_BOOLX, guiflags, 0, 1, 0, NULL, str, strhelp, strval, proc, NULL, cat), SLEGF_VAR(var, flags, SLE_BOOL, vfrom, vto, lfrom, lto)}
 
 #define SDTG_LIST(name, conv, length, flags, guiflags, var, def, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	SDTG_GENERAL(name, SDT_INTLIST, SL_ARR, (VarTypes)(conv), flags, guiflags, var, length, def, 0, 0, 0, NULL, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)
+	{NSD_GENERAL(name, def, SDT_INTLIST, guiflags, 0, 0, 0, NULL, str, strhelp, strval, proc, NULL, cat), SLEGF_ARR(var, flags, (VarTypes)(conv), length, vfrom, vto, lfrom, lto)}
 
 #define SDTG_STR(name, conv, flags, guiflags, var, def, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	SDTG_GENERAL(name, SDT_STRING, SL_STR, (StrTypes)(conv), flags, guiflags, var, (conv & SLS_POINTER) ? 0 : lengthof(var), def, 0, 0, 0, NULL, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)
+	{NSD_GENERAL(name, def, SDT_STRING, guiflags, 0, 0, 0, NULL, str, strhelp, strval, proc, NULL, cat), SLEGF_STR(var, flags, (StrTypes)(conv), (conv & SLS_POINTER) ? 0 : lengthof(var), vfrom, vto, lfrom, lto)}
 
 #define SDTG_OMANY(name, conv, flags, guiflags, var, def, max, full, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	SDTG_GENERAL(name, SDT_ONEOFMANY, SL_VAR, (VarTypes)(conv), flags, guiflags, var, 0, def, 0, max, 0, full, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)
+	{NSD_GENERAL(name, def, SDT_ONEOFMANY, guiflags, 0, max, 0, full, str, strhelp, strval, proc, NULL, cat), SLEGF_VAR(var, flags, (VarTypes)(conv), vfrom, vto, lfrom, lto)}
 
 #define SDTG_MMANY(name, conv, flags, guiflags, var, def, full, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	SDTG_GENERAL(name, SDT_MANYOFMANY, SL_VAR, (VarTypes)(conv), flags, guiflags, var, 0, def, 0, 0, 0, full, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)
+	{NSD_GENERAL(name, def, SDT_MANYOFMANY, guiflags, 0, 0, 0, full, str, strhelp, strval, proc, NULL, cat), SLEGF_VAR(var, flags, (VarTypes)(conv), vfrom, vto, lfrom, lto)}
 
 /* Macros for various objects to go in the configuration file.
  * This section is for structures where their various members are saved */
-#define SDT_GENERAL(name, sdt_cmd, sle_cmd, conv, flags, guiflags, base, var, length, def, min, max, interval, full, str, strhelp, strval, proc, load, vfrom, vto, lfrom, lto, cat)\
-	{NSD_GENERAL(name, def, sdt_cmd, guiflags, min, max, interval, full, str, strhelp, strval, proc, load, cat), SLE_GENERAL(sle_cmd, base, var, conv, flags, length, vfrom, vto, lfrom, lto)}
-
 #define SDT_VAR(base, var, conv, flags, guiflags, def, min, max, interval, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	SDT_GENERAL(#var, SDT_NUMX, SL_VAR, (VarTypes)(conv), flags, guiflags, base, var, 0, def, min, max, interval, NULL, str, strhelp, strval, proc, NULL, vfrom, vto, lfrom, lto, cat)
+	{NSD_GENERAL(#var, def, SDT_NUMX, guiflags, min, max, interval, NULL, str, strhelp, strval, proc, NULL, cat), SLEF_VAR(base, var, flags, (VarTypes)(conv), vfrom, vto, lfrom, lto)}
 
 #define SDT_BOOL(base, var, flags, guiflags, def, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	SDT_GENERAL(#var, SDT_BOOLX, SL_VAR, SLE_BOOL, flags, guiflags, base, var, 0, def, 0, 1, 0, NULL, str, strhelp, strval, proc, NULL, vfrom, vto, lfrom, lto, cat)
+	{NSD_GENERAL(#var, def, SDT_BOOLX, guiflags, 0, 1, 0, NULL, str, strhelp, strval, proc, NULL, cat), SLEF_VAR(base, var, flags, SLE_BOOL, vfrom, vto, lfrom, lto)}
 
 #define SDT_STR(base, var, conv, flags, guiflags, def, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	SDT_GENERAL(#var, SDT_STRING, SL_STR, (StrTypes)(conv), flags, guiflags, base, var, (conv & SLS_POINTER) ? 0 : cpp_lengthof(base, var), def, 0, 0, 0, NULL, str, strhelp, strval, proc, NULL, vfrom, vto, lfrom, lto, cat)
+	{NSD_GENERAL(#var, def, SDT_STRING, guiflags, 0, 0, 0, NULL, str, strhelp, strval, proc, NULL, cat), SLEF_STR(base, var, flags, (StrTypes)(conv), (conv & SLS_POINTER) ? 0 : cpp_lengthof(base, var), vfrom, vto, lfrom, lto)}
 
 #define SDT_OMANY(base, var, conv, flags, guiflags, def, max, full, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, load, cat)\
-	SDT_GENERAL(#var, SDT_ONEOFMANY, SL_VAR, (VarTypes)(conv), flags, guiflags, base, var, 0, def, 0, max, 0, full, str, strhelp, strval, proc, load, vfrom, vto, lfrom, lto, cat)
+	{NSD_GENERAL(#var, def, SDT_ONEOFMANY, guiflags, 0, max, 0, full, str, strhelp, strval, proc, load, cat), SLEF_VAR(base, var, flags, (VarTypes)(conv), vfrom, vto, lfrom, lto)}
 
 
 #define SDTC_VAR(var, conv, flags, guiflags, def, min, max, interval, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	SDTG_GENERAL(#var, SDT_NUMX, SL_VAR, (VarTypes)(conv), flags, guiflags, _settings_client.var, 0, def, min, max, interval, NULL, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)
+	{NSD_GENERAL(#var, def, SDT_NUMX, guiflags, min, max, interval, NULL, str, strhelp, strval, proc, NULL, cat), SLEGF_VAR(_settings_client.var, flags, (VarTypes)(conv), vfrom, vto, lfrom, lto)}
 
 #define SDTC_BOOL(var, flags, guiflags, def, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	SDTG_GENERAL(#var, SDT_BOOLX, SL_VAR, SLE_BOOL, flags, guiflags, _settings_client.var, 0, def, 0, 1, 0, NULL, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)
+	{NSD_GENERAL(#var, def, SDT_BOOLX, guiflags, 0, 1, 0, NULL, str, strhelp, strval, proc, NULL, cat), SLEGF_VAR(_settings_client.var, flags, SLE_BOOL, vfrom, vto, lfrom, lto)}
 
 #define SDTC_LIST(var, conv, flags, guiflags, def, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	SDTG_GENERAL(#var, SDT_INTLIST, SL_ARR, (VarTypes)(conv), flags, guiflags, _settings_client.var, lengthof(_settings_client.var), def, 0, 0, 0, NULL, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)
+	{NSD_GENERAL(#var, def, SDT_INTLIST, guiflags, 0, 0, 0, NULL, str, strhelp, strval, proc, NULL, cat), SLEGF_ARR(_settings_client.var, flags, (VarTypes)(conv), lengthof(_settings_client.var), vfrom, vto, lfrom, lto)}
 
 #define SDTC_STR(var, conv, flags, guiflags, def, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	SDTG_GENERAL(#var, SDT_STRING, SL_STR, (StrTypes)(conv), flags, guiflags, _settings_client.var, (conv & SLS_POINTER) ? 0 : lengthof(_settings_client.var), def, 0, 0, 0, NULL, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)
+	{NSD_GENERAL(#var, def, SDT_STRING, guiflags, 0, 0, 0, NULL, str, strhelp, strval, proc, NULL, cat), SLEGF_STR(_settings_client.var, flags, (StrTypes)(conv), (conv & SLS_POINTER) ? 0 : lengthof(_settings_client.var), vfrom, vto, lfrom, lto)}
 
 #define SDTC_OMANY(var, conv, flags, guiflags, def, max, full, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	SDTG_GENERAL(#var, SDT_ONEOFMANY, SL_VAR, (VarTypes)(conv), flags, guiflags, _settings_client.var, 0, def, 0, max, 0, full, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)
+	{NSD_GENERAL(#var, def, SDT_ONEOFMANY, guiflags, 0, max, 0, full, str, strhelp, strval, proc, NULL, cat), SLEGF_VAR(_settings_client.var, flags, (VarTypes)(conv), vfrom, vto, lfrom, lto)}
 
