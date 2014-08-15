@@ -375,7 +375,7 @@ static void FormatBytes (stringb *buf, int64 number)
 	assert(number >= 0);
 
 	if (number < 1024) {
-		buf->append_fmt ("%i B", (int)number);
+		buf->append_fmt ("%i" NBSP "B", (int)number);
 		return;
 	}
 
@@ -400,7 +400,7 @@ static void FormatBytes (stringb *buf, int64 number)
 	}
 
 	assert(id < lengthof(iec_prefixes));
-	buf->append_fmt (" %ciB", iec_prefixes[id]);
+	buf->append_fmt (NBSP "%ciB", iec_prefixes[id]);
 }
 
 static void FormatYmdString (stringb *buf, Date date, uint case_index)
@@ -466,10 +466,10 @@ static void FormatGenericCurrency (stringb *buf, const CurrencySpec *spec, Money
 		 * and 1 000 M is inconsistent, so always use 1 000 M. */
 		if (number >= 1000000000 - 500) {
 			number = (number + 500000) / 1000000;
-			multiplier = "M";
+			multiplier = NBSP "M";
 		} else if (number >= 1000000) {
 			number = (number + 500) / 1000;
-			multiplier = "k";
+			multiplier = NBSP "k";
 		}
 	}
 
