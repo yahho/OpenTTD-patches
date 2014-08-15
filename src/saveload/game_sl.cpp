@@ -29,8 +29,8 @@ struct GameSaveload {
 };
 
 static const SaveLoad _game_script[] = {
-	     SLE_STR(GameSaveload, name,        SLS_STRB, cpp_lengthof(GameSaveload, name)),
-	     SLE_STR(GameSaveload, settings,    SLS_STRB, cpp_lengthof(GameSaveload, settings)),
+	     SLE_STR(GameSaveload, name,        SLS_STRB),
+	     SLE_STR(GameSaveload, settings,    SLS_STRB),
 	     SLE_VAR(GameSaveload, version,   SLE_UINT32),
 	     SLE_VAR(GameSaveload, is_random,   SLE_BOOL),
 	     SLE_END()

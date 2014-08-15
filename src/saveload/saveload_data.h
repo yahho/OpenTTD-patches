@@ -466,15 +466,14 @@ struct SaveLoad {
 	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_STR> *, const char (*) [N],
 			ADDR address, byte flags,
 			StrTypes conv,
-			uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
-		: type(SL_STR), conv(conv), flags(flags), length(length),
+		: type(SL_STR), conv(conv), flags(flags), length(N),
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(address))
 	{
 		assert (!(conv & SLS_POINTER));
-		assert (length == N);
 		assert_tcompile (N > 0);
+		assert_tcompile (N <= UINT16_MAX);
 	}
 
 	/** Construct a saveload object for an allocated string. */
@@ -482,14 +481,12 @@ struct SaveLoad {
 	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_STR> *, const char *const *,
 			ADDR address, byte flags,
 			StrTypes conv,
-			uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
-		: type(SL_STR), conv(conv), flags(flags), length(length),
+		: type(SL_STR), conv(conv), flags(flags), length(0),
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(address))
 	{
 		assert (conv & SLS_POINTER);
-		assert (length == 0);
 	}
 
 	/** Construct a saveload object for a reference list. */
@@ -733,9 +730,9 @@ struct SaveLoad {
 
 /** String construction callback macros. */
 #define SLC_STR(pointer, address, flags, conv, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_STR>::null(), pointer, address, flags, (StrTypes)(conv), length, __VA_ARGS__)
-#define SLEX_STR_(pointer, address, global, flags, conv, length, ...) \
-	SLE_EXPAND (SLE_ANY_ (SLC_STR, pointer, address, global, flags, conv, length, __VA_ARGS__))
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_STR>::null(), pointer, address, flags, (StrTypes)(conv), __VA_ARGS__)
+#define SLEX_STR_(pointer, address, global, flags, conv, ...) \
+	SLE_EXPAND (SLE_ANY_ (SLC_STR, pointer, address, global, flags, conv, UNUSED, __VA_ARGS__))
 
 /**
  * Storage of a string.

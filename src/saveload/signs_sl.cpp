@@ -18,7 +18,7 @@
 /** Description of a sign within the savegame. */
 static const SaveLoad _sign_desc[] = {
 	SLE_VAR(Sign, name,  SLE_NAME,                        , ,   0,  83),
-	SLE_STR(Sign, name,  SLS_STR | SLS_ALLOW_CONTROL, 0, 0, ,  84,    ),
+	SLE_STR(Sign, name,  SLS_STR | SLS_ALLOW_CONTROL,    0, ,  84,    ),
 	SLE_VAR(Sign, x,     SLE_FILE_I16 | SLE_VAR_I32,      , ,   0,   4),
 	SLE_VAR(Sign, y,     SLE_FILE_I16 | SLE_VAR_I32,      , ,   0,   4),
 	SLE_VAR(Sign, x,     SLE_INT32,                      0, ,   5,    ),

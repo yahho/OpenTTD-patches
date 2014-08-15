@@ -312,11 +312,11 @@ void AfterLoadCompanyStats()
 static const SaveLoad _company_desc[] = {
 	SLE_VAR(CompanyProperties, name_2,           SLE_UINT32),
 	SLE_VAR(CompanyProperties, name_1,           SLE_STRINGID),
-	SLE_STR(CompanyProperties, name,             SLS_STR | SLS_ALLOW_CONTROL, 0, 0, , 84, ),
+	SLE_STR(CompanyProperties, name,             SLS_STR | SLS_ALLOW_CONTROL, 0, , 84, ),
 
 	SLE_VAR(CompanyProperties, president_name_1, SLE_UINT16),
 	SLE_VAR(CompanyProperties, president_name_2, SLE_UINT32),
-	SLE_STR(CompanyProperties, president_name,   SLS_STR | SLS_ALLOW_CONTROL, 0, 0, , 84, ),
+	SLE_STR(CompanyProperties, president_name,   SLS_STR | SLS_ALLOW_CONTROL, 0, , 84, ),
 
 	SLE_VAR(CompanyProperties, face,                  SLE_UINT32),
 

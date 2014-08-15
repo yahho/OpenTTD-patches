@@ -74,7 +74,7 @@ static size_t ConvertLandscape(const char *value);
 	{NSD_GENERAL(name, def, SDT_INTLIST, guiflags, 0, 0, 0, NULL, str, strhelp, strval, proc, NULL, cat), SLEGF_ARR(var, flags, (VarTypes)(conv), length, vfrom, vto, lfrom, lto)}
 
 #define SDTG_STR(name, conv, flags, guiflags, var, def, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	{NSD_GENERAL(name, def, SDT_STRING, guiflags, 0, 0, 0, NULL, str, strhelp, strval, proc, NULL, cat), SLEGF_STR(var, flags, (StrTypes)(conv), (conv & SLS_POINTER) ? 0 : lengthof(var), vfrom, vto, lfrom, lto)}
+	{NSD_GENERAL(name, def, SDT_STRING, guiflags, 0, 0, 0, NULL, str, strhelp, strval, proc, NULL, cat), SLEGF_STR(var, flags, (StrTypes)(conv), vfrom, vto, lfrom, lto)}
 
 #define SDTG_OMANY(name, conv, flags, guiflags, var, def, max, full, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
 	{NSD_GENERAL(name, def, SDT_ONEOFMANY, guiflags, 0, max, 0, full, str, strhelp, strval, proc, NULL, cat), SLEGF_VAR(var, flags, (VarTypes)(conv), vfrom, vto, lfrom, lto)}
@@ -91,7 +91,7 @@ static size_t ConvertLandscape(const char *value);
 	{NSD_GENERAL(#var, def, SDT_BOOLX, guiflags, 0, 1, 0, NULL, str, strhelp, strval, proc, NULL, cat), SLEF_VAR(base, var, flags, SLE_BOOL, vfrom, vto, lfrom, lto)}
 
 #define SDT_STR(base, var, conv, flags, guiflags, def, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	{NSD_GENERAL(#var, def, SDT_STRING, guiflags, 0, 0, 0, NULL, str, strhelp, strval, proc, NULL, cat), SLEF_STR(base, var, flags, (StrTypes)(conv), (conv & SLS_POINTER) ? 0 : cpp_lengthof(base, var), vfrom, vto, lfrom, lto)}
+	{NSD_GENERAL(#var, def, SDT_STRING, guiflags, 0, 0, 0, NULL, str, strhelp, strval, proc, NULL, cat), SLEF_STR(base, var, flags, (StrTypes)(conv), vfrom, vto, lfrom, lto)}
 
 #define SDT_OMANY(base, var, conv, flags, guiflags, def, max, full, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, load, cat)\
 	{NSD_GENERAL(#var, def, SDT_ONEOFMANY, guiflags, 0, max, 0, full, str, strhelp, strval, proc, load, cat), SLEF_VAR(base, var, flags, (VarTypes)(conv), vfrom, vto, lfrom, lto)}
@@ -107,7 +107,7 @@ static size_t ConvertLandscape(const char *value);
 	{NSD_GENERAL(#var, def, SDT_INTLIST, guiflags, 0, 0, 0, NULL, str, strhelp, strval, proc, NULL, cat), SLEGF_ARR(_settings_client.var, flags, (VarTypes)(conv), lengthof(_settings_client.var), vfrom, vto, lfrom, lto)}
 
 #define SDTC_STR(var, conv, flags, guiflags, def, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
-	{NSD_GENERAL(#var, def, SDT_STRING, guiflags, 0, 0, 0, NULL, str, strhelp, strval, proc, NULL, cat), SLEGF_STR(_settings_client.var, flags, (StrTypes)(conv), (conv & SLS_POINTER) ? 0 : lengthof(_settings_client.var), vfrom, vto, lfrom, lto)}
+	{NSD_GENERAL(#var, def, SDT_STRING, guiflags, 0, 0, 0, NULL, str, strhelp, strval, proc, NULL, cat), SLEGF_STR(_settings_client.var, flags, (StrTypes)(conv), vfrom, vto, lfrom, lto)}
 
 #define SDTC_OMANY(var, conv, flags, guiflags, def, max, full, str, strhelp, strval, proc, vfrom, vto, lfrom, lto, cat)\
 	{NSD_GENERAL(#var, def, SDT_ONEOFMANY, guiflags, 0, max, 0, full, str, strhelp, strval, proc, NULL, cat), SLEGF_VAR(_settings_client.var, flags, (VarTypes)(conv), vfrom, vto, lfrom, lto)}
