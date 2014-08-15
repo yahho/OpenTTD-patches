@@ -437,9 +437,10 @@ struct SaveLoad {
 	/** Construct a saveload object for a variable. */
 	template <typename T, typename ADDR>
 	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_VAR> *, const T *,
-			ADDR address, VarTypes conv, byte flags, uint16 length,
+			ADDR address, byte flags,
+			VarTypes conv,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
-		: type(SL_VAR), conv(conv), flags(flags), length(length),
+		: type(SL_VAR), conv(conv), flags(flags), length(0),
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(address))
 	{
@@ -449,9 +450,10 @@ struct SaveLoad {
 	/** Construct a saveload object for a reference. */
 	template <typename T, typename ADDR>
 	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_REF> *, T *const *,
-			ADDR address, SLRefType conv, byte flags, uint16 length,
+			ADDR address, byte flags,
+			SLRefType conv,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
-		: type(SL_REF), conv(conv), flags(flags), length(length),
+		: type(SL_REF), conv(conv), flags(flags), length(0),
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(address))
 	{
@@ -461,7 +463,9 @@ struct SaveLoad {
 	/** Construct a saveload object for an array. */
 	template <typename T, typename ADDR>
 	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_ARR> *, const T *p,
-			ADDR address, VarTypes conv, byte flags, uint16 length,
+			ADDR address, byte flags,
+			VarTypes conv,
+			uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_ARR), conv(conv), flags(flags), length(length),
 			version (from, to), legacy (lfrom, lto),
@@ -474,7 +478,9 @@ struct SaveLoad {
 	/** Construct a saveload object for a string. */
 	template <typename T, typename ADDR>
 	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_STR> *, const T *p,
-			ADDR address, StrTypes conv, byte flags, uint16 length,
+			ADDR address, byte flags,
+			StrTypes conv,
+			uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_STR), conv(conv), flags(flags), length(length),
 			version (from, to), legacy (lfrom, lto),
@@ -486,9 +492,10 @@ struct SaveLoad {
 	/** Construct a saveload object for a reference list. */
 	template <typename T, typename ADDR>
 	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_LST> *, const std::list<T*> *,
-			ADDR address, SLRefType conv, byte flags, uint16 length,
+			ADDR address, byte flags,
+			SLRefType conv,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
-		: type(SL_LST), conv(conv), flags(flags), length(length),
+		: type(SL_LST), conv(conv), flags(flags), length(0),
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(address))
 	{
@@ -496,12 +503,12 @@ struct SaveLoad {
 	}
 
 	/** Construct a saveload object for a null byte sequence. */
-	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_NULL> *, const void *,
-			void *address, byte conv, byte flags, uint16 length,
+	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_NULL> *,
+			uint16 length,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
-		: type(SL_NULL), conv(conv), flags(flags), length(length),
+		: type(SL_NULL), conv(0), flags(SLF_NOT_IN_CONFIG), length(length),
 			version (from, to), legacy (lfrom, lto),
-			address(address)
+			address(NULL)
 	{
 		assert (length > 0);
 	}
@@ -509,9 +516,9 @@ struct SaveLoad {
 	/** Construct a saveload object for a struct constant byte. */
 	template <typename T>
 	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_WRITEBYTE> *, const T *,
-			size_t offset, byte conv, byte flags, uint16 length,
+			size_t offset, byte conv,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
-		: type(SL_WRITEBYTE), conv(conv), flags(flags), length(length),
+		: type(SL_WRITEBYTE), conv(conv), flags(0), length(0),
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(offset))
 	{
@@ -653,9 +660,9 @@ struct SaveLoad {
 
 /** Variable construction callback macros. */
 #define SLC_VAR(pointer, address, flags, conv, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_VAR>::null(), pointer, address, (VarTypes)(conv), flags, length, __VA_ARGS__)
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_VAR>::null(), pointer, address, flags, (VarTypes)(conv), __VA_ARGS__)
 #define SLEX_VAR_(pointer, address, global, flags, conv, ...) \
-	SLE_EXPAND (SLE_ANY_ (SLC_VAR, pointer, address, global, flags, conv, 0, __VA_ARGS__))
+	SLE_EXPAND (SLE_ANY_ (SLC_VAR, pointer, address, global, flags, conv, UNUSED, __VA_ARGS__))
 
 /**
  * Storage of a variable.
@@ -676,9 +683,9 @@ struct SaveLoad {
 
 /** Reference construction callback macros. */
 #define SLC_REF(pointer, address, flags, reftype, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_REF>::null(), pointer, address, reftype, flags, length, __VA_ARGS__)
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_REF>::null(), pointer, address, flags, reftype, __VA_ARGS__)
 #define SLEX_REF_(pointer, address, global, flags, reftype, ...) \
-	SLE_EXPAND (SLE_ANY_ (SLC_REF, pointer, address, global, flags, reftype, 0, __VA_ARGS__))
+	SLE_EXPAND (SLE_ANY_ (SLC_REF, pointer, address, global, flags, reftype, UNUSED, __VA_ARGS__))
 
 /**
  * Storage of a reference.
@@ -699,7 +706,7 @@ struct SaveLoad {
 
 /** Array construction callback macros. */
 #define SLC_ARR(pointer, address, flags, conv, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_ARR>::null(), pointer, address, (VarTypes)(conv), flags, length, __VA_ARGS__)
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_ARR>::null(), pointer, address, flags, (VarTypes)(conv), length, __VA_ARGS__)
 #define SLEX_ARR_(pointer, address, global, flags, conv, length, ...) \
 	SLE_EXPAND (SLE_ANY_ (SLC_ARR, pointer, address, global, flags, conv, length, __VA_ARGS__))
 
@@ -723,7 +730,7 @@ struct SaveLoad {
 
 /** String construction callback macros. */
 #define SLC_STR(pointer, address, flags, conv, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_STR>::null(), pointer, address, (StrTypes)(conv), flags, length, __VA_ARGS__)
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_STR>::null(), pointer, address, flags, (StrTypes)(conv), length, __VA_ARGS__)
 #define SLEX_STR_(pointer, address, global, flags, conv, length, ...) \
 	SLE_EXPAND (SLE_ANY_ (SLC_STR, pointer, address, global, flags, conv, length, __VA_ARGS__))
 
@@ -747,9 +754,9 @@ struct SaveLoad {
 
 /** List construction callback macros. */
 #define SLC_LST(pointer, address, flags, reftype, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_LST>::null(), pointer, address, reftype, flags, length, __VA_ARGS__)
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_LST>::null(), pointer, address, flags, reftype, __VA_ARGS__)
 #define SLEX_LST_(pointer, address, global, flags, reftype, ...) \
-	SLE_EXPAND (SLE_ANY_ (SLC_LST, pointer, address, global, flags, reftype, 0, __VA_ARGS__))
+	SLE_EXPAND (SLE_ANY_ (SLC_LST, pointer, address, global, flags, reftype, UNUSED, __VA_ARGS__))
 
 /**
  * Storage of a list.
@@ -770,7 +777,7 @@ struct SaveLoad {
 
 /** Empty space construction callback macro. */
 #define SLC_NULL(pointer, address, flags, conv, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_NULL>::null(), pointer, address, conv, flags, length, __VA_ARGS__)
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_NULL>::null(), length, __VA_ARGS__)
 
 /**
  * Empty space.
@@ -782,13 +789,13 @@ struct SaveLoad {
  * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLE_NULL(...) SLE_EXPAND(SLE_NULL_(__VA_ARGS__, ))
-#define SLE_NULL_(length, ...) SLE_EXPAND(SLE_ANY_(SLC_NULL, NULL, NULL, 0, SLF_NOT_IN_CONFIG, 0, length, __VA_ARGS__))
+#define SLE_NULL_(length, ...) SLE_EXPAND(SLE_ANY_(SLC_NULL, UNUSED, UNUSED, UNUSED, UNUSED, UNUSED, length, __VA_ARGS__))
 
 /** Translate values ingame to different values in the savegame and vv. */
 #define SLE_WRITEBYTE(base, variable, value) \
-	SLE_ANY_ (SLC_WRITEBYTE, cpp_pointer(base, variable), cpp_offsetof(base, variable), 0, 0, value, 0, )
+	SLE_ANY_ (SLC_WRITEBYTE, cpp_pointer(base, variable), cpp_offsetof(base, variable), UNUSED, UNUSED, value, UNUSED, )
 #define SLC_WRITEBYTE(pointer, address, flags, conv, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_WRITEBYTE>::null(), pointer, address, conv, flags, length, __VA_ARGS__)
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_WRITEBYTE>::null(), pointer, address, conv, __VA_ARGS__)
 
 /** Include another SaveLoad object. */
 #define SLE_INCLUDE(include) SaveLoad(include)
