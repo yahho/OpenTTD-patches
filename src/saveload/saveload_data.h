@@ -316,40 +316,6 @@ enum SLRefType {
 	REF_LINK_GRAPH_JOB = 12, ///< Load/save a reference to a link graph job.
 };
 
-template <class T>
-static inline void assert_reftype (SLRefType);
-
-#define DEFINE_REF_STRUCT(T,r) \
-T; \
-template<> inline void assert_reftype<T> (SLRefType rt) { assert (rt == r); }
-
-DEFINE_REF_STRUCT (struct Order,             REF_ORDER)
-DEFINE_REF_STRUCT (struct Station,           REF_STATION)
-DEFINE_REF_STRUCT (struct Town,              REF_TOWN)
-DEFINE_REF_STRUCT (struct RoadStop,          REF_ROADSTOPS)
-DEFINE_REF_STRUCT (struct Dock,              REF_DOCKS)
-DEFINE_REF_STRUCT (struct EngineRenew,       REF_ENGINE_RENEWS)
-DEFINE_REF_STRUCT (struct CargoPacket,       REF_CARGO_PACKET)
-DEFINE_REF_STRUCT (struct OrderList,         REF_ORDERLIST)
-DEFINE_REF_STRUCT (struct PersistentStorage, REF_STORAGE)
-DEFINE_REF_STRUCT (class  LinkGraph,         REF_LINK_GRAPH)
-DEFINE_REF_STRUCT (class  LinkGraphJob,      REF_LINK_GRAPH_JOB)
-
-#undef DEFINE_REF_STRUCT
-
-struct Vehicle;
-
-template<>
-inline void assert_reftype<Vehicle> (SLRefType rt)
-{
-	assert (rt == REF_VEHICLE || rt == REF_VEHICLE_OLD);
-}
-
-template<>
-inline void assert_reftype<const Vehicle> (SLRefType rt)
-{
-	assert (rt == REF_VEHICLE || rt == REF_VEHICLE_OLD);
-}
 
 /** Flags directing saving/loading of a variable */
 enum SaveLoadFlags {
@@ -431,6 +397,29 @@ struct SaveLoad {
 		return conv;
 	}
 
+	/* Validate a struct/reftype pair. */
+
+#define DEFINE_VALIDATE_REF(T,r) \
+	static inline SLRefType validate_reftype (const T*,             \
+		const CDIS<SLRefType>::VAL<r> *)                        \
+	{ return r; }
+
+	DEFINE_VALIDATE_REF (struct Order,             REF_ORDER)
+	DEFINE_VALIDATE_REF (struct Vehicle,           REF_VEHICLE)
+	DEFINE_VALIDATE_REF (struct Station,           REF_STATION)
+	DEFINE_VALIDATE_REF (struct Town,              REF_TOWN)
+	DEFINE_VALIDATE_REF (struct Vehicle,           REF_VEHICLE_OLD)
+	DEFINE_VALIDATE_REF (struct RoadStop,          REF_ROADSTOPS)
+	DEFINE_VALIDATE_REF (struct Dock,              REF_DOCKS)
+	DEFINE_VALIDATE_REF (struct EngineRenew,       REF_ENGINE_RENEWS)
+	DEFINE_VALIDATE_REF (struct CargoPacket,       REF_CARGO_PACKET)
+	DEFINE_VALIDATE_REF (struct OrderList,         REF_ORDERLIST)
+	DEFINE_VALIDATE_REF (struct PersistentStorage, REF_STORAGE)
+	DEFINE_VALIDATE_REF (class  LinkGraph,         REF_LINK_GRAPH)
+	DEFINE_VALIDATE_REF (class  LinkGraphJob,      REF_LINK_GRAPH_JOB)
+
+#undef DEFINE_VALIDATE_REF
+
 	/** Construct a saveload object for a variable. */
 	template <typename T, typename ADDR, VarTypes CONV>
 	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_VAR> *, const T *p,
@@ -445,16 +434,16 @@ struct SaveLoad {
 	}
 
 	/** Construct a saveload object for a reference. */
-	template <typename T, typename ADDR>
+	template <typename T, typename ADDR, SLRefType REFTYPE>
 	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_REF> *, T *const *,
 			ADDR address, byte flags,
-			SLRefType conv,
+			const CDIS<SLRefType>::VAL<REFTYPE> *reftype,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
-		: type(SL_REF), conv(conv), flags(flags), length(0),
+		: type(SL_REF), conv(validate_reftype ((T*)NULL, reftype)),
+			flags(flags), length(0),
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(address))
 	{
-		assert_reftype<T> (conv);
 	}
 
 	/** Construct a saveload object for an array. */
@@ -499,16 +488,16 @@ struct SaveLoad {
 	}
 
 	/** Construct a saveload object for a reference list. */
-	template <typename T, typename ADDR>
+	template <typename T, typename ADDR, SLRefType REFTYPE>
 	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_LST> *, const std::list<T*> *,
 			ADDR address, byte flags,
-			SLRefType conv,
+			const CDIS<SLRefType>::VAL<REFTYPE> *reftype,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
-		: type(SL_LST), conv(conv), flags(flags), length(0),
+		: type(SL_LST), conv(validate_reftype ((T*)NULL, reftype)),
+			flags(flags), length(0),
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(address))
 	{
-		assert_reftype<T> (conv);
 	}
 
 	/** Construct a saveload object for a null byte sequence. */
@@ -692,7 +681,7 @@ struct SaveLoad {
 
 /** Reference construction callback macros. */
 #define SLC_REF(pointer, address, flags, reftype, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_REF>::null(), pointer, address, flags, reftype, __VA_ARGS__)
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_REF>::null(), pointer, address, flags, CDIS<SLRefType>::VAL<reftype>::null(), __VA_ARGS__)
 #define SLEX_REF_(pointer, address, global, flags, reftype, ...) \
 	SLE_EXPAND (SLE_ANY_ (SLC_REF, pointer, address, global, flags, reftype, UNUSED, __VA_ARGS__))
 
@@ -763,7 +752,7 @@ struct SaveLoad {
 
 /** List construction callback macros. */
 #define SLC_LST(pointer, address, flags, reftype, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_LST>::null(), pointer, address, flags, reftype, __VA_ARGS__)
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_LST>::null(), pointer, address, flags, CDIS<SLRefType>::VAL<reftype>::null(), __VA_ARGS__)
 #define SLEX_LST_(pointer, address, global, flags, reftype, ...) \
 	SLE_EXPAND (SLE_ANY_ (SLC_LST, pointer, address, global, flags, reftype, UNUSED, __VA_ARGS__))
 
