@@ -274,18 +274,6 @@ int64 ReadValue(const void *ptr, VarType conv);
 void WriteValue(void *ptr, VarType conv, int64 val);
 
 
-template <typename T>
-static inline void assert_arrtype (const T *, VarTypes conv, uint length)
-{
-	assert (SlCalcConvMemLen(conv) * length <= sizeof(T));
-}
-
-template <typename T, uint N>
-static inline void assert_arrtype (const T (*) [N], VarTypes conv, uint length)
-{
-	assert (SlCalcConvMemLen(conv) * length <= sizeof(T) * N);
-}
-
 /**
  * StrTypes encodes information about saving and loading of strings (#SLE_STR).
  */
@@ -397,6 +385,45 @@ struct SaveLoad {
 		return conv;
 	}
 
+	/* Validate array parameters. */
+
+#define DEFINE_VALIDATE_ARRAY(conv,size)                                \
+	template <size_t ALLOC, uint LENGTH>                            \
+	static inline VarTypes validate_array (VarTypes c,              \
+		const CDIS<VarTypes>::VAL<conv> *)                      \
+	{                                                               \
+		assert_tcompile (size * LENGTH <= ALLOC);               \
+		return c;                                               \
+	}
+
+	DEFINE_VALIDATE_ARRAY (SLE_VAR_BL,  1)
+	DEFINE_VALIDATE_ARRAY (SLE_VAR_I8,  1)
+	DEFINE_VALIDATE_ARRAY (SLE_VAR_U8,  1)
+	DEFINE_VALIDATE_ARRAY (SLE_VAR_I16, 2)
+	DEFINE_VALIDATE_ARRAY (SLE_VAR_U16, 2)
+	DEFINE_VALIDATE_ARRAY (SLE_VAR_I32, 4)
+	DEFINE_VALIDATE_ARRAY (SLE_VAR_U32, 4)
+	DEFINE_VALIDATE_ARRAY (SLE_VAR_I64, 8)
+	DEFINE_VALIDATE_ARRAY (SLE_VAR_U64, 8)
+
+#undef DEFINE_VALIDATE_ARRAY
+
+	template <typename T, VarTypes CONV, uint LENGTH>
+	static inline VarTypes validate_array (const T *,
+		const CDIS<VarTypes>::VAL<CONV> *conv,
+		const CDIS<uint>::VAL<LENGTH> *l, VarTypes c)
+	{
+		return validate_array <sizeof(T), LENGTH> (c, conv);
+	}
+
+	template <typename T, uint N, VarTypes CONV, uint LENGTH>
+	static inline VarTypes validate_array (const T (*) [N],
+		const CDIS<VarTypes>::VAL<CONV> *conv,
+		const CDIS<uint>::VAL<LENGTH> *l, VarTypes c)
+	{
+		return validate_array <sizeof(T) * N, LENGTH> (c, conv);
+	}
+
 	/* Validate a struct/reftype pair. */
 
 #define DEFINE_VALIDATE_REF(T,r) \
@@ -447,18 +474,19 @@ struct SaveLoad {
 	}
 
 	/** Construct a saveload object for an array. */
-	template <typename T, typename ADDR>
+	template <typename T, typename ADDR, VarTypes CONV, uint LENGTH>
 	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_ARR> *, const T *p,
 			ADDR address, byte flags,
-			VarTypes conv,
-			uint16 length,
+			const CDIS<VarTypes>::VAL<CONV> *,
+			const CDIS<uint>::VAL<LENGTH> *l,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
-		: type(SL_ARR), conv(conv), flags(flags), length(length),
+		: type(SL_ARR), conv(validate_array (p, CDIS<VarTypes>::VAL<(VarTypes)(CONV & 0xF0)>::null(), l, CONV)),
+			flags(flags), length(LENGTH),
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(address))
 	{
-		assert_arrtype (p, conv, length);
-		assert (length > 0);
+		assert_tcompile (LENGTH > 0);
+		assert_tcompile (LENGTH <= UINT16_MAX);
 	}
 
 	/** Construct a saveload object for a fixed-buffer string. */
@@ -704,7 +732,7 @@ struct SaveLoad {
 
 /** Array construction callback macros. */
 #define SLC_ARR(pointer, address, flags, conv, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_ARR>::null(), pointer, address, flags, (VarTypes)(conv), length, __VA_ARGS__)
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_ARR>::null(), pointer, address, flags, CDIS<VarTypes>::VAL<(VarTypes)(conv)>::null(), CDIS<uint>::VAL<length>::null(), __VA_ARGS__)
 #define SLEX_ARR_(pointer, address, global, flags, conv, length, ...) \
 	SLE_EXPAND (SLE_ANY_ (SLC_ARR, pointer, address, global, flags, conv, length, __VA_ARGS__))
 
