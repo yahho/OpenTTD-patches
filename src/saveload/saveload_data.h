@@ -118,14 +118,14 @@ static inline bool IsCurrentSavegameVersion (const SavegameTypeVersion *stv)
  */
 template <typename T>
 struct CDIS {
-	static const CDIS *null (void)
+	static CONSTEXPR const CDIS *null (void)
 	{
 		return (const CDIS*) NULL;
 	}
 
 	template <T t>
 	struct VAL {
-		static const VAL *null (void)
+		static CONSTEXPR const VAL *null (void)
 		{
 			return (const VAL*) NULL;
 		}
@@ -319,9 +319,9 @@ struct SaveLoad {
 		uint16 from; ///< save/load the variable starting from this savegame version
 		uint16 to;   ///< save/load the variable until this savegame version
 
-		VersionRange (void) : from(0), to(UINT16_MAX) { }
+		CONSTEXPR VersionRange (void) : from(0), to(UINT16_MAX) { }
 
-		VersionRange (uint16 from, uint16 to) : from(from), to(to) { }
+		CONSTEXPR VersionRange (uint16 from, uint16 to) : from(from), to(to) { }
 	};
 
 	SaveLoadType type;     ///< object type
@@ -337,10 +337,15 @@ struct SaveLoad {
 	 * For SL_INCLUDE, this points to the SaveLoad object to be included. */
 	void *address;         ///< address of variable OR offset of variable in the struct (max offset is 65536)
 
-	SaveLoad (void) : type(SL_END) { }
+	CONSTEXPR SaveLoad (void)
+		: type(SL_END), conv(0), flags(0), length(0),
+		  version(), legacy(), address(NULL)
+	{
+	}
 
-	SaveLoad (const SaveLoad *include)
-		: type(SL_INCLUDE), address(const_cast<SaveLoad *>(include))
+	CONSTEXPR SaveLoad (const SaveLoad *include)
+		: type(SL_INCLUDE), conv(0), flags(0), length(0),
+		  version(), legacy(), address(const_cast<SaveLoad *>(include))
 	{
 	}
 
@@ -360,7 +365,7 @@ struct SaveLoad {
 
 #define DEFINE_VALIDATE_CONV(conv,size) \
 	template <typename T>                                           \
-	static inline VarTypes validate_conv (const T *,                \
+	static inline CONSTEXPR VarTypes validate_conv (const T *,      \
 		const CDIS<VarTypes>::VAL<conv> *, VarTypes c)          \
 	{                                                               \
 		assert_tcompile (sizeof(T) == size);                    \
@@ -379,7 +384,7 @@ struct SaveLoad {
 
 #undef DEFINE_VALIDATE_CONV
 
-	static inline VarTypes validate_conv (char *const *,
+	static inline CONSTEXPR VarTypes validate_conv (char *const *,
 		const CDIS<VarTypes>::VAL<SLE_VAR_NAME> *, VarTypes conv)
 	{
 		return conv;
@@ -389,7 +394,7 @@ struct SaveLoad {
 
 #define DEFINE_VALIDATE_ARRAY(conv,size)                                \
 	template <size_t ALLOC, uint LENGTH>                            \
-	static inline VarTypes validate_array (VarTypes c,              \
+	static inline CONSTEXPR VarTypes validate_array (VarTypes c,    \
 		const CDIS<VarTypes>::VAL<conv> *)                      \
 	{                                                               \
 		assert_tcompile (size * LENGTH <= ALLOC);               \
@@ -409,7 +414,7 @@ struct SaveLoad {
 #undef DEFINE_VALIDATE_ARRAY
 
 	template <typename T, VarTypes CONV, uint LENGTH>
-	static inline VarTypes validate_array (const T *,
+	static inline CONSTEXPR VarTypes validate_array (const T *,
 		const CDIS<VarTypes>::VAL<CONV> *conv,
 		const CDIS<uint>::VAL<LENGTH> *l, VarTypes c)
 	{
@@ -417,7 +422,7 @@ struct SaveLoad {
 	}
 
 	template <typename T, uint N, VarTypes CONV, uint LENGTH>
-	static inline VarTypes validate_array (const T (*) [N],
+	static inline CONSTEXPR VarTypes validate_array (const T (*) [N],
 		const CDIS<VarTypes>::VAL<CONV> *conv,
 		const CDIS<uint>::VAL<LENGTH> *l, VarTypes c)
 	{
@@ -427,7 +432,7 @@ struct SaveLoad {
 	/* Validate a struct/reftype pair. */
 
 #define DEFINE_VALIDATE_REF(T,r) \
-	static inline SLRefType validate_reftype (const T*,             \
+	static inline CONSTEXPR SLRefType validate_reftype (const T*,   \
 		const CDIS<SLRefType>::VAL<r> *)                        \
 	{ return r; }
 
@@ -449,7 +454,7 @@ struct SaveLoad {
 
 	/** Construct a saveload object for a variable. */
 	template <typename T, typename ADDR, VarTypes CONV>
-	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_VAR> *, const T *p,
+	CONSTEXPR SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_VAR> *, const T *p,
 			ADDR address, byte flags,
 			const CDIS<VarTypes>::VAL<CONV> *,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
@@ -462,7 +467,7 @@ struct SaveLoad {
 
 	/** Construct a saveload object for a reference. */
 	template <typename T, typename ADDR, SLRefType REFTYPE>
-	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_REF> *, T *const *,
+	CONSTEXPR SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_REF> *, T *const *,
 			ADDR address, byte flags,
 			const CDIS<SLRefType>::VAL<REFTYPE> *reftype,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
@@ -475,7 +480,7 @@ struct SaveLoad {
 
 	/** Construct a saveload object for an array. */
 	template <typename T, typename ADDR, VarTypes CONV, uint LENGTH>
-	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_ARR> *, const T *p,
+	CONSTEXPR SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_ARR> *, const T *p,
 			ADDR address, byte flags,
 			const CDIS<VarTypes>::VAL<CONV> *,
 			const CDIS<uint>::VAL<LENGTH> *l,
@@ -491,7 +496,7 @@ struct SaveLoad {
 
 	/** Construct a saveload object for a fixed-buffer string. */
 	template <uint N, typename ADDR>
-	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_STR> *, const char (*) [N],
+	CONSTEXPR SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_STR> *, const char (*) [N],
 			ADDR address, byte flags,
 			StrTypes conv,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
@@ -505,7 +510,7 @@ struct SaveLoad {
 
 	/** Construct a saveload object for an allocated string. */
 	template <typename ADDR>
-	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_STR> *, const char *const *,
+	CONSTEXPR SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_STR> *, const char *const *,
 			ADDR address, byte flags,
 			StrTypes conv,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
@@ -517,7 +522,7 @@ struct SaveLoad {
 
 	/** Construct a saveload object for a reference list. */
 	template <typename T, typename ADDR, SLRefType REFTYPE>
-	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_LST> *, const std::list<T*> *,
+	CONSTEXPR SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_LST> *, const std::list<T*> *,
 			ADDR address, byte flags,
 			const CDIS<SLRefType>::VAL<REFTYPE> *reftype,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
@@ -530,7 +535,7 @@ struct SaveLoad {
 
 	/** Construct a saveload object for a null byte sequence. */
 	template <uint LENGTH>
-	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_NULL> *,
+	CONSTEXPR SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_NULL> *,
 			const CDIS<uint>::VAL<LENGTH> *,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_NULL), conv(0), flags(SLF_NOT_IN_CONFIG), length(LENGTH),
@@ -543,7 +548,7 @@ struct SaveLoad {
 
 	/** Construct a saveload object for a struct constant byte. */
 	template <typename T>
-	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_WRITEBYTE> *, const T *,
+	CONSTEXPR SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_WRITEBYTE> *, const T *,
 			size_t offset, byte conv,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
 		: type(SL_WRITEBYTE), conv(conv), flags(0), length(0),

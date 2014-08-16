@@ -155,11 +155,13 @@
 		#define OVERRIDE override
 		#define FINAL_OVERRIDE final override
 		#define DELETED = delete
+		#define CONSTEXPR constexpr
 	#else
 		#define FINAL
 		#define OVERRIDE
 		#define FINAL_OVERRIDE
 		#define DELETED { NOT_REACHED(); }
+		#define CONSTEXPR
 	#endif
 #endif /* __GNUC__ */
 
@@ -172,6 +174,7 @@
 	#define OVERRIDE
 	#define FINAL_OVERRIDE
 	#define DELETED { NOT_REACHED(); }
+	#define CONSTEXPR
 	#include <malloc.h>
 #endif /* __WATCOMC__ */
 
@@ -243,6 +246,7 @@
 	#define OVERRIDE
 	#define FINAL_OVERRIDE
 	#define DELETED { NOT_REACHED(); }
+	#define CONSTEXPR
 
 	int CDECL snprintf(char *str, size_t size, const char *format, ...) WARN_FORMAT(3, 4);
 	#if defined(WINCE)
