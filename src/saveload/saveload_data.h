@@ -529,14 +529,16 @@ struct SaveLoad {
 	}
 
 	/** Construct a saveload object for a null byte sequence. */
+	template <uint LENGTH>
 	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_NULL> *,
-			uint16 length,
+			const CDIS<uint>::VAL<LENGTH> *,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
-		: type(SL_NULL), conv(0), flags(SLF_NOT_IN_CONFIG), length(length),
+		: type(SL_NULL), conv(0), flags(SLF_NOT_IN_CONFIG), length(LENGTH),
 			version (from, to), legacy (lfrom, lto),
 			address(NULL)
 	{
-		assert (length > 0);
+		assert_tcompile (LENGTH > 0);
+		assert_tcompile (LENGTH <= UINT16_MAX);
 	}
 
 	/** Construct a saveload object for a struct constant byte. */
@@ -803,7 +805,7 @@ struct SaveLoad {
 
 /** Empty space construction callback macro. */
 #define SLC_NULL(pointer, address, flags, conv, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_NULL>::null(), length, __VA_ARGS__)
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_NULL>::null(), CDIS<uint>::VAL<length>::null(), __VA_ARGS__)
 
 /**
  * Empty space.
