@@ -273,18 +273,6 @@ static inline byte SlCalcConvFileLen(VarType conv)
 int64 ReadValue(const void *ptr, VarType conv);
 void WriteValue(void *ptr, VarType conv, int64 val);
 
-template <typename T>
-static inline void assert_vartype (VarTypes conv)
-{
-	assert (IsNumericType (conv));
-	assert (SlCalcConvMemLen(conv) == sizeof(T));
-}
-
-template <>
-inline void assert_vartype<char*> (VarTypes conv)
-{
-	assert (GetVarMemType(conv) == SLE_VAR_NAME);
-}
 
 template <typename T>
 static inline void assert_arrtype (const T *, VarTypes conv, uint length)
@@ -414,17 +402,46 @@ struct SaveLoad {
 		return (void*) offset;
 	}
 
+	/* Validate a struct/vartype pair. */
+
+#define DEFINE_VALIDATE_CONV(conv,size) \
+	template <typename T>                                           \
+	static inline VarTypes validate_conv (const T *,                \
+		const CDIS<VarTypes>::VAL<conv> *, VarTypes c)          \
+	{                                                               \
+		assert_tcompile (sizeof(T) == size);                    \
+		return c;                                               \
+	}
+
+	DEFINE_VALIDATE_CONV (SLE_VAR_BL,  1)
+	DEFINE_VALIDATE_CONV (SLE_VAR_I8,  1)
+	DEFINE_VALIDATE_CONV (SLE_VAR_U8,  1)
+	DEFINE_VALIDATE_CONV (SLE_VAR_I16, 2)
+	DEFINE_VALIDATE_CONV (SLE_VAR_U16, 2)
+	DEFINE_VALIDATE_CONV (SLE_VAR_I32, 4)
+	DEFINE_VALIDATE_CONV (SLE_VAR_U32, 4)
+	DEFINE_VALIDATE_CONV (SLE_VAR_I64, 8)
+	DEFINE_VALIDATE_CONV (SLE_VAR_U64, 8)
+
+#undef DEFINE_VALIDATE_CONV
+
+	static inline VarTypes validate_conv (char *const *,
+		const CDIS<VarTypes>::VAL<SLE_VAR_NAME> *, VarTypes conv)
+	{
+		return conv;
+	}
+
 	/** Construct a saveload object for a variable. */
-	template <typename T, typename ADDR>
-	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_VAR> *, const T *,
+	template <typename T, typename ADDR, VarTypes CONV>
+	SaveLoad (const CDIS<SaveLoadTypes>::VAL<SL_VAR> *, const T *p,
 			ADDR address, byte flags,
-			VarTypes conv,
+			const CDIS<VarTypes>::VAL<CONV> *,
 			uint16 from, uint16 to, uint16 lfrom, uint16 lto)
-		: type(SL_VAR), conv(conv), flags(flags), length(0),
+		: type(SL_VAR), conv(validate_conv (p, CDIS<VarTypes>::VAL<(VarTypes)(CONV & 0xF0)>::null(), CONV)),
+			flags(flags), length(0),
 			version (from, to), legacy (lfrom, lto),
 			address(saveload_address(address))
 	{
-		assert_vartype<T> (conv);
 	}
 
 	/** Construct a saveload object for a reference. */
@@ -652,7 +669,7 @@ struct SaveLoad {
 
 /** Variable construction callback macros. */
 #define SLC_VAR(pointer, address, flags, conv, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_VAR>::null(), pointer, address, flags, (VarTypes)(conv), __VA_ARGS__)
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_VAR>::null(), pointer, address, flags, CDIS<VarTypes>::VAL<(VarTypes)(conv)>::null(), __VA_ARGS__)
 #define SLEX_VAR_(pointer, address, global, flags, conv, ...) \
 	SLE_EXPAND (SLE_ANY_ (SLC_VAR, pointer, address, global, flags, conv, UNUSED, __VA_ARGS__))
 
