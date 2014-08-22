@@ -532,7 +532,7 @@ static void Load_STNN(LoadBuffer *reader)
 				for (uint32 j = 0; j < _num_flows; ++j) {
 					reader->ReadObject(&flow, _flow_desc);
 					if (fs == NULL || prev_source != flow.source) {
-						fs = &(st->goods[i].flows.insert(std::make_pair(flow.source, FlowStat(flow.via, flow.share))).first->second);
+						fs = &(st->goods[i].flows.insert(std::make_pair(flow.source, FlowStat(flow.via, flow.share, flow.restricted))).first->second);
 					} else {
 						fs->AppendShare(flow.via, flow.share, flow.restricted);
 					}
