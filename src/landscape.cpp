@@ -995,24 +995,20 @@ static bool FindSpring (TileIndex tile)
 /**
  * Make a connected lake; fill all tiles in the circular tile search that are connected.
  * @param tile The tile to consider for lake making.
- * @param user_data The height of the lake.
- * @return Always false, so it continues searching.
+ * @param height The height of the lake.
  */
-static bool MakeLake(TileIndex tile, void *user_data)
+static void MakeLake (TileIndex tile, uint height)
 {
-	uint height = *(uint*)user_data;
-	if (!IsValidTile(tile) || TileHeight(tile) != height || !IsTileFlat(tile)) return false;
-	if (_settings_game.game_creation.landscape == LT_TROPIC && GetTropicZone(tile) == TROPICZONE_DESERT) return false;
+	if (!IsValidTile(tile) || TileHeight(tile) != height || !IsTileFlat(tile)) return;
+	if (_settings_game.game_creation.landscape == LT_TROPIC && GetTropicZone(tile) == TROPICZONE_DESERT) return;
 
 	for (DiagDirection d = DIAGDIR_BEGIN; d < DIAGDIR_END; d++) {
 		TileIndex t2 = tile + TileOffsByDiagDir(d);
 		if (IsPlainWaterTile(t2)) {
 			MakeRiver(tile, Random());
-			return false;
+			return;
 		}
 	}
-
-	return false;
 }
 
 /**
@@ -1193,13 +1189,13 @@ static bool FlowRiver(TileIndex spring, TileIndex begin)
 			uint range = RandomRange(8) + 3;
 			CircularTileIterator iter1 (lakeCenter, range);
 			for (lakeCenter = iter1; lakeCenter != INVALID_TILE; lakeCenter = ++iter1) {
-				MakeLake (lakeCenter, &height);
+				MakeLake (lakeCenter, height);
 			}
 			/* Call the search a second time so artefacts from going circular in one direction get (mostly) hidden. */
 			lakeCenter = end;
 			CircularTileIterator iter2 (lakeCenter, range);
 			for (lakeCenter = iter2; lakeCenter != INVALID_TILE; lakeCenter = ++iter2) {
-				MakeLake (lakeCenter, &height);
+				MakeLake (lakeCenter, height);
 			}
 			found = true;
 		}
