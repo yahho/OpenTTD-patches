@@ -170,36 +170,6 @@ enum StationNaming {
 	STATIONNAMING_HELIPORT,
 };
 
-/** Information to handle station action 0 property 24 correctly */
-struct StationNameInformation {
-	uint32 free_names; ///< Current bitset of free names (we can remove names).
-	bool *indtypes;    ///< Array of bools telling whether an industry type has been found.
-};
-
-/**
- * Find a station action 0 property 24 station name, or reduce the
- * free_names if needed.
- * @param tile the tile to search
- * @param user_data the StationNameInformation to base the search on
- * @return true if the tile contains an industry that has not given
- *              its name to one of the other stations in town.
- */
-static bool FindNearIndustryName(TileIndex tile, void *user_data)
-{
-	/* All already found industry types */
-	StationNameInformation *sni = (StationNameInformation*)user_data;
-	if (!IsIndustryTile(tile)) return false;
-
-	/* If the station name is undefined it means that it doesn't name a station */
-	IndustryType indtype = GetIndustryType(tile);
-	if (GetIndustrySpec(indtype)->station_name == STR_UNDEFINED) return false;
-
-	/* In all cases if an industry that provides a name is found two of
-	 * the standard names will be disabled. */
-	sni->free_names &= ~(1 << M(STR_SV_STNAME_OILFIELD) | 1 << M(STR_SV_STNAME_MINES));
-	return !sni->indtypes[indtype];
-}
-
 static StringID GenerateStationName(Station *st, TileIndex tile, StationNaming name_class)
 {
 	static const uint32 _gen_station_name_bits[] = {
@@ -242,14 +212,21 @@ static StringID GenerateStationName(Station *st, TileIndex tile, StationNaming n
 		}
 	}
 
-	TileIndex indtile = tile;
-	StationNameInformation sni = { free_names, indtypes };
-	CircularTileIterator iter (indtile, 7);
-	for (indtile = iter; indtile != INVALID_TILE; indtile = ++iter) {
-		if (FindNearIndustryName (indtile, &sni)) {
+	CircularTileIterator iter (tile, 7);
+	for (TileIndex indtile = iter; indtile != INVALID_TILE; indtile = ++iter) {
+		if (!IsIndustryTile(indtile)) continue;
+
+		/* If the station name is undefined it means that it doesn't name a station */
+		const IndustryType indtype = GetIndustryType(indtile);
+		const IndustrySpec *indsp  = GetIndustrySpec(indtype);
+		if (indsp->station_name == STR_UNDEFINED) continue;
+
+		/* In all cases if an industry that provides a name is found
+		 * two of the standard names will be disabled. */
+		free_names &= ~(1 << M(STR_SV_STNAME_OILFIELD) | 1 << M(STR_SV_STNAME_MINES));
+
+		if (!indtypes[indtype]) {
 			/* An industry has been found nearby */
-			IndustryType indtype = GetIndustryType(indtile);
-			const IndustrySpec *indsp = GetIndustrySpec(indtype);
 			/* STR_NULL means it only disables oil rig/mines */
 			if (indsp->station_name != STR_NULL) {
 				st->indtype = indtype;
@@ -258,9 +235,6 @@ static StringID GenerateStationName(Station *st, TileIndex tile, StationNaming n
 			break;
 		}
 	}
-
-	/* Oil rigs/mines name could be marked not free by looking for a near by industry. */
-	free_names = sni.free_names;
 
 	/* check default names */
 	uint32 tmp = free_names & _gen_station_name_bits[name_class];
