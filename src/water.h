@@ -40,7 +40,7 @@ void DrawShoreTile(Slope tileh);
 
 void MakeWaterKeepingClass(TileIndex tile, Owner o);
 
-bool RiverModifyDesertZone(TileIndex tile, void *data);
+void RiverModifyDesertZone (TileIndex tile);
 
 bool IsWateredTile(TileIndex tile, Direction from);
 

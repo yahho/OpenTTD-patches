@@ -365,11 +365,15 @@ static CommandCost RemoveLock(TileIndex tile, DoCommandFlag flags)
 	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_LOCK]);
 }
 
-/** Callback to create non-desert around a river tile. */
-bool RiverModifyDesertZone(TileIndex tile, void *)
+/** Create non-desert around a river tile. */
+void RiverModifyDesertZone (TileIndex tile)
 {
-	if (GetTropicZone(tile) == TROPICZONE_DESERT) SetTropicZone(tile, TROPICZONE_NORMAL);
-	return false;
+	TileArea ta (tile);
+	ta.expand (2);
+
+	TILE_AREA_LOOP(t, ta) {
+		if (GetTropicZone(t) == TROPICZONE_DESERT) SetTropicZone (t, TROPICZONE_NORMAL);
+	}
 }
 
 /**
@@ -417,8 +421,7 @@ CommandCost CmdBuildCanal(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 				case WATER_CLASS_RIVER:
 					MakeRiver(tile, Random());
 					if (_game_mode == GM_EDITOR) {
-						TileIndex tile2 = tile;
-						CircularTileSearch(&tile2, 5, RiverModifyDesertZone, NULL);
+						RiverModifyDesertZone (tile);
 					}
 					break;
 

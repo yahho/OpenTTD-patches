@@ -1120,7 +1120,7 @@ static void BuildRiver(TileIndex begin, TileIndex end)
 			if (!IsPlainWaterTile(tile)) {
 				MakeRiver(tile, Random());
 				/* Remove desert directly around the river tile. */
-				CircularTileSearch(&tile, 5, RiverModifyDesertZone, NULL);
+				RiverModifyDesertZone (tile);
 			}
 		}
 	}
