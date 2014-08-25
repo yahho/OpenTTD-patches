@@ -975,22 +975,19 @@ static bool FindSpring(TileIndex tile, void *user_data)
 	if (_settings_game.game_creation.landscape == LT_TROPIC && GetTropicZone(tile) != TROPICZONE_RAINFOREST) return false;
 
 	/* Are there enough higher tiles to warrant a 'spring'? */
+	TileArea ta (tile);
+	ta.expand (1); // check adjacent tiles (3x3 square)
 	uint num = 0;
-	for (int dx = -1; dx <= 1; dx++) {
-		for (int dy = -1; dy <= 1; dy++) {
-			TileIndex t = TileAddWrap(tile, dx, dy);
-			if (t != INVALID_TILE && GetTileMaxZ(t) > referenceHeight) num++;
-		}
+	TILE_AREA_LOOP(t, ta) {
+		if (GetTileMaxZ(t) > referenceHeight) num++;
 	}
 
 	if (num < 4) return false;
 
 	/* Are we near the top of a hill? */
-	for (int dx = -16; dx <= 16; dx++) {
-		for (int dy = -16; dy <= 16; dy++) {
-			TileIndex t = TileAddWrap(tile, dx, dy);
-			if (t != INVALID_TILE && GetTileMaxZ(t) > referenceHeight + 2) return false;
-		}
+	ta.expand (15); // check nearby tiles (radius 16)
+	TILE_AREA_LOOP(t, ta) {
+		if (GetTileMaxZ(t) > referenceHeight + 2) return false;
 	}
 
 	return true;
