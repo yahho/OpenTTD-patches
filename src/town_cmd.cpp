@@ -2695,56 +2695,6 @@ static bool TryClearTile(TileIndex tile)
 	return r.Succeeded();
 }
 
-/** Structure for storing data while searching the best place to build a statue. */
-struct StatueBuildSearchData {
-	TileIndex best_position; ///< Best position found so far.
-	int tile_count;          ///< Number of tiles tried.
-
-	StatueBuildSearchData(TileIndex best_pos, int count) : best_position(best_pos), tile_count(count) { }
-};
-
-/**
- * Search callback function for #TownActionBuildStatue.
- * @param tile Tile on which to perform the search.
- * @param user_data Reference to the statue search data.
- * @return Result of the test.
- */
-static bool SearchTileForStatue(TileIndex tile, void *user_data)
-{
-	static const int STATUE_NUMBER_INNER_TILES = 25; // Number of tiles int the center of the city, where we try to protect houses.
-
-	StatueBuildSearchData *statue_data = (StatueBuildSearchData *)user_data;
-	statue_data->tile_count++;
-
-	/* Statues can be build on slopes, just like houses. Only the steep slopes is a no go. */
-	if (IsSteepSlope(GetTileSlope(tile))) return false;
-	/* Don't build statues under bridges. */
-	if (HasBridgeAbove(tile)) return false;
-
-	/* A clear-able open space is always preferred. */
-	if (IsGroundTile(tile) && TryClearTile(tile)) {
-		statue_data->best_position = tile;
-		return true;
-	}
-
-	bool house = IsHouseTile(tile);
-
-	/* Searching inside the inner circle. */
-	if (statue_data->tile_count <= STATUE_NUMBER_INNER_TILES) {
-		/* Save first house in inner circle. */
-		if (house && statue_data->best_position == INVALID_TILE && TryClearTile(tile)) {
-			statue_data->best_position = tile;
-		}
-
-		/* If we have reached the end of the inner circle, and have a saved house, terminate the search. */
-		return statue_data->tile_count == STATUE_NUMBER_INNER_TILES && statue_data->best_position != INVALID_TILE;
-	}
-
-	/* Searching outside the circle, just pick the first possible spot. */
-	statue_data->best_position = tile; // Is optimistic, the condition below must also hold.
-	return house && TryClearTile(tile);
-}
-
 /**
  * Perform a 9x9 tiles circular search from the center of the town
  * in order to find a free tile to place a statue
@@ -2754,23 +2704,54 @@ static bool SearchTileForStatue(TileIndex tile, void *user_data)
  */
 static CommandCost TownActionBuildStatue(Town *t, DoCommandFlag flags)
 {
+	static const uint STATUE_NUMBER_INNER_TILES = 25; // Number of tiles in the center of the city where we try to protect houses.
+
 	if (!Object::CanAllocateItem()) return_cmd_error(STR_ERROR_TOO_MANY_OBJECTS);
 
-	TileIndex tile = t->xy;
-	StatueBuildSearchData statue_data(INVALID_TILE, 0);
-	CircularTileIterator iter (tile, 9);
-	for (tile = iter; tile != INVALID_TILE; tile = ++iter) {
-		if (SearchTileForStatue (tile, &statue_data)) break;
+	TileIndex statue_tile = INVALID_TILE;
+	uint tile_count = 0;
+	CircularTileIterator iter (t->xy, 9);
+	for (TileIndex tile = iter; tile != INVALID_TILE; tile = ++iter) {
+		tile_count++;
+
+		/* Statues can be build on slopes, just like houses. Only the steep slopes is a no go. */
+		if (IsSteepSlope(GetTileSlope(tile))) continue;
+		/* Don't build statues under bridges. */
+		if (HasBridgeAbove(tile)) continue;
+
+		/* A clear-able open space is always preferred. */
+		if (IsGroundTile(tile) && TryClearTile(tile)) {
+			statue_tile = tile;
+			break;
+		}
+
+		bool house = IsHouseTile(tile);
+
+		if (tile_count <= STATUE_NUMBER_INNER_TILES) {
+			/* Searching inside the inner circle; store first house. */
+			if (house && statue_tile == INVALID_TILE && TryClearTile(tile)) {
+				statue_tile = tile;
+			}
+
+			/* If we have reached the end of the inner circle, and have a saved house, terminate the search. */
+			if (tile_count == STATUE_NUMBER_INNER_TILES && statue_tile != INVALID_TILE) break;
+		} else {
+			/* Searching outside the circle, just pick the first possible spot. */
+			if (house && TryClearTile(tile)) {
+				statue_tile = tile;
+				break;
+			}
+		}
 	}
-	if (tile == INVALID_TILE) return_cmd_error(STR_ERROR_STATUE_NO_SUITABLE_PLACE);
+	if (statue_tile == INVALID_TILE) return_cmd_error(STR_ERROR_STATUE_NO_SUITABLE_PLACE);
 
 	if (flags & DC_EXEC) {
 		Backup<CompanyByte> cur_company(_current_company, OWNER_NONE, FILE_LINE);
-		DoCommand(statue_data.best_position, 0, 0, DC_EXEC, CMD_LANDSCAPE_CLEAR);
+		DoCommand(statue_tile, 0, 0, DC_EXEC, CMD_LANDSCAPE_CLEAR);
 		cur_company.Restore();
-		BuildObject(OBJECT_STATUE, statue_data.best_position, _current_company, t);
+		BuildObject(OBJECT_STATUE, statue_tile, _current_company, t);
 		SetBit(t->statues, _current_company); // Once found and built, "inform" the Town.
-		MarkTileDirtyByTile(statue_data.best_position);
+		MarkTileDirtyByTile(statue_tile);
 	}
 	return CommandCost();
 }
