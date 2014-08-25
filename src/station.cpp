@@ -305,46 +305,6 @@ TileArea Station::GetCatchmentArea() const
 	return catchment;
 }
 
-/** Tile area and pointer to IndustryVector */
-struct TileAreaAndIndustryVector {
-	TileArea area;                   ///< The rectangle to search the industries in.
-	IndustryVector *industries_near; ///< The nearby industries.
-};
-
-/**
- * Callback function for Station::RecomputeIndustriesNear()
- * Tests whether tile is an industry and possibly adds
- * the industry to station's industries_near list.
- * @param ind_tile tile to check
- * @param user_data pointer to RectAndIndustryVector
- * @return always false, we want to search all tiles
- */
-static bool FindIndustryToDeliver(TileIndex ind_tile, void *user_data)
-{
-	/* Only process industry tiles */
-	if (!IsIndustryTile(ind_tile)) return false;
-
-	TileAreaAndIndustryVector *riv = (TileAreaAndIndustryVector *)user_data;
-	Industry *ind = Industry::GetByTile(ind_tile);
-
-	/* Don't check further if this industry is already in the list */
-	if (riv->industries_near->Contains(ind)) return false;
-
-	/* Only process tiles in the station acceptance rectangle */
-	if (!riv->area.Contains(ind_tile)) return false;
-
-	/* Include only industries that can accept cargo */
-	uint cargo_index;
-	for (cargo_index = 0; cargo_index < lengthof(ind->accepts_cargo); cargo_index++) {
-		if (ind->accepts_cargo[cargo_index] != CT_INVALID) break;
-	}
-	if (cargo_index >= lengthof(ind->accepts_cargo)) return false;
-
-	*riv->industries_near->Append() = ind;
-
-	return false;
-}
-
 /**
  * Recomputes Station::industries_near, list of industries possibly
  * accepting cargo in station's catchment radius
@@ -354,18 +314,27 @@ void Station::RecomputeIndustriesNear()
 	this->industries_near.Clear();
 	if (this->rect.empty()) return;
 
-	TileAreaAndIndustryVector riv = {
-		this->GetCatchmentArea(),
-		&this->industries_near
-	};
+	TileArea catchment = this->GetCatchmentArea();
 
 	/* Compute maximum extent of acceptance rectangle wrt. station sign */
-	TileIndex start_tile = this->xy;
-	uint max_radius = riv.area.get_radius_max (start_tile);
+	CircularTileIterator iter (this->xy, 2 * catchment.get_radius_max (this->xy) + 1);
+	for (TileIndex tile = iter; tile != INVALID_TILE; tile = ++iter) {
+		/* Only process industry tiles within the catchment area */
+		if (!IsIndustryTile(tile)) continue;
+		if (!catchment.Contains(tile)) continue;
 
-	CircularTileIterator iter (start_tile, 2 * max_radius + 1);
-	for (start_tile = iter; start_tile != INVALID_TILE; start_tile = ++iter) {
-		FindIndustryToDeliver (start_tile, &riv);
+		Industry *ind = Industry::GetByTile (tile);
+
+		/* Don't check further if this industry is already in the list */
+		if (this->industries_near.Contains(ind)) continue;
+
+		/* Include only industries that can accept cargo */
+		for (uint cid = 0; cid < lengthof(ind->accepts_cargo); cid++) {
+			if (ind->accepts_cargo[cid] != CT_INVALID) {
+				*this->industries_near.Append() = ind;
+				break;
+			}
+		}
 	}
 }
 
