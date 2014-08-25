@@ -304,8 +304,11 @@ static uint32 GetDistanceFromNearbyHouse(uint8 parameter, TileIndex tile, HouseI
 	nbhd.north_tile = tile + GetHouseNorthPart(house); // modifies 'house'!
 
 	/* Use a pointer for the tile to start the search. Will be required for calculating the distance*/
-	if (CircularTileSearch(&found_tile, 2 * searchradius + 1, search_procs[searchtype], &nbhd)) {
-		return DistanceManhattan(found_tile, tile);
+	CircularTileIterator iter (found_tile, 2 * searchradius + 1);
+	for (found_tile = iter; found_tile != INVALID_TILE; found_tile = ++iter) {
+		if (search_procs[searchtype] (found_tile, &nbhd)) {
+			return DistanceManhattan(found_tile, tile);
+		}
 	}
 	return 0;
 }

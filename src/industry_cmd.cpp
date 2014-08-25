@@ -1065,8 +1065,12 @@ static void ChopLumberMillTrees(Industry *i)
 	}
 
 	TileIndex tile = i->location.tile;
-	if (CircularTileSearch(&tile, 40, SearchLumberMillTrees, NULL)) { // 40x40 tiles  to search.
-		i->produced_cargo_waiting[0] = min(0xffff, i->produced_cargo_waiting[0] + 45); // Found a tree, add according value to waiting cargo.
+	CircularTileIterator iter (tile, 40); // 40x40 tiles  to search
+	for (tile = iter; tile != INVALID_TILE; tile = ++iter) {
+		if (SearchLumberMillTrees (tile, NULL)) {
+			i->produced_cargo_waiting[0] = min(0xffff, i->produced_cargo_waiting[0] + 45); // Found a tree, add according value to waiting cargo.
+			break;
+		}
 	}
 }
 

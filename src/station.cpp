@@ -363,7 +363,10 @@ void Station::RecomputeIndustriesNear()
 	TileIndex start_tile = this->xy;
 	uint max_radius = riv.area.get_radius_max (start_tile);
 
-	CircularTileSearch(&start_tile, 2 * max_radius + 1, &FindIndustryToDeliver, &riv);
+	CircularTileIterator iter (start_tile, 2 * max_radius + 1);
+	for (start_tile = iter; start_tile != INVALID_TILE; start_tile = ++iter) {
+		FindIndustryToDeliver (start_tile, &riv);
+	}
 }
 
 /**

@@ -359,6 +359,32 @@ public:
 	}
 };
 
+/**
+ * Iterator to perform a circular (spiral) search over a square
+ * or around a rectangle.
+ */
+class CircularTileIterator : public TileIterator {
+private:
+	uint x, y;
+	uint extent[AXIS_END];
+	uint j;
+	DiagDirection d;
+	uint r;
+
+protected:
+	void Next() OVERRIDE;
+
+public:
+	CircularTileIterator (TileIndex tile, uint size);
+
+	CircularTileIterator (const TileArea &ta, uint radius);
+
+	CircularTileIterator *Clone() const OVERRIDE
+	{
+		return new CircularTileIterator(*this);
+	}
+};
+
 
 /** Base class for iterators that also contain the area they iterate over. */
 class TileAreaIterator {

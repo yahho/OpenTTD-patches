@@ -333,9 +333,6 @@ static inline uint DistanceAlongAxis(TileIndex t1, TileIndex t2)
  */
 typedef bool TestTileOnSearchProc(TileIndex tile, void *user_data);
 
-bool CircularTileSearch(TileIndex *tile, uint size, TestTileOnSearchProc proc, void *user_data);
-bool CircularTileSearch(TileIndex *tile, uint radius, uint w, uint h, TestTileOnSearchProc proc, void *user_data);
-
 
 /**
  * Calculate a hash value from a tile position

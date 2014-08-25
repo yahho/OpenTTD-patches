@@ -347,3 +347,99 @@ void DiagonalTileIterator::Next()
 
 	this->tile = TileXY(this->x, this->y);
 }
+
+
+/**
+ * Construct an iterator to iterate around a tile area.
+ * @param ta Tile area around which to search.
+ * @param radius Number of circles (rings) to search outwards
+ */
+CircularTileIterator::CircularTileIterator (const TileArea &ta, uint radius)
+	: TileIterator (ta.tile + TileDiffXY (ta.w, -1))
+{
+	assert(!ta.empty());
+	assert(radius > 0);
+
+	this->x = TileX(ta.tile) + ta.w;
+	this->y = TileY(ta.tile) - 1;
+	this->extent[0] = ta.w + 1;
+	this->extent[1] = ta.h + 1;
+	this->j = ta.w + 1;
+	this->d = DIAGDIR_BEGIN;
+	this->r = radius;
+
+	if (this->x >= MapSizeX() || this->y >= MapSizeY()) this->CircularTileIterator::Next();
+}
+
+/**
+ * Construct an iterator to iterate over a square.
+ * @param tile First tile to search (centre of square)
+ * @param size Length of square size
+ */
+CircularTileIterator::CircularTileIterator (TileIndex tile, uint size)
+	: TileIterator (tile + 1 - size % 2)
+{
+	assert(size > 1);
+
+	this->x = TileX(tile) + 1 - size % 2;
+	this->y = TileY(tile);
+	this->extent[0] = size % 2 + 1;
+	this->extent[1] = size % 2 + 1;
+	/* use a special marker (j = 0) if the square side length is odd */
+	this->j = 1 - size % 2;
+	this->d = DIAGDIR_BEGIN;
+	this->r = size / 2;
+
+	if (this->x >= MapSizeX() || this->y >= MapSizeY()) this->CircularTileIterator::Next();
+}
+
+/** Get the next tile to iterate over. */
+void CircularTileIterator::Next()
+{
+	if (j == 0) {
+		/* special marker for the centre of a square of odd side length */
+		assert(this->extent[AXIS_X] == 2);
+		assert(this->extent[AXIS_Y] == 2);
+		assert(this->d == DIAGDIR_BEGIN);
+
+		this->x++; /* move west */
+		this->y--;
+		this->j = 2;
+
+		if (this->x < MapSizeX() && this->y < MapSizeY()) {
+			this->tile = TileXY(this->x, this->y);
+			return;
+		}
+	}
+
+	do {
+		assert (this->j != 0);
+
+		/* next tile on this side */
+		CoordDiff cdiff = CoordDiffByDiagDir (this->d);
+		this->x += cdiff.x;
+		this->y += cdiff.y;
+
+		if (--this->j == 0) {
+			this->d++;
+			if (this->d < DIAGDIR_END) {
+				/* prepare for next side */
+				this->j = this->extent[DiagDirToAxis(this->d)];
+			} else if (--this->r == 0) {
+				/* all done */
+				this->tile = INVALID_TILE;
+				return;
+			} else {
+				/* next circle */
+				this->x++; /* move west */
+				this->y--;
+				this->extent[AXIS_X] += 2;
+				this->extent[AXIS_Y] += 2;
+				this->d = DIAGDIR_BEGIN;
+				this->j = this->extent[DiagDirToAxis(this->d)];
+			}
+		}
+	} while (this->x >= MapSizeX() || this->y >= MapSizeY());
+
+	this->tile = TileXY(this->x, this->y);
+}

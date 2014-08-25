@@ -1796,9 +1796,15 @@ static TileIndex FindNearestGoodCoastalTownSpot(TileIndex tile, TownLayout layou
 	SpotData sp = { INVALID_TILE, 0, layout };
 
 	TileIndex coast = tile;
-	if (CircularTileSearch(&coast, 40, FindNearestEmptyLand, NULL)) {
-		CircularTileSearch(&coast, 10, FindFurthestFromWater, &sp);
-		return sp.tile;
+	CircularTileIterator iter (coast, 40);
+	for (coast = iter; coast != INVALID_TILE; coast = ++iter) {
+		if (FindNearestEmptyLand (coast, NULL)) {
+			CircularTileIterator iter (coast, 10);
+			for (coast = iter; coast != INVALID_TILE; coast = ++iter) {
+				FindFurthestFromWater (coast, &sp);
+			}
+			return sp.tile;
+		}
 	}
 
 	/* if we get here just give up */
@@ -2795,7 +2801,11 @@ static CommandCost TownActionBuildStatue(Town *t, DoCommandFlag flags)
 
 	TileIndex tile = t->xy;
 	StatueBuildSearchData statue_data(INVALID_TILE, 0);
-	if (!CircularTileSearch(&tile, 9, SearchTileForStatue, &statue_data)) return_cmd_error(STR_ERROR_STATUE_NO_SUITABLE_PLACE);
+	CircularTileIterator iter (tile, 9);
+	for (tile = iter; tile != INVALID_TILE; tile = ++iter) {
+		if (SearchTileForStatue (tile, &statue_data)) break;
+	}
+	if (tile == INVALID_TILE) return_cmd_error(STR_ERROR_STATUE_NO_SUITABLE_PLACE);
 
 	if (flags & DC_EXEC) {
 		Backup<CompanyByte> cur_company(_current_company, OWNER_NONE, FILE_LINE);

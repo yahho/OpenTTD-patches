@@ -2215,8 +2215,10 @@ static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta
 	if (distant_join && min(ta.w, ta.h) >= _settings_game.station.station_spread) return;
 	uint max_dist = distant_join ? _settings_game.station.station_spread - min(ta.w, ta.h) : 1;
 
-	TileIndex tile = TILE_ADD(ta.tile, TileOffsByDir(DIR_N));
-	CircularTileSearch(&tile, max_dist, ta.w, ta.h, AddNearbyStation, &data);
+	CircularTileIterator iter (ta, max_dist);
+	for (TileIndex tile = iter; tile != INVALID_TILE; tile = ++iter) {
+		AddNearbyStation (tile, &data);
+	}
 }
 
 static const NWidgetPart _nested_select_station_widgets[] = {

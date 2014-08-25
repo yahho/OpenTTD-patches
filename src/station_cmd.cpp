@@ -244,14 +244,18 @@ static StringID GenerateStationName(Station *st, TileIndex tile, StationNaming n
 
 	TileIndex indtile = tile;
 	StationNameInformation sni = { free_names, indtypes };
-	if (CircularTileSearch(&indtile, 7, FindNearIndustryName, &sni)) {
-		/* An industry has been found nearby */
-		IndustryType indtype = GetIndustryType(indtile);
-		const IndustrySpec *indsp = GetIndustrySpec(indtype);
-		/* STR_NULL means it only disables oil rig/mines */
-		if (indsp->station_name != STR_NULL) {
-			st->indtype = indtype;
-			return STR_SV_STNAME_FALLBACK;
+	CircularTileIterator iter (indtile, 7);
+	for (indtile = iter; indtile != INVALID_TILE; indtile = ++iter) {
+		if (FindNearIndustryName (indtile, &sni)) {
+			/* An industry has been found nearby */
+			IndustryType indtype = GetIndustryType(indtile);
+			const IndustrySpec *indsp = GetIndustrySpec(indtype);
+			/* STR_NULL means it only disables oil rig/mines */
+			if (indsp->station_name != STR_NULL) {
+				st->indtype = indtype;
+				return STR_SV_STNAME_FALLBACK;
+			}
+			break;
 		}
 	}
 

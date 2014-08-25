@@ -1195,10 +1195,16 @@ static bool FlowRiver(TileIndex spring, TileIndex begin)
 			end = lakeCenter;
 			MakeRiver(lakeCenter, Random());
 			uint range = RandomRange(8) + 3;
-			CircularTileSearch(&lakeCenter, range, MakeLake, &height);
+			CircularTileIterator iter1 (lakeCenter, range);
+			for (lakeCenter = iter1; lakeCenter != INVALID_TILE; lakeCenter = ++iter1) {
+				MakeLake (lakeCenter, &height);
+			}
 			/* Call the search a second time so artefacts from going circular in one direction get (mostly) hidden. */
 			lakeCenter = end;
-			CircularTileSearch(&lakeCenter, range, MakeLake, &height);
+			CircularTileIterator iter2 (lakeCenter, range);
+			for (lakeCenter = iter2; lakeCenter != INVALID_TILE; lakeCenter = ++iter2) {
+				MakeLake (lakeCenter, &height);
+			}
 			found = true;
 		}
 	}
@@ -1223,7 +1229,11 @@ static void CreateRivers()
 		IncreaseGeneratingWorldProgress(GWP_RIVER);
 		for (int tries = 0; tries < 128; tries++) {
 			TileIndex t = RandomTile();
-			if (!CircularTileSearch(&t, 8, FindSpring, NULL)) continue;
+			CircularTileIterator iter (t, 8);
+			for (t = iter; t != INVALID_TILE; t = ++iter) {
+				if (FindSpring (t, NULL)) break;
+			}
+			if (t == INVALID_TILE) continue;
 			if (FlowRiver(t, t)) break;
 		}
 	}
