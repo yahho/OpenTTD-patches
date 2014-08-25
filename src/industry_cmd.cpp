@@ -1027,31 +1027,6 @@ void PlantRandomFarmField(const Industry *i)
 }
 
 /**
- * Search callback function for ChopLumberMillTrees
- * @param tile to test
- * @param user_data that is passed by the caller.  In this case, nothing
- * @return the result of the test
- */
-static bool SearchLumberMillTrees(TileIndex tile, void *user_data)
-{
-	if (IsTreeTile(tile) && GetTreeGrowth(tile) > 2) { ///< 3 and up means all fully grown trees
-		/* found a tree */
-
-		Backup<CompanyByte> cur_company(_current_company, OWNER_NONE, FILE_LINE);
-
-		_industry_sound_ctr = 1;
-		_industry_sound_tile = tile;
-		if (_settings_client.sound.ambient) SndPlayTileFx(SND_38_CHAINSAW, tile);
-
-		DoCommand(tile, 0, 0, DC_EXEC, CMD_LANDSCAPE_CLEAR);
-
-		cur_company.Restore();
-		return true;
-	}
-	return false;
-}
-
-/**
  * Perform a circular search around the Lumber Mill in order to find trees to cut
  * @param i industry
  */
@@ -1067,7 +1042,18 @@ static void ChopLumberMillTrees(Industry *i)
 	TileIndex tile = i->location.tile;
 	CircularTileIterator iter (tile, 40); // 40x40 tiles  to search
 	for (tile = iter; tile != INVALID_TILE; tile = ++iter) {
-		if (SearchLumberMillTrees (tile, NULL)) {
+		if (IsTreeTile(tile) && GetTreeGrowth(tile) > 2) { ///< 3 and up means all fully grown trees
+			/* found a tree */
+
+			Backup<CompanyByte> cur_company(_current_company, OWNER_NONE, FILE_LINE);
+
+			_industry_sound_ctr = 1;
+			_industry_sound_tile = tile;
+			if (_settings_client.sound.ambient) SndPlayTileFx(SND_38_CHAINSAW, tile);
+
+			DoCommand(tile, 0, 0, DC_EXEC, CMD_LANDSCAPE_CLEAR);
+
+			cur_company.Restore();
 			i->produced_cargo_waiting[0] = min(0xffff, i->produced_cargo_waiting[0] + 45); // Found a tree, add according value to waiting cargo.
 			break;
 		}
