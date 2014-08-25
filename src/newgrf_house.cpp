@@ -199,83 +199,6 @@ static uint32 GetNearbyTileInformation(byte parameter, TileIndex tile, bool grf_
 	return GetNearbyTileInformation(tile, grf_version8);
 }
 
-/** Structure with user-data for SearchNearbyHouseXXX - functions */
-struct SearchNearbyHouseData {
-	const HouseSpec *hs;  ///< Specs of the house that started the search.
-	TileIndex north_tile; ///< Northern tile of the house.
-};
-
-/**
- * Callback function to search a house by its HouseID
- * @param tile TileIndex to be examined
- * @param user_data SearchNearbyHouseData
- * @return true or false, if found or not
- */
-static bool SearchNearbyHouseID(TileIndex tile, void *user_data)
-{
-	if (IsHouseTile(tile)) {
-		HouseID house = GetHouseType(tile); // tile been examined
-		const HouseSpec *hs = HouseSpec::Get(house);
-		if (hs->grf_prop.grffile != NULL) { // must be one from a grf file
-			SearchNearbyHouseData *nbhd = (SearchNearbyHouseData *)user_data;
-
-			TileIndex north_tile = tile + GetHouseNorthPart(house); // modifies 'house'!
-			if (north_tile == nbhd->north_tile) return false; // Always ignore origin house
-
-			return hs->grf_prop.local_id == nbhd->hs->grf_prop.local_id &&  // same local id as the one requested
-				hs->grf_prop.grffile->grfid == nbhd->hs->grf_prop.grffile->grfid;  // from the same grf
-		}
-	}
-	return false;
-}
-
-/**
- * Callback function to search a house by its classID
- * @param tile TileIndex to be examined
- * @param user_data SearchNearbyHouseData
- * @return true or false, if found or not
- */
-static bool SearchNearbyHouseClass(TileIndex tile, void *user_data)
-{
-	if (IsHouseTile(tile)) {
-		HouseID house = GetHouseType(tile); // tile been examined
-		const HouseSpec *hs = HouseSpec::Get(house);
-		if (hs->grf_prop.grffile != NULL) { // must be one from a grf file
-			SearchNearbyHouseData *nbhd = (SearchNearbyHouseData *)user_data;
-
-			TileIndex north_tile = tile + GetHouseNorthPart(house); // modifies 'house'!
-			if (north_tile == nbhd->north_tile) return false; // Always ignore origin house
-
-			return hs->class_id == nbhd->hs->class_id &&  // same classid as the one requested
-				hs->grf_prop.grffile->grfid == nbhd->hs->grf_prop.grffile->grfid;  // from the same grf
-		}
-	}
-	return false;
-}
-
-/**
- * Callback function to search a house by its grfID
- * @param tile TileIndex to be examined
- * @param user_data SearchNearbyHouseData
- * @return true or false, if found or not
- */
-static bool SearchNearbyHouseGRFID(TileIndex tile, void *user_data)
-{
-	if (IsHouseTile(tile)) {
-		HouseID house = GetHouseType(tile); // tile been examined
-		const HouseSpec *hs = HouseSpec::Get(house);
-		if (hs->grf_prop.grffile != NULL) { // must be one from a grf file
-			SearchNearbyHouseData *nbhd = (SearchNearbyHouseData *)user_data;
-
-			TileIndex north_tile = tile + GetHouseNorthPart(house); // modifies 'house'!
-			if (north_tile == nbhd->north_tile) return false; // Always ignore origin house
-
-			return hs->grf_prop.grffile->grfid == nbhd->hs->grf_prop.grffile->grfid;  // from the same grf
-		}
-	}
-	return false;
-}
-
 /**
  * This function will activate a search around a central tile, looking for some houses
  * that fit the requested characteristics
@@ -288,27 +211,55 @@ static bool SearchNearbyHouseGRFID(TileIndex tile, void *user_data)
  */
 static uint32 GetDistanceFromNearbyHouse(uint8 parameter, TileIndex tile, HouseID house)
 {
-	static TestTileOnSearchProc * const search_procs[3] = {
-		SearchNearbyHouseID,
-		SearchNearbyHouseClass,
-		SearchNearbyHouseGRFID,
+	enum SearchType {
+		SEARCH_BY_ID,
+		SEARCH_BY_CLASS,
+		SEARCH_BY_GRFID,
+		SEARCH_BY_END,
 	};
-	TileIndex found_tile = tile;
+
 	uint8 searchtype = GB(parameter, 6, 2);
 	uint8 searchradius = GB(parameter, 0, 6);
-	if (searchtype >= lengthof(search_procs)) return 0;  // do not run on ill-defined code
+
+	if (searchtype >= SEARCH_BY_END) return 0;  // do not run on ill-defined code
 	if (searchradius < 1) return 0; // do not use a too low radius
 
-	SearchNearbyHouseData nbhd;
-	nbhd.hs = HouseSpec::Get(house);
-	nbhd.north_tile = tile + GetHouseNorthPart(house); // modifies 'house'!
+	const HouseSpec *orig_hs = HouseSpec::Get(house);
+	TileIndex orig_north_tile = tile + GetHouseNorthPart(house); // modifies 'house'!
 
-	/* Use a pointer for the tile to start the search. Will be required for calculating the distance*/
-	CircularTileIterator iter (found_tile, 2 * searchradius + 1);
-	for (found_tile = iter; found_tile != INVALID_TILE; found_tile = ++iter) {
-		if (search_procs[searchtype] (found_tile, &nbhd)) {
-			return DistanceManhattan(found_tile, tile);
+	CircularTileIterator iter (tile, 2 * searchradius + 1);
+	for (TileIndex t = iter; t != INVALID_TILE; t = ++iter) {
+		if (!IsHouseTile(t)) continue;
+
+		HouseID house = GetHouseType(t);
+		const HouseSpec *hs = HouseSpec::Get(house);
+
+		/* house must be from the same grf file */
+		if (hs->grf_prop.grffile == NULL) continue;
+		if (hs->grf_prop.grffile->grfid != orig_hs->grf_prop.grffile->grfid) continue;
+
+		TileIndex north = t + GetHouseNorthPart(house); // modifies 'house'!
+		/* always ignore origin house */
+		if (north == orig_north_tile) continue;
+
+		bool match;
+		switch (searchtype) {
+			case SEARCH_BY_ID:
+				match = (hs->grf_prop.local_id == orig_hs->grf_prop.local_id); // same local id as the one requested
+				break;
+
+			case SEARCH_BY_CLASS:
+				match = (hs->class_id == orig_hs->class_id); // same classid as the one requested
+				break;
+
+			case SEARCH_BY_GRFID:
+				match = true; // from the same grf
+				break;
+
+			default: NOT_REACHED();
 		}
+
+		if (match) return DistanceManhattan (t, tile);
 	}
 	return 0;
 }
