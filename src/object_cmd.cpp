@@ -630,17 +630,6 @@ static void AnimateTile_Object(TileIndex tile)
 }
 
 /**
- * Helper function for \c CircularTileSearch.
- * @param tile The tile to check.
- * @param user Ignored.
- * @return True iff the tile has a radio tower.
- */
-static bool HasTransmitter(TileIndex tile, void *user)
-{
-	return IsObjectTypeTile(tile, OBJECT_TRANSMITTER);
-}
-
-/**
  * Try to build a lighthouse.
  * @return True iff building a lighthouse succeeded.
  */
@@ -691,8 +680,12 @@ static bool TryBuildTransmitter()
 	TileIndex tile = RandomTile();
 	int h;
 	if (IsGroundTile(tile) && IsTileFlat(tile, &h) && h >= 4 && !IsBridgeAbove(tile)) {
-		TileIndex t = tile;
-		if (CircularTileSearch(&t, 9, HasTransmitter, NULL)) return false;
+		TileArea ta (tile);
+		ta.expand (4);
+
+		TILE_AREA_LOOP(t, ta) {
+			if (IsObjectTypeTile (t, OBJECT_TRANSMITTER)) return false;
+		}
 
 		BuildObject(OBJECT_TRANSMITTER, tile);
 		return true;
