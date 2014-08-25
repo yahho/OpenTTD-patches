@@ -2127,54 +2127,6 @@ static const BaseStation *FindStationInArea (const TileArea &ta, bool waypoint)
 	return NULL;
 }
 
-/** Helper struct for AddNearbyStation. */
-struct FindNearbyStationsData {
-	const TileArea *ta;
-	std::vector <StationID> *list;
-	std::vector <std::pair <TileIndex, StationID> > deleted;
-	bool waypoint;
-};
-
-/**
- * Add station on this tile to _stations_nearby_list if it's fully within the
- * station spread.
- * @param tile Tile just being checked
- * @param user_data Pointer to FindNearbyStationsData
- */
-static bool AddNearbyStation(TileIndex tile, void *user_data)
-{
-	FindNearbyStationsData *data = (FindNearbyStationsData *) user_data;
-
-	/* First check if there were deleted stations here */
-	for (uint i = 0; i < data->deleted.size(); i++) {
-		const std::pair <TileIndex, StationID> &ts = data->deleted[i];
-		if (ts.first == tile) {
-			data->list->push_back (ts.second);
-		}
-	}
-
-	/* Check if own station and if we stay within station spread */
-	if (!IsStationTile(tile)) return false;
-
-	StationID sid = GetStationIndex(tile);
-	BaseStation *st = BaseStation::Get(sid);
-
-	/* This station is (likely) a waypoint */
-	if (st->IsWaypoint() != data->waypoint) return false;
-
-	if (st->owner != _local_company) return false;
-
-	for (std::vector<StationID>::const_iterator iter = data->list->begin(); iter < data->list->end(); iter++) {
-		if (*iter == sid) return false; // already there
-	}
-
-	if (st->TestAddRect(*data->ta)) {
-		data->list->push_back (sid);
-	}
-
-	return false; // We want to include *all* nearby stations
-}
-
 /**
  * Circulate around the to-be-built station to find stations we could join.
  * Make sure that only stations are returned where joining wouldn't exceed
@@ -2186,14 +2138,10 @@ static bool AddNearbyStation(TileIndex tile, void *user_data)
  */
 static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta, bool distant_join, bool waypoint)
 {
-	FindNearbyStationsData data;
-	data.ta = &ta;
-	data.list = list;
-	data.waypoint = waypoint;
-
 	list->clear();
 
 	/* Look for deleted stations */
+	std::vector <std::pair <TileIndex, StationID> > deleted;
 	const BaseStation *st;
 	FOR_ALL_BASE_STATIONS(st) {
 		if (st->IsWaypoint() == waypoint && !st->IsInUse() && st->owner == _local_company) {
@@ -2203,7 +2151,7 @@ static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta
 				if (ta.Contains (st->xy)) {
 					list->push_back (st->index);
 				} else {
-					data.deleted.push_back (std::make_pair (st->xy, st->index));
+					deleted.push_back (std::make_pair (st->xy, st->index));
 				}
 			}
 		}
@@ -2217,7 +2165,34 @@ static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta
 
 	CircularTileIterator iter (ta, max_dist);
 	for (TileIndex tile = iter; tile != INVALID_TILE; tile = ++iter) {
-		AddNearbyStation (tile, &data);
+		/* First check if there were deleted stations here */
+		for (uint i = 0; i < deleted.size(); i++) {
+			const std::pair <TileIndex, StationID> &ts = deleted[i];
+			if (ts.first == tile) {
+				list->push_back (ts.second);
+			}
+		}
+
+		/* Check if own station and if we stay within station spread */
+		if (!IsStationTile(tile)) continue;
+
+		StationID sid = GetStationIndex(tile);
+		BaseStation *st = BaseStation::Get(sid);
+
+		/* This station is (likely) a waypoint */
+		if (st->IsWaypoint() != waypoint) continue;
+
+		if (st->owner != _local_company) continue;
+
+		std::vector<StationID>::const_iterator iter = list->begin();
+		for (; iter != list->end(); iter++) {
+			if (*iter == sid) break; // already there
+		}
+		if (iter != list->end()) continue;
+
+		if (st->TestAddRect(ta)) {
+			list->push_back (sid);
+		}
 	}
 }
 
