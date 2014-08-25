@@ -1728,58 +1728,6 @@ static bool IsTileAlignedToGrid(TileIndex tile, TownLayout layout)
 }
 
 /**
- * Used as the user_data for FindFurthestFromWater
- */
-struct SpotData {
-	TileIndex tile; ///< holds the tile that was found
-	uint max_dist;  ///< holds the distance that tile is from the water
-	TownLayout layout; ///< tells us what kind of town we're building
-};
-
-/**
- * CircularTileSearch callback; finds the tile furthest from any
- * water. slightly bit tricky, since it has to do a search of its own
- * in order to find the distance to the water from each square in the
- * radius.
- *
- * Also, this never returns true, because it needs to take into
- * account all locations being searched before it knows which is the
- * furthest.
- *
- * @param tile Start looking from this tile
- * @param user_data Storage area for data that must last across calls;
- * must be a pointer to struct SpotData
- *
- * @return always false
- */
-static bool FindFurthestFromWater(TileIndex tile, void *user_data)
-{
-	SpotData *sp = (SpotData*)user_data;
-	uint dist = GetClosestWaterDistance(tile, true);
-
-	if (IsGroundTile(tile) &&
-			IsTileFlat(tile) &&
-			IsTileAlignedToGrid(tile, sp->layout) &&
-			dist > sp->max_dist) {
-		sp->tile = tile;
-		sp->max_dist = dist;
-	}
-
-	return false;
-}
-
-/**
- * CircularTileSearch callback; finds the nearest land tile
- *
- * @param tile Start looking from this tile
- * @param user_data not used
- */
-static bool FindNearestEmptyLand(TileIndex tile, void *user_data)
-{
-	return IsGroundTile(tile);
-}
-
-/**
  * Given a spot on the map (presumed to be a water tile), find a good
  * coastal spot to build a city. We don't want to build too close to
  * the edge if we can help it (since that retards city growth) hence
@@ -1793,17 +1741,26 @@ static bool FindNearestEmptyLand(TileIndex tile, void *user_data)
  */
 static TileIndex FindNearestGoodCoastalTownSpot(TileIndex tile, TownLayout layout)
 {
-	SpotData sp = { INVALID_TILE, 0, layout };
+	CircularTileIterator iter (tile, 40);
+	for (TileIndex coast = iter; coast != INVALID_TILE; coast = ++iter) {
+		if (IsGroundTile (coast)) {
+			/* Search for a good inland spot for a town. */
+			TileIndex spot_tile = INVALID_TILE;
+			uint spot_dist = 0;
 
-	TileIndex coast = tile;
-	CircularTileIterator iter (coast, 40);
-	for (coast = iter; coast != INVALID_TILE; coast = ++iter) {
-		if (FindNearestEmptyLand (coast, NULL)) {
 			CircularTileIterator iter (coast, 10);
-			for (coast = iter; coast != INVALID_TILE; coast = ++iter) {
-				FindFurthestFromWater (coast, &sp);
+			for (TileIndex t = iter; t != INVALID_TILE; t = ++iter) {
+				if (!IsGroundTile(t)) continue;
+				if (!IsTileFlat(t)) continue;
+				if (!IsTileAlignedToGrid (t, layout)) continue;
+
+				uint dist = GetClosestWaterDistance (t, true);
+				if (dist > spot_dist) {
+					spot_tile = t;
+					spot_dist = dist;
+				}
 			}
-			return sp.tile;
+			return spot_tile;
 		}
 	}
 
