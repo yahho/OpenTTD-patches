@@ -963,10 +963,9 @@ static void CreateDesertOrRainForest()
 /**
  * Find the spring of a river.
  * @param tile The tile to consider for being the spring.
- * @param user_data Ignored data.
  * @return True iff it is suitable as a spring.
  */
-static bool FindSpring(TileIndex tile, void *user_data)
+static bool FindSpring (TileIndex tile)
 {
 	int referenceHeight;
 	if (!IsTileFlat(tile, &referenceHeight) || IsPlainWaterTile(tile)) return false;
@@ -1228,7 +1227,7 @@ static void CreateRivers()
 			TileIndex t = RandomTile();
 			CircularTileIterator iter (t, 8);
 			for (t = iter; t != INVALID_TILE; t = ++iter) {
-				if (FindSpring (t, NULL)) break;
+				if (FindSpring (t)) break;
 			}
 			if (t == INVALID_TILE) continue;
 			if (FlowRiver(t, t)) break;
