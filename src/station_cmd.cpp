@@ -959,7 +959,7 @@ void GetStationLayout(byte *layout, int numtracks, int plat_len, const StationSp
  * Find a nearby station that joins this station.
  * @tparam T the class to find a station for
  * @param existing_station an existing station we build over
- * @param station_to_join the station to join to
+ * @param station_to_join the station to join, if adjacent is set
  * @param adjacent whether adjacent stations are allowed
  * @param ta the area of the newly build station
  * @param st 'return' pointer for the found station
@@ -971,7 +971,6 @@ CommandCost FindJoiningBaseStation(StationID existing_station, StationID station
 {
 	assert(*st == NULL);
 
-	if (station_to_join == NEW_STATION) station_to_join = INVALID_STATION;
 	if ((station_to_join != INVALID_STATION) && (!_settings_game.station.distant_join_stations || !T::IsValidID(station_to_join))) return CMD_ERROR;
 
 	bool check_surrounding;
@@ -1040,7 +1039,7 @@ CommandCost FindJoiningWaypoint(StationID existing_waypoint, StationID waypoint_
  * @param [out] st Station to attach to
  * @param area Area occupied by the new part
  * @param existing_station Existing station we build over
- * @param station_to_join Station to join
+ * @param station_to_join Station to join, if adjacent is set
  * @param adjacent Whether adjacent stations are allowed
  * @param error_message Error message when building a station on top of others
  * @param flags Command flags
@@ -1056,7 +1055,7 @@ static CommandCost BuildStationPart (Station **st, const TileArea &area,
 	if (ret.Failed()) return ret;
 
 	/* Find a deleted station close to us */
-	if (*st == NULL && station_to_join != NEW_STATION) *st = GetClosestDeletedStation(area.tile);
+	if (*st == NULL && !adjacent) *st = GetClosestDeletedStation(area.tile);
 
 	if (*st != NULL) {
 		if ((*st)->owner != _current_company) {

@@ -2288,7 +2288,7 @@ struct SelectStationWindow : Window {
 
 		/* Insert station to be joined into stored command */
 		SB(this->select_station_cmd.p2, 16, 16,
-			(distant_join ? this->list[st_index] : NEW_STATION));
+			(distant_join ? this->list[st_index] : INVALID_STATION));
 
 		/* Execute stored Command */
 		DoCommandP(&this->select_station_cmd);
