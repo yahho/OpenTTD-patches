@@ -957,32 +957,33 @@ void GetStationLayout(byte *layout, int numtracks, int plat_len, const StationSp
 
 /**
  * Find a nearby station that joins this station.
- * @tparam T the class to find a station for
+ * @param pst 'return' pointer for the found station
+ * @param ta the area of the newly built station
  * @param existing_station an existing station we build over
  * @param station_to_join the station to join, if adjacent is set
  * @param adjacent whether adjacent stations are allowed
- * @param ta the area of the newly build station
- * @param pst 'return' pointer for the found station
+ * @param waypoint find waypoints, else stations
  * @param error_message the error message when building a station on top of others
  * @return command cost with the error or 'okay'
  */
-template <class T>
-CommandCost FindJoiningBaseStation (StationID existing_station, StationID station_to_join, bool adjacent, TileArea ta, T **pst, StringID error_message)
+static CommandCost FindJoiningBaseStation (BaseStation **pst, TileArea ta,
+	StationID existing_station, StationID station_to_join, bool adjacent,
+	bool waypoint, StringID error_message)
 {
-	T *st;                 // station to join
+	BaseStation *st;       // station to join
 	bool need_link;        // need an adjacent piece of joined station
 	bool avoid_other;      // avoid (other) adjacent stations
 
 	if (existing_station != INVALID_STATION) {
-		assert (T::IsValidID (existing_station));
-
 		/* we are partially overbuilding a station */
 		if (adjacent && station_to_join != existing_station) {
 			/* you cannot join a different station */
 			return_cmd_error(error_message);
 		}
 
-		st = T::Get (existing_station);
+		assert (BaseStation::IsValidID (existing_station));
+		st = BaseStation::Get (existing_station);
+		assert (st->IsWaypoint() == waypoint);
 		need_link = false;
 		avoid_other = !adjacent || !_settings_game.station.adjacent_stations;
 	} else if (!adjacent) {
@@ -992,8 +993,9 @@ CommandCost FindJoiningBaseStation (StationID existing_station, StationID statio
 		avoid_other = true;
 	} else if (station_to_join != INVALID_STATION) {
 		/* not overbuilding, and we want to join a given station */
-		st = T::GetIfValid (station_to_join);
+		st = BaseStation::GetIfValid (station_to_join);
 		if (st == NULL) return CMD_ERROR;
+		if (st->IsWaypoint() != waypoint) return CMD_ERROR;
 		need_link = st->IsInUse() && !_settings_game.station.distant_join_stations;
 		avoid_other = !_settings_game.station.adjacent_stations;
 	} else {
@@ -1008,7 +1010,9 @@ CommandCost FindJoiningBaseStation (StationID existing_station, StationID statio
 		TILE_AREA_LOOP(tile_cur, ta) {
 			if (IsStationTile(tile_cur)) {
 				StationID t = GetStationIndex(tile_cur);
-				if (!T::IsValidID(t)) continue;
+				if (!BaseStation::IsValidID(t)) continue;
+				BaseStation *neighbour = BaseStation::Get(t);
+				if (neighbour->IsWaypoint() != waypoint) continue;
 
 				/* found an adjacent piece of a station */
 				if (st != NULL) {
@@ -1023,7 +1027,7 @@ CommandCost FindJoiningBaseStation (StationID existing_station, StationID statio
 					}
 				} else if (need_link) {
 					/* wanted to join any station */
-					st = T::Get(t);
+					st = neighbour;
 					need_link = false;
 					if (!avoid_other) break;
 				} else if (avoid_other) {
@@ -1043,6 +1047,30 @@ CommandCost FindJoiningBaseStation (StationID existing_station, StationID statio
 }
 
 /**
+ * Find a nearby station that joins this station.
+ * @tparam T the class to find a station for
+ * @param pst 'return' pointer for the found station
+ * @param ta the area of the newly built station
+ * @param existing_station an existing station we build over
+ * @param station_to_join the station to join, if adjacent is set
+ * @param adjacent whether adjacent stations are allowed
+ * @param error_message the error message when building a station on top of others
+ * @return command cost with the error or 'okay'
+ */
+template <class T>
+static inline CommandCost FindJoiningBaseStation (T **pst, TileArea ta,
+	StationID existing_station, StationID station_to_join, bool adjacent,
+	StringID error_message)
+{
+	BaseStation *bst;
+	CommandCost ret = FindJoiningBaseStation (&bst, ta,
+			existing_station, station_to_join, adjacent,
+			T::IS_WAYPOINT, error_message);
+	if (ret.Succeeded()) *pst = bst != NULL ? T::From (bst) : NULL;
+	return ret;
+}
+
+/**
  * Find a nearby waypoint that joins this waypoint.
  * @param existing_waypoint an existing waypoint we build over
  * @param waypoint_to_join the waypoint to join to
@@ -1053,7 +1081,9 @@ CommandCost FindJoiningBaseStation (StationID existing_station, StationID statio
  */
 CommandCost FindJoiningWaypoint(StationID existing_waypoint, StationID waypoint_to_join, bool adjacent, TileArea ta, Waypoint **wp)
 {
-	return FindJoiningBaseStation<Waypoint>(existing_waypoint, waypoint_to_join, adjacent, ta, wp, STR_ERROR_MUST_REMOVE_RAILWAYPOINT_FIRST);
+	return FindJoiningBaseStation<Waypoint> (wp, ta, existing_waypoint,
+			waypoint_to_join, adjacent,
+			STR_ERROR_MUST_REMOVE_RAILWAYPOINT_FIRST);
 }
 
 /**
@@ -1072,8 +1102,8 @@ static CommandCost BuildStationPart (Station **st, const TileArea &area,
 	StationID existing_station, StationID station_to_join, bool adjacent,
 	StringID error_message, DoCommandFlag flags, StationNaming name_class)
 {
-	CommandCost ret = FindJoiningBaseStation<Station> (existing_station,
-			station_to_join, adjacent, area, st, error_message);
+	CommandCost ret = FindJoiningBaseStation<Station> (st, area,
+			existing_station, station_to_join, adjacent, error_message);
 	if (ret.Failed()) return ret;
 
 	/* Find a deleted station close to us */
