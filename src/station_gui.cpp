@@ -2166,6 +2166,8 @@ static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta
 	if (distant_join && min(ta.w, ta.h) >= _settings_game.station.station_spread) return;
 	uint max_dist = distant_join ? _settings_game.station.station_spread - min(ta.w, ta.h) : 1;
 
+	/* Keep a set of stations already added. */
+	std::set<StationID> added;
 	CircularTileIterator iter (ta, max_dist);
 	for (TileIndex tile = iter; tile != INVALID_TILE; tile = ++iter) {
 		/* First check if there were deleted stations here */
@@ -2186,13 +2188,8 @@ static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta
 
 		if (st->owner != _local_company) continue;
 
-		std::vector<StationID>::const_iterator iter = list->begin();
-		for (; iter != list->end(); iter++) {
-			if (*iter == sid) break; // already there
-		}
-		if (iter != list->end()) continue;
-
-		if (st->TestAddRect(ta)) {
+		if (added.find(sid) == added.end()) {
+			added.insert (sid);
 			list->push_back (sid);
 		}
 	}
