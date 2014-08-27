@@ -2281,14 +2281,11 @@ struct SelectStationWindow : Window {
 		if (widget != WID_JS_PANEL) return;
 
 		uint st_index = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_JS_PANEL, WD_FRAMERECT_TOP);
-		bool distant_join = (st_index > 0);
-		if (distant_join) st_index--;
-
-		if (distant_join && st_index >= this->list.size()) return;
+		if (st_index > this->list.size()) return;
 
 		/* Insert station to be joined into stored command */
 		SB(this->select_station_cmd.p2, 16, 16,
-			(distant_join ? this->list[st_index] : INVALID_STATION));
+			(st_index > 0) ? this->list[st_index - 1] : INVALID_STATION);
 
 		/* Execute stored Command */
 		DoCommandP(&this->select_station_cmd);
