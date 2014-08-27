@@ -2144,15 +2144,15 @@ static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta
 	std::vector <std::pair <TileIndex, StationID> > deleted;
 	const BaseStation *st;
 	FOR_ALL_BASE_STATIONS(st) {
-		if (st->IsWaypoint() == waypoint && !st->IsInUse() && st->owner == _local_company) {
-			/* Include only within station spread (yes, it is strictly less than) */
-			if (max(DistanceMax(ta.tile, st->xy), DistanceMax(TILE_ADDXY(ta.tile, ta.w - 1, ta.h - 1), st->xy)) < _settings_game.station.station_spread) {
-				/* Add the station when it's within where we're going to build */
-				if (ta.Contains (st->xy)) {
-					list->push_back (st->index);
-				} else {
-					deleted.push_back (std::make_pair (st->xy, st->index));
-				}
+		if (st->IsWaypoint() == waypoint && !st->IsInUse() && st->owner == _local_company
+				/* Include only within station spread */
+				&& DistanceMax (ta.tile, st->xy) < _settings_game.station.station_spread
+				&& DistanceMax (TILE_ADDXY(ta.tile, ta.w - 1, ta.h - 1), st->xy) < _settings_game.station.station_spread) {
+			/* Add the station when it's within where we're going to build */
+			if (ta.Contains (st->xy)) {
+				list->push_back (st->index);
+			} else {
+				deleted.push_back (std::make_pair (st->xy, st->index));
 			}
 		}
 	}
