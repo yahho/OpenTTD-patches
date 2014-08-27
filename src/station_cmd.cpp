@@ -971,6 +971,9 @@ CommandCost FindJoiningBaseStation(StationID existing_station, StationID station
 {
 	assert(*st == NULL);
 
+	if (station_to_join == NEW_STATION) station_to_join = INVALID_STATION;
+	if ((station_to_join != INVALID_STATION) && (!_settings_game.station.distant_join_stations || !T::IsValidID(station_to_join))) return CMD_ERROR;
+
 	bool check_surrounding;
 	if (!_settings_game.station.adjacent_stations) {
 		check_surrounding = true;
@@ -1048,17 +1051,12 @@ static CommandCost BuildStationPart (Station **st, const TileArea &area,
 	StationID existing_station, StationID station_to_join, bool adjacent,
 	StringID error_message, DoCommandFlag flags, StationNaming name_class)
 {
-	bool reuse = (station_to_join != NEW_STATION);
-	if (!reuse) station_to_join = INVALID_STATION;
-	bool distant_join = (station_to_join != INVALID_STATION);
-	if (distant_join && (!_settings_game.station.distant_join_stations || !Station::IsValidID(station_to_join))) return CMD_ERROR;
-
 	CommandCost ret = FindJoiningBaseStation<Station> (existing_station,
 			station_to_join, adjacent, area, st, error_message);
 	if (ret.Failed()) return ret;
 
 	/* Find a deleted station close to us */
-	if (*st == NULL && reuse) *st = GetClosestDeletedStation(area.tile);
+	if (*st == NULL && station_to_join != NEW_STATION) *st = GetClosestDeletedStation(area.tile);
 
 	if (*st != NULL) {
 		if ((*st)->owner != _current_company) {
