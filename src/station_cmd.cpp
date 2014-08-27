@@ -962,60 +962,82 @@ void GetStationLayout(byte *layout, int numtracks, int plat_len, const StationSp
  * @param station_to_join the station to join, if adjacent is set
  * @param adjacent whether adjacent stations are allowed
  * @param ta the area of the newly build station
- * @param st 'return' pointer for the found station
+ * @param pst 'return' pointer for the found station
  * @param error_message the error message when building a station on top of others
  * @return command cost with the error or 'okay'
  */
 template <class T>
-CommandCost FindJoiningBaseStation(StationID existing_station, StationID station_to_join, bool adjacent, TileArea ta, T **st, StringID error_message)
+CommandCost FindJoiningBaseStation (StationID existing_station, StationID station_to_join, bool adjacent, TileArea ta, T **pst, StringID error_message)
 {
-	assert(*st == NULL);
+	T *st;                 // station to join
+	bool need_link;        // need an adjacent piece of joined station
+	bool avoid_other;      // avoid (other) adjacent stations
 
-	if ((station_to_join != INVALID_STATION) && (!_settings_game.station.distant_join_stations || !T::IsValidID(station_to_join))) return CMD_ERROR;
+	if (existing_station != INVALID_STATION) {
+		assert (T::IsValidID (existing_station));
 
-	bool check_surrounding;
-	if (!_settings_game.station.adjacent_stations) {
-		check_surrounding = true;
-	} else if (existing_station == INVALID_STATION) {
-		/* There's no station here. Don't check the tiles surrounding this
-		 * one if the company wanted to build an adjacent station. */
-		check_surrounding = !adjacent;
-	} else if (adjacent && existing_station != station_to_join) {
-		/* You can't build an adjacent station over the top of one that
-		 * already exists. */
-		return_cmd_error(error_message);
+		/* we are partially overbuilding a station */
+		if (adjacent && station_to_join != existing_station) {
+			/* you cannot join a different station */
+			return_cmd_error(error_message);
+		}
+
+		st = T::Get (existing_station);
+		need_link = false;
+		avoid_other = !adjacent || !_settings_game.station.adjacent_stations;
+	} else if (!adjacent) {
+		/* join adjacent station if unique, else error out */
+		st = NULL;
+		need_link = true;
+		avoid_other = true;
+	} else if (station_to_join != INVALID_STATION) {
+		/* not overbuilding, and we want to join a given station */
+		st = T::GetIfValid (station_to_join);
+		if (st == NULL) return CMD_ERROR;
+		need_link = st->IsInUse() && !_settings_game.station.distant_join_stations;
+		avoid_other = !_settings_game.station.adjacent_stations;
 	} else {
-		/* Extend the current station, and don't check whether it will
-		 * be near any other stations. */
-		*st = T::GetIfValid(existing_station);
-		check_surrounding = (*st == NULL);
+		/* not overbuilding, and we want to build a new station */
+		st = NULL;
+		need_link = false;
+		avoid_other = !_settings_game.station.adjacent_stations;
 	}
 
-	if (check_surrounding) {
-		/* Make sure there are no similar stations around us. */
-		ta.tile -= TileDiffXY(1, 1);
-		ta.w    += 2;
-		ta.h    += 2;
-
-		/* check around to see if there are any stations there */
+	if (need_link || avoid_other) {
+		ta.expand (1);
 		TILE_AREA_LOOP(tile_cur, ta) {
 			if (IsStationTile(tile_cur)) {
 				StationID t = GetStationIndex(tile_cur);
 				if (!T::IsValidID(t)) continue;
 
-				if (existing_station == INVALID_STATION) {
-					existing_station = t;
-				} else if (existing_station != t) {
+				/* found an adjacent piece of a station */
+				if (st != NULL) {
+					/* wanted to join a given station */
+					if (t == st->index) {
+						/* found an adjacent piece */
+						need_link = false;
+						if (!avoid_other) break;
+					} else if (avoid_other) {
+						/* found a different station */
+						return_cmd_error(STR_ERROR_ADJOINS_MORE_THAN_ONE_EXISTING);
+					}
+				} else if (need_link) {
+					/* wanted to join any station */
+					st = T::Get(t);
+					need_link = false;
+					if (!avoid_other) break;
+				} else if (avoid_other) {
+					/* wanted to build a new station */
 					return_cmd_error(STR_ERROR_ADJOINS_MORE_THAN_ONE_EXISTING);
 				}
 			}
 		}
-
-		*st = (existing_station == INVALID_STATION) ? NULL : T::Get(existing_station);
 	}
 
-	/* Distant join */
-	if (*st == NULL && station_to_join != INVALID_STATION) *st = T::GetIfValid(station_to_join);
+	/* tried to join a non-adjacent station but distant join is disabled? */
+	if (st != NULL && need_link) return CMD_ERROR;
+
+	*pst = st;
 
 	return CommandCost();
 }
