@@ -2163,12 +2163,13 @@ static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta
 	/* Only search tiles where we have a chance to stay within the station spread.
 	 * The complete check needs to be done in the callback as we don't know the
 	 * extent of the found station, yet. */
-	if (distant_join && min(ta.w, ta.h) >= _settings_game.station.station_spread) return;
-	uint max_dist = distant_join ? _settings_game.station.station_spread - min(ta.w, ta.h) : 1;
+	uint min_dim = min (ta.w, ta.h);
+	if (min_dim >= _settings_game.station.station_spread) return;
 
 	/* Keep a set of stations already added. */
 	std::set<StationID> added;
-	CircularTileIterator iter (ta, max_dist);
+	CircularTileIterator iter (ta,
+			distant_join ? _settings_game.station.station_spread - min_dim : 1);
 	for (TileIndex tile = iter; tile != INVALID_TILE; tile = ++iter) {
 		/* First check if there were deleted stations here */
 		const std::pair <deleted_map::iterator, deleted_map::iterator> range = deleted.equal_range (tile);
@@ -2318,7 +2319,7 @@ struct SelectStationWindow : Window {
 		if (FindStationInArea (this->area, this->waypoint) != NULL) {
 			this->list.clear();
 		} else {
-			FindStationsNearby (&this->list, this->area, true, this->waypoint);
+			FindStationsNearby (&this->list, this->area, _settings_game.station.distant_join_stations, this->waypoint);
 		}
 
 		this->vscroll->SetCount (this->list.size() + 1);
@@ -2342,31 +2343,28 @@ static WindowDesc _select_station_desc(
  */
 void ShowSelectBaseStationIfNeeded (const CommandContainer &cmd, const TileArea &ta, bool waypoint)
 {
-	/* Only show selection if distant join is enabled in the settings */
-	if (_settings_game.station.distant_join_stations) {
-		/* If a window is already opened and we didn't ctrl-click,
-		 * return true (i.e. just flash the old window) */
-		Window *selection_window = FindWindowById(WC_SELECT_STATION, 0);
-		if (selection_window != NULL) {
-			/* Abort current distant-join and start new one */
-			delete selection_window;
-			UpdateTileSelection();
-		}
+	/* If a window is already opened and we didn't ctrl-click,
+	 * return true (i.e. just flash the old window) */
+	Window *selection_window = FindWindowById(WC_SELECT_STATION, 0);
+	if (selection_window != NULL) {
+		/* Abort current distant-join and start new one */
+		delete selection_window;
+		UpdateTileSelection();
+	}
 
-		/* Only show the popup if we press ctrl and we can build there. */
-		if (_ctrl_pressed && DoCommand(&cmd, CommandFlagsToDCFlags(GetCommandFlags(cmd.cmd))).Succeeded()
-				/* Test for adjacent station or station below selection.
-				 * If adjacent-stations is disabled and we are building
-				 * next to a station, do not show the selection window
-				 * but join the other station immediately. */
-				&& FindStationInArea (ta, waypoint) == NULL) {
-			std::vector<StationID> list;
-			FindStationsNearby (&list, ta, false, waypoint);
-			if (_settings_game.station.adjacent_stations || list.size() == 0) {
-				if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
-				new SelectStationWindow (&_select_station_desc, cmd, ta, waypoint, list);
-				return;
-			}
+	/* Only show the popup if we press ctrl and we can build there. */
+	if (_ctrl_pressed && DoCommand(&cmd, CommandFlagsToDCFlags(GetCommandFlags(cmd.cmd))).Succeeded()
+			/* Test for adjacent station or station below selection.
+			 * If adjacent-stations is disabled and we are building
+			 * next to a station, do not show the selection window
+			 * but join the other station immediately. */
+			&& FindStationInArea (ta, waypoint) == NULL) {
+		std::vector<StationID> list;
+		FindStationsNearby (&list, ta, false, waypoint);
+		if (list.size() == 0 ? _settings_game.station.distant_join_stations : _settings_game.station.adjacent_stations) {
+			if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+			new SelectStationWindow (&_select_station_desc, cmd, ta, waypoint, list);
+			return;
 		}
 	}
 
