@@ -556,46 +556,6 @@ static void UpdateStationSign (BaseStation *st)
 }
 
 /**
- * Common part of building various station parts and possibly attaching them to an existing one.
- * @param [in,out] st Station to attach to
- * @param flags Command flags
- * @param reuse Whether to try to reuse a deleted station (gray sign) if possible
- * @param area Area occupied by the new part
- * @param name_class Station naming class to use to generate the new station's name
- * @return Command error that occurred, if any
- */
-static CommandCost BuildStationPart(Station **st, DoCommandFlag flags, bool reuse, TileArea area, StationNaming name_class)
-{
-	/* Find a deleted station close to us */
-	if (*st == NULL && reuse) *st = GetClosestDeletedStation(area.tile);
-
-	if (*st != NULL) {
-		if ((*st)->owner != _current_company) {
-			return_cmd_error(STR_ERROR_TOO_CLOSE_TO_ANOTHER_STATION);
-		}
-
-		if (!(*st)->TestAddRect(area)) {
-			return_cmd_error(STR_ERROR_STATION_TOO_SPREAD_OUT);
-		}
-	} else {
-		/* allocate and initialize new station */
-		if (!Station::CanAllocateItem()) return_cmd_error(STR_ERROR_TOO_MANY_STATIONS_LOADING);
-
-		if (flags & DC_EXEC) {
-			*st = new Station(area.tile);
-
-			(*st)->town = ClosestTownFromTile(area.tile);
-			(*st)->string_id = GenerateStationName(*st, area.tile, name_class);
-
-			if (Company::IsValidID(_current_company)) {
-				SetBit((*st)->town->have_ratings, _current_company);
-			}
-		}
-	}
-	return CommandCost();
-}
-
-/**
  * This is called right after a station was deleted.
  * It checks if the whole station is free of substations, and if so, the station will be
  * deleted after a little while.
@@ -1059,21 +1019,6 @@ CommandCost FindJoiningBaseStation(StationID existing_station, StationID station
 }
 
 /**
- * Find a nearby station that joins this station.
- * @param existing_station an existing station we build over
- * @param station_to_join the station to join to
- * @param adjacent whether adjacent stations are allowed
- * @param ta the area of the newly build station
- * @param st 'return' pointer for the found station
- * @param error_message the error message when building a station on top of others
- * @return command cost with the error or 'okay'
- */
-static CommandCost FindJoiningStation(StationID existing_station, StationID station_to_join, bool adjacent, TileArea ta, Station **st, StringID error_message = STR_ERROR_MUST_REMOVE_RAILWAY_STATION_FIRST)
-{
-	return FindJoiningBaseStation<Station>(existing_station, station_to_join, adjacent, ta, st, error_message);
-}
-
-/**
  * Find a nearby waypoint that joins this waypoint.
  * @param existing_waypoint an existing waypoint we build over
  * @param waypoint_to_join the waypoint to join to
@@ -1086,6 +1031,62 @@ CommandCost FindJoiningWaypoint(StationID existing_waypoint, StationID waypoint_
 {
 	return FindJoiningBaseStation<Waypoint>(existing_waypoint, waypoint_to_join, adjacent, ta, wp, STR_ERROR_MUST_REMOVE_RAILWAYPOINT_FIRST);
 }
+
+/**
+ * Common part of building various station parts and possibly attaching them to an existing one.
+ * @param [out] st Station to attach to
+ * @param area Area occupied by the new part
+ * @param existing_station Existing station we build over
+ * @param station_to_join Station to join
+ * @param adjacent Whether adjacent stations are allowed
+ * @param error_message Error message when building a station on top of others
+ * @param flags Command flags
+ * @param name_class Station naming class to use to generate the new station's name
+ * @return Command error that occurred, if any
+ */
+static CommandCost BuildStationPart (Station **st, const TileArea &area,
+	StationID existing_station, StationID station_to_join, bool adjacent,
+	StringID error_message, DoCommandFlag flags, StationNaming name_class)
+{
+	bool reuse = (station_to_join != NEW_STATION);
+	if (!reuse) station_to_join = INVALID_STATION;
+	bool distant_join = (station_to_join != INVALID_STATION);
+	if (distant_join && (!_settings_game.station.distant_join_stations || !Station::IsValidID(station_to_join))) return CMD_ERROR;
+
+	CommandCost ret = FindJoiningBaseStation<Station> (existing_station,
+			station_to_join, adjacent, area, st, error_message);
+	if (ret.Failed()) return ret;
+
+	/* Find a deleted station close to us */
+	if (*st == NULL && reuse) *st = GetClosestDeletedStation(area.tile);
+
+	if (*st != NULL) {
+		if ((*st)->owner != _current_company) {
+			return_cmd_error(STR_ERROR_TOO_CLOSE_TO_ANOTHER_STATION);
+		}
+
+		if (!(*st)->TestAddRect(area)) {
+			return_cmd_error(STR_ERROR_STATION_TOO_SPREAD_OUT);
+		}
+	} else {
+		/* allocate and initialize new station */
+		if (!Station::CanAllocateItem()) return_cmd_error(STR_ERROR_TOO_MANY_STATIONS_LOADING);
+
+		if (flags & DC_EXEC) {
+			*st = new Station(area.tile);
+
+			(*st)->town = ClosestTownFromTile(area.tile);
+			(*st)->string_id = GenerateStationName(*st, area.tile, name_class);
+
+			if (Company::IsValidID(_current_company)) {
+				SetBit((*st)->town->have_ratings, _current_company);
+			}
+		}
+	}
+
+	return CommandCost();
+}
+
 
 static void FreeTrainReservation(Train *v)
 {
@@ -1159,12 +1160,6 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 		w_org = numtracks;
 	}
 
-	bool reuse = (station_to_join != NEW_STATION);
-	if (!reuse) station_to_join = INVALID_STATION;
-	bool distant_join = (station_to_join != INVALID_STATION);
-
-	if (distant_join && (!_settings_game.station.distant_join_stations || !Station::IsValidID(station_to_join))) return CMD_ERROR;
-
 	if (h_org > _settings_game.station.station_spread || w_org > _settings_game.station.station_spread) return CMD_ERROR;
 
 	/* these values are those that will be stored in train_tile and station_platforms */
@@ -1181,10 +1176,9 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 	cost.AddCost(numtracks * plat_len * RailBuildCost(rt));
 
 	Station *st = NULL;
-	ret = FindJoiningStation(est, station_to_join, adjacent, new_location, &st);
-	if (ret.Failed()) return ret;
-
-	ret = BuildStationPart(&st, flags, reuse, new_location, STATIONNAMING_RAIL);
+	ret = BuildStationPart (&st, new_location, est, station_to_join,
+			adjacent, STR_ERROR_MUST_REMOVE_RAILWAY_STATION_FIRST,
+			flags, STATIONNAMING_RAIL);
 	if (ret.Failed()) return ret;
 
 	if (st != NULL && st->train_station.tile != INVALID_TILE) {
@@ -1661,9 +1655,6 @@ CommandCost CmdBuildRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 	bool is_drive_through = HasBit(p2, 1);
 	RoadTypes rts = Extract<RoadTypes, 2, 2>(p2);
 	StationID station_to_join = GB(p2, 16, 16);
-	bool reuse = (station_to_join != NEW_STATION);
-	if (!reuse) station_to_join = INVALID_STATION;
-	bool distant_join = (station_to_join != INVALID_STATION);
 
 	uint8 width = (uint8)GB(p1, 0, 8);
 	uint8 lenght = (uint8)GB(p1, 8, 8);
@@ -1676,8 +1667,6 @@ CommandCost CmdBuildRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 	if (!IsValidTile(tile) || TileAddWrap(tile, width - 1, lenght - 1) == INVALID_TILE) return CMD_ERROR;
 
 	TileArea roadstop_area(tile, width, lenght);
-
-	if (distant_join && (!_settings_game.station.distant_join_stations || !Station::IsValidID(station_to_join))) return CMD_ERROR;
 
 	if (!HasExactlyOneBit(rts) || !HasRoadTypesAvail(_current_company, rts)) return CMD_ERROR;
 
@@ -1702,14 +1691,13 @@ CommandCost CmdBuildRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 	cost.AddCost(ret);
 
 	Station *st = NULL;
-	ret = FindJoiningStation(est, station_to_join, HasBit(p2, 5), roadstop_area, &st, STR_ERROR_MUST_REMOVE_ROAD_STOP_FIRST);
+	ret = BuildStationPart (&st, roadstop_area, est, station_to_join,
+			HasBit (p2, 5), STR_ERROR_MUST_REMOVE_ROAD_STOP_FIRST,
+			flags, STATIONNAMING_ROAD);
 	if (ret.Failed()) return ret;
 
 	/* Check if this number of road stops can be allocated. */
 	if (!RoadStop::CanAllocateItem(roadstop_area.w * roadstop_area.h)) return_cmd_error(type ? STR_ERROR_TOO_MANY_TRUCK_STOPS : STR_ERROR_TOO_MANY_BUS_STOPS);
-
-	ret = BuildStationPart(&st, flags, reuse, roadstop_area, STATIONNAMING_ROAD);
-	if (ret.Failed()) return ret;
 
 	if (flags & DC_EXEC) {
 		/* Check every tile in the area. */
@@ -2098,13 +2086,8 @@ static CommandCost CanRemoveAirport(Station *st, DoCommandFlag flags)
 CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
 {
 	StationID station_to_join = GB(p2, 16, 16);
-	bool reuse = (station_to_join != NEW_STATION);
-	if (!reuse) station_to_join = INVALID_STATION;
-	bool distant_join = (station_to_join != INVALID_STATION);
 	byte airport_type = GB(p1, 0, 8);
 	byte layout = GB(p1, 8, 8);
-
-	if (distant_join && (!_settings_game.station.distant_join_stations || !Station::IsValidID(station_to_join))) return CMD_ERROR;
 
 	if (airport_type >= NUM_AIRPORTS) return CMD_ERROR;
 
@@ -2130,10 +2113,9 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 	if (cost.Failed()) return cost;
 
 	Station *st = NULL;
-	ret = FindJoiningStation(est, station_to_join, HasBit(p2, 0), airport_area, &st, STR_ERROR_MUST_DEMOLISH_AIRPORT_FIRST);
-	if (ret.Failed()) return ret;
-
-	ret = BuildStationPart(&st, flags, reuse, airport_area, (GetAirport(airport_type)->flags & AirportFTAClass::AIRPLANES) ? STATIONNAMING_AIRPORT : STATIONNAMING_HELIPORT);
+	ret = BuildStationPart (&st, airport_area, est, station_to_join,
+			HasBit (p2, 0), STR_ERROR_MUST_DEMOLISH_AIRPORT_FIRST,
+			flags, (GetAirport(airport_type)->flags & AirportFTAClass::AIRPLANES) ? STATIONNAMING_AIRPORT : STATIONNAMING_HELIPORT);
 	if (ret.Failed()) return ret;
 
 	/* action to be performed */
@@ -2421,11 +2403,6 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	};
 
 	StationID station_to_join = GB(p2, 16, 16);
-	bool reuse = (station_to_join != NEW_STATION);
-	if (!reuse) station_to_join = INVALID_STATION;
-	bool distant_join = (station_to_join != INVALID_STATION);
-
-	if (distant_join && (!_settings_game.station.distant_join_stations || !Station::IsValidID(station_to_join))) return CMD_ERROR;
 
 	DiagDirection direction = GetInclinedSlopeDirection(GetTileSlope(tile));
 	if (direction == INVALID_DIAGDIR) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
@@ -2466,14 +2443,13 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 
 	/* middle */
 	Station *st = NULL;
-	ret = FindJoiningStation(INVALID_STATION, station_to_join, HasBit(p1, 0), dock_area, &st);
+	ret = BuildStationPart (&st, dock_area, INVALID_STATION, station_to_join,
+			HasBit (p1, 0), INVALID_STRING_ID,
+			flags, STATIONNAMING_DOCK);
 	if (ret.Failed()) return ret;
 
 	/* Check if we can allocate a new dock. */
 	if (!Dock::CanAllocateItem()) return_cmd_error(STR_ERROR_TOO_MANY_DOCKS);
-
-	ret = BuildStationPart(&st, flags, reuse, dock_area, STATIONNAMING_DOCK);
-	if (ret.Failed()) return ret;
 
 	if (flags & DC_EXEC) {
 		Dock **dl = &st->docks;
