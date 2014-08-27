@@ -2141,18 +2141,21 @@ static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta
 	list->clear();
 
 	/* Look for deleted stations */
-	std::vector <std::pair <TileIndex, StationID> > deleted;
+	typedef std::multimap <TileIndex, StationID> deleted_map;
+	deleted_map deleted;
 	const BaseStation *st;
 	FOR_ALL_BASE_STATIONS(st) {
 		if (st->IsWaypoint() == waypoint && !st->IsInUse() && st->owner == _local_company
 				/* Include only within station spread */
 				&& DistanceMax (ta.tile, st->xy) < _settings_game.station.station_spread
 				&& DistanceMax (TILE_ADDXY(ta.tile, ta.w - 1, ta.h - 1), st->xy) < _settings_game.station.station_spread) {
-			/* Add the station when it's within where we're going to build */
 			if (ta.Contains (st->xy)) {
+				/* Add the station directly if it falls
+				 * into the covered area. */
 				list->push_back (st->index);
 			} else {
-				deleted.push_back (std::make_pair (st->xy, st->index));
+				/* Otherwise, store it for later. */
+				deleted.insert (std::make_pair (st->xy, st->index));
 			}
 		}
 	}
@@ -2166,12 +2169,11 @@ static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta
 	CircularTileIterator iter (ta, max_dist);
 	for (TileIndex tile = iter; tile != INVALID_TILE; tile = ++iter) {
 		/* First check if there were deleted stations here */
-		for (uint i = 0; i < deleted.size(); i++) {
-			const std::pair <TileIndex, StationID> &ts = deleted[i];
-			if (ts.first == tile) {
-				list->push_back (ts.second);
-			}
+		const std::pair <deleted_map::iterator, deleted_map::iterator> range = deleted.equal_range (tile);
+		for (deleted_map::const_iterator i = range.first; i != range.second; i++) {
+			list->push_back (i->second);
 		}
+		deleted.erase (range.first, range.second);
 
 		/* Check if own station and if we stay within station spread */
 		if (!IsStationTile(tile)) continue;
