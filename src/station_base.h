@@ -300,6 +300,12 @@ struct Dock : PooledItem <Dock, DockID, 32, 64000> {
 
 	/** Initialises a Dock */
 	inline Dock (TileIndex tile = INVALID_TILE) : xy(tile) { }
+
+	/** Check if a tile is the docking tile for this dock. */
+	bool is_docking_tile (TileIndex tile)
+	{
+		return tile == GetDockingTile (this->xy);
+	}
 };
 
 #define FOR_ALL_DOCKS_FROM(var, start) FOR_ALL_ITEMS_FROM(Dock, dock_index, var, start)
@@ -512,7 +518,7 @@ public:
 	{
 		Dock *d;
 		for (d = this->docks; d != NULL; d = d->next) {
-			if (tile == GetDockingTile(d->xy)) return true;
+			if (d->is_docking_tile (tile)) return true;
 		}
 		return false;
 	}
