@@ -669,7 +669,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 					if (IsFullSavegameVersionBefore(stv, 15) && (GetStationGfx(t) < GFX_DOCK_BASE_WATER_PART)) {
 						assert(Dock::CanAllocateItem());
 						st->docks = new Dock(t);
-						st->dock_area = TileArea(t, TileAddByDiagDir(t, GetDockDirection(t)));
+						st->dock_area = TileArea(t, GetOtherDockTile(t));
 					}
 					break;
 

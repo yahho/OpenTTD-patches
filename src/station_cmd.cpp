@@ -2548,7 +2548,7 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 
 	Dock **d = &st->docks;
 	TileIndex tile1, tile2;
-	while ( tile1 = (*d)->xy, tile2 = tile1 + TileOffsByDiagDir(GetDockDirection(tile1)),
+	while ( tile1 = (*d)->xy, tile2 = GetOtherDockTile(tile1),
 			tile != tile1 && tile != tile2 ) {
 		/* the dock should really be there, so no check for NULL */
 		d = &(*d)->next;
@@ -2580,7 +2580,7 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 		st->dock_area.Clear();
 		for (const Dock *dock = st->docks; dock != NULL; dock = dock->next) {
 			st->dock_area.Add(dock->xy);
-			st->dock_area.Add(dock->xy + TileOffsByDiagDir(GetDockDirection(dock->xy)));
+			st->dock_area.Add(GetOtherDockTile(dock->xy));
 		}
 
 		SetWindowWidgetDirty(WC_STATION_VIEW, st->index, WID_SV_SHIPS);
@@ -2843,7 +2843,7 @@ draw_default_foundation:
 			DrawWaterClassGround(ti);
 		} else {
 			assert(IsDock(ti->tile));
-			TileIndex water_tile = ti->tile + TileOffsByDiagDir(GetDockDirection(ti->tile));
+			TileIndex water_tile = GetOtherDockTile (ti->tile);
 			WaterClass wc = GetWaterClass(water_tile);
 			if (wc == WATER_CLASS_SEA) {
 				DrawShoreTile(ti->tileh);

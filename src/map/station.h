@@ -444,6 +444,20 @@ static inline DiagDirection GetDockDirection(TileIndex t)
 }
 
 /**
+ * Get the secondary dock tile for a primary (sloped) dock tile.
+ * @param t Tile to query
+ * @pre IsDockTile(t)
+ * @pre GetStationGfx(t) < GFX_DOCK_BASE_WATER_PART
+ * @return The secondary tile for the dock
+ */
+static inline TileIndex GetOtherDockTile (TileIndex t)
+{
+	assert (IsDockTile(t));
+
+	return TileAddByDiagDir (t, GetDockDirection(t));
+}
+
+/**
  * Get the tileoffset from this tile a ship should target to get to this dock.
  * @param t Tile to query
  * @pre IsStationTile(t)
