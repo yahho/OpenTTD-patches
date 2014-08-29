@@ -2453,42 +2453,59 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 
 	StationID station_to_join = GB(p2, 16, 16);
 
-	DiagDirection direction = GetInclinedSlopeDirection(GetTileSlope(tile));
-	if (direction == INVALID_DIAGDIR) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
-	direction = ReverseDiagDir(direction);
+	Slope slope = GetTileSlope (tile);
+	DiagDirection direction = GetInclinedSlopeDirection (slope);
+	TileArea dock_area;
+	WaterClass wc;
+	if (direction != INVALID_DIAGDIR) {
+		/* Docks cannot be placed on rapids */
+		if (HasTileWaterGround(tile)) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
 
-	/* Docks cannot be placed on rapids */
-	if (HasTileWaterGround(tile)) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
+		direction = ReverseDiagDir(direction);
+
+		if (HasBridgeAbove(tile)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+
+		CommandCost ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+		if (ret.Failed()) return ret;
+
+		TileIndex tile_cur = tile + TileOffsByDiagDir(direction);
+
+		if (!IsWaterTile(tile_cur) || !IsTileFlat(tile_cur)) {
+			return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
+		}
+
+		if (HasBridgeAbove(tile_cur)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+
+		/* Get the water class of the water tile before it is cleared.*/
+		wc = GetWaterClass (tile_cur);
+
+		ret = DoCommand(tile_cur, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+		if (ret.Failed()) return ret;
+
+		tile_cur += TileOffsByDiagDir(direction);
+		if (!IsWaterTile(tile_cur) || !IsTileFlat(tile_cur)) {
+			return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
+		}
+
+		dock_area = TileArea(tile + ToTileIndexDiff(dock_tilearea[direction].offset),
+				dock_tilearea[direction].width, dock_tilearea[direction].height);
+	} else if (slope == SLOPE_FLAT) {
+		if (!HasTileWaterGround(tile)) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
+
+		if (HasBridgeAbove(tile)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+
+		/* Get the water class of the water tile before it is cleared.*/
+		wc = GetWaterClass (tile);
+		CommandCost ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+		if (ret.Failed()) return ret;
+
+		dock_area = TileArea (tile);
+	} else {
+		return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
+	}
 
 	CommandCost ret = CheckIfAuthorityAllowsNewStation(tile, flags);
 	if (ret.Failed()) return ret;
-
-	if (HasBridgeAbove(tile)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
-
-	ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
-	if (ret.Failed()) return ret;
-
-	TileIndex tile_cur = tile + TileOffsByDiagDir(direction);
-
-	if (!IsWaterTile(tile_cur) || !IsTileFlat(tile_cur)) {
-		return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
-	}
-
-	if (HasBridgeAbove(tile_cur)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
-
-	/* Get the water class of the water tile before it is cleared.*/
-	WaterClass wc = GetWaterClass(tile_cur);
-
-	ret = DoCommand(tile_cur, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
-	if (ret.Failed()) return ret;
-
-	tile_cur += TileOffsByDiagDir(direction);
-	if (!IsWaterTile(tile_cur) || !IsTileFlat(tile_cur)) {
-		return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
-	}
-
-	TileArea dock_area = TileArea(tile + ToTileIndexDiff(dock_tilearea[direction].offset),
-			dock_tilearea[direction].width, dock_tilearea[direction].height);
 
 	/* middle */
 	Station *st = NULL;
@@ -2519,7 +2536,11 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 		Company::Get(st->owner)->infrastructure.station += 2;
 		DirtyCompanyInfrastructureWindows(st->owner);
 
-		MakeDock(tile, st->owner, st->index, direction, wc);
+		if (direction != INVALID_DIAGDIR) {
+			MakeDock (tile, st->owner, st->index, direction, wc);
+		} else {
+			MakeDockBuoy (tile, st->owner, st->index, wc);
+		}
 
 		st->UpdateVirtCoord();
 		UpdateStationAcceptance(st, false);
@@ -2555,18 +2576,22 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 	}
 
 	ret = EnsureNoVehicleOnGround(tile1);
-	if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile2);
+	if (ret.Succeeded() && tile2 != INVALID_TILE) ret = EnsureNoVehicleOnGround(tile2);
 	if (ret.Failed()) return ret;
 
 	if (flags & DC_EXEC) {
 		TileIndex docking_location = GetDockingTile(tile1);
 
-		DoClearSquare(tile1);
-		MarkTileDirtyByTile(tile1);
-		MakeWaterKeepingClass(tile2, st->owner);
-
-		st->AfterRemoveTile(tile1);
-		st->AfterRemoveTile(tile2);
+		TileArea dock_area (tile1);
+		if (tile2 != INVALID_TILE) {
+			DoClearSquare (tile1);
+			MarkTileDirtyByTile (tile1);
+			MakeWaterKeepingClass (tile2, st->owner);
+			dock_area.Add (tile2);
+		} else {
+			MakeWaterKeepingClass (tile1, st->owner);
+		}
+		st->AfterRemoveRect (dock_area);
 
 		Dock *next = (*d)->next;
 		delete *d;
@@ -2580,7 +2605,8 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 		st->dock_area.Clear();
 		for (const Dock *dock = st->docks; dock != NULL; dock = dock->next) {
 			st->dock_area.Add(dock->xy);
-			st->dock_area.Add(GetOtherDockTile(dock->xy));
+			TileIndex other = GetOtherDockTile (dock->xy);
+			if (other != INVALID_TILE) st->dock_area.Add (other);
 		}
 
 		SetWindowWidgetDirty(WC_STATION_VIEW, st->index, WID_SV_SHIPS);
@@ -2834,7 +2860,7 @@ draw_default_foundation:
 		}
 	}
 
-	if (IsBuoy(ti->tile)) {
+	if (IsBuoy(ti->tile) || (IsDock(ti->tile) && IsDockBuoy(ti->tile))) {
 		DrawWaterClassGround(ti);
 		SpriteID sprite = GetCanalSprite(CF_BUOY, ti->tile);
 		if (sprite != 0) total_offset = sprite - SPR_IMG_BUOY;
@@ -3065,7 +3091,7 @@ static TrackStatus GetTileRoadStatus_Station(TileIndex tile, uint sub_mode, Diag
 
 static TrackdirBits GetTileWaterwayStatus_Station(TileIndex tile, DiagDirection side)
 {
-	if (!IsBuoy(tile)) return TRACKDIR_BIT_NONE;
+	if (!IsBuoy(tile) && !(IsDock(tile) && IsDockBuoy(tile))) return TRACKDIR_BIT_NONE;
 
 	/* buoy is coded as a station, it is always on open water */
 	TrackBits trackbits = TRACK_BIT_ALL;

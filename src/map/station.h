@@ -432,6 +432,18 @@ static inline RoadStopType GetRoadStopType(TileIndex t)
 
 
 /**
+ * Check if a dock is a 'buoy-like' dock
+ * @param t The tile to check
+ * @pre IsDockTile(t)
+ * @return Whether the dock tile is a 'buoy-like' dock
+ */
+static inline bool IsDockBuoy (TileIndex t)
+{
+	assert (IsDockTile (t));
+	return tile_dock_is_buoy (&_mc[t]);
+}
+
+/**
  * Get the direction of a dock.
  * @param t Tile to query
  * @pre IsDock(t)
@@ -444,17 +456,18 @@ static inline DiagDirection GetDockDirection(TileIndex t)
 }
 
 /**
- * Get the secondary dock tile for a primary (sloped) dock tile.
+ * Get the secondary dock tile for a primary (usually sloped) dock tile.
  * @param t Tile to query
  * @pre IsDockTile(t)
- * @pre GetStationGfx(t) < GFX_DOCK_BASE_WATER_PART
- * @return The secondary tile for the dock
+ * @pre GetStationGfx(t) < GFX_DOCK_BASE_WATER_PART || GetStationGfx(t) == GFX_DOCK_BUOY
+ * @return The secondary dock tile for standard docks, or INVALID_TILE for buoy docks.
  */
 static inline TileIndex GetOtherDockTile (TileIndex t)
 {
 	assert (IsDockTile(t));
 
-	return TileAddByDiagDir (t, GetDockDirection(t));
+	return IsDockBuoy(t) ? INVALID_TILE :
+			TileAddByDiagDir (t, GetDockDirection(t));
 }
 
 /**
@@ -472,7 +485,8 @@ static inline TileIndexDiff GetDockOffset(TileIndex t)
 	if (IsOilRig(t)) return TileDiffXY(2, 0);
 
 	assert(IsDock(t));
-	return 2 * TileOffsByDiagDir(GetDockDirection(t));
+	return IsDockBuoy(t) ? TileDiffXY(0, 0) :
+			2 * TileOffsByDiagDir(GetDockDirection(t));
 }
 
 /**
@@ -569,6 +583,18 @@ static inline void MakeDock(TileIndex t, Owner o, StationID sid, DiagDirection d
 {
 	tile_make_dock(&_mc[t], o, sid, d);
 	tile_make_dock(&_mc[t + TileOffsByDiagDir(d)], o, sid, GFX_DOCK_BASE_WATER_PART + DiagDirToAxis(d), wc);
+}
+
+/**
+ * Make the given tile a buoy-dock tile.
+ * @param t the tile to make a buoy-dock
+ * @param o the owner of the dock
+ * @param sid the station to which this tile belongs
+ * @param wc the type of water on this tile
+ */
+static inline void MakeDockBuoy (TileIndex t, Owner o, StationID sid, WaterClass wc)
+{
+	tile_make_dock (&_mc[t], o, sid, GFX_DOCK_BUOY, wc);
 }
 
 /**

@@ -968,11 +968,10 @@ static const DrawTileSprites _station_display_datas_dock[] = {
 	TILE_SPRITE_LINE(SPR_SHORE_BASE + SLOPE_SE,      _station_display_datas_79)
 	TILE_SPRITE_LINE(SPR_FLAT_WATER_TILE,            _station_display_datas_80)
 	TILE_SPRITE_LINE(SPR_FLAT_WATER_TILE,            _station_display_datas_81)
-};
-
-static const DrawTileSprites _station_display_datas_buoy[] = {
 	TILE_SPRITE_LINE(SPR_FLAT_WATER_TILE,            _station_display_datas_82)
 };
+
+#define _station_display_datas_buoy (&_station_display_datas_dock[6])
 
 static const DrawTileSprites _station_display_datas_waypoint[] = {
 	TILE_SPRITE_LINE(SPR_RAIL_TRACK_X,               _station_display_datas_waypoint_X)

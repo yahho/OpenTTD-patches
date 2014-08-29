@@ -48,6 +48,8 @@ enum GfxDock {
 	GFX_DOCK_WATER_X  = DIAGDIR_END + AXIS_X, ///< Water part, along X
 	GFX_DOCK_WATER_Y  = DIAGDIR_END + AXIS_Y, ///< Water part, along Y
 
+	GFX_DOCK_BUOY, ///< Buoy-like dock
+
 	GFX_DOCK_BASE_WATER_PART = DIAGDIR_END,
 };
 
@@ -376,6 +378,18 @@ static inline Axis tile_get_road_station_axis(const Tile *t)
 	return (Axis)(gfx - GFX_ROAD_DT_OFFSET);
 }
 
+
+/**
+ * Check if a dock is a 'buoy-like' dock
+ * @param t The tile to check
+ * @pre tile_is_dock(t)
+ * @return Whether the dock tile is a 'buoy-like' dock
+ */
+static inline bool tile_dock_is_buoy (const Tile *t)
+{
+	assert (tile_is_dock (t));
+	return tile_get_station_gfx(t) == GFX_DOCK_BUOY;
+}
 
 /**
  * Get the direction of a dock
