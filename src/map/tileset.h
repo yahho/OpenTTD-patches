@@ -163,8 +163,7 @@ struct TileSetObject : ForwardListLink <T, TileSetObject<T, get_tile> > {
  */
 template <typename T, TileIndex (*get_tile) (const T*)>
 struct TileSet : TileSetBase {
-	typedef TileSetObject <T, get_tile> Link;
-	typedef ForwardList<Link> Bucket;
+	typedef ForwardList <T, false, TileSetObject <T, get_tile> > Bucket;
 
 	std::vector <Bucket> buckets;
 

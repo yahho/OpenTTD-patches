@@ -56,7 +56,7 @@ protected:
 	/**
 	 * each slot contains pointer to the first item in the list
 	 */
-	typedef ForwardList <CHashTableEntryT<Titem_> > Slot;
+	typedef ForwardList <Titem_, false, CHashTableEntryT<Titem_> > Slot;
 
 	Slot  m_slots[Tcapacity]; // here we store our data (array of blobs)
 	uint  m_num_items;        // item counter
