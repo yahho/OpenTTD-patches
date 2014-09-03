@@ -325,16 +325,6 @@ static inline uint DistanceAlongAxis(TileIndex t1, TileIndex t2)
 
 
 /**
- * A callback function type for searching tiles.
- *
- * @param tile The tile to test
- * @param user_data additional data for the callback function to use
- * @return A boolean value, depend on the definition of the function.
- */
-typedef bool TestTileOnSearchProc(TileIndex tile, void *user_data);
-
-
-/**
  * Calculate a hash value from a tile position
  *
  * @param x The X coordinate
