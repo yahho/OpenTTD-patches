@@ -568,6 +568,50 @@ public:
 	 * (dummy version for derived classes that do not need it). */
 	static inline void AddTargetCost (Node *n) { }
 
+	/**
+	 * Main pathfinder routine.
+	 *   - set startup node(s)
+	 *   - main loop that stops if:
+	 *      - the destination was found
+	 *      - or the open list is empty (no route to destination).
+	 *      - or the maximum amount of loops reached - m_max_search_nodes (default = 10000)
+	 * @param follow node follow function
+	 * @return true if the path was found
+	 */
+	template <class T>
+	inline bool FindPath (void (*follow) (T*, Node*))
+	{
+#ifndef NO_DEBUG_MESSAGES
+		CPerformanceTimer perf;
+		perf.Start();
+#endif /* !NO_DEBUG_MESSAGES */
+
+		bool bDestFound = TAstar::FindPath (follow, m_settings->max_search_nodes);
+
+#ifndef NO_DEBUG_MESSAGES
+		perf.Stop();
+		if (_debug_yapf_level >= 2) {
+			int t = perf.Get(1000000);
+			_total_pf_time_us += t;
+
+			if (_debug_yapf_level >= 3) {
+				UnitID veh_idx = (m_veh != NULL) ? m_veh->unitnumber : 0;
+				float cache_hit_ratio = (m_stats_cache_hits == 0) ? 0.0f : ((float)m_stats_cache_hits / (float)(m_stats_cache_hits + m_stats_cost_calcs) * 100.0f);
+				int cost = bDestFound ? TAstar::best->m_cost : -1;
+				int dist = bDestFound ? TAstar::best->m_estimate - TAstar::best->m_cost : -1;
+
+				DEBUG(yapf, 3, "[YAPFt]%c%4d- %d us - %d rounds - %d open - %d closed - CHR %4.1f%% - C %d D %d - c%d(sc%d, ts%d, o%d) -- ",
+					bDestFound ? '-' : '!', veh_idx, t, TAstar::num_steps, TAstar::OpenCount(), TAstar::ClosedCount(),
+					cache_hit_ratio, cost, dist,
+					m_perf_cost.Get(1000000), m_perf_slope_cost.Get(1000000),
+					m_perf_ts_cost.Get(1000000), m_perf_other_cost.Get(1000000)
+				);
+			}
+		}
+#endif /* !NO_DEBUG_MESSAGES */
+		return bDestFound;
+	}
+
 	/** Struct to store a position in a path (node and path position). */
 	struct NodePos {
 		RailPathPos pos;  ///< position (tile and trackdir)
@@ -1347,44 +1391,13 @@ struct CYapfRailT : public Base
 	}
 
 	/**
-	 * Main pathfinder routine:
-	 *   - set startup node(s)
-	 *   - main loop that stops if:
-	 *      - the destination was found
-	 *      - or the open list is empty (no route to destination).
-	 *      - or the maximum amount of loops reached - m_max_search_nodes (default = 10000)
+	 * Main pathfinder routine. Hook into the base class with the right
+	 * node follower.
 	 * @return true if the path was found
 	 */
 	inline bool FindPath (void)
 	{
-#ifndef NO_DEBUG_MESSAGES
-		CPerformanceTimer perf;
-		perf.Start();
-#endif /* !NO_DEBUG_MESSAGES */
-
-		bool bDestFound = Base::FindPath (Follow, Base::m_settings->max_search_nodes);
-
-#ifndef NO_DEBUG_MESSAGES
-		perf.Stop();
-		if (_debug_yapf_level >= 2) {
-			int t = perf.Get(1000000);
-			_total_pf_time_us += t;
-
-			if (_debug_yapf_level >= 3) {
-				UnitID veh_idx = (Base::m_veh != NULL) ? Base::m_veh->unitnumber : 0;
-				float cache_hit_ratio = (Base::m_stats_cache_hits == 0) ? 0.0f : ((float)Base::m_stats_cache_hits / (float)(Base::m_stats_cache_hits + Base::m_stats_cost_calcs) * 100.0f);
-				int cost = bDestFound ? Base::best->m_cost : -1;
-				int dist = bDestFound ? Base::best->m_estimate - Base::best->m_cost : -1;
-
-				DEBUG(yapf, 3, "[YAPFt]%c%4d- %d us - %d rounds - %d open - %d closed - CHR %4.1f%% - C %d D %d - c%d(sc%d, ts%d, o%d) -- ",
-					bDestFound ? '-' : '!', veh_idx, t, Base::num_steps, Base::OpenCount(), Base::ClosedCount(),
-					cache_hit_ratio, cost, dist, Base::m_perf_cost.Get(1000000), Base::m_perf_slope_cost.Get(1000000),
-					Base::m_perf_ts_cost.Get(1000000), Base::m_perf_other_cost.Get(1000000)
-				);
-			}
-		}
-#endif /* !NO_DEBUG_MESSAGES */
-		return bDestFound;
+		return Base::FindPath (Follow);
 	}
 };
 
