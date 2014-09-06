@@ -311,8 +311,8 @@
 
 		const char *FS2OTTD(const TCHAR *name);
 		const TCHAR *OTTD2FS(const char *name, bool console_cp = false);
-		#define SQ2OTTD(name) FS2OTTD(name)
-		#define OTTD2SQ(name) OTTD2FS(name)
+		#define SQ2OTTD(name) (name)
+		#define OTTD2SQ(name) (name)
 
 		/* XXX - WinCE without MSVCRT doesn't support wfopen, so it seems */
 		#if !defined(WINCE)
