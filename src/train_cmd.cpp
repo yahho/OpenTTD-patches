@@ -3636,12 +3636,14 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				v->trackdir = TRACKDIR_WORMHOLE;
 				chosen_dir = DiagDirToDir(enterdir);
 			} else {
-				RailType old_rt = v->GetTrackRailType();
+				bool track_changed = !old_in_wormhole &&
+					(GetRailType (v->tile, TrackdirToTrack(v->trackdir)) !=
+						GetRailType (gp.new_tile, TrackdirToTrack(chosen_trackdir)));
 
 				v->tile = gp.new_tile;
 				v->trackdir = chosen_trackdir;
 
-				if (GetRailType(gp.new_tile, TrackdirToTrack(chosen_trackdir)) != old_rt) {
+				if (track_changed) {
 					v->First()->ConsistChanged(CCF_TRACK);
 				}
 
