@@ -104,6 +104,13 @@ struct FullPosTile {
 		this->yy = yy + delta_coord[dir].dy;
 		this->calc_tile();
 	}
+
+	/** Adjust subcoords after a vehicle enters a new tile. */
+	void adjust_subcoords (const InitialSubcoords *subcoords)
+	{
+		this->xx = (this->xx & ~0xF) | subcoords->x;
+		this->yy = (this->yy & ~0xF) | subcoords->y;
+	}
 };
 
 

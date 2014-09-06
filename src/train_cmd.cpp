@@ -3631,8 +3631,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 
 				/* Update XY to reflect the entrance to the new tile, and select the direction to use */
 				const InitialSubcoords *b = get_initial_subcoords (chosen_trackdir);
-				gp.xx = (gp.xx & ~0xF) | b->x;
-				gp.yy = (gp.yy & ~0xF) | b->y;
+				gp.adjust_subcoords (b);
 				chosen_dir = b->dir;
 			}
 

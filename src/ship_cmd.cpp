@@ -533,9 +533,7 @@ static void ShipController(Ship *v)
 		if (trackdir == INVALID_TRACKDIR) goto reverse_direction;
 
 		const InitialSubcoords *b = get_initial_subcoords (trackdir);
-
-		gp.xx = (gp.xx & ~0xF) | b->x;
-		gp.yy = (gp.yy & ~0xF) | b->y;
+		gp.adjust_subcoords (b);
 
 		WaterClass old_wc = GetEffectiveWaterClass(v->tile);
 
