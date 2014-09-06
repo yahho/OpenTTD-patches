@@ -53,9 +53,9 @@ SQInteger SquirrelStd::require(HSQUIRRELVM vm)
 		DEBUG(misc, 0, "[squirrel] Couldn't detect the script-name of the 'require'-caller; this should never happen!");
 		return SQ_ERROR;
 	}
-	real_filename = scstrdup(si.source);
+	real_filename = strdup(si.source);
 	/* Keep the dir, remove the rest */
-	SQChar *s = scstrrchr(real_filename, PATHSEPCHAR);
+	SQChar *s = strrchr(real_filename, PATHSEPCHAR);
 	if (s != NULL) {
 		/* Keep the PATHSEPCHAR there, remove the rest */
 		s++;
@@ -63,8 +63,8 @@ SQInteger SquirrelStd::require(HSQUIRRELVM vm)
 	}
 	/* And now we concat, so we are relative from the current script
 	 * First, we have to make sure we have enough space for the full path */
-	real_filename = xrealloct (real_filename, scstrlen(real_filename) + scstrlen(filename) + 1);
-	scstrcat(real_filename, filename);
+	real_filename = xrealloct (real_filename, strlen(real_filename) + strlen(filename) + 1);
+	strcat(real_filename, filename);
 	/* Tars dislike opening files with '/' on Windows.. so convert it to '\\' ;) */
 	char *filen = xstrdup(real_filename);
 #if (PATHSEPCHAR != '/')
