@@ -3629,10 +3629,12 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				}
 			}
 
+			Direction chosen_dir;
 			if (new_in_wormhole) {
 				/* Just entered the wormhole */
 				v->tile = gp.new_tile;
 				v->trackdir = TRACKDIR_WORMHOLE;
+				chosen_dir = DiagDirToDir(enterdir);
 			} else {
 				RailType old_rt = v->GetTrackRailType();
 
@@ -3642,12 +3644,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				if (GetRailType(gp.new_tile, TrackdirToTrack(chosen_trackdir)) != old_rt) {
 					v->First()->ConsistChanged(CCF_TRACK);
 				}
-			}
 
-			Direction chosen_dir;
-			if (new_in_wormhole) {
-				chosen_dir = DiagDirToDir(enterdir);
-			} else {
 				/* Update XY to reflect the entrance to the new tile, and select the direction to use */
 				const byte *b = _initial_tile_subcoord[chosen_trackdir];
 				gp.x = (gp.x & ~0xF) | b[0];
