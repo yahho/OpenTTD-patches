@@ -29,7 +29,7 @@ static const uint TILE_HEIGHT    =  8;                  ///< The standard height
  */
 static inline TileIndex TileVirtXY(uint xx, uint yy)
 {
-	return (yy >> TILE_SIZE_BITS << MapLogX()) + (xx >> TILE_SIZE_BITS);
+	return TileXY (xx >> TILE_SIZE_BITS, yy >> TILE_SIZE_BITS);
 }
 
 
