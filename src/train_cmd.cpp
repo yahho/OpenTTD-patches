@@ -2348,23 +2348,6 @@ void FreeTrainTrackReservation(const Train *v)
 	}
 }
 
-static const byte _initial_tile_subcoord[TRACKDIR_END][3] = {
-	{15, 8, 1},  // TRACKDIR_X_NE
-	{ 8, 0, 3},  // TRACKDIR_Y_SE
-	{ 7, 0, 2},  // TRACKDIR_UPPER_E
-	{15, 8, 2},  // TRACKDIR_LOWER_E
-	{ 8, 0, 4},  // TRACKDIR_LEFT_S
-	{ 0, 8, 4},  // TRACKDIR_RIGHT_S
-	{ 0, 0, 0},
-	{ 0, 0, 0},
-	{ 0, 8, 5},  // TRACKDIR_X_SW
-	{ 8,15, 7},  // TRACKDIR_Y_NW
-	{ 0, 7, 6},  // TRACKDIR_UPPER_W
-	{ 8,15, 6},  // TRACKDIR_LOWER_W
-	{15, 7, 0},  // TRACKDIR_LEFT_N
-	{ 7,15, 0},  // TRACKDIR_RIGHT_N
-};
-
 /**
  * Perform pathfinding for a train.
  *
@@ -3647,10 +3630,10 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				}
 
 				/* Update XY to reflect the entrance to the new tile, and select the direction to use */
-				const byte *b = _initial_tile_subcoord[chosen_trackdir];
-				gp.xx = (gp.xx & ~0xF) | b[0];
-				gp.yy = (gp.yy & ~0xF) | b[1];
-				chosen_dir = (Direction)b[2];
+				const InitialSubcoords *b = get_initial_subcoords (chosen_trackdir);
+				gp.xx = (gp.xx & ~0xF) | b->x;
+				gp.yy = (gp.yy & ~0xF) | b->y;
+				chosen_dir = b->dir;
 			}
 
 			if (chosen_dir != v->direction) {

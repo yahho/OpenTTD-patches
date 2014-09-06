@@ -9,6 +9,23 @@
 
 #include "subcoord.h"
 
+extern const InitialSubcoords initial_subcoords [TRACKDIR_END] = {
+	{15, 8, DIR_NE},  // TRACKDIR_X_NE
+	{ 8, 0, DIR_SE},  // TRACKDIR_Y_SE
+	{ 7, 0, DIR_E },  // TRACKDIR_UPPER_E
+	{15, 8, DIR_E },  // TRACKDIR_LOWER_E
+	{ 8, 0, DIR_S },  // TRACKDIR_LEFT_S
+	{ 0, 8, DIR_S },  // TRACKDIR_RIGHT_S
+	{ 0, 0, 0 },
+	{ 0, 0, 0 },
+	{ 0, 8, DIR_SW},  // TRACKDIR_X_SW
+	{ 8,15, DIR_NW},  // TRACKDIR_Y_NW
+	{ 0, 7, DIR_W },  // TRACKDIR_UPPER_W
+	{ 8,15, DIR_W },  // TRACKDIR_LOWER_W
+	{15, 7, DIR_N },  // TRACKDIR_LEFT_N
+	{ 7,15, DIR_N },  // TRACKDIR_RIGHT_N
+};
+
 const FullPosTile::DeltaCoord FullPosTile::delta_coord [DIR_END] = {
 	{-1,-1}, // DIR_N
 	{-1, 0}, // DIR_NE

@@ -14,6 +14,7 @@
 #include "map.h"
 #include "coord.h"
 #include "../direction_type.h"
+#include "../track_type.h"
 
 static const uint TILE_SIZE_BITS = 4;                   ///< Log of tile size
 static const uint TILE_SIZE      = 1 << TILE_SIZE_BITS; ///< Tiles are 16x16 "units" in size
@@ -30,6 +31,21 @@ static const uint TILE_HEIGHT    =  8;                  ///< The standard height
 static inline TileIndex TileVirtXY(uint xx, uint yy)
 {
 	return TileXY (xx >> TILE_SIZE_BITS, yy >> TILE_SIZE_BITS);
+}
+
+
+/** Subcoord difference pair and direction. */
+struct InitialSubcoords {
+	byte x, y;
+	DirectionByte dir;
+};
+
+/** Get the inital subcoords and direction for trains and ships on a tile. */
+static inline const InitialSubcoords *get_initial_subcoords (Trackdir td)
+{
+	extern const InitialSubcoords initial_subcoords [TRACKDIR_END];
+
+	return &initial_subcoords[td];
 }
 
 
