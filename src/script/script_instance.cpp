@@ -45,7 +45,7 @@ ScriptStorage::~ScriptStorage()
 static void PrintFunc(bool error_msg, const SQChar *message)
 {
 	/* Convert to OpenTTD internal capable string */
-	ScriptController::Print(error_msg, SQ2OTTD(message));
+	ScriptController::Print(error_msg, message);
 }
 
 ScriptInstance::ScriptInstance(const char *APIName) :
@@ -349,11 +349,8 @@ enum SQSaveLoadType {
 		}
 
 		case OT_STRING: {
-			const SQChar *res;
-			sq_getstring(vm, index, &res);
-			/* @bug if a string longer than 512 characters is given to SQ2OTTD, the
-			 *  internal buffer overflows. */
-			const char *buf = SQ2OTTD(res);
+			const SQChar *buf;
+			sq_getstring(vm, index, &buf);
 			size_t len = strlen(buf) + 1;
 			if (len >= 255) {
 				ScriptLog::Error("Maximum string length is 254 chars. No data saved.");
@@ -536,7 +533,7 @@ bool ScriptInstance::IsPaused()
 			byte len = reader->ReadByte();
 			static char buf[256];
 			reader->CopyBytes (buf, len);
-			if (vm != NULL) sq_pushstring(vm, OTTD2SQ(buf), -1);
+			if (vm != NULL) sq_pushstring(vm, buf, -1);
 			return true;
 		}
 
@@ -623,7 +620,7 @@ bool ScriptInstance::CallLoad()
 	/* Go to the instance-root */
 	sq_pushobject(vm, *this->instance);
 	/* Find the function-name inside the script */
-	sq_pushstring(vm, OTTD2SQ("Load"), -1);
+	sq_pushstring(vm, "Load", -1);
 	/* Change the "Load" string in a function pointer */
 	sq_get(vm, -2);
 	/* Push the main instance as "this" object */
