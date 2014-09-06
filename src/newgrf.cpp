@@ -3641,7 +3641,7 @@ static void DuplicateTileTable(AirportSpec *as)
 	AirportTileTable **table_list = xmalloct<AirportTileTable*>(as->num_table);
 	for (int i = 0; i < as->num_table; i++) {
 		uint num_tiles = 1;
-		const AirportTileTable *it = as->table[0];
+		const AirportTileTable *it = as->table[i];
 		do {
 			num_tiles++;
 		} while ((++it)->ti.x != -0x80);
