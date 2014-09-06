@@ -2259,10 +2259,9 @@ static bool CheckTrainStayInDepot(Train *v)
 
 /**
  * Clear the reservation of \a tile that was just left by a wagon on \a track_dir.
- * @param v %Train owning the reservation.
  * @param pos position to clear.
  */
-static void ClearPathReservation(const Train *v, const RailPathPos &pos)
+static void ClearPathReservation (const RailPathPos &pos)
 {
 	DiagDirection dir = TrackdirToExitdir(pos.td);
 
@@ -2342,7 +2341,7 @@ void FreeTrainTrackReservation(const Train *v)
 		/* Don't free first station if we are on it. */
 		if (!first || (ft.m_flag != ft.TF_STATION) ||
 				!IsRailStationTile(ft.m_old.tile) || GetStationIndex(ft.m_new.tile) != GetStationIndex(ft.m_old.tile)) {
-			ClearPathReservation(v, ft.m_new);
+			ClearPathReservation (ft.m_new);
 		}
 
 		first = false;
@@ -2998,7 +2997,7 @@ uint Train::Crash(bool flooded)
 		 * Also clear all reserved tracks the train is currently on. */
 		if (!HasBit(this->flags, VRF_TRAIN_STUCK)) FreeTrainTrackReservation(this);
 		for (const Train *v = this; v != NULL; v = v->Next()) {
-			ClearPathReservation(v, v->GetPos());
+			ClearPathReservation (v->GetPos());
 		}
 
 		/* we may need to update crossing we were approaching,
@@ -3619,7 +3618,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 
 			if (v->Next() == NULL) {
 				/* Clear any track reservation when the last vehicle leaves the tile */
-				ClearPathReservation(v, v->GetPos());
+				ClearPathReservation (v->GetPos());
 
 				RailPathPos rev = v->GetReversePos();
 				if (rev.has_signals()) {
