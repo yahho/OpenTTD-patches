@@ -3632,23 +3632,28 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 }
 
 /**
- * Create a copy of the tile table so it can be freed later
- * without problems.
- * @param as The AirportSpec to copy the arrays of.
+ * Clone an AirportSpec.
+ * @param src The AirportSpec to clone.
+ * @return A fresh copy of the AirportSpec
  */
-static void DuplicateTileTable(AirportSpec *as)
+static AirportSpec *CloneAirportSpec (const AirportSpec *src)
 {
-	AirportTileTable **table_list = xmalloct<AirportTileTable*>(as->num_table);
-	for (int i = 0; i < as->num_table; i++) {
+	AirportSpec *as = xmemdupt (src);
+
+	AirportTileTable **table_list = xmalloct<AirportTileTable*> (src->num_table);
+	for (uint i = 0; i < src->num_table; i++) {
 		uint num_tiles = 1;
-		const AirportTileTable *it = as->table[i];
+		const AirportTileTable *it = src->table[i];
 		do {
 			num_tiles++;
 		} while ((++it)->ti.x != -0x80);
-		table_list[i] = xmemdupt (as->table[i], num_tiles);
+		table_list[i] = xmemdupt (src->table[i], num_tiles);
 	}
 	as->table = table_list;
-	as->depot_table = xmemdupt (as->depot_table, as->nof_depots);
+
+	as->depot_table = xmemdupt (src->depot_table, src->nof_depots);
+
+	return as;
 }
 
 /**
@@ -3700,7 +3705,7 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 				 * Only need to do it once. If ever it is called again, it should not
 				 * do anything */
 				if (as == NULL) {
-					as = xmemdupt (AirportSpec::GetWithoutOverride(subs_id));
+					as = CloneAirportSpec (AirportSpec::GetWithoutOverride(subs_id));
 					_cur.grffile->airportspec[airport + i] = as;
 
 					as->enabled = true;
@@ -3709,8 +3714,6 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 					as->grf_prop.grffile = _cur.grffile;
 					/* override the default airport */
 					_airport_mngr.Add(airport + i, _cur.grffile->grfid, subs_id);
-					/* Create a copy of the original tiletable so it can be freed later. */
-					DuplicateTileTable(as);
 				}
 				break;
 			}
