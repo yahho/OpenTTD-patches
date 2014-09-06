@@ -3573,41 +3573,8 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			/* Entering a new tile */
 
 			Trackdir chosen_trackdir;
-			if (!new_in_wormhole) {
-				if (prev == NULL) {
-					/* Currently the locomotive is active. Determine which one of the
-					 * available tracks to choose */
-					chosen_trackdir = TrainControllerChooseTrackdir(v, gp.new_tile, enterdir, tsdir, !old_in_wormhole && _settings_game.pf.forbid_90_deg, reverse);
-					if (chosen_trackdir == INVALID_TRACKDIR) return false;
-
-					if (HasPbsSignalOnTrackdir(gp.new_tile, chosen_trackdir)) {
-						SetSignalState(gp.new_tile, chosen_trackdir, SIGNAL_STATE_RED);
-						MarkTileDirtyByTile(gp.new_tile);
-					}
-				} else {
-					/* The wagon is active, simply follow the prev vehicle. */
-					if (prev->tile == gp.new_tile) {
-						/* Choose the same track as prev */
-						assert(prev->trackdir != TRACKDIR_WORMHOLE);
-						chosen_trackdir = prev->trackdir;
-					} else {
-						/* Choose the track that leads to the tile where prev is.
-						 * This case is active if 'prev' is already on the second next tile, when 'v' just enters the next tile.
-						 * I.e. when the tile between them has only space for a single vehicle like
-						 *  1) horizontal/vertical track tiles and
-						 *  2) some orientations of tunnel entries, where the vehicle is already inside the wormhole at 8/16 from the tile edge.
-						 *     Is also the train just reversing, the wagon inside the tunnel is 'on' the tile of the opposite tunnel entry.
-						 */
-						DiagDirection exitdir = DiagdirBetweenTiles(gp.new_tile, prev->tile);
-						assert(IsValidDiagDirection(exitdir));
-						chosen_trackdir = EnterdirExitdirToTrackdir(enterdir, exitdir);
-						assert(!IsReversingRoadTrackdir(chosen_trackdir));
-					}
-
-					assert(CheckCompatibleRail(v, gp.new_tile, TrackdirToTrack(chosen_trackdir)));
-				}
-			} else {
-				/* new_in_wormhole */
+			if (new_in_wormhole) {
+				/* entering a wormhole */
 				assert(!old_in_wormhole);
 				if (prev == NULL) {
 					if (IsRailwayTile(old_tile)) {
@@ -3618,6 +3585,36 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 						SetTunnelMiddleReservation(gp.new_tile, true);
 					}
 				}
+			} else if (prev == NULL) {
+				/* locomotive entering a new tile, so choose a track */
+				chosen_trackdir = TrainControllerChooseTrackdir(v, gp.new_tile, enterdir, tsdir, !old_in_wormhole && _settings_game.pf.forbid_90_deg, reverse);
+				if (chosen_trackdir == INVALID_TRACKDIR) return false;
+
+				if (HasPbsSignalOnTrackdir(gp.new_tile, chosen_trackdir)) {
+					SetSignalState(gp.new_tile, chosen_trackdir, SIGNAL_STATE_RED);
+					MarkTileDirtyByTile(gp.new_tile);
+				}
+			} else {
+				/* wagon entering a new tile, just follow the previous vehicle */
+				if (prev->tile == gp.new_tile) {
+					/* Choose the same track as prev */
+					assert(prev->trackdir != TRACKDIR_WORMHOLE);
+					chosen_trackdir = prev->trackdir;
+				} else {
+					/* Choose the track that leads to the tile where prev is.
+					 * This case is active if 'prev' is already on the second next tile, when 'v' just enters the next tile.
+					 * I.e. when the tile between them has only space for a single vehicle like
+					 *  1) horizontal/vertical track tiles and
+					 *  2) some orientations of tunnel entries, where the vehicle is already inside the wormhole at 8/16 from the tile edge.
+					 *     Is also the train just reversing, the wagon inside the tunnel is 'on' the tile of the opposite tunnel entry.
+					 */
+					DiagDirection exitdir = DiagdirBetweenTiles(gp.new_tile, prev->tile);
+					assert(IsValidDiagDirection(exitdir));
+					chosen_trackdir = EnterdirExitdirToTrackdir(enterdir, exitdir);
+					assert(!IsReversingRoadTrackdir(chosen_trackdir));
+				}
+
+				assert(CheckCompatibleRail(v, gp.new_tile, TrackdirToTrack(chosen_trackdir)));
 			}
 
 			if (v->Next() == NULL) {
