@@ -1214,13 +1214,13 @@ static bool CanBuildTramTrackOnTile(CompanyID c, TileIndex t, RoadBits r)
  */
 static bool IndividualRoadVehicleControllerEnterWormhole(RoadVehicle *v, TileIndex end, bool is_bridge)
 {
-	VehiclePos gp = GetNewVehiclePos(v);
+	FullPosTile gp = GetNewVehiclePos(v);
 
 	/* this should really bring us to a new virtual tile */
-	assert(gp.new_tile != v->tile);
+	assert(gp.tile != v->tile);
 
 	if (v->IsFrontEngine()) {
-		const Vehicle *u = RoadVehFindCloseTo (v, gp.x, gp.y, v->direction);
+		const Vehicle *u = RoadVehFindCloseTo (v, gp.xx, gp.yy, v->direction);
 		if (u != NULL) {
 			v->cur_speed = u->First()->cur_speed;
 			return false;
@@ -1229,8 +1229,8 @@ static bool IndividualRoadVehicleControllerEnterWormhole(RoadVehicle *v, TileInd
 
 	v->tile  = end;
 	v->state = RVSB_WORMHOLE;
-	v->x_pos = gp.x;
-	v->y_pos = gp.y;
+	v->x_pos = gp.xx;
+	v->y_pos = gp.yy;
 
 	if (is_bridge) {
 		ClrBit(v->gv_flags, GVF_GOINGUP_BIT);
@@ -1273,20 +1273,20 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 
 	if (v->state == RVSB_WORMHOLE) {
 		/* Vehicle is entering a depot or is on a bridge or in a tunnel */
-		VehiclePos gp = GetNewVehiclePos(v);
+		FullPosTile gp = GetNewVehiclePos(v);
 
 		if (v->IsFrontEngine()) {
-			const Vehicle *u = RoadVehFindCloseTo(v, gp.x, gp.y, v->direction);
+			const Vehicle *u = RoadVehFindCloseTo(v, gp.xx, gp.yy, v->direction);
 			if (u != NULL) {
 				v->cur_speed = u->First()->cur_speed;
 				return false;
 			}
 		}
 
-		if (gp.new_tile != v->tile) {
+		if (gp.tile != v->tile) {
 			/* Still in the wormhole */
-			v->x_pos = gp.x;
-			v->y_pos = gp.y;
+			v->x_pos = gp.xx;
+			v->y_pos = gp.yy;
 			VehicleUpdatePosition(v);
 			if ((v->vehstatus & VS_HIDDEN) == 0) VehicleUpdateViewport(v, true);
 			return true;
@@ -1294,8 +1294,8 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 
 		/* Vehicle has just exited a bridge or tunnel */
 		rd.x = RDE_NEXT_TILE;
-		rd.y = ReverseDiagDir(GetTunnelBridgeDirection(gp.new_tile));
-		tile = gp.new_tile;
+		rd.y = ReverseDiagDir(GetTunnelBridgeDirection(gp.tile));
+		tile = gp.tile;
 	} else {
 		/* Get move position data for next frame.
 		 * For a drive-through road stop use 'straight road' move data.

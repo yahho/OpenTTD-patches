@@ -192,14 +192,14 @@ void UpdateOldAircraft()
 			}
 			a->state = FLYING;
 			AircraftNextAirportPos_and_Order(a); // move it to the entry point of the airport
-			VehiclePos gp = GetNewVehiclePos(a);
+			FullPosTile gp = GetNewVehiclePos(a);
 			a->tile = 0; // aircraft in air is tile=0
 
 			/* correct speed of helicopter-rotors */
 			if (a->subtype == AIR_HELICOPTER) a->Next()->Next()->cur_speed = 32;
 
 			/* set new position x,y,z */
-			SetAircraftPosition(a, gp.x, gp.y, GetAircraftFlyingAltitude(a));
+			SetAircraftPosition(a, gp.xx, gp.yy, GetAircraftFlyingAltitude(a));
 		}
 	}
 }

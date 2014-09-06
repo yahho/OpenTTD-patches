@@ -21,6 +21,7 @@
 #include "newgrf_config.h"
 #include "track_type.h"
 #include "livery.h"
+#include "map/subcoord.h"
 
 #define is_custom_sprite(x) (x >= 0xFD)
 #define IS_CUSTOM_FIRSTHEAD_SPRITE(x) (x == 0xFD)
@@ -76,13 +77,7 @@ void VehicleEnterDepot(Vehicle *v);
 
 bool CanBuildVehicleInfrastructure(VehicleType type);
 
-/** Position information of a vehicle after it moved */
-struct VehiclePos {
-	int x, y;  ///< x and y position of the vehicle after moving
-	TileIndex new_tile; ///< Virtual tile of the vehicle after moving
-};
-
-VehiclePos GetNewVehiclePos(const Vehicle *v);
+FullPosTile GetNewVehiclePos(const Vehicle *v);
 Direction GetDirectionTowards(const Vehicle *v, int x, int y);
 
 /**

@@ -910,20 +910,19 @@ static bool AircraftController(Aircraft *v)
 	if (v->turn_counter != 0) v->turn_counter--;
 
 	do {
-
-		VehiclePos gp;
+		FullPosTile gp;
 
 		if (dist < 4 || (amd.flag & AMED_LAND)) {
 			/* move vehicle one pixel towards target */
-			gp.x = (v->x_pos != (x + amd.x)) ?
+			gp.xx = (v->x_pos != (x + amd.x)) ?
 					v->x_pos + ((x + amd.x > v->x_pos) ? 1 : -1) :
 					v->x_pos;
-			gp.y = (v->y_pos != (y + amd.y)) ?
+			gp.yy = (v->y_pos != (y + amd.y)) ?
 					v->y_pos + ((y + amd.y > v->y_pos) ? 1 : -1) :
 					v->y_pos;
 
 			/* Oilrigs must keep v->tile as st->airport.tile, since the landing pad is in a non-airport tile */
-			gp.new_tile = (st->airport.type == AT_OILRIG) ? st->airport.tile : TileVirtXY(gp.x, gp.y);
+			gp.tile = (st->airport.type == AT_OILRIG) ? st->airport.tile : TileVirtXY(gp.xx, gp.yy);
 
 		} else {
 
@@ -956,13 +955,13 @@ static bool AircraftController(Aircraft *v)
 				 * would need an two extra turns to end up at the correct position.
 				 * To make it easier just disallow all moving while turning as
 				 * long as an aircraft is on the ground. */
-				gp.x = v->x_pos;
-				gp.y = v->y_pos;
-				gp.new_tile = v->tile;
+				gp.xx = v->x_pos;
+				gp.yy = v->y_pos;
+				gp.tile = v->tile;
 			}
 		}
 
-		v->tile = gp.new_tile;
+		v->tile = gp.tile;
 		/* If vehicle is in the air, use tile coordinate 0. */
 		if (amd.flag & (AMED_TAKEOFF | AMED_SLOWTURN | AMED_LAND)) v->tile = 0;
 
@@ -983,7 +982,7 @@ static bool AircraftController(Aircraft *v)
 				UpdateAircraftCache(v);
 				AircraftNextAirportPos_and_Order(v);
 				/* get aircraft back on running altitude */
-				SetAircraftPosition(v, gp.x, gp.y, GetAircraftFlyingAltitude(v));
+				SetAircraftPosition(v, gp.xx, gp.yy, GetAircraftFlyingAltitude(v));
 				continue;
 			}
 
@@ -1013,7 +1012,7 @@ static bool AircraftController(Aircraft *v)
 
 		}
 
-		SetAircraftPosition(v, gp.x, gp.y, z);
+		SetAircraftPosition(v, gp.xx, gp.yy, z);
 	} while (--count != 0);
 	return false;
 }

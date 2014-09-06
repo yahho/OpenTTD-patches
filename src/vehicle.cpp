@@ -1694,16 +1694,16 @@ void MarkSingleVehicleDirty(const Vehicle *v)
  * @param v Vehicle to move
  * @return Position information after the move
  */
-VehiclePos GetNewVehiclePos(const Vehicle *v)
+FullPosTile GetNewVehiclePos(const Vehicle *v)
 {
 	static const int8 delta_coord[DIR_END][2] = { /* {x,y} */
 		{-1,-1}, {-1,0}, {-1,1}, {0,1}, {1,1}, {1,0}, {1,-1}, {0,-1}
 	};
 
-	VehiclePos gp;
-	gp.x = v->x_pos + delta_coord[v->direction][0];
-	gp.y = v->y_pos + delta_coord[v->direction][1];
-	gp.new_tile = TileVirtXY(gp.x, gp.y);
+	FullPosTile gp;
+	gp.xx = v->x_pos + delta_coord[v->direction][0];
+	gp.yy = v->y_pos + delta_coord[v->direction][1];
+	gp.tile = TileVirtXY(gp.xx, gp.yy);
 	return gp;
 }
 

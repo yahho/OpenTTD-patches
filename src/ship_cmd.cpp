@@ -471,13 +471,13 @@ static void ShipController(Ship *v)
 
 	if (!ShipAccelerate(v)) return;
 
-	VehiclePos gp = GetNewVehiclePos(v);
+	FullPosTile gp = GetNewVehiclePos(v);
 	if (v->trackdir == TRACKDIR_WORMHOLE) {
 		/* On a bridge */
-		if (gp.new_tile != v->tile) {
+		if (gp.tile != v->tile) {
 			/* Still on the bridge */
-			v->x_pos = gp.x;
-			v->y_pos = gp.y;
+			v->x_pos = gp.xx;
+			v->y_pos = gp.yy;
 			VehicleUpdatePositionAndViewport(v);
 			return;
 		} else {
@@ -485,10 +485,10 @@ static void ShipController(Ship *v)
 		}
 	} else if (v->trackdir == TRACKDIR_DEPOT) {
 		/* Inside depot */
-		assert(gp.new_tile == v->tile);
-		gp.x = v->x_pos;
-		gp.y = v->y_pos;
-	} else if (gp.new_tile == v->tile) {
+		assert(gp.tile == v->tile);
+		gp.xx = v->x_pos;
+		gp.yy = v->y_pos;
+	} else if (gp.tile == v->tile) {
 		/* Not on a bridge or in a depot, staying in the old tile */
 
 		/* A leave station order only needs one tick to get processed, so we can
@@ -499,21 +499,21 @@ static void ShipController(Ship *v)
 		} else if (v->dest_tile != 0) {
 			/* We have a target, let's see if we reached it... */
 			if (v->current_order.IsType(OT_GOTO_WAYPOINT) &&
-					DistanceManhattan(v->dest_tile, gp.new_tile) <= 3) {
+					DistanceManhattan(v->dest_tile, gp.tile) <= 3) {
 				/* We got within 3 tiles of our target buoy, so let's skip to our
 				 * next order */
 				UpdateVehicleTimetable(v, true);
 				v->IncrementRealOrderIndex();
 				v->current_order.MakeDummy();
 			} else if (v->current_order.IsType(OT_GOTO_DEPOT)) {
-				if (v->dest_tile == gp.new_tile && (gp.x & 0xF) == 8 && (gp.y & 0xF) == 8) {
+				if (v->dest_tile == gp.tile && (gp.xx & 0xF) == 8 && (gp.yy & 0xF) == 8) {
 					VehicleEnterDepot(v);
 					return;
 				}
 			} else if (v->current_order.IsType(OT_GOTO_STATION)) {
 				StationID sid = v->current_order.GetDestination();
 				Station *st = Station::Get(sid);
-				if (st->IsDockingTile(gp.new_tile)) {
+				if (st->IsDockingTile(gp.tile)) {
 					assert(st->facilities & FACIL_DOCK);
 					v->last_station_visited = sid;
 					/* Process station in the orderlist. */
@@ -525,52 +525,52 @@ static void ShipController(Ship *v)
 	} else {
 		/* Not on a bridge or in a depot, about to enter a new tile */
 
-		if (!IsValidTile(gp.new_tile)) goto reverse_direction;
+		if (!IsValidTile(gp.tile)) goto reverse_direction;
 
-		DiagDirection diagdir = DiagdirBetweenTiles(v->tile, gp.new_tile);
+		DiagDirection diagdir = DiagdirBetweenTiles(v->tile, gp.tile);
 		assert(diagdir != INVALID_DIAGDIR);
 
 		if (IsAqueductTile(v->tile) && GetTunnelBridgeDirection(v->tile) == diagdir) {
 			TileIndex end_tile = GetOtherBridgeEnd(v->tile);
-			if (end_tile != gp.new_tile) {
+			if (end_tile != gp.tile) {
 				/* Entering an aqueduct */
 				v->tile = end_tile;
 				v->trackdir = TRACKDIR_WORMHOLE;
-				v->x_pos = gp.x;
-				v->y_pos = gp.y;
+				v->x_pos = gp.xx;
+				v->y_pos = gp.yy;
 				VehicleUpdatePositionAndViewport(v);
 				return;
 			}
 		}
 
-		TrackdirBits trackdirs = GetAvailShipTrackdirs(gp.new_tile, diagdir);
+		TrackdirBits trackdirs = GetAvailShipTrackdirs(gp.tile, diagdir);
 		if (trackdirs == TRACKDIR_BIT_NONE) goto reverse_direction;
 
 		/* Choose a direction, and continue if we find one */
-		Trackdir trackdir = ChooseShipTrack(v, gp.new_tile, diagdir, trackdirs);
+		Trackdir trackdir = ChooseShipTrack(v, gp.tile, diagdir, trackdirs);
 		if (trackdir == INVALID_TRACKDIR) goto reverse_direction;
 
 		const byte *b = _ship_subcoord[trackdir];
 
-		gp.x = (gp.x & ~0xF) | b[0];
-		gp.y = (gp.y & ~0xF) | b[1];
+		gp.xx = (gp.xx & ~0xF) | b[0];
+		gp.yy = (gp.yy & ~0xF) | b[1];
 
 		WaterClass old_wc = GetEffectiveWaterClass(v->tile);
 
-		v->tile = gp.new_tile;
+		v->tile = gp.tile;
 		v->trackdir = trackdir;
 
 		/* Update ship cache when the water class changes. Aqueducts are always canals. */
-		WaterClass new_wc = GetEffectiveWaterClass(gp.new_tile);
+		WaterClass new_wc = GetEffectiveWaterClass(gp.tile);
 		if (old_wc != new_wc) v->UpdateCache();
 
 		v->direction = (Direction)b[2];
 	}
 
 	/* update image of ship, as well as delta XY */
-	v->x_pos = gp.x;
-	v->y_pos = gp.y;
-	v->z_pos = GetSlopePixelZ(gp.x, gp.y);
+	v->x_pos = gp.xx;
+	v->y_pos = gp.yy;
+	v->z_pos = GetSlopePixelZ(gp.xx, gp.yy);
 
 getout:
 	VehicleUpdatePosition(v);

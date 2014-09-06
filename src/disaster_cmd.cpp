@@ -185,9 +185,9 @@ static void SetDisasterVehiclePos(DisasterVehicle *v, int x, int y, int z)
 
 static void SetDisasterVehiclePosAutoZ(DisasterVehicle *v, int z)
 {
-	VehiclePos gp = GetNewVehiclePos(v);
+	FullPosTile gp = GetNewVehiclePos(v);
 
-	SetDisasterVehiclePos(v, gp.x, gp.y, z);
+	SetDisasterVehiclePos(v, gp.xx, gp.yy, z);
 }
 
 static void SetDisasterVehiclePosAuto(DisasterVehicle *v)

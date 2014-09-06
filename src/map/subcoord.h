@@ -33,6 +33,13 @@ static inline TileIndex TileVirtXY(uint xx, uint yy)
 }
 
 
+/** Full position and tile to which it belongs. */
+struct FullPosTile {
+	int xx, yy;     ///< full subtile coordinates
+	TileIndex tile; ///< tile to which the coordinates belong
+};
+
+
 /**
  * Compute the distance from a tile edge
  * @param side Tile edge
