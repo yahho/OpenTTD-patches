@@ -929,38 +929,36 @@ static bool AircraftController(Aircraft *v)
 
 			/* Turn. Do it slowly if in the air. */
 			Direction newdir = GetDirectionTowards(v, x + amd.x, y + amd.y);
-			if (newdir != v->direction) {
-				if (amd.flag & AMED_SLOWTURN && v->number_consecutive_turns < 8 && v->subtype == AIR_AIRCRAFT) {
-					if (v->turn_counter == 0 || newdir == v->last_direction) {
-						if (newdir == v->last_direction) {
-							v->number_consecutive_turns = 0;
-						} else {
-							v->number_consecutive_turns++;
-						}
-						v->turn_counter = 2 * _settings_game.vehicle.plane_speed;
-						v->last_direction = v->direction;
-						v->direction = newdir;
-					}
-
-					/* Move vehicle. */
-					gp = GetNewVehiclePos(v);
-				} else {
-					v->cur_speed >>= 1;
-					v->direction = newdir;
-
-					/* When leaving a terminal an aircraft often goes to a position
-					 * directly in front of it. If it would move while turning it
-					 * would need an two extra turns to end up at the correct position.
-					 * To make it easier just disallow all moving while turning as
-					 * long as an aircraft is on the ground. */
-					gp.x = v->x_pos;
-					gp.y = v->y_pos;
-					gp.new_tile = v->tile;
-				}
-			} else {
+			if (newdir == v->direction) {
 				v->number_consecutive_turns = 0;
 				/* Move vehicle. */
 				gp = GetNewVehiclePos(v);
+			} else if (amd.flag & AMED_SLOWTURN && v->number_consecutive_turns < 8 && v->subtype == AIR_AIRCRAFT) {
+				if (v->turn_counter == 0 || newdir == v->last_direction) {
+					if (newdir == v->last_direction) {
+						v->number_consecutive_turns = 0;
+					} else {
+						v->number_consecutive_turns++;
+					}
+					v->turn_counter = 2 * _settings_game.vehicle.plane_speed;
+					v->last_direction = v->direction;
+					v->direction = newdir;
+				}
+
+				/* Move vehicle. */
+				gp = GetNewVehiclePos(v);
+			} else {
+				v->cur_speed >>= 1;
+				v->direction = newdir;
+
+				/* When leaving a terminal an aircraft often goes to a position
+				 * directly in front of it. If it would move while turning it
+				 * would need an two extra turns to end up at the correct position.
+				 * To make it easier just disallow all moving while turning as
+				 * long as an aircraft is on the ground. */
+				gp.x = v->x_pos;
+				gp.y = v->y_pos;
+				gp.new_tile = v->tile;
 			}
 		}
 
