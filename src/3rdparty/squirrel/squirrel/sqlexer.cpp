@@ -3,7 +3,6 @@
 */
 #include "sqpcheader.h"
 #include <ctype.h>
-#include <stdlib.h>
 #include "sqtable.h"
 #include "sqstring.h"
 #include "sqcompiler.h"

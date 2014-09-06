@@ -22,7 +22,7 @@
 void Squirrel::CompileError(HSQUIRRELVM vm, const char *desc, const char *source, SQInteger line, SQInteger column)
 {
 	char buf[1024];
-	bstrfmt (buf, "Error %s:" SQ_PRINTF64 "/" SQ_PRINTF64 ": %s", source, line, column, desc);
+	bstrfmt (buf, "Error %s:" OTTD_PRINTF64 "/" OTTD_PRINTF64 ": %s", source, line, column, desc);
 
 	/* Check if we have a custom print function */
 	Squirrel *engine = (Squirrel *)sq_getforeignptr(vm);
