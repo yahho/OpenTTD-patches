@@ -1916,6 +1916,11 @@
       <XMLDocumentationFileName>$(IntDir)\map\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\map\tilearea.h" />
+    <ClCompile Include="..\src\map\subcoord.cpp">
+      <AssemblerListingLocation>$(IntDir)\map\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\map\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\map\</XMLDocumentationFileName>
+    </ClCompile>
     <ClInclude Include="..\src\map\subcoord.h" />
     <ClInclude Include="..\src\map\zoneheight.h" />
     <ClInclude Include="..\src\map\class.h" />

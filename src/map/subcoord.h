@@ -37,6 +37,57 @@ static inline TileIndex TileVirtXY(uint xx, uint yy)
 struct FullPosTile {
 	int xx, yy;     ///< full subtile coordinates
 	TileIndex tile; ///< tile to which the coordinates belong
+
+	/** Set this position to the given parameters. */
+	void set (int xx, int yy, TileIndex tile)
+	{
+		this->xx = xx;
+		this->yy = yy;
+		this->tile = tile;
+	}
+
+	/** Compute the tile to which the current coordinates belong. */
+	void calc_tile (void)
+	{
+		this->tile = TileVirtXY (this->xx, this->yy);
+	}
+
+	/** Set this position to the given coordinates, and compute the tile. */
+	void set (int xx, int yy)
+	{
+		this->xx = xx;
+		this->yy = yy;
+		this->calc_tile();
+	}
+
+	/** Get the value next to z0 that is closest to z1. */
+	static int get_towards (int z0, int z1)
+	{
+		return (z1 == z0) ? z0 : (z1 > z0) ? (z0 + 1) : (z0 - 1);
+	}
+
+	/**
+	 * Set this position to the point next to (xx0, yy0) that is
+	 * closest to (xx1, yy1).
+	 */
+	void set_towards (int xx0, int yy0, int xx1, int yy1)
+	{
+		this->xx = get_towards (xx0, xx1);
+		this->yy = get_towards (yy0, yy1);
+		this->calc_tile();
+	}
+
+	struct DeltaCoord { int8 dx, dy; };
+
+	static const DeltaCoord delta_coord [DIR_END];
+
+	/** Set this position to the point next to (xx, yy) in direction dir. */
+	void set_towards (int xx, int yy, Direction dir)
+	{
+		this->xx = xx + delta_coord[dir].dx;
+		this->yy = yy + delta_coord[dir].dy;
+		this->calc_tile();
+	}
 };
 
 

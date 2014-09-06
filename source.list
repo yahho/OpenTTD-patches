@@ -993,6 +993,7 @@ map/coord.h
 map/tileset.h
 map/tilearea.cpp
 map/tilearea.h
+map/subcoord.cpp
 map/subcoord.h
 map/zoneheight.h
 map/class.h

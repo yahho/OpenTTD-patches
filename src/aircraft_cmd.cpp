@@ -914,15 +914,10 @@ static bool AircraftController(Aircraft *v)
 
 		if (dist < 4 || (amd.flag & AMED_LAND)) {
 			/* move vehicle one pixel towards target */
-			gp.xx = (v->x_pos != (x + amd.x)) ?
-					v->x_pos + ((x + amd.x > v->x_pos) ? 1 : -1) :
-					v->x_pos;
-			gp.yy = (v->y_pos != (y + amd.y)) ?
-					v->y_pos + ((y + amd.y > v->y_pos) ? 1 : -1) :
-					v->y_pos;
+			gp.set_towards (v->x_pos, v->y_pos, x + amd.x, y + amd.y);
 
 			/* Oilrigs must keep v->tile as st->airport.tile, since the landing pad is in a non-airport tile */
-			gp.tile = (st->airport.type == AT_OILRIG) ? st->airport.tile : TileVirtXY(gp.xx, gp.yy);
+			if (st->airport.type == AT_OILRIG) gp.tile = st->airport.tile;
 
 		} else {
 
@@ -955,9 +950,7 @@ static bool AircraftController(Aircraft *v)
 				 * would need an two extra turns to end up at the correct position.
 				 * To make it easier just disallow all moving while turning as
 				 * long as an aircraft is on the ground. */
-				gp.xx = v->x_pos;
-				gp.yy = v->y_pos;
-				gp.tile = v->tile;
+				gp.set (v->x_pos, v->y_pos, v->tile);
 			}
 		}
 

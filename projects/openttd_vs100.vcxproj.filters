@@ -2805,6 +2805,9 @@
     <ClInclude Include="..\src\map\tilearea.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>
+    <ClCompile Include="..\src\map\subcoord.cpp">
+      <Filter>Map Accessors</Filter>
+    </ClCompile>
     <ClInclude Include="..\src\map\subcoord.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>

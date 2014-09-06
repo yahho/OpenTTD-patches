@@ -486,8 +486,7 @@ static void ShipController(Ship *v)
 	} else if (v->trackdir == TRACKDIR_DEPOT) {
 		/* Inside depot */
 		assert(gp.tile == v->tile);
-		gp.xx = v->x_pos;
-		gp.yy = v->y_pos;
+		gp.set (v->x_pos, v->y_pos, gp.tile);
 	} else if (gp.tile == v->tile) {
 		/* Not on a bridge or in a depot, staying in the old tile */
 

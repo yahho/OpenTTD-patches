@@ -1696,14 +1696,8 @@ void MarkSingleVehicleDirty(const Vehicle *v)
  */
 FullPosTile GetNewVehiclePos(const Vehicle *v)
 {
-	static const int8 delta_coord[DIR_END][2] = { /* {x,y} */
-		{-1,-1}, {-1,0}, {-1,1}, {0,1}, {1,1}, {1,0}, {1,-1}, {0,-1}
-	};
-
 	FullPosTile gp;
-	gp.xx = v->x_pos + delta_coord[v->direction][0];
-	gp.yy = v->y_pos + delta_coord[v->direction][1];
-	gp.tile = TileVirtXY(gp.xx, gp.yy);
+	gp.set_towards (v->x_pos, v->y_pos, v->direction);
 	return gp;
 }
 
