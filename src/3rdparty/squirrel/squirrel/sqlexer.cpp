@@ -23,11 +23,11 @@ SQLexer::~SQLexer()
 	_keywords->Release();
 }
 
-void SQLexer::APPEND_CHAR(LexChar c)
+void SQLexer::APPEND_CHAR(WChar c)
 {
 	char buf[4];
-	int chars = Utf8Encode(buf, c);
-	for (int i = 0; i < chars; i++) {
+	size_t chars = Utf8Encode(buf, c);
+	for (size_t i = 0; i < chars; i++) {
 		_longstr.push_back(buf[i]);
 	}
 }
@@ -92,10 +92,10 @@ void SQLexer::Error(const char *err)
 
 void SQLexer::Next()
 {
-	SQInteger t = _readf(_up);
+	WChar t = _readf(_up);
 	if(t > MAX_CHAR) Error("Invalid character");
 	if(t != 0) {
-		_currdata = (LexChar)t;
+		_currdata = t;
 		return;
 	}
 	_currdata = SQUIRREL_EOB;
@@ -281,7 +281,7 @@ SQInteger SQLexer::GetIDType(char *s)
 }
 
 
-SQInteger SQLexer::ReadString(LexChar ndelim,bool verbatim)
+SQInteger SQLexer::ReadString(WChar ndelim,bool verbatim)
 {
 	INIT_TEMP_STRING();
 	NEXT();

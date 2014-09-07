@@ -32,6 +32,7 @@ to the following restrictions:
 #define _SQUIRREL_H_
 
 #include "../../../stdafx.h"
+#include "../../../string.h"
 
 typedef __int64 SQInteger;
 typedef unsigned __int64 SQUnsignedInteger;
@@ -179,7 +180,7 @@ typedef void (*SQPRINTFUNCTION)(HSQUIRRELVM,const char * ,...);
 typedef SQInteger (*SQWRITEFUNC)(SQUserPointer,SQUserPointer,SQInteger);
 typedef SQInteger (*SQREADFUNC)(SQUserPointer,SQUserPointer,SQInteger);
 
-typedef SQInteger (*SQLEXREADFUNC)(SQUserPointer);
+typedef WChar (*SQLEXREADFUNC)(SQUserPointer);
 
 typedef struct tagSQRegFunction{
 	const char *name;
