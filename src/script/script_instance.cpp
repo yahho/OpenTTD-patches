@@ -558,7 +558,7 @@ bool ScriptInstance::IsPaused()
 
 		case SQSL_BOOL: {
 			byte value = reader->ReadByte();
-			if (vm != NULL) sq_pushinteger(vm, (SQBool)(value != 0));
+			if (vm != NULL) sq_pushbool(vm, (SQBool)(value != 0));
 			return true;
 		}
 
