@@ -61,7 +61,7 @@ static const NWidgetPart _nested_build_vehicle_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY),
 		NWidget(NWID_HORIZONTAL),
 			NWidget(NWID_VERTICAL),
-				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_BV_SORT_ASSENDING_DESCENDING), SetDataTip(STR_BUTTON_SORT_BY, STR_TOOLTIP_SORT_ORDER), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_BV_SORT_ASCENDING_DESCENDING), SetDataTip(STR_BUTTON_SORT_BY, STR_TOOLTIP_SORT_ORDER), SetFill(1, 0),
 				NWidget(NWID_SPACER), SetFill(1, 1),
 			EndContainer(),
 			NWidget(NWID_VERTICAL),
@@ -1247,7 +1247,7 @@ struct BuildVehicleWindow : Window {
 	void OnClick(Point pt, int widget, int click_count)
 	{
 		switch (widget) {
-			case WID_BV_SORT_ASSENDING_DESCENDING:
+			case WID_BV_SORT_ASCENDING_DESCENDING:
 				this->descending_sort_order ^= true;
 				_engine_sort_last_order[this->vehicle_type] = this->descending_sort_order;
 				this->eng_list.ForceRebuild();
@@ -1342,7 +1342,7 @@ struct BuildVehicleWindow : Window {
 				size->height = this->details_height;
 				break;
 
-			case WID_BV_SORT_ASSENDING_DESCENDING: {
+			case WID_BV_SORT_ASCENDING_DESCENDING: {
 				Dimension d = GetStringBoundingBox(this->GetWidget<NWidgetCore>(widget)->widget_data);
 				d.width += padding.width + WD_SORTBUTTON_ARROW_WIDTH * 2; // Doubled since the string is centred and it also looks better.
 				d.height += padding.height;
@@ -1359,8 +1359,8 @@ struct BuildVehicleWindow : Window {
 				DrawEngineList(this->vehicle_type, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, &this->eng_list, this->vscroll->GetPosition(), min(this->vscroll->GetPosition() + this->vscroll->GetCapacity(), this->eng_list.Length()), this->sel_engine, false, DEFAULT_GROUP);
 				break;
 
-			case WID_BV_SORT_ASSENDING_DESCENDING:
-				this->DrawSortButtonState(WID_BV_SORT_ASSENDING_DESCENDING, this->descending_sort_order ? SBS_DOWN : SBS_UP);
+			case WID_BV_SORT_ASCENDING_DESCENDING:
+				this->DrawSortButtonState(WID_BV_SORT_ASCENDING_DESCENDING, this->descending_sort_order ? SBS_DOWN : SBS_UP);
 				break;
 		}
 	}
