@@ -82,6 +82,7 @@ CommandProc CmdBuildVehicle;
 CommandProc CmdSellVehicle;
 CommandProc CmdRefitVehicle;
 CommandProc CmdSendVehicleToDepot;
+CommandProc CmdSetVehicleVisibility;
 
 CommandProc CmdForceTrainProceed;
 CommandProc CmdReverseTrainDirection;
@@ -284,6 +285,7 @@ static const Command _command_proc_table[] = {
 	DEF_CMD(CmdSellVehicle,                           CMDF_CLIENT_ID, CMDT_VEHICLE_CONSTRUCTION,   NULL,               GetErrSellVehicle),                                         // CMD_SELL_VEHICLE
 	DEF_CMD(CmdRefitVehicle,                                       0, CMDT_VEHICLE_CONSTRUCTION,   NULL,               GetErrRefitVehicle),                                        // CMD_REFIT_VEHICLE
 	DEF_CMD(CmdSendVehicleToDepot,                                 0, CMDT_VEHICLE_MANAGEMENT,     NULL,               GetErrSendVehicleToDepot),                                  // CMD_SEND_VEHICLE_TO_DEPOT
+	DEF_CMD(CmdSetVehicleVisibility,                               0, CMDT_COMPANY_SETTING,        NULL,               NULL),                                                      // CMD_SET_VEHICLE_VISIBILITY
 
 	DEF_CMD(CmdMoveRailVehicle,                                    0, CMDT_VEHICLE_CONSTRUCTION,   NULL,               GetErrMoveRailVehicle),                                     // CMD_MOVE_RAIL_VEHICLE
 	DEF_CMD(CmdForceTrainProceed,                                  0, CMDT_VEHICLE_MANAGEMENT,     NULL,               GetErrConstant<STR_ERROR_CAN_T_MAKE_TRAIN_PASS_SIGNAL>),    // CMD_FORCE_TRAIN_PROCEED

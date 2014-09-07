@@ -37,6 +37,7 @@ static const SaveLoad _engine_desc[] = {
 	SLE_NULL(1,                                                       , ,   0,  44),
 	 SLE_VAR(Engine, company_avail,       SLE_FILE_U8  | SLE_VAR_U16, , ,   0, 103),
 	 SLE_VAR(Engine, company_avail,       SLE_UINT16,                0, , 104,    ),
+	 SLE_VAR(Engine, company_hidden,      SLE_UINT16,               21, , 193,    ),
 	 SLE_STR(Engine, name,                SLS_NONE,                  0, ,  84,    ),
 
 	SLE_NULL(16,                                                      , ,   2, 143), // old reserved space
@@ -115,6 +116,7 @@ void CopyTempEngineData()
 		e->preview_company     = se->preview_company;
 		e->preview_wait        = se->preview_wait;
 		e->company_avail       = se->company_avail;
+		e->company_hidden      = se->company_hidden;
 		if (se->name != NULL) e->name = xstrdup(se->name);
 	}
 
