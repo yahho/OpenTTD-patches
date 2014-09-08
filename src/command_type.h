@@ -382,16 +382,16 @@ enum FlaggedCommands {
  * This enumeration defines flags for the _command_proc_table.
  */
 enum CommandFlags {
-	CMD_SERVER    = 0x001, ///< the command can only be initiated by the server
-	CMD_SPECTATOR = 0x002, ///< the command may be initiated by a spectator
-	CMD_OFFLINE   = 0x004, ///< the command cannot be executed in a multiplayer game; single-player only
-	CMD_AUTO      = 0x008, ///< set the DC_AUTO flag on this command
-	CMD_ALL_TILES = 0x010, ///< allow this command also on void tiles
-	CMD_NO_TEST   = 0x020, ///< the command's output may differ between test and execute due to town rating changes etc.
-	CMD_NO_WATER  = 0x040, ///< set the DC_NO_WATER flag on this command
-	CMD_CLIENT_ID = 0x080, ///< set p2 with the ClientID of the sending client.
-	CMD_DEITY     = 0x100, ///< the command may be executed by COMPANY_DEITY
-	CMD_STR_CTRL  = 0x200, ///< the command's string may contain control strings
+	CMDF_SERVER    = 0x001, ///< the command can only be initiated by the server
+	CMDF_SPECTATOR = 0x002, ///< the command may be initiated by a spectator
+	CMDF_OFFLINE   = 0x004, ///< the command cannot be executed in a multiplayer game; single-player only
+	CMDF_AUTO      = 0x008, ///< set the DC_AUTO flag on this command
+	CMDF_ALL_TILES = 0x010, ///< allow this command also on void tiles
+	CMDF_NO_TEST   = 0x020, ///< the command's output may differ between test and execute due to town rating changes etc.
+	CMDF_NO_WATER  = 0x040, ///< set the DC_NO_WATER flag on this command
+	CMDF_CLIENT_ID = 0x080, ///< set p2 with the ClientID of the sending client.
+	CMDF_DEITY     = 0x100, ///< the command may be executed by COMPANY_DEITY
+	CMDF_STR_CTRL  = 0x200, ///< the command's string may contain control strings
 };
 DECLARE_ENUM_AS_BIT_SET(CommandFlags)
 

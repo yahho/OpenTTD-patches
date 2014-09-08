@@ -287,7 +287,7 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 		return false;
 	}
 
-	if (!StrEmpty(text) && (GetCommandFlags(cmd) & CMD_STR_CTRL) == 0) {
+	if (!StrEmpty(text) && (GetCommandFlags(cmd) & CMDF_STR_CTRL) == 0) {
 		/* The string must be valid, i.e. not contain special codes. Since some
 		 * can be made with GSText, make sure the control codes are removed. */
 		::str_validate(const_cast<char *>(text), text + strlen(text), SVS_NONE);
@@ -301,7 +301,7 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 
 #ifdef ENABLE_NETWORK
 	/* Only set p2 when the command does not come from the network. */
-	if (GetCommandFlags(cmd) & CMD_CLIENT_ID && p2 == 0) p2 = UINT32_MAX;
+	if (GetCommandFlags(cmd) & CMDF_CLIENT_ID && p2 == 0) p2 = UINT32_MAX;
 #endif
 
 	/* Try to perform the command. */
