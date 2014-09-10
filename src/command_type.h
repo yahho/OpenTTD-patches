@@ -371,7 +371,6 @@ DECLARE_ENUM_AS_BIT_SET(DoCommandFlag)
  * This enumeration defines some flags which are binary-or'ed on a command.
  */
 enum FlaggedCommands {
-	CMD_NETWORK_COMMAND       = 0x0100, ///< execute the command without sending it on the network
 	CMD_FLAGS_MASK            = 0xFF00, ///< mask for all command flags
 	CMD_ID_MASK               = 0x00FF, ///< mask for the command ID
 };
