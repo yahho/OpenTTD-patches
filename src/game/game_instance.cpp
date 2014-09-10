@@ -244,7 +244,7 @@ void CcGame(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 	Game::GetGameInstance()->Continue();
 }
 
-CommandCallback *GameInstance::GetDoCommandCallback()
+CommandSource GameInstance::GetCommandSource()
 {
-	return &CcGame;
+	return CMDSRC_GS;
 }

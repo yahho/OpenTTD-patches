@@ -226,9 +226,9 @@ protected:
 	virtual void Died();
 
 	/**
-	 * Get the callback handling DoCommands in case of networking.
+	 * Get the command source to be used in DoCommand (to determine the callback)
 	 */
-	virtual CommandCallback *GetDoCommandCallback() = 0;
+	virtual CommandSource GetCommandSource() = 0;
 
 	/**
 	 * Load the dummy script.

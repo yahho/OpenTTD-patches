@@ -31,7 +31,7 @@ public:
 private:
 	/* virtual */ void RegisterAPI();
 	/* virtual */ void Died();
-	/* virtual */ CommandCallback *GetDoCommandCallback();
+	/* virtual */ CommandSource GetCommandSource();
 	/* virtual */ void LoadDummyScript();
 };
 

@@ -305,7 +305,8 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 #endif
 
 	/* Try to perform the command. */
-	CommandCost res = ::DoCommandPInternal(tile, p1, p2, cmd, (_networking && !_generating_world) ? ScriptObject::GetActiveInstance()->GetDoCommandCallback() : NULL, text, estimate_only);
+	CommandCallback *cb = (_networking && !_generating_world) ? (ScriptObject::GetActiveInstance()->GetCommandSource() == CMDSRC_AI ? &CcAI : &CcGame) : NULL;
+	CommandCost res = ::DoCommandPInternal(tile, p1, p2, cmd, cb, text, estimate_only);
 
 	/* We failed; set the error and bail out */
 	if (res.Failed()) {

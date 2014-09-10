@@ -251,7 +251,7 @@ void CcAI(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 	c->ai_instance->Continue();
 }
 
-CommandCallback *AIInstance::GetDoCommandCallback()
+CommandSource AIInstance::GetCommandSource()
 {
-	return &CcAI;
+	return CMDSRC_AI;
 }
