@@ -729,11 +729,13 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendSync()
  */
 NetworkRecvStatus ServerNetworkGameSocketHandler::SendCommand(const CommandPacket *cp)
 {
+	assert((cp->cmdsrc == CMDSRC_NETWORK_SELF) || (cp->cmdsrc == CMDSRC_NETWORK_OTHER));
+
 	Packet *p = new Packet(PACKET_SERVER_COMMAND);
 
 	this->NetworkGameSocketHandler::SendCommand(p, cp);
 	p->Send_uint32(cp->frame);
-	p->Send_bool  (cp->my_cmd);
+	p->Send_bool  (cp->cmdsrc == CMDSRC_NETWORK_SELF);
 
 	this->SendPacket(p);
 	return NETWORK_RECV_STATUS_OKAY;

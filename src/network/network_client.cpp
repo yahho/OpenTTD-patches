@@ -924,7 +924,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_COMMAND(Packet 
 	CommandPacket cp;
 	const char *err = this->ReceiveCommand(p, &cp);
 	cp.frame    = p->Recv_uint32();
-	cp.my_cmd   = p->Recv_bool();
+	cp.cmdsrc   = p->Recv_bool() ? CMDSRC_NETWORK_SELF : CMDSRC_NETWORK_OTHER;
 
 	if (err != NULL) {
 		IConsolePrintF(CC_ERROR, "WARNING: %s from server, dropping...", err);

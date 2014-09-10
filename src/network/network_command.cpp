@@ -135,10 +135,12 @@ static CommandQueue _local_execution_queue;
  * @param callback A callback function to call after the command is finished
  * @param text The text to pass
  * @param company The company that wants to send the command
+ * @param cmdsrc Source of the command
  */
-void NetworkSendCommand(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallback *callback, const char *text, CompanyID company)
+void NetworkSendCommand(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallback *callback, const char *text, CompanyID company, CommandSource cmdsrc)
 {
 	assert((cmd & CMD_FLAGS_MASK) == 0);
+	assert(cmdsrc_is_local(cmdsrc));
 
 	CommandPacket c;
 	c.company  = company;
@@ -158,7 +160,7 @@ void NetworkSendCommand(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, Comman
 		 *   which gives about the same speed as most clients.
 		 */
 		c.frame = _frame_counter_max + 1;
-		c.my_cmd = true;
+		c.cmdsrc = cmdsrc;
 
 		_local_wait_queue.Append(&c);
 		return;
@@ -184,6 +186,7 @@ void NetworkSyncCommandQueue(NetworkClientSocket *cs)
 	for (CommandPacket *p = _local_execution_queue.Peek(); p != NULL; p = p->next) {
 		CommandPacket c = *p;
 		c.callback = 0;
+		c.cmdsrc = CMDSRC_NETWORK_OTHER;
 		cs->outgoing_queue.Append(&c);
 	}
 }
@@ -211,7 +214,7 @@ void NetworkExecuteLocalCommandQueue()
 
 		/* We can execute this command */
 		_current_company = cp->company;
-		DoCommandP(cp, true, cp->my_cmd);
+		DoCommandP(cp, cp->cmdsrc);
 
 		queue.Pop();
 		free(cp);
@@ -237,7 +240,15 @@ void NetworkFreeLocalCommandQueue()
  */
 static void DistributeCommandPacket(CommandPacket &cp, const NetworkClientSocket *owner)
 {
+	/*
+	 * Commands in distribution queues are always local.
+	 * For client commands, they are implicitly local.
+	 * For commands from the server, they must have a valid local source.
+	 */
+	if (owner == NULL) assert(cmdsrc_is_local(cp.cmdsrc));
+
 	CommandCallback *callback = cp.callback;
+	CommandSource cmdsrc = cp.cmdsrc;
 	cp.frame = _frame_counter_max + 1;
 
 	NetworkClientSocket *cs;
@@ -246,13 +257,21 @@ static void DistributeCommandPacket(CommandPacket &cp, const NetworkClientSocket
 			/* Callbacks are only send back to the client who sent them in the
 			 *  first place. This filters that out. */
 			cp.callback = (cs != owner) ? NULL : callback;
-			cp.my_cmd = (cs == owner);
+			cp.cmdsrc = (cs == owner) ? CMDSRC_NETWORK_SELF : CMDSRC_NETWORK_OTHER;
 			cs->outgoing_queue.Append(&cp);
 		}
 	}
 
-	cp.callback = (cs != owner) ? NULL : callback;
-	cp.my_cmd = (cs == owner);
+	assert(cs == NULL);
+
+	if (owner == NULL) {
+		cp.callback = callback;
+		cp.cmdsrc = cmdsrc_make_network (cmdsrc);
+	} else {
+		cp.callback = NULL;
+		cp.cmdsrc = CMDSRC_NETWORK_OTHER;
+	}
+
 	_local_execution_queue.Append(&cp);
 }
 

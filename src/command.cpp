@@ -517,20 +517,18 @@ Money GetAvailableMoneyForCommand()
 /**
  * Shortcut for the long DoCommandP when having a container with the data.
  * @param container the container with information.
- * @param from_network whether the command comes from the network
- * @param my_cmd indicator if the command is from a company or server (to display error messages for a user)
+ * @param cmdsrc Source of the command
  * @return true if the command succeeded, else false
  */
-bool DoCommandP(const CommandContainer *container, bool from_network, bool my_cmd)
+bool DoCommandP(const CommandContainer *container, CommandSource cmdsrc)
 {
-	return DoCommandP(container->tile, container->p1, container->p2, container->cmd, container->callback, container->text, from_network, my_cmd);
+	return DoCommandP(container->tile, container->p1, container->p2, container->cmd, container->callback, container->text, cmdsrc);
 }
 
 /*!
  * Toplevel network safe docommand function for the current company. Must not be called recursively.
  * The callback is called when the command succeeded or failed. The parameters
  * \a tile, \a p1, and \a p2 are from the #CommandProc function. The parameter \a cmd is the command to execute.
- * The parameter \a my_cmd is used to indicate if the command is from a company or the server.
  *
  * @param tile The tile to perform a command on (see #CommandProc)
  * @param p1 Additional data for the command (see #CommandProc)
@@ -538,14 +536,11 @@ bool DoCommandP(const CommandContainer *container, bool from_network, bool my_cm
  * @param cmd The command to execute (a CMD_* value)
  * @param callback A callback function to call after the command is finished
  * @param text The text to pass
- * @param from_network whether the command comes from the network
- * @param my_cmd indicator if the command is from a company or server (to display error messages for a user)
+ * @param cmdsrc Source of the command
  * @return \c true if the command succeeded, else \c false.
  */
-bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallback *callback, const char *text, bool from_network, bool my_cmd)
+bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallback *callback, const char *text, CommandSource cmdsrc)
 {
-	assert(from_network || my_cmd);
-
 	/* Cost estimation is generally only done when the
 	 * local user presses shift while doing somthing.
 	 * However, in case of incoming network commands,
@@ -553,12 +548,12 @@ bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallbac
 	 * to execute. */
 	bool estimate_only = _shift_pressed && IsLocalCompany() &&
 			!_generating_world &&
-			!from_network &&
+			cmdsrc_is_local(cmdsrc) &&
 			(cmd & CMD_ID_MASK) != CMD_PAUSE;
 
 	/* We're only sending the command, so don't do
 	 * fancy things for 'success'. */
-	bool only_sending = _networking && !from_network;
+	bool only_sending = _networking && cmdsrc_is_local(cmdsrc);
 
 	/* Where to show the message? */
 	int x = TileX(tile) * TILE_SIZE;
@@ -571,14 +566,14 @@ bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallbac
 
 #ifdef ENABLE_NETWORK
 	/* Only set p2 when the command does not come from the network. */
-	if (!from_network && GetCommandFlags(cmd) & CMDF_CLIENT_ID && p2 == 0) p2 = CLIENT_ID_SERVER;
+	if (cmdsrc_is_local(cmdsrc) && GetCommandFlags(cmd) & CMDF_CLIENT_ID && p2 == 0) p2 = CLIENT_ID_SERVER;
 #endif
 
-	CommandCost res = DoCommandPInternal(tile, p1, p2, cmd, callback, text, estimate_only, from_network);
+	CommandCost res = DoCommandPInternal(tile, p1, p2, cmd, callback, text, estimate_only, cmdsrc);
 	if (res.Failed()) {
 		/* Only show the error when it's for us. */
 		StringID error_part1 = GB(cmd, 16, 16);
-		if (estimate_only || (IsLocalCompany() && error_part1 != 0 && my_cmd)) {
+		if (estimate_only || (IsLocalCompany() && error_part1 != 0 && cmdsrc_get_type(cmdsrc) == CMDSRC_SELF)) {
 			ShowErrorMessage(error_part1, res.GetErrorMessage(), WL_INFO, x, y, res.GetTextRefStackGRF(), res.GetTextRefStackSize(), res.GetTextRefStack());
 		}
 	} else if (estimate_only) {
@@ -617,12 +612,12 @@ bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallbac
  * @param callback A callback function to call after the command is finished
  * @param text The text to pass
  * @param estimate_only whether to give only the estimate or also execute the command
- * @param from_network whether the command comes from the network
+ * @param cmdsrc Source of the command
  * @return the command cost of this function.
  */
-CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallback *callback, const char *text, bool estimate_only, bool from_network)
+CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallback *callback, const char *text, bool estimate_only, CommandSource cmdsrc)
 {
-	assert(!estimate_only || !from_network);
+	assert(!estimate_only || cmdsrc_is_local(cmdsrc));
 
 	/* Prevent recursion; it gives a mess over the network */
 	assert(_docommand_recursive == 0);
@@ -686,7 +681,7 @@ CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd,
 	 * we bail out here. */
 	if (res.Failed() || estimate_only ||
 			(!test_and_exec_can_differ && !CheckCompanyHasMoney(res))) {
-		if (!_networking || _generating_world || from_network) {
+		if (!_networking || _generating_world || !cmdsrc_is_local(cmdsrc)) {
 			/* Log the failed command as well. Just to be able to be find
 			 * causes of desyncs due to bad command test implementations. */
 			DEBUG(desync, 1, "cmdf: %08x; %02x; %02x; %06x; %08x; %08x; %08x; \"%s\" (%s)", _date, _date_fract, (int)_current_company, tile, p1, p2, cmd, text, GetCommandName(cmd));
@@ -700,8 +695,8 @@ CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd,
 	 * If we are in network, and the command is not from the network
 	 * send it to the command-queue and abort execution
 	 */
-	if (_networking && !_generating_world && !from_network) {
-		NetworkSendCommand(tile, p1, p2, cmd & ~CMD_FLAGS_MASK, callback, text, _current_company);
+	if (_networking && !_generating_world && cmdsrc_is_local(cmdsrc)) {
+		NetworkSendCommand(tile, p1, p2, cmd & ~CMD_FLAGS_MASK, callback, text, _current_company, cmdsrc);
 		cur_company.Restore();
 
 		/* Don't return anything special here; no error, no costs.
