@@ -114,15 +114,12 @@ CommandCallback CcBuildRoadTunnel;
 CommandCallback CcRoadDepot;
 CommandCallback CcRoadStop;
 
-/* train_gui.cpp */
-CommandCallback CcBuildWagon;
-
 /* town_gui.cpp */
 CommandCallback CcFoundTown;
 CommandCallback CcFoundRandomTown;
 
 /* vehicle_gui.cpp */
-CommandCallback CcBuildPrimaryVehicle;
+CommandCallback CcBuildVehicle;
 CommandCallback CcStartStopVehicle;
 
 #endif /* COMMAND_FUNC_H */

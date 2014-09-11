@@ -2784,18 +2784,40 @@ void StopGlobalFollowVehicle(const Vehicle *v)
 
 
 /**
- * This is the Callback method after the construction attempt of a primary vehicle
- * @param result indicates completion (or not) of the operation
- * @param tile unused
- * @param p1 unused
- * @param p2 unused
+ * Callback for building a vehicle
+ * @param result The result of the command.
+ * @param tile   The tile the command was executed on.
+ * @param p1 Additional data for the command (for the #CommandProc)
+ * @param p2 Additional data for the command (for the #CommandProc)
  */
-void CcBuildPrimaryVehicle(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcBuildVehicle(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 {
 	if (result.Failed()) return;
 
-	const Vehicle *v = Vehicle::Get(_new_vehicle_id);
-	ShowVehicleViewWindow(v);
+	if (!IsRailDepotTile(tile) || RailVehInfo(p1)->railveh_type != RAILVEH_WAGON) {
+		/* not a wagon */
+		const Vehicle *v = Vehicle::Get(_new_vehicle_id);
+		ShowVehicleViewWindow(v);
+		return;
+	}
+
+	/* find a locomotive in the depot. */
+	const Vehicle *found = NULL;
+	const Train *t;
+	FOR_ALL_TRAINS(t) {
+		if (t->IsFrontEngine() && t->tile == tile && t->IsStoppedInDepot()) {
+			if (found != NULL) return; // must be exactly one.
+			found = t;
+		}
+	}
+
+	/* if we found a loco, */
+	if (found != NULL) {
+		found = found->Last();
+		/* put the new wagon at the end of the loco. */
+		DoCommandP(0, _new_vehicle_id, found->index, CMD_MOVE_RAIL_VEHICLE);
+		InvalidateWindowClassesData(WC_TRAINS_LIST, 0);
+	}
 }
 
 /**

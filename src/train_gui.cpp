@@ -19,36 +19,6 @@
 #include "table/strings.h"
 
 /**
- * Callback for building wagons.
- * @param result The result of the command.
- * @param tile   The tile the command was executed on.
- * @param p1 Additional data for the command (for the #CommandProc)
- * @param p2 Additional data for the command (for the #CommandProc)
- */
-void CcBuildWagon(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
-{
-	if (result.Failed()) return;
-
-	/* find a locomotive in the depot. */
-	const Vehicle *found = NULL;
-	const Train *t;
-	FOR_ALL_TRAINS(t) {
-		if (t->IsFrontEngine() && t->tile == tile && t->IsStoppedInDepot()) {
-			if (found != NULL) return; // must be exactly one.
-			found = t;
-		}
-	}
-
-	/* if we found a loco, */
-	if (found != NULL) {
-		found = found->Last();
-		/* put the new wagon at the end of the loco. */
-		DoCommandP(0, _new_vehicle_id, found->index, CMD_MOVE_RAIL_VEHICLE);
-		InvalidateWindowClassesData(WC_TRAINS_LIST, 0);
-	}
-}
-
-/**
  * Highlight the position where a rail vehicle is dragged over by drawing a light gray background.
  * @param px        The current x position to draw from.
  * @param max_width The maximum space available to draw.
