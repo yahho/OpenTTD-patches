@@ -153,6 +153,8 @@ void CcBuildIndustry(const CommandCost &result, TileIndex tile, uint32 p1, uint3
 {
 	if (result.Succeeded()) return;
 
+	if (_game_mode != GM_EDITOR) return;
+
 	uint8 indtype = GB(p1, 0, 8);
 	if (indtype < NUM_INDUSTRYTYPES) {
 		const IndustrySpec *indsp = GetIndustrySpec(indtype);
