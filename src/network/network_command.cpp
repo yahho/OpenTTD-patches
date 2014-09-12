@@ -48,6 +48,7 @@ static CommandCallback * const _callback_table[] = {
 	/* 0x17 */ CcStartStopVehicle,
 	/* 0x18 */ CcAddVehicleGroup,
 	/* 0x19 */ CcBuildObject,
+	/* 0x1A */ CcSingleRail,
 };
 
 /**

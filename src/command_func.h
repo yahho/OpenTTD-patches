@@ -107,6 +107,7 @@ CommandCallback CcBuildObject;
 
 /* rail_gui.cpp */
 CommandCallback CcPlaySound1E;
+CommandCallback CcSingleRail;
 CommandCallback CcRailDepot;
 CommandCallback CcStation;
 CommandCallback CcBuildRailTunnel;

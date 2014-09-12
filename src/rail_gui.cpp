@@ -93,6 +93,13 @@ void CcPlaySound1E(const CommandCost &result, TileIndex tile, uint32 p1, uint32 
 	if (result.Succeeded() && _settings_client.sound.confirm) SndPlayTileFx(SND_20_SPLAT_RAIL, tile);
 }
 
+void CcSingleRail(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+{
+	if (HasBit(p1, 31)) return;
+
+	CcPlaySound1E(result, tile, p1, p2);
+}
+
 void CcRailDepot(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 {
 	struct PlaceDepotExtraData {
@@ -119,7 +126,7 @@ void CcRailDepot(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
 	if (IsNormalRailTile(tile) && !HasSignalOnTrack(tile, TRACK_UPPER) && !HasSignalOnTrack(tile, TRACK_LOWER)) {
 		for (int i = 0; i < 3; i++) {
 			if ((GetTrackBits(tile) & DiagdirReachesTracks(place_depot_extra_data[dir][i].dir)) != TRACK_BIT_NONE) {
-				DoCommandP(tile, _cur_railtype, place_depot_extra_data[dir][i].track, CMD_BUILD_SINGLE_RAIL);
+				DoCommandP(tile, _cur_railtype | (1 << 31), place_depot_extra_data[dir][i].track, CMD_BUILD_SINGLE_RAIL);
 			}
 		}
 	}
@@ -343,7 +350,7 @@ static void HandleAutodirPlacement()
 				_remove_button_clicked ?
 				CMD_REMOVE_SINGLE_RAIL | CMD_MSG(STR_ERROR_CAN_T_REMOVE_RAILROAD_TRACK) :
 				CMD_BUILD_SINGLE_RAIL | CMD_MSG(STR_ERROR_CAN_T_BUILD_RAILROAD_TRACK),
-				CcPlaySound1E);
+				CcSingleRail);
 		return;
 	}
 
