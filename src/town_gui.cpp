@@ -960,13 +960,12 @@ void CcFoundTown(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
 {
 	if (result.Failed()) return;
 
-	if (_settings_client.sound.confirm) SndPlayTileFx(SND_1F_SPLAT_OTHER, tile);
-	if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
-}
-
-void CcFoundRandomTown(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
-{
-	if (result.Succeeded()) ScrollMainWindowToTile(Town::Get(_new_town_id)->xy);
+	if (HasBit(p1, 6)) {
+		ScrollMainWindowToTile(Town::Get(_new_town_id)->xy);
+	} else {
+		if (_settings_client.sound.confirm) SndPlayTileFx(SND_1F_SPLAT_OTHER, tile);
+		if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+	}
 }
 
 static const NWidgetPart _nested_found_town_widgets[] = {
@@ -1097,7 +1096,7 @@ public:
 		this->SetDirty();
 	}
 
-	void ExecuteFoundTownCommand(TileIndex tile, bool random, StringID errstr, CommandCallback cc)
+	void ExecuteFoundTownCommand(TileIndex tile, bool random, StringID errstr)
 	{
 		const char *name = NULL;
 
@@ -1111,7 +1110,7 @@ public:
 		}
 
 		bool success = DoCommandP(tile, this->town_size | this->city << 2 | this->town_layout << 3 | random << 6,
-				townnameparts, CMD_FOUND_TOWN | CMD_MSG(errstr), cc, name);
+				townnameparts, CMD_FOUND_TOWN | CMD_MSG(errstr), CcFoundTown, name);
 
 		if (success) this->RandomTownName();
 	}
@@ -1124,7 +1123,7 @@ public:
 				break;
 
 			case WID_TF_RANDOM_TOWN:
-				this->ExecuteFoundTownCommand(0, true, STR_ERROR_CAN_T_GENERATE_TOWN, CcFoundRandomTown);
+				this->ExecuteFoundTownCommand(0, true, STR_ERROR_CAN_T_GENERATE_TOWN);
 				break;
 
 			case WID_TF_TOWN_NAME_RANDOM:
@@ -1163,7 +1162,7 @@ public:
 
 	virtual void OnPlaceObject(Point pt, TileIndex tile)
 	{
-		this->ExecuteFoundTownCommand(tile, false, STR_ERROR_CAN_T_FOUND_TOWN_HERE, CcFoundTown);
+		this->ExecuteFoundTownCommand(tile, false, STR_ERROR_CAN_T_FOUND_TOWN_HERE);
 	}
 
 	virtual void OnPlaceObjectAbort()

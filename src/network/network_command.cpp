@@ -42,13 +42,12 @@ static CommandCallback * const _callback_table[] = {
 	/* 0x11 */ CcCloneVehicle,
 	/* 0x12 */ CcGiveMoney,
 	/* 0x13 */ CcCreateGroup,
-	/* 0x14 */ CcFoundRandomTown,
-	/* 0x15 */ CcRoadStop,
-	/* 0x16 */ CcBuildIndustry,
-	/* 0x17 */ CcStartStopVehicle,
-	/* 0x18 */ CcAddVehicleGroup,
-	/* 0x19 */ CcBuildObject,
-	/* 0x1A */ CcSingleRail,
+	/* 0x14 */ CcRoadStop,
+	/* 0x15 */ CcBuildIndustry,
+	/* 0x16 */ CcStartStopVehicle,
+	/* 0x17 */ CcAddVehicleGroup,
+	/* 0x18 */ CcBuildObject,
+	/* 0x19 */ CcSingleRail,
 };
 
 /**

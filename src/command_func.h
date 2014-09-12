@@ -120,7 +120,6 @@ CommandCallback CcRoadStop;
 
 /* town_gui.cpp */
 CommandCallback CcFoundTown;
-CommandCallback CcFoundRandomTown;
 
 /* vehicle_gui.cpp */
 CommandCallback CcBuildVehicle;
