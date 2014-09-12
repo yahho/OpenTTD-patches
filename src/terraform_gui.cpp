@@ -231,7 +231,7 @@ struct TerraformToolbarWindow : Window {
 				break;
 
 			case WID_TT_BUY_LAND: // Buy land button
-				DoCommandP(tile, OBJECT_OWNED_LAND, 0, CMD_BUILD_OBJECT | CMD_MSG(STR_ERROR_CAN_T_PURCHASE_THIS_LAND), CcPlaySound1E);
+				DoCommandP(tile, OBJECT_OWNED_LAND, 0, CMD_BUILD_OBJECT | CMD_MSG(STR_ERROR_CAN_T_PURCHASE_THIS_LAND), CcBuildObject);
 				break;
 
 			case WID_TT_PLACE_SIGN: // Place sign button

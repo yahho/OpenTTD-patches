@@ -499,5 +499,28 @@ void InitializeObjectGui()
  */
 void PlaceProc_Object(TileIndex tile)
 {
-	DoCommandP(tile, ObjectClass::Get(_selected_object_class)->GetSpec(_selected_object_index)->Index(), _selected_object_view, CMD_BUILD_OBJECT | CMD_MSG(STR_ERROR_CAN_T_BUILD_OBJECT), CcTerraform);
+	DoCommandP(tile, ObjectClass::Get(_selected_object_class)->GetSpec(_selected_object_index)->Index(), _selected_object_view, CMD_BUILD_OBJECT | CMD_MSG(STR_ERROR_CAN_T_BUILD_OBJECT), CcBuildObject);
+}
+
+/**
+ * Command callback. Play a sound depending on the object built.
+ * @param result Result of the command.
+ * @param tile   Tile where the object was built.
+ * @param p1     The type of object built.
+ * @param p2     Unused.
+ */
+void CcBuildObject(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+{
+	switch (GB(p1, 0, 8)) {
+		case OBJECT_HQ:
+			break;
+
+		case OBJECT_OWNED_LAND:
+			CcPlaySound1E(result, tile, p1, p2);
+			break;
+
+		default:
+			CcTerraform(result, tile, p1, p2);
+			break;
+	}
 }

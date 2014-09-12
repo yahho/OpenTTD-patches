@@ -102,6 +102,9 @@ CommandCallback CcPlaceSign;
 CommandCallback CcTerraform;
 CommandCallback CcGiveMoney;
 
+/* object_gui.cpp */
+CommandCallback CcBuildObject;
+
 /* rail_gui.cpp */
 CommandCallback CcPlaySound1E;
 CommandCallback CcRailDepot;
