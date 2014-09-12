@@ -110,11 +110,10 @@ CommandCallback CcPlaySound1E;
 CommandCallback CcSingleRail;
 CommandCallback CcRailDepot;
 CommandCallback CcStation;
-CommandCallback CcBuildRailTunnel;
 
 /* road_gui.cpp */
 CommandCallback CcPlaySound1D;
-CommandCallback CcBuildRoadTunnel;
+CommandCallback CcBuildTunnel;
 CommandCallback CcRoadDepot;
 CommandCallback CcRoadStop;
 

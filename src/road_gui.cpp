@@ -86,7 +86,7 @@ static void PlaceRoad_Bridge(TileIndex tile, Window *w)
 }
 
 /**
- * Callback executed after a build road tunnel command has been called.
+ * Callback executed after a build tunnel command has been called.
  *
  * @param result Whether the build succeeded.
  * @param start_tile Starting tile of the tunnel.
@@ -94,18 +94,22 @@ static void PlaceRoad_Bridge(TileIndex tile, Window *w)
  *           bit 8-9 transport type
  * @param p2 unused
  */
-void CcBuildRoadTunnel(const CommandCost &result, TileIndex start_tile, uint32 p1, uint32 p2)
+void CcBuildTunnel(const CommandCost &result, TileIndex start_tile, uint32 p1, uint32 p2)
 {
 	if (result.Succeeded()) {
-		if (_settings_client.sound.confirm) SndPlayTileFx(SND_1F_SPLAT_OTHER, start_tile);
+		bool road = ((TransportType)GB(p1, 8, 2) == TRANSPORT_ROAD);
+
+		if (_settings_client.sound.confirm) SndPlayTileFx (road ? SND_1F_SPLAT_OTHER : SND_20_SPLAT_RAIL, start_tile);
 		if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
 
-		DiagDirection start_direction = ReverseDiagDir(GetTunnelBridgeDirection(start_tile));
-		ConnectRoadToStructure(start_tile, start_direction);
+		if (road) {
+			DiagDirection start_direction = ReverseDiagDir(GetTunnelBridgeDirection(start_tile));
+			ConnectRoadToStructure(start_tile, start_direction);
 
-		TileIndex end_tile = GetOtherTunnelEnd(start_tile);
-		DiagDirection end_direction = ReverseDiagDir(GetTunnelBridgeDirection(end_tile));
-		ConnectRoadToStructure(end_tile, end_direction);
+			TileIndex end_tile = GetOtherTunnelEnd(start_tile);
+			DiagDirection end_direction = ReverseDiagDir(GetTunnelBridgeDirection(end_tile));
+			ConnectRoadToStructure(end_tile, end_direction);
+		}
 	} else {
 		SetRedErrorSquare(_build_tunnel_endtile);
 	}
@@ -528,7 +532,7 @@ struct BuildRoadToolbarWindow : Window {
 
 			case WID_ROT_BUILD_TUNNEL:
 				DoCommandP(tile, RoadTypeToRoadTypes(_cur_roadtype) | (TRANSPORT_ROAD << 8), 0,
-						CMD_BUILD_TUNNEL | CMD_MSG(STR_ERROR_CAN_T_BUILD_TUNNEL_HERE), CcBuildRoadTunnel);
+						CMD_BUILD_TUNNEL | CMD_MSG(STR_ERROR_CAN_T_BUILD_TUNNEL_HERE), CcBuildTunnel);
 				break;
 
 			default: NOT_REACHED();

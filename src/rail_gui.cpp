@@ -261,17 +261,6 @@ static void PlaceRail_Bridge(TileIndex tile, Window *w)
 	}
 }
 
-/** Command callback for building a tunnel */
-void CcBuildRailTunnel(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
-{
-	if (result.Succeeded()) {
-		if (_settings_client.sound.confirm) SndPlayTileFx(SND_20_SPLAT_RAIL, tile);
-		if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
-	} else {
-		SetRedErrorSquare(_build_tunnel_endtile);
-	}
-}
-
 /**
  * Toggles state of the Remove button of Build rail toolbar
  * @param w window the button belongs to
@@ -645,7 +634,7 @@ struct BuildRailToolbarWindow : Window {
 				break;
 
 			case WID_RAT_BUILD_TUNNEL:
-				DoCommandP(tile, _cur_railtype | (TRANSPORT_RAIL << 8), 0, CMD_BUILD_TUNNEL | CMD_MSG(STR_ERROR_CAN_T_BUILD_TUNNEL_HERE), CcBuildRailTunnel);
+				DoCommandP(tile, _cur_railtype | (TRANSPORT_RAIL << 8), 0, CMD_BUILD_TUNNEL | CMD_MSG(STR_ERROR_CAN_T_BUILD_TUNNEL_HERE), CcBuildTunnel);
 				break;
 
 			case WID_RAT_CONVERT_RAIL:
