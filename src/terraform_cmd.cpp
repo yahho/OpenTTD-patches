@@ -245,7 +245,7 @@ CommandCost CmdTerraformLand(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 	_terraform_err_tile = INVALID_TILE;
 
 	CommandCost total_cost(EXPENSES_CONSTRUCTION);
-	int direction = (p2 != 0 ? 1 : -1);
+	int direction = HasBit(p2, 0) ? 1 : -1;
 	TerraformerState ts;
 
 	ts.modheight_count = ts.tile_table_count = 0;

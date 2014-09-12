@@ -46,6 +46,13 @@ void CcTerraform(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
 	}
 }
 
+void CcTerraformLand(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+{
+	if (HasBit(p2, 31)) return;
+
+	CcTerraform(result, tile, p1, p2);
+}
+
 
 /** Scenario editor command that generates desert areas */
 static void GenerateDesertArea(TileIndex end, TileIndex start)
@@ -393,7 +400,7 @@ static void CommonRaiseLowerBigLand(TileIndex tile, int mode)
 		StringID msg =
 			mode ? STR_ERROR_CAN_T_RAISE_LAND_HERE : STR_ERROR_CAN_T_LOWER_LAND_HERE;
 
-		DoCommandP(tile, SLOPE_N, (uint32)mode, CMD_TERRAFORM_LAND | CMD_MSG(msg), CcTerraform);
+		DoCommandP(tile, SLOPE_N, (uint32)mode, CMD_TERRAFORM_LAND | CMD_MSG(msg), CcTerraformLand);
 	} else {
 		assert(_terraform_size != 0);
 		TileArea ta(tile, _terraform_size, _terraform_size);
@@ -420,7 +427,7 @@ static void CommonRaiseLowerBigLand(TileIndex tile, int mode)
 
 		TILE_AREA_LOOP(tile2, ta) {
 			if (TileHeight(tile2) == h) {
-				DoCommandP(tile2, SLOPE_N, (uint32)mode, CMD_TERRAFORM_LAND);
+				DoCommandP(tile2, SLOPE_N, (uint32)mode | (1 << 31), CMD_TERRAFORM_LAND);
 			}
 		}
 	}

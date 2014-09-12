@@ -100,6 +100,7 @@ CommandCallback CcBuildIndustry;
 CommandCallback CcPlaySound10;
 CommandCallback CcPlaceSign;
 CommandCallback CcTerraform;
+CommandCallback CcTerraformLand;
 CommandCallback CcGiveMoney;
 
 /* object_gui.cpp */
