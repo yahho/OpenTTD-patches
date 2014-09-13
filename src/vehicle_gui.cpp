@@ -2352,6 +2352,8 @@ void CcStartStopVehicle(const CommandCost &result, TileIndex tile, uint32 p1, ui
 {
 	if (result.Failed()) return;
 
+	if (p2 == 0) return;
+
 	const Vehicle *v = Vehicle::GetIfValid(p1);
 	if (v == NULL || !v->IsPrimaryVehicle() || v->owner != _local_company) return;
 
@@ -2368,7 +2370,7 @@ void CcStartStopVehicle(const CommandCost &result, TileIndex tile, uint32 p1, ui
 void StartStopVehicle(const Vehicle *v, bool texteffect)
 {
 	assert(v->IsPrimaryVehicle());
-	DoCommandP(v->tile, v->index, 0, _vehicle_command_startstop_table[v->type], texteffect ? CcStartStopVehicle : NULL);
+	DoCommandP(v->tile, v->index, texteffect ? 1 : 0, _vehicle_command_startstop_table[v->type], CcStartStopVehicle);
 }
 
 /** Checks whether the vehicle may be refitted at the moment.*/
