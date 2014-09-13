@@ -2678,9 +2678,9 @@ public:
 				 * There is no point to it except for starting the vehicle.
 				 * For starting the vehicle the player has to open the depot GUI, which is
 				 * most likely already open, but is also visible in the vehicle viewport. */
-				DoCommandP(v->tile, v->index, _ctrl_pressed ? 1 : 0,
+				DoCommandP(v->tile, v->index, _ctrl_pressed ? (1 | (1 << 31)) : 0,
 										_vehicle_command_clone_table[v->type],
-										_ctrl_pressed ? NULL : CcCloneVehicle);
+										CcCloneVehicle);
 				break;
 			case WID_VV_TURN_AROUND: // turn around
 				assert(v->IsGroundVehicle());

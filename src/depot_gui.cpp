@@ -120,6 +120,8 @@ void CcCloneVehicle(const CommandCost &result, TileIndex tile, uint32 p1, uint32
 {
 	if (result.Failed()) return;
 
+	if (HasBit(p2, 31)) return;
+
 	const Vehicle *v = Vehicle::Get(_new_vehicle_id);
 
 	ShowVehicleViewWindow(v);
