@@ -1434,7 +1434,7 @@ static SettingsPage _settings_sound_page = {_settings_sound, lengthof(_settings_
 
 static SettingEntry _settings_interface_general[] = {
 	SettingEntry("gui.osk_activation"),
-	SettingEntry("gui.hover_delay"),
+	SettingEntry("gui.hover_delay_ms"),
 	SettingEntry("gui.errmsg_duration"),
 	SettingEntry("gui.window_snap_radius"),
 	SettingEntry("gui.window_soft_limit"),
