@@ -1258,7 +1258,7 @@ struct BuildVehicleWindow : Window {
 			case WID_BV_BUILD: {
 				EngineID sel_eng = this->sel_engine;
 				if (sel_eng != INVALID_ENGINE) {
-					DoCommandP(this->window_number, sel_eng, 0, GetCmdBuildVeh(this->vehicle_type), CcBuildVehicle);
+					DoCommandP(this->window_number, sel_eng, 0, GetCmdBuildVeh(this->vehicle_type));
 				}
 				break;
 			}
@@ -1378,7 +1378,7 @@ struct BuildVehicleWindow : Window {
 	{
 		if (str == NULL) return;
 
-		DoCommandP(0, this->rename_engine, 0, CMD_RENAME_ENGINE | CMD_MSG(STR_ERROR_CAN_T_RENAME_TRAIN_TYPE + this->vehicle_type), NULL, str);
+		DoCommandP(0, this->rename_engine, 0, CMD_RENAME_ENGINE | CMD_MSG(STR_ERROR_CAN_T_RENAME_TRAIN_TYPE + this->vehicle_type), str);
 	}
 
 	virtual void OnDropdownSelect(int widget, int index)

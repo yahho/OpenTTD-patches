@@ -438,19 +438,6 @@ enum CommandPauseLevel {
 typedef CommandCost CommandProc(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text);
 
 /**
- * Define a command with the flags which belongs to it.
- *
- * This struct connect a command handler function with the flags created with
- * the #CMD_AUTO, #CMD_OFFLINE and #CMD_SERVER values.
- */
-struct Command {
-	CommandProc *proc;  ///< The procedure to actually executing
-	const char *name;   ///< A human readable name for the procedure
-	CommandFlags flags; ///< The (command) flags to that apply to this command
-	CommandType type;   ///< The type of command.
-};
-
-/**
  * Define a callback function for the client, after the command is finished.
  *
  * Functions of this type are called after the command is finished. The parameters
@@ -464,6 +451,20 @@ struct Command {
  * @see CommandProc
  */
 typedef void CommandCallback(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2);
+
+/**
+ * Define a command with the flags which belongs to it.
+ *
+ * This struct connect a command handler function with the flags created with
+ * the #CMD_AUTO, #CMD_OFFLINE and #CMD_SERVER values.
+ */
+struct Command {
+	CommandProc *proc;  ///< The procedure to actually executing
+	const char *name;   ///< A human readable name for the procedure
+	CommandFlags flags; ///< The (command) flags to that apply to this command
+	CommandType type;   ///< The type of command.
+	CommandCallback *callback; ///< The callback to run on command completion
+};
 
 
 /**
@@ -517,7 +518,6 @@ struct CommandContainer {
 	uint32 p1;                       ///< parameter p1.
 	uint32 p2;                       ///< parameter p2.
 	uint32 cmd;                      ///< command being executed.
-	CommandCallback *callback;       ///< any callback function executed upon successful completion of the command.
 	char text[32 * MAX_CHAR_LENGTH]; ///< possible text sent for name changes etc, in bytes including '\0'.
 };
 

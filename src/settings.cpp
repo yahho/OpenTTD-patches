@@ -1939,7 +1939,7 @@ void SyncCompanySettings()
 		const void *new_var = sd->save.get_variable_address (&_settings_client.company);
 		uint32 old_value = (uint32)ReadValue(old_var, sd->save.conv);
 		uint32 new_value = (uint32)ReadValue(new_var, sd->save.conv);
-		if (old_value != new_value) NetworkSendCommand(0, i, new_value, CMD_CHANGE_COMPANY_SETTING, NULL, NULL, _local_company);
+		if (old_value != new_value) NetworkSendCommand(0, i, new_value, CMD_CHANGE_COMPANY_SETTING, NULL, _local_company);
 	}
 }
 #endif /* ENABLE_NETWORK */

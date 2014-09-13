@@ -603,7 +603,7 @@ static CallBackFunction MenuClickCompany(int index)
 				if (_network_server) {
 					DoCommandP(0, 0, _network_own_client_id, CMD_COMPANY_CTRL);
 				} else {
-					NetworkSendCommand(0, 0, 0, CMD_COMPANY_CTRL, NULL, NULL, _local_company);
+					NetworkSendCommand(0, 0, 0, CMD_COMPANY_CTRL, NULL, _local_company);
 				}
 				return CBF_NONE;
 

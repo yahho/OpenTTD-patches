@@ -563,7 +563,7 @@ public:
 			_ignore_restrictions = true;
 
 			DoCommandP(tile, (InteractiveRandomRange(indsp->num_table) << 8) | this->selected_type, seed,
-					CMD_BUILD_INDUSTRY | CMD_MSG(STR_ERROR_CAN_T_CONSTRUCT_THIS_INDUSTRY), &CcBuildIndustry);
+					CMD_BUILD_INDUSTRY | CMD_MSG(STR_ERROR_CAN_T_CONSTRUCT_THIS_INDUSTRY));
 
 			cur_company.Restore();
 			_ignore_restrictions = false;

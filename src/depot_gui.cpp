@@ -779,7 +779,7 @@ struct DepotWindow : Window {
 		if (str == NULL) return;
 
 		/* Do depot renaming */
-		DoCommandP(0, GetDepotIndex(this->window_number), 0, CMD_RENAME_DEPOT | CMD_MSG(STR_ERROR_CAN_T_RENAME_DEPOT), NULL, str);
+		DoCommandP(0, GetDepotIndex(this->window_number), 0, CMD_RENAME_DEPOT | CMD_MSG(STR_ERROR_CAN_T_RENAME_DEPOT), str);
 	}
 
 	virtual bool OnRightClick(Point pt, int widget)
@@ -843,7 +843,7 @@ struct DepotWindow : Window {
 	 */
 	virtual bool OnVehicleSelect(const Vehicle *v)
 	{
-		if (DoCommandP(this->window_number, v->index, _ctrl_pressed ? 1 : 0, CMD_CLONE_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_BUY_TRAIN + v->type), CcCloneVehicle)) {
+		if (DoCommandP(this->window_number, v->index, _ctrl_pressed ? 1 : 0, CMD_CLONE_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_BUY_TRAIN + v->type))) {
 			ResetObjectToPlace();
 		}
 		return true;

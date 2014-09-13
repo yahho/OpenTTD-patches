@@ -526,7 +526,7 @@ public:
 	{
 		if (str == NULL) return;
 
-		DoCommandP(0, this->window_number, 0, CMD_RENAME_TOWN | CMD_MSG(STR_ERROR_CAN_T_RENAME_TOWN), NULL, str);
+		DoCommandP(0, this->window_number, 0, CMD_RENAME_TOWN | CMD_MSG(STR_ERROR_CAN_T_RENAME_TOWN), str);
 	}
 };
 
@@ -1110,7 +1110,7 @@ public:
 		}
 
 		bool success = DoCommandP(tile, this->town_size | this->city << 2 | this->town_layout << 3 | random << 6,
-				townnameparts, CMD_FOUND_TOWN | CMD_MSG(errstr), CcFoundTown, name);
+				townnameparts, CMD_FOUND_TOWN | CMD_MSG(errstr), name);
 
 		if (success) this->RandomTownName();
 	}

@@ -20,36 +20,6 @@
 #include "../company_func.h"
 #include "../settings_type.h"
 
-/** Table with all the callbacks we'll use for conversion*/
-static CommandCallback * const _callback_table[] = {
-	/* 0x00 */ NULL,
-	/* 0x01 */ CcBuildVehicle,
-	/* 0x02 */ CcBuildAirport,
-	/* 0x03 */ CcBuildBridge,
-	/* 0x04 */ CcBuildCanal,
-	/* 0x05 */ CcBuildDocks,
-	/* 0x06 */ CcFoundTown,
-	/* 0x07 */ CcBuildTunnel,
-	/* 0x08 */ CcRoadDepot,
-	/* 0x09 */ CcRailDepot,
-	/* 0x0A */ CcPlaceSign,
-	/* 0x0B */ CcPlaySound10,
-	/* 0x0C */ CcPlaySound1D,
-	/* 0x0D */ CcPlaySound1E,
-	/* 0x0E */ CcStation,
-	/* 0x0F */ CcTerraform,
-	/* 0x10 */ CcTerraformLand,
-	/* 0x11 */ CcCloneVehicle,
-	/* 0x12 */ CcGiveMoney,
-	/* 0x13 */ CcCreateGroup,
-	/* 0x14 */ CcRoadStop,
-	/* 0x15 */ CcBuildIndustry,
-	/* 0x16 */ CcStartStopVehicle,
-	/* 0x17 */ CcAddVehicleGroup,
-	/* 0x18 */ CcBuildObject,
-	/* 0x19 */ CcSingleRail,
-};
-
 /**
  * Append a CommandPacket at the end of the queue.
  * @param p The packet to append to the queue.
@@ -130,12 +100,11 @@ static CommandQueue _local_execution_queue;
  * @param p1 Additional data for the command (see #CommandProc)
  * @param p2 Additional data for the command (see #CommandProc)
  * @param cmd The command to execute (a CMD_* value)
- * @param callback A callback function to call after the command is finished
  * @param text The text to pass
  * @param company The company that wants to send the command
  * @param cmdsrc Source of the command
  */
-void NetworkSendCommand(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallback *callback, const char *text, CompanyID company, CommandSource cmdsrc)
+void NetworkSendCommand(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text, CompanyID company, CommandSource cmdsrc)
 {
 	assert((cmd & CMD_FLAGS_MASK) == 0);
 	assert(cmdsrc_is_local(cmdsrc));
@@ -146,7 +115,6 @@ void NetworkSendCommand(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, Comman
 	c.p1       = p1;
 	c.p2       = p2;
 	c.cmd      = cmd;
-	c.callback = callback;
 
 	bstrcpy (c.text, (text != NULL) ? text : "");
 
@@ -183,7 +151,6 @@ void NetworkSyncCommandQueue(NetworkClientSocket *cs)
 {
 	for (CommandPacket *p = _local_execution_queue.Peek(); p != NULL; p = p->next) {
 		CommandPacket c = *p;
-		c.callback = 0;
 		c.cmdsrc = CMDSRC_NETWORK_OTHER;
 		cs->outgoing_queue.Append(&c);
 	}
@@ -245,7 +212,6 @@ static void DistributeCommandPacket(CommandPacket &cp, const NetworkClientSocket
 	 */
 	if (owner == NULL) assert(cmdsrc_is_local(cp.cmdsrc));
 
-	CommandCallback *callback = cp.callback;
 	CommandSource cmdsrc = cp.cmdsrc;
 	cp.frame = _frame_counter_max + 1;
 
@@ -254,7 +220,6 @@ static void DistributeCommandPacket(CommandPacket &cp, const NetworkClientSocket
 		if (cs->status >= NetworkClientSocket::STATUS_MAP) {
 			/* Callbacks are only send back to the client who sent them in the
 			 *  first place. This filters that out. */
-			cp.callback = (cs != owner) ? NULL : callback;
 			cp.cmdsrc = (cs == owner) ? CMDSRC_NETWORK_SELF : CMDSRC_NETWORK_OTHER;
 			cs->outgoing_queue.Append(&cp);
 		}
@@ -262,13 +227,7 @@ static void DistributeCommandPacket(CommandPacket &cp, const NetworkClientSocket
 
 	assert(cs == NULL);
 
-	if (owner == NULL) {
-		cp.callback = callback;
-		cp.cmdsrc = cmdsrc_make_network (cmdsrc);
-	} else {
-		cp.callback = NULL;
-		cp.cmdsrc = CMDSRC_NETWORK_OTHER;
-	}
+	cp.cmdsrc = (owner == NULL) ? cmdsrc_make_network (cmdsrc) : CMDSRC_NETWORK_OTHER;
 
 	_local_execution_queue.Append(&cp);
 }
@@ -327,10 +286,6 @@ const char *NetworkGameSocketHandler::ReceiveCommand(Packet *p, CommandPacket *c
 	cp->tile    = p->Recv_uint32();
 	p->Recv_string(cp->text, lengthof(cp->text), (!_network_server && GetCommandFlags(cp->cmd) & CMDF_STR_CTRL) != 0 ? SVS_ALLOW_CONTROL_CODE | SVS_REPLACE_WITH_QUESTION_MARK : SVS_REPLACE_WITH_QUESTION_MARK);
 
-	byte callback = p->Recv_uint8();
-	if (callback >= lengthof(_callback_table))  return "invalid callback";
-
-	cp->callback = _callback_table[callback];
 	return NULL;
 }
 
@@ -347,17 +302,6 @@ void NetworkGameSocketHandler::SendCommand(Packet *p, const CommandPacket *cp)
 	p->Send_uint32(cp->p2);
 	p->Send_uint32(cp->tile);
 	p->Send_string(cp->text);
-
-	byte callback = 0;
-	while (callback < lengthof(_callback_table) && _callback_table[callback] != cp->callback) {
-		callback++;
-	}
-
-	if (callback == lengthof(_callback_table)) {
-		DEBUG(net, 0, "Unknown callback. (Pointer: %p) No callback sent", cp->callback);
-		callback = 0; // _callback_table[0] == NULL
-	}
-	p->Send_uint8 (callback);
 }
 
 #endif /* ENABLE_NETWORK */

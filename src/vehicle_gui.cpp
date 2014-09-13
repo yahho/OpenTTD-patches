@@ -2197,7 +2197,7 @@ struct VehicleDetailsWindow : Window {
 	{
 		if (str == NULL) return;
 
-		DoCommandP(0, this->window_number, 0, CMD_RENAME_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_RENAME_TRAIN + Vehicle::Get(this->window_number)->type), NULL, str);
+		DoCommandP(0, this->window_number, 0, CMD_RENAME_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_RENAME_TRAIN + Vehicle::Get(this->window_number)->type), str);
 	}
 
 	virtual void OnResize()
@@ -2370,7 +2370,7 @@ void CcStartStopVehicle(const CommandCost &result, TileIndex tile, uint32 p1, ui
 void StartStopVehicle(const Vehicle *v, bool texteffect)
 {
 	assert(v->IsPrimaryVehicle());
-	DoCommandP(v->tile, v->index, texteffect ? 1 : 0, _vehicle_command_startstop_table[v->type], CcStartStopVehicle);
+	DoCommandP(v->tile, v->index, texteffect ? 1 : 0, _vehicle_command_startstop_table[v->type]);
 }
 
 /** Checks whether the vehicle may be refitted at the moment.*/
@@ -2679,8 +2679,7 @@ public:
 				 * For starting the vehicle the player has to open the depot GUI, which is
 				 * most likely already open, but is also visible in the vehicle viewport. */
 				DoCommandP(v->tile, v->index, _ctrl_pressed ? (1 | (1 << 31)) : 0,
-										_vehicle_command_clone_table[v->type],
-										CcCloneVehicle);
+						_vehicle_command_clone_table[v->type]);
 				break;
 			case WID_VV_TURN_AROUND: // turn around
 				assert(v->IsGroundVehicle());

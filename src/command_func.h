@@ -37,13 +37,13 @@ static const CommandCost CMD_ERROR = CommandCost(INVALID_STRING_ID);
 CommandCost DoCommand(TileIndex tile, uint32 p1, uint32 p2, DoCommandFlag flags, uint32 cmd, const char *text = NULL);
 CommandCost DoCommand(const CommandContainer *container, DoCommandFlag flags);
 
-bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallback *callback = NULL, const char *text = NULL, CommandSource cmdsrc = CMDSRC_SELF);
+bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text = NULL, CommandSource cmdsrc = CMDSRC_SELF);
 bool DoCommandP(const CommandContainer *container, CommandSource cmdsrc = CMDSRC_SELF);
 
-CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallback *callback, const char *text, bool estimate_only, CommandSource cmdsrc = CMDSRC_SELF);
+CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text, bool estimate_only, CommandSource cmdsrc = CMDSRC_SELF);
 
 #ifdef ENABLE_NETWORK
-void NetworkSendCommand(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallback *callback, const char *text, CompanyID company, CommandSource cmdsrc = CMDSRC_SELF);
+void NetworkSendCommand(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text, CompanyID company, CommandSource cmdsrc = CMDSRC_SELF);
 #endif /* ENABLE_NETWORK */
 
 extern Money _additional_cash_required;
