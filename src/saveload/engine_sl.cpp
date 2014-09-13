@@ -12,7 +12,7 @@
 #include "../stdafx.h"
 #include "saveload_internal.h"
 #include "../engine_base.h"
-#include <map>
+#include <vector>
 
 static const SaveLoad _engine_desc[] = {
 	 SLE_VAR(Engine, intro_date,          SLE_FILE_U16 | SLE_VAR_I32,  , ,  0,  30),
@@ -44,10 +44,21 @@ static const SaveLoad _engine_desc[] = {
 	SLE_END()
 };
 
-static std::map<EngineID, Engine> _temp_engine;
+static std::vector<Engine> _temp_engine;
 
 Engine *GetTempDataEngine(EngineID index)
 {
+	assert (index <= _temp_engine.size());
+
+	if (index == _temp_engine.size()) {
+		uint8 zero[sizeof(Engine)];
+		memset(zero, 0, sizeof(zero));
+		Engine *engine = new (zero) Engine();
+
+		/* Adding 'engine' to the vector makes a shallow copy, so we do not want to destruct 'engine' */
+		_temp_engine.push_back(*engine);
+	}
+
 	return &_temp_engine[index];
 }
 
