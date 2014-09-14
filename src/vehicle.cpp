@@ -1581,7 +1581,7 @@ void VehicleEnterDepot(Vehicle *v)
 
 		if (v->current_order.IsRefit()) {
 			Backup<CompanyByte> cur_company(_current_company, v->owner, FILE_LINE);
-			CommandCost cost = DoCommand(v->tile, v->index, v->current_order.GetRefitCargo() | 0xFF << 8, DC_EXEC, CMD_REFIT_VEHICLE | CMD_MSG(GetErrRefitVeh(v)));
+			CommandCost cost = DoCommand(v->tile, v->index, v->current_order.GetRefitCargo() | 0xFF << 8, DC_EXEC, CMD_REFIT_VEHICLE);
 			cur_company.Restore();
 
 			if (cost.Failed()) {

@@ -119,7 +119,7 @@
 	if (!IsValidVehicle(vehicle_id)) return -1;
 	if (!ScriptCargo::IsValidCargo(cargo)) return -1;
 
-	CommandCost res = ::DoCommand(0, vehicle_id, cargo, DC_QUERY_COST, CMD_REFIT_VEHICLE | CMD_MSG(GetErrRefitVeh(::Vehicle::Get(vehicle_id))));
+	CommandCost res = ::DoCommand(0, vehicle_id, cargo, DC_QUERY_COST, CMD_REFIT_VEHICLE);
 	return res.Succeeded() ? _returned_refit_capacity : -1;
 }
 

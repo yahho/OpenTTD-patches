@@ -1497,7 +1497,7 @@ static void HandleStationRefit(Vehicle *v, CargoArray &consist_capleft, Station 
 			if (st->goods[cid].cargo.HasCargoFor(next_station)) {
 				/* Try to find out if auto-refitting would succeed. In case the refit is allowed,
 				 * the returned refit capacity will be greater than zero. */
-				DoCommand(v_start->tile, v_start->index, cid | 1U << 6 | 0xFF << 8 | 1U << 16, DC_QUERY_COST, CMD_REFIT_VEHICLE | CMD_MSG(GetErrRefitVeh(v_start))); // Auto-refit and only this vehicle including artic parts.
+				DoCommand(v_start->tile, v_start->index, cid | 1U << 6 | 0xFF << 8 | 1U << 16, DC_QUERY_COST, CMD_REFIT_VEHICLE); // Auto-refit and only this vehicle including artic parts.
 				/* Try to balance different loadable cargoes between parts of the consist, so that
 				 * all of them can be loaded. Avoid a situation where all vehicles suddenly switch
 				 * to the first loadable cargo for which there is only one packet. If the capacities
@@ -1516,7 +1516,7 @@ static void HandleStationRefit(Vehicle *v, CargoArray &consist_capleft, Station 
 	/* Refit if given a valid cargo. */
 	if (new_cid < NUM_CARGO && new_cid != v_start->cargo_type) {
 		IterateVehicleParts(v_start, ReturnCargoAction(st, StationIDStack(next_station).Pop()));
-		CommandCost cost = DoCommand(v_start->tile, v_start->index, new_cid | 1U << 6 | 0xFF << 8 | 1U << 16, DC_EXEC, CMD_REFIT_VEHICLE | CMD_MSG(GetErrRefitVeh(v_start))); // Auto-refit and only this vehicle including artic parts.
+		CommandCost cost = DoCommand(v_start->tile, v_start->index, new_cid | 1U << 6 | 0xFF << 8 | 1U << 16, DC_EXEC, CMD_REFIT_VEHICLE); // Auto-refit and only this vehicle including artic parts.
 		if (cost.Succeeded()) v->First()->profit_this_year -= cost.GetCost() << 8;
 	}
 
