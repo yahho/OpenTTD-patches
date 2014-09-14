@@ -1548,7 +1548,7 @@ static bool CheckAircraftOrderDistance(const Aircraft *v_new, const Vehicle *v_o
  * @param p1 various bitstuffed elements
  * - p1 = (bit  0-19) - destination vehicle to clone orders to
  * - p1 = (bit 30-31) - action to perform
- * @param p2 source vehicle to clone orders from, if any (none for CO_UNSHARE)
+ * @param p2 source vehicle to clone orders from, if any (none for CO_UNSHARE_CLEAR)
  * @param text unused
  * @return the cost of this operation or an error
  */
@@ -1685,7 +1685,7 @@ CommandCost CmdCloneOrder(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 			break;
 		}
 
-		case CO_UNSHARE: return DecloneOrder(dst, flags);
+		case CO_UNSHARE_CLEAR: return DecloneOrder(dst, flags);
 		default: return CMD_ERROR;
 	}
 

@@ -657,7 +657,7 @@ static void _DoCommandReturnSetOrderFlags(class ScriptInstance *instance)
 {
 	EnforcePrecondition(false, ScriptVehicle::IsValidVehicle(vehicle_id));
 
-	return ScriptObject::DoCommand(0, vehicle_id | CO_UNSHARE << 30, 0, CMD_CLONE_ORDER);
+	return ScriptObject::DoCommand(0, vehicle_id | CO_UNSHARE_CLEAR << 30, 0, CMD_CLONE_ORDER);
 }
 
 /* static */ uint ScriptOrder::GetOrderDistance(ScriptVehicle::VehicleType vehicle_type, TileIndex origin_tile, TileIndex dest_tile)
