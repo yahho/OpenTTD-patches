@@ -34,14 +34,6 @@
 
 #include "table/strings.h"
 
-/* Tables used in vehicle.h to find the right error string for a certain vehicle type */
-extern const StringID _veh_build_error_table[] = {
-	STR_ERROR_CAN_T_BUY_TRAIN,
-	STR_ERROR_CAN_T_BUY_ROAD_VEHICLE,
-	STR_ERROR_CAN_T_BUY_SHIP,
-	STR_ERROR_CAN_T_BUY_AIRCRAFT,
-};
-
 extern const StringID _veh_sell_error_table[] = {
 	STR_ERROR_CAN_T_SELL_TRAIN,
 	STR_ERROR_CAN_T_SELL_ROAD_VEHICLE,

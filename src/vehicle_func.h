@@ -23,6 +23,8 @@
 #include "livery.h"
 #include "map/subcoord.h"
 
+#include "table/strings.h"
+
 #define is_custom_sprite(x) (x >= 0xFD)
 #define IS_CUSTOM_FIRSTHEAD_SPRITE(x) (x == 0xFD)
 #define IS_CUSTOM_SECONDHEAD_SPRITE(x) (x == 0xFE)
@@ -117,8 +119,12 @@ SpriteID GetVehiclePalette(const Vehicle *v);
 /* Functions to find the right error string for certain vehicle type */
 static inline StringID GetErrBuildVeh(VehicleType type)
 {
-	extern const StringID _veh_build_error_table[];
-	return _veh_build_error_table[type];
+	assert_compile (STR_ERROR_CAN_T_BUY_TRAIN + VEH_TRAIN    == STR_ERROR_CAN_T_BUY_TRAIN);
+	assert_compile (STR_ERROR_CAN_T_BUY_TRAIN + VEH_ROAD     == STR_ERROR_CAN_T_BUY_ROAD_VEHICLE);
+	assert_compile (STR_ERROR_CAN_T_BUY_TRAIN + VEH_SHIP     == STR_ERROR_CAN_T_BUY_SHIP);
+	assert_compile (STR_ERROR_CAN_T_BUY_TRAIN + VEH_AIRCRAFT == STR_ERROR_CAN_T_BUY_AIRCRAFT);
+
+	return STR_ERROR_CAN_T_BUY_TRAIN + type;
 }
 
 static inline StringID GetErrBuildVeh(const BaseVehicle *v)

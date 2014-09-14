@@ -2325,14 +2325,6 @@ static const StringID _vehicle_string_startstop_table[4] = {
 	STR_ERROR_CAN_T_STOP_START_AIRCRAFT,
 };
 
-/** Error strings when cloning a vehicle indexed by vehicle type. */
-static const StringID _vehicle_string_clone_table[4] = {
-	STR_ERROR_CAN_T_BUY_TRAIN,
-	STR_ERROR_CAN_T_BUY_ROAD_VEHICLE,
-	STR_ERROR_CAN_T_BUY_SHIP,
-	STR_ERROR_CAN_T_BUY_AIRCRAFT,
-};
-
 /**
  * This is the Callback method after the cloning attempt of a vehicle
  * @param result the result of the cloning command
@@ -2671,7 +2663,7 @@ public:
 				 * For starting the vehicle the player has to open the depot GUI, which is
 				 * most likely already open, but is also visible in the vehicle viewport. */
 				DoCommandP(v->tile, v->index, _ctrl_pressed ? (1 | (1 << 31)) : 0,
-						CMD_CLONE_VEHICLE | CMD_MSG(_vehicle_string_clone_table[v->type]));
+						CMD_CLONE_VEHICLE | CMD_MSG(GetErrBuildVeh(v)));
 				break;
 			case WID_VV_TURN_AROUND: // turn around
 				assert(v->IsGroundVehicle());
