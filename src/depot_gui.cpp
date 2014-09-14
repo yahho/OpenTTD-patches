@@ -943,7 +943,7 @@ struct DepotWindow : Window {
 				this->SetDirty();
 
 				int sell_cmd = (v->type == VEH_TRAIN && (widget == WID_D_SELL_CHAIN || _ctrl_pressed)) ? 1 : 0;
-				DoCommandP(v->tile, v->index | sell_cmd << 20 | MAKE_ORDER_BACKUP_FLAG, 0, GetCmdSellVeh(v->type));
+				DoCommandP(v->tile, v->index | sell_cmd << 20 | MAKE_ORDER_BACKUP_FLAG, 0, CMD_SELL_VEHICLE | CMD_MSG(GetErrSellVeh(v->type)));
 				break;
 			}
 

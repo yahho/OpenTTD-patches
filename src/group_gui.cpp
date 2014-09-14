@@ -785,7 +785,7 @@ public:
 						break;
 					case ADI_SERVICE: // Send for servicing
 					case ADI_DEPOT: { // Send to Depots
-						DoCommandP(0, DEPOT_MASS_SEND | (index == ADI_SERVICE ? DEPOT_SERVICE : 0U), this->vli.Pack(), GetCmdSendToDepot(this->vli.vtype));
+						DoCommandP(0, DEPOT_MASS_SEND | (index == ADI_SERVICE ? DEPOT_SERVICE : 0U), this->vli.Pack(), CMD_SEND_VEHICLE_TO_DEPOT | CMD_MSG(GetErrSendToDepot(this->vli.vtype)));
 						break;
 					}
 

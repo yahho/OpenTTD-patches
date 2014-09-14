@@ -1258,7 +1258,7 @@ struct BuildVehicleWindow : Window {
 			case WID_BV_BUILD: {
 				EngineID sel_eng = this->sel_engine;
 				if (sel_eng != INVALID_ENGINE) {
-					DoCommandP(this->window_number, sel_eng, 0, GetCmdBuildVeh(this->vehicle_type));
+					DoCommandP(this->window_number, sel_eng, 0, CMD_BUILD_VEHICLE | CMD_MSG(GetErrBuildVeh(this->vehicle_type)));
 				}
 				break;
 			}

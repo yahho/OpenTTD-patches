@@ -677,7 +677,7 @@ struct RefitWindow : public Window {
 		assert(_current_company == _local_company);
 		Vehicle *v = Vehicle::Get(this->window_number);
 		CommandCost cost = DoCommand(v->tile, this->selected_vehicle, option->cargo | (int)this->auto_refit << 6 | option->subtype << 8 |
-				this->num_vehicles << 16, DC_QUERY_COST, GetCmdRefitVeh(v->type));
+				this->num_vehicles << 16, DC_QUERY_COST, CMD_REFIT_VEHICLE | CMD_MSG(GetErrRefitVeh(v->type)));
 
 		if (cost.Failed()) return INVALID_STRING_ID;
 
@@ -929,7 +929,7 @@ struct RefitWindow : public Window {
 
 					if (this->order == INVALID_VEH_ORDER_ID) {
 						bool delete_window = this->selected_vehicle == v->index && this->num_vehicles == UINT8_MAX;
-						if (DoCommandP(v->tile, this->selected_vehicle, this->cargo->cargo | this->cargo->subtype << 8 | this->num_vehicles << 16, GetCmdRefitVeh(v)) && delete_window) delete this;
+						if (DoCommandP(v->tile, this->selected_vehicle, this->cargo->cargo | this->cargo->subtype << 8 | this->num_vehicles << 16, CMD_REFIT_VEHICLE | CMD_MSG(GetErrRefitVeh(v))) && delete_window) delete this;
 					} else {
 						if (DoCommandP(v->tile, v->index, this->cargo->cargo | this->order << 16, CMD_ORDER_REFIT)) delete this;
 					}
@@ -1642,7 +1642,7 @@ public:
 						break;
 					case ADI_SERVICE: // Send for servicing
 					case ADI_DEPOT: // Send to Depots
-						DoCommandP(0, DEPOT_MASS_SEND | (index == ADI_SERVICE ? DEPOT_SERVICE : (DepotCommand)0), this->window_number, GetCmdSendToDepot(this->vli.vtype));
+						DoCommandP(0, DEPOT_MASS_SEND | (index == ADI_SERVICE ? DEPOT_SERVICE : (DepotCommand)0), this->window_number, CMD_SEND_VEHICLE_TO_DEPOT | CMD_MSG(GetErrSendToDepot(this->vli.vtype)));
 						break;
 
 					default: NOT_REACHED();
@@ -2658,7 +2658,7 @@ public:
 			}
 
 			case WID_VV_GOTO_DEPOT: // goto hangar
-				DoCommandP(v->tile, v->index | (_ctrl_pressed ? DEPOT_SERVICE : 0U), 0, GetCmdSendToDepot(v));
+				DoCommandP(v->tile, v->index | (_ctrl_pressed ? DEPOT_SERVICE : 0U), 0, CMD_SEND_VEHICLE_TO_DEPOT | CMD_MSG(GetErrSendToDepot(v)));
 				break;
 			case WID_VV_REFIT: // refit
 				ShowVehicleRefitWindow(v, INVALID_VEH_ORDER_ID, this);

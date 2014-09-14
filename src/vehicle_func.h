@@ -114,50 +114,49 @@ const struct Livery *GetEngineLivery(EngineID engine_type, CompanyID company, En
 SpriteID GetEnginePalette(EngineID engine_type, CompanyID company);
 SpriteID GetVehiclePalette(const Vehicle *v);
 
-extern const uint32 _veh_build_proc_table[];
-extern const uint32 _veh_sell_proc_table[];
-extern const uint32 _veh_refit_proc_table[];
-extern const uint32 _send_to_depot_proc_table[];
-
-/* Functions to find the right command for certain vehicle type */
-static inline uint32 GetCmdBuildVeh(VehicleType type)
+/* Functions to find the right error string for certain vehicle type */
+static inline StringID GetErrBuildVeh(VehicleType type)
 {
-	return _veh_build_proc_table[type];
+	extern const StringID _veh_build_error_table[];
+	return _veh_build_error_table[type];
 }
 
-static inline uint32 GetCmdBuildVeh(const BaseVehicle *v)
+static inline StringID GetErrBuildVeh(const BaseVehicle *v)
 {
-	return GetCmdBuildVeh(v->type);
+	return GetErrBuildVeh(v->type);
 }
 
-static inline uint32 GetCmdSellVeh(VehicleType type)
+static inline StringID GetErrSellVeh(VehicleType type)
 {
-	return _veh_sell_proc_table[type];
+	extern const StringID _veh_sell_error_table[];
+	return _veh_sell_error_table[type];
 }
 
-static inline uint32 GetCmdSellVeh(const BaseVehicle *v)
+static inline StringID GetErrSellVeh(const BaseVehicle *v)
 {
-	return GetCmdSellVeh(v->type);
+	return GetErrSellVeh(v->type);
 }
 
-static inline uint32 GetCmdRefitVeh(VehicleType type)
+static inline StringID GetErrRefitVeh(VehicleType type)
 {
-	return _veh_refit_proc_table[type];
+	extern const StringID _veh_refit_error_table[];
+	return _veh_refit_error_table[type];
 }
 
-static inline uint32 GetCmdRefitVeh(const BaseVehicle *v)
+static inline StringID GetErrRefitVeh(const BaseVehicle *v)
 {
-	return GetCmdRefitVeh(v->type);
+	return GetErrRefitVeh(v->type);
 }
 
-static inline uint32 GetCmdSendToDepot(VehicleType type)
+static inline StringID GetErrSendToDepot(VehicleType type)
 {
-	return _send_to_depot_proc_table[type];
+	extern const StringID _send_to_depot_error_table[];
+	return _send_to_depot_error_table[type];
 }
 
-static inline uint32 GetCmdSendToDepot(const BaseVehicle *v)
+static inline StringID GetErrSendToDepot(const BaseVehicle *v)
 {
-	return GetCmdSendToDepot(v->type);
+	return GetErrSendToDepot(v->type);
 }
 
 CommandCost EnsureNoVehicleOnGround(TileIndex tile);
