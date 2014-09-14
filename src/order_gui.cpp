@@ -745,7 +745,7 @@ private:
 		/* Get another vehicle that share orders with this vehicle. */
 		Vehicle *other_shared = (this->vehicle->FirstShared() == this->vehicle) ? this->vehicle->NextShared() : this->vehicle->PreviousShared();
 		/* Copy the order list of the other vehicle. */
-		if (DoCommandP(this->vehicle->tile, this->vehicle->index | CO_COPY << 30, other_shared->index, CMD_CLONE_ORDER | CMD_MSG(STR_ERROR_CAN_T_STOP_SHARING_ORDER_LIST))) {
+		if (DoCommandP(this->vehicle->tile, this->vehicle->index | CO_UNSHARE_COPY << 30, other_shared->index, CMD_CLONE_ORDER | CMD_MSG(STR_ERROR_CAN_T_STOP_SHARING_ORDER_LIST))) {
 			this->UpdateButtonState();
 		}
 	}

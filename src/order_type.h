@@ -185,7 +185,8 @@ template <> struct EnumPropsT<ModifyTimetableFlags> : MakeEnumPropsT<ModifyTimet
 enum CloneOptions {
 	CO_SHARE         = 0,
 	CO_COPY          = 1,
-	CO_UNSHARE_CLEAR = 2,
+	CO_UNSHARE_COPY  = 2,
+	CO_UNSHARE_CLEAR = 3,
 };
 
 struct Order;

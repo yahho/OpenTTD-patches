@@ -1623,7 +1623,8 @@ CommandCost CmdCloneOrder(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 			break;
 		}
 
-		case CO_COPY: {
+		case CO_COPY:
+		case CO_UNSHARE_COPY: {
 			Vehicle *src = Vehicle::GetIfValid(veh_src);
 
 			/* Sanity checks */
