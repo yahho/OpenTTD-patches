@@ -214,6 +214,31 @@ void CcRoadStop(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 	}
 }
 
+StringID GetErrBuildRoadStop (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return _road_type_infos[FIND_FIRST_BIT(GB(p2, 2, 2))].err_build_station[GB(p2, 0, 1)];
+}
+
+StringID GetErrRemoveRoadStop (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return _road_type_infos[GB(p2, 2, 2)].err_remove_station[GB(p2, 0, 1)];
+}
+
+StringID GetErrBuildRoad (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return _road_type_infos[GB(p2, 3, 2)].err_build_road;
+}
+
+StringID GetErrRemoveRoad (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return _road_type_infos[GB(p2, 3, 2)].err_remove_road;
+}
+
+StringID GetErrBuildRoadDepot (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return _road_type_infos[GB(p1, 2, 2)].err_depot;
+}
+
 /**
  * Place a new road stop.
  * @param start_tile First tile of the area.
@@ -514,8 +539,7 @@ struct BuildRoadToolbarWindow : Window {
 				break;
 
 			case WID_ROT_DEPOT:
-				DoCommandP(tile, _cur_roadtype << 2 | _road_depot_orientation, 0,
-						CMD_BUILD_ROAD_DEPOT | CMD_MSG(_road_type_infos[_cur_roadtype].err_depot));
+				DoCommandP(tile, _cur_roadtype << 2 | _road_depot_orientation, 0, CMD_BUILD_ROAD_DEPOT);
 				break;
 
 			case WID_ROT_BUS_STATION:
@@ -531,8 +555,7 @@ struct BuildRoadToolbarWindow : Window {
 				break;
 
 			case WID_ROT_BUILD_TUNNEL:
-				DoCommandP(tile, RoadTypeToRoadTypes(_cur_roadtype) | (TRANSPORT_ROAD << 8), 0,
-						CMD_BUILD_TUNNEL | CMD_MSG(STR_ERROR_CAN_T_BUILD_TUNNEL_HERE));
+				DoCommandP(tile, RoadTypeToRoadTypes(_cur_roadtype) | (TRANSPORT_ROAD << 8), 0, CMD_BUILD_TUNNEL);
 				break;
 
 			default: NOT_REACHED();
@@ -623,28 +646,26 @@ struct BuildRoadToolbarWindow : Window {
 					_place_road_flag = (RoadFlags)((_place_road_flag & RF_DIR_Y) ? (_place_road_flag & 0x07) : (_place_road_flag >> 3));
 
 					DoCommandP(start_tile, end_tile, _place_road_flag | (_cur_roadtype << 3) | (_one_way_button_clicked << 5),
-							_remove_button_clicked ?
-							CMD_REMOVE_LONG_ROAD | CMD_MSG(_road_type_infos[_cur_roadtype].err_remove_road) :
-							CMD_BUILD_LONG_ROAD | CMD_MSG(_road_type_infos[_cur_roadtype].err_build_road));
+							_remove_button_clicked ? CMD_REMOVE_LONG_ROAD : CMD_BUILD_LONG_ROAD);
 					break;
 
 				case DDSP_BUILD_BUSSTOP:
-					PlaceRoadStop(start_tile, end_tile, (_ctrl_pressed << 5) | RoadTypeToRoadTypes(_cur_roadtype) << 2 | ROADSTOP_BUS, CMD_BUILD_ROAD_STOP | CMD_MSG(_road_type_infos[_cur_roadtype].err_build_station[ROADSTOP_BUS]));
+					PlaceRoadStop(start_tile, end_tile, (_ctrl_pressed << 5) | RoadTypeToRoadTypes(_cur_roadtype) << 2 | ROADSTOP_BUS, CMD_BUILD_ROAD_STOP);
 					break;
 
 				case DDSP_BUILD_TRUCKSTOP:
-					PlaceRoadStop(start_tile, end_tile, (_ctrl_pressed << 5) | RoadTypeToRoadTypes(_cur_roadtype) << 2 | ROADSTOP_TRUCK, CMD_BUILD_ROAD_STOP | CMD_MSG(_road_type_infos[_cur_roadtype].err_build_station[ROADSTOP_TRUCK]));
+					PlaceRoadStop(start_tile, end_tile, (_ctrl_pressed << 5) | RoadTypeToRoadTypes(_cur_roadtype) << 2 | ROADSTOP_TRUCK, CMD_BUILD_ROAD_STOP);
 					break;
 
 				case DDSP_REMOVE_BUSSTOP: {
 					TileArea ta(start_tile, end_tile);
-					DoCommandP(ta.tile, ta.w | ta.h << 8, ROADSTOP_BUS, CMD_REMOVE_ROAD_STOP | CMD_MSG(_road_type_infos[_cur_roadtype].err_remove_station[ROADSTOP_BUS]));
+					DoCommandP(ta.tile, ta.w | ta.h << 8, ROADSTOP_BUS | (_cur_roadtype << 2), CMD_REMOVE_ROAD_STOP);
 					break;
 				}
 
 				case DDSP_REMOVE_TRUCKSTOP: {
 					TileArea ta(start_tile, end_tile);
-					DoCommandP(ta.tile, ta.w | ta.h << 8, ROADSTOP_TRUCK, CMD_REMOVE_ROAD_STOP | CMD_MSG(_road_type_infos[_cur_roadtype].err_remove_station[ROADSTOP_TRUCK]));
+					DoCommandP(ta.tile, ta.w | ta.h << 8, ROADSTOP_TRUCK | (_cur_roadtype << 2), CMD_REMOVE_ROAD_STOP);
 					break;
 				}
 			}

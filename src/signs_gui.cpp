@@ -404,6 +404,11 @@ Window *ShowSignList()
 	return AllocateWindowDescFront<SignListWindow>(&_sign_list_desc, 0);
 }
 
+StringID GetErrRenameSign (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return StrEmpty(text) ? STR_ERROR_CAN_T_DELETE_SIGN : STR_ERROR_CAN_T_CHANGE_SIGN_NAME;
+}
+
 /**
  * Actually rename the sign.
  * @param index the sign to rename.
@@ -413,7 +418,7 @@ Window *ShowSignList()
 static bool RenameSign(SignID index, const char *text)
 {
 	bool remove = StrEmpty(text);
-	DoCommandP(0, index, 0, CMD_RENAME_SIGN | (StrEmpty(text) ? CMD_MSG(STR_ERROR_CAN_T_DELETE_SIGN) : CMD_MSG(STR_ERROR_CAN_T_CHANGE_SIGN_NAME)), text);
+	DoCommandP(0, index, 0, CMD_RENAME_SIGN, text);
 	return remove;
 }
 

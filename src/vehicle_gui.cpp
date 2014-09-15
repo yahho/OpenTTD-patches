@@ -929,7 +929,7 @@ struct RefitWindow : public Window {
 
 					if (this->order == INVALID_VEH_ORDER_ID) {
 						bool delete_window = this->selected_vehicle == v->index && this->num_vehicles == UINT8_MAX;
-						if (DoCommandP(v->tile, this->selected_vehicle, this->cargo->cargo | this->cargo->subtype << 8 | this->num_vehicles << 16, CMD_REFIT_VEHICLE | CMD_MSG(GetErrRefitVeh(v))) && delete_window) delete this;
+						if (DoCommandP(v->tile, this->selected_vehicle, this->cargo->cargo | this->cargo->subtype << 8 | this->num_vehicles << 16, CMD_REFIT_VEHICLE) && delete_window) delete this;
 					} else {
 						if (DoCommandP(v->tile, v->index, this->cargo->cargo | this->order << 16, CMD_ORDER_REFIT)) delete this;
 					}
@@ -1642,7 +1642,7 @@ public:
 						break;
 					case ADI_SERVICE: // Send for servicing
 					case ADI_DEPOT: // Send to Depots
-						DoCommandP(0, DEPOT_MASS_SEND | (index == ADI_SERVICE ? DEPOT_SERVICE : (DepotCommand)0), this->window_number, CMD_SEND_VEHICLE_TO_DEPOT | CMD_MSG(GetErrSendToDepot(this->vli.vtype)));
+						DoCommandP(0, DEPOT_MASS_SEND | (index == ADI_SERVICE ? DEPOT_SERVICE : (DepotCommand)0), this->window_number, CMD_SEND_VEHICLE_TO_DEPOT);
 						break;
 
 					default: NOT_REACHED();
@@ -2151,7 +2151,7 @@ struct VehicleDetailsWindow : Window {
 				mod = GetServiceIntervalClamped(mod + v->GetServiceInterval(), v->ServiceIntervalIsPercent());
 				if (mod == v->GetServiceInterval()) return;
 
-				DoCommandP(v->tile, v->index, mod | (1 << 16) | (v->ServiceIntervalIsPercent() << 17), CMD_CHANGE_SERVICE_INT | CMD_MSG(STR_ERROR_CAN_T_CHANGE_SERVICING));
+				DoCommandP(v->tile, v->index, mod | (1 << 16) | (v->ServiceIntervalIsPercent() << 17), CMD_CHANGE_SERVICE_INT);
 				break;
 			}
 
@@ -2187,7 +2187,7 @@ struct VehicleDetailsWindow : Window {
 				bool iscustom = index != 0;
 				bool ispercent = iscustom ? (index == 2) : Company::Get(v->owner)->settings.vehicle.servint_ispercent;
 				uint16 interval = GetServiceIntervalClamped(v->GetServiceInterval(), ispercent);
-				DoCommandP(v->tile, v->index, interval | (iscustom << 16) | (ispercent << 17), CMD_CHANGE_SERVICE_INT | CMD_MSG(STR_ERROR_CAN_T_CHANGE_SERVICING));
+				DoCommandP(v->tile, v->index, interval | (iscustom << 16) | (ispercent << 17), CMD_CHANGE_SERVICE_INT);
 				break;
 			}
 		}
@@ -2197,7 +2197,7 @@ struct VehicleDetailsWindow : Window {
 	{
 		if (str == NULL) return;
 
-		DoCommandP(0, this->window_number, 0, CMD_RENAME_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_RENAME_TRAIN + Vehicle::Get(this->window_number)->type), str);
+		DoCommandP(0, this->window_number, 0, CMD_RENAME_VEHICLE, str);
 	}
 
 	virtual void OnResize()
@@ -2354,7 +2354,7 @@ void CcStartStopVehicle(const CommandCost &result, TileIndex tile, uint32 p1, ui
 void StartStopVehicle(const Vehicle *v, bool texteffect)
 {
 	assert(v->IsPrimaryVehicle());
-	DoCommandP(v->tile, v->index, texteffect ? 1 : 0, CMD_START_STOP_VEHICLE | CMD_MSG(_vehicle_string_startstop_table[v->type]));
+	DoCommandP(v->tile, v->index, texteffect ? 1 : 0, CMD_START_STOP_VEHICLE);
 }
 
 /** Checks whether the vehicle may be refitted at the moment.*/
@@ -2642,7 +2642,7 @@ public:
 			}
 
 			case WID_VV_GOTO_DEPOT: // goto hangar
-				DoCommandP(v->tile, v->index | (_ctrl_pressed ? DEPOT_SERVICE : 0U), 0, CMD_SEND_VEHICLE_TO_DEPOT | CMD_MSG(GetErrSendToDepot(v)));
+				DoCommandP(v->tile, v->index | (_ctrl_pressed ? DEPOT_SERVICE : 0U), 0, CMD_SEND_VEHICLE_TO_DEPOT);
 				break;
 			case WID_VV_REFIT: // refit
 				ShowVehicleRefitWindow(v, INVALID_VEH_ORDER_ID, this);
@@ -2662,20 +2662,19 @@ public:
 				 * There is no point to it except for starting the vehicle.
 				 * For starting the vehicle the player has to open the depot GUI, which is
 				 * most likely already open, but is also visible in the vehicle viewport. */
-				DoCommandP(v->tile, v->index, _ctrl_pressed ? (1 | (1 << 31)) : 0,
-						CMD_CLONE_VEHICLE | CMD_MSG(GetErrBuildVeh(v)));
+				DoCommandP(v->tile, v->index, _ctrl_pressed ? (1 | (1 << 31)) : 0, CMD_CLONE_VEHICLE);
 				break;
 			case WID_VV_TURN_AROUND: // turn around
 				assert(v->IsGroundVehicle());
 				if (v->type == VEH_TRAIN) {
-					DoCommandP(v->tile, v->index, 0, CMD_REVERSE_TRAIN_DIRECTION | CMD_MSG(STR_ERROR_CAN_T_REVERSE_DIRECTION_TRAIN));
+					DoCommandP(v->tile, v->index, 0, CMD_REVERSE_TRAIN_DIRECTION);
 				} else {
-					DoCommandP(v->tile, v->index, 0, CMD_TURN_ROADVEH            | CMD_MSG(STR_ERROR_CAN_T_MAKE_ROAD_VEHICLE_TURN));
+					DoCommandP(v->tile, v->index, 0, CMD_TURN_ROADVEH);
 				}
 				break;
 			case WID_VV_FORCE_PROCEED: // force proceed
 				assert(v->type == VEH_TRAIN);
-				DoCommandP(v->tile, v->index, 0, CMD_FORCE_TRAIN_PROCEED | CMD_MSG(STR_ERROR_CAN_T_MAKE_TRAIN_PASS_SIGNAL));
+				DoCommandP(v->tile, v->index, 0, CMD_FORCE_TRAIN_PROCEED);
 				break;
 		}
 	}
@@ -2803,9 +2802,116 @@ void CcBuildVehicle(const CommandCost &result, TileIndex tile, uint32 p1, uint32
 	if (found != NULL) {
 		found = found->Last();
 		/* put the new wagon at the end of the loco. */
-		DoCommandP(0, _new_vehicle_id, found->index, CMD_MOVE_RAIL_VEHICLE);
+		DoCommandP(0, _new_vehicle_id | (1 << 31), found->index, CMD_MOVE_RAIL_VEHICLE);
 		InvalidateWindowClassesData(WC_TRAINS_LIST, 0);
 	}
+}
+
+/**
+ * Get the error string to show for building a vehicle
+ * @param tile   The tile the command was executed on.
+ * @param p1 Additional data for the command (for the #CommandProc)
+ * @param p2 Additional data for the command (for the #CommandProc)
+ * @param text Unused
+ */
+StringID GetErrBuildVehicle (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return GetErrBuildVeh(Engine::Get(GB(p1, 0, 16))->type);
+}
+
+/**
+ * Get the error string to show for building a vehicle
+ * @param tile   The tile the command was executed on.
+ * @param p1 Additional data for the command (for the #CommandProc)
+ * @param p2 Additional data for the command (for the #CommandProc)
+ * @param text Unused
+ */
+StringID GetErrSellVehicle (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return GetErrSellVeh(Vehicle::Get(GB(p1, 0, 20)));
+}
+
+/**
+ * Get the error string to show for refitting a vehicle
+ * @param tile   The tile the command was executed on.
+ * @param p1 Additional data for the command (for the #CommandProc)
+ * @param p2 Additional data for the command (for the #CommandProc)
+ * @param text Unused
+ */
+StringID GetErrRefitVehicle (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return GetErrRefitVeh(Vehicle::Get(p1));
+}
+
+/**
+ * Get the error string to show for cloning a vehicle
+ * @param tile   The tile the command was executed on.
+ * @param p1 Additional data for the command (for the #CommandProc)
+ * @param p2 Additional data for the command (for the #CommandProc)
+ * @param text Unused
+ */
+StringID GetErrCloneVehicle (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return GetErrBuildVeh(Vehicle::Get(p1));
+}
+
+/**
+ * Get the error string to show for renaming a vehicle
+ * @param tile   The tile the command was executed on.
+ * @param p1 Additional data for the command (for the #CommandProc)
+ * @param p2 Additional data for the command (for the #CommandProc)
+ * @param text Unused
+ */
+StringID GetErrRenameVehicle (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return STR_ERROR_CAN_T_RENAME_TRAIN + Vehicle::Get(p1)->type;
+}
+
+/**
+ * Get the error string to show for starting/stopping a vehicle
+ * @param tile   The tile the command was executed on.
+ * @param p1 Additional data for the command (for the #CommandProc)
+ * @param p2 Additional data for the command (for the #CommandProc)
+ * @param text Unused
+ */
+StringID GetErrStartStopVehicle (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return _vehicle_string_startstop_table[Vehicle::Get(p1)->type];
+}
+
+/**
+ * Get the error string to show for sending a vehicle to the depot
+ * @param tile   The tile the command was executed on.
+ * @param p1 Additional data for the command (for the #CommandProc)
+ * @param p2 Additional data for the command (for the #CommandProc)
+ * @param text Unused
+ */
+StringID GetErrSendVehicleToDepot (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	VehicleType type;
+
+	if (p1 & DEPOT_MASS_SEND) {
+		/* Mass goto depot requested */
+		VehicleListIdentifier vli;
+		if (!vli.Unpack(p2)) return 0;
+		type = vli.vtype;
+	} else {
+		type = Vehicle::Get(GB(p1, 0, 20))->type;
+	}
+
+	return GetErrSendToDepot(type);
+}
+
+/**
+ * Get the error string to show for reversing a train
+ * @param tile   The tile the command was executed on.
+ * @param p1 Additional data for the command (for the #CommandProc)
+ * @param p2 Additional data for the command (for the #CommandProc)
+ * @param text Unused
+ */
+StringID GetErrReverseTrain (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return p2 ? STR_ERROR_CAN_T_REVERSE_DIRECTION_RAIL_VEHICLE : STR_ERROR_CAN_T_REVERSE_DIRECTION_TRAIN;
 }
 
 /**

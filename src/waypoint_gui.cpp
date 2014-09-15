@@ -144,7 +144,7 @@ public:
 	{
 		if (str == NULL) return;
 
-		DoCommandP(0, this->window_number, 0, CMD_RENAME_WAYPOINT | CMD_MSG(STR_ERROR_CAN_T_CHANGE_WAYPOINT_NAME), str);
+		DoCommandP(0, this->window_number, 0, CMD_RENAME_WAYPOINT, str);
 	}
 
 };

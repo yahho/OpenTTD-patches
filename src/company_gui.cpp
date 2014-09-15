@@ -436,11 +436,11 @@ struct CompanyFinancesWindow : Window {
 				break;
 
 			case WID_CF_INCREASE_LOAN: // increase loan
-				DoCommandP(0, 0, _ctrl_pressed, CMD_INCREASE_LOAN | CMD_MSG(STR_ERROR_CAN_T_BORROW_ANY_MORE_MONEY));
+				DoCommandP(0, 0, _ctrl_pressed, CMD_INCREASE_LOAN);
 				break;
 
 			case WID_CF_REPAY_LOAN: // repay loan
-				DoCommandP(0, 0, _ctrl_pressed, CMD_DECREASE_LOAN | CMD_MSG(STR_ERROR_CAN_T_REPAY_LOAN));
+				DoCommandP(0, 0, _ctrl_pressed, CMD_DECREASE_LOAN);
 				break;
 
 			case WID_CF_INFRASTRUCTURE: // show infrastructure details
@@ -2316,11 +2316,11 @@ struct CompanyWindow : Window
 				break;
 
 			case WID_C_BUY_SHARE:
-				DoCommandP(0, this->window_number, 0, CMD_BUY_SHARE_IN_COMPANY | CMD_MSG(STR_ERROR_CAN_T_BUY_25_SHARE_IN_THIS));
+				DoCommandP(0, this->window_number, 0, CMD_BUY_SHARE_IN_COMPANY);
 				break;
 
 			case WID_C_SELL_SHARE:
-				DoCommandP(0, this->window_number, 0, CMD_SELL_SHARE_IN_COMPANY | CMD_MSG(STR_ERROR_CAN_T_SELL_25_SHARE_IN));
+				DoCommandP(0, this->window_number, 0, CMD_SELL_SHARE_IN_COMPANY);
 				break;
 
 #ifdef ENABLE_NETWORK
@@ -2355,7 +2355,7 @@ struct CompanyWindow : Window
 
 	virtual void OnPlaceObject(Point pt, TileIndex tile)
 	{
-		if (DoCommandP(tile, OBJECT_HQ, 0, CMD_BUILD_OBJECT | CMD_MSG(STR_ERROR_CAN_T_BUILD_COMPANY_HEADQUARTERS))) {
+		if (DoCommandP(tile, OBJECT_HQ, 0, CMD_BUILD_OBJECT)) {
 			ResetObjectToPlace();
 			this->RaiseButtons();
 		}
@@ -2374,11 +2374,11 @@ struct CompanyWindow : Window
 			default: NOT_REACHED();
 
 			case WID_C_PRESIDENT_NAME:
-				DoCommandP(0, 0, 0, CMD_RENAME_PRESIDENT | CMD_MSG(STR_ERROR_CAN_T_CHANGE_PRESIDENT), str);
+				DoCommandP(0, 0, 0, CMD_RENAME_PRESIDENT, str);
 				break;
 
 			case WID_C_COMPANY_NAME:
-				DoCommandP(0, 0, 0, CMD_RENAME_COMPANY | CMD_MSG(STR_ERROR_CAN_T_CHANGE_COMPANY_NAME), str);
+				DoCommandP(0, 0, 0, CMD_RENAME_COMPANY, str);
 				break;
 
 #ifdef ENABLE_NETWORK
@@ -2507,7 +2507,7 @@ struct BuyCompanyWindow : Window {
 				break;
 
 			case WID_BC_YES:
-				DoCommandP(0, this->window_number, 0, CMD_BUY_COMPANY | CMD_MSG(STR_ERROR_CAN_T_BUY_COMPANY));
+				DoCommandP(0, this->window_number, 0, CMD_BUY_COMPANY);
 				break;
 		}
 	}

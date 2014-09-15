@@ -453,6 +453,16 @@ typedef CommandCost CommandProc(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 typedef void CommandCallback(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2);
 
 /**
+ * Define the prototype of a function to get the error message to show for a message.
+ *
+ * @param tile The tile of the command action
+ * @param p1 Additional data for the command
+ * @param p2 Additional data for the command
+ * @param text Additional text
+ */
+typedef StringID CommandErrstrF(TileIndex tile, uint32 p1, uint32 p2, const char *text);
+
+/**
  * Define a command with the flags which belongs to it.
  *
  * This struct connect a command handler function with the flags created with
@@ -464,6 +474,7 @@ struct Command {
 	CommandFlags flags; ///< The (command) flags to that apply to this command
 	CommandType type;   ///< The type of command.
 	CommandCallback *callback; ///< The callback to run on command completion
+	CommandErrstrF *errorstrf; ///< The function to call to get the error string to show on error
 };
 
 

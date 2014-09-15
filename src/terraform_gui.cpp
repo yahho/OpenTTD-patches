@@ -53,6 +53,21 @@ void CcTerraformLand(const CommandCost &result, TileIndex tile, uint32 p1, uint3
 	CcTerraform(result, tile, p1, p2);
 }
 
+StringID GetErrTerraformLand (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return HasBit(p2, 31) ? 0 : HasBit(p2, 0) ? STR_ERROR_CAN_T_RAISE_LAND_HERE : STR_ERROR_CAN_T_LOWER_LAND_HERE;
+}
+
+StringID GetErrLevelLand (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	switch (GB(p2, 1, 2)) {
+		case LM_LEVEL: return STR_ERROR_CAN_T_LEVEL_LAND_HERE;
+		case LM_RAISE: return STR_ERROR_CAN_T_RAISE_LAND_HERE;
+		case LM_LOWER: return STR_ERROR_CAN_T_LOWER_LAND_HERE;
+		default: return 0;
+	}
+}
+
 
 /** Scenario editor command that generates desert areas */
 static void GenerateDesertArea(TileIndex end, TileIndex start)
@@ -110,16 +125,16 @@ bool GUIPlaceProcDragXY(ViewportDragDropSelectionProcess proc, TileIndex start_t
 
 	switch (proc) {
 		case DDSP_DEMOLISH_AREA:
-			DoCommandP(end_tile, start_tile, _ctrl_pressed ? 1 : 0, CMD_CLEAR_AREA | CMD_MSG(STR_ERROR_CAN_T_CLEAR_THIS_AREA));
+			DoCommandP(end_tile, start_tile, _ctrl_pressed ? 1 : 0, CMD_CLEAR_AREA);
 			break;
 		case DDSP_RAISE_AND_LEVEL_AREA:
-			DoCommandP(end_tile, start_tile, LM_RAISE << 1 | (_ctrl_pressed ? 1 : 0), CMD_LEVEL_LAND | CMD_MSG(STR_ERROR_CAN_T_RAISE_LAND_HERE));
+			DoCommandP(end_tile, start_tile, LM_RAISE << 1 | (_ctrl_pressed ? 1 : 0), CMD_LEVEL_LAND);
 			break;
 		case DDSP_LOWER_AND_LEVEL_AREA:
-			DoCommandP(end_tile, start_tile, LM_LOWER << 1 | (_ctrl_pressed ? 1 : 0), CMD_LEVEL_LAND | CMD_MSG(STR_ERROR_CAN_T_LOWER_LAND_HERE));
+			DoCommandP(end_tile, start_tile, LM_LOWER << 1 | (_ctrl_pressed ? 1 : 0), CMD_LEVEL_LAND);
 			break;
 		case DDSP_LEVEL_AREA:
-			DoCommandP(end_tile, start_tile, LM_LEVEL << 1 | (_ctrl_pressed ? 1 : 0), CMD_LEVEL_LAND | CMD_MSG(STR_ERROR_CAN_T_LEVEL_LAND_HERE));
+			DoCommandP(end_tile, start_tile, LM_LEVEL << 1 | (_ctrl_pressed ? 1 : 0), CMD_LEVEL_LAND);
 			break;
 		case DDSP_CREATE_ROCKS:
 			GenerateRockyArea(end_tile, start_tile);
@@ -238,7 +253,7 @@ struct TerraformToolbarWindow : Window {
 				break;
 
 			case WID_TT_BUY_LAND: // Buy land button
-				DoCommandP(tile, OBJECT_OWNED_LAND, 0, CMD_BUILD_OBJECT | CMD_MSG(STR_ERROR_CAN_T_PURCHASE_THIS_LAND));
+				DoCommandP(tile, OBJECT_OWNED_LAND, 0, CMD_BUILD_OBJECT);
 				break;
 
 			case WID_TT_PLACE_SIGN: // Place sign button
@@ -397,10 +412,7 @@ static byte _terraform_size = 1;
 static void CommonRaiseLowerBigLand(TileIndex tile, int mode)
 {
 	if (_terraform_size == 1) {
-		StringID msg =
-			mode ? STR_ERROR_CAN_T_RAISE_LAND_HERE : STR_ERROR_CAN_T_LOWER_LAND_HERE;
-
-		DoCommandP(tile, SLOPE_N, (uint32)mode, CMD_TERRAFORM_LAND | CMD_MSG(msg));
+		DoCommandP(tile, SLOPE_N, (uint32)mode, CMD_TERRAFORM_LAND);
 	} else {
 		assert(_terraform_size != 0);
 		TileArea ta(tile, _terraform_size, _terraform_size);

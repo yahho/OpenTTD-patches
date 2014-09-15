@@ -51,6 +51,11 @@ void CcBuildCanal(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p
 	if (result.Succeeded() && _settings_client.sound.confirm) SndPlayTileFx(SND_02_SPLAT_WATER, tile);
 }
 
+StringID GetErrBuildCanal (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return p2 == WATER_CLASS_RIVER ? STR_ERROR_CAN_T_PLACE_RIVERS : STR_ERROR_CAN_T_BUILD_CANALS;
+}
+
 
 /**
  * Gets the other end of the aqueduct, if possible.
@@ -173,7 +178,7 @@ struct BuildDocksToolbarWindow : Window {
 				break;
 
 			case WID_DT_LOCK: // Build lock button
-				DoCommandP(tile, 0, 0, CMD_BUILD_LOCK | CMD_MSG(STR_ERROR_CAN_T_BUILD_LOCKS));
+				DoCommandP(tile, 0, 0, CMD_BUILD_LOCK);
 				break;
 
 			case WID_DT_DEMOLISH: // Demolish aka dynamite button
@@ -181,14 +186,14 @@ struct BuildDocksToolbarWindow : Window {
 				break;
 
 			case WID_DT_DEPOT: // Build depot button
-				DoCommandP(tile, _ship_depot_direction, 0, CMD_BUILD_SHIP_DEPOT | CMD_MSG(STR_ERROR_CAN_T_BUILD_SHIP_DEPOT));
+				DoCommandP(tile, _ship_depot_direction, 0, CMD_BUILD_SHIP_DEPOT);
 				break;
 
 			case WID_DT_STATION: { // Build station button
 				uint32 p2 = (uint32)INVALID_STATION << 16; // no station to join
 
 				/* tile is always the land tile, so need to evaluate _thd.pos */
-				CommandContainer cmdcont = { tile, _ctrl_pressed, p2, CMD_BUILD_DOCK | CMD_MSG(STR_ERROR_CAN_T_BUILD_DOCK_HERE), "" };
+				CommandContainer cmdcont = { tile, _ctrl_pressed, p2, CMD_BUILD_DOCK, "" };
 
 				/* Determine the watery part of the dock. */
 				DiagDirection dir = GetInclinedSlopeDirection(GetTileSlope(tile));
@@ -199,7 +204,7 @@ struct BuildDocksToolbarWindow : Window {
 			}
 
 			case WID_DT_BUOY: // Build buoy button
-				DoCommandP(tile, 0, 0, CMD_BUILD_BUOY | CMD_MSG(STR_ERROR_CAN_T_POSITION_BUOY_HERE));
+				DoCommandP(tile, 0, 0, CMD_BUILD_BUOY);
 				break;
 
 			case WID_DT_RIVER: // Build river button (in scenario editor)
@@ -207,7 +212,7 @@ struct BuildDocksToolbarWindow : Window {
 				break;
 
 			case WID_DT_BUILD_AQUEDUCT: // Build aqueduct button
-				DoCommandP(tile, GetOtherAqueductEnd(tile), TRANSPORT_WATER << 12, CMD_BUILD_BRIDGE | CMD_MSG(STR_ERROR_CAN_T_BUILD_AQUEDUCT_HERE));
+				DoCommandP(tile, GetOtherAqueductEnd(tile), TRANSPORT_WATER << 12, CMD_BUILD_BRIDGE);
 				break;
 
 			default: NOT_REACHED();
@@ -227,10 +232,10 @@ struct BuildDocksToolbarWindow : Window {
 					GUIPlaceProcDragXY(select_proc, start_tile, end_tile);
 					break;
 				case DDSP_CREATE_WATER:
-					DoCommandP(end_tile, start_tile, (_game_mode == GM_EDITOR && _ctrl_pressed) ? WATER_CLASS_SEA : WATER_CLASS_CANAL, CMD_BUILD_CANAL | CMD_MSG(STR_ERROR_CAN_T_BUILD_CANALS));
+					DoCommandP(end_tile, start_tile, (_game_mode == GM_EDITOR && _ctrl_pressed) ? WATER_CLASS_SEA : WATER_CLASS_CANAL, CMD_BUILD_CANAL);
 					break;
 				case DDSP_CREATE_RIVER:
-					DoCommandP(end_tile, start_tile, WATER_CLASS_RIVER, CMD_BUILD_CANAL | CMD_MSG(STR_ERROR_CAN_T_PLACE_RIVERS));
+					DoCommandP(end_tile, start_tile, WATER_CLASS_RIVER, CMD_BUILD_CANAL);
 					break;
 
 				default: break;

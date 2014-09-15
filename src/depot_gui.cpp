@@ -127,6 +127,11 @@ void CcCloneVehicle(const CommandCost &result, TileIndex tile, uint32 p1, uint32
 	ShowVehicleViewWindow(v);
 }
 
+StringID GetErrMoveRailVehicle (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return HasBit(p1, 31) ? 0 : STR_ERROR_CAN_T_MOVE_VEHICLE;
+}
+
 static void TrainDepotMoveVehicle(const Vehicle *wagon, VehicleID sel, const Vehicle *head)
 {
 	const Vehicle *v = Vehicle::Get(sel);
@@ -142,7 +147,7 @@ static void TrainDepotMoveVehicle(const Vehicle *wagon, VehicleID sel, const Veh
 
 	if (wagon == v) return;
 
-	DoCommandP(v->tile, v->index | (_ctrl_pressed ? 1 : 0) << 20, wagon == NULL ? INVALID_VEHICLE : wagon->index, CMD_MOVE_RAIL_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_MOVE_VEHICLE));
+	DoCommandP(v->tile, v->index | (_ctrl_pressed ? 1 : 0) << 20, wagon == NULL ? INVALID_VEHICLE : wagon->index, CMD_MOVE_RAIL_VEHICLE);
 }
 
 static VehicleCellSize _base_block_sizes_depot[VEH_COMPANY_END];    ///< Cell size for vehicle images in the depot view.
@@ -779,7 +784,7 @@ struct DepotWindow : Window {
 		if (str == NULL) return;
 
 		/* Do depot renaming */
-		DoCommandP(0, GetDepotIndex(this->window_number), 0, CMD_RENAME_DEPOT | CMD_MSG(STR_ERROR_CAN_T_RENAME_DEPOT), str);
+		DoCommandP(0, GetDepotIndex(this->window_number), 0, CMD_RENAME_DEPOT, str);
 	}
 
 	virtual bool OnRightClick(Point pt, int widget)
@@ -843,7 +848,7 @@ struct DepotWindow : Window {
 	 */
 	virtual bool OnVehicleSelect(const Vehicle *v)
 	{
-		if (DoCommandP(this->window_number, v->index, _ctrl_pressed ? 1 : 0, CMD_CLONE_VEHICLE | CMD_MSG(GetErrBuildVeh(v)))) {
+		if (DoCommandP(this->window_number, v->index, _ctrl_pressed ? 1 : 0, CMD_CLONE_VEHICLE)) {
 			ResetObjectToPlace();
 		}
 		return true;
@@ -917,8 +922,7 @@ struct DepotWindow : Window {
 
 					if (this->GetVehicleFromDepotWndPt(pt.x - nwi->pos_x, pt.y - nwi->pos_y, &v, &gdvp) == MODE_DRAG_VEHICLE && sel != INVALID_VEHICLE) {
 						if (gdvp.wagon != NULL && gdvp.wagon->index == sel && _ctrl_pressed) {
-							DoCommandP(Vehicle::Get(sel)->tile, Vehicle::Get(sel)->index, true,
-									CMD_REVERSE_TRAIN_DIRECTION | CMD_MSG(STR_ERROR_CAN_T_REVERSE_DIRECTION_RAIL_VEHICLE));
+							DoCommandP(Vehicle::Get(sel)->tile, Vehicle::Get(sel)->index, true, CMD_REVERSE_TRAIN_DIRECTION);
 						} else if (gdvp.wagon == NULL || gdvp.wagon->index != sel) {
 							this->vehicle_over = INVALID_VEHICLE;
 							TrainDepotMoveVehicle(gdvp.wagon, sel, gdvp.head);
@@ -943,7 +947,7 @@ struct DepotWindow : Window {
 				this->SetDirty();
 
 				int sell_cmd = (v->type == VEH_TRAIN && (widget == WID_D_SELL_CHAIN || _ctrl_pressed)) ? 1 : 0;
-				DoCommandP(v->tile, v->index | sell_cmd << 20 | MAKE_ORDER_BACKUP_FLAG, 0, CMD_SELL_VEHICLE | CMD_MSG(GetErrSellVeh(v->type)));
+				DoCommandP(v->tile, v->index | sell_cmd << 20 | MAKE_ORDER_BACKUP_FLAG, 0, CMD_SELL_VEHICLE);
 				break;
 			}
 

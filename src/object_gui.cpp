@@ -499,7 +499,28 @@ void InitializeObjectGui()
  */
 void PlaceProc_Object(TileIndex tile)
 {
-	DoCommandP(tile, ObjectClass::Get(_selected_object_class)->GetSpec(_selected_object_index)->Index(), _selected_object_view, CMD_BUILD_OBJECT | CMD_MSG(STR_ERROR_CAN_T_BUILD_OBJECT));
+	DoCommandP(tile, ObjectClass::Get(_selected_object_class)->GetSpec(_selected_object_index)->Index(), _selected_object_view, CMD_BUILD_OBJECT);
+}
+
+/**
+ * Get the error string to show when building an object.
+ * @param tile   Tile where the object was built.
+ * @param p1     The type of object built.
+ * @param p2     Unused.
+ * @param text   Unused.
+ */
+StringID GetErrBuildObject (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	switch (GB(p1, 0, 8)) {
+		case OBJECT_HQ:
+			return STR_ERROR_CAN_T_BUILD_COMPANY_HEADQUARTERS;
+
+		case OBJECT_OWNED_LAND:
+			return STR_ERROR_CAN_T_PURCHASE_THIS_LAND;
+
+		default:
+			return STR_ERROR_CAN_T_BUILD_OBJECT;
+	}
 }
 
 /**

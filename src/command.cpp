@@ -195,7 +195,50 @@ CommandProc CmdSetTimetableStart;
 
 CommandProc CmdOpenCloseAirport;
 
-#define DEF_CMD(proc, flags, type, callback) {proc, #proc, (CommandFlags)flags, type, callback}
+template <StringID str>
+StringID GetErrConstant (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return str;
+}
+
+CommandErrstrF GetErrTerraformLand;
+CommandErrstrF GetErrLevelLand;
+CommandErrstrF GetErrRenameSign;
+
+CommandErrstrF GetErrBuildSingleRail;
+CommandErrstrF GetErrBuildSignals;
+
+CommandErrstrF GetErrBuildRoadStop;
+CommandErrstrF GetErrRemoveRoadStop;
+CommandErrstrF GetErrBuildRoad;
+CommandErrstrF GetErrRemoveRoad;
+CommandErrstrF GetErrBuildRoadDepot;
+
+CommandErrstrF GetErrBuildCanal;
+
+CommandErrstrF GetErrBuildBridge;
+CommandErrstrF GetErrBuildObject;
+
+CommandErrstrF GetErrRenameEngine;
+
+CommandErrstrF GetErrBuildVehicle;
+CommandErrstrF GetErrSellVehicle;
+CommandErrstrF GetErrRefitVehicle;
+CommandErrstrF GetErrCloneVehicle;
+CommandErrstrF GetErrRenameVehicle;
+CommandErrstrF GetErrStartStopVehicle;
+CommandErrstrF GetErrSendVehicleToDepot;
+CommandErrstrF GetErrMoveRailVehicle;
+CommandErrstrF GetErrReverseTrain;
+
+CommandErrstrF GetErrCloneOrder;
+CommandErrstrF GetErrSkipToOrder;
+
+CommandErrstrF GetErrAlterGroup;
+
+CommandErrstrF GetErrFoundTown;
+
+#define DEF_CMD(proc, flags, type, callback, errorf) {proc, #proc, (CommandFlags)flags, type, callback, errorf}
 
 /**
  * The master command table
@@ -205,151 +248,151 @@ CommandProc CmdOpenCloseAirport;
  * as the value from the CMD_* enums.
  */
 static const Command _command_proc_table[] = {
-	DEF_CMD(CmdBuildRailroadTrack,         CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, NULL),               // CMD_BUILD_RAILROAD_TRACK
-	DEF_CMD(CmdRemoveRailroadTrack,                        CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, NULL),               // CMD_REMOVE_RAILROAD_TRACK
-	DEF_CMD(CmdBuildSingleRail,            CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcSingleRail),       // CMD_BUILD_SINGLE_RAIL
-	DEF_CMD(CmdRemoveSingleRail,                           CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcSingleRail),       // CMD_REMOVE_SINGLE_RAIL
-	DEF_CMD(CmdLandscapeClear,                                     0, CMDT_LANDSCAPE_CONSTRUCTION, NULL),               // CMD_LANDSCAPE_CLEAR
-	DEF_CMD(CmdBuildBridge,   CMDF_DEITY | CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildBridge),      // CMD_BUILD_BRIDGE
-	DEF_CMD(CmdBuildRailStation,           CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcStation),          // CMD_BUILD_RAIL_STATION
-	DEF_CMD(CmdBuildTrainDepot,            CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcRailDepot),        // CMD_BUILD_TRAIN_DEPOT
-	DEF_CMD(CmdBuildSingleSignal,                          CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E),      // CMD_BUILD_SIGNALS
-	DEF_CMD(CmdRemoveSingleSignal,                         CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E),      // CMD_REMOVE_SIGNALS
-	DEF_CMD(CmdTerraformLand,             CMDF_ALL_TILES | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcTerraformLand),    // CMD_TERRAFORM_LAND
-	DEF_CMD(CmdBuildObject,                CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildObject),      // CMD_BUILD_OBJECT
-	DEF_CMD(CmdBuildTunnel,                   CMDF_DEITY | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildTunnel),      // CMD_BUILD_TUNNEL
-	DEF_CMD(CmdRemoveFromRailStation,                              0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E),      // CMD_REMOVE_FROM_RAIL_STATION
-	DEF_CMD(CmdConvertRail,                                        0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound10),      // CMD_CONVERT_RAIL
-	DEF_CMD(CmdBuildRailWaypoint,                                  0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E),      // CMD_BUILD_RAIL_WAYPOINT
-	DEF_CMD(CmdRenameWaypoint,                                     0, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_RENAME_WAYPOINT
-	DEF_CMD(CmdRemoveFromRailWaypoint,                             0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E),      // CMD_REMOVE_FROM_RAIL_WAYPOINT
+	DEF_CMD(CmdBuildRailroadTrack,         CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, NULL,               GetErrConstant<STR_ERROR_CAN_T_BUILD_RAILROAD_TRACK>),      // CMD_BUILD_RAILROAD_TRACK
+	DEF_CMD(CmdRemoveRailroadTrack,                        CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, NULL,               GetErrConstant<STR_ERROR_CAN_T_REMOVE_RAILROAD_TRACK>),     // CMD_REMOVE_RAILROAD_TRACK
+	DEF_CMD(CmdBuildSingleRail,            CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcSingleRail,       GetErrBuildSingleRail),                                     // CMD_BUILD_SINGLE_RAIL
+	DEF_CMD(CmdRemoveSingleRail,                           CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcSingleRail,       GetErrConstant<STR_ERROR_CAN_T_REMOVE_RAILROAD_TRACK>),     // CMD_REMOVE_SINGLE_RAIL
+	DEF_CMD(CmdLandscapeClear,                                     0, CMDT_LANDSCAPE_CONSTRUCTION, NULL,               NULL),                                                      // CMD_LANDSCAPE_CLEAR
+	DEF_CMD(CmdBuildBridge,   CMDF_DEITY | CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildBridge,      GetErrBuildBridge),                                         // CMD_BUILD_BRIDGE
+	DEF_CMD(CmdBuildRailStation,           CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcStation,          GetErrConstant<STR_ERROR_CAN_T_BUILD_RAILROAD_STATION>),    // CMD_BUILD_RAIL_STATION
+	DEF_CMD(CmdBuildTrainDepot,            CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcRailDepot,        GetErrConstant<STR_ERROR_CAN_T_BUILD_TRAIN_DEPOT>),         // CMD_BUILD_TRAIN_DEPOT
+	DEF_CMD(CmdBuildSingleSignal,                          CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E,      GetErrBuildSignals),                                        // CMD_BUILD_SIGNALS
+	DEF_CMD(CmdRemoveSingleSignal,                         CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E,      GetErrConstant<STR_ERROR_CAN_T_REMOVE_SIGNALS_FROM>),       // CMD_REMOVE_SIGNALS
+	DEF_CMD(CmdTerraformLand,             CMDF_ALL_TILES | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcTerraformLand,    GetErrTerraformLand),                                       // CMD_TERRAFORM_LAND
+	DEF_CMD(CmdBuildObject,                CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildObject,      GetErrBuildObject),                                         // CMD_BUILD_OBJECT
+	DEF_CMD(CmdBuildTunnel,                   CMDF_DEITY | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildTunnel,      GetErrConstant<STR_ERROR_CAN_T_BUILD_TUNNEL_HERE>),         // CMD_BUILD_TUNNEL
+	DEF_CMD(CmdRemoveFromRailStation,                              0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E,      GetErrConstant<STR_ERROR_CAN_T_REMOVE_PART_OF_STATION>),    // CMD_REMOVE_FROM_RAIL_STATION
+	DEF_CMD(CmdConvertRail,                                        0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound10,      GetErrConstant<STR_ERROR_CAN_T_CONVERT_RAIL>),              // CMD_CONVERT_RAIL
+	DEF_CMD(CmdBuildRailWaypoint,                                  0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E,      GetErrConstant<STR_ERROR_CAN_T_BUILD_TRAIN_WAYPOINT>),      // CMD_BUILD_RAIL_WAYPOINT
+	DEF_CMD(CmdRenameWaypoint,                                     0, CMDT_OTHER_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_CHANGE_WAYPOINT_NAME>),      // CMD_RENAME_WAYPOINT
+	DEF_CMD(CmdRemoveFromRailWaypoint,                             0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E,      GetErrConstant<STR_ERROR_CAN_T_REMOVE_TRAIN_WAYPOINT>),     // CMD_REMOVE_FROM_RAIL_WAYPOINT
 
-	DEF_CMD(CmdBuildRoadStop,              CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcRoadStop),         // CMD_BUILD_ROAD_STOP
-	DEF_CMD(CmdRemoveRoadStop,                                     0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1D),      // CMD_REMOVE_ROAD_STOP
-	DEF_CMD(CmdBuildLongRoad, CMDF_DEITY | CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1D),      // CMD_BUILD_LONG_ROAD
-	DEF_CMD(CmdRemoveLongRoad,              CMDF_NO_TEST | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1D),      // CMD_REMOVE_LONG_ROAD; towns may disallow removing road bits (as they are connected) in test, but in exec they're removed and thus removing is allowed.
-	DEF_CMD(CmdBuildRoad,     CMDF_DEITY | CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, NULL),               // CMD_BUILD_ROAD
-	DEF_CMD(CmdBuildRoadDepot,             CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcRoadDepot),        // CMD_BUILD_ROAD_DEPOT
+	DEF_CMD(CmdBuildRoadStop,              CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcRoadStop,         GetErrBuildRoadStop),                                       // CMD_BUILD_ROAD_STOP
+	DEF_CMD(CmdRemoveRoadStop,                                     0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1D,      GetErrRemoveRoadStop),                                      // CMD_REMOVE_ROAD_STOP
+	DEF_CMD(CmdBuildLongRoad, CMDF_DEITY | CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1D,      GetErrBuildRoad),                                           // CMD_BUILD_LONG_ROAD
+	DEF_CMD(CmdRemoveLongRoad,              CMDF_NO_TEST | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1D,      GetErrRemoveRoad),                                          // CMD_REMOVE_LONG_ROAD; towns may disallow removing road bits (as they are connected) in test, but in exec they're removed and thus removing is allowed.
+	DEF_CMD(CmdBuildRoad,     CMDF_DEITY | CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, NULL,               NULL),                                                      // CMD_BUILD_ROAD
+	DEF_CMD(CmdBuildRoadDepot,             CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcRoadDepot,        GetErrBuildRoadDepot),                                      // CMD_BUILD_ROAD_DEPOT
 
-	DEF_CMD(CmdBuildAirport,               CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildAirport),     // CMD_BUILD_AIRPORT
-	DEF_CMD(CmdBuildDock,                                  CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildDocks),       // CMD_BUILD_DOCK
-	DEF_CMD(CmdBuildShipDepot,                             CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildDocks),       // CMD_BUILD_SHIP_DEPOT
-	DEF_CMD(CmdBuildBuoy,                                  CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildDocks),       // CMD_BUILD_BUOY
-	DEF_CMD(CmdPlantTree,                                  CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, NULL),               // CMD_PLANT_TREE
+	DEF_CMD(CmdBuildAirport,               CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildAirport,     GetErrConstant<STR_ERROR_CAN_T_BUILD_AIRPORT_HERE>),        // CMD_BUILD_AIRPORT
+	DEF_CMD(CmdBuildDock,                                  CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildDocks,       GetErrConstant<STR_ERROR_CAN_T_BUILD_DOCK_HERE>),           // CMD_BUILD_DOCK
+	DEF_CMD(CmdBuildShipDepot,                             CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildDocks,       GetErrConstant<STR_ERROR_CAN_T_BUILD_SHIP_DEPOT>),          // CMD_BUILD_SHIP_DEPOT
+	DEF_CMD(CmdBuildBuoy,                                  CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildDocks,       GetErrConstant<STR_ERROR_CAN_T_POSITION_BUOY_HERE>),        // CMD_BUILD_BUOY
+	DEF_CMD(CmdPlantTree,                                  CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, NULL,               GetErrConstant<STR_ERROR_CAN_T_PLANT_TREE_HERE>),           // CMD_PLANT_TREE
 
-	DEF_CMD(CmdBuildVehicle,                          CMDF_CLIENT_ID, CMDT_VEHICLE_CONSTRUCTION,   CcBuildVehicle),     // CMD_BUILD_VEHICLE
-	DEF_CMD(CmdSellVehicle,                           CMDF_CLIENT_ID, CMDT_VEHICLE_CONSTRUCTION,   NULL),               // CMD_SELL_VEHICLE
-	DEF_CMD(CmdRefitVehicle,                                       0, CMDT_VEHICLE_CONSTRUCTION,   NULL),               // CMD_REFIT_VEHICLE
-	DEF_CMD(CmdSendVehicleToDepot,                                 0, CMDT_VEHICLE_MANAGEMENT,     NULL),               // CMD_SEND_VEHICLE_TO_DEPOT
+	DEF_CMD(CmdBuildVehicle,                          CMDF_CLIENT_ID, CMDT_VEHICLE_CONSTRUCTION,   CcBuildVehicle,     GetErrBuildVehicle),                                        // CMD_BUILD_VEHICLE
+	DEF_CMD(CmdSellVehicle,                           CMDF_CLIENT_ID, CMDT_VEHICLE_CONSTRUCTION,   NULL,               GetErrSellVehicle),                                         // CMD_SELL_VEHICLE
+	DEF_CMD(CmdRefitVehicle,                                       0, CMDT_VEHICLE_CONSTRUCTION,   NULL,               GetErrRefitVehicle),                                        // CMD_REFIT_VEHICLE
+	DEF_CMD(CmdSendVehicleToDepot,                                 0, CMDT_VEHICLE_MANAGEMENT,     NULL,               GetErrSendVehicleToDepot),                                  // CMD_SEND_VEHICLE_TO_DEPOT
 
-	DEF_CMD(CmdMoveRailVehicle,                                    0, CMDT_VEHICLE_CONSTRUCTION,   NULL),               // CMD_MOVE_RAIL_VEHICLE
-	DEF_CMD(CmdForceTrainProceed,                                  0, CMDT_VEHICLE_MANAGEMENT,     NULL),               // CMD_FORCE_TRAIN_PROCEED
-	DEF_CMD(CmdReverseTrainDirection,                              0, CMDT_VEHICLE_MANAGEMENT,     NULL),               // CMD_REVERSE_TRAIN_DIRECTION
+	DEF_CMD(CmdMoveRailVehicle,                                    0, CMDT_VEHICLE_CONSTRUCTION,   NULL,               GetErrMoveRailVehicle),                                     // CMD_MOVE_RAIL_VEHICLE
+	DEF_CMD(CmdForceTrainProceed,                                  0, CMDT_VEHICLE_MANAGEMENT,     NULL,               GetErrConstant<STR_ERROR_CAN_T_MAKE_TRAIN_PASS_SIGNAL>),    // CMD_FORCE_TRAIN_PROCEED
+	DEF_CMD(CmdReverseTrainDirection,                              0, CMDT_VEHICLE_MANAGEMENT,     NULL,               GetErrReverseTrain),                                        // CMD_REVERSE_TRAIN_DIRECTION
 
-	DEF_CMD(CmdClearOrderBackup,                      CMDF_CLIENT_ID, CMDT_SERVER_SETTING,         NULL),               // CMD_CLEAR_ORDER_BACKUP
-	DEF_CMD(CmdModifyOrder,                                        0, CMDT_ROUTE_MANAGEMENT,       NULL),               // CMD_MODIFY_ORDER
-	DEF_CMD(CmdSkipToOrder,                                        0, CMDT_ROUTE_MANAGEMENT,       NULL),               // CMD_SKIP_TO_ORDER
-	DEF_CMD(CmdDeleteOrder,                                        0, CMDT_ROUTE_MANAGEMENT,       NULL),               // CMD_DELETE_ORDER
-	DEF_CMD(CmdInsertOrder,                                        0, CMDT_ROUTE_MANAGEMENT,       NULL),               // CMD_INSERT_ORDER
+	DEF_CMD(CmdClearOrderBackup,                      CMDF_CLIENT_ID, CMDT_SERVER_SETTING,         NULL,               NULL),                                                      // CMD_CLEAR_ORDER_BACKUP
+	DEF_CMD(CmdModifyOrder,                                        0, CMDT_ROUTE_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_MODIFY_THIS_ORDER>),         // CMD_MODIFY_ORDER
+	DEF_CMD(CmdSkipToOrder,                                        0, CMDT_ROUTE_MANAGEMENT,       NULL,               GetErrSkipToOrder),                                         // CMD_SKIP_TO_ORDER
+	DEF_CMD(CmdDeleteOrder,                                        0, CMDT_ROUTE_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_DELETE_THIS_ORDER>),         // CMD_DELETE_ORDER
+	DEF_CMD(CmdInsertOrder,                                        0, CMDT_ROUTE_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_INSERT_NEW_ORDER>),          // CMD_INSERT_ORDER
 
-	DEF_CMD(CmdChangeServiceInt,                                   0, CMDT_VEHICLE_MANAGEMENT,     NULL),               // CMD_CHANGE_SERVICE_INT
+	DEF_CMD(CmdChangeServiceInt,                                   0, CMDT_VEHICLE_MANAGEMENT,     NULL,               GetErrConstant<STR_ERROR_CAN_T_CHANGE_SERVICING>),          // CMD_CHANGE_SERVICE_INT
 
-	DEF_CMD(CmdBuildIndustry,                             CMDF_DEITY, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildIndustry),    // CMD_BUILD_INDUSTRY
-	DEF_CMD(CmdSetCompanyManagerFace,                              0, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_SET_COMPANY_MANAGER_FACE
-	DEF_CMD(CmdSetCompanyColour,                                   0, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_SET_COMPANY_COLOUR
+	DEF_CMD(CmdBuildIndustry,                             CMDF_DEITY, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildIndustry,    GetErrConstant<STR_ERROR_CAN_T_CONSTRUCT_THIS_INDUSTRY>),   // CMD_BUILD_INDUSTRY
+	DEF_CMD(CmdSetCompanyManagerFace,                              0, CMDT_OTHER_MANAGEMENT,       NULL,               NULL),                                                      // CMD_SET_COMPANY_MANAGER_FACE
+	DEF_CMD(CmdSetCompanyColour,                                   0, CMDT_OTHER_MANAGEMENT,       NULL,               NULL),                                                      // CMD_SET_COMPANY_COLOUR
 
-	DEF_CMD(CmdIncreaseLoan,                                       0, CMDT_MONEY_MANAGEMENT,       NULL),               // CMD_INCREASE_LOAN
-	DEF_CMD(CmdDecreaseLoan,                                       0, CMDT_MONEY_MANAGEMENT,       NULL),               // CMD_DECREASE_LOAN
+	DEF_CMD(CmdIncreaseLoan,                                       0, CMDT_MONEY_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_BORROW_ANY_MORE_MONEY>),     // CMD_INCREASE_LOAN
+	DEF_CMD(CmdDecreaseLoan,                                       0, CMDT_MONEY_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_REPAY_LOAN>),                // CMD_DECREASE_LOAN
 
-	DEF_CMD(CmdWantEnginePreview,                                  0, CMDT_VEHICLE_MANAGEMENT,     NULL),               // CMD_WANT_ENGINE_PREVIEW
+	DEF_CMD(CmdWantEnginePreview,                                  0, CMDT_VEHICLE_MANAGEMENT,     NULL,               NULL),                                                      // CMD_WANT_ENGINE_PREVIEW
 
-	DEF_CMD(CmdRenameVehicle,                                      0, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_RENAME_VEHICLE
-	DEF_CMD(CmdRenameEngine,                             CMDF_SERVER, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_RENAME_ENGINE
+	DEF_CMD(CmdRenameVehicle,                                      0, CMDT_OTHER_MANAGEMENT,       NULL,               GetErrRenameVehicle),                                       // CMD_RENAME_VEHICLE
+	DEF_CMD(CmdRenameEngine,                             CMDF_SERVER, CMDT_OTHER_MANAGEMENT,       NULL,               GetErrRenameEngine),                                        // CMD_RENAME_ENGINE
 
-	DEF_CMD(CmdRenameCompany,                                      0, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_RENAME_COMPANY
-	DEF_CMD(CmdRenamePresident,                                    0, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_RENAME_PRESIDENT
+	DEF_CMD(CmdRenameCompany,                                      0, CMDT_OTHER_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_CHANGE_COMPANY_NAME>),       // CMD_RENAME_COMPANY
+	DEF_CMD(CmdRenamePresident,                                    0, CMDT_OTHER_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_CHANGE_PRESIDENT>),          // CMD_RENAME_PRESIDENT
 
-	DEF_CMD(CmdRenameStation,                                      0, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_RENAME_STATION
-	DEF_CMD(CmdRenameDepot,                                        0, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_RENAME_DEPOT
+	DEF_CMD(CmdRenameStation,                                      0, CMDT_OTHER_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_RENAME_STATION>),            // CMD_RENAME_STATION
+	DEF_CMD(CmdRenameDepot,                                        0, CMDT_OTHER_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_RENAME_DEPOT>),              // CMD_RENAME_DEPOT
 
-	DEF_CMD(CmdPlaceSign,                                 CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       CcPlaceSign),        // CMD_PLACE_SIGN
-	DEF_CMD(CmdRenameSign,                                CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_RENAME_SIGN
+	DEF_CMD(CmdPlaceSign,                                 CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       CcPlaceSign,        GetErrConstant<STR_ERROR_CAN_T_PLACE_SIGN_HERE>),           // CMD_PLACE_SIGN
+	DEF_CMD(CmdRenameSign,                                CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               GetErrRenameSign),                                          // CMD_RENAME_SIGN
 
-	DEF_CMD(CmdTurnRoadVeh,                                        0, CMDT_VEHICLE_MANAGEMENT,     NULL),               // CMD_TURN_ROADVEH
+	DEF_CMD(CmdTurnRoadVeh,                                        0, CMDT_VEHICLE_MANAGEMENT,     NULL,               GetErrConstant<STR_ERROR_CAN_T_MAKE_ROAD_VEHICLE_TURN>),    // CMD_TURN_ROADVEH
 
-	DEF_CMD(CmdPause,                                    CMDF_SERVER, CMDT_SERVER_SETTING,         NULL),               // CMD_PAUSE
+	DEF_CMD(CmdPause,                                    CMDF_SERVER, CMDT_SERVER_SETTING,         NULL,               NULL),                                                      // CMD_PAUSE
 
-	DEF_CMD(CmdBuyShareInCompany,                                  0, CMDT_MONEY_MANAGEMENT,       NULL),               // CMD_BUY_SHARE_IN_COMPANY
-	DEF_CMD(CmdSellShareInCompany,                                 0, CMDT_MONEY_MANAGEMENT,       NULL),               // CMD_SELL_SHARE_IN_COMPANY
-	DEF_CMD(CmdBuyCompany,                                         0, CMDT_MONEY_MANAGEMENT,       NULL),               // CMD_BUY_COMPANY
+	DEF_CMD(CmdBuyShareInCompany,                                  0, CMDT_MONEY_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_BUY_25_SHARE_IN_THIS>),      // CMD_BUY_SHARE_IN_COMPANY
+	DEF_CMD(CmdSellShareInCompany,                                 0, CMDT_MONEY_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_SELL_25_SHARE_IN>),          // CMD_SELL_SHARE_IN_COMPANY
+	DEF_CMD(CmdBuyCompany,                                         0, CMDT_MONEY_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_BUY_COMPANY>),               // CMD_BUY_COMPANY
 
-	DEF_CMD(CmdFoundTown,                  CMDF_DEITY | CMDF_NO_TEST, CMDT_LANDSCAPE_CONSTRUCTION, CcFoundTown),        // CMD_FOUND_TOWN; founding random town can fail only in exec run
-	DEF_CMD(CmdRenameTown,                  CMDF_DEITY | CMDF_SERVER, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_RENAME_TOWN
-	DEF_CMD(CmdDoTownAction,                                       0, CMDT_LANDSCAPE_CONSTRUCTION, NULL),               // CMD_DO_TOWN_ACTION
-	DEF_CMD(CmdTownCargoGoal,                             CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_TOWN_CARGO_GOAL
-	DEF_CMD(CmdTownGrowthRate,                            CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_TOWN_GROWTH_RATE
-	DEF_CMD(CmdTownSetText,               CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_TOWN_SET_TEXT
-	DEF_CMD(CmdExpandTown,                                CMDF_DEITY, CMDT_LANDSCAPE_CONSTRUCTION, NULL),               // CMD_EXPAND_TOWN
-	DEF_CMD(CmdDeleteTown,                              CMDF_OFFLINE, CMDT_LANDSCAPE_CONSTRUCTION, NULL),               // CMD_DELETE_TOWN
+	DEF_CMD(CmdFoundTown,                  CMDF_DEITY | CMDF_NO_TEST, CMDT_LANDSCAPE_CONSTRUCTION, CcFoundTown,        GetErrFoundTown),                                           // CMD_FOUND_TOWN; founding random town can fail only in exec run
+	DEF_CMD(CmdRenameTown,                  CMDF_DEITY | CMDF_SERVER, CMDT_OTHER_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_RENAME_TOWN>),               // CMD_RENAME_TOWN
+	DEF_CMD(CmdDoTownAction,                                       0, CMDT_LANDSCAPE_CONSTRUCTION, NULL,               GetErrConstant<STR_ERROR_CAN_T_DO_THIS>),                   // CMD_DO_TOWN_ACTION
+	DEF_CMD(CmdTownCargoGoal,                             CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_TOWN_CARGO_GOAL
+	DEF_CMD(CmdTownGrowthRate,                            CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_TOWN_GROWTH_RATE
+	DEF_CMD(CmdTownSetText,               CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_TOWN_SET_TEXT
+	DEF_CMD(CmdExpandTown,                                CMDF_DEITY, CMDT_LANDSCAPE_CONSTRUCTION, NULL,               GetErrConstant<STR_ERROR_CAN_T_EXPAND_TOWN>),               // CMD_EXPAND_TOWN
+	DEF_CMD(CmdDeleteTown,                              CMDF_OFFLINE, CMDT_LANDSCAPE_CONSTRUCTION, NULL,               GetErrConstant<STR_ERROR_TOWN_CAN_T_DELETE>),               // CMD_DELETE_TOWN
 
-	DEF_CMD(CmdOrderRefit,                                         0, CMDT_ROUTE_MANAGEMENT,       NULL),               // CMD_ORDER_REFIT
-	DEF_CMD(CmdCloneOrder,                                         0, CMDT_ROUTE_MANAGEMENT,       NULL),               // CMD_CLONE_ORDER
+	DEF_CMD(CmdOrderRefit,                                         0, CMDT_ROUTE_MANAGEMENT,       NULL,               NULL),                                                      // CMD_ORDER_REFIT
+	DEF_CMD(CmdCloneOrder,                                         0, CMDT_ROUTE_MANAGEMENT,       NULL,               GetErrCloneOrder),                                          // CMD_CLONE_ORDER
 
-	DEF_CMD(CmdClearArea,                               CMDF_NO_TEST, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound10),      // CMD_CLEAR_AREA; destroying multi-tile houses makes town rating differ between test and execution
+	DEF_CMD(CmdClearArea,                               CMDF_NO_TEST, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound10,      GetErrConstant<STR_ERROR_CAN_T_CLEAR_THIS_AREA>),           // CMD_CLEAR_AREA; destroying multi-tile houses makes town rating differ between test and execution
 
-	DEF_CMD(CmdMoneyCheat,                              CMDF_OFFLINE, CMDT_CHEAT,                  NULL),               // CMD_MONEY_CHEAT
-	DEF_CMD(CmdChangeBankBalance,                         CMDF_DEITY, CMDT_MONEY_MANAGEMENT,       NULL),               // CMD_CHANGE_BANK_BALANCE
-	DEF_CMD(CmdBuildCanal,                                 CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildCanal),       // CMD_BUILD_CANAL
-	DEF_CMD(CmdCreateSubsidy,                             CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_CREATE_SUBSIDY
-	DEF_CMD(CmdCompanyCtrl,          CMDF_SPECTATOR | CMDF_CLIENT_ID, CMDT_SERVER_SETTING,         NULL),               // CMD_COMPANY_CTRL
-	DEF_CMD(CmdCustomNewsItem,            CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_CUSTOM_NEWS_ITEM
-	DEF_CMD(CmdCreateGoal,                CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_CREATE_GOAL
-	DEF_CMD(CmdRemoveGoal,                                CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_REMOVE_GOAL
-	DEF_CMD(CmdSetGoalText,               CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_SET_GOAL_TEXT
-	DEF_CMD(CmdSetGoalProgress,           CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_SET_GOAL_PROGRESS
-	DEF_CMD(CmdSetGoalCompleted,          CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_SET_GOAL_COMPLETED
-	DEF_CMD(CmdGoalQuestion,              CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_GOAL_QUESTION
-	DEF_CMD(CmdGoalQuestionAnswer,                        CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_GOAL_QUESTION_ANSWER
-	DEF_CMD(CmdCreateStoryPage,           CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_CREATE_STORY_PAGE
-	DEF_CMD(CmdCreateStoryPageElement,    CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_CREATE_STORY_PAGE_ELEMENT
-	DEF_CMD(CmdUpdateStoryPageElement,    CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_UPDATE_STORY_PAGE_ELEMENT
-	DEF_CMD(CmdSetStoryPageTitle,         CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_SET_STORY_PAGE_TITLE
-	DEF_CMD(CmdSetStoryPageDate,                          CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_SET_STORY_PAGE_DATE
-	DEF_CMD(CmdShowStoryPage,                             CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_SHOW_STORY_PAGE
-	DEF_CMD(CmdRemoveStoryPage,                           CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_REMOVE_STORY_PAGE
-	DEF_CMD(CmdRemoveStoryPageElement,                    CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_REMOVE_STORY_PAGE_ELEMENT
+	DEF_CMD(CmdMoneyCheat,                              CMDF_OFFLINE, CMDT_CHEAT,                  NULL,               NULL),                                                      // CMD_MONEY_CHEAT
+	DEF_CMD(CmdChangeBankBalance,                         CMDF_DEITY, CMDT_MONEY_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_CHANGE_BANK_BALANCE
+	DEF_CMD(CmdBuildCanal,                                 CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildCanal,       GetErrBuildCanal),                                          // CMD_BUILD_CANAL
+	DEF_CMD(CmdCreateSubsidy,                             CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_CREATE_SUBSIDY
+	DEF_CMD(CmdCompanyCtrl,          CMDF_SPECTATOR | CMDF_CLIENT_ID, CMDT_SERVER_SETTING,         NULL,               NULL),                                                      // CMD_COMPANY_CTRL
+	DEF_CMD(CmdCustomNewsItem,            CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_CUSTOM_NEWS_ITEM
+	DEF_CMD(CmdCreateGoal,                CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_CREATE_GOAL
+	DEF_CMD(CmdRemoveGoal,                                CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_REMOVE_GOAL
+	DEF_CMD(CmdSetGoalText,               CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_SET_GOAL_TEXT
+	DEF_CMD(CmdSetGoalProgress,           CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_SET_GOAL_PROGRESS
+	DEF_CMD(CmdSetGoalCompleted,          CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_SET_GOAL_COMPLETED
+	DEF_CMD(CmdGoalQuestion,              CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_GOAL_QUESTION
+	DEF_CMD(CmdGoalQuestionAnswer,                        CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL),                                                      // CMD_GOAL_QUESTION_ANSWER
+	DEF_CMD(CmdCreateStoryPage,           CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_CREATE_STORY_PAGE
+	DEF_CMD(CmdCreateStoryPageElement,    CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_CREATE_STORY_PAGE_ELEMENT
+	DEF_CMD(CmdUpdateStoryPageElement,    CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_UPDATE_STORY_PAGE_ELEMENT
+	DEF_CMD(CmdSetStoryPageTitle,         CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_SET_STORY_PAGE_TITLE
+	DEF_CMD(CmdSetStoryPageDate,                          CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_SET_STORY_PAGE_DATE
+	DEF_CMD(CmdShowStoryPage,                             CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_SHOW_STORY_PAGE
+	DEF_CMD(CmdRemoveStoryPage,                           CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_REMOVE_STORY_PAGE
+	DEF_CMD(CmdRemoveStoryPageElement,                    CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_REMOVE_STORY_PAGE_ELEMENT
 
-	DEF_CMD(CmdLevelLand,  CMDF_ALL_TILES | CMDF_NO_TEST | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcTerraform),        // CMD_LEVEL_LAND; test run might clear tiles multiple times, in execution that only happens once
+	DEF_CMD(CmdLevelLand,  CMDF_ALL_TILES | CMDF_NO_TEST | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcTerraform,        GetErrLevelLand),                                           // CMD_LEVEL_LAND; test run might clear tiles multiple times, in execution that only happens once
 
-	DEF_CMD(CmdBuildLock,                                  CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildDocks),       // CMD_BUILD_LOCK
+	DEF_CMD(CmdBuildLock,                                  CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildDocks,       GetErrConstant<STR_ERROR_CAN_T_BUILD_LOCKS>),               // CMD_BUILD_LOCK
 
-	DEF_CMD(CmdBuildSignalTrack,                           CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E),      // CMD_BUILD_SIGNAL_TRACK
-	DEF_CMD(CmdRemoveSignalTrack,                          CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E),      // CMD_REMOVE_SIGNAL_TRACK
+	DEF_CMD(CmdBuildSignalTrack,                           CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E,      GetErrConstant<STR_ERROR_CAN_T_BUILD_SIGNALS_HERE>),        // CMD_BUILD_SIGNAL_TRACK
+	DEF_CMD(CmdRemoveSignalTrack,                          CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E,      GetErrConstant<STR_ERROR_CAN_T_REMOVE_SIGNALS_FROM>),       // CMD_REMOVE_SIGNAL_TRACK
 
-	DEF_CMD(CmdGiveMoney,                                          0, CMDT_MONEY_MANAGEMENT,       CcGiveMoney),        // CMD_GIVE_MONEY
-	DEF_CMD(CmdChangeSetting,                            CMDF_SERVER, CMDT_SERVER_SETTING,         NULL),               // CMD_CHANGE_SETTING
-	DEF_CMD(CmdChangeCompanySetting,                               0, CMDT_COMPANY_SETTING,        NULL),               // CMD_CHANGE_COMPANY_SETTING
-	DEF_CMD(CmdSetAutoReplace,                                     0, CMDT_VEHICLE_MANAGEMENT,     NULL),               // CMD_SET_AUTOREPLACE
-	DEF_CMD(CmdCloneVehicle,                            CMDF_NO_TEST, CMDT_VEHICLE_CONSTRUCTION,   CcCloneVehicle),     // CMD_CLONE_VEHICLE; NewGRF callbacks influence building and refitting making it impossible to correctly estimate the cost
-	DEF_CMD(CmdStartStopVehicle,                                   0, CMDT_VEHICLE_MANAGEMENT,     CcStartStopVehicle), // CMD_START_STOP_VEHICLE
-	DEF_CMD(CmdMassStartStopVehicle,                               0, CMDT_VEHICLE_MANAGEMENT,     NULL),               // CMD_MASS_START_STOP
-	DEF_CMD(CmdAutoreplaceVehicle,                                 0, CMDT_VEHICLE_MANAGEMENT,     NULL),               // CMD_AUTOREPLACE_VEHICLE
-	DEF_CMD(CmdDepotSellAllVehicles,                               0, CMDT_VEHICLE_CONSTRUCTION,   NULL),               // CMD_DEPOT_SELL_ALL_VEHICLES
-	DEF_CMD(CmdDepotMassAutoReplace,                               0, CMDT_VEHICLE_CONSTRUCTION,   NULL),               // CMD_DEPOT_MASS_AUTOREPLACE
-	DEF_CMD(CmdCreateGroup,                                        0, CMDT_ROUTE_MANAGEMENT,       CcCreateGroup),      // CMD_CREATE_GROUP
-	DEF_CMD(CmdDeleteGroup,                                        0, CMDT_ROUTE_MANAGEMENT,       NULL),               // CMD_DELETE_GROUP
-	DEF_CMD(CmdAlterGroup,                                         0, CMDT_OTHER_MANAGEMENT,       NULL),               // CMD_ALTER_GROUP
-	DEF_CMD(CmdAddVehicleGroup,                                    0, CMDT_ROUTE_MANAGEMENT,       CcAddVehicleGroup),  // CMD_ADD_VEHICLE_GROUP
-	DEF_CMD(CmdAddSharedVehicleGroup,                              0, CMDT_ROUTE_MANAGEMENT,       NULL),               // CMD_ADD_SHARED_VEHICLE_GROUP
-	DEF_CMD(CmdRemoveAllVehiclesGroup,                             0, CMDT_ROUTE_MANAGEMENT,       NULL),               // CMD_REMOVE_ALL_VEHICLES_GROUP
-	DEF_CMD(CmdSetGroupReplaceProtection,                          0, CMDT_ROUTE_MANAGEMENT,       NULL),               // CMD_SET_GROUP_REPLACE_PROTECTION
-	DEF_CMD(CmdMoveOrder,                                          0, CMDT_ROUTE_MANAGEMENT,       NULL),               // CMD_MOVE_ORDER
-	DEF_CMD(CmdChangeTimetable,                                    0, CMDT_ROUTE_MANAGEMENT,       NULL),               // CMD_CHANGE_TIMETABLE
-	DEF_CMD(CmdSetVehicleOnTime,                                   0, CMDT_ROUTE_MANAGEMENT,       NULL),               // CMD_SET_VEHICLE_ON_TIME
-	DEF_CMD(CmdAutofillTimetable,                                  0, CMDT_ROUTE_MANAGEMENT,       NULL),               // CMD_AUTOFILL_TIMETABLE
-	DEF_CMD(CmdSetTimetableStart,                                  0, CMDT_ROUTE_MANAGEMENT,       NULL),               // CMD_SET_TIMETABLE_START
+	DEF_CMD(CmdGiveMoney,                                          0, CMDT_MONEY_MANAGEMENT,       CcGiveMoney,        GetErrConstant<STR_ERROR_INSUFFICIENT_FUNDS>),              // CMD_GIVE_MONEY
+	DEF_CMD(CmdChangeSetting,                            CMDF_SERVER, CMDT_SERVER_SETTING,         NULL,               NULL),                                                      // CMD_CHANGE_SETTING
+	DEF_CMD(CmdChangeCompanySetting,                               0, CMDT_COMPANY_SETTING,        NULL,               NULL),                                                      // CMD_CHANGE_COMPANY_SETTING
+	DEF_CMD(CmdSetAutoReplace,                                     0, CMDT_VEHICLE_MANAGEMENT,     NULL,               NULL),                                                      // CMD_SET_AUTOREPLACE
+	DEF_CMD(CmdCloneVehicle,                            CMDF_NO_TEST, CMDT_VEHICLE_CONSTRUCTION,   CcCloneVehicle,     GetErrCloneVehicle),                                        // CMD_CLONE_VEHICLE; NewGRF callbacks influence building and refitting making it impossible to correctly estimate the cost
+	DEF_CMD(CmdStartStopVehicle,                                   0, CMDT_VEHICLE_MANAGEMENT,     CcStartStopVehicle, GetErrStartStopVehicle),                                    // CMD_START_STOP_VEHICLE
+	DEF_CMD(CmdMassStartStopVehicle,                               0, CMDT_VEHICLE_MANAGEMENT,     NULL,               NULL),                                                      // CMD_MASS_START_STOP
+	DEF_CMD(CmdAutoreplaceVehicle,                                 0, CMDT_VEHICLE_MANAGEMENT,     NULL,               NULL /* unused */),                                         // CMD_AUTOREPLACE_VEHICLE
+	DEF_CMD(CmdDepotSellAllVehicles,                               0, CMDT_VEHICLE_CONSTRUCTION,   NULL,               NULL),                                                      // CMD_DEPOT_SELL_ALL_VEHICLES
+	DEF_CMD(CmdDepotMassAutoReplace,                               0, CMDT_VEHICLE_CONSTRUCTION,   NULL,               NULL),                                                      // CMD_DEPOT_MASS_AUTOREPLACE
+	DEF_CMD(CmdCreateGroup,                                        0, CMDT_ROUTE_MANAGEMENT,       CcCreateGroup,      GetErrConstant<STR_ERROR_GROUP_CAN_T_CREATE>),              // CMD_CREATE_GROUP
+	DEF_CMD(CmdDeleteGroup,                                        0, CMDT_ROUTE_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_GROUP_CAN_T_DELETE>),              // CMD_DELETE_GROUP
+	DEF_CMD(CmdAlterGroup,                                         0, CMDT_OTHER_MANAGEMENT,       NULL,               GetErrAlterGroup),                                          // CMD_ALTER_GROUP
+	DEF_CMD(CmdAddVehicleGroup,                                    0, CMDT_ROUTE_MANAGEMENT,       CcAddVehicleGroup,  GetErrConstant<STR_ERROR_GROUP_CAN_T_ADD_VEHICLE>),         // CMD_ADD_VEHICLE_GROUP
+	DEF_CMD(CmdAddSharedVehicleGroup,                              0, CMDT_ROUTE_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_GROUP_CAN_T_ADD_SHARED_VEHICLE>),  // CMD_ADD_SHARED_VEHICLE_GROUP
+	DEF_CMD(CmdRemoveAllVehiclesGroup,                             0, CMDT_ROUTE_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_GROUP_CAN_T_REMOVE_ALL_VEHICLES>), // CMD_REMOVE_ALL_VEHICLES_GROUP
+	DEF_CMD(CmdSetGroupReplaceProtection,                          0, CMDT_ROUTE_MANAGEMENT,       NULL,               NULL),                                                      // CMD_SET_GROUP_REPLACE_PROTECTION
+	DEF_CMD(CmdMoveOrder,                                          0, CMDT_ROUTE_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_MOVE_THIS_ORDER>),           // CMD_MOVE_ORDER
+	DEF_CMD(CmdChangeTimetable,                                    0, CMDT_ROUTE_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_TIMETABLE_VEHICLE>),         // CMD_CHANGE_TIMETABLE
+	DEF_CMD(CmdSetVehicleOnTime,                                   0, CMDT_ROUTE_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_TIMETABLE_VEHICLE>),         // CMD_SET_VEHICLE_ON_TIME
+	DEF_CMD(CmdAutofillTimetable,                                  0, CMDT_ROUTE_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_TIMETABLE_VEHICLE>),         // CMD_AUTOFILL_TIMETABLE
+	DEF_CMD(CmdSetTimetableStart,                                  0, CMDT_ROUTE_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_TIMETABLE_VEHICLE>),         // CMD_SET_TIMETABLE_START
 
-	DEF_CMD(CmdOpenCloseAirport,                                   0, CMDT_ROUTE_MANAGEMENT,       NULL),               // CMD_OPEN_CLOSE_AIRPORT
+	DEF_CMD(CmdOpenCloseAirport,                                   0, CMDT_ROUTE_MANAGEMENT,       NULL,               NULL),                                                      // CMD_OPEN_CLOSE_AIRPORT
 };
 
 /*!
@@ -559,7 +602,9 @@ bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *te
 	int y = TileY(tile) * TILE_SIZE;
 
 	if (_pause_mode != PM_UNPAUSED && !IsCommandAllowedWhilePaused(cmd)) {
-		ShowErrorMessage(GB(cmd, 16, 16), STR_ERROR_NOT_ALLOWED_WHILE_PAUSED, WL_INFO, x, y);
+		CommandErrstrF *errorstrf = _command_proc_table[cmd & CMD_ID_MASK].errorstrf;
+		StringID errorstr = (errorstrf == NULL) ? 0 : errorstrf (tile, p1, p2, text);
+		ShowErrorMessage (errorstr, STR_ERROR_NOT_ALLOWED_WHILE_PAUSED, WL_INFO, x, y);
 		return false;
 	}
 
@@ -571,7 +616,8 @@ bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *te
 	CommandCost res = DoCommandPInternal(tile, p1, p2, cmd, text, estimate_only, cmdsrc);
 	if (res.Failed()) {
 		/* Only show the error when it's for us. */
-		StringID error_part1 = GB(cmd, 16, 16);
+		CommandErrstrF *errorstrf = _command_proc_table[cmd & CMD_ID_MASK].errorstrf;
+		StringID error_part1 = (errorstrf == NULL) ? 0 : errorstrf (tile, p1, p2, text);
 		if (estimate_only || (IsLocalCompany() && error_part1 != 0 && cmdsrc_get_type(cmdsrc) == CMDSRC_SELF)) {
 			ShowErrorMessage(error_part1, res.GetErrorMessage(), WL_INFO, x, y, res.GetTextRefStackGRF(), res.GetTextRefStackSize(), res.GetTextRefStack());
 		}

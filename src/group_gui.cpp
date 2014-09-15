@@ -571,7 +571,7 @@ public:
 		if (confirmed) {
 			VehicleGroupWindow *w = (VehicleGroupWindow*)win;
 			w->vli.index = ALL_GROUP;
-			DoCommandP(0, w->group_confirm, 0, CMD_DELETE_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_DELETE));
+			DoCommandP(0, w->group_confirm, 0, CMD_DELETE_GROUP);
 		}
 	}
 
@@ -634,7 +634,7 @@ public:
 			}
 
 			case WID_GL_CREATE_GROUP: { // Create a new group
-				DoCommandP(0, this->vli.vtype, 0, CMD_CREATE_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_CREATE));
+				DoCommandP(0, this->vli.vtype, 0, CMD_CREATE_GROUP);
 				break;
 			}
 
@@ -682,7 +682,7 @@ public:
 			case WID_GL_ALL_VEHICLES: // All vehicles
 			case WID_GL_DEFAULT_VEHICLES: // Ungrouped vehicles
 				if (g->parent != INVALID_GROUP) {
-					DoCommandP(0, this->group_sel | (1 << 16), INVALID_GROUP, CMD_ALTER_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_SET_PARENT));
+					DoCommandP(0, this->group_sel | (1 << 16), INVALID_GROUP, CMD_ALTER_GROUP);
 				}
 
 				this->group_sel = INVALID_GROUP;
@@ -695,7 +695,7 @@ public:
 				GroupID new_g = id_g >= this->groups.Length() ? INVALID_GROUP : this->groups[id_g]->index;
 
 				if (this->group_sel != new_g && g->parent != new_g) {
-					DoCommandP(0, this->group_sel | (1 << 16), new_g, CMD_ALTER_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_SET_PARENT));
+					DoCommandP(0, this->group_sel | (1 << 16), new_g, CMD_ALTER_GROUP);
 				}
 
 				this->group_sel = INVALID_GROUP;
@@ -710,7 +710,7 @@ public:
 	{
 		switch (widget) {
 			case WID_GL_DEFAULT_VEHICLES: // Ungrouped vehicles
-				DoCommandP(0, DEFAULT_GROUP, this->vehicle_sel | (_ctrl_pressed ? 1 << 31 : 0), CMD_ADD_VEHICLE_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_ADD_VEHICLE));
+				DoCommandP(0, DEFAULT_GROUP, this->vehicle_sel | (_ctrl_pressed ? 1 << 31 : 0), CMD_ADD_VEHICLE_GROUP);
 
 				this->vehicle_sel = INVALID_VEHICLE;
 				this->group_over = INVALID_GROUP;
@@ -727,7 +727,7 @@ public:
 				uint id_g = this->group_sb->GetScrolledRowFromWidget(pt.y, this, WID_GL_LIST_GROUP, 0, this->tiny_step_height);
 				GroupID new_g = id_g >= this->groups.Length() ? NEW_GROUP : this->groups[id_g]->index;
 
-				DoCommandP(0, new_g, vindex | (_ctrl_pressed ? 1 << 31 : 0), CMD_ADD_VEHICLE_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_ADD_VEHICLE));
+				DoCommandP(0, new_g, vindex | (_ctrl_pressed ? 1 << 31 : 0), CMD_ADD_VEHICLE_GROUP);
 				break;
 			}
 
@@ -759,7 +759,7 @@ public:
 
 	virtual void OnQueryTextFinished(char *str)
 	{
-		if (str != NULL) DoCommandP(0, this->group_rename, 0, CMD_ALTER_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_RENAME), str);
+		if (str != NULL) DoCommandP(0, this->group_rename, 0, CMD_ALTER_GROUP, str);
 		this->group_rename = INVALID_GROUP;
 	}
 
@@ -785,19 +785,19 @@ public:
 						break;
 					case ADI_SERVICE: // Send for servicing
 					case ADI_DEPOT: { // Send to Depots
-						DoCommandP(0, DEPOT_MASS_SEND | (index == ADI_SERVICE ? DEPOT_SERVICE : 0U), this->vli.Pack(), CMD_SEND_VEHICLE_TO_DEPOT | CMD_MSG(GetErrSendToDepot(this->vli.vtype)));
+						DoCommandP(0, DEPOT_MASS_SEND | (index == ADI_SERVICE ? DEPOT_SERVICE : 0U), this->vli.Pack(), CMD_SEND_VEHICLE_TO_DEPOT);
 						break;
 					}
 
 					case ADI_ADD_SHARED: // Add shared Vehicles
 						assert(Group::IsValidID(this->vli.index));
 
-						DoCommandP(0, this->vli.index, this->vli.vtype, CMD_ADD_SHARED_VEHICLE_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_ADD_SHARED_VEHICLE));
+						DoCommandP(0, this->vli.index, this->vli.vtype, CMD_ADD_SHARED_VEHICLE_GROUP);
 						break;
 					case ADI_REMOVE_ALL: // Remove all Vehicles from the selected group
 						assert(Group::IsValidID(this->vli.index));
 
-						DoCommandP(0, this->vli.index, 0, CMD_REMOVE_ALL_VEHICLES_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_REMOVE_ALL_VEHICLES));
+						DoCommandP(0, this->vli.index, 0, CMD_REMOVE_ALL_VEHICLES_GROUP);
 						break;
 					default: NOT_REACHED();
 				}
@@ -967,6 +967,22 @@ void CcAddVehicleGroup(const CommandCost &result, TileIndex tile, uint32 p1, uin
 	assert(Vehicle::IsValidID(GB(p2, 0, 20)));
 
 	ShowRenameNewGroupWindow(Vehicle::Get(GB(p2, 0, 20))->type);
+}
+
+/**
+ * Get the error string when altering a group.
+ * @param tile unused
+ * @param flags type of operation
+ * @param p1   index of array group
+ *   - p1 bit 0-15 : GroupID
+ *   - p1 bit 16: 0 - Rename group
+ *                1 - Set group parent
+ * @param p2   parent group index
+ * @param text the new name or an empty string when resetting to the default
+ */
+StringID GetErrAlterGroup (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return HasBit(p1, 16) ? STR_ERROR_GROUP_CAN_T_SET_PARENT : STR_ERROR_GROUP_CAN_T_RENAME;
 }
 
 /**

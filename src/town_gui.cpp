@@ -272,7 +272,7 @@ public:
 			}
 
 			case WID_TA_EXECUTE:
-				DoCommandP(this->town->xy, this->window_number, this->sel_index, CMD_DO_TOWN_ACTION | CMD_MSG(STR_ERROR_CAN_T_DO_THIS));
+				DoCommandP(this->town->xy, this->window_number, this->sel_index, CMD_DO_TOWN_ACTION);
 				break;
 		}
 	}
@@ -439,12 +439,12 @@ public:
 					_warn_town_no_roads = true;
 				}
 
-				DoCommandP(0, this->window_number, 0, CMD_EXPAND_TOWN | CMD_MSG(STR_ERROR_CAN_T_EXPAND_TOWN));
+				DoCommandP(0, this->window_number, 0, CMD_EXPAND_TOWN);
 				break;
 			}
 
 			case WID_TV_DELETE: // delete town - only available on Scenario editor
-				DoCommandP(0, this->window_number, 0, CMD_DELETE_TOWN | CMD_MSG(STR_ERROR_TOWN_CAN_T_DELETE));
+				DoCommandP(0, this->window_number, 0, CMD_DELETE_TOWN);
 				break;
 		}
 	}
@@ -526,7 +526,7 @@ public:
 	{
 		if (str == NULL) return;
 
-		DoCommandP(0, this->window_number, 0, CMD_RENAME_TOWN | CMD_MSG(STR_ERROR_CAN_T_RENAME_TOWN), str);
+		DoCommandP(0, this->window_number, 0, CMD_RENAME_TOWN, str);
 	}
 };
 
@@ -968,6 +968,11 @@ void CcFoundTown(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
 	}
 }
 
+StringID GetErrFoundTown (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return HasBit(p1, 6) ? STR_ERROR_CAN_T_GENERATE_TOWN : STR_ERROR_CAN_T_FOUND_TOWN_HERE;
+}
+
 static const NWidgetPart _nested_found_town_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_DARK_GREEN),
@@ -1096,7 +1101,7 @@ public:
 		this->SetDirty();
 	}
 
-	void ExecuteFoundTownCommand(TileIndex tile, bool random, StringID errstr)
+	void ExecuteFoundTownCommand(TileIndex tile, bool random)
 	{
 		const char *name = NULL;
 
@@ -1110,7 +1115,7 @@ public:
 		}
 
 		bool success = DoCommandP(tile, this->town_size | this->city << 2 | this->town_layout << 3 | random << 6,
-				townnameparts, CMD_FOUND_TOWN | CMD_MSG(errstr), name);
+				townnameparts, CMD_FOUND_TOWN, name);
 
 		if (success) this->RandomTownName();
 	}
@@ -1123,7 +1128,7 @@ public:
 				break;
 
 			case WID_TF_RANDOM_TOWN:
-				this->ExecuteFoundTownCommand(0, true, STR_ERROR_CAN_T_GENERATE_TOWN);
+				this->ExecuteFoundTownCommand(0, true);
 				break;
 
 			case WID_TF_TOWN_NAME_RANDOM:
@@ -1162,7 +1167,7 @@ public:
 
 	virtual void OnPlaceObject(Point pt, TileIndex tile)
 	{
-		this->ExecuteFoundTownCommand(tile, false, STR_ERROR_CAN_T_FOUND_TOWN_HERE);
+		this->ExecuteFoundTownCommand(tile, false);
 	}
 
 	virtual void OnPlaceObjectAbort()

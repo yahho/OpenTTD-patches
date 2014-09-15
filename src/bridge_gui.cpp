@@ -75,6 +75,27 @@ void CcBuildBridge(const CommandCost &result, TileIndex end_tile, uint32 p1, uin
 	}
 }
 
+/**
+ * Get the error string when building a bridge
+ *
+ * @param end_tile End tile of the bridge.
+ * @param p1 packed start tile coords (~ dx)
+ * @param p2 various bitstuffed elements
+ * - p2 = (bit  0- 7) - bridge type (hi bh)
+ * - p2 = (bit  8-11) - rail type or road types.
+ * - p2 = (bit 12-13) - transport type.
+ */
+StringID GetErrBuildBridge(TileIndex end_tile, uint32 p1, uint32 p2, const char *text)
+{
+	TransportType transport_type = Extract<TransportType, 12, 2>(p2);
+
+	if (transport_type == TRANSPORT_WATER) {
+		return STR_ERROR_CAN_T_BUILD_AQUEDUCT_HERE;
+	} else {
+		return STR_ERROR_CAN_T_BUILD_BRIDGE_HERE;
+	}
+}
+
 /** Window class for handling the bridge-build GUI. */
 class BuildBridgeWindow : public Window {
 private:
@@ -118,8 +139,7 @@ private:
 			case TRANSPORT_ROAD: _last_roadbridge_type = this->bridges->Get(i)->index; break;
 			default: break;
 		}
-		DoCommandP(this->end_tile, this->start_tile, this->type | this->bridges->Get(i)->index,
-					CMD_BUILD_BRIDGE | CMD_MSG(STR_ERROR_CAN_T_BUILD_BRIDGE_HERE));
+		DoCommandP(this->end_tile, this->start_tile, this->type | this->bridges->Get(i)->index, CMD_BUILD_BRIDGE);
 	}
 
 	/** Sort the builable bridges */
@@ -384,7 +404,7 @@ void ShowBuildBridgeWindow(TileIndex start, TileIndex end, TransportType transpo
 		default: break; // water ways and air routes don't have bridge types
 	}
 	if (_ctrl_pressed && CheckBridgeAvailability(last_bridge_type, bridge_len).Succeeded()) {
-		DoCommandP(end, start, type | last_bridge_type, CMD_BUILD_BRIDGE | CMD_MSG(STR_ERROR_CAN_T_BUILD_BRIDGE_HERE));
+		DoCommandP(end, start, type | last_bridge_type, CMD_BUILD_BRIDGE);
 		return;
 	}
 

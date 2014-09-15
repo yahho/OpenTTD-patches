@@ -925,6 +925,11 @@ void DrawEngineList(VehicleType type, int l, int r, int y, const GUIEngineList *
 	}
 }
 
+StringID GetErrRenameEngine (TileIndex tile, uint32 p1, uint32 p2, const char *text)
+{
+	return STR_ERROR_CAN_T_RENAME_TRAIN_TYPE + Engine::Get(p1)->type;
+}
+
 
 struct BuildVehicleWindow : Window {
 	VehicleType vehicle_type;
@@ -1258,7 +1263,7 @@ struct BuildVehicleWindow : Window {
 			case WID_BV_BUILD: {
 				EngineID sel_eng = this->sel_engine;
 				if (sel_eng != INVALID_ENGINE) {
-					DoCommandP(this->window_number, sel_eng, 0, CMD_BUILD_VEHICLE | CMD_MSG(GetErrBuildVeh(this->vehicle_type)));
+					DoCommandP(this->window_number, sel_eng, 0, CMD_BUILD_VEHICLE);
 				}
 				break;
 			}
@@ -1378,7 +1383,7 @@ struct BuildVehicleWindow : Window {
 	{
 		if (str == NULL) return;
 
-		DoCommandP(0, this->rename_engine, 0, CMD_RENAME_ENGINE | CMD_MSG(STR_ERROR_CAN_T_RENAME_TRAIN_TYPE + this->vehicle_type), str);
+		DoCommandP(0, this->rename_engine, 0, CMD_RENAME_ENGINE, str);
 	}
 
 	virtual void OnDropdownSelect(int widget, int index)
