@@ -7,7 +7,7 @@ struct SQLexer
 	SQLexer();
 	~SQLexer();
 	void Init(SQSharedState *ss,SQLEXREADFUNC rg,SQUserPointer up,CompilerErrorFunc efunc,void *ed);
-	void Error(const char *err);
+	NORETURN void Error(const char *err);
 	SQInteger Lex();
 	const char *Tok2Str(SQInteger tok);
 private:

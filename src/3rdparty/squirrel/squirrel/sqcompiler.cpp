@@ -60,11 +60,11 @@ public:
 		_sourcename = SQString::Create(_ss(v), sourcename);
 		_lineinfo = lineinfo;_raiseerror = raiseerror;
 	}
-	static void ThrowError(void *ud, const char *s) {
+	NORETURN static void ThrowError(void *ud, const char *s) {
 		SQCompiler *c = (SQCompiler *)ud;
 		c->Error(s);
 	}
-	void Error(const char *s, ...)
+	NORETURN void Error(const char *s, ...)
 	{
 		static char temp[256];
 		va_list vl;
