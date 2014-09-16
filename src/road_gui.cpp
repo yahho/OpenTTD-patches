@@ -246,10 +246,9 @@ StringID GetErrBuildRoadDepot (TileIndex tile, uint32 p1, uint32 p2, const char 
  * @param p2 bit 0: 0 For bus stops, 1 for truck stops.
  *           bit 2..3: The roadtypes.
  *           bit 5: Allow stations directly adjacent to other stations.
- * @param cmd Command to use.
  * @see CcRoadStop()
  */
-static void PlaceRoadStop(TileIndex start_tile, TileIndex end_tile, uint32 p2, uint32 cmd)
+static void PlaceRoadStop(TileIndex start_tile, TileIndex end_tile, uint32 p2)
 {
 	uint8 ddir = _road_station_picker_orientation;
 	SB(p2, 16, 16, INVALID_STATION); // no station to join
@@ -261,7 +260,7 @@ static void PlaceRoadStop(TileIndex start_tile, TileIndex end_tile, uint32 p2, u
 	p2 |= ddir << 6; // Set the DiagDirecion into p2 bits 6 and 7.
 
 	TileArea ta(start_tile, end_tile);
-	CommandContainer cmdcont = { ta.tile, ta.w | ta.h << 8, p2, cmd, "" };
+	CommandContainer cmdcont = { ta.tile, ta.w | ta.h << 8, p2, CMD_BUILD_ROAD_STOP, "" };
 	ShowSelectStationIfNeeded(cmdcont, ta);
 }
 
@@ -650,11 +649,11 @@ struct BuildRoadToolbarWindow : Window {
 					break;
 
 				case DDSP_BUILD_BUSSTOP:
-					PlaceRoadStop(start_tile, end_tile, (_ctrl_pressed << 5) | RoadTypeToRoadTypes(_cur_roadtype) << 2 | ROADSTOP_BUS, CMD_BUILD_ROAD_STOP);
+					PlaceRoadStop(start_tile, end_tile, (_ctrl_pressed << 5) | RoadTypeToRoadTypes(_cur_roadtype) << 2 | ROADSTOP_BUS);
 					break;
 
 				case DDSP_BUILD_TRUCKSTOP:
-					PlaceRoadStop(start_tile, end_tile, (_ctrl_pressed << 5) | RoadTypeToRoadTypes(_cur_roadtype) << 2 | ROADSTOP_TRUCK, CMD_BUILD_ROAD_STOP);
+					PlaceRoadStop(start_tile, end_tile, (_ctrl_pressed << 5) | RoadTypeToRoadTypes(_cur_roadtype) << 2 | ROADSTOP_TRUCK);
 					break;
 
 				case DDSP_REMOVE_BUSSTOP: {
