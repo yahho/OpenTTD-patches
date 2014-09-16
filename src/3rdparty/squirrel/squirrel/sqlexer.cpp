@@ -152,11 +152,9 @@ SQInteger SQLexer::Lex()
 			case '=':
 				NEXT();
 				RETURN_TOKEN(TK_DIVEQ);
-				continue;
 			case '>':
 				NEXT();
 				RETURN_TOKEN(TK_ATTR_CLOSE);
-				continue;
 			default:
 				RETURN_TOKEN('/');
 			}
