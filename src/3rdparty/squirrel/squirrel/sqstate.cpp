@@ -518,17 +518,22 @@ SQString *SQStringTable::Add(const char *news,SQInteger len)
 	}
 
 	SQString *t=(SQString *)SQ_MALLOC(len+sizeof(SQString));
-	new (t) SQString;
-	memcpy(t->_val,news,(size_t)len);
-	t->_val[len] = '\0';
-	t->_len = len;
-	t->_hash = ::_hashstr(news,(size_t)len);
+	new (t) SQString(news, len);
 	t->_next = _strings[h];
 	_strings[h] = t;
 	_slotused++;
 	if (_slotused > _numofslots)  /* too crowded? */
 		Resize(_numofslots*2);
 	return t;
+}
+
+SQString::SQString(const char *news, SQInteger len)
+{
+	memcpy(_val,news,(size_t)len);
+	_val[len] = '\0';
+	_len = len;
+	_hash = ::_hashstr(news,(size_t)len);
+	_next = NULL;
 }
 
 void SQStringTable::Resize(SQInteger size)
