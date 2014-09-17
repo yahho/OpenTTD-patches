@@ -106,7 +106,6 @@ static CommandQueue _local_execution_queue;
  */
 void NetworkSendCommand(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text, CompanyID company, CommandSource cmdsrc)
 {
-	assert((cmd & CMD_FLAGS_MASK) == 0);
 	assert(cmdsrc_is_local(cmdsrc));
 
 	CommandPacket c;
@@ -279,7 +278,6 @@ const char *NetworkGameSocketHandler::ReceiveCommand(Packet *p, CommandPacket *c
 	cp->cmd     = p->Recv_uint32();
 	if (!IsValidCommand(cp->cmd))                return "invalid command";
 	if (GetCommandFlags(cp->cmd) & CMDF_OFFLINE) return "offline only command";
-	if ((cp->cmd & CMD_FLAGS_MASK) != 0)         return "invalid command flag";
 
 	cp->p1      = p->Recv_uint32();
 	cp->p2      = p->Recv_uint32();

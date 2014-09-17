@@ -403,14 +403,11 @@ static const Command _command_proc_table[] = {
  */
 bool IsValidCommand(uint32 cmd)
 {
-	cmd &= CMD_ID_MASK;
-
 	return cmd < lengthof(_command_proc_table) && _command_proc_table[cmd].proc != NULL;
 }
 
 /*!
- * This function mask the parameter with CMD_ID_MASK and returns
- * the flags which belongs to the given command.
+ * This function returns the flags which belongs to the given command.
  *
  * @param cmd The integer value of the command
  * @return The flags for this command
@@ -419,12 +416,11 @@ CommandFlags GetCommandFlags(uint32 cmd)
 {
 	assert(IsValidCommand(cmd));
 
-	return _command_proc_table[cmd & CMD_ID_MASK].flags;
+	return _command_proc_table[cmd].flags;
 }
 
 /*!
- * This function mask the parameter with CMD_ID_MASK and returns
- * the name which belongs to the given command.
+ * This function returns the name which belongs to the given command.
  *
  * @param cmd The integer value of the command
  * @return The name for this command
@@ -433,7 +429,7 @@ const char *GetCommandName(uint32 cmd)
 {
 	assert(IsValidCommand(cmd));
 
-	return _command_proc_table[cmd & CMD_ID_MASK].name;
+	return _command_proc_table[cmd].name;
 }
 
 /**
@@ -458,7 +454,7 @@ bool IsCommandAllowedWhilePaused(uint32 cmd)
 	assert_compile(lengthof(command_type_lookup) == CMDT_END);
 
 	assert(IsValidCommand(cmd));
-	return _game_mode == GM_EDITOR || command_type_lookup[_command_proc_table[cmd & CMD_ID_MASK].type] <= _settings_game.construction.command_pause_level;
+	return _game_mode == GM_EDITOR || command_type_lookup[_command_proc_table[cmd].type] <= _settings_game.construction.command_pause_level;
 }
 
 
@@ -474,7 +470,7 @@ static int _docommand_recursive = 0;
  */
 CommandCost DoCommand(const CommandContainer *container, DoCommandFlag flags)
 {
-	return DoCommand(container->tile, container->p1, container->p2, flags, container->cmd & CMD_ID_MASK, container->text);
+	return DoCommand(container->tile, container->p1, container->p2, flags, container->cmd, container->text);
 }
 
 /*!
@@ -497,8 +493,7 @@ CommandCost DoCommand(TileIndex tile, uint32 p1, uint32 p2, DoCommandFlag flags,
 	/* Do not even think about executing out-of-bounds tile-commands */
 	if (tile != 0 && (tile >= MapSize() || (!IsValidTile(tile) && (flags & DC_ALL_TILES) == 0))) return CMD_ERROR;
 
-	/* Chop of any CMD_MSG or other flags; we don't need those here */
-	CommandProc *proc = _command_proc_table[cmd & CMD_ID_MASK].proc;
+	CommandProc *proc = _command_proc_table[cmd].proc;
 
 	_docommand_recursive++;
 
@@ -591,7 +586,7 @@ bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *te
 	bool estimate_only = _shift_pressed && IsLocalCompany() &&
 			!_generating_world &&
 			cmdsrc_is_local(cmdsrc) &&
-			(cmd & CMD_ID_MASK) != CMD_PAUSE;
+			cmd != CMD_PAUSE;
 
 	/* We're only sending the command, so don't do
 	 * fancy things for 'success'. */
@@ -602,7 +597,7 @@ bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *te
 	int y = TileY(tile) * TILE_SIZE;
 
 	if (_pause_mode != PM_UNPAUSED && !IsCommandAllowedWhilePaused(cmd)) {
-		CommandErrstrF *errorstrf = _command_proc_table[cmd & CMD_ID_MASK].errorstrf;
+		CommandErrstrF *errorstrf = _command_proc_table[cmd].errorstrf;
 		StringID errorstr = (errorstrf == NULL) ? 0 : errorstrf (tile, p1, p2, text);
 		ShowErrorMessage (errorstr, STR_ERROR_NOT_ALLOWED_WHILE_PAUSED, WL_INFO, x, y);
 		return false;
@@ -616,7 +611,7 @@ bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *te
 	CommandCost res = DoCommandPInternal(tile, p1, p2, cmd, text, estimate_only, cmdsrc);
 	if (res.Failed()) {
 		/* Only show the error when it's for us. */
-		CommandErrstrF *errorstrf = _command_proc_table[cmd & CMD_ID_MASK].errorstrf;
+		CommandErrstrF *errorstrf = _command_proc_table[cmd].errorstrf;
 		StringID error_part1 = (errorstrf == NULL) ? 0 : errorstrf (tile, p1, p2, text);
 		if (estimate_only || (IsLocalCompany() && error_part1 != 0 && cmdsrc_get_type(cmdsrc) == CMDSRC_SELF)) {
 			ShowErrorMessage(error_part1, res.GetErrorMessage(), WL_INFO, x, y, res.GetTextRefStackGRF(), res.GetTextRefStackSize(), res.GetTextRefStack());
@@ -635,7 +630,7 @@ bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *te
 	if (!estimate_only && !only_sending) {
 		switch (cmdsrc_get_type(cmdsrc)) {
 			case CMDSRC_SELF: {
-				CommandCallback *callback = _command_proc_table[cmd & CMD_ID_MASK].callback;
+				CommandCallback *callback = _command_proc_table[cmd].callback;
 				if (callback != NULL) {
 					callback(res, tile, p1, p2);
 				}
@@ -683,10 +678,8 @@ CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd,
 	_additional_cash_required = 0;
 
 	/* Get pointer to command handler */
-	byte cmd_id = cmd & CMD_ID_MASK;
-	assert(cmd_id < lengthof(_command_proc_table));
-
-	CommandProc *proc = _command_proc_table[cmd_id].proc;
+	assert(cmd < lengthof(_command_proc_table));
+	CommandProc *proc = _command_proc_table[cmd].proc;
 	/* Shouldn't happen, but you never know when someone adds
 	 * NULLs to the _command_proc_table. */
 	assert(proc != NULL);
@@ -752,7 +745,7 @@ CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd,
 	 * send it to the command-queue and abort execution
 	 */
 	if (_networking && !_generating_world && cmdsrc_is_local(cmdsrc)) {
-		NetworkSendCommand(tile, p1, p2, cmd & ~CMD_FLAGS_MASK, text, _current_company, cmdsrc);
+		NetworkSendCommand(tile, p1, p2, cmd, text, _current_company, cmdsrc);
 		cur_company.Restore();
 
 		/* Don't return anything special here; no error, no costs.
@@ -771,7 +764,7 @@ CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd,
 	CommandCost res2 = proc(tile, flags | DC_EXEC, p1, p2, text);
 	BasePersistentStorageArray::SwitchMode(PSM_LEAVE_COMMAND);
 
-	if (cmd_id == CMD_COMPANY_CTRL) {
+	if (cmd == CMD_COMPANY_CTRL) {
 		cur_company.Trash();
 		/* We are a new company                  -> Switch to new local company.
 		 * We were closed down                   -> Switch to spectator

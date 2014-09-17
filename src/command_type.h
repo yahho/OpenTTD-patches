@@ -355,27 +355,6 @@ enum DoCommandFlag {
 DECLARE_ENUM_AS_BIT_SET(DoCommandFlag)
 
 /**
- * Used to combine a StringID with the command.
- *
- * This macro can be used to add a StringID (the error message to show) on a command-id
- * (CMD_xxx). Use the binary or-operator "|" to combine the command with the result from
- * this macro.
- *
- * @param x The StringID to combine with a command-id
- */
-#define CMD_MSG(x) ((x) << 16)
-
-/**
- * Defines some flags.
- *
- * This enumeration defines some flags which are binary-or'ed on a command.
- */
-enum FlaggedCommands {
-	CMD_FLAGS_MASK            = 0xFF00, ///< mask for all command flags
-	CMD_ID_MASK               = 0x00FF, ///< mask for the command ID
-};
-
-/**
  * Command flags for the command table _command_proc_table.
  *
  * This enumeration defines flags for the _command_proc_table.
