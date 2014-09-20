@@ -54,6 +54,7 @@
 #include "../smallmap_gui.h"
 #include "../news_func.h"
 #include "../error.h"
+#include "../disaster_vehicle.h"
 
 
 #include "saveload_internal.h"
