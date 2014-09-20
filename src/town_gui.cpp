@@ -1071,6 +1071,7 @@ public:
 		if (!this->townnamevalid) {
 			this->townname_editbox.DeleteAll();
 		} else {
+			this->townname_editbox.clear();
 			AppendTownName (&this->townname_editbox, &this->params, this->townnameparts);
 			this->townname_editbox.UpdateSize();
 		}
