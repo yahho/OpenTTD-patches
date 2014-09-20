@@ -708,7 +708,7 @@ static CommandCost CmdBuildRailWagon(TileIndex tile, DoCommandFlag flags, const 
 
 		_new_vehicle_id = v->index;
 
-		VehicleUpdatePosition(v);
+		v->UpdatePosition();
 		v->First()->ConsistChanged(CCF_ARRANGE);
 		UpdateTrainGroupID(v->First());
 
@@ -771,7 +771,7 @@ static void AddRearEngineToMultiheadedTrain(Train *v)
 	v->SetMultiheaded();
 	u->SetMultiheaded();
 	v->SetNext(u);
-	VehicleUpdatePosition(u);
+	u->UpdatePosition();
 
 	/* Now we need to link the front and rear engines together */
 	v->other_multiheaded_part = u;
@@ -843,7 +843,7 @@ CommandCost CmdBuildRailVehicle(TileIndex tile, DoCommandFlag flags, const Engin
 		v->SetFrontEngine();
 		v->SetEngine();
 
-		VehicleUpdatePosition(v);
+		v->UpdatePosition();
 
 		if (rvi->railveh_type == RAILVEH_MULTIHEAD) {
 			AddRearEngineToMultiheadedTrain(v);
@@ -1627,7 +1627,7 @@ static void UpdateStatusAfterSwap(Train *v)
 		v->tile = GetOtherTunnelBridgeEnd(v->tile);
 	}
 
-	VehicleUpdatePosition(v);
+	v->UpdatePosition();
 	v->UpdateViewport(true, true);
 }
 
@@ -2246,7 +2246,7 @@ static bool CheckTrainStayInDepot(Train *v)
 	v->cur_speed = 0;
 
 	v->UpdateViewport(true, true);
-	VehicleUpdatePosition(v);
+	v->UpdatePosition();
 
 	assert(IsSignalBufferEmpty());
 	AddDepotToSignalBuffer(v->tile, v->owner);
@@ -3683,10 +3683,10 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 
 		v->x_pos = gp.xx;
 		v->y_pos = gp.yy;
-		VehicleUpdatePosition(v);
+		v->UpdatePosition();
 
 		if (new_in_wormhole) {
-			if ((v->vehstatus & VS_HIDDEN) == 0) VehicleUpdateViewport(v, true);
+			if ((v->vehstatus & VS_HIDDEN) == 0) v->Vehicle::UpdateViewport(true);
 		} else {
 			/* update the Z position of the vehicle */
 			int old_z = v->UpdateInclination(enterdir != INVALID_DIAGDIR, false);
@@ -3877,7 +3877,7 @@ static void ChangeTrainDirRandomly(Train *v)
 			 * a bridge, because UpdateInclination() will put the vehicle under
 			 * the bridge in that case */
 			if (v->trackdir != TRACKDIR_WORMHOLE) {
-				VehicleUpdatePosition(v);
+				v->UpdatePosition();
 				v->UpdateInclination(false, false);
 			}
 		}

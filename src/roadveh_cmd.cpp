@@ -316,7 +316,7 @@ CommandCost CmdBuildRoadVehicle(TileIndex tile, DoCommandFlag flags, const Engin
 		/* Initialize cached values for realistic acceleration. */
 		if (_settings_game.vehicle.roadveh_acceleration_model != AM_ORIGINAL) v->CargoChanged();
 
-		VehicleUpdatePosition(v);
+		v->UpdatePosition();
 
 		CheckConsistencyOfArticulatedVehicle(v);
 	}
@@ -1122,7 +1122,7 @@ static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 
 	v->x_pos = x;
 	v->y_pos = y;
-	VehicleUpdatePosition(v);
+	v->UpdatePosition();
 	v->UpdateInclination(true, true);
 
 	InvalidateWindowData(WC_VEHICLE_DEPOT, v->tile);
@@ -1239,9 +1239,9 @@ static bool IndividualRoadVehicleControllerEnterWormhole(RoadVehicle *v, TileInd
 		RoadVehicle *first = v->First();
 		first->cur_speed = min(first->cur_speed, GetBridgeSpec(GetRoadBridgeType(end))->speed * 2);
 
-		VehicleUpdatePositionAndViewport(v);
+		v->UpdatePositionAndViewport();
 	} else {
-		VehicleUpdatePosition(v);
+		v->UpdatePosition();
 	}
 
 	return true;
@@ -1287,8 +1287,8 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 			/* Still in the wormhole */
 			v->x_pos = gp.xx;
 			v->y_pos = gp.yy;
-			VehicleUpdatePosition(v);
-			if ((v->vehstatus & VS_HIDDEN) == 0) VehicleUpdateViewport(v, true);
+			v->UpdatePosition();
+			if ((v->vehstatus & VS_HIDDEN) == 0) v->Vehicle::UpdateViewport(true);
 			return true;
 		}
 
@@ -1463,7 +1463,7 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 		}
 		v->x_pos = x;
 		v->y_pos = y;
-		VehicleUpdatePosition(v);
+		v->UpdatePosition();
 		RoadZPosAffectSpeed(v, v->UpdateInclination(true, true));
 		return true;
 	}
@@ -1518,7 +1518,7 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 
 		v->x_pos = x;
 		v->y_pos = y;
-		VehicleUpdatePosition(v);
+		v->UpdatePosition();
 		RoadZPosAffectSpeed(v, v->UpdateInclination(true, true));
 		return true;
 	}
@@ -1606,7 +1606,7 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 					v->frame++;
 					v->x_pos = x;
 					v->y_pos = y;
-					VehicleUpdatePosition(v);
+					v->UpdatePosition();
 					RoadZPosAffectSpeed(v, v->UpdateInclination(true, false));
 					return true;
 				}
@@ -1655,7 +1655,7 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 	if (r != VETS_ENTERED_WORMHOLE) v->frame++;
 	v->x_pos = x;
 	v->y_pos = y;
-	VehicleUpdatePosition(v);
+	v->UpdatePosition();
 	RoadZPosAffectSpeed(v, v->UpdateInclination(false, true));
 	return true;
 }

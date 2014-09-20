@@ -489,8 +489,8 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 
 		v->UpdateDeltaXY(v->direction);
 		v->coord.left = INVALID_COORD;
-		VehicleUpdatePosition(v);
-		VehicleUpdateViewport(v, false);
+		v->UpdatePosition();
+		v->UpdateViewport(false);
 	}
 }
 

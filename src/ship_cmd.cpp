@@ -461,7 +461,7 @@ static void ShipController(Ship *v)
 			/* Still on the bridge */
 			v->x_pos = gp.xx;
 			v->y_pos = gp.yy;
-			VehicleUpdatePositionAndViewport(v);
+			v->UpdatePositionAndViewport();
 			return;
 		} else {
 			v->trackdir = DiagDirToDiagTrackdir(ReverseDiagDir(GetTunnelBridgeDirection(v->tile)));
@@ -520,7 +520,7 @@ static void ShipController(Ship *v)
 				v->trackdir = TRACKDIR_WORMHOLE;
 				v->x_pos = gp.xx;
 				v->y_pos = gp.yy;
-				VehicleUpdatePositionAndViewport(v);
+				v->UpdatePositionAndViewport();
 				return;
 			}
 		}
@@ -553,7 +553,7 @@ static void ShipController(Ship *v)
 	v->z_pos = GetSlopePixelZ(gp.xx, gp.yy);
 
 getout:
-	VehicleUpdatePosition(v);
+	v->UpdatePosition();
 	v->UpdateViewport(true, true);
 	return;
 
@@ -637,7 +637,7 @@ CommandCost CmdBuildShip(TileIndex tile, DoCommandFlag flags, const Engine *e, u
 
 		v->InvalidateNewGRFCacheOfChain();
 
-		VehicleUpdatePosition(v);
+		v->UpdatePosition();
 	}
 
 	return CommandCost();
