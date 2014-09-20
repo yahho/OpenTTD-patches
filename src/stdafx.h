@@ -309,17 +309,21 @@
 		#include <tchar.h>
 		#include <io.h>
 
-		/* XXX - WinCE without MSVCRT doesn't support wfopen, so it seems */
-		#if !defined(WINCE)
-			namespace std { using ::_tfopen; }
-			#define fopen(file, mode) _tfopen(OTTD2FS(file), _T(mode))
-			#define unlink(file) _tunlink(OTTD2FS(file))
-		#endif /* WINCE */
-
 		const char *FS2OTTD(const TCHAR *name);
 		const TCHAR *OTTD2FS(const char *name, bool console_cp = false);
 		#define SQ2OTTD(name) FS2OTTD(name)
 		#define OTTD2SQ(name) OTTD2FS(name)
+
+		/* XXX - WinCE without MSVCRT doesn't support wfopen, so it seems */
+		#if !defined(WINCE)
+			namespace std { using ::_tfopen; }
+			#define fopen(file, mode) _tfopen(OTTD2FS(file), _T(mode))
+			static inline int ttd_unlink(const char *file)
+			{
+				return _tunlink(OTTD2FS(file));
+			}
+			#define unlink ttd_unlink
+		#endif /* WINCE */
 	#else
 		#define fopen(file, mode) fopen(OTTD2FS(file), mode)
 		const char *FS2OTTD(const char *name);
