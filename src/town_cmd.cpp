@@ -1025,32 +1025,30 @@ static bool GrowTownWithBridge(const Town *t, const TileIndex tile, const DiagDi
 	if (!(GetTownRoadBits(TileAddByDiagDir(tile, ReverseDiagDir(bridge_dir))) & DiagDirToRoadBits(bridge_dir))) return false;
 
 	/* We are in the right direction */
-	uint8 bridge_length = 0;      // This value stores the length of the possible bridge
-	TileIndex bridge_tile = tile; // Used to store the other waterside
-
 	const int delta = TileOffsByDiagDir(bridge_dir);
+
+	uint bridge_length = 0;               // This value stores the length of the possible bridge
+	TileIndex bridge_tile = tile + delta; // Used to store the other waterside
 
 	if (slope == SLOPE_FLAT) {
 		/* Bridges starting on flat tiles are only allowed when crossing rivers. */
-		do {
-			if (bridge_length++ >= 4) {
-				/* Allow to cross rivers, not big lakes. */
-				return false;
-			}
+		while (IsValidTile(bridge_tile) && IsPlainWaterTile(bridge_tile) && !IsSea(bridge_tile)) {
+			/* Allow to cross rivers, not big lakes. */
+			if (bridge_length >= 3) return false;
+			bridge_length++;
 			bridge_tile += delta;
-		} while (IsValidTile(bridge_tile) && IsPlainWaterTile(bridge_tile) && !IsSea(bridge_tile));
+		};
 	} else {
-		do {
-			if (bridge_length++ >= 11) {
-				/* Max 11 tile long bridges */
-				return false;
-			}
+		while (IsValidTile(bridge_tile) && IsPlainWaterTile(bridge_tile)) {
+			/* Max 10-tile long bridges */
+			if (bridge_length >= 10) return false;
+			bridge_length++;
 			bridge_tile += delta;
-		} while (IsValidTile(bridge_tile) && IsPlainWaterTile(bridge_tile));
+		};
 	}
 
 	/* no water tiles in between? */
-	if (bridge_length == 1) return false;
+	if (bridge_length == 0) return false;
 
 	for (uint8 times = 0; times <= 22; times++) {
 		byte bridge_type = RandomRange(MAX_BRIDGES - 1);
