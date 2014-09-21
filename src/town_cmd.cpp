@@ -1271,13 +1271,7 @@ static bool GrowTownFromTile (Town *t, TileIndex tile)
 		} else if (target_dir != DIAGDIR_END && !(cur_rb & DiagDirToRoadBits(ReverseDiagDir(target_dir)))) {
 			return GrowTown_UnconnectedRoad (t, tile, target_dir, cur_rb);
 
-		} else if (IsRoadBridgeTile(tile) || maptile_is_road_tunnel(tile)) {
-			/* Reached a tunnel/bridge? Then continue at the other side of it, unless
-			 * it is the starting tile. Half the time, we stay on this side then.*/
-			if (target_dir != DIAGDIR_END || Chance16(1, 2)) {
-				tile = GetOtherTunnelBridgeEnd(tile);
-			}
-		} else {
+		} else if (!IsRoadBridgeTile(tile) && !IsTunnelTile(tile)) {
 			switch (GrowTown_ConnectedRoad (t, tile, target_dir, cur_rb)) {
 				case GROWTH_CONTINUE: break;
 				case GROWTH_FAILURE:  return false;
@@ -1285,20 +1279,44 @@ static bool GrowTownFromTile (Town *t, TileIndex tile)
 			}
 		}
 
-		/* Exclude the source position from the bitmask
-		 * and return if no more road blocks available */
-		if (IsValidDiagDirection(target_dir)) cur_rb &= ~DiagDirToRoadBits(ReverseDiagDir(target_dir));
-		if (cur_rb == ROAD_NONE) return false;
+		if (IsTunnelTile(tile)) {
+			/* Reached a tunnel. Continue at the other end if this
+			 * is not the first tile, or half of the times if it is. */
+			assert (maptile_is_road_tunnel(tile));
 
-		if (IsTunnelTile(tile) || IsRoadBridgeTile(tile)) {
-			/* Only build in the direction away from the tunnel or bridge. */
-			target_dir = ReverseDiagDir(GetTunnelBridgeDirection(tile));
+			if (target_dir == DIAGDIR_END) {
+				if (Chance16(1, 2)) tile = GetOtherTunnelEnd (tile);
+				target_dir = ReverseDiagDir (GetTunnelBridgeDirection(tile));
+			} else {
+				if (GetTunnelBridgeDirection(tile) != target_dir) return false;
+				tile = GetOtherTunnelEnd (tile);
+			}
+
+			tile = TileAddByDiagDir (tile, target_dir);
+			if ((IsRoadBridgeTile(tile) || IsTunnelTile(tile))
+					&& GetTunnelBridgeDirection(tile) == (ReverseDiagDir(target_dir))) {
+				return false;
+			}
 		} else {
+			/* Exclude the source position from the bitmask
+			 * and return if no more road blocks available */
+			if (target_dir != DIAGDIR_END) cur_rb &= ~DiagDirToRoadBits(ReverseDiagDir(target_dir));
+			if (cur_rb == ROAD_NONE) return false;
+
 			/* Select a random bit from the blockmask, walk a step
 			 * and continue the search from there. */
 			do target_dir = RandomDiagDir(); while (!(cur_rb & DiagDirToRoadBits(target_dir)));
+
+			if (IsRoadBridgeTile(tile) && target_dir == GetTunnelBridgeDirection(tile)) {
+				tile = GetOtherBridgeEnd (tile);
+			} else {
+				tile = TileAddByDiagDir (tile, target_dir);
+				if ((IsRoadBridgeTile(tile) || IsTunnelTile(tile))
+						&& GetTunnelBridgeDirection(tile) == (ReverseDiagDir(target_dir))) {
+					return false;
+				}
+			}
 		}
-		tile = TileAddByDiagDir(tile, target_dir);
 
 		if ((IsRoadTile(tile) || IsLevelCrossingTile(tile)) && HasTileRoadType(tile, ROADTYPE_ROAD)) {
 			/* Don't allow building over roads of other cities */
