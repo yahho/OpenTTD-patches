@@ -1016,11 +1016,6 @@ static bool GrowTownWithBridge(const Town *t, const TileIndex tile, const DiagDi
 
 	const Slope slope = GetTileSlope(tile);
 
-	/* Make sure the direction is compatible with the slope.
-	 * Well we check if the slope has an up bit set in the
-	 * reverse direction. */
-	if (slope != SLOPE_FLAT && slope & InclinedSlope(bridge_dir)) return false;
-
 	/* Assure that the bridge is connectable to the start side */
 	if (!(GetTownRoadBits(TileAddByDiagDir(tile, ReverseDiagDir(bridge_dir))) & DiagDirToRoadBits(bridge_dir))) return false;
 
@@ -1039,6 +1034,11 @@ static bool GrowTownWithBridge(const Town *t, const TileIndex tile, const DiagDi
 			bridge_tile += delta;
 		};
 	} else {
+		/* Make sure the direction is compatible with the slope.
+		 * Well we check if the slope has an up bit set in the
+		 * reverse direction. */
+		if (slope & InclinedSlope(bridge_dir)) return false;
+
 		while (IsValidTile(bridge_tile) && IsPlainWaterTile(bridge_tile)) {
 			/* Max 10-tile long bridges */
 			if (bridge_length >= 10) return false;
