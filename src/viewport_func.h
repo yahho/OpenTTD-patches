@@ -80,6 +80,8 @@ extern Point _tile_fract_coords;
 void MarkTileDirtyByTile(TileIndex tile);
 void MarkTileDirtyByTileOutsideMap(int x, int y);
 
+int GetVirtualHeight (int x, int y);
+
 Point GetViewportStationMiddle(const ViewPort *vp, const Station *st);
 
 #endif /* VIEWPORT_FUNC_H */

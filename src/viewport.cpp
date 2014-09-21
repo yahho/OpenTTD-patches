@@ -1025,7 +1025,7 @@ draw_inner:
 	}
 }
 
-static int GetVirtualHeight (int x, int y)
+int GetVirtualHeight (int x, int y)
 {
 	/* Assume a decreasing slope to 0 outside the map. */
 	int correction = 0;
