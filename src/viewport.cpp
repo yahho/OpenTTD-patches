@@ -1876,6 +1876,20 @@ void MarkTileDirtyByTile(TileIndex tile)
 	);
 }
 
+void MarkTileDirtyByTileOutsideMap(int x, int y)
+{
+	Point pt = RemapCoords(x * TILE_SIZE, y * TILE_SIZE, GetVirtualHeight (x, y) * TILE_HEIGHT);
+	/* Since tiles painted outside the map don't contain buildings, trees, etc.,
+	 * this reduced area for repainting should suffice. If not, adjust the offsets
+	 * used below. */
+	MarkAllViewportsDirty(
+		pt.x - TILE_SIZE + 1,
+		pt.y,
+		pt.x + TILE_SIZE - 1,
+		pt.y + TILE_SIZE + TILE_HEIGHT - 1
+	);
+}
+
 /**
  * Marks the selected tiles as dirty.
  *
