@@ -235,6 +235,16 @@ CommandCost CheckBridgeBuildable(TileIndex tile1, TileIndex tile2, DoCommandFlag
 	for (TileIndex tile = tile1 + delta; tile != tile2; tile += delta) {
 		if (GetTileMaxZ(tile) > z1) return_cmd_error(STR_ERROR_BRIDGE_TOO_LOW_FOR_TERRAIN);
 
+		if (z1 >= (GetTileZ(tile) + _settings_game.construction.max_bridge_height)) {
+			/*
+			 * Disallow too high bridges.
+			 * Properly rendering a map where very high bridges (might) exist is expensive.
+			 * See http://www.tt-forums.net/viewtopic.php?f=33&t=40844&start=980#p1131762
+			 * for a detailed discussion. z1 here is one heightlevel below the bridge level.
+			 */
+			return_cmd_error(STR_ERROR_BRIDGE_TOO_HIGH_FOR_TERRAIN);
+		}
+
 		if (HasBridgeAbove(tile)) {
 			/* Disallow crossing bridges for the time being */
 			return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
