@@ -1595,6 +1595,7 @@ static SettingEntry _settings_construction[] = {
 	SettingEntry("construction.build_on_slopes"),
 	SettingEntry("construction.autoslope"),
 	SettingEntry("construction.extra_dynamite"),
+	SettingEntry("construction.max_heightlevel"),
 	SettingEntry("construction.max_bridge_height"),
 	SettingEntry("construction.max_bridge_length"),
 	SettingEntry("construction.max_tunnel_length"),
