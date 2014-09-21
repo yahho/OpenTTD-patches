@@ -1246,51 +1246,6 @@ static void GrowTown_ConnectedRoad (Town *t, TileIndex tile, DiagDirection targe
 }
 
 /**
- * Grows the given town.
- * There are at the moment 3 possible way's for
- * the town expansion:
- *  @li Generate a random tile and check if there is a road allowed
- *  @li TL_ORIGINAL
- *  @li TL_BETTER_ROADS
- *  @li Check if the town geometry allows a road and which one
- *  @li TL_2X2_GRID
- *  @li TL_3X3_GRID
- *  @li Forbid roads, only build houses
- *
- * @param tile_ptr The current tile
- * @param cur_rb The current tiles RoadBits
- * @param target_dir The target road dir
- * @param t1 The current town
- */
-static void GrowTownInTile(TileIndex *tile_ptr, RoadBits cur_rb, DiagDirection target_dir, Town *t1)
-{
-	TileIndex tile = *tile_ptr; // The main tile on which we base our growth
-
-	assert(tile < MapSize());
-	assert((cur_rb == ROAD_NONE) || !HasTileWaterGround(tile));
-
-	if (cur_rb == ROAD_NONE) {
-		assert (IsValidDiagDirection(target_dir));
-		GrowTown_NewRoad (t1, tile, target_dir);
-
-	} else if (target_dir < DIAGDIR_END && !(cur_rb & DiagDirToRoadBits(ReverseDiagDir(target_dir)))) {
-		GrowTown_UnconnectedRoad (t1, tile, target_dir, cur_rb);
-
-	} else {
-		/* Reached a tunnel/bridge? Then continue at the other side of it, unless
-		 * it is the starting tile. Half the time, we stay on this side then.*/
-		if (IsRoadBridgeTile(tile) || maptile_is_road_tunnel(tile)) {
-			if (target_dir != DIAGDIR_END || Chance16(1, 2)) {
-				*tile_ptr = GetOtherTunnelBridgeEnd(tile);
-			}
-			return;
-		}
-
-		GrowTown_ConnectedRoad (t1, tile, target_dir, cur_rb);
-	}
-}
-
-/**
  * Returns "growth" if a house was built, or no if the build failed.
  * @param t town to inquiry
  * @param tile to inquiry
@@ -1298,9 +1253,6 @@ static void GrowTownInTile(TileIndex *tile_ptr, RoadBits cur_rb, DiagDirection t
  */
 static bool GrowTownFromTile (Town *t, TileIndex tile)
 {
-	/* Special case.
-	 * @see GrowTownInTile Check the else if
-	 */
 	DiagDirection target_dir = DIAGDIR_END; // The direction in which we want to extend the town
 
 	assert(tile < MapSize());
@@ -1327,7 +1279,25 @@ static bool GrowTownFromTile (Town *t, TileIndex tile)
 		RoadBits cur_rb = GetTownRoadBits(tile); // The RoadBits of the current tile
 
 		/* Try to grow the town from this point */
-		GrowTownInTile(&tile, cur_rb, target_dir, t);
+		assert(tile < MapSize());
+		assert((cur_rb == ROAD_NONE) || !HasTileWaterGround(tile));
+
+		if (cur_rb == ROAD_NONE) {
+			assert (IsValidDiagDirection(target_dir));
+			GrowTown_NewRoad (t, tile, target_dir);
+
+		} else if (target_dir != DIAGDIR_END && !(cur_rb & DiagDirToRoadBits(ReverseDiagDir(target_dir)))) {
+			GrowTown_UnconnectedRoad (t, tile, target_dir, cur_rb);
+
+		} else if (IsRoadBridgeTile(tile) || maptile_is_road_tunnel(tile)) {
+			/* Reached a tunnel/bridge? Then continue at the other side of it, unless
+			 * it is the starting tile. Half the time, we stay on this side then.*/
+			if (target_dir != DIAGDIR_END || Chance16(1, 2)) {
+				tile = GetOtherTunnelBridgeEnd(tile);
+			}
+		} else {
+			GrowTown_ConnectedRoad (t, tile, target_dir, cur_rb);
+		}
 
 		/* Exclude the source position from the bitmask
 		 * and return if no more road blocks available */
