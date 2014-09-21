@@ -1087,9 +1087,9 @@ static bool GrowTown_NewRoad (Town *t, TileIndex tile, DiagDirection target_dir)
 
 			DiagDirection source_dir = ReverseDiagDir(target_dir);
 
-			if (Chance16(1, 4)) {
+			if (Chance16(1, 6)) {
 				/* Randomize a new target dir */
-				do target_dir = RandomDiagDir(); while (target_dir == source_dir);
+				target_dir = ChangeDiagDir (target_dir, Chance16(1, 2) ? DIAGDIRDIFF_90RIGHT : DIAGDIRDIFF_90LEFT);
 			}
 
 			if (!IsRoadAllowedHere (t, TileAddByDiagDir(tile, target_dir), target_dir)) {
