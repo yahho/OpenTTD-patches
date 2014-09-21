@@ -744,21 +744,6 @@ void UpdateTownCargoBitmap()
 
 static bool GrowTown(Town *t);
 
-static void TownTickHandler(Town *t)
-{
-	if (HasBit(t->flags, TOWN_IS_GROWING)) {
-		int i = t->grow_counter - 1;
-		if (i < 0) {
-			if (GrowTown(t)) {
-				i = t->growth_rate & (~TOWN_GROW_RATE_CUSTOM);
-			} else {
-				i = 0;
-			}
-		}
-		t->grow_counter = i;
-	}
-}
-
 void OnTick_Town()
 {
 	if (_game_mode == GM_EDITOR) return;
@@ -766,8 +751,13 @@ void OnTick_Town()
 	Town *t;
 	FOR_ALL_TOWNS(t) {
 		/* Run town tick at regular intervals, but not all at once. */
-		if ((_tick_counter + t->index) % TOWN_GROWTH_TICKS == 0) {
-			TownTickHandler(t);
+		if ((_tick_counter + t->index) % TOWN_GROWTH_TICKS == 0
+				&& HasBit(t->flags, TOWN_IS_GROWING)) {
+			if (t->grow_counter > 0) {
+				t->grow_counter--;
+			} else if (GrowTown(t)) {
+				t->grow_counter = t->growth_rate & (~TOWN_GROW_RATE_CUSTOM);
+			}
 		}
 	}
 }
