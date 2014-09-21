@@ -1076,6 +1076,176 @@ static bool GrowTownWithRoad(const Town *t, TileIndex tile, DiagDirection target
 }
 
 /**
+ * Grows the given town at a tile where there are no roads.
+ * @param t The current town
+ * @param tile The current tile
+ * @param target_dir The target road dir
+ */
+static void GrowTown_NewRoad (Town *t, TileIndex tile, DiagDirection target_dir)
+{
+	/* Tile has no road. First reset the status counter
+	 * to say that this is the last iteration. */
+	_grow_town_result = GROWTH_SEARCH_STOPPED;
+
+	if (!_settings_game.economy.allow_town_roads && !_generating_world) return;
+	if (!_settings_game.economy.allow_town_level_crossings && IsRailwayTile(tile)) return;
+
+	/* Remove hills etc */
+	if (!_settings_game.construction.build_on_slopes || Chance16(1, 6)) LevelTownLand(tile);
+
+	RoadBits rcmd = ROAD_NONE;  // RoadBits for the road construction command
+
+	/* Is a road allowed here? */
+	switch (t->layout) {
+		default: NOT_REACHED();
+
+		case TL_3X3_GRID:
+		case TL_2X2_GRID:
+			rcmd = GetTownRoadGridElement (t, tile, target_dir);
+			if (rcmd == ROAD_NONE) return;
+			break;
+
+		case TL_BETTER_ROADS:
+		case TL_ORIGINAL:
+			if (!IsRoadAllowedHere (t, tile, target_dir)) return;
+
+			DiagDirection source_dir = ReverseDiagDir(target_dir);
+
+			if (Chance16(1, 4)) {
+				/* Randomize a new target dir */
+				do target_dir = RandomDiagDir(); while (target_dir == source_dir);
+			}
+
+			if (!IsRoadAllowedHere (t, TileAddByDiagDir(tile, target_dir), target_dir)) {
+				/* A road is not allowed to continue the randomized road,
+				 *  return if the road we're trying to build is curved. */
+				if (target_dir != ReverseDiagDir(source_dir)) return;
+
+				/* Return if neither side of the new road is a house */
+				if (!IsHouseTile(TileAddByDiagDir(tile, ChangeDiagDir(target_dir, DIAGDIRDIFF_90RIGHT))) &&
+						!IsHouseTile(TileAddByDiagDir(tile, ChangeDiagDir(target_dir, DIAGDIRDIFF_90LEFT)))) {
+					return;
+				}
+
+				/* That means that the road is only allowed if there is a house
+				 *  at any side of the new road. */
+			}
+
+			rcmd = DiagDirToRoadBits(target_dir) | DiagDirToRoadBits(source_dir);
+			break;
+	}
+
+	/* Return if a water tile */
+	if (HasTileWaterGround(tile)) return;
+
+	GrowTownWithRoad (t, tile, target_dir, rcmd);
+}
+
+/**
+ * Grows the given town at a tile where there is an unconnected road.
+ * @param t The current town
+ * @param tile The current tile
+ * @param target_dir The target road dir
+ * @param cur_rb The current tile RoadBits
+ */
+static void GrowTown_UnconnectedRoad (Town *t, TileIndex tile, DiagDirection target_dir, RoadBits cur_rb)
+{
+	/* Continue building on a partial road.
+	 * Should be always OK, so we only generate
+	 * the fitting RoadBits */
+	_grow_town_result = GROWTH_SEARCH_STOPPED;
+
+	if (!_settings_game.economy.allow_town_roads && !_generating_world) return;
+
+	RoadBits rcmd = ROAD_NONE;  // RoadBits for the road construction command
+
+	switch (t->layout) {
+		default: NOT_REACHED();
+
+		case TL_3X3_GRID:
+		case TL_2X2_GRID:
+			rcmd = GetTownRoadGridElement (t, tile, target_dir);
+			break;
+
+		case TL_BETTER_ROADS:
+		case TL_ORIGINAL:
+			rcmd = DiagDirToRoadBits(ReverseDiagDir(target_dir));
+			break;
+	}
+
+	GrowTownWithRoad (t, tile, target_dir, rcmd);
+}
+
+/**
+ * Grows the given town at a tile where there is a connected road.
+ * @param t The current town
+ * @param tile The current tile
+ * @param target_dir The target road dir
+ * @param cur_rb The current tile RoadBits
+ */
+static void GrowTown_ConnectedRoad (Town *t, TileIndex tile, DiagDirection target_dir, RoadBits cur_rb)
+{
+	/* Possibly extend the road in a direction.
+	 * Randomize a direction and if it has a road, bail out. */
+	target_dir = RandomDiagDir();
+	if (cur_rb & DiagDirToRoadBits(target_dir)) return;
+
+	/* This is the tile we will reach if we extend to this direction. */
+	TileIndex house_tile = TileAddByDiagDir(tile, target_dir); // position of a possible house
+
+	/* Don't walk into water. */
+	if (HasTileWaterGround(house_tile)) return;
+
+	if (!IsValidTile(house_tile)) return;
+
+	bool allow_house = true; // Value which decides if we want to construct a house
+	RoadBits rcmd = ROAD_NONE;  // RoadBits for the road construction command
+
+	if (_settings_game.economy.allow_town_roads || _generating_world) {
+		switch (t->layout) {
+			default: NOT_REACHED();
+
+			case TL_3X3_GRID: // Use 2x2 grid afterwards!
+				GrowTownWithExtraHouse (t, TileAddByDiagDir(house_tile, target_dir));
+				/* fall through */
+			case TL_2X2_GRID:
+				rcmd = GetTownRoadGridElement (t, house_tile, target_dir);
+				allow_house = (rcmd == ROAD_NONE);
+				break;
+
+			case TL_BETTER_ROADS: // Use original afterwards!
+				GrowTownWithExtraHouse (t, TileAddByDiagDir(house_tile, target_dir));
+				/* fall through */
+			case TL_ORIGINAL:
+				/* Allow a house at the edge. 60% chance or
+				 * always ok if no road allowed. */
+				rcmd = DiagDirToRoadBits(target_dir);
+				allow_house = (!IsRoadAllowedHere (t, house_tile, target_dir) || Chance16(6, 10));
+				break;
+		}
+	}
+
+	if (allow_house) {
+		/* Build a house, but not if there already is a house there. */
+		if (!IsHouseTile(house_tile)) {
+			/* Level the land if possible */
+			if (Chance16(1, 6)) LevelTownLand(house_tile);
+
+			/* And build a house.
+			 * Set result to -1 if we managed to build it. */
+			if (BuildTownHouse (t, house_tile)) {
+				_grow_town_result = GROWTH_SUCCEED;
+			}
+		}
+		return;
+	}
+
+	_grow_town_result = GROWTH_SEARCH_STOPPED;
+
+	GrowTownWithRoad (t, tile, target_dir, rcmd);
+}
+
+/**
  * Grows the given town.
  * There are at the moment 3 possible way's for
  * the town expansion:
@@ -1094,90 +1264,19 @@ static bool GrowTownWithRoad(const Town *t, TileIndex tile, DiagDirection target
  */
 static void GrowTownInTile(TileIndex *tile_ptr, RoadBits cur_rb, DiagDirection target_dir, Town *t1)
 {
-	RoadBits rcmd = ROAD_NONE;  // RoadBits for the road construction command
 	TileIndex tile = *tile_ptr; // The main tile on which we base our growth
 
 	assert(tile < MapSize());
 	assert((cur_rb == ROAD_NONE) || !HasTileWaterGround(tile));
 
 	if (cur_rb == ROAD_NONE) {
-		/* Tile has no road. First reset the status counter
-		 * to say that this is the last iteration. */
-		_grow_town_result = GROWTH_SEARCH_STOPPED;
-
-		if (!_settings_game.economy.allow_town_roads && !_generating_world) return;
-		if (!_settings_game.economy.allow_town_level_crossings && IsRailwayTile(tile)) return;
-
-		/* Remove hills etc */
-		if (!_settings_game.construction.build_on_slopes || Chance16(1, 6)) LevelTownLand(tile);
-
-		/* Is a road allowed here? */
-		switch (t1->layout) {
-			default: NOT_REACHED();
-
-			case TL_3X3_GRID:
-			case TL_2X2_GRID:
-				rcmd = GetTownRoadGridElement(t1, tile, target_dir);
-				if (rcmd == ROAD_NONE) return;
-				break;
-
-			case TL_BETTER_ROADS:
-			case TL_ORIGINAL:
-				if (!IsRoadAllowedHere(t1, tile, target_dir)) return;
-
-				DiagDirection source_dir = ReverseDiagDir(target_dir);
-
-				if (Chance16(1, 4)) {
-					/* Randomize a new target dir */
-					do target_dir = RandomDiagDir(); while (target_dir == source_dir);
-				}
-
-				if (!IsRoadAllowedHere(t1, TileAddByDiagDir(tile, target_dir), target_dir)) {
-					/* A road is not allowed to continue the randomized road,
-					 *  return if the road we're trying to build is curved. */
-					if (target_dir != ReverseDiagDir(source_dir)) return;
-
-					/* Return if neither side of the new road is a house */
-					if (!IsHouseTile(TileAddByDiagDir(tile, ChangeDiagDir(target_dir, DIAGDIRDIFF_90RIGHT))) &&
-							!IsHouseTile(TileAddByDiagDir(tile, ChangeDiagDir(target_dir, DIAGDIRDIFF_90LEFT)))) {
-						return;
-					}
-
-					/* That means that the road is only allowed if there is a house
-					 *  at any side of the new road. */
-				}
-
-				rcmd = DiagDirToRoadBits(target_dir) | DiagDirToRoadBits(source_dir);
-				break;
-		}
-
-		/* Return if a water tile */
-		if (HasTileWaterGround(tile)) return;
+		assert (IsValidDiagDirection(target_dir));
+		GrowTown_NewRoad (t1, tile, target_dir);
 
 	} else if (target_dir < DIAGDIR_END && !(cur_rb & DiagDirToRoadBits(ReverseDiagDir(target_dir)))) {
-		/* Continue building on a partial road.
-		 * Should be always OK, so we only generate
-		 * the fitting RoadBits */
-		_grow_town_result = GROWTH_SEARCH_STOPPED;
+		GrowTown_UnconnectedRoad (t1, tile, target_dir, cur_rb);
 
-		if (!_settings_game.economy.allow_town_roads && !_generating_world) return;
-
-		switch (t1->layout) {
-			default: NOT_REACHED();
-
-			case TL_3X3_GRID:
-			case TL_2X2_GRID:
-				rcmd = GetTownRoadGridElement(t1, tile, target_dir);
-				break;
-
-			case TL_BETTER_ROADS:
-			case TL_ORIGINAL:
-				rcmd = DiagDirToRoadBits(ReverseDiagDir(target_dir));
-				break;
-		}
 	} else {
-		bool allow_house = true; // Value which decides if we want to construct a house
-
 		/* Reached a tunnel/bridge? Then continue at the other side of it, unless
 		 * it is the starting tile. Half the time, we stay on this side then.*/
 		if (IsRoadBridgeTile(tile) || maptile_is_road_tunnel(tile)) {
@@ -1187,64 +1286,8 @@ static void GrowTownInTile(TileIndex *tile_ptr, RoadBits cur_rb, DiagDirection t
 			return;
 		}
 
-		/* Possibly extend the road in a direction.
-		 * Randomize a direction and if it has a road, bail out. */
-		target_dir = RandomDiagDir();
-		if (cur_rb & DiagDirToRoadBits(target_dir)) return;
-
-		/* This is the tile we will reach if we extend to this direction. */
-		TileIndex house_tile = TileAddByDiagDir(tile, target_dir); // position of a possible house
-
-		/* Don't walk into water. */
-		if (HasTileWaterGround(house_tile)) return;
-
-		if (!IsValidTile(house_tile)) return;
-
-		if (_settings_game.economy.allow_town_roads || _generating_world) {
-			switch (t1->layout) {
-				default: NOT_REACHED();
-
-				case TL_3X3_GRID: // Use 2x2 grid afterwards!
-					GrowTownWithExtraHouse(t1, TileAddByDiagDir(house_tile, target_dir));
-					/* FALL THROUGH */
-
-				case TL_2X2_GRID:
-					rcmd = GetTownRoadGridElement(t1, house_tile, target_dir);
-					allow_house = (rcmd == ROAD_NONE);
-					break;
-
-				case TL_BETTER_ROADS: // Use original afterwards!
-					GrowTownWithExtraHouse(t1, TileAddByDiagDir(house_tile, target_dir));
-					/* FALL THROUGH */
-
-				case TL_ORIGINAL:
-					/* Allow a house at the edge. 60% chance or
-					 * always ok if no road allowed. */
-					rcmd = DiagDirToRoadBits(target_dir);
-					allow_house = (!IsRoadAllowedHere(t1, house_tile, target_dir) || Chance16(6, 10));
-					break;
-			}
-		}
-
-		if (allow_house) {
-			/* Build a house, but not if there already is a house there. */
-			if (!IsHouseTile(house_tile)) {
-				/* Level the land if possible */
-				if (Chance16(1, 6)) LevelTownLand(house_tile);
-
-				/* And build a house.
-				 * Set result to -1 if we managed to build it. */
-				if (BuildTownHouse(t1, house_tile)) {
-					_grow_town_result = GROWTH_SUCCEED;
-				}
-			}
-			return;
-		}
-
-		_grow_town_result = GROWTH_SEARCH_STOPPED;
+		GrowTown_ConnectedRoad (t1, tile, target_dir, cur_rb);
 	}
-
-	GrowTownWithRoad(t1, tile, target_dir, rcmd);
 }
 
 /**
