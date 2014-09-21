@@ -45,13 +45,13 @@ RoadBits CleanUpRoadBits(const TileIndex tile, RoadBits org_rb)
 {
 	if (!IsValidTile(tile)) return ROAD_NONE;
 	for (DiagDirection dir = DIAGDIR_BEGIN; dir < DIAGDIR_END; dir++) {
-		const TileIndex neighbor_tile = TileAddByDiagDir(tile, dir);
-
 		/* Get the Roadbit pointing to the neighbor_tile */
 		const RoadBits target_rb = DiagDirToRoadBits(dir);
 
 		/* If the roadbit is in the current plan */
 		if (org_rb & target_rb) {
+			const TileIndex neighbor_tile = TileAddByDiagDir(tile, dir);
+
 			bool connective = false;
 			const RoadBits mirrored_rb = MirrorRoadBits(target_rb);
 
