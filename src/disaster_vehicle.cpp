@@ -55,8 +55,6 @@
 /** Delay counter for considering the next disaster. */
 uint16 _disaster_delay;
 
-static const uint INITIAL_DISASTER_VEHICLE_ZPOS = 135; ///< Initial Z position of flying disaster vehicles.
-
 static void DisasterClearSquare(TileIndex tile)
 {
 	if (EnsureNoVehicleOnGround(tile).Failed()) return;
@@ -133,11 +131,12 @@ DisasterVehicle::DisasterVehicle(int x, int y, Direction direction, DisasterSubT
 		case ST_HELICOPTER:
 		case ST_BIG_UFO:
 		case ST_BIG_UFO_DESTROYER:
-			this->z_pos = INITIAL_DISASTER_VEHICLE_ZPOS;
+			this->z_pos = GetAircraftBaseFlightLevel (this);
 			break;
 
 		case ST_HELICOPTER_ROTORS:
-			this->z_pos = INITIAL_DISASTER_VEHICLE_ZPOS + ROTOR_Z_OFFSET;
+			this->z_pos = GetAircraftBaseFlightLevel (this);
+			this->z_pos += ROTOR_Z_OFFSET;
 			break;
 
 		case ST_SMALL_SUBMARINE:
@@ -217,7 +216,7 @@ void DisasterVehicle::Advance (int z)
 
 inline void DisasterVehicle::Advance (void)
 {
-	this->Advance (this->z_pos);
+	this->Advance (GetAircraftFlightLevel (this));
 }
 
 /**
@@ -273,7 +272,7 @@ static bool DisasterTick_Zeppeliner(DisasterVehicle *v)
 			AI::NewEvent(GetTileOwner(v->tile), new ScriptEventDisasterZeppelinerCleared(st->index));
 		}
 
-		v->UpdatePosition(v->x_pos, v->y_pos, v->z_pos);
+		v->UpdatePosition(v->x_pos, v->y_pos, GetAircraftFlightLevel(v));
 		delete v;
 		return false;
 	}
@@ -659,7 +658,7 @@ static bool DisasterTick_Submarine(DisasterVehicle *v)
 	if (IsValidTile(tile)) {
 		TrackBits trackbits = TrackdirBitsToTrackBits(GetTileWaterwayStatus(tile));
 		if (trackbits == TRACK_BIT_ALL && !Chance16(1, 90)) {
-			v->Advance();
+			v->Advance (0);
 			return true;
 		}
 	}
@@ -964,7 +963,7 @@ void ReleaseDisastersTargetingVehicle(VehicleID vehicle)
 				/* Revert to target-searching */
 				v->current_order.SetDestination(0);
 				v->dest_tile = RandomTile();
-				v->z_pos = INITIAL_DISASTER_VEHICLE_ZPOS;
+				v->z_pos = GetAircraftBaseFlightLevel (v);
 				v->age = 0;
 			}
 		}
