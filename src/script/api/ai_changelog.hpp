@@ -20,11 +20,20 @@
  * 1.5.0 is not yet released. The following changes are not set in stone yet.
  *
  * API additions:
+ * \li AIList::SwapList
  * \li AIStation::GetCargoPlanned
  * \li AIStation::GetCargoPlannedFrom
  * \li AIStation::GetCargoPlannedFromVia
  * \li AIStation::GetCargoPlannedVia
  * \li AIStation::GetCargoWaitingFromVia
+ * \li AIStationList_CargoPlannedByFrom
+ * \li AIStationList_CargoPlannedByVia
+ * \li AIStationList_CargoPlannedFromByVia
+ * \li AIStationList_CargoPlannedViaByFrom
+ * \li AIStationList_CargoWaitingByFrom
+ * \li AIStationList_CargoWaitingByVia
+ * \li AIStationList_CargoWaitingFromByVia
+ * \li AIStationList_CargoWaitingViaByFrom
  *
  * \b 1.4.2
  *
