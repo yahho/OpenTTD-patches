@@ -1157,10 +1157,6 @@ enum TownGrowthResult {
 	GROWTH_CONTINUE, ///< continue searching
 	GROWTH_FAILURE,  ///< growth failed, stop searching
 	GROWTH_SUCCESS,  ///< growth succeeded, stop searching
-	/* old values used int GrowTownFromTile */
-	GROWTH_SUCCEED         = -1,
-	GROWTH_SEARCH_STOPPED  =  0
-//	GROWTH_SEARCH_RUNNING >=  1
 };
 
 /**
@@ -1245,23 +1241,23 @@ static bool GrowTownFromTile (Town *t, TileIndex tile)
 	/* Number of times to search.
 	 * Better roads, 2X2 and 3X3 grid grow quite fast so we give
 	 * them a little handicap. */
-	int _grow_town_result;
+	uint iterations;
 	switch (t->layout) {
 		case TL_BETTER_ROADS:
-			_grow_town_result = 10 + t->cache.num_houses * 2 / 9;
+			iterations = 10 + t->cache.num_houses * 2 / 9;
 			break;
 
 		case TL_3X3_GRID:
 		case TL_2X2_GRID:
-			_grow_town_result = 10 + t->cache.num_houses * 1 / 9;
+			iterations = 10 + t->cache.num_houses * 1 / 9;
 			break;
 
 		default:
-			_grow_town_result = 10 + t->cache.num_houses * 4 / 9;
+			iterations = 10 + t->cache.num_houses * 4 / 9;
 			break;
 	}
 
-	do {
+	while (iterations-- > 0) {
 		RoadBits cur_rb = GetTownRoadBits(tile); // The RoadBits of the current tile
 
 		/* Try to grow the town from this point */
@@ -1270,18 +1266,10 @@ static bool GrowTownFromTile (Town *t, TileIndex tile)
 
 		if (cur_rb == ROAD_NONE) {
 			assert (IsValidDiagDirection(target_dir));
-			if (GrowTown_NewRoad (t, tile, target_dir)) {
-				_grow_town_result = GROWTH_SUCCEED;
-			} else {
-				_grow_town_result = GROWTH_SEARCH_STOPPED;
-			}
+			return GrowTown_NewRoad (t, tile, target_dir);
 
 		} else if (target_dir != DIAGDIR_END && !(cur_rb & DiagDirToRoadBits(ReverseDiagDir(target_dir)))) {
-			if (GrowTown_UnconnectedRoad (t, tile, target_dir, cur_rb)) {
-				_grow_town_result = GROWTH_SUCCEED;
-			} else {
-				_grow_town_result = GROWTH_SEARCH_STOPPED;
-			}
+			return GrowTown_UnconnectedRoad (t, tile, target_dir, cur_rb);
 
 		} else if (IsRoadBridgeTile(tile) || maptile_is_road_tunnel(tile)) {
 			/* Reached a tunnel/bridge? Then continue at the other side of it, unless
@@ -1292,17 +1280,15 @@ static bool GrowTownFromTile (Town *t, TileIndex tile)
 		} else {
 			switch (GrowTown_ConnectedRoad (t, tile, target_dir, cur_rb)) {
 				case GROWTH_CONTINUE: break;
-				case GROWTH_FAILURE: _grow_town_result = GROWTH_SUCCEED; break;
-				case GROWTH_SUCCESS: _grow_town_result = GROWTH_SEARCH_STOPPED; break;
+				case GROWTH_FAILURE:  return false;
+				case GROWTH_SUCCESS:  return true;
 			}
 		}
 
 		/* Exclude the source position from the bitmask
 		 * and return if no more road blocks available */
 		if (IsValidDiagDirection(target_dir)) cur_rb &= ~DiagDirToRoadBits(ReverseDiagDir(target_dir));
-		if (cur_rb == ROAD_NONE) {
-			return _grow_town_result != 0;
-		}
+		if (cur_rb == ROAD_NONE) return false;
 
 		if (IsTunnelTile(tile) || IsRoadBridgeTile(tile)) {
 			/* Only build in the direction away from the tunnel or bridge. */
@@ -1317,7 +1303,7 @@ static bool GrowTownFromTile (Town *t, TileIndex tile)
 		if ((IsRoadTile(tile) || IsLevelCrossingTile(tile)) && HasTileRoadType(tile, ROADTYPE_ROAD)) {
 			/* Don't allow building over roads of other cities */
 			if (IsRoadOwner(tile, ROADTYPE_ROAD, OWNER_TOWN) && Town::GetByTile(tile) != t) {
-				_grow_town_result = GROWTH_SUCCEED;
+				return true;
 			} else if (IsRoadOwner(tile, ROADTYPE_ROAD, OWNER_NONE) && _game_mode == GM_EDITOR) {
 				/* If we are in the SE, and this road-piece has no town owner yet, it just found an
 				 * owner :) (happy happy happy road now) */
@@ -1325,11 +1311,9 @@ static bool GrowTownFromTile (Town *t, TileIndex tile)
 				SetTownIndex(tile, t->index);
 			}
 		}
+	}
 
-		/* Max number of times is checked. */
-	} while (--_grow_town_result >= 0);
-
-	return (_grow_town_result == -2);
+	return false;
 }
 
 /**
