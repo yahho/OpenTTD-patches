@@ -984,23 +984,6 @@ static bool GrowTownWithExtraHouse(Town *t, TileIndex tile)
 }
 
 /**
- * Grows the town with a road piece.
- *
- * @param t The current town
- * @param tile The current tile
- * @param rcmd The RoadBits we want to build on the tile
- * @return true if the RoadBits have been added else false
- */
-static bool GrowTownWithRoad(const Town *t, TileIndex tile, RoadBits rcmd)
-{
-	if (DoCommand(tile, rcmd, t->index, DC_EXEC | DC_AUTO | DC_NO_WATER, CMD_BUILD_ROAD).Succeeded()) {
-		_grow_town_result = GROWTH_SUCCEED;
-		return true;
-	}
-	return false;
-}
-
-/**
  * Grows the town with a bridge.
  *  At first we check if a bridge is reasonable.
  *  If so we check if we are able to build it.
@@ -1061,6 +1044,34 @@ static bool GrowTownWithBridge(const Town *t, const TileIndex tile, const DiagDi
 		}
 	}
 	/* Quit if it selecting an appropriate bridge type fails a large number of times. */
+	return false;
+}
+
+/**
+ * Grows the town with either a bridge or a road piece.
+ *
+ * @param t The current town
+ * @param tile The current tile
+ * @param target_dir The target road dir
+ * @param rcmd The RoadBits we want to build on the tile
+ * @return true if the RoadBits have been added else false
+ */
+static bool GrowTownWithRoad(const Town *t, TileIndex tile, DiagDirection target_dir, RoadBits rcmd)
+{
+	/* Make the roads look nicer */
+	rcmd = CleanUpRoadBits(tile, rcmd);
+	if (rcmd == ROAD_NONE) return false;
+
+	/* Only use the target direction for bridges to ensure they're connected.
+	 * The target_dir is as computed previously according to town layout, so
+	 * it will match it perfectly. */
+	if (GrowTownWithBridge(t, tile, target_dir)) return true;
+
+	if (DoCommand(tile, rcmd, t->index, DC_EXEC | DC_AUTO | DC_NO_WATER, CMD_BUILD_ROAD).Succeeded()) {
+		_grow_town_result = GROWTH_SUCCEED;
+		return true;
+	}
+
 	return false;
 }
 
@@ -1233,16 +1244,7 @@ static void GrowTownInTile(TileIndex *tile_ptr, RoadBits cur_rb, DiagDirection t
 		_grow_town_result = GROWTH_SEARCH_STOPPED;
 	}
 
-	/* Make the roads look nicer */
-	rcmd = CleanUpRoadBits(tile, rcmd);
-	if (rcmd == ROAD_NONE) return;
-
-	/* Only use the target direction for bridges to ensure they're connected.
-	 * The target_dir is as computed previously according to town layout, so
-	 * it will match it perfectly. */
-	if (GrowTownWithBridge(t1, tile, target_dir)) return;
-
-	GrowTownWithRoad(t1, tile, rcmd);
+	GrowTownWithRoad(t1, tile, target_dir, rcmd);
 }
 
 /**
