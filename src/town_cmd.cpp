@@ -1087,6 +1087,7 @@ static void GrowTownInTile(TileIndex *tile_ptr, RoadBits cur_rb, DiagDirection t
 	TileIndex tile = *tile_ptr; // The main tile on which we base our growth
 
 	assert(tile < MapSize());
+	assert((cur_rb == ROAD_NONE) || !HasTileWaterGround(tile));
 
 	if (cur_rb == ROAD_NONE) {
 		/* Tile has no road. First reset the status counter
@@ -1138,6 +1139,9 @@ static void GrowTownInTile(TileIndex *tile_ptr, RoadBits cur_rb, DiagDirection t
 				rcmd = DiagDirToRoadBits(target_dir) | DiagDirToRoadBits(source_dir);
 				break;
 		}
+
+		/* Return if a water tile */
+		if (HasTileWaterGround(tile)) return;
 
 	} else if (target_dir < DIAGDIR_END && !(cur_rb & DiagDirToRoadBits(ReverseDiagDir(target_dir)))) {
 		/* Continue building on a partial road.
@@ -1228,9 +1232,6 @@ static void GrowTownInTile(TileIndex *tile_ptr, RoadBits cur_rb, DiagDirection t
 
 		_grow_town_result = GROWTH_SEARCH_STOPPED;
 	}
-
-	/* Return if a water tile */
-	if (HasTileWaterGround(tile)) return;
 
 	/* Make the roads look nicer */
 	rcmd = CleanUpRoadBits(tile, rcmd);
