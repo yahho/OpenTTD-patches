@@ -543,6 +543,10 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		_settings_game.pf.pathfinder_for_ships = (_settings_game.pf.pathfinder_for_ships > 0) ? VPF_YAPF : VPF_OPF;
 	}
 
+	if (IsFullSavegameVersionBefore (stv, 22, 194)) {
+		_settings_game.construction.max_heightlevel = 15;
+	}
+
 	/* Load the sprites */
 	GfxLoadSprites();
 	LoadStringWidthTable();
