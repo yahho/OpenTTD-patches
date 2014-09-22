@@ -286,9 +286,6 @@ void DrawTrainDepotSprite(int x, int y, int dir, RailType railtype)
 	SpriteID image = rti->UsesOverlay() ? SPR_FLAT_GRASS_TILE : dts->ground.sprite;
 	uint32 offset = rti->GetRailtypeSpriteOffset();
 
-	x += 33;
-	y += 17;
-
 	if (image != SPR_FLAT_GRASS_TILE) image += offset;
 	PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
 
@@ -340,9 +337,6 @@ void DrawRoadDepotSprite(int x, int y, DiagDirection dir, RoadType rt)
 {
 	PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
 	const DrawTileSprites *dts = (rt == ROADTYPE_TRAM) ? &_tram_depot[dir] : &_road_depot[dir];
-
-	x += 33;
-	y += 17;
 
 	DrawSprite(dts->ground.sprite, PAL_NONE, x, y);
 	DrawOrigTileSeqInGUI(x, y, dts, palette);
