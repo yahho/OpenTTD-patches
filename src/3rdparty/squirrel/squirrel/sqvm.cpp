@@ -1,6 +1,9 @@
 /*
 	see copyright notice in squirrel.h
 */
+#include "../../../stdafx.h"
+#include "../../../string.h"
+
 #include <squirrel.h>
 #include "sqpcheader.h"
 #include <math.h>
@@ -251,19 +254,20 @@ bool SQVM::CMP_OP(CmpOP op, const SQObjectPtr &o1,const SQObjectPtr &o2,SQObject
 
 void SQVM::ToString(const SQObjectPtr &o,SQObjectPtr &res)
 {
+	char buf [64];
 	switch(type(o)) {
 	case OT_STRING:
 		res = o;
 		return;
 	case OT_FLOAT:
-		sprintf(_sp(rsl(NUMBER_MAX_CHAR+1)),"%g",_float(o));
+		bstrfmt (buf, "%g", _float(o));
 		break;
 	case OT_INTEGER:
-		sprintf(_sp(rsl(NUMBER_MAX_CHAR+1)),SQ_PRINTF64,_integer(o));
+		bstrfmt (buf, SQ_PRINTF64, _integer(o));
 		break;
 	case OT_BOOL:
-		sprintf(_sp(rsl(6)),_integer(o)?"true":"false");
-		break;
+		res = SQString::Create(_ss(this), _integer(o) ? "true" : "false");
+		return;
 	case OT_TABLE:
 	case OT_USERDATA:
 	case OT_INSTANCE:
@@ -276,9 +280,9 @@ void SQVM::ToString(const SQObjectPtr &o,SQObjectPtr &res)
 			}
 		}
 	default:
-		sprintf(_sp(rsl(sizeof(void*)+20)),"(%s : 0x%p)",GetTypeName(o),(void*)_rawval(o));
+		bstrfmt (buf, "(%s : 0x%p)", GetTypeName(o), (void*)_rawval(o));
 	}
-	res = SQString::Create(_ss(this),_spval);
+	res = SQString::Create(_ss(this), buf);
 }
 
 
@@ -287,11 +291,9 @@ bool SQVM::StringCat(const SQObjectPtr &str,const SQObjectPtr &obj,SQObjectPtr &
 	SQObjectPtr a, b;
 	ToString(str, a);
 	ToString(obj, b);
-	SQInteger l = _string(a)->_len , ol = _string(b)->_len;
-	char *s = _sp(rsl(l + ol + 1));
-	memcpy(s, _stringval(a), (size_t)rsl(l));
-	memcpy(s + l, _stringval(b), (size_t)rsl(ol));
-	dest = SQString::Create(_ss(this), _spval, l + ol);
+	char *s = str_fmt ("%s%s", _stringval(a), _stringval(b));
+	dest = SQString::Create(_ss(this), s, -1);
+	free (s);
 	return true;
 }
 

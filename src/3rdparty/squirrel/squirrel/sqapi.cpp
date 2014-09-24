@@ -1,6 +1,9 @@
 /*
 	see copyright notice in squirrel.h
 */
+#include "../../../stdafx.h"
+#include "../../../string.h"
+
 #include <squirrel.h>
 #include "sqpcheader.h"
 #include "sqvm.h"
@@ -40,8 +43,9 @@ SQInteger sq_aux_throwobject(HSQUIRRELVM v,SQObjectPtr &e)
 
 SQInteger sq_aux_invalidtype(HSQUIRRELVM v,SQObjectType type)
 {
-	sprintf(_ss(v)->GetScratchPad(100), "unexpected type %s", IdType2Name(type));
-	return sq_throwerror(v, _ss(v)->GetScratchPad(-1));
+	char buf [100];
+	bstrfmt (buf, "unexpected type %s", IdType2Name(type));
+	return sq_throwerror(v, buf);
 }
 
 HSQUIRRELVM sq_open(SQInteger initialstacksize)

@@ -63,6 +63,7 @@ char *xstrdup (const char *s);
 char *xstrmemdup (const char *s, size_t n);
 char *xstrndup (const char *s, size_t n);
 
+char *str_vfmt(const char *str, va_list args) WARN_FORMAT(1, 0);
 char *CDECL str_fmt(const char *str, ...) WARN_FORMAT(1, 2);
 
 

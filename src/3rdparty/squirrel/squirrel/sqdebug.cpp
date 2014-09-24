@@ -1,6 +1,9 @@
 /*
 	see copyright notice in squirrel.h
 */
+#include "../../../stdafx.h"
+#include "../../../string.h"
+
 #include <squirrel.h>
 #include "sqpcheader.h"
 #include <stdarg.h>
@@ -60,9 +63,10 @@ void SQVM::Raise_Error(const char *s, ...)
 {
 	va_list vl;
 	va_start(vl, s);
-	vsprintf(_sp(rsl((SQInteger)strlen(s)+(NUMBER_MAX_CHAR*2))), s, vl);
+	char *buffer = str_vfmt (s, vl);
 	va_end(vl);
-	_lasterror = SQString::Create(_ss(this),_spval,-1);
+	_lasterror = SQString::Create(_ss(this),buffer,-1);
+	free (buffer);
 }
 
 void SQVM::Raise_Error(SQObjectPtr &desc)
@@ -72,16 +76,15 @@ void SQVM::Raise_Error(SQObjectPtr &desc)
 
 SQString *SQVM::PrintObjVal(const SQObject &o)
 {
+	char buf [NUMBER_MAX_CHAR + 1];
 	switch(type(o)) {
 	case OT_STRING: return _string(o);
 	case OT_INTEGER:
-		sprintf(_sp(rsl(NUMBER_MAX_CHAR+1)), SQ_PRINTF64, _integer(o));
-		return SQString::Create(_ss(this), _spval);
-		break;
+		bstrfmt (buf, SQ_PRINTF64, _integer(o));
+		return SQString::Create(_ss(this), buf);
 	case OT_FLOAT:
-		sprintf(_sp(rsl(NUMBER_MAX_CHAR+1)), "%.14g", _float(o));
-		return SQString::Create(_ss(this), _spval);
-		break;
+		bstrfmt (buf, "%.14g", _float(o));
+		return SQString::Create(_ss(this), buf);
 	default:
 		return SQString::Create(_ss(this), GetTypeName(o));
 	}

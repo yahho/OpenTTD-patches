@@ -1,6 +1,9 @@
 /*
 	see copyright notice in squirrel.h
 */
+#include "../../../stdafx.h"
+#include "../../../string.h"
+
 #include <squirrel.h>
 #include "sqpcheader.h"
 #include <stdarg.h>
@@ -66,7 +69,7 @@ public:
 		static char temp[256];
 		va_list vl;
 		va_start(vl, s);
-		vsnprintf(temp, sizeof(temp), s, vl);
+		bstrvfmt (temp, s, vl);
 		va_end(vl);
 		throw temp;
 	}

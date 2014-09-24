@@ -137,7 +137,7 @@ char *xstrndup (const char *s, size_t n)
 }
 
 /** Allocate a formatted string. */
-static char *str_vfmt (const char *fmt, va_list args)
+char *str_vfmt (const char *fmt, va_list args)
 {
 #ifdef _GNU_SOURCE
 	char *s;
