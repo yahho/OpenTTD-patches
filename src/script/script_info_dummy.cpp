@@ -40,7 +40,7 @@ void Script_CreateDummyInfo(HSQUIRRELVM vm, const char *type, const char *dir)
 		"} RegisterDummy%s(Dummy%s());\n",
 		type, type, type, type, dir, type, type, type);
 
-	const SQChar *sq_dummy_script = dummy_script;
+	const char *sq_dummy_script = dummy_script;
 
 	sq_pushroottable(vm);
 
@@ -95,7 +95,7 @@ void Script_CreateDummy(HSQUIRRELVM vm, StringID string, const char *type)
 	/* 3) We translate the error message in the character format that Squirrel wants.
 	 *    We can use the fact that the wchar string printing also uses %s to print
 	 *    old style char strings, which is what was generated during the script generation. */
-	const SQChar *sq_dummy_script = dummy_script.c_str();
+	const char *sq_dummy_script = dummy_script.c_str();
 
 	/* And finally we load and run the script */
 	sq_pushroottable(vm);

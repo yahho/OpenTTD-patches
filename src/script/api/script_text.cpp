@@ -68,7 +68,7 @@ SQInteger ScriptText::_SetParam(int parameter, HSQUIRRELVM vm)
 
 	switch (sq_gettype(vm, -1)) {
 		case OT_STRING: {
-			const SQChar *value;
+			const char *value;
 			sq_getstring(vm, -1, &value);
 
 			this->params[parameter] = xstrdup(value);
@@ -145,7 +145,7 @@ SQInteger ScriptText::_set(HSQUIRRELVM vm)
 	int32 k;
 
 	if (sq_gettype(vm, 2) == OT_STRING) {
-		const SQChar *key_string;
+		const char *key_string;
 		sq_getstring(vm, 2, &key_string);
 		ValidateString(key_string);
 

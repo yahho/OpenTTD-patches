@@ -12,7 +12,7 @@
 
 #define scvprintf vprintf
 
-void printfunc(HSQUIRRELVM v, const SQChar *s, ...)
+void printfunc(HSQUIRRELVM v, const char *s, ...)
 {
 va_list arglist;
 va_start(arglist, s);
@@ -20,7 +20,7 @@ vprintf(s, arglist);
 va_end(arglist);
 }
 
-void call_foo(HSQUIRRELVM v, int n,float f,const SQChar *s)
+void call_foo(HSQUIRRELVM v, int n,float f,const char *s)
 {
 	SQInteger top = sq_gettop(v); //saves the stack size before the call
 	sq_pushroottable(v); //pushes the global table

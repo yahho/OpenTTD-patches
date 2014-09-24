@@ -19,9 +19,9 @@
 #include <../squirrel/sqpcheader.h>
 #include <../squirrel/sqvm.h>
 
-void Squirrel::CompileError(HSQUIRRELVM vm, const SQChar *desc, const SQChar *source, SQInteger line, SQInteger column)
+void Squirrel::CompileError(HSQUIRRELVM vm, const char *desc, const char *source, SQInteger line, SQInteger column)
 {
-	SQChar buf[1024];
+	char buf[1024];
 	bstrfmt (buf, "Error %s:" SQ_PRINTF64 "/" SQ_PRINTF64 ": %s", source, line, column, desc);
 
 	/* Check if we have a custom print function */
@@ -35,10 +35,10 @@ void Squirrel::CompileError(HSQUIRRELVM vm, const SQChar *desc, const SQChar *so
 	}
 }
 
-void Squirrel::ErrorPrintFunc(HSQUIRRELVM vm, const SQChar *s, ...)
+void Squirrel::ErrorPrintFunc(HSQUIRRELVM vm, const char *s, ...)
 {
 	va_list arglist;
-	SQChar buf[1024];
+	char buf[1024];
 
 	va_start(arglist, s);
 	vsnprintf(buf, lengthof(buf), s, arglist);
@@ -53,14 +53,14 @@ void Squirrel::ErrorPrintFunc(HSQUIRRELVM vm, const SQChar *s, ...)
 	}
 }
 
-void Squirrel::RunError(HSQUIRRELVM vm, const SQChar *error)
+void Squirrel::RunError(HSQUIRRELVM vm, const char *error)
 {
 	/* Set the print function to something that prints to stderr */
 	SQPRINTFUNCTION pf = sq_getprintfunc(vm);
 	sq_setprintfunc(vm, &Squirrel::ErrorPrintFunc);
 
 	/* Check if we have a custom print function */
-	SQChar buf[1024];
+	char buf[1024];
 	bstrfmt (buf, "Your script made an error: %s\n", error);
 	Squirrel *engine = (Squirrel *)sq_getforeignptr(vm);
 	SQPrintFunc *func = engine->print_func;
@@ -78,7 +78,7 @@ void Squirrel::RunError(HSQUIRRELVM vm, const SQChar *error)
 
 SQInteger Squirrel::_RunError(HSQUIRRELVM vm)
 {
-	const SQChar *sErr = 0;
+	const char *sErr = 0;
 
 	if (sq_gettop(vm) >= 1) {
 		if (SQ_SUCCEEDED(sq_getstring(vm, -1, &sErr))) {
@@ -91,10 +91,10 @@ SQInteger Squirrel::_RunError(HSQUIRRELVM vm)
 	return 0;
 }
 
-void Squirrel::PrintFunc(HSQUIRRELVM vm, const SQChar *s, ...)
+void Squirrel::PrintFunc(HSQUIRRELVM vm, const char *s, ...)
 {
 	va_list arglist;
-	SQChar buf[1024];
+	char buf[1024];
 
 	va_start(arglist, s);
 	vsnprintf(buf, lengthof(buf) - 2, s, arglist);
@@ -433,7 +433,7 @@ static SQInteger _io_file_lexfeed_UTF8(SQUserPointer file)
 static SQInteger _io_file_lexfeed_UCS2_no_swap(SQUserPointer file)
 {
 	wchar_t c;
-	if (((SQFile *)file)->Read(&c, sizeof(c), 1) > 0) return (SQChar)c;
+	if (((SQFile *)file)->Read(&c, sizeof(c), 1) > 0) return (char)c;
 	return 0;
 }
 
@@ -442,7 +442,7 @@ static SQInteger _io_file_lexfeed_UCS2_swap(SQUserPointer file)
 	unsigned short c;
 	if (((SQFile *)file)->Read(&c, sizeof(c), 1) > 0) {
 		c = ((c >> 8) & 0x00FF)| ((c << 8) & 0xFF00);
-		return (SQChar)c;
+		return (char)c;
 	}
 	return 0;
 }

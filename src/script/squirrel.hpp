@@ -22,7 +22,7 @@ enum ScriptType {
 
 class Squirrel {
 private:
-	typedef void (SQPrintFunc)(bool error_msg, const SQChar *message);
+	typedef void (SQPrintFunc)(bool error_msg, const char *message);
 
 	HSQUIRRELVM vm;          ///< The VirtualMachine instance for squirrel
 	void *global_pointer;    ///< Can be set by who ever initializes Squirrel
@@ -50,22 +50,22 @@ protected:
 	/**
 	 * The CompileError handler.
 	 */
-	static void CompileError(HSQUIRRELVM vm, const SQChar *desc, const SQChar *source, SQInteger line, SQInteger column);
+	static void CompileError(HSQUIRRELVM vm, const char *desc, const char *source, SQInteger line, SQInteger column);
 
 	/**
 	 * The RunError handler.
 	 */
-	static void RunError(HSQUIRRELVM vm, const SQChar *error);
+	static void RunError(HSQUIRRELVM vm, const char *error);
 
 	/**
 	 * If a user runs 'print' inside a script, this function gets the params.
 	 */
-	static void PrintFunc(HSQUIRRELVM vm, const SQChar *s, ...);
+	static void PrintFunc(HSQUIRRELVM vm, const char *s, ...);
 
 	/**
 	 * If an error has to be print, this function is called.
 	 */
-	static void ErrorPrintFunc(HSQUIRRELVM vm, const SQChar *s, ...);
+	static void ErrorPrintFunc(HSQUIRRELVM vm, const char *s, ...);
 
 public:
 	Squirrel(const char *APIName);

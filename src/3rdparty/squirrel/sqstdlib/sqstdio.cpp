@@ -7,7 +7,7 @@
 
 #define SQSTD_FILE_TYPE_TAG (SQSTD_STREAM_TYPE_TAG | 0x00000001)
 //basic API
-SQFILE sqstd_fopen(const SQChar *filename ,const SQChar *mode)
+SQFILE sqstd_fopen(const char *filename ,const char *mode)
 {
 	return (SQFILE)fopen(filename,mode);
 }
@@ -59,7 +59,7 @@ struct SQFile : public SQStream {
 	SQFile() { _handle = NULL; _owns = false;}
 	SQFile(SQFILE file, bool owns) { _handle = file; _owns = owns;}
 	virtual ~SQFile() { Close(); }
-	bool Open(const SQChar *filename ,const SQChar *mode) {
+	bool Open(const char *filename ,const char *mode) {
 		Close();
 		if( (_handle = sqstd_fopen(filename,mode)) ) {
 			_owns = true;
@@ -119,7 +119,7 @@ static SQInteger _file_releasehook(SQUserPointer p, SQInteger size)
 
 static SQInteger _file_constructor(HSQUIRRELVM v)
 {
-	const SQChar *filename,*mode;
+	const char *filename,*mode;
 	bool owns = true;
 	SQFile *f;
 	SQFILE newf;
@@ -240,7 +240,7 @@ static SQInteger _io_file_lexfeed_UCS2_LE(SQUserPointer file)
 	SQInteger ret;
 	wchar_t c;
 	if( ( ret=sqstd_fread(&c,sizeof(c),1,(FILE *)file )>0) )
-		return (SQChar)c;
+		return (char)c;
 	return 0;
 }
 
@@ -250,7 +250,7 @@ static SQInteger _io_file_lexfeed_UCS2_BE(SQUserPointer file)
 	unsigned short c;
 	if( ( ret=sqstd_fread(&c,sizeof(c),1,(FILE *)file )>0) ) {
 		c = ((c>>8)&0x00FF)| ((c<<8)&0xFF00);
-		return (SQChar)c;
+		return (char)c;
 	}
 	return 0;
 }
@@ -267,7 +267,7 @@ SQInteger file_write(SQUserPointer file,SQUserPointer p,SQInteger size)
 	return sqstd_fwrite(p,1,size,(SQFILE)file);
 }
 
-SQRESULT sqstd_loadfile(HSQUIRRELVM v,const SQChar *filename,SQBool printerror)
+SQRESULT sqstd_loadfile(HSQUIRRELVM v,const char *filename,SQBool printerror)
 {
 	SQFILE file = sqstd_fopen(filename,"rb");
 	SQInteger ret;
@@ -318,7 +318,7 @@ SQRESULT sqstd_loadfile(HSQUIRRELVM v,const SQChar *filename,SQBool printerror)
 	return sq_throwerror(v,"cannot open the file");
 }
 
-SQRESULT sqstd_dofile(HSQUIRRELVM v,const SQChar *filename,SQBool retval,SQBool printerror)
+SQRESULT sqstd_dofile(HSQUIRRELVM v,const char *filename,SQBool retval,SQBool printerror)
 {
 	if(SQ_SUCCEEDED(sqstd_loadfile(v,filename,printerror))) {
 		sq_push(v,-2);
@@ -331,7 +331,7 @@ SQRESULT sqstd_dofile(HSQUIRRELVM v,const SQChar *filename,SQBool retval,SQBool 
 	return SQ_ERROR;
 }
 
-SQRESULT sqstd_writeclosuretofile(HSQUIRRELVM v,const SQChar *filename)
+SQRESULT sqstd_writeclosuretofile(HSQUIRRELVM v,const char *filename)
 {
 	SQFILE file = sqstd_fopen(filename,"wb+");
 	if(!file) return sq_throwerror(v,"cannot open the file");
@@ -345,7 +345,7 @@ SQRESULT sqstd_writeclosuretofile(HSQUIRRELVM v,const SQChar *filename)
 
 SQInteger _g_io_loadfile(HSQUIRRELVM v)
 {
-	const SQChar *filename;
+	const char *filename;
 	SQBool printerror = SQFalse;
 	sq_getstring(v,2,&filename);
 	if(sq_gettop(v) >= 3) {
@@ -358,7 +358,7 @@ SQInteger _g_io_loadfile(HSQUIRRELVM v)
 
 SQInteger _g_io_writeclosuretofile(HSQUIRRELVM v)
 {
-	const SQChar *filename;
+	const char *filename;
 	sq_getstring(v,2,&filename);
 	if(SQ_SUCCEEDED(sqstd_writeclosuretofile(v,filename)))
 		return 1;
@@ -367,7 +367,7 @@ SQInteger _g_io_writeclosuretofile(HSQUIRRELVM v)
 
 SQInteger _g_io_dofile(HSQUIRRELVM v)
 {
-	const SQChar *filename;
+	const char *filename;
 	SQBool printerror = SQFalse;
 	sq_getstring(v,2,&filename);
 	if(sq_gettop(v) >= 3) {

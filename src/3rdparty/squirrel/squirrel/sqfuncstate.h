@@ -11,7 +11,7 @@ struct SQFuncState
 #ifdef _DEBUG_DUMP
 	void Dump(SQFunctionProto *func);
 #endif
-	void Error(const SQChar *err);
+	void Error(const char *err);
 	SQFuncState *PushChildState(SQSharedState *ss);
 	void PopChildState();
 	void AddInstruction(SQOpcode _op,SQInteger arg0=0,SQInteger arg1=0,SQInteger arg2=0,SQInteger arg3=0){SQInstruction i(_op,arg0,arg1,arg2,arg3);AddInstruction(i);}
@@ -43,7 +43,7 @@ struct SQFuncState
 	SQInteger TopTarget();
 	SQInteger GetUpTarget(SQInteger n);
 	bool IsLocal(SQUnsignedInteger stkpos);
-	SQObject CreateString(const SQChar *s,SQInteger len = -1);
+	SQObject CreateString(const char *s,SQInteger len = -1);
 	SQObject CreateTable();
 	bool IsConstant(const SQObject &name,SQObject &e);
 	SQInteger _returnexp;

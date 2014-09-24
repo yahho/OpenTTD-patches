@@ -113,7 +113,7 @@ namespace SQConvert {
 		/* Convert what-ever there is as parameter to a string */
 		sq_tostring(vm, index);
 
-		const SQChar *tmp;
+		const char *tmp;
 		sq_getstring(vm, -1, &tmp);
 		char *tmp_str = xstrdup(tmp);
 		sq_poptop(vm);

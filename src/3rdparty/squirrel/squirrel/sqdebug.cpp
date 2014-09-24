@@ -56,7 +56,7 @@ SQRESULT sq_stackinfos(HSQUIRRELVM v, SQInteger level, SQStackInfos *si)
 	return SQ_ERROR;
 }
 
-void SQVM::Raise_Error(const SQChar *s, ...)
+void SQVM::Raise_Error(const char *s, ...)
 {
 	va_list vl;
 	va_start(vl, s);

@@ -105,7 +105,7 @@ SQFuncState::SQFuncState(SQSharedState *ss,SQFuncState *parent,CompilerErrorFunc
 
 }
 
-void SQFuncState::Error(const SQChar *err)
+void SQFuncState::Error(const char *err)
 {
 	_errfunc(_errtarget,err);
 }
@@ -497,7 +497,7 @@ void SQFuncState::AddInstruction(SQInstruction &i)
 	_instructions.push_back(i);
 }
 
-SQObject SQFuncState::CreateString(const SQChar *s,SQInteger len)
+SQObject SQFuncState::CreateString(const char *s,SQInteger len)
 {
 	SQObjectPtr ns(SQString::Create(_sharedstate,s,len));
 	_table(_strings)->NewSlot(ns,(SQInteger)1);

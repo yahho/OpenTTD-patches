@@ -13,7 +13,7 @@
 
 static SQInteger _system_getenv(HSQUIRRELVM v)
 {
-	const SQChar *s;
+	const char *s;
 	if(SQ_SUCCEEDED(sq_getstring(v,2,&s))){
         sq_pushstring(v,scgetenv(s),-1);
 		return 1;
@@ -24,7 +24,7 @@ static SQInteger _system_getenv(HSQUIRRELVM v)
 
 static SQInteger _system_system(HSQUIRRELVM v)
 {
-	const SQChar *s;
+	const char *s;
 	if(SQ_SUCCEEDED(sq_getstring(v,2,&s))){
 		sq_pushinteger(v,scsystem(s));
 		return 1;
@@ -49,7 +49,7 @@ static SQInteger _system_time(HSQUIRRELVM v)
 
 static SQInteger _system_remove(HSQUIRRELVM v)
 {
-	const SQChar *s;
+	const char *s;
 	sq_getstring(v,2,&s);
 	if(scremove(s)==-1)
 		return sq_throwerror(v,"remove() failed");
@@ -58,7 +58,7 @@ static SQInteger _system_remove(HSQUIRRELVM v)
 
 static SQInteger _system_rename(HSQUIRRELVM v)
 {
-	const SQChar *oldn,*newn;
+	const char *oldn,*newn;
 	sq_getstring(v,2,&oldn);
 	sq_getstring(v,3,&newn);
 	if(screname(oldn,newn)==-1)
@@ -66,7 +66,7 @@ static SQInteger _system_rename(HSQUIRRELVM v)
 	return 0;
 }
 
-static void _set_integer_slot(HSQUIRRELVM v,const SQChar *name,SQInteger val)
+static void _set_integer_slot(HSQUIRRELVM v,const char *name,SQInteger val)
 {
 	sq_pushstring(v,name,-1);
 	sq_pushinteger(v,val);

@@ -42,7 +42,7 @@ SQInteger quit(HSQUIRRELVM v)
 	return 0;
 }
 
-void printfunc(HSQUIRRELVM v,const SQChar *s,...)
+void printfunc(HSQUIRRELVM v,const char *s,...)
 {
 	va_list vl;
 	va_start(vl, s);
@@ -77,8 +77,8 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[])
 {
 	int i;
 	int compiles_only = 0;
-	static SQChar temp[500];
-	const SQChar *ret=NULL;
+	static char temp[500];
+	const char *ret=NULL;
 	char * output = NULL;
 	int lineinfo=0;
 	if(argc>1)
@@ -124,7 +124,7 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[])
 		// src file
 
 		if(arg<argc) {
-			const SQChar *filename=NULL;
+			const char *filename=NULL;
 			filename=argv[arg];
 
 			arg++;
@@ -133,7 +133,7 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[])
 			sq_newarray(v,0);
 			for(i=arg;i<argc;i++)
 			{
-				const SQChar *a;
+				const char *a;
 				a=argv[i];
 				sq_pushstring(v,a,-1);
 
@@ -143,7 +143,7 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[])
 			sq_pop(v,1);
 			if(compiles_only) {
 				if(SQ_SUCCEEDED(sqstd_loadfile(v,filename,SQTrue))){
-					SQChar *outfile = "out.cnut";
+					char *outfile = "out.cnut";
 					if(output) {
 						outfile = output;
 					}
@@ -158,7 +158,7 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[])
 			}
 			//if this point is reached an error occured
 			{
-				const SQChar *err;
+				const char *err;
 				sq_getlasterror(v);
 				if(SQ_SUCCEEDED(sq_getstring(v,-1,&err))) {
 					printf("Error [%s]\n",err);
@@ -176,7 +176,7 @@ void Interactive(HSQUIRRELVM v)
 {
 
 #define MAXINPUT 1024
-	SQChar buffer[MAXINPUT];
+	char buffer[MAXINPUT];
 	SQInteger blocks =0;
 	SQInteger string=0;
 	SQInteger retval=0;
@@ -207,28 +207,28 @@ void Interactive(HSQUIRRELVM v)
 				else if(blocks==0)break;
 				buffer[i++] = '\n';
 			}
-			else if (c=='}') {blocks--; buffer[i++] = (SQChar)c;}
+			else if (c=='}') {blocks--; buffer[i++] = (char)c;}
 			else if(c=='{' && !string){
 					blocks++;
-					buffer[i++] = (SQChar)c;
+					buffer[i++] = (char)c;
 			}
 			else if(c=='"' || c=='\''){
 					string=!string;
-					buffer[i++] = (SQChar)c;
+					buffer[i++] = (char)c;
 			}
 			else if (i >= MAXINPUT-1) {
 				fprintf(stderr, "sq : input line too long\n");
 				break;
 			}
 			else{
-				buffer[i++] = (SQChar)c;
+				buffer[i++] = (char)c;
 			}
 		}
 		buffer[i] = '\0';
 
 		if(buffer[0]=='='){
 			sprintf(sq_getscratchpad(v,MAXINPUT),"return (%s)",&buffer[1]);
-			memcpy(buffer,sq_getscratchpad(v,-1),(strlen(sq_getscratchpad(v,-1))+1)*sizeof(SQChar));
+			memcpy(buffer,sq_getscratchpad(v,-1),(strlen(sq_getscratchpad(v,-1))+1)*sizeof(char));
 			retval=1;
 		}
 		i=strlen(buffer);
@@ -258,7 +258,7 @@ int main(int argc, char* argv[])
 {
 	HSQUIRRELVM v;
 
-	const SQChar *filename=NULL;
+	const char *filename=NULL;
 #if defined(_MSC_VER) && defined(_DEBUG)
 	_CrtSetAllocHook(MemAllocHook);
 #endif

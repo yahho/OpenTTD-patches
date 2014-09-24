@@ -42,7 +42,7 @@ ScriptStorage::~ScriptStorage()
  * @param error_msg Is this an error message?
  * @param message The actual message text.
  */
-static void PrintFunc(bool error_msg, const SQChar *message)
+static void PrintFunc(bool error_msg, const char *message)
 {
 	/* Convert to OpenTTD internal capable string */
 	ScriptController::Print(error_msg, message);
@@ -349,7 +349,7 @@ enum SQSaveLoadType {
 		}
 
 		case OT_STRING: {
-			const SQChar *buf;
+			const char *buf;
 			sq_getstring(vm, index, &buf);
 			size_t len = strlen(buf) + 1;
 			if (len >= 255) {

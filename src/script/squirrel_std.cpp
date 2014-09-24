@@ -41,8 +41,8 @@ SQInteger SquirrelStd::max(HSQUIRRELVM vm)
 SQInteger SquirrelStd::require(HSQUIRRELVM vm)
 {
 	SQInteger top = sq_gettop(vm);
-	const SQChar *filename;
-	SQChar *real_filename;
+	const char *filename;
+	char *real_filename;
 
 	sq_getstring(vm, 2, &filename);
 
@@ -55,7 +55,7 @@ SQInteger SquirrelStd::require(HSQUIRRELVM vm)
 	}
 	real_filename = strdup(si.source);
 	/* Keep the dir, remove the rest */
-	SQChar *s = strrchr(real_filename, PATHSEPCHAR);
+	char *s = strrchr(real_filename, PATHSEPCHAR);
 	if (s != NULL) {
 		/* Keep the PATHSEPCHAR there, remove the rest */
 		s++;

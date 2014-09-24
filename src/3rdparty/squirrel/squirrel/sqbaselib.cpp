@@ -16,9 +16,9 @@
 #include <stdarg.h>
 #include <ctype.h>
 
-bool str2num(const SQChar *s,SQObjectPtr &res)
+bool str2num(const char *s,SQObjectPtr &res)
 {
-	SQChar *end;
+	char *end;
 	if(strstr(s,".")){
 		SQFloat r = SQFloat(strtod(s,&end));
 		if(s == end) return false;
@@ -100,12 +100,12 @@ static SQInteger base_getstackinfos(HSQUIRRELVM v)
 	SQInteger level;
 	SQStackInfos si;
 	SQInteger seq = 0;
-	const SQChar *name = NULL;
+	const char *name = NULL;
 	sq_getinteger(v, -1, &level);
 	if (SQ_SUCCEEDED(sq_stackinfos(v, level, &si)))
 	{
-		const SQChar *fn = "unknown";
-		const SQChar *src = "unknown";
+		const char *fn = "unknown";
+		const char *src = "unknown";
 		if(si.funcname)fn = si.funcname;
 		if(si.source)src = si.source;
 		sq_newtable(v);
@@ -168,7 +168,7 @@ static SQInteger get_slice_params(HSQUIRRELVM v,SQInteger &sidx,SQInteger &eidx,
 
 static SQInteger base_print(HSQUIRRELVM v)
 {
-	const SQChar *str;
+	const char *str;
 	sq_tostring(v,2);
 	sq_getstring(v,-1,&str);
 	if(_ss(v)->_printfunc) _ss(v)->_printfunc(v,"%s",str);
@@ -179,7 +179,7 @@ static SQInteger base_print(HSQUIRRELVM v)
 static SQInteger base_compilestring(HSQUIRRELVM v)
 {
 	SQInteger nargs=sq_gettop(v);
-	const SQChar *src=NULL,*name="unnamedbuffer";
+	const char *src=NULL,*name="unnamedbuffer";
 	SQInteger size;
 	sq_getstring(v,2,&src);
 	size=sq_getsize(v,2);
@@ -281,7 +281,7 @@ void sq_base_register(HSQUIRRELVM v)
 	sq_pushstring(v,SQUIRREL_VERSION,-1);
 	sq_createslot(v,-3);
 	sq_pushstring(v,"_charsize_",-1);
-	sq_pushinteger(v,sizeof(SQChar));
+	sq_pushinteger(v,sizeof(char));
 	sq_createslot(v,-3);
 	sq_pushstring(v,"_intsize_",-1);
 	sq_pushinteger(v,sizeof(SQInteger));
@@ -369,8 +369,8 @@ static SQInteger obj_clear(HSQUIRRELVM v)
 static SQInteger number_delegate_tochar(HSQUIRRELVM v)
 {
 	SQObject &o=stack_get(v,1);
-	SQChar c = (SQChar)tointeger(o);
-	v->Push(SQString::Create(_ss(v),(const SQChar *)&c,1));
+	char c = (char)tointeger(o);
+	v->Push(SQString::Create(_ss(v),(const char *)&c,1));
 	return 1;
 }
 
@@ -647,7 +647,7 @@ static SQInteger string_slice(HSQUIRRELVM v)
 static SQInteger string_find(HSQUIRRELVM v)
 {
 	SQInteger top,start_idx=0;
-	const SQChar *str,*substr,*ret;
+	const char *str,*substr,*ret;
 	if(((top=sq_gettop(v))>1) && SQ_SUCCEEDED(sq_getstring(v,1,&str)) && SQ_SUCCEEDED(sq_getstring(v,2,&substr))){
 		if(top>2)sq_getinteger(v,3,&start_idx);
 		if((sq_getsize(v,1)>start_idx) && (start_idx>=0)){
@@ -666,8 +666,8 @@ static SQInteger string_find(HSQUIRRELVM v)
 { \
 	SQObject str=stack_get(v,1); \
 	SQInteger len=_string(str)->_len; \
-	const SQChar *sThis=_stringval(str); \
-	SQChar *sNew=(_ss(v)->GetScratchPad(rsl(len))); \
+	const char *sThis=_stringval(str); \
+	char *sNew=(_ss(v)->GetScratchPad(rsl(len))); \
 	for(SQInteger i=0;i<len;i++) sNew[i]=func(sThis[i]); \
 	v->Push(SQString::Create(_ss(v),sNew,len)); \
 	return 1; \

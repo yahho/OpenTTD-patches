@@ -12,15 +12,15 @@ void sqstd_printcallstack(HSQUIRRELVM v)
 		SQInteger i;
 		SQBool b;
 		SQFloat f;
-		const SQChar *s;
+		const char *s;
 		SQInteger level=1; //1 is to skip this function that is level 0
-		const SQChar *name=0;
+		const char *name=0;
 		SQInteger seq=0;
 		pf(v,"\nCALLSTACK\n");
 		while(SQ_SUCCEEDED(sq_stackinfos(v,level,&si)))
 		{
-			const SQChar *fn="unknown";
-			const SQChar *src="unknown";
+			const char *fn="unknown";
+			const char *src="unknown";
 			if(si.funcname)fn=si.funcname;
 			if(si.source) {
 				/* We don't want to bother users with absolute paths to all AI files.
@@ -113,7 +113,7 @@ static SQInteger _sqstd_aux_printerror(HSQUIRRELVM v)
 {
 	SQPRINTFUNCTION pf = sq_getprintfunc(v);
 	if(pf) {
-		const SQChar *sErr = 0;
+		const char *sErr = 0;
 		if(sq_gettop(v)>=1) {
 			if(SQ_SUCCEEDED(sq_getstring(v,2,&sErr)))	{
 				pf(v,"\nAN ERROR HAS OCCURED [%s]\n",sErr);
@@ -127,7 +127,7 @@ static SQInteger _sqstd_aux_printerror(HSQUIRRELVM v)
 	return 0;
 }
 
-void _sqstd_compiler_error(HSQUIRRELVM v,const SQChar *sErr,const SQChar *sSource,SQInteger line,SQInteger column)
+void _sqstd_compiler_error(HSQUIRRELVM v,const char *sErr,const char *sSource,SQInteger line,SQInteger column)
 {
 	SQPRINTFUNCTION pf = sq_getprintfunc(v);
 	if(pf) {

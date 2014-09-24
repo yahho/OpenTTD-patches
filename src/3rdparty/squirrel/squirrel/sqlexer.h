@@ -9,11 +9,11 @@ struct SQLexer
 	SQLexer();
 	~SQLexer();
 	void Init(SQSharedState *ss,SQLEXREADFUNC rg,SQUserPointer up,CompilerErrorFunc efunc,void *ed);
-	void Error(const SQChar *err);
+	void Error(const char *err);
 	SQInteger Lex();
-	const SQChar *Tok2Str(SQInteger tok);
+	const char *Tok2Str(SQInteger tok);
 private:
-	SQInteger GetIDType(SQChar *s);
+	SQInteger GetIDType(char *s);
 	SQInteger ReadString(LexChar ndelim,bool verbatim);
 	SQInteger ReadNumber();
 	void LexBlockComment();
@@ -30,14 +30,14 @@ public:
 	SQInteger _currentline;
 	SQInteger _lasttokenline;
 	SQInteger _currentcolumn;
-	const SQChar *_svalue;
+	const char *_svalue;
 	SQInteger _nvalue;
 	SQFloat _fvalue;
 	SQLEXREADFUNC _readf;
 	SQUserPointer _up;
 	LexChar _currdata;
 	SQSharedState *_sharedstate;
-	sqvector<SQChar> _longstr;
+	sqvector<char> _longstr;
 	CompilerErrorFunc _errfunc;
 	void *_errtarget;
 };

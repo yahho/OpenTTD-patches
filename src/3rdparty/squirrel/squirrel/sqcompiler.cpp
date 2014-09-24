@@ -50,20 +50,20 @@ typedef sqvector<ExpState> ExpStateVec;
 class SQCompiler
 {
 public:
-	SQCompiler(SQVM *v, SQLEXREADFUNC rg, SQUserPointer up, const SQChar* sourcename, bool raiseerror, bool lineinfo)
+	SQCompiler(SQVM *v, SQLEXREADFUNC rg, SQUserPointer up, const char* sourcename, bool raiseerror, bool lineinfo)
 	{
 		_vm=v;
 		_lex.Init(_ss(v), rg, up,ThrowError,this);
 		_sourcename = SQString::Create(_ss(v), sourcename);
 		_lineinfo = lineinfo;_raiseerror = raiseerror;
 	}
-	static void ThrowError(void *ud, const SQChar *s) {
+	static void ThrowError(void *ud, const char *s) {
 		SQCompiler *c = (SQCompiler *)ud;
 		c->Error(s);
 	}
-	void Error(const SQChar *s, ...)
+	void Error(const char *s, ...)
 	{
-		static SQChar temp[256];
+		static char temp[256];
 		va_list vl;
 		va_start(vl, s);
 		vsnprintf(temp, sizeof(temp), s, vl);
@@ -95,7 +95,7 @@ public:
 				//do nothing
 			}
 			else {
-				const SQChar *etypename;
+				const char *etypename;
 				if(tok > 255) {
 					switch(tok)
 					{
@@ -180,7 +180,7 @@ public:
 #endif
 			return true;
 		}
-		catch (SQChar *compilererror) {
+		catch (char *compilererror) {
 			if(_raiseerror && _ss(_vm)->_compilererrorhandler) {
 				_ss(_vm)->_compilererrorhandler(_vm, compilererror, type(_sourcename) == OT_STRING?_stringval(_sourcename):"unknown",
 					_lex._currentline, _lex._currentcolumn);
@@ -1360,7 +1360,7 @@ private:
 	SQVM *_vm;
 };
 
-bool Compile(SQVM *vm,SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, SQObjectPtr &out, bool raiseerror, bool lineinfo)
+bool Compile(SQVM *vm,SQLEXREADFUNC rg, SQUserPointer up, const char *sourcename, SQObjectPtr &out, bool raiseerror, bool lineinfo)
 {
 	SQCompiler p(vm, rg, up, sourcename, raiseerror, lineinfo);
 	return p.Compile(out);

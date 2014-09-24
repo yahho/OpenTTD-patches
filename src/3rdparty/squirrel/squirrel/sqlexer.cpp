@@ -86,7 +86,7 @@ void SQLexer::Init(SQSharedState *ss, SQLEXREADFUNC rg, SQUserPointer up,Compile
 	Next();
 }
 
-void SQLexer::Error(const SQChar *err)
+void SQLexer::Error(const char *err)
 {
 	_errfunc(_errtarget,err);
 }
@@ -102,7 +102,7 @@ void SQLexer::Next()
 	_currdata = SQUIRREL_EOB;
 }
 
-const SQChar *SQLexer::Tok2Str(SQInteger tok)
+const char *SQLexer::Tok2Str(SQInteger tok)
 {
 	SQObjectPtr itr, key, val;
 	SQInteger nitr;
@@ -272,7 +272,7 @@ SQInteger SQLexer::Lex()
 	return 0;
 }
 
-SQInteger SQLexer::GetIDType(SQChar *s)
+SQInteger SQLexer::GetIDType(char *s)
 {
 	SQObjectPtr t;
 	if(_keywords->Get(SQString::Create(_sharedstate, s), t)) {
@@ -308,7 +308,7 @@ SQInteger SQLexer::ReadString(LexChar ndelim,bool verbatim)
 					case 'x': NEXT(); {
 						if(!isxdigit(CUR_CHAR)) Error("hexadecimal number expected");
 						const SQInteger maxdigits = 4;
-						SQChar temp[maxdigits+1];
+						char temp[maxdigits+1];
 						SQInteger n = 0;
 						while(isxdigit(CUR_CHAR) && n < maxdigits) {
 							temp[n] = CUR_CHAR;
@@ -316,8 +316,8 @@ SQInteger SQLexer::ReadString(LexChar ndelim,bool verbatim)
 							NEXT();
 						}
 						temp[n] = 0;
-						SQChar *sTemp;
-						APPEND_CHAR((SQChar)strtoul(temp,&sTemp,16));
+						char *sTemp;
+						APPEND_CHAR((char)strtoul(temp,&sTemp,16));
 					}
 				    break;
 					case 't': APPEND_CHAR('\t'); NEXT(); break;
@@ -363,7 +363,7 @@ SQInteger SQLexer::ReadString(LexChar ndelim,bool verbatim)
 	return TK_STRING_LITERAL;
 }
 
-void LexHexadecimal(const SQChar *s,SQUnsignedInteger *res)
+void LexHexadecimal(const char *s,SQUnsignedInteger *res)
 {
 	*res = 0;
 	while(*s != 0)
@@ -374,7 +374,7 @@ void LexHexadecimal(const SQChar *s,SQUnsignedInteger *res)
 	}
 }
 
-void LexInteger(const SQChar *s,SQUnsignedInteger *res)
+void LexInteger(const char *s,SQUnsignedInteger *res)
 {
 	*res = 0;
 	while(*s != 0)
@@ -383,9 +383,9 @@ void LexInteger(const SQChar *s,SQUnsignedInteger *res)
 	}
 }
 
-SQInteger scisodigit(SQChar c) { return c >= '0' && c <= '7'; }
+SQInteger scisodigit(char c) { return c >= '0' && c <= '7'; }
 
-void LexOctal(const SQChar *s,SQUnsignedInteger *res)
+void LexOctal(const char *s,SQUnsignedInteger *res)
 {
 	*res = 0;
 	while(*s != 0)
@@ -407,7 +407,7 @@ SQInteger SQLexer::ReadNumber()
 #define TSCIENTIFIC 4
 #define TOCTAL 5
 	SQInteger type = TINT, firstchar = CUR_CHAR;
-	SQChar *sTemp;
+	char *sTemp;
 	INIT_TEMP_STRING();
 	NEXT();
 	if(firstchar == '0' && (toupper(CUR_CHAR) == 'X' || scisodigit(CUR_CHAR)) ) {

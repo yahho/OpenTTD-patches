@@ -124,12 +124,12 @@ SQInteger ScriptInfo::AddSetting(HSQUIRRELVM vm)
 	/* Read the table, and find all properties we care about */
 	sq_pushnull(vm);
 	while (SQ_SUCCEEDED(sq_next(vm, -2))) {
-		const SQChar *key;
+		const char *key;
 		if (SQ_FAILED(sq_getstring(vm, -2, &key))) return SQ_ERROR;
 		ValidateString(key);
 
 		if (strcmp(key, "name") == 0) {
-			const SQChar *sqvalue;
+			const char *sqvalue;
 			if (SQ_FAILED(sq_getstring(vm, -1, &sqvalue))) return SQ_ERROR;
 			char *name = xstrdup(sqvalue);
 			char *s;
@@ -142,7 +142,7 @@ SQInteger ScriptInfo::AddSetting(HSQUIRRELVM vm)
 			config.name = name;
 			items |= 0x001;
 		} else if (strcmp(key, "description") == 0) {
-			const SQChar *sqdescription;
+			const char *sqdescription;
 			if (SQ_FAILED(sq_getstring(vm, -1, &sqdescription))) return SQ_ERROR;
 			config.description = xstrdup(sqdescription);
 			ValidateString(config.description);
@@ -228,7 +228,7 @@ SQInteger ScriptInfo::AddSetting(HSQUIRRELVM vm)
 
 SQInteger ScriptInfo::AddLabels(HSQUIRRELVM vm)
 {
-	const SQChar *setting_name;
+	const char *setting_name;
 	if (SQ_FAILED(sq_getstring(vm, -2, &setting_name))) return SQ_ERROR;
 	ValidateString(setting_name);
 
@@ -250,8 +250,8 @@ SQInteger ScriptInfo::AddLabels(HSQUIRRELVM vm)
 	/* Read the table and find all labels */
 	sq_pushnull(vm);
 	while (SQ_SUCCEEDED(sq_next(vm, -2))) {
-		const SQChar *key_string;
-		const SQChar *label;
+		const char *key_string;
+		const char *label;
 		if (SQ_FAILED(sq_getstring(vm, -2, &key_string))) return SQ_ERROR;
 		if (SQ_FAILED(sq_getstring(vm, -1, &label))) return SQ_ERROR;
 		/* Because squirrel doesn't support identifiers starting with a digit,

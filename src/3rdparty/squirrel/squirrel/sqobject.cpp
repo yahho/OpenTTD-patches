@@ -12,7 +12,7 @@
 #include "sqclosure.h"
 
 
-const SQChar *IdType2Name(SQObjectType type)
+const char *IdType2Name(SQObjectType type)
 {
 	switch(_RAW_TYPE(type))
 	{
@@ -40,12 +40,12 @@ const SQChar *IdType2Name(SQObjectType type)
 	}
 }
 
-const SQChar *GetTypeName(const SQObjectPtr &obj1)
+const char *GetTypeName(const SQObjectPtr &obj1)
 {
 	return IdType2Name(type(obj1));
 }
 
-SQString *SQString::Create(SQSharedState *ss,const SQChar *s,SQInteger len)
+SQString *SQString::Create(SQSharedState *ss,const char *s,SQInteger len)
 {
 	SQString *str=ADD_STRING(ss,s,len);
 	str->_sharedstate=ss;
@@ -196,10 +196,10 @@ void SQArray::Extend(const SQArray *a){
 			Append(a->_values[i]);
 }
 
-const SQChar* SQFunctionProto::GetLocal(SQVM *vm,SQUnsignedInteger stackbase,SQUnsignedInteger nseq,SQUnsignedInteger nop)
+const char* SQFunctionProto::GetLocal(SQVM *vm,SQUnsignedInteger stackbase,SQUnsignedInteger nseq,SQUnsignedInteger nop)
 {
 	SQUnsignedInteger nvars=_nlocalvarinfos;
-	const SQChar *res=NULL;
+	const char *res=NULL;
 	if(nvars>=nseq){
 		for(SQUnsignedInteger i=0;i<nvars;i++){
 			if(_localvarinfos[i]._start_op<=nop && _localvarinfos[i]._end_op>=nop)
@@ -317,7 +317,7 @@ bool ReadObject(HSQUIRRELVM v,SQUserPointer up,SQREADFUNC read,SQObjectPtr &o)
 bool SQClosure::Save(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 {
 	_CHECK_IO(WriteTag(v,write,up,SQ_CLOSURESTREAM_HEAD));
-	_CHECK_IO(WriteTag(v,write,up,sizeof(SQChar)));
+	_CHECK_IO(WriteTag(v,write,up,sizeof(char)));
 	_CHECK_IO(_funcproto(_function)->Save(v,up,write));
 	_CHECK_IO(WriteTag(v,write,up,SQ_CLOSURESTREAM_TAIL));
 	return true;
@@ -326,7 +326,7 @@ bool SQClosure::Save(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 bool SQClosure::Load(SQVM *v,SQUserPointer up,SQREADFUNC read,SQObjectPtr &ret)
 {
 	_CHECK_IO(CheckTag(v,read,up,SQ_CLOSURESTREAM_HEAD));
-	_CHECK_IO(CheckTag(v,read,up,sizeof(SQChar)));
+	_CHECK_IO(CheckTag(v,read,up,sizeof(char)));
 	SQObjectPtr func;
 	_CHECK_IO(SQFunctionProto::Load(v,up,read,func));
 	_CHECK_IO(CheckTag(v,read,up,SQ_CLOSURESTREAM_TAIL));

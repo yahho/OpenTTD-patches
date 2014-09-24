@@ -13,7 +13,7 @@ struct SQStringTable
 {
 	SQStringTable();
 	~SQStringTable();
-	SQString *Add(const SQChar *,SQInteger len);
+	SQString *Add(const char *,SQInteger len);
 	void Remove(SQString *);
 private:
 	void Resize(SQInteger size);
@@ -60,7 +60,7 @@ struct SQSharedState
 	~SQSharedState();
 	void Init();
 public:
-	SQChar* GetScratchPad(SQInteger size);
+	char* GetScratchPad(SQInteger size);
 	SQInteger GetMetaMethodIdxByName(const SQObjectPtr &name);
 #ifndef NO_GARBAGE_COLLECTOR
 	SQInteger CollectGarbage(SQVM *vm);
@@ -105,7 +105,7 @@ public:
 	bool _debuginfo;
 	bool _notifyallexceptions;
 private:
-	SQChar *_scratchpad;
+	char *_scratchpad;
 	SQInteger _scratchpadsize;
 };
 
@@ -131,6 +131,6 @@ extern SQObjectPtr _false_;
 extern SQObjectPtr _one_;
 extern SQObjectPtr _minusone_;
 
-bool CompileTypemask(SQIntVec &res,const SQChar *typemask);
+bool CompileTypemask(SQIntVec &res,const char *typemask);
 
 #endif //_SQSTATE_H_

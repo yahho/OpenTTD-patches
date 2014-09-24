@@ -35,7 +35,7 @@ SQSharedState::SQSharedState()
 	_table(_metamethodsmap)->NewSlot(_metamethods->back(),(SQInteger)(_metamethods->size()-1)); \
 	}
 
-bool CompileTypemask(SQIntVec &res,const SQChar *typemask)
+bool CompileTypemask(SQIntVec &res,const char *typemask)
 {
 	SQInteger i = 0;
 
@@ -314,18 +314,18 @@ void SQCollectable::RemoveFromChain(SQCollectable **chain,SQCollectable *c)
 }
 #endif
 
-SQChar* SQSharedState::GetScratchPad(SQInteger size)
+char* SQSharedState::GetScratchPad(SQInteger size)
 {
 	SQInteger newsize;
 	if(size>0) {
 		if(_scratchpadsize < size) {
 			newsize = size + (size>>1);
-			_scratchpad = (SQChar *)SQ_REALLOC(_scratchpad,_scratchpadsize,newsize);
+			_scratchpad = (char *)SQ_REALLOC(_scratchpad,_scratchpadsize,newsize);
 			_scratchpadsize = newsize;
 
 		}else if(_scratchpadsize >= (size<<5)) {
 			newsize = _scratchpadsize >> 1;
-			_scratchpad = (SQChar *)SQ_REALLOC(_scratchpad,_scratchpadsize,newsize);
+			_scratchpad = (char *)SQ_REALLOC(_scratchpad,_scratchpadsize,newsize);
 			_scratchpadsize = newsize;
 		}
 	}
@@ -510,7 +510,7 @@ void SQStringTable::AllocNodes(SQInteger size)
 	memset(_strings,0,sizeof(SQString*)*(size_t)_numofslots);
 }
 
-SQString *SQStringTable::Add(const SQChar *news,SQInteger len)
+SQString *SQStringTable::Add(const char *news,SQInteger len)
 {
 	if(len<0)
 		len = (SQInteger)strlen(news);

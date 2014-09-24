@@ -35,7 +35,7 @@
 		}
 
 		case OT_STRING: {
-			const SQChar *buf;
+			const char *buf;
 			sq_getstring(vm, index, &buf);
 
 			size_t len = strlen(buf) + 1;
