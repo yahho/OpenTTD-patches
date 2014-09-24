@@ -41,7 +41,7 @@ void Squirrel::ErrorPrintFunc(HSQUIRRELVM vm, const char *s, ...)
 	char buf[1024];
 
 	va_start(arglist, s);
-	vsnprintf(buf, lengthof(buf), s, arglist);
+	bstrvfmt (buf, s, arglist);
 	va_end(arglist);
 
 	/* Check if we have a custom print function */
@@ -94,20 +94,22 @@ SQInteger Squirrel::_RunError(HSQUIRRELVM vm)
 void Squirrel::PrintFunc(HSQUIRRELVM vm, const char *s, ...)
 {
 	va_list arglist;
-	char buf[1024];
-
 	va_start(arglist, s);
-	vsnprintf(buf, lengthof(buf) - 2, s, arglist);
-	va_end(arglist);
-	strcat(buf, "\n");
 
 	/* Check if we have a custom print function */
 	SQPrintFunc *func = ((Squirrel *)sq_getforeignptr(vm))->print_func;
 	if (func == NULL) {
-		printf("%s", buf);
+		vprintf(s, arglist);
+		putchar('\n');
 	} else {
-		(*func)(false, buf);
+		sstring<1024> buf;
+		buf.vfmt (s, arglist);
+		if (buf.full()) buf.truncate(buf.length() - 1);
+		buf.append('\n');
+		(*func)(false, buf.c_str());
 	}
+
+	va_end(arglist);
 }
 
 void Squirrel::AddMethod(const char *method_name, SQFUNCTION proc, uint nparam, const char *params, void *userdata, int size)

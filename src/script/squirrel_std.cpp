@@ -42,7 +42,6 @@ SQInteger SquirrelStd::require(HSQUIRRELVM vm)
 {
 	SQInteger top = sq_gettop(vm);
 	const char *filename;
-	char *real_filename;
 
 	sq_getstring(vm, 2, &filename);
 
@@ -53,31 +52,29 @@ SQInteger SquirrelStd::require(HSQUIRRELVM vm)
 		DEBUG(misc, 0, "[squirrel] Couldn't detect the script-name of the 'require'-caller; this should never happen!");
 		return SQ_ERROR;
 	}
-	real_filename = strdup(si.source);
+
 	/* Keep the dir, remove the rest */
-	char *s = strrchr(real_filename, PATHSEPCHAR);
-	if (s != NULL) {
+	const char *pathsep = strrchr (si.source, PATHSEPCHAR);
+	char *path;
+	if (pathsep == NULL) {
+		path = str_fmt ("%s%s", si.source, filename);
+	} else {
 		/* Keep the PATHSEPCHAR there, remove the rest */
-		s++;
-		*s = '\0';
+		path = str_fmt ("%.*s%s",
+			(int)(pathsep - si.source + 1), si.source, filename);
 	}
-	/* And now we concat, so we are relative from the current script
-	 * First, we have to make sure we have enough space for the full path */
-	real_filename = xrealloct (real_filename, strlen(real_filename) + strlen(filename) + 1);
-	strcat(real_filename, filename);
+
 	/* Tars dislike opening files with '/' on Windows.. so convert it to '\\' ;) */
-	char *filen = xstrdup(real_filename);
 #if (PATHSEPCHAR != '/')
-	for (char *n = filen; *n != '\0'; n++) if (*n == '/') *n = PATHSEPCHAR;
+	for (char *n = path; *n != '\0'; n++) if (*n == '/') *n = PATHSEPCHAR;
 #endif
 
 	Squirrel *engine = (Squirrel *)sq_getforeignptr(vm);
-	bool ret = engine->LoadScript(vm, filen);
+	bool ret = engine->LoadScript(vm, path);
 
 	/* Reset the top, so the stack stays correct */
 	sq_settop(vm, top);
-	free(real_filename);
-	free(filen);
+	free(path);
 
 	return ret ? 0 : SQ_ERROR;
 }
