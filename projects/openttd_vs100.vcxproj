@@ -1143,6 +1143,7 @@
     <ClInclude Include="..\src\table\elrail_data.h" />
     <ClInclude Include="..\src\table\engines.h" />
     <ClInclude Include="..\src\table\genland.h" />
+    <ClInclude Include="..\src\table\heightmap_colours.h" />
     <ClInclude Include="..\src\table\industry_land.h" />
     <ClInclude Include="..\src\table\landscape_sprite.h" />
     <ClInclude Include="..\src\table\newgrf_debug_data.h" />

@@ -1866,6 +1866,9 @@
     <ClInclude Include="..\src\table\genland.h">
       <Filter>Tables</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\table\heightmap_colours.h">
+      <Filter>Tables</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\table\industry_land.h">
       <Filter>Tables</Filter>
     </ClInclude>

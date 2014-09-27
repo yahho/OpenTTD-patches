@@ -5452,6 +5452,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\table\heightmap_colours.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\table\industry_land.h"
 				>
 			</File>

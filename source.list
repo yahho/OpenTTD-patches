@@ -641,6 +641,7 @@ table/control_codes.h
 table/elrail_data.h
 table/engines.h
 table/genland.h
+table/heightmap_colours.h
 table/industry_land.h
 table/landscape_sprite.h
 table/newgrf_debug_data.h
