@@ -251,15 +251,17 @@ static const LegendAndColour * const _legend_table[] = {
 
 /** Colour scheme of the smallmap. */
 struct SmallMapColourScheme {
-	const uint32 *height_colours; ///< Colour of each level in a heightmap.
-	uint32 default_colour;   ///< Default colour of the land.
+	uint32 *height_colours;            ///< Cached colours for each level in a map.
+	const uint32 *height_colours_base; ///< Base table for determining the colours
+	size_t colour_count;               ///< The number of colours.
+	uint32 default_colour;             ///< Default colour of the land.
 };
 
 /** Available colour schemes for height maps. */
-static const SmallMapColourScheme _heightmap_schemes[] = {
-	{_green_map_heights,      MKCOLOUR_XXXX(0x54)}, ///< Green colour scheme.
-	{_dark_green_map_heights, MKCOLOUR_XXXX(0x62)}, ///< Dark green colour scheme.
-	{_violet_map_heights,     MKCOLOUR_XXXX(0x82)}, ///< Violet colour scheme.
+static SmallMapColourScheme _heightmap_schemes[] = {
+	{NULL, _green_map_heights,      lengthof(_green_map_heights),      MKCOLOUR_XXXX(0x54)}, ///< Green colour scheme.
+	{NULL, _dark_green_map_heights, lengthof(_dark_green_map_heights), MKCOLOUR_XXXX(0x62)}, ///< Dark green colour scheme.
+	{NULL, _violet_map_heights,     lengthof(_violet_map_heights),     MKCOLOUR_XXXX(0x82)}, ///< Violet colour scheme.
 };
 
 /**
@@ -267,6 +269,9 @@ static const SmallMapColourScheme _heightmap_schemes[] = {
  */
 void BuildLandLegend()
 {
+	/* The smallmap window has never been initialized, so no need to change the legend. */
+	if (_heightmap_schemes[0].height_colours == NULL) return;
+
 	for (LegendAndColour *lc = _legend_land_contours; lc->legend == STR_TINY_BLACK_HEIGHT; lc++) {
 		lc->colour = _heightmap_schemes[_settings_client.gui.smallmap_land_colour].height_colours[lc->height];
 	}
@@ -1042,6 +1047,8 @@ SmallMapWindow::SmallMapWindow(WindowDesc *desc, int window_number) : Window(des
 	this->InitNested(window_number);
 	this->LowerWidget(this->map_type + WID_SM_CONTOUR);
 
+	this->RebuildColourIndexIfNecessary();
+
 	BuildLandLegend();
 	this->SetWidgetLoweredState(WID_SM_SHOW_HEIGHT, _smallmap_show_heightmap);
 
@@ -1052,6 +1059,30 @@ SmallMapWindow::SmallMapWindow(WindowDesc *desc, int window_number) : Window(des
 	this->SetZoomLevel(ZLC_INITIALIZE, NULL);
 	this->SmallMapCenterOnCurrentPos();
 	this->SetOverlayCargoMask();
+}
+
+/**
+ * Rebuilds the colour indices used for fast access to the smallmap contour colours based on the heightlevel.
+ */
+void SmallMapWindow::RebuildColourIndexIfNecessary()
+{
+	/* Rebuild colour indices if necessary. */
+	if (SmallMapWindow::max_heightlevel == _settings_game.construction.max_heightlevel) return;
+
+	for (uint n = 0; n < lengthof(_heightmap_schemes); n++) {
+		/* The heights go from 0 up to and including maximum. */
+		int heights = _settings_game.construction.max_heightlevel + 1;
+		_heightmap_schemes[n].height_colours = xrealloct<uint32>(_heightmap_schemes[n].height_colours, heights);
+
+		for (int z = 0; z < heights; z++) {
+			uint access_index = (_heightmap_schemes[n].colour_count * z) / heights;
+
+			/* Choose colour by mapping the range (0..max heightlevel) on the complete colour table. */
+			_heightmap_schemes[n].height_colours[z] = _heightmap_schemes[n].height_colours_base[access_index];
+		}
+	}
+
+	SmallMapWindow::max_heightlevel = _settings_game.construction.max_heightlevel;
 }
 
 /* virtual */ void SmallMapWindow::SetStringParameters(int widget) const
@@ -1479,11 +1510,13 @@ int SmallMapWindow::GetPositionOnLegend(Point pt)
  * @param data Information about the changed data.
  * - data = 0: Displayed industries at the industry chain window have changed.
  * - data = 1: Companies have changed.
+ * - data = 2: Cheat changing the maximum heightlevel has been used, rebuild our heightlevel-to-colour index
  * @param gui_scope Whether the call is done from GUI scope. You may not do everything when not in GUI scope. See #InvalidateWindowData() for details.
  */
 /* virtual */ void SmallMapWindow::OnInvalidateData(int data, bool gui_scope)
 {
 	if (!gui_scope) return;
+
 	switch (data) {
 		case 1:
 			/* The owner legend has already been rebuilt. */
@@ -1499,6 +1532,10 @@ int SmallMapWindow::GetPositionOnLegend(Point pt)
 			}
 			break;
 		}
+
+		case 2:
+			this->RebuildColourIndexIfNecessary();
+			break;
 
 		default: NOT_REACHED();
 	}
@@ -1636,6 +1673,7 @@ Point SmallMapWindow::GetStationMiddle(const Station *st) const
 
 SmallMapWindow::SmallMapType SmallMapWindow::map_type = SMT_CONTOUR;
 bool SmallMapWindow::show_towns = true;
+int SmallMapWindow::max_heightlevel = -1;
 
 /**
  * Custom container class for displaying smallmap with a vertically resizing legend panel.
