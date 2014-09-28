@@ -941,7 +941,7 @@ public:
 		WID_RV_STOP_REPLACE                          = ::WID_RV_STOP_REPLACE,                          ///< Stop Replacing button.
 
 		/* Train only widgets. */
-		WID_RV_TRAIN_ENGINEWAGON_TOGGLE              = ::WID_RV_TRAIN_ENGINEWAGON_TOGGLE,              ///< Button to toggle engines and/or wagons.
+		WID_RV_TRAIN_ENGINEWAGON_DROPDOWN            = ::WID_RV_TRAIN_ENGINEWAGON_DROPDOWN,            ///< Dropdown to toggle engines and/or wagons.
 		WID_RV_TRAIN_FLUFF_LEFT                      = ::WID_RV_TRAIN_FLUFF_LEFT,                      ///< The fluff on the left.
 		WID_RV_TRAIN_RAILTYPE_DROPDOWN               = ::WID_RV_TRAIN_RAILTYPE_DROPDOWN,               ///< Dropdown menu about the railtype.
 		WID_RV_TRAIN_FLUFF_RIGHT                     = ::WID_RV_TRAIN_FLUFF_RIGHT,                     ///< The fluff on the right.

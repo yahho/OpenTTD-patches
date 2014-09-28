@@ -204,6 +204,18 @@ class ReplaceVehicleWindow : public Window {
 		DoCommandP(0, (replace_when_old ? 1 : 0) | (this->sel_group << 16), veh_from + (veh_to << 16), CMD_SET_AUTOREPLACE);
 	}
 
+	/**
+	 * Handle click on the engine/wagon toggle.
+	 * @param engines Whether to select engines or wagons.
+	 */
+	void ReplaceClick_EngineWagonToggle (bool engines)
+	{
+		this->replace_engines = engines;
+		this->engines[0].ForceRebuild();
+		this->reset_sel_engine = true;
+		this->SetDirty();
+	}
+
 public:
 	ReplaceVehicleWindow(WindowDesc *desc, VehicleType vehicletype, GroupID id_g) : Window(desc)
 	{
@@ -278,7 +290,7 @@ public:
 				break;
 			}
 
-			case WID_RV_TRAIN_ENGINEWAGON_TOGGLE: {
+			case WID_RV_TRAIN_ENGINEWAGON_DROPDOWN: {
 				StringID str = this->GetWidget<NWidgetCore>(widget)->widget_data;
 				SetDParam(0, STR_REPLACE_ENGINES);
 				Dimension d = GetStringBoundingBox(str);
@@ -359,7 +371,7 @@ public:
 				break;
 			}
 
-			case WID_RV_TRAIN_ENGINEWAGON_TOGGLE:
+			case WID_RV_TRAIN_ENGINEWAGON_DROPDOWN:
 				SetDParam(0, this->replace_engines ? STR_REPLACE_ENGINES : STR_REPLACE_WAGONS);
 				break;
 		}
@@ -473,12 +485,18 @@ public:
 				DisplayVehicleSortDropDown(this, static_cast<VehicleType>(this->window_number), this->sort_criteria, WID_RV_SORT_DROPDOWN);
 				break;
 
-			case WID_RV_TRAIN_ENGINEWAGON_TOGGLE:
-				this->replace_engines  = !(this->replace_engines);
-				this->engines[0].ForceRebuild();
-				this->reset_sel_engine = true;
-				this->SetDirty();
+			case WID_RV_TRAIN_ENGINEWAGON_DROPDOWN: {
+				if (this->GetWidget<NWidgetLeaf>(widget)->ButtonHit(pt)) {
+					this->HandleButtonClick (WID_RV_TRAIN_ENGINEWAGON_DROPDOWN);
+					ReplaceClick_EngineWagonToggle (!this->replace_engines);
+				} else {
+					DropDownList *list = new DropDownList();
+					*list->Append() = new DropDownListStringItem (STR_REPLACE_ENGINES, 0, false);
+					*list->Append() = new DropDownListStringItem (STR_REPLACE_WAGONS,  1, false);
+					ShowDropDownList (this, list, this->replace_engines ? 0 : 1, WID_RV_TRAIN_ENGINEWAGON_DROPDOWN);
+				}
 				break;
+			}
 
 			case WID_RV_TRAIN_RAILTYPE_DROPDOWN: // Railtype selection dropdown menu
 				ShowDropDownList(this, GetRailTypeDropDownList(true), sel_railtype, WID_RV_TRAIN_RAILTYPE_DROPDOWN);
@@ -556,6 +574,13 @@ public:
 				break;
 			}
 
+			case WID_RV_TRAIN_ENGINEWAGON_DROPDOWN: {
+				bool engines = (index == 0);
+				if (engines == this->replace_engines) return;
+				this->ReplaceClick_EngineWagonToggle (engines);
+				break;
+			}
+
 			case WID_RV_START_REPLACE:
 				this->ReplaceClick_StartReplace(index != 0);
 				break;
@@ -625,7 +650,7 @@ static const NWidgetPart _nested_replace_rail_vehicle_widgets[] = {
 		EndContainer(),
 	EndContainer(),
 	NWidget(NWID_HORIZONTAL),
-		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_RV_TRAIN_ENGINEWAGON_TOGGLE), SetMinimalSize(139, 12), SetDataTip(STR_REPLACE_ENGINE_WAGON_SELECT, STR_REPLACE_ENGINE_WAGON_SELECT_HELP),
+		NWidget(NWID_PUSHBUTTON_DROPDOWN, COLOUR_GREY, WID_RV_TRAIN_ENGINEWAGON_DROPDOWN), SetMinimalSize(139, 12), SetDataTip(STR_JUST_STRING, STR_REPLACE_ENGINE_WAGON_SELECT_HELP),
 		NWidget(WWT_PANEL, COLOUR_GREY, WID_RV_TRAIN_FLUFF_LEFT), SetMinimalSize(15, 12), EndContainer(),
 		NWidget(WWT_DROPDOWN, COLOUR_GREY, WID_RV_TRAIN_RAILTYPE_DROPDOWN), SetMinimalSize(136, 12), SetDataTip(0x0, STR_REPLACE_HELP_RAILTYPE), SetResize(1, 0),
 		NWidget(WWT_PANEL, COLOUR_GREY, WID_RV_TRAIN_FLUFF_RIGHT), SetMinimalSize(16, 12), EndContainer(),
