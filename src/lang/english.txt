@@ -3537,6 +3537,7 @@ STR_REPLACE_VEHICLES_START                                      :{BLACK}Start Re
 STR_REPLACE_VEHICLES_NOW                                        :Replace all vehicles now
 STR_REPLACE_VEHICLES_WHEN_OLD                                   :Replace only old vehicles
 STR_REPLACE_HELP_START_BUTTON                                   :{BLACK}Press to begin replacement of the left selected engine type with the right selected engine type
+STR_REPLACE_INFO_TAB                                            :{BLACK}Current replacement:
 STR_REPLACE_NOT_REPLACING                                       :{BLACK}Not replacing
 STR_REPLACE_NOT_REPLACING_VEHICLE_SELECTED                      :{BLACK}No vehicle selected
 STR_REPLACE_REPLACING_WHEN_OLD                                  :{ENGINE} when old
