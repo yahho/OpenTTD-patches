@@ -1163,6 +1163,7 @@ STR_CONFIG_SETTING_CITY_APPROVAL                                :Actitud de los 
 STR_CONFIG_SETTING_CITY_APPROVAL_HELPTEXT                       :Permite elegir la medida en la que el ruido y el daño ambiental causado por las compañías afecta a su calificación local en los municipios
 
 STR_CONFIG_SETTING_MAX_HEIGHTLEVEL                              :Altura máxima del mapa: {STRING}
+STR_CONFIG_SETTING_MAX_HEIGHTLEVEL_HELPTEXT                     :Establece la altura máxima permitida para las montañas en el mapa
 STR_CONFIG_SETTING_BUILDONSLOPES                                :Permitir la construcción en cuestas y orillas: {STRING}
 STR_CONFIG_SETTING_BUILDONSLOPES_HELPTEXT                       :Si se habilita, las vías y estaciones pueden construirse sobre pendiente. Si se deshabilita, las vías solamente pueden construirse sobre pendientes que sigan la misma dirección
 STR_CONFIG_SETTING_AUTOSLOPE                                    :Permitir modificar terreno bajo edificios, raíles, etc.: {STRING}
