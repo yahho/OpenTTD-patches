@@ -388,7 +388,7 @@ static char *GetFullFilename(const ContentInfo *ci, bool compressed)
 	if (dir == NO_DIRECTORY) return NULL;
 
 	static char buf[MAX_PATH];
-	int n = FioGetFullPath (buf, lengthof(buf), SP_AUTODOWNLOAD_DIR, dir, ci->filename);
+	uint n = FioGetFullPath (buf, lengthof(buf), SP_AUTODOWNLOAD_DIR, dir, ci->filename);
 	if (n < lengthof(buf)) {
 		snprintf (buf + n, lengthof(buf) - n, compressed ? ".tar.gz" : ".tar");
 	}
