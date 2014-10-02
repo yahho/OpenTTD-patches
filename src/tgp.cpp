@@ -510,9 +510,10 @@ static void HeightMapCurves(uint level)
 	height_t ht[lengthof(_curve_maps)];
 	MemSetT(ht, 0, lengthof(ht));
 
-	/* Set up a grid to choose curve maps based on location */
-	uint sx = Clamp(1 << level, 2, 32);
-	uint sy = Clamp(1 << level, 2, 32);
+	/* Set up a grid to choose curve maps based on location; attempt to get a somewhat square grid */
+	float factor = sqrt((float)_height_map.size_x / (float)_height_map.size_y);
+	uint sx = Clamp((int)(((1 << level) * factor) + 0.5), 1, 128);
+	uint sy = Clamp((int)(((1 << level) / factor) + 0.5), 1, 128);
 	byte *c = AllocaM(byte, sx * sy);
 
 	for (uint i = 0; i < sx * sy; i++) {
@@ -523,7 +524,7 @@ static void HeightMapCurves(uint level)
 	for (uint x = 0; x < _height_map.size_x; x++) {
 
 		/* Get our X grid positions and bi-linear ratio */
-		float fx = (float)(sx * x) / _height_map.size_x + 0.5f;
+		float fx = (float)(sx * x) / _height_map.size_x + 1.0f;
 		uint x1 = (uint)fx;
 		uint x2 = x1;
 		float xr = 2.0f * (fx - x1) - 1.0f;
@@ -540,7 +541,7 @@ static void HeightMapCurves(uint level)
 		for (uint y = 0; y < _height_map.size_y; y++) {
 
 			/* Get our Y grid position and bi-linear ratio */
-			float fy = (float)(sy * y) / _height_map.size_y + 0.5f;
+			float fy = (float)(sy * y) / _height_map.size_y + 1.0f;
 			uint y1 = (uint)fy;
 			uint y2 = y1;
 			float yr = 2.0f * (fy - y1) - 1.0f;
