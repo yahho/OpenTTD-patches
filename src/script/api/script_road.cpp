@@ -400,24 +400,29 @@ static bool NormaliseTileOffset(int32 *tile)
 static bool NeighbourHasReachableRoad(::RoadTypes rts, TileIndex start_tile, DiagDirection neighbour)
 {
 	TileIndex neighbour_tile = ::TileAddByDiagDir(start_tile, neighbour);
-	if ((rts & ::GetRoadTypes(neighbour_tile)) == 0) return false;
 
 	switch (::GetTileType(neighbour_tile)) {
 		case TT_ROAD:
-			return true;
+			break;
 
 		case TT_MISC:
-			return IsLevelCrossingTile(neighbour_tile) || IsRoadDepotTile(neighbour_tile);
+			if (!IsLevelCrossingTile(neighbour_tile) && !IsRoadDepotTile(neighbour_tile)) {
+				return false;
+			}
+			break;
 
 		case TT_STATION:
-			if (::IsDriveThroughStopTile(neighbour_tile)) {
-				return (::DiagDirToAxis(neighbour) == ::GetRoadStopAxis(neighbour_tile));
+			if (!::IsDriveThroughStopTile(neighbour_tile)) return false;
+			if (::DiagDirToAxis(neighbour) != ::GetRoadStopAxis(neighbour_tile)) {
+				return false;
 			}
-			return false;
+			break;
 
 		default:
 			return false;
 	}
+
+	return (rts & ::GetRoadTypes(neighbour_tile)) != 0;
 }
 
 /* static */ int32 ScriptRoad::GetNeighbourRoadCount(TileIndex tile)
