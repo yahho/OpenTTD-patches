@@ -1174,7 +1174,6 @@ static void ViewportAddLandscape()
 				TileIndex tile = TileVirtXY(x_cur, y_cur);
 				ti.tile = tile;
 				ti.tileh = GetTilePixelSlope(tile, &ti.z);
-				dtp = GetTileProcs(tile)->draw_tile_proc;
 			}
 			if (ti.tile != INVALID_TILE) DrawTileSelection(&ti);
 
