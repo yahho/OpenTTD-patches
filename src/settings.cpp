@@ -1208,19 +1208,19 @@ static bool CheckFreeformEdges(int32 p1)
 		for (uint i = 0; i < MapSizeX(); i++) MakeVoid(TileXY(i, 0));
 		for (uint i = 0; i < MapSizeY(); i++) MakeVoid(TileXY(0, i));
 	} else {
-		for (uint i = 0; i < MapMaxX(); i++) {
+		for (uint i = 1; i < MapMaxX(); i++) {
 			if (TileHeight(TileXY(i, 1)) != 0) {
 				ShowErrorMessage(STR_CONFIG_SETTING_EDGES_NOT_WATER, INVALID_STRING_ID, WL_ERROR);
 				return false;
 			}
 		}
 		for (uint i = 1; i < MapMaxX(); i++) {
-			if (!IsWaterTile(TileXY(i, MapMaxY() - 1)) || TileHeight(TileXY(1, MapMaxY())) != 0) {
+			if (!IsWaterTile(TileXY(i, MapMaxY() - 1)) || TileHeight(TileXY(i, MapMaxY())) != 0) {
 				ShowErrorMessage(STR_CONFIG_SETTING_EDGES_NOT_WATER, INVALID_STRING_ID, WL_ERROR);
 				return false;
 			}
 		}
-		for (uint i = 0; i < MapMaxY(); i++) {
+		for (uint i = 1; i < MapMaxY(); i++) {
 			if (TileHeight(TileXY(1, i)) != 0) {
 				ShowErrorMessage(STR_CONFIG_SETTING_EDGES_NOT_WATER, INVALID_STRING_ID, WL_ERROR);
 				return false;
