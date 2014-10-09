@@ -608,7 +608,7 @@ CommandCost TunnelBridgeIsFree(TileIndex tile, TileIndex endtile, const Vehicle 
 	}
 	if (iter1.was_found()) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY + v->type);
 
-	VehicleTileFinder iter2 (tile);
+	VehicleTileFinder iter2 (endtile);
 	while (!iter2.finished()) {
 		v = iter2.next();
 
