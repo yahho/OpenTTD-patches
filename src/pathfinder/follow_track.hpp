@@ -174,7 +174,7 @@ struct CFollowTrack : Base
 			assert(Base::m_err != Base::EC_NONE);
 			if (!Base::CheckEndOfLine()) return false;
 			Base::m_err = Base::EC_NONE; // clear error set by CheckNewTile
-			return false;
+			return true;
 		}
 
 		if (!Base::Allow90deg()) {
