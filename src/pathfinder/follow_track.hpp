@@ -672,27 +672,20 @@ struct CFollowTrackRoadBase : CFollowTrackBase<RoadPathPos>
 	/** return true if we successfully reversed at end of road/track */
 	inline bool CheckEndOfLine()
 	{
-		/* In case we can't enter the next tile, but are
-		 * a normal road vehicle, then we can actually
-		 * try to reverse as this is the end of the road.
-		 * Trams can only turn on the appropriate bits in
-		 * which case reaching this would mean a dead end
-		 * near a building and in that case there would
-		 * a "false" QueryNewTileTrackStatus result and
-		 * as such reversing is already tried. The fact
-		 * that function failed can have to do with a
-		 * missing road bit, or inability to connect the
-		 * different bits due to slopes. */
-		if (!IsTram()) {
-			/* if we reached the end of road, we can reverse the RV and continue moving */
-			m_exitdir = ReverseDiagDir(m_exitdir);
-			/* new tile will be the same as old one */
-			m_new.set (m_old.tile, GetTrackStatusTrackdirBits(m_old.tile) & DiagdirReachesTrackdirs(m_exitdir));
-			/* we always have some trackdirs reachable after reversal */
-			assert(!m_new.is_empty());
-			return true;
-		}
-		return false;
+		/* Trams cannot normally turn around at end of line.
+		 * (They will if they eventually get stuck there and the
+		 * line cannot be extended, but we will not consider that
+		 * for pathfinding). */
+		if (IsTram()) return false;
+
+		/* Other road vehicles can turn around at end of line. */
+		m_exitdir = ReverseDiagDir(m_exitdir);
+		/* New tile will be the same as old one. */
+		m_new.set (m_old.tile, GetTrackStatusTrackdirBits(m_old.tile) & DiagdirReachesTrackdirs(m_exitdir));
+		/* We may not have any reachable trackdirs after reversal,
+		 * for instance if we reached end of line through a one-way
+		 * road. */
+		return !m_new.is_empty();
 	}
 
 	inline bool CheckStation()
