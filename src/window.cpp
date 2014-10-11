@@ -3263,6 +3263,9 @@ void ReInitAllWindows()
 	NWidgetLeaf::InvalidateDimensionCache(); // Reset cached sizes of several widgets.
 	NWidgetScrollbar::InvalidateDimensionCache();
 
+	extern void InitDepotWindowBlockSizes();
+	InitDepotWindowBlockSizes();
+
 	Window *w;
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
 		w->ReInit();
