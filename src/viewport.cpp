@@ -1024,6 +1024,30 @@ draw_inner:
 	}
 }
 
+static int GetVirtualHeight (int x, int y)
+{
+	/* Assume a decreasing slope to 0 outside the map. */
+	int correction = 0;
+
+	if (x < 0) {
+		correction += x;
+		x = 0;
+	} else if ((uint)x >= MapSizeX()) {
+		correction += MapMaxX() - x;
+		x = MapMaxX();
+	}
+
+	if (y < 0) {
+		correction += y;
+		y = 0;
+	} else if ((uint)y >= MapSizeY()) {
+		correction += MapMaxY() - y;
+		y = MapMaxY();
+	}
+
+	return max ((int)(TileHeight (TileXY (x, y)) + correction), 0);
+}
+
 static inline void GetVirtualSlope_Corner (TileInfo *ti, uint refx, uint refy,
 	int dx, int dy, Slope limit_slope, Slope steep_slope)
 {
@@ -1127,39 +1151,75 @@ static void GetVirtualSlope (int x, int y, TileInfo *ti, DrawTileProc **dtp)
 
 static void ViewportAddLandscape()
 {
-	int x, y, width, height;
-	TileInfo ti;
-	bool direction;
+	static const uint HEIGHT_SHIFT = ZOOM_LVL_SHIFT + 3;
+	static const uint WIDTH_SHIFT  = ZOOM_LVL_SHIFT + 5;
 
-	_cur_ti = &ti;
+	int htop = (_vd.dpi.top  - 1) >> HEIGHT_SHIFT;
+	int top  = htop >> 1;
+	int left = (_vd.dpi.left - 1) >> WIDTH_SHIFT;
+	int x = (top - left) >> 1;
+	int y = (top + left) >> 1;
+	bool direction = ((top ^ left) & 1) != 0;
+	if (!direction) x--;
+	assert (((2 * (x + y)) == (htop - 3)) || ((2 * (x + y)) == (htop - 2)));
 
-	/* Transform into tile coordinates and round to closest full tile */
-	x = ((_vd.dpi.top >> (1 + ZOOM_LVL_SHIFT)) - (_vd.dpi.left >> (2 + ZOOM_LVL_SHIFT))) & ~TILE_UNIT_MASK;
-	y = ((_vd.dpi.top >> (1 + ZOOM_LVL_SHIFT)) + (_vd.dpi.left >> (2 + ZOOM_LVL_SHIFT)) - TILE_SIZE) & ~TILE_UNIT_MASK;
+	int hbot = (_vd.dpi.top + _vd.dpi.height) >> HEIGHT_SHIFT;
+	int bottom = hbot >> 1;
+	int right = (_vd.dpi.left + _vd.dpi.width) >> WIDTH_SHIFT;
+	int width = (((bottom + right) >> 1) - y) - (((bottom - right) >> 1) - x) + !direction + 1;
 
-	/* determine size of area */
-	{
-		Point pt = RemapCoords(x, y, 241);
-		width = (_vd.dpi.left + _vd.dpi.width - pt.x + 96 * ZOOM_LVL_BASE - 1) >> (6 + ZOOM_LVL_SHIFT);
-		height = (_vd.dpi.top + _vd.dpi.height - pt.y) >> (5 + ZOOM_LVL_SHIFT) << 1;
-	}
+	assert (width > 0);
 
-	assert(width > 0);
-	assert(height > 0);
+	/* Account for buildings/bridges up to 20 TILE_HEIGHT high. */
+	hbot += 20;
 
-	direction = false;
-
-	do {
-		int width_cur = width;
+	/* Now (x,y) is the tile that would be drawn at the top left corner of
+	 * the viewport _if_ it were at sea level. But perhaps it is not. */
+	for (;;) {
+		uint w = ((uint)width - !direction) / 2;
 		int x_cur = x;
 		int y_cur = y;
 
+		int h = GetVirtualHeight (x_cur + 1, y_cur + 1);
+		while (w--) {
+			h = min (h, GetVirtualHeight (--x_cur + 1, ++y_cur + 1));
+		}
+
+		/* So now h is the minimum height of the southern corners
+		 * of all tiles in the row. Check if any of them is visible. */
+		int hmin = 2 * (x + y + 2) - h;
+		if (hmin > htop) {
+			assert ((hmin - htop) <= 3);
+			break;
+		}
+
+		/* No tile in this row needs to be drawn.
+		 * See how many rows we can skip. */
+		uint n = 1 + (uint)(htop - hmin) / 3;
+		y += n / 2;
+		x += n / 2;
+		if ((n % 2) != 0) {
+			direction ? y++ : x++;
+			direction = !direction;
+		}
+	}
+
+	TileInfo ti;
+	_cur_ti = &ti;
+
+	for (;;) {
+		uint w = ((uint)width - !direction) / 2;
+		int x_cur = x;
+		int y_cur = y;
+
+		int h = GetVirtualHeight (x_cur + 1, y_cur);
+
 		do {
-			ti.x = x_cur;
-			ti.y = y_cur;
+			ti.x = x_cur * TILE_SIZE;
+			ti.y = y_cur * TILE_SIZE;
 
 			DrawTileProc *dtp;
-			GetVirtualSlope (x_cur / TILE_SIZE, y_cur / TILE_SIZE, &ti, &dtp);
+			GetVirtualSlope (x_cur, y_cur, &ti, &dtp);
 
 			_vd.foundation_part = FOUNDATION_PART_NONE;
 			_vd.foundation[0] = -1;
@@ -1169,24 +1229,24 @@ static void ViewportAddLandscape()
 
 			dtp(&ti);
 
-			if (((uint)x_cur == MapMaxX() * TILE_SIZE && IsInsideMM(y_cur, 0, MapMaxY() * TILE_SIZE + 1)) ||
-					((uint)y_cur == MapMaxY() * TILE_SIZE && IsInsideMM(x_cur, 0, MapMaxX() * TILE_SIZE + 1))) {
-				TileIndex tile = TileVirtXY(x_cur, y_cur);
+			if (((uint)x_cur == MapMaxX() && (uint)y_cur < MapSizeY()) ||
+					((uint)y_cur == MapMaxY() && (uint)x_cur < MapSizeX())) {
+				TileIndex tile = TileXY (x_cur, y_cur);
 				ti.tile = tile;
 				ti.tileh = GetTilePixelSlope(tile, &ti.z);
 			}
 			if (ti.tile != INVALID_TILE) DrawTileSelection(&ti);
 
-			y_cur += 0x10;
-			x_cur -= 0x10;
-		} while (--width_cur);
+			y_cur++;
+			h = min (h, GetVirtualHeight (x_cur, y_cur));
+			x_cur--;
+		} while (w--);
 
-		if ((direction ^= 1) != 0) {
-			y += 0x10;
-		} else {
-			x += 0x10;
-		}
-	} while (--height);
+		if ((2 * (x + y + 1) - h) > hbot) break;
+
+		direction ? y++ : x++;
+		direction = !direction;
+	}
 }
 
 /**
