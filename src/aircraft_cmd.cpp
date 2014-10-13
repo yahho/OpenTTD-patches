@@ -658,17 +658,26 @@ static int UpdateAircraftSpeed(Aircraft *v, uint speed_limit = SPEED_LIMIT_NONE,
 }
 
 /**
- * Get the tile height below the aircraft.
- * This function is needed because aircraft can leave the mapborders.
- *
- * @param v The vehicle to get the height for.
- * @return The height in pixels from 'z_pos' 0.
+ * Get the base altitude for an aircraft, which is used as reference to
+ * compute flight levels.
+ * @param v The vehicle to get the base altitude for.
+ * @return The base altitude in pixels.
  */
-int GetTileHeightBelowAircraft(const Vehicle *v)
+static int GetAircraftBaseAltitude (const Vehicle *v)
 {
 	int safe_x = Clamp(v->x_pos, 0, MapMaxX() * TILE_SIZE);
 	int safe_y = Clamp(v->y_pos, 0, MapMaxY() * TILE_SIZE);
-	return TileHeight(TileVirtXY(safe_x, safe_y)) * TILE_HEIGHT;
+	int z = TileHeight (TileVirtXY (safe_x, safe_y)) * TILE_HEIGHT;
+
+	/* Base altitude is 120 pixels above ground. */
+	z += 120;
+
+	if (v->type == VEH_AIRCRAFT && Aircraft::From(v)->subtype == AIR_HELICOPTER) {
+		/* Base altitude is higher for helicopters. */
+		z += 34;
+	}
+
+	return z;
 }
 
 /**
@@ -683,30 +692,21 @@ int GetTileHeightBelowAircraft(const Vehicle *v)
  */
 void GetAircraftFlightLevelBounds(const Vehicle *v, int *min_level, int *max_level)
 {
-	int base_altitude = GetTileHeightBelowAircraft(v);
-	if (v->type == VEH_AIRCRAFT && Aircraft::From(v)->subtype == AIR_HELICOPTER) {
-		base_altitude += HELICOPTER_HOLD_MAX_FLYING_ALTITUDE - PLANE_HOLD_MAX_FLYING_ALTITUDE;
+	int base_altitude = GetAircraftBaseAltitude (v);
+
+	if (v->type == VEH_AIRCRAFT && Aircraft::From(v)->subtype != AIR_HELICOPTER) {
+		/* Make sure eastbound and westbound planes do not "crash" into
+		 * each other by providing them with vertical separation. */
+		if (v->direction < (DIR_END / 2)) base_altitude += 10;
+
+		/* Make faster planes fly higher so that they can overtake slower ones */
+		base_altitude += min (20 * (v->vcache.cached_max_speed / 200) - 90, 0);
 	}
 
-	/* Make sure eastbound and westbound planes do not "crash" into each
-	 * other by providing them with vertical separation
-	 */
-	switch (v->direction) {
-		case DIR_N:
-		case DIR_NE:
-		case DIR_E:
-		case DIR_SE:
-			base_altitude += 10;
-			break;
+	if (min_level != NULL) *min_level = base_altitude;
 
-		default: break;
-	}
-
-	/* Make faster planes fly higher so that they can overtake slower ones */
-	base_altitude += min(20 * (v->vcache.cached_max_speed / 200) - 90, 0);
-
-	if (min_level != NULL) *min_level = base_altitude + AIRCRAFT_MIN_FLYING_ALTITUDE;
-	if (max_level != NULL) *max_level = base_altitude + AIRCRAFT_MAX_FLYING_ALTITUDE;
+	/* Flight altitude range is 240 pixels. */
+	if (max_level != NULL) *max_level = base_altitude + 240;
 }
 
 /**
@@ -716,11 +716,10 @@ void GetAircraftFlightLevelBounds(const Vehicle *v, int *min_level, int *max_lev
  * @param v The aircraft that may or may not need to decrease its altitude.
  * @return Maximal aircraft holding altitude, while in normal flight, in pixels.
  */
-int GetAircraftHoldMaxAltitude(const Aircraft *v)
+static int GetAircraftHoldMaxAltitude (const Aircraft *v)
 {
-	int tile_height = GetTileHeightBelowAircraft(v);
-
-	return tile_height + ((v->subtype == AIR_HELICOPTER) ? HELICOPTER_HOLD_MAX_FLYING_ALTITUDE : PLANE_HOLD_MAX_FLYING_ALTITUDE);
+	/* Holding altitude range is 30 pixels. */
+	return GetAircraftBaseAltitude(v) + 30;
 }
 
 template <class T>

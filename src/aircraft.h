@@ -15,17 +15,6 @@
 #include "vehicle_base.h"
 #include "station_func.h"
 
-/**
- * Base values for flight levels above ground level for 'normal' flight and holding patterns.
- * Due to speed and direction, the actual flight level may be higher.
- */
-enum AircraftFlyingAltitude {
-	AIRCRAFT_MIN_FLYING_ALTITUDE        = 120, ///< Minimum flying altitude above tile.
-	AIRCRAFT_MAX_FLYING_ALTITUDE        = 360, ///< Maximum flying altitude above tile.
-	PLANE_HOLD_MAX_FLYING_ALTITUDE      = 150, ///< holding flying altitude above tile of planes.
-	HELICOPTER_HOLD_MAX_FLYING_ALTITUDE = 184  ///< holding flying altitude above tile of helicopters.
-};
-
 struct Aircraft;
 
 /** An aircraft can be one of those types. */
