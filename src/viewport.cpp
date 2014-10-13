@@ -1024,6 +1024,107 @@ draw_inner:
 	}
 }
 
+static inline void GetVirtualSlope_Corner (TileInfo *ti, uint refx, uint refy,
+	int dx, int dy, Slope limit_slope, Slope steep_slope)
+{
+	int h = TileHeight (TileXY (refx, refy)) + dx + dy;
+
+	if (h >= 0) {
+		ti->tileh = steep_slope;
+		ti->z = h * TILE_HEIGHT;
+	} else {
+		ti->tileh = (h == -1) ? limit_slope : SLOPE_FLAT;
+		ti->z = 0;
+	}
+}
+
+static inline void GetVirtualSlope_Side (TileInfo *ti, uint refx0, uint refy0,
+	uint refx1, uint refy1, int diff,
+	Slope inclined_slope, Slope inclined_slope0, Slope inclined_slope1)
+{
+	int h0 = TileHeight (TileXY (refx0, refy0));
+	int h1 = TileHeight (TileXY (refx1, refy1));
+
+	if (h0 > h1) {
+		int h = h1 + diff;
+		if (h >= 0) {
+			ti->tileh = inclined_slope | inclined_slope0 | SLOPE_STEEP;
+			ti->z = h * TILE_HEIGHT;
+		} else {
+			ti->tileh = (h == -1) ? (inclined_slope & inclined_slope0) : SLOPE_FLAT;
+			ti->z = 0;
+		}
+	} else if (h0 < h1) {
+		int h = h0 + diff;
+		if (h >= 0) {
+			ti->tileh = inclined_slope | inclined_slope1 | SLOPE_STEEP;
+			ti->z = h * TILE_HEIGHT;
+		} else {
+			ti->tileh = (h == -1) ? (inclined_slope & inclined_slope1) : SLOPE_FLAT;
+			ti->z = 0;
+		}
+	} else {
+		int h = h0 + diff;
+		if (h >= 0) {
+			ti->tileh = inclined_slope;
+			ti->z = h * TILE_HEIGHT;
+		} else {
+			ti->tileh = SLOPE_FLAT;
+			ti->z = 0;
+		}
+	}
+}
+
+static void GetVirtualSlope (int x, int y, TileInfo *ti, DrawTileProc **dtp)
+{
+	/* Assume a decreasing slope to 0 outside the map. */
+	if (x < 0) {
+		if (y < 0) {
+			/* We are north of the map. */
+			GetVirtualSlope_Corner (ti, 0, 0, x, y, SLOPE_S, SLOPE_STEEP_S);
+		} else if ((uint)y < MapMaxY()) {
+			/* We are north-east of the map. */
+			GetVirtualSlope_Side (ti, 0, y, 0, y + 1, x,
+				SLOPE_SW, SLOPE_NW, SLOPE_SE);
+		} else {
+			/* We are east of the map. */
+			GetVirtualSlope_Corner (ti, 0, MapMaxY(), x, MapMaxY() - y - 1, SLOPE_W, SLOPE_STEEP_W);
+		}
+	} else if ((uint)x < MapMaxX()) {
+		if (y < 0) {
+			/* We are north-west of the map. */
+			GetVirtualSlope_Side (ti, x, 0, x + 1, 0, y,
+				SLOPE_SE, SLOPE_NE, SLOPE_SW);
+		} else if ((uint)y < MapMaxY()) {
+			/* We are on the map. */
+			TileIndex tile = TileXY (x, y);
+			ti->tile = tile;
+			ti->tileh = GetTilePixelSlope (tile, &ti->z);
+			*dtp = GetTileProcs(tile)->draw_tile_proc;
+			return;
+		} else {
+			/* We are south-east of the map. */
+			GetVirtualSlope_Side (ti, x, MapMaxY(), x + 1, MapMaxY(), MapMaxY() - y - 1,
+				SLOPE_NW, SLOPE_NE, SLOPE_SW);
+		}
+	} else {
+		if (y < 0) {
+			/* We are west of the map. */
+			GetVirtualSlope_Corner (ti, MapMaxX(), 0, MapMaxX() - x - 1, y, SLOPE_E, SLOPE_STEEP_E);
+		} else if ((uint)y < MapMaxY()) {
+			/* We are south-west of the map. */
+			GetVirtualSlope_Side (ti, MapMaxX(), y, MapMaxX(), y + 1, MapMaxX() - x - 1,
+				SLOPE_NE, SLOPE_NW, SLOPE_SE);
+		} else {
+			/* We are south of the map. */
+			GetVirtualSlope_Corner (ti, MapMaxX(), MapMaxY(), MapMaxX() - x - 1, MapMaxY() - y - 1, SLOPE_N, SLOPE_STEEP_N);
+		}
+	}
+
+	ti->tile = INVALID_TILE;
+	*dtp = DrawVoidTile;
+}
+
 static void ViewportAddLandscape()
 {
 	int x, y, width, height;
@@ -1050,37 +1151,15 @@ static void ViewportAddLandscape()
 
 	do {
 		int width_cur = width;
-		uint x_cur = x;
-		uint y_cur = y;
+		int x_cur = x;
+		int y_cur = y;
 
 		do {
-			DrawTileProc *dtp = DrawVoidTile;
-
 			ti.x = x_cur;
 			ti.y = y_cur;
 
-			ti.z = 0;
-
-			ti.tileh = SLOPE_FLAT;
-			ti.tile = INVALID_TILE;
-
-			if (x_cur < MapMaxX() * TILE_SIZE &&
-					y_cur < MapMaxY() * TILE_SIZE) {
-				TileIndex tile = TileVirtXY(x_cur, y_cur);
-
-				if (!_settings_game.construction.freeform_edges || (TileX(tile) != 0 && TileY(tile) != 0)) {
-					if (x_cur == ((int)MapMaxX() - 1) * TILE_SIZE || y_cur == ((int)MapMaxY() - 1) * TILE_SIZE) {
-						uint maxh = max<uint>(TileHeight(tile), 1);
-						for (uint h = 0; h < maxh; h++) {
-							AddTileSpriteToDraw(SPR_SHADOW_CELL, PAL_NONE, ti.x, ti.y, h * TILE_HEIGHT);
-						}
-					}
-
-					ti.tile = tile;
-					ti.tileh = GetTilePixelSlope(tile, &ti.z);
-					dtp = GetTileProcs(tile)->draw_tile_proc;
-				}
-			}
+			DrawTileProc *dtp;
+			GetVirtualSlope (x_cur / TILE_SIZE, y_cur / TILE_SIZE, &ti, &dtp);
 
 			_vd.foundation_part = FOUNDATION_PART_NONE;
 			_vd.foundation[0] = -1;
@@ -1090,8 +1169,8 @@ static void ViewportAddLandscape()
 
 			dtp(&ti);
 
-			if ((x_cur == (int)MapMaxX() * TILE_SIZE && IsInsideMM(y_cur, 0, MapMaxY() * TILE_SIZE + 1)) ||
-					(y_cur == (int)MapMaxY() * TILE_SIZE && IsInsideMM(x_cur, 0, MapMaxX() * TILE_SIZE + 1))) {
+			if (((uint)x_cur == MapMaxX() * TILE_SIZE && IsInsideMM(y_cur, 0, MapMaxY() * TILE_SIZE + 1)) ||
+					((uint)y_cur == MapMaxY() * TILE_SIZE && IsInsideMM(x_cur, 0, MapMaxX() * TILE_SIZE + 1))) {
 				TileIndex tile = TileVirtXY(x_cur, y_cur);
 				ti.tile = tile;
 				ti.tileh = GetTilePixelSlope(tile, &ti.z);

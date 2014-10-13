@@ -80,7 +80,7 @@ static CommandCost ClearTile_Clear(TileIndex tile, DoCommandFlag flags)
 
 void DrawVoidTile(TileInfo *ti)
 {
-	DrawGroundSprite(SPR_SHADOW_CELL, PAL_NONE);
+	DrawGroundSprite(SPR_FLAT_BARE_LAND + SlopeToSpriteOffset(ti->tileh), PALETTE_ALL_BLACK);
 }
 
 void DrawClearLandTile(const TileInfo *ti, byte set)
