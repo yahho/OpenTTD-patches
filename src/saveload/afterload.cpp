@@ -1677,7 +1677,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 				AircraftNextAirportPos_and_Order(v);
 				/* get aircraft back on running altitude */
 				if ((v->vehstatus & VS_CRASHED) == 0) {
-					GetAircraftFlightLevelBounds(v, &v->z_pos, NULL);
+					v->z_pos = GetAircraftBaseFlightLevel (v);
 					SetAircraftPosition(v, v->x_pos, v->y_pos, GetAircraftFlightLevel(v));
 				}
 			}

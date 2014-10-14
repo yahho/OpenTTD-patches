@@ -200,7 +200,7 @@ void UpdateOldAircraft()
 			if (a->subtype == AIR_HELICOPTER) a->Next()->Next()->cur_speed = 32;
 
 			/* set new position x,y,z */
-			GetAircraftFlightLevelBounds(a, &a->z_pos, NULL);
+			a->z_pos = GetAircraftBaseFlightLevel (a);
 			SetAircraftPosition(a, gp.xx, gp.yy, GetAircraftFlightLevel(a));
 		}
 	}

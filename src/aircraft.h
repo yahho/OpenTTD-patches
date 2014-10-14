@@ -47,7 +47,7 @@ void AircraftLeaveHangar(Aircraft *v, Direction exit_dir);
 void AircraftNextAirportPos_and_Order(Aircraft *v);
 void SetAircraftPosition(Aircraft *v, int x, int y, int z);
 
-void GetAircraftFlightLevelBounds(const Vehicle *v, int *min, int *max);
+int GetAircraftBaseFlightLevel (const Vehicle *v);
 template <class T>
 int GetAircraftFlightLevel(T *v, bool takeoff = false);
 

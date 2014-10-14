@@ -681,32 +681,24 @@ static int GetAircraftBaseAltitude (const Vehicle *v)
 }
 
 /**
- * Get the 'flight level' bounds, in pixels from 'z_pos' 0 for a particular
- * vehicle for normal flight situation.
- * When the maximum is reached the vehicle should consider descending.
- * When the minimum is reached the vehicle should consider ascending.
- *
- * @param v               The vehicle to get the flight levels for.
- * @param [out] min_level The minimum bounds for flight level.
- * @param [out] max_level The maximum bounds for flight level.
+ * Get the base flight level for an aircraft.
+ * @param v The vehicle to get the base flight level for.
+ * @return The base flight level in pixels.
  */
-void GetAircraftFlightLevelBounds(const Vehicle *v, int *min_level, int *max_level)
+int GetAircraftBaseFlightLevel (const Vehicle *v)
 {
-	int base_altitude = GetAircraftBaseAltitude (v);
+	int z = GetAircraftBaseAltitude (v);
 
 	if (v->type == VEH_AIRCRAFT && Aircraft::From(v)->subtype != AIR_HELICOPTER) {
 		/* Make sure eastbound and westbound planes do not "crash" into
 		 * each other by providing them with vertical separation. */
-		if (v->direction < (DIR_END / 2)) base_altitude += 10;
+		if (v->direction < (DIR_END / 2)) z += 10;
 
 		/* Make faster planes fly higher so that they can overtake slower ones */
-		base_altitude += min (20 * (v->vcache.cached_max_speed / 200) - 90, 0);
+		z += min (20 * (v->vcache.cached_max_speed / 200) - 90, 0);
 	}
 
-	if (min_level != NULL) *min_level = base_altitude;
-
-	/* Flight altitude range is 240 pixels. */
-	if (max_level != NULL) *max_level = base_altitude + 240;
+	return z;
 }
 
 /**
@@ -727,14 +719,12 @@ int GetAircraftFlightLevel(T *v, bool takeoff)
 {
 	/* Aircraft is in flight. We want to enforce it being somewhere
 	 * between the minimum and the maximum allowed altitude. */
-	int aircraft_min_altitude;
-	int aircraft_max_altitude;
-	GetAircraftFlightLevelBounds(v, &aircraft_min_altitude, &aircraft_max_altitude);
-	int aircraft_middle_altitude = (aircraft_min_altitude + aircraft_max_altitude) / 2;
+	int aircraft_min_altitude = GetAircraftBaseFlightLevel (v);
 
-	/* If those assumptions would be violated, aircrafts would behave fairly strange. */
-	assert(aircraft_min_altitude < aircraft_middle_altitude);
-	assert(aircraft_middle_altitude < aircraft_max_altitude);
+	/* Flight altitude range is 240 pixels. */
+	int aircraft_max_altitude = aircraft_min_altitude + 240;
+
+	int aircraft_middle_altitude = aircraft_min_altitude + 120;
 
 	int z = v->z_pos;
 	if (z < aircraft_min_altitude ||
@@ -879,8 +869,7 @@ static bool AircraftController(Aircraft *v)
 			if (count > 0) {
 				v->tile = 0;
 
-				int z_dest;
-				GetAircraftFlightLevelBounds(v, &z_dest, NULL);
+				int z_dest = GetAircraftBaseFlightLevel (v);
 
 				/* Reached altitude? */
 				if (v->z_pos >= z_dest) {
