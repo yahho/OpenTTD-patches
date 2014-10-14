@@ -131,6 +131,7 @@ void LinkGraph::RemoveNode(NodeID id)
 
 	NodeID last_node = this->Size() - 1;
 	for (NodeID i = 0; i <= last_node; ++i) {
+		if (i == id) continue;
 		(*this)[i].unlink(id);
 		Edge *node_edges = this->edges[i];
 		NodeID prev = i;
