@@ -48,8 +48,13 @@ void AircraftNextAirportPos_and_Order(Aircraft *v);
 void SetAircraftPosition(Aircraft *v, int x, int y, int z);
 
 int GetAircraftBaseFlightLevel (const Vehicle *v);
+int GetAircraftFlightLevel (const Vehicle *v, byte *flags, bool takeoff);
+
 template <class T>
-int GetAircraftFlightLevel(T *v, bool takeoff = false);
+static inline int GetAircraftFlightLevel (T *v, bool takeoff = false)
+{
+	return GetAircraftFlightLevel (v, &v->flags, takeoff);
+}
 
 /** Variables that are cached to improve performance and such. */
 struct AircraftCache {
