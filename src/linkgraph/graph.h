@@ -33,7 +33,9 @@ public:
 	/** Get the size (order) of the graph. */
 	uint Size (void) const
 	{
-		assert (this->edges.Height() == this->nodes.Length());
+		/* Rows are not deleted when the edge matrix shrinks,
+		 * so we cannot assert equality here. */
+		assert (this->edges.Height() >= this->nodes.Length());
 		assert (this->edges.Width()  == this->nodes.Length());
 		return this->nodes.Length();
 	}
