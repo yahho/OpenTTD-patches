@@ -221,6 +221,7 @@ void LinkGraph::RemoveEdge (NodeID from, NodeID to)
 {
 	assert(from != to);
 	Edge *edge = (*this)[from].unlink(to);
+	assert (edge != NULL);
 	edge->capacity = 0;
 	edge->last_unrestricted_update = INVALID_DATE;
 	edge->last_restricted_update = INVALID_DATE;

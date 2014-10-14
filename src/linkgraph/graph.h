@@ -268,7 +268,7 @@ private:
 
 			QEdge *prev = &this->edges[this->index];
 			while (prev->next_edge != to) {
-				assert (prev->next_edge != INVALID_NODE);
+				if (prev->next_edge == INVALID_NODE) return NULL;
 				prev = &this->edges[prev->next_edge];
 			}
 
