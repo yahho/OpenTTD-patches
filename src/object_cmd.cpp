@@ -660,7 +660,7 @@ static bool TryBuildLightHouse()
 
 	for (int j = 0; j < 19; j++) {
 		int h;
-		if (IsGroundTile(tile) && IsTileFlat(tile, &h) && h <= 2 && !IsBridgeAbove(tile)) {
+		if (IsGroundTile(tile) && IsTileFlat(tile, &h) && h <= 2 && !HasBridgeAbove(tile)) {
 			BuildObject(OBJECT_LIGHTHOUSE, tile);
 			assert(tile < MapSize());
 			return true;
@@ -679,7 +679,7 @@ static bool TryBuildTransmitter()
 {
 	TileIndex tile = RandomTile();
 	int h;
-	if (IsGroundTile(tile) && IsTileFlat(tile, &h) && h >= 4 && !IsBridgeAbove(tile)) {
+	if (IsGroundTile(tile) && IsTileFlat(tile, &h) && h >= 4 && !HasBridgeAbove(tile)) {
 		TileArea ta (tile);
 		ta.expand (4);
 

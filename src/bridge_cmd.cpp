@@ -589,7 +589,7 @@ void DrawBridgeMiddle(const TileInfo *ti)
 	 *
 	 */
 
-	if (!IsBridgeAbove(ti->tile)) return;
+	if (!HasBridgeAbove(ti->tile)) return;
 
 	TileIndex rampnorth = GetNorthernBridgeEnd(ti->tile);
 	TileIndex rampsouth = GetSouthernBridgeEnd(ti->tile);

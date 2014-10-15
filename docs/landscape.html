@@ -32,8 +32,9 @@
 Tile data are stored in two structs, <b>TileZH</b> and <b>Tile</b>.
 <b>TileZH</b> is used for generic landscape information and has two fields,
 <b>height</b>, which contains the height of the tile (its northern corner),
-and <b>zone</b>, which contains the tropical climate zone of the tile in
-its highest 2 bits; other bits in this field are currently unused.
+and <b>zb</b>, which contains the tropical climate zone of the tile in
+its highest 2 bits and the presence of a bridge over the tile in its lowest
+2 bits; other bits in this field are currently unused.
 The slope of a tile is computed combining its height with the heights
 of its neighbours.
 </p>
@@ -42,7 +43,9 @@ of its neighbours.
   <tr> <th> height (8) <th> zone (8)
   <tr> <td class="mono"> 7654-3210 <td class="mono"> 7654-3210
   <tr> <td class="mono"> <span title="Tile height">[height-]</span>
-       <td class="mono"> <span title="Zone">zz</span>00-0000
+       <td class="mono"> <span title="Zone">zz</span>00-00<span
+           title="Bridge above along Y axis">y</span><span
+           title="Bridge above along X axis">x</span>
 </table>
 
 <p>
@@ -54,6 +57,17 @@ The zones currently defined for the tropical climate are the following.
   <tr> <td class="mono"> 00 <td class="text"> Normal
   <tr> <td class="mono"> 01 <td class="text"> Desert
   <tr> <td class="mono"> 02 <td class="text"> Rain forest
+</table>
+
+<p>
+The possible values for the bridge bits are the following.
+</p>
+
+<table class="field">
+  <tr> <th> Value <th> Meaning
+  <tr> <td class="mono"> 00 <td class="text"> No bridge
+  <tr> <td class="mono"> 01 <td class="text"> Bridge along X axis
+  <tr> <td class="mono"> 10 <td class="text"> Bridge along Y axis
 </table>
 
 
@@ -110,8 +124,7 @@ below.
 
   <!-- fields -->
     <td class="text"> Fields
-    <td> <span class="head">0000</span>-<span class="free">00</span><a
-      href="#bridgeabove" title="Bridge above">/\</a>
+    <td rowspan="3"> <span class="head">0000</span>-<span class="free">0000</span>
     <td> <span class="head">01</span><span class="free">0</span><a
         href="#owner" title="Owner">[ownr]</a>
     <td> <span title="Industry index of farm">[-industry-index--]</span>
@@ -127,8 +140,6 @@ below.
 
   <!-- clear -->
   <tr> <td class="text"> Clear
-    <td> <span class="head">0000</span>-<span class="free">00</span><a
-      href="#bridgeabove" title="Bridge above">/\</a>
     <td> <span class="head">10</span><span class="free">0</span><a
         href="#owner" title="Owner">[ownr]</a>
     <td rowspan="2"> <span class="free">0000-0000-0000-0000</span>
@@ -140,7 +151,6 @@ below.
 
   <!-- trees -->
   <tr> <td class="text"> Trees
-    <td> <span class="head">0000</span>-<span class="free">0000</span>
     <td> <span class="head">11</span><span class="free">0</span><a
         href="#owner" title="Owner">[ownr]</a>
     <td> <a href="#trees" title="Number of trees">[number-]</a>
@@ -148,8 +158,7 @@ below.
 
   <!-- objects -->
   <tr> <td class="text" colspan="2"> Objects
-    <td> <span class="head">0001</span>-<span class="free">00</span><a
-        href="#bridgeabove" title="Bridge above">/\</a>
+    <td> <span class="head">0001</span>-<span class="free">0000</span>
     <td> <span class="free">0</span><span
         title="Water class (sea, canal or river)">~~</span><a
         href="#owner" title="Owner">[ownr]</a>
@@ -161,8 +170,7 @@ below.
 
   <!-- water -->
   <tr> <td class="text" colspan="2"> Water
-    <td> <span class="head">0010</span>-<span class="free">00</span><a
-        href="#bridgeabove" title="Bridge above">/\</a>
+    <td> <span class="head">0010</span>-<span class="free">0000</span>
     <td> <span class="free">0</span><span
         title="Water class (sea, canal or river)">~~</span><a
         href="#owner" title="Owner">[ownr]</a>
@@ -184,8 +192,7 @@ below.
   <tr> <td class="text" rowspan="2"> Railway
   <td class="text"> Track
     <td rowspan="2"> <span class="head">0100</span>-<span
-        class="free">00</span<a href="#bridgeabove"
-        title="Bridge above">/\</a>
+        class="free">0000</span>
     <td> <span class="head">00</span><span class="free">0</span><a
         href="#owner" title="Owner">[ownr]</a>
     <td> <span class="free">0000</span>-<a href="#pbs"
@@ -212,8 +219,7 @@ below.
   <tr> <td class="text" rowspan="2"> Road
   <td class="text"> Road
     <td rowspan="2"> <span class="head">0101</span>-<span
-        class="free">00</span><a href="#bridgeabove"
-        title="Bridge above">/\</a>
+        class="free">0000</span>
     <td> <span class="head">00</span><span class="free">0</span><a
         href="#owner" title="Road owner">[ownr]</a>
     <td rowspan="2"> <span
@@ -247,9 +253,8 @@ below.
 
   <!-- level crossing -->
   <tr> <td class="text" colspan="2"> Level crossing
-    <td rowspan="4"> <span class="head">0110</span>-<span
-        class="free">00</span><a href="#bridgeabove"
-        title="Bridge above">/\</a>
+    <td rowspan="6"> <span class="head">0110</span>-<span
+        class="free">0000</span>
     <td> <span class="head">00</span><span class="free">0</span><a
         href="#owner" title="Track owner">[ownr]</a>
     <td> <span
@@ -307,8 +312,6 @@ below.
 
   <!-- ground depots -->
   <tr> <td class="text" colspan="2"> Railway depot
-    <td rowspan="2"> <span class="head">0110</span>-<span
-        class="free">0000</span>
     <td> <span class="head">110</span><a
         href="#owner" title="Owner">[ownr]</a>
     <td rowspan="2"> <span title="Depot index">[---depot-index---]</span>
@@ -408,20 +411,6 @@ below.
 
 
 <h2>Field values</h2>
-
-<h3 id="bridgeabove">Bridge above</h3>
-
-<p>
-Whether there is a bridge above the tile, and its direction.
-</p>
-
-<table class="field">
-  <tr> <th> Value <th> Meaning
-  <tr> <td class="mono"> 00 <td class="text"> No bridge
-  <tr> <td class="mono"> 01 <td class="text"> Bridge along X axis
-  <tr> <td class="mono"> 10 <td class="text"> Bridge along Y axis
-</table>
-
 
 <h3 id="direction">Direction</h3>
 

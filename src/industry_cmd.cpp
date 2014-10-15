@@ -11,6 +11,7 @@
 
 #include "stdafx.h"
 #include "map/ground.h"
+#include "map/bridge.h"
 #include "industry.h"
 #include "station_base.h"
 #include "landscape.h"

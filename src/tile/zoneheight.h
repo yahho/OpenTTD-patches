@@ -12,6 +12,7 @@
 
 #include "../stdafx.h"
 #include "../core/bitmath_func.hpp"
+#include "../direction_type.h"
 
 static const uint MAX_TILE_HEIGHT     = 15;                    ///< Maximum allowed tile height
 
@@ -43,7 +44,7 @@ enum TropicZone {
 /** Zone and height of a tile. */
 struct TileZH {
 	byte height; ///< height of the (northern corner of the) tile
-	byte zone;   ///< tile zone (2 most significant bits)
+	byte zb;     ///< tile zone (2 most significant bits), bridge above (2 least significant bits)
 };
 
 /**
@@ -81,7 +82,7 @@ static inline void tilezh_set_height(TileZH *t, uint height)
  */
 static inline TropicZone tilezh_get_zone(const TileZH *t)
 {
-	return (TropicZone)GB(t->zone, 6, 2);
+	return (TropicZone)GB(t->zb, 6, 2);
 }
 
 /**
@@ -92,7 +93,51 @@ static inline TropicZone tilezh_get_zone(const TileZH *t)
  */
 static inline void tilezh_set_zone(TileZH *t, TropicZone z)
 {
-	SB(t->zone, 6, 2, z);
+	SB(t->zb, 6, 2, z);
+}
+
+
+/**
+ * Check if this tile has a bridge over it
+ * @param t The tile to check
+ * @return Whether there is a bridge above the tile
+ */
+static inline bool tile_has_bridge_above (const TileZH *t)
+{
+	return GB(t->zb, 0, 2) != 0;
+}
+
+/**
+ * Get the axis of the bridge over a tile
+ * @param t The tile
+ * @pre tile_has_bridge_above(t)
+ * @return The axis of the bridge
+ */
+static inline Axis tile_get_bridge_axis (const TileZH *t)
+{
+	assert (tile_has_bridge_above (t));
+	return (Axis)(GB(t->zb, 0, 2) - 1);
+}
+
+/**
+ * Remove the bridge over a tile
+ * @param t The tile
+ */
+static inline void tile_clear_bridge_above (TileZH *t)
+{
+	SB(t->zb, 0, 2, 0);
+}
+
+/**
+ * Set a bridge over a tile
+ * @param t The tile
+ * @param a Axis of the bridge
+ * @pre !tile_has_bridge_above(t)
+ */
+static inline void tile_set_bridge_above (TileZH *t, Axis a)
+{
+	assert (!tile_has_bridge_above (t));
+	SB(t->zb, 0, 2, 1 << a);
 }
 
 #endif /* TILE_ZONEHEIGHT_H */

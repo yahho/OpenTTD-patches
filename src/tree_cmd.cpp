@@ -12,6 +12,7 @@
 #include "stdafx.h"
 #include "map/ground.h"
 #include "map/slope.h"
+#include "map/bridge.h"
 #include "landscape.h"
 #include "viewport_func.h"
 #include "command_func.h"
@@ -64,10 +65,10 @@ static bool CanPlantTreesOnTile(TileIndex tile, bool allow_desert)
 {
 	switch (GetTileType(tile)) {
 		case TT_WATER:
-			return !IsBridgeAbove(tile) && IsCoast(tile) && !IsSlopeWithOneCornerRaised(GetTileSlope(tile));
+			return !HasBridgeAbove(tile) && IsCoast(tile) && !IsSlopeWithOneCornerRaised(GetTileSlope(tile));
 
 		case TT_GROUND:
-			return IsTileSubtype(tile, TT_GROUND_CLEAR) && !IsBridgeAbove(tile) && GetRawClearGround(tile) != GROUND_ROCKS &&
+			return IsTileSubtype(tile, TT_GROUND_CLEAR) && !HasBridgeAbove(tile) && GetRawClearGround(tile) != GROUND_ROCKS &&
 			       (allow_desert || !IsClearGround(tile, GROUND_DESERT));
 
 		default: return false;
@@ -399,7 +400,7 @@ CommandCost CmdPlantTree(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 				continue;
 		}
 
-		if (IsBridgeAbove(tile)) {
+		if (HasBridgeAbove(tile)) {
 			msg = STR_ERROR_SITE_UNSUITABLE;
 			continue;
 		}

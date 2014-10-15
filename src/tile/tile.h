@@ -63,7 +63,7 @@ static inline bool tiletype_has_subtypes(TileType tt)
  * Look at docs/landscape.html for the exact meaning of the members.
  */
 struct Tile {
-	byte   m0;          ///< Primarily used for tile class and bridges
+	byte   m0;          ///< Primarily used for tile class
 	byte   m1;          ///< Primarily used for tile class, water class and ownership information
 	uint16 m2;          ///< Primarily used for indices to towns, industries and stations
 	byte   m3;          ///< General purpose

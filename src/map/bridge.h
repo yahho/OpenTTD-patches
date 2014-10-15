@@ -11,6 +11,7 @@
 #define MAP_BRIDGE_H
 
 #include "../stdafx.h"
+#include "../tile/zoneheight.h"
 #include "../tile/misc.h"
 #include "map.h"
 #include "coord.h"
@@ -18,6 +19,47 @@
 #include "common.h"
 #include "../direction_type.h"
 #include "../company_type.h"
+
+/**
+ * Checks if there is a bridge over a tile
+ * @param t The tile to check
+ * @return Whether there is a bridge over the tile
+ */
+static inline bool HasBridgeAbove (TileIndex tile)
+{
+	return tile_has_bridge_above (&_mth[tile]);
+}
+
+/**
+ * Get the axis of the bridge that goes over a tile
+ * @param t The tile to check
+ * @pre HasBridgeAbove(t)
+ * @return The axis of the bridge over the tile
+ */
+static inline Axis GetBridgeAxis (TileIndex tile)
+{
+	return tile_get_bridge_axis (&_mth[tile]);
+}
+
+/**
+ * Remove the bridge over a tile
+ * @param t The tile to remove the bridge from
+ */
+static inline void ClearBridgeMiddle (TileIndex tile)
+{
+	tile_clear_bridge_above (&_mth[tile]);
+}
+
+/**
+ * Set that there is a bridge over a tile along the given axis
+ * @param t The tile to add the bridge to
+ * @param a The axis of the bridge to add
+ */
+static inline void SetBridgeMiddle (TileIndex tile, Axis a)
+{
+	tile_set_bridge_above (&_mth[tile], a);
+}
+
 
 TileIndex GetBridgeEnd(TileIndex tile, DiagDirection dir);
 

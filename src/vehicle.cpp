@@ -48,6 +48,7 @@
 #include "vehiclelist.h"
 #include "map/tunnel.h"
 #include "map/slope.h"
+#include "map/bridge.h"
 #include "gamelog.h"
 #include "signal_func.h"
 #include "linkgraph/linkgraph.h"

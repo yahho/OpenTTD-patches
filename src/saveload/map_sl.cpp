@@ -41,7 +41,7 @@ enum OldTileType {
 static inline OldTileType GetOldTileType(TileIndex tile)
 {
 	assert(tile < MapSize());
-	return (OldTileType)GB(_mth[tile].zone, 4, 4);
+	return (OldTileType)GB(_mth[tile].zb, 4, 4);
 }
 
 static inline bool IsOldTileType(TileIndex tile, OldTileType type)
@@ -51,7 +51,7 @@ static inline bool IsOldTileType(TileIndex tile, OldTileType type)
 
 static inline void SetOldTileType(TileIndex tile, OldTileType type)
 {
-	SB(_mth[tile].zone, 4, 4, type);
+	SB(_mth[tile].zb, 4, 4, type);
 }
 
 
@@ -288,13 +288,13 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 
 		for (t = MapMaxX(); t < map_size - 1; t += MapSizeX()) {
 			_mth[t].height = 0;
-			_mth[t].zone = OLD_MP_VOID << 4;
+			_mth[t].zb = OLD_MP_VOID << 4;
 			memset(&_mc[t], 0, sizeof(_mc[t]));
 		}
 
 		for (t = MapSizeX() * MapMaxY(); t < map_size; t++) {
 			_mth[t].height = 0;
-			_mth[t].zone = OLD_MP_VOID << 4;
+			_mth[t].zb = OLD_MP_VOID << 4;
 			memset(&_mc[t], 0, sizeof(_mc[t]));
 		}
 	}
@@ -884,7 +884,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					throw SlCorrupt("Invalid tile type");
 			}
 
-			SB(_mth[t].zone, 4, 4, zone << 2);
+			SB(_mth[t].zb, 4, 4, zone << 2);
 		}
 	}
 
@@ -997,6 +997,27 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			}
 		}
 	}
+
+	/* Storage of bridges over a tile changed. */
+	if (IsFullSavegameVersionBefore (stv, 22)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			switch (GetTileType (t)) {
+				case TT_GROUND:
+				case TT_OBJECT:
+				case TT_WATER:
+				case TT_RAILWAY:
+				case TT_ROAD:
+				case TT_MISC:
+					SB(_mth[t].zb, 0, 2, GB(_mc[t].m0, 0, 2));
+					SB(_mc[t].m0, 0, 4, 0);
+					break;
+
+				default:
+					SB(_mth[t].zb, 0, 4, 0);
+					break;
+			}
+		}
+	}
 }
 
 
@@ -1055,11 +1076,11 @@ static void Load_MAPT(LoadBuffer *reader)
 		if (reader->IsVersionBefore (22, 194)) {
 			for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) {
 				_mth[i].height = buf[j] & 0x0F;
-				_mth[i].zone   = buf[j] & 0xF0;
+				_mth[i].zb     = buf[j] & 0xF0;
 				i++;
 			}
 		} else {
-			for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mth[i++].zone = buf[j];
+			for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mth[i++].zb = buf[j];
 		}
 	}
 }
@@ -1071,7 +1092,7 @@ static void Save_MAPT(SaveDumper *dumper)
 
 	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mth[i++].zone;
+		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mth[i++].zb;
 		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
 	}
 }

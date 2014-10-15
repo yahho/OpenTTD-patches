@@ -16,6 +16,7 @@
 #include "landscape.h"
 #include "map/rail.h"
 #include "map/slope.h"
+#include "map/bridge.h"
 #include "town.h"
 #include "waypoint_base.h"
 #include "pathfinder/yapf/yapf.h"

@@ -382,13 +382,7 @@ static inline void tile_make_void(Tile *t)
  */
 static inline void tile_make_clear(Tile *t, Ground g, uint d = 0)
 {
-	/* It this was a non-bridgeable tile, also clear the bridge bits. */
-	if (tile_is_bridgeable(t)) {
-		tile_set_type(t, TT_GROUND);
-	} else {
-		t->m0 = TT_GROUND << 4;
-	}
-
+	t->m0 = TT_GROUND << 4;
 	t->m1 = (TT_GROUND_CLEAR << 6) | OWNER_NONE;
 	t->m2 = 0;
 	t->m3 = g << 4;
