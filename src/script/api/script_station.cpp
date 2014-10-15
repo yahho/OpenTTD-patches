@@ -229,7 +229,7 @@ template<bool Tfrom, bool Tvia>
 	return ::Station::Get(station_id)->town->index;
 }
 
-/*static */ bool ScriptStation::IsAirportClosed(StationID station_id)
+/* static */ bool ScriptStation::IsAirportClosed(StationID station_id)
 {
 	EnforcePrecondition(false, IsValidStation(station_id));
 	EnforcePrecondition(false, HasStationType(station_id, STATION_AIRPORT));
@@ -237,7 +237,7 @@ template<bool Tfrom, bool Tvia>
 	return (::Station::Get(station_id)->airport.flags & AIRPORT_CLOSED_block) != 0;
 }
 
-/*static */ bool ScriptStation::OpenCloseAirport(StationID station_id)
+/* static */ bool ScriptStation::OpenCloseAirport(StationID station_id)
 {
 	EnforcePrecondition(false, IsValidStation(station_id));
 	EnforcePrecondition(false, HasStationType(station_id, STATION_AIRPORT));
