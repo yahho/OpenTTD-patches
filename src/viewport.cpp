@@ -29,6 +29,7 @@
 #include "stdafx.h"
 #include "map/zoneheight.h"
 #include "map/slope.h"
+#include "map/bridge.h"
 #include "landscape.h"
 #include "viewport_func.h"
 #include "station_base.h"
@@ -1170,9 +1171,6 @@ static void ViewportAddLandscape()
 
 	assert (width > 0);
 
-	/* Account for buildings/bridges up to 20 TILE_HEIGHT high. */
-	hbot += 20;
-
 	/* Now (x,y) is the tile that would be drawn at the top left corner of
 	 * the viewport _if_ it were at sea level. But perhaps it is not. */
 	for (;;) {
@@ -1207,6 +1205,12 @@ static void ViewportAddLandscape()
 	TileInfo ti;
 	_cur_ti = &ti;
 
+	enum {
+		STATE_GROUND,    ///< ground in the current row is visible
+		STATE_BUILDINGS, ///< buildings in the current row may be visible, but ground is not
+		STATE_BRIDGES,   ///< only high enough bridges in the current row may be visible
+	} state = STATE_GROUND;
+
 	for (;;) {
 		uint w = ((uint)width - !direction) / 2;
 		int x_cur = x;
@@ -1221,28 +1225,48 @@ static void ViewportAddLandscape()
 			DrawTileProc *dtp;
 			GetVirtualSlope (x_cur, y_cur, &ti, &dtp);
 
-			_vd.foundation_part = FOUNDATION_PART_NONE;
-			_vd.foundation[0] = -1;
-			_vd.foundation[1] = -1;
-			_vd.last_foundation_child[0] = NULL;
-			_vd.last_foundation_child[1] = NULL;
-
-			dtp(&ti);
-
-			if (((uint)x_cur == MapMaxX() && (uint)y_cur < MapSizeY()) ||
-					((uint)y_cur == MapMaxY() && (uint)x_cur < MapSizeX())) {
-				TileIndex tile = TileXY (x_cur, y_cur);
-				ti.tile = tile;
-				ti.tileh = GetTilePixelSlope(tile, &ti.z);
+			if (state == STATE_GROUND || (ti.tile != INVALID_TILE &&
+					(state == STATE_BUILDINGS || HasBridgeAbove(ti.tile)))) {
+				_vd.foundation_part = FOUNDATION_PART_NONE;
+				_vd.foundation[0] = -1;
+				_vd.foundation[1] = -1;
+				_vd.last_foundation_child[0] = NULL;
+				_vd.last_foundation_child[1] = NULL;
+				dtp(&ti);
 			}
-			if (ti.tile != INVALID_TILE) DrawTileSelection(&ti);
+
+			if (state == STATE_GROUND) {
+				if (((uint)x_cur == MapMaxX() && (uint)y_cur < MapSizeY()) ||
+						((uint)y_cur == MapMaxY() && (uint)x_cur < MapSizeX())) {
+					TileIndex tile = TileXY (x_cur, y_cur);
+					ti.tile = tile;
+					ti.tileh = GetTilePixelSlope(tile, &ti.z);
+				}
+				if (ti.tile != INVALID_TILE) DrawTileSelection(&ti);
+			}
 
 			y_cur++;
-			h = min (h, GetVirtualHeight (x_cur, y_cur));
+			h = max (h, GetVirtualHeight (x_cur, y_cur));
 			x_cur--;
 		} while (w--);
 
-		if ((2 * (x + y + 1) - h) > hbot) break;
+		int hnew = 2 * (x + y + 1) - h;
+		switch (state) {
+			case STATE_GROUND:
+				/* Is ground still visible? */
+				if (hnew <= hbot + 1) break;
+				state = STATE_BUILDINGS;
+				/* fall through */
+			case STATE_BUILDINGS:
+				/* Are buildings still possibly visible? */
+				if (hnew <= hbot + 24) break;
+				state = STATE_BRIDGES;
+				/* fall through */
+			case STATE_BRIDGES:
+				/* Are bridges still possibly visible? */
+				if (hnew <= hbot + _settings_game.construction.max_bridge_height + 4) break;
+				return;
+		}
 
 		direction ? y++ : x++;
 		direction = !direction;
