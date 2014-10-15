@@ -16,6 +16,7 @@
 #include "../town.h"
 #include "../landscape_type.h"
 #include "../signal_type.h"
+#include "../map/slope.h"
 #include "../map/ground.h"
 #include "../map/water.h"
 #include "../map/station.h"
@@ -40,7 +41,7 @@ enum OldTileType {
 static inline OldTileType GetOldTileType(TileIndex tile)
 {
 	assert(tile < MapSize());
-	return (OldTileType)GB(_mth[tile], 4, 4);
+	return (OldTileType)GB(_mth[tile].zone, 4, 4);
 }
 
 static inline bool IsOldTileType(TileIndex tile, OldTileType type)
@@ -50,30 +51,7 @@ static inline bool IsOldTileType(TileIndex tile, OldTileType type)
 
 static inline void SetOldTileType(TileIndex tile, OldTileType type)
 {
-	SB(_mth[tile], 4, 4, type);
-}
-
-static inline uint OldTileHeight(TileIndex tile)
-{
-	assert(tile < MapSize());
-	return GB(_mth[tile], 0, 4);
-}
-
-static bool IsOldTileFlat(TileIndex tile)
-{
-	assert(tile < MapSize());
-
-	if (TileX(tile) == MapMaxX() || TileY(tile) == MapMaxY() ||
-			TileX(tile) == 0 || TileY(tile) == 0) {
-		return true;
-	}
-
-	uint h = OldTileHeight(tile);
-	if (OldTileHeight(tile + TileDiffXY(1, 0)) != h) return false;
-	if (OldTileHeight(tile + TileDiffXY(0, 1)) != h) return false;
-	if (OldTileHeight(tile + TileDiffXY(1, 1)) != h) return false;
-
-	return true;
+	SB(_mth[tile].zone, 4, 4, type);
 }
 
 
@@ -309,12 +287,14 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 		TileIndex t;
 
 		for (t = MapMaxX(); t < map_size - 1; t += MapSizeX()) {
-			_mth[t] = OLD_MP_VOID << 4;
+			_mth[t].height = 0;
+			_mth[t].zone = OLD_MP_VOID << 4;
 			memset(&_mc[t], 0, sizeof(_mc[t]));
 		}
 
 		for (t = MapSizeX() * MapMaxY(); t < map_size; t++) {
-			_mth[t] = OLD_MP_VOID << 4;
+			_mth[t].height = 0;
+			_mth[t].zone = OLD_MP_VOID << 4;
 			memset(&_mc[t], 0, sizeof(_mc[t]));
 		}
 	}
@@ -422,7 +402,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 							_mc[t].m2 = 0;
 							_mc[t].m3 = _mc[t].m4 = _mc[t].m7 = 0;
 							_mc[t].m5 = 3;
-						} else if (!IsOldTileFlat(t)) {
+						} else if (!IsTileFlat(t)) {
 							SetOldTileType(t, OLD_MP_WATER);
 							SB(_mc[t].m1, 0, 5, OWNER_WATER);
 							SB(_mc[t].m1, 5, 2, WATER_CLASS_SEA);
@@ -466,7 +446,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 			if (IsOldTileType(t, OLD_MP_WATER) &&
 					_mc[t].m5 == 0 &&
 					GB(_mc[t].m1, 0, 5) == OWNER_WATER &&
-					OldTileHeight(t) != 0) {
+					TileHeight(t) != 0) {
 				SB(_mc[t].m1, 0, 5, OWNER_NONE);
 			}
 		}
@@ -481,7 +461,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 	if (IsOTTDSavegameVersionBefore(stv, 83)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsOldTileType(t, OLD_MP_WATER) && GB(_mc[t].m5, 4, 4) == 8) {
-				_mc[t].m4 = (OldTileHeight(t) == 0) ? OWNER_WATER : OWNER_NONE;
+				_mc[t].m4 = (TileHeight(t) == 0) ? OWNER_WATER : OWNER_NONE;
 			}
 		}
 	}
@@ -904,7 +884,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					throw SlCorrupt("Invalid tile type");
 			}
 
-			SB(_mth[t], 4, 4, zone << 2);
+			SB(_mth[t].zone, 4, 4, zone << 2);
 		}
 	}
 
@@ -1042,17 +1022,58 @@ static void Check_MAPS(LoadBuffer *reader)
 
 static const uint MAP_SL_BUF_SIZE = 4096;
 
+static void Load_MAPH(LoadBuffer *reader)
+{
+	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
+	TileIndex size = MapSize();
+
+	for (TileIndex i = 0; i != size; ) {
+		reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
+		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mth[i++].height = buf[j];
+	}
+}
+
+static void Save_MAPH(SaveDumper *dumper)
+{
+	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
+	TileIndex size = MapSize();
+
+	dumper->WriteRIFFSize(size);
+	for (TileIndex i = 0; i != size;) {
+		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mth[i++].height;
+		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
+	}
+}
+
 static void Load_MAPT(LoadBuffer *reader)
 {
-	reader->CopyBytes(_mth, MapSize());
+	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
+	TileIndex size = MapSize();
+
+	for (TileIndex i = 0; i != size;) {
+		reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
+		if (reader->IsVersionBefore (22, 194)) {
+			for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) {
+				_mth[i].height = buf[j] & 0x0F;
+				_mth[i].zone   = buf[j] & 0xF0;
+				i++;
+			}
+		} else {
+			for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mth[i++].zone = buf[j];
+		}
+	}
 }
 
 static void Save_MAPT(SaveDumper *dumper)
 {
+	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	dumper->WriteRIFFSize(size);
-	dumper->CopyBytes(_mth, size);
+	for (TileIndex i = 0; i != size;) {
+		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mth[i++].zone;
+		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
+	}
 }
 
 static void Load_MAP1(LoadBuffer *reader)
@@ -1234,6 +1255,7 @@ static void Save_MAP7(SaveDumper *dumper)
 
 extern const ChunkHandler _map_chunk_handlers[] = {
 	{ 'MAPS', Save_MAPS, Load_MAPS, NULL, Check_MAPS, CH_RIFF },
+	{ 'MAPH', Save_MAPH, Load_MAPH, NULL, NULL,       CH_RIFF },
 	{ 'MAPT', Save_MAPT, Load_MAPT, NULL, NULL,       CH_RIFF },
 	{ 'MAPO', Save_MAP1, Load_MAP1, NULL, NULL,       CH_RIFF },
 	{ 'MAP2', Save_MAP2, Load_MAP2, NULL, NULL,       CH_RIFF },

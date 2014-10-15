@@ -29,24 +29,20 @@
 <h1>Landscape</h1>
 
 <p>
-Seven attributes hold the information about a tile. These attributes are
-<b>type_height</b>, <b>m0</b>, <b>m1</b>, <b>m2</b>, <b>m3</b>, <b>m4</b>,
-<b>m5</b> and <b>m7</b>.
-</p>
-
-<p>
-The attribute <b>type_height</b> contains the height of a tile stored in
-its lower 4 bits. The slope of a tile is computed combining its height
-with the heights of its neighbours. The higher bits of <b>type_height</b>
-may contain additional information depending on the climate; currently,
-the higher 2 bits contain the zone information in the tropical climate.
+Tile data are stored in two structs, <b>TileZH</b> and <b>Tile</b>.
+<b>TileZH</b> is used for generic landscape information and has two fields,
+<b>height</b>, which contains the height of the tile (its northern corner),
+and <b>zone</b>, which contains the tropical climate zone of the tile in
+its highest 2 bits; other bits in this field are currently unused.
+The slope of a tile is computed combining its height with the heights
+of its neighbours.
 </p>
 
 <table>
-  <tr> <th> type_height (8)
-  <tr> <td class="mono"> 7654-3210
-  <tr> <td class="mono">
-    <span title="Zone">zz</span>00-<span title="Tile height (0&ndash;15)">hhhh</span>
+  <tr> <th> height (8) <th> zone (8)
+  <tr> <td class="mono"> 7654-3210 <td class="mono"> 7654-3210
+  <tr> <td class="mono"> <span title="Tile height">[height-]</span>
+       <td class="mono"> <span title="Zone">zz</span>00-0000
 </table>
 
 <p>

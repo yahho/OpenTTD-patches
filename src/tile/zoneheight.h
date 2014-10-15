@@ -40,12 +40,11 @@ enum TropicZone {
 	TROPICZONE_RAINFOREST = 2,      ///< Rainforest tile
 };
 
-/**
- * Zone and height of a tile.
- * The zone goes into the 2 most significant bits; the height goes into
- * the 4 least significant bits.
- */
-typedef byte TileZH;
+/** Zone and height of a tile. */
+struct TileZH {
+	byte height; ///< height of the (northern corner of the) tile
+	byte zone;   ///< tile zone (2 most significant bits)
+};
 
 /**
  * Get the height of a tile
@@ -57,7 +56,7 @@ typedef byte TileZH;
  */
 static inline uint tilezh_get_height(const TileZH *t)
 {
-	return GB(*t, 0, 4);
+	return t->height;
 }
 
 /**
@@ -72,7 +71,7 @@ static inline uint tilezh_get_height(const TileZH *t)
 static inline void tilezh_set_height(TileZH *t, uint height)
 {
 	assert(height <= MAX_TILE_HEIGHT);
-	SB(*t, 0, 4, height);
+	t->height = height;
 }
 
 /**
@@ -82,7 +81,7 @@ static inline void tilezh_set_height(TileZH *t, uint height)
  */
 static inline TropicZone tilezh_get_zone(const TileZH *t)
 {
-	return (TropicZone)GB(*t, 6, 2);
+	return (TropicZone)GB(t->zone, 6, 2);
 }
 
 /**
@@ -93,7 +92,7 @@ static inline TropicZone tilezh_get_zone(const TileZH *t)
  */
 static inline void tilezh_set_zone(TileZH *t, TropicZone z)
 {
-	SB(*t, 6, 2, z);
+	SB(t->zone, 6, 2, z);
 }
 
 #endif /* TILE_ZONEHEIGHT_H */
