@@ -678,13 +678,17 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 
 	/* Switch to the new map array */
 	if (IsFullSavegameVersionBefore(stv, 1)) {
+		bool old_zone_bridge = IsFullSavegameVersionBefore (stv, 1, 194);
+
 		for (TileIndex t = 0; t < map_size; t++) {
-			uint zone = GB(_mc[t].m0, 0, 2);
+			uint zone = old_zone_bridge ? GB(_mc[t].m0, 0, 2) : GB(_mth[t].zb, 0, 2);
+			/* This only makes sense for some tile types. */
+			uint bridge = old_zone_bridge ? GB(_mc[t].m0, 6, 2) : GB(_mth[t].zb, 2, 2);
 
 			switch (GetOldTileType(t)) {
 				case OLD_MP_CLEAR: {
 					uint fence_nw = GB(_mc[t].m0, 2, 3);
-					_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_GROUND << 4);
+					_mc[t].m0 = bridge | (TT_GROUND << 4);
 					uint ground = GB(_mc[t].m5, 2, 3);
 					if (ground == 3) {
 						SB(_mc[t].m1, 6, 2, TT_GROUND_FIELDS);
@@ -722,7 +726,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 				case OLD_MP_RAILWAY: {
 					uint ground = GB(_mc[t].m4, 0, 4);
 					if (!HasBit(_mc[t].m5, 7)) { // track
-						_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_RAILWAY << 4);
+						_mc[t].m0 = bridge | (TT_RAILWAY << 4);
 						SB(_mc[t].m1, 6, 2, TT_TRACK);
 						if (HasBit(_mc[t].m5, 6)) { // with signals
 							_mc[t].m7 = GB(_mc[t].m4, 4, 2) | (GB(_mc[t].m3, 4, 2) << 2) | (GB(_mc[t].m2, 4, 3) << 4) | (GB(_mc[t].m2, 7, 1) << 7);
@@ -733,7 +737,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 						SB(_mc[t].m3, 4, 4, ground);
 						SB(_mc[t].m2, 0, 8, GB(_mc[t].m5, 0, 6));
 					} else if (HasBit(_mc[t].m5, 6)) { // depot
-						_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_MISC << 4);
+						_mc[t].m0 = bridge | (TT_MISC << 4);
 						SB(_mc[t].m1, 6, 2, TT_MISC_DEPOT);
 						ClrBit(_mc[t].m1, 5);
 						SB(_mc[t].m3, 4, 4, ground == 12 ? 1 : 0);
@@ -751,7 +755,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 
 				case OLD_MP_ROAD: {
 					uint roadside = GB(_mc[t].m0, 3, 3);
-					_mc[t].m0 = GB(_mc[t].m0, 6, 2);
+					_mc[t].m0 = bridge;
 					switch (GB(_mc[t].m5, 6, 2)) {
 						case 0: { // normal road
 							_mc[t].m0 |= (TT_ROAD << 4);
@@ -820,7 +824,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 				}
 
 				case OLD_MP_WATER:
-					_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_WATER << 4);
+					_mc[t].m0 = bridge | (TT_WATER << 4);
 					_mc[t].m3 = _mc[t].m4;
 					_mc[t].m4 = 0;
 					break;
@@ -841,14 +845,14 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 						uint type = GB(_mc[t].m0, 2, 4);
 						switch (GB(_mc[t].m5, 2, 2)) {
 							case 0: // rail
-								_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_RAILWAY << 4);
+								_mc[t].m0 = bridge | (TT_RAILWAY << 4);
 								SB(_mc[t].m1, 6, 2, TT_BRIDGE);
 								SB(_mc[t].m2, 12, 4, type);
 								SB(_mc[t].m3, 4, 2, GB(_mc[t].m7, 5, 1));
 								SB(_mc[t].m3, 6, 2, GB(_mc[t].m5, 0, 2));
 								break;
 							case 1: { // road
-								_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_ROAD << 4);
+								_mc[t].m0 = bridge | (TT_ROAD << 4);
 								SB(_mc[t].m1, 6, 2, TT_BRIDGE);
 								if (HasBit(_mc[t].m7, 6)) SB(_mc[t].m1, 0, 5, GB(_mc[t].m7, 0, 5));
 								uint tram = GB(_mc[t].m3, 4, 4);
@@ -857,7 +861,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 								SB(_mc[t].m7, 0, 4, type);
 								} break;
 							case 2: // aqueduct
-								_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_MISC << 4);
+								_mc[t].m0 = bridge | (TT_MISC << 4);
 								SB(_mc[t].m1, 6, 2, TT_MISC_AQUEDUCT);
 								_mc[t].m3 = (GB(_mc[t].m5, 0, 2) << 6) | (GB(_mc[t].m7, 5, 1) << 4);
 								_mc[t].m5 = 0;
@@ -866,7 +870,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 								throw SlCorrupt("Invalid bridge transport type");
 						}
 					} else { // tunnel
-						_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_MISC << 4);
+						_mc[t].m0 = bridge | (TT_MISC << 4);
 						SB(_mc[t].m1, 6, 2, TT_MISC_TUNNEL);
 						uint tram = GB(_mc[t].m3, 4, 4);
 						SB(_mc[t].m3, 4, 2, GB(_mc[t].m7, 5, 1));
@@ -877,7 +881,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					break;
 
 				case OLD_MP_OBJECT:
-					_mc[t].m0 = GB(_mc[t].m0, 6, 2) | (TT_OBJECT << 4);
+					_mc[t].m0 = bridge | (TT_OBJECT << 4);
 					break;
 
 				default:
