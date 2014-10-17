@@ -796,7 +796,7 @@ static byte AircraftGetEntryPoint(const Aircraft *v, const AirportFTAClass *apc,
 }
 
 
-static void MaybeCrashAirplane(Aircraft *v);
+static bool MaybeCrashAirplane(Aircraft *v);
 
 /**
  * Controls the movement of an aircraft. This function actually moves the vehicle
@@ -945,8 +945,7 @@ static bool AircraftController(Aircraft *v)
 	}
 
 	if (amd.flag & AMED_BRAKE && v->cur_speed > SPEED_LIMIT_TAXI * _settings_game.vehicle.plane_speed) {
-		MaybeCrashAirplane(v);
-		if ((v->vehstatus & VS_CRASHED) != 0) return false;
+		if (MaybeCrashAirplane(v)) return false;
 	}
 
 	uint speed_limit = SPEED_LIMIT_TAXI;
@@ -1254,10 +1253,11 @@ static void CrashAirplane(Aircraft *v)
 /**
  * Decide whether aircraft \a v should crash.
  * @param v Aircraft to test.
+ * @return Whether the aircraft has been crashed
  */
-static void MaybeCrashAirplane(Aircraft *v)
+static bool MaybeCrashAirplane(Aircraft *v)
 {
-	if (_settings_game.vehicle.plane_crashes == 0) return;
+	if (_settings_game.vehicle.plane_crashes == 0) return false;
 
 	Station *st = Station::Get(v->targetairport);
 
@@ -1271,7 +1271,7 @@ static void MaybeCrashAirplane(Aircraft *v)
 		prob /= 1500;
 	}
 
-	if (GB(Random(), 0, 22) > prob) return;
+	if (GB(Random(), 0, 22) > prob) return false;
 
 	/* Crash the airplane. Remove all goods stored at the station. */
 	for (CargoID i = 0; i < NUM_CARGO; i++) {
@@ -1280,6 +1280,7 @@ static void MaybeCrashAirplane(Aircraft *v)
 	}
 
 	CrashAirplane(v);
+	return true;
 }
 
 /**
