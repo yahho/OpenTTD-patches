@@ -66,6 +66,8 @@ struct OrthogonalTileArea {
 
 	void expand (uint radius);
 
+	void expand (uint xm, uint ym, uint xp, uint yp);
+
 	/**
 	 * Get the center tile.
 	 * @return The tile at the center, or just north of it.

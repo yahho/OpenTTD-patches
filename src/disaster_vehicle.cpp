@@ -628,11 +628,11 @@ static bool DisasterTick_Big_Ufo_Destroyer(DisasterVehicle *v)
 				EV_EXPLOSION_SMALL);
 		}
 
-		for (int dy = -3; dy < 3; dy++) {
-			for (int dx = -3; dx < 3; dx++) {
-				TileIndex tile = TileAddWrap(v->tile, dx, dy);
-				if (tile != INVALID_TILE) DisasterClearSquare(tile);
-			}
+		TileArea ta (v->tile);
+		ta.expand (3, 3, 2, 2);
+
+		TILE_AREA_LOOP(t, ta) {
+			DisasterClearSquare (t);
 		}
 	}
 

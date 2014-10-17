@@ -179,6 +179,30 @@ void OrthogonalTileArea::expand (uint radius)
 	this->tile = TileXY (x, y);
 }
 
+/** Expand the area by a given amount in all directions. */
+void OrthogonalTileArea::expand (uint xm, uint ym, uint xp, uint yp)
+{
+	uint x = TileX(this->tile);
+	if (x < xm) {
+		this->w = min (this->w + x + xp, MapSizeX());
+		x = 0;
+	} else {
+		x -= xm;
+		this->w = min (this->w + xm + xp, MapSizeX() - x);
+	}
+
+	uint y = TileY(this->tile);
+	if (y < ym) {
+		this->h = min (this->h + y + yp, MapSizeY());
+		y = 0;
+	} else {
+		y -= ym;
+		this->h = min (this->h + ym + yp, MapSizeY() - y);
+	}
+
+	this->tile = TileXY (x, y);
+}
+
 
 /**
  * Construct this tile area based on two points.
