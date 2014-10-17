@@ -157,8 +157,8 @@ Industry::~Industry()
 	}
 
 	if (GetIndustrySpec(this->type)->behaviour & INDUSTRYBEH_PLANT_FIELDS) {
-		TileArea ta(this->location.tile - TileDiffXY(min(TileX(this->location.tile), 21), min(TileY(this->location.tile), 21)), 42, 42);
-		ta.ClampToMap();
+		TileArea ta (this->location.tile);
+		ta.expand (21);
 
 		/* Remove the farmland and convert it to regular tiles over time. */
 		TILE_AREA_LOOP(tile_cur, ta) {
@@ -978,8 +978,8 @@ static void PlantFarmField(TileIndex tile, IndustryID industry)
 	uint size_x = GB(r, 0, 8);
 	uint size_y = GB(r, 8, 8);
 
-	TileArea ta(tile - TileDiffXY(min(TileX(tile), size_x / 2), min(TileY(tile), size_y / 2)), size_x, size_y);
-	ta.ClampToMap();
+	TileArea ta (tile);
+	ta.expand (size_x / 2, size_y / 2, size_x - (size_x / 2), size_y - (size_y / 2));
 
 	if (ta.w == 0 || ta.h == 0) return;
 
