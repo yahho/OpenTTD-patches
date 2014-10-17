@@ -86,33 +86,6 @@ bool IsHangar(TileIndex t)
 }
 
 /**
- * Function to check whether the given tile matches some criterion.
- * @param tile the tile to check
- * @return true if it matches, false otherwise
- */
-typedef bool (*CMSAMatcher)(TileIndex tile);
-
-/**
- * Counts the numbers of tiles matching a specific type in the area around
- * @param tile the center tile of the 'count area'
- * @param cmp the comparator/matcher (@see CMSAMatcher)
- * @return the number of matching tiles around
- */
-static int CountMapSquareAround(TileIndex tile, CMSAMatcher cmp)
-{
-	int num = 0;
-
-	TileArea ta (tile);
-	ta.expand (3);
-
-	TILE_AREA_LOOP(t, ta) {
-		if (cmp(t)) num++;
-	}
-
-	return num;
-}
-
-/**
  * Check whether the tile is a mine.
  * @param tile the tile to investigate.
  * @return true if and only if the tile is a mine
@@ -137,26 +110,6 @@ static bool CMSAMine(TileIndex tile)
 	}
 
 	return false;
-}
-
-/**
- * Check whether the tile is water.
- * @param tile the tile to investigate.
- * @return true if and only if the tile is a water tile
- */
-static bool CMSAWater(TileIndex tile)
-{
-	return IsPlainWaterTile(tile);
-}
-
-/**
- * Check whether the tile is a tree.
- * @param tile the tile to investigate.
- * @return true if and only if the tile is a tree tile
- */
-static bool CMSATree(TileIndex tile)
-{
-	return IsTreeTile(tile);
 }
 
 #define M(x) ((x) - STR_SV_STNAME)
@@ -240,10 +193,16 @@ static StringID GenerateStationName(Station *st, TileIndex tile, StationNaming n
 	uint32 tmp = free_names & _gen_station_name_bits[name_class];
 	if (tmp != 0) return STR_SV_STNAME + FindFirstBit(tmp);
 
+	TileArea around (tile);
+	around.expand (3);
+
 	/* check mine? */
 	if (HasBit(free_names, M(STR_SV_STNAME_MINES))) {
-		if (CountMapSquareAround(tile, CMSAMine) >= 2) {
-			return STR_SV_STNAME_MINES;
+		uint num = 0;
+		TILE_AREA_LOOP(t, around) {
+			if (CMSAMine(t) && ++num >= 2) {
+				return STR_SV_STNAME_MINES;
+			}
 		}
 	}
 
@@ -256,17 +215,24 @@ static StringID GenerateStationName(Station *st, TileIndex tile, StationNaming n
 
 	/* Check lakeside */
 	if (HasBit(free_names, M(STR_SV_STNAME_LAKESIDE)) &&
-			DistanceFromEdge(tile) < 20 &&
-			CountMapSquareAround(tile, CMSAWater) >= 5) {
-		return STR_SV_STNAME_LAKESIDE;
+			DistanceFromEdge(tile) < 20) {
+		uint num = 0;
+		TILE_AREA_LOOP(t, around) {
+			if (IsPlainWaterTile(t) && ++num >= 5) {
+				return STR_SV_STNAME_LAKESIDE;
+			}
+		}
 	}
 
 	/* Check woods */
-	if (HasBit(free_names, M(STR_SV_STNAME_WOODS)) && (
-				CountMapSquareAround(tile, CMSATree) >= 8 ||
-				CountMapSquareAround(tile, IsTileForestIndustry) >= 2)
-			) {
-		return _settings_game.game_creation.landscape == LT_TROPIC ? STR_SV_STNAME_FOREST : STR_SV_STNAME_WOODS;
+	if (HasBit(free_names, M(STR_SV_STNAME_WOODS))) {
+		uint trees = 0;
+		uint forest = 0;
+		TILE_AREA_LOOP(t, around) {
+			if ((IsTreeTile(t) && ++trees >= 8) || (IsTileForestIndustry(t) && ++forest >= 2)) {
+				return _settings_game.game_creation.landscape == LT_TROPIC ? STR_SV_STNAME_FOREST : STR_SV_STNAME_WOODS;
+			}
+		}
 	}
 
 	/* check elevation compared to town */
