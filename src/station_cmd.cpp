@@ -102,11 +102,11 @@ static int CountMapSquareAround(TileIndex tile, CMSAMatcher cmp)
 {
 	int num = 0;
 
-	for (int dx = -3; dx <= 3; dx++) {
-		for (int dy = -3; dy <= 3; dy++) {
-			TileIndex t = TileAddWrap(tile, dx, dy);
-			if (t != INVALID_TILE && cmp(t)) num++;
-		}
+	TileArea ta (tile);
+	ta.expand (3);
+
+	TILE_AREA_LOOP(t, ta) {
+		if (cmp(t)) num++;
 	}
 
 	return num;
