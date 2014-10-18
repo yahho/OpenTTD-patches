@@ -1727,6 +1727,23 @@ void Window::DrawViewport() const
 	dpi->top -= this->top;
 }
 
+static int GetNearestHeight (int x, int y)
+{
+	if (x < 0) {
+		x = 0;
+	} else if ((uint)x >= MapSizeX()) {
+		x = MapMaxX();
+	}
+
+	if (y < 0) {
+		y = 0;
+	} else if ((uint)y >= MapSizeY()) {
+		y = MapMaxY();
+	}
+
+	return TileHeight (TileXY (x, y));
+}
+
 static inline void ClampViewportToMap(const ViewPort *vp, int &x, int &y)
 {
 	/* Centre of the viewport is hot spot */
@@ -1738,9 +1755,46 @@ static inline void ClampViewportToMap(const ViewPort *vp, int &x, int &y)
 	int vx = -x + y * 2;
 	int vy =  x + y * 2;
 
+	/* Compute the tile at that spot if it were at sea level. */
+	int tx = vx >> (ZOOM_LVL_SHIFT + 6);
+	int ty = vy >> (ZOOM_LVL_SHIFT + 6);
+
+	/* Correct for tile height. */
+	int h = 0;
+	for (;;) {
+		int hh = GetNearestHeight (tx, ty);
+		if (hh < h + 4) {
+			h = hh;
+			break;
+		}
+		int d = 1 + (uint)(hh - h - 4) / 6;
+		h += 4 * d;
+		tx += d;
+		ty += d;
+	}
+
+	/* Interpolate height. */
+	{
+		int xp = vx & ((1 << (ZOOM_LVL_SHIFT + 6)) - 1);
+		int xq = (1 << (ZOOM_LVL_SHIFT + 6)) - xp;
+		int yp = vy & ((1 << (ZOOM_LVL_SHIFT + 6)) - 1);
+		int yq = (1 << (ZOOM_LVL_SHIFT + 6)) - yp;
+		int c = xp * yq * (GetNearestHeight (tx + 1, ty) - h) +
+			xq * yp * (GetNearestHeight (tx, ty + 1) - h) +
+			xp * yp * (GetNearestHeight (tx + 1, ty + 1) - h);
+		h *= ZOOM_LVL_BASE * TILE_SIZE;
+		h += c >> (ZOOM_LVL_SHIFT + 8);
+	}
+
+	vx += h;
+	vy += h;
+
 	/* clamp to size of map */
 	vx = Clamp(vx, 0, MapMaxX() * TILE_SIZE * 4 * ZOOM_LVL_BASE);
 	vy = Clamp(vy, 0, MapMaxY() * TILE_SIZE * 4 * ZOOM_LVL_BASE);
+
+	vx -= h;
+	vy -= h;
 
 	/* Convert map coordinates to viewport coordinates */
 	x = (-vx + vy) / 2;
@@ -2187,7 +2241,13 @@ void RebuildViewportOverlay(Window *w)
 bool ScrollWindowTo(int x, int y, int z, Window *w, bool instant)
 {
 	/* The slope cannot be acquired outside of the map, so make sure we are always within the map. */
-	if (z == -1) z = GetSlopePixelZ(Clamp(x, 0, MapSizeX() * TILE_SIZE - 1), Clamp(y, 0, MapSizeY() * TILE_SIZE - 1));
+	if (z == -1) {
+		if ((uint)x < MapSizeX() * TILE_SIZE && (uint)y < MapSizeY() * TILE_SIZE) {
+			z = GetSlopePixelZ (x, y);
+		} else {
+			z = GetVirtualHeight (x / TILE_SIZE, y / TILE_SIZE) * TILE_HEIGHT;
+		}
+	}
 
 	Point pt = MapXYZToViewport(w->viewport, x, y, z);
 	w->viewport->follow_vehicle = INVALID_VEHICLE;
