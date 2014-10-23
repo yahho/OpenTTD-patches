@@ -19,6 +19,10 @@
 
 #include "table/strings.h"
 
+#if defined(WITH_ZLIB)
+#include <zlib.h>
+#endif
+
 /** Widgets for the textfile window. */
 static const NWidgetPart _nested_textfile_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
@@ -48,6 +52,61 @@ static WindowDesc _textfile_desc(
 	_nested_textfile_widgets, lengthof(_nested_textfile_widgets)
 );
 
+#if defined(WITH_ZLIB)
+/**
+ * Do an in-memory gunzip operation. This works on a raw deflate stream,
+ * or a file with gzip or zlib header.
+ * @param bufp  A pointer to a buffer containing the input data. This
+ *              buffer will be freed and replaced by a buffer containing
+ *              the uncompressed data.
+ * @param sizep A pointer to the buffer size. Before the call, the value
+ *              pointed to should contain the size of the input buffer.
+ *              After the call, it contains the size of the uncompressed
+ *              data.
+ *
+ * When decompressing fails, *bufp is set to NULL and *sizep to 0. The
+ * compressed buffer passed in is still freed in this case.
+ */
+static void Gunzip(byte **bufp, size_t *sizep)
+{
+	static const int BLOCKSIZE  = 8192;
+	byte             *buf       = NULL;
+	size_t           alloc_size = 0;
+	z_stream         z;
+	int              res;
+
+	memset(&z, 0, sizeof(z));
+	z.next_in = *bufp;
+	z.avail_in = *sizep;
+
+	/* window size = 15, add 32 to enable gzip or zlib header processing */
+	res = inflateInit2(&z, 15 + 32);
+	/* Z_BUF_ERROR just means we need more space */
+	while (res == Z_OK || (res == Z_BUF_ERROR && z.avail_out == 0)) {
+		/* When we get here, we're either just starting, or
+		 * inflate is out of output space - allocate more */
+		alloc_size += BLOCKSIZE;
+		z.avail_out += BLOCKSIZE;
+		buf = xrealloct(buf, alloc_size);
+		z.next_out = buf + alloc_size - z.avail_out;
+		res = inflate(&z, Z_FINISH);
+	}
+
+	free(*bufp);
+	inflateEnd(&z);
+
+	if (res == Z_STREAM_END) {
+		*bufp = buf;
+		*sizep = alloc_size - z.avail_out;
+	} else {
+		/* Something went wrong */
+		*bufp = NULL;
+		*sizep = 0;
+		free(buf);
+	}
+}
+#endif
+
 TextfileWindow::TextfileWindow (const TextfileDesc &txt)
 	: Window(&_textfile_desc), file_type(txt.type)
 {
@@ -69,12 +128,24 @@ TextfileWindow::TextfileWindow (const TextfileDesc &txt)
 	FILE *handle = FioFOpenFile (txt.path, "rb", txt.dir, &filesize);
 	if (handle == NULL) return;
 
-	this->text = xmalloc (filesize + 1);
+	this->text = xmalloc (filesize);
 	size_t read = fread (this->text, 1, filesize, handle);
 	fclose (handle);
 
 	if (read != filesize) return;
 
+#if defined(WITH_ZLIB)
+	const char *suffix = strrchr (txt.path, '.');
+	if (suffix == NULL) return;
+
+	/* In-place gunzip */
+	if (strcmp(suffix, ".gz") == 0) Gunzip((byte**)&this->text, &filesize);
+#endif
+
+	if (!this->text) return;
+
+	/* Add space for trailing \0 */
+	this->text = xrealloc (this->text, filesize + 1);
 	this->text[filesize] = '\0';
 
 	/* Replace tabs and line feeds with a space since str_validate removes those. */
@@ -251,6 +322,9 @@ TextfileDesc::TextfileDesc (TextfileType type, Subdirectory dir, const char *fil
 
 	static const char * const exts[] = {
 		"txt",
+#if defined(WITH_ZLIB)
+		"txt.gz",
+#endif
 	};
 
 	for (size_t i = 0; i < lengthof(exts); i++) {
