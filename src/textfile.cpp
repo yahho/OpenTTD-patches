@@ -247,18 +247,25 @@ TextfileDesc::TextfileDesc (TextfileType type, Subdirectory dir, const char *fil
 	this->path = xmalloc (alloc_size);
 	stringb buf (alloc_size, this->path);
 	buf.fmt ("%.*s%s", (int)(slash - filename + 1), filename, prefixes[type]);
-
 	size_t base_length = buf.length();
-	buf.append_fmt ("_%s.txt", GetCurrentLanguageIsoCode());
-	if (FioCheckFileExists (buf.c_str(), dir)) return;
 
-	buf.truncate (base_length);
-	buf.append_fmt ("_%.2s.txt", GetCurrentLanguageIsoCode());
-	if (FioCheckFileExists (buf.c_str(), dir)) return;
+	static const char * const exts[] = {
+		"txt",
+	};
 
-	buf.truncate (base_length);
-	buf.append (".txt");
-	if (FioCheckFileExists (buf.c_str(), dir)) return;
+	for (size_t i = 0; i < lengthof(exts); i++) {
+		buf.truncate (base_length);
+		buf.append_fmt ("_%s.%s", GetCurrentLanguageIsoCode(), exts[i]);
+		if (FioCheckFileExists (buf.c_str(), dir)) return;
+
+		buf.truncate (base_length);
+		buf.append_fmt ("_%.2s.%s", GetCurrentLanguageIsoCode(), exts[i]);
+		if (FioCheckFileExists (buf.c_str(), dir)) return;
+
+		buf.truncate (base_length);
+		buf.append_fmt (".%s", exts[i]);
+		if (FioCheckFileExists (buf.c_str(), dir)) return;
+	}
 
 	free (this->path);
 	this->path = NULL;
