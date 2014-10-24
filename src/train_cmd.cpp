@@ -4150,10 +4150,12 @@ static bool TrainLocoHandler(Train *v, bool mode)
 		/* Try to reserve a path when leaving the station as we
 		 * might not be marked as wanting a reservation, e.g.
 		 * when an overlength train gets turned around in a station. */
-		assert(IsSignalBufferEmpty());
-		AddPosToSignalBuffer(v->GetPos(), v->owner);
-		if (UpdateSignalsInBuffer() == SIGSEG_PBS || _settings_game.pf.reserve_paths) {
-			TryPathReserve(v, true, true);
+		if (v->trackdir != TRACKDIR_DEPOT) {
+			assert(IsSignalBufferEmpty());
+			AddPosToSignalBuffer(v->GetPos(), v->owner);
+			if (UpdateSignalsInBuffer() == SIGSEG_PBS || _settings_game.pf.reserve_paths) {
+				TryPathReserve(v, true, true);
+			}
 		}
 		ClrBit(v->flags, VRF_LEAVING_STATION);
 	}
