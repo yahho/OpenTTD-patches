@@ -85,7 +85,7 @@ static void LogVersion (stringb *buffer)
 			"Binary:\n"
 			" Version:    %s (%d)\n"
 			" NewGRF ver: %08x\n"
-			" Build date: %s\n\n"
+			" Build date: %s\n"
 			" Flags:     "
 #ifdef _SQ64
 			" 64-bit"
@@ -100,7 +100,7 @@ static void LogVersion (stringb *buffer)
 #ifdef DEDICATED
 			" dedicated"
 #endif
-			,
+			"\n\n",
 			_openttd_revision, _openttd_revision_modified,
 			_openttd_newgrf_version,
 			_openttd_build_date
