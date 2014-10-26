@@ -703,14 +703,20 @@ void Textbuf::UpdateSize()
 	const char *buf = this->buffer;
 	assert (strlen(buf) == this->len);
 	assert (this->len < this->capacity);
+	assert (this->max_chars > 1);
 
 	this->chars = 1; // terminating zero
-
-	while (Utf8Consume(&buf) != '\0') {
+	for (;;) {
+		if (Utf8Consume(&buf) == '\0') {
+			assert (buf == this->buffer + this->len + 1);
+			break;
+		}
 		this->chars++;
+		if (this->chars == this->max_chars) {
+			this->truncate (buf - this->buffer);
+			break;
+		}
 	}
-	assert(buf == this->buffer + this->len + 1);
-	assert(this->chars <= this->max_chars);
 
 	this->caretpos = this->len;
 	this->UpdateStringIter();

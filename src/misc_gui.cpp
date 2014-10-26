@@ -913,13 +913,6 @@ struct QueryStringWindow : public Window
 	{
 		GetString (&this->editbox, str);
 		this->editbox.validate (SVS_NONE);
-
-		/* Make sure the name isn't too long for the text buffer in the number of
-		 * characters (not bytes). max_chars also counts the '\0' characters. */
-		while (Utf8StringLength(this->editbox.buffer) + 1 > this->editbox.max_chars) {
-			*Utf8PrevChar(this->editbox.buffer + this->editbox.length()) = '\0';
-		}
-
 		this->editbox.UpdateSize();
 
 		if ((flags & QSF_ACCEPT_UNCHANGED) == 0) this->editbox.orig = xstrdup(this->editbox.buffer);
