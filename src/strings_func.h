@@ -223,6 +223,15 @@ int CDECL StringIDSorter(const StringID *a, const StringID *b);
  */
 class MissingGlyphSearcher {
 public:
+	const FontSize default_size; ///< default font size of the string
+	const bool     monospace;    ///< whether to search for a monospace font
+
+	/** Construct an instance. */
+	CONSTEXPR MissingGlyphSearcher (FontSize size, bool mono)
+		: default_size(size), monospace(mono)
+	{
+	}
+
 	/** Make sure everything gets destructed right. */
 	virtual ~MissingGlyphSearcher() {}
 
@@ -236,7 +245,10 @@ public:
 	 * Get the default (font) size of the string.
 	 * @return The font size.
 	 */
-	virtual FontSize DefaultSize() = 0;
+	FontSize DefaultSize() const
+	{
+		return this->default_size;
+	}
 
 	/**
 	 * Reset the search, i.e. begin from the beginning again.
@@ -247,7 +259,10 @@ public:
 	 * Whether to search for a monospace font or not.
 	 * @return True if searching for monospace.
 	 */
-	virtual bool Monospace() = 0;
+	bool Monospace() const
+	{
+		return this->monospace;
+	}
 
 	void SetFontNames (struct FreeTypeSettings *settings, const char *font_name);
 

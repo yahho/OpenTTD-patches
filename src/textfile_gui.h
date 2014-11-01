@@ -38,9 +38,7 @@ struct TextfileWindow : public Window, MissingGlyphSearcher {
 	virtual void DrawWidget(const Rect &r, int widget) const;
 	virtual void OnResize();
 	virtual void Reset();
-	virtual FontSize DefaultSize();
 	virtual const char *NextString();
-	virtual bool Monospace();
 	virtual void LoadTextfile(const char *textfile, Subdirectory dir);
 private:
 	uint GetContentHeight();

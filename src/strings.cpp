@@ -2036,15 +2036,17 @@ class LanguagePackGlyphSearcher : public MissingGlyphSearcher {
 	uint i; ///< Iterator for the primary language tables.
 	uint j; ///< Iterator for the secondary language tables.
 
+public:
+	CONSTEXPR LanguagePackGlyphSearcher()
+		: MissingGlyphSearcher (FS_NORMAL, false), i(0), j(0)
+	{
+	}
+
+private:
 	/* virtual */ void Reset()
 	{
 		this->i = 0;
 		this->j = 0;
-	}
-
-	/* virtual */ FontSize DefaultSize()
-	{
-		return FS_NORMAL;
 	}
 
 	/* virtual */ const char *NextString()
@@ -2060,11 +2062,6 @@ class LanguagePackGlyphSearcher : public MissingGlyphSearcher {
 		}
 
 		return ret;
-	}
-
-	/* virtual */ bool Monospace()
-	{
-		return false;
 	}
 };
 

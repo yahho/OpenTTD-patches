@@ -50,7 +50,8 @@ static WindowDesc _textfile_desc(
 	_nested_textfile_widgets, lengthof(_nested_textfile_widgets)
 );
 
-TextfileWindow::TextfileWindow(TextfileType file_type) : Window(&_textfile_desc), file_type(file_type)
+TextfileWindow::TextfileWindow (TextfileType file_type)
+	: Window (&_textfile_desc), MissingGlyphSearcher (FS_MONO, true), file_type (file_type)
 {
 	this->CreateNestedTree();
 	this->vscroll = this->GetScrollbar(WID_TF_VSCROLLBAR);
@@ -167,21 +168,11 @@ void TextfileWindow::SetupScrollbars()
 	this->search_iterator = 0;
 }
 
-/* virtual */ FontSize TextfileWindow::DefaultSize()
-{
-	return FS_MONO;
-}
-
 /* virtual */ const char *TextfileWindow::NextString()
 {
 	if (this->search_iterator >= this->lines.Length()) return NULL;
 
 	return this->lines[this->search_iterator++];
-}
-
-/* virtual */ bool TextfileWindow::Monospace()
-{
-	return true;
 }
 
 /**
