@@ -22,13 +22,12 @@
 const char *GetTextfile(TextfileType type, Subdirectory dir, const char *filename);
 
 /** Window for displaying a textfile */
-struct TextfileWindow : public Window, MissingGlyphSearcher {
+struct TextfileWindow : public Window {
 	TextfileType file_type;              ///< Type of textfile to view.
 	Scrollbar *vscroll;                  ///< Vertical scrollbar.
 	Scrollbar *hscroll;                  ///< Horizontal scrollbar.
 	char *text;                          ///< Lines of text from the NewGRF's textfile.
 	std::vector<const char *> lines;     ///< #text, split into lines in a table with lines.
-	uint search_iterator;                ///< Iterator for the font check search.
 
 	static const int TOP_SPACING    = WD_FRAMETEXT_TOP;    ///< Additional spacing at the top of the #WID_TF_BACKGROUND widget.
 	static const int BOTTOM_SPACING = WD_FRAMETEXT_BOTTOM; ///< Additional spacing at the bottom of the #WID_TF_BACKGROUND widget.
@@ -39,10 +38,26 @@ struct TextfileWindow : public Window, MissingGlyphSearcher {
 	virtual void OnClick(Point pt, int widget, int click_count);
 	virtual void DrawWidget(const Rect &r, int widget) const;
 	virtual void OnResize();
-	virtual void Reset();
-	virtual const char *NextString();
 	virtual void LoadTextfile(const char *textfile, Subdirectory dir);
+
 private:
+	struct GlyphSearcher : std::vector<const char *>::const_iterator, ::MissingGlyphSearcher {
+		const std::vector<const char *>::const_iterator begin;
+		const std::vector<const char *>::const_iterator end;
+		std::vector<const char *>::const_iterator iter;
+
+		GlyphSearcher (const TextfileWindow &tfw)
+			: MissingGlyphSearcher (FS_MONO, true),
+			  begin (tfw.lines.begin()),
+			  end   (tfw.lines.end()),
+			  iter  (tfw.lines.begin())
+		{
+		}
+
+		void Reset() OVERRIDE;
+		const char *NextString() OVERRIDE;
+	};
+
 	uint GetContentHeight();
 	void SetupScrollbars();
 };

@@ -51,7 +51,7 @@ static WindowDesc _textfile_desc(
 );
 
 TextfileWindow::TextfileWindow (TextfileType file_type)
-	: Window (&_textfile_desc), MissingGlyphSearcher (FS_MONO, true), file_type (file_type)
+	: Window(&_textfile_desc), file_type(file_type)
 {
 	this->CreateNestedTree();
 	this->vscroll = this->GetScrollbar(WID_TF_VSCROLLBAR);
@@ -163,16 +163,14 @@ void TextfileWindow::SetupScrollbars()
 	this->SetupScrollbars();
 }
 
-/* virtual */ void TextfileWindow::Reset()
+void TextfileWindow::GlyphSearcher::Reset()
 {
-	this->search_iterator = 0;
+	this->iter = this->begin;
 }
 
-/* virtual */ const char *TextfileWindow::NextString()
+const char *TextfileWindow::GlyphSearcher::NextString()
 {
-	if (this->search_iterator >= this->lines.size()) return NULL;
-
-	return this->lines[this->search_iterator++];
+	return (this->iter == this->end) ? NULL : *(this->iter++);
 }
 
 /**
@@ -217,7 +215,8 @@ void TextfileWindow::SetupScrollbars()
 		}
 	}
 
-	CheckForMissingGlyphs(true, this);
+	GlyphSearcher searcher (*this);
+	CheckForMissingGlyphs (true, &searcher);
 }
 
 /**
