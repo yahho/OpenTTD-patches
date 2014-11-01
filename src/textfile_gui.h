@@ -41,7 +41,6 @@ struct TextfileWindow : public Window, MissingGlyphSearcher {
 	virtual FontSize DefaultSize();
 	virtual const char *NextString();
 	virtual bool Monospace();
-	virtual void SetFontNames(FreeTypeSettings *settings, const char *font_name);
 	virtual void LoadTextfile(const char *textfile, Subdirectory dir);
 private:
 	uint GetContentHeight();

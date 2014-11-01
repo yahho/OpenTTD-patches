@@ -184,13 +184,6 @@ void TextfileWindow::SetupScrollbars()
 	return true;
 }
 
-/* virtual */ void TextfileWindow::SetFontNames(FreeTypeSettings *settings, const char *font_name)
-{
-#ifdef WITH_FREETYPE
-	bstrcpy (settings->mono.font, font_name);
-#endif /* WITH_FREETYPE */
-}
-
 /**
  * Loads the textfile text from file and setup #lines.
  */
