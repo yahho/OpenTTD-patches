@@ -201,18 +201,20 @@ const char *TextfileWindow::GlyphSearcher::NextString()
 	}
 
 	/* Check for the byte-order-mark, and skip it if needed. */
-	char *p = this->text + (strncmp("\xEF\xBB\xBF", this->text, 3) == 0 ? 3 : 0);
+	char *p = this->text;
+	if (strncmp ("\xEF\xBB\xBF", p, 3) == 0) p += 3;
 
 	/* Make sure the string is a valid UTF-8 sequence. */
 	str_validate(p, this->text + filesize, SVS_REPLACE_WITH_QUESTION_MARK | SVS_ALLOW_NEWLINE);
 
 	/* Split the string on newlines. */
-	this->lines.push_back (p);
-	for (; *p != '\0'; p++) {
-		if (*p == '\n') {
-			*p = '\0';
-			this->lines.push_back (p + 1);
-		}
+	for (;;) {
+		this->lines.push_back (p);
+		p = strchr (p, '\n');
+		if (p == NULL) break;
+		*(p++) = '\0';
+		/* Break on last line if the file does end with a newline. */
+		if (p == this->text + filesize) break;
 	}
 
 	GlyphSearcher searcher (*this);
