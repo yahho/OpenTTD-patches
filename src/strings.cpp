@@ -2104,14 +2104,11 @@ void CheckForMissingGlyphs(bool base_font, MissingGlyphSearcher *searcher)
 #endif
 
 	if (bad_font) {
-		/* All attempts have failed. Display an error. As we do not want the string to be translated by
-		 * the translators, we 'force' it into the binary and 'load' it via a BindCString. To do this
-		 * properly we have to set the colour of the string, otherwise we end up with a lot of artifacts.
-		 * The colour 'character' might change in the future, so for safety we just Utf8 Encode it into
-		 * the string, which takes exactly three characters, so it replaces the "XXX" with the colour marker. */
-		static char *err_str = xstrdup("XXXThe current font is missing some of the characters used in the texts for this language. Read the readme to see how to solve this.");
-		Utf8Encode(err_str, SCC_YELLOW);
-		SetDParamStr(0, err_str);
+		/* All attempts have failed. Display an error. */
+		SetDParamStr (0,
+			SCCSTR_YELLOW "The current font is missing some of "
+			"the characters used in the texts for this language. "
+			"Read the readme to see how to solve this.");
 		ShowErrorMessage(STR_JUST_RAW_STRING, INVALID_STRING_ID, WL_WARNING);
 
 		/* Reset the font width */
@@ -2126,20 +2123,13 @@ void CheckForMissingGlyphs(bool base_font, MissingGlyphSearcher *searcher)
 	/*
 	 * For right-to-left languages we need the ICU library. If
 	 * we do not have support for that library we warn the user
-	 * about it with a message. As we do not want the string to
-	 * be translated by the translators, we 'force' it into the
-	 * binary and 'load' it via a BindCString. To do this
-	 * properly we have to set the colour of the string,
-	 * otherwise we end up with a lot of artifacts. The colour
-	 * 'character' might change in the future, so for safety
-	 * we just Utf8 Encode it into the string, which takes
-	 * exactly three characters, so it replaces the "XXX" with
-	 * the colour marker.
+	 * about it with a message.
 	 */
 	if (_current_text_dir != TD_LTR) {
-		static char *err_str = xstrdup("XXXThis version of OpenTTD does not support right-to-left languages. Recompile with icu enabled.");
-		Utf8Encode(err_str, SCC_YELLOW);
-		SetDParamStr(0, err_str);
+		SetDParamStr (0,
+			SCCSTR_YELLOW "This version of OpenTTD does not "
+			"support right-to-left languages. "
+			"Recompile with icu enabled.");
 		ShowErrorMessage(STR_JUST_RAW_STRING, INVALID_STRING_ID, WL_ERROR);
 	}
 #endif

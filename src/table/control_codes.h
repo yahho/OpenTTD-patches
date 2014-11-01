@@ -170,4 +170,8 @@ enum StringControlCode {
 	SCC_SMALL_DOWN_ARROW = SCC_SPRITE_START + 0xBD,
 };
 
+/* This control code is needed in literal strings. */
+assert_compile (SCC_YELLOW == 0xE040); // 0b 1110 0000 0100 0000
+#define SCCSTR_YELLOW "\xEE\x81\x80"
+
 #endif /* CONTROL_CODES_H */
