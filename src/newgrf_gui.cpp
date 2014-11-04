@@ -550,8 +550,7 @@ struct NewGRFTextfileWindow : public TextfileWindow {
 	const GRFConfig *grf_config; ///< View the textfile of this GRFConfig.
 
 	NewGRFTextfileWindow (TextfileType file_type, const GRFConfig *c)
-		: TextfileWindow (file_type, c->GetTextfile(file_type), NEWGRF_DIR),
-		  grf_config(c)
+		: TextfileWindow (c->GetTextfile(file_type)), grf_config(c)
 	{
 		this->CheckForMissingGlyphs();
 	}
@@ -1268,7 +1267,8 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 
 		const GRFConfig *c = (this->avail_sel == NULL) ? this->active_sel : this->avail_sel;
 		for (TextfileType tft = TFT_BEGIN; tft < TFT_END; tft++) {
-			this->SetWidgetDisabledState(WID_NS_NEWGRF_TEXTFILE + tft, c == NULL || c->GetTextfile(tft) == NULL);
+			this->SetWidgetDisabledState (WID_NS_NEWGRF_TEXTFILE + tft,
+				c == NULL || !c->GetTextfile(tft).valid());
 		}
 		this->SetWidgetDisabledState(WID_NS_OPEN_URL, c == NULL || StrEmpty(c->GetURL()));
 

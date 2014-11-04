@@ -149,17 +149,15 @@ struct BaseSet {
 	/**
 	 * Search a textfile file next to this base media.
 	 * @param type The type of the textfile to search for.
-	 * @return The filename for the textfile, \c NULL otherwise.
+	 * @return A description for the textfile.
 	 */
-	const char *GetTextfile(TextfileType type) const
+	TextfileDesc GetTextfile (TextfileType type) const
 	{
 		for (uint i = 0; i < NUM_FILES; i++) {
-			const char *textfile = ::GetTextfile(type, BASESET_DIR, this->files[i].filename);
-			if (textfile != NULL) {
-				return textfile;
-			}
+			TextfileDesc txt (type, BASESET_DIR, this->files[i].filename);
+			if (txt.valid()) return txt;
 		}
-		return NULL;
+		return TextfileDesc();
 	}
 };
 

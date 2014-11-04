@@ -196,9 +196,9 @@ void ScriptConfig::SettingsToString(char *string, size_t size) const
 	if (!buf.empty()) buf.truncate (buf.length() - 1);
 }
 
-const char *ScriptConfig::GetTextfile(TextfileType type, CompanyID slot) const
+TextfileDesc ScriptConfig::GetTextfile (TextfileType type, CompanyID slot) const
 {
-	if (slot == INVALID_COMPANY || this->GetInfo() == NULL) return NULL;
+	if (slot == INVALID_COMPANY || this->GetInfo() == NULL) return TextfileDesc();
 
-	return ::GetTextfile(type, (slot == OWNER_DEITY) ? GAME_DIR : AI_DIR, this->GetInfo()->GetMainScript());
+	return TextfileDesc (type, (slot == OWNER_DEITY) ? GAME_DIR : AI_DIR, this->GetInfo()->GetMainScript());
 }

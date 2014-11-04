@@ -40,8 +40,7 @@ struct ContentTextfileWindow : public TextfileWindow {
 	const ContentInfo *ci; ///< View the textfile of this ContentInfo.
 
 	ContentTextfileWindow (TextfileType file_type, const ContentInfo *ci)
-		: TextfileWindow (file_type, ci->GetTextfile(file_type), GetContentInfoSubDir(ci->type)),
-		  ci(ci)
+		: TextfileWindow (ci->GetTextfile(file_type)), ci(ci)
 	{
 		this->CheckForMissingGlyphs();
 	}
@@ -941,7 +940,8 @@ public:
 		this->SetWidgetDisabledState(WID_NCL_SELECT_UPDATE, !show_select_upgrade);
 		this->SetWidgetDisabledState(WID_NCL_OPEN_URL, this->selected == NULL || StrEmpty(this->selected->url));
 		for (TextfileType tft = TFT_BEGIN; tft < TFT_END; tft++) {
-			this->SetWidgetDisabledState(WID_NCL_TEXTFILE + tft, this->selected == NULL || this->selected->state != ContentInfo::ALREADY_HERE || this->selected->GetTextfile(tft) == NULL);
+			this->SetWidgetDisabledState (WID_NCL_TEXTFILE + tft,
+				this->selected == NULL || this->selected->state != ContentInfo::ALREADY_HERE || !this->selected->GetTextfile(tft).valid());
 		}
 
 		this->GetWidget<NWidgetCore>(WID_NCL_CANCEL)->widget_data = this->filesize_sum == 0 ? STR_AI_SETTINGS_CLOSE : STR_AI_LIST_CANCEL;

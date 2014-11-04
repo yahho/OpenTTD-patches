@@ -145,7 +145,7 @@ struct BaseSetTextfileWindow : public TextfileWindow {
 	StringID content_type;   ///< STR_CONTENT_TYPE_xxx for title.
 
 	BaseSetTextfileWindow (TextfileType file_type, const TBaseSet* baseset, StringID content_type)
-		: TextfileWindow (file_type, baseset->GetTextfile(file_type), BASESET_DIR),
+		: TextfileWindow (baseset->GetTextfile (file_type)),
 		  baseset(baseset), content_type(content_type)
 	{
 		this->CheckForMissingGlyphs();
@@ -589,9 +589,12 @@ struct GameOptionsWindow : Window {
 		this->GetWidget<NWidgetCore>(WID_GO_BASE_GRF_STATUS)->SetDataTip(missing_files ? STR_EMPTY : STR_GAME_OPTIONS_BASE_GRF_STATUS, STR_NULL);
 
 		for (TextfileType tft = TFT_BEGIN; tft < TFT_END; tft++) {
-			this->SetWidgetDisabledState(WID_GO_BASE_GRF_TEXTFILE + tft, BaseGraphics::GetUsedSet() == NULL || BaseGraphics::GetUsedSet()->GetTextfile(tft) == NULL);
-			this->SetWidgetDisabledState(WID_GO_BASE_SFX_TEXTFILE + tft, BaseSounds::GetUsedSet() == NULL || BaseSounds::GetUsedSet()->GetTextfile(tft) == NULL);
-			this->SetWidgetDisabledState(WID_GO_BASE_MUSIC_TEXTFILE + tft, BaseMusic::GetUsedSet() == NULL || BaseMusic::GetUsedSet()->GetTextfile(tft) == NULL);
+			this->SetWidgetDisabledState (WID_GO_BASE_GRF_TEXTFILE + tft,
+				BaseGraphics::GetUsedSet() == NULL || !BaseGraphics::GetUsedSet()->GetTextfile(tft).valid());
+			this->SetWidgetDisabledState (WID_GO_BASE_SFX_TEXTFILE + tft,
+				BaseSounds::GetUsedSet()   == NULL || !BaseSounds::GetUsedSet()->GetTextfile(tft).valid());
+			this->SetWidgetDisabledState (WID_GO_BASE_MUSIC_TEXTFILE + tft,
+				BaseMusic::GetUsedSet()    == NULL || !BaseMusic::GetUsedSet()->GetTextfile(tft).valid());
 		}
 
 		missing_files = BaseMusic::GetUsedSet()->GetNumInvalid() == 0;

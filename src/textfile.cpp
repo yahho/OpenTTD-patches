@@ -48,25 +48,25 @@ static WindowDesc _textfile_desc(
 	_nested_textfile_widgets, lengthof(_nested_textfile_widgets)
 );
 
-TextfileWindow::TextfileWindow (TextfileType file_type, const char *textfile, Subdirectory dir)
-	: Window(&_textfile_desc), file_type(file_type)
+TextfileWindow::TextfileWindow (const TextfileDesc &txt)
+	: Window(&_textfile_desc), file_type(txt.type)
 {
 	this->CreateNestedTree();
 	this->vscroll = this->GetScrollbar(WID_TF_VSCROLLBAR);
 	this->hscroll = this->GetScrollbar(WID_TF_HSCROLLBAR);
 	this->FinishInitNested();
-	this->GetWidget<NWidgetCore>(WID_TF_CAPTION)->SetDataTip(STR_TEXTFILE_README_CAPTION + file_type, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS);
+	this->GetWidget<NWidgetCore>(WID_TF_CAPTION)->SetDataTip(STR_TEXTFILE_README_CAPTION + txt.type, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS);
 
 	this->hscroll->SetStepSize(10); // Speed up horizontal scrollbar
 	this->vscroll->SetStepSize(FONT_HEIGHT_MONO);
 
-	if (textfile == NULL) return;
+	if (!txt.valid()) return;
 
 	this->lines.clear();
 
 	/* Get text from file */
 	size_t filesize;
-	FILE *handle = FioFOpenFile (textfile, "rb", dir, &filesize);
+	FILE *handle = FioFOpenFile (txt.path, "rb", txt.dir, &filesize);
 	if (handle == NULL) return;
 
 	this->text = xmalloc (filesize + 1);
@@ -215,9 +215,9 @@ const char *TextfileWindow::GlyphSearcher::NextString()
  * @param type The type of the textfile to search for.
  * @param dir The subdirectory to search in.
  * @param filename The filename of the content to look for.
- * @return The path to the textfile, \c NULL otherwise.
  */
-const char *GetTextfile(TextfileType type, Subdirectory dir, const char *filename)
+TextfileDesc::TextfileDesc (TextfileType type, Subdirectory dir, const char *filename)
+	: type(type), dir(dir)
 {
 	static const char * const prefixes[] = {
 		"readme",
@@ -226,24 +226,40 @@ const char *GetTextfile(TextfileType type, Subdirectory dir, const char *filenam
 	};
 	assert_compile(lengthof(prefixes) == TFT_END);
 
-	if (filename == NULL) return NULL;
+	if (filename == NULL) {
+		this->path = NULL;
+		return;
+	}
 
 	const char *slash = strrchr (filename, PATHSEPCHAR);
-	if (slash == NULL) return NULL;
+	if (slash == NULL) {
+		this->path = NULL;
+		return;
+	}
 
-	static char file_path[MAX_PATH];
-	stringb buf (file_path);
+	size_t alloc_size = (slash - filename)
+		+ 1     // slash
+		+ 9     // longest prefix length ("changelog")
+		+ 1     // underscore
+		+ 7     // longest possible language length
+		+ 9;    // ".txt.ext" and null terminator
+
+	this->path = xmalloc (alloc_size);
+	stringb buf (alloc_size, this->path);
 	buf.fmt ("%.*s%s", (int)(slash - filename + 1), filename, prefixes[type]);
 
 	size_t base_length = buf.length();
 	buf.append_fmt ("_%s.txt", GetCurrentLanguageIsoCode());
-	if (FioCheckFileExists(file_path, dir)) return file_path;
+	if (FioCheckFileExists (buf.c_str(), dir)) return;
 
 	buf.truncate (base_length);
 	buf.append_fmt ("_%.2s.txt", GetCurrentLanguageIsoCode());
-	if (FioCheckFileExists(file_path, dir)) return file_path;
+	if (FioCheckFileExists (buf.c_str(), dir)) return;
 
 	buf.truncate (base_length);
 	buf.append (".txt");
-	return FioCheckFileExists(file_path, dir) ? file_path : NULL;
+	if (FioCheckFileExists (buf.c_str(), dir)) return;
+
+	free (this->path);
+	this->path = NULL;
 }

@@ -628,7 +628,7 @@ struct ScriptTextfileWindow : public TextfileWindow {
 	CompanyID slot; ///< View the textfile of this CompanyID slot.
 
 	ScriptTextfileWindow (TextfileType file_type, CompanyID slot)
-		: TextfileWindow (file_type, GetConfig(slot)->GetTextfile(file_type, slot), (slot == OWNER_DEITY) ? GAME_DIR : AI_DIR),
+		: TextfileWindow (GetConfig(slot)->GetTextfile (file_type, slot)),
 		  slot(slot)
 	{
 		this->CheckForMissingGlyphs();
@@ -931,7 +931,8 @@ struct AIConfigWindow : public Window {
 		this->SetWidgetDisabledState(WID_AIC_MOVE_DOWN, this->selected_slot == OWNER_DEITY || this->selected_slot == INVALID_COMPANY || !IsEditable((CompanyID)(this->selected_slot + 1)));
 
 		for (TextfileType tft = TFT_BEGIN; tft < TFT_END; tft++) {
-			this->SetWidgetDisabledState(WID_AIC_TEXTFILE + tft, this->selected_slot == INVALID_COMPANY || (GetConfig(this->selected_slot)->GetTextfile(tft, this->selected_slot) == NULL));
+			this->SetWidgetDisabledState (WID_AIC_TEXTFILE + tft,
+				this->selected_slot == INVALID_COMPANY || !GetConfig(this->selected_slot)->GetTextfile(tft, this->selected_slot).valid());
 		}
 	}
 };

@@ -98,11 +98,11 @@ bool ContentInfo::IsValid() const
 /**
  * Search a textfile file next to this file in the content list.
  * @param type The type of the textfile to search for.
- * @return The filename for the textfile, \c NULL otherwise.
+ * @return A description for the textfile.
  */
-const char *ContentInfo::GetTextfile(TextfileType type) const
+TextfileDesc ContentInfo::GetTextfile (TextfileType type) const
 {
-	if (this->state == INVALID) return NULL;
+	if (this->state == INVALID) return TextfileDesc();
 	const char *tmp;
 	switch (this->type) {
 		default: NOT_REACHED();
@@ -138,8 +138,8 @@ const char *ContentInfo::GetTextfile(TextfileType type) const
 			tmp = FindScenario(this, true);
 			break;
 	}
-	if (tmp == NULL) return NULL;
-	return ::GetTextfile(type, GetContentInfoSubDir(this->type), tmp);
+	if (tmp == NULL) return TextfileDesc();
+	return TextfileDesc (type, GetContentInfoSubDir(this->type), tmp);
 }
 #endif /* OPENTTD_MSU */
 

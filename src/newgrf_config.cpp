@@ -924,9 +924,9 @@ bool GRFConfig::IsOpenTTDBaseGRF() const
 /**
  * Search a textfile file next to this NewGRF.
  * @param type The type of the textfile to search for.
- * @return The filename for the textfile, \c NULL otherwise.
+ * @return A description for the textfile.
  */
-const char *GRFConfig::GetTextfile(TextfileType type) const
+TextfileDesc GRFConfig::GetTextfile (TextfileType type) const
 {
-	return ::GetTextfile(type, NEWGRF_DIR, this->filename);
+	return TextfileDesc (type, NEWGRF_DIR, this->filename);
 }

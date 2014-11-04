@@ -28,7 +28,26 @@ enum TextfileType {
 };
 DECLARE_POSTFIX_INCREMENT(TextfileType)
 
-const char *GetTextfile(TextfileType type, Subdirectory dir, const char *filename);
+/** Description of a textfile. */
+struct TextfileDesc {
+	char *path;              ///< Textfile path
+	const TextfileType type; ///< Textfile type
+	const Subdirectory dir;  ///< Textfile directory
+
+	TextfileDesc (void) : path(NULL), type(TFT_END), dir(NO_DIRECTORY) { }
+
+	TextfileDesc (TextfileType type, Subdirectory dir, const char *filename);
+
+	~TextfileDesc()
+	{
+		free (path);
+	}
+
+	bool valid (void) const
+	{
+		return this->path != NULL;
+	}
+};
 
 /** Window for displaying a textfile */
 struct TextfileWindow : public Window {
@@ -41,7 +60,7 @@ struct TextfileWindow : public Window {
 	static const int TOP_SPACING    = WD_FRAMETEXT_TOP;    ///< Additional spacing at the top of the #WID_TF_BACKGROUND widget.
 	static const int BOTTOM_SPACING = WD_FRAMETEXT_BOTTOM; ///< Additional spacing at the bottom of the #WID_TF_BACKGROUND widget.
 
-	TextfileWindow (TextfileType file_type, const char *textfile, Subdirectory dir);
+	TextfileWindow (const TextfileDesc &txt);
 	virtual ~TextfileWindow();
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize);
 	virtual void OnClick(Point pt, int widget, int click_count);

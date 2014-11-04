@@ -178,9 +178,9 @@ public:
 	 * Search a textfile file next to this script.
 	 * @param type The type of the textfile to search for.
 	 * @param slot #CompanyID to check status of.
-	 * @return The filename for the textfile, \c NULL otherwise.
+	 * @return A description for the textfile.
 	 */
-	const char *GetTextfile(TextfileType type, CompanyID slot) const;
+	TextfileDesc GetTextfile (TextfileType type, CompanyID slot) const;
 
 protected:
 	const char *name;                  ///< Name of the Script
