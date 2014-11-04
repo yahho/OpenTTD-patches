@@ -15,7 +15,7 @@
 
 #include "../../stdafx.h"
 #ifndef OPENTTD_MSU
-#include "../../textfile_gui.h"
+#include "../../textfile.h"
 #include "../../newgrf_config.h"
 #include "../../base_media_base.h"
 #include "../../ai/ai.hpp"

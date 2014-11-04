@@ -20,7 +20,7 @@
 #include "progress.h"
 #include "video/video_driver.hpp"
 #include "strings_func.h"
-#include "textfile_gui.h"
+#include "textfile.h"
 
 #include "fileio_func.h"
 #include "fios.h"

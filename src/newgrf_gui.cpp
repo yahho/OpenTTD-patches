@@ -28,7 +28,7 @@
 #include "querystring_gui.h"
 #include "core/geometry_func.hpp"
 #include "newgrf_text.h"
-#include "textfile_gui.h"
+#include "textfile.h"
 #include "tilehighlight_func.h"
 #include "fios.h"
 

@@ -34,7 +34,7 @@
 #include "ai/ai.hpp"
 #include "blitter/factory.hpp"
 #include "language.h"
-#include "textfile_gui.h"
+#include "textfile.h"
 #include "stringfilter_type.h"
 #include "querystring_gui.h"
 

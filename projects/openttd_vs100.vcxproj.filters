@@ -1047,10 +1047,7 @@
     <ClInclude Include="..\src\texteff.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\textfile_gui.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\textfile_type.h">
+    <ClInclude Include="..\src\textfile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\tgp.h">
@@ -1401,7 +1398,7 @@
     <ClCompile Include="..\src\terraform_gui.cpp">
       <Filter>GUI Source Code</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\textfile_gui.cpp">
+    <ClCompile Include="..\src\textfile.cpp">
       <Filter>GUI Source Code</Filter>
     </ClCompile>
     <ClCompile Include="..\src\timetable_gui.cpp">

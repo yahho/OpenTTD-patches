@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * This file is part of OpenTTD.
  * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -7,17 +5,28 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file textfile_gui.h GUI functions related to textfiles. */
+/** @file textfile.h Code related to textfiles. */
 
-#ifndef TEXTFILE_GUI_H
-#define TEXTFILE_GUI_H
+#ifndef TEXTFILE_H
+#define TEXTFILE_H
 
 #include <vector>
 
 #include "fileio_type.h"
 #include "strings_func.h"
-#include "textfile_type.h"
 #include "window_gui.h"
+
+/** Additional text files accompanying Tar archives */
+enum TextfileType {
+	TFT_BEGIN,
+
+	TFT_README = TFT_BEGIN, ///< NewGRF readme
+	TFT_CHANGELOG,          ///< NewGRF changelog
+	TFT_LICENSE,            ///< NewGRF license
+
+	TFT_END,
+};
+DECLARE_POSTFIX_INCREMENT(TextfileType)
 
 const char *GetTextfile(TextfileType type, Subdirectory dir, const char *filename);
 
@@ -62,4 +71,4 @@ private:
 	void SetupScrollbars();
 };
 
-#endif /* TEXTFILE_GUI_H */
+#endif /* TEXTFILE_H */

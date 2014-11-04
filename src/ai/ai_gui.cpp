@@ -25,7 +25,7 @@
 #include "../network/network.h"
 #include "../settings_func.h"
 #include "../network/network_content.h"
-#include "../textfile_gui.h"
+#include "../textfile.h"
 #include "../widgets/dropdown_type.h"
 #include "../widgets/dropdown_func.h"
 #include "../hotkeys.h"

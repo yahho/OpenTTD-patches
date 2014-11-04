@@ -13,7 +13,7 @@
 #define WIDGETS_NEWGRF_WIDGET_H
 
 #include "../newgrf_config.h"
-#include "../textfile_type.h"
+#include "../textfile.h"
 
 /** Widgets of the #NewGRFParametersWindow class. */
 enum NewGRFParametersWidgets {

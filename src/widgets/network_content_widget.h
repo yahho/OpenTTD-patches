@@ -12,7 +12,7 @@
 #ifndef WIDGETS_NETWORK_CONTENT_WIDGET_H
 #define WIDGETS_NETWORK_CONTENT_WIDGET_H
 
-#include "../textfile_type.h"
+#include "../textfile.h"
 
 /** Widgets of the #NetworkContentDownloadStatusWindow class. */
 enum NetworkContentDownloadStatusWidgets {

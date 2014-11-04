@@ -16,8 +16,7 @@
 #include "fileio_func.h"
 #include "core/smallmap_type.hpp"
 #include "gfx_type.h"
-#include "textfile_type.h"
-#include "textfile_gui.h"
+#include "textfile.h"
 
 /* Forward declare these; can't do 'struct X' in functions as older GCCs barf on that */
 struct IniFile;

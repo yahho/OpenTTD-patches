@@ -2339,11 +2339,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\textfile_gui.h"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\textfile_type.h"
+				RelativePath=".\..\src\textfile.h"
 				>
 			</File>
 			<File
@@ -3219,7 +3215,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\textfile_gui.cpp"
+				RelativePath=".\..\src\textfile.cpp"
 				>
 			</File>
 			<File

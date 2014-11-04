@@ -18,7 +18,7 @@
 #include "core/smallmap_type.hpp"
 #include "misc/countedptr.hpp"
 #include "fileio_type.h"
-#include "textfile_type.h"
+#include "textfile.h"
 
 /** GRF config bit flags */
 enum GCF_Flags {

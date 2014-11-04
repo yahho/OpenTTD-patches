@@ -17,7 +17,7 @@
 #include "../core/smallmap_type.hpp"
 #include "../core/string_compare_type.hpp"
 #include "../company_type.h"
-#include "../textfile_gui.h"
+#include "../textfile.h"
 
 /** Bitmask of flags for Script settings. */
 enum ScriptConfigFlags {

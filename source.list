@@ -341,8 +341,7 @@ terraform_gui.h
 textbuf_gui.h
 textbuf_type.h
 texteff.hpp
-textfile_gui.h
-textfile_type.h
+textfile.h
 tgp.h
 tile_cmd.h
 tilehighlight_func.h
@@ -478,7 +477,7 @@ statusbar_gui.cpp
 story_gui.cpp
 subsidy_gui.cpp
 terraform_gui.cpp
-textfile_gui.cpp
+textfile.cpp
 timetable_gui.cpp
 toolbar_gui.cpp
 town_gui.cpp

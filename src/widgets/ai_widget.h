@@ -13,7 +13,7 @@
 #define WIDGETS_AI_WIDGET_H
 
 #include "../company_type.h"
-#include "../textfile_type.h"
+#include "../textfile.h"
 
 /** Widgets of the #AIListWindow class. */
 enum AIListWidgets {

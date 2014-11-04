@@ -13,7 +13,7 @@
 #include "../settings_type.h"
 #include "../core/random_func.hpp"
 #include "script_info.hpp"
-#include "../textfile_gui.h"
+#include "../textfile.h"
 
 void ScriptConfig::Change(const char *name, int version, bool force_exact_match, bool is_random)
 {
