@@ -627,10 +627,11 @@ static void ShowAISettingsWindow(CompanyID slot)
 struct ScriptTextfileWindow : public TextfileWindow {
 	CompanyID slot; ///< View the textfile of this CompanyID slot.
 
-	ScriptTextfileWindow(TextfileType file_type, CompanyID slot) : TextfileWindow(file_type), slot(slot)
+	ScriptTextfileWindow (TextfileType file_type, CompanyID slot)
+		: TextfileWindow (file_type, GetConfig(slot)->GetTextfile(file_type, slot), (slot == OWNER_DEITY) ? GAME_DIR : AI_DIR),
+		  slot(slot)
 	{
-		const char *textfile = GetConfig(slot)->GetTextfile(file_type, slot);
-		this->LoadTextfile(textfile, (slot == OWNER_DEITY) ? GAME_DIR : AI_DIR);
+		this->CheckForMissingGlyphs();
 	}
 
 	/* virtual */ void SetStringParameters(int widget) const

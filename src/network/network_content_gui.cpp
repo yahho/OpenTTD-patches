@@ -39,10 +39,11 @@ static bool _accepted_external_search = false;
 struct ContentTextfileWindow : public TextfileWindow {
 	const ContentInfo *ci; ///< View the textfile of this ContentInfo.
 
-	ContentTextfileWindow(TextfileType file_type, const ContentInfo *ci) : TextfileWindow(file_type), ci(ci)
+	ContentTextfileWindow (TextfileType file_type, const ContentInfo *ci)
+		: TextfileWindow (file_type, ci->GetTextfile(file_type), GetContentInfoSubDir(ci->type)),
+		  ci(ci)
 	{
-		const char *textfile = this->ci->GetTextfile(file_type);
-		this->LoadTextfile(textfile, GetContentInfoSubDir(this->ci->type));
+		this->CheckForMissingGlyphs();
 	}
 
 	StringID GetTypeString() const

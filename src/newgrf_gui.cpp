@@ -549,10 +549,11 @@ static void OpenGRFParameterWindow(GRFConfig *c, bool editable)
 struct NewGRFTextfileWindow : public TextfileWindow {
 	const GRFConfig *grf_config; ///< View the textfile of this GRFConfig.
 
-	NewGRFTextfileWindow(TextfileType file_type, const GRFConfig *c) : TextfileWindow(file_type), grf_config(c)
+	NewGRFTextfileWindow (TextfileType file_type, const GRFConfig *c)
+		: TextfileWindow (file_type, c->GetTextfile(file_type), NEWGRF_DIR),
+		  grf_config(c)
 	{
-		const char *textfile = this->grf_config->GetTextfile(file_type);
-		this->LoadTextfile(textfile, NEWGRF_DIR);
+		this->CheckForMissingGlyphs();
 	}
 
 	/* virtual */ void SetStringParameters(int widget) const

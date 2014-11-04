@@ -41,13 +41,12 @@ struct TextfileWindow : public Window {
 	static const int TOP_SPACING    = WD_FRAMETEXT_TOP;    ///< Additional spacing at the top of the #WID_TF_BACKGROUND widget.
 	static const int BOTTOM_SPACING = WD_FRAMETEXT_BOTTOM; ///< Additional spacing at the bottom of the #WID_TF_BACKGROUND widget.
 
-	TextfileWindow(TextfileType file_type);
+	TextfileWindow (TextfileType file_type, const char *textfile, Subdirectory dir);
 	virtual ~TextfileWindow();
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize);
 	virtual void OnClick(Point pt, int widget, int click_count);
 	virtual void DrawWidget(const Rect &r, int widget) const;
 	virtual void OnResize();
-	virtual void LoadTextfile(const char *textfile, Subdirectory dir);
 
 private:
 	struct GlyphSearcher : std::vector<const char *>::const_iterator, ::MissingGlyphSearcher {
@@ -69,6 +68,13 @@ private:
 
 	uint GetContentHeight();
 	void SetupScrollbars();
+
+public:
+	void CheckForMissingGlyphs (void) const
+	{
+		GlyphSearcher searcher (*this);
+		::CheckForMissingGlyphs (true, &searcher);
+	}
 };
 
 #endif /* TEXTFILE_H */

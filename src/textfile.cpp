@@ -48,7 +48,7 @@ static WindowDesc _textfile_desc(
 	_nested_textfile_widgets, lengthof(_nested_textfile_widgets)
 );
 
-TextfileWindow::TextfileWindow (TextfileType file_type)
+TextfileWindow::TextfileWindow (TextfileType file_type, const char *textfile, Subdirectory dir)
 	: Window(&_textfile_desc), file_type(file_type)
 {
 	this->CreateNestedTree();
@@ -59,6 +59,45 @@ TextfileWindow::TextfileWindow (TextfileType file_type)
 
 	this->hscroll->SetStepSize(10); // Speed up horizontal scrollbar
 	this->vscroll->SetStepSize(FONT_HEIGHT_MONO);
+
+	if (textfile == NULL) return;
+
+	this->lines.clear();
+
+	/* Get text from file */
+	size_t filesize;
+	FILE *handle = FioFOpenFile (textfile, "rb", dir, &filesize);
+	if (handle == NULL) return;
+
+	this->text = xmalloc (filesize + 1);
+	size_t read = fread (this->text, 1, filesize, handle);
+	fclose (handle);
+
+	if (read != filesize) return;
+
+	this->text[filesize] = '\0';
+
+	/* Replace tabs and line feeds with a space since str_validate removes those. */
+	for (char *p = this->text; *p != '\0'; p++) {
+		if (*p == '\t' || *p == '\r') *p = ' ';
+	}
+
+	/* Check for the byte-order-mark, and skip it if needed. */
+	char *p = this->text;
+	if (strncmp ("\xEF\xBB\xBF", p, 3) == 0) p += 3;
+
+	/* Make sure the string is a valid UTF-8 sequence. */
+	str_validate (p, this->text + filesize, SVS_REPLACE_WITH_QUESTION_MARK | SVS_ALLOW_NEWLINE);
+
+	/* Split the string on newlines. */
+	for (;;) {
+		this->lines.push_back (p);
+		p = strchr (p, '\n');
+		if (p == NULL) break;
+		*(p++) = '\0';
+		/* Break on last line if the file does end with a newline. */
+		if (p == this->text + filesize) break;
+	}
 }
 
 /* virtual */ TextfileWindow::~TextfileWindow()
@@ -169,54 +208,6 @@ void TextfileWindow::GlyphSearcher::Reset()
 const char *TextfileWindow::GlyphSearcher::NextString()
 {
 	return (this->iter == this->end) ? NULL : *(this->iter++);
-}
-
-/**
- * Loads the textfile text from file and setup #lines.
- */
-/* virtual */ void TextfileWindow::LoadTextfile(const char *textfile, Subdirectory dir)
-{
-	if (textfile == NULL) return;
-
-	this->lines.clear();
-
-	/* Get text from file */
-	size_t filesize;
-	FILE *handle = FioFOpenFile(textfile, "rb", dir, &filesize);
-	if (handle == NULL) return;
-
-	this->text = xrealloc (this->text, filesize + 1);
-	size_t read = fread(this->text, 1, filesize, handle);
-	fclose(handle);
-
-	if (read != filesize) return;
-
-	this->text[filesize] = '\0';
-
-	/* Replace tabs and line feeds with a space since str_validate removes those. */
-	for (char *p = this->text; *p != '\0'; p++) {
-		if (*p == '\t' || *p == '\r') *p = ' ';
-	}
-
-	/* Check for the byte-order-mark, and skip it if needed. */
-	char *p = this->text;
-	if (strncmp ("\xEF\xBB\xBF", p, 3) == 0) p += 3;
-
-	/* Make sure the string is a valid UTF-8 sequence. */
-	str_validate(p, this->text + filesize, SVS_REPLACE_WITH_QUESTION_MARK | SVS_ALLOW_NEWLINE);
-
-	/* Split the string on newlines. */
-	for (;;) {
-		this->lines.push_back (p);
-		p = strchr (p, '\n');
-		if (p == NULL) break;
-		*(p++) = '\0';
-		/* Break on last line if the file does end with a newline. */
-		if (p == this->text + filesize) break;
-	}
-
-	GlyphSearcher searcher (*this);
-	CheckForMissingGlyphs (true, &searcher);
 }
 
 /**

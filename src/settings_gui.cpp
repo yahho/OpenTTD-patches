@@ -144,10 +144,11 @@ struct BaseSetTextfileWindow : public TextfileWindow {
 	const TBaseSet* baseset; ///< View the textfile of this BaseSet.
 	StringID content_type;   ///< STR_CONTENT_TYPE_xxx for title.
 
-	BaseSetTextfileWindow(TextfileType file_type, const TBaseSet* baseset, StringID content_type) : TextfileWindow(file_type), baseset(baseset), content_type(content_type)
+	BaseSetTextfileWindow (TextfileType file_type, const TBaseSet* baseset, StringID content_type)
+		: TextfileWindow (file_type, baseset->GetTextfile(file_type), BASESET_DIR),
+		  baseset(baseset), content_type(content_type)
 	{
-		const char *textfile = this->baseset->GetTextfile(file_type);
-		this->LoadTextfile(textfile, BASESET_DIR);
+		this->CheckForMissingGlyphs();
 	}
 
 	/* virtual */ void SetStringParameters(int widget) const
