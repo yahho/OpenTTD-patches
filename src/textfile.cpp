@@ -164,6 +164,54 @@ static void Xunzip(byte **bufp, size_t *sizep)
 }
 #endif
 
+/**
+ * Read in the text file represented by this description.
+ * @param len pointer to store file length on success, excluding appended 0
+ * @return pointer to newly allocated storage with the contents of the file on success, or NULL on error
+ */
+char *TextfileDesc::read (size_t *len) const
+{
+	size_t filesize;
+	FILE *handle = FioFOpenFile (this->path, "rb", this->dir, &filesize);
+	if (handle == NULL) return NULL;
+
+	char *text = xmalloc (filesize);
+	size_t read = fread (text, 1, filesize, handle);
+	fclose (handle);
+
+	if (read != filesize) {
+		free (text);
+		return NULL;
+	}
+
+#if defined(WITH_ZLIB) || defined(WITH_LZMA)
+	const char *suffix = strrchr (this->path, '.');
+	if (suffix == NULL) {
+		free (text);
+		return NULL;
+	}
+#endif
+
+#if defined(WITH_ZLIB)
+	/* In-place gunzip */
+	if (strcmp(suffix, ".gz") == 0) Gunzip((byte**)&text, &filesize);
+#endif
+
+#if defined(WITH_LZMA)
+	/* In-place xunzip */
+	if (strcmp(suffix, ".xz") == 0) Xunzip((byte**)&text, &filesize);
+#endif
+
+	if (!text) return NULL;
+
+	/* Add space for trailing \0 */
+	text = xrealloc (text, filesize + 1);
+	text[filesize] = '\0';
+
+	*len = filesize;
+	return text;
+}
+
 TextfileWindow::TextfileWindow (const TextfileDesc &txt)
 	: Window(&_textfile_desc), file_type(txt.type)
 {
@@ -180,37 +228,9 @@ TextfileWindow::TextfileWindow (const TextfileDesc &txt)
 
 	this->lines.clear();
 
-	/* Get text from file */
 	size_t filesize;
-	FILE *handle = FioFOpenFile (txt.path, "rb", txt.dir, &filesize);
-	if (handle == NULL) return;
-
-	this->text = xmalloc (filesize);
-	size_t read = fread (this->text, 1, filesize, handle);
-	fclose (handle);
-
-	if (read != filesize) return;
-
-#if defined(WITH_ZLIB) || defined(WITH_LZMA)
-	const char *suffix = strrchr (txt.path, '.');
-	if (suffix == NULL) return;
-#endif
-
-#if defined(WITH_ZLIB)
-	/* In-place gunzip */
-	if (strcmp(suffix, ".gz") == 0) Gunzip((byte**)&this->text, &filesize);
-#endif
-
-#if defined(WITH_LZMA)
-	/* In-place xunzip */
-	if (strcmp(suffix, ".xz") == 0) Xunzip((byte**)&this->text, &filesize);
-#endif
-
+	this->text = txt.read (&filesize);
 	if (!this->text) return;
-
-	/* Add space for trailing \0 */
-	this->text = xrealloc (this->text, filesize + 1);
-	this->text[filesize] = '\0';
 
 	/* Replace tabs and line feeds with a space since str_validate removes those. */
 	for (char *p = this->text; *p != '\0'; p++) {

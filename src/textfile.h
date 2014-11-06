@@ -47,6 +47,8 @@ struct TextfileDesc {
 	{
 		return this->path != NULL;
 	}
+
+	char *read (size_t *len) const;
 };
 
 /** Window for displaying a textfile */
