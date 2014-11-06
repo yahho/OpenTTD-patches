@@ -184,23 +184,23 @@ char *TextfileDesc::read (size_t *len) const
 		return NULL;
 	}
 
-#if defined(WITH_ZLIB) || defined(WITH_LZMA)
-	const char *suffix = strrchr (this->path, '.');
-	if (suffix == NULL) {
-		free (text);
-		return NULL;
-	}
-#endif
+	switch (this->format) {
+		default: NOT_REACHED();
+
+		case FORMAT_RAW: break;
 
 #if defined(WITH_ZLIB)
-	/* In-place gunzip */
-	if (strcmp(suffix, ".gz") == 0) Gunzip((byte**)&text, &filesize);
+		case FORMAT_GZ: /* In-place gunzip */
+			Gunzip((byte**)&text, &filesize);
+			break;
 #endif
 
 #if defined(WITH_LZMA)
-	/* In-place xunzip */
-	if (strcmp(suffix, ".xz") == 0) Xunzip((byte**)&text, &filesize);
+		case FORMAT_XZ: /* In-place xunzip */
+			Xunzip((byte**)&text, &filesize);
+			break;
 #endif
+	}
 
 	if (!text) return NULL;
 
