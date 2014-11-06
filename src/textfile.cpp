@@ -8,6 +8,7 @@
 /** @file textfile.cpp Code related to textfiles. */
 
 #include "stdafx.h"
+#include "core/math_func.hpp"
 #include "fileio_func.h"
 #include "fontcache.h"
 #include "gfx_type.h"
@@ -56,115 +57,192 @@ static WindowDesc _textfile_desc(
 	_nested_textfile_widgets, lengthof(_nested_textfile_widgets)
 );
 
-#if defined(WITH_ZLIB)
+
+/** Stream template struct. */
+template <TextfileDesc::Format FMT>
+struct stream;
+
+/** Stream loop function results. */
+enum StreamResult {
+	STREAM_OK,    ///< success, decoding in progress
+	STREAM_END,   ///< success, decoding finished
+	STREAM_ERROR, ///< error
+};
+
+/** Zlib stream struct. */
+template <>
+struct stream <TextfileDesc::FORMAT_GZ> {
+	typedef z_stream stream_type;
+
+	static inline void construct (z_stream *z)
+	{
+		memset (z, 0, sizeof(z_stream));
+	}
+
+	static inline bool init (z_stream *z)
+	{
+		/* Window size is 15, plus flag 32 for automatic header detection. */
+		return inflateInit2 (z, 15 + 32) == Z_OK;
+	}
+
+	static inline StreamResult loop (z_stream *z, bool finish)
+	{
+		switch (inflate (z, finish ? Z_FINISH : Z_NO_FLUSH)) {
+			case Z_OK:
+				return STREAM_OK;
+
+			case Z_STREAM_END:
+				return STREAM_END;
+
+			case Z_BUF_ERROR:
+				if (z->avail_out == 0) return STREAM_OK;
+				/* fall through */
+			default:
+				return STREAM_ERROR;
+		}
+	}
+
+	static inline void end (z_stream *z)
+	{
+		int r = inflateEnd (z);
+		assert (r == Z_OK);
+	}
+};
+
+/** LZMA stream struct. */
+template <>
+struct stream <TextfileDesc::FORMAT_XZ> {
+	typedef lzma_stream stream_type;
+
+	static inline void construct (lzma_stream *z)
+	{
+		memset (z, 0, sizeof(lzma_stream));
+	}
+
+	static inline bool init (lzma_stream *z)
+	{
+		return lzma_auto_decoder (z, UINT64_MAX, LZMA_CONCATENATED) == LZMA_OK;
+	}
+
+	static inline StreamResult loop (lzma_stream *z, bool finish)
+	{
+		switch (lzma_code (z, finish ? LZMA_FINISH : LZMA_RUN)) {
+			case LZMA_OK:          return STREAM_OK;
+			case LZMA_STREAM_END:  return STREAM_END;
+			default:               return STREAM_ERROR;
+		}
+	}
+
+	static inline void end (lzma_stream *z)
+	{
+		lzma_end (z);
+	}
+};
+
 /**
- * Do an in-memory gunzip operation. This works on a raw deflate stream,
- * or a file with gzip or zlib header.
- * @param bufp  A pointer to a buffer containing the input data. This
- *              buffer will be freed and replaced by a buffer containing
- *              the uncompressed data.
- * @param sizep A pointer to the buffer size. Before the call, the value
- *              pointed to should contain the size of the input buffer.
- *              After the call, it contains the size of the uncompressed
- *              data.
- *
- * When decompressing fails, *bufp is set to NULL and *sizep to 0. The
- * compressed buffer passed in is still freed in this case.
+ * Read in data from file and update stream.
+ * @param input Buffer to read data into.
+ * @param handle Handle of file to read from.
+ * @param remaining Remaining size of file to read, updated on return.
+ * @param z Stream to update.
+ * @return Whether (some) data could be read.
  */
-static void Gunzip(byte **bufp, size_t *sizep)
+template <uint N, typename Z>
+static bool fill_buffer (byte (*input) [N], FILE *handle, size_t *remaining, Z *z)
 {
-	static const int BLOCKSIZE  = 8192;
-	byte             *buf       = NULL;
-	size_t           alloc_size = 0;
-	z_stream         z;
-	int              res;
+	assert (z->avail_in == 0);
 
-	memset(&z, 0, sizeof(z));
-	z.next_in = *bufp;
-	z.avail_in = *sizep;
+	size_t read = fread (input, 1, min (*remaining, N), handle);
+	if (read == 0) return false;
 
-	/* window size = 15, add 32 to enable gzip or zlib header processing */
-	res = inflateInit2(&z, 15 + 32);
-	/* Z_BUF_ERROR just means we need more space */
-	while (res == Z_OK || (res == Z_BUF_ERROR && z.avail_out == 0)) {
-		/* When we get here, we're either just starting, or
-		 * inflate is out of output space - allocate more */
-		alloc_size += BLOCKSIZE;
-		z.avail_out += BLOCKSIZE;
-		buf = xrealloct(buf, alloc_size);
-		z.next_out = buf + alloc_size - z.avail_out;
-		res = inflate(&z, Z_FINISH);
-	}
-
-	free(*bufp);
-	inflateEnd(&z);
-
-	if (res == Z_STREAM_END) {
-		*bufp = buf;
-		*sizep = alloc_size - z.avail_out;
-	} else {
-		/* Something went wrong */
-		*bufp = NULL;
-		*sizep = 0;
-		free(buf);
-	}
+	*remaining -= read;
+	z->avail_in = read;
+	z->next_in  = &(*input)[0];
+	return true;
 }
-#endif
 
-#if defined(WITH_LZMA)
 /**
- * Do an in-memory xunzip operation. This works on a .xz or (legacy)
- * .lzma file.
- * @param bufp  A pointer to a buffer containing the input data. This
- *              buffer will be freed and replaced by a buffer containing
- *              the uncompressed data.
- * @param sizep A pointer to the buffer size. Before the call, the value
- *              pointed to should contain the size of the input buffer.
- *              After the call, it contains the size of the uncompressed
- *              data.
- *
- * When decompressing fails, *bufp is set to NULL and *sizep to 0. The
- * compressed buffer passed in is still freed in this case.
+ * Read in a compressed file.
+ * @tparam FMT Stream format type.
+ * @param handle Handle of file to read.
+ * @param filesize Size of file to read.
+ * @param len Pointer to store decompressed length on success, excluding
+ * appended null char.
+ * @return Newly allocated storage with the decompressed contents of the file.
  */
-static void Xunzip(byte **bufp, size_t *sizep)
+template <TextfileDesc::Format FMT>
+static char *stream_unzip (FILE *handle, size_t filesize, size_t *len)
 {
-	static const int BLOCKSIZE  = 8192;
-	byte             *buf       = NULL;
-	size_t           alloc_size = 0;
-	lzma_stream      z = LZMA_STREAM_INIT;
-	int              res;
+	static const uint BLOCKSIZE = 4096;
+	byte input [1024];
 
-	z.next_in = *bufp;
-	z.avail_in = *sizep;
+	/* Initialise stream. */
+	typename stream<FMT>::stream_type z;
+	stream<FMT>::construct (&z);
+	if (!fill_buffer (&input, handle, &filesize, &z)) return NULL;
+	if (!stream<FMT>::init (&z)) return NULL;
 
-	res = lzma_auto_decoder(&z, UINT64_MAX, LZMA_CONCATENATED);
-	/* Z_BUF_ERROR just means we need more space */
-	while (res == LZMA_OK || (res == LZMA_BUF_ERROR && z.avail_out == 0)) {
-		/* When we get here, we're either just starting, or
-		 * inflate is out of output space - allocate more */
-		alloc_size += BLOCKSIZE;
-		z.avail_out += BLOCKSIZE;
-		buf = xrealloct(buf, alloc_size);
-		z.next_out = buf + alloc_size - z.avail_out;
-		res = lzma_code(&z, LZMA_FINISH);
+	/* Assume output will be at least as big as input, and align up. */
+	size_t alloc = Align (filesize + z.avail_in,  BLOCKSIZE);
+	char *output = xmalloc (alloc);
+	z.next_out = (byte*)output;
+	z.avail_out = alloc;
+	assert (z.avail_out > 0);
+
+	/* Decode loop. */
+	int r;
+	for (;;) {
+		if (z.avail_in == 0 && filesize != 0
+				&& !fill_buffer (&input, handle, &filesize, &z)) {
+			r = STREAM_ERROR;
+			break;
+		}
+
+		assert (z.avail_out != 0);
+		r = stream<FMT>::loop (&z, filesize == 0);
+		if (r != STREAM_OK) break;
+
+		if (z.avail_out == 0) {
+			assert (z.next_out == (byte*)(output + alloc));
+			size_t new_alloc = alloc +
+				Align (filesize + z.avail_in, BLOCKSIZE);
+			output = xrealloc (output, new_alloc);
+			z.next_out = (byte*)(output + alloc);
+			alloc = new_alloc;
+			z.avail_out = BLOCKSIZE;
+		}
 	}
 
-	free(*bufp);
-	lzma_end(&z);
+	/* Finish decoding. */
+	stream<FMT>::end (&z);
 
-	if (res == LZMA_STREAM_END) {
-		*bufp = buf;
-		*sizep = alloc_size - z.avail_out;
-	} else {
-		/* Something went wrong */
-		*bufp = NULL;
-		*sizep = 0;
-		free(buf);
+	if (r != STREAM_END) {
+		free (output);
+		return NULL;
 	}
+
+	/* Compute total size. */
+	size_t total = alloc - z.avail_out;
+	if (total == 0) {
+		/* No output? */
+		free (output);
+		return NULL;
+	}
+	*len = total;
+
+	/* Append null terminator if required. */
+	if (z.avail_out == 0) {
+		if (output[total - 1] == '\n') {
+			total--;
+		} else {
+			output = xrealloc (output, alloc + 1);
+		}
+	}
+	output[total] = '\0';
+	return output;
 }
-#endif
 
-/**
+/*
  * Read in the text file represented by this description.
  * @param len pointer to store file length on success, excluding appended 0
  * @return pointer to newly allocated storage with the contents of the file on success, or NULL on error
@@ -175,41 +253,38 @@ char *TextfileDesc::read (size_t *len) const
 	FILE *handle = FioFOpenFile (this->path, "rb", this->dir, &filesize);
 	if (handle == NULL) return NULL;
 
-	char *text = xmalloc (filesize);
-	size_t read = fread (text, 1, filesize, handle);
-	fclose (handle);
-
-	if (read != filesize) {
-		free (text);
-		return NULL;
-	}
-
 	switch (this->format) {
 		default: NOT_REACHED();
 
-		case FORMAT_RAW: break;
+		case FORMAT_RAW: {
+			char *text = xmalloc (filesize + 1);
+			size_t read = fread (text, 1, filesize, handle);
+			fclose (handle);
+			if (read != filesize) {
+				free (text);
+				return NULL;
+			}
+			text[filesize] = '\0';
+			*len = filesize;
+			return text;
+		}
 
 #if defined(WITH_ZLIB)
-		case FORMAT_GZ: /* In-place gunzip */
-			Gunzip((byte**)&text, &filesize);
-			break;
+		case FORMAT_GZ: {
+			char *text = stream_unzip<FORMAT_GZ> (handle, filesize, len);
+			fclose (handle);
+			return text;
+		}
 #endif
 
 #if defined(WITH_LZMA)
-		case FORMAT_XZ: /* In-place xunzip */
-			Xunzip((byte**)&text, &filesize);
-			break;
+		case FORMAT_XZ: {
+			char *text = stream_unzip<FORMAT_XZ> (handle, filesize, len);
+			fclose (handle);
+			return text;
+		}
 #endif
 	}
-
-	if (!text) return NULL;
-
-	/* Add space for trailing \0 */
-	text = xrealloc (text, filesize + 1);
-	text[filesize] = '\0';
-
-	*len = filesize;
-	return text;
 }
 
 TextfileWindow::TextfileWindow (const TextfileDesc &txt)
