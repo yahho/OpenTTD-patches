@@ -30,11 +30,23 @@ DECLARE_POSTFIX_INCREMENT(TextfileType)
 
 /** Description of a textfile. */
 struct TextfileDesc {
+	enum Format {
+		FORMAT_RAW,  ///< Raw text file
+#ifdef WITH_ZLIB
+		FORMAT_GZ,   ///< Gzipped text file
+#endif
+#ifdef WITH_LZMA
+		FORMAT_XZ,   ///< Xzipped text file
+#endif
+		FORMAT_END,
+	};
+
 	char *path;              ///< Textfile path
 	const TextfileType type; ///< Textfile type
 	const Subdirectory dir;  ///< Textfile directory
+	Format format;           ///< Textfile format
 
-	TextfileDesc (void) : path(NULL), type(TFT_END), dir(NO_DIRECTORY) { }
+	TextfileDesc (void) : path(NULL), type(TFT_END), dir(NO_DIRECTORY), format(FORMAT_END) { }
 
 	TextfileDesc (TextfileType type, Subdirectory dir, const char *filename);
 

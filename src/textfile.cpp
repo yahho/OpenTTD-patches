@@ -413,21 +413,32 @@ TextfileDesc::TextfileDesc (TextfileType type, Subdirectory dir, const char *fil
 		"txt.xz",
 #endif
 	};
+	assert_compile (lengthof(exts) == FORMAT_END);
 
 	for (size_t i = 0; i < lengthof(exts); i++) {
 		buf.truncate (base_length);
 		buf.append_fmt ("_%s.%s", GetCurrentLanguageIsoCode(), exts[i]);
-		if (FioCheckFileExists (buf.c_str(), dir)) return;
+		if (FioCheckFileExists (buf.c_str(), dir)) {
+			this->format = (Format) i;
+			return;
+		}
 
 		buf.truncate (base_length);
 		buf.append_fmt ("_%.2s.%s", GetCurrentLanguageIsoCode(), exts[i]);
-		if (FioCheckFileExists (buf.c_str(), dir)) return;
+		if (FioCheckFileExists (buf.c_str(), dir)) {
+			this->format = (Format) i;
+			return;
+		}
 
 		buf.truncate (base_length);
 		buf.append_fmt (".%s", exts[i]);
-		if (FioCheckFileExists (buf.c_str(), dir)) return;
+		if (FioCheckFileExists (buf.c_str(), dir)) {
+			this->format = (Format) i;
+			return;
+		}
 	}
 
 	free (this->path);
 	this->path = NULL;
+	this->format = FORMAT_END;
 }
