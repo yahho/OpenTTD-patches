@@ -60,6 +60,12 @@ enum RoadVehicleStates {
 static const uint RDE_NEXT_TILE = 0x80; ///< We should enter the next tile
 static const uint RDE_TURNED    = 0x40; ///< We just finished turning
 
+struct RoadDriveEntry {
+	byte x, y;
+};
+
+extern const RoadDriveEntry * const _road_drive_data[2][2 * TRACKDIR_END];
+
 /* Start frames for when a vehicle enters a tile/changes its state.
  * The start frame is different for vehicles that turned around or
  * are leaving the depot as the do not start at the edge of the tile.

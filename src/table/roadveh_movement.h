@@ -1146,7 +1146,7 @@ static const RoadDriveEntry _rvdd_rs_station_se_near[] = {
 	{RDE_NEXT_TILE, DIAGDIR_SE}
 };
 
-static const RoadDriveEntry * const _road_drive_data[2][2 * TRACKDIR_END] = {
+const RoadDriveEntry * const _road_drive_data[2][2 * TRACKDIR_END] = {
 	{	/* left-side driving */
 		_rvdd_ls_x_ne,
 		_rvdd_ls_y_se,

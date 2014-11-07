@@ -1077,10 +1077,6 @@ found_best_track:;
 	return best_track;
 }
 
-struct RoadDriveEntry {
-	byte x, y;
-};
-
 #include "table/roadveh_movement.h"
 
 static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)

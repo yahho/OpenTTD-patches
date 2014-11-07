@@ -397,6 +397,35 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 				v->SetServiceIntervalIsPercent(c->settings.vehicle.servint_ispercent);
 			}
 		}
+
+		if (IsFullSavegameVersionBefore (stv, 23)) {
+			/* Fix the frame of road vehicles in the middle of a turn. */
+			const RoadDriveEntry *const *rdd = _road_drive_data[_settings_game.vehicle.road_side];
+			RoadVehicle *rv;
+			FOR_ALL_ROADVEHICLES(rv) {
+				if ((rv->state & ~RVSB_TRACKDIR_MASK) == 0 && IsReversingRoadTrackdir((Trackdir)rv->state)) {
+					byte x = rv->x_pos & TILE_UNIT_MASK;
+					byte y = rv->y_pos & TILE_UNIT_MASK;
+					const RoadDriveEntry *rdp = rdd[rv->state];
+					byte frame = 0;
+					while (rdp->x != x || rdp->y != y) {
+						if (rdp->x == RDE_TURNED) {
+							/* finished reversing drive data, try straight trackdir */
+							rv->state = DiagDirToDiagTrackdir (TrackdirToExitdir ((Trackdir)rv->state));
+							rdp = rdd[rv->state] + RVC_AFTER_TURN_START_FRAME;
+							frame = RVC_AFTER_TURN_START_FRAME;
+						} else if (rdp->x == RDE_NEXT_TILE) {
+							/* position was not found? */
+							throw SlCorrupt ("Invalid road vehicle reversing position");
+						} else {
+							rdp++;
+							frame++;
+						}
+					}
+					rv->frame = frame;
+				}
+			}
+		}
 	}
 
 	CheckValidVehicles();
