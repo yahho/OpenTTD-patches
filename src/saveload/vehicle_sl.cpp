@@ -979,6 +979,11 @@ void Load_VEHS(LoadBuffer *reader)
 
 		/* Advanced vehicle lists got added */
 		if (reader->IsOTTDVersionBefore(60)) v->group_id = DEFAULT_GROUP;
+
+		if (reader->IsVersionBefore (19, 190)) {
+			v->current_order.SetTravelTimetabled (v->current_order.GetTravelTime() > 0);
+			v->current_order.SetWaitTimetabled (v->current_order.GetWaitTime() > 0);
+		}
 	}
 }
 
