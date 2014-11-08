@@ -110,9 +110,9 @@ enum WidgetDrawDistances {
 
 	/* WWT_RESIZEBOX */
 	WD_RESIZEBOX_WIDTH  = 12,   ///< Width of a resize box widget.
-	WD_RESIZEBOX_LEFT   = 3,    ///< Left offset of resize sprite.
+	WD_RESIZEBOX_LEFT   = 2,    ///< Left offset of resize sprite.
 	WD_RESIZEBOX_RIGHT  = 2,    ///< Right offset of resize sprite.
-	WD_RESIZEBOX_TOP    = 3,    ///< Top offset of resize sprite.
+	WD_RESIZEBOX_TOP    = 2,    ///< Top offset of resize sprite.
 	WD_RESIZEBOX_BOTTOM = 2,    ///< Bottom offset of resize sprite.
 
 	/* WWT_CLOSEBOX */

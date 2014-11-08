@@ -507,13 +507,12 @@ static inline void DrawDebugBox(const Rect &r, Colours colour, bool clicked)
 static inline void DrawResizeBox(const Rect &r, Colours colour, bool at_left, bool clicked)
 {
 	DrawFrameRect(r.left, r.top, r.right, r.bottom, colour, (clicked) ? FR_LOWERED : FR_NONE);
-	if (at_left) {
-		DrawSprite(SPR_WINDOW_RESIZE_LEFT, PAL_NONE, r.left + WD_RESIZEBOX_RIGHT,
-				 r.bottom - WD_RESIZEBOX_BOTTOM - GetSpriteSize(SPR_WINDOW_RESIZE_LEFT).height);
-	} else {
-		DrawSprite(SPR_WINDOW_RESIZE_RIGHT, PAL_NONE, r.left + WD_RESIZEBOX_LEFT,
-				 r.bottom - WD_RESIZEBOX_BOTTOM - GetSpriteSize(SPR_WINDOW_RESIZE_RIGHT).height);
-	}
+	SpriteID spr = at_left ? SPR_WINDOW_RESIZE_LEFT : SPR_WINDOW_RESIZE_RIGHT;
+	Dimension size = GetSpriteSize (spr);
+	DrawSprite (spr, PAL_NONE,
+			at_left ? r.left + WD_RESIZEBOX_RIGHT :
+				r.right - WD_RESIZEBOX_RIGHT - size.width + 1,
+			r.bottom - WD_RESIZEBOX_BOTTOM - size.height + 1);
 }
 
 /**
