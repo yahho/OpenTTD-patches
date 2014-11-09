@@ -241,31 +241,6 @@ StringID GetErrBuildRoadDepot (TileIndex tile, uint32 p1, uint32 p2, const char 
 }
 
 /**
- * Place a new road stop.
- * @param start_tile First tile of the area.
- * @param end_tile Last tile of the area.
- * @param p2 bit 0: 0 For bus stops, 1 for truck stops.
- *           bit 2..3: The roadtypes.
- *           bit 5: Allow stations directly adjacent to other stations.
- * @see CcRoadStop()
- */
-static void PlaceRoadStop(TileIndex start_tile, TileIndex end_tile, uint32 p2)
-{
-	uint8 ddir = _road_station_picker_orientation;
-	SB(p2, 16, 16, INVALID_STATION); // no station to join
-
-	if (ddir >= DIAGDIR_END) {
-		SetBit(p2, 1); // It's a drive-through stop.
-		ddir -= DIAGDIR_END; // Adjust picker result to actual direction.
-	}
-	p2 |= ddir << 6; // Set the DiagDirecion into p2 bits 6 and 7.
-
-	TileArea ta(start_tile, end_tile);
-	CommandContainer cmdcont = { ta.tile, ta.w | ta.h << 8, p2, CMD_BUILD_ROAD_STOP, "" };
-	ShowSelectStationIfNeeded(cmdcont, ta);
-}
-
-/**
  * Callback for placing a bus station.
  * @param tile Position to place the station.
  */
@@ -650,12 +625,23 @@ struct BuildRoadToolbarWindow : Window {
 					break;
 
 				case DDSP_BUILD_BUSSTOP:
-					PlaceRoadStop(start_tile, end_tile, (_ctrl_pressed << 5) | RoadTypeToRoadTypes(_cur_roadtype) << 2 | ROADSTOP_BUS);
-					break;
+				case DDSP_BUILD_TRUCKSTOP: {
+					uint32 p2 = (INVALID_STATION << 16) | (_ctrl_pressed << 5) |
+							RoadTypeToRoadTypes(_cur_roadtype) << 2 |
+							(select_proc == DDSP_BUILD_TRUCKSTOP ? ROADSTOP_TRUCK : ROADSTOP_BUS);
 
-				case DDSP_BUILD_TRUCKSTOP:
-					PlaceRoadStop(start_tile, end_tile, (_ctrl_pressed << 5) | RoadTypeToRoadTypes(_cur_roadtype) << 2 | ROADSTOP_TRUCK);
+					uint8 ddir = _road_station_picker_orientation;
+					if (ddir >= DIAGDIR_END) {
+						SetBit (p2, 1); // It's a drive-through stop.
+						ddir -= DIAGDIR_END; // Adjust picker result to actual direction.
+					}
+					p2 |= ddir << 6; // Set the DiagDirecion into p2 bits 6 and 7.
+
+					TileArea ta (start_tile, end_tile);
+					CommandContainer cmdcont = { ta.tile, ta.w | ta.h << 8, p2, CMD_BUILD_ROAD_STOP, "" };
+					ShowSelectStationIfNeeded (cmdcont, ta);
 					break;
+				}
 
 				case DDSP_REMOVE_BUSSTOP: {
 					TileArea ta(start_tile, end_tile);
