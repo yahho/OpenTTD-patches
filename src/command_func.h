@@ -70,9 +70,6 @@ static inline DoCommandFlag CommandFlagsToDCFlags(CommandFlags cmd_flags)
 
 /*** All command callbacks that exist ***/
 
-/* ai/ai_instance.cpp */
-CommandCallback CcAI;
-
 /* airport_gui.cpp */
 CommandCallback CcBuildAirport;
 
@@ -85,9 +82,6 @@ CommandCallback CcBuildCanal;
 
 /* depot_gui.cpp */
 CommandCallback CcCloneVehicle;
-
-/* game/game_instance.cpp */
-CommandCallback CcGame;
 
 /* group_gui.cpp */
 CommandCallback CcCreateGroup;

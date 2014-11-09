@@ -35,4 +35,6 @@ private:
 	/* virtual */ void LoadDummyScript();
 };
 
+void CcAI (const CommandCost &result);
+
 #endif /* AI_INSTANCE_HPP */

@@ -35,4 +35,6 @@ private:
 	/* virtual */ void LoadDummyScript() {}
 };
 
+void CcGame (const CommandCost &result);
+
 #endif /* GAME_INSTANCE_HPP */
