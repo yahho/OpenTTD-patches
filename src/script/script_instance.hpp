@@ -184,11 +184,8 @@ public:
 	/**
 	 * DoCommand callback function for all commands executed by scripts.
 	 * @param result The result of the command.
-	 * @param tile The tile on which the command was executed.
-	 * @param p1 p1 as given to DoCommandPInternal.
-	 * @param p2 p2 as given to DoCommandPInternal.
 	 */
-	void DoCommandCallback(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2);
+	void DoCommandCallback (const CommandCost &result);
 
 	/**
 	 * Insert an event for this script.

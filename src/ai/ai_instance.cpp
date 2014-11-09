@@ -258,7 +258,7 @@ void CcAI(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 	const Company *c = Company::GetIfValid(_current_company);
 	if (c == NULL || c->ai_instance == NULL) return;
 
-	c->ai_instance->DoCommandCallback(result, tile, p1, p2);
+	c->ai_instance->DoCommandCallback (result);
 	c->ai_instance->Continue();
 }
 
