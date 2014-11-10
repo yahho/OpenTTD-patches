@@ -984,9 +984,11 @@ static int PickRandomBit(uint bits)
  * @param v        the Vehicle to do the pathfinding for
  * @param tile     the where to start the pathfinding
  * @param enterdir the direction the vehicle enters the tile from
+ * @param tsdir    the direction to use for GetTileRoadStatus
  * @return the Trackdir to take
  */
-static Trackdir RoadFindPathToDest(RoadVehicle *v, TileIndex tile, DiagDirection enterdir)
+static Trackdir RoadFindPathToDest(RoadVehicle *v, TileIndex tile,
+	DiagDirection enterdir, DiagDirection tsdir)
 {
 #define return_track(x) { best_track = (Trackdir)x; goto found_best_track; }
 
@@ -994,7 +996,7 @@ static Trackdir RoadFindPathToDest(RoadVehicle *v, TileIndex tile, DiagDirection
 	Trackdir best_track;
 	bool path_found = true;
 
-	TrackStatus ts = GetTileRoadStatus(tile, v->compatible_roadtypes);
+	TrackStatus ts = GetTileRoadStatus (tile, v->compatible_roadtypes, tsdir);
 	TrackdirBits red_signals = TrackStatusToRedSignals(ts); // crossing
 	TrackdirBits trackdirs = TrackStatusToTrackdirBits(ts);
 
@@ -1243,6 +1245,152 @@ static bool IndividualRoadVehicleControllerEnterWormhole(RoadVehicle *v, TileInd
 	return true;
 }
 
+static bool IndividualRoadVehicleControllerNewTile (RoadVehicle *v,
+	const RoadVehicle *prev, TileIndex tile,
+	DiagDirection enterdir, DiagDirection tsdir)
+{
+	Trackdir dir;
+	if (v->IsFrontEngine()) {
+		/* If this is the front engine, look for the right path. */
+		dir = RoadFindPathToDest (v, tile, enterdir, tsdir);
+
+		if (dir == INVALID_TRACKDIR) {
+			v->cur_speed = 0;
+			return false;
+		}
+	} else {
+		dir = FollowPreviousRoadVehicle (v, prev, tile, enterdir);
+	}
+
+	uint start_frame = RVC_DEFAULT_START_FRAME;
+	if (IsReversingRoadTrackdir(dir)) {
+		/* When turning around we can't be overtaking. */
+		v->overtaking = 0;
+		bool use_long_corner;
+
+		/* Turning around */
+		if (v->roadtype == ROADTYPE_ROAD) {
+			/* Not a tram. */
+			if (IsNormalRoadTile(v->tile) && GetDisallowedRoadDirections(v->tile) != DRD_NONE) {
+				v->cur_speed = 0;
+				return false;
+			}
+			use_long_corner = false;
+		} else if (v->IsFrontEngine()) {
+			/* Tram front vehicle. */
+
+			/* Determine the road bits the tram needs to be able to turn around
+			 * using the 'big' corner loop. */
+			RoadBits needed;
+			switch (dir) {
+				default: NOT_REACHED();
+				case TRACKDIR_RVREV_NE: needed = ROAD_SW; break;
+				case TRACKDIR_RVREV_SE: needed = ROAD_NW; break;
+				case TRACKDIR_RVREV_SW: needed = ROAD_NE; break;
+				case TRACKDIR_RVREV_NW: needed = ROAD_SE; break;
+			}
+			if (IsNormalRoadTile(tile) && !HasRoadWorks(tile) &&
+					(needed & GetRoadBits(tile, ROADTYPE_TRAM)) != ROAD_NONE) {
+				/*
+				 * Taking the 'big' corner for trams only happens when
+				 * the front of the tram can drive over the next tile.
+				 */
+				use_long_corner = true;
+			} else if (!CanBuildTramTrackOnTile(v->owner, tile, needed) || ((~needed & GetAnyRoadBits(v->tile, ROADTYPE_TRAM, false)) == ROAD_NONE)) {
+				/*
+				 * Taking the 'small' corner for trams only happens when
+				 * the company cannot build on the next tile.
+				 */
+				use_long_corner = false;
+			} else {
+				/* The company can build on the next tile, so wait till (s)he does. */
+				v->cur_speed = 0;
+				return false;
+			}
+		} else {
+			/* Tram, not front vehicle. Just follow the previous vehicle. */
+			use_long_corner = (v->Previous()->tile == tile);
+		}
+
+		if (use_long_corner) {
+			start_frame = RVC_LONG_TURN_START_FRAME;
+		} else {
+			/*
+			 * The 'small' corner means that the vehicle is on the end of a
+			 * tram track and needs to start turning there. It therefore
+			 * does not go to the next tile, so that needs to be fixed.
+			 */
+			tile = v->tile;
+			start_frame = RVC_SHORT_TURN_START_FRAME;
+		}
+	}
+
+	/* Get position data for first frame on the new tile */
+	const RoadDriveEntry *rdp = _road_drive_data[_settings_game.vehicle.road_side ^ v->overtaking][dir];
+
+	int x = TileX(tile) * TILE_SIZE + rdp[start_frame].x;
+	int y = TileY(tile) * TILE_SIZE + rdp[start_frame].y;
+
+	Direction new_dir = RoadVehGetSlidingDirection(v, x, y);
+	if (v->IsFrontEngine()) {
+		Vehicle *u = RoadVehFindCloseTo(v, x, y, new_dir);
+		if (u != NULL) {
+			v->cur_speed = u->First()->cur_speed;
+			return false;
+		}
+	}
+
+	uint32 r = RoadVehEnterTile(v, tile, x, y);
+	if (r == VETS_CANNOT_ENTER) {
+		assert(IsRoadStopTile(tile));
+		v->cur_speed = 0;
+		return false;
+	}
+
+	if (IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_DT_ROAD_STOP_END) && IsStationTile(v->tile)) {
+		if (IsReversingRoadTrackdir(dir) && IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_ROAD_STOP_END)) {
+			/* New direction is trying to turn vehicle around.
+			 * We can't turn at the exit of a road stop so wait.*/
+			v->cur_speed = 0;
+			return false;
+		}
+
+		/* If we are a drive through road stop and the next tile is of
+		 * the same road stop and the next tile isn't this one (i.e. we
+		 * are not reversing), then keep the reservation and state.
+		 * This way we will not be shortly unregister from the road
+		 * stop. It also makes it possible to load when on the edge of
+		 * two road stops; otherwise you could get vehicles that should
+		 * be loading but are not actually loading. */
+		if (IsDriveThroughStopTile(v->tile) &&
+				RoadStop::IsDriveThroughRoadStopContinuation(v->tile, tile) &&
+				v->tile != tile) {
+			/* So, keep 'our' state */
+			dir = (Trackdir)v->state;
+		} else if (IsRoadStop(v->tile)) {
+			/* We're not continuing our drive through road stop, so leave. */
+			RoadStop::GetByTile(v->tile, GetRoadStopType(v->tile))->Leave(v);
+		}
+	}
+
+	if (r != VETS_ENTERED_WORMHOLE) {
+		v->tile = tile;
+		v->state = (byte)dir;
+		v->frame = start_frame;
+	}
+
+	if (new_dir != v->direction) {
+		v->direction = new_dir;
+		if (_settings_game.vehicle.roadveh_acceleration_model == AM_ORIGINAL) v->cur_speed -= v->cur_speed >> 2;
+	}
+
+	v->x_pos = x;
+	v->y_pos = y;
+	v->UpdatePosition();
+	RoadZPosAffectSpeed(v, v->UpdateInclination(true, true));
+	return true;
+}
+
 static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *prev)
 {
 	if (v->overtaking != 0)  {
@@ -1265,7 +1413,6 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 	if (v->IsInDepot()) return true;
 
 	RoadDriveEntry rd;
-	TileIndex tile; // only used when entering a new tile
 
 	if (v->state == RVSB_WORMHOLE) {
 		/* Vehicle is entering a depot or is on a bridge or in a tunnel */
@@ -1289,9 +1436,8 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 		}
 
 		/* Vehicle has just exited a bridge or tunnel */
-		rd.x = RDE_NEXT_TILE;
-		rd.y = ReverseDiagDir(GetTunnelBridgeDirection(gp.tile));
-		tile = gp.tile;
+		DiagDirection bridge_dir = GetTunnelBridgeDirection (gp.tile);
+		return IndividualRoadVehicleControllerNewTile (v, prev, gp.tile, ReverseDiagDir(bridge_dir), INVALID_DIAGDIR);
 	} else {
 		/* Get move position data for next frame.
 		 * For a drive-through road stop use 'straight road' move data.
@@ -1302,7 +1448,8 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 
 		if (rd.x == RDE_NEXT_TILE) {
 			DiagDirection enterdir = (DiagDirection)(rd.y);
-			tile = v->tile + TileOffsByDiagDir(enterdir);
+			TileIndex tile = v->tile + TileOffsByDiagDir(enterdir);
+			DiagDirection tsdir;
 
 			if (IsTunnelTile(v->tile) && GetTunnelBridgeDirection(v->tile) == enterdir) {
 				TileIndex end_tile = GetOtherTunnelEnd(v->tile);
@@ -1310,158 +1457,20 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 					/* Entering a tunnel */
 					return IndividualRoadVehicleControllerEnterWormhole (v, end_tile, false);
 				}
+				tsdir = INVALID_DIAGDIR;
 			} else if (IsRoadBridgeTile(v->tile) && GetTunnelBridgeDirection(v->tile) == enterdir) {
 				TileIndex end_tile = GetOtherBridgeEnd(v->tile);
 				if (end_tile != tile) {
 					/* Entering a bridge */
 					return IndividualRoadVehicleControllerEnterWormhole (v, end_tile, true);
 				}
-			}
-		}
-	}
-
-	if (rd.x == RDE_NEXT_TILE) {
-		DiagDirection enterdir = (DiagDirection)(rd.y);
-
-		Trackdir dir;
-
-		if (v->IsFrontEngine()) {
-			/* If this is the front engine, look for the right path. */
-			dir = RoadFindPathToDest(v, tile, enterdir);
-
-			if (dir == INVALID_TRACKDIR) {
-				v->cur_speed = 0;
-				return false;
-			}
-		} else {
-			dir = FollowPreviousRoadVehicle(v, prev, tile, enterdir);
-		}
-
-		uint start_frame = RVC_DEFAULT_START_FRAME;
-		if (IsReversingRoadTrackdir(dir)) {
-			/* When turning around we can't be overtaking. */
-			v->overtaking = 0;
-			bool use_long_corner;
-
-			/* Turning around */
-			if (v->roadtype == ROADTYPE_ROAD) {
-				/* Not a tram. */
-				if (IsNormalRoadTile(v->tile) && GetDisallowedRoadDirections(v->tile) != DRD_NONE) {
-					v->cur_speed = 0;
-					return false;
-				}
-				use_long_corner = false;
-			} else if (v->IsFrontEngine()) {
-				/* Tram front vehicle. */
-
-				/* Determine the road bits the tram needs to be able to turn around
-				 * using the 'big' corner loop. */
-				RoadBits needed;
-				switch (dir) {
-					default: NOT_REACHED();
-					case TRACKDIR_RVREV_NE: needed = ROAD_SW; break;
-					case TRACKDIR_RVREV_SE: needed = ROAD_NW; break;
-					case TRACKDIR_RVREV_SW: needed = ROAD_NE; break;
-					case TRACKDIR_RVREV_NW: needed = ROAD_SE; break;
-				}
-				if (IsNormalRoadTile(tile) && !HasRoadWorks(tile) &&
-						(needed & GetRoadBits(tile, ROADTYPE_TRAM)) != ROAD_NONE) {
-					/*
-					 * Taking the 'big' corner for trams only happens when
-					 * the front of the tram can drive over the next tile.
-					 */
-					use_long_corner = true;
-				} else if (!CanBuildTramTrackOnTile(v->owner, tile, needed) || ((~needed & GetAnyRoadBits(v->tile, ROADTYPE_TRAM, false)) == ROAD_NONE)) {
-					/*
-					 * Taking the 'small' corner for trams only happens when
-					 * the company cannot build on the next tile.
-					 */
-					use_long_corner = false;
-				} else {
-					/* The company can build on the next tile, so wait till (s)he does. */
-					v->cur_speed = 0;
-					return false;
-				}
+				tsdir = INVALID_DIAGDIR;
 			} else {
-				/* Tram, not front vehicle. Just follow the previous vehicle. */
-				use_long_corner = (v->Previous()->tile == tile);
+				tsdir = ReverseDiagDir (enterdir);
 			}
 
-			if (use_long_corner) {
-				start_frame = RVC_LONG_TURN_START_FRAME;
-			} else {
-				/*
-				 * The 'small' corner means that the vehicle is on the end of a
-				 * tram track and needs to start turning there. It therefore
-				 * does not go to the next tile, so that needs to be fixed.
-				 */
-				tile = v->tile;
-				start_frame = RVC_SHORT_TURN_START_FRAME;
-			}
+			return IndividualRoadVehicleControllerNewTile (v, prev, tile, enterdir, tsdir);
 		}
-
-		/* Get position data for first frame on the new tile */
-		const RoadDriveEntry *rdp = _road_drive_data[_settings_game.vehicle.road_side ^ v->overtaking][dir];
-
-		int x = TileX(tile) * TILE_SIZE + rdp[start_frame].x;
-		int y = TileY(tile) * TILE_SIZE + rdp[start_frame].y;
-
-		Direction new_dir = RoadVehGetSlidingDirection(v, x, y);
-		if (v->IsFrontEngine()) {
-			Vehicle *u = RoadVehFindCloseTo(v, x, y, new_dir);
-			if (u != NULL) {
-				v->cur_speed = u->First()->cur_speed;
-				return false;
-			}
-		}
-
-		uint32 r = RoadVehEnterTile(v, tile, x, y);
-		if (r == VETS_CANNOT_ENTER) {
-			assert(IsRoadStopTile(tile));
-			v->cur_speed = 0;
-			return false;
-		}
-
-		if (IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_DT_ROAD_STOP_END) && IsStationTile(v->tile)) {
-			if (IsReversingRoadTrackdir(dir) && IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_ROAD_STOP_END)) {
-				/* New direction is trying to turn vehicle around.
-				 * We can't turn at the exit of a road stop so wait.*/
-				v->cur_speed = 0;
-				return false;
-			}
-
-			/* If we are a drive through road stop and the next tile is of
-			 * the same road stop and the next tile isn't this one (i.e. we
-			 * are not reversing), then keep the reservation and state.
-			 * This way we will not be shortly unregister from the road
-			 * stop. It also makes it possible to load when on the edge of
-			 * two road stops; otherwise you could get vehicles that should
-			 * be loading but are not actually loading. */
-			if (IsDriveThroughStopTile(v->tile) &&
-					RoadStop::IsDriveThroughRoadStopContinuation(v->tile, tile) &&
-					v->tile != tile) {
-				/* So, keep 'our' state */
-				dir = (Trackdir)v->state;
-			} else if (IsRoadStop(v->tile)) {
-				/* We're not continuing our drive through road stop, so leave. */
-				RoadStop::GetByTile(v->tile, GetRoadStopType(v->tile))->Leave(v);
-			}
-		}
-
-		if (r != VETS_ENTERED_WORMHOLE) {
-			v->tile = tile;
-			v->state = (byte)dir;
-			v->frame = start_frame;
-		}
-		if (new_dir != v->direction) {
-			v->direction = new_dir;
-			if (_settings_game.vehicle.roadveh_acceleration_model == AM_ORIGINAL) v->cur_speed -= v->cur_speed >> 2;
-		}
-		v->x_pos = x;
-		v->y_pos = y;
-		v->UpdatePosition();
-		RoadZPosAffectSpeed(v, v->UpdateInclination(true, true));
-		return true;
 	}
 
 	if (rd.x == RDE_TURNED) {
@@ -1479,7 +1488,7 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 		} else {
 			if (v->IsFrontEngine()) {
 				/* If this is the front engine, look for the right path. */
-				dir = RoadFindPathToDest(v, v->tile, enterdir);
+				dir = RoadFindPathToDest (v, v->tile, enterdir, INVALID_DIAGDIR);
 
 				if (dir == INVALID_TRACKDIR) {
 					v->cur_speed = 0;
