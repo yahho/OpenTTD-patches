@@ -922,9 +922,8 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_COMMAND(Packet 
 	if (this->status != STATUS_ACTIVE) return NETWORK_RECV_STATUS_MALFORMED_PACKET;
 
 	CommandPacket cp;
-	const char *err = cp.ReceiveFrom (p, true);
-
-	if (err != NULL) {
+	const char *err;
+	if (!cp.ReceiveFrom (p, true, &err)) {
 		IConsolePrintF(CC_ERROR, "WARNING: %s from server, dropping...", err);
 		return NETWORK_RECV_STATUS_MALFORMED_PACKET;
 	}

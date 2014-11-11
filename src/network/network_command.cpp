@@ -270,14 +270,21 @@ void NetworkDistributeCommands()
  * Receives a command from the network.
  * @param p the packet to read from.
  * @param from_server whether the packet comes from the server
- * @return an error message. When NULL there has been no error.
+ * @param err pointer to store an error message
+ * @return whether reception succeeded
  */
-const char *CommandPacket::ReceiveFrom (Packet *p, bool from_server)
+bool CommandPacket::ReceiveFrom (Packet *p, bool from_server, const char **err)
 {
 	this->company = (CompanyID)p->Recv_uint8();
 	this->cmd     = p->Recv_uint32();
-	if (!IsValidCommand(this->cmd))                return "invalid command";
-	if (GetCommandFlags(this->cmd) & CMDF_OFFLINE) return "offline only command";
+	if (!IsValidCommand(this->cmd)) {
+		*err = "invalid command";
+		return false;
+	}
+	if (GetCommandFlags(this->cmd) & CMDF_OFFLINE) {
+		*err = "offline-only command";
+		return false;
+	}
 
 	this->p1      = p->Recv_uint32();
 	this->p2      = p->Recv_uint32();
@@ -289,7 +296,7 @@ const char *CommandPacket::ReceiveFrom (Packet *p, bool from_server)
 		this->cmdsrc = p->Recv_bool() ? CMDSRC_NETWORK_SELF : CMDSRC_NETWORK_OTHER;
 	}
 
-	return NULL;
+	return true;
 }
 
 /**

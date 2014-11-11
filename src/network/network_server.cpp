@@ -1096,7 +1096,8 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::Receive_CLIENT_COMMAND(Packet 
 	}
 
 	CommandPacket cp;
-	const char *err = cp.ReceiveFrom (p, false);
+	const char *err;
+	if (cp.ReceiveFrom (p, false, &err)) err = NULL;
 
 	if (this->HasClientQuit()) return NETWORK_RECV_STATUS_CONN_LOST;
 
