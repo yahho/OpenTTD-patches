@@ -408,7 +408,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendAck()
 NetworkRecvStatus ClientNetworkGameSocketHandler::SendCommand(const CommandPacket *cp)
 {
 	Packet *p = new Packet(PACKET_CLIENT_COMMAND);
-	cp->SendTo(p);
+	cp->SendTo (p, false);
 
 	my_client->SendPacket(p);
 	return NETWORK_RECV_STATUS_OKAY;
@@ -922,9 +922,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_COMMAND(Packet 
 	if (this->status != STATUS_ACTIVE) return NETWORK_RECV_STATUS_MALFORMED_PACKET;
 
 	CommandPacket cp;
-	const char *err = cp.ReceiveFrom(p);
-	cp.frame    = p->Recv_uint32();
-	cp.cmdsrc   = p->Recv_bool() ? CMDSRC_NETWORK_SELF : CMDSRC_NETWORK_OTHER;
+	const char *err = cp.ReceiveFrom (p, true);
 
 	if (err != NULL) {
 		IConsolePrintF(CC_ERROR, "WARNING: %s from server, dropping...", err);

@@ -159,9 +159,9 @@ struct CommandPacket : CommandContainer {
 	uint32 frame;          ///< the frame in which this packet is executed
 	CommandSource cmdsrc;  ///< source of the command
 
-	void SendTo (Packet *p) const;
+	void SendTo (Packet *p, bool from_server) const;
 
-	const char *ReceiveFrom (Packet *p);
+	const char *ReceiveFrom (Packet *p, bool from_server);
 };
 
 void NetworkDistributeCommands();

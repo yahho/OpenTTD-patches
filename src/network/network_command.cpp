@@ -269,9 +269,10 @@ void NetworkDistributeCommands()
 /**
  * Receives a command from the network.
  * @param p the packet to read from.
+ * @param from_server whether the packet comes from the server
  * @return an error message. When NULL there has been no error.
  */
-const char *CommandPacket::ReceiveFrom (Packet *p)
+const char *CommandPacket::ReceiveFrom (Packet *p, bool from_server)
 {
 	this->company = (CompanyID)p->Recv_uint8();
 	this->cmd     = p->Recv_uint32();
@@ -283,14 +284,20 @@ const char *CommandPacket::ReceiveFrom (Packet *p)
 	this->tile    = p->Recv_uint32();
 	p->Recv_string (this->text, lengthof(this->text), (!_network_server && GetCommandFlags(this->cmd) & CMDF_STR_CTRL) != 0 ? SVS_ALLOW_CONTROL_CODE | SVS_REPLACE_WITH_QUESTION_MARK : SVS_REPLACE_WITH_QUESTION_MARK);
 
+	if (from_server) {
+		this->frame  = p->Recv_uint32();
+		this->cmdsrc = p->Recv_bool() ? CMDSRC_NETWORK_SELF : CMDSRC_NETWORK_OTHER;
+	}
+
 	return NULL;
 }
 
 /**
  * Sends a command over the network.
  * @param p the packet to send it in.
+ * @param from_server whether we are the server sending the packet
  */
-void CommandPacket::SendTo (Packet *p) const
+void CommandPacket::SendTo (Packet *p, bool from_server) const
 {
 	p->Send_uint8  (this->company);
 	p->Send_uint32 (this->cmd);
@@ -298,6 +305,11 @@ void CommandPacket::SendTo (Packet *p) const
 	p->Send_uint32 (this->p2);
 	p->Send_uint32 (this->tile);
 	p->Send_string (this->text);
+
+	if (from_server) {
+		p->Send_uint32 (this->frame);
+		p->Send_bool (this->cmdsrc == CMDSRC_NETWORK_SELF);
+	}
 }
 
 #endif /* ENABLE_NETWORK */
