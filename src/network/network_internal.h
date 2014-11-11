@@ -16,6 +16,7 @@
 #include "core/tcp_game.h"
 
 #include "../command_type.h"
+#include "core/packet.h"
 
 #ifdef ENABLE_NETWORK
 
@@ -157,6 +158,10 @@ struct CommandPacket : CommandContainer {
 	CompanyID company;     ///< company that is executing the command
 	uint32 frame;          ///< the frame in which this packet is executed
 	CommandSource cmdsrc;  ///< source of the command
+
+	void SendTo (Packet *p) const;
+
+	const char *ReceiveFrom (Packet *p);
 };
 
 void NetworkDistributeCommands();

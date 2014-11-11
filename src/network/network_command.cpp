@@ -269,20 +269,19 @@ void NetworkDistributeCommands()
 /**
  * Receives a command from the network.
  * @param p the packet to read from.
- * @param cp the struct to write the data to.
  * @return an error message. When NULL there has been no error.
  */
-const char *NetworkGameSocketHandler::ReceiveCommand(Packet *p, CommandPacket *cp)
+const char *CommandPacket::ReceiveFrom (Packet *p)
 {
-	cp->company = (CompanyID)p->Recv_uint8();
-	cp->cmd     = p->Recv_uint32();
-	if (!IsValidCommand(cp->cmd))                return "invalid command";
-	if (GetCommandFlags(cp->cmd) & CMDF_OFFLINE) return "offline only command";
+	this->company = (CompanyID)p->Recv_uint8();
+	this->cmd     = p->Recv_uint32();
+	if (!IsValidCommand(this->cmd))                return "invalid command";
+	if (GetCommandFlags(this->cmd) & CMDF_OFFLINE) return "offline only command";
 
-	cp->p1      = p->Recv_uint32();
-	cp->p2      = p->Recv_uint32();
-	cp->tile    = p->Recv_uint32();
-	p->Recv_string(cp->text, lengthof(cp->text), (!_network_server && GetCommandFlags(cp->cmd) & CMDF_STR_CTRL) != 0 ? SVS_ALLOW_CONTROL_CODE | SVS_REPLACE_WITH_QUESTION_MARK : SVS_REPLACE_WITH_QUESTION_MARK);
+	this->p1      = p->Recv_uint32();
+	this->p2      = p->Recv_uint32();
+	this->tile    = p->Recv_uint32();
+	p->Recv_string (this->text, lengthof(this->text), (!_network_server && GetCommandFlags(this->cmd) & CMDF_STR_CTRL) != 0 ? SVS_ALLOW_CONTROL_CODE | SVS_REPLACE_WITH_QUESTION_MARK : SVS_REPLACE_WITH_QUESTION_MARK);
 
 	return NULL;
 }
@@ -290,16 +289,15 @@ const char *NetworkGameSocketHandler::ReceiveCommand(Packet *p, CommandPacket *c
 /**
  * Sends a command over the network.
  * @param p the packet to send it in.
- * @param cp the packet to actually send.
  */
-void NetworkGameSocketHandler::SendCommand(Packet *p, const CommandPacket *cp)
+void CommandPacket::SendTo (Packet *p) const
 {
-	p->Send_uint8 (cp->company);
-	p->Send_uint32(cp->cmd);
-	p->Send_uint32(cp->p1);
-	p->Send_uint32(cp->p2);
-	p->Send_uint32(cp->tile);
-	p->Send_string(cp->text);
+	p->Send_uint8  (this->company);
+	p->Send_uint32 (this->cmd);
+	p->Send_uint32 (this->p1);
+	p->Send_uint32 (this->p2);
+	p->Send_uint32 (this->tile);
+	p->Send_string (this->text);
 }
 
 #endif /* ENABLE_NETWORK */

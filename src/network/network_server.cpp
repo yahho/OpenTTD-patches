@@ -733,7 +733,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendCommand(const CommandPacke
 
 	Packet *p = new Packet(PACKET_SERVER_COMMAND);
 
-	this->NetworkGameSocketHandler::SendCommand(p, cp);
+	cp->SendTo(p);
 	p->Send_uint32(cp->frame);
 	p->Send_bool  (cp->cmdsrc == CMDSRC_NETWORK_SELF);
 
@@ -1098,7 +1098,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::Receive_CLIENT_COMMAND(Packet 
 	}
 
 	CommandPacket cp;
-	const char *err = this->ReceiveCommand(p, &cp);
+	const char *err = cp.ReceiveFrom(p);
 
 	if (this->HasClientQuit()) return NETWORK_RECV_STATUS_CONN_LOST;
 

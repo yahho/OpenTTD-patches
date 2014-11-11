@@ -553,9 +553,6 @@ public:
 	}
 
 	NetworkRecvStatus ReceivePackets();
-
-	const char *ReceiveCommand(Packet *p, CommandPacket *cp);
-	void SendCommand(Packet *p, const CommandPacket *cp);
 };
 
 #endif /* ENABLE_NETWORK */
