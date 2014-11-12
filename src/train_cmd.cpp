@@ -2284,8 +2284,9 @@ static void ClearPathReservation (const RailPathPos &pos)
 /**
  * Free the reserved path in front of a vehicle.
  * @param v %Train owning the reserved path.
+ * @param end Position where the reservation ends
  */
-void FreeTrainTrackReservation(const Train *v)
+void FreeTrainTrackReservation (const Train *v, const RailPathPos *end)
 {
 	assert(v->IsFrontEngine());
 
@@ -2306,7 +2307,11 @@ void FreeTrainTrackReservation(const Train *v)
 	CFollowTrackRail ft(v, true, v->railtype);
 	ft.SetPos(pos);
 
-	while (ft.FollowNext()) {
+	for (;;) {
+		if (end != NULL && ft.m_new == *end) return;
+
+		if (!ft.FollowNext()) break;
+
 		if (!ft.m_new.in_wormhole()) {
 			TrackdirBits trackdirs = ft.m_new.trackdirs & TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new.tile));
 			if (trackdirs == TRACKDIR_BIT_NONE) break;
@@ -2347,6 +2352,10 @@ void FreeTrainTrackReservation(const Train *v)
 
 		first = false;
 	}
+
+	/* If we were given an ending position but did not find it, then
+	 * something is wrong. */
+	assert (end == NULL);
 }
 
 /**
@@ -2649,7 +2658,7 @@ static bool ChooseTrainTrack(Train *v, RailPathPos origin, TileIndex tile, Track
 
 	/* A path was found, but could not be reserved. */
 	if (res_dest.pos.is_valid_tile() && !res_dest.okay) {
-		FreeTrainTrackReservation(v);
+		FreeTrainTrackReservation (v, &origin);
 		return false;
 	}
 
@@ -2665,7 +2674,7 @@ static bool ChooseTrainTrack(Train *v, RailPathPos origin, TileIndex tile, Track
 			if (change_signal) MarkTileDirtyByTile(tile);
 			return true;
 		} else {
-			FreeTrainTrackReservation(v);
+			FreeTrainTrackReservation (v, &origin);
 			return false;
 		}
 	}
@@ -2690,7 +2699,7 @@ static bool ChooseTrainTrack(Train *v, RailPathPos origin, TileIndex tile, Track
 
 		if (!res_dest.okay) {
 			/* Path found, but could not be reserved. */
-			FreeTrainTrackReservation(v);
+			FreeTrainTrackReservation (v, &origin);
 			return false;
 		}
 	}
@@ -2699,7 +2708,7 @@ static bool ChooseTrainTrack(Train *v, RailPathPos origin, TileIndex tile, Track
 	if (!safe) safe = TryReserveSafeTrack(v, origin, true);
 
 	if (!safe) {
-		FreeTrainTrackReservation(v);
+		FreeTrainTrackReservation (v, &origin);
 	} else if (change_signal) {
 		MarkTileDirtyByTile(tile);
 	}
