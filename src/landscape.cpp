@@ -1128,14 +1128,11 @@ static void BuildRiver(TileIndex begin, TileIndex end)
  */
 static bool FlowRiver(TileIndex spring, TileIndex begin)
 {
-	#define SET_MARK(x) marks.insert(x)
-	#define IS_MARKED(x) (marks.find(x) != marks.end())
-
 	uint height = TileHeight(begin);
 	if (IsPlainWaterTile(begin)) return DistanceManhattan(spring, begin) > _settings_game.game_creation.min_river_length;
 
 	std::set<TileIndex> marks;
-	SET_MARK(begin);
+	marks.insert(begin);
 
 	/* Breadth first search for the closest tile we can flow down to. */
 	std::list<TileIndex> queue;
@@ -1156,8 +1153,8 @@ static bool FlowRiver(TileIndex spring, TileIndex begin)
 
 		for (DiagDirection d = DIAGDIR_BEGIN; d < DIAGDIR_END; d++) {
 			TileIndex t2 = end + TileOffsByDiagDir(d);
-			if (IsValidTile(t2) && !IS_MARKED(t2) && FlowsDown(end, t2)) {
-				SET_MARK(t2);
+			if (IsValidTile(t2) && (marks.find(t2) == marks.end()) && FlowsDown(end, t2)) {
+				marks.insert(t2);
 				count++;
 				queue.push_back(t2);
 			}
