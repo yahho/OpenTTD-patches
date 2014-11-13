@@ -32,7 +32,7 @@
 #include "object_base.h"
 #include "company_func.h"
 #include "pathfinder/yapf/astar.hpp"
-#include <list>
+#include <queue>
 #include <set>
 
 #include "table/strings.h"
@@ -1013,33 +1013,6 @@ static void MakeLake (TileIndex tile, uint height)
 	}
 }
 
-/**
- * Check whether a river at begin could (logically) flow down to end.
- * @param begin The origin of the flow.
- * @param end The destination of the flow.
- * @return True iff the water can be flowing down.
- */
-static bool FlowsDown(TileIndex begin, TileIndex end)
-{
-	assert(DistanceManhattan(begin, end) == 1);
-
-	int heightBegin;
-	int heightEnd;
-	Slope slopeBegin = GetTileSlope(begin, &heightBegin);
-	Slope slopeEnd   = GetTileSlope(end, &heightEnd);
-
-	/* Slope is either inclined or flat; rivers don't support other slopes. */
-	if (slopeEnd == SLOPE_FLAT) {
-		return heightEnd <= heightBegin;
-	} else if (slopeBegin == SLOPE_FLAT) {
-		return heightEnd <= heightBegin && IsInclinedSlope(slopeEnd);
-	} else {
-		/* Slope continues, then it must be lower. */
-		assert (IsInclinedSlope(slopeBegin));
-		return heightEnd < heightBegin && slopeEnd == slopeBegin;
-	}
-}
-
 /** River node struct for Astar. */
 struct RiverNode : AstarNodeBase<RiverNode> {
 	typedef AstarNodeBase<RiverNode> Base;
@@ -1079,6 +1052,17 @@ struct RiverAstar : Astar <RiverNode, 8, 8>
 	RiverAstar (TileIndex target) : target(target) { }
 };
 
+/**
+ * Check if a given slope is valid for a flow when moving in a given direction.
+ * @param dir The direction in which we are moving.
+ * @param slope The slope of the new tile.
+ * @return Whether the slope is valid for flowing in the given direction.
+ */
+static bool FlowsDown (DiagDirection dir, Slope slope)
+{
+	return (slope == SLOPE_FLAT) || (slope == ComplementSlope (InclinedSlope (dir)));
+}
+
 /** River neighbour finder for the A-star algorithm in a given direction. */
 static void RiverFollowDir (RiverAstar *a, RiverNode *n, DiagDirection d)
 {
@@ -1086,7 +1070,7 @@ static void RiverFollowDir (RiverAstar *a, RiverNode *n, DiagDirection d)
 	if (!IsValidTile (tile)) return;
 
 	Slope slope = GetTileSlope (tile);
-	if ((slope == SLOPE_FLAT) || (slope == ComplementSlope (InclinedSlope (d)))) {
+	if (FlowsDown (d, slope)) {
 		RiverNode *m = a->CreateNewNode (n, tile, slope);
 		m->m_cost = n->m_cost + 1 + RandomRange (_settings_game.game_creation.river_route_random);
 		if (tile == a->target) {
@@ -1149,6 +1133,8 @@ static void BuildRiver(TileIndex begin, TileIndex end)
  */
 static bool FlowRiver(TileIndex spring, TileIndex begin)
 {
+	assert (IsTileFlat (begin));
+
 	uint height = TileHeight(begin);
 	if (IsPlainWaterTile(begin)) return DistanceManhattan(spring, begin) > _settings_game.game_creation.min_river_length;
 
@@ -1156,29 +1142,49 @@ static bool FlowRiver(TileIndex spring, TileIndex begin)
 	marks.insert(begin);
 
 	/* Breadth first search for the closest tile we can flow down to. */
-	std::list<TileIndex> queue;
-	queue.push_back(begin);
+	std::queue <std::pair <TileIndex, Slope> > queue;
 
+	TileIndex end = begin;
+	Slope slope = SLOPE_FLAT;
 	bool found = false;
-	TileIndex end;
-	do {
-		end = queue.front();
-		queue.pop_front();
 
-		uint height2 = TileHeight(end);
-		if (IsTileFlat(end) && (height2 < height || (height2 == height && IsPlainWaterTile(end)))) {
-			found = true;
-			break;
+	for (;;) {
+		DiagDirection d0, d1;
+		if (slope == SLOPE_FLAT) {
+			uint height2 = TileHeight (end);
+			assert (height2 <= height);
+			if (height2 < height || IsPlainWaterTile(end)) {
+				found = true;
+				break;
+			}
+			/* try all neighbour tiles from a flat tile */
+			d0 = DIAGDIR_BEGIN;
+			d1 = DIAGDIR_END;
+		} else {
+			DiagDirection d = GetInclinedSlopeDirection (slope);
+			assert (d != INVALID_DIAGDIR);
+			/* only try this direction from a sloped tile */
+			d0 = ReverseDiagDir (d);
+			d1 = (DiagDirection)(d0 + 1);
 		}
 
-		for (DiagDirection d = DIAGDIR_BEGIN; d < DIAGDIR_END; d++) {
-			TileIndex t2 = end + TileOffsByDiagDir(d);
-			if (IsValidTile(t2) && (marks.find(t2) == marks.end()) && FlowsDown(end, t2)) {
-				marks.insert(t2);
-				queue.push_back(t2);
+		for (DiagDirection d = d0; d < d1; d++) {
+			TileIndex neighbour = end + TileOffsByDiagDir (d);
+			if (IsValidTile(neighbour) && (marks.find(neighbour) == marks.end())) {
+				Slope neighbour_slope = GetTileSlope (neighbour);
+				if (FlowsDown (d, neighbour_slope)) {
+					marks.insert (neighbour);
+					queue.push (std::make_pair (neighbour, neighbour_slope));
+				}
 			}
 		}
-	} while (!queue.empty());
+
+		if (queue.empty()) break;
+
+		end = queue.front().first;
+		slope = queue.front().second;
+		queue.pop();
+	}
 
 	if (found) {
 		/* Flow further down hill. */
