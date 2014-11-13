@@ -1160,7 +1160,6 @@ static bool FlowRiver(TileIndex spring, TileIndex begin)
 	queue.push_back(begin);
 
 	bool found = false;
-	uint count = 0; // Number of tiles considered; to be used for lake location guessing.
 	TileIndex end;
 	do {
 		end = queue.front();
@@ -1176,7 +1175,6 @@ static bool FlowRiver(TileIndex spring, TileIndex begin)
 			TileIndex t2 = end + TileOffsByDiagDir(d);
 			if (IsValidTile(t2) && (marks.find(t2) == marks.end()) && FlowsDown(end, t2)) {
 				marks.insert(t2);
-				count++;
 				queue.push_back(t2);
 			}
 		}
@@ -1185,13 +1183,11 @@ static bool FlowRiver(TileIndex spring, TileIndex begin)
 	if (found) {
 		/* Flow further down hill. */
 		found = FlowRiver(spring, end);
-	} else if (count > 32) {
+	} else if (marks.size() > 32) {
 		/* Maybe we can make a lake. Find the Nth of the considered tiles. */
-		TileIndex lakeCenter = 0;
-		int i = RandomRange(count - 1) + 1;
 		std::set<TileIndex>::const_iterator cit = marks.begin();
-		while (--i) cit++;
-		lakeCenter = *cit;
+		for (uint i = RandomRange (marks.size()); i > 0; i--) cit++;
+		TileIndex lakeCenter = *cit;
 
 		if (IsValidTile(lakeCenter) &&
 				/* A river, or lake, can only be built on flat slopes. */
