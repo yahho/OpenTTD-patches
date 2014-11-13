@@ -1046,11 +1046,13 @@ struct RiverNode : AstarNodeBase<RiverNode> {
 	typedef RiverNode Key; // we are our own key
 
 	TileIndex tile;
+	Slope slope;
 
-	void Set (RiverNode *parent, TileIndex t)
+	void Set (RiverNode *parent, TileIndex t, Slope s)
 	{
 		Base::Set (parent);
 		tile = t;
+		slope = s;
 	}
 
 	bool operator == (const RiverNode &other) const
@@ -1077,24 +1079,41 @@ struct RiverAstar : Astar <RiverNode, 8, 8>
 	RiverAstar (TileIndex target) : target(target) { }
 };
 
+/** River neighbour finder for the A-star algorithm in a given direction. */
+static void RiverFollowDir (RiverAstar *a, RiverNode *n, DiagDirection d)
+{
+	TileIndex tile = TileAddByDiagDir (n->tile, d);
+	if (!IsValidTile (tile)) return;
+
+	Slope slope = GetTileSlope (tile);
+	if ((slope == SLOPE_FLAT) || (slope == ComplementSlope (InclinedSlope (d)))) {
+		RiverNode *m = a->CreateNewNode (n, tile, slope);
+		m->m_cost = n->m_cost + 1 + RandomRange (_settings_game.game_creation.river_route_random);
+		if (tile == a->target) {
+			m->m_estimate = m->m_cost;
+			a->FoundTarget(m);
+		} else {
+			m->m_estimate = m->m_cost + DistanceManhattan (tile, a->target);
+			a->InsertNode(m);
+		}
+	}
+}
+
 /**
  * River neighbour finder for the A-star algorithm
  */
 static void RiverFollow (RiverAstar *a, RiverNode *n)
 {
-	for (DiagDirection d = DIAGDIR_BEGIN; d < DIAGDIR_END; d++) {
-		TileIndex tile = TileAddByDiagDir (n->tile, d);
-		if (IsValidTile(tile) && FlowsDown(n->tile, tile)) {
-			RiverNode *m = a->CreateNewNode (n, tile);
-			m->m_cost = n->m_cost + 1 + RandomRange(_settings_game.game_creation.river_route_random);
-			if (tile == a->target) {
-				m->m_estimate = m->m_cost;
-				a->FoundTarget(m);
-			} else {
-				m->m_estimate = m->m_cost + DistanceManhattan(tile, a->target);
-				a->InsertNode(m);
-			}
+	if (n->slope == SLOPE_FLAT) {
+		/* We can flow in all four direction from a flat tile. */
+		for (DiagDirection d = DIAGDIR_BEGIN; d < DIAGDIR_END; d++) {
+			RiverFollowDir (a, n, d);
 		}
+	} else {
+		/* We can only flow downhill from a sloped tile. */
+		DiagDirection d = GetInclinedSlopeDirection (n->slope);
+		assert (d != INVALID_DIAGDIR);
+		RiverFollowDir (a, n, ReverseDiagDir(d));
 	}
 }
 
@@ -1105,8 +1124,10 @@ static void RiverFollow (RiverAstar *a, RiverNode *n)
  */
 static void BuildRiver(TileIndex begin, TileIndex end)
 {
+	assert (IsTileFlat (begin));
+
 	RiverAstar finder (end);
-	finder.InsertInitialNode (finder.CreateNewNode (NULL, begin));
+	finder.InsertInitialNode (finder.CreateNewNode (NULL, begin, SLOPE_FLAT));
 
 	if (finder.FindPath(&RiverFollow)) {
 		for (RiverNode *n = finder.best; n != NULL; n = n->m_parent) {
