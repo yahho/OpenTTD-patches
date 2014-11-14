@@ -537,31 +537,21 @@ static void HeightMapSineTransform(height_t h_min, height_t h_max)
  */
 static void HeightMapCurves(uint level)
 {
-	int mh = TGPGetMaxHeight();
-
 	/** Basically scale height X to height Y. Everything in between is interpolated. */
 	struct control_point_t {
-		height_t x; ///< The height to scale from.
-		height_t y; ///< The height to scale to.
+		float x; ///< The height to scale from.
+		float y; ///< The height to scale to.
 	};
-	/* Scaled curve maps; value is in height_ts. */
-#define F(fraction) ((height_t)(fraction * mh))
-	const control_point_t curve_map_1[] = { { F(0.0), F(0.0) }, { F(0.6 / 3), F(0.1) }, { F(2.4 / 3), F(0.4 / 3) },                                                       { F(1.0), F(0.4)  } };
-	const control_point_t curve_map_2[] = { { F(0.0), F(0.0) }, { F(0.2 / 3), F(0.1) }, { F(1.6 / 3), F(0.4 / 3) }, { F(2.4 / 3), F(0.8 / 3) },                           { F(1.0), F(0.6)  } };
-	const control_point_t curve_map_3[] = { { F(0.0), F(0.0) }, { F(0.2 / 3), F(0.1) }, { F(1.6 / 3), F(0.8 / 3) }, { F(2.4 / 3), F(1.8 / 3) },                           { F(1.0), F(0.8)  } };
-	const control_point_t curve_map_4[] = { { F(0.0), F(0.0) }, { F(0.2 / 3), F(0.1) }, { F(1.2 / 3), F(0.9 / 3) }, { F(2.0 / 3), F(2.4 / 3) } , { F(5.5 / 6), F(0.99) }, { F(1.0), F(0.99) } };
-#undef F
+
+	/* Scaled curve maps; value is in proportion of maximum height_t. */
+	static const control_point_t curve_map_1[] = { { 0, 0 }, { 0.6 / 3, 0.1 }, { 2.4 / 3, 0.4 / 3 },                                           { 1, 0.4  } };
+	static const control_point_t curve_map_2[] = { { 0, 0 }, { 0.2 / 3, 0.1 }, { 1.6 / 3, 0.4 / 3 }, { 2.4 / 3, 0.8 / 3 },                     { 1, 0.6  } };
+	static const control_point_t curve_map_3[] = { { 0, 0 }, { 0.2 / 3, 0.1 }, { 1.6 / 3, 0.8 / 3 }, { 2.4 / 3, 1.8 / 3 },                     { 1, 0.8  } };
+	static const control_point_t curve_map_4[] = { { 0, 0 }, { 0.2 / 3, 0.1 }, { 1.2 / 3, 0.9 / 3 }, { 2.0 / 3, 2.4 / 3 } , { 5.5 / 6, 0.99 }, { 1, 0.99 } };
 
 	/** Helper structure to index the different curve maps. */
-	struct control_point_list_t {
-		size_t length;               ///< The length of the curve map.
-		const control_point_t *list; ///< The actual curve map.
-	};
-	const control_point_list_t curve_maps[] = {
-		{ lengthof(curve_map_1), curve_map_1 },
-		{ lengthof(curve_map_2), curve_map_2 },
-		{ lengthof(curve_map_3), curve_map_3 },
-		{ lengthof(curve_map_4), curve_map_4 },
+	static const control_point_t *const curve_maps[] = {
+		curve_map_1, curve_map_2, curve_map_3, curve_map_4,
 	};
 
 	height_t ht[lengthof(curve_maps)];
@@ -576,6 +566,8 @@ static void HeightMapCurves(uint level)
 	for (uint i = 0; i < sx * sy; i++) {
 		c[i] = Random() % lengthof(curve_maps);
 	}
+
+	const height_t mh = max<height_t> (TGPGetMaxHeight(), I2H(15));
 
 	/* Apply curves */
 	for (int x = 0; x < _height_map.size_x; x++) {
@@ -626,18 +618,29 @@ static void HeightMapCurves(uint level)
 			corner_bits |= 1 << corner_d;
 
 			height_t *h = &_height_map.height(x, y);
+			assert (*h >= 0);
+			assert (*h <= mh);
 
 			/* Apply all curve maps that are used on this tile. */
 			for (uint t = 0; t < lengthof(curve_maps); t++) {
 				if (!HasBit(corner_bits, t)) continue;
 
-				const control_point_t *cm = curve_maps[t].list;
-				for (uint i = 0; i < curve_maps[t].length - 1; i++) {
-					const control_point_t &p1 = cm[i];
-					const control_point_t &p2 = cm[i + 1];
+				const control_point_t *cm = curve_maps[t];
+				assert (cm->x == 0);
+				assert (cm->y == 0);
 
-					if (*h >= p1.x && *h < p2.x) {
-						ht[t] = p1.y + (*h - p1.x) * (p2.y - p1.y) / (p2.x - p1.x);
+				for (;;) {
+					assert (*h >= (height_t)(cm->x * mh));
+					const control_point_t *next = cm + 1;
+					if (*h < (height_t)(next->x * mh)) {
+						ht[t] = (height_t)(cm->y * mh) + (height_t)((*h - (height_t)(cm->x * mh)) * (next->y - cm->y) / (next->x - cm->x));
+						break;
+					}
+					cm = next;
+					assert (cm->x <= 1 );
+					if (cm->x == 1) {
+						assert (*h == mh);
+						ht[t] = (height_t)(cm->y * mh);
 						break;
 					}
 				}
