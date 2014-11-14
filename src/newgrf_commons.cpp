@@ -435,15 +435,81 @@ TileIndex GetNearbyTile(byte parameter, TileIndex tile, bool signed_offsets, Axi
  */
 uint32 GetNearbyTileInformation(TileIndex tile, bool grf_version8)
 {
-	TileType tile_type = GetTileType(tile);
+	enum OldTileType {
+		OLD_MP_CLEAR,           ///< A tile without any structures, i.e. grass, docks, farm fields etc.
+		OLD_MP_RAILWAY,         ///< A railway
+		OLD_MP_ROAD,            ///< A tile with road (or tram tracks)
+		OLD_MP_HOUSE,           ///< A house by a town
+		OLD_MP_TREES,           ///< Tile got trees
+		OLD_MP_STATION,         ///< A tile of a station
+		OLD_MP_WATER,           ///< Water tile
+		OLD_MP_VOID,            ///< Invisible tiles at the SW and SE border
+		OLD_MP_INDUSTRY,        ///< Part of an industry
+		OLD_MP_TUNNELBRIDGE,    ///< Tunnel entry/exit and bridge heads
+		OLD_MP_OBJECT,          ///< Contains objects such as transmitters and owned land
+	};
 
-	/* Fake tile type for trees on shore */
-	if (IsTreeTile(tile) && GetClearGround(tile) == GROUND_SHORE) tile_type = TT_WATER;
+	OldTileType tile_type;
+
+	switch ((int)GetTileType(tile)) {
+		case TT_GROUND:
+			switch (GetTileSubtype(tile)) {
+				case TT_GROUND_VOID:
+					tile_type = OLD_MP_VOID;
+					break;
+				case TT_GROUND_FIELDS:
+				case TT_GROUND_CLEAR:
+					tile_type = OLD_MP_CLEAR;
+					break;
+				case TT_GROUND_TREES:
+					/* Fake tile type for trees on shore */
+					tile_type = (GetClearGround(tile) == GROUND_SHORE) ? OLD_MP_WATER : OLD_MP_TREES;
+					break;
+			}
+			break;
+
+		case TT_OBJECT: tile_type = OLD_MP_OBJECT; break;
+		case TT_WATER:  tile_type = OLD_MP_WATER;  break;
+
+		case 3: NOT_REACHED();
+
+		case TT_RAILWAY:
+			tile_type = (GetTileSubtype(tile) == TT_TRACK ? OLD_MP_RAILWAY : OLD_MP_TUNNELBRIDGE);
+			break;
+
+		case TT_ROAD:
+			tile_type = (GetTileSubtype(tile) == TT_TRACK ? OLD_MP_ROAD : OLD_MP_TUNNELBRIDGE);
+			break;
+
+		case TT_MISC:
+			switch (GetTileSubtype(tile)) {
+				case TT_MISC_CROSSING:
+					tile_type = OLD_MP_ROAD;
+					break;
+				case TT_MISC_AQUEDUCT:
+				case TT_MISC_TUNNEL:
+					tile_type = OLD_MP_TUNNELBRIDGE;
+					break;
+				case TT_MISC_DEPOT:
+					tile_type = IsRoadDepot(tile) ? OLD_MP_ROAD : OLD_MP_RAILWAY;
+					break;
+			}
+			break;
+
+		case TT_STATION: tile_type = OLD_MP_STATION; break;
+
+		case 8: tile_type = OLD_MP_INDUSTRY; break;
+
+		case 9:	case 10: case 11: NOT_REACHED();
+
+		case 12: case 13: case 14: case 15:
+			tile_type = OLD_MP_HOUSE; break;
+	}
 
 	int z;
 	Slope tileh = GetTilePixelSlope(tile, &z);
 	/* Return 0 if the tile is a land tile */
-	byte terrain_type = (HasTileWaterClass(tile) ? (GetWaterClass(tile) + 1) & 3 : 0) << 5 | GetTerrainType(tile) << 2 | (tile_type == TT_WATER ? 1 : 0) << 1;
+	byte terrain_type = (HasTileWaterClass(tile) ? (GetWaterClass(tile) + 1) & 3 : 0) << 5 | GetTerrainType(tile) << 2 | (tile_type == OLD_MP_WATER ? 1 : 0) << 1;
 	if (grf_version8) z /= TILE_HEIGHT;
 	return tile_type << 24 | Clamp(z, 0, 0xFF) << 16 | terrain_type << 8 | tileh;
 }
