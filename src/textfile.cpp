@@ -250,7 +250,7 @@ static char *stream_unzip (FILE *handle, size_t filesize, size_t *len)
 char *TextfileDesc::read (size_t *len) const
 {
 	size_t filesize;
-	FILE *handle = FioFOpenFile (this->path, "rb", this->dir, &filesize);
+	FILE *handle = FioFOpenFile (this->path.get(), "rb", this->dir, &filesize);
 	if (handle == NULL) return NULL;
 
 	switch (this->format) {
@@ -457,14 +457,12 @@ TextfileDesc::TextfileDesc (TextfileType type, Subdirectory dir, const char *fil
 	assert_compile(lengthof(prefixes) == TFT_END);
 
 	if (filename == NULL) {
-		this->path = NULL;
 		this->format = FORMAT_END;
 		return;
 	}
 
 	const char *slash = strrchr (filename, PATHSEPCHAR);
 	if (slash == NULL) {
-		this->path = NULL;
 		this->format = FORMAT_END;
 		return;
 	}
@@ -476,8 +474,8 @@ TextfileDesc::TextfileDesc (TextfileType type, Subdirectory dir, const char *fil
 		+ 7     // longest possible language length
 		+ 9;    // ".txt.ext" and null terminator
 
-	this->path = xmalloc (alloc_size);
-	stringb buf (alloc_size, this->path);
+	this->path.reset (xmalloc (alloc_size));
+	stringb buf (alloc_size, this->path.get());
 	buf.fmt ("%.*s%s", (int)(slash - filename + 1), filename, prefixes[type]);
 	size_t base_length = buf.length();
 
@@ -515,7 +513,7 @@ TextfileDesc::TextfileDesc (TextfileType type, Subdirectory dir, const char *fil
 		}
 	}
 
-	free (this->path);
-	this->path = NULL;
+	this->path.reset();
+	assert (this->path.get() == NULL);
 	this->format = FORMAT_END;
 }
