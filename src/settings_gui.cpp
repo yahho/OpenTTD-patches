@@ -575,6 +575,16 @@ struct GameOptionsWindow : Window {
 		}
 	}
 
+	template <class T, class S, GameOptionsWidgets W>
+	void SetBaseSetWidgetsDisabledState (void)
+	{
+		const S *set = T::GetUsedSet();
+		for (TextfileType tft = TFT_BEGIN; tft < TFT_END; tft++) {
+			this->SetWidgetDisabledState (W + tft,
+				set == NULL || !set->GetTextfile(tft).valid());
+		}
+	}
+
 	/**
 	 * Some data on this window has become invalid.
 	 * @param data Information about the changed data. @see GameOptionsInvalidationData
@@ -588,14 +598,9 @@ struct GameOptionsWindow : Window {
 		bool missing_files = BaseGraphics::GetUsedSet()->GetNumMissing() == 0;
 		this->GetWidget<NWidgetCore>(WID_GO_BASE_GRF_STATUS)->SetDataTip(missing_files ? STR_EMPTY : STR_GAME_OPTIONS_BASE_GRF_STATUS, STR_NULL);
 
-		for (TextfileType tft = TFT_BEGIN; tft < TFT_END; tft++) {
-			this->SetWidgetDisabledState (WID_GO_BASE_GRF_TEXTFILE + tft,
-				BaseGraphics::GetUsedSet() == NULL || !BaseGraphics::GetUsedSet()->GetTextfile(tft).valid());
-			this->SetWidgetDisabledState (WID_GO_BASE_SFX_TEXTFILE + tft,
-				BaseSounds::GetUsedSet()   == NULL || !BaseSounds::GetUsedSet()->GetTextfile(tft).valid());
-			this->SetWidgetDisabledState (WID_GO_BASE_MUSIC_TEXTFILE + tft,
-				BaseMusic::GetUsedSet()    == NULL || !BaseMusic::GetUsedSet()->GetTextfile(tft).valid());
-		}
+		this->SetBaseSetWidgetsDisabledState <BaseGraphics, GraphicsSet, WID_GO_BASE_GRF_TEXTFILE>   ();
+		this->SetBaseSetWidgetsDisabledState <BaseSounds,   SoundsSet,   WID_GO_BASE_SFX_TEXTFILE>   ();
+		this->SetBaseSetWidgetsDisabledState <BaseMusic,    MusicSet,    WID_GO_BASE_MUSIC_TEXTFILE> ();
 
 		missing_files = BaseMusic::GetUsedSet()->GetNumInvalid() == 0;
 		this->GetWidget<NWidgetCore>(WID_GO_BASE_MUSIC_STATUS)->SetDataTip(missing_files ? STR_EMPTY : STR_GAME_OPTIONS_BASE_MUSIC_STATUS, STR_NULL);
