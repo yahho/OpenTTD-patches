@@ -458,12 +458,14 @@ TextfileDesc::TextfileDesc (TextfileType type, Subdirectory dir, const char *fil
 
 	if (filename == NULL) {
 		this->path = NULL;
+		this->format = FORMAT_END;
 		return;
 	}
 
 	const char *slash = strrchr (filename, PATHSEPCHAR);
 	if (slash == NULL) {
 		this->path = NULL;
+		this->format = FORMAT_END;
 		return;
 	}
 
