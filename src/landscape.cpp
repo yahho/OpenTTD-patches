@@ -1133,6 +1133,7 @@ static void BuildRiver(TileIndex begin, TileIndex end)
  */
 static bool FlowRiver(TileIndex spring, TileIndex begin)
 {
+	assert (IsValidTile(begin));
 	assert (IsTileFlat (begin));
 
 	uint height = TileHeight(begin);
@@ -1245,7 +1246,7 @@ static void CreateRivers()
 			TileIndex t = RandomTile();
 			CircularTileIterator iter (t, 8);
 			for (t = iter; t != INVALID_TILE; t = ++iter) {
-				if (FindSpring (t)) break;
+				if (IsValidTile(t) && FindSpring (t)) break;
 			}
 			if (t == INVALID_TILE) continue;
 			if (FlowRiver(t, t)) break;
