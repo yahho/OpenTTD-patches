@@ -864,6 +864,111 @@ void NetworkBackgroundLoop()
 	NetworkBackgroundUDPLoop();
 }
 
+/** Inject commands from the log if debugging. */
+static void InjectDebugDumpCommands (void)
+{
+#ifdef DEBUG_DUMP_COMMANDS
+	/* Loading of the debug commands from -ddesync>=1 */
+	static FILE *f = FioFOpenFile ("commands.log", "rb", SAVE_DIR);
+	static Date next_date = 0;
+	static uint32 next_date_fract;
+	static CommandPacket *cp = NULL;
+	static bool check_sync_state = false;
+	static uint32 sync_state[2];
+
+	if (f == NULL) {
+		if (next_date == 0) {
+			DEBUG(net, 0, "Cannot open commands.log");
+			next_date = 1;
+		}
+		return;
+	}
+
+	while (!feof(f)) {
+		if (_date == next_date && _date_fract == next_date_fract) {
+			if (cp != NULL) {
+				NetworkSendCommand (cp->tile, cp->p1, cp->p2, cp->cmd, cp->text, cp->company, CMDSRC_OTHER);
+				DEBUG (net, 0, "injecting: %08x; %02x; %02x; %06x; %08x; %08x; %08x; \"%s\" (%s)", _date, _date_fract, (int)_current_company, cp->tile, cp->p1, cp->p2, cp->cmd, cp->text, GetCommandName(cp->cmd));
+				free (cp);
+				cp = NULL;
+			}
+			if (check_sync_state) {
+				if (sync_state[0] == _random.state[0] && sync_state[1] == _random.state[1]) {
+					DEBUG (net, 0, "sync check: %08x; %02x; match", _date, _date_fract);
+				} else {
+					DEBUG (net, 0, "sync check: %08x; %02x; mismatch expected {%08x, %08x}, got {%08x, %08x}",
+								_date, _date_fract, sync_state[0], sync_state[1], _random.state[0], _random.state[1]);
+					NOT_REACHED();
+				}
+				check_sync_state = false;
+			}
+		}
+
+		if (cp != NULL || check_sync_state) break;
+
+		char buff [4096];
+		if (fgets (buff, lengthof(buff), f) == NULL) break;
+
+		char *p = buff;
+		/* Ignore the "[date time] " part of the message */
+		if (*p == '[') {
+			p = strchr (p, ']');
+			if (p == NULL) break;
+			p += 2;
+		}
+
+		if (strncmp (p, "cmd: ", 5) == 0
+#ifdef DEBUG_FAILED_DUMP_COMMANDS
+				|| strncmp (p, "cmdf: ", 6) == 0
+#endif
+				) {
+			p += 5;
+			if (*p == ' ') p++;
+			cp = xcalloct<CommandPacket>();
+			int company;
+			int ret = sscanf (p, "%x; %x; %x; %x; %x; %x; %x; \"%[^\"]\"", &next_date, &next_date_fract, &company, &cp->tile, &cp->p1, &cp->p2, &cp->cmd, cp->text);
+			/* There are 8 pieces of data to read, however the last is a
+			 * string that might or might not exist. Ignore it if that
+			 * string misses because in 99% of the time it's not used. */
+			assert (ret == 8 || ret == 7);
+			cp->company = (CompanyID)company;
+		} else if (strncmp (p, "join: ", 6) == 0) {
+			/* Manually insert a pause when joining; this way the client can join at the exact right time. */
+			int ret = sscanf (p + 6, "%x; %x", &next_date, &next_date_fract);
+			assert (ret == 2);
+			DEBUG (net, 0, "injecting pause for join at %08x:%02x; please join when paused", next_date, next_date_fract);
+			cp = xcalloct<CommandPacket>();
+			cp->company = COMPANY_SPECTATOR;
+			cp->cmd = CMD_PAUSE;
+			cp->p1 = PM_PAUSED_NORMAL;
+			cp->p2 = 1;
+			_ddc_fastforward = false;
+		} else if (strncmp (p, "sync: ", 6) == 0) {
+			int ret = sscanf (p + 6, "%x; %x; %x; %x", &next_date, &next_date_fract, &sync_state[0], &sync_state[1]);
+			assert (ret == 4);
+			check_sync_state = true;
+		} else if (strncmp (p, "msg: ", 5) == 0 || strncmp (p, "client: ", 8) == 0 ||
+					strncmp (p, "load: ", 6) == 0 || strncmp (p, "save: ", 6) == 0) {
+			/* A message that is not very important to the log playback, but part of the log. */
+#ifndef DEBUG_FAILED_DUMP_COMMANDS
+		} else if (strncmp (p, "cmdf: ", 6) == 0) {
+			DEBUG (net, 0, "Skipping replay of failed command: %s", p + 6);
+#endif
+		} else {
+			/* Can't parse a line; what's wrong here? */
+			DEBUG (net, 0, "trying to parse: %s", p);
+			NOT_REACHED();
+		}
+	}
+
+	if (feof(f)) {
+		DEBUG (net, 0, "End of commands.log");
+		fclose (f);
+		f = NULL;
+	}
+#endif /* DEBUG_DUMP_COMMANDS */
+}
+
 /* The main loop called from ttd.c
  *  Here we also have to do StateGameLoop if needed! */
 void NetworkGameLoop()
@@ -883,101 +988,8 @@ void NetworkGameLoop()
 			}
 		}
 
-#ifdef DEBUG_DUMP_COMMANDS
-		/* Loading of the debug commands from -ddesync>=1 */
-		static FILE *f = FioFOpenFile("commands.log", "rb", SAVE_DIR);
-		static Date next_date = 0;
-		static uint32 next_date_fract;
-		static CommandPacket *cp = NULL;
-		static bool check_sync_state = false;
-		static uint32 sync_state[2];
-		if (f == NULL && next_date == 0) {
-			DEBUG(net, 0, "Cannot open commands.log");
-			next_date = 1;
-		}
+		InjectDebugDumpCommands();
 
-		while (f != NULL && !feof(f)) {
-			if (_date == next_date && _date_fract == next_date_fract) {
-				if (cp != NULL) {
-					NetworkSendCommand(cp->tile, cp->p1, cp->p2, cp->cmd, cp->text, cp->company, CMDSRC_OTHER);
-					DEBUG(net, 0, "injecting: %08x; %02x; %02x; %06x; %08x; %08x; %08x; \"%s\" (%s)", _date, _date_fract, (int)_current_company, cp->tile, cp->p1, cp->p2, cp->cmd, cp->text, GetCommandName(cp->cmd));
-					free(cp);
-					cp = NULL;
-				}
-				if (check_sync_state) {
-					if (sync_state[0] == _random.state[0] && sync_state[1] == _random.state[1]) {
-						DEBUG(net, 0, "sync check: %08x; %02x; match", _date, _date_fract);
-					} else {
-						DEBUG(net, 0, "sync check: %08x; %02x; mismatch expected {%08x, %08x}, got {%08x, %08x}",
-									_date, _date_fract, sync_state[0], sync_state[1], _random.state[0], _random.state[1]);
-						NOT_REACHED();
-					}
-					check_sync_state = false;
-				}
-			}
-
-			if (cp != NULL || check_sync_state) break;
-
-			char buff[4096];
-			if (fgets(buff, lengthof(buff), f) == NULL) break;
-
-			char *p = buff;
-			/* Ignore the "[date time] " part of the message */
-			if (*p == '[') {
-				p = strchr(p, ']');
-				if (p == NULL) break;
-				p += 2;
-			}
-
-			if (strncmp(p, "cmd: ", 5) == 0
-#ifdef DEBUG_FAILED_DUMP_COMMANDS
-				|| strncmp(p, "cmdf: ", 6) == 0
-#endif
-				) {
-				p += 5;
-				if (*p == ' ') p++;
-				cp = xcalloct<CommandPacket>();
-				int company;
-				int ret = sscanf(p, "%x; %x; %x; %x; %x; %x; %x; \"%[^\"]\"", &next_date, &next_date_fract, &company, &cp->tile, &cp->p1, &cp->p2, &cp->cmd, cp->text);
-				/* There are 8 pieces of data to read, however the last is a
-				 * string that might or might not exist. Ignore it if that
-				 * string misses because in 99% of the time it's not used. */
-				assert(ret == 8 || ret == 7);
-				cp->company = (CompanyID)company;
-			} else if (strncmp(p, "join: ", 6) == 0) {
-				/* Manually insert a pause when joining; this way the client can join at the exact right time. */
-				int ret = sscanf(p + 6, "%x; %x", &next_date, &next_date_fract);
-				assert(ret == 2);
-				DEBUG(net, 0, "injecting pause for join at %08x:%02x; please join when paused", next_date, next_date_fract);
-				cp = xcalloct<CommandPacket>();
-				cp->company = COMPANY_SPECTATOR;
-				cp->cmd = CMD_PAUSE;
-				cp->p1 = PM_PAUSED_NORMAL;
-				cp->p2 = 1;
-				_ddc_fastforward = false;
-			} else if (strncmp(p, "sync: ", 6) == 0) {
-				int ret = sscanf(p + 6, "%x; %x; %x; %x", &next_date, &next_date_fract, &sync_state[0], &sync_state[1]);
-				assert(ret == 4);
-				check_sync_state = true;
-			} else if (strncmp(p, "msg: ", 5) == 0 || strncmp(p, "client: ", 8) == 0 ||
-						strncmp(p, "load: ", 6) == 0 || strncmp(p, "save: ", 6) == 0) {
-				/* A message that is not very important to the log playback, but part of the log. */
-#ifndef DEBUG_FAILED_DUMP_COMMANDS
-			} else if (strncmp(p, "cmdf: ", 6) == 0) {
-				DEBUG(net, 0, "Skipping replay of failed command: %s", p + 6);
-#endif
-			} else {
-				/* Can't parse a line; what's wrong here? */
-				DEBUG(net, 0, "trying to parse: %s", p);
-				NOT_REACHED();
-			}
-		}
-		if (f != NULL && feof(f)) {
-			DEBUG(net, 0, "End of commands.log");
-			fclose(f);
-			f = NULL;
-		}
-#endif /* DEBUG_DUMP_COMMANDS */
 		if (_frame_counter >= _frame_counter_max) {
 			/* Only check for active clients just before we're going to send out
 			 * the commands so we don't send multiple pause/unpause commands when
