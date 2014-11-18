@@ -1850,7 +1850,7 @@ int CDECL StringIDSorter(const StringID *a, const StringID *b)
 	GetString (stra, *a);
 	GetString (strb, *b);
 
-	return strcmp(stra, strb);
+	return strnatcmp(stra, strb);
 }
 
 /**
