@@ -510,7 +510,7 @@ bool SaveGame(const char *filename, Subdirectory sb, bool threaded)
 		return false;
 	}
 
-	DEBUG(desync, 1, "save: %08x; %02x; %s", _date, _date_fract, filename);
+	DEBUG (desync, 1, "save: %08x.%02x %s", _date, _date_fract, filename);
 	if (_network_server || !_settings_client.gui.threaded_saves) threaded = false;
 
 	return DoSave(new FileWriter(fh), threaded);

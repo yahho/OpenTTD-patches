@@ -276,7 +276,7 @@ void NetworkTextMessage(NetworkAction action, TextColour colour, bool self_send,
 	message.append_utf8 (_current_text_dir == TD_LTR ? CHAR_TD_LRM : CHAR_TD_RLM);
 	AppendString (&message, strid);
 
-	DEBUG(desync, 1, "msg: %08x; %02x; %s", _date, _date_fract, message.c_str());
+	DEBUG (desync, 1, "msg: %08x.%02x %s", _date, _date_fract, message.c_str());
 	IConsolePrintF(colour, "%s", message.c_str());
 	NetworkAddChatMessage((TextColour)colour, _settings_client.gui.network_chat_timeout, "%s", message.c_str());
 }
@@ -888,15 +888,17 @@ static void InjectDebugDumpCommands (void)
 		if (_date == next_date && _date_fract == next_date_fract) {
 			if (cp != NULL) {
 				NetworkSendCommand (cp->tile, cp->p1, cp->p2, cp->cmd, cp->text, cp->company, CMDSRC_OTHER);
-				DEBUG (net, 0, "injecting: %08x; %02x; %02x; %06x; %08x; %08x; %08x; \"%s\" (%s)", _date, _date_fract, (int)_current_company, cp->tile, cp->p1, cp->p2, cp->cmd, cp->text, GetCommandName(cp->cmd));
+				DEBUG (net, 0, "injecting: %08x.%02x %02x %06x %08x %08x %08x \"%s\" (%s)",
+					_date, _date_fract, (int)_current_company,
+					cp->tile, cp->p1, cp->p2, cp->cmd, cp->text, GetCommandName(cp->cmd));
 				free (cp);
 				cp = NULL;
 			}
 			if (check_sync_state) {
 				if (sync_state[0] == _random.state[0] && sync_state[1] == _random.state[1]) {
-					DEBUG (net, 0, "sync check: %08x; %02x; match", _date, _date_fract);
+					DEBUG (net, 0, "sync check: %08x.%02x match", _date, _date_fract);
 				} else {
-					DEBUG (net, 0, "sync check: %08x; %02x; mismatch expected {%08x, %08x}, got {%08x, %08x}",
+					DEBUG (net, 0, "sync check: %08x.%02x mismatch expected {%08x, %08x}, got {%08x, %08x}",
 								_date, _date_fract, sync_state[0], sync_state[1], _random.state[0], _random.state[1]);
 					NOT_REACHED();
 				}
@@ -926,7 +928,9 @@ static void InjectDebugDumpCommands (void)
 			if (*p == ' ') p++;
 			cp = xcalloct<CommandPacket>();
 			int company;
-			int ret = sscanf (p, "%x; %x; %x; %x; %x; %x; %x; \"%[^\"]\"", &next_date, &next_date_fract, &company, &cp->tile, &cp->p1, &cp->p2, &cp->cmd, cp->text);
+			int ret = sscanf (p, "%x.%x %x %x %x %x %x \"%[^\"]\"",
+					&next_date, &next_date_fract, &company,
+					&cp->tile, &cp->p1, &cp->p2, &cp->cmd, cp->text);
 			/* There are 8 pieces of data to read, however the last is a
 			 * string that might or might not exist. Ignore it if that
 			 * string misses because in 99% of the time it's not used. */
@@ -934,9 +938,10 @@ static void InjectDebugDumpCommands (void)
 			cp->company = (CompanyID)company;
 		} else if (strncmp (p, "join: ", 6) == 0) {
 			/* Manually insert a pause when joining; this way the client can join at the exact right time. */
-			int ret = sscanf (p + 6, "%x; %x", &next_date, &next_date_fract);
+			int ret = sscanf (p + 6, "%x.%x", &next_date, &next_date_fract);
 			assert (ret == 2);
-			DEBUG (net, 0, "injecting pause for join at %08x:%02x; please join when paused", next_date, next_date_fract);
+			DEBUG (net, 0, "injecting pause for join at %08x.%02x; please join when paused",
+					next_date, next_date_fract);
 			cp = xcalloct<CommandPacket>();
 			cp->company = COMPANY_SPECTATOR;
 			cp->cmd = CMD_PAUSE;
@@ -944,7 +949,7 @@ static void InjectDebugDumpCommands (void)
 			cp->p2 = 1;
 			_ddc_fastforward = false;
 		} else if (strncmp (p, "sync: ", 6) == 0) {
-			int ret = sscanf (p + 6, "%x; %x; %x; %x", &next_date, &next_date_fract, &sync_state[0], &sync_state[1]);
+			int ret = sscanf (p + 6, "%x.%x %x %x", &next_date, &next_date_fract, &sync_state[0], &sync_state[1]);
 			assert (ret == 4);
 			check_sync_state = true;
 		} else if (strncmp (p, "msg: ", 5) == 0 || strncmp (p, "client: ", 8) == 0 ||
@@ -983,7 +988,7 @@ void NetworkGameLoop()
 			/* We don't want to log multiple times if paused. */
 			static Date last_log;
 			if (last_log != _date) {
-				DEBUG(desync, 1, "sync: %08x; %02x; %08x; %08x", _date, _date_fract, _random.state[0], _random.state[1]);
+				DEBUG (desync, 1, "sync: %08x.%02x %08x %08x", _date, _date_fract, _random.state[0], _random.state[1]);
 				last_log = _date;
 			}
 		}
