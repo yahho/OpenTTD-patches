@@ -1340,11 +1340,9 @@ static bool IndividualRoadVehicleControllerNewTile (RoadVehicle *v,
 		}
 	}
 
-	uint32 r = RoadVehEnterTile(v, tile, x, y);
-	if (r == VETS_CANNOT_ENTER) {
-		assert(IsRoadStopTile(tile));
-		v->cur_speed = 0;
-		return false;
+	if (IsRoadBridgeTile (tile)) {
+		RoadVehicle *first = v->First();
+		first->cur_speed = min (first->cur_speed, GetBridgeSpec(GetRoadBridgeType(tile))->speed * 2);
 	}
 
 	if (IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_DT_ROAD_STOP_END) && IsStationTile(v->tile)) {
@@ -1373,11 +1371,9 @@ static bool IndividualRoadVehicleControllerNewTile (RoadVehicle *v,
 		}
 	}
 
-	if (r != VETS_ENTERED_WORMHOLE) {
-		v->tile = tile;
-		v->state = (byte)dir;
-		v->frame = start_frame;
-	}
+	v->tile = tile;
+	v->state = (byte)dir;
+	v->frame = start_frame;
 
 	if (new_dir != v->direction) {
 		v->direction = new_dir;
@@ -1507,10 +1503,9 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 		Direction new_dir = RoadVehGetSlidingDirection(v, x, y);
 		if (v->IsFrontEngine() && RoadVehFindCloseTo(v, x, y, new_dir) != NULL) return false;
 
-		uint32 r = RoadVehEnterTile(v, v->tile, x, y);
-		if (r == VETS_CANNOT_ENTER) {
-			v->cur_speed = 0;
-			return false;
+		if (IsRoadBridgeTile (v->tile)) {
+			RoadVehicle *first = v->First();
+			first->cur_speed = min (first->cur_speed, GetBridgeSpec(GetRoadBridgeType(v->tile))->speed * 2);
 		}
 
 		v->state = dir;
