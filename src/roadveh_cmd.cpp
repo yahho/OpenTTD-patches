@@ -1387,6 +1387,109 @@ static bool IndividualRoadVehicleControllerNewTile (RoadVehicle *v,
 	return true;
 }
 
+static bool IndividualRoadVehicleControllerWormhole (RoadVehicle *v, const RoadVehicle *prev)
+{
+	/* Vehicle is on a bridge or in a tunnel */
+	FullPosTile gp = GetNewVehiclePos(v);
+
+	if (v->IsFrontEngine()) {
+		const Vehicle *u = RoadVehFindCloseTo(v, gp.xx, gp.yy, v->direction);
+		if (u != NULL) {
+			v->cur_speed = u->First()->cur_speed;
+			return false;
+		}
+	}
+
+	if (gp.tile != v->tile) {
+		/* Still in the wormhole */
+		v->x_pos = gp.xx;
+		v->y_pos = gp.yy;
+		v->UpdatePosition();
+		if ((v->vehstatus & VS_HIDDEN) == 0) v->Vehicle::UpdateViewport(true);
+		return true;
+	}
+
+	/* Vehicle has just exited a bridge or tunnel */
+	DiagDirection bridge_dir = GetTunnelBridgeDirection (gp.tile);
+	return IndividualRoadVehicleControllerNewTile (v, prev, gp.tile, ReverseDiagDir(bridge_dir), INVALID_DIAGDIR);
+}
+
+static bool IndividualRoadVehicleControllerNextTile (RoadVehicle *v, const RoadVehicle *prev, DiagDirection enterdir)
+{
+	TileIndex tile = v->tile + TileOffsByDiagDir(enterdir);
+	DiagDirection tsdir;
+
+	if (IsTunnelTile(v->tile) && GetTunnelBridgeDirection(v->tile) == enterdir) {
+		TileIndex end_tile = GetOtherTunnelEnd(v->tile);
+		if (end_tile != tile) {
+			/* Entering a tunnel */
+			return IndividualRoadVehicleControllerEnterWormhole (v, end_tile, false);
+		}
+		tsdir = INVALID_DIAGDIR;
+	} else if (IsRoadBridgeTile(v->tile) && GetTunnelBridgeDirection(v->tile) == enterdir) {
+		TileIndex end_tile = GetOtherBridgeEnd(v->tile);
+		if (end_tile != tile) {
+			/* Entering a bridge */
+			return IndividualRoadVehicleControllerEnterWormhole (v, end_tile, true);
+		}
+		tsdir = INVALID_DIAGDIR;
+	} else {
+		tsdir = ReverseDiagDir (enterdir);
+	}
+
+	return IndividualRoadVehicleControllerNewTile (v, prev, tile, enterdir, tsdir);
+}
+
+static bool IndividualRoadVehicleControllerTurned (RoadVehicle *v, const RoadVehicle *prev, DiagDirection enterdir)
+{
+	/* Vehicle has finished turning around, it will now head back onto the same tile */
+	Trackdir dir;
+	if (v->roadtype == ROADTYPE_TRAM && IsNormalRoadTile(v->tile) && HasExactlyOneBit(GetRoadBits(v->tile, ROADTYPE_TRAM))) {
+		/* The tram is turning around with one tram 'roadbit'.
+		 * This means that it is using the 'big' corner 'drive data'.
+		 * When the tram reaches the 'turned' marker, we switch it
+		 * to the corresponding straight drive data. */
+		dir = DiagDirToDiagTrackdir(enterdir);
+	} else if (v->IsFrontEngine()) {
+		/* If this is the front engine, look for the right path. */
+		dir = RoadFindPathToDest (v, v->tile, enterdir, INVALID_DIAGDIR);
+
+		if (dir == INVALID_TRACKDIR) {
+			v->cur_speed = 0;
+			return false;
+		}
+	} else {
+		dir = FollowPreviousRoadVehicle(v, prev, v->tile, enterdir);
+	}
+
+	const RoadDriveEntry *rdp = _road_drive_data[_settings_game.vehicle.road_side][dir];
+
+	int x = TileX(v->tile) * TILE_SIZE + rdp[RVC_AFTER_TURN_START_FRAME].x;
+	int y = TileY(v->tile) * TILE_SIZE + rdp[RVC_AFTER_TURN_START_FRAME].y;
+
+	Direction new_dir = RoadVehGetSlidingDirection(v, x, y);
+	if (v->IsFrontEngine() && RoadVehFindCloseTo(v, x, y, new_dir) != NULL) return false;
+
+	if (IsRoadBridgeTile (v->tile)) {
+		RoadVehicle *first = v->First();
+		first->cur_speed = min (first->cur_speed, GetBridgeSpec(GetRoadBridgeType(v->tile))->speed * 2);
+	}
+
+	v->state = dir;
+	v->frame = RVC_AFTER_TURN_START_FRAME;
+
+	if (new_dir != v->direction) {
+		v->direction = new_dir;
+		if (_settings_game.vehicle.roadveh_acceleration_model == AM_ORIGINAL) v->cur_speed -= v->cur_speed >> 2;
+	}
+
+	v->x_pos = x;
+	v->y_pos = y;
+	v->UpdatePosition();
+	RoadZPosAffectSpeed(v, v->UpdateInclination(true, true));
+	return true;
+}
+
 static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *prev)
 {
 	if (v->overtaking != 0)  {
@@ -1408,120 +1511,18 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 	 * by the previous vehicle in the chain when it gets to the right place. */
 	if (v->IsInDepot()) return true;
 
-	RoadDriveEntry rd;
+	if (v->state == RVSB_WORMHOLE) return IndividualRoadVehicleControllerWormhole (v, prev);
 
-	if (v->state == RVSB_WORMHOLE) {
-		/* Vehicle is entering a depot or is on a bridge or in a tunnel */
-		FullPosTile gp = GetNewVehiclePos(v);
-
-		if (v->IsFrontEngine()) {
-			const Vehicle *u = RoadVehFindCloseTo(v, gp.xx, gp.yy, v->direction);
-			if (u != NULL) {
-				v->cur_speed = u->First()->cur_speed;
-				return false;
-			}
-		}
-
-		if (gp.tile != v->tile) {
-			/* Still in the wormhole */
-			v->x_pos = gp.xx;
-			v->y_pos = gp.yy;
-			v->UpdatePosition();
-			if ((v->vehstatus & VS_HIDDEN) == 0) v->Vehicle::UpdateViewport(true);
-			return true;
-		}
-
-		/* Vehicle has just exited a bridge or tunnel */
-		DiagDirection bridge_dir = GetTunnelBridgeDirection (gp.tile);
-		return IndividualRoadVehicleControllerNewTile (v, prev, gp.tile, ReverseDiagDir(bridge_dir), INVALID_DIAGDIR);
-	} else {
-		/* Get move position data for next frame.
-		 * For a drive-through road stop use 'straight road' move data.
-		 * In this case v->state is masked to give the road stop entry direction. */
-		rd = _road_drive_data[_settings_game.vehicle.road_side ^ v->overtaking]
+	/* Get move position data for next frame.
+	 * For a drive-through road stop use 'straight road' move data.
+	 * In this case v->state is masked to give the road stop entry direction. */
+	RoadDriveEntry rd = _road_drive_data[_settings_game.vehicle.road_side ^ v->overtaking]
 			[HasBit(v->state, RVS_IN_DT_ROAD_STOP) ? (v->state & RVSB_ROAD_STOP_TRACKDIR_MASK) : v->state]
 			[v->frame + 1];
 
-		if (rd.x == RDE_NEXT_TILE) {
-			DiagDirection enterdir = (DiagDirection)(rd.y);
-			TileIndex tile = v->tile + TileOffsByDiagDir(enterdir);
-			DiagDirection tsdir;
+	if (rd.x == RDE_NEXT_TILE) return IndividualRoadVehicleControllerNextTile (v, prev, (DiagDirection)(rd.y));
 
-			if (IsTunnelTile(v->tile) && GetTunnelBridgeDirection(v->tile) == enterdir) {
-				TileIndex end_tile = GetOtherTunnelEnd(v->tile);
-				if (end_tile != tile) {
-					/* Entering a tunnel */
-					return IndividualRoadVehicleControllerEnterWormhole (v, end_tile, false);
-				}
-				tsdir = INVALID_DIAGDIR;
-			} else if (IsRoadBridgeTile(v->tile) && GetTunnelBridgeDirection(v->tile) == enterdir) {
-				TileIndex end_tile = GetOtherBridgeEnd(v->tile);
-				if (end_tile != tile) {
-					/* Entering a bridge */
-					return IndividualRoadVehicleControllerEnterWormhole (v, end_tile, true);
-				}
-				tsdir = INVALID_DIAGDIR;
-			} else {
-				tsdir = ReverseDiagDir (enterdir);
-			}
-
-			return IndividualRoadVehicleControllerNewTile (v, prev, tile, enterdir, tsdir);
-		}
-	}
-
-	if (rd.x == RDE_TURNED) {
-		/* Vehicle has finished turning around, it will now head back onto the same tile */
-		DiagDirection enterdir = (DiagDirection)(rd.y);
-		Trackdir dir;
-
-		if (v->roadtype == ROADTYPE_TRAM && IsNormalRoadTile(v->tile) && HasExactlyOneBit(GetRoadBits(v->tile, ROADTYPE_TRAM))) {
-			/*
-			 * The tram is turning around with one tram 'roadbit'. This means that
-			 * it is using the 'big' corner 'drive data'. When the tram reaches the
-			 * 'turned' marker, we switch it to the corresponding straight drive data.
-			 */
-			dir = DiagDirToDiagTrackdir(enterdir);
-		} else {
-			if (v->IsFrontEngine()) {
-				/* If this is the front engine, look for the right path. */
-				dir = RoadFindPathToDest (v, v->tile, enterdir, INVALID_DIAGDIR);
-
-				if (dir == INVALID_TRACKDIR) {
-					v->cur_speed = 0;
-					return false;
-				}
-			} else {
-				dir = FollowPreviousRoadVehicle(v, prev, v->tile, enterdir);
-			}
-		}
-
-		const RoadDriveEntry *rdp = _road_drive_data[_settings_game.vehicle.road_side][dir];
-
-		int x = TileX(v->tile) * TILE_SIZE + rdp[RVC_AFTER_TURN_START_FRAME].x;
-		int y = TileY(v->tile) * TILE_SIZE + rdp[RVC_AFTER_TURN_START_FRAME].y;
-
-		Direction new_dir = RoadVehGetSlidingDirection(v, x, y);
-		if (v->IsFrontEngine() && RoadVehFindCloseTo(v, x, y, new_dir) != NULL) return false;
-
-		if (IsRoadBridgeTile (v->tile)) {
-			RoadVehicle *first = v->First();
-			first->cur_speed = min (first->cur_speed, GetBridgeSpec(GetRoadBridgeType(v->tile))->speed * 2);
-		}
-
-		v->state = dir;
-		v->frame = RVC_AFTER_TURN_START_FRAME;
-
-		if (new_dir != v->direction) {
-			v->direction = new_dir;
-			if (_settings_game.vehicle.roadveh_acceleration_model == AM_ORIGINAL) v->cur_speed -= v->cur_speed >> 2;
-		}
-
-		v->x_pos = x;
-		v->y_pos = y;
-		v->UpdatePosition();
-		RoadZPosAffectSpeed(v, v->UpdateInclination(true, true));
-		return true;
-	}
+	if (rd.x == RDE_TURNED) return IndividualRoadVehicleControllerTurned (v, prev, (DiagDirection)(rd.y));
 
 	/* This vehicle is not in a wormhole and it hasn't entered a new tile. If
 	 * it's on a depot tile, check if it's time to activate the next vehicle in
