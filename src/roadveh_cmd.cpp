@@ -738,117 +738,6 @@ int RoadVehicle::UpdateSpeed()
 }
 
 
-/** The returned bits of VehicleEnterTile. */
-enum VehicleEnterTileStatus {
-	VETS_CONTINUE         = 0, ///< The vehicle can continue normally
-	VETS_ENTERED_WORMHOLE = 1, ///< The vehicle either entered a bridge, tunnel or depot tile
-	VETS_CANNOT_ENTER     = 2, ///< The vehicle cannot enter the tile
-};
-DECLARE_ENUM_AS_BIT_SET(VehicleEnterTileStatus)
-
-static VehicleEnterTileStatus RoadVehEnter_Road(RoadVehicle *v, TileIndex tile, int x, int y)
-{
-	if (IsTileSubtype(tile, TT_TRACK)) return VETS_CONTINUE;
-
-	assert(abs((int)(GetSlopePixelZ(x, y) - v->z_pos)) < 3);
-
-	/* modify speed of vehicle */
-	uint16 spd = GetBridgeSpec(GetRoadBridgeType(tile))->speed * 2;
-	Vehicle *first = v->First();
-	first->cur_speed = min(first->cur_speed, spd);
-
-	return VETS_CONTINUE;
-}
-
-extern const byte _tunnel_visibility_frame[DIAGDIR_END];
-
-static VehicleEnterTileStatus RoadVehEnter_Misc(RoadVehicle *u, TileIndex tile, int x, int y)
-{
-	switch (GetTileSubtype(tile)) {
-		default: break;
-
-		case TT_MISC_TUNNEL: {
-			assert(abs((int)GetSlopePixelZ(x, y) - u->z_pos) < 3);
-
-			/* Direction into the wormhole */
-			const DiagDirection dir = GetTunnelBridgeDirection(tile);
-
-			if (u->direction == DiagDirToDir(dir)) {
-				uint frame = DistanceFromTileEdge(ReverseDiagDir(dir), x & 0xF, y & 0xF);
-				if (frame == _tunnel_visibility_frame[dir]) {
-					/* Frame should be equal to the next frame number in the RV's movement */
-					assert((int)frame == u->frame + 1);
-					u->vehstatus |= VS_HIDDEN;
-				}
-			} else if (u->direction == ReverseDir(DiagDirToDir(dir))) {
-				uint frame = DistanceFromTileEdge(dir, x & 0xF, y & 0xF);
-				if (frame == TILE_SIZE - _tunnel_visibility_frame[dir]) {
-					assert((int)frame == u->frame + 1);
-					u->vehstatus &= ~VS_HIDDEN;
-				}
-			}
-
-			break;
-		}
-
-		case TT_MISC_DEPOT:
-			if (!IsRoadDepot(tile)) break;
-
-			if (u->frame == RVC_DEPOT_STOP_FRAME &&
-					u->state == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(tile)))) {
-				u->state = RVSB_IN_DEPOT;
-				u->vehstatus |= VS_HIDDEN;
-				u->direction = ReverseDir(u->direction);
-				if (u->Next() == NULL) VehicleEnterDepot(u->First());
-				u->tile = tile;
-
-				InvalidateWindowData(WC_VEHICLE_DEPOT, u->tile);
-				return VETS_ENTERED_WORMHOLE;
-			}
-
-			break;
-	}
-
-	return VETS_CONTINUE;
-}
-
-static VehicleEnterTileStatus RoadVehEnter_Station(RoadVehicle *v, TileIndex tile, int x, int y)
-{
-	if (v->state < RVSB_IN_ROAD_STOP && !IsReversingRoadTrackdir((Trackdir)v->state) && v->frame == 0) {
-		if (IsRoadStop(tile) && v->IsFrontEngine()) {
-			/* Attempt to allocate a parking bay in a road stop */
-			return RoadStop::GetByTile(tile, GetRoadStopType(tile))->Enter(v) ? VETS_CONTINUE : VETS_CANNOT_ENTER;
-		}
-	}
-
-	return VETS_CONTINUE;
-}
-
-/**
- * Call the tile callback function for a road vehicle entering a tile
- * @param v    Road vehicle entering the tile
- * @param tile Tile entered
- * @param x    X position
- * @param y    Y position
- * @return Some meta-data over the to be entered tile.
- * @see VehicleEnterTileStatus to see what the bits in the return value mean.
- */
-static VehicleEnterTileStatus RoadVehEnterTile(RoadVehicle *v, TileIndex tile, int x, int y)
-{
-	switch (GetTileType(tile)) {
-		default: NOT_REACHED();
-
-		case TT_ROAD:
-			return RoadVehEnter_Road(v, tile, x, y);
-
-		case TT_MISC:
-			return RoadVehEnter_Misc(v, tile, x, y);
-
-		case TT_STATION:
-			return RoadVehEnter_Station(v, tile, x, y);
-	}
-}
-
 static Direction RoadVehGetNewDirection(const RoadVehicle *v, int x, int y)
 {
 	static const Direction _roadveh_new_dir[] = {
@@ -1639,21 +1528,62 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 		SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
 	}
 
-	/* Check tile position conditions - i.e. stop position in depot,
-	 * entry onto bridge or into tunnel */
-	uint32 r = RoadVehEnterTile(v, v->tile, x, y);
-	if (r == VETS_CANNOT_ENTER) {
+	if (IsRoadStopTile(v->tile) && v->state < RVSB_IN_ROAD_STOP &&
+			!IsReversingRoadTrackdir((Trackdir)v->state) &&
+			v->frame == 0 && v->IsFrontEngine() &&
+			/* Attempt to allocate a parking bay in a road stop */
+			!RoadStop::GetByTile (v->tile, GetRoadStopType(v->tile))->Enter(v)) {
 		v->cur_speed = 0;
 		return false;
+	}
+
+	if (IsRoadBridgeTile (v->tile)) {
+		RoadVehicle *first = v->First();
+		first->cur_speed = min (first->cur_speed, GetBridgeSpec(GetRoadBridgeType(v->tile))->speed * 2);
 	}
 
 	if (v->current_order.IsType(OT_LEAVESTATION) && IsDriveThroughStopTile(v->tile)) {
 		v->current_order.Free();
 	}
 
-	/* Move to next frame unless vehicle arrived at a stop position
-	 * in a depot or entered a tunnel/bridge */
-	if (r != VETS_ENTERED_WORMHOLE) v->frame++;
+	if (IsTunnelTile (v->tile)) {
+		extern const byte _tunnel_visibility_frame[DIAGDIR_END];
+
+		/* Direction into the wormhole */
+		const DiagDirection dir = GetTunnelBridgeDirection (v->tile);
+
+		if (v->direction == DiagDirToDir(dir)) {
+			uint frame = DistanceFromTileEdge (ReverseDiagDir(dir), x & 0xF, y & 0xF);
+			if (frame == _tunnel_visibility_frame[dir]) {
+				/* Frame should be equal to the next frame number in the RV's movement */
+				assert ((int)frame == v->frame + 1);
+				v->vehstatus |= VS_HIDDEN;
+			}
+		} else if (v->direction == ReverseDir(DiagDirToDir(dir))) {
+			uint frame = DistanceFromTileEdge (dir, x & 0xF, y & 0xF);
+			if (frame == TILE_SIZE - _tunnel_visibility_frame[dir]) {
+				assert ((int)frame == v->frame + 1);
+				v->vehstatus &= ~VS_HIDDEN;
+			}
+		}
+
+	}
+
+	/* Check if we have entered a depot. */
+	if (IsGroundDepotTile (v->tile) && v->frame == RVC_DEPOT_STOP_FRAME &&
+			v->state == DiagDirToDiagTrackdir (ReverseDiagDir (GetGroundDepotDirection (v->tile)))) {
+		assert (IsRoadDepot (v->tile));
+
+		v->state = RVSB_IN_DEPOT;
+		v->vehstatus |= VS_HIDDEN;
+		v->direction = ReverseDir (v->direction);
+		if (v->Next() == NULL) VehicleEnterDepot (v->First());
+
+		InvalidateWindowData (WC_VEHICLE_DEPOT, v->tile);
+	} else {
+		v->frame++;
+	}
+
 	v->x_pos = x;
 	v->y_pos = y;
 	v->UpdatePosition();
