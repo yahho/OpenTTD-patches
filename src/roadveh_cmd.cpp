@@ -846,8 +846,14 @@ static void RoadVehCheckOvertake(RoadVehicle *v, RoadVehicle *u)
 	v->overtaking = 1;
 }
 
-static void RoadZPosAffectSpeed(RoadVehicle *v, int old_z)
+static void controller_set_pos (RoadVehicle *v, int x, int y, bool new_tile, bool update_delta)
 {
+	v->x_pos = x;
+	v->y_pos = y;
+	v->UpdatePosition();
+
+	int old_z = v->UpdateInclination (new_tile, update_delta);
+
 	if (old_z == v->z_pos || _settings_game.vehicle.roadveh_acceleration_model != AM_ORIGINAL) return;
 
 	if (old_z < v->z_pos) {
@@ -1269,10 +1275,7 @@ static bool IndividualRoadVehicleControllerNewTile (RoadVehicle *v,
 		if (_settings_game.vehicle.roadveh_acceleration_model == AM_ORIGINAL) v->cur_speed -= v->cur_speed >> 2;
 	}
 
-	v->x_pos = x;
-	v->y_pos = y;
-	v->UpdatePosition();
-	RoadZPosAffectSpeed(v, v->UpdateInclination(true, true));
+	controller_set_pos (v, x, y, true, true);
 	return true;
 }
 
@@ -1372,10 +1375,7 @@ static bool IndividualRoadVehicleControllerTurned (RoadVehicle *v, const RoadVeh
 		if (_settings_game.vehicle.roadveh_acceleration_model == AM_ORIGINAL) v->cur_speed -= v->cur_speed >> 2;
 	}
 
-	v->x_pos = x;
-	v->y_pos = y;
-	v->UpdatePosition();
-	RoadZPosAffectSpeed(v, v->UpdateInclination(true, true));
+	controller_set_pos (v, x, y, true, true);
 	return true;
 }
 
@@ -1494,10 +1494,7 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 				/* Check if next inline bay is free and has compatible road. */
 				if (RoadStop::IsDriveThroughRoadStopContinuation(v->tile, next_tile) && (GetRoadTypes(next_tile) & v->compatible_roadtypes) != 0) {
 					v->frame++;
-					v->x_pos = x;
-					v->y_pos = y;
-					v->UpdatePosition();
-					RoadZPosAffectSpeed(v, v->UpdateInclination(true, false));
+					controller_set_pos (v, x, y, true, false);
 					return true;
 				}
 			}
@@ -1584,10 +1581,7 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 		v->frame++;
 	}
 
-	v->x_pos = x;
-	v->y_pos = y;
-	v->UpdatePosition();
-	RoadZPosAffectSpeed(v, v->UpdateInclination(false, true));
+	controller_set_pos (v, x, y, false, true);
 	return true;
 }
 
