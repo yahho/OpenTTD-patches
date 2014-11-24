@@ -1617,14 +1617,18 @@ static bool RoadVehController(RoadVehicle *v)
 	while (j >= adv_spd) {
 		j -= adv_spd;
 
-		RoadVehicle *u = v;
-		for (RoadVehicle *prev = NULL; u != NULL; prev = u, u = u->Next()) {
-			if (!IndividualRoadVehicleController(u, prev)) {
-				blocked = true;
-				break;
-			}
+		if (!IndividualRoadVehicleController (v, NULL)) {
+			blocked = true;
+			break;
 		}
-		if (blocked) break;
+
+		RoadVehicle *prev = v;
+		RoadVehicle *u = v->Next();
+		while (u != NULL) {
+			if (!IndividualRoadVehicleController (u, prev)) NOT_REACHED();
+			prev = u;
+			u = u->Next();
+		}
 
 		/* Determine distance to next map position */
 		adv_spd = v->GetAdvanceDistance();
