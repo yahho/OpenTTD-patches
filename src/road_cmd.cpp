@@ -584,6 +584,7 @@ CommandCost RemoveRoad(TileIndex tile, DoCommandFlag flags, RoadBits pieces, Roa
 					return RemoveRoad_Crossing(tile, flags, pieces, rt, crossing_check, town_check);
 
 				case TT_MISC_TUNNEL:
+					if (GetTunnelTransportType(tile) != TRANSPORT_ROAD) break;
 					if (!HasTileRoadType(tile, rt)) break;
 					if (GetTunnelTransportType(tile) != TRANSPORT_ROAD) break;
 					return RemoveRoad_Tunnel(tile, flags, pieces, rt, town_check);
