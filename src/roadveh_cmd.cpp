@@ -1381,27 +1381,6 @@ static bool IndividualRoadVehicleControllerTurned (RoadVehicle *v, const RoadVeh
 
 static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *prev)
 {
-	if (v->overtaking != 0)  {
-		if (IsStationTile(v->tile)) {
-			/* Force us to be not overtaking! */
-			v->overtaking = 0;
-		} else if (++v->overtaking_ctr >= RV_OVERTAKE_TIMEOUT) {
-			/* If overtaking just aborts at a random moment, we can have a out-of-bound problem,
-			 *  if the vehicle started a corner. To protect that, only allow an abort of
-			 *  overtake if we are on straight roads */
-			if (v->state < RVSB_IN_ROAD_STOP && IsStraightRoadTrackdir((Trackdir)v->state)) {
-				v->overtaking = 0;
-			}
-		}
-	}
-
-	/* If this vehicle is in a depot and we've reached this point it must be
-	 * one of the articulated parts. It will stay in the depot until activated
-	 * by the previous vehicle in the chain when it gets to the right place. */
-	if (v->IsInDepot()) return true;
-
-	if (v->state == RVSB_WORMHOLE) return IndividualRoadVehicleControllerWormhole (v, prev);
-
 	/* Get move position data for next frame.
 	 * For a drive-through road stop use 'straight road' move data.
 	 * In this case v->state is masked to give the road stop entry direction. */
@@ -1585,6 +1564,53 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 	return true;
 }
 
+/**
+ * Controller for the front part of a road vehicle.
+ * @param v The road vehicle to move.
+ * @return Whether the vehicle has moved.
+ */
+static bool controller_front (RoadVehicle *v)
+{
+	if (v->overtaking != 0)  {
+		if (IsStationTile(v->tile)) {
+			/* Force us to be not overtaking! */
+			v->overtaking = 0;
+		} else if (++v->overtaking_ctr >= RV_OVERTAKE_TIMEOUT) {
+			/* If overtaking just aborts at a random moment, we can have a out-of-bound problem,
+			 *  if the vehicle started a corner. To protect that, only allow an abort of
+			 *  overtake if we are on straight roads */
+			if (v->state < RVSB_IN_ROAD_STOP && IsStraightRoadTrackdir((Trackdir)v->state)) {
+				v->overtaking = 0;
+			}
+		}
+	}
+
+	if (v->state == RVSB_WORMHOLE) return IndividualRoadVehicleControllerWormhole (v, NULL);
+
+	if (v->state == RVSB_IN_DEPOT) return true;
+
+	return IndividualRoadVehicleController (v, NULL);
+}
+
+/**
+ * Controller for a (non-front) articulated part in a road vehicle.
+ * @param v The road vehicle to move.
+ * @param prev The previous articulated part in the vehicle.
+ */
+static void controller_follow (RoadVehicle *v, const RoadVehicle *prev)
+{
+	if (v->state == RVSB_WORMHOLE) {
+		if (!IndividualRoadVehicleControllerWormhole (v, prev)) NOT_REACHED();
+		return;
+	}
+
+	if (v->state == RVSB_IN_DEPOT) return;
+
+	assert (v->state <= RVSB_TRACKDIR_MASK);
+
+	if (!IndividualRoadVehicleController (v, prev)) NOT_REACHED();
+}
+
 static bool RoadVehController(RoadVehicle *v)
 {
 	/* decrease counters */
@@ -1617,7 +1643,7 @@ static bool RoadVehController(RoadVehicle *v)
 	while (j >= adv_spd) {
 		j -= adv_spd;
 
-		if (!IndividualRoadVehicleController (v, NULL)) {
+		if (!controller_front (v)) {
 			blocked = true;
 			break;
 		}
@@ -1625,7 +1651,7 @@ static bool RoadVehController(RoadVehicle *v)
 		RoadVehicle *prev = v;
 		RoadVehicle *u = v->Next();
 		while (u != NULL) {
-			if (!IndividualRoadVehicleController (u, prev)) NOT_REACHED();
+			controller_follow (u, prev);
 			prev = u;
 			u = u->Next();
 		}
