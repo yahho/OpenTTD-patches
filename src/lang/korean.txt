@@ -1204,7 +1204,7 @@ STR_CONFIG_SETTING_IMPROVEDLOAD_HELPTEXT                        :이 옵션을 �
 STR_CONFIG_SETTING_GRADUAL_LOADING                              :화물을 차량에 단계적으로 싣기: {STRING}
 STR_CONFIG_SETTING_GRADUAL_LOADING_HELPTEXT                     :적재된 화물의 양에 따라 고정된 시간이 지나면 한 번에 모두 적재하는 대신, 차량의 적재 상황을 시간이 지남에 따라 단계별로 표시합니다.
 STR_CONFIG_SETTING_INFLATION                                    :인플레이션(화폐 가치 하락) 사용: {STRING}
-STR_CONFIG_SETTING_INFLATION_HELPTEXT                           :비용이 지불하는 것보다 약간 더 빠르게 성장하고 있는 경제가 되면 인플레이션을 활성화합니다.
+STR_CONFIG_SETTING_INFLATION_HELPTEXT                           :경제에 인플레이션 효과를 적용합니다. 벌어들이는 수익보다 지출하는 경비가 조금 더 빨리 상승하게 됩니다.
 STR_CONFIG_SETTING_SELECTGOODS                                  :수요가 있을 때만 화물을 역에 옮겨놓음: {STRING}
 STR_CONFIG_SETTING_SELECTGOODS_HELPTEXT                         :역으로 수송되는 화물만 차량에 적재가 가능해집니다. 이 옵션을 켜면 역에서 수송되지 않는 화물이 낮은 수송등급을 받는 것을 막아줍니다.
 STR_CONFIG_SETTING_MAX_BRIDGE_LENGTH                            :다리의 최대 건설 길이: {STRING}
@@ -1823,7 +1823,7 @@ STR_CHEATS_TOOLTIP                                              :{BLACK}체크�
 STR_CHEATS_WARNING                                              :{BLACK}경고! 치트는 경쟁자를 속이는 행위입니다. 치트를 사용한 기록은 절대 지워지지 않음을 명심하십시오.
 STR_CHEAT_MONEY                                                 :{LTBLUE}재정을 {CURRENCY_LONG} 만큼 증가
 STR_CHEAT_CHANGE_COMPANY                                        :{LTBLUE}다음 회사로 플레이: {ORANGE}{COMMA}
-STR_CHEAT_EXTRA_DYNAMITE                                        :{LTBLUE}마법 불도저 (산업시설, 움직이지 못하는 건물 제거): {ORANGE}{STRING}
+STR_CHEAT_EXTRA_DYNAMITE                                        :{LTBLUE}마법 불도저 (산업시설이나 옮길 수 없는 건물 제거): {ORANGE}{STRING}
 STR_CHEAT_CROSSINGTUNNELS                                       :{LTBLUE}터널 교차 허용: {ORANGE}{STRING}
 STR_CHEAT_NO_JETCRASH                                           :{LTBLUE}대형 항공기가 소형 공항에서 (자주) 충돌하지 않게 함: {ORANGE}{STRING}
 STR_CHEAT_EDIT_MAX_HL                                           :{LTBLUE}최대 지형 고도값 수정: {ORANGE}{NUM}
@@ -3230,7 +3230,7 @@ STR_FINANCES_SECTION_OTHER                                      :{GOLD}기타
 STR_FINANCES_NEGATIVE_INCOME                                    :{BLACK}-{CURRENCY_LONG}
 STR_FINANCES_POSITIVE_INCOME                                    :{BLACK}+{CURRENCY_LONG}
 STR_FINANCES_TOTAL_CAPTION                                      :{WHITE}총계:
-STR_FINANCES_BANK_BALANCE_TITLE                                 :{WHITE}소유금
+STR_FINANCES_BANK_BALANCE_TITLE                                 :{WHITE}현 보유 금액
 STR_FINANCES_LOAN_TITLE                                         :{WHITE}대출
 STR_FINANCES_MAX_LOAN                                           :{WHITE}최대 대출: {BLACK}{CURRENCY_LONG}
 STR_FINANCES_TOTAL_CURRENCY                                     :{BLACK}{CURRENCY_LONG}
