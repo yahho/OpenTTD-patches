@@ -1381,12 +1381,11 @@ static bool IndividualRoadVehicleControllerTurned (RoadVehicle *v, const RoadVeh
 
 static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *prev)
 {
-	/* Get move position data for next frame.
-	 * For a drive-through road stop use 'straight road' move data.
-	 * In this case v->state is masked to give the road stop entry direction. */
+	assert (v->state <= RVSB_TRACKDIR_MASK);
+
+	/* Get move position data for next frame. */
 	RoadDriveEntry rd = _road_drive_data[_settings_game.vehicle.road_side ^ v->overtaking]
-			[HasBit(v->state, RVS_IN_DT_ROAD_STOP) ? (v->state & RVSB_ROAD_STOP_TRACKDIR_MASK) : v->state]
-			[v->frame + 1];
+			[v->state][v->frame + 1];
 
 	if (rd.x == RDE_NEXT_TILE) return IndividualRoadVehicleControllerNextTile (v, prev, (DiagDirection)(rd.y));
 
@@ -1407,7 +1406,7 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 
 	Direction new_dir = RoadVehGetSlidingDirection(v, x, y);
 
-	if (v->IsFrontEngine() && !IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_ROAD_STOP_END)) {
+	if (v->IsFrontEngine()) {
 		/* Vehicle is not in a road stop.
 		 * Check for another vehicle to overtake */
 		RoadVehicle *u = RoadVehFindCloseTo(v, x, y, new_dir);
@@ -1417,17 +1416,6 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 			/* There is a vehicle in front overtake it if possible */
 			if (v->overtaking == 0) RoadVehCheckOvertake(v, u);
 			if (v->overtaking == 0) v->cur_speed = u->cur_speed;
-
-			/* In case an RV is stopped in a road stop, why not try to load? */
-			if (v->cur_speed == 0 && IsInsideMM(v->state, RVSB_IN_DT_ROAD_STOP, RVSB_IN_DT_ROAD_STOP_END) &&
-					v->current_order.ShouldStopAtStation(v, GetStationIndex(v->tile)) &&
-					v->owner == GetTileOwner(v->tile) && !v->current_order.IsType(OT_LEAVESTATION) &&
-					GetRoadStopType(v->tile) == (v->IsBus() ? ROADSTOP_BUS : ROADSTOP_TRUCK)) {
-				Station *st = Station::GetByTile(v->tile);
-				v->last_station_visited = st->index;
-				RoadVehArrivesAt(v, st);
-				v->BeginLoading();
-			}
 			return false;
 		}
 	}
@@ -1436,90 +1424,11 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 	if (new_dir != old_dir) {
 		v->direction = new_dir;
 		if (_settings_game.vehicle.roadveh_acceleration_model == AM_ORIGINAL) v->cur_speed -= v->cur_speed >> 2;
-		if (HasBit(v->state, RVS_IN_ROAD_STOP) && _road_stop_stop_frame[_settings_game.vehicle.road_side][v->state & RVSB_TRACKDIR_MASK] == v->frame) {
-			/* The vehicle is in a road stop, and at its stopping
-			 * frame. Make a delay here until the vehicle has
-			 * turned around. */
-			v->UpdateInclination(false, true);
-			return true;
-		}
-	}
-
-	/* If the vehicle is in a normal road stop and the frame equals the stop frame OR
-	 * if the vehicle is in a drive-through road stop and this is the destination station
-	 * and it's the correct type of stop (bus or truck) and the frame equals the stop frame...
-	 * (the station test and stop type test ensure that other vehicles, using the road stop as
-	 * a through route, do not stop) */
-	if (v->IsFrontEngine() && ((HasBit(v->state, RVS_IN_ROAD_STOP) &&
-			_road_stop_stop_frame[_settings_game.vehicle.road_side][v->state & RVSB_TRACKDIR_MASK] == v->frame) ||
-			(HasBit(v->state, RVS_IN_DT_ROAD_STOP) &&
-			v->current_order.ShouldStopAtStation(v, GetStationIndex(v->tile)) &&
-			v->owner == GetTileOwner(v->tile) &&
-			GetRoadStopType(v->tile) == (v->IsBus() ? ROADSTOP_BUS : ROADSTOP_TRUCK) &&
-			v->frame == RVC_DRIVE_THROUGH_STOP_FRAME))) {
-
-		RoadStop *rs = RoadStop::GetByTile(v->tile, GetRoadStopType(v->tile));
-		Station *st = Station::GetByTile(v->tile);
-
-		/* Vehicle is at the stop position (at a bay) in a road stop.
-		 * Note, if vehicle is loading/unloading it has already been handled,
-		 * so if we get here the vehicle has just arrived or is just ready to leave. */
-		if (!HasBit(v->state, RVS_ENTERED_STOP)) {
-			/* Vehicle has arrived at a bay in a road stop */
-
-			if (IsDriveThroughStopTile(v->tile)) {
-				TileIndex next_tile = TILE_ADD(v->tile, TileOffsByDir(v->direction));
-
-				/* Check if next inline bay is free and has compatible road. */
-				if (RoadStop::IsDriveThroughRoadStopContinuation(v->tile, next_tile) && (GetRoadTypes(next_tile) & v->compatible_roadtypes) != 0) {
-					v->frame++;
-					controller_set_pos (v, x, y, true, false);
-					return true;
-				}
-			}
-
-			rs->SetEntranceBusy(false);
-			SetBit(v->state, RVS_ENTERED_STOP);
-
-			v->last_station_visited = st->index;
-
-			if (IsDriveThroughStopTile(v->tile) || (v->current_order.IsType(OT_GOTO_STATION) && v->current_order.GetDestination() == st->index)) {
-				RoadVehArrivesAt(v, st);
-				v->BeginLoading();
-				return false;
-			}
-		} else {
-			/* Vehicle is ready to leave a bay in a road stop */
-			if (rs->IsEntranceBusy()) {
-				/* Road stop entrance is busy, so wait as there is nowhere else to go */
-				v->cur_speed = 0;
-				return false;
-			}
-			if (v->current_order.IsType(OT_LEAVESTATION)) v->current_order.Free();
-		}
-
-		if (IsStandardRoadStopTile(v->tile)) rs->SetEntranceBusy(true);
-
-		StartRoadVehSound(v);
-		SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
-	}
-
-	if (IsRoadStopTile(v->tile) && v->state < RVSB_IN_ROAD_STOP &&
-			!IsReversingRoadTrackdir((Trackdir)v->state) &&
-			v->frame == 0 && v->IsFrontEngine() &&
-			/* Attempt to allocate a parking bay in a road stop */
-			!RoadStop::GetByTile (v->tile, GetRoadStopType(v->tile))->Enter(v)) {
-		v->cur_speed = 0;
-		return false;
 	}
 
 	if (IsRoadBridgeTile (v->tile)) {
 		RoadVehicle *first = v->First();
 		first->cur_speed = min (first->cur_speed, GetBridgeSpec(GetRoadBridgeType(v->tile))->speed * 2);
-	}
-
-	if (v->current_order.IsType(OT_LEAVESTATION) && IsDriveThroughStopTile(v->tile)) {
-		v->current_order.Free();
 	}
 
 	if (IsTunnelTile (v->tile)) {
@@ -1565,6 +1474,204 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 }
 
 /**
+ * Controller for a road vehicle in a standard road stop.
+ * @param v The road vehicle to move.
+ * @return Whether the vehicle has moved.
+ */
+static bool controller_standard_stop (RoadVehicle *v)
+{
+	assert (v->roadtype == ROADTYPE_ROAD);
+	assert (v->Next() == NULL);
+	assert (v->overtaking == 0);
+
+	if (v->frame == 0) {
+		assert (v->state < RVSB_IN_ROAD_STOP);
+		assert (IsDiagonalTrackdir ((Trackdir)v->state));
+
+		/* A vehicle should not proceed beyond frame 0 in a
+		 * standard stop until it has been allocated a bay. */
+		if (!RoadStop::GetByTile (v->tile, GetRoadStopType (v->tile))->Enter (v)) {
+			v->cur_speed = 0;
+			return false;
+		}
+	}
+
+	assert (v->state >= RVSB_IN_ROAD_STOP);
+	assert (v->state <= RVSB_IN_ROAD_STOP_END);
+
+	/* Get move position data for next frame. */
+	RoadDriveEntry rd = _road_drive_data[_settings_game.vehicle.road_side]
+			[v->state][v->frame + 1];
+
+	if (rd.x == RDE_NEXT_TILE) return IndividualRoadVehicleControllerNextTile (v, NULL, (DiagDirection)(rd.y));
+
+	assert (rd.x != RDE_TURNED);
+
+	/* Calculate new position for the vehicle */
+	int x = (v->x_pos & ~15) + rd.x;
+	int y = (v->y_pos & ~15) + rd.y;
+
+	Direction new_dir = RoadVehGetSlidingDirection (v, x, y);
+
+	if (v->frame == _road_stop_stop_frame[_settings_game.vehicle.road_side][v->state & RVSB_TRACKDIR_MASK]) {
+		/* Vehicle is at the stopping frame. */
+		if (new_dir != v->direction) {
+			/* Vehicle is still turning around, so wait. */
+			v->direction = new_dir;
+			v->UpdateInclination (false, true);
+			return true;
+		}
+
+		RoadStop *rs = RoadStop::GetByTile (v->tile, GetRoadStopType (v->tile));
+		Station *st = Station::GetByTile (v->tile);
+
+		/* Vehicle is at the stop position (at a bay) in a road stop.
+		 * Note, if vehicle is loading/unloading it has already been handled,
+		 * so if we get here the vehicle has just arrived or is just ready to leave. */
+		if (!HasBit (v->state, RVS_ENTERED_STOP)) {
+			/* Vehicle has arrived at a bay in a road stop */
+			rs->SetEntranceBusy (false);
+			SetBit (v->state, RVS_ENTERED_STOP);
+
+			v->last_station_visited = st->index;
+
+			if (v->current_order.IsType (OT_GOTO_STATION) && v->current_order.GetDestination() == st->index) {
+				RoadVehArrivesAt (v, st);
+				v->BeginLoading();
+				return false;
+			}
+		} else {
+			/* Vehicle is ready to leave a bay in a road stop */
+			if (rs->IsEntranceBusy()) {
+				/* Road stop entrance is busy, so wait as there is nowhere else to go */
+				v->cur_speed = 0;
+				return false;
+			}
+			if (v->current_order.IsType (OT_LEAVESTATION)) v->current_order.Free();
+		}
+
+		rs->SetEntranceBusy (true);
+
+		StartRoadVehSound (v);
+		SetWindowWidgetDirty (WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
+
+	} else if (new_dir != v->direction) {
+		v->direction = new_dir;
+		if (_settings_game.vehicle.roadveh_acceleration_model == AM_ORIGINAL) v->cur_speed -= v->cur_speed >> 2;
+	}
+
+	v->frame++;
+	controller_set_pos (v, x, y, false, true);
+	return true;
+}
+
+/**
+ * Controller for a road vehicle in a drive-through road stop.
+ * @param v The road vehicle to move.
+ * @return Whether the vehicle has moved.
+ */
+static bool controller_drivethrough_stop (RoadVehicle *v)
+{
+	assert (v->overtaking == 0);
+
+	if (!HasBit (v->state, RVS_IN_DT_ROAD_STOP)) {
+		assert (v->state <= RVSB_TRACKDIR_MASK);
+		assert (IsStraightRoadTrackdir ((Trackdir)v->state));
+
+		if (!RoadStop::GetByTile (v->tile, GetRoadStopType (v->tile))->Enter (v)) NOT_REACHED();
+	}
+
+	assert (v->state >= RVSB_IN_DT_ROAD_STOP);
+	assert (v->state <= RVSB_IN_DT_ROAD_STOP_END);
+
+	/* Get move position data for next frame. */
+	RoadDriveEntry rd = _road_drive_data[_settings_game.vehicle.road_side]
+			[v->state & RVSB_ROAD_STOP_TRACKDIR_MASK][v->frame + 1];
+
+	if (rd.x == RDE_NEXT_TILE) return IndividualRoadVehicleControllerNextTile (v, NULL, (DiagDirection)(rd.y));
+
+	assert (rd.x != RDE_TURNED);
+
+	/* Calculate new position for the vehicle */
+	int x = (v->x_pos & ~15) + rd.x;
+	int y = (v->y_pos & ~15) + rd.y;
+
+	Direction new_dir = RoadVehGetSlidingDirection (v, x, y);
+	assert (new_dir == DiagDirToDir (TrackdirToExitdir ((Trackdir)(v->state & RVSB_ROAD_STOP_TRACKDIR_MASK))));
+
+	/* Check for a nearby vehicle ahead of us. */
+	RoadVehicle *u = RoadVehFindCloseTo (v, x, y, new_dir);
+	if (u != NULL) {
+		v->cur_speed = u->First()->cur_speed;
+
+		/* In case an RV is stopped in a road stop, why not try to load? */
+		if (v->cur_speed == 0 &&
+				v->current_order.ShouldStopAtStation (v, GetStationIndex (v->tile)) &&
+				v->owner == GetTileOwner (v->tile) && !v->current_order.IsType (OT_LEAVESTATION) &&
+				GetRoadStopType (v->tile) == (v->IsBus() ? ROADSTOP_BUS : ROADSTOP_TRUCK)) {
+			Station *st = Station::GetByTile (v->tile);
+			v->last_station_visited = st->index;
+			RoadVehArrivesAt (v, st);
+			v->BeginLoading();
+		}
+		return false;
+	}
+
+	assert_compile (RVC_DRIVE_THROUGH_STOP_FRAME > RVC_AFTER_TURN_START_FRAME);
+
+	/* If this is the destination station and it's the correct type of
+	 * stop (bus or truck) and the frame equals the stop frame...
+	 * (the station test and stop type test ensure that other vehicles,
+	 * using the road stop as a through route, do not stop) */
+	if (v->frame == RVC_DRIVE_THROUGH_STOP_FRAME &&
+			v->current_order.ShouldStopAtStation (v, GetStationIndex (v->tile)) &&
+			v->owner == GetTileOwner (v->tile) &&
+			GetRoadStopType (v->tile) == (v->IsBus() ? ROADSTOP_BUS : ROADSTOP_TRUCK)) {
+		assert (new_dir == v->direction);
+
+		Station *st = Station::GetByTile (v->tile);
+
+		/* Vehicle is at the stop position (at a bay) in a road stop.
+		 * Note, if vehicle is loading/unloading it has already been handled,
+		 * so if we get here the vehicle has just arrived or is just ready to leave. */
+		if (!HasBit (v->state, RVS_ENTERED_STOP)) {
+			/* Vehicle has arrived at a bay in a road stop */
+
+			/* Check if next inline bay is free and has compatible road. */
+			TileIndex next_tile = TILE_ADD (v->tile, TileOffsByDir (v->direction));
+			if (RoadStop::IsDriveThroughRoadStopContinuation (v->tile, next_tile) && (GetRoadTypes (next_tile) & v->compatible_roadtypes) != 0) {
+				v->frame++;
+				controller_set_pos (v, x, y, true, false);
+				return true;
+			}
+
+			SetBit (v->state, RVS_ENTERED_STOP);
+
+			v->last_station_visited = st->index;
+			RoadVehArrivesAt (v, st);
+			v->BeginLoading();
+			return false;
+		}
+
+		StartRoadVehSound (v);
+		SetWindowWidgetDirty (WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
+
+	} else if (new_dir != v->direction) {
+		assert (v->frame == RVC_AFTER_TURN_START_FRAME);
+		v->direction = new_dir;
+		if (_settings_game.vehicle.roadveh_acceleration_model == AM_ORIGINAL) v->cur_speed -= v->cur_speed >> 2;
+	}
+
+	if (v->current_order.IsType (OT_LEAVESTATION)) {
+		v->current_order.Free();
+	}
+
+	v->frame++;
+	controller_set_pos (v, x, y, false, true);
+	return true;
+}
+
+/**
  * Controller for the front part of a road vehicle.
  * @param v The road vehicle to move.
  * @return Whether the vehicle has moved.
@@ -1588,6 +1695,18 @@ static bool controller_front (RoadVehicle *v)
 	if (v->state == RVSB_WORMHOLE) return IndividualRoadVehicleControllerWormhole (v, NULL);
 
 	if (v->state == RVSB_IN_DEPOT) return true;
+
+	if (IsStationTile (v->tile)) {
+		assert (IsRoadStopTile (v->tile));
+
+		if (IsStandardRoadStopTile (v->tile)) {
+			return controller_standard_stop (v);
+		} else if (HasBit (v->state, RVS_IN_DT_ROAD_STOP) || !IsReversingRoadTrackdir((Trackdir)v->state)) {
+			return controller_drivethrough_stop (v);
+		}
+	}
+
+	assert (v->state <= RVSB_TRACKDIR_MASK);
 
 	return IndividualRoadVehicleController (v, NULL);
 }
