@@ -1352,50 +1352,17 @@ static bool IndividualRoadVehicleControllerTurned (RoadVehicle *v, const RoadVeh
 	return true;
 }
 
-static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *prev)
+/**
+ * Controller for a road vehicle moving within a tile.
+ * @param v The road vehicle to move.
+ * @param x The new x position for the vehicle.
+ * @param y The new y position for the vehicle.
+ * @param dir The new direction the vehicle is facing.
+ */
+static void controller_midtile (RoadVehicle *v, int x, int y, Direction dir)
 {
-	assert (v->state <= RVSB_TRACKDIR_MASK);
-
-	/* Get move position data for next frame. */
-	RoadDriveEntry rd = _road_drive_data[_settings_game.vehicle.road_side ^ v->overtaking]
-			[v->state][v->frame + 1];
-
-	if (rd.x == RDE_NEXT_TILE) return IndividualRoadVehicleControllerNextTile (v, prev, (DiagDirection)(rd.y));
-
-	if (rd.x == RDE_TURNED) return IndividualRoadVehicleControllerTurned (v, prev, (DiagDirection)(rd.y));
-
-	/* This vehicle is not in a wormhole and it hasn't entered a new tile. If
-	 * it's on a depot tile, check if it's time to activate the next vehicle in
-	 * the chain yet. */
-	if (v->Next() != NULL && IsRoadDepotTile(v->tile)) {
-		if (v->frame == v->gcache.cached_veh_length + RVC_DEPOT_START_FRAME) {
-			RoadVehLeaveDepot(v->Next(), false);
-		}
-	}
-
-	/* Calculate new position for the vehicle */
-	int x = (v->x_pos & ~15) + rd.x;
-	int y = (v->y_pos & ~15) + rd.y;
-
-	Direction new_dir = RoadVehGetSlidingDirection(v, x, y);
-
-	if (v->IsFrontEngine()) {
-		/* Vehicle is not in a road stop.
-		 * Check for another vehicle to overtake */
-		RoadVehicle *u = RoadVehFindCloseTo(v, x, y, new_dir);
-
-		if (u != NULL) {
-			u = u->First();
-			/* There is a vehicle in front overtake it if possible */
-			if (v->overtaking == 0) RoadVehCheckOvertake(v, u);
-			if (v->overtaking == 0) v->cur_speed = u->cur_speed;
-			return false;
-		}
-	}
-
-	Direction old_dir = v->direction;
-	if (new_dir != old_dir) {
-		v->direction = new_dir;
+	if (dir != v->direction) {
+		v->direction = dir;
 		if (_settings_game.vehicle.roadveh_acceleration_model == AM_ORIGINAL) v->cur_speed -= v->cur_speed >> 2;
 	}
 
@@ -1427,23 +1394,30 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 
 	}
 
-	/* Check if we have entered a depot. */
-	if (IsGroundDepotTile (v->tile) && v->frame == RVC_DEPOT_STOP_FRAME &&
-			v->state == DiagDirToDiagTrackdir (ReverseDiagDir (GetGroundDepotDirection (v->tile)))) {
+	if (IsGroundDepotTile (v->tile)) {
 		assert (IsRoadDepot (v->tile));
 
-		v->state = RVSB_IN_DEPOT;
-		v->vehstatus |= VS_HIDDEN;
-		v->direction = ReverseDir (v->direction);
-		if (v->Next() == NULL) VehicleEnterDepot (v->First());
+		Trackdir out = DiagDirToDiagTrackdir (GetGroundDepotDirection (v->tile));
+		if (v->state == out) {
+			/* Check if it is time to active the next part. */
+			if ((v->Next() != NULL) && (v->frame == v->gcache.cached_veh_length + RVC_DEPOT_START_FRAME)) {
+				RoadVehLeaveDepot (v->Next(), false);
+			}
+		} else if (v->state == ReverseTrackdir (out)) {
+			/* Check if we have entered the depot. */
+			if (v->frame == RVC_DEPOT_STOP_FRAME) {
+				v->state = RVSB_IN_DEPOT;
+				v->vehstatus |= VS_HIDDEN;
+				v->direction = ReverseDir (v->direction);
+				if (v->Next() == NULL) VehicleEnterDepot (v->First());
 
-		InvalidateWindowData (WC_VEHICLE_DEPOT, v->tile);
-	} else {
-		v->frame++;
+				InvalidateWindowData (WC_VEHICLE_DEPOT, v->tile);
+			}
+		}
 	}
 
+	v->frame++;
 	controller_set_pos (v, x, y, false, true);
-	return true;
 }
 
 /**
@@ -1711,7 +1685,34 @@ static bool controller_front (RoadVehicle *v)
 
 	assert (v->state <= RVSB_TRACKDIR_MASK);
 
-	return IndividualRoadVehicleController (v, NULL);
+	/* Get move position data for next frame. */
+	RoadDriveEntry rd = _road_drive_data[_settings_game.vehicle.road_side ^ v->overtaking]
+			[v->state][v->frame + 1];
+
+	if (rd.x == RDE_NEXT_TILE) return IndividualRoadVehicleControllerNextTile (v, NULL, (DiagDirection)(rd.y));
+
+	if (rd.x == RDE_TURNED) return IndividualRoadVehicleControllerTurned (v, NULL, (DiagDirection)(rd.y));
+
+	/* Calculate new position for the vehicle */
+	int x = (v->x_pos & ~15) + rd.x;
+	int y = (v->y_pos & ~15) + rd.y;
+
+	Direction new_dir = RoadVehGetSlidingDirection (v, x, y);
+
+	/* Vehicle is not in a road stop.
+	 * Check for another vehicle to overtake */
+	RoadVehicle *u = RoadVehFindCloseTo (v, x, y, new_dir);
+
+	if (u != NULL) {
+		u = u->First();
+		/* There is a vehicle in front overtake it if possible */
+		if (v->overtaking == 0) RoadVehCheckOvertake (v, u);
+		if (v->overtaking == 0) v->cur_speed = u->cur_speed;
+		return false;
+	}
+
+	controller_midtile (v, x, y, new_dir);
+	return true;
 }
 
 /**
@@ -1741,8 +1742,27 @@ static void controller_follow (RoadVehicle *v, const RoadVehicle *prev)
 	if (v->state == RVSB_IN_DEPOT) return;
 
 	assert (v->state <= RVSB_TRACKDIR_MASK);
+	assert (v->overtaking == 0);
 
-	if (!IndividualRoadVehicleController (v, prev)) NOT_REACHED();
+	/* Get move position data for next frame. */
+	RoadDriveEntry rd = _road_drive_data[_settings_game.vehicle.road_side]
+			[v->state][v->frame + 1];
+
+	if (rd.x == RDE_NEXT_TILE) {
+		if (!IndividualRoadVehicleControllerNextTile (v, prev, (DiagDirection)(rd.y))) NOT_REACHED();
+		return;
+	}
+
+	if (rd.x == RDE_TURNED) {
+		if (!IndividualRoadVehicleControllerTurned (v, prev, (DiagDirection)(rd.y))) NOT_REACHED();
+		return;
+	}
+
+	/* Calculate new position for the vehicle */
+	int x = (v->x_pos & ~15) + rd.x;
+	int y = (v->y_pos & ~15) + rd.y;
+
+	controller_midtile (v, x, y, RoadVehGetSlidingDirection (v, x, y));
 }
 
 static bool RoadVehController(RoadVehicle *v)
