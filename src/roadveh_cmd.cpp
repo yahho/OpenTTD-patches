@@ -1279,33 +1279,6 @@ static bool IndividualRoadVehicleControllerNewTile (RoadVehicle *v,
 	return true;
 }
 
-static bool IndividualRoadVehicleControllerWormhole (RoadVehicle *v, const RoadVehicle *prev)
-{
-	/* Vehicle is on a bridge or in a tunnel */
-	FullPosTile gp = GetNewVehiclePos(v);
-
-	if (v->IsFrontEngine()) {
-		const Vehicle *u = RoadVehFindCloseTo(v, gp.xx, gp.yy, v->direction);
-		if (u != NULL) {
-			v->cur_speed = u->First()->cur_speed;
-			return false;
-		}
-	}
-
-	if (gp.tile != v->tile) {
-		/* Still in the wormhole */
-		v->x_pos = gp.xx;
-		v->y_pos = gp.yy;
-		v->UpdatePosition();
-		if ((v->vehstatus & VS_HIDDEN) == 0) v->Vehicle::UpdateViewport(true);
-		return true;
-	}
-
-	/* Vehicle has just exited a bridge or tunnel */
-	DiagDirection bridge_dir = GetTunnelBridgeDirection (gp.tile);
-	return IndividualRoadVehicleControllerNewTile (v, prev, gp.tile, ReverseDiagDir(bridge_dir), INVALID_DIAGDIR);
-}
-
 static bool IndividualRoadVehicleControllerNextTile (RoadVehicle *v, const RoadVehicle *prev, DiagDirection enterdir)
 {
 	TileIndex tile = v->tile + TileOffsByDiagDir(enterdir);
@@ -1672,6 +1645,36 @@ static bool controller_drivethrough_stop (RoadVehicle *v)
 }
 
 /**
+ * Controller for the front part of a road vehicle in a wormhole.
+ * @param v The road vehicle to move.
+ * @return Whether the vehicle has moved.
+ */
+static bool controller_front_wormhole (RoadVehicle *v)
+{
+	/* Vehicle is on a bridge or in a tunnel */
+	FullPosTile gp = GetNewVehiclePos(v);
+
+	const Vehicle *u = RoadVehFindCloseTo (v, gp.xx, gp.yy, v->direction);
+	if (u != NULL) {
+		v->cur_speed = u->First()->cur_speed;
+		return false;
+	}
+
+	if (gp.tile != v->tile) {
+		/* Still in the wormhole */
+		v->x_pos = gp.xx;
+		v->y_pos = gp.yy;
+		v->UpdatePosition();
+		if ((v->vehstatus & VS_HIDDEN) == 0) v->Vehicle::UpdateViewport(true);
+		return true;
+	}
+
+	/* Vehicle has just exited a bridge or tunnel */
+	DiagDirection bridge_dir = GetTunnelBridgeDirection (gp.tile);
+	return IndividualRoadVehicleControllerNewTile (v, NULL, gp.tile, ReverseDiagDir(bridge_dir), INVALID_DIAGDIR);
+}
+
+/**
  * Controller for the front part of a road vehicle.
  * @param v The road vehicle to move.
  * @return Whether the vehicle has moved.
@@ -1692,7 +1695,7 @@ static bool controller_front (RoadVehicle *v)
 		}
 	}
 
-	if (v->state == RVSB_WORMHOLE) return IndividualRoadVehicleControllerWormhole (v, NULL);
+	if (v->state == RVSB_WORMHOLE) return controller_front_wormhole (v);
 
 	if (v->state == RVSB_IN_DEPOT) return true;
 
@@ -1719,7 +1722,19 @@ static bool controller_front (RoadVehicle *v)
 static void controller_follow (RoadVehicle *v, const RoadVehicle *prev)
 {
 	if (v->state == RVSB_WORMHOLE) {
-		if (!IndividualRoadVehicleControllerWormhole (v, prev)) NOT_REACHED();
+		FullPosTile gp = GetNewVehiclePos(v);
+		if (gp.tile != v->tile) {
+			/* Still in the wormhole */
+			v->x_pos = gp.xx;
+			v->y_pos = gp.yy;
+			v->UpdatePosition();
+			if ((v->vehstatus & VS_HIDDEN) == 0) v->Vehicle::UpdateViewport(true);
+			return;
+		}
+
+		/* Vehicle has just exited a bridge or tunnel */
+		DiagDirection bridge_dir = GetTunnelBridgeDirection (gp.tile);
+		if (!IndividualRoadVehicleControllerNewTile (v, prev, gp.tile, ReverseDiagDir(bridge_dir), INVALID_DIAGDIR)) NOT_REACHED();
 		return;
 	}
 
