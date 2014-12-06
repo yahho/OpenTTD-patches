@@ -935,24 +935,6 @@ static Trackdir RoadFindPathToDest(RoadVehicle *v, TileIndex tile,
 		return_track(_road_reverse_table[enterdir]);
 	}
 
-	if (v->reverse_ctr != 0) {
-		bool reverse = true;
-		if (v->roadtype == ROADTYPE_TRAM) {
-			/* Trams may only reverse on a tile if it contains at least the straight
-			 * trackbits or when it is a valid turning tile (i.e. one roadbit) */
-			RoadBits rb = GetAnyRoadBits(tile, ROADTYPE_TRAM);
-			RoadBits straight = AxisToRoadBits(DiagDirToAxis(enterdir));
-			reverse = ((rb & straight) == straight) ||
-			          (rb == DiagDirToRoadBits(enterdir));
-		}
-		if (reverse) {
-			v->reverse_ctr = 0;
-			if (v->tile != tile) {
-				return_track(_road_reverse_table[enterdir]);
-			}
-		}
-	}
-
 	desttile = v->dest_tile;
 	if (desttile == 0) {
 		/* We've got no destination, pick a random track */
@@ -1159,70 +1141,81 @@ static bool controller_front_new_tile (RoadVehicle *v, TileIndex tile,
 	DiagDirection enterdir, DiagDirection tsdir)
 {
 	/* Look for the right path. */
-	Trackdir dir = RoadFindPathToDest (v, tile, enterdir, tsdir);
+	Trackdir dir;
+	uint start_frame;
 
-	if (dir == INVALID_TRACKDIR) {
-		v->cur_speed = 0;
-		return false;
-	}
-
-	uint start_frame = RVC_DEFAULT_START_FRAME;
-	if (IsReversingRoadTrackdir(dir)) {
-		/* When turning around we can't be overtaking. */
+	if (v->reverse_ctr != 0) {
+		v->reverse_ctr = 0;
 		v->overtaking = 0;
-		bool use_long_corner;
+		tile = v->tile;
+		dir = _road_reverse_table[enterdir];
+		start_frame = RVC_SHORT_TURN_START_FRAME;
+	} else {
+		dir = RoadFindPathToDest (v, tile, enterdir, tsdir);
 
-		/* Turning around */
-		if (v->roadtype == ROADTYPE_ROAD) {
-			/* Not a tram. */
-			if (IsNormalRoadTile(v->tile) && GetDisallowedRoadDirections(v->tile) != DRD_NONE) {
-				v->cur_speed = 0;
-				return false;
-			}
-			use_long_corner = false;
-		} else {
-			/* Tram front vehicle. */
-
-			/* Determine the road bits the tram needs to be able to turn around
-			 * using the 'big' corner loop. */
-			RoadBits needed;
-			switch (dir) {
-				default: NOT_REACHED();
-				case TRACKDIR_RVREV_NE: needed = ROAD_SW; break;
-				case TRACKDIR_RVREV_SE: needed = ROAD_NW; break;
-				case TRACKDIR_RVREV_SW: needed = ROAD_NE; break;
-				case TRACKDIR_RVREV_NW: needed = ROAD_SE; break;
-			}
-			if (IsNormalRoadTile(tile) && !HasRoadWorks(tile) &&
-					(needed & GetRoadBits(tile, ROADTYPE_TRAM)) != ROAD_NONE) {
-				/*
-				 * Taking the 'big' corner for trams only happens when
-				 * the front of the tram can drive over the next tile.
-				 */
-				use_long_corner = true;
-			} else if (!CanBuildTramTrackOnTile(v->owner, tile, needed) || ((~needed & GetAnyRoadBits(v->tile, ROADTYPE_TRAM, false)) == ROAD_NONE)) {
-				/*
-				 * Taking the 'small' corner for trams only happens when
-				 * the company cannot build on the next tile.
-				 */
-				use_long_corner = false;
-			} else {
-				/* The company can build on the next tile, so wait till (s)he does. */
-				v->cur_speed = 0;
-				return false;
-			}
+		if (dir == INVALID_TRACKDIR) {
+			v->cur_speed = 0;
+			return false;
 		}
 
-		if (use_long_corner) {
-			start_frame = RVC_LONG_TURN_START_FRAME;
-		} else {
-			/*
-			 * The 'small' corner means that the vehicle is on the end of a
-			 * tram track and needs to start turning there. It therefore
-			 * does not go to the next tile, so that needs to be fixed.
-			 */
-			tile = v->tile;
-			start_frame = RVC_SHORT_TURN_START_FRAME;
+		start_frame = RVC_DEFAULT_START_FRAME;
+		if (IsReversingRoadTrackdir(dir)) {
+			/* When turning around we can't be overtaking. */
+			v->overtaking = 0;
+			bool use_long_corner;
+
+			/* Turning around */
+			if (v->roadtype == ROADTYPE_ROAD) {
+				/* Not a tram. */
+				if (IsNormalRoadTile(v->tile) && GetDisallowedRoadDirections(v->tile) != DRD_NONE) {
+					v->cur_speed = 0;
+					return false;
+				}
+				use_long_corner = false;
+			} else {
+				/* Tram front vehicle. */
+
+				/* Determine the road bits the tram needs to be able to turn around
+				 * using the 'big' corner loop. */
+				RoadBits needed;
+				switch (dir) {
+					default: NOT_REACHED();
+					case TRACKDIR_RVREV_NE: needed = ROAD_SW; break;
+					case TRACKDIR_RVREV_SE: needed = ROAD_NW; break;
+					case TRACKDIR_RVREV_SW: needed = ROAD_NE; break;
+					case TRACKDIR_RVREV_NW: needed = ROAD_SE; break;
+				}
+				if (IsNormalRoadTile(tile) && !HasRoadWorks(tile) &&
+						(needed & GetRoadBits(tile, ROADTYPE_TRAM)) != ROAD_NONE) {
+					/*
+					 * Taking the 'big' corner for trams only happens when
+					 * the front of the tram can drive over the next tile.
+					 */
+					use_long_corner = true;
+				} else if (!CanBuildTramTrackOnTile(v->owner, tile, needed) || ((~needed & GetAnyRoadBits(v->tile, ROADTYPE_TRAM, false)) == ROAD_NONE)) {
+					/*
+					 * Taking the 'small' corner for trams only happens when
+					 * the company cannot build on the next tile.
+					 */
+					use_long_corner = false;
+				} else {
+					/* The company can build on the next tile, so wait till (s)he does. */
+					v->cur_speed = 0;
+					return false;
+				}
+			}
+
+			if (use_long_corner) {
+				start_frame = RVC_LONG_TURN_START_FRAME;
+			} else {
+				/*
+				 * The 'small' corner means that the vehicle is on the end of a
+				 * tram track and needs to start turning there. It therefore
+				 * does not go to the next tile, so that needs to be fixed.
+				 */
+				tile = v->tile;
+				start_frame = RVC_SHORT_TURN_START_FRAME;
+			}
 		}
 	}
 
@@ -1711,6 +1704,8 @@ static bool controller_front (RoadVehicle *v)
 
 	if (rd.x == RDE_TURNED) {
 		/* Vehicle has finished turning around, it will now head back onto the same tile */
+		v->reverse_ctr = 0;
+
 		Trackdir td;
 		if (v->roadtype == ROADTYPE_TRAM && IsNormalRoadTile(v->tile) && HasExactlyOneBit(GetRoadBits(v->tile, ROADTYPE_TRAM))) {
 			/* The tram is turning around with one tram 'roadbit'.
