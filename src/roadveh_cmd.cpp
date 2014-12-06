@@ -1098,27 +1098,18 @@ static bool CanBuildTramTrackOnTile(CompanyID c, TileIndex t, RoadBits r)
 }
 
 /**
- * Make a road vehicle enter a wormhole.
- * @param v The road vehicle
- * @param end The other wormhole end
- * @param is_bridge Whether the wormhole is a bridge (as opposed to a tunnel)
- * @return Whether the vehicle moved at all
- * @pre The vehicle must be at the last frame of a wormhole head tile
+ * Controller for a road vehicle that is about to enter a wormhole.
+ * @param v The road vehicle to move.
+ * @param end The other end of the wormhole.
+ * @param gp The new vehicle position, as returned by GetNewVehiclePos.
+ * @param is_bridge Whether the wormhole is a bridge, as opposed to a tunnel.
  */
-static bool IndividualRoadVehicleControllerEnterWormhole(RoadVehicle *v, TileIndex end, bool is_bridge)
+static void controller_enter_wormhole (RoadVehicle *v, TileIndex end, const FullPosTile &gp, bool is_bridge)
 {
-	FullPosTile gp = GetNewVehiclePos(v);
-
-	/* this should really bring us to a new virtual tile */
-	assert(gp.tile != v->tile);
-
-	if (v->IsFrontEngine()) {
-		const Vehicle *u = RoadVehFindCloseTo (v, gp.xx, gp.yy, v->direction);
-		if (u != NULL) {
-			v->cur_speed = u->First()->cur_speed;
-			return false;
-		}
-	}
+	/* This should really bring us to a new virtual tile... */
+	assert (gp.tile != v->tile);
+	/* ...and there should really be a wormhole part. */
+	assert (gp.tile != end);
 
 	v->tile  = end;
 	v->state = RVSB_WORMHOLE;
@@ -1136,8 +1127,6 @@ static bool IndividualRoadVehicleControllerEnterWormhole(RoadVehicle *v, TileInd
 	} else {
 		v->UpdatePosition();
 	}
-
-	return true;
 }
 
 static bool IndividualRoadVehicleControllerNewTile (RoadVehicle *v,
@@ -1332,7 +1321,16 @@ static bool controller_front_next_tile (RoadVehicle *v, DiagDirection enterdir)
 	uint data;
 
 	if (controller_tile_check (v->tile, enterdir, &next, &data)) {
-		return IndividualRoadVehicleControllerEnterWormhole (v, next, data);
+		FullPosTile gp = GetNewVehiclePos(v);
+
+		const Vehicle *u = RoadVehFindCloseTo (v, gp.xx, gp.yy, v->direction);
+		if (u != NULL) {
+			v->cur_speed = u->First()->cur_speed;
+			return false;
+		}
+
+		controller_enter_wormhole (v, next, gp, data);
+		return true;
 	} else {
 		return IndividualRoadVehicleControllerNewTile (v, NULL, next, enterdir, (DiagDirection)data);
 	}
@@ -1802,7 +1800,7 @@ static void controller_follow (RoadVehicle *v, const RoadVehicle *prev)
 		uint data;
 
 		if (controller_tile_check (v->tile, enterdir, &next, &data)) {
-			if (!IndividualRoadVehicleControllerEnterWormhole (v, next, data)) NOT_REACHED();
+			controller_enter_wormhole (v, next, GetNewVehiclePos(v), data);
 		} else {
 			if (!IndividualRoadVehicleControllerNewTile (v, prev, next, enterdir, (DiagDirection)data)) NOT_REACHED();
 		}
