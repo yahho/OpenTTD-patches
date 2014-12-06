@@ -1023,7 +1023,7 @@ static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 	return true;
 }
 
-static Trackdir FollowPreviousRoadVehicle (const RoadVehicle *v, const RoadVehicle *prev, DiagDirection entry_dir)
+static Trackdir FollowPreviousRoadVehicle (const RoadVehicle *prev, DiagDirection entry_dir)
 {
 	byte prev_state = prev->state;
 
@@ -1062,7 +1062,7 @@ static Trackdir FollowPreviousRoadVehicle (const RoadVehicle *v, const RoadVehic
 
 		RoadBits required = required_roadbits[TrackdirToTrack(dir)];
 
-		assert ((required & GetAnyRoadBits (prev->tile, v->roadtype, true)) != ROAD_NONE);
+		assert ((required & GetAnyRoadBits (prev->tile, prev->roadtype, true)) != ROAD_NONE);
 	}
 
 	return dir;
@@ -1789,7 +1789,7 @@ static void controller_follow_new_tile (RoadVehicle *v,
 			start_frame = RVC_DEFAULT_START_FRAME;
 		}
 	} else {
-		dir = FollowPreviousRoadVehicle (v, prev, enterdir);
+		dir = FollowPreviousRoadVehicle (prev, enterdir);
 		assert_compile (RVC_DEFAULT_START_FRAME == RVC_LONG_TURN_START_FRAME);
 		start_frame = RVC_DEFAULT_START_FRAME;
 	}
@@ -1859,7 +1859,7 @@ static void controller_follow (RoadVehicle *v, const RoadVehicle *prev)
 			td = EnterdirExitdirToTrackdir (enterdir, exitdir);
 			assert (!IsReversingRoadTrackdir (td));
 		} else {
-			td = FollowPreviousRoadVehicle (v, prev, enterdir);
+			td = FollowPreviousRoadVehicle (prev, enterdir);
 		}
 
 		RoadDriveEntry rd = _road_drive_data[_settings_game.vehicle.road_side]
