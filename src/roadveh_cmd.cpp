@@ -1305,51 +1305,30 @@ static bool IndividualRoadVehicleControllerNextTile (RoadVehicle *v, const RoadV
 	return IndividualRoadVehicleControllerNewTile (v, prev, tile, enterdir, tsdir);
 }
 
-static bool IndividualRoadVehicleControllerTurned (RoadVehicle *v, const RoadVehicle *prev, DiagDirection enterdir)
+/**
+ * Controller for a road vehicle that has just turned around.
+ * @param v The road vehicle to move.
+ * @param td The trackdir to use after reversal.
+ * @param x The new x position for the vehicle.
+ * @param y The new y position for the vehicle.
+ * @param dir The new direction the vehicle is facing.
+ */
+static void controller_turned (RoadVehicle *v, Trackdir td, int x, int y, Direction dir)
 {
-	/* Vehicle has finished turning around, it will now head back onto the same tile */
-	Trackdir dir;
-	if (v->roadtype == ROADTYPE_TRAM && IsNormalRoadTile(v->tile) && HasExactlyOneBit(GetRoadBits(v->tile, ROADTYPE_TRAM))) {
-		/* The tram is turning around with one tram 'roadbit'.
-		 * This means that it is using the 'big' corner 'drive data'.
-		 * When the tram reaches the 'turned' marker, we switch it
-		 * to the corresponding straight drive data. */
-		dir = DiagDirToDiagTrackdir(enterdir);
-	} else if (v->IsFrontEngine()) {
-		/* If this is the front engine, look for the right path. */
-		dir = RoadFindPathToDest (v, v->tile, enterdir, INVALID_DIAGDIR);
-
-		if (dir == INVALID_TRACKDIR) {
-			v->cur_speed = 0;
-			return false;
-		}
-	} else {
-		dir = FollowPreviousRoadVehicle(v, prev, v->tile, enterdir);
-	}
-
-	const RoadDriveEntry *rdp = _road_drive_data[_settings_game.vehicle.road_side][dir];
-
-	int x = TileX(v->tile) * TILE_SIZE + rdp[RVC_AFTER_TURN_START_FRAME].x;
-	int y = TileY(v->tile) * TILE_SIZE + rdp[RVC_AFTER_TURN_START_FRAME].y;
-
-	Direction new_dir = RoadVehGetSlidingDirection(v, x, y);
-	if (v->IsFrontEngine() && RoadVehFindCloseTo(v, x, y, new_dir) != NULL) return false;
-
 	if (IsRoadBridgeTile (v->tile)) {
 		RoadVehicle *first = v->First();
 		first->cur_speed = min (first->cur_speed, GetBridgeSpec(GetRoadBridgeType(v->tile))->speed * 2);
 	}
 
-	v->state = dir;
+	v->state = td;
 	v->frame = RVC_AFTER_TURN_START_FRAME;
 
-	if (new_dir != v->direction) {
-		v->direction = new_dir;
+	if (dir != v->direction) {
+		v->direction = dir;
 		if (_settings_game.vehicle.roadveh_acceleration_model == AM_ORIGINAL) v->cur_speed -= v->cur_speed >> 2;
 	}
 
 	controller_set_pos (v, x, y, true, true);
-	return true;
 }
 
 /**
@@ -1691,7 +1670,37 @@ static bool controller_front (RoadVehicle *v)
 
 	if (rd.x == RDE_NEXT_TILE) return IndividualRoadVehicleControllerNextTile (v, NULL, (DiagDirection)(rd.y));
 
-	if (rd.x == RDE_TURNED) return IndividualRoadVehicleControllerTurned (v, NULL, (DiagDirection)(rd.y));
+	if (rd.x == RDE_TURNED) {
+		/* Vehicle has finished turning around, it will now head back onto the same tile */
+		Trackdir td;
+		if (v->roadtype == ROADTYPE_TRAM && IsNormalRoadTile(v->tile) && HasExactlyOneBit(GetRoadBits(v->tile, ROADTYPE_TRAM))) {
+			/* The tram is turning around with one tram 'roadbit'.
+			 * This means that it is using the 'big' corner 'drive data'.
+			 * When the tram reaches the 'turned' marker, we switch it
+			 * to the corresponding straight drive data. */
+			td = DiagDirToDiagTrackdir ((DiagDirection)(rd.y));
+		} else {
+			/* Look for the right path. */
+			td = RoadFindPathToDest (v, v->tile, (DiagDirection)(rd.y), INVALID_DIAGDIR);
+
+			if (td == INVALID_TRACKDIR) {
+				v->cur_speed = 0;
+				return false;
+			}
+		}
+
+		RoadDriveEntry rd = _road_drive_data[_settings_game.vehicle.road_side]
+				[td][RVC_AFTER_TURN_START_FRAME];
+
+		int x = TileX(v->tile) * TILE_SIZE + rd.x;
+		int y = TileY(v->tile) * TILE_SIZE + rd.y;
+
+		Direction new_dir = RoadVehGetSlidingDirection (v, x, y);
+		if (RoadVehFindCloseTo (v, x, y, new_dir) != NULL) return false;
+
+		controller_turned (v, td, x, y, new_dir);
+		return true;
+	}
 
 	/* Calculate new position for the vehicle */
 	int x = (v->x_pos & ~15) + rd.x;
@@ -1754,7 +1763,16 @@ static void controller_follow (RoadVehicle *v, const RoadVehicle *prev)
 	}
 
 	if (rd.x == RDE_TURNED) {
-		if (!IndividualRoadVehicleControllerTurned (v, prev, (DiagDirection)(rd.y))) NOT_REACHED();
+		Trackdir td = (v->roadtype == ROADTYPE_TRAM && IsNormalRoadTile(v->tile) && HasExactlyOneBit(GetRoadBits(v->tile, ROADTYPE_TRAM))) ?
+				DiagDirToDiagTrackdir ((DiagDirection)(rd.y)) : FollowPreviousRoadVehicle (v, prev, v->tile, (DiagDirection)(rd.y));
+
+		RoadDriveEntry rd = _road_drive_data[_settings_game.vehicle.road_side]
+				[td][RVC_AFTER_TURN_START_FRAME];
+
+		int x = TileX(v->tile) * TILE_SIZE + rd.x;
+		int y = TileY(v->tile) * TILE_SIZE + rd.y;
+
+		controller_turned (v, td, x, y, RoadVehGetSlidingDirection (v, x, y));
 		return;
 	}
 
