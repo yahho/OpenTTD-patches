@@ -1279,30 +1279,63 @@ static bool IndividualRoadVehicleControllerNewTile (RoadVehicle *v,
 	return true;
 }
 
-static bool IndividualRoadVehicleControllerNextTile (RoadVehicle *v, const RoadVehicle *prev, DiagDirection enterdir)
+/**
+ * Check if leaving a tile in a given direction leads into a wormhole.
+ * @param tile The tile being left.
+ * @param enterdir The direction in which it is left.
+ * @param next Set to the next tile if there is no wormhole,
+ *     else to the other wormhole end.
+ * @param data Set to the direction to be used as track status direction
+ *     on the new tile if there is no wormhole, else to 1 iff the wormhole
+ *     is a bridge.
+ * @return Whether leaving the tile leads to a wormhole.
+ */
+static bool controller_tile_check (TileIndex tile, DiagDirection enterdir, TileIndex *next, uint *data)
 {
-	TileIndex tile = v->tile + TileOffsByDiagDir(enterdir);
-	DiagDirection tsdir;
+	TileIndex next_tile = TileAddByDiagDir (tile, enterdir);
 
-	if (IsTunnelTile(v->tile) && GetTunnelBridgeDirection(v->tile) == enterdir) {
-		TileIndex end_tile = GetOtherTunnelEnd(v->tile);
-		if (end_tile != tile) {
+	if (IsTunnelTile(tile) && GetTunnelBridgeDirection(tile) == enterdir) {
+		TileIndex end_tile = GetOtherTunnelEnd (tile);
+		if (end_tile != next_tile) {
 			/* Entering a tunnel */
-			return IndividualRoadVehicleControllerEnterWormhole (v, end_tile, false);
+			*next = end_tile;
+			*data = 0;
+			return true;
 		}
-		tsdir = INVALID_DIAGDIR;
-	} else if (IsRoadBridgeTile(v->tile) && GetTunnelBridgeDirection(v->tile) == enterdir) {
-		TileIndex end_tile = GetOtherBridgeEnd(v->tile);
-		if (end_tile != tile) {
+		*data = INVALID_DIAGDIR;
+	} else if (IsRoadBridgeTile(tile) && GetTunnelBridgeDirection(tile) == enterdir) {
+		TileIndex end_tile = GetOtherBridgeEnd (tile);
+		if (end_tile != next_tile) {
 			/* Entering a bridge */
-			return IndividualRoadVehicleControllerEnterWormhole (v, end_tile, true);
+			*next = end_tile;
+			*data = 1;
+			return true;
 		}
-		tsdir = INVALID_DIAGDIR;
+		*data = INVALID_DIAGDIR;
 	} else {
-		tsdir = ReverseDiagDir (enterdir);
+		*data = ReverseDiagDir (enterdir);
 	}
 
-	return IndividualRoadVehicleControllerNewTile (v, prev, tile, enterdir, tsdir);
+	*next = next_tile;
+	return false;
+}
+
+/**
+ * Controller for a road vehicle leaving a tile.
+ * @param v The road vehicle to move.
+ * @param enterdir The direction in which it is leaving its current tile.
+ * @return Whether the vehicle has moved.
+ */
+static bool controller_front_next_tile (RoadVehicle *v, DiagDirection enterdir)
+{
+	TileIndex next;
+	uint data;
+
+	if (controller_tile_check (v->tile, enterdir, &next, &data)) {
+		return IndividualRoadVehicleControllerEnterWormhole (v, next, data);
+	} else {
+		return IndividualRoadVehicleControllerNewTile (v, NULL, next, enterdir, (DiagDirection)data);
+	}
 }
 
 /**
@@ -1429,7 +1462,9 @@ static bool controller_standard_stop (RoadVehicle *v)
 	RoadDriveEntry rd = _road_drive_data[_settings_game.vehicle.road_side]
 			[v->state][v->frame + 1];
 
-	if (rd.x == RDE_NEXT_TILE) return IndividualRoadVehicleControllerNextTile (v, NULL, (DiagDirection)(rd.y));
+	if (rd.x == RDE_NEXT_TILE) {
+		return controller_front_next_tile (v, (DiagDirection)(rd.y));
+	}
 
 	assert (rd.x != RDE_TURNED);
 
@@ -1514,7 +1549,9 @@ static bool controller_drivethrough_stop (RoadVehicle *v)
 	RoadDriveEntry rd = _road_drive_data[_settings_game.vehicle.road_side]
 			[v->state & RVSB_ROAD_STOP_TRACKDIR_MASK][v->frame + 1];
 
-	if (rd.x == RDE_NEXT_TILE) return IndividualRoadVehicleControllerNextTile (v, NULL, (DiagDirection)(rd.y));
+	if (rd.x == RDE_NEXT_TILE) {
+		return controller_front_next_tile (v, (DiagDirection)(rd.y));
+	}
 
 	assert (rd.x != RDE_TURNED);
 
@@ -1668,7 +1705,9 @@ static bool controller_front (RoadVehicle *v)
 	RoadDriveEntry rd = _road_drive_data[_settings_game.vehicle.road_side ^ v->overtaking]
 			[v->state][v->frame + 1];
 
-	if (rd.x == RDE_NEXT_TILE) return IndividualRoadVehicleControllerNextTile (v, NULL, (DiagDirection)(rd.y));
+	if (rd.x == RDE_NEXT_TILE) {
+		return controller_front_next_tile (v, (DiagDirection)(rd.y));
+	}
 
 	if (rd.x == RDE_TURNED) {
 		/* Vehicle has finished turning around, it will now head back onto the same tile */
@@ -1758,7 +1797,15 @@ static void controller_follow (RoadVehicle *v, const RoadVehicle *prev)
 			[v->state][v->frame + 1];
 
 	if (rd.x == RDE_NEXT_TILE) {
-		if (!IndividualRoadVehicleControllerNextTile (v, prev, (DiagDirection)(rd.y))) NOT_REACHED();
+		DiagDirection enterdir = (DiagDirection)(rd.y);
+		TileIndex next;
+		uint data;
+
+		if (controller_tile_check (v->tile, enterdir, &next, &data)) {
+			if (!IndividualRoadVehicleControllerEnterWormhole (v, next, data)) NOT_REACHED();
+		} else {
+			if (!IndividualRoadVehicleControllerNewTile (v, prev, next, enterdir, (DiagDirection)data)) NOT_REACHED();
+		}
 		return;
 	}
 
