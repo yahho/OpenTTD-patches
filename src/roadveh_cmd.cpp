@@ -1023,45 +1023,34 @@ static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 	return true;
 }
 
-static Trackdir FollowPreviousRoadVehicle(const RoadVehicle *v, const RoadVehicle *prev, TileIndex tile, DiagDirection entry_dir)
+static Trackdir FollowPreviousRoadVehicle (const RoadVehicle *v, const RoadVehicle *prev, DiagDirection entry_dir)
 {
+	byte prev_state = prev->state;
+
+	assert (prev_state != RVSB_WORMHOLE);
+
 	Trackdir dir;
-	if (prev->tile != tile) {
-		/*
-		 * The previous vehicle has already left the tile; follow
-		 * the trackdir that heads in its direction.
-		 */
-		DiagDirection exitdir = DiagdirBetweenTiles(tile, prev->tile);
-		assert(IsValidDiagDirection(exitdir));
-		dir = EnterdirExitdirToTrackdir(entry_dir, exitdir);
+	if (prev_state == RVSB_IN_DEPOT) {
+		dir = DiagDirToDiagTrackdir (ReverseDiagDir (GetGroundDepotDirection (prev->tile)));
+	} else if (HasBit (prev_state, RVS_IN_DT_ROAD_STOP)) {
+		dir = (Trackdir)(prev_state & RVSB_ROAD_STOP_TRACKDIR_MASK);
 	} else {
-		byte prev_state = prev->state;
+		assert (prev_state < TRACKDIR_END);
+		dir = (Trackdir)prev_state;
 
-		assert(prev_state != RVSB_WORMHOLE);
-
-		if (prev_state == RVSB_IN_DEPOT) {
-			dir = DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(tile)));
-		} else if (HasBit(prev_state, RVS_IN_DT_ROAD_STOP)) {
-			dir = (Trackdir)(prev_state & RVSB_ROAD_STOP_TRACKDIR_MASK);
-		} else {
-			assert(prev_state < TRACKDIR_END);
-			dir = (Trackdir)prev_state;
-
-			/* Some bends are so short that the vehicle ahead has
-			 * already left the tile when we reach it; this is
-			 * caught by the conditional prev->tile != tile above.
-			 * However, if the vehicle ahead turned around at the
-			 * tile edge instead of moving forward, it is still
-			 * in this tile but has switched to a reversing
-			 * trackdir. In such a case, we must not use its
-			 * trackdir, but head in the direction of the tile
-			 * side at which it is reversing. */
-			if (IsReversingRoadTrackdir(dir)) {
-				DiagDirection side = TrackdirToExitdir(dir);
-				assert (entry_dir != side);
-				side = ReverseDiagDir(side);
-				if (entry_dir != side) dir = EnterdirExitdirToTrackdir(entry_dir, side);
-			}
+		/* Some bends are so short that the vehicle ahead has already
+		 * left the tile when we reach it, in which case it is no
+		 * longer at the entered tile and this function is not called.
+		 * However, if the vehicle ahead turned around at the tile
+		 * edge instead of moving forward, it is still in this tile
+		 * but has switched to a reversing trackdir. In such a case,
+		 * we must not use its trackdir, but head in the direction
+		 * of the tile side at which it is reversing. */
+		if (IsReversingRoadTrackdir (dir)) {
+			DiagDirection side = TrackdirToExitdir (dir);
+			assert (entry_dir != side);
+			side = ReverseDiagDir (side);
+			if (entry_dir != side) dir = EnterdirExitdirToTrackdir (entry_dir, side);
 		}
 	}
 
@@ -1073,7 +1062,7 @@ static Trackdir FollowPreviousRoadVehicle(const RoadVehicle *v, const RoadVehicl
 
 		RoadBits required = required_roadbits[TrackdirToTrack(dir)];
 
-		assert((required & GetAnyRoadBits(tile, v->roadtype, true)) != ROAD_NONE);
+		assert ((required & GetAnyRoadBits (prev->tile, v->roadtype, true)) != ROAD_NONE);
 	}
 
 	return dir;
@@ -1784,22 +1773,25 @@ static bool controller_front (RoadVehicle *v)
 static void controller_follow_new_tile (RoadVehicle *v,
 	const RoadVehicle *prev, TileIndex tile, DiagDirection enterdir)
 {
-	Trackdir dir = FollowPreviousRoadVehicle (v, prev, tile, enterdir);
+	Trackdir dir;
+	uint start_frame;
 
-	uint start_frame = RVC_DEFAULT_START_FRAME;
-	if (IsReversingRoadTrackdir(dir)) {
-		if (prev->tile == tile) {
-			assert (v->roadtype == ROADTYPE_TRAM);
-			start_frame = RVC_LONG_TURN_START_FRAME;
-		} else {
-			/*
-			 * The 'small' corner means that the vehicle is on the end of a
-			 * tram track and needs to start turning there. It therefore
-			 * does not go to the next tile, so that needs to be fixed.
-			 */
+	if (prev->tile != tile) {
+		DiagDirection exitdir = DiagdirBetweenTiles (tile, prev->tile);
+		assert (IsValidDiagDirection (exitdir));
+		dir = EnterdirExitdirToTrackdir (enterdir, exitdir);
+		if (IsReversingRoadTrackdir (dir)) {
+			/* The previous vehicle turned around at the tile edge. */
+			assert (tile != v->tile);
 			tile = v->tile;
 			start_frame = RVC_SHORT_TURN_START_FRAME;
+		} else {
+			start_frame = RVC_DEFAULT_START_FRAME;
 		}
+	} else {
+		dir = FollowPreviousRoadVehicle (v, prev, enterdir);
+		assert_compile (RVC_DEFAULT_START_FRAME == RVC_LONG_TURN_START_FRAME);
+		start_frame = RVC_DEFAULT_START_FRAME;
 	}
 
 	/* Get position data for first frame on the new tile */
@@ -1858,8 +1850,17 @@ static void controller_follow (RoadVehicle *v, const RoadVehicle *prev)
 	}
 
 	if (rd.x == RDE_TURNED) {
-		Trackdir td = (v->roadtype == ROADTYPE_TRAM && IsNormalRoadTile(v->tile) && HasExactlyOneBit(GetRoadBits(v->tile, ROADTYPE_TRAM))) ?
-				DiagDirToDiagTrackdir ((DiagDirection)(rd.y)) : FollowPreviousRoadVehicle (v, prev, v->tile, (DiagDirection)(rd.y));
+		DiagDirection enterdir = (DiagDirection)(rd.y);
+		Trackdir td;
+		if (prev->tile != v->tile) {
+			DiagDirection exitdir = DiagdirBetweenTiles (v->tile, prev->tile);
+			assert (IsValidDiagDirection (exitdir));
+			assert (exitdir != ReverseDiagDir (enterdir));
+			td = EnterdirExitdirToTrackdir (enterdir, exitdir);
+			assert (!IsReversingRoadTrackdir (td));
+		} else {
+			td = FollowPreviousRoadVehicle (v, prev, enterdir);
+		}
 
 		RoadDriveEntry rd = _road_drive_data[_settings_game.vehicle.road_side]
 				[td][RVC_AFTER_TURN_START_FRAME];
