@@ -1129,21 +1129,52 @@ static void controller_enter_wormhole (RoadVehicle *v, TileIndex end, const Full
 	}
 }
 
-static bool IndividualRoadVehicleControllerNewTile (RoadVehicle *v,
-	const RoadVehicle *prev, TileIndex tile,
+/**
+ * Controller for a road vehicle that is about to enter a new tile.
+ * @param v The road vehicle to move.
+ * @param tile The tile to be entered.
+ * @param td The trackdir to take on the new tile.
+ * @param x The new x position for the vehicle.
+ * @param y The new y position for the vehicle.
+ * @param dir The new direction the vehicle is facing.
+ */
+static void controller_new_tile (RoadVehicle *v, TileIndex tile, Trackdir td,
+	uint frame, int x, int y, Direction dir)
+{
+	if (IsRoadBridgeTile (tile)) {
+		RoadVehicle *first = v->First();
+		first->cur_speed = min (first->cur_speed, GetBridgeSpec(GetRoadBridgeType(tile))->speed * 2);
+	}
+
+	v->tile = tile;
+	v->state = td;
+	v->frame = frame;
+
+	if (dir != v->direction) {
+		v->direction = dir;
+		if (_settings_game.vehicle.roadveh_acceleration_model == AM_ORIGINAL) v->cur_speed -= v->cur_speed >> 2;
+	}
+
+	controller_set_pos (v, x, y, true, true);
+}
+
+/**
+ * Controller for a front road vehicle that is about to enter a new tile.
+ * @param v The road vehicle to move.
+ * @param tile The tile to be entered.
+ * @param enterdir The direction in which the tile is entered.
+ * @param tsdir The direction to use to get the track status on the new tile.
+ * @return Whether the vehicle has moved.
+ */
+static bool controller_front_new_tile (RoadVehicle *v, TileIndex tile,
 	DiagDirection enterdir, DiagDirection tsdir)
 {
-	Trackdir dir;
-	if (v->IsFrontEngine()) {
-		/* If this is the front engine, look for the right path. */
-		dir = RoadFindPathToDest (v, tile, enterdir, tsdir);
+	/* Look for the right path. */
+	Trackdir dir = RoadFindPathToDest (v, tile, enterdir, tsdir);
 
-		if (dir == INVALID_TRACKDIR) {
-			v->cur_speed = 0;
-			return false;
-		}
-	} else {
-		dir = FollowPreviousRoadVehicle (v, prev, tile, enterdir);
+	if (dir == INVALID_TRACKDIR) {
+		v->cur_speed = 0;
+		return false;
 	}
 
 	uint start_frame = RVC_DEFAULT_START_FRAME;
@@ -1160,7 +1191,7 @@ static bool IndividualRoadVehicleControllerNewTile (RoadVehicle *v,
 				return false;
 			}
 			use_long_corner = false;
-		} else if (v->IsFrontEngine()) {
+		} else {
 			/* Tram front vehicle. */
 
 			/* Determine the road bits the tram needs to be able to turn around
@@ -1191,9 +1222,6 @@ static bool IndividualRoadVehicleControllerNewTile (RoadVehicle *v,
 				v->cur_speed = 0;
 				return false;
 			}
-		} else {
-			/* Tram, not front vehicle. Just follow the previous vehicle. */
-			use_long_corner = (v->Previous()->tile == tile);
 		}
 
 		if (use_long_corner) {
@@ -1210,23 +1238,17 @@ static bool IndividualRoadVehicleControllerNewTile (RoadVehicle *v,
 	}
 
 	/* Get position data for first frame on the new tile */
-	const RoadDriveEntry *rdp = _road_drive_data[_settings_game.vehicle.road_side ^ v->overtaking][dir];
+	RoadDriveEntry rd = _road_drive_data[_settings_game.vehicle.road_side ^ v->overtaking][dir][start_frame];
 
-	int x = TileX(tile) * TILE_SIZE + rdp[start_frame].x;
-	int y = TileY(tile) * TILE_SIZE + rdp[start_frame].y;
+	int x = TileX(tile) * TILE_SIZE + rd.x;
+	int y = TileY(tile) * TILE_SIZE + rd.y;
 
 	Direction new_dir = RoadVehGetSlidingDirection(v, x, y);
-	if (v->IsFrontEngine()) {
-		Vehicle *u = RoadVehFindCloseTo(v, x, y, new_dir);
-		if (u != NULL) {
-			v->cur_speed = u->First()->cur_speed;
-			return false;
-		}
-	}
 
-	if (IsRoadBridgeTile (tile)) {
-		RoadVehicle *first = v->First();
-		first->cur_speed = min (first->cur_speed, GetBridgeSpec(GetRoadBridgeType(tile))->speed * 2);
+	Vehicle *u = RoadVehFindCloseTo(v, x, y, new_dir);
+	if (u != NULL) {
+		v->cur_speed = u->First()->cur_speed;
+		return false;
 	}
 
 	if (IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_DT_ROAD_STOP_END) && IsStationTile(v->tile)) {
@@ -1255,16 +1277,7 @@ static bool IndividualRoadVehicleControllerNewTile (RoadVehicle *v,
 		}
 	}
 
-	v->tile = tile;
-	v->state = (byte)dir;
-	v->frame = start_frame;
-
-	if (new_dir != v->direction) {
-		v->direction = new_dir;
-		if (_settings_game.vehicle.roadveh_acceleration_model == AM_ORIGINAL) v->cur_speed -= v->cur_speed >> 2;
-	}
-
-	controller_set_pos (v, x, y, true, true);
+	controller_new_tile (v, tile, dir, start_frame, x, y, new_dir);
 	return true;
 }
 
@@ -1332,7 +1345,7 @@ static bool controller_front_next_tile (RoadVehicle *v, DiagDirection enterdir)
 		controller_enter_wormhole (v, next, gp, data);
 		return true;
 	} else {
-		return IndividualRoadVehicleControllerNewTile (v, NULL, next, enterdir, (DiagDirection)data);
+		return controller_front_new_tile (v, next, enterdir, (DiagDirection)data);
 	}
 }
 
@@ -1659,7 +1672,7 @@ static bool controller_front_wormhole (RoadVehicle *v)
 
 	/* Vehicle has just exited a bridge or tunnel */
 	DiagDirection bridge_dir = GetTunnelBridgeDirection (gp.tile);
-	return IndividualRoadVehicleControllerNewTile (v, NULL, gp.tile, ReverseDiagDir(bridge_dir), INVALID_DIAGDIR);
+	return controller_front_new_tile (v, gp.tile, ReverseDiagDir(bridge_dir), INVALID_DIAGDIR);
 }
 
 /**
@@ -1762,6 +1775,43 @@ static bool controller_front (RoadVehicle *v)
 }
 
 /**
+ * Controller for a (non-front) articulated part about to enter a new tile.
+ * @param v The road vehicle to move.
+ * @param prev The previous articulated part in the vehicle.
+ * @param tile The tile to be entered.
+ * @param enterdir The direction in which the tile is entered.
+ */
+static void controller_follow_new_tile (RoadVehicle *v,
+	const RoadVehicle *prev, TileIndex tile, DiagDirection enterdir)
+{
+	Trackdir dir = FollowPreviousRoadVehicle (v, prev, tile, enterdir);
+
+	uint start_frame = RVC_DEFAULT_START_FRAME;
+	if (IsReversingRoadTrackdir(dir)) {
+		if (prev->tile == tile) {
+			assert (v->roadtype == ROADTYPE_TRAM);
+			start_frame = RVC_LONG_TURN_START_FRAME;
+		} else {
+			/*
+			 * The 'small' corner means that the vehicle is on the end of a
+			 * tram track and needs to start turning there. It therefore
+			 * does not go to the next tile, so that needs to be fixed.
+			 */
+			tile = v->tile;
+			start_frame = RVC_SHORT_TURN_START_FRAME;
+		}
+	}
+
+	/* Get position data for first frame on the new tile */
+	RoadDriveEntry rd = _road_drive_data[_settings_game.vehicle.road_side][dir][start_frame];
+
+	int x = TileX(tile) * TILE_SIZE + rd.x;
+	int y = TileY(tile) * TILE_SIZE + rd.y;
+
+	controller_new_tile (v, tile, dir, start_frame, x, y, RoadVehGetSlidingDirection(v, x, y));
+}
+
+/**
  * Controller for a (non-front) articulated part in a road vehicle.
  * @param v The road vehicle to move.
  * @param prev The previous articulated part in the vehicle.
@@ -1781,7 +1831,7 @@ static void controller_follow (RoadVehicle *v, const RoadVehicle *prev)
 
 		/* Vehicle has just exited a bridge or tunnel */
 		DiagDirection bridge_dir = GetTunnelBridgeDirection (gp.tile);
-		if (!IndividualRoadVehicleControllerNewTile (v, prev, gp.tile, ReverseDiagDir(bridge_dir), INVALID_DIAGDIR)) NOT_REACHED();
+		controller_follow_new_tile (v, prev, gp.tile, ReverseDiagDir(bridge_dir));
 		return;
 	}
 
@@ -1802,7 +1852,7 @@ static void controller_follow (RoadVehicle *v, const RoadVehicle *prev)
 		if (controller_tile_check (v->tile, enterdir, &next, &data)) {
 			controller_enter_wormhole (v, next, GetNewVehiclePos(v), data);
 		} else {
-			if (!IndividualRoadVehicleControllerNewTile (v, prev, next, enterdir, (DiagDirection)data)) NOT_REACHED();
+			controller_follow_new_tile (v, prev, next, enterdir);
 		}
 		return;
 	}
