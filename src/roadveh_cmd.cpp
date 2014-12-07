@@ -873,87 +873,111 @@ static int PickRandomBit(uint bits)
 	return i;
 }
 
+/** Return values for RoadChoosePath, other than a simple trackdir. */
+enum RoadChoosePathEnum {
+	CHOOSE_PATH_NONE = TRACKDIR_END, ///< no path (attempt to turn around)
+	CHOOSE_PATH_WAIT,                ///< path blocked (barred crossing)
+	CHOOSE_PATH_SINGLE_PIECE,        ///< single-piece road tile (long turn)
+};
+
 /**
- * Returns direction to for a road vehicle to take or
- * INVALID_TRACKDIR if the direction is currently blocked
+ * Return the trackdir to follow on a new tile, or a special marker value.
  * @param v        the Vehicle to do the pathfinding for
  * @param tile     the where to start the pathfinding
  * @param enterdir the direction the vehicle enters the tile from
- * @param tsdir    the direction to use for GetTileRoadStatus
+ * @param tsdir    the direction to use for GetTileRoadStatus (INVALID_DIAGDIR if just reversed)
  * @return the Trackdir to take
  */
-static Trackdir RoadFindPathToDest(RoadVehicle *v, TileIndex tile,
+static RoadChoosePathEnum RoadChoosePath (RoadVehicle *v, TileIndex tile,
 	DiagDirection enterdir, DiagDirection tsdir)
 {
-#define return_track(x) { best_track = (Trackdir)x; goto found_best_track; }
+	assert ((tsdir == INVALID_DIAGDIR) || (tsdir == ReverseDiagDir (enterdir)));
 
-	TileIndex desttile;
-	Trackdir best_track;
-	bool path_found = true;
+	switch (GetTileType (tile)) {
+		default: return CHOOSE_PATH_NONE;
 
-	TrackStatus ts = GetTileRoadStatus (tile, v->compatible_roadtypes, tsdir);
-	TrackdirBits red_signals = TrackStatusToRedSignals(ts); // crossing
-	TrackdirBits trackdirs = TrackStatusToTrackdirBits(ts);
-
-	if (IsRoadDepotTile(tile)) {
-		if ((!IsTileOwner(tile, v->owner) || GetGroundDepotDirection(tile) == enterdir || (GetRoadTypes(tile) & v->compatible_roadtypes) == 0)) {
-			/* Road depot owned by another company or with the wrong orientation */
-			trackdirs = TRACKDIR_BIT_NONE;
-		}
-	} else if (IsStationTile(tile) && IsStandardRoadStopTile(tile)) {
-		/* Standard road stop (drive-through stops are treated as normal road) */
-
-		if (!IsTileOwner(tile, v->owner) || GetRoadStopDir(tile) == enterdir || v->HasArticulatedPart()) {
-			/* different station owner or wrong orientation or the vehicle has articulated parts */
-			trackdirs = TRACKDIR_BIT_NONE;
-		} else {
-			/* Our station */
-			RoadStopType rstype = v->IsBus() ? ROADSTOP_BUS : ROADSTOP_TRUCK;
-
-			if (GetRoadStopType(tile) != rstype) {
-				/* Wrong station type */
-				trackdirs = TRACKDIR_BIT_NONE;
+		case TT_ROAD: {
+			TrackStatus ts = GetTileRoadStatus (tile, v->compatible_roadtypes, tsdir);
+			assert (TrackStatusToRedSignals(ts) == TRACKDIR_BIT_NONE);
+			/* Remove tracks unreachable from the enter dir */
+			TrackdirBits trackdirs = TrackStatusToTrackdirBits(ts) & DiagdirReachesTrackdirs(enterdir);
+			if (trackdirs == TRACKDIR_BIT_NONE) {
+				/* Single-piece road tile? */
+				return GetRoadBits (tile, v->roadtype) == DiagDirToRoadBits (ReverseDiagDir (enterdir)) &&
+						(!IsTileSubtype (tile, TT_TRACK) || !HasRoadWorks (tile)) ?
+					CHOOSE_PATH_SINGLE_PIECE : CHOOSE_PATH_NONE;
+			} else if (HasAtMostOneBit (trackdirs)) {
+				/* Only one track to choose between? */
+				return (RoadChoosePathEnum) FindFirstTrackdir (trackdirs);
+			} else if (v->dest_tile == 0) {
+				/* Pick a random track if we've got no destination. */
+				return (RoadChoosePathEnum) PickRandomBit (trackdirs);
 			} else {
-				/* Proper station type, check if there is free loading bay */
-				if (!_settings_game.pf.roadveh_queue && IsStandardRoadStopTile(tile) &&
-						!RoadStop::GetByTile(tile, rstype)->HasFreeBay()) {
-					/* Station is full and RV queuing is off */
-					trackdirs = TRACKDIR_BIT_NONE;
-				}
+				/* This is the only case where we have to
+				 * call the pathfinder. */
+				bool path_found;
+				Trackdir trackdir = YapfRoadVehicleChooseTrack (v, tile, enterdir, trackdirs, path_found);
+				v->HandlePathfindingResult (path_found);
+				return (RoadChoosePathEnum) trackdir;
 			}
 		}
+
+		case TT_MISC: {
+			switch (GetTileSubtype(tile)) {
+				default: return CHOOSE_PATH_NONE;
+
+				case TT_MISC_CROSSING: {
+					if ((GetRoadTypes (tile) & v->compatible_roadtypes) == 0) return CHOOSE_PATH_NONE;
+					if (GetCrossingRoadAxis (tile) != DiagDirToAxis (enterdir)) return CHOOSE_PATH_NONE;
+					if (IsCrossingBarred (tile)) return CHOOSE_PATH_WAIT;
+					break;
+				}
+
+				case TT_MISC_TUNNEL: {
+					if (GetTunnelTransportType (tile) != TRANSPORT_ROAD) return CHOOSE_PATH_NONE;
+					if ((GetRoadTypes (tile) & v->compatible_roadtypes) == 0) return CHOOSE_PATH_NONE;
+
+					DiagDirection dir = GetTunnelBridgeDirection (tile);
+					if ((enterdir != dir) && (tsdir != INVALID_DIAGDIR || enterdir != ReverseDiagDir (dir))) return CHOOSE_PATH_NONE;
+					break;
+				}
+
+				case TT_MISC_DEPOT: {
+					if (!IsRoadDepot (tile)) return CHOOSE_PATH_NONE;
+					if ((GetRoadTypes (tile) & v->compatible_roadtypes) == 0) return CHOOSE_PATH_NONE;
+					if (!IsTileOwner (tile, v->owner)) return CHOOSE_PATH_NONE;
+					if (GetGroundDepotDirection (tile) != ReverseDiagDir (enterdir)) return CHOOSE_PATH_NONE;
+					break;
+				}
+			}
+			break;
+		}
+
+		case TT_STATION:
+			if (!IsRoadStop (tile)) return CHOOSE_PATH_NONE;
+			if ((GetRoadTypes (tile) & v->compatible_roadtypes) == 0) return CHOOSE_PATH_NONE;
+
+			if (IsStandardRoadStopTile (tile)) {
+				if (!IsTileOwner (tile, v->owner)) return CHOOSE_PATH_NONE;
+				if (v->HasArticulatedPart()) return CHOOSE_PATH_NONE;
+
+				if (GetRoadStopDir (tile) != ReverseDiagDir (enterdir)) return CHOOSE_PATH_NONE;
+
+				RoadStopType rstype = v->IsBus() ? ROADSTOP_BUS : ROADSTOP_TRUCK;
+				if (GetRoadStopType (tile) != rstype) return CHOOSE_PATH_NONE;
+
+				if (!_settings_game.pf.roadveh_queue &&
+						!RoadStop::GetByTile (tile, rstype)->HasFreeBay()) {
+					/* Station is full and RV queuing is off */
+					return CHOOSE_PATH_NONE;
+				}
+			} else {
+				if (GetRoadStopAxis (tile) != DiagDirToAxis (enterdir)) return CHOOSE_PATH_NONE;
+			}
+			break;
 	}
-	/* The above lookups should be moved to GetTileTrackStatus in the
-	 * future, but that requires more changes to the pathfinder and other
-	 * stuff, probably even more arguments to GTTS.
-	 */
 
-	/* Remove tracks unreachable from the enter dir */
-	trackdirs &= DiagdirReachesTrackdirs(enterdir);
-	if (trackdirs == TRACKDIR_BIT_NONE) {
-		/* No reachable tracks, so we'll reverse */
-		return_track(_road_reverse_table[enterdir]);
-	}
-
-	desttile = v->dest_tile;
-	if (desttile == 0) {
-		/* We've got no destination, pick a random track */
-		return_track(PickRandomBit(trackdirs));
-	}
-
-	/* Only one track to choose between? */
-	if (KillFirstBit(trackdirs) == TRACKDIR_BIT_NONE) {
-		return_track(FindFirstBit2x64(trackdirs));
-	}
-
-	best_track = YapfRoadVehicleChooseTrack(v, tile, enterdir, trackdirs, path_found);
-	v->HandlePathfindingResult(path_found);
-
-found_best_track:;
-
-	if (HasBit(red_signals, best_track)) return INVALID_TRACKDIR;
-
-	return best_track;
+	return (RoadChoosePathEnum) DiagDirToDiagTrackdir (enterdir);
 }
 
 #include "table/roadveh_movement.h"
@@ -1140,83 +1164,47 @@ static void controller_new_tile (RoadVehicle *v, TileIndex tile, Trackdir td,
 static bool controller_front_new_tile (RoadVehicle *v, TileIndex tile,
 	DiagDirection enterdir, DiagDirection tsdir)
 {
-	/* Look for the right path. */
 	Trackdir dir;
 	uint start_frame;
+	RoadChoosePathEnum path;
 
 	if (v->reverse_ctr != 0) {
 		v->reverse_ctr = 0;
-		v->overtaking = 0;
-		tile = v->tile;
-		dir = _road_reverse_table[enterdir];
-		start_frame = RVC_SHORT_TURN_START_FRAME;
-	} else {
-		dir = RoadFindPathToDest (v, tile, enterdir, tsdir);
+		goto short_turn;
+	}
 
-		if (dir == INVALID_TRACKDIR) {
+	path = RoadChoosePath (v, tile, enterdir, tsdir);
+
+	switch (path) {
+		default:
+			assert (path < (RoadChoosePathEnum) TRACKDIR_END);
+			dir = (Trackdir) path;
+			start_frame = RVC_DEFAULT_START_FRAME;
+			break;
+
+		case CHOOSE_PATH_NONE:
+			if ((v->roadtype == ROADTYPE_TRAM) && CanBuildTramTrackOnTile (v->owner, tile, DiagDirToRoadBits (ReverseDiagDir (enterdir)))) {
+				v->cur_speed = 0;
+				return false;
+			}
+		short_turn:
+			v->overtaking = 0;
+			tile = v->tile;
+			dir = _road_reverse_table[enterdir];
+			start_frame = RVC_SHORT_TURN_START_FRAME;
+			break;
+
+		case CHOOSE_PATH_WAIT:
 			v->cur_speed = 0;
 			return false;
-		}
 
-		start_frame = RVC_DEFAULT_START_FRAME;
-		if (IsReversingRoadTrackdir(dir)) {
-			/* When turning around we can't be overtaking. */
+		case CHOOSE_PATH_SINGLE_PIECE:
+			/* Non-tram vehicles can take a shortcut. */
+			if (v->roadtype == ROADTYPE_ROAD) goto short_turn;
 			v->overtaking = 0;
-			bool use_long_corner;
-
-			/* Turning around */
-			if (v->roadtype == ROADTYPE_ROAD) {
-				/* Not a tram. */
-				if (IsNormalRoadTile(v->tile) && GetDisallowedRoadDirections(v->tile) != DRD_NONE) {
-					v->cur_speed = 0;
-					return false;
-				}
-				use_long_corner = false;
-			} else {
-				/* Tram front vehicle. */
-
-				/* Determine the road bits the tram needs to be able to turn around
-				 * using the 'big' corner loop. */
-				RoadBits needed;
-				switch (dir) {
-					default: NOT_REACHED();
-					case TRACKDIR_RVREV_NE: needed = ROAD_SW; break;
-					case TRACKDIR_RVREV_SE: needed = ROAD_NW; break;
-					case TRACKDIR_RVREV_SW: needed = ROAD_NE; break;
-					case TRACKDIR_RVREV_NW: needed = ROAD_SE; break;
-				}
-				if (IsNormalRoadTile(tile) && !HasRoadWorks(tile) &&
-						(needed & GetRoadBits(tile, ROADTYPE_TRAM)) != ROAD_NONE) {
-					/*
-					 * Taking the 'big' corner for trams only happens when
-					 * the front of the tram can drive over the next tile.
-					 */
-					use_long_corner = true;
-				} else if (!CanBuildTramTrackOnTile(v->owner, tile, needed) || ((~needed & GetAnyRoadBits(v->tile, ROADTYPE_TRAM, false)) == ROAD_NONE)) {
-					/*
-					 * Taking the 'small' corner for trams only happens when
-					 * the company cannot build on the next tile.
-					 */
-					use_long_corner = false;
-				} else {
-					/* The company can build on the next tile, so wait till (s)he does. */
-					v->cur_speed = 0;
-					return false;
-				}
-			}
-
-			if (use_long_corner) {
-				start_frame = RVC_LONG_TURN_START_FRAME;
-			} else {
-				/*
-				 * The 'small' corner means that the vehicle is on the end of a
-				 * tram track and needs to start turning there. It therefore
-				 * does not go to the next tile, so that needs to be fixed.
-				 */
-				tile = v->tile;
-				start_frame = RVC_SHORT_TURN_START_FRAME;
-			}
-		}
+			dir = _road_reverse_table[enterdir];
+			start_frame = RVC_LONG_TURN_START_FRAME;
+			break;
 	}
 
 	/* Get position data for first frame on the new tile */
@@ -1706,21 +1694,29 @@ static bool controller_front (RoadVehicle *v)
 		/* Vehicle has finished turning around, it will now head back onto the same tile */
 		v->reverse_ctr = 0;
 
+		DiagDirection enterdir = (DiagDirection)(rd.y);
+		RoadChoosePathEnum path = RoadChoosePath (v, v->tile, enterdir, INVALID_DIAGDIR);
 		Trackdir td;
-		if (v->roadtype == ROADTYPE_TRAM && IsNormalRoadTile(v->tile) && HasExactlyOneBit(GetRoadBits(v->tile, ROADTYPE_TRAM))) {
-			/* The tram is turning around with one tram 'roadbit'.
-			 * This means that it is using the 'big' corner 'drive data'.
-			 * When the tram reaches the 'turned' marker, we switch it
-			 * to the corresponding straight drive data. */
-			td = DiagDirToDiagTrackdir ((DiagDirection)(rd.y));
-		} else {
-			/* Look for the right path. */
-			td = RoadFindPathToDest (v, v->tile, (DiagDirection)(rd.y), INVALID_DIAGDIR);
+		switch (path) {
+			default:
+				assert (path < (RoadChoosePathEnum) TRACKDIR_END);
+				td = (Trackdir) path;
+				break;
 
-			if (td == INVALID_TRACKDIR) {
+			case CHOOSE_PATH_NONE:
+				/* Long turn at a single-piece road tile. */
+				assert (IsRoadTile (v->tile));
+				assert (GetRoadBits (v->tile, v->roadtype) == DiagDirToRoadBits (enterdir));
+				td = DiagDirToDiagTrackdir (enterdir);
+				break;
+
+			case CHOOSE_PATH_WAIT:
 				v->cur_speed = 0;
 				return false;
-			}
+
+			case CHOOSE_PATH_SINGLE_PIECE:
+				td = _road_reverse_table[enterdir];
+				break;
 		}
 
 		RoadDriveEntry rd = _road_drive_data[_settings_game.vehicle.road_side]
