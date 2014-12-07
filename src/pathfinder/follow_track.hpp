@@ -156,7 +156,11 @@ struct CFollowTrack : Base
 				assert(Base::m_exitdir == ReverseDiagDir(GetTunnelBridgeDirection(Base::m_new.tile)));
 
 				Base::m_new.set_trackdirs (Base::GetTrackStatusTrackdirBits(Base::m_new.tile) & DiagdirReachesTrackdirs(Base::m_exitdir));
-				assert(!Base::m_new.is_empty());
+				/* Single-piece road bridgeheads return
+				 * an empty set of trackdirs... */
+				if (Base::m_new.is_empty()) {
+					Base::m_new.set_trackdir (DiagDirToDiagTrackdir (Base::m_exitdir));
+				}
 				return true;
 
 			case Base::TF_TUNNEL:
@@ -547,25 +551,14 @@ struct CFollowTrackRoadBase : CFollowTrackBase<RoadPathPos>
 	inline TileResult CheckOldTile()
 	{
 		assert(!m_old.in_wormhole());
-		assert(((GetTrackStatusTrackdirBits(m_old.tile) & TrackdirToTrackdirBits(m_old.td)) != 0) ||
-		       (IsTram() && GetSingleTramBit(m_old.tile) != INVALID_DIAGDIR)); // Disable the assertion for single tram bits
 
 		switch (GetTileType(m_old.tile)) {
 			default: NOT_REACHED();
 
 			case TT_ROAD:
-				if (IsTram()) {
-					DiagDirection single_tram = GetSingleTramBit(m_old.tile);
-					/* single tram bits cause reversing */
-					if (single_tram == ReverseDiagDir(m_exitdir)) {
-						return TR_REVERSE;
-					}
-					/* single tram bits can only be left in one direction */
-					if (single_tram != INVALID_DIAGDIR && single_tram != m_exitdir) {
-						return TR_NO_WAY;
-					}
-				}
-				return IsTileSubtype(m_old.tile, TT_BRIDGE) && m_exitdir == GetTunnelBridgeDirection(m_old.tile) ?
+				/* Single-piece tiles cause reversing. */
+				return GetTrackStatusTrackdirBits(m_old.tile) == TRACKDIR_BIT_NONE ? TR_REVERSE :
+					IsTileSubtype(m_old.tile, TT_BRIDGE) && m_exitdir == GetTunnelBridgeDirection(m_old.tile) ?
 						TR_BRIDGE : TR_NORMAL;
 
 			case TT_MISC:
