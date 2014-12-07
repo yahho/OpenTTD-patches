@@ -163,7 +163,7 @@ static void LoadGraph (LoadBuffer *reader, G *g,
 		typename G::NodeRef ref ((*g)[from]);
 		typename G::Node *node = &*ref;
 		reader->ReadObject (node, node_desc);
-		if (reader->IsVersionBefore (20)) {
+		if (reader->IsVersionBefore (20, 191)) {
 			/* We used to save the full matrix ... */
 			for (NodeID to = 0; to < size; ++to) {
 				typename G::Edge *edge = &ref[to];
