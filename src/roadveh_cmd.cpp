@@ -1159,16 +1159,17 @@ static void controller_new_tile (RoadVehicle *v, TileIndex tile, Trackdir td,
  * @param tile The tile to be entered.
  * @param enterdir The direction in which the tile is entered.
  * @param tsdir The direction to use to get the track status on the new tile.
+ * @param allow_short_turn Whether to allow a short turn at the tile edge.
  * @return Whether the vehicle has moved.
  */
 static bool controller_front_new_tile (RoadVehicle *v, TileIndex tile,
-	DiagDirection enterdir, DiagDirection tsdir)
+	DiagDirection enterdir, DiagDirection tsdir, bool allow_short_turn)
 {
 	Trackdir dir;
 	uint start_frame;
 	RoadChoosePathEnum path;
 
-	if (v->reverse_ctr != 0) {
+	if ((v->reverse_ctr != 0) && allow_short_turn) {
 		v->reverse_ctr = 0;
 		goto short_turn;
 	}
@@ -1183,27 +1184,30 @@ static bool controller_front_new_tile (RoadVehicle *v, TileIndex tile,
 			break;
 
 		case CHOOSE_PATH_NONE:
-			if ((v->roadtype == ROADTYPE_TRAM) && CanBuildTramTrackOnTile (v->owner, tile, DiagDirToRoadBits (ReverseDiagDir (enterdir)))) {
-				v->cur_speed = 0;
-				return false;
+			if (allow_short_turn && ((v->roadtype != ROADTYPE_TRAM) ||
+					!CanBuildTramTrackOnTile (v->owner, tile, DiagDirToRoadBits (ReverseDiagDir (enterdir))))) {
+				goto short_turn;
 			}
-		short_turn:
-			v->overtaking = 0;
-			tile = v->tile;
-			dir = _road_reverse_table[enterdir];
-			start_frame = RVC_SHORT_TURN_START_FRAME;
-			break;
-
+			/* fall through */
 		case CHOOSE_PATH_WAIT:
 			v->cur_speed = 0;
 			return false;
 
 		case CHOOSE_PATH_SINGLE_PIECE:
 			/* Non-tram vehicles can take a shortcut. */
-			if (v->roadtype == ROADTYPE_ROAD) goto short_turn;
+			if ((v->roadtype == ROADTYPE_ROAD) && allow_short_turn) goto short_turn;
 			v->overtaking = 0;
 			dir = _road_reverse_table[enterdir];
 			start_frame = RVC_LONG_TURN_START_FRAME;
+			break;
+
+		short_turn:
+			assert (allow_short_turn);
+			assert (tile == v->tile + TileOffsByDiagDir (enterdir));
+			v->overtaking = 0;
+			tile = v->tile;
+			dir = _road_reverse_table[enterdir];
+			start_frame = RVC_SHORT_TURN_START_FRAME;
 			break;
 	}
 
@@ -1222,11 +1226,8 @@ static bool controller_front_new_tile (RoadVehicle *v, TileIndex tile,
 	}
 
 	if (IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_DT_ROAD_STOP_END) && IsStationTile(v->tile)) {
-		if (IsReversingRoadTrackdir(dir) && IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_ROAD_STOP_END)) {
-			/* New direction is trying to turn vehicle around.
-			 * We can't turn at the exit of a road stop so wait.*/
-			v->cur_speed = 0;
-			return false;
+		if (IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_ROAD_STOP_END)) {
+			assert (tile != v->tile);
 		}
 
 		/* If we are a drive through road stop and the next tile is of
@@ -1296,9 +1297,11 @@ static bool controller_tile_check (TileIndex tile, DiagDirection enterdir, TileI
  * Controller for a road vehicle leaving a tile.
  * @param v The road vehicle to move.
  * @param enterdir The direction in which it is leaving its current tile.
+ * @param allow_short_turn Whether to allow a short turn at the tile edge.
  * @return Whether the vehicle has moved.
  */
-static bool controller_front_next_tile (RoadVehicle *v, DiagDirection enterdir)
+static bool controller_front_next_tile (RoadVehicle *v,
+		DiagDirection enterdir, bool allow_short_turn)
 {
 	TileIndex next;
 	uint data;
@@ -1315,7 +1318,8 @@ static bool controller_front_next_tile (RoadVehicle *v, DiagDirection enterdir)
 		controller_enter_wormhole (v, next, gp, data);
 		return true;
 	} else {
-		return controller_front_new_tile (v, next, enterdir, (DiagDirection)data);
+		return controller_front_new_tile (v, next, enterdir,
+				(DiagDirection)data, allow_short_turn);
 	}
 }
 
@@ -1444,7 +1448,7 @@ static bool controller_standard_stop (RoadVehicle *v)
 			[v->state][v->frame + 1];
 
 	if (rd.x == RDE_NEXT_TILE) {
-		return controller_front_next_tile (v, (DiagDirection)(rd.y));
+		return controller_front_next_tile (v, (DiagDirection)(rd.y), false);
 	}
 
 	assert (rd.x != RDE_TURNED);
@@ -1531,7 +1535,7 @@ static bool controller_drivethrough_stop (RoadVehicle *v)
 			[v->state & RVSB_ROAD_STOP_TRACKDIR_MASK][v->frame + 1];
 
 	if (rd.x == RDE_NEXT_TILE) {
-		return controller_front_next_tile (v, (DiagDirection)(rd.y));
+		return controller_front_next_tile (v, (DiagDirection)(rd.y), true);
 	}
 
 	assert (rd.x != RDE_TURNED);
@@ -1642,7 +1646,8 @@ static bool controller_front_wormhole (RoadVehicle *v)
 
 	/* Vehicle has just exited a bridge or tunnel */
 	DiagDirection bridge_dir = GetTunnelBridgeDirection (gp.tile);
-	return controller_front_new_tile (v, gp.tile, ReverseDiagDir(bridge_dir), INVALID_DIAGDIR);
+	return controller_front_new_tile (v, gp.tile,
+			ReverseDiagDir(bridge_dir), INVALID_DIAGDIR, false);
 }
 
 /**
@@ -1687,7 +1692,7 @@ static bool controller_front (RoadVehicle *v)
 			[v->state][v->frame + 1];
 
 	if (rd.x == RDE_NEXT_TILE) {
-		return controller_front_next_tile (v, (DiagDirection)(rd.y));
+		return controller_front_next_tile (v, (DiagDirection)(rd.y), true);
 	}
 
 	if (rd.x == RDE_TURNED) {
