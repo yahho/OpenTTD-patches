@@ -461,7 +461,7 @@ static void DeleteLastRoadVeh(RoadVehicle *v)
 	v->last_station_visited = first->last_station_visited; // for PreDestructor
 
 	/* Only leave the road stop when we're really gone. */
-	if (IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_ROAD_STOP_END)) RoadStop::GetByTile(v->tile, GetRoadStopType(v->tile))->Leave(v);
+	if (IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_ROAD_STOP_END)) RoadStop::GetByTile(v->tile, GetRoadStopType(v->tile))->LeaveStandard(v);
 
 	delete v;
 }
@@ -525,7 +525,7 @@ uint RoadVehicle::Crash(bool flooded)
 
 		/* If we're in a drive through road stop we ought to leave it */
 		if (IsInsideMM(this->state, RVSB_IN_DT_ROAD_STOP, RVSB_IN_DT_ROAD_STOP_END)) {
-			RoadStop::GetByTile(this->tile, GetRoadStopType(this->tile))->Leave(this);
+			RoadStop::GetByTile(this->tile, GetRoadStopType(this->tile))->LeaveDriveThrough(this);
 		}
 	}
 	this->crashed_ctr = flooded ? 2000 : 1; // max 2220, disappear pretty fast when flooded
@@ -1225,10 +1225,13 @@ static bool controller_front_new_tile (RoadVehicle *v, TileIndex tile,
 		return false;
 	}
 
-	if (IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_DT_ROAD_STOP_END) && IsStationTile(v->tile)) {
-		if (IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_ROAD_STOP_END)) {
-			assert (tile != v->tile);
-		}
+	if (IsInsideMM (v->state, RVSB_IN_ROAD_STOP, RVSB_IN_ROAD_STOP_END)) {
+		assert (IsStandardRoadStopTile (v->tile));
+		assert (tile != v->tile);
+
+		RoadStop::GetByTile (v->tile, GetRoadStopType (v->tile))->LeaveStandard (v);
+	} else if (IsInsideMM (v->state, RVSB_IN_DT_ROAD_STOP, RVSB_IN_DT_ROAD_STOP_END)) {
+		assert (IsDriveThroughStopTile (v->tile));
 
 		/* If we are a drive through road stop and the next tile is of
 		 * the same road stop and the next tile isn't this one (i.e. we
@@ -1237,14 +1240,12 @@ static bool controller_front_new_tile (RoadVehicle *v, TileIndex tile,
 		 * stop. It also makes it possible to load when on the edge of
 		 * two road stops; otherwise you could get vehicles that should
 		 * be loading but are not actually loading. */
-		if (IsDriveThroughStopTile(v->tile) &&
-				RoadStop::IsDriveThroughRoadStopContinuation(v->tile, tile) &&
-				v->tile != tile) {
+		if ((v->tile != tile) && RoadStop::IsDriveThroughRoadStopContinuation (v->tile, tile)) {
 			/* So, keep 'our' state */
 			dir = (Trackdir)v->state;
-		} else if (IsRoadStop(v->tile)) {
+		} else {
 			/* We're not continuing our drive through road stop, so leave. */
-			RoadStop::GetByTile(v->tile, GetRoadStopType(v->tile))->Leave(v);
+			RoadStop::GetByTile (v->tile, GetRoadStopType (v->tile))->LeaveDriveThrough (v);
 		}
 	}
 
@@ -1434,7 +1435,7 @@ static bool controller_standard_stop (RoadVehicle *v)
 
 		/* A vehicle should not proceed beyond frame 0 in a
 		 * standard stop until it has been allocated a bay. */
-		if (!RoadStop::GetByTile (v->tile, GetRoadStopType (v->tile))->Enter (v)) {
+		if (!RoadStop::GetByTile (v->tile, GetRoadStopType (v->tile))->EnterStandard (v)) {
 			v->cur_speed = 0;
 			return false;
 		}
@@ -1524,7 +1525,7 @@ static bool controller_drivethrough_stop (RoadVehicle *v)
 		assert (v->state <= RVSB_TRACKDIR_MASK);
 		assert (IsStraightRoadTrackdir ((Trackdir)v->state));
 
-		if (!RoadStop::GetByTile (v->tile, GetRoadStopType (v->tile))->Enter (v)) NOT_REACHED();
+		RoadStop::GetByTile (v->tile, GetRoadStopType (v->tile))->EnterDriveThrough (v);
 	}
 
 	assert (v->state >= RVSB_IN_DT_ROAD_STOP);

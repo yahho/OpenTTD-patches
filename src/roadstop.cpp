@@ -209,50 +209,66 @@ void RoadStop::ClearDriveThrough()
 }
 
 /**
- * Leave the road stop
+ * Leave a standard road stop
  * @param rv the vehicle that leaves the stop
  */
-void RoadStop::Leave(RoadVehicle *rv)
+void RoadStop::LeaveStandard (RoadVehicle *rv)
 {
-	if (IsStandardRoadStopTile(rv->tile)) {
-		/* Vehicle is leaving a road stop tile, mark bay as free */
-		this->FreeBay(HasBit(rv->state, RVS_USING_SECOND_BAY));
-		this->SetEntranceBusy(false);
-	} else {
-		/* Otherwise just leave the drive through's entry cache. */
-		this->GetEntry(TrackdirToExitdir((Trackdir)(rv->state & RVSB_ROAD_STOP_TRACKDIR_MASK)))->Leave(rv);
-	}
+	assert (IsStandardRoadStopTile (this->xy));
+	/* Vehicle is leaving a road stop tile, mark bay as free */
+	this->FreeBay(HasBit(rv->state, RVS_USING_SECOND_BAY));
+	this->SetEntranceBusy(false);
 }
 
 /**
- * Enter the road stop
+ * Leave a drive-through road stop
+ * @param rv the vehicle that leaves the stop
+ */
+void RoadStop::LeaveDriveThrough (RoadVehicle *rv)
+{
+	assert (IsDriveThroughStopTile (this->xy));
+
+	/* Just leave the drive through's entry cache. */
+	this->GetEntry(TrackdirToExitdir((Trackdir)(rv->state & RVSB_ROAD_STOP_TRACKDIR_MASK)))->Leave(rv);
+}
+
+/**
+ * Enter a standard road stop
  * @param rv   the vehicle that enters the stop
  * @return whether the road stop could actually be entered
  */
-bool RoadStop::Enter(RoadVehicle *rv)
+bool RoadStop::EnterStandard (RoadVehicle *rv)
 {
-	if (IsStandardRoadStopTile(this->xy)) {
-		/* For normal (non drive-through) road stops
-		 * Check if station is busy or if there are no free bays or whether it is a articulated vehicle. */
-		if (this->IsEntranceBusy() || !this->HasFreeBay() || rv->HasArticulatedPart()) return false;
+	assert (IsStandardRoadStopTile (this->xy));
 
-		SetBit(rv->state, RVS_IN_ROAD_STOP);
+	/* For normal (non drive-through) road stops
+	 * Check if station is busy or if there are no free bays or whether it is a articulated vehicle. */
+	if (this->IsEntranceBusy() || !this->HasFreeBay() || rv->HasArticulatedPart()) return false;
 
-		/* Allocate a bay and update the road state */
-		uint bay_nr = this->AllocateBay();
-		SB(rv->state, RVS_USING_SECOND_BAY, 1, bay_nr);
+	SetBit(rv->state, RVS_IN_ROAD_STOP);
 
-		/* Mark the station entrance as busy */
-		this->SetEntranceBusy(true);
-		return true;
-	}
+	/* Allocate a bay and update the road state */
+	uint bay_nr = this->AllocateBay();
+	SB(rv->state, RVS_USING_SECOND_BAY, 1, bay_nr);
+
+	/* Mark the station entrance as busy */
+	this->SetEntranceBusy(true);
+	return true;
+}
+
+/**
+ * Enter a drive-through road stop
+ * @param rv   the vehicle that enters the stop
+ */
+void RoadStop::EnterDriveThrough (RoadVehicle *rv)
+{
+	assert (IsDriveThroughStopTile (this->xy));
 
 	/* Vehicles entering a drive-through stop from the 'normal' side use first bay (bay 0). */
 	this->GetEntry(TrackdirToExitdir((Trackdir)(rv->state & RVSB_ROAD_STOP_TRACKDIR_MASK)))->Enter(rv);
 
 	/* Indicate a drive-through stop */
 	SetBit(rv->state, RVS_IN_DT_ROAD_STOP);
-	return true;
 }
 
 /**

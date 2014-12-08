@@ -136,8 +136,10 @@ struct RoadStop : PooledItem <RoadStop, RoadStopID, 32, 64000> {
 	void MakeDriveThrough();
 	void ClearDriveThrough();
 
-	void Leave(RoadVehicle *rv);
-	bool Enter(RoadVehicle *rv);
+	void LeaveStandard (RoadVehicle *rv);
+	void LeaveDriveThrough (RoadVehicle *rv);
+	bool EnterStandard (RoadVehicle *rv);
+	void EnterDriveThrough (RoadVehicle *rv);
 
 	RoadStop *GetNextRoadStop(const struct RoadVehicle *v) const;
 
