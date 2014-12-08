@@ -1202,7 +1202,7 @@ protected:
 		/* Industry name */
 		SetDParam(p++, i->index);
 
-		sstring<512> cargo_suffix [lengthof(i->produced_cargo)];
+		static sstring<512> cargo_suffix [lengthof(i->produced_cargo)];
 		GetAllCargoSuffixes(3, CST_DIR, i, i->type, indsp, i->produced_cargo, cargo_suffix);
 
 		/* Industry productions */

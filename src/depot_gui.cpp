@@ -826,7 +826,8 @@ struct DepotWindow : Window {
 		}
 
 		/* Build tooltipstring */
-		sstring<1024> details;
+		static char details [1024];
+		stringb sb (details);
 
 		for (CargoID cargo_type = 0; cargo_type < NUM_CARGO; cargo_type++) {
 			if (capacity[cargo_type] == 0) continue;
@@ -835,13 +836,13 @@ struct DepotWindow : Window {
 			SetDParam(1, loaded[cargo_type]);   // {CARGO} #2
 			SetDParam(2, cargo_type);           // {SHORTCARGO} #1
 			SetDParam(3, capacity[cargo_type]); // {SHORTCARGO} #2
-			AppendString (&details, STR_DEPOT_VEHICLE_TOOLTIP_CARGO);
+			AppendString (&sb, STR_DEPOT_VEHICLE_TOOLTIP_CARGO);
 		}
 
 		/* Show tooltip window */
 		uint64 args[2];
 		args[0] = (whole_chain ? num : v->engine_type);
-		args[1] = (uint64)(size_t)details.c_str();
+		args[1] = (uint64)(size_t)details;
 		GuiShowTooltips(this, whole_chain ? STR_DEPOT_VEHICLE_TOOLTIP_CHAIN : STR_DEPOT_VEHICLE_TOOLTIP, 2, args, TCC_RIGHT_CLICK);
 
 		return true;
