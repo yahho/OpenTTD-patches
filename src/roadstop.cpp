@@ -376,17 +376,24 @@ void RoadStop::Entry::Rebuild(const RoadStop *rs, int side)
 
 
 /**
- * Check the integrity of the data in this struct.
- * @param rs the roadstop this entry is part of
+ * Check the integrity of the data in this drive-through road stop.
  */
-void RoadStop::Entry::CheckIntegrity(const RoadStop *rs) const
+void RoadStop::CheckIntegrity (void) const
 {
-	if (!HasBit(rs->status, RSSFB_BASE_ENTRY)) return;
+	assert (this->east != this->west);
+
+	if (!HasBit (this->status, RSSFB_BASE_ENTRY)) return;
 
 	/* The tile 'before' the road stop must not be part of this 'line' */
-	assert(!IsDriveThroughRoadStopContinuation(rs->xy, rs->xy - TileOffsByDiagDir(AxisToDiagDir(GetRoadStopAxis(rs->xy)))));
+	assert (!IsDriveThroughRoadStopContinuation (this->xy, this->xy - TileOffsByDiagDir (AxisToDiagDir (GetRoadStopAxis (this->xy)))));
 
 	Entry temp;
-	temp.Rebuild(rs, rs->east == this);
-	if (temp.length != this->length || temp.occupied != this->occupied) NOT_REACHED();
+
+	temp.Rebuild (this, true);
+	assert (temp.length == this->east->length);
+	assert (temp.occupied == this->east->occupied);
+
+	temp.Rebuild (this, false);
+	assert (temp.length == this->west->length);
+	assert (temp.occupied == this->west->occupied);
 }

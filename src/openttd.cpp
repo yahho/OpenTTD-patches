@@ -1226,11 +1226,7 @@ static void CheckCaches()
 	/* Strict checking of the road stop cache entries */
 	const RoadStop *rs;
 	FOR_ALL_ROADSTOPS(rs) {
-		if (IsStandardRoadStopTile(rs->xy)) continue;
-
-		assert(rs->GetEntry(DIAGDIR_NE) != rs->GetEntry(DIAGDIR_NW));
-		rs->GetEntry(DIAGDIR_NE)->CheckIntegrity(rs);
-		rs->GetEntry(DIAGDIR_NW)->CheckIntegrity(rs);
+		if (!IsStandardRoadStopTile(rs->xy)) rs->CheckIntegrity();
 	}
 
 	Vehicle *v;
