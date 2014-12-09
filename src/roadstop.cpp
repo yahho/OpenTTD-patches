@@ -180,12 +180,10 @@ void RoadStop::ClearDriveThrough()
 			 * rebuild it from scratch as that removes lots of maintenance code
 			 * for the vehicle list and it's faster in real games as long as you
 			 * do not keep split and merge road stop every tick by the millions. */
-			rs_south_base->east->Rebuild(rs_south_base);
-			rs_south_base->west->Rebuild(rs_south_base);
+			rs_south_base->Rebuild();
 
 			assert(HasBit(rs_north->status, RSSFB_BASE_ENTRY));
-			rs_north->east->Rebuild(rs_north);
-			rs_north->west->Rebuild(rs_north);
+			rs_north->Rebuild();
 		} else {
 			/* Only we left, so simple update the length. */
 			rs_north->east->length -= TILE_SIZE;
@@ -328,57 +326,63 @@ void RoadStop::Entry::Enter(const RoadVehicle *rv)
 
 /**
  * Rebuild, from scratch, the vehicles and other metadata on this stop.
- * @param rs   the roadstop this entry is part of
- * @param side the side of the road stop to look at
  */
-void RoadStop::Entry::Rebuild(const RoadStop *rs, int side)
+void RoadStop::Rebuild (void)
 {
 	typedef std::list<const RoadVehicle *> RVList; ///< A list of road vehicles
 
-	assert(HasBit(rs->status, RSSFB_BASE_ENTRY));
+	assert (HasBit (this->status, RSSFB_BASE_ENTRY));
 
-	DiagDirection dir = GetRoadStopDir(rs->xy);
+	DiagDirection dir = GetRoadStopDir (this->xy);
 	TileIndexDiff offset = abs(TileOffsByDiagDir(dir));
+	Direction dir_east = DiagDirToDir (dir);
 
-	if (side == -1) side = (rs->east == this);
-	if (side == 0) dir = ReverseDiagDir(dir);
-
-	this->length = 0;
-	RVList list;
-	for (TileIndex tile = rs->xy; IsDriveThroughRoadStopContinuation(rs->xy, tile); tile += offset) {
-		this->length += TILE_SIZE;
+	int length = 0;
+	RVList list_east, list_west;
+	for (TileIndex tile = this->xy; IsDriveThroughRoadStopContinuation (this->xy, tile); tile += offset) {
+		length += TILE_SIZE;
 		VehicleTileIterator iter (tile);
 		while (!iter.finished()) {
 			Vehicle *v = iter.next();
 
-			/* Not a RV or not in the right direction or crashed :( */
-			if (v->type != VEH_ROAD || DirToDiagDir(v->direction) != dir || !v->IsPrimaryVehicle() || (v->vehstatus & VS_CRASHED) != 0) continue;
+			/* Not a RV or not primary or crashed :( */
+			if (v->type != VEH_ROAD || !v->IsPrimaryVehicle() || (v->vehstatus & VS_CRASHED) != 0) continue;
 
 			RoadVehicle *rv = RoadVehicle::From(v);
 			/* Don't add ones not in a road stop */
 			if (rv->state < RVSB_IN_ROAD_STOP) continue;
 
+			assert (v->direction == dir_east || v->direction == ReverseDir (dir_east));
+			RVList *list = (v->direction == dir_east) ? &list_east : &list_west;
+
 			/* Do not add duplicates! */
 			RVList::iterator it;
-			for (it = list.begin(); it != list.end(); it++) {
+			for (it = list->begin(); it != list->end(); it++) {
 				if (rv == *it) break;
 			}
 
-			if (it == list.end()) list.push_back(rv);
+			if (it == list->end()) list->push_back(rv);
 		}
 	}
 
-	this->occupied = 0;
-	for (RVList::iterator it = list.begin(); it != list.end(); it++) {
-		this->occupied += (*it)->gcache.cached_total_length;
+	this->east->length = length;
+	this->west->length = length;
+
+	this->east->occupied = 0;
+	for (RVList::iterator it = list_east.begin(); it != list_east.end(); it++) {
+		this->east->occupied += (*it)->gcache.cached_total_length;
+	}
+
+	this->west->occupied = 0;
+	for (RVList::iterator it = list_west.begin(); it != list_west.end(); it++) {
+		this->west->occupied += (*it)->gcache.cached_total_length;
 	}
 }
-
 
 /**
  * Check the integrity of the data in this drive-through road stop.
  */
-void RoadStop::CheckIntegrity (void) const
+void RoadStop::CheckIntegrity (void)
 {
 	assert (this->east != this->west);
 
@@ -387,13 +391,14 @@ void RoadStop::CheckIntegrity (void) const
 	/* The tile 'before' the road stop must not be part of this 'line' */
 	assert (!IsDriveThroughRoadStopContinuation (this->xy, this->xy - TileOffsByDiagDir (AxisToDiagDir (GetRoadStopAxis (this->xy)))));
 
-	Entry temp;
+	Entry east_backup (*this->east);
+	Entry west_backup (*this->west);
 
-	temp.Rebuild (this, true);
-	assert (temp.length == this->east->length);
-	assert (temp.occupied == this->east->occupied);
+	this->Rebuild();
 
-	temp.Rebuild (this, false);
-	assert (temp.length == this->west->length);
-	assert (temp.occupied == this->west->occupied);
+	assert (this->east->length   == east_backup.length);
+	assert (this->east->occupied == east_backup.occupied);
+
+	assert (this->west->length   == west_backup.length);
+	assert (this->west->occupied == west_backup.occupied);
 }

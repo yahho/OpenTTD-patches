@@ -141,9 +141,7 @@ void AfterLoadRoadStops()
 	/* And then rebuild the data in those entries */
 	FOR_ALL_ROADSTOPS(rs) {
 		if (!HasBit(rs->status, RoadStop::RSSFB_BASE_ENTRY)) continue;
-
-		rs->GetEntry(DIAGDIR_NE)->Rebuild(rs);
-		rs->GetEntry(DIAGDIR_NW)->Rebuild(rs);
+		rs->Rebuild();
 	}
 }
 

@@ -59,7 +59,6 @@ struct RoadStop : PooledItem <RoadStop, RoadStopID, 32, 64000> {
 
 		void Leave(const RoadVehicle *rv);
 		void Enter(const RoadVehicle *rv);
-		void Rebuild(const RoadStop *rs, int side = -1);
 	};
 
 	TileIndex       xy;     ///< Position on the map
@@ -146,7 +145,9 @@ struct RoadStop : PooledItem <RoadStop, RoadStopID, 32, 64000> {
 
 	static bool IsDriveThroughRoadStopContinuation(TileIndex rs, TileIndex next);
 
-	void CheckIntegrity (void) const;
+	void Rebuild (void);
+
+	void CheckIntegrity (void);
 
 private:
 	Entry *east; ///< The vehicles that entered from the east
