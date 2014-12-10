@@ -61,6 +61,12 @@ struct RoadStop : PooledItem <RoadStop, RoadStopID, 32, 64000> {
 		void Enter(const RoadVehicle *rv);
 	};
 
+	/** Container for both entry points of a drive-through road stop. */
+	struct Platform {
+		Entry east; ///< The vehicles that entered from the east
+		Entry west; ///< The vehicles that entered from the west
+	};
+
 	TileIndex       xy;     ///< Position on the map
 	byte            status; ///< Current status of the Stop, @see RoadStopSatusFlag. Access using *Bay and *Busy functions.
 	struct RoadStop *next;  ///< Next stop of the given type at this station
@@ -118,7 +124,7 @@ struct RoadStop : PooledItem <RoadStop, RoadStopID, 32, 64000> {
 	 */
 	inline const Entry *GetEntry(DiagDirection dir) const
 	{
-		return HasBit((int)dir, 1) ? this->west : this->east;
+		return HasBit((int)dir, 1) ? &this->platform->west : &this->platform->east;
 	}
 
 	/**
@@ -128,7 +134,7 @@ struct RoadStop : PooledItem <RoadStop, RoadStopID, 32, 64000> {
 	 */
 	inline Entry *GetEntry(DiagDirection dir)
 	{
-		return HasBit((int)dir, 1) ? this->west : this->east;
+		return HasBit((int)dir, 1) ? &this->platform->west : &this->platform->east;
 	}
 
 	void MakeDriveThrough();
@@ -150,8 +156,7 @@ struct RoadStop : PooledItem <RoadStop, RoadStopID, 32, 64000> {
 	void CheckIntegrity (void);
 
 private:
-	Entry *east; ///< The vehicles that entered from the east
-	Entry *west; ///< The vehicles that entered from the west
+	Platform *platform; ///< Platform data for drive-through stops
 
 	/**
 	 * Allocates a bay

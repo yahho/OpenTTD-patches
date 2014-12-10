@@ -28,8 +28,7 @@ RoadStop::~RoadStop()
 {
 	/* When we are the head we need to free the entries */
 	if (HasBit(this->status, RSSFB_BASE_ENTRY)) {
-		delete this->east;
-		delete this->west;
+		delete this->platform;
 	}
 
 	if (CleaningPool()) return;
@@ -62,7 +61,7 @@ RoadStop *RoadStop::GetNextRoadStop(const RoadVehicle *v) const
  */
 void RoadStop::MakeDriveThrough()
 {
-	assert(this->east == NULL && this->west == NULL);
+	assert (this->platform == NULL);
 
 	RoadStopType rst = GetRoadStopType(this->xy);
 	/* AxisToDiagDir always returns the direction that heads south. */
@@ -80,47 +79,42 @@ void RoadStop::MakeDriveThrough()
 
 	/* Amount of road stops that will be added to the 'northern' head */
 	int added = 1;
-	if (north && rs_north->east != NULL) { // (east != NULL) == (west != NULL)
+	if (north && rs_north->platform != NULL) {
 		/* There is a more northern one, so this can join them */
-		this->east = rs_north->east;
-		this->west = rs_north->west;
+		this->platform = rs_north->platform;
 
-		if (south && rs_south->east != NULL) { // (east != NULL) == (west != NULL)
+		if (south && rs_south->platform != NULL) {
 			/* There more southern tiles too, they must 'join' us too */
 			ClrBit(rs_south->status, RSSFB_BASE_ENTRY);
-			this->east->occupied += rs_south->east->occupied;
-			this->west->occupied += rs_south->west->occupied;
+			this->platform->east.occupied += rs_south->platform->east.occupied;
+			this->platform->west.occupied += rs_south->platform->west.occupied;
 
 			/* Free the now unneeded entry structs */
-			delete rs_south->east;
-			delete rs_south->west;
+			delete rs_south->platform;
 
 			/* Make all 'children' of the southern tile take the new master */
 			for (; IsDriveThroughRoadStopContinuation(this->xy, south_tile); south_tile += offset) {
 				rs_south = RoadStop::GetByTile(south_tile, rst);
-				if (rs_south->east == NULL) break;
-				rs_south->east = rs_north->east;
-				rs_south->west = rs_north->west;
+				if (rs_south->platform == NULL) break;
+				rs_south->platform = rs_north->platform;
 				added++;
 			}
 		}
-	} else if (south && rs_south->east != NULL) { // (east != NULL) == (west != NULL)
+	} else if (south && rs_south->platform != NULL) {
 		/* There is one to the south, but not to the north... so we become 'parent' */
-		this->east = rs_south->east;
-		this->west = rs_south->west;
+		this->platform = rs_south->platform;
 		SetBit(this->status, RSSFB_BASE_ENTRY);
 		ClrBit(rs_south->status, RSSFB_BASE_ENTRY);
 	} else {
 		/* We are the only... so we are automatically the master */
-		this->east = new Entry();
-		this->west = new Entry();
+		this->platform = new Platform();
 		SetBit(this->status, RSSFB_BASE_ENTRY);
 	}
 
 	/* Now update the lengths */
 	added *= TILE_SIZE;
-	this->east->length += added;
-	this->west->length += added;
+	this->platform->east.length += added;
+	this->platform->west.length += added;
 }
 
 /**
@@ -129,7 +123,7 @@ void RoadStop::MakeDriveThrough()
  */
 void RoadStop::ClearDriveThrough()
 {
-	assert(this->east != NULL && this->west != NULL);
+	assert (this->platform != NULL);
 
 	RoadStopType rst = GetRoadStopType(this->xy);
 	/* AxisToDiagDir always returns the direction that heads south. */
@@ -155,8 +149,7 @@ void RoadStop::ClearDriveThrough()
 			/* There are more southern tiles too, they must be split;
 			 * first make the new southern 'base' */
 			SetBit(rs_south->status, RSSFB_BASE_ENTRY);
-			rs_south->east = new Entry();
-			rs_south->west = new Entry();
+			rs_south->platform = new Platform();
 
 			/* Keep track of the base because we need it later on */
 			RoadStop *rs_south_base = rs_south;
@@ -165,8 +158,7 @@ void RoadStop::ClearDriveThrough()
 			/* Make all (even more) southern stops part of the new entry queue */
 			for (south_tile += offset; IsDriveThroughRoadStopContinuation(base_tile, south_tile); south_tile += offset) {
 				rs_south = RoadStop::GetByTile(south_tile, rst);
-				rs_south->east = rs_south_base->east;
-				rs_south->west = rs_south_base->west;
+				rs_south->platform = rs_south_base->platform;
 			}
 
 			/* Find the other end; the northern most tile */
@@ -186,24 +178,22 @@ void RoadStop::ClearDriveThrough()
 			rs_north->Rebuild();
 		} else {
 			/* Only we left, so simple update the length. */
-			rs_north->east->length -= TILE_SIZE;
-			rs_north->west->length -= TILE_SIZE;
+			rs_north->platform->east.length -= TILE_SIZE;
+			rs_north->platform->west.length -= TILE_SIZE;
 		}
 	} else if (south) {
 		/* There is only something to the south. Hand over the base entry */
 		SetBit(rs_south->status, RSSFB_BASE_ENTRY);
-		rs_south->east->length -= TILE_SIZE;
-		rs_south->west->length -= TILE_SIZE;
+		rs_south->platform->east.length -= TILE_SIZE;
+		rs_south->platform->west.length -= TILE_SIZE;
 	} else {
 		/* We were the last */
-		delete this->east;
-		delete this->west;
+		delete this->platform;
 	}
 
 	/* Make sure we don't get used for something 'incorrect' */
 	ClrBit(this->status, RSSFB_BASE_ENTRY);
-	this->east = NULL;
-	this->west = NULL;
+	this->platform = NULL;
 }
 
 /**
@@ -365,17 +355,17 @@ void RoadStop::Rebuild (void)
 		}
 	}
 
-	this->east->length = length;
-	this->west->length = length;
+	this->platform->east.length = length;
+	this->platform->west.length = length;
 
-	this->east->occupied = 0;
+	this->platform->east.occupied = 0;
 	for (RVList::iterator it = list_east.begin(); it != list_east.end(); it++) {
-		this->east->occupied += (*it)->gcache.cached_total_length;
+		this->platform->east.occupied += (*it)->gcache.cached_total_length;
 	}
 
-	this->west->occupied = 0;
+	this->platform->west.occupied = 0;
 	for (RVList::iterator it = list_west.begin(); it != list_west.end(); it++) {
-		this->west->occupied += (*it)->gcache.cached_total_length;
+		this->platform->west.occupied += (*it)->gcache.cached_total_length;
 	}
 }
 
@@ -384,21 +374,17 @@ void RoadStop::Rebuild (void)
  */
 void RoadStop::CheckIntegrity (void)
 {
-	assert (this->east != this->west);
-
 	if (!HasBit (this->status, RSSFB_BASE_ENTRY)) return;
 
 	/* The tile 'before' the road stop must not be part of this 'line' */
 	assert (!IsDriveThroughRoadStopContinuation (this->xy, this->xy - TileOffsByDiagDir (AxisToDiagDir (GetRoadStopAxis (this->xy)))));
 
-	Entry east_backup (*this->east);
-	Entry west_backup (*this->west);
+	Platform backup (*this->platform);
 
 	this->Rebuild();
 
-	assert (this->east->length   == east_backup.length);
-	assert (this->east->occupied == east_backup.occupied);
-
-	assert (this->west->length   == west_backup.length);
-	assert (this->west->occupied == west_backup.occupied);
+	assert (this->platform->east.length   == backup.east.length);
+	assert (this->platform->east.occupied == backup.east.occupied);
+	assert (this->platform->west.length   == backup.west.length);
+	assert (this->platform->west.occupied == backup.west.occupied);
 }
