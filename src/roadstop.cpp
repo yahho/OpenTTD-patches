@@ -217,7 +217,9 @@ void RoadStop::LeaveDriveThrough (RoadVehicle *rv)
 	assert (IsDriveThroughStopTile (this->xy));
 
 	/* Just leave the drive through's entry cache. */
-	this->GetEntry(TrackdirToExitdir((Trackdir)(rv->state & RVSB_ROAD_STOP_TRACKDIR_MASK)))->Leave(rv);
+	Entry *e = this->GetEntry(TrackdirToExitdir((Trackdir)(rv->state & RVSB_ROAD_STOP_TRACKDIR_MASK)));
+	assert (e->occupied >= rv->gcache.cached_total_length);
+	e->occupied -= rv->gcache.cached_total_length;
 }
 
 /**
@@ -252,8 +254,10 @@ void RoadStop::EnterDriveThrough (RoadVehicle *rv)
 {
 	assert (IsDriveThroughStopTile (this->xy));
 
-	/* Vehicles entering a drive-through stop from the 'normal' side use first bay (bay 0). */
-	this->GetEntry(TrackdirToExitdir((Trackdir)(rv->state & RVSB_ROAD_STOP_TRACKDIR_MASK)))->Enter(rv);
+	/* We cannot assert on occupied < length because of the remote
+	 * possibility that RVs are running through each other when trying
+	 * to prevent an infinite jam. */
+	this->GetEntry(TrackdirToExitdir((Trackdir)(rv->state & RVSB_ROAD_STOP_TRACKDIR_MASK)))->occupied += rv->gcache.cached_total_length;
 
 	/* Indicate a drive-through stop */
 	SetBit(rv->state, RVS_IN_DT_ROAD_STOP);
@@ -274,28 +278,6 @@ void RoadStop::EnterDriveThrough (RoadVehicle *rv)
 		if (rs->xy == tile) return rs;
 		assert(rs->next != NULL);
 	}
-}
-
-/**
- * Leave the road stop
- * @param rv the vehicle that leaves the stop
- */
-void RoadStop::Entry::Leave(const RoadVehicle *rv)
-{
-	this->occupied -= rv->gcache.cached_total_length;
-	assert(this->occupied >= 0);
-}
-
-/**
- * Enter the road stop
- * @param rv the vehicle that enters the stop
- */
-void RoadStop::Entry::Enter(const RoadVehicle *rv)
-{
-	/* we cannot assert on this->occupied < this->length because of the
-	 * remote possibility that RVs are running through each other when
-	 * trying to prevention an infinite jam. */
-	this->occupied += rv->gcache.cached_total_length;
 }
 
 /**

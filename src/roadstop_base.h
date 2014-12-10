@@ -56,9 +56,6 @@ struct RoadStop : PooledItem <RoadStop, RoadStopID, 32, 64000> {
 		{
 			return this->occupied;
 		}
-
-		void Leave(const RoadVehicle *rv);
-		void Enter(const RoadVehicle *rv);
 	};
 
 	/** Container for both entry points of a drive-through road stop. */
