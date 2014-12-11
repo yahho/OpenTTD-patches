@@ -77,8 +77,8 @@ static int OneTileCost(const YAPFSettings *settings, const RoadPathPos &pos)
 					if (!RoadStop::IsDriveThroughRoadStopContinuation(pos.tile, pos.tile - TileOffsByDiagDir(dir))) {
 						/* When we're the first road stop in a 'queue' of them we increase
 						 * cost based on the fill percentage of the whole queue. */
-						const RoadStop::Entry *entry = rs->GetEntry(dir);
-						cost += entry->GetOccupied() * settings->road_stop_occupied_penalty / entry->GetLength();
+						const RoadStop::Platform *platform = rs->GetPlatform();
+						cost += platform->GetOccupied(dir) * settings->road_stop_occupied_penalty / platform->GetLength();
 					}
 				} else {
 					/* Increase cost for filled road stops */

@@ -27,41 +27,51 @@ struct RoadStop : PooledItem <RoadStop, RoadStopID, 32, 64000> {
 		RSSFB_ENTRY_BUSY = 7, ///< Non-zero when roadstop entry is busy
 	};
 
-	/** Container for each entry point of a drive through road stop */
-	struct Entry {
+	/** Container for both entry points of a drive-through road stop. */
+	struct Platform {
 	private:
-		int length;      ///< The length of the stop in tile 'units'
-		int occupied;    ///< The amount of occupied stop in tile 'units'
+		uint length;        ///< The length of the stop in tile 'units'
+		uint occupied_east; ///< The amount of occupied stop in tile 'units' to the east
+		uint occupied_west; ///< The amount of occupied stop in tile 'units' to the west
 
 	public:
 		friend struct RoadStop; ///< Oh yeah, the road stop may play with me.
 
-		/** Create an entry */
-		Entry() : length(0), occupied(0) {}
+		/** Create a platform. */
+		CONSTEXPR Platform()
+			: length(0), occupied_east(), occupied_west()
+		{
+		}
 
 		/**
 		 * Get the length of this drive through stop.
 		 * @return the length in tile units.
 		 */
-		inline int GetLength() const
+		inline uint GetLength() const
 		{
 			return this->length;
 		}
 
 		/**
-		 * Get the amount of occupied space in this drive through stop.
+		 * Get the amount of occupied space in a given direction.
+		 * @param dir The direction to get the occupied space for.
 		 * @return the occupied space in tile units.
 		 */
-		inline int GetOccupied() const
+		inline uint GetOccupied (DiagDirection dir) const
 		{
-			return this->occupied;
+			return HasBit ((int)dir, 1) ? this->occupied_west : this->occupied_east;
 		}
-	};
 
-	/** Container for both entry points of a drive-through road stop. */
-	struct Platform {
-		Entry east; ///< The vehicles that entered from the east
-		Entry west; ///< The vehicles that entered from the west
+	private:
+		/**
+		 * Get a pointer to the occupied field in a given direction.
+		 * @param dir The direction to get the occupied pointer for.
+		 * @return A pointer to the occupied field in the given direction.
+		 */
+		inline uint *GetOccupiedPtr (DiagDirection dir)
+		{
+			return HasBit ((int)dir, 1) ? &this->occupied_west : &this->occupied_east;
+		}
 	};
 
 	TileIndex       xy;     ///< Position on the map
@@ -115,23 +125,12 @@ struct RoadStop : PooledItem <RoadStop, RoadStopID, 32, 64000> {
 	}
 
 	/**
-	 * Get the drive through road stop entry struct for the given direction.
-	 * @param dir The direction to get the entry for.
-	 * @return the entry
+	 * Get the drive through road stop platform struct.
+	 * @return the platform
 	 */
-	inline const Entry *GetEntry(DiagDirection dir) const
+	inline const Platform *GetPlatform (void) const
 	{
-		return HasBit((int)dir, 1) ? &this->platform->west : &this->platform->east;
-	}
-
-	/**
-	 * Get the drive through road stop entry struct for the given direction.
-	 * @param dir The direction to get the entry for.
-	 * @return the entry
-	 */
-	inline Entry *GetEntry(DiagDirection dir)
-	{
-		return HasBit((int)dir, 1) ? &this->platform->west : &this->platform->east;
+		return this->platform;
 	}
 
 	void MakeDriveThrough();

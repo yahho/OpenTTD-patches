@@ -86,8 +86,8 @@ void RoadStop::MakeDriveThrough()
 		if (south && rs_south->platform != NULL) {
 			/* There more southern tiles too, they must 'join' us too */
 			ClrBit(rs_south->status, RSSFB_BASE_ENTRY);
-			this->platform->east.occupied += rs_south->platform->east.occupied;
-			this->platform->west.occupied += rs_south->platform->west.occupied;
+			this->platform->occupied_east += rs_south->platform->occupied_east;
+			this->platform->occupied_west += rs_south->platform->occupied_west;
 
 			/* Free the now unneeded entry structs */
 			delete rs_south->platform;
@@ -113,8 +113,7 @@ void RoadStop::MakeDriveThrough()
 
 	/* Now update the lengths */
 	added *= TILE_SIZE;
-	this->platform->east.length += added;
-	this->platform->west.length += added;
+	this->platform->length += added;
 }
 
 /**
@@ -178,14 +177,12 @@ void RoadStop::ClearDriveThrough()
 			rs_north->Rebuild();
 		} else {
 			/* Only we left, so simple update the length. */
-			rs_north->platform->east.length -= TILE_SIZE;
-			rs_north->platform->west.length -= TILE_SIZE;
+			rs_north->platform->length -= TILE_SIZE;
 		}
 	} else if (south) {
 		/* There is only something to the south. Hand over the base entry */
 		SetBit(rs_south->status, RSSFB_BASE_ENTRY);
-		rs_south->platform->east.length -= TILE_SIZE;
-		rs_south->platform->west.length -= TILE_SIZE;
+		rs_south->platform->length -= TILE_SIZE;
 	} else {
 		/* We were the last */
 		delete this->platform;
@@ -217,9 +214,9 @@ void RoadStop::LeaveDriveThrough (RoadVehicle *rv)
 	assert (IsDriveThroughStopTile (this->xy));
 
 	/* Just leave the drive through's entry cache. */
-	Entry *e = this->GetEntry(TrackdirToExitdir((Trackdir)(rv->state & RVSB_ROAD_STOP_TRACKDIR_MASK)));
-	assert (e->occupied >= rv->gcache.cached_total_length);
-	e->occupied -= rv->gcache.cached_total_length;
+	uint *p = this->platform->GetOccupiedPtr (TrackdirToExitdir((Trackdir)(rv->state & RVSB_ROAD_STOP_TRACKDIR_MASK)));
+	assert (*p >= rv->gcache.cached_total_length);
+	*p -= rv->gcache.cached_total_length;
 }
 
 /**
@@ -257,7 +254,7 @@ void RoadStop::EnterDriveThrough (RoadVehicle *rv)
 	/* We cannot assert on occupied < length because of the remote
 	 * possibility that RVs are running through each other when trying
 	 * to prevent an infinite jam. */
-	this->GetEntry(TrackdirToExitdir((Trackdir)(rv->state & RVSB_ROAD_STOP_TRACKDIR_MASK)))->occupied += rv->gcache.cached_total_length;
+	*this->platform->GetOccupiedPtr (TrackdirToExitdir((Trackdir)(rv->state & RVSB_ROAD_STOP_TRACKDIR_MASK))) += rv->gcache.cached_total_length;
 
 	/* Indicate a drive-through stop */
 	SetBit(rv->state, RVS_IN_DT_ROAD_STOP);
@@ -337,17 +334,16 @@ void RoadStop::Rebuild (void)
 		}
 	}
 
-	this->platform->east.length = length;
-	this->platform->west.length = length;
+	this->platform->length = length;
 
-	this->platform->east.occupied = 0;
+	this->platform->occupied_east = 0;
 	for (RVList::iterator it = list_east.begin(); it != list_east.end(); it++) {
-		this->platform->east.occupied += (*it)->gcache.cached_total_length;
+		this->platform->occupied_east += (*it)->gcache.cached_total_length;
 	}
 
-	this->platform->west.occupied = 0;
+	this->platform->occupied_west = 0;
 	for (RVList::iterator it = list_west.begin(); it != list_west.end(); it++) {
-		this->platform->west.occupied += (*it)->gcache.cached_total_length;
+		this->platform->occupied_west += (*it)->gcache.cached_total_length;
 	}
 }
 
@@ -365,8 +361,7 @@ void RoadStop::CheckIntegrity (void)
 
 	this->Rebuild();
 
-	assert (this->platform->east.length   == backup.east.length);
-	assert (this->platform->east.occupied == backup.east.occupied);
-	assert (this->platform->west.length   == backup.west.length);
-	assert (this->platform->west.occupied == backup.west.occupied);
+	assert (this->platform->length == backup.length);
+	assert (this->platform->occupied_east == backup.occupied_east);
+	assert (this->platform->occupied_west == backup.occupied_west);
 }
