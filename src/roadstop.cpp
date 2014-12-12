@@ -294,23 +294,22 @@ void RoadStop::EnterDriveThrough (RoadVehicle *rv)
 }
 
 /**
- * Rebuild, from scratch, the vehicles and other metadata on this stop.
+ * Rebuild, from scratch, the vehicles and other metadata on this platform.
+ * @param tile The northernmost tile of the platform
  */
-void RoadStop::Rebuild (void)
+void RoadStop::Platform::Rebuild (TileIndex tile)
 {
 	typedef std::list<const RoadVehicle *> RVList; ///< A list of road vehicles
 
-	assert (HasBit (this->status, RSSFB_BASE_ENTRY));
-
-	DiagDirection dir = GetRoadStopDir (this->xy);
+	DiagDirection dir = GetRoadStopDir (tile);
 	TileIndexDiff offset = abs(TileOffsByDiagDir(dir));
 	Direction dir_east = DiagDirToDir (dir);
 
 	int length = 0;
 	RVList list_east, list_west;
-	for (TileIndex tile = this->xy; IsDriveThroughRoadStopContinuation (this->xy, tile); tile += offset) {
+	for (TileIndex t = tile; IsDriveThroughRoadStopContinuation (tile, t); t += offset) {
 		length += TILE_SIZE;
-		VehicleTileIterator iter (tile);
+		VehicleTileIterator iter (t);
 		while (!iter.finished()) {
 			Vehicle *v = iter.next();
 
@@ -334,34 +333,33 @@ void RoadStop::Rebuild (void)
 		}
 	}
 
-	this->platform->length = length;
+	this->length = length;
 
-	this->platform->occupied_east = 0;
+	this->occupied_east = 0;
 	for (RVList::iterator it = list_east.begin(); it != list_east.end(); it++) {
-		this->platform->occupied_east += (*it)->gcache.cached_total_length;
+		this->occupied_east += (*it)->gcache.cached_total_length;
 	}
 
-	this->platform->occupied_west = 0;
+	this->occupied_west = 0;
 	for (RVList::iterator it = list_west.begin(); it != list_west.end(); it++) {
-		this->platform->occupied_west += (*it)->gcache.cached_total_length;
+		this->occupied_west += (*it)->gcache.cached_total_length;
 	}
 }
 
 /**
  * Check the integrity of the data in this drive-through road stop.
  */
-void RoadStop::CheckIntegrity (void)
+void RoadStop::CheckIntegrity (void) const
 {
 	if (!HasBit (this->status, RSSFB_BASE_ENTRY)) return;
 
 	/* The tile 'before' the road stop must not be part of this 'line' */
 	assert (!IsDriveThroughRoadStopContinuation (this->xy, this->xy - TileOffsByDiagDir (AxisToDiagDir (GetRoadStopAxis (this->xy)))));
 
-	Platform backup (*this->platform);
+	Platform temp;
+	temp.Rebuild (this->xy);
 
-	this->Rebuild();
-
-	assert (this->platform->length == backup.length);
-	assert (this->platform->occupied_east == backup.occupied_east);
-	assert (this->platform->occupied_west == backup.occupied_west);
+	assert (this->platform->length == temp.length);
+	assert (this->platform->occupied_east == temp.occupied_east);
+	assert (this->platform->occupied_west == temp.occupied_west);
 }

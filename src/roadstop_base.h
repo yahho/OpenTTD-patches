@@ -72,6 +72,9 @@ struct RoadStop : PooledItem <RoadStop, RoadStopID, 32, 64000> {
 		{
 			return HasBit ((int)dir, 1) ? &this->occupied_west : &this->occupied_east;
 		}
+
+	public:
+		void Rebuild (TileIndex tile);
 	};
 
 	TileIndex       xy;     ///< Position on the map
@@ -147,9 +150,15 @@ struct RoadStop : PooledItem <RoadStop, RoadStopID, 32, 64000> {
 
 	static bool IsDriveThroughRoadStopContinuation(TileIndex rs, TileIndex next);
 
-	void Rebuild (void);
+	/** Rebuild the vehicles and other metadata on this stop. */
+	void Rebuild (void)
+	{
+		assert (HasBit (this->status, RSSFB_BASE_ENTRY));
 
-	void CheckIntegrity (void);
+		this->platform->Rebuild (this->xy);
+	}
+
+	void CheckIntegrity (void) const;
 
 private:
 	Platform *platform; ///< Platform data for drive-through stops

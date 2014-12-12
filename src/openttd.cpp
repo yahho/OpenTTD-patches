@@ -1224,7 +1224,7 @@ static void CheckCaches()
 	}
 
 	/* Strict checking of the road stop cache entries */
-	RoadStop *rs;
+	const RoadStop *rs;
 	FOR_ALL_ROADSTOPS(rs) {
 		if (!IsStandardRoadStopTile(rs->xy)) rs->CheckIntegrity();
 	}
