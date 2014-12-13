@@ -144,8 +144,6 @@ struct RoadStop : PooledItem <RoadStop, RoadStopID, 32, 64000> {
 	bool EnterStandard (RoadVehicle *rv);
 	void EnterDriveThrough (RoadVehicle *rv);
 
-	RoadStop *GetNextRoadStop(const struct RoadVehicle *v) const;
-
 	static RoadStop *GetByTile(TileIndex tile, RoadStopType type);
 
 	static bool IsDriveThroughRoadStopContinuation(TileIndex rs, TileIndex next);
