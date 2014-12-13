@@ -179,16 +179,6 @@ private:
 	}
 
 	/**
-	 * Allocates a bay in a drive-through road stop
-	 * @param nr the number of the bay to allocate
-	 */
-	inline void AllocateDriveThroughBay(uint nr)
-	{
-		assert(nr < RSSFB_BAY_COUNT);
-		ClrBit(this->status, nr);
-	}
-
-	/**
 	 * Frees the given bay
 	 * @param nr the number of the bay to free
 	 */
