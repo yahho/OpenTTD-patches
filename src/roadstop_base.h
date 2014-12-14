@@ -12,11 +12,9 @@
 #ifndef ROADSTOP_BASE_H
 #define ROADSTOP_BASE_H
 
-#include "station_type.h"
 #include "core/pool_type.hpp"
 #include "core/bitmath_func.hpp"
 #include "map/station.h"
-#include "vehicle_type.h"
 
 /** A Stop for a Road Vehicle */
 struct RoadStop : PooledItem <RoadStop, RoadStopID, 32, 64000> {
@@ -81,7 +79,10 @@ struct RoadStop : PooledItem <RoadStop, RoadStopID, 32, 64000> {
 	TileIndex       xy;     ///< Position on the map
 	byte            status; ///< Current status of the Stop, @see RoadStopSatusFlag. Access using *Bay and *Busy functions.
 	struct RoadStop *next;  ///< Next stop of the given type at this station
+private:
+	Platform *platform; ///< Platform data for drive-through stops
 
+public:
 	/** Initializes a RoadStop */
 	inline RoadStop(TileIndex tile = INVALID_TILE) :
 		xy(tile),
@@ -140,9 +141,6 @@ struct RoadStop : PooledItem <RoadStop, RoadStopID, 32, 64000> {
 	void MakeDriveThrough();
 	void ClearDriveThrough();
 
-	void LeaveStandard (RoadVehicle *rv);
-	bool EnterStandard (RoadVehicle *rv);
-
 	/**
 	 * Add the length of a vehicle to the occupied length in the platform.
 	 * @param dir The direction of the vehicle.
@@ -186,24 +184,21 @@ struct RoadStop : PooledItem <RoadStop, RoadStopID, 32, 64000> {
 
 	void CheckIntegrity (void) const;
 
-private:
-	Platform *platform; ///< Platform data for drive-through stops
-
 	/**
 	 * Allocates a bay
-	 * @return the allocated bay number
-	 * @pre this->HasFreeBay()
+	 * @return the allocated bay number, or -1 if all are busy
 	 */
-	inline uint AllocateBay()
+	inline int AllocateBay()
 	{
-		assert(this->HasFreeBay());
-
 		/* Find the first free bay. If the bit is set, the bay is free. */
-		uint bay_nr = 0;
-		while (!HasBit(this->status, bay_nr)) bay_nr++;
+		for (uint bay = 0; bay < RSSFB_BAY_COUNT; bay++) {
+			if (HasBit (this->status, bay)) {
+				ClrBit (this->status, bay);
+				return bay;
+			}
+		}
 
-		ClrBit(this->status, bay_nr);
-		return bay_nr;
+		return -1;
 	}
 
 	/**

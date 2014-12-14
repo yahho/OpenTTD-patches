@@ -14,7 +14,6 @@
 #include "core/pool_func.hpp"
 #include "roadstop_base.h"
 #include "station_base.h"
-#include "vehicle_func.h"
 #include "map/road.h"
 
 /** The pool of roadstops. */
@@ -171,42 +170,6 @@ void RoadStop::ClearDriveThrough()
 	/* Make sure we don't get used for something 'incorrect' */
 	ClrBit(this->status, RSSFB_BASE_ENTRY);
 	this->platform = NULL;
-}
-
-/**
- * Leave a standard road stop
- * @param rv the vehicle that leaves the stop
- */
-void RoadStop::LeaveStandard (RoadVehicle *rv)
-{
-	assert (IsStandardRoadStopTile (this->xy));
-	/* Vehicle is leaving a road stop tile, mark bay as free */
-	this->FreeBay(HasBit(rv->state, RVS_USING_SECOND_BAY));
-	this->SetEntranceBusy(false);
-}
-
-/**
- * Enter a standard road stop
- * @param rv   the vehicle that enters the stop
- * @return whether the road stop could actually be entered
- */
-bool RoadStop::EnterStandard (RoadVehicle *rv)
-{
-	assert (IsStandardRoadStopTile (this->xy));
-
-	/* For normal (non drive-through) road stops
-	 * Check if station is busy or if there are no free bays. */
-	if (this->IsEntranceBusy() || !this->HasFreeBay()) return false;
-
-	SetBit(rv->state, RVS_IN_ROAD_STOP);
-
-	/* Allocate a bay and update the road state */
-	uint bay_nr = this->AllocateBay();
-	SB(rv->state, RVS_USING_SECOND_BAY, 1, bay_nr);
-
-	/* Mark the station entrance as busy */
-	this->SetEntranceBusy(true);
-	return true;
 }
 
 /**

@@ -461,7 +461,11 @@ static void DeleteLastRoadVeh(RoadVehicle *v)
 	v->last_station_visited = first->last_station_visited; // for PreDestructor
 
 	/* Only leave the road stop when we're really gone. */
-	if (IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_ROAD_STOP_END)) RoadStop::GetByTile(v->tile, GetRoadStopType(v->tile))->LeaveStandard(v);
+	if (IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_ROAD_STOP_END)) {
+		RoadStop *rs = RoadStop::GetByTile(v->tile, GetRoadStopType(v->tile));
+		rs->FreeBay (HasBit (v->state, RVS_USING_SECOND_BAY));
+		rs->SetEntranceBusy (false);
+	}
 
 	delete v;
 }
@@ -1229,7 +1233,9 @@ static bool controller_front_new_tile (RoadVehicle *v, TileIndex tile,
 		assert (IsStandardRoadStopTile (v->tile));
 		assert (tile != v->tile);
 
-		RoadStop::GetByTile (v->tile, GetRoadStopType (v->tile))->LeaveStandard (v);
+		RoadStop *rs = RoadStop::GetByTile (v->tile, GetRoadStopType (v->tile));
+		rs->FreeBay (HasBit (v->state, RVS_USING_SECOND_BAY));
+		rs->SetEntranceBusy (false);
 	} else if (IsInsideMM (v->state, RVSB_IN_DT_ROAD_STOP, RVSB_IN_DT_ROAD_STOP_END)) {
 		assert (IsDriveThroughStopTile (v->tile));
 
@@ -1436,10 +1442,17 @@ static bool controller_standard_stop (RoadVehicle *v)
 
 		/* A vehicle should not proceed beyond frame 0 in a
 		 * standard stop until it has been allocated a bay. */
-		if (!RoadStop::GetByTile (v->tile, GetRoadStopType (v->tile))->EnterStandard (v)) {
+		RoadStop *rs = RoadStop::GetByTile (v->tile, GetRoadStopType (v->tile));
+		int bay;
+		if (rs->IsEntranceBusy() || ((bay = rs->AllocateBay()) == -1)) {
 			v->cur_speed = 0;
 			return false;
 		}
+
+		SetBit (v->state, RVS_IN_ROAD_STOP);
+		SB (v->state, RVS_USING_SECOND_BAY, 1, bay);
+
+		rs->SetEntranceBusy (true);
 	}
 
 	assert (v->state >= RVSB_IN_ROAD_STOP);
