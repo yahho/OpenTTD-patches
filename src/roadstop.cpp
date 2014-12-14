@@ -186,20 +186,6 @@ void RoadStop::LeaveStandard (RoadVehicle *rv)
 }
 
 /**
- * Leave a drive-through road stop
- * @param rv the vehicle that leaves the stop
- */
-void RoadStop::LeaveDriveThrough (RoadVehicle *rv)
-{
-	assert (IsDriveThroughStopTile (this->xy));
-
-	/* Just leave the drive through's entry cache. */
-	uint *p = this->platform->GetOccupiedPtr (TrackdirToExitdir((Trackdir)(rv->state & RVSB_ROAD_STOP_TRACKDIR_MASK)));
-	assert (*p >= rv->gcache.cached_total_length);
-	*p -= rv->gcache.cached_total_length;
-}
-
-/**
  * Enter a standard road stop
  * @param rv   the vehicle that enters the stop
  * @return whether the road stop could actually be entered
@@ -221,23 +207,6 @@ bool RoadStop::EnterStandard (RoadVehicle *rv)
 	/* Mark the station entrance as busy */
 	this->SetEntranceBusy(true);
 	return true;
-}
-
-/**
- * Enter a drive-through road stop
- * @param rv   the vehicle that enters the stop
- */
-void RoadStop::EnterDriveThrough (RoadVehicle *rv)
-{
-	assert (IsDriveThroughStopTile (this->xy));
-
-	/* We cannot assert on occupied < length because of the remote
-	 * possibility that RVs are running through each other when trying
-	 * to prevent an infinite jam. */
-	*this->platform->GetOccupiedPtr (TrackdirToExitdir((Trackdir)(rv->state & RVSB_ROAD_STOP_TRACKDIR_MASK))) += rv->gcache.cached_total_length;
-
-	/* Indicate a drive-through stop */
-	SetBit(rv->state, RVS_IN_DT_ROAD_STOP);
 }
 
 /**

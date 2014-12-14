@@ -525,7 +525,7 @@ uint RoadVehicle::Crash(bool flooded)
 
 		/* If we're in a drive through road stop we ought to leave it */
 		if (IsInsideMM(this->state, RVSB_IN_DT_ROAD_STOP, RVSB_IN_DT_ROAD_STOP_END)) {
-			RoadStop::GetByTile(this->tile, GetRoadStopType(this->tile))->LeaveDriveThrough(this);
+			RoadStop::GetByTile(this->tile, GetRoadStopType(this->tile))->LeaveDriveThrough (TrackdirToExitdir((Trackdir)(this->state & RVSB_ROAD_STOP_TRACKDIR_MASK)), this->gcache.cached_total_length);
 		}
 	}
 	this->crashed_ctr = flooded ? 2000 : 1; // max 2220, disappear pretty fast when flooded
@@ -1245,7 +1245,8 @@ static bool controller_front_new_tile (RoadVehicle *v, TileIndex tile,
 			dir = (Trackdir)v->state;
 		} else {
 			/* We're not continuing our drive through road stop, so leave. */
-			RoadStop::GetByTile (v->tile, GetRoadStopType (v->tile))->LeaveDriveThrough (v);
+			assert (TrackdirToExitdir((Trackdir)(v->state & RVSB_ROAD_STOP_TRACKDIR_MASK)) == enterdir);
+			RoadStop::GetByTile (v->tile, GetRoadStopType (v->tile))->LeaveDriveThrough (enterdir, v->gcache.cached_total_length);
 		}
 	}
 
@@ -1525,7 +1526,9 @@ static bool controller_drivethrough_stop (RoadVehicle *v)
 		assert (v->state <= RVSB_TRACKDIR_MASK);
 		assert (IsStraightRoadTrackdir ((Trackdir)v->state));
 
-		RoadStop::GetByTile (v->tile, GetRoadStopType (v->tile))->EnterDriveThrough (v);
+		DiagDirection dir = TrackdirToExitdir ((Trackdir)(v->state));
+		RoadStop::GetByTile (v->tile, GetRoadStopType (v->tile))->EnterDriveThrough (dir, v->gcache.cached_total_length);
+		SetBit (v->state, RVS_IN_DT_ROAD_STOP);
 	}
 
 	assert (v->state >= RVSB_IN_DT_ROAD_STOP);

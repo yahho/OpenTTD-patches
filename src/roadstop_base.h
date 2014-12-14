@@ -15,6 +15,7 @@
 #include "station_type.h"
 #include "core/pool_type.hpp"
 #include "core/bitmath_func.hpp"
+#include "map/station.h"
 #include "vehicle_type.h"
 
 /** A Stop for a Road Vehicle */
@@ -140,9 +141,36 @@ struct RoadStop : PooledItem <RoadStop, RoadStopID, 32, 64000> {
 	void ClearDriveThrough();
 
 	void LeaveStandard (RoadVehicle *rv);
-	void LeaveDriveThrough (RoadVehicle *rv);
 	bool EnterStandard (RoadVehicle *rv);
-	void EnterDriveThrough (RoadVehicle *rv);
+
+	/**
+	 * Add the length of a vehicle to the occupied length in the platform.
+	 * @param dir The direction of the vehicle.
+	 * @param length The vehicle length to add.
+	 */
+	void EnterDriveThrough (DiagDirection dir, uint length)
+	{
+		assert (IsDriveThroughStopTile (this->xy));
+
+		/* We cannot assert on occupied < length because of the
+		 * remote possibility that RVs are running through each
+		 * other when trying to prevent an infinite jam. */
+		*this->platform->GetOccupiedPtr(dir) += length;
+	}
+
+	/**
+	 * Subtract the length of a vehicle from the occupied length in the platform.
+	 * @param dir The direction of the vehicle.
+	 * @param length The vehicle length to subtract.
+	 */
+	void LeaveDriveThrough (DiagDirection dir, uint length)
+	{
+		assert (IsDriveThroughStopTile (this->xy));
+
+		uint *p = this->platform->GetOccupiedPtr (dir);
+		assert (*p >= length);
+		*p -= length;
+	}
 
 	static RoadStop *GetByTile(TileIndex tile, RoadStopType type);
 
