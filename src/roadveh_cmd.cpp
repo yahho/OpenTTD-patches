@@ -1229,33 +1229,6 @@ static bool controller_front_new_tile (RoadVehicle *v, TileIndex tile,
 		return false;
 	}
 
-	if (IsInsideMM (v->state, RVSB_IN_ROAD_STOP, RVSB_IN_ROAD_STOP_END)) {
-		assert (IsStandardRoadStopTile (v->tile));
-		assert (tile != v->tile);
-
-		RoadStop *rs = RoadStop::GetByTile (v->tile, GetRoadStopType (v->tile));
-		rs->FreeBay (HasBit (v->state, RVS_USING_SECOND_BAY));
-		rs->SetEntranceBusy (false);
-	} else if (IsInsideMM (v->state, RVSB_IN_DT_ROAD_STOP, RVSB_IN_DT_ROAD_STOP_END)) {
-		assert (IsDriveThroughStopTile (v->tile));
-
-		/* If we are a drive through road stop and the next tile is of
-		 * the same road stop and the next tile isn't this one (i.e. we
-		 * are not reversing), then keep the reservation and state.
-		 * This way we will not be shortly unregister from the road
-		 * stop. It also makes it possible to load when on the edge of
-		 * two road stops; otherwise you could get vehicles that should
-		 * be loading but are not actually loading. */
-		if ((v->tile != tile) && RoadStop::IsDriveThroughRoadStopContinuation (v->tile, tile)) {
-			/* So, keep 'our' state */
-			dir = (Trackdir)v->state;
-		} else {
-			/* We're not continuing our drive through road stop, so leave. */
-			assert (TrackdirToExitdir((Trackdir)(v->state & RVSB_ROAD_STOP_TRACKDIR_MASK)) == enterdir);
-			RoadStop::GetByTile (v->tile, GetRoadStopType (v->tile))->LeaveDriveThrough (enterdir, v->gcache.cached_total_length);
-		}
-	}
-
 	controller_new_tile (v, tile, dir, start_frame, x, y, new_dir);
 	return true;
 }
@@ -1463,7 +1436,19 @@ static bool controller_standard_stop (RoadVehicle *v)
 			[v->state][v->frame + 1];
 
 	if (rd.x == RDE_NEXT_TILE) {
-		return controller_front_next_tile (v, (DiagDirection)(rd.y), false);
+		TileIndex old_tile = v->tile;
+		uint bay = HasBit (v->state, RVS_USING_SECOND_BAY);
+		if (controller_front_next_tile (v, (DiagDirection)(rd.y), false)) {
+			assert (v->tile == TileAddByDiagDir (old_tile, (DiagDirection)(rd.y)));
+
+			RoadStop *rs = RoadStop::GetByTile (old_tile, GetRoadStopType (old_tile));
+			rs->FreeBay (bay);
+			rs->SetEntranceBusy (false);
+
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	assert (rd.x != RDE_TURNED);
@@ -1552,7 +1537,33 @@ static bool controller_drivethrough_stop (RoadVehicle *v)
 			[v->state & RVSB_ROAD_STOP_TRACKDIR_MASK][v->frame + 1];
 
 	if (rd.x == RDE_NEXT_TILE) {
-		return controller_front_next_tile (v, (DiagDirection)(rd.y), true);
+		DiagDirection enterdir = (DiagDirection)(rd.y);
+		TileIndex old_tile = v->tile;
+
+		if (!controller_front_next_tile (v, enterdir, true)) {
+			return false;
+		}
+
+		assert (v->state <= RVSB_TRACKDIR_MASK);
+
+		if ((v->tile != old_tile) &&
+				RoadStop::IsDriveThroughRoadStopContinuation (old_tile, v->tile)) {
+			/* If we are a drive through road stop and the next
+			 * tile is of the same road stop and the next tile is
+			 * not this one (i.e. we are not reversing), then keep
+			 * the reservation and state. This way we will not be
+			 * shortly unregister from the road stop. It also
+			 * makes it possible to load when on the edge of two
+			 * road stops; otherwise you could get vehicles that
+			 * should be loading but are not actually loading. */
+			assert (v->state == DiagDirToDiagTrackdir (enterdir));
+			SetBit (v->state, RVS_IN_DT_ROAD_STOP);
+		} else {
+			/* We're not continuing our drive through road stop, so leave. */
+			RoadStop::GetByTile (old_tile, GetRoadStopType (old_tile))->LeaveDriveThrough (enterdir, v->gcache.cached_total_length);
+		}
+
+		return true;
 	}
 
 	assert (rd.x != RDE_TURNED);
