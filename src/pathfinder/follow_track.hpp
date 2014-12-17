@@ -557,7 +557,7 @@ struct CFollowTrackRoadBase : CFollowTrackBase<RoadPathPos>
 
 			case TT_ROAD:
 				/* Single-piece tiles cause reversing. */
-				return GetTrackStatusTrackdirBits(m_old.tile) == TRACKDIR_BIT_NONE ? TR_REVERSE :
+				return (GetRoadBits (m_old.tile, IsTram() ? ROADTYPE_TRAM : ROADTYPE_ROAD) == DiagDirToRoadBits (ReverseDiagDir (m_exitdir))) ? TR_REVERSE :
 					IsTileSubtype(m_old.tile, TT_BRIDGE) && m_exitdir == GetTunnelBridgeDirection(m_old.tile) ?
 						TR_BRIDGE : TR_NORMAL;
 
