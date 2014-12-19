@@ -776,7 +776,7 @@ struct OvertakeData {
  * @param od Information about the tile and the involved vehicles
  * @return true if we have to abort overtaking
  */
-static bool CheckRoadBlockedForOvertaking(OvertakeData *od)
+static bool CheckRoadBlockedForOvertaking (const OvertakeData *od)
 {
 	TrackStatus ts = GetTileRoadStatus(od->tile, od->v->compatible_roadtypes);
 	TrackdirBits trackdirbits = TrackStatusToTrackdirBits(ts);
@@ -799,18 +799,9 @@ static bool CheckRoadBlockedForOvertaking(OvertakeData *od)
 
 static void RoadVehCheckOvertake(RoadVehicle *v, RoadVehicle *u)
 {
-	OvertakeData od;
+	assert (v->state <= RVSB_TRACKDIR_MASK);
 
-	od.v = v;
-	od.u = u;
-
-	if (u->vcache.cached_max_speed >= v->vcache.cached_max_speed &&
-			!(u->vehstatus & VS_STOPPED) &&
-			u->cur_speed != 0) {
-		return;
-	}
-
-	/* Trams can't overtake other trams */
+	/* Trams can't overtake, period. */
 	if (v->roadtype == ROADTYPE_TRAM) return;
 
 	/* Don't overtake in stations */
@@ -822,9 +813,18 @@ static void RoadVehCheckOvertake(RoadVehicle *v, RoadVehicle *u)
 	/* Vehicles are not driving in same direction || direction is not a diagonal direction */
 	if (v->direction != u->direction || !(v->direction & 1)) return;
 
-	/* Check if vehicle is in a road stop, depot, tunnel or bridge or not on a straight road */
-	if (v->state >= RVSB_IN_ROAD_STOP || !IsStraightRoadTrackdir((Trackdir)(v->state & RVSB_TRACKDIR_MASK))) return;
+	/* Check if vehicle is on a straight road */
+	if (!IsStraightRoadTrackdir((Trackdir)(v->state))) return;
 
+	if (u->vcache.cached_max_speed >= v->vcache.cached_max_speed &&
+			!(u->vehstatus & VS_STOPPED) &&
+			u->cur_speed != 0) {
+		return;
+	}
+
+	OvertakeData od;
+	od.v = v;
+	od.u = u;
 	od.trackdir = DiagDirToDiagTrackdir(DirToDiagDir(v->direction));
 
 	/* Are the current and the next tile suitable for overtaking?
@@ -836,7 +836,7 @@ static void RoadVehCheckOvertake(RoadVehicle *v, RoadVehicle *u)
 	od.tile = v->tile;
 	if (CheckRoadBlockedForOvertaking(&od)) return;
 
-	od.tile = v->tile + TileOffsByDiagDir(DirToDiagDir(v->direction));
+	od.tile += TileOffsByDiagDir(DirToDiagDir(v->direction));
 	if (CheckRoadBlockedForOvertaking(&od)) return;
 
 	/* When the vehicle in front of us is stopped we may only take
