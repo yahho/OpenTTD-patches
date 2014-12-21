@@ -871,7 +871,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		c->avail_roadtypes = GetCompanyRoadtypes(c->index);
 	}
 
-	if (!IsOTTDSavegameVersionBefore(stv, 27)) AfterLoadStations();
+	if (!IsOTTDSavegameVersionBefore(stv, 27)) UpdateStationSpeclists();
 
 	/* Time starts at 0 instead of 1920.
 	 * Account for this in older games by adding an offset */
@@ -2226,7 +2226,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	}
 
 	/* Road stops is 'only' updating some caches */
-	AfterLoadRoadStops();
+	AfterLoadStations();
 	AfterLoadLabelMaps();
 	AfterLoadCompanyStats();
 	AfterLoadStoryBook(stv);
@@ -2258,7 +2258,7 @@ void ReloadNewGRFData()
 	StartupEngines();
 	GroupStatistics::UpdateAfterLoad();
 	/* update station graphics */
-	AfterLoadStations();
+	UpdateStationSpeclists();
 	/* Update company statistics. */
 	AfterLoadCompanyStats();
 	/* Check and update house and town values */

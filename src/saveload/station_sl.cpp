@@ -106,7 +106,7 @@ void MoveBuoysToWaypoints()
 	}
 }
 
-void AfterLoadStations()
+void UpdateStationSpeclists()
 {
 	/* Update the speclists of all stations to point to the currently loaded custom stations. */
 	BaseStation *st;
@@ -117,22 +117,24 @@ void AfterLoadStations()
 			st->speclist[i].spec = StationClass::GetByGrf(st->speclist[i].grfid, st->speclist[i].localidx, NULL);
 		}
 
+		StationUpdateCachedTriggers(st);
+	}
+}
+
+/** Rebuild road stop caches and station areas after loading a game. */
+void AfterLoadStations()
+{
+	/* Rebuild station areas. */
+	BaseStation *st;
+	FOR_ALL_BASE_STATIONS(st) {
 		if (!st->IsWaypoint()) {
 			Station *sta = Station::From(st);
 			for (const RoadStop *rs = sta->bus_stops; rs != NULL; rs = rs->next) sta->bus_station.Add(rs->xy);
 			for (const RoadStop *rs = sta->truck_stops; rs != NULL; rs = rs->next) sta->truck_station.Add(rs->xy);
 			for (const Dock *d = sta->docks; d != NULL; d = d->next) sta->dock_area.Add(d->xy);
 		}
-
-		StationUpdateCachedTriggers(st);
 	}
-}
 
-/**
- * (Re)building of road stop caches after loading a savegame.
- */
-void AfterLoadRoadStops()
-{
 	/* First construct the drive through entries */
 	RoadStop *rs;
 	FOR_ALL_ROADSTOPS(rs) {
