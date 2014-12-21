@@ -124,9 +124,13 @@ void UpdateStationSpeclists()
 /** Rebuild road stop caches and station areas after loading a game. */
 void AfterLoadStations()
 {
-	/* Rebuild station areas. */
+	/* Rebuild station areas and clamp station sign. */
 	BaseStation *st;
 	FOR_ALL_BASE_STATIONS(st) {
+		/* Old (pre-openttd version 37) savegames could have the
+		 * station sign outside of the station rectangle. */
+		st->xy = st->rect.get_closest_tile (st->xy);
+
 		if (!st->IsWaypoint()) {
 			Station *sta = Station::From(st);
 			for (const RoadStop *rs = sta->bus_stops; rs != NULL; rs = rs->next) sta->bus_station.Add(rs->xy);
