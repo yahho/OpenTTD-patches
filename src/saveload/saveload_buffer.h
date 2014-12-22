@@ -68,12 +68,12 @@ struct LoadBuffer {
 
 	inline bool IsVersionBefore (uint version, uint major = UINT_MAX, uint minor = 0) const
 	{
-		return IsFullSavegameVersionBefore (this->stv, version, major, minor);
+		return this->stv->is_before (version, major, minor);
 	}
 
 	inline bool IsOTTDVersionBefore(uint16 major, byte minor = 0) const
 	{
-		return IsOTTDSavegameVersionBefore(this->stv, major, minor);
+		return this->stv->is_ottd_before (major, minor);
 	}
 
 	void FillBuffer();

@@ -272,7 +272,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 
 		FOR_ALL_VEHICLES(v) {
 			if (v->orders.old != NULL) {
-				if (IsOTTDSavegameVersionBefore(stv, 105)) { // Pre-105 didn't save an OrderList
+				if (stv->is_ottd_before (105)) { // Pre-105 didn't save an OrderList
 					if (mapping[v->orders.old] == NULL) {
 						/* This adds the whole shared vehicle chain for case b */
 
@@ -284,7 +284,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 					} else {
 						v->orders.list = mapping[v->orders.old];
 						/* For old games (case a) we must create the shared vehicle chain */
-						if (IsOTTDSavegameVersionBefore(stv, 5, 2)) {
+						if (stv->is_ottd_before (5, 2)) {
 							v->AddToShared(v->orders.list->GetFirstSharedVehicle());
 						}
 					}
@@ -307,7 +307,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 	}
 
 	if (stv != NULL) {
-		if (IsOTTDSavegameVersionBefore(stv, 105)) {
+		if (stv->is_ottd_before (105)) {
 			/* Before 105 there was no order for shared orders, thus it messed up horribly */
 			FOR_ALL_VEHICLES(v) {
 				if (v->First() != v || v->orders.list != NULL || v->previous_shared != NULL || v->next_shared == NULL) continue;
@@ -321,7 +321,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 			}
 		}
 
-		if (IsOTTDSavegameVersionBefore(stv, 157)) {
+		if (stv->is_ottd_before (157)) {
 			/* The road vehicle subtype was converted to a flag. */
 			RoadVehicle *rv;
 			FOR_ALL_ROADVEHICLES(rv) {
@@ -338,7 +338,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 			}
 		}
 
-		if (IsFullSavegameVersionBefore(stv, 2)) {
+		if (stv->is_before (2)) {
 			/* Shift bits in road vehicle state */
 			RoadVehicle *rv;
 			FOR_ALL_ROADVEHICLES(rv) {
@@ -347,7 +347,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 			}
 		}
 
-		if (IsOTTDSavegameVersionBefore(stv, 160)) {
+		if (stv->is_ottd_before (160)) {
 			/* In some old savegames there might be some "crap" stored. */
 			FOR_ALL_VEHICLES(v) {
 				if (!v->IsPrimaryVehicle() && v->type != VEH_DISASTER) {
@@ -357,7 +357,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 			}
 		}
 
-		if (IsFullSavegameVersionBefore(stv, 4)) {
+		if (stv->is_before (4)) {
 			/* Track is now saved as a trackdir */
 			FOR_ALL_VEHICLES(v) {
 				switch (v->type) {
@@ -378,14 +378,14 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 			}
 		}
 
-		if (IsOTTDSavegameVersionBefore(stv, 162)) {
+		if (stv->is_ottd_before (162)) {
 			/* Set the vehicle-local cargo age counter from the old global counter. */
 			FOR_ALL_VEHICLES(v) {
 				v->cargo_age_counter = _age_cargo_skip_counter;
 			}
 		}
 
-		if (IsOTTDSavegameVersionBefore(stv, 180)) {
+		if (stv->is_ottd_before (180)) {
 			/* Set service interval flags */
 			FOR_ALL_VEHICLES(v) {
 				if (!v->IsPrimaryVehicle()) continue;
@@ -398,7 +398,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 			}
 		}
 
-		if (IsFullSavegameVersionBefore (stv, 23)) {
+		if (stv->is_before (23)) {
 			/* Fix the frame of road vehicles in the middle of a turn. */
 			const RoadDriveEntry *const *rdd = _road_drive_data[_settings_game.vehicle.road_side];
 			RoadVehicle *rv;
@@ -464,7 +464,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 	}
 
 	/* Stop non-front engines */
-	if (stv != NULL && IsOTTDSavegameVersionBefore(stv, 112)) {
+	if (stv != NULL && stv->is_ottd_before (112)) {
 		FOR_ALL_VEHICLES(v) {
 			if (v->type == VEH_TRAIN) {
 				Train *t = Train::From(v);
@@ -477,7 +477,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 			}
 			/* trains weren't stopping gradually in old OTTD versions (and TTO/TTD)
 			 * other vehicle types didn't have zero speed while stopped (even in 'recent' OTTD versions) */
-			if ((v->vehstatus & VS_STOPPED) && (v->type != VEH_TRAIN || IsOTTDSavegameVersionBefore(stv, 2, 1))) {
+			if ((v->vehstatus & VS_STOPPED) && (v->type != VEH_TRAIN || stv->is_ottd_before (2, 1))) {
 				v->cur_speed = 0;
 			}
 		}

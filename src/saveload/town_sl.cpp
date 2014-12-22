@@ -303,7 +303,7 @@ static void Load_TOWN(LoadBuffer *reader)
 static void Ptrs_TOWN(const SavegameTypeVersion *stv)
 {
 	/* Don't run when legacy savegame version lower than 161. */
-	if ((stv != NULL) && IsOTTDSavegameVersionBefore(stv, 161)) return;
+	if ((stv != NULL) && stv->is_ottd_before (161)) return;
 
 	Town *t;
 	FOR_ALL_TOWNS(t) {

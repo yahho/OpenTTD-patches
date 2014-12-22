@@ -373,11 +373,11 @@ static void Load_STNS(LoadBuffer *reader)
 static void Ptrs_STNS(const SavegameTypeVersion *stv)
 {
 	/* Only run when legacy savegame version is less than 123. */
-	if (stv == NULL || !IsOTTDSavegameVersionBefore(stv, 123)) return;
+	if (stv == NULL || !stv->is_ottd_before (123)) return;
 
 	Station *st;
 	FOR_ALL_STATIONS(st) {
-		if (!IsOTTDSavegameVersionBefore(stv, 68)) {
+		if (!stv->is_ottd_before (68)) {
 			for (CargoID i = 0; i < NUM_CARGO; i++) {
 				GoodsEntry *ge = &st->goods[i];
 				SwapPackets(ge);
@@ -568,13 +568,13 @@ static void Load_STNN(LoadBuffer *reader)
 static void Ptrs_STNN(const SavegameTypeVersion *stv)
 {
 	/* Don't run when legacy savegame version lower than 123. */
-	if (stv != NULL && IsOTTDSavegameVersionBefore(stv, 123)) return;
+	if (stv != NULL && stv->is_ottd_before (123)) return;
 
 	Station *st;
 	FOR_ALL_STATIONS(st) {
 		for (CargoID i = 0; i < NUM_CARGO; i++) {
 			GoodsEntry *ge = &st->goods[i];
-			if ((stv != NULL) && IsOTTDSavegameVersionBefore(stv, 183)) {
+			if ((stv != NULL) && stv->is_ottd_before (183)) {
 				SwapPackets(ge);
 				SlObjectPtrs(ge, GetGoodsDesc(), stv);
 				SwapPackets(ge);

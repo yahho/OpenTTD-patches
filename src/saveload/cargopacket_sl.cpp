@@ -20,7 +20,7 @@
  */
 /* static */ void CargoPacket::AfterLoad(const SavegameTypeVersion *stv)
 {
-	if (IsOTTDSavegameVersionBefore(stv, 44)) {
+	if (stv->is_ottd_before (44)) {
 		Vehicle *v;
 		/* If we remove a station while cargo from it is still en route, payment calculation will assume
 		 * 0, 0 to be the source of the cargo, resulting in very high payments usually. v->source_xy
@@ -57,7 +57,7 @@
 		}
 	}
 
-	if (IsOTTDSavegameVersionBefore(stv, 120)) {
+	if (stv->is_ottd_before (120)) {
 		/* CargoPacket's source should be either INVALID_STATION or a valid station */
 		CargoPacket *cp;
 		FOR_ALL_CARGOPACKETS(cp) {
@@ -65,7 +65,7 @@
 		}
 	}
 
-	if (!IsOTTDSavegameVersionBefore(stv, 68)) {
+	if (!stv->is_ottd_before (68)) {
 		/* Only since legacy version 68 we have cargo packets. Savegames from before used
 		 * 'new CargoPacket' + cargolist.Append so their caches are already
 		 * correct and do not need rebuilding. */
@@ -78,7 +78,7 @@
 		}
 	}
 
-	if (IsOTTDSavegameVersionBefore(stv, 181)) {
+	if (stv->is_ottd_before (181)) {
 		Vehicle *v;
 		FOR_ALL_VEHICLES(v) v->cargo.KeepAll();
 	}

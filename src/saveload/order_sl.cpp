@@ -27,7 +27,7 @@ void Order::ConvertFromOldSavegame(const SavegameTypeVersion *stv)
 	this->flags = 0;
 
 	/* First handle non-stop - use value from savegame if possible, else use value from config file */
-	if (_settings_client.gui.sg_new_nonstop || (IsOTTDSavegameVersionBefore(stv, 22) && stv->type != SGT_TTO && stv->type != SGT_TTD && _settings_client.gui.new_nonstop)) {
+	if (_settings_client.gui.sg_new_nonstop || (stv->is_ottd_before (22) && stv->type != SGT_TTO && stv->type != SGT_TTD && _settings_client.gui.new_nonstop)) {
 		/* OFB_NON_STOP */
 		this->SetNonStopType((old_flags & 8) ? ONSF_NO_STOP_AT_ANY_STATION : ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS);
 	} else {
@@ -48,7 +48,7 @@ void Order::ConvertFromOldSavegame(const SavegameTypeVersion *stv)
 			this->SetLoadType(OLF_LOAD_IF_POSSIBLE);
 		} else {
 			/* old OTTD versions stored full_load_any in config file - assume it was enabled when loading */
-			this->SetLoadType(_settings_client.gui.sg_full_load_any || IsOTTDSavegameVersionBefore(stv, 22) ? OLF_FULL_LOAD_ANY : OLFB_FULL_LOAD);
+			this->SetLoadType ((_settings_client.gui.sg_full_load_any || stv->is_ottd_before (22)) ? OLF_FULL_LOAD_ANY : OLFB_FULL_LOAD);
 		}
 
 		if (this->IsType(OT_GOTO_STATION)) this->SetStopLocation(OSL_PLATFORM_FAR_END);
@@ -195,7 +195,7 @@ static void Load_ORDR(LoadBuffer *reader)
 static void Ptrs_ORDR(const SavegameTypeVersion *stv)
 {
 	/* Orders from old savegames have pointers corrected in Load_ORDR */
-	if ((stv != NULL) && IsOTTDSavegameVersionBefore(stv, 5, 2)) return;
+	if ((stv != NULL) && stv->is_ottd_before (5, 2)) return;
 
 	Order *o;
 
@@ -291,7 +291,7 @@ void Load_BKOR(LoadBuffer *reader)
 	} else {
 		/* Note that this chunk will never be loaded in a different
 		 * version that it was saved. */
-		if (!IsCurrentSavegameVersion (reader->stv)) {
+		if (!reader->stv->is_current()) {
 			throw SlCorrupt ("Invalid savegame version");
 		}
 

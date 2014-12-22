@@ -232,7 +232,7 @@ static void Load_LGRS(LoadBuffer *reader)
  */
 void AfterLoadLinkGraphs (const SavegameTypeVersion *stv)
 {
-	if (IsFullSavegameVersionBefore (stv, 20)) {
+	if (stv->is_before (20)) {
 		LinkGraphJob *lgj;
 		FOR_ALL_LINK_GRAPH_JOBS(lgj) {
 			for (NodeID i = 0; i < lgj->Size(); ++i) {

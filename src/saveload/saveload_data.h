@@ -42,46 +42,47 @@ struct SavegameTypeVersion {
 			uint version; ///< savegame version
 		} fttd;
 	};
-};
 
-/**
- * Checks whether the savegame version is older than a given version.
- * @param stv Savegame version to check.
- * @param version Version to check against.
- * @param major Major number of the version to check against, for legacy savegames.
- * @param minor Minor number of the version to check against, ignored if 0, for legacy savegames.
- * @return Savegame version is earlier than the specified version.
- */
-static inline bool IsFullSavegameVersionBefore(const SavegameTypeVersion *stv, uint version, uint major = UINT_MAX, uint minor = 0)
-{
-	switch (stv->type) {
-		default: return major > 0;
-		case SGT_OTTD: return stv->ottd.version < major || (minor > 0 && stv->ottd.version == major && stv->ottd.minor_version < minor);
-		case SGT_FTTD: return stv->fttd.version < version;
+	/**
+	 * Checks whether the savegame version is older than a given version.
+	 * @param version Version to check against.
+	 * @param major Major number of the version to check against, for legacy savegames.
+	 * @param minor Minor number of the version to check against, ignored if 0, for legacy savegames.
+	 * @return Savegame version is earlier than the specified version.
+	 */
+	bool is_before (uint version, uint major = UINT_MAX, uint minor = 0) const
+	{
+		switch (this->type) {
+			default: return major > 0;
+			case SGT_OTTD: return this->ottd.version < major || (minor > 0 && this->ottd.version == major && this->ottd.minor_version < minor);
+			case SGT_FTTD: return this->fttd.version < version;
+		}
 	}
-}
 
-/**
- * Checks whether the savegame version is legacy and older than a given version.
- * @param stv Savegame version to check.
- * @param major Major number of the version to check against.
- * @param minor Minor number of the version to check against, ignored if 0.
- * @return Savegame version is earlier than the specified version.
- */
-static inline bool IsOTTDSavegameVersionBefore(const SavegameTypeVersion *stv, uint16 major, byte minor = 0)
-{
-	return IsFullSavegameVersionBefore(stv, 0, major, minor);
-}
+	/**
+	 * Checks whether the savegame version is legacy and older than a given version.
+	 * @param major Major number of the version to check against.
+	 * @param minor Minor number of the version to check against, ignored if 0.
+	 * @return Savegame version is earlier than the specified version.
+	 */
+	bool is_ottd_before (uint16 major, byte minor = 0) const
+	{
+		switch (this->type) {
+			default: return major > 0;
+			case SGT_OTTD: return this->ottd.version < major || (minor > 0 && this->ottd.version == major && this->ottd.minor_version < minor);
+			case SGT_FTTD: return false;
+		}
+	}
 
-/**
- * Checks whether a given savegame version is the current savegame version.
- * @param stv Savegame version to check.
- */
-static inline bool IsCurrentSavegameVersion (const SavegameTypeVersion *stv)
-{
-	extern const uint16 SAVEGAME_VERSION;
-	return (stv->type == SGT_FTTD) && (stv->fttd.version == SAVEGAME_VERSION);
-}
+	/**
+	 * Checks whether a given savegame version is the current savegame version.
+	 */
+	bool is_current (void) const
+	{
+		extern const uint16 SAVEGAME_VERSION;
+		return (this->type == SGT_FTTD) && (this->fttd.version == SAVEGAME_VERSION);
+	}
+};
 
 
 /**

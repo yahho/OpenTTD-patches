@@ -56,7 +56,7 @@ static void Ptrs_DEPT(const SavegameTypeVersion *stv)
 
 	FOR_ALL_DEPOTS(depot) {
 		SlObjectPtrs(depot, _depot_desc, stv);
-		if ((stv != NULL) && IsOTTDSavegameVersionBefore(stv, 141)) depot->town = Town::Get((size_t)depot->town);
+		if ((stv != NULL) && stv->is_ottd_before (141)) depot->town = Town::Get((size_t)depot->town);
 	}
 }
 
