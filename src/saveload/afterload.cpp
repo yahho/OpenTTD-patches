@@ -554,6 +554,69 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	/* Copy temporary data to Engine pool */
 	CopyTempEngineData();
 
+	if (stv->is_ottd_before (52)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsObjectTile(t) && _mc[t].m5 == OBJECT_STATUE) {
+				_mc[t].m2 = CalcClosestTownFromTile(t)->index;
+			}
+		}
+	}
+
+	/* Count objects, and delete stale objects in old versions. */
+	AfterLoadObjects(stv);
+
+	if (stv->is_ottd_before (147) && Object::GetNumItems() == 0) {
+		/* Make real objects for object tiles. */
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (!IsObjectTile(t)) continue;
+
+			if (Town::GetNumItems() == 0) {
+				/* No towns, so remove all objects! */
+				DoClearSquare(t);
+			} else {
+				uint offset = _mc[t].m4;
+				_mc[t].m4 = 0;
+
+				if (offset == 0) {
+					/* No offset, so make the object. */
+					ObjectType type = _mc[t].m5;
+					int size = type == OBJECT_HQ ? 2 : 1;
+
+					if (!Object::CanAllocateItem()) {
+						/* Nice... you managed to place 64k lighthouses and
+						 * antennae on the map... boohoo. */
+						throw SlException(STR_ERROR_TOO_MANY_OBJECTS);
+					}
+
+					Object *o = new Object();
+					o->location.tile = t;
+					o->location.w    = size;
+					o->location.h    = size;
+					o->build_date    = _date;
+					o->town          = type == OBJECT_STATUE ? Town::Get(_mc[t].m2) : CalcClosestTownFromTile(t);
+					_mc[t].m2 = o->index;
+					Object::IncTypeCount(type);
+				} else {
+					/* We're at an offset, so get the ID from our "root". */
+					TileIndex northern_tile = t - TileXY(GB(offset, 0, 4), GB(offset, 4, 4));
+					assert(IsObjectTile(northern_tile));
+					_mc[t].m2 = _mc[northern_tile].m2;
+				}
+			}
+		}
+	}
+
+	if (stv->is_before (11, 186)) {
+		/* Move ObjectType from map to pool */
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsObjectTile(t)) {
+				Object *o = Object::Get(_mc[t].m2);
+				o->type = _mc[t].m5;
+				_mc[t].m5 = 0; // zero upper bits of (now bigger) ObjectID
+			}
+		}
+	}
+
 	/* Connect front and rear engines of multiheaded trains and converts
 	 * subtype to the new format */
 	if (stv->is_ottd_before (17, 1)) ConvertOldMultiheadToNew();
@@ -1006,14 +1069,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 
 	if (stv->is_ottd_before (49)) FOR_ALL_COMPANIES(c) c->face = ConvertFromOldCompanyManagerFace(c->face);
 
-	if (stv->is_ottd_before (52)) {
-		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsObjectTile(t) && _mc[t].m5 == OBJECT_STATUE) {
-				_mc[t].m2 = CalcClosestTownFromTile(t)->index;
-			}
-		}
-	}
-
 	/* A setting containing the proportion of towns that grow twice as
 	 * fast was added in legacy version 54. From version 56 this is now saved in the
 	 * town as cities can be built specifically in the scenario editor. */
@@ -1318,50 +1373,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		FOR_ALL_TOWNS(t) {
 			if (t->have_ratings == 0xFF) t->have_ratings = 0xFFFF;
 			for (uint i = 8; i != MAX_COMPANIES; i++) t->ratings[i] = RATING_INITIAL;
-		}
-	}
-
-	/* Count objects, and delete stale objects in old versions. */
-	AfterLoadObjects(stv);
-
-	if (stv->is_ottd_before (147) && Object::GetNumItems() == 0) {
-		/* Make real objects for object tiles. */
-		for (TileIndex t = 0; t < map_size; t++) {
-			if (!IsObjectTile(t)) continue;
-
-			if (Town::GetNumItems() == 0) {
-				/* No towns, so remove all objects! */
-				DoClearSquare(t);
-			} else {
-				uint offset = _mc[t].m4;
-				_mc[t].m4 = 0;
-
-				if (offset == 0) {
-					/* No offset, so make the object. */
-					ObjectType type = _mc[t].m5;
-					int size = type == OBJECT_HQ ? 2 : 1;
-
-					if (!Object::CanAllocateItem()) {
-						/* Nice... you managed to place 64k lighthouses and
-						 * antennae on the map... boohoo. */
-						throw SlException(STR_ERROR_TOO_MANY_OBJECTS);
-					}
-
-					Object *o = new Object();
-					o->location.tile = t;
-					o->location.w    = size;
-					o->location.h    = size;
-					o->build_date    = _date;
-					o->town          = type == OBJECT_STATUE ? Town::Get(_mc[t].m2) : CalcClosestTownFromTile(t);
-					_mc[t].m2 = o->index;
-					Object::IncTypeCount(type);
-				} else {
-					/* We're at an offset, so get the ID from our "root". */
-					TileIndex northern_tile = t - TileXY(GB(offset, 0, 4), GB(offset, 4, 4));
-					assert(IsObjectTile(northern_tile));
-					_mc[t].m2 = _mc[northern_tile].m2;
-				}
-			}
 		}
 	}
 
@@ -2204,17 +2215,6 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsHouseTile(t) && GetHouseType(t) < NEW_HOUSE_OFFSET) {
 				SB(_mc[t].m7, 0, 4, GB(_mc[t].m7, 1, 3) | (GB(_mc[t].m7, 0, 1) << 3));
-			}
-		}
-	}
-
-	if (stv->is_before (11, 186)) {
-		/* Move ObjectType from map to pool */
-		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsObjectTile(t)) {
-				Object *o = Object::Get(_mc[t].m2);
-				o->type = _mc[t].m5;
-				_mc[t].m5 = 0; // zero upper bits of (now bigger) ObjectID
 			}
 		}
 	}
