@@ -554,16 +554,16 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	/* Copy temporary data to Engine pool */
 	CopyTempEngineData();
 
-	if (stv->is_ottd_before (52)) {
-		for (TileIndex t = 0; t < map_size; t++) {
-			if (IsObjectTile(t) && _mc[t].m5 == OBJECT_STATUE) {
-				_mc[t].m2 = CalcClosestTownFromTile(t)->index;
+	/* Delete stale objects in old versions. */
+	if (stv->is_ottd_before (148)) {
+		Object *o;
+		FOR_ALL_OBJECTS(o) {
+			if (!IsObjectTile(o->location.tile)) {
+				/* Due to a small bug stale objects could remain. */
+				delete o;
 			}
 		}
 	}
-
-	/* Count objects, and delete stale objects in old versions. */
-	AfterLoadObjects(stv);
 
 	if (stv->is_ottd_before (147) && Object::GetNumItems() == 0) {
 		/* Make real objects for object tiles. */
@@ -588,25 +588,29 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 						throw SlException(STR_ERROR_TOO_MANY_OBJECTS);
 					}
 
+
 					Object *o = new Object();
+					o->type          = type;
 					o->location.tile = t;
 					o->location.w    = size;
 					o->location.h    = size;
 					o->build_date    = _date;
-					o->town          = type == OBJECT_STATUE ? Town::Get(_mc[t].m2) : CalcClosestTownFromTile(t);
+					o->town          = (type != OBJECT_STATUE) || stv->is_ottd_before (52) ?
+							CalcClosestTownFromTile(t) : Town::Get(_mc[t].m2);
 					_mc[t].m2 = o->index;
+					_mc[t].m5 = 0; // zero upper bits of (now bigger) ObjectID
 					Object::IncTypeCount(type);
 				} else {
 					/* We're at an offset, so get the ID from our "root". */
 					TileIndex northern_tile = t - TileXY(GB(offset, 0, 4), GB(offset, 4, 4));
 					assert(IsObjectTile(northern_tile));
 					_mc[t].m2 = _mc[northern_tile].m2;
+					_mc[t].m5 = 0; // zero upper bits of (now bigger) ObjectID
 				}
 			}
 		}
-	}
 
-	if (stv->is_before (11, 186)) {
+	} else if (stv->is_before (11, 186)) {
 		/* Move ObjectType from map to pool */
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsObjectTile(t)) {

@@ -57,17 +57,6 @@ static void Ptrs_OBJS(const SavegameTypeVersion *stv)
 	}
 }
 
-void AfterLoadObjects(const SavegameTypeVersion *stv)
-{
-	Object *o;
-	FOR_ALL_OBJECTS(o) {
-		if ((stv != NULL) && stv->is_ottd_before (148) && !IsObjectTile(o->location.tile)) {
-			/* Due to a small bug stale objects could remain. */
-			delete o;
-		}
-	}
-}
-
 static void Save_OBID(SaveDumper *dumper)
 {
 	Save_NewGRFMapping(dumper, _object_mngr);
