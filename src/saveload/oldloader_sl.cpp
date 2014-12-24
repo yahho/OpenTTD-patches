@@ -239,15 +239,11 @@ void FixOldVehicles(const SavegameTypeVersion *stv)
 		v->name = CopyFromOldName(stv, _old_vehicle_names[v->index]);
 
 		/* We haven't used this bit for stations for ages */
-		if (v->type == VEH_ROAD) {
+		if ((v->type == VEH_ROAD) && (IsOldTileType (v->tile, OLD_MP_STATION))) {
 			RoadVehicle *rv = RoadVehicle::From(v);
-			if (rv->state != RVSB_IN_DEPOT && rv->state != RVSB_WORMHOLE) {
-				ClrBit(rv->state, 2);
-				if (IsOldTileType(rv->tile, OLD_MP_STATION) && _mc[rv->tile].m5 >= 168) {
-					/* Update the vehicle's road state to show we're in a drive through road stop. */
-					SetBit(rv->state, 6);
-				}
-			}
+			ClrBit (rv->state, 2);
+			/* Update the vehicle's road state to show we're in a drive through road stop. */
+			if (_mc[rv->tile].m5 >= 168) SetBit (rv->state, 6);
 		}
 
 		/* The subtype should be 0, but it sometimes isn't :( */
