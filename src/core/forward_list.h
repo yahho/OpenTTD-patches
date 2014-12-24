@@ -312,7 +312,7 @@ private:
 		if (r == NULL) return NULL;
 		*p = Base::get_next (r);
 		if (Tail && *p == NULL) {
-			assert (Base::find_tail() == p);
+			assert (Base::find_tail() == Base::get_next_addr (r));
 			Base::set_tail (p);
 		}
 		Base::set_next (r, NULL);
