@@ -110,66 +110,66 @@ static const DrawRoadTileStruct _roadside_nothing[] = {
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_3[] = {
+static const DrawRoadTileStruct _roadside_lamps_w[] = {
 	MAKELINE(0x57f,  1,  8)
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_5[] = {
+static const DrawRoadTileStruct _roadside_lamps_y[] = {
 	MAKELINE(0x57f,  1,  8)
 	MAKELINE(0x57e, 14,  8)
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_6[] = {
+static const DrawRoadTileStruct _roadside_lamps_s[] = {
 	MAKELINE(0x57e,  8,  1)
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_7[] = {
+static const DrawRoadTileStruct _roadside_lamps_3sw[] = {
 	MAKELINE(0x57f,  1,  8)
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_9[] = {
+static const DrawRoadTileStruct _roadside_lamps_n[] = {
 	MAKELINE(0x57f,  8, 14)
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_10[] = {
+static const DrawRoadTileStruct _roadside_lamps_x[] = {
 	MAKELINE(0x57f,  8, 14)
 	MAKELINE(0x57e,  8,  1)
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_11[] = {
+static const DrawRoadTileStruct _roadside_lamps_3nw[] = {
 	MAKELINE(0x57f,  8, 14)
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_12[] = {
+static const DrawRoadTileStruct _roadside_lamps_e[] = {
 	MAKELINE(0x57e,  8,  1)
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_13[] = {
+static const DrawRoadTileStruct _roadside_lamps_3ne[] = {
 	MAKELINE(0x57e, 14,  8)
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_14[] = {
+static const DrawRoadTileStruct _roadside_lamps_3se[] = {
 	MAKELINE(0x57e,  8,  1)
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_19[] = {
+static const DrawRoadTileStruct _roadside_trees_w[] = {
 	MAKELINE(0x1212,  0,  2)
 	MAKELINE(0x1212,  3,  9)
 	MAKELINE(0x1212, 10, 12)
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_21[] = {
+static const DrawRoadTileStruct _roadside_trees_y[] = {
 	MAKELINE(0x1212,  0,  2)
 	MAKELINE(0x1212,  0, 10)
 	MAKELINE(0x1212, 12,  2)
@@ -177,27 +177,27 @@ static const DrawRoadTileStruct _road_display_datas2_21[] = {
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_22[] = {
+static const DrawRoadTileStruct _roadside_trees_s[] = {
 	MAKELINE(0x1212, 10,  0)
 	MAKELINE(0x1212,  3,  3)
 	MAKELINE(0x1212,  0, 10)
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_23[] = {
+static const DrawRoadTileStruct _roadside_trees_3sw[] = {
 	MAKELINE(0x1212,  0,  2)
 	MAKELINE(0x1212,  0, 10)
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_25[] = {
+static const DrawRoadTileStruct _roadside_trees_n[] = {
 	MAKELINE(0x1212, 12,  2)
 	MAKELINE(0x1212,  9,  9)
 	MAKELINE(0x1212,  2, 12)
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_26[] = {
+static const DrawRoadTileStruct _roadside_trees_x[] = {
 	MAKELINE(0x1212,  2,  0)
 	MAKELINE(0x1212, 10,  0)
 	MAKELINE(0x1212,  2, 12)
@@ -205,26 +205,26 @@ static const DrawRoadTileStruct _road_display_datas2_26[] = {
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_27[] = {
+static const DrawRoadTileStruct _roadside_trees_3nw[] = {
 	MAKELINE(0x1212,  2, 12)
 	MAKELINE(0x1212, 10, 12)
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_28[] = {
+static const DrawRoadTileStruct _roadside_trees_e[] = {
 	MAKELINE(0x1212,  2,  0)
 	MAKELINE(0x1212,  9,  3)
 	MAKELINE(0x1212, 12, 10)
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_29[] = {
+static const DrawRoadTileStruct _roadside_trees_3ne[] = {
 	MAKELINE(0x1212, 12,  2)
 	MAKELINE(0x1212, 12, 10)
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _road_display_datas2_30[] = {
+static const DrawRoadTileStruct _roadside_trees_3se[] = {
 	MAKELINE(0x1212,  2, 0)
 	MAKELINE(0x1212, 10, 0)
 	ENDLINE
@@ -233,7 +233,7 @@ static const DrawRoadTileStruct _road_display_datas2_30[] = {
 #undef MAKELINE
 #undef ENDLINE
 
-static const DrawRoadTileStruct * const _roadside_none[] = {
+static const DrawRoadTileStruct * const _roadside_none[16] = {
 	_roadside_nothing, _roadside_nothing,
 	_roadside_nothing, _roadside_nothing,
 	_roadside_nothing, _roadside_nothing,
@@ -244,43 +244,42 @@ static const DrawRoadTileStruct * const _roadside_none[] = {
 	_roadside_nothing, _roadside_nothing
 };
 
-static const DrawRoadTileStruct * const _roadside_lamps[] = {
-	_roadside_nothing,
-	_roadside_nothing,
-	_roadside_nothing,
-	_road_display_datas2_3,
-	_roadside_nothing,
-	_road_display_datas2_5,
-	_road_display_datas2_6,
-	_road_display_datas2_7,
-	_roadside_nothing,
-	_road_display_datas2_9,
-	_road_display_datas2_10,
-	_road_display_datas2_11,
-	_road_display_datas2_12,
-	_road_display_datas2_13,
-	_road_display_datas2_14,
-	_roadside_nothing,
+static const DrawRoadTileStruct * const _roadside_lamps[16] = {
+	_roadside_nothing,      // ROAD_NONE
+	_roadside_nothing,      // ROAD_NW
+	_roadside_nothing,      // ROAD_SW
+	_roadside_lamps_w,      // ROAD_W
+	_roadside_nothing,      // ROAD_SE
+	_roadside_lamps_y,      // ROAD_Y
+	_roadside_lamps_s,      // ROAD_S
+	_roadside_lamps_3sw,    // ROAD_NW | ROAD_SW | ROAD_SE
+	_roadside_nothing,      // ROAD_NE
+	_roadside_lamps_n,      // ROAD_N
+	_roadside_lamps_x,      // ROAD_X
+	_roadside_lamps_3nw,    // ROAD_NW | ROAD_SW | ROAD_NE
+	_roadside_lamps_e,      // ROAD_E
+	_roadside_lamps_3ne,    // ROAD_NW | ROAD_SE | ROAD_NE
+	_roadside_lamps_3se,    // ROAD_SW | ROAD_SE | ROAD_NE
+	_roadside_nothing,      // ROAD_ALL
 };
 
-static const DrawRoadTileStruct * const _roadside_trees[] = {
-	_roadside_nothing,
-	_roadside_nothing,
-	_roadside_nothing,
-	_road_display_datas2_19,
-	_roadside_nothing,
-	_road_display_datas2_21,
-	_road_display_datas2_22,
-	_road_display_datas2_23,
-
-	_roadside_nothing,
-	_road_display_datas2_25,
-	_road_display_datas2_26,
-	_road_display_datas2_27,
-	_road_display_datas2_28,
-	_road_display_datas2_29,
-	_road_display_datas2_30,
-	_roadside_nothing,
+static const DrawRoadTileStruct * const _roadside_trees[16] = {
+	_roadside_nothing,      // ROAD_NONE
+	_roadside_nothing,      // ROAD_NW
+	_roadside_nothing,      // ROAD_SW
+	_roadside_trees_w,      // ROAD_W
+	_roadside_nothing,      // ROAD_SE
+	_roadside_trees_y,      // ROAD_Y
+	_roadside_trees_s,      // ROAD_S
+	_roadside_trees_3sw,    // ROAD_NW | ROAD_SW | ROAD_SE
+	_roadside_nothing,      // ROAD_NE
+	_roadside_trees_n,      // ROAD_N
+	_roadside_trees_x,      // ROAD_X
+	_roadside_trees_3nw,    // ROAD_NW | ROAD_SW | ROAD_NE
+	_roadside_trees_e,      // ROAD_E
+	_roadside_trees_3ne,    // ROAD_NW | ROAD_SE | ROAD_NE
+	_roadside_trees_3se,    // ROAD_SW | ROAD_SE | ROAD_NE
+	_roadside_nothing,      // ROAD_ALL
 };
 
 const DrawRoadTileStruct * const * const _road_display_table[] = {
