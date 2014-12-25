@@ -110,55 +110,35 @@ static const DrawRoadTileStruct _roadside_nothing[] = {
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _roadside_lamps_w[] = {
-	MAKELINE(0x57f,  1,  8)
+static const DrawRoadTileStruct _roadside_lamps_ne[] = {
+	MAKELINE(0x57f,  1,  8) // lamp at ne side
+	ENDLINE
+};
+
+static const DrawRoadTileStruct _roadside_lamps_sw[] = {
+	MAKELINE(0x57e, 14,  8) // lamp at sw side
 	ENDLINE
 };
 
 static const DrawRoadTileStruct _roadside_lamps_y[] = {
-	MAKELINE(0x57f,  1,  8)
-	MAKELINE(0x57e, 14,  8)
+	MAKELINE(0x57f,  1,  8) // lamp at ne side
+	MAKELINE(0x57e, 14,  8) // lamp at sw side
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _roadside_lamps_s[] = {
-	MAKELINE(0x57e,  8,  1)
+static const DrawRoadTileStruct _roadside_lamps_nw[] = {
+	MAKELINE(0x57e,  8,  1) // lamp at nw side
 	ENDLINE
 };
 
-static const DrawRoadTileStruct _roadside_lamps_3sw[] = {
-	MAKELINE(0x57f,  1,  8)
-	ENDLINE
-};
-
-static const DrawRoadTileStruct _roadside_lamps_n[] = {
-	MAKELINE(0x57f,  8, 14)
+static const DrawRoadTileStruct _roadside_lamps_se[] = {
+	MAKELINE(0x57f,  8, 14) // lamp at se side
 	ENDLINE
 };
 
 static const DrawRoadTileStruct _roadside_lamps_x[] = {
-	MAKELINE(0x57f,  8, 14)
-	MAKELINE(0x57e,  8,  1)
-	ENDLINE
-};
-
-static const DrawRoadTileStruct _roadside_lamps_3nw[] = {
-	MAKELINE(0x57f,  8, 14)
-	ENDLINE
-};
-
-static const DrawRoadTileStruct _roadside_lamps_e[] = {
-	MAKELINE(0x57e,  8,  1)
-	ENDLINE
-};
-
-static const DrawRoadTileStruct _roadside_lamps_3ne[] = {
-	MAKELINE(0x57e, 14,  8)
-	ENDLINE
-};
-
-static const DrawRoadTileStruct _roadside_lamps_3se[] = {
-	MAKELINE(0x57e,  8,  1)
+	MAKELINE(0x57f,  8, 14) // lamp at se side
+	MAKELINE(0x57e,  8,  1) // lamp at nw side
 	ENDLINE
 };
 
@@ -248,18 +228,18 @@ static const DrawRoadTileStruct * const _roadside_lamps[16] = {
 	_roadside_nothing,      // ROAD_NONE
 	_roadside_nothing,      // ROAD_NW
 	_roadside_nothing,      // ROAD_SW
-	_roadside_lamps_w,      // ROAD_W
+	_roadside_lamps_ne,     // ROAD_W
 	_roadside_nothing,      // ROAD_SE
 	_roadside_lamps_y,      // ROAD_Y
-	_roadside_lamps_s,      // ROAD_S
-	_roadside_lamps_3sw,    // ROAD_NW | ROAD_SW | ROAD_SE
+	_roadside_lamps_nw,     // ROAD_S
+	_roadside_lamps_ne,     // ROAD_NW | ROAD_SW | ROAD_SE
 	_roadside_nothing,      // ROAD_NE
-	_roadside_lamps_n,      // ROAD_N
+	_roadside_lamps_se,     // ROAD_N
 	_roadside_lamps_x,      // ROAD_X
-	_roadside_lamps_3nw,    // ROAD_NW | ROAD_SW | ROAD_NE
-	_roadside_lamps_e,      // ROAD_E
-	_roadside_lamps_3ne,    // ROAD_NW | ROAD_SE | ROAD_NE
-	_roadside_lamps_3se,    // ROAD_SW | ROAD_SE | ROAD_NE
+	_roadside_lamps_se,     // ROAD_NW | ROAD_SW | ROAD_NE
+	_roadside_lamps_nw,     // ROAD_E
+	_roadside_lamps_sw,     // ROAD_NW | ROAD_SE | ROAD_NE
+	_roadside_lamps_nw,     // ROAD_SW | ROAD_SE | ROAD_NE
 	_roadside_nothing,      // ROAD_ALL
 };
 
