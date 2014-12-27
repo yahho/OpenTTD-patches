@@ -951,7 +951,7 @@ static CommandCost FindJoiningBaseStation (BaseStation **pst, TileArea ta,
 		st = BaseStation::Get (existing_station);
 		assert (st->IsWaypoint() == waypoint);
 		need_link = false;
-		avoid_other = !adjacent || !_settings_game.station.adjacent_stations;
+		avoid_other = !_settings_game.station.adjacent_stations;
 	} else if (!adjacent) {
 		/* join adjacent station if unique, else error out */
 		st = NULL;
