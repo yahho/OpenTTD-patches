@@ -1717,7 +1717,8 @@ static bool controller_front (RoadVehicle *v)
 			[v->state][v->frame + 1];
 
 	if (rd.x == RDE_NEXT_TILE) {
-		return controller_front_next_tile (v, (DiagDirection)(rd.y), true);
+		return controller_front_next_tile (v, (DiagDirection)(rd.y),
+				!IsRoadTile(v->tile) || !IsTileSubtype (v->tile, TT_TRACK) || GetDisallowedRoadDirections(v->tile) == DRD_NONE);
 	}
 
 	if (rd.x == RDE_TURNED) {
