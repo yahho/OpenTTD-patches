@@ -20,12 +20,18 @@ struct CYapfRoadNodeT
 {
 	typedef CYapfNodeT<Tkey_, CYapfRoadNodeT<Tkey_> > base;
 
-	RoadPathPos m_segment_last;
+	PathMPos<RoadPathPos> m_next; ///< next pos after segment end, invalid if this segment is a dead end
 
 	void Set(CYapfRoadNodeT *parent, const RoadPathPos &pos)
 	{
 		base::Set(parent, pos);
-		m_segment_last = pos;
+		m_next = PathMPos<RoadPathPos>();
+	}
+
+	void Set (CYapfRoadNodeT *parent, const RoadPathPos &pos, const PathMPos<RoadPathPos> &next)
+	{
+		base::Set(parent, pos);
+		m_next.set (next);
 	}
 };
 
@@ -150,21 +156,24 @@ public:
 	/** Called by the A-star underlying class to find the neighbours of a node. */
 	inline void Follow (Node *old_node)
 	{
-		if (!tf.Follow(old_node->m_segment_last)) return;
+		/* Previous segment is a dead end? */
+		if (!old_node->m_next.is_valid()) return;
 
-		uint initial_skipped_tiles = tf.m_tiles_skipped;
-		RoadPathPos pos = tf.m_new;
-		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
+		assert (!old_node->m_next.is_empty());
+
+		RoadPathPos pos (old_node->m_next);
+		TileIndex last_tile;
+		DiagDirection last_dir;
+
+		for (TrackdirBits rtds = old_node->m_next.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.set_trackdir (FindFirstTrackdir(rtds));
 			Node *n = TAstar::CreateNewNode(old_node, pos);
 
-			uint tiles = initial_skipped_tiles;
-			int segment_cost = tiles * YAPF_TILE_LENGTH;
-
 			/* start at pos and walk to the end of segment */
-			n->m_segment_last = pos;
 			tf.SetPos (pos);
 
+			int segment_cost = 0;
+			uint tiles = 0;
 			bool is_target = false;
 			for (;;) {
 				/* base tile cost depending on distance between edges */
@@ -172,6 +181,7 @@ public:
 
 				/* we have reached the vehicle's destination - segment should end here to avoid target skipping */
 				if (IsDestination(tf.m_new)) {
+					n->m_next = tf.m_new;
 					is_target = true;
 					break;
 				}
@@ -179,14 +189,18 @@ public:
 				/* stop if we have just entered the depot */
 				if (IsRoadDepotTile(tf.m_new.tile) && tf.m_new.td == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(tf.m_new.tile)))) {
 					/* next time we will reverse and leave the depot */
+					n->m_next.set (tf.m_new.tile, ReverseTrackdir (tf.m_new.td));
+					last_tile = tf.m_new.tile;
+					last_dir = ReverseDiagDir (GetGroundDepotDirection (tf.m_new.tile));
 					break;
 				}
 
 				/* if there are no reachable trackdirs on new tile, we have end of road */
-				if (!tf.FollowNext()) break;
-
-				/* if there are more trackdirs available & reachable, we are at the end of segment */
-				if (!tf.m_new.is_single()) break;
+				if (!tf.FollowNext()) {
+					last_tile = tf.m_old.tile;
+					last_dir = TrackdirToExitdir (tf.m_old.td);
+					break;
+				}
 
 				/* stop if RV is on simple loop with no junctions */
 				if (tf.m_new == pos) return;
@@ -200,9 +214,15 @@ public:
 				int max_speed = tf.GetSpeedLimit();
 				if (max_speed < max_veh_speed) segment_cost += 1 * (max_veh_speed - max_speed);
 
+				/* if there are more trackdirs available & reachable, we are at the end of segment */
+				if (!tf.m_new.is_single() || tiles > MAX_MAP_SIZE) {
+					n->m_next = tf.m_new;
+					last_dir = tf.m_exitdir;
+					last_tile = TileAddByDiagDir (tf.m_new.tile, ReverseDiagDir (last_dir));
+					break;
+				}
+
 				/* move to the next tile */
-				n->m_segment_last = tf.m_new;
-				if (tiles > MAX_MAP_SIZE) break;
 			}
 
 			/* save also tile cost */
@@ -216,7 +236,7 @@ public:
 				if (m_dest_tile == INVALID_TILE) {
 					n->m_estimate = n->m_cost;
 				} else {
-					n->m_estimate = n->m_cost + YapfCalcEstimate (n->m_segment_last, m_dest_tile);
+					n->m_estimate = n->m_cost + YapfCalcEstimate (last_tile, last_dir, m_dest_tile);
 					assert(n->m_estimate >= old_node->m_estimate);
 				}
 
@@ -272,29 +292,26 @@ static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, TrackdirBi
 {
 	Tpf pf (v);
 
-	/* set origin nodes */
-	RoadPathPos pos;
-	pos.tile = tile;
-	for (TrackdirBits tdb = trackdirs; tdb != TRACKDIR_BIT_NONE; tdb = KillFirstBit(tdb)) {
-		pos.set_trackdir (FindFirstTrackdir(tdb));
-		pf.InsertInitialNode (pf.CreateNewNode (NULL, pos));
-	}
+	/* set origin node */
+	pf.InsertInitialNode (pf.CreateNewNode (NULL, RoadPathPos(),
+			PathMPos<RoadPathPos> (tile, trackdirs)));
 
 	/* find the best path */
 	path_found = pf.FindPath();
 
 	/* if path not found - return INVALID_TRACKDIR */
 	typename Tpf::Node *n = pf.GetBestNode();
-	if (n == NULL) return INVALID_TRACKDIR;
+	if ((n == NULL) || (n->m_parent == NULL)) return INVALID_TRACKDIR;
 
 	/* path was found or at least suggested
 	 * walk through the path back to its origin */
-	while (n->m_parent != NULL) {
+	while (n->m_parent->m_parent != NULL) {
 		n = n->m_parent;
 	}
 
-	/* return trackdir from the best origin node (one of start nodes) */
-	assert(n->GetPos().tile == tile);
+	/* return trackdir from the best origin node */
+	assert (!n->m_parent->GetPos().is_valid());
+	assert (n->GetPos().tile == tile);
 	return n->GetPos().td;
 }
 
@@ -337,17 +354,11 @@ static TileIndex FindNearestDepot(const RoadVehicle *v, int max_distance)
 			/* on a bridge */
 			TrackdirBits trackdirs = TrackStatusToTrackdirBits(GetTileRoadStatus (v->tile, v->compatible_roadtypes)) & DiagdirReachesTrackdirs(DirToDiagDir(v->direction));
 			assert (trackdirs != TRACKDIR_BIT_NONE);
-			RoadPathPos pos;
-			pos.set_tile (v->tile);
-			while (trackdirs != TRACKDIR_BIT_NONE) {
-				pos.set_trackdir (FindFirstTrackdir (trackdirs));
-				pf.InsertInitialNode (pf.CreateNewNode (NULL, pos));
-				trackdirs = KillFirstBit (trackdirs);
-			}
+			pf.InsertInitialNode (pf.CreateNewNode (NULL, RoadPathPos(), PathMPos<RoadPathPos> (v->tile, trackdirs)));
 		} else {
 			/* in a tunnel */
 			Trackdir td = DiagDirToDiagTrackdir(DirToDiagDir(v->direction));
-			pf.InsertInitialNode (pf.CreateNewNode (NULL, RoadPathPos (v->tile, td)));
+			pf.InsertInitialNode (pf.CreateNewNode (NULL, RoadPathPos(), PathMPos<RoadPathPos> (v->tile, td)));
 		}
 	} else {
 		Trackdir td;
@@ -368,12 +379,11 @@ static TileIndex FindNearestDepot(const RoadVehicle *v, int max_distance)
 			td = (Trackdir)((IsReversingRoadTrackdir((Trackdir)v->state)) ? (v->state - 6) : v->state);
 		}
 
-		RoadPathPos pos (v->tile, td);
-		if ((TrackStatusToTrackdirBits(GetTileRoadStatus(pos.tile, v->compatible_roadtypes)) & TrackdirToTrackdirBits(pos.td)) == 0) {
+		if ((TrackStatusToTrackdirBits (GetTileRoadStatus (v->tile, v->compatible_roadtypes)) & TrackdirToTrackdirBits (td)) == 0) {
 			return INVALID_TILE;
 		}
 
-		pf.InsertInitialNode (pf.CreateNewNode (NULL, pos));
+		pf.InsertInitialNode (pf.CreateNewNode (NULL, RoadPathPos(), PathMPos<RoadPathPos> (v->tile, td)));
 	}
 
 	/* find the best path */
@@ -384,7 +394,9 @@ static TileIndex FindNearestDepot(const RoadVehicle *v, int max_distance)
 
 	if (max_distance > 0 && n->m_cost > max_distance) return INVALID_TILE;
 
-	return n->m_segment_last.tile;
+	assert (IsRoadDepotTile (n->m_next.tile));
+
+	return n->m_next.tile;
 }
 
 TileIndex YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_distance)
