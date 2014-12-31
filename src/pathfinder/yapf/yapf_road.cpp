@@ -38,21 +38,6 @@ typedef Astar<CYapfRoadNodeExitDir , 8, 10> AstarRoadExitDir;
 typedef Astar<CYapfRoadNodeTrackDir, 8, 10> AstarRoadTrackDir;
 
 
-static int SlopeCost(const YAPFSettings *settings, TileIndex tile, TileIndex next)
-{
-	/* height of the center of the current tile */
-	int x1 = TileX(tile) * TILE_SIZE;
-	int y1 = TileY(tile) * TILE_SIZE;
-	int z1 = GetSlopePixelZ(x1 + TILE_SIZE / 2, y1 + TILE_SIZE / 2);
-
-	/* height of the center of the next tile */
-	int x2 = TileX(next) * TILE_SIZE;
-	int y2 = TileY(next) * TILE_SIZE;
-	int z2 = GetSlopePixelZ(x2 + TILE_SIZE / 2, y2 + TILE_SIZE / 2);
-
-	return (z2 - z1 > 1) ? settings->road_slope_penalty : 0;
-}
-
 /** return one tile cost */
 static int OneTileCost(const YAPFSettings *settings, const RoadPathPos &pos)
 {
@@ -89,6 +74,16 @@ static int OneTileCost(const YAPFSettings *settings, const RoadPathPos &pos)
 
 			default:
 				break;
+		}
+
+		/* add slope cost */
+		int x = TileX (pos.tile) * TILE_SIZE + TILE_SIZE / 2;
+		int y = TileY (pos.tile) * TILE_SIZE + TILE_SIZE / 2;
+		CoordDiff diff = CoordDiffByDiagDir (TrackdirToExitdir (pos.td));
+		diff.x *= TILE_SIZE / 4;
+		diff.y *= TILE_SIZE / 4;
+		if ((GetSlopePixelZ (x + diff.x, y + diff.y) - GetSlopePixelZ (x - diff.x, y - diff.y)) > 1) {
+			cost += settings->road_slope_penalty;
 		}
 	} else {
 		/* non-diagonal trackdir */
@@ -199,10 +194,6 @@ public:
 				/* if we skipped some tunnel tiles, add their cost */
 				segment_cost += tf.m_tiles_skipped * YAPF_TILE_LENGTH;
 				tiles += tf.m_tiles_skipped + 1;
-
-				/* add hilly terrain penalty */
-				assert (!tf.m_new.in_wormhole());
-				segment_cost += SlopeCost(m_settings, tf.m_old.tile, tf.m_new.tile);
 
 				/* add max speed penalty */
 				int max_veh_speed = m_veh->GetDisplayMaxSpeed();
