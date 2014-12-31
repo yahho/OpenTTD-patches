@@ -181,6 +181,21 @@ template <class BasePos>
 struct PathMPos : BasePos {
 	TrackdirBits trackdirs;
 
+	/** Create an empty PathMPos */
+	PathMPos() : BasePos(), trackdirs(TRACKDIR_BIT_NONE) { }
+
+	/** Create a PathMPos for a given tile and trackdir */
+	PathMPos (TileIndex t, Trackdir d)
+		: BasePos (t, d), trackdirs (TrackdirToTrackdirBits (d)) { }
+
+	/** Create a PathMPos for a given tile and trackdirs */
+	PathMPos (TileIndex t, TrackdirBits s)
+		: BasePos (t, HasExactlyOneBit(s) ? FindFirstTrackdir(s) : INVALID_TRACKDIR), trackdirs (s) { }
+
+	/** Create a PathMPos in a wormhole */
+	PathMPos (TileIndex t, Trackdir d, TileIndex w)
+		: BasePos (t, d, w), trackdirs (TrackdirToTrackdirBits (d)) { }
+
 	/** Set this position to another given position */
 	void set (const PathMPos &pos)
 	{
