@@ -529,24 +529,6 @@ struct CFollowTrackRoadBase : CFollowTrackBase<RoadPathPos>
 
 	inline bool IsTram() { return HasBit(m_veh->compatible_roadtypes, ROADTYPE_TRAM); }
 
-	/** Tests if a tile is a road tile with a single tramtrack (tram can reverse) */
-	inline DiagDirection GetSingleTramBit(TileIndex tile)
-	{
-		assert(IsTram()); // this function shouldn't be called in other cases
-
-		if (IsRoadTile(tile)) {
-			RoadBits rb = GetRoadBits(tile, ROADTYPE_TRAM);
-			switch (rb) {
-				case ROAD_NW: return DIAGDIR_NW;
-				case ROAD_SW: return DIAGDIR_SW;
-				case ROAD_SE: return DIAGDIR_SE;
-				case ROAD_NE: return DIAGDIR_NE;
-				default: break;
-			}
-		}
-		return INVALID_DIAGDIR;
-	}
-
 	/** check old tile */
 	inline TileResult CheckOldTile()
 	{
@@ -604,7 +586,8 @@ struct CFollowTrackRoadBase : CFollowTrackBase<RoadPathPos>
 		if (trackdirs == TRACKDIR_BIT_NONE) {
 			/* GetTileRoadStatus() returns 0 for single tram bits.
 			 * As we cannot change it there (easily) without breaking something, change it here */
-			if (IsTram() && GetSingleTramBit(m_new.tile) == ReverseDiagDir(m_exitdir)) {
+			if (IsTram() && IsRoadTile (m_new.tile) &&
+					GetRoadBits (m_new.tile, ROADTYPE_TRAM) == DiagDirToRoadBits (ReverseDiagDir (m_exitdir))) {
 				m_new.set_trackdir (DiagDirToDiagTrackdir(m_exitdir));
 				return true;
 			} else {
