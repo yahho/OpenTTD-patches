@@ -816,9 +816,12 @@ static void RoadVehCheckOvertake(RoadVehicle *v, RoadVehicle *u)
 	/* Check if vehicle is on a straight road */
 	if (!IsStraightRoadTrackdir((Trackdir)(v->state))) return;
 
+	/* Can't overtake a vehicle that is (or will be) moving faster than us.
+	 * If the vehicle ahead is accelerating, we take its maximum speed for
+	 * the comparison, else its current speed. */
+	int u_speed = u->GetAcceleration() > 0 ? u->GetCurrentMaxSpeed() : u->cur_speed;
 	uint max_speed = min (v->vcache.cached_max_speed, v->current_order.GetMaxSpeed() * 2);
-	if (u->vcache.cached_max_speed >= max_speed &&
-			(u->current_order.GetMaxSpeed() * 2) >= max_speed &&
+	if (u_speed >= max_speed &&
 			!(u->vehstatus & VS_STOPPED) &&
 			u->cur_speed != 0) {
 		return;
