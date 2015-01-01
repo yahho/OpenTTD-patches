@@ -697,21 +697,6 @@ struct CFollowTrackRoadBase : CFollowTrackBase<RoadPathPos>
 	{
 		NOT_REACHED();
 	}
-
-	/** Helper for pathfinders - get max speed on m_old */
-	int GetSpeedLimit (void) const
-	{
-		int max_speed;
-
-		/* Check for on-bridge speed limit */
-		if (IsRoadBridgeTile(m_old.tile)) {
-			max_speed = 2 * GetBridgeSpec(GetRoadBridgeType(m_old.tile))->speed;
-		} else {
-			max_speed = INT_MAX; // no limit
-		}
-
-		return max_speed;
-	}
 };
 
 typedef CFollowTrack<CFollowTrackRoadBase> CFollowTrackRoad;

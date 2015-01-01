@@ -210,9 +210,11 @@ public:
 				tiles += tf.m_tiles_skipped + 1;
 
 				/* add max speed penalty */
-				int max_veh_speed = m_veh->GetDisplayMaxSpeed();
-				int max_speed = tf.GetSpeedLimit();
-				if (max_speed < max_veh_speed) segment_cost += 1 * (max_veh_speed - max_speed);
+				if (IsRoadBridgeTile (tf.m_old.tile)) {
+					int max_veh_speed = m_veh->GetDisplayMaxSpeed();
+					int max_speed = 2 * GetBridgeSpec (GetRoadBridgeType (tf.m_old.tile))->speed;
+					if (max_speed < max_veh_speed) segment_cost += 1 * (max_veh_speed - max_speed);
+				}
 
 				/* if there are more trackdirs available & reachable, we are at the end of segment */
 				if (!tf.m_new.is_single() || tiles > MAX_MAP_SIZE) {
