@@ -179,6 +179,21 @@ public:
 				/* base tile cost depending on distance between edges */
 				segment_cost += OneTileCost (m_settings, tf.m_new);
 
+				/* add max speed penalty */
+				int speed_penalty;
+				if (IsRoadBridgeTile (tf.m_new.tile)) {
+					int max_veh_speed = m_veh->GetDisplayMaxSpeed();
+					int max_speed = 2 * GetBridgeSpec (GetRoadBridgeType (tf.m_new.tile))->speed;
+					speed_penalty = max_veh_speed - max_speed;
+					if (speed_penalty > 0) {
+						segment_cost += speed_penalty;
+					} else {
+						speed_penalty = 0;
+					}
+				} else {
+					speed_penalty = 0;
+				}
+
 				/* we have reached the vehicle's destination - segment should end here to avoid target skipping */
 				if (IsDestination(tf.m_new)) {
 					n->m_next = tf.m_new;
@@ -207,14 +222,8 @@ public:
 
 				/* if we skipped some tunnel tiles, add their cost */
 				segment_cost += tf.m_tiles_skipped * YAPF_TILE_LENGTH;
+				if (tf.m_flag == tf.TF_BRIDGE) segment_cost += tf.m_tiles_skipped * speed_penalty;
 				tiles += tf.m_tiles_skipped + 1;
-
-				/* add max speed penalty */
-				if (IsRoadBridgeTile (tf.m_old.tile)) {
-					int max_veh_speed = m_veh->GetDisplayMaxSpeed();
-					int max_speed = 2 * GetBridgeSpec (GetRoadBridgeType (tf.m_old.tile))->speed;
-					if (max_speed < max_veh_speed) segment_cost += 1 * (max_veh_speed - max_speed);
-				}
 
 				/* if there are more trackdirs available & reachable, we are at the end of segment */
 				if (!tf.m_new.is_single() || tiles > MAX_MAP_SIZE) {
