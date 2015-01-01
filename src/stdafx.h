@@ -283,6 +283,8 @@
 		#define strncasecmp strnicmp
 	#endif
 
+	#define strtoull _strtoui64
+
 	/* MSVC doesn't have these :( */
 	#define S_ISDIR(mode) (mode & S_IFDIR)
 	#define S_ISREG(mode) (mode & S_IFREG)

@@ -209,7 +209,7 @@ void ScriptText::_GetEncodedText (stringb *buf, int &param_count)
 			this->paramt[i]->_GetEncodedText (buf, param_count);
 			continue;
 		}
-		buf->append_fmt (":%X", (uint32)this->parami[i]);
+		buf->append_fmt (":" OTTD_PRINTFHEX64, this->parami[i]);
 		param_count++;
 	}
 }
