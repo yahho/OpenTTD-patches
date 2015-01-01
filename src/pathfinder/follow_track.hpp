@@ -553,13 +553,10 @@ struct CFollowTrackRoadBase : CFollowTrackBase<RoadPathPos>
 					}
 
 					case TT_MISC_DEPOT: {
-						/* depots cause reversing */
+						/* the only user of the road track follower
+						 * will only call us heading out of the depot */
 						assert(IsRoadDepot(m_old.tile));
-						DiagDirection exitdir = GetGroundDepotDirection(m_old.tile);
-						if (exitdir != m_exitdir) {
-							assert(exitdir == ReverseDiagDir(m_exitdir));
-							return TR_REVERSE;
-						}
+						assert(m_exitdir == GetGroundDepotDirection(m_old.tile));
 						return TR_NORMAL;
 					}
 
