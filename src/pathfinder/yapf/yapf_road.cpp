@@ -183,7 +183,7 @@ public:
 				int speed_penalty;
 				if (IsRoadBridgeTile (tf.m_new.tile)) {
 					int max_veh_speed = m_veh->GetDisplayMaxSpeed();
-					int max_speed = 2 * GetBridgeSpec (GetRoadBridgeType (tf.m_new.tile))->speed;
+					int max_speed = GetBridgeSpec (GetRoadBridgeType (tf.m_new.tile))->speed;
 					speed_penalty = max_veh_speed - max_speed;
 					if (speed_penalty > 0) {
 						segment_cost += speed_penalty;
