@@ -146,14 +146,14 @@ struct TileSetObject : ForwardListLink <T, TileSetObject<T, get_tile> > {
 	template <uint metric (TileIndex, TileIndex)>
 	static bool find_any (TileIndex tile, uint threshold)
 	{
-		return set.find_any<metric> (tile, threshold);
+		return set.template find_any<metric> (tile, threshold);
 	}
 
 	/** Find the item in the set that is closest to a tile, within a threshold. */
 	template <uint metric (TileIndex, TileIndex)>
 	static T *find_closest (TileIndex tile, uint threshold)
 	{
-		return set.find_closest<metric> (tile, threshold);
+		return set.template find_closest<metric> (tile, threshold);
 	}
 };
 
