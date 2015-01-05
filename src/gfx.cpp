@@ -546,7 +546,7 @@ int DrawString(int left, int right, int top, StringID str, TextColour colour, St
  * @param maxw maximum string width
  * @return height of pixels of string when it is drawn
  */
-int GetStringHeight(const char *str, int maxw, FontSize fontsize)
+uint GetStringHeight (const char *str, int maxw, FontSize fontsize)
 {
 	Layouter layout(str, maxw, TC_FROMSTRING, fontsize);
 	return layout.GetBounds().height;
@@ -558,7 +558,7 @@ int GetStringHeight(const char *str, int maxw, FontSize fontsize)
  * @param maxw maximum string width
  * @return height of pixels of string when it is drawn
  */
-int GetStringHeight(StringID str, int maxw)
+uint GetStringHeight (StringID str, int maxw)
 {
 	char buffer[DRAW_STRING_BUFFER];
 	GetString (buffer, str);
