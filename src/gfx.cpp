@@ -581,30 +581,6 @@ int GetStringLineCount(StringID str, int maxw)
 }
 
 /**
- * Calculate string bounding box for multi-line strings.
- * @param str        String to check.
- * @param suggestion Suggested bounding box.
- * @return Bounding box for the multi-line string, may be bigger than \a suggestion.
- */
-Dimension GetStringMultiLineBoundingBox(StringID str, const Dimension &suggestion)
-{
-	Dimension box = {suggestion.width, GetStringHeight(str, suggestion.width)};
-	return box;
-}
-
-/**
- * Calculate string bounding box for multi-line strings.
- * @param str        String to check.
- * @param suggestion Suggested bounding box.
- * @return Bounding box for the multi-line string, may be bigger than \a suggestion.
- */
-Dimension GetStringMultiLineBoundingBox(const char *str, const Dimension &suggestion)
-{
-	Dimension box = {suggestion.width, GetStringHeight(str, suggestion.width)};
-	return box;
-}
-
-/**
  * Draw string, possibly over multiple lines.
  *
  * @param left   The left most position to draw on.

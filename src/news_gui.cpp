@@ -342,8 +342,7 @@ struct NewsWindow : Window {
 		/* Update minimal size with length of the multi-line string. */
 		Dimension d = *size;
 		d.width = (d.width >= padding.width) ? d.width - padding.width : 0;
-		d.height = (d.height >= padding.height) ? d.height - padding.height : 0;
-		d = GetStringMultiLineBoundingBox(str, d);
+		d.height = GetStringHeight (str, d.width);
 		d.width += padding.width;
 		d.height += padding.height;
 		*size = maxdim(*size, d);

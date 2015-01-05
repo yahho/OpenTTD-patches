@@ -334,8 +334,8 @@ public:
 
 						/* STR_BLACK_STRING is used to start the string with {BLACK} */
 						SetDParam(0, string);
-						Dimension d = GetStringMultiLineBoundingBox(STR_BLACK_STRING, *size);
-						*size = maxdim(d, *size);
+						uint h = GetStringHeight (STR_BLACK_STRING, size->width);
+						size->height = max (h, size->height);
 					}
 				}
 				break;

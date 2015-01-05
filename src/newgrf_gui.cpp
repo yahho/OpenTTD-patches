@@ -224,17 +224,17 @@ struct NewGRFParametersWindow : public Window {
 
 			case WID_NP_DESCRIPTION:
 				/* Minimum size of 4 lines. The 500 is the default size of the window. */
-				Dimension suggestion = {500 - WD_FRAMERECT_LEFT - WD_FRAMERECT_RIGHT, FONT_HEIGHT_NORMAL * 4 + WD_TEXTPANEL_TOP + WD_TEXTPANEL_BOTTOM};
+				const uint width = 500 - WD_FRAMERECT_LEFT - WD_FRAMERECT_RIGHT;
+				uint hmax = FONT_HEIGHT_NORMAL * 4;
 				for (uint i = 0; i < this->grf_config->param_info.Length(); i++) {
 					const GRFParameterInfo *par_info = this->grf_config->param_info[i];
 					if (par_info == NULL) continue;
 					const char *desc = GetGRFStringFromGRFText(par_info->desc);
 					if (desc == NULL) continue;
-					Dimension d = GetStringMultiLineBoundingBox(desc, suggestion);
-					d.height += WD_TEXTPANEL_TOP + WD_TEXTPANEL_BOTTOM;
-					suggestion = maxdim(d, suggestion);
+					uint h = GetStringHeight (desc, width);
+					hmax = max (h, hmax);
 				}
-				size->height = suggestion.height;
+				size->height = hmax + WD_TEXTPANEL_TOP + WD_TEXTPANEL_BOTTOM;
 				break;
 		}
 	}

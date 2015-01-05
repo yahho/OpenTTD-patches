@@ -1072,10 +1072,9 @@ struct QueryWindow : public Window {
 	{
 		if (widget != WID_Q_TEXT) return;
 
-		Dimension d = GetStringMultiLineBoundingBox(this->message, *size);
-		d.width += WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT;
-		d.height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
-		*size = d;
+		uint w = size->width;
+		size->width  = w + WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT;
+		size->height = GetStringHeight (this->message, w) + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
 	}
 
 	virtual void DrawWidget(const Rect &r, int widget) const

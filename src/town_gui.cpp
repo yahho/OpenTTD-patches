@@ -226,16 +226,14 @@ public:
 		switch (widget) {
 			case WID_TA_ACTION_INFO: {
 				assert(size->width > padding.width && size->height > padding.height);
-				size->width -= WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
-				size->height -= WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
-				Dimension d = {0, 0};
+				const uint width = size->width - (WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
+				uint hmax = 0;
 				for (int i = 0; i < TACT_COUNT; i++) {
 					SetDParam(0, _price[PR_TOWN_ACTION] * _town_action_costs[i] >> 8);
-					d = maxdim(d, GetStringMultiLineBoundingBox(STR_LOCAL_AUTHORITY_ACTION_TOOLTIP_SMALL_ADVERTISING + i, *size));
+					uint h = GetStringHeight (STR_LOCAL_AUTHORITY_ACTION_TOOLTIP_SMALL_ADVERTISING + i, width);
+					hmax = max (hmax, h);
 				}
-				*size = maxdim(*size, d);
-				size->width += WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
-				size->height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+				size->height = max (size->height, hmax + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 				break;
 			}
 

@@ -129,8 +129,6 @@ Dimension GetStringBoundingBox(StringID strid);
 uint GetStringHeight (const char *str, int maxw, FontSize fontsize = FS_NORMAL);
 uint GetStringHeight (StringID str, int maxw);
 int GetStringLineCount(StringID str, int maxw);
-Dimension GetStringMultiLineBoundingBox(StringID str, const Dimension &suggestion);
-Dimension GetStringMultiLineBoundingBox(const char *str, const Dimension &suggestion);
 void LoadStringWidthTable(bool monospace = false);
 Point GetCharPosInString(const char *str, const char *ch, FontSize start_fontsize = FS_NORMAL);
 const char *GetCharAtPosition(const char *str, int x, FontSize start_fontsize = FS_NORMAL);
