@@ -232,28 +232,6 @@ struct PooledItem {
 		return pool.GetNew(size, index);
 	}
 
-	/**
-	 * Allocates space for new Titem at given memory address
-	 * @param size size of Titem
-	 * @param ptr where are we allocating the item?
-	 * @return pointer to allocated memory (== ptr)
-	 * @note use of this is strongly discouraged
-	 * @pre the memory must not be allocated in the Pool!
-	 */
-	inline void *operator new(size_t size, void *ptr)
-	{
-		for (size_t i = 0; i < pool.first_unused; i++) {
-			/* Don't allow creating new objects over existing.
-			 * Even if we called the destructor and reused this memory,
-			 * we don't know whether 'size' and size of currently allocated
-			 * memory are the same (because of possible inheritance).
-			 * Use { size_t index = item->index; delete item; new (index) item; }
-			 * instead to make sure destructor is called and no memory leaks. */
-			assert(ptr != pool.data[i]);
-		}
-		return ptr;
-	}
-
 
 	/** Helper functions so we can use PooledItem::Function() instead of PooledItem::pool.Function() */
 
