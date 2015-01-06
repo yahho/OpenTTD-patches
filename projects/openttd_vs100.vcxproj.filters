@@ -1857,6 +1857,9 @@
     <ClInclude Include="..\src\table\elrail_data.h">
       <Filter>Tables</Filter>
     </ClInclude>
+    <ClCompile Include="..\src\table\engines.cpp">
+      <Filter>Tables</Filter>
+    </ClCompile>
     <ClInclude Include="..\src\table\engines.h">
       <Filter>Tables</Filter>
     </ClInclude>

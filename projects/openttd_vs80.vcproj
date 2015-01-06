@@ -5443,6 +5443,50 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\table\engines.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\table\"
+						ObjectFile="$(IntDir)\table\"
+						XMLDocumentationFileName="$(IntDir)\table\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\table\"
+						ObjectFile="$(IntDir)\table\"
+						XMLDocumentationFileName="$(IntDir)\table\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\table\"
+						ObjectFile="$(IntDir)\table\"
+						XMLDocumentationFileName="$(IntDir)\table\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\table\"
+						ObjectFile="$(IntDir)\table\"
+						XMLDocumentationFileName="$(IntDir)\table\"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\..\src\table\engines.h"
 				>
 			</File>
