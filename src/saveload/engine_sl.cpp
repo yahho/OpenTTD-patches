@@ -47,18 +47,21 @@ static const SaveLoad _engine_desc[] = {
 
 static std::vector<Engine> _temp_engine;
 
+Engine *AppendTempDataEngine (void)
+{
+	uint8 zero[sizeof(Engine)];
+	memset(zero, 0, sizeof(zero));
+	Engine *engine = new (zero) Engine();
+
+	/* Adding 'engine' to the vector makes a shallow copy, so we do not want to destruct 'engine' */
+	_temp_engine.push_back(*engine);
+
+	return &_temp_engine.back();
+}
+
 Engine *GetTempDataEngine(EngineID index)
 {
-	assert (index <= _temp_engine.size());
-
-	if (index == _temp_engine.size()) {
-		uint8 zero[sizeof(Engine)];
-		memset(zero, 0, sizeof(zero));
-		Engine *engine = new (zero) Engine();
-
-		/* Adding 'engine' to the vector makes a shallow copy, so we do not want to destruct 'engine' */
-		_temp_engine.push_back(*engine);
-	}
+	assert (index < _temp_engine.size());
 
 	return &_temp_engine[index];
 }
@@ -78,7 +81,9 @@ static void Load_ENGN(LoadBuffer *reader)
 	 * engine pool after processing NewGRFs by CopyTempEngineData(). */
 	int index;
 	while ((index = reader->IterateChunk()) != -1) {
-		Engine *e = GetTempDataEngine(index);
+		assert ((uint)index == _temp_engine.size());
+
+		Engine *e = AppendTempDataEngine();
 		reader->ReadObject(e, _engine_desc);
 
 		if (reader->IsOTTDVersionBefore(179)) {

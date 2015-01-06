@@ -44,6 +44,7 @@ void ResetViewportAfterLoadGame();
 void ConvertOldMultiheadToNew();
 void ConnectMultiheadedTrains();
 
+Engine *AppendTempDataEngine (void);
 Engine *GetTempDataEngine(EngineID index);
 void CopyTempEngineData();
 
