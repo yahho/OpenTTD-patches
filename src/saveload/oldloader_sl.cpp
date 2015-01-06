@@ -443,7 +443,7 @@ static bool FixTTOEngines()
 		if (oi == 255) {
 			/* Default engine is used */
 			_date += DAYS_TILL_ORIGINAL_BASE_YEAR;
-			StartupOneEngine(e, aging_date);
+			e->reset (&e->info, aging_date);
 			e->intro_date -= DAYS_TILL_ORIGINAL_BASE_YEAR;
 			_date -= DAYS_TILL_ORIGINAL_BASE_YEAR;
 

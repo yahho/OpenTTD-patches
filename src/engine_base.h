@@ -17,7 +17,8 @@
 #include "core/pool_type.hpp"
 #include "newgrf_commons.h"
 
-struct Engine : PooledItem <Engine, EngineID, 64, 64000> {
+/** Variable part of an engine. */
+struct EngineState {
 	char *name;                 ///< Custom name of engine.
 	Date intro_date;            ///< Date of introduction of the engine.
 	Date age;
@@ -35,6 +36,19 @@ struct Engine : PooledItem <Engine, EngineID, 64, 64000> {
 	byte preview_wait;          ///< Daily countdown timer for timeout of offering the engine to the #preview_company company.
 	CompanyMask company_avail;  ///< Bit for each company whether the engine is available for that company.
 	CompanyMask company_hidden; ///< Bit for each company whether the engine is normally hidden in the build gui for that company.
+
+	EngineState() : name(NULL) { }
+
+	~EngineState()
+	{
+		free (this->name);
+	}
+
+	void reset (const EngineInfo *ei, Date aging_date);
+};
+
+/** An engine, as used in the game. */
+struct Engine : PooledItem <Engine, EngineID, 64, 64000>, EngineState {
 	uint8 original_image_index; ///< Original vehicle image index, thus the image index of the overridden vehicle
 	VehicleType type;           ///< %Vehicle type, ie #VEH_ROAD, #VEH_TRAIN, etc.
 

@@ -72,7 +72,6 @@ assert_compile(lengthof(_orig_rail_vehicle_info) + lengthof(_orig_road_vehicle_i
 const uint EngineOverrideManager::NUM_DEFAULT_ENGINES = _engine_counts[VEH_TRAIN] + _engine_counts[VEH_ROAD] + _engine_counts[VEH_SHIP] + _engine_counts[VEH_AIRCRAFT];
 
 Engine::Engine() :
-	name(NULL),
 	overrides_count(0),
 	overrides(NULL)
 {
@@ -144,7 +143,6 @@ Engine::Engine(VehicleType type, EngineID base)
 Engine::~Engine()
 {
 	UnloadWagonOverrides(this);
-	free(this->name);
 }
 
 /**
@@ -580,15 +578,16 @@ static bool IsWagon(EngineID index)
 
 /**
  * Update #reliability of engine \a e.
- * @param e %Engine to update.
+ * @param e %EngineState to update.
+ * @param ei %EngineInfo for the engine.
  */
-static void CalcEngineReliability(Engine *e)
+static void CalcEngineReliability (EngineState *e, const EngineInfo *ei)
 {
 	uint age = e->age;
 
 	/* Check for early retirement */
-	if (e->company_avail != 0 && !_settings_game.vehicle.never_expire_vehicles && e->info.base_life != 0xFF) {
-		int retire_early = e->info.retire_early;
+	if (e->company_avail != 0 && !_settings_game.vehicle.never_expire_vehicles && ei->base_life != 0xFF) {
+		int retire_early = ei->retire_early;
 		uint retire_early_max_age = max(0, e->duration_phase_1 + e->duration_phase_2 - retire_early * 12);
 		if (retire_early != 0 && age >= retire_early_max_age) {
 			/* Early retirement is enabled and we're past the date... */
@@ -599,7 +598,7 @@ static void CalcEngineReliability(Engine *e)
 	if (age < e->duration_phase_1) {
 		uint start = e->reliability_start;
 		e->reliability = age * (e->reliability_max - start) / e->duration_phase_1 + start;
-	} else if ((age -= e->duration_phase_1) < e->duration_phase_2 || _settings_game.vehicle.never_expire_vehicles || e->info.base_life == 0xFF) {
+	} else if ((age -= e->duration_phase_1) < e->duration_phase_2 || _settings_game.vehicle.never_expire_vehicles || ei->base_life == 0xFF) {
 		/* We are at the peak of this engines life. It will have max reliability.
 		 * This is also true if the engines never expire. They will not go bad over time */
 		e->reliability = e->reliability_max;
@@ -637,48 +636,46 @@ void SetYearEngineAgingStops()
 }
 
 /**
- * Start/initialise one engine.
- * @param e The engine to initialise.
+ * Reset or initialise the variable data of an engine.
+ * @param ei Engine info.
  * @param aging_date The date used for age calculations.
  */
-void StartupOneEngine(Engine *e, Date aging_date)
+void EngineState::reset (const EngineInfo *ei, Date aging_date)
 {
-	const EngineInfo *ei = &e->info;
-
-	e->age = 0;
-	e->flags = 0;
-	e->company_avail = 0;
-	e->company_hidden = 0;
+	this->age = 0;
+	this->flags = 0;
+	this->company_avail = 0;
+	this->company_hidden = 0;
 
 	/* Don't randomise the start-date in the first two years after gamestart to ensure availability
 	 * of engines in early starting games.
 	 * Note: TTDP uses fixed 1922 */
 	uint32 r = Random();
-	e->intro_date = ei->base_intro <= ConvertYMDToDate(_settings_game.game_creation.starting_year + 2, 0, 1) ? ei->base_intro : (Date)GB(r, 0, 9) + ei->base_intro;
-	if (e->intro_date <= _date) {
-		e->age = (aging_date - e->intro_date) >> 5;
-		e->company_avail = (CompanyMask)-1;
-		e->flags |= ENGINE_AVAILABLE;
+	this->intro_date = ei->base_intro <= ConvertYMDToDate(_settings_game.game_creation.starting_year + 2, 0, 1) ? ei->base_intro : (Date)GB(r, 0, 9) + ei->base_intro;
+	if (this->intro_date <= _date) {
+		this->age = (aging_date - this->intro_date) >> 5;
+		this->company_avail = (CompanyMask)-1;
+		this->flags |= ENGINE_AVAILABLE;
 	}
 
-	e->reliability_start = GB(r, 16, 14) + 0x7AE0;
+	this->reliability_start = GB(r, 16, 14) + 0x7AE0;
 	r = Random();
-	e->reliability_max   = GB(r,  0, 14) + 0xBFFF;
-	e->reliability_final = GB(r, 16, 14) + 0x3FFF;
+	this->reliability_max   = GB(r,  0, 14) + 0xBFFF;
+	this->reliability_final = GB(r, 16, 14) + 0x3FFF;
 
 	r = Random();
-	e->duration_phase_1 = GB(r, 0, 5) + 7;
-	e->duration_phase_2 = GB(r, 5, 4) + ei->base_life * 12 - 96;
-	e->duration_phase_3 = GB(r, 9, 7) + 120;
+	this->duration_phase_1 = GB(r, 0, 5) + 7;
+	this->duration_phase_2 = GB(r, 5, 4) + ei->base_life * 12 - 96;
+	this->duration_phase_3 = GB(r, 9, 7) + 120;
 
-	e->reliability_spd_dec = ei->decay_speed << 2;
+	this->reliability_spd_dec = ei->decay_speed << 2;
 
-	CalcEngineReliability(e);
+	CalcEngineReliability (this, ei);
 
 	/* prevent certain engines from ever appearing. */
 	if (!HasBit(ei->climates, _settings_game.game_creation.landscape)) {
-		e->flags |= ENGINE_AVAILABLE;
-		e->company_avail = 0;
+		this->flags |= ENGINE_AVAILABLE;
+		this->company_avail = 0;
 	}
 }
 
@@ -693,7 +690,7 @@ void StartupEngines()
 	const Date aging_date = min(_date, ConvertYMDToDate(_year_engine_aging_stops, 0, 1));
 
 	FOR_ALL_ENGINES(e) {
-		StartupOneEngine(e, aging_date);
+		e->reset (&e->info, aging_date);
 	}
 
 	/* Update the bitmasks for the vehicle lists */
@@ -987,7 +984,7 @@ void EnginesMonthlyLoop()
 			/* Age the vehicle */
 			if ((e->flags & ENGINE_AVAILABLE) && e->age != MAX_DAY) {
 				e->age++;
-				CalcEngineReliability(e);
+				CalcEngineReliability (e, &e->info);
 			}
 
 			/* Do not introduce invalid engines */
