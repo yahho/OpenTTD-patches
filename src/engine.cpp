@@ -579,7 +579,7 @@ static bool IsWagon(EngineID index)
 }
 
 /**
- * Update #reliability of engine \a e, (if needed) update the engine GUIs.
+ * Update #reliability of engine \a e.
  * @param e %Engine to update.
  */
 static void CalcEngineReliability(Engine *e)
@@ -593,7 +593,6 @@ static void CalcEngineReliability(Engine *e)
 		if (retire_early != 0 && age >= retire_early_max_age) {
 			/* Early retirement is enabled and we're past the date... */
 			e->company_avail = 0;
-			AddRemoveEngineFromAutoreplaceAndBuildWindows(e->type);
 		}
 	}
 
@@ -612,11 +611,7 @@ static void CalcEngineReliability(Engine *e)
 		 * We will now completely retire this design */
 		e->company_avail = 0;
 		e->reliability = e->reliability_final;
-		/* Kick this engine out of the lists */
-		AddRemoveEngineFromAutoreplaceAndBuildWindows(e->type);
 	}
-	SetWindowClassesDirty(WC_BUILD_VEHICLE); // Update to show the new reliability
-	SetWindowClassesDirty(WC_REPLACE_VEHICLE);
 }
 
 /** Compute the value for #_year_engine_aging_stops. */
@@ -721,8 +716,12 @@ void StartupEngines()
 
 	CheckRailIntroduction();
 
+	SetWindowClassesDirty(WC_BUILD_VEHICLE); // Update to show the new reliability
+	SetWindowClassesDirty(WC_REPLACE_VEHICLE);
+
 	/* Invalidate any open purchase lists */
 	InvalidateWindowClassesData(WC_BUILD_VEHICLE);
+	InvalidateWindowClassesData(WC_REPLACE_VEHICLE);
 }
 
 /**
@@ -1014,7 +1013,11 @@ void EnginesMonthlyLoop()
 			}
 		}
 
+		SetWindowClassesDirty(WC_BUILD_VEHICLE); // Update to show the new reliability
+		SetWindowClassesDirty(WC_REPLACE_VEHICLE);
+
 		InvalidateWindowClassesData(WC_BUILD_VEHICLE); // rebuild the purchase list (esp. when sorted by reliability)
+		InvalidateWindowClassesData(WC_REPLACE_VEHICLE);
 	}
 }
 
