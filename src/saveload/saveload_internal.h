@@ -44,8 +44,8 @@ void ResetViewportAfterLoadGame();
 void ConvertOldMultiheadToNew();
 void ConnectMultiheadedTrains();
 
-Engine *AppendTempDataEngine (void);
-Engine *GetTempDataEngine(EngineID index);
+EngineState *AppendTempDataEngine (void);
+EngineState *GetTempDataEngine (EngineID index);
 void CopyTempEngineData();
 
 extern int32 _saved_scrollpos_x;

@@ -387,7 +387,7 @@ static bool FixTTOMapArray()
 	return true;
 }
 
-static Engine *_old_engines;
+static EngineState *_old_engines;
 
 static bool FixTTOEngines()
 {
@@ -428,34 +428,29 @@ static bool FixTTOEngines()
 		v->engine_type = tto_to_ttd[v->engine_type];
 	}
 
-	/* Load the default engine set. Many of them will be overridden later */
-	for (uint i = 0; i < lengthof(_orig_rail_vehicle_info); i++) new (AppendTempDataEngine()) Engine(VEH_TRAIN, i);
-	for (uint i = 0; i < lengthof(_orig_road_vehicle_info); i++) new (AppendTempDataEngine()) Engine(VEH_ROAD, i);
-	for (uint i = 0; i < lengthof(_orig_ship_vehicle_info); i++) new (AppendTempDataEngine()) Engine(VEH_SHIP, i);
-	for (uint i = 0; i < lengthof(_orig_aircraft_vehicle_info); i++) new (AppendTempDataEngine()) Engine(VEH_AIRCRAFT, i);
-
 	Date aging_date = min(_date + DAYS_TILL_ORIGINAL_BASE_YEAR, ConvertYMDToDate(2050, 0, 1));
 
 	for (EngineID i = 0; i < 256; i++) {
 		int oi = ttd_to_tto[i];
-		Engine *e = GetTempDataEngine(i);
+		EngineState *e = AppendTempDataEngine();
+		assert (e->name == NULL);
 
 		if (oi == 255) {
 			/* Default engine is used */
 			_date += DAYS_TILL_ORIGINAL_BASE_YEAR;
-			e->reset (&e->info, aging_date);
+			e->reset (&_orig_engine_info[i], aging_date);
 			e->intro_date -= DAYS_TILL_ORIGINAL_BASE_YEAR;
 			_date -= DAYS_TILL_ORIGINAL_BASE_YEAR;
 
 			/* Make sure for example monorail and maglev are available when they should be */
-			if (_date >= e->intro_date && HasBit(e->info.climates, 0)) {
+			if (_date >= e->intro_date && HasBit (_orig_engine_info[i].climates, 0)) {
 				e->flags |= ENGINE_AVAILABLE;
 				e->company_avail = (CompanyMask)0xFF;
 				e->age = _date > e->intro_date ? (_date - e->intro_date) / 30 : 0;
 			}
 		} else {
 			/* Using data from TTO savegame */
-			Engine *oe = &_old_engines[oi];
+			const EngineState *oe = &_old_engines[oi];
 
 			e->intro_date          = oe->intro_date;
 			e->age                 = oe->age;
@@ -470,6 +465,7 @@ static bool FixTTOEngines()
 			e->flags               = oe->flags;
 
 			e->company_avail = 0;
+			e->company_hidden = 0;
 
 			/* One or more engines were remapped to this one. Make this engine available
 			 * if at least one of them was available. */
@@ -480,14 +476,11 @@ static bool FixTTOEngines()
 					break;
 				}
 			}
-
-			e->info.climates = 1;
 		}
 
 		e->preview_company = INVALID_COMPANY;
 		e->preview_asked = (CompanyMask)-1;
 		e->preview_wait = 0;
-		e->name = NULL;
 	}
 
 	return true;
@@ -1431,22 +1424,22 @@ static bool LoadOldSign(LoadgameState *ls, int num)
 }
 
 static const OldChunks engine_chunk[] = {
-	OCL_SVAR( OC_UINT16, Engine, company_avail ),
-	OCL_SVAR( OC_FILE_U16 | OC_VAR_U32, Engine, intro_date ),
-	OCL_SVAR( OC_FILE_U16 | OC_VAR_U32, Engine, age ),
-	OCL_SVAR( OC_UINT16, Engine, reliability ),
-	OCL_SVAR( OC_UINT16, Engine, reliability_spd_dec ),
-	OCL_SVAR( OC_UINT16, Engine, reliability_start ),
-	OCL_SVAR( OC_UINT16, Engine, reliability_max ),
-	OCL_SVAR( OC_UINT16, Engine, reliability_final ),
-	OCL_SVAR( OC_UINT16, Engine, duration_phase_1 ),
-	OCL_SVAR( OC_UINT16, Engine, duration_phase_2 ),
-	OCL_SVAR( OC_UINT16, Engine, duration_phase_3 ),
+	OCL_SVAR( OC_UINT16, EngineState, company_avail ),
+	OCL_SVAR( OC_FILE_U16 | OC_VAR_U32, EngineState, intro_date ),
+	OCL_SVAR( OC_FILE_U16 | OC_VAR_U32, EngineState, age ),
+	OCL_SVAR( OC_UINT16, EngineState, reliability ),
+	OCL_SVAR( OC_UINT16, EngineState, reliability_spd_dec ),
+	OCL_SVAR( OC_UINT16, EngineState, reliability_start ),
+	OCL_SVAR( OC_UINT16, EngineState, reliability_max ),
+	OCL_SVAR( OC_UINT16, EngineState, reliability_final ),
+	OCL_SVAR( OC_UINT16, EngineState, duration_phase_1 ),
+	OCL_SVAR( OC_UINT16, EngineState, duration_phase_2 ),
+	OCL_SVAR( OC_UINT16, EngineState, duration_phase_3 ),
 
 	OCL_NULL( 1 ), // lifelength
-	OCL_SVAR(  OC_UINT8, Engine, flags ),
+	OCL_SVAR(  OC_UINT8, EngineState, flags ),
 	OCL_NULL( 1 ), // preview_company_rank
-	OCL_SVAR(  OC_UINT8, Engine, preview_wait ),
+	OCL_SVAR(  OC_UINT8, EngineState, preview_wait ),
 
 	OCL_CNULL( OC_TTD, 2 ), ///< railtype + junk
 
@@ -1455,13 +1448,13 @@ static const OldChunks engine_chunk[] = {
 
 static bool LoadOldEngine(LoadgameState *ls, int num)
 {
-	Engine *e = ls->stv->type == SGT_TTO ? &_old_engines[num] : AppendTempDataEngine();
+	EngineState *e = ls->stv->type == SGT_TTO ? &_old_engines[num] : AppendTempDataEngine();
 	return LoadChunk(ls, e, engine_chunk);
 }
 
 static bool LoadOldEngineName(LoadgameState *ls, int num)
 {
-	Engine *e = GetTempDataEngine(num);
+	EngineState *e = GetTempDataEngine (num);
 	e->name = CopyFromOldName(ls->stv, RemapOldStringID(ReadUint16(ls)));
 	return true;
 }
@@ -1841,8 +1834,8 @@ bool LoadTTOMain(LoadgameState *ls)
 
 	_read_ttdpatch_flags = false;
 
-	SmallStackSafeStackAlloc<byte, 103 * sizeof(Engine)> engines; // we don't want to call Engine constructor here
-	_old_engines = (Engine *)engines.data;
+	SmallStackSafeStackAlloc<byte, 103 * sizeof(EngineState)> engines;
+	_old_engines = (EngineState*) engines.data;
 	SmallStackSafeStackAlloc<StringID, 800> vehnames;
 	_old_vehicle_names = vehnames.data;
 

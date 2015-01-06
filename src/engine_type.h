@@ -21,6 +21,7 @@
 
 typedef uint16 EngineID; ///< Unique identification number of an engine.
 
+struct EngineState;
 struct Engine;
 
 /** Available types of rail vehicles. */

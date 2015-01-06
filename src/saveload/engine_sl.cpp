@@ -15,51 +15,46 @@
 #include <vector>
 
 static const SaveLoad _engine_desc[] = {
-	 SLE_VAR(Engine, intro_date,          SLE_FILE_U16 | SLE_VAR_I32,  , ,  0,  30),
-	 SLE_VAR(Engine, intro_date,          SLE_INT32,                  0, , 31,    ),
-	 SLE_VAR(Engine, age,                 SLE_FILE_U16 | SLE_VAR_I32,  , ,  0,  30),
-	 SLE_VAR(Engine, age,                 SLE_INT32,                  0, , 31,    ),
-	 SLE_VAR(Engine, reliability,         SLE_UINT16),
-	 SLE_VAR(Engine, reliability_spd_dec, SLE_UINT16),
-	 SLE_VAR(Engine, reliability_start,   SLE_UINT16),
-	 SLE_VAR(Engine, reliability_max,     SLE_UINT16),
-	 SLE_VAR(Engine, reliability_final,   SLE_UINT16),
-	 SLE_VAR(Engine, duration_phase_1,    SLE_UINT16),
-	 SLE_VAR(Engine, duration_phase_2,    SLE_UINT16),
-	 SLE_VAR(Engine, duration_phase_3,    SLE_UINT16),
+	 SLE_VAR(EngineState, intro_date,          SLE_FILE_U16 | SLE_VAR_I32,  , ,  0,  30),
+	 SLE_VAR(EngineState, intro_date,          SLE_INT32,                  0, , 31,    ),
+	 SLE_VAR(EngineState, age,                 SLE_FILE_U16 | SLE_VAR_I32,  , ,  0,  30),
+	 SLE_VAR(EngineState, age,                 SLE_INT32,                  0, , 31,    ),
+	 SLE_VAR(EngineState, reliability,         SLE_UINT16),
+	 SLE_VAR(EngineState, reliability_spd_dec, SLE_UINT16),
+	 SLE_VAR(EngineState, reliability_start,   SLE_UINT16),
+	 SLE_VAR(EngineState, reliability_max,     SLE_UINT16),
+	 SLE_VAR(EngineState, reliability_final,   SLE_UINT16),
+	 SLE_VAR(EngineState, duration_phase_1,    SLE_UINT16),
+	 SLE_VAR(EngineState, duration_phase_2,    SLE_UINT16),
+	 SLE_VAR(EngineState, duration_phase_3,    SLE_UINT16),
 
 	SLE_NULL(1,                                                       , ,   0, 120),
-	 SLE_VAR(Engine, flags,               SLE_UINT8),
+	 SLE_VAR(EngineState, flags,               SLE_UINT8),
 	SLE_NULL(1,                                                       , ,   0, 178), // old preview_company_rank
-	 SLE_VAR(Engine, preview_asked,       SLE_UINT16,                0, , 179,    ),
-	 SLE_VAR(Engine, preview_company,     SLE_UINT8,                 0, , 179,    ),
-	 SLE_VAR(Engine, preview_wait,        SLE_UINT8),
+	 SLE_VAR(EngineState, preview_asked,       SLE_UINT16,                0, , 179,    ),
+	 SLE_VAR(EngineState, preview_company,     SLE_UINT8,                 0, , 179,    ),
+	 SLE_VAR(EngineState, preview_wait,        SLE_UINT8),
 	SLE_NULL(1,                                                       , ,   0,  44),
-	 SLE_VAR(Engine, company_avail,       SLE_FILE_U8  | SLE_VAR_U16, , ,   0, 103),
-	 SLE_VAR(Engine, company_avail,       SLE_UINT16,                0, , 104,    ),
-	 SLE_VAR(Engine, company_hidden,      SLE_UINT16,               21, , 193,    ),
-	 SLE_STR(Engine, name,                SLS_NONE,                  0, ,  84,    ),
+	 SLE_VAR(EngineState, company_avail,       SLE_FILE_U8  | SLE_VAR_U16, , ,   0, 103),
+	 SLE_VAR(EngineState, company_avail,       SLE_UINT16,                0, , 104,    ),
+	 SLE_VAR(EngineState, company_hidden,      SLE_UINT16,               21, , 193,    ),
+	 SLE_STR(EngineState, name,                SLS_NONE,                  0, ,  84,    ),
 
 	SLE_NULL(16,                                                      , ,   2, 143), // old reserved space
 
 	SLE_END()
 };
 
-static std::vector<Engine> _temp_engine;
+static std::vector<EngineState> _temp_engine;
 
-Engine *AppendTempDataEngine (void)
+EngineState *AppendTempDataEngine (void)
 {
-	uint8 zero[sizeof(Engine)];
-	memset(zero, 0, sizeof(zero));
-	Engine *engine = new (zero) Engine();
-
-	/* Adding 'engine' to the vector makes a shallow copy, so we do not want to destruct 'engine' */
-	_temp_engine.push_back(*engine);
+	_temp_engine.push_back (EngineState());
 
 	return &_temp_engine.back();
 }
 
-Engine *GetTempDataEngine(EngineID index)
+EngineState *GetTempDataEngine (EngineID index)
 {
 	assert (index < _temp_engine.size());
 
@@ -70,7 +65,10 @@ static void Save_ENGN(SaveDumper *dumper)
 {
 	Engine *e;
 	FOR_ALL_ENGINES(e) {
-		dumper->WriteElement(e->index, e, _engine_desc);
+		/* Cast the pointer to the right substructure. */
+		dumper->WriteElement (e->index,
+				static_cast<const EngineState*>(e),
+				_engine_desc);
 	}
 }
 
@@ -83,7 +81,7 @@ static void Load_ENGN(LoadBuffer *reader)
 	while ((index = reader->IterateChunk()) != -1) {
 		assert ((uint)index == _temp_engine.size());
 
-		Engine *e = AppendTempDataEngine();
+		EngineState *e = AppendTempDataEngine();
 		reader->ReadObject(e, _engine_desc);
 
 		if (reader->IsOTTDVersionBefore(179)) {
@@ -92,6 +90,7 @@ static void Load_ENGN(LoadBuffer *reader)
 			e->flags &= ~4; // ENGINE_OFFER_WINDOW_OPEN
 			e->preview_company = INVALID_COMPANY;
 			e->preview_asked = (CompanyMask)-1;
+			e->preview_wait = 0;
 		}
 	}
 }
@@ -105,7 +104,10 @@ void CopyTempEngineData()
 	FOR_ALL_ENGINES(e) {
 		if (e->index >= _temp_engine.size()) break;
 
-		const Engine *se = GetTempDataEngine(e->index);
+		EngineState *se = GetTempDataEngine (e->index);
+		assert (e->name == NULL);
+		e->name = se->name;
+		se->name = NULL;
 		e->intro_date          = se->intro_date;
 		e->age                 = se->age;
 		e->reliability         = se->reliability;
@@ -122,7 +124,6 @@ void CopyTempEngineData()
 		e->preview_wait        = se->preview_wait;
 		e->company_avail       = se->company_avail;
 		e->company_hidden      = se->company_hidden;
-		if (se->name != NULL) e->name = xstrdup(se->name);
 	}
 
 	/* Get rid of temporary data */
@@ -139,7 +140,7 @@ static void Load_ENGS(LoadBuffer *reader)
 
 	/* Copy each string into the temporary engine array. */
 	for (EngineID engine = 0; engine < lengthof(names); engine++) {
-		Engine *e = GetTempDataEngine(engine);
+		EngineState *e = GetTempDataEngine (engine);
 		e->name = CopyFromOldName(reader->stv, names[engine]);
 	}
 }
