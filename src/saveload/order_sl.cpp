@@ -152,7 +152,7 @@ static void Load_ORDR(LoadBuffer *reader)
 			}
 
 			free(orders);
-		} else if (reader->IsOTTDVersionBefore(5, 2)) {
+		} else {
 			len /= sizeof(uint32);
 			uint32 *orders = xmalloct<uint32>(len + 1);
 
