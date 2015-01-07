@@ -23,7 +23,7 @@
  * Update the buoy orders to be waypoint orders.
  * @param o the order 'list' to check.
  */
-static void UpdateWaypointOrder(Order *o)
+static void UpdateWaypointOrder (BaseOrder *o)
 {
 	if (!o->IsType(OT_GOTO_STATION)) return;
 

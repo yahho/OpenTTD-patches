@@ -1187,7 +1187,7 @@ void HandleMissingAircraftOrders(Aircraft *v)
 
 		if (ret.Failed()) CrashAirplane(v);
 	} else if (!v->current_order.IsType(OT_GOTO_DEPOT)) {
-		v->current_order.Free();
+		v->current_order.Clear();
 	}
 }
 
@@ -1408,7 +1408,7 @@ static void AircraftEventHandler_InHangar(Aircraft *v, const AirportFTAClass *ap
 
 	/* if we were sent to the depot, stay there */
 	if (v->current_order.IsType(OT_GOTO_DEPOT) && (v->vehstatus & VS_STOPPED)) {
-		v->current_order.Free();
+		v->current_order.Clear();
 		return;
 	}
 
@@ -1484,7 +1484,7 @@ static void AircraftEventHandler_AtTerminal(Aircraft *v, const AirportFTAClass *
 			 * we should not clear the order as that makes us go nowhere. */
 			return;
 		default:  // orders have been deleted (no orders), goto depot and don't bother us
-			v->current_order.Free();
+			v->current_order.Clear();
 			go_to_hangar = Station::Get(v->targetairport)->airport.HasHangar();
 	}
 

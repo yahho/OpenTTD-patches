@@ -54,6 +54,6 @@ extern ZoomLevelByte _saved_scrollpos_zoom;
 
 CompanyManagerFace ConvertFromOldCompanyManagerFace(uint32 face);
 
-Order UnpackOldOrder(uint16 packed);
+BaseOrder UnpackOldOrder (uint16 packed);
 
 #endif /* SAVELOAD_INTERNAL_H */

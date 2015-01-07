@@ -476,7 +476,7 @@ static void ShipController(Ship *v)
 		/* A leave station order only needs one tick to get processed, so we can
 		 * always skip ahead. */
 		if (v->current_order.IsType(OT_LEAVESTATION)) {
-			v->current_order.Free();
+			v->current_order.Clear();
 			SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
 		} else if (v->dest_tile != 0) {
 			/* We have a target, let's see if we reached it... */

@@ -56,11 +56,11 @@ static OrderType GetOrderTypeByTile(TileIndex t)
  *  the order list, return the order from the orderlist. If the current order
  *  was a manual order, return the current order.
  */
-static const Order *ResolveOrder(VehicleID vehicle_id, ScriptOrder::OrderPosition order_position)
+static const BaseOrder *ResolveOrder(VehicleID vehicle_id, ScriptOrder::OrderPosition order_position)
 {
 	const Vehicle *v = ::Vehicle::Get(vehicle_id);
 	if (order_position == ScriptOrder::ORDER_CURRENT) {
-		const Order *order = &v->current_order;
+		const BaseOrder *order = &v->current_order;
 		if (order->GetType() == OT_GOTO_DEPOT && !(order->GetDepotOrderType() & ODTFB_PART_OF_ORDERS)) return order;
 		order_position = ScriptOrder::ResolveOrderPosition(vehicle_id, order_position);
 		if (order_position == ScriptOrder::ORDER_INVALID) return NULL;
@@ -104,7 +104,7 @@ static int ScriptOrderPositionToRealOrderPosition(VehicleID vehicle_id, ScriptOr
 {
 	if (!IsValidVehicleOrder(vehicle_id, order_position)) return false;
 
-	const Order *order = ::ResolveOrder(vehicle_id, order_position);
+	const BaseOrder *order = ::ResolveOrder(vehicle_id, order_position);
 	return order != NULL && order->GetType() == OT_GOTO_STATION;
 }
 
@@ -112,7 +112,7 @@ static int ScriptOrderPositionToRealOrderPosition(VehicleID vehicle_id, ScriptOr
 {
 	if (!IsValidVehicleOrder(vehicle_id, order_position)) return false;
 
-	const Order *order = ::ResolveOrder(vehicle_id, order_position);
+	const BaseOrder *order = ::ResolveOrder(vehicle_id, order_position);
 	return order != NULL && order->GetType() == OT_GOTO_DEPOT;
 }
 
@@ -120,7 +120,7 @@ static int ScriptOrderPositionToRealOrderPosition(VehicleID vehicle_id, ScriptOr
 {
 	if (!IsValidVehicleOrder(vehicle_id, order_position)) return false;
 
-	const Order *order = ::ResolveOrder(vehicle_id, order_position);
+	const BaseOrder *order = ::ResolveOrder(vehicle_id, order_position);
 	return order != NULL && order->GetType() == OT_GOTO_WAYPOINT;
 }
 
@@ -138,7 +138,7 @@ static int ScriptOrderPositionToRealOrderPosition(VehicleID vehicle_id, ScriptOr
 	if (order_position == ORDER_CURRENT) return false;
 	if (!IsValidVehicleOrder(vehicle_id, order_position)) return false;
 
-	const Order *order = ::ResolveOrder(vehicle_id, order_position);
+	const BaseOrder *order = ::ResolveOrder(vehicle_id, order_position);
 	return order->GetType() == OT_DUMMY;
 }
 
@@ -146,7 +146,7 @@ static int ScriptOrderPositionToRealOrderPosition(VehicleID vehicle_id, ScriptOr
 {
 	if (!IsValidVehicleOrder(vehicle_id, order_position)) return false;
 
-	const Order *order = ::ResolveOrder(vehicle_id, order_position);
+	const BaseOrder *order = ::ResolveOrder(vehicle_id, order_position);
 	return order != NULL && order->IsRefit();
 }
 
@@ -155,7 +155,7 @@ static int ScriptOrderPositionToRealOrderPosition(VehicleID vehicle_id, ScriptOr
 	if (!ScriptVehicle::IsValidVehicle(vehicle_id)) return false;
 	if (GetOrderCount(vehicle_id) == 0) return false;
 
-	const Order *order = &::Vehicle::Get(vehicle_id)->current_order;
+	const BaseOrder *order = &::Vehicle::Get(vehicle_id)->current_order;
 	if (order->GetType() != OT_GOTO_DEPOT) return true;
 	return (order->GetDepotOrderType() & ODTFB_PART_OF_ORDERS) != 0;
 }
@@ -235,7 +235,7 @@ static int ScriptOrderPositionToRealOrderPosition(VehicleID vehicle_id, ScriptOr
 {
 	if (!IsValidVehicleOrder(vehicle_id, order_position)) return INVALID_TILE;
 
-	const Order *order = ::ResolveOrder(vehicle_id, order_position);
+	const BaseOrder *order = ::ResolveOrder(vehicle_id, order_position);
 	if (order == NULL || order->GetType() == OT_CONDITIONAL) return INVALID_TILE;
 	const Vehicle *v = ::Vehicle::Get(vehicle_id);
 
@@ -289,7 +289,7 @@ static int ScriptOrderPositionToRealOrderPosition(VehicleID vehicle_id, ScriptOr
 {
 	if (!IsValidVehicleOrder(vehicle_id, order_position)) return OF_INVALID;
 
-	const Order *order = ::ResolveOrder(vehicle_id, order_position);
+	const BaseOrder *order = ::ResolveOrder(vehicle_id, order_position);
 	if (order == NULL || order->GetType() == OT_CONDITIONAL || order->GetType() == OT_DUMMY) return OF_INVALID;
 
 	ScriptOrderFlags order_flags = OF_NONE;
@@ -317,7 +317,7 @@ static int ScriptOrderPositionToRealOrderPosition(VehicleID vehicle_id, ScriptOr
 	if (!IsValidVehicleOrder(vehicle_id, order_position)) return ORDER_INVALID;
 	if (order_position == ORDER_CURRENT || !IsConditionalOrder(vehicle_id, order_position)) return ORDER_INVALID;
 
-	const Order *order = ::ResolveOrder(vehicle_id, order_position);
+	const BaseOrder *order = ::ResolveOrder(vehicle_id, order_position);
 	return (OrderPosition)order->GetConditionSkipToOrder();
 }
 
@@ -326,7 +326,7 @@ static int ScriptOrderPositionToRealOrderPosition(VehicleID vehicle_id, ScriptOr
 	if (!IsValidVehicleOrder(vehicle_id, order_position)) return OC_INVALID;
 	if (order_position == ORDER_CURRENT || !IsConditionalOrder(vehicle_id, order_position)) return OC_INVALID;
 
-	const Order *order = ::ResolveOrder(vehicle_id, order_position);
+	const BaseOrder *order = ::ResolveOrder(vehicle_id, order_position);
 	return (OrderCondition)order->GetConditionVariable();
 }
 
@@ -335,7 +335,7 @@ static int ScriptOrderPositionToRealOrderPosition(VehicleID vehicle_id, ScriptOr
 	if (!IsValidVehicleOrder(vehicle_id, order_position)) return CF_INVALID;
 	if (order_position == ORDER_CURRENT || !IsConditionalOrder(vehicle_id, order_position)) return CF_INVALID;
 
-	const Order *order = ::ResolveOrder(vehicle_id, order_position);
+	const BaseOrder *order = ::ResolveOrder(vehicle_id, order_position);
 	return (CompareFunction)order->GetConditionComparator();
 }
 
@@ -344,7 +344,7 @@ static int ScriptOrderPositionToRealOrderPosition(VehicleID vehicle_id, ScriptOr
 	if (!IsValidVehicleOrder(vehicle_id, order_position)) return -1;
 	if (order_position == ORDER_CURRENT || !IsConditionalOrder(vehicle_id, order_position)) return -1;
 
-	const Order *order = ::ResolveOrder(vehicle_id, order_position);
+	const BaseOrder *order = ::ResolveOrder(vehicle_id, order_position);
 	int32 value = order->GetConditionValue();
 	if (order->GetConditionVariable() == OCV_MAX_SPEED) value = value * 16 / 10;
 	return value;
@@ -356,7 +356,7 @@ static int ScriptOrderPositionToRealOrderPosition(VehicleID vehicle_id, ScriptOr
 	if (ScriptVehicle::GetVehicleType(vehicle_id) != ScriptVehicle::VT_RAIL) return STOPLOCATION_INVALID;
 	if (!IsGotoStationOrder(vehicle_id, order_position)) return STOPLOCATION_INVALID;
 
-	const Order *order = ::ResolveOrder(vehicle_id, order_position);
+	const BaseOrder *order = ::ResolveOrder(vehicle_id, order_position);
 	return (ScriptOrder::StopLocation)order->GetStopLocation();
 }
 
@@ -365,7 +365,7 @@ static int ScriptOrderPositionToRealOrderPosition(VehicleID vehicle_id, ScriptOr
 	if (!IsValidVehicleOrder(vehicle_id, order_position)) return CT_NO_REFIT;
 	if (order_position != ORDER_CURRENT && !IsGotoStationOrder(vehicle_id, order_position) && !IsGotoDepotOrder(vehicle_id, order_position)) return CT_NO_REFIT;
 
-	const Order *order = ::ResolveOrder(vehicle_id, order_position);
+	const BaseOrder *order = ::ResolveOrder(vehicle_id, order_position);
 	return order->IsRefit() ? order->GetRefitCargo() : (CargoID)CT_NO_REFIT;
 }
 
@@ -574,7 +574,7 @@ static void _DoCommandReturnSetOrderFlags(class ScriptInstance *instance)
 	EnforcePrecondition(false, IsValidVehicleOrder(vehicle_id, order_position));
 	EnforcePrecondition(false, AreOrderFlagsValid(GetOrderDestination(vehicle_id, order_position), order_flags));
 
-	const Order *order = ::ResolveOrder(vehicle_id, order_position);
+	const BaseOrder *order = ::ResolveOrder(vehicle_id, order_position);
 	int order_pos = ScriptOrderPositionToRealOrderPosition(vehicle_id, order_position);
 
 	ScriptOrderFlags current = GetOrderFlags(vehicle_id, order_position);

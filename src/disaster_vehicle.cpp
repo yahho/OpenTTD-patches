@@ -163,7 +163,7 @@ DisasterVehicle::DisasterVehicle(int x, int y, Direction direction, DisasterSubT
 	this->UpdateDeltaXY(INVALID_DIR);
 	this->owner = OWNER_NONE;
 	this->image_override = 0;
-	this->current_order.Free();
+	this->current_order.Clear();
 
 	this->UpdateImage();
 	this->UpdatePositionAndViewport();

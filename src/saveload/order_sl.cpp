@@ -21,7 +21,7 @@
  * Converts this order from an old savegame's version;
  * it moves all bits to the new location.
  */
-void Order::ConvertFromOldSavegame(const SavegameTypeVersion *stv)
+void BaseOrder::ConvertFromOldSavegame (const SavegameTypeVersion *stv)
 {
 	uint8 old_flags = this->flags;
 	this->flags = 0;
@@ -77,9 +77,9 @@ void Order::ConvertFromOldSavegame(const SavegameTypeVersion *stv)
  * @param packed packed order
  * @return unpacked order
  */
-static Order UnpackVersion4Order(uint16 packed)
+static BaseOrder UnpackVersion4Order (uint16 packed)
 {
-	return Order(GB(packed, 8, 8) << 16 | GB(packed, 4, 4) << 8 | GB(packed, 0, 4));
+	return BaseOrder (GB(packed, 8, 8) << 16 | GB(packed, 4, 4) << 8 | GB(packed, 0, 4));
 }
 
 /**
@@ -87,9 +87,9 @@ static Order UnpackVersion4Order(uint16 packed)
  * @param packed packed order
  * @return unpacked order
  */
-Order UnpackOldOrder(uint16 packed)
+BaseOrder UnpackOldOrder (uint16 packed)
 {
-	Order order = UnpackVersion4Order(packed);
+	BaseOrder order = UnpackVersion4Order (packed);
 
 	/*
 	 * Sanity check

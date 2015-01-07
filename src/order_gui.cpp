@@ -367,13 +367,9 @@ StringID GetErrSkipToOrder (TileIndex tile, uint32 p1, uint32 p2, const char *te
  * @param tile Tile being queried.
  * @return The order associated to vehicle v in given tile (or empty order if vehicle can do nothing in the tile).
  */
-static Order GetOrderCmdFromTile(const Vehicle *v, TileIndex tile)
+static BaseOrder GetOrderCmdFromTile (const Vehicle *v, TileIndex tile)
 {
-	/* Hack-ish; unpack order 0, so everything gets initialised with either zero
-	 * or a suitable default value for the variable. Then also override the index
-	 * as it is not coming from a pool, so would be initialised. */
-	Order order(0);
-	order.index = 0;
+	BaseOrder order;
 
 	switch (GetTileType(tile)) {
 		case TT_MISC:
@@ -444,7 +440,6 @@ static Order GetOrderCmdFromTile(const Vehicle *v, TileIndex tile)
 	}
 
 	/* not found */
-	order.Free();
 	return order;
 }
 
@@ -1479,7 +1474,7 @@ public:
 	virtual void OnPlaceObject(Point pt, TileIndex tile)
 	{
 		if (this->goto_type == OPOS_GOTO) {
-			const Order cmd = GetOrderCmdFromTile(this->vehicle, tile);
+			const BaseOrder cmd = GetOrderCmdFromTile (this->vehicle, tile);
 			if (cmd.IsType(OT_NOTHING)) return;
 
 			if (DoCommandP(this->vehicle->tile, this->vehicle->index + (this->OrderGetSel() << 20), cmd.Pack(), CMD_INSERT_ORDER)) {

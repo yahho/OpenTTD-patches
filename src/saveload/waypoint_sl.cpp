@@ -48,7 +48,7 @@ static SmallVector<OldWaypoint, 16> _old_waypoints;
  * Update the waypoint orders to get the new waypoint ID.
  * @param o the order 'list' to check.
  */
-static void UpdateWaypointOrder(Order *o)
+static void UpdateWaypointOrder (BaseOrder *o)
 {
 	if (!o->IsType(OT_GOTO_WAYPOINT)) return;
 

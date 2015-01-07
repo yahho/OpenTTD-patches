@@ -258,7 +258,7 @@ public:
 	byte running_ticks;                 ///< Number of ticks this vehicle was not stopped this day
 
 	byte vehstatus;                     ///< Status
-	Order current_order;                ///< The current order (+ status, like: loading)
+	BaseOrder current_order;            ///< The current order (+ status, like: loading)
 
 	union {
 		OrderList *list;            ///< Pointer to the order list for this vehicle

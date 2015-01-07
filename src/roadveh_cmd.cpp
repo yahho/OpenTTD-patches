@@ -1490,7 +1490,7 @@ static bool controller_standard_stop (RoadVehicle *v)
 				v->cur_speed = 0;
 				return false;
 			}
-			if (v->current_order.IsType (OT_LEAVESTATION)) v->current_order.Free();
+			if (v->current_order.IsType (OT_LEAVESTATION)) v->current_order.Clear();
 		}
 
 		rs->SetEntranceBusy (true);
@@ -1636,7 +1636,7 @@ static bool controller_drivethrough_stop (RoadVehicle *v)
 	}
 
 	if (v->current_order.IsType (OT_LEAVESTATION)) {
-		v->current_order.Free();
+		v->current_order.Clear();
 	}
 
 	v->frame++;

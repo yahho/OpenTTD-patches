@@ -56,22 +56,20 @@ Order::~Order()
 }
 
 /**
- * 'Free' the order
- * @note ONLY use on "current_order" vehicle orders!
+ * Clear the order
  */
-void Order::Free()
+void BaseOrder::Clear()
 {
 	this->type  = OT_NOTHING;
 	this->flags = 0;
 	this->dest  = 0;
-	this->next  = NULL;
 }
 
 /**
  * Makes this order a Go To Station order.
  * @param destination the station to go to.
  */
-void Order::MakeGoToStation(StationID destination)
+void BaseOrder::MakeGoToStation(StationID destination)
 {
 	this->type = OT_GOTO_STATION;
 	this->flags = 0;
@@ -86,7 +84,7 @@ void Order::MakeGoToStation(StationID destination)
  * @param action        what to do in the depot?
  * @param cargo         the cargo type to change to.
  */
-void Order::MakeGoToDepot(DepotID destination, OrderDepotTypeFlags order, OrderNonStopFlags non_stop_type, OrderDepotActionFlags action, CargoID cargo)
+void BaseOrder::MakeGoToDepot(DepotID destination, OrderDepotTypeFlags order, OrderNonStopFlags non_stop_type, OrderDepotActionFlags action, CargoID cargo)
 {
 	this->type = OT_GOTO_DEPOT;
 	this->SetDepotOrderType(order);
@@ -100,7 +98,7 @@ void Order::MakeGoToDepot(DepotID destination, OrderDepotTypeFlags order, OrderN
  * Makes this order a Go To Waypoint order.
  * @param destination the waypoint to go to.
  */
-void Order::MakeGoToWaypoint(StationID destination)
+void BaseOrder::MakeGoToWaypoint(StationID destination)
 {
 	this->type = OT_GOTO_WAYPOINT;
 	this->flags = 0;
@@ -111,7 +109,7 @@ void Order::MakeGoToWaypoint(StationID destination)
  * Makes this order a Loading order.
  * @param ordered is this an ordered stop?
  */
-void Order::MakeLoading(bool ordered)
+void BaseOrder::MakeLoading(bool ordered)
 {
 	this->type = OT_LOADING;
 	if (!ordered) this->flags = 0;
@@ -120,7 +118,7 @@ void Order::MakeLoading(bool ordered)
 /**
  * Makes this order a Leave Station order.
  */
-void Order::MakeLeaveStation()
+void BaseOrder::MakeLeaveStation()
 {
 	this->type = OT_LEAVESTATION;
 	this->flags = 0;
@@ -129,7 +127,7 @@ void Order::MakeLeaveStation()
 /**
  * Makes this order a Dummy order.
  */
-void Order::MakeDummy()
+void BaseOrder::MakeDummy()
 {
 	this->type = OT_DUMMY;
 	this->flags = 0;
@@ -139,7 +137,7 @@ void Order::MakeDummy()
  * Makes this order an conditional order.
  * @param order the order to jump to.
  */
-void Order::MakeConditional(VehicleOrderID order)
+void BaseOrder::MakeConditional(VehicleOrderID order)
 {
 	this->type = OT_CONDITIONAL;
 	this->flags = order;
@@ -150,7 +148,7 @@ void Order::MakeConditional(VehicleOrderID order)
  * Makes this order an implicit order.
  * @param destination the station to go to.
  */
-void Order::MakeImplicit(StationID destination)
+void BaseOrder::MakeImplicit(StationID destination)
 {
 	this->type = OT_IMPLICIT;
 	this->dest = destination;
@@ -161,7 +159,7 @@ void Order::MakeImplicit(StationID destination)
  * @param cargo   the cargo type to change to.
  * @pre IsType(OT_GOTO_DEPOT) || IsType(OT_GOTO_STATION).
  */
-void Order::SetRefit(CargoID cargo)
+void BaseOrder::SetRefit(CargoID cargo)
 {
 	this->refit_cargo = cargo;
 }
@@ -171,7 +169,7 @@ void Order::SetRefit(CargoID cargo)
  * @param other the second order to compare to.
  * @return true if the type, flags and destination match.
  */
-bool Order::Equals(const Order &other) const
+bool BaseOrder::Equals (const BaseOrder &other) const
 {
 	/* In case of go to nearest depot orders we need "only" compare the flags
 	 * with the other and not the nearest depot order bit or the actual
@@ -194,7 +192,7 @@ bool Order::Equals(const Order &other) const
  * @return the packed representation.
  * @note unpacking is done in the constructor.
  */
-uint32 Order::Pack() const
+uint32 BaseOrder::Pack() const
 {
 	return this->dest << 16 | this->flags << 8 | this->type;
 }
@@ -204,7 +202,7 @@ uint32 Order::Pack() const
  * representation as possible.
  * @return the TTD-like packed representation.
  */
-uint16 Order::MapOldOrder() const
+uint16 BaseOrder::MapOldOrder() const
 {
 	uint16 order = this->GetType();
 	switch (this->type) {
@@ -224,22 +222,6 @@ uint16 Order::MapOldOrder() const
 			break;
 	}
 	return order;
-}
-
-/**
- * Create an order based on a packed representation of that order.
- * @param packed the packed representation.
- */
-Order::Order(uint32 packed)
-{
-	this->type    = (OrderType)GB(packed,  0,  8);
-	this->flags   = GB(packed,  8,  8);
-	this->dest    = GB(packed, 16, 16);
-	this->next    = NULL;
-	this->refit_cargo   = CT_NO_REFIT;
-	this->wait_time     = 0;
-	this->travel_time   = 0;
-	this->max_speed     = UINT16_MAX;
 }
 
 /**
@@ -265,11 +247,10 @@ void InvalidateVehicleOrder(const Vehicle *v, int data)
 /**
  *
  * Assign data to an order (from another order)
- *   This function makes sure that the index is maintained correctly
  * @param other the data to copy (except next pointer).
  *
  */
-void Order::AssignOrder(const Order &other)
+void BaseOrder::AssignOrder (const BaseOrder &other)
 {
 	this->type  = other.type;
 	this->flags = other.flags;
@@ -665,7 +646,7 @@ static void DeleteOrderWarnings(const Vehicle *v)
  * @param airport Get the airport tile and not the station location for aircraft.
  * @return destination of order, or INVALID_TILE if none.
  */
-TileIndex Order::GetLocation(const Vehicle *v, bool airport) const
+TileIndex BaseOrder::GetLocation(const Vehicle *v, bool airport) const
 {
 	switch (this->GetType()) {
 		case OT_GOTO_WAYPOINT:
@@ -681,6 +662,21 @@ TileIndex Order::GetLocation(const Vehicle *v, bool airport) const
 		default:
 			return INVALID_TILE;
 	}
+}
+
+/**
+ * Get the distance between two orders.
+ * @param prev Origin order.
+ * @param cur Destination order.
+ * @param v The vehicle to get the distance for.
+ * @return Maximum distance between the two orders.
+ */
+static uint GetOrderDistance (const BaseOrder *prev, const BaseOrder *cur, const Vehicle *v)
+{
+	TileIndex prev_tile = prev->GetLocation (v, true);
+	TileIndex cur_tile  = cur->GetLocation  (v, true);
+	if (prev_tile == INVALID_TILE || cur_tile == INVALID_TILE) return 0;
+	return v->type == VEH_AIRCRAFT ? DistanceSquare (prev_tile, cur_tile) : DistanceManhattan (prev_tile, cur_tile);
 }
 
 /**
@@ -704,10 +700,7 @@ uint GetOrderDistance(const Order *prev, const Order *cur, const Vehicle *v, int
 		return max(dist1, dist2);
 	}
 
-	TileIndex prev_tile = prev->GetLocation(v, true);
-	TileIndex cur_tile = cur->GetLocation(v, true);
-	if (prev_tile == INVALID_TILE || cur_tile == INVALID_TILE) return 0;
-	return v->type == VEH_AIRCRAFT ? DistanceSquare(prev_tile, cur_tile) : DistanceManhattan(prev_tile, cur_tile);
+	return GetOrderDistance (prev, cur, v);
 }
 
 /**
@@ -727,7 +720,7 @@ CommandCost CmdInsertOrder(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 {
 	VehicleID veh          = GB(p1,  0, 20);
 	VehicleOrderID sel_ord = GB(p1, 20, 8);
-	Order new_order(p2);
+	BaseOrder new_order (p2);
 
 	Vehicle *v = Vehicle::GetIfValid(veh);
 	if (v == NULL || !v->IsPrimaryVehicle()) return CMD_ERROR;
@@ -932,9 +925,7 @@ CommandCost CmdInsertOrder(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 	}
 
 	if (flags & DC_EXEC) {
-		Order *new_o = new Order();
-		new_o->AssignOrder(new_order);
-		InsertOrder(v, new_o, sel_ord);
+		InsertOrder (v, new Order (new_order), sel_ord);
 	}
 
 	return CommandCost();
@@ -1840,16 +1831,14 @@ void RemoveOrderFromAllVehicles(OrderType type, DestinationID destination)
 
 	/* Go through all vehicles */
 	FOR_ALL_VEHICLES(v) {
-		Order *order;
-
-		order = &v->current_order;
-		if ((v->type == VEH_AIRCRAFT && order->IsType(OT_GOTO_DEPOT) ? OT_GOTO_STATION : order->GetType()) == type &&
+		if ((v->type == VEH_AIRCRAFT && v->current_order.IsType(OT_GOTO_DEPOT) ? OT_GOTO_STATION : v->current_order.GetType()) == type &&
 				v->current_order.GetDestination() == destination) {
-			order->MakeDummy();
+			v->current_order.MakeDummy();
 			SetWindowDirty(WC_VEHICLE_VIEW, v->index);
 		}
 
 		/* Clear the order from the order-list */
+		Order *order;
 		int id = -1;
 		FOR_VEHICLE_ORDERS(v, order) {
 			id++;
@@ -2035,7 +2024,7 @@ VehicleOrderID ProcessConditionalOrder(const Order *order, const Vehicle *v)
 bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool pbs_look_ahead)
 {
 	if (conditional_depth > v->GetNumOrders()) {
-		v->current_order.Free();
+		v->current_order.Clear();
 		v->dest_tile = 0;
 		return false;
 	}
@@ -2137,7 +2126,7 @@ bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool
 	}
 
 	if (order == NULL) {
-		v->current_order.Free();
+		v->current_order.Clear();
 		v->dest_tile = 0;
 		return false;
 	}
@@ -2213,7 +2202,7 @@ bool ProcessOrders(Vehicle *v)
 			return false;
 		}
 
-		v->current_order.Free();
+		v->current_order.Clear();
 		v->dest_tile = 0;
 		return false;
 	}
@@ -2252,7 +2241,7 @@ bool ProcessOrders(Vehicle *v)
  * @param station the station to stop at.
  * @return true if the vehicle should stop.
  */
-bool Order::ShouldStopAtStation(const Vehicle *v, StationID station) const
+bool BaseOrder::ShouldStopAtStation(const Vehicle *v, StationID station) const
 {
 	bool is_dest_station = this->IsType(OT_GOTO_STATION) && this->dest == station;
 
@@ -2262,7 +2251,7 @@ bool Order::ShouldStopAtStation(const Vehicle *v, StationID station) const
 			!(this->GetNonStopType() & (is_dest_station ? ONSF_NO_STOP_AT_DESTINATION_STATION : ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS));
 }
 
-bool Order::CanLoadOrUnload() const
+bool BaseOrder::CanLoadOrUnload() const
 {
 	return (this->IsType(OT_GOTO_STATION) || this->IsType(OT_IMPLICIT)) &&
 			(this->GetNonStopType() & ONSF_NO_STOP_AT_DESTINATION_STATION) == 0 &&
@@ -2276,7 +2265,7 @@ bool Order::CanLoadOrUnload() const
  * 2a. it could leave the last station with cargo AND
  * 2b. it doesn't have to unload all cargo here.
  */
-bool Order::CanLeaveWithCargo(bool has_cargo) const
+bool BaseOrder::CanLeaveWithCargo(bool has_cargo) const
 {
 	return (this->GetLoadType() & OLFB_NO_LOAD) == 0 || (has_cargo &&
 			(this->GetUnloadType() & (OUFB_UNLOAD | OUFB_TRANSFER)) == 0);

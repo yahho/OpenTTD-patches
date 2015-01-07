@@ -2492,7 +2492,7 @@ static bool TryReserveSafeTrack(const Train *v, const RailPathPos &pos, bool ove
 class VehicleOrderSaver {
 private:
 	Train          *v;
-	Order          old_order;
+	BaseOrder      old_order;
 	TileIndex      old_dest_tile;
 	StationID      old_last_station_visited;
 	VehicleOrderID index;
@@ -4211,7 +4211,7 @@ static bool TrainLocoHandler(Train *v, bool mode)
 	}
 
 	if (v->current_order.IsType(OT_LEAVESTATION)) {
-		v->current_order.Free();
+		v->current_order.Clear();
 		SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
 		return true;
 	}

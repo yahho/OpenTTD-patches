@@ -22,17 +22,8 @@
 #include "date_type.h"
 #include "saveload/saveload_buffer.h"
 
-/* If you change this, keep in mind that it is saved on 3 places:
- * - Load_ORDR, all the global orders
- * - Vehicle -> current_order
- * - REF_ORDER (all REFs are currently limited to 16 bits!!)
- */
-struct Order : PooledItem <Order, OrderID, 256, 64000> {
-private:
-	friend const struct SaveLoad *GetVehicleDescription(VehicleType vt); ///< Saving and loading the current order of vehicles.
-	friend void Load_VEHS(LoadBuffer *reader);                           ///< Loading of ancient vehicles.
-	friend const struct SaveLoad *GetOrderDescription();                 ///< Saving and loading of orders.
-
+/** Base order. */
+struct BaseOrder {
 	uint8 type;           ///< The type of order + non-stop flags
 	uint8 flags;          ///< Load/unload types, depot order/action types.
 	DestinationID dest;   ///< The destination of the order.
@@ -43,13 +34,24 @@ private:
 	uint16 travel_time;  ///< How long in ticks the journey to this destination should take.
 	uint16 max_speed;    ///< How fast the vehicle may go on the way to the destination.
 
-public:
-	Order *next;          ///< Pointer to next order. If NULL, end of list
+	CONSTEXPR BaseOrder() : type(OT_NOTHING), flags(0), dest(),
+		refit_cargo(CT_NO_REFIT),
+		wait_time(0), travel_time(0), max_speed(UINT16_MAX)
+	{
+	}
 
-	Order() : refit_cargo(CT_NO_REFIT), max_speed(UINT16_MAX) {}
-	~Order();
+	CONSTEXPR BaseOrder (uint8 t, uint8 f, DestinationID d)
+		: type(t), flags(f), dest(d), refit_cargo(CT_NO_REFIT),
+		  wait_time(0), travel_time(0), max_speed(UINT16_MAX)
+	{
+	}
 
-	Order(uint32 packed);
+	BaseOrder (uint32 packed)
+		: type(GB(packed,  0,  8)), flags(GB(packed,  8,  8)),
+		  dest(GB(packed, 16, 16)), refit_cargo(CT_NO_REFIT),
+		  wait_time(0), travel_time(0), max_speed(UINT16_MAX)
+	{
+	}
 
 	/**
 	 * Check whether this order is of the given type.
@@ -64,8 +66,7 @@ public:
 	 */
 	inline OrderType GetType() const { return (OrderType)GB(this->type, 0, 4); }
 
-	void Free();
-
+	void Clear();
 	void MakeGoToStation(StationID destination);
 	void MakeGoToDepot(DepotID destination, OrderDepotTypeFlags order, OrderNonStopFlags non_stop_type = ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS, OrderDepotActionFlags action = ODATF_SERVICE_ONLY, CargoID cargo = CT_NO_REFIT);
 	void MakeGoToWaypoint(StationID destination);
@@ -230,12 +231,28 @@ public:
 		return true;
 	}
 
-	void AssignOrder(const Order &other);
-	bool Equals(const Order &other) const;
+	void AssignOrder (const BaseOrder &other);
+	bool Equals (const BaseOrder &other) const;
 
 	uint32 Pack() const;
 	uint16 MapOldOrder() const;
 	void ConvertFromOldSavegame(const SavegameTypeVersion *stv);
+};
+
+/* If you change this, keep in mind that it is saved on 3 places:
+ * - Load_ORDR, all the global orders
+ * - Vehicle -> current_order
+ * - REF_ORDER (all REFs are currently limited to 16 bits!!)
+ */
+struct Order : PooledItem <Order, OrderID, 256, 64000>, BaseOrder {
+	Order *next;          ///< Pointer to next order. If NULL, end of list
+
+	Order() : BaseOrder() {}
+	~Order();
+
+	Order (const BaseOrder &o) : BaseOrder(o), next(NULL) { }
+
+	Order(uint32 packed) : BaseOrder(packed), next(NULL) { }
 };
 
 void InsertOrder(Vehicle *v, Order *new_o, VehicleOrderID sel_ord);

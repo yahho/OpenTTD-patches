@@ -351,7 +351,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 			/* In some old savegames there might be some "crap" stored. */
 			FOR_ALL_VEHICLES(v) {
 				if (!v->IsPrimaryVehicle() && v->type != VEH_DISASTER) {
-					v->current_order.Free();
+					v->current_order.Clear();
 					v->unitnumber = 0;
 				}
 			}
