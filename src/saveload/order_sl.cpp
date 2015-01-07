@@ -34,41 +34,41 @@ void Order::ConvertFromOldSavegame(const SavegameTypeVersion *stv)
 		this->SetNonStopType((old_flags & 8) ? ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS : ONSF_STOP_EVERYWHERE);
 	}
 
+	/* Only a few types need the other savegame conversions. */
 	switch (this->GetType()) {
-		/* Only a few types need the other savegame conversions. */
-		case OT_GOTO_DEPOT: case OT_GOTO_STATION: case OT_LOADING: break;
 		default: return;
-	}
 
-	if (this->GetType() != OT_GOTO_DEPOT) {
-		/* Then the load flags */
-		if ((old_flags & 2) != 0) { // OFB_UNLOAD
-			this->SetLoadType(OLFB_NO_LOAD);
-		} else if ((old_flags & 4) == 0) { // !OFB_FULL_LOAD
-			this->SetLoadType(OLF_LOAD_IF_POSSIBLE);
-		} else {
-			/* old OTTD versions stored full_load_any in config file - assume it was enabled when loading */
-			this->SetLoadType ((_settings_client.gui.sg_full_load_any || stv->is_ottd_before (22)) ? OLF_FULL_LOAD_ANY : OLFB_FULL_LOAD);
-		}
+		case OT_GOTO_STATION:
+			this->SetStopLocation(OSL_PLATFORM_FAR_END);
+			/* fall through */
+		case OT_LOADING:
+			if ((old_flags & 2) != 0) { // OFB_UNLOAD
+				this->SetLoadType(OLFB_NO_LOAD);
+			} else if ((old_flags & 4) == 0) { // !OFB_FULL_LOAD
+				this->SetLoadType(OLF_LOAD_IF_POSSIBLE);
+			} else {
+				/* old OTTD versions stored full_load_any in config file - assume it was enabled when loading */
+				this->SetLoadType ((_settings_client.gui.sg_full_load_any || stv->is_ottd_before (22)) ? OLF_FULL_LOAD_ANY : OLFB_FULL_LOAD);
+			}
 
-		if (this->IsType(OT_GOTO_STATION)) this->SetStopLocation(OSL_PLATFORM_FAR_END);
+			if ((old_flags & 1) != 0) { // OFB_TRANSFER
+				this->SetUnloadType(OUFB_TRANSFER);
+			} else if ((old_flags & 2) != 0) { // OFB_UNLOAD
+				this->SetUnloadType(OUFB_UNLOAD);
+			} else {
+				this->SetUnloadType(OUF_UNLOAD_IF_POSSIBLE);
+			}
 
-		/* Finally fix the unload flags */
-		if ((old_flags & 1) != 0) { // OFB_TRANSFER
-			this->SetUnloadType(OUFB_TRANSFER);
-		} else if ((old_flags & 2) != 0) { // OFB_UNLOAD
-			this->SetUnloadType(OUFB_UNLOAD);
-		} else {
-			this->SetUnloadType(OUF_UNLOAD_IF_POSSIBLE);
-		}
-	} else {
-		/* Then the depot action flags */
-		this->SetDepotActionType(((old_flags & 6) == 4) ? ODATFB_HALT : ODATF_SERVICE_ONLY);
+			break;
 
-		/* Finally fix the depot type flags */
-		uint t = ((old_flags & 6) == 6) ? ODTFB_SERVICE : ODTF_MANUAL;
-		if ((old_flags & 2) != 0) t |= ODTFB_PART_OF_ORDERS;
-		this->SetDepotOrderType((OrderDepotTypeFlags)t);
+		case OT_GOTO_DEPOT:
+			this->SetDepotActionType(((old_flags & 6) == 4) ? ODATFB_HALT : ODATF_SERVICE_ONLY);
+
+			uint t = ((old_flags & 6) == 6) ? ODTFB_SERVICE : ODTF_MANUAL;
+			if ((old_flags & 2) != 0) t |= ODTFB_PART_OF_ORDERS;
+			this->SetDepotOrderType((OrderDepotTypeFlags)t);
+
+			break;
 	}
 }
 
