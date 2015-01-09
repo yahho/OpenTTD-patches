@@ -2286,27 +2286,21 @@ static void ClearPathReservation (const RailPathPos &pos)
  * @param v %Train owning the reserved path.
  * @param end Position where the reservation ends
  */
-void FreeTrainTrackReservation (const Train *v, const RailPathPos *end)
+static void FreeTrainTrackReservation (const Train *v, const RailPathPos *end)
 {
 	assert(v->IsFrontEngine());
+	assert(v->trackdir != TRACKDIR_DEPOT);
 
-	RailPathPos   pos = v->GetPos();
-	bool      first = true;
+	RailPathPos pos = v->GetPos();
+	assert (!IsRailDepotTile(pos.tile) || TrackdirToExitdir(pos.td) == GetGroundDepotDirection(pos.tile));
 
-	/* Can't be holding a reservation if we enter a depot. */
-	if (IsRailDepotTile(pos.tile) && TrackdirToExitdir(pos.td) != GetGroundDepotDirection(pos.tile)) return;
-	if (v->trackdir == TRACKDIR_DEPOT) {
-		/* Front engine is in a depot. We enter if some part is not in the depot. */
-		for (const Train *u = v; u != NULL; u = u->Next()) {
-			if (u->trackdir != TRACKDIR_DEPOT || u->tile != v->tile) return;
-		}
-	}
 	/* Don't free reservation if it's not ours. */
 	if (!pos.in_wormhole() && TracksOverlap(GetReservedTrackbits(pos.tile) | TrackToTrackBits(TrackdirToTrack(pos.td)))) return;
 
 	CFollowTrackRail ft(v, true, v->railtype);
 	ft.SetPos(pos);
 
+	bool first = true;
 	for (;;) {
 		if (end != NULL && ft.m_new == *end) return;
 
@@ -2356,6 +2350,21 @@ void FreeTrainTrackReservation (const Train *v, const RailPathPos *end)
 	/* If we were given an ending position but did not find it, then
 	 * something is wrong. */
 	assert (end == NULL);
+}
+
+/**
+ * Free the reserved path in front of a vehicle.
+ * @param v %Train owning the reserved path.
+ */
+void FreeTrainTrackReservation (const Train *v)
+{
+	assert(v->IsFrontEngine());
+
+	/* Can't be holding a reservation if we enter a depot. */
+	if (v->trackdir == TRACKDIR_DEPOT) return;
+	if (IsRailDepotTile (v->tile) && v->trackdir != DiagDirToDiagTrackdir (GetGroundDepotDirection (v->tile))) return;
+
+	FreeTrainTrackReservation (v, NULL);
 }
 
 /**
