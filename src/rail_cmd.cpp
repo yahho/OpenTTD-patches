@@ -703,8 +703,7 @@ static CommandCost RemoveRailTrack(TileIndex tile, Track track, DoCommandFlag fl
 		Train *v = NULL;
 
 		if (HasReservedTrack(tile, track)) {
-			v = GetTrainForReservation(tile, track);
-			if (v != NULL) FreeTrainTrackReservation(v);
+			v = FreeTrainReservation (tile, track);
 		}
 
 		Owner owner = GetTileOwner(tile);
@@ -808,9 +807,8 @@ static void RemoveRailBridge(TileIndex tile, TrackBits remove, TileIndex other_t
 	while (bits != TRACK_BIT_NONE) {
 		Track track = RemoveFirstTrack(&bits);
 		if ((TrackToTrackBits(track) & remove) != TRACK_BIT_NONE) {
-			Train *v = GetTrainForReservation(tile, track);
-			FreeTrainTrackReservation(v);
-			*affected.Append() = v;
+			Train *v = FreeTrainReservation (tile, track);
+			if (v != NULL) *affected.Append() = v;
 		}
 	}
 
@@ -818,9 +816,8 @@ static void RemoveRailBridge(TileIndex tile, TrackBits remove, TileIndex other_t
 	while (bits != TRACK_BIT_NONE) {
 		Track track = RemoveFirstTrack(&bits);
 		if ((TrackToTrackBits(track) & other_remove) != TRACK_BIT_NONE) {
-			Train *v = GetTrainForReservation(other_tile, track);
-			FreeTrainTrackReservation(v);
-			*affected.Append() = v;
+			Train *v = FreeTrainReservation (other_tile, track);
+			if (v != NULL) *affected.Append() = v;
 		}
 	}
 
@@ -926,8 +923,7 @@ static CommandCost RemoveCrossingTrack(TileIndex tile, DoCommandFlag flags)
 		Train *v = NULL;
 
 		if (HasCrossingReservation(tile)) {
-			v = GetTrainForReservation(tile, track);
-			if (v != NULL) FreeTrainTrackReservation(v);
+			v = FreeTrainReservation (tile, track);
 		}
 
 		Owner owner = GetTileOwner(tile);
@@ -1490,13 +1486,11 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 			 * stale reservations, we clear the path reservation here and try
 			 * to redo it later on. */
 			if (HasReservedTrack(tile, track)) {
-				v[0] = GetTrainForReservation(tile, track);
-				if (v[0] != NULL) FreeTrainTrackReservation(v[0]);
+				v[0] = FreeTrainReservation (tile, track);
 			}
 
 			if (other_end != INVALID_TILE && HasReservedTrack(other_end, track)) {
-				v[1] = GetTrainForReservation(other_end, track);
-				if (v[1] != NULL) FreeTrainTrackReservation(v[1]);
+				v[1] = FreeTrainReservation (other_end, track);
 			}
 
 			/* Update signal infrastructure count. */
@@ -1966,8 +1960,7 @@ static inline Train *FindUnpoweredReservationTrain(TileIndex tile, Track track, 
 	Train *v = GetTrainForReservation(tile, track);
 	if (v == NULL || HasPowerOnRail(v->railtype, rt)) return NULL;
 	/* No power on new rail type, reroute. */
-	FreeTrainTrackReservation(v);
-	return v;
+	return FreeTrainTrackReservation(v) ? v : NULL;
 }
 
 template <typename T>

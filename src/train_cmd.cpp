@@ -2355,16 +2355,18 @@ static void FreeTrainTrackReservation (const Train *v, const RailPathPos *end)
 /**
  * Free the reserved path in front of a vehicle.
  * @param v %Train owning the reserved path.
+ * @return Whether the train had a reservation (not in or entering a depot)
  */
-void FreeTrainTrackReservation (const Train *v)
+bool FreeTrainTrackReservation (const Train *v)
 {
 	assert(v->IsFrontEngine());
 
 	/* Can't be holding a reservation if we enter a depot. */
-	if (v->trackdir == TRACKDIR_DEPOT) return;
-	if (IsRailDepotTile (v->tile) && v->trackdir != DiagDirToDiagTrackdir (GetGroundDepotDirection (v->tile))) return;
+	if (v->trackdir == TRACKDIR_DEPOT) return false;
+	if (IsRailDepotTile (v->tile) && v->trackdir != DiagDirToDiagTrackdir (GetGroundDepotDirection (v->tile))) return false;
 
 	FreeTrainTrackReservation (v, NULL);
+	return true;
 }
 
 /**

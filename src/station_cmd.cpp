@@ -1117,7 +1117,8 @@ static void RestoreTrainReservation(Train *v)
 	const RailPathPos pos = v->GetPos();
 	if (!pos.in_wormhole() && IsRailStationTile(pos.tile)) SetRailStationPlatformReservation(pos, true);
 
-	TryPathReserve(v, true, true);
+	/* Check first if the train can have a reservation (not heading into a depot). */
+	if (FreeTrainTrackReservation(v)) TryPathReserve(v, true, true);
 
 	const RailPathPos rev = v->Last()->GetReversePos();
 	if (!rev.in_wormhole() && IsRailStationTile(rev.tile)) SetRailStationPlatformReservation(rev, true);
@@ -1555,8 +1556,7 @@ static CommandCost RemoveRailStation (BaseStation *st, DoCommandFlag flags)
 			Owner owner = GetTileOwner(tile); // _current_company can be OWNER_WATER
 			Train *v = NULL;
 			if (HasStationReservation(tile)) {
-				v = GetTrainForReservation(tile, track);
-				if (v != NULL) FreeTrainTrackReservation(v);
+				v = FreeTrainReservation (tile, track);
 			}
 			if (!IsStationTileBlocked(tile)) Company::Get(owner)->infrastructure.rail[GetRailType(tile)]--;
 			Company::Get(owner)->infrastructure.station--;

@@ -397,6 +397,18 @@ Train *GetTrainForReservation(TileIndex tile, Track track)
 }
 
 /**
+ * Free the reservation to which a given reserved track belongs.
+ * @param tile A tile on the path.
+ * @param track A reserved track on the tile.
+ * @return The vehicle that held the reservation, if it could be unreserved, else NULL.
+ */
+Train *FreeTrainReservation (TileIndex tile, Track track)
+{
+	Train *t = GetTrainForReservation (tile, track);
+	return ((t != NULL) && FreeTrainTrackReservation(t)) ? t : NULL;
+}
+
+/**
  * Analyse a waiting position, to check if it is safe and/or if it is free.
  *
  * @param v the vehicle to test for

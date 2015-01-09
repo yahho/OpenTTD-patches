@@ -95,6 +95,7 @@ static inline bool IsFreeSafeWaitingPosition(const Train *v, const RailPathPos &
 }
 
 Train *GetTrainForReservation(TileIndex tile, Track track);
+Train *FreeTrainReservation (TileIndex tile, Track track);
 
 /**
  * Check whether some of tracks is reserved on a tile.
