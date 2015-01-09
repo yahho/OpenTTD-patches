@@ -622,19 +622,17 @@ CommandCost CheckFlatLand(TileArea tile_area, DoCommandFlag flags)
  * @param station StationID to be queried and returned if available.
  * @param rt The rail type to check for (overbuilding rail stations over rail).
  * @param affected_vehicles List of trains with PBS reservations on the tiles
- * @param spec_class Station class.
- * @param spec_index Index into the station class.
+ * @param statspec Station spec.
  * @param plat_len Platform length.
  * @param numtracks Number of platforms.
  * @return The cost in case of success, or an error code if it failed.
  */
-static CommandCost CheckFlatLandRailStation(TileArea tile_area, DoCommandFlag flags, Axis axis, StationID *station, RailType rt, SmallVector<Train *, 4> &affected_vehicles, StationClassID spec_class, byte spec_index, byte plat_len, byte numtracks)
+static CommandCost CheckFlatLandRailStation (TileArea tile_area, DoCommandFlag flags, Axis axis, StationID *station, RailType rt, SmallVector<Train *, 4> &affected_vehicles, const StationSpec *statspec, byte plat_len, byte numtracks)
 {
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 	int allowed_z = -1;
 	uint invalid_dirs = 5 << axis;
 
-	const StationSpec *statspec = StationClass::Get(spec_class)->GetSpec(spec_index);
 	bool slope_cb = statspec != NULL && HasBit(statspec->callback_mask, CBM_STATION_SLOPE_CHECK);
 
 	TILE_AREA_LOOP(tile_cur, tile_area) {
@@ -1163,7 +1161,10 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 
 	/* Check if the given station class is valid */
 	if ((uint)spec_class >= StationClass::GetClassCount() || spec_class == STAT_CLASS_WAYP) return CMD_ERROR;
-	if (spec_index >= StationClass::Get(spec_class)->GetSpecCount()) return CMD_ERROR;
+	const StationClass *statclass = StationClass::Get(spec_class);
+	if (spec_index >= statclass->GetSpecCount()) return CMD_ERROR;
+	const StationSpec *statspec = statclass->GetSpec(spec_index);
+
 	if (plat_len == 0 || numtracks == 0) return CMD_ERROR;
 
 	int w_org, h_org;
@@ -1184,7 +1185,7 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 	StationID est = INVALID_STATION;
 	SmallVector<Train *, 4> affected_vehicles;
 	/* Clear the land below the station. */
-	CommandCost cost = CheckFlatLandRailStation(new_location, flags, axis, &est, rt, affected_vehicles, spec_class, spec_index, plat_len, numtracks);
+	CommandCost cost = CheckFlatLandRailStation (new_location, flags, axis, &est, rt, affected_vehicles, statspec, plat_len, numtracks);
 	if (cost.Failed()) return cost;
 	/* Add construction expenses. */
 	cost.AddCost((numtracks * _price[PR_BUILD_STATION_RAIL] + _price[PR_BUILD_STATION_RAIL_LENGTH]) * plat_len);
@@ -1202,7 +1203,6 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 	}
 
 	/* Check if we can allocate a custom stationspec to this station */
-	const StationSpec *statspec = StationClass::Get(spec_class)->GetSpec(spec_index);
 	int specindex = AllocateSpecToStation(statspec, st, (flags & DC_EXEC) != 0);
 	if (specindex == -1) return_cmd_error(STR_ERROR_TOO_MANY_STATION_SPECS);
 
