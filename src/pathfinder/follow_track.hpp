@@ -682,39 +682,53 @@ struct CFollowTrackRoadBase : CFollowTrackBase<RoadPathPos>
 typedef CFollowTrack<CFollowTrackRoadBase> CFollowTrackRoad;
 
 
-/**
- * Track follower water base class
- */
-struct CFollowTrackWaterBase : CFollowTrackBase<ShipPathPos>
+/** Water track follower. */
+struct CFollowTrackWater : CFollowTrackBase<ShipPathPos>
 {
 	const bool m_allow_90deg;
 
 	inline bool Allow90deg() const { return m_allow_90deg; }
 
-	inline CFollowTrackWaterBase(bool allow_90deg = true)
-		: m_allow_90deg(allow_90deg)
+	inline CFollowTrackWater (bool allow_90deg)
+		: CFollowTrackBase<ShipPathPos>(), m_allow_90deg(allow_90deg)
 	{
 	}
 
-	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
+	/**
+	 * Main follower routine. Attempts to follow track at the given
+	 * pathfinder position. On return:
+	 *  * m_old is always set to the position given as argument.
+	 *  * On success, true is returned, and all fields are filled in as
+	 * appropriate. m_err is guaranteed to be EC_NONE, and m_exitdir may
+	 * not be the natural exit direction of m_old.td, if the track
+	 * follower had to reverse.
+	 *  * On failure, false is returned, and m_err is set to a value
+	 * indicating why the track could not be followed. The rest of the
+	 * fields should be considered undefined.
+	 */
+	inline bool Follow (const ShipPathPos &pos)
 	{
-		return GetTileWaterwayStatus(tile);
-	}
+		m_old = pos;
+		m_err = EC_NONE;
+		m_exitdir = TrackdirToExitdir (m_old.td);
 
-	/** check old tile */
-	inline TileResult CheckOldTile()
-	{
-		assert(!m_old.in_wormhole());
-		assert((GetTrackStatusTrackdirBits(m_old.tile) & TrackdirToTrackdirBits(m_old.td)) != 0);
+		assert((GetTileWaterwayStatus(m_old.tile) & TrackdirToTrackdirBits(m_old.td)) != 0);
 
-		return IsAqueductTile(m_old.tile) && m_exitdir == GetTunnelBridgeDirection(m_old.tile) ?
-				TR_BRIDGE : TR_NORMAL;
-	}
+		if (IsAqueductTile(m_old.tile) && m_exitdir == GetTunnelBridgeDirection(m_old.tile)) {
+			/* we are entering the aqueduct */
+			m_flag = TF_BRIDGE;
+			TileIndex other_end = GetOtherBridgeEnd (m_old.tile);
+			m_tiles_skipped = GetTunnelBridgeLength (m_old.tile, other_end);
+			m_new.set (other_end, DiagDirToDiagTrackdir (m_exitdir));
+			return true;
+		}
 
-	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
-	inline bool CheckNewTile()
-	{
-		TrackdirBits trackdirs = GetTrackStatusTrackdirBits(m_new.tile) & DiagdirReachesTrackdirs(m_exitdir);
+		/* normal tile, do one step */
+		m_new.set_tile (TileAddByDiagDir (m_old.tile, m_exitdir));
+		m_tiles_skipped = 0;
+		m_flag = TF_NONE;
+
+		TrackdirBits trackdirs = GetTileWaterwayStatus(m_new.tile) & DiagdirReachesTrackdirs(m_exitdir);
 		if (trackdirs == TRACKDIR_BIT_NONE) {
 			m_err = EC_NO_WAY;
 			return false;
@@ -722,41 +736,24 @@ struct CFollowTrackWaterBase : CFollowTrackBase<ShipPathPos>
 
 		m_new.set_trackdirs (trackdirs);
 
-		/* tunnel holes and bridge ramps can be entered only from proper direction */
-		assert(m_flag == TF_NONE);
+		/* aqueducts can be entered only from proper direction */
 		if (IsAqueductTile(m_new.tile) &&
 				GetTunnelBridgeDirection(m_new.tile) == ReverseDiagDir(m_exitdir)) {
 			m_err = EC_NO_WAY;
 			return false;
 		}
 
+		if (!Allow90deg()) {
+			TrackdirBits trackdirs = m_new.trackdirs & (TrackdirBits)~(int)TrackdirCrossesTrackdirs(m_old.td);
+			if (trackdirs == TRACKDIR_BIT_NONE) {
+				m_err = EC_90DEG;
+				return false;
+			}
+			m_new.set_trackdirs (trackdirs);
+		}
+
 		return true;
 	}
-
-	/** return true if we successfully reversed at end of road/track */
-	inline bool CheckEndOfLine()
-	{
-		return false;
-	}
-
-	inline bool CheckStation()
-	{
-		return false;
-	}
-
-	/** Follow a track that heads into a wormhole */
-	static inline bool EnterWormhole (bool is_bridge, TileIndex other_end, uint length)
-	{
-		return false; // skip the wormhole
-	}
-
-	/** Follow m_old when in a wormhole */
-	static inline void FollowWormhole()
-	{
-		NOT_REACHED();
-	}
 };
-
-typedef CFollowTrack<CFollowTrackWaterBase> CFollowTrackWater;
 
 #endif /* FOLLOW_TRACK_HPP */
