@@ -72,24 +72,24 @@ public:
 		assert (!tf.m_new.in_wormhole());
 
 		/* detect destination */
-		bool is_target = (m_dest_station != NULL) ? m_dest_station->IsDockingTile(tf.m_new.tile) :
-			m_dest_tile != INVALID_TILE ? tf.m_new.tile == m_dest_tile :
-				IsShipDepotTile(tf.m_new.tile) && IsTileOwner(tf.m_new.tile, m_veh->owner);
+		TileIndex new_tile = tf.m_new.tile;
+		bool is_target = (m_dest_station != NULL) ? m_dest_station->IsDockingTile (new_tile) :
+				(m_dest_tile != INVALID_TILE) ? (new_tile == m_dest_tile) :
+				IsShipDepotTile (new_tile) && IsTileOwner (new_tile, m_veh->owner);
 
-		ShipPathPos pos = tf.m_new;
 		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
-			pos.set_trackdir (FindFirstTrackdir(rtds));
-			Node *n = TAstar::CreateNewNode(old_node, pos);
+			Trackdir td = FindFirstTrackdir (rtds);
 
 			/* base tile cost depending on distance */
-			int c = IsDiagonalTrackdir(n->GetPos().td) ? YAPF_TILE_LENGTH : YAPF_TILE_CORNER_LENGTH;
+			int c = IsDiagonalTrackdir(td) ? YAPF_TILE_LENGTH : YAPF_TILE_CORNER_LENGTH;
 			/* additional penalty for curves */
-			if (n->GetPos().td != NextTrackdir(n->m_parent->GetPos().td)) {
+			if (td != NextTrackdir (old_node->GetPos().td)) {
 				/* new trackdir does not match the next one when going straight */
 				c += YAPF_TILE_LENGTH;
 			}
 
-			/* apply it */
+			/* create the node */
+			Node *n = TAstar::CreateNewNode (old_node, ShipPathPos (new_tile, td));
 			n->m_cost = cc + c;
 
 			/* compute estimated cost */
