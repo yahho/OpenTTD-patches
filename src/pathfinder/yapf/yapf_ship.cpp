@@ -76,21 +76,24 @@ public:
 			new_pos.set_tile (TileAddByDiagDir (old_pos.tile, exitdir));
 			tiles_skipped = 0;
 
-			TrackdirBits trackdirs = GetTileWaterwayStatus(new_pos.tile) & DiagdirReachesTrackdirs(exitdir);
-			if (trackdirs == TRACKDIR_BIT_NONE) return;
+			if (IsAqueductTile (new_pos.tile)) {
+				/* aqueducts can be entered only from proper direction */
+				if (GetTunnelBridgeDirection (new_pos.tile) != exitdir) {
+					return;
+				}
 
-			/* aqueducts can be entered only from proper direction */
-			if (IsAqueductTile (new_pos.tile) &&
-					GetTunnelBridgeDirection (new_pos.tile) == ReverseDiagDir (exitdir)) {
-				return;
-			}
-
-			if (!m_allow_90deg) {
-				trackdirs &= (TrackdirBits)~(int)TrackdirCrossesTrackdirs(old_pos.td);
+				new_pos.set_trackdir (DiagDirToDiagTrackdir (exitdir));
+			} else {
+				TrackdirBits trackdirs = GetTileWaterwayStatus(new_pos.tile) & DiagdirReachesTrackdirs(exitdir);
 				if (trackdirs == TRACKDIR_BIT_NONE) return;
-			}
 
-			new_pos.set_trackdirs (trackdirs);
+				if (!m_allow_90deg) {
+					trackdirs &= (TrackdirBits)~(int)TrackdirCrossesTrackdirs(old_pos.td);
+					if (trackdirs == TRACKDIR_BIT_NONE) return;
+				}
+
+				new_pos.set_trackdirs (trackdirs);
+			}
 		}
 
 		/* precompute trackdir-independent costs */
