@@ -30,20 +30,6 @@ typedef Astar<CYapfShipNodeExitDir , 10, 12> AstarShipExitDir;
 typedef Astar<CYapfShipNodeTrackDir, 10, 12> AstarShipTrackDir;
 
 
-/** Water track follower. */
-struct CFollowTrackWater : CFollowTrackBase<ShipPathPos>
-{
-	const bool m_allow_90deg;
-
-	inline bool Allow90deg() const { return m_allow_90deg; }
-
-	inline CFollowTrackWater (bool allow_90deg)
-		: CFollowTrackBase<ShipPathPos>(), m_allow_90deg(allow_90deg)
-	{
-	}
-};
-
-
 /** YAPF class for ships */
 template <class TAstar>
 class CYapfShipT : public TAstar
@@ -56,16 +42,18 @@ protected:
 	const Ship         *const m_veh;      ///< vehicle that we are trying to drive
 	const Station      *const m_dest_station; ///< destination station, or NULL if target is not a station
 	const TileIndex           m_dest_tile;    ///< destination tile, or the special marker INVALID_TILE to search for any depot
-	CFollowTrackWater         tf;             ///< track follower
+	CFollowTrackBase<ShipPathPos> tf;         ///< track follower
 	const ShipVehicleInfo *const svi;         ///< ship vehicle info
+	const bool                m_allow_90deg;  ///< whether to allow 90-degree turns
 
 	CYapfShipT (const Ship *ship, bool allow_90deg, bool depot = false)
 		: m_settings(&_settings_game.pf.yapf)
 		, m_veh(ship)
 		, m_dest_station (!depot && ship->current_order.IsType(OT_GOTO_STATION) ? Station::Get(ship->current_order.GetDestination()) : NULL)
 		, m_dest_tile    (depot ? INVALID_TILE : ship->current_order.IsType(OT_GOTO_STATION) ? m_dest_station->GetClosestTile(ship->tile, STATION_DOCK) : ship->dest_tile)
-		, tf(allow_90deg)
+		, tf()
 		, svi(ShipVehInfo(ship->engine_type))
+		, m_allow_90deg(allow_90deg)
 	{
 	}
 
@@ -106,7 +94,7 @@ public:
 				return;
 			}
 
-			if (!tf.Allow90deg()) {
+			if (!m_allow_90deg) {
 				TrackdirBits trackdirs = tf.m_new.trackdirs & (TrackdirBits)~(int)TrackdirCrossesTrackdirs(tf.m_old.td);
 				if (trackdirs == TRACKDIR_BIT_NONE) {
 					tf.m_err = tf.EC_90DEG;
