@@ -42,7 +42,6 @@ protected:
 	const Ship         *const m_veh;      ///< vehicle that we are trying to drive
 	const Station      *const m_dest_station; ///< destination station, or NULL if target is not a station
 	const TileIndex           m_dest_tile;    ///< destination tile, or the special marker INVALID_TILE to search for any depot
-	CFollowTrackBase<ShipPathPos> tf;         ///< track follower
 	const ShipVehicleInfo *const svi;         ///< ship vehicle info
 	const bool                m_allow_90deg;  ///< whether to allow 90-degree turns
 
@@ -51,7 +50,6 @@ protected:
 		, m_veh(ship)
 		, m_dest_station (!depot && ship->current_order.IsType(OT_GOTO_STATION) ? Station::Get(ship->current_order.GetDestination()) : NULL)
 		, m_dest_tile    (depot ? INVALID_TILE : ship->current_order.IsType(OT_GOTO_STATION) ? m_dest_station->GetClosestTile(ship->tile, STATION_DOCK) : ship->dest_tile)
-		, tf()
 		, svi(ShipVehInfo(ship->engine_type))
 		, m_allow_90deg(allow_90deg)
 	{
@@ -61,66 +59,54 @@ public:
 	/** Called by the A-star underlying class to find the neighbours of a node. */
 	inline void Follow (Node *old_node)
 	{
-		tf.m_old = old_node->GetPos();
-		tf.m_err = tf.EC_NONE;
-		tf.m_exitdir = TrackdirToExitdir (tf.m_old.td);
+		const ShipPathPos &old_pos = old_node->GetPos();
+		DiagDirection exitdir = TrackdirToExitdir (old_pos.td);
 
-		assert((GetTileWaterwayStatus(tf.m_old.tile) & TrackdirToTrackdirBits(tf.m_old.td)) != 0);
+		assert((GetTileWaterwayStatus(old_pos.tile) & TrackdirToTrackdirBits(old_pos.td)) != 0);
 
-		if (IsAqueductTile(tf.m_old.tile) && tf.m_exitdir == GetTunnelBridgeDirection(tf.m_old.tile)) {
+		PathMPos<ShipPathPos> new_pos;
+		int tiles_skipped;
+		if (IsAqueductTile(old_pos.tile) && exitdir == GetTunnelBridgeDirection(old_pos.tile)) {
 			/* we are entering the aqueduct */
-			tf.m_flag = tf.TF_BRIDGE;
-			TileIndex other_end = GetOtherBridgeEnd (tf.m_old.tile);
-			tf.m_tiles_skipped = GetTunnelBridgeLength (tf.m_old.tile, other_end);
-			tf.m_new.set (other_end, DiagDirToDiagTrackdir (tf.m_exitdir));
+			TileIndex other_end = GetOtherBridgeEnd (old_pos.tile);
+			tiles_skipped = GetTunnelBridgeLength (old_pos.tile, other_end);
+			new_pos.set (other_end, DiagDirToDiagTrackdir (exitdir));
 		} else {
 			/* normal tile, do one step */
-			tf.m_new.set_tile (TileAddByDiagDir (tf.m_old.tile, tf.m_exitdir));
-			tf.m_tiles_skipped = 0;
-			tf.m_flag = tf.TF_NONE;
+			new_pos.set_tile (TileAddByDiagDir (old_pos.tile, exitdir));
+			tiles_skipped = 0;
 
-			TrackdirBits trackdirs = GetTileWaterwayStatus(tf.m_new.tile) & DiagdirReachesTrackdirs(tf.m_exitdir);
-			if (trackdirs == TRACKDIR_BIT_NONE) {
-				tf.m_err = tf.EC_NO_WAY;
-				return;
-			}
-
-			tf.m_new.set_trackdirs (trackdirs);
+			TrackdirBits trackdirs = GetTileWaterwayStatus(new_pos.tile) & DiagdirReachesTrackdirs(exitdir);
+			if (trackdirs == TRACKDIR_BIT_NONE) return;
 
 			/* aqueducts can be entered only from proper direction */
-			if (IsAqueductTile (tf.m_new.tile) &&
-					GetTunnelBridgeDirection (tf.m_new.tile) == ReverseDiagDir (tf.m_exitdir)) {
-				tf.m_err = tf.EC_NO_WAY;
+			if (IsAqueductTile (new_pos.tile) &&
+					GetTunnelBridgeDirection (new_pos.tile) == ReverseDiagDir (exitdir)) {
 				return;
 			}
 
 			if (!m_allow_90deg) {
-				TrackdirBits trackdirs = tf.m_new.trackdirs & (TrackdirBits)~(int)TrackdirCrossesTrackdirs(tf.m_old.td);
-				if (trackdirs == TRACKDIR_BIT_NONE) {
-					tf.m_err = tf.EC_90DEG;
-					return;
-				}
-				tf.m_new.set_trackdirs (trackdirs);
+				trackdirs &= (TrackdirBits)~(int)TrackdirCrossesTrackdirs(old_pos.td);
+				if (trackdirs == TRACKDIR_BIT_NONE) return;
 			}
+
+			new_pos.set_trackdirs (trackdirs);
 		}
 
 		/* precompute trackdir-independent costs */
-		int cc = old_node->m_cost + YAPF_TILE_LENGTH * tf.m_tiles_skipped;
+		int cc = old_node->m_cost + YAPF_TILE_LENGTH * tiles_skipped;
 
 		/* Ocean/canal speed penalty. */
-		byte speed_frac = (GetEffectiveWaterClass(tf.m_new.tile) == WATER_CLASS_SEA) ? svi->ocean_speed_frac : svi->canal_speed_frac;
-		if (speed_frac > 0) cc += YAPF_TILE_LENGTH * (1 + tf.m_tiles_skipped) * speed_frac / (256 - speed_frac);
-
-		/* the ship track follower does not step into wormholes */
-		assert (!tf.m_new.in_wormhole());
+		byte speed_frac = (GetEffectiveWaterClass(new_pos.tile) == WATER_CLASS_SEA) ? svi->ocean_speed_frac : svi->canal_speed_frac;
+		if (speed_frac > 0) cc += YAPF_TILE_LENGTH * (1 + tiles_skipped) * speed_frac / (256 - speed_frac);
 
 		/* detect destination */
-		TileIndex new_tile = tf.m_new.tile;
+		TileIndex new_tile = new_pos.tile;
 		bool is_target = (m_dest_station != NULL) ? m_dest_station->IsDockingTile (new_tile) :
 				(m_dest_tile != INVALID_TILE) ? (new_tile == m_dest_tile) :
 				IsShipDepotTile (new_tile) && IsTileOwner (new_tile, m_veh->owner);
 
-		for (TrackdirBits rtds = tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
+		for (TrackdirBits rtds = new_pos.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			Trackdir td = FindFirstTrackdir (rtds);
 
 			/* base tile cost depending on distance */
