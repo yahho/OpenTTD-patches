@@ -41,67 +41,6 @@ struct CFollowTrackWater : CFollowTrackBase<ShipPathPos>
 		: CFollowTrackBase<ShipPathPos>(), m_allow_90deg(allow_90deg)
 	{
 	}
-
-	/**
-	 * Main follower routine. Attempts to follow track at the given
-	 * pathfinder position. On return:
-	 *  * m_old is always set to the position given as argument.
-	 *  * On success, true is returned, and all fields are filled in as
-	 * appropriate. m_err is guaranteed to be EC_NONE, and m_exitdir may
-	 * not be the natural exit direction of m_old.td, if the track
-	 * follower had to reverse.
-	 *  * On failure, false is returned, and m_err is set to a value
-	 * indicating why the track could not be followed. The rest of the
-	 * fields should be considered undefined.
-	 */
-	inline bool Follow (const ShipPathPos &pos)
-	{
-		m_old = pos;
-		m_err = EC_NONE;
-		m_exitdir = TrackdirToExitdir (m_old.td);
-
-		assert((GetTileWaterwayStatus(m_old.tile) & TrackdirToTrackdirBits(m_old.td)) != 0);
-
-		if (IsAqueductTile(m_old.tile) && m_exitdir == GetTunnelBridgeDirection(m_old.tile)) {
-			/* we are entering the aqueduct */
-			m_flag = TF_BRIDGE;
-			TileIndex other_end = GetOtherBridgeEnd (m_old.tile);
-			m_tiles_skipped = GetTunnelBridgeLength (m_old.tile, other_end);
-			m_new.set (other_end, DiagDirToDiagTrackdir (m_exitdir));
-			return true;
-		}
-
-		/* normal tile, do one step */
-		m_new.set_tile (TileAddByDiagDir (m_old.tile, m_exitdir));
-		m_tiles_skipped = 0;
-		m_flag = TF_NONE;
-
-		TrackdirBits trackdirs = GetTileWaterwayStatus(m_new.tile) & DiagdirReachesTrackdirs(m_exitdir);
-		if (trackdirs == TRACKDIR_BIT_NONE) {
-			m_err = EC_NO_WAY;
-			return false;
-		}
-
-		m_new.set_trackdirs (trackdirs);
-
-		/* aqueducts can be entered only from proper direction */
-		if (IsAqueductTile(m_new.tile) &&
-				GetTunnelBridgeDirection(m_new.tile) == ReverseDiagDir(m_exitdir)) {
-			m_err = EC_NO_WAY;
-			return false;
-		}
-
-		if (!Allow90deg()) {
-			TrackdirBits trackdirs = m_new.trackdirs & (TrackdirBits)~(int)TrackdirCrossesTrackdirs(m_old.td);
-			if (trackdirs == TRACKDIR_BIT_NONE) {
-				m_err = EC_90DEG;
-				return false;
-			}
-			m_new.set_trackdirs (trackdirs);
-		}
-
-		return true;
-	}
 };
 
 
@@ -134,7 +73,48 @@ public:
 	/** Called by the A-star underlying class to find the neighbours of a node. */
 	inline void Follow (Node *old_node)
 	{
-		if (!tf.Follow(old_node->GetPos())) return;
+		tf.m_old = old_node->GetPos();
+		tf.m_err = tf.EC_NONE;
+		tf.m_exitdir = TrackdirToExitdir (tf.m_old.td);
+
+		assert((GetTileWaterwayStatus(tf.m_old.tile) & TrackdirToTrackdirBits(tf.m_old.td)) != 0);
+
+		if (IsAqueductTile(tf.m_old.tile) && tf.m_exitdir == GetTunnelBridgeDirection(tf.m_old.tile)) {
+			/* we are entering the aqueduct */
+			tf.m_flag = tf.TF_BRIDGE;
+			TileIndex other_end = GetOtherBridgeEnd (tf.m_old.tile);
+			tf.m_tiles_skipped = GetTunnelBridgeLength (tf.m_old.tile, other_end);
+			tf.m_new.set (other_end, DiagDirToDiagTrackdir (tf.m_exitdir));
+		} else {
+			/* normal tile, do one step */
+			tf.m_new.set_tile (TileAddByDiagDir (tf.m_old.tile, tf.m_exitdir));
+			tf.m_tiles_skipped = 0;
+			tf.m_flag = tf.TF_NONE;
+
+			TrackdirBits trackdirs = GetTileWaterwayStatus(tf.m_new.tile) & DiagdirReachesTrackdirs(tf.m_exitdir);
+			if (trackdirs == TRACKDIR_BIT_NONE) {
+				tf.m_err = tf.EC_NO_WAY;
+				return;
+			}
+
+			tf.m_new.set_trackdirs (trackdirs);
+
+			/* aqueducts can be entered only from proper direction */
+			if (IsAqueductTile (tf.m_new.tile) &&
+					GetTunnelBridgeDirection (tf.m_new.tile) == ReverseDiagDir (tf.m_exitdir)) {
+				tf.m_err = tf.EC_NO_WAY;
+				return;
+			}
+
+			if (!tf.Allow90deg()) {
+				TrackdirBits trackdirs = tf.m_new.trackdirs & (TrackdirBits)~(int)TrackdirCrossesTrackdirs(tf.m_old.td);
+				if (trackdirs == TRACKDIR_BIT_NONE) {
+					tf.m_err = tf.EC_90DEG;
+					return;
+				}
+				tf.m_new.set_trackdirs (trackdirs);
+			}
+		}
 
 		/* precompute trackdir-independent costs */
 		int cc = old_node->m_cost + YAPF_TILE_LENGTH * tf.m_tiles_skipped;
