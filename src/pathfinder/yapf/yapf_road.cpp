@@ -44,6 +44,28 @@ typedef Astar<CYapfRoadNodeExitDir , 8, 10> AstarRoadExitDir;
 typedef Astar<CYapfRoadNodeTrackDir, 8, 10> AstarRoadTrackDir;
 
 
+/** Check if the road on a given tile is uphill in a given direction. */
+static bool IsUphill (TileIndex tile, DiagDirection dir)
+{
+	/* compute the middle point of the tile */
+	int x = TileX (tile) * TILE_SIZE + TILE_SIZE / 2;
+	int y = TileY (tile) * TILE_SIZE + TILE_SIZE / 2;
+
+	/* compute difference vector */
+	CoordDiff diff = CoordDiffByDiagDir (dir);
+	diff.x *= TILE_SIZE / 4;
+	diff.y *= TILE_SIZE / 4;
+
+	/* check height different along the direction */
+	return (GetSlopePixelZ (x + diff.x, y + diff.y) - GetSlopePixelZ (x - diff.x, y - diff.y)) > 1;
+}
+
+/** Check if the road on a given position is uphill. */
+static inline bool IsUphill (const RoadPathPos &pos)
+{
+	return IsUphill (pos.tile, TrackdirToExitdir (pos.td));
+}
+
 /** return one tile cost */
 static int OneTileCost(const YAPFSettings *settings, const RoadPathPos &pos)
 {
@@ -83,12 +105,7 @@ static int OneTileCost(const YAPFSettings *settings, const RoadPathPos &pos)
 		}
 
 		/* add slope cost */
-		int x = TileX (pos.tile) * TILE_SIZE + TILE_SIZE / 2;
-		int y = TileY (pos.tile) * TILE_SIZE + TILE_SIZE / 2;
-		CoordDiff diff = CoordDiffByDiagDir (TrackdirToExitdir (pos.td));
-		diff.x *= TILE_SIZE / 4;
-		diff.y *= TILE_SIZE / 4;
-		if ((GetSlopePixelZ (x + diff.x, y + diff.y) - GetSlopePixelZ (x - diff.x, y - diff.y)) > 1) {
+		if (IsUphill (pos)) {
 			cost += settings->road_slope_penalty;
 		}
 	} else {
