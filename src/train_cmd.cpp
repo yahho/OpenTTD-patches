@@ -2289,7 +2289,6 @@ static void ClearPathReservation (const RailPathPos &pos)
 static void FreeTrainTrackReservation (const Train *v, const RailPathPos *end)
 {
 	assert(v->IsFrontEngine());
-	assert(v->trackdir != TRACKDIR_DEPOT);
 
 	RailPathPos pos = v->GetPos();
 	assert (!IsRailDepotTile(pos.tile) || TrackdirToExitdir(pos.td) == GetGroundDepotDirection(pos.tile));
@@ -2353,7 +2352,7 @@ static void FreeTrainTrackReservation (const Train *v, const RailPathPos *end)
 }
 
 /**
- * Free the reserved path in front of a vehicle.
+ * Free the reserved path in front of a vehicle, if any.
  * @param v %Train owning the reserved path.
  * @return Whether the train had a reservation (not in or entering a depot)
  */
