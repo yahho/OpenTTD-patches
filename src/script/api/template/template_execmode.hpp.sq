@@ -13,9 +13,9 @@
 
 namespace SQConvert {
 	/* Allow ScriptExecMode to be used as Squirrel parameter */
-	template <> inline ScriptExecMode *GetParam(ForceType<ScriptExecMode *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return  (ScriptExecMode *)instance; }
-	template <> inline ScriptExecMode &GetParam(ForceType<ScriptExecMode &>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return *(ScriptExecMode *)instance; }
-	template <> inline const ScriptExecMode *GetParam(ForceType<const ScriptExecMode *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return  (ScriptExecMode *)instance; }
-	template <> inline const ScriptExecMode &GetParam(ForceType<const ScriptExecMode &>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return *(ScriptExecMode *)instance; }
+	template <> inline Param<ScriptExecMode*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptExecMode> (vm, index)) { }
+	template <> inline Param<ScriptExecMode&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptExecMode> (vm, index)) { }
+	template <> inline Param<const ScriptExecMode*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptExecMode> (vm, index)) { }
+	template <> inline Param<const ScriptExecMode&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptExecMode> (vm, index)) { }
 	template <> inline int Return<ScriptExecMode *>(HSQUIRRELVM vm, ScriptExecMode *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "ExecMode", res, NULL, DefSQDestructorCallback<ScriptExecMode>, true); return 1; }
 } // namespace SQConvert

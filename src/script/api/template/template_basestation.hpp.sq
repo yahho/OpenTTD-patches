@@ -13,13 +13,13 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline ScriptBaseStation::SpecialStationIDs GetParam(ForceType<ScriptBaseStation::SpecialStationIDs>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger tmp; sq_getinteger(vm, index, &tmp); return (ScriptBaseStation::SpecialStationIDs)tmp; }
+	template <> inline Param<ScriptBaseStation::SpecialStationIDs>::Param (HSQUIRRELVM vm, int index) : data ((ScriptBaseStation::SpecialStationIDs) GetInteger (vm, index)) { }
 	template <> inline int Return<ScriptBaseStation::SpecialStationIDs>(HSQUIRRELVM vm, ScriptBaseStation::SpecialStationIDs res) { sq_pushinteger(vm, (int32)res); return 1; }
 
 	/* Allow ScriptBaseStation to be used as Squirrel parameter */
-	template <> inline ScriptBaseStation *GetParam(ForceType<ScriptBaseStation *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return  (ScriptBaseStation *)instance; }
-	template <> inline ScriptBaseStation &GetParam(ForceType<ScriptBaseStation &>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return *(ScriptBaseStation *)instance; }
-	template <> inline const ScriptBaseStation *GetParam(ForceType<const ScriptBaseStation *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return  (ScriptBaseStation *)instance; }
-	template <> inline const ScriptBaseStation &GetParam(ForceType<const ScriptBaseStation &>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return *(ScriptBaseStation *)instance; }
+	template <> inline Param<ScriptBaseStation*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptBaseStation> (vm, index)) { }
+	template <> inline Param<ScriptBaseStation&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptBaseStation> (vm, index)) { }
+	template <> inline Param<const ScriptBaseStation*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptBaseStation> (vm, index)) { }
+	template <> inline Param<const ScriptBaseStation&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptBaseStation> (vm, index)) { }
 	template <> inline int Return<ScriptBaseStation *>(HSQUIRRELVM vm, ScriptBaseStation *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "BaseStation", res, NULL, DefSQDestructorCallback<ScriptBaseStation>, true); return 1; }
 } // namespace SQConvert

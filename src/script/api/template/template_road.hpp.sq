@@ -13,19 +13,19 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline ScriptRoad::ErrorMessages GetParam(ForceType<ScriptRoad::ErrorMessages>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger tmp; sq_getinteger(vm, index, &tmp); return (ScriptRoad::ErrorMessages)tmp; }
+	template <> inline Param<ScriptRoad::ErrorMessages>::Param (HSQUIRRELVM vm, int index) : data ((ScriptRoad::ErrorMessages) GetInteger (vm, index)) { }
 	template <> inline int Return<ScriptRoad::ErrorMessages>(HSQUIRRELVM vm, ScriptRoad::ErrorMessages res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline ScriptRoad::RoadType GetParam(ForceType<ScriptRoad::RoadType>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger tmp; sq_getinteger(vm, index, &tmp); return (ScriptRoad::RoadType)tmp; }
+	template <> inline Param<ScriptRoad::RoadType>::Param (HSQUIRRELVM vm, int index) : data ((ScriptRoad::RoadType) GetInteger (vm, index)) { }
 	template <> inline int Return<ScriptRoad::RoadType>(HSQUIRRELVM vm, ScriptRoad::RoadType res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline ScriptRoad::RoadVehicleType GetParam(ForceType<ScriptRoad::RoadVehicleType>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger tmp; sq_getinteger(vm, index, &tmp); return (ScriptRoad::RoadVehicleType)tmp; }
+	template <> inline Param<ScriptRoad::RoadVehicleType>::Param (HSQUIRRELVM vm, int index) : data ((ScriptRoad::RoadVehicleType) GetInteger (vm, index)) { }
 	template <> inline int Return<ScriptRoad::RoadVehicleType>(HSQUIRRELVM vm, ScriptRoad::RoadVehicleType res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline ScriptRoad::BuildType GetParam(ForceType<ScriptRoad::BuildType>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger tmp; sq_getinteger(vm, index, &tmp); return (ScriptRoad::BuildType)tmp; }
+	template <> inline Param<ScriptRoad::BuildType>::Param (HSQUIRRELVM vm, int index) : data ((ScriptRoad::BuildType) GetInteger (vm, index)) { }
 	template <> inline int Return<ScriptRoad::BuildType>(HSQUIRRELVM vm, ScriptRoad::BuildType res) { sq_pushinteger(vm, (int32)res); return 1; }
 
 	/* Allow ScriptRoad to be used as Squirrel parameter */
-	template <> inline ScriptRoad *GetParam(ForceType<ScriptRoad *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return  (ScriptRoad *)instance; }
-	template <> inline ScriptRoad &GetParam(ForceType<ScriptRoad &>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return *(ScriptRoad *)instance; }
-	template <> inline const ScriptRoad *GetParam(ForceType<const ScriptRoad *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return  (ScriptRoad *)instance; }
-	template <> inline const ScriptRoad &GetParam(ForceType<const ScriptRoad &>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return *(ScriptRoad *)instance; }
+	template <> inline Param<ScriptRoad*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptRoad> (vm, index)) { }
+	template <> inline Param<ScriptRoad&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptRoad> (vm, index)) { }
+	template <> inline Param<const ScriptRoad*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptRoad> (vm, index)) { }
+	template <> inline Param<const ScriptRoad&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptRoad> (vm, index)) { }
 	template <> inline int Return<ScriptRoad *>(HSQUIRRELVM vm, ScriptRoad *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Road", res, NULL, DefSQDestructorCallback<ScriptRoad>, true); return 1; }
 } // namespace SQConvert

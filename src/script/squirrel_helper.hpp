@@ -24,18 +24,6 @@ template <class CL, ScriptType ST> const char *GetClassName();
  * The Squirrel convert routines
  */
 namespace SQConvert {
-	/**
-	 * Pointers assigned to this class will be free'd when this instance
-	 *  comes out of scope. Useful to make sure you can use strdup(),
-	 *  without leaking memory.
-	 */
-	struct SQAutoFreePointers : SmallVector<void *, 1> {
-		~SQAutoFreePointers()
-		{
-			for (uint i = 0; i < this->items; i++) free(this->data[i]);
-		}
-	};
-
 	template <bool Y> struct YesT {
 		static const bool Yes = Y;
 		static const bool No = !Y;
@@ -70,11 +58,6 @@ namespace SQConvert {
 
 
 	/**
-	 * Special class to make it possible for the compiler to pick the correct GetParam().
-	 */
-	template <typename T> class ForceType { };
-
-	/**
 	 * To return a value to squirrel, we call this function. It converts to the right format.
 	 */
 	template <typename T> static int Return(HSQUIRRELVM vm, T t);
@@ -93,67 +76,136 @@ namespace SQConvert {
 	template <> inline int Return<void *>      (HSQUIRRELVM vm, void *res)       { sq_pushuserpointer(vm, res); return 1; }
 	template <> inline int Return<HSQOBJECT>   (HSQUIRRELVM vm, HSQOBJECT res)   { sq_pushobject(vm, res); return 1; }
 
-	/**
-	 * To get a param from squirrel, we call this function. It converts to the right format.
-	 */
-	template <typename T> static T GetParam(ForceType<T>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr);
 
-	template <> inline uint8       GetParam(ForceType<uint8>       , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
-	template <> inline uint16      GetParam(ForceType<uint16>      , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
-	template <> inline uint32      GetParam(ForceType<uint32>      , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
-	template <> inline int8        GetParam(ForceType<int8>        , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
-	template <> inline int16       GetParam(ForceType<int16>       , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
-	template <> inline int32       GetParam(ForceType<int32>       , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
-	template <> inline int64       GetParam(ForceType<int64>       , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
-	template <> inline Money       GetParam(ForceType<Money>       , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
-	template <> inline bool        GetParam(ForceType<bool>        , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQBool        tmp; sq_getbool       (vm, index, &tmp); return tmp != 0; }
-	template <> inline void       *GetParam(ForceType<void *>      , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer tmp; sq_getuserpointer(vm, index, &tmp); return tmp; }
-	template <> inline const char *GetParam(ForceType<const char *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr)
+	/** Helper function to get an integer from squirrel. */
+	static inline SQInteger GetInteger (HSQUIRRELVM vm, int index)
 	{
-		/* Convert what-ever there is as parameter to a string */
-		sq_tostring(vm, index);
-
-		const char *tmp;
-		sq_getstring(vm, -1, &tmp);
-		char *tmp_str = xstrdup(tmp);
-		sq_poptop(vm);
-		*ptr->Append() = (void *)tmp_str;
-		str_validate(tmp_str, tmp_str + strlen(tmp_str));
-		return tmp_str;
+		SQInteger tmp;
+		sq_getinteger (vm, index, &tmp);
+		return tmp;
 	}
 
-	template <> inline Array      *GetParam(ForceType<Array *>,      HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr)
+	/** Helper function to get a user pointer from squirrel. */
+	template <typename T>
+	static inline T *GetUserPointer (HSQUIRRELVM vm, int index)
 	{
-		/* Sanity check of the size. */
-		if (sq_getsize(vm, index) > UINT16_MAX) throw sq_throwerror(vm, "an array used as parameter to a function is too large");
+		SQUserPointer instance;
+		sq_getinstanceup (vm, index, &instance, 0);
+		return (T*) instance;
+	}
 
-		SQObject obj;
-		sq_getstackobj(vm, index, &obj);
-		sq_pushobject(vm, obj);
-		sq_pushnull(vm);
+	/** Encapsulate a param from squirrel. */
+	template <typename T>
+	struct Param {
+		T data;
 
-		SmallVector<int32, 2> data;
+		Param (HSQUIRRELVM vm, int index);
 
-		while (SQ_SUCCEEDED(sq_next(vm, -2))) {
-			SQInteger tmp;
-			if (SQ_SUCCEEDED(sq_getinteger(vm, -1, &tmp))) {
-				*data.Append() = (int32)tmp;
-			} else {
-				sq_pop(vm, 4);
-				throw sq_throwerror(vm, "a member of an array used as parameter to a function is not numeric");
-			}
+		inline ~Param () { }
 
-			sq_pop(vm, 2);
+		operator T () { return data; }
+	};
+
+	template<> inline Param<uint8> ::Param (HSQUIRRELVM vm, int index) : data (GetInteger (vm, index)) { }
+	template<> inline Param<uint16>::Param (HSQUIRRELVM vm, int index) : data (GetInteger (vm, index)) { }
+	template<> inline Param<uint32>::Param (HSQUIRRELVM vm, int index) : data (GetInteger (vm, index)) { }
+	template<> inline Param<int8>  ::Param (HSQUIRRELVM vm, int index) : data (GetInteger (vm, index)) { }
+	template<> inline Param<int16> ::Param (HSQUIRRELVM vm, int index) : data (GetInteger (vm, index)) { }
+	template<> inline Param<int32> ::Param (HSQUIRRELVM vm, int index) : data (GetInteger (vm, index)) { }
+	template<> inline Param<int64> ::Param (HSQUIRRELVM vm, int index) : data (GetInteger (vm, index)) { }
+	template<> inline Param<Money> ::Param (HSQUIRRELVM vm, int index) : data (GetInteger (vm, index)) { }
+
+	template<> inline Param<bool>  ::Param (HSQUIRRELVM vm, int index)
+	{
+		SQBool tmp;
+		sq_getbool (vm, index, &tmp);
+		data = (tmp != 0);
+	}
+
+	template<> inline Param<void*> ::Param (HSQUIRRELVM vm, int index)
+	{
+		SQUserPointer tmp;
+		sq_getuserpointer (vm, index, &tmp);
+		data = tmp;
+	}
+
+	template<> struct Param <const char *> {
+		char *data;
+
+		inline Param (HSQUIRRELVM vm, int index)
+		{
+			/* Convert what-ever there is as parameter to a string */
+			sq_tostring(vm, index);
+
+			const char *tmp;
+			sq_getstring(vm, -1, &tmp);
+			char *tmp_str = xstrdup(tmp);
+			sq_poptop(vm);
+			str_validate(tmp_str, tmp_str + strlen(tmp_str));
+			data = tmp_str;
 		}
-		sq_pop(vm, 2);
 
-		Array *arr = (Array*) xmalloc (sizeof(Array) + sizeof(int32) * data.Length());
-		arr->size = data.Length();
-		memcpy(arr->array, data.Begin(), sizeof(int32) * data.Length());
+		inline ~Param ()
+		{
+			free (data);
+		}
 
-		*ptr->Append() = arr;
-		return arr;
-	}
+		operator const char * () { return data; }
+
+	private:
+		Param (const Param &) DELETED;
+
+		Param & operator = (const Param &) DELETED;
+	};
+
+	template<> struct Param <Array*> {
+		Array *data;
+
+		inline Param (HSQUIRRELVM vm, int index)
+		{
+			/* Sanity check of the size. */
+			if (sq_getsize(vm, index) > UINT16_MAX) throw sq_throwerror(vm, "an array used as parameter to a function is too large");
+
+			SQObject obj;
+			sq_getstackobj(vm, index, &obj);
+			sq_pushobject(vm, obj);
+			sq_pushnull(vm);
+
+			SmallVector<int32, 2> data;
+
+			while (SQ_SUCCEEDED(sq_next(vm, -2))) {
+				SQInteger tmp;
+				if (SQ_SUCCEEDED(sq_getinteger(vm, -1, &tmp))) {
+					*data.Append() = (int32)tmp;
+				} else {
+					sq_pop(vm, 4);
+					throw sq_throwerror(vm, "a member of an array used as parameter to a function is not numeric");
+				}
+
+				sq_pop(vm, 2);
+			}
+			sq_pop(vm, 2);
+
+			Array *arr = (Array*) xmalloc (sizeof(Array) + sizeof(int32) * data.Length());
+			arr->size = data.Length();
+			memcpy(arr->array, data.Begin(), sizeof(int32) * data.Length());
+
+			this->data = arr;
+		}
+
+		inline ~Param (void)
+		{
+			free (data);
+		}
+
+		operator Array * () { return data; }
+
+	private:
+		Param (const Param &) DELETED;
+
+		Param & operator = (const Param &) DELETED;
+	};
+
 
 	/**
 	 * Helper class to recognize the function type (retval type, args) and use the proper specialization
@@ -220,10 +272,8 @@ namespace SQConvert {
 	struct HelperT<Tretval (*)(Targ1), false> {
 		static int SQCall(void *instance, Tretval (*func)(Targ1), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			Tretval ret = (*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Tretval ret = (*func) (param1);
 			return Return(vm, ret);
 		}
 	};
@@ -235,10 +285,8 @@ namespace SQConvert {
 	struct HelperT<Tretval (*)(Targ1), true> {
 		static int SQCall(void *instance, Tretval (*func)(Targ1), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			(*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			(*func) (param1);
 			return 0;
 		}
 	};
@@ -250,10 +298,8 @@ namespace SQConvert {
 	struct HelperT<Tretval (Tcls::*)(Targ1), false> {
 		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			Tretval ret = (instance->*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Tretval ret = (instance->*func) (param1);
 			return Return(vm, ret);
 		}
 	};
@@ -265,21 +311,15 @@ namespace SQConvert {
 	struct HelperT<Tretval (Tcls::*)(Targ1), true> {
 		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			(instance->*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			(instance->*func) (param1);
 			return 0;
 		}
 
 		static Tcls *SQConstruct(Tcls *instance, Tretval (Tcls::*func)(Targ1), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			Tcls *inst = new Tcls(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr)
-			);
-
-			return inst;
+			Param<Targ1> param1 (vm, 2);
+			return new Tcls (param1);
 		}
 	};
 
@@ -290,11 +330,9 @@ namespace SQConvert {
 	struct HelperT<Tretval (*)(Targ1, Targ2), false> {
 		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			Tretval ret = (*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Tretval ret = (*func) (param1, param2);
 			return Return(vm, ret);
 		}
 	};
@@ -306,11 +344,9 @@ namespace SQConvert {
 	struct HelperT<Tretval (*)(Targ1, Targ2), true> {
 		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			(*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			(*func) (param1, param2);
 			return 0;
 		}
 	};
@@ -322,11 +358,9 @@ namespace SQConvert {
 	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2), false> {
 		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			Tretval ret = (instance->*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Tretval ret = (instance->*func) (param1, param2);
 			return Return(vm, ret);
 		}
 	};
@@ -338,23 +372,17 @@ namespace SQConvert {
 	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2), true> {
 		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			(instance->*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			(instance->*func) (param1, param2);
 			return 0;
 		}
 
 		static Tcls *SQConstruct(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			Tcls *inst = new Tcls(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr)
-			);
-
-			return inst;
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			return new Tcls (param1, param2);
 		}
 	};
 
@@ -365,12 +393,10 @@ namespace SQConvert {
 	struct HelperT<Tretval (*)(Targ1, Targ2, Targ3), false> {
 		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2, Targ3), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			Tretval ret = (*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			Tretval ret = (*func) (param1, param2, param3);
 			return Return(vm, ret);
 		}
 	};
@@ -382,12 +408,10 @@ namespace SQConvert {
 	struct HelperT<Tretval (*)(Targ1, Targ2, Targ3), true> {
 		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2, Targ3), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			(*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			(*func) (param1, param2, param3);
 			return 0;
 		}
 	};
@@ -399,12 +423,10 @@ namespace SQConvert {
 	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2, Targ3), false> {
 		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			Tretval ret = (instance->*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			Tretval ret = (instance->*func) (param1, param2, param3);
 			return Return(vm, ret);
 		}
 	};
@@ -416,25 +438,19 @@ namespace SQConvert {
 	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2, Targ3), true> {
 		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			(instance->*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			(instance->*func) (param1, param2, param3);
 			return 0;
 		}
 
 		static Tcls *SQConstruct(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			Tcls *inst = new Tcls(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr)
-			);
-
-			return inst;
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			return new Tcls (param1, param2, param3);
 		}
 	};
 
@@ -445,13 +461,11 @@ namespace SQConvert {
 	struct HelperT<Tretval (*)(Targ1, Targ2, Targ3, Targ4), false> {
 		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2, Targ3, Targ4), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			Tretval ret = (*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr),
-				GetParam(ForceType<Targ4>(), vm, 5, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			Param<Targ4> param4 (vm, 5);
+			Tretval ret = (*func) (param1, param2, param3, param4);
 			return Return(vm, ret);
 		}
 	};
@@ -463,13 +477,11 @@ namespace SQConvert {
 	struct HelperT<Tretval (*)(Targ1, Targ2, Targ3, Targ4), true> {
 		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2, Targ3, Targ4), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			(*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr),
-				GetParam(ForceType<Targ4>(), vm, 5, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			Param<Targ4> param4 (vm, 5);
+			(*func) (param1, param2, param3, param4);
 			return 0;
 		}
 	};
@@ -481,13 +493,11 @@ namespace SQConvert {
 	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2, Targ3, Targ4), false> {
 		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3, Targ4), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			Tretval ret = (instance->*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr),
-				GetParam(ForceType<Targ4>(), vm, 5, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			Param<Targ4> param4 (vm, 5);
+			Tretval ret = (instance->*func) (param1, param2, param3, param4);
 			return Return(vm, ret);
 		}
 	};
@@ -499,27 +509,21 @@ namespace SQConvert {
 	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2, Targ3, Targ4), true> {
 		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3, Targ4), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			(instance->*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr),
-				GetParam(ForceType<Targ4>(), vm, 5, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			Param<Targ4> param4 (vm, 5);
+			(instance->*func) (param1, param2, param3, param4);
 			return 0;
 		}
 
 		static Tcls *SQConstruct(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3, Targ4), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			Tcls *inst = new Tcls(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr),
-				GetParam(ForceType<Targ4>(), vm, 5, &ptr)
-			);
-
-			return inst;
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			Param<Targ4> param4 (vm, 5);
+			return new Tcls (param1, param2, param3, param4);
 		}
 	};
 
@@ -530,14 +534,12 @@ namespace SQConvert {
 	struct HelperT<Tretval (*)(Targ1, Targ2, Targ3, Targ4, Targ5), false> {
 		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2, Targ3, Targ4, Targ5), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			Tretval ret = (*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr),
-				GetParam(ForceType<Targ4>(), vm, 5, &ptr),
-				GetParam(ForceType<Targ5>(), vm, 6, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			Param<Targ4> param4 (vm, 5);
+			Param<Targ5> param5 (vm, 6);
+			Tretval ret = (*func) (param1, param2, param3, param4, param5);
 			return Return(vm, ret);
 		}
 	};
@@ -549,14 +551,12 @@ namespace SQConvert {
 	struct HelperT<Tretval (*)(Targ1, Targ2, Targ3, Targ4, Targ5), true> {
 		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2, Targ3, Targ4, Targ5), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			(*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr),
-				GetParam(ForceType<Targ4>(), vm, 5, &ptr),
-				GetParam(ForceType<Targ5>(), vm, 6, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			Param<Targ4> param4 (vm, 5);
+			Param<Targ5> param5 (vm, 6);
+			(*func) (param1, param2, param3, param4, param5);
 			return 0;
 		}
 	};
@@ -568,14 +568,12 @@ namespace SQConvert {
 	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2, Targ3, Targ4, Targ5), false> {
 		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3, Targ4, Targ5), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			Tretval ret = (instance->*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr),
-				GetParam(ForceType<Targ4>(), vm, 5, &ptr),
-				GetParam(ForceType<Targ5>(), vm, 6, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			Param<Targ4> param4 (vm, 5);
+			Param<Targ5> param5 (vm, 6);
+			Tretval ret = (instance->*func) (param1, param2, param3, param4, param5);
 			return Return(vm, ret);
 		}
 	};
@@ -587,29 +585,23 @@ namespace SQConvert {
 	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2, Targ3, Targ4, Targ5), true> {
 		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3, Targ4, Targ5), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			(instance->*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr),
-				GetParam(ForceType<Targ4>(), vm, 5, &ptr),
-				GetParam(ForceType<Targ5>(), vm, 6, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			Param<Targ4> param4 (vm, 5);
+			Param<Targ5> param5 (vm, 6);
+			(instance->*func) (param1, param2, param3, param4, param5);
 			return 0;
 		}
 
 		static Tcls *SQConstruct(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3, Targ4, Targ5), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			Tcls *inst = new Tcls(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr),
-				GetParam(ForceType<Targ4>(), vm, 5, &ptr),
-				GetParam(ForceType<Targ5>(), vm, 6, &ptr)
-			);
-
-			return inst;
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			Param<Targ4> param4 (vm, 5);
+			Param<Targ5> param5 (vm, 6);
+			return new Tcls (param1, param2, param3, param4, param5);
 		}
 	};
 
@@ -620,19 +612,17 @@ namespace SQConvert {
 	struct HelperT<Tretval (*)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10), false> {
 		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			Tretval ret = (*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr),
-				GetParam(ForceType<Targ4>(), vm, 5, &ptr),
-				GetParam(ForceType<Targ5>(), vm, 6, &ptr),
-				GetParam(ForceType<Targ6>(), vm, 7, &ptr),
-				GetParam(ForceType<Targ7>(), vm, 8, &ptr),
-				GetParam(ForceType<Targ8>(), vm, 9, &ptr),
-				GetParam(ForceType<Targ9>(), vm, 10, &ptr),
-				GetParam(ForceType<Targ10>(), vm, 11, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			Param<Targ4> param4 (vm, 5);
+			Param<Targ5> param5 (vm, 6);
+			Param<Targ6> param6 (vm, 7);
+			Param<Targ7> param7 (vm, 8);
+			Param<Targ8> param8 (vm, 9);
+			Param<Targ9> param9 (vm, 10);
+			Param<Targ10> param10 (vm, 11);
+			Tretval ret = (*func) (param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
 			return Return(vm, ret);
 		}
 	};
@@ -644,19 +634,17 @@ namespace SQConvert {
 	struct HelperT<Tretval (*)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10), true> {
 		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			(*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr),
-				GetParam(ForceType<Targ4>(), vm, 5, &ptr),
-				GetParam(ForceType<Targ5>(), vm, 6, &ptr),
-				GetParam(ForceType<Targ6>(), vm, 7, &ptr),
-				GetParam(ForceType<Targ7>(), vm, 8, &ptr),
-				GetParam(ForceType<Targ8>(), vm, 9, &ptr),
-				GetParam(ForceType<Targ9>(), vm, 10, &ptr),
-				GetParam(ForceType<Targ10>(), vm, 11, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			Param<Targ4> param4 (vm, 5);
+			Param<Targ5> param5 (vm, 6);
+			Param<Targ6> param6 (vm, 7);
+			Param<Targ7> param7 (vm, 8);
+			Param<Targ8> param8 (vm, 9);
+			Param<Targ9> param9 (vm, 10);
+			Param<Targ10> param10 (vm, 11);
+			(*func) (param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
 			return 0;
 		}
 	};
@@ -668,19 +656,17 @@ namespace SQConvert {
 	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10), false> {
 		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			Tretval ret = (instance->*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr),
-				GetParam(ForceType<Targ4>(), vm, 5, &ptr),
-				GetParam(ForceType<Targ5>(), vm, 6, &ptr),
-				GetParam(ForceType<Targ6>(), vm, 7, &ptr),
-				GetParam(ForceType<Targ7>(), vm, 8, &ptr),
-				GetParam(ForceType<Targ8>(), vm, 9, &ptr),
-				GetParam(ForceType<Targ9>(), vm, 10, &ptr),
-				GetParam(ForceType<Targ10>(), vm, 11, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			Param<Targ4> param4 (vm, 5);
+			Param<Targ5> param5 (vm, 6);
+			Param<Targ6> param6 (vm, 7);
+			Param<Targ7> param7 (vm, 8);
+			Param<Targ8> param8 (vm, 9);
+			Param<Targ9> param9 (vm, 10);
+			Param<Targ10> param10 (vm, 11);
+			Tretval ret = (instance->*func) (param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
 			return Return(vm, ret);
 		}
 	};
@@ -692,39 +678,33 @@ namespace SQConvert {
 	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10), true> {
 		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			(instance->*func)(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr),
-				GetParam(ForceType<Targ4>(), vm, 5, &ptr),
-				GetParam(ForceType<Targ5>(), vm, 6, &ptr),
-				GetParam(ForceType<Targ6>(), vm, 7, &ptr),
-				GetParam(ForceType<Targ7>(), vm, 8, &ptr),
-				GetParam(ForceType<Targ8>(), vm, 9, &ptr),
-				GetParam(ForceType<Targ9>(), vm, 10, &ptr),
-				GetParam(ForceType<Targ10>(), vm, 11, &ptr)
-			);
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			Param<Targ4> param4 (vm, 5);
+			Param<Targ5> param5 (vm, 6);
+			Param<Targ6> param6 (vm, 7);
+			Param<Targ7> param7 (vm, 8);
+			Param<Targ8> param8 (vm, 9);
+			Param<Targ9> param9 (vm, 10);
+			Param<Targ10> param10 (vm, 11);
+			(instance->*func) (param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
 			return 0;
 		}
 
 		static Tcls *SQConstruct(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10), HSQUIRRELVM vm)
 		{
-			SQAutoFreePointers ptr;
-			Tcls *inst = new Tcls(
-				GetParam(ForceType<Targ1>(), vm, 2, &ptr),
-				GetParam(ForceType<Targ2>(), vm, 3, &ptr),
-				GetParam(ForceType<Targ3>(), vm, 4, &ptr),
-				GetParam(ForceType<Targ4>(), vm, 5, &ptr),
-				GetParam(ForceType<Targ5>(), vm, 6, &ptr),
-				GetParam(ForceType<Targ6>(), vm, 7, &ptr),
-				GetParam(ForceType<Targ7>(), vm, 8, &ptr),
-				GetParam(ForceType<Targ8>(), vm, 9, &ptr),
-				GetParam(ForceType<Targ9>(), vm, 10, &ptr),
-				GetParam(ForceType<Targ10>(), vm, 11, &ptr)
-			);
-
-			return inst;
+			Param<Targ1> param1 (vm, 2);
+			Param<Targ2> param2 (vm, 3);
+			Param<Targ3> param3 (vm, 4);
+			Param<Targ4> param4 (vm, 5);
+			Param<Targ5> param5 (vm, 6);
+			Param<Targ6> param6 (vm, 7);
+			Param<Targ7> param7 (vm, 8);
+			Param<Targ8> param8 (vm, 9);
+			Param<Targ9> param9 (vm, 10);
+			Param<Targ10> param10 (vm, 11);
+			return new Tcls (param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
 		}
 	};
 

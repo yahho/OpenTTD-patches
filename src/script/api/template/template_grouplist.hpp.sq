@@ -13,9 +13,9 @@
 
 namespace SQConvert {
 	/* Allow ScriptGroupList to be used as Squirrel parameter */
-	template <> inline ScriptGroupList *GetParam(ForceType<ScriptGroupList *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return  (ScriptGroupList *)instance; }
-	template <> inline ScriptGroupList &GetParam(ForceType<ScriptGroupList &>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return *(ScriptGroupList *)instance; }
-	template <> inline const ScriptGroupList *GetParam(ForceType<const ScriptGroupList *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return  (ScriptGroupList *)instance; }
-	template <> inline const ScriptGroupList &GetParam(ForceType<const ScriptGroupList &>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return *(ScriptGroupList *)instance; }
+	template <> inline Param<ScriptGroupList*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptGroupList> (vm, index)) { }
+	template <> inline Param<ScriptGroupList&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptGroupList> (vm, index)) { }
+	template <> inline Param<const ScriptGroupList*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptGroupList> (vm, index)) { }
+	template <> inline Param<const ScriptGroupList&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptGroupList> (vm, index)) { }
 	template <> inline int Return<ScriptGroupList *>(HSQUIRRELVM vm, ScriptGroupList *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "GroupList", res, NULL, DefSQDestructorCallback<ScriptGroupList>, true); return 1; }
 } // namespace SQConvert

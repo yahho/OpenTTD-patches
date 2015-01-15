@@ -29,23 +29,24 @@ function dump_class_templates(name)
 	realname = name
 	gsub("^Script", "", realname)
 
-	print "	template <> inline "       name " *GetParam(ForceType<"       name " *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return  (" name " *)instance; }"
-	print "	template <> inline "       name " &GetParam(ForceType<"       name " &>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return *(" name " *)instance; }"
-	print "	template <> inline const " name " *GetParam(ForceType<const " name " *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return  (" name " *)instance; }"
-	print "	template <> inline const " name " &GetParam(ForceType<const " name " &>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return *(" name " *)instance; }"
+	print "	template <> inline Param<"       name "*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<" name "> (vm, index)) { }"
+	print "	template <> inline Param<"       name "&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<" name "> (vm, index)) { }"
+	print "	template <> inline Param<const " name "*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<" name "> (vm, index)) { }"
+	print "	template <> inline Param<const " name "&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<" name "> (vm, index)) { }"
 	if (name == "ScriptEvent") {
 		print "	template <> inline int Return<" name " *>(HSQUIRRELVM vm, " name " *res) { if (res == NULL) { sq_pushnull(vm); return 1; } Squirrel::CreateClassInstanceVM(vm, \"" realname "\", res, NULL, DefSQDestructorCallback<" name ">, true); return 1; }"
 	} else if (name == "ScriptText") {
 		print ""
-		print "	template <> inline Text *GetParam(ForceType<Text *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) {"
-		print "		if (sq_gettype(vm, index) == OT_INSTANCE) {"
-		print "			return GetParam(ForceType<ScriptText *>(), vm, index, ptr);"
-		print "		}"
-		print "		if (sq_gettype(vm, index) == OT_STRING) {"
-		print "			return new RawText(GetParam(ForceType<const char *>(), vm, index, ptr));"
-		print "		}"
-		print "		return NULL;"
-		print "	}"
+		print " template <> inline Param<Text*>::Param (HSQUIRRELVM vm, int index) {"
+		print "         if (sq_gettype(vm, index) == OT_INSTANCE) {"
+		print "                 data = GetUserPointer<ScriptText> (vm, index);"
+		print "         } else if (sq_gettype(vm, index) == OT_STRING) {"
+		print "                 Param<const char*> param (vm, index);"
+		print "                 data = new RawText (param);"
+		print "         } else {"
+		print "                 data = NULL;"
+		print "         }"
+		print " }"
 	} else {
 		print "	template <> inline int Return<" name " *>(HSQUIRRELVM vm, " name " *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, \"" realname "\", res, NULL, DefSQDestructorCallback<" name ">, true); return 1; }"
 	}
@@ -293,7 +294,7 @@ BEGIN {
 			}
 			print "	/* Allow enums to be used as Squirrel parameters */"
 			for (i = 1; i <= enum_size; i++) {
-				print "	template <> inline " enums[i] " GetParam(ForceType<" enums[i] ">, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger tmp; sq_getinteger(vm, index, &tmp); return (" enums[i] ")tmp; }"
+				print "	template <> inline Param<" enums[i] ">::Param (HSQUIRRELVM vm, int index) : data ((" enums[i] ") GetInteger (vm, index)) { }"
 				print "	template <> inline int Return<" enums[i] ">(HSQUIRRELVM vm, " enums[i] " res) { sq_pushinteger(vm, (int32)res); return 1; }"
 				delete enums[i]
 			}

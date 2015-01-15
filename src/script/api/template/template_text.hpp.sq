@@ -13,18 +13,19 @@
 
 namespace SQConvert {
 	/* Allow ScriptText to be used as Squirrel parameter */
-	template <> inline ScriptText *GetParam(ForceType<ScriptText *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return  (ScriptText *)instance; }
-	template <> inline ScriptText &GetParam(ForceType<ScriptText &>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return *(ScriptText *)instance; }
-	template <> inline const ScriptText *GetParam(ForceType<const ScriptText *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return  (ScriptText *)instance; }
-	template <> inline const ScriptText &GetParam(ForceType<const ScriptText &>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return *(ScriptText *)instance; }
+	template <> inline Param<ScriptText*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptText> (vm, index)) { }
+	template <> inline Param<ScriptText&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptText> (vm, index)) { }
+	template <> inline Param<const ScriptText*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptText> (vm, index)) { }
+	template <> inline Param<const ScriptText&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptText> (vm, index)) { }
 
-	template <> inline Text *GetParam(ForceType<Text *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) {
-		if (sq_gettype(vm, index) == OT_INSTANCE) {
-			return GetParam(ForceType<ScriptText *>(), vm, index, ptr);
-		}
-		if (sq_gettype(vm, index) == OT_STRING) {
-			return new RawText(GetParam(ForceType<const char *>(), vm, index, ptr));
-		}
-		return NULL;
-	}
+ template <> inline Param<Text*>::Param (HSQUIRRELVM vm, int index) {
+         if (sq_gettype(vm, index) == OT_INSTANCE) {
+                 data = GetUserPointer<ScriptText> (vm, index);
+         } else if (sq_gettype(vm, index) == OT_STRING) {
+                 Param<const char*> param (vm, index);
+                 data = new RawText (param);
+         } else {
+                 data = NULL;
+         }
+ }
 } // namespace SQConvert

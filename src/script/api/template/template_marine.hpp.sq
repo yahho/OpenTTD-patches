@@ -13,15 +13,15 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline ScriptMarine::ErrorMessages GetParam(ForceType<ScriptMarine::ErrorMessages>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger tmp; sq_getinteger(vm, index, &tmp); return (ScriptMarine::ErrorMessages)tmp; }
+	template <> inline Param<ScriptMarine::ErrorMessages>::Param (HSQUIRRELVM vm, int index) : data ((ScriptMarine::ErrorMessages) GetInteger (vm, index)) { }
 	template <> inline int Return<ScriptMarine::ErrorMessages>(HSQUIRRELVM vm, ScriptMarine::ErrorMessages res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline ScriptMarine::BuildType GetParam(ForceType<ScriptMarine::BuildType>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger tmp; sq_getinteger(vm, index, &tmp); return (ScriptMarine::BuildType)tmp; }
+	template <> inline Param<ScriptMarine::BuildType>::Param (HSQUIRRELVM vm, int index) : data ((ScriptMarine::BuildType) GetInteger (vm, index)) { }
 	template <> inline int Return<ScriptMarine::BuildType>(HSQUIRRELVM vm, ScriptMarine::BuildType res) { sq_pushinteger(vm, (int32)res); return 1; }
 
 	/* Allow ScriptMarine to be used as Squirrel parameter */
-	template <> inline ScriptMarine *GetParam(ForceType<ScriptMarine *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return  (ScriptMarine *)instance; }
-	template <> inline ScriptMarine &GetParam(ForceType<ScriptMarine &>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return *(ScriptMarine *)instance; }
-	template <> inline const ScriptMarine *GetParam(ForceType<const ScriptMarine *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return  (ScriptMarine *)instance; }
-	template <> inline const ScriptMarine &GetParam(ForceType<const ScriptMarine &>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return *(ScriptMarine *)instance; }
+	template <> inline Param<ScriptMarine*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptMarine> (vm, index)) { }
+	template <> inline Param<ScriptMarine&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptMarine> (vm, index)) { }
+	template <> inline Param<const ScriptMarine*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptMarine> (vm, index)) { }
+	template <> inline Param<const ScriptMarine&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptMarine> (vm, index)) { }
 	template <> inline int Return<ScriptMarine *>(HSQUIRRELVM vm, ScriptMarine *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Marine", res, NULL, DefSQDestructorCallback<ScriptMarine>, true); return 1; }
 } // namespace SQConvert

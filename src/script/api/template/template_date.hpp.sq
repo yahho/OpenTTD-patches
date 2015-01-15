@@ -13,13 +13,13 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline ScriptDate::Date GetParam(ForceType<ScriptDate::Date>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger tmp; sq_getinteger(vm, index, &tmp); return (ScriptDate::Date)tmp; }
+	template <> inline Param<ScriptDate::Date>::Param (HSQUIRRELVM vm, int index) : data ((ScriptDate::Date) GetInteger (vm, index)) { }
 	template <> inline int Return<ScriptDate::Date>(HSQUIRRELVM vm, ScriptDate::Date res) { sq_pushinteger(vm, (int32)res); return 1; }
 
 	/* Allow ScriptDate to be used as Squirrel parameter */
-	template <> inline ScriptDate *GetParam(ForceType<ScriptDate *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return  (ScriptDate *)instance; }
-	template <> inline ScriptDate &GetParam(ForceType<ScriptDate &>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return *(ScriptDate *)instance; }
-	template <> inline const ScriptDate *GetParam(ForceType<const ScriptDate *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return  (ScriptDate *)instance; }
-	template <> inline const ScriptDate &GetParam(ForceType<const ScriptDate &>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return *(ScriptDate *)instance; }
+	template <> inline Param<ScriptDate*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptDate> (vm, index)) { }
+	template <> inline Param<ScriptDate&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptDate> (vm, index)) { }
+	template <> inline Param<const ScriptDate*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptDate> (vm, index)) { }
+	template <> inline Param<const ScriptDate&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptDate> (vm, index)) { }
 	template <> inline int Return<ScriptDate *>(HSQUIRRELVM vm, ScriptDate *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Date", res, NULL, DefSQDestructorCallback<ScriptDate>, true); return 1; }
 } // namespace SQConvert

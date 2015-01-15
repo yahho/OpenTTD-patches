@@ -13,13 +13,13 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline ScriptGame::LandscapeType GetParam(ForceType<ScriptGame::LandscapeType>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger tmp; sq_getinteger(vm, index, &tmp); return (ScriptGame::LandscapeType)tmp; }
+	template <> inline Param<ScriptGame::LandscapeType>::Param (HSQUIRRELVM vm, int index) : data ((ScriptGame::LandscapeType) GetInteger (vm, index)) { }
 	template <> inline int Return<ScriptGame::LandscapeType>(HSQUIRRELVM vm, ScriptGame::LandscapeType res) { sq_pushinteger(vm, (int32)res); return 1; }
 
 	/* Allow ScriptGame to be used as Squirrel parameter */
-	template <> inline ScriptGame *GetParam(ForceType<ScriptGame *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return  (ScriptGame *)instance; }
-	template <> inline ScriptGame &GetParam(ForceType<ScriptGame &>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return *(ScriptGame *)instance; }
-	template <> inline const ScriptGame *GetParam(ForceType<const ScriptGame *>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return  (ScriptGame *)instance; }
-	template <> inline const ScriptGame &GetParam(ForceType<const ScriptGame &>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer instance; sq_getinstanceup(vm, index, &instance, 0); return *(ScriptGame *)instance; }
+	template <> inline Param<ScriptGame*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptGame> (vm, index)) { }
+	template <> inline Param<ScriptGame&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptGame> (vm, index)) { }
+	template <> inline Param<const ScriptGame*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptGame> (vm, index)) { }
+	template <> inline Param<const ScriptGame&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptGame> (vm, index)) { }
 	template <> inline int Return<ScriptGame *>(HSQUIRRELVM vm, ScriptGame *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Game", res, NULL, DefSQDestructorCallback<ScriptGame>, true); return 1; }
 } // namespace SQConvert
