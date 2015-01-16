@@ -34,8 +34,6 @@
 
 /* static */ ScriptStoryPage::StoryPageID ScriptStoryPage::New(ScriptCompany::CompanyID company, Text *title)
 {
-	CCountedPtr<Text> counter(title);
-
 	EnforcePrecondition(STORY_PAGE_INVALID, ScriptObject::GetCompany() == OWNER_DEITY);
 	EnforcePrecondition(STORY_PAGE_INVALID, company == ScriptCompany::COMPANY_INVALID || ScriptCompany::ResolveCompanyID(company) != ScriptCompany::COMPANY_INVALID);
 
@@ -55,8 +53,6 @@
 
 /* static */ ScriptStoryPage::StoryPageElementID ScriptStoryPage::NewElement(StoryPageID story_page_id, StoryPageElementType type, uint32 reference, Text *text)
 {
-	CCountedPtr<Text> counter(text);
-
 	EnforcePrecondition(STORY_PAGE_ELEMENT_INVALID, ScriptObject::GetCompany() == OWNER_DEITY);
 	EnforcePrecondition(STORY_PAGE_ELEMENT_INVALID, IsValidStoryPage(story_page_id));
 	EnforcePrecondition(STORY_PAGE_ELEMENT_INVALID, (type != SPET_TEXT && type != SPET_LOCATION) || (text != NULL && !StrEmpty(text->GetEncodedText())));
@@ -77,8 +73,6 @@
 
 /* static */ bool ScriptStoryPage::UpdateElement(StoryPageElementID story_page_element_id, uint32 reference, Text *text)
 {
-	CCountedPtr<Text> counter(text);
-
 	EnforcePrecondition(false, ScriptObject::GetCompany() == OWNER_DEITY);
 	EnforcePrecondition(false, IsValidStoryPageElement(story_page_element_id));
 
@@ -114,8 +108,6 @@
 
 /* static */ bool ScriptStoryPage::SetTitle(StoryPageID story_page_id, Text *title)
 {
-	CCountedPtr<Text> counter(title);
-
 	EnforcePrecondition(false, IsValidStoryPage(story_page_id));
 	EnforcePrecondition(false, ScriptObject::GetCompany() == OWNER_DEITY);
 

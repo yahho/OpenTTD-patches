@@ -42,8 +42,6 @@
 
 /* static */ bool ScriptTown::SetName(TownID town_id, Text *name)
 {
-	CCountedPtr<Text> counter(name);
-
 	const char *text = NULL;
 	if (name != NULL) {
 		text = name->GetDecodedText();
@@ -57,8 +55,6 @@
 
 /* static */ bool ScriptTown::SetText(TownID town_id, Text *text)
 {
-	CCountedPtr<Text> counter(text);
-
 	EnforcePrecondition(false, text != NULL);
 	const char *encoded_text = text->GetEncodedText();
 	EnforcePreconditionEncodedText(false, encoded_text);
@@ -279,8 +275,6 @@
 
 /* static */ bool ScriptTown::FoundTown(TileIndex tile, TownSize size, bool city, RoadLayout layout, Text *name)
 {
-	CCountedPtr<Text> counter(name);
-
 	EnforcePrecondition(false, ScriptObject::GetCompany() == OWNER_DEITY || _settings_game.economy.found_town != TF_FORBIDDEN);
 	EnforcePrecondition(false, ::IsValidTile(tile));
 	EnforcePrecondition(false, size == TOWN_SIZE_SMALL || size == TOWN_SIZE_MEDIUM || size == TOWN_SIZE_LARGE)

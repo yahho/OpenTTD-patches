@@ -49,8 +49,6 @@
 
 /* static */ bool ScriptGroup::SetName(GroupID group_id, Text *name)
 {
-	CCountedPtr<Text> counter(name);
-
 	EnforcePrecondition(false, IsValidGroup(group_id));
 	EnforcePrecondition(false, name != NULL);
 	const char *text = name->GetDecodedText();

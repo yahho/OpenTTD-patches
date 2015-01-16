@@ -18,14 +18,31 @@ namespace SQConvert {
 	template <> inline Param<const ScriptText*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptText> (vm, index)) { }
 	template <> inline Param<const ScriptText&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptText> (vm, index)) { }
 
- template <> inline Param<Text*>::Param (HSQUIRRELVM vm, int index) {
-         if (sq_gettype(vm, index) == OT_INSTANCE) {
-                 data = GetUserPointer<ScriptText> (vm, index);
-         } else if (sq_gettype(vm, index) == OT_STRING) {
-                 Param<const char*> param (vm, index);
-                 data = new RawText (param);
-         } else {
-                 data = NULL;
+ template <> struct Param<Text*> {
+         Text *data;
+
+         inline Param (HSQUIRRELVM vm, int index) {
+                 if (sq_gettype(vm, index) == OT_INSTANCE) {
+                         data = GetUserPointer<ScriptText> (vm, index);
+                         data->AddRef();
+                 } else if (sq_gettype(vm, index) == OT_STRING) {
+                         Param<const char*> param (vm, index);
+                         data = new RawText (param);
+                         data->AddRef();
+                 } else {
+                         data = NULL;
+                 }
          }
- }
+
+         ~Param () {
+                 if (data != NULL) data->Release();
+         }
+
+         operator Text * () { return data; }
+
+ private:
+         Param (const Param &) DELETED;
+
+         Param & operator = (const Param &) DELETED;
+ };
 } // namespace SQConvert

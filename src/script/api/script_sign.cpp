@@ -34,8 +34,6 @@
 
 /* static */ bool ScriptSign::SetName(SignID sign_id, Text *name)
 {
-	CCountedPtr<Text> counter(name);
-
 	EnforcePrecondition(false, IsValidSign(sign_id));
 	EnforcePrecondition(false, name != NULL);
 	const char *text = name->GetDecodedText();
@@ -69,8 +67,6 @@
 
 /* static */ SignID ScriptSign::BuildSign(TileIndex location, Text *name)
 {
-	CCountedPtr<Text> counter(name);
-
 	EnforcePrecondition(INVALID_SIGN, ::IsValidTile(location));
 	EnforcePrecondition(INVALID_SIGN, name != NULL);
 	const char *text = name->GetDecodedText();

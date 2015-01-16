@@ -27,8 +27,6 @@
 
 /* static */ ScriptGoal::GoalID ScriptGoal::New(ScriptCompany::CompanyID company, Text *goal, GoalType type, uint32 destination)
 {
-	CCountedPtr<Text> counter(goal);
-
 	EnforcePrecondition(GOAL_INVALID, ScriptObject::GetCompany() == OWNER_DEITY);
 	EnforcePrecondition(GOAL_INVALID, goal != NULL);
 	const char *text = goal->GetEncodedText();
@@ -63,8 +61,6 @@
 
 /* static */ bool ScriptGoal::SetText(GoalID goal_id, Text *goal)
 {
-	CCountedPtr<Text> counter(goal);
-
 	EnforcePrecondition(false, IsValidGoal(goal_id));
 	EnforcePrecondition(false, ScriptObject::GetCompany() == OWNER_DEITY);
 	EnforcePrecondition(false, goal != NULL);
@@ -75,8 +71,6 @@
 
 /* static */ bool ScriptGoal::SetProgress(GoalID goal_id, Text *progress)
 {
-	CCountedPtr<Text> counter(progress);
-
 	EnforcePrecondition(false, IsValidGoal(goal_id));
 	EnforcePrecondition(false, ScriptObject::GetCompany() == OWNER_DEITY);
 
@@ -107,8 +101,6 @@
 
 /* static */ bool ScriptGoal::Question(uint16 uniqueid, ScriptCompany::CompanyID company, Text *question, QuestionType type, int buttons)
 {
-	CCountedPtr<Text> counter(question);
-
 	EnforcePrecondition(false, ScriptObject::GetCompany() == OWNER_DEITY);
 	EnforcePrecondition(false, question != NULL);
 	const char *text = question->GetEncodedText();

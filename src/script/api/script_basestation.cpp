@@ -33,8 +33,6 @@
 
 /* static */ bool ScriptBaseStation::SetName(StationID station_id, Text *name)
 {
-	CCountedPtr<Text> counter(name);
-
 	EnforcePrecondition(false, ScriptObject::GetCompany() != OWNER_DEITY);
 	EnforcePrecondition(false, IsValidBaseStation(station_id));
 	EnforcePrecondition(false, name != NULL);

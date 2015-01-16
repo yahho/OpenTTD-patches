@@ -214,8 +214,6 @@
 
 /* static */ bool ScriptVehicle::SetName(VehicleID vehicle_id, Text *name)
 {
-	CCountedPtr<Text> counter(name);
-
 	EnforcePrecondition(false, ScriptObject::GetCompany() != OWNER_DEITY);
 	EnforcePrecondition(false, IsValidVehicle(vehicle_id));
 	EnforcePrecondition(false, name != NULL);

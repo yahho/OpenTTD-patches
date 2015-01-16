@@ -41,8 +41,6 @@
 
 /* static */ bool ScriptCompany::SetName(Text *name)
 {
-	CCountedPtr<Text> counter(name);
-
 	EnforcePrecondition(false, name != NULL);
 	const char *text = name->GetDecodedText();
 	EnforcePreconditionEncodedText(false, text);
@@ -62,8 +60,6 @@
 
 /* static */ bool ScriptCompany::SetPresidentName(Text *name)
 {
-	CCountedPtr<Text> counter(name);
-
 	EnforcePrecondition(false, name != NULL);
 	const char *text = name->GetDecodedText();
 	EnforcePreconditionEncodedText(false, text);

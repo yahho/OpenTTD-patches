@@ -17,8 +17,6 @@
 
 /* static */ bool ScriptNews::Create(NewsType type, Text *text, ScriptCompany::CompanyID company)
 {
-	CCountedPtr<Text> counter(text);
-
 	EnforcePrecondition(false, text != NULL);
 	const char *encoded = text->GetEncodedText();
 	EnforcePreconditionEncodedText(false, encoded);
