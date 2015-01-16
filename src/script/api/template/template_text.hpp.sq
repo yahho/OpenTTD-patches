@@ -26,8 +26,7 @@ namespace SQConvert {
                          data = GetUserPointer<ScriptText> (vm, index);
                          data->AddRef();
                  } else if (sq_gettype(vm, index) == OT_STRING) {
-                         Param<const char*> param (vm, index);
-                         data = new RawText (param);
+                         data = new RawText (vm, index);
                          data->AddRef();
                  } else {
                          data = NULL;

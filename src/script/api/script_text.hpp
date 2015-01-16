@@ -43,13 +43,24 @@ public:
  */
 class RawText : public Text {
 public:
-	RawText(const char *text) :
-	  text(xstrdup(text)) {}
+	RawText (HSQUIRRELVM vm, int index)
+	{
+		/* Convert whatever there is as parameter to a string */
+		sq_tostring (vm, index);
+
+		const char *tmp;
+		sq_getstring (vm, -1, &tmp);
+		char *tmp_str = xstrdup (tmp);
+		sq_poptop (vm);
+		str_validate (tmp_str, tmp_str + strlen (tmp_str));
+		this->text = tmp_str;
+	}
+
 	~RawText() { free(this->text); }
 
 	/* virtual */ const char *GetEncodedText() { return this->text; }
 private:
-	const char *text;
+	char *text;
 };
 
 /**
