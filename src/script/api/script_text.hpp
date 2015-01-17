@@ -29,13 +29,15 @@ public:
 	 */
 	virtual const char *GetEncodedText() = 0;
 
+	static void GetDecodedText (const char *encoded, stringb *decoded);
+
 	/**
 	 * Convert a #ScriptText into a decoded normal string.
 	 * @param buf Buffer to store the converted string.
 	 * @return Whether conversion was successful.
 	 * @api -all
 	 */
-	bool GetDecodedText (stringb *buf);
+	virtual bool GetDecodedText (stringb *buf) = 0;
 };
 
 /**
@@ -60,6 +62,9 @@ public:
 	~RawText() { free(this->text); }
 
 	/* virtual */ const char *GetEncodedText() { return this->text; }
+
+	bool GetDecodedText (stringb *buf) OVERRIDE;
+
 private:
 	char *text;
 };
@@ -139,6 +144,8 @@ public:
 #endif /* DOXYGEN_API */
 
 	/* virtual */ const char *GetEncodedText();
+
+	bool GetDecodedText (stringb *buf) OVERRIDE;
 
 private:
 	StringID string;

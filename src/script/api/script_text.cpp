@@ -17,6 +17,26 @@
 
 #include "table/strings.h"
 
+
+/**
+ * Convert a given encoded string into a decoded normal string.
+ * @param encoded The encoded string.
+ * @param decoded The buffer where to store the decoded string.
+ */
+inline void Text::GetDecodedText (const char *encoded, stringb *decoded)
+{
+	::SetDParamStr (0, encoded);
+	::GetString (decoded, STR_JUST_RAW_STRING);
+}
+
+
+bool RawText::GetDecodedText (stringb *buf)
+{
+	this->Text::GetDecodedText (this->text, buf);
+	return true;
+}
+
+
 ScriptText::ScriptText(HSQUIRRELVM vm) :
 	ZeroedMemoryAllocator()
 {
@@ -195,12 +215,11 @@ void ScriptText::_GetEncodedText (stringb *buf, int &param_count)
 	}
 }
 
-bool Text::GetDecodedText (stringb *buf)
+bool ScriptText::GetDecodedText (stringb *buf)
 {
 	const char *encoded_text = this->GetEncodedText();
 	if (encoded_text == NULL) return false;
 
-	::SetDParamStr(0, encoded_text);
-	::GetString (buf, STR_JUST_RAW_STRING);
+	this->Text::GetDecodedText (encoded_text, buf);
 	return true;
 }
