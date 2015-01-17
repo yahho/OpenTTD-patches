@@ -31,10 +31,11 @@ public:
 
 	/**
 	 * Convert a #ScriptText into a decoded normal string.
-	 * @return A string (in a static buffer), or NULL.
+	 * @param buf Buffer to store the converted string.
+	 * @return Whether conversion was successful.
 	 * @api -all
 	 */
-	const char *GetDecodedText();
+	bool GetDecodedText (stringb *buf);
 };
 
 /**

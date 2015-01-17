@@ -195,13 +195,12 @@ void ScriptText::_GetEncodedText (stringb *buf, int &param_count)
 	}
 }
 
-const char *Text::GetDecodedText()
+bool Text::GetDecodedText (stringb *buf)
 {
 	const char *encoded_text = this->GetEncodedText();
-	if (encoded_text == NULL) return NULL;
+	if (encoded_text == NULL) return false;
 
-	static char buf[1024];
 	::SetDParamStr(0, encoded_text);
 	::GetString (buf, STR_JUST_RAW_STRING);
-	return buf;
+	return true;
 }

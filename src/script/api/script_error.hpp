@@ -54,6 +54,22 @@
 	}
 
 /**
+ * Helper to write precondition enforcers for the script API in an abbreviated manner for decoded texts.
+ * @param returnval The value to return on failure.
+ * @param string The string that is checked.
+ * @param buffer The buffer where to store the converted string.
+ */
+#define EnforcePreconditionDecodedText(returnval, string, buffer)   \
+	if (!(string)->GetDecodedText (buffer)) { \
+		ScriptObject::SetLastError(ScriptError::ERR_PRECONDITION_TOO_MANY_PARAMETERS); \
+		return returnval; \
+	} \
+	if ((buffer)->empty()) { \
+		ScriptObject::SetLastError(ScriptError::ERR_PRECONDITION_FAILED); \
+		return returnval; \
+	}
+
+/**
  * Class that handles all error related functions.
  * @api ai game
  */

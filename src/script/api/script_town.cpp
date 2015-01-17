@@ -42,15 +42,14 @@
 
 /* static */ bool ScriptTown::SetName(TownID town_id, Text *name)
 {
-	const char *text = NULL;
+	sstring <MAX_CHAR_LENGTH * MAX_LENGTH_TOWN_NAME_CHARS> text;
 	if (name != NULL) {
-		text = name->GetDecodedText();
-		EnforcePreconditionEncodedText(false, text);
-		EnforcePreconditionCustomError(false, ::Utf8StringLength(text) < MAX_LENGTH_TOWN_NAME_CHARS, ScriptError::ERR_PRECONDITION_STRING_TOO_LONG);
+		EnforcePreconditionDecodedText(false, name, &text);
+		EnforcePreconditionCustomError(false, ::Utf8StringLength(text.c_str()) < MAX_LENGTH_TOWN_NAME_CHARS, ScriptError::ERR_PRECONDITION_STRING_TOO_LONG);
 	}
 	EnforcePrecondition(false, IsValidTown(town_id));
 
-	return ScriptObject::DoCommand(0, town_id, 0, CMD_RENAME_TOWN, text);
+	return ScriptObject::DoCommand(0, town_id, 0, CMD_RENAME_TOWN, text.c_str());
 }
 
 /* static */ bool ScriptTown::SetText(TownID town_id, Text *text)
@@ -286,11 +285,10 @@
 		layout = (RoadLayout) (byte)_settings_game.economy.town_layout;
 	}
 
-	const char *text = NULL;
+	sstring <MAX_CHAR_LENGTH * MAX_LENGTH_TOWN_NAME_CHARS> text;
 	if (name != NULL) {
-		text = name->GetDecodedText();
-		EnforcePreconditionEncodedText(false, text);
-		EnforcePreconditionCustomError(false, ::Utf8StringLength(text) < MAX_LENGTH_TOWN_NAME_CHARS, ScriptError::ERR_PRECONDITION_STRING_TOO_LONG);
+		EnforcePreconditionDecodedText(false, name, &text);
+		EnforcePreconditionCustomError(false, ::Utf8StringLength(text.c_str()) < MAX_LENGTH_TOWN_NAME_CHARS, ScriptError::ERR_PRECONDITION_STRING_TOO_LONG);
 	}
 	uint32 townnameparts;
 	if (!GenerateTownName(&townnameparts)) {
@@ -298,7 +296,7 @@
 		return false;
 	}
 
-	return ScriptObject::DoCommand(tile, size | (city ? 1 << 2 : 0) | layout << 3, townnameparts, CMD_FOUND_TOWN, text);
+	return ScriptObject::DoCommand(tile, size | (city ? 1 << 2 : 0) | layout << 3, townnameparts, CMD_FOUND_TOWN, text.c_str());
 }
 
 /* static */ ScriptTown::TownRating ScriptTown::GetRating(TownID town_id, ScriptCompany::CompanyID company_id)
