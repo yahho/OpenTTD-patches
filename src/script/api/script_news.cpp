@@ -18,13 +18,14 @@
 /* static */ bool ScriptNews::Create(NewsType type, Text *text, ScriptCompany::CompanyID company)
 {
 	EnforcePrecondition(false, text != NULL);
-	const char *encoded = text->GetEncodedText();
-	EnforcePreconditionEncodedText(false, encoded);
+	sstring <1024> encoded;
+	EnforcePreconditionEncodedText(false, text, &encoded);
+	EnforcePrecondition(false, !encoded.empty());
 	EnforcePrecondition(false, type == NT_ECONOMY || type == NT_SUBSIDIES || type == NT_GENERAL);
 	EnforcePrecondition(false, company == ScriptCompany::COMPANY_INVALID || ScriptCompany::ResolveCompanyID(company) != ScriptCompany::COMPANY_INVALID);
 
 	uint8 c = company;
 	if (company == ScriptCompany::COMPANY_INVALID) c = INVALID_COMPANY;
 
-	return ScriptObject::DoCommand(0, type | (NR_NONE << 8) | (c << 16), 0, CMD_CUSTOM_NEWS_ITEM, encoded);
+	return ScriptObject::DoCommand(0, type | (NR_NONE << 8) | (c << 16), 0, CMD_CUSTOM_NEWS_ITEM, encoded.c_str());
 }

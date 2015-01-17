@@ -24,10 +24,11 @@ class Text : public ScriptObject {
 public:
 	/**
 	 * Convert a ScriptText to a normal string.
-	 * @return A string (in a static buffer), or NULL.
+	 * @param buf Buffer to store the converted string.
+	 * @return Whether conversion was successful.
 	 * @api -all
 	 */
-	virtual const char *GetEncodedText() = 0;
+	virtual bool GetEncodedText (stringb *buf) = 0;
 
 	static void GetDecodedText (const char *encoded, stringb *decoded);
 
@@ -61,7 +62,11 @@ public:
 
 	~RawText() { free(this->text); }
 
-	/* virtual */ const char *GetEncodedText() { return this->text; }
+	bool GetEncodedText (stringb *buf) OVERRIDE
+	{
+		buf->copy (this->text);
+		return true;
+	}
 
 	bool GetDecodedText (stringb *buf) OVERRIDE;
 
@@ -143,7 +148,7 @@ public:
 	ScriptText *AddParam(Object value);
 #endif /* DOXYGEN_API */
 
-	/* virtual */ const char *GetEncodedText();
+	bool GetEncodedText (stringb *buf) OVERRIDE;
 
 	bool GetDecodedText (stringb *buf) OVERRIDE;
 

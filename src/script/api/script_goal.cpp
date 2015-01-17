@@ -29,8 +29,9 @@
 {
 	EnforcePrecondition(GOAL_INVALID, ScriptObject::GetCompany() == OWNER_DEITY);
 	EnforcePrecondition(GOAL_INVALID, goal != NULL);
-	const char *text = goal->GetEncodedText();
-	EnforcePreconditionEncodedText(GOAL_INVALID, text);
+	sstring <1024> text;
+	EnforcePreconditionEncodedText(GOAL_INVALID, goal, &text);
+	EnforcePrecondition(GOAL_INVALID, !text.empty());
 	EnforcePrecondition(GOAL_INVALID, company == ScriptCompany::COMPANY_INVALID || ScriptCompany::ResolveCompanyID(company) != ScriptCompany::COMPANY_INVALID);
 
 	uint8 c = company;
@@ -45,7 +46,7 @@
 			(type == GT_COMPANY && ScriptCompany::ResolveCompanyID((ScriptCompany::CompanyID)destination) != ScriptCompany::COMPANY_INVALID) ||
 			(type == GT_STORY_PAGE && story_page != NULL && (c == INVALID_COMPANY ? story_page->company == INVALID_COMPANY : story_page->company == INVALID_COMPANY || story_page->company == c)));
 
-	if (!ScriptObject::DoCommand(0, type | (c << 8), destination, CMD_CREATE_GOAL, text, &ScriptInstance::DoCommandReturnGoalID)) return GOAL_INVALID;
+	if (!ScriptObject::DoCommand(0, type | (c << 8), destination, CMD_CREATE_GOAL, text.c_str(), &ScriptInstance::DoCommandReturnGoalID)) return GOAL_INVALID;
 
 	/* In case of test-mode, we return GoalID 0 */
 	return (ScriptGoal::GoalID)0;
@@ -64,9 +65,11 @@
 	EnforcePrecondition(false, IsValidGoal(goal_id));
 	EnforcePrecondition(false, ScriptObject::GetCompany() == OWNER_DEITY);
 	EnforcePrecondition(false, goal != NULL);
-	EnforcePrecondition(false, !StrEmpty(goal->GetEncodedText()));
+	sstring <1024> text;
+	EnforcePreconditionEncodedText(false, goal, &text);
+	EnforcePrecondition(GOAL_INVALID, !text.empty());
 
-	return ScriptObject::DoCommand(0, goal_id, 0, CMD_SET_GOAL_TEXT, goal->GetEncodedText());
+	return ScriptObject::DoCommand(0, goal_id, 0, CMD_SET_GOAL_TEXT, text.c_str());
 }
 
 /* static */ bool ScriptGoal::SetProgress(GoalID goal_id, Text *progress)
@@ -75,11 +78,13 @@
 	EnforcePrecondition(false, ScriptObject::GetCompany() == OWNER_DEITY);
 
 	/* Ensure null as used for emtpy string. */
-	if (progress != NULL && StrEmpty(progress->GetEncodedText())) {
-		progress = NULL;
+	sstring <1024> text;
+	if (progress != NULL) {
+		EnforcePreconditionEncodedText (false, progress, &text);
+		if (text.empty()) progress = NULL;
 	}
 
-	return ScriptObject::DoCommand(0, goal_id, 0, CMD_SET_GOAL_PROGRESS, progress != NULL ? progress->GetEncodedText() : NULL);
+	return ScriptObject::DoCommand(0, goal_id, 0, CMD_SET_GOAL_PROGRESS, progress != NULL ? text.c_str() : NULL);
 }
 
 /* static */ bool ScriptGoal::SetCompleted(GoalID goal_id, bool completed)
@@ -103,8 +108,9 @@
 {
 	EnforcePrecondition(false, ScriptObject::GetCompany() == OWNER_DEITY);
 	EnforcePrecondition(false, question != NULL);
-	const char *text = question->GetEncodedText();
-	EnforcePreconditionEncodedText(false, text);
+	sstring <1024> text;
+	EnforcePreconditionEncodedText(false, question, &text);
+	EnforcePrecondition(false, !text.empty());
 	EnforcePrecondition(false, company == ScriptCompany::COMPANY_INVALID || ScriptCompany::ResolveCompanyID(company) != ScriptCompany::COMPANY_INVALID);
 	EnforcePrecondition(false, CountBits(buttons) >= 1 && CountBits(buttons) <= 3);
 	EnforcePrecondition(false, buttons < (1 << ::GOAL_QUESTION_BUTTON_COUNT));
@@ -113,7 +119,7 @@
 	uint8 c = company;
 	if (company == ScriptCompany::COMPANY_INVALID) c = INVALID_COMPANY;
 
-	return ScriptObject::DoCommand(0, uniqueid | (c << 16) | (type << 24), buttons, CMD_GOAL_QUESTION, text);
+	return ScriptObject::DoCommand(0, uniqueid | (c << 16) | (type << 24), buttons, CMD_GOAL_QUESTION, text.c_str());
 }
 
 /* static */ bool ScriptGoal::CloseQuestion(uint16 uniqueid)

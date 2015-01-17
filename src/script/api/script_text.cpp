@@ -186,13 +186,12 @@ SQInteger ScriptText::_set(HSQUIRRELVM vm)
 	return this->_SetParam(k, vm);
 }
 
-const char *ScriptText::GetEncodedText()
+bool ScriptText::GetEncodedText (stringb *buf)
 {
-	static char buf[1024];
-	stringb aux (buf);
 	int param_count = 0;
-	this->_GetEncodedText (&aux, param_count);
-	return (param_count > SCRIPT_TEXT_MAX_PARAMETERS) ? NULL : buf;
+	buf->clear();
+	this->_GetEncodedText (buf, param_count);
+	return param_count <= SCRIPT_TEXT_MAX_PARAMETERS;
 }
 
 void ScriptText::_GetEncodedText (stringb *buf, int &param_count)
@@ -217,9 +216,9 @@ void ScriptText::_GetEncodedText (stringb *buf, int &param_count)
 
 bool ScriptText::GetDecodedText (stringb *buf)
 {
-	const char *encoded_text = this->GetEncodedText();
-	if (encoded_text == NULL) return false;
+	sstring <1024> encoded;
+	if (!this->ScriptText::GetEncodedText (&encoded)) return false;
 
-	this->Text::GetDecodedText (encoded_text, buf);
+	this->Text::GetDecodedText (encoded.c_str(), buf);
 	return true;
 }

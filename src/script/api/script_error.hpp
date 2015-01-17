@@ -42,16 +42,13 @@
  * Helper to write precondition enforcers for the script API in an abbreviated manner for encoded texts.
  * @param returnval The value to return on failure.
  * @param string The string that is checked.
+ * @param buffer The buffer where to store the converted string.
  */
-#define EnforcePreconditionEncodedText(returnval, string)   \
-	if ((string) == NULL) { \
+#define EnforcePreconditionEncodedText(returnval, string, buffer)   \
+	if (!(string)->GetEncodedText (buffer)) { \
 		ScriptObject::SetLastError(ScriptError::ERR_PRECONDITION_TOO_MANY_PARAMETERS); \
 		return returnval; \
 	} \
-	if (StrEmpty(string)) { \
-		ScriptObject::SetLastError(ScriptError::ERR_PRECONDITION_FAILED); \
-		return returnval; \
-	}
 
 /**
  * Helper to write precondition enforcers for the script API in an abbreviated manner for decoded texts.

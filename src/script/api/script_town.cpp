@@ -55,11 +55,12 @@
 /* static */ bool ScriptTown::SetText(TownID town_id, Text *text)
 {
 	EnforcePrecondition(false, text != NULL);
-	const char *encoded_text = text->GetEncodedText();
-	EnforcePreconditionEncodedText(false, encoded_text);
+	sstring <1024> encoded;
+	EnforcePreconditionEncodedText(false, text, &encoded);
+	EnforcePrecondition(false, !encoded.empty());
 	EnforcePrecondition(false, IsValidTown(town_id));
 
-	return ScriptObject::DoCommand(::Town::Get(town_id)->xy, town_id, 0, CMD_TOWN_SET_TEXT, encoded_text);
+	return ScriptObject::DoCommand(::Town::Get(town_id)->xy, town_id, 0, CMD_TOWN_SET_TEXT, encoded.c_str());
 }
 
 /* static */ int32 ScriptTown::GetPopulation(TownID town_id)
