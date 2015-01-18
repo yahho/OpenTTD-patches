@@ -46,7 +46,7 @@
 			(type == GT_COMPANY && ScriptCompany::ResolveCompanyID((ScriptCompany::CompanyID)destination) != ScriptCompany::COMPANY_INVALID) ||
 			(type == GT_STORY_PAGE && story_page != NULL && (c == INVALID_COMPANY ? story_page->company == INVALID_COMPANY : story_page->company == INVALID_COMPANY || story_page->company == c)));
 
-	if (!ScriptObject::DoCommand(0, type | (c << 8), destination, CMD_CREATE_GOAL, text.c_str(), &ScriptInstance::DoCommandReturnGoalID)) return GOAL_INVALID;
+	if (!ScriptObject::DoCommand(0, type | (c << 8), destination, CMD_CREATE_GOAL, &text, &ScriptInstance::DoCommandReturnGoalID)) return GOAL_INVALID;
 
 	/* In case of test-mode, we return GoalID 0 */
 	return (ScriptGoal::GoalID)0;
@@ -69,7 +69,7 @@
 	EnforcePreconditionEncodedText(false, goal, &text);
 	EnforcePrecondition(GOAL_INVALID, !text.empty());
 
-	return ScriptObject::DoCommand(0, goal_id, 0, CMD_SET_GOAL_TEXT, text.c_str());
+	return ScriptObject::DoCommand(0, goal_id, 0, CMD_SET_GOAL_TEXT, &text);
 }
 
 /* static */ bool ScriptGoal::SetProgress(GoalID goal_id, Text *progress)
@@ -84,7 +84,7 @@
 		if (text.empty()) progress = NULL;
 	}
 
-	return ScriptObject::DoCommand(0, goal_id, 0, CMD_SET_GOAL_PROGRESS, progress != NULL ? text.c_str() : NULL);
+	return ScriptObject::DoCommand(0, goal_id, 0, CMD_SET_GOAL_PROGRESS, progress != NULL ? &text : NULL);
 }
 
 /* static */ bool ScriptGoal::SetCompleted(GoalID goal_id, bool completed)
@@ -119,7 +119,7 @@
 	uint8 c = company;
 	if (company == ScriptCompany::COMPANY_INVALID) c = INVALID_COMPANY;
 
-	return ScriptObject::DoCommand(0, uniqueid | (c << 16) | (type << 24), buttons, CMD_GOAL_QUESTION, text.c_str());
+	return ScriptObject::DoCommand(0, uniqueid | (c << 16) | (type << 24), buttons, CMD_GOAL_QUESTION, &text);
 }
 
 /* static */ bool ScriptGoal::CloseQuestion(uint16 uniqueid)

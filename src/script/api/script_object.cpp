@@ -276,7 +276,7 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 	return GetStorage()->callback_value[index];
 }
 
-/* static */ bool ScriptObject::DoCommand(TileIndex tile, uint32 p1, uint32 p2, uint cmd, const char *text, Script_SuspendCallbackProc *callback)
+/* static */ bool ScriptObject::DoCommand(TileIndex tile, uint32 p1, uint32 p2, uint cmd, stringb *text, Script_SuspendCallbackProc *callback)
 {
 	if (!ScriptObject::CanSuspend()) {
 		throw Script_FatalError("You are not allowed to execute any DoCommand (even indirect) in your constructor, Save(), Load(), and any valuator.");
@@ -287,10 +287,10 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 		return false;
 	}
 
-	if (!StrEmpty(text) && (GetCommandFlags(cmd) & CMDF_STR_CTRL) == 0) {
+	if (text != NULL && (GetCommandFlags(cmd) & CMDF_STR_CTRL) == 0) {
 		/* The string must be valid, i.e. not contain special codes. Since some
 		 * can be made with GSText, make sure the control codes are removed. */
-		::str_validate(const_cast<char *>(text), text + strlen(text), SVS_NONE);
+		text->validate (SVS_NONE);
 	}
 
 	/* Set the default callback to return a true/false result of the DoCommand */
@@ -305,7 +305,7 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 #endif
 
 	/* Try to perform the command. */
-	CommandCost res = ::DoCommandPInternal(tile, p1, p2, cmd, text, estimate_only,
+	CommandCost res = ::DoCommandPInternal(tile, p1, p2, cmd, text != NULL ? text->c_str() : NULL, estimate_only,
 		_networking && !_generating_world ? ScriptObject::GetActiveInstance()->GetCommandSource() : CMDSRC_OTHER);
 
 	/* We failed; set the error and bail out */

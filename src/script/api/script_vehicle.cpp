@@ -221,7 +221,7 @@
 	EnforcePreconditionDecodedText(false, name, &text);
 	EnforcePreconditionCustomError(false, ::Utf8StringLength(text.c_str()) < MAX_LENGTH_VEHICLE_NAME_CHARS, ScriptError::ERR_PRECONDITION_STRING_TOO_LONG);
 
-	return ScriptObject::DoCommand(0, vehicle_id, 0, CMD_RENAME_VEHICLE, text.c_str());
+	return ScriptObject::DoCommand(0, vehicle_id, 0, CMD_RENAME_VEHICLE, &text);
 }
 
 /* static */ TileIndex ScriptVehicle::GetLocation(VehicleID vehicle_id)

@@ -27,5 +27,5 @@
 	uint8 c = company;
 	if (company == ScriptCompany::COMPANY_INVALID) c = INVALID_COMPANY;
 
-	return ScriptObject::DoCommand(0, type | (NR_NONE << 8) | (c << 16), 0, CMD_CUSTOM_NEWS_ITEM, encoded.c_str());
+	return ScriptObject::DoCommand(0, type | (NR_NONE << 8) | (c << 16), 0, CMD_CUSTOM_NEWS_ITEM, &encoded);
 }

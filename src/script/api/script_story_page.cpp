@@ -49,7 +49,7 @@
 		c,
 		0,
 		CMD_CREATE_STORY_PAGE,
-		title != NULL ? encoded.c_str() : NULL,
+		title != NULL ? &encoded : NULL,
 		&ScriptInstance::DoCommandReturnStoryPageID)) return STORY_PAGE_INVALID;
 
 	/* In case of test-mode, we return StoryPageID 0 */
@@ -76,7 +76,7 @@
 			story_page_id + (type << 16),
 			type == SPET_GOAL ? reference : 0,
 			CMD_CREATE_STORY_PAGE_ELEMENT,
-			type == SPET_TEXT || type == SPET_LOCATION ? encoded.c_str() : NULL,
+			type == SPET_TEXT || type == SPET_LOCATION ? &encoded : NULL,
 			&ScriptInstance::DoCommandReturnStoryPageElementID)) return STORY_PAGE_ELEMENT_INVALID;
 
 	/* In case of test-mode, we return StoryPageElementID 0 */
@@ -107,7 +107,7 @@
 			story_page_element_id,
 			type == ::SPET_GOAL ? reference : 0,
 			CMD_UPDATE_STORY_PAGE_ELEMENT,
-			type == ::SPET_TEXT || type == ::SPET_LOCATION ? encoded.c_str() : NULL);
+			type == ::SPET_TEXT || type == ::SPET_LOCATION ? &encoded : NULL);
 }
 
 /* static */ uint32 ScriptStoryPage::GetPageSortValue(StoryPageID story_page_id)
@@ -134,7 +134,7 @@
 		EnforcePreconditionEncodedText(false, title, &encoded);
 	}
 
-	return ScriptObject::DoCommand(0, story_page_id, 0, CMD_SET_STORY_PAGE_TITLE, title != NULL ? encoded.c_str() : NULL);
+	return ScriptObject::DoCommand(0, story_page_id, 0, CMD_SET_STORY_PAGE_TITLE, title != NULL ? &encoded : NULL);
 }
 
 /* static */ ScriptCompany::CompanyID ScriptStoryPage::GetCompany(StoryPageID story_page_id)

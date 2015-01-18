@@ -55,7 +55,7 @@
 	EnforcePreconditionDecodedText(false, name, &text);
 	EnforcePreconditionCustomError(false, ::Utf8StringLength(text.c_str()) < MAX_LENGTH_GROUP_NAME_CHARS, ScriptError::ERR_PRECONDITION_STRING_TOO_LONG);
 
-	return ScriptObject::DoCommand(0, group_id, 0, CMD_ALTER_GROUP, text.c_str());
+	return ScriptObject::DoCommand(0, group_id, 0, CMD_ALTER_GROUP, &text);
 }
 
 /* static */ char *ScriptGroup::GetName(GroupID group_id)

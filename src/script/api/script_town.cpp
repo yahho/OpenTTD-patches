@@ -49,7 +49,7 @@
 	}
 	EnforcePrecondition(false, IsValidTown(town_id));
 
-	return ScriptObject::DoCommand(0, town_id, 0, CMD_RENAME_TOWN, text.c_str());
+	return ScriptObject::DoCommand(0, town_id, 0, CMD_RENAME_TOWN, &text);
 }
 
 /* static */ bool ScriptTown::SetText(TownID town_id, Text *text)
@@ -60,7 +60,7 @@
 	EnforcePrecondition(false, !encoded.empty());
 	EnforcePrecondition(false, IsValidTown(town_id));
 
-	return ScriptObject::DoCommand(::Town::Get(town_id)->xy, town_id, 0, CMD_TOWN_SET_TEXT, encoded.c_str());
+	return ScriptObject::DoCommand(::Town::Get(town_id)->xy, town_id, 0, CMD_TOWN_SET_TEXT, &encoded);
 }
 
 /* static */ int32 ScriptTown::GetPopulation(TownID town_id)
@@ -297,7 +297,7 @@
 		return false;
 	}
 
-	return ScriptObject::DoCommand(tile, size | (city ? 1 << 2 : 0) | layout << 3, townnameparts, CMD_FOUND_TOWN, text.c_str());
+	return ScriptObject::DoCommand(tile, size | (city ? 1 << 2 : 0) | layout << 3, townnameparts, CMD_FOUND_TOWN, &text);
 }
 
 /* static */ ScriptTown::TownRating ScriptTown::GetRating(TownID town_id, ScriptCompany::CompanyID company_id)
