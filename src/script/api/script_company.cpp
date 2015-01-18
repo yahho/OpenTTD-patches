@@ -44,7 +44,7 @@
 	EnforcePrecondition(false, name != NULL);
 	sstring <MAX_CHAR_LENGTH * MAX_LENGTH_COMPANY_NAME_CHARS> text;
 	EnforcePreconditionDecodedText(false, name, &text);
-	EnforcePreconditionCustomError(false, ::Utf8StringLength(text.c_str()) < MAX_LENGTH_COMPANY_NAME_CHARS, ScriptError::ERR_PRECONDITION_STRING_TOO_LONG);
+	EnforcePreconditionCustomError(false, text.utf8length() < MAX_LENGTH_COMPANY_NAME_CHARS, ScriptError::ERR_PRECONDITION_STRING_TOO_LONG);
 
 	return ScriptObject::DoCommand(0, 0, 0, CMD_RENAME_COMPANY, &text);
 }
@@ -63,7 +63,7 @@
 	EnforcePrecondition(false, name != NULL);
 	sstring <MAX_CHAR_LENGTH * MAX_LENGTH_PRESIDENT_NAME_CHARS> text;
 	EnforcePreconditionDecodedText(false, name, &text);
-	EnforcePreconditionCustomError(false, ::Utf8StringLength(text.c_str()) < MAX_LENGTH_PRESIDENT_NAME_CHARS, ScriptError::ERR_PRECONDITION_STRING_TOO_LONG);
+	EnforcePreconditionCustomError(false, text.utf8length() < MAX_LENGTH_PRESIDENT_NAME_CHARS, ScriptError::ERR_PRECONDITION_STRING_TOO_LONG);
 
 	return ScriptObject::DoCommand(0, 0, 0, CMD_RENAME_PRESIDENT, &text);
 }

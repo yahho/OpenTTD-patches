@@ -38,7 +38,7 @@
 	EnforcePrecondition(false, name != NULL);
 	sstring <MAX_CHAR_LENGTH * MAX_LENGTH_SIGN_NAME_CHARS> text;
 	EnforcePreconditionDecodedText(false, name, &text);
-	EnforcePreconditionCustomError(false, ::Utf8StringLength(text.c_str()) < MAX_LENGTH_SIGN_NAME_CHARS, ScriptError::ERR_PRECONDITION_STRING_TOO_LONG);
+	EnforcePreconditionCustomError(false, text.utf8length() < MAX_LENGTH_SIGN_NAME_CHARS, ScriptError::ERR_PRECONDITION_STRING_TOO_LONG);
 
 	return ScriptObject::DoCommand(0, sign_id, 0, CMD_RENAME_SIGN, &text);
 }
@@ -71,7 +71,7 @@
 	EnforcePrecondition(INVALID_SIGN, name != NULL);
 	sstring <MAX_CHAR_LENGTH * MAX_LENGTH_SIGN_NAME_CHARS> text;
 	EnforcePreconditionDecodedText(INVALID_SIGN, name, &text);
-	EnforcePreconditionCustomError(INVALID_SIGN, ::Utf8StringLength(text.c_str()) < MAX_LENGTH_SIGN_NAME_CHARS, ScriptError::ERR_PRECONDITION_STRING_TOO_LONG);
+	EnforcePreconditionCustomError(INVALID_SIGN, text.utf8length() < MAX_LENGTH_SIGN_NAME_CHARS, ScriptError::ERR_PRECONDITION_STRING_TOO_LONG);
 
 	if (!ScriptObject::DoCommand(location, 0, 0, CMD_PLACE_SIGN, &text, &ScriptInstance::DoCommandReturnSignID)) return INVALID_SIGN;
 

@@ -412,6 +412,12 @@ struct stringt : T {
 		return length() == 0;
 	}
 
+	/** Get the current length of the string in utf8 chars. */
+	size_t utf8length (void) const
+	{
+		return Utf8StringLength (c_str());
+	}
+
 	/** Check if this string is full. */
 	bool full (void) const
 	{

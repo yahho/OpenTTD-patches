@@ -45,7 +45,7 @@
 	sstring <MAX_CHAR_LENGTH * MAX_LENGTH_TOWN_NAME_CHARS> text;
 	if (name != NULL) {
 		EnforcePreconditionDecodedText(false, name, &text);
-		EnforcePreconditionCustomError(false, ::Utf8StringLength(text.c_str()) < MAX_LENGTH_TOWN_NAME_CHARS, ScriptError::ERR_PRECONDITION_STRING_TOO_LONG);
+		EnforcePreconditionCustomError(false, text.utf8length() < MAX_LENGTH_TOWN_NAME_CHARS, ScriptError::ERR_PRECONDITION_STRING_TOO_LONG);
 	}
 	EnforcePrecondition(false, IsValidTown(town_id));
 
@@ -289,7 +289,7 @@
 	sstring <MAX_CHAR_LENGTH * MAX_LENGTH_TOWN_NAME_CHARS> text;
 	if (name != NULL) {
 		EnforcePreconditionDecodedText(false, name, &text);
-		EnforcePreconditionCustomError(false, ::Utf8StringLength(text.c_str()) < MAX_LENGTH_TOWN_NAME_CHARS, ScriptError::ERR_PRECONDITION_STRING_TOO_LONG);
+		EnforcePreconditionCustomError(false, text.utf8length() < MAX_LENGTH_TOWN_NAME_CHARS, ScriptError::ERR_PRECONDITION_STRING_TOO_LONG);
 	}
 	uint32 townnameparts;
 	if (!GenerateTownName(&townnameparts)) {

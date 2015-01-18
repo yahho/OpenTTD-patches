@@ -83,7 +83,7 @@ bool VerifyTownName(uint32 r, const TownNameParams *par, TownNames *town_names)
 	AppendTownName (&buf1, par, r);
 
 	/* Check size and width */
-	if (Utf8StringLength(buf1.c_str()) >= MAX_LENGTH_TOWN_NAME_CHARS) return false;
+	if (buf1.utf8length() >= MAX_LENGTH_TOWN_NAME_CHARS) return false;
 
 	if (town_names != NULL) {
 		if (town_names->find(buf1.c_str()) != town_names->end()) return false;
