@@ -92,6 +92,10 @@ static void Load_ENGN(LoadBuffer *reader)
 			e->preview_asked = (CompanyMask)-1;
 			e->preview_wait = 0;
 		}
+
+		if (reader->IsVersionBefore (21, 193)) {
+			e->company_hidden = 0;
+		}
 	}
 }
 
