@@ -671,7 +671,7 @@ TileIndex BaseOrder::GetLocation(const Vehicle *v, bool airport) const
  * @param v The vehicle to get the distance for.
  * @return Maximum distance between the two orders.
  */
-static uint GetOrderDistance (const BaseOrder *prev, const BaseOrder *cur, const Vehicle *v)
+static uint GetBaseOrderDistance (const BaseOrder *prev, const BaseOrder *cur, const Vehicle *v)
 {
 	TileIndex prev_tile = prev->GetLocation (v, true);
 	TileIndex cur_tile  = cur->GetLocation  (v, true);
@@ -700,7 +700,7 @@ uint GetOrderDistance(const Order *prev, const Order *cur, const Vehicle *v, int
 		return max(dist1, dist2);
 	}
 
-	return GetOrderDistance (prev, cur, v);
+	return GetBaseOrderDistance (prev, cur, v);
 }
 
 /**
@@ -915,7 +915,7 @@ CommandCost CmdInsertOrder(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 				/* The order is not yet inserted, so we have to do the first iteration here. */
 				dist = GetOrderDistance(prev, v->GetOrder(new_order.GetConditionSkipToOrder()), v);
 			} else {
-				dist = GetOrderDistance(prev, &new_order, v);
+				dist = GetBaseOrderDistance (prev, &new_order, v);
 			}
 
 			if (dist >= 130) {
