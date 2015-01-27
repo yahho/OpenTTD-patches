@@ -448,7 +448,7 @@ typedef StringID CommandErrstrF(TileIndex tile, uint32 p1, uint32 p2, const char
  * This struct connect a command handler function with the flags created with
  * the #CMD_AUTO, #CMD_OFFLINE and #CMD_SERVER values.
  */
-struct Command {
+struct CommandClass {
 	CommandProc *proc;  ///< The procedure to actually executing
 	const char *name;   ///< A human readable name for the procedure
 	CommandFlags flags; ///< The (command) flags to that apply to this command

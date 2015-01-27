@@ -250,7 +250,7 @@ CommandErrstrF GetErrFoundTown;
  * the flags which belongs to it. The indices are the same
  * as the value from the CMD_* enums.
  */
-static const Command _command_proc_table[] = {
+static const CommandClass _command_proc_table[] = {
 	DEF_CMD(CmdBuildRailroadTrack,         CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, NULL,               GetErrConstant<STR_ERROR_CAN_T_BUILD_RAILROAD_TRACK>),      // CMD_BUILD_RAILROAD_TRACK
 	DEF_CMD(CmdRemoveRailroadTrack,                        CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, NULL,               GetErrConstant<STR_ERROR_CAN_T_REMOVE_RAILROAD_TRACK>),     // CMD_REMOVE_RAILROAD_TRACK
 	DEF_CMD(CmdBuildSingleRail,            CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcSingleRail,       GetErrBuildSingleRail),                                     // CMD_BUILD_SINGLE_RAIL
