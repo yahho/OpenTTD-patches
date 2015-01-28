@@ -472,7 +472,7 @@ static int _docommand_recursive = 0;
  * @see CommandProc
  * @return the cost
  */
-CommandCost DoCommand(const CommandContainer *container, DoCommandFlag flags)
+CommandCost DoCommand(const Command *container, DoCommandFlag flags)
 {
 	return DoCommand(container->tile, container->p1, container->p2, flags, container->cmd, container->text);
 }
@@ -562,7 +562,7 @@ Money GetAvailableMoneyForCommand()
  * @param cmdsrc Source of the command
  * @return true if the command succeeded, else false
  */
-bool DoCommandP(const CommandContainer *container, CommandSource cmdsrc)
+bool DoCommandP(const Command *container, CommandSource cmdsrc)
 {
 	return DoCommandP(container->tile, container->p1, container->p2, container->cmd, container->text, cmdsrc);
 }

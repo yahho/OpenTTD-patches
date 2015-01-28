@@ -930,12 +930,13 @@ static void InjectDebugDumpCommands (void)
 			int company;
 			int ret = sscanf (p, "%x.%x %x %x %x %x %x \"%[^\"]\"",
 					&next_date, &next_date_fract, &company,
-					&cp->tile, &cp->p1, &cp->p2, &cp->cmd, cp->text);
+					&cp->tile, &cp->p1, &cp->p2, &cp->cmd, cp->textdata);
 			/* There are 8 pieces of data to read, however the last is a
 			 * string that might or might not exist. Ignore it if that
 			 * string misses because in 99% of the time it's not used. */
 			assert (ret == 8 || ret == 7);
 			cp->company = (CompanyID)company;
+			cp->text = cp->textdata;
 		} else if (strncmp (p, "join: ", 6) == 0) {
 			/* Manually insert a pause when joining; this way the client can join at the exact right time. */
 			int ret = sscanf (p + 6, "%x.%x", &next_date, &next_date_fract);

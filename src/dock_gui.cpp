@@ -194,7 +194,7 @@ struct BuildDocksToolbarWindow : Window {
 				uint32 p2 = (uint32)INVALID_STATION << 16; // no station to join
 
 				/* tile is always the land tile, so need to evaluate _thd.pos */
-				CommandContainer cmdcont = { tile, _ctrl_pressed, p2, CMD_BUILD_DOCK, "" };
+				Command cmdcont = { tile, _ctrl_pressed, p2, CMD_BUILD_DOCK, "" };
 
 				/* Determine the watery part of the dock. */
 				DiagDirection dir = GetInclinedSlopeDirection(GetTileSlope(tile));

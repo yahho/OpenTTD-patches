@@ -29,6 +29,7 @@ void CommandQueue::Append(CommandPacket *p)
 {
 	CommandPacket *add = xmalloct<CommandPacket>();
 	*add = *p;
+	add->text = add->textdata;
 	add->next = NULL;
 	if (this->first == NULL) {
 		this->first = add;
@@ -114,8 +115,13 @@ void NetworkSendCommand(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const 
 	c.p1       = p1;
 	c.p2       = p2;
 	c.cmd      = cmd;
+	c.text     = c.textdata;
 
-	bstrcpy (c.text, (text != NULL) ? text : "");
+	if (text != NULL) {
+		bstrcpy (c.textdata, text);
+	} else {
+		c.textdata[0] = '\0';
+	}
 
 	if (_network_server) {
 		/* If we are the server, we queue the command in our 'special' queue.
@@ -289,7 +295,8 @@ bool CommandPacket::ReceiveFrom (Packet *p, bool from_server, const char **err)
 	this->p1      = p->Recv_uint32();
 	this->p2      = p->Recv_uint32();
 	this->tile    = p->Recv_uint32();
-	p->Recv_string (this->text, lengthof(this->text), (!_network_server && GetCommandFlags(this->cmd) & CMDF_STR_CTRL) != 0 ? SVS_ALLOW_CONTROL_CODE | SVS_REPLACE_WITH_QUESTION_MARK : SVS_REPLACE_WITH_QUESTION_MARK);
+	this->text    = this->textdata;
+	p->Recv_string (this->textdata, lengthof(this->textdata), (!_network_server && GetCommandFlags(this->cmd) & CMDF_STR_CTRL) != 0 ? SVS_ALLOW_CONTROL_CODE | SVS_REPLACE_WITH_QUESTION_MARK : SVS_REPLACE_WITH_QUESTION_MARK);
 
 	if (from_server) {
 		this->frame  = p->Recv_uint32();

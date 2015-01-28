@@ -2218,13 +2218,13 @@ static const NWidgetPart _nested_select_station_widgets[] = {
  * Window for selecting stations/waypoints to (distant) join to.
  */
 struct SelectStationWindow : Window {
-	CommandContainer select_station_cmd; ///< Command to build new station
+	Command select_station_cmd; ///< Command to build new station
 	const TileArea area; ///< Location of new station
 	const bool waypoint; ///< Select waypoints, else stations
 	std::vector<StationID> list; ///< List of nearby stations
 	Scrollbar *vscroll;
 
-	SelectStationWindow (WindowDesc *desc, const CommandContainer &cmd, const TileArea &ta, bool waypoint, const std::vector<StationID> &list) :
+	SelectStationWindow (WindowDesc *desc, const Command &cmd, const TileArea &ta, bool waypoint, const std::vector<StationID> &list) :
 		Window(desc),
 		select_station_cmd(cmd),
 		area(ta),
@@ -2344,7 +2344,7 @@ static WindowDesc _select_station_desc(
  * @param ta Area to build the station in
  * @param waypoint Look for waypoints, else stations
  */
-void ShowSelectBaseStationIfNeeded (const CommandContainer &cmd, const TileArea &ta, bool waypoint)
+void ShowSelectBaseStationIfNeeded (const Command &cmd, const TileArea &ta, bool waypoint)
 {
 	/* If a window is already opened and we didn't ctrl-click,
 	 * return true (i.e. just flash the old window) */

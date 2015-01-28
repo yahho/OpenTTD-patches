@@ -502,14 +502,21 @@ static inline CommandSource cmdsrc_make_network (CommandSource cmdsrc)
 
 
 /**
- * Structure for buffering the build command when selecting a station to join.
+ * Structure for a command request (as issued by a client)
  */
-struct CommandContainer {
+struct Command {
 	TileIndex tile;                  ///< tile command being executed on.
 	uint32 p1;                       ///< parameter p1.
 	uint32 p2;                       ///< parameter p2.
 	uint32 cmd;                      ///< command being executed.
-	char text[32 * MAX_CHAR_LENGTH]; ///< possible text sent for name changes etc, in bytes including '\0'.
+	const char *text;                ///< possible text sent for name changes etc, in bytes including '\0'.
+};
+
+/**
+ * Structure for buffering a command.
+ */
+struct CommandContainer : Command {
+	char textdata[32 * MAX_CHAR_LENGTH]; ///< possible text sent for name changes etc, in bytes including '\0'.
 };
 
 #endif /* COMMAND_TYPE_H */
