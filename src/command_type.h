@@ -510,6 +510,11 @@ struct Command {
 	uint32 p2;                       ///< parameter p2.
 	uint32 cmd;                      ///< command being executed.
 	const char *text;                ///< possible text sent for name changes etc, in bytes including '\0'.
+
+	Command() { }
+
+	Command (TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text = NULL)
+		: tile(tile), p1(p1), p2(p2), cmd(cmd), text(text) { }
 };
 
 /**
