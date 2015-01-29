@@ -465,39 +465,21 @@ bool IsCommandAllowedWhilePaused(uint32 cmd)
 static int _docommand_recursive = 0;
 
 /**
- * Shorthand for calling the long DoCommand with a container.
- *
- * @param container Container with (almost) all information
- * @param flags Flags for the command and how to execute the command
- * @see CommandProc
- * @return the cost
- */
-CommandCost DoCommand(const Command *container, DoCommandFlag flags)
-{
-	return DoCommand(container->tile, container->p1, container->p2, flags, container->cmd, container->text);
-}
-
-/*!
  * This function executes a given command with the parameters from the #CommandProc parameter list.
  * Depending on the flags parameter it execute or test a command.
  *
- * @param tile The tile to apply the command on (for the #CommandProc)
- * @param p1 Additional data for the command (for the #CommandProc)
- * @param p2 Additional data for the command (for the #CommandProc)
  * @param flags Flags for the command and how to execute the command
- * @param cmd The command-id to execute (a value of the CMD_* enums)
- * @param text The text to pass
  * @see CommandProc
  * @return the cost
  */
-CommandCost DoCommand(TileIndex tile, uint32 p1, uint32 p2, DoCommandFlag flags, uint32 cmd, const char *text)
+CommandCost Command::exec (DoCommandFlag flags) const
 {
 	CommandCost res;
 
 	/* Do not even think about executing out-of-bounds tile-commands */
-	if (tile != 0 && (tile >= MapSize() || (!IsValidTile(tile) && (flags & DC_ALL_TILES) == 0))) return CMD_ERROR;
+	if (this->tile != 0 && (this->tile >= MapSize() || (!IsValidTile(this->tile) && (flags & DC_ALL_TILES) == 0))) return CMD_ERROR;
 
-	CommandProc *proc = _command_proc_table[cmd].proc;
+	CommandProc *proc = _command_proc_table[this->cmd].proc;
 
 	_docommand_recursive++;
 
@@ -505,7 +487,7 @@ CommandCost DoCommand(TileIndex tile, uint32 p1, uint32 p2, DoCommandFlag flags,
 	if (_docommand_recursive == 1 || !(flags & DC_EXEC) ) {
 		if (_docommand_recursive == 1) _cleared_object_areas.Clear();
 		SetTownRatingTestMode(true);
-		res = proc(tile, flags & ~DC_EXEC, p1, p2, text);
+		res = proc(this->tile, flags & ~DC_EXEC, this->p1, this->p2, this->text);
 		SetTownRatingTestMode(false);
 		if (res.Failed()) {
 			goto error;
@@ -527,7 +509,7 @@ CommandCost DoCommand(TileIndex tile, uint32 p1, uint32 p2, DoCommandFlag flags,
 	/* Execute the command here. All cost-relevant functions set the expenses type
 	 * themselves to the cost object at some point */
 	if (_docommand_recursive == 1) _cleared_object_areas.Clear();
-	res = proc(tile, flags, p1, p2, text);
+	res = proc(this->tile, flags, this->p1, this->p2, this->text);
 	if (res.Failed()) {
 error:
 		_docommand_recursive--;

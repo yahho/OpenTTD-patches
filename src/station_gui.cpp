@@ -2356,7 +2356,7 @@ void ShowSelectBaseStationIfNeeded (const Command &cmd, const TileArea &ta, bool
 	}
 
 	/* Only show the popup if we press ctrl and we can build there. */
-	if (_ctrl_pressed && DoCommand(&cmd, CommandFlagsToDCFlags(GetCommandFlags(cmd.cmd))).Succeeded()
+	if (_ctrl_pressed && cmd.exec(CommandFlagsToDCFlags(GetCommandFlags(cmd.cmd))).Succeeded()
 			/* Test for adjacent station or station below selection.
 			 * If adjacent-stations is disabled and we are building
 			 * next to a station, do not show the selection window

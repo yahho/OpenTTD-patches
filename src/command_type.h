@@ -515,6 +515,9 @@ struct Command {
 
 	Command (TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text = NULL)
 		: tile(tile), p1(p1), p2(p2), cmd(cmd), text(text) { }
+
+	/* Actually execute the command, with the given flags. */
+	CommandCost exec (DoCommandFlag flags) const;
 };
 
 /**

@@ -34,8 +34,25 @@ static const CommandCost CMD_ERROR = CommandCost(INVALID_STRING_ID);
  */
 #define return_cmd_error(errcode) return CommandCost(errcode);
 
-CommandCost DoCommand(TileIndex tile, uint32 p1, uint32 p2, DoCommandFlag flags, uint32 cmd, const char *text = NULL);
-CommandCost DoCommand(const Command *container, DoCommandFlag flags);
+/*!
+ * This function executes a given command with the parameters from the #CommandProc parameter list.
+ * Depending on the flags parameter it execute or test a command.
+ *
+ * @param tile The tile to apply the command on (for the #CommandProc)
+ * @param p1 Additional data for the command (for the #CommandProc)
+ * @param p2 Additional data for the command (for the #CommandProc)
+ * @param flags Flags for the command and how to execute the command
+ * @param cmd The command-id to execute (a value of the CMD_* enums)
+ * @param text The text to pass
+ * @see CommandProc
+ * @return the cost
+ */
+static inline CommandCost DoCommand(TileIndex tile, uint32 p1, uint32 p2, DoCommandFlag flags, uint32 cmd, const char *text = NULL)
+{
+	const Command c (tile, p1, p2, cmd, text);
+
+	return c.exec (flags);
+}
 
 bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text = NULL, CommandSource cmdsrc = CMDSRC_SELF);
 bool DoCommandP(const Command *container, CommandSource cmdsrc = CMDSRC_SELF);
