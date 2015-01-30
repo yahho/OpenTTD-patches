@@ -2291,7 +2291,7 @@ struct SelectStationWindow : Window {
 			(st_index > 0) ? this->list[st_index - 1] : INVALID_STATION);
 
 		/* Execute stored Command */
-		DoCommandP(&this->select_station_cmd);
+		this->select_station_cmd.execp();
 
 		/* Close Window; this might cause double frees! */
 		DeleteWindowById(WC_SELECT_STATION, 0);
@@ -2371,5 +2371,5 @@ void ShowSelectBaseStationIfNeeded (const Command &cmd, const TileArea &ta, bool
 		}
 	}
 
-	DoCommandP(&cmd);
+	cmd.execp();
 }

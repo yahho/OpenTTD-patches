@@ -539,30 +539,12 @@ Money GetAvailableMoneyForCommand()
 }
 
 /**
- * Shortcut for the long DoCommandP when having a container with the data.
- * @param container the container with information.
- * @param cmdsrc Source of the command
- * @return true if the command succeeded, else false
- */
-bool DoCommandP(const Command *container, CommandSource cmdsrc)
-{
-	return DoCommandP(container->tile, container->p1, container->p2, container->cmd, container->text, cmdsrc);
-}
-
-/*!
  * Toplevel network safe docommand function for the current company. Must not be called recursively.
- * The parameters \a tile, \a p1, and \a p2 are from the #CommandProc function.
- * The parameter \a cmd is the command to execute.
  *
- * @param tile The tile to perform a command on (see #CommandProc)
- * @param p1 Additional data for the command (see #CommandProc)
- * @param p2 Additional data for the command (see #CommandProc)
- * @param cmd The command to execute (a CMD_* value)
- * @param text The text to pass
  * @param cmdsrc Source of the command
  * @return \c true if the command succeeded, else \c false.
  */
-bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text, CommandSource cmdsrc)
+bool Command::execp (CommandSource cmdsrc) const
 {
 	/* Cost estimation is generally only done when the
 	 * local user presses shift while doing somthing.
@@ -572,39 +554,41 @@ bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *te
 	bool estimate_only = _shift_pressed && IsLocalCompany() &&
 			!_generating_world &&
 			cmdsrc_is_local(cmdsrc) &&
-			cmd != CMD_PAUSE;
+			this->cmd != CMD_PAUSE;
 
 	/* We're only sending the command, so don't do
 	 * fancy things for 'success'. */
 	bool only_sending = _networking && cmdsrc_is_local(cmdsrc);
 
 	/* Where to show the message? */
-	int x = TileX(tile) * TILE_SIZE;
-	int y = TileY(tile) * TILE_SIZE;
+	int x = TileX(this->tile) * TILE_SIZE;
+	int y = TileY(this->tile) * TILE_SIZE;
 
-	if (_pause_mode != PM_UNPAUSED && !IsCommandAllowedWhilePaused(cmd)) {
-		CommandErrstrF *errorstrf = _command_proc_table[cmd].errorstrf;
-		StringID errorstr = (errorstrf == NULL) ? 0 : errorstrf (tile, p1, p2, text);
+	if (_pause_mode != PM_UNPAUSED && !IsCommandAllowedWhilePaused(this->cmd)) {
+		CommandErrstrF *errorstrf = _command_proc_table[this->cmd].errorstrf;
+		StringID errorstr = (errorstrf == NULL) ? 0 : errorstrf (this->tile, this->p1, this->p2, this->text);
 		ShowErrorMessage (errorstr, STR_ERROR_NOT_ALLOWED_WHILE_PAUSED, WL_INFO, x, y);
 		return false;
 	}
 
+	uint32 p2 = this->p2;
+
 #ifdef ENABLE_NETWORK
 	/* Only set p2 when the command does not come from the network. */
-	if (cmdsrc_is_local(cmdsrc) && GetCommandFlags(cmd) & CMDF_CLIENT_ID && p2 == 0) p2 = CLIENT_ID_SERVER;
+	if (cmdsrc_is_local(cmdsrc) && GetCommandFlags(this->cmd) & CMDF_CLIENT_ID && p2 == 0) p2 = CLIENT_ID_SERVER;
 #endif
 
-	CommandCost res = DoCommandPInternal(tile, p1, p2, cmd, text, estimate_only, cmdsrc);
+	CommandCost res = DoCommandPInternal(this->tile, this->p1, p2, this->cmd, this->text, estimate_only, cmdsrc);
 	if (res.Failed()) {
 		/* Only show the error when it's for us. */
-		CommandErrstrF *errorstrf = _command_proc_table[cmd].errorstrf;
-		StringID error_part1 = (errorstrf == NULL) ? 0 : errorstrf (tile, p1, p2, text);
+		CommandErrstrF *errorstrf = _command_proc_table[this->cmd].errorstrf;
+		StringID error_part1 = (errorstrf == NULL) ? 0 : errorstrf (this->tile, this->p1, p2, this->text);
 		if (estimate_only || (IsLocalCompany() && error_part1 != 0 && cmdsrc_get_type(cmdsrc) == CMDSRC_SELF)) {
 			ShowErrorMessage(error_part1, res.GetErrorMessage(), WL_INFO, x, y, res.GetTextRefStackGRF(), res.GetTextRefStackSize(), res.GetTextRefStack());
 		}
 	} else if (estimate_only) {
 		ShowEstimatedCostOrIncome(res.GetCost(), x, y);
-	} else if (!only_sending && res.GetCost() != 0 && tile != 0 && IsLocalCompany() && _game_mode != GM_EDITOR) {
+	} else if (!only_sending && res.GetCost() != 0 && this->tile != 0 && IsLocalCompany() && _game_mode != GM_EDITOR) {
 		/* Only show the cost animation when we did actually
 		 * execute the command, i.e. we're not sending it to
 		 * the server, when it has cost the local company
@@ -616,9 +600,9 @@ bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *te
 	if (!estimate_only && !only_sending) {
 		switch (cmdsrc_get_type(cmdsrc)) {
 			case CMDSRC_SELF: {
-				CommandCallback *callback = _command_proc_table[cmd].callback;
+				CommandCallback *callback = _command_proc_table[this->cmd].callback;
 				if (callback != NULL) {
-					callback(res, tile, p1, p2);
+					callback(res, this->tile, this->p1, p2);
 				}
 				break;
 			}

@@ -54,8 +54,24 @@ static inline CommandCost DoCommand(TileIndex tile, uint32 p1, uint32 p2, DoComm
 	return c.exec (flags);
 }
 
-bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text = NULL, CommandSource cmdsrc = CMDSRC_SELF);
-bool DoCommandP(const Command *container, CommandSource cmdsrc = CMDSRC_SELF);
+/*!
+ * Toplevel network safe docommand function for the current company. Must not be called recursively.
+ * The parameters \a tile, \a p1, and \a p2 are from the #CommandProc function.
+ * The parameter \a cmd is the command to execute.
+ *
+ * @param tile The tile to perform a command on (see #CommandProc)
+ * @param p1 Additional data for the command (see #CommandProc)
+ * @param p2 Additional data for the command (see #CommandProc)
+ * @param cmd The command to execute (a CMD_* value)
+ * @param text The text to pass
+ * @return \c true if the command succeeded, else \c false.
+ */
+static inline bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text = NULL)
+{
+	Command c (tile, p1, p2, cmd, text);
+
+	return c.execp ();
+}
 
 CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text, bool estimate_only, CommandSource cmdsrc = CMDSRC_SELF);
 

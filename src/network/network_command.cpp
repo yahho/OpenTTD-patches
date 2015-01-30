@@ -184,7 +184,7 @@ void NetworkExecuteLocalCommandQueue()
 
 		/* We can execute this command */
 		_current_company = cp->company;
-		DoCommandP(cp, cp->cmdsrc);
+		cp->execp (cp->cmdsrc);
 
 		queue.Pop();
 		free(cp);

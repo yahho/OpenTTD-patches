@@ -518,6 +518,9 @@ struct Command {
 
 	/* Actually execute the command, with the given flags. */
 	CommandCost exec (DoCommandFlag flags) const;
+
+	/* Ask for the command to be carried out (in a network-safe way). */
+	bool execp (CommandSource cmdsrc = CMDSRC_SELF) const;
 };
 
 /**
