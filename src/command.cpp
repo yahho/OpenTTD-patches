@@ -544,7 +544,7 @@ Money GetAvailableMoneyForCommand()
  * @param cmdsrc Source of the command
  * @return \c true if the command succeeded, else \c false.
  */
-bool Command::execp (CommandSource cmdsrc) const
+bool Command::execp (CommandSource cmdsrc)
 {
 	/* Cost estimation is generally only done when the
 	 * local user presses shift while doing somthing.
@@ -571,18 +571,16 @@ bool Command::execp (CommandSource cmdsrc) const
 		return false;
 	}
 
-	uint32 p2 = this->p2;
-
 #ifdef ENABLE_NETWORK
 	/* Only set p2 when the command does not come from the network. */
-	if (cmdsrc_is_local(cmdsrc) && GetCommandFlags(this->cmd) & CMDF_CLIENT_ID && p2 == 0) p2 = CLIENT_ID_SERVER;
+	if (cmdsrc_is_local(cmdsrc) && GetCommandFlags(this->cmd) & CMDF_CLIENT_ID && this->p2 == 0) this->p2 = CLIENT_ID_SERVER;
 #endif
 
-	CommandCost res = DoCommandPInternal(this->tile, this->p1, p2, this->cmd, this->text, estimate_only, cmdsrc);
+	CommandCost res = this->execp_internal (estimate_only, cmdsrc);
 	if (res.Failed()) {
 		/* Only show the error when it's for us. */
 		CommandErrstrF *errorstrf = _command_proc_table[this->cmd].errorstrf;
-		StringID error_part1 = (errorstrf == NULL) ? 0 : errorstrf (this->tile, this->p1, p2, this->text);
+		StringID error_part1 = (errorstrf == NULL) ? 0 : errorstrf (this->tile, this->p1, this->p2, this->text);
 		if (estimate_only || (IsLocalCompany() && error_part1 != 0 && cmdsrc_get_type(cmdsrc) == CMDSRC_SELF)) {
 			ShowErrorMessage(error_part1, res.GetErrorMessage(), WL_INFO, x, y, res.GetTextRefStackGRF(), res.GetTextRefStackSize(), res.GetTextRefStack());
 		}
@@ -602,7 +600,7 @@ bool Command::execp (CommandSource cmdsrc) const
 			case CMDSRC_SELF: {
 				CommandCallback *callback = _command_proc_table[this->cmd].callback;
 				if (callback != NULL) {
-					callback(res, this->tile, this->p1, p2);
+					callback(res, this->tile, this->p1, this->p2);
 				}
 				break;
 			}
@@ -627,16 +625,11 @@ bool Command::execp (CommandSource cmdsrc) const
 /*!
  * Helper function for the toplevel network safe docommand function for the current company.
  *
- * @param tile The tile to perform a command on (see #CommandProc)
- * @param p1 Additional data for the command (see #CommandProc)
- * @param p2 Additional data for the command (see #CommandProc)
- * @param cmd The command to execute (a CMD_* value)
- * @param text The text to pass
  * @param estimate_only whether to give only the estimate or also execute the command
  * @param cmdsrc Source of the command
  * @return the command cost of this function.
  */
-CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text, bool estimate_only, CommandSource cmdsrc)
+CommandCost Command::execp_internal (bool estimate_only, CommandSource cmdsrc) const
 {
 	assert(!estimate_only || cmdsrc_is_local(cmdsrc));
 
@@ -648,24 +641,24 @@ CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd,
 	_additional_cash_required = 0;
 
 	/* Get pointer to command handler */
-	assert(cmd < lengthof(_command_proc_table));
-	CommandProc *proc = _command_proc_table[cmd].proc;
+	assert(this->cmd < lengthof(_command_proc_table));
+	CommandProc *proc = _command_proc_table[this->cmd].proc;
 	/* Shouldn't happen, but you never know when someone adds
 	 * NULLs to the _command_proc_table. */
 	assert(proc != NULL);
 
 	/* Command flags are used internally */
-	CommandFlags cmd_flags = GetCommandFlags(cmd);
+	CommandFlags cmd_flags = GetCommandFlags(this->cmd);
 	/* Flags get send to the DoCommand */
 	DoCommandFlag flags = CommandFlagsToDCFlags(cmd_flags);
 
 #ifdef ENABLE_NETWORK
 	/* Make sure p2 is properly set to a ClientID. */
-	assert(!(cmd_flags & CMDF_CLIENT_ID) || p2 != 0);
+	assert(!(cmd_flags & CMDF_CLIENT_ID) || this->p2 != 0);
 #endif
 
 	/* Do not even think about executing out-of-bounds tile-commands */
-	if (tile != 0 && (tile >= MapSize() || (!IsValidTile(tile) && (cmd_flags & CMDF_ALL_TILES) == 0))) return_dcpi(CMD_ERROR);
+	if (this->tile != 0 && (this->tile >= MapSize() || (!IsValidTile(this->tile) && (cmd_flags & CMDF_ALL_TILES) == 0))) return_dcpi(CMD_ERROR);
 
 	/* Always execute server and spectator commands as spectator */
 	bool exec_as_spectator = (cmd_flags & (CMDF_SPECTATOR | CMDF_SERVER)) != 0;
@@ -686,7 +679,7 @@ CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd,
 	_cleared_object_areas.Clear();
 	SetTownRatingTestMode(true);
 	BasePersistentStorageArray::SwitchMode(PSM_ENTER_TESTMODE);
-	CommandCost res = proc(tile, flags, p1, p2, text);
+	CommandCost res = proc(this->tile, flags, this->p1, this->p2, this->text);
 	BasePersistentStorageArray::SwitchMode(PSM_LEAVE_TESTMODE);
 	SetTownRatingTestMode(false);
 
@@ -705,7 +698,7 @@ CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd,
 			 * causes of desyncs due to bad command test implementations. */
 			DEBUG (desync, 1, "cmdf: %08x.%02x %02x %06x %08x %08x %08x \"%s\" (%s)",
 				_date, _date_fract, (int)_current_company,
-				tile, p1, p2, cmd, text, GetCommandName(cmd));
+				this->tile, this->p1, this->p2, this->cmd, this->text, GetCommandName(this->cmd));
 		}
 		cur_company.Restore();
 		return_dcpi(res);
@@ -717,7 +710,7 @@ CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd,
 	 * send it to the command-queue and abort execution
 	 */
 	if (_networking && !_generating_world && cmdsrc_is_local(cmdsrc)) {
-		NetworkSendCommand(tile, p1, p2, cmd, text, _current_company, cmdsrc);
+		NetworkSendCommand(this->tile, this->p1, this->p2, this->cmd, this->text, _current_company, cmdsrc);
 		cur_company.Restore();
 
 		/* Don't return anything special here; no error, no costs.
@@ -729,16 +722,16 @@ CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd,
 #endif /* ENABLE_NETWORK */
 	DEBUG (desync, 1, "cmd: %08x.%02x %02x %06x %08x %08x %08x \"%s\" (%s)",
 		_date, _date_fract, (int)_current_company,
-		tile, p1, p2, cmd, text, GetCommandName(cmd));
+		this->tile, this->p1, this->p2, this->cmd, this->text, GetCommandName(this->cmd));
 
 	/* Actually try and execute the command. If no cost-type is given
 	 * use the construction one */
 	_cleared_object_areas.Clear();
 	BasePersistentStorageArray::SwitchMode(PSM_ENTER_COMMAND);
-	CommandCost res2 = proc(tile, flags | DC_EXEC, p1, p2, text);
+	CommandCost res2 = proc(this->tile, flags | DC_EXEC, this->p1, this->p2, this->text);
 	BasePersistentStorageArray::SwitchMode(PSM_LEAVE_COMMAND);
 
-	if (cmd == CMD_COMPANY_CTRL) {
+	if (this->cmd == CMD_COMPANY_CTRL) {
 		cur_company.Trash();
 		/* We are a new company                  -> Switch to new local company.
 		 * We were closed down                   -> Switch to spectator
@@ -771,9 +764,9 @@ CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd,
 	}
 
 	/* update last build coordinate of company. */
-	if (tile != 0) {
+	if (this->tile != 0) {
 		Company *c = Company::GetIfValid(_current_company);
-		if (c != NULL) c->last_build_coordinate = tile;
+		if (c != NULL) c->last_build_coordinate = this->tile;
 	}
 
 	SubtractMoneyFromCompany(res2);

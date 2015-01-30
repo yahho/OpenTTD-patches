@@ -2344,7 +2344,7 @@ static WindowDesc _select_station_desc(
  * @param ta Area to build the station in
  * @param waypoint Look for waypoints, else stations
  */
-void ShowSelectBaseStationIfNeeded (const Command &cmd, const TileArea &ta, bool waypoint)
+void ShowSelectBaseStationIfNeeded (Command *cmd, const TileArea &ta, bool waypoint)
 {
 	/* If a window is already opened and we didn't ctrl-click,
 	 * return true (i.e. just flash the old window) */
@@ -2356,7 +2356,7 @@ void ShowSelectBaseStationIfNeeded (const Command &cmd, const TileArea &ta, bool
 	}
 
 	/* Only show the popup if we press ctrl and we can build there. */
-	if (_ctrl_pressed && cmd.exec(CommandFlagsToDCFlags(GetCommandFlags(cmd.cmd))).Succeeded()
+	if (_ctrl_pressed && cmd->exec(CommandFlagsToDCFlags(GetCommandFlags(cmd->cmd))).Succeeded()
 			/* Test for adjacent station or station below selection.
 			 * If adjacent-stations is disabled and we are building
 			 * next to a station, do not show the selection window
@@ -2366,10 +2366,10 @@ void ShowSelectBaseStationIfNeeded (const Command &cmd, const TileArea &ta, bool
 		FindStationsNearby (&list, ta, false, waypoint);
 		if (list.size() == 0 ? _settings_game.station.distant_join_stations : _settings_game.station.adjacent_stations) {
 			if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
-			new SelectStationWindow (&_select_station_desc, cmd, ta, waypoint, list);
+			new SelectStationWindow (&_select_station_desc, *cmd, ta, waypoint, list);
 			return;
 		}
 	}
 
-	cmd.execp();
+	cmd->execp();
 }

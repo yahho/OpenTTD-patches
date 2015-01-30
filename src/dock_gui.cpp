@@ -200,7 +200,7 @@ struct BuildDocksToolbarWindow : Window {
 				DiagDirection dir = GetInclinedSlopeDirection(GetTileSlope(tile));
 				TileIndex tile_to = (dir != INVALID_DIAGDIR ? TileAddByDiagDir(tile, ReverseDiagDir(dir)) : tile);
 
-				ShowSelectStationIfNeeded(cmdcont, TileArea(tile, tile_to));
+				ShowSelectStationIfNeeded (&cmdcont, TileArea(tile, tile_to));
 				break;
 			}
 

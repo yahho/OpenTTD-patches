@@ -520,7 +520,10 @@ struct Command {
 	CommandCost exec (DoCommandFlag flags) const;
 
 	/* Ask for the command to be carried out (in a network-safe way). */
-	bool execp (CommandSource cmdsrc = CMDSRC_SELF) const;
+	bool execp (CommandSource cmdsrc = CMDSRC_SELF);
+
+	/* Helper function for execp. */
+	CommandCost execp_internal (bool estimate_only, CommandSource cmdsrc = CMDSRC_SELF) const;
 };
 
 /**

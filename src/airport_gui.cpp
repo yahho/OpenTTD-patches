@@ -62,7 +62,7 @@ static void PlaceAirport(TileIndex tile)
 	uint32 p1 = AirportClass::Get(_selected_airport_class)->GetSpec(_selected_airport_index)->GetIndex();
 	p1 |= _selected_airport_layout << 8;
 	Command cmdcont (tile, p1, p2, CMD_BUILD_AIRPORT);
-	ShowSelectStationIfNeeded(cmdcont, TileArea(tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE));
+	ShowSelectStationIfNeeded (&cmdcont, TileArea(tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE));
 }
 
 /** Airport build toolbar window handler. */

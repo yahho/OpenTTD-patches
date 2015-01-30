@@ -639,7 +639,7 @@ struct BuildRoadToolbarWindow : Window {
 
 					TileArea ta (start_tile, end_tile);
 					Command cmdcont (ta.tile, ta.w | ta.h << 8, p2, CMD_BUILD_ROAD_STOP);
-					ShowSelectStationIfNeeded (cmdcont, ta);
+					ShowSelectStationIfNeeded (&cmdcont, ta);
 					break;
 				}
 

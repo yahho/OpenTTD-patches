@@ -73,7 +73,24 @@ static inline bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, 
 	return c.execp ();
 }
 
-CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text, bool estimate_only, CommandSource cmdsrc = CMDSRC_SELF);
+/*!
+ * Helper function for the toplevel network safe docommand function for the current company.
+ *
+ * @param tile The tile to perform a command on (see #CommandProc)
+ * @param p1 Additional data for the command (see #CommandProc)
+ * @param p2 Additional data for the command (see #CommandProc)
+ * @param cmd The command to execute (a CMD_* value)
+ * @param text The text to pass
+ * @param estimate_only whether to give only the estimate or also execute the command
+ * @param cmdsrc Source of the command
+ * @return the command cost of this function.
+ */
+static inline CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text, bool estimate_only, CommandSource cmdsrc = CMDSRC_SELF)
+{
+	Command c (tile, p1, p2, cmd, text);
+
+	return c.execp_internal (estimate_only, cmdsrc);
+}
 
 #ifdef ENABLE_NETWORK
 void NetworkSendCommand(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text, CompanyID company, CommandSource cmdsrc = CMDSRC_SELF);

@@ -189,7 +189,7 @@ static void PlaceRail_Station(TileIndex tile)
 		if (!_railstation.orientation) Swap(w, h);
 
 		Command cmdcont (tile, p1, p2, CMD_BUILD_RAIL_STATION);
-		ShowSelectStationIfNeeded(cmdcont, TileArea(tile, w, h));
+		ShowSelectStationIfNeeded (&cmdcont, TileArea(tile, w, h));
 	}
 }
 
@@ -702,7 +702,7 @@ struct BuildRailToolbarWindow : Window {
 							uint32 p2 = STAT_CLASS_WAYP | _cur_waypoint_type << 8 | INVALID_STATION << 16;
 
 							Command cmdcont (ta.tile, p1, p2, CMD_BUILD_RAIL_WAYPOINT);
-							ShowSelectWaypointIfNeeded(cmdcont, ta);
+							ShowSelectWaypointIfNeeded (&cmdcont, ta);
 						}
 					}
 					break;
@@ -859,7 +859,7 @@ static void HandleStationPlacement(TileIndex start, TileIndex end)
 	uint32 p2 = _railstation.station_class | _railstation.station_type << 8 | INVALID_STATION << 16;
 
 	Command cmdcont (ta.tile, p1, p2, CMD_BUILD_RAIL_STATION);
-	ShowSelectStationIfNeeded(cmdcont, ta);
+	ShowSelectStationIfNeeded (&cmdcont, ta);
 }
 
 struct BuildRailStationWindow : public PickerWindowBase {
