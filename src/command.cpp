@@ -696,7 +696,7 @@ CommandCost Command::execp_internal (bool estimate_only, CommandSource cmdsrc) c
 		if (!_networking || _generating_world || !cmdsrc_is_local(cmdsrc)) {
 			/* Log the failed command as well. Just to be able to be find
 			 * causes of desyncs due to bad command test implementations. */
-			DEBUG (desync, 1, "cmdf: %08x.%02x %02x %06x %08x %08x %08x \"%s\" (%s)",
+			DEBUG (desync, 1, "cmdf: %08x.%02x %02x %06x %08x %08x %02x \"%s\" (%s)",
 				_date, _date_fract, (int)_current_company,
 				this->tile, this->p1, this->p2, this->cmd, this->text, GetCommandName(this->cmd));
 		}
@@ -720,7 +720,7 @@ CommandCost Command::execp_internal (bool estimate_only, CommandSource cmdsrc) c
 		return_dcpi(CommandCost());
 	}
 #endif /* ENABLE_NETWORK */
-	DEBUG (desync, 1, "cmd: %08x.%02x %02x %06x %08x %08x %08x \"%s\" (%s)",
+	DEBUG (desync, 1, "cmd: %08x.%02x %02x %06x %08x %08x %02x \"%s\" (%s)",
 		_date, _date_fract, (int)_current_company,
 		this->tile, this->p1, this->p2, this->cmd, this->text, GetCommandName(this->cmd));
 

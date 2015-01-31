@@ -278,7 +278,7 @@ void NetworkDistributeCommands()
 bool CommandPacket::ReceiveFrom (Packet *p, bool from_server, const char **err)
 {
 	this->company = (CompanyID)p->Recv_uint8();
-	this->cmd     = (CommandID)p->Recv_uint32();
+	this->cmd     = (CommandID)p->Recv_uint8();
 	if (!IsValidCommand(this->cmd)) {
 		*err = "invalid command";
 		return false;
@@ -309,8 +309,10 @@ bool CommandPacket::ReceiveFrom (Packet *p, bool from_server, const char **err)
  */
 void CommandPacket::SendTo (Packet *p, bool from_server) const
 {
+	assert_compile (CMD_END <= UINT8_MAX);
+
 	p->Send_uint8  (this->company);
-	p->Send_uint32 (this->cmd);
+	p->Send_uint8  (this->cmd);
 	p->Send_uint32 (this->p1);
 	p->Send_uint32 (this->p2);
 	p->Send_uint32 (this->tile);

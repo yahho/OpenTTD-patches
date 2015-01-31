@@ -888,7 +888,7 @@ static void InjectDebugDumpCommands (void)
 		if (_date == next_date && _date_fract == next_date_fract) {
 			if (cp != NULL) {
 				NetworkSendCommand (cp, cp->company, CMDSRC_OTHER);
-				DEBUG (net, 0, "injecting: %08x.%02x %02x %06x %08x %08x %08x \"%s\" (%s)",
+				DEBUG (net, 0, "injecting: %08x.%02x %02x %06x %08x %08x %02x \"%s\" (%s)",
 					_date, _date_fract, (int)_current_company,
 					cp->tile, cp->p1, cp->p2, cp->cmd, cp->text, GetCommandName(cp->cmd));
 				free (cp);
