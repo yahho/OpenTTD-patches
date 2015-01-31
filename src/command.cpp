@@ -710,7 +710,7 @@ CommandCost Command::execp_internal (bool estimate_only, CommandSource cmdsrc) c
 	 * send it to the command-queue and abort execution
 	 */
 	if (_networking && !_generating_world && cmdsrc_is_local(cmdsrc)) {
-		NetworkSendCommand(this->tile, this->p1, this->p2, this->cmd, this->text, _current_company, cmdsrc);
+		NetworkSendCommand(this, _current_company, cmdsrc);
 		cur_company.Restore();
 
 		/* Don't return anything special here; no error, no costs.

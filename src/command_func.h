@@ -93,7 +93,23 @@ static inline CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p
 }
 
 #ifdef ENABLE_NETWORK
-void NetworkSendCommand(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text, CompanyID company, CommandSource cmdsrc = CMDSRC_SELF);
+void NetworkSendCommand (const Command *cc, CompanyID company, CommandSource cmdsrc = CMDSRC_SELF);
+
+/**
+ * Prepare a DoCommand to be send over the network
+ * @param tile The tile to perform a command on (see #CommandProc)
+ * @param p1 Additional data for the command (see #CommandProc)
+ * @param p2 Additional data for the command (see #CommandProc)
+ * @param cmd The command to execute (a CMD_* value)
+ * @param text The text to pass
+ * @param company The company that wants to send the command
+ */
+static inline void NetworkSendCommand (TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text, CompanyID company)
+{
+	Command c (tile, p1, p2, cmd, text);
+
+	NetworkSendCommand (&c, company);
+}
 #endif /* ENABLE_NETWORK */
 
 extern Money _additional_cash_required;
