@@ -405,7 +405,7 @@ static const CommandClass _command_proc_table[] = {
  * @param cmd The integer value of a command
  * @return true if the command is valid (and got a CommandProc function)
  */
-bool IsValidCommand(uint32 cmd)
+bool IsValidCommand(CommandID cmd)
 {
 	return cmd < lengthof(_command_proc_table) && _command_proc_table[cmd].proc != NULL;
 }
@@ -416,7 +416,7 @@ bool IsValidCommand(uint32 cmd)
  * @param cmd The integer value of the command
  * @return The flags for this command
  */
-CommandFlags GetCommandFlags(uint32 cmd)
+CommandFlags GetCommandFlags(CommandID cmd)
 {
 	assert(IsValidCommand(cmd));
 
@@ -429,7 +429,7 @@ CommandFlags GetCommandFlags(uint32 cmd)
  * @param cmd The integer value of the command
  * @return The name for this command
  */
-const char *GetCommandName(uint32 cmd)
+const char *GetCommandName(CommandID cmd)
 {
 	assert(IsValidCommand(cmd));
 
@@ -441,7 +441,7 @@ const char *GetCommandName(uint32 cmd)
  * @param cmd The command to check.
  * @return True if the command is allowed while paused, false otherwise.
  */
-bool IsCommandAllowedWhilePaused(uint32 cmd)
+bool IsCommandAllowedWhilePaused(CommandID cmd)
 {
 	/* Lookup table for the command types that are allowed for a given pause level setting. */
 	static const int command_type_lookup[] = {

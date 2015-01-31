@@ -613,7 +613,7 @@ NetworkRecvStatus ServerNetworkAdminSocketHandler::SendCmdNames()
 	Packet *p = new Packet(ADMIN_PACKET_SERVER_CMD_NAMES);
 
 	for (uint i = 0; i < CMD_END; i++) {
-		const char *cmdname = GetCommandName(i);
+		const char *cmdname = GetCommandName((CommandID)i);
 
 		/* Should SEND_MTU be exceeded, start a new packet
 		 * (magic 5: 1 bool "more data" and one uint16 "command id", one

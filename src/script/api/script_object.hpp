@@ -15,6 +15,7 @@
 #include "../../misc/countedptr.hpp"
 #include "../../road_type.h"
 #include "../../rail_type.h"
+#include "../../command_type.h"
 
 #include "script_types.hpp"
 #include "../script_suspend.hpp"
@@ -69,7 +70,7 @@ protected:
 	/**
 	 * Executes a raw DoCommand for the script.
 	 */
-	static bool DoCommand(TileIndex tile, uint32 p1, uint32 p2, uint cmd, stringb *text = NULL, Script_SuspendCallbackProc *callback = NULL);
+	static bool DoCommand(TileIndex tile, uint32 p1, uint32 p2, CommandID cmd, stringb *text = NULL, Script_SuspendCallbackProc *callback = NULL);
 
 	/**
 	 * Sets the DoCommand costs counter to a value.

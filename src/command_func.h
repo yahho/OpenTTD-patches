@@ -47,7 +47,7 @@ static const CommandCost CMD_ERROR = CommandCost(INVALID_STRING_ID);
  * @see CommandProc
  * @return the cost
  */
-static inline CommandCost DoCommand(TileIndex tile, uint32 p1, uint32 p2, DoCommandFlag flags, uint32 cmd, const char *text = NULL)
+static inline CommandCost DoCommand(TileIndex tile, uint32 p1, uint32 p2, DoCommandFlag flags, CommandID cmd, const char *text = NULL)
 {
 	const Command c (tile, p1, p2, cmd, text);
 
@@ -66,7 +66,7 @@ static inline CommandCost DoCommand(TileIndex tile, uint32 p1, uint32 p2, DoComm
  * @param text The text to pass
  * @return \c true if the command succeeded, else \c false.
  */
-static inline bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text = NULL)
+static inline bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, CommandID cmd, const char *text = NULL)
 {
 	Command c (tile, p1, p2, cmd, text);
 
@@ -85,7 +85,7 @@ static inline bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, 
  * @param cmdsrc Source of the command
  * @return the command cost of this function.
  */
-static inline CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text, bool estimate_only, CommandSource cmdsrc = CMDSRC_SELF)
+static inline CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, CommandID cmd, const char *text, bool estimate_only, CommandSource cmdsrc = CMDSRC_SELF)
 {
 	Command c (tile, p1, p2, cmd, text);
 
@@ -104,7 +104,7 @@ void NetworkSendCommand (const Command *cc, CompanyID company, CommandSource cmd
  * @param text The text to pass
  * @param company The company that wants to send the command
  */
-static inline void NetworkSendCommand (TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text, CompanyID company)
+static inline void NetworkSendCommand (TileIndex tile, uint32 p1, uint32 p2, CommandID cmd, const char *text, CompanyID company)
 {
 	Command c (tile, p1, p2, cmd, text);
 
@@ -114,11 +114,11 @@ static inline void NetworkSendCommand (TileIndex tile, uint32 p1, uint32 p2, uin
 
 extern Money _additional_cash_required;
 
-bool IsValidCommand(uint32 cmd);
-CommandFlags GetCommandFlags(uint32 cmd);
-const char *GetCommandName(uint32 cmd);
+bool IsValidCommand(CommandID cmd);
+CommandFlags GetCommandFlags(CommandID cmd);
+const char *GetCommandName(CommandID cmd);
 Money GetAvailableMoneyForCommand();
-bool IsCommandAllowedWhilePaused(uint32 cmd);
+bool IsCommandAllowedWhilePaused(CommandID cmd);
 
 /**
  * Extracts the DC flags needed for DoCommand from the flags returned by GetCommandFlags

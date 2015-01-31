@@ -175,7 +175,7 @@ public:
  *
  * @see _command_proc_table
  */
-enum Commands {
+enum CommandID {
 	CMD_BUILD_RAILROAD_TRACK,         ///< build a rail track
 	CMD_REMOVE_RAILROAD_TRACK,        ///< remove a rail track
 	CMD_BUILD_SINGLE_RAIL,            ///< build a single rail track
@@ -508,12 +508,12 @@ struct Command {
 	TileIndex tile;                  ///< tile command being executed on.
 	uint32 p1;                       ///< parameter p1.
 	uint32 p2;                       ///< parameter p2.
-	uint32 cmd;                      ///< command being executed.
+	CommandID cmd;                   ///< command being executed.
 	const char *text;                ///< possible text sent for name changes etc, in bytes including '\0'.
 
 	Command() { }
 
-	Command (TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, const char *text = NULL)
+	Command (TileIndex tile, uint32 p1, uint32 p2, CommandID cmd, const char *text = NULL)
 		: tile(tile), p1(p1), p2(p2), cmd(cmd), text(text) { }
 
 	/* Actually execute the command, with the given flags. */
