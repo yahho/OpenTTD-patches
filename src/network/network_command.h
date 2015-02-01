@@ -24,6 +24,8 @@ struct CommandPacket : CommandContainer {
 	uint32 frame;          ///< the frame in which this packet is executed
 	CommandSource cmdsrc;  ///< source of the command
 
+	static void SendTo (uint8 company, const Command *c, Packet *p);
+
 	void SendTo (Packet *p, bool from_server) const;
 
 	bool ReceiveFrom (Packet *p, bool from_server, const char **err);

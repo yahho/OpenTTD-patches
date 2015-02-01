@@ -86,7 +86,7 @@ public:
 	static NetworkRecvStatus SendCompanyInformationQuery();
 
 	static NetworkRecvStatus SendJoin();
-	static NetworkRecvStatus SendCommand(const CommandPacket *cp);
+	static NetworkRecvStatus SendCommand(CompanyID company, const Command *c);
 	static NetworkRecvStatus SendError(NetworkErrorCode errorno);
 	static NetworkRecvStatus SendQuit();
 	static NetworkRecvStatus SendAck();

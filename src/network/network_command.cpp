@@ -106,6 +106,12 @@ void NetworkSendCommand(const Command *cc, CompanyID company, CommandSource cmds
 {
 	assert(cmdsrc_is_local(cmdsrc));
 
+	/* Clients send their command to the server and forget all about the packet */
+	if (!_network_server) {
+		MyClient::SendCommand (company, cc);
+		return;
+	}
+
 	CommandPacket c;
 	c.company  = company;
 	c.tile     = cc->tile;
@@ -120,24 +126,16 @@ void NetworkSendCommand(const Command *cc, CompanyID company, CommandSource cmds
 		c.textdata[0] = '\0';
 	}
 
-	if (_network_server) {
-		/* If we are the server, we queue the command in our 'special' queue.
-		 *   In theory, we could execute the command right away, but then the
-		 *   client on the server can do everything 1 tick faster than others.
-		 *   So to keep the game fair, we delay the command with 1 tick
-		 *   which gives about the same speed as most clients.
-		 */
-		c.frame = _frame_counter_max + 1;
-		c.cmdsrc = cmdsrc;
+	/* If we are the server, we queue the command in our 'special' queue.
+	 *   In theory, we could execute the command right away, but then the
+	 *   client on the server can do everything 1 tick faster than others.
+	 *   So to keep the game fair, we delay the command with 1 tick
+	 *   which gives about the same speed as most clients.
+	 */
+	c.frame = _frame_counter_max + 1;
+	c.cmdsrc = cmdsrc;
 
-		_local_wait_queue.Append(&c);
-		return;
-	}
-
-	c.frame = 0; // The client can't tell which frame, so just make it 0
-
-	/* Clients send their command to the server and forget all about the packet */
-	MyClient::SendCommand(&c);
+	_local_wait_queue.Append(&c);
 }
 
 /**
@@ -305,19 +303,30 @@ bool CommandPacket::ReceiveFrom (Packet *p, bool from_server, const char **err)
 
 /**
  * Sends a command over the network.
+ * @param company the company that issued the command
+ * @param c the command.
  * @param p the packet to send it in.
  * @param from_server whether we are the server sending the packet
  */
-void CommandPacket::SendTo (Packet *p, bool from_server) const
+void CommandPacket::SendTo (uint8 company, const Command *c, Packet *p)
 {
 	assert_compile (CMD_END <= UINT8_MAX);
 
-	p->Send_uint8  (this->company);
-	p->Send_uint8  (this->cmd);
-	p->Send_uint32 (this->p1);
-	p->Send_uint32 (this->p2);
-	p->Send_uint32 (this->tile);
-	p->Send_string (this->text);
+	p->Send_uint8  (company);
+	p->Send_uint8  (c->cmd);
+	p->Send_uint32 (c->p1);
+	p->Send_uint32 (c->p2);
+	p->Send_uint32 (c->tile);
+	p->Send_string (c->text != NULL ? c->text : "");
+}
+
+/**
+ * Sends a command over the network.
+ * @param p the packet to send it in.
+ */
+void CommandPacket::SendTo (Packet *p, bool from_server) const
+{
+	CommandPacket::SendTo (this->company, this, p);
 
 	if (from_server) {
 		p->Send_uint32 (this->frame);

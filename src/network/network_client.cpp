@@ -403,12 +403,13 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendAck()
 
 /**
  * Send a command to the server.
- * @param cp The command to send.
+ * @param company The company that issued the command.
+ * @param c The command to send.
  */
-NetworkRecvStatus ClientNetworkGameSocketHandler::SendCommand(const CommandPacket *cp)
+NetworkRecvStatus ClientNetworkGameSocketHandler::SendCommand(CompanyID company, const Command *c)
 {
 	Packet *p = new Packet(PACKET_CLIENT_COMMAND);
-	cp->SendTo (p, false);
+	CommandPacket::SendTo (company, c, p);
 
 	my_client->SendPacket(p);
 	return NETWORK_RECV_STATUS_OKAY;
