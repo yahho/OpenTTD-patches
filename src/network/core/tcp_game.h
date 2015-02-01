@@ -17,6 +17,7 @@
 #include "os_abstraction.h"
 #include "tcp.h"
 #include "../network_type.h"
+#include "../network_command.h"
 #include "../../core/pool_type.hpp"
 
 #ifdef ENABLE_NETWORK
@@ -124,28 +125,6 @@ enum PacketGameType {
 	PACKET_SERVER_ERROR_QUIT,            ///< A server tells that a client has hit an error and did quit.
 
 	PACKET_END,                          ///< Must ALWAYS be on the end of this list!! (period)
-};
-
-/** Packet that wraps a command */
-struct CommandPacket;
-
-/** A queue of CommandPackets. */
-class CommandQueue {
-	CommandPacket *first; ///< The first packet in the queue.
-	CommandPacket *last;  ///< The last packet in the queue; only valid when first != NULL.
-	uint count;           ///< The number of items in the queue.
-
-public:
-	/** Initialise the command queue. */
-	CommandQueue() : first(NULL), last(NULL), count(0) {}
-	/** Clear the command queue. */
-	~CommandQueue() { this->Free(); }
-	void Append(CommandPacket *p);
-	CommandPacket *Pop(bool ignore_paused = false);
-	CommandPacket *Peek(bool ignore_paused = false);
-	void Free();
-	/** Get the number of items in the queue. */
-	uint Count() const { return this->count; }
 };
 
 /** Base socket handler for all TCP sockets */

@@ -29,4 +29,23 @@ struct CommandPacket : CommandContainer {
 	bool ReceiveFrom (Packet *p, bool from_server, const char **err);
 };
 
+/** A queue of CommandPackets. */
+class CommandQueue {
+	CommandPacket *first; ///< The first packet in the queue.
+	CommandPacket *last;  ///< The last packet in the queue; only valid when first != NULL.
+	uint count;           ///< The number of items in the queue.
+
+public:
+	/** Initialise the command queue. */
+	CommandQueue() : first(NULL), last(NULL), count(0) {}
+	/** Clear the command queue. */
+	~CommandQueue() { this->Free(); }
+	void Append(CommandPacket *p);
+	CommandPacket *Pop(bool ignore_paused = false);
+	CommandPacket *Peek(bool ignore_paused = false);
+	void Free();
+	/** Get the number of items in the queue. */
+	uint Count() const { return this->count; }
+};
+
 #endif /* NETWORK_COMMAND_H */
