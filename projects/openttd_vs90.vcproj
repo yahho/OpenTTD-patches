@@ -1904,6 +1904,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\network\network_command.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\network\network_content.h"
 				>
 			</File>

@@ -13,6 +13,7 @@
 
 #include "../stdafx.h"
 #include "../string.h"
+#include "network_command.h"
 #include "network_admin.h"
 #include "network_client.h"
 #include "network_server.h"

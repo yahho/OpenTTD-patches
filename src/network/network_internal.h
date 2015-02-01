@@ -15,10 +15,9 @@
 #include "network_func.h"
 #include "core/tcp_game.h"
 
-#include "../command_type.h"
-#include "core/packet.h"
-
 #ifdef ENABLE_NETWORK
+
+#include "network_command.h"
 
 #ifdef RANDOM_DEBUG
 /**
@@ -146,23 +145,6 @@ void NetworkRebuildHostList();
 void UpdateNetworkGameWindow();
 
 bool IsNetworkCompatibleVersion(const char *version);
-
-/* From network_command.cpp */
-/**
- * Everything we need to know about a command to be able to execute it.
- */
-struct CommandPacket : CommandContainer {
-	/** Make sure the pointer is NULL. */
-	CommandPacket() : next(NULL), company(INVALID_COMPANY), frame(0), cmdsrc(CMDSRC_OTHER) {}
-	CommandPacket *next;   ///< the next command packet (if in queue)
-	CompanyID company;     ///< company that is executing the command
-	uint32 frame;          ///< the frame in which this packet is executed
-	CommandSource cmdsrc;  ///< source of the command
-
-	void SendTo (Packet *p, bool from_server) const;
-
-	bool ReceiveFrom (Packet *p, bool from_server, const char **err);
-};
 
 void NetworkDistributeCommands();
 void NetworkExecuteLocalCommandQueue();
