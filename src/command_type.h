@@ -531,6 +531,29 @@ struct Command {
  */
 struct CommandContainer : Command {
 	char textdata[32 * MAX_CHAR_LENGTH]; ///< possible text sent for name changes etc, in bytes including '\0'.
+
+	CommandContainer() : Command()
+	{
+		this->text = this->textdata;
+	}
+
+	CommandContainer (const CommandContainer &cc) : Command(cc)
+	{
+		assert (cc.text == cc.textdata);
+		this->text = this->textdata;
+		memcpy (this->textdata, cc.textdata, sizeof(this->textdata));
+	}
+
+	CommandContainer (const Command &cc) : Command(cc)
+	{
+		this->text = this->textdata;
+
+		if (cc.text != NULL) {
+			bstrcpy (this->textdata, cc.text);
+		} else {
+			this->textdata[0] = '\0';
+		}
+	}
 };
 
 #endif /* COMMAND_TYPE_H */

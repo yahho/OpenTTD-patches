@@ -290,7 +290,7 @@ bool CommandPacket::ReceiveFrom (Packet *p, bool from_server, const char **err)
 	this->p1      = p->Recv_uint32();
 	this->p2      = p->Recv_uint32();
 	this->tile    = p->Recv_uint32();
-	this->text    = this->textdata;
+	assert (this->text == this->textdata);
 	p->Recv_string (this->textdata, lengthof(this->textdata), (!_network_server && GetCommandFlags(this->cmd) & CMDF_STR_CTRL) != 0 ? SVS_ALLOW_CONTROL_CODE | SVS_REPLACE_WITH_QUESTION_MARK : SVS_REPLACE_WITH_QUESTION_MARK);
 
 	if (from_server) {
