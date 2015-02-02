@@ -17,12 +17,22 @@
  * Everything we need to know about a command to be able to execute it.
  */
 struct CommandPacket : CommandContainer {
-	/** Make sure the pointer is NULL. */
-	CommandPacket() : next(NULL), company(INVALID_COMPANY), frame(0), cmdsrc(CMDSRC_OTHER) {}
 	CommandPacket *next;   ///< the next command packet (if in queue)
 	CompanyID company;     ///< company that is executing the command
 	uint32 frame;          ///< the frame in which this packet is executed
 	CommandSource cmdsrc;  ///< source of the command
+
+	CommandPacket()
+		: CommandContainer(), next(NULL), company(INVALID_COMPANY),
+			frame(0), cmdsrc(CMDSRC_OTHER) { }
+
+	CommandPacket (const CommandPacket &cp)
+		: CommandContainer(cp), next(NULL), company(cp.company),
+			frame(cp.frame), cmdsrc(cp.cmdsrc) { }
+
+	CommandPacket (const Command &c, CompanyID company, uint32 frame, CommandSource cmdsrc)
+		: CommandContainer(c), next(NULL), company(company),
+			frame(frame), cmdsrc(cmdsrc) { }
 
 	static void SendTo (uint8 company, const Command *c, Packet *p);
 

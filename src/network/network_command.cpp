@@ -112,28 +112,13 @@ void NetworkSendCommand(const Command *cc, CompanyID company, CommandSource cmds
 		return;
 	}
 
-	CommandPacket c;
-	c.company  = company;
-	c.tile     = cc->tile;
-	c.p1       = cc->p1;
-	c.p2       = cc->p2;
-	c.cmd      = cc->cmd;
-	c.text     = c.textdata;
-
-	if (cc->text != NULL) {
-		bstrcpy (c.textdata, cc->text);
-	} else {
-		c.textdata[0] = '\0';
-	}
-
 	/* If we are the server, we queue the command in our 'special' queue.
 	 *   In theory, we could execute the command right away, but then the
 	 *   client on the server can do everything 1 tick faster than others.
 	 *   So to keep the game fair, we delay the command with 1 tick
 	 *   which gives about the same speed as most clients.
 	 */
-	c.frame = _frame_counter_max + 1;
-	c.cmdsrc = cmdsrc;
+	CommandPacket c (*cc, company, _frame_counter_max + 1, cmdsrc);
 
 	_local_wait_queue.Append(&c);
 }
@@ -150,7 +135,7 @@ void NetworkSendCommand(const Command *cc, CompanyID company, CommandSource cmds
 void NetworkSyncCommandQueue(NetworkClientSocket *cs)
 {
 	for (CommandPacket *p = _local_execution_queue.Peek(); p != NULL; p = p->next) {
-		CommandPacket c = *p;
+		CommandPacket c (*p);
 		c.cmdsrc = CMDSRC_NETWORK_OTHER;
 		cs->outgoing_queue.Append(&c);
 	}
