@@ -1795,7 +1795,7 @@ static void NetworkHandleCommandQueue(NetworkClientSocket *cs)
 	CommandPacket *cp;
 	while ((cp = cs->outgoing_queue.Pop()) != NULL) {
 		cs->SendCommand(cp);
-		free(cp);
+		delete cp;
 	}
 }
 

@@ -28,10 +28,7 @@
  */
 void CommandQueue::Append(CommandPacket *p)
 {
-	CommandPacket *add = xmalloct<CommandPacket>();
-	*add = *p;
-	add->text = add->textdata;
-	add->next = NULL;
+	CommandPacket *add = new CommandPacket (*p);
 	if (this->first == NULL) {
 		this->first = add;
 	} else {
@@ -86,7 +83,7 @@ void CommandQueue::Free()
 {
 	CommandPacket *cp;
 	while ((cp = this->Pop()) != NULL) {
-		free(cp);
+		delete cp;
 	}
 	assert(this->count == 0);
 }
@@ -167,7 +164,7 @@ void NetworkExecuteLocalCommandQueue()
 		cp->execp (cp->cmdsrc);
 
 		queue.Pop();
-		free(cp);
+		delete cp;
 	}
 
 	/* Local company may have changed, so we should not restore the old value */
@@ -235,7 +232,7 @@ static void DistributeQueue(CommandQueue *queue, const NetworkClientSocket *owne
 	while (--to_go >= 0 && (cp = queue->Pop(true)) != NULL) {
 		DistributeCommandPacket(*cp, owner);
 		NetworkAdminCmdLogging(owner, cp);
-		free(cp);
+		delete cp;
 	}
 }
 

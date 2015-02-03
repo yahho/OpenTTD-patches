@@ -891,7 +891,7 @@ static void InjectDebugDumpCommands (void)
 				DEBUG (net, 0, "injecting: %08x.%02x %02x %06x %08x %08x %02x \"%s\" (%s)",
 					_date, _date_fract, (int)_current_company,
 					cp->tile, cp->p1, cp->p2, cp->cmd, cp->text, GetCommandName(cp->cmd));
-				free (cp);
+				delete cp;
 				cp = NULL;
 			}
 			if (check_sync_state) {
@@ -926,7 +926,7 @@ static void InjectDebugDumpCommands (void)
 				) {
 			p += 5;
 			if (*p == ' ') p++;
-			cp = xcalloct<CommandPacket>();
+			cp = new CommandPacket;
 			int company, cmd;
 			int ret = sscanf (p, "%x.%x %x %x %x %x %x \"%[^\"]\"",
 					&next_date, &next_date_fract, &company,
@@ -937,14 +937,13 @@ static void InjectDebugDumpCommands (void)
 			assert (ret == 8 || ret == 7);
 			cp->company = (CompanyID)company;
 			cp->cmd = (CommandID)cmd;
-			cp->text = cp->textdata;
 		} else if (strncmp (p, "join: ", 6) == 0) {
 			/* Manually insert a pause when joining; this way the client can join at the exact right time. */
 			int ret = sscanf (p + 6, "%x.%x", &next_date, &next_date_fract);
 			assert (ret == 2);
 			DEBUG (net, 0, "injecting pause for join at %08x.%02x; please join when paused",
 					next_date, next_date_fract);
-			cp = xcalloct<CommandPacket>();
+			cp = new CommandPacket;
 			cp->company = COMPANY_SPECTATOR;
 			cp->cmd = CMD_PAUSE;
 			cp->p1 = PM_PAUSED_NORMAL;
