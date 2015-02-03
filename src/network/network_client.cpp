@@ -922,14 +922,15 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_COMMAND(Packet 
 {
 	if (this->status != STATUS_ACTIVE) return NETWORK_RECV_STATUS_MALFORMED_PACKET;
 
-	CommandPacket cp;
+	CommandPacket *cp = new CommandPacket;
 	const char *err;
-	if (!cp.ReceiveFrom (p, true, &err)) {
+	if (!cp->ReceiveFrom (p, true, &err)) {
 		IConsolePrintF(CC_ERROR, "WARNING: %s from server, dropping...", err);
+		delete cp;
 		return NETWORK_RECV_STATUS_MALFORMED_PACKET;
 	}
 
-	this->incoming_queue.Append(&cp);
+	this->incoming_queue.Append(cp);
 
 	return NETWORK_RECV_STATUS_OKAY;
 }

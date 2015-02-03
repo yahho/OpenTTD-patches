@@ -24,17 +24,18 @@
 /**
  * Append a CommandPacket at the end of the queue.
  * @param p The packet to append to the queue.
- * @note A new instance of the CommandPacket will be made.
+ * @note The queue will take over ownership of the packet.
  */
 void CommandQueue::Append(CommandPacket *p)
 {
-	CommandPacket *add = new CommandPacket (*p);
+	assert (p->next == NULL);
+
 	if (this->first == NULL) {
-		this->first = add;
+		this->first = p;
 	} else {
-		this->last->next = add;
+		this->last->next = p;
 	}
-	this->last = add;
+	this->last = p;
 	this->count++;
 }
 
@@ -115,9 +116,9 @@ void NetworkSendCommand(const Command *cc, CompanyID company, CommandSource cmds
 	 *   So to keep the game fair, we delay the command with 1 tick
 	 *   which gives about the same speed as most clients.
 	 */
-	CommandPacket c (*cc, company, _frame_counter_max + 1, cmdsrc);
+	CommandPacket *c = new CommandPacket (*cc, company, _frame_counter_max + 1, cmdsrc);
 
-	_local_wait_queue.Append(&c);
+	_local_wait_queue.Append(c);
 }
 
 /**
@@ -132,9 +133,9 @@ void NetworkSendCommand(const Command *cc, CompanyID company, CommandSource cmds
 void NetworkSyncCommandQueue(NetworkClientSocket *cs)
 {
 	for (CommandPacket *p = _local_execution_queue.Peek(); p != NULL; p = p->next) {
-		CommandPacket c (*p);
-		c.cmdsrc = CMDSRC_NETWORK_OTHER;
-		cs->outgoing_queue.Append(&c);
+		CommandPacket *c = new CommandPacket (*p);
+		c->cmdsrc = CMDSRC_NETWORK_OTHER;
+		cs->outgoing_queue.Append(c);
 	}
 }
 
@@ -194,7 +195,6 @@ static void DistributeCommandPacket(CommandPacket &cp, const NetworkClientSocket
 	 */
 	if (owner == NULL) assert(cmdsrc_is_local(cp.cmdsrc));
 
-	CommandSource cmdsrc = cp.cmdsrc;
 	cp.frame = _frame_counter_max + 1;
 
 	NetworkClientSocket *cs;
@@ -202,16 +202,18 @@ static void DistributeCommandPacket(CommandPacket &cp, const NetworkClientSocket
 		if (cs->status >= NetworkClientSocket::STATUS_MAP) {
 			/* Callbacks are only send back to the client who sent them in the
 			 *  first place. This filters that out. */
-			cp.cmdsrc = (cs == owner) ? CMDSRC_NETWORK_SELF : CMDSRC_NETWORK_OTHER;
-			cs->outgoing_queue.Append(&cp);
+			CommandPacket *c = new CommandPacket (cp);
+			c->cmdsrc = (cs == owner) ? CMDSRC_NETWORK_SELF : CMDSRC_NETWORK_OTHER;
+			cs->outgoing_queue.Append(c);
 		}
 	}
 
 	assert(cs == NULL);
 
-	cp.cmdsrc = (owner == NULL) ? cmdsrc_make_network (cmdsrc) : CMDSRC_NETWORK_OTHER;
+	CommandPacket *c = new CommandPacket (cp);
+	c->cmdsrc = (owner == NULL) ? cmdsrc_make_network (cp.cmdsrc) : CMDSRC_NETWORK_OTHER;
 
-	_local_execution_queue.Append(&cp);
+	_local_execution_queue.Append(c);
 }
 
 /**

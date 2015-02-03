@@ -1144,7 +1144,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::Receive_CLIENT_COMMAND(Packet 
 
 	if (GetCommandFlags(cp.cmd) & CMDF_CLIENT_ID) cp.p2 = this->client_id;
 
-	this->incoming_queue.Append(&cp);
+	this->incoming_queue.Append (new CommandPacket (cp));
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
