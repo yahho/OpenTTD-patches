@@ -256,33 +256,37 @@ void NetworkDistributeCommands()
  * @param p the packet to read from.
  * @param from_server whether the packet comes from the server
  * @param err pointer to store an error message
- * @return whether reception succeeded
+ * @return the received packet, or NULL on error
  */
-bool CommandPacket::ReceiveFrom (Packet *p, bool from_server, const char **err)
+CommandPacket *CommandPacket::ReceiveFrom (Packet *p, bool from_server, const char **err)
 {
-	this->company = (CompanyID)p->Recv_uint8();
-	this->cmd     = (CommandID)p->Recv_uint8();
-	if (!IsValidCommand(this->cmd)) {
+	CompanyID company = (CompanyID) p->Recv_uint8();
+	CommandID cmd     = (CommandID) p->Recv_uint8();
+	if (!IsValidCommand(cmd)) {
 		*err = "invalid command";
-		return false;
+		return NULL;
 	}
-	if (GetCommandFlags(this->cmd) & CMDF_OFFLINE) {
+	if (GetCommandFlags(cmd) & CMDF_OFFLINE) {
 		*err = "offline-only command";
-		return false;
+		return NULL;
 	}
 
-	this->p1      = p->Recv_uint32();
-	this->p2      = p->Recv_uint32();
-	this->tile    = p->Recv_uint32();
-	assert (this->text == this->textdata);
-	p->Recv_string (this->textdata, lengthof(this->textdata), (!_network_server && GetCommandFlags(this->cmd) & CMDF_STR_CTRL) != 0 ? SVS_ALLOW_CONTROL_CODE | SVS_REPLACE_WITH_QUESTION_MARK : SVS_REPLACE_WITH_QUESTION_MARK);
+	CommandPacket *cp = new CommandPacket;
+	cp->company = company;
+	cp->cmd     = cmd;
+
+	cp->p1       = p->Recv_uint32();
+	cp->p2       = p->Recv_uint32();
+	cp->tile     = p->Recv_uint32();
+	assert (cp->text == cp->textdata);
+	p->Recv_string (cp->textdata, lengthof(cp->textdata), (!_network_server && GetCommandFlags(cmd) & CMDF_STR_CTRL) != 0 ? SVS_ALLOW_CONTROL_CODE | SVS_REPLACE_WITH_QUESTION_MARK : SVS_REPLACE_WITH_QUESTION_MARK);
 
 	if (from_server) {
-		this->frame  = p->Recv_uint32();
-		this->cmdsrc = p->Recv_bool() ? CMDSRC_NETWORK_SELF : CMDSRC_NETWORK_OTHER;
+		cp->frame  = p->Recv_uint32();
+		cp->cmdsrc = p->Recv_bool() ? CMDSRC_NETWORK_SELF : CMDSRC_NETWORK_OTHER;
 	}
 
-	return true;
+	return cp;
 }
 
 /**

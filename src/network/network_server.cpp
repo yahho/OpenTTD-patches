@@ -1095,27 +1095,31 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::Receive_CLIENT_COMMAND(Packet 
 		return this->SendError(NETWORK_ERROR_TOO_MANY_COMMANDS);
 	}
 
-	CommandPacket cp;
 	const char *err;
-	if (cp.ReceiveFrom (p, false, &err)) err = NULL;
+	CommandPacket *cp = CommandPacket::ReceiveFrom (p, false, &err);
 
-	if (this->HasClientQuit()) return NETWORK_RECV_STATUS_CONN_LOST;
+	if (this->HasClientQuit()) {
+		if (cp != NULL) delete cp;
+		return NETWORK_RECV_STATUS_CONN_LOST;
+	}
 
 	NetworkClientInfo *ci = this->GetInfo();
 
-	if (err != NULL) {
+	if (cp == NULL) {
 		IConsolePrintF(CC_ERROR, "WARNING: %s from client %d (IP: %s).", err, ci->client_id, this->GetClientIP());
 		return this->SendError(NETWORK_ERROR_NOT_EXPECTED);
 	}
 
 
-	if ((GetCommandFlags(cp.cmd) & CMDF_SERVER) && ci->client_id != CLIENT_ID_SERVER) {
+	if ((GetCommandFlags(cp->cmd) & CMDF_SERVER) && ci->client_id != CLIENT_ID_SERVER) {
 		IConsolePrintF(CC_ERROR, "WARNING: server only command from: client %d (IP: %s), kicking...", ci->client_id, this->GetClientIP());
+		delete cp;
 		return this->SendError(NETWORK_ERROR_KICKED);
 	}
 
-	if ((GetCommandFlags(cp.cmd) & CMDF_SPECTATOR) == 0 && !Company::IsValidID(cp.company) && ci->client_id != CLIENT_ID_SERVER) {
+	if ((GetCommandFlags(cp->cmd) & CMDF_SPECTATOR) == 0 && !Company::IsValidID(cp->company) && ci->client_id != CLIENT_ID_SERVER) {
 		IConsolePrintF(CC_ERROR, "WARNING: spectator issueing command from client %d (IP: %s), kicking...", ci->client_id, this->GetClientIP());
+		delete cp;
 		return this->SendError(NETWORK_ERROR_KICKED);
 	}
 
@@ -1124,27 +1128,30 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::Receive_CLIENT_COMMAND(Packet 
 	 * to match the company in the packet. If it doesn't, the client has done
 	 * something pretty naughty (or a bug), and will be kicked
 	 */
-	if (!(cp.cmd == CMD_COMPANY_CTRL && cp.p1 == 0 && ci->client_playas == COMPANY_NEW_COMPANY) && ci->client_playas != cp.company) {
+	if (!(cp->cmd == CMD_COMPANY_CTRL && cp->p1 == 0 && ci->client_playas == COMPANY_NEW_COMPANY) && ci->client_playas != cp->company) {
 		IConsolePrintF(CC_ERROR, "WARNING: client %d (IP: %s) tried to execute a command as company %d, kicking...",
-		               ci->client_playas + 1, this->GetClientIP(), cp.company + 1);
+		               ci->client_playas + 1, this->GetClientIP(), cp->company + 1);
+		delete cp;
 		return this->SendError(NETWORK_ERROR_COMPANY_MISMATCH);
 	}
 
-	if (cp.cmd == CMD_COMPANY_CTRL) {
-		if (cp.p1 != 0 || cp.company != COMPANY_SPECTATOR) {
+	if (cp->cmd == CMD_COMPANY_CTRL) {
+		if (cp->p1 != 0 || cp->company != COMPANY_SPECTATOR) {
+			delete cp;
 			return this->SendError(NETWORK_ERROR_CHEATER);
 		}
 
 		/* Check if we are full - else it's possible for spectators to send a CMD_COMPANY_CTRL and the company is created regardless of max_companies! */
 		if (Company::GetNumItems() >= _settings_client.network.max_companies) {
 			NetworkServerSendChat(NETWORK_ACTION_SERVER_MESSAGE, DESTTYPE_CLIENT, ci->client_id, "cannot create new company, server full", CLIENT_ID_SERVER);
+			delete cp;
 			return NETWORK_RECV_STATUS_OKAY;
 		}
 	}
 
-	if (GetCommandFlags(cp.cmd) & CMDF_CLIENT_ID) cp.p2 = this->client_id;
+	if (GetCommandFlags(cp->cmd) & CMDF_CLIENT_ID) cp->p2 = this->client_id;
 
-	this->incoming_queue.Append (new CommandPacket (cp));
+	this->incoming_queue.Append (cp);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
