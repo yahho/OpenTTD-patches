@@ -133,9 +133,7 @@ void NetworkSendCommand(const Command *cc, CompanyID company, CommandSource cmds
 void NetworkSyncCommandQueue(NetworkClientSocket *cs)
 {
 	for (CommandPacket *p = _local_execution_queue.Peek(); p != NULL; p = p->next) {
-		CommandPacket *c = new CommandPacket (*p);
-		c->cmdsrc = CMDSRC_NETWORK_OTHER;
-		cs->outgoing_queue.Append(c);
+		cs->outgoing_queue.Append (p->Clone (CMDSRC_OTHER));
 	}
 }
 
@@ -202,18 +200,13 @@ static void DistributeCommandPacket(CommandPacket &cp, const NetworkClientSocket
 		if (cs->status >= NetworkClientSocket::STATUS_MAP) {
 			/* Callbacks are only send back to the client who sent them in the
 			 *  first place. This filters that out. */
-			CommandPacket *c = new CommandPacket (cp);
-			c->cmdsrc = (cs == owner) ? CMDSRC_NETWORK_SELF : CMDSRC_NETWORK_OTHER;
-			cs->outgoing_queue.Append(c);
+			cs->outgoing_queue.Append (cp.Clone (cs == owner ? CMDSRC_SELF : CMDSRC_OTHER));
 		}
 	}
 
 	assert(cs == NULL);
 
-	CommandPacket *c = new CommandPacket (cp);
-	c->cmdsrc = (owner == NULL) ? cmdsrc_make_network (cp.cmdsrc) : CMDSRC_NETWORK_OTHER;
-
-	_local_execution_queue.Append(c);
+	_local_execution_queue.Append (cp.Clone (owner == NULL ? cp.cmdsrc : CMDSRC_OTHER));
 }
 
 /**

@@ -34,6 +34,19 @@ struct CommandPacket : CommandContainer {
 		: CommandContainer(c), next(NULL), company(company),
 			frame(frame), cmdsrc(cmdsrc) { }
 
+	/**
+	 * Clone the packet to add it to an outgoing queue
+	 * @param cmdsrc Source of the command
+	 */
+	CommandPacket *Clone (CommandSource cmdsrc) const
+	{
+		CommandPacket *cp = new CommandPacket (*this);
+
+		cp->cmdsrc = cmdsrc_make_network (cmdsrc);
+
+		return cp;
+	}
+
 	static void SendTo (uint8 company, const Command *c, Packet *p);
 
 	void SendTo (Packet *p, bool from_server) const;
