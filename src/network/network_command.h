@@ -10,29 +10,29 @@
 #ifndef NETWORK_COMMAND_H
 #define NETWORK_COMMAND_H
 
+#include "../core/forward_list.h"
 #include "../command_type.h"
 #include "core/packet.h"
 
 /**
  * Everything we need to know about a command to be able to execute it.
  */
-struct CommandPacket : CommandContainer {
-	CommandPacket *next;   ///< the next command packet (if in queue)
+struct CommandPacket : CommandContainer, ForwardListLink<CommandPacket> {
 	CompanyID company;     ///< company that is executing the command
 	uint32 frame;          ///< the frame in which this packet is executed
 	CommandSource cmdsrc;  ///< source of the command
 
 	CommandPacket()
-		: CommandContainer(), next(NULL), company(INVALID_COMPANY),
-			frame(0), cmdsrc(CMDSRC_OTHER) { }
+		: CommandContainer(), ForwardListLink<CommandPacket>(),
+			company(INVALID_COMPANY), frame(0), cmdsrc(CMDSRC_OTHER) { }
 
 	CommandPacket (const CommandPacket &cp)
-		: CommandContainer(cp), next(NULL), company(cp.company),
-			frame(cp.frame), cmdsrc(cp.cmdsrc) { }
+		: CommandContainer(cp), ForwardListLink<CommandPacket>(),
+			company(cp.company), frame(cp.frame), cmdsrc(cp.cmdsrc) { }
 
 	CommandPacket (const Command &c, CompanyID company, uint32 frame, CommandSource cmdsrc)
-		: CommandContainer(c), next(NULL), company(company),
-			frame(frame), cmdsrc(cmdsrc) { }
+		: CommandContainer(c), ForwardListLink<CommandPacket>(),
+			company(company), frame(frame), cmdsrc(cmdsrc) { }
 
 	/**
 	 * Clone the packet to add it to an outgoing queue
@@ -55,14 +55,12 @@ struct CommandPacket : CommandContainer {
 };
 
 /** A queue of CommandPackets. */
-class CommandQueue {
-	CommandPacket *first; ///< The first packet in the queue.
-	CommandPacket *last;  ///< The last packet in the queue; only valid when first != NULL.
+class CommandQueue : public ForwardList <CommandPacket, true> {
 	uint count;           ///< The number of items in the queue.
 
 public:
 	/** Initialise the command queue. */
-	CommandQueue() : first(NULL), last(NULL), count(0) {}
+	CommandQueue() : ForwardList <CommandPacket, true> (), count(0) {}
 	/** Clear the command queue. */
 	~CommandQueue() { this->Free(); }
 	void Append(CommandPacket *p);

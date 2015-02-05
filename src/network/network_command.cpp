@@ -29,14 +29,20 @@
 void CommandQueue::Append(CommandPacket *p)
 {
 	assert (p->next == NULL);
-
-	if (this->first == NULL) {
-		this->first = p;
-	} else {
-		this->last->next = p;
-	}
-	this->last = p;
+	this->ForwardList <CommandPacket, true>::append (p);
 	this->count++;
+}
+
+/** Constant boolean true function. */
+static inline bool pred_true (const void *)
+{
+	return true;
+}
+
+/** Check if a command is allowed while paused. */
+static inline bool pred_allowed_while_paused (const Command *c)
+{
+	return IsCommandAllowedWhilePaused (c->cmd);
 }
 
 /**
@@ -46,21 +52,12 @@ void CommandQueue::Append(CommandPacket *p)
  */
 CommandPacket *CommandQueue::Pop(bool ignore_paused)
 {
-	CommandPacket **prev = &this->first;
-	CommandPacket *ret = this->first;
-	CommandPacket *prev_item = NULL;
-	if (ignore_paused && _pause_mode != PM_UNPAUSED) {
-		while (ret != NULL && !IsCommandAllowedWhilePaused(ret->cmd)) {
-			prev_item = ret;
-			prev = &ret->next;
-			ret = ret->next;
-		}
-	}
-	if (ret != NULL) {
-		if (ret == this->last) this->last = prev_item;
-		*prev = ret->next;
-		this->count--;
-	}
+	CommandPacket *ret = (!ignore_paused || _pause_mode == PM_UNPAUSED) ?
+		this->ForwardList <CommandPacket, true>::remove_pred (pred_true) :
+		this->ForwardList <CommandPacket, true>::remove_pred (pred_allowed_while_paused);
+
+	if (ret != NULL) this->count--;
+
 	return ret;
 }
 
@@ -71,12 +68,9 @@ CommandPacket *CommandQueue::Pop(bool ignore_paused)
  */
 CommandPacket *CommandQueue::Peek(bool ignore_paused)
 {
-	if (!ignore_paused || _pause_mode == PM_UNPAUSED) return this->first;
-
-	for (CommandPacket *p = this->first; p != NULL; p = p->next) {
-		if (IsCommandAllowedWhilePaused(p->cmd)) return p;
-	}
-	return NULL;
+	return (!ignore_paused || _pause_mode == PM_UNPAUSED) ?
+		this->ForwardList <CommandPacket, true>::find_pred (pred_true) :
+		this->ForwardList <CommandPacket, true>::find_pred (pred_allowed_while_paused);
 }
 
 /** Free everything that is in the queue. */
@@ -132,7 +126,7 @@ void NetworkSendCommand(const Command *cc, CompanyID company, CommandSource cmds
  */
 void NetworkSyncCommandQueue(NetworkClientSocket *cs)
 {
-	for (CommandPacket *p = _local_execution_queue.Peek(); p != NULL; p = p->next) {
+	for (CommandQueue::const_iterator p (_local_execution_queue.cbegin()); p != _local_execution_queue.cend(); p++) {
 		cs->outgoing_queue.Append (p->Clone (CMDSRC_OTHER));
 	}
 }
