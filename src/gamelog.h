@@ -12,9 +12,9 @@
 #ifndef GAMELOG_H
 #define GAMELOG_H
 
-#include <memory>
 #include <vector>
 
+#include "core/pointer.h"
 #include "newgrf_config.h"
 #include "saveload/saveload_data.h"
 
@@ -58,9 +58,9 @@ struct GamelogEntry {
 };
 
 /** Gamelog structure. */
-struct Gamelog : std::vector<std::unique_ptr<GamelogEntry> > {
+struct Gamelog : std::vector<ttd_unique_ptr<GamelogEntry> > {
 	void append(GamelogEntry *entry) {
-		this->push_back(std::unique_ptr<GamelogEntry>(entry));
+		this->push_back(ttd_unique_ptr<GamelogEntry>(entry));
 	}
 };
 

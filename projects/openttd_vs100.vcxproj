@@ -746,6 +746,7 @@
     <ClInclude Include="..\src\core\mem_func.hpp" />
     <ClInclude Include="..\src\core\multimap.hpp" />
     <ClInclude Include="..\src\core\overflowsafe_type.hpp" />
+    <ClInclude Include="..\src\core\pointer.h" />
     <ClCompile Include="..\src\core\pool_func.cpp">
       <AssemblerListingLocation>$(IntDir)\core\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\core\</ObjectFileName>

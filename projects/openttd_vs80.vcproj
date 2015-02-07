@@ -2743,6 +2743,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\core\pointer.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\core\pool_func.cpp"
 				>
 				<FileConfiguration

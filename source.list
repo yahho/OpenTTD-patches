@@ -422,6 +422,7 @@ core/math_func.hpp
 core/mem_func.hpp
 core/multimap.hpp
 core/overflowsafe_type.hpp
+core/pointer.h
 core/pool_func.cpp
 core/pool_func.hpp
 core/pool_type.hpp

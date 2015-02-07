@@ -10,9 +10,9 @@
 #ifndef TEXTFILE_H
 #define TEXTFILE_H
 
-#include <memory>
 #include <vector>
 
+#include "core/pointer.h"
 #include "fileio_type.h"
 #include "strings_func.h"
 #include "window_gui.h"
@@ -42,14 +42,10 @@ struct TextfileDesc {
 		FORMAT_END,
 	};
 
-	struct delete_free {
-		void operator() (void *p) { free(p); }
-	};
-
 	/* Move semantics are enough for our current use of TextfileDesc,
 	 * so this is a unique_ptr. If we ever need copy semantics, then
 	 * this could be changed to a shared_ptr. */
-	std::unique_ptr <char, delete_free> path; ///< Textfile path
+	ttd_unique_free_ptr <char> path; ///< Textfile path
 	const TextfileType type; ///< Textfile type
 	const Subdirectory dir;  ///< Textfile directory
 	Format format;           ///< Textfile format
