@@ -842,6 +842,10 @@ struct UnknownGRF : public GRFIdentifier {
  * @param md5sum the MD5 checksum part of the 'unique' GRF identifier
  * @param create whether to create a new GRFConfig if the GRFConfig did not
  *               exist in the fake list of GRFConfigs.
+ *               If true, a GRFConfig will be returned unconditionally, and
+ *               it will be created if it does not exist yet.
+ *               If false, a GRFConfig will be returned only if it already
+ *               existed and is still unknown; otherwise, NULL will be returned.
  * @return The GRFTextWrapper of the name of the GRFConfig with the given GRF ID
  *         and MD5 checksum or NULL when it does not exist and create is false.
  *         This value must NEVER be freed by the caller.
@@ -853,7 +857,9 @@ GRFTextWrapper *FindUnknownGRFName(uint32 grfid, uint8 *md5sum, bool create)
 
 	for (grf = unknown_grfs; grf != NULL; grf = grf->next) {
 		if (grf->grfid == grfid) {
-			if (memcmp(md5sum, grf->md5sum, sizeof(grf->md5sum)) == 0) return grf->name;
+			if (memcmp (md5sum, grf->md5sum, sizeof(grf->md5sum)) == 0) {
+				return (create || strcmp (GetGRFStringFromGRFText(grf->name->text), UNKNOWN_GRF_NAME_PLACEHOLDER) == 0) ? grf->name : NULL;
+			}
 		}
 	}
 
