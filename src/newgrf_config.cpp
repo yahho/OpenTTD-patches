@@ -598,7 +598,7 @@ GRFListCompatibility IsGoodGRFConfigList(GRFConfig *grfconfig)
 			c->name = f->name;
 			c->name->AddRef();
 			c->info->Release();
-			c->info = f->name;
+			c->info = f->info;
 			c->info->AddRef();
 			c->error = NULL;
 			c->version = f->version;
