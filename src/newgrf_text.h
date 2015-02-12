@@ -20,6 +20,95 @@
 /** This character, the thorn ('þ'), indicates a unicode string to NFO. */
 static const WChar NFO_UTF8_IDENTIFIER = 0x00DE;
 
+
+/**
+ * Element of the linked list.
+ * Each of those elements represent the string,
+ * but according to a different lang.
+ */
+struct GRFText {
+public:
+	/**
+	 * Allocate and assign a new GRFText with the given text.
+	 * As these strings can have string terminations in them, e.g.
+	 * due to "choice lists" we (sometimes) cannot rely on detecting
+	 * the length by means of strlen. Also, if the length is already
+	 * known not scanning the whole string is more efficient.
+	 * @param langid The language of the text.
+	 * @param text   The text to store in the new GRFText.
+	 * @param len    The length of the text.
+	 */
+	static GRFText *create (byte langid, const char *text, size_t len)
+	{
+		return new (len) GRFText (langid, text, len);
+	}
+
+	/** Create a GRFText for a given string. */
+	static GRFText *create (byte langid, const char *text)
+	{
+		return create (langid, text, strlen(text) + 1);
+	}
+
+	/**
+	 * Create a copy of this GRFText.
+	 * @return an exact copy of the given text.
+	 */
+	GRFText *clone (void) const
+	{
+		return GRFText::create (this->langid, this->text, this->len);
+	}
+
+	/**
+	 * Free the memory we allocated.
+	 * @param p memory to free.
+	 */
+	void operator delete (void *p)
+	{
+		free (p);
+	}
+
+private:
+	/**
+	 * Actually construct the GRFText.
+	 * @param langid_ The language of the text.
+	 * @param text_   The text to store in this GRFText.
+	 * @param len_    The length of the text to store.
+	 */
+	GRFText (byte langid_, const char *text_, size_t len_)
+		: next(NULL), len(len_), langid(langid_)
+	{
+		/* We need to use memcpy instead of strcpy due to
+		 * the possibility of "choice lists" and therefore
+		 * intermediate string terminators. */
+		memcpy (this->text, text_, len);
+	}
+
+	/**
+	 * Allocate memory for this class.
+	 * @param size the size of the instance
+	 * @param extra the extra memory for the text
+	 * @return the requested amount of memory for both the instance and the text
+	 */
+	void *operator new (size_t size, size_t extra)
+	{
+		return xmalloc (size + extra);
+	}
+
+	/**
+	 * Helper allocation function to disallow something.
+	 * Don't allow simple 'news'; they wouldn't have enough memory.
+	 * @param size the amount of space not to allocate.
+	 */
+	void *operator new (size_t size) DELETED;
+
+public:
+	GRFText *next; ///< The next GRFText in this chain.
+	size_t len;    ///< The length of the stored string, used for copying.
+	byte langid;   ///< The language associated with this GRFText.
+	char text[];   ///< The actual (translated) text.
+};
+
+
 StringID AddGRFString(uint32 grfid, uint16 stringid, byte langid, bool new_scheme, bool allow_newlines, const char *text_to_add, StringID def_string);
 StringID GetGRFStringID(uint32 grfid, uint16 stringid);
 const char *GetGRFStringFromGRFText(const struct GRFText *text);
