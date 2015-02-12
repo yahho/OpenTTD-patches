@@ -15,6 +15,7 @@
 #include "string.h"
 #include "strings_type.h"
 #include "core/smallvec_type.hpp"
+#include "misc/countedptr.hpp"
 #include "table/control_codes.h"
 
 /** This character, the thorn ('þ'), indicates a unicode string to NFO. */
@@ -153,6 +154,22 @@ struct LanguageMap {
 	int GetMapping(int newgrf_id, bool gender) const;
 	int GetReverseMapping(int openttd_id, bool gender) const;
 	static const LanguageMap *GetLanguageMap(uint32 grfid, uint8 language_id);
+};
+
+/** Reference counted wrapper around a GRFText pointer. */
+struct GRFTextWrapper : public SimpleCountedObject {
+	struct GRFText *text; ///< The actual text
+
+	/** Create a new GRFTextWrapper. */
+	GRFTextWrapper() : text(NULL)
+	{
+	}
+
+	/** Cleanup a GRFTextWrapper object. */
+	~GRFTextWrapper()
+	{
+		CleanUpGRFText (this->text);
+	}
 };
 
 #endif /* NEWGRF_TEXT_H */

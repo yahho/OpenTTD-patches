@@ -25,17 +25,6 @@
 #include "fileio_func.h"
 #include "fios.h"
 
-/** Create a new GRFTextWrapper. */
-GRFTextWrapper::GRFTextWrapper() :
-	text(NULL)
-{
-}
-
-/** Cleanup a GRFTextWrapper object. */
-GRFTextWrapper::~GRFTextWrapper()
-{
-	CleanUpGRFText(this->text);
-}
 
 /**
  * Create a new GRFConfig.

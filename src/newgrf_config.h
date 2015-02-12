@@ -16,9 +16,9 @@
 #include "strings_type.h"
 #include "core/alloc_type.hpp"
 #include "core/smallmap_type.hpp"
-#include "misc/countedptr.hpp"
 #include "fileio_type.h"
 #include "textfile.h"
+#include "newgrf_text.h"
 
 /** GRF config bit flags */
 enum GCF_Flags {
@@ -140,14 +140,6 @@ struct GRFParameterInfo {
 	uint32 GetValue(struct GRFConfig *config) const;
 	void SetValue(struct GRFConfig *config, uint32 value);
 	void Finalize();
-};
-
-/** Reference counted wrapper around a GRFText pointer. */
-struct GRFTextWrapper : public SimpleCountedObject {
-	struct GRFText *text; ///< The actual text
-
-	GRFTextWrapper();
-	~GRFTextWrapper();
 };
 
 /** Information about GRF, used in the game and (part of it) in savegames */
