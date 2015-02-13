@@ -530,17 +530,6 @@ void AddGRFTextToList(struct GRFText **list, byte langid, uint32 grfid, bool all
 }
 
 /**
- * Add a GRFText to a GRFText list. The text should  not contain any text-codes.
- * The text will be added as a 'default language'-text.
- * @param list The list where the text should be added to.
- * @param text_to_add The text to add to the list.
- */
-void AddGRFTextToList(struct GRFText **list, const char *text_to_add)
-{
-	AddGRFTextToList (list, GRFText::create (0x7F, text_to_add));
-}
-
-/**
  * Create a copy of this GRFText list.
  * @param orig The GRFText list to copy.
  * @return A duplicate of the given GRFText.

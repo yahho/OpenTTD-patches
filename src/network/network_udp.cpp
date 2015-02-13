@@ -472,7 +472,7 @@ void ClientNetworkUDPSocketHandler::Receive_SERVER_NEWGRFS(Packet *p, NetworkAdd
 		 * overwritten with the name from the reply. */
 		GRFTextWrapper *unknown_name = FindUnknownGRFName(c.grfid, c.md5sum, false);
 		if (unknown_name != NULL) {
-			AddGRFTextToList(&unknown_name->text, name);
+			unknown_name->add_default (name);
 		}
 	}
 }

@@ -120,7 +120,6 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 struct GRFText *DuplicateGRFText(struct GRFText *orig);
 void AddGRFTextToList(struct GRFText **list, struct GRFText *text_to_add);
 void AddGRFTextToList(struct GRFText **list, byte langid, uint32 grfid, bool allow_newlines, const char *text_to_add);
-void AddGRFTextToList(struct GRFText **list, const char *text_to_add);
 void CleanUpGRFText(struct GRFText *grftext);
 
 bool CheckGrfLangID(byte lang_id, byte grf_version);
@@ -169,6 +168,40 @@ struct GRFTextWrapper : public SimpleCountedObject {
 	~GRFTextWrapper()
 	{
 		CleanUpGRFText (this->text);
+	}
+
+	/**
+	 * Get a C-string from this GRFText-list. If there is a translation
+	 * for the current language it is returned, otherwise the default
+	 * translation is returned. If there is neither a default nor a
+	 * translation for the current language NULL is returned.
+	 */
+	const char *get_string (void) const
+	{
+		return GetGRFStringFromGRFText (this->text);
+	}
+
+	/**
+	 * Add a string to this list.
+	 * @param langid The language of the new text.
+	 * @param grfid The grfid where this string is defined.
+	 * @param allow_newlines Whether newlines are allowed in this string.
+	 * @param text The text to add to the list.
+	 * @note All text-codes will be translated.
+	 */
+	void add (byte langid, uint32 grfid, bool allow_newlines, const char *text)
+	{
+		AddGRFTextToList (&this->text, langid, grfid, allow_newlines, text);
+	}
+
+	/**
+	 * Add a GRFText to this list. The text should not contain any
+	 * text-codes. The text will be added as a 'default language'-text.
+	 * @param text The text to add to the list.
+	 */
+	void add_default (const char *text)
+	{
+		AddGRFTextToList (&this->text, GRFText::create (0x7F, text));
 	}
 };
 

@@ -112,7 +112,7 @@ void GRFConfig::CopyParams(const GRFConfig &src)
  */
 const char *GRFConfig::GetName() const
 {
-	const char *name = GetGRFStringFromGRFText(this->name->text);
+	const char *name = this->name->get_string();
 	return StrEmpty(name) ? this->filename : name;
 }
 
@@ -122,7 +122,7 @@ const char *GRFConfig::GetName() const
  */
 const char *GRFConfig::GetDescription() const
 {
-	return GetGRFStringFromGRFText(this->info->text);
+	return this->info->get_string();
 }
 
 /**
@@ -131,7 +131,7 @@ const char *GRFConfig::GetDescription() const
  */
 const char *GRFConfig::GetURL() const
 {
-	return GetGRFStringFromGRFText(this->url->text);
+	return this->url->get_string();
 }
 
 /** Set the default value for all parameters as specified by action14. */
@@ -670,7 +670,7 @@ bool GRFFileScanner::AddFile(const char *filename, size_t basepath_length, const
 		_modal_progress_paint_mutex->BeginCritical();
 
 		const char *name = NULL;
-		if (c->name != NULL) name = GetGRFStringFromGRFText(c->name->text);
+		if (c->name != NULL) name = c->name->get_string();
 		if (name == NULL) name = c->filename;
 		UpdateNewGRFScanStatus(this->num_scanned, name);
 
@@ -847,7 +847,7 @@ GRFTextWrapper *FindUnknownGRFName(uint32 grfid, uint8 *md5sum, bool create)
 	for (grf = unknown_grfs; grf != NULL; grf = grf->next) {
 		if (grf->grfid == grfid) {
 			if (memcmp (md5sum, grf->md5sum, sizeof(grf->md5sum)) == 0) {
-				return (create || strcmp (GetGRFStringFromGRFText(grf->name->text), UNKNOWN_GRF_NAME_PLACEHOLDER) == 0) ? grf->name : NULL;
+				return (create || strcmp (grf->name->get_string(), UNKNOWN_GRF_NAME_PLACEHOLDER) == 0) ? grf->name : NULL;
 			}
 		}
 	}
@@ -860,7 +860,7 @@ GRFTextWrapper *FindUnknownGRFName(uint32 grfid, uint8 *md5sum, bool create)
 	grf->name = new GRFTextWrapper();
 	grf->name->AddRef();
 
-	AddGRFTextToList(&grf->name->text, UNKNOWN_GRF_NAME_PLACEHOLDER);
+	grf->name->add_default (UNKNOWN_GRF_NAME_PLACEHOLDER);
 	memcpy(grf->md5sum, md5sum, sizeof(grf->md5sum));
 
 	unknown_grfs = grf;
