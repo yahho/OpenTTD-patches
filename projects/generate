@@ -46,7 +46,7 @@ fi
 # version_vs80.vcproj           is for MSVC 2005
 
 
-grep '\.h' "$ROOT_DIR/source.list" | grep -v '../objs/langs/table/strings.h\|../objs/settings/table/settings.h' | sed 's/	//' | sort > tmp.headers.source.list
+grep '\.h' "$ROOT_DIR/source.list" | grep -v '../objs/langs/table/strings.h\|../objs/settings/table/settings.h' | sed 's/	//g' | sort > tmp.headers.source.list
 find "$ROOT_DIR/src" -iname .svn -prune -o \( -iname '*.h' -o -iname '*.hpp' \) -print | sed "s~$ROOT_DIR/src/~~" | sort > tmp.headers.src
 if ! diff tmp.headers.source.list tmp.headers.src >/dev/null; then
 	echo "The following headers are missing in source.list and not in /src/ or vice versa."
