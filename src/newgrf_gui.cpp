@@ -229,7 +229,7 @@ struct NewGRFParametersWindow : public Window {
 				for (uint i = 0; i < this->grf_config->param_info.Length(); i++) {
 					const GRFParameterInfo *par_info = this->grf_config->param_info[i];
 					if (par_info == NULL) continue;
-					const char *desc = GetGRFStringFromGRFText(par_info->desc);
+					const char *desc = par_info->desc.get_string();
 					if (desc == NULL) continue;
 					uint h = GetStringHeight (desc, width);
 					hmax = max (h, hmax);
@@ -253,7 +253,7 @@ struct NewGRFParametersWindow : public Window {
 		if (widget == WID_NP_DESCRIPTION) {
 			const GRFParameterInfo *par_info = (this->clicked_row < this->grf_config->param_info.Length()) ? this->grf_config->param_info[this->clicked_row] : NULL;
 			if (par_info == NULL) return;
-			const char *desc = GetGRFStringFromGRFText(par_info->desc);
+			const char *desc = par_info->desc.get_string();
 			if (desc == NULL) return;
 			DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_TEXTPANEL_TOP, r.bottom - WD_TEXTPANEL_BOTTOM, desc, TC_BLACK);
 			return;
@@ -295,7 +295,7 @@ struct NewGRFParametersWindow : public Window {
 				}
 			}
 
-			const char *name = GetGRFStringFromGRFText(par_info->name);
+			const char *name = par_info->name.get_string();
 			if (name != NULL) {
 				SetDParam(0, STR_JUST_RAW_STRING);
 				SetDParamStr(1, name);

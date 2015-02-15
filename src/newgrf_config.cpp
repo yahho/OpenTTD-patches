@@ -218,8 +218,8 @@ GRFError::~GRFError()
  * @param nr The newgrf parameter that is changed.
  */
 GRFParameterInfo::GRFParameterInfo(uint nr) :
-	name(NULL),
-	desc(NULL),
+	name(),
+	desc(),
 	type(PTYPE_UINT_ENUM),
 	min_value(0),
 	max_value(UINT32_MAX),
@@ -236,8 +236,8 @@ GRFParameterInfo::GRFParameterInfo(uint nr) :
  * @param info The GRFParameterInfo object to make a copy of.
  */
 GRFParameterInfo::GRFParameterInfo(GRFParameterInfo &info) :
-	name(DuplicateGRFText(info.name)),
-	desc(DuplicateGRFText(info.desc)),
+	name(info.name),
+	desc(info.desc),
 	type(info.type),
 	min_value(info.min_value),
 	max_value(info.max_value),
@@ -256,8 +256,6 @@ GRFParameterInfo::GRFParameterInfo(GRFParameterInfo &info) :
 /** Cleanup all parameter info. */
 GRFParameterInfo::~GRFParameterInfo()
 {
-	CleanUpGRFText(this->name);
-	CleanUpGRFText(this->desc);
 	for (uint i = 0; i < this->value_names.Length(); i++) {
 		SmallPair<uint32, GRFText *> *data = this->value_names.Get(i);
 		CleanUpGRFText(data->second);

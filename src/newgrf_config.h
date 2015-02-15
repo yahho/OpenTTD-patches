@@ -125,8 +125,8 @@ struct GRFParameterInfo {
 	GRFParameterInfo(uint nr);
 	GRFParameterInfo(GRFParameterInfo &info);
 	~GRFParameterInfo();
-	struct GRFText *name;  ///< The name of this parameter
-	struct GRFText *desc;  ///< The description of this parameter
+	GRFTextMap name;       ///< The name of this parameter
+	GRFTextMap desc;       ///< The description of this parameter
 	GRFParameterType type; ///< The type of this parameter
 	uint32 min_value;      ///< The minimal value this parameter can have
 	uint32 max_value;      ///< The maximal value of this parameter
