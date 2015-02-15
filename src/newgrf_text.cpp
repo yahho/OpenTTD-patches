@@ -61,7 +61,7 @@ enum GRFExtendedLanguages {
 
 
 /**
- * Holder of the above structure.
+ * Holder of a GRFTextMap.
  * Putting both grfid and stringid together allows us to avoid duplicates,
  * since it is NOT SUPPOSED to happen.
  */
@@ -69,7 +69,7 @@ struct GRFTextEntry {
 	uint32 grfid;
 	uint16 stringid;
 	StringID def_string;
-	GRFText *textholder;
+	GRFTextMap *map;
 };
 
 
@@ -655,12 +655,13 @@ StringID AddGRFString(uint32 grfid, uint16 stringid, byte langid_to_add, bool ne
 	/* If we didn't find our stringid and grfid in the list, allocate a new id */
 	if (id == _num_grf_texts) _num_grf_texts++;
 
-	if (_grf_text[id].textholder == NULL) {
+	if (_grf_text[id].map == NULL) {
 		_grf_text[id].grfid      = grfid;
 		_grf_text[id].stringid   = stringid;
 		_grf_text[id].def_string = def_string;
+		_grf_text[id].map        = new GRFTextMap;
 	}
-	AddGRFTextToList(&_grf_text[id].textholder, newtext);
+	_grf_text[id].map->add (newtext);
 
 	grfmsg(3, "Added 0x%X: grfid %08X string 0x%X lang 0x%X string '%s'", id, grfid, stringid, newtext->langid, newtext->text);
 
@@ -714,7 +715,7 @@ const char *GetGRFStringPtr(uint16 stringid)
 {
 	assert(_grf_text[stringid].grfid != 0);
 
-	const char *str = GetGRFStringFromGRFText(_grf_text[stringid].textholder);
+	const char *str = _grf_text[stringid].map->get_string();
 	if (str != NULL) return str;
 
 	/* Use the default string ID if the fallback string isn't available */
@@ -770,10 +771,10 @@ void CleanUpStrings()
 	uint id;
 
 	for (id = 0; id < _num_grf_texts; id++) {
-		CleanUpGRFText(_grf_text[id].textholder);
-		_grf_text[id].grfid      = 0;
-		_grf_text[id].stringid   = 0;
-		_grf_text[id].textholder = NULL;
+		delete _grf_text[id].map;
+		_grf_text[id].grfid    = 0;
+		_grf_text[id].stringid = 0;
+		_grf_text[id].map      = NULL;
 	}
 
 	_num_grf_texts = 0;
