@@ -245,21 +245,14 @@ GRFParameterInfo::GRFParameterInfo(GRFParameterInfo &info) :
 	param_nr(info.param_nr),
 	first_bit(info.first_bit),
 	num_bit(info.num_bit),
+	value_names(info.value_names),
 	complete_labels(info.complete_labels)
 {
-	for (uint i = 0; i < info.value_names.Length(); i++) {
-		SmallPair<uint32, GRFText *> *data = info.value_names.Get(i);
-		this->value_names.Insert(data->first, DuplicateGRFText(data->second));
-	}
 }
 
 /** Cleanup all parameter info. */
 GRFParameterInfo::~GRFParameterInfo()
 {
-	for (uint i = 0; i < this->value_names.Length(); i++) {
-		SmallPair<uint32, GRFText *> *data = this->value_names.Get(i);
-		CleanUpGRFText(data->second);
-	}
 }
 
 /**
@@ -298,7 +291,7 @@ void GRFParameterInfo::Finalize()
 {
 	this->complete_labels = true;
 	for (uint32 value = this->min_value; value <= this->max_value; value++) {
-		if (!this->value_names.Contains(value)) {
+		if (this->value_names.count(value) == 0) {
 			this->complete_labels = false;
 			break;
 		}
