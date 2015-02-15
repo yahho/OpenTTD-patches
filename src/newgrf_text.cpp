@@ -107,6 +107,71 @@ int LanguageMap::GetReverseMapping(int openttd_id, bool gender) const
 	return -1;
 }
 
+
+/** Construct a copy of this text map. */
+GRFTextMap::GRFTextMap (const GRFTextMap &other)
+	: std::map <byte, GRFText *> (other)
+{
+	for (iterator iter = this->begin(); iter != this->end(); iter++) {
+		iter->second = iter->second->clone();
+	}
+}
+
+/** Destroy the text map. */
+GRFTextMap::~GRFTextMap()
+{
+	for (iterator iter = this->begin(); iter != this->end(); iter++) {
+		delete iter->second;
+	}
+}
+
+/** Get the GRFText for the current language, or a default. */
+const GRFText *GRFTextMap::get_current (void) const
+{
+	byte langs[4] = { _currentLangID, GRFLX_UNSPECIFIED, GRFLX_ENGLISH, GRFLX_AMERICAN };
+
+	for (uint i = 0; i < lengthof(langs); i++) {
+		const_iterator iter = this->find (langs[i]);
+		if (iter != this->end()) return iter->second;
+	}
+
+	return NULL;
+}
+
+/** Add a GRFText to this map. */
+void GRFTextMap::add (GRFText *text)
+{
+	std::pair <iterator, bool> pair =
+			this->insert (std::make_pair (text->langid, text));
+
+	if (!pair.second) {
+		/* The langid already existed in the map. */
+		GRFText *old = pair.first->second;
+		assert (old->langid == text->langid);
+		pair.first->second = text;
+		delete old;
+	}
+}
+
+/**
+ * Add a string to this map.
+ * @param langid The language of the new text.
+ * @param grfid The grfid where this string is defined.
+ * @param allow_newlines Whether newlines are allowed in this string.
+ * @param text The text to add to the list.
+ * @note All text-codes will be translated.
+ */
+void GRFTextMap::add (byte langid, uint32 grfid, bool allow_newlines, const char *text)
+{
+	int len;
+	char *translatedtext = TranslateTTDPatchCodes (grfid, langid, allow_newlines, text, &len);
+	GRFText *newtext = GRFText::create (langid, translatedtext, len);
+	free (translatedtext);
+
+	this->add (newtext);
+}
+
+
 /** Helper structure for mapping choice lists. */
 struct UnmappedChoiceList : ZeroedMemoryAllocator {
 	/** Clean everything up. */

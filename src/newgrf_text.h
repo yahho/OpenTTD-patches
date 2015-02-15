@@ -12,6 +12,8 @@
 #ifndef NEWGRF_TEXT_H
 #define NEWGRF_TEXT_H
 
+#include <map>
+
 #include "string.h"
 #include "strings_type.h"
 #include "core/smallvec_type.hpp"
@@ -155,20 +157,18 @@ struct LanguageMap {
 	static const LanguageMap *GetLanguageMap(uint32 grfid, uint8 language_id);
 };
 
-/** Reference counted wrapper around a GRFText pointer. */
-struct GRFTextWrapper : public SimpleCountedObject {
-	struct GRFText *text; ///< The actual text
-
-	/** Create a new GRFTextWrapper. */
-	GRFTextWrapper() : text(NULL)
+/** Map of GRFText objects by langid. */
+struct GRFTextMap : private std::map <byte, GRFText *> {
+	/** Default constructor. */
+	GRFTextMap() : std::map <byte, GRFText *> ()
 	{
 	}
 
-	/** Cleanup a GRFTextWrapper object. */
-	~GRFTextWrapper()
-	{
-		CleanUpGRFText (this->text);
-	}
+	GRFTextMap (const GRFTextMap &other);
+
+	~GRFTextMap();
+
+	const GRFText *get_current (void) const;
 
 	/**
 	 * Get a C-string from this GRFText-list. If there is a translation
@@ -178,7 +178,27 @@ struct GRFTextWrapper : public SimpleCountedObject {
 	 */
 	const char *get_string (void) const
 	{
-		return GetGRFStringFromGRFText (this->text);
+		const GRFText *t = this->get_current();
+		return (t != NULL) ? t->text : NULL;
+	}
+
+	void add (GRFText *text);
+	void add (byte langid, uint32 grfid, bool allow_newlines, const char *text);
+};
+
+/** Reference counted wrapper around a GRFText pointer. */
+struct GRFTextWrapper : public SimpleCountedObject {
+	GRFTextMap map; ///< The actual text map
+
+	/**
+	 * Get a C-string from this GRFText-list. If there is a translation
+	 * for the current language it is returned, otherwise the default
+	 * translation is returned. If there is neither a default nor a
+	 * translation for the current language NULL is returned.
+	 */
+	const char *get_string (void) const
+	{
+		return map.get_string();
 	}
 
 	/**
@@ -191,7 +211,7 @@ struct GRFTextWrapper : public SimpleCountedObject {
 	 */
 	void add (byte langid, uint32 grfid, bool allow_newlines, const char *text)
 	{
-		AddGRFTextToList (&this->text, langid, grfid, allow_newlines, text);
+		map.add (langid, grfid, allow_newlines, text);
 	}
 
 	/**
@@ -201,7 +221,7 @@ struct GRFTextWrapper : public SimpleCountedObject {
 	 */
 	void add_default (const char *text)
 	{
-		AddGRFTextToList (&this->text, GRFText::create (0x7F, text));
+		map.add (GRFText::create (0x7F, text));
 	}
 };
 
