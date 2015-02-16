@@ -114,15 +114,10 @@ public:
 
 StringID AddGRFString(uint32 grfid, uint16 stringid, byte langid, bool new_scheme, bool allow_newlines, const char *text_to_add, StringID def_string);
 StringID GetGRFStringID(uint32 grfid, uint16 stringid);
-const char *GetGRFStringFromGRFText(const struct GRFText *text);
 const char *GetGRFStringPtr(uint16 stringid);
 void CleanUpStrings();
 void SetCurrentGrfLangID(byte language_id);
 char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newlines, const char *str, int *olen = NULL, StringControlCode byte80 = SCC_NEWGRF_PRINT_WORD_STRING_ID);
-struct GRFText *DuplicateGRFText(struct GRFText *orig);
-void AddGRFTextToList(struct GRFText **list, struct GRFText *text_to_add);
-void AddGRFTextToList(struct GRFText **list, byte langid, uint32 grfid, bool allow_newlines, const char *text_to_add);
-void CleanUpGRFText(struct GRFText *grftext);
 
 bool CheckGrfLangID(byte lang_id, byte grf_version);
 
