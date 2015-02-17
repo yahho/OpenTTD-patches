@@ -37,19 +37,18 @@ public:
 	 * due to "choice lists" we (sometimes) cannot rely on detecting
 	 * the length by means of strlen. Also, if the length is already
 	 * known not scanning the whole string is more efficient.
-	 * @param langid The language of the text.
 	 * @param text   The text to store in the new GRFText.
 	 * @param len    The length of the text.
 	 */
-	static GRFText *create (byte langid, const char *text, size_t len)
+	static GRFText *create (const char *text, size_t len)
 	{
-		return new (len) GRFText (langid, text, len);
+		return new (len) GRFText (text, len);
 	}
 
 	/** Create a GRFText for a given string. */
-	static GRFText *create (byte langid, const char *text)
+	static GRFText *create (const char *text)
 	{
-		return create (langid, text, strlen(text) + 1);
+		return create (text, strlen(text) + 1);
 	}
 
 	/**
@@ -58,7 +57,7 @@ public:
 	 */
 	GRFText *clone (void) const
 	{
-		return GRFText::create (this->langid, this->text, this->len);
+		return GRFText::create (this->text, this->len);
 	}
 
 	/**
@@ -73,12 +72,10 @@ public:
 private:
 	/**
 	 * Actually construct the GRFText.
-	 * @param langid_ The language of the text.
 	 * @param text_   The text to store in this GRFText.
 	 * @param len_    The length of the text to store.
 	 */
-	GRFText (byte langid_, const char *text_, size_t len_)
-		: len(len_), langid(langid_)
+	GRFText (const char *text_, size_t len_) : len(len_)
 	{
 		/* We need to use memcpy instead of strcpy due to
 		 * the possibility of "choice lists" and therefore
@@ -106,7 +103,6 @@ private:
 
 public:
 	size_t len;    ///< The length of the stored string, used for copying.
-	byte langid;   ///< The language associated with this GRFText.
 	char text[];   ///< The actual (translated) text.
 };
 
@@ -176,7 +172,7 @@ struct GRFTextMap : private std::map <byte, GRFText *> {
 		return (t != NULL) ? t->text : NULL;
 	}
 
-	void add (GRFText *text);
+	void add (byte langid, GRFText *text);
 	void add (byte langid, uint32 grfid, bool allow_newlines, const char *text);
 };
 
@@ -215,7 +211,7 @@ struct GRFTextWrapper : public SimpleCountedObject {
 	 */
 	void add_default (const char *text)
 	{
-		map.add (GRFText::create (0x7F, text));
+		map.add (0x7F, GRFText::create (text));
 	}
 };
 

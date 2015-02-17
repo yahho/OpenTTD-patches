@@ -139,15 +139,14 @@ const GRFText *GRFTextMap::get_current (void) const
 }
 
 /** Add a GRFText to this map. */
-void GRFTextMap::add (GRFText *text)
+void GRFTextMap::add (byte langid, GRFText *text)
 {
 	std::pair <iterator, bool> pair =
-			this->insert (std::make_pair (text->langid, text));
+			this->insert (std::make_pair (langid, text));
 
 	if (!pair.second) {
 		/* The langid already existed in the map. */
 		GRFText *old = pair.first->second;
-		assert (old->langid == text->langid);
 		pair.first->second = text;
 		delete old;
 	}
@@ -165,10 +164,10 @@ void GRFTextMap::add (byte langid, uint32 grfid, bool allow_newlines, const char
 {
 	int len;
 	char *translatedtext = TranslateTTDPatchCodes (grfid, langid, allow_newlines, text, &len);
-	GRFText *newtext = GRFText::create (langid, translatedtext, len);
+	GRFText *newtext = GRFText::create (translatedtext, len);
 	free (translatedtext);
 
-	this->add (newtext);
+	this->add (langid, newtext);
 }
 
 
@@ -590,7 +589,7 @@ StringID AddGRFString(uint32 grfid, uint16 stringid, byte langid_to_add, bool ne
 	int len;
 	translatedtext = TranslateTTDPatchCodes(grfid, langid_to_add, allow_newlines, text_to_add, &len);
 
-	GRFText *newtext = GRFText::create (langid_to_add, translatedtext, len);
+	GRFText *newtext = GRFText::create (translatedtext, len);
 
 	free(translatedtext);
 
@@ -603,9 +602,9 @@ StringID AddGRFString(uint32 grfid, uint16 stringid, byte langid_to_add, bool ne
 		_grf_text[id].def_string = def_string;
 		_grf_text[id].map        = new GRFTextMap;
 	}
-	_grf_text[id].map->add (newtext);
+	_grf_text[id].map->add (langid_to_add, newtext);
 
-	grfmsg(3, "Added 0x%X: grfid %08X string 0x%X lang 0x%X string '%s'", id, grfid, stringid, newtext->langid, newtext->text);
+	grfmsg (3, "Added 0x%X: grfid %08X string 0x%X lang 0x%X string '%s'", id, grfid, stringid, langid_to_add, newtext->text);
 
 	return (GRFTAB << TABSIZE) + id;
 }
