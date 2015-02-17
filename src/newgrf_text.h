@@ -78,7 +78,7 @@ private:
 	 * @param len_    The length of the text to store.
 	 */
 	GRFText (byte langid_, const char *text_, size_t len_)
-		: next(NULL), len(len_), langid(langid_)
+		: len(len_), langid(langid_)
 	{
 		/* We need to use memcpy instead of strcpy due to
 		 * the possibility of "choice lists" and therefore
@@ -105,7 +105,6 @@ private:
 	void *operator new (size_t size) DELETED;
 
 public:
-	GRFText *next; ///< The next GRFText in this chain.
 	size_t len;    ///< The length of the stored string, used for copying.
 	byte langid;   ///< The language associated with this GRFText.
 	char text[];   ///< The actual (translated) text.
