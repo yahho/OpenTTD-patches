@@ -17,7 +17,6 @@
 #include "string.h"
 #include "strings_type.h"
 #include "core/smallvec_type.hpp"
-#include "misc/countedptr.hpp"
 #include "table/control_codes.h"
 
 /** This character, the thorn ('þ'), indicates a unicode string to NFO. */
@@ -174,35 +173,6 @@ struct GRFTextMap : private std::map <byte, GRFText *> {
 
 	void add (byte langid, GRFText *text);
 	void add (byte langid, uint32 grfid, bool allow_newlines, const char *text);
-};
-
-/** Reference counted wrapper around a GRFText pointer. */
-struct GRFTextWrapper : public SimpleCountedObject {
-	GRFTextMap map; ///< The actual text map
-
-	/**
-	 * Get a C-string from this GRFText-list. If there is a translation
-	 * for the current language it is returned, otherwise the default
-	 * translation is returned. If there is neither a default nor a
-	 * translation for the current language NULL is returned.
-	 */
-	const char *get_string (void) const
-	{
-		return map.get_string();
-	}
-
-	/**
-	 * Add a string to this list.
-	 * @param langid The language of the new text.
-	 * @param grfid The grfid where this string is defined.
-	 * @param allow_newlines Whether newlines are allowed in this string.
-	 * @param text The text to add to the list.
-	 * @note All text-codes will be translated.
-	 */
-	void add (byte langid, uint32 grfid, bool allow_newlines, const char *text)
-	{
-		map.add (langid, grfid, allow_newlines, text);
-	}
 
 	/**
 	 * Add a GRFText to this list. The text should not contain any
@@ -211,7 +181,7 @@ struct GRFTextWrapper : public SimpleCountedObject {
 	 */
 	void add_default (const char *text)
 	{
-		map.add (0x7F, GRFText::create (text));
+		this->add (0x7F, GRFText::create (text));
 	}
 };
 

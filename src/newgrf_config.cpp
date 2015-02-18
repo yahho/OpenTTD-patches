@@ -32,15 +32,12 @@
  *   is copied so the original string isn't needed after the constructor.
  */
 GRFConfig::GRFConfig(const char *filename) :
-	name(new GRFTextWrapper()),
-	info(new GRFTextWrapper()),
-	url(new GRFTextWrapper()),
+	name(new GRFTextMap),
+	info(new GRFTextMap),
+	url(new GRFTextMap),
 	num_valid_params(lengthof(param))
 {
 	if (filename != NULL) this->filename = xstrdup(filename);
-	this->name->AddRef();
-	this->info->AddRef();
-	this->url->AddRef();
 }
 
 /**
@@ -66,9 +63,6 @@ GRFConfig::GRFConfig(const GRFConfig &config) :
 	MemCpyT<uint8>(this->original_md5sum, config.original_md5sum, lengthof(this->original_md5sum));
 	MemCpyT<uint32>(this->param, config.param, lengthof(this->param));
 	if (config.filename != NULL) this->filename = xstrdup(config.filename);
-	this->name->AddRef();
-	this->info->AddRef();
-	this->url->AddRef();
 	if (config.error != NULL) this->error = new GRFError(*config.error);
 	for (uint i = 0; i < config.param_info.Length(); i++) {
 		if (config.param_info[i] == NULL) {
@@ -87,9 +81,6 @@ GRFConfig::~GRFConfig()
 		free(this->filename);
 		delete this->error;
 	}
-	this->name->Release();
-	this->info->Release();
-	this->url->Release();
 
 	for (uint i = 0; i < this->param_info.Length(); i++) delete this->param_info[i];
 }
@@ -574,12 +565,8 @@ GRFListCompatibility IsGoodGRFConfigList(GRFConfig *grfconfig)
 			free(c->filename);
 			c->filename = xstrdup(f->filename);
 			memcpy(c->ident.md5sum, f->ident.md5sum, sizeof(c->ident.md5sum));
-			c->name->Release();
 			c->name = f->name;
-			c->name->AddRef();
-			c->info->Release();
 			c->info = f->info;
-			c->info->AddRef();
 			c->error = NULL;
 			c->version = f->version;
 			c->min_loadable_version = f->min_loadable_version;
@@ -660,8 +647,7 @@ bool GRFFileScanner::AddFile(const char *filename, size_t basepath_length, const
 		_modal_progress_work_mutex->EndCritical();
 		_modal_progress_paint_mutex->BeginCritical();
 
-		const char *name = NULL;
-		if (c->name != NULL) name = c->name->get_string();
+		const char *name = c->name->get_string();
 		if (name == NULL) name = c->filename;
 		UpdateNewGRFScanStatus(this->num_scanned, name);
 
@@ -806,7 +792,7 @@ const GRFConfig *FindGRFConfig(uint32 grfid, FindGRFConfigMode mode, const uint8
 /** Structure for UnknownGRFs; this is a lightweight variant of GRFConfig */
 struct UnknownGRF : public GRFIdentifier {
 	UnknownGRF *next;     ///< The next unknown GRF.
-	GRFTextWrapper *name; ///< Name of the GRF.
+	ttd_shared_ptr<GRFTextMap> name; ///< Name of the GRF.
 };
 
 /**
@@ -826,11 +812,11 @@ struct UnknownGRF : public GRFIdentifier {
  *               it will be created if it does not exist yet.
  *               If false, a GRFConfig will be returned only if it already
  *               existed and is still unknown; otherwise, NULL will be returned.
- * @return The GRFTextWrapper of the name of the GRFConfig with the given GRF ID
+ * @return The shared GRFTextMap of the name of the GRFConfig with the given GRF ID
  *         and MD5 checksum or NULL when it does not exist and create is false.
  *         This value must NEVER be freed by the caller.
  */
-GRFTextWrapper *FindUnknownGRFName(uint32 grfid, uint8 *md5sum, bool create)
+ttd_shared_ptr<GRFTextMap> *FindUnknownGRFName (uint32 grfid, uint8 *md5sum, bool create)
 {
 	UnknownGRF *grf;
 	static UnknownGRF *unknown_grfs = NULL;
@@ -838,24 +824,24 @@ GRFTextWrapper *FindUnknownGRFName(uint32 grfid, uint8 *md5sum, bool create)
 	for (grf = unknown_grfs; grf != NULL; grf = grf->next) {
 		if (grf->grfid == grfid) {
 			if (memcmp (md5sum, grf->md5sum, sizeof(grf->md5sum)) == 0) {
-				return (create || strcmp (grf->name->get_string(), UNKNOWN_GRF_NAME_PLACEHOLDER) == 0) ? grf->name : NULL;
+				return (create || strcmp (grf->name->get_string(), UNKNOWN_GRF_NAME_PLACEHOLDER) == 0) ? &grf->name : NULL;
 			}
 		}
 	}
 
 	if (!create) return NULL;
 
-	grf = xcalloct<UnknownGRF>();
+	grf = new UnknownGRF;
 	grf->grfid = grfid;
+	memcpy (grf->md5sum, md5sum, sizeof(grf->md5sum));
 	grf->next  = unknown_grfs;
-	grf->name = new GRFTextWrapper();
-	grf->name->AddRef();
 
-	grf->name->add_default (UNKNOWN_GRF_NAME_PLACEHOLDER);
-	memcpy(grf->md5sum, md5sum, sizeof(grf->md5sum));
+	GRFTextMap *map = new GRFTextMap;
+	map->add_default (UNKNOWN_GRF_NAME_PLACEHOLDER);
+	grf->name.reset (map);
 
 	unknown_grfs = grf;
-	return grf->name;
+	return &grf->name;
 }
 
 #endif /* ENABLE_NETWORK */

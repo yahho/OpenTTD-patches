@@ -14,6 +14,7 @@
 
 #include <map>
 
+#include "core/pointer.h"
 #include "string.h"
 #include "strings_type.h"
 #include "core/alloc_type.hpp"
@@ -153,9 +154,9 @@ struct GRFConfig : ZeroedMemoryAllocator {
 	GRFIdentifier ident;                           ///< grfid and md5sum to uniquely identify newgrfs
 	uint8 original_md5sum[16];                     ///< MD5 checksum of original file if only a 'compatible' file was loaded
 	char *filename;                                ///< Filename - either with or without full path
-	GRFTextWrapper *name;                          ///< NOSAVE: GRF name (Action 0x08)
-	GRFTextWrapper *info;                          ///< NOSAVE: GRF info (author, copyright, ...) (Action 0x08)
-	GRFTextWrapper *url;                           ///< NOSAVE: URL belonging to this GRF.
+	ttd_shared_ptr <GRFTextMap> name;              ///< NOSAVE: GRF name (Action 0x08)
+	ttd_shared_ptr <GRFTextMap> info;              ///< NOSAVE: GRF info (author, copyright, ...) (Action 0x08)
+	ttd_shared_ptr <GRFTextMap> url;               ///< NOSAVE: URL belonging to this GRF.
 	GRFError *error;                               ///< NOSAVE: Error/Warning during GRF loading (Action 0x0B)
 
 	uint32 version;                                ///< NOSAVE: Version a NewGRF can set so only the newest NewGRF is shown
@@ -229,7 +230,7 @@ void ShowNewGRFSettings(bool editable, bool show_params, bool exec_changes, GRFC
 #ifdef ENABLE_NETWORK
 /** For communication about GRFs over the network */
 #define UNKNOWN_GRF_NAME_PLACEHOLDER "<Unknown>"
-GRFTextWrapper *FindUnknownGRFName(uint32 grfid, uint8 *md5sum, bool create);
+ttd_shared_ptr<GRFTextMap> *FindUnknownGRFName (uint32 grfid, uint8 *md5sum, bool create);
 #endif /* ENABLE_NETWORK */
 
 void UpdateNewGRFScanStatus(uint num, const char *name);
