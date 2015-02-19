@@ -470,7 +470,7 @@ void ClientNetworkUDPSocketHandler::Receive_SERVER_NEWGRFS(Packet *p, NetworkAdd
 		/* Try to find the GRFTextMap for the name of this GRF ID and MD5sum tuple.
 		 * If it exists and not resolved yet, then name of the fake GRF is
 		 * overwritten with the name from the reply. */
-		ttd_shared_ptr <GRFTextMap> *unknown_name = FindUnknownGRFName (c.grfid, c.md5sum, false);
+		ttd_shared_ptr <GRFTextMap> *unknown_name = FindUnknownGRFName (c, false);
 		if (unknown_name != NULL) {
 			unknown_name->get()->add_default (name);
 		}
@@ -485,7 +485,7 @@ void ClientNetworkUDPSocketHandler::HandleIncomingNetworkGameInfoGRFConfig(GRFCo
 		/* Don't know the GRF, so mark game incompatible and the (possibly)
 		 * already resolved name for this GRF (another server has sent the
 		 * name of the GRF already */
-		config->name = *FindUnknownGRFName (config->ident.grfid, config->ident.md5sum, true);
+		config->name = *FindUnknownGRFName (config->ident, true);
 		config->status = GCS_NOT_FOUND;
 	} else {
 		config->filename = f->filename;

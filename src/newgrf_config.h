@@ -240,7 +240,7 @@ void ShowNewGRFSettings(bool editable, bool show_params, bool exec_changes, GRFC
 #ifdef ENABLE_NETWORK
 /** For communication about GRFs over the network */
 #define UNKNOWN_GRF_NAME_PLACEHOLDER "<Unknown>"
-ttd_shared_ptr<GRFTextMap> *FindUnknownGRFName (uint32 grfid, uint8 *md5sum, bool create);
+ttd_shared_ptr<GRFTextMap> *FindUnknownGRFName (const GRFIdentifier &ident, bool create);
 #endif /* ENABLE_NETWORK */
 
 void UpdateNewGRFScanStatus(uint num, const char *name);

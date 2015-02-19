@@ -804,8 +804,7 @@ struct UnknownGRF : public GRFIdentifier {
  * that shouldn't matter _very_ much as they need GRF crawler or so to look
  * up the GRF anyway and that works better with the GRF ID.
  *
- * @param grfid  the GRF ID part of the 'unique' GRF identifier
- * @param md5sum the MD5 checksum part of the 'unique' GRF identifier
+ * @param ident  the GRF identifier
  * @param create whether to create a new GRFConfig if the GRFConfig did not
  *               exist in the fake list of GRFConfigs.
  *               If true, a GRFConfig will be returned unconditionally, and
@@ -816,24 +815,22 @@ struct UnknownGRF : public GRFIdentifier {
  *         and MD5 checksum or NULL when it does not exist and create is false.
  *         This value must NEVER be freed by the caller.
  */
-ttd_shared_ptr<GRFTextMap> *FindUnknownGRFName (uint32 grfid, uint8 *md5sum, bool create)
+ttd_shared_ptr<GRFTextMap> *FindUnknownGRFName (const GRFIdentifier &ident, bool create)
 {
 	UnknownGRF *grf;
 	static UnknownGRF *unknown_grfs = NULL;
 
 	for (grf = unknown_grfs; grf != NULL; grf = grf->next) {
-		if (grf->grfid == grfid) {
-			if (memcmp (md5sum, grf->md5sum, sizeof(grf->md5sum)) == 0) {
-				return (create || strcmp (grf->name->get_string(), UNKNOWN_GRF_NAME_PLACEHOLDER) == 0) ? &grf->name : NULL;
-			}
+		if (grf->matches (ident)) {
+			return (create || strcmp (grf->name->get_string(), UNKNOWN_GRF_NAME_PLACEHOLDER) == 0) ? &grf->name : NULL;
 		}
 	}
 
 	if (!create) return NULL;
 
 	grf = new UnknownGRF;
-	grf->grfid = grfid;
-	memcpy (grf->md5sum, md5sum, sizeof(grf->md5sum));
+	grf->grfid = ident.grfid;
+	memcpy (grf->md5sum, ident.md5sum, sizeof(grf->md5sum));
 	grf->next  = unknown_grfs;
 
 	GRFTextMap *map = new GRFTextMap;
