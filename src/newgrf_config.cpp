@@ -623,7 +623,7 @@ bool GRFFileScanner::AddFile(const char *filename, size_t basepath_length, const
 			GRFConfig **pd, *d;
 			bool stop = false;
 			for (pd = &_all_grfs; (d = *pd) != NULL; pd = &d->next) {
-				if (c->ident.grfid == d->ident.grfid && memcmp(c->ident.md5sum, d->ident.md5sum, sizeof(c->ident.md5sum)) == 0) added = false;
+				if (c->ident.matches (d->ident)) added = false;
 				/* Because there can be multiple grfs with the same name, make sure we checked all grfs with the same name,
 				 *  before inserting the entry. So insert a new grf at the end of all grfs with the same name, instead of
 				 *  just after the first with the same name. Avoids doubles in the list. */
@@ -773,7 +773,7 @@ const GRFConfig *FindGRFConfig(uint32 grfid, FindGRFConfigMode mode, const uint8
 	const GRFConfig *best = NULL;
 	for (const GRFConfig *c = _all_grfs; c != NULL; c = c->next) {
 		/* if md5sum is set, we look for an exact match and continue if not found */
-		if (!c->ident.HasGrfIdentifier(grfid, md5sum)) continue;
+		if (!c->ident.matches (grfid, md5sum)) continue;
 		/* return it, if the exact same newgrf is found, or if we do not care about finding "the best" */
 		if (md5sum != NULL || mode == FGCM_ANY) return c;
 		/* Skip incompatible stuff, unless explicitly allowed */

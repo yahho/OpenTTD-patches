@@ -1472,7 +1472,7 @@ private:
 
 		for (const GRFConfig *c = _all_grfs; c != NULL; c = c->next) {
 			bool found = false;
-			for (const GRFConfig *grf = this->actives; grf != NULL && !found; grf = grf->next) found = grf->ident.HasGrfIdentifier(c->ident.grfid, c->ident.md5sum);
+			for (const GRFConfig *grf = this->actives; grf != NULL && !found; grf = grf->next) found = grf->ident.matches (c->ident);
 			if (found) continue;
 
 			if (_settings_client.gui.newgrf_show_old_versions) {
@@ -1486,7 +1486,7 @@ private:
 				 * If we are the best version, then we definitely want to
 				 * show that NewGRF!.
 				 */
-				if (best->version == 0 || best->ident.HasGrfIdentifier(c->ident.grfid, c->ident.md5sum)) {
+				if (best->version == 0 || best->ident.matches (c->ident)) {
 					*this->avails.Append() = c;
 				}
 			}
