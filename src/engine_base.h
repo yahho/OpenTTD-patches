@@ -39,6 +39,27 @@ struct EngineState {
 
 	EngineState() : name(NULL) { }
 
+	EngineState (const EngineState &es)
+		: name (es.name != NULL ? xstrdup (es.name) : NULL),
+		  intro_date          (es.intro_date),
+		  age                 (es.age),
+		  reliability         (es.reliability),
+		  reliability_spd_dec (es.reliability_spd_dec),
+		  reliability_start   (es.reliability_start),
+		  reliability_max     (es.reliability_max),
+		  reliability_final   (es.reliability_final),
+		  duration_phase_1    (es.duration_phase_1),
+		  duration_phase_2    (es.duration_phase_2),
+		  duration_phase_3    (es.duration_phase_3),
+		  flags               (es.flags),
+		  preview_asked       (es.preview_asked),
+		  preview_company     (es.preview_company),
+		  preview_wait        (es.preview_wait),
+		  company_avail       (es.company_avail),
+		  company_hidden      (es.company_hidden)
+	{
+	}
+
 	~EngineState()
 	{
 		free (this->name);
