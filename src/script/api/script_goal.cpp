@@ -67,7 +67,7 @@
 	EnforcePrecondition(false, goal != NULL);
 	sstring <1024> text;
 	EnforcePreconditionEncodedText(false, goal, &text);
-	EnforcePrecondition(GOAL_INVALID, !text.empty());
+	EnforcePrecondition(false, !text.empty());
 
 	return ScriptObject::DoCommand(0, goal_id, 0, CMD_SET_GOAL_TEXT, &text);
 }
