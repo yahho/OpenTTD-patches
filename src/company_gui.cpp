@@ -1067,9 +1067,9 @@ class SelectCompanyManagerFaceWindow : public Window
 				str = STR_JUST_INT;
 			}
 
-			/* Draw the value/bool in white (0xC). If the button clicked adds 1px to x and y text coordinates (IsWindowWidgetLowered()). */
-			DrawString(nwi_widget->pos_x + nwi_widget->IsLowered(), nwi_widget->pos_x + nwi_widget->current_x - 1 - nwi_widget->IsLowered(),
-					nwi_widget->pos_y + 1 + nwi_widget->IsLowered(), str, TC_WHITE, SA_HOR_CENTER);
+			/* Draw the value/bool in white. */
+			DrawString (nwi_widget->pos_x, nwi_widget->pos_x + nwi_widget->current_x - 1,
+					nwi_widget->pos_y + 1, str, TC_WHITE, SA_HOR_CENTER);
 		}
 	}
 
