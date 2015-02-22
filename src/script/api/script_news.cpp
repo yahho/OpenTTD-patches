@@ -11,11 +11,15 @@
 
 #include "../../stdafx.h"
 #include "script_news.hpp"
+#include "script_industry.hpp"
+#include "script_station.hpp"
+#include "script_map.hpp"
+#include "script_town.hpp"
 #include "script_error.hpp"
 #include "../../command_type.h"
 #include "../../string.h"
 
-/* static */ bool ScriptNews::Create(NewsType type, Text *text, ScriptCompany::CompanyID company)
+/* static */ bool ScriptNews::Create(NewsType type, Text *text, ScriptCompany::CompanyID company, NewsReferenceType ref_type, uint32 reference)
 {
 	EnforcePrecondition(false, text != NULL);
 	sstring <1024> encoded;
@@ -23,9 +27,15 @@
 	EnforcePrecondition(false, !encoded.empty());
 	EnforcePrecondition(false, type == NT_ECONOMY || type == NT_SUBSIDIES || type == NT_GENERAL);
 	EnforcePrecondition(false, company == ScriptCompany::COMPANY_INVALID || ScriptCompany::ResolveCompanyID(company) != ScriptCompany::COMPANY_INVALID);
+	EnforcePrecondition(false, (ref_type == NR_NONE) ||
+	                           (ref_type == NR_TILE     && ScriptMap::IsValidTile(reference)) ||
+	                           (ref_type == NR_STATION  && ScriptStation::IsValidStation(reference)) ||
+	                           (ref_type == NR_INDUSTRY && ScriptIndustry::IsValidIndustry(reference)) ||
+	                           (ref_type == NR_TOWN     && ScriptTown::IsValidTown(reference)));
 
 	uint8 c = company;
 	if (company == ScriptCompany::COMPANY_INVALID) c = INVALID_COMPANY;
 
-	return ScriptObject::DoCommand(0, type | (NR_NONE << 8) | (c << 16), 0, CMD_CUSTOM_NEWS_ITEM, &encoded);
+	if (ref_type == NR_NONE) reference = 0;
+	return ScriptObject::DoCommand(0, type | (ref_type << 8) | (c << 16), reference, CMD_CUSTOM_NEWS_ITEM, &encoded);
 }
