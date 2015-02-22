@@ -1295,6 +1295,13 @@ static bool StationCatchmentChanged(int32 p1)
 	return true;
 }
 
+static bool MaxVehiclesChanged(int32 p1)
+{
+	InvalidateWindowClassesData(WC_BUILD_TOOLBAR);
+	MarkWholeScreenDirty();
+	return true;
+}
+
 
 #ifdef ENABLE_NETWORK
 
