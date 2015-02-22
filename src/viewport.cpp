@@ -2273,7 +2273,7 @@ bool ScrollWindowTo(int x, int y, int z, Window *w, bool instant)
 		if ((uint)x < MapSizeX() * TILE_SIZE && (uint)y < MapSizeY() * TILE_SIZE) {
 			z = GetSlopePixelZ (x, y);
 		} else {
-			z = GetVirtualHeight (x / TILE_SIZE, y / TILE_SIZE) * TILE_HEIGHT;
+			z = GetVirtualHeight (x / (int)TILE_SIZE, y / (int)TILE_SIZE) * TILE_HEIGHT;
 		}
 	}
 
