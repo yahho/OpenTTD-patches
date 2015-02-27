@@ -1328,46 +1328,46 @@ struct CYapfAnySafeTileRailT : CYapfRailBaseT <TAstar>
 };
 
 
-template <class Base>
-struct CYapfRailT : public Base
+template <class TBase>
+struct CYapfRailT : public TBase
 {
-	typedef typename Base::Node Node; ///< this will be our node type
+	typedef typename TBase::Node Node; ///< this will be our node type
 
 	CYapfRailT (const Train *v, bool allow_90deg)
-		: Base (v, allow_90deg)
+		: TBase (v, allow_90deg)
 	{
 	}
 
 	CYapfRailT (const Train *v, bool allow_90deg, bool override_rail_type)
-		: Base (v, allow_90deg, override_rail_type)
+		: TBase (v, allow_90deg, override_rail_type)
 	{
 	}
 
 	/** Called by the A-star underlying class to find the neighbours of a node. */
 	inline void Follow (Node *old_node)
 	{
-		if (!Base::tf.Follow(old_node->GetLastPos())) return;
-		if (Base::mask_reserved_tracks && !Base::tf.MaskReservedTracks()) return;
+		if (!TBase::tf.Follow(old_node->GetLastPos())) return;
+		if (TBase::mask_reserved_tracks && !TBase::tf.MaskReservedTracks()) return;
 
-		bool is_choice = !Base::tf.m_new.is_single();
-		RailPathPos pos = Base::tf.m_new;
-		for (TrackdirBits rtds = Base::tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
+		bool is_choice = !TBase::tf.m_new.is_single();
+		RailPathPos pos = TBase::tf.m_new;
+		for (TrackdirBits rtds = TBase::tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.set_trackdir (FindFirstTrackdir(rtds));
-			Node *n = Base::CreateNewNode(old_node, pos, is_choice);
+			Node *n = TBase::CreateNewNode(old_node, pos, is_choice);
 
 			/* evaluate the node */
-			CPerfStart perf_cost(Base::m_perf_cost);
+			CPerfStart perf_cost(TBase::m_perf_cost);
 
-			Base::CalcNode(n);
+			TBase::CalcNode(n);
 
 			uint end_reason = n->m_segment->m_end_segment_reason.to_ulong();
 			assert (end_reason != 0);
 
 			if (((end_reason & ESRB_POSSIBLE_TARGET) != 0) &&
-					Base::IsDestination(n->GetLastPos())) {
-				Base::SetTarget (n);
+					TBase::IsDestination(n->GetLastPos())) {
+				TBase::SetTarget (n);
 				/* Special costs for the case we have reached our target. */
-				Base::AddTargetCost (n);
+				TBase::AddTargetCost (n);
 				perf_cost.Stop();
 				n->m_estimate = n->m_cost;
 				this->FoundTarget(n);
@@ -1378,7 +1378,7 @@ struct CYapfRailT : public Base
 
 			} else {
 				perf_cost.Stop();
-				Base::CalcEstimate(n);
+				TBase::CalcEstimate(n);
 				this->InsertNode(n);
 			}
 		}
@@ -1397,7 +1397,7 @@ struct CYapfRailT : public Base
 	 */
 	inline bool FindPath (void)
 	{
-		return Base::FindPath (Follow);
+		return TBase::FindPath (Follow);
 	}
 };
 
