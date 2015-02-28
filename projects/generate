@@ -96,15 +96,6 @@ generate() {
 
 
 # First, collect the list of Windows files
-allegro_config=""
-sdl_config="1"
-png_config="1"
-os="MSVC"
-enable_dedicated="0"
-enable_ai="1"
-with_cocoa="0"
-enable_directmusic="1"
-with_threads="1"
 file_prefix="..\\\\src\\\\"
 
 # Read the source.list and process it
@@ -120,25 +111,14 @@ srclist="`cat "$ROOT_DIR/source.list" | tr '\r' '\n' | awk '
 
 		deep += 1;
 
-		if ($0 == "ALLEGRO"     && "'$allegro_config'" == "")      { next; }
-		if ($0 == "SDL"         && "'$sdl_config'" == "")          { next; }
-		if ($0 == "PNG"         && "'$png_config'" == "")          { next; }
-		if ($0 == "OSX"         && "'$os'" != "OSX")               { next; }
-		if ($0 == "OS2"         && "'$os'" != "OS2")               { next; }
-		if ($0 == "PSP"         && "'$os'" != "PSP")               { next; }
-		if ($0 == "DOS"         && "'$os'" != "DOS")               { next; }
-		if ($0 == "DEDICATED"   && "'$enable_dedicated'" != "1")   { next; }
-		if ($0 == "AI"          && "'$enable_ai'" == "0")          { next; }
-		if ($0 == "COCOA"       && "'$with_cocoa'" == "0")         { next; }
-		if ($0 == "BEOS"        && "'$os'" != "BEOS")              { next; }
-		if ($0 == "WIN32"       && "'$os'" != "MINGW" && "'$os'" != "CYGWIN" && "'$os'" != "MSVC" ) { next; }
-		if ($0 == "WINCE"       && "'$os'" != "WINCE")             { next; }
-		if ($0 == "MSVC"        && "'$os'" != "MSVC")              { next; }
-		if ($0 == "DIRECTMUSIC" && "'$enable_directmusic'" != "1") { next; }
-		if ($0 == "LIBTIMIDITY" && "'$libtimidity'" == "" )        { next; }
-		if ($0 == "HAVE_THREAD" && "'$with_threads'" == "0")       { next; }
-
-		skip += 1;
+		if ($0 == "SDL"        ) { skip += 1; }
+		if ($0 == "PNG"        ) { skip += 1; }
+		if ($0 == "WIN32"      ) { skip += 1; }
+		if ($0 == "MSVC"       ) { skip += 1; }
+		if ($0 == "DIRECTMUSIC") { skip += 1; }
+		if ($0 == "AI"         ) { skip += 1; }
+		if ($0 == "SSE"        ) { skip += 1; }
+		if ($0 == "HAVE_THREAD") { skip += 1; }
 
 		next;
 	}
