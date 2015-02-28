@@ -1069,8 +1069,6 @@ pathfinder/opf/opf_ship.cpp
 pathfinder/opf/opf_ship.h
 pathfinder/types.h
 pathfinder/pf_performance_timer.hpp
-
-# YAPF
 pathfinder/yapf/astar.hpp
 pathfinder/yapf/yapf.h
 pathfinder/yapf/yapf.hpp

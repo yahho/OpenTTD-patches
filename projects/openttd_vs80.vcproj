@@ -12526,10 +12526,6 @@
 				RelativePath=".\..\src\pathfinder\pf_performance_timer.hpp"
 				>
 			</File>
-		</Filter>
-		<Filter
-			Name="YAPF"
-			>
 			<File
 				RelativePath=".\..\src\pathfinder\yapf\astar.hpp"
 				>

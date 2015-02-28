@@ -82,23 +82,20 @@
     <Filter Include="Pathfinder">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000026}</UniqueIdentifier>
     </Filter>
-    <Filter Include="YAPF">
+    <Filter Include="Video">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000027}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Video">
+    <Filter Include="Music">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000028}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Music">
+    <Filter Include="Sound">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000029}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sound">
+    <Filter Include="Windows files">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000030}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Windows files">
-      <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000031}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Threading">
-      <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000032}</UniqueIdentifier>
+      <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000031}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -3004,22 +3001,22 @@
       <Filter>Pathfinder</Filter>
     </ClInclude>
     <ClInclude Include="..\src\pathfinder\yapf\astar.hpp">
-      <Filter>YAPF</Filter>
+      <Filter>Pathfinder</Filter>
     </ClInclude>
     <ClInclude Include="..\src\pathfinder\yapf\yapf.h">
-      <Filter>YAPF</Filter>
+      <Filter>Pathfinder</Filter>
     </ClInclude>
     <ClInclude Include="..\src\pathfinder\yapf\yapf.hpp">
-      <Filter>YAPF</Filter>
+      <Filter>Pathfinder</Filter>
     </ClInclude>
     <ClCompile Include="..\src\pathfinder\yapf\yapf_rail.cpp">
-      <Filter>YAPF</Filter>
+      <Filter>Pathfinder</Filter>
     </ClCompile>
     <ClCompile Include="..\src\pathfinder\yapf\yapf_road.cpp">
-      <Filter>YAPF</Filter>
+      <Filter>Pathfinder</Filter>
     </ClCompile>
     <ClCompile Include="..\src\pathfinder\yapf\yapf_ship.cpp">
-      <Filter>YAPF</Filter>
+      <Filter>Pathfinder</Filter>
     </ClCompile>
     <ClCompile Include="..\src\video\dedicated_v.cpp">
       <Filter>Video</Filter>
