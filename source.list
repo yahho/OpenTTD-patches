@@ -90,26 +90,6 @@ textbuf.cpp
 texteff.cpp
 tgp.cpp
 townname.cpp
-#if WIN32
-#else
-	#if WINCE
-	#else
-		#if OS2
-			os/os2/os2.cpp
-			3rdparty/os2/getaddrinfo.c
-			3rdparty/os2/getaddrinfo.h
-			3rdparty/os2/getnameinfo.c
-			3rdparty/os2/getnameinfo.h
-		#else
-			#if OSX
-				os/macosx/crashlog_osx.cpp
-			#else
-				os/unix/crashlog_unix.cpp
-			#end
-			os/unix/unix.cpp
-		#end
-	#end
-#end
 vehicle.cpp
 vehiclelist.cpp
 viewport.cpp
@@ -1148,36 +1128,48 @@ sound/null_s.cpp
 #end
 #end
 
-#if OSX
-# OSX Files
-	os/macosx/macos.mm
-
-	#if DEDICATED
-	#else
-		music/qtmidi.cpp
-	#end
-
-	#if COCOA
-		video/cocoa/cocoa_v.mm
-		video/cocoa/event.mm
-		video/cocoa/fullscreen.mm
-		video/cocoa/wnd_quartz.mm
-		video/cocoa/wnd_quickdraw.mm
-		music/cocoa_m.cpp
-		sound/cocoa_s.cpp
-		os/macosx/splash.cpp
-	#end
-#end
-
 # Windows files
 #if WIN32
 	os/windows/crashlog_win.cpp
 	os/windows/ottdres.rc
 	os/windows/win32.cpp
-#end
-#if WINCE
-	os/windows/ottdres.rc
-	os/windows/win32.cpp
+#else
+	#if WINCE
+		os/windows/ottdres.rc
+		os/windows/win32.cpp
+	#else
+		#if OS2
+			os/os2/os2.cpp
+			3rdparty/os2/getaddrinfo.c
+			3rdparty/os2/getaddrinfo.h
+			3rdparty/os2/getnameinfo.c
+			3rdparty/os2/getnameinfo.h
+		#else
+			#if OSX
+				os/macosx/crashlog_osx.cpp
+				os/macosx/macos.mm
+
+				#if DEDICATED
+				#else
+					music/qtmidi.cpp
+				#end
+
+				#if COCOA
+					video/cocoa/cocoa_v.mm
+					video/cocoa/event.mm
+					video/cocoa/fullscreen.mm
+					video/cocoa/wnd_quartz.mm
+					video/cocoa/wnd_quickdraw.mm
+					music/cocoa_m.cpp
+					sound/cocoa_s.cpp
+					os/macosx/splash.cpp
+				#end
+			#else
+				os/unix/crashlog_unix.cpp
+			#end
+			os/unix/unix.cpp
+		#end
+	#end
 #end
 
 # Threading
