@@ -15,7 +15,7 @@
 #include "spriteloader.hpp"
 
 /** Sprite loader for graphics coming from a (New)GRF. */
-class SpriteLoaderGrf : public SpriteLoader {
+class SpriteLoaderGrf {
 	byte container_ver;
 public:
 	SpriteLoaderGrf(byte container_ver) : container_ver(container_ver) {}
