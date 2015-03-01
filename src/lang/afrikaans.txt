@@ -2911,7 +2911,6 @@ STR_SPRITE_ALIGNER_PREVIOUS_BUTTON                              :{BLACK}Vorige s
 STR_SPRITE_ALIGNER_PREVIOUS_TOOLTIP                             :{BLACK}Gaan na vorige normale sprite, en ignoreer enige pseudo/her-kleur/font sprite en spring terug na die einde
 STR_SPRITE_ALIGNER_SPRITE_TOOLTIP                               :{BLACK}Voorstelling van geselekteerde sprite. Die belyning word geignoreer waneer sprite geteken word
 STR_SPRITE_ALIGNER_MOVE_TOOLTIP                                 :{BLACK}Beweeg die sprite rond, verander die X en Y afwyking
-STR_SPRITE_ALIGNER_OFFSETS                                      :{BLACK}X afwyking: {NUM}, Y afwyking: {NUM}
 STR_SPRITE_ALIGNER_PICKER_BUTTON                                :{BLACK}Kies sprite
 STR_SPRITE_ALIGNER_PICKER_TOOLTIP                               :{BLACK}Kies 'n sprite van enige plek op die skerm
 

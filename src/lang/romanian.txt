@@ -2834,7 +2834,6 @@ STR_SPRITE_ALIGNER_PREVIOUS_BUTTON                              :{BLACK}Imaginea
 STR_SPRITE_ALIGNER_PREVIOUS_TOOLTIP                             :{BLACK}Mergi la precedenta imagine normală, sărind peste pseudo-imagini, recolorări sau fonturi şi reporneşte când s-a ajuns la sfârşit
 STR_SPRITE_ALIGNER_SPRITE_TOOLTIP                               :{BLACK}Reprezentarea imaginii curente. Aliniamentul este ignorat
 STR_SPRITE_ALIGNER_MOVE_TOOLTIP                                 :{BLACK}Mişcă imaginea schimbând distanţele pe axele X şi Y
-STR_SPRITE_ALIGNER_OFFSETS                                      :{BLACK}distanţa X: {NUM}, distanţa Y: {NUM}
 STR_SPRITE_ALIGNER_PICKER_BUTTON                                :{BLACK}Alege imagine
 STR_SPRITE_ALIGNER_PICKER_TOOLTIP                               :{BLACK}Alege o imagine de oriunde de pe ecran
 

@@ -2962,7 +2962,6 @@ STR_SPRITE_ALIGNER_PREVIOUS_BUTTON                              :{BLACK}Predchá
 STR_SPRITE_ALIGNER_PREVIOUS_TOOLTIP                             :{BLACK}Prejsť na predchádzajúci normálny sprite, vynechajúc akékoľvek falošné/prefarbené sprites a sprites fontu použité na začiatku
 STR_SPRITE_ALIGNER_SPRITE_TOOLTIP                               :{BLACK}Reprezentuje aktuálne zvolený objekt. Zarovnanie je ignorované pri vykresľovaní objektu
 STR_SPRITE_ALIGNER_MOVE_TOOLTIP                                 :{BLACK}Pri hýbaní objektom, sa menia X a Y súradnice
-STR_SPRITE_ALIGNER_OFFSETS                                      :{BLACK}X súradnica: {NUM}, Y súradnica: {NUM}
 STR_SPRITE_ALIGNER_PICKER_BUTTON                                :{BLACK}Vybrať objekt
 STR_SPRITE_ALIGNER_PICKER_TOOLTIP                               :{BLACK}Vyberte objekt z obrazovky
 
