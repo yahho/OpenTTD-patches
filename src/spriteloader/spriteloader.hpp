@@ -51,19 +51,6 @@ public:
 		/** Allocated memory to pass sprite data around */
 		static ReusableBuffer<SpriteLoader::CommonPixel> buffer[ZOOM_LVL_COUNT];
 	};
-
-	/**
-	 * Load a sprite from the disk and return a sprite struct which is the same for all loaders.
-	 * @param[out] sprite The sprites to fill with data.
-	 * @param file_slot   The file "descriptor" of the file we read from.
-	 * @param file_pos    The position within the file the image begins.
-	 * @param sprite_type The type of sprite we're trying to load.
-	 * @param load_32bpp  True if 32bpp sprites should be loaded, false for a 8bpp sprite.
-	 * @return Bit mask of the zoom levels successfully loaded or 0 if no sprite could be loaded.
-	 */
-	virtual uint8 LoadSprite(SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_pos, SpriteType sprite_type, bool load_32bpp) = 0;
-
-	virtual ~SpriteLoader() { }
 };
 
 #endif /* SPRITELOADER_HPP */
