@@ -3254,10 +3254,10 @@ STR_COMPANY_VIEW_VEHICLES_NONE                                  :{WHITE}없음
 STR_COMPANY_VIEW_COMPANY_VALUE                                  :{GOLD}회사가치: {WHITE}{CURRENCY_LONG}
 STR_COMPANY_VIEW_SHARES_OWNED_BY                                :{WHITE}({COMMA}% {COMPANY}의 소유)
 STR_COMPANY_VIEW_INFRASTRUCTURE                                 :{GOLD}기반시설:
-STR_COMPANY_VIEW_INFRASTRUCTURE_RAIL                            :{WHITE}철도 {COMMA}칸
+STR_COMPANY_VIEW_INFRASTRUCTURE_RAIL                            :{WHITE}선로 {COMMA}칸
 STR_COMPANY_VIEW_INFRASTRUCTURE_ROAD                            :{WHITE}도로 {COMMA}칸
-STR_COMPANY_VIEW_INFRASTRUCTURE_WATER                           :{WHITE}운하시설 {COMMA}칸
-STR_COMPANY_VIEW_INFRASTRUCTURE_STATION                         :{WHITE}정거장 {COMMA}칸
+STR_COMPANY_VIEW_INFRASTRUCTURE_WATER                           :{WHITE}항만시설 {COMMA}칸
+STR_COMPANY_VIEW_INFRASTRUCTURE_STATION                         :{WHITE}역 {COMMA}칸
 STR_COMPANY_VIEW_INFRASTRUCTURE_AIRPORT                         :{WHITE}공항 {COMMA}개
 STR_COMPANY_VIEW_INFRASTRUCTURE_NONE                            :{WHITE}없음
 
