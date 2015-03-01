@@ -925,9 +925,8 @@ sound/sound_driver.hpp
 video/video_driver.hpp
 
 # Sprite loaders
-spriteloader/grf.cpp
-spriteloader/grf.hpp
-spriteloader/spriteloader.hpp
+spriteloader.cpp
+spriteloader.h
 
 # NewGRF
 newgrf.cpp

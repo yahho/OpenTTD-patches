@@ -2664,13 +2664,10 @@
     <ClInclude Include="..\src\video\video_driver.hpp">
       <Filter>Drivers</Filter>
     </ClInclude>
-    <ClCompile Include="..\src\spriteloader\grf.cpp">
+    <ClCompile Include="..\src\spriteloader.cpp">
       <Filter>Sprite loaders</Filter>
     </ClCompile>
-    <ClInclude Include="..\src\spriteloader\grf.hpp">
-      <Filter>Sprite loaders</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\spriteloader\spriteloader.hpp">
+    <ClInclude Include="..\src\spriteloader.h">
       <Filter>Sprite loaders</Filter>
     </ClInclude>
     <ClCompile Include="..\src\newgrf.cpp">

@@ -11055,55 +11055,11 @@
 			Name="Sprite loaders"
 			>
 			<File
-				RelativePath=".\..\src\spriteloader\grf.cpp"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\spriteloader\"
-						ObjectFile="$(IntDir)\spriteloader\"
-						XMLDocumentationFileName="$(IntDir)\spriteloader\"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\spriteloader\"
-						ObjectFile="$(IntDir)\spriteloader\"
-						XMLDocumentationFileName="$(IntDir)\spriteloader\"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\spriteloader\"
-						ObjectFile="$(IntDir)\spriteloader\"
-						XMLDocumentationFileName="$(IntDir)\spriteloader\"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\spriteloader\"
-						ObjectFile="$(IntDir)\spriteloader\"
-						XMLDocumentationFileName="$(IntDir)\spriteloader\"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\..\src\spriteloader\grf.hpp"
+				RelativePath=".\..\src\spriteloader.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\spriteloader\spriteloader.hpp"
+				RelativePath=".\..\src\spriteloader.h"
 				>
 			</File>
 		</Filter>

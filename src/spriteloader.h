@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * This file is part of OpenTTD.
  * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -7,13 +5,13 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file spriteloader.hpp Base for loading sprites. */
+/** @file spriteloader.h Base for loading sprites. */
 
-#ifndef SPRITELOADER_HPP
-#define SPRITELOADER_HPP
+#ifndef SPRITELOADER_H
+#define SPRITELOADER_H
 
-#include "../core/alloc_type.hpp"
-#include "../gfx_type.h"
+#include "core/alloc_type.hpp"
+#include "gfx_type.h"
 
 /** Interface for the loader of our sprites. */
 namespace SpriteLoader {
@@ -52,4 +50,12 @@ namespace SpriteLoader {
 	};
 };
 
-#endif /* SPRITELOADER_HPP */
+/** Sprite loader for graphics coming from a (New)GRF. */
+class SpriteLoaderGrf {
+	byte container_ver;
+public:
+	SpriteLoaderGrf(byte container_ver) : container_ver(container_ver) {}
+	uint8 LoadSprite(SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_pos, SpriteType sprite_type, bool load_32bpp);
+};
+
+#endif /* SPRITELOADER_H */

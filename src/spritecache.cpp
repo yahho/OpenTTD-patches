@@ -12,7 +12,7 @@
 #include "stdafx.h"
 #include "string.h"
 #include "fileio_func.h"
-#include "spriteloader/grf.hpp"
+#include "spriteloader.h"
 #include "gfx_func.h"
 #include "error.h"
 #include "zoom_func.h"
@@ -927,5 +927,3 @@ void GfxClearSpriteCache()
 		if (sc->type != ST_RECOLOUR && sc->ptr != NULL) DeleteEntryFromSpriteCache(i);
 	}
 }
-
-/* static */ ReusableBuffer<SpriteLoader::CommonPixel> SpriteLoader::Sprite::buffer[ZOOM_LVL_COUNT];

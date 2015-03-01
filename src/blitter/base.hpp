@@ -13,7 +13,7 @@
 #define BLITTER_BASE_HPP
 
 #include "../spritecache.h"
-#include "../spriteloader/spriteloader.hpp"
+#include "../spriteloader.h"
 
 /** The modes of blitting we can do. */
 enum BlitterMode {

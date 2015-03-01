@@ -1858,13 +1858,8 @@
     <ClInclude Include="..\src\music\music_driver.hpp" />
     <ClInclude Include="..\src\sound\sound_driver.hpp" />
     <ClInclude Include="..\src\video\video_driver.hpp" />
-    <ClCompile Include="..\src\spriteloader\grf.cpp">
-      <AssemblerListingLocation>$(IntDir)\spriteloader\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\spriteloader\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\spriteloader\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\spriteloader\grf.hpp" />
-    <ClInclude Include="..\src\spriteloader\spriteloader.hpp" />
+    <ClCompile Include="..\src\spriteloader.cpp" />
+    <ClInclude Include="..\src\spriteloader.h" />
     <ClCompile Include="..\src\newgrf.cpp" />
     <ClCompile Include="..\src\newgrf_airport.cpp" />
     <ClCompile Include="..\src\newgrf_airporttiles.cpp" />

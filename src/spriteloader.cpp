@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * This file is part of OpenTTD.
  * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -7,19 +5,19 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file grf.cpp Reading graphics data from (New)GRF files. */
+/** @file spriteloader.cpp Reading graphics data from (New)GRF files. */
 
-#include "../stdafx.h"
-#include "../gfx_func.h"
-#include "../fileio_func.h"
-#include "../debug.h"
-#include "../strings_func.h"
+#include "stdafx.h"
+#include "gfx_func.h"
+#include "fileio_func.h"
+#include "debug.h"
+#include "strings_func.h"
 #include "table/strings.h"
-#include "../error.h"
-#include "../core/math_func.hpp"
-#include "../core/alloc_type.hpp"
-#include "../core/bitmath_func.hpp"
-#include "grf.hpp"
+#include "error.h"
+#include "core/math_func.hpp"
+#include "core/alloc_type.hpp"
+#include "core/bitmath_func.hpp"
+#include "spriteloader.h"
 
 extern const byte _palmap_w2d[];
 
@@ -31,6 +29,8 @@ enum SpriteColourComponent {
 	SCC_MASK  = SCC_RGB | SCC_ALPHA | SCC_PAL, ///< Mask of valid colour bits.
 };
 DECLARE_ENUM_AS_BIT_SET(SpriteColourComponent)
+
+ReusableBuffer<SpriteLoader::CommonPixel> SpriteLoader::Sprite::buffer[ZOOM_LVL_COUNT];
 
 /**
  * We found a corrupted sprite. This means that the sprite itself
