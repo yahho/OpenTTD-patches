@@ -393,13 +393,14 @@ static void *ReadSprite(const SpriteCache *sc, SpriteID id, SpriteType sprite_ty
 	uint8 sprite_avail = 0;
 	sprite[ZOOM_LVL_NORMAL].type = sprite_type;
 
-	SpriteLoaderGrf sprite_loader(sc->container_ver);
 	if (sprite_type != ST_MAPGEN && BlitterFactory::GetCurrentBlitter()->GetScreenDepth() == 32) {
 		/* Try for 32bpp sprites first. */
-		sprite_avail = sprite_loader.LoadSprite(sprite, file_slot, file_pos, sprite_type, true);
+		sprite_avail = LoadGrfSprite (sc->container_ver, sprite,
+				file_slot, file_pos, sprite_type, true);
 	}
 	if (sprite_avail == 0) {
-		sprite_avail = sprite_loader.LoadSprite(sprite, file_slot, file_pos, sprite_type, false);
+		sprite_avail = LoadGrfSprite (sc->container_ver, sprite,
+				file_slot, file_pos, sprite_type, false);
 	}
 
 	if (sprite_avail == 0) {

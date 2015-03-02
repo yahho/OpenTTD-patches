@@ -325,6 +325,7 @@ uint8 LoadSpriteV2(SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_po
 
 /**
  * Load a sprite from the disk and return a sprite struct which is the same for all loaders.
+ * @param container_ver The container version.
  * @param[out] sprite The sprites to fill with data.
  * @param file_slot   The file "descriptor" of the file we read from.
  * @param file_pos    The position within the file the image begins.
@@ -332,9 +333,10 @@ uint8 LoadSpriteV2(SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_po
  * @param load_32bpp  True if 32bpp sprites should be loaded, false for a 8bpp sprite.
  * @return Bit mask of the zoom levels successfully loaded or 0 if no sprite could be loaded.
  */
-uint8 SpriteLoaderGrf::LoadSprite(SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_pos, SpriteType sprite_type, bool load_32bpp)
+uint8 LoadGrfSprite (uint container_ver, SpriteLoader::Sprite *sprite,
+	uint8 file_slot, size_t file_pos, SpriteType sprite_type, bool load_32bpp)
 {
-	if (this->container_ver >= 2) {
+	if (container_ver >= 2) {
 		return LoadSpriteV2(sprite, file_slot, file_pos, sprite_type, load_32bpp);
 	} else {
 		return LoadSpriteV1(sprite, file_slot, file_pos, sprite_type, load_32bpp);

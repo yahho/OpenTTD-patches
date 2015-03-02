@@ -50,12 +50,7 @@ namespace SpriteLoader {
 	};
 };
 
-/** Sprite loader for graphics coming from a (New)GRF. */
-class SpriteLoaderGrf {
-	byte container_ver;
-public:
-	SpriteLoaderGrf(byte container_ver) : container_ver(container_ver) {}
-	uint8 LoadSprite(SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_pos, SpriteType sprite_type, bool load_32bpp);
-};
+uint8 LoadGrfSprite (uint container_ver, SpriteLoader::Sprite *sprite,
+	uint8 file_slot, size_t file_pos, SpriteType sprite_type, bool load_32bpp);
 
 #endif /* SPRITELOADER_H */
