@@ -213,7 +213,7 @@ bool DecodeSingleSprite(SpriteLoader::Sprite *sprite, uint8 file_slot, size_t fi
 	return true;
 }
 
-uint8 LoadSpriteV1(SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_pos, SpriteType sprite_type, bool load_32bpp)
+static uint8 LoadSpriteV1 (SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_pos, SpriteType sprite_type, bool load_32bpp)
 {
 	/* Check the requested colour depth. */
 	if (load_32bpp) return 0;
@@ -222,7 +222,12 @@ uint8 LoadSpriteV1(SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_po
 	FioSeekToFile(file_slot, file_pos);
 
 	/* Read the size and type */
-	int num = FioReadWord();
+	uint num = FioReadWord();
+	if (num < 8) {
+		WarnCorruptSprite(file_slot, file_pos, __LINE__);
+		return 0;
+	}
+
 	byte type = FioReadByte();
 
 	/* Type 0xFF indicates either a colourmap or some other non-sprite info; we do not handle them here */
@@ -232,13 +237,14 @@ uint8 LoadSpriteV1(SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_po
 
 	sprite[zoom_lvl].height = FioReadByte();
 	sprite[zoom_lvl].width  = FioReadWord();
-	sprite[zoom_lvl].x_offs = FioReadWord();
-	sprite[zoom_lvl].y_offs = FioReadWord();
 
 	if (sprite[zoom_lvl].width > INT16_MAX) {
 		WarnCorruptSprite(file_slot, file_pos, __LINE__);
 		return 0;
 	}
+
+	sprite[zoom_lvl].x_offs = FioReadWord();
+	sprite[zoom_lvl].y_offs = FioReadWord();
 
 	/* 0x02 indicates it is a compressed sprite, so we can't rely on 'num' to be valid.
 	 * In case it is uncompressed, the size is 'num' - 8 (header-size). */
