@@ -255,7 +255,7 @@ static uint8 LoadSpriteV1 (SpriteLoader::Sprite *sprite, uint8 file_slot, size_t
 	return 0;
 }
 
-uint8 LoadSpriteV2(SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_pos, SpriteType sprite_type, bool load_32bpp)
+static uint8 LoadSpriteV2 (SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_pos, SpriteType sprite_type, bool load_32bpp)
 {
 	static const ZoomLevel zoom_lvl_map[6] = {ZOOM_LVL_OUT_4X, ZOOM_LVL_NORMAL, ZOOM_LVL_OUT_2X, ZOOM_LVL_OUT_8X, ZOOM_LVL_OUT_16X, ZOOM_LVL_OUT_32X};
 
@@ -269,7 +269,12 @@ uint8 LoadSpriteV2(SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_po
 
 	uint8 loaded_sprites = 0;
 	do {
-		int64 num = FioReadDword();
+		uint num = FioReadDword();
+		if (num < 10) {
+			WarnCorruptSprite (file_slot, file_pos, __LINE__);
+			return 0;
+		}
+
 		size_t start_pos = FioGetPos();
 		byte type = FioReadByte();
 
@@ -279,49 +284,54 @@ uint8 LoadSpriteV2(SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_po
 		byte colour = type & SCC_MASK;
 		byte zoom = FioReadByte();
 
-		if (colour != 0 && (load_32bpp ? colour != SCC_PAL : colour == SCC_PAL) && (sprite_type != ST_MAPGEN ? zoom < lengthof(zoom_lvl_map) : zoom == 0)) {
-			ZoomLevel zoom_lvl = (sprite_type != ST_MAPGEN) ? zoom_lvl_map[zoom] : ZOOM_LVL_NORMAL;
-
-			if (HasBit(loaded_sprites, zoom_lvl)) {
-				/* We already have this zoom level, skip sprite. */
-				DEBUG(sprite, 1, "Ignoring duplicate zoom level sprite %u from %s", id, FioGetFilename(file_slot));
-				FioSkipBytes(num - 2);
-				continue;
-			}
-
-			sprite[zoom_lvl].height = FioReadWord();
-			sprite[zoom_lvl].width  = FioReadWord();
-			sprite[zoom_lvl].x_offs = FioReadWord();
-			sprite[zoom_lvl].y_offs = FioReadWord();
-
-			if (sprite[zoom_lvl].width > INT16_MAX || sprite[zoom_lvl].height > INT16_MAX) {
-				WarnCorruptSprite(file_slot, file_pos, __LINE__);
-				return 0;
-			}
-
-			/* Mask out colour information. */
-			type = type & ~SCC_MASK;
-
-			/* Convert colour depth to pixel size. */
-			int bpp = 0;
-			if (colour & SCC_RGB)   bpp += 3; // Has RGB data.
-			if (colour & SCC_ALPHA) bpp++;    // Has alpha data.
-			if (colour & SCC_PAL)   bpp++;    // Has palette data.
-
-			/* For chunked encoding we store the decompressed size in the file,
-			 * otherwise we can calculate it from the image dimensions. */
-			uint decomp_size = (type & 0x08) ? FioReadDword() : sprite[zoom_lvl].width * sprite[zoom_lvl].height * bpp;
-
-			bool valid = DecodeSingleSprite(&sprite[zoom_lvl], file_slot, file_pos, sprite_type, decomp_size, type, zoom_lvl, colour, 2);
-			if (FioGetPos() != start_pos + num) {
-				WarnCorruptSprite(file_slot, file_pos, __LINE__);
-				return 0;
-			}
-
-			if (valid) SetBit(loaded_sprites, zoom_lvl);
-		} else {
+		if (colour == 0 ||
+				(load_32bpp ? colour == SCC_PAL : colour != SCC_PAL) ||
+				(sprite_type != ST_MAPGEN ? zoom >= lengthof(zoom_lvl_map) : zoom != 0)) {
 			/* Not the wanted zoom level or colour depth, continue searching. */
-			FioSkipBytes(num - 2);
+			FioSkipBytes (num - 2);
+			continue;
+		}
+
+		ZoomLevel zoom_lvl = (sprite_type != ST_MAPGEN) ? zoom_lvl_map[zoom] : ZOOM_LVL_NORMAL;
+
+		if (HasBit (loaded_sprites, zoom_lvl)) {
+			/* We already have this zoom level, skip sprite. */
+			DEBUG (sprite, 1, "Ignoring duplicate zoom level sprite %u from %s", id, FioGetFilename(file_slot));
+			FioSkipBytes (num - 2);
+			continue;
+		}
+
+		sprite[zoom_lvl].height = FioReadWord();
+		sprite[zoom_lvl].width  = FioReadWord();
+
+		if (sprite[zoom_lvl].width > INT16_MAX || sprite[zoom_lvl].height > INT16_MAX) {
+			WarnCorruptSprite (file_slot, file_pos, __LINE__);
+			return 0;
+		}
+
+		sprite[zoom_lvl].x_offs = FioReadWord();
+		sprite[zoom_lvl].y_offs = FioReadWord();
+
+		/* Mask out colour information. */
+		type = type & ~SCC_MASK;
+
+		/* Convert colour depth to pixel size. */
+		int bpp = 0;
+		if (colour & SCC_RGB)   bpp += 3; // Has RGB data.
+		if (colour & SCC_ALPHA) bpp++;    // Has alpha data.
+		if (colour & SCC_PAL)   bpp++;    // Has palette data.
+
+		/* For chunked encoding we store the decompressed size in the file,
+		 * otherwise we can calculate it from the image dimensions. */
+		uint decomp_size = (type & 0x08) ? FioReadDword() : sprite[zoom_lvl].width * sprite[zoom_lvl].height * bpp;
+
+		if (DecodeSingleSprite (&sprite[zoom_lvl], file_slot, file_pos, sprite_type, decomp_size, type, zoom_lvl, colour, 2)) {
+			SetBit (loaded_sprites, zoom_lvl);
+		}
+
+		if (FioGetPos() != start_pos + num) {
+			WarnCorruptSprite (file_slot, file_pos, __LINE__);
+			return 0;
 		}
 
 	} while (FioReadDword() == id);
