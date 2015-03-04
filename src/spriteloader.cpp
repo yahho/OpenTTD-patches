@@ -65,7 +65,9 @@ static bool WarnCorruptSprite(uint8 file_slot, size_t file_pos, int line)
  * @param container_format Container format of the GRF this sprite is in.
  * @return True if the sprite was successfully loaded.
  */
-bool DecodeSingleSprite(SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_pos, SpriteType sprite_type, int64 num, byte type, ZoomLevel zoom_lvl, byte colour_fmt, byte container_format)
+static bool DecodeSingleSprite (SpriteLoader::Sprite *sprite,
+	uint8 file_slot, size_t file_pos, SpriteType sprite_type, uint num,
+	byte type, ZoomLevel zoom_lvl, byte colour_fmt, byte container_format)
 {
 	AutoFreePtr<byte> dest_orig(xmalloct<byte>(num));
 	byte *dest = dest_orig;
@@ -77,9 +79,9 @@ bool DecodeSingleSprite(SpriteLoader::Sprite *sprite, uint8 file_slot, size_t fi
 
 		if (code >= 0) {
 			/* Plain bytes to read */
-			int size = (code == 0) ? 0x80 : code;
+			uint size = (code == 0) ? 0x80 : code;
+			if (num < size) return WarnCorruptSprite (file_slot, file_pos, __LINE__);
 			num -= size;
-			if (num < 0) return WarnCorruptSprite(file_slot, file_pos, __LINE__);
 			for (; size > 0; size--) {
 				*dest = FioReadByte();
 				dest++;
@@ -87,18 +89,16 @@ bool DecodeSingleSprite(SpriteLoader::Sprite *sprite, uint8 file_slot, size_t fi
 		} else {
 			/* Copy bytes from earlier in the sprite */
 			const uint data_offset = ((code & 7) << 8) | FioReadByte();
-			if (dest - data_offset < dest_orig) return WarnCorruptSprite(file_slot, file_pos, __LINE__);
-			int size = -(code >> 3);
+			if ((uint)(dest - dest_orig) < data_offset) return WarnCorruptSprite (file_slot, file_pos, __LINE__);
+			uint size = -(code >> 3);
+			if (num < size) return WarnCorruptSprite (file_slot, file_pos, __LINE__);
 			num -= size;
-			if (num < 0) return WarnCorruptSprite(file_slot, file_pos, __LINE__);
 			for (; size > 0; size--) {
 				*dest = *(dest - data_offset);
 				dest++;
 			}
 		}
 	}
-
-	if (num != 0) return WarnCorruptSprite(file_slot, file_pos, __LINE__);
 
 	sprite->AllocateData(zoom_lvl, sprite->width * sprite->height);
 
