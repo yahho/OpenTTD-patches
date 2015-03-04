@@ -58,7 +58,7 @@ static bool WarnCorruptSprite(uint8 file_slot, size_t file_pos, int line)
  * @param file_slot File slot.
  * @param file_pos File position.
  * @param sprite_type Type of the sprite we're decoding.
- * @param num Size of the decompressed sprite.
+ * @param dest_size Size of the decompressed sprite.
  * @param type Type of the encoded sprite.
  * @param zoom_lvl Requested zoom level.
  * @param colour_fmt Colour format of the sprite.
@@ -66,15 +66,14 @@ static bool WarnCorruptSprite(uint8 file_slot, size_t file_pos, int line)
  * @return True if the sprite was successfully loaded.
  */
 static bool DecodeSingleSprite (SpriteLoader::Sprite *sprite,
-	uint8 file_slot, size_t file_pos, SpriteType sprite_type, uint num,
+	uint8 file_slot, size_t file_pos, SpriteType sprite_type, uint dest_size,
 	byte type, ZoomLevel zoom_lvl, byte colour_fmt, byte container_format)
 {
-	AutoFreePtr<byte> dest_orig(xmalloct<byte>(num));
+	AutoFreePtr<byte> dest_orig(xmalloct<byte>(dest_size));
 	byte *dest = dest_orig;
-	const int64 dest_size = num;
 
 	/* Read the file, which has some kind of compression */
-	while (num > 0) {
+	for (uint num = dest_size; num > 0; ) {
 		int8 code = FioReadByte();
 
 		if (code >= 0) {
@@ -103,7 +102,7 @@ static bool DecodeSingleSprite (SpriteLoader::Sprite *sprite,
 	sprite->AllocateData(zoom_lvl, sprite->width * sprite->height);
 
 	/* Convert colour depth to pixel size. */
-	int bpp = 0;
+	uint bpp = 0;
 	if (colour_fmt & SCC_RGB)   bpp += 3; // Has RGB data.
 	if (colour_fmt & SCC_ALPHA) bpp++;    // Has alpha data.
 	if (colour_fmt & SCC_PAL)   bpp++;    // Has palette data.
@@ -176,13 +175,15 @@ static bool DecodeSingleSprite (SpriteLoader::Sprite *sprite,
 			} while (!last_item);
 		}
 	} else {
-		if (dest_size < sprite->width * sprite->height * bpp) {
+		uint64 check_size = (uint64) sprite->width * sprite->height * bpp;
+
+		if (dest_size < check_size) {
 			return WarnCorruptSprite(file_slot, file_pos, __LINE__);
 		}
 
-		if (dest_size > sprite->width * sprite->height * bpp) {
+		if (dest_size > check_size) {
 			static byte warning_level = 0;
-			DEBUG(sprite, warning_level, "Ignoring " OTTD_PRINTF64 " unused extra bytes from the sprite from %s at position %i", dest_size - sprite->width * sprite->height * bpp, FioGetFilename(file_slot), (int)file_pos);
+			DEBUG(sprite, warning_level, "Ignoring " OTTD_PRINTF64 " unused extra bytes from the sprite from %s at position %i", dest_size - check_size, FioGetFilename(file_slot), (int)file_pos);
 			warning_level = 6;
 		}
 
