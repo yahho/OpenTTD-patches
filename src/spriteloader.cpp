@@ -53,6 +53,54 @@ static bool WarnCorruptSprite(uint8 file_slot, size_t file_pos, int line)
 }
 
 /**
+ * Decode a sequence of pixels in a sprite.
+ * @param sprite_type Type of the sprite we're decoding.
+ * @param colour_fmt Colour format of the sprite.
+ * @param remap Whether to remap palette indices.
+ * @param n The number of pixels to decode.
+ * @param pixel Buffer with the raw data to decode.
+ * @param data Buffer where to store the decoded data.
+ * @return A pointer to the first unused byte in the source data.
+ */
+static const byte *DecodePixelData (SpriteType sprite_type, byte colour_fmt,
+	bool remap, uint n, const byte *pixel, SpriteLoader::CommonPixel *data)
+{
+	for (; n > 0; n--, data++) {
+		if (colour_fmt & SCC_RGB) {
+			data->r = *pixel++;
+			data->g = *pixel++;
+			data->b = *pixel++;
+		}
+
+		data->a = (colour_fmt & SCC_ALPHA) ? *pixel++ : 0xFF;
+
+		if (colour_fmt & SCC_PAL) {
+			byte m = *pixel++;
+
+			/* Magic blue. */
+			if (colour_fmt == SCC_PAL && m == 0) data->a = 0x00;
+
+			switch (sprite_type) {
+				case ST_NORMAL:
+					if (remap) m = _palmap_w2d[m];
+					break;
+
+				case ST_FONT:
+					if (m > 2) m = 2;
+					break;
+
+				default:
+					break;
+			}
+
+			data->m = m;
+		}
+	}
+
+	return pixel;
+}
+
+/**
  * Decode the image data of a single sprite.
  * @param[in,out] sprite Filled with the sprite image data.
  * @param file_slot File slot.
@@ -120,7 +168,7 @@ static bool DecodeSingleSprite (SpriteLoader::Sprite *sprite,
 			}
 
 			/* Go to that row */
-			dest = dest_orig + offset;
+			const byte *dest = dest_orig + offset;
 
 			do {
 				if (dest + (container_format >= 2 && sprite->width > 256 ? 4 : 2) > dest_orig + dest_size) {
@@ -153,25 +201,10 @@ static bool DecodeSingleSprite (SpriteLoader::Sprite *sprite,
 					return WarnCorruptSprite(file_slot, file_pos, __LINE__);
 				}
 
-				for (int x = 0; x < length; x++) {
-					if (colour_fmt & SCC_RGB) {
-						data->r = *dest++;
-						data->g = *dest++;
-						data->b = *dest++;
-					}
-					data->a = (colour_fmt & SCC_ALPHA) ? *dest++ : 0xFF;
-					if (colour_fmt & SCC_PAL) {
-						switch (sprite_type) {
-							case ST_NORMAL: data->m = _palette_remap_grf[file_slot] ? _palmap_w2d[*dest] : *dest; break;
-							case ST_FONT:   data->m = min(*dest, 2u); break;
-							default:        data->m = *dest; break;
-						}
-						/* Magic blue. */
-						if (colour_fmt == SCC_PAL && *dest == 0) data->a = 0x00;
-						dest++;
-					}
-					data++;
-				}
+				dest = DecodePixelData (sprite_type, colour_fmt,
+					_palette_remap_grf[file_slot],
+					length, dest, data);
+
 			} while (!last_item);
 		}
 	} else {
@@ -187,28 +220,8 @@ static bool DecodeSingleSprite (SpriteLoader::Sprite *sprite,
 			warning_level = 6;
 		}
 
-		dest = dest_orig;
-
-		for (int i = 0; i < sprite->width * sprite->height; i++) {
-			byte *pixel = &dest[i * bpp];
-
-			if (colour_fmt & SCC_RGB) {
-				sprite->data[i].r = *pixel++;
-				sprite->data[i].g = *pixel++;
-				sprite->data[i].b = *pixel++;
-			}
-			sprite->data[i].a = (colour_fmt & SCC_ALPHA) ? *pixel++ : 0xFF;
-			if (colour_fmt & SCC_PAL) {
-				switch (sprite_type) {
-					case ST_NORMAL: sprite->data[i].m = _palette_remap_grf[file_slot] ? _palmap_w2d[*pixel] : *pixel; break;
-					case ST_FONT:   sprite->data[i].m = min(*pixel, 2u); break;
-					default:        sprite->data[i].m = *pixel; break;
-				}
-				/* Magic blue. */
-				if (colour_fmt == SCC_PAL && *pixel == 0) sprite->data[i].a = 0x00;
-				pixel++;
-			}
-		}
+		DecodePixelData (sprite_type, colour_fmt, _palette_remap_grf[file_slot],
+			sprite->width * sprite->height, dest_orig, sprite->data);
 	}
 
 	return true;
