@@ -53,6 +53,48 @@ static bool WarnCorruptSprite(uint8 file_slot, size_t file_pos, int line)
 }
 
 /**
+ * Uncompress the raw data of a single sprite.
+ * @param buf Buffer where to store the uncompressed data.
+ * @param num Size of the decompressed sprite.
+ * @param file_slot File slot.
+ * @param file_pos File position.
+ * @return Whether the sprite was successfully loaded.
+ */
+static bool UncompressSingleSprite (byte *buf, uint num,
+	uint8 file_slot, size_t file_pos)
+{
+	byte *dest = buf;
+
+	while (num > 0) {
+		int8 code = FioReadByte();
+
+		if (code >= 0) {
+			/* Plain bytes to read */
+			uint size = (code == 0) ? 0x80 : code;
+			if (num < size) return WarnCorruptSprite (file_slot, file_pos, __LINE__);
+			num -= size;
+			for (; size > 0; size--) {
+				*dest = FioReadByte();
+				dest++;
+			}
+		} else {
+			/* Copy bytes from earlier in the sprite */
+			const uint data_offset = ((code & 7) << 8) | FioReadByte();
+			if ((uint)(dest - buf) < data_offset) return WarnCorruptSprite (file_slot, file_pos, __LINE__);
+			uint size = -(code >> 3);
+			if (num < size) return WarnCorruptSprite (file_slot, file_pos, __LINE__);
+			num -= size;
+			for (; size > 0; size--) {
+				*dest = *(dest - data_offset);
+				dest++;
+			}
+		}
+	}
+
+	return true;
+}
+
+/**
  * Decode a sequence of pixels in a sprite.
  * @param sprite_type Type of the sprite we're decoding.
  * @param colour_fmt Colour format of the sprite.
@@ -101,6 +143,112 @@ static const byte *DecodePixelData (SpriteType sprite_type, byte colour_fmt,
 }
 
 /**
+ * Decode the image data of a single sprite without transparency.
+ * @param[in,out] sprite Filled with the sprite image data.
+ * @param file_slot File slot.
+ * @param file_pos File position.
+ * @param sprite_type Type of the sprite we're decoding.
+ * @param orig Buffer with the raw data to decode.
+ * @param size Size of the decompressed sprite.
+ * @param colour_fmt Colour format of the sprite.
+ * @param bpp Bits per pixel.
+ * @return True if the sprite was successfully loaded.
+ */
+static bool DecodeSingleSpriteNormal (SpriteLoader::Sprite *sprite,
+	uint8 file_slot, size_t file_pos, SpriteType sprite_type,
+	const byte *orig, uint size, byte colour_fmt, uint bpp)
+{
+	uint64 check_size = (uint64) sprite->width * sprite->height * bpp;
+
+	if (size < check_size) {
+		return WarnCorruptSprite (file_slot, file_pos, __LINE__);
+	}
+
+	if (size > check_size) {
+		static byte warning_level = 0;
+		DEBUG (sprite, warning_level, "Ignoring " OTTD_PRINTF64 " unused extra bytes from the sprite from %s at position %i", size - check_size, FioGetFilename(file_slot), (int)file_pos);
+		warning_level = 6;
+	}
+
+	DecodePixelData (sprite_type, colour_fmt, _palette_remap_grf[file_slot],
+		sprite->width * sprite->height, orig, sprite->data);
+
+	return true;
+}
+
+/**
+ * Decode the image data of a single sprite with transparency.
+ * @param[in,out] sprite Filled with the sprite image data.
+ * @param file_slot File slot.
+ * @param file_pos File position.
+ * @param sprite_type Type of the sprite we're decoding.
+ * @param orig Buffer with the raw data to decode.
+ * @param size Size of the decompressed sprite.
+ * @param colour_fmt Colour format of the sprite.
+ * @param bpp Bits per pixel.
+ * @param container_format Container format of the GRF this sprite is in.
+ * @return True if the sprite was successfully loaded.
+ */
+static bool DecodeSingleSpriteTransparency (SpriteLoader::Sprite *sprite,
+	uint8 file_slot, size_t file_pos, SpriteType sprite_type,
+	const byte *orig, uint size, byte colour_fmt, uint bpp,
+	byte container_format)
+{
+	for (int y = 0; y < sprite->height; y++) {
+		bool last_item = false;
+		/* Look up in the header-table where the real data is stored for this row */
+		int offset;
+		if (container_format >= 2 && size > UINT16_MAX) {
+			offset = (orig[y * 4 + 3] << 24) | (orig[y * 4 + 2] << 16) | (orig[y * 4 + 1] << 8) | orig[y * 4];
+		} else {
+			offset = (orig[y * 2 + 1] << 8) | orig[y * 2];
+		}
+
+		/* Go to that row */
+		const byte *src = orig + offset;
+
+		do {
+			if (src + (container_format >= 2 && sprite->width > 256 ? 4 : 2) > orig + size) {
+				return WarnCorruptSprite (file_slot, file_pos, __LINE__);
+			}
+
+			SpriteLoader::CommonPixel *data;
+			/* Read the header. */
+			int length, skip;
+			if (container_format >= 2 && sprite->width > 256) {
+				/*  0 .. 14  - length
+				 *  15       - last_item
+				 *  16 .. 31 - transparency bytes */
+				last_item =  (src[1] & 0x80) != 0;
+				length    = ((src[1] & 0x7F) << 8) | src[0];
+				skip      =  (src[3] << 8) | src[2];
+				src += 4;
+			} else {
+				/*  0 .. 6  - length
+				 *  7       - last_item
+				 *  8 .. 15 - transparency bytes */
+				last_item = (*src & 0x80) != 0;
+				length = *src++ & 0x7F;
+				skip   = *src++;
+			}
+
+			data = &sprite->data[y * sprite->width + skip];
+
+			if (skip + length > sprite->width || src + length * bpp > orig + size) {
+				return WarnCorruptSprite (file_slot, file_pos, __LINE__);
+			}
+
+			src = DecodePixelData (sprite_type, colour_fmt,
+				_palette_remap_grf[file_slot], length, src,
+				data);
+
+		} while (!last_item);
+	}
+
+	return true;
+}
+
+/**
  * Decode the image data of a single sprite.
  * @param[in,out] sprite Filled with the sprite image data.
  * @param file_slot File slot.
@@ -118,33 +266,10 @@ static bool DecodeSingleSprite (SpriteLoader::Sprite *sprite,
 	byte type, ZoomLevel zoom_lvl, byte colour_fmt, byte container_format)
 {
 	AutoFreePtr<byte> dest_orig(xmalloct<byte>(dest_size));
-	byte *dest = dest_orig;
 
 	/* Read the file, which has some kind of compression */
-	for (uint num = dest_size; num > 0; ) {
-		int8 code = FioReadByte();
-
-		if (code >= 0) {
-			/* Plain bytes to read */
-			uint size = (code == 0) ? 0x80 : code;
-			if (num < size) return WarnCorruptSprite (file_slot, file_pos, __LINE__);
-			num -= size;
-			for (; size > 0; size--) {
-				*dest = FioReadByte();
-				dest++;
-			}
-		} else {
-			/* Copy bytes from earlier in the sprite */
-			const uint data_offset = ((code & 7) << 8) | FioReadByte();
-			if ((uint)(dest - dest_orig) < data_offset) return WarnCorruptSprite (file_slot, file_pos, __LINE__);
-			uint size = -(code >> 3);
-			if (num < size) return WarnCorruptSprite (file_slot, file_pos, __LINE__);
-			num -= size;
-			for (; size > 0; size--) {
-				*dest = *(dest - data_offset);
-				dest++;
-			}
-		}
+	if (!UncompressSingleSprite (dest_orig, dest_size, file_slot, file_pos)) {
+		return false;
 	}
 
 	sprite->AllocateData(zoom_lvl, sprite->width * sprite->height);
@@ -156,75 +281,12 @@ static bool DecodeSingleSprite (SpriteLoader::Sprite *sprite,
 	if (colour_fmt & SCC_PAL)   bpp++;    // Has palette data.
 
 	/* When there are transparency pixels, this format has another trick.. decode it */
-	if (type & 0x08) {
-		for (int y = 0; y < sprite->height; y++) {
-			bool last_item = false;
-			/* Look up in the header-table where the real data is stored for this row */
-			int offset;
-			if (container_format >= 2 && dest_size > UINT16_MAX) {
-				offset = (dest_orig[y * 4 + 3] << 24) | (dest_orig[y * 4 + 2] << 16) | (dest_orig[y * 4 + 1] << 8) | dest_orig[y * 4];
-			} else {
-				offset = (dest_orig[y * 2 + 1] << 8) | dest_orig[y * 2];
-			}
-
-			/* Go to that row */
-			const byte *dest = dest_orig + offset;
-
-			do {
-				if (dest + (container_format >= 2 && sprite->width > 256 ? 4 : 2) > dest_orig + dest_size) {
-					return WarnCorruptSprite(file_slot, file_pos, __LINE__);
-				}
-
-				SpriteLoader::CommonPixel *data;
-				/* Read the header. */
-				int length, skip;
-				if (container_format >= 2 && sprite->width > 256) {
-					/*  0 .. 14  - length
-					 *  15       - last_item
-					 *  16 .. 31 - transparency bytes */
-					last_item = (dest[1] & 0x80) != 0;
-					length    = ((dest[1] & 0x7F) << 8) | dest[0];
-					skip      = (dest[3] << 8) | dest[2];
-					dest += 4;
-				} else {
-					/*  0 .. 6  - length
-					 *  7       - last_item
-					 *  8 .. 15 - transparency bytes */
-					last_item  = ((*dest) & 0x80) != 0;
-					length =  (*dest++) & 0x7F;
-					skip   =   *dest++;
-				}
-
-				data = &sprite->data[y * sprite->width + skip];
-
-				if (skip + length > sprite->width || dest + length * bpp > dest_orig + dest_size) {
-					return WarnCorruptSprite(file_slot, file_pos, __LINE__);
-				}
-
-				dest = DecodePixelData (sprite_type, colour_fmt,
-					_palette_remap_grf[file_slot],
-					length, dest, data);
-
-			} while (!last_item);
-		}
-	} else {
-		uint64 check_size = (uint64) sprite->width * sprite->height * bpp;
-
-		if (dest_size < check_size) {
-			return WarnCorruptSprite(file_slot, file_pos, __LINE__);
-		}
-
-		if (dest_size > check_size) {
-			static byte warning_level = 0;
-			DEBUG(sprite, warning_level, "Ignoring " OTTD_PRINTF64 " unused extra bytes from the sprite from %s at position %i", dest_size - check_size, FioGetFilename(file_slot), (int)file_pos);
-			warning_level = 6;
-		}
-
-		DecodePixelData (sprite_type, colour_fmt, _palette_remap_grf[file_slot],
-			sprite->width * sprite->height, dest_orig, sprite->data);
-	}
-
-	return true;
+	return (type & 0x08) ?
+		DecodeSingleSpriteTransparency (sprite, file_slot, file_pos,
+			sprite_type, dest_orig, dest_size, colour_fmt, bpp,
+			container_format) :
+		DecodeSingleSpriteNormal (sprite, file_slot, file_pos,
+			sprite_type, dest_orig, dest_size, colour_fmt, bpp);
 }
 
 static uint8 LoadSpriteV1 (SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_pos, SpriteType sprite_type, bool load_32bpp)
