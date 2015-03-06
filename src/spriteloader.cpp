@@ -195,30 +195,31 @@ static bool DecodeSingleSpriteTransparency (SpriteLoader::Sprite *sprite,
 	byte container_format)
 {
 	for (int y = 0; y < sprite->height; y++) {
-		bool last_item = false;
 		/* Look up in the header-table where the real data is stored for this row */
-		int offset;
-		if (container_format >= 2 && size > UINT16_MAX) {
-			offset = (orig[y * 4 + 3] << 24) | (orig[y * 4 + 2] << 16) | (orig[y * 4 + 1] << 8) | orig[y * 4];
-		} else {
-			offset = (orig[y * 2 + 1] << 8) | orig[y * 2];
+		uint offset = (container_format >= 2 && size > UINT16_MAX) ?
+			(orig[y * 4 + 3] << 24) | (orig[y * 4 + 2] << 16) | (orig[y * 4 + 1] << 8) | orig[y * 4] :
+			(orig[y * 2 + 1] <<  8) |  orig[y * 2];
+
+		if (offset >= size) {
+			return WarnCorruptSprite (file_slot, file_pos, __LINE__);
 		}
 
 		/* Go to that row */
 		const byte *src = orig + offset;
 
+		bool last_item = false;
 		do {
-			if (src + (container_format >= 2 && sprite->width > 256 ? 4 : 2) > orig + size) {
-				return WarnCorruptSprite (file_slot, file_pos, __LINE__);
-			}
+			uint remaining = (orig + size) - src;
 
-			SpriteLoader::CommonPixel *data;
 			/* Read the header. */
-			int length, skip;
+			uint length, skip;
 			if (container_format >= 2 && sprite->width > 256) {
 				/*  0 .. 14  - length
 				 *  15       - last_item
 				 *  16 .. 31 - transparency bytes */
+				if (remaining < 4) {
+					return WarnCorruptSprite (file_slot, file_pos, __LINE__);
+				}
 				last_item =  (src[1] & 0x80) != 0;
 				length    = ((src[1] & 0x7F) << 8) | src[0];
 				skip      =  (src[3] << 8) | src[2];
@@ -227,20 +228,21 @@ static bool DecodeSingleSpriteTransparency (SpriteLoader::Sprite *sprite,
 				/*  0 .. 6  - length
 				 *  7       - last_item
 				 *  8 .. 15 - transparency bytes */
+				if (remaining < 2) {
+					return WarnCorruptSprite (file_slot, file_pos, __LINE__);
+				}
 				last_item = (*src & 0x80) != 0;
 				length = *src++ & 0x7F;
 				skip   = *src++;
 			}
 
-			data = &sprite->data[y * sprite->width + skip];
-
-			if (skip + length > sprite->width || src + length * bpp > orig + size) {
+			if (skip + length > sprite->width || length * bpp > (uint)((orig + size) - src)) {
 				return WarnCorruptSprite (file_slot, file_pos, __LINE__);
 			}
 
 			src = DecodePixelData (sprite_type, colour_fmt,
 				_palette_remap_grf[file_slot], length, src,
-				data);
+				sprite->data + y * sprite->width + skip);
 
 		} while (!last_item);
 	}
