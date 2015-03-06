@@ -14,8 +14,8 @@
 #include "strings_func.h"
 #include "table/strings.h"
 #include "error.h"
+#include "core/pointer.h"
 #include "core/math_func.hpp"
-#include "core/alloc_type.hpp"
 #include "core/bitmath_func.hpp"
 #include "spriteloader.h"
 
@@ -267,10 +267,11 @@ static bool DecodeSingleSprite (SpriteLoader::Sprite *sprite,
 	uint8 file_slot, size_t file_pos, SpriteType sprite_type, uint dest_size,
 	byte type, ZoomLevel zoom_lvl, byte colour_fmt, byte container_format)
 {
-	AutoFreePtr<byte> dest_orig(xmalloct<byte>(dest_size));
+	ttd_unique_free_ptr<byte> dest_orig;
+	dest_orig.reset (xmalloct<byte>(dest_size));
 
 	/* Read the file, which has some kind of compression */
-	if (!UncompressSingleSprite (dest_orig, dest_size, file_slot, file_pos)) {
+	if (!UncompressSingleSprite (dest_orig.get(), dest_size, file_slot, file_pos)) {
 		return false;
 	}
 
@@ -285,10 +286,10 @@ static bool DecodeSingleSprite (SpriteLoader::Sprite *sprite,
 	/* When there are transparency pixels, this format has another trick.. decode it */
 	return (type & 0x08) ?
 		DecodeSingleSpriteTransparency (sprite, file_slot, file_pos,
-			sprite_type, dest_orig, dest_size, colour_fmt, bpp,
+			sprite_type, dest_orig.get(), dest_size, colour_fmt, bpp,
 			container_format) :
 		DecodeSingleSpriteNormal (sprite, file_slot, file_pos,
-			sprite_type, dest_orig, dest_size, colour_fmt, bpp);
+			sprite_type, dest_orig.get(), dest_size, colour_fmt, bpp);
 }
 
 static uint8 LoadSpriteV1 (SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_pos, SpriteType sprite_type, bool load_32bpp)
