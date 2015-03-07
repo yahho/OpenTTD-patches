@@ -35,6 +35,8 @@ class FlowStat {
 public:
 	typedef std::map<uint32, StationID> SharesMap;
 
+	static const SharesMap empty_sharesmap;
+
 	/**
 	 * Invalid constructor. This can't be called as a FlowStat must not be
 	 * empty. However, the constructor must be defined and reachable for

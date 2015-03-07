@@ -223,7 +223,7 @@ static void Load_LGRJ(LoadBuffer *reader)
  */
 static void Load_LGRS(LoadBuffer *reader)
 {
-	reader->ReadObject(LinkGraphSchedule::Instance(), GetLinkGraphScheduleDesc());
+	reader->ReadObject(&LinkGraphSchedule::instance, GetLinkGraphScheduleDesc());
 }
 
 /**
@@ -243,7 +243,7 @@ void AfterLoadLinkGraphs (const SavegameTypeVersion *stv)
 		}
 	}
 
-	LinkGraphSchedule::Instance()->SpawnAll();
+	LinkGraphSchedule::instance.SpawnAll();
 }
 
 /** Save all nodes and edges of a graph. */
@@ -308,7 +308,7 @@ static void Save_LGRJ(SaveDumper *dumper)
  */
 static void Save_LGRS(SaveDumper *dumper)
 {
-	dumper->WriteRIFFObject(LinkGraphSchedule::Instance(), GetLinkGraphScheduleDesc());
+	dumper->WriteRIFFObject(&LinkGraphSchedule::instance, GetLinkGraphScheduleDesc());
 }
 
 /**
@@ -316,7 +316,7 @@ static void Save_LGRS(SaveDumper *dumper)
  */
 static void Ptrs_LGRS(const SavegameTypeVersion *stv)
 {
-	SlObjectPtrs(LinkGraphSchedule::Instance(), GetLinkGraphScheduleDesc(), stv);
+	SlObjectPtrs(&LinkGraphSchedule::instance, GetLinkGraphScheduleDesc(), stv);
 }
 
 extern const ChunkHandler _linkgraph_chunk_handlers[] = {
