@@ -109,13 +109,11 @@ struct ExpensesList {
 		bool invalid_expenses_measured = false; // Measure 'Total' width only once.
 		for (uint i = 0; i < this->length; i++) {
 			ExpensesType et = this->et[i];
-			if (et == INVALID_EXPENSES) {
-				if (!invalid_expenses_measured) {
-					width = max(width, GetStringBoundingBox(STR_FINANCES_TOTAL_CAPTION).width);
-					invalid_expenses_measured = true;
-				}
-			} else {
+			if (et != INVALID_EXPENSES) {
 				width = max(width, GetStringBoundingBox(STR_FINANCES_SECTION_CONSTRUCTION + et).width);
+			} else if (!invalid_expenses_measured) {
+				invalid_expenses_measured = true;
+				width = max(width, GetStringBoundingBox(STR_FINANCES_TOTAL_CAPTION).width);
 			}
 		}
 		return width;
