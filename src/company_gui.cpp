@@ -48,7 +48,7 @@ static void DoSelectCompanyManagerFace(Window *parent);
 static void ShowCompanyInfrastructure(CompanyID company);
 
 /** Standard unsorted list of expenses. */
-static ExpensesType _expenses_list_1[] = {
+static const ExpensesType _expenses_list_1[] = {
 	EXPENSES_CONSTRUCTION,
 	EXPENSES_NEW_VEHICLES,
 	EXPENSES_TRAIN_RUN,
@@ -65,7 +65,7 @@ static ExpensesType _expenses_list_1[] = {
 };
 
 /** Grouped list of expenses. */
-static ExpensesType _expenses_list_2[] = {
+static const ExpensesType _expenses_list_2[] = {
 	EXPENSES_TRAIN_INC,
 	EXPENSES_ROADVEH_INC,
 	EXPENSES_AIRCRAFT_INC,
@@ -86,11 +86,13 @@ static ExpensesType _expenses_list_2[] = {
 
 /** Expense list container. */
 struct ExpensesList {
-	const ExpensesType *et;   ///< Expenses items.
+	const ExpensesType *const et; ///< Expenses items.
 	const uint length;        ///< Number of items in list.
 	const uint num_subtotals; ///< Number of sub-totals in the list.
 
-	ExpensesList(ExpensesType *et, int length, int num_subtotals) : et(et), length(length), num_subtotals(num_subtotals)
+	template <uint N>
+	ExpensesList (const ExpensesType (&et) [N], uint num_subtotals)
+		: et(et), length(N), num_subtotals(num_subtotals)
 	{
 	}
 
@@ -121,8 +123,8 @@ struct ExpensesList {
 };
 
 static const ExpensesList _expenses_list_types[] = {
-	ExpensesList(_expenses_list_1, lengthof(_expenses_list_1), 0),
-	ExpensesList(_expenses_list_2, lengthof(_expenses_list_2), 3),
+	ExpensesList (_expenses_list_1, 0),
+	ExpensesList (_expenses_list_2, 3),
 };
 
 /**
