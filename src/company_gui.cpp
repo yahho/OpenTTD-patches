@@ -1054,14 +1054,15 @@ class SelectCompanyManagerFaceWindow : public Window
 	 * Draw dynamic a label to the left of the button and a value in the button
 	 *
 	 * @param widget_index   index of this widget in the window
-	 * @param val            the value which will be draw
+	 * @param cmfv           the variable that will be drawn
 	 * @param is_bool_widget is it a bool button
 	 */
-	void DrawFaceStringLabel(byte widget_index, uint8 val, bool is_bool_widget) const
+	void DrawFaceStringLabel (byte widget_index, CompanyManagerFaceVariable cmfv, bool is_bool_widget) const
 	{
-		StringID str;
 		const NWidgetCore *nwi_widget = this->GetWidget<NWidgetCore>(widget_index);
 		if (!nwi_widget->IsDisabled()) {
+			uint val = GetCompanyManagerFaceBits (this->face, cmfv, this->ge);
+			StringID str;
 			if (is_bool_widget) {
 				/* if it a bool button write yes or no */
 				str = (val != 0) ? STR_FACE_YES : STR_FACE_NO;
@@ -1288,59 +1289,53 @@ public:
 
 
 			case WID_SCMF_HAS_MOUSTACHE_EARRING:
-				if (this->is_female) { // Only for female faces
-					this->DrawFaceStringLabel(WID_SCMF_HAS_MOUSTACHE_EARRING, GetCompanyManagerFaceBits(this->face, CMFV_HAS_TIE_EARRING, this->ge), true);
-				} else { // Only for male faces
-					this->DrawFaceStringLabel(WID_SCMF_HAS_MOUSTACHE_EARRING, GetCompanyManagerFaceBits(this->face, CMFV_HAS_MOUSTACHE,   this->ge), true);
-				}
+				this->DrawFaceStringLabel (WID_SCMF_HAS_MOUSTACHE_EARRING,
+						this->is_female ? CMFV_HAS_TIE_EARRING : CMFV_HAS_MOUSTACHE, true);
 				break;
 
 			case WID_SCMF_TIE_EARRING:
-				this->DrawFaceStringLabel(WID_SCMF_TIE_EARRING, GetCompanyManagerFaceBits(this->face, CMFV_TIE_EARRING, this->ge), false);
+				this->DrawFaceStringLabel (WID_SCMF_TIE_EARRING, CMFV_TIE_EARRING, false);
 				break;
 
 			case WID_SCMF_LIPS_MOUSTACHE:
-				if (this->is_moust_male) { // Only for male faces with moustache
-					this->DrawFaceStringLabel(WID_SCMF_LIPS_MOUSTACHE, GetCompanyManagerFaceBits(this->face, CMFV_MOUSTACHE, this->ge), false);
-				} else { // Only for female faces or male faces without moustache
-					this->DrawFaceStringLabel(WID_SCMF_LIPS_MOUSTACHE, GetCompanyManagerFaceBits(this->face, CMFV_LIPS,      this->ge), false);
-				}
+				this->DrawFaceStringLabel (WID_SCMF_LIPS_MOUSTACHE,
+						this->is_moust_male ? CMFV_MOUSTACHE : CMFV_LIPS,  false);
 				break;
 
 			case WID_SCMF_HAS_GLASSES:
-				this->DrawFaceStringLabel(WID_SCMF_HAS_GLASSES, GetCompanyManagerFaceBits(this->face, CMFV_HAS_GLASSES, this->ge), true );
+				this->DrawFaceStringLabel (WID_SCMF_HAS_GLASSES, CMFV_HAS_GLASSES, true );
 				break;
 
 			case WID_SCMF_HAIR:
-				this->DrawFaceStringLabel(WID_SCMF_HAIR,        GetCompanyManagerFaceBits(this->face, CMFV_HAIR,        this->ge), false);
+				this->DrawFaceStringLabel (WID_SCMF_HAIR,        CMFV_HAIR,        false);
 				break;
 
 			case WID_SCMF_EYEBROWS:
-				this->DrawFaceStringLabel(WID_SCMF_EYEBROWS,    GetCompanyManagerFaceBits(this->face, CMFV_EYEBROWS,    this->ge), false);
+				this->DrawFaceStringLabel (WID_SCMF_EYEBROWS,    CMFV_EYEBROWS,    false);
 				break;
 
 			case WID_SCMF_EYECOLOUR:
-				this->DrawFaceStringLabel(WID_SCMF_EYECOLOUR,   GetCompanyManagerFaceBits(this->face, CMFV_EYE_COLOUR,  this->ge), false);
+				this->DrawFaceStringLabel (WID_SCMF_EYECOLOUR,   CMFV_EYE_COLOUR,  false);
 				break;
 
 			case WID_SCMF_GLASSES:
-				this->DrawFaceStringLabel(WID_SCMF_GLASSES,     GetCompanyManagerFaceBits(this->face, CMFV_GLASSES,     this->ge), false);
+				this->DrawFaceStringLabel (WID_SCMF_GLASSES,     CMFV_GLASSES,     false);
 				break;
 
 			case WID_SCMF_NOSE:
-				this->DrawFaceStringLabel(WID_SCMF_NOSE,        GetCompanyManagerFaceBits(this->face, CMFV_NOSE,        this->ge), false);
+				this->DrawFaceStringLabel (WID_SCMF_NOSE,        CMFV_NOSE,        false);
 				break;
 
 			case WID_SCMF_CHIN:
-				this->DrawFaceStringLabel(WID_SCMF_CHIN,        GetCompanyManagerFaceBits(this->face, CMFV_CHIN,        this->ge), false);
+				this->DrawFaceStringLabel (WID_SCMF_CHIN,        CMFV_CHIN,        false);
 				break;
 
 			case WID_SCMF_JACKET:
-				this->DrawFaceStringLabel(WID_SCMF_JACKET,      GetCompanyManagerFaceBits(this->face, CMFV_JACKET,      this->ge), false);
+				this->DrawFaceStringLabel (WID_SCMF_JACKET,      CMFV_JACKET,      false);
 				break;
 
 			case WID_SCMF_COLLAR:
-				this->DrawFaceStringLabel(WID_SCMF_COLLAR,      GetCompanyManagerFaceBits(this->face, CMFV_COLLAR,      this->ge), false);
+				this->DrawFaceStringLabel (WID_SCMF_COLLAR,      CMFV_COLLAR,      false);
 				break;
 
 			case WID_SCMF_FACE:
