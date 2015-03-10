@@ -865,6 +865,9 @@ static WindowDesc _select_company_livery_desc(
  */
 void DrawCompanyManagerFace(CompanyManagerFace cmf, int colour, int x, int y)
 {
+	/* Draw the gradient (background) */
+	DrawSprite(SPR_GRADIENT, GENERAL_SPRITE_COLOUR(colour), x, y);
+
 	GenderEthnicity ge = (GenderEthnicity)GetCompanyManagerFaceBits(cmf, CMFV_GEN_ETHN, GE_WM);
 
 	bool has_moustache   = !HasBit(ge, GENDER_FEMALE) && GetCompanyManagerFaceBits(cmf, CMFV_HAS_MOUSTACHE,   ge) != 0;
@@ -883,9 +886,6 @@ void DrawCompanyManagerFace(CompanyManagerFace cmf, int colour, int x, int y)
 			case 2: pal = PALETTE_TO_GREEN; break;
 		}
 	}
-
-	/* Draw the gradient (background) */
-	DrawSprite(SPR_GRADIENT, GENERAL_SPRITE_COLOUR(colour), x, y);
 
 	for (CompanyManagerFaceVariable cmfv = CMFV_CHEEKS; cmfv < CMFV_END; cmfv++) {
 		switch (cmfv) {
