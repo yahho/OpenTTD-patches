@@ -1050,6 +1050,12 @@ class SelectCompanyManagerFaceWindow : public Window
 	static const StringID PART_TEXTS_IS_FEMALE[]; ///< Strings depending on #is_female, used to describe parts (2 entries for a part).
 	static const StringID PART_TEXTS[];           ///< Fixed strings to describe parts of the face.
 
+	/** Get the company manager's face bits for the given company manager's face variable. */
+	uint GetFaceBits (CompanyManagerFaceVariable cmfv) const
+	{
+		return GetCompanyManagerFaceBits (this->face, cmfv, this->ge);
+	}
+
 	/**
 	 * Draw dynamic a label to the left of the button and a value in the button
 	 *
@@ -1061,7 +1067,7 @@ class SelectCompanyManagerFaceWindow : public Window
 	{
 		const NWidgetCore *nwi_widget = this->GetWidget<NWidgetCore>(widget_index);
 		if (!nwi_widget->IsDisabled()) {
-			uint val = GetCompanyManagerFaceBits (this->face, cmfv, this->ge);
+			uint val = this->GetFaceBits (cmfv);
 			StringID str;
 			if (is_bool_widget) {
 				/* if it a bool button write yes or no */
@@ -1082,7 +1088,7 @@ class SelectCompanyManagerFaceWindow : public Window
 	{
 		this->ge = (GenderEthnicity)GB(this->face, _cmf_info[CMFV_GEN_ETHN].offset, _cmf_info[CMFV_GEN_ETHN].length); // get the gender and ethnicity
 		this->is_female = HasBit(this->ge, GENDER_FEMALE); // get the gender: 0 == male and 1 == female
-		this->is_moust_male = !is_female && GetCompanyManagerFaceBits(this->face, CMFV_HAS_MOUSTACHE, this->ge) != 0; // is a male face with moustache
+		this->is_moust_male = !is_female && this->GetFaceBits(CMFV_HAS_MOUSTACHE) != 0; // is a male face with moustache
 	}
 
 public:
@@ -1251,11 +1257,11 @@ public:
 
 		/* Tie/earring buttons | female faces without earring haven't any earring options */
 		this->SetWidgetsDisabledState(_cmf_info[CMFV_TIE_EARRING].valid_values[this->ge] < 2 ||
-					(this->is_female && GetCompanyManagerFaceBits(this->face, CMFV_HAS_TIE_EARRING, this->ge) == 0),
+					(this->is_female && this->GetFaceBits(CMFV_HAS_TIE_EARRING) == 0),
 				WID_SCMF_TIE_EARRING, WID_SCMF_TIE_EARRING_L, WID_SCMF_TIE_EARRING_R, WIDGET_LIST_END);
 
 		/* Glasses buttons | faces without glasses haven't any glasses options */
-		this->SetWidgetsDisabledState(_cmf_info[CMFV_GLASSES].valid_values[this->ge] < 2 || GetCompanyManagerFaceBits(this->face, CMFV_HAS_GLASSES, this->ge) == 0,
+		this->SetWidgetsDisabledState(_cmf_info[CMFV_GLASSES].valid_values[this->ge] < 2 || this->GetFaceBits(CMFV_HAS_GLASSES) == 0,
 				WID_SCMF_GLASSES, WID_SCMF_GLASSES_L, WID_SCMF_GLASSES_R, WIDGET_LIST_END);
 
 		this->DrawWidgets();
@@ -1427,7 +1433,7 @@ public:
 							case 0: cmfv = this->is_female ? CMFV_HAS_TIE_EARRING : CMFV_HAS_MOUSTACHE; break; // Has earring/moustache button
 							case 1: cmfv = CMFV_HAS_GLASSES; break; // Has glasses button
 						}
-						SetCompanyManagerFaceBits(this->face, cmfv, this->ge, !GetCompanyManagerFaceBits(this->face, cmfv, this->ge));
+						SetCompanyManagerFaceBits(this->face, cmfv, this->ge, !this->GetFaceBits(cmfv));
 						ScaleAllCompanyManagerFaceBits(this->face);
 					} else { // Value buttons
 						switch ((widget - WID_SCMF_EYECOLOUR_L) / 3) {
