@@ -559,11 +559,25 @@ private:
 	Dimension box;
 	uint line_height;
 
+	/** Get the first selected livery if any, else LS_DEFAULT. */
+	LiveryScheme GetSelectionFirst (void) const
+	{
+		assert_compile (LS_BEGIN == (LiveryScheme)0);
+
+		if (this->sel == 0) return LS_DEFAULT;
+
+		LiveryScheme scheme = LS_BEGIN;
+		while (!HasBit (this->sel, scheme)) {
+			scheme++;
+			assert (scheme < LS_END);
+		}
+
+		return scheme;
+	}
+
 	void ShowColourDropDownMenu(uint32 widget)
 	{
 		uint32 used_colours = 0;
-		const Livery *livery;
-		LiveryScheme scheme;
 
 		/* Disallow other company colours for the primary colour */
 		if (HasBit(this->sel, LS_DEFAULT) && widget == WID_SCL_PRI_COL_DROPDOWN) {
@@ -574,11 +588,8 @@ private:
 		}
 
 		/* Get the first selected livery to use as the default dropdown item */
-		for (scheme = LS_BEGIN; scheme < LS_END; scheme++) {
-			if (HasBit(this->sel, scheme)) break;
-		}
-		if (scheme == LS_END) scheme = LS_DEFAULT;
-		livery = &Company::Get((CompanyID)this->window_number)->livery[scheme];
+		LiveryScheme scheme = GetSelectionFirst();
+		const Livery *livery = &Company::Get((CompanyID)this->window_number)->livery[scheme];
 
 		DropDownList *list = new DropDownList();
 		for (uint i = 0; i < lengthof(_colour_dropdown); i++) {
@@ -660,14 +671,7 @@ public:
 			case WID_SCL_PRI_COL_DROPDOWN:
 			case WID_SCL_SEC_COL_DROPDOWN: {
 				const Company *c = Company::Get((CompanyID)this->window_number);
-				LiveryScheme scheme = LS_DEFAULT;
-
-				if (this->sel != 0) {
-					for (scheme = LS_BEGIN; scheme < LS_END; scheme++) {
-						if (HasBit(this->sel, scheme)) break;
-					}
-					if (scheme == LS_END) scheme = LS_DEFAULT;
-				}
+				LiveryScheme scheme = GetSelectionFirst();
 				SetDParam(0, STR_COLOUR_DARK_BLUE + ((widget == WID_SCL_PRI_COL_DROPDOWN) ? c->livery[scheme].colour1 : c->livery[scheme].colour2));
 				break;
 			}
