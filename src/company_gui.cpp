@@ -1051,7 +1051,6 @@ class SelectCompanyManagerFaceWindow : public Window
 	Dimension yesno_dim;  ///< Dimension of a yes/no button of a part in the advanced face window.
 	Dimension number_dim; ///< Dimension of a number widget of a part in the advanced face window.
 
-	static const StringID PART_TEXTS_IS_FEMALE[]; ///< Strings depending on #is_female, used to describe parts (2 entries for a part).
 	static const StringID PART_TEXTS[];           ///< Fixed strings to describe parts of the face.
 
 	/** Get the company manager's face bits for the given company manager's face variable. */
@@ -1163,8 +1162,8 @@ public:
 
 			case WID_SCMF_HAS_MOUSTACHE_EARRING_TEXT:
 			case WID_SCMF_TIE_EARRING_TEXT: {
-				int offset = (widget - WID_SCMF_HAS_MOUSTACHE_EARRING_TEXT) * 2;
-				*size = maxdim(GetStringBoundingBox(PART_TEXTS_IS_FEMALE[offset]), GetStringBoundingBox(PART_TEXTS_IS_FEMALE[offset + 1]));
+				StringID str = (widget == WID_SCMF_HAS_MOUSTACHE_EARRING_TEXT) ? STR_FACE_MOUSTACHE : STR_FACE_TIE;
+				*size = maxdim (GetStringBoundingBox (str), GetStringBoundingBox (STR_FACE_EARRING));
 				size->width  += WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
 				size->height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
 				break;
@@ -1276,7 +1275,8 @@ public:
 		switch (widget) {
 			case WID_SCMF_HAS_MOUSTACHE_EARRING_TEXT:
 			case WID_SCMF_TIE_EARRING_TEXT: {
-				StringID str = PART_TEXTS_IS_FEMALE[(widget - WID_SCMF_HAS_MOUSTACHE_EARRING_TEXT) * 2 + this->is_female];
+				StringID str = this->is_female ? STR_FACE_EARRING :
+						(widget == WID_SCMF_HAS_MOUSTACHE_EARRING_TEXT) ? STR_FACE_MOUSTACHE : STR_FACE_TIE;
 				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, str, TC_GOLD, SA_RIGHT);
 				break;
 			}
@@ -1477,12 +1477,6 @@ public:
 			ShowErrorMessage(STR_FACE_FACECODE_ERR, INVALID_STRING_ID, WL_INFO);
 		}
 	}
-};
-
-/** Both text values of parts of the face that depend on the #is_female boolean value. */
-const StringID SelectCompanyManagerFaceWindow::PART_TEXTS_IS_FEMALE[] = {
-	STR_FACE_MOUSTACHE, STR_FACE_EARRING, // WID_SCMF_HAS_MOUSTACHE_EARRING_TEXT
-	STR_FACE_TIE,       STR_FACE_EARRING, // WID_SCMF_TIE_EARRING_TEXT
 };
 
 /** Textual names for parts of the face. */
