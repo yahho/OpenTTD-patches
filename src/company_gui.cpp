@@ -1038,6 +1038,19 @@ static const NWidgetPart _nested_select_company_manager_face_widgets[] = {
 	EndContainer(),
 };
 
+/** Textual names for parts of the face. */
+static const StringID PART_TEXTS[] = {
+	STR_FACE_GLASSES,   // WID_SCMF_HAS_GLASSES_TEXT
+	STR_FACE_HAIR,      // WID_SCMF_HAIR_TEXT
+	STR_FACE_EYEBROWS,  // WID_SCMF_EYEBROWS_TEXT
+	STR_FACE_EYECOLOUR, // WID_SCMF_EYECOLOUR_TEXT
+	STR_FACE_GLASSES,   // WID_SCMF_GLASSES_TEXT
+	STR_FACE_NOSE,      // WID_SCMF_NOSE_TEXT
+	STR_FACE_CHIN,      // WID_SCMF_CHIN_TEXT
+	STR_FACE_JACKET,    // WID_SCMF_JACKET_TEXT
+	STR_FACE_COLLAR,    // WID_SCMF_COLLAR_TEXT
+};
+
 /** Management class for customizing the face of the company manager. */
 class SelectCompanyManagerFaceWindow : public Window
 {
@@ -1050,8 +1063,6 @@ class SelectCompanyManagerFaceWindow : public Window
 
 	Dimension yesno_dim;  ///< Dimension of a yes/no button of a part in the advanced face window.
 	Dimension number_dim; ///< Dimension of a number widget of a part in the advanced face window.
-
-	static const StringID PART_TEXTS[];           ///< Fixed strings to describe parts of the face.
 
 	/** Get the company manager's face bits for the given company manager's face variable. */
 	uint GetFaceBits (CompanyManagerFaceVariable cmfv) const
@@ -1477,19 +1488,6 @@ public:
 			ShowErrorMessage(STR_FACE_FACECODE_ERR, INVALID_STRING_ID, WL_INFO);
 		}
 	}
-};
-
-/** Textual names for parts of the face. */
-const StringID SelectCompanyManagerFaceWindow::PART_TEXTS[] = {
-	STR_FACE_GLASSES,   // WID_SCMF_HAS_GLASSES_TEXT
-	STR_FACE_HAIR,      // WID_SCMF_HAIR_TEXT
-	STR_FACE_EYEBROWS,  // WID_SCMF_EYEBROWS_TEXT
-	STR_FACE_EYECOLOUR, // WID_SCMF_EYECOLOUR_TEXT
-	STR_FACE_GLASSES,   // WID_SCMF_GLASSES_TEXT
-	STR_FACE_NOSE,      // WID_SCMF_NOSE_TEXT
-	STR_FACE_CHIN,      // WID_SCMF_CHIN_TEXT
-	STR_FACE_JACKET,    // WID_SCMF_JACKET_TEXT
-	STR_FACE_COLLAR,    // WID_SCMF_COLLAR_TEXT
 };
 
 /** Company manager face selection window description */
