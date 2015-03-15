@@ -48,7 +48,7 @@ bool NewGRFClass <StationSpec, StationClassID, STAT_CLASS_MAX>::IsUIAvailable (u
 	return true;
 }
 
-INSTANTIATE_NEWGRF_CLASS_METHODS(StationClass, StationSpec, StationClassID)
+INSTANTIATE_NEWGRF_CLASS_METHODS(StationClass)
 
 static const uint NUM_STATIONSSPECS_PER_STATION = 255; ///< Maximum number of parts per station.
 

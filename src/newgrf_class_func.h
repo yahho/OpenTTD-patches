@@ -215,17 +215,17 @@ DEFINE_NEWGRF_CLASS_METHOD(const Tspec *)::GetByGrf(uint32 grfid, byte local_id,
 #undef DEFINE_NEWGRF_CLASS_METHOD
 
 /** Force instantiation of the methods so we don't get linker errors. */
-#define INSTANTIATE_NEWGRF_CLASS_METHODS(name, Tspec, Tid) \
+#define INSTANTIATE_NEWGRF_CLASS_METHODS(name) \
 	template void name::ResetClass(); \
 	template void name::Reset(); \
-	template Tid name::Allocate(uint32 global_id); \
-	template void name::Insert(Tspec *spec); \
-	template void name::Assign(Tspec *spec); \
-	template name *name::Get(Tid cls_id); \
+	template name::Id name::Allocate(uint32 global_id); \
+	template void name::Insert(name::Spec *spec); \
+	template void name::Assign(name::Spec *spec); \
+	template name *name::Get(name::Id cls_id); \
 	template uint name::GetClassCount(); \
 	template uint name::GetUIClassCount(); \
-	template Tid name::GetUIClass(uint index); \
-	template const Tspec *name::GetSpec(uint index) const; \
+	template name::Id name::GetUIClass(uint index); \
+	template const name::Spec *name::GetSpec(uint index) const; \
 	template int name::GetUIFromIndex(int index) const; \
 	template int name::GetIndexFromUI(int ui_index) const; \
-	template const Tspec *name::GetByGrf(uint32 grfid, byte localidx, int *index);
+	template const name::Spec *name::GetByGrf(uint32 grfid, byte localidx, int *index);

@@ -19,6 +19,9 @@
  */
 template <typename Tspec, typename Tid, Tid Tmax>
 struct NewGRFClass {
+	typedef Tspec Spec;
+	typedef Tid Id;
+
 private:
 	uint count;       ///< Number of specs in this class.
 	uint ui_count;    ///< Number of specs in this class potentially available to the user.
