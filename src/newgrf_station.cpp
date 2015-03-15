@@ -29,8 +29,8 @@
 #include "station_func.h"
 
 
-template <typename Tspec, typename Tid, Tid Tmax>
-/* static */ void NewGRFClass<Tspec, Tid, Tmax>::InsertDefaults()
+template <>
+/* static */ void NewGRFClass <StationSpec, StationClassID, STAT_CLASS_MAX>::InsertDefaults()
 {
 	/* Set up initial data */
 	classes[0].global_id = 'DFLT';
@@ -42,8 +42,8 @@ template <typename Tspec, typename Tid, Tid Tmax>
 	classes[1].Insert(NULL);
 }
 
-template <typename Tspec, typename Tid, Tid Tmax>
-bool NewGRFClass<Tspec, Tid, Tmax>::IsUIAvailable(uint index) const
+template <>
+bool NewGRFClass <StationSpec, StationClassID, STAT_CLASS_MAX>::IsUIAvailable (uint index) const
 {
 	return true;
 }

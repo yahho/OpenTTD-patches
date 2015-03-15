@@ -106,8 +106,8 @@ void ResetObjects()
 	}
 }
 
-template <typename Tspec, typename Tid, Tid Tmax>
-/* static */ void NewGRFClass<Tspec, Tid, Tmax>::InsertDefaults()
+template <>
+/* static */ void NewGRFClass <ObjectSpec, ObjectClassID, OBJECT_CLASS_MAX>::InsertDefaults()
 {
 	ObjectClassID cls = ObjectClass::Allocate('LTHS');
 	ObjectClass::Get(cls)->name = STR_OBJECT_CLASS_LTHS;
@@ -120,8 +120,8 @@ template <typename Tspec, typename Tid, Tid Tmax>
 	ObjectClass::Assign(&_object_specs[OBJECT_TRANSMITTER]);
 }
 
-template <typename Tspec, typename Tid, Tid Tmax>
-bool NewGRFClass<Tspec, Tid, Tmax>::IsUIAvailable(uint index) const
+template <>
+bool NewGRFClass <ObjectSpec, ObjectClassID, OBJECT_CLASS_MAX>::IsUIAvailable (uint index) const
 {
 	return this->GetSpec(index)->IsEverAvailable();
 }

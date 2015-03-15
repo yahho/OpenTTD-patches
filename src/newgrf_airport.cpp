@@ -54,8 +54,8 @@ struct AirportResolverObject : public ResolverObject {
  * This includes initialising the defaults classes with an empty
  * entry, for standard airports.
  */
-template <typename Tspec, typename Tid, Tid Tmax>
-/* static */ void NewGRFClass<Tspec, Tid, Tmax>::InsertDefaults()
+template <>
+/* static */ void NewGRFClass <AirportSpec, AirportClassID, APC_MAX>::InsertDefaults()
 {
 	AirportClass::Get(AirportClass::Allocate('SMAL'))->name = STR_AIRPORT_CLASS_SMALL;
 	AirportClass::Get(AirportClass::Allocate('LARG'))->name = STR_AIRPORT_CLASS_LARGE;
@@ -63,8 +63,8 @@ template <typename Tspec, typename Tid, Tid Tmax>
 	AirportClass::Get(AirportClass::Allocate('HELI'))->name = STR_AIRPORT_CLASS_HELIPORTS;
 }
 
-template <typename Tspec, typename Tid, Tid Tmax>
-bool NewGRFClass<Tspec, Tid, Tmax>::IsUIAvailable(uint index) const
+template <>
+bool NewGRFClass <AirportSpec, AirportClassID, APC_MAX>::IsUIAvailable (uint index) const
 {
 	return true;
 }
