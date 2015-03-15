@@ -126,7 +126,7 @@ bool NewGRFClass <ObjectSpec, ObjectClassID, OBJECT_CLASS_MAX>::IsUIAvailable (u
 	return this->GetSpec(index)->IsEverAvailable();
 }
 
-INSTANTIATE_NEWGRF_CLASS_METHODS(ObjectClass, ObjectSpec, ObjectClassID, OBJECT_CLASS_MAX)
+INSTANTIATE_NEWGRF_CLASS_METHODS(ObjectClass, ObjectSpec, ObjectClassID)
 
 /**
  * Constructor of an object scope resolver.

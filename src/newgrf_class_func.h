@@ -215,13 +215,13 @@ DEFINE_NEWGRF_CLASS_METHOD(const Tspec *)::GetByGrf(uint32 grfid, byte local_id,
 #undef DEFINE_NEWGRF_CLASS_METHOD
 
 /** Force instantiation of the methods so we don't get linker errors. */
-#define INSTANTIATE_NEWGRF_CLASS_METHODS(name, Tspec, Tid, Tmax) \
+#define INSTANTIATE_NEWGRF_CLASS_METHODS(name, Tspec, Tid) \
 	template void name::ResetClass(); \
 	template void name::Reset(); \
 	template Tid name::Allocate(uint32 global_id); \
 	template void name::Insert(Tspec *spec); \
 	template void name::Assign(Tspec *spec); \
-	template NewGRFClass<Tspec, Tid, Tmax> *name::Get(Tid cls_id); \
+	template name *name::Get(Tid cls_id); \
 	template uint name::GetClassCount(); \
 	template uint name::GetUIClassCount(); \
 	template Tid name::GetUIClass(uint index); \
