@@ -5520,34 +5520,6 @@ static void FeatureNewName(ByteReader *buf)
 	}
 }
 
-/**
- * Sanitize incoming sprite offsets for Action 5 graphics replacements.
- * @param num         The number of sprites to load.
- * @param offset      Offset from the base.
- * @param max_sprites The maximum number of sprites that can be loaded in this action 5.
- * @param name        Used for error warnings.
- * @return The number of sprites that is going to be skipped.
- */
-static uint16 SanitizeSpriteOffset(uint16& num, uint16 offset, int max_sprites, const char *name)
-{
-
-	if (offset >= max_sprites) {
-		grfmsg(1, "GraphicsNew: %s sprite offset must be less than %i, skipping", name, max_sprites);
-		uint orig_num = num;
-		num = 0;
-		return orig_num;
-	}
-
-	if (offset + num > max_sprites) {
-		grfmsg(4, "GraphicsNew: %s sprite overflow, truncating...", name);
-		uint orig_num = num;
-		num = max(max_sprites - offset, 0);
-		return orig_num - num;
-	}
-
-	return 0;
-}
-
 
 /** The type of action 5 type. */
 enum Action5BlockType {
@@ -5653,7 +5625,19 @@ static void GraphicsNew(ByteReader *buf)
 	}
 
 	/* Load at most max_sprites sprites. Skip remaining sprites. (for compatibility with TTDP and future extentions) */
-	uint16 skip_num = SanitizeSpriteOffset(num, offset, action5_type->max_sprites, action5_type->name);
+	uint16 skip_num;
+	if (offset >= action5_type->max_sprites) {
+		grfmsg (1, "GraphicsNew: %s sprite offset must be less than %i, skipping", action5_type->name, action5_type->max_sprites);
+		skip_num = num;
+		num = 0;
+	} else if (offset + num > action5_type->max_sprites) {
+		grfmsg (4, "GraphicsNew: %s sprite overflow, truncating...", action5_type->name);
+		uint rem = action5_type->max_sprites - offset;
+		skip_num = num - rem;
+		num = rem;
+	} else {
+		skip_num = 0;
+	}
 	SpriteID replace = action5_type->sprite_base + offset;
 
 	/* Load <num> sprites starting from <replace>, then skip <skip_num> sprites. */
