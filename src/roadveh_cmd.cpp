@@ -822,7 +822,10 @@ static void RoadVehCheckOvertake(RoadVehicle *v, RoadVehicle *u)
 	 * If the vehicle ahead is accelerating, we take its maximum speed for
 	 * the comparison, else its current speed. */
 	if (!(u->vehstatus & VS_STOPPED) && u->cur_speed != 0) {
-		int u_speed = u->GetAcceleration() > 0 ? u->GetCurrentMaxSpeed() : u->cur_speed;
+		/* Original acceleration always accelerates, so always use
+		 * the maximum speed. */
+		int u_speed = (_settings_game.vehicle.roadveh_acceleration_model == AM_ORIGINAL || u->GetAcceleration() > 0) ?
+				u->GetCurrentMaxSpeed() : u->cur_speed;
 		int max_speed = min (v->vcache.cached_max_speed, v->current_order.GetMaxSpeed() * 2);
 		if (u_speed >= max_speed) return;
 	}
