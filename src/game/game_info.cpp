@@ -16,7 +16,8 @@
 #include "game_info.hpp"
 #include "../debug.h"
 
-static const char *const game_api_versions[] = { "1.2", "1.3", "1.4", "1.5" };
+static const char *const game_api_versions[] =
+	{ "1.2", "1.3", "1.4", "1.5", "1.6" };
 
 #if defined(WIN32)
 #undef GetClassName
