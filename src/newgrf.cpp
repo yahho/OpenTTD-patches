@@ -5521,6 +5521,39 @@ static void FeatureNewName(ByteReader *buf)
 }
 
 
+struct SpritePair {
+	SpriteID old, spr;
+};
+
+/* Shore sprite replacements for single-corner and inclined slopes. */
+static const SpritePair shore_sprites_1 [] = {
+	{ SPR_ORIGINALSHORE_START + 1, SPR_SHORE_BASE +  1 }, // SLOPE_W
+	{ SPR_ORIGINALSHORE_START + 2, SPR_SHORE_BASE +  2 }, // SLOPE_S
+	{ SPR_ORIGINALSHORE_START + 6, SPR_SHORE_BASE +  3 }, // SLOPE_SW
+	{ SPR_ORIGINALSHORE_START + 0, SPR_SHORE_BASE +  4 }, // SLOPE_E
+	{ SPR_ORIGINALSHORE_START + 4, SPR_SHORE_BASE +  6 }, // SLOPE_SE
+	{ SPR_ORIGINALSHORE_START + 3, SPR_SHORE_BASE +  8 }, // SLOPE_N
+	{ SPR_ORIGINALSHORE_START + 7, SPR_SHORE_BASE +  9 }, // SLOPE_NW
+	{ SPR_ORIGINALSHORE_START + 5, SPR_SHORE_BASE + 12 }, // SLOPE_NE
+};
+
+/* Shore sprite replacements for three-corner and steep slopes. */
+static const SpritePair shore_sprites_2 [] = {
+	{ SPR_FLAT_GRASS_TILE + 16, SPR_SHORE_BASE +  0 }, // SLOPE_STEEP_S
+	{ SPR_FLAT_GRASS_TILE + 17, SPR_SHORE_BASE +  5 }, // SLOPE_STEEP_W
+	{ SPR_FLAT_GRASS_TILE +  7, SPR_SHORE_BASE +  7 }, // SLOPE_WSE
+	{ SPR_FLAT_GRASS_TILE + 15, SPR_SHORE_BASE + 10 }, // SLOPE_STEEP_N
+	{ SPR_FLAT_GRASS_TILE + 11, SPR_SHORE_BASE + 11 }, // SLOPE_NWS
+	{ SPR_FLAT_GRASS_TILE + 13, SPR_SHORE_BASE + 13 }, // SLOPE_ENW
+	{ SPR_FLAT_GRASS_TILE + 14, SPR_SHORE_BASE + 14 }, // SLOPE_SEN
+	{ SPR_FLAT_GRASS_TILE + 18, SPR_SHORE_BASE + 15 }, // SLOPE_STEEP_E
+	/* XXX - SLOPE_EW, SLOPE_NS are currently not used.
+	 *       If they would be used somewhen, then these grass tiles will most like not look as needed */
+	{ SPR_FLAT_GRASS_TILE +  5, SPR_SHORE_BASE + 16 }, // SLOPE_EW
+	{ SPR_FLAT_GRASS_TILE + 10, SPR_SHORE_BASE + 17 }, // SLOPE_NS
+};
+
+
 /** The type of action 5 type. */
 enum Action5BlockType {
 	A5BLOCK_FIXED,                ///< Only allow replacing a whole block of sprites. (TTDP compatible)
@@ -5585,16 +5618,9 @@ static void GraphicsNew(ByteReader *buf)
 		/* Special not-TTDP-compatible case used in openttd.grf
 		 * Missing shore sprites and initialisation of SPR_SHORE_BASE */
 		grfmsg(2, "GraphicsNew: Loading 10 missing shore sprites from extra grf.");
-		LoadNextSprite(SPR_SHORE_BASE +  0, _cur.file_index, _cur.nfo_line++, _cur.grf_container_ver); // SLOPE_STEEP_S
-		LoadNextSprite(SPR_SHORE_BASE +  5, _cur.file_index, _cur.nfo_line++, _cur.grf_container_ver); // SLOPE_STEEP_W
-		LoadNextSprite(SPR_SHORE_BASE +  7, _cur.file_index, _cur.nfo_line++, _cur.grf_container_ver); // SLOPE_WSE
-		LoadNextSprite(SPR_SHORE_BASE + 10, _cur.file_index, _cur.nfo_line++, _cur.grf_container_ver); // SLOPE_STEEP_N
-		LoadNextSprite(SPR_SHORE_BASE + 11, _cur.file_index, _cur.nfo_line++, _cur.grf_container_ver); // SLOPE_NWS
-		LoadNextSprite(SPR_SHORE_BASE + 13, _cur.file_index, _cur.nfo_line++, _cur.grf_container_ver); // SLOPE_ENW
-		LoadNextSprite(SPR_SHORE_BASE + 14, _cur.file_index, _cur.nfo_line++, _cur.grf_container_ver); // SLOPE_SEN
-		LoadNextSprite(SPR_SHORE_BASE + 15, _cur.file_index, _cur.nfo_line++, _cur.grf_container_ver); // SLOPE_STEEP_E
-		LoadNextSprite(SPR_SHORE_BASE + 16, _cur.file_index, _cur.nfo_line++, _cur.grf_container_ver); // SLOPE_EW
-		LoadNextSprite(SPR_SHORE_BASE + 17, _cur.file_index, _cur.nfo_line++, _cur.grf_container_ver); // SLOPE_NS
+		for (uint i = 0; i < lengthof(shore_sprites_2); i++) {
+			LoadNextSprite (shore_sprites_2[i].spr, _cur.file_index, _cur.nfo_line++, _cur.grf_container_ver);
+		}
 		if (_loaded_newgrf_features.shore == SHORE_REPLACE_NONE) _loaded_newgrf_features.shore = SHORE_REPLACE_ONLY_NEW;
 		return;
 	}
@@ -8922,30 +8948,15 @@ static void ActivateOldShore()
 	if (_loaded_newgrf_features.shore == SHORE_REPLACE_NONE) _loaded_newgrf_features.shore = SHORE_REPLACE_ACTION_A;
 
 	if (_loaded_newgrf_features.shore != SHORE_REPLACE_ACTION_5) {
-		DupSprite(SPR_ORIGINALSHORE_START +  1, SPR_SHORE_BASE +  1); // SLOPE_W
-		DupSprite(SPR_ORIGINALSHORE_START +  2, SPR_SHORE_BASE +  2); // SLOPE_S
-		DupSprite(SPR_ORIGINALSHORE_START +  6, SPR_SHORE_BASE +  3); // SLOPE_SW
-		DupSprite(SPR_ORIGINALSHORE_START +  0, SPR_SHORE_BASE +  4); // SLOPE_E
-		DupSprite(SPR_ORIGINALSHORE_START +  4, SPR_SHORE_BASE +  6); // SLOPE_SE
-		DupSprite(SPR_ORIGINALSHORE_START +  3, SPR_SHORE_BASE +  8); // SLOPE_N
-		DupSprite(SPR_ORIGINALSHORE_START +  7, SPR_SHORE_BASE +  9); // SLOPE_NW
-		DupSprite(SPR_ORIGINALSHORE_START +  5, SPR_SHORE_BASE + 12); // SLOPE_NE
+		for (uint i = 0; i < lengthof(shore_sprites_1); i++) {
+			DupSprite (shore_sprites_1[i].old, shore_sprites_1[i].spr);
+		}
 	}
 
 	if (_loaded_newgrf_features.shore == SHORE_REPLACE_ACTION_A) {
-		DupSprite(SPR_FLAT_GRASS_TILE + 16, SPR_SHORE_BASE +  0); // SLOPE_STEEP_S
-		DupSprite(SPR_FLAT_GRASS_TILE + 17, SPR_SHORE_BASE +  5); // SLOPE_STEEP_W
-		DupSprite(SPR_FLAT_GRASS_TILE +  7, SPR_SHORE_BASE +  7); // SLOPE_WSE
-		DupSprite(SPR_FLAT_GRASS_TILE + 15, SPR_SHORE_BASE + 10); // SLOPE_STEEP_N
-		DupSprite(SPR_FLAT_GRASS_TILE + 11, SPR_SHORE_BASE + 11); // SLOPE_NWS
-		DupSprite(SPR_FLAT_GRASS_TILE + 13, SPR_SHORE_BASE + 13); // SLOPE_ENW
-		DupSprite(SPR_FLAT_GRASS_TILE + 14, SPR_SHORE_BASE + 14); // SLOPE_SEN
-		DupSprite(SPR_FLAT_GRASS_TILE + 18, SPR_SHORE_BASE + 15); // SLOPE_STEEP_E
-
-		/* XXX - SLOPE_EW, SLOPE_NS are currently not used.
-		 *       If they would be used somewhen, then these grass tiles will most like not look as needed */
-		DupSprite(SPR_FLAT_GRASS_TILE +  5, SPR_SHORE_BASE + 16); // SLOPE_EW
-		DupSprite(SPR_FLAT_GRASS_TILE + 10, SPR_SHORE_BASE + 17); // SLOPE_NS
+		for (uint i = 0; i < lengthof(shore_sprites_2); i++) {
+			DupSprite (shore_sprites_2[i].old, shore_sprites_2[i].spr);
+		}
 	}
 }
 
