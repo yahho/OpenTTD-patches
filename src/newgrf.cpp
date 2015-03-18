@@ -4813,15 +4813,6 @@ static void NewSpriteGroup(ByteReader *buf)
 
 static CargoID TranslateCargo(uint8 feature, uint8 ctype)
 {
-	if (feature == GSF_OBJECTS) {
-		switch (ctype) {
-			case 0:    return 0;
-			case 0xFF: return CT_PURCHASE_OBJECT;
-			default:
-				grfmsg(1, "TranslateCargo: Invalid cargo bitnum %d for objects, skipping.", ctype);
-				return CT_INVALID;
-		}
-	}
 	/* Special cargo types for purchase list and stations */
 	if (feature == GSF_STATIONS && ctype == 0xFE) return CT_DEFAULT_NA;
 	if (ctype == 0xFF) return CT_PURCHASE;
@@ -5180,8 +5171,13 @@ static void ObjectMapSpriteGroup(ByteReader *buf, uint8 idcount)
 		uint16 groupid = buf->ReadWord();
 		if (!IsValidGroupID(groupid, "ObjectMapSpriteGroup")) continue;
 
-		ctype = TranslateCargo(GSF_OBJECTS, ctype);
-		if (ctype == CT_INVALID) continue;
+		switch (ctype) {
+			case 0:    break;
+			case 0xFF: ctype = CT_PURCHASE_OBJECT; break;
+			default:
+				grfmsg(1, "ObjectMapSpriteGroup: Invalid cargo bitnum %d for objects, skipping.", ctype);
+				continue;
+		}
 
 		for (uint i = 0; i < idcount; i++) {
 			ObjectSpec *spec = _cur.grffile->objectspec[objects[i]];
