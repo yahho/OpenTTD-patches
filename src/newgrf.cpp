@@ -4811,10 +4811,9 @@ static void NewSpriteGroup(ByteReader *buf)
 	_cur.spritegroups[setid] = act_group;
 }
 
-static CargoID TranslateCargo(uint8 feature, uint8 ctype)
+static CargoID TranslateCargo (uint8 ctype)
 {
-	/* Special cargo types for purchase list and stations */
-	if (feature == GSF_STATIONS && ctype == 0xFE) return CT_DEFAULT_NA;
+	/* Special cargo type for purchase list */
 	if (ctype == 0xFF) return CT_PURCHASE;
 
 	if (_cur.grffile->cargo_list.Length() == 0) {
@@ -4919,7 +4918,7 @@ static void VehicleMapSpriteGroup(ByteReader *buf, byte feature, uint8 idcount)
 
 		grfmsg(8, "VehicleMapSpriteGroup: * [%d] Cargo type 0x%X, group id 0x%02X", c, ctype, groupid);
 
-		ctype = TranslateCargo(feature, ctype);
+		ctype = TranslateCargo (ctype);
 		if (ctype == CT_INVALID) continue;
 
 		for (uint i = 0; i < idcount; i++) {
@@ -4993,8 +4992,12 @@ static void StationMapSpriteGroup(ByteReader *buf, uint8 idcount)
 		uint16 groupid = buf->ReadWord();
 		if (!IsValidGroupID(groupid, "StationMapSpriteGroup")) continue;
 
-		ctype = TranslateCargo(GSF_STATIONS, ctype);
-		if (ctype == CT_INVALID) continue;
+		if (ctype == 0xFE) {
+			ctype = CT_DEFAULT_NA;
+		} else {
+			ctype = TranslateCargo (ctype);
+			if (ctype == CT_INVALID) continue;
+		}
 
 		for (uint i = 0; i < idcount; i++) {
 			StationSpec *statspec = _cur.grffile->stations == NULL ? NULL : _cur.grffile->stations[stations[i]];
