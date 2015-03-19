@@ -8513,6 +8513,21 @@ static void EnsureEarlyHouse(HouseZones bitmask)
 }
 
 /**
+ * Make sure there is at least one house available in the year 0 for the given
+ * climate.
+ * @param bitmask The climate to check for. Exactly one climate bit should be
+ * set.
+ */
+static void EnsureEarlyHouses (HouseZones climate_mask)
+{
+	EnsureEarlyHouse (HZ_ZON1 | climate_mask);
+	EnsureEarlyHouse (HZ_ZON2 | climate_mask);
+	EnsureEarlyHouse (HZ_ZON3 | climate_mask);
+	EnsureEarlyHouse (HZ_ZON4 | climate_mask);
+	EnsureEarlyHouse (HZ_ZON5 | climate_mask);
+}
+
+/**
  * Add all new houses to the house array. House properties can be set at any
  * time in the GRF file, so we can only add a house spec to the house array
  * after the file has finished loading. We also need to check the dates, due to
@@ -8570,18 +8585,10 @@ static void FinaliseHouseArray()
 	}
 
 	HouseZones climate_mask = (HouseZones)(1 << (_settings_game.game_creation.landscape + 12));
-	EnsureEarlyHouse(HZ_ZON1 | climate_mask);
-	EnsureEarlyHouse(HZ_ZON2 | climate_mask);
-	EnsureEarlyHouse(HZ_ZON3 | climate_mask);
-	EnsureEarlyHouse(HZ_ZON4 | climate_mask);
-	EnsureEarlyHouse(HZ_ZON5 | climate_mask);
+	EnsureEarlyHouses (climate_mask);
 
 	if (_settings_game.game_creation.landscape == LT_ARCTIC) {
-		EnsureEarlyHouse(HZ_ZON1 | HZ_SUBARTC_ABOVE);
-		EnsureEarlyHouse(HZ_ZON2 | HZ_SUBARTC_ABOVE);
-		EnsureEarlyHouse(HZ_ZON3 | HZ_SUBARTC_ABOVE);
-		EnsureEarlyHouse(HZ_ZON4 | HZ_SUBARTC_ABOVE);
-		EnsureEarlyHouse(HZ_ZON5 | HZ_SUBARTC_ABOVE);
+		EnsureEarlyHouses (HZ_SUBARTC_ABOVE);
 	}
 }
 
