@@ -8487,33 +8487,6 @@ static bool IsHouseSpecValid(HouseSpec *hs, const HouseSpec *next1, const HouseS
 
 /**
  * Make sure there is at least one house available in the year 0 for the given
- * climate / housezone combination.
- * @param bitmask The climate and housezone to check for. Exactly one climate
- *   bit and one housezone bit should be set.
- */
-static void EnsureEarlyHouse(HouseZones bitmask)
-{
-	Year min_year = MAX_YEAR;
-
-	for (int i = 0; i < NUM_HOUSES; i++) {
-		HouseSpec *hs = HouseSpec::Get(i);
-		if (hs == NULL || !hs->enabled) continue;
-		if ((hs->building_availability & bitmask) != bitmask) continue;
-		if (hs->min_year < min_year) min_year = hs->min_year;
-	}
-
-	if (min_year == 0) return;
-
-	for (int i = 0; i < NUM_HOUSES; i++) {
-		HouseSpec *hs = HouseSpec::Get(i);
-		if (hs == NULL || !hs->enabled) continue;
-		if ((hs->building_availability & bitmask) != bitmask) continue;
-		if (hs->min_year == min_year) hs->min_year = 0;
-	}
-}
-
-/**
- * Make sure there is at least one house available in the year 0 for the given
  * climate.
  * @param bitmask The climate to check for. Exactly one climate bit should be
  * set.
@@ -8521,7 +8494,24 @@ static void EnsureEarlyHouse(HouseZones bitmask)
 static void EnsureEarlyHouses (HouseZones climate_mask)
 {
 	for (uint z = 0; z < HZB_END; z++) {
-		EnsureEarlyHouse ((HouseZones)(1U << z) | climate_mask);
+		HouseZones bitmask = (HouseZones)(1U << z) | climate_mask;
+		Year min_year = MAX_YEAR;
+
+		for (int i = 0; i < NUM_HOUSES; i++) {
+			const HouseSpec *hs = HouseSpec::Get(i);
+			if (hs == NULL || !hs->enabled) continue;
+			if ((hs->building_availability & bitmask) != bitmask) continue;
+			if (hs->min_year < min_year) min_year = hs->min_year;
+		}
+
+		if (min_year == 0) continue;
+
+		for (int i = 0; i < NUM_HOUSES; i++) {
+			HouseSpec *hs = HouseSpec::Get(i);
+			if (hs == NULL || !hs->enabled) continue;
+			if ((hs->building_availability & bitmask) != bitmask) continue;
+			if (hs->min_year == min_year) hs->min_year = 0;
+		}
 	}
 }
 
