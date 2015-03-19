@@ -8520,11 +8520,9 @@ static void EnsureEarlyHouse(HouseZones bitmask)
  */
 static void EnsureEarlyHouses (HouseZones climate_mask)
 {
-	EnsureEarlyHouse (HZ_ZON1 | climate_mask);
-	EnsureEarlyHouse (HZ_ZON2 | climate_mask);
-	EnsureEarlyHouse (HZ_ZON3 | climate_mask);
-	EnsureEarlyHouse (HZ_ZON4 | climate_mask);
-	EnsureEarlyHouse (HZ_ZON5 | climate_mask);
+	for (uint z = 0; z < HZB_END; z++) {
+		EnsureEarlyHouse ((HouseZones)(1U << z) | climate_mask);
+	}
 }
 
 /**
