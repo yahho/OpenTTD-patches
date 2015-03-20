@@ -6602,108 +6602,7 @@ static void ParamSet(ByteReader *buf)
 		oper = GB(oper, 0, 7);
 	}
 
-	if (src2 == 0xFE) {
-		if (GB(data, 0, 8) == 0xFF) {
-			if (data == 0x0000FFFF) {
-				/* Patch variables */
-				src1 = GetPatchVariable(src1);
-			} else {
-				/* GRF Resource Management */
-				uint8  op      = src1;
-				uint8  feature = GB(data, 8, 8);
-				uint16 count   = GB(data, 16, 16);
-
-				if (_cur.stage == GLS_RESERVE) {
-					if (feature == 0x08) {
-						/* General sprites */
-						if (op == 0) {
-							/* Check if the allocated sprites will fit below the original sprite limit */
-							if (_cur.spriteid + count >= 16384) {
-								grfmsg(0, "ParamSet: GRM: Unable to allocate %d sprites; try changing NewGRF order", count);
-								DisableGrf(STR_NEWGRF_ERROR_GRM_FAILED);
-								return;
-							}
-
-							/* Reserve space at the current sprite ID */
-							grfmsg(4, "ParamSet: GRM: Allocated %d sprites at %d", count, _cur.spriteid);
-							_grm_sprites[GRFLocation(_cur.grffile->grfid, _cur.nfo_line)] = _cur.spriteid;
-							_cur.spriteid += count;
-						}
-					}
-					/* Ignore GRM result during reservation */
-					src1 = 0;
-				} else if (_cur.stage == GLS_ACTIVATION) {
-					switch (feature) {
-						case 0x00: // Trains
-						case 0x01: // Road Vehicles
-						case 0x02: // Ships
-						case 0x03: // Aircraft
-							if (!_settings_game.vehicle.dynamic_engines) {
-								src1 = PerformGRM(&_grm_engines[_engine_offsets[feature]], _engine_counts[feature], count, op, target, "vehicles");
-								if (_cur.skip_sprites == -1) return;
-							} else {
-								/* GRM does not apply for dynamic engine allocation. */
-								switch (op) {
-									case 2:
-									case 3:
-										src1 = _cur.grffile->GetParam(target);
-										break;
-
-									default:
-										src1 = 0;
-										break;
-								}
-							}
-							break;
-
-						case 0x08: // General sprites
-							switch (op) {
-								case 0:
-									/* Return space reserved during reservation stage */
-									src1 = _grm_sprites[GRFLocation(_cur.grffile->grfid, _cur.nfo_line)];
-									grfmsg(4, "ParamSet: GRM: Using pre-allocated sprites at %d", src1);
-									break;
-
-								case 1:
-									src1 = _cur.spriteid;
-									break;
-
-								default:
-									grfmsg(1, "ParamSet: GRM: Unsupported operation %d for general sprites", op);
-									return;
-							}
-							break;
-
-						case 0x0B: // Cargo
-							/* There are two ranges: one for cargo IDs and one for cargo bitmasks */
-							src1 = PerformGRM(_grm_cargoes, NUM_CARGO * 2, count, op, target, "cargoes");
-							if (_cur.skip_sprites == -1) return;
-							break;
-
-						default: grfmsg(1, "ParamSet: GRM: Unsupported feature 0x%X", feature); return;
-					}
-				} else {
-					/* Ignore GRM during initialization */
-					src1 = 0;
-				}
-			}
-		} else {
-			/* Read another GRF File's parameter */
-			const GRFFile *file = GetFileByGRFID(data);
-			GRFConfig *c = GetGRFConfig(data);
-			if (c != NULL && HasBit(c->flags, GCF_STATIC) && !HasBit(_cur.grfconfig->flags, GCF_STATIC) && _networking) {
-				/* Disable the read GRF if it is a static NewGRF. */
-				DisableStaticNewGRFInfluencingNonStaticNewGRFs(c);
-				src1 = 0;
-			} else if (file == NULL || c == NULL || c->status == GCS_DISABLED) {
-				src1 = 0;
-			} else if (src1 == 0xFE) {
-				src1 = c->version;
-			} else {
-				src1 = file->GetParam(src1);
-			}
-		}
-	} else {
+	if (src2 != 0xFE) {
 		/* The source1 and source2 operands refer to the grf parameter number
 		 * like in action 6 and 7.  In addition, they can refer to the special
 		 * variables available in action 7, or they can be FF to use the value
@@ -6711,6 +6610,103 @@ static void ParamSet(ByteReader *buf)
 		 * of 0 is used instead.  */
 		src1 = (src1 == 0xFF) ? data : GetParamVal(src1, NULL);
 		src2 = (src2 == 0xFF) ? data : GetParamVal(src2, NULL);
+	} else if (GB(data, 0, 8) != 0xFF) {
+		/* Read another GRF File's parameter */
+		const GRFFile *file = GetFileByGRFID(data);
+		GRFConfig *c = GetGRFConfig(data);
+		if (c != NULL && HasBit(c->flags, GCF_STATIC) && !HasBit(_cur.grfconfig->flags, GCF_STATIC) && _networking) {
+			/* Disable the read GRF if it is a static NewGRF. */
+			DisableStaticNewGRFInfluencingNonStaticNewGRFs(c);
+			src1 = 0;
+		} else if (file == NULL || c == NULL || c->status == GCS_DISABLED) {
+			src1 = 0;
+		} else if (src1 == 0xFE) {
+			src1 = c->version;
+		} else {
+			src1 = file->GetParam(src1);
+		}
+	} else if (data == 0x0000FFFF) {
+		/* Patch variables */
+		src1 = GetPatchVariable(src1);
+	} else {
+		/* GRF Resource Management */
+		uint8  op      = src1;
+		uint8  feature = GB(data, 8, 8);
+		uint16 count   = GB(data, 16, 16);
+
+		if (_cur.stage == GLS_RESERVE) {
+			if (feature == 0x08) {
+				/* General sprites */
+				if (op == 0) {
+					/* Check if the allocated sprites will fit below the original sprite limit */
+					if (_cur.spriteid + count >= 16384) {
+						grfmsg(0, "ParamSet: GRM: Unable to allocate %d sprites; try changing NewGRF order", count);
+						DisableGrf(STR_NEWGRF_ERROR_GRM_FAILED);
+						return;
+					}
+
+					/* Reserve space at the current sprite ID */
+					grfmsg(4, "ParamSet: GRM: Allocated %d sprites at %d", count, _cur.spriteid);
+					_grm_sprites[GRFLocation(_cur.grffile->grfid, _cur.nfo_line)] = _cur.spriteid;
+					_cur.spriteid += count;
+				}
+			}
+			/* Ignore GRM result during reservation */
+			src1 = 0;
+		} else if (_cur.stage == GLS_ACTIVATION) {
+			switch (feature) {
+				case 0x00: // Trains
+				case 0x01: // Road Vehicles
+				case 0x02: // Ships
+				case 0x03: // Aircraft
+					if (!_settings_game.vehicle.dynamic_engines) {
+						src1 = PerformGRM(&_grm_engines[_engine_offsets[feature]], _engine_counts[feature], count, op, target, "vehicles");
+						if (_cur.skip_sprites == -1) return;
+					} else {
+						/* GRM does not apply for dynamic engine allocation. */
+						switch (op) {
+							case 2:
+							case 3:
+								src1 = _cur.grffile->GetParam(target);
+								break;
+
+							default:
+								src1 = 0;
+								break;
+						}
+					}
+					break;
+
+				case 0x08: // General sprites
+					switch (op) {
+						case 0:
+							/* Return space reserved during reservation stage */
+							src1 = _grm_sprites[GRFLocation(_cur.grffile->grfid, _cur.nfo_line)];
+							grfmsg(4, "ParamSet: GRM: Using pre-allocated sprites at %d", src1);
+							break;
+
+						case 1:
+							src1 = _cur.spriteid;
+							break;
+
+						default:
+							grfmsg(1, "ParamSet: GRM: Unsupported operation %d for general sprites", op);
+							return;
+					}
+					break;
+
+				case 0x0B: // Cargo
+					/* There are two ranges: one for cargo IDs and one for cargo bitmasks */
+					src1 = PerformGRM(_grm_cargoes, NUM_CARGO * 2, count, op, target, "cargoes");
+					if (_cur.skip_sprites == -1) return;
+					break;
+
+				default: grfmsg(1, "ParamSet: GRM: Unsupported feature 0x%X", feature); return;
+			}
+		} else {
+			/* Ignore GRM during initialization */
+			src1 = 0;
+		}
 	}
 
 	/* TODO: You can access the parameters of another GRF file by using
