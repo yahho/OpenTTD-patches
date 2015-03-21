@@ -740,15 +740,19 @@ static void MapSpriteMappingRecolour(PalSpriteID *grf_sprite)
  * @param use_cur_spritesets  Whether to use currently referenceable action 1 sets.
  * @param feature             GrfSpecFeature to use spritesets from.
  * @param [out] grf_sprite    Read sprite and palette.
+ * @param [out] pflags        Read TileLayoutFlags.
  * @param [out] max_sprite_offset  Optionally returns the number of sprites in the spriteset of the sprite. (0 if no spritset)
  * @param [out] max_palette_offset Optionally returns the number of sprites in the spriteset of the palette. (0 if no spritset)
- * @return Read TileLayoutFlags.
  */
-static TileLayoutFlags ReadSpriteLayoutSprite(ByteReader *buf, bool read_flags, bool invert_action1_flag, bool use_cur_spritesets, int feature, PalSpriteID *grf_sprite, uint16 *max_sprite_offset = NULL, uint16 *max_palette_offset = NULL)
+static void ReadSpriteLayoutSprite (ByteReader *buf, bool read_flags,
+	bool invert_action1_flag, bool use_cur_spritesets, int feature,
+	PalSpriteID *grf_sprite, TileLayoutFlags *pflags = NULL,
+	uint16 *max_sprite_offset = NULL, uint16 *max_palette_offset = NULL)
 {
 	grf_sprite->sprite = buf->ReadWord();
 	grf_sprite->pal = buf->ReadWord();
 	TileLayoutFlags flags = read_flags ? (TileLayoutFlags)buf->ReadWord() : TLF_NOTHING;
+	if (pflags != NULL) *pflags = flags;
 
 	MapSpriteMappingRecolour(grf_sprite);
 
@@ -771,7 +775,7 @@ static TileLayoutFlags ReadSpriteLayoutSprite(ByteReader *buf, bool read_flags, 
 		grfmsg(1, "ReadSpriteLayoutSprite: Spritelayout specifies var10 value for non-action-1 sprite");
 		DisableCur (STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
 		_cur.skip_sprites = -1;
-		return flags;
+		return;
 	}
 
 	if (flags & TLF_CUSTOM_PALETTE) {
@@ -790,10 +794,8 @@ static TileLayoutFlags ReadSpriteLayoutSprite(ByteReader *buf, bool read_flags, 
 		grfmsg(1, "ReadSpriteLayoutRegisters: Spritelayout specifies var10 value for non-action-1 palette");
 		DisableCur (STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
 		_cur.skip_sprites = -1;
-		return flags;
+		return;
 	}
-
-	return flags;
 }
 
 /**
@@ -873,7 +875,10 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 	MemSetT(max_palette_offset, 0, num_building_sprites + 1);
 
 	/* Groundsprite */
-	TileLayoutFlags flags = ReadSpriteLayoutSprite(buf, has_flags, false, use_cur_spritesets, feature, &dts->ground, max_sprite_offset, max_palette_offset);
+	TileLayoutFlags flags;
+	ReadSpriteLayoutSprite (buf, has_flags, false,
+			use_cur_spritesets, feature, &dts->ground, &flags,
+			max_sprite_offset, max_palette_offset);
 	if (_cur.skip_sprites < 0) return true;
 
 	if (flags & ~(valid_flags & ~TLF_NON_GROUND_FLAGS)) {
@@ -889,7 +894,9 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 	for (uint i = 0; i < num_building_sprites; i++) {
 		DrawTileSeqStruct *seq = const_cast<DrawTileSeqStruct*>(&dts->seq[i]);
 
-		flags = ReadSpriteLayoutSprite(buf, has_flags, false, use_cur_spritesets, feature, &seq->image, max_sprite_offset + i + 1, max_palette_offset + i + 1);
+		ReadSpriteLayoutSprite (buf, has_flags, false,
+				use_cur_spritesets, feature, &seq->image, &flags,
+				max_sprite_offset + i + 1, max_palette_offset + i + 1);
 		if (_cur.skip_sprites < 0) return true;
 
 		if (flags & ~valid_flags) {
