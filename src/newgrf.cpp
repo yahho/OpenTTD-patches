@@ -806,10 +806,12 @@ static bool ReadSpriteLayoutSprite (ByteReader *buf, bool read_flags,
  * @param is_parent  Whether the sprite is a parentsprite with a bounding box.
  * @param dts        Sprite layout to insert data into.
  * @param index      Sprite index to process; 0 for ground sprite.
+ * @return Whether reading succeeded.
  */
-static void ReadSpriteLayoutRegisters(ByteReader *buf, TileLayoutFlags flags, bool is_parent, NewGRFSpriteLayout *dts, uint index)
+static bool ReadSpriteLayoutRegisters (ByteReader *buf, TileLayoutFlags flags,
+	bool is_parent, NewGRFSpriteLayout *dts, uint index)
 {
-	if (!(flags & TLF_DRAWING_FLAGS)) return;
+	if (!(flags & TLF_DRAWING_FLAGS)) return true;
 
 	if (dts->registers == NULL) dts->AllocateRegisters();
 	TileLayoutRegisters &regs = const_cast<TileLayoutRegisters&>(dts->registers[index]);
@@ -835,8 +837,7 @@ static void ReadSpriteLayoutRegisters(ByteReader *buf, TileLayoutFlags flags, bo
 		if (regs.sprite_var10 > TLR_MAX_VAR10) {
 			grfmsg(1, "ReadSpriteLayoutRegisters: Spritelayout specifies var10 (%d) exceeding the maximal allowed value %d", regs.sprite_var10, TLR_MAX_VAR10);
 			DisableCur (STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
-			_cur.skip_sprites = -1;
-			return;
+			return false;
 		}
 	}
 
@@ -845,10 +846,11 @@ static void ReadSpriteLayoutRegisters(ByteReader *buf, TileLayoutFlags flags, bo
 		if (regs.palette_var10 > TLR_MAX_VAR10) {
 			grfmsg(1, "ReadSpriteLayoutRegisters: Spritelayout specifies var10 (%d) exceeding the maximal allowed value %d", regs.palette_var10, TLR_MAX_VAR10);
 			DisableCur (STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
-			_cur.skip_sprites = -1;
-			return;
+			return false;
 		}
 	}
+
+	return true;
 }
 
 /**
@@ -891,8 +893,10 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 		return true;
 	}
 
-	ReadSpriteLayoutRegisters(buf, flags, false, dts, 0);
-	if (_cur.skip_sprites < 0) return true;
+	if (!ReadSpriteLayoutRegisters (buf, flags, false, dts, 0)) {
+		_cur.skip_sprites = -1;
+		return true;
+	}
 
 	for (uint i = 0; i < num_building_sprites; i++) {
 		DrawTileSeqStruct *seq = const_cast<DrawTileSeqStruct*>(&dts->seq[i]);
@@ -922,8 +926,10 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 			seq->size_z = buf->ReadByte();
 		}
 
-		ReadSpriteLayoutRegisters(buf, flags, seq->IsParentSprite(), dts, i + 1);
-		if (_cur.skip_sprites < 0) return true;
+		if (!ReadSpriteLayoutRegisters (buf, flags, seq->IsParentSprite(), dts, i + 1)) {
+			_cur.skip_sprites = -1;
+			return true;
+		}
 	}
 
 	/* Check if the number of sprites per spriteset is consistent */
