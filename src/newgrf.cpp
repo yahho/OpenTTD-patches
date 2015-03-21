@@ -743,8 +743,9 @@ static void MapSpriteMappingRecolour(PalSpriteID *grf_sprite)
  * @param [out] pflags        Read TileLayoutFlags.
  * @param [out] max_sprite_offset  Optionally returns the number of sprites in the spriteset of the sprite. (0 if no spritset)
  * @param [out] max_palette_offset Optionally returns the number of sprites in the spriteset of the palette. (0 if no spritset)
+ * @return Whether reading succeeded.
  */
-static void ReadSpriteLayoutSprite (ByteReader *buf, bool read_flags,
+static bool ReadSpriteLayoutSprite (ByteReader *buf, bool read_flags,
 	bool invert_action1_flag, bool use_cur_spritesets, int feature,
 	PalSpriteID *grf_sprite, TileLayoutFlags *pflags = NULL,
 	uint16 *max_sprite_offset = NULL, uint16 *max_palette_offset = NULL)
@@ -774,8 +775,7 @@ static void ReadSpriteLayoutSprite (ByteReader *buf, bool read_flags,
 	} else if ((flags & TLF_SPRITE_VAR10) && !(flags & TLF_SPRITE_REG_FLAGS)) {
 		grfmsg(1, "ReadSpriteLayoutSprite: Spritelayout specifies var10 value for non-action-1 sprite");
 		DisableCur (STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
-		_cur.skip_sprites = -1;
-		return;
+		return false;
 	}
 
 	if (flags & TLF_CUSTOM_PALETTE) {
@@ -793,9 +793,10 @@ static void ReadSpriteLayoutSprite (ByteReader *buf, bool read_flags,
 	} else if ((flags & TLF_PALETTE_VAR10) && !(flags & TLF_PALETTE_REG_FLAGS)) {
 		grfmsg(1, "ReadSpriteLayoutRegisters: Spritelayout specifies var10 value for non-action-1 palette");
 		DisableCur (STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
-		_cur.skip_sprites = -1;
-		return;
+		return false;
 	}
+
+	return true;
 }
 
 /**
@@ -876,10 +877,12 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 
 	/* Groundsprite */
 	TileLayoutFlags flags;
-	ReadSpriteLayoutSprite (buf, has_flags, false,
+	if (!ReadSpriteLayoutSprite (buf, has_flags, false,
 			use_cur_spritesets, feature, &dts->ground, &flags,
-			max_sprite_offset, max_palette_offset);
-	if (_cur.skip_sprites < 0) return true;
+			max_sprite_offset, max_palette_offset)) {
+		_cur.skip_sprites = -1;
+		return true;
+	}
 
 	if (flags & ~(valid_flags & ~TLF_NON_GROUND_FLAGS)) {
 		grfmsg(1, "ReadSpriteLayout: Spritelayout uses invalid flag 0x%x for ground sprite", flags & ~(valid_flags & ~TLF_NON_GROUND_FLAGS));
@@ -894,10 +897,12 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 	for (uint i = 0; i < num_building_sprites; i++) {
 		DrawTileSeqStruct *seq = const_cast<DrawTileSeqStruct*>(&dts->seq[i]);
 
-		ReadSpriteLayoutSprite (buf, has_flags, false,
+		if (!ReadSpriteLayoutSprite (buf, has_flags, false,
 				use_cur_spritesets, feature, &seq->image, &flags,
-				max_sprite_offset + i + 1, max_palette_offset + i + 1);
-		if (_cur.skip_sprites < 0) return true;
+				max_sprite_offset + i + 1, max_palette_offset + i + 1)) {
+			_cur.skip_sprites = -1;
+			return true;
+		}
 
 		if (flags & ~valid_flags) {
 			grfmsg(1, "ReadSpriteLayout: Spritelayout uses unknown flag 0x%x", flags & ~valid_flags);
@@ -1919,9 +1924,11 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 						continue;
 					}
 
-					ReadSpriteLayoutSprite(buf, false, false, false, GSF_STATIONS, &dts->ground);
 					/* On error, bail out immediately. Temporary GRF data was already freed */
-					if (_cur.skip_sprites < 0) return CIR_DISABLED;
+					if (!ReadSpriteLayoutSprite (buf, false, false, false, GSF_STATIONS, &dts->ground)) {
+						_cur.skip_sprites = -1;
+						return CIR_DISABLED;
+					}
 
 					static SmallVector<DrawTileSeqStruct, 8> tmp_layout;
 					tmp_layout.Clear();
@@ -1938,9 +1945,11 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 						dtss->size_y = buf->ReadByte();
 						dtss->size_z = buf->ReadByte();
 
-						ReadSpriteLayoutSprite(buf, false, true, false, GSF_STATIONS, &dtss->image);
 						/* On error, bail out immediately. Temporary GRF data was already freed */
-						if (_cur.skip_sprites < 0) return CIR_DISABLED;
+						if (!ReadSpriteLayoutSprite (buf, false, true, false, GSF_STATIONS, &dtss->image)) {
+							_cur.skip_sprites = -1;
+							return CIR_DISABLED;
+						}
 					}
 					dts->Clone(tmp_layout.Begin());
 				}
