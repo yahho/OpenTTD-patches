@@ -882,19 +882,16 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 	if (!ReadSpriteLayoutSprite (buf, has_flags, false,
 			use_cur_spritesets, feature, &dts->ground, &flags,
 			max_sprite_offset, max_palette_offset)) {
-		_cur.skip_sprites = -1;
 		return true;
 	}
 
 	if (flags & ~(valid_flags & ~TLF_NON_GROUND_FLAGS)) {
 		grfmsg(1, "ReadSpriteLayout: Spritelayout uses invalid flag 0x%x for ground sprite", flags & ~(valid_flags & ~TLF_NON_GROUND_FLAGS));
 		DisableCur (STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
-		_cur.skip_sprites = -1;
 		return true;
 	}
 
 	if (!ReadSpriteLayoutRegisters (buf, flags, false, dts, 0)) {
-		_cur.skip_sprites = -1;
 		return true;
 	}
 
@@ -904,14 +901,12 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 		if (!ReadSpriteLayoutSprite (buf, has_flags, false,
 				use_cur_spritesets, feature, &seq->image, &flags,
 				max_sprite_offset + i + 1, max_palette_offset + i + 1)) {
-			_cur.skip_sprites = -1;
 			return true;
 		}
 
 		if (flags & ~valid_flags) {
 			grfmsg(1, "ReadSpriteLayout: Spritelayout uses unknown flag 0x%x", flags & ~valid_flags);
 			DisableCur (STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
-			_cur.skip_sprites = -1;
 			return true;
 		}
 
@@ -927,7 +922,6 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 		}
 
 		if (!ReadSpriteLayoutRegisters (buf, flags, seq->IsParentSprite(), dts, i + 1)) {
-			_cur.skip_sprites = -1;
 			return true;
 		}
 	}
@@ -2109,7 +2103,10 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 					NewGRFSpriteLayout *dts = &statspec->renderdata[t];
 					uint num_building_sprites = buf->ReadByte();
 					/* On error, bail out immediately. Temporary GRF data was already freed */
-					if (ReadSpriteLayout(buf, num_building_sprites, false, GSF_STATIONS, true, false, dts)) return CIR_DISABLED;
+					if (ReadSpriteLayout(buf, num_building_sprites, false, GSF_STATIONS, true, false, dts)) {
+						_cur.skip_sprites = -1;
+						return CIR_DISABLED;
+					}
 				}
 				break;
 
@@ -4809,7 +4806,10 @@ static void NewSpriteGroup(ByteReader *buf)
 					act_group = group;
 
 					/* On error, bail out immediately. Temporary GRF data was already freed */
-					if (ReadSpriteLayout(buf, num_building_sprites, true, feature, false, type == 0, &group->dts)) return;
+					if (ReadSpriteLayout(buf, num_building_sprites, true, feature, false, type == 0, &group->dts)) {
+						_cur.skip_sprites = -1;
+						return;
+					}
 					break;
 				}
 
