@@ -423,24 +423,17 @@ static void ClearTemporaryNewGRFData(GRFFile *gf)
 }
 
 /**
- * Disable a GRF
+ * Disable the GRF being loaded
  * @param message Error message or STR_NULL.
- * @param config GRFConfig to disable, NULL for current.
  * @return Error message of the GRF for further customisation.
  */
-static GRFError *DisableGrf(StringID message = STR_NULL, GRFConfig *config = NULL)
+static GRFError *DisableCur (StringID message = STR_NULL)
 {
-	GRFFile *file;
-	if (config != NULL) {
-		file = GetFileByGRFID(config->ident.grfid);
-	} else {
-		config = _cur.grfconfig;
-		file = _cur.grffile;
-	}
+	GRFConfig *config = _cur.grfconfig;
 
 	config->status = GCS_DISABLED;
-	if (file != NULL) ClearTemporaryNewGRFData(file);
-	if (config == _cur.grfconfig) _cur.skip_sprites = -1;
+	if (_cur.grffile != NULL) ClearTemporaryNewGRFData (_cur.grffile);
+	_cur.skip_sprites = -1;
 
 	if (message != STR_NULL) {
 		delete config->error;
@@ -449,6 +442,26 @@ static GRFError *DisableGrf(StringID message = STR_NULL, GRFConfig *config = NUL
 	}
 
 	return config->error;
+}
+
+/**
+ * Disable a GRF
+ * @param message Error message.
+ * @param config GRFConfig to disable.
+ */
+static void DisableGrf (StringID message, GRFConfig *config)
+{
+	assert (config != NULL);
+	assert (config != _cur.grfconfig);
+
+	config->status = GCS_DISABLED;
+
+	GRFFile *file = GetFileByGRFID (config->ident.grfid);
+	if (file != NULL) ClearTemporaryNewGRFData(file);
+
+	delete config->error;
+	config->error = new GRFError (STR_NEWGRF_ERROR_MSG_FATAL, message);
+	config->error->data = xstrdup (_cur.grfconfig->GetName());
 }
 
 /**
@@ -757,7 +770,7 @@ static TileLayoutFlags ReadSpriteLayoutSprite(ByteReader *buf, bool read_flags, 
 		}
 	} else if ((flags & TLF_SPRITE_VAR10) && !(flags & TLF_SPRITE_REG_FLAGS)) {
 		grfmsg(1, "ReadSpriteLayoutSprite: Spritelayout specifies var10 value for non-action-1 sprite");
-		DisableGrf(STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
+		DisableCur (STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
 		return flags;
 	}
 
@@ -775,7 +788,7 @@ static TileLayoutFlags ReadSpriteLayoutSprite(ByteReader *buf, bool read_flags, 
 		}
 	} else if ((flags & TLF_PALETTE_VAR10) && !(flags & TLF_PALETTE_REG_FLAGS)) {
 		grfmsg(1, "ReadSpriteLayoutRegisters: Spritelayout specifies var10 value for non-action-1 palette");
-		DisableGrf(STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
+		DisableCur (STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
 		return flags;
 	}
 
@@ -817,7 +830,7 @@ static void ReadSpriteLayoutRegisters(ByteReader *buf, TileLayoutFlags flags, bo
 		regs.sprite_var10 = buf->ReadByte();
 		if (regs.sprite_var10 > TLR_MAX_VAR10) {
 			grfmsg(1, "ReadSpriteLayoutRegisters: Spritelayout specifies var10 (%d) exceeding the maximal allowed value %d", regs.sprite_var10, TLR_MAX_VAR10);
-			DisableGrf(STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
+			DisableCur (STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
 			return;
 		}
 	}
@@ -826,7 +839,7 @@ static void ReadSpriteLayoutRegisters(ByteReader *buf, TileLayoutFlags flags, bo
 		regs.palette_var10 = buf->ReadByte();
 		if (regs.palette_var10 > TLR_MAX_VAR10) {
 			grfmsg(1, "ReadSpriteLayoutRegisters: Spritelayout specifies var10 (%d) exceeding the maximal allowed value %d", regs.palette_var10, TLR_MAX_VAR10);
-			DisableGrf(STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
+			DisableCur (STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
 			return;
 		}
 	}
@@ -862,7 +875,7 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 
 	if (flags & ~(valid_flags & ~TLF_NON_GROUND_FLAGS)) {
 		grfmsg(1, "ReadSpriteLayout: Spritelayout uses invalid flag 0x%x for ground sprite", flags & ~(valid_flags & ~TLF_NON_GROUND_FLAGS));
-		DisableGrf(STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
+		DisableCur (STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
 		return true;
 	}
 
@@ -877,7 +890,7 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 
 		if (flags & ~valid_flags) {
 			grfmsg(1, "ReadSpriteLayout: Spritelayout uses unknown flag 0x%x", flags & ~valid_flags);
-			DisableGrf(STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
+			DisableCur (STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
 			return true;
 		}
 
@@ -4338,7 +4351,7 @@ static bool HandleChangeInfoResult(const char *caller, ChangeInfoResult cir, uin
 
 		case CIR_INVALID_ID: {
 			/* No debug message for an invalid ID, as it has already been output */
-			GRFError *error = DisableGrf(cir == CIR_INVALID_ID ? STR_NEWGRF_ERROR_INVALID_ID : STR_NEWGRF_ERROR_UNKNOWN_PROPERTY);
+			GRFError *error = DisableCur (cir == CIR_INVALID_ID ? STR_NEWGRF_ERROR_INVALID_ID : STR_NEWGRF_ERROR_UNKNOWN_PROPERTY);
 			if (cir != CIR_INVALID_ID) error->param_value[1] = property;
 			return true;
 		}
@@ -6012,8 +6025,7 @@ static void CfgApply(ByteReader *buf)
  */
 static void DisableStaticNewGRFInfluencingNonStaticNewGRFs(GRFConfig *c)
 {
-	GRFError *error = DisableGrf(STR_NEWGRF_ERROR_STATIC_GRF_CAUSES_DESYNC, c);
-	error->data = xstrdup(_cur.grfconfig->GetName());
+	DisableGrf (STR_NEWGRF_ERROR_STATIC_GRF_CAUSES_DESYNC, c);
 }
 
 /* Action 0x07
@@ -6175,7 +6187,7 @@ static void SkipIf(ByteReader *buf)
 
 		/* If an action 8 hasn't been encountered yet, disable the grf. */
 		if (_cur.grfconfig->status != (_cur.stage < GLS_RESERVE ? GCS_INITIALISED : GCS_ACTIVATED)) {
-			DisableGrf();
+			DisableCur();
 		}
 	}
 }
@@ -6224,7 +6236,7 @@ static void GRFInfo(ByteReader *buf)
 	const char *name = buf->ReadString();
 
 	if (_cur.stage < GLS_RESERVE && _cur.grfconfig->status != GCS_UNKNOWN) {
-		DisableGrf(STR_NEWGRF_ERROR_MULTIPLE_ACTION_8);
+		DisableCur (STR_NEWGRF_ERROR_MULTIPLE_ACTION_8);
 		return;
 	}
 
@@ -6346,7 +6358,7 @@ static void GRFLoadError(ByteReader *buf)
 	} else if (severity == 3) {
 		/* This is a fatal error, so make sure the GRF is deactivated and no
 		 * more of it gets loaded. */
-		DisableGrf();
+		DisableCur();
 
 		/* Make sure we show fatal errors, instead of silly infos from before */
 		delete _cur.grfconfig->error;
@@ -6545,7 +6557,7 @@ static uint32 PerformGRM(uint32 *grm, uint16 num_ids, uint16 count, uint8 op, ui
 	if (op != 4 && op != 5) {
 		/* Deactivate GRF */
 		grfmsg(0, "ParamSet: GRM: Unable to allocate %d %s, deactivating", count, type);
-		DisableGrf(STR_NEWGRF_ERROR_GRM_FAILED);
+		DisableCur (STR_NEWGRF_ERROR_GRM_FAILED);
 		return UINT_MAX;
 	}
 
@@ -6641,7 +6653,7 @@ static void ParamSet(ByteReader *buf)
 					/* Check if the allocated sprites will fit below the original sprite limit */
 					if (_cur.spriteid + count >= 16384) {
 						grfmsg(0, "ParamSet: GRM: Unable to allocate %d sprites; try changing NewGRF order", count);
-						DisableGrf(STR_NEWGRF_ERROR_GRM_FAILED);
+						DisableCur (STR_NEWGRF_ERROR_GRM_FAILED);
 						return;
 					}
 
@@ -6892,8 +6904,7 @@ static void GRFInhibit(ByteReader *buf)
 		/* Unset activation flag */
 		if (file != NULL && file != _cur.grfconfig) {
 			grfmsg(2, "GRFInhibit: Deactivating file '%s'", file->filename);
-			GRFError *error = DisableGrf(STR_NEWGRF_ERROR_FORCEFULLY_DISABLED, file);
-			error->data = xstrdup(_cur.grfconfig->GetName());
+			DisableGrf (STR_NEWGRF_ERROR_FORCEFULLY_DISABLED, file);
 		}
 	}
 }
@@ -6964,7 +6975,7 @@ static void FeatureTownName(ByteReader *buf)
 				if (townname->nbparts[ref_id] == 0) {
 					grfmsg(0, "FeatureTownName: definition 0x%02X doesn't exist, deactivating", ref_id);
 					DelGRFTownName(grfid);
-					DisableGrf(STR_NEWGRF_ERROR_INVALID_ID);
+					DisableCur (STR_NEWGRF_ERROR_INVALID_ID);
 					return;
 				}
 
@@ -7240,7 +7251,7 @@ static void TranslateGRFStrings(ByteReader *buf)
 	if (c->status == GCS_INITIALISED) {
 		/* If the file is not active but will be activated later, give an error
 		 * and disable this file. */
-		GRFError *error = DisableGrf(STR_NEWGRF_ERROR_LOAD_AFTER);
+		GRFError *error = DisableCur (STR_NEWGRF_ERROR_LOAD_AFTER);
 
 		char tmp[256];
 		GetString (tmp, STR_NEWGRF_ERROR_AFTER_TRANSLATED_FILE);
@@ -8776,7 +8787,7 @@ static void DecodeSpecialSprite(byte *buf, uint num, GrfLoadingStage stage)
 		}
 	} catch (...) {
 		grfmsg(1, "DecodeSpecialSprite: Tried to read past end of pseudo-sprite data");
-		DisableGrf(STR_NEWGRF_ERROR_READ_BOUNDS);
+		DisableCur (STR_NEWGRF_ERROR_READ_BOUNDS);
 	}
 }
 
@@ -8907,7 +8918,7 @@ void LoadNewGRFFile(GRFConfig *config, uint file_index, GrfLoadingStage stage, S
 		} else {
 			if (_cur.skip_sprites == 0) {
 				grfmsg(0, "LoadNewGRFFile: Unexpected sprite, disabling");
-				DisableGrf(STR_NEWGRF_ERROR_UNEXPECTED_SPRITE);
+				DisableCur (STR_NEWGRF_ERROR_UNEXPECTED_SPRITE);
 				break;
 			}
 
