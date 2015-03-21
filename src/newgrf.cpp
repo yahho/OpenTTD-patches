@@ -1926,7 +1926,6 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 
 					/* On error, bail out immediately. Temporary GRF data was already freed */
 					if (!ReadSpriteLayoutSprite (buf, false, false, false, GSF_STATIONS, &dts->ground)) {
-						_cur.skip_sprites = -1;
 						return CIR_DISABLED;
 					}
 
@@ -1947,7 +1946,6 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 
 						/* On error, bail out immediately. Temporary GRF data was already freed */
 						if (!ReadSpriteLayoutSprite (buf, false, true, false, GSF_STATIONS, &dtss->image)) {
-							_cur.skip_sprites = -1;
 							return CIR_DISABLED;
 						}
 					}
@@ -2104,7 +2102,6 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 					uint num_building_sprites = buf->ReadByte();
 					/* On error, bail out immediately. Temporary GRF data was already freed */
 					if (ReadSpriteLayout(buf, num_building_sprites, false, GSF_STATIONS, true, false, dts)) {
-						_cur.skip_sprites = -1;
 						return CIR_DISABLED;
 					}
 				}
@@ -4377,7 +4374,6 @@ static bool HandleChangeInfoResult(const char *caller, ChangeInfoResult cir, uin
 			/* No debug message for an invalid ID, as it has already been output */
 			GRFError *error = DisableCur (cir == CIR_INVALID_ID ? STR_NEWGRF_ERROR_INVALID_ID : STR_NEWGRF_ERROR_UNKNOWN_PROPERTY);
 			if (cir != CIR_INVALID_ID) error->param_value[1] = property;
-			_cur.skip_sprites = -1;
 			return true;
 		}
 	}
@@ -4438,7 +4434,10 @@ static void FeatureChangeInfo(ByteReader *buf)
 		uint8 prop = buf->ReadByte();
 
 		ChangeInfoResult cir = handler[feature](engine, numinfo, prop, buf);
-		if (HandleChangeInfoResult("FeatureChangeInfo", cir, feature, prop)) return;
+		if (HandleChangeInfoResult ("FeatureChangeInfo", cir, feature, prop)) {
+			_cur.skip_sprites = -1;
+			return;
+		}
 	}
 }
 
@@ -4509,7 +4508,10 @@ static void ReserveChangeInfo(ByteReader *buf)
 				break;
 		}
 
-		if (HandleChangeInfoResult("ReserveChangeInfo", cir, feature, prop)) return;
+		if (HandleChangeInfoResult ("ReserveChangeInfo", cir, feature, prop)) {
+			_cur.skip_sprites = -1;
+			return;
+		}
 	}
 }
 
@@ -4944,6 +4946,7 @@ static void VehicleMapSpriteGroup(ByteReader *buf, byte feature, uint8 idcount)
 			 * this might look bad. Also make sure this NewGRF
 			 * gets disabled, as a half loaded one is bad. */
 			HandleChangeInfoResult("VehicleMapSpriteGroup", CIR_INVALID_ID, 0, 0);
+			_cur.skip_sprites = -1;
 			return;
 		}
 
