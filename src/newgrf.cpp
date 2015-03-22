@@ -6403,49 +6403,41 @@ static void GRFLoadError(ByteReader *buf)
 
 	if (message_id >= lengthof(msgstr) && message_id != 0xFF) {
 		grfmsg(7, "GRFLoadError: Invalid message id.");
-		return;
-	}
 
-	if (buf->Remaining() <= 1) {
+	} else if (buf->Remaining() <= 1) {
 		grfmsg(7, "GRFLoadError: No message data supplied.");
-		return;
-	}
 
-	/* For now we can only show one message per newgrf file. */
-	if (_cur.grfconfig->error != NULL) return;
+	} else if (_cur.grfconfig->error == NULL) {
+		/* For now we can only show one message per newgrf file. */
+		GRFError *error = new GRFError (sevstr[severity]);
 
-	GRFError *error = new GRFError(sevstr[severity]);
-
-	if (message_id == 0xFF) {
-		/* This is a custom error message. */
-		if (buf->HasData()) {
+		if (message_id != 0xFF) {
+			error->message = msgstr[message_id];
+		} else if (buf->HasData()) {
+			/* This is a custom error message. */
 			const char *message = buf->ReadString();
-
 			error->custom_message = TranslateTTDPatchCodes(_cur.grffile->grfid, lang, true, message, NULL, SCC_RAW_STRING_POINTER);
 		} else {
 			grfmsg(7, "GRFLoadError: No custom message supplied.");
 			error->custom_message = xstrdup("");
 		}
-	} else {
-		error->message = msgstr[message_id];
+
+		if (buf->HasData()) {
+			const char *data = buf->ReadString();
+			error->data = TranslateTTDPatchCodes(_cur.grffile->grfid, lang, true, data);
+		} else {
+			grfmsg(7, "GRFLoadError: No message data supplied.");
+			error->data = xstrdup("");
+		}
+
+		/* Only two parameter numbers can be used in the string. */
+		for (uint i = 0; i < lengthof(error->param_value) && buf->HasData(); i++) {
+			uint param_number = buf->ReadByte();
+			error->param_value[i] = _cur.grffile->GetParam(param_number);
+		}
+
+		_cur.grfconfig->error = error;
 	}
-
-	if (buf->HasData()) {
-		const char *data = buf->ReadString();
-
-		error->data = TranslateTTDPatchCodes(_cur.grffile->grfid, lang, true, data);
-	} else {
-		grfmsg(7, "GRFLoadError: No message data supplied.");
-		error->data = xstrdup("");
-	}
-
-	/* Only two parameter numbers can be used in the string. */
-	for (uint i = 0; i < lengthof(error->param_value) && buf->HasData(); i++) {
-		uint param_number = buf->ReadByte();
-		error->param_value[i] = _cur.grffile->GetParam(param_number);
-	}
-
-	_cur.grfconfig->error = error;
 }
 
 /* Action 0x0C */
