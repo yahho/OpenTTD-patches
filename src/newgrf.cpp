@@ -291,7 +291,7 @@ public:
 	}
 };
 
-typedef void (*SpecialSpriteHandler)(ByteReader *buf);
+typedef int (*SpecialSpriteHandler) (ByteReader *buf);
 
 static const uint NUM_STATIONS_PER_GRF = 255; ///< Number of StationSpecs per NewGRF; limited to 255 to allow extending Action3 with an extended byte later on.
 
@@ -4380,7 +4380,7 @@ static bool HandleChangeInfoResult(const char *caller, ChangeInfoResult cir, uin
 }
 
 /* Action 0x00 */
-static void FeatureChangeInfo(ByteReader *buf)
+static int FeatureChangeInfo (ByteReader *buf)
 {
 	/* <00> <feature> <num-props> <num-info> <id> (<property <new-info>)...
 	 *
@@ -4424,7 +4424,7 @@ static void FeatureChangeInfo(ByteReader *buf)
 
 	if (feature >= lengthof(handler) || handler[feature] == NULL) {
 		if (feature != GSF_CARGOES) grfmsg(1, "FeatureChangeInfo: Unsupported feature %d, skipping", feature);
-		return;
+		return 0;
 	}
 
 	/* Mark the feature as used by the grf */
@@ -4435,14 +4435,15 @@ static void FeatureChangeInfo(ByteReader *buf)
 
 		ChangeInfoResult cir = handler[feature](engine, numinfo, prop, buf);
 		if (HandleChangeInfoResult ("FeatureChangeInfo", cir, feature, prop)) {
-			_cur.skip_sprites = -1;
-			return;
+			return -1;
 		}
 	}
+
+	return 0;
 }
 
 /* Action 0x00 (GLS_SAFETYSCAN) */
-static void SafeChangeInfo(ByteReader *buf)
+static int SafeChangeInfo (ByteReader *buf)
 {
 	uint8 feature  = buf->ReadByte();
 	uint8 numprops = buf->ReadByte();
@@ -4453,7 +4454,7 @@ static void SafeChangeInfo(ByteReader *buf)
 		uint8 prop = buf->ReadByte();
 		/* Bridge property 0x0D is redefinition of sprite layout tables, which
 		 * is considered safe. */
-		if (prop == 0x0D) return;
+		if (prop == 0x0D) return 0;
 	} else if (feature == GSF_GLOBALVAR && numprops == 1) {
 		uint8 prop = buf->ReadByte();
 		/* Engine ID Mappings are safe, if the source is static */
@@ -4468,22 +4469,22 @@ static void SafeChangeInfo(ByteReader *buf)
 					break;
 				}
 			}
-			if (is_safe) return;
+			if (is_safe) return 0;
 		}
 	}
 
 	SetBit(_cur.grfconfig->flags, GCF_UNSAFE);
 
 	/* Skip remainder of GRF */
-	_cur.skip_sprites = -1;
+	return -1;
 }
 
 /* Action 0x00 (GLS_RESERVE) */
-static void ReserveChangeInfo(ByteReader *buf)
+static int ReserveChangeInfo (ByteReader *buf)
 {
 	uint8 feature  = buf->ReadByte();
 
-	if (feature != GSF_CARGOES && feature != GSF_GLOBALVAR && feature != GSF_RAILTYPES) return;
+	if (feature != GSF_CARGOES && feature != GSF_GLOBALVAR && feature != GSF_RAILTYPES) return 0;
 
 	uint8 numprops = buf->ReadByte();
 	uint8 numinfo  = buf->ReadByte();
@@ -4509,14 +4510,15 @@ static void ReserveChangeInfo(ByteReader *buf)
 		}
 
 		if (HandleChangeInfoResult ("ReserveChangeInfo", cir, feature, prop)) {
-			_cur.skip_sprites = -1;
-			return;
+			return -1;
 		}
 	}
+
+	return 0;
 }
 
 /* Action 0x01 */
-static void NewSpriteSet(ByteReader *buf)
+static int NewSpriteSet (ByteReader *buf)
 {
 	/* Basic format:    <01> <feature> <num-sets> <num-ent>
 	 * Extended format: <01> <feature> 00 <first-set> <num-sets> <num-ent>
@@ -4554,10 +4556,12 @@ static void NewSpriteSet(ByteReader *buf)
 		_cur.nfo_line++;
 		LoadNextSprite(_cur.spriteid++, _cur.file_index, _cur.nfo_line, _cur.grf_container_ver);
 	}
+
+	return 0;
 }
 
 /* Action 0x01 (SKIP) */
-static void SkipAct1(ByteReader *buf)
+static int SkipAct1 (ByteReader *buf)
 {
 	buf->ReadByte();
 	uint16 num_sets  = buf->ReadByte();
@@ -4570,9 +4574,9 @@ static void SkipAct1(ByteReader *buf)
 	}
 	uint16 num_ents = buf->ReadExtendedByte();
 
-	_cur.skip_sprites = num_sets * num_ents;
-
-	grfmsg(3, "SkipAct1: Skipping %d sprites", _cur.skip_sprites);
+	int skip = num_sets * num_ents;
+	grfmsg (3, "SkipAct1: Skipping %d sprites", skip);
+	return skip;
 }
 
 /* Helper function to either create a callback or link to a previously
@@ -4623,7 +4627,7 @@ static const SpriteGroup *CreateGroupFromGroupID(byte feature, byte setid, byte 
 }
 
 /* Action 0x02 */
-static void NewSpriteGroup(ByteReader *buf)
+static int NewSpriteGroup (ByteReader *buf)
 {
 	/* <02> <feature> <set-id> <type/num-entries> <feature-specific-data...>
 	 *
@@ -4767,7 +4771,7 @@ static void NewSpriteGroup(ByteReader *buf)
 
 					if (!_cur.HasValidSpriteSets(feature)) {
 						grfmsg(0, "NewSpriteGroup: No sprite set to work on! Skipping");
-						return;
+						return 0;
 					}
 
 					assert(RealSpriteGroup::CanAllocateItem());
@@ -4809,8 +4813,7 @@ static void NewSpriteGroup(ByteReader *buf)
 
 					/* On error, bail out immediately. Temporary GRF data was already freed */
 					if (ReadSpriteLayout(buf, num_building_sprites, true, feature, false, type == 0, &group->dts)) {
-						_cur.skip_sprites = -1;
-						return;
+						return -1;
 					}
 					break;
 				}
@@ -4852,6 +4855,8 @@ static void NewSpriteGroup(ByteReader *buf)
 	}
 
 	_cur.spritegroups[setid] = act_group;
+
+	return 0;
 }
 
 static CargoID TranslateCargo (uint8 ctype)
@@ -5355,7 +5360,7 @@ static void AirportTileMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 
 /* Action 0x03 */
-static void FeatureMapSpriteGroup(ByteReader *buf)
+static int FeatureMapSpriteGroup (ByteReader *buf)
 {
 	/* <03> <feature> <n-id> <ids>... <num-cid> [<cargo-type> <cid>]... <def-cid>
 	 * id-list    := [<id>] [id-list]
@@ -5379,12 +5384,12 @@ static void FeatureMapSpriteGroup(ByteReader *buf)
 		/* Skip number of cargo ids? */
 		buf->ReadByte();
 		uint16 groupid = buf->ReadWord();
-		if (!IsValidGroupID(groupid, "FeatureMapSpriteGroup")) return;
+		if (!IsValidGroupID(groupid, "FeatureMapSpriteGroup")) return 0;
 
 		grfmsg(6, "FeatureMapSpriteGroup: Adding generic feature callback for feature %d", feature);
 
 		AddGenericCallback(feature, _cur.grffile, _cur.spritegroups[groupid]);
-		return;
+		return 0;
 	}
 
 	/* Mark the feature as used by the grf (generic callbacks do not count) */
@@ -5397,59 +5402,56 @@ static void FeatureMapSpriteGroup(ByteReader *buf)
 		case GSF_ROADVEHICLES:
 		case GSF_SHIPS:
 		case GSF_AIRCRAFT:
-			if (!VehicleMapSpriteGroup(buf, feature, idcount)) {
-				_cur.skip_sprites = -1;
-			}
-			return;
+			return VehicleMapSpriteGroup (buf, feature, idcount) ? 0 : -1;
 
 		case GSF_CANALS:
 			CanalMapSpriteGroup(buf, idcount);
-			return;
+			return 0;
 
 		case GSF_STATIONS:
 			StationMapSpriteGroup(buf, idcount);
-			return;
+			return 0;
 
 		case GSF_HOUSES:
 			TownHouseMapSpriteGroup(buf, idcount);
-			return;
+			return 0;
 
 		case GSF_INDUSTRIES:
 			IndustryMapSpriteGroup(buf, idcount);
-			return;
+			return 0;
 
 		case GSF_INDUSTRYTILES:
 			IndustrytileMapSpriteGroup(buf, idcount);
-			return;
+			return 0;
 
 		case GSF_CARGOES:
 			CargoMapSpriteGroup(buf, idcount);
-			return;
+			return 0;
 
 		case GSF_AIRPORTS:
 			AirportMapSpriteGroup(buf, idcount);
-			return;
+			return 0;
 
 		case GSF_OBJECTS:
 			ObjectMapSpriteGroup(buf, idcount);
-			break;
+			return 0;
 
 		case GSF_RAILTYPES:
 			RailTypeMapSpriteGroup(buf, idcount);
-			break;
+			return 0;
 
 		case GSF_AIRPORTTILES:
 			AirportTileMapSpriteGroup(buf, idcount);
-			return;
+			return 0;
 
 		default:
 			grfmsg(1, "FeatureMapSpriteGroup: Unsupported feature %d, skipping", feature);
-			return;
+			return 0;
 	}
 }
 
 /* Action 0x04 */
-static void FeatureNewName(ByteReader *buf)
+static int FeatureNewName (ByteReader *buf)
 {
 	/* <04> <veh-type> <language-id> <num-veh> <offset> <data...>
 	 *
@@ -5564,6 +5566,8 @@ static void FeatureNewName(ByteReader *buf)
 				break;
 		}
 	}
+
+	return 0;
 }
 
 
@@ -5646,7 +5650,7 @@ static const Action5Type _action5_types[] = {
 };
 
 /* Action 0x05 */
-static void GraphicsNew(ByteReader *buf)
+static int GraphicsNew (ByteReader *buf)
 {
 	/* <05> <graphics-type> <num-sprites> <other data...>
 	 *
@@ -5668,14 +5672,13 @@ static void GraphicsNew(ByteReader *buf)
 			LoadNextSprite (shore_sprites_2[i].spr, _cur.file_index, _cur.nfo_line++, _cur.grf_container_ver);
 		}
 		if (_loaded_newgrf_features.shore == SHORE_REPLACE_NONE) _loaded_newgrf_features.shore = SHORE_REPLACE_ONLY_NEW;
-		return;
+		return 0;
 	}
 
 	/* Supported type? */
 	if ((type >= lengthof(_action5_types)) || (_action5_types[type].block_type == A5BLOCK_INVALID)) {
 		grfmsg(2, "GraphicsNew: Custom graphics (type 0x%02X) sprite block of length %u (unimplemented, ignoring)", type, num);
-		_cur.skip_sprites = num;
-		return;
+		return num;
 	}
 
 	const Action5Type *action5_type = &_action5_types[type];
@@ -5692,8 +5695,7 @@ static void GraphicsNew(ByteReader *buf)
 	 * This does not make sense, if <offset> is allowed */
 	if ((action5_type->block_type == A5BLOCK_FIXED) && (num < action5_type->min_sprites)) {
 		grfmsg(1, "GraphicsNew: %s (type 0x%02X) count must be at least %d. Only %d were specified. Skipping.", action5_type->name, type, action5_type->min_sprites, num);
-		_cur.skip_sprites = num;
-		return;
+		return num;
 	}
 
 	/* Load at most max_sprites sprites. Skip remaining sprites. (for compatibility with TTDP and future extentions) */
@@ -5722,19 +5724,19 @@ static void GraphicsNew(ByteReader *buf)
 
 	if (type == 0x0D) _loaded_newgrf_features.shore = SHORE_REPLACE_ACTION_5;
 
-	_cur.skip_sprites = skip_num;
+	return skip_num;
 }
 
 /* Action 0x05 (SKIP) */
-static void SkipAct5(ByteReader *buf)
+static int SkipAct5 (ByteReader *buf)
 {
 	/* Ignore type byte */
 	buf->ReadByte();
 
 	/* Skip the sprites of this action */
-	_cur.skip_sprites = buf->ReadExtendedByte();
-
-	grfmsg(3, "SkipAct5: Skipping %d sprites", _cur.skip_sprites);
+	int skip = buf->ReadExtendedByte();
+	grfmsg (3, "SkipAct5: Skipping %d sprites", skip);
+	return skip;
 }
 
 /**
@@ -5952,7 +5954,7 @@ static uint32 GetParamVal(byte param, uint32 *cond_val)
 }
 
 /* Action 0x06 */
-static void CfgApply(ByteReader *buf)
+static int CfgApply (ByteReader *buf)
 {
 	/* <06> <param-num> <param-size> <offset> ... <FF>
 	 *
@@ -5983,7 +5985,7 @@ static void CfgApply(ByteReader *buf)
 	if (type != 0xFF) {
 		grfmsg(2, "CfgApply: Ignoring (next sprite is real, unsupported)");
 		free(preload_sprite);
-		return;
+		return 0;
 	}
 
 	GRFLocation location(_cur.grfconfig->ident.grfid, _cur.nfo_line + 1);
@@ -6046,6 +6048,8 @@ static void CfgApply(ByteReader *buf)
 			}
 		}
 	}
+
+	return 0;
 }
 
 /**
@@ -6064,7 +6068,7 @@ static void DisableStaticNewGRFInfluencingNonStaticNewGRFs(GRFConfig *c)
 
 /* Action 0x07
  * Action 0x09 */
-static void SkipIf(ByteReader *buf)
+static int SkipIf (ByteReader *buf)
 {
 	/* <07/09> <param-num> <param-size> <condition-type> <value> <num-sprites>
 	 *
@@ -6097,7 +6101,7 @@ static void SkipIf(ByteReader *buf)
 
 	if (param < 0x80 && _cur.grffile->param_end <= param) {
 		grfmsg(7, "SkipIf: Param %d undefined, skipping test", param);
-		return;
+		return 0;
 	}
 
 	uint32 param_val = GetParamVal(param, &cond_val);
@@ -6124,7 +6128,7 @@ static void SkipIf(ByteReader *buf)
 
 		if (condtype != 10 && c == NULL) {
 			grfmsg(7, "SkipIf: GRFID 0x%08X unknown, skipping test", BSWAP32(cond_val));
-			return;
+			return 0;
 		}
 
 		switch (condtype) {
@@ -6150,7 +6154,7 @@ static void SkipIf(ByteReader *buf)
 				result = c == NULL || c->status == GCS_DISABLED || c->status == GCS_NOT_FOUND;
 				break;
 
-			default: grfmsg(1, "SkipIf: Unsupported GRF condition type %02X. Ignoring", condtype); return;
+			default: grfmsg(1, "SkipIf: Unsupported GRF condition type %02X. Ignoring", condtype); return 0;
 		}
 	} else {
 		/* Parameter or variable tests */
@@ -6176,13 +6180,13 @@ static void SkipIf(ByteReader *buf)
 			case 0x0E: result = GetRailTypeByLabel(BSWAP32(cond_val)) != INVALID_RAILTYPE;
 				break;
 
-			default: grfmsg(1, "SkipIf: Unsupported condition type %02X. Ignoring", condtype); return;
+			default: grfmsg(1, "SkipIf: Unsupported condition type %02X. Ignoring", condtype); return 0;
 		}
 	}
 
 	if (!result) {
 		grfmsg(2, "SkipIf: Not skipping sprites, test was false");
-		return;
+		return 0;
 	}
 
 	uint8 numsprites = buf->ReadByte();
@@ -6208,27 +6212,26 @@ static void SkipIf(ByteReader *buf)
 		grfmsg(2, "SkipIf: Jumping to label 0x%0X at line %d, test was true", choice->label, choice->nfo_line);
 		FioSeekTo(choice->pos, SEEK_SET);
 		_cur.nfo_line = choice->nfo_line;
-		return;
+		return 0;
 	}
 
 	grfmsg(2, "SkipIf: Skipping %d sprites, test was true", numsprites);
-	_cur.skip_sprites = numsprites;
-	if (_cur.skip_sprites == 0) {
-		/* Zero means there are no sprites to skip, so
-		 * we use -1 to indicate that all further
-		 * sprites should be skipped. */
-		_cur.skip_sprites = -1;
 
-		/* If an action 8 hasn't been encountered yet, disable the grf. */
-		if (_cur.grfconfig->status != (_cur.stage < GLS_RESERVE ? GCS_INITIALISED : GCS_ACTIVATED)) {
-			DisableCur();
-		}
+	if (numsprites != 0) return numsprites;
+
+	/* If an action 8 hasn't been encountered yet, disable the grf. */
+	if (_cur.grfconfig->status != (_cur.stage < GLS_RESERVE ? GCS_INITIALISED : GCS_ACTIVATED)) {
+		DisableCur();
 	}
+
+	/* Zero means there are no sprites to skip, so we use -1 to indicate
+	 * that all further sprites should be skipped. */
+	return -1;
 }
 
 
 /* Action 0x08 (GLS_FILESCAN) */
-static void ScanInfo(ByteReader *buf)
+static int ScanInfo (ByteReader *buf)
 {
 	uint8 grf_version = buf->ReadByte();
 	uint32 grfid      = buf->ReadDWord();
@@ -6252,11 +6255,11 @@ static void ScanInfo(ByteReader *buf)
 	}
 
 	/* GLS_INFOSCAN only looks for the action 8, so we can skip the rest of the file */
-	_cur.skip_sprites = -1;
+	return -1;
 }
 
 /* Action 0x08 */
-static void GRFInfo(ByteReader *buf)
+static int GRFInfo (ByteReader *buf)
 {
 	/* <08> <version> <grf-id> <name> <info>
 	 *
@@ -6271,8 +6274,7 @@ static void GRFInfo(ByteReader *buf)
 
 	if (_cur.stage < GLS_RESERVE && _cur.grfconfig->status != GCS_UNKNOWN) {
 		DisableCur (STR_NEWGRF_ERROR_MULTIPLE_ACTION_8);
-		_cur.skip_sprites = -1;
-		return;
+		return -1;
 	}
 
 	if (_cur.grffile->grfid != grfid) {
@@ -6285,10 +6287,12 @@ static void GRFInfo(ByteReader *buf)
 
 	/* Do swap the GRFID for displaying purposes since people expect that */
 	DEBUG(grf, 1, "GRFInfo: Loaded GRFv%d set %08X - %s (palette: %s, version: %i)", version, BSWAP32(grfid), name, (_cur.grfconfig->palette & GRFP_USE_MASK) ? "Windows" : "DOS", _cur.grfconfig->version);
+
+	return 0;
 }
 
 /* Action 0x0A */
-static void SpriteReplace(ByteReader *buf)
+static int SpriteReplace (ByteReader *buf)
 {
 	/* <0A> <num-sets> <set1> [<set2> ...]
 	 * <set>: <num-sprites> <first-sprite>
@@ -6320,25 +6324,30 @@ static void SpriteReplace(ByteReader *buf)
 			}
 		}
 	}
+
+	return 0;
 }
 
 /* Action 0x0A (SKIP) */
-static void SkipActA(ByteReader *buf)
+static int SkipActA (ByteReader *buf)
 {
 	uint8 num_sets = buf->ReadByte();
 
+	int skip = 0;
 	for (uint i = 0; i < num_sets; i++) {
 		/* Skip the sprites this replaces */
-		_cur.skip_sprites += buf->ReadByte();
+		skip += buf->ReadByte();
 		/* But ignore where they go */
 		buf->ReadWord();
 	}
 
-	grfmsg(3, "SkipActA: Skipping %d sprites", _cur.skip_sprites);
+	grfmsg (3, "SkipActA: Skipping %d sprites", skip);
+
+	return skip;
 }
 
 /* Action 0x0B */
-static void GRFLoadError(ByteReader *buf)
+static int GRFLoadError (ByteReader *buf)
 {
 	/* <0B> <severity> <language-id> <message-id> [<message...> 00] [<data...>] 00 [<parnum>]
 	 *
@@ -6377,13 +6386,13 @@ static void GRFLoadError(ByteReader *buf)
 	byte message_id = buf->ReadByte();
 
 	/* Skip the error if it isn't valid for the current language. */
-	if (!CheckGrfLangID(lang, _cur.grffile->grf_version)) return;
+	if (!CheckGrfLangID(lang, _cur.grffile->grf_version)) return 0;
 
 	/* Skip the error until the activation stage unless bit 7 of the severity
 	 * is set. */
 	if (!HasBit(severity, 7) && _cur.stage == GLS_INIT) {
 		grfmsg(7, "GRFLoadError: Skipping non-fatal GRFLoadError in stage %d", _cur.stage);
-		return;
+		return 0;
 	}
 	ClrBit(severity, 7);
 
@@ -6394,7 +6403,6 @@ static void GRFLoadError(ByteReader *buf)
 		/* This is a fatal error, so make sure the GRF is deactivated and no
 		 * more of it gets loaded. */
 		DisableCur();
-		_cur.skip_sprites = -1;
 
 		/* Make sure we show fatal errors, instead of silly infos from before */
 		delete _cur.grfconfig->error;
@@ -6438,28 +6446,29 @@ static void GRFLoadError(ByteReader *buf)
 
 		_cur.grfconfig->error = error;
 	}
+
+	return (severity == 3) ? -1 : 0;
 }
 
 /* Action 0x0C */
-static void GRFComment(ByteReader *buf)
+static int GRFComment (ByteReader *buf)
 {
 	/* <0C> [<ignored...>]
 	 *
 	 * V ignored       Anything following the 0C is ignored */
 
-	if (!buf->HasData()) return;
+	if (buf->HasData()) grfmsg (2, "GRFComment: %s", buf->ReadString());
 
-	const char *text = buf->ReadString();
-	grfmsg(2, "GRFComment: %s", text);
+	return 0;
 }
 
 /* Action 0x0D (GLS_SAFETYSCAN) */
-static void SafeParamSet(ByteReader *buf)
+static int SafeParamSet (ByteReader *buf)
 {
 	uint8 target = buf->ReadByte();
 
 	/* Only writing GRF parameters is considered safe */
-	if (target < 0x80) return;
+	if (target < 0x80) return 0;
 
 	/* GRM could be unsafe, but as here it can only happen after other GRFs
 	 * are loaded, it should be okay. If the GRF tried to use the slots it
@@ -6469,7 +6478,7 @@ static void SafeParamSet(ByteReader *buf)
 	SetBit(_cur.grfconfig->flags, GCF_UNSAFE);
 
 	/* Skip remainder of GRF */
-	_cur.skip_sprites = -1;
+	return -1;
 }
 
 
@@ -6599,7 +6608,7 @@ static bool PerformGRM (uint32 *grm, uint16 num_ids, uint16 count,
 
 
 /** Action 0x0D: Set parameter */
-static void ParamSet(ByteReader *buf)
+static int ParamSet (ByteReader *buf)
 {
 	/* <0D> <target> <operation> <source1> <source2> [<data>]
 	 *
@@ -6640,7 +6649,7 @@ static void ParamSet(ByteReader *buf)
 	if (HasBit(oper, 7)) {
 		if (target < 0x80 && target < _cur.grffile->param_end) {
 			grfmsg(7, "ParamSet: Param %u already defined, skipping", target);
-			return;
+			return 0;
 		}
 
 		oper = GB(oper, 0, 7);
@@ -6686,8 +6695,7 @@ static void ParamSet(ByteReader *buf)
 					if (_cur.spriteid + count >= 16384) {
 						grfmsg(0, "ParamSet: GRM: Unable to allocate %d sprites; try changing NewGRF order", count);
 						DisableCur (STR_NEWGRF_ERROR_GRM_FAILED);
-						_cur.skip_sprites = -1;
-						return;
+						return -1;
 					}
 
 					/* Reserve space at the current sprite ID */
@@ -6706,8 +6714,7 @@ static void ParamSet(ByteReader *buf)
 				case 0x03: // Aircraft
 					if (!_settings_game.vehicle.dynamic_engines) {
 						if (!PerformGRM (&_grm_engines[_engine_offsets[feature]], _engine_counts[feature], count, op, target, &src1, "vehicles")) {
-							_cur.skip_sprites = -1;
-							return;
+							return -1;
 						}
 					} else {
 						/* GRM does not apply for dynamic engine allocation. */
@@ -6738,19 +6745,18 @@ static void ParamSet(ByteReader *buf)
 
 						default:
 							grfmsg(1, "ParamSet: GRM: Unsupported operation %d for general sprites", op);
-							return;
+							return 0;
 					}
 					break;
 
 				case 0x0B: // Cargo
 					/* There are two ranges: one for cargo IDs and one for cargo bitmasks */
 					if (!PerformGRM (_grm_cargoes, NUM_CARGO * 2, count, op, target, &src1, "cargoes")) {
-						_cur.skip_sprites = -1;
-						return;
+						return -1;
 					}
 					break;
 
-				default: grfmsg(1, "ParamSet: GRM: Unsupported feature 0x%X", feature); return;
+				default: grfmsg(1, "ParamSet: GRM: Unsupported feature 0x%X", feature); return 0;
 			}
 		} else {
 			/* Ignore GRM during initialization */
@@ -6842,7 +6848,7 @@ static void ParamSet(ByteReader *buf)
 			}
 			break;
 
-		default: grfmsg(0, "ParamSet: Unknown operation %d, skipping", oper); return;
+		default: grfmsg(0, "ParamSet: Unknown operation %d, skipping", oper); return 0;
 	}
 
 	switch (target) {
@@ -6897,10 +6903,12 @@ static void ParamSet(ByteReader *buf)
 			}
 			break;
 	}
+
+	return 0;
 }
 
 /* Action 0x0E (GLS_SAFETYSCAN) */
-static void SafeGRFInhibit(ByteReader *buf)
+static int SafeGRFInhibit (ByteReader *buf)
 {
 	/* <0E> <num> <grfids...>
 	 *
@@ -6917,15 +6925,15 @@ static void SafeGRFInhibit(ByteReader *buf)
 			SetBit(_cur.grfconfig->flags, GCF_UNSAFE);
 
 			/* Skip remainder of GRF */
-			_cur.skip_sprites = -1;
-
-			return;
+			return -1;
 		}
 	}
+
+	return 0;
 }
 
 /* Action 0x0E */
-static void GRFInhibit(ByteReader *buf)
+static int GRFInhibit (ByteReader *buf)
 {
 	/* <0E> <num> <grfids...>
 	 *
@@ -6944,10 +6952,12 @@ static void GRFInhibit(ByteReader *buf)
 			DisableGrf (STR_NEWGRF_ERROR_FORCEFULLY_DISABLED, file);
 		}
 	}
+
+	return 0;
 }
 
 /** Action 0x0F - Define Town names */
-static void FeatureTownName(ByteReader *buf)
+static int FeatureTownName (ByteReader *buf)
 {
 	/* <0F> <id> <style-name> <num-parts> <parts>
 	 *
@@ -7013,8 +7023,7 @@ static void FeatureTownName(ByteReader *buf)
 					grfmsg(0, "FeatureTownName: definition 0x%02X doesn't exist, deactivating", ref_id);
 					DelGRFTownName(grfid);
 					DisableCur (STR_NEWGRF_ERROR_INVALID_ID);
-					_cur.skip_sprites = -1;
-					return;
+					return -1;
 				}
 
 				grfmsg(6, "FeatureTownName: part %d, text %d, uses intermediate definition 0x%02X (with probability %d)", i, j, ref_id, prob & 0x7F);
@@ -7029,10 +7038,12 @@ static void FeatureTownName(ByteReader *buf)
 		}
 		grfmsg(6, "FeatureTownName: part %d, total probability %d", i, townname->partlist[id][i].maxprob);
 	}
+
+	return 0;
 }
 
 /** Action 0x10 - Define goto label */
-static void DefineGotoLabel(ByteReader *buf)
+static int DefineGotoLabel (ByteReader *buf)
 {
 	/* <10> <label> [<comment>]
 	 *
@@ -7058,6 +7069,8 @@ static void DefineGotoLabel(ByteReader *buf)
 	}
 
 	grfmsg(2, "DefineGotoLabel: GOTO target with label 0x%02X", label->label);
+
+	return 0;
 }
 
 /**
@@ -7110,14 +7123,14 @@ static void LoadGRFSound(size_t offs, SoundEntry *sound)
 }
 
 /* Action 0x11 */
-static void GRFSound(ByteReader *buf)
+static int GRFSound (ByteReader *buf)
 {
 	/* <11> <num>
 	 *
 	 * W num      Number of sound files that follow */
 
 	uint16 num = buf->ReadWord();
-	if (num == 0) return;
+	if (num == 0) return 0;
 
 	SoundEntry *sound;
 	if (_cur.grffile->sound_offset == 0) {
@@ -7198,22 +7211,24 @@ static void GRFSound(ByteReader *buf)
 				break;
 		}
 	}
+
+	return 0;
 }
 
 /* Action 0x11 (SKIP) */
-static void SkipAct11(ByteReader *buf)
+static int SkipAct11 (ByteReader *buf)
 {
 	/* <11> <num>
 	 *
 	 * W num      Number of sound files that follow */
 
-	_cur.skip_sprites = buf->ReadWord();
-
-	grfmsg(3, "SkipAct11: Skipping %d sprites", _cur.skip_sprites);
+	int skip = buf->ReadWord();
+	grfmsg (3, "SkipAct11: Skipping %d sprites", skip);
+	return skip;
 }
 
 /** Action 0x12 */
-static void LoadFontGlyph(ByteReader *buf)
+static int LoadFontGlyph (ByteReader *buf)
 {
 	/* <12> <num_def> <font_size> <num_char> <base_char>
 	 *
@@ -7241,10 +7256,12 @@ static void LoadFontGlyph(ByteReader *buf)
 			LoadNextSprite(_cur.spriteid++, _cur.file_index, _cur.nfo_line, _cur.grf_container_ver);
 		}
 	}
+
+	return 0;
 }
 
 /** Action 0x12 (SKIP) */
-static void SkipAct12(ByteReader *buf)
+static int SkipAct12 (ByteReader *buf)
 {
 	/* <12> <num_def> <font_size> <num_char> <base_char>
 	 *
@@ -7255,22 +7272,25 @@ static void SkipAct12(ByteReader *buf)
 
 	uint8 num_def = buf->ReadByte();
 
+	int skip = 0;
 	for (uint i = 0; i < num_def; i++) {
 		/* Ignore 'size' byte */
 		buf->ReadByte();
 
 		/* Sum up number of characters */
-		_cur.skip_sprites += buf->ReadByte();
+		skip += buf->ReadByte();
 
 		/* Ignore 'base_char' word */
 		buf->ReadWord();
 	}
 
-	grfmsg(3, "SkipAct12: Skipping %d sprites", _cur.skip_sprites);
+	grfmsg (3, "SkipAct12: Skipping %d sprites", skip);
+
+	return skip;
 }
 
 /** Action 0x13 */
-static void TranslateGRFStrings(ByteReader *buf)
+static int TranslateGRFStrings (ByteReader *buf)
 {
 	/* <13> <grfid> <num-ent> <offset> <text...>
 	 *
@@ -7283,20 +7303,19 @@ static void TranslateGRFStrings(ByteReader *buf)
 	const GRFConfig *c = GetGRFConfig(grfid);
 	if (c == NULL || (c->status != GCS_INITIALISED && c->status != GCS_ACTIVATED)) {
 		grfmsg(7, "TranslateGRFStrings: GRFID 0x%08x unknown, skipping action 13", BSWAP32(grfid));
-		return;
+		return 0;
 	}
 
 	if (c->status == GCS_INITIALISED) {
 		/* If the file is not active but will be activated later, give an error
 		 * and disable this file. */
 		GRFError *error = DisableCur (STR_NEWGRF_ERROR_LOAD_AFTER);
-		_cur.skip_sprites = -1;
 
 		char tmp[256];
 		GetString (tmp, STR_NEWGRF_ERROR_AFTER_TRANSLATED_FILE);
 		error->data = xstrdup(tmp);
 
-		return;
+		return -1;
 	}
 
 	/* Since no language id is supplied for with version 7 and lower NewGRFs, this string has
@@ -7310,7 +7329,7 @@ static void TranslateGRFStrings(ByteReader *buf)
 
 	if (!((first_id >= 0xD000 && first_id + num_strings <= 0xD3FF) || (first_id >= 0xDC00 && first_id + num_strings <= 0xDCFF))) {
 		grfmsg(7, "TranslateGRFStrings: Attempting to set out-of-range string IDs in action 13 (first: 0x%4X, number: 0x%2X)", first_id, num_strings);
-		return;
+		return 0;
 	}
 
 	for (uint i = 0; i < num_strings && buf->HasData(); i++) {
@@ -7323,6 +7342,8 @@ static void TranslateGRFStrings(ByteReader *buf)
 
 		AddGRFString(grfid, first_id + i, language, true, true, string, STR_UNDEFINED);
 	}
+
+	return 0;
 }
 
 /** Callback function for 'INFO'->'NAME' to add a translation to the newgrf name. */
@@ -7803,10 +7824,11 @@ static bool HandleNodes(ByteReader *buf, AllowedSubtags subtags[])
  * Handle Action 0x14
  * @param buf Buffer.
  */
-static void StaticGRFInfo(ByteReader *buf)
+static int StaticGRFInfo (ByteReader *buf)
 {
 	/* <14> <type> <id> <text/data...> */
 	HandleNodes(buf, _tags_root);
+	return 0;
 }
 
 /**
@@ -7814,12 +7836,12 @@ static void StaticGRFInfo(ByteReader *buf)
  * @param buf Unused.
  * @note Used during safety scan on unsafe actions.
  */
-static void GRFUnsafe(ByteReader *buf)
+static int GRFUnsafe (ByteReader *buf)
 {
 	SetBit(_cur.grfconfig->flags, GCF_UNSAFE);
 
 	/* Skip remainder of GRF */
-	_cur.skip_sprites = -1;
+	return -1;
 }
 
 
@@ -8822,7 +8844,7 @@ static void DecodeSpecialSprite(byte *buf, uint num, GrfLoadingStage stage)
 			grfmsg(7, "DecodeSpecialSprite: Skipping action 0x%02X in stage %d", action, stage);
 		} else {
 			grfmsg(7, "DecodeSpecialSprite: Handling action 0x%02X in stage %d", action, stage);
-			handlers[action][stage](bufp);
+			_cur.skip_sprites = handlers[action][stage](bufp);
 		}
 	} catch (...) {
 		grfmsg(1, "DecodeSpecialSprite: Tried to read past end of pseudo-sprite data");
