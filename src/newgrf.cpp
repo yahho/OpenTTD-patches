@@ -8774,7 +8774,7 @@ static void FinaliseAirportsArray()
  * XXX: We consider GRF files trusted. It would be trivial to exploit OTTD by
  * a crafted invalid GRF file. We should tell that to the user somehow, or
  * better make this more robust in the future. */
-static void DecodeSpecialSprite(byte *buf, uint num, GrfLoadingStage stage)
+static int DecodeSpecialSprite (byte *buf, uint num, GrfLoadingStage stage)
 {
 	/* XXX: There is a difference between staged loading in TTDPatch and
 	 * here.  In TTDPatch, for some reason actions 1 and 2 are carried out
@@ -8844,13 +8844,15 @@ static void DecodeSpecialSprite(byte *buf, uint num, GrfLoadingStage stage)
 			grfmsg(7, "DecodeSpecialSprite: Skipping action 0x%02X in stage %d", action, stage);
 		} else {
 			grfmsg(7, "DecodeSpecialSprite: Handling action 0x%02X in stage %d", action, stage);
-			_cur.skip_sprites = handlers[action][stage](bufp);
+			return handlers[action][stage](bufp);
 		}
 	} catch (...) {
 		grfmsg(1, "DecodeSpecialSprite: Tried to read past end of pseudo-sprite data");
 		DisableCur (STR_NEWGRF_ERROR_READ_BOUNDS);
-		_cur.skip_sprites = -1;
+		return -1;
 	}
+
+	return 0;
 }
 
 
@@ -8968,7 +8970,7 @@ void LoadNewGRFFile(GRFConfig *config, uint file_index, GrfLoadingStage stage, S
 
 		if (type == 0xFF) {
 			if (_cur.skip_sprites == 0) {
-				DecodeSpecialSprite(buf.Allocate(num), num, stage);
+				_cur.skip_sprites = DecodeSpecialSprite (buf.Allocate(num), num, stage);
 
 				/* Stop all processing if we are to skip the remaining sprites */
 				if (_cur.skip_sprites == -1) break;
