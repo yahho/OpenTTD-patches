@@ -4912,7 +4912,7 @@ static bool IsValidGroupID(uint16 groupid, const char *function)
 	return true;
 }
 
-static void VehicleMapSpriteGroup(ByteReader *buf, byte feature, uint8 idcount)
+static bool VehicleMapSpriteGroup (ByteReader *buf, byte feature, uint8 idcount)
 {
 	static EngineID *last_engines;
 	static uint last_engines_count;
@@ -4926,7 +4926,7 @@ static void VehicleMapSpriteGroup(ByteReader *buf, byte feature, uint8 idcount)
 
 		if (last_engines_count == 0) {
 			grfmsg(0, "VehicleMapSpriteGroup: WagonOverride: No engine to do override with");
-			return;
+			return true;
 		}
 
 		grfmsg(6, "VehicleMapSpriteGroup: WagonOverride: %u engines, %u wagons",
@@ -4946,8 +4946,7 @@ static void VehicleMapSpriteGroup(ByteReader *buf, byte feature, uint8 idcount)
 			 * this might look bad. Also make sure this NewGRF
 			 * gets disabled, as a half loaded one is bad. */
 			HandleChangeInfoResult("VehicleMapSpriteGroup", CIR_INVALID_ID, 0, 0);
-			_cur.skip_sprites = -1;
-			return;
+			return false;
 		}
 
 		engines[i] = e->index;
@@ -4979,7 +4978,7 @@ static void VehicleMapSpriteGroup(ByteReader *buf, byte feature, uint8 idcount)
 	}
 
 	uint16 groupid = buf->ReadWord();
-	if (!IsValidGroupID(groupid, "VehicleMapSpriteGroup")) return;
+	if (!IsValidGroupID(groupid, "VehicleMapSpriteGroup")) return true;
 
 	grfmsg(8, "-- Default group id 0x%04X", groupid);
 
@@ -4993,6 +4992,8 @@ static void VehicleMapSpriteGroup(ByteReader *buf, byte feature, uint8 idcount)
 			SetEngineGRF(engine, _cur.grffile);
 		}
 	}
+
+	return true;
 }
 
 
@@ -5396,7 +5397,9 @@ static void FeatureMapSpriteGroup(ByteReader *buf)
 		case GSF_ROADVEHICLES:
 		case GSF_SHIPS:
 		case GSF_AIRCRAFT:
-			VehicleMapSpriteGroup(buf, feature, idcount);
+			if (!VehicleMapSpriteGroup(buf, feature, idcount)) {
+				_cur.skip_sprites = -1;
+			}
 			return;
 
 		case GSF_CANALS:
