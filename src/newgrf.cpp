@@ -6552,14 +6552,16 @@ static uint32 GetPatchVariable(uint8 param)
 }
 
 
-static uint32 PerformGRM(uint32 *grm, uint16 num_ids, uint16 count, uint8 op, uint8 target, const char *type)
+static bool PerformGRM (uint32 *grm, uint16 num_ids, uint16 count,
+	uint8 op, uint8 target, uint32 *res, const char *type)
 {
 	uint start = 0;
 	uint size  = 0;
 
 	if (op == 6) {
 		/* Return GRFID of set that reserved ID */
-		return grm[_cur.grffile->GetParam(target)];
+		*res = grm[_cur.grffile->GetParam(target)];
+		return true;
 	}
 
 	/* With an operation of 2 or 3, we want to reserve a specific block of IDs */
@@ -6583,7 +6585,8 @@ static uint32 PerformGRM(uint32 *grm, uint16 num_ids, uint16 count, uint8 op, ui
 			grfmsg(2, "ParamSet: GRM: Reserving %d %s at %d", count, type, start);
 			for (uint i = 0; i < count; i++) grm[start + i] = _cur.grffile->grfid;
 		}
-		return start;
+		*res = start;
+		return true;
 	}
 
 	/* Unable to allocate */
@@ -6591,12 +6594,12 @@ static uint32 PerformGRM(uint32 *grm, uint16 num_ids, uint16 count, uint8 op, ui
 		/* Deactivate GRF */
 		grfmsg(0, "ParamSet: GRM: Unable to allocate %d %s, deactivating", count, type);
 		DisableCur (STR_NEWGRF_ERROR_GRM_FAILED);
-		_cur.skip_sprites = -1;
-		return UINT_MAX;
+		return false;
 	}
 
 	grfmsg(1, "ParamSet: GRM: Unable to allocate %d %s", count, type);
-	return UINT_MAX;
+	*res = UINT_MAX;
+	return true;
 }
 
 
@@ -6707,8 +6710,10 @@ static void ParamSet(ByteReader *buf)
 				case 0x02: // Ships
 				case 0x03: // Aircraft
 					if (!_settings_game.vehicle.dynamic_engines) {
-						src1 = PerformGRM(&_grm_engines[_engine_offsets[feature]], _engine_counts[feature], count, op, target, "vehicles");
-						if (_cur.skip_sprites == -1) return;
+						if (!PerformGRM (&_grm_engines[_engine_offsets[feature]], _engine_counts[feature], count, op, target, &src1, "vehicles")) {
+							_cur.skip_sprites = -1;
+							return;
+						}
 					} else {
 						/* GRM does not apply for dynamic engine allocation. */
 						switch (op) {
@@ -6744,8 +6749,10 @@ static void ParamSet(ByteReader *buf)
 
 				case 0x0B: // Cargo
 					/* There are two ranges: one for cargo IDs and one for cargo bitmasks */
-					src1 = PerformGRM(_grm_cargoes, NUM_CARGO * 2, count, op, target, "cargoes");
-					if (_cur.skip_sprites == -1) return;
+					if (!PerformGRM (_grm_cargoes, NUM_CARGO * 2, count, op, target, &src1, "cargoes")) {
+						_cur.skip_sprites = -1;
+						return;
+					}
 					break;
 
 				default: grfmsg(1, "ParamSet: GRM: Unsupported feature 0x%X", feature); return;
