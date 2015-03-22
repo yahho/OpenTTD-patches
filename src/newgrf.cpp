@@ -100,9 +100,6 @@ public:
 	uint32 nfo_line;          ///< Currently processed pseudo sprite number in the GRF.
 	byte grf_container_ver;   ///< Container format of the current GRF file.
 
-	/* Kind of return values when processing certain actions */
-	int skip_sprites;         ///< Number of psuedo sprites to skip before processing the next one. (-1 to skip to end of file)
-
 	/* Currently referenceable spritegroups */
 	SpriteGroup *spritegroups[MAX_SPRITEGROUP + 1];
 
@@ -110,7 +107,6 @@ public:
 	void ClearDataForNextFile()
 	{
 		this->nfo_line = 0;
-		this->skip_sprites = 0;
 
 		for (uint i = 0; i < GSF_END; i++) {
 			this->spritesets[i].clear();
@@ -8963,27 +8959,27 @@ void LoadNewGRFFile(GRFConfig *config, uint file_index, GrfLoadingStage stage, S
 	_cur.ClearDataForNextFile();
 
 	ReusableBuffer<byte> buf;
+	int skip_sprites = 0;
 
 	while ((num = (_cur.grf_container_ver >= 2 ? FioReadDword() : FioReadWord())) != 0) {
 		byte type = FioReadByte();
 		_cur.nfo_line++;
 
 		if (type == 0xFF) {
-			if (_cur.skip_sprites == 0) {
-				_cur.skip_sprites = DecodeSpecialSprite (buf.Allocate(num), num, stage);
+			if (skip_sprites == 0) {
+				skip_sprites = DecodeSpecialSprite (buf.Allocate(num), num, stage);
 
 				/* Stop all processing if we are to skip the remaining sprites */
-				if (_cur.skip_sprites == -1) break;
+				if (skip_sprites == -1) break;
 
 				continue;
 			} else {
 				FioSkipBytes(num);
 			}
 		} else {
-			if (_cur.skip_sprites == 0) {
+			if (skip_sprites == 0) {
 				grfmsg(0, "LoadNewGRFFile: Unexpected sprite, disabling");
 				DisableCur (STR_NEWGRF_ERROR_UNEXPECTED_SPRITE);
-				_cur.skip_sprites = -1;
 				break;
 			}
 
@@ -8996,7 +8992,7 @@ void LoadNewGRFFile(GRFConfig *config, uint file_index, GrfLoadingStage stage, S
 			}
 		}
 
-		if (_cur.skip_sprites > 0) _cur.skip_sprites--;
+		if (skip_sprites > 0) skip_sprites--;
 	}
 }
 
