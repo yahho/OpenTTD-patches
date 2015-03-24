@@ -129,7 +129,9 @@ void AfterLoadStations()
 	FOR_ALL_BASE_STATIONS(st) {
 		/* Old (pre-openttd version 37) savegames could have the
 		 * station sign outside of the station rectangle. */
-		st->xy = st->rect.get_closest_tile (st->xy);
+		if (!st->rect.empty()) {
+			st->xy = st->rect.get_closest_tile (st->xy);
+		}
 
 		if (!st->IsWaypoint()) {
 			Station *sta = Station::From(st);
