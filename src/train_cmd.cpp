@@ -3448,12 +3448,16 @@ static Trackdir TrainControllerChooseTrackdir(Train *v, TileIndex tile, DiagDire
 
 	assert (signalpair_has_signals (&sp));
 
+	/* Is the train stuck at the wrong side of a one-way signal? */
+	bool blocked;
+
 	if (!signalpair_has_signal (&sp, !is_along)) {
 		/* No signal against; wait here for the signal to clear. */
 		v->cur_speed = 0;
 		v->subspeed = 0;
 		v->progress = 255 - 100;
 		if (!_settings_game.pf.reverse_at_signals || ++v->wait_counter < _settings_game.pf.wait_oneway_signal * 20) return INVALID_TRACKDIR;
+		blocked = false;
 	} else if (signalpair_has_signal (&sp, is_along)) {
 		/* Signals both along and against. */
 		v->cur_speed = 0;
@@ -3479,15 +3483,18 @@ static Trackdir TrainControllerChooseTrackdir(Train *v, TileIndex tile, DiagDire
 			}
 			if (!iter.was_found()) return INVALID_TRACKDIR;
 		}
+		blocked = false;
 	} else {
 		/* Signal against, but not along; reverse immediately. */
+		assert (IsOnewaySignal (signalpair_get_type (&sp)));
+		blocked = true;
 	}
 
 	/* If we would reverse but are currently in a PBS block and
 	 * reversing of stuck trains is disabled, don't reverse.
 	 * This does not apply if the reason for reversing is a one-way
 	 * signal blocking us, because a train would then be stuck forever. */
-	if (!_settings_game.pf.reverse_at_signals && !HasOnewaySignalBlockingTrackdir(tile, chosen_trackdir)) {
+	if (!blocked && !_settings_game.pf.reverse_at_signals) {
 		assert(IsSignalBufferEmpty());
 		AddPosToSignalBuffer(v->GetPos(), v->owner);
 		if (UpdateSignalsInBuffer() == SIGSEG_PBS) {
