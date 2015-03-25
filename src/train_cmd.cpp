@@ -3431,16 +3431,36 @@ static Trackdir TrainControllerChooseTrackdir(Train *v, TileIndex tile, DiagDire
 	/* Don't handle stuck trains here. */
 	if (HasBit(v->flags, VRF_TRAIN_STUCK)) return INVALID_TRACKDIR;
 
-	if (!HasSignalOnTrackdir(tile, ReverseTrackdir(chosen_trackdir))) {
+	bool is_track = IsRailwayTile (tile);
+
+	SignalPair sp;
+	bool is_along;
+	if (is_track) {
+		sp = *maptile_signalpair (tile, TrackdirToTrack (chosen_trackdir));
+		is_along = trackdir_is_signal_along (chosen_trackdir);
+	} else {
+		assert (maptile_is_rail_tunnel (tile));
+		assert (IsDiagonalTrackdir (chosen_trackdir));
+		sp = *maptile_tunnel_signalpair (tile);
+		/* For tunnels, along means inwards. */
+		is_along = (chosen_trackdir == DiagDirToDiagTrackdir (GetTunnelBridgeDirection (tile)));
+	}
+
+	assert (signalpair_has_signals (&sp));
+
+	if (!signalpair_has_signal (&sp, !is_along)) {
+		/* No signal against; wait here for the signal to clear. */
 		v->cur_speed = 0;
 		v->subspeed = 0;
 		v->progress = 255 - 100;
 		if (!_settings_game.pf.reverse_at_signals || ++v->wait_counter < _settings_game.pf.wait_oneway_signal * 20) return INVALID_TRACKDIR;
-	} else if (HasSignalOnTrackdir(tile, chosen_trackdir)) {
+	} else if (signalpair_has_signal (&sp, is_along)) {
+		/* Signals both along and against. */
 		v->cur_speed = 0;
 		v->subspeed = 0;
 		v->progress = 255 - 10;
-		if (!_settings_game.pf.reverse_at_signals || ++v->wait_counter < _settings_game.pf.wait_twoway_signal * 73) {
+		if ((!_settings_game.pf.reverse_at_signals || ++v->wait_counter < _settings_game.pf.wait_twoway_signal * 73)
+				&& (is_track || !is_along)) {
 			DiagDirection exitdir = TrackdirToExitdir(chosen_trackdir);
 			TileIndex o_tile = TileAddByDiagDir(tile, exitdir);
 
@@ -3459,6 +3479,8 @@ static Trackdir TrainControllerChooseTrackdir(Train *v, TileIndex tile, DiagDire
 			}
 			if (!iter.was_found()) return INVALID_TRACKDIR;
 		}
+	} else {
+		/* Signal against, but not along; reverse immediately. */
 	}
 
 	/* If we would reverse but are currently in a PBS block and
