@@ -546,28 +546,30 @@ void DrawBridgeTramBits(int x, int y, int z, int offset, bool overlay, bool head
 		uint size_x, size_y, front_bb_offset_x, front_bb_offset_y;
 	};
 
+#define S(x) (SPR_TRAMWAY_BASE + (x))
 	static const SpriteData sprite_data[6] = {
-		{ { 107,  4 },  95,  97,  1, 16, 15,  0 },
-		{ { 108,  5 },  96,  98, 16,  1,  0, 15 },
-		{ { 109, 15 },  99, 103, 16,  1,  0, 15 },
-		{ { 110, 16 }, 102, 106,  1, 16, 15,  0 },
-		{ { 111, 17 }, 100, 104, 16,  1,  0, 15 },
-		{ { 112, 18 }, 101, 105,  1, 16, 15,  0 },
+		{ { S(107), S( 4) }, S( 95), S( 97),  1, 16, 15,  0 },
+		{ { S(108), S( 5) }, S( 96), S( 98), 16,  1,  0, 15 },
+		{ { S(109), S(15) }, S( 99), S(103), 16,  1,  0, 15 },
+		{ { S(110), S(16) }, S(102), S(106),  1, 16, 15,  0 },
+		{ { S(111), S(17) }, S(100), S(104), 16,  1,  0, 15 },
+		{ { S(112), S(18) }, S(101), S(105),  1, 16, 15,  0 },
 	};
+#undef S
 
 	const SpriteData *data = &sprite_data[offset];
 
 	/* The sprites under the vehicles are drawn as SpriteCombine. StartSpriteCombine() has already been called
 	 * The bounding boxes here are the same as for bridge front/roof */
 	if (head || !IsInvisibilitySet(TO_BRIDGES)) {
-		AddSortableSpriteToDraw(SPR_TRAMWAY_BASE + data->tram[overlay], PAL_NONE,
+		AddSortableSpriteToDraw (data->tram[overlay], PAL_NONE,
 			x, y, data->size_x, data->size_y, 0x28, z,
 			!head && IsTransparencySet(TO_BRIDGES));
 	}
 
 	/* Do not draw catenary if it is set invisible */
 	if (!IsInvisibilitySet(TO_CATENARY)) {
-		AddSortableSpriteToDraw(SPR_TRAMWAY_BASE + data->back, PAL_NONE,
+		AddSortableSpriteToDraw (data->back, PAL_NONE,
 			x, y, data->size_x, data->size_y, 0x28, z,
 			IsTransparencySet(TO_CATENARY));
 	}
@@ -578,7 +580,7 @@ void DrawBridgeTramBits(int x, int y, int z, int offset, bool overlay, bool head
 
 	/* For sloped sprites the bounding box needs to be higher, as the pylons stop on a higher point */
 	if (!IsInvisibilitySet(TO_CATENARY)) {
-		AddSortableSpriteToDraw(SPR_TRAMWAY_BASE + data->front, PAL_NONE,
+		AddSortableSpriteToDraw (data->front, PAL_NONE,
 			x, y, data->size_x + data->front_bb_offset_x, data->size_y + data->front_bb_offset_y, 0x28, z,
 			IsTransparencySet(TO_CATENARY), data->front_bb_offset_x, data->front_bb_offset_y);
 	}
