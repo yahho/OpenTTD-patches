@@ -3289,10 +3289,19 @@ static void DrawTile_Track(TileInfo *ti)
 
 		/* PBS debugging, draw reserved tracks darker */
 		if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && GetRailReservationTrackBits(ti->tile) != TRACK_BIT_NONE) {
-			if (HasBridgeFlatRamp(ti->tileh, DiagDirToAxis(dir))) {
-				AddSortableSpriteToDraw(DiagDirToAxis(dir) == AXIS_X ? rti->base_sprites.single_x : rti->base_sprites.single_y, PALETTE_CRASH, ti->x, ti->y, 16, 16, 0, ti->z + 8);
+			if (rti->UsesOverlay()) {
+				SpriteID overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY);
+				if (HasBridgeFlatRamp(ti->tileh, DiagDirToAxis(dir))) {
+					AddSortableSpriteToDraw(overlay + RTO_X + DiagDirToAxis(dir), PALETTE_CRASH, ti->x, ti->y, 16, 16, 0, ti->z + 8);
+				} else {
+					AddSortableSpriteToDraw(overlay + RTO_SLOPE_NE + dir, PALETTE_CRASH, ti->x, ti->y, 16, 16, 8, ti->z);
+				}
 			} else {
-				AddSortableSpriteToDraw(rti->base_sprites.single_sloped + dir, PALETTE_CRASH, ti->x, ti->y, 16, 16, 8, ti->z);
+				if (HasBridgeFlatRamp(ti->tileh, DiagDirToAxis(dir))) {
+					AddSortableSpriteToDraw(DiagDirToAxis(dir) == AXIS_X ? rti->base_sprites.single_x : rti->base_sprites.single_y, PALETTE_CRASH, ti->x, ti->y, 16, 16, 0, ti->z + 8);
+				} else {
+					AddSortableSpriteToDraw(rti->base_sprites.single_sloped + dir, PALETTE_CRASH, ti->x, ti->y, 16, 16, 8, ti->z);
+				}
 			}
 		}
 
