@@ -919,14 +919,13 @@ bool TarCache::add (const char *filename, size_t basepath_length)
  * Extract the tar with the given filename in the directory
  * where the tar resides.
  * @param tar_filename the name of the tar to extract.
- * @param subdir The sub directory the tar is in.
  * @return false on failure.
  */
-bool ExtractTar(const char *tar_filename, Subdirectory subdir)
+bool TarCache::extract (const char *tar_filename)
 {
-	TarList::iterator it = TarCache::cache[subdir].tars.find(tar_filename);
+	TarList::iterator it = this->tars.find(tar_filename);
 	/* We don't know the file. */
-	if (it == TarCache::cache[subdir].tars.end()) return false;
+	if (it == this->tars.end()) return false;
 
 	/* The file doesn't have a sub directory! */
 	if (!(*it).second.dirname) return false;
@@ -941,7 +940,7 @@ bool ExtractTar(const char *tar_filename, Subdirectory subdir)
 	DEBUG (misc, 8, "Extracting %s to directory %s", tar_filename, filename.c_str());
 	FioCreateDirectory (filename.c_str());
 
-	for (TarFileList::iterator it2 = TarCache::cache[subdir].files.begin(); it2 != TarCache::cache[subdir].files.end(); it2++) {
+	for (TarFileList::iterator it2 = this->files.begin(); it2 != this->files.end(); it2++) {
 		if (strcmp((*it2).second.tar_filename, tar_filename) != 0) continue;
 
 		filename.truncate (base_length);

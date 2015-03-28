@@ -75,7 +75,6 @@ static inline char *BuildDirPath (const char *part0, const char *part1)
 void DeterminePaths(const char *exe);
 void *ReadFileToMem(const char *filename, size_t *lenp, size_t maxsize);
 bool FileExists(const char *filename);
-bool ExtractTar(const char *tar_filename, Subdirectory subdir);
 
 extern const char *_personal_dir; ///< custom directory for personal settings, saves, newgrf, etc.
 

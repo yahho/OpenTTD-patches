@@ -44,6 +44,8 @@ struct TarCache {
 
 	bool add (const char *filename, size_t basepath_length = 0);
 
+	bool extract (const char *filename);
+
 	static TarCache cache [NUM_SUBDIRS]; ///< global per-directory cache
 };
 
