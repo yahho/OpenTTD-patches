@@ -20,6 +20,7 @@
 #include "pathfinder/railpos.h"
 #include "map/bridge.h"
 #include "map/tunnelbridge.h"
+#include "bridge.h"
 
 TrackBits GetReservedTrackbits(TileIndex t);
 
@@ -36,7 +37,9 @@ static inline bool TryReserveRailTrack(const RailPathPos &pos)
 	} else if (IsRailwayTile(pos.wormhole)) {
 		if (HasBridgeMiddleReservation(pos.wormhole)) return false;
 		SetBridgeMiddleReservation(pos.wormhole, true);
-		SetBridgeMiddleReservation(GetOtherBridgeEnd(pos.wormhole), true);
+		TileIndex end = GetOtherBridgeEnd (pos.wormhole);
+		SetBridgeMiddleReservation(end, true);
+		MarkBridgeTilesDirty (pos.wormhole, end, GetTunnelBridgeDirection (pos.wormhole), false);
 		return true;
 	} else {
 		if (HasTunnelMiddleReservation(pos.wormhole)) return false;
@@ -52,7 +55,9 @@ static inline void UnreserveRailTrack(const RailPathPos &pos)
 		UnreserveRailTrack(pos.tile, TrackdirToTrack(pos.td));
 	} else if (IsRailwayTile(pos.wormhole)) {
 		SetBridgeMiddleReservation(pos.wormhole, false);
-		SetBridgeMiddleReservation(GetOtherBridgeEnd(pos.wormhole), false);
+		TileIndex end = GetOtherBridgeEnd (pos.wormhole);
+		SetBridgeMiddleReservation(end, false);
+		MarkBridgeTilesDirty (pos.wormhole, end, GetTunnelBridgeDirection (pos.wormhole), false);
 	} else {
 		SetTunnelMiddleReservation(pos.wormhole, false);
 		SetTunnelMiddleReservation(GetOtherTunnelEnd(pos.wormhole), false);
