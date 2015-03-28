@@ -654,8 +654,8 @@ uint TarScanner::DoScan(Subdirectory sd)
 {
 	_tar_filelist[sd].clear();
 	_tar_list[sd].clear();
-	uint num = this->Scan(".tar", sd, false);
-	if (sd == BASESET_DIR || sd == NEWGRF_DIR) num += this->Scan(".tar", OLD_DATA_DIR, false);
+	uint num = this->Scan (sd);
+	if (sd == BASESET_DIR || sd == NEWGRF_DIR) num += this->Scan (OLD_DATA_DIR);
 	return num;
 }
 

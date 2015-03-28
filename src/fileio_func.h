@@ -116,6 +116,17 @@ public:
 		ALL      = BASESET | NEWGRF | AI | SCENARIO | GAME, ///< Scan for everything.
 	};
 
+	/**
+	 * Scan for tar files in the given search path.
+	 * @param sd the sub directory to search in.
+	 * @return the number of found files, i.e. the number of times that
+	 *         AddFile returned true.
+	 */
+	uint Scan (Subdirectory sd)
+	{
+		return this->FileScanner::Scan (".tar", sd, false);
+	}
+
 	/* virtual */ bool AddFile(const char *filename, size_t basepath_length, const char *tar_filename = NULL);
 
 	static bool AddFile (Subdirectory subdir, const char *filename, size_t basepath_length = 0);
