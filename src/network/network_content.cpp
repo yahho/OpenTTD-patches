@@ -539,8 +539,7 @@ void ClientNetworkContentSocketHandler::AfterDownload()
 		Subdirectory sd = GetContentInfoSubDir(this->curInfo->type);
 		if (sd == NO_DIRECTORY) NOT_REACHED();
 
-		TarScanner ts;
-		ts.AddFile(sd, GetFullFilename(this->curInfo, false));
+		TarScanner::AddFile (sd, GetFullFilename(this->curInfo, false));
 
 		if (this->curInfo->type == CONTENT_TYPE_BASE_MUSIC) {
 			/* Music can't be in a tar. So extract the tar! */

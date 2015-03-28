@@ -687,22 +687,31 @@ uint TarScanner::DoScan(Subdirectory sd)
 }
 
 /**
- * Add a single file to the scanned files of a tar, circumventing the scanning code.
- * @param sd       The sub directory the file is in.
- * @param filename The name of the file to add.
- * @return True if the additions went correctly.
+ * Add a scanned file to the scanned files of a tar.
+ * @param filename        the full path to the file to read
+ * @param basepath_length amount of characters to chop of before to get a
+ *                        filename relative to the search path.
+ * @param tar_filename    the name of the tar file the file is read from.
+ * @return true if the file is added.
  */
-bool TarScanner::AddFile(Subdirectory sd, const char *filename)
-{
-	this->subdir = sd;
-	return this->AddFile(filename, 0);
-}
-
 bool TarScanner::AddFile(const char *filename, size_t basepath_length, const char *tar_filename)
 {
 	/* No tar within tar. */
 	assert(tar_filename == NULL);
 
+	return TarScanner::AddFile (this->subdir, filename, basepath_length);
+}
+
+/**
+ * Add a scanned file to the scanned files of a tar.
+ * @param subdir          the subdirectory under which the file was found
+ * @param filename        the full path to the file to read
+ * @param basepath_length amount of characters to chop of before to get a
+ *                        filename relative to the search path.
+ * @return true if the file is added.
+ */
+bool TarScanner::AddFile (Subdirectory subdir, const char *filename, size_t basepath_length)
+{
 	/* The TAR-header, repeated for every file */
 	struct TarHeader {
 		char name[100];      ///< Name of the file
@@ -728,8 +737,8 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 	assert_compile (sizeof(TarHeader) == 512);
 
 	/* Check if we already seen this file */
-	TarList::iterator it = _tar_list[this->subdir].find(filename);
-	if (it != _tar_list[this->subdir].end()) return false;
+	TarList::iterator it = _tar_list[subdir].find(filename);
+	if (it != _tar_list[subdir].end()) return false;
 
 	FILE *f = fopen(filename, "rb");
 	/* Although the file has been found there can be
@@ -739,8 +748,8 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 	if (f == NULL) return false;
 
 	char *dupped_filename = xstrdup(filename);
-	_tar_list[this->subdir][filename].filename.reset (dupped_filename);
-	_tar_list[this->subdir][filename].dirname.reset();
+	_tar_list[subdir][filename].filename.reset (dupped_filename);
+	_tar_list[subdir][filename].dirname.reset();
 
 	TarLinkList links; ///< Temporary list to collect links
 	size_t num = 0, pos = 0;
@@ -793,7 +802,7 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 				SimplifyFileName(name);
 
 				DEBUG(misc, 6, "Found file in tar: %s (" PRINTF_SIZE " bytes, " PRINTF_SIZE " offset)", name, skip, pos);
-				if (_tar_filelist[this->subdir].insert(TarFileList::value_type(name, entry)).second) num++;
+				if (_tar_filelist[subdir].insert(TarFileList::value_type(name, entry)).second) num++;
 
 				break;
 			}
@@ -871,8 +880,8 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 
 				/* Store the first directory name we detect */
 				DEBUG(misc, 6, "Found dir in tar: %s", name);
-				if (!_tar_list[this->subdir][filename].dirname) {
-					_tar_list[this->subdir][filename].dirname.reset (xstrdup(name));
+				if (!_tar_list[subdir][filename].dirname) {
+					_tar_list[subdir][filename].dirname.reset (xstrdup(name));
 				}
 				break;
 
@@ -906,7 +915,7 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 	for (TarLinkList::iterator link = links.begin(); link != links.end(); link++) {
 		const std::string &src = link->first;
 		const std::string &dest = link->second;
-		TarAddLink(src, dest, this->subdir);
+		TarAddLink(src, dest, subdir);
 	}
 
 	return true;
