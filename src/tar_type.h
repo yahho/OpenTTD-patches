@@ -40,6 +40,8 @@ struct TarCache {
 	TarFileList files; ///< list of files in those tar files
 	TarLinkList links; ///< list of directory links
 
+	void add_link (const std::string &srcp, const std::string &destp);
+
 	static TarCache cache [NUM_SUBDIRS]; ///< global per-directory cache
 };
 

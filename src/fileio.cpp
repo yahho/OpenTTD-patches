@@ -605,24 +605,24 @@ char *BuildDirPath (uint n, const char *const *parts)
 }
 
 
-static void TarAddLink(const std::string &srcParam, const std::string &destParam, Subdirectory subdir)
+void TarCache::add_link (const std::string &srcp, const std::string &destp)
 {
-	std::string src = srcParam;
-	std::string dest = destParam;
+	std::string src = srcp;
+	std::string dest = destp;
 	/* Tar internals assume lowercase */
 	std::transform(src.begin(), src.end(), src.begin(), tolower);
 	std::transform(dest.begin(), dest.end(), dest.begin(), tolower);
 
-	TarFileList::iterator dest_file = TarCache::cache[subdir].files.find(dest);
-	if (dest_file != TarCache::cache[subdir].files.end()) {
+	TarFileList::iterator dest_file = this->files.find(dest);
+	if (dest_file != this->files.end()) {
 		/* Link to file. Process the link like the destination file. */
-		TarCache::cache[subdir].files.insert(TarFileList::value_type(src, dest_file->second));
+		this->files.insert (TarFileList::value_type (src, dest_file->second));
 	} else {
 		/* Destination file not found. Assume 'link to directory'
 		 * Append PATHSEPCHAR to 'src' and 'dest' if needed */
 		const std::string src_path = ((*src.rbegin() == PATHSEPCHAR) ? src : src + PATHSEPCHAR);
 		const std::string dst_path = (dest.length() == 0 ? "" : ((*dest.rbegin() == PATHSEPCHAR) ? dest : dest + PATHSEPCHAR));
-		TarCache::cache[subdir].links.insert(TarLinkList::value_type(src_path, dst_path));
+		this->links.insert (TarLinkList::value_type (src_path, dst_path));
 	}
 }
 
@@ -910,9 +910,7 @@ bool TarScanner::AddFile (Subdirectory subdir, const char *filename, size_t base
 	 *      The source path may contain one directory link.
 	 */
 	for (TarLinkList::iterator link = links.begin(); link != links.end(); link++) {
-		const std::string &src = link->first;
-		const std::string &dest = link->second;
-		TarAddLink(src, dest, subdir);
+		TarCache::cache[subdir].add_link (link->first, link->second);
 	}
 
 	return true;
