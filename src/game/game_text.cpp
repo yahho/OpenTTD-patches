@@ -275,7 +275,7 @@ GameStrings *LoadTranslations()
 
 		const char *tar_filename = info->GetTarFile();
 		TarList::iterator iter;
-		if (tar_filename != NULL && (iter = _tar_list[GAME_DIR].find(tar_filename)) != _tar_list[GAME_DIR].end()) {
+		if (tar_filename != NULL && (iter = TarCache::cache[GAME_DIR].tars.find(tar_filename)) != TarCache::cache[GAME_DIR].tars.end()) {
 			/* The main script is in a tar file, so find all files that
 			 * are in the same tar and add them to the langfile scanner. */
 			TarFileList::iterator tar;

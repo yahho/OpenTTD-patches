@@ -32,9 +32,17 @@ struct TarFileListEntry {
 
 typedef std::map<std::string, TarListEntry> TarList;
 typedef std::map<std::string, TarFileListEntry> TarFileList;
-extern TarList _tar_list[NUM_SUBDIRS];
-extern TarFileList _tar_filelist[NUM_SUBDIRS];
+typedef std::map<std::string, std::string> TarLinkList;
 
-#define FOR_ALL_TARS(tar, sd) for (tar = _tar_filelist[sd].begin(); tar != _tar_filelist[sd].end(); tar++)
+/** Cache of tar files and their contents under a directory. */
+struct TarCache {
+	TarList     tars;  ///< list of tar files
+	TarFileList files; ///< list of files in those tar files
+	TarLinkList links; ///< list of directory links
+
+	static TarCache cache [NUM_SUBDIRS]; ///< global per-directory cache
+};
+
+#define FOR_ALL_TARS(tar, sd) for (tar = TarCache::cache[sd].files.begin(); tar != TarCache::cache[sd].files.end(); tar++)
 
 #endif /* TAR_TYPE_H */

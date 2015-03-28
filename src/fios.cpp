@@ -502,8 +502,8 @@ static FiosType FiosGetHeightmapListCallback (SaveLoadDialogMode mode, const cha
 
 	if (type == FIOS_TYPE_INVALID) return FIOS_TYPE_INVALID;
 
-	TarFileList::iterator it = _tar_filelist[SCENARIO_DIR].find(file);
-	if (it != _tar_filelist[SCENARIO_DIR].end()) {
+	TarFileList::iterator it = TarCache::cache[SCENARIO_DIR].files.find(file);
+	if (it != TarCache::cache[SCENARIO_DIR].files.end()) {
 		/* If the file is in a tar and that tar is not in a heightmap
 		 * directory we are for sure not supposed to see it.
 		 * Examples of this are pngs part of documentation within

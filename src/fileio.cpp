@@ -295,11 +295,8 @@ static const char * const _subdirs[] = {
 assert_compile(lengthof(_subdirs) == NUM_SUBDIRS);
 
 const char *_searchpaths[NUM_SEARCHPATHS];
-TarList _tar_list[NUM_SUBDIRS];
-TarFileList _tar_filelist[NUM_SUBDIRS];
 
-typedef std::map<std::string, std::string> TarLinkList;
-static TarLinkList _tar_linklist[NUM_SUBDIRS]; ///< List of directory links
+TarCache TarCache::cache [NUM_SUBDIRS];
 
 /**
  * Check whether the given file exists
@@ -481,7 +478,7 @@ FILE *FioFOpenFile(const char *filename, const char *mode, Subdirectory subdir, 
 		resolved_name.tolower();
 
 		/* Resolve ONE directory link */
-		for (TarLinkList::iterator link = _tar_linklist[subdir].begin(); link != _tar_linklist[subdir].end(); link++) {
+		for (TarLinkList::iterator link = TarCache::cache[subdir].links.begin(); link != TarCache::cache[subdir].links.end(); link++) {
 			const std::string &src = link->first;
 			size_t len = src.length();
 			if (resolved_name.length() >= len && resolved_name.c_str()[len - 1] == PATHSEPCHAR && memcmp (src.c_str(), resolved_name.c_str(), len) == 0) {
@@ -494,8 +491,8 @@ FILE *FioFOpenFile(const char *filename, const char *mode, Subdirectory subdir, 
 			}
 		}
 
-		TarFileList::iterator it = _tar_filelist[subdir].find(resolved_name.c_str());
-		if (it != _tar_filelist[subdir].end()) {
+		TarFileList::iterator it = TarCache::cache[subdir].files.find(resolved_name.c_str());
+		if (it != TarCache::cache[subdir].files.end()) {
 			f = FioFOpenFileTar(&((*it).second), filesize);
 		}
 	}
@@ -616,16 +613,16 @@ static void TarAddLink(const std::string &srcParam, const std::string &destParam
 	std::transform(src.begin(), src.end(), src.begin(), tolower);
 	std::transform(dest.begin(), dest.end(), dest.begin(), tolower);
 
-	TarFileList::iterator dest_file = _tar_filelist[subdir].find(dest);
-	if (dest_file != _tar_filelist[subdir].end()) {
+	TarFileList::iterator dest_file = TarCache::cache[subdir].files.find(dest);
+	if (dest_file != TarCache::cache[subdir].files.end()) {
 		/* Link to file. Process the link like the destination file. */
-		_tar_filelist[subdir].insert(TarFileList::value_type(src, dest_file->second));
+		TarCache::cache[subdir].files.insert(TarFileList::value_type(src, dest_file->second));
 	} else {
 		/* Destination file not found. Assume 'link to directory'
 		 * Append PATHSEPCHAR to 'src' and 'dest' if needed */
 		const std::string src_path = ((*src.rbegin() == PATHSEPCHAR) ? src : src + PATHSEPCHAR);
 		const std::string dst_path = (dest.length() == 0 ? "" : ((*dest.rbegin() == PATHSEPCHAR) ? dest : dest + PATHSEPCHAR));
-		_tar_linklist[subdir].insert(TarLinkList::value_type(src_path, dst_path));
+		TarCache::cache[subdir].links.insert(TarLinkList::value_type(src_path, dst_path));
 	}
 }
 
@@ -652,8 +649,8 @@ static void SimplifyFileName(char *name)
  */
 uint TarScanner::DoScan(Subdirectory sd)
 {
-	_tar_filelist[sd].clear();
-	_tar_list[sd].clear();
+	TarCache::cache[sd].files.clear();
+	TarCache::cache[sd].tars.clear();
 	uint num = this->Scan (sd);
 	if (sd == BASESET_DIR || sd == NEWGRF_DIR) num += this->Scan (OLD_DATA_DIR);
 	return num;
@@ -737,8 +734,8 @@ bool TarScanner::AddFile (Subdirectory subdir, const char *filename, size_t base
 	assert_compile (sizeof(TarHeader) == 512);
 
 	/* Check if we already seen this file */
-	TarList::iterator it = _tar_list[subdir].find(filename);
-	if (it != _tar_list[subdir].end()) return false;
+	TarList::iterator it = TarCache::cache[subdir].tars.find(filename);
+	if (it != TarCache::cache[subdir].tars.end()) return false;
 
 	FILE *f = fopen(filename, "rb");
 	/* Although the file has been found there can be
@@ -748,8 +745,8 @@ bool TarScanner::AddFile (Subdirectory subdir, const char *filename, size_t base
 	if (f == NULL) return false;
 
 	char *dupped_filename = xstrdup(filename);
-	_tar_list[subdir][filename].filename.reset (dupped_filename);
-	_tar_list[subdir][filename].dirname.reset();
+	TarCache::cache[subdir].tars[filename].filename.reset (dupped_filename);
+	TarCache::cache[subdir].tars[filename].dirname.reset();
 
 	TarLinkList links; ///< Temporary list to collect links
 	size_t num = 0, pos = 0;
@@ -802,7 +799,7 @@ bool TarScanner::AddFile (Subdirectory subdir, const char *filename, size_t base
 				SimplifyFileName(name);
 
 				DEBUG(misc, 6, "Found file in tar: %s (" PRINTF_SIZE " bytes, " PRINTF_SIZE " offset)", name, skip, pos);
-				if (_tar_filelist[subdir].insert(TarFileList::value_type(name, entry)).second) num++;
+				if (TarCache::cache[subdir].files.insert(TarFileList::value_type(name, entry)).second) num++;
 
 				break;
 			}
@@ -880,8 +877,8 @@ bool TarScanner::AddFile (Subdirectory subdir, const char *filename, size_t base
 
 				/* Store the first directory name we detect */
 				DEBUG(misc, 6, "Found dir in tar: %s", name);
-				if (!_tar_list[subdir][filename].dirname) {
-					_tar_list[subdir][filename].dirname.reset (xstrdup(name));
+				if (!TarCache::cache[subdir].tars[filename].dirname) {
+					TarCache::cache[subdir].tars[filename].dirname.reset (xstrdup(name));
 				}
 				break;
 
@@ -930,9 +927,9 @@ bool TarScanner::AddFile (Subdirectory subdir, const char *filename, size_t base
  */
 bool ExtractTar(const char *tar_filename, Subdirectory subdir)
 {
-	TarList::iterator it = _tar_list[subdir].find(tar_filename);
+	TarList::iterator it = TarCache::cache[subdir].tars.find(tar_filename);
 	/* We don't know the file. */
-	if (it == _tar_list[subdir].end()) return false;
+	if (it == TarCache::cache[subdir].tars.end()) return false;
 
 	/* The file doesn't have a sub directory! */
 	if (!(*it).second.dirname) return false;
@@ -947,7 +944,7 @@ bool ExtractTar(const char *tar_filename, Subdirectory subdir)
 	DEBUG (misc, 8, "Extracting %s to directory %s", tar_filename, filename.c_str());
 	FioCreateDirectory (filename.c_str());
 
-	for (TarFileList::iterator it2 = _tar_filelist[subdir].begin(); it2 != _tar_filelist[subdir].end(); it2++) {
+	for (TarFileList::iterator it2 = TarCache::cache[subdir].files.begin(); it2 != TarCache::cache[subdir].files.end(); it2++) {
 		if (strcmp((*it2).second.tar_filename, tar_filename) != 0) continue;
 
 		filename.truncate (base_length);

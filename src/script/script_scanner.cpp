@@ -232,7 +232,7 @@ static bool IsSameScript(const ContentInfo *ci, bool md5sum, ScriptInfo *info, S
 	ScriptFileChecksumCreator checksum(dir);
 	const char *tar_filename = info->GetTarFile();
 	TarList::iterator iter;
-	if (tar_filename != NULL && (iter = _tar_list[dir].find(tar_filename)) != _tar_list[dir].end()) {
+	if (tar_filename != NULL && (iter = TarCache::cache[dir].tars.find(tar_filename)) != TarCache::cache[dir].tars.end()) {
 		/* The main script is in a tar file, so find all files that
 		 * are in the same tar and add them to the MD5 checksumming. */
 		TarFileList::iterator tar;
