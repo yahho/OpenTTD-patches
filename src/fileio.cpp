@@ -696,18 +696,17 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 	/* No tar within tar. */
 	assert(tar_filename == NULL);
 
-	return TarScanner::AddFile (this->subdir, filename, basepath_length);
+	return TarCache::cache[this->subdir].add (filename, basepath_length);
 }
 
 /**
- * Add a scanned file to the scanned files of a tar.
- * @param subdir          the subdirectory under which the file was found
+ * Add a scanned file to a tar cache.
  * @param filename        the full path to the file to read
  * @param basepath_length amount of characters to chop of before to get a
  *                        filename relative to the search path.
  * @return true if the file is added.
  */
-bool TarScanner::AddFile (Subdirectory subdir, const char *filename, size_t basepath_length)
+bool TarCache::add (const char *filename, size_t basepath_length)
 {
 	/* The TAR-header, repeated for every file */
 	struct TarHeader {
@@ -734,8 +733,8 @@ bool TarScanner::AddFile (Subdirectory subdir, const char *filename, size_t base
 	assert_compile (sizeof(TarHeader) == 512);
 
 	/* Check if we already seen this file */
-	TarList::iterator it = TarCache::cache[subdir].tars.find(filename);
-	if (it != TarCache::cache[subdir].tars.end()) return false;
+	TarList::iterator it = this->tars.find(filename);
+	if (it != this->tars.end()) return false;
 
 	FILE *f = fopen(filename, "rb");
 	/* Although the file has been found there can be
@@ -745,8 +744,8 @@ bool TarScanner::AddFile (Subdirectory subdir, const char *filename, size_t base
 	if (f == NULL) return false;
 
 	char *dupped_filename = xstrdup(filename);
-	TarCache::cache[subdir].tars[filename].filename.reset (dupped_filename);
-	TarCache::cache[subdir].tars[filename].dirname.reset();
+	this->tars[filename].filename.reset (dupped_filename);
+	this->tars[filename].dirname.reset();
 
 	TarLinkList links; ///< Temporary list to collect links
 	size_t num = 0, pos = 0;
@@ -799,7 +798,7 @@ bool TarScanner::AddFile (Subdirectory subdir, const char *filename, size_t base
 				SimplifyFileName(name);
 
 				DEBUG(misc, 6, "Found file in tar: %s (" PRINTF_SIZE " bytes, " PRINTF_SIZE " offset)", name, skip, pos);
-				if (TarCache::cache[subdir].files.insert(TarFileList::value_type(name, entry)).second) num++;
+				if (this->files.insert(TarFileList::value_type(name, entry)).second) num++;
 
 				break;
 			}
@@ -877,8 +876,8 @@ bool TarScanner::AddFile (Subdirectory subdir, const char *filename, size_t base
 
 				/* Store the first directory name we detect */
 				DEBUG(misc, 6, "Found dir in tar: %s", name);
-				if (!TarCache::cache[subdir].tars[filename].dirname) {
-					TarCache::cache[subdir].tars[filename].dirname.reset (xstrdup(name));
+				if (!this->tars[filename].dirname) {
+					this->tars[filename].dirname.reset (xstrdup(name));
 				}
 				break;
 
@@ -910,7 +909,7 @@ bool TarScanner::AddFile (Subdirectory subdir, const char *filename, size_t base
 	 *      The source path may contain one directory link.
 	 */
 	for (TarLinkList::iterator link = links.begin(); link != links.end(); link++) {
-		TarCache::cache[subdir].add_link (link->first, link->second);
+		this->add_link (link->first, link->second);
 	}
 
 	return true;

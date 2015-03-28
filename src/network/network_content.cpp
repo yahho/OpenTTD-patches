@@ -20,6 +20,7 @@
 #include "../error.h"
 #include "../base_media_base.h"
 #include "../settings_type.h"
+#include "../tar_type.h"
 #include "network_content.h"
 
 #include "table/strings.h"
@@ -539,7 +540,7 @@ void ClientNetworkContentSocketHandler::AfterDownload()
 		Subdirectory sd = GetContentInfoSubDir(this->curInfo->type);
 		if (sd == NO_DIRECTORY) NOT_REACHED();
 
-		TarScanner::AddFile (sd, GetFullFilename(this->curInfo, false));
+		TarCache::cache[sd].add (GetFullFilename(this->curInfo, false));
 
 		if (this->curInfo->type == CONTENT_TYPE_BASE_MUSIC) {
 			/* Music can't be in a tar. So extract the tar! */

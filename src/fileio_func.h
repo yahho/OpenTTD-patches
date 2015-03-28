@@ -129,8 +129,6 @@ public:
 
 	/* virtual */ bool AddFile(const char *filename, size_t basepath_length, const char *tar_filename = NULL);
 
-	static bool AddFile (Subdirectory subdir, const char *filename, size_t basepath_length = 0);
-
 	/** Do the scan for Tars. */
 	static uint DoScan(TarScanner::Mode mode);
 };

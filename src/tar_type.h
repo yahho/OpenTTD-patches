@@ -42,6 +42,8 @@ struct TarCache {
 
 	void add_link (const std::string &srcp, const std::string &destp);
 
+	bool add (const char *filename, size_t basepath_length = 0);
+
 	static TarCache cache [NUM_SUBDIRS]; ///< global per-directory cache
 };
 
