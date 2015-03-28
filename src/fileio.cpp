@@ -738,9 +738,9 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 	 * been given read access. */
 	if (f == NULL) return false;
 
-	const char *dupped_filename = xstrdup(filename);
-	_tar_list[this->subdir][filename].filename = dupped_filename;
-	_tar_list[this->subdir][filename].dirname = NULL;
+	char *dupped_filename = xstrdup(filename);
+	_tar_list[this->subdir][filename].filename.reset (dupped_filename);
+	_tar_list[this->subdir][filename].dirname.reset();
 
 	TarLinkList links; ///< Temporary list to collect links
 	size_t num = 0, pos = 0;
@@ -871,7 +871,9 @@ bool TarScanner::AddFile(const char *filename, size_t basepath_length, const cha
 
 				/* Store the first directory name we detect */
 				DEBUG(misc, 6, "Found dir in tar: %s", name);
-				if (_tar_list[this->subdir][filename].dirname == NULL) _tar_list[this->subdir][filename].dirname = xstrdup(name);
+				if (!_tar_list[this->subdir][filename].dirname) {
+					_tar_list[this->subdir][filename].dirname.reset (xstrdup(name));
+				}
 				break;
 
 			default:
@@ -923,10 +925,8 @@ bool ExtractTar(const char *tar_filename, Subdirectory subdir)
 	/* We don't know the file. */
 	if (it == _tar_list[subdir].end()) return false;
 
-	const char *dirname = (*it).second.dirname;
-
 	/* The file doesn't have a sub directory! */
-	if (dirname == NULL) return false;
+	if (!(*it).second.dirname) return false;
 
 	const char *p = strrchr (tar_filename, PATHSEPCHAR);
 	/* The file's path does not have a separator? */
@@ -934,7 +934,7 @@ bool ExtractTar(const char *tar_filename, Subdirectory subdir)
 	size_t base_length = p - tar_filename + 1;
 
 	sstring<MAX_PATH> filename;
-	filename.fmt ("%.*s%s", (int)base_length, tar_filename, dirname);
+	filename.fmt ("%.*s%s", (int)base_length, tar_filename, (*it).second.dirname.get());
 	DEBUG (misc, 8, "Extracting %s to directory %s", tar_filename, filename.c_str());
 	FioCreateDirectory (filename.c_str());
 
