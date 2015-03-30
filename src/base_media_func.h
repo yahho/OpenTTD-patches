@@ -29,8 +29,7 @@ template <class Tbase_set> /* static */ Tbase_set *BaseMedia<Tbase_set>::duplica
 #define fetch_metadata(name) \
 	item = metadata->find (name); \
 	if (item == NULL || StrEmpty(item->value)) { \
-		DEBUG(grf, 0, "Base " SET_TYPE "set detail loading: %s field missing.", name); \
-		DEBUG(grf, 0, "  Is %s readable for the user running OpenTTD?", full_filename); \
+		DEBUG(grf, 0, "Base " SET_TYPE "set detail loading: %s field missing in %s.", name, full_filename); \
 		return false; \
 	}
 
@@ -47,7 +46,13 @@ bool BaseSet<T, Tnum_files, Tsearch_in_tars>::FillSetDetails(IniFile *ini, const
 {
 	memset(this, 0, sizeof(*this));
 
-	const IniGroup *metadata = ini->get_group ("metadata");
+	const IniGroup *metadata = ini->find ("metadata");
+	if (metadata == NULL) {
+		DEBUG (grf, 0, "Base " SET_TYPE "set detail loading: metadata group missing.");
+		DEBUG (grf, 0, "  Is %s readable for the user running OpenTTD?", full_filename);
+		return false;
+	}
+
 	const IniItem *item;
 
 	fetch_metadata("name");
