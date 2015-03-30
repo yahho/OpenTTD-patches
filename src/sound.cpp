@@ -16,10 +16,10 @@
 #include "fios.h"
 #include "window_gui.h"
 #include "vehicle_base.h"
+#include "base_media_func.h"
 
 /* The type of set we're replacing */
-#define SET_TYPE "sounds"
-#include "base_media_func.h"
+const char SoundsSet::set_type[] = "sounds";
 
 static SoundEntry _original_sounds[ORIGINAL_SAMPLE_COUNT];
 

@@ -19,10 +19,10 @@
 #include "blitter/factory.hpp"
 #include "video/video_driver.hpp"
 #include "window_func.h"
+#include "base_media_func.h"
 
 /* The type of set we're replacing */
-#define SET_TYPE "graphics"
-#include "base_media_func.h"
+const char GraphicsSet::set_type[] = "graphics";
 
 #include "table/sprites.h"
 
@@ -324,7 +324,7 @@ bool GraphicsSet::FillSetDetails(IniFile *ini, const char *path, const char *ful
 		const IniGroup *metadata = ini->get_group ("metadata");
 		const IniItem *item;
 
-		item = fetch_metadata (metadata, "palette", full_filename);
+		item = fetch_metadata<GraphicsSet> (metadata, "palette", full_filename);
 		if (item == NULL) return false;
 		this->palette = (*item->value == 'D' || *item->value == 'd') ? PAL_DOS : PAL_WINDOWS;
 

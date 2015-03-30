@@ -246,6 +246,8 @@ enum BlitterType {
 
 /** All data of a graphics set. */
 struct GraphicsSet : BaseSet<GraphicsSet, MAX_GFT, true> {
+	static const char set_type[]; ///< Description of the set type
+
 	PaletteType palette;       ///< Palette of this graphics set
 	BlitterType blitter;       ///< Blitter of this graphics set
 
@@ -261,6 +263,7 @@ public:
 
 /** All data of a sounds set. */
 struct SoundsSet : BaseSet<SoundsSet, 1, true> {
+	static const char set_type[]; ///< Description of the set type
 };
 
 /** All data/functions related with replacing the base sounds */
@@ -280,6 +283,8 @@ static const uint NUM_SONGS_PLAYLIST  = 32;
 
 /** All data of a music set. */
 struct MusicSet : BaseSet<MusicSet, NUM_SONGS_AVAILABLE, false> {
+	static const char set_type[]; ///< Description of the set type
+
 	/** The name of the different songs. */
 	char song_name[NUM_SONGS_AVAILABLE][32];
 	byte track_nr[NUM_SONGS_AVAILABLE];

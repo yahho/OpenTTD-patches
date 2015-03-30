@@ -11,10 +11,10 @@
 
 #include "stdafx.h"
 #include "string.h"
+#include "base_media_func.h"
 
 /** The type of set we're replacing */
-#define SET_TYPE "music"
-#include "base_media_func.h"
+const char MusicSet::set_type[] = "music";
 
 INSTANTIATE_BASE_MEDIA_METHODS(BaseMedia<MusicSet>, MusicSet)
 

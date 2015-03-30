@@ -9,7 +9,6 @@
 
 /**
  * @file base_media_func.h Generic function implementations for base data (graphics, sounds).
- * @note You should _never_ include this file due to the SET_TYPE define.
  */
 
 #include "base_media_base.h"
@@ -29,13 +28,14 @@ template <class Tbase_set> /* static */ Tbase_set *BaseMedia<Tbase_set>::duplica
  * @param filename the name of the filename for debugging output.
  * @return the associated item, or NULL if it doesn't exist.
  */
+template <typename T>
 static inline const IniItem *fetch_metadata (const IniGroup *metadata,
 	const char *name, const char *filename)
 {
 	const IniItem *item = metadata->find (name);
 	if (item == NULL || StrEmpty (item->value)) {
-		DEBUG (grf, 0, "Base " SET_TYPE "set detail loading: %s field missing in %s.",
-				name, filename);
+		DEBUG (grf, 0, "Base %sset detail loading: %s field missing in %s.",
+				T::set_type, name, filename);
 		return NULL;
 	}
 	return item;
@@ -56,18 +56,18 @@ bool BaseSet<T, Tnum_files, Tsearch_in_tars>::FillSetDetails(IniFile *ini, const
 
 	const IniGroup *metadata = ini->find ("metadata");
 	if (metadata == NULL) {
-		DEBUG (grf, 0, "Base " SET_TYPE "set detail loading: metadata group missing.");
+		DEBUG (grf, 0, "Base %sset detail loading: metadata group missing.", T::set_type);
 		DEBUG (grf, 0, "  Is %s readable for the user running OpenTTD?", full_filename);
 		return false;
 	}
 
 	const IniItem *item;
 
-	item = fetch_metadata (metadata, "name", full_filename);
+	item = fetch_metadata<T> (metadata, "name", full_filename);
 	if (item == NULL) return false;
 	this->name = xstrdup(item->value);
 
-	item = fetch_metadata (metadata, "description", full_filename);
+	item = fetch_metadata<T> (metadata, "description", full_filename);
 	if (item == NULL) return false;
 	this->description[xstrdup("")] = xstrdup(item->value);
 
@@ -78,13 +78,13 @@ bool BaseSet<T, Tnum_files, Tsearch_in_tars>::FillSetDetails(IniFile *ini, const
 		this->description[xstrdup(item->get_name() + 12)] = xstrdup(item->value);
 	}
 
-	item = fetch_metadata (metadata, "shortname", full_filename);
+	item = fetch_metadata<T> (metadata, "shortname", full_filename);
 	if (item == NULL) return false;
 	for (uint i = 0; item->value[i] != '\0' && i < 4; i++) {
 		this->shortname |= ((uint8)item->value[i]) << (i * 8);
 	}
 
-	item = fetch_metadata (metadata, "version", full_filename);
+	item = fetch_metadata<T> (metadata, "version", full_filename);
 	if (item == NULL) return false;
 	this->version = atoi(item->value);
 
@@ -100,7 +100,7 @@ bool BaseSet<T, Tnum_files, Tsearch_in_tars>::FillSetDetails(IniFile *ini, const
 		/* Find the filename first. */
 		item = files->find (BaseSet<T, Tnum_files, Tsearch_in_tars>::file_names[i]);
 		if (item == NULL || (item->value == NULL && !allow_empty_filename)) {
-			DEBUG(grf, 0, "No " SET_TYPE " file for: %s (in %s)", BaseSet<T, Tnum_files, Tsearch_in_tars>::file_names[i], full_filename);
+			DEBUG(grf, 0, "No %s file for: %s (in %s)", T::set_type, BaseSet<T, Tnum_files, Tsearch_in_tars>::file_names[i], full_filename);
 			return false;
 		}
 
@@ -175,7 +175,7 @@ template <class Tbase_set>
 bool BaseMedia<Tbase_set>::AddFile(const char *filename, size_t basepath_length, const char *tar_filename)
 {
 	bool ret = false;
-	DEBUG(grf, 1, "Checking %s for base " SET_TYPE " set", filename);
+	DEBUG(grf, 1, "Checking %s for base %s set", filename, Tbase_set::set_type);
 
 	Tbase_set *set = new Tbase_set();
 	IniFile *ini = new IniFile();
@@ -201,7 +201,8 @@ bool BaseMedia<Tbase_set>::AddFile(const char *filename, size_t basepath_length,
 			/* The more complete set takes precedence over the version number. */
 			if ((duplicate->valid_files == set->valid_files && duplicate->version >= set->version) ||
 					duplicate->valid_files > set->valid_files) {
-				DEBUG(grf, 1, "Not adding %s (%i) as base " SET_TYPE " set (duplicate, %s)", set->name, set->version,
+				DEBUG(grf, 1, "Not adding %s (%i) as base %s set (duplicate, %s)",
+						set->name, set->version, Tbase_set::set_type,
 						duplicate->valid_files > set->valid_files ? "less valid files" : "lower version");
 				set->next = BaseMedia<Tbase_set>::duplicate_sets;
 				BaseMedia<Tbase_set>::duplicate_sets = set;
@@ -217,7 +218,8 @@ bool BaseMedia<Tbase_set>::AddFile(const char *filename, size_t basepath_length,
 				 * version number until a new game is started which isn't a big problem */
 				if (BaseMedia<Tbase_set>::used_set == duplicate) BaseMedia<Tbase_set>::used_set = set;
 
-				DEBUG(grf, 1, "Removing %s (%i) as base " SET_TYPE " set (duplicate, %s)", duplicate->name, duplicate->version,
+				DEBUG(grf, 1, "Removing %s (%i) as base %s set (duplicate, %s)",
+						duplicate->name, duplicate->version, Tbase_set::set_type,
 						duplicate->valid_files < set->valid_files ? "less valid files" : "lower version");
 				duplicate->next = BaseMedia<Tbase_set>::duplicate_sets;
 				BaseMedia<Tbase_set>::duplicate_sets = duplicate;
@@ -231,7 +233,7 @@ bool BaseMedia<Tbase_set>::AddFile(const char *filename, size_t basepath_length,
 			ret = true;
 		}
 		if (ret) {
-			DEBUG(grf, 1, "Adding %s (%i) as base " SET_TYPE " set", set->name, set->version);
+			DEBUG(grf, 1, "Adding %s (%i) as base %s set", set->name, set->version, Tbase_set::set_type);
 		}
 	} else {
 		delete set;
@@ -275,7 +277,7 @@ template <class Tbase_set>
 template <class Tbase_set>
 /* static */ void BaseMedia<Tbase_set>::GetSetsList (stringb *buf)
 {
-	buf->append ("List of " SET_TYPE " sets:\n");
+	buf->append_fmt ("List of %s sets:\n", Tbase_set::set_type);
 	for (const Tbase_set *s = BaseMedia<Tbase_set>::available_sets; s != NULL; s = s->next) {
 		buf->append_fmt ("%18s: %s", s->name, s->GetDescription());
 		int invalid = s->GetNumInvalid();
@@ -382,7 +384,7 @@ template <class Tbase_set>
 		if (index == 0) return s;
 		index--;
 	}
-	error("Base" SET_TYPE "::GetSet(): index %d out of range", index);
+	error("Base%s::GetSet(): index %d out of range", Tbase_set::set_type, index);
 }
 
 /**
