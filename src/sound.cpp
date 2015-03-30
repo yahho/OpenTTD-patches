@@ -294,27 +294,3 @@ static const char * const _sound_file_names[] = { "samples" };
 
 template <class T, size_t Tnum_files, bool Tsearch_in_tars>
 /* static */ const char * const *BaseSet<T, Tnum_files, Tsearch_in_tars>::file_names = _sound_file_names;
-
-template <class Tbase_set>
-/* static */ bool BaseMedia<Tbase_set>::DetermineBestSet()
-{
-	if (BaseMedia<Tbase_set>::used_set != NULL) return true;
-
-	const Tbase_set *best = NULL;
-	for (const Tbase_set *c = BaseMedia<Tbase_set>::available_sets; c != NULL; c = c->next) {
-		/* Skip unusable sets */
-		if (c->GetNumMissing() != 0) continue;
-
-		if (best == NULL ||
-				(best->fallback && !c->fallback) ||
-				best->valid_files < c->valid_files ||
-				(best->valid_files == c->valid_files &&
-					(best->shortname == c->shortname && best->version < c->version))) {
-			best = c;
-		}
-	}
-
-	BaseMedia<Tbase_set>::used_set = best;
-	return BaseMedia<Tbase_set>::used_set != NULL;
-}
-

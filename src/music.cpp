@@ -33,28 +33,6 @@ assert_compile(lengthof(_music_file_names) == NUM_SONGS_AVAILABLE);
 template <class T, size_t Tnum_files, bool Tsearch_in_tars>
 /* static */ const char * const *BaseSet<T, Tnum_files, Tsearch_in_tars>::file_names = _music_file_names;
 
-template <class Tbase_set>
-/* static */ bool BaseMedia<Tbase_set>::DetermineBestSet()
-{
-	if (BaseMedia<Tbase_set>::used_set != NULL) return true;
-
-	const Tbase_set *best = NULL;
-	for (const Tbase_set *c = BaseMedia<Tbase_set>::available_sets; c != NULL; c = c->next) {
-		if (c->GetNumMissing() != 0) continue;
-
-		if (best == NULL ||
-				(best->fallback && !c->fallback) ||
-				best->valid_files < c->valid_files ||
-				(best->valid_files == c->valid_files &&
-					(best->shortname == c->shortname && best->version < c->version))) {
-			best = c;
-		}
-	}
-
-	BaseMedia<Tbase_set>::used_set = best;
-	return BaseMedia<Tbase_set>::used_set != NULL;
-}
-
 bool MusicSet::FillSetDetails(IniFile *ini, const char *path, const char *full_filename)
 {
 	bool ret = this->BaseSet<MusicSet, NUM_SONGS_AVAILABLE, false>::FillSetDetails(ini, path, full_filename);

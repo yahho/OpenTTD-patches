@@ -109,6 +109,15 @@ struct BaseSet {
 	bool FillSetDetails(IniFile *ini, const char *path, const char *full_filename, bool allow_empty_filename = true);
 
 	/**
+	 * Check if this set is preferred to another one.
+	 * (Used in derived classes.)
+	 */
+	static bool IsPreferredTo (const BaseSet &other)
+	{
+		return false;
+	}
+
+	/**
 	 * Get the description for the given ISO code.
 	 * It falls back to the first two characters of the ISO code in case
 	 * no match could be made with the full ISO code. If even then the
@@ -248,6 +257,12 @@ struct GraphicsSet : BaseSet<GraphicsSet, MAX_GFT, true> {
 	BlitterType blitter;       ///< Blitter of this graphics set
 
 	bool FillSetDetails(struct IniFile *ini, const char *path, const char *full_filename);
+
+	/** Check if this set is preferred to another one. */
+	bool IsPreferredTo (const GraphicsSet &other) const
+	{
+		return (this->palette == PAL_DOS) && (other.palette != PAL_DOS);
+	}
 
 	static MD5File::ChecksumResult CheckMD5(const MD5File *file, Subdirectory subdir);
 };

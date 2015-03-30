@@ -407,6 +407,30 @@ template <class Tbase_set>
 	return BaseMedia<Tbase_set>::available_sets;
 }
 
+template <class Tbase_set>
+/* static */ bool BaseMedia<Tbase_set>::DetermineBestSet()
+{
+	if (BaseMedia<Tbase_set>::used_set != NULL) return true;
+
+	const Tbase_set *best = NULL;
+	for (const Tbase_set *c = BaseMedia<Tbase_set>::available_sets; c != NULL; c = c->next) {
+		/* Skip unusable sets */
+		if (c->GetNumMissing() != 0) continue;
+
+		if (best == NULL ||
+				(best->fallback && !c->fallback) ||
+				best->valid_files < c->valid_files ||
+				(best->valid_files == c->valid_files && (
+					(best->shortname == c->shortname && best->version < c->version) ||
+					best->IsPreferredTo (*c)))) {
+			best = c;
+		}
+	}
+
+	BaseMedia<Tbase_set>::used_set = best;
+	return BaseMedia<Tbase_set>::used_set != NULL;
+}
+
 /**
  * Force instantiation of methods so we don't get linker errors.
  * @param repl_type the type of the BaseMedia to instantiate
