@@ -23,15 +23,23 @@ template <class Tbase_set> /* static */ Tbase_set *BaseMedia<Tbase_set>::availab
 template <class Tbase_set> /* static */ Tbase_set *BaseMedia<Tbase_set>::duplicate_sets;
 
 /**
- * Try to read a single piece of metadata and return false if it doesn't exist.
+ * Try to read a single piece of metadata.
+ * @param metadata the metadata group to search in.
  * @param name the name of the item to fetch.
+ * @param filename the name of the filename for debugging output.
+ * @return the associated item, or NULL if it doesn't exist.
  */
-#define fetch_metadata(name) \
-	item = metadata->find (name); \
-	if (item == NULL || StrEmpty(item->value)) { \
-		DEBUG(grf, 0, "Base " SET_TYPE "set detail loading: %s field missing in %s.", name, full_filename); \
-		return false; \
+static inline const IniItem *fetch_metadata (const IniGroup *metadata,
+	const char *name, const char *filename)
+{
+	const IniItem *item = metadata->find (name);
+	if (item == NULL || StrEmpty (item->value)) {
+		DEBUG (grf, 0, "Base " SET_TYPE "set detail loading: %s field missing in %s.",
+				name, filename);
+		return NULL;
 	}
+	return item;
+}
 
 /**
  * Read the set information from a loaded ini.
@@ -55,10 +63,12 @@ bool BaseSet<T, Tnum_files, Tsearch_in_tars>::FillSetDetails(IniFile *ini, const
 
 	const IniItem *item;
 
-	fetch_metadata("name");
+	item = fetch_metadata (metadata, "name", full_filename);
+	if (item == NULL) return false;
 	this->name = xstrdup(item->value);
 
-	fetch_metadata("description");
+	item = fetch_metadata (metadata, "description", full_filename);
+	if (item == NULL) return false;
 	this->description[xstrdup("")] = xstrdup(item->value);
 
 	/* Add the translations of the descriptions too. */
@@ -68,12 +78,14 @@ bool BaseSet<T, Tnum_files, Tsearch_in_tars>::FillSetDetails(IniFile *ini, const
 		this->description[xstrdup(item->get_name() + 12)] = xstrdup(item->value);
 	}
 
-	fetch_metadata("shortname");
+	item = fetch_metadata (metadata, "shortname", full_filename);
+	if (item == NULL) return false;
 	for (uint i = 0; item->value[i] != '\0' && i < 4; i++) {
 		this->shortname |= ((uint8)item->value[i]) << (i * 8);
 	}
 
-	fetch_metadata("version");
+	item = fetch_metadata (metadata, "version", full_filename);
+	if (item == NULL) return false;
 	this->version = atoi(item->value);
 
 	item = metadata->find ("fallback");

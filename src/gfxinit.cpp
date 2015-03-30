@@ -324,7 +324,8 @@ bool GraphicsSet::FillSetDetails(IniFile *ini, const char *path, const char *ful
 		const IniGroup *metadata = ini->get_group ("metadata");
 		const IniItem *item;
 
-		fetch_metadata("palette");
+		item = fetch_metadata (metadata, "palette", full_filename);
+		if (item == NULL) return false;
 		this->palette = (*item->value == 'D' || *item->value == 'd') ? PAL_DOS : PAL_WINDOWS;
 
 		/* Get optional blitter information. */
