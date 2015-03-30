@@ -16,6 +16,8 @@
 /** The type of set we're replacing */
 const char MusicSet::set_type[] = "music";
 
+const char MusicSet::extension[] = ".obm"; // OpenTTD Base Music
+
 INSTANTIATE_BASE_MEDIA_METHODS(BaseMedia<MusicSet>, MusicSet)
 
 /** Names corresponding to the music set's files */
@@ -30,12 +32,6 @@ assert_compile(lengthof(_music_file_names) == NUM_SONGS_AVAILABLE);
 
 template <class T, size_t Tnum_files, bool Tsearch_in_tars>
 /* static */ const char * const *BaseSet<T, Tnum_files, Tsearch_in_tars>::file_names = _music_file_names;
-
-template <class Tbase_set>
-/* static */ const char *BaseMedia<Tbase_set>::GetExtension()
-{
-	return ".obm"; // OpenTTD Base Music
-}
 
 template <class Tbase_set>
 /* static */ bool BaseMedia<Tbase_set>::DetermineBestSet()

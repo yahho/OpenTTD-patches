@@ -21,6 +21,8 @@
 /* The type of set we're replacing */
 const char SoundsSet::set_type[] = "sounds";
 
+const char SoundsSet::extension[] = ".obs"; // OpenTTD Base Sounds
+
 static SoundEntry _original_sounds[ORIGINAL_SAMPLE_COUNT];
 
 static void OpenBankFile(const char *filename)
@@ -292,12 +294,6 @@ static const char * const _sound_file_names[] = { "samples" };
 
 template <class T, size_t Tnum_files, bool Tsearch_in_tars>
 /* static */ const char * const *BaseSet<T, Tnum_files, Tsearch_in_tars>::file_names = _sound_file_names;
-
-template <class Tbase_set>
-/* static */ const char *BaseMedia<Tbase_set>::GetExtension()
-{
-	return ".obs"; // OpenTTD Base Sounds
-}
 
 template <class Tbase_set>
 /* static */ bool BaseMedia<Tbase_set>::DetermineBestSet()

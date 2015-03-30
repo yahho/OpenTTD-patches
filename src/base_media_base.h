@@ -174,11 +174,6 @@ protected:
 
 	/* virtual */ bool AddFile(const char *filename, size_t basepath_length, const char *tar_filename);
 
-	/**
-	 * Get the extension that is used to identify this set.
-	 * @return the extension
-	 */
-	static const char *GetExtension();
 public:
 	/** The set as saved in the config file. */
 	static const char *ini_set;
@@ -195,8 +190,8 @@ public:
 	{
 		BaseMedia<Tbase_set> fs;
 		/* Searching in tars is only done in the old "data" directories basesets. */
-		uint num = fs.Scan(GetExtension(), Tbase_set::SEARCH_IN_TARS ? OLD_DATA_DIR : OLD_GM_DIR, Tbase_set::SEARCH_IN_TARS);
-		return num + fs.Scan(GetExtension(), BASESET_DIR, Tbase_set::SEARCH_IN_TARS);
+		uint num = fs.Scan (Tbase_set::extension, Tbase_set::SEARCH_IN_TARS ? OLD_DATA_DIR : OLD_GM_DIR, Tbase_set::SEARCH_IN_TARS);
+		return num + fs.Scan (Tbase_set::extension, BASESET_DIR, Tbase_set::SEARCH_IN_TARS);
 	}
 
 	static Tbase_set *GetAvailableSets();
@@ -247,6 +242,7 @@ enum BlitterType {
 /** All data of a graphics set. */
 struct GraphicsSet : BaseSet<GraphicsSet, MAX_GFT, true> {
 	static const char set_type[]; ///< Description of the set type
+	static const char extension[]; ///< File extension
 
 	PaletteType palette;       ///< Palette of this graphics set
 	BlitterType blitter;       ///< Blitter of this graphics set
@@ -264,6 +260,7 @@ public:
 /** All data of a sounds set. */
 struct SoundsSet : BaseSet<SoundsSet, 1, true> {
 	static const char set_type[]; ///< Description of the set type
+	static const char extension[]; ///< File extension
 };
 
 /** All data/functions related with replacing the base sounds */
@@ -284,6 +281,7 @@ static const uint NUM_SONGS_PLAYLIST  = 32;
 /** All data of a music set. */
 struct MusicSet : BaseSet<MusicSet, NUM_SONGS_AVAILABLE, false> {
 	static const char set_type[]; ///< Description of the set type
+	static const char extension[]; ///< File extension
 
 	/** The name of the different songs. */
 	char song_name[NUM_SONGS_AVAILABLE][32];

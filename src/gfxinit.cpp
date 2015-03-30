@@ -24,6 +24,8 @@
 /* The type of set we're replacing */
 const char GraphicsSet::set_type[] = "graphics";
 
+const char GraphicsSet::extension[] = ".obg"; // OpenTTD Base Graphics
+
 #include "table/sprites.h"
 
 /** Whether the given NewGRFs must get a palette remap from windows to DOS or not. */
@@ -421,12 +423,6 @@ template <class Tbase_set>
 
 	BaseMedia<Tbase_set>::used_set = best;
 	return BaseMedia<Tbase_set>::used_set != NULL;
-}
-
-template <class Tbase_set>
-/* static */ const char *BaseMedia<Tbase_set>::GetExtension()
-{
-	return ".obg"; // OpenTTD Base Graphics
 }
 
 INSTANTIATE_BASE_MEDIA_METHODS(BaseMedia<GraphicsSet>, GraphicsSet)

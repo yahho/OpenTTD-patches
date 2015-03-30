@@ -414,7 +414,6 @@ template <class Tbase_set>
  */
 #define INSTANTIATE_BASE_MEDIA_METHODS(repl_type, set_type) \
 	template const char *repl_type::ini_set; \
-	template const char *repl_type::GetExtension(); \
 	template bool repl_type::AddFile(const char *filename, size_t pathlength, const char *tar_filename); \
 	template bool repl_type::HasSet(const struct ContentInfo *ci, bool md5sum); \
 	template bool repl_type::SetSet(const char *name); \
