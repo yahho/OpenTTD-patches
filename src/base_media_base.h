@@ -175,13 +175,15 @@ struct BaseSet {
  * @tparam Tbase_set the real set we're going to be
  */
 template <class Tbase_set>
-class BaseMedia : FileScanner {
+class BaseMedia {
 protected:
 	static Tbase_set *available_sets; ///< All available sets
 	static Tbase_set *duplicate_sets; ///< All sets that aren't available, but needed for not downloading base sets when a newer version than the one on BaNaNaS is loaded.
 	static const Tbase_set *used_set; ///< The currently used set
 
-	/* virtual */ bool AddFile(const char *filename, size_t basepath_length, const char *tar_filename);
+	struct Scanner : FileScanner {
+		bool AddFile (const char *filename, size_t basepath_length, const char *tar_filename) OVERRIDE;
+	};
 
 public:
 	/** The set as saved in the config file. */
@@ -197,7 +199,7 @@ public:
 	/** Do the scan for files. */
 	static uint FindSets()
 	{
-		BaseMedia<Tbase_set> fs;
+		Scanner fs;
 		/* Searching in tars is only done in the old "data" directories basesets. */
 		uint num = fs.Scan (Tbase_set::extension, Tbase_set::SEARCH_IN_TARS ? OLD_DATA_DIR : OLD_GM_DIR, Tbase_set::SEARCH_IN_TARS);
 		return num + fs.Scan (Tbase_set::extension, BASESET_DIR, Tbase_set::SEARCH_IN_TARS);

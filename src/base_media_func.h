@@ -172,7 +172,7 @@ bool BaseSet<T, Tnum_files, Tsearch_in_tars>::FillSetDetails(IniFile *ini, const
 }
 
 template <class Tbase_set>
-bool BaseMedia<Tbase_set>::AddFile(const char *filename, size_t basepath_length, const char *tar_filename)
+bool BaseMedia<Tbase_set>::Scanner::AddFile (const char *filename, size_t basepath_length, const char *tar_filename)
 {
 	bool ret = false;
 	DEBUG(grf, 1, "Checking %s for base %s set", filename, Tbase_set::set_type);
@@ -438,7 +438,7 @@ template <class Tbase_set>
  */
 #define INSTANTIATE_BASE_MEDIA_METHODS(repl_type, set_type) \
 	template const char *repl_type::ini_set; \
-	template bool repl_type::AddFile(const char *filename, size_t pathlength, const char *tar_filename); \
+	template bool repl_type::Scanner::AddFile(const char *filename, size_t pathlength, const char *tar_filename); \
 	template bool repl_type::HasSet(const struct ContentInfo *ci, bool md5sum); \
 	template bool repl_type::SetSet(const char *name); \
 	template void repl_type::GetSetsList (stringb *buf); \
