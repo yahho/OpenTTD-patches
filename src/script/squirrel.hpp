@@ -156,7 +156,7 @@ public:
 	 */
 	bool CallMethod(HSQOBJECT instance, const char *method_name, HSQOBJECT *ret, int suspend);
 	bool CallMethod(HSQOBJECT instance, const char *method_name, int suspend) { return this->CallMethod(instance, method_name, NULL, suspend); }
-	bool CallStringMethodStrdup(HSQOBJECT instance, const char *method_name, const char **res, int suspend);
+	char *CallStringMethodStrdup(HSQOBJECT instance, const char *method_name, int suspend);
 	bool CallIntegerMethod(HSQOBJECT instance, const char *method_name, int *res, int suspend);
 	bool CallBoolMethod(HSQOBJECT instance, const char *method_name, bool *res, int suspend);
 	bool CallStringMethodFromSet (HSQOBJECT instance, const char *method_name, size_t n, const char *const *val, const char **res, int suspend);

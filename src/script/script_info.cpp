@@ -97,14 +97,22 @@ bool ScriptInfo::CheckMethod(const char *name) const
 		&ScriptInfo::date,
 	};
 	for (size_t i = 0; i < lengthof(required_fields); i++) {
-		if (!info->engine->CallStringMethodStrdup(*info->SQ_instance, required_functions[i], &(info->*required_fields[i]), MAX_GET_OPS)) return SQ_ERROR;
+		char *s = info->engine->CallStringMethodStrdup (*info->SQ_instance, required_functions[i], MAX_GET_OPS);
+		if (s == NULL) return SQ_ERROR;
+		info->*required_fields[i] = s;
 	}
 	if (!info->engine->CallIntegerMethod(*info->SQ_instance, "GetVersion", &info->version, MAX_GET_OPS)) return SQ_ERROR;
-	if (!info->engine->CallStringMethodStrdup(*info->SQ_instance, "CreateInstance", &info->instance_name, MAX_CREATEINSTANCE_OPS)) return SQ_ERROR;
+	{
+		char *s = info->engine->CallStringMethodStrdup (*info->SQ_instance, "CreateInstance", MAX_CREATEINSTANCE_OPS);
+		if (s == NULL) return SQ_ERROR;
+		info->instance_name = s;
+	}
 
 	/* The GetURL function is optional. */
 	if (info->engine->MethodExists(*info->SQ_instance, "GetURL")) {
-		if (!info->engine->CallStringMethodStrdup(*info->SQ_instance, "GetURL", &info->url, MAX_GET_OPS)) return SQ_ERROR;
+		char *s = info->engine->CallStringMethodStrdup (*info->SQ_instance, "GetURL", MAX_GET_OPS);
+		if (s == NULL) return SQ_ERROR;
+		info->url = s;
 	}
 
 	/* Check if we have settings */

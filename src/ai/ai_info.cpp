@@ -153,10 +153,16 @@ AILibrary::~AILibrary()
 	}
 
 	/* Cache the category */
-	if (!library->CheckMethod("GetCategory") || !library->engine->CallStringMethodStrdup(*library->SQ_instance, "GetCategory", &library->category, MAX_GET_OPS)) {
+	if (!library->CheckMethod("GetCategory")) {
 		delete library;
 		return SQ_ERROR;
 	}
+	char *cat = library->engine->CallStringMethodStrdup (*library->SQ_instance, "GetCategory", MAX_GET_OPS);
+	if (cat == NULL) {
+		delete library;
+		return SQ_ERROR;
+	}
+	library->category = cat;
 
 	/* Register the Library to the base system */
 	library->GetScanner()->RegisterScript(library);
