@@ -13,6 +13,7 @@
 #define SCRIPT_INFO_HPP
 
 #include <squirrel.h>
+#include "../core/pointer.h"
 #include "../misc/countedptr.hpp"
 
 #include "script_config.hpp"
@@ -34,16 +35,16 @@ public:
 	ScriptInfo() :
 		engine(NULL),
 		SQ_instance(NULL),
-		main_script(NULL),
-		tar_file(NULL),
-		author(NULL),
-		name(NULL),
-		short_name(NULL),
-		description(NULL),
-		date(NULL),
-		instance_name(NULL),
+		main_script(),
+		tar_file(),
+		author(),
+		name(),
+		short_name(),
+		description(),
+		date(),
+		instance_name(),
 		version(0),
-		url(NULL),
+		url(),
 		scanner(NULL)
 	{}
 	~ScriptInfo();
@@ -51,22 +52,22 @@ public:
 	/**
 	 * Get the Author of the script.
 	 */
-	const char *GetAuthor() const { return this->author; }
+	const char *GetAuthor() const { return this->author.get(); }
 
 	/**
 	 * Get the Name of the script.
 	 */
-	const char *GetName() const { return this->name; }
+	const char *GetName() const { return this->name.get(); }
 
 	/**
 	 * Get the 4 character long short name of the script.
 	 */
-	const char *GetShortName() const { return this->short_name; }
+	const char *GetShortName() const { return this->short_name.get(); }
 
 	/**
 	 * Get the description of the script.
 	 */
-	const char *GetDescription() const { return this->description; }
+	const char *GetDescription() const { return this->description.get(); }
 
 	/**
 	 * Get the version of the script.
@@ -76,27 +77,27 @@ public:
 	/**
 	 * Get the last-modified date of the script.
 	 */
-	const char *GetDate() const { return this->date; }
+	const char *GetDate() const { return this->date.get(); }
 
 	/**
 	 * Get the name of the instance of the script to create.
 	 */
-	const char *GetInstanceName() const { return this->instance_name; }
+	const char *GetInstanceName() const { return this->instance_name.get(); }
 
 	/**
 	 * Get the website for this script.
 	 */
-	const char *GetURL() const { return this->url; }
+	const char *GetURL() const { return this->url.get(); }
 
 	/**
 	 * Get the filename of the main.nut script.
 	 */
-	const char *GetMainScript() const { return this->main_script; }
+	const char *GetMainScript() const { return this->main_script.get(); }
 
 	/**
 	 * Get the filename of the tar the script is in.
 	 */
-	const char *GetTarFile() const { return this->tar_file; }
+	const char *GetTarFile() const { return this->tar_file.get(); }
 
 	/**
 	 * Check if a given method exists.
@@ -154,16 +155,16 @@ protected:
 	ScriptConfigItemList config_list; ///< List of settings from this Script.
 
 private:
-	char *main_script;            ///< The full path of the script.
-	char *tar_file;               ///< If, which tar file the script was in.
-	const char *author;           ///< Author of the script.
-	const char *name;             ///< Full name of the script.
-	const char *short_name;       ///< Short name (4 chars) which uniquely identifies the script.
-	const char *description;      ///< Small description of the script.
-	const char *date;             ///< The date the script was written at.
-	const char *instance_name;    ///< Name of the main class in the script.
-	int version;                  ///< Version of the script.
-	const char *url;              ///< URL of the script.
+	ttd_unique_free_ptr<char> main_script;    ///< The full path of the script.
+	ttd_unique_free_ptr<char> tar_file;       ///< If, which tar file the script was in.
+	ttd_unique_free_ptr<char> author;         ///< Author of the script.
+	ttd_unique_free_ptr<char> name;           ///< Full name of the script.
+	ttd_unique_free_ptr<char> short_name;     ///< Short name (4 chars) which uniquely identifies the script.
+	ttd_unique_free_ptr<char> description;    ///< Small description of the script.
+	ttd_unique_free_ptr<char> date;           ///< The date the script was written at.
+	ttd_unique_free_ptr<char> instance_name;  ///< Name of the main class in the script.
+	int version;                              ///< Version of the script.
+	ttd_unique_free_ptr<char> url;            ///< URL of the script.
 
 	class ScriptScanner *scanner; ///< ScriptScanner object that was used to scan this script info.
 };

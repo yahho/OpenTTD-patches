@@ -33,15 +33,6 @@ ScriptInfo::~ScriptInfo()
 	}
 	this->config_list.clear();
 
-	free(this->author);
-	free(this->name);
-	free(this->short_name);
-	free(this->description);
-	free(this->date);
-	free(this->instance_name);
-	free(this->url);
-	free(this->main_script);
-	free(this->tar_file);
 	free(this->SQ_instance);
 }
 
@@ -83,12 +74,12 @@ bool ScriptInfo::CheckMethod(const char *name) const
 	}
 
 	/* Get location information of the scanner */
-	info->main_script = xstrdup(info->scanner->GetMainScript());
+	info->main_script.reset (xstrdup (info->scanner->GetMainScript()));
 	const char *tar_name = info->scanner->GetTarFile();
-	if (tar_name != NULL) info->tar_file = xstrdup(tar_name);
+	if (tar_name != NULL) info->tar_file.reset (xstrdup (tar_name));
 
 	/* Cache the data the info file gives us. */
-	static const char *ScriptInfo::*const required_fields[] = {
+	static ttd_unique_free_ptr<char> ScriptInfo::*const required_fields[] = {
 		/* Keep this list in sync with required_functions above. */
 		&ScriptInfo::author,
 		&ScriptInfo::name,
@@ -99,20 +90,20 @@ bool ScriptInfo::CheckMethod(const char *name) const
 	for (size_t i = 0; i < lengthof(required_fields); i++) {
 		char *s = info->engine->CallStringMethodStrdup (*info->SQ_instance, required_functions[i], MAX_GET_OPS);
 		if (s == NULL) return SQ_ERROR;
-		info->*required_fields[i] = s;
+		(info->*required_fields[i]).reset (s);
 	}
 	if (!info->engine->CallIntegerMethod(*info->SQ_instance, "GetVersion", &info->version, MAX_GET_OPS)) return SQ_ERROR;
 	{
 		char *s = info->engine->CallStringMethodStrdup (*info->SQ_instance, "CreateInstance", MAX_CREATEINSTANCE_OPS);
 		if (s == NULL) return SQ_ERROR;
-		info->instance_name = s;
+		info->instance_name.reset (s);
 	}
 
 	/* The GetURL function is optional. */
 	if (info->engine->MethodExists(*info->SQ_instance, "GetURL")) {
 		char *s = info->engine->CallStringMethodStrdup (*info->SQ_instance, "GetURL", MAX_GET_OPS);
 		if (s == NULL) return SQ_ERROR;
-		info->url = s;
+		info->url.reset (s);
 	}
 
 	/* Check if we have settings */
