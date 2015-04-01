@@ -14,6 +14,7 @@
 
 #include <map>
 #include <list>
+#include "../core/pointer.h"
 #include "../core/smallmap_type.hpp"
 #include "../core/string_compare_type.hpp"
 #include "../company_type.h"
@@ -61,7 +62,7 @@ protected:
 
 public:
 	ScriptConfig() :
-		name(NULL),
+		name(),
 		version(-1),
 		info(NULL),
 		config_list(NULL),
@@ -166,7 +167,7 @@ public:
 	 */
 	const char *GetName() const
 	{
-		return this->name;
+		return this->name.get();
 	}
 
 	/**
@@ -198,7 +199,7 @@ public:
 	TextfileDesc GetTextfile (TextfileType type, CompanyID slot) const;
 
 protected:
-	const char *name;                  ///< Name of the Script
+	ttd_unique_free_ptr<char> name;    ///< Name of the Script
 	int version;                       ///< Version of the Script
 	class ScriptInfo *info;            ///< ScriptInfo object for related to this Script version
 	SettingValueList settings;         ///< List with all setting=>value pairs that are configure for this Script

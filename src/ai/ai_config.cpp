@@ -56,7 +56,7 @@ ScriptInfo *AIConfig::FindInfo(const char *name, int version, bool force_exact_m
 
 bool AIConfig::ResetInfo(bool force_exact_match)
 {
-	this->info = (ScriptInfo *)AI::FindInfo(this->name, force_exact_match ? this->version : -1, force_exact_match);
+	this->info = (ScriptInfo *)AI::FindInfo (this->GetName(), force_exact_match ? this->version : -1, force_exact_match);
 	return this->info != NULL;
 }
 

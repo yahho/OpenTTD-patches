@@ -17,9 +17,14 @@
 
 void ScriptConfig::Change(const char *name, int version, bool force_exact_match, bool is_random)
 {
-	free(this->name);
-	this->name = (name == NULL) ? NULL : xstrdup(name);
-	this->info = (name == NULL) ? NULL : this->FindInfo(this->name, version, force_exact_match);
+	if (name == NULL) {
+		this->name.reset();
+		this->info = NULL;
+	} else {
+		this->name.reset (xstrdup (name));
+		this->info = this->FindInfo (name, version, force_exact_match);
+	}
+
 	this->version = (info == NULL) ? -1 : info->GetVersion();
 	this->is_random = is_random;
 	if (this->config_list != NULL) delete this->config_list;
@@ -42,7 +47,12 @@ void ScriptConfig::Change(const char *name, int version, bool force_exact_match,
 
 ScriptConfig::ScriptConfig(const ScriptConfig *config)
 {
-	this->name = (config->name == NULL) ? NULL : xstrdup(config->name);
+	if (config->name) {
+		this->name.reset (xstrdup (config->name.get()));
+	} else {
+		this->name.reset();
+	}
+
 	this->info = config->info;
 	this->version = config->version;
 	this->config_list = NULL;
@@ -56,7 +66,6 @@ ScriptConfig::ScriptConfig(const ScriptConfig *config)
 
 ScriptConfig::~ScriptConfig()
 {
-	free(this->name);
 	this->ResetSettings();
 	if (this->config_list != NULL) delete this->config_list;
 }

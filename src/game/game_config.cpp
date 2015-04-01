@@ -39,6 +39,6 @@ ScriptInfo *GameConfig::FindInfo(const char *name, int version, bool force_exact
 
 bool GameConfig::ResetInfo(bool force_exact_match)
 {
-	this->info = (ScriptInfo *)Game::FindInfo(this->name, force_exact_match ? this->version : -1, force_exact_match);
+	this->info = (ScriptInfo *)Game::FindInfo (this->GetName(), force_exact_match ? this->version : -1, force_exact_match);
 	return this->info != NULL;
 }
