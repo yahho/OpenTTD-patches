@@ -69,12 +69,13 @@ bool ScriptInfo::CheckMethod(const char *name) const
 
 	/* Ensure the mandatory functions exist */
 	static const char * const required_functions[] = {
+		/* Keep this list in sync with required_fields below. */
 		"GetAuthor",
 		"GetName",
 		"GetShortName",
 		"GetDescription",
-		"GetVersion",
 		"GetDate",
+		"GetVersion",
 		"CreateInstance",
 	};
 	for (size_t i = 0; i < lengthof(required_functions); i++) {
@@ -87,11 +88,17 @@ bool ScriptInfo::CheckMethod(const char *name) const
 	if (tar_name != NULL) info->tar_file = xstrdup(tar_name);
 
 	/* Cache the data the info file gives us. */
-	if (!info->engine->CallStringMethodStrdup(*info->SQ_instance, "GetAuthor", &info->author, MAX_GET_OPS)) return SQ_ERROR;
-	if (!info->engine->CallStringMethodStrdup(*info->SQ_instance, "GetName", &info->name, MAX_GET_OPS)) return SQ_ERROR;
-	if (!info->engine->CallStringMethodStrdup(*info->SQ_instance, "GetShortName", &info->short_name, MAX_GET_OPS)) return SQ_ERROR;
-	if (!info->engine->CallStringMethodStrdup(*info->SQ_instance, "GetDescription", &info->description, MAX_GET_OPS)) return SQ_ERROR;
-	if (!info->engine->CallStringMethodStrdup(*info->SQ_instance, "GetDate", &info->date, MAX_GET_OPS)) return SQ_ERROR;
+	static const char *ScriptInfo::*const required_fields[] = {
+		/* Keep this list in sync with required_functions above. */
+		&ScriptInfo::author,
+		&ScriptInfo::name,
+		&ScriptInfo::short_name,
+		&ScriptInfo::description,
+		&ScriptInfo::date,
+	};
+	for (size_t i = 0; i < lengthof(required_fields); i++) {
+		if (!info->engine->CallStringMethodStrdup(*info->SQ_instance, required_functions[i], &(info->*required_fields[i]), MAX_GET_OPS)) return SQ_ERROR;
+	}
 	if (!info->engine->CallIntegerMethod(*info->SQ_instance, "GetVersion", &info->version, MAX_GET_OPS)) return SQ_ERROR;
 	if (!info->engine->CallStringMethodStrdup(*info->SQ_instance, "CreateInstance", &info->instance_name, MAX_CREATEINSTANCE_OPS)) return SQ_ERROR;
 
