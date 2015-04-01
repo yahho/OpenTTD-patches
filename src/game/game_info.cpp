@@ -90,11 +90,6 @@ bool GameInfo::CanLoadFromVersion(int version) const
 }
 
 
-GameLibrary::~GameLibrary()
-{
-	free(this->category);
-}
-
 /* static */ void GameLibrary::RegisterAPI(Squirrel *engine)
 {
 	/* Create the GameLibrary class, and add the RegisterLibrary function */
@@ -124,7 +119,7 @@ GameLibrary::~GameLibrary()
 		delete library;
 		return SQ_ERROR;
 	}
-	library->category = cat;
+	library->category.reset (cat);
 
 	/* Register the Library to the base system */
 	library->GetScanner()->RegisterScript(library);
