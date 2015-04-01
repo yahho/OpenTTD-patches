@@ -58,9 +58,6 @@ private:
 /** All static information from an AI library like name, version, etc. */
 class AILibrary : public ScriptInfo {
 public:
-	AILibrary() : ScriptInfo(), category(NULL) {};
-	~AILibrary();
-
 	/**
 	 * Register the functions of this class.
 	 */
@@ -74,10 +71,10 @@ public:
 	/**
 	 * Get the category this library is in.
 	 */
-	const char *GetCategory() const { return this->category; }
+	const char *GetCategory() const { return this->category.get(); }
 
 private:
-	const char *category; ///< The category this library is in.
+	ttd_unique_free_ptr<char> category; ///< The category this library is in.
 };
 
 #endif /* AI_INFO_HPP */

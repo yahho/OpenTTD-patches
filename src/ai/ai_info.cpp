@@ -128,11 +128,6 @@ bool AIInfo::CanLoadFromVersion(int version) const
 }
 
 
-AILibrary::~AILibrary()
-{
-	free(this->category);
-}
-
 /* static */ void AILibrary::RegisterAPI(Squirrel *engine)
 {
 	/* Create the AILibrary class, and add the RegisterLibrary function */
@@ -162,7 +157,7 @@ AILibrary::~AILibrary()
 		delete library;
 		return SQ_ERROR;
 	}
-	library->category = cat;
+	library->category.reset (cat);
 
 	/* Register the Library to the base system */
 	library->GetScanner()->RegisterScript(library);
