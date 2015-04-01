@@ -61,11 +61,6 @@ ScriptConfig::~ScriptConfig()
 	if (this->config_list != NULL) delete this->config_list;
 }
 
-ScriptInfo *ScriptConfig::GetInfo() const
-{
-	return this->info;
-}
-
 const ScriptConfigItemList *ScriptConfig::GetConfigList()
 {
 	if (this->info != NULL) return this->info->GetConfigList();
@@ -133,26 +128,6 @@ void ScriptConfig::AddRandomDeviation()
 			this->SetSetting((*it).name, InteractiveRandomRange((*it).random_deviation * 2) - (*it).random_deviation + this->GetSetting((*it).name));
 		}
 	}
-}
-
-bool ScriptConfig::HasScript() const
-{
-	return this->info != NULL;
-}
-
-bool ScriptConfig::IsRandom() const
-{
-	return this->is_random;
-}
-
-const char *ScriptConfig::GetName() const
-{
-	return this->name;
-}
-
-int ScriptConfig::GetVersion() const
-{
-	return this->version;
 }
 
 void ScriptConfig::StringToSettings(const char *value)

@@ -90,7 +90,10 @@ public:
 	/**
 	 * Get the ScriptInfo linked to this ScriptConfig.
 	 */
-	class ScriptInfo *GetInfo() const;
+	class ScriptInfo *GetInfo() const
+	{
+		return this->info;
+	}
 
 	/**
 	 * Get the config list for this ScriptConfig.
@@ -145,22 +148,34 @@ public:
 	 * Is this config attached to an Script? In other words, is there a Script
 	 *  that is assigned to this slot.
 	 */
-	bool HasScript() const;
+	bool HasScript() const
+	{
+		return this->info != NULL;
+	}
 
 	/**
 	 * Is the current Script a randomly chosen Script?
 	 */
-	bool IsRandom() const;
+	bool IsRandom() const
+	{
+		return this->is_random;
+	}
 
 	/**
 	 * Get the name of the Script.
 	 */
-	const char *GetName() const;
+	const char *GetName() const
+	{
+		return this->name;
+	}
 
 	/**
 	 * Get the version of the Script.
 	 */
-	int GetVersion() const;
+	int GetVersion() const
+	{
+		return this->version;
+	}
 
 	/**
 	 * Convert a string which is stored in the config file or savegames to
