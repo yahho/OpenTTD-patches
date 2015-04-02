@@ -15,46 +15,6 @@
 #include "../string.h"
 #include "../strings_func.h"
 
-/* The reason this exists in C++, is that a user can trash his ai/ or game/ dir,
- *  leaving no Scripts available. The complexity to solve this is insane, and
- *  therefore the alternative is used, and make sure there is always a Script
- *  available, no matter what the situation is. By defining it in C++, there
- *  is simply no way a user can delete it, and therefore safe to use. It has
- *  to be noted that this Script is complete invisible for the user, and impossible
- *  to select manual. It is a fail-over in case no Scripts are available.
- */
-
-/** Run the dummy info.nut. */
-void Script_CreateDummyInfo(HSQUIRRELVM vm, const char *type, const char *dir)
-{
-	char dummy_script[4096];
-	bstrfmt (dummy_script,
-		"class Dummy%s extends %sInfo {\n"
-			"function GetAuthor()      { return \"OpenTTD Developers Team\"; }\n"
-			"function GetName()        { return \"Dummy%s\"; }\n"
-			"function GetShortName()   { return \"DUMM\"; }\n"
-			"function GetDescription() { return \"A Dummy %s that is loaded when your %s/ dir is empty\"; }\n"
-			"function GetVersion()     { return 1; }\n"
-			"function GetDate()        { return \"2008-07-26\"; }\n"
-			"function CreateInstance() { return \"Dummy%s\"; }\n"
-		"} RegisterDummy%s(Dummy%s());\n",
-		type, type, type, type, dir, type, type, type);
-
-	const char *sq_dummy_script = dummy_script;
-
-	sq_pushroottable(vm);
-
-	/* Load and run the script */
-	if (SQ_SUCCEEDED(sq_compilebuffer(vm, sq_dummy_script, strlen(sq_dummy_script), "dummy", SQTrue))) {
-		sq_push(vm, -2);
-		if (SQ_SUCCEEDED(sq_call(vm, 1, SQFalse, SQTrue))) {
-			sq_pop(vm, 1);
-			return;
-		}
-	}
-	NOT_REACHED();
-}
-
 /** Run the dummy AI and let it generate an error message. */
 void Script_CreateDummy(HSQUIRRELVM vm, StringID string, const char *type)
 {
