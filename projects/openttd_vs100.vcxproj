@@ -1196,11 +1196,6 @@
       <XMLDocumentationFileName>$(IntDir)\script\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\script\script_info.hpp" />
-    <ClCompile Include="..\src\script\script_info_dummy.cpp">
-      <AssemblerListingLocation>$(IntDir)\script\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\script\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\script\</XMLDocumentationFileName>
-    </ClCompile>
     <ClCompile Include="..\src\script\script_instance.cpp">
       <AssemblerListingLocation>$(IntDir)\script\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\script\</ObjectFileName>

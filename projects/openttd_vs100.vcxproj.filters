@@ -1962,9 +1962,6 @@
     <ClInclude Include="..\src\script\script_info.hpp">
       <Filter>Script</Filter>
     </ClInclude>
-    <ClCompile Include="..\src\script\script_info_dummy.cpp">
-      <Filter>Script</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\script\script_instance.cpp">
       <Filter>Script</Filter>
     </ClCompile>
