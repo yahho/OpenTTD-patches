@@ -12,16 +12,10 @@
 #ifndef GAME_HPP
 #define GAME_HPP
 
-#include "../core/string_compare_type.hpp"
+#include "../script/api/script_event_types.hpp"
 #include "game_scanner.hpp"
-#include <map>
 #include "../string.h"
 #include "../saveload/saveload_buffer.h"
-
-/** A list that maps AI names to their AIInfo object. */
-typedef std::map<const char *, class ScriptInfo *, StringCompare> ScriptInfoList;
-
-#include "../script/api/script_event_types.hpp"
 
 /**
  * Main Game class. Contains all functions needed to start, stop, save and load Game Scripts.
