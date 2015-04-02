@@ -226,8 +226,50 @@ void AIInstance::Died()
 
 void AIInstance::LoadDummyScript()
 {
-	extern void Script_CreateDummy(HSQUIRRELVM vm, StringID string, const char *type);
-	Script_CreateDummy(this->engine->GetVM(), STR_ERROR_AI_NO_AI_FOUND, "AI");
+	/* We want to translate the error message.
+	 * We do this in three steps:
+	 * 1) We get the error message
+	 */
+	char error_message[1024];
+	GetString (error_message, STR_ERROR_AI_NO_AI_FOUND);
+
+	/* Make escapes for all quotes and slashes. */
+	char safe_error_message[1024];
+	char *q = safe_error_message;
+	for (const char *p = error_message; *p != '\0' && q < lastof(safe_error_message) - 2; p++, q++) {
+		if (*p == '"' || *p == '\\') *q++ = '\\';
+		*q = *p;
+	}
+	*q = '\0';
+
+	/* 2) We construct the AI's code. This is done by merging a header, body and footer */
+	sstring<4096> dummy_script;
+	dummy_script.fmt ("class DummyAI extends AIController {\n  function Start()\n  {\n");
+
+	/* As special trick we need to split the error message on newlines and
+	 * emit each newline as a separate error printing string. */
+	char *newline;
+	char *p = safe_error_message;
+	do {
+		newline = strchr(p, '\n');
+		if (newline != NULL) *newline = '\0';
+		dummy_script.append_fmt ("    AILog.Error(\"%s\");\n", p);
+		p = newline + 1;
+	} while (newline != NULL);
+
+	dummy_script.append ("  }\n}\n");
+
+	/* And finally we load and run the script */
+	HSQUIRRELVM vm = this->engine->GetVM();
+	sq_pushroottable(vm);
+	if (SQ_SUCCEEDED(sq_compilebuffer(vm, dummy_script.c_str(), dummy_script.length(), "dummy", SQTrue))) {
+		sq_push(vm, -2);
+		if (SQ_SUCCEEDED(sq_call(vm, 1, SQFalse, SQTrue))) {
+			sq_pop(vm, 1);
+			return;
+		}
+	}
+	NOT_REACHED();
 }
 
 int AIInstance::GetSetting(const char *name)
