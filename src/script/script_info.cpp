@@ -200,7 +200,7 @@ SQInteger ScriptInfo::AddSetting(HSQUIRRELVM vm)
 		} else {
 			char error[1024];
 			bstrfmt (error, "unknown setting property '%s'", key);
-			this->engine->ThrowError(error);
+			sq_throwerror (vm, error);
 			return SQ_ERROR;
 		}
 
@@ -211,9 +211,7 @@ SQInteger ScriptInfo::AddSetting(HSQUIRRELVM vm)
 	/* Don't allow both random_deviation and SCRIPTCONFIG_RANDOM to
 	 * be set for the same config item. */
 	if ((items & 0x200) != 0 && (config.flags & SCRIPTCONFIG_RANDOM) != 0) {
-		char error[1024];
-		bstrfmt (error, "Setting both random_deviation and SCRIPTCONFIG_RANDOM is not allowed");
-		this->engine->ThrowError(error);
+		sq_throwerror (vm, "Setting both random_deviation and SCRIPTCONFIG_RANDOM is not allowed");
 		return SQ_ERROR;
 	}
 	/* Reset the bit for random_deviation as it's optional. */
@@ -222,9 +220,7 @@ SQInteger ScriptInfo::AddSetting(HSQUIRRELVM vm)
 	/* Make sure all properties are defined */
 	uint mask = (config.flags & SCRIPTCONFIG_BOOLEAN) ? 0x1F3 : 0x1FF;
 	if (items != mask) {
-		char error[1024];
-		bstrfmt (error, "please define all properties of a setting (min/max not allowed for booleans)");
-		this->engine->ThrowError(error);
+		sq_throwerror (vm, "please define all properties of a setting (min/max not allowed for booleans)");
 		return SQ_ERROR;
 	}
 
@@ -246,7 +242,7 @@ SQInteger ScriptInfo::AddLabels(HSQUIRRELVM vm)
 	if (config == NULL) {
 		char error[1024];
 		bstrfmt (error, "Trying to add labels for non-defined setting '%s'", setting_name);
-		this->engine->ThrowError(error);
+		sq_throwerror (vm, error);
 		return SQ_ERROR;
 	}
 	if (config->labels != NULL) return SQ_ERROR;
