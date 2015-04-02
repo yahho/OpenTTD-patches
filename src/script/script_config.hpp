@@ -91,7 +91,7 @@ public:
 	/**
 	 * Get the ScriptInfo linked to this ScriptConfig.
 	 */
-	class ScriptInfo *GetInfo() const
+	const class ScriptInfo *GetInfo() const
 	{
 		return this->info;
 	}

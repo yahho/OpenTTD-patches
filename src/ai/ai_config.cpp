@@ -44,9 +44,9 @@ ScriptConfigItem _start_date_config = {
 	return *config;
 }
 
-class AIInfo *AIConfig::GetInfo() const
+const class AIInfo *AIConfig::GetInfo() const
 {
-	return static_cast<class AIInfo *>(ScriptConfig::GetInfo());
+	return static_cast<const class AIInfo *>(ScriptConfig::GetInfo());
 }
 
 ScriptInfo *AIConfig::FindInfo(const char *name, int version, bool force_exact_match)

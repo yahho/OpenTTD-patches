@@ -86,7 +86,7 @@ AIInstance::AIInstance() :
 	ScriptInstance("AI")
 {}
 
-void AIInstance::Initialize(AIInfo *info)
+void AIInstance::Initialize (const AIInfo *info)
 {
 	this->versionAPI = info->GetAPIVersion();
 

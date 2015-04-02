@@ -40,7 +40,7 @@
 	if (_networking && !_network_server) return;
 
 	AIConfig *config = AIConfig::GetConfig(company, AIConfig::SSS_FORCE_GAME);
-	AIInfo *info = config->GetInfo();
+	const AIInfo *info = config->GetInfo();
 	if (info == NULL || (rerandomise_ai && config->IsRandom())) {
 		info = AI::scanner_info->SelectRandomAI();
 		assert(info != NULL);

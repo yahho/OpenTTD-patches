@@ -85,7 +85,7 @@ struct AIListWindow : public Window {
 		/* Try if we can find the currently selected AI */
 		this->selected = -1;
 		if (GetConfig(slot)->HasScript()) {
-			ScriptInfo *info = GetConfig(slot)->GetInfo();
+			const ScriptInfo *info = GetConfig(slot)->GetInfo();
 			int i = 0;
 			for (ScriptInfoList::const_iterator it = this->info_list->begin(); it != this->info_list->end(); it++, i++) {
 				if ((*it).second == info) {

@@ -29,7 +29,7 @@ public:
 		ScriptConfig(config)
 	{}
 
-	class GameInfo *GetInfo() const;
+	const class GameInfo *GetInfo() const;
 
 	/**
 	 * When ever the Game Scanner is reloaded, all infos become invalid. This

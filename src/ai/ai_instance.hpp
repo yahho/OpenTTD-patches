@@ -23,7 +23,7 @@ public:
 	 * Initialize the AI and prepare it for its first run.
 	 * @param info The AI to create the instance of.
 	 */
-	void Initialize(class AIInfo *info);
+	void Initialize (const class AIInfo *info);
 
 	/* virtual */ int GetSetting(const char *name);
 	/* virtual */ ScriptInfo *FindLibrary(const char *library, int version);

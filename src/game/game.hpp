@@ -75,7 +75,7 @@ public:
 	/**
 	 * Get the current GameInfo.
 	 */
-	static class GameInfo *GetInfo() { return Game::info; }
+	static const class GameInfo *GetInfo() { return Game::info; }
 
 	static void Rescan();
 	static void ResetConfig();
@@ -121,7 +121,7 @@ private:
 	static class GameInstance *instance;              ///< Instance to the current active Game.
 	static class GameScannerInfo *scanner_info;       ///< Scanner for Game scripts.
 	static class GameScannerLibrary *scanner_library; ///< Scanner for GS Libraries.
-	static class GameInfo *info;                      ///< Current selected GameInfo.
+	static const class GameInfo *info;                ///< Current selected GameInfo.
 };
 
 #endif /* GAME_HPP */

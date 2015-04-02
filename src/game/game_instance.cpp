@@ -90,7 +90,7 @@ GameInstance::GameInstance() :
 	ScriptInstance("GS")
 {}
 
-void GameInstance::Initialize(GameInfo *info)
+void GameInstance::Initialize (const GameInfo *info)
 {
 	this->versionAPI = info->GetAPIVersion();
 

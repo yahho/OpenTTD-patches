@@ -27,9 +27,9 @@
 	return *config;
 }
 
-class GameInfo *GameConfig::GetInfo() const
+const class GameInfo *GameConfig::GetInfo() const
 {
-	return static_cast<class GameInfo *>(ScriptConfig::GetInfo());
+	return static_cast<const class GameInfo *>(ScriptConfig::GetInfo());
 }
 
 ScriptInfo *GameConfig::FindInfo(const char *name, int version, bool force_exact_match)

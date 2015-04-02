@@ -22,7 +22,7 @@
 #include "game_info.hpp"
 
 /* static */ uint Game::frame_counter = 0;
-/* static */ GameInfo *Game::info = NULL;
+/* static */ const GameInfo *Game::info = NULL;
 /* static */ GameInstance *Game::instance = NULL;
 /* static */ GameScannerInfo *Game::scanner_info = NULL;
 /* static */ GameScannerLibrary *Game::scanner_library = NULL;
@@ -68,7 +68,7 @@
 	if (_networking && !_network_server) return;
 
 	GameConfig *config = GameConfig::GetConfig(GameConfig::SSS_FORCE_GAME);
-	GameInfo *info = config->GetInfo();
+	const GameInfo *info = config->GetInfo();
 	if (info == NULL) return;
 
 	config->AnchorUnchangeableSettings();

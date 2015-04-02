@@ -112,7 +112,7 @@ struct Company : PooledItem <Company, CompanyByte, 1, MAX_COMPANIES>, CompanyPro
 	RoadTypes avail_roadtypes;         ///< Road types available to this company.
 
 	class AIInstance *ai_instance;
-	class AIInfo *ai_info;
+	const class AIInfo *ai_info;
 
 	EngineRenewList engine_renew_list; ///< Engine renewals of this company.
 	CompanySettings settings;          ///< settings specific for each company

@@ -30,7 +30,7 @@ public:
 		ScriptConfig(config)
 	{}
 
-	class AIInfo *GetInfo() const;
+	const class AIInfo *GetInfo() const;
 
 	/* virtual */ int GetSetting(const char *name) const;
 	/* virtual */ void SetSetting(const char *name, int value);
