@@ -22,55 +22,13 @@
 
 AIScannerInfo::AIScannerInfo() :
 	ScriptScanner(),
-	info_dummy(NULL)
+	info_dummy (new AIInfo (true))
 {
 }
-
-/* The reason this exists in C++, is that a user can trash his ai/ or game/ dir,
- *  leaving no Scripts available. The complexity to solve this is insane, and
- *  therefore the alternative is used, and make sure there is always a Script
- *  available, no matter what the situation is. By defining it in C++, there
- *  is simply no way a user can delete it, and therefore safe to use. It has
- *  to be noted that this Script is complete invisible for the user, and impossible
- *  to select manual. It is a fail-over in case no Scripts are available.
- */
 
 void AIScannerInfo::Initialize()
 {
 	ScriptScanner::Initialize("AIScanner");
-
-	/* Create the dummy AI */
-	free(this->main_script);
-	this->main_script = xstrdup("%_dummy");
-
-	static const char dummy_script[] =
-		"class DummyAI extends AIInfo {\n"
-			"function GetAuthor()      { return \"OpenTTD Developers Team\"; }\n"
-			"function GetName()        { return \"DummyAI\"; }\n"
-			"function GetShortName()   { return \"DUMM\"; }\n"
-			"function GetDescription() { return \"A Dummy AI that is loaded when your ai/ dir is empty\"; }\n"
-			"function GetVersion()     { return 1; }\n"
-			"function GetDate()        { return \"2008-07-26\"; }\n"
-			"function CreateInstance() { return \"DummyAI\"; }\n"
-		"} RegisterDummyAI(DummyAI());\n";
-
-	HSQUIRRELVM vm = this->engine->GetVM();
-	sq_pushroottable(vm);
-
-	/* Load and run the script */
-	if (SQ_SUCCEEDED(sq_compilebuffer(vm, dummy_script, strlen(dummy_script), "dummy", SQTrue))) {
-		sq_push(vm, -2);
-		if (SQ_SUCCEEDED(sq_call(vm, 1, SQFalse, SQTrue))) {
-			sq_pop(vm, 1);
-			return;
-		}
-	}
-	NOT_REACHED();
-}
-
-void AIScannerInfo::SetDummyAI(class AIInfo *info)
-{
-	this->info_dummy = info;
 }
 
 AIScannerInfo::~AIScannerInfo()

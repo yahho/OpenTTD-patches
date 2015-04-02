@@ -144,7 +144,7 @@ protected:
 		SQInteger construct (ScriptInfo *info);
 	};
 
-private:
+protected:
 	ttd_unique_free_ptr<char> main_script;    ///< The full path of the script.
 	ttd_unique_free_ptr<char> tar_file;       ///< If, which tar file the script was in.
 	ttd_unique_free_ptr<char> author;         ///< Author of the script.

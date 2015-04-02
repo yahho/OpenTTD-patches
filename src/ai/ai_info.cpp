@@ -48,7 +48,6 @@ template <> const char *GetClassName<AIInfo, ST_AI>() { return "AIInfo"; }
 
 	SQAIInfo.PostRegister(engine);
 	engine->AddMethod("RegisterAI", &AIInfo::Constructor, 2, "tx");
-	engine->AddMethod("RegisterDummyAI", &AIInfo::DummyConstructor, 2, "tx");
 }
 
 /* static */ SQInteger AIInfo::Constructor(HSQUIRRELVM vm)
@@ -95,32 +94,25 @@ template <> const char *GetClassName<AIInfo, ST_AI>() { return "AIInfo"; }
 	return 0;
 }
 
-/* static */ SQInteger AIInfo::DummyConstructor(HSQUIRRELVM vm)
-{
-	/* Get the AIInfo */
-	SQUserPointer instance;
-	sq_getinstanceup(vm, 2, &instance, 0);
-	AIInfo *info = (AIInfo *)instance;
-	info->api_version = NULL;
-
-	ScriptInfo::Constructor constructor (vm);
-	SQInteger res = constructor.construct (info);
-	if (res != 0) return res;
-
-	info->api_version = *lastof(ai_api_versions);
-
-	/* Remove the link to the real instance, else it might get deleted by RegisterAI() */
-	sq_setinstanceup(vm, 2, NULL);
-	/* Register the AI to the base system */
-	static_cast<AIScannerInfo *>(constructor.scanner)->SetDummyAI(info);
-	return 0;
-}
-
 AIInfo::AIInfo() :
 	min_loadable_version(0),
 	use_as_random(false),
 	api_version(NULL)
 {
+}
+
+AIInfo::AIInfo (bool ignored)
+	: min_loadable_version(0), use_as_random(false),
+	  api_version(*lastof(ai_api_versions))
+{
+	this->main_script.reset (xstrdup ("%_dummy"));
+	this->author.reset (xstrdup ("OpenTTD Developers Team"));
+	this->name.reset (xstrdup ("DummyAI"));
+	this->short_name.reset (xstrdup ("DUMM"));
+	this->description.reset (xstrdup ("A Dummy AI that is loaded when your ai/ dir is empty"));
+	this->date.reset (xstrdup ("2008-07-26"));
+	this->instance_name.reset (xstrdup ("DummyAI"));
+	this->version = 1;
 }
 
 bool AIInfo::CanLoadFromVersion(int version) const

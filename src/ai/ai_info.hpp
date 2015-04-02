@@ -32,7 +32,7 @@ public:
 	/**
 	 * Create a dummy-AI.
 	 */
-	static SQInteger DummyConstructor(HSQUIRRELVM vm);
+	AIInfo (bool ignored);
 
 	/**
 	 * Check if we can start this AI.

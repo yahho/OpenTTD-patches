@@ -36,11 +36,6 @@ public:
 	 */
 	class AIInfo *FindInfo(const char *nameParam, int versionParam, bool force_exact_match);
 
-	/**
-	 * Set the Dummy AI.
-	 */
-	void SetDummyAI(class AIInfo *info);
-
 protected:
 	/* virtual */ void GetScriptName(ScriptInfo *info, char *name, int len);
 	/* virtual */ const char *GetFileName() const { return PATHSEP "info.nut"; }
