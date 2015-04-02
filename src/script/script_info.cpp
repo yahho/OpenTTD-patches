@@ -32,13 +32,11 @@ ScriptInfo::~ScriptInfo()
 		}
 	}
 	this->config_list.clear();
-
-	free(this->SQ_instance);
 }
 
-bool ScriptInfo::CheckMethod(const char *name) const
+bool ScriptInfo::Constructor::check_method (const char *name) const
 {
-	if (!this->engine->MethodExists(*this->SQ_instance, name)) {
+	if (!this->engine->MethodExists (this->instance, name)) {
 		char error[1024];
 		bstrfmt (error, "your info.nut/library.nut doesn't have the method '%s'", name);
 		this->engine->ThrowError(error);
@@ -47,17 +45,19 @@ bool ScriptInfo::CheckMethod(const char *name) const
 	return true;
 }
 
-/* static */ SQInteger ScriptInfo::Constructor(HSQUIRRELVM vm, ScriptInfo *info)
+ScriptInfo::Constructor::Constructor (HSQUIRRELVM vm)
 {
 	/* Set some basic info from the parent */
-	info->SQ_instance = xmalloct<SQObject>();
-	Squirrel::GetInstance(vm, info->SQ_instance, 2);
+	Squirrel::GetInstance (vm, &this->instance, 2);
 	/* Make sure the instance stays alive over time */
-	sq_addref(vm, info->SQ_instance);
+	sq_addref (vm, &this->instance);
 
-	info->scanner = (ScriptScanner *)Squirrel::GetGlobalPointer(vm);
-	info->engine = info->scanner->GetEngine();
+	this->scanner = (ScriptScanner *) Squirrel::GetGlobalPointer (vm);
+	this->engine = this->scanner->GetEngine();
+}
 
+SQInteger ScriptInfo::Constructor::construct (ScriptInfo *info)
+{
 	/* Ensure the mandatory functions exist */
 	static const char * const required_functions[] = {
 		/* Keep this list in sync with required_fields below. */
@@ -70,12 +70,12 @@ bool ScriptInfo::CheckMethod(const char *name) const
 		"CreateInstance",
 	};
 	for (size_t i = 0; i < lengthof(required_functions); i++) {
-		if (!info->CheckMethod(required_functions[i])) return SQ_ERROR;
+		if (!this->check_method (required_functions[i])) return SQ_ERROR;
 	}
 
 	/* Get location information of the scanner */
-	info->main_script.reset (xstrdup (info->scanner->GetMainScript()));
-	const char *tar_name = info->scanner->GetTarFile();
+	info->main_script.reset (xstrdup (this->scanner->GetMainScript()));
+	const char *tar_name = this->scanner->GetTarFile();
 	if (tar_name != NULL) info->tar_file.reset (xstrdup (tar_name));
 
 	/* Cache the data the info file gives us. */
@@ -88,35 +88,30 @@ bool ScriptInfo::CheckMethod(const char *name) const
 		&ScriptInfo::date,
 	};
 	for (size_t i = 0; i < lengthof(required_fields); i++) {
-		char *s = info->engine->CallStringMethodStrdup (*info->SQ_instance, required_functions[i], MAX_GET_OPS);
+		char *s = this->engine->CallStringMethodStrdup (this->instance, required_functions[i], MAX_GET_OPS);
 		if (s == NULL) return SQ_ERROR;
 		(info->*required_fields[i]).reset (s);
 	}
-	if (!info->engine->CallIntegerMethod(*info->SQ_instance, "GetVersion", &info->version, MAX_GET_OPS)) return SQ_ERROR;
+	if (!this->engine->CallIntegerMethod (this->instance, "GetVersion", &info->version, MAX_GET_OPS)) return SQ_ERROR;
 	{
-		char *s = info->engine->CallStringMethodStrdup (*info->SQ_instance, "CreateInstance", MAX_CREATEINSTANCE_OPS);
+		char *s = this->engine->CallStringMethodStrdup (this->instance, "CreateInstance", MAX_CREATEINSTANCE_OPS);
 		if (s == NULL) return SQ_ERROR;
 		info->instance_name.reset (s);
 	}
 
 	/* The GetURL function is optional. */
-	if (info->engine->MethodExists(*info->SQ_instance, "GetURL")) {
-		char *s = info->engine->CallStringMethodStrdup (*info->SQ_instance, "GetURL", MAX_GET_OPS);
+	if (this->engine->MethodExists (this->instance, "GetURL")) {
+		char *s = this->engine->CallStringMethodStrdup (this->instance, "GetURL", MAX_GET_OPS);
 		if (s == NULL) return SQ_ERROR;
 		info->url.reset (s);
 	}
 
 	/* Check if we have settings */
-	if (info->engine->MethodExists(*info->SQ_instance, "GetSettings")) {
-		if (!info->GetSettings()) return SQ_ERROR;
+	if (this->engine->MethodExists (this->instance, "GetSettings")) {
+		if (!this->engine->CallMethod (this->instance, "GetSettings", NULL, MAX_GET_SETTING_OPS)) return SQ_ERROR;
 	}
 
 	return 0;
-}
-
-bool ScriptInfo::GetSettings()
-{
-	return this->engine->CallMethod(*this->SQ_instance, "GetSettings", NULL, MAX_GET_SETTING_OPS);
 }
 
 SQInteger ScriptInfo::AddSetting(HSQUIRRELVM vm)

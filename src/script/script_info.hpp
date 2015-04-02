@@ -33,8 +33,6 @@ static const int MAX_GET_SETTING_OPS    = 100000;
 class ScriptInfo : public SimpleCountedObject {
 public:
 	ScriptInfo() :
-		engine(NULL),
-		SQ_instance(NULL),
 		main_script(),
 		tar_file(),
 		author(),
@@ -44,8 +42,7 @@ public:
 		date(),
 		instance_name(),
 		version(0),
-		url(),
-		scanner(NULL)
+		url()
 	{}
 	~ScriptInfo();
 
@@ -100,26 +97,6 @@ public:
 	const char *GetTarFile() const { return this->tar_file.get(); }
 
 	/**
-	 * Check if a given method exists.
-	 */
-	bool CheckMethod(const char *name) const;
-
-	/**
-	 * Process the creation of a FileInfo object.
-	 */
-	static SQInteger Constructor(HSQUIRRELVM vm, ScriptInfo *info);
-
-	/**
-	 * Get the scanner which has found this ScriptInfo.
-	 */
-	virtual class ScriptScanner *GetScanner() { return this->scanner; }
-
-	/**
-	 * Get the settings of the Script.
-	 */
-	bool GetSettings();
-
-	/**
 	 * Get the config list for this Script.
 	 */
 	const ScriptConfigItemList *GetConfigList() const;
@@ -150,9 +127,22 @@ public:
 	virtual bool IsDeveloperOnly() const { return false; }
 
 protected:
-	class Squirrel *engine;           ///< Engine used to register for Squirrel.
-	HSQOBJECT *SQ_instance;           ///< The Squirrel instance created for this info.
 	ScriptConfigItemList config_list; ///< List of settings from this Script.
+
+	/** Struct to process the creation of a ScriptInfo object. */
+	struct Constructor {
+		class ScriptScanner *scanner; ///< ScriptScanner object being used to scan this script info.
+		class Squirrel *engine;       ///< Engine used to register for Squirrel.
+		HSQOBJECT instance;           ///< The Squirrel instance created for this info.
+
+		Constructor (HSQUIRRELVM vm);
+
+		/** Check if a given method exists. */
+		bool check_method (const char *name) const;
+
+		/** Process the creation of a FileInfo object. */
+		SQInteger construct (ScriptInfo *info);
+	};
 
 private:
 	ttd_unique_free_ptr<char> main_script;    ///< The full path of the script.
@@ -165,8 +155,6 @@ private:
 	ttd_unique_free_ptr<char> instance_name;  ///< Name of the main class in the script.
 	int version;                              ///< Version of the script.
 	ttd_unique_free_ptr<char> url;            ///< URL of the script.
-
-	class ScriptScanner *scanner; ///< ScriptScanner object that was used to scan this script info.
 };
 
 #endif /* SCRIPT_INFO_HPP */

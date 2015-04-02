@@ -58,7 +58,8 @@ template <> const char *GetClassName<AIInfo, ST_AI>() { return "AIInfo"; }
 	if (SQ_FAILED(sq_getinstanceup(vm, 2, &instance, 0)) || instance == NULL) return sq_throwerror(vm, "Pass an instance of a child class of AIInfo to RegisterAI");
 	AIInfo *info = (AIInfo *)instance;
 
-	SQInteger res = ScriptInfo::Constructor(vm, info);
+	ScriptInfo::Constructor constructor (vm);
+	SQInteger res = constructor.construct (info);
 	if (res != 0) return res;
 
 	ScriptConfigItem config = _start_date_config;
@@ -66,20 +67,20 @@ template <> const char *GetClassName<AIInfo, ST_AI>() { return "AIInfo"; }
 	config.description = xstrdup(config.description);
 	info->config_list.push_front(config);
 
-	if (info->engine->MethodExists(*info->SQ_instance, "MinVersionToLoad")) {
-		if (!info->engine->CallIntegerMethod(*info->SQ_instance, "MinVersionToLoad", &info->min_loadable_version, MAX_GET_OPS)) return SQ_ERROR;
+	if (constructor.engine->MethodExists (constructor.instance, "MinVersionToLoad")) {
+		if (!constructor.engine->CallIntegerMethod (constructor.instance, "MinVersionToLoad", &info->min_loadable_version, MAX_GET_OPS)) return SQ_ERROR;
 	} else {
 		info->min_loadable_version = info->GetVersion();
 	}
 	/* When there is an UseAsRandomAI function, call it. */
-	if (info->engine->MethodExists(*info->SQ_instance, "UseAsRandomAI")) {
-		if (!info->engine->CallBoolMethod(*info->SQ_instance, "UseAsRandomAI", &info->use_as_random, MAX_GET_OPS)) return SQ_ERROR;
+	if (constructor.engine->MethodExists (constructor.instance, "UseAsRandomAI")) {
+		if (!constructor.engine->CallBoolMethod (constructor.instance, "UseAsRandomAI", &info->use_as_random, MAX_GET_OPS)) return SQ_ERROR;
 	} else {
 		info->use_as_random = true;
 	}
 	/* Try to get the API version the AI is written for. */
-	if (info->engine->MethodExists(*info->SQ_instance, "GetAPIVersion")) {
-		if (!info->engine->CallStringMethodFromSet (*info->SQ_instance, "GetAPIVersion", ai_api_versions, &info->api_version, MAX_GET_OPS)) {
+	if (constructor.engine->MethodExists (constructor.instance, "GetAPIVersion")) {
+		if (!constructor.engine->CallStringMethodFromSet (constructor.instance, "GetAPIVersion", ai_api_versions, &info->api_version, MAX_GET_OPS)) {
 			DEBUG(script, 1, "Loading info.nut from (%s.%d): GetAPIVersion returned invalid version", info->GetName(), info->GetVersion());
 			return SQ_ERROR;
 		}
@@ -90,7 +91,7 @@ template <> const char *GetClassName<AIInfo, ST_AI>() { return "AIInfo"; }
 	/* Remove the link to the real instance, else it might get deleted by RegisterAI() */
 	sq_setinstanceup(vm, 2, NULL);
 	/* Register the AI to the base system */
-	info->GetScanner()->RegisterScript(info);
+	constructor.scanner->RegisterScript(info);
 	return 0;
 }
 
@@ -102,7 +103,8 @@ template <> const char *GetClassName<AIInfo, ST_AI>() { return "AIInfo"; }
 	AIInfo *info = (AIInfo *)instance;
 	info->api_version = NULL;
 
-	SQInteger res = ScriptInfo::Constructor(vm, info);
+	ScriptInfo::Constructor constructor (vm);
+	SQInteger res = constructor.construct (info);
 	if (res != 0) return res;
 
 	info->api_version = *lastof(ai_api_versions);
@@ -110,7 +112,7 @@ template <> const char *GetClassName<AIInfo, ST_AI>() { return "AIInfo"; }
 	/* Remove the link to the real instance, else it might get deleted by RegisterAI() */
 	sq_setinstanceup(vm, 2, NULL);
 	/* Register the AI to the base system */
-	static_cast<AIScannerInfo *>(info->GetScanner())->SetDummyAI(info);
+	static_cast<AIScannerInfo *>(constructor.scanner)->SetDummyAI(info);
 	return 0;
 }
 
@@ -141,18 +143,19 @@ bool AIInfo::CanLoadFromVersion(int version) const
 	/* Create a new library */
 	AILibrary *library = new AILibrary();
 
-	SQInteger res = ScriptInfo::Constructor(vm, library);
+	ScriptInfo::Constructor constructor (vm);
+	SQInteger res = constructor.construct (library);
 	if (res != 0) {
 		delete library;
 		return res;
 	}
 
 	/* Cache the category */
-	if (!library->CheckMethod("GetCategory")) {
+	if (!constructor.check_method ("GetCategory")) {
 		delete library;
 		return SQ_ERROR;
 	}
-	char *cat = library->engine->CallStringMethodStrdup (*library->SQ_instance, "GetCategory", MAX_GET_OPS);
+	char *cat = constructor.engine->CallStringMethodStrdup (constructor.instance, "GetCategory", MAX_GET_OPS);
 	if (cat == NULL) {
 		delete library;
 		return SQ_ERROR;
@@ -160,7 +163,7 @@ bool AIInfo::CanLoadFromVersion(int version) const
 	library->category.reset (cat);
 
 	/* Register the Library to the base system */
-	library->GetScanner()->RegisterScript(library);
+	constructor.scanner->RegisterScript(library);
 
 	return 0;
 }
