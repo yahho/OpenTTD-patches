@@ -107,16 +107,16 @@ TextfileDesc ContentInfo::GetTextfile (TextfileType type) const
 	switch (this->type) {
 		default: NOT_REACHED();
 		case CONTENT_TYPE_AI:
-			tmp = AI::GetScannerInfo()->FindMainScript(this, true);
+			tmp = AI::FindInfoMainScript (this);
 			break;
 		case CONTENT_TYPE_AI_LIBRARY:
-			tmp = AI::GetScannerLibrary()->FindMainScript(this, true);
+			tmp = AI::FindLibraryMainScript (this);
 			break;
 		case CONTENT_TYPE_GAME:
-			tmp = Game::GetScannerInfo()->FindMainScript(this, true);
+			tmp = Game::FindInfoMainScript (this);
 			break;
 		case CONTENT_TYPE_GAME_LIBRARY:
-			tmp = Game::GetScannerLibrary()->FindMainScript(this, true);
+			tmp = Game::FindLibraryMainScript (this);
 			break;
 		case CONTENT_TYPE_NEWGRF: {
 			const GRFConfig *gc = FindGRFConfig(BSWAP32(this->unique_id), FGCM_EXACT, this->md5sum);

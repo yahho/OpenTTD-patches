@@ -112,12 +112,10 @@ public:
 	/** Wrapper function for GameScanner::HasGame */
 	static bool HasGame(const struct ContentInfo *ci, bool md5sum);
 	static bool HasGameLibrary(const ContentInfo *ci, bool md5sum);
-#endif
-	/** Gets the ScriptScanner instance that is used to find Game scripts */
-	static GameScannerInfo *GetScannerInfo();
-	/** Gets the ScriptScanner instance that is used to find Game Libraries */
-	static GameScannerLibrary *GetScannerLibrary();
 
+	static const char *FindInfoMainScript (const ContentInfo *ci);
+	static const char *FindLibraryMainScript (const ContentInfo *ci);
+#endif
 private:
 	static uint frame_counter;                        ///< Tick counter for the Game code.
 	static class GameInstance *instance;              ///< Instance to the current active Game.

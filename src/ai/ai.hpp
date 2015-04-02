@@ -156,15 +156,13 @@ public:
 	 */
 	static void Rescan();
 
-	/** Gets the ScriptScanner instance that is used to find AIs */
-	static AIScannerInfo *GetScannerInfo();
-	/** Gets the ScriptScanner instance that is used to find AI Libraries */
-	static AIScannerLibrary *GetScannerLibrary();
-
 #if defined(ENABLE_NETWORK)
 	/** Wrapper function for AIScanner::HasAI */
 	static bool HasAI(const struct ContentInfo *ci, bool md5sum);
 	static bool HasAILibrary(const ContentInfo *ci, bool md5sum);
+
+	static const char *FindInfoMainScript (const ContentInfo *ci);
+	static const char *FindLibraryMainScript (const ContentInfo *ci);
 #endif
 private:
 	static uint frame_counter;                      ///< Tick counter for the AI code

@@ -264,13 +264,24 @@
 	return Game::scanner_library->HasScript(ci, md5sum);
 }
 
-#endif /* defined(ENABLE_NETWORK) */
+/**
+ * Find a script of a #ContentInfo.
+ * @param ci The information to compare to.
+ * @return A filename of a file of the content, else \c NULL.
+ */
+const char *Game::FindInfoMainScript (const ContentInfo *ci)
+{
+	return Game::scanner_info->FindMainScript (ci, true);
+}
 
-/* static */ GameScannerInfo *Game::GetScannerInfo()
+/**
+ * Find a script of a #ContentInfo.
+ * @param ci The information to compare to.
+ * @return A filename of a file of the content, else \c NULL.
+ */
+const char *Game::FindLibraryMainScript (const ContentInfo *ci)
 {
-	return Game::scanner_info;
+	return Game::scanner_library->FindMainScript (ci, true);
 }
-/* static */ GameScannerLibrary *Game::GetScannerLibrary()
-{
-	return Game::scanner_library;
-}
+
+#endif /* defined(ENABLE_NETWORK) */

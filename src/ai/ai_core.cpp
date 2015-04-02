@@ -373,15 +373,24 @@
 	return AI::scanner_library->HasScript(ci, md5sum);
 }
 
+/**
+ * Find a script of a #ContentInfo.
+ * @param ci The information to compare to.
+ * @return A filename of a file of the content, else \c NULL.
+ */
+const char *AI::FindInfoMainScript (const ContentInfo *ci)
+{
+	return AI::scanner_info->FindMainScript (ci, true);
+}
+
+/**
+ * Find a script of a #ContentInfo.
+ * @param ci The information to compare to.
+ * @return A filename of a file of the content, else \c NULL.
+ */
+const char *AI::FindLibraryMainScript (const ContentInfo *ci)
+{
+	return AI::scanner_library->FindMainScript (ci, true);
+}
+
 #endif /* defined(ENABLE_NETWORK) */
-
-/* static */ AIScannerInfo *AI::GetScannerInfo()
-{
-	return AI::scanner_info;
-}
-
-/* static */ AIScannerLibrary *AI::GetScannerLibrary()
-{
-	return AI::scanner_library;
-}
-
