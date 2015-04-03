@@ -37,7 +37,6 @@ public:
 	class AIInfo *FindInfo(const char *nameParam, int versionParam, bool force_exact_match);
 
 protected:
-	/* virtual */ void GetScriptName(ScriptInfo *info, char *name, int len);
 	/* virtual */ const char *GetFileName() const { return PATHSEP "info.nut"; }
 	/* virtual */ Subdirectory GetDirectory() const { return AI_DIR; }
 	/* virtual */ const char *GetScannerName() const { return "AIs"; }
@@ -60,7 +59,6 @@ public:
 	class AILibrary *FindLibrary(const char *library, int version);
 
 protected:
-	/* virtual */ void GetScriptName(ScriptInfo *info, char *name, int len);
 	/* virtual */ const char *GetFileName() const { return PATHSEP "library.nut"; }
 	/* virtual */ Subdirectory GetDirectory() const { return AI_LIBRARY_DIR; }
 	/* virtual */ const char *GetScannerName() const { return "AI Libraries"; }

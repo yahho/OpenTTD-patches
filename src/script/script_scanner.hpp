@@ -55,7 +55,7 @@ public:
 	/**
 	 * Register a ScriptInfo to the scanner.
 	 */
-	void RegisterScript(class ScriptInfo *info);
+	void RegisterScript (class ScriptInfo *info, const char *name);
 
 	/**
 	 * Get the list of registered scripts to print on the console.
@@ -98,11 +98,6 @@ protected:
 	 * @param name The name of the scanner ("AIScanner", "GSScanner", ..).
 	 */
 	void Initialize(const char *name);
-
-	/**
-	 * Get the script name how to store the script in memory.
-	 */
-	virtual void GetScriptName(ScriptInfo *info, char *name, int len) = 0;
 
 	/**
 	 * Get the filename to scan for this type of script.

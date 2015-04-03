@@ -90,7 +90,7 @@ template <> const char *GetClassName<AIInfo, ST_AI>() { return "AIInfo"; }
 	/* Remove the link to the real instance, else it might get deleted by RegisterAI() */
 	sq_setinstanceup(vm, 2, NULL);
 	/* Register the AI to the base system */
-	constructor.scanner->RegisterScript(info);
+	constructor.scanner->RegisterScript (info, info->GetName());
 	return 0;
 }
 
@@ -155,7 +155,9 @@ bool AIInfo::CanLoadFromVersion(int version) const
 	library->category.reset (cat);
 
 	/* Register the Library to the base system */
-	constructor.scanner->RegisterScript(library);
+	char name [1024];
+	bstrfmt (name, "%s.%s", library->GetCategory(), library->GetInstanceName());
+	constructor.scanner->RegisterScript (library, name);
 
 	return 0;
 }

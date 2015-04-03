@@ -22,11 +22,6 @@ void GameScannerInfo::Initialize()
 	ScriptScanner::Initialize("GSScanner");
 }
 
-void GameScannerInfo::GetScriptName(ScriptInfo *info, char *name, int len)
-{
-	snprintf(name, len, "%s", info->GetName());
-}
-
 void GameScannerInfo::RegisterAPI(class Squirrel *engine)
 {
 	GameInfo::RegisterAPI(engine);
@@ -83,12 +78,6 @@ GameInfo *GameScannerInfo::FindInfo(const char *nameParam, int versionParam, boo
 void GameScannerLibrary::Initialize()
 {
 	ScriptScanner::Initialize("GSScanner");
-}
-
-void GameScannerLibrary::GetScriptName(ScriptInfo *info, char *name, int len)
-{
-	GameLibrary *library = static_cast<GameLibrary *>(info);
-	snprintf(name, len, "%s.%s", library->GetCategory(), library->GetInstanceName());
 }
 
 void GameScannerLibrary::RegisterAPI(class Squirrel *engine)

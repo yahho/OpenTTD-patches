@@ -102,14 +102,13 @@ void ScriptScanner::Reset()
 	this->info_single_list.clear();
 }
 
-void ScriptScanner::RegisterScript(ScriptInfo *info)
+void ScriptScanner::RegisterScript (ScriptInfo *info, const char *name)
 {
-	char script_original_name[1024];
-	this->GetScriptName(info, script_original_name, sizeof(script_original_name));
-	strtolower(script_original_name);
-
-	char script_name[1024];
-	bstrfmt (script_name, "%s.%d", script_original_name, info->GetVersion());
+	sstring<1024> script_name;
+	script_name.copy (name);
+	script_name.tolower();
+	size_t original_length = script_name.length();
+	script_name.append_fmt (".%d", info->GetVersion());
 
 	/* Check if GetShortName follows the rules */
 	if (strlen(info->GetShortName()) != 4) {
@@ -118,7 +117,7 @@ void ScriptScanner::RegisterScript(ScriptInfo *info)
 		return;
 	}
 
-	ScriptInfoList::iterator iter = this->info_list.find (script_name);
+	ScriptInfoList::iterator iter = this->info_list.find (script_name.c_str());
 	if (iter != this->info_list.end()) {
 		/* This script was already registered */
 		const char *old_main = iter->second->GetMainScript();
@@ -139,14 +138,16 @@ void ScriptScanner::RegisterScript(ScriptInfo *info)
 		return;
 	}
 
-	this->info_list[xstrdup(script_name)] = info;
+	this->info_list[xstrdup(script_name.c_str())] = info;
+
+	script_name.truncate (original_length);
 
 	if (!info->IsDeveloperOnly() || _settings_client.gui.ai_developer_tools) {
 		/* Add the script to the 'unique' script list, where only the highest version
 		 *  of the script is registered. */
-		ScriptInfoList::iterator iter = this->info_single_list.find (script_original_name);
+		ScriptInfoList::iterator iter = this->info_single_list.find (script_name.c_str());
 		if (iter == this->info_single_list.end()) {
-			this->info_single_list[xstrdup(script_original_name)] = info;
+			this->info_single_list[xstrdup(script_name.c_str())] = info;
 		} else if (iter->second->GetVersion() < info->GetVersion()) {
 			iter->second = info;
 		}
