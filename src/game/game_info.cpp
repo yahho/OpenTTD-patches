@@ -73,7 +73,7 @@ template <> const char *GetClassName<GameInfo, ST_GS>() { return "GSInfo"; }
 	/* Remove the link to the real instance, else it might get deleted by RegisterGame() */
 	sq_setinstanceup(vm, 2, NULL);
 	/* Register the Game to the base system */
-	constructor.scanner->RegisterScript (info, info->GetName());
+	constructor.scanner->RegisterScript (info, info->GetName(), info->IsDeveloperOnly());
 	return 0;
 }
 

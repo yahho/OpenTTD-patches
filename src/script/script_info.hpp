@@ -121,11 +121,6 @@ public:
 	 */
 	int GetSettingDefaultValue(const char *name) const;
 
-	/**
-	 * Can this script be selected by developers only?
-	 */
-	virtual bool IsDeveloperOnly() const { return false; }
-
 protected:
 	ScriptConfigItemList config_list; ///< List of settings from this Script.
 

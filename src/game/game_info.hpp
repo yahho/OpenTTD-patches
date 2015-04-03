@@ -39,7 +39,10 @@ public:
 	 */
 	const char *GetAPIVersion() const { return this->api_version; }
 
-	/* virtual */ bool IsDeveloperOnly() const { return this->is_developer_only; }
+	/**
+	 * Can this script be selected by developers only?
+	 */
+	bool IsDeveloperOnly() const { return this->is_developer_only; }
 
 private:
 	int min_loadable_version; ///< The Game can load savegame data if the version is equal or greater than this.

@@ -102,7 +102,7 @@ void ScriptScanner::Reset()
 	this->info_single_list.clear();
 }
 
-void ScriptScanner::RegisterScript (ScriptInfo *info, const char *name)
+void ScriptScanner::RegisterScript (ScriptInfo *info, const char *name, bool dev_only)
 {
 	sstring<1024> script_name;
 	script_name.copy (name);
@@ -142,7 +142,7 @@ void ScriptScanner::RegisterScript (ScriptInfo *info, const char *name)
 
 	script_name.truncate (original_length);
 
-	if (!info->IsDeveloperOnly() || _settings_client.gui.ai_developer_tools) {
+	if (!dev_only || _settings_client.gui.ai_developer_tools) {
 		/* Add the script to the 'unique' script list, where only the highest version
 		 *  of the script is registered. */
 		ScriptInfoList::iterator iter = this->info_single_list.find (script_name.c_str());

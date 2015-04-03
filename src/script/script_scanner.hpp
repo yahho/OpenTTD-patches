@@ -55,7 +55,7 @@ public:
 	/**
 	 * Register a ScriptInfo to the scanner.
 	 */
-	void RegisterScript (class ScriptInfo *info, const char *name);
+	void RegisterScript (class ScriptInfo *info, const char *name, bool dev_only = false);
 
 	/**
 	 * Get the list of registered scripts to print on the console.
