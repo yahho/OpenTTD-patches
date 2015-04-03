@@ -118,22 +118,22 @@ void ScriptScanner::RegisterScript(ScriptInfo *info)
 		return;
 	}
 
-	if (this->info_list.find(script_name) != this->info_list.end()) {
+	ScriptInfoList::iterator iter = this->info_list.find (script_name);
+	if (iter != this->info_list.end()) {
 		/* This script was already registered */
+		const char *old_main = iter->second->GetMainScript();
+		const char *new_main = info->GetMainScript();
 #ifdef WIN32
 		/* Windows doesn't care about the case */
-		if (strcasecmp(this->info_list[script_name]->GetMainScript(), info->GetMainScript()) == 0) {
+		if (strcasecmp (old_main, new_main) != 0) {
 #else
-		if (strcmp(this->info_list[script_name]->GetMainScript(), info->GetMainScript()) == 0) {
+		if (strcmp (old_main, new_main) != 0) {
 #endif
-			delete info;
-			return;
+			DEBUG(script, 1, "Registering two scripts with the same name and version");
+			DEBUG(script, 1, "  1: %s", old_main);
+			DEBUG(script, 1, "  2: %s", new_main);
+			DEBUG(script, 1, "The first is taking precedence.");
 		}
-
-		DEBUG(script, 1, "Registering two scripts with the same name and version");
-		DEBUG(script, 1, "  1: %s", this->info_list[script_name]->GetMainScript());
-		DEBUG(script, 1, "  2: %s", info->GetMainScript());
-		DEBUG(script, 1, "The first is taking precedence.");
 
 		delete info;
 		return;
@@ -144,10 +144,11 @@ void ScriptScanner::RegisterScript(ScriptInfo *info)
 	if (!info->IsDeveloperOnly() || _settings_client.gui.ai_developer_tools) {
 		/* Add the script to the 'unique' script list, where only the highest version
 		 *  of the script is registered. */
-		if (this->info_single_list.find(script_original_name) == this->info_single_list.end()) {
+		ScriptInfoList::iterator iter = this->info_single_list.find (script_original_name);
+		if (iter == this->info_single_list.end()) {
 			this->info_single_list[xstrdup(script_original_name)] = info;
-		} else if (this->info_single_list[script_original_name]->GetVersion() < info->GetVersion()) {
-			this->info_single_list[script_original_name] = info;
+		} else if (iter->second->GetVersion() < info->GetVersion()) {
+			iter->second = info;
 		}
 	}
 }
