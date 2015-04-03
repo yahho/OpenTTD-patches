@@ -261,20 +261,23 @@ static bool IsSameScript(const ContentInfo *ci, bool md5sum, ScriptInfo *info, S
 	return memcmp(ci->md5sum, checksum.md5sum, sizeof(ci->md5sum)) == 0;
 }
 
-bool ScriptScanner::HasScript(const ContentInfo *ci, bool md5sum)
+ScriptInfo *ScriptScanner::FindScript (const ContentInfo *ci, bool md5sum)
 {
 	for (ScriptInfoList::iterator it = this->info_list.begin(); it != this->info_list.end(); it++) {
-		if (IsSameScript(ci, md5sum, (*it).second, this->GetDirectory())) return true;
+		if (IsSameScript (ci, md5sum, it->second, this->GetDirectory())) return it->second;
 	}
-	return false;
+	return NULL;
+}
+
+bool ScriptScanner::HasScript(const ContentInfo *ci, bool md5sum)
+{
+	return this->FindScript (ci, md5sum) != NULL;
 }
 
 const char *ScriptScanner::FindMainScript(const ContentInfo *ci, bool md5sum)
 {
-	for (ScriptInfoList::iterator it = this->info_list.begin(); it != this->info_list.end(); it++) {
-		if (IsSameScript(ci, md5sum, (*it).second, this->GetDirectory())) return (*it).second->GetMainScript();
-	}
-	return NULL;
+	ScriptInfo *info = this->FindScript (ci, md5sum);
+	return (info != NULL) ? info->GetMainScript() : NULL;
 }
 
 #endif /* ENABLE_NETWORK */

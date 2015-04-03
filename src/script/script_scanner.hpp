@@ -63,12 +63,20 @@ public:
 	void GetConsoleList (stringb *buf, bool newest_only) const;
 
 	/**
+	 * Find a script of a #ContentInfo
+	 * @param ci The information to compare to.
+	 * @param md5sum Whether to check the MD5 checksum.
+	 * @return A filename of a file of the content, else \c NULL.
+	 */
+	ScriptInfo *FindScript (const struct ContentInfo *ci, bool md5sum);
+
+	/**
 	 * Check whether we have a script with the exact characteristics as ci.
 	 * @param ci The characteristics to search on (shortname and md5sum).
 	 * @param md5sum Whether to check the MD5 checksum.
 	 * @return True iff we have a script matching.
 	 */
-	bool HasScript(const struct ContentInfo *ci, bool md5sum);
+	bool HasScript(const ContentInfo *ci, bool md5sum);
 
 	/**
 	 * Find a script of a #ContentInfo
