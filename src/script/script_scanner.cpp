@@ -39,70 +39,46 @@ bool ScriptScanner::AddFile(const char *filename, size_t basepath_length, const 
 
 	if (!FioCheckFileExists(filename, this->subdir) || !FioCheckFileExists(this->main_script, this->subdir)) return false;
 
-	this->ResetEngine();
+	this->engine->Reset();
+	this->engine->SetGlobalPointer(this);
+	this->RegisterAPI(this->engine);
 	this->engine->LoadScript(filename);
 
 	return true;
 }
 
-ScriptScanner::ScriptScanner() :
-	engine(NULL),
+ScriptScanner::ScriptScanner (ScriptInfoList *lists, const char *name) :
+	engine(new Squirrel (name)),
 	main_script(NULL),
-	tar_file(NULL)
+	tar_file(NULL),
+	lists(lists)
 {
-}
-
-void ScriptScanner::ResetEngine()
-{
-	this->engine->Reset();
-	this->engine->SetGlobalPointer(this);
-	this->RegisterAPI(this->engine);
-}
-
-void ScriptScanner::Initialize(const char *name)
-{
-	this->engine = new Squirrel(name);
-
-	this->RescanDir();
-
-	this->ResetEngine();
 }
 
 ScriptScanner::~ScriptScanner()
 {
-	this->Reset();
-
 	free(this->main_script);
 	free(this->tar_file);
 	delete this->engine;
 }
 
-void ScriptScanner::RescanDir()
+ScriptInfoList::~ScriptInfoList()
 {
-	/* Forget about older scans */
-	this->Reset();
-
-	/* Scan for scripts */
-	this->Scan(this->GetFileName(), this->GetDirectory());
-}
-
-void ScriptScanner::Reset()
-{
-	ScriptInfoList::iterator it = this->info_list.begin();
-	for (; it != this->info_list.end(); it++) {
+	iterator it = this->full_list.begin();
+	for (; it != this->full_list.end(); it++) {
 		free((*it).first);
 		delete (*it).second;
 	}
-	it = this->info_single_list.begin();
-	for (; it != this->info_single_list.end(); it++) {
+	it = this->single_list.begin();
+	for (; it != this->single_list.end(); it++) {
 		free((*it).first);
 	}
 
-	this->info_list.clear();
-	this->info_single_list.clear();
+	this->full_list.clear();
+	this->single_list.clear();
 }
 
-void ScriptScanner::RegisterScript (ScriptInfo *info, const char *name, bool dev_only)
+void ScriptInfoList::RegisterScript (ScriptInfo *info, const char *name, bool dev_only)
 {
 	sstring<1024> script_name;
 	script_name.copy (name);
@@ -117,8 +93,8 @@ void ScriptScanner::RegisterScript (ScriptInfo *info, const char *name, bool dev
 		return;
 	}
 
-	ScriptInfoList::iterator iter = this->info_list.find (script_name.c_str());
-	if (iter != this->info_list.end()) {
+	iterator iter = this->full_list.find (script_name.c_str());
+	if (iter != this->full_list.end()) {
 		/* This script was already registered */
 		const char *old_main = iter->second->GetMainScript();
 		const char *new_main = info->GetMainScript();
@@ -138,27 +114,27 @@ void ScriptScanner::RegisterScript (ScriptInfo *info, const char *name, bool dev
 		return;
 	}
 
-	this->info_list[xstrdup(script_name.c_str())] = info;
+	this->full_list[xstrdup(script_name.c_str())] = info;
 
 	script_name.truncate (original_length);
 
 	if (!dev_only || _settings_client.gui.ai_developer_tools) {
 		/* Add the script to the 'unique' script list, where only the highest version
 		 *  of the script is registered. */
-		ScriptInfoList::iterator iter = this->info_single_list.find (script_name.c_str());
-		if (iter == this->info_single_list.end()) {
-			this->info_single_list[xstrdup(script_name.c_str())] = info;
+		iterator iter = this->single_list.find (script_name.c_str());
+		if (iter == this->single_list.end()) {
+			this->single_list[xstrdup(script_name.c_str())] = info;
 		} else if (iter->second->GetVersion() < info->GetVersion()) {
 			iter->second = info;
 		}
 	}
 }
 
-void ScriptScanner::GetConsoleList (stringb *buf, bool newest_only) const
+void ScriptInfoList::GetConsoleList (stringb *buf, const char *desc, bool newest_only) const
 {
-	buf->append_fmt ("List of %s:\n", this->GetScannerName());
-	const ScriptInfoList &list = newest_only ? this->info_single_list : this->info_list;
-	ScriptInfoList::const_iterator it = list.begin();
+	buf->append_fmt ("List of %s:\n", desc);
+	const List &list = newest_only ? this->single_list : this->full_list;
+	const_iterator it = list.begin();
 	for (; it != list.end(); it++) {
 		ScriptInfo *i = (*it).second;
 		buf->append_fmt ("%10s (v%d): %s\n", i->GetName(), i->GetVersion(), i->GetDescription());
@@ -261,22 +237,22 @@ static bool IsSameScript(const ContentInfo *ci, bool md5sum, ScriptInfo *info, S
 	return memcmp(ci->md5sum, checksum.md5sum, sizeof(ci->md5sum)) == 0;
 }
 
-ScriptInfo *ScriptScanner::FindScript (const ContentInfo *ci, bool md5sum)
+ScriptInfo *ScriptInfoList::FindScript (const ContentInfo *ci, Subdirectory subdir, bool md5sum)
 {
-	for (ScriptInfoList::iterator it = this->info_list.begin(); it != this->info_list.end(); it++) {
-		if (IsSameScript (ci, md5sum, it->second, this->GetDirectory())) return it->second;
+	for (iterator it = this->full_list.begin(); it != this->full_list.end(); it++) {
+		if (IsSameScript (ci, md5sum, it->second, subdir)) return it->second;
 	}
 	return NULL;
 }
 
-bool ScriptScanner::HasScript(const ContentInfo *ci, bool md5sum)
+bool ScriptInfoList::HasScript (const ContentInfo *ci, Subdirectory subdir, bool md5sum)
 {
-	return this->FindScript (ci, md5sum) != NULL;
+	return this->FindScript (ci, subdir, md5sum) != NULL;
 }
 
-const char *ScriptScanner::FindMainScript(const ContentInfo *ci, bool md5sum)
+const char *ScriptInfoList::FindMainScript (const ContentInfo *ci, Subdirectory subdir, bool md5sum)
 {
-	ScriptInfo *info = this->FindScript (ci, md5sum);
+	ScriptInfo *info = this->FindScript (ci, subdir, md5sum);
 	return (info != NULL) ? info->GetMainScript() : NULL;
 }
 

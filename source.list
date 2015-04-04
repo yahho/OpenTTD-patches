@@ -725,8 +725,6 @@ ai/ai_info.cpp
 ai/ai_info.hpp
 ai/ai_instance.cpp
 ai/ai_instance.hpp
-ai/ai_scanner.cpp
-ai/ai_scanner.hpp
 
 # AI API
 script/api/ai_changelog.hpp
@@ -743,8 +741,6 @@ game/game_info.cpp
 game/game_info.hpp
 game/game_instance.cpp
 game/game_instance.hpp
-game/game_scanner.cpp
-game/game_scanner.hpp
 game/game_text.cpp
 game/game_text.hpp
 

@@ -12,8 +12,8 @@
 #include "../stdafx.h"
 
 #include "../script/squirrel_class.hpp"
+#include "../script/script_scanner.hpp"
 #include "game_info.hpp"
-#include "game_scanner.hpp"
 #include "../debug.h"
 
 static const char *const game_api_versions[] = { "1.2", "1.3", "1.4", "1.5" };

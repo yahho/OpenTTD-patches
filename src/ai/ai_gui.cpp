@@ -56,7 +56,7 @@ static ScriptConfig *GetConfig(CompanyID slot)
  * Window that let you choose an available AI.
  */
 struct AIListWindow : public Window {
-	const ScriptInfoList *info_list;    ///< The list of Scripts.
+	const ScriptInfoList::List *info_list; ///< The list of Scripts.
 	int selected;                       ///< The currently selected Script.
 	CompanyID slot;                     ///< The company we're selecting a new Script for.
 	int line_height;                    ///< Height of a row in the matrix widget.

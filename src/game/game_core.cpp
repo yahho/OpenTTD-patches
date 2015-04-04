@@ -15,8 +15,8 @@
 #include "../company_func.h"
 #include "../network/network.h"
 #include "../window_func.h"
+#include "../script/script_scanner.hpp"
 #include "game.hpp"
-#include "game_scanner.hpp"
 #include "game_config.hpp"
 #include "game_instance.hpp"
 #include "game_info.hpp"
@@ -24,8 +24,48 @@
 /* static */ uint Game::frame_counter = 0;
 /* static */ const GameInfo *Game::info = NULL;
 /* static */ GameInstance *Game::instance = NULL;
-/* static */ GameScannerInfo *Game::scanner_info = NULL;
-/* static */ GameScannerLibrary *Game::scanner_library = NULL;
+
+
+struct GameInfoList : ScriptInfoListT<GameInfoList> {
+	static const Subdirectory subdir = GAME_DIR;
+	static const char desc[];
+};
+
+const char GameInfoList::desc[] = "Game Scripts";
+
+static GameInfoList *scripts;
+
+
+struct GameLibraryList : ScriptInfoListT<GameLibraryList> {
+	static const Subdirectory subdir = GAME_LIBRARY_DIR;
+	static const char desc[];
+};
+
+const char GameLibraryList::desc[] = "GS Libraries";
+
+static GameLibraryList *libraries;
+
+
+struct GameScannerDesc {
+	static const char desc[];
+};
+
+const char GameScannerDesc::desc[] = "GSScanner";
+
+
+struct GameInfoScanner : ScriptScannerT<GameInfoScanner>, GameScannerDesc {
+	typedef GameInfo InfoType;
+	static const Subdirectory subdir = GAME_DIR;
+	static const bool is_library = false;
+};
+
+
+struct GameLibraryScanner : ScriptScannerT<GameLibraryScanner>, GameScannerDesc {
+	typedef GameLibrary InfoType;
+	static const Subdirectory subdir = GAME_LIBRARY_DIR;
+	static const bool is_library = true;
+};
+
 
 /* static */ void Game::GameLoop()
 {
@@ -51,12 +91,14 @@
 
 	Game::frame_counter = 0;
 
-	if (Game::scanner_info == NULL) {
+	if (scripts == NULL) {
 		TarScanner::DoScan(TarScanner::GAME);
-		Game::scanner_info = new GameScannerInfo();
-		Game::scanner_info->Initialize();
-		Game::scanner_library = new GameScannerLibrary();
-		Game::scanner_library->Initialize();
+
+		scripts = new GameInfoList();
+		GameInfoScanner::Scan (scripts);
+
+		libraries = new GameLibraryList();
+		GameLibraryScanner::Scan (libraries);
 	}
 }
 
@@ -98,10 +140,10 @@
 	if (keepConfig) {
 		Rescan();
 	} else {
-		delete Game::scanner_info;
-		delete Game::scanner_library;
-		Game::scanner_info = NULL;
-		Game::scanner_library = NULL;
+		delete scripts;
+		scripts = NULL;
+		delete libraries;
+		libraries = NULL;
 
 		if (_settings_game.game_config != NULL) {
 			delete _settings_game.game_config;
@@ -182,9 +224,9 @@
 /* static */ void Game::Rescan()
 {
 	TarScanner::DoScan(TarScanner::GAME);
+	GameInfoScanner::Scan (scripts);
+	GameLibraryScanner::Scan (libraries);
 
-	Game::scanner_info->RescanDir();
-	Game::scanner_library->RescanDir();
 	ResetConfig();
 
 	InvalidateWindowData(WC_AI_LIST, 0, 1);
@@ -218,32 +260,84 @@
 
 /* static */ void Game::GetConsoleList (stringb *buf, bool newest_only)
 {
-	Game::scanner_info->GetConsoleList (buf, newest_only);
+	scripts->GetConsoleList (buf, newest_only);
 }
 
 /* static */ void Game::GetConsoleLibraryList (stringb *buf)
 {
-	Game::scanner_library->GetConsoleList (buf, true);
+	libraries->GetConsoleList (buf, true);
 }
 
-/* static */ const ScriptInfoList *Game::GetInfoList()
+/* static */ const ScriptInfoList::List *Game::GetInfoList()
 {
-	return Game::scanner_info->GetInfoList();
+	return scripts->GetInfoList();
 }
 
-/* static */ const ScriptInfoList *Game::GetUniqueInfoList()
+/* static */ const ScriptInfoList::List *Game::GetUniqueInfoList()
 {
-	return Game::scanner_info->GetUniqueInfoList();
+	return libraries->GetUniqueInfoList();
 }
 
 /* static */ GameInfo *Game::FindInfo(const char *name, int version, bool force_exact_match)
 {
-	return Game::scanner_info->FindInfo(name, version, force_exact_match);
+	if (scripts->full_list.size() == 0) return NULL;
+	if (name == NULL) return NULL;
+
+	sstring<1024> game_name;
+	game_name.copy (name);
+	game_name.tolower();
+
+	if (version == -1) {
+		/* We want to load the latest version of this Game script; so find it */
+		ScriptInfoList::iterator iter = scripts->single_list.find (game_name.c_str());
+		if (iter != scripts->single_list.end()) return static_cast<GameInfo *>(iter->second);
+
+		/* If we didn't find a match Game script, maybe the user included a version */
+		const char *e = strrchr (game_name.c_str(), '.');
+		if (e == NULL) return NULL;
+		version = atoi (e + 1);
+		game_name.truncate (e - game_name.c_str());
+		/* FALL THROUGH, like we were calling this function with a version. */
+	}
+
+	if (force_exact_match) {
+		/* Try to find a direct 'name.version' match */
+		size_t length = game_name.length();
+		game_name.append_fmt (".%d", version);
+		ScriptInfoList::iterator iter = scripts->full_list.find (game_name.c_str());
+		if (iter != scripts->full_list.end()) return static_cast<GameInfo *>(iter->second);
+		game_name.truncate (length);
+	}
+
+	GameInfo *info = NULL;
+	int max_version = -1;
+
+	/* See if there is a compatible Game script which goes by that name,
+	 * with the highest version which allows loading the requested version */
+	ScriptInfoList::iterator it = scripts->full_list.begin();
+	for (; it != scripts->full_list.end(); it++) {
+		GameInfo *i = static_cast<GameInfo *>(it->second);
+		if (strcasecmp (game_name.c_str(), i->GetName()) == 0 && i->CanLoadFromVersion(version) && (max_version == -1 || i->GetVersion() > max_version)) {
+			max_version = i->GetVersion();
+			info = i;
+		}
+	}
+
+	return info;
 }
 
 /* static */ GameLibrary *Game::FindLibrary(const char *library, int version)
 {
-	return Game::scanner_library->FindLibrary(library, version);
+	/* Internally we store libraries as 'library.version' */
+	char library_name[1024];
+	bstrfmt (library_name, "%s.%d", library, version);
+	strtolower(library_name);
+
+	/* Check if the library + version exists */
+	ScriptInfoList::iterator iter = libraries->full_list.find(library_name);
+	if (iter == libraries->full_list.end()) return NULL;
+
+	return static_cast<GameLibrary *>((*iter).second);
 }
 
 #if defined(ENABLE_NETWORK)
@@ -256,12 +350,12 @@
  */
 /* static */ bool Game::HasGame(const ContentInfo *ci, bool md5sum)
 {
-	return Game::scanner_info->HasScript(ci, md5sum);
+	return scripts->HasScript(ci, md5sum);
 }
 
 /* static */ bool Game::HasGameLibrary(const ContentInfo *ci, bool md5sum)
 {
-	return Game::scanner_library->HasScript(ci, md5sum);
+	return libraries->HasScript(ci, md5sum);
 }
 
 /**
@@ -271,7 +365,7 @@
  */
 const char *Game::FindInfoMainScript (const ContentInfo *ci)
 {
-	return Game::scanner_info->FindMainScript (ci, true);
+	return scripts->FindMainScript (ci, true);
 }
 
 /**
@@ -281,7 +375,7 @@ const char *Game::FindInfoMainScript (const ContentInfo *ci)
  */
 const char *Game::FindLibraryMainScript (const ContentInfo *ci)
 {
-	return Game::scanner_library->FindMainScript (ci, true);
+	return libraries->FindMainScript (ci, true);
 }
 
 #endif /* defined(ENABLE_NETWORK) */

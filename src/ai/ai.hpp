@@ -12,8 +12,8 @@
 #ifndef AI_HPP
 #define AI_HPP
 
+#include "../script/script_scanner.hpp"
 #include "../script/api/script_event_types.hpp"
-#include "ai_scanner.hpp"
 #include "../string.h"
 #include "../saveload/saveload_buffer.h"
 
@@ -142,9 +142,9 @@ public:
 	/** Wrapper function for AIScanner::GetAIConsoleLibraryList */
 	static void GetConsoleLibraryList (stringb *buf);
 	/** Wrapper function for AIScanner::GetAIInfoList */
-	static const ScriptInfoList *GetInfoList();
+	static const ScriptInfoList::List *GetInfoList();
 	/** Wrapper function for AIScanner::GetUniqueAIInfoList */
-	static const ScriptInfoList *GetUniqueInfoList();
+	static const ScriptInfoList::List *GetUniqueInfoList();
 	/** Wrapper function for AIScanner::FindInfo */
 	static class AIInfo *FindInfo(const char *name, int version, bool force_exact_match);
 	/** Wrapper function for AIScanner::FindLibrary */
@@ -166,8 +166,6 @@ public:
 #endif
 private:
 	static uint frame_counter;                      ///< Tick counter for the AI code
-	static class AIScannerInfo *scanner_info;       ///< ScriptScanner instance that is used to find AIs
-	static class AIScannerLibrary *scanner_library; ///< ScriptScanner instance that is used to find AI Libraries
 };
 
 #endif /* AI_HPP */

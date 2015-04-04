@@ -2133,12 +2133,6 @@
     <ClInclude Include="..\src\ai\ai_instance.hpp">
       <Filter>AI Core</Filter>
     </ClInclude>
-    <ClCompile Include="..\src\ai\ai_scanner.cpp">
-      <Filter>AI Core</Filter>
-    </ClCompile>
-    <ClInclude Include="..\src\ai\ai_scanner.hpp">
-      <Filter>AI Core</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\script\api\ai_changelog.hpp">
       <Filter>AI API</Filter>
     </ClInclude>
@@ -2167,12 +2161,6 @@
       <Filter>Game Core</Filter>
     </ClCompile>
     <ClInclude Include="..\src\game\game_instance.hpp">
-      <Filter>Game Core</Filter>
-    </ClInclude>
-    <ClCompile Include="..\src\game\game_scanner.cpp">
-      <Filter>Game Core</Filter>
-    </ClCompile>
-    <ClInclude Include="..\src\game\game_scanner.hpp">
       <Filter>Game Core</Filter>
     </ClInclude>
     <ClCompile Include="..\src\game\game_text.cpp">

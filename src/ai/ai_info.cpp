@@ -12,8 +12,8 @@
 #include "../stdafx.h"
 
 #include "../script/squirrel_class.hpp"
+#include "../script/script_scanner.hpp"
 #include "ai_info.hpp"
-#include "ai_scanner.hpp"
 #include "../string.h"
 #include "../debug.h"
 #include "../rev.h"

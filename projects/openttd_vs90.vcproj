@@ -6951,54 +6951,6 @@
 				RelativePath=".\..\src\ai\ai_instance.hpp"
 				>
 			</File>
-			<File
-				RelativePath=".\..\src\ai\ai_scanner.cpp"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\ai\"
-						ObjectFile="$(IntDir)\ai\"
-						XMLDocumentationFileName="$(IntDir)\ai\"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\ai\"
-						ObjectFile="$(IntDir)\ai\"
-						XMLDocumentationFileName="$(IntDir)\ai\"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\ai\"
-						ObjectFile="$(IntDir)\ai\"
-						XMLDocumentationFileName="$(IntDir)\ai\"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\ai\"
-						ObjectFile="$(IntDir)\ai\"
-						XMLDocumentationFileName="$(IntDir)\ai\"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\..\src\ai\ai_scanner.hpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="AI API"
@@ -7209,54 +7161,6 @@
 			</File>
 			<File
 				RelativePath=".\..\src\game\game_instance.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\game\game_scanner.cpp"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\game\"
-						ObjectFile="$(IntDir)\game\"
-						XMLDocumentationFileName="$(IntDir)\game\"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\game\"
-						ObjectFile="$(IntDir)\game\"
-						XMLDocumentationFileName="$(IntDir)\game\"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\game\"
-						ObjectFile="$(IntDir)\game\"
-						XMLDocumentationFileName="$(IntDir)\game\"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\game\"
-						ObjectFile="$(IntDir)\game\"
-						XMLDocumentationFileName="$(IntDir)\game\"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\..\src\game\game_scanner.hpp"
 				>
 			</File>
 			<File

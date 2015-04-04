@@ -1345,12 +1345,6 @@
       <XMLDocumentationFileName>$(IntDir)\ai\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\ai\ai_instance.hpp" />
-    <ClCompile Include="..\src\ai\ai_scanner.cpp">
-      <AssemblerListingLocation>$(IntDir)\ai\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\ai\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\ai\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\ai\ai_scanner.hpp" />
     <ClInclude Include="..\src\script\api\ai_changelog.hpp" />
     <ClInclude Include="..\src\script\api\game_changelog.hpp" />
     <ClInclude Include="..\src\game\game.hpp" />
@@ -1377,12 +1371,6 @@
       <XMLDocumentationFileName>$(IntDir)\game\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\game\game_instance.hpp" />
-    <ClCompile Include="..\src\game\game_scanner.cpp">
-      <AssemblerListingLocation>$(IntDir)\game\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\game\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\game\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\game\game_scanner.hpp" />
     <ClCompile Include="..\src\game\game_text.cpp">
       <AssemblerListingLocation>$(IntDir)\game\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\game\</ObjectFileName>

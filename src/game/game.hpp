@@ -12,8 +12,8 @@
 #ifndef GAME_HPP
 #define GAME_HPP
 
+#include "../script/script_scanner.hpp"
 #include "../script/api/script_event_types.hpp"
-#include "game_scanner.hpp"
 #include "../string.h"
 #include "../saveload/saveload_buffer.h"
 
@@ -95,9 +95,9 @@ public:
 	/** Wrapper function for GameScanner::GetConsoleLibraryList */
 	static void GetConsoleLibraryList (stringb *buf);
 	/** Wrapper function for GameScanner::GetInfoList */
-	static const ScriptInfoList *GetInfoList();
+	static const ScriptInfoList::List *GetInfoList();
 	/** Wrapper function for GameScanner::GetUniqueInfoList */
-	static const ScriptInfoList *GetUniqueInfoList();
+	static const ScriptInfoList::List *GetUniqueInfoList();
 	/** Wrapper function for GameScannerInfo::FindInfo */
 	static class GameInfo *FindInfo(const char *name, int version, bool force_exact_match);
 	/** Wrapper function for GameScanner::FindLibrary */
@@ -119,8 +119,6 @@ public:
 private:
 	static uint frame_counter;                        ///< Tick counter for the Game code.
 	static class GameInstance *instance;              ///< Instance to the current active Game.
-	static class GameScannerInfo *scanner_info;       ///< Scanner for Game scripts.
-	static class GameScannerLibrary *scanner_library; ///< Scanner for GS Libraries.
 	static const class GameInfo *info;                ///< Current selected GameInfo.
 };
 
