@@ -78,6 +78,7 @@ void UpdateAllVirtCoords();
 extern Point _tile_fract_coords;
 
 void MarkTileDirtyByTile(TileIndex tile);
+void MarkBridgeTileDirtyByTile (TileIndex tile, uint bridge_height);
 void MarkTileDirtyByTileOutsideMap(int x, int y);
 
 int GetVirtualHeight (int x, int y);

@@ -400,7 +400,7 @@ static CommandCost RemoveRoad_Bridge(TileIndex tile, DoCommandFlag flags, RoadBi
 				ClearRoadType(other_end, rt);
 			}
 
-			MarkBridgeTilesDirty(tile, other_end, dir, false);
+			if (!remove_bridge) MarkBridgeTilesDirty (tile, other_end, dir, false);
 		}
 	}
 

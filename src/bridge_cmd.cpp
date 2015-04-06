@@ -172,10 +172,13 @@ CommandCost CheckBridgeTiles(TileIndex tile1, TileIndex tile2, Axis *axis)
  * @param flags type of operation
  * @param clear1 Try to clear start tile
  * @param clear2 Try to clear end tile
+ * @param height Pointer to store the height at which the bridge will be
  * @param restricted Force flat ramp (for aqueducts)
  * @return Terraforming cost for success or an error
  */
-CommandCost CheckBridgeBuildable(TileIndex tile1, TileIndex tile2, DoCommandFlag flags, bool clear1, bool clear2, bool restricted)
+CommandCost CheckBridgeBuildable (TileIndex tile1, TileIndex tile2,
+	DoCommandFlag flags, bool clear1, bool clear2, int *height,
+	bool restricted)
 {
 	DiagDirection dir = DiagdirBetweenTiles(tile1, tile2);
 	assert(IsValidDiagDirection(dir));
@@ -289,6 +292,7 @@ CommandCost CheckBridgeBuildable(TileIndex tile1, TileIndex tile2, DoCommandFlag
 		cost.AddCost(ret);
 	}
 
+	*height = z1 + 1;
 	return cost;
 }
 
@@ -345,15 +349,41 @@ CommandCost CheckBridgeSlope(DiagDirection dir, Slope *tileh, int *z)
 }
 
 /**
+ * Mark the tiles that a bridge spans dirty.
+ * @param start First tile of bridge.
+ * @param end Last tile of bridge.
+ * @param dir Direction from start to end.
+ * @param first Do mark the first tile dirty, else skip it.
+ */
+void MarkBridgeTilesDirty (TileIndex start, TileIndex end, DiagDirection dir,
+	bool first)
+{
+	assert (DiagdirBetweenTiles (start, end) == dir);
+
+	if (first) MarkTileDirtyByTile (start);
+
+	uint height = GetBridgeHeight (start);
+	TileIndexDiff delta = TileOffsByDiagDir (dir);
+	for (TileIndex tile = start + delta; tile != end; tile += delta) {
+		MarkBridgeTileDirtyByTile (tile, height);
+	}
+
+	MarkTileDirtyByTile (end);
+}
+
+/**
  * Set bridge axis on a new bridge middle tiles, and mark them dirty
  *
  * @param tile1 Bridge start tile
  * @param tile2 Bridge end tile
  * @param direction Bridge axis
+ * @param height Height of the bridge
  */
-void SetBridgeMiddleTiles(TileIndex tile1, TileIndex tile2, Axis direction)
+void SetBridgeMiddleTiles (TileIndex tile1, TileIndex tile2, Axis direction,
+	int height)
 {
 	assert(tile1 < tile2);
+	assert (height == GetBridgeHeight (tile1));
 
 	MarkTileDirtyByTile(tile1);
 	MarkTileDirtyByTile(tile2);
@@ -361,7 +391,7 @@ void SetBridgeMiddleTiles(TileIndex tile1, TileIndex tile2, Axis direction)
 	TileIndexDiff delta = TileOffsByDiagDir(AxisToDiagDir(direction));
 	for (TileIndex tile = tile1 + delta; tile < tile2; tile += delta) {
 		SetBridgeMiddle(tile, direction);
-		MarkTileDirtyByTile(tile);
+		MarkBridgeTileDirtyByTile (tile, height);
 	}
 }
 
@@ -387,7 +417,7 @@ void RemoveBridgeMiddleTiles(TileIndex tile1, TileIndex tile2)
 			if (height < minz) SetRoadside(t, ROADSIDE_PAVED);
 		}
 		ClearBridgeMiddle(t);
-		MarkTileDirtyByTile(t);
+		MarkBridgeTileDirtyByTile (t, height);
 	}
 }
 

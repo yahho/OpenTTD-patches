@@ -22,6 +22,7 @@
 #include "train.h"
 #include "pathfinder/yapf/yapf.h"
 #include "autoslope.h"
+#include "map/zoneheight.h"
 #include "map/tunnelbridge.h"
 #include "map/water.h"
 #include "map/road.h"
@@ -189,7 +190,9 @@ static CommandCost BuildRoadBridge(TileIndex tile_start, TileIndex tile_end, Bri
 		}
 
 		/* Build a new bridge. */
-		CommandCost ret = CheckBridgeBuildable(tile_start, tile_end, flags, clear_start, clear_end);
+		int height;
+		CommandCost ret = CheckBridgeBuildable (tile_start, tile_end,
+				flags, clear_start, clear_end, &height);
 		if (ret.Failed()) return ret;
 		cost.AddCost(ret);
 
@@ -242,7 +245,7 @@ static CommandCost BuildRoadBridge(TileIndex tile_start, TileIndex tile_end, Bri
 				}
 			}
 
-			SetBridgeMiddleTiles(tile_start, tile_end, direction);
+			SetBridgeMiddleTiles (tile_start, tile_end, direction, height);
 			DirtyCompanyInfrastructureWindows(company);
 		}
 	}
@@ -380,7 +383,10 @@ static CommandCost BuildRailBridge(TileIndex tile_start, TileIndex tile_end, Bri
 		TrackBits add_end   = RailBridgeAddBits(tile_end,   ReverseDiagDir(dir), railtype);
 
 		/* Build a new bridge. */
-		CommandCost ret = CheckBridgeBuildable(tile_start, tile_end, flags, add_start == TRACK_BIT_NONE, add_end == TRACK_BIT_NONE);
+		int height;
+		CommandCost ret = CheckBridgeBuildable (tile_start, tile_end,
+				flags, add_start == TRACK_BIT_NONE,
+				add_end == TRACK_BIT_NONE, &height);
 		if (ret.Failed()) return ret;
 		cost.AddCost(ret);
 
@@ -431,7 +437,7 @@ static CommandCost BuildRailBridge(TileIndex tile_start, TileIndex tile_end, Bri
 			c->infrastructure.rail[railtype] += pieces * TUNNELBRIDGE_TRACKBIT_FACTOR;
 			DirtyCompanyInfrastructureWindows(_current_company);
 
-			SetBridgeMiddleTiles(tile_start, tile_end, direction);
+			SetBridgeMiddleTiles (tile_start, tile_end, direction, height);
 			DirtyCompanyInfrastructureWindows(_current_company);
 		}
 	}
@@ -490,9 +496,13 @@ static CommandCost BuildAqueduct(TileIndex tile_start, TileIndex tile_end, DoCom
 	}
 
 	/* Build a new bridge. */
-	ret = CheckBridgeBuildable(tile_start, tile_end, flags, true, true, true);
+	int height;
+	ret = CheckBridgeBuildable (tile_start, tile_end, flags, true, true,
+		&height, true);
 	if (ret.Failed()) return ret;
 	cost.AddCost(ret);
+
+	assert ((uint) height == TileHeight (tile_start));
 
 	/* do the drill? */
 	if (flags & DC_EXEC) {
@@ -503,7 +513,7 @@ static CommandCost BuildAqueduct(TileIndex tile_start, TileIndex tile_end, DoCom
 		MakeAqueductBridgeRamp(tile_start, _current_company, dir);
 		MakeAqueductBridgeRamp(tile_end,   _current_company, ReverseDiagDir(dir));
 
-		SetBridgeMiddleTiles(tile_start, tile_end, direction);
+		SetBridgeMiddleTiles (tile_start, tile_end, direction, height);
 		DirtyCompanyInfrastructureWindows(_current_company);
 	}
 

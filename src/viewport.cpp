@@ -1943,6 +1943,22 @@ void MarkTileDirtyByTile(TileIndex tile)
 }
 
 /**
+ * Mark a tile that has (or had) a bridge dirty for repaint.
+ * @param tile The tile to mark dirty.
+ * @param height The height of the bridge that is (or was) here.
+ * @ingroup dirty
+ */
+void MarkBridgeTileDirtyByTile (TileIndex tile, uint bridge_height)
+{
+	Point pt = RemapCoords (TileX(tile) * TILE_SIZE, TileY(tile) * TILE_SIZE, bridge_height * TILE_HEIGHT);
+	MarkAllViewportsDirty(
+			pt.x - MAX_TILE_EXTENT_LEFT,
+			pt.y - MAX_TILE_EXTENT_TOP,
+			pt.x + MAX_TILE_EXTENT_RIGHT,
+			pt.y + MAX_TILE_EXTENT_BOTTOM + (bridge_height - TileHeight(tile)) * ZOOM_LVL_BASE * TILE_HEIGHT);
+}
+
+/**
  * Mark a (virtual) tile outside the map dirty for repaint.
  * @param x Tile X position.
  * @param y Tile Y position.
