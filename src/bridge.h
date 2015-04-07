@@ -83,13 +83,15 @@ static inline int GetBridgePartialPixelZ(DiagDirection dir, uint x, uint y)
  */
 static inline DiagDirDiff CheckExtendedBridgeHead(Slope tileh, DiagDirection dir)
 {
-	extern const Slope bridgehead_valid_slopes[DIAGDIR_END][2];
+	extern const uint32 bridgehead_valid_slopes[DIAGDIR_END][2];
+
+	assert (tileh < 32);
 
 	if (tileh == InclinedSlope(ReverseDiagDir(dir))) {
 		return DIAGDIRDIFF_SAME;
-	} else if (tileh == bridgehead_valid_slopes[dir][0]) {
+	} else if (HasBit (bridgehead_valid_slopes[dir][0], tileh)) {
 		return DIAGDIRDIFF_90RIGHT;
-	} else if (tileh == bridgehead_valid_slopes[dir][1]) {
+	} else if (HasBit (bridgehead_valid_slopes[dir][1], tileh)) {
 		return DIAGDIRDIFF_90LEFT;
 	} else {
 		return DIAGDIRDIFF_REVERSE;

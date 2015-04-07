@@ -43,11 +43,15 @@
 
 
 /** Data for CheckExtendedBridgeHead; see the function for details */
-extern const Slope bridgehead_valid_slopes[DIAGDIR_END][2] = {
-	{ SLOPE_W, SLOPE_S },
-	{ SLOPE_N, SLOPE_W },
-	{ SLOPE_E, SLOPE_N },
-	{ SLOPE_S, SLOPE_E },
+extern const uint32 bridgehead_valid_slopes[DIAGDIR_END][2] = {
+	{ (1 << SLOPE_W) | (1 << SLOPE_STEEP_W),
+		(1 << SLOPE_S) | (1 << SLOPE_STEEP_S) },
+	{ (1 << SLOPE_N) | (1 << SLOPE_STEEP_N),
+		(1 << SLOPE_W) | (1 << SLOPE_STEEP_W) },
+	{ (1 << SLOPE_E) | (1 << SLOPE_STEEP_E),
+		(1 << SLOPE_N) | (1 << SLOPE_STEEP_N) },
+	{ (1 << SLOPE_S) | (1 << SLOPE_STEEP_S),
+		(1 << SLOPE_E) | (1 << SLOPE_STEEP_E) },
 };
 
 
