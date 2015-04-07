@@ -224,52 +224,80 @@ void AIInstance::Died()
 	}
 }
 
+static const char dummy_script_head[] =
+	"class DummyAI extends AIController { function Start() { AILog.Error (\"";
+static const char dummy_script_newline[] = "\"); AILog.Error (\"";
+static const char dummy_script_tail[]    = "\"); } }";
+
+struct DummyScriptHelper {
+	const char *literal;
+	const char *message;
+};
+
+static WChar dummy_script_reader (SQUserPointer userdata)
+{
+	DummyScriptHelper *data = (DummyScriptHelper*) userdata;
+
+	if (data->literal != NULL) {
+		unsigned char c = *data->literal;
+		if (c != 0) {
+			assert (c < '\x7f');
+			data->literal++;
+			return c;
+		}
+		if (data->message == NULL) return 0;
+		data->literal = NULL;
+	}
+
+	assert (data->message != NULL);
+
+	WChar c = Utf8Consume (&data->message);
+
+	switch (c) {
+		case '\0': /* switch to tail literal string */
+			data->message = NULL;
+			data->literal = dummy_script_tail;
+			break;
+
+		case '\n': /* switch to newline literal string */
+			data->literal = dummy_script_newline;
+			break;
+
+		case '"':  /* escape special chars */
+			data->literal = "\\\"";
+			break;
+
+		case '\\': /* escape special chars */
+			data->literal = "\\\\";
+			break;
+
+		default: return c;
+	}
+
+	return *data->literal++;
+}
+
 void AIInstance::LoadDummyScript()
 {
-	/* We want to translate the error message.
-	 * We do this in three steps:
-	 * 1) We get the error message
-	 */
+	/* Get the (translated) error message. */
 	char error_message[1024];
 	GetString (error_message, STR_ERROR_AI_NO_AI_FOUND);
 
-	/* Make escapes for all quotes and slashes. */
-	char safe_error_message[1024];
-	char *q = safe_error_message;
-	for (const char *p = error_message; *p != '\0' && q < lastof(safe_error_message) - 2; p++, q++) {
-		if (*p == '"' || *p == '\\') *q++ = '\\';
-		*q = *p;
-	}
-	*q = '\0';
+	/* Load and run a dummy script. */
+	DummyScriptHelper data = { dummy_script_head, error_message };
 
-	/* 2) We construct the AI's code. This is done by merging a header, body and footer */
-	sstring<4096> dummy_script;
-	dummy_script.fmt ("class DummyAI extends AIController {\n  function Start()\n  {\n");
-
-	/* As special trick we need to split the error message on newlines and
-	 * emit each newline as a separate error printing string. */
-	char *newline;
-	char *p = safe_error_message;
-	do {
-		newline = strchr(p, '\n');
-		if (newline != NULL) *newline = '\0';
-		dummy_script.append_fmt ("    AILog.Error(\"%s\");\n", p);
-		p = newline + 1;
-	} while (newline != NULL);
-
-	dummy_script.append ("  }\n}\n");
-
-	/* And finally we load and run the script */
 	HSQUIRRELVM vm = this->engine->GetVM();
-	sq_pushroottable(vm);
-	if (SQ_SUCCEEDED(sq_compilebuffer(vm, dummy_script.c_str(), dummy_script.length(), "dummy", SQTrue))) {
-		sq_push(vm, -2);
-		if (SQ_SUCCEEDED(sq_call(vm, 1, SQFalse, SQTrue))) {
-			sq_pop(vm, 1);
-			return;
-		}
-	}
-	NOT_REACHED();
+	SQRESULT res;
+
+	sq_pushroottable (vm);
+	res = sq_compile (vm, dummy_script_reader, &data, "dummy", SQTrue);
+	assert (SQ_SUCCEEDED(res));
+
+	sq_push (vm, -2);
+	res = sq_call (vm, 1, SQFalse, SQTrue);
+	assert (SQ_SUCCEEDED(res));
+
+	sq_pop (vm, 1);
 }
 
 int AIInstance::GetSetting(const char *name)
