@@ -91,13 +91,43 @@ static CommandCost BuildRoadBridge(TileIndex tile_start, TileIndex tile_end, Bri
 			GetOtherBridgeEnd(tile_start) == tile_end) {
 		/* Replace a current bridge. */
 
-		/* Special owner check. */
-		Owner owner_road = HasTileRoadType(tile_start, ROADTYPE_ROAD) ? GetRoadOwner(tile_start, ROADTYPE_ROAD) : INVALID_OWNER;
-		Owner owner_tram = HasTileRoadType(tile_start, ROADTYPE_TRAM) ? GetRoadOwner(tile_start, ROADTYPE_TRAM) : INVALID_OWNER;
+		Owner owner[ROADTYPE_END][2];
+		RoadTypes bridge_rts = ROADTYPES_NONE;
+		RoadBits bridge_bit  = DiagDirToRoadBits (AxisToDiagDir (direction));
+		RoadBits reverse_bit = DiagDirToRoadBits (ReverseDiagDir (AxisToDiagDir (direction)));
+		bool replace_allowed = false;
+
+		for (RoadType rt = ROADTYPE_BEGIN; rt < ROADTYPE_END; rt++) {
+			if (HasTileRoadType (tile_start, rt)) {
+				owner[rt][0] = GetRoadOwner (tile_start, rt);
+				if ((GetRoadBits (tile_start, rt) & bridge_bit) != 0) {
+					assert (HasTileRoadType (tile_end, rt));
+					assert ((GetRoadBits (tile_end, rt) & reverse_bit) != 0);
+					bridge_rts |= RoadTypeToRoadTypes (rt);
+					Owner o = owner[rt][0];
+					assert (GetRoadOwner (tile_end, rt) == o);
+					owner[rt][1] = o;
+					if (o == company || o == OWNER_NONE || o == OWNER_TOWN) {
+						replace_allowed = true;
+					}
+					continue;
+				}
+			} else {
+				owner[rt][0] = INVALID_OWNER;
+			}
+
+			if (HasTileRoadType (tile_end, rt)) {
+				assert ((GetRoadBits (tile_end, rt) & reverse_bit) == 0);
+				owner[rt][1] = GetRoadOwner (tile_end, rt);
+			} else {
+				owner[rt][1] = INVALID_OWNER;
+			}
+		}
+
+		assert (bridge_rts != ROADTYPES_NONE);
 
 		/* You must own one of the roadtypes, or one of the roadtypes must be unowned, or a town must own the road. */
-		if (owner_road != company && owner_road != OWNER_NONE && owner_road != OWNER_TOWN &&
-				owner_tram != company && owner_tram != OWNER_NONE) {
+		if (!replace_allowed) {
 			return_cmd_error(STR_ERROR_AREA_IS_OWNED_BY_ANOTHER);
 		}
 
@@ -105,27 +135,43 @@ static CommandCost BuildRoadBridge(TileIndex tile_start, TileIndex tile_end, Bri
 		if (!(flags & DC_QUERY_COST) &&
 				GetBridgeSpec(bridge_type)->speed < GetBridgeSpec(GetRoadBridgeType(tile_start))->speed &&
 				_game_mode != GM_EDITOR) {
-			if (owner_road == OWNER_TOWN) {
+			if (owner[ROADTYPE_ROAD][0] == OWNER_TOWN) {
 				Town *t = ClosestTownFromTile(tile_start);
-
 				if (t == NULL) return CMD_ERROR;
 
 				SetDParam(0, t->index);
 				return_cmd_error(STR_ERROR_LOCAL_AUTHORITY_REFUSES_TO_ALLOW_THIS);
 			}
-			if (owner_road != company && owner_road != OWNER_NONE && owner_road != INVALID_OWNER) {
-				return_cmd_error(STR_ERROR_AREA_IS_OWNED_BY_ANOTHER);
+
+			if (owner[ROADTYPE_ROAD][1] == OWNER_TOWN) {
+				Town *t = ClosestTownFromTile(tile_end);
+				if (t == NULL) return CMD_ERROR;
+
+				SetDParam(0, t->index);
+				return_cmd_error(STR_ERROR_LOCAL_AUTHORITY_REFUSES_TO_ALLOW_THIS);
 			}
-			if (owner_tram != company && owner_tram != OWNER_NONE && owner_tram != INVALID_OWNER) {
-				return_cmd_error(STR_ERROR_AREA_IS_OWNED_BY_ANOTHER);
+
+			for (RoadType rt = ROADTYPE_BEGIN; rt < ROADTYPE_END; rt++) {
+				for (uint i = 0; i < 2; i++) {
+					Owner o = owner[rt][i];
+					if (o != company && o != OWNER_NONE && o != OWNER_TOWN && o != INVALID_OWNER) {
+						return_cmd_error(STR_ERROR_AREA_IS_OWNED_BY_ANOTHER);
+					}
+				}
 			}
 		}
 
-		/* Do not remove road types when upgrading a bridge */
-		rts |= GetRoadTypes(tile_start);
-
-		/* Do not replace the bridge with the same bridge type. */
-		if (!(flags & DC_QUERY_COST) && (bridge_type == GetRoadBridgeType(tile_start)) && ((rts & ~GetRoadTypes(tile_start)) == 0)) {
+		if ((rts & ~bridge_rts) != 0) {
+			/* Adding a new roadtype. */
+			RoadType new_rt = (RoadType) FindFirstBit (rts);
+			for (uint i = 0; i < 2; i++) {
+				Owner o = owner[new_rt][i];
+				if (o != company && o != OWNER_NONE && o != INVALID_OWNER) {
+					return CMD_ERROR;
+				}
+			}
+		} else if (!(flags & DC_QUERY_COST) && (bridge_type == GetRoadBridgeType (tile_start))) {
+			/* Do not replace the bridge with the same bridge type. */
 			return_cmd_error(STR_ERROR_ALREADY_BUILT);
 		}
 
@@ -133,35 +179,97 @@ static CommandCost BuildRoadBridge(TileIndex tile_start, TileIndex tile_end, Bri
 
 		/* do the drill? */
 		if (flags & DC_EXEC) {
-			RoadTypes prev_roadtypes = GetRoadTypes(tile_start);
-			/* Also give unowned present roadtypes to new owner */
-			if (HasBit(prev_roadtypes, ROADTYPE_ROAD) && GetRoadOwner(tile_start, ROADTYPE_ROAD) == OWNER_NONE) ClrBit(prev_roadtypes, ROADTYPE_ROAD);
-			if (HasBit(prev_roadtypes, ROADTYPE_TRAM) && GetRoadOwner(tile_start, ROADTYPE_TRAM) == OWNER_NONE) ClrBit(prev_roadtypes, ROADTYPE_TRAM);
 			Company *c = Company::GetIfValid(company);
-			if (c != NULL) {
-				/* Add all new road types to the company infrastructure counter. */
-				RoadType new_rt;
-				FOR_EACH_SET_ROADTYPE(new_rt, rts ^ prev_roadtypes) {
-					/* A full diagonal road tile has two road bits. */
-					c->infrastructure.road[new_rt] += (bridge_len + 2) * 2 * TUNNELBRIDGE_TRACKBIT_FACTOR;
+
+			/* Also give unowned present roadtypes to new owner */
+			RoadType rt;
+			FOR_EACH_SET_ROADTYPE(rt, bridge_rts) {
+				assert (owner[rt][0] == owner[rt][1]);
+				if (owner[rt][0] == OWNER_NONE) {
+					SetRoadOwner (tile_start, rt, company);
+					SetRoadOwner (tile_end,   rt, company);
+					if (c != NULL) {
+						uint bits_start = CountBits (GetRoadBits (tile_start, rt));
+						uint bits_end   = CountBits (GetRoadBits (tile_end,   rt));
+						c->infrastructure.road[rt] += (bits_start + bits_end + 2 * bridge_len) * TUNNELBRIDGE_TRACKBIT_FACTOR;
+					}
 				}
 			}
+
+			if ((rts & ~bridge_rts) != 0) {
+				/* Adding a new roadtype. */
+				assert ((rts | bridge_rts) == ROADTYPES_ALL);
+
+				RoadType new_rt = (RoadType) FindFirstBit (rts);
+
+				uint count = 0;
+
+				if (owner[new_rt][0] == INVALID_OWNER) {
+					assert (GetRoadTypes (tile_start) == bridge_rts);
+					SetRoadTypes (tile_start, ROADTYPES_ALL);
+					RoadBits present = GetAllRoadBits (tile_start);
+					assert ((present & bridge_bit) != ROAD_NONE);
+					if ((present & reverse_bit) != ROAD_NONE) {
+						SetRoadBits (tile_start, bridge_bit | reverse_bit, new_rt);
+						count += 2;
+					} else {
+						SetRoadBits (tile_start, bridge_bit, new_rt);
+						count++;
+					}
+				} else {
+					assert (GetRoadTypes (tile_start) == ROADTYPES_ALL);
+					RoadBits present = GetRoadBits (tile_start, new_rt);
+					assert ((present & bridge_bit) == ROAD_NONE);
+					SetRoadBits (tile_start, present | bridge_bit, new_rt);
+					if (owner[new_rt][0] == OWNER_NONE) {
+						SetRoadOwner (tile_start, new_rt, company);
+						count += CountBits (present);
+					} else {
+						count++;
+					}
+				}
+
+				if (owner[new_rt][1] == INVALID_OWNER) {
+					assert (GetRoadTypes (tile_end) == bridge_rts);
+					SetRoadTypes (tile_end, ROADTYPES_ALL);
+					RoadBits present = GetAllRoadBits (tile_end);
+					assert ((present & reverse_bit) != ROAD_NONE);
+					if ((present & bridge_bit) != ROAD_NONE) {
+						SetRoadBits (tile_end, bridge_bit | reverse_bit, new_rt);
+						count += 2;
+					} else {
+						SetRoadBits (tile_end, reverse_bit, new_rt);
+						count++;
+					}
+				} else {
+					assert (GetRoadTypes (tile_end) == ROADTYPES_ALL);
+					RoadBits present = GetRoadBits (tile_end, new_rt);
+					assert ((present & reverse_bit) == ROAD_NONE);
+					SetRoadBits (tile_end, present | reverse_bit, new_rt);
+					if (owner[new_rt][1] == OWNER_NONE) {
+						SetRoadOwner (tile_end, new_rt, company);
+						count += CountBits (present);
+					} else {
+						count++;
+					}
+				}
+
+				if (c != NULL) {
+					/* A full diagonal road tile has two road bits. */
+					c->infrastructure.road[new_rt] += (2 * bridge_len + count) * TUNNELBRIDGE_TRACKBIT_FACTOR;
+				}
+			}
+
 			DirtyCompanyInfrastructureWindows(company);
 
 			SetRoadBridgeType(tile_start, bridge_type);
-			SetRoadTypes(tile_start, rts);
 			SetRoadBridgeType(tile_end,   bridge_type);
-			SetRoadTypes(tile_end,   rts);
-
-			for (RoadType rt = ROADTYPE_BEGIN; rt < ROADTYPE_END; rt++) {
-				if (!HasBit(prev_roadtypes, rt)) {
-					SetRoadOwner(tile_start, rt, company);
-					SetRoadOwner(tile_end,   rt, company);
-				}
-			}
 
 			MarkBridgeTilesDirty(tile_start, tile_end, AxisToDiagDir(direction));
 		}
+
+		/* Count existing road types in cost computation. */
+		rts |= bridge_rts;
 	} else {
 		DiagDirection dir = AxisToDiagDir(direction);
 
