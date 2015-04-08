@@ -275,7 +275,7 @@ struct GameLibraryScanner : ScriptScannerT<GameLibraryScanner>, GameScannerDesc 
 
 /* static */ const ScriptInfoList::List *Game::GetUniqueInfoList()
 {
-	return libraries->GetUniqueInfoList();
+	return scripts->GetUniqueInfoList();
 }
 
 /* static */ GameInfo *Game::FindInfo(const char *name, int version, bool force_exact_match)
