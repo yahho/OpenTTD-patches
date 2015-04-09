@@ -94,7 +94,7 @@ elif [ -d "$ROOT_DIR/.git" ]; then
 	HASH=`LC_ALL=C git rev-parse --verify HEAD 2>/dev/null`
 	REV="g`echo $HASH | cut -c1-8`"
 	BRANCH="`git symbolic-ref -q HEAD 2>/dev/null | sed 's@.*/@@;s@^master$@@'`"
-	REV_NR=`LC_ALL=C git log --pretty=format:%s --grep="^(svn r[0-9]*)" -1 | sed "s@.*(svn r\([0-9]*\)).*@\1@"`
+	REV_NR=`LC_ALL=C git log --pretty=format:%b --grep="^(openttd r[0-9]*)" -1 | sed -n -e "s@.*(openttd r\([0-9]*\)).*@\1@p" -e 1q`
 	if [ -z "$REV_NR" ]; then
 		# No rev? Maybe it is a custom git-svn clone
 		REV_NR=`LC_ALL=C git log --pretty=format:%b --grep="git-svn-id:.*@[0-9]*" -1 | sed "s@.*\@\([0-9]*\).*@\1@"`
@@ -117,7 +117,7 @@ elif [ -d "$ROOT_DIR/.hg" ]; then
 		BRANCH=""
 		REV="$TAG"
 	fi
-	REV_NR=`LC_ALL=C HGPLAIN= hg log -f -k "(svn r" -l 1 --template "{desc|firstline}\n" | grep "^(svn r[0-9]*)" | sed "s@.*(svn r\([0-9]*\)).*@\1@"`
+	REV_NR=`LC_ALL=C HGPLAIN= hg log -f -k "(openttd r" -l 1 --template "{desc|firstline}\n" | grep "^(openttd r[0-9]*)" | sed "s@.*(openttd r\([0-9]*\)).*@\1@"`
 	if [ -z "$REV_NR" ]; then
 		# No rev? Maybe it is a custom hgsubversion clone
 		REV_NR=`LC_ALL=C HGPLAIN= hg parent --template="{svnrev}"`

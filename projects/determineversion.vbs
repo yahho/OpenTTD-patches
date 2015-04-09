@@ -204,9 +204,9 @@ Function DetermineSVNVersion()
 						End If ' line <> "master"
 					End If ' Err.Number = 0
 
-					Set oExec = WshShell.Exec("git log --pretty=format:%s --grep=" & Chr(34) & "^(svn r[0-9]*)" & Chr(34) & " -1")
+					Set oExec = WshShell.Exec("git log --pretty=format:%b --grep=" & Chr(34) & "^(openttd r[0-9]*)" & Chr(34) & " -1")
 					if Err.Number = 0 Then
-						revision = Mid(oExec.StdOut.ReadLine(), 7)
+						revision = Mid(oExec.StdOut.ReadLine(), 11)
 						revision = Mid(revision, 1, InStr(revision, ")") - 1)
 					End If ' Err.Number = 0
 					If revision = "" Then
@@ -284,13 +284,13 @@ Function DetermineSVNVersion()
 							End If ' line <> "default"
 						End If ' Err.Number = 0
 
-						Set oExec = WshShell.Exec("hg log -f -k " & Chr(34) & "(svn r" & Chr(34) & " -l 1 --template " & Chr(34) & "{desc|firstline}\n" & Chr(34) & " --cwd ../")
+						Set oExec = WshShell.Exec("hg log -f -k " & Chr(34) & "(openttd r" & Chr(34) & " -l 1 --template " & Chr(34) & "{desc|firstline}\n" & Chr(34) & " --cwd ../")
 						If Err.Number = 0 Then
 							line = oExec.StdOut.ReadLine()
-							If Left(line, 6) = "(svn r" Then
-								revision = Mid(line, 7)
+							If Left(line, 10) = "(openttd r" Then
+								revision = Mid(line, 11)
 								revision = Mid(revision, 1, InStr(revision, ")") - 1)
-							End If 'Left(line, 6) = "(svn r"
+							End If 'Left(line, 10) = "(openttd r"
 						End If ' Err.Number = 0
 
 						If revision = "" Then
