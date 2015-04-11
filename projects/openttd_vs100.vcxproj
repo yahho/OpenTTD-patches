@@ -424,7 +424,7 @@
     <ClCompile Include="..\src\screenshot.cpp" />
     <ClCompile Include="..\src\sdl.cpp" />
     <ClCompile Include="..\src\settings.cpp" />
-    <ClCompile Include="..\src\signal.cpp" />
+    <ClCompile Include="..\src\signalbuffer.cpp" />
     <ClCompile Include="..\src\signs.cpp" />
     <ClCompile Include="..\src\sound.cpp" />
     <ClCompile Include="..\src\sprite.cpp" />
@@ -637,8 +637,8 @@
     <ClInclude Include="..\src\settings_internal.h" />
     <ClInclude Include="..\src\settings_type.h" />
     <ClInclude Include="..\src\ship.h" />
-    <ClInclude Include="..\src\signal_func.h" />
-    <ClInclude Include="..\src\signal_type.h" />
+    <ClInclude Include="..\src\signal.h" />
+    <ClInclude Include="..\src\signalbuffer.h" />
     <ClInclude Include="..\src\signs_base.h" />
     <ClInclude Include="..\src\signs_func.h" />
     <ClInclude Include="..\src\signs_type.h" />

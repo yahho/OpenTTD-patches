@@ -7,10 +7,10 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file signal_func.h Functions related to signals. */
+/** @file signalbuffer.h Functions related to signals. */
 
-#ifndef SIGNAL_FUNC_H
-#define SIGNAL_FUNC_H
+#ifndef SIGNALBUFFER_H
+#define SIGNALBUFFER_H
 
 #include "map/coord.h"
 #include "track_type.h"
@@ -36,4 +36,4 @@ void AddTunnelToSignalBuffer(TileIndex tile, Owner owner);
 void AddPosToSignalBuffer(const RailPathPos &pos, Owner owner);
 SigSegState UpdateSignalsInBuffer();
 
-#endif /* SIGNAL_FUNC_H */
+#endif /* SIGNALBUFFER_H */

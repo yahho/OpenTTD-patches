@@ -18,7 +18,7 @@
 
 #include "../map/coord.h"
 #include "../direction_type.h"
-#include "../signal_type.h"
+#include "../signal.h"
 #include "../track_type.h"
 
 /** Helper template class that provides C array length and item type */

@@ -1327,7 +1327,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\signal.cpp"
+				RelativePath=".\..\src\signalbuffer.cpp"
 				>
 			</File>
 			<File
@@ -2207,11 +2207,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\signal_func.h"
+				RelativePath=".\..\src\signal.h"
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\signal_type.h"
+				RelativePath=".\..\src\signalbuffer.h"
 				>
 			</File>
 			<File

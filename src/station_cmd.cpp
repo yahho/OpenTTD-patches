@@ -56,7 +56,7 @@
 #include "linkgraph/linkgraphschedule.h"
 #include "linkgraph/refresh.h"
 #include "widgets/station_widget.h"
-#include "signal_func.h"
+#include "signalbuffer.h"
 #include "map/zoneheight.h"
 #include "map/road.h"
 

@@ -14,7 +14,7 @@
 #include "map/road.h"
 #include "tile_cmd.h"
 #include "bridge.h"
-#include "signal_func.h"
+#include "signalbuffer.h"
 #include "command_func.h"
 #include "company_func.h"
 #include "vehicle_func.h"

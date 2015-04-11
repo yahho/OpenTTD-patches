@@ -15,7 +15,7 @@
 #include "../fios.h"
 #include "../town.h"
 #include "../landscape_type.h"
-#include "../signal_type.h"
+#include "../signal.h"
 #include "../map/slope.h"
 #include "../map/ground.h"
 #include "../map/water.h"

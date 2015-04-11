@@ -12,7 +12,7 @@
 
 #include "../stdafx.h"
 #include "../core/bitmath_func.hpp"
-#include "../signal_type.h"
+#include "../signal.h"
 
 /** Storage of a signal pair on a track in the map array. */
 typedef byte SignalPair;

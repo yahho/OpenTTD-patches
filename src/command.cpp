@@ -23,7 +23,7 @@
 #include "date_func.h"
 #include "company_func.h"
 #include "company_base.h"
-#include "signal_func.h"
+#include "signalbuffer.h"
 #include "core/backup_type.hpp"
 #include "object_base.h"
 #include "ai/ai_instance.hpp"

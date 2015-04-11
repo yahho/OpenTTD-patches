@@ -29,7 +29,7 @@
 #include "strings_func.h"
 #include "tunnelbridge.h"
 #include "bridge.h"
-#include "signal_func.h"
+#include "signalbuffer.h"
 #include "cheat_type.h"
 #include "company_base.h"
 #include "object_base.h"

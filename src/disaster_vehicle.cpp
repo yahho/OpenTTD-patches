@@ -39,7 +39,7 @@
 #include "date_func.h"
 #include "viewport_func.h"
 #include "vehicle_func.h"
-#include "signal_func.h"
+#include "signalbuffer.h"
 #include "sound_func.h"
 #include "effectvehicle_func.h"
 #include "roadveh.h"

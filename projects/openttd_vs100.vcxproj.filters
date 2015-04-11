@@ -318,7 +318,7 @@
     <ClCompile Include="..\src\settings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\signal.cpp">
+    <ClCompile Include="..\src\signalbuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\signs.cpp">
@@ -945,10 +945,10 @@
     <ClInclude Include="..\src\ship.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\signal_func.h">
+    <ClInclude Include="..\src\signal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\signal_type.h">
+    <ClInclude Include="..\src\signalbuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\signs_base.h">

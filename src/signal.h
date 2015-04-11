@@ -7,10 +7,10 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file signal_type.h Types and classes related to signals. */
+/** @file signal.h Types and classes related to signals. */
 
-#ifndef SIGNAL_TYPE_H
-#define SIGNAL_TYPE_H
+#ifndef SIGNAL_H
+#define SIGNAL_H
 
 #include "core/enum_type.hpp"
 
@@ -67,4 +67,4 @@ static inline bool IsOnewaySignal(SignalType s)
 	return s != SIGTYPE_PBS;
 }
 
-#endif /* SIGNAL_TYPE_H */
+#endif /* SIGNAL_H */

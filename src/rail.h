@@ -20,7 +20,7 @@
 #include "slope_type.h"
 #include "strings_type.h"
 #include "date_type.h"
-#include "signal_type.h"
+#include "signal.h"
 
 /** Railtype flags. */
 enum RailTypeFlags {

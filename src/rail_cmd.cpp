@@ -35,7 +35,7 @@
 #include "company_gui.h"
 #include "map/object.h"
 #include "bridge.h"
-#include "signal_func.h"
+#include "signalbuffer.h"
 #include "object.h"
 
 #include "table/strings.h"
@@ -1264,7 +1264,7 @@ CommandCost CmdBuildTrainDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, u
  * @param p1 various bitstuffed elements
  * - p1 = (bit 0-2) - track-orientation, valid values: 0-5 (Track enum)
  * - p1 = (bit 4)   - 0 = signals, 1 = semaphores
- * - p1 = (bit 5-7) - type of the signal, for valid values see enum SignalType in signal_type.h
+ * - p1 = (bit 5-7) - type of the signal, for valid values see enum SignalType in signal.h
  * - p1 = (bit 17-19)-operation mode (BuildSignalMode)
  * @param p2 extra data depending on the operation mode
  * - for SIGNALS_COPY and SIGNALS_COPY_SOFT, signals to build

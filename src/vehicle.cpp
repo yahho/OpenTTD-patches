@@ -50,7 +50,7 @@
 #include "map/slope.h"
 #include "map/bridge.h"
 #include "gamelog.h"
-#include "signal_func.h"
+#include "signalbuffer.h"
 #include "linkgraph/linkgraph.h"
 #include "linkgraph/refresh.h"
 

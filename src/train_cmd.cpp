@@ -33,7 +33,7 @@
 #include "newgrf.h"
 #include "order_backup.h"
 #include "zoom_func.h"
-#include "signal_func.h"
+#include "signalbuffer.h"
 #include "station_func.h"
 #include "newgrf_debug.h"
 #include "date_func.h"

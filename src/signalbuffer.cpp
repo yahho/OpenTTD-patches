@@ -7,7 +7,7 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file signal.cpp functions related to rail signals updating */
+/** @file signalbuffer.cpp functions related to rail signals updating */
 
 #include "stdafx.h"
 #include "debug.h"
@@ -17,7 +17,7 @@
 #include "viewport_func.h"
 #include "train.h"
 #include "company_base.h"
-#include "signal_func.h"
+#include "signalbuffer.h"
 #include "station_func.h"
 
 

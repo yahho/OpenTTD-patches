@@ -74,7 +74,7 @@ screenshot.cpp
 	sdl.cpp
 #end
 settings.cpp
-signal.cpp
+signalbuffer.cpp
 signs.cpp
 sound.cpp
 sprite.cpp
@@ -292,8 +292,8 @@ settings_gui.h
 settings_internal.h
 settings_type.h
 ship.h
-signal_func.h
-signal_type.h
+signal.h
+signalbuffer.h
 signs_base.h
 signs_func.h
 signs_type.h

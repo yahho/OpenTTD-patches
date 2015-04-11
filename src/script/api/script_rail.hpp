@@ -13,7 +13,7 @@
 #define SCRIPT_RAIL_HPP
 
 #include "script_tile.hpp"
-#include "../../signal_type.h"
+#include "../../signal.h"
 #include "../../track_type.h"
 
 /**
