@@ -46,29 +46,20 @@ static inline bool HasPbsSignalOnTrackdir(TileIndex tile, Trackdir td)
 /**
  * Is a one-way signal blocking the trackdir? A one-way signal on the
  * trackdir against will block, but signals on both trackdirs won't.
- * @param tile the tile to check
- * @param td the trackdir to check
- */
-static inline bool HasOnewaySignalBlockingTrackdir(TileIndex tile, Trackdir td)
-{
-	if (IsRailwayTile(tile)) {
-		return HasSignalOnTrackdir(tile, ReverseTrackdir(td)) &&
-			!HasSignalOnTrackdir(tile, td) && IsOnewaySignal(GetSignalType(tile, TrackdirToTrack(td)));
-	} else if (maptile_is_rail_tunnel(tile)) {
-		return maptile_has_tunnel_signal(tile, TrackdirToExitdir(td) != GetTunnelBridgeDirection(tile));
-	} else {
-		return false;
-	}
-}
-
-/**
- * Is a one-way signal blocking the trackdir? A one-way signal on the
- * trackdir against will block, but signals on both trackdirs won't.
  * @param pos the position to check
  */
 static inline bool HasOnewaySignalBlockingPos(const RailPathPos &pos)
 {
-	return !pos.in_wormhole() && HasOnewaySignalBlockingTrackdir(pos.tile, pos.td);
+	if (pos.in_wormhole()) return false;
+
+	if (IsRailwayTile (pos.tile)) {
+		return HasSignalOnTrackdir (pos.tile, ReverseTrackdir (pos.td)) &&
+			!HasSignalOnTrackdir (pos.tile, pos.td) && IsOnewaySignal (GetSignalType (pos.tile, TrackdirToTrack (pos.td)));
+	} else if (maptile_is_rail_tunnel (pos.tile)) {
+		return maptile_has_tunnel_signal (pos.tile, TrackdirToExitdir (pos.td) != GetTunnelBridgeDirection (pos.tile));
+	} else {
+		return false;
+	}
 }
 
 #endif /* SIGNAL_MAP_H */
