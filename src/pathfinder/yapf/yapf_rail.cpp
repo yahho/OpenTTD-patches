@@ -786,7 +786,7 @@ inline void CYapfRailBaseT<TAstar>::HandleNodeNextTile (Node *n, CFollowTrackRai
 			n->m_segment->m_end_segment_reason.set(ESR_DEAD_END);
 		}
 
-		if (mask_reserved_tracks && !HasOnewaySignalBlockingPos(tf->m_old)) {
+		if (mask_reserved_tracks && !tf->m_old.has_blocking_signal()) {
 			n->m_segment->m_end_segment_reason.set(ESR_SAFE_TILE);
 		}
 		return;

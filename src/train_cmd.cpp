@@ -2463,7 +2463,7 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, RailPathPo
 		}
 
 		/* Possible signal tile. */
-		if (HasOnewaySignalBlockingPos(ft.m_new)) break;
+		if (ft.m_new.has_blocking_signal()) break;
 
 		PBSPositionState state = CheckWaitingPosition(v, ft.m_new, _settings_game.pf.forbid_90_deg);
 		if (state == PBS_BUSY) break;

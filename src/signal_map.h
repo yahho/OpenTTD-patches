@@ -29,24 +29,4 @@ static inline void SetSignalState(TileIndex tile, Trackdir trackdir, SignalState
 	}
 }
 
-
-/**
- * Is a one-way signal blocking the trackdir? A one-way signal on the
- * trackdir against will block, but signals on both trackdirs won't.
- * @param pos the position to check
- */
-static inline bool HasOnewaySignalBlockingPos(const RailPathPos &pos)
-{
-	if (pos.in_wormhole()) return false;
-
-	if (IsRailwayTile (pos.tile)) {
-		return HasSignalOnTrackdir (pos.tile, ReverseTrackdir (pos.td)) &&
-			!HasSignalOnTrackdir (pos.tile, pos.td) && IsOnewaySignal (GetSignalType (pos.tile, TrackdirToTrack (pos.td)));
-	} else if (maptile_is_rail_tunnel (pos.tile)) {
-		return maptile_has_tunnel_signal (pos.tile, TrackdirToExitdir (pos.td) != GetTunnelBridgeDirection (pos.tile));
-	} else {
-		return false;
-	}
-}
-
 #endif /* SIGNAL_MAP_H */

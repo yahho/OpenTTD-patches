@@ -241,7 +241,7 @@ static bool FollowReservation(Owner o, RailTypes rts, RailPathPos *pos, bool ign
 
 		/* One-way signal against us. The reservation can't be ours as it is not
 		 * a safe position from our direction and we can never pass the signal. */
-		if (!ignore_oneway && HasOnewaySignalBlockingPos(ft.m_new)) break;
+		if (!ignore_oneway && ft.m_new.has_blocking_signal()) break;
 
 		cur = ft.m_new;
 

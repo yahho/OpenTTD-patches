@@ -76,6 +76,21 @@ struct RailPathPos : PathPos<PathVTile> {
 	/** Check if there is a signal against a position */
 	bool has_signal_against() const { return has_signal_along(false); }
 
+	/** Check if there is a one-way signal against a position */
+	bool has_blocking_signal() const
+	{
+		if (in_wormhole()) {
+			return false;
+		} else if (IsRailwayTile (tile)) {
+			return HasSignalOnTrackdir (tile, ReverseTrackdir (td)) &&
+				!HasSignalOnTrackdir (tile, td) && IsOnewaySignal (GetSignalType (tile, TrackdirToTrack (td)));
+		} else if (maptile_is_rail_tunnel (tile)) {
+			return maptile_has_tunnel_signal (tile, TrackdirToExitdir (td) != GetTunnelBridgeDirection (tile));
+		} else {
+			return false;
+		}
+	}
+
 	/** Get the state of the signal along a position */
 	SignalState get_signal_state() const
 	{
