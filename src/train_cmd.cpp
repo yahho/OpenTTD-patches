@@ -2802,7 +2802,6 @@ static bool TryPathReserveFromDepot(Train *v)
 	/* Depot not reserved, but the next tile might be. */
 	DiagDirection exitdir = GetGroundDepotDirection(v->tile);
 	TileIndex new_tile = TileAddByDiagDir(v->tile, exitdir);
-	if (HasReservedTracks(new_tile, DiagdirReachesTracks(exitdir))) return false;
 
 	TrackdirBits reachable = TrackStatusToTrackdirBits(GetTileRailwayStatus(new_tile)) & DiagdirReachesTrackdirs(exitdir);
 
