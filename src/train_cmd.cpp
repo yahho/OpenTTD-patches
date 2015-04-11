@@ -3598,10 +3598,21 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				chosen_trackdir = TrainControllerChooseTrackdir(v, gp.tile, enterdir, tsdir, !old_in_wormhole && _settings_game.pf.forbid_90_deg, reverse);
 				if (chosen_trackdir == INVALID_TRACKDIR) return false;
 
-				if (HasPbsSignalOnTrackdir(gp.tile, chosen_trackdir)) {
-					SetSignalState(gp.tile, chosen_trackdir, SIGNAL_STATE_RED);
-					MarkTileDirtyByTile(gp.tile);
+				bool mark_dirty = false;
+				if (IsRailwayTile (gp.tile)) {
+					if (HasSignalOnTrackdir (gp.tile, chosen_trackdir) && IsPbsSignal (GetSignalType (gp.tile, TrackdirToTrack (chosen_trackdir)))) {
+						SetSignalStateByTrackdir (gp.tile, chosen_trackdir, SIGNAL_STATE_RED);
+						mark_dirty = true;
+					}
+				} else if (old_in_wormhole) {
+					assert (maptile_is_rail_tunnel (gp.tile));
+					assert (TrackdirToExitdir (chosen_trackdir) != GetTunnelBridgeDirection (gp.tile));
+					if (maptile_has_tunnel_signal (gp.tile, false) && IsPbsSignal (maptile_get_tunnel_signal_type (gp.tile))) {
+						maptile_set_tunnel_signal_state (gp.tile, false, SIGNAL_STATE_RED);
+						mark_dirty = true;
+					}
 				}
+				if (mark_dirty) MarkTileDirtyByTile (gp.tile);
 			} else {
 				/* wagon entering a new tile, just follow the previous vehicle */
 				if (prev->tile == gp.tile) {

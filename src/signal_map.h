@@ -31,19 +31,6 @@ static inline void SetSignalState(TileIndex tile, Trackdir trackdir, SignalState
 
 
 /**
- * Is a pbs signal present along the trackdir?
- * @param tile the tile to check
- * @param td the trackdir to check
- */
-static inline bool HasPbsSignalOnTrackdir(TileIndex tile, Trackdir td)
-{
-	return IsRailwayTile(tile) ?
-			HasSignalOnTrackdir(tile, td) && IsPbsSignal(GetSignalType(tile, TrackdirToTrack(td))) :
-			maptile_is_rail_tunnel(tile) && maptile_has_tunnel_signal(tile, TrackdirToExitdir(td) == GetTunnelBridgeDirection(tile)) && IsPbsSignal(maptile_get_tunnel_signal_type(tile));
-}
-
-
-/**
  * Is a one-way signal blocking the trackdir? A one-way signal on the
  * trackdir against will block, but signals on both trackdirs won't.
  * @param pos the position to check
