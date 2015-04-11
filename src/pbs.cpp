@@ -383,7 +383,9 @@ Train *GetTrainForReservation(TileIndex tile, Track track)
 	for (int i = 0; i < 2; ++i, trackdir = ReverseTrackdir(trackdir)) {
 		/* If the tile has a one-way block signal in the current trackdir, skip the
 		 * search in this direction as the reservation can't come from this side.*/
-		if (HasOnewaySignalBlockingTrackdir(tile, ReverseTrackdir(trackdir)) && !HasPbsSignalOnTrackdir(tile, trackdir)) continue;
+		if (HasSignalOnTrackdir (tile, trackdir) &&
+			!HasSignalOnTrackdir (tile, ReverseTrackdir(trackdir)) &&
+			!IsPbsSignal (GetSignalType (tile, TrackdirToTrack (trackdir)))) continue;
 
 		RailPathPos pos = RailPathPos(tile, trackdir);
 		FollowReservation(GetTileOwner(tile), rts, &pos, true);
