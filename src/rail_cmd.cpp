@@ -1350,7 +1350,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 
 					signalpair_set_type(&signals, sigtype);
 					if (IsPbsSignal(sigtype) && signalpair_get_present(&signals) == 3) {
-						signalpair_set_present(&signals, 1);
+						signalpair_set_present(&signals, 2);
 					}
 				} else if (signalpair_has_signal(&signals, false)) {
 					/* toggle normal/path signal */
@@ -1387,7 +1387,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 
 				uint present;
 				if (other_end == INVALID_TILE) {
-					present = IsPbsSignal(sigtype) ? 1 : 3;
+					present = IsPbsSignal(sigtype) ? 2 : 3;
 				} else if (maptile_has_tunnel_signals(other_end)) {
 					assert(maptile_get_tunnel_present_signals(other_end) == 1);
 					sigtype = SIGTYPE_NORMAL;
