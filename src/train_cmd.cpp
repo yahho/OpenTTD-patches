@@ -2331,7 +2331,7 @@ static void FreeTrainTrackReservation (const Train *v, const RailPathPos *end)
 				break;
 			} else {
 				/* Turn the signal back to red. */
-				SetSignalState(ft.m_new.tile, ft.m_new.td, SIGNAL_STATE_RED);
+				ft.m_new.set_signal_state (SIGNAL_STATE_RED);
 				MarkTileDirtyByTile(ft.m_new.tile);
 			}
 		} else if (ft.m_new.has_signal_against() && IsOnewaySignal(ft.m_new.get_signal_type())) {
@@ -2618,7 +2618,7 @@ static bool ChooseTrainTrack (Train *v, RailPathPos origin,
 			case EXTEND_RESERVATION_SAFE:
 				assert (pos.is_single());
 				if (change_signal) {
-					SetSignalState (pos.tile, pos.td, SIGNAL_STATE_GREEN);
+					pos.set_signal_state (SIGNAL_STATE_GREEN);
 					MarkTileDirtyByTile (pos.tile);
 				}
 				TryReserveRailTrack(v->GetPos());
@@ -2673,7 +2673,7 @@ static bool ChooseTrainTrack (Train *v, RailPathPos origin,
 		return true;
 	}
 
-	if (change_signal) SetSignalState (pos.tile, pos.td, SIGNAL_STATE_GREEN);
+	if (change_signal) pos.set_signal_state (SIGNAL_STATE_GREEN);
 
 	/* A path was found, but could not be reserved. */
 	if (res_dest.pos.is_valid_tile() && !res_dest.okay) {

@@ -17,16 +17,4 @@
 #include "map/rail.h"
 #include "pathfinder/railpos.h"
 
-/**
- * Sets the state of the signal along the given trackdir.
- */
-static inline void SetSignalState(TileIndex tile, Trackdir trackdir, SignalState state)
-{
-	if (IsRailwayTile(tile)) {
-		SetSignalStateByTrackdir(tile, trackdir, state);
-	} else {
-		maptile_set_tunnel_signal_state(tile, TrackdirToExitdir(trackdir) == GetTunnelBridgeDirection(tile), state);
-	}
-}
-
 #endif /* SIGNAL_MAP_H */

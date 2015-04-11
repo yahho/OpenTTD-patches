@@ -99,6 +99,17 @@ struct RailPathPos : PathPos<PathVTile> {
 			GetSignalStateByTrackdir (tile, td) :
 			maptile_get_tunnel_signal_state (tile, TrackdirToExitdir(td) == GetTunnelBridgeDirection(tile));
 	}
+
+	/** Set the state of the signal along a position */
+	void set_signal_state (SignalState state) const
+	{
+		assert (has_signal_along());
+		if (IsRailwayTile (tile)) {
+			SetSignalStateByTrackdir (tile, td, state);
+		} else {
+			maptile_set_tunnel_signal_state (tile, TrackdirToExitdir (td) == GetTunnelBridgeDirection (tile), state);
+		}
+	}
 };
 
 #endif /* PATHFINDER_RAILPOS_H */
