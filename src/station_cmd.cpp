@@ -1924,8 +1924,10 @@ CommandCost CmdRemoveRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 
 	TileArea roadstop_area(tile, width, height);
 
-	int quantity = 0;
 	CommandCost cost(EXPENSES_CONSTRUCTION);
+	CommandCost last_error(STR_ERROR_THERE_IS_NO_STATION);
+	bool had_success = false;
+
 	TILE_AREA_LOOP(cur_tile, roadstop_area) {
 		/* Make sure the specified tile is a road stop of the correct type */
 		if (!IsStationTile(cur_tile) || !IsRoadStop(cur_tile) || (uint32)GetRoadStopType(cur_tile) != GB(p2, 0, 1)) continue;
@@ -1940,10 +1942,13 @@ CommandCost CmdRemoveRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 		Owner road_owner = GetRoadOwner(cur_tile, ROADTYPE_ROAD);
 		Owner tram_owner = GetRoadOwner(cur_tile, ROADTYPE_TRAM);
 		CommandCost ret = RemoveRoadStop(cur_tile, flags);
-		if (ret.Failed()) return ret;
+		if (ret.Failed()) {
+			last_error = ret;
+			continue;
+		}
 		cost.AddCost(ret);
+		had_success = true;
 
-		quantity++;
 		/* If the stop was a drive-through stop replace the road */
 		if ((flags & DC_EXEC) && is_drive_through) {
 			MakeRoadNormal(cur_tile, road_bits, rts, ClosestTownFromTile(cur_tile)->index,
@@ -1961,9 +1966,7 @@ CommandCost CmdRemoveRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 		}
 	}
 
-	if (quantity == 0) return_cmd_error(STR_ERROR_THERE_IS_NO_STATION);
-
-	return cost;
+	return had_success ? cost : last_error;
 }
 
 /**
