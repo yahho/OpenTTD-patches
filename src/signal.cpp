@@ -19,7 +19,6 @@
 #include "company_base.h"
 #include "signal_func.h"
 #include "station_func.h"
-#include "signal_map.h"
 
 
 /** these are the maximums used for updating signal blocks */

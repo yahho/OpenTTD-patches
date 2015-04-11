@@ -11555,10 +11555,6 @@
 				RelativePath=".\..\src\map\util.h"
 				>
 			</File>
-			<File
-				RelativePath=".\..\src\signal_map.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Misc"

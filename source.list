@@ -994,7 +994,6 @@ map/bridge.h
 map/tunnelbridge.h
 map/util.cpp
 map/util.h
-signal_map.h
 
 # Misc
 misc/array.hpp

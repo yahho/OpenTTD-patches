@@ -20,7 +20,6 @@
 #include "pathfinder/railpos.h"
 #include "map/bridge.h"
 #include "map/tunnelbridge.h"
-#include "signal_map.h"
 
 TrackBits GetReservedTrackbits(TileIndex t);
 
