@@ -60,7 +60,7 @@ static inline void UnreserveRailTrack(const RailPathPos &pos)
 	}
 }
 
-bool FollowTrainReservation(const Train *v, RailPathPos *pos, Vehicle **train_on_res = NULL);
+bool FollowTrainReservation (const Train *v, RailPathPos *pos, bool check = false);
 
 /** State of a waiting position wrt PBS. */
 enum PBSPositionState {

@@ -335,15 +335,12 @@ static Train *FindTrainOnPathEnd(const RailPathPos &pos)
  *
  * @param v the vehicle
  * @param pos Pointer to receive the last tile of the reservation or the current train tile if no reservation present
- * @param train_on_res Is set to a train we might encounter
- * @returns Whether the train has a reservation at all
+ * @param check Whether to check if there is another train on the reservation
+ * @return Whether the reservation is free (no other train on it) if check was true; undefined if check was false
  */
-bool FollowTrainReservation(const Train *v, RailPathPos *pos, Vehicle **train_on_res)
+bool FollowTrainReservation (const Train *v, RailPathPos *pos, bool check)
 {
 	assert(v->type == VEH_TRAIN);
-
-	RailPathPos res = v->GetPos();
-	bool has_reservation = HasReservedPos(res);
 
 	/* Start track not reserved? This can happen if two trains
 	 * are on the same tile, on trackdirs ending on the same side.
@@ -352,17 +349,18 @@ bool FollowTrainReservation(const Train *v, RailPathPos *pos, Vehicle **train_on
 	 * will not look for a train on it, or else a train behind us
 	 * on the same track can appear to block our way, because it
 	 * would seem that our reservation ends in an occupied position. */
-	if (has_reservation) {
+	RailPathPos res = v->GetPos();
+	if (HasReservedPos (res)) {
 		bool ext = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, &res);
 		assert(HasReservedPos(res));
-		if (ext && train_on_res != NULL) {
+		if (ext && check) {
 			Train *t = FindTrainOnPathEnd(res);
-			if (t != NULL) *train_on_res = t->First();
+			if (t != NULL && t->First()->index != v->index) check = false;
 		}
 	}
 
 	*pos = res;
-	return has_reservation;
+	return check;
 }
 
 /**
