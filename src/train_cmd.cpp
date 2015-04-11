@@ -2739,13 +2739,9 @@ static bool ChooseTrainTrack(Train *v, RailPathPos origin, TileIndex tile, Track
  */
 static bool TryPathExtend (Train *v, const RailPathPos &origin, bool mark_as_stuck = false)
 {
-	DiagDirection exitdir = TrackdirToExitdir (origin.td);
-	TileIndex     new_tile = TileAddByDiagDir (origin.tile, exitdir);
-	TrackdirBits  reachable = TrackStatusToTrackdirBits (GetTileRailwayStatus (new_tile)) & DiagdirReachesTrackdirs (exitdir);
+	CFollowTrackRail ft (v, !_settings_game.pf.forbid_90_deg);
 
-	if (_settings_game.pf.forbid_90_deg) reachable &= ~TrackdirCrossesTrackdirs (origin.td);
-
-	if (reachable != TRACKDIR_BIT_NONE && !ChooseTrainTrack (v, origin, new_tile, reachable, true)) {
+	if (ft.Follow (origin) && !ChooseTrainTrack (v, origin, ft.m_new.tile, ft.m_new.trackdirs, true)) {
 		if (mark_as_stuck) MarkTrainAsStuck(v);
 		return false;
 	}
