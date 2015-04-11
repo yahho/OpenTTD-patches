@@ -2731,6 +2731,35 @@ static bool ChooseTrainTrack(Train *v, RailPathPos origin, TileIndex tile, Track
 }
 
 /**
+ * Try to extend a reserved path to a safe position.
+ * @param v The vehicle.
+ * @param origin Current end of the reservation.
+ * @param mark_as_stuck Whether the train should be marked as stuck on a failed reservation.
+ * @return Whether the reserved path could be extended.
+ */
+static bool TryPathExtend (Train *v, const RailPathPos &origin, bool mark_as_stuck = false)
+{
+	DiagDirection exitdir = TrackdirToExitdir (origin.td);
+	TileIndex     new_tile = TileAddByDiagDir (origin.tile, exitdir);
+	TrackdirBits  reachable = TrackStatusToTrackdirBits (GetTileRailwayStatus (new_tile)) & DiagdirReachesTrackdirs (exitdir);
+
+	if (_settings_game.pf.forbid_90_deg) reachable &= ~TrackdirCrossesTrackdirs (origin.td);
+
+	if (reachable != TRACKDIR_BIT_NONE && !ChooseTrainTrack (v, origin, new_tile, reachable, true)) {
+		if (mark_as_stuck) MarkTrainAsStuck(v);
+		return false;
+	}
+
+	if (HasBit (v->flags, VRF_TRAIN_STUCK)) {
+		v->wait_counter = 0;
+		SetWindowWidgetDirty (WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
+		ClrBit (v->flags, VRF_TRAIN_STUCK);
+	}
+
+	return true;
+}
+
+/**
  * Try to reserve a path to a safe position.
  *
  * @param v The vehicle
@@ -2762,23 +2791,7 @@ bool TryPathReserve(Train *v, bool mark_as_stuck, bool first_tile_okay)
 		return true;
 	}
 
-	DiagDirection exitdir = TrackdirToExitdir(origin.td);
-	TileIndex     new_tile = TileAddByDiagDir(origin.tile, exitdir);
-	TrackdirBits  reachable = TrackStatusToTrackdirBits(GetTileRailwayStatus(new_tile)) & DiagdirReachesTrackdirs(exitdir);
-
-	if (_settings_game.pf.forbid_90_deg) reachable &= ~TrackdirCrossesTrackdirs(origin.td);
-
-	if (reachable != TRACKDIR_BIT_NONE && !ChooseTrainTrack(v, origin, new_tile, reachable, true)) {
-		if (mark_as_stuck) MarkTrainAsStuck(v);
-		return false;
-	}
-
-	if (HasBit(v->flags, VRF_TRAIN_STUCK)) {
-		v->wait_counter = 0;
-		SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
-	}
-	ClrBit(v->flags, VRF_TRAIN_STUCK);
-	return true;
+	return TryPathExtend (v, origin, mark_as_stuck);
 }
 
 /**
@@ -2799,24 +2812,10 @@ static bool TryPathReserveFromDepot(Train *v)
 	 * inside the depot, a depot reservation can never be ours. */
 	if (HasDepotReservation(v->tile)) return false;
 
-	/* Depot not reserved, but the next tile might be. */
-	DiagDirection exitdir = GetGroundDepotDirection(v->tile);
-	TileIndex new_tile = TileAddByDiagDir(v->tile, exitdir);
-
-	TrackdirBits reachable = TrackStatusToTrackdirBits(GetTileRailwayStatus(new_tile)) & DiagdirReachesTrackdirs(exitdir);
-
-	if (reachable != TRACKDIR_BIT_NONE && !ChooseTrainTrack(v, v->GetPos(), new_tile, reachable, true)) {
-		return false;
-	}
+	if (!TryPathExtend (v, v->GetPos())) return false;
 
 	SetDepotReservation(v->tile, true);
 	if (_settings_client.gui.show_track_reservation) MarkTileDirtyByTile(v->tile);
-
-	if (HasBit(v->flags, VRF_TRAIN_STUCK)) {
-		v->wait_counter = 0;
-		SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
-		ClrBit(v->flags, VRF_TRAIN_STUCK);
-	}
 
 	return true;
 }
