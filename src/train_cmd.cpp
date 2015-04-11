@@ -42,7 +42,7 @@
 #include "table/train_cmd.h"
 
 static bool ChooseTrainTrack(Train *v, RailPathPos origin, TileIndex tile, TrackdirBits trackdirs, bool force_res, Trackdir *best_trackdir = NULL);
-static bool TryPathReserveFromDepot(Train *v);
+static bool TryPathExtend (Train *v, const RailPathPos &origin, bool mark_as_stuck = false);
 static bool TrainCheckIfLineEnds(Train *v, bool reverse = true);
 static StationID TrainEnterTile(Train *v, TileIndex tile, int x, int y);
 bool TrainController(Train *v, Vehicle *nomove, bool reverse = true); // Also used in vehicle_sl.cpp.
@@ -2230,11 +2230,16 @@ static bool CheckTrainStayInDepot(Train *v)
 	}
 
 	/* Only leave when we can reserve a path to our destination. */
-	if (try_reserve && !TryPathReserveFromDepot(v) && v->force_proceed == TFP_NONE) {
-		/* No path and no force proceed. */
-		SetWindowClassesDirty(WC_TRAINS_LIST);
-		MarkTrainAsStuck(v);
-		return true;
+	if (try_reserve) {
+		if (HasDepotReservation (v->tile) || !TryPathExtend (v, v->GetPos())) {
+			/* Failed to get a reservation. */
+			if (v->force_proceed == TFP_NONE) {
+				/* No path and no force proceed. */
+				SetWindowClassesDirty(WC_TRAINS_LIST);
+				MarkTrainAsStuck(v);
+				return true;
+			}
+		}
 	}
 
 	SetDepotReservation(v->tile, true);
@@ -2737,7 +2742,7 @@ static bool ChooseTrainTrack(Train *v, RailPathPos origin, TileIndex tile, Track
  * @param mark_as_stuck Whether the train should be marked as stuck on a failed reservation.
  * @return Whether the reserved path could be extended.
  */
-static bool TryPathExtend (Train *v, const RailPathPos &origin, bool mark_as_stuck = false)
+static bool TryPathExtend (Train *v, const RailPathPos &origin, bool mark_as_stuck)
 {
 	CFollowTrackRail ft (v, !_settings_game.pf.forbid_90_deg);
 
@@ -2788,32 +2793,6 @@ bool TryPathReserve(Train *v, bool mark_as_stuck, bool first_tile_okay)
 	}
 
 	return TryPathExtend (v, origin, mark_as_stuck);
-}
-
-/**
- * Try to reserve a path to a safe position from a depot.
- *
- * @param v The vehicle
- * @param mark_as_stuck Should the train be marked as stuck on a failed reservation?
- * @param first_tile_okay True if no path should be reserved if the current tile is a safe position.
- * @return True if a path could be reserved.
- */
-static bool TryPathReserveFromDepot(Train *v)
-{
-	assert(v->IsFrontEngine());
-	assert(v->trackdir == TRACKDIR_DEPOT);
-
-	/* We have to handle depots specially as the track follower won't look
-	 * at the depot tile itself but starts from the next tile. If we are still
-	 * inside the depot, a depot reservation can never be ours. */
-	if (HasDepotReservation(v->tile)) return false;
-
-	if (!TryPathExtend (v, v->GetPos())) return false;
-
-	SetDepotReservation(v->tile, true);
-	if (_settings_client.gui.show_track_reservation) MarkTileDirtyByTile(v->tile);
-
-	return true;
 }
 
 
