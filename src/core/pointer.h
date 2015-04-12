@@ -63,12 +63,21 @@ struct ttd_delete_free {
 
 template <typename T>
 struct ttd_unique_free_ptr : ttd_unique_ptr <T, ttd_delete_free> {
+	CONSTEXPR ttd_unique_free_ptr()
+		: ttd_unique_ptr <T, ttd_delete_free> () { }
+
+	explicit ttd_unique_free_ptr (T *t)
+		: ttd_unique_ptr <T, ttd_delete_free> (t) { }
 };
 
 #else
 
 template <typename T>
 struct ttd_unique_free_ptr : ttd_shared_ptr <T> {
+	CONSTEXPR ttd_unique_free_ptr() : ttd_shared_ptr <T> () { }
+
+	explicit ttd_unique_free_ptr (T *t) : ttd_shared_ptr <T> (t) { }
+
 	void reset (void)
 	{
 		ttd_shared_ptr<T>::reset();

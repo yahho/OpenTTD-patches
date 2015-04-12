@@ -267,8 +267,7 @@ static bool DecodeSingleSprite (SpriteLoader::Sprite *sprite,
 	uint8 file_slot, size_t file_pos, SpriteType sprite_type, uint dest_size,
 	byte type, ZoomLevel zoom_lvl, byte colour_fmt, byte container_format)
 {
-	ttd_unique_free_ptr<byte> dest_orig;
-	dest_orig.reset (xmalloct<byte>(dest_size));
+	ttd_unique_free_ptr<byte> dest_orig (xmalloct<byte> (dest_size));
 
 	/* Read the file, which has some kind of compression */
 	if (!UncompressSingleSprite (dest_orig.get(), dest_size, file_slot, file_pos)) {
