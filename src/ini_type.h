@@ -14,6 +14,7 @@
 
 #include <functional>
 
+#include "core/pointer.h"
 #include "core/forward_list.h"
 
 #include "fileio_type.h"
@@ -21,29 +22,24 @@
 /** Base class for named entities (items, groups) in an ini file. */
 struct IniName {
 private:
-	char *const name; ///< the name of this item
+	const ttd_unique_free_ptr<char> name; ///< the name of this item
 
 public:
 	IniName (const char *name, size_t len = 0);
 
-	~IniName (void)
-	{
-		free (this->name);
-	}
-
 	const char *get_name (void) const
 	{
-		return name;
+		return name.get();
 	}
 
 	bool is_name (const char *name) const
 	{
-		return strcmp (this->name, name) == 0;
+		return strcmp (this->name.get(), name) == 0;
 	}
 
 	bool is_name (const char *name, size_t len) const
 	{
-		return strncmp (this->name, name, len) == 0 && this->name[len] == 0;
+		return strncmp (this->name.get(), name, len) == 0 && this->name.get()[len] == 0;
 	}
 
 	struct NamePred {
