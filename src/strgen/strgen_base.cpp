@@ -33,6 +33,21 @@ static const ptrdiff_t MAX_COMMAND_PARAM_SIZE = 100; ///< Maximum size of every 
 static const CmdStruct *ParseCommandString(const char **str, char *param, int *argno, int *casei);
 
 
+/**
+ * Helper function to mimic the behaviour of std::unique_ptr::release,
+ * usable in initialisations of const fields. We cannot use release itself
+ * because on some supported platforms (MSVC) ttd_unique_ptr is implemented
+ * in terms of std::shared_ptr, which lacks a release method.
+ */
+template <typename T>
+static inline ttd_unique_ptr<T> swap_init (ttd_unique_ptr<T> &other)
+{
+	ttd_unique_ptr<T> temp;
+	temp.swap (other);
+	return temp;
+}
+
+
 /** Container for the different cases of a string. */
 struct Case {
 	const int caseidx;                       ///< The index of the case.
@@ -45,8 +60,8 @@ struct Case {
 	 * @param string  The translation of the case.
 	 * @param next    The next chained case.
 	 */
-	Case (int caseidx, const char *string, const Case *next) :
-			caseidx(caseidx), string(xstrdup(string)), next(next)
+	Case (int caseidx, const char *string, ttd_unique_ptr<const Case> &next) :
+			caseidx(caseidx), string(xstrdup(string)), next(swap_init(next))
 	{
 	}
 };
@@ -60,10 +75,9 @@ struct LangString {
 	uint16 hash_next;                           ///< Next hash entry.
 	uint16 index;                               ///< The index in the language file.
 	int line;                                   ///< Line of string in source-file.
-	Case *translated_case;                      ///< Cases of the translation.
+	ttd_unique_ptr<const Case> translated_case; ///< Cases of the translation.
 
 	LangString(const char *name, const char *english, int index, int line);
-	~LangString();
 	void FreeTranslation();
 };
 
@@ -76,23 +90,15 @@ struct LangString {
  */
 LangString::LangString(const char *name, const char *english, int index, int line) :
 		name(xstrdup(name)), english(xstrdup(english)), translated(),
-		hash_next(0), index(index), line(line), translated_case(NULL)
+		hash_next(0), index(index), line(line), translated_case()
 {
-}
-
-/** Free everything we allocated. */
-LangString::~LangString()
-{
-	delete this->translated_case;
 }
 
 /** Free all data related to the translation. */
 void LangString::FreeTranslation()
 {
 	this->translated.reset();
-
-	delete this->translated_case;
-	this->translated_case = NULL;
+	this->translated_case.reset();
 }
 
 
@@ -789,7 +795,8 @@ void StringReader::HandleString(char *str)
 		if (!CheckCommandsMatch(s, ent->english.get(), str)) return;
 
 		if (casep != NULL) {
-			ent->translated_case = new Case(ResolveCaseName(casep, strlen(casep)), s, ent->translated_case);
+			int caseidx = ResolveCaseName (casep, strlen (casep));
+			ent->translated_case.reset (new Case (caseidx, s, ent->translated_case));
 		} else {
 			ent->translated.reset (xstrdup(s));
 			/* If the string was translated, use the line from the
@@ -1006,8 +1013,8 @@ void LanguageWriter::WriteLang(const StringData &data)
 			/* Extract the strings and stuff from the english command string */
 			ExtractCommandString(&_cur_pcs, ls->english.get(), false);
 
-			if (ls->translated_case != NULL || ls->translated) {
-				casep = ls->translated_case;
+			if (ls->translated_case || ls->translated) {
+				casep = ls->translated_case.get();
 				cmdp = ls->translated.get();
 			} else {
 				casep = NULL;
