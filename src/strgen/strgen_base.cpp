@@ -52,6 +52,21 @@ struct Case {
 };
 
 
+/** Information about a single string. */
+struct LangString {
+	const ttd_unique_free_ptr<char> name;       ///< Name of the string.
+	const ttd_unique_free_ptr<char> english;    ///< English text.
+	ttd_unique_free_ptr<char> translated;       ///< Translated text.
+	uint16 hash_next;                           ///< Next hash entry.
+	uint16 index;                               ///< The index in the language file.
+	int line;                                   ///< Line of string in source-file.
+	Case *translated_case;                      ///< Cases of the translation.
+
+	LangString(const char *name, const char *english, int index, int line);
+	~LangString();
+	void FreeTranslation();
+};
+
 /**
  * Create a new string.
  * @param name    The name of the string.
@@ -60,7 +75,7 @@ struct Case {
  * @param line    The line this string was found on.
  */
 LangString::LangString(const char *name, const char *english, int index, int line) :
-		name(xstrdup(name)), english(xstrdup(english)), translated(NULL),
+		name(xstrdup(name)), english(xstrdup(english)), translated(),
 		hash_next(0), index(index), line(line), translated_case(NULL)
 {
 }
@@ -68,21 +83,18 @@ LangString::LangString(const char *name, const char *english, int index, int lin
 /** Free everything we allocated. */
 LangString::~LangString()
 {
-	free(this->name);
-	free(this->english);
-	free(this->translated);
 	delete this->translated_case;
 }
 
 /** Free all data related to the translation. */
 void LangString::FreeTranslation()
 {
-	free(this->translated);
-	this->translated = NULL;
+	this->translated.reset();
 
 	delete this->translated_case;
 	this->translated_case = NULL;
 }
+
 
 /**
  * Create a new string data container.
@@ -150,7 +162,7 @@ LangString *StringData::Find(const char *s)
 	while (--idx >= 0) {
 		LangString *ls = this->strings[idx];
 
-		if (strcmp(ls->name, s) == 0) return ls;
+		if (strcmp (ls->name.get(), s) == 0) return ls;
 		idx = ls->hash_next;
 	}
 	return NULL;
@@ -189,12 +201,12 @@ uint StringData::Version() const
 			int argno;
 			int casei;
 
-			s = ls->name;
+			s = ls->name.get();
 			hash ^= i * 0x717239;
 			hash = (hash & 1 ? hash >> 1 ^ 0xDEADBEEF : hash >> 1);
 			hash = this->VersionHashStr(hash, s + 1);
 
-			s = ls->english;
+			s = ls->english.get();
 			while ((cs = ParseCommandString(&s, buf, &argno, &casei)) != NULL) {
 				if (cs->flags & C_DONTCOUNT) continue;
 
@@ -756,7 +768,7 @@ void StringReader::HandleString(char *str)
 		}
 
 		if (this->data.strings[this->data.next_string_id] != NULL) {
-			strgen_error("String ID 0x%X for '%s' already in use by '%s'", this->data.next_string_id, str, this->data.strings[this->data.next_string_id]->name);
+			strgen_error("String ID 0x%X for '%s' already in use by '%s'", this->data.next_string_id, str, this->data.strings[this->data.next_string_id]->name.get());
 			return;
 		}
 
@@ -774,12 +786,12 @@ void StringReader::HandleString(char *str)
 		}
 
 		/* make sure that the commands match */
-		if (!CheckCommandsMatch(s, ent->english, str)) return;
+		if (!CheckCommandsMatch(s, ent->english.get(), str)) return;
 
 		if (casep != NULL) {
 			ent->translated_case = new Case(ResolveCaseName(casep, strlen(casep)), s, ent->translated_case);
 		} else {
-			ent->translated = xstrdup(s);
+			ent->translated.reset (xstrdup(s));
 			/* If the string was translated, use the line from the
 			 * translated language so errors in the translated file
 			 * are properly referenced to. */
@@ -838,7 +850,7 @@ void HeaderWriter::WriteHeader(const StringData &data)
 	int last = 0;
 	for (size_t i = 0; i < data.max_strings; i++) {
 		if (data.strings[i] != NULL) {
-			this->WriteStringID(data.strings[i]->name, (int)i);
+			this->WriteStringID(data.strings[i]->name.get(), (int)i);
 			last = (int)i;
 		}
 	}
@@ -953,7 +965,7 @@ void LanguageWriter::WriteLang(const StringData &data)
 
 		for (uint j = 0; j != in_use[tab]; j++) {
 			const LangString *ls = data.strings[(tab * TAB_SIZE) + j];
-			if (ls != NULL && ls->translated == NULL) _lang.missing++;
+			if (ls != NULL && !ls->translated) _lang.missing++;
 		}
 	}
 
@@ -977,13 +989,13 @@ void LanguageWriter::WriteLang(const StringData &data)
 				continue;
 			}
 
-			_cur_ident = ls->name;
+			_cur_ident = ls->name.get();
 			_cur_line = ls->line;
 
 			/* Produce a message if a string doesn't have a translation. */
-			if (_show_todo > 0 && ls->translated == NULL) {
+			if (_show_todo > 0 && !ls->translated) {
 				if ((_show_todo & 2) != 0) {
-					strgen_warning("'%s' is untranslated", ls->name);
+					strgen_warning("'%s' is untranslated", ls->name.get());
 				}
 				if ((_show_todo & 1) != 0) {
 					const char *s = "<TODO> ";
@@ -992,17 +1004,17 @@ void LanguageWriter::WriteLang(const StringData &data)
 			}
 
 			/* Extract the strings and stuff from the english command string */
-			ExtractCommandString(&_cur_pcs, ls->english, false);
+			ExtractCommandString(&_cur_pcs, ls->english.get(), false);
 
-			if (ls->translated_case != NULL || ls->translated != NULL) {
+			if (ls->translated_case != NULL || ls->translated) {
 				casep = ls->translated_case;
-				cmdp = ls->translated;
+				cmdp = ls->translated.get();
 			} else {
 				casep = NULL;
-				cmdp = ls->english;
+				cmdp = ls->english.get();
 			}
 
-			_translated = cmdp != ls->english;
+			_translated = cmdp != ls->english.get();
 
 			if (casep != NULL) {
 				const Case *c;

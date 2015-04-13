@@ -14,22 +14,7 @@
 
 #include "../language.h"
 
-struct Case;
-
-/** Information about a single string. */
-struct LangString {
-	char *name;            ///< Name of the string.
-	char *english;         ///< English text.
-	char *translated;      ///< Translated text.
-	uint16 hash_next;      ///< Next hash entry.
-	uint16 index;          ///< The index in the language file.
-	int line;              ///< Line of string in source-file.
-	Case *translated_case; ///< Cases of the translation.
-
-	LangString(const char *name, const char *english, int index, int line);
-	~LangString();
-	void FreeTranslation();
-};
+struct LangString;
 
 /** Information about the currently known strings. */
 struct StringData {
