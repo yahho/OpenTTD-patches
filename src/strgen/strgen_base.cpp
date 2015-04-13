@@ -11,6 +11,7 @@
 
 #include "../stdafx.h"
 #include "../core/endian_func.hpp"
+#include "../core/pointer.h"
 #include "../string.h"
 #include "../table/control_codes.h"
 
@@ -31,23 +32,25 @@ LanguagePackHeader _lang;             ///< Header information about a language.
 static const ptrdiff_t MAX_COMMAND_PARAM_SIZE = 100; ///< Maximum size of every command block, not counting the name of the command itself
 static const CmdStruct *ParseCommandString(const char **str, char *param, int *argno, int *casei);
 
-/**
- * Create a new case.
- * @param caseidx The index of the case.
- * @param string  The translation of the case.
- * @param next    The next chained case.
- */
-Case::Case(int caseidx, const char *string, Case *next) :
-		caseidx(caseidx), string(xstrdup(string)), next(next)
-{
-}
 
-/** Free everything we allocated. */
-Case::~Case()
-{
-	free(this->string);
-	delete this->next;
-}
+/** Container for the different cases of a string. */
+struct Case {
+	const int caseidx;                       ///< The index of the case.
+	const ttd_unique_free_ptr<char>  string; ///< The translation of the case.
+	const ttd_unique_ptr<const Case> next;   ///< The next, chained, case.
+
+	/**
+	 * Create a new case.
+	 * @param caseidx The index of the case.
+	 * @param string  The translation of the case.
+	 * @param next    The next chained case.
+	 */
+	Case (int caseidx, const char *string, const Case *next) :
+			caseidx(caseidx), string(xstrdup(string)), next(next)
+	{
+	}
+};
+
 
 /**
  * Create a new string.
@@ -1011,18 +1014,18 @@ void LanguageWriter::WriteLang(const StringData &data)
 				 * Each LEN is printed using 2 bytes in big endian order. */
 				buffer.AppendUtf8(SCC_SWITCH_CASE);
 				/* Count the number of cases */
-				for (num = 0, c = casep; c; c = c->next) num++;
+				for (num = 0, c = casep; c; c = c->next.get()) num++;
 				buffer.AppendByte(num);
 
 				/* Write each case */
-				for (c = casep; c != NULL; c = c->next) {
+				for (c = casep; c != NULL; c = c->next.get()) {
 					buffer.AppendByte(c->caseidx);
 					/* Make some space for the 16-bit length */
 					uint pos = buffer.Length();
 					buffer.AppendByte(0);
 					buffer.AppendByte(0);
 					/* Write string */
-					PutCommandString(&buffer, c->string);
+					PutCommandString(&buffer, c->string.get());
 					buffer.AppendByte(0); // terminate with a zero
 					/* Fill in the length */
 					uint size = buffer.Length() - (pos + 2);

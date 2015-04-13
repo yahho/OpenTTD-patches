@@ -14,15 +14,7 @@
 
 #include "../language.h"
 
-/** Container for the different cases of a string. */
-struct Case {
-	int caseidx;  ///< The index of the case.
-	char *string; ///< The translation of the case.
-	Case *next;   ///< The next, chained, case.
-
-	Case(int caseidx, const char *string, Case *next);
-	~Case();
-};
+struct Case;
 
 /** Information about a single string. */
 struct LangString {
