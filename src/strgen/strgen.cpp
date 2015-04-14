@@ -126,16 +126,17 @@ struct FileStringReader : StringReader {
 	}
 
 	/* virtual */ void HandlePragma(char *str);
-
-	void ParseFile()
-	{
-		this->StringReader::ParseFile();
-
-		if (StrEmpty(_lang.name) || StrEmpty(_lang.own_name) || StrEmpty(_lang.isocode)) {
-			error("Language must include ##name, ##ownname and ##isocode");
-		}
-	}
 };
+
+void ParseFile (StringData &data, const char *file, bool master, bool translation)
+{
+	FileStringReader reader (data, file, master, translation);
+	reader.ParseFile();
+
+	if (StrEmpty(_lang.name) || StrEmpty(_lang.own_name) || StrEmpty(_lang.isocode)) {
+		error ("Language must include ##name, ##ownname and ##isocode");
+	}
+}
 
 void FileStringReader::HandlePragma(char *str)
 {
@@ -524,8 +525,7 @@ int CDECL main(int argc, char *argv[])
 
 			/* parse master file */
 			StringData data(TAB_COUNT);
-			FileStringReader master_reader(data, pathbuf, true, false);
-			master_reader.ParseFile();
+			ParseFile (data, pathbuf, true, false);
 			if (_errors != 0) return 1;
 
 			/* write strings.h */
@@ -542,16 +542,14 @@ int CDECL main(int argc, char *argv[])
 
 			StringData data(TAB_COUNT);
 			/* parse master file and check if target file is correct */
-			FileStringReader master_reader(data, pathbuf, true, false);
-			master_reader.ParseFile();
+			ParseFile (data, pathbuf, true, false);
 
 			for (int i = 0; i < mgo.numleft; i++) {
 				data.FreeTranslation();
 
 				const char *translation = replace_pathsep(mgo.argv[i]);
 				const char *file = strrchr(translation, PATHSEPCHAR);
-				FileStringReader translation_reader(data, translation, false, file == NULL || strcmp(file + 1, "english.txt") != 0);
-				translation_reader.ParseFile(); // target file
+				ParseFile (data, translation, false, file == NULL || strcmp(file + 1, "english.txt") != 0);
 				if (_errors != 0) return 1;
 
 				/* get the targetfile, strip any directories and append to destination path */
