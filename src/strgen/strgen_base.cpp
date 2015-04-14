@@ -713,10 +713,10 @@ static bool CheckCommandsMatch(char *a, char *b, const char *name)
 	return result;
 }
 
-void StringReader::HandleString(char *str)
+static void HandleLine (StringReader *reader, char *str)
 {
 	if (*str == '#') {
-		if (str[1] == '#' && str[2] != '#') this->HandlePragma(str + 2);
+		if (str[1] == '#' && str[2] != '#') reader->HandlePragma(str + 2);
 		return;
 	}
 
@@ -760,9 +760,9 @@ void StringReader::HandleString(char *str)
 	if (casep != NULL) *casep++ = '\0';
 
 	/* Check if this string already exists.. */
-	LangString *ent = this->data.Find(str);
+	LangString *ent = reader->data.Find(str);
 
-	if (this->master) {
+	if (reader->master) {
 		if (casep != NULL) {
 			strgen_error("Cases in the base translation are not supported.");
 			return;
@@ -773,13 +773,13 @@ void StringReader::HandleString(char *str)
 			return;
 		}
 
-		if (this->data.strings[this->data.next_string_id] != NULL) {
-			strgen_error("String ID 0x%X for '%s' already in use by '%s'", this->data.next_string_id, str, this->data.strings[this->data.next_string_id]->name.get());
+		if (reader->data.strings[reader->data.next_string_id] != NULL) {
+			strgen_error("String ID 0x%X for '%s' already in use by '%s'", reader->data.next_string_id, str, reader->data.strings[reader->data.next_string_id]->name.get());
 			return;
 		}
 
 		/* Allocate a new LangString */
-		this->data.Add(str, new LangString(str, s, this->data.next_string_id++, _cur_line));
+		reader->data.Add(str, new LangString(str, s, reader->data.next_string_id++, _cur_line));
 	} else {
 		if (ent == NULL) {
 			strgen_warning("String name '%s' does not exist in master file", str);
@@ -843,7 +843,7 @@ void StringReader::ParseFile()
 	_cur_line = 1;
 	while (this->ReadLine(buf, sizeof(buf)) != NULL) {
 		rstrip(buf);
-		this->HandleString(buf);
+		HandleLine (this, buf);
 		_cur_line++;
 	}
 }

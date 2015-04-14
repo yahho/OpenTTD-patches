@@ -44,7 +44,6 @@ struct StringReader {
 
 	StringReader(StringData &data, const char *file, bool master, bool translation);
 	virtual ~StringReader();
-	void HandleString(char *str);
 
 	/**
 	 * Read a single line from the source of strings.
