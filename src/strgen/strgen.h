@@ -62,7 +62,7 @@ struct StringReader {
 	/**
 	 * Start parsing the file.
 	 */
-	virtual void ParseFile();
+	void ParseFile();
 };
 
 /** Base class for writing the header, i.e. the STR_XXX to numeric value. */

@@ -127,7 +127,7 @@ struct FileStringReader : StringReader {
 
 	/* virtual */ void HandlePragma(char *str);
 
-	/* virtual */ void ParseFile()
+	void ParseFile()
 	{
 		this->StringReader::ParseFile();
 
