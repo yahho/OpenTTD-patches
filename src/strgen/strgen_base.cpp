@@ -397,7 +397,7 @@ static void EmitWordList(Buffer *buffer, const char * const *words, uint nw)
 	}
 }
 
-void EmitPlural(Buffer *buffer, char *buf, int value)
+static void EmitPlural (Buffer *buffer, char *buf)
 {
 	int argidx = _cur_argidx;
 	int offset = 0;
@@ -441,7 +441,7 @@ void EmitPlural(Buffer *buffer, char *buf, int value)
 }
 
 
-void EmitGender(Buffer *buffer, char *buf, int value)
+static void EmitGender (Buffer *buffer, char *buf)
 {
 	int argidx = _cur_argidx;
 	int offset = 0;
@@ -929,11 +929,11 @@ static void PutCommandString(Buffer *buffer, const char *str)
 
 		switch (cs->value) {
 			case SCC_PLURAL_LIST:
-				EmitPlural (buffer, param, cs->value);
+				EmitPlural (buffer, param);
 				break;
 
 			case SCC_GENDER_LIST:
-				EmitGender (buffer, param, cs->value);
+				EmitGender (buffer, param);
 				break;
 
 			default:
