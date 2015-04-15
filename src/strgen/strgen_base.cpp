@@ -443,15 +443,9 @@ static void EmitPlural (Buffer *buffer, char *buf)
 
 static void EmitGender (Buffer *buffer, char *buf)
 {
-	int argidx = _cur_argidx;
-	int offset = 0;
-	uint nw;
-
 	if (buf[0] == '=') {
-		buf++;
-
 		/* This is a {G=DER} command */
-		nw = _lang.GetGenderIndex(buf);
+		uint nw = _lang.GetGenderIndex (++buf);
 		if (nw >= MAX_NUM_GENDERS) strgen_fatal("G argument '%s' invalid", buf);
 
 		/* now nw contains the gender index */
@@ -459,6 +453,9 @@ static void EmitGender (Buffer *buffer, char *buf)
 		buffer->AppendByte(nw);
 	} else {
 		const char *words[MAX_NUM_GENDERS];
+		int argidx = _cur_argidx;
+		int offset = 0;
+		uint nw;
 
 		/* This is a {G 0 foo bar two} command.
 		 * If no relative number exists, default to +0 */
