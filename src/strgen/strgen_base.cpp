@@ -315,13 +315,6 @@ size_t Utf8Validate(const char *s)
 }
 
 
-void EmitSingleChar(Buffer *buffer, char *buf, int value)
-{
-	if (*buf != '\0') strgen_warning("Ignoring trailing letters in command");
-	buffer->AppendUtf8(value);
-}
-
-
 /* The plural specifier looks like
  * {NUM} {PLURAL -1 passenger passengers} then it picks either passenger/passengers depending on the count in NUM */
 
@@ -944,7 +937,8 @@ static void PutCommandString(Buffer *buffer, const char *str)
 				break;
 
 			default:
-				EmitSingleChar (buffer, param, cs->value);
+				if (*param != '\0') strgen_warning("Ignoring trailing letters in command");
+				buffer->AppendUtf8(cs->value);
 				break;
 		}
 	}
