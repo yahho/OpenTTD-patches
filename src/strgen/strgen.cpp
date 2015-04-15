@@ -445,9 +445,9 @@ int CDECL main(int argc, char *argv[])
 				printf("args\tflags\tcommand\treplacement\n");
 				for (const CmdStruct *cs = _cmd_structs; cs < endof(_cmd_structs); cs++) {
 					char flags;
-					if (cs->proc == EmitGender) {
+					if (cs->value == SCC_GENDER_LIST) {
 						flags = 'g'; // Command needs number of parameters defined by number of genders
-					} else if (cs->proc == EmitPlural) {
+					} else if (cs->value == SCC_PLURAL_LIST) {
 						flags = 'p'; // Command needs number of parameters defined by plural value
 					} else if (cs->flags & C_DONTCOUNT) {
 						flags = 'i'; // Command may be in the translation when it is not in base

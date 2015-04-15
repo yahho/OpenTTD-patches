@@ -934,7 +934,19 @@ static void PutCommandString(Buffer *buffer, const char *str)
 			}
 		}
 
-		cs->proc(buffer, param, cs->value);
+		switch (cs->value) {
+			case SCC_PLURAL_LIST:
+				EmitPlural (buffer, param, cs->value);
+				break;
+
+			case SCC_GENDER_LIST:
+				EmitGender (buffer, param, cs->value);
+				break;
+
+			default:
+				EmitSingleChar (buffer, param, cs->value);
+				break;
+		}
 	}
 }
 
