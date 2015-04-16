@@ -96,11 +96,6 @@ struct LanguageWriter {
 	 */
 	virtual void Write(const byte *buffer, size_t length) = 0;
 
-	/**
-	 * Finalise writing the file.
-	 */
-	virtual void Finalise() = 0;
-
 	/** Especially destroy the subclasses. */
 	virtual ~LanguageWriter() {}
 

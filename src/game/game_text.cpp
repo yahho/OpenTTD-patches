@@ -178,11 +178,6 @@ struct TranslationWriter : LanguageWriter {
 		/* We don't use the header. */
 	}
 
-	void Finalise()
-	{
-		/* Nothing to do. */
-	}
-
 	void WriteLength(uint length)
 	{
 		/* We don't write the length. */

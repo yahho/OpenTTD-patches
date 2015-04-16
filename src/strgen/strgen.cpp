@@ -356,6 +356,7 @@ struct LanguageFileWriter : LanguageWriter, FileWriter {
 		this->Write((const byte *)header, sizeof(*header));
 	}
 
+	/** Finalise writing the file. */
 	void Finalise()
 	{
 		if (fputc(0, this->fh) == EOF) {
