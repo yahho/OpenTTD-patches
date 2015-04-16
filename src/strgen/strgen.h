@@ -89,17 +89,19 @@ struct LanguageWriter {
 	 */
 	virtual void WriteHeader(const LanguagePackHeader *header) = 0;
 
+	/** Write a null string. */
+	virtual void WriteNullString (void) = 0;
+
 	/**
-	 * Write a number of bytes.
-	 * @param buffer The buffer to write.
+	 * Write a translated string.
 	 * @param length The amount of byte to write.
+	 * @param buffer The buffer to write.
 	 */
-	virtual void Write(const byte *buffer, size_t length) = 0;
+	virtual void WriteString (size_t length, const byte *buffer) = 0;
 
 	/** Especially destroy the subclasses. */
 	virtual ~LanguageWriter() {}
 
-	virtual void WriteLength(uint length);
 	virtual void WriteLang(const StringData &data);
 };
 

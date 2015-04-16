@@ -178,12 +178,11 @@ struct TranslationWriter : LanguageWriter {
 		/* We don't use the header. */
 	}
 
-	void WriteLength(uint length)
+	void WriteNullString (void) OVERRIDE
 	{
-		/* We don't write the length. */
 	}
 
-	void Write(const byte *buffer, size_t length)
+	void WriteString (size_t length, const byte *buffer) OVERRIDE
 	{
 		*this->strings->Append() = xstrmemdup ((const char*) buffer, length);
 	}

@@ -942,25 +942,6 @@ static void PutCommandString(Buffer *buffer, const char *str)
 }
 
 /**
- * Write the length as a simple gamma.
- * @param length The number to write.
- */
-void LanguageWriter::WriteLength(uint length)
-{
-	char buffer[2];
-	int offs = 0;
-	if (length >= 0x4000) {
-		strgen_fatal("string too long");
-	}
-
-	if (length >= 0xC0) {
-		buffer[offs++] = (length >> 8) | 0xC0;
-	}
-	buffer[offs++] = length & 0xFF;
-	this->Write((byte*)buffer, offs);
-}
-
-/**
  * Actually write the language.
  * @param data The data about the string.
  */
@@ -995,7 +976,7 @@ void LanguageWriter::WriteLang(const StringData &data)
 
 			/* For undefined strings, just set that it's an empty string */
 			if (ls == NULL) {
-				this->WriteLength(0);
+				this->WriteNullString();
 				continue;
 			}
 
@@ -1058,8 +1039,7 @@ void LanguageWriter::WriteLang(const StringData &data)
 
 			if (cmdp != NULL) PutCommandString(&buffer, cmdp);
 
-			this->WriteLength(buffer.Length());
-			this->Write(buffer.Begin(), buffer.Length());
+			this->WriteString (buffer.Length(), buffer.Begin());
 			buffer.Clear();
 		}
 	}

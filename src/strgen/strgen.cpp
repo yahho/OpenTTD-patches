@@ -271,6 +271,12 @@ struct FileWriter {
 		}
 		free(this->filename);
 	}
+
+	/** Error out. */
+	void Error (void)
+	{
+		error ("Could not write to %s", this->filename);
+	}
 };
 
 struct HeaderFileWriter : HeaderWriter, FileWriter {
@@ -356,20 +362,41 @@ struct LanguageFileWriter : LanguageWriter, FileWriter {
 		this->Write((const byte *)header, sizeof(*header));
 	}
 
+	void PutChar (int c)
+	{
+		if (fputc (c, this->fh) == EOF) this->Error();
+	}
+
 	/** Finalise writing the file. */
 	void Finalise()
 	{
-		if (fputc(0, this->fh) == EOF) {
-			error("Could not write to %s", this->filename);
-		}
+		this->PutChar (0);
 		this->FileWriter::Finalise();
 	}
 
 	void Write(const byte *buffer, size_t length)
 	{
 		if (fwrite(buffer, sizeof(*buffer), length, this->fh) != length) {
-			error("Could not write to %s", this->filename);
+			this->Error();
 		}
+	}
+
+	void WriteNullString (void) OVERRIDE
+	{
+		this->PutChar (0);
+	}
+
+	void WriteString (size_t length, const byte *buffer) OVERRIDE
+	{
+		if (length >= 0x4000) {
+			strgen_fatal ("string too long");
+		} else if (length >= 0xC0) {
+			this->PutChar ((length >> 8) | 0xC0);
+			this->PutChar (length & 0xFF);
+		} else {
+			this->PutChar (length);
+		}
+		this->Write (buffer, length);
 	}
 };
 
