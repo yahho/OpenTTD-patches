@@ -210,11 +210,6 @@ struct StringNameWriter : HeaderWriter {
 	{
 		if (stringid == (int)this->strings->Length()) *this->strings->Append() = xstrdup(name);
 	}
-
-	void Finalise(const StringData &data)
-	{
-		/* Nothing to do. */
-	}
 };
 
 /**

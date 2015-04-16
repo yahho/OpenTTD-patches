@@ -304,6 +304,10 @@ struct HeaderFileWriter : HeaderWriter, FileWriter {
 		prev = stringid;
 	}
 
+	/**
+	 * Finalise writing the file.
+	 * @param data The data about the string.
+	 */
 	void Finalise(const StringData &data)
 	{
 		/* Find the plural form with the most amount of cases. */

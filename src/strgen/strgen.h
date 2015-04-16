@@ -74,12 +74,6 @@ struct HeaderWriter {
 	 */
 	virtual void WriteStringID(const char *name, int stringid) = 0;
 
-	/**
-	 * Finalise writing the file.
-	 * @param data The data about the string.
-	 */
-	virtual void Finalise(const StringData &data) = 0;
-
 	/** Especially destroy the subclasses. */
 	virtual ~HeaderWriter() {};
 
