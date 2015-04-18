@@ -1709,7 +1709,9 @@ static CommandCost CmdSignalTrackHelper(TileIndex tile, DoCommandFlag flags, uin
 
 			/* Test tiles in between for suitability as well if minimising gaps. */
 			bool test_only = !remove && minimise_gaps && signal_ctr < (last_used_ctr + signal_density);
-			CommandCost ret = DoCommand(tile, p1, signals, test_only ? flags & ~DC_EXEC : flags, remove ? CMD_REMOVE_SIGNALS : CMD_BUILD_SIGNALS);
+			CommandCost ret = IsRailwayTile (tile) ?
+					DoCommand (tile, p1, signals, test_only ? flags & ~DC_EXEC : flags, remove ? CMD_REMOVE_SIGNALS : CMD_BUILD_SIGNALS) :
+					CommandCost (STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 
 			if (ret.Succeeded()) {
 				/* Remember last track piece where we can place a signal. */
