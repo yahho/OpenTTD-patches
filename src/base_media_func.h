@@ -422,7 +422,7 @@ template <class Tbase_set>
 				best->valid_files < c->valid_files ||
 				(best->valid_files == c->valid_files && (
 					(best->shortname == c->shortname && best->version < c->version) ||
-					best->IsPreferredTo (*c)))) {
+					c->IsPreferredTo (*best)))) {
 			best = c;
 		}
 	}
