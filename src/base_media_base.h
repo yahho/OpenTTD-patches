@@ -42,17 +42,13 @@ struct MD5File {
  * Information about a single base set.
  * @tparam T the real class we're going to be
  * @tparam Tnum_files the number of files in the set
- * @tparam Tsearch_in_tars whether to search in the tars or not
  */
-template <class T, size_t Tnum_files, bool Tsearch_in_tars>
+template <class T, size_t Tnum_files>
 struct BaseSet {
 	typedef SmallMap<const char *, const char *> TranslatedStrings;
 
 	/** Number of files in this set */
 	static const size_t NUM_FILES = Tnum_files;
-
-	/** Whether to search in the tars or not. */
-	static const bool SEARCH_IN_TARS = Tsearch_in_tars;
 
 	const char *name;              ///< The name of the base set
 	TranslatedStrings description; ///< Description of the base set
@@ -194,12 +190,12 @@ public:
 	static bool DetermineBestSet();
 
 	/** Do the scan for files. */
-	static uint FindSets()
+	static uint FindSets (const char *extension,
+		Subdirectory dir1, Subdirectory dir2, bool search_in_tars)
 	{
 		Scanner fs;
-		/* Searching in tars is only done in the old "data" directories basesets. */
-		uint num = fs.Scan (Tbase_set::extension, Tbase_set::SEARCH_IN_TARS ? OLD_DATA_DIR : OLD_GM_DIR, Tbase_set::SEARCH_IN_TARS);
-		return num + fs.Scan (Tbase_set::extension, BASESET_DIR, Tbase_set::SEARCH_IN_TARS);
+		uint num = fs.Scan (extension, dir1, search_in_tars);
+		return num + fs.Scan (extension, dir2, search_in_tars);
 	}
 
 	static Tbase_set *GetAvailableSets();
@@ -218,6 +214,26 @@ public:
 	 * @return true iff we have an set matching.
 	 */
 	static bool HasSet(const ContentInfo *ci, bool md5sum);
+};
+
+/**
+ * Helper class that adds a suitable scanner to a base media class.
+ * @tparam Tbase_set the real set we're going to be
+ * @tparam Tsearch_in_tars whether to search in the tars or not
+ */
+template <class Tbase_set, bool Tsearch_in_tars>
+struct BaseMediaS : BaseMedia<Tbase_set> {
+	/** Whether to search in the tars or not. */
+	static const bool SEARCH_IN_TARS = Tsearch_in_tars;
+
+	/** Do the scan for files. */
+	static uint FindSets()
+	{
+		/* Searching in tars is only done in the old "data" directories basesets. */
+		return BaseMedia<Tbase_set>::FindSets (Tbase_set::extension,
+				SEARCH_IN_TARS ? OLD_DATA_DIR : OLD_GM_DIR,
+				BASESET_DIR, SEARCH_IN_TARS);
+	}
 };
 
 /**
@@ -248,7 +264,7 @@ enum BlitterType {
 };
 
 /** All data of a graphics set. */
-struct GraphicsSet : BaseSet<GraphicsSet, MAX_GFT, true> {
+struct GraphicsSet : BaseSet<GraphicsSet, MAX_GFT> {
 	static const char set_type[]; ///< Description of the set type
 	static const char extension[]; ///< File extension
 
@@ -270,12 +286,12 @@ struct GraphicsSet : BaseSet<GraphicsSet, MAX_GFT, true> {
 };
 
 /** All data/functions related with replacing the base graphics. */
-class BaseGraphics : public BaseMedia<GraphicsSet> {
+class BaseGraphics : public BaseMediaS <GraphicsSet, true> {
 public:
 };
 
 /** All data of a sounds set. */
-struct SoundsSet : BaseSet<SoundsSet, 1, true> {
+struct SoundsSet : BaseSet<SoundsSet, 1> {
 	static const char set_type[]; ///< Description of the set type
 	static const char extension[]; ///< File extension
 
@@ -284,7 +300,7 @@ struct SoundsSet : BaseSet<SoundsSet, 1, true> {
 };
 
 /** All data/functions related with replacing the base sounds */
-class BaseSounds : public BaseMedia<SoundsSet> {
+class BaseSounds : public BaseMediaS <SoundsSet, true> {
 public:
 };
 
@@ -299,7 +315,7 @@ static const uint NUM_SONGS_AVAILABLE = 1 + NUM_SONG_CLASSES * NUM_SONGS_CLASS;
 static const uint NUM_SONGS_PLAYLIST  = 32;
 
 /** All data of a music set. */
-struct MusicSet : BaseSet<MusicSet, NUM_SONGS_AVAILABLE, false> {
+struct MusicSet : BaseSet<MusicSet, NUM_SONGS_AVAILABLE> {
 	static const char set_type[]; ///< Description of the set type
 	static const char extension[]; ///< File extension
 
@@ -315,7 +331,7 @@ struct MusicSet : BaseSet<MusicSet, NUM_SONGS_AVAILABLE, false> {
 };
 
 /** All data/functions related with replacing the base music */
-class BaseMusic : public BaseMedia<MusicSet> {
+class BaseMusic : public BaseMediaS <MusicSet, false> {
 public:
 };
 

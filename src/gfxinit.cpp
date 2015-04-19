@@ -321,7 +321,7 @@ void GfxLoadSprites()
 
 bool GraphicsSet::FillSetDetails(IniFile *ini, const char *path, const char *full_filename)
 {
-	bool ret = this->BaseSet<GraphicsSet, MAX_GFT, true>::FillSetDetails(ini, path, full_filename, false);
+	bool ret = this->BaseSet<GraphicsSet, MAX_GFT>::FillSetDetails (ini, path, full_filename, false);
 	if (ret) {
 		const IniGroup *metadata = ini->get_group ("metadata");
 		const IniItem *item;

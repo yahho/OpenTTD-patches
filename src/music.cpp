@@ -30,7 +30,7 @@ const char * const MusicSet::file_names [NUM_SONGS_AVAILABLE] = {
 
 bool MusicSet::FillSetDetails(IniFile *ini, const char *path, const char *full_filename)
 {
-	bool ret = this->BaseSet<MusicSet, NUM_SONGS_AVAILABLE, false>::FillSetDetails(ini, path, full_filename);
+	bool ret = this->BaseSet<MusicSet, NUM_SONGS_AVAILABLE>::FillSetDetails (ini, path, full_filename);
 	if (ret) {
 		this->num_available = 0;
 		const IniGroup *names = ini->get_group ("names");

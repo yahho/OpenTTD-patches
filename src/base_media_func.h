@@ -49,8 +49,8 @@ static inline const IniItem *fetch_metadata (const IniGroup *metadata,
  * @param allow_empty_filename empty filenames are valid
  * @return true if loading was successful.
  */
-template <class T, size_t Tnum_files, bool Tsearch_in_tars>
-bool BaseSet<T, Tnum_files, Tsearch_in_tars>::FillSetDetails(IniFile *ini, const char *path, const char *full_filename, bool allow_empty_filename)
+template <class T, size_t Tnum_files>
+bool BaseSet<T, Tnum_files>::FillSetDetails (IniFile *ini, const char *path, const char *full_filename, bool allow_empty_filename)
 {
 	memset(this, 0, sizeof(*this));
 
