@@ -52,7 +52,9 @@ static inline const IniItem *fetch_metadata (const IniGroup *metadata,
 template <class T, size_t Tnum_files>
 bool BaseSet<T, Tnum_files>::FillSetDetails (IniFile *ini, const char *path, const char *full_filename, bool allow_empty_filename)
 {
-	memset(this, 0, sizeof(*this));
+	memset (this->files, 0, sizeof(this->files));
+	this->found_files = 0;
+	this->valid_files = 0;
 
 	const IniGroup *metadata = ini->find ("metadata");
 	if (metadata == NULL) {
@@ -65,17 +67,17 @@ bool BaseSet<T, Tnum_files>::FillSetDetails (IniFile *ini, const char *path, con
 
 	item = fetch_metadata<T> (metadata, "name", full_filename);
 	if (item == NULL) return false;
-	this->name = xstrdup(item->value);
+	this->set_name (item->value);
 
 	item = fetch_metadata<T> (metadata, "description", full_filename);
 	if (item == NULL) return false;
-	this->description[xstrdup("")] = xstrdup(item->value);
+	this->add_default_desc (item->value);
 
 	/* Add the translations of the descriptions too. */
 	for (IniItem::const_iterator item = metadata->cbegin(); item != metadata->cend(); item++) {
 		if (strncmp("description.", item->get_name(), 12) != 0) continue;
 
-		this->description[xstrdup(item->get_name() + 12)] = xstrdup(item->value);
+		this->add_desc (item->get_name() + 12, item->value);
 	}
 
 	item = fetch_metadata<T> (metadata, "shortname", full_filename);
@@ -192,7 +194,7 @@ bool BaseMedia<Tbase_set>::Scanner::AddFile (const char *filename, size_t basepa
 	if (set->FillSetDetails(ini, path, filename)) {
 		Tbase_set *duplicate = NULL;
 		for (Tbase_set *c = BaseMedia<Tbase_set>::available_sets; c != NULL; c = c->next) {
-			if (strcmp(c->name, set->name) == 0 || c->shortname == set->shortname) {
+			if (strcmp(c->get_name(), set->get_name()) == 0 || c->shortname == set->shortname) {
 				duplicate = c;
 				break;
 			}
@@ -202,7 +204,7 @@ bool BaseMedia<Tbase_set>::Scanner::AddFile (const char *filename, size_t basepa
 			if ((duplicate->valid_files == set->valid_files && duplicate->version >= set->version) ||
 					duplicate->valid_files > set->valid_files) {
 				DEBUG(grf, 1, "Not adding %s (%i) as base %s set (duplicate, %s)",
-						set->name, set->version, Tbase_set::set_type,
+						set->get_name(), set->version, Tbase_set::set_type,
 						duplicate->valid_files > set->valid_files ? "less valid files" : "lower version");
 				set->next = BaseMedia<Tbase_set>::duplicate_sets;
 				BaseMedia<Tbase_set>::duplicate_sets = set;
@@ -219,7 +221,7 @@ bool BaseMedia<Tbase_set>::Scanner::AddFile (const char *filename, size_t basepa
 				if (BaseMedia<Tbase_set>::used_set == duplicate) BaseMedia<Tbase_set>::used_set = set;
 
 				DEBUG(grf, 1, "Removing %s (%i) as base %s set (duplicate, %s)",
-						duplicate->name, duplicate->version, Tbase_set::set_type,
+						duplicate->get_name(), duplicate->version, Tbase_set::set_type,
 						duplicate->valid_files < set->valid_files ? "less valid files" : "lower version");
 				duplicate->next = BaseMedia<Tbase_set>::duplicate_sets;
 				BaseMedia<Tbase_set>::duplicate_sets = duplicate;
@@ -233,7 +235,7 @@ bool BaseMedia<Tbase_set>::Scanner::AddFile (const char *filename, size_t basepa
 			ret = true;
 		}
 		if (ret) {
-			DEBUG(grf, 1, "Adding %s (%i) as base %s set", set->name, set->version, Tbase_set::set_type);
+			DEBUG(grf, 1, "Adding %s (%i) as base %s set", set->get_name(), set->version, Tbase_set::set_type);
 		}
 	} else {
 		delete set;
@@ -261,7 +263,7 @@ template <class Tbase_set>
 	}
 
 	for (const Tbase_set *s = BaseMedia<Tbase_set>::available_sets; s != NULL; s = s->next) {
-		if (strcmp(name, s->name) == 0) {
+		if (strcmp(name, s->get_name()) == 0) {
 			BaseMedia<Tbase_set>::used_set = s;
 			CheckExternalFiles();
 			return true;
@@ -279,7 +281,7 @@ template <class Tbase_set>
 {
 	buf->append_fmt ("List of %s sets:\n", Tbase_set::set_type);
 	for (const Tbase_set *s = BaseMedia<Tbase_set>::available_sets; s != NULL; s = s->next) {
-		buf->append_fmt ("%18s: %s", s->name, s->GetDescription());
+		buf->append_fmt ("%18s: %s", s->get_name(), s->get_default_desc());
 		int invalid = s->GetNumInvalid();
 		if (invalid != 0) {
 			int missing = s->GetNumMissing();

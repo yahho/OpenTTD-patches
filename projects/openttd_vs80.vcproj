@@ -451,6 +451,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\base_media.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\bmp.cpp"
 				>
 			</File>

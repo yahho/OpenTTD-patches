@@ -1145,7 +1145,7 @@ void SwitchToMode(SwitchMode new_mode)
 			LoadIntroGame();
 			if (BaseSounds::ini_set == NULL && BaseSounds::GetUsedSet()->fallback) {
 				ShowErrorMessage(STR_WARNING_FALLBACK_SOUNDSET, INVALID_STRING_ID, WL_CRITICAL);
-				BaseSounds::ini_set = xstrdup(BaseSounds::GetUsedSet()->name);
+				BaseSounds::ini_set = xstrdup(BaseSounds::GetUsedSet()->get_name());
 			}
 			break;
 

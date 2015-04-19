@@ -132,7 +132,7 @@ static DropDownList *BuiltSetDropDownList(int *selected_index)
 
 	DropDownList *list = new DropDownList();
 	for (int i = 0; i < n; i++) {
-		*list->Append() = new DropDownListCharStringItem(T::GetSet(i)->name, i, (_game_mode == GM_MENU) ? false : (*selected_index != i));
+		*list->Append() = new DropDownListCharStringItem(T::GetSet(i)->get_name(), i, (_game_mode == GM_MENU) ? false : (*selected_index != i));
 	}
 
 	return list;
@@ -155,7 +155,7 @@ struct BaseSetTextfileWindow : public TextfileWindow {
 	{
 		if (widget == WID_TF_CAPTION) {
 			SetDParam(0, content_type);
-			SetDParamStr(1, this->baseset->name);
+			SetDParamStr(1, this->baseset->get_name());
 		}
 	}
 };
@@ -347,10 +347,10 @@ struct GameOptionsWindow : Window {
 			case WID_GO_RESOLUTION_DROPDOWN: SetDParam(0, GetCurRes() == _num_resolutions ? STR_GAME_OPTIONS_RESOLUTION_OTHER : SPECSTR_RESOLUTION_START + GetCurRes()); break;
 			case WID_GO_GUI_ZOOM_DROPDOWN:   SetDParam(0, _gui_zoom_dropdown[ZOOM_LVL_OUT_4X - _gui_zoom]); break;
 			case WID_GO_SCREENSHOT_DROPDOWN: SetDParam(0, SPECSTR_SCREENSHOT_START + _cur_screenshot_format); break;
-			case WID_GO_BASE_GRF_DROPDOWN:   SetDParamStr(0, BaseGraphics::GetUsedSet()->name); break;
+			case WID_GO_BASE_GRF_DROPDOWN:   SetDParamStr(0, BaseGraphics::GetUsedSet()->get_name()); break;
 			case WID_GO_BASE_GRF_STATUS:     SetDParam(0, BaseGraphics::GetUsedSet()->GetNumInvalid()); break;
-			case WID_GO_BASE_SFX_DROPDOWN:   SetDParamStr(0, BaseSounds::GetUsedSet()->name); break;
-			case WID_GO_BASE_MUSIC_DROPDOWN: SetDParamStr(0, BaseMusic::GetUsedSet()->name); break;
+			case WID_GO_BASE_SFX_DROPDOWN:   SetDParamStr(0, BaseSounds::GetUsedSet()->get_name()); break;
+			case WID_GO_BASE_MUSIC_DROPDOWN: SetDParamStr(0, BaseMusic::GetUsedSet()->get_name()); break;
 			case WID_GO_BASE_MUSIC_STATUS:   SetDParam(0, BaseMusic::GetUsedSet()->GetNumInvalid()); break;
 		}
 	}
@@ -359,17 +359,17 @@ struct GameOptionsWindow : Window {
 	{
 		switch (widget) {
 			case WID_GO_BASE_GRF_DESCRIPTION:
-				SetDParamStr(0, BaseGraphics::GetUsedSet()->GetDescription(GetCurrentLanguageIsoCode()));
+				SetDParamStr(0, BaseGraphics::GetUsedSet()->get_desc (GetCurrentLanguageIsoCode()));
 				DrawStringMultiLine(r.left, r.right, r.top, UINT16_MAX, STR_BLACK_RAW_STRING);
 				break;
 
 			case WID_GO_BASE_SFX_DESCRIPTION:
-				SetDParamStr(0, BaseSounds::GetUsedSet()->GetDescription(GetCurrentLanguageIsoCode()));
+				SetDParamStr(0, BaseSounds::GetUsedSet()->get_desc (GetCurrentLanguageIsoCode()));
 				DrawStringMultiLine(r.left, r.right, r.top, UINT16_MAX, STR_BLACK_RAW_STRING);
 				break;
 
 			case WID_GO_BASE_MUSIC_DESCRIPTION:
-				SetDParamStr(0, BaseMusic::GetUsedSet()->GetDescription(GetCurrentLanguageIsoCode()));
+				SetDParamStr(0, BaseMusic::GetUsedSet()->get_desc (GetCurrentLanguageIsoCode()));
 				DrawStringMultiLine(r.left, r.right, r.top, UINT16_MAX, STR_BLACK_RAW_STRING);
 				break;
 		}
@@ -381,7 +381,7 @@ struct GameOptionsWindow : Window {
 			case WID_GO_BASE_GRF_DESCRIPTION:
 				/* Find the biggest description for the default size. */
 				for (int i = 0; i < BaseGraphics::GetNumSets(); i++) {
-					SetDParamStr(0, BaseGraphics::GetSet(i)->GetDescription(GetCurrentLanguageIsoCode()));
+					SetDParamStr(0, BaseGraphics::GetSet(i)->get_desc (GetCurrentLanguageIsoCode()));
 					size->height = max(size->height, GetStringHeight(STR_BLACK_RAW_STRING, size->width));
 				}
 				break;
@@ -400,7 +400,7 @@ struct GameOptionsWindow : Window {
 			case WID_GO_BASE_SFX_DESCRIPTION:
 				/* Find the biggest description for the default size. */
 				for (int i = 0; i < BaseSounds::GetNumSets(); i++) {
-					SetDParamStr(0, BaseSounds::GetSet(i)->GetDescription(GetCurrentLanguageIsoCode()));
+					SetDParamStr(0, BaseSounds::GetSet(i)->get_desc (GetCurrentLanguageIsoCode()));
 					size->height = max(size->height, GetStringHeight(STR_BLACK_RAW_STRING, size->width));
 				}
 				break;
@@ -408,7 +408,7 @@ struct GameOptionsWindow : Window {
 			case WID_GO_BASE_MUSIC_DESCRIPTION:
 				/* Find the biggest description for the default size. */
 				for (int i = 0; i < BaseMusic::GetNumSets(); i++) {
-					SetDParamStr(0, BaseMusic::GetSet(i)->GetDescription(GetCurrentLanguageIsoCode()));
+					SetDParamStr(0, BaseMusic::GetSet(i)->get_desc (GetCurrentLanguageIsoCode()));
 					size->height = max(size->height, GetStringHeight(STR_BLACK_RAW_STRING, size->width));
 				}
 				break;
@@ -494,7 +494,7 @@ struct GameOptionsWindow : Window {
 	void SetMediaSet(int index)
 	{
 		if (_game_mode == GM_MENU) {
-			const char *name = T::GetSet(index)->name;
+			const char *name = T::GetSet(index)->get_name();
 
 			free(T::ini_set);
 			T::ini_set = xstrdup(name);

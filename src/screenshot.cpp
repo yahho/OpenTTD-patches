@@ -316,7 +316,7 @@ static bool MakePNGImage(const char *name, ScreenshotCallback *callb, void *user
 	text[0].compression = PNG_TEXT_COMPRESSION_NONE;
 
 	sstring<8192> buf;
-	buf.fmt ("Graphics set: %s (%u)\n", BaseGraphics::GetUsedSet()->name, BaseGraphics::GetUsedSet()->version);
+	buf.fmt ("Graphics set: %s (%u)\n", BaseGraphics::GetUsedSet()->get_name(), BaseGraphics::GetUsedSet()->version);
 	buf.append ("NewGRFs:\n");
 	for (const GRFConfig *c = _game_mode == GM_MENU ? NULL : _grfconfig; c != NULL; c = c->next) {
 		buf.append_fmt ("%08X ", BSWAP32(c->ident.grfid));

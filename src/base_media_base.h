@@ -12,9 +12,12 @@
 #ifndef BASE_MEDIA_BASE_H
 #define BASE_MEDIA_BASE_H
 
+#include <map>
+
 #include "string.h"
 #include "fileio_func.h"
-#include "core/smallmap_type.hpp"
+#include "core/pointer.h"
+#include "core/string_compare_type.hpp"
 #include "gfx_type.h"
 #include "textfile.h"
 
@@ -38,23 +41,60 @@ struct MD5File {
 	ChecksumResult CheckMD5(Subdirectory subdir, size_t max_size) const;
 };
 
+/** Description of a single base set. */
+struct BaseSetDesc {
+private:
+	typedef std::map <const char *, ttd_unique_free_ptr<char>, StringCompare> StringMap;
+
+	ttd_unique_free_ptr<char> name; ///< The name of the set
+	ttd_unique_free_ptr<char> def;  ///< Default description of the set
+	StringMap description;          ///< Descriptions of the set
+
+public:
+	uint32 shortname;       ///< Four letter short variant of the name
+	uint32 version;         ///< The version of this set
+	bool fallback;          ///< This set is a fallback set, i.e. it should be used only as last resort
+
+	/** Get the name of this set. */
+	const char *get_name (void) const
+	{
+		return this->name.get();
+	}
+
+	/** Set the name of this set. */
+	void set_name (const char *s)
+	{
+		this->name.reset (xstrdup (s));
+	}
+
+	/** Get the default description of this set. */
+	const char *get_default_desc (void) const
+	{
+		return this->def.get();
+	}
+
+	/** Add the default description of this set. */
+	void add_default_desc (const char *desc)
+	{
+		this->def.reset (xstrdup (desc));
+	}
+
+	/* Get the description of this set for the given ISO code. */
+	const char *get_desc (const char *isocode) const;
+
+	/* Add a description of this set for a given language. */
+	void add_desc (const char *lang, const char *desc);
+};
+
 /**
  * Information about a single base set.
  * @tparam T the real class we're going to be
  * @tparam Tnum_files the number of files in the set
  */
 template <class T, size_t Tnum_files>
-struct BaseSet {
-	typedef SmallMap<const char *, const char *> TranslatedStrings;
-
+struct BaseSet : BaseSetDesc {
 	/** Number of files in this set */
 	static const size_t NUM_FILES = Tnum_files;
-
-	const char *name;              ///< The name of the base set
-	TranslatedStrings description; ///< Description of the base set
-	uint32 shortname;              ///< Four letter short variant of the name
-	uint32 version;                ///< The version of this base set
-	bool fallback;                 ///< This set is a fallback set, i.e. it should be used only as last resort
 
 	MD5File files[NUM_FILES];      ///< All files part of this set
 	uint found_files;              ///< Number of the files that could be found
@@ -62,16 +102,12 @@ struct BaseSet {
 
 	T *next;                       ///< The next base set in this list
 
+	/** Construct an instance. */
+	BaseSet() : next(NULL) { }
+
 	/** Free everything we allocated */
 	~BaseSet()
 	{
-		free(this->name);
-
-		for (TranslatedStrings::iterator iter = this->description.Begin(); iter != this->description.End(); iter++) {
-			free(iter->first);
-			free(iter->second);
-		}
-
 		for (uint i = 0; i < NUM_FILES; i++) {
 			free(this->files[i].filename);
 			free(this->files[i].missing_warning);
@@ -108,30 +144,6 @@ struct BaseSet {
 	static bool IsPreferredTo (const BaseSet &other)
 	{
 		return false;
-	}
-
-	/**
-	 * Get the description for the given ISO code.
-	 * It falls back to the first two characters of the ISO code in case
-	 * no match could be made with the full ISO code. If even then the
-	 * matching fails the default is returned.
-	 * @param isocode the isocode to search for
-	 * @return the description
-	 */
-	const char *GetDescription(const char *isocode = NULL) const
-	{
-		if (isocode != NULL) {
-			/* First the full ISO code */
-			for (TranslatedStrings::const_iterator iter = this->description.Begin(); iter != this->description.End(); iter++) {
-				if (strcmp(iter->first, isocode) == 0) return iter->second;
-			}
-			/* Then the first two characters */
-			for (TranslatedStrings::const_iterator iter = this->description.Begin(); iter != this->description.End(); iter++) {
-				if (strncmp(iter->first, isocode, 2) == 0) return iter->second;
-			}
-		}
-		/* Then fall back */
-		return this->description.Begin()->second;
 	}
 
 	/**

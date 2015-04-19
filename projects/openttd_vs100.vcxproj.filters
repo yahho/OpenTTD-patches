@@ -111,6 +111,9 @@
     <ClCompile Include="..\src\autoreplace.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\base_media.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\bmp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

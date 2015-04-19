@@ -126,15 +126,15 @@ static void LogConfiguration (stringb *buffer)
 			" Sound set:    %s (%u)\n"
 			" Video driver: %s\n\n",
 			BlitterFactory::GetCurrentBlitter() == NULL ? "none" : BlitterFactory::GetCurrentBlitter()->GetName(),
-			BaseGraphics::GetUsedSet() == NULL ? "none" : BaseGraphics::GetUsedSet()->name,
+			BaseGraphics::GetUsedSet() == NULL ? "none" : BaseGraphics::GetUsedSet()->get_name(),
 			BaseGraphics::GetUsedSet() == NULL ? UINT32_MAX : BaseGraphics::GetUsedSet()->version,
 			_current_language == NULL ? "none" : _current_language->file,
 			MusicDriver::GetInstance() == NULL ? "none" : MusicDriver::GetInstance()->GetName(),
-			BaseMusic::GetUsedSet() == NULL ? "none" : BaseMusic::GetUsedSet()->name,
+			BaseMusic::GetUsedSet() == NULL ? "none" : BaseMusic::GetUsedSet()->get_name(),
 			BaseMusic::GetUsedSet() == NULL ? UINT32_MAX : BaseMusic::GetUsedSet()->version,
 			_networking ? (_network_server ? "server" : "client") : "no",
 			SoundDriver::GetInstance() == NULL ? "none" : SoundDriver::GetInstance()->GetName(),
-			BaseSounds::GetUsedSet() == NULL ? "none" : BaseSounds::GetUsedSet()->name,
+			BaseSounds::GetUsedSet() == NULL ? "none" : BaseSounds::GetUsedSet()->get_name(),
 			BaseSounds::GetUsedSet() == NULL ? UINT32_MAX : BaseSounds::GetUsedSet()->version,
 			VideoDriver::GetInstance() == NULL ? "none" : VideoDriver::GetInstance()->GetName()
 	);

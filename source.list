@@ -3,6 +3,7 @@ airport.cpp
 animated_tile.cpp
 articulated_vehicles.cpp
 autoreplace.cpp
+base_media.cpp
 bmp.cpp
 cargoaction.cpp
 cargomonitor.cpp
