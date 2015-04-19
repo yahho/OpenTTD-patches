@@ -21,17 +21,12 @@ const char MusicSet::extension[] = ".obm"; // OpenTTD Base Music
 INSTANTIATE_BASE_MEDIA_METHODS(BaseMedia<MusicSet>, MusicSet)
 
 /** Names corresponding to the music set's files */
-static const char * const _music_file_names[] = {
+const char * const MusicSet::file_names [NUM_SONGS_AVAILABLE] = {
 	"theme",
 	"old_0", "old_1", "old_2", "old_3", "old_4", "old_5", "old_6", "old_7", "old_8", "old_9",
 	"new_0", "new_1", "new_2", "new_3", "new_4", "new_5", "new_6", "new_7", "new_8", "new_9",
 	"ezy_0", "ezy_1", "ezy_2", "ezy_3", "ezy_4", "ezy_5", "ezy_6", "ezy_7", "ezy_8", "ezy_9",
 };
-/** Make sure we aren't messing things up. */
-assert_compile(lengthof(_music_file_names) == NUM_SONGS_AVAILABLE);
-
-template <class T, size_t Tnum_files, bool Tsearch_in_tars>
-/* static */ const char * const *BaseSet<T, Tnum_files, Tsearch_in_tars>::file_names = _music_file_names;
 
 bool MusicSet::FillSetDetails(IniFile *ini, const char *path, const char *full_filename)
 {

@@ -54,9 +54,6 @@ struct BaseSet {
 	/** Whether to search in the tars or not. */
 	static const bool SEARCH_IN_TARS = Tsearch_in_tars;
 
-	/** Internal names of the files in this set. */
-	static const char * const *file_names;
-
 	const char *name;              ///< The name of the base set
 	TranslatedStrings description; ///< Description of the base set
 	uint32 shortname;              ///< Four letter short variant of the name
@@ -255,6 +252,9 @@ struct GraphicsSet : BaseSet<GraphicsSet, MAX_GFT, true> {
 	static const char set_type[]; ///< Description of the set type
 	static const char extension[]; ///< File extension
 
+	/** Internal names of the files in this set. */
+	static const char * const file_names [MAX_GFT];
+
 	PaletteType palette;       ///< Palette of this graphics set
 	BlitterType blitter;       ///< Blitter of this graphics set
 
@@ -278,6 +278,9 @@ public:
 struct SoundsSet : BaseSet<SoundsSet, 1, true> {
 	static const char set_type[]; ///< Description of the set type
 	static const char extension[]; ///< File extension
+
+	/** Internal names of the files in this set. */
+	static const char * const file_names [1];
 };
 
 /** All data/functions related with replacing the base sounds */
@@ -299,6 +302,9 @@ static const uint NUM_SONGS_PLAYLIST  = 32;
 struct MusicSet : BaseSet<MusicSet, NUM_SONGS_AVAILABLE, false> {
 	static const char set_type[]; ///< Description of the set type
 	static const char extension[]; ///< File extension
+
+	/** Internal names of the files in this set. */
+	static const char * const file_names [NUM_SONGS_AVAILABLE];
 
 	/** The name of the different songs. */
 	char song_name[NUM_SONGS_AVAILABLE][32];

@@ -98,9 +98,9 @@ bool BaseSet<T, Tnum_files, Tsearch_in_tars>::FillSetDetails(IniFile *ini, const
 	for (uint i = 0; i < Tnum_files; i++) {
 		MD5File *file = &this->files[i];
 		/* Find the filename first. */
-		item = files->find (BaseSet<T, Tnum_files, Tsearch_in_tars>::file_names[i]);
+		item = files->find (T::file_names[i]);
 		if (item == NULL || (item->value == NULL && !allow_empty_filename)) {
-			DEBUG(grf, 0, "No %s file for: %s (in %s)", T::set_type, BaseSet<T, Tnum_files, Tsearch_in_tars>::file_names[i], full_filename);
+			DEBUG(grf, 0, "No %s file for: %s (in %s)", T::set_type, T::file_names[i], full_filename);
 			return false;
 		}
 

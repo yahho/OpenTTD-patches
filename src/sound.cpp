@@ -289,8 +289,4 @@ void SndPlayFx(SoundID sound)
 INSTANTIATE_BASE_MEDIA_METHODS(BaseMedia<SoundsSet>, SoundsSet)
 
 /** Names corresponding to the sound set's files */
-static const char * const _sound_file_names[] = { "samples" };
-
-
-template <class T, size_t Tnum_files, bool Tsearch_in_tars>
-/* static */ const char * const *BaseSet<T, Tnum_files, Tsearch_in_tars>::file_names = _sound_file_names;
+const char * const SoundsSet::file_names [1] = { "samples" };

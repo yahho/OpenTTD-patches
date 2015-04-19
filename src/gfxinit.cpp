@@ -395,10 +395,7 @@ MD5File::ChecksumResult MD5File::CheckMD5(Subdirectory subdir, size_t max_size) 
 }
 
 /** Names corresponding to the GraphicsFileType */
-static const char * const _graphics_file_names[] = { "base", "logos", "arctic", "tropical", "toyland", "extra" };
-
-/** Implementation */
-template <class T, size_t Tnum_files, bool Tsearch_in_tars>
-/* static */ const char * const *BaseSet<T, Tnum_files, Tsearch_in_tars>::file_names = _graphics_file_names;
+const char * const GraphicsSet::file_names [MAX_GFT] =
+	{ "base", "logos", "arctic", "tropical", "toyland", "extra" };
 
 INSTANTIATE_BASE_MEDIA_METHODS(BaseMedia<GraphicsSet>, GraphicsSet)
