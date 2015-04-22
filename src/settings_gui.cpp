@@ -357,21 +357,48 @@ struct GameOptionsWindow : Window {
 
 	virtual void DrawWidget(const Rect &r, int widget) const
 	{
+		const BaseSetDesc *set;
+
 		switch (widget) {
 			case WID_GO_BASE_GRF_DESCRIPTION:
-				SetDParamStr(0, BaseGraphics::GetUsedSet()->get_desc (GetCurrentLanguageIsoCode()));
-				DrawStringMultiLine(r.left, r.right, r.top, UINT16_MAX, STR_BLACK_RAW_STRING);
+				set = BaseGraphics::GetUsedSet();
 				break;
 
 			case WID_GO_BASE_SFX_DESCRIPTION:
-				SetDParamStr(0, BaseSounds::GetUsedSet()->get_desc (GetCurrentLanguageIsoCode()));
-				DrawStringMultiLine(r.left, r.right, r.top, UINT16_MAX, STR_BLACK_RAW_STRING);
+				set = BaseSounds::GetUsedSet();
 				break;
 
 			case WID_GO_BASE_MUSIC_DESCRIPTION:
-				SetDParamStr(0, BaseMusic::GetUsedSet()->get_desc (GetCurrentLanguageIsoCode()));
-				DrawStringMultiLine(r.left, r.right, r.top, UINT16_MAX, STR_BLACK_RAW_STRING);
+				set = BaseMusic::GetUsedSet();
 				break;
+
+			default: return;
+		}
+
+		SetDParamStr (0, set->get_desc (GetCurrentLanguageIsoCode()));
+		DrawStringMultiLine (r.left, r.right, r.top, UINT16_MAX, STR_BLACK_RAW_STRING);
+	}
+
+	template <class T>
+	static void UpdateSetDescWidgetSize (Dimension *size)
+	{
+		/* Find the biggest description for the default size. */
+		for (int i = 0; i < T::GetNumSets(); i++) {
+			SetDParamStr (0, T::GetSet(i)->get_desc (GetCurrentLanguageIsoCode()));
+			size->height = max (size->height, GetStringHeight (STR_BLACK_RAW_STRING, size->width));
+		}
+	}
+
+	template <class T, StringID str>
+	static void UpdateSetStatusWidgetSize (Dimension *size)
+	{
+		/* Find the biggest description for the default size. */
+		for (int i = 0; i < T::GetNumSets(); i++) {
+			uint invalid_files = T::GetSet(i)->GetNumInvalid();
+			if (invalid_files == 0) continue;
+
+			SetDParam (0, invalid_files);
+			*size = maxdim (*size, GetStringBoundingBox (str));
 		}
 	}
 
@@ -379,49 +406,23 @@ struct GameOptionsWindow : Window {
 	{
 		switch (widget) {
 			case WID_GO_BASE_GRF_DESCRIPTION:
-				/* Find the biggest description for the default size. */
-				for (int i = 0; i < BaseGraphics::GetNumSets(); i++) {
-					SetDParamStr(0, BaseGraphics::GetSet(i)->get_desc (GetCurrentLanguageIsoCode()));
-					size->height = max(size->height, GetStringHeight(STR_BLACK_RAW_STRING, size->width));
-				}
+				UpdateSetDescWidgetSize<BaseGraphics> (size);
 				break;
 
 			case WID_GO_BASE_GRF_STATUS:
-				/* Find the biggest description for the default size. */
-				for (int i = 0; i < BaseGraphics::GetNumSets(); i++) {
-					uint invalid_files = BaseGraphics::GetSet(i)->GetNumInvalid();
-					if (invalid_files == 0) continue;
-
-					SetDParam(0, invalid_files);
-					*size = maxdim(*size, GetStringBoundingBox(STR_GAME_OPTIONS_BASE_GRF_STATUS));
-				}
+				UpdateSetStatusWidgetSize <BaseGraphics, STR_GAME_OPTIONS_BASE_GRF_STATUS> (size);
 				break;
 
 			case WID_GO_BASE_SFX_DESCRIPTION:
-				/* Find the biggest description for the default size. */
-				for (int i = 0; i < BaseSounds::GetNumSets(); i++) {
-					SetDParamStr(0, BaseSounds::GetSet(i)->get_desc (GetCurrentLanguageIsoCode()));
-					size->height = max(size->height, GetStringHeight(STR_BLACK_RAW_STRING, size->width));
-				}
+				UpdateSetDescWidgetSize<BaseSounds> (size);
 				break;
 
 			case WID_GO_BASE_MUSIC_DESCRIPTION:
-				/* Find the biggest description for the default size. */
-				for (int i = 0; i < BaseMusic::GetNumSets(); i++) {
-					SetDParamStr(0, BaseMusic::GetSet(i)->get_desc (GetCurrentLanguageIsoCode()));
-					size->height = max(size->height, GetStringHeight(STR_BLACK_RAW_STRING, size->width));
-				}
+				UpdateSetDescWidgetSize<BaseMusic> (size);
 				break;
 
 			case WID_GO_BASE_MUSIC_STATUS:
-				/* Find the biggest description for the default size. */
-				for (int i = 0; i < BaseMusic::GetNumSets(); i++) {
-					uint invalid_files = BaseMusic::GetSet(i)->GetNumInvalid();
-					if (invalid_files == 0) continue;
-
-					SetDParam(0, invalid_files);
-					*size = maxdim(*size, GetStringBoundingBox(STR_GAME_OPTIONS_BASE_MUSIC_STATUS));
-				}
+				UpdateSetStatusWidgetSize <BaseMusic, STR_GAME_OPTIONS_BASE_MUSIC_STATUS> (size);
 				break;
 
 			default: {
