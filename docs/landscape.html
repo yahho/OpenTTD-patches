@@ -16,7 +16,6 @@
   td.text, th.text { text-align: justify; }
   span.head  { background-color: cyan; }
   span.free  { background-color: lime; }
-  span.abuse { background-color: red;  }
   .mono   { font-family: monospace; }
   table.bitmap td { font-family: monospace; }
   table.bitmap td.text { font-family: inherit; }
@@ -95,8 +94,6 @@ below.
 <i>Legend:</i>
 <span class="head"><span class="mono">XX</span></span> class mark;
 <span class="free"><span class="mono">00</span></span> free;
-<span class="abuse"><span class="mono">XX</span></span> abused
-  for different purposes
 </p>
 
 <table class="bitmap">
@@ -384,25 +381,32 @@ below.
 
   <!-- industries -->
   <tr> <td colspan="2" class="text"> <a href="#industries">Industry</a>
-    <td> <span class="head">10</span><span class="free">00</span>-XXXX
-    <td> <span title="Complete">X</span><span
+    <td> <span class="head">10</span><span class="free">00</span>-<span
+      title="Tile type most significant bit">@</span><span
+      title="Triggers">[*]</span>
+    <td> <span title="Complete">+</span><span
       title="Water class (sea, canal or river)">~~</span><span
-      class="free">0</span>-<span class="abuse">XXXX</span>
+      class="free">0</span>-<span
+      title="Construction stage and counter">%%%%</span>
     <td> <span title="Industry index">[-industry-index--]</span>
     <td> <span title="Random data">[random-]</span>
     <td> <span title="Animation loop">[-anim--]</span>
-    <td> XXXX-XXXX
+    <td> <span title="Tile type">[tile-id]</span>
     <td> <span title="Animation frame">[-frame-]</span>
 
   <!-- houses -->
   <tr> <td colspan="2" class="text"> <a href="#houses">House</a>
-    <td> <span class="head">11</span><span class="free">0</span>X-XXXX
-    <td> XX<span class="abuse">XX-XXXX</span>
+    <td> <span class="head">11</span><span class="free">0</span><span
+      title="Triggers">[****]</span>
+    <td> <span title="Complete">+</span><span
+      title="Building type most significant bit">@</span><span
+      title="Processing time or lift position">[timer]</span>
     <td> <span title="Town index">[---town-index----]</span>
     <td> <span title="Random data">[random-]</span>
-    <td> XXXX-XXXX
-    <td> XXX<span class="abuse">X-XXXX</span>
-    <td> XXXX-<span class="abuse">XXXX</span>
+    <td> <span title="Building type">[-house-]</span>
+    <td> <span
+      title="House age or construction stage and counter">[--age--]</span>
+    <td> <span title="Animation frame or lift destination">[-frame-]</span>
 
   <tr> <th colspan="2" class="text"> Bits
     <td> 7654-3210 <td> 7654-3210 <td> FEDC-BA98-7654-3210
