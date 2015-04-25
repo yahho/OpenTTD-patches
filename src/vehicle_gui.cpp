@@ -318,7 +318,8 @@ struct RefitWindow : public Window {
 
 	typedef SmallVector<RefitOption, 32> SubtypeList; ///< List of refit subtypes associated to a cargo.
 
-	int sel[2];                  ///< Index in refit options, sel[0] == -1 if nothing is selected.
+	CargoID sel_cargo;           ///< Selected cargo, or CT_INVALID for none
+	byte sel_subcargo;           ///< Selected subcargo
 	RefitOption *cargo;          ///< Refit option selected by #sel.
 	SubtypeList list[NUM_CARGO]; ///< List of refit subtypes available for each sorted cargo.
 	VehicleOrderID order;        ///< If not #INVALID_VEH_ORDER_ID, selection is part of a refit order (rather than execute directly).
@@ -458,10 +459,10 @@ struct RefitWindow : public Window {
 			for (uint j = 0; j < this->list[i].Length(); j++) {
 				const RefitOption &refit = this->list[i][j];
 
-				/* Hide subtypes if sel[0] does not match */
-				if (this->sel[0] != (int)i && refit.subtype != 0xFF) continue;
+				/* Hide subtypes if sel_cargo does not match */
+				if (this->sel_cargo != i && refit.subtype != 0xFF) continue;
 
-				if (this->sel[0] == (int)i && (uint)this->sel[1] == j) scroll_row = row;
+				if (this->sel_cargo == i && this->sel_subcargo == j) scroll_row = row;
 
 				row++;
 			}
@@ -483,12 +484,12 @@ struct RefitWindow : public Window {
 			for (uint j = 0; j < this->list[i].Length(); j++) {
 				const RefitOption &refit = this->list[i][j];
 
-				/* Hide subtypes if sel[0] does not match */
-				if (this->sel[0] != (int)i && refit.subtype != 0xFF) continue;
+				/* Hide subtypes if sel_cargo does not match */
+				if (this->sel_cargo != i && refit.subtype != 0xFF) continue;
 
 				if (row == click_row) {
-					this->sel[0] = i;
-					this->sel[1] = j;
+					this->sel_cargo = i;
+					this->sel_subcargo = j;
 					return;
 				}
 
@@ -496,8 +497,8 @@ struct RefitWindow : public Window {
 			}
 		}
 
-		this->sel[0] = -1;
-		this->sel[1] = 0;
+		this->sel_cargo = CT_INVALID;
+		this->sel_subcargo = 0;
 	}
 
 	/**
@@ -506,18 +507,18 @@ struct RefitWindow : public Window {
 	 */
 	RefitOption *GetRefitOption()
 	{
-		if (this->sel[0] < 0) return NULL;
+		if (this->sel_cargo == CT_INVALID) return NULL;
 
-		SubtypeList &l = this->list[this->sel[0]];
-		if ((uint)this->sel[1] >= l.Length()) return NULL;
+		SubtypeList &l = this->list[this->sel_cargo];
+		if (this->sel_subcargo >= l.Length()) return NULL;
 
-		return &l[this->sel[1]];
+		return &l[this->sel_subcargo];
 	}
 
 	RefitWindow(WindowDesc *desc, const Vehicle *v, VehicleOrderID order, bool auto_refit) : Window(desc)
 	{
-		this->sel[0] = -1;
-		this->sel[1] = 0;
+		this->sel_cargo = CT_INVALID;
+		this->sel_subcargo = 0;
 		this->auto_refit = auto_refit;
 		this->order = order;
 		this->CreateNestedTree();
@@ -535,7 +536,7 @@ struct RefitWindow : public Window {
 		this->FinishInitNested(v->index);
 		this->owner = v->owner;
 
-		this->SetWidgetDisabledState(WID_VR_REFIT, this->sel[0] < 0);
+		this->SetWidgetDisabledState(WID_VR_REFIT, this->sel_cargo == CT_INVALID);
 	}
 
 	virtual void OnInit()
@@ -546,21 +547,21 @@ struct RefitWindow : public Window {
 
 			/* Rebuild the refit list */
 			this->BuildRefitList();
-			this->sel[0] = -1;
-			this->sel[1] = 0;
+			this->sel_cargo = CT_INVALID;
+			this->sel_subcargo = 0;
 			this->cargo = NULL;
 			for (uint i = 0; this->cargo == NULL && i < NUM_CARGO; i++) {
 				for (uint j = 0; j < list[i].Length(); j++) {
 					if (list[i][j] == current_refit_option) {
-						this->sel[0] = i;
-						this->sel[1] = j;
+						this->sel_cargo = i;
+						this->sel_subcargo = j;
 						this->cargo = &list[i][j];
 						break;
 					}
 				}
 			}
 
-			this->SetWidgetDisabledState(WID_VR_REFIT, this->sel[0] < 0);
+			this->SetWidgetDisabledState(WID_VR_REFIT, this->sel_cargo == CT_INVALID);
 			this->RefreshScrollbar();
 		} else {
 			/* Rebuild the refit list */
@@ -659,7 +660,7 @@ struct RefitWindow : public Window {
 	void DrawRefitWidget (const Rect &r) const
 	{
 		const SubtypeList *list = this->list;
-		const int *sel = this->sel;
+		CargoID sel_cargo = this->sel_cargo;
 		uint pos   = this->vscroll->GetPosition();
 		uint limit = pos + this->vscroll->GetCapacity();
 		uint delta = this->resize.step_height;
@@ -684,8 +685,8 @@ struct RefitWindow : public Window {
 			for (uint j = 0; current < limit && j < list[i].Length(); j++) {
 				const RefitOption &refit = list[i][j];
 
-				/* Hide subtypes if sel[0] does not match */
-				if (sel[0] != (int)i && refit.subtype != 0xFF) continue;
+				/* Hide subtypes if sel_cargo does not match */
+				if (sel_cargo != i && refit.subtype != 0xFF) continue;
 
 				/* Refit options with a position smaller than pos don't have to be drawn. */
 				if (current < pos) {
@@ -701,11 +702,11 @@ struct RefitWindow : public Window {
 						GfxDrawLine(iconcenter, ycenter, iconinner, ycenter, linecolour);
 					} else {
 						/* Draw expand/collapse icon */
-						DrawSprite(sel[0] == (int)i ? SPR_CIRCLE_UNFOLDED : SPR_CIRCLE_FOLDED, PAL_NONE, iconleft, y + (FONT_HEIGHT_NORMAL - iconheight) / 2);
+						DrawSprite(sel_cargo == i ? SPR_CIRCLE_UNFOLDED : SPR_CIRCLE_FOLDED, PAL_NONE, iconleft, y + (FONT_HEIGHT_NORMAL - iconheight) / 2);
 					}
 				}
 
-				TextColour colour = (sel[0] == (int)i && (uint)sel[1] == j) ? TC_WHITE : TC_BLACK;
+				TextColour colour = (sel_cargo == i && this->sel_subcargo == j) ? TC_WHITE : TC_BLACK;
 				/* Get the cargo name. */
 				SetDParam(0, CargoSpec::Get(refit.cargo)->name);
 				SetDParam(1, refit.string);
@@ -927,7 +928,7 @@ struct RefitWindow : public Window {
 
 			case WID_VR_MATRIX: { // listbox
 				this->SetSelection(this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_VR_MATRIX));
-				this->SetWidgetDisabledState(WID_VR_REFIT, this->sel[0] < 0);
+				this->SetWidgetDisabledState(WID_VR_REFIT, this->sel_cargo == CT_INVALID);
 				this->InvalidateData(1);
 
 				if (click_count == 1) break;
