@@ -473,7 +473,7 @@ enum {
  * +-----------------+-----+-----------+-----------+-----+-----------------+
  * |       COND_VAR        |    COND_COMPARATOR    |      COND_VALUE       | (for conditional orders)
  * +-----------------+-----+-----------+-----------+-----+-----------------+
- * |    NON-STOP     |      REFIT      |     SERVICE     |     (empty)     | (for depot orders)
+ * |    NON-STOP     |     SERVICE     |     (empty)     |      REFIT      | (for depot orders)
  * +-----------------+-----------------+-----------------+-----------------+
  * \endverbatim
  *
@@ -517,15 +517,15 @@ private:
 
 		/* WID_O_SEL_TOP_LEFT */
 		DP_LEFT_LOAD       = 0, ///< Display 'load' in the left button of the top row of the train/rv order window.
-		DP_LEFT_REFIT      = 1, ///< Display 'refit' in the left button of the top row of the train/rv order window.
+		DP_LEFT_SERVICE    = 1, ///< Display 'service' in the left button of the top row of the train/rv order window.
 
 		/* WID_O_SEL_TOP_MIDDLE */
 		DP_MIDDLE_UNLOAD   = 0, ///< Display 'unload' in the middle button of the top row of the train/rv order window.
-		DP_MIDDLE_SERVICE  = 1, ///< Display 'service' in the middle button of the top row of the train/rv order window.
+		DP_MIDDLE_EMPTY    = 1, ///< Display an empty panel in the middle button of the top row of the train/rv order window.
 
 		/* WID_O_SEL_TOP_RIGHT */
-		DP_RIGHT_EMPTY     = 0, ///< Display an empty panel in the right button of the top row of the train/rv order window.
-		DP_RIGHT_REFIT     = 1, ///< Display 'refit' in the right button of the top  row of the train/rv order window.
+		DP_RIGHT_REFIT      = 0, ///< Display 'refit' (button) in the right button of the top row of the train/rv order window.
+		DP_RIGHT_REFIT_AUTO = 1, ///< Display 'refit' (dropdown) in the right button of the top row of the train/rv order window.
 
 		/* WID_O_SEL_TOP_ROW */
 		DP_ROW_LOAD        = 0, ///< Display 'load' / 'unload' / 'refit' buttons in the top row of the ship/airplane order window.
@@ -801,9 +801,6 @@ public:
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_O_SCROLLBAR);
 		this->FinishInitNested(v->index);
-		if (v->owner == _local_company) {
-			this->DisableWidget(WID_O_EMPTY);
-		}
 
 		this->selected_order = -1;
 		this->order_over = INVALID_VEH_ORDER_ID;
@@ -990,13 +987,13 @@ public:
 				train_row_sel->SetDisplayedPlane(DP_GROUNDVEHICLE_ROW_NORMAL);
 				left_sel->SetDisplayedPlane(DP_LEFT_LOAD);
 				middle_sel->SetDisplayedPlane(DP_MIDDLE_UNLOAD);
-				right_sel->SetDisplayedPlane(DP_RIGHT_EMPTY);
+				right_sel->SetDisplayedPlane(DP_RIGHT_REFIT);
 				this->DisableWidget(WID_O_NON_STOP);
 				this->RaiseWidget(WID_O_NON_STOP);
 			}
 			this->DisableWidget(WID_O_FULL_LOAD);
 			this->DisableWidget(WID_O_UNLOAD);
-			this->DisableWidget(WID_O_REFIT_DROPDOWN);
+			this->DisableWidget(WID_O_REFIT);
 		} else {
 			this->SetWidgetDisabledState(WID_O_FULL_LOAD, (order->GetNonStopType() & ONSF_NO_STOP_AT_DESTINATION_STATION) != 0); // full load
 			this->SetWidgetDisabledState(WID_O_UNLOAD,    (order->GetNonStopType() & ONSF_NO_STOP_AT_DESTINATION_STATION) != 0); // unload
@@ -1009,7 +1006,7 @@ public:
 						train_row_sel->SetDisplayedPlane(DP_GROUNDVEHICLE_ROW_NORMAL);
 						left_sel->SetDisplayedPlane(DP_LEFT_LOAD);
 						middle_sel->SetDisplayedPlane(DP_MIDDLE_UNLOAD);
-						right_sel->SetDisplayedPlane(DP_RIGHT_REFIT);
+						right_sel->SetDisplayedPlane(DP_RIGHT_REFIT_AUTO);
 						this->EnableWidget(WID_O_NON_STOP);
 						this->SetWidgetLoweredState(WID_O_NON_STOP, order->GetNonStopType() & ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS);
 					}
@@ -1031,13 +1028,13 @@ public:
 						train_row_sel->SetDisplayedPlane(DP_GROUNDVEHICLE_ROW_NORMAL);
 						left_sel->SetDisplayedPlane(DP_LEFT_LOAD);
 						middle_sel->SetDisplayedPlane(DP_MIDDLE_UNLOAD);
-						right_sel->SetDisplayedPlane(DP_RIGHT_EMPTY);
+						right_sel->SetDisplayedPlane(DP_RIGHT_REFIT);
 						this->EnableWidget(WID_O_NON_STOP);
 						this->SetWidgetLoweredState(WID_O_NON_STOP, order->GetNonStopType() & ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS);
 					}
 					this->DisableWidget(WID_O_FULL_LOAD);
 					this->DisableWidget(WID_O_UNLOAD);
-					this->DisableWidget(WID_O_REFIT_DROPDOWN);
+					this->DisableWidget(WID_O_REFIT);
 					break;
 
 				case OT_GOTO_DEPOT:
@@ -1045,9 +1042,9 @@ public:
 						row_sel->SetDisplayedPlane(DP_ROW_DEPOT);
 					} else {
 						train_row_sel->SetDisplayedPlane(DP_GROUNDVEHICLE_ROW_NORMAL);
-						left_sel->SetDisplayedPlane(DP_LEFT_REFIT);
-						middle_sel->SetDisplayedPlane(DP_MIDDLE_SERVICE);
-						right_sel->SetDisplayedPlane(DP_RIGHT_EMPTY);
+						left_sel->SetDisplayedPlane(DP_LEFT_SERVICE);
+						middle_sel->SetDisplayedPlane(DP_MIDDLE_EMPTY);
+						right_sel->SetDisplayedPlane(DP_RIGHT_REFIT);
 						this->EnableWidget(WID_O_NON_STOP);
 						this->SetWidgetLoweredState(WID_O_NON_STOP, order->GetNonStopType() & ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS);
 					}
@@ -1081,12 +1078,12 @@ public:
 						train_row_sel->SetDisplayedPlane(DP_GROUNDVEHICLE_ROW_NORMAL);
 						left_sel->SetDisplayedPlane(DP_LEFT_LOAD);
 						middle_sel->SetDisplayedPlane(DP_MIDDLE_UNLOAD);
-						right_sel->SetDisplayedPlane(DP_RIGHT_EMPTY);
+						right_sel->SetDisplayedPlane(DP_RIGHT_REFIT);
 						this->DisableWidget(WID_O_NON_STOP);
 					}
 					this->DisableWidget(WID_O_FULL_LOAD);
 					this->DisableWidget(WID_O_UNLOAD);
-					this->DisableWidget(WID_O_REFIT_DROPDOWN);
+					this->DisableWidget(WID_O_REFIT);
 					break;
 			}
 		}
@@ -1582,17 +1579,16 @@ static const NWidgetPart _nested_orders_train_widgets[] = {
 				NWidget(NWID_SELECTION, INVALID_COLOUR, WID_O_SEL_TOP_LEFT),
 					NWidget(NWID_BUTTON_DROPDOWN, COLOUR_GREY, WID_O_FULL_LOAD), SetMinimalSize(93, 12), SetFill(1, 0),
 															SetDataTip(STR_ORDER_TOGGLE_FULL_LOAD, STR_ORDER_TOOLTIP_FULL_LOAD), SetResize(1, 0),
-					NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_O_REFIT), SetMinimalSize(93, 12), SetFill(1, 0),
-															SetDataTip(STR_ORDER_REFIT, STR_ORDER_REFIT_TOOLTIP), SetResize(1, 0),
+					NWidget(NWID_BUTTON_DROPDOWN, COLOUR_GREY, WID_O_SERVICE), SetMinimalSize(93, 12), SetFill(1, 0),
+															SetDataTip(STR_ORDER_SERVICE, STR_ORDER_SERVICE_TOOLTIP), SetResize(1, 0),
 				EndContainer(),
 				NWidget(NWID_SELECTION, INVALID_COLOUR, WID_O_SEL_TOP_MIDDLE),
 					NWidget(NWID_BUTTON_DROPDOWN, COLOUR_GREY, WID_O_UNLOAD), SetMinimalSize(93, 12), SetFill(1, 0),
 															SetDataTip(STR_ORDER_TOGGLE_UNLOAD, STR_ORDER_TOOLTIP_UNLOAD), SetResize(1, 0),
-					NWidget(NWID_BUTTON_DROPDOWN, COLOUR_GREY, WID_O_SERVICE), SetMinimalSize(93, 12), SetFill(1, 0),
-															SetDataTip(STR_ORDER_SERVICE, STR_ORDER_SERVICE_TOOLTIP), SetResize(1, 0),
+					NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_O_EMPTY), SetMinimalSize(93, 12), SetFill(1, 0), SetResize(1, 0),
 				EndContainer(),
 				NWidget(NWID_SELECTION, INVALID_COLOUR, WID_O_SEL_TOP_RIGHT),
-					NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_O_EMPTY), SetMinimalSize(93, 12), SetFill(1, 0),
+					NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_O_REFIT), SetMinimalSize(93, 12), SetFill(1, 0),
 															SetDataTip(STR_ORDER_REFIT, STR_ORDER_REFIT_TOOLTIP), SetResize(1, 0),
 					NWidget(NWID_BUTTON_DROPDOWN, COLOUR_GREY, WID_O_REFIT_DROPDOWN), SetMinimalSize(93, 12), SetFill(1, 0),
 															SetDataTip(STR_ORDER_REFIT_AUTO, STR_ORDER_REFIT_AUTO_TOOLTIP), SetResize(1, 0),
