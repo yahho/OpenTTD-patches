@@ -287,37 +287,37 @@ byte GetBestFittingSubType(Vehicle *v_from, Vehicle *v_for, CargoID dest_cargo_t
 	return ret_refit_cyc;
 }
 
-/** Option to refit a vehicle chain */
-struct RefitOption {
-	CargoID cargo;    ///< Cargo to refit to
-	byte subtype;     ///< Subcargo to use
-	StringID string;  ///< GRF-local String to display for the cargo
-
-	/**
-	 * Inequality operator for #RefitOption.
-	 * @param other Compare to this #RefitOption.
-	 * @return True if both #RefitOption are different.
-	 */
-	inline bool operator != (const RefitOption &other) const
-	{
-		return other.cargo != this->cargo || other.string != this->string;
-	}
-
-	/**
-	 * Equality operator for #RefitOption.
-	 * @param other Compare to this #RefitOption.
-	 * @return True if both #RefitOption are equal.
-	 */
-	inline bool operator == (const RefitOption &other) const
-	{
-		return other.cargo == this->cargo && other.string == this->string;
-	}
-};
-
-typedef SmallVector<RefitOption, 32> SubtypeList; ///< List of refit subtypes associated to a cargo.
-
 /** Refit cargo window. */
 struct RefitWindow : public Window {
+	/** Option to refit a vehicle chain */
+	struct RefitOption {
+		CargoID cargo;    ///< Cargo to refit to
+		byte subtype;     ///< Subcargo to use
+		StringID string;  ///< GRF-local String to display for the cargo
+
+		/**
+		 * Inequality operator for #RefitOption.
+		 * @param other Compare to this #RefitOption.
+		 * @return True if both #RefitOption are different.
+		 */
+		inline bool operator != (const RefitOption &other) const
+		{
+			return other.cargo != this->cargo || other.string != this->string;
+		}
+
+		/**
+		 * Equality operator for #RefitOption.
+		 * @param other Compare to this #RefitOption.
+		 * @return True if both #RefitOption are equal.
+		 */
+		inline bool operator == (const RefitOption &other) const
+		{
+			return other.cargo == this->cargo && other.string == this->string;
+		}
+	};
+
+	typedef SmallVector<RefitOption, 32> SubtypeList; ///< List of refit subtypes associated to a cargo.
+
 	int sel[2];                  ///< Index in refit options, sel[0] == -1 if nothing is selected.
 	RefitOption *cargo;          ///< Refit option selected by #sel.
 	SubtypeList list[NUM_CARGO]; ///< List of refit subtypes available for each sorted cargo.
