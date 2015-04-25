@@ -979,113 +979,103 @@ public:
 		NWidgetStacked *row_sel = this->GetWidget<NWidgetStacked>(WID_O_SEL_TOP_ROW);
 		assert(row_sel != NULL || (train_row_sel != NULL && left_sel != NULL && middle_sel != NULL && right_sel != NULL));
 
-
+		OrderType order_type;
 		if (order == NULL) {
-			if (row_sel != NULL) {
-				row_sel->SetDisplayedPlane(DP_ROW_LOAD);
-			} else {
-				train_row_sel->SetDisplayedPlane(DP_GROUNDVEHICLE_ROW_NORMAL);
-				left_sel->SetDisplayedPlane(DP_LEFT_LOAD);
-				middle_sel->SetDisplayedPlane(DP_MIDDLE_UNLOAD);
-				right_sel->SetDisplayedPlane(DP_RIGHT_REFIT);
-				this->DisableWidget(WID_O_NON_STOP);
-				this->RaiseWidget(WID_O_NON_STOP);
-			}
-			this->DisableWidget(WID_O_FULL_LOAD);
-			this->DisableWidget(WID_O_UNLOAD);
-			this->DisableWidget(WID_O_REFIT);
+			order_type = OT_NOTHING;
 		} else {
 			this->SetWidgetDisabledState(WID_O_FULL_LOAD, (order->GetNonStopType() & ONSF_NO_STOP_AT_DESTINATION_STATION) != 0); // full load
 			this->SetWidgetDisabledState(WID_O_UNLOAD,    (order->GetNonStopType() & ONSF_NO_STOP_AT_DESTINATION_STATION) != 0); // unload
+			order_type = order->GetType();
+		}
 
-			switch (order->GetType()) {
-				case OT_GOTO_STATION:
-					if (row_sel != NULL) {
-						row_sel->SetDisplayedPlane(DP_ROW_LOAD);
-					} else {
-						train_row_sel->SetDisplayedPlane(DP_GROUNDVEHICLE_ROW_NORMAL);
-						left_sel->SetDisplayedPlane(DP_LEFT_LOAD);
-						middle_sel->SetDisplayedPlane(DP_MIDDLE_UNLOAD);
-						right_sel->SetDisplayedPlane(DP_RIGHT_REFIT_AUTO);
-						this->EnableWidget(WID_O_NON_STOP);
-						this->SetWidgetLoweredState(WID_O_NON_STOP, order->GetNonStopType() & ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS);
-					}
-					this->SetWidgetLoweredState(WID_O_FULL_LOAD, order->GetLoadType() == OLF_FULL_LOAD_ANY);
-					this->SetWidgetLoweredState(WID_O_UNLOAD, order->GetUnloadType() == OUFB_UNLOAD);
-
-					/* Can only do refitting when stopping at the destination and loading cargo.
-					 * Also enable the button if a refit is already set to allow clearing it. */
-					this->SetWidgetDisabledState(WID_O_REFIT_DROPDOWN,
-							order->GetLoadType() == OLFB_NO_LOAD || (order->GetNonStopType() & ONSF_NO_STOP_AT_DESTINATION_STATION) ||
-							((!this->can_do_refit || !this->can_do_autorefit) && !order->IsRefit()));
-
-					break;
-
-				case OT_GOTO_WAYPOINT:
-					if (row_sel != NULL) {
-						row_sel->SetDisplayedPlane(DP_ROW_LOAD);
-					} else {
-						train_row_sel->SetDisplayedPlane(DP_GROUNDVEHICLE_ROW_NORMAL);
-						left_sel->SetDisplayedPlane(DP_LEFT_LOAD);
-						middle_sel->SetDisplayedPlane(DP_MIDDLE_UNLOAD);
-						right_sel->SetDisplayedPlane(DP_RIGHT_REFIT);
-						this->EnableWidget(WID_O_NON_STOP);
-						this->SetWidgetLoweredState(WID_O_NON_STOP, order->GetNonStopType() & ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS);
-					}
-					this->DisableWidget(WID_O_FULL_LOAD);
-					this->DisableWidget(WID_O_UNLOAD);
-					this->DisableWidget(WID_O_REFIT);
-					break;
-
-				case OT_GOTO_DEPOT:
-					if (row_sel != NULL) {
-						row_sel->SetDisplayedPlane(DP_ROW_DEPOT);
-					} else {
-						train_row_sel->SetDisplayedPlane(DP_GROUNDVEHICLE_ROW_NORMAL);
-						left_sel->SetDisplayedPlane(DP_LEFT_SERVICE);
-						middle_sel->SetDisplayedPlane(DP_MIDDLE_EMPTY);
-						right_sel->SetDisplayedPlane(DP_RIGHT_REFIT);
-						this->EnableWidget(WID_O_NON_STOP);
-						this->SetWidgetLoweredState(WID_O_NON_STOP, order->GetNonStopType() & ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS);
-					}
-					/* Disable refit button if the order is no 'always go' order.
-					 * However, keep the service button enabled for refit-orders to allow clearing refits (without knowing about ctrl). */
-					this->SetWidgetDisabledState(WID_O_REFIT,
-							(order->GetDepotOrderType() & ODTFB_SERVICE) || (order->GetDepotActionType() & ODATFB_HALT) ||
-							(!this->can_do_refit && !order->IsRefit()));
-					this->SetWidgetLoweredState(WID_O_SERVICE, order->GetDepotOrderType() & ODTFB_SERVICE);
-					break;
-
-				case OT_CONDITIONAL: {
-					if (row_sel != NULL) {
-						row_sel->SetDisplayedPlane(DP_ROW_CONDITIONAL);
-					} else {
-						train_row_sel->SetDisplayedPlane(DP_GROUNDVEHICLE_ROW_CONDITIONAL);
-					}
-					OrderConditionVariable ocv = order->GetConditionVariable();
-					/* Set the strings for the dropdown boxes. */
-					this->GetWidget<NWidgetCore>(WID_O_COND_VARIABLE)->widget_data   = STR_ORDER_CONDITIONAL_LOAD_PERCENTAGE + ocv;
-					this->GetWidget<NWidgetCore>(WID_O_COND_COMPARATOR)->widget_data = _order_conditional_condition[order->GetConditionComparator()];
-					this->SetWidgetDisabledState(WID_O_COND_COMPARATOR, ocv == OCV_UNCONDITIONALLY);
-					this->SetWidgetDisabledState(WID_O_COND_VALUE, ocv == OCV_REQUIRES_SERVICE || ocv == OCV_UNCONDITIONALLY);
-					break;
+		switch (order_type) {
+			case OT_GOTO_STATION:
+				if (row_sel != NULL) {
+					row_sel->SetDisplayedPlane(DP_ROW_LOAD);
+				} else {
+					train_row_sel->SetDisplayedPlane(DP_GROUNDVEHICLE_ROW_NORMAL);
+					left_sel->SetDisplayedPlane(DP_LEFT_LOAD);
+					middle_sel->SetDisplayedPlane(DP_MIDDLE_UNLOAD);
+					right_sel->SetDisplayedPlane(DP_RIGHT_REFIT_AUTO);
+					this->EnableWidget(WID_O_NON_STOP);
+					this->SetWidgetLoweredState(WID_O_NON_STOP, order->GetNonStopType() & ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS);
 				}
+				this->SetWidgetLoweredState(WID_O_FULL_LOAD, order->GetLoadType() == OLF_FULL_LOAD_ANY);
+				this->SetWidgetLoweredState(WID_O_UNLOAD, order->GetUnloadType() == OUFB_UNLOAD);
 
-				default: // every other order
-					if (row_sel != NULL) {
-						row_sel->SetDisplayedPlane(DP_ROW_LOAD);
-					} else {
-						train_row_sel->SetDisplayedPlane(DP_GROUNDVEHICLE_ROW_NORMAL);
-						left_sel->SetDisplayedPlane(DP_LEFT_LOAD);
-						middle_sel->SetDisplayedPlane(DP_MIDDLE_UNLOAD);
-						right_sel->SetDisplayedPlane(DP_RIGHT_REFIT);
-						this->DisableWidget(WID_O_NON_STOP);
-					}
-					this->DisableWidget(WID_O_FULL_LOAD);
-					this->DisableWidget(WID_O_UNLOAD);
-					this->DisableWidget(WID_O_REFIT);
-					break;
+				/* Can only do refitting when stopping at the destination and loading cargo.
+				 * Also enable the button if a refit is already set to allow clearing it. */
+				this->SetWidgetDisabledState(WID_O_REFIT_DROPDOWN,
+						order->GetLoadType() == OLFB_NO_LOAD || (order->GetNonStopType() & ONSF_NO_STOP_AT_DESTINATION_STATION) ||
+						((!this->can_do_refit || !this->can_do_autorefit) && !order->IsRefit()));
+
+				break;
+
+			case OT_GOTO_WAYPOINT:
+				if (row_sel != NULL) {
+					row_sel->SetDisplayedPlane(DP_ROW_LOAD);
+				} else {
+					train_row_sel->SetDisplayedPlane(DP_GROUNDVEHICLE_ROW_NORMAL);
+					left_sel->SetDisplayedPlane(DP_LEFT_LOAD);
+					middle_sel->SetDisplayedPlane(DP_MIDDLE_UNLOAD);
+					right_sel->SetDisplayedPlane(DP_RIGHT_REFIT);
+					this->EnableWidget(WID_O_NON_STOP);
+					this->SetWidgetLoweredState(WID_O_NON_STOP, order->GetNonStopType() & ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS);
+				}
+				this->DisableWidget(WID_O_FULL_LOAD);
+				this->DisableWidget(WID_O_UNLOAD);
+				this->DisableWidget(WID_O_REFIT);
+				break;
+
+			case OT_GOTO_DEPOT:
+				if (row_sel != NULL) {
+					row_sel->SetDisplayedPlane(DP_ROW_DEPOT);
+				} else {
+					train_row_sel->SetDisplayedPlane(DP_GROUNDVEHICLE_ROW_NORMAL);
+					left_sel->SetDisplayedPlane(DP_LEFT_SERVICE);
+					middle_sel->SetDisplayedPlane(DP_MIDDLE_EMPTY);
+					right_sel->SetDisplayedPlane(DP_RIGHT_REFIT);
+					this->EnableWidget(WID_O_NON_STOP);
+					this->SetWidgetLoweredState(WID_O_NON_STOP, order->GetNonStopType() & ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS);
+				}
+				/* Disable refit button if the order is no 'always go' order.
+				 * However, keep the service button enabled for refit-orders to allow clearing refits (without knowing about ctrl). */
+				this->SetWidgetDisabledState(WID_O_REFIT,
+						(order->GetDepotOrderType() & ODTFB_SERVICE) || (order->GetDepotActionType() & ODATFB_HALT) ||
+						(!this->can_do_refit && !order->IsRefit()));
+				this->SetWidgetLoweredState(WID_O_SERVICE, order->GetDepotOrderType() & ODTFB_SERVICE);
+				break;
+
+			case OT_CONDITIONAL: {
+				if (row_sel != NULL) {
+					row_sel->SetDisplayedPlane(DP_ROW_CONDITIONAL);
+				} else {
+					train_row_sel->SetDisplayedPlane(DP_GROUNDVEHICLE_ROW_CONDITIONAL);
+				}
+				OrderConditionVariable ocv = order->GetConditionVariable();
+				/* Set the strings for the dropdown boxes. */
+				this->GetWidget<NWidgetCore>(WID_O_COND_VARIABLE)->widget_data   = STR_ORDER_CONDITIONAL_LOAD_PERCENTAGE + ocv;
+				this->GetWidget<NWidgetCore>(WID_O_COND_COMPARATOR)->widget_data = _order_conditional_condition[order->GetConditionComparator()];
+				this->SetWidgetDisabledState(WID_O_COND_COMPARATOR, ocv == OCV_UNCONDITIONALLY);
+				this->SetWidgetDisabledState(WID_O_COND_VALUE, ocv == OCV_REQUIRES_SERVICE || ocv == OCV_UNCONDITIONALLY);
+				break;
 			}
+
+			default: // every other order
+				if (row_sel != NULL) {
+					row_sel->SetDisplayedPlane(DP_ROW_LOAD);
+				} else {
+					train_row_sel->SetDisplayedPlane(DP_GROUNDVEHICLE_ROW_NORMAL);
+					left_sel->SetDisplayedPlane(DP_LEFT_LOAD);
+					middle_sel->SetDisplayedPlane(DP_MIDDLE_UNLOAD);
+					right_sel->SetDisplayedPlane(DP_RIGHT_REFIT);
+					this->DisableWidget(WID_O_NON_STOP);
+					this->RaiseWidget(WID_O_NON_STOP);
+				}
+				this->DisableWidget(WID_O_FULL_LOAD);
+				this->DisableWidget(WID_O_UNLOAD);
+				this->DisableWidget(WID_O_REFIT);
+				break;
 		}
 
 		/* Disable list of vehicles with the same shared orders if there is no list */
