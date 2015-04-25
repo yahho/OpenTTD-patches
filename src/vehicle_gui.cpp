@@ -661,7 +661,7 @@ struct RefitWindow : public Window {
 		const SubtypeList *list = this->list;
 		const int *sel = this->sel;
 		uint pos   = this->vscroll->GetPosition();
-		uint rows  = this->vscroll->GetCapacity();
+		uint limit = pos + this->vscroll->GetCapacity();
 		uint delta = this->resize.step_height;
 
 		uint y = r.top + WD_MATRIX_TOP;
@@ -680,8 +680,8 @@ struct RefitWindow : public Window {
 		int textright  = r.right - WD_MATRIX_RIGHT - (rtl ? iconwidth + 4 : 0);
 
 		/* Draw the list of subtypes for each cargo, and find the selected refit option (by its position). */
-		for (uint i = 0; current < pos + rows && i < NUM_CARGO; i++) {
-			for (uint j = 0; current < pos + rows && j < list[i].Length(); j++) {
+		for (uint i = 0; current < limit && i < NUM_CARGO; i++) {
+			for (uint j = 0; current < limit && j < list[i].Length(); j++) {
 				const RefitOption &refit = list[i][j];
 
 				/* Hide subtypes if sel[0] does not match */
