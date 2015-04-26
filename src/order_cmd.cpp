@@ -82,16 +82,32 @@ void BaseOrder::MakeGoToStation(StationID destination)
  * @param order         is this order a 'default' order, or an overridden vehicle order?
  * @param non_stop_type how to get to the depot?
  * @param action        what to do in the depot?
- * @param cargo         the cargo type to change to.
  */
-void BaseOrder::MakeGoToDepot(DepotID destination, OrderDepotTypeFlags order, OrderNonStopFlags non_stop_type, OrderDepotActionFlags action, CargoID cargo)
+void BaseOrder::MakeGoToDepot (DepotID destination, OrderDepotTypeFlags order, OrderNonStopFlags non_stop_type, OrderDepotActionFlags action)
 {
 	this->type = OT_GOTO_DEPOT;
 	this->SetDepotOrderType(order);
 	this->SetDepotActionType(action);
 	this->SetNonStopType(non_stop_type);
 	this->dest = destination;
-	this->SetRefit(cargo);
+	this->SetRefit (CT_NO_REFIT);
+}
+
+/**
+ * Makes this order a Go To Depot order from a "go to nearest depot" order.
+ * @param destination   the depot to go to.
+ * @param order         the order to take other parameters from.
+ */
+inline void BaseOrder::MakeGoToDepot (DepotID destination, const BaseOrder &order)
+{
+	assert (order.GetType() == OT_GOTO_DEPOT);
+
+	this->type = OT_GOTO_DEPOT;
+	this->SetDepotOrderType (order.GetDepotOrderType());
+	this->SetDepotActionType ((OrderDepotActionFlags)(order.GetDepotActionType() & ~ODATFB_NEAREST_DEPOT));
+	this->SetNonStopType (order.GetNonStopType());
+	this->dest = destination;
+	this->SetRefit (order.GetRefitCargo());
 }
 
 /**
@@ -2053,7 +2069,7 @@ bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool
 					if (pbs_look_ahead && reverse) return false;
 
 					v->dest_tile = location;
-					v->current_order.MakeGoToDepot(destination, v->current_order.GetDepotOrderType(), v->current_order.GetNonStopType(), (OrderDepotActionFlags)(v->current_order.GetDepotActionType() & ~ODATFB_NEAREST_DEPOT), v->current_order.GetRefitCargo());
+					v->current_order.MakeGoToDepot (destination, v->current_order);
 
 					/* If there is no depot in front, reverse automatically (trains only) */
 					if (v->type == VEH_TRAIN && reverse) DoCommand(v->tile, v->index, 0, DC_EXEC, CMD_REVERSE_TRAIN_DIRECTION);
