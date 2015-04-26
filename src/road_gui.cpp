@@ -652,13 +652,13 @@ struct BuildRoadToolbarWindow : Window {
 
 				case DDSP_REMOVE_BUSSTOP: {
 					TileArea ta(start_tile, end_tile);
-					DoCommandP(ta.tile, ta.w | ta.h << 8, ROADSTOP_BUS | (_cur_roadtype << 2), CMD_REMOVE_ROAD_STOP);
+					DoCommandP(ta.tile, ta.w | ta.h << 8, (_ctrl_pressed << 1) | ROADSTOP_BUS | (_cur_roadtype << 2), CMD_REMOVE_ROAD_STOP);
 					break;
 				}
 
 				case DDSP_REMOVE_TRUCKSTOP: {
 					TileArea ta(start_tile, end_tile);
-					DoCommandP(ta.tile, ta.w | ta.h << 8, ROADSTOP_TRUCK | (_cur_roadtype << 2), CMD_REMOVE_ROAD_STOP);
+					DoCommandP(ta.tile, ta.w | ta.h << 8, (_ctrl_pressed << 1) | ROADSTOP_TRUCK | (_cur_roadtype << 2), CMD_REMOVE_ROAD_STOP);
 					break;
 				}
 			}
