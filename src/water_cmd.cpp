@@ -268,8 +268,6 @@ CommandCost CmdBuildLock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	cost.AddCost(ret);
 
 	/* lower tile */
-	WaterClass wc_lower = IsPlainWaterTile(tile - delta) ? GetWaterClass(tile - delta) : WATER_CLASS_CANAL;
-
 	if (!IsPlainWaterTile(tile - delta)) {
 		ret = DoCommand(tile - delta, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
 		if (ret.Failed()) return ret;
@@ -279,10 +277,9 @@ CommandCost CmdBuildLock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	if (!IsTileFlat(tile - delta)) {
 		return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
 	}
+	WaterClass wc_lower = IsPlainWaterTile(tile - delta) ? GetWaterClass(tile - delta) : WATER_CLASS_CANAL;
 
 	/* upper tile */
-	WaterClass wc_upper = IsPlainWaterTile(tile + delta) ? GetWaterClass(tile + delta) : WATER_CLASS_CANAL;
-
 	if (!IsPlainWaterTile(tile + delta)) {
 		ret = DoCommand(tile + delta, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
 		if (ret.Failed()) return ret;
@@ -292,6 +289,7 @@ CommandCost CmdBuildLock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	if (!IsTileFlat(tile + delta)) {
 		return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
 	}
+	WaterClass wc_upper = IsPlainWaterTile(tile + delta) ? GetWaterClass(tile + delta) : WATER_CLASS_CANAL;
 
 	if (HasBridgeAbove(tile) || HasBridgeAbove(tile - delta) || HasBridgeAbove(tile + delta)) {
 		return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
