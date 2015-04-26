@@ -992,11 +992,34 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		Vehicle *v;
 
 		FOR_ALL_ORDERS(order) {
-			order->SetRefit(CT_NO_REFIT);
+			order->SetRefitMask();
 		}
 
 		FOR_ALL_VEHICLES(v) {
-			v->current_order.SetRefit(CT_NO_REFIT);
+			v->current_order.SetRefitMask();
+		}
+	} else if (stv->is_before (23)) {
+		Order *order;
+		Vehicle *v;
+
+		FOR_ALL_ORDERS(order) {
+			uint32 c = order->refit_cargo_mask;
+			switch (c) {
+				case 0xFE: c =  0;       break;
+				case 0xFD: c = -1;       break;
+				default:   c = (1 << c); break;
+			}
+			order->SetRefitMask (c);
+		}
+
+		FOR_ALL_VEHICLES(v) {
+			uint32 c = v->current_order.refit_cargo_mask;
+			switch (c) {
+				case 0xFE: c =  0;       break;
+				case 0xFD: c = -1;       break;
+				default:   c = (1 << c); break;
+			}
+			v->current_order.SetRefitMask (c);
 		}
 	}
 

@@ -263,7 +263,7 @@ void LinkRefresher::RefreshLinks(const Order *cur, const Order *next, uint8 flag
 				SetBit(flags, IN_AUTOREFIT);
 				LinkRefresher backup(*this);
 				for (CargoID c = 0; c != NUM_CARGO; ++c) {
-					if (CargoSpec::Get(c)->IsValid() && this->HandleRefit(c)) {
+					if (HasBit (next->GetRefitCargoMask(), c) && CargoSpec::Get(c)->IsValid() && this->HandleRefit(c)) {
 						this->RefreshLinks(cur, next, flags, num_hops);
 						*this = backup;
 					}

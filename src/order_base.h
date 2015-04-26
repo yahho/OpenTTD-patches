@@ -28,27 +28,27 @@ struct BaseOrder {
 	uint8 flags;          ///< Load/unload types, depot order/action types.
 	DestinationID dest;   ///< The destination of the order.
 
-	CargoID refit_cargo;  ///< Refit CargoID
+	CargoMask refit_cargo_mask; ///< Refit cargo mask
 
 	uint16 wait_time;    ///< How long in ticks to wait at the destination.
 	uint16 travel_time;  ///< How long in ticks the journey to this destination should take.
 	uint16 max_speed;    ///< How fast the vehicle may go on the way to the destination.
 
 	CONSTEXPR BaseOrder() : type(OT_NOTHING), flags(0), dest(),
-		refit_cargo(CT_NO_REFIT),
+		refit_cargo_mask(0),
 		wait_time(0), travel_time(0), max_speed(UINT16_MAX)
 	{
 	}
 
 	CONSTEXPR BaseOrder (uint8 t, uint8 f, DestinationID d)
-		: type(t), flags(f), dest(d), refit_cargo(CT_NO_REFIT),
+		: type(t), flags(f), dest(d), refit_cargo_mask(0),
 		  wait_time(0), travel_time(0), max_speed(UINT16_MAX)
 	{
 	}
 
 	BaseOrder (uint32 packed)
 		: type(GB(packed,  0,  8)), flags(GB(packed,  8,  8)),
-		  dest(GB(packed, 16, 16)), refit_cargo(CT_NO_REFIT),
+		  dest(GB(packed, 16, 16)), refit_cargo_mask(0),
 		  wait_time(0), travel_time(0), max_speed(UINT16_MAX)
 	{
 	}
@@ -105,23 +105,30 @@ struct BaseOrder {
 	 * @pre IsType(OT_GOTO_DEPOT) || IsType(OT_GOTO_STATION)
 	 * @return true if a refit should happen.
 	 */
-	inline bool IsRefit() const { return this->refit_cargo < NUM_CARGO || this->refit_cargo == CT_AUTO_REFIT; }
+	inline bool IsRefit() const { return this->refit_cargo_mask != 0; }
 
 	/**
 	 * Is this order a auto-refit order.
 	 * @pre IsType(OT_GOTO_DEPOT) || IsType(OT_GOTO_STATION)
 	 * @return true if a auto-refit should happen.
 	 */
-	inline bool IsAutoRefit() const { return this->refit_cargo == CT_AUTO_REFIT; }
+	inline bool IsAutoRefit() const { return !HasAtMostOneBit (this->refit_cargo_mask); }
+
+	/**
+	 * Get the cargo mask of allowed refits.
+	 * @pre IsType(OT_GOTO_DEPOT) || IsType(OT_GOTO_STATION)
+	 * @return the cargo mask.
+	 */
+	inline CargoMask GetRefitCargoMask() const { return this->refit_cargo_mask; }
 
 	/**
 	 * Get the cargo to to refit to.
 	 * @pre IsType(OT_GOTO_DEPOT) || IsType(OT_GOTO_STATION)
 	 * @return the cargo type.
 	 */
-	inline CargoID GetRefitCargo() const { return this->refit_cargo; }
+	inline CargoID GetRefitCargo() const { return FindFirstBit (this->refit_cargo_mask); }
 
-	void SetRefit(CargoID cargo);
+	void SetRefitMask (CargoMask mask = 0);
 
 	/** How must the consist be loaded? */
 	inline OrderLoadFlags GetLoadType() const { return (OrderLoadFlags)GB(this->flags, 4, 3); }

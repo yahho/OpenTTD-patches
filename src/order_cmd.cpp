@@ -90,7 +90,7 @@ void BaseOrder::MakeGoToDepot (DepotID destination, OrderDepotTypeFlags order, O
 	this->SetDepotActionType(action);
 	this->SetNonStopType(non_stop_type);
 	this->dest = destination;
-	this->SetRefit (CT_NO_REFIT);
+	this->SetRefitMask();
 }
 
 /**
@@ -107,7 +107,7 @@ inline void BaseOrder::MakeGoToDepot (DepotID destination, const BaseOrder &orde
 	this->SetDepotActionType ((OrderDepotActionFlags)(order.GetDepotActionType() & ~ODATFB_NEAREST_DEPOT));
 	this->SetNonStopType (order.GetNonStopType());
 	this->dest = destination;
-	this->SetRefit (order.GetRefitCargo());
+	this->SetRefitMask (order.GetRefitCargoMask());
 }
 
 /**
@@ -172,12 +172,12 @@ void BaseOrder::MakeImplicit(StationID destination)
 
 /**
  * Make this depot/station order also a refit order.
- * @param cargo   the cargo type to change to.
+ * @param cargo   the cargo mask of allowed types to change to.
  * @pre IsType(OT_GOTO_DEPOT) || IsType(OT_GOTO_STATION).
  */
-void BaseOrder::SetRefit(CargoID cargo)
+void BaseOrder::SetRefitMask (CargoMask mask)
 {
-	this->refit_cargo = cargo;
+	this->refit_cargo_mask = mask;
 }
 
 /**
@@ -272,7 +272,7 @@ void BaseOrder::AssignOrder (const BaseOrder &other)
 	this->flags = other.flags;
 	this->dest  = other.dest;
 
-	this->refit_cargo   = other.refit_cargo;
+	this->refit_cargo_mask = other.refit_cargo_mask;
 
 	this->wait_time   = other.wait_time;
 	this->travel_time = other.travel_time;
@@ -1409,7 +1409,7 @@ CommandCost CmdModifyOrder(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 			case MOF_NON_STOP:
 				order->SetNonStopType((OrderNonStopFlags)data);
 				if (data & ONSF_NO_STOP_AT_DESTINATION_STATION) {
-					order->SetRefit(CT_NO_REFIT);
+					order->SetRefitMask();
 					order->SetLoadType(OLF_LOAD_IF_POSSIBLE);
 					order->SetUnloadType(OUF_UNLOAD_IF_POSSIBLE);
 				}
@@ -1425,7 +1425,7 @@ CommandCost CmdModifyOrder(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 
 			case MOF_LOAD:
 				order->SetLoadType((OrderLoadFlags)data);
-				if (data & OLFB_NO_LOAD) order->SetRefit(CT_NO_REFIT);
+				if (data & OLFB_NO_LOAD) order->SetRefitMask();
 				break;
 
 			case MOF_DEPOT_ACTION: {
@@ -1438,13 +1438,13 @@ CommandCost CmdModifyOrder(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 					case DA_SERVICE:
 						order->SetDepotOrderType((OrderDepotTypeFlags)(order->GetDepotOrderType() | ODTFB_SERVICE));
 						order->SetDepotActionType((OrderDepotActionFlags)(order->GetDepotActionType() & ~ODATFB_HALT));
-						order->SetRefit(CT_NO_REFIT);
+						order->SetRefitMask();
 						break;
 
 					case DA_STOP:
 						order->SetDepotOrderType((OrderDepotTypeFlags)(order->GetDepotOrderType() & ~ODTFB_SERVICE));
 						order->SetDepotActionType((OrderDepotActionFlags)(order->GetDepotActionType() | ODATFB_HALT));
-						order->SetRefit(CT_NO_REFIT);
+						order->SetRefitMask();
 						break;
 
 					default:
@@ -1734,7 +1734,9 @@ CommandCost CmdOrderRefit(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 	if (order->GetLoadType() & OLFB_NO_LOAD) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
-		order->SetRefit(cargo);
+		CargoMask mask = (cargo == CT_NO_REFIT) ? 0 :
+				(cargo == CT_AUTO_REFIT) ? -1 : (1 << cargo);
+		order->SetRefitMask (mask);
 
 		/* Make the depot order an 'always go' order. */
 		if (cargo != CT_NO_REFIT && order->IsType(OT_GOTO_DEPOT)) {
@@ -1748,7 +1750,7 @@ CommandCost CmdOrderRefit(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 
 			/* If the vehicle already got the current depot set as current order, then update current order as well */
 			if (u->cur_real_order_index == order_number && (u->current_order.GetDepotOrderType() & ODTFB_PART_OF_ORDERS)) {
-				u->current_order.SetRefit(cargo);
+				u->current_order.SetRefitMask (mask);
 			}
 		}
 	}

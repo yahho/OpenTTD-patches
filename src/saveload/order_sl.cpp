@@ -103,15 +103,16 @@ BaseOrder UnpackOldOrder (uint16 packed)
 const SaveLoad *GetOrderDescription()
 {
 	static const SaveLoad _order_desc[] = {
-		 SLE_VAR(Order, type,           SLE_UINT8),
-		 SLE_VAR(Order, flags,          SLE_UINT8),
-		 SLE_VAR(Order, dest,           SLE_UINT16),
-		 SLE_REF(Order, next,           REF_ORDER),
-		 SLE_VAR(Order, refit_cargo,    SLE_UINT8,  0, ,  36,   ),
-		SLE_NULL(1,                                  , ,  36, 181), // refit_subtype
-		 SLE_VAR(Order, wait_time,      SLE_UINT16, 0, ,  67,   ),
-		 SLE_VAR(Order, travel_time,    SLE_UINT16, 0, ,  67,   ),
-		 SLE_VAR(Order, max_speed,      SLE_UINT16, 0, , 172,   ),
+		 SLE_VAR(Order, type,             SLE_UINT8),
+		 SLE_VAR(Order, flags,            SLE_UINT8),
+		 SLE_VAR(Order, dest,             SLE_UINT16),
+		 SLE_REF(Order, next,             REF_ORDER),
+		 SLE_VAR(Order, refit_cargo_mask, SLE_FILE_U8 | SLE_VAR_U32,   0, 22,  36,   ),
+		 SLE_VAR(Order, refit_cargo_mask, SLE_UINT32, 23,   ),
+		SLE_NULL(1,                                     ,   ,  36, 181), // refit_subtype
+		 SLE_VAR(Order, wait_time,        SLE_UINT16,  0,   ,  67,   ),
+		 SLE_VAR(Order, travel_time,      SLE_UINT16,  0,   ,  67,   ),
+		 SLE_VAR(Order, max_speed,        SLE_UINT16,  0,   , 172,   ),
 
 		/* Leftover from the minor savegame version stuff
 		 * We will never use those free bytes, but we have to keep this line to allow loading of old savegames */

@@ -702,8 +702,9 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 		 SLE_VAR(Vehicle, current_order.dest,    SLE_UINT16,                 0, ,   5,    ),
 
 		/* Refit in current order */
-		 SLE_VAR(Vehicle, current_order.refit_cargo,   SLE_UINT8,            0, ,  36,    ),
-		SLE_NULL(1,                                                           , ,  36, 181), // refit_subtype
+		 SLE_VAR(Vehicle, current_order.refit_cargo_mask, SLE_FILE_U8 | SLE_VAR_U32, 0, 22,  36,    ),
+		 SLE_VAR(Vehicle, current_order.refit_cargo_mask, SLE_UINT32,               23,   ),
+		SLE_NULL(1,                                                                   ,   ,  36, 181), // refit_subtype
 
 		/* Timetable in current order */
 		 SLE_VAR(Vehicle, current_order.wait_time,     SLE_UINT16,           0, ,  67,    ),

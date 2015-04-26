@@ -44,6 +44,7 @@
 #include "economy_base.h"
 #include "core/pool_func.hpp"
 #include "core/backup_type.hpp"
+#include "core/bitmath_func.hpp"
 #include "cargo_type.h"
 #include "water.h"
 #include "game/game.hpp"
@@ -1432,9 +1433,10 @@ struct FinalizeRefitAction
  * @param consist_capleft Added cargo capacities in the consist.
  * @param st Station the vehicle is loading at.
  * @param next_station Possible next stations the vehicle can travel to.
- * @param new_cid Target cargo for refit.
+ * @param new_cid Target cargo mask for refit.
  */
-static void HandleStationRefit(Vehicle *v, CargoArray &consist_capleft, Station *st, StationIDStack next_station, CargoID new_cid)
+static void HandleStationRefit (Vehicle *v, CargoArray &consist_capleft,
+	Station *st, StationIDStack next_station, CargoMask new_mask)
 {
 	Vehicle *v_start = v->GetFirstEnginePart();
 	if (!IterateVehicleParts(v_start, IsEmptyAction())) return;
@@ -1446,12 +1448,14 @@ static void HandleStationRefit(Vehicle *v, CargoArray &consist_capleft, Station 
 	/* Remove old capacity from consist capacity and collect refit mask. */
 	IterateVehicleParts(v_start, PrepareRefitAction(consist_capleft, refit_mask));
 
-	bool is_auto_refit = new_cid == CT_AUTO_REFIT;
+	bool is_auto_refit = !HasAtMostOneBit (new_mask);
+	CargoID new_cid;
+
 	if (is_auto_refit) {
 		/* Get a refittable cargo type with waiting cargo for next_station or INVALID_STATION. */
 		CargoID cid;
 		new_cid = v_start->cargo_type;
-		FOR_EACH_SET_CARGO_ID(cid, refit_mask) {
+		FOR_EACH_SET_CARGO_ID(cid, refit_mask & new_mask) {
 			if (st->goods[cid].cargo.HasCargoFor(next_station)) {
 				/* Try to find out if auto-refitting would succeed. In case the refit is allowed,
 				 * the returned refit capacity will be greater than zero. */
@@ -1469,6 +1473,10 @@ static void HandleStationRefit(Vehicle *v, CargoArray &consist_capleft, Station 
 				}
 			}
 		}
+	} else if (new_mask != 0) {
+		new_cid = FindFirstBit (new_mask);
+	} else {
+		new_cid = CT_INVALID;
 	}
 
 	/* Refit if given a valid cargo. */
@@ -1531,7 +1539,7 @@ static void ReserveConsist(Station *st, Vehicle *u, CargoArray *consist_capleft,
 		if (!v->IsArticulatedPart() &&
 				(v->type != VEH_TRAIN || !Train::From(v)->IsRearDualheaded()) &&
 				(v->type != VEH_AIRCRAFT || Aircraft::From(v)->IsNormalAircraft()) &&
-				(must_reserve || u->current_order.GetRefitCargo() == v->cargo_type)) {
+				(must_reserve || u->current_order.GetRefitCargoMask() == (1u << v->cargo_type))) {
 			IterateVehicleParts(v, ReserveCargoAction(st, next_station));
 		}
 		if (consist_capleft == NULL || v->cargo_cap == 0) continue;
@@ -1572,7 +1580,7 @@ static void LoadUnloadVehicle(Vehicle *front)
 	Station *st = Station::Get(last_visited);
 
 	StationIDStack next_station = front->GetNextStoppingStation();
-	bool use_autorefit = front->current_order.IsRefit() && front->current_order.GetRefitCargo() == CT_AUTO_REFIT;
+	bool use_autorefit = front->current_order.IsAutoRefit();
 	CargoArray consist_capleft;
 	if (_settings_game.order.improved_load && use_autorefit ?
 			front->cargo_payment == NULL : (front->current_order.GetLoadType() & OLFB_FULL_LOAD) != 0) {
@@ -1688,7 +1696,7 @@ static void LoadUnloadVehicle(Vehicle *front)
 
 		/* This order has a refit, if this is the first vehicle part carrying cargo and the whole vehicle is empty, try refitting. */
 		if (front->current_order.IsRefit() && artic_part == 1) {
-			HandleStationRefit(v, consist_capleft, st, next_station, front->current_order.GetRefitCargo());
+			HandleStationRefit (v, consist_capleft, st, next_station, front->current_order.GetRefitCargoMask());
 			ge = &st->goods[v->cargo_type];
 		}
 

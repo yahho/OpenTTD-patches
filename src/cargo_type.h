@@ -70,6 +70,9 @@ enum CargoTypes {
 	CT_INVALID      = 0xFF, ///< Invalid cargo type.
 };
 
+typedef uint32 CargoMask;
+
+
 /** Class for storing amounts of cargo */
 struct CargoArray {
 private:

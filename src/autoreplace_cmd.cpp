@@ -178,11 +178,11 @@ static bool VerifyAutoreplaceRefitForOrders(const Vehicle *v, EngineID engine_ty
 	const Order *o;
 	const Vehicle *u = (v->type == VEH_TRAIN) ? v->First() : v;
 	FOR_VEHICLE_ORDERS(u, o) {
-		if (!o->IsRefit() || o->IsAutoRefit()) continue;
-		CargoID cargo_type = o->GetRefitCargo();
+		if (!o->IsRefit()) continue;
 
-		if (!HasBit(union_refit_mask_a, cargo_type)) continue;
-		if (!HasBit(union_refit_mask_b, cargo_type)) return false;
+		CargoMask cargo = o->GetRefitCargoMask();
+		if ((cargo & union_refit_mask_a) == 0) continue;
+		if ((cargo & union_refit_mask_b) == 0) return false;
 	}
 
 	return true;
