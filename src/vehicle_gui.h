@@ -19,7 +19,9 @@
 #include "engine_type.h"
 #include "company_type.h"
 
-void ShowVehicleRefitWindow(const Vehicle *v, VehicleOrderID order, Window *parent, bool auto_refit = false);
+void ShowVehicleRefitWindow (Window *parent, const Vehicle *v,
+		VehicleOrderID order = INVALID_VEH_ORDER_ID,
+		bool auto_refit = false, CargoMask mask = 0);
 
 /** The tabs in the train details window */
 enum TrainDetailsWindowTabs {

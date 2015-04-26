@@ -762,26 +762,6 @@ private:
 		}
 	}
 
-	/**
-	 * Handle the click on the refit button.
-	 * If ctrl is pressed, cancel refitting, else show the refit window.
-	 * @param i Selected refit command.
-	 * @param auto_refit Select refit for auto-refitting.
-	 */
-	void OrderClick_Refit(int i, bool auto_refit)
-	{
-		if (_ctrl_pressed) {
-			/* Cancel refitting */
-			DoCommandP(this->vehicle->tile, this->vehicle->index | (this->OrderGetSel() << 24), 0, CMD_ORDER_REFIT);
-		} else {
-			if (i == 1) { // Auto-refit to available cargo type.
-				DoCommandP(this->vehicle->tile, this->vehicle->index | (this->OrderGetSel() << 24), -1, CMD_ORDER_REFIT);
-			} else {
-				ShowVehicleRefitWindow(this->vehicle, this->OrderGetSel(), this, auto_refit);
-			}
-		}
-	}
-
 	/** Cache auto-refittability of the vehicle chain. */
 	void UpdateAutoRefitState()
 	{
@@ -1285,7 +1265,14 @@ public:
 				break;
 
 			case WID_O_REFIT:
-				this->OrderClick_Refit(0, false);
+			case WID_O_REFIT_DROPDOWN:
+				if (_ctrl_pressed) {
+					/* Cancel refitting */
+					DoCommandP (this->vehicle->tile, this->vehicle->index | (this->OrderGetSel() << 24), 0, CMD_ORDER_REFIT);
+				} else {
+					/* Auto-refit to available cargo type. */
+					ShowVehicleRefitWindow (this, this->vehicle, this->OrderGetSel(), widget == WID_O_REFIT_DROPDOWN, this->vehicle->GetOrder(this->OrderGetSel())->GetRefitCargoMask());
+				}
 				break;
 
 			case WID_O_SERVICE:
@@ -1293,14 +1280,6 @@ public:
 					this->OrderClick_Service(-1);
 				} else {
 					ShowDropDownMenu(this, _order_depot_action_dropdown, DepotActionStringIndex(this->vehicle->GetOrder(this->OrderGetSel())), WID_O_SERVICE, 0, 0);
-				}
-				break;
-
-			case WID_O_REFIT_DROPDOWN:
-				if (this->GetWidget<NWidgetLeaf>(widget)->ButtonHit(pt)) {
-					this->OrderClick_Refit(0, true);
-				} else {
-					ShowDropDownMenu(this, _order_refit_action_dropdown, 0, WID_O_REFIT_DROPDOWN, 0, 0);
 				}
 				break;
 
@@ -1388,10 +1367,6 @@ public:
 
 			case WID_O_SERVICE:
 				this->OrderClick_Service(index);
-				break;
-
-			case WID_O_REFIT_DROPDOWN:
-				this->OrderClick_Refit(index, true);
 				break;
 
 			case WID_O_COND_VARIABLE:
@@ -1580,7 +1555,7 @@ static const NWidgetPart _nested_orders_train_widgets[] = {
 				NWidget(NWID_SELECTION, INVALID_COLOUR, WID_O_SEL_TOP_RIGHT),
 					NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_O_REFIT), SetMinimalSize(93, 12), SetFill(1, 0),
 															SetDataTip(STR_ORDER_REFIT, STR_ORDER_REFIT_TOOLTIP), SetResize(1, 0),
-					NWidget(NWID_BUTTON_DROPDOWN, COLOUR_GREY, WID_O_REFIT_DROPDOWN), SetMinimalSize(93, 12), SetFill(1, 0),
+					NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_O_REFIT_DROPDOWN), SetMinimalSize(93, 12), SetFill(1, 0),
 															SetDataTip(STR_ORDER_REFIT_AUTO, STR_ORDER_REFIT_AUTO_TOOLTIP), SetResize(1, 0),
 				EndContainer(),
 			EndContainer(),
@@ -1646,7 +1621,7 @@ static const NWidgetPart _nested_orders_widgets[] = {
 													SetDataTip(STR_ORDER_TOGGLE_FULL_LOAD, STR_ORDER_TOOLTIP_FULL_LOAD), SetResize(1, 0),
 				NWidget(NWID_BUTTON_DROPDOWN, COLOUR_GREY, WID_O_UNLOAD), SetMinimalSize(124, 12), SetFill(1, 0),
 													SetDataTip(STR_ORDER_TOGGLE_UNLOAD, STR_ORDER_TOOLTIP_UNLOAD), SetResize(1, 0),
-				NWidget(NWID_BUTTON_DROPDOWN, COLOUR_GREY, WID_O_REFIT_DROPDOWN), SetMinimalSize(124, 12), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_O_REFIT_DROPDOWN), SetMinimalSize(124, 12), SetFill(1, 0),
 													SetDataTip(STR_ORDER_REFIT_AUTO, STR_ORDER_REFIT_AUTO_TOOLTIP), SetResize(1, 0),
 			EndContainer(),
 			/* Refit + service buttons. */

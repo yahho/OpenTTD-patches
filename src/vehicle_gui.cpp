@@ -334,6 +334,7 @@ struct RefitWindow : public Window {
 	VehicleID selected_vehicle;  ///< First vehicle in the current selection.
 	uint8 num_vehicles;          ///< Number of selected vehicles.
 	bool auto_refit;             ///< Select cargo for auto-refitting.
+	CargoMask cargo_mask;        ///< Selected cargoes, when auto-refitting.
 
 	/**
 	 * Collects all (cargo, subcargo) refit options of a vehicle chain.
@@ -475,8 +476,9 @@ struct RefitWindow : public Window {
 	/**
 	 * Select a row.
 	 * @param click_row Clicked row
+	 * @return Selected cargo id
 	 */
-	void SetSelection(uint click_row)
+	CargoID SetSelection(uint click_row)
 	{
 		uint row = 0;
 
@@ -490,7 +492,7 @@ struct RefitWindow : public Window {
 				if (row == click_row) {
 					this->sel_cargo = i;
 					this->sel_subcargo = j;
-					return;
+					return refit.cargo;
 				}
 
 				row++;
@@ -499,6 +501,7 @@ struct RefitWindow : public Window {
 
 		this->sel_cargo = CT_INVALID;
 		this->sel_subcargo = 0;
+		return CT_INVALID;
 	}
 
 	/**
@@ -515,11 +518,15 @@ struct RefitWindow : public Window {
 		return &l[this->sel_subcargo];
 	}
 
-	RefitWindow(WindowDesc *desc, const Vehicle *v, VehicleOrderID order, bool auto_refit) : Window(desc)
+	RefitWindow (WindowDesc *desc, const Vehicle *v, VehicleOrderID order,
+			bool auto_refit, CargoMask cargo_mask = 0) : Window(desc)
 	{
+		assert (!auto_refit || (order != INVALID_VEH_ORDER_ID));
+
 		this->sel_cargo = CT_INVALID;
 		this->sel_subcargo = 0;
 		this->auto_refit = auto_refit;
+		this->cargo_mask = cargo_mask;
 		this->order = order;
 		this->CreateNestedTree();
 
@@ -536,7 +543,7 @@ struct RefitWindow : public Window {
 		this->FinishInitNested(v->index);
 		this->owner = v->owner;
 
-		this->SetWidgetDisabledState(WID_VR_REFIT, this->sel_cargo == CT_INVALID);
+		this->SetWidgetDisabledState (WID_VR_REFIT, !auto_refit && (this->sel_cargo == CT_INVALID));
 	}
 
 	virtual void OnInit()
@@ -561,7 +568,7 @@ struct RefitWindow : public Window {
 				}
 			}
 
-			this->SetWidgetDisabledState(WID_VR_REFIT, this->sel_cargo == CT_INVALID);
+			this->SetWidgetDisabledState (WID_VR_REFIT, !this->auto_refit && (this->sel_cargo == CT_INVALID));
 			this->RefreshScrollbar();
 		} else {
 			/* Rebuild the refit list */
@@ -668,10 +675,19 @@ struct RefitWindow : public Window {
 		uint y = r.top + WD_MATRIX_TOP;
 		uint current = 0;
 
-		bool rtl = _current_text_dir == TD_RTL;
-		uint iconwidth = max(GetSpriteSize(SPR_CIRCLE_FOLDED).width, GetSpriteSize(SPR_CIRCLE_UNFOLDED).width);
-		uint iconheight = GetSpriteSize(SPR_CIRCLE_FOLDED).height;
+		SpriteID spr1, spr2;
+		if (this->auto_refit) {
+			spr1 = SPR_BOX_EMPTY;
+			spr2 = SPR_BOX_CHECKED;
+		} else {
+			spr1 = SPR_CIRCLE_FOLDED;
+			spr2 = SPR_CIRCLE_UNFOLDED;
+		}
+		uint iconwidth = max (GetSpriteSize(spr1).width, GetSpriteSize(spr2).width);
+		uint iconheight = GetSpriteSize(spr1).height;
 		int linecolour = _colour_gradient[COLOUR_ORANGE][4];
+
+		bool rtl = _current_text_dir == TD_RTL;
 
 		int iconleft   = rtl ? r.right - WD_MATRIX_RIGHT - iconwidth     : r.left + WD_MATRIX_LEFT;
 		int iconcenter = rtl ? r.right - WD_MATRIX_RIGHT - iconwidth / 2 : r.left + WD_MATRIX_LEFT + iconwidth / 2;
@@ -694,7 +710,12 @@ struct RefitWindow : public Window {
 					continue;
 				}
 
-				if (list[i].Length() > 1) {
+				if (this->auto_refit) {
+					assert (list[i].Length() == 1);
+					assert (refit.subtype == 0xFF);
+					/* Draw checkbox */
+					DrawSprite (HasBit (this->cargo_mask, refit.cargo) ? SPR_BOX_CHECKED : SPR_BOX_EMPTY, PAL_NONE, iconleft, y + (FONT_HEIGHT_NORMAL - iconheight) / 2);
+				} else if (list[i].Length() > 1) {
 					if (refit.subtype != 0xFF) {
 						/* Draw tree lines */
 						int ycenter = y + FONT_HEIGHT_NORMAL / 2;
@@ -927,7 +948,23 @@ struct RefitWindow : public Window {
 			}
 
 			case WID_VR_MATRIX: { // listbox
-				this->SetSelection(this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_VR_MATRIX));
+				uint row = this->vscroll->GetScrolledRowFromWidget (pt.y, this, WID_VR_MATRIX);
+				CargoID c = this->SetSelection(row);
+
+				if (this->auto_refit) {
+					if (c != CT_INVALID) {
+						const NWidgetBase *wid = this->GetWidget<NWidgetBase> (WID_VR_MATRIX);
+						uint offset = pt.x - wid->pos_x;
+						uint width = max (GetSpriteSize(SPR_BOX_EMPTY).width, GetSpriteSize(SPR_BOX_CHECKED).width) + 5;
+						if (_current_text_dir == TD_RTL ? offset > wid->current_x - width : offset < width) {
+							ToggleBit (this->cargo_mask, c);
+						}
+					}
+					this->InvalidateData (1);
+					break;
+				}
+
+				/* not auto-refit */
 				this->SetWidgetDisabledState(WID_VR_REFIT, this->sel_cargo == CT_INVALID);
 				this->InvalidateData(1);
 
@@ -936,7 +973,10 @@ struct RefitWindow : public Window {
 			}
 
 			case WID_VR_REFIT: // refit button
-				if (this->cargo != NULL) {
+				if (this->auto_refit) {
+					const Vehicle *v = Vehicle::Get(this->window_number);
+					if (DoCommandP(v->tile, v->index | this->order << 24, this->cargo_mask, CMD_ORDER_REFIT)) delete this;
+				} else if (this->cargo != NULL) {
 					const Vehicle *v = Vehicle::Get(this->window_number);
 
 					if (this->order == INVALID_VEH_ORDER_ID) {
@@ -1019,15 +1059,18 @@ static WindowDesc _vehicle_refit_desc(
 
 /**
  * Show the refit window for a vehicle
+ * @param parent the parent window of the refit window
  * @param *v The vehicle to show the refit window for
  * @param order of the vehicle to assign refit to, or INVALID_VEH_ORDER_ID to refit the vehicle now
- * @param parent the parent window of the refit window
  * @param auto_refit Choose cargo for auto-refitting
+ * @param mask Initial cargo mask of allowed refits for auto-refitting
  */
-void ShowVehicleRefitWindow(const Vehicle *v, VehicleOrderID order, Window *parent, bool auto_refit)
+void ShowVehicleRefitWindow (Window *parent, const Vehicle *v,
+	VehicleOrderID order, bool auto_refit, CargoMask mask)
 {
 	DeleteWindowById(WC_VEHICLE_REFIT, v->index);
-	RefitWindow *w = new RefitWindow(&_vehicle_refit_desc, v, order, auto_refit);
+	RefitWindow *w = new RefitWindow (&_vehicle_refit_desc, v, order,
+			auto_refit, mask);
 	w->parent = parent;
 }
 
@@ -2662,7 +2705,7 @@ public:
 				DoCommandP(v->tile, v->index | (_ctrl_pressed ? DEPOT_SERVICE : 0U), 0, CMD_SEND_VEHICLE_TO_DEPOT);
 				break;
 			case WID_VV_REFIT: // refit
-				ShowVehicleRefitWindow(v, INVALID_VEH_ORDER_ID, this);
+				ShowVehicleRefitWindow (this, v);
 				break;
 			case WID_VV_SHOW_ORDERS: // show orders
 				if (_ctrl_pressed) {
