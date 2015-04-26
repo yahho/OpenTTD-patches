@@ -1704,20 +1704,18 @@ CommandCost CmdCloneOrder(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
  * Add/remove refit orders from an order
  * @param tile Not used
  * @param flags operation to perform
- * @param p1 VehicleIndex of the vehicle having the order
- * @param p2 bitmask
- *   - bit 0-7 CargoID
- *   - bit 16-23 number of order to modify
+ * @param p1 bitmask
+ *   - bit  0-19 VehicleIndex of the vehicle having the order
+ *   - bit 24-31 number of order to modify
+ * @param p2 Cargo mask of allowed refits
  * @param text unused
  * @return the cost of this operation or an error
  */
 CommandCost CmdOrderRefit(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
 {
 	VehicleID veh = GB(p1, 0, 20);
-	VehicleOrderID order_number  = GB(p2, 16, 8);
-	CargoID cargo = GB(p2, 0, 8);
-
-	if (cargo >= NUM_CARGO && cargo != CT_NO_REFIT && cargo != CT_AUTO_REFIT) return CMD_ERROR;
+	VehicleOrderID order_number  = GB(p1, 24, 8);
+	CargoMask mask = p2;
 
 	const Vehicle *v = Vehicle::GetIfValid(veh);
 	if (v == NULL || !v->IsPrimaryVehicle()) return CMD_ERROR;
@@ -1729,17 +1727,15 @@ CommandCost CmdOrderRefit(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 	if (order == NULL) return CMD_ERROR;
 
 	/* Automatic refit cargo is only supported for goto station orders. */
-	if (cargo == CT_AUTO_REFIT && !order->IsType(OT_GOTO_STATION)) return CMD_ERROR;
+	if (!HasAtMostOneBit (mask) && !order->IsType(OT_GOTO_STATION)) return CMD_ERROR;
 
 	if (order->GetLoadType() & OLFB_NO_LOAD) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
-		CargoMask mask = (cargo == CT_NO_REFIT) ? 0 :
-				(cargo == CT_AUTO_REFIT) ? -1 : (1 << cargo);
 		order->SetRefitMask (mask);
 
 		/* Make the depot order an 'always go' order. */
-		if (cargo != CT_NO_REFIT && order->IsType(OT_GOTO_DEPOT)) {
+		if (mask != 0 && order->IsType(OT_GOTO_DEPOT)) {
 			order->SetDepotOrderType((OrderDepotTypeFlags)(order->GetDepotOrderType() & ~ODTFB_SERVICE));
 			order->SetDepotActionType((OrderDepotActionFlags)(order->GetDepotActionType() & ~ODATFB_HALT));
 		}

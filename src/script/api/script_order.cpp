@@ -430,10 +430,18 @@ static int ScriptOrderPositionToRealOrderPosition(VehicleID vehicle_id, ScriptOr
 {
 	EnforcePrecondition(false, IsValidVehicleOrder(vehicle_id, order_position));
 	EnforcePrecondition(false, IsGotoStationOrder(vehicle_id, order_position) || (IsGotoDepotOrder(vehicle_id, order_position) && refit_cargo != CT_AUTO_REFIT));
-	EnforcePrecondition(false, ScriptCargo::IsValidCargo(refit_cargo) || refit_cargo == CT_AUTO_REFIT || refit_cargo == CT_NO_REFIT);
 
-	uint32 p1 = vehicle_id;
-	uint32 p2 = refit_cargo | ScriptOrderPositionToRealOrderPosition(vehicle_id, ScriptOrder::ResolveOrderPosition(vehicle_id, order_position)) << 16;
+	uint32 p2;
+	switch (refit_cargo) {
+		case CT_NO_REFIT:   p2 =  0; break;
+		case CT_AUTO_REFIT: p2 = -1; break;
+		default:
+			EnforcePrecondition (false, ScriptCargo::IsValidCargo(refit_cargo));
+			p2 = 1 << refit_cargo;
+			break;
+	}
+
+	uint32 p1 = vehicle_id | ScriptOrderPositionToRealOrderPosition(vehicle_id, ScriptOrder::ResolveOrderPosition(vehicle_id, order_position)) << 24;
 	return ScriptObject::DoCommand(0, p1, p2, CMD_ORDER_REFIT);
 }
 
