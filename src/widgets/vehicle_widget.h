@@ -40,6 +40,7 @@ enum VehicleRefitWidgets {
 	WID_VR_SCROLLBAR,             ///< Scrollbar for the refit options.
 	WID_VR_INFO,                  ///< Information about the currently selected refit option.
 	WID_VR_REFIT,                 ///< Perform the refit.
+	WID_VR_CLEAR,                 ///< Clear refit set.
 };
 
 /** Widgets of the #VehicleDetailsWindow class. */

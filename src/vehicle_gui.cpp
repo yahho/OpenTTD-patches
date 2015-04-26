@@ -612,6 +612,14 @@ struct RefitWindow : public Window {
 			case WID_VR_INFO:
 				size->width = WD_FRAMERECT_LEFT + this->information_width + WD_FRAMERECT_RIGHT;
 				break;
+
+			case WID_VR_CLEAR:
+				if (!auto_refit) {
+					size->width = 0;
+					resize->width = 0;
+					fill->width = 0;
+				}
+				break;
 		}
 	}
 
@@ -987,6 +995,12 @@ struct RefitWindow : public Window {
 					}
 				}
 				break;
+
+			case WID_VR_CLEAR: // clear button
+				assert (this->auto_refit);
+				this->cargo_mask = 0;
+				this->InvalidateData (1);
+				break;
 		}
 	}
 
@@ -1045,7 +1059,10 @@ static const NWidgetPart _nested_vehicle_refit_widgets[] = {
 	EndContainer(),
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_VR_INFO), SetMinimalTextLines(2, WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM), SetResize(1, 0), EndContainer(),
 	NWidget(NWID_HORIZONTAL),
-		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_VR_REFIT), SetFill(1, 0), SetResize(1, 0),
+		NWidget(NWID_HORIZONTAL, NC_EQUALSIZE),
+			NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_VR_CLEAR), SetDataTip(STR_REFIT_CLEAR, STR_REFIT_CLEAR_TOOLTIP), SetFill(1, 0), SetResize(1, 0),
+			NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_VR_REFIT), SetFill(1, 0), SetResize(1, 0),
+		EndContainer(),
 		NWidget(WWT_RESIZEBOX, COLOUR_GREY),
 	EndContainer(),
 };
