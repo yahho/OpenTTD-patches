@@ -15,7 +15,6 @@
 #include "tile_cmd.h"
 
 void DrawVoidTile(TileInfo *ti);
-void DrawHillyLandTile(const TileInfo *ti);
 void DrawClearLandTile(const TileInfo *ti, byte set);
 
 #endif /* CLEAR_FUNC_H */

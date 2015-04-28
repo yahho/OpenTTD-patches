@@ -88,15 +88,6 @@ void DrawClearLandTile(const TileInfo *ti, byte set)
 	DrawGroundSprite(SPR_FLAT_BARE_LAND + SlopeToSpriteOffset(ti->tileh) + set * 19, PAL_NONE);
 }
 
-void DrawHillyLandTile(const TileInfo *ti)
-{
-	if (ti->tileh != SLOPE_FLAT) {
-		DrawGroundSprite(SPR_FLAT_ROUGH_LAND + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
-	} else {
-		DrawGroundSprite(_landscape_clear_sprites_rough[GB(ti->x ^ ti->y, 4, 3)], PAL_NONE);
-	}
-}
-
 static void DrawClearLandFence(const TileInfo *ti)
 {
 	/* combine fences into one sprite object */
@@ -224,7 +215,10 @@ static void DrawTile_Clear(TileInfo *ti)
 					break;
 
 				case GROUND_ROUGH:
-					DrawHillyLandTile(ti);
+					DrawGroundSprite (ti->tileh != SLOPE_FLAT ?
+							SPR_FLAT_ROUGH_LAND + SlopeToSpriteOffset(ti->tileh) :
+							_landscape_clear_sprites_rough[GB(ti->x ^ ti->y, 4, 3)],
+						PAL_NONE);
 					break;
 
 				case GROUND_ROCKS:
