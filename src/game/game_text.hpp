@@ -40,6 +40,8 @@ struct GameStrings {
 	StringList string_names;                                      ///< The names of the compiled strings.
 
 	void Compile();
+
+	static GameStrings *current;
 };
 
 #endif /* GAME_TEXT_HPP */

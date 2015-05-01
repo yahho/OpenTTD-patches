@@ -317,7 +317,7 @@ void GameStrings::Compile()
 }
 
 /** The currently loaded game strings. */
-GameStrings *_current_data = NULL;
+GameStrings *GameStrings::current = NULL;
 
 /**
  * Get the string pointer of a particular game string.
@@ -326,8 +326,8 @@ GameStrings *_current_data = NULL;
  */
 const char *GetGameStringPtr(uint id)
 {
-	if (id >= _current_data->cur_language->lines.Length()) return GetStringPtr(STR_UNDEFINED);
-	return _current_data->cur_language->lines[id];
+	if (id >= GameStrings::current->cur_language->lines.Length()) return GetStringPtr(STR_UNDEFINED);
+	return GameStrings::current->cur_language->lines[id];
 }
 
 /**
@@ -336,9 +336,9 @@ const char *GetGameStringPtr(uint id)
  */
 void RegisterGameTranslation(Squirrel *engine)
 {
-	delete _current_data;
-	_current_data = LoadTranslations();
-	if (_current_data == NULL) return;
+	delete GameStrings::current;
+	GameStrings::current = LoadTranslations();
+	if (GameStrings::current == NULL) return;
 
 	HSQUIRRELVM vm = engine->GetVM();
 	sq_pushroottable(vm);
@@ -346,7 +346,7 @@ void RegisterGameTranslation(Squirrel *engine)
 	if (SQ_FAILED(sq_get(vm, -2))) return;
 
 	int idx = 0;
-	for (const char * const *p = _current_data->string_names.Begin(); p != _current_data->string_names.End(); p++, idx++) {
+	for (const char * const *p = GameStrings::current->string_names.Begin(); p != GameStrings::current->string_names.End(); p++, idx++) {
 		sq_pushstring(vm, *p, -1);
 		sq_pushinteger(vm, idx);
 		sq_rawset(vm, -3);
@@ -362,7 +362,7 @@ void RegisterGameTranslation(Squirrel *engine)
  */
 void ReconsiderGameScriptLanguage()
 {
-	if (_current_data == NULL) return;
+	if (GameStrings::current == NULL) return;
 
 	const char *language = strrchr (_current_language->file, PATHSEPCHAR);
 	assert (language != NULL);
@@ -372,13 +372,13 @@ void ReconsiderGameScriptLanguage()
 	assert (dot != NULL);
 	size_t len = dot - language;
 
-	for (LanguageStrings **p = _current_data->compiled_strings.Begin(); p != _current_data->compiled_strings.End(); p++) {
+	for (LanguageStrings **p = GameStrings::current->compiled_strings.Begin(); p != GameStrings::current->compiled_strings.End(); p++) {
 		if (memcmp ((*p)->language, language, len) == 0
 				&& (*p)->language[len] == '\0') {
-			_current_data->cur_language = *p;
+			GameStrings::current->cur_language = *p;
 			return;
 		}
 	}
 
-	_current_data->cur_language = _current_data->compiled_strings[0];
+	GameStrings::current->cur_language = GameStrings::current->compiled_strings[0];
 }

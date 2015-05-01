@@ -115,12 +115,10 @@ static void Save_GSDT(SaveDumper *dumper)
 	temp.Dump(dumper);
 }
 
-extern GameStrings *_current_data;
-
 static void Load_GSTR(LoadBuffer *reader)
 {
-	delete _current_data;
-	_current_data = new GameStrings();
+	delete GameStrings::current;
+	GameStrings::current = new GameStrings();
 
 	while (reader->IterateChunk() != -1) {
 		char *s = reader->ReadString (SLS_NONE);
@@ -132,26 +130,26 @@ static void Load_GSTR(LoadBuffer *reader)
 			*ls->lines.Append() = (s != NULL) ? s : xstrdup("");
 		}
 
-		*_current_data->raw_strings.Append() = ls;
+		*GameStrings::current->raw_strings.Append() = ls;
 	}
 
 	/* If there were no strings in the savegame, set GameStrings to NULL */
-	if (_current_data->raw_strings.Length() == 0) {
-		delete _current_data;
-		_current_data = NULL;
+	if (GameStrings::current->raw_strings.Length() == 0) {
+		delete GameStrings::current;
+		GameStrings::current = NULL;
 		return;
 	}
 
-	_current_data->Compile();
+	GameStrings::current->Compile();
 	ReconsiderGameScriptLanguage();
 }
 
 static void Save_GSTR(SaveDumper *dumper)
 {
-	if (_current_data == NULL) return;
+	if (GameStrings::current == NULL) return;
 
-	for (uint i = 0; i < _current_data->raw_strings.Length(); i++) {
-		const LanguageStrings *ls = _current_data->raw_strings[i];
+	for (uint i = 0; i < GameStrings::current->raw_strings.Length(); i++) {
+		const LanguageStrings *ls = GameStrings::current->raw_strings[i];
 
 		SaveDumper temp(1024);
 
