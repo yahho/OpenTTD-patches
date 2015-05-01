@@ -127,14 +127,14 @@ static void Load_GSTR(LoadBuffer *reader)
 
 		for (uint n = reader->ReadUint32(); n > 0; n--) {
 			char *s = reader->ReadString (SLS_ALLOW_CONTROL);
-			*ls->lines.Append() = (s != NULL) ? s : xstrdup("");
+			*ls->raw.Append() = (s != NULL) ? s : xstrdup("");
 		}
 
-		*GameStrings::current->raw_strings.Append() = ls;
+		GameStrings::current->strings.append (ls);
 	}
 
 	/* If there were no strings in the savegame, set GameStrings to NULL */
-	if (GameStrings::current->raw_strings.Length() == 0) {
+	if (GameStrings::current->strings.size() == 0) {
 		delete GameStrings::current;
 		GameStrings::current = NULL;
 		return;
@@ -148,18 +148,18 @@ static void Save_GSTR(SaveDumper *dumper)
 {
 	if (GameStrings::current == NULL) return;
 
-	for (uint i = 0; i < GameStrings::current->raw_strings.Length(); i++) {
-		const LanguageStrings *ls = GameStrings::current->raw_strings[i];
+	for (uint i = 0; i < GameStrings::current->strings.size(); i++) {
+		const LanguageStrings *ls = GameStrings::current->strings[i].get();
 
 		SaveDumper temp(1024);
 
 		temp.WriteString (ls->language);
 
-		uint n = ls->lines.Length();
+		uint n = ls->raw.Length();
 		temp.WriteUint32 (n);
 
 		for (uint j = 0; j < n; j++) {
-			temp.WriteString (ls->lines[j]);
+			temp.WriteString (ls->raw[j]);
 		}
 
 		dumper->WriteElementHeader(i, temp.GetSize());

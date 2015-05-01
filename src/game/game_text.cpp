@@ -114,7 +114,7 @@ LanguageStrings *ReadRawLanguageStrings(const char *file)
 			while (i > 0 && (buffer[i - 1] == '\r' || buffer[i - 1] == '\n' || buffer[i - 1] == ' ')) i--;
 			buffer[i] = '\0';
 
-			*ret->lines.Append() = xstrndup(buffer, to_read);
+			*ret->raw.Append() = xstrndup(buffer, to_read);
 
 			if (len > to_read) {
 				to_read = 0;
@@ -146,7 +146,7 @@ struct StringListReader : StringReader {
 	 * @param translation Are we reading a translation?
 	 */
 	StringListReader(StringData &data, const LanguageStrings *strings, bool master, bool translation) :
-			StringReader(data, strings->language, master, translation), p(strings->lines.Begin()), end(strings->lines.End())
+			StringReader(data, strings->language, master, translation), p(strings->raw.Begin()), end(strings->raw.End())
 	{
 	}
 
@@ -231,7 +231,7 @@ public:
 	{
 		if (strcmp(filename, exclude) == 0) return true;
 
-		*gs->raw_strings.Append() = ReadRawLanguageStrings(filename);
+		gs->strings.append (ReadRawLanguageStrings (filename));
 		return true;
 	}
 };
@@ -256,7 +256,7 @@ GameStrings *LoadTranslations()
 
 	GameStrings *gs = new GameStrings();
 	try {
-		*gs->raw_strings.Append() = ReadRawLanguageStrings(filename.c_str());
+		gs->strings.append (ReadRawLanguageStrings (filename.c_str()));
 
 		/* Scan for other language files */
 		LanguageScanner scanner (gs, filename.c_str());
@@ -295,7 +295,7 @@ GameStrings *LoadTranslations()
 void GameStrings::Compile()
 {
 	StringData data(1);
-	StringListReader master_reader(data, this->raw_strings[0], true, false);
+	StringListReader master_reader (data, this->strings[0].get(), true, false);
 	master_reader.ParseFile();
 	if (_errors != 0) throw std::exception();
 
@@ -304,14 +304,15 @@ void GameStrings::Compile()
 	StringNameWriter id_writer(&this->string_names);
 	id_writer.WriteHeader(data);
 
-	for (LanguageStrings **p = this->raw_strings.Begin(); p != this->raw_strings.End(); p++) {
+	for (LanguageVector::iterator iter = this->strings.begin(); iter != this->strings.end(); iter++) {
+		LanguageStrings *ls = iter->get();
+
 		data.FreeTranslation();
-		StringListReader translation_reader(data, *p, false, strcmp((*p)->language, "english") != 0);
+		StringListReader translation_reader (data, ls, false, strcmp (ls->language, "english") != 0);
 		translation_reader.ParseFile();
 		if (_errors != 0) throw std::exception();
 
-		LanguageStrings *compiled = *this->compiled_strings.Append() = new LanguageStrings((*p)->language);
-		TranslationWriter writer(&compiled->lines);
+		TranslationWriter writer (&ls->compiled);
 		writer.WriteLang(data);
 	}
 }
@@ -326,8 +327,8 @@ GameStrings *GameStrings::current = NULL;
  */
 const char *GetGameStringPtr(uint id)
 {
-	if (id >= GameStrings::current->cur_language->lines.Length()) return GetStringPtr(STR_UNDEFINED);
-	return GameStrings::current->cur_language->lines[id];
+	if (id >= GameStrings::current->cur_language->compiled.Length()) return GetStringPtr(STR_UNDEFINED);
+	return GameStrings::current->cur_language->compiled[id];
 }
 
 /**
@@ -372,13 +373,14 @@ void ReconsiderGameScriptLanguage()
 	assert (dot != NULL);
 	size_t len = dot - language;
 
-	for (LanguageStrings **p = GameStrings::current->compiled_strings.Begin(); p != GameStrings::current->compiled_strings.End(); p++) {
-		if (memcmp ((*p)->language, language, len) == 0
-				&& (*p)->language[len] == '\0') {
-			GameStrings::current->cur_language = *p;
+	for (GameStrings::LanguageVector::iterator iter = GameStrings::current->strings.begin(); iter != GameStrings::current->strings.end(); iter++) {
+		LanguageStrings *ls = iter->get();
+		if (memcmp (ls->language, language, len) == 0
+				&& ls->language[len] == '\0') {
+			GameStrings::current->cur_language = ls;
 			return;
 		}
 	}
 
-	GameStrings::current->cur_language = GameStrings::current->compiled_strings[0];
+	GameStrings::current->cur_language = GameStrings::current->strings[0].get();
 }

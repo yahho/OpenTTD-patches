@@ -12,6 +12,8 @@
 #ifndef GAME_TEXT_HPP
 #define GAME_TEXT_HPP
 
+#include <vector>
+#include "../core/pointer.h"
 #include "../core/smallvec_type.hpp"
 
 /** The tab we place our strings in. */
@@ -24,7 +26,8 @@ void ReconsiderGameScriptLanguage();
 /** Container for the raw (unencoded) language strings of a language. */
 struct LanguageStrings {
 	const char *language; ///< Name of the language (base filename).
-	StringList lines;     ///< The lines of the file to pass into the parser/encoder.
+	StringList raw;       ///< The raw strings of the language.
+	StringList compiled;  ///< The compiled strings of the language.
 
 	LanguageStrings(const char *language, const char *end = NULL);
 	~LanguageStrings();
@@ -35,8 +38,17 @@ struct GameStrings {
 	uint version;                  ///< The version of the language strings.
 	LanguageStrings *cur_language; ///< The current (compiled) language.
 
-	AutoDeleteSmallVector<LanguageStrings *, 4> raw_strings;      ///< The raw strings per language, first must be English/the master language!.
-	AutoDeleteSmallVector<LanguageStrings *, 4> compiled_strings; ///< The compiled strings per language, first must be English/the master language!.
+	/** Helper class to store a vector of LanguageStrings. */
+	struct LanguageVector : std::vector <ttd_unique_ptr <LanguageStrings> > {
+		/** Append a newly constructed LanguageStrings to the vector. */
+		void append (LanguageStrings *ls)
+		{
+			this->push_back (ttd_unique_ptr <LanguageStrings> (ls));
+		}
+	};
+
+	LanguageVector strings;    ///< The strings per language, first is master.
+
 	StringList string_names;                                      ///< The names of the compiled strings.
 
 	void Compile();
