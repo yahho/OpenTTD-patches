@@ -127,7 +127,7 @@ static void Load_GSTR(LoadBuffer *reader)
 
 		for (uint n = reader->ReadUint32(); n > 0; n--) {
 			char *s = reader->ReadString (SLS_ALLOW_CONTROL);
-			*ls->raw.Append() = (s != NULL) ? s : xstrdup("");
+			ls->raw.append ((s != NULL) ? s : xstrdup(""));
 		}
 
 		GameStrings::current->strings.append (ls);
@@ -155,11 +155,11 @@ static void Save_GSTR(SaveDumper *dumper)
 
 		temp.WriteString (ls->language);
 
-		uint n = ls->raw.Length();
+		uint n = ls->raw.size();
 		temp.WriteUint32 (n);
 
 		for (uint j = 0; j < n; j++) {
-			temp.WriteString (ls->raw[j]);
+			temp.WriteString (ls->raw[j].get());
 		}
 
 		dumper->WriteElementHeader(i, temp.GetSize());

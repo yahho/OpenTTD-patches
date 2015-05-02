@@ -114,7 +114,7 @@ LanguageStrings *ReadRawLanguageStrings(const char *file)
 			while (i > 0 && (buffer[i - 1] == '\r' || buffer[i - 1] == '\n' || buffer[i - 1] == ' ')) i--;
 			buffer[i] = '\0';
 
-			*ret->raw.Append() = xstrndup(buffer, to_read);
+			ret->raw.append (xstrndup (buffer, to_read));
 
 			if (len > to_read) {
 				to_read = 0;
@@ -135,8 +135,8 @@ LanguageStrings *ReadRawLanguageStrings(const char *file)
 
 /** A reader that simply reads using fopen. */
 struct StringListReader : StringReader {
-	const char * const *p;   ///< The current location of the iteration.
-	const char * const *end; ///< The end of the iteration.
+	LanguageStrings::StringVector::const_iterator iter; ///< The current location of the iteration.
+	LanguageStrings::StringVector::const_iterator end;  ///< The end of the iteration.
 
 	/**
 	 * Create the reader.
@@ -146,16 +146,17 @@ struct StringListReader : StringReader {
 	 * @param translation Are we reading a translation?
 	 */
 	StringListReader(StringData &data, const LanguageStrings *strings, bool master, bool translation) :
-			StringReader(data, strings->language, master, translation), p(strings->raw.Begin()), end(strings->raw.End())
+			StringReader(data, strings->language, master, translation),
+			iter(strings->raw.begin()), end(strings->raw.end())
 	{
 	}
 
 	/* virtual */ char *ReadLine(char *buffer, size_t size)
 	{
-		if (this->p == this->end) return NULL;
+		if (this->iter == this->end) return NULL;
 
-		strncpy(buffer, *this->p, size);
-		this->p++;
+		strncpy (buffer, this->iter->get(), size);
+		this->iter++;
 
 		return buffer;
 	}
@@ -163,13 +164,13 @@ struct StringListReader : StringReader {
 
 /** Class for writing an encoded language. */
 struct TranslationWriter : LanguageWriter {
-	StringList *strings; ///< The encoded strings.
+	LanguageStrings::StringVector *strings; ///< The encoded strings.
 
 	/**
 	 * Writer for the encoded data.
 	 * @param strings The string table to add the strings to.
 	 */
-	TranslationWriter(StringList *strings) : strings(strings)
+	TranslationWriter (LanguageStrings::StringVector *strings) : strings(strings)
 	{
 	}
 
@@ -184,7 +185,7 @@ struct TranslationWriter : LanguageWriter {
 
 	void WriteString (size_t length, const byte *buffer) OVERRIDE
 	{
-		*this->strings->Append() = xstrmemdup ((const char*) buffer, length);
+		this->strings->append (xstrmemdup ((const char*) buffer, length));
 	}
 };
 
@@ -329,8 +330,8 @@ GameStrings *GameStrings::current = NULL;
  */
 const char *GetGameStringPtr(uint id)
 {
-	if (id >= GameStrings::current->cur_language->compiled.Length()) return GetStringPtr(STR_UNDEFINED);
-	return GameStrings::current->cur_language->compiled[id];
+	if (id >= GameStrings::current->cur_language->compiled.size()) return GetStringPtr(STR_UNDEFINED);
+	return GameStrings::current->cur_language->compiled[id].get();
 }
 
 /**

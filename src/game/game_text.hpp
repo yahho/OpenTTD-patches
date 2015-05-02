@@ -14,7 +14,6 @@
 
 #include <vector>
 #include "../core/pointer.h"
-#include "../core/smallvec_type.hpp"
 
 /** The tab we place our strings in. */
 static const uint GAME_TEXT_TAB = 18;
@@ -26,8 +25,18 @@ void ReconsiderGameScriptLanguage();
 /** Container for the raw (unencoded) language strings of a language. */
 struct LanguageStrings {
 	const char *language; ///< Name of the language (base filename).
-	StringList raw;       ///< The raw strings of the language.
-	StringList compiled;  ///< The compiled strings of the language.
+
+	/** Helper class to store a vector of unique strings. */
+	struct StringVector : std::vector <ttd_unique_free_ptr <char> > {
+		/** Append a newly allocated string to the vector. */
+		void append (char *s)
+		{
+			this->push_back (ttd_unique_free_ptr<char> (s));
+		}
+	};
+
+	StringVector raw;       ///< The raw strings of the language.
+	StringVector compiled;  ///< The compiled strings of the language.
 
 	LanguageStrings(const char *language, const char *end = NULL);
 	~LanguageStrings();
