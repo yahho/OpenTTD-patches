@@ -190,19 +190,21 @@ struct TranslationWriter : LanguageWriter {
 
 /** Class for writing the string IDs. */
 struct StringNameWriter : HeaderWriter {
-	StringList *strings; ///< The string names.
+	GameStrings::StringVector *strings; ///< The string names.
 
 	/**
 	 * Writer for the string names.
 	 * @param strings The string table to add the strings to.
 	 */
-	StringNameWriter(StringList *strings) : strings(strings)
+	StringNameWriter (GameStrings::StringVector *strings) : strings(strings)
 	{
 	}
 
 	void WriteStringID(const char *name, int stringid)
 	{
-		if (stringid == (int)this->strings->Length()) *this->strings->Append() = xstrdup(name);
+		if (stringid == (int)this->strings->size()) {
+			this->strings->append (xstrdup (name));
+		}
 	}
 };
 
@@ -347,8 +349,8 @@ void RegisterGameTranslation(Squirrel *engine)
 	if (SQ_FAILED(sq_get(vm, -2))) return;
 
 	int idx = 0;
-	for (const char * const *p = GameStrings::current->string_names.Begin(); p != GameStrings::current->string_names.End(); p++, idx++) {
-		sq_pushstring(vm, *p, -1);
+	for (GameStrings::StringVector::iterator iter = GameStrings::current->string_names.begin(); iter != GameStrings::current->string_names.end(); iter++, idx++) {
+		sq_pushstring(vm, iter->get(), -1);
 		sq_pushinteger(vm, idx);
 		sq_rawset(vm, -3);
 	}

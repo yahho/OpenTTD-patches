@@ -49,7 +49,16 @@ struct GameStrings {
 
 	LanguageVector strings;    ///< The strings per language, first is master.
 
-	StringList string_names;                                      ///< The names of the compiled strings.
+	/** Helper class to store a vector of unique strings. */
+	struct StringVector : std::vector <ttd_unique_free_ptr <char> > {
+		/** Append a newly allocated string to the vector. */
+		void append (char *s)
+		{
+			this->push_back (ttd_unique_free_ptr<char> (s));
+		}
+	};
+
+	StringVector string_names; ///< The names of the compiled strings.
 
 	void Compile();
 
