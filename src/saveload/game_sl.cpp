@@ -153,7 +153,7 @@ static void Save_GSTR(SaveDumper *dumper)
 
 		SaveDumper temp(1024);
 
-		temp.WriteString (ls->language);
+		temp.WriteString (ls->language.get());
 
 		uint n = ls->raw.size();
 		temp.WriteUint32 (n);

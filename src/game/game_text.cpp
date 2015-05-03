@@ -64,14 +64,8 @@ void NORETURN CDECL strgen_fatal(const char *s, ...)
  * @param end If not NULL, terminate \a language at this position.
  */
 LanguageStrings::LanguageStrings(const char *language, const char *end)
+	: language (end == NULL ? xstrdup (language) : xstrndup (language, end - language))
 {
-	this->language = end == NULL ? xstrdup(language) : xstrndup(language, end - language);
-}
-
-/** Free everything. */
-LanguageStrings::~LanguageStrings()
-{
-	free(this->language);
 }
 
 /**
@@ -146,7 +140,7 @@ struct StringListReader : StringReader {
 	 * @param translation Are we reading a translation?
 	 */
 	StringListReader(StringData &data, const LanguageStrings *strings, bool master, bool translation) :
-			StringReader(data, strings->language, master, translation),
+			StringReader(data, strings->language.get(), master, translation),
 			iter(strings->raw.begin()), end(strings->raw.end())
 	{
 	}
@@ -311,7 +305,7 @@ void GameStrings::Compile()
 		LanguageStrings *ls = iter->get();
 
 		data.FreeTranslation();
-		StringListReader translation_reader (data, ls, false, strcmp (ls->language, "english") != 0);
+		StringListReader translation_reader (data, ls, false, strcmp (ls->language.get(), "english") != 0);
 		translation_reader.ParseFile();
 		if (_errors != 0) throw std::exception();
 
@@ -378,8 +372,8 @@ void ReconsiderGameScriptLanguage()
 
 	for (GameStrings::LanguageVector::iterator iter = GameStrings::current->strings.begin(); iter != GameStrings::current->strings.end(); iter++) {
 		LanguageStrings *ls = iter->get();
-		if (memcmp (ls->language, language, len) == 0
-				&& ls->language[len] == '\0') {
+		if (memcmp (ls->language.get(), language, len) == 0
+				&& ls->language.get()[len] == '\0') {
 			GameStrings::current->cur_language = ls;
 			return;
 		}

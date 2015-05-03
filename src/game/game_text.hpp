@@ -24,7 +24,7 @@ void ReconsiderGameScriptLanguage();
 
 /** Container for the raw (unencoded) language strings of a language. */
 struct LanguageStrings {
-	const char *language; ///< Name of the language (base filename).
+	const ttd_unique_free_ptr <char> language; ///< Name of the language (base filename).
 
 	/** Helper class to store a vector of unique strings. */
 	struct StringVector : std::vector <ttd_unique_free_ptr <char> > {
@@ -39,7 +39,6 @@ struct LanguageStrings {
 	StringVector compiled;  ///< The compiled strings of the language.
 
 	LanguageStrings(const char *language, const char *end = NULL);
-	~LanguageStrings();
 };
 
 /** Container for all the game strings. */
