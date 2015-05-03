@@ -248,28 +248,30 @@ GameStrings *LoadTranslations()
 	try {
 		gs->strings.append (ReadRawLanguageStrings (filename.c_str()));
 
-		/* Scan for other language files */
-		LanguageScanner scanner (gs, filename.c_str());
-		filename.truncate (base_length);
-
 		const char *tar_filename = info->GetTarFile();
 		TarList::iterator iter;
 		if (tar_filename != NULL && (iter = TarCache::cache[GAME_DIR].tars.find(tar_filename)) != TarCache::cache[GAME_DIR].tars.end()) {
-			/* The main script is in a tar file, so find all files that
-			 * are in the same tar and add them to the langfile scanner. */
+			/* The main script is in a tar file, so find all files
+			 * that are in the same tar and add them to gs. */
 			TarFileList::iterator tar;
 			FOR_ALL_TARS(tar, GAME_DIR) {
 				/* Not in the same tar. */
 				if (tar->second.tar_filename != iter->first) continue;
 
 				/* Check the path and extension. */
-				if (tar->first.size() <= base_length || tar->first.compare(0, base_length, filename.c_str()) != 0) continue;
+				if (tar->first.size() <= base_length) continue;
+				if (tar->first.compare(0, base_length, filename.c_str(), base_length) != 0) continue;
+				if (tar->first.size() < 4) continue;
 				if (tar->first.compare(tar->first.size() - 4, 4, ".txt") != 0) continue;
+				/* Exclude master file. */
+				if (tar->first.compare(base_length, std::string::npos, filename.c_str() + base_length) == 0) continue;
 
-				scanner.AddFile(tar->first.c_str(), 0, tar_filename);
+				gs->strings.append (ReadRawLanguageStrings (tar->first.c_str()));
 			}
 		} else {
-			/* Scan filesystem */
+			/* Scan filesystem for other language files. */
+			LanguageScanner scanner (gs, filename.c_str());
+			filename.truncate (base_length);
 			scanner.Scan (filename.c_str());
 		}
 
