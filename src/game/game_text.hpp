@@ -38,7 +38,18 @@ struct LanguageStrings {
 	StringVector raw;       ///< The raw strings of the language.
 	StringVector compiled;  ///< The compiled strings of the language.
 
-	LanguageStrings(const char *language, const char *end = NULL);
+	/** Create a new container for language strings. */
+	LanguageStrings (void) : language (xstrdup (""))
+	{
+	}
+
+	/**
+	 * Create a new container for language strings.
+	 * @param language The language name.
+	 */
+	LanguageStrings (char *language) : language (language)
+	{
+	}
 };
 
 /** Container for all the game strings. */

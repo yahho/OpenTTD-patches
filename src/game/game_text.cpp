@@ -58,15 +58,6 @@ void NORETURN CDECL strgen_fatal(const char *s, ...)
 	throw std::exception();
 }
 
-/**
- * Create a new container for language strings.
- * @param language The language name.
- * @param end If not NULL, terminate \a language at this position.
- */
-LanguageStrings::LanguageStrings(const char *language, const char *end)
-	: language (end == NULL ? xstrdup (language) : xstrndup (language, end - language))
-{
-}
 
 /**
  * Read all the raw language strings from the given file.
@@ -97,7 +88,9 @@ LanguageStrings *ReadRawLanguageStrings(const char *file)
 			return NULL;
 		}
 
-		ret = new LanguageStrings(langname, strchr(langname, '.'));
+		const char *dot = strchr (langname, '.');
+		ret = new LanguageStrings ((dot == NULL) ? xstrdup (langname) :
+				xstrmemdup (langname, dot - langname));
 
 		char buffer[2048];
 		while (to_read != 0 && fgets(buffer, sizeof(buffer), fh) != NULL) {

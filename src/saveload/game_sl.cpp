@@ -122,8 +122,8 @@ static void Load_GSTR(LoadBuffer *reader)
 
 	while (reader->IterateChunk() != -1) {
 		char *s = reader->ReadString (SLS_NONE);
-		LanguageStrings *ls = new LanguageStrings (s != NULL ? s : "");
-		free (s);
+		LanguageStrings *ls = (s != NULL) ? new LanguageStrings (s) :
+				new LanguageStrings;
 
 		for (uint n = reader->ReadUint32(); n > 0; n--) {
 			char *s = reader->ReadString (SLS_ALLOW_CONTROL);
