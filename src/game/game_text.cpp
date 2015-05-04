@@ -212,9 +212,9 @@ public:
 	/**
 	 * Scan.
 	 */
-	void Scan(const char *directory)
+	void Scan (const char *directory, const char *dirend)
 	{
-		this->FileScanner::Scan(".txt", directory, false);
+		this->FileScanner::Scan (".txt", directory, dirend, false);
 	}
 
 	/* virtual */ bool AddFile(const char *filename, size_t basepath_length, const char *tar_filename)
@@ -270,9 +270,9 @@ GameStrings *LoadTranslations()
 			}
 		} else {
 			/* Scan filesystem for other language files. */
-			LanguageScanner scanner (gs, filename.c_str());
-			filename.truncate (base_length);
-			scanner.Scan (filename.c_str());
+			const char *p = filename.c_str();
+			LanguageScanner scanner (gs, p);
+			scanner.Scan (p, p + base_length);
 		}
 
 		gs->Compile();

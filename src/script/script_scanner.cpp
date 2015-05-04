@@ -225,13 +225,11 @@ static bool IsSameScript(const ContentInfo *ci, bool md5sum, ScriptInfo *info, S
 			checksum.AddFile(tar->first.c_str(), 0, tar_filename);
 		}
 	} else {
-		char path[MAX_PATH];
-		bstrcpy (path, info->GetMainScript());
+		const char *main = info->GetMainScript();
 		/* There'll always be at least 1 path separator character in a script
 		 * main script name as the search algorithm requires the main script to
 		 * be in a subdirectory of the script directory; so <dir>/<path>/main.nut. */
-		*strrchr(path, PATHSEPCHAR) = '\0';
-		checksum.Scan(".nut", path);
+		checksum.Scan (".nut", main, strrchr (main, PATHSEPCHAR), true);
 	}
 
 	return memcmp(ci->md5sum, checksum.md5sum, sizeof(ci->md5sum)) == 0;

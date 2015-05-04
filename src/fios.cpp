@@ -340,7 +340,7 @@ static void FiosGetFileList(SaveLoadDialogMode mode, fios_getlist_callback_proc 
 	/* Show files */
 	FiosFileScanner scanner(mode, callback_proc);
 	if (subdir == NO_DIRECTORY) {
-		scanner.Scan(NULL, _fios_path, false);
+		scanner.Scan(NULL, _fios_path, NULL, false);
 	} else {
 		scanner.Scan(NULL, subdir, true, true);
 	}

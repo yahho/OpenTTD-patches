@@ -1451,14 +1451,20 @@ uint FileScanner::Scan(const char *extension, Subdirectory sd, bool tars, bool r
  * Scan for files with the given extension in the given search path.
  * @param extension the extension of files to search for.
  * @param directory the sub directory to search in.
+ * @param dirend if not null, end directory here
  * @param recursive whether to search recursively
  * @return the number of found files, i.e. the number of times that
  *         AddFile returned true.
  */
-uint FileScanner::Scan(const char *extension, const char *directory, bool recursive)
+uint FileScanner::Scan (const char *extension, const char *directory,
+	const char *dirend, bool recursive)
 {
 	char path[MAX_PATH];
-	bstrcpy (path, directory);
+	if (dirend == NULL) {
+		bstrcpy (path, directory);
+	} else {
+		bstrfmt (path, "%.*s", (int)(dirend - directory), directory);
+	}
 	if (!AppendPathSeparator(path, lengthof(path))) return 0;
 	return ScanPath(this, extension, path, strlen(path), recursive);
 }

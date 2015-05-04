@@ -87,7 +87,7 @@ public:
 	virtual ~FileScanner() {}
 
 	uint Scan(const char *extension, Subdirectory sd, bool tars = true, bool recursive = true);
-	uint Scan(const char *extension, const char *directory, bool recursive = true);
+	uint Scan(const char *extension, const char *directory, const char *dirend, bool recursive);
 
 	/**
 	 * Add a file with the given filename.
