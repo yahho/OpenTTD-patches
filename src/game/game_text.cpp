@@ -202,12 +202,11 @@ struct StringNameWriter : HeaderWriter {
 class LanguageScanner : protected FileScanner {
 private:
 	GameStrings *gs;
-	char *exclude;
+	const char *const exclude;
 
 public:
 	/** Initialise */
-	LanguageScanner(GameStrings *gs, const char *exclude) : gs(gs), exclude(xstrdup(exclude)) {}
-	~LanguageScanner() { free(exclude); }
+	LanguageScanner (GameStrings *gs, const char *exclude) : gs(gs), exclude(exclude) {}
 
 	/**
 	 * Scan.
