@@ -2438,7 +2438,10 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 
 		if (HasBridgeAbove(tile)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
 
-		CommandCost ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+		CommandCost ret = CheckIfAuthorityAllowsNewStation(tile, flags);
+		if (ret.Failed()) return ret;
+
+		ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
 		if (ret.Failed()) return ret;
 
 		TileIndex tile_cur = tile + TileOffsByDiagDir(direction);
@@ -2467,9 +2470,12 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 
 		if (HasBridgeAbove(tile)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
 
+		CommandCost ret = CheckIfAuthorityAllowsNewStation(tile, flags);
+		if (ret.Failed()) return ret;
+
 		/* Get the water class of the water tile before it is cleared.*/
 		wc = GetWaterClass (tile);
-		CommandCost ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+		ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
 		if (ret.Failed()) return ret;
 
 		dock_area = TileArea (tile);
@@ -2477,13 +2483,10 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 		return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
 	}
 
-	CommandCost ret = CheckIfAuthorityAllowsNewStation(tile, flags);
-	if (ret.Failed()) return ret;
-
 	/* middle */
 	Station *st = NULL;
-	ret = BuildStationPart (&st, dock_area, INVALID_STATION, station_to_join,
-			HasBit (p1, 0), INVALID_STRING_ID,
+	CommandCost ret = BuildStationPart (&st, dock_area, INVALID_STATION,
+			station_to_join, HasBit (p1, 0), INVALID_STRING_ID,
 			flags, STATIONNAMING_DOCK);
 	if (ret.Failed()) return ret;
 
