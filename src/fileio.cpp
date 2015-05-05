@@ -1156,13 +1156,6 @@ void DeterminePaths(const char *exe)
 
 #if defined(WITH_XDG_BASEDIR) && defined(WITH_PERSONAL_DIR)
 	sstring<MAX_PATH> config_home;
-
-	const char *xdg_config_home = xdgConfigHome(NULL);
-	config_home.fmt ("%s" PATHSEP "%s", xdg_config_home,
-			PERSONAL_DIR[0] == '.' ? &PERSONAL_DIR[1] : PERSONAL_DIR);
-	free(xdg_config_home);
-
-	AppendPathSeparator (&config_home);
 #endif
 
 	Searchpath sp;
@@ -1185,6 +1178,13 @@ void DeterminePaths(const char *exe)
 		} else {
 #if defined(WITH_XDG_BASEDIR) && defined(WITH_PERSONAL_DIR)
 			/* No previous configuration file found. Use the configuration folder from XDG. */
+			char *xdg_config_home = xdgConfigHome (NULL);
+			config_home.fmt ("%s" PATHSEP "%s", xdg_config_home,
+					PERSONAL_DIR[0] == '.' ? &PERSONAL_DIR[1] : PERSONAL_DIR);
+			free (xdg_config_home);
+
+			AppendPathSeparator (&config_home);
+
 			config_dir = config_home.c_str();
 #else
 			static const Searchpath new_openttd_cfg_order[] = {
