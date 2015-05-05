@@ -549,22 +549,14 @@ static void FioCreateDirectory(const char *name)
  * Appends, if necessary, the path separator character to the end of the string.
  * It does not add the path separator to zero-sized strings.
  * @param buf    string to append the separator to
- * @param buflen the length of \a buf.
  * @return true iff the operation succeeded
  */
-static bool AppendPathSeparator (char *buf, size_t buflen)
+static bool AppendPathSeparator (sstring<MAX_PATH> *buf)
 {
-	size_t s = strlen(buf);
+	size_t s = buf->length();
 
-	/* Length of string + path separator + '\0' */
-	if (s != 0 && buf[s - 1] != PATHSEPCHAR) {
-		if (s + 2 >= buflen) return false;
-
-		buf[s]     = PATHSEPCHAR;
-		buf[s + 1] = '\0';
-	}
-
-	return true;
+	return (s == 0) || (buf->get_buffer()[s-1] == PATHSEPCHAR)
+			|| buf->append (PATHSEPCHAR);
 }
 
 /**
@@ -1052,10 +1044,10 @@ static bool DoScanWorkingDirectory()
 	/* No personal/home directory, so the working directory won't be that. */
 	if (_searchpaths[SP_PERSONAL_DIR] == NULL) return true;
 
-	char tmp[MAX_PATH];
-	bstrfmt (tmp, "%s%s", _searchpaths[SP_WORKING_DIR], PERSONAL_DIR);
-	AppendPathSeparator(tmp, MAX_PATH);
-	return strcmp(tmp, _searchpaths[SP_PERSONAL_DIR]) != 0;
+	sstring<MAX_PATH> tmp;
+	tmp.fmt ("%s%s", _searchpaths[SP_WORKING_DIR], PERSONAL_DIR);
+	AppendPathSeparator (&tmp);
+	return strcmp (tmp.c_str(), _searchpaths[SP_PERSONAL_DIR]) != 0;
 }
 
 /** strdup the current working directory, with a trailing path separator. */
@@ -1163,14 +1155,14 @@ void DeterminePaths(const char *exe)
 	DetermineBasePaths(exe);
 
 #if defined(WITH_XDG_BASEDIR) && defined(WITH_PERSONAL_DIR)
-	char config_home[MAX_PATH];
+	sstring<MAX_PATH> config_home;
 
 	const char *xdg_config_home = xdgConfigHome(NULL);
-	bstrfmt (config_home, "%s" PATHSEP "%s", xdg_config_home,
+	config_home.fmt ("%s" PATHSEP "%s", xdg_config_home,
 			PERSONAL_DIR[0] == '.' ? &PERSONAL_DIR[1] : PERSONAL_DIR);
 	free(xdg_config_home);
 
-	AppendPathSeparator(config_home, MAX_PATH);
+	AppendPathSeparator (&config_home);
 #endif
 
 	Searchpath sp;
@@ -1193,7 +1185,7 @@ void DeterminePaths(const char *exe)
 		} else {
 #if defined(WITH_XDG_BASEDIR) && defined(WITH_PERSONAL_DIR)
 			/* No previous configuration file found. Use the configuration folder from XDG. */
-			config_dir = config_home;
+			config_dir = config_home.c_str();
 #else
 			static const Searchpath new_openttd_cfg_order[] = {
 					SP_PERSONAL_DIR, SP_BINARY_DIR, SP_WORKING_DIR, SP_SHARED_DIR, SP_INSTALLATION_DIR
@@ -1221,7 +1213,7 @@ void DeterminePaths(const char *exe)
 	_windows_file = str_fmt("%swindows.cfg", config_dir);
 
 #if defined(WITH_XDG_BASEDIR) && defined(WITH_PERSONAL_DIR)
-	if (config_dir == config_home) {
+	if (config_dir == config_home.c_str()) {
 		/* We are using the XDG configuration home for the config file,
 		 * then store the rest in the XDG data home folder. */
 		_personal_dir = _searchpaths[SP_PERSONAL_DIR_XDG];
@@ -1362,21 +1354,21 @@ static uint ScanPath(FileScanner *fs, const char *extension, const char *path, s
 
 	while ((dirent = readdir(dir)) != NULL) {
 		const char *d_name = FS2OTTD(dirent->d_name);
-		char filename[MAX_PATH];
+		sstring<MAX_PATH> filename;
 
 		if (!FiosIsValidFile(path, dirent, &sb)) continue;
 
-		bstrfmt (filename, "%s%s", path, d_name);
+		filename.fmt ("%s%s", path, d_name);
 
 		if (S_ISDIR(sb.st_mode)) {
 			/* Directory */
 			if (!recursive) continue;
 			if (strcmp(d_name, ".") == 0 || strcmp(d_name, "..") == 0) continue;
-			if (!AppendPathSeparator(filename, lengthof(filename))) continue;
-			num += ScanPath(fs, extension, filename, basepath_length, recursive);
+			if (!AppendPathSeparator (&filename)) continue;
+			num += ScanPath (fs, extension, filename.c_str(), basepath_length, recursive);
 		} else if (S_ISREG(sb.st_mode)) {
 			/* File */
-			if (MatchesExtension(extension, filename) && fs->AddFile(filename, basepath_length, NULL)) num++;
+			if (MatchesExtension (extension, filename.c_str()) && fs->AddFile (filename.c_str(), basepath_length, NULL)) num++;
 		}
 	}
 
@@ -1459,12 +1451,12 @@ uint FileScanner::Scan(const char *extension, Subdirectory sd, bool tars, bool r
 uint FileScanner::Scan (const char *extension, const char *directory,
 	const char *dirend, bool recursive)
 {
-	char path[MAX_PATH];
+	sstring<MAX_PATH> path;
 	if (dirend == NULL) {
-		bstrcpy (path, directory);
+		path.copy (directory);
 	} else {
-		bstrfmt (path, "%.*s", (int)(dirend - directory), directory);
+		path.fmt ("%.*s", (int)(dirend - directory), directory);
 	}
-	if (!AppendPathSeparator(path, lengthof(path))) return 0;
-	return ScanPath(this, extension, path, strlen(path), recursive);
+	if (!AppendPathSeparator (&path)) return 0;
+	return ScanPath (this, extension, path.c_str(), path.length(), recursive);
 }
