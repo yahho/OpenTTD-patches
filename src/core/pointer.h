@@ -74,9 +74,19 @@ struct ttd_unique_free_ptr : ttd_unique_ptr <T, ttd_delete_free> {
 
 template <typename T>
 struct ttd_unique_free_ptr : ttd_shared_ptr <T> {
+	/* Using free directly as deleter requires a cast for overload
+	 * resolution, and that seems to cause calling convention confusion
+	 * in MSVC, so we use this proxy function. */
+	static void ttd_free (void *p)
+	{
+		free (p);
+	}
+
 	CONSTEXPR ttd_unique_free_ptr() : ttd_shared_ptr <T> () { }
 
-	explicit ttd_unique_free_ptr (T *t) : ttd_shared_ptr <T> (t) { }
+	explicit ttd_unique_free_ptr (T *t) : ttd_shared_ptr <T> (t, ttd_free)
+	{
+	}
 
 	void reset (void)
 	{
@@ -86,7 +96,7 @@ struct ttd_unique_free_ptr : ttd_shared_ptr <T> {
 	template <typename TT>
 	void reset (TT *p)
 	{
-		ttd_shared_ptr<T>::reset (p, (void (*) (void*)) free);
+		ttd_shared_ptr<T>::reset (p, ttd_free);
 	}
 };
 
