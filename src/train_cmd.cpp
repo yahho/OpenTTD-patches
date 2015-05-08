@@ -2698,8 +2698,6 @@ static bool ChooseTrainTrack (Train *v, RailPathPos origin,
 		}
 	}
 
-	TryReserveRailTrack(v->GetPos());
-
 	/* Extend reservation until we have found a safe position. */
 	bool safe = false;
 	for (;;) {
