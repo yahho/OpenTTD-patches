@@ -2258,48 +2258,48 @@ detect_os() {
 		# Detect UNIX, OSX, FREEBSD, DRAGONFLY, OPENBSD, NETBSD, HPUX, MORPHOS, BEOS, SUNOS, CYGWIN, MINGW, OS2, DOS, WINCE, and PSP
 
 		# Try first via dumpmachine, then via uname
-		os=`echo "$host" | tr '[A-Z]' '[a-z]' | $awk '
-					/linux/        { print "UNIX";      exit}
-					/darwin/       { print "OSX";       exit}
-					/freebsd/      { print "FREEBSD";   exit}
-					/dragonfly/    { print "DRAGONFLY"; exit}
-					/openbsd/      { print "OPENBSD";   exit}
-					/netbsd/       { print "NETBSD";    exit}
-					/hp-ux/        { print "HPUX";      exit}
-					/morphos/      { print "MORPHOS";   exit}
-					/beos/         { print "BEOS";      exit}
-					/haiku/        { print "HAIKU";     exit}
-					/sunos/        { print "SUNOS";     exit}
-					/solaris/      { print "SUNOS";     exit}
-					/cygwin/       { print "CYGWIN";    exit}
-					/mingw/        { print "MINGW";     exit}
-					/os2/          { print "OS2";       exit}
-					/dos/          { print "DOS";       exit}
-					/wince/        { print "WINCE";     exit}
-					/psp/          { print "PSP";       exit}
-		'`
+		case `echo "$host" | tr '[A-Z]' '[a-z]'` in
+			*linux*)     os=UNIX;;
+			*darwin*)    os=OSX;;
+			*freebsd*)   os=FREEBSD;;
+			*dragonfly*) os=DRAGONFLY;;
+			*openbsd*)   os=OPENBSD;;
+			*netbsd*)    os=NETBSD;;
+			*hp-ux*)     os=HPUX;;
+			*morphos*)   os=MORPHOS;;
+			*beos*)      os=BEOS;;
+			*haiku*)     os=HAIKU;;
+			*sunos*)     os=SUNOS;;
+			*solaris*)   os=SUNOS;;
+			*cygwin*)    os=CYGWIN;;
+			*mingw*)     os=MINGW;;
+			*os2*)       os=OS2;;
+			*dos*)       os=DOS;;
+			*wince*)     os=WINCE;;
+			*psp*)       os=PSP;;
+		esac
 
-		if [ -z "$os" ]; then
-			os=`LC_ALL=C uname | tr '[A-Z]' '[a-z]' | $awk '
-					/linux/        { print "UNIX";      exit}
-					/darwin/       { print "OSX";       exit}
-					/freebsd/      { print "FREEBSD";   exit}
-					/dragonfly/    { print "DRAGONFLY"; exit}
-					/openbsd/      { print "OPENBSD";   exit}
-					/netbsd/       { print "NETBSD";    exit}
-					/hp-ux/        { print "HPUX";      exit}
-					/morphos/      { print "MORPHOS";   exit}
-					/beos/         { print "BEOS";      exit}
-					/haiku/        { print "HAIKU";     exit}
-					/sunos/        { print "SUNOS";     exit}
-					/cygwin/       { print "CYGWIN";    exit}
-					/mingw/        { print "MINGW";     exit}
-					/os\/2/        { print "OS2";       exit}
-					/gnu/          { print "UNIX";      exit}
-			'`
+		if [ "$os" = "DETECT" ]; then
+			case `LC_ALL=C uname | tr '[A-Z]' '[a-z]'` in
+				*linux*)     os=UNIX;;
+				*darwin*)    os=OSX;;
+				*freebsd*)   os=FREEBSD;;
+				*dragonfly*) os=DRAGONFLY;;
+				*openbsd*)   os=OPENBSD;;
+				*netbsd*)    os=NETBSD;;
+				*hp-ux*)     os=HPUX;;
+				*morphos*)   os=MORPHOS;;
+				*beos*)      os=BEOS;;
+				*haiku*)     os=HAIKU;;
+				*sunos*)     os=SUNOS;;
+				*cygwin*)    os=CYGWIN;;
+				*mingw*)     os=MINGW;;
+				*os/2*)      os=OS2;;
+				*gnu*)       os=UNIX;;
+			esac
 		fi
 
-		if [ -z "$os" ]; then
+		if [ "$os" = "DETECT" ]; then
 			log 1 "detecting OS... none detected"
 			log 1 "I couldn't detect your OS. Please use --os=OS to force one"
 			log 1 "Allowed values are: UNIX, OSX, FREEBSD, DRAGONFLY, OPENBSD, NETBSD, MORPHOS, HPUX, BEOS, HAIKU, SUNOS, CYGWIN, MINGW, OS2, DOS, WINCE, and PSP"
