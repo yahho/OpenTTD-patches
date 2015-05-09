@@ -48,7 +48,7 @@ void Load_NewGRFMapping(LoadBuffer *reader, OverrideManagerBase &mapping)
 
 	int index;
 	while ((index = reader->IterateChunk()) != -1) {
-		if ((uint)index >= max_id) break;
+		if ((uint)index >= max_id) throw SlCorrupt("Too many NewGRF entity mappings");
 		reader->ReadObject(&mapping.mapping_ID[index], _newgrf_mapping_desc);
 	}
 }

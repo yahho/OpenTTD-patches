@@ -159,14 +159,14 @@ static void Save_ITBL(SaveDumper *dumper)
 /** Load industry-type build data. */
 static void Load_ITBL(LoadBuffer *reader)
 {
-	int index;
-	for (int i = 0; i < NUM_INDUSTRYTYPES; i++) {
-		index = reader->IterateChunk();
-		if (index != i) throw SlCorrupt("Invalid industry-type build data");
-		reader->ReadObject(_industry_builder.builddata + i, _industrytype_builder_desc);
+	for (IndustryType it = 0; it < NUM_INDUSTRYTYPES; it++) {
+		_industry_builder.builddata[it].Reset();
 	}
-	index = reader->IterateChunk();
-	if (index != -1) throw SlCorrupt("Invalid industry-type build data");
+	int index;
+	while ((index = reader->IterateChunk()) != -1) {
+		if ((uint)index >= NUM_INDUSTRYTYPES) throw SlCorrupt("Too many industry builder datas");
+		reader->ReadObject(_industry_builder.builddata + index, _industrytype_builder_desc);
+	}
 }
 
 extern const ChunkHandler _industry_chunk_handlers[] = {
