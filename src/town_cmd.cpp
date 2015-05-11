@@ -1227,6 +1227,42 @@ static TownGrowthResult GrowTown_ConnectedRoad (Town *t, TileIndex tile, DiagDir
 }
 
 /**
+ * Simple heuristic to check if a tile may be usable for town growth.
+ * @param tile The tile to check.
+ * @return Whether the tile is usable.
+ */
+static bool GrowTownTileUsable (TileIndex tile)
+{
+	assert (tile < MapSize());
+
+	switch (GetTileType (tile)) {
+		case TT_GROUND:
+			return !IsTileSubtype (tile, TT_GROUND_VOID);
+
+		case TT_WATER:
+			return IsCoast (tile);
+
+		case TT_RAILWAY:
+		case TT_ROAD:
+			return true;
+
+		case TT_MISC:
+			switch (GetTileSubtype(tile)) {
+				case TT_MISC_CROSSING: return true;
+				case TT_MISC_TUNNEL:   return GetTunnelTransportType(tile) == TRANSPORT_ROAD;
+				default: return false;
+			}
+			break;
+
+		case TT_STATION:
+			return IsRoadStop (tile);
+
+
+		default: return false;
+	}
+}
+
+/**
  * Returns "growth" if a house was built, or no if the build failed.
  * @param t town to inquiry
  * @param tile to inquiry
@@ -1301,21 +1337,40 @@ static bool GrowTownFromTile (Town *t, TileIndex tile)
 			/* Exclude the source position from the bitmask
 			 * and return if no more road blocks available */
 			if (target_dir != DIAGDIR_END) cur_rb &= ~DiagDirToRoadBits(ReverseDiagDir(target_dir));
-			if (cur_rb == ROAD_NONE) return false;
 
 			/* Select a random bit from the blockmask, walk a step
 			 * and continue the search from there. */
-			do target_dir = RandomDiagDir(); while (!(cur_rb & DiagDirToRoadBits(target_dir)));
+			TileIndex target_tile;
+			for (;;) {
+				if (cur_rb == ROAD_NONE) return false;
 
-			if (IsRoadBridgeTile(tile) && target_dir == GetTunnelBridgeDirection(tile)) {
-				tile = GetOtherBridgeEnd (tile);
-			} else {
-				tile = TileAddByDiagDir (tile, target_dir);
-				if ((IsRoadBridgeTile(tile) || IsTunnelTile(tile))
-						&& GetTunnelBridgeDirection(tile) == (ReverseDiagDir(target_dir))) {
-					return false;
+				RoadBits connect_rb;
+				do {
+					target_dir = RandomDiagDir();
+					connect_rb = DiagDirToRoadBits (target_dir);
+				} while (!(cur_rb & connect_rb));
+				cur_rb ^= connect_rb;
+
+				if (IsRoadBridgeTile(tile) && target_dir == GetTunnelBridgeDirection(tile)) {
+					target_tile = GetOtherBridgeEnd (tile);
+					break;
+				}
+
+				target_tile = TileAddByDiagDir (tile, target_dir);
+				if ((IsRoadBridgeTile (target_tile) || IsTunnelTile (target_tile))
+						&& GetTunnelBridgeDirection (target_tile) == (ReverseDiagDir (target_dir))) {
+					continue;
+				}
+
+				if (_settings_game.economy.allow_town_roads) {
+					if (GrowTownTileUsable (target_tile)) break;
+				} else {
+					connect_rb = MirrorRoadBits (connect_rb);
+					RoadBits target_rb = GetTownRoadBits (target_tile);
+					if ((target_rb & connect_rb) != 0 && (target_rb != connect_rb)) break;
 				}
 			}
+			tile = target_tile;
 		}
 
 		if ((IsRoadTile(tile) || IsLevelCrossingTile(tile)) && HasTileRoadType(tile, ROADTYPE_ROAD)) {
