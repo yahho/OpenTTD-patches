@@ -189,12 +189,6 @@ static int DepotActionStringIndex(const Order *order)
 	}
 }
 
-static const StringID _order_refit_action_dropdown[] = {
-	STR_ORDER_DROP_REFIT_AUTO,
-	STR_ORDER_DROP_REFIT_AUTO_ANY,
-	INVALID_STRING_ID
-};
-
 /**
  * Draws an order in order or timetable GUI
  * @param v Vehicle the order belongs to
