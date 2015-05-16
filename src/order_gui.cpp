@@ -1004,7 +1004,10 @@ public:
 				}
 				this->DisableWidget(WID_O_FULL_LOAD);
 				this->DisableWidget(WID_O_UNLOAD);
+				/* Ground vehicles use one and aircraft and
+				 * ships use the other, so disable both. */
 				this->DisableWidget(WID_O_REFIT);
+				this->DisableWidget(WID_O_REFIT_DROPDOWN);
 				break;
 
 			case OT_GOTO_DEPOT:
@@ -1054,7 +1057,10 @@ public:
 				}
 				this->DisableWidget(WID_O_FULL_LOAD);
 				this->DisableWidget(WID_O_UNLOAD);
+				/* Ground vehicles use one and aircraft and
+				 * ships use the other, so disable both. */
 				this->DisableWidget(WID_O_REFIT);
+				this->DisableWidget(WID_O_REFIT_DROPDOWN);
 				break;
 		}
 
