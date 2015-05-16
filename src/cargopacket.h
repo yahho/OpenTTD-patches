@@ -477,8 +477,6 @@ public:
 	friend class CargoReturn;
 	friend class StationCargoReroute;
 
-	static void InvalidateAllFrom(SourceType src_type, SourceID src);
-
 	template<class Taction>
 	bool ShiftCargo(Taction &action, StationID next);
 
