@@ -73,11 +73,11 @@ struct SubsidyListWindow : Window {
 		}
 	}
 
-	static inline TileIndex GetSubsidyTile (SourceType type, SourceID id)
+	static inline TileIndex GetSubsidyTile (const CargoSource &src)
 	{
-		switch (type) {
-			case ST_INDUSTRY: return Industry::Get(id)->location.tile;
-			case ST_TOWN:     return     Town::Get(id)->xy;
+		switch (src.type) {
+			case ST_INDUSTRY: return Industry::Get(src.id)->location.tile;
+			case ST_TOWN:     return     Town::Get(src.id)->xy;
 			default: NOT_REACHED();
 		}
 	}
@@ -85,13 +85,13 @@ struct SubsidyListWindow : Window {
 	void HandleClick(const Subsidy *s)
 	{
 		/* determine src coordinate for subsidy and try to scroll to it */
-		TileIndex xy = GetSubsidyTile (s->src_type, s->src);
+		TileIndex xy = GetSubsidyTile (s->src);
 
 		if (_ctrl_pressed || !ScrollMainWindowToTile(xy)) {
 			if (_ctrl_pressed) ShowExtraViewPortWindow(xy);
 
 			/* otherwise determine dst coordinate for subsidy and scroll to it */
-			xy = GetSubsidyTile (s->dst_type, s->dst);
+			xy = GetSubsidyTile (s->dst);
 
 			if (_ctrl_pressed) {
 				ShowExtraViewPortWindow(xy);

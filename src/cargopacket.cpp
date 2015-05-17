@@ -26,8 +26,6 @@ INSTANTIATE_POOL_METHODS(CargoPacket)
  */
 CargoPacket::CargoPacket()
 {
-	this->source_type = ST_INDUSTRY;
-	this->source_id   = INVALID_SOURCE;
 }
 
 /**
@@ -44,13 +42,12 @@ CargoPacket::CargoPacket (const Station *st, uint16 count, SourceType source_typ
 	feeder_share(0),
 	count(count),
 	days_in_transit(0),
-	source_id(source_id),
+	source (source_type, source_id),
 	source_st(st->index),
 	source_xy(st->xy),
 	loaded_at_xy(0)
 {
 	assert(count != 0);
-	this->source_type  = source_type;
 }
 
 /**
@@ -69,13 +66,12 @@ CargoPacket::CargoPacket (uint16 count, byte days_in_transit, StationID source_s
 		feeder_share(feeder_share),
 		count(count),
 		days_in_transit(days_in_transit),
-		source_id(INVALID_SOURCE),
+		source(),
 		source_st(source_st),
 		source_xy(source_xy),
 		loaded_at_xy(loaded_at_xy)
 {
 	assert(count != 0);
-	this->source_type = ST_INDUSTRY;
 }
 
 /**
@@ -88,8 +84,7 @@ inline CargoPacket::CargoPacket (const CargoPacket &cp, uint16 count, Money feed
 		feeder_share(feeder_share),
 		count(count),
 		days_in_transit(cp.days_in_transit),
-		source_type(cp.source_type),
-		source_id(cp.source_id),
+		source(cp.source),
 		source_st(cp.source_st),
 		source_xy(cp.source_xy),
 		loaded_at_xy(cp.loaded_at_xy)
@@ -144,7 +139,7 @@ void CargoPacket::Reduce(uint count)
 {
 	CargoPacket *cp;
 	FOR_ALL_CARGOPACKETS(cp) {
-		if (cp->source_type == src_type && cp->source_id == src) cp->source_id = INVALID_SOURCE;
+		if (cp->source.type == src_type && cp->source.id == src) cp->source.id = INVALID_SOURCE;
 	}
 }
 

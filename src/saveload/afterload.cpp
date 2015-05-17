@@ -1544,20 +1544,20 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 					case TE_PASSENGERS:
 					case TE_MAIL:
 						/* Town -> Town */
-						s->src_type = s->dst_type = ST_TOWN;
-						if (Town::IsValidID(s->src) && Town::IsValidID(s->dst)) continue;
+						s->src.type = s->dst.type = ST_TOWN;
+						if (Town::IsValidID(s->src.id) && Town::IsValidID(s->dst.id)) continue;
 						break;
 					case TE_GOODS:
 					case TE_FOOD:
 						/* Industry -> Town */
-						s->src_type = ST_INDUSTRY;
-						s->dst_type = ST_TOWN;
-						if (Industry::IsValidID(s->src) && Town::IsValidID(s->dst)) continue;
+						s->src.type = ST_INDUSTRY;
+						s->dst.type = ST_TOWN;
+						if (Industry::IsValidID(s->src.id) && Town::IsValidID(s->dst.id)) continue;
 						break;
 					default:
 						/* Industry -> Industry */
-						s->src_type = s->dst_type = ST_INDUSTRY;
-						if (Industry::IsValidID(s->src) && Industry::IsValidID(s->dst)) continue;
+						s->src.type = s->dst.type = ST_INDUSTRY;
+						if (Industry::IsValidID(s->src.id) && Industry::IsValidID(s->dst.id)) continue;
 						break;
 				}
 			} else {
@@ -1570,13 +1570,13 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 					case TE_PASSENGERS:
 					case TE_MAIL: {
 						/* Town -> Town */
-						const Station *ss = Station::GetIfValid(s->src);
-						const Station *sd = Station::GetIfValid(s->dst);
+						const Station *ss = Station::GetIfValid(s->src.id);
+						const Station *sd = Station::GetIfValid(s->dst.id);
 						if (ss != NULL && sd != NULL && ss->owner == sd->owner &&
 								Company::IsValidID(ss->owner)) {
-							s->src_type = s->dst_type = ST_TOWN;
-							s->src = ss->town->index;
-							s->dst = sd->town->index;
+							s->src.type = s->dst.type = ST_TOWN;
+							s->src.id = ss->town->index;
+							s->dst.id = sd->town->index;
 							s->awarded = ss->owner;
 							continue;
 						}

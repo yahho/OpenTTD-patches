@@ -74,26 +74,26 @@
 {
 	if (!IsValidSubsidy(subsidy_id)) return SPT_INVALID;
 
-	return (SubsidyParticipantType)(uint)::Subsidy::Get(subsidy_id)->src_type;
+	return (SubsidyParticipantType)(uint)::Subsidy::Get(subsidy_id)->src.type;
 }
 
 /* static */ int32 ScriptSubsidy::GetSourceIndex(SubsidyID subsidy_id)
 {
 	if (!IsValidSubsidy(subsidy_id)) return INVALID_STATION;
 
-	return ::Subsidy::Get(subsidy_id)->src;
+	return ::Subsidy::Get(subsidy_id)->src.id;
 }
 
 /* static */ ScriptSubsidy::SubsidyParticipantType ScriptSubsidy::GetDestinationType(SubsidyID subsidy_id)
 {
 	if (!IsValidSubsidy(subsidy_id)) return SPT_INVALID;
 
-	return (SubsidyParticipantType)(uint)::Subsidy::Get(subsidy_id)->dst_type;
+	return (SubsidyParticipantType)(uint)::Subsidy::Get(subsidy_id)->dst.type;
 }
 
 /* static */ int32 ScriptSubsidy::GetDestinationIndex(SubsidyID subsidy_id)
 {
 	if (!IsValidSubsidy(subsidy_id)) return INVALID_STATION;
 
-	return ::Subsidy::Get(subsidy_id)->dst;
+	return ::Subsidy::Get(subsidy_id)->dst.id;
 }

@@ -98,8 +98,8 @@ const SaveLoad *GetCargoPacketDesc()
 		 SLE_VAR(CargoPacket, count,           SLE_UINT16),
 		 SLE_VAR(CargoPacket, days_in_transit, SLE_UINT8),
 		 SLE_VAR(CargoPacket, feeder_share,    SLE_INT64),
-		 SLE_VAR(CargoPacket, source_type,     SLE_UINT8,  0, , 125, ),
-		 SLE_VAR(CargoPacket, source_id,       SLE_UINT16, 0, , 125, ),
+		 SLE_VAR(CargoPacket, source.type,     SLE_UINT8,  0, , 125, ),
+		 SLE_VAR(CargoPacket, source.id,       SLE_UINT16, 0, , 125, ),
 
 		/* Used to be paid_for, but that got changed. */
 		SLE_NULL(1, , , 0, 120),

@@ -149,4 +149,34 @@ typedef SimpleTinyEnumT<SourceType, byte> SourceTypeByte; ///< The SourceType pa
 typedef uint16 SourceID; ///< Contains either industry ID, town ID or company ID (or INVALID_SOURCE)
 static const SourceID INVALID_SOURCE = 0xFFFF; ///< Invalid/unknown index of source
 
+
+/** Cargo source (or sink). */
+struct CargoSource {
+	SourceTypeByte type; ///< Type of source
+	SourceID       id;   ///< Id of source
+
+	CargoSource (void)
+	{
+		this->type = ST_INDUSTRY;
+		this->id = INVALID_SOURCE;
+	}
+
+	CargoSource (SourceType type, SourceID id)
+	{
+		this->type = type;
+		this->id = id;
+	}
+
+	bool operator == (const CargoSource &other) const
+	{
+		return (this->type == other.type) && (this->id == other.id);
+	}
+
+	bool operator != (const CargoSource &other) const
+	{
+		return (this->type != other.type) || (this->id != other.id);
+	}
+};
+
+
 #endif /* CARGO_TYPE_H */

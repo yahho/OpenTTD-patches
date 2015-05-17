@@ -42,8 +42,7 @@ private:
 	Money feeder_share;         ///< Value of feeder pickup to be paid for on delivery of cargo.
 	uint16 count;               ///< The amount of cargo in this packet.
 	byte days_in_transit;       ///< Amount of days this packet has been in transit.
-	SourceTypeByte source_type; ///< Type of \c source_id.
-	SourceID source_id;         ///< Index of source, INVALID_SOURCE if unknown/invalid.
+	CargoSource source;         ///< Source of cargo.
 	StationID source_st;        ///< The station where the cargo came from first.
 	TileIndex source_xy;        ///< The origin of the cargo (first station in feeder chain).
 	union {
@@ -133,21 +132,12 @@ public:
 	}
 
 	/**
-	 * Gets the type of the cargo's source. industry, town or head quarter.
-	 * @return Source type.
+	 * Gets the source of the cargo.
+	 * @return Source of the cargo.
 	 */
-	inline SourceType SourceSubsidyType() const
+	inline const CargoSource &Source() const
 	{
-		return this->source_type;
-	}
-
-	/**
-	 * Gets the ID of the cargo's source. An IndustryID, TownID or CompanyID.
-	 * @return Source ID.
-	 */
-	inline SourceID SourceSubsidyID() const
-	{
-		return this->source_id;
+		return this->source;
 	}
 
 	/**
@@ -445,8 +435,7 @@ public:
 	{
 		return cp1->source_xy    == cp2->source_xy &&
 				cp1->days_in_transit == cp2->days_in_transit &&
-				cp1->source_type     == cp2->source_type &&
-				cp1->source_id       == cp2->source_id &&
+				cp1->source          == cp2->source &&
 				cp1->loaded_at_xy    == cp2->loaded_at_xy;
 	}
 };
@@ -558,8 +547,7 @@ public:
 	{
 		return cp1->source_xy    == cp2->source_xy &&
 				cp1->days_in_transit == cp2->days_in_transit &&
-				cp1->source_type     == cp2->source_type &&
-				cp1->source_id       == cp2->source_id;
+				cp1->source          == cp2->source;
 	}
 };
 

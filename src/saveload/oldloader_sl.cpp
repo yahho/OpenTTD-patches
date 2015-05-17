@@ -1462,8 +1462,8 @@ static bool LoadOldEngineName(LoadgameState *ls, int num)
 static const OldChunks subsidy_chunk[] = {
 	OCL_SVAR(  OC_UINT8, Subsidy, cargo_type ),
 	OCL_SVAR(  OC_UINT8, Subsidy, remaining ),
-	OCL_SVAR(  OC_FILE_U8 | OC_VAR_U16, Subsidy, src ),
-	OCL_SVAR(  OC_FILE_U8 | OC_VAR_U16, Subsidy, dst ),
+	OCL_SVAR(  OC_FILE_U8 | OC_VAR_U16, Subsidy, src.id ),
+	OCL_SVAR(  OC_FILE_U8 | OC_VAR_U16, Subsidy, dst.id ),
 
 	OCL_END()
 };

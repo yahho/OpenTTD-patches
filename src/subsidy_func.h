@@ -19,7 +19,7 @@
 
 Pair SetupSubsidyDecodeParam(const struct Subsidy *s, bool mode);
 void DeleteSubsidyWith(SourceType type, SourceID index);
-bool CheckSubsidised(CargoID cargo_type, CompanyID company, SourceType src_type, SourceID src, const Station *st);
+bool CheckSubsidised(CargoID cargo_type, CompanyID company, const CargoSource &src, const Station *st);
 void RebuildSubsidisedSourceAndDestinationCache();
 void DeleteSubsidy(struct Subsidy *s);
 
