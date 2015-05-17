@@ -126,6 +126,16 @@ static inline void SetPartOfSubsidyFlag(SourceType type, SourceID index, PartOfS
 	}
 }
 
+/**
+ * Sets the subsidised flag on both ends of a subsidy route.
+ * @param s The subsidy.
+ */
+static void SetPartOfSubsidyFlags (const Subsidy *s)
+{
+	SetPartOfSubsidyFlag (s->src_type, s->src, POS_SRC);
+	SetPartOfSubsidyFlag (s->dst_type, s->dst, POS_DST);
+}
+
 /** Perform a full rebuild of the subsidies cache. */
 void RebuildSubsidisedSourceAndDestinationCache()
 {
@@ -137,8 +147,7 @@ void RebuildSubsidisedSourceAndDestinationCache()
 
 	const Subsidy *s;
 	FOR_ALL_SUBSIDIES(s) {
-		SetPartOfSubsidyFlag(s->src_type, s->src, POS_SRC);
-		SetPartOfSubsidyFlag(s->dst_type, s->dst, POS_DST);
+		SetPartOfSubsidyFlags (s);
 	}
 }
 
@@ -224,8 +233,7 @@ void CreateSubsidy(CargoID cid, SourceType src_type, SourceID src, SourceType ds
 
 	Pair reftype = SetupSubsidyDecodeParam(s, false);
 	AddNewsItem(STR_NEWS_SERVICE_SUBSIDY_OFFERED, NT_SUBSIDIES, NF_NORMAL, (NewsReferenceType)reftype.a, s->src, (NewsReferenceType)reftype.b, s->dst);
-	SetPartOfSubsidyFlag(s->src_type, s->src, POS_SRC);
-	SetPartOfSubsidyFlag(s->dst_type, s->dst, POS_DST);
+	SetPartOfSubsidyFlags (s);
 	AI::BroadcastNewEvent(new ScriptEventSubsidyOffer(s->index));
 	Game::NewEvent(new ScriptEventSubsidyOffer(s->index));
 
