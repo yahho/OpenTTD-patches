@@ -303,6 +303,8 @@ class NetworkContentListWindow : public Window, ContentCallback {
 	uint filesize_sum;           ///< The sum of all selected file sizes
 	Scrollbar *vscroll;          ///< Cache of the vertical scrollbar
 
+	static char content_type_strs[CONTENT_TYPE_END][64]; ///< Cached strings for all content types.
+
 	/** Search external websites for content */
 	void OpenExternalSearch()
 	{
@@ -396,11 +398,7 @@ class NetworkContentListWindow : public Window, ContentCallback {
 	{
 		int r = 0;
 		if ((*a)->type != (*b)->type) {
-			char a_str[64];
-			char b_str[64];
-			GetString (a_str, STR_CONTENT_TYPE_BASE_GRAPHICS + (*a)->type - CONTENT_TYPE_BASE_GRAPHICS);
-			GetString (b_str, STR_CONTENT_TYPE_BASE_GRAPHICS + (*b)->type - CONTENT_TYPE_BASE_GRAPHICS);
-			r = strnatcmp(a_str, b_str);
+			r = strnatcmp(content_type_strs[(*a)->type], content_type_strs[(*b)->type]);
 		}
 		if (r == 0) r = NameSorter(a, b);
 		return r;
@@ -464,6 +462,7 @@ class NetworkContentListWindow : public Window, ContentCallback {
 		this->vscroll->ScrollTowards(this->list_pos);
 	}
 
+	friend void BuildContentTypeStringList();
 public:
 	/**
 	 * Create the content list window.
@@ -960,6 +959,18 @@ NetworkContentListWindow::GUIContentList::SortFunction * const NetworkContentLis
 NetworkContentListWindow::GUIContentList::FilterFunction * const NetworkContentListWindow::filter_funcs[] = {
 	&TagNameFilter,
 };
+
+char NetworkContentListWindow::content_type_strs[CONTENT_TYPE_END][64];
+
+/**
+ * Build array of all strings corresponding to the content types.
+ */
+void BuildContentTypeStringList()
+{
+	for (int i = CONTENT_TYPE_BEGIN; i < CONTENT_TYPE_END; i++) {
+		GetString (NetworkContentListWindow::content_type_strs[i], STR_CONTENT_TYPE_BASE_GRAPHICS + i - CONTENT_TYPE_BASE_GRAPHICS);
+	}
+}
 
 /** The widgets for the content list. */
 static const NWidgetPart _nested_network_content_list_widgets[] = {
