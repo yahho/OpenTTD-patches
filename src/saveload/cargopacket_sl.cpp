@@ -32,7 +32,7 @@
 			const CargoPacketList *packets = v->cargo.Packets();
 			for (VehicleCargoList::ConstIterator it(packets->begin()); it != packets->end(); it++) {
 				CargoPacket *cp = *it;
-				cp->source_xy = Station::IsValidID(cp->source) ? Station::Get(cp->source)->xy : v->tile;
+				cp->source_xy = Station::IsValidID(cp->source_st) ? Station::Get(cp->source_st)->xy : v->tile;
 				cp->loaded_at_xy = cp->source_xy;
 			}
 		}
@@ -50,7 +50,7 @@
 				const StationCargoPacketMap *packets = ge->cargo.Packets();
 				for (StationCargoList::ConstIterator it(packets->begin()); it != packets->end(); it++) {
 					CargoPacket *cp = *it;
-					cp->source_xy = Station::IsValidID(cp->source) ? Station::Get(cp->source)->xy : st->xy;
+					cp->source_xy = Station::IsValidID(cp->source_st) ? Station::Get(cp->source_st)->xy : st->xy;
 					cp->loaded_at_xy = cp->source_xy;
 				}
 			}
@@ -61,7 +61,7 @@
 		/* CargoPacket's source should be either INVALID_STATION or a valid station */
 		CargoPacket *cp;
 		FOR_ALL_CARGOPACKETS(cp) {
-			if (!Station::IsValidID(cp->source)) cp->source = INVALID_STATION;
+			if (!Station::IsValidID(cp->source_st)) cp->source_st = INVALID_STATION;
 		}
 	}
 
@@ -92,7 +92,7 @@
 const SaveLoad *GetCargoPacketDesc()
 {
 	static const SaveLoad _cargopacket_desc[] = {
-		 SLE_VAR(CargoPacket, source,          SLE_UINT16),
+		 SLE_VAR(CargoPacket, source_st,       SLE_UINT16),
 		 SLE_VAR(CargoPacket, source_xy,       SLE_UINT32),
 		 SLE_VAR(CargoPacket, loaded_at_xy,    SLE_UINT32),
 		 SLE_VAR(CargoPacket, count,           SLE_UINT16),

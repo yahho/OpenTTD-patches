@@ -44,7 +44,7 @@ private:
 	byte days_in_transit;       ///< Amount of days this packet has been in transit.
 	SourceTypeByte source_type; ///< Type of \c source_id.
 	SourceID source_id;         ///< Index of source, INVALID_SOURCE if unknown/invalid.
-	StationID source;           ///< The station where the cargo came from first.
+	StationID source_st;        ///< The station where the cargo came from first.
 	TileIndex source_xy;        ///< The origin of the cargo (first station in feeder chain).
 	union {
 		TileOrStationID loaded_at_xy; ///< Location where this cargo has been loaded into the vehicle.
@@ -63,7 +63,7 @@ public:
 
 	CargoPacket();
 	CargoPacket (const struct Station *st, uint16 count, SourceType source_type, SourceID source_id);
-	CargoPacket (uint16 count, byte days_in_transit, StationID source, TileIndex source_xy, TileIndex loaded_at_xy, Money feeder_share = 0);
+	CargoPacket (uint16 count, byte days_in_transit, StationID source_st, TileIndex source_xy, TileIndex loaded_at_xy, Money feeder_share = 0);
 	CargoPacket (const CargoPacket &cp, uint16 count, Money share);
 
 	/** Destroy the packet. */
@@ -156,7 +156,7 @@ public:
 	 */
 	inline StationID SourceStation() const
 	{
-		return this->source;
+		return this->source_st;
 	}
 
 	/**
@@ -333,7 +333,7 @@ public:
 	 */
 	inline StationID Source() const
 	{
-		return this->count == 0 ? INVALID_STATION : this->packets.front()->source;
+		return this->count == 0 ? INVALID_STATION : this->packets.front()->SourceStation();
 	}
 
 	/**
@@ -506,7 +506,7 @@ public:
 	 */
 	inline StationID Source() const
 	{
-		return this->count == 0 ? INVALID_STATION : this->packets.begin()->second.front()->source;
+		return this->count == 0 ? INVALID_STATION : this->packets.begin()->second.front()->SourceStation();
 	}
 
 	/**
