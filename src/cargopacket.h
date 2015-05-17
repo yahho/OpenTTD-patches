@@ -63,7 +63,8 @@ public:
 
 	CargoPacket();
 	CargoPacket (const struct Station *st, uint16 count, SourceType source_type, SourceID source_id);
-	CargoPacket(uint16 count, byte days_in_transit, StationID source, TileIndex source_xy, TileIndex loaded_at_xy, Money feeder_share = 0, SourceType source_type = ST_INDUSTRY, SourceID source_id = INVALID_SOURCE);
+	CargoPacket (uint16 count, byte days_in_transit, StationID source, TileIndex source_xy, TileIndex loaded_at_xy, Money feeder_share = 0);
+	CargoPacket (const CargoPacket &cp, uint16 count, Money share);
 
 	/** Destroy the packet. */
 	~CargoPacket() { }

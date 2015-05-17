@@ -55,29 +55,46 @@ CargoPacket::CargoPacket (const Station *st, uint16 count, SourceType source_typ
 
 /**
  * Creates a new cargo packet. Initializes the fields that cannot be changed later.
- * Used when loading or splitting packets.
+ * Used when loading packets.
  * @param count           Number of cargo entities to put in this packet.
  * @param days_in_transit Number of days the cargo has been in transit.
  * @param source          Station the cargo was initially loaded.
  * @param source_xy       Station location the cargo was initially loaded.
  * @param loaded_at_xy    Location the cargo was loaded last.
  * @param feeder_share    Feeder share the packet has already accumulated.
- * @param source_type     'Type' of source the packet comes from (for subsidies).
- * @param source_id       Actual source of the packet (for subsidies).
  * @note We have to zero memory ourselves here because we are using a 'new'
  * that, in contrary to all other pools, does not memset to 0.
  */
-CargoPacket::CargoPacket(uint16 count, byte days_in_transit, StationID source, TileIndex source_xy, TileIndex loaded_at_xy, Money feeder_share, SourceType source_type, SourceID source_id) :
+CargoPacket::CargoPacket (uint16 count, byte days_in_transit, StationID source, TileIndex source_xy, TileIndex loaded_at_xy, Money feeder_share) :
 		feeder_share(feeder_share),
 		count(count),
 		days_in_transit(days_in_transit),
-		source_id(source_id),
+		source_id(INVALID_SOURCE),
 		source(source),
 		source_xy(source_xy),
 		loaded_at_xy(loaded_at_xy)
 {
 	assert(count != 0);
-	this->source_type = source_type;
+	this->source_type = ST_INDUSTRY;
+}
+
+/**
+ * Creates a new cargo packet split off another one.
+ * @param cp Packet to split this off.
+ * @param count Number of cargo entities to put in this packet.
+ * @param feeder_share Feeder share the packet has already accumulated.
+ */
+inline CargoPacket::CargoPacket (const CargoPacket &cp, uint16 count, Money feeder_share) :
+		feeder_share(feeder_share),
+		count(count),
+		days_in_transit(cp.days_in_transit),
+		source_type(cp.source_type),
+		source_id(cp.source_id),
+		source(cp.source),
+		source_xy(cp.source_xy),
+		loaded_at_xy(cp.loaded_at_xy)
+{
+	assert (count != 0);
 }
 
 /**
@@ -90,7 +107,7 @@ CargoPacket *CargoPacket::Split(uint new_size)
 	if (!CargoPacket::CanAllocateItem()) return NULL;
 
 	Money fs = this->FeederShare(new_size);
-	CargoPacket *cp_new = new CargoPacket(new_size, this->days_in_transit, this->source, this->source_xy, this->loaded_at_xy, fs, this->source_type, this->source_id);
+	CargoPacket *cp_new = new CargoPacket (*this, new_size, fs);
 	this->feeder_share -= fs;
 	this->count -= new_size;
 	return cp_new;
