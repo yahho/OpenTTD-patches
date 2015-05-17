@@ -32,8 +32,7 @@ CargoPacket::CargoPacket()
 
 /**
  * Creates a new cargo packet.
- * @param source      Source station of the packet.
- * @param source_xy   Source location of the packet.
+ * @param st          Source station of the packet.
  * @param count       Number of cargo entities to put in this packet.
  * @param source_type 'Type' of source the packet comes from (for subsidies).
  * @param source_id   Actual source of the packet (for subsidies).
@@ -41,13 +40,13 @@ CargoPacket::CargoPacket()
  * @note We have to zero memory ourselves here because we are using a 'new'
  * that, in contrary to all other pools, does not memset to 0.
  */
-CargoPacket::CargoPacket(StationID source, TileIndex source_xy, uint16 count, SourceType source_type, SourceID source_id) :
+CargoPacket::CargoPacket (const Station *st, uint16 count, SourceType source_type, SourceID source_id) :
 	feeder_share(0),
 	count(count),
 	days_in_transit(0),
 	source_id(source_id),
-	source(source),
-	source_xy(source_xy),
+	source(st->index),
+	source_xy(st->xy),
 	loaded_at_xy(0)
 {
 	assert(count != 0);

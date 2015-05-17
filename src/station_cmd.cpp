@@ -3640,7 +3640,7 @@ static uint UpdateStationWaiting(Station *st, CargoID type, uint amount, SourceT
 	if (amount == 0) return 0;
 
 	StationID next = ge.GetVia(st->index);
-	ge.cargo.Append(new CargoPacket(st->index, st->xy, amount, source_type, source_id), next);
+	ge.cargo.Append (new CargoPacket (st, amount, source_type, source_id), next);
 	LinkGraph *lg = NULL;
 	if (ge.link_graph == INVALID_LINK_GRAPH) {
 		if (LinkGraph::CanAllocateItem()) {
