@@ -81,8 +81,6 @@ public:
 		return (int32)this->GetInt64(type);
 	}
 
-	void ShiftParameters(uint amount);
-
 	/** Get a pointer to the current element in the data array. */
 	uint64 *GetDataPointer() const
 	{
@@ -157,8 +155,6 @@ void AppendStringWithArgs (stringb *buf, StringID string, StringParameters *args
 
 uint ConvertKmhishSpeedToDisplaySpeed(uint speed);
 uint ConvertDisplaySpeedToKmhishSpeed(uint speed);
-
-void InjectDParam(uint amount);
 
 /**
  * Set a string parameter \a v at index \a n in a given array \a s.
