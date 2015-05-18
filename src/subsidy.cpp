@@ -48,8 +48,7 @@ void Subsidy::AwardTo(CompanyID company)
 	char *cn = xstrdup(company_name);
 
 	/* Add a news item */
-	Pair reftype = SetupSubsidyDecodeParams (this, false);
-	InjectDParam(1);
+	Pair reftype = SetupSubsidyDecodeParams (this, false, 1);
 
 	SetDParamStr(0, cn);
 	AddNewsItem(
@@ -96,17 +95,18 @@ static NewsReferenceType SetupSubsidyDecodeParam (uint i, const CargoSource &src
  * Setup the string parameters for printing the subsidy at the screen, and compute the news reference for the subsidy.
  * @param s %Subsidy being printed.
  * @param mode Unit of cargo used, \c true means general name, \c false means singular form.
+ * @param offset First param index to use.
  * @return Reference of the subsidy in the news system.
  */
-Pair SetupSubsidyDecodeParams (const Subsidy *s, bool mode)
+Pair SetupSubsidyDecodeParams (const Subsidy *s, bool mode, uint offset)
 {
 	/* if mode is false, use the singular form */
 	const CargoSpec *cs = CargoSpec::Get(s->cargo_type);
-	SetDParam(0, mode ? cs->name : cs->name_single);
+	SetDParam (offset, mode ? cs->name : cs->name_single);
 
 	Pair p;
-	p.a = SetupSubsidyDecodeParam (1, s->src);
-	p.b = SetupSubsidyDecodeParam (4, s->dst);
+	p.a = SetupSubsidyDecodeParam (offset + 1, s->src);
+	p.b = SetupSubsidyDecodeParam (offset + 4, s->dst);
 	return p;
 }
 
