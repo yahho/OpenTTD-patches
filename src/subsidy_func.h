@@ -17,7 +17,7 @@
 #include "company_type.h"
 #include "cargo_type.h"
 
-Pair SetupSubsidyDecodeParam(const struct Subsidy *s, bool mode);
+Pair SetupSubsidyDecodeParams(const struct Subsidy *s, bool mode);
 void DeleteSubsidyWith(SourceType type, SourceID index);
 bool CheckSubsidised(CargoID cargo_type, CompanyID company, const CargoSource &src, const Station *st);
 void RebuildSubsidisedSourceAndDestinationCache();

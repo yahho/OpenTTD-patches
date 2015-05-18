@@ -48,7 +48,7 @@ void Subsidy::AwardTo(CompanyID company)
 	char *cn = xstrdup(company_name);
 
 	/* Add a news item */
-	Pair reftype = SetupSubsidyDecodeParam(this, false);
+	Pair reftype = SetupSubsidyDecodeParams (this, false);
 	InjectDParam(1);
 
 	SetDParamStr(0, cn);
@@ -65,49 +65,48 @@ void Subsidy::AwardTo(CompanyID company)
 }
 
 /**
+ * Setup the string parameters for printing an end of a subsidy at the screen,
+ * and compute the news reference for it.
+ * @param i Param index to use for the type (id will be next).
+ * @param src %CargoSource being printed.
+ * @return Reference of the cargo source in the news system.
+ */
+static NewsReferenceType SetupSubsidyDecodeParam (uint i, const CargoSource &src)
+{
+	NewsReferenceType reftype;
+
+	switch (src.type) {
+		case ST_INDUSTRY:
+			reftype = NR_INDUSTRY;
+			SetDParam (i, STR_INDUSTRY_NAME);
+			break;
+		case ST_TOWN:
+			reftype = NR_TOWN;
+			SetDParam (i, STR_TOWN_NAME);
+			break;
+		default: NOT_REACHED();
+	}
+
+	SetDParam (i + 1, src.id);
+
+	return reftype;
+}
+
+/**
  * Setup the string parameters for printing the subsidy at the screen, and compute the news reference for the subsidy.
  * @param s %Subsidy being printed.
  * @param mode Unit of cargo used, \c true means general name, \c false means singular form.
  * @return Reference of the subsidy in the news system.
  */
-Pair SetupSubsidyDecodeParam(const Subsidy *s, bool mode)
+Pair SetupSubsidyDecodeParams (const Subsidy *s, bool mode)
 {
-	NewsReferenceType reftype1 = NR_NONE;
-	NewsReferenceType reftype2 = NR_NONE;
-
 	/* if mode is false, use the singular form */
 	const CargoSpec *cs = CargoSpec::Get(s->cargo_type);
 	SetDParam(0, mode ? cs->name : cs->name_single);
 
-	switch (s->src.type) {
-		case ST_INDUSTRY:
-			reftype1 = NR_INDUSTRY;
-			SetDParam(1, STR_INDUSTRY_NAME);
-			break;
-		case ST_TOWN:
-			reftype1 = NR_TOWN;
-			SetDParam(1, STR_TOWN_NAME);
-			break;
-		default: NOT_REACHED();
-	}
-	SetDParam(2, s->src.id);
-
-	switch (s->dst.type) {
-		case ST_INDUSTRY:
-			reftype2 = NR_INDUSTRY;
-			SetDParam(4, STR_INDUSTRY_NAME);
-			break;
-		case ST_TOWN:
-			reftype2 = NR_TOWN;
-			SetDParam(4, STR_TOWN_NAME);
-			break;
-		default: NOT_REACHED();
-	}
-	SetDParam(5, s->dst.id);
-
 	Pair p;
-	p.a = reftype1;
-	p.b = reftype2;
+	p.a = SetupSubsidyDecodeParam (1, s->src);
+	p.b = SetupSubsidyDecodeParam (4, s->dst);
 	return p;
 }
 
@@ -230,7 +229,7 @@ void CreateSubsidy(CargoID cid, SourceType src_type, SourceID src, SourceType ds
 	s->remaining = SUBSIDY_OFFER_MONTHS;
 	s->awarded = INVALID_COMPANY;
 
-	Pair reftype = SetupSubsidyDecodeParam(s, false);
+	Pair reftype = SetupSubsidyDecodeParams (s, false);
 	AddNewsItem(STR_NEWS_SERVICE_SUBSIDY_OFFERED, NT_SUBSIDIES, NF_NORMAL, (NewsReferenceType)reftype.a, s->src.id, (NewsReferenceType)reftype.b, s->dst.id);
 	SetPartOfSubsidyFlags (s);
 	AI::BroadcastNewEvent(new ScriptEventSubsidyOffer(s->index));
@@ -478,13 +477,13 @@ void SubsidyMonthlyLoop()
 	FOR_ALL_SUBSIDIES(s) {
 		if (--s->remaining == 0) {
 			if (!s->IsAwarded()) {
-				Pair reftype = SetupSubsidyDecodeParam(s, true);
+				Pair reftype = SetupSubsidyDecodeParams (s, true);
 				AddNewsItem(STR_NEWS_OFFER_OF_SUBSIDY_EXPIRED, NT_SUBSIDIES, NF_NORMAL, (NewsReferenceType)reftype.a, s->src.id, (NewsReferenceType)reftype.b, s->dst.id);
 				AI::BroadcastNewEvent(new ScriptEventSubsidyOfferExpired(s->index));
 				Game::NewEvent(new ScriptEventSubsidyOfferExpired(s->index));
 			} else {
 				if (s->awarded == _local_company) {
-					Pair reftype = SetupSubsidyDecodeParam(s, true);
+					Pair reftype = SetupSubsidyDecodeParams (s, true);
 					AddNewsItem(STR_NEWS_SUBSIDY_WITHDRAWN_SERVICE, NT_SUBSIDIES, NF_NORMAL, (NewsReferenceType)reftype.a, s->src.id, (NewsReferenceType)reftype.b, s->dst.id);
 				}
 				AI::BroadcastNewEvent(new ScriptEventSubsidyExpired(s->index));
