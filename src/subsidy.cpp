@@ -516,36 +516,33 @@ void SubsidyMonthlyLoop()
 		return;
 	}
 
-	bool passenger_subsidy = false;
-	bool town_subsidy = false;
-	bool industry_subsidy = false;
-
 	int random_chance = RandomRange(16);
 
 	if (random_chance < 2 && _settings_game.linkgraph.distribution_pax == DT_MANUAL) {
 		/* There is a 1/8 chance each month of generating a passenger subsidy. */
-		int n = 1000;
-
-		do {
-			passenger_subsidy = FindSubsidyPassengerRoute();
-		} while (!passenger_subsidy && n--);
+		for (uint n = 1000; n > 0; n--) {
+			if (FindSubsidyPassengerRoute()) {
+				modified = true;
+				break;
+			}
+		}
 	} else if (random_chance == 2) {
 		/* Cargo subsidies with a town as a source have a 1/16 chance. */
-		int n = 1000;
-
-		do {
-			town_subsidy = FindSubsidyTownCargoRoute();
-		} while (!town_subsidy && n--);
+		for (uint n = 1000; n > 0; n--) {
+			if (FindSubsidyTownCargoRoute()) {
+				modified = true;
+				break;
+			}
+		}
 	} else if (random_chance == 3) {
 		/* Cargo subsidies with an industry as a source have a 1/16 chance. */
-		int n = 1000;
-
-		do {
-			industry_subsidy = FindSubsidyIndustryCargoRoute();
-		} while (!industry_subsidy && n--);
+		for (uint n = 1000; n > 0; n--) {
+			if (FindSubsidyIndustryCargoRoute()) {
+				modified = true;
+				break;
+			}
+		}
 	}
-
-	modified |= passenger_subsidy || town_subsidy || industry_subsidy;
 
 	if (modified) InvalidateWindowData(WC_SUBSIDIES_LIST, 0);
 }
