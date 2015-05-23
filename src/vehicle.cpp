@@ -2556,6 +2556,7 @@ void Vehicle::ShowVisualEffect() const
 
 	/* Use the speed as limited by underground and orders. */
 	uint max_speed = this->GetCurrentMaxSpeed();
+	if (max_speed == 0) return;
 
 	if (this->type == VEH_TRAIN) {
 		const Train *t = Train::From(this);
