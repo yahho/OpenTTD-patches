@@ -1978,6 +1978,72 @@ void MarkTileDirtyByTileOutsideMap(int x, int y)
 			pt.y + MAX_TILE_EXTENT_BOTTOM);
 }
 
+static void MarkTilesDirty (int x_start, int y_start, int x_end, int y_end)
+{
+	/* make sure everything is multiple of TILE_SIZE */
+	assert ((x_end | y_end | x_start | y_start) % TILE_SIZE == 0);
+
+	/* How it works:
+	 * Suppose we have to mark dirty rectangle of 3x4 tiles:
+	 *   x
+	 *  xxx
+	 * xxxxx
+	 *  xxxxx
+	 *   xxx
+	 *    x
+	 * This algorithm marks dirty columns of tiles, so it is done in 3+4-1 steps:
+	 * 1)  x     2)  x
+	 *    xxx       Oxx
+	 *   Oxxxx     xOxxx
+	 *    xxxxx     Oxxxx
+	 *     xxx       xxx
+	 *      x         x
+	 * And so forth...
+	 */
+
+	int top_x = x_end; // coordinates of top dirty tile
+	int top_y = y_start;
+	int bot_x = top_x; // coordinates of bottom dirty tile
+	int bot_y = top_y;
+
+	do {
+		/* topmost dirty point */
+		TileIndex top_tile = TileVirtXY (top_x, top_y);
+		Point top = RemapCoords (top_x, top_y, GetTileMaxPixelZ (top_tile));
+
+		/* bottommost point */
+		TileIndex bottom_tile = TileVirtXY (bot_x, bot_y);
+		Point bot = RemapCoords (bot_x + TILE_SIZE, bot_y + TILE_SIZE, GetTilePixelZ(bottom_tile)); // bottommost point
+
+		/* the 'x' coordinate of 'top' and 'bot' is the same (and always in the same distance from tile middle),
+		 * tile height/slope affects only the 'y' on-screen coordinate! */
+
+		int l = top.x - TILE_PIXELS * ZOOM_LVL_BASE; // 'x' coordinate of left   side of the dirty rectangle
+		int t = top.y;                               // 'y' coordinate of top    side of the dirty rectangle
+		int r = top.x + TILE_PIXELS * ZOOM_LVL_BASE; // 'x' coordinate of right  side of the dirty rectangle
+		int b = bot.y;                               // 'y' coordinate of bottom side of the dirty rectangle
+
+		static const int OVERLAY_WIDTH = 4 * ZOOM_LVL_BASE; // part of selection sprites is drawn outside the selected area (in particular: terraforming)
+
+		/* For halftile foundations on SLOPE_STEEP_S the sprite extents some more towards the top */
+		MarkAllViewportsDirty (l - OVERLAY_WIDTH, t - OVERLAY_WIDTH - TILE_HEIGHT * ZOOM_LVL_BASE, r + OVERLAY_WIDTH, b + OVERLAY_WIDTH);
+
+		/* haven't we reached the topmost tile yet? */
+		if (top_x != x_start) {
+			top_x -= TILE_SIZE;
+		} else {
+			top_y += TILE_SIZE;
+		}
+
+		/* the way the bottom tile changes is different when we reach the bottommost tile */
+		if (bot_y != y_end) {
+			bot_y += TILE_SIZE;
+		} else {
+			bot_x -= TILE_SIZE;
+		}
+	} while (bot_x >= top_x);
+}
+
 /**
  * Marks the selected tiles as dirty.
  *
@@ -2007,74 +2073,13 @@ static void SetSelectionTilesDirty()
 		assert(x_size >= 0);
 		assert(y_size >= 0);
 
-		int x_end = Clamp(x_start + x_size, 0, MapSizeX() * TILE_SIZE - TILE_SIZE);
-		int y_end = Clamp(y_start + y_size, 0, MapSizeY() * TILE_SIZE - TILE_SIZE);
+		int x_clamp = MapSizeX() * TILE_SIZE - TILE_SIZE;
+		int y_clamp = MapSizeY() * TILE_SIZE - TILE_SIZE;
 
-		x_start = Clamp(x_start, 0, MapSizeX() * TILE_SIZE - TILE_SIZE);
-		y_start = Clamp(y_start, 0, MapSizeY() * TILE_SIZE - TILE_SIZE);
-
-		/* make sure everything is multiple of TILE_SIZE */
-		assert((x_end | y_end | x_start | y_start) % TILE_SIZE == 0);
-
-		/* How it works:
-		 * Suppose we have to mark dirty rectangle of 3x4 tiles:
-		 *   x
-		 *  xxx
-		 * xxxxx
-		 *  xxxxx
-		 *   xxx
-		 *    x
-		 * This algorithm marks dirty columns of tiles, so it is done in 3+4-1 steps:
-		 * 1)  x     2)  x
-		 *    xxx       Oxx
-		 *   Oxxxx     xOxxx
-		 *    xxxxx     Oxxxx
-		 *     xxx       xxx
-		 *      x         x
-		 * And so forth...
-		 */
-
-		int top_x = x_end; // coordinates of top dirty tile
-		int top_y = y_start;
-		int bot_x = top_x; // coordinates of bottom dirty tile
-		int bot_y = top_y;
-
-		do {
-			/* topmost dirty point */
-			TileIndex top_tile = TileVirtXY(top_x, top_y);
-			Point top = RemapCoords(top_x, top_y, GetTileMaxPixelZ(top_tile));
-
-			/* bottommost point */
-			TileIndex bottom_tile = TileVirtXY(bot_x, bot_y);
-			Point bot = RemapCoords(bot_x + TILE_SIZE, bot_y + TILE_SIZE, GetTilePixelZ(bottom_tile)); // bottommost point
-
-			/* the 'x' coordinate of 'top' and 'bot' is the same (and always in the same distance from tile middle),
-			 * tile height/slope affects only the 'y' on-screen coordinate! */
-
-			int l = top.x - TILE_PIXELS * ZOOM_LVL_BASE; // 'x' coordinate of left   side of the dirty rectangle
-			int t = top.y;                               // 'y' coordinate of top    side of the dirty rectangle
-			int r = top.x + TILE_PIXELS * ZOOM_LVL_BASE; // 'x' coordinate of right  side of the dirty rectangle
-			int b = bot.y;                               // 'y' coordinate of bottom side of the dirty rectangle
-
-			static const int OVERLAY_WIDTH = 4 * ZOOM_LVL_BASE; // part of selection sprites is drawn outside the selected area (in particular: terraforming)
-
-			/* For halftile foundations on SLOPE_STEEP_S the sprite extents some more towards the top */
-			MarkAllViewportsDirty(l - OVERLAY_WIDTH, t - OVERLAY_WIDTH - TILE_HEIGHT * ZOOM_LVL_BASE, r + OVERLAY_WIDTH, b + OVERLAY_WIDTH);
-
-			/* haven't we reached the topmost tile yet? */
-			if (top_x != x_start) {
-				top_x -= TILE_SIZE;
-			} else {
-				top_y += TILE_SIZE;
-			}
-
-			/* the way the bottom tile changes is different when we reach the bottommost tile */
-			if (bot_y != y_end) {
-				bot_y += TILE_SIZE;
-			} else {
-				bot_x -= TILE_SIZE;
-			}
-		} while (bot_x >= top_x);
+		MarkTilesDirty (Clamp (x_start, 0, x_clamp),
+				Clamp (y_start, 0, y_clamp),
+				Clamp (x_start + x_size, 0, x_clamp),
+				Clamp (y_start + y_size, 0, y_clamp));
 	} else { // Selecting in a 45 degrees rotated (diagonal) rectangle.
 		/* a_size, b_size describe a rectangle with rotated coordinates */
 		int a_size = x_size + y_size, b_size = x_size - y_size;
