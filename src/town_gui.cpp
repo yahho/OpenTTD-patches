@@ -300,7 +300,7 @@ private:
 	Town *town; ///< Town displayed by the window.
 
 public:
-	static const int WID_TV_HEIGHT_NORMAL = 150;
+	static const int WID_TV_HEIGHT_NORMAL = 162;
 
 	TownViewWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
@@ -317,6 +317,15 @@ public:
 
 		/* disable renaming town in network games if you are not the server */
 		this->SetWidgetDisabledState(WID_TV_CHANGE_NAME, _networking && !_network_server);
+	}
+
+	virtual void OnPaint()
+	{
+		if (_game_mode != GM_EDITOR) {
+			this->SetWidgetLoweredState (WID_TV_SHOW_AREA, _thd.town == this->town->index);
+		}
+
+		this->DrawWidgets();
 	}
 
 	virtual void SetStringParameters(int widget) const
@@ -444,6 +453,20 @@ public:
 			case WID_TV_DELETE: // delete town - only available on Scenario editor
 				DoCommandP(0, this->window_number, 0, CMD_DELETE_TOWN);
 				break;
+
+			case WID_TV_SHOW_AREA: // show town area
+				if (_thd.town == this->town->index) {
+					_thd.town = INVALID_TOWN;
+				} else {
+					if (_thd.town != INVALID_TOWN) {
+						SetWindowWidgetDirty (WC_TOWN_VIEW, _thd.town, WID_TV_SHOW_AREA);
+						MarkTownAreaDirty (_thd.town);
+					}
+					_thd.town = this->town->index;
+				}
+				SetWidgetDirty (WID_TV_SHOW_AREA);
+				MarkTownAreaDirty (this->town->index);
+				break;
 		}
 	}
 
@@ -543,10 +566,15 @@ static const NWidgetPart _nested_town_game_view_widgets[] = {
 	EndContainer(),
 	NWidget(WWT_PANEL, COLOUR_BROWN, WID_TV_INFO), SetMinimalSize(260, 32), SetResize(1, 0), SetFill(1, 0), EndContainer(),
 	NWidget(NWID_HORIZONTAL),
-		NWidget(NWID_HORIZONTAL, NC_EQUALSIZE),
-			NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_TV_CENTER_VIEW), SetMinimalSize(80, 12), SetFill(1, 1), SetResize(1, 0), SetDataTip(STR_BUTTON_LOCATION, STR_TOWN_VIEW_CENTER_TOOLTIP),
-			NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_TV_SHOW_AUTHORITY), SetMinimalSize(80, 12), SetFill(1, 1), SetResize(1, 0), SetDataTip(STR_TOWN_VIEW_LOCAL_AUTHORITY_BUTTON, STR_TOWN_VIEW_LOCAL_AUTHORITY_TOOLTIP),
-			NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_TV_CHANGE_NAME), SetMinimalSize(80, 12), SetFill(1, 1), SetResize(1, 0), SetDataTip(STR_BUTTON_RENAME, STR_TOWN_VIEW_RENAME_TOOLTIP),
+		NWidget(NWID_VERTICAL, NC_EQUALSIZE),
+			NWidget(NWID_HORIZONTAL, NC_EQUALSIZE),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_TV_SHOW_AUTHORITY), SetMinimalSize(130, 12), SetFill(1, 1), SetResize(1, 0), SetDataTip(STR_TOWN_VIEW_LOCAL_AUTHORITY_BUTTON, STR_TOWN_VIEW_LOCAL_AUTHORITY_TOOLTIP),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_TV_SHOW_AREA), SetMinimalSize(130, 12), SetFill(1, 1), SetResize(1, 0), SetDataTip(STR_SHOW_TOWN_AREA, STR_SHOW_TOWN_AREA_TOOLTIP),
+			EndContainer(),
+			NWidget(NWID_HORIZONTAL, NC_EQUALSIZE),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_TV_CENTER_VIEW), SetMinimalSize(130, 12), SetFill(1, 1), SetResize(1, 0), SetDataTip(STR_BUTTON_LOCATION, STR_TOWN_VIEW_CENTER_TOOLTIP),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_TV_CHANGE_NAME), SetMinimalSize(130, 12), SetFill(1, 1), SetResize(1, 0), SetDataTip(STR_BUTTON_RENAME, STR_TOWN_VIEW_RENAME_TOOLTIP),
+			EndContainer(),
 		EndContainer(),
 		NWidget(WWT_RESIZEBOX, COLOUR_BROWN),
 	EndContainer(),
@@ -563,7 +591,6 @@ static const NWidgetPart _nested_town_editor_view_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_BROWN),
 		NWidget(WWT_CAPTION, COLOUR_BROWN, WID_TV_CAPTION), SetDataTip(STR_TOWN_VIEW_TOWN_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
-		NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_TV_CHANGE_NAME), SetMinimalSize(76, 14), SetDataTip(STR_BUTTON_RENAME, STR_TOWN_VIEW_RENAME_TOOLTIP),
 		NWidget(WWT_SHADEBOX, COLOUR_BROWN),
 		NWidget(WWT_DEFSIZEBOX, COLOUR_BROWN),
 		NWidget(WWT_STICKYBOX, COLOUR_BROWN),
@@ -575,10 +602,15 @@ static const NWidgetPart _nested_town_editor_view_widgets[] = {
 	EndContainer(),
 	NWidget(WWT_PANEL, COLOUR_BROWN, WID_TV_INFO), SetMinimalSize(260, 32), SetResize(1, 0), SetFill(1, 0), EndContainer(),
 	NWidget(NWID_HORIZONTAL),
-		NWidget(NWID_HORIZONTAL, NC_EQUALSIZE),
-			NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_TV_CENTER_VIEW), SetMinimalSize(80, 12), SetFill(1, 1), SetResize(1, 0), SetDataTip(STR_BUTTON_LOCATION, STR_TOWN_VIEW_CENTER_TOOLTIP),
-			NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_TV_EXPAND), SetMinimalSize(80, 12), SetFill(1, 1), SetResize(1, 0), SetDataTip(STR_TOWN_VIEW_EXPAND_BUTTON, STR_TOWN_VIEW_EXPAND_TOOLTIP),
-			NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_TV_DELETE), SetMinimalSize(80, 12), SetFill(1, 1), SetResize(1, 0), SetDataTip(STR_TOWN_VIEW_DELETE_BUTTON, STR_TOWN_VIEW_DELETE_TOOLTIP),
+		NWidget(NWID_VERTICAL, NC_EQUALSIZE),
+			NWidget(NWID_HORIZONTAL, NC_EQUALSIZE),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_TV_EXPAND), SetMinimalSize(130, 12), SetFill(1, 1), SetResize(1, 0), SetDataTip(STR_TOWN_VIEW_EXPAND_BUTTON, STR_TOWN_VIEW_EXPAND_TOOLTIP),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_TV_DELETE), SetMinimalSize(130, 12), SetFill(1, 1), SetResize(1, 0), SetDataTip(STR_TOWN_VIEW_DELETE_BUTTON, STR_TOWN_VIEW_DELETE_TOOLTIP),
+			EndContainer(),
+			NWidget(NWID_HORIZONTAL, NC_EQUALSIZE),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_TV_CENTER_VIEW), SetMinimalSize(130, 12), SetFill(1, 1), SetResize(1, 0), SetDataTip(STR_BUTTON_LOCATION, STR_TOWN_VIEW_CENTER_TOOLTIP),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_TV_CHANGE_NAME), SetMinimalSize(130, 12), SetFill(1, 1), SetResize(1, 0), SetDataTip(STR_BUTTON_RENAME, STR_TOWN_VIEW_RENAME_TOOLTIP),
+			EndContainer(),
 		EndContainer(),
 		NWidget(WWT_RESIZEBOX, COLOUR_BROWN),
 	EndContainer(),

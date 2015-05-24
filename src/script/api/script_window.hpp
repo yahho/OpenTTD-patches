@@ -2455,6 +2455,7 @@ public:
 		WID_TV_CHANGE_NAME                           = ::WID_TV_CHANGE_NAME,                           ///< Change the name of this town.
 		WID_TV_EXPAND                                = ::WID_TV_EXPAND,                                ///< Expand this town (scenario editor only).
 		WID_TV_DELETE                                = ::WID_TV_DELETE,                                ///< Delete this town (scenario editor only).
+		WID_TV_SHOW_AREA                             = ::WID_TV_SHOW_AREA,                             ///< Show town area
 	};
 
 	/** Widgets of the #FoundTownWindow class. */

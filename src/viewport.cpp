@@ -1034,6 +1034,17 @@ draw_inner:
 	}
 }
 
+static void DrawTownArea (const TileInfo *ti)
+{
+	if (_thd.town == INVALID_TOWN) return;
+
+	Town *t = Town::Get (_thd.town);
+
+	if (DistanceSquare (ti->tile, t->xy) < t->cache.squared_town_zone_radius[HZB_TOWN_EDGE]) {
+		DrawTileSelectionRect (ti, PALETTE_SEL_TILE_BLUE);
+	}
+}
+
 int GetVirtualHeight (int x, int y)
 {
 	/* Assume a decreasing slope to 0 outside the map. */
@@ -1251,7 +1262,10 @@ static void ViewportAddLandscape()
 					ti.tile = tile;
 					ti.tileh = GetTilePixelSlope(tile, &ti.z);
 				}
-				if (ti.tile != INVALID_TILE) DrawTileSelection(&ti);
+				if (ti.tile != INVALID_TILE) {
+					DrawTownArea(&ti);
+					DrawTileSelection(&ti);
+				}
 			}
 
 			y_cur++;
@@ -2042,6 +2056,29 @@ static void MarkTilesDirty (int x_start, int y_start, int x_end, int y_end)
 			bot_x -= TILE_SIZE;
 		}
 	} while (bot_x >= top_x);
+}
+
+static void MarkSquaredRadiusDirty (TileIndex xy, uint rr)
+{
+	uint r = 0;
+	while (r*r < rr) r++;
+
+	uint x = TileX (xy);
+	int x0 = (r < x) ? x - r : 0;
+	int x1 = (r < MapMaxX() - x) ? x + r : MapMaxX();
+
+	uint y = TileY (xy);
+	int y0 = (r < y) ? y - r : 0;
+	int y1 = (r < MapMaxY() - y) ? y + r : MapMaxY();
+
+	MarkTilesDirty (x0 * TILE_SIZE, y0 * TILE_SIZE, x1 * TILE_SIZE, y1 * TILE_SIZE);
+}
+
+void MarkTownAreaDirty (TownID town)
+{
+	Town *t = Town::Get (town);
+
+	MarkSquaredRadiusDirty (t->xy, t->cache.squared_town_zone_radius[0]);
 }
 
 /**

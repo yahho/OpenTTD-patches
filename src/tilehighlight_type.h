@@ -16,6 +16,7 @@
 #include "map/coord.h"
 #include "window_type.h"
 #include "viewport_type.h"
+#include "town.h"
 
 /** Highlighting draw styles */
 enum HighLightStyle {
@@ -78,6 +79,8 @@ struct TileHighlightData {
 
 	bool IsDraggingDiagonal();
 	Window *GetCallbackWnd();
+
+	TownID town;         ///< Town area to highlight
 };
 
 #endif /* TILEHIGHLIGHT_TYPE_H */

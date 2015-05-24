@@ -1865,6 +1865,7 @@ void ResetWindowSystem()
 	UnInitWindowSystem();
 	InitWindowSystem();
 	_thd.Reset();
+	_thd.town = INVALID_TOWN;
 }
 
 static void DecreaseWindowCounters()

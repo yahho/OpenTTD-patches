@@ -3041,6 +3041,9 @@ STR_TOWN_VIEW_DELETE_TOOLTIP                                    :{BLACK}Delete t
 
 STR_TOWN_VIEW_RENAME_TOWN_BUTTON                                :Rename Town
 
+STR_SHOW_TOWN_AREA                                              :{BLACK}Show area
+STR_SHOW_TOWN_AREA_TOOLTIP                                      :{BLACK}Highlight town area
+
 # Town local authority window
 STR_LOCAL_AUTHORITY_CAPTION                                     :{WHITE}{TOWN} local authority
 STR_LOCAL_AUTHORITY_COMPANY_RATINGS                             :{BLACK}Transport company ratings:

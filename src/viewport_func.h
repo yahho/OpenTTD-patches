@@ -17,10 +17,13 @@
 #include "viewport_type.h"
 #include "window_type.h"
 #include "station_type.h"
+#include "town.h"
 
 static const int TILE_HEIGHT_STEP = 50; ///< One Z unit tile height difference is displayed as 50m.
 
 void SetSelectionRed(bool);
+
+void MarkTownAreaDirty (TownID town);
 
 void DeleteWindowViewport(Window *w);
 void InitializeWindowViewport(Window *w, int x, int y, int width, int height, uint32 follow_flags, ZoomLevel zoom);
