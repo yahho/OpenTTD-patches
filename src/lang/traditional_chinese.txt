@@ -927,10 +927,6 @@ STR_GAME_OPTIONS_CURRENCY_GEL                                   :喬治亞拉里
 STR_GAME_OPTIONS_CURRENCY_IRR                                   :伊朗里亞爾 (IRR)
 ############ end of currency region
 
-
-############ start of measuring units region
-############ end of measuring units region
-
 STR_GAME_OPTIONS_ROAD_VEHICLES_FRAME                            :{BLACK}車輛
 STR_GAME_OPTIONS_ROAD_VEHICLES_DROPDOWN_TOOLTIP                 :{BLACK}選擇車輛在路上的行駛位置
 STR_GAME_OPTIONS_ROAD_VEHICLES_DROPDOWN_LEFT                    :靠左行駛
@@ -3082,7 +3078,7 @@ STR_GOAL_QUESTION_CAPTION_INFORMATION                           :資訊
 STR_GOAL_QUESTION_CAPTION_WARNING                               :警告
 STR_GOAL_QUESTION_CAPTION_ERROR                                 :錯誤
 
-### Start of Goal Question button list
+############ Start of Goal Question button list
 STR_GOAL_QUESTION_BUTTON_CANCEL                                 :取消
 STR_GOAL_QUESTION_BUTTON_OK                                     :確定
 STR_GOAL_QUESTION_BUTTON_NO                                     :否
@@ -3101,6 +3097,7 @@ STR_GOAL_QUESTION_BUTTON_RESTART                                :重新啟動
 STR_GOAL_QUESTION_BUTTON_POSTPONE                               :延遲
 STR_GOAL_QUESTION_BUTTON_SURRENDER                              :投降
 STR_GOAL_QUESTION_BUTTON_CLOSE                                  :關閉
+############ End of Goal Question button list
 
 # Subsidies window
 STR_SUBSIDIES_CAPTION                                           :{WHITE}補助資訊
