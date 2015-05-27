@@ -57,7 +57,7 @@ enum LoadMode {
 };
 
 void GenerateDefaultSaveName (stringb *buf);
-const char *GetSaveLoadErrorString();
+void ShowSaveLoadErrorMessage (bool save);
 bool SaveGame(const char *filename, Subdirectory sb, bool threaded = true);
 bool LoadGame(const char *filename, int mode, Subdirectory sb);
 void WaitTillSaved();

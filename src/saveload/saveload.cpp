@@ -348,7 +348,7 @@ static void SaveFileDone()
 }
 
 /** Get the string representation of the error message */
-const char *GetSaveLoadErrorString()
+static const char *GetSaveLoadErrorString()
 {
 	SetDParamStr(0, _sl.error.data);
 
@@ -357,11 +357,18 @@ const char *GetSaveLoadErrorString()
 	return err_str;
 }
 
+/** Show a gui message on saveload failure. */
+void ShowSaveLoadErrorMessage (bool save)
+{
+	StringID str = save ? STR_ERROR_GAME_SAVE_FAILED : STR_ERROR_GAME_LOAD_FAILED;
+	SetDParamStr (0, GetSaveLoadErrorString());
+	ShowErrorMessage (str, STR_JUST_RAW_STRING, WL_ERROR);
+}
+
 /** Show a gui message when saving has failed */
 static void SaveFileError()
 {
-	SetDParamStr(0, GetSaveLoadErrorString());
-	ShowErrorMessage(STR_ERROR_GAME_SAVE_FAILED, STR_JUST_RAW_STRING, WL_ERROR);
+	ShowSaveLoadErrorMessage (true);
 	SaveFileDone();
 }
 
