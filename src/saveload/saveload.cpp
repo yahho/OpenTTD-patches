@@ -361,8 +361,8 @@ static const char *GetSaveLoadErrorString()
 void ShowSaveLoadErrorMessage (bool save)
 {
 	StringID str = save ? STR_ERROR_GAME_SAVE_FAILED : STR_ERROR_GAME_LOAD_FAILED;
-	SetDParamStr (0, GetSaveLoadErrorString());
-	ShowErrorMessage (str, STR_JUST_RAW_STRING, WL_ERROR);
+	SetDParamStr (0, _sl.error.data);
+	ShowErrorMessage (str, _sl.error.str, WL_ERROR);
 }
 
 /** Show a gui message when saving has failed */
