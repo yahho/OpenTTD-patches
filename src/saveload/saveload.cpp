@@ -347,16 +347,6 @@ static void SaveFileDone()
 	_sl.saveinprogress = false;
 }
 
-/** Get the string representation of the error message */
-static const char *GetSaveLoadErrorString()
-{
-	SetDParamStr(0, _sl.error.data);
-
-	static char err_str[512];
-	GetString (err_str, _sl.error.str);
-	return err_str;
-}
-
 /** Show a gui message on saveload failure. */
 void ShowSaveLoadErrorMessage (bool save)
 {
@@ -370,6 +360,17 @@ static void SaveFileError()
 {
 	ShowSaveLoadErrorMessage (true);
 	SaveFileDone();
+}
+
+/** Log a saveload error as debugging information. */
+static void LogSaveLoadError (void)
+{
+	char err_str[512];
+	SetDParamStr(0, _sl.error.data);
+	GetString (err_str, _sl.error.str);
+
+	/* Skip the "colour" character */
+	DEBUG(sl, 0, "%s", err_str + 3);
 }
 
 /**
@@ -395,8 +396,7 @@ static bool SaveFileToDisk(SaveFilter *writer, SaveDumper *dumper, bool threaded
 		/* We don't want to shout when saving is just
 		 * cancelled due to a client disconnecting. */
 		if (_sl.error.str != STR_NETWORK_ERROR_LOSTCONNECTION) {
-			/* Skip the "colour" character */
-			DEBUG(sl, 0, "%s", GetSaveLoadErrorString() + 3);
+			LogSaveLoadError();
 			asfp = SaveFileError;
 		}
 
@@ -511,8 +511,7 @@ bool SaveGame(const char *filename, Subdirectory sb, bool threaded)
 	if (fh == NULL) {
 		_sl.error.str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE;
 
-		/* Skip the "colour" character */
-		DEBUG(sl, 0, "%s", GetSaveLoadErrorString() + 3);
+		LogSaveLoadError();
 
 		return false;
 	}
@@ -820,8 +819,7 @@ static bool LoadWithFilterMode(LoadFilter *reader, int mode)
 
 			SlNullPointers();
 
-			/* Skip the "colour" character */
-			DEBUG(sl, 0, "%s", GetSaveLoadErrorString() + 3);
+			LogSaveLoadError();
 		}
 
 		res = false;
