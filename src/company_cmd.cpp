@@ -369,22 +369,8 @@ verify_name:;
 		GetString (buffer, str);
 		if (Utf8StringLength(buffer) >= MAX_LENGTH_COMPANY_NAME_CHARS) goto bad_town_name;
 
-set_name:;
-		c->name_1 = str;
-		c->name_2 = strp;
+		goto set_name;
 
-		MarkWholeScreenDirty();
-
-		if (c->is_ai) {
-			CompanyNewsInformation *cni = xmalloct<CompanyNewsInformation>();
-			cni->FillData(c);
-			SetDParam(0, STR_NEWS_COMPANY_LAUNCH_TITLE);
-			SetDParam(1, STR_NEWS_COMPANY_LAUNCH_DESCRIPTION);
-			SetDParamStr(2, cni->company_name);
-			SetDParam(3, t->index);
-			AddNewsItem(STR_MESSAGE_NEWS_FORMAT, NT_COMPANY_INFO, NF_COMPANY, NR_TILE, c->last_build_coordinate, NR_NONE, UINT32_MAX, cni);
-		}
-		return;
 	}
 bad_town_name:;
 
@@ -396,6 +382,22 @@ bad_town_name:;
 		str = SPECSTR_ANDCO_NAME;
 		strp = Random();
 		goto verify_name;
+	}
+
+set_name:;
+	c->name_1 = str;
+	c->name_2 = strp;
+
+	MarkWholeScreenDirty();
+
+	if (c->is_ai) {
+		CompanyNewsInformation *cni = xmalloct<CompanyNewsInformation>();
+		cni->FillData(c);
+		SetDParam(0, STR_NEWS_COMPANY_LAUNCH_TITLE);
+		SetDParam(1, STR_NEWS_COMPANY_LAUNCH_DESCRIPTION);
+		SetDParamStr(2, cni->company_name);
+		SetDParam(3, t->index);
+		AddNewsItem(STR_MESSAGE_NEWS_FORMAT, NT_COMPANY_INFO, NF_COMPANY, NR_TILE, c->last_build_coordinate, NR_NONE, UINT32_MAX, cni);
 	}
 }
 
