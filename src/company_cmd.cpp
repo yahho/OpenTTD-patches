@@ -1044,15 +1044,16 @@ CommandCost CmdSetCompanyColour(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 
 /**
  * Is the given name in use as name of a company?
+ * @param prop Name type to search (company name or president name).
  * @param name Name to search.
  * @return \c true if the name us unique (that is, not in use), else \c false.
  */
-static bool IsUniqueCompanyName(const char *name)
+static inline bool IsUniqueCompanyName (char * const Company::*prop, const char *name)
 {
 	const Company *c;
 
 	FOR_ALL_COMPANIES(c) {
-		if (c->name != NULL && strcmp(c->name, name) == 0) return false;
+		if (c->*prop != NULL && strcmp (c->*prop, name) == 0) return false;
 	}
 
 	return true;
@@ -1073,7 +1074,7 @@ CommandCost CmdRenameCompany(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 
 	if (!reset) {
 		if (Utf8StringLength(text) >= MAX_LENGTH_COMPANY_NAME_CHARS) return CMD_ERROR;
-		if (!IsUniqueCompanyName(text)) return_cmd_error(STR_ERROR_NAME_MUST_BE_UNIQUE);
+		if (!IsUniqueCompanyName (&Company::name, text)) return_cmd_error(STR_ERROR_NAME_MUST_BE_UNIQUE);
 	}
 
 	if (flags & DC_EXEC) {
@@ -1085,22 +1086,6 @@ CommandCost CmdRenameCompany(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 	}
 
 	return CommandCost();
-}
-
-/**
- * Is the given name in use as president name of a company?
- * @param name Name to search.
- * @return \c true if the name us unique (that is, not in use), else \c false.
- */
-static bool IsUniquePresidentName(const char *name)
-{
-	const Company *c;
-
-	FOR_ALL_COMPANIES(c) {
-		if (c->president_name != NULL && strcmp(c->president_name, name) == 0) return false;
-	}
-
-	return true;
 }
 
 /**
@@ -1118,7 +1103,7 @@ CommandCost CmdRenamePresident(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 
 	if (!reset) {
 		if (Utf8StringLength(text) >= MAX_LENGTH_PRESIDENT_NAME_CHARS) return CMD_ERROR;
-		if (!IsUniquePresidentName(text)) return_cmd_error(STR_ERROR_NAME_MUST_BE_UNIQUE);
+		if (!IsUniqueCompanyName (&Company::president_name, text)) return_cmd_error(STR_ERROR_NAME_MUST_BE_UNIQUE);
 	}
 
 	if (flags & DC_EXEC) {
