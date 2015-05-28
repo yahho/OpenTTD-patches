@@ -338,16 +338,28 @@ CommandCost CheckTileOwnership(TileIndex tile)
 	return_cmd_error(STR_ERROR_OWNED_BY);
 }
 
+/** Check if the given components are unique for a company name. */
+static bool CheckUniqueCompanyNameParts (StringID str, uint32 strp)
+{
+	/* Reserve space for extra unicode character. We need to do this
+	 * to be able to detect too long company name. */
+	char buffer[(MAX_LENGTH_COMPANY_NAME_CHARS + 1) * MAX_CHAR_LENGTH];
+
+	Company *c;
+	FOR_ALL_COMPANIES(c) {
+		if (c->name_1 == str && c->name_2 == strp) return false;
+	}
+
+	GetString (buffer, str);
+	return Utf8StringLength(buffer) < MAX_LENGTH_COMPANY_NAME_CHARS;
+}
+
 /**
  * Generate the name of a company from the last build coordinate.
  * @param c Company to give a name.
  */
 static void GenerateCompanyName(Company *c)
 {
-	/* Reserve space for extra unicode character. We need to do this to be able
-	 * to detect too long company name. */
-	char buffer[(MAX_LENGTH_COMPANY_NAME_CHARS + 1) * MAX_CHAR_LENGTH];
-
 	if (c->name_1 != STR_SV_UNNAMED) return;
 	if (c->last_build_coordinate == 0) return;
 
@@ -359,30 +371,19 @@ static void GenerateCompanyName(Company *c)
 		str = t->townnametype - SPECSTR_TOWNNAME_START + SPECSTR_COMPANY_NAME_START;
 		strp = t->townnameparts;
 
-verify_name:;
 		/* No companies must have this name already */
-		Company *cc;
-		FOR_ALL_COMPANIES(cc) {
-			if (cc->name_1 == str && cc->name_2 == strp) goto bad_town_name;
-		}
-
-		GetString (buffer, str);
-		if (Utf8StringLength(buffer) >= MAX_LENGTH_COMPANY_NAME_CHARS) goto bad_town_name;
-
-		goto set_name;
-
+		if (CheckUniqueCompanyNameParts (str, strp)) goto set_name;
 	}
-bad_town_name:;
 
+	str = SPECSTR_ANDCO_NAME;
 	if (c->president_name_1 == SPECSTR_PRESIDENT_NAME) {
-		str = SPECSTR_ANDCO_NAME;
 		strp = c->president_name_2;
 		goto set_name;
-	} else {
-		str = SPECSTR_ANDCO_NAME;
-		strp = Random();
-		goto verify_name;
 	}
+
+	do {
+		strp = Random();
+	} while (!CheckUniqueCompanyNameParts (str, strp));
 
 set_name:;
 	c->name_1 = str;
