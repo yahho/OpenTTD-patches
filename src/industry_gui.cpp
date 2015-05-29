@@ -86,29 +86,6 @@ static void GetCargoSuffix (uint cargo, CargoSuffixType cst, const Industry *ind
 	}
 }
 
-/**
- * Gets all strings to display after the cargoes of industries (using callback 37)
- * @param cb_offset The offset for the cargo used in cb37, 0 for accepted cargoes, 3 for produced cargoes
- * @param cst the cargo suffix type (for which window is it requested). @see CargoSuffixType
- * @param ind the industry (NULL if in fund window)
- * @param ind_type the industry type
- * @param indspec the industry spec
- * @param cargoes array with cargotypes. for CT_INVALID no suffix will be determined
- * @param suffixes is filled with the suffixes
- */
-template <typename TC, typename TS>
-static inline void GetAllCargoSuffixes(uint cb_offset, CargoSuffixType cst, const Industry *ind, IndustryType ind_type, const IndustrySpec *indspec, const TC &cargoes, TS &suffixes)
-{
-	assert_compile(lengthof(cargoes) <= lengthof(suffixes));
-	for (uint j = 0; j < lengthof(cargoes); j++) {
-		if (cargoes[j] != CT_INVALID) {
-			GetCargoSuffix (cb_offset + j, cst, ind, ind_type, indspec, &suffixes[j]);
-		} else {
-			suffixes[j].clear();
-		}
-	}
-}
-
 IndustryType _sorted_industry_types[NUM_INDUSTRYTYPES]; ///< Industry types sorted by name.
 
 /** Sort industry types by their name. */
@@ -313,13 +290,14 @@ public:
 					const IndustrySpec *indsp = GetIndustrySpec(this->index[i]);
 
 					sstring<512> cargo_suffix [3];
-					GetAllCargoSuffixes(0, CST_FUND, NULL, this->index[i], indsp, indsp->accepts_cargo, cargo_suffix);
 					StringID str = STR_INDUSTRY_VIEW_REQUIRES_CARGO;
 					byte p = 0;
 					SetDParam(0, STR_JUST_NOTHING);
 					SetDParamStr(1, "");
+					assert_compile(lengthof(indsp->accepts_cargo) <= lengthof(cargo_suffix));
 					for (byte j = 0; j < lengthof(indsp->accepts_cargo); j++) {
 						if (indsp->accepts_cargo[j] == CT_INVALID) continue;
+						GetCargoSuffix (j, CST_FUND, NULL, this->index[i], indsp, &cargo_suffix[j]);
 						if (p > 0) str++;
 						SetDParam(p++, CargoSpec::Get(indsp->accepts_cargo[j])->name);
 						SetDParamStr(p++, cargo_suffix[j].c_str());
@@ -327,13 +305,14 @@ public:
 					d = maxdim(d, GetStringBoundingBox(str));
 
 					/* Draw the produced cargoes, if any. Otherwise, will print "Nothing". */
-					GetAllCargoSuffixes(3, CST_FUND, NULL, this->index[i], indsp, indsp->produced_cargo, cargo_suffix);
 					str = STR_INDUSTRY_VIEW_PRODUCES_CARGO;
 					p = 0;
 					SetDParam(0, STR_JUST_NOTHING);
 					SetDParamStr(1, "");
+					assert_compile(lengthof(indsp->produced_cargo) <= lengthof(cargo_suffix));
 					for (byte j = 0; j < lengthof(indsp->produced_cargo); j++) {
 						if (indsp->produced_cargo[j] == CT_INVALID) continue;
+						GetCargoSuffix (j + 3, CST_FUND, NULL, this->index[i], indsp, &cargo_suffix[j]);
 						if (p > 0) str++;
 						SetDParam(p++, CargoSpec::Get(indsp->produced_cargo[j])->name);
 						SetDParamStr(p++, cargo_suffix[j].c_str());
@@ -432,13 +411,14 @@ public:
 
 				/* Draw the accepted cargoes, if any. Otherwise, will print "Nothing". */
 				sstring<512> cargo_suffix [3];
-				GetAllCargoSuffixes(0, CST_FUND, NULL, this->selected_type, indsp, indsp->accepts_cargo, cargo_suffix);
 				StringID str = STR_INDUSTRY_VIEW_REQUIRES_CARGO;
 				byte p = 0;
 				SetDParam(0, STR_JUST_NOTHING);
 				SetDParamStr(1, "");
+				assert_compile(lengthof(indsp->accepts_cargo) <= lengthof(cargo_suffix));
 				for (byte j = 0; j < lengthof(indsp->accepts_cargo); j++) {
 					if (indsp->accepts_cargo[j] == CT_INVALID) continue;
+					GetCargoSuffix (j, CST_FUND, NULL, this->selected_type, indsp, &cargo_suffix[j]);
 					if (p > 0) str++;
 					SetDParam(p++, CargoSpec::Get(indsp->accepts_cargo[j])->name);
 					SetDParamStr(p++, cargo_suffix[j].c_str());
@@ -447,13 +427,14 @@ public:
 				y += FONT_HEIGHT_NORMAL;
 
 				/* Draw the produced cargoes, if any. Otherwise, will print "Nothing". */
-				GetAllCargoSuffixes(3, CST_FUND, NULL, this->selected_type, indsp, indsp->produced_cargo, cargo_suffix);
 				str = STR_INDUSTRY_VIEW_PRODUCES_CARGO;
 				p = 0;
 				SetDParam(0, STR_JUST_NOTHING);
 				SetDParamStr(1, "");
+				assert_compile(lengthof(indsp->produced_cargo) <= lengthof(cargo_suffix));
 				for (byte j = 0; j < lengthof(indsp->produced_cargo); j++) {
 					if (indsp->produced_cargo[j] == CT_INVALID) continue;
+					GetCargoSuffix (j + 3, CST_FUND, NULL, this->selected_type, indsp, &cargo_suffix[j]);
 					if (p > 0) str++;
 					SetDParam(p++, CargoSpec::Get(indsp->produced_cargo[j])->name);
 					SetDParamStr(p++, cargo_suffix[j].c_str());
@@ -719,7 +700,7 @@ public:
 		}
 
 		if (HasBit(ind->callback_mask, CBM_IND_PRODUCTION_CARGO_ARRIVAL) || HasBit(ind->callback_mask, CBM_IND_PRODUCTION_256_TICKS)) {
-			GetAllCargoSuffixes(0, CST_VIEW, i, i->type, ind, i->accepts_cargo, cargo_suffix);
+			assert_compile(lengthof(i->accepts_cargo) <= lengthof(cargo_suffix));
 			for (byte j = 0; j < lengthof(i->accepts_cargo); j++) {
 				if (i->accepts_cargo[j] == CT_INVALID) continue;
 				has_accept = true;
@@ -728,6 +709,7 @@ public:
 					y += FONT_HEIGHT_NORMAL;
 					first = false;
 				}
+				GetCargoSuffix (j, CST_VIEW, i, i->type, ind, &cargo_suffix[j]);
 				SetDParam(0, i->accepts_cargo[j]);
 				SetDParam(1, i->incoming_cargo_waiting[j]);
 				SetDParamStr(2, cargo_suffix[j].c_str());
@@ -735,12 +717,13 @@ public:
 				y += FONT_HEIGHT_NORMAL;
 			}
 		} else {
-			GetAllCargoSuffixes(0, CST_VIEW, i, i->type, ind, i->accepts_cargo, cargo_suffix);
 			StringID str = STR_INDUSTRY_VIEW_REQUIRES_CARGO;
 			byte p = 0;
+			assert_compile(lengthof(i->accepts_cargo) <= lengthof(cargo_suffix));
 			for (byte j = 0; j < lengthof(i->accepts_cargo); j++) {
 				if (i->accepts_cargo[j] == CT_INVALID) continue;
 				has_accept = true;
+				GetCargoSuffix (j, CST_VIEW, i, i->type, ind, &cargo_suffix[j]);
 				if (p > 0) str++;
 				SetDParam(p++, CargoSpec::Get(i->accepts_cargo[j])->name);
 				SetDParamStr(p++, cargo_suffix[j].c_str());
@@ -751,8 +734,8 @@ public:
 			}
 		}
 
-		GetAllCargoSuffixes(3, CST_VIEW, i, i->type, ind, i->produced_cargo, cargo_suffix);
 		first = true;
+		assert_compile(lengthof(i->produced_cargo) <= lengthof(cargo_suffix));
 		for (byte j = 0; j < lengthof(i->produced_cargo); j++) {
 			if (i->produced_cargo[j] == CT_INVALID) continue;
 			if (first) {
@@ -763,6 +746,7 @@ public:
 				first = false;
 			}
 
+			GetCargoSuffix (j + 3, CST_VIEW, i, i->type, ind, &cargo_suffix[j]);
 			SetDParam(0, i->produced_cargo[j]);
 			SetDParam(1, i->last_month_production[j]);
 			SetDParamStr(2, cargo_suffix[j].c_str());
@@ -1203,11 +1187,11 @@ protected:
 		SetDParam(p++, i->index);
 
 		static sstring<512> cargo_suffix [lengthof(i->produced_cargo)];
-		GetAllCargoSuffixes(3, CST_DIR, i, i->type, indsp, i->produced_cargo, cargo_suffix);
 
 		/* Industry productions */
 		for (byte j = 0; j < lengthof(i->produced_cargo); j++) {
 			if (i->produced_cargo[j] == CT_INVALID) continue;
+			GetCargoSuffix (j + 3, CST_DIR, i, i->type, indsp, &cargo_suffix[j]);
 			SetDParam(p++, i->produced_cargo[j]);
 			SetDParam(p++, i->last_month_production[j]);
 			SetDParamStr(p++, cargo_suffix[j].c_str());
