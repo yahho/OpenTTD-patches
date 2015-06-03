@@ -267,8 +267,14 @@ void LoadBuffer::BeginChunk()
  */
 void LoadBuffer::EndChunk()
 {
-	if ((this->chunk_type == CH_RIFF) && (this->GetSize() != this->riff.end)) {
-		throw SlCorrupt("Invalid chunk size");
+	if (this->chunk_type == CH_RIFF) {
+		if (this->GetSize() != this->riff.end) {
+			throw SlCorrupt("Invalid chunk size");
+		}
+	} else {
+		if (this->array.next != SIZE_MAX) {
+			throw SlCorrupt("Invalid array length");
+		}
 	}
 
 	this->chunk_type = -1;
@@ -283,12 +289,16 @@ int LoadBuffer::IterateChunk(bool skip)
 {
 	assert((this->chunk_type == CH_ARRAY) || (this->chunk_type == CH_SPARSE_ARRAY));
 
+	/* Attempt to read an element past the end of the array? */
+	assert(this->array.next != SIZE_MAX);
+
 	/* Check that elements are fully read before going on with the next one. */
 	if (this->GetSize() != this->array.next) throw SlCorrupt("Invalid chunk size");
 
 	for (;;) {
 		uint length = this->ReadGamma();
 		if (length == 0) {
+			this->array.next = SIZE_MAX;
 			return -1;
 		}
 
