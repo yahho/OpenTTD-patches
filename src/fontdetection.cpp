@@ -163,6 +163,56 @@ FT_Error GetFontByFaceName (const char *font_name, FT_Face *face)
 }
 
 /**
+ * Get the English font name for a buffer of font data (see below).
+ * @param buf the buffer with the font data
+ * @param len the length of the buffer
+ * @return the English name (if it could be found)
+ */
+static const char *GetEnglishFontName (const byte *buf, size_t len)
+{
+	static char font_name [MAX_PATH];
+
+	if (len < 6) return NULL;
+
+	if ((buf[0] != 0) || (buf[1] != 0)) return NULL;
+
+	uint count = (buf[2] << 8) + buf[3];
+	if (count > (len - 6) / 12) return NULL;
+
+	size_t data_offset = (buf[4] << 8) + buf[5];
+	if (data_offset > len) return NULL;
+	const byte *data = buf + data_offset;
+	size_t data_len = len - data_offset;
+
+	for (buf += 6; count > 0; count--, buf += 12) {
+		uint platform = (buf[0] << 8) + buf[1];
+		/* ignore encoding (bytes 2 and 3) */
+		uint language = (buf[4] << 8) + buf[5];
+		if ((platform != 1 || language != 0) &&      // Macintosh English
+				(platform != 3 || language != 0x0409)) { // Microsoft English (US)
+			continue;
+		}
+
+		uint name = (buf[6] << 8) + buf[7];
+		if (name != 1) continue;
+
+		uint offset = (buf[10] << 8) + buf[11];
+		if (offset > data_len) continue;
+
+		uint length = (buf[8] << 8) + buf[9];
+		if (length > (data_len - offset)) continue;
+
+		/* Don't buffer overflow */
+		length = min (length, MAX_PATH - 1);
+		memcpy (font_name, data + offset, length);
+		font_name[length] = '\0';
+		return font_name;
+	}
+
+	return NULL;
+}
+
+/**
  * Fonts can have localised names and when the system locale is the same as
  * one of those localised names Windows will always return that localised name
  * instead of allowing to get the non-localised (English US) name of the font.
@@ -177,14 +227,11 @@ FT_Error GetFontByFaceName (const char *font_name, FT_Face *face)
  */
 static const char *GetEnglishFontName(const ENUMLOGFONTEX *logfont)
 {
-	static char font_name[MAX_PATH];
 	const char *ret_font_name = NULL;
-	uint pos = 0;
 	HDC dc;
 	HGDIOBJ oldfont;
 	byte *buf;
 	DWORD dw;
-	uint16 format, count, stringOffset, platformId, encodingId, languageId, nameId, length, offset;
 
 	HFONT font = CreateFontIndirect(&logfont->elfLogFont);
 	if (font == NULL) goto err1;
@@ -195,45 +242,9 @@ static const char *GetEnglishFontName(const ENUMLOGFONTEX *logfont)
 	if (dw == GDI_ERROR) goto err2;
 
 	buf = xmalloct<byte>(dw);
-	dw = GetFontData(dc, 'eman', 0, buf, dw);
-	if (dw == GDI_ERROR) goto err3;
+	if (GetFontData(dc, 'eman', 0, buf, dw) == GDI_ERROR) goto err3;
 
-	format = buf[pos++] << 8;
-	format += buf[pos++];
-	assert(format == 0);
-	count = buf[pos++] << 8;
-	count += buf[pos++];
-	stringOffset = buf[pos++] << 8;
-	stringOffset += buf[pos++];
-	for (uint i = 0; i < count; i++) {
-		platformId = buf[pos++] << 8;
-		platformId += buf[pos++];
-		encodingId = buf[pos++] << 8;
-		encodingId += buf[pos++];
-		languageId = buf[pos++] << 8;
-		languageId += buf[pos++];
-		nameId = buf[pos++] << 8;
-		nameId += buf[pos++];
-		if (nameId != 1) {
-			pos += 4; // skip length and offset
-			continue;
-		}
-		length = buf[pos++] << 8;
-		length += buf[pos++];
-		offset = buf[pos++] << 8;
-		offset += buf[pos++];
-
-		/* Don't buffer overflow */
-		length = min(length, MAX_PATH - 1);
-		for (uint j = 0; j < length; j++) font_name[j] = buf[stringOffset + offset + j];
-		font_name[length] = '\0';
-
-		if ((platformId == 1 && languageId == 0) ||      // Macintosh English
-				(platformId == 3 && languageId == 0x0409)) { // Microsoft English (US)
-			ret_font_name = font_name;
-			break;
-		}
-	}
+	ret_font_name = GetEnglishFontName (buf, dw);
 
 err3:
 	free(buf);
