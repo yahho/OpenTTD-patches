@@ -228,31 +228,24 @@ static const char *GetEnglishFontName (const byte *buf, size_t len)
 static const char *GetEnglishFontName(const ENUMLOGFONTEX *logfont)
 {
 	const char *ret_font_name = NULL;
-	HDC dc;
-	HGDIOBJ oldfont;
-	byte *buf;
-	DWORD dw;
 
 	HFONT font = CreateFontIndirect(&logfont->elfLogFont);
-	if (font == NULL) goto err1;
+	if (font != NULL) {
+		HDC dc = GetDC (NULL);
+		HGDIOBJ oldfont = SelectObject (dc, font);
+		DWORD dw = GetFontData (dc, 'eman', 0, NULL, 0);
+		if (dw != GDI_ERROR) {
+			byte *buf = xmalloct<byte>(dw);
+			if (GetFontData (dc, 'eman', 0, buf, dw) != GDI_ERROR) {
+				ret_font_name = GetEnglishFontName (buf, dw);
+			}
+			free(buf);
+		}
+		SelectObject (dc, oldfont);
+		ReleaseDC (NULL, dc);
+		DeleteObject (font);
+	}
 
-	dc = GetDC(NULL);
-	oldfont = SelectObject(dc, font);
-	dw = GetFontData(dc, 'eman', 0, NULL, 0);
-	if (dw == GDI_ERROR) goto err2;
-
-	buf = xmalloct<byte>(dw);
-	if (GetFontData(dc, 'eman', 0, buf, dw) == GDI_ERROR) goto err3;
-
-	ret_font_name = GetEnglishFontName (buf, dw);
-
-err3:
-	free(buf);
-err2:
-	SelectObject(dc, oldfont);
-	ReleaseDC(NULL, dc);
-	DeleteObject(font);
-err1:
 	return ret_font_name == NULL ? WIDE_TO_MB((const TCHAR*)logfont->elfFullName) : ret_font_name;
 }
 
