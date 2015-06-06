@@ -166,12 +166,12 @@ FT_Error GetFontByFaceName (const char *font_name, FT_Face *face)
  * Get the English font name for a buffer of font data (see below).
  * @param buf the buffer with the font data
  * @param len the length of the buffer
- * @return the English name (if it could be found)
+ * @param fontname the buffer where to store the English name
+ * @return whether the name was found
  */
-static const char *GetEnglishFontName (const byte *buf, size_t len)
+static bool GetEnglishFontName (const byte *buf, size_t len,
+	char (&fontname) [MAX_PATH])
 {
-	static char font_name [MAX_PATH];
-
 	if (len < 6) return NULL;
 
 	if ((buf[0] != 0) || (buf[1] != 0)) return NULL;
@@ -202,14 +202,11 @@ static const char *GetEnglishFontName (const byte *buf, size_t len)
 		uint length = (buf[8] << 8) + buf[9];
 		if (length > (data_len - offset)) continue;
 
-		/* Don't buffer overflow */
-		length = min (length, MAX_PATH - 1);
-		memcpy (font_name, data + offset, length);
-		font_name[length] = '\0';
-		return font_name;
+		bstrfmt (fontname, "%.*s", length, data + offset);
+		return true;
 	}
 
-	return NULL;
+	return false;
 }
 
 /**
@@ -223,11 +220,12 @@ static const char *GetEnglishFontName (const byte *buf, size_t len)
  * the font itself to gather the font name we want.
  * Based on: http://blogs.msdn.com/michkap/archive/2006/02/13/530814.aspx
  * @param logfont the font information to get the english name of.
- * @return the English name (if it could be found).
+ * @param fontname the buffer where to store the English name
  */
-static const char *GetEnglishFontName(const ENUMLOGFONTEX *logfont)
+static void GetEnglishFontName (const ENUMLOGFONTEX *logfont,
+	char (&fontname) [MAX_PATH])
 {
-	const char *ret_font_name = NULL;
+	bool found = false;
 
 	HFONT font = CreateFontIndirect(&logfont->elfLogFont);
 	if (font != NULL) {
@@ -237,7 +235,7 @@ static const char *GetEnglishFontName(const ENUMLOGFONTEX *logfont)
 		if (dw != GDI_ERROR) {
 			byte *buf = xmalloct<byte>(dw);
 			if (GetFontData (dc, 'eman', 0, buf, dw) != GDI_ERROR) {
-				ret_font_name = GetEnglishFontName (buf, dw);
+				found = GetEnglishFontName (buf, dw, fontname);
 			}
 			free(buf);
 		}
@@ -246,7 +244,9 @@ static const char *GetEnglishFontName(const ENUMLOGFONTEX *logfont)
 		DeleteObject (font);
 	}
 
-	return ret_font_name == NULL ? WIDE_TO_MB((const TCHAR*)logfont->elfFullName) : ret_font_name;
+	if (!found) {
+		bstrcpy (fontname, WIDE_TO_MB((const TCHAR*)logfont->elfFullName));
+	}
 }
 
 class FontList {
@@ -325,7 +325,8 @@ static int CALLBACK EnumFontCallback(const ENUMLOGFONTEX *logfont, const NEWTEXT
 	convert_from_fs((const TCHAR *)logfont->elfFullName, font_name, lengthof(font_name));
 
 	/* Add english name after font name */
-	const char *english_name = GetEnglishFontName(logfont);
+	char english_name [MAX_PATH];
+	GetEnglishFontName (logfont, english_name);
 
 	/* Check whether we can actually load the font. */
 	bool ft_init = _library != NULL;
