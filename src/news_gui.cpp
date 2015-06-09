@@ -965,21 +965,20 @@ static void DrawNewsString(uint left, uint right, int y, TextColour colour, cons
 	 * from it such as big fonts, etc. */
 	const char *ptr = buffer;
 	char *dest = buffer2;
-	WChar c_last = '\0';
 	for (;;) {
 		WChar c = Utf8Consume(&ptr);
 		if (c == 0) break;
 		/* Make a space from a newline, but ignore multiple newlines */
-		if (c == '\n' && c_last != '\n') {
+		if (c == '\n') {
 			dest[0] = ' ';
 			dest++;
+			while (*ptr == '\n') ptr++;
 		} else if (c == '\r') {
 			dest[0] = dest[1] = dest[2] = dest[3] = ' ';
 			dest += 4;
 		} else if (IsPrintable(c)) {
 			dest += Utf8Encode(dest, c);
 		}
-		c_last = c;
 	}
 
 	*dest = '\0';
