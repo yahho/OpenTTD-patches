@@ -2325,17 +2325,15 @@ static void CanCargoServiceIndustry(CargoID cargo, Industry *ind, bool *c_accept
  *
  * @param ind: Industry being investigated.
  *
- * @return: 0 if nobody can service the industry, 2 if the local company can
- * service the industry, and 1 otherwise (only competitors can service the
- * industry)
+ * @return The NewsType to use for a production change in this industry.
  */
-static int WhoCanServiceIndustry(Industry *ind)
+static NewsType IndustryServiceNewsType (Industry *ind)
 {
 	/* Find all stations within reach of the industry */
 	StationList stations;
 	FindStationsAroundTiles(ind->location, &stations);
 
-	if (stations.Length() == 0) return 0; // No stations found at all => nobody services
+	if (stations.Length() == 0) return NT_INDUSTRY_NOBODY; // No stations found at all
 
 	const Vehicle *v;
 	int result = 0;
@@ -2372,13 +2370,13 @@ static int WhoCanServiceIndustry(Industry *ind)
 				if ((o->GetUnloadType() & OUFB_UNLOAD) && !c_accepts) break;
 
 				if (stations.Contains(st)) {
-					if (v->owner == _local_company) return 2; // Company services industry
+					if (v->owner == _local_company) return NT_INDUSTRY_COMPANY; // Company services industry
 					result = 1; // Competitor services industry
 				}
 			}
 		}
 	}
-	return result;
+	return result ? NT_INDUSTRY_OTHER : NT_INDUSTRY_NOBODY;
 }
 
 /**
@@ -2390,14 +2388,8 @@ static int WhoCanServiceIndustry(Industry *ind)
  */
 static void ReportNewsProductionChangeIndustry(Industry *ind, CargoID type, int percent)
 {
-	NewsType nt;
+	NewsType nt = IndustryServiceNewsType (ind);
 
-	switch (WhoCanServiceIndustry(ind)) {
-		case 0: nt = NT_INDUSTRY_NOBODY;  break;
-		case 1: nt = NT_INDUSTRY_OTHER;   break;
-		case 2: nt = NT_INDUSTRY_COMPANY; break;
-		default: NOT_REACHED();
-	}
 	SetDParam(2, abs(percent));
 	SetDParam(0, CargoSpec::Get(type)->name);
 	SetDParam(1, ind->index);
@@ -2606,12 +2598,7 @@ static void ChangeIndustryProduction(Industry *i, bool monthly)
 			AI::BroadcastNewEvent(new ScriptEventIndustryClose(i->index));
 			Game::NewEvent(new ScriptEventIndustryClose(i->index));
 		} else {
-			switch (WhoCanServiceIndustry(i)) {
-				case 0: nt = NT_INDUSTRY_NOBODY;  break;
-				case 1: nt = NT_INDUSTRY_OTHER;   break;
-				case 2: nt = NT_INDUSTRY_COMPANY; break;
-				default: NOT_REACHED();
-			}
+			nt = IndustryServiceNewsType (i);
 		}
 		/* Set parameters of news string */
 		if (str > STR_LAST_STRINGID) {
