@@ -2412,6 +2412,76 @@ static const uint PERCENT_TRANSPORTED_60 = 153;
 static const uint PERCENT_TRANSPORTED_80 = 204;
 
 /**
+ * Change industry production smoothly for standard industries.
+ * @param i Industry for which changes are performed.
+ * @param only_decrease Whether production can only decrease (temperate oil wells).
+ * @param on_water Whether the industry is built on water (oil rigs).
+ * @return Whether the industry should be closed.
+ */
+static bool ChangeIndustryProductionSmooth (Industry *i,
+	bool only_decrease, bool on_water)
+{
+	bool close = true;
+
+	for (byte j = 0; j < lengthof(i->produced_cargo); j++) {
+		if (i->produced_cargo[j] == CT_INVALID) continue;
+
+		uint32 r = Random();
+
+		assert_compile (PERCENT_TRANSPORTED_80 > PERCENT_TRANSPORTED_60);
+
+		int mult;
+		if (only_decrease) {
+			/* For industries with only_decrease flags (temperate
+			 * terrain Oil Wells), the multiplier will always be
+			 * -1 so they will only decrease. */
+			mult = -1;
+		} else if (i->last_month_pct_transported[j] > PERCENT_TRANSPORTED_80) {
+			/* Bonus for very high station ratings:
+			 * 16% chance for decrease. */
+			mult = Chance16I (1, 6, r) ? -1 : 1;
+		} else {
+			/* For normal industries, if over 60% is transported,
+			 * 33% chance for decrease, else 67% chance for decrease. */
+			mult = (i->last_month_pct_transported[j] > PERCENT_TRANSPORTED_60) ^ Chance16I (1, 3, r) ? -1 : 1;
+		}
+
+		/* 4.5% chance for 3-23% (or 1 unit for very low productions) production change,
+		 * determined by mult value. If mult = 1 prod. increases, else (-1) it decreases. */
+		int old_prod, new_prod;
+		new_prod = old_prod = i->production_rate[j];
+		if (Chance16I (1, 22, r >> 16)) {
+			new_prod += mult * max (((RandomRange(50) + 10) * old_prod) >> 8, 1U);
+		}
+
+		/* Prevent production to overflow or Oil Rig passengers to be over-"produced" */
+		new_prod = Clamp (new_prod, 1, 255);
+
+		if (on_water && j == 1) {
+			new_prod = Clamp(new_prod, 0, 16);
+		}
+
+		/* Do not stop closing the industry when it has the lowest possible production rate */
+		if (new_prod == old_prod && old_prod > 1) {
+			close = false;
+			continue;
+		}
+
+		int percent = (old_prod == 0) ? 100 : (new_prod * 100 / old_prod - 100);
+		i->production_rate[j] = new_prod;
+
+		/* Close the industry when it has the lowest possible production rate */
+		if (new_prod > 1) close = false;
+
+		if (abs(percent) >= 10) {
+			ReportNewsProductionChangeIndustry (i, i->produced_cargo[j], percent);
+		}
+	}
+
+	return close;
+}
+
+/**
  * Change industry production or do closure
  * @param i Industry for which changes are performed
  * @param monthly true if it's the monthly call, false if it's the random call
@@ -2469,55 +2539,8 @@ static void ChangeIndustryProduction(Industry *i, bool monthly)
 		bool only_decrease = (indspec->behaviour & INDUSTRYBEH_DONT_INCR_PROD) && _settings_game.game_creation.landscape == LT_TEMPERATE;
 
 		if (smooth_economy) {
-			closeit = true;
-			for (byte j = 0; j < lengthof(i->produced_cargo); j++) {
-				if (i->produced_cargo[j] == CT_INVALID) continue;
-				uint32 r = Random();
-				int old_prod, new_prod, percent;
-				/* If over 60% is transported, mult is 1, else mult is -1. */
-				int mult = (i->last_month_pct_transported[j] > PERCENT_TRANSPORTED_60) ? 1 : -1;
-
-				new_prod = old_prod = i->production_rate[j];
-
-				/* For industries with only_decrease flags (temperate terrain Oil Wells),
-				 * the multiplier will always be -1 so they will only decrease. */
-				if (only_decrease) {
-					mult = -1;
-				/* For normal industries, if over 60% is transported, 33% chance for decrease.
-				 * Bonus for very high station ratings (over 80%): 16% chance for decrease. */
-				} else if (Chance16I(1, ((i->last_month_pct_transported[j] > PERCENT_TRANSPORTED_80) ? 6 : 3), r)) {
-					mult *= -1;
-				}
-
-				/* 4.5% chance for 3-23% (or 1 unit for very low productions) production change,
-				 * determined by mult value. If mult = 1 prod. increases, else (-1) it decreases. */
-				if (Chance16I(1, 22, r >> 16)) {
-					new_prod += mult * (max(((RandomRange(50) + 10) * old_prod) >> 8, 1U));
-				}
-
-				/* Prevent production to overflow or Oil Rig passengers to be over-"produced" */
-				new_prod = Clamp(new_prod, 1, 255);
-
-				if (((indspec->behaviour & INDUSTRYBEH_BUILT_ONWATER) != 0) && j == 1) {
-					new_prod = Clamp(new_prod, 0, 16);
-				}
-
-				/* Do not stop closing the industry when it has the lowest possible production rate */
-				if (new_prod == old_prod && old_prod > 1) {
-					closeit = false;
-					continue;
-				}
-
-				percent = (old_prod == 0) ? 100 : (new_prod * 100 / old_prod - 100);
-				i->production_rate[j] = new_prod;
-
-				/* Close the industry when it has the lowest possible production rate */
-				if (new_prod > 1) closeit = false;
-
-				if (abs(percent) >= 10) {
-					ReportNewsProductionChangeIndustry(i, i->produced_cargo[j], percent);
-				}
-			}
+			closeit = ChangeIndustryProductionSmooth (i, only_decrease,
+					(indspec->behaviour & INDUSTRYBEH_BUILT_ONWATER) != 0);
 		} else {
 			if (only_decrease || Chance16(1, 3)) {
 				/* If more than 60% transported, 66% chance of increase, else 33% chance of increase */
