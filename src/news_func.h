@@ -31,7 +31,7 @@ static inline void AddCompanyNewsItem(StringID string, CompanyNewsInformation *c
  */
 static inline void AddVehicleNewsItem(StringID string, NewsType type, VehicleID vehicle, StationID station = INVALID_STATION)
 {
-	AddNewsItem(string, type, NF_NO_TRANSPARENT | NF_SHADE | NF_THIN, NR_VEHICLE, vehicle, station == INVALID_STATION ? NR_NONE : NR_STATION, station);
+	AddNewsItem(string, type, NF_SHADE | NF_THIN, NR_VEHICLE, vehicle, station == INVALID_STATION ? NR_NONE : NR_STATION, station);
 }
 
 /**
@@ -46,12 +46,12 @@ static inline void AddVehicleAdviceNewsItem(StringID string, VehicleID vehicle)
 
 static inline void AddTileNewsItem(StringID string, NewsType type, TileIndex tile, void *free_data = NULL)
 {
-	AddNewsItem(string, type, NF_NO_TRANSPARENT | NF_SHADE | NF_THIN, NR_TILE, tile, NR_NONE, UINT32_MAX, free_data);
+	AddNewsItem(string, type, NF_SHADE | NF_THIN, NR_TILE, tile, NR_NONE, UINT32_MAX, free_data);
 }
 
 static inline void AddIndustryNewsItem(StringID string, NewsType type, IndustryID industry)
 {
-	AddNewsItem(string, type, NF_NO_TRANSPARENT | NF_SHADE | NF_THIN, NR_INDUSTRY, industry);
+	AddNewsItem(string, type, NF_SHADE | NF_THIN, NR_INDUSTRY, industry);
 }
 
 void NewsLoop();

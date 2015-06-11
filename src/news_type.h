@@ -76,15 +76,13 @@ enum NewsReferenceType {
  * @note #NF_INCOLOUR is set automatically if needed.
  */
 enum NewsFlag {
-	NFB_INCOLOUR       = 0,                      ///< News item is shown in colour (otherwise it is shown in black & white).
-	NFB_NO_TRANSPARENT = 1,                      ///< News item disables transparency in the viewport.
-	NFB_SHADE          = 2,                      ///< News item uses shaded colours.
-	NFB_WINDOW_LAYOUT  = 3,                      ///< First bit for window layout.
+	NFB_WINDOW_LAYOUT  = 0,                      ///< First bit for window layout.
 	NFB_WINDOW_LAYOUT_COUNT = 3,                 ///< Number of bits for window layout.
-	NFB_VEHICLE_PARAM0 = 6,                      ///< String param 0 contains a vehicle ID. (special autoreplace behaviour)
+	NFB_INCOLOUR       = 3,                      ///< News item is shown in colour (otherwise it is shown in black & white).
+	NFB_SHADE          = 4,                      ///< Disable transparency in the viewport and shade colours.
+	NFB_VEHICLE_PARAM0 = 5,                      ///< String param 0 contains a vehicle ID. (special autoreplace behaviour)
 
 	NF_INCOLOUR       = 1 << NFB_INCOLOUR,       ///< Bit value for coloured news.
-	NF_NO_TRANSPARENT = 1 << NFB_NO_TRANSPARENT, ///< Bit value for disabling transparency.
 	NF_SHADE          = 1 << NFB_SHADE,          ///< Bit value for enabling shading.
 	NF_VEHICLE_PARAM0 = 1 << NFB_VEHICLE_PARAM0, ///< Bit value for specifying that string param 0 contains a vehicle ID. (special autoreplace behaviour)
 
