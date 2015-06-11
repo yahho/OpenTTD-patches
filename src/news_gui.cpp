@@ -40,7 +40,7 @@
 
 const NewsItem *_statusbar_news_item = NULL;
 
-static uint MIN_NEWS_AMOUNT = 30;           ///< preferred minimum amount of news messages
+static const uint MIN_NEWS_AMOUNT = 30;     ///< preferred minimum amount of news messages
 static uint _total_news = 0;                ///< current number of news items
 static NewsItem *_oldest_news = NULL;       ///< head of news items queue
 static NewsItem *_latest_news = NULL;       ///< tail of news items queue
@@ -201,7 +201,7 @@ static WindowDesc _small_news_desc(
 /**
  * Window layouts for news items.
  */
-static WindowDesc* _news_window_layout[] = {
+static WindowDesc* const _news_window_layout[] = {
 	&_thin_news_desc,    ///< NF_THIN
 	&_small_news_desc,   ///< NF_SMALL
 	&_normal_news_desc,  ///< NF_NORMAL
@@ -219,7 +219,7 @@ WindowDesc* GetNewsWindowLayout(NewsFlag flags)
 /**
  * Per-NewsType data
  */
-static NewsTypeData _news_type_data[] = {
+static const NewsTypeData _news_type_data[] = {
 	/*            name,                           age, sound,          */
 	NewsTypeData("news_display.arrival_player",    60, SND_1D_APPLAUSE ),  ///< NT_ARRIVAL_COMPANY
 	NewsTypeData("news_display.arrival_other",     60, SND_1D_APPLAUSE ),  ///< NT_ARRIVAL_OTHER

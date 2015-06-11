@@ -118,7 +118,7 @@ struct NewsTypeData {
 	 * @param age The maximum age for these messages.
 	 * @param sound The sound to play.
 	 */
-	NewsTypeData(const char *name, byte age, SoundFx sound) :
+	CONSTEXPR NewsTypeData(const char *name, byte age, SoundFx sound) :
 		name(name),
 		age(age),
 		sound(sound)
