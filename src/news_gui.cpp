@@ -33,6 +33,7 @@
 #include "command_func.h"
 #include "company_base.h"
 #include "settings_internal.h"
+#include "news_func.h"
 
 #include "widgets/news_widget.h"
 
@@ -637,6 +638,18 @@ void AddNewsItem(StringID string, NewsType type, NewsFlag flags, NewsReferenceTy
 	/* Create new news item node */
 	NewsItem *ni = new NewsItem (string, type, flags, reftype1, ref1, reftype2, ref2, free_data);
 	CopyOutDParam(ni->params, 0, lengthof(ni->params));
+
+	InsertNewsItem (ni);
+}
+
+/**
+ * Insert a news item into the list.
+ * @param ni The news item to insert.
+ */
+void InsertNewsItem (NewsItem *ni)
+{
+	assert (ni->prev == NULL);
+	assert (ni->next == NULL);
 
 	if (_total_news++ == 0) {
 		assert(_oldest_news == NULL);
