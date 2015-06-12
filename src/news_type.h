@@ -13,9 +13,10 @@
 #define NEWS_TYPE_H
 
 #include "core/enum_type.hpp"
-#include "date_type.h"
+#include "date_func.h"
 #include "strings_type.h"
 #include "sound_type.h"
+#include "settings_type.h"
 
 /** Constants in the message options window. */
 enum MessageOptionsSpace {
@@ -143,6 +144,18 @@ struct NewsItem {
 	uint32 ref2;                 ///< Reference 2 to some object: Used for scrolling after clicking on the news, and for deleteing the news when the object is deleted.
 
 	void *free_data;             ///< Data to be freed when the news item has reached its end.
+
+	NewsItem (StringID string, NewsType type, NewsFlag flags,
+			NewsReferenceType reftype1 = NR_NONE, uint32 ref1 = UINT32_MAX,
+			NewsReferenceType reftype2 = NR_NONE, uint32 ref2 = UINT32_MAX,
+			void *free_data = NULL)
+		: prev(NULL), next(NULL),
+		  string_id(string), date(_date), type(type),
+		  flags (_cur_year < _settings_client.gui.coloured_news_year ? flags : flags | NF_INCOLOUR),
+		  reftype1(reftype1), reftype2(reftype2),
+		  ref1(ref1), ref2(ref2), free_data(free_data)
+	{
+	}
 
 	~NewsItem()
 	{

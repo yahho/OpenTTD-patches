@@ -635,21 +635,7 @@ void AddNewsItem(StringID string, NewsType type, NewsFlag flags, NewsReferenceTy
 	if (_game_mode == GM_MENU) return;
 
 	/* Create new news item node */
-	NewsItem *ni = new NewsItem;
-
-	ni->string_id = string;
-	ni->type = type;
-	ni->flags = flags;
-
-	/* show this news message in colour? */
-	if (_cur_year >= _settings_client.gui.coloured_news_year) ni->flags |= NF_INCOLOUR;
-
-	ni->reftype1 = reftype1;
-	ni->reftype2 = reftype2;
-	ni->ref1 = ref1;
-	ni->ref2 = ref2;
-	ni->free_data = free_data;
-	ni->date = _date;
+	NewsItem *ni = new NewsItem (string, type, flags, reftype1, ref1, reftype2, ref2, free_data);
 	CopyOutDParam(ni->params, 0, lengthof(ni->params));
 
 	if (_total_news++ == 0) {
