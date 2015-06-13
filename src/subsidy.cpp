@@ -41,12 +41,8 @@ void Subsidy::AwardTo(CompanyID company)
 	this->awarded = company;
 	this->remaining = SUBSIDY_CONTRACT_MONTHS;
 
-	char company_name[MAX_LENGTH_COMPANY_NAME_CHARS * MAX_CHAR_LENGTH];
-	SetDParam(0, company);
-	GetString (company_name, STR_COMPANY_NAME);
-
 	/* Add a news item */
-	AddNewsItem<SubsidyAwardNewsItem> (this, company_name);
+	AddNewsItem<SubsidyAwardNewsItem> (this, company);
 	AI::BroadcastNewEvent(new ScriptEventSubsidyAwarded(this->index));
 	Game::NewEvent(new ScriptEventSubsidyAwarded(this->index));
 

@@ -379,7 +379,7 @@ struct NewsWindow : Window {
 			}
 			case WID_N_MGR_NAME: {
 				const BaseCompanyNewsItem *cni = static_cast<const BaseCompanyNewsItem *>(this->ni);
-				SetDParamStr(0, cni->president_name);
+				SetDParamStr (0, cni->pname.get());
 				DrawStringMultiLine(r.left, r.right, r.top, r.bottom, STR_JUST_RAW_STRING, TC_FROMSTRING, SA_CENTER);
 				break;
 			}
@@ -644,6 +644,13 @@ void InsertNewsItem (NewsItem *ni)
 	SetWindowDirty(WC_MESSAGE_HISTORY, 0);
 }
 
+/** Construct a NewsItem::CompanyName. */
+NewsItem::CompanyName::CompanyName (CompanyID cid)
+{
+	SetDParam (0, cid);
+	GetString (this->data, STR_COMPANY_NAME);
+}
+
 /** Construct a BaseVehicleNewsItem. */
 BaseVehicleNewsItem::BaseVehicleNewsItem (StringID string, NewsType type,
 		VehicleID vid, const struct Station *st)
@@ -691,21 +698,21 @@ AcceptanceNewsItem::AcceptanceNewsItem (const Station *st,
 
 /** Construct a FoundTownNewsItem. */
 FoundTownNewsItem::FoundTownNewsItem (TownID tid, TileIndex tile,
-		const char *company_name)
+		CompanyID cid)
 	: TileNewsItem (STR_NEWS_NEW_TOWN, NT_INDUSTRY_OPEN, tile),
-	  data (xstrdup (company_name))
+	  cname (cid)
 {
-	this->params[0] = (uint64)(size_t)this->data.get();
+	this->params[0] = this->cname.get_as_param();
 	this->params[1] = tid;
 }
 
 /** Construct a RoadRebuildNewsItem. */
-RoadRebuildNewsItem::RoadRebuildNewsItem (TownID tid, const char *company_name)
+RoadRebuildNewsItem::RoadRebuildNewsItem (TownID tid, CompanyID cid)
 	: NewsItem (STR_NEWS_ROAD_REBUILDING, NT_GENERAL, NF_NORMAL, NR_TOWN, tid),
-	  data (xstrdup (company_name))
+	  cname (cid)
 {
 	this->params[0] = tid;
-	this->params[1] = (uint64)(size_t)this->data.get();
+	this->params[1] = this->cname.get_as_param();
 }
 
 /** Construct an EngineNewsItem. */
@@ -745,24 +752,22 @@ SubsidyNewsItem::SubsidyNewsItem (StringID string, const Subsidy *s,
 }
 
 /** Construct a SubsidyAwardNewsItem. */
-SubsidyAwardNewsItem::SubsidyAwardNewsItem (const Subsidy *s, const char *company_name)
+SubsidyAwardNewsItem::SubsidyAwardNewsItem (const Subsidy *s, CompanyID cid)
 	: SubsidyNewsItem (STR_NEWS_SERVICE_SUBSIDY_AWARDED_HALF + _settings_game.difficulty.subsidy_multiplier,
 		s, false, 1),
-	  data (xstrdup (company_name))
+	  cname (cid)
 {
-	this->params[0] = (uint64)(size_t)this->data.get();
+	this->params[0] = this->cname.get_as_param();
 }
 
 /** Construct a BaseCompanyNewsItem. */
 BaseCompanyNewsItem::BaseCompanyNewsItem (NewsType type, StringID str,
 		const Company *c, NewsReferenceType reftype, uint32 ref)
-	: NewsItem (STR_MESSAGE_NEWS_FORMAT, type, NF_COMPANY, reftype, ref)
+	: NewsItem (STR_MESSAGE_NEWS_FORMAT, type, NF_COMPANY, reftype, ref),
+	  cname (c->index)
 {
 	SetDParam (0, c->index);
-	GetString (this->company_name, STR_COMPANY_NAME);
-
-	SetDParam (0, c->index);
-	GetString (this->president_name, STR_PRESIDENT_NAME_MANAGER);
+	GetString (this->pname.data, STR_PRESIDENT_NAME_MANAGER);
 
 	this->colour = c->colour;
 	this->face = c->face;
@@ -776,7 +781,7 @@ CompanyNewsItem::CompanyNewsItem (StringID str1, StringID str2,
 	: BaseCompanyNewsItem (NT_COMPANY_INFO, str1, c)
 {
 	this->params[1] = str2;
-	this->params[2] = (uint64)(size_t)this->company_name;
+	this->params[2] = this->cname.get_as_param();
 }
 
 /** Construct a LaunchNewsItem. */
@@ -785,23 +790,21 @@ LaunchNewsItem::LaunchNewsItem (const Company *c, TownID tid)
 		c, NR_TILE, c->last_build_coordinate)
 {
 	this->params[1] = STR_NEWS_COMPANY_LAUNCH_DESCRIPTION;
-	this->params[2] = (uint64)(size_t)this->company_name;
+	this->params[2] = this->cname.get_as_param();
 	this->params[3] = tid;
 }
 
 /** Construct a MergerNewsItem. */
 MergerNewsItem::MergerNewsItem (const Company *c, const Company *merger)
 	: BaseCompanyNewsItem (NT_COMPANY_INFO, STR_NEWS_COMPANY_MERGER_TITLE,
-		merger)
+		merger),
+	  cname2 (c->index)
 {
-	SetDParam (0, c->index);
-	GetString (this->other_company_name, STR_COMPANY_NAME);
-
 	this->params[1] = c->bankrupt_value == 0 ?
 			STR_NEWS_MERGER_TAKEOVER_TITLE :
 			STR_NEWS_COMPANY_MERGER_DESCRIPTION;
-	this->params[2] = (uint64)(size_t)this->other_company_name;
-	this->params[3] = (uint64)(size_t)this->company_name;
+	this->params[2] = this->cname2.get_as_param();
+	this->params[3] = this->cname.get_as_param();
 	this->params[4] = c->bankrupt_value;
 }
 
@@ -812,7 +815,7 @@ ExclusiveRightsNewsItem::ExclusiveRightsNewsItem (TownID tid, const Company *c)
 {
 	this->params[1] = STR_NEWS_EXCLUSIVE_RIGHTS_DESCRIPTION;
 	this->params[2] = tid;
-	this->params[3] = (uint64)(size_t)this->company_name;
+	this->params[3] = this->cname.get_as_param();
 }
 
 /** Custom news item. */

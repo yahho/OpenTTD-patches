@@ -1732,11 +1732,8 @@ CommandCost CmdFoundTown(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 		if (_game_mode != GM_EDITOR) {
 			/* 't' can't be NULL since 'random' is false outside scenedit */
 			assert(!random);
-			char company_name[MAX_LENGTH_COMPANY_NAME_CHARS * MAX_CHAR_LENGTH];
-			SetDParam(0, _current_company);
-			GetString (company_name, STR_COMPANY_NAME);
 
-			AddNewsItem<FoundTownNewsItem> (t->index, tile, company_name);
+			AddNewsItem<FoundTownNewsItem> (t->index, tile, _current_company);
 			AI::BroadcastNewEvent(new ScriptEventTownFounded(t->index));
 			Game::NewEvent(new ScriptEventTownFounded(t->index));
 		}
@@ -2720,11 +2717,7 @@ static CommandCost TownActionRoadRebuild(Town *t, DoCommandFlag flags)
 	if (flags & DC_EXEC) {
 		t->road_build_months = 6;
 
-		char company_name[MAX_LENGTH_COMPANY_NAME_CHARS * MAX_CHAR_LENGTH];
-		SetDParam(0, _current_company);
-		GetString (company_name, STR_COMPANY_NAME);
-
-		AddNewsItem<RoadRebuildNewsItem> (t->index, company_name);
+		AddNewsItem<RoadRebuildNewsItem> (t->index, _current_company);
 		AI::BroadcastNewEvent(new ScriptEventRoadReconstruction((ScriptCompany::CompanyID)(Owner)_current_company, t->index));
 		Game::NewEvent(new ScriptEventRoadReconstruction((ScriptCompany::CompanyID)(Owner)_current_company, t->index));
 	}

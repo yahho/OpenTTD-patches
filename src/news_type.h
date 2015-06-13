@@ -14,6 +14,7 @@
 
 #include "core/pointer.h"
 #include "core/enum_type.hpp"
+#include "string.h"
 #include "date_func.h"
 #include "strings_type.h"
 #include "sound_type.h"
@@ -22,6 +23,7 @@
 #include "engine_type.h"
 #include "vehicle_type.h"
 #include "industry_type.h"
+#include "company_type.h"
 #include "map/coord.h"
 
 /** Constants in the message options window. */
@@ -164,6 +166,27 @@ struct NewsItem {
 	virtual ~NewsItem() { }
 
 	uint64 params[10]; ///< Parameters for string resolving.
+
+	/** Company string (company name or president name). */
+	template <uint N>
+	struct CompanyStr {
+		char data [N * MAX_CHAR_LENGTH];
+
+		const char *get (void) const
+		{
+			return this->data;
+		}
+
+		uint64 get_as_param (void) const
+		{
+			return (uint64)(size_t)this->get();
+		}
+	};
+
+	/** Company name. */
+	struct CompanyName : CompanyStr <MAX_LENGTH_COMPANY_NAME_CHARS> {
+		CompanyName (CompanyID cid);
+	};
 };
 
 /** NewsItem derived class template. */
@@ -268,16 +291,16 @@ struct AcceptanceNewsItem : NewsItem {
 
 /** News about founding of a town. */
 struct FoundTownNewsItem : TileNewsItem {
-	ttd_unique_free_ptr <char> data;
+	CompanyName cname;
 
-	FoundTownNewsItem (TownID tid, TileIndex tile, const char *company_name);
+	FoundTownNewsItem (TownID tid, TileIndex tile, CompanyID cid);
 };
 
 /** News about road rebuilding in a town. */
 struct RoadRebuildNewsItem : NewsItem {
-	ttd_unique_free_ptr <char> data;
+	CompanyName cname;
 
-	RoadRebuildNewsItem (TownID tid, const char *company_name);
+	RoadRebuildNewsItem (TownID tid, CompanyID cid);
 };
 
 /** News about availability of a new vehicle (engine). */
@@ -293,15 +316,15 @@ struct SubsidyNewsItem : NewsItem {
 
 /** News about a subsidy award. */
 struct SubsidyAwardNewsItem : SubsidyNewsItem {
-	ttd_unique_free_ptr <char> data;
+	CompanyName cname;
 
-	SubsidyAwardNewsItem (const struct Subsidy *s, const char *company_name);
+	SubsidyAwardNewsItem (const struct Subsidy *s, CompanyID cid);
 };
 
 /** Base NewsItem for news about a company. */
 struct BaseCompanyNewsItem : NewsItem {
-	char company_name[64];       ///< The name of the company
-	char president_name[64];     ///< The name of the president
+	CompanyName cname; ///< The name of the company
+	CompanyStr<MAX_LENGTH_PRESIDENT_NAME_CHARS> pname; ///< The name of the president
 
 	uint32 face; ///< The face of the president
 	byte colour; ///< The colour related to the company
@@ -323,7 +346,7 @@ struct LaunchNewsItem : BaseCompanyNewsItem {
 
 /** News about a company merger. */
 struct MergerNewsItem : BaseCompanyNewsItem {
-	char other_company_name[64]; ///< The name of the company taken over
+	CompanyName cname2; ///< The name of the company taken over
 
 	MergerNewsItem (const struct Company *c, const struct Company *merger);
 };
