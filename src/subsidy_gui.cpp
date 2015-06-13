@@ -25,6 +25,29 @@
 
 #include "table/strings.h"
 
+/**
+ * Setup the string parameters for printing an end of a subsidy at the screen.
+ * @param i Param index to use for the type (id will be next).
+ * @param src %CargoSource being printed.
+ */
+static void SetupSubsidyDecodeParam (uint i, const CargoSource &src)
+{
+	SetDParam (i, (src.type == ST_INDUSTRY) ?
+			STR_INDUSTRY_NAME : STR_TOWN_NAME);
+	SetDParam (i + 1, src.id);
+}
+
+/**
+ * Setup the string parameters for printing the subsidy at the screen.
+ * @param s %Subsidy being printed.
+ */
+static void SetupSubsidyDecodeParams (const Subsidy *s)
+{
+	SetDParam (0, CargoSpec::Get(s->cargo_type)->name);
+	SetupSubsidyDecodeParam (1, s->src);
+	SetupSubsidyDecodeParam (4, s->dst);
+}
+
 struct SubsidyListWindow : Window {
 	Scrollbar *vscroll;
 
@@ -164,7 +187,7 @@ struct SubsidyListWindow : Window {
 			if (!s->IsAwarded()) {
 				if (IsInsideMM(pos, 0, cap)) {
 					/* Displays the two offered towns */
-					SetupSubsidyDecodeParams (s, true);
+					SetupSubsidyDecodeParams (s);
 					SetDParam(7, _date - ymd.day + s->remaining * 32);
 					DrawString(x, right, y + pos * FONT_HEIGHT_NORMAL, STR_SUBSIDIES_OFFERED_FROM_TO);
 				}
@@ -187,7 +210,7 @@ struct SubsidyListWindow : Window {
 		FOR_ALL_SUBSIDIES(s) {
 			if (s->IsAwarded()) {
 				if (IsInsideMM(pos, 0, cap)) {
-					SetupSubsidyDecodeParams (s, true);
+					SetupSubsidyDecodeParams (s);
 					SetDParam(7, s->awarded);
 					SetDParam(8, _date - ymd.day + s->remaining * 32);
 

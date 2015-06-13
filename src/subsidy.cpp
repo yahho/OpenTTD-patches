@@ -31,40 +31,6 @@ template<> Subsidy::Pool Subsidy::PoolItem::pool ("Subsidy");
 INSTANTIATE_POOL_METHODS(Subsidy)
 
 /**
- * Marks subsidy as awarded, creates news and AI event
- * @param company awarded company
- */
-void Subsidy::AwardTo(CompanyID company)
-{
-	assert(!this->IsAwarded());
-
-	this->awarded = company;
-	this->remaining = SUBSIDY_CONTRACT_MONTHS;
-
-	char company_name[MAX_LENGTH_COMPANY_NAME_CHARS * MAX_CHAR_LENGTH];
-	SetDParam(0, company);
-	GetString (company_name, STR_COMPANY_NAME);
-
-	char *cn = xstrdup(company_name);
-
-	/* Add a news item */
-	std::pair <NewsReferenceType, NewsReferenceType> reftype =
-			SetupSubsidyDecodeParams (this, false, 1);
-
-	SetDParamStr(0, cn);
-	AddNewsItem(
-		STR_NEWS_SERVICE_SUBSIDY_AWARDED_HALF + _settings_game.difficulty.subsidy_multiplier,
-		NT_SUBSIDIES, NF_NORMAL,
-		reftype.first, this->src.id, reftype.second, this->dst.id,
-		cn
-	);
-	AI::BroadcastNewEvent(new ScriptEventSubsidyAwarded(this->index));
-	Game::NewEvent(new ScriptEventSubsidyAwarded(this->index));
-
-	InvalidateWindowData(WC_SUBSIDIES_LIST, 0);
-}
-
-/**
  * Setup the string parameters for printing an end of a subsidy at the screen,
  * and compute the news reference for it.
  * @param i Param index to use for the type (id will be next).
@@ -99,8 +65,8 @@ static NewsReferenceType SetupSubsidyDecodeParam (uint i, const CargoSource &src
  * @param offset First param index to use.
  * @return Reference of the subsidy in the news system.
  */
-std::pair <NewsReferenceType, NewsReferenceType>
-SetupSubsidyDecodeParams (const Subsidy *s, bool mode, uint offset)
+static std::pair <NewsReferenceType, NewsReferenceType>
+SetupSubsidyDecodeParams (const Subsidy *s, bool mode, uint offset = 0)
 {
 	/* if mode is false, use the singular form */
 	const CargoSpec *cs = CargoSpec::Get(s->cargo_type);
@@ -109,6 +75,40 @@ SetupSubsidyDecodeParams (const Subsidy *s, bool mode, uint offset)
 	NewsReferenceType a = SetupSubsidyDecodeParam (offset + 1, s->src);
 	NewsReferenceType b = SetupSubsidyDecodeParam (offset + 4, s->dst);
 	return std::make_pair (a, b);
+}
+
+/**
+ * Marks subsidy as awarded, creates news and AI event
+ * @param company awarded company
+ */
+void Subsidy::AwardTo(CompanyID company)
+{
+	assert(!this->IsAwarded());
+
+	this->awarded = company;
+	this->remaining = SUBSIDY_CONTRACT_MONTHS;
+
+	char company_name[MAX_LENGTH_COMPANY_NAME_CHARS * MAX_CHAR_LENGTH];
+	SetDParam(0, company);
+	GetString (company_name, STR_COMPANY_NAME);
+
+	char *cn = xstrdup(company_name);
+
+	/* Add a news item */
+	std::pair <NewsReferenceType, NewsReferenceType> reftype =
+			SetupSubsidyDecodeParams (this, false, 1);
+
+	SetDParamStr(0, cn);
+	AddNewsItem(
+		STR_NEWS_SERVICE_SUBSIDY_AWARDED_HALF + _settings_game.difficulty.subsidy_multiplier,
+		NT_SUBSIDIES, NF_NORMAL,
+		reftype.first, this->src.id, reftype.second, this->dst.id,
+		cn
+	);
+	AI::BroadcastNewEvent(new ScriptEventSubsidyAwarded(this->index));
+	Game::NewEvent(new ScriptEventSubsidyAwarded(this->index));
+
+	InvalidateWindowData(WC_SUBSIDIES_LIST, 0);
 }
 
 /**
