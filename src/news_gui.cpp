@@ -755,8 +755,7 @@ SubsidyAwardNewsItem::SubsidyAwardNewsItem (const Subsidy *s, const char *compan
 
 /** Construct a BaseCompanyNewsItem. */
 BaseCompanyNewsItem::BaseCompanyNewsItem (NewsType type, StringID str,
-		const Company *c, const Company *other,
-		NewsReferenceType reftype, uint32 ref)
+		const Company *c, NewsReferenceType reftype, uint32 ref)
 	: NewsItem (STR_MESSAGE_NEWS_FORMAT, type, NF_COMPANY, reftype, ref)
 {
 	SetDParam (0, c->index);
@@ -774,7 +773,7 @@ BaseCompanyNewsItem::BaseCompanyNewsItem (NewsType type, StringID str,
 /** Construct a CompanyNewsItem. */
 CompanyNewsItem::CompanyNewsItem (StringID str1, StringID str2,
 		const Company *c)
-	: BaseCompanyNewsItem (NT_COMPANY_INFO, str1, c, NULL)
+	: BaseCompanyNewsItem (NT_COMPANY_INFO, str1, c)
 {
 	this->params[1] = str2;
 	this->params[2] = (uint64)(size_t)this->company_name;
@@ -783,7 +782,7 @@ CompanyNewsItem::CompanyNewsItem (StringID str1, StringID str2,
 /** Construct a LaunchNewsItem. */
 LaunchNewsItem::LaunchNewsItem (const Company *c, TownID tid)
 	: BaseCompanyNewsItem (NT_COMPANY_INFO, STR_NEWS_COMPANY_LAUNCH_TITLE,
-		c, NULL, NR_TILE, c->last_build_coordinate)
+		c, NR_TILE, c->last_build_coordinate)
 {
 	this->params[1] = STR_NEWS_COMPANY_LAUNCH_DESCRIPTION;
 	this->params[2] = (uint64)(size_t)this->company_name;
@@ -793,7 +792,7 @@ LaunchNewsItem::LaunchNewsItem (const Company *c, TownID tid)
 /** Construct a MergerNewsItem. */
 MergerNewsItem::MergerNewsItem (const Company *c, const Company *merger)
 	: BaseCompanyNewsItem (NT_COMPANY_INFO, STR_NEWS_COMPANY_MERGER_TITLE,
-		merger, c)
+		merger)
 {
 	SetDParam (0, c->index);
 	GetString (this->other_company_name, STR_COMPANY_NAME);
@@ -809,7 +808,7 @@ MergerNewsItem::MergerNewsItem (const Company *c, const Company *merger)
 /** Construct an ExclusiveRightsNewsItem. */
 ExclusiveRightsNewsItem::ExclusiveRightsNewsItem (TownID tid, const Company *c)
 	: BaseCompanyNewsItem (NT_GENERAL, STR_NEWS_EXCLUSIVE_RIGHTS_TITLE,
-		c, NULL, NR_TOWN, tid)
+		c, NR_TOWN, tid)
 {
 	this->params[1] = STR_NEWS_EXCLUSIVE_RIGHTS_DESCRIPTION;
 	this->params[2] = tid;

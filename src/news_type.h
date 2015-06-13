@@ -307,7 +307,7 @@ struct BaseCompanyNewsItem : NewsItem {
 	byte colour; ///< The colour related to the company
 
 	BaseCompanyNewsItem (NewsType type, StringID str,
-		const struct Company *c, const struct Company *other,
+		const struct Company *c,
 		NewsReferenceType reftype = NR_NONE, uint32 ref = UINT32_MAX);
 };
 
