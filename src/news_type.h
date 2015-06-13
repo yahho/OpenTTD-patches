@@ -311,13 +311,11 @@ struct CompanyNewsInformation {
 
 	uint32 face; ///< The face of the president
 	byte colour; ///< The colour related to the company
-
-	void FillData(const struct Company *c, const struct Company *other = NULL);
 };
 
 /** Base NewsItem for news about a company. */
 struct BaseCompanyNewsItem : NewsItem {
-	ttd_unique_free_ptr <CompanyNewsInformation> data;
+	CompanyNewsInformation data;
 
 	BaseCompanyNewsItem (NewsType type, StringID str,
 		const struct Company *c, const struct Company *other,

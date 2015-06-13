@@ -739,32 +739,6 @@ void CompaniesYearlyLoop()
 }
 
 /**
- * Fill the CompanyNewsInformation struct with the required data.
- * @param c the current company.
- * @param other the other company (use \c NULL if not relevant).
- */
-void CompanyNewsInformation::FillData(const Company *c, const Company *other)
-{
-	SetDParam(0, c->index);
-	GetString (this->company_name, STR_COMPANY_NAME);
-
-	if (other == NULL) {
-		*this->other_company_name = '\0';
-	} else {
-		SetDParam(0, other->index);
-		GetString (this->other_company_name, STR_COMPANY_NAME);
-		c = other;
-	}
-
-	SetDParam(0, c->index);
-	GetString (this->president_name, STR_PRESIDENT_NAME_MANAGER);
-
-	this->colour = c->colour;
-	this->face = c->face;
-
-}
-
-/**
  * Called whenever company related information changes in order to notify admins.
  * @param company The company data changed of.
  */
