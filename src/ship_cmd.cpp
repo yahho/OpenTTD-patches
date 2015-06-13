@@ -399,13 +399,7 @@ static void ShipArrivesAt(const Vehicle *v, Station *st)
 	if (!(st->had_vehicle_of_type & HVOT_SHIP)) {
 		st->had_vehicle_of_type |= HVOT_SHIP;
 
-		SetDParam(0, st->index);
-		AddVehicleNewsItem(
-			STR_NEWS_FIRST_SHIP_ARRIVAL,
-			(v->owner == _local_company) ? NT_ARRIVAL_COMPANY : NT_ARRIVAL_OTHER,
-			v->index,
-			st->index
-		);
+		AddNewsItem<ArrivalNewsItem> (STR_NEWS_FIRST_SHIP_ARRIVAL, v, st);
 		AI::NewEvent(v->owner, new ScriptEventStationFirstVehicle(st->index, v->index));
 	}
 }

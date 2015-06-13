@@ -910,8 +910,7 @@ void Vehicle::HandlePathfindingResult(bool path_found)
 	/* Notify user about the event. */
 	AI::NewEvent(this->owner, new ScriptEventVehicleLost(this->index));
 	if (_settings_client.gui.lost_vehicle_warn && this->owner == _local_company) {
-		SetDParam(0, this->index);
-		AddVehicleAdviceNewsItem(STR_NEWS_VEHICLE_IS_LOST, this->index);
+		AddNewsItem<VehicleAdviceNewsItem> (STR_NEWS_VEHICLE_IS_LOST, this->index);
 	}
 }
 
@@ -1174,9 +1173,7 @@ void CallVehicleTicks()
 			message = STR_NEWS_VEHICLE_AUTORENEW_FAILED;
 		}
 
-		SetDParam(0, v->index);
-		SetDParam(1, error_message);
-		AddVehicleAdviceNewsItem(message, v->index);
+		AddNewsItem<VehicleAdviceNewsItem> (message, v->index, error_message);
 	}
 
 	cur_company.Restore();
@@ -1442,8 +1439,7 @@ void AgeVehicle(Vehicle *v)
 		return;
 	}
 
-	SetDParam(0, v->index);
-	AddVehicleAdviceNewsItem(str, v->index);
+	AddNewsItem<VehicleAdviceNewsItem> (str, v->index);
 }
 
 /**
@@ -1591,8 +1587,7 @@ void VehicleEnterDepot(Vehicle *v)
 				_vehicles_to_autoreplace[v] = false;
 				if (v->owner == _local_company) {
 					/* Notify the user that we stopped the vehicle */
-					SetDParam(0, v->index);
-					AddVehicleAdviceNewsItem(STR_NEWS_ORDER_REFIT_FAILED, v->index);
+					AddNewsItem<VehicleAdviceNewsItem> (STR_NEWS_ORDER_REFIT_FAILED, v->index);
 				}
 			} else if (cost.GetCost() != 0) {
 				v->profit_this_year -= cost.GetCost() << 8;
@@ -1616,8 +1611,7 @@ void VehicleEnterDepot(Vehicle *v)
 			 * we shouldn't construct it when the vehicle visits the next stop. */
 			v->last_loading_station = INVALID_STATION;
 			if (v->owner == _local_company) {
-				SetDParam(0, v->index);
-				AddVehicleAdviceNewsItem(STR_NEWS_TRAIN_IS_WAITING + v->type, v->index);
+				AddNewsItem<VehicleAdviceNewsItem> (STR_NEWS_TRAIN_IS_WAITING + v->type, v->index);
 			}
 			AI::NewEvent(v->owner, new ScriptEventVehicleWaitingInDepot(v->index));
 		}
@@ -2781,9 +2775,7 @@ void VehiclesYearlyLoop()
 			Money profit = v->GetDisplayProfitThisYear();
 			if (v->age >= 730 && profit < 0) {
 				if (_settings_client.gui.vehicle_income_warn && v->owner == _local_company) {
-					SetDParam(0, v->index);
-					SetDParam(1, profit);
-					AddVehicleAdviceNewsItem(STR_NEWS_VEHICLE_IS_UNPROFITABLE, v->index);
+					AddNewsItem<VehicleAdviceNewsItem> (STR_NEWS_VEHICLE_IS_UNPROFITABLE, v->index, profit);
 				}
 				AI::NewEvent(v->owner, new ScriptEventVehicleUnprofitable(v->index));
 			}

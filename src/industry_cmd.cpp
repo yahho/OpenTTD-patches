@@ -1561,14 +1561,12 @@ static CommandCost CheckIfFarEnoughFromConflictingIndustry(TileIndex tile, int t
 static void AdvertiseIndustryOpening(const Industry *ind)
 {
 	const IndustrySpec *ind_spc = GetIndustrySpec(ind->type);
-	SetDParam(0, ind_spc->name);
-	if (ind_spc->new_industry_text > STR_LAST_STRINGID) {
-		SetDParam(1, STR_TOWN_NAME);
-		SetDParam(2, ind->town->index);
-	} else {
-		SetDParam(1, ind->town->index);
-	}
-	AddIndustryNewsItem(ind_spc->new_industry_text, NT_INDUSTRY_OPEN, ind->index);
+	AddNewsItem<IndustryNewsItem> (ind_spc->new_industry_text,
+			NT_INDUSTRY_OPEN, ind->index,
+			ind_spc->name,
+			ind_spc->new_industry_text > STR_LAST_STRINGID ?
+				STR_TOWN_NAME : ind->town->index,
+			ind->town->index);
 	AI::BroadcastNewEvent(new ScriptEventIndustryOpen(ind->index));
 	Game::NewEvent(new ScriptEventIndustryOpen(ind->index));
 }
@@ -2388,16 +2386,11 @@ static NewsType IndustryServiceNewsType (Industry *ind)
  */
 static void ReportNewsProductionChangeIndustry(Industry *ind, CargoID type, int percent)
 {
-	NewsType nt = IndustryServiceNewsType (ind);
-
-	SetDParam(2, abs(percent));
-	SetDParam(0, CargoSpec::Get(type)->name);
-	SetDParam(1, ind->index);
-	AddIndustryNewsItem(
-		percent >= 0 ? STR_NEWS_INDUSTRY_PRODUCTION_INCREASE_SMOOTH : STR_NEWS_INDUSTRY_PRODUCTION_DECREASE_SMOOTH,
-		nt,
-		ind->index
-	);
+	AddNewsItem<IndustryNewsItem> (percent >= 0 ?
+				STR_NEWS_INDUSTRY_PRODUCTION_INCREASE_SMOOTH :
+				STR_NEWS_INDUSTRY_PRODUCTION_DECREASE_SMOOTH,
+			IndustryServiceNewsType (ind), ind->index,
+			CargoSpec::Get(type)->name, ind->index, abs(percent));
 }
 
 static const uint PERCENT_TRANSPORTED_60 = 153;
@@ -2600,23 +2593,16 @@ static void ChangeIndustryProduction(Industry *i, bool monthly)
 		} else {
 			nt = IndustryServiceNewsType (i);
 		}
-		/* Set parameters of news string */
-		if (str > STR_LAST_STRINGID) {
-			SetDParam(0, STR_TOWN_NAME);
-			SetDParam(1, i->town->index);
-			SetDParam(2, indspec->name);
-		} else if (closeit) {
-			SetDParam(0, STR_FORMAT_INDUSTRY_NAME);
-			SetDParam(1, i->town->index);
-			SetDParam(2, indspec->name);
-		} else {
-			SetDParam(0, i->index);
-		}
-		/* and report the news to the user */
+		/* Report the news to the user. */
+		uint p0 = (str > STR_LAST_STRINGID) ? STR_TOWN_NAME :
+				closeit ? STR_FORMAT_INDUSTRY_NAME : i->index;
 		if (closeit) {
-			AddTileNewsItem(str, nt, i->location.tile + TileDiffXY(1, 1));
+			AddNewsItem<TileNewsItem> (str, nt,
+					i->location.tile + TileDiffXY(1, 1),
+					p0, i->town->index, indspec->name);
 		} else {
-			AddIndustryNewsItem(str, nt, i->index);
+			AddNewsItem<IndustryNewsItem> (str, nt, i->index,
+					p0, i->town->index, indspec->name);
 		}
 	}
 }

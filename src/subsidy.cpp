@@ -31,53 +31,6 @@ template<> Subsidy::Pool Subsidy::PoolItem::pool ("Subsidy");
 INSTANTIATE_POOL_METHODS(Subsidy)
 
 /**
- * Setup the string parameters for printing an end of a subsidy at the screen,
- * and compute the news reference for it.
- * @param i Param index to use for the type (id will be next).
- * @param src %CargoSource being printed.
- * @return Reference of the cargo source in the news system.
- */
-static NewsReferenceType SetupSubsidyDecodeParam (uint i, const CargoSource &src)
-{
-	NewsReferenceType reftype;
-
-	switch (src.type) {
-		case ST_INDUSTRY:
-			reftype = NR_INDUSTRY;
-			SetDParam (i, STR_INDUSTRY_NAME);
-			break;
-		case ST_TOWN:
-			reftype = NR_TOWN;
-			SetDParam (i, STR_TOWN_NAME);
-			break;
-		default: NOT_REACHED();
-	}
-
-	SetDParam (i + 1, src.id);
-
-	return reftype;
-}
-
-/**
- * Setup the string parameters for printing the subsidy at the screen, and compute the news reference for the subsidy.
- * @param s %Subsidy being printed.
- * @param mode Unit of cargo used, \c true means general name, \c false means singular form.
- * @param offset First param index to use.
- * @return Reference of the subsidy in the news system.
- */
-static std::pair <NewsReferenceType, NewsReferenceType>
-SetupSubsidyDecodeParams (const Subsidy *s, bool mode, uint offset = 0)
-{
-	/* if mode is false, use the singular form */
-	const CargoSpec *cs = CargoSpec::Get(s->cargo_type);
-	SetDParam (offset, mode ? cs->name : cs->name_single);
-
-	NewsReferenceType a = SetupSubsidyDecodeParam (offset + 1, s->src);
-	NewsReferenceType b = SetupSubsidyDecodeParam (offset + 4, s->dst);
-	return std::make_pair (a, b);
-}
-
-/**
  * Marks subsidy as awarded, creates news and AI event
  * @param company awarded company
  */
@@ -92,19 +45,8 @@ void Subsidy::AwardTo(CompanyID company)
 	SetDParam(0, company);
 	GetString (company_name, STR_COMPANY_NAME);
 
-	char *cn = xstrdup(company_name);
-
 	/* Add a news item */
-	std::pair <NewsReferenceType, NewsReferenceType> reftype =
-			SetupSubsidyDecodeParams (this, false, 1);
-
-	SetDParamStr(0, cn);
-	AddNewsItem(
-		STR_NEWS_SERVICE_SUBSIDY_AWARDED_HALF + _settings_game.difficulty.subsidy_multiplier,
-		NT_SUBSIDIES, NF_NORMAL,
-		reftype.first, this->src.id, reftype.second, this->dst.id,
-		cn
-	);
+	AddNewsItem<SubsidyAwardNewsItem> (this, company_name);
 	AI::BroadcastNewEvent(new ScriptEventSubsidyAwarded(this->index));
 	Game::NewEvent(new ScriptEventSubsidyAwarded(this->index));
 
@@ -230,10 +172,8 @@ void CreateSubsidy(CargoID cid, SourceType src_type, SourceID src, SourceType ds
 	s->remaining = SUBSIDY_OFFER_MONTHS;
 	s->awarded = INVALID_COMPANY;
 
-	std::pair <NewsReferenceType, NewsReferenceType> reftype =
-			SetupSubsidyDecodeParams (s, false);
-	AddNewsItem (STR_NEWS_SERVICE_SUBSIDY_OFFERED, NT_SUBSIDIES, NF_NORMAL,
-			reftype.first, s->src.id, reftype.second, s->dst.id);
+	AddNewsItem<SubsidyNewsItem> (STR_NEWS_SERVICE_SUBSIDY_OFFERED,
+			s, false);
 	SetPartOfSubsidyFlags (s);
 	AI::BroadcastNewEvent(new ScriptEventSubsidyOffer(s->index));
 	Game::NewEvent(new ScriptEventSubsidyOffer(s->index));
@@ -480,22 +420,14 @@ void SubsidyMonthlyLoop()
 	FOR_ALL_SUBSIDIES(s) {
 		if (--s->remaining == 0) {
 			if (!s->IsAwarded()) {
-				std::pair <NewsReferenceType, NewsReferenceType> reftype =
-						SetupSubsidyDecodeParams (s, true);
-				AddNewsItem (STR_NEWS_OFFER_OF_SUBSIDY_EXPIRED,
-						NT_SUBSIDIES, NF_NORMAL,
-						reftype.first, s->src.id,
-						reftype.second, s->dst.id);
+				AddNewsItem<SubsidyNewsItem> (STR_NEWS_OFFER_OF_SUBSIDY_EXPIRED,
+						s, true);
 				AI::BroadcastNewEvent(new ScriptEventSubsidyOfferExpired(s->index));
 				Game::NewEvent(new ScriptEventSubsidyOfferExpired(s->index));
 			} else {
 				if (s->awarded == _local_company) {
-					std::pair <NewsReferenceType, NewsReferenceType> reftype =
-							SetupSubsidyDecodeParams (s, true);
-					AddNewsItem (STR_NEWS_SUBSIDY_WITHDRAWN_SERVICE,
-							NT_SUBSIDIES, NF_NORMAL,
-							reftype.first, s->src.id,
-							reftype.second, s->dst.id);
+					AddNewsItem<SubsidyNewsItem> (STR_NEWS_SUBSIDY_WITHDRAWN_SERVICE,
+							s, true);
 				}
 				AI::BroadcastNewEvent(new ScriptEventSubsidyExpired(s->index));
 				Game::NewEvent(new ScriptEventSubsidyExpired(s->index));

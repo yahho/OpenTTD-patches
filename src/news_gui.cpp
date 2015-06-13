@@ -33,6 +33,7 @@
 #include "command_func.h"
 #include "company_base.h"
 #include "settings_internal.h"
+#include "subsidy_base.h"
 #include "news_func.h"
 
 #include "widgets/news_widget.h"
@@ -371,13 +372,13 @@ struct NewsWindow : Window {
 				break;
 
 			case WID_N_MGR_FACE: {
-				const CompanyNewsInformation *cni = (const CompanyNewsInformation*)this->ni->free_data;
+				const CompanyNewsInformation *cni = static_cast<const BaseCompanyNewsItem *>(ni)->data.get();
 				DrawCompanyManagerFace(cni->face, cni->colour, r.left, r.top);
 				GfxFillRect(r.left, r.top, r.right, r.bottom, PALETTE_NEWSPAPER, FILLRECT_RECOLOUR);
 				break;
 			}
 			case WID_N_MGR_NAME: {
-				const CompanyNewsInformation *cni = (const CompanyNewsInformation*)this->ni->free_data;
+				const CompanyNewsInformation *cni = static_cast<const BaseCompanyNewsItem *>(ni)->data.get();
 				SetDParamStr(0, cni->president_name);
 				DrawStringMultiLine(r.left, r.right, r.top, r.bottom, STR_JUST_RAW_STRING, TC_FROMSTRING, SA_CENTER);
 				break;
@@ -619,30 +620,6 @@ static void MoveToNextItem()
 }
 
 /**
- * Add a new newsitem to be shown.
- * @param string String to display
- * @param type news category
- * @param flags display flags for the news
- * @param reftype1 Type of ref1
- * @param ref1     Reference 1 to some object: Used for a possible viewport, scrolling after clicking on the news, and for deleteing the news when the object is deleted.
- * @param reftype2 Type of ref2
- * @param ref2     Reference 2 to some object: Used for scrolling after clicking on the news, and for deleteing the news when the object is deleted.
- * @param free_data Pointer to data that must be freed once the news message is cleared
- *
- * @see NewsSubtype
- */
-void AddNewsItem(StringID string, NewsType type, NewsFlag flags, NewsReferenceType reftype1, uint32 ref1, NewsReferenceType reftype2, uint32 ref2, void *free_data)
-{
-	if (_game_mode == GM_MENU) return;
-
-	/* Create new news item node */
-	NewsItem *ni = new NewsItem (string, type, flags, reftype1, ref1, reftype2, ref2, free_data);
-	CopyOutDParam(ni->params, 0, lengthof(ni->params));
-
-	InsertNewsItem (ni);
-}
-
-/**
  * Insert a news item into the list.
  * @param ni The news item to insert.
  */
@@ -666,6 +643,181 @@ void InsertNewsItem (NewsItem *ni)
 
 	SetWindowDirty(WC_MESSAGE_HISTORY, 0);
 }
+
+/** Construct a BaseVehicleNewsItem. */
+BaseVehicleNewsItem::BaseVehicleNewsItem (StringID string, NewsType type,
+		VehicleID vid, const struct Station *st)
+	: NewsItem (string, type, NF_SHADE_THIN, NR_VEHICLE, vid,
+		st != NULL ? NR_STATION : NR_NONE,
+		st != NULL ? st->index : UINT32_MAX)
+{
+}
+
+/** Construct an ArrivalNewsItem. */
+ArrivalNewsItem::ArrivalNewsItem (StringID string, const Vehicle *v,
+		const Station *st)
+	: BaseVehicleNewsItem (string, (v->owner == _local_company) ?
+			NT_ARRIVAL_COMPANY : NT_ARRIVAL_OTHER,
+		v->index, st)
+{
+	this->params[0] = st->index;
+}
+
+/** Construct a PlaneCrashNewsItem. */
+PlaneCrashNewsItem::PlaneCrashNewsItem (VehicleID vid, const Station *st,
+		uint pass)
+	: BaseVehicleNewsItem (st != NULL ? STR_NEWS_AIRCRAFT_CRASH :
+		STR_NEWS_PLANE_CRASH_OUT_OF_FUEL, NT_ACCIDENT, vid, st)
+{
+	this->params[0] = pass;
+	if (st != NULL) this->params[1] = st->index;
+}
+
+/** Construct an AcceptanceNewsItem. */
+AcceptanceNewsItem::AcceptanceNewsItem (const Station *st,
+		uint num_items, CargoID *cargo, StringID msg)
+	: NewsItem (msg, NT_ACCEPTANCE, (NewsFlag)(NF_INCOLOUR | NF_SMALL),
+		NR_STATION, st->index)
+{
+	this->params[0] = st->index;
+
+	static const uint max_items = lengthof(this->params) - 1;
+	if (num_items > max_items) num_items = max_items;
+
+	for (uint i = 0; i < num_items; i++) {
+		this->params[i + 1] = CargoSpec::Get(cargo[i])->name;
+	}
+}
+
+/** Construct a FoundTownNewsItem. */
+FoundTownNewsItem::FoundTownNewsItem (TownID tid, TileIndex tile,
+		const char *company_name)
+	: TileNewsItem (STR_NEWS_NEW_TOWN, NT_INDUSTRY_OPEN, tile),
+	  data (xstrdup (company_name))
+{
+	this->params[0] = (uint64)(size_t)this->data.get();
+	this->params[1] = tid;
+}
+
+/** Construct a RoadRebuildNewsItem. */
+RoadRebuildNewsItem::RoadRebuildNewsItem (TownID tid, const char *company_name)
+	: NewsItem (STR_NEWS_ROAD_REBUILDING, NT_GENERAL, NF_NORMAL, NR_TOWN, tid),
+	  data (xstrdup (company_name))
+{
+	this->params[0] = tid;
+	this->params[1] = (uint64)(size_t)this->data.get();
+}
+
+/** Construct an EngineNewsItem. */
+EngineNewsItem::EngineNewsItem (EngineID eid)
+	: NewsItem (STR_NEWS_NEW_VEHICLE_NOW_AVAILABLE_WITH_TYPE,
+			NT_NEW_VEHICLES, NF_VEHICLE, NR_ENGINE, eid)
+{
+	this->params[0] = GetEngineCategoryName (eid);
+	this->params[1] = eid;
+}
+
+/** Construct a SubsidyNewsItem. */
+SubsidyNewsItem::SubsidyNewsItem (StringID string, const Subsidy *s,
+		bool plural, uint offset)
+	: NewsItem (string, NT_SUBSIDIES, NF_NORMAL)
+{
+	const CargoSpec *cs = CargoSpec::Get (s->cargo_type);
+	this->params[offset] = plural ? cs->name : cs->name_single;
+
+	if (s->src.type == ST_INDUSTRY) {
+		this->reftype1 = NR_INDUSTRY;
+		this->params[offset + 1] = STR_INDUSTRY_NAME;
+	} else {
+		this->reftype1 = NR_TOWN;
+		this->params[offset + 1] = STR_TOWN_NAME;
+	}
+	this->params[offset + 2] = this->ref1 = s->src.id;
+
+	if (s->dst.type == ST_INDUSTRY) {
+		this->reftype2 = NR_INDUSTRY;
+		this->params[offset + 4] = STR_INDUSTRY_NAME;
+	} else {
+		this->reftype2 = NR_TOWN;
+		this->params[offset + 4] = STR_TOWN_NAME;
+	}
+	this->params[offset + 5] = this->ref2 = s->dst.id;
+}
+
+/** Construct a SubsidyAwardNewsItem. */
+SubsidyAwardNewsItem::SubsidyAwardNewsItem (const Subsidy *s, const char *company_name)
+	: SubsidyNewsItem (STR_NEWS_SERVICE_SUBSIDY_AWARDED_HALF + _settings_game.difficulty.subsidy_multiplier,
+		s, false, 1),
+	  data (xstrdup (company_name))
+{
+	this->params[0] = (uint64)(size_t)this->data.get();
+}
+
+/** Construct a BaseCompanyNewsItem. */
+BaseCompanyNewsItem::BaseCompanyNewsItem (NewsType type, StringID str,
+		const Company *c, const Company *other,
+		NewsReferenceType reftype, uint32 ref)
+	: NewsItem (STR_MESSAGE_NEWS_FORMAT, type, NF_COMPANY, reftype, ref),
+	  data (xmalloct<CompanyNewsInformation>())
+{
+	this->data->FillData (c, other);
+	this->params[0] = str;
+}
+
+/** Construct a CompanyNewsItem. */
+CompanyNewsItem::CompanyNewsItem (StringID str1, StringID str2,
+		const Company *c)
+	: BaseCompanyNewsItem (NT_COMPANY_INFO, str1, c, NULL)
+{
+	this->params[1] = str2;
+	this->params[2] = (uint64)(size_t)this->data->company_name;
+}
+
+/** Construct a LaunchNewsItem. */
+LaunchNewsItem::LaunchNewsItem (const Company *c, TownID tid)
+	: BaseCompanyNewsItem (NT_COMPANY_INFO, STR_NEWS_COMPANY_LAUNCH_TITLE,
+		c, NULL, NR_TILE, c->last_build_coordinate)
+{
+	this->params[1] = STR_NEWS_COMPANY_LAUNCH_DESCRIPTION;
+	this->params[2] = (uint64)(size_t)this->data->company_name;
+	this->params[3] = tid;
+}
+
+/** Construct a MergerNewsItem. */
+MergerNewsItem::MergerNewsItem (const Company *c, const Company *merger)
+	: BaseCompanyNewsItem (NT_COMPANY_INFO, STR_NEWS_COMPANY_MERGER_TITLE,
+		c, merger)
+{
+	this->params[1] = c->bankrupt_value == 0 ?
+			STR_NEWS_MERGER_TAKEOVER_TITLE :
+			STR_NEWS_COMPANY_MERGER_DESCRIPTION;
+	this->params[2] = (uint64)(size_t)this->data->company_name;
+	this->params[3] = (uint64)(size_t)this->data->other_company_name;
+	this->params[4] = c->bankrupt_value;
+}
+
+/** Construct an ExclusiveRightsNewsItem. */
+ExclusiveRightsNewsItem::ExclusiveRightsNewsItem (TownID tid, const Company *c)
+	: BaseCompanyNewsItem (NT_GENERAL, STR_NEWS_EXCLUSIVE_RIGHTS_TITLE,
+		c, NULL, NR_TOWN, tid)
+{
+	this->params[1] = STR_NEWS_EXCLUSIVE_RIGHTS_DESCRIPTION;
+	this->params[2] = tid;
+	this->params[3] = (uint64)(size_t)this->data->company_name;
+}
+
+/** Custom news item. */
+struct CustomNewsItem : NewsItem {
+	ttd_unique_free_ptr <char> text;
+
+	CustomNewsItem (NewsType type, NewsReferenceType reftype, uint32 ref,
+			const char *s)
+		: NewsItem (STR_NEWS_CUSTOM_ITEM, type, NF_NORMAL, reftype, ref),
+		  text (xstrdup (s))
+	{
+		this->params[0] = (uint64)(size_t)this->text.get();
+	}
+};
 
 /**
  * Create a new custom news item.
@@ -723,9 +875,7 @@ CommandCost CmdCustomNewsItem(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 	if (company != INVALID_OWNER && company != _local_company) return CommandCost();
 
 	if (flags & DC_EXEC) {
-		char *news = xstrdup(text);
-		SetDParamStr(0, news);
-		AddNewsItem(STR_NEWS_CUSTOM_ITEM, type, NF_NORMAL, reftype1, p2, NR_NONE, UINT32_MAX, news);
+		AddNewsItem<CustomNewsItem> (type, reftype1, p2, text);
 	}
 
 	return CommandCost();

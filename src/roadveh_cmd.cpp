@@ -540,13 +540,9 @@ static void RoadVehCrash(RoadVehicle *v)
 	AI::NewEvent(v->owner, new ScriptEventVehicleCrashed(v->index, v->tile, ScriptEventVehicleCrashed::CRASH_RV_LEVEL_CROSSING));
 	Game::NewEvent(new ScriptEventVehicleCrashed(v->index, v->tile, ScriptEventVehicleCrashed::CRASH_RV_LEVEL_CROSSING));
 
-	SetDParam(0, pass);
-	AddVehicleNewsItem(
-		(pass == 1) ?
+	AddNewsItem<VehicleNewsItem> ((pass == 1) ?
 			STR_NEWS_ROAD_VEHICLE_CRASH_DRIVER : STR_NEWS_ROAD_VEHICLE_CRASH,
-		NT_ACCIDENT,
-		v->index
-	);
+		NT_ACCIDENT, v->index, pass);
 
 	ModifyStationRatingAround(v->tile, v->owner, -160, 22);
 	if (_settings_client.sound.disaster) SndPlayVehicleFx(SND_12_EXPLOSION, v);
@@ -692,13 +688,9 @@ static void RoadVehArrivesAt(const RoadVehicle *v, Station *st)
 		/* Check if station was ever visited before */
 		if (!(st->had_vehicle_of_type & HVOT_BUS)) {
 			st->had_vehicle_of_type |= HVOT_BUS;
-			SetDParam(0, st->index);
-			AddVehicleNewsItem(
+			AddNewsItem<ArrivalNewsItem> (
 				v->roadtype == ROADTYPE_ROAD ? STR_NEWS_FIRST_BUS_ARRIVAL : STR_NEWS_FIRST_PASSENGER_TRAM_ARRIVAL,
-				(v->owner == _local_company) ? NT_ARRIVAL_COMPANY : NT_ARRIVAL_OTHER,
-				v->index,
-				st->index
-			);
+				v, st);
 			AI::NewEvent(v->owner, new ScriptEventStationFirstVehicle(st->index, v->index));
 			Game::NewEvent(new ScriptEventStationFirstVehicle(st->index, v->index));
 		}
@@ -706,13 +698,9 @@ static void RoadVehArrivesAt(const RoadVehicle *v, Station *st)
 		/* Check if station was ever visited before */
 		if (!(st->had_vehicle_of_type & HVOT_TRUCK)) {
 			st->had_vehicle_of_type |= HVOT_TRUCK;
-			SetDParam(0, st->index);
-			AddVehicleNewsItem(
+			AddNewsItem<ArrivalNewsItem> (
 				v->roadtype == ROADTYPE_ROAD ? STR_NEWS_FIRST_TRUCK_ARRIVAL : STR_NEWS_FIRST_CARGO_TRAM_ARRIVAL,
-				(v->owner == _local_company) ? NT_ARRIVAL_COMPANY : NT_ARRIVAL_OTHER,
-				v->index,
-				st->index
-			);
+				v, st);
 			AI::NewEvent(v->owner, new ScriptEventStationFirstVehicle(st->index, v->index));
 			Game::NewEvent(new ScriptEventStationFirstVehicle(st->index, v->index));
 		}

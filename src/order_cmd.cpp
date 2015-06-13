@@ -1825,8 +1825,7 @@ void CheckOrders(const Vehicle *v)
 		/* We don't have a problem */
 		if (message == INVALID_STRING_ID) return;
 
-		SetDParam(0, v->index);
-		AddVehicleAdviceNewsItem(message, v->index);
+		AddNewsItem<VehicleAdviceNewsItem> (message, v->index);
 	}
 }
 

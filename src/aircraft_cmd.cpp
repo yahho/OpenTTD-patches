@@ -1230,23 +1230,15 @@ static void CrashAirplane(Aircraft *v)
 	CreateEffectVehicleRel(v, 4, 4, 8, EV_EXPLOSION_LARGE);
 
 	uint pass = v->Crash();
-	SetDParam(0, pass);
 
 	v->cargo.Truncate();
 	v->Next()->cargo.Truncate();
 	const Station *st = GetTargetAirportIfValid(v);
-	StringID newsitem;
-	if (st == NULL) {
-		newsitem = STR_NEWS_PLANE_CRASH_OUT_OF_FUEL;
-	} else {
-		SetDParam(1, st->index);
-		newsitem = STR_NEWS_AIRCRAFT_CRASH;
-	}
 
 	AI::NewEvent(v->owner, new ScriptEventVehicleCrashed(v->index, v->tile, st == NULL ? ScriptEventVehicleCrashed::CRASH_AIRCRAFT_NO_AIRPORT : ScriptEventVehicleCrashed::CRASH_PLANE_LANDING));
 	Game::NewEvent(new ScriptEventVehicleCrashed(v->index, v->tile, st == NULL ? ScriptEventVehicleCrashed::CRASH_AIRCRAFT_NO_AIRPORT : ScriptEventVehicleCrashed::CRASH_PLANE_LANDING));
 
-	AddVehicleNewsItem(newsitem, NT_ACCIDENT, v->index, st != NULL ? st->index : INVALID_STATION);
+	AddNewsItem<PlaneCrashNewsItem> (v->index, st, pass);
 
 	ModifyStationRatingAround(v->tile, v->owner, -160, 30);
 	if (_settings_client.sound.disaster) SndPlayVehicleFx(SND_12_EXPLOSION, v);
@@ -1300,14 +1292,8 @@ static void AircraftEntersTerminal(Aircraft *v)
 	/* Check if station was ever visited before */
 	if (!(st->had_vehicle_of_type & HVOT_AIRCRAFT)) {
 		st->had_vehicle_of_type |= HVOT_AIRCRAFT;
-		SetDParam(0, st->index);
 		/* show newsitem of celebrating citizens */
-		AddVehicleNewsItem(
-			STR_NEWS_FIRST_AIRCRAFT_ARRIVAL,
-			(v->owner == _local_company) ? NT_ARRIVAL_COMPANY : NT_ARRIVAL_OTHER,
-			v->index,
-			st->index
-		);
+		AddNewsItem<ArrivalNewsItem> (STR_NEWS_FIRST_AIRCRAFT_ARRIVAL, v, st);
 		AI::NewEvent(v->owner, new ScriptEventStationFirstVehicle(st->index, v->index));
 		Game::NewEvent(new ScriptEventStationFirstVehicle(st->index, v->index));
 	}
@@ -1943,8 +1929,7 @@ static void AircraftHandleDestTooFar(Aircraft *v, bool too_far)
 			AI::NewEvent(v->owner, new ScriptEventAircraftDestTooFar(v->index));
 			if (v->owner == _local_company) {
 				/* Post a news message. */
-				SetDParam(0, v->index);
-				AddVehicleAdviceNewsItem(STR_NEWS_AIRCRAFT_DEST_TOO_FAR, v->index);
+				AddNewsItem <VehicleAdviceNewsItem> (STR_NEWS_AIRCRAFT_DEST_TOO_FAR, v->index);
 			}
 		}
 		return;

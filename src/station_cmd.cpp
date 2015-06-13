@@ -370,12 +370,7 @@ static uint GetAcceptanceMask(const Station *st)
  */
 static void ShowRejectOrAcceptNews(const Station *st, uint num_items, CargoID *cargo, StringID msg)
 {
-	for (uint i = 0; i < num_items; i++) {
-		SetDParam(i + 1, CargoSpec::Get(cargo[i])->name);
-	}
-
-	SetDParam(0, st->index);
-	AddNewsItem(msg, NT_ACCEPTANCE, NF_INCOLOUR | NF_SMALL, NR_STATION, st->index);
+	AddNewsItem<AcceptanceNewsItem> (st, num_items, cargo, msg);
 }
 
 /**

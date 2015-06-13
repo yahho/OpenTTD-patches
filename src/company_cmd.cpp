@@ -392,13 +392,7 @@ set_name:;
 	MarkWholeScreenDirty();
 
 	if (c->is_ai) {
-		CompanyNewsInformation *cni = xmalloct<CompanyNewsInformation>();
-		cni->FillData(c);
-		SetDParam(0, STR_NEWS_COMPANY_LAUNCH_TITLE);
-		SetDParam(1, STR_NEWS_COMPANY_LAUNCH_DESCRIPTION);
-		SetDParamStr(2, cni->company_name);
-		SetDParam(3, t->index);
-		AddNewsItem(STR_MESSAGE_NEWS_FORMAT, NT_COMPANY_INFO, NF_COMPANY, NR_TILE, c->last_build_coordinate, NR_NONE, UINT32_MAX, cni);
+		AddNewsItem<LaunchNewsItem> (c, t->index);
 	}
 }
 
@@ -888,14 +882,10 @@ CommandCost CmdCompanyCtrl(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 
 			/* Delete any open window of the company */
 			DeleteCompanyWindows(c->index);
-			CompanyNewsInformation *cni = xmalloct<CompanyNewsInformation>();
-			cni->FillData(c);
 
 			/* Show the bankrupt news */
-			SetDParam(0, STR_NEWS_COMPANY_BANKRUPT_TITLE);
-			SetDParam(1, STR_NEWS_COMPANY_BANKRUPT_DESCRIPTION);
-			SetDParamStr(2, cni->company_name);
-			AddCompanyNewsItem(STR_MESSAGE_NEWS_FORMAT, cni);
+			AddNewsItem<CompanyNewsItem> (STR_NEWS_COMPANY_BANKRUPT_TITLE,
+					STR_NEWS_COMPANY_BANKRUPT_DESCRIPTION, c);
 
 			/* Remove the company */
 			ChangeOwnershipOfCompanyItems(c->index, INVALID_OWNER);

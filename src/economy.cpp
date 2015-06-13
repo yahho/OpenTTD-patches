@@ -594,17 +594,12 @@ static void CompanyCheckBankrupt(Company *c)
 			break;
 
 		/* Warn about bankruptcy after 3 months */
-		case 4: {
-			CompanyNewsInformation *cni = xmalloct<CompanyNewsInformation>();
-			cni->FillData(c);
-			SetDParam(0, STR_NEWS_COMPANY_IN_TROUBLE_TITLE);
-			SetDParam(1, STR_NEWS_COMPANY_IN_TROUBLE_DESCRIPTION);
-			SetDParamStr(2, cni->company_name);
-			AddCompanyNewsItem(STR_MESSAGE_NEWS_FORMAT, cni);
+		case 4:
+			AddNewsItem<CompanyNewsItem> (STR_NEWS_COMPANY_IN_TROUBLE_TITLE,
+					STR_NEWS_COMPANY_IN_TROUBLE_DESCRIPTION, c);
 			AI::BroadcastNewEvent(new ScriptEventCompanyInTrouble(c->index));
 			Game::NewEvent(new ScriptEventCompanyInTrouble(c->index));
 			break;
-		}
 
 		/* Offer company for sale after 6 months */
 		case 7: {
@@ -872,13 +867,17 @@ static void HandleEconomyFluctuations()
 		return;
 	}
 
+	StringID str;
 	if (_economy.fluct == 0) {
 		_economy.fluct = -(int)GB(Random(), 0, 2);
-		AddNewsItem(STR_NEWS_BEGIN_OF_RECESSION, NT_ECONOMY, NF_NORMAL);
+		str = STR_NEWS_BEGIN_OF_RECESSION;
 	} else if (_economy.fluct == -12) {
 		_economy.fluct = GB(Random(), 0, 8) + 312;
-		AddNewsItem(STR_NEWS_END_OF_RECESSION, NT_ECONOMY, NF_NORMAL);
+		str = STR_NEWS_END_OF_RECESSION;
+	} else {
+		return;
 	}
+	AddNewsItem<NewsItem> (str, NT_ECONOMY, NF_NORMAL);
 }
 
 
@@ -1962,15 +1961,7 @@ static void DoAcquireCompany(Company *c)
 {
 	CompanyID ci = c->index;
 
-	CompanyNewsInformation *cni = xmalloct<CompanyNewsInformation>();
-	cni->FillData(c, Company::Get(_current_company));
-
-	SetDParam(0, STR_NEWS_COMPANY_MERGER_TITLE);
-	SetDParam(1, c->bankrupt_value == 0 ? STR_NEWS_MERGER_TAKEOVER_TITLE : STR_NEWS_COMPANY_MERGER_DESCRIPTION);
-	SetDParamStr(2, cni->company_name);
-	SetDParamStr(3, cni->other_company_name);
-	SetDParam(4, c->bankrupt_value);
-	AddCompanyNewsItem(STR_MESSAGE_NEWS_FORMAT, cni);
+	AddNewsItem<MergerNewsItem> (c, Company::Get(_current_company));
 	AI::BroadcastNewEvent(new ScriptEventCompanyMerger(ci, _current_company));
 	Game::NewEvent(new ScriptEventCompanyMerger(ci, _current_company));
 

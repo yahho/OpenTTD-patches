@@ -19,41 +19,46 @@
 
 void InsertNewsItem (NewsItem *ni);
 
-void AddNewsItem(StringID string, NewsType type, NewsFlag flags, NewsReferenceType reftype1 = NR_NONE, uint32 ref1 = UINT32_MAX, NewsReferenceType reftype2 = NR_NONE, uint32 ref2 = UINT32_MAX, void *free_data = NULL);
-
-static inline void AddCompanyNewsItem(StringID string, CompanyNewsInformation *cni)
+template <class T, typename T1>
+void AddNewsItem (T1 t1)
 {
-	AddNewsItem(string, NT_COMPANY_INFO, NF_COMPANY, NR_NONE, UINT32_MAX, NR_NONE, UINT32_MAX, cni);
+	if (_game_mode == GM_MENU) return;
+	InsertNewsItem (new T (t1));
 }
 
-/**
- * Adds a newsitem referencing a vehicle.
- *
- * @warning The DParams may not reference the vehicle due to autoreplace stuff. See AddVehicleAdviceNewsItem for how that can be done.
- */
-static inline void AddVehicleNewsItem(StringID string, NewsType type, VehicleID vehicle, StationID station = INVALID_STATION)
+template <class T, typename T1, typename T2>
+void AddNewsItem (T1 t1, T2 t2)
 {
-	AddNewsItem(string, type, NF_SHADE | NF_THIN, NR_VEHICLE, vehicle, station == INVALID_STATION ? NR_NONE : NR_STATION, station);
+	if (_game_mode == GM_MENU) return;
+	InsertNewsItem (new T (t1, t2));
 }
 
-/**
- * Adds a vehicle-advice news item.
- *
- * @warning DParam 0 must reference the vehicle!
- */
-static inline void AddVehicleAdviceNewsItem(StringID string, VehicleID vehicle)
+template <class T, typename T1, typename T2, typename T3>
+void AddNewsItem (T1 t1, T2 t2, T3 t3)
 {
-	AddNewsItem(string, NT_ADVICE, NF_INCOLOUR | NF_SMALL | NF_VEHICLE_PARAM0, NR_VEHICLE, vehicle);
+	if (_game_mode == GM_MENU) return;
+	InsertNewsItem (new T (t1, t2, t3));
 }
 
-static inline void AddTileNewsItem(StringID string, NewsType type, TileIndex tile, void *free_data = NULL)
+template <class T, typename T1, typename T2, typename T3, typename T4>
+void AddNewsItem (T1 t1, T2 t2, T3 t3, T4 t4)
 {
-	AddNewsItem(string, type, NF_SHADE | NF_THIN, NR_TILE, tile, NR_NONE, UINT32_MAX, free_data);
+	if (_game_mode == GM_MENU) return;
+	InsertNewsItem (new T (t1, t2, t3, t4));
 }
 
-static inline void AddIndustryNewsItem(StringID string, NewsType type, IndustryID industry)
+template <class T, typename T1, typename T2, typename T3, typename T4, typename T5>
+void AddNewsItem (T1 t1, T2 t2, T3 t3, T4 t4, T5 t5)
 {
-	AddNewsItem(string, type, NF_SHADE | NF_THIN, NR_INDUSTRY, industry);
+	if (_game_mode == GM_MENU) return;
+	InsertNewsItem (new T (t1, t2, t3, t4, t5));
+}
+
+template <class T, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
+void AddNewsItem (T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6)
+{
+	if (_game_mode == GM_MENU) return;
+	InsertNewsItem (new T (t1, t2, t3, t4, t5, t6));
 }
 
 void NewsLoop();

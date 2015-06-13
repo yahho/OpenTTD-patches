@@ -1736,11 +1736,7 @@ CommandCost CmdFoundTown(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 			SetDParam(0, _current_company);
 			GetString (company_name, STR_COMPANY_NAME);
 
-			char *cn = xstrdup(company_name);
-			SetDParamStr(0, cn);
-			SetDParam(1, t->index);
-
-			AddTileNewsItem(STR_NEWS_NEW_TOWN, NT_INDUSTRY_OPEN, tile, cn);
+			AddNewsItem<FoundTownNewsItem> (t->index, tile, company_name);
 			AI::BroadcastNewEvent(new ScriptEventTownFounded(t->index));
 			Game::NewEvent(new ScriptEventTownFounded(t->index));
 		}
@@ -2728,11 +2724,7 @@ static CommandCost TownActionRoadRebuild(Town *t, DoCommandFlag flags)
 		SetDParam(0, _current_company);
 		GetString (company_name, STR_COMPANY_NAME);
 
-		char *cn = xstrdup(company_name);
-		SetDParam(0, t->index);
-		SetDParamStr(1, cn);
-
-		AddNewsItem(STR_NEWS_ROAD_REBUILDING, NT_GENERAL, NF_NORMAL, NR_TOWN, t->index, NR_NONE, UINT32_MAX, cn);
+		AddNewsItem<RoadRebuildNewsItem> (t->index, company_name);
 		AI::BroadcastNewEvent(new ScriptEventRoadReconstruction((ScriptCompany::CompanyID)(Owner)_current_company, t->index));
 		Game::NewEvent(new ScriptEventRoadReconstruction((ScriptCompany::CompanyID)(Owner)_current_company, t->index));
 	}
@@ -2846,13 +2838,7 @@ static CommandCost TownActionBuyRights(Town *t, DoCommandFlag flags)
 		SetWindowClassesDirty(WC_STATION_VIEW);
 
 		/* Spawn news message */
-		CompanyNewsInformation *cni = xmalloct<CompanyNewsInformation>();
-		cni->FillData(Company::Get(_current_company));
-		SetDParam(0, STR_NEWS_EXCLUSIVE_RIGHTS_TITLE);
-		SetDParam(1, STR_NEWS_EXCLUSIVE_RIGHTS_DESCRIPTION);
-		SetDParam(2, t->index);
-		SetDParamStr(3, cni->company_name);
-		AddNewsItem(STR_MESSAGE_NEWS_FORMAT, NT_GENERAL, NF_COMPANY, NR_TOWN, t->index, NR_NONE, UINT32_MAX, cni);
+		AddNewsItem<ExclusiveRightsNewsItem> (t->index, Company::Get(_current_company));
 		AI::BroadcastNewEvent(new ScriptEventExclusiveTransportRights((ScriptCompany::CompanyID)(Owner)_current_company, t->index));
 		Game::NewEvent(new ScriptEventExclusiveTransportRights((ScriptCompany::CompanyID)(Owner)_current_company, t->index));
 	}

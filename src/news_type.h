@@ -12,11 +12,17 @@
 #ifndef NEWS_TYPE_H
 #define NEWS_TYPE_H
 
+#include "core/pointer.h"
 #include "core/enum_type.hpp"
 #include "date_func.h"
 #include "strings_type.h"
 #include "sound_type.h"
 #include "settings_type.h"
+#include "cargo_type.h"
+#include "engine_type.h"
+#include "vehicle_type.h"
+#include "industry_type.h"
+#include "map/coord.h"
 
 /** Constants in the message options window. */
 enum MessageOptionsSpace {
@@ -92,8 +98,9 @@ enum NewsFlag {
 	NF_NORMAL         = 2 << NFB_WINDOW_LAYOUT,  ///< Normal news item. (Newspaper with text only)
 	NF_VEHICLE        = 3 << NFB_WINDOW_LAYOUT,  ///< Vehicle news item. (new engine available)
 	NF_COMPANY        = 4 << NFB_WINDOW_LAYOUT,  ///< Company news item. (Newspaper with face)
+
+	NF_SHADE_THIN     = NF_SHADE | NF_THIN,      ///< Often-used combination
 };
-DECLARE_ENUM_AS_BIT_SET(NewsFlag)
 
 
 /**
@@ -143,26 +150,152 @@ struct NewsItem {
 	uint32 ref1;                 ///< Reference 1 to some object: Used for a possible viewport, scrolling after clicking on the news, and for deleteing the news when the object is deleted.
 	uint32 ref2;                 ///< Reference 2 to some object: Used for scrolling after clicking on the news, and for deleteing the news when the object is deleted.
 
-	void *free_data;             ///< Data to be freed when the news item has reached its end.
-
 	NewsItem (StringID string, NewsType type, NewsFlag flags,
 			NewsReferenceType reftype1 = NR_NONE, uint32 ref1 = UINT32_MAX,
-			NewsReferenceType reftype2 = NR_NONE, uint32 ref2 = UINT32_MAX,
-			void *free_data = NULL)
+			NewsReferenceType reftype2 = NR_NONE, uint32 ref2 = UINT32_MAX)
 		: prev(NULL), next(NULL),
 		  string_id(string), date(_date), type(type),
-		  flags (_cur_year < _settings_client.gui.coloured_news_year ? flags : flags | NF_INCOLOUR),
+		  flags (_cur_year < _settings_client.gui.coloured_news_year ? flags : (NewsFlag)(flags | NF_INCOLOUR)),
 		  reftype1(reftype1), reftype2(reftype2),
-		  ref1(ref1), ref2(ref2), free_data(free_data)
+		  ref1(ref1), ref2(ref2)
 	{
 	}
 
-	~NewsItem()
-	{
-		free(this->free_data);
-	}
+	virtual ~NewsItem() { }
 
 	uint64 params[10]; ///< Parameters for string resolving.
+};
+
+/** NewsItem derived class template. */
+template <NewsFlag f, NewsReferenceType reftype, typename T>
+struct RefNewsItem : NewsItem {
+	RefNewsItem (StringID string, NewsType type, T ref)
+		: NewsItem (string, type, f, reftype, ref)
+	{
+	}
+
+	template <typename P0>
+	RefNewsItem (StringID string, NewsType type, T ref, P0 param0)
+		: NewsItem (string, type, f, reftype, ref)
+	{
+		this->params[0] = param0;
+	}
+
+	template <typename P0, typename P1>
+	RefNewsItem (StringID string, NewsType type, T ref,
+			P0 param0, P1 param1)
+		: NewsItem (string, type, f, reftype, ref)
+	{
+		this->params[0] = param0;
+		this->params[1] = param1;
+	}
+
+	template <typename P0, typename P1, typename P2>
+	RefNewsItem (StringID string, NewsType type, T ref,
+			P0 param0, P1 param1, P2 param2)
+		: NewsItem (string, type, f, reftype, ref)
+	{
+		this->params[0] = param0;
+		this->params[1] = param1;
+		this->params[2] = param2;
+	}
+};
+
+/** News linked to a tile on the map. */
+typedef RefNewsItem <NF_SHADE_THIN, NR_TILE, TileIndex> TileNewsItem;
+
+/** News about an industry. */
+typedef RefNewsItem <NF_SHADE_THIN, NR_INDUSTRY, IndustryID> IndustryNewsItem;
+
+/** Base class for VehicleNewsItem. */
+struct BaseVehicleNewsItem : NewsItem {
+	BaseVehicleNewsItem (StringID string, NewsType type, VehicleID vid,
+			const struct Station *st = NULL);
+};
+
+/**
+ * News involving a vehicle.
+ * @warning The params may not reference the vehicle due to autoreplacing.
+ * See VehicleAdviceNewsItem below for that.
+ */
+struct VehicleNewsItem : BaseVehicleNewsItem {
+	VehicleNewsItem (StringID string, NewsType type, VehicleID vid)
+		: BaseVehicleNewsItem (string, type, vid)
+	{
+	}
+
+	template <typename P>
+	VehicleNewsItem (StringID string, NewsType type, VehicleID vid, P p)
+		: BaseVehicleNewsItem (string, type, vid)
+	{
+		this->params[0] = p;
+	}
+};
+
+/** News about arrival of first vehicle to a station. */
+struct ArrivalNewsItem : BaseVehicleNewsItem {
+	ArrivalNewsItem (StringID string, const struct Vehicle *v,
+			const struct Station *st);
+};
+
+/** News about a plane crash. */
+struct PlaneCrashNewsItem : BaseVehicleNewsItem {
+	PlaneCrashNewsItem (VehicleID vid, const struct Station *st, uint pass);
+};
+
+/** Base class for VehicleAdviceNewsItem. */
+typedef RefNewsItem <(NewsFlag)(NF_INCOLOUR | NF_SMALL | NF_VEHICLE_PARAM0), NR_VEHICLE, VehicleID> BaseVehicleAdviceNewsItem;
+
+/** Advice about a vehicle. */
+struct VehicleAdviceNewsItem : BaseVehicleAdviceNewsItem {
+	VehicleAdviceNewsItem (StringID string, VehicleID vid)
+		: BaseVehicleAdviceNewsItem (string, NT_ADVICE, vid, vid)
+	{
+	}
+
+	template <typename P>
+	VehicleAdviceNewsItem (StringID string, VehicleID vid, P param)
+		: BaseVehicleAdviceNewsItem (string, NT_ADVICE, vid, vid, param)
+	{
+	}
+};
+
+/** News about change of acceptance at a station. */
+struct AcceptanceNewsItem : NewsItem {
+	AcceptanceNewsItem (const struct Station *st,
+			uint num_items, CargoID *cargo, StringID msg);
+};
+
+/** News about founding of a town. */
+struct FoundTownNewsItem : TileNewsItem {
+	ttd_unique_free_ptr <char> data;
+
+	FoundTownNewsItem (TownID tid, TileIndex tile, const char *company_name);
+};
+
+/** News about road rebuilding in a town. */
+struct RoadRebuildNewsItem : NewsItem {
+	ttd_unique_free_ptr <char> data;
+
+	RoadRebuildNewsItem (TownID tid, const char *company_name);
+};
+
+/** News about availability of a new vehicle (engine). */
+struct EngineNewsItem : NewsItem {
+	EngineNewsItem (EngineID eid);
+};
+
+/** News about a subsidy. */
+struct SubsidyNewsItem : NewsItem {
+	SubsidyNewsItem (StringID string, const struct Subsidy *s,
+			bool plural, uint offset = 0);
+};
+
+/** News about a subsidy award. */
+struct SubsidyAwardNewsItem : SubsidyNewsItem {
+	ttd_unique_free_ptr <char> data;
+
+	SubsidyAwardNewsItem (const struct Subsidy *s, const char *company_name);
 };
 
 /**
@@ -180,6 +313,35 @@ struct CompanyNewsInformation {
 	byte colour; ///< The colour related to the company
 
 	void FillData(const struct Company *c, const struct Company *other = NULL);
+};
+
+/** Base NewsItem for news about a company. */
+struct BaseCompanyNewsItem : NewsItem {
+	ttd_unique_free_ptr <CompanyNewsInformation> data;
+
+	BaseCompanyNewsItem (NewsType type, StringID str,
+		const struct Company *c, const struct Company *other,
+		NewsReferenceType reftype = NR_NONE, uint32 ref = UINT32_MAX);
+};
+
+/** Generic news about a company. */
+struct CompanyNewsItem : BaseCompanyNewsItem {
+	CompanyNewsItem (StringID str1, StringID str2, const struct Company *c);
+};
+
+/** News about a company launch. */
+struct LaunchNewsItem : BaseCompanyNewsItem {
+	LaunchNewsItem (const struct Company *c, TownID tid);
+};
+
+/** News about a company merger. */
+struct MergerNewsItem : BaseCompanyNewsItem {
+	MergerNewsItem (const struct Company *c, const struct Company *merger);
+};
+
+/** News about exclusive transport rights. */
+struct ExclusiveRightsNewsItem : BaseCompanyNewsItem {
+	ExclusiveRightsNewsItem (TownID tid, const struct Company *c);
 };
 
 #endif /* NEWS_TYPE_H */
