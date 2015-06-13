@@ -767,7 +767,6 @@ BaseCompanyNewsItem::BaseCompanyNewsItem (NewsType type, StringID str,
 	} else {
 		SetDParam (0, other->index);
 		GetString (this->other_company_name, STR_COMPANY_NAME);
-		c = other;
 	}
 
 	SetDParam (0, c->index);
@@ -801,13 +800,13 @@ LaunchNewsItem::LaunchNewsItem (const Company *c, TownID tid)
 /** Construct a MergerNewsItem. */
 MergerNewsItem::MergerNewsItem (const Company *c, const Company *merger)
 	: BaseCompanyNewsItem (NT_COMPANY_INFO, STR_NEWS_COMPANY_MERGER_TITLE,
-		c, merger)
+		merger, c)
 {
 	this->params[1] = c->bankrupt_value == 0 ?
 			STR_NEWS_MERGER_TAKEOVER_TITLE :
 			STR_NEWS_COMPANY_MERGER_DESCRIPTION;
-	this->params[2] = (uint64)(size_t)this->company_name;
-	this->params[3] = (uint64)(size_t)this->other_company_name;
+	this->params[2] = (uint64)(size_t)this->other_company_name;
+	this->params[3] = (uint64)(size_t)this->company_name;
 	this->params[4] = c->bankrupt_value;
 }
 
