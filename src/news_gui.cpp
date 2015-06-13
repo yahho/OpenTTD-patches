@@ -372,13 +372,13 @@ struct NewsWindow : Window {
 				break;
 
 			case WID_N_MGR_FACE: {
-				const CompanyNewsInformation *cni = &static_cast<const BaseCompanyNewsItem *>(ni)->data;
+				const BaseCompanyNewsItem *cni = static_cast<const BaseCompanyNewsItem *>(this->ni);
 				DrawCompanyManagerFace(cni->face, cni->colour, r.left, r.top);
 				GfxFillRect(r.left, r.top, r.right, r.bottom, PALETTE_NEWSPAPER, FILLRECT_RECOLOUR);
 				break;
 			}
 			case WID_N_MGR_NAME: {
-				const CompanyNewsInformation *cni = &static_cast<const BaseCompanyNewsItem *>(ni)->data;
+				const BaseCompanyNewsItem *cni = static_cast<const BaseCompanyNewsItem *>(this->ni);
 				SetDParamStr(0, cni->president_name);
 				DrawStringMultiLine(r.left, r.right, r.top, r.bottom, STR_JUST_RAW_STRING, TC_FROMSTRING, SA_CENTER);
 				break;
@@ -760,21 +760,21 @@ BaseCompanyNewsItem::BaseCompanyNewsItem (NewsType type, StringID str,
 	: NewsItem (STR_MESSAGE_NEWS_FORMAT, type, NF_COMPANY, reftype, ref)
 {
 	SetDParam (0, c->index);
-	GetString (this->data.company_name, STR_COMPANY_NAME);
+	GetString (this->company_name, STR_COMPANY_NAME);
 
 	if (other == NULL) {
-		this->data.other_company_name[0] = '\0';
+		this->other_company_name[0] = '\0';
 	} else {
 		SetDParam (0, other->index);
-		GetString (this->data.other_company_name, STR_COMPANY_NAME);
+		GetString (this->other_company_name, STR_COMPANY_NAME);
 		c = other;
 	}
 
 	SetDParam (0, c->index);
-	GetString (this->data.president_name, STR_PRESIDENT_NAME_MANAGER);
+	GetString (this->president_name, STR_PRESIDENT_NAME_MANAGER);
 
-	this->data.colour = c->colour;
-	this->data.face = c->face;
+	this->colour = c->colour;
+	this->face = c->face;
 
 	this->params[0] = str;
 }
@@ -785,7 +785,7 @@ CompanyNewsItem::CompanyNewsItem (StringID str1, StringID str2,
 	: BaseCompanyNewsItem (NT_COMPANY_INFO, str1, c, NULL)
 {
 	this->params[1] = str2;
-	this->params[2] = (uint64)(size_t)this->data.company_name;
+	this->params[2] = (uint64)(size_t)this->company_name;
 }
 
 /** Construct a LaunchNewsItem. */
@@ -794,7 +794,7 @@ LaunchNewsItem::LaunchNewsItem (const Company *c, TownID tid)
 		c, NULL, NR_TILE, c->last_build_coordinate)
 {
 	this->params[1] = STR_NEWS_COMPANY_LAUNCH_DESCRIPTION;
-	this->params[2] = (uint64)(size_t)this->data.company_name;
+	this->params[2] = (uint64)(size_t)this->company_name;
 	this->params[3] = tid;
 }
 
@@ -806,8 +806,8 @@ MergerNewsItem::MergerNewsItem (const Company *c, const Company *merger)
 	this->params[1] = c->bankrupt_value == 0 ?
 			STR_NEWS_MERGER_TAKEOVER_TITLE :
 			STR_NEWS_COMPANY_MERGER_DESCRIPTION;
-	this->params[2] = (uint64)(size_t)this->data.company_name;
-	this->params[3] = (uint64)(size_t)this->data.other_company_name;
+	this->params[2] = (uint64)(size_t)this->company_name;
+	this->params[3] = (uint64)(size_t)this->other_company_name;
 	this->params[4] = c->bankrupt_value;
 }
 
@@ -818,7 +818,7 @@ ExclusiveRightsNewsItem::ExclusiveRightsNewsItem (TownID tid, const Company *c)
 {
 	this->params[1] = STR_NEWS_EXCLUSIVE_RIGHTS_DESCRIPTION;
 	this->params[2] = tid;
-	this->params[3] = (uint64)(size_t)this->data.company_name;
+	this->params[3] = (uint64)(size_t)this->company_name;
 }
 
 /** Custom news item. */

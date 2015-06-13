@@ -298,24 +298,14 @@ struct SubsidyAwardNewsItem : SubsidyNewsItem {
 	SubsidyAwardNewsItem (const struct Subsidy *s, const char *company_name);
 };
 
-/**
- * Data that needs to be stored for company news messages.
- * The problem with company news messages are the custom name
- * of the companies and the fact that the company data is reset,
- * resulting in wrong names and such.
- */
-struct CompanyNewsInformation {
+/** Base NewsItem for news about a company. */
+struct BaseCompanyNewsItem : NewsItem {
 	char company_name[64];       ///< The name of the company
 	char president_name[64];     ///< The name of the president
 	char other_company_name[64]; ///< The name of the company taking over this one
 
 	uint32 face; ///< The face of the president
 	byte colour; ///< The colour related to the company
-};
-
-/** Base NewsItem for news about a company. */
-struct BaseCompanyNewsItem : NewsItem {
-	CompanyNewsInformation data;
 
 	BaseCompanyNewsItem (NewsType type, StringID str,
 		const struct Company *c, const struct Company *other,
