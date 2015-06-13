@@ -302,7 +302,6 @@ struct SubsidyAwardNewsItem : SubsidyNewsItem {
 struct BaseCompanyNewsItem : NewsItem {
 	char company_name[64];       ///< The name of the company
 	char president_name[64];     ///< The name of the president
-	char other_company_name[64]; ///< The name of the company taking over this one
 
 	uint32 face; ///< The face of the president
 	byte colour; ///< The colour related to the company
@@ -324,6 +323,8 @@ struct LaunchNewsItem : BaseCompanyNewsItem {
 
 /** News about a company merger. */
 struct MergerNewsItem : BaseCompanyNewsItem {
+	char other_company_name[64]; ///< The name of the company taken over
+
 	MergerNewsItem (const struct Company *c, const struct Company *merger);
 };
 

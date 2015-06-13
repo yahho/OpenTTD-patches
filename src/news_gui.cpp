@@ -762,13 +762,6 @@ BaseCompanyNewsItem::BaseCompanyNewsItem (NewsType type, StringID str,
 	SetDParam (0, c->index);
 	GetString (this->company_name, STR_COMPANY_NAME);
 
-	if (other == NULL) {
-		this->other_company_name[0] = '\0';
-	} else {
-		SetDParam (0, other->index);
-		GetString (this->other_company_name, STR_COMPANY_NAME);
-	}
-
 	SetDParam (0, c->index);
 	GetString (this->president_name, STR_PRESIDENT_NAME_MANAGER);
 
@@ -802,6 +795,9 @@ MergerNewsItem::MergerNewsItem (const Company *c, const Company *merger)
 	: BaseCompanyNewsItem (NT_COMPANY_INFO, STR_NEWS_COMPANY_MERGER_TITLE,
 		merger, c)
 {
+	SetDParam (0, c->index);
+	GetString (this->other_company_name, STR_COMPANY_NAME);
+
 	this->params[1] = c->bankrupt_value == 0 ?
 			STR_NEWS_MERGER_TAKEOVER_TITLE :
 			STR_NEWS_COMPANY_MERGER_DESCRIPTION;
