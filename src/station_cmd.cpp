@@ -365,15 +365,6 @@ static uint GetAcceptanceMask(const Station *st)
 }
 
 /**
- * Items contains the two cargo names that are to be accepted or rejected.
- * msg is the string id of the message to display.
- */
-static void ShowRejectOrAcceptNews(const Station *st, uint num_items, CargoID *cargo, StringID msg)
-{
-	AddNewsItem<AcceptanceNewsItem> (st, num_items, cargo, msg);
-}
-
-/**
  * Get the cargo types being produced around a tile area.
  * @param area Tile area
  * @param rad Search radius in addition to the given area
@@ -495,8 +486,8 @@ void UpdateStationAcceptance(Station *st, bool show_msg)
 		}
 
 		/* Show news message if there are any changes */
-		if (num_acc > 0) ShowRejectOrAcceptNews(st, num_acc, accepts, accept_msg[num_acc - 1]);
-		if (num_rej > 0) ShowRejectOrAcceptNews(st, num_rej, rejects, reject_msg[num_rej - 1]);
+		if (num_acc > 0) AddNewsItem<AcceptanceNewsItem> (st, num_acc, accepts, accept_msg[num_acc - 1]);
+		if (num_rej > 0) AddNewsItem<AcceptanceNewsItem> (st, num_rej, rejects, reject_msg[num_rej - 1]);
 	}
 
 	/* redraw the station view since acceptance changed */
