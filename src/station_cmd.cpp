@@ -449,7 +449,8 @@ void UpdateStationAcceptance(Station *st, bool show_msg)
 
 	/* Only show a message in case the acceptance was actually changed. */
 	uint new_acc = GetAcceptanceMask(st);
-	if (old_acc == new_acc) return;
+	uint diff_acc = old_acc ^ new_acc;
+	if (diff_acc == 0) return;
 
 	/* show a message to report that the acceptance was changed? */
 	if (show_msg && st->owner == _local_company && st->IsInUse()) {
@@ -472,13 +473,15 @@ void UpdateStationAcceptance(Station *st, bool show_msg)
 
 		/* Test each cargo type to see if its acceptance has changed */
 		for (CargoID i = 0; i < NUM_CARGO; i++) {
+			if (!HasBit (diff_acc, i)) continue;
+
 			if (HasBit(new_acc, i)) {
-				if (!HasBit(old_acc, i) && num_acc < lengthof(accepts)) {
+				if (num_acc < lengthof(accepts)) {
 					/* New cargo is accepted */
 					accepts[num_acc++] = i;
 				}
 			} else {
-				if (HasBit(old_acc, i) && num_rej < lengthof(rejects)) {
+				if (num_rej < lengthof(rejects)) {
 					/* Old cargo is no longer accepted */
 					rejects[num_rej++] = i;
 				}
