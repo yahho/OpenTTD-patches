@@ -2377,22 +2377,6 @@ static NewsType IndustryServiceNewsType (Industry *ind)
 	return result ? NT_INDUSTRY_OTHER : NT_INDUSTRY_NOBODY;
 }
 
-/**
- * Report news that industry production has changed significantly
- *
- * @param ind: Industry with changed production
- * @param type: Cargo type that has changed
- * @param percent: Percentage of change (>0 means increase, <0 means decrease)
- */
-static void ReportNewsProductionChangeIndustry(Industry *ind, CargoID type, int percent)
-{
-	AddNewsItem<IndustryNewsItem> (percent >= 0 ?
-				STR_NEWS_INDUSTRY_PRODUCTION_INCREASE_SMOOTH :
-				STR_NEWS_INDUSTRY_PRODUCTION_DECREASE_SMOOTH,
-			IndustryServiceNewsType (ind), ind->index,
-			CargoSpec::Get(type)->name, ind->index, abs(percent));
-}
-
 static const uint PERCENT_TRANSPORTED_60 = 153;
 static const uint PERCENT_TRANSPORTED_80 = 204;
 
@@ -2458,8 +2442,14 @@ static bool ChangeIndustryProductionSmooth (Industry *i,
 		/* Close the industry when it has the lowest possible production rate */
 		if (new_prod > 1) close = false;
 
-		if (abs(percent) >= 10) {
-			ReportNewsProductionChangeIndustry (i, i->produced_cargo[j], percent);
+		int percent_abs = abs (percent);
+		if (percent_abs >= 10) {
+			AddNewsItem<IndustryNewsItem> (percent >= 0 ?
+					STR_NEWS_INDUSTRY_PRODUCTION_INCREASE_SMOOTH :
+					STR_NEWS_INDUSTRY_PRODUCTION_DECREASE_SMOOTH,
+				IndustryServiceNewsType (i), i->index,
+				CargoSpec::Get(i->produced_cargo[j])->name,
+				i->index, percent_abs);
 		}
 	}
 
