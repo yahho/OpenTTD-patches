@@ -684,26 +684,22 @@ static RoadVehicle *RoadVehFindCloseTo(RoadVehicle *v, int x, int y, Direction d
  */
 static void RoadVehArrivesAt(const RoadVehicle *v, Station *st)
 {
+	StationHadVehicleOfType hvot;
+	StringID str;
 	if (v->IsBus()) {
-		/* Check if station was ever visited before */
-		if (!(st->had_vehicle_of_type & HVOT_BUS)) {
-			st->had_vehicle_of_type |= HVOT_BUS;
-			AddNewsItem<ArrivalNewsItem> (
-				v->roadtype == ROADTYPE_ROAD ? STR_NEWS_FIRST_BUS_ARRIVAL : STR_NEWS_FIRST_PASSENGER_TRAM_ARRIVAL,
-				v, st);
-			AI::NewEvent(v->owner, new ScriptEventStationFirstVehicle(st->index, v->index));
-			Game::NewEvent(new ScriptEventStationFirstVehicle(st->index, v->index));
-		}
+		hvot = HVOT_BUS;
+		str = v->roadtype == ROADTYPE_ROAD ? STR_NEWS_FIRST_BUS_ARRIVAL : STR_NEWS_FIRST_PASSENGER_TRAM_ARRIVAL;
 	} else {
-		/* Check if station was ever visited before */
-		if (!(st->had_vehicle_of_type & HVOT_TRUCK)) {
-			st->had_vehicle_of_type |= HVOT_TRUCK;
-			AddNewsItem<ArrivalNewsItem> (
-				v->roadtype == ROADTYPE_ROAD ? STR_NEWS_FIRST_TRUCK_ARRIVAL : STR_NEWS_FIRST_CARGO_TRAM_ARRIVAL,
-				v, st);
-			AI::NewEvent(v->owner, new ScriptEventStationFirstVehicle(st->index, v->index));
-			Game::NewEvent(new ScriptEventStationFirstVehicle(st->index, v->index));
-		}
+		hvot = HVOT_TRUCK;
+		str = v->roadtype == ROADTYPE_ROAD ? STR_NEWS_FIRST_TRUCK_ARRIVAL : STR_NEWS_FIRST_CARGO_TRAM_ARRIVAL;
+	}
+
+	/* Check if station was ever visited before */
+	if (!(st->had_vehicle_of_type & hvot)) {
+		st->had_vehicle_of_type |= hvot;
+		AddNewsItem<ArrivalNewsItem> (str, v, st);
+		AI::NewEvent (v->owner, new ScriptEventStationFirstVehicle (st->index, v->index));
+		Game::NewEvent (new ScriptEventStationFirstVehicle (st->index, v->index));
 	}
 }
 
