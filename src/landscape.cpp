@@ -153,25 +153,15 @@ uint ApplyFoundationToSlope(Foundation f, Slope *s)
 uint GetPartialPixelZ(int x, int y, Slope corners)
 {
 	if (IsHalftileSlope(corners)) {
+		bool on_halftile;
 		switch (GetHalftileSlopeCorner(corners)) {
-			case CORNER_W:
-				if (x - y >= 0) return GetSlopeMaxPixelZ(corners);
-				break;
-
-			case CORNER_S:
-				if (x - (y ^ 0xF) >= 0) return GetSlopeMaxPixelZ(corners);
-				break;
-
-			case CORNER_E:
-				if (y - x >= 0) return GetSlopeMaxPixelZ(corners);
-				break;
-
-			case CORNER_N:
-				if ((y ^ 0xF) - x >= 0) return GetSlopeMaxPixelZ(corners);
-				break;
-
+			case CORNER_W: on_halftile = (x >= y);         break;
+			case CORNER_S: on_halftile = (x >= (y ^ 0xF)); break;
+			case CORNER_E: on_halftile = (y >= x);         break;
+			case CORNER_N: on_halftile = ((y ^ 0xF) >= x); break;
 			default: NOT_REACHED();
 		}
+		if (on_halftile) return GetSlopeMaxPixelZ(corners);
 	}
 
 	int z = 0;
