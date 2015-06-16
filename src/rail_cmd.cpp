@@ -704,7 +704,7 @@ static CommandCost RemoveRailTrack(TileIndex tile, Track track, DoCommandFlag fl
 		Train *v = NULL;
 
 		if (HasReservedTrack(tile, track)) {
-			v = FreeTrainReservation (tile, track);
+			v = GetTrainForReservation (tile, track, true);
 		}
 
 		Owner owner = GetTileOwner(tile);
@@ -808,7 +808,7 @@ static void RemoveRailBridge(TileIndex tile, TrackBits remove, TileIndex other_t
 	while (bits != TRACK_BIT_NONE) {
 		Track track = RemoveFirstTrack(&bits);
 		if ((TrackToTrackBits(track) & remove) != TRACK_BIT_NONE) {
-			Train *v = FreeTrainReservation (tile, track);
+			Train *v = GetTrainForReservation (tile, track, true);
 			if (v != NULL) *affected.Append() = v;
 		}
 	}
@@ -817,7 +817,7 @@ static void RemoveRailBridge(TileIndex tile, TrackBits remove, TileIndex other_t
 	while (bits != TRACK_BIT_NONE) {
 		Track track = RemoveFirstTrack(&bits);
 		if ((TrackToTrackBits(track) & other_remove) != TRACK_BIT_NONE) {
-			Train *v = FreeTrainReservation (other_tile, track);
+			Train *v = GetTrainForReservation (other_tile, track, true);
 			if (v != NULL) *affected.Append() = v;
 		}
 	}
@@ -924,7 +924,7 @@ static CommandCost RemoveCrossingTrack(TileIndex tile, DoCommandFlag flags)
 		Train *v = NULL;
 
 		if (HasCrossingReservation(tile)) {
-			v = FreeTrainReservation (tile, track);
+			v = GetTrainForReservation (tile, track, true);
 		}
 
 		Owner owner = GetTileOwner(tile);
@@ -1487,11 +1487,11 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 			 * stale reservations, we clear the path reservation here and try
 			 * to redo it later on. */
 			if (HasReservedTrack(tile, track)) {
-				v[0] = FreeTrainReservation (tile, track);
+				v[0] = GetTrainForReservation (tile, track, true);
 			}
 
 			if (other_end != INVALID_TILE && HasReservedTrack(other_end, track)) {
-				v[1] = FreeTrainReservation (other_end, track);
+				v[1] = GetTrainForReservation (other_end, track, true);
 			}
 
 			/* Update signal infrastructure count. */

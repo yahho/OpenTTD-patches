@@ -98,8 +98,7 @@ static inline bool IsFreeSafeWaitingPosition(const Train *v, const RailPathPos &
 	return CheckWaitingPosition(v, pos, forbid_90deg, PBS_CHECK_SAFE_FREE) == PBS_FREE;
 }
 
-Train *GetTrainForReservation(TileIndex tile, Track track);
-Train *FreeTrainReservation (TileIndex tile, Track track);
+Train *GetTrainForReservation (TileIndex tile, Track track, bool free = false);
 
 /**
  * Check whether some of tracks is reserved on a tile.

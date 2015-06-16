@@ -494,11 +494,11 @@ static CommandCost RemoveTunnel(TileIndex tile, DoCommandFlag flags)
 			Train *v2 = NULL;
 
 			if (HasTunnelHeadReservation(tile)) {
-				v1 = FreeTrainReservation (tile, track);
+				v1 = GetTrainForReservation (tile, track, true);
 			}
 
 			if (HasTunnelHeadReservation(endtile)) {
-				v2 = FreeTrainReservation (endtile, track);
+				v2 = GetTrainForReservation (endtile, track, true);
 			}
 
 			if (Company::IsValidID(owner)) {
@@ -554,7 +554,7 @@ static CommandCost RemoveTrainDepot(TileIndex tile, DoCommandFlag flags)
 		Train *v = NULL;
 
 		if (HasDepotReservation(tile)) {
-			v = FreeTrainReservation (tile, DiagDirToDiagTrack (dir));
+			v = GetTrainForReservation (tile, DiagDirToDiagTrack (dir), true);
 		}
 
 		Company::Get(owner)->infrastructure.rail[GetRailType(tile)]--;

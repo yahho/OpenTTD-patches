@@ -368,9 +368,10 @@ bool FollowTrainReservation (const Train *v, RailPathPos *pos, bool check)
  *
  * @param tile A tile on the path.
  * @param track A reserved track on the tile.
- * @return The vehicle holding the reservation or NULL if the path is stray.
+ * @param free Whether to free the reservation.
+ * @return The vehicle holding the reservation if not heading into a depot, else NULL.
  */
-Train *GetTrainForReservation(TileIndex tile, Track track)
+Train *GetTrainForReservation (TileIndex tile, Track track, bool free)
 {
 	assert(HasReservedTrack(tile, track));
 	Trackdir  trackdir = TrackToTrackdir(track);
@@ -390,9 +391,18 @@ Train *GetTrainForReservation(TileIndex tile, Track track)
 		RailPathPos pos = RailPathPos(tile, trackdir);
 		FollowReservation(GetTileOwner(tile), rts, &pos, true);
 		Train *t = FindTrainOnPathEnd(pos);
-		if (t != NULL) return t;
+		if (t != NULL) {
+			assert (t->IsFrontEngine());
+			if (IsRailDepotTile (t->tile)) {
+				Trackdir depot_td = DiagDirToDiagTrackdir (GetGroundDepotDirection (t->tile));
+				if (t->trackdir != depot_td) return NULL;
+			}
+			if (free) FreeTrainTrackReservation (t);
+			return t;
+		}
 	}
 
+	/* Stray reservation? */
 	return NULL;
 }
 

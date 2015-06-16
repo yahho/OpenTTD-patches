@@ -1554,7 +1554,7 @@ static CommandCost RemoveRailStation (BaseStation *st, DoCommandFlag flags,
 			Owner owner = GetTileOwner(tile); // _current_company can be OWNER_WATER
 			Train *v = NULL;
 			if (HasStationReservation(tile)) {
-				v = FreeTrainReservation (tile, track);
+				v = GetTrainForReservation (tile, track, true);
 			}
 			if (!IsStationTileBlocked(tile)) Company::Get(owner)->infrastructure.rail[GetRailType(tile)]--;
 			Company::Get(owner)->infrastructure.station--;
