@@ -1960,7 +1960,7 @@ static int GetSlopePixelZ_Road(TileIndex tile, uint x, uint y)
 		z += ApplyPixelFoundationToSlope(GetRoadFoundation(tileh, GetAllRoadBits(tile)), &tileh);
 		return z + GetPartialPixelZ(x & 0xF, y & 0xF, tileh);
 	} else if (IsExtendedRoadBridge(tile)) {
-		return z + TILE_HEIGHT;
+		return z + (IsSteepSlope(tileh) ? 2 * TILE_HEIGHT : TILE_HEIGHT);
 	} else {
 		x &= 0xF;
 		y &= 0xF;

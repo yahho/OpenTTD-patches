@@ -2552,7 +2552,7 @@ static int GetSlopePixelZ_Track(TileIndex tile, uint x, uint y)
 		z += ApplyPixelFoundationToSlope(GetRailFoundation(tileh, GetTrackBits(tile)), &tileh);
 		return z + GetPartialPixelZ(x & 0xF, y & 0xF, tileh);
 	} else if (IsExtendedRailBridge(tile)) {
-		return z + TILE_HEIGHT;
+		return z + (IsSteepSlope(tileh) ? 2 * TILE_HEIGHT : TILE_HEIGHT);
 	} else {
 		x &= 0xF;
 		y &= 0xF;
