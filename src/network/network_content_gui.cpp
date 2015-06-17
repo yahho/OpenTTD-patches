@@ -35,6 +35,25 @@
 static bool _accepted_external_search = false;
 
 
+/** Get the description string id for a given content type. */
+static inline StringID get_type_string (ContentType type)
+{
+	static const uint offset = STR_CONTENT_TYPE_BASE_GRAPHICS - CONTENT_TYPE_BASE_GRAPHICS;
+	assert_compile (offset == STR_CONTENT_TYPE_BASE_GRAPHICS - CONTENT_TYPE_BASE_GRAPHICS);
+	assert_compile (offset == STR_CONTENT_TYPE_NEWGRF        - CONTENT_TYPE_NEWGRF);
+	assert_compile (offset == STR_CONTENT_TYPE_AI            - CONTENT_TYPE_AI);
+	assert_compile (offset == STR_CONTENT_TYPE_AI_LIBRARY    - CONTENT_TYPE_AI_LIBRARY);
+	assert_compile (offset == STR_CONTENT_TYPE_SCENARIO      - CONTENT_TYPE_SCENARIO);
+	assert_compile (offset == STR_CONTENT_TYPE_HEIGHTMAP     - CONTENT_TYPE_HEIGHTMAP);
+	assert_compile (offset == STR_CONTENT_TYPE_BASE_SOUNDS   - CONTENT_TYPE_BASE_SOUNDS);
+	assert_compile (offset == STR_CONTENT_TYPE_BASE_MUSIC    - CONTENT_TYPE_BASE_MUSIC);
+	assert_compile (offset == STR_CONTENT_TYPE_GAME_SCRIPT   - CONTENT_TYPE_GAME);
+	assert_compile (offset == STR_CONTENT_TYPE_GS_LIBRARY    - CONTENT_TYPE_GAME_LIBRARY);
+
+	return type + offset;
+}
+
+
 /** Window for displaying the textfile of an item in the content list. */
 struct ContentTextfileWindow : public TextfileWindow {
 	const ContentInfo *ci; ///< View the textfile of this ContentInfo.
@@ -45,27 +64,10 @@ struct ContentTextfileWindow : public TextfileWindow {
 		this->CheckForMissingGlyphs();
 	}
 
-	StringID GetTypeString() const
-	{
-		switch (this->ci->type) {
-			case CONTENT_TYPE_NEWGRF:        return STR_CONTENT_TYPE_NEWGRF;
-			case CONTENT_TYPE_BASE_GRAPHICS: return STR_CONTENT_TYPE_BASE_GRAPHICS;
-			case CONTENT_TYPE_BASE_SOUNDS:   return STR_CONTENT_TYPE_BASE_SOUNDS;
-			case CONTENT_TYPE_BASE_MUSIC:    return STR_CONTENT_TYPE_BASE_MUSIC;
-			case CONTENT_TYPE_AI:            return STR_CONTENT_TYPE_AI;
-			case CONTENT_TYPE_AI_LIBRARY:    return STR_CONTENT_TYPE_AI_LIBRARY;
-			case CONTENT_TYPE_GAME:          return STR_CONTENT_TYPE_GAME_SCRIPT;
-			case CONTENT_TYPE_GAME_LIBRARY:  return STR_CONTENT_TYPE_GS_LIBRARY;
-			case CONTENT_TYPE_SCENARIO:      return STR_CONTENT_TYPE_SCENARIO;
-			case CONTENT_TYPE_HEIGHTMAP:     return STR_CONTENT_TYPE_HEIGHTMAP;
-			default: NOT_REACHED();
-		}
-	}
-
 	/* virtual */ void SetStringParameters(int widget) const
 	{
 		if (widget == WID_TF_CAPTION) {
-			SetDParam(0, this->GetTypeString());
+			SetDParam (0, get_type_string (this->ci->type));
 			SetDParamStr(1, this->ci->name);
 		}
 	}
@@ -520,7 +522,7 @@ public:
 			case WID_NCL_TYPE: {
 				Dimension d = *size;
 				for (int i = CONTENT_TYPE_BEGIN; i < CONTENT_TYPE_END; i++) {
-					d = maxdim(d, GetStringBoundingBox(STR_CONTENT_TYPE_BASE_GRAPHICS + i - CONTENT_TYPE_BASE_GRAPHICS));
+					d = maxdim(d, GetStringBoundingBox(get_type_string((ContentType)i)));
 				}
 				size->width = d.width + WD_MATRIX_RIGHT + WD_MATRIX_LEFT;
 				break;
@@ -602,7 +604,7 @@ public:
 			}
 			DrawSprite(sprite, pal, nwi_checkbox->pos_x + (pal == PAL_NONE ? 2 : 3), y + sprite_y_offset + (pal == PAL_NONE ? 1 : 0));
 
-			StringID str = STR_CONTENT_TYPE_BASE_GRAPHICS + ci->type - CONTENT_TYPE_BASE_GRAPHICS;
+			StringID str = get_type_string (ci->type);
 			DrawString(nwi_type->pos_x, nwi_type->pos_x + nwi_type->current_x - 1, y + text_y_offset, str, TC_BLACK, SA_HOR_CENTER);
 
 			DrawString(nwi_name->pos_x + WD_FRAMERECT_LEFT, nwi_name->pos_x + nwi_name->current_x - WD_FRAMERECT_RIGHT, y + text_y_offset, ci->name, TC_BLACK);
@@ -641,7 +643,7 @@ public:
 		int y = r.top + DETAIL_TITLE_HEIGHT + DETAIL_TOP;
 
 		if (this->selected->upgrade) {
-			SetDParam(0, STR_CONTENT_TYPE_BASE_GRAPHICS + this->selected->type - CONTENT_TYPE_BASE_GRAPHICS);
+			SetDParam (0, get_type_string (this->selected->type));
 			y = DrawStringMultiLine(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_UPDATE);
 			y += WD_PAR_VSEP_WIDE;
 		}
@@ -664,7 +666,7 @@ public:
 			y = DrawStringMultiLine(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_URL);
 		}
 
-		SetDParam(0, STR_CONTENT_TYPE_BASE_GRAPHICS + this->selected->type - CONTENT_TYPE_BASE_GRAPHICS);
+		SetDParam (0, get_type_string (this->selected->type));
 		y = DrawStringMultiLine(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_TYPE);
 
 		y += WD_PAR_VSEP_WIDE;
@@ -968,7 +970,7 @@ char NetworkContentListWindow::content_type_strs[CONTENT_TYPE_END][64];
 void BuildContentTypeStringList()
 {
 	for (int i = CONTENT_TYPE_BEGIN; i < CONTENT_TYPE_END; i++) {
-		GetString (NetworkContentListWindow::content_type_strs[i], STR_CONTENT_TYPE_BASE_GRAPHICS + i - CONTENT_TYPE_BASE_GRAPHICS);
+		GetString (NetworkContentListWindow::content_type_strs[i], get_type_string ((ContentType)i));
 	}
 }
 
