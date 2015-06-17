@@ -533,7 +533,7 @@ public:
 			case WID_NCL_TYPE: {
 				Dimension d = *size;
 				for (int i = CONTENT_TYPE_BEGIN; i < CONTENT_TYPE_END; i++) {
-					d = maxdim(d, GetStringBoundingBox(get_type_string((ContentType)i)));
+					d = maxdim(d, GetStringBoundingBox(content_type_strs[i]));
 				}
 				size->width = d.width + WD_MATRIX_RIGHT + WD_MATRIX_LEFT;
 				break;
@@ -615,8 +615,7 @@ public:
 			}
 			DrawSprite(sprite, pal, nwi_checkbox->pos_x + (pal == PAL_NONE ? 2 : 3), y + sprite_y_offset + (pal == PAL_NONE ? 1 : 0));
 
-			StringID str = get_type_string (ci->type);
-			DrawString(nwi_type->pos_x, nwi_type->pos_x + nwi_type->current_x - 1, y + text_y_offset, str, TC_BLACK, SA_HOR_CENTER);
+			DrawString(nwi_type->pos_x, nwi_type->pos_x + nwi_type->current_x - 1, y + text_y_offset, content_type_strs[ci->type], TC_BLACK, SA_HOR_CENTER);
 
 			DrawString(nwi_name->pos_x + WD_FRAMERECT_LEFT, nwi_name->pos_x + nwi_name->current_x - WD_FRAMERECT_RIGHT, y + text_y_offset, ci->name, TC_BLACK);
 			y += this->resize.step_height;
