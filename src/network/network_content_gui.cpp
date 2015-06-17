@@ -54,6 +54,20 @@ static inline StringID get_type_string (ContentType type)
 }
 
 
+/** Cached strings for all content types. */
+static char content_type_strs[CONTENT_TYPE_END][64];
+
+/**
+ * Build array of all strings corresponding to the content types.
+ */
+void BuildContentTypeStringList()
+{
+	for (int i = CONTENT_TYPE_BEGIN; i < CONTENT_TYPE_END; i++) {
+		GetString (content_type_strs[i], get_type_string ((ContentType)i));
+	}
+}
+
+
 /** Window for displaying the textfile of an item in the content list. */
 struct ContentTextfileWindow : public TextfileWindow {
 	const ContentInfo *ci; ///< View the textfile of this ContentInfo.
@@ -305,8 +319,6 @@ class NetworkContentListWindow : public Window, ContentCallback {
 	uint filesize_sum;           ///< The sum of all selected file sizes
 	Scrollbar *vscroll;          ///< Cache of the vertical scrollbar
 
-	static char content_type_strs[CONTENT_TYPE_END][64]; ///< Cached strings for all content types.
-
 	/** Search external websites for content */
 	void OpenExternalSearch()
 	{
@@ -464,7 +476,6 @@ class NetworkContentListWindow : public Window, ContentCallback {
 		this->vscroll->ScrollTowards(this->list_pos);
 	}
 
-	friend void BuildContentTypeStringList();
 public:
 	/**
 	 * Create the content list window.
@@ -961,18 +972,6 @@ NetworkContentListWindow::GUIContentList::SortFunction * const NetworkContentLis
 NetworkContentListWindow::GUIContentList::FilterFunction * const NetworkContentListWindow::filter_funcs[] = {
 	&TagNameFilter,
 };
-
-char NetworkContentListWindow::content_type_strs[CONTENT_TYPE_END][64];
-
-/**
- * Build array of all strings corresponding to the content types.
- */
-void BuildContentTypeStringList()
-{
-	for (int i = CONTENT_TYPE_BEGIN; i < CONTENT_TYPE_END; i++) {
-		GetString (NetworkContentListWindow::content_type_strs[i], get_type_string ((ContentType)i));
-	}
-}
 
 /** The widgets for the content list. */
 static const NWidgetPart _nested_network_content_list_widgets[] = {
