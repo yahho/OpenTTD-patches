@@ -57,14 +57,22 @@ static inline StringID get_type_string (ContentType type)
 /** Cached strings for all content types. */
 static char content_type_strs[CONTENT_TYPE_END][64];
 
+/** Cached largest bounding box of all content type strings. */
+static Dimension content_type_max_bbox;
+
 /**
  * Build array of all strings corresponding to the content types.
  */
 void BuildContentTypeStringList()
 {
+	Dimension d = { 0, 0 };
+
 	for (int i = CONTENT_TYPE_BEGIN; i < CONTENT_TYPE_END; i++) {
 		GetString (content_type_strs[i], get_type_string ((ContentType)i));
+		d = maxdim (d, GetStringBoundingBox (content_type_strs[i]));
 	}
+
+	content_type_max_bbox = d;
 }
 
 
@@ -531,10 +539,7 @@ public:
 				break;
 
 			case WID_NCL_TYPE: {
-				Dimension d = *size;
-				for (int i = CONTENT_TYPE_BEGIN; i < CONTENT_TYPE_END; i++) {
-					d = maxdim(d, GetStringBoundingBox(content_type_strs[i]));
-				}
+				Dimension d = maxdim (*size, content_type_max_bbox);
 				size->width = d.width + WD_MATRIX_RIGHT + WD_MATRIX_LEFT;
 				break;
 			}
