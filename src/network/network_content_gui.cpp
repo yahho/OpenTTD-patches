@@ -60,19 +60,48 @@ static char content_type_strs[CONTENT_TYPE_END][64];
 /** Cached largest bounding box of all content type strings. */
 static Dimension content_type_max_bbox;
 
+/** Cached content type string order. */
+static int content_type_strs_sort[CONTENT_TYPE_END];
+
+/** Content type string comparison function. */
+static int CDECL content_type_strs_compare (const void *i, const void *j)
+{
+	const char *s = content_type_strs[*(const int *)i];
+	const char *t = content_type_strs[*(const int *)j];
+	return strnatcmp (s, t);
+}
+
 /**
  * Build array of all strings corresponding to the content types.
  */
 void BuildContentTypeStringList()
 {
+	int list[CONTENT_TYPE_END];
 	Dimension d = { 0, 0 };
 
 	for (int i = CONTENT_TYPE_BEGIN; i < CONTENT_TYPE_END; i++) {
+		list[i] = i;
 		GetString (content_type_strs[i], get_type_string ((ContentType)i));
 		d = maxdim (d, GetStringBoundingBox (content_type_strs[i]));
 	}
 
 	content_type_max_bbox = d;
+
+	qsort (list + CONTENT_TYPE_BEGIN, CONTENT_TYPE_END - CONTENT_TYPE_BEGIN,
+			sizeof(list[0]), content_type_strs_compare);
+
+	/* XXX Can two type descriptions be the same in some language? */
+	int prev = list[CONTENT_TYPE_BEGIN];
+	content_type_strs_sort[prev] = 0;
+	int k = 0;
+	for (int i = CONTENT_TYPE_BEGIN + 1; i < CONTENT_TYPE_END; i++) {
+		int cur = list[i];
+		int r = strnatcmp (content_type_strs[cur], content_type_strs[prev]);
+		assert (r >= 0);
+		if (r > 0) k++;
+		content_type_strs_sort[cur] = k;
+		prev = cur;
+	}
 }
 
 
@@ -418,10 +447,7 @@ class NetworkContentListWindow : public Window, ContentCallback {
 	/** Sort content by type. */
 	static int CDECL TypeSorter(const ContentInfo * const *a, const ContentInfo * const *b)
 	{
-		int r = 0;
-		if ((*a)->type != (*b)->type) {
-			r = strnatcmp(content_type_strs[(*a)->type], content_type_strs[(*b)->type]);
-		}
+		int r = content_type_strs_sort[(*a)->type] - content_type_strs_sort[(*b)->type];
 		if (r == 0) r = NameSorter(a, b);
 		return r;
 	}
