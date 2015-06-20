@@ -13,6 +13,7 @@
 #define SQUIRREL_HELPER_HPP
 
 #include "squirrel.hpp"
+#include "../core/pointer.h"
 #include "../core/smallvec_type.hpp"
 #include "../economy_type.h"
 #include "../string.h"
@@ -148,28 +149,18 @@ namespace SQConvert {
 	}
 
 	template<> struct Param <const char *> {
-		char *data;
+		ttd_unique_free_ptr<char> data;
 
 		inline Param (HSQUIRRELVM vm, int index)
+			: data (GetString (vm, index))
 		{
-			data = GetString (vm, index);
 		}
 
-		inline ~Param ()
-		{
-			free (data);
-		}
-
-		operator const char * () { return data; }
-
-	private:
-		Param (const Param &) DELETED;
-
-		Param & operator = (const Param &) DELETED;
+		operator const char * () { return data.get(); }
 	};
 
 	template<> struct Param <Array*> {
-		Array *data;
+		ttd_unique_free_ptr<Array> data;
 
 		inline Param (HSQUIRRELVM vm, int index)
 		{
@@ -200,20 +191,10 @@ namespace SQConvert {
 			arr->size = data.Length();
 			memcpy(arr->array, data.Begin(), sizeof(int32) * data.Length());
 
-			this->data = arr;
+			this->data.reset (arr);
 		}
 
-		inline ~Param (void)
-		{
-			free (data);
-		}
-
-		operator Array * () { return data; }
-
-	private:
-		Param (const Param &) DELETED;
-
-		Param & operator = (const Param &) DELETED;
+		operator Array * () { return data.get(); }
 	};
 
 

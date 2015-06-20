@@ -13,6 +13,7 @@
 #define SCRIPT_TEXT_HPP
 
 #include "script_object.hpp"
+#include "../../core/pointer.h"
 #include "../../core/alloc_type.hpp"
 #include "../../string.h"
 #include "../squirrel_helper.hpp"
@@ -47,24 +48,21 @@ public:
  * @api -all
  */
 class RawText : public Text {
+	const ttd_unique_free_ptr<char> text;
+
 public:
 	RawText (HSQUIRRELVM vm, int index)
+		: text (SQConvert::GetString (vm, index))
 	{
-		this->text = SQConvert::GetString (vm, index);
 	}
-
-	~RawText() { free(this->text); }
 
 	bool GetEncodedText (stringb *buf) OVERRIDE
 	{
-		buf->copy (this->text);
+		buf->copy (this->text.get());
 		return true;
 	}
 
 	bool GetDecodedText (stringb *buf) OVERRIDE;
-
-private:
-	char *text;
 };
 
 /**

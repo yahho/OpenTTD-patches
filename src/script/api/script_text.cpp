@@ -32,7 +32,7 @@ inline void Text::GetDecodedText (const char *encoded, stringb *decoded)
 
 bool RawText::GetDecodedText (stringb *buf)
 {
-	this->Text::GetDecodedText (this->text, buf);
+	this->Text::GetDecodedText (this->text.get(), buf);
 	return true;
 }
 
