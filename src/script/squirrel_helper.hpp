@@ -16,7 +16,12 @@
 #include "../core/smallvec_type.hpp"
 #include "../economy_type.h"
 #include "../string.h"
-#include "squirrel_helper_type.hpp"
+
+/** Definition of a simple array. */
+struct Array {
+	int32 size;    ///< The size of the array.
+	int32 array[]; ///< The data of the array.
+};
 
 template <class CL, ScriptType ST> const char *GetClassName();
 

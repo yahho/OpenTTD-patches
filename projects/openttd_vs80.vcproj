@@ -5959,10 +5959,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\script\squirrel_helper_type.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\script\squirrel_std.cpp"
 				>
 				<FileConfiguration

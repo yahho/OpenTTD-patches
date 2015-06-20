@@ -1995,9 +1995,6 @@
     <ClInclude Include="..\src\script\squirrel_helper.hpp">
       <Filter>Script</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\script\squirrel_helper_type.hpp">
-      <Filter>Script</Filter>
-    </ClInclude>
     <ClCompile Include="..\src\script\squirrel_std.cpp">
       <Filter>Script</Filter>
     </ClCompile>

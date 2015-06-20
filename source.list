@@ -673,7 +673,6 @@ script/squirrel.cpp
 script/squirrel.hpp
 script/squirrel_class.hpp
 script/squirrel_helper.hpp
-script/squirrel_helper_type.hpp
 script/squirrel_std.cpp
 script/squirrel_std.hpp
 

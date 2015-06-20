@@ -16,7 +16,7 @@
 #include "../../map/road.h"
 #include "../../map/depot.h"
 #include "../../station_base.h"
-#include "../../script/squirrel_helper_type.hpp"
+#include "../../script/squirrel_helper.hpp"
 
 /* static */ ScriptRoad::RoadVehicleType ScriptRoad::GetRoadVehicleTypeForCargo(CargoID cargo_type)
 {
