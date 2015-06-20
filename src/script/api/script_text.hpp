@@ -148,8 +148,20 @@ public:
 	ScriptText *AddParam(Object value);
 #endif /* DOXYGEN_API */
 
+	/**
+	 * Convert a ScriptText to a normal string.
+	 * @param buf Buffer to store the converted string.
+	 * @return Whether conversion was successful.
+	 * @api -all
+	 */
 	bool GetEncodedText (stringb *buf) OVERRIDE;
 
+	/**
+	 * Convert a #ScriptText into a decoded normal string.
+	 * @param buf Buffer to store the converted string.
+	 * @return Whether conversion was successful.
+	 * @api -all
+	 */
 	bool GetDecodedText (stringb *buf) OVERRIDE;
 
 private:
