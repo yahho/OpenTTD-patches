@@ -15,6 +15,7 @@
 #include "script_object.hpp"
 #include "../../core/alloc_type.hpp"
 #include "../../string.h"
+#include "../squirrel_helper.hpp"
 
 /**
  * Internal parent object of all Text-like objects.
@@ -49,15 +50,7 @@ class RawText : public Text {
 public:
 	RawText (HSQUIRRELVM vm, int index)
 	{
-		/* Convert whatever there is as parameter to a string */
-		sq_tostring (vm, index);
-
-		const char *tmp;
-		sq_getstring (vm, -1, &tmp);
-		char *tmp_str = xstrdup (tmp);
-		sq_poptop (vm);
-		str_validate (tmp_str, tmp_str + strlen (tmp_str));
-		this->text = tmp_str;
+		this->text = SQConvert::GetString (vm, index);
 	}
 
 	~RawText() { free(this->text); }

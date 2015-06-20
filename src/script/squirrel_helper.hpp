@@ -90,6 +90,19 @@ namespace SQConvert {
 		return tmp;
 	}
 
+	/** Helper function to get a string from squirrel. */
+	static inline char *GetString (HSQUIRRELVM vm, int index)
+	{
+		/* Convert whatever there is as parameter to a string. */
+		sq_tostring (vm, index);
+		const char *tmp;
+		sq_getstring (vm, -1, &tmp);
+		char *tmp_str = xstrdup (tmp);
+		sq_poptop (vm);
+		str_validate (tmp_str, tmp_str + strlen (tmp_str));
+		return tmp_str;
+	}
+
 	/** Helper function to get a user pointer from squirrel. */
 	template <typename T>
 	static inline T *GetUserPointer (HSQUIRRELVM vm, int index)
@@ -139,15 +152,7 @@ namespace SQConvert {
 
 		inline Param (HSQUIRRELVM vm, int index)
 		{
-			/* Convert what-ever there is as parameter to a string */
-			sq_tostring(vm, index);
-
-			const char *tmp;
-			sq_getstring(vm, -1, &tmp);
-			char *tmp_str = xstrdup(tmp);
-			sq_poptop(vm);
-			str_validate(tmp_str, tmp_str + strlen(tmp_str));
-			data = tmp_str;
+			data = GetString (vm, index);
 		}
 
 		inline ~Param ()
