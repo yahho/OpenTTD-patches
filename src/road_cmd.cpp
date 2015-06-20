@@ -806,6 +806,16 @@ static CommandCost BuildRoad_Road(TileIndex tile, DoCommandFlag flags, RoadType 
 
 			return CommandCost();
 		}
+
+		/* Disallow breaking end-of-line of someone else
+		 * so trams can still reverse on this tile. */
+		if (rt == ROADTYPE_TRAM && HasExactlyOneBit (existing)) {
+			Owner owner = GetRoadOwner (tile, ROADTYPE_TRAM);
+			if (owner != OWNER_NONE) {
+				CommandCost ret = CheckOwnership (owner);
+				if (ret.Failed()) return ret;
+			}
+		}
 	}
 
 	CommandCost cost(EXPENSES_CONSTRUCTION);
@@ -900,6 +910,16 @@ static CommandCost BuildRoad_Bridge(TileIndex tile, DoCommandFlag flags, RoadTyp
 
 		if (!IsValidRoadBridgeBits(tileh, dir, existing | pieces)) {
 			return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
+		}
+
+		/* Disallow breaking end-of-line of someone else
+		 * so trams can still reverse on this tile. */
+		if (rt == ROADTYPE_TRAM && HasExactlyOneBit (existing)) {
+			Owner owner = GetRoadOwner (tile, ROADTYPE_TRAM);
+			if (owner != OWNER_NONE) {
+				CommandCost ret = CheckOwnership (owner);
+				if (ret.Failed()) return ret;
+			}
 		}
 
 		num = CountBits(pieces);
