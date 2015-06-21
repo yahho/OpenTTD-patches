@@ -13,9 +13,9 @@
 
 namespace SQConvert {
 	/* Allow ScriptLog to be used as Squirrel parameter */
-	template <> inline Param<ScriptLog*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptLog> (vm, index)) { }
-	template <> inline Param<ScriptLog&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptLog> (vm, index)) { }
-	template <> inline Param<const ScriptLog*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptLog> (vm, index)) { }
-	template <> inline Param<const ScriptLog&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptLog> (vm, index)) { }
+	template <> inline       ScriptLog *GetParam<ScriptLog*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptLog> (vm, index); }
+	template <> inline       ScriptLog &GetParam<ScriptLog&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptLog> (vm, index); }
+	template <> inline const ScriptLog *GetParam<const ScriptLog*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptLog> (vm, index); }
+	template <> inline const ScriptLog &GetParam<const ScriptLog&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptLog> (vm, index); }
 	template <> inline int Return<ScriptLog *>(HSQUIRRELVM vm, ScriptLog *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Log", res, NULL, DefSQDestructorCallback<ScriptLog>, true); return 1; }
 } // namespace SQConvert

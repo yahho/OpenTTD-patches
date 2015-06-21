@@ -13,256 +13,256 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline Param<ScriptEventVehicleCrashed::CrashReason>::Param (HSQUIRRELVM vm, int index) : data ((ScriptEventVehicleCrashed::CrashReason) GetInteger (vm, index)) { }
+	template <> inline ScriptEventVehicleCrashed::CrashReason GetParam<ScriptEventVehicleCrashed::CrashReason> (HSQUIRRELVM vm, int index) { return (ScriptEventVehicleCrashed::CrashReason) GetInteger (vm, index); }
 	template <> inline int Return<ScriptEventVehicleCrashed::CrashReason>(HSQUIRRELVM vm, ScriptEventVehicleCrashed::CrashReason res) { sq_pushinteger(vm, (int32)res); return 1; }
 
 	/* Allow ScriptEventVehicleCrashed to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventVehicleCrashed*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventVehicleCrashed> (vm, index)) { }
-	template <> inline Param<ScriptEventVehicleCrashed&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventVehicleCrashed> (vm, index)) { }
-	template <> inline Param<const ScriptEventVehicleCrashed*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventVehicleCrashed> (vm, index)) { }
-	template <> inline Param<const ScriptEventVehicleCrashed&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventVehicleCrashed> (vm, index)) { }
+	template <> inline       ScriptEventVehicleCrashed *GetParam<ScriptEventVehicleCrashed*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventVehicleCrashed> (vm, index); }
+	template <> inline       ScriptEventVehicleCrashed &GetParam<ScriptEventVehicleCrashed&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventVehicleCrashed> (vm, index); }
+	template <> inline const ScriptEventVehicleCrashed *GetParam<const ScriptEventVehicleCrashed*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventVehicleCrashed> (vm, index); }
+	template <> inline const ScriptEventVehicleCrashed &GetParam<const ScriptEventVehicleCrashed&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventVehicleCrashed> (vm, index); }
 	template <> inline int Return<ScriptEventVehicleCrashed *>(HSQUIRRELVM vm, ScriptEventVehicleCrashed *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventVehicleCrashed", res, NULL, DefSQDestructorCallback<ScriptEventVehicleCrashed>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventSubsidyOffer to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventSubsidyOffer*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventSubsidyOffer> (vm, index)) { }
-	template <> inline Param<ScriptEventSubsidyOffer&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventSubsidyOffer> (vm, index)) { }
-	template <> inline Param<const ScriptEventSubsidyOffer*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventSubsidyOffer> (vm, index)) { }
-	template <> inline Param<const ScriptEventSubsidyOffer&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventSubsidyOffer> (vm, index)) { }
+	template <> inline       ScriptEventSubsidyOffer *GetParam<ScriptEventSubsidyOffer*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventSubsidyOffer> (vm, index); }
+	template <> inline       ScriptEventSubsidyOffer &GetParam<ScriptEventSubsidyOffer&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventSubsidyOffer> (vm, index); }
+	template <> inline const ScriptEventSubsidyOffer *GetParam<const ScriptEventSubsidyOffer*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventSubsidyOffer> (vm, index); }
+	template <> inline const ScriptEventSubsidyOffer &GetParam<const ScriptEventSubsidyOffer&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventSubsidyOffer> (vm, index); }
 	template <> inline int Return<ScriptEventSubsidyOffer *>(HSQUIRRELVM vm, ScriptEventSubsidyOffer *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventSubsidyOffer", res, NULL, DefSQDestructorCallback<ScriptEventSubsidyOffer>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventSubsidyOfferExpired to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventSubsidyOfferExpired*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventSubsidyOfferExpired> (vm, index)) { }
-	template <> inline Param<ScriptEventSubsidyOfferExpired&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventSubsidyOfferExpired> (vm, index)) { }
-	template <> inline Param<const ScriptEventSubsidyOfferExpired*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventSubsidyOfferExpired> (vm, index)) { }
-	template <> inline Param<const ScriptEventSubsidyOfferExpired&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventSubsidyOfferExpired> (vm, index)) { }
+	template <> inline       ScriptEventSubsidyOfferExpired *GetParam<ScriptEventSubsidyOfferExpired*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventSubsidyOfferExpired> (vm, index); }
+	template <> inline       ScriptEventSubsidyOfferExpired &GetParam<ScriptEventSubsidyOfferExpired&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventSubsidyOfferExpired> (vm, index); }
+	template <> inline const ScriptEventSubsidyOfferExpired *GetParam<const ScriptEventSubsidyOfferExpired*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventSubsidyOfferExpired> (vm, index); }
+	template <> inline const ScriptEventSubsidyOfferExpired &GetParam<const ScriptEventSubsidyOfferExpired&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventSubsidyOfferExpired> (vm, index); }
 	template <> inline int Return<ScriptEventSubsidyOfferExpired *>(HSQUIRRELVM vm, ScriptEventSubsidyOfferExpired *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventSubsidyOfferExpired", res, NULL, DefSQDestructorCallback<ScriptEventSubsidyOfferExpired>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventSubsidyAwarded to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventSubsidyAwarded*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventSubsidyAwarded> (vm, index)) { }
-	template <> inline Param<ScriptEventSubsidyAwarded&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventSubsidyAwarded> (vm, index)) { }
-	template <> inline Param<const ScriptEventSubsidyAwarded*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventSubsidyAwarded> (vm, index)) { }
-	template <> inline Param<const ScriptEventSubsidyAwarded&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventSubsidyAwarded> (vm, index)) { }
+	template <> inline       ScriptEventSubsidyAwarded *GetParam<ScriptEventSubsidyAwarded*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventSubsidyAwarded> (vm, index); }
+	template <> inline       ScriptEventSubsidyAwarded &GetParam<ScriptEventSubsidyAwarded&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventSubsidyAwarded> (vm, index); }
+	template <> inline const ScriptEventSubsidyAwarded *GetParam<const ScriptEventSubsidyAwarded*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventSubsidyAwarded> (vm, index); }
+	template <> inline const ScriptEventSubsidyAwarded &GetParam<const ScriptEventSubsidyAwarded&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventSubsidyAwarded> (vm, index); }
 	template <> inline int Return<ScriptEventSubsidyAwarded *>(HSQUIRRELVM vm, ScriptEventSubsidyAwarded *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventSubsidyAwarded", res, NULL, DefSQDestructorCallback<ScriptEventSubsidyAwarded>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventSubsidyExpired to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventSubsidyExpired*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventSubsidyExpired> (vm, index)) { }
-	template <> inline Param<ScriptEventSubsidyExpired&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventSubsidyExpired> (vm, index)) { }
-	template <> inline Param<const ScriptEventSubsidyExpired*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventSubsidyExpired> (vm, index)) { }
-	template <> inline Param<const ScriptEventSubsidyExpired&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventSubsidyExpired> (vm, index)) { }
+	template <> inline       ScriptEventSubsidyExpired *GetParam<ScriptEventSubsidyExpired*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventSubsidyExpired> (vm, index); }
+	template <> inline       ScriptEventSubsidyExpired &GetParam<ScriptEventSubsidyExpired&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventSubsidyExpired> (vm, index); }
+	template <> inline const ScriptEventSubsidyExpired *GetParam<const ScriptEventSubsidyExpired*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventSubsidyExpired> (vm, index); }
+	template <> inline const ScriptEventSubsidyExpired &GetParam<const ScriptEventSubsidyExpired&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventSubsidyExpired> (vm, index); }
 	template <> inline int Return<ScriptEventSubsidyExpired *>(HSQUIRRELVM vm, ScriptEventSubsidyExpired *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventSubsidyExpired", res, NULL, DefSQDestructorCallback<ScriptEventSubsidyExpired>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventEnginePreview to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventEnginePreview*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventEnginePreview> (vm, index)) { }
-	template <> inline Param<ScriptEventEnginePreview&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventEnginePreview> (vm, index)) { }
-	template <> inline Param<const ScriptEventEnginePreview*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventEnginePreview> (vm, index)) { }
-	template <> inline Param<const ScriptEventEnginePreview&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventEnginePreview> (vm, index)) { }
+	template <> inline       ScriptEventEnginePreview *GetParam<ScriptEventEnginePreview*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventEnginePreview> (vm, index); }
+	template <> inline       ScriptEventEnginePreview &GetParam<ScriptEventEnginePreview&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventEnginePreview> (vm, index); }
+	template <> inline const ScriptEventEnginePreview *GetParam<const ScriptEventEnginePreview*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventEnginePreview> (vm, index); }
+	template <> inline const ScriptEventEnginePreview &GetParam<const ScriptEventEnginePreview&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventEnginePreview> (vm, index); }
 	template <> inline int Return<ScriptEventEnginePreview *>(HSQUIRRELVM vm, ScriptEventEnginePreview *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventEnginePreview", res, NULL, DefSQDestructorCallback<ScriptEventEnginePreview>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventCompanyNew to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventCompanyNew*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventCompanyNew> (vm, index)) { }
-	template <> inline Param<ScriptEventCompanyNew&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventCompanyNew> (vm, index)) { }
-	template <> inline Param<const ScriptEventCompanyNew*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventCompanyNew> (vm, index)) { }
-	template <> inline Param<const ScriptEventCompanyNew&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventCompanyNew> (vm, index)) { }
+	template <> inline       ScriptEventCompanyNew *GetParam<ScriptEventCompanyNew*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventCompanyNew> (vm, index); }
+	template <> inline       ScriptEventCompanyNew &GetParam<ScriptEventCompanyNew&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventCompanyNew> (vm, index); }
+	template <> inline const ScriptEventCompanyNew *GetParam<const ScriptEventCompanyNew*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventCompanyNew> (vm, index); }
+	template <> inline const ScriptEventCompanyNew &GetParam<const ScriptEventCompanyNew&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventCompanyNew> (vm, index); }
 	template <> inline int Return<ScriptEventCompanyNew *>(HSQUIRRELVM vm, ScriptEventCompanyNew *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventCompanyNew", res, NULL, DefSQDestructorCallback<ScriptEventCompanyNew>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventCompanyInTrouble to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventCompanyInTrouble*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventCompanyInTrouble> (vm, index)) { }
-	template <> inline Param<ScriptEventCompanyInTrouble&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventCompanyInTrouble> (vm, index)) { }
-	template <> inline Param<const ScriptEventCompanyInTrouble*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventCompanyInTrouble> (vm, index)) { }
-	template <> inline Param<const ScriptEventCompanyInTrouble&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventCompanyInTrouble> (vm, index)) { }
+	template <> inline       ScriptEventCompanyInTrouble *GetParam<ScriptEventCompanyInTrouble*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventCompanyInTrouble> (vm, index); }
+	template <> inline       ScriptEventCompanyInTrouble &GetParam<ScriptEventCompanyInTrouble&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventCompanyInTrouble> (vm, index); }
+	template <> inline const ScriptEventCompanyInTrouble *GetParam<const ScriptEventCompanyInTrouble*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventCompanyInTrouble> (vm, index); }
+	template <> inline const ScriptEventCompanyInTrouble &GetParam<const ScriptEventCompanyInTrouble&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventCompanyInTrouble> (vm, index); }
 	template <> inline int Return<ScriptEventCompanyInTrouble *>(HSQUIRRELVM vm, ScriptEventCompanyInTrouble *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventCompanyInTrouble", res, NULL, DefSQDestructorCallback<ScriptEventCompanyInTrouble>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventCompanyAskMerger to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventCompanyAskMerger*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventCompanyAskMerger> (vm, index)) { }
-	template <> inline Param<ScriptEventCompanyAskMerger&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventCompanyAskMerger> (vm, index)) { }
-	template <> inline Param<const ScriptEventCompanyAskMerger*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventCompanyAskMerger> (vm, index)) { }
-	template <> inline Param<const ScriptEventCompanyAskMerger&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventCompanyAskMerger> (vm, index)) { }
+	template <> inline       ScriptEventCompanyAskMerger *GetParam<ScriptEventCompanyAskMerger*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventCompanyAskMerger> (vm, index); }
+	template <> inline       ScriptEventCompanyAskMerger &GetParam<ScriptEventCompanyAskMerger&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventCompanyAskMerger> (vm, index); }
+	template <> inline const ScriptEventCompanyAskMerger *GetParam<const ScriptEventCompanyAskMerger*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventCompanyAskMerger> (vm, index); }
+	template <> inline const ScriptEventCompanyAskMerger &GetParam<const ScriptEventCompanyAskMerger&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventCompanyAskMerger> (vm, index); }
 	template <> inline int Return<ScriptEventCompanyAskMerger *>(HSQUIRRELVM vm, ScriptEventCompanyAskMerger *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventCompanyAskMerger", res, NULL, DefSQDestructorCallback<ScriptEventCompanyAskMerger>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventCompanyMerger to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventCompanyMerger*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventCompanyMerger> (vm, index)) { }
-	template <> inline Param<ScriptEventCompanyMerger&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventCompanyMerger> (vm, index)) { }
-	template <> inline Param<const ScriptEventCompanyMerger*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventCompanyMerger> (vm, index)) { }
-	template <> inline Param<const ScriptEventCompanyMerger&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventCompanyMerger> (vm, index)) { }
+	template <> inline       ScriptEventCompanyMerger *GetParam<ScriptEventCompanyMerger*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventCompanyMerger> (vm, index); }
+	template <> inline       ScriptEventCompanyMerger &GetParam<ScriptEventCompanyMerger&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventCompanyMerger> (vm, index); }
+	template <> inline const ScriptEventCompanyMerger *GetParam<const ScriptEventCompanyMerger*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventCompanyMerger> (vm, index); }
+	template <> inline const ScriptEventCompanyMerger &GetParam<const ScriptEventCompanyMerger&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventCompanyMerger> (vm, index); }
 	template <> inline int Return<ScriptEventCompanyMerger *>(HSQUIRRELVM vm, ScriptEventCompanyMerger *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventCompanyMerger", res, NULL, DefSQDestructorCallback<ScriptEventCompanyMerger>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventCompanyBankrupt to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventCompanyBankrupt*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventCompanyBankrupt> (vm, index)) { }
-	template <> inline Param<ScriptEventCompanyBankrupt&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventCompanyBankrupt> (vm, index)) { }
-	template <> inline Param<const ScriptEventCompanyBankrupt*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventCompanyBankrupt> (vm, index)) { }
-	template <> inline Param<const ScriptEventCompanyBankrupt&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventCompanyBankrupt> (vm, index)) { }
+	template <> inline       ScriptEventCompanyBankrupt *GetParam<ScriptEventCompanyBankrupt*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventCompanyBankrupt> (vm, index); }
+	template <> inline       ScriptEventCompanyBankrupt &GetParam<ScriptEventCompanyBankrupt&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventCompanyBankrupt> (vm, index); }
+	template <> inline const ScriptEventCompanyBankrupt *GetParam<const ScriptEventCompanyBankrupt*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventCompanyBankrupt> (vm, index); }
+	template <> inline const ScriptEventCompanyBankrupt &GetParam<const ScriptEventCompanyBankrupt&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventCompanyBankrupt> (vm, index); }
 	template <> inline int Return<ScriptEventCompanyBankrupt *>(HSQUIRRELVM vm, ScriptEventCompanyBankrupt *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventCompanyBankrupt", res, NULL, DefSQDestructorCallback<ScriptEventCompanyBankrupt>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventVehicleLost to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventVehicleLost*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventVehicleLost> (vm, index)) { }
-	template <> inline Param<ScriptEventVehicleLost&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventVehicleLost> (vm, index)) { }
-	template <> inline Param<const ScriptEventVehicleLost*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventVehicleLost> (vm, index)) { }
-	template <> inline Param<const ScriptEventVehicleLost&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventVehicleLost> (vm, index)) { }
+	template <> inline       ScriptEventVehicleLost *GetParam<ScriptEventVehicleLost*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventVehicleLost> (vm, index); }
+	template <> inline       ScriptEventVehicleLost &GetParam<ScriptEventVehicleLost&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventVehicleLost> (vm, index); }
+	template <> inline const ScriptEventVehicleLost *GetParam<const ScriptEventVehicleLost*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventVehicleLost> (vm, index); }
+	template <> inline const ScriptEventVehicleLost &GetParam<const ScriptEventVehicleLost&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventVehicleLost> (vm, index); }
 	template <> inline int Return<ScriptEventVehicleLost *>(HSQUIRRELVM vm, ScriptEventVehicleLost *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventVehicleLost", res, NULL, DefSQDestructorCallback<ScriptEventVehicleLost>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventVehicleWaitingInDepot to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventVehicleWaitingInDepot*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventVehicleWaitingInDepot> (vm, index)) { }
-	template <> inline Param<ScriptEventVehicleWaitingInDepot&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventVehicleWaitingInDepot> (vm, index)) { }
-	template <> inline Param<const ScriptEventVehicleWaitingInDepot*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventVehicleWaitingInDepot> (vm, index)) { }
-	template <> inline Param<const ScriptEventVehicleWaitingInDepot&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventVehicleWaitingInDepot> (vm, index)) { }
+	template <> inline       ScriptEventVehicleWaitingInDepot *GetParam<ScriptEventVehicleWaitingInDepot*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventVehicleWaitingInDepot> (vm, index); }
+	template <> inline       ScriptEventVehicleWaitingInDepot &GetParam<ScriptEventVehicleWaitingInDepot&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventVehicleWaitingInDepot> (vm, index); }
+	template <> inline const ScriptEventVehicleWaitingInDepot *GetParam<const ScriptEventVehicleWaitingInDepot*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventVehicleWaitingInDepot> (vm, index); }
+	template <> inline const ScriptEventVehicleWaitingInDepot &GetParam<const ScriptEventVehicleWaitingInDepot&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventVehicleWaitingInDepot> (vm, index); }
 	template <> inline int Return<ScriptEventVehicleWaitingInDepot *>(HSQUIRRELVM vm, ScriptEventVehicleWaitingInDepot *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventVehicleWaitingInDepot", res, NULL, DefSQDestructorCallback<ScriptEventVehicleWaitingInDepot>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventVehicleUnprofitable to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventVehicleUnprofitable*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventVehicleUnprofitable> (vm, index)) { }
-	template <> inline Param<ScriptEventVehicleUnprofitable&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventVehicleUnprofitable> (vm, index)) { }
-	template <> inline Param<const ScriptEventVehicleUnprofitable*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventVehicleUnprofitable> (vm, index)) { }
-	template <> inline Param<const ScriptEventVehicleUnprofitable&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventVehicleUnprofitable> (vm, index)) { }
+	template <> inline       ScriptEventVehicleUnprofitable *GetParam<ScriptEventVehicleUnprofitable*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventVehicleUnprofitable> (vm, index); }
+	template <> inline       ScriptEventVehicleUnprofitable &GetParam<ScriptEventVehicleUnprofitable&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventVehicleUnprofitable> (vm, index); }
+	template <> inline const ScriptEventVehicleUnprofitable *GetParam<const ScriptEventVehicleUnprofitable*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventVehicleUnprofitable> (vm, index); }
+	template <> inline const ScriptEventVehicleUnprofitable &GetParam<const ScriptEventVehicleUnprofitable&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventVehicleUnprofitable> (vm, index); }
 	template <> inline int Return<ScriptEventVehicleUnprofitable *>(HSQUIRRELVM vm, ScriptEventVehicleUnprofitable *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventVehicleUnprofitable", res, NULL, DefSQDestructorCallback<ScriptEventVehicleUnprofitable>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventIndustryOpen to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventIndustryOpen*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventIndustryOpen> (vm, index)) { }
-	template <> inline Param<ScriptEventIndustryOpen&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventIndustryOpen> (vm, index)) { }
-	template <> inline Param<const ScriptEventIndustryOpen*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventIndustryOpen> (vm, index)) { }
-	template <> inline Param<const ScriptEventIndustryOpen&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventIndustryOpen> (vm, index)) { }
+	template <> inline       ScriptEventIndustryOpen *GetParam<ScriptEventIndustryOpen*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventIndustryOpen> (vm, index); }
+	template <> inline       ScriptEventIndustryOpen &GetParam<ScriptEventIndustryOpen&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventIndustryOpen> (vm, index); }
+	template <> inline const ScriptEventIndustryOpen *GetParam<const ScriptEventIndustryOpen*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventIndustryOpen> (vm, index); }
+	template <> inline const ScriptEventIndustryOpen &GetParam<const ScriptEventIndustryOpen&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventIndustryOpen> (vm, index); }
 	template <> inline int Return<ScriptEventIndustryOpen *>(HSQUIRRELVM vm, ScriptEventIndustryOpen *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventIndustryOpen", res, NULL, DefSQDestructorCallback<ScriptEventIndustryOpen>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventIndustryClose to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventIndustryClose*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventIndustryClose> (vm, index)) { }
-	template <> inline Param<ScriptEventIndustryClose&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventIndustryClose> (vm, index)) { }
-	template <> inline Param<const ScriptEventIndustryClose*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventIndustryClose> (vm, index)) { }
-	template <> inline Param<const ScriptEventIndustryClose&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventIndustryClose> (vm, index)) { }
+	template <> inline       ScriptEventIndustryClose *GetParam<ScriptEventIndustryClose*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventIndustryClose> (vm, index); }
+	template <> inline       ScriptEventIndustryClose &GetParam<ScriptEventIndustryClose&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventIndustryClose> (vm, index); }
+	template <> inline const ScriptEventIndustryClose *GetParam<const ScriptEventIndustryClose*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventIndustryClose> (vm, index); }
+	template <> inline const ScriptEventIndustryClose &GetParam<const ScriptEventIndustryClose&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventIndustryClose> (vm, index); }
 	template <> inline int Return<ScriptEventIndustryClose *>(HSQUIRRELVM vm, ScriptEventIndustryClose *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventIndustryClose", res, NULL, DefSQDestructorCallback<ScriptEventIndustryClose>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventEngineAvailable to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventEngineAvailable*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventEngineAvailable> (vm, index)) { }
-	template <> inline Param<ScriptEventEngineAvailable&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventEngineAvailable> (vm, index)) { }
-	template <> inline Param<const ScriptEventEngineAvailable*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventEngineAvailable> (vm, index)) { }
-	template <> inline Param<const ScriptEventEngineAvailable&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventEngineAvailable> (vm, index)) { }
+	template <> inline       ScriptEventEngineAvailable *GetParam<ScriptEventEngineAvailable*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventEngineAvailable> (vm, index); }
+	template <> inline       ScriptEventEngineAvailable &GetParam<ScriptEventEngineAvailable&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventEngineAvailable> (vm, index); }
+	template <> inline const ScriptEventEngineAvailable *GetParam<const ScriptEventEngineAvailable*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventEngineAvailable> (vm, index); }
+	template <> inline const ScriptEventEngineAvailable &GetParam<const ScriptEventEngineAvailable&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventEngineAvailable> (vm, index); }
 	template <> inline int Return<ScriptEventEngineAvailable *>(HSQUIRRELVM vm, ScriptEventEngineAvailable *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventEngineAvailable", res, NULL, DefSQDestructorCallback<ScriptEventEngineAvailable>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventStationFirstVehicle to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventStationFirstVehicle*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventStationFirstVehicle> (vm, index)) { }
-	template <> inline Param<ScriptEventStationFirstVehicle&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventStationFirstVehicle> (vm, index)) { }
-	template <> inline Param<const ScriptEventStationFirstVehicle*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventStationFirstVehicle> (vm, index)) { }
-	template <> inline Param<const ScriptEventStationFirstVehicle&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventStationFirstVehicle> (vm, index)) { }
+	template <> inline       ScriptEventStationFirstVehicle *GetParam<ScriptEventStationFirstVehicle*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventStationFirstVehicle> (vm, index); }
+	template <> inline       ScriptEventStationFirstVehicle &GetParam<ScriptEventStationFirstVehicle&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventStationFirstVehicle> (vm, index); }
+	template <> inline const ScriptEventStationFirstVehicle *GetParam<const ScriptEventStationFirstVehicle*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventStationFirstVehicle> (vm, index); }
+	template <> inline const ScriptEventStationFirstVehicle &GetParam<const ScriptEventStationFirstVehicle&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventStationFirstVehicle> (vm, index); }
 	template <> inline int Return<ScriptEventStationFirstVehicle *>(HSQUIRRELVM vm, ScriptEventStationFirstVehicle *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventStationFirstVehicle", res, NULL, DefSQDestructorCallback<ScriptEventStationFirstVehicle>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventDisasterZeppelinerCrashed to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventDisasterZeppelinerCrashed*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventDisasterZeppelinerCrashed> (vm, index)) { }
-	template <> inline Param<ScriptEventDisasterZeppelinerCrashed&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventDisasterZeppelinerCrashed> (vm, index)) { }
-	template <> inline Param<const ScriptEventDisasterZeppelinerCrashed*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventDisasterZeppelinerCrashed> (vm, index)) { }
-	template <> inline Param<const ScriptEventDisasterZeppelinerCrashed&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventDisasterZeppelinerCrashed> (vm, index)) { }
+	template <> inline       ScriptEventDisasterZeppelinerCrashed *GetParam<ScriptEventDisasterZeppelinerCrashed*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventDisasterZeppelinerCrashed> (vm, index); }
+	template <> inline       ScriptEventDisasterZeppelinerCrashed &GetParam<ScriptEventDisasterZeppelinerCrashed&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventDisasterZeppelinerCrashed> (vm, index); }
+	template <> inline const ScriptEventDisasterZeppelinerCrashed *GetParam<const ScriptEventDisasterZeppelinerCrashed*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventDisasterZeppelinerCrashed> (vm, index); }
+	template <> inline const ScriptEventDisasterZeppelinerCrashed &GetParam<const ScriptEventDisasterZeppelinerCrashed&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventDisasterZeppelinerCrashed> (vm, index); }
 	template <> inline int Return<ScriptEventDisasterZeppelinerCrashed *>(HSQUIRRELVM vm, ScriptEventDisasterZeppelinerCrashed *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventDisasterZeppelinerCrashed", res, NULL, DefSQDestructorCallback<ScriptEventDisasterZeppelinerCrashed>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventDisasterZeppelinerCleared to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventDisasterZeppelinerCleared*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventDisasterZeppelinerCleared> (vm, index)) { }
-	template <> inline Param<ScriptEventDisasterZeppelinerCleared&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventDisasterZeppelinerCleared> (vm, index)) { }
-	template <> inline Param<const ScriptEventDisasterZeppelinerCleared*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventDisasterZeppelinerCleared> (vm, index)) { }
-	template <> inline Param<const ScriptEventDisasterZeppelinerCleared&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventDisasterZeppelinerCleared> (vm, index)) { }
+	template <> inline       ScriptEventDisasterZeppelinerCleared *GetParam<ScriptEventDisasterZeppelinerCleared*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventDisasterZeppelinerCleared> (vm, index); }
+	template <> inline       ScriptEventDisasterZeppelinerCleared &GetParam<ScriptEventDisasterZeppelinerCleared&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventDisasterZeppelinerCleared> (vm, index); }
+	template <> inline const ScriptEventDisasterZeppelinerCleared *GetParam<const ScriptEventDisasterZeppelinerCleared*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventDisasterZeppelinerCleared> (vm, index); }
+	template <> inline const ScriptEventDisasterZeppelinerCleared &GetParam<const ScriptEventDisasterZeppelinerCleared&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventDisasterZeppelinerCleared> (vm, index); }
 	template <> inline int Return<ScriptEventDisasterZeppelinerCleared *>(HSQUIRRELVM vm, ScriptEventDisasterZeppelinerCleared *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventDisasterZeppelinerCleared", res, NULL, DefSQDestructorCallback<ScriptEventDisasterZeppelinerCleared>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventTownFounded to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventTownFounded*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventTownFounded> (vm, index)) { }
-	template <> inline Param<ScriptEventTownFounded&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventTownFounded> (vm, index)) { }
-	template <> inline Param<const ScriptEventTownFounded*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventTownFounded> (vm, index)) { }
-	template <> inline Param<const ScriptEventTownFounded&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventTownFounded> (vm, index)) { }
+	template <> inline       ScriptEventTownFounded *GetParam<ScriptEventTownFounded*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventTownFounded> (vm, index); }
+	template <> inline       ScriptEventTownFounded &GetParam<ScriptEventTownFounded&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventTownFounded> (vm, index); }
+	template <> inline const ScriptEventTownFounded *GetParam<const ScriptEventTownFounded*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventTownFounded> (vm, index); }
+	template <> inline const ScriptEventTownFounded &GetParam<const ScriptEventTownFounded&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventTownFounded> (vm, index); }
 	template <> inline int Return<ScriptEventTownFounded *>(HSQUIRRELVM vm, ScriptEventTownFounded *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventTownFounded", res, NULL, DefSQDestructorCallback<ScriptEventTownFounded>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventAircraftDestTooFar to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventAircraftDestTooFar*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventAircraftDestTooFar> (vm, index)) { }
-	template <> inline Param<ScriptEventAircraftDestTooFar&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventAircraftDestTooFar> (vm, index)) { }
-	template <> inline Param<const ScriptEventAircraftDestTooFar*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventAircraftDestTooFar> (vm, index)) { }
-	template <> inline Param<const ScriptEventAircraftDestTooFar&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventAircraftDestTooFar> (vm, index)) { }
+	template <> inline       ScriptEventAircraftDestTooFar *GetParam<ScriptEventAircraftDestTooFar*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventAircraftDestTooFar> (vm, index); }
+	template <> inline       ScriptEventAircraftDestTooFar &GetParam<ScriptEventAircraftDestTooFar&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventAircraftDestTooFar> (vm, index); }
+	template <> inline const ScriptEventAircraftDestTooFar *GetParam<const ScriptEventAircraftDestTooFar*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventAircraftDestTooFar> (vm, index); }
+	template <> inline const ScriptEventAircraftDestTooFar &GetParam<const ScriptEventAircraftDestTooFar&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventAircraftDestTooFar> (vm, index); }
 	template <> inline int Return<ScriptEventAircraftDestTooFar *>(HSQUIRRELVM vm, ScriptEventAircraftDestTooFar *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventAircraftDestTooFar", res, NULL, DefSQDestructorCallback<ScriptEventAircraftDestTooFar>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventAdminPort to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventAdminPort*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventAdminPort> (vm, index)) { }
-	template <> inline Param<ScriptEventAdminPort&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventAdminPort> (vm, index)) { }
-	template <> inline Param<const ScriptEventAdminPort*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventAdminPort> (vm, index)) { }
-	template <> inline Param<const ScriptEventAdminPort&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventAdminPort> (vm, index)) { }
+	template <> inline       ScriptEventAdminPort *GetParam<ScriptEventAdminPort*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventAdminPort> (vm, index); }
+	template <> inline       ScriptEventAdminPort &GetParam<ScriptEventAdminPort&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventAdminPort> (vm, index); }
+	template <> inline const ScriptEventAdminPort *GetParam<const ScriptEventAdminPort*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventAdminPort> (vm, index); }
+	template <> inline const ScriptEventAdminPort &GetParam<const ScriptEventAdminPort&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventAdminPort> (vm, index); }
 	template <> inline int Return<ScriptEventAdminPort *>(HSQUIRRELVM vm, ScriptEventAdminPort *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventAdminPort", res, NULL, DefSQDestructorCallback<ScriptEventAdminPort>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventWindowWidgetClick to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventWindowWidgetClick*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventWindowWidgetClick> (vm, index)) { }
-	template <> inline Param<ScriptEventWindowWidgetClick&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventWindowWidgetClick> (vm, index)) { }
-	template <> inline Param<const ScriptEventWindowWidgetClick*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventWindowWidgetClick> (vm, index)) { }
-	template <> inline Param<const ScriptEventWindowWidgetClick&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventWindowWidgetClick> (vm, index)) { }
+	template <> inline       ScriptEventWindowWidgetClick *GetParam<ScriptEventWindowWidgetClick*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventWindowWidgetClick> (vm, index); }
+	template <> inline       ScriptEventWindowWidgetClick &GetParam<ScriptEventWindowWidgetClick&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventWindowWidgetClick> (vm, index); }
+	template <> inline const ScriptEventWindowWidgetClick *GetParam<const ScriptEventWindowWidgetClick*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventWindowWidgetClick> (vm, index); }
+	template <> inline const ScriptEventWindowWidgetClick &GetParam<const ScriptEventWindowWidgetClick&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventWindowWidgetClick> (vm, index); }
 	template <> inline int Return<ScriptEventWindowWidgetClick *>(HSQUIRRELVM vm, ScriptEventWindowWidgetClick *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventWindowWidgetClick", res, NULL, DefSQDestructorCallback<ScriptEventWindowWidgetClick>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventGoalQuestionAnswer to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventGoalQuestionAnswer*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventGoalQuestionAnswer> (vm, index)) { }
-	template <> inline Param<ScriptEventGoalQuestionAnswer&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventGoalQuestionAnswer> (vm, index)) { }
-	template <> inline Param<const ScriptEventGoalQuestionAnswer*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventGoalQuestionAnswer> (vm, index)) { }
-	template <> inline Param<const ScriptEventGoalQuestionAnswer&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventGoalQuestionAnswer> (vm, index)) { }
+	template <> inline       ScriptEventGoalQuestionAnswer *GetParam<ScriptEventGoalQuestionAnswer*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventGoalQuestionAnswer> (vm, index); }
+	template <> inline       ScriptEventGoalQuestionAnswer &GetParam<ScriptEventGoalQuestionAnswer&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventGoalQuestionAnswer> (vm, index); }
+	template <> inline const ScriptEventGoalQuestionAnswer *GetParam<const ScriptEventGoalQuestionAnswer*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventGoalQuestionAnswer> (vm, index); }
+	template <> inline const ScriptEventGoalQuestionAnswer &GetParam<const ScriptEventGoalQuestionAnswer&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventGoalQuestionAnswer> (vm, index); }
 	template <> inline int Return<ScriptEventGoalQuestionAnswer *>(HSQUIRRELVM vm, ScriptEventGoalQuestionAnswer *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventGoalQuestionAnswer", res, NULL, DefSQDestructorCallback<ScriptEventGoalQuestionAnswer>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventCompanyTown to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventCompanyTown*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventCompanyTown> (vm, index)) { }
-	template <> inline Param<ScriptEventCompanyTown&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventCompanyTown> (vm, index)) { }
-	template <> inline Param<const ScriptEventCompanyTown*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventCompanyTown> (vm, index)) { }
-	template <> inline Param<const ScriptEventCompanyTown&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventCompanyTown> (vm, index)) { }
+	template <> inline       ScriptEventCompanyTown *GetParam<ScriptEventCompanyTown*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventCompanyTown> (vm, index); }
+	template <> inline       ScriptEventCompanyTown &GetParam<ScriptEventCompanyTown&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventCompanyTown> (vm, index); }
+	template <> inline const ScriptEventCompanyTown *GetParam<const ScriptEventCompanyTown*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventCompanyTown> (vm, index); }
+	template <> inline const ScriptEventCompanyTown &GetParam<const ScriptEventCompanyTown&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventCompanyTown> (vm, index); }
 	template <> inline int Return<ScriptEventCompanyTown *>(HSQUIRRELVM vm, ScriptEventCompanyTown *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventCompanyTown", res, NULL, DefSQDestructorCallback<ScriptEventCompanyTown>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventExclusiveTransportRights to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventExclusiveTransportRights*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventExclusiveTransportRights> (vm, index)) { }
-	template <> inline Param<ScriptEventExclusiveTransportRights&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventExclusiveTransportRights> (vm, index)) { }
-	template <> inline Param<const ScriptEventExclusiveTransportRights*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventExclusiveTransportRights> (vm, index)) { }
-	template <> inline Param<const ScriptEventExclusiveTransportRights&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventExclusiveTransportRights> (vm, index)) { }
+	template <> inline       ScriptEventExclusiveTransportRights *GetParam<ScriptEventExclusiveTransportRights*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventExclusiveTransportRights> (vm, index); }
+	template <> inline       ScriptEventExclusiveTransportRights &GetParam<ScriptEventExclusiveTransportRights&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventExclusiveTransportRights> (vm, index); }
+	template <> inline const ScriptEventExclusiveTransportRights *GetParam<const ScriptEventExclusiveTransportRights*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventExclusiveTransportRights> (vm, index); }
+	template <> inline const ScriptEventExclusiveTransportRights &GetParam<const ScriptEventExclusiveTransportRights&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventExclusiveTransportRights> (vm, index); }
 	template <> inline int Return<ScriptEventExclusiveTransportRights *>(HSQUIRRELVM vm, ScriptEventExclusiveTransportRights *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventExclusiveTransportRights", res, NULL, DefSQDestructorCallback<ScriptEventExclusiveTransportRights>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventRoadReconstruction to be used as Squirrel parameter */
-	template <> inline Param<ScriptEventRoadReconstruction*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventRoadReconstruction> (vm, index)) { }
-	template <> inline Param<ScriptEventRoadReconstruction&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventRoadReconstruction> (vm, index)) { }
-	template <> inline Param<const ScriptEventRoadReconstruction*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEventRoadReconstruction> (vm, index)) { }
-	template <> inline Param<const ScriptEventRoadReconstruction&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEventRoadReconstruction> (vm, index)) { }
+	template <> inline       ScriptEventRoadReconstruction *GetParam<ScriptEventRoadReconstruction*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventRoadReconstruction> (vm, index); }
+	template <> inline       ScriptEventRoadReconstruction &GetParam<ScriptEventRoadReconstruction&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventRoadReconstruction> (vm, index); }
+	template <> inline const ScriptEventRoadReconstruction *GetParam<const ScriptEventRoadReconstruction*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventRoadReconstruction> (vm, index); }
+	template <> inline const ScriptEventRoadReconstruction &GetParam<const ScriptEventRoadReconstruction&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventRoadReconstruction> (vm, index); }
 	template <> inline int Return<ScriptEventRoadReconstruction *>(HSQUIRRELVM vm, ScriptEventRoadReconstruction *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "EventRoadReconstruction", res, NULL, DefSQDestructorCallback<ScriptEventRoadReconstruction>, true); return 1; }
 } // namespace SQConvert

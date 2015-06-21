@@ -13,9 +13,9 @@
 
 namespace SQConvert {
 	/* Allow ScriptEngine to be used as Squirrel parameter */
-	template <> inline Param<ScriptEngine*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEngine> (vm, index)) { }
-	template <> inline Param<ScriptEngine&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEngine> (vm, index)) { }
-	template <> inline Param<const ScriptEngine*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptEngine> (vm, index)) { }
-	template <> inline Param<const ScriptEngine&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptEngine> (vm, index)) { }
+	template <> inline       ScriptEngine *GetParam<ScriptEngine*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEngine> (vm, index); }
+	template <> inline       ScriptEngine &GetParam<ScriptEngine&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEngine> (vm, index); }
+	template <> inline const ScriptEngine *GetParam<const ScriptEngine*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEngine> (vm, index); }
+	template <> inline const ScriptEngine &GetParam<const ScriptEngine&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEngine> (vm, index); }
 	template <> inline int Return<ScriptEngine *>(HSQUIRRELVM vm, ScriptEngine *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Engine", res, NULL, DefSQDestructorCallback<ScriptEngine>, true); return 1; }
 } // namespace SQConvert

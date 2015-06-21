@@ -13,9 +13,9 @@
 
 namespace SQConvert {
 	/* Allow ScriptAccounting to be used as Squirrel parameter */
-	template <> inline Param<ScriptAccounting*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptAccounting> (vm, index)) { }
-	template <> inline Param<ScriptAccounting&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptAccounting> (vm, index)) { }
-	template <> inline Param<const ScriptAccounting*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptAccounting> (vm, index)) { }
-	template <> inline Param<const ScriptAccounting&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptAccounting> (vm, index)) { }
+	template <> inline       ScriptAccounting *GetParam<ScriptAccounting*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptAccounting> (vm, index); }
+	template <> inline       ScriptAccounting &GetParam<ScriptAccounting&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptAccounting> (vm, index); }
+	template <> inline const ScriptAccounting *GetParam<const ScriptAccounting*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptAccounting> (vm, index); }
+	template <> inline const ScriptAccounting &GetParam<const ScriptAccounting&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptAccounting> (vm, index); }
 	template <> inline int Return<ScriptAccounting *>(HSQUIRRELVM vm, ScriptAccounting *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Accounting", res, NULL, DefSQDestructorCallback<ScriptAccounting>, true); return 1; }
 } // namespace SQConvert

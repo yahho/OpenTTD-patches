@@ -13,13 +13,13 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline Param<ScriptInfrastructure::Infrastructure>::Param (HSQUIRRELVM vm, int index) : data ((ScriptInfrastructure::Infrastructure) GetInteger (vm, index)) { }
+	template <> inline ScriptInfrastructure::Infrastructure GetParam<ScriptInfrastructure::Infrastructure> (HSQUIRRELVM vm, int index) { return (ScriptInfrastructure::Infrastructure) GetInteger (vm, index); }
 	template <> inline int Return<ScriptInfrastructure::Infrastructure>(HSQUIRRELVM vm, ScriptInfrastructure::Infrastructure res) { sq_pushinteger(vm, (int32)res); return 1; }
 
 	/* Allow ScriptInfrastructure to be used as Squirrel parameter */
-	template <> inline Param<ScriptInfrastructure*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptInfrastructure> (vm, index)) { }
-	template <> inline Param<ScriptInfrastructure&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptInfrastructure> (vm, index)) { }
-	template <> inline Param<const ScriptInfrastructure*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptInfrastructure> (vm, index)) { }
-	template <> inline Param<const ScriptInfrastructure&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptInfrastructure> (vm, index)) { }
+	template <> inline       ScriptInfrastructure *GetParam<ScriptInfrastructure*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptInfrastructure> (vm, index); }
+	template <> inline       ScriptInfrastructure &GetParam<ScriptInfrastructure&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptInfrastructure> (vm, index); }
+	template <> inline const ScriptInfrastructure *GetParam<const ScriptInfrastructure*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptInfrastructure> (vm, index); }
+	template <> inline const ScriptInfrastructure &GetParam<const ScriptInfrastructure&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptInfrastructure> (vm, index); }
 	template <> inline int Return<ScriptInfrastructure *>(HSQUIRRELVM vm, ScriptInfrastructure *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Infrastructure", res, NULL, DefSQDestructorCallback<ScriptInfrastructure>, true); return 1; }
 } // namespace SQConvert

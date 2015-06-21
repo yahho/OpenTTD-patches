@@ -13,9 +13,9 @@
 
 namespace SQConvert {
 	/* Allow ScriptRailTypeList to be used as Squirrel parameter */
-	template <> inline Param<ScriptRailTypeList*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptRailTypeList> (vm, index)) { }
-	template <> inline Param<ScriptRailTypeList&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptRailTypeList> (vm, index)) { }
-	template <> inline Param<const ScriptRailTypeList*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptRailTypeList> (vm, index)) { }
-	template <> inline Param<const ScriptRailTypeList&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptRailTypeList> (vm, index)) { }
+	template <> inline       ScriptRailTypeList *GetParam<ScriptRailTypeList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptRailTypeList> (vm, index); }
+	template <> inline       ScriptRailTypeList &GetParam<ScriptRailTypeList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptRailTypeList> (vm, index); }
+	template <> inline const ScriptRailTypeList *GetParam<const ScriptRailTypeList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptRailTypeList> (vm, index); }
+	template <> inline const ScriptRailTypeList &GetParam<const ScriptRailTypeList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptRailTypeList> (vm, index); }
 	template <> inline int Return<ScriptRailTypeList *>(HSQUIRRELVM vm, ScriptRailTypeList *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "RailTypeList", res, NULL, DefSQDestructorCallback<ScriptRailTypeList>, true); return 1; }
 } // namespace SQConvert

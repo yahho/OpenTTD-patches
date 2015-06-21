@@ -13,9 +13,9 @@
 
 namespace SQConvert {
 	/* Allow ScriptGameSettings to be used as Squirrel parameter */
-	template <> inline Param<ScriptGameSettings*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptGameSettings> (vm, index)) { }
-	template <> inline Param<ScriptGameSettings&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptGameSettings> (vm, index)) { }
-	template <> inline Param<const ScriptGameSettings*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptGameSettings> (vm, index)) { }
-	template <> inline Param<const ScriptGameSettings&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptGameSettings> (vm, index)) { }
+	template <> inline       ScriptGameSettings *GetParam<ScriptGameSettings*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptGameSettings> (vm, index); }
+	template <> inline       ScriptGameSettings &GetParam<ScriptGameSettings&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptGameSettings> (vm, index); }
+	template <> inline const ScriptGameSettings *GetParam<const ScriptGameSettings*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptGameSettings> (vm, index); }
+	template <> inline const ScriptGameSettings &GetParam<const ScriptGameSettings&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptGameSettings> (vm, index); }
 	template <> inline int Return<ScriptGameSettings *>(HSQUIRRELVM vm, ScriptGameSettings *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "GameSettings", res, NULL, DefSQDestructorCallback<ScriptGameSettings>, true); return 1; }
 } // namespace SQConvert

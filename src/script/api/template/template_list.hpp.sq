@@ -13,13 +13,13 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline Param<ScriptList::SorterType>::Param (HSQUIRRELVM vm, int index) : data ((ScriptList::SorterType) GetInteger (vm, index)) { }
+	template <> inline ScriptList::SorterType GetParam<ScriptList::SorterType> (HSQUIRRELVM vm, int index) { return (ScriptList::SorterType) GetInteger (vm, index); }
 	template <> inline int Return<ScriptList::SorterType>(HSQUIRRELVM vm, ScriptList::SorterType res) { sq_pushinteger(vm, (int32)res); return 1; }
 
 	/* Allow ScriptList to be used as Squirrel parameter */
-	template <> inline Param<ScriptList*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptList> (vm, index)) { }
-	template <> inline Param<ScriptList&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptList> (vm, index)) { }
-	template <> inline Param<const ScriptList*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptList> (vm, index)) { }
-	template <> inline Param<const ScriptList&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptList> (vm, index)) { }
+	template <> inline       ScriptList *GetParam<ScriptList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptList> (vm, index); }
+	template <> inline       ScriptList &GetParam<ScriptList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptList> (vm, index); }
+	template <> inline const ScriptList *GetParam<const ScriptList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptList> (vm, index); }
+	template <> inline const ScriptList &GetParam<const ScriptList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptList> (vm, index); }
 	template <> inline int Return<ScriptList *>(HSQUIRRELVM vm, ScriptList *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "List", res, NULL, DefSQDestructorCallback<ScriptList>, true); return 1; }
 } // namespace SQConvert

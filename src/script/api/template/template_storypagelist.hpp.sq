@@ -13,9 +13,9 @@
 
 namespace SQConvert {
 	/* Allow ScriptStoryPageList to be used as Squirrel parameter */
-	template <> inline Param<ScriptStoryPageList*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptStoryPageList> (vm, index)) { }
-	template <> inline Param<ScriptStoryPageList&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptStoryPageList> (vm, index)) { }
-	template <> inline Param<const ScriptStoryPageList*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptStoryPageList> (vm, index)) { }
-	template <> inline Param<const ScriptStoryPageList&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptStoryPageList> (vm, index)) { }
+	template <> inline       ScriptStoryPageList *GetParam<ScriptStoryPageList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStoryPageList> (vm, index); }
+	template <> inline       ScriptStoryPageList &GetParam<ScriptStoryPageList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStoryPageList> (vm, index); }
+	template <> inline const ScriptStoryPageList *GetParam<const ScriptStoryPageList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStoryPageList> (vm, index); }
+	template <> inline const ScriptStoryPageList &GetParam<const ScriptStoryPageList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStoryPageList> (vm, index); }
 	template <> inline int Return<ScriptStoryPageList *>(HSQUIRRELVM vm, ScriptStoryPageList *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "StoryPageList", res, NULL, DefSQDestructorCallback<ScriptStoryPageList>, true); return 1; }
 } // namespace SQConvert

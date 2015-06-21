@@ -13,9 +13,9 @@
 
 namespace SQConvert {
 	/* Allow ScriptCompanyMode to be used as Squirrel parameter */
-	template <> inline Param<ScriptCompanyMode*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptCompanyMode> (vm, index)) { }
-	template <> inline Param<ScriptCompanyMode&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptCompanyMode> (vm, index)) { }
-	template <> inline Param<const ScriptCompanyMode*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptCompanyMode> (vm, index)) { }
-	template <> inline Param<const ScriptCompanyMode&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptCompanyMode> (vm, index)) { }
+	template <> inline       ScriptCompanyMode *GetParam<ScriptCompanyMode*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptCompanyMode> (vm, index); }
+	template <> inline       ScriptCompanyMode &GetParam<ScriptCompanyMode&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptCompanyMode> (vm, index); }
+	template <> inline const ScriptCompanyMode *GetParam<const ScriptCompanyMode*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptCompanyMode> (vm, index); }
+	template <> inline const ScriptCompanyMode &GetParam<const ScriptCompanyMode&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptCompanyMode> (vm, index); }
 	template <> inline int Return<ScriptCompanyMode *>(HSQUIRRELVM vm, ScriptCompanyMode *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "CompanyMode", res, NULL, DefSQDestructorCallback<ScriptCompanyMode>, true); return 1; }
 } // namespace SQConvert

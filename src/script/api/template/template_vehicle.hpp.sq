@@ -13,17 +13,17 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline Param<ScriptVehicle::ErrorMessages>::Param (HSQUIRRELVM vm, int index) : data ((ScriptVehicle::ErrorMessages) GetInteger (vm, index)) { }
+	template <> inline ScriptVehicle::ErrorMessages GetParam<ScriptVehicle::ErrorMessages> (HSQUIRRELVM vm, int index) { return (ScriptVehicle::ErrorMessages) GetInteger (vm, index); }
 	template <> inline int Return<ScriptVehicle::ErrorMessages>(HSQUIRRELVM vm, ScriptVehicle::ErrorMessages res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline Param<ScriptVehicle::VehicleType>::Param (HSQUIRRELVM vm, int index) : data ((ScriptVehicle::VehicleType) GetInteger (vm, index)) { }
+	template <> inline ScriptVehicle::VehicleType GetParam<ScriptVehicle::VehicleType> (HSQUIRRELVM vm, int index) { return (ScriptVehicle::VehicleType) GetInteger (vm, index); }
 	template <> inline int Return<ScriptVehicle::VehicleType>(HSQUIRRELVM vm, ScriptVehicle::VehicleType res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline Param<ScriptVehicle::VehicleState>::Param (HSQUIRRELVM vm, int index) : data ((ScriptVehicle::VehicleState) GetInteger (vm, index)) { }
+	template <> inline ScriptVehicle::VehicleState GetParam<ScriptVehicle::VehicleState> (HSQUIRRELVM vm, int index) { return (ScriptVehicle::VehicleState) GetInteger (vm, index); }
 	template <> inline int Return<ScriptVehicle::VehicleState>(HSQUIRRELVM vm, ScriptVehicle::VehicleState res) { sq_pushinteger(vm, (int32)res); return 1; }
 
 	/* Allow ScriptVehicle to be used as Squirrel parameter */
-	template <> inline Param<ScriptVehicle*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptVehicle> (vm, index)) { }
-	template <> inline Param<ScriptVehicle&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptVehicle> (vm, index)) { }
-	template <> inline Param<const ScriptVehicle*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptVehicle> (vm, index)) { }
-	template <> inline Param<const ScriptVehicle&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptVehicle> (vm, index)) { }
+	template <> inline       ScriptVehicle *GetParam<ScriptVehicle*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptVehicle> (vm, index); }
+	template <> inline       ScriptVehicle &GetParam<ScriptVehicle&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptVehicle> (vm, index); }
+	template <> inline const ScriptVehicle *GetParam<const ScriptVehicle*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptVehicle> (vm, index); }
+	template <> inline const ScriptVehicle &GetParam<const ScriptVehicle&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptVehicle> (vm, index); }
 	template <> inline int Return<ScriptVehicle *>(HSQUIRRELVM vm, ScriptVehicle *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Vehicle", res, NULL, DefSQDestructorCallback<ScriptVehicle>, true); return 1; }
 } // namespace SQConvert

@@ -13,23 +13,23 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline Param<ScriptTile::ErrorMessages>::Param (HSQUIRRELVM vm, int index) : data ((ScriptTile::ErrorMessages) GetInteger (vm, index)) { }
+	template <> inline ScriptTile::ErrorMessages GetParam<ScriptTile::ErrorMessages> (HSQUIRRELVM vm, int index) { return (ScriptTile::ErrorMessages) GetInteger (vm, index); }
 	template <> inline int Return<ScriptTile::ErrorMessages>(HSQUIRRELVM vm, ScriptTile::ErrorMessages res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline Param<ScriptTile::Corner>::Param (HSQUIRRELVM vm, int index) : data ((ScriptTile::Corner) GetInteger (vm, index)) { }
+	template <> inline ScriptTile::Corner GetParam<ScriptTile::Corner> (HSQUIRRELVM vm, int index) { return (ScriptTile::Corner) GetInteger (vm, index); }
 	template <> inline int Return<ScriptTile::Corner>(HSQUIRRELVM vm, ScriptTile::Corner res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline Param<ScriptTile::Slope>::Param (HSQUIRRELVM vm, int index) : data ((ScriptTile::Slope) GetInteger (vm, index)) { }
+	template <> inline ScriptTile::Slope GetParam<ScriptTile::Slope> (HSQUIRRELVM vm, int index) { return (ScriptTile::Slope) GetInteger (vm, index); }
 	template <> inline int Return<ScriptTile::Slope>(HSQUIRRELVM vm, ScriptTile::Slope res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline Param<ScriptTile::TransportType>::Param (HSQUIRRELVM vm, int index) : data ((ScriptTile::TransportType) GetInteger (vm, index)) { }
+	template <> inline ScriptTile::TransportType GetParam<ScriptTile::TransportType> (HSQUIRRELVM vm, int index) { return (ScriptTile::TransportType) GetInteger (vm, index); }
 	template <> inline int Return<ScriptTile::TransportType>(HSQUIRRELVM vm, ScriptTile::TransportType res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline Param<ScriptTile::BuildType>::Param (HSQUIRRELVM vm, int index) : data ((ScriptTile::BuildType) GetInteger (vm, index)) { }
+	template <> inline ScriptTile::BuildType GetParam<ScriptTile::BuildType> (HSQUIRRELVM vm, int index) { return (ScriptTile::BuildType) GetInteger (vm, index); }
 	template <> inline int Return<ScriptTile::BuildType>(HSQUIRRELVM vm, ScriptTile::BuildType res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline Param<ScriptTile::TerrainType>::Param (HSQUIRRELVM vm, int index) : data ((ScriptTile::TerrainType) GetInteger (vm, index)) { }
+	template <> inline ScriptTile::TerrainType GetParam<ScriptTile::TerrainType> (HSQUIRRELVM vm, int index) { return (ScriptTile::TerrainType) GetInteger (vm, index); }
 	template <> inline int Return<ScriptTile::TerrainType>(HSQUIRRELVM vm, ScriptTile::TerrainType res) { sq_pushinteger(vm, (int32)res); return 1; }
 
 	/* Allow ScriptTile to be used as Squirrel parameter */
-	template <> inline Param<ScriptTile*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptTile> (vm, index)) { }
-	template <> inline Param<ScriptTile&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptTile> (vm, index)) { }
-	template <> inline Param<const ScriptTile*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptTile> (vm, index)) { }
-	template <> inline Param<const ScriptTile&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptTile> (vm, index)) { }
+	template <> inline       ScriptTile *GetParam<ScriptTile*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptTile> (vm, index); }
+	template <> inline       ScriptTile &GetParam<ScriptTile&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptTile> (vm, index); }
+	template <> inline const ScriptTile *GetParam<const ScriptTile*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptTile> (vm, index); }
+	template <> inline const ScriptTile &GetParam<const ScriptTile&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptTile> (vm, index); }
 	template <> inline int Return<ScriptTile *>(HSQUIRRELVM vm, ScriptTile *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Tile", res, NULL, DefSQDestructorCallback<ScriptTile>, true); return 1; }
 } // namespace SQConvert

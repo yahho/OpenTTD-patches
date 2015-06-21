@@ -13,15 +13,15 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline Param<ScriptNews::NewsType>::Param (HSQUIRRELVM vm, int index) : data ((ScriptNews::NewsType) GetInteger (vm, index)) { }
+	template <> inline ScriptNews::NewsType GetParam<ScriptNews::NewsType> (HSQUIRRELVM vm, int index) { return (ScriptNews::NewsType) GetInteger (vm, index); }
 	template <> inline int Return<ScriptNews::NewsType>(HSQUIRRELVM vm, ScriptNews::NewsType res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline Param<ScriptNews::NewsReferenceType>::Param (HSQUIRRELVM vm, int index) : data ((ScriptNews::NewsReferenceType) GetInteger (vm, index)) { }
+	template <> inline ScriptNews::NewsReferenceType GetParam<ScriptNews::NewsReferenceType> (HSQUIRRELVM vm, int index) { return (ScriptNews::NewsReferenceType) GetInteger (vm, index); }
 	template <> inline int Return<ScriptNews::NewsReferenceType>(HSQUIRRELVM vm, ScriptNews::NewsReferenceType res) { sq_pushinteger(vm, (int32)res); return 1; }
 
 	/* Allow ScriptNews to be used as Squirrel parameter */
-	template <> inline Param<ScriptNews*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptNews> (vm, index)) { }
-	template <> inline Param<ScriptNews&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptNews> (vm, index)) { }
-	template <> inline Param<const ScriptNews*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptNews> (vm, index)) { }
-	template <> inline Param<const ScriptNews&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptNews> (vm, index)) { }
+	template <> inline       ScriptNews *GetParam<ScriptNews*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptNews> (vm, index); }
+	template <> inline       ScriptNews &GetParam<ScriptNews&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptNews> (vm, index); }
+	template <> inline const ScriptNews *GetParam<const ScriptNews*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptNews> (vm, index); }
+	template <> inline const ScriptNews &GetParam<const ScriptNews&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptNews> (vm, index); }
 	template <> inline int Return<ScriptNews *>(HSQUIRRELVM vm, ScriptNews *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "News", res, NULL, DefSQDestructorCallback<ScriptNews>, true); return 1; }
 } // namespace SQConvert

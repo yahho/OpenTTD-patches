@@ -13,13 +13,13 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline Param<ScriptGroup::GroupID>::Param (HSQUIRRELVM vm, int index) : data ((ScriptGroup::GroupID) GetInteger (vm, index)) { }
+	template <> inline ScriptGroup::GroupID GetParam<ScriptGroup::GroupID> (HSQUIRRELVM vm, int index) { return (ScriptGroup::GroupID) GetInteger (vm, index); }
 	template <> inline int Return<ScriptGroup::GroupID>(HSQUIRRELVM vm, ScriptGroup::GroupID res) { sq_pushinteger(vm, (int32)res); return 1; }
 
 	/* Allow ScriptGroup to be used as Squirrel parameter */
-	template <> inline Param<ScriptGroup*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptGroup> (vm, index)) { }
-	template <> inline Param<ScriptGroup&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptGroup> (vm, index)) { }
-	template <> inline Param<const ScriptGroup*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptGroup> (vm, index)) { }
-	template <> inline Param<const ScriptGroup&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptGroup> (vm, index)) { }
+	template <> inline       ScriptGroup *GetParam<ScriptGroup*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptGroup> (vm, index); }
+	template <> inline       ScriptGroup &GetParam<ScriptGroup&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptGroup> (vm, index); }
+	template <> inline const ScriptGroup *GetParam<const ScriptGroup*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptGroup> (vm, index); }
+	template <> inline const ScriptGroup &GetParam<const ScriptGroup&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptGroup> (vm, index); }
 	template <> inline int Return<ScriptGroup *>(HSQUIRRELVM vm, ScriptGroup *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Group", res, NULL, DefSQDestructorCallback<ScriptGroup>, true); return 1; }
 } // namespace SQConvert

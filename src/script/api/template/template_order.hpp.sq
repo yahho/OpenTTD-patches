@@ -13,23 +13,23 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline Param<ScriptOrder::ErrorMessages>::Param (HSQUIRRELVM vm, int index) : data ((ScriptOrder::ErrorMessages) GetInteger (vm, index)) { }
+	template <> inline ScriptOrder::ErrorMessages GetParam<ScriptOrder::ErrorMessages> (HSQUIRRELVM vm, int index) { return (ScriptOrder::ErrorMessages) GetInteger (vm, index); }
 	template <> inline int Return<ScriptOrder::ErrorMessages>(HSQUIRRELVM vm, ScriptOrder::ErrorMessages res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline Param<ScriptOrder::ScriptOrderFlags>::Param (HSQUIRRELVM vm, int index) : data ((ScriptOrder::ScriptOrderFlags) GetInteger (vm, index)) { }
+	template <> inline ScriptOrder::ScriptOrderFlags GetParam<ScriptOrder::ScriptOrderFlags> (HSQUIRRELVM vm, int index) { return (ScriptOrder::ScriptOrderFlags) GetInteger (vm, index); }
 	template <> inline int Return<ScriptOrder::ScriptOrderFlags>(HSQUIRRELVM vm, ScriptOrder::ScriptOrderFlags res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline Param<ScriptOrder::OrderCondition>::Param (HSQUIRRELVM vm, int index) : data ((ScriptOrder::OrderCondition) GetInteger (vm, index)) { }
+	template <> inline ScriptOrder::OrderCondition GetParam<ScriptOrder::OrderCondition> (HSQUIRRELVM vm, int index) { return (ScriptOrder::OrderCondition) GetInteger (vm, index); }
 	template <> inline int Return<ScriptOrder::OrderCondition>(HSQUIRRELVM vm, ScriptOrder::OrderCondition res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline Param<ScriptOrder::CompareFunction>::Param (HSQUIRRELVM vm, int index) : data ((ScriptOrder::CompareFunction) GetInteger (vm, index)) { }
+	template <> inline ScriptOrder::CompareFunction GetParam<ScriptOrder::CompareFunction> (HSQUIRRELVM vm, int index) { return (ScriptOrder::CompareFunction) GetInteger (vm, index); }
 	template <> inline int Return<ScriptOrder::CompareFunction>(HSQUIRRELVM vm, ScriptOrder::CompareFunction res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline Param<ScriptOrder::OrderPosition>::Param (HSQUIRRELVM vm, int index) : data ((ScriptOrder::OrderPosition) GetInteger (vm, index)) { }
+	template <> inline ScriptOrder::OrderPosition GetParam<ScriptOrder::OrderPosition> (HSQUIRRELVM vm, int index) { return (ScriptOrder::OrderPosition) GetInteger (vm, index); }
 	template <> inline int Return<ScriptOrder::OrderPosition>(HSQUIRRELVM vm, ScriptOrder::OrderPosition res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline Param<ScriptOrder::StopLocation>::Param (HSQUIRRELVM vm, int index) : data ((ScriptOrder::StopLocation) GetInteger (vm, index)) { }
+	template <> inline ScriptOrder::StopLocation GetParam<ScriptOrder::StopLocation> (HSQUIRRELVM vm, int index) { return (ScriptOrder::StopLocation) GetInteger (vm, index); }
 	template <> inline int Return<ScriptOrder::StopLocation>(HSQUIRRELVM vm, ScriptOrder::StopLocation res) { sq_pushinteger(vm, (int32)res); return 1; }
 
 	/* Allow ScriptOrder to be used as Squirrel parameter */
-	template <> inline Param<ScriptOrder*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptOrder> (vm, index)) { }
-	template <> inline Param<ScriptOrder&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptOrder> (vm, index)) { }
-	template <> inline Param<const ScriptOrder*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptOrder> (vm, index)) { }
-	template <> inline Param<const ScriptOrder&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptOrder> (vm, index)) { }
+	template <> inline       ScriptOrder *GetParam<ScriptOrder*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptOrder> (vm, index); }
+	template <> inline       ScriptOrder &GetParam<ScriptOrder&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptOrder> (vm, index); }
+	template <> inline const ScriptOrder *GetParam<const ScriptOrder*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptOrder> (vm, index); }
+	template <> inline const ScriptOrder &GetParam<const ScriptOrder&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptOrder> (vm, index); }
 	template <> inline int Return<ScriptOrder *>(HSQUIRRELVM vm, ScriptOrder *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Order", res, NULL, DefSQDestructorCallback<ScriptOrder>, true); return 1; }
 } // namespace SQConvert

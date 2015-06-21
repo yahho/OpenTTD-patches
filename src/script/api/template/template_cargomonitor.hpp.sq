@@ -13,9 +13,9 @@
 
 namespace SQConvert {
 	/* Allow ScriptCargoMonitor to be used as Squirrel parameter */
-	template <> inline Param<ScriptCargoMonitor*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptCargoMonitor> (vm, index)) { }
-	template <> inline Param<ScriptCargoMonitor&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptCargoMonitor> (vm, index)) { }
-	template <> inline Param<const ScriptCargoMonitor*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptCargoMonitor> (vm, index)) { }
-	template <> inline Param<const ScriptCargoMonitor&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptCargoMonitor> (vm, index)) { }
+	template <> inline       ScriptCargoMonitor *GetParam<ScriptCargoMonitor*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptCargoMonitor> (vm, index); }
+	template <> inline       ScriptCargoMonitor &GetParam<ScriptCargoMonitor&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptCargoMonitor> (vm, index); }
+	template <> inline const ScriptCargoMonitor *GetParam<const ScriptCargoMonitor*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptCargoMonitor> (vm, index); }
+	template <> inline const ScriptCargoMonitor &GetParam<const ScriptCargoMonitor&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptCargoMonitor> (vm, index); }
 	template <> inline int Return<ScriptCargoMonitor *>(HSQUIRRELVM vm, ScriptCargoMonitor *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "CargoMonitor", res, NULL, DefSQDestructorCallback<ScriptCargoMonitor>, true); return 1; }
 } // namespace SQConvert

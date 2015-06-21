@@ -13,13 +13,13 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline Param<ScriptIndustryType::SpecialIndustryType>::Param (HSQUIRRELVM vm, int index) : data ((ScriptIndustryType::SpecialIndustryType) GetInteger (vm, index)) { }
+	template <> inline ScriptIndustryType::SpecialIndustryType GetParam<ScriptIndustryType::SpecialIndustryType> (HSQUIRRELVM vm, int index) { return (ScriptIndustryType::SpecialIndustryType) GetInteger (vm, index); }
 	template <> inline int Return<ScriptIndustryType::SpecialIndustryType>(HSQUIRRELVM vm, ScriptIndustryType::SpecialIndustryType res) { sq_pushinteger(vm, (int32)res); return 1; }
 
 	/* Allow ScriptIndustryType to be used as Squirrel parameter */
-	template <> inline Param<ScriptIndustryType*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptIndustryType> (vm, index)) { }
-	template <> inline Param<ScriptIndustryType&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptIndustryType> (vm, index)) { }
-	template <> inline Param<const ScriptIndustryType*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptIndustryType> (vm, index)) { }
-	template <> inline Param<const ScriptIndustryType&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptIndustryType> (vm, index)) { }
+	template <> inline       ScriptIndustryType *GetParam<ScriptIndustryType*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptIndustryType> (vm, index); }
+	template <> inline       ScriptIndustryType &GetParam<ScriptIndustryType&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptIndustryType> (vm, index); }
+	template <> inline const ScriptIndustryType *GetParam<const ScriptIndustryType*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptIndustryType> (vm, index); }
+	template <> inline const ScriptIndustryType &GetParam<const ScriptIndustryType&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptIndustryType> (vm, index); }
 	template <> inline int Return<ScriptIndustryType *>(HSQUIRRELVM vm, ScriptIndustryType *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "IndustryType", res, NULL, DefSQDestructorCallback<ScriptIndustryType>, true); return 1; }
 } // namespace SQConvert

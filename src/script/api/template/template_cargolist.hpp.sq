@@ -13,36 +13,36 @@
 
 namespace SQConvert {
 	/* Allow ScriptCargoList to be used as Squirrel parameter */
-	template <> inline Param<ScriptCargoList*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptCargoList> (vm, index)) { }
-	template <> inline Param<ScriptCargoList&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptCargoList> (vm, index)) { }
-	template <> inline Param<const ScriptCargoList*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptCargoList> (vm, index)) { }
-	template <> inline Param<const ScriptCargoList&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptCargoList> (vm, index)) { }
+	template <> inline       ScriptCargoList *GetParam<ScriptCargoList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptCargoList> (vm, index); }
+	template <> inline       ScriptCargoList &GetParam<ScriptCargoList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptCargoList> (vm, index); }
+	template <> inline const ScriptCargoList *GetParam<const ScriptCargoList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptCargoList> (vm, index); }
+	template <> inline const ScriptCargoList &GetParam<const ScriptCargoList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptCargoList> (vm, index); }
 	template <> inline int Return<ScriptCargoList *>(HSQUIRRELVM vm, ScriptCargoList *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "CargoList", res, NULL, DefSQDestructorCallback<ScriptCargoList>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptCargoList_IndustryAccepting to be used as Squirrel parameter */
-	template <> inline Param<ScriptCargoList_IndustryAccepting*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptCargoList_IndustryAccepting> (vm, index)) { }
-	template <> inline Param<ScriptCargoList_IndustryAccepting&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptCargoList_IndustryAccepting> (vm, index)) { }
-	template <> inline Param<const ScriptCargoList_IndustryAccepting*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptCargoList_IndustryAccepting> (vm, index)) { }
-	template <> inline Param<const ScriptCargoList_IndustryAccepting&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptCargoList_IndustryAccepting> (vm, index)) { }
+	template <> inline       ScriptCargoList_IndustryAccepting *GetParam<ScriptCargoList_IndustryAccepting*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptCargoList_IndustryAccepting> (vm, index); }
+	template <> inline       ScriptCargoList_IndustryAccepting &GetParam<ScriptCargoList_IndustryAccepting&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptCargoList_IndustryAccepting> (vm, index); }
+	template <> inline const ScriptCargoList_IndustryAccepting *GetParam<const ScriptCargoList_IndustryAccepting*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptCargoList_IndustryAccepting> (vm, index); }
+	template <> inline const ScriptCargoList_IndustryAccepting &GetParam<const ScriptCargoList_IndustryAccepting&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptCargoList_IndustryAccepting> (vm, index); }
 	template <> inline int Return<ScriptCargoList_IndustryAccepting *>(HSQUIRRELVM vm, ScriptCargoList_IndustryAccepting *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "CargoList_IndustryAccepting", res, NULL, DefSQDestructorCallback<ScriptCargoList_IndustryAccepting>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptCargoList_IndustryProducing to be used as Squirrel parameter */
-	template <> inline Param<ScriptCargoList_IndustryProducing*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptCargoList_IndustryProducing> (vm, index)) { }
-	template <> inline Param<ScriptCargoList_IndustryProducing&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptCargoList_IndustryProducing> (vm, index)) { }
-	template <> inline Param<const ScriptCargoList_IndustryProducing*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptCargoList_IndustryProducing> (vm, index)) { }
-	template <> inline Param<const ScriptCargoList_IndustryProducing&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptCargoList_IndustryProducing> (vm, index)) { }
+	template <> inline       ScriptCargoList_IndustryProducing *GetParam<ScriptCargoList_IndustryProducing*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptCargoList_IndustryProducing> (vm, index); }
+	template <> inline       ScriptCargoList_IndustryProducing &GetParam<ScriptCargoList_IndustryProducing&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptCargoList_IndustryProducing> (vm, index); }
+	template <> inline const ScriptCargoList_IndustryProducing *GetParam<const ScriptCargoList_IndustryProducing*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptCargoList_IndustryProducing> (vm, index); }
+	template <> inline const ScriptCargoList_IndustryProducing &GetParam<const ScriptCargoList_IndustryProducing&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptCargoList_IndustryProducing> (vm, index); }
 	template <> inline int Return<ScriptCargoList_IndustryProducing *>(HSQUIRRELVM vm, ScriptCargoList_IndustryProducing *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "CargoList_IndustryProducing", res, NULL, DefSQDestructorCallback<ScriptCargoList_IndustryProducing>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptCargoList_StationAccepting to be used as Squirrel parameter */
-	template <> inline Param<ScriptCargoList_StationAccepting*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptCargoList_StationAccepting> (vm, index)) { }
-	template <> inline Param<ScriptCargoList_StationAccepting&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptCargoList_StationAccepting> (vm, index)) { }
-	template <> inline Param<const ScriptCargoList_StationAccepting*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptCargoList_StationAccepting> (vm, index)) { }
-	template <> inline Param<const ScriptCargoList_StationAccepting&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptCargoList_StationAccepting> (vm, index)) { }
+	template <> inline       ScriptCargoList_StationAccepting *GetParam<ScriptCargoList_StationAccepting*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptCargoList_StationAccepting> (vm, index); }
+	template <> inline       ScriptCargoList_StationAccepting &GetParam<ScriptCargoList_StationAccepting&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptCargoList_StationAccepting> (vm, index); }
+	template <> inline const ScriptCargoList_StationAccepting *GetParam<const ScriptCargoList_StationAccepting*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptCargoList_StationAccepting> (vm, index); }
+	template <> inline const ScriptCargoList_StationAccepting &GetParam<const ScriptCargoList_StationAccepting&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptCargoList_StationAccepting> (vm, index); }
 	template <> inline int Return<ScriptCargoList_StationAccepting *>(HSQUIRRELVM vm, ScriptCargoList_StationAccepting *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "CargoList_StationAccepting", res, NULL, DefSQDestructorCallback<ScriptCargoList_StationAccepting>, true); return 1; }
 } // namespace SQConvert

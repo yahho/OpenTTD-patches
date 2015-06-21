@@ -13,9 +13,9 @@
 
 namespace SQConvert {
 	/* Allow ScriptSubsidyList to be used as Squirrel parameter */
-	template <> inline Param<ScriptSubsidyList*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptSubsidyList> (vm, index)) { }
-	template <> inline Param<ScriptSubsidyList&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptSubsidyList> (vm, index)) { }
-	template <> inline Param<const ScriptSubsidyList*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptSubsidyList> (vm, index)) { }
-	template <> inline Param<const ScriptSubsidyList&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptSubsidyList> (vm, index)) { }
+	template <> inline       ScriptSubsidyList *GetParam<ScriptSubsidyList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptSubsidyList> (vm, index); }
+	template <> inline       ScriptSubsidyList &GetParam<ScriptSubsidyList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptSubsidyList> (vm, index); }
+	template <> inline const ScriptSubsidyList *GetParam<const ScriptSubsidyList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptSubsidyList> (vm, index); }
+	template <> inline const ScriptSubsidyList &GetParam<const ScriptSubsidyList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptSubsidyList> (vm, index); }
 	template <> inline int Return<ScriptSubsidyList *>(HSQUIRRELVM vm, ScriptSubsidyList *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "SubsidyList", res, NULL, DefSQDestructorCallback<ScriptSubsidyList>, true); return 1; }
 } // namespace SQConvert

@@ -13,9 +13,9 @@
 
 namespace SQConvert {
 	/* Allow ScriptAdmin to be used as Squirrel parameter */
-	template <> inline Param<ScriptAdmin*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptAdmin> (vm, index)) { }
-	template <> inline Param<ScriptAdmin&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptAdmin> (vm, index)) { }
-	template <> inline Param<const ScriptAdmin*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptAdmin> (vm, index)) { }
-	template <> inline Param<const ScriptAdmin&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptAdmin> (vm, index)) { }
+	template <> inline       ScriptAdmin *GetParam<ScriptAdmin*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptAdmin> (vm, index); }
+	template <> inline       ScriptAdmin &GetParam<ScriptAdmin&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptAdmin> (vm, index); }
+	template <> inline const ScriptAdmin *GetParam<const ScriptAdmin*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptAdmin> (vm, index); }
+	template <> inline const ScriptAdmin &GetParam<const ScriptAdmin&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptAdmin> (vm, index); }
 	template <> inline int Return<ScriptAdmin *>(HSQUIRRELVM vm, ScriptAdmin *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Admin", res, NULL, DefSQDestructorCallback<ScriptAdmin>, true); return 1; }
 } // namespace SQConvert

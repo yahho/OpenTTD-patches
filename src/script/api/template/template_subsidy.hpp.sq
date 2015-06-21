@@ -13,13 +13,13 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline Param<ScriptSubsidy::SubsidyParticipantType>::Param (HSQUIRRELVM vm, int index) : data ((ScriptSubsidy::SubsidyParticipantType) GetInteger (vm, index)) { }
+	template <> inline ScriptSubsidy::SubsidyParticipantType GetParam<ScriptSubsidy::SubsidyParticipantType> (HSQUIRRELVM vm, int index) { return (ScriptSubsidy::SubsidyParticipantType) GetInteger (vm, index); }
 	template <> inline int Return<ScriptSubsidy::SubsidyParticipantType>(HSQUIRRELVM vm, ScriptSubsidy::SubsidyParticipantType res) { sq_pushinteger(vm, (int32)res); return 1; }
 
 	/* Allow ScriptSubsidy to be used as Squirrel parameter */
-	template <> inline Param<ScriptSubsidy*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptSubsidy> (vm, index)) { }
-	template <> inline Param<ScriptSubsidy&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptSubsidy> (vm, index)) { }
-	template <> inline Param<const ScriptSubsidy*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptSubsidy> (vm, index)) { }
-	template <> inline Param<const ScriptSubsidy&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptSubsidy> (vm, index)) { }
+	template <> inline       ScriptSubsidy *GetParam<ScriptSubsidy*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptSubsidy> (vm, index); }
+	template <> inline       ScriptSubsidy &GetParam<ScriptSubsidy&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptSubsidy> (vm, index); }
+	template <> inline const ScriptSubsidy *GetParam<const ScriptSubsidy*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptSubsidy> (vm, index); }
+	template <> inline const ScriptSubsidy &GetParam<const ScriptSubsidy&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptSubsidy> (vm, index); }
 	template <> inline int Return<ScriptSubsidy *>(HSQUIRRELVM vm, ScriptSubsidy *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Subsidy", res, NULL, DefSQDestructorCallback<ScriptSubsidy>, true); return 1; }
 } // namespace SQConvert

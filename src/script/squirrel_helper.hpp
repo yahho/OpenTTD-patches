@@ -113,39 +113,46 @@ namespace SQConvert {
 		return (T*) instance;
 	}
 
+	/** Default param constructor function for struct Param below. */
+	template <typename T>
+	T GetParam (HSQUIRRELVM vm, int index);
+
 	/** Encapsulate a param from squirrel. */
 	template <typename T>
 	struct Param {
 		T data;
 
-		Param (HSQUIRRELVM vm, int index);
+		Param (HSQUIRRELVM vm, int index)
+			: data (GetParam<T> (vm, index))
+		{
+		}
 
 		inline ~Param () { }
 
 		operator T () { return data; }
 	};
 
-	template<> inline Param<uint8> ::Param (HSQUIRRELVM vm, int index) : data (GetInteger (vm, index)) { }
-	template<> inline Param<uint16>::Param (HSQUIRRELVM vm, int index) : data (GetInteger (vm, index)) { }
-	template<> inline Param<uint32>::Param (HSQUIRRELVM vm, int index) : data (GetInteger (vm, index)) { }
-	template<> inline Param<int8>  ::Param (HSQUIRRELVM vm, int index) : data (GetInteger (vm, index)) { }
-	template<> inline Param<int16> ::Param (HSQUIRRELVM vm, int index) : data (GetInteger (vm, index)) { }
-	template<> inline Param<int32> ::Param (HSQUIRRELVM vm, int index) : data (GetInteger (vm, index)) { }
-	template<> inline Param<int64> ::Param (HSQUIRRELVM vm, int index) : data (GetInteger (vm, index)) { }
-	template<> inline Param<Money> ::Param (HSQUIRRELVM vm, int index) : data (GetInteger (vm, index)) { }
+	template<> inline uint8  GetParam<uint8>  (HSQUIRRELVM vm, int index) { return GetInteger (vm, index); }
+	template<> inline uint16 GetParam<uint16> (HSQUIRRELVM vm, int index) { return GetInteger (vm, index); }
+	template<> inline uint32 GetParam<uint32> (HSQUIRRELVM vm, int index) { return GetInteger (vm, index); }
+	template<> inline int8   GetParam<int8>   (HSQUIRRELVM vm, int index) { return GetInteger (vm, index); }
+	template<> inline int16  GetParam<int16>  (HSQUIRRELVM vm, int index) { return GetInteger (vm, index); }
+	template<> inline int32  GetParam<int32>  (HSQUIRRELVM vm, int index) { return GetInteger (vm, index); }
+	template<> inline int64  GetParam<int64>  (HSQUIRRELVM vm, int index) { return GetInteger (vm, index); }
+	template<> inline Money  GetParam<Money>  (HSQUIRRELVM vm, int index) { return GetInteger (vm, index); }
 
-	template<> inline Param<bool>  ::Param (HSQUIRRELVM vm, int index)
+	template<> inline bool GetParam<bool> (HSQUIRRELVM vm, int index)
 	{
 		SQBool tmp;
 		sq_getbool (vm, index, &tmp);
-		data = (tmp != 0);
+		return (tmp != 0);
 	}
 
-	template<> inline Param<void*> ::Param (HSQUIRRELVM vm, int index)
+	template<> inline void *GetParam<void*> (HSQUIRRELVM vm, int index)
 	{
 		SQUserPointer tmp;
 		sq_getuserpointer (vm, index, &tmp);
-		data = tmp;
+		return tmp;
 	}
 
 	template<> struct Param <const char *> {

@@ -13,18 +13,18 @@
 
 namespace SQConvert {
 	/* Allow ScriptBridgeList to be used as Squirrel parameter */
-	template <> inline Param<ScriptBridgeList*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptBridgeList> (vm, index)) { }
-	template <> inline Param<ScriptBridgeList&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptBridgeList> (vm, index)) { }
-	template <> inline Param<const ScriptBridgeList*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptBridgeList> (vm, index)) { }
-	template <> inline Param<const ScriptBridgeList&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptBridgeList> (vm, index)) { }
+	template <> inline       ScriptBridgeList *GetParam<ScriptBridgeList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptBridgeList> (vm, index); }
+	template <> inline       ScriptBridgeList &GetParam<ScriptBridgeList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptBridgeList> (vm, index); }
+	template <> inline const ScriptBridgeList *GetParam<const ScriptBridgeList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptBridgeList> (vm, index); }
+	template <> inline const ScriptBridgeList &GetParam<const ScriptBridgeList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptBridgeList> (vm, index); }
 	template <> inline int Return<ScriptBridgeList *>(HSQUIRRELVM vm, ScriptBridgeList *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "BridgeList", res, NULL, DefSQDestructorCallback<ScriptBridgeList>, true); return 1; }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptBridgeList_Length to be used as Squirrel parameter */
-	template <> inline Param<ScriptBridgeList_Length*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptBridgeList_Length> (vm, index)) { }
-	template <> inline Param<ScriptBridgeList_Length&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptBridgeList_Length> (vm, index)) { }
-	template <> inline Param<const ScriptBridgeList_Length*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptBridgeList_Length> (vm, index)) { }
-	template <> inline Param<const ScriptBridgeList_Length&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptBridgeList_Length> (vm, index)) { }
+	template <> inline       ScriptBridgeList_Length *GetParam<ScriptBridgeList_Length*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptBridgeList_Length> (vm, index); }
+	template <> inline       ScriptBridgeList_Length &GetParam<ScriptBridgeList_Length&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptBridgeList_Length> (vm, index); }
+	template <> inline const ScriptBridgeList_Length *GetParam<const ScriptBridgeList_Length*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptBridgeList_Length> (vm, index); }
+	template <> inline const ScriptBridgeList_Length &GetParam<const ScriptBridgeList_Length&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptBridgeList_Length> (vm, index); }
 	template <> inline int Return<ScriptBridgeList_Length *>(HSQUIRRELVM vm, ScriptBridgeList_Length *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "BridgeList_Length", res, NULL, DefSQDestructorCallback<ScriptBridgeList_Length>, true); return 1; }
 } // namespace SQConvert

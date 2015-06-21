@@ -13,13 +13,13 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline Param<ScriptIndustry::CargoAcceptState>::Param (HSQUIRRELVM vm, int index) : data ((ScriptIndustry::CargoAcceptState) GetInteger (vm, index)) { }
+	template <> inline ScriptIndustry::CargoAcceptState GetParam<ScriptIndustry::CargoAcceptState> (HSQUIRRELVM vm, int index) { return (ScriptIndustry::CargoAcceptState) GetInteger (vm, index); }
 	template <> inline int Return<ScriptIndustry::CargoAcceptState>(HSQUIRRELVM vm, ScriptIndustry::CargoAcceptState res) { sq_pushinteger(vm, (int32)res); return 1; }
 
 	/* Allow ScriptIndustry to be used as Squirrel parameter */
-	template <> inline Param<ScriptIndustry*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptIndustry> (vm, index)) { }
-	template <> inline Param<ScriptIndustry&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptIndustry> (vm, index)) { }
-	template <> inline Param<const ScriptIndustry*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptIndustry> (vm, index)) { }
-	template <> inline Param<const ScriptIndustry&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptIndustry> (vm, index)) { }
+	template <> inline       ScriptIndustry *GetParam<ScriptIndustry*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptIndustry> (vm, index); }
+	template <> inline       ScriptIndustry &GetParam<ScriptIndustry&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptIndustry> (vm, index); }
+	template <> inline const ScriptIndustry *GetParam<const ScriptIndustry*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptIndustry> (vm, index); }
+	template <> inline const ScriptIndustry &GetParam<const ScriptIndustry&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptIndustry> (vm, index); }
 	template <> inline int Return<ScriptIndustry *>(HSQUIRRELVM vm, ScriptIndustry *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Industry", res, NULL, DefSQDestructorCallback<ScriptIndustry>, true); return 1; }
 } // namespace SQConvert

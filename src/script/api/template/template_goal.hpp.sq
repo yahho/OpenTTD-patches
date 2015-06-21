@@ -13,19 +13,19 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline Param<ScriptGoal::GoalID>::Param (HSQUIRRELVM vm, int index) : data ((ScriptGoal::GoalID) GetInteger (vm, index)) { }
+	template <> inline ScriptGoal::GoalID GetParam<ScriptGoal::GoalID> (HSQUIRRELVM vm, int index) { return (ScriptGoal::GoalID) GetInteger (vm, index); }
 	template <> inline int Return<ScriptGoal::GoalID>(HSQUIRRELVM vm, ScriptGoal::GoalID res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline Param<ScriptGoal::GoalType>::Param (HSQUIRRELVM vm, int index) : data ((ScriptGoal::GoalType) GetInteger (vm, index)) { }
+	template <> inline ScriptGoal::GoalType GetParam<ScriptGoal::GoalType> (HSQUIRRELVM vm, int index) { return (ScriptGoal::GoalType) GetInteger (vm, index); }
 	template <> inline int Return<ScriptGoal::GoalType>(HSQUIRRELVM vm, ScriptGoal::GoalType res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline Param<ScriptGoal::QuestionType>::Param (HSQUIRRELVM vm, int index) : data ((ScriptGoal::QuestionType) GetInteger (vm, index)) { }
+	template <> inline ScriptGoal::QuestionType GetParam<ScriptGoal::QuestionType> (HSQUIRRELVM vm, int index) { return (ScriptGoal::QuestionType) GetInteger (vm, index); }
 	template <> inline int Return<ScriptGoal::QuestionType>(HSQUIRRELVM vm, ScriptGoal::QuestionType res) { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline Param<ScriptGoal::QuestionButton>::Param (HSQUIRRELVM vm, int index) : data ((ScriptGoal::QuestionButton) GetInteger (vm, index)) { }
+	template <> inline ScriptGoal::QuestionButton GetParam<ScriptGoal::QuestionButton> (HSQUIRRELVM vm, int index) { return (ScriptGoal::QuestionButton) GetInteger (vm, index); }
 	template <> inline int Return<ScriptGoal::QuestionButton>(HSQUIRRELVM vm, ScriptGoal::QuestionButton res) { sq_pushinteger(vm, (int32)res); return 1; }
 
 	/* Allow ScriptGoal to be used as Squirrel parameter */
-	template <> inline Param<ScriptGoal*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptGoal> (vm, index)) { }
-	template <> inline Param<ScriptGoal&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptGoal> (vm, index)) { }
-	template <> inline Param<const ScriptGoal*>::Param (HSQUIRRELVM vm, int index) : data ( GetUserPointer<ScriptGoal> (vm, index)) { }
-	template <> inline Param<const ScriptGoal&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<ScriptGoal> (vm, index)) { }
+	template <> inline       ScriptGoal *GetParam<ScriptGoal*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptGoal> (vm, index); }
+	template <> inline       ScriptGoal &GetParam<ScriptGoal&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptGoal> (vm, index); }
+	template <> inline const ScriptGoal *GetParam<const ScriptGoal*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptGoal> (vm, index); }
+	template <> inline const ScriptGoal &GetParam<const ScriptGoal&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptGoal> (vm, index); }
 	template <> inline int Return<ScriptGoal *>(HSQUIRRELVM vm, ScriptGoal *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Goal", res, NULL, DefSQDestructorCallback<ScriptGoal>, true); return 1; }
 } // namespace SQConvert
