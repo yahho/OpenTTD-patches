@@ -176,4 +176,38 @@ private:
 	SQInteger _SetParam(int k, HSQUIRRELVM vm);
 };
 
+/* Parameter support for Text objects. */
+namespace SQConvert {
+
+	template <> struct Param<Text*> {
+		Text *data;
+
+		inline Param (HSQUIRRELVM vm, int index)
+		{
+			if (sq_gettype(vm, index) == OT_INSTANCE) {
+				data = GetUserPointer<ScriptText> (vm, index);
+				data->AddRef();
+			} else if (sq_gettype(vm, index) == OT_STRING) {
+				data = new RawText (vm, index);
+				data->AddRef();
+			} else {
+				data = NULL;
+			}
+		}
+
+		~Param ()
+		{
+			if (data != NULL) data->Release();
+		}
+
+		operator Text * () { return data; }
+
+	private:
+		Param (const Param &) DELETED;
+
+		Param & operator = (const Param &) DELETED;
+	};
+
+}
+
 #endif /* SCRIPT_TEXT_HPP */

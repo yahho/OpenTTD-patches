@@ -35,35 +35,7 @@ function dump_class_templates(name)
 	print "	template <> inline Param<const " name "&>::Param (HSQUIRRELVM vm, int index) : data (*GetUserPointer<" name "> (vm, index)) { }"
 	if (name == "ScriptEvent") {
 		print "	template <> inline int Return<" name " *>(HSQUIRRELVM vm, " name " *res) { if (res == NULL) { sq_pushnull(vm); return 1; } Squirrel::CreateClassInstanceVM(vm, \"" realname "\", res, NULL, DefSQDestructorCallback<" name ">, true); return 1; }"
-	} else if (name == "ScriptText") {
-		print ""
-		print " template <> struct Param<Text*> {"
-		print "         Text *data;"
-		print ""
-		print "         inline Param (HSQUIRRELVM vm, int index) {"
-		print "                 if (sq_gettype(vm, index) == OT_INSTANCE) {"
-		print "                         data = GetUserPointer<ScriptText> (vm, index);"
-		print "                         data->AddRef();"
-		print "                 } else if (sq_gettype(vm, index) == OT_STRING) {"
-		print "                         data = new RawText (vm, index);"
-		print "                         data->AddRef();"
-		print "                 } else {"
-		print "                         data = NULL;"
-		print "                 }"
-		print "         }"
-		print ""
-		print "         ~Param () {"
-		print "                 if (data != NULL) data->Release();"
-		print "         }"
-		print ""
-		print "         operator Text * () { return data; }"
-		print ""
-		print " private:"
-		print "         Param (const Param &) DELETED;"
-		print ""
-		print "         Param & operator = (const Param &) DELETED;"
-		print " };"
-	} else {
+	} else if (name != "ScriptText") {
 		print "	template <> inline int Return<" name " *>(HSQUIRRELVM vm, " name " *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, \"" realname "\", res, NULL, DefSQDestructorCallback<" name ">, true); return 1; }"
 	}
 }
