@@ -159,39 +159,43 @@ namespace SQConvert {
 		operator const char * () { return data.get(); }
 	};
 
+	static inline Array *GetArray (HSQUIRRELVM vm, int index)
+	{
+		/* Sanity check of the size. */
+		if (sq_getsize(vm, index) > UINT16_MAX) throw sq_throwerror(vm, "an array used as parameter to a function is too large");
+
+		SQObject obj;
+		sq_getstackobj(vm, index, &obj);
+		sq_pushobject(vm, obj);
+		sq_pushnull(vm);
+
+		SmallVector<int32, 2> data;
+
+		while (SQ_SUCCEEDED(sq_next(vm, -2))) {
+			SQInteger tmp;
+			if (SQ_SUCCEEDED(sq_getinteger(vm, -1, &tmp))) {
+				*data.Append() = (int32)tmp;
+			} else {
+				sq_pop(vm, 4);
+				throw sq_throwerror(vm, "a member of an array used as parameter to a function is not numeric");
+			}
+
+			sq_pop(vm, 2);
+		}
+		sq_pop(vm, 2);
+
+		Array *arr = (Array*) xmalloc (sizeof(Array) + sizeof(int32) * data.Length());
+		arr->size = data.Length();
+		memcpy(arr->array, data.Begin(), sizeof(int32) * data.Length());
+		return arr;
+	}
+
 	template<> struct Param <Array*> {
 		ttd_unique_free_ptr<Array> data;
 
 		inline Param (HSQUIRRELVM vm, int index)
+			: data (GetArray (vm, index))
 		{
-			/* Sanity check of the size. */
-			if (sq_getsize(vm, index) > UINT16_MAX) throw sq_throwerror(vm, "an array used as parameter to a function is too large");
-
-			SQObject obj;
-			sq_getstackobj(vm, index, &obj);
-			sq_pushobject(vm, obj);
-			sq_pushnull(vm);
-
-			SmallVector<int32, 2> data;
-
-			while (SQ_SUCCEEDED(sq_next(vm, -2))) {
-				SQInteger tmp;
-				if (SQ_SUCCEEDED(sq_getinteger(vm, -1, &tmp))) {
-					*data.Append() = (int32)tmp;
-				} else {
-					sq_pop(vm, 4);
-					throw sq_throwerror(vm, "a member of an array used as parameter to a function is not numeric");
-				}
-
-				sq_pop(vm, 2);
-			}
-			sq_pop(vm, 2);
-
-			Array *arr = (Array*) xmalloc (sizeof(Array) + sizeof(int32) * data.Length());
-			arr->size = data.Length();
-			memcpy(arr->array, data.Begin(), sizeof(int32) * data.Length());
-
-			this->data.reset (arr);
 		}
 
 		operator Array * () { return data.get(); }
