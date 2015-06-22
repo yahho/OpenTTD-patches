@@ -209,6 +209,398 @@ namespace SQConvert {
 	};
 
 
+	/** Param class for squirrel function calls without parameters. */
+	struct Params0 {
+		static const uint N = 0;
+
+		CONSTEXPR Params0 (HSQUIRRELVM vm)
+		{
+		}
+
+		void call (void (*func) (void))
+		{
+			(*func) ();
+		}
+
+		template <typename R>
+		R call (R (*func) (void))
+		{
+			return (*func) ();
+		}
+
+		template <class C>
+		void call (C *instance, void (C::*func) (void))
+		{
+			(instance->*func) ();
+		}
+
+		template <class C, typename R>
+		R call (C *instance, R (C::*func) (void))
+		{
+			return (instance->*func) ();
+		}
+
+		template <class C>
+		C *construct (void)
+		{
+			return new C ();
+		}
+	};
+
+	/** Param class for squirrel function calls with 1 parameter. */
+	template <typename T1>
+	struct Params1 : Params0 {
+		static const uint N = 1;
+
+		Param<T1> param1;
+
+		Params1 (HSQUIRRELVM vm) : Params0 (vm), param1 (vm, 2)
+		{
+		}
+
+		void call (void (*func) (T1))
+		{
+			(*func) (this->param1);
+		}
+
+		template <typename R>
+		R call (R (*func) (T1))
+		{
+			return (*func) (this->param1);
+		}
+
+		template <class C>
+		void call (C *instance, void (C::*func) (T1))
+		{
+			(instance->*func) (this->param1);
+		}
+
+		template <class C, typename R>
+		R call (C *instance, R (C::*func) (T1))
+		{
+			return (instance->*func) (this->param1);
+		}
+
+		template <class C>
+		C *construct (void)
+		{
+			return new C (this->param1);
+		}
+	};
+
+	/** Param class for squirrel function calls with 2 parameters. */
+	template <typename T1, typename T2>
+	struct Params2 : Params1 <T1> {
+		static const uint N = 2;
+
+		Param<T2> param2;
+
+		Params2 (HSQUIRRELVM vm) : Params1 <T1> (vm), param2 (vm, 3)
+		{
+		}
+
+		void call (void (*func) (T1, T2))
+		{
+			(*func) (this->param1, this->param2);
+		}
+
+		template <typename R>
+		R call (R (*func) (T1, T2))
+		{
+			return (*func) (this->param1, this->param2);
+		}
+
+		template <class C>
+		void call (C *instance, void (C::*func) (T1, T2))
+		{
+			(instance->*func) (this->param1, this->param2);
+		}
+
+		template <class C, typename R>
+		R call (C *instance, R (C::*func) (T1, T2))
+		{
+			return (instance->*func) (this->param1, this->param2);
+		}
+
+		template <class C>
+		C *construct (void)
+		{
+			return new C (this->param1, this->param2);
+		}
+	};
+
+	/** Param class for squirrel function calls with 3 parameters. */
+	template <typename T1, typename T2, typename T3>
+	struct Params3 : Params2 <T1, T2> {
+		static const uint N = 3;
+
+		Param<T3> param3;
+
+		Params3 (HSQUIRRELVM vm) : Params2 <T1, T2> (vm),
+			param3 (vm, 4)
+		{
+		}
+
+		void call (void (*func) (T1, T2, T3))
+		{
+			(*func) (this->param1, this->param2,
+					this->param3);
+		}
+
+		template <typename R>
+		R call (R (*func) (T1, T2, T3))
+		{
+			return (*func) (this->param1, this->param2,
+					this->param3);
+		}
+
+		template <class C>
+		void call (C *instance, void (C::*func) (T1, T2, T3))
+		{
+			(instance->*func) (this->param1, this->param2,
+					this->param3);
+		}
+
+		template <class C, typename R>
+		R call (C *instance, R (C::*func) (T1, T2, T3))
+		{
+			return (instance->*func) (this->param1, this->param2,
+					this->param3);
+		}
+
+		template <class C>
+		C *construct (void)
+		{
+			return new C (this->param1, this->param2,
+					this->param3);
+		}
+	};
+
+	/** Param class for squirrel function calls with 4 parameters. */
+	template <typename T1, typename T2, typename T3, typename T4>
+	struct Params4 : Params3 <T1, T2, T3> {
+		static const uint N = 4;
+
+		Param<T4> param4;
+
+		Params4 (HSQUIRRELVM vm) : Params3 <T1, T2, T3> (vm),
+			param4 (vm, 5)
+		{
+		}
+
+		void call (void (*func) (T1, T2, T3, T4))
+		{
+			(*func) (this->param1, this->param2,
+					this->param3, this->param4);
+		}
+
+		template <typename R>
+		R call (R (*func) (T1, T2, T3, T4))
+		{
+			return (*func) (this->param1, this->param2,
+					this->param3, this->param4);
+		}
+
+		template <class C>
+		void call (C *instance, void (C::*func) (T1, T2, T3, T4))
+		{
+			(instance->*func) (this->param1, this->param2,
+					this->param3, this->param4);
+		}
+
+		template <class C, typename R>
+		R call (C *instance, R (C::*func) (T1, T2, T3, T4))
+		{
+			return (instance->*func) (this->param1, this->param2,
+					this->param3, this->param4);
+		}
+
+		template <class C>
+		C *construct (void)
+		{
+			return new C (this->param1, this->param2,
+					this->param3, this->param4);
+		}
+	};
+
+	/** Param class for squirrel function calls with 5 parameters. */
+	template <typename T1, typename T2, typename T3, typename T4, typename T5>
+	struct Params5 : Params4 <T1, T2, T3, T4> {
+		static const uint N = 5;
+
+		Param<T5> param5;
+
+		Params5 (HSQUIRRELVM vm) : Params4 <T1, T2, T3, T4> (vm),
+			param5 (vm, 6)
+		{
+		}
+
+		void call (void (*func) (T1, T2, T3, T4, T5))
+		{
+			(*func) (this->param1, this->param2,
+					this->param3, this->param4,
+					this->param5);
+		}
+
+		template <typename R>
+		R call (R (*func) (T1, T2, T3, T4, T5))
+		{
+			return (*func) (this->param1, this->param2,
+					this->param3, this->param4,
+					this->param5);
+		}
+
+		template <class C>
+		void call (C *instance, void (C::*func) (T1, T2, T3, T4, T5))
+		{
+			(instance->*func) (this->param1, this->param2,
+					this->param3, this->param4,
+					this->param5);
+		}
+
+		template <class C, typename R>
+		R call (C *instance, R (C::*func) (T1, T2, T3, T4, T5))
+		{
+			return (instance->*func) (this->param1, this->param2,
+					this->param3, this->param4,
+					this->param5);
+		}
+
+		template <class C>
+		C *construct (void)
+		{
+			return new C (this->param1, this->param2,
+					this->param3, this->param4,
+					this->param5);
+		}
+	};
+
+	/** Param class for squirrel function calls with 10 parameters. */
+	template <typename T1, typename T2, typename T3, typename T4,
+			typename T5, typename T6, typename T7, typename T8,
+			typename T9, typename T10>
+	struct Params10 : Params5 <T1, T2, T3, T4, T5> {
+		static const uint N = 10;
+
+		Param<T6> param6;
+		Param<T7> param7;
+		Param<T8> param8;
+		Param<T9> param9;
+		Param<T10> param10;
+
+		Params10 (HSQUIRRELVM vm) : Params5 <T1, T2, T3, T4, T5> (vm),
+			param6 (vm, 7), param7 (vm, 8), param8 (vm, 9),
+			param9 (vm, 10), param10 (vm, 11)
+		{
+		}
+
+		void call (void (*func) (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10))
+		{
+			(*func) (this->param1, this->param2,
+					this->param3, this->param4,
+					this->param5, this->param6,
+					this->param7, this->param8,
+					this->param9, this->param10);
+		}
+
+		template <typename R>
+		R call (R (*func) (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10))
+		{
+			return (*func) (this->param1, this->param2,
+					this->param3, this->param4,
+					this->param5, this->param6,
+					this->param7, this->param8,
+					this->param9, this->param10);
+		}
+
+		template <class C>
+		void call (C *instance, void (C::*func) (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10))
+		{
+			(instance->*func) (this->param1, this->param2,
+					this->param3, this->param4,
+					this->param5, this->param6,
+					this->param7, this->param8,
+					this->param9, this->param10);
+		}
+
+		template <class C, typename R>
+		R call (C *instance, R (C::*func) (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10))
+		{
+			return (instance->*func) (this->param1, this->param2,
+					this->param3, this->param4,
+					this->param5, this->param6,
+					this->param7, this->param8,
+					this->param9, this->param10);
+		}
+
+		template <class C>
+		C *construct (void)
+		{
+			return new C (this->param1, this->param2,
+					this->param3, this->param4,
+					this->param5, this->param6,
+					this->param7, this->param8,
+					this->param9, this->param10);
+		}
+	};
+
+
+	/** Helper class to identify the signature of a function. */
+	template <typename F> struct FSig;
+
+	template <typename R>
+	struct FRet {
+		typedef R Ret;
+	};
+
+	template <typename R>
+	struct FSig <R (void)> : FRet <R> {
+		typedef Params0 Params;
+	};
+
+	template <typename R, typename T1>
+	struct FSig <R (T1)> : FRet <R> {
+		typedef Params1 <T1> Params;
+	};
+
+	template <typename R, typename T1, typename T2>
+	struct FSig <R (T1, T2)> : FRet <R> {
+		typedef Params2 <T1, T2> Params;
+	};
+
+	template <typename R, typename T1, typename T2, typename T3>
+	struct FSig <R (T1, T2, T3)> : FRet <R> {
+		typedef Params3 <T1, T2, T3> Params;
+	};
+
+	template <typename R, typename T1, typename T2, typename T3,
+			typename T4>
+	struct FSig <R (T1, T2, T3, T4)> : FRet <R> {
+		typedef Params4 <T1, T2, T3, T4> Params;
+	};
+
+	template <typename R, typename T1, typename T2, typename T3,
+			typename T4, typename T5>
+	struct FSig <R (T1, T2, T3, T4, T5)> : FRet <R> {
+		typedef Params5 <T1, T2, T3, T4, T5> Params;
+	};
+
+	template <typename R, typename T1, typename T2, typename T3,
+			typename T4, typename T5, typename T6, typename T7,
+			typename T8, typename T9, typename T10>
+	struct FSig <R (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)> : FRet <R> {
+		typedef Params10 <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> Params;
+	};
+
+	template <typename F>
+	struct FSig <F*> : FSig <F> {
+	};
+
+	template <class C, typename F>
+	struct FSig <F C::*> : FSig <F> {
+	};
+
+
 	/**
 	 * Helper class to recognize the function type (retval type, args) and use the proper specialization
 	 * for SQ callback. The partial specializations for the second arg (Tis_void_retval) are not possible
@@ -216,497 +608,51 @@ namespace SQConvert {
 	 */
 	template <typename Tfunc, bool Tis_void_retval = HasVoidReturnT<Tfunc>::Yes> struct HelperT;
 
-	/**
-	 * The real C++ caller for function with return value and 0 params.
-	 */
-	template <typename Tretval>
-	struct HelperT<Tretval (*)(), false> {
-		static int SQCall(void *instance, Tretval (*func)(), HSQUIRRELVM vm)
+	/** Dispatcher for a function call with return value. */
+	template <typename F>
+	struct HelperT <F, false> {
+		static int SQCall (void *instance, F func, HSQUIRRELVM vm)
 		{
-			return Return(vm, (*func)());
+			typename FSig<F>::Params params (vm);
+			return Return (vm, params.call (func));
 		}
 	};
 
-	/**
-	 * The real C++ caller for function with no return value and 0 params.
-	 */
-	template <typename Tretval>
-	struct HelperT<Tretval (*)(), true> {
-		static int SQCall(void *instance, Tretval (*func)(), HSQUIRRELVM vm)
+	/** Dispatcher for a function call with no return value. */
+	template <typename F>
+	struct HelperT <F, true> {
+		static int SQCall (void *instance, F func, HSQUIRRELVM vm)
 		{
-			(*func)();
+			typename FSig<F>::Params params (vm);
+			params.call (func);
 			return 0;
 		}
 	};
 
-	/**
-	 * The real C++ caller for method with return value and 0 params.
-	 */
-	template <class Tcls, typename Tretval>
-	struct HelperT<Tretval (Tcls::*)(), false> {
-		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(), HSQUIRRELVM vm)
+	/** Dispatcher for a method call with return value. */
+	template <class C, typename F>
+	struct HelperT <F C::*, false> {
+		static int SQCall (C *instance, F (C::*func), HSQUIRRELVM vm)
 		{
-			return Return(vm, (instance->*func)());
+			typename FSig<F>::Params params (vm);
+			return Return (vm, params.call (instance, func));
 		}
 	};
 
-	/**
-	 * The real C++ caller for method with no return value and 0 params.
-	 */
-	template <class Tcls, typename Tretval>
-	struct HelperT<Tretval (Tcls::*)(), true> {
-		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(), HSQUIRRELVM vm)
+	/** Dispatcher for a method call with no return value. */
+	template <class C, typename F>
+	struct HelperT <F C::*, true> {
+		static int SQCall (C *instance, F (C::*func), HSQUIRRELVM vm)
 		{
-			(instance->*func)();
+			typename FSig<F>::Params params (vm);
+			params.call (instance, func);
 			return 0;
 		}
 
-		static Tcls *SQConstruct(Tcls *instance, Tretval (Tcls::*func)(), HSQUIRRELVM vm)
+		static C *SQConstruct (C *instance, F (C::*func), HSQUIRRELVM vm)
 		{
-			return new Tcls();
-		}
-	};
-
-	/**
-	 * The real C++ caller for function with return value and 1 param.
-	 */
-	template <typename Tretval, typename Targ1>
-	struct HelperT<Tretval (*)(Targ1), false> {
-		static int SQCall(void *instance, Tretval (*func)(Targ1), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Tretval ret = (*func) (param1);
-			return Return(vm, ret);
-		}
-	};
-
-	/**
-	 * The real C++ caller for function with no return value and 1 param.
-	 */
-	template <typename Tretval, typename Targ1>
-	struct HelperT<Tretval (*)(Targ1), true> {
-		static int SQCall(void *instance, Tretval (*func)(Targ1), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			(*func) (param1);
-			return 0;
-		}
-	};
-
-	/**
-	 * The real C++ caller for method with return value and 1 param.
-	 */
-	template <class Tcls, typename Tretval, typename Targ1>
-	struct HelperT<Tretval (Tcls::*)(Targ1), false> {
-		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Tretval ret = (instance->*func) (param1);
-			return Return(vm, ret);
-		}
-	};
-
-	/**
-	 * The real C++ caller for method with no return value and 1 param.
-	 */
-	template <class Tcls, typename Tretval, typename Targ1>
-	struct HelperT<Tretval (Tcls::*)(Targ1), true> {
-		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			(instance->*func) (param1);
-			return 0;
-		}
-
-		static Tcls *SQConstruct(Tcls *instance, Tretval (Tcls::*func)(Targ1), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			return new Tcls (param1);
-		}
-	};
-
-	/**
-	 * The real C++ caller for function with return value and 2 params.
-	 */
-	template <typename Tretval, typename Targ1, typename Targ2>
-	struct HelperT<Tretval (*)(Targ1, Targ2), false> {
-		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Tretval ret = (*func) (param1, param2);
-			return Return(vm, ret);
-		}
-	};
-
-	/**
-	 * The real C++ caller for function with no return value and 2 params.
-	 */
-	template <typename Tretval, typename Targ1, typename Targ2>
-	struct HelperT<Tretval (*)(Targ1, Targ2), true> {
-		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			(*func) (param1, param2);
-			return 0;
-		}
-	};
-
-	/**
-	 * The real C++ caller for method with return value and 2 params.
-	 */
-	template <class Tcls, typename Tretval, typename Targ1, typename Targ2>
-	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2), false> {
-		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Tretval ret = (instance->*func) (param1, param2);
-			return Return(vm, ret);
-		}
-	};
-
-	/**
-	 * The real C++ caller for method with no return value and 2 params.
-	 */
-	template <class Tcls, typename Tretval, typename Targ1, typename Targ2>
-	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2), true> {
-		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			(instance->*func) (param1, param2);
-			return 0;
-		}
-
-		static Tcls *SQConstruct(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			return new Tcls (param1, param2);
-		}
-	};
-
-	/**
-	 * The real C++ caller for function with return value and 3 params.
-	 */
-	template <typename Tretval, typename Targ1, typename Targ2, typename Targ3>
-	struct HelperT<Tretval (*)(Targ1, Targ2, Targ3), false> {
-		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2, Targ3), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			Tretval ret = (*func) (param1, param2, param3);
-			return Return(vm, ret);
-		}
-	};
-
-	/**
-	 * The real C++ caller for function with no return value and 3 params.
-	 */
-	template <typename Tretval, typename Targ1, typename Targ2, typename Targ3>
-	struct HelperT<Tretval (*)(Targ1, Targ2, Targ3), true> {
-		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2, Targ3), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			(*func) (param1, param2, param3);
-			return 0;
-		}
-	};
-
-	/**
-	 * The real C++ caller for method with return value and 3 params.
-	 */
-	template <class Tcls, typename Tretval, typename Targ1, typename Targ2, typename Targ3>
-	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2, Targ3), false> {
-		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			Tretval ret = (instance->*func) (param1, param2, param3);
-			return Return(vm, ret);
-		}
-	};
-
-	/**
-	 * The real C++ caller for method with no return value and 3 params.
-	 */
-	template <class Tcls, typename Tretval, typename Targ1, typename Targ2, typename Targ3>
-	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2, Targ3), true> {
-		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			(instance->*func) (param1, param2, param3);
-			return 0;
-		}
-
-		static Tcls *SQConstruct(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			return new Tcls (param1, param2, param3);
-		}
-	};
-
-	/**
-	 * The real C++ caller for function with return value and 4 params.
-	 */
-	template <typename Tretval, typename Targ1, typename Targ2, typename Targ3, typename Targ4>
-	struct HelperT<Tretval (*)(Targ1, Targ2, Targ3, Targ4), false> {
-		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2, Targ3, Targ4), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			Param<Targ4> param4 (vm, 5);
-			Tretval ret = (*func) (param1, param2, param3, param4);
-			return Return(vm, ret);
-		}
-	};
-
-	/**
-	 * The real C++ caller for function with no return value and 4 params.
-	 */
-	template <typename Tretval, typename Targ1, typename Targ2, typename Targ3, typename Targ4>
-	struct HelperT<Tretval (*)(Targ1, Targ2, Targ3, Targ4), true> {
-		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2, Targ3, Targ4), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			Param<Targ4> param4 (vm, 5);
-			(*func) (param1, param2, param3, param4);
-			return 0;
-		}
-	};
-
-	/**
-	 * The real C++ caller for method with return value and 4 params.
-	 */
-	template <class Tcls, typename Tretval, typename Targ1, typename Targ2, typename Targ3, typename Targ4>
-	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2, Targ3, Targ4), false> {
-		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3, Targ4), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			Param<Targ4> param4 (vm, 5);
-			Tretval ret = (instance->*func) (param1, param2, param3, param4);
-			return Return(vm, ret);
-		}
-	};
-
-	/**
-	 * The real C++ caller for method with no return value and 4 params.
-	 */
-	template <class Tcls, typename Tretval, typename Targ1, typename Targ2, typename Targ3, typename Targ4>
-	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2, Targ3, Targ4), true> {
-		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3, Targ4), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			Param<Targ4> param4 (vm, 5);
-			(instance->*func) (param1, param2, param3, param4);
-			return 0;
-		}
-
-		static Tcls *SQConstruct(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3, Targ4), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			Param<Targ4> param4 (vm, 5);
-			return new Tcls (param1, param2, param3, param4);
-		}
-	};
-
-	/**
-	 * The real C++ caller for function with return value and 5 params.
-	 */
-	template <typename Tretval, typename Targ1, typename Targ2, typename Targ3, typename Targ4, typename Targ5>
-	struct HelperT<Tretval (*)(Targ1, Targ2, Targ3, Targ4, Targ5), false> {
-		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2, Targ3, Targ4, Targ5), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			Param<Targ4> param4 (vm, 5);
-			Param<Targ5> param5 (vm, 6);
-			Tretval ret = (*func) (param1, param2, param3, param4, param5);
-			return Return(vm, ret);
-		}
-	};
-
-	/**
-	 * The real C++ caller for function with no return value and 5 params.
-	 */
-	template <typename Tretval, typename Targ1, typename Targ2, typename Targ3, typename Targ4, typename Targ5>
-	struct HelperT<Tretval (*)(Targ1, Targ2, Targ3, Targ4, Targ5), true> {
-		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2, Targ3, Targ4, Targ5), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			Param<Targ4> param4 (vm, 5);
-			Param<Targ5> param5 (vm, 6);
-			(*func) (param1, param2, param3, param4, param5);
-			return 0;
-		}
-	};
-
-	/**
-	 * The real C++ caller for method with return value and 5 params.
-	 */
-	template <class Tcls, typename Tretval, typename Targ1, typename Targ2, typename Targ3, typename Targ4, typename Targ5>
-	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2, Targ3, Targ4, Targ5), false> {
-		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3, Targ4, Targ5), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			Param<Targ4> param4 (vm, 5);
-			Param<Targ5> param5 (vm, 6);
-			Tretval ret = (instance->*func) (param1, param2, param3, param4, param5);
-			return Return(vm, ret);
-		}
-	};
-
-	/**
-	 * The real C++ caller for method with no return value and 5 params.
-	 */
-	template <class Tcls, typename Tretval, typename Targ1, typename Targ2, typename Targ3, typename Targ4, typename Targ5>
-	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2, Targ3, Targ4, Targ5), true> {
-		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3, Targ4, Targ5), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			Param<Targ4> param4 (vm, 5);
-			Param<Targ5> param5 (vm, 6);
-			(instance->*func) (param1, param2, param3, param4, param5);
-			return 0;
-		}
-
-		static Tcls *SQConstruct(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3, Targ4, Targ5), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			Param<Targ4> param4 (vm, 5);
-			Param<Targ5> param5 (vm, 6);
-			return new Tcls (param1, param2, param3, param4, param5);
-		}
-	};
-
-	/**
-	 * The real C++ caller for function with return value and 10 params.
-	 */
-	template <typename Tretval, typename Targ1, typename Targ2, typename Targ3, typename Targ4, typename Targ5, typename Targ6, typename Targ7, typename Targ8, typename Targ9, typename Targ10>
-	struct HelperT<Tretval (*)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10), false> {
-		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			Param<Targ4> param4 (vm, 5);
-			Param<Targ5> param5 (vm, 6);
-			Param<Targ6> param6 (vm, 7);
-			Param<Targ7> param7 (vm, 8);
-			Param<Targ8> param8 (vm, 9);
-			Param<Targ9> param9 (vm, 10);
-			Param<Targ10> param10 (vm, 11);
-			Tretval ret = (*func) (param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
-			return Return(vm, ret);
-		}
-	};
-
-	/**
-	 * The real C++ caller for function with no return value and 10 params.
-	 */
-	template <typename Tretval, typename Targ1, typename Targ2, typename Targ3, typename Targ4, typename Targ5, typename Targ6, typename Targ7, typename Targ8, typename Targ9, typename Targ10>
-	struct HelperT<Tretval (*)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10), true> {
-		static int SQCall(void *instance, Tretval (*func)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			Param<Targ4> param4 (vm, 5);
-			Param<Targ5> param5 (vm, 6);
-			Param<Targ6> param6 (vm, 7);
-			Param<Targ7> param7 (vm, 8);
-			Param<Targ8> param8 (vm, 9);
-			Param<Targ9> param9 (vm, 10);
-			Param<Targ10> param10 (vm, 11);
-			(*func) (param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
-			return 0;
-		}
-	};
-
-	/**
-	 * The real C++ caller for method with return value and 10 params.
-	 */
-	template <class Tcls, typename Tretval, typename Targ1, typename Targ2, typename Targ3, typename Targ4, typename Targ5, typename Targ6, typename Targ7, typename Targ8, typename Targ9, typename Targ10>
-	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10), false> {
-		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			Param<Targ4> param4 (vm, 5);
-			Param<Targ5> param5 (vm, 6);
-			Param<Targ6> param6 (vm, 7);
-			Param<Targ7> param7 (vm, 8);
-			Param<Targ8> param8 (vm, 9);
-			Param<Targ9> param9 (vm, 10);
-			Param<Targ10> param10 (vm, 11);
-			Tretval ret = (instance->*func) (param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
-			return Return(vm, ret);
-		}
-	};
-
-	/**
-	 * The real C++ caller for method with no return value and 10 params.
-	 */
-	template <class Tcls, typename Tretval, typename Targ1, typename Targ2, typename Targ3, typename Targ4, typename Targ5, typename Targ6, typename Targ7, typename Targ8, typename Targ9, typename Targ10>
-	struct HelperT<Tretval (Tcls::*)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10), true> {
-		static int SQCall(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			Param<Targ4> param4 (vm, 5);
-			Param<Targ5> param5 (vm, 6);
-			Param<Targ6> param6 (vm, 7);
-			Param<Targ7> param7 (vm, 8);
-			Param<Targ8> param8 (vm, 9);
-			Param<Targ9> param9 (vm, 10);
-			Param<Targ10> param10 (vm, 11);
-			(instance->*func) (param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
-			return 0;
-		}
-
-		static Tcls *SQConstruct(Tcls *instance, Tretval (Tcls::*func)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10), HSQUIRRELVM vm)
-		{
-			Param<Targ1> param1 (vm, 2);
-			Param<Targ2> param2 (vm, 3);
-			Param<Targ3> param3 (vm, 4);
-			Param<Targ4> param4 (vm, 5);
-			Param<Targ5> param5 (vm, 6);
-			Param<Targ6> param6 (vm, 7);
-			Param<Targ7> param7 (vm, 8);
-			Param<Targ8> param8 (vm, 9);
-			Param<Targ9> param9 (vm, 10);
-			Param<Targ10> param10 (vm, 11);
-			return new Tcls (param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
+			typename FSig<F>::Params params (vm);
+			return params.template construct <C> ();
 		}
 	};
 
