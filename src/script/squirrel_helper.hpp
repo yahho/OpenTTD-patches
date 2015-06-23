@@ -648,12 +648,6 @@ namespace SQConvert {
 			params.call (instance, func);
 			return 0;
 		}
-
-		static C *SQConstruct (C *instance, F (C::*func), HSQUIRRELVM vm)
-		{
-			typename FSig<F>::Params params (vm);
-			return params.template construct <C> ();
-		}
 	};
 
 
@@ -802,9 +796,14 @@ namespace SQConvert {
 	template <typename Tcls, typename Tmethod, int Tnparam>
 	inline SQInteger DefSQConstructorCallback(HSQUIRRELVM vm)
 	{
+		typedef FSig<Tmethod> Sig;
+
+		assert_compile (IsVoidT<typename Sig::Ret>::Yes);
+
 		try {
 			/* Create the real instance */
-			Tcls *instance = HelperT<Tmethod>::SQConstruct((Tcls *)NULL, (Tmethod)NULL, vm);
+			typename Sig::Params params (vm);
+			Tcls *instance = params.template construct <Tcls> ();
 			sq_setinstanceup(vm, -Tnparam, instance);
 			sq_setreleasehook(vm, -Tnparam, DefSQDestructorCallback<Tcls>);
 			instance->AddRef();
