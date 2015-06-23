@@ -601,51 +601,44 @@ namespace SQConvert {
 	};
 
 
-	/**
-	 * Helper class to recognize the function type (retval type, args) and use the proper specialization
-	 * for SQ callback. The partial specializations for the second arg (Tis_void_retval) are not possible
-	 * on the function. Therefore the class is used instead.
-	 */
-	template <typename Tfunc, bool Tis_void_retval = HasVoidReturnT<Tfunc>::Yes> struct HelperT;
+	/** Helper class to return a value to squirrel. */
+	template <typename R>
+	struct SQRetVal {
+		R value;
 
-	/** Dispatcher for a function call with return value. */
-	template <typename F>
-	struct HelperT <F, false> {
-		static int SQCall (void *instance, F func, HSQUIRRELVM vm)
+		template <typename P, typename F>
+		SQRetVal (P *params, F func) : value (params->call (func))
 		{
-			typename FSig<F>::Params params (vm);
-			return Return (vm, params.call (func));
+		}
+
+		template <typename P, class C, typename F>
+		SQRetVal (P *params, C *instance, F C::*func)
+			: value (params->call (instance, func))
+		{
+		}
+
+		int Return (HSQUIRRELVM vm) const
+		{
+			return SQConvert::Return (vm, this->value);
 		}
 	};
 
-	/** Dispatcher for a function call with no return value. */
-	template <typename F>
-	struct HelperT <F, true> {
-		static int SQCall (void *instance, F func, HSQUIRRELVM vm)
+	template <>
+	struct SQRetVal<void> {
+		template <typename P, typename F>
+		SQRetVal (P *params, F func)
 		{
-			typename FSig<F>::Params params (vm);
-			params.call (func);
-			return 0;
+			params->call (func);
 		}
-	};
 
-	/** Dispatcher for a method call with return value. */
-	template <class C, typename F>
-	struct HelperT <F C::*, false> {
-		static int SQCall (C *instance, F (C::*func), HSQUIRRELVM vm)
+		template <typename P, class C, typename F>
+		SQRetVal (P *params, C *instance, F C::*func)
 		{
-			typename FSig<F>::Params params (vm);
-			return Return (vm, params.call (instance, func));
+			params->call (instance, func);
 		}
-	};
 
-	/** Dispatcher for a method call with no return value. */
-	template <class C, typename F>
-	struct HelperT <F C::*, true> {
-		static int SQCall (C *instance, F (C::*func), HSQUIRRELVM vm)
+		static int Return (HSQUIRRELVM vm)
 		{
-			typename FSig<F>::Params params (vm);
-			params.call (instance, func);
 			return 0;
 		}
 	};
@@ -687,7 +680,12 @@ namespace SQConvert {
 
 		try {
 			/* Delegate it to a template that can handle this specific function */
-			return HelperT<Tmethod>::SQCall((Tcls *)real_instance, *(Tmethod *)ptr, vm);
+			typedef FSig<Tmethod> Sig;
+			typename Sig::Params params (vm);
+			SQRetVal <typename Sig::Ret> ret (&params,
+						(Tcls *) real_instance,
+						*(Tmethod *) ptr);
+			return ret.Return (vm);
 		} catch (SQInteger e) {
 			return e;
 		}
@@ -748,7 +746,11 @@ namespace SQConvert {
 
 		try {
 			/* Delegate it to a template that can handle this specific function */
-			return HelperT<Tmethod>::SQCall((Tcls *)NULL, *(Tmethod *)ptr, vm);
+			typedef FSig<Tmethod> Sig;
+			typename Sig::Params params (vm);
+			SQRetVal <typename Sig::Ret> ret (&params,
+						*(Tmethod *)ptr);
+			return ret.Return (vm);
 		} catch (SQInteger e) {
 			return e;
 		}
