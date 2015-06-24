@@ -30,38 +30,6 @@ template <class CL, ScriptType ST> const char *GetClassName();
  * The Squirrel convert routines
  */
 namespace SQConvert {
-	template <bool Y> struct YesT {
-		static const bool Yes = Y;
-		static const bool No = !Y;
-	};
-
-	/**
-	 * Helper class to recognize if the given type is void. Usage: 'IsVoidT<T>::Yes'
-	 */
-	template <typename T> struct IsVoidT : YesT<false> {};
-	template <> struct IsVoidT<void> : YesT<true> {};
-
-	/**
-	 * Helper class to recognize if the function/method return type is void.
-	 */
-	template <typename Tfunc> struct HasVoidReturnT;
-	/* functions */
-	template <typename Tretval> struct HasVoidReturnT<Tretval (*)()> : IsVoidT<Tretval> {};
-	template <typename Tretval, typename Targ1> struct HasVoidReturnT<Tretval (*)(Targ1)> : IsVoidT<Tretval> {};
-	template <typename Tretval, typename Targ1, typename Targ2> struct HasVoidReturnT<Tretval (*)(Targ1, Targ2)> : IsVoidT<Tretval> {};
-	template <typename Tretval, typename Targ1, typename Targ2, typename Targ3> struct HasVoidReturnT<Tretval (*)(Targ1, Targ2, Targ3)> : IsVoidT<Tretval> {};
-	template <typename Tretval, typename Targ1, typename Targ2, typename Targ3, typename Targ4> struct HasVoidReturnT<Tretval (*)(Targ1, Targ2, Targ3, Targ4)> : IsVoidT<Tretval> {};
-	template <typename Tretval, typename Targ1, typename Targ2, typename Targ3, typename Targ4, typename Targ5> struct HasVoidReturnT<Tretval (*)(Targ1, Targ2, Targ3, Targ4, Targ5)> : IsVoidT<Tretval> {};
-	template <typename Tretval, typename Targ1, typename Targ2, typename Targ3, typename Targ4, typename Targ5, typename Targ6, typename Targ7, typename Targ8, typename Targ9, typename Targ10> struct HasVoidReturnT<Tretval (*)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10)> : IsVoidT<Tretval> {};
-	/* methods */
-	template <class Tcls, typename Tretval> struct HasVoidReturnT<Tretval (Tcls::*)()> : IsVoidT<Tretval> {};
-	template <class Tcls, typename Tretval, typename Targ1> struct HasVoidReturnT<Tretval (Tcls::*)(Targ1)> : IsVoidT<Tretval> {};
-	template <class Tcls, typename Tretval, typename Targ1, typename Targ2> struct HasVoidReturnT<Tretval (Tcls::*)(Targ1, Targ2)> : IsVoidT<Tretval> {};
-	template <class Tcls, typename Tretval, typename Targ1, typename Targ2, typename Targ3> struct HasVoidReturnT<Tretval (Tcls::*)(Targ1, Targ2, Targ3)> : IsVoidT<Tretval> {};
-	template <class Tcls, typename Tretval, typename Targ1, typename Targ2, typename Targ3, typename Targ4> struct HasVoidReturnT<Tretval (Tcls::*)(Targ1, Targ2, Targ3, Targ4)> : IsVoidT<Tretval> {};
-	template <class Tcls, typename Tretval, typename Targ1, typename Targ2, typename Targ3, typename Targ4, typename Targ5> struct HasVoidReturnT<Tretval (Tcls::*)(Targ1, Targ2, Targ3, Targ4, Targ5)> : IsVoidT<Tretval> {};
-	template <class Tcls, typename Tretval, typename Targ1, typename Targ2, typename Targ3, typename Targ4, typename Targ5, typename Targ6, typename Targ7, typename Targ8, typename Targ9, typename Targ10> struct HasVoidReturnT<Tretval (Tcls::*)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10)> : IsVoidT<Tretval> {};
-
 
 	/** Helper function to get an integer from squirrel. */
 	static inline SQInteger GetInteger (HSQUIRRELVM vm, int index)
@@ -827,8 +795,6 @@ namespace SQConvert {
 	inline SQInteger DefSQConstructorCallback(HSQUIRRELVM vm)
 	{
 		typedef FSig<Tmethod> Sig;
-
-		assert_compile (IsVoidT<typename Sig::Ret>::Yes);
 
 		try {
 			/* Create the real instance */
