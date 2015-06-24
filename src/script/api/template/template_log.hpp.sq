@@ -17,5 +17,5 @@ namespace SQConvert {
 	template <> inline       ScriptLog &GetParam<ScriptLog&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptLog> (vm, index); }
 	template <> inline const ScriptLog *GetParam<const ScriptLog*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptLog> (vm, index); }
 	template <> inline const ScriptLog &GetParam<const ScriptLog&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptLog> (vm, index); }
-	template <> inline int Return<ScriptLog *>(HSQUIRRELVM vm, ScriptLog *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Log", res, NULL, DefSQDestructorCallback<ScriptLog>, true); return 1; }
+	template <> inline void Push<ScriptLog *> (HSQUIRRELVM vm, ScriptLog *res) { PushObj<ScriptLog> (vm, res, "Log", true); }
 } // namespace SQConvert

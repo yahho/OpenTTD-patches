@@ -17,5 +17,5 @@ namespace SQConvert {
 	template <> inline       ScriptCargoMonitor &GetParam<ScriptCargoMonitor&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptCargoMonitor> (vm, index); }
 	template <> inline const ScriptCargoMonitor *GetParam<const ScriptCargoMonitor*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptCargoMonitor> (vm, index); }
 	template <> inline const ScriptCargoMonitor &GetParam<const ScriptCargoMonitor&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptCargoMonitor> (vm, index); }
-	template <> inline int Return<ScriptCargoMonitor *>(HSQUIRRELVM vm, ScriptCargoMonitor *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "CargoMonitor", res, NULL, DefSQDestructorCallback<ScriptCargoMonitor>, true); return 1; }
+	template <> inline void Push<ScriptCargoMonitor *> (HSQUIRRELVM vm, ScriptCargoMonitor *res) { PushObj<ScriptCargoMonitor> (vm, res, "CargoMonitor", true); }
 } // namespace SQConvert

@@ -14,14 +14,14 @@
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
 	template <> inline ScriptStation::ErrorMessages GetParam<ScriptStation::ErrorMessages> (HSQUIRRELVM vm, int index) { return (ScriptStation::ErrorMessages) GetInteger (vm, index); }
-	template <> inline int Return<ScriptStation::ErrorMessages>(HSQUIRRELVM vm, ScriptStation::ErrorMessages res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptStation::ErrorMessages> (HSQUIRRELVM vm, ScriptStation::ErrorMessages res) { sq_pushinteger (vm, (int32)res); }
 	template <> inline ScriptStation::StationType GetParam<ScriptStation::StationType> (HSQUIRRELVM vm, int index) { return (ScriptStation::StationType) GetInteger (vm, index); }
-	template <> inline int Return<ScriptStation::StationType>(HSQUIRRELVM vm, ScriptStation::StationType res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptStation::StationType> (HSQUIRRELVM vm, ScriptStation::StationType res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptStation to be used as Squirrel parameter */
 	template <> inline       ScriptStation *GetParam<ScriptStation*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStation> (vm, index); }
 	template <> inline       ScriptStation &GetParam<ScriptStation&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStation> (vm, index); }
 	template <> inline const ScriptStation *GetParam<const ScriptStation*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStation> (vm, index); }
 	template <> inline const ScriptStation &GetParam<const ScriptStation&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStation> (vm, index); }
-	template <> inline int Return<ScriptStation *>(HSQUIRRELVM vm, ScriptStation *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Station", res, NULL, DefSQDestructorCallback<ScriptStation>, true); return 1; }
+	template <> inline void Push<ScriptStation *> (HSQUIRRELVM vm, ScriptStation *res) { PushObj<ScriptStation> (vm, res, "Station", true); }
 } // namespace SQConvert

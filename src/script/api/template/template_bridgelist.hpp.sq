@@ -17,7 +17,7 @@ namespace SQConvert {
 	template <> inline       ScriptBridgeList &GetParam<ScriptBridgeList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptBridgeList> (vm, index); }
 	template <> inline const ScriptBridgeList *GetParam<const ScriptBridgeList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptBridgeList> (vm, index); }
 	template <> inline const ScriptBridgeList &GetParam<const ScriptBridgeList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptBridgeList> (vm, index); }
-	template <> inline int Return<ScriptBridgeList *>(HSQUIRRELVM vm, ScriptBridgeList *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "BridgeList", res, NULL, DefSQDestructorCallback<ScriptBridgeList>, true); return 1; }
+	template <> inline void Push<ScriptBridgeList *> (HSQUIRRELVM vm, ScriptBridgeList *res) { PushObj<ScriptBridgeList> (vm, res, "BridgeList", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
@@ -26,5 +26,5 @@ namespace SQConvert {
 	template <> inline       ScriptBridgeList_Length &GetParam<ScriptBridgeList_Length&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptBridgeList_Length> (vm, index); }
 	template <> inline const ScriptBridgeList_Length *GetParam<const ScriptBridgeList_Length*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptBridgeList_Length> (vm, index); }
 	template <> inline const ScriptBridgeList_Length &GetParam<const ScriptBridgeList_Length&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptBridgeList_Length> (vm, index); }
-	template <> inline int Return<ScriptBridgeList_Length *>(HSQUIRRELVM vm, ScriptBridgeList_Length *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "BridgeList_Length", res, NULL, DefSQDestructorCallback<ScriptBridgeList_Length>, true); return 1; }
+	template <> inline void Push<ScriptBridgeList_Length *> (HSQUIRRELVM vm, ScriptBridgeList_Length *res) { PushObj<ScriptBridgeList_Length> (vm, res, "BridgeList_Length", true); }
 } // namespace SQConvert

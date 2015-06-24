@@ -17,7 +17,7 @@ namespace SQConvert {
 	template <> inline       ScriptVehicleList &GetParam<ScriptVehicleList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptVehicleList> (vm, index); }
 	template <> inline const ScriptVehicleList *GetParam<const ScriptVehicleList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptVehicleList> (vm, index); }
 	template <> inline const ScriptVehicleList &GetParam<const ScriptVehicleList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptVehicleList> (vm, index); }
-	template <> inline int Return<ScriptVehicleList *>(HSQUIRRELVM vm, ScriptVehicleList *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "VehicleList", res, NULL, DefSQDestructorCallback<ScriptVehicleList>, true); return 1; }
+	template <> inline void Push<ScriptVehicleList *> (HSQUIRRELVM vm, ScriptVehicleList *res) { PushObj<ScriptVehicleList> (vm, res, "VehicleList", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
@@ -26,7 +26,7 @@ namespace SQConvert {
 	template <> inline       ScriptVehicleList_Station &GetParam<ScriptVehicleList_Station&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptVehicleList_Station> (vm, index); }
 	template <> inline const ScriptVehicleList_Station *GetParam<const ScriptVehicleList_Station*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptVehicleList_Station> (vm, index); }
 	template <> inline const ScriptVehicleList_Station &GetParam<const ScriptVehicleList_Station&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptVehicleList_Station> (vm, index); }
-	template <> inline int Return<ScriptVehicleList_Station *>(HSQUIRRELVM vm, ScriptVehicleList_Station *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "VehicleList_Station", res, NULL, DefSQDestructorCallback<ScriptVehicleList_Station>, true); return 1; }
+	template <> inline void Push<ScriptVehicleList_Station *> (HSQUIRRELVM vm, ScriptVehicleList_Station *res) { PushObj<ScriptVehicleList_Station> (vm, res, "VehicleList_Station", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
@@ -35,7 +35,7 @@ namespace SQConvert {
 	template <> inline       ScriptVehicleList_Depot &GetParam<ScriptVehicleList_Depot&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptVehicleList_Depot> (vm, index); }
 	template <> inline const ScriptVehicleList_Depot *GetParam<const ScriptVehicleList_Depot*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptVehicleList_Depot> (vm, index); }
 	template <> inline const ScriptVehicleList_Depot &GetParam<const ScriptVehicleList_Depot&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptVehicleList_Depot> (vm, index); }
-	template <> inline int Return<ScriptVehicleList_Depot *>(HSQUIRRELVM vm, ScriptVehicleList_Depot *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "VehicleList_Depot", res, NULL, DefSQDestructorCallback<ScriptVehicleList_Depot>, true); return 1; }
+	template <> inline void Push<ScriptVehicleList_Depot *> (HSQUIRRELVM vm, ScriptVehicleList_Depot *res) { PushObj<ScriptVehicleList_Depot> (vm, res, "VehicleList_Depot", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
@@ -44,7 +44,7 @@ namespace SQConvert {
 	template <> inline       ScriptVehicleList_SharedOrders &GetParam<ScriptVehicleList_SharedOrders&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptVehicleList_SharedOrders> (vm, index); }
 	template <> inline const ScriptVehicleList_SharedOrders *GetParam<const ScriptVehicleList_SharedOrders*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptVehicleList_SharedOrders> (vm, index); }
 	template <> inline const ScriptVehicleList_SharedOrders &GetParam<const ScriptVehicleList_SharedOrders&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptVehicleList_SharedOrders> (vm, index); }
-	template <> inline int Return<ScriptVehicleList_SharedOrders *>(HSQUIRRELVM vm, ScriptVehicleList_SharedOrders *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "VehicleList_SharedOrders", res, NULL, DefSQDestructorCallback<ScriptVehicleList_SharedOrders>, true); return 1; }
+	template <> inline void Push<ScriptVehicleList_SharedOrders *> (HSQUIRRELVM vm, ScriptVehicleList_SharedOrders *res) { PushObj<ScriptVehicleList_SharedOrders> (vm, res, "VehicleList_SharedOrders", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
@@ -53,7 +53,7 @@ namespace SQConvert {
 	template <> inline       ScriptVehicleList_Group &GetParam<ScriptVehicleList_Group&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptVehicleList_Group> (vm, index); }
 	template <> inline const ScriptVehicleList_Group *GetParam<const ScriptVehicleList_Group*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptVehicleList_Group> (vm, index); }
 	template <> inline const ScriptVehicleList_Group &GetParam<const ScriptVehicleList_Group&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptVehicleList_Group> (vm, index); }
-	template <> inline int Return<ScriptVehicleList_Group *>(HSQUIRRELVM vm, ScriptVehicleList_Group *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "VehicleList_Group", res, NULL, DefSQDestructorCallback<ScriptVehicleList_Group>, true); return 1; }
+	template <> inline void Push<ScriptVehicleList_Group *> (HSQUIRRELVM vm, ScriptVehicleList_Group *res) { PushObj<ScriptVehicleList_Group> (vm, res, "VehicleList_Group", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
@@ -62,5 +62,5 @@ namespace SQConvert {
 	template <> inline       ScriptVehicleList_DefaultGroup &GetParam<ScriptVehicleList_DefaultGroup&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptVehicleList_DefaultGroup> (vm, index); }
 	template <> inline const ScriptVehicleList_DefaultGroup *GetParam<const ScriptVehicleList_DefaultGroup*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptVehicleList_DefaultGroup> (vm, index); }
 	template <> inline const ScriptVehicleList_DefaultGroup &GetParam<const ScriptVehicleList_DefaultGroup&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptVehicleList_DefaultGroup> (vm, index); }
-	template <> inline int Return<ScriptVehicleList_DefaultGroup *>(HSQUIRRELVM vm, ScriptVehicleList_DefaultGroup *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "VehicleList_DefaultGroup", res, NULL, DefSQDestructorCallback<ScriptVehicleList_DefaultGroup>, true); return 1; }
+	template <> inline void Push<ScriptVehicleList_DefaultGroup *> (HSQUIRRELVM vm, ScriptVehicleList_DefaultGroup *res) { PushObj<ScriptVehicleList_DefaultGroup> (vm, res, "VehicleList_DefaultGroup", true); }
 } // namespace SQConvert

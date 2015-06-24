@@ -14,16 +14,16 @@
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
 	template <> inline ScriptStoryPage::StoryPageID GetParam<ScriptStoryPage::StoryPageID> (HSQUIRRELVM vm, int index) { return (ScriptStoryPage::StoryPageID) GetInteger (vm, index); }
-	template <> inline int Return<ScriptStoryPage::StoryPageID>(HSQUIRRELVM vm, ScriptStoryPage::StoryPageID res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptStoryPage::StoryPageID> (HSQUIRRELVM vm, ScriptStoryPage::StoryPageID res) { sq_pushinteger (vm, (int32)res); }
 	template <> inline ScriptStoryPage::StoryPageElementID GetParam<ScriptStoryPage::StoryPageElementID> (HSQUIRRELVM vm, int index) { return (ScriptStoryPage::StoryPageElementID) GetInteger (vm, index); }
-	template <> inline int Return<ScriptStoryPage::StoryPageElementID>(HSQUIRRELVM vm, ScriptStoryPage::StoryPageElementID res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptStoryPage::StoryPageElementID> (HSQUIRRELVM vm, ScriptStoryPage::StoryPageElementID res) { sq_pushinteger (vm, (int32)res); }
 	template <> inline ScriptStoryPage::StoryPageElementType GetParam<ScriptStoryPage::StoryPageElementType> (HSQUIRRELVM vm, int index) { return (ScriptStoryPage::StoryPageElementType) GetInteger (vm, index); }
-	template <> inline int Return<ScriptStoryPage::StoryPageElementType>(HSQUIRRELVM vm, ScriptStoryPage::StoryPageElementType res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptStoryPage::StoryPageElementType> (HSQUIRRELVM vm, ScriptStoryPage::StoryPageElementType res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptStoryPage to be used as Squirrel parameter */
 	template <> inline       ScriptStoryPage *GetParam<ScriptStoryPage*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStoryPage> (vm, index); }
 	template <> inline       ScriptStoryPage &GetParam<ScriptStoryPage&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStoryPage> (vm, index); }
 	template <> inline const ScriptStoryPage *GetParam<const ScriptStoryPage*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStoryPage> (vm, index); }
 	template <> inline const ScriptStoryPage &GetParam<const ScriptStoryPage&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStoryPage> (vm, index); }
-	template <> inline int Return<ScriptStoryPage *>(HSQUIRRELVM vm, ScriptStoryPage *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "StoryPage", res, NULL, DefSQDestructorCallback<ScriptStoryPage>, true); return 1; }
+	template <> inline void Push<ScriptStoryPage *> (HSQUIRRELVM vm, ScriptStoryPage *res) { PushObj<ScriptStoryPage> (vm, res, "StoryPage", true); }
 } // namespace SQConvert

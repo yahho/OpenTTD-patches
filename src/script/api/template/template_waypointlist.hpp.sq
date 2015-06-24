@@ -17,7 +17,7 @@ namespace SQConvert {
 	template <> inline       ScriptWaypointList &GetParam<ScriptWaypointList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptWaypointList> (vm, index); }
 	template <> inline const ScriptWaypointList *GetParam<const ScriptWaypointList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptWaypointList> (vm, index); }
 	template <> inline const ScriptWaypointList &GetParam<const ScriptWaypointList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptWaypointList> (vm, index); }
-	template <> inline int Return<ScriptWaypointList *>(HSQUIRRELVM vm, ScriptWaypointList *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "WaypointList", res, NULL, DefSQDestructorCallback<ScriptWaypointList>, true); return 1; }
+	template <> inline void Push<ScriptWaypointList *> (HSQUIRRELVM vm, ScriptWaypointList *res) { PushObj<ScriptWaypointList> (vm, res, "WaypointList", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
@@ -26,5 +26,5 @@ namespace SQConvert {
 	template <> inline       ScriptWaypointList_Vehicle &GetParam<ScriptWaypointList_Vehicle&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptWaypointList_Vehicle> (vm, index); }
 	template <> inline const ScriptWaypointList_Vehicle *GetParam<const ScriptWaypointList_Vehicle*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptWaypointList_Vehicle> (vm, index); }
 	template <> inline const ScriptWaypointList_Vehicle &GetParam<const ScriptWaypointList_Vehicle&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptWaypointList_Vehicle> (vm, index); }
-	template <> inline int Return<ScriptWaypointList_Vehicle *>(HSQUIRRELVM vm, ScriptWaypointList_Vehicle *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "WaypointList_Vehicle", res, NULL, DefSQDestructorCallback<ScriptWaypointList_Vehicle>, true); return 1; }
+	template <> inline void Push<ScriptWaypointList_Vehicle *> (HSQUIRRELVM vm, ScriptWaypointList_Vehicle *res) { PushObj<ScriptWaypointList_Vehicle> (vm, res, "WaypointList_Vehicle", true); }
 } // namespace SQConvert

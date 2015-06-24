@@ -17,5 +17,5 @@ namespace SQConvert {
 	template <> inline       ScriptViewport &GetParam<ScriptViewport&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptViewport> (vm, index); }
 	template <> inline const ScriptViewport *GetParam<const ScriptViewport*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptViewport> (vm, index); }
 	template <> inline const ScriptViewport &GetParam<const ScriptViewport&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptViewport> (vm, index); }
-	template <> inline int Return<ScriptViewport *>(HSQUIRRELVM vm, ScriptViewport *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Viewport", res, NULL, DefSQDestructorCallback<ScriptViewport>, true); return 1; }
+	template <> inline void Push<ScriptViewport *> (HSQUIRRELVM vm, ScriptViewport *res) { PushObj<ScriptViewport> (vm, res, "Viewport", true); }
 } // namespace SQConvert

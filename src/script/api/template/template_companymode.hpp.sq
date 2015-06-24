@@ -17,5 +17,5 @@ namespace SQConvert {
 	template <> inline       ScriptCompanyMode &GetParam<ScriptCompanyMode&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptCompanyMode> (vm, index); }
 	template <> inline const ScriptCompanyMode *GetParam<const ScriptCompanyMode*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptCompanyMode> (vm, index); }
 	template <> inline const ScriptCompanyMode &GetParam<const ScriptCompanyMode&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptCompanyMode> (vm, index); }
-	template <> inline int Return<ScriptCompanyMode *>(HSQUIRRELVM vm, ScriptCompanyMode *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "CompanyMode", res, NULL, DefSQDestructorCallback<ScriptCompanyMode>, true); return 1; }
+	template <> inline void Push<ScriptCompanyMode *> (HSQUIRRELVM vm, ScriptCompanyMode *res) { PushObj<ScriptCompanyMode> (vm, res, "CompanyMode", true); }
 } // namespace SQConvert

@@ -63,26 +63,6 @@ namespace SQConvert {
 	template <class Tcls, typename Tretval, typename Targ1, typename Targ2, typename Targ3, typename Targ4, typename Targ5, typename Targ6, typename Targ7, typename Targ8, typename Targ9, typename Targ10> struct HasVoidReturnT<Tretval (Tcls::*)(Targ1, Targ2, Targ3, Targ4, Targ5, Targ6, Targ7, Targ8, Targ9, Targ10)> : IsVoidT<Tretval> {};
 
 
-	/**
-	 * To return a value to squirrel, we call this function. It converts to the right format.
-	 */
-	template <typename T> static int Return(HSQUIRRELVM vm, T t);
-
-	template <> inline int Return<uint8>       (HSQUIRRELVM vm, uint8 res)       { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline int Return<uint16>      (HSQUIRRELVM vm, uint16 res)      { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline int Return<uint32>      (HSQUIRRELVM vm, uint32 res)      { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline int Return<int8>        (HSQUIRRELVM vm, int8 res)        { sq_pushinteger(vm, res); return 1; }
-	template <> inline int Return<int16>       (HSQUIRRELVM vm, int16 res)       { sq_pushinteger(vm, res); return 1; }
-	template <> inline int Return<int32>       (HSQUIRRELVM vm, int32 res)       { sq_pushinteger(vm, res); return 1; }
-	template <> inline int Return<int64>       (HSQUIRRELVM vm, int64 res)       { sq_pushinteger(vm, res); return 1; }
-	template <> inline int Return<Money>       (HSQUIRRELVM vm, Money res)       { sq_pushinteger(vm, res); return 1; }
-	template <> inline int Return<bool>        (HSQUIRRELVM vm, bool res)        { sq_pushbool   (vm, res); return 1; }
-	template <> inline int Return<char *>      (HSQUIRRELVM vm, char *res)       { if (res == NULL) sq_pushnull(vm); else { sq_pushstring(vm, res, -1); free(res); } return 1; }
-	template <> inline int Return<const char *>(HSQUIRRELVM vm, const char *res) { if (res == NULL) sq_pushnull(vm); else { sq_pushstring(vm, res, -1); } return 1; }
-	template <> inline int Return<void *>      (HSQUIRRELVM vm, void *res)       { sq_pushuserpointer(vm, res); return 1; }
-	template <> inline int Return<HSQOBJECT>   (HSQUIRRELVM vm, HSQOBJECT res)   { sq_pushobject(vm, res); return 1; }
-
-
 	/** Helper function to get an integer from squirrel. */
 	static inline SQInteger GetInteger (HSQUIRRELVM vm, int index)
 	{
@@ -601,6 +581,53 @@ namespace SQConvert {
 	};
 
 
+	/** Push a value onto the squirrel stack. */
+	template <typename T> void Push (HSQUIRRELVM vm, T t);
+
+	template <> inline void Push<uint8>       (HSQUIRRELVM vm, uint8 res)       { sq_pushinteger (vm, (int32)res); }
+	template <> inline void Push<uint16>      (HSQUIRRELVM vm, uint16 res)      { sq_pushinteger (vm, (int32)res); }
+	template <> inline void Push<uint32>      (HSQUIRRELVM vm, uint32 res)      { sq_pushinteger (vm, (int32)res); }
+	template <> inline void Push<int8>        (HSQUIRRELVM vm, int8 res)        { sq_pushinteger (vm, res); }
+	template <> inline void Push<int16>       (HSQUIRRELVM vm, int16 res)       { sq_pushinteger (vm, res); }
+	template <> inline void Push<int32>       (HSQUIRRELVM vm, int32 res)       { sq_pushinteger (vm, res); }
+	template <> inline void Push<int64>       (HSQUIRRELVM vm, int64 res)       { sq_pushinteger (vm, res); }
+	template <> inline void Push<Money>       (HSQUIRRELVM vm, Money res)       { sq_pushinteger (vm, res); }
+	template <> inline void Push<bool>        (HSQUIRRELVM vm, bool res)        { sq_pushbool    (vm, res); }
+
+	template <>
+	inline void Push<char *> (HSQUIRRELVM vm, char *res)
+	{
+		if (res == NULL) {
+			sq_pushnull (vm);
+		} else {
+			sq_pushstring (vm, res, -1);
+			free(res);
+		}
+	}
+
+	template <>
+	inline void Push<const char *> (HSQUIRRELVM vm, const char *res)
+	{
+		if (res == NULL) {
+			sq_pushnull (vm);
+		} else {
+			sq_pushstring (vm, res, -1);
+		}
+	}
+
+	template <>
+	inline void Push<void *> (HSQUIRRELVM vm, void *res)
+	{
+		sq_pushuserpointer (vm, res);
+	}
+
+	template <>
+	inline void Push<HSQOBJECT> (HSQUIRRELVM vm, HSQOBJECT res)
+	{
+		sq_pushobject (vm, res);
+	}
+
+
 	/** Helper class to return a value to squirrel. */
 	template <typename R>
 	struct SQRetVal {
@@ -619,7 +646,8 @@ namespace SQConvert {
 
 		int Return (HSQUIRRELVM vm) const
 		{
-			return SQConvert::Return (vm, this->value);
+			Push (vm, this->value);
+			return 1;
 		}
 	};
 
@@ -834,6 +862,20 @@ namespace SQConvert {
 			return 0;
 		} catch (SQInteger e) {
 			return e;
+		}
+	}
+
+
+	/** Helper function to implement Push<T*> for objects. */
+	template <typename T>
+	void PushObj (HSQUIRRELVM vm, T *res, const char *realname, bool addref = true)
+	{
+		if (res == NULL) {
+			sq_pushnull (vm);
+		} else {
+			if (addref) res->AddRef();
+			Squirrel::CreateClassInstanceVM (vm, realname, res,
+					NULL, DefSQDestructorCallback<T>, true);
 		}
 	}
 

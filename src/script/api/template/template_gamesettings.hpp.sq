@@ -17,5 +17,5 @@ namespace SQConvert {
 	template <> inline       ScriptGameSettings &GetParam<ScriptGameSettings&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptGameSettings> (vm, index); }
 	template <> inline const ScriptGameSettings *GetParam<const ScriptGameSettings*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptGameSettings> (vm, index); }
 	template <> inline const ScriptGameSettings &GetParam<const ScriptGameSettings&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptGameSettings> (vm, index); }
-	template <> inline int Return<ScriptGameSettings *>(HSQUIRRELVM vm, ScriptGameSettings *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "GameSettings", res, NULL, DefSQDestructorCallback<ScriptGameSettings>, true); return 1; }
+	template <> inline void Push<ScriptGameSettings *> (HSQUIRRELVM vm, ScriptGameSettings *res) { PushObj<ScriptGameSettings> (vm, res, "GameSettings", true); }
 } // namespace SQConvert

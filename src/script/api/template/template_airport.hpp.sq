@@ -14,14 +14,14 @@
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
 	template <> inline ScriptAirport::AirportType GetParam<ScriptAirport::AirportType> (HSQUIRRELVM vm, int index) { return (ScriptAirport::AirportType) GetInteger (vm, index); }
-	template <> inline int Return<ScriptAirport::AirportType>(HSQUIRRELVM vm, ScriptAirport::AirportType res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptAirport::AirportType> (HSQUIRRELVM vm, ScriptAirport::AirportType res) { sq_pushinteger (vm, (int32)res); }
 	template <> inline ScriptAirport::PlaneType GetParam<ScriptAirport::PlaneType> (HSQUIRRELVM vm, int index) { return (ScriptAirport::PlaneType) GetInteger (vm, index); }
-	template <> inline int Return<ScriptAirport::PlaneType>(HSQUIRRELVM vm, ScriptAirport::PlaneType res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptAirport::PlaneType> (HSQUIRRELVM vm, ScriptAirport::PlaneType res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptAirport to be used as Squirrel parameter */
 	template <> inline       ScriptAirport *GetParam<ScriptAirport*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptAirport> (vm, index); }
 	template <> inline       ScriptAirport &GetParam<ScriptAirport&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptAirport> (vm, index); }
 	template <> inline const ScriptAirport *GetParam<const ScriptAirport*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptAirport> (vm, index); }
 	template <> inline const ScriptAirport &GetParam<const ScriptAirport&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptAirport> (vm, index); }
-	template <> inline int Return<ScriptAirport *>(HSQUIRRELVM vm, ScriptAirport *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Airport", res, NULL, DefSQDestructorCallback<ScriptAirport>, true); return 1; }
+	template <> inline void Push<ScriptAirport *> (HSQUIRRELVM vm, ScriptAirport *res) { PushObj<ScriptAirport> (vm, res, "Airport", true); }
 } // namespace SQConvert

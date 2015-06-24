@@ -14,14 +14,14 @@
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
 	template <> inline ScriptWaypoint::ErrorMessages GetParam<ScriptWaypoint::ErrorMessages> (HSQUIRRELVM vm, int index) { return (ScriptWaypoint::ErrorMessages) GetInteger (vm, index); }
-	template <> inline int Return<ScriptWaypoint::ErrorMessages>(HSQUIRRELVM vm, ScriptWaypoint::ErrorMessages res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptWaypoint::ErrorMessages> (HSQUIRRELVM vm, ScriptWaypoint::ErrorMessages res) { sq_pushinteger (vm, (int32)res); }
 	template <> inline ScriptWaypoint::WaypointType GetParam<ScriptWaypoint::WaypointType> (HSQUIRRELVM vm, int index) { return (ScriptWaypoint::WaypointType) GetInteger (vm, index); }
-	template <> inline int Return<ScriptWaypoint::WaypointType>(HSQUIRRELVM vm, ScriptWaypoint::WaypointType res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptWaypoint::WaypointType> (HSQUIRRELVM vm, ScriptWaypoint::WaypointType res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptWaypoint to be used as Squirrel parameter */
 	template <> inline       ScriptWaypoint *GetParam<ScriptWaypoint*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptWaypoint> (vm, index); }
 	template <> inline       ScriptWaypoint &GetParam<ScriptWaypoint&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptWaypoint> (vm, index); }
 	template <> inline const ScriptWaypoint *GetParam<const ScriptWaypoint*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptWaypoint> (vm, index); }
 	template <> inline const ScriptWaypoint &GetParam<const ScriptWaypoint&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptWaypoint> (vm, index); }
-	template <> inline int Return<ScriptWaypoint *>(HSQUIRRELVM vm, ScriptWaypoint *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Waypoint", res, NULL, DefSQDestructorCallback<ScriptWaypoint>, true); return 1; }
+	template <> inline void Push<ScriptWaypoint *> (HSQUIRRELVM vm, ScriptWaypoint *res) { PushObj<ScriptWaypoint> (vm, res, "Waypoint", true); }
 } // namespace SQConvert

@@ -14,18 +14,18 @@
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
 	template <> inline ScriptCargo::CargoClass GetParam<ScriptCargo::CargoClass> (HSQUIRRELVM vm, int index) { return (ScriptCargo::CargoClass) GetInteger (vm, index); }
-	template <> inline int Return<ScriptCargo::CargoClass>(HSQUIRRELVM vm, ScriptCargo::CargoClass res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptCargo::CargoClass> (HSQUIRRELVM vm, ScriptCargo::CargoClass res) { sq_pushinteger (vm, (int32)res); }
 	template <> inline ScriptCargo::TownEffect GetParam<ScriptCargo::TownEffect> (HSQUIRRELVM vm, int index) { return (ScriptCargo::TownEffect) GetInteger (vm, index); }
-	template <> inline int Return<ScriptCargo::TownEffect>(HSQUIRRELVM vm, ScriptCargo::TownEffect res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptCargo::TownEffect> (HSQUIRRELVM vm, ScriptCargo::TownEffect res) { sq_pushinteger (vm, (int32)res); }
 	template <> inline ScriptCargo::SpecialCargoID GetParam<ScriptCargo::SpecialCargoID> (HSQUIRRELVM vm, int index) { return (ScriptCargo::SpecialCargoID) GetInteger (vm, index); }
-	template <> inline int Return<ScriptCargo::SpecialCargoID>(HSQUIRRELVM vm, ScriptCargo::SpecialCargoID res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptCargo::SpecialCargoID> (HSQUIRRELVM vm, ScriptCargo::SpecialCargoID res) { sq_pushinteger (vm, (int32)res); }
 	template <> inline ScriptCargo::DistributionType GetParam<ScriptCargo::DistributionType> (HSQUIRRELVM vm, int index) { return (ScriptCargo::DistributionType) GetInteger (vm, index); }
-	template <> inline int Return<ScriptCargo::DistributionType>(HSQUIRRELVM vm, ScriptCargo::DistributionType res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptCargo::DistributionType> (HSQUIRRELVM vm, ScriptCargo::DistributionType res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptCargo to be used as Squirrel parameter */
 	template <> inline       ScriptCargo *GetParam<ScriptCargo*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptCargo> (vm, index); }
 	template <> inline       ScriptCargo &GetParam<ScriptCargo&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptCargo> (vm, index); }
 	template <> inline const ScriptCargo *GetParam<const ScriptCargo*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptCargo> (vm, index); }
 	template <> inline const ScriptCargo &GetParam<const ScriptCargo&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptCargo> (vm, index); }
-	template <> inline int Return<ScriptCargo *>(HSQUIRRELVM vm, ScriptCargo *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Cargo", res, NULL, DefSQDestructorCallback<ScriptCargo>, true); return 1; }
+	template <> inline void Push<ScriptCargo *> (HSQUIRRELVM vm, ScriptCargo *res) { PushObj<ScriptCargo> (vm, res, "Cargo", true); }
 } // namespace SQConvert

@@ -17,5 +17,5 @@ namespace SQConvert {
 	template <> inline       ScriptIndustryTypeList &GetParam<ScriptIndustryTypeList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptIndustryTypeList> (vm, index); }
 	template <> inline const ScriptIndustryTypeList *GetParam<const ScriptIndustryTypeList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptIndustryTypeList> (vm, index); }
 	template <> inline const ScriptIndustryTypeList &GetParam<const ScriptIndustryTypeList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptIndustryTypeList> (vm, index); }
-	template <> inline int Return<ScriptIndustryTypeList *>(HSQUIRRELVM vm, ScriptIndustryTypeList *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "IndustryTypeList", res, NULL, DefSQDestructorCallback<ScriptIndustryTypeList>, true); return 1; }
+	template <> inline void Push<ScriptIndustryTypeList *> (HSQUIRRELVM vm, ScriptIndustryTypeList *res) { PushObj<ScriptIndustryTypeList> (vm, res, "IndustryTypeList", true); }
 } // namespace SQConvert

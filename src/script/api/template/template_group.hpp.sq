@@ -14,12 +14,12 @@
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
 	template <> inline ScriptGroup::GroupID GetParam<ScriptGroup::GroupID> (HSQUIRRELVM vm, int index) { return (ScriptGroup::GroupID) GetInteger (vm, index); }
-	template <> inline int Return<ScriptGroup::GroupID>(HSQUIRRELVM vm, ScriptGroup::GroupID res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptGroup::GroupID> (HSQUIRRELVM vm, ScriptGroup::GroupID res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptGroup to be used as Squirrel parameter */
 	template <> inline       ScriptGroup *GetParam<ScriptGroup*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptGroup> (vm, index); }
 	template <> inline       ScriptGroup &GetParam<ScriptGroup&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptGroup> (vm, index); }
 	template <> inline const ScriptGroup *GetParam<const ScriptGroup*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptGroup> (vm, index); }
 	template <> inline const ScriptGroup &GetParam<const ScriptGroup&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptGroup> (vm, index); }
-	template <> inline int Return<ScriptGroup *>(HSQUIRRELVM vm, ScriptGroup *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Group", res, NULL, DefSQDestructorCallback<ScriptGroup>, true); return 1; }
+	template <> inline void Push<ScriptGroup *> (HSQUIRRELVM vm, ScriptGroup *res) { PushObj<ScriptGroup> (vm, res, "Group", true); }
 } // namespace SQConvert

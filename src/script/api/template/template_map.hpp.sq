@@ -17,5 +17,5 @@ namespace SQConvert {
 	template <> inline       ScriptMap &GetParam<ScriptMap&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptMap> (vm, index); }
 	template <> inline const ScriptMap *GetParam<const ScriptMap*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptMap> (vm, index); }
 	template <> inline const ScriptMap &GetParam<const ScriptMap&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptMap> (vm, index); }
-	template <> inline int Return<ScriptMap *>(HSQUIRRELVM vm, ScriptMap *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Map", res, NULL, DefSQDestructorCallback<ScriptMap>, true); return 1; }
+	template <> inline void Push<ScriptMap *> (HSQUIRRELVM vm, ScriptMap *res) { PushObj<ScriptMap> (vm, res, "Map", true); }
 } // namespace SQConvert

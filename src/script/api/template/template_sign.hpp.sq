@@ -14,12 +14,12 @@
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
 	template <> inline ScriptSign::ErrorMessages GetParam<ScriptSign::ErrorMessages> (HSQUIRRELVM vm, int index) { return (ScriptSign::ErrorMessages) GetInteger (vm, index); }
-	template <> inline int Return<ScriptSign::ErrorMessages>(HSQUIRRELVM vm, ScriptSign::ErrorMessages res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptSign::ErrorMessages> (HSQUIRRELVM vm, ScriptSign::ErrorMessages res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptSign to be used as Squirrel parameter */
 	template <> inline       ScriptSign *GetParam<ScriptSign*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptSign> (vm, index); }
 	template <> inline       ScriptSign &GetParam<ScriptSign&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptSign> (vm, index); }
 	template <> inline const ScriptSign *GetParam<const ScriptSign*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptSign> (vm, index); }
 	template <> inline const ScriptSign &GetParam<const ScriptSign&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptSign> (vm, index); }
-	template <> inline int Return<ScriptSign *>(HSQUIRRELVM vm, ScriptSign *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Sign", res, NULL, DefSQDestructorCallback<ScriptSign>, true); return 1; }
+	template <> inline void Push<ScriptSign *> (HSQUIRRELVM vm, ScriptSign *res) { PushObj<ScriptSign> (vm, res, "Sign", true); }
 } // namespace SQConvert

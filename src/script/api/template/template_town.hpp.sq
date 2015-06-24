@@ -14,20 +14,20 @@
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
 	template <> inline ScriptTown::TownAction GetParam<ScriptTown::TownAction> (HSQUIRRELVM vm, int index) { return (ScriptTown::TownAction) GetInteger (vm, index); }
-	template <> inline int Return<ScriptTown::TownAction>(HSQUIRRELVM vm, ScriptTown::TownAction res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptTown::TownAction> (HSQUIRRELVM vm, ScriptTown::TownAction res) { sq_pushinteger (vm, (int32)res); }
 	template <> inline ScriptTown::TownRating GetParam<ScriptTown::TownRating> (HSQUIRRELVM vm, int index) { return (ScriptTown::TownRating) GetInteger (vm, index); }
-	template <> inline int Return<ScriptTown::TownRating>(HSQUIRRELVM vm, ScriptTown::TownRating res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptTown::TownRating> (HSQUIRRELVM vm, ScriptTown::TownRating res) { sq_pushinteger (vm, (int32)res); }
 	template <> inline ScriptTown::RoadLayout GetParam<ScriptTown::RoadLayout> (HSQUIRRELVM vm, int index) { return (ScriptTown::RoadLayout) GetInteger (vm, index); }
-	template <> inline int Return<ScriptTown::RoadLayout>(HSQUIRRELVM vm, ScriptTown::RoadLayout res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptTown::RoadLayout> (HSQUIRRELVM vm, ScriptTown::RoadLayout res) { sq_pushinteger (vm, (int32)res); }
 	template <> inline ScriptTown::TownSize GetParam<ScriptTown::TownSize> (HSQUIRRELVM vm, int index) { return (ScriptTown::TownSize) GetInteger (vm, index); }
-	template <> inline int Return<ScriptTown::TownSize>(HSQUIRRELVM vm, ScriptTown::TownSize res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptTown::TownSize> (HSQUIRRELVM vm, ScriptTown::TownSize res) { sq_pushinteger (vm, (int32)res); }
 	template <> inline ScriptTown::TownGrowth GetParam<ScriptTown::TownGrowth> (HSQUIRRELVM vm, int index) { return (ScriptTown::TownGrowth) GetInteger (vm, index); }
-	template <> inline int Return<ScriptTown::TownGrowth>(HSQUIRRELVM vm, ScriptTown::TownGrowth res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline void Push<ScriptTown::TownGrowth> (HSQUIRRELVM vm, ScriptTown::TownGrowth res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptTown to be used as Squirrel parameter */
 	template <> inline       ScriptTown *GetParam<ScriptTown*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptTown> (vm, index); }
 	template <> inline       ScriptTown &GetParam<ScriptTown&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptTown> (vm, index); }
 	template <> inline const ScriptTown *GetParam<const ScriptTown*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptTown> (vm, index); }
 	template <> inline const ScriptTown &GetParam<const ScriptTown&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptTown> (vm, index); }
-	template <> inline int Return<ScriptTown *>(HSQUIRRELVM vm, ScriptTown *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "Town", res, NULL, DefSQDestructorCallback<ScriptTown>, true); return 1; }
+	template <> inline void Push<ScriptTown *> (HSQUIRRELVM vm, ScriptTown *res) { PushObj<ScriptTown> (vm, res, "Town", true); }
 } // namespace SQConvert

@@ -34,9 +34,9 @@ function dump_class_templates(name)
 	print "	template <> inline const " name " *GetParam<const " name "*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<" name "> (vm, index); }"
 	print "	template <> inline const " name " &GetParam<const " name "&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<" name "> (vm, index); }"
 	if (name == "ScriptEvent") {
-		print "	template <> inline int Return<" name " *>(HSQUIRRELVM vm, " name " *res) { if (res == NULL) { sq_pushnull(vm); return 1; } Squirrel::CreateClassInstanceVM(vm, \"" realname "\", res, NULL, DefSQDestructorCallback<" name ">, true); return 1; }"
+		print "	template <> inline void Push<" name " *> (HSQUIRRELVM vm, " name " *res) { PushObj<" name "> (vm, res, \"" realname "\", false); }"
 	} else if (name != "ScriptText") {
-		print "	template <> inline int Return<" name " *>(HSQUIRRELVM vm, " name " *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, \"" realname "\", res, NULL, DefSQDestructorCallback<" name ">, true); return 1; }"
+		print "	template <> inline void Push<" name " *> (HSQUIRRELVM vm, " name " *res) { PushObj<" name "> (vm, res, \"" realname "\", true); }"
 	}
 }
 
@@ -283,7 +283,7 @@ BEGIN {
 			print "	/* Allow enums to be used as Squirrel parameters */"
 			for (i = 1; i <= enum_size; i++) {
 				print "	template <> inline " enums[i] " GetParam<" enums[i] "> (HSQUIRRELVM vm, int index) { return (" enums[i] ") GetInteger (vm, index); }"
-				print "	template <> inline int Return<" enums[i] ">(HSQUIRRELVM vm, " enums[i] " res) { sq_pushinteger(vm, (int32)res); return 1; }"
+				print "	template <> inline void Push<" enums[i] "> (HSQUIRRELVM vm, " enums[i] " res) { sq_pushinteger (vm, (int32)res); }"
 				delete enums[i]
 			}
 		}

@@ -17,5 +17,5 @@ namespace SQConvert {
 	template <> inline       ScriptStoryPageElementList &GetParam<ScriptStoryPageElementList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStoryPageElementList> (vm, index); }
 	template <> inline const ScriptStoryPageElementList *GetParam<const ScriptStoryPageElementList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStoryPageElementList> (vm, index); }
 	template <> inline const ScriptStoryPageElementList &GetParam<const ScriptStoryPageElementList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStoryPageElementList> (vm, index); }
-	template <> inline int Return<ScriptStoryPageElementList *>(HSQUIRRELVM vm, ScriptStoryPageElementList *res) { if (res == NULL) { sq_pushnull(vm); return 1; } res->AddRef(); Squirrel::CreateClassInstanceVM(vm, "StoryPageElementList", res, NULL, DefSQDestructorCallback<ScriptStoryPageElementList>, true); return 1; }
+	template <> inline void Push<ScriptStoryPageElementList *> (HSQUIRRELVM vm, ScriptStoryPageElementList *res) { PushObj<ScriptStoryPageElementList> (vm, res, "StoryPageElementList", true); }
 } // namespace SQConvert
