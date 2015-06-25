@@ -165,7 +165,7 @@ namespace SQConvert {
 		{
 		}
 
-		void call (void (*func) (void))
+		void callv (void (*func) (void))
 		{
 			(*func) ();
 		}
@@ -177,13 +177,13 @@ namespace SQConvert {
 		}
 
 		template <class C>
-		void call (C *instance, void (C::*func) (void))
+		void callmv (C *instance, void (C::*func) (void))
 		{
 			(instance->*func) ();
 		}
 
 		template <class C, typename R>
-		R call (C *instance, R (C::*func) (void))
+		R callm (C *instance, R (C::*func) (void))
 		{
 			return (instance->*func) ();
 		}
@@ -206,7 +206,7 @@ namespace SQConvert {
 		{
 		}
 
-		void call (void (*func) (T1))
+		void callv (void (*func) (T1))
 		{
 			(*func) (this->param1);
 		}
@@ -218,13 +218,13 @@ namespace SQConvert {
 		}
 
 		template <class C>
-		void call (C *instance, void (C::*func) (T1))
+		void callmv (C *instance, void (C::*func) (T1))
 		{
 			(instance->*func) (this->param1);
 		}
 
 		template <class C, typename R>
-		R call (C *instance, R (C::*func) (T1))
+		R callm (C *instance, R (C::*func) (T1))
 		{
 			return (instance->*func) (this->param1);
 		}
@@ -247,7 +247,7 @@ namespace SQConvert {
 		{
 		}
 
-		void call (void (*func) (T1, T2))
+		void callv (void (*func) (T1, T2))
 		{
 			(*func) (this->param1, this->param2);
 		}
@@ -259,13 +259,13 @@ namespace SQConvert {
 		}
 
 		template <class C>
-		void call (C *instance, void (C::*func) (T1, T2))
+		void callmv (C *instance, void (C::*func) (T1, T2))
 		{
 			(instance->*func) (this->param1, this->param2);
 		}
 
 		template <class C, typename R>
-		R call (C *instance, R (C::*func) (T1, T2))
+		R callm (C *instance, R (C::*func) (T1, T2))
 		{
 			return (instance->*func) (this->param1, this->param2);
 		}
@@ -289,7 +289,7 @@ namespace SQConvert {
 		{
 		}
 
-		void call (void (*func) (T1, T2, T3))
+		void callv (void (*func) (T1, T2, T3))
 		{
 			(*func) (this->param1, this->param2,
 					this->param3);
@@ -303,14 +303,14 @@ namespace SQConvert {
 		}
 
 		template <class C>
-		void call (C *instance, void (C::*func) (T1, T2, T3))
+		void callmv (C *instance, void (C::*func) (T1, T2, T3))
 		{
 			(instance->*func) (this->param1, this->param2,
 					this->param3);
 		}
 
 		template <class C, typename R>
-		R call (C *instance, R (C::*func) (T1, T2, T3))
+		R callm (C *instance, R (C::*func) (T1, T2, T3))
 		{
 			return (instance->*func) (this->param1, this->param2,
 					this->param3);
@@ -336,7 +336,7 @@ namespace SQConvert {
 		{
 		}
 
-		void call (void (*func) (T1, T2, T3, T4))
+		void callv (void (*func) (T1, T2, T3, T4))
 		{
 			(*func) (this->param1, this->param2,
 					this->param3, this->param4);
@@ -350,14 +350,14 @@ namespace SQConvert {
 		}
 
 		template <class C>
-		void call (C *instance, void (C::*func) (T1, T2, T3, T4))
+		void callmv (C *instance, void (C::*func) (T1, T2, T3, T4))
 		{
 			(instance->*func) (this->param1, this->param2,
 					this->param3, this->param4);
 		}
 
 		template <class C, typename R>
-		R call (C *instance, R (C::*func) (T1, T2, T3, T4))
+		R callm (C *instance, R (C::*func) (T1, T2, T3, T4))
 		{
 			return (instance->*func) (this->param1, this->param2,
 					this->param3, this->param4);
@@ -383,7 +383,7 @@ namespace SQConvert {
 		{
 		}
 
-		void call (void (*func) (T1, T2, T3, T4, T5))
+		void callv (void (*func) (T1, T2, T3, T4, T5))
 		{
 			(*func) (this->param1, this->param2,
 					this->param3, this->param4,
@@ -399,7 +399,7 @@ namespace SQConvert {
 		}
 
 		template <class C>
-		void call (C *instance, void (C::*func) (T1, T2, T3, T4, T5))
+		void callmv (C *instance, void (C::*func) (T1, T2, T3, T4, T5))
 		{
 			(instance->*func) (this->param1, this->param2,
 					this->param3, this->param4,
@@ -407,7 +407,7 @@ namespace SQConvert {
 		}
 
 		template <class C, typename R>
-		R call (C *instance, R (C::*func) (T1, T2, T3, T4, T5))
+		R callm (C *instance, R (C::*func) (T1, T2, T3, T4, T5))
 		{
 			return (instance->*func) (this->param1, this->param2,
 					this->param3, this->param4,
@@ -442,7 +442,7 @@ namespace SQConvert {
 		{
 		}
 
-		void call (void (*func) (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10))
+		void callv (void (*func) (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10))
 		{
 			(*func) (this->param1, this->param2,
 					this->param3, this->param4,
@@ -462,7 +462,7 @@ namespace SQConvert {
 		}
 
 		template <class C>
-		void call (C *instance, void (C::*func) (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10))
+		void callmv (C *instance, void (C::*func) (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10))
 		{
 			(instance->*func) (this->param1, this->param2,
 					this->param3, this->param4,
@@ -472,7 +472,7 @@ namespace SQConvert {
 		}
 
 		template <class C, typename R>
-		R call (C *instance, R (C::*func) (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10))
+		R callm (C *instance, R (C::*func) (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10))
 		{
 			return (instance->*func) (this->param1, this->param2,
 					this->param3, this->param4,
@@ -544,8 +544,51 @@ namespace SQConvert {
 	struct FSig <F*> : FSig <F> {
 	};
 
-	template <class C, typename F>
-	struct FSig <F C::*> : FSig <F> {
+	/*
+	 * Now this should work for class methods:
+	 *      template <class C, typename F>
+	 *      struct FSig <F C::*> : FSig <F> {
+	 *      };
+	 * ...but MSVC chokes on it, so we must repeat everything.
+	 */
+
+	template <class C, typename R>
+	struct FSig <R (C::*) (void)> : FRet <R> {
+		typedef Params0 Params;
+	};
+
+	template <class C, typename R, typename T1>
+	struct FSig <R (C::*) (T1)> : FRet <R> {
+		typedef Params1 <T1> Params;
+	};
+
+	template <class C, typename R, typename T1, typename T2>
+	struct FSig <R (C::*) (T1, T2)> : FRet <R> {
+		typedef Params2 <T1, T2> Params;
+	};
+
+	template <class C, typename R, typename T1, typename T2, typename T3>
+	struct FSig <R (C::*) (T1, T2, T3)> : FRet <R> {
+		typedef Params3 <T1, T2, T3> Params;
+	};
+
+	template <class C, typename R, typename T1, typename T2, typename T3,
+			typename T4>
+	struct FSig <R (C::*) (T1, T2, T3, T4)> : FRet <R> {
+		typedef Params4 <T1, T2, T3, T4> Params;
+	};
+
+	template <class C, typename R, typename T1, typename T2, typename T3,
+			typename T4, typename T5>
+	struct FSig <R (C::*) (T1, T2, T3, T4, T5)> : FRet <R> {
+		typedef Params5 <T1, T2, T3, T4, T5> Params;
+	};
+
+	template <class C, typename R, typename T1, typename T2, typename T3,
+			typename T4, typename T5, typename T6, typename T7,
+			typename T8, typename T9, typename T10>
+	struct FSig <R (C::*) (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)> : FRet <R> {
+		typedef Params10 <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> Params;
 	};
 
 
@@ -607,8 +650,8 @@ namespace SQConvert {
 		}
 
 		template <typename P, class C, typename F>
-		SQRetVal (P *params, C *instance, F C::*func)
-			: value (params->call (instance, func))
+		SQRetVal (P *params, C *instance, F func)
+			: value (params->callm (instance, func))
 		{
 		}
 
@@ -624,13 +667,13 @@ namespace SQConvert {
 		template <typename P, typename F>
 		SQRetVal (P *params, F func)
 		{
-			params->call (func);
+			params->callv (func);
 		}
 
 		template <typename P, class C, typename F>
-		SQRetVal (P *params, C *instance, F C::*func)
+		SQRetVal (P *params, C *instance, F func)
 		{
-			params->call (instance, func);
+			params->callmv (instance, func);
 		}
 
 		static int Return (HSQUIRRELVM vm)
