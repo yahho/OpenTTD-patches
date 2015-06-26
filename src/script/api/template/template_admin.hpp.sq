@@ -13,9 +13,5 @@
 
 namespace SQConvert {
 	/* Allow ScriptAdmin to be used as Squirrel parameter */
-	template <> inline       ScriptAdmin *GetParam<ScriptAdmin*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptAdmin> (vm, index); }
-	template <> inline       ScriptAdmin &GetParam<ScriptAdmin&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptAdmin> (vm, index); }
-	template <> inline const ScriptAdmin *GetParam<const ScriptAdmin*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptAdmin> (vm, index); }
-	template <> inline const ScriptAdmin &GetParam<const ScriptAdmin&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptAdmin> (vm, index); }
 	template <> inline void Push<ScriptAdmin *> (HSQUIRRELVM vm, ScriptAdmin *res) { PushObj<ScriptAdmin> (vm, res, "Admin", true); }
 } // namespace SQConvert

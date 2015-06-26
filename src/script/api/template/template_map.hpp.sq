@@ -13,9 +13,5 @@
 
 namespace SQConvert {
 	/* Allow ScriptMap to be used as Squirrel parameter */
-	template <> inline       ScriptMap *GetParam<ScriptMap*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptMap> (vm, index); }
-	template <> inline       ScriptMap &GetParam<ScriptMap&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptMap> (vm, index); }
-	template <> inline const ScriptMap *GetParam<const ScriptMap*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptMap> (vm, index); }
-	template <> inline const ScriptMap &GetParam<const ScriptMap&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptMap> (vm, index); }
 	template <> inline void Push<ScriptMap *> (HSQUIRRELVM vm, ScriptMap *res) { PushObj<ScriptMap> (vm, res, "Map", true); }
 } // namespace SQConvert

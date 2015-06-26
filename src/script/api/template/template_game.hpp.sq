@@ -13,13 +13,8 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline ScriptGame::LandscapeType GetParam<ScriptGame::LandscapeType> (HSQUIRRELVM vm, int index) { return (ScriptGame::LandscapeType) GetInteger (vm, index); }
 	template <> inline void Push<ScriptGame::LandscapeType> (HSQUIRRELVM vm, ScriptGame::LandscapeType res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptGame to be used as Squirrel parameter */
-	template <> inline       ScriptGame *GetParam<ScriptGame*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptGame> (vm, index); }
-	template <> inline       ScriptGame &GetParam<ScriptGame&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptGame> (vm, index); }
-	template <> inline const ScriptGame *GetParam<const ScriptGame*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptGame> (vm, index); }
-	template <> inline const ScriptGame &GetParam<const ScriptGame&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptGame> (vm, index); }
 	template <> inline void Push<ScriptGame *> (HSQUIRRELVM vm, ScriptGame *res) { PushObj<ScriptGame> (vm, res, "Game", true); }
 } // namespace SQConvert

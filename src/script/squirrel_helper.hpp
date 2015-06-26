@@ -875,6 +875,40 @@ namespace SQConvert {
 	}
 
 
+	/** Helper struct for the generic implementation of GetParam.
+	 * (partial specialisations of function templates are not allowed) */
+	template <typename T>
+	struct GetParamHelper {
+		static T Get (HSQUIRRELVM vm, int index)
+		{
+			return static_cast<T> (GetInteger (vm, index));
+		}
+	};
+
+	template <typename T>
+	struct GetParamHelper <T *> {
+		static T *Get (HSQUIRRELVM vm, int index)
+		{
+			return GetUserPointer<T> (vm, index);
+		}
+	};
+
+	template <typename T>
+	struct GetParamHelper <T &> {
+		static T &Get (HSQUIRRELVM vm, int index)
+		{
+			return *GetUserPointer<T> (vm, index);
+		}
+	};
+
+	/* Generic implementation of GetParam. */
+	template <typename T>
+	inline T GetParam (HSQUIRRELVM vm, int index)
+	{
+		return GetParamHelper<T>::Get (vm, index);
+	}
+
+
 	/** Helper function to implement Push<T*> for objects. */
 	template <typename T>
 	void PushObj (HSQUIRRELVM vm, T *res, const char *realname, bool addref = true)

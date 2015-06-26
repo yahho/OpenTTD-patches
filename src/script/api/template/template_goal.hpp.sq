@@ -13,19 +13,11 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline ScriptGoal::GoalID GetParam<ScriptGoal::GoalID> (HSQUIRRELVM vm, int index) { return (ScriptGoal::GoalID) GetInteger (vm, index); }
 	template <> inline void Push<ScriptGoal::GoalID> (HSQUIRRELVM vm, ScriptGoal::GoalID res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline ScriptGoal::GoalType GetParam<ScriptGoal::GoalType> (HSQUIRRELVM vm, int index) { return (ScriptGoal::GoalType) GetInteger (vm, index); }
 	template <> inline void Push<ScriptGoal::GoalType> (HSQUIRRELVM vm, ScriptGoal::GoalType res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline ScriptGoal::QuestionType GetParam<ScriptGoal::QuestionType> (HSQUIRRELVM vm, int index) { return (ScriptGoal::QuestionType) GetInteger (vm, index); }
 	template <> inline void Push<ScriptGoal::QuestionType> (HSQUIRRELVM vm, ScriptGoal::QuestionType res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline ScriptGoal::QuestionButton GetParam<ScriptGoal::QuestionButton> (HSQUIRRELVM vm, int index) { return (ScriptGoal::QuestionButton) GetInteger (vm, index); }
 	template <> inline void Push<ScriptGoal::QuestionButton> (HSQUIRRELVM vm, ScriptGoal::QuestionButton res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptGoal to be used as Squirrel parameter */
-	template <> inline       ScriptGoal *GetParam<ScriptGoal*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptGoal> (vm, index); }
-	template <> inline       ScriptGoal &GetParam<ScriptGoal&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptGoal> (vm, index); }
-	template <> inline const ScriptGoal *GetParam<const ScriptGoal*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptGoal> (vm, index); }
-	template <> inline const ScriptGoal &GetParam<const ScriptGoal&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptGoal> (vm, index); }
 	template <> inline void Push<ScriptGoal *> (HSQUIRRELVM vm, ScriptGoal *res) { PushObj<ScriptGoal> (vm, res, "Goal", true); }
 } // namespace SQConvert

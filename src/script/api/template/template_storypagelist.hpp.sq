@@ -13,9 +13,5 @@
 
 namespace SQConvert {
 	/* Allow ScriptStoryPageList to be used as Squirrel parameter */
-	template <> inline       ScriptStoryPageList *GetParam<ScriptStoryPageList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStoryPageList> (vm, index); }
-	template <> inline       ScriptStoryPageList &GetParam<ScriptStoryPageList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStoryPageList> (vm, index); }
-	template <> inline const ScriptStoryPageList *GetParam<const ScriptStoryPageList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStoryPageList> (vm, index); }
-	template <> inline const ScriptStoryPageList &GetParam<const ScriptStoryPageList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStoryPageList> (vm, index); }
 	template <> inline void Push<ScriptStoryPageList *> (HSQUIRRELVM vm, ScriptStoryPageList *res) { PushObj<ScriptStoryPageList> (vm, res, "StoryPageList", true); }
 } // namespace SQConvert

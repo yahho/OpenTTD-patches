@@ -13,13 +13,8 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline ScriptBridge::ErrorMessages GetParam<ScriptBridge::ErrorMessages> (HSQUIRRELVM vm, int index) { return (ScriptBridge::ErrorMessages) GetInteger (vm, index); }
 	template <> inline void Push<ScriptBridge::ErrorMessages> (HSQUIRRELVM vm, ScriptBridge::ErrorMessages res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptBridge to be used as Squirrel parameter */
-	template <> inline       ScriptBridge *GetParam<ScriptBridge*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptBridge> (vm, index); }
-	template <> inline       ScriptBridge &GetParam<ScriptBridge&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptBridge> (vm, index); }
-	template <> inline const ScriptBridge *GetParam<const ScriptBridge*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptBridge> (vm, index); }
-	template <> inline const ScriptBridge &GetParam<const ScriptBridge&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptBridge> (vm, index); }
 	template <> inline void Push<ScriptBridge *> (HSQUIRRELVM vm, ScriptBridge *res) { PushObj<ScriptBridge> (vm, res, "Bridge", true); }
 } // namespace SQConvert

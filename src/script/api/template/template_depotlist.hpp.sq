@@ -13,9 +13,5 @@
 
 namespace SQConvert {
 	/* Allow ScriptDepotList to be used as Squirrel parameter */
-	template <> inline       ScriptDepotList *GetParam<ScriptDepotList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptDepotList> (vm, index); }
-	template <> inline       ScriptDepotList &GetParam<ScriptDepotList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptDepotList> (vm, index); }
-	template <> inline const ScriptDepotList *GetParam<const ScriptDepotList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptDepotList> (vm, index); }
-	template <> inline const ScriptDepotList &GetParam<const ScriptDepotList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptDepotList> (vm, index); }
 	template <> inline void Push<ScriptDepotList *> (HSQUIRRELVM vm, ScriptDepotList *res) { PushObj<ScriptDepotList> (vm, res, "DepotList", true); }
 } // namespace SQConvert

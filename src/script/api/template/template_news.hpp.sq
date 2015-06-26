@@ -13,15 +13,9 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline ScriptNews::NewsType GetParam<ScriptNews::NewsType> (HSQUIRRELVM vm, int index) { return (ScriptNews::NewsType) GetInteger (vm, index); }
 	template <> inline void Push<ScriptNews::NewsType> (HSQUIRRELVM vm, ScriptNews::NewsType res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline ScriptNews::NewsReferenceType GetParam<ScriptNews::NewsReferenceType> (HSQUIRRELVM vm, int index) { return (ScriptNews::NewsReferenceType) GetInteger (vm, index); }
 	template <> inline void Push<ScriptNews::NewsReferenceType> (HSQUIRRELVM vm, ScriptNews::NewsReferenceType res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptNews to be used as Squirrel parameter */
-	template <> inline       ScriptNews *GetParam<ScriptNews*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptNews> (vm, index); }
-	template <> inline       ScriptNews &GetParam<ScriptNews&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptNews> (vm, index); }
-	template <> inline const ScriptNews *GetParam<const ScriptNews*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptNews> (vm, index); }
-	template <> inline const ScriptNews &GetParam<const ScriptNews&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptNews> (vm, index); }
 	template <> inline void Push<ScriptNews *> (HSQUIRRELVM vm, ScriptNews *res) { PushObj<ScriptNews> (vm, res, "News", true); }
 } // namespace SQConvert

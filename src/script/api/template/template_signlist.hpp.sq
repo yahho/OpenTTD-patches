@@ -13,9 +13,5 @@
 
 namespace SQConvert {
 	/* Allow ScriptSignList to be used as Squirrel parameter */
-	template <> inline       ScriptSignList *GetParam<ScriptSignList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptSignList> (vm, index); }
-	template <> inline       ScriptSignList &GetParam<ScriptSignList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptSignList> (vm, index); }
-	template <> inline const ScriptSignList *GetParam<const ScriptSignList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptSignList> (vm, index); }
-	template <> inline const ScriptSignList &GetParam<const ScriptSignList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptSignList> (vm, index); }
 	template <> inline void Push<ScriptSignList *> (HSQUIRRELVM vm, ScriptSignList *res) { PushObj<ScriptSignList> (vm, res, "SignList", true); }
 } // namespace SQConvert

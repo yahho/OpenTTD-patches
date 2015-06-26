@@ -13,123 +13,69 @@
 
 namespace SQConvert {
 	/* Allow ScriptStationList to be used as Squirrel parameter */
-	template <> inline       ScriptStationList *GetParam<ScriptStationList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList> (vm, index); }
-	template <> inline       ScriptStationList &GetParam<ScriptStationList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList> (vm, index); }
-	template <> inline const ScriptStationList *GetParam<const ScriptStationList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList> (vm, index); }
-	template <> inline const ScriptStationList &GetParam<const ScriptStationList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList> (vm, index); }
 	template <> inline void Push<ScriptStationList *> (HSQUIRRELVM vm, ScriptStationList *res) { PushObj<ScriptStationList> (vm, res, "StationList", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline ScriptStationList_Cargo::CargoSelector GetParam<ScriptStationList_Cargo::CargoSelector> (HSQUIRRELVM vm, int index) { return (ScriptStationList_Cargo::CargoSelector) GetInteger (vm, index); }
 	template <> inline void Push<ScriptStationList_Cargo::CargoSelector> (HSQUIRRELVM vm, ScriptStationList_Cargo::CargoSelector res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline ScriptStationList_Cargo::CargoMode GetParam<ScriptStationList_Cargo::CargoMode> (HSQUIRRELVM vm, int index) { return (ScriptStationList_Cargo::CargoMode) GetInteger (vm, index); }
 	template <> inline void Push<ScriptStationList_Cargo::CargoMode> (HSQUIRRELVM vm, ScriptStationList_Cargo::CargoMode res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptStationList_Cargo to be used as Squirrel parameter */
-	template <> inline       ScriptStationList_Cargo *GetParam<ScriptStationList_Cargo*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_Cargo> (vm, index); }
-	template <> inline       ScriptStationList_Cargo &GetParam<ScriptStationList_Cargo&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_Cargo> (vm, index); }
-	template <> inline const ScriptStationList_Cargo *GetParam<const ScriptStationList_Cargo*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_Cargo> (vm, index); }
-	template <> inline const ScriptStationList_Cargo &GetParam<const ScriptStationList_Cargo&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_Cargo> (vm, index); }
 	template <> inline void Push<ScriptStationList_Cargo *> (HSQUIRRELVM vm, ScriptStationList_Cargo *res) { PushObj<ScriptStationList_Cargo> (vm, res, "StationList_Cargo", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoWaiting to be used as Squirrel parameter */
-	template <> inline       ScriptStationList_CargoWaiting *GetParam<ScriptStationList_CargoWaiting*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoWaiting> (vm, index); }
-	template <> inline       ScriptStationList_CargoWaiting &GetParam<ScriptStationList_CargoWaiting&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoWaiting> (vm, index); }
-	template <> inline const ScriptStationList_CargoWaiting *GetParam<const ScriptStationList_CargoWaiting*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoWaiting> (vm, index); }
-	template <> inline const ScriptStationList_CargoWaiting &GetParam<const ScriptStationList_CargoWaiting&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoWaiting> (vm, index); }
 	template <> inline void Push<ScriptStationList_CargoWaiting *> (HSQUIRRELVM vm, ScriptStationList_CargoWaiting *res) { PushObj<ScriptStationList_CargoWaiting> (vm, res, "StationList_CargoWaiting", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoPlanned to be used as Squirrel parameter */
-	template <> inline       ScriptStationList_CargoPlanned *GetParam<ScriptStationList_CargoPlanned*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoPlanned> (vm, index); }
-	template <> inline       ScriptStationList_CargoPlanned &GetParam<ScriptStationList_CargoPlanned&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoPlanned> (vm, index); }
-	template <> inline const ScriptStationList_CargoPlanned *GetParam<const ScriptStationList_CargoPlanned*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoPlanned> (vm, index); }
-	template <> inline const ScriptStationList_CargoPlanned &GetParam<const ScriptStationList_CargoPlanned&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoPlanned> (vm, index); }
 	template <> inline void Push<ScriptStationList_CargoPlanned *> (HSQUIRRELVM vm, ScriptStationList_CargoPlanned *res) { PushObj<ScriptStationList_CargoPlanned> (vm, res, "StationList_CargoPlanned", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoWaitingByFrom to be used as Squirrel parameter */
-	template <> inline       ScriptStationList_CargoWaitingByFrom *GetParam<ScriptStationList_CargoWaitingByFrom*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoWaitingByFrom> (vm, index); }
-	template <> inline       ScriptStationList_CargoWaitingByFrom &GetParam<ScriptStationList_CargoWaitingByFrom&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoWaitingByFrom> (vm, index); }
-	template <> inline const ScriptStationList_CargoWaitingByFrom *GetParam<const ScriptStationList_CargoWaitingByFrom*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoWaitingByFrom> (vm, index); }
-	template <> inline const ScriptStationList_CargoWaitingByFrom &GetParam<const ScriptStationList_CargoWaitingByFrom&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoWaitingByFrom> (vm, index); }
 	template <> inline void Push<ScriptStationList_CargoWaitingByFrom *> (HSQUIRRELVM vm, ScriptStationList_CargoWaitingByFrom *res) { PushObj<ScriptStationList_CargoWaitingByFrom> (vm, res, "StationList_CargoWaitingByFrom", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoWaitingViaByFrom to be used as Squirrel parameter */
-	template <> inline       ScriptStationList_CargoWaitingViaByFrom *GetParam<ScriptStationList_CargoWaitingViaByFrom*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoWaitingViaByFrom> (vm, index); }
-	template <> inline       ScriptStationList_CargoWaitingViaByFrom &GetParam<ScriptStationList_CargoWaitingViaByFrom&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoWaitingViaByFrom> (vm, index); }
-	template <> inline const ScriptStationList_CargoWaitingViaByFrom *GetParam<const ScriptStationList_CargoWaitingViaByFrom*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoWaitingViaByFrom> (vm, index); }
-	template <> inline const ScriptStationList_CargoWaitingViaByFrom &GetParam<const ScriptStationList_CargoWaitingViaByFrom&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoWaitingViaByFrom> (vm, index); }
 	template <> inline void Push<ScriptStationList_CargoWaitingViaByFrom *> (HSQUIRRELVM vm, ScriptStationList_CargoWaitingViaByFrom *res) { PushObj<ScriptStationList_CargoWaitingViaByFrom> (vm, res, "StationList_CargoWaitingViaByFrom", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoWaitingByVia to be used as Squirrel parameter */
-	template <> inline       ScriptStationList_CargoWaitingByVia *GetParam<ScriptStationList_CargoWaitingByVia*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoWaitingByVia> (vm, index); }
-	template <> inline       ScriptStationList_CargoWaitingByVia &GetParam<ScriptStationList_CargoWaitingByVia&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoWaitingByVia> (vm, index); }
-	template <> inline const ScriptStationList_CargoWaitingByVia *GetParam<const ScriptStationList_CargoWaitingByVia*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoWaitingByVia> (vm, index); }
-	template <> inline const ScriptStationList_CargoWaitingByVia &GetParam<const ScriptStationList_CargoWaitingByVia&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoWaitingByVia> (vm, index); }
 	template <> inline void Push<ScriptStationList_CargoWaitingByVia *> (HSQUIRRELVM vm, ScriptStationList_CargoWaitingByVia *res) { PushObj<ScriptStationList_CargoWaitingByVia> (vm, res, "StationList_CargoWaitingByVia", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoWaitingFromByVia to be used as Squirrel parameter */
-	template <> inline       ScriptStationList_CargoWaitingFromByVia *GetParam<ScriptStationList_CargoWaitingFromByVia*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoWaitingFromByVia> (vm, index); }
-	template <> inline       ScriptStationList_CargoWaitingFromByVia &GetParam<ScriptStationList_CargoWaitingFromByVia&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoWaitingFromByVia> (vm, index); }
-	template <> inline const ScriptStationList_CargoWaitingFromByVia *GetParam<const ScriptStationList_CargoWaitingFromByVia*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoWaitingFromByVia> (vm, index); }
-	template <> inline const ScriptStationList_CargoWaitingFromByVia &GetParam<const ScriptStationList_CargoWaitingFromByVia&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoWaitingFromByVia> (vm, index); }
 	template <> inline void Push<ScriptStationList_CargoWaitingFromByVia *> (HSQUIRRELVM vm, ScriptStationList_CargoWaitingFromByVia *res) { PushObj<ScriptStationList_CargoWaitingFromByVia> (vm, res, "StationList_CargoWaitingFromByVia", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoPlannedByFrom to be used as Squirrel parameter */
-	template <> inline       ScriptStationList_CargoPlannedByFrom *GetParam<ScriptStationList_CargoPlannedByFrom*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoPlannedByFrom> (vm, index); }
-	template <> inline       ScriptStationList_CargoPlannedByFrom &GetParam<ScriptStationList_CargoPlannedByFrom&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoPlannedByFrom> (vm, index); }
-	template <> inline const ScriptStationList_CargoPlannedByFrom *GetParam<const ScriptStationList_CargoPlannedByFrom*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoPlannedByFrom> (vm, index); }
-	template <> inline const ScriptStationList_CargoPlannedByFrom &GetParam<const ScriptStationList_CargoPlannedByFrom&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoPlannedByFrom> (vm, index); }
 	template <> inline void Push<ScriptStationList_CargoPlannedByFrom *> (HSQUIRRELVM vm, ScriptStationList_CargoPlannedByFrom *res) { PushObj<ScriptStationList_CargoPlannedByFrom> (vm, res, "StationList_CargoPlannedByFrom", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoPlannedViaByFrom to be used as Squirrel parameter */
-	template <> inline       ScriptStationList_CargoPlannedViaByFrom *GetParam<ScriptStationList_CargoPlannedViaByFrom*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoPlannedViaByFrom> (vm, index); }
-	template <> inline       ScriptStationList_CargoPlannedViaByFrom &GetParam<ScriptStationList_CargoPlannedViaByFrom&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoPlannedViaByFrom> (vm, index); }
-	template <> inline const ScriptStationList_CargoPlannedViaByFrom *GetParam<const ScriptStationList_CargoPlannedViaByFrom*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoPlannedViaByFrom> (vm, index); }
-	template <> inline const ScriptStationList_CargoPlannedViaByFrom &GetParam<const ScriptStationList_CargoPlannedViaByFrom&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoPlannedViaByFrom> (vm, index); }
 	template <> inline void Push<ScriptStationList_CargoPlannedViaByFrom *> (HSQUIRRELVM vm, ScriptStationList_CargoPlannedViaByFrom *res) { PushObj<ScriptStationList_CargoPlannedViaByFrom> (vm, res, "StationList_CargoPlannedViaByFrom", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoPlannedByVia to be used as Squirrel parameter */
-	template <> inline       ScriptStationList_CargoPlannedByVia *GetParam<ScriptStationList_CargoPlannedByVia*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoPlannedByVia> (vm, index); }
-	template <> inline       ScriptStationList_CargoPlannedByVia &GetParam<ScriptStationList_CargoPlannedByVia&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoPlannedByVia> (vm, index); }
-	template <> inline const ScriptStationList_CargoPlannedByVia *GetParam<const ScriptStationList_CargoPlannedByVia*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoPlannedByVia> (vm, index); }
-	template <> inline const ScriptStationList_CargoPlannedByVia &GetParam<const ScriptStationList_CargoPlannedByVia&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoPlannedByVia> (vm, index); }
 	template <> inline void Push<ScriptStationList_CargoPlannedByVia *> (HSQUIRRELVM vm, ScriptStationList_CargoPlannedByVia *res) { PushObj<ScriptStationList_CargoPlannedByVia> (vm, res, "StationList_CargoPlannedByVia", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoPlannedFromByVia to be used as Squirrel parameter */
-	template <> inline       ScriptStationList_CargoPlannedFromByVia *GetParam<ScriptStationList_CargoPlannedFromByVia*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoPlannedFromByVia> (vm, index); }
-	template <> inline       ScriptStationList_CargoPlannedFromByVia &GetParam<ScriptStationList_CargoPlannedFromByVia&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoPlannedFromByVia> (vm, index); }
-	template <> inline const ScriptStationList_CargoPlannedFromByVia *GetParam<const ScriptStationList_CargoPlannedFromByVia*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_CargoPlannedFromByVia> (vm, index); }
-	template <> inline const ScriptStationList_CargoPlannedFromByVia &GetParam<const ScriptStationList_CargoPlannedFromByVia&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_CargoPlannedFromByVia> (vm, index); }
 	template <> inline void Push<ScriptStationList_CargoPlannedFromByVia *> (HSQUIRRELVM vm, ScriptStationList_CargoPlannedFromByVia *res) { PushObj<ScriptStationList_CargoPlannedFromByVia> (vm, res, "StationList_CargoPlannedFromByVia", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_Vehicle to be used as Squirrel parameter */
-	template <> inline       ScriptStationList_Vehicle *GetParam<ScriptStationList_Vehicle*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_Vehicle> (vm, index); }
-	template <> inline       ScriptStationList_Vehicle &GetParam<ScriptStationList_Vehicle&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_Vehicle> (vm, index); }
-	template <> inline const ScriptStationList_Vehicle *GetParam<const ScriptStationList_Vehicle*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptStationList_Vehicle> (vm, index); }
-	template <> inline const ScriptStationList_Vehicle &GetParam<const ScriptStationList_Vehicle&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptStationList_Vehicle> (vm, index); }
 	template <> inline void Push<ScriptStationList_Vehicle *> (HSQUIRRELVM vm, ScriptStationList_Vehicle *res) { PushObj<ScriptStationList_Vehicle> (vm, res, "StationList_Vehicle", true); }
 } // namespace SQConvert

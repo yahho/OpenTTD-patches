@@ -13,9 +13,5 @@
 
 namespace SQConvert {
 	/* Allow ScriptAccounting to be used as Squirrel parameter */
-	template <> inline       ScriptAccounting *GetParam<ScriptAccounting*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptAccounting> (vm, index); }
-	template <> inline       ScriptAccounting &GetParam<ScriptAccounting&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptAccounting> (vm, index); }
-	template <> inline const ScriptAccounting *GetParam<const ScriptAccounting*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptAccounting> (vm, index); }
-	template <> inline const ScriptAccounting &GetParam<const ScriptAccounting&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptAccounting> (vm, index); }
 	template <> inline void Push<ScriptAccounting *> (HSQUIRRELVM vm, ScriptAccounting *res) { PushObj<ScriptAccounting> (vm, res, "Accounting", true); }
 } // namespace SQConvert

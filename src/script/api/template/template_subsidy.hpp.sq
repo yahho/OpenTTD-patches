@@ -13,13 +13,8 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline ScriptSubsidy::SubsidyParticipantType GetParam<ScriptSubsidy::SubsidyParticipantType> (HSQUIRRELVM vm, int index) { return (ScriptSubsidy::SubsidyParticipantType) GetInteger (vm, index); }
 	template <> inline void Push<ScriptSubsidy::SubsidyParticipantType> (HSQUIRRELVM vm, ScriptSubsidy::SubsidyParticipantType res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptSubsidy to be used as Squirrel parameter */
-	template <> inline       ScriptSubsidy *GetParam<ScriptSubsidy*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptSubsidy> (vm, index); }
-	template <> inline       ScriptSubsidy &GetParam<ScriptSubsidy&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptSubsidy> (vm, index); }
-	template <> inline const ScriptSubsidy *GetParam<const ScriptSubsidy*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptSubsidy> (vm, index); }
-	template <> inline const ScriptSubsidy &GetParam<const ScriptSubsidy&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptSubsidy> (vm, index); }
 	template <> inline void Push<ScriptSubsidy *> (HSQUIRRELVM vm, ScriptSubsidy *res) { PushObj<ScriptSubsidy> (vm, res, "Subsidy", true); }
 } // namespace SQConvert

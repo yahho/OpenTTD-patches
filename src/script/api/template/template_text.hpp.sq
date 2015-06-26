@@ -13,8 +13,4 @@
 
 namespace SQConvert {
 	/* Allow ScriptText to be used as Squirrel parameter */
-	template <> inline       ScriptText *GetParam<ScriptText*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptText> (vm, index); }
-	template <> inline       ScriptText &GetParam<ScriptText&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptText> (vm, index); }
-	template <> inline const ScriptText *GetParam<const ScriptText*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptText> (vm, index); }
-	template <> inline const ScriptText &GetParam<const ScriptText&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptText> (vm, index); }
 } // namespace SQConvert

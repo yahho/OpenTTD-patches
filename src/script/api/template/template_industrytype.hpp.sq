@@ -13,13 +13,8 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline ScriptIndustryType::SpecialIndustryType GetParam<ScriptIndustryType::SpecialIndustryType> (HSQUIRRELVM vm, int index) { return (ScriptIndustryType::SpecialIndustryType) GetInteger (vm, index); }
 	template <> inline void Push<ScriptIndustryType::SpecialIndustryType> (HSQUIRRELVM vm, ScriptIndustryType::SpecialIndustryType res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptIndustryType to be used as Squirrel parameter */
-	template <> inline       ScriptIndustryType *GetParam<ScriptIndustryType*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptIndustryType> (vm, index); }
-	template <> inline       ScriptIndustryType &GetParam<ScriptIndustryType&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptIndustryType> (vm, index); }
-	template <> inline const ScriptIndustryType *GetParam<const ScriptIndustryType*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptIndustryType> (vm, index); }
-	template <> inline const ScriptIndustryType &GetParam<const ScriptIndustryType&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptIndustryType> (vm, index); }
 	template <> inline void Push<ScriptIndustryType *> (HSQUIRRELVM vm, ScriptIndustryType *res) { PushObj<ScriptIndustryType> (vm, res, "IndustryType", true); }
 } // namespace SQConvert

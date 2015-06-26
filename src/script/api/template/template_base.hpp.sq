@@ -13,9 +13,5 @@
 
 namespace SQConvert {
 	/* Allow ScriptBase to be used as Squirrel parameter */
-	template <> inline       ScriptBase *GetParam<ScriptBase*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptBase> (vm, index); }
-	template <> inline       ScriptBase &GetParam<ScriptBase&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptBase> (vm, index); }
-	template <> inline const ScriptBase *GetParam<const ScriptBase*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptBase> (vm, index); }
-	template <> inline const ScriptBase &GetParam<const ScriptBase&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptBase> (vm, index); }
 	template <> inline void Push<ScriptBase *> (HSQUIRRELVM vm, ScriptBase *res) { PushObj<ScriptBase> (vm, res, "Base", true); }
 } // namespace SQConvert

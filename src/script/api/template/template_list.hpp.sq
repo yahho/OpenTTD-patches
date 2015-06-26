@@ -13,13 +13,8 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline ScriptList::SorterType GetParam<ScriptList::SorterType> (HSQUIRRELVM vm, int index) { return (ScriptList::SorterType) GetInteger (vm, index); }
 	template <> inline void Push<ScriptList::SorterType> (HSQUIRRELVM vm, ScriptList::SorterType res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptList to be used as Squirrel parameter */
-	template <> inline       ScriptList *GetParam<ScriptList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptList> (vm, index); }
-	template <> inline       ScriptList &GetParam<ScriptList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptList> (vm, index); }
-	template <> inline const ScriptList *GetParam<const ScriptList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptList> (vm, index); }
-	template <> inline const ScriptList &GetParam<const ScriptList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptList> (vm, index); }
 	template <> inline void Push<ScriptList *> (HSQUIRRELVM vm, ScriptList *res) { PushObj<ScriptList> (vm, res, "List", true); }
 } // namespace SQConvert

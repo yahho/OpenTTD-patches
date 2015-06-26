@@ -13,18 +13,10 @@
 
 namespace SQConvert {
 	/* Allow ScriptBridgeList to be used as Squirrel parameter */
-	template <> inline       ScriptBridgeList *GetParam<ScriptBridgeList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptBridgeList> (vm, index); }
-	template <> inline       ScriptBridgeList &GetParam<ScriptBridgeList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptBridgeList> (vm, index); }
-	template <> inline const ScriptBridgeList *GetParam<const ScriptBridgeList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptBridgeList> (vm, index); }
-	template <> inline const ScriptBridgeList &GetParam<const ScriptBridgeList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptBridgeList> (vm, index); }
 	template <> inline void Push<ScriptBridgeList *> (HSQUIRRELVM vm, ScriptBridgeList *res) { PushObj<ScriptBridgeList> (vm, res, "BridgeList", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptBridgeList_Length to be used as Squirrel parameter */
-	template <> inline       ScriptBridgeList_Length *GetParam<ScriptBridgeList_Length*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptBridgeList_Length> (vm, index); }
-	template <> inline       ScriptBridgeList_Length &GetParam<ScriptBridgeList_Length&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptBridgeList_Length> (vm, index); }
-	template <> inline const ScriptBridgeList_Length *GetParam<const ScriptBridgeList_Length*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptBridgeList_Length> (vm, index); }
-	template <> inline const ScriptBridgeList_Length &GetParam<const ScriptBridgeList_Length&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptBridgeList_Length> (vm, index); }
 	template <> inline void Push<ScriptBridgeList_Length *> (HSQUIRRELVM vm, ScriptBridgeList_Length *res) { PushObj<ScriptBridgeList_Length> (vm, res, "BridgeList_Length", true); }
 } // namespace SQConvert

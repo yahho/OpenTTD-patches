@@ -13,9 +13,5 @@
 
 namespace SQConvert {
 	/* Allow ScriptSubsidyList to be used as Squirrel parameter */
-	template <> inline       ScriptSubsidyList *GetParam<ScriptSubsidyList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptSubsidyList> (vm, index); }
-	template <> inline       ScriptSubsidyList &GetParam<ScriptSubsidyList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptSubsidyList> (vm, index); }
-	template <> inline const ScriptSubsidyList *GetParam<const ScriptSubsidyList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptSubsidyList> (vm, index); }
-	template <> inline const ScriptSubsidyList &GetParam<const ScriptSubsidyList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptSubsidyList> (vm, index); }
 	template <> inline void Push<ScriptSubsidyList *> (HSQUIRRELVM vm, ScriptSubsidyList *res) { PushObj<ScriptSubsidyList> (vm, res, "SubsidyList", true); }
 } // namespace SQConvert

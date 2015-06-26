@@ -13,18 +13,10 @@
 
 namespace SQConvert {
 	/* Allow ScriptTownList to be used as Squirrel parameter */
-	template <> inline       ScriptTownList *GetParam<ScriptTownList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptTownList> (vm, index); }
-	template <> inline       ScriptTownList &GetParam<ScriptTownList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptTownList> (vm, index); }
-	template <> inline const ScriptTownList *GetParam<const ScriptTownList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptTownList> (vm, index); }
-	template <> inline const ScriptTownList &GetParam<const ScriptTownList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptTownList> (vm, index); }
 	template <> inline void Push<ScriptTownList *> (HSQUIRRELVM vm, ScriptTownList *res) { PushObj<ScriptTownList> (vm, res, "TownList", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptTownEffectList to be used as Squirrel parameter */
-	template <> inline       ScriptTownEffectList *GetParam<ScriptTownEffectList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptTownEffectList> (vm, index); }
-	template <> inline       ScriptTownEffectList &GetParam<ScriptTownEffectList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptTownEffectList> (vm, index); }
-	template <> inline const ScriptTownEffectList *GetParam<const ScriptTownEffectList*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptTownEffectList> (vm, index); }
-	template <> inline const ScriptTownEffectList &GetParam<const ScriptTownEffectList&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptTownEffectList> (vm, index); }
 	template <> inline void Push<ScriptTownEffectList *> (HSQUIRRELVM vm, ScriptTownEffectList *res) { PushObj<ScriptTownEffectList> (vm, res, "TownEffectList", true); }
 } // namespace SQConvert

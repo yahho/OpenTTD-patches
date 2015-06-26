@@ -13,9 +13,5 @@
 
 namespace SQConvert {
 	/* Allow ScriptExecMode to be used as Squirrel parameter */
-	template <> inline       ScriptExecMode *GetParam<ScriptExecMode*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptExecMode> (vm, index); }
-	template <> inline       ScriptExecMode &GetParam<ScriptExecMode&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptExecMode> (vm, index); }
-	template <> inline const ScriptExecMode *GetParam<const ScriptExecMode*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptExecMode> (vm, index); }
-	template <> inline const ScriptExecMode &GetParam<const ScriptExecMode&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptExecMode> (vm, index); }
 	template <> inline void Push<ScriptExecMode *> (HSQUIRRELVM vm, ScriptExecMode *res) { PushObj<ScriptExecMode> (vm, res, "ExecMode", true); }
 } // namespace SQConvert

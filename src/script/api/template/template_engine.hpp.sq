@@ -13,9 +13,5 @@
 
 namespace SQConvert {
 	/* Allow ScriptEngine to be used as Squirrel parameter */
-	template <> inline       ScriptEngine *GetParam<ScriptEngine*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEngine> (vm, index); }
-	template <> inline       ScriptEngine &GetParam<ScriptEngine&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEngine> (vm, index); }
-	template <> inline const ScriptEngine *GetParam<const ScriptEngine*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEngine> (vm, index); }
-	template <> inline const ScriptEngine &GetParam<const ScriptEngine&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEngine> (vm, index); }
 	template <> inline void Push<ScriptEngine *> (HSQUIRRELVM vm, ScriptEngine *res) { PushObj<ScriptEngine> (vm, res, "Engine", true); }
 } // namespace SQConvert

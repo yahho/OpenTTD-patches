@@ -13,22 +13,13 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline ScriptEvent::ScriptEventType GetParam<ScriptEvent::ScriptEventType> (HSQUIRRELVM vm, int index) { return (ScriptEvent::ScriptEventType) GetInteger (vm, index); }
 	template <> inline void Push<ScriptEvent::ScriptEventType> (HSQUIRRELVM vm, ScriptEvent::ScriptEventType res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptEvent to be used as Squirrel parameter */
-	template <> inline       ScriptEvent *GetParam<ScriptEvent*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEvent> (vm, index); }
-	template <> inline       ScriptEvent &GetParam<ScriptEvent&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEvent> (vm, index); }
-	template <> inline const ScriptEvent *GetParam<const ScriptEvent*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEvent> (vm, index); }
-	template <> inline const ScriptEvent &GetParam<const ScriptEvent&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEvent> (vm, index); }
 	template <> inline void Push<ScriptEvent *> (HSQUIRRELVM vm, ScriptEvent *res) { PushObj<ScriptEvent> (vm, res, "Event", false); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventController to be used as Squirrel parameter */
-	template <> inline       ScriptEventController *GetParam<ScriptEventController*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventController> (vm, index); }
-	template <> inline       ScriptEventController &GetParam<ScriptEventController&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventController> (vm, index); }
-	template <> inline const ScriptEventController *GetParam<const ScriptEventController*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptEventController> (vm, index); }
-	template <> inline const ScriptEventController &GetParam<const ScriptEventController&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptEventController> (vm, index); }
 	template <> inline void Push<ScriptEventController *> (HSQUIRRELVM vm, ScriptEventController *res) { PushObj<ScriptEventController> (vm, res, "EventController", true); }
 } // namespace SQConvert

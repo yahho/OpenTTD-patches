@@ -13,13 +13,8 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline ScriptTunnel::ErrorMessages GetParam<ScriptTunnel::ErrorMessages> (HSQUIRRELVM vm, int index) { return (ScriptTunnel::ErrorMessages) GetInteger (vm, index); }
 	template <> inline void Push<ScriptTunnel::ErrorMessages> (HSQUIRRELVM vm, ScriptTunnel::ErrorMessages res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptTunnel to be used as Squirrel parameter */
-	template <> inline       ScriptTunnel *GetParam<ScriptTunnel*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptTunnel> (vm, index); }
-	template <> inline       ScriptTunnel &GetParam<ScriptTunnel&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptTunnel> (vm, index); }
-	template <> inline const ScriptTunnel *GetParam<const ScriptTunnel*> (HSQUIRRELVM vm, int index) { return  GetUserPointer<ScriptTunnel> (vm, index); }
-	template <> inline const ScriptTunnel &GetParam<const ScriptTunnel&> (HSQUIRRELVM vm, int index) { return *GetUserPointer<ScriptTunnel> (vm, index); }
 	template <> inline void Push<ScriptTunnel *> (HSQUIRRELVM vm, ScriptTunnel *res) { PushObj<ScriptTunnel> (vm, res, "Tunnel", true); }
 } // namespace SQConvert
