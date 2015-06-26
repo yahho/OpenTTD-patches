@@ -13,13 +13,6 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline void Push<ScriptOrder::ErrorMessages> (HSQUIRRELVM vm, ScriptOrder::ErrorMessages res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptOrder::ScriptOrderFlags> (HSQUIRRELVM vm, ScriptOrder::ScriptOrderFlags res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptOrder::OrderCondition> (HSQUIRRELVM vm, ScriptOrder::OrderCondition res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptOrder::CompareFunction> (HSQUIRRELVM vm, ScriptOrder::CompareFunction res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptOrder::OrderPosition> (HSQUIRRELVM vm, ScriptOrder::OrderPosition res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptOrder::StopLocation> (HSQUIRRELVM vm, ScriptOrder::StopLocation res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptOrder to be used as Squirrel parameter */
-	template <> inline void Push<ScriptOrder *> (HSQUIRRELVM vm, ScriptOrder *res) { PushObj<ScriptOrder> (vm, res, "Order", true); }
 } // namespace SQConvert

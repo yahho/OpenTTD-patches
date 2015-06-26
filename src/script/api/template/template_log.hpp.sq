@@ -13,5 +13,4 @@
 
 namespace SQConvert {
 	/* Allow ScriptLog to be used as Squirrel parameter */
-	template <> inline void Push<ScriptLog *> (HSQUIRRELVM vm, ScriptLog *res) { PushObj<ScriptLog> (vm, res, "Log", true); }
 } // namespace SQConvert

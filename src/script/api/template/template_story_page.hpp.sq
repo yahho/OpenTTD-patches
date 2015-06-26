@@ -13,10 +13,6 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline void Push<ScriptStoryPage::StoryPageID> (HSQUIRRELVM vm, ScriptStoryPage::StoryPageID res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptStoryPage::StoryPageElementID> (HSQUIRRELVM vm, ScriptStoryPage::StoryPageElementID res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptStoryPage::StoryPageElementType> (HSQUIRRELVM vm, ScriptStoryPage::StoryPageElementType res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptStoryPage to be used as Squirrel parameter */
-	template <> inline void Push<ScriptStoryPage *> (HSQUIRRELVM vm, ScriptStoryPage *res) { PushObj<ScriptStoryPage> (vm, res, "StoryPage", true); }
 } // namespace SQConvert

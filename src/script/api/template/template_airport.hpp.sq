@@ -13,9 +13,6 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline void Push<ScriptAirport::AirportType> (HSQUIRRELVM vm, ScriptAirport::AirportType res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptAirport::PlaneType> (HSQUIRRELVM vm, ScriptAirport::PlaneType res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptAirport to be used as Squirrel parameter */
-	template <> inline void Push<ScriptAirport *> (HSQUIRRELVM vm, ScriptAirport *res) { PushObj<ScriptAirport> (vm, res, "Airport", true); }
 } // namespace SQConvert

@@ -13,10 +13,8 @@
 
 namespace SQConvert {
 	/* Allow ScriptWaypointList to be used as Squirrel parameter */
-	template <> inline void Push<ScriptWaypointList *> (HSQUIRRELVM vm, ScriptWaypointList *res) { PushObj<ScriptWaypointList> (vm, res, "WaypointList", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptWaypointList_Vehicle to be used as Squirrel parameter */
-	template <> inline void Push<ScriptWaypointList_Vehicle *> (HSQUIRRELVM vm, ScriptWaypointList_Vehicle *res) { PushObj<ScriptWaypointList_Vehicle> (vm, res, "WaypointList_Vehicle", true); }
 } // namespace SQConvert

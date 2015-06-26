@@ -15,6 +15,7 @@
 #include "script_event.hpp"
 #include "script_goal.hpp"
 #include "script_window.hpp"
+#include "../squirrel_helper.hpp"
 
 /**
  * Event Vehicle Crash, indicating a vehicle of yours is crashed.
@@ -1066,5 +1067,177 @@ public:
 	 */
 	static ScriptEventRoadReconstruction *Convert(ScriptEventCompanyTown *instance) { return (ScriptEventRoadReconstruction *)instance; }
 };
+
+/* Return value support for event objects. */
+namespace SQConvert {
+
+	template <>
+	inline void Push<ScriptEventVehicleCrashed *> (HSQUIRRELVM vm, ScriptEventVehicleCrashed *res)
+	{
+		PushObj<ScriptEventVehicleCrashed> (vm, res, "EventVehicleCrashed", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventSubsidyOffer *> (HSQUIRRELVM vm, ScriptEventSubsidyOffer *res)
+	{
+		PushObj<ScriptEventSubsidyOffer> (vm, res, "EventSubsidyOffer", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventSubsidyOfferExpired *> (HSQUIRRELVM vm, ScriptEventSubsidyOfferExpired *res)
+	{
+		PushObj<ScriptEventSubsidyOfferExpired> (vm, res, "EventSubsidyOfferExpired", true);}
+
+	template <>
+	inline void Push<ScriptEventSubsidyAwarded *> (HSQUIRRELVM vm, ScriptEventSubsidyAwarded *res)
+	{
+		PushObj<ScriptEventSubsidyAwarded> (vm, res, "EventSubsidyAwarded", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventSubsidyExpired *> (HSQUIRRELVM vm, ScriptEventSubsidyExpired *res)
+	{
+		PushObj<ScriptEventSubsidyExpired> (vm, res, "EventSubsidyExpired", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventEnginePreview *> (HSQUIRRELVM vm, ScriptEventEnginePreview *res)
+	{
+		PushObj<ScriptEventEnginePreview> (vm, res, "EventEnginePreview", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventCompanyNew *> (HSQUIRRELVM vm, ScriptEventCompanyNew *res)
+	{
+		PushObj<ScriptEventCompanyNew> (vm, res, "EventCompanyNew", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventCompanyInTrouble *> (HSQUIRRELVM vm, ScriptEventCompanyInTrouble *res)
+	{
+		PushObj<ScriptEventCompanyInTrouble> (vm, res, "EventCompanyInTrouble", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventCompanyAskMerger *> (HSQUIRRELVM vm, ScriptEventCompanyAskMerger *res)
+	{
+		PushObj<ScriptEventCompanyAskMerger> (vm, res, "EventCompanyAskMerger", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventCompanyMerger *> (HSQUIRRELVM vm, ScriptEventCompanyMerger *res)
+	{
+		PushObj<ScriptEventCompanyMerger> (vm, res, "EventCompanyMerger", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventCompanyBankrupt *> (HSQUIRRELVM vm, ScriptEventCompanyBankrupt *res)
+	{
+		PushObj<ScriptEventCompanyBankrupt> (vm, res, "EventCompanyBankrupt", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventVehicleLost *> (HSQUIRRELVM vm, ScriptEventVehicleLost *res)
+	{
+		PushObj<ScriptEventVehicleLost> (vm, res, "EventVehicleLost", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventVehicleWaitingInDepot *> (HSQUIRRELVM vm, ScriptEventVehicleWaitingInDepot *res)
+	{
+		PushObj<ScriptEventVehicleWaitingInDepot> (vm, res, "EventVehicleWaitingInDepot", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventVehicleUnprofitable *> (HSQUIRRELVM vm, ScriptEventVehicleUnprofitable *res)
+	{
+		PushObj<ScriptEventVehicleUnprofitable> (vm, res, "EventVehicleUnprofitable", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventIndustryOpen *> (HSQUIRRELVM vm, ScriptEventIndustryOpen *res)
+	{
+		PushObj<ScriptEventIndustryOpen> (vm, res, "EventIndustryOpen", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventIndustryClose *> (HSQUIRRELVM vm, ScriptEventIndustryClose *res)
+	{
+		PushObj<ScriptEventIndustryClose> (vm, res, "EventIndustryClose", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventEngineAvailable *> (HSQUIRRELVM vm, ScriptEventEngineAvailable *res)
+	{
+		PushObj<ScriptEventEngineAvailable> (vm, res, "EventEngineAvailable", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventStationFirstVehicle *> (HSQUIRRELVM vm, ScriptEventStationFirstVehicle *res)
+	{
+		PushObj<ScriptEventStationFirstVehicle> (vm, res, "EventStationFirstVehicle", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventDisasterZeppelinerCrashed *> (HSQUIRRELVM vm, ScriptEventDisasterZeppelinerCrashed *res)
+	{
+		PushObj<ScriptEventDisasterZeppelinerCrashed> (vm, res, "EventDisasterZeppelinerCrashed", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventDisasterZeppelinerCleared *> (HSQUIRRELVM vm, ScriptEventDisasterZeppelinerCleared *res)
+	{
+		PushObj<ScriptEventDisasterZeppelinerCleared> (vm, res, "EventDisasterZeppelinerCleared", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventTownFounded *> (HSQUIRRELVM vm, ScriptEventTownFounded *res)
+	{
+		PushObj<ScriptEventTownFounded> (vm, res, "EventTownFounded", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventAircraftDestTooFar *> (HSQUIRRELVM vm, ScriptEventAircraftDestTooFar *res)
+	{
+		PushObj<ScriptEventAircraftDestTooFar> (vm, res, "EventAircraftDestTooFar", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventAdminPort *> (HSQUIRRELVM vm, ScriptEventAdminPort *res)
+	{
+		PushObj<ScriptEventAdminPort> (vm, res, "EventAdminPort", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventWindowWidgetClick *> (HSQUIRRELVM vm, ScriptEventWindowWidgetClick *res)
+	{
+		PushObj<ScriptEventWindowWidgetClick> (vm, res, "EventWindowWidgetClick", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventGoalQuestionAnswer *> (HSQUIRRELVM vm, ScriptEventGoalQuestionAnswer *res)
+	{
+		PushObj<ScriptEventGoalQuestionAnswer> (vm, res, "EventGoalQuestionAnswer", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventCompanyTown *> (HSQUIRRELVM vm, ScriptEventCompanyTown *res)
+	{
+		PushObj<ScriptEventCompanyTown> (vm, res, "EventCompanyTown", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventExclusiveTransportRights *> (HSQUIRRELVM vm, ScriptEventExclusiveTransportRights *res)
+	{
+		PushObj<ScriptEventExclusiveTransportRights> (vm, res, "EventExclusiveTransportRights", true);
+	}
+
+	template <>
+	inline void Push<ScriptEventRoadReconstruction *> (HSQUIRRELVM vm, ScriptEventRoadReconstruction *res)
+	{
+		PushObj<ScriptEventRoadReconstruction> (vm, res, "EventRoadReconstruction", true);
+	}
+
+}
 
 #endif /* SCRIPT_EVENT_TYPES_HPP */

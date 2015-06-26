@@ -13,5 +13,4 @@
 
 namespace SQConvert {
 	/* Allow ScriptSubsidyList to be used as Squirrel parameter */
-	template <> inline void Push<ScriptSubsidyList *> (HSQUIRRELVM vm, ScriptSubsidyList *res) { PushObj<ScriptSubsidyList> (vm, res, "SubsidyList", true); }
 } // namespace SQConvert

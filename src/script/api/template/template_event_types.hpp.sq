@@ -13,143 +13,114 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline void Push<ScriptEventVehicleCrashed::CrashReason> (HSQUIRRELVM vm, ScriptEventVehicleCrashed::CrashReason res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptEventVehicleCrashed to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventVehicleCrashed *> (HSQUIRRELVM vm, ScriptEventVehicleCrashed *res) { PushObj<ScriptEventVehicleCrashed> (vm, res, "EventVehicleCrashed", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventSubsidyOffer to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventSubsidyOffer *> (HSQUIRRELVM vm, ScriptEventSubsidyOffer *res) { PushObj<ScriptEventSubsidyOffer> (vm, res, "EventSubsidyOffer", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventSubsidyOfferExpired to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventSubsidyOfferExpired *> (HSQUIRRELVM vm, ScriptEventSubsidyOfferExpired *res) { PushObj<ScriptEventSubsidyOfferExpired> (vm, res, "EventSubsidyOfferExpired", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventSubsidyAwarded to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventSubsidyAwarded *> (HSQUIRRELVM vm, ScriptEventSubsidyAwarded *res) { PushObj<ScriptEventSubsidyAwarded> (vm, res, "EventSubsidyAwarded", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventSubsidyExpired to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventSubsidyExpired *> (HSQUIRRELVM vm, ScriptEventSubsidyExpired *res) { PushObj<ScriptEventSubsidyExpired> (vm, res, "EventSubsidyExpired", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventEnginePreview to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventEnginePreview *> (HSQUIRRELVM vm, ScriptEventEnginePreview *res) { PushObj<ScriptEventEnginePreview> (vm, res, "EventEnginePreview", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventCompanyNew to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventCompanyNew *> (HSQUIRRELVM vm, ScriptEventCompanyNew *res) { PushObj<ScriptEventCompanyNew> (vm, res, "EventCompanyNew", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventCompanyInTrouble to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventCompanyInTrouble *> (HSQUIRRELVM vm, ScriptEventCompanyInTrouble *res) { PushObj<ScriptEventCompanyInTrouble> (vm, res, "EventCompanyInTrouble", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventCompanyAskMerger to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventCompanyAskMerger *> (HSQUIRRELVM vm, ScriptEventCompanyAskMerger *res) { PushObj<ScriptEventCompanyAskMerger> (vm, res, "EventCompanyAskMerger", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventCompanyMerger to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventCompanyMerger *> (HSQUIRRELVM vm, ScriptEventCompanyMerger *res) { PushObj<ScriptEventCompanyMerger> (vm, res, "EventCompanyMerger", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventCompanyBankrupt to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventCompanyBankrupt *> (HSQUIRRELVM vm, ScriptEventCompanyBankrupt *res) { PushObj<ScriptEventCompanyBankrupt> (vm, res, "EventCompanyBankrupt", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventVehicleLost to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventVehicleLost *> (HSQUIRRELVM vm, ScriptEventVehicleLost *res) { PushObj<ScriptEventVehicleLost> (vm, res, "EventVehicleLost", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventVehicleWaitingInDepot to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventVehicleWaitingInDepot *> (HSQUIRRELVM vm, ScriptEventVehicleWaitingInDepot *res) { PushObj<ScriptEventVehicleWaitingInDepot> (vm, res, "EventVehicleWaitingInDepot", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventVehicleUnprofitable to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventVehicleUnprofitable *> (HSQUIRRELVM vm, ScriptEventVehicleUnprofitable *res) { PushObj<ScriptEventVehicleUnprofitable> (vm, res, "EventVehicleUnprofitable", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventIndustryOpen to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventIndustryOpen *> (HSQUIRRELVM vm, ScriptEventIndustryOpen *res) { PushObj<ScriptEventIndustryOpen> (vm, res, "EventIndustryOpen", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventIndustryClose to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventIndustryClose *> (HSQUIRRELVM vm, ScriptEventIndustryClose *res) { PushObj<ScriptEventIndustryClose> (vm, res, "EventIndustryClose", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventEngineAvailable to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventEngineAvailable *> (HSQUIRRELVM vm, ScriptEventEngineAvailable *res) { PushObj<ScriptEventEngineAvailable> (vm, res, "EventEngineAvailable", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventStationFirstVehicle to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventStationFirstVehicle *> (HSQUIRRELVM vm, ScriptEventStationFirstVehicle *res) { PushObj<ScriptEventStationFirstVehicle> (vm, res, "EventStationFirstVehicle", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventDisasterZeppelinerCrashed to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventDisasterZeppelinerCrashed *> (HSQUIRRELVM vm, ScriptEventDisasterZeppelinerCrashed *res) { PushObj<ScriptEventDisasterZeppelinerCrashed> (vm, res, "EventDisasterZeppelinerCrashed", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventDisasterZeppelinerCleared to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventDisasterZeppelinerCleared *> (HSQUIRRELVM vm, ScriptEventDisasterZeppelinerCleared *res) { PushObj<ScriptEventDisasterZeppelinerCleared> (vm, res, "EventDisasterZeppelinerCleared", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventTownFounded to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventTownFounded *> (HSQUIRRELVM vm, ScriptEventTownFounded *res) { PushObj<ScriptEventTownFounded> (vm, res, "EventTownFounded", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventAircraftDestTooFar to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventAircraftDestTooFar *> (HSQUIRRELVM vm, ScriptEventAircraftDestTooFar *res) { PushObj<ScriptEventAircraftDestTooFar> (vm, res, "EventAircraftDestTooFar", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventAdminPort to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventAdminPort *> (HSQUIRRELVM vm, ScriptEventAdminPort *res) { PushObj<ScriptEventAdminPort> (vm, res, "EventAdminPort", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventWindowWidgetClick to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventWindowWidgetClick *> (HSQUIRRELVM vm, ScriptEventWindowWidgetClick *res) { PushObj<ScriptEventWindowWidgetClick> (vm, res, "EventWindowWidgetClick", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventGoalQuestionAnswer to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventGoalQuestionAnswer *> (HSQUIRRELVM vm, ScriptEventGoalQuestionAnswer *res) { PushObj<ScriptEventGoalQuestionAnswer> (vm, res, "EventGoalQuestionAnswer", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventCompanyTown to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventCompanyTown *> (HSQUIRRELVM vm, ScriptEventCompanyTown *res) { PushObj<ScriptEventCompanyTown> (vm, res, "EventCompanyTown", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventExclusiveTransportRights to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventExclusiveTransportRights *> (HSQUIRRELVM vm, ScriptEventExclusiveTransportRights *res) { PushObj<ScriptEventExclusiveTransportRights> (vm, res, "EventExclusiveTransportRights", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptEventRoadReconstruction to be used as Squirrel parameter */
-	template <> inline void Push<ScriptEventRoadReconstruction *> (HSQUIRRELVM vm, ScriptEventRoadReconstruction *res) { PushObj<ScriptEventRoadReconstruction> (vm, res, "EventRoadReconstruction", true); }
 } // namespace SQConvert

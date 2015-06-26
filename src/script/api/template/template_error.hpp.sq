@@ -13,9 +13,6 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline void Push<ScriptError::ErrorCategories> (HSQUIRRELVM vm, ScriptError::ErrorCategories res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptError::ErrorMessages> (HSQUIRRELVM vm, ScriptError::ErrorMessages res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptError to be used as Squirrel parameter */
-	template <> inline void Push<ScriptError *> (HSQUIRRELVM vm, ScriptError *res) { PushObj<ScriptError> (vm, res, "Error", true); }
 } // namespace SQConvert

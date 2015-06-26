@@ -13,13 +13,6 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline void Push<ScriptTile::ErrorMessages> (HSQUIRRELVM vm, ScriptTile::ErrorMessages res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptTile::Corner> (HSQUIRRELVM vm, ScriptTile::Corner res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptTile::Slope> (HSQUIRRELVM vm, ScriptTile::Slope res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptTile::TransportType> (HSQUIRRELVM vm, ScriptTile::TransportType res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptTile::BuildType> (HSQUIRRELVM vm, ScriptTile::BuildType res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptTile::TerrainType> (HSQUIRRELVM vm, ScriptTile::TerrainType res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptTile to be used as Squirrel parameter */
-	template <> inline void Push<ScriptTile *> (HSQUIRRELVM vm, ScriptTile *res) { PushObj<ScriptTile> (vm, res, "Tile", true); }
 } // namespace SQConvert

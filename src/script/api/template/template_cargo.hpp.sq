@@ -13,11 +13,6 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline void Push<ScriptCargo::CargoClass> (HSQUIRRELVM vm, ScriptCargo::CargoClass res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptCargo::TownEffect> (HSQUIRRELVM vm, ScriptCargo::TownEffect res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptCargo::SpecialCargoID> (HSQUIRRELVM vm, ScriptCargo::SpecialCargoID res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptCargo::DistributionType> (HSQUIRRELVM vm, ScriptCargo::DistributionType res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptCargo to be used as Squirrel parameter */
-	template <> inline void Push<ScriptCargo *> (HSQUIRRELVM vm, ScriptCargo *res) { PushObj<ScriptCargo> (vm, res, "Cargo", true); }
 } // namespace SQConvert

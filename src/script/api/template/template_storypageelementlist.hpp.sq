@@ -13,5 +13,4 @@
 
 namespace SQConvert {
 	/* Allow ScriptStoryPageElementList to be used as Squirrel parameter */
-	template <> inline void Push<ScriptStoryPageElementList *> (HSQUIRRELVM vm, ScriptStoryPageElementList *res) { PushObj<ScriptStoryPageElementList> (vm, res, "StoryPageElementList", true); }
 } // namespace SQConvert

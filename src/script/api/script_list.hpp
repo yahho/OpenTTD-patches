@@ -14,6 +14,7 @@
 #define SCRIPT_LIST_HPP
 
 #include "script_object.hpp"
+#include "../squirrel_helper.hpp"
 #include <map>
 #include <set>
 
@@ -289,5 +290,16 @@ public:
 	void Valuate(void *valuator_function, int params, ...);
 #endif /* DOXYGEN_API */
 };
+
+/* Return value support for ScriptList objects. */
+namespace SQConvert {
+
+	template <>
+	inline void Push<ScriptList *> (HSQUIRRELVM vm, ScriptList *res)
+	{
+		PushObj<ScriptList> (vm, res, "List", true);
+	}
+
+}
 
 #endif /* SCRIPT_LIST_HPP */

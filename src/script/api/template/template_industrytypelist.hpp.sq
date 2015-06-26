@@ -13,5 +13,4 @@
 
 namespace SQConvert {
 	/* Allow ScriptIndustryTypeList to be used as Squirrel parameter */
-	template <> inline void Push<ScriptIndustryTypeList *> (HSQUIRRELVM vm, ScriptIndustryTypeList *res) { PushObj<ScriptIndustryTypeList> (vm, res, "IndustryTypeList", true); }
 } // namespace SQConvert

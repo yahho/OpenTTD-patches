@@ -13,5 +13,4 @@
 
 namespace SQConvert {
 	/* Allow ScriptAccounting to be used as Squirrel parameter */
-	template <> inline void Push<ScriptAccounting *> (HSQUIRRELVM vm, ScriptAccounting *res) { PushObj<ScriptAccounting> (vm, res, "Accounting", true); }
 } // namespace SQConvert

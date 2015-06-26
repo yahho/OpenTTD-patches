@@ -28,12 +28,6 @@ function dump_class_templates(name)
 {
 	realname = name
 	gsub("^Script", "", realname)
-
-	if (name == "ScriptEvent") {
-		print "	template <> inline void Push<" name " *> (HSQUIRRELVM vm, " name " *res) { PushObj<" name "> (vm, res, \"" realname "\", false); }"
-	} else if (name != "ScriptText") {
-		print "	template <> inline void Push<" name " *> (HSQUIRRELVM vm, " name " *res) { PushObj<" name "> (vm, res, \"" realname "\", true); }"
-	}
 }
 
 function dump_fileheader()
@@ -278,7 +272,6 @@ BEGIN {
 			}
 			print "	/* Allow enums to be used as Squirrel parameters */"
 			for (i = 1; i <= enum_size; i++) {
-				print "	template <> inline void Push<" enums[i] "> (HSQUIRRELVM vm, " enums[i] " res) { sq_pushinteger (vm, (int32)res); }"
 				delete enums[i]
 			}
 		}

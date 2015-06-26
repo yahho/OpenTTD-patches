@@ -13,5 +13,4 @@
 
 namespace SQConvert {
 	/* Allow ScriptGameSettings to be used as Squirrel parameter */
-	template <> inline void Push<ScriptGameSettings *> (HSQUIRRELVM vm, ScriptGameSettings *res) { PushObj<ScriptGameSettings> (vm, res, "GameSettings", true); }
 } // namespace SQConvert

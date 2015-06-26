@@ -13,69 +13,54 @@
 
 namespace SQConvert {
 	/* Allow ScriptStationList to be used as Squirrel parameter */
-	template <> inline void Push<ScriptStationList *> (HSQUIRRELVM vm, ScriptStationList *res) { PushObj<ScriptStationList> (vm, res, "StationList", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline void Push<ScriptStationList_Cargo::CargoSelector> (HSQUIRRELVM vm, ScriptStationList_Cargo::CargoSelector res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptStationList_Cargo::CargoMode> (HSQUIRRELVM vm, ScriptStationList_Cargo::CargoMode res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptStationList_Cargo to be used as Squirrel parameter */
-	template <> inline void Push<ScriptStationList_Cargo *> (HSQUIRRELVM vm, ScriptStationList_Cargo *res) { PushObj<ScriptStationList_Cargo> (vm, res, "StationList_Cargo", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoWaiting to be used as Squirrel parameter */
-	template <> inline void Push<ScriptStationList_CargoWaiting *> (HSQUIRRELVM vm, ScriptStationList_CargoWaiting *res) { PushObj<ScriptStationList_CargoWaiting> (vm, res, "StationList_CargoWaiting", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoPlanned to be used as Squirrel parameter */
-	template <> inline void Push<ScriptStationList_CargoPlanned *> (HSQUIRRELVM vm, ScriptStationList_CargoPlanned *res) { PushObj<ScriptStationList_CargoPlanned> (vm, res, "StationList_CargoPlanned", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoWaitingByFrom to be used as Squirrel parameter */
-	template <> inline void Push<ScriptStationList_CargoWaitingByFrom *> (HSQUIRRELVM vm, ScriptStationList_CargoWaitingByFrom *res) { PushObj<ScriptStationList_CargoWaitingByFrom> (vm, res, "StationList_CargoWaitingByFrom", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoWaitingViaByFrom to be used as Squirrel parameter */
-	template <> inline void Push<ScriptStationList_CargoWaitingViaByFrom *> (HSQUIRRELVM vm, ScriptStationList_CargoWaitingViaByFrom *res) { PushObj<ScriptStationList_CargoWaitingViaByFrom> (vm, res, "StationList_CargoWaitingViaByFrom", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoWaitingByVia to be used as Squirrel parameter */
-	template <> inline void Push<ScriptStationList_CargoWaitingByVia *> (HSQUIRRELVM vm, ScriptStationList_CargoWaitingByVia *res) { PushObj<ScriptStationList_CargoWaitingByVia> (vm, res, "StationList_CargoWaitingByVia", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoWaitingFromByVia to be used as Squirrel parameter */
-	template <> inline void Push<ScriptStationList_CargoWaitingFromByVia *> (HSQUIRRELVM vm, ScriptStationList_CargoWaitingFromByVia *res) { PushObj<ScriptStationList_CargoWaitingFromByVia> (vm, res, "StationList_CargoWaitingFromByVia", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoPlannedByFrom to be used as Squirrel parameter */
-	template <> inline void Push<ScriptStationList_CargoPlannedByFrom *> (HSQUIRRELVM vm, ScriptStationList_CargoPlannedByFrom *res) { PushObj<ScriptStationList_CargoPlannedByFrom> (vm, res, "StationList_CargoPlannedByFrom", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoPlannedViaByFrom to be used as Squirrel parameter */
-	template <> inline void Push<ScriptStationList_CargoPlannedViaByFrom *> (HSQUIRRELVM vm, ScriptStationList_CargoPlannedViaByFrom *res) { PushObj<ScriptStationList_CargoPlannedViaByFrom> (vm, res, "StationList_CargoPlannedViaByFrom", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoPlannedByVia to be used as Squirrel parameter */
-	template <> inline void Push<ScriptStationList_CargoPlannedByVia *> (HSQUIRRELVM vm, ScriptStationList_CargoPlannedByVia *res) { PushObj<ScriptStationList_CargoPlannedByVia> (vm, res, "StationList_CargoPlannedByVia", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_CargoPlannedFromByVia to be used as Squirrel parameter */
-	template <> inline void Push<ScriptStationList_CargoPlannedFromByVia *> (HSQUIRRELVM vm, ScriptStationList_CargoPlannedFromByVia *res) { PushObj<ScriptStationList_CargoPlannedFromByVia> (vm, res, "StationList_CargoPlannedFromByVia", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptStationList_Vehicle to be used as Squirrel parameter */
-	template <> inline void Push<ScriptStationList_Vehicle *> (HSQUIRRELVM vm, ScriptStationList_Vehicle *res) { PushObj<ScriptStationList_Vehicle> (vm, res, "StationList_Vehicle", true); }
 } // namespace SQConvert

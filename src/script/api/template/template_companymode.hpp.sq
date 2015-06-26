@@ -13,5 +13,4 @@
 
 namespace SQConvert {
 	/* Allow ScriptCompanyMode to be used as Squirrel parameter */
-	template <> inline void Push<ScriptCompanyMode *> (HSQUIRRELVM vm, ScriptCompanyMode *res) { PushObj<ScriptCompanyMode> (vm, res, "CompanyMode", true); }
 } // namespace SQConvert

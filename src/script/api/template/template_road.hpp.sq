@@ -13,11 +13,6 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline void Push<ScriptRoad::ErrorMessages> (HSQUIRRELVM vm, ScriptRoad::ErrorMessages res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptRoad::RoadType> (HSQUIRRELVM vm, ScriptRoad::RoadType res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptRoad::RoadVehicleType> (HSQUIRRELVM vm, ScriptRoad::RoadVehicleType res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptRoad::BuildType> (HSQUIRRELVM vm, ScriptRoad::BuildType res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptRoad to be used as Squirrel parameter */
-	template <> inline void Push<ScriptRoad *> (HSQUIRRELVM vm, ScriptRoad *res) { PushObj<ScriptRoad> (vm, res, "Road", true); }
 } // namespace SQConvert

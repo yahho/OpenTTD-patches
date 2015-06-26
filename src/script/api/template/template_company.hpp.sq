@@ -13,11 +13,6 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline void Push<ScriptCompany::Quarter> (HSQUIRRELVM vm, ScriptCompany::Quarter res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptCompany::CompanyID> (HSQUIRRELVM vm, ScriptCompany::CompanyID res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptCompany::Gender> (HSQUIRRELVM vm, ScriptCompany::Gender res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptCompany::ExpensesType> (HSQUIRRELVM vm, ScriptCompany::ExpensesType res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptCompany to be used as Squirrel parameter */
-	template <> inline void Push<ScriptCompany *> (HSQUIRRELVM vm, ScriptCompany *res) { PushObj<ScriptCompany> (vm, res, "Company", true); }
 } // namespace SQConvert

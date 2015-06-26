@@ -13,5 +13,4 @@
 
 namespace SQConvert {
 	/* Allow ScriptCargoMonitor to be used as Squirrel parameter */
-	template <> inline void Push<ScriptCargoMonitor *> (HSQUIRRELVM vm, ScriptCargoMonitor *res) { PushObj<ScriptCargoMonitor> (vm, res, "CargoMonitor", true); }
 } // namespace SQConvert

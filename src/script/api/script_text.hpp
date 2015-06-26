@@ -208,6 +208,9 @@ namespace SQConvert {
 		Param & operator = (const Param &) DELETED;
 	};
 
+	template <>
+	inline void Push<Text*> (HSQUIRRELVM vm, Text *) DELETED;
+
 }
 
 #endif /* SCRIPT_TEXT_HPP */

@@ -13,10 +13,8 @@
 
 namespace SQConvert {
 	/* Allow ScriptTownList to be used as Squirrel parameter */
-	template <> inline void Push<ScriptTownList *> (HSQUIRRELVM vm, ScriptTownList *res) { PushObj<ScriptTownList> (vm, res, "TownList", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptTownEffectList to be used as Squirrel parameter */
-	template <> inline void Push<ScriptTownEffectList *> (HSQUIRRELVM vm, ScriptTownEffectList *res) { PushObj<ScriptTownEffectList> (vm, res, "TownEffectList", true); }
 } // namespace SQConvert

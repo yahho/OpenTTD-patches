@@ -13,5 +13,4 @@
 
 namespace SQConvert {
 	/* Allow ScriptViewport to be used as Squirrel parameter */
-	template <> inline void Push<ScriptViewport *> (HSQUIRRELVM vm, ScriptViewport *res) { PushObj<ScriptViewport> (vm, res, "Viewport", true); }
 } // namespace SQConvert

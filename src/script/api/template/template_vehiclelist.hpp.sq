@@ -13,30 +13,24 @@
 
 namespace SQConvert {
 	/* Allow ScriptVehicleList to be used as Squirrel parameter */
-	template <> inline void Push<ScriptVehicleList *> (HSQUIRRELVM vm, ScriptVehicleList *res) { PushObj<ScriptVehicleList> (vm, res, "VehicleList", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptVehicleList_Station to be used as Squirrel parameter */
-	template <> inline void Push<ScriptVehicleList_Station *> (HSQUIRRELVM vm, ScriptVehicleList_Station *res) { PushObj<ScriptVehicleList_Station> (vm, res, "VehicleList_Station", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptVehicleList_Depot to be used as Squirrel parameter */
-	template <> inline void Push<ScriptVehicleList_Depot *> (HSQUIRRELVM vm, ScriptVehicleList_Depot *res) { PushObj<ScriptVehicleList_Depot> (vm, res, "VehicleList_Depot", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptVehicleList_SharedOrders to be used as Squirrel parameter */
-	template <> inline void Push<ScriptVehicleList_SharedOrders *> (HSQUIRRELVM vm, ScriptVehicleList_SharedOrders *res) { PushObj<ScriptVehicleList_SharedOrders> (vm, res, "VehicleList_SharedOrders", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptVehicleList_Group to be used as Squirrel parameter */
-	template <> inline void Push<ScriptVehicleList_Group *> (HSQUIRRELVM vm, ScriptVehicleList_Group *res) { PushObj<ScriptVehicleList_Group> (vm, res, "VehicleList_Group", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptVehicleList_DefaultGroup to be used as Squirrel parameter */
-	template <> inline void Push<ScriptVehicleList_DefaultGroup *> (HSQUIRRELVM vm, ScriptVehicleList_DefaultGroup *res) { PushObj<ScriptVehicleList_DefaultGroup> (vm, res, "VehicleList_DefaultGroup", true); }
 } // namespace SQConvert

@@ -13,5 +13,4 @@
 
 namespace SQConvert {
 	/* Allow ScriptSignList to be used as Squirrel parameter */
-	template <> inline void Push<ScriptSignList *> (HSQUIRRELVM vm, ScriptSignList *res) { PushObj<ScriptSignList> (vm, res, "SignList", true); }
 } // namespace SQConvert

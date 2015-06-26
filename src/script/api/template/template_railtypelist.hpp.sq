@@ -13,5 +13,4 @@
 
 namespace SQConvert {
 	/* Allow ScriptRailTypeList to be used as Squirrel parameter */
-	template <> inline void Push<ScriptRailTypeList *> (HSQUIRRELVM vm, ScriptRailTypeList *res) { PushObj<ScriptRailTypeList> (vm, res, "RailTypeList", true); }
 } // namespace SQConvert

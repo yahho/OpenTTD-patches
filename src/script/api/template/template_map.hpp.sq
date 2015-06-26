@@ -13,5 +13,4 @@
 
 namespace SQConvert {
 	/* Allow ScriptMap to be used as Squirrel parameter */
-	template <> inline void Push<ScriptMap *> (HSQUIRRELVM vm, ScriptMap *res) { PushObj<ScriptMap> (vm, res, "Map", true); }
 } // namespace SQConvert

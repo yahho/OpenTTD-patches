@@ -13,15 +13,12 @@
 
 namespace SQConvert {
 	/* Allow ScriptIndustryList to be used as Squirrel parameter */
-	template <> inline void Push<ScriptIndustryList *> (HSQUIRRELVM vm, ScriptIndustryList *res) { PushObj<ScriptIndustryList> (vm, res, "IndustryList", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptIndustryList_CargoAccepting to be used as Squirrel parameter */
-	template <> inline void Push<ScriptIndustryList_CargoAccepting *> (HSQUIRRELVM vm, ScriptIndustryList_CargoAccepting *res) { PushObj<ScriptIndustryList_CargoAccepting> (vm, res, "IndustryList_CargoAccepting", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptIndustryList_CargoProducing to be used as Squirrel parameter */
-	template <> inline void Push<ScriptIndustryList_CargoProducing *> (HSQUIRRELVM vm, ScriptIndustryList_CargoProducing *res) { PushObj<ScriptIndustryList_CargoProducing> (vm, res, "IndustryList_CargoProducing", true); }
 } // namespace SQConvert

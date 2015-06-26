@@ -13,8 +13,6 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline void Push<ScriptGame::LandscapeType> (HSQUIRRELVM vm, ScriptGame::LandscapeType res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptGame to be used as Squirrel parameter */
-	template <> inline void Push<ScriptGame *> (HSQUIRRELVM vm, ScriptGame *res) { PushObj<ScriptGame> (vm, res, "Game", true); }
 } // namespace SQConvert

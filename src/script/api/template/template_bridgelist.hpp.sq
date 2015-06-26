@@ -13,10 +13,8 @@
 
 namespace SQConvert {
 	/* Allow ScriptBridgeList to be used as Squirrel parameter */
-	template <> inline void Push<ScriptBridgeList *> (HSQUIRRELVM vm, ScriptBridgeList *res) { PushObj<ScriptBridgeList> (vm, res, "BridgeList", true); }
 } // namespace SQConvert
 
 namespace SQConvert {
 	/* Allow ScriptBridgeList_Length to be used as Squirrel parameter */
-	template <> inline void Push<ScriptBridgeList_Length *> (HSQUIRRELVM vm, ScriptBridgeList_Length *res) { PushObj<ScriptBridgeList_Length> (vm, res, "BridgeList_Length", true); }
 } // namespace SQConvert

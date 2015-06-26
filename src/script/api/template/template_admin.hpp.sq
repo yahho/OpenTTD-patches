@@ -13,5 +13,4 @@
 
 namespace SQConvert {
 	/* Allow ScriptAdmin to be used as Squirrel parameter */
-	template <> inline void Push<ScriptAdmin *> (HSQUIRRELVM vm, ScriptAdmin *res) { PushObj<ScriptAdmin> (vm, res, "Admin", true); }
 } // namespace SQConvert

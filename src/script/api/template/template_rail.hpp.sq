@@ -13,12 +13,6 @@
 
 namespace SQConvert {
 	/* Allow enums to be used as Squirrel parameters */
-	template <> inline void Push<ScriptRail::ErrorMessages> (HSQUIRRELVM vm, ScriptRail::ErrorMessages res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptRail::RailType> (HSQUIRRELVM vm, ScriptRail::RailType res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptRail::RailTrack> (HSQUIRRELVM vm, ScriptRail::RailTrack res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptRail::SignalType> (HSQUIRRELVM vm, ScriptRail::SignalType res) { sq_pushinteger (vm, (int32)res); }
-	template <> inline void Push<ScriptRail::BuildType> (HSQUIRRELVM vm, ScriptRail::BuildType res) { sq_pushinteger (vm, (int32)res); }
 
 	/* Allow ScriptRail to be used as Squirrel parameter */
-	template <> inline void Push<ScriptRail *> (HSQUIRRELVM vm, ScriptRail *res) { PushObj<ScriptRail> (vm, res, "Rail", true); }
 } // namespace SQConvert

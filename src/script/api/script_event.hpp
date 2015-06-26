@@ -13,6 +13,7 @@
 #define SCRIPT_EVENT_HPP
 
 #include "script_object.hpp"
+#include "../squirrel_helper.hpp"
 
 /**
  * Class that handles all event related functions.
@@ -116,5 +117,16 @@ private:
 	 */
 	static void CreateEventPointer();
 };
+
+/* Return value support for event objects. */
+namespace SQConvert {
+
+	template <>
+	inline void Push<ScriptEvent *> (HSQUIRRELVM vm, ScriptEvent *res)
+	{
+		PushObj<ScriptEvent> (vm, res, "Event", false);
+	}
+
+}
 
 #endif /* SCRIPT_EVENT_HPP */

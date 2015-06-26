@@ -13,5 +13,4 @@
 
 namespace SQConvert {
 	/* Allow ScriptBase to be used as Squirrel parameter */
-	template <> inline void Push<ScriptBase *> (HSQUIRRELVM vm, ScriptBase *res) { PushObj<ScriptBase> (vm, res, "Base", true); }
 } // namespace SQConvert

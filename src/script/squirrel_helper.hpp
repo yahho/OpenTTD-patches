@@ -593,7 +593,11 @@ namespace SQConvert {
 
 
 	/** Push a value onto the squirrel stack. */
-	template <typename T> void Push (HSQUIRRELVM vm, T t);
+	template <typename T>
+	inline void Push (HSQUIRRELVM vm, T res)
+	{
+		sq_pushinteger (vm, static_cast<int32>(res));
+	}
 
 	template <> inline void Push<uint8>       (HSQUIRRELVM vm, uint8 res)       { sq_pushinteger (vm, (int32)res); }
 	template <> inline void Push<uint16>      (HSQUIRRELVM vm, uint16 res)      { sq_pushinteger (vm, (int32)res); }
