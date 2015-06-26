@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_grouplist.hpp"
-#include "../template/template_grouplist.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptGroupList, ST_AI>() { return "AIGroupList"; }

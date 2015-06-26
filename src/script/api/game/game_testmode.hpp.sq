@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_testmode.hpp"
-#include "../template/template_testmode.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptTestMode, ST_GS>() { return "GSTestMode"; }

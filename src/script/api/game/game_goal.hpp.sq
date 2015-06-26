@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_goal.hpp"
-#include "../template/template_goal.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptGoal, ST_GS>() { return "GSGoal"; }

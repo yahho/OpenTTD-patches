@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_vehiclelist.hpp"
-#include "../template/template_vehiclelist.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptVehicleList, ST_GS>() { return "GSVehicleList"; }

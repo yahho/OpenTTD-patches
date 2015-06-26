@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_sign.hpp"
-#include "../template/template_sign.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptSign, ST_GS>() { return "GSSign"; }

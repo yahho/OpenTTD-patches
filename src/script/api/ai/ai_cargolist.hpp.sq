@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_cargolist.hpp"
-#include "../template/template_cargolist.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptCargoList, ST_AI>() { return "AICargoList"; }

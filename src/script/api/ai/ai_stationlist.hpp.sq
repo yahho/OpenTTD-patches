@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_stationlist.hpp"
-#include "../template/template_stationlist.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptStationList, ST_AI>() { return "AIStationList"; }

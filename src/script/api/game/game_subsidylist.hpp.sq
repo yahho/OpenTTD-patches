@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_subsidylist.hpp"
-#include "../template/template_subsidylist.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptSubsidyList, ST_GS>() { return "GSSubsidyList"; }

@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_station.hpp"
-#include "../template/template_station.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptStation, ST_GS>() { return "GSStation"; }

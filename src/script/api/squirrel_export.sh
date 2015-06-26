@@ -37,7 +37,6 @@ if [ "$apilc" = "script" ]; then
 fi
 
 case $apilc in
-	template) apiuc="Template" ;;
 	ai) apiuc="AI" ;;
 	game) apiuc="GS" ;;
 	*) echo "Unknown API type."; exit 1 ;;
@@ -97,8 +96,6 @@ for f in `ls *.hpp.sq`; do
 	fi
 done
 
-if [ "$apilc" = "template" ]; then exit 0; fi
-
 # Add stuff to ${apilc}_instance.cpp
 f="../../../${apilc}/${apilc}_instance.cpp"
 
@@ -106,7 +103,7 @@ functions=``
 
 echo "
 { }
-/.hpp.sq/ { if (match(\$0, \"template\")) print \$0; next }
+/.hpp.sq/ { next }
 /SQ${apiuc}Controller_Register/ { print \$0; next }
 /SQ${apiuc}.*_Register/ { next }
 

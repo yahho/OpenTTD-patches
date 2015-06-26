@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_tile.hpp"
-#include "../template/template_tile.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptTile, ST_GS>() { return "GSTile"; }

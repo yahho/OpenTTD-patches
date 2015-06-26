@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_marine.hpp"
-#include "../template/template_marine.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptMarine, ST_AI>() { return "AIMarine"; }

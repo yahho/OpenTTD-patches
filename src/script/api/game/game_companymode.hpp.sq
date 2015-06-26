@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_companymode.hpp"
-#include "../template/template_companymode.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptCompanyMode, ST_GS>() { return "GSCompanyMode"; }

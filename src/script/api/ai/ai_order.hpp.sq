@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_order.hpp"
-#include "../template/template_order.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptOrder, ST_AI>() { return "AIOrder"; }

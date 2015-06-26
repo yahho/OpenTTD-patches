@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_road.hpp"
-#include "../template/template_road.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptRoad, ST_GS>() { return "GSRoad"; }

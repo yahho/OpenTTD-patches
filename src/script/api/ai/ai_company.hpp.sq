@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_company.hpp"
-#include "../template/template_company.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptCompany, ST_AI>() { return "AICompany"; }

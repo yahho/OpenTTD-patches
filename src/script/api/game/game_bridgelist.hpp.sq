@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_bridgelist.hpp"
-#include "../template/template_bridgelist.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptBridgeList, ST_GS>() { return "GSBridgeList"; }

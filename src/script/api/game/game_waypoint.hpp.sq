@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_waypoint.hpp"
-#include "../template/template_waypoint.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptWaypoint, ST_GS>() { return "GSWaypoint"; }

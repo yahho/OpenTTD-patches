@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_map.hpp"
-#include "../template/template_map.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptMap, ST_AI>() { return "AIMap"; }

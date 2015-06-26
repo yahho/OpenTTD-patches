@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_depotlist.hpp"
-#include "../template/template_depotlist.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptDepotList, ST_GS>() { return "GSDepotList"; }

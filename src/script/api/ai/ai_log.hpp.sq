@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_log.hpp"
-#include "../template/template_log.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptLog, ST_AI>() { return "AILog"; }

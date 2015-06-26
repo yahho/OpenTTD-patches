@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_event.hpp"
-#include "../template/template_event.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptEvent, ST_GS>() { return "GSEvent"; }

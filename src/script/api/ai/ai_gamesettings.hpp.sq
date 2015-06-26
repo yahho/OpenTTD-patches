@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_gamesettings.hpp"
-#include "../template/template_gamesettings.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptGameSettings, ST_AI>() { return "AIGameSettings"; }

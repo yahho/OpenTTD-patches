@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_tilelist.hpp"
-#include "../template/template_tilelist.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptTileList, ST_AI>() { return "AITileList"; }

@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_industry.hpp"
-#include "../template/template_industry.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptIndustry, ST_GS>() { return "GSIndustry"; }

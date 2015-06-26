@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_infrastructure.hpp"
-#include "../template/template_infrastructure.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptInfrastructure, ST_AI>() { return "AIInfrastructure"; }

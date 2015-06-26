@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_storypagelist.hpp"
-#include "../template/template_storypagelist.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptStoryPageList, ST_GS>() { return "GSStoryPageList"; }

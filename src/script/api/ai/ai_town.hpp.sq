@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_town.hpp"
-#include "../template/template_town.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptTown, ST_AI>() { return "AITown"; }

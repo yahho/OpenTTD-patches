@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_game.hpp"
-#include "../template/template_game.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptGame, ST_GS>() { return "GSGame"; }

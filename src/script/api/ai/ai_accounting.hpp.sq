@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_accounting.hpp"
-#include "../template/template_accounting.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptAccounting, ST_AI>() { return "AIAccounting"; }

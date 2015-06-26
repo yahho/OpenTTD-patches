@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_date.hpp"
-#include "../template/template_date.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptDate, ST_GS>() { return "GSDate"; }

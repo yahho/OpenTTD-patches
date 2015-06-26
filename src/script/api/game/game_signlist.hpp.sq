@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_signlist.hpp"
-#include "../template/template_signlist.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptSignList, ST_GS>() { return "GSSignList"; }

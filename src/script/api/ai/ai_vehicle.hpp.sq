@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_vehicle.hpp"
-#include "../template/template_vehicle.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptVehicle, ST_AI>() { return "AIVehicle"; }

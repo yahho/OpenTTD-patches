@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_event_types.hpp"
-#include "../template/template_event_types.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptEventVehicleCrashed, ST_AI>() { return "AIEventVehicleCrashed"; }

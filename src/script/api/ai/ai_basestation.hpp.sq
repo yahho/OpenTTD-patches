@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_basestation.hpp"
-#include "../template/template_basestation.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptBaseStation, ST_AI>() { return "AIBaseStation"; }

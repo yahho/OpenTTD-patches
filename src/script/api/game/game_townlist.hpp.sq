@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_townlist.hpp"
-#include "../template/template_townlist.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptTownList, ST_GS>() { return "GSTownList"; }

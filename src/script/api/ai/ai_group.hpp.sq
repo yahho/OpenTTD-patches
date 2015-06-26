@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_group.hpp"
-#include "../template/template_group.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptGroup, ST_AI>() { return "AIGroup"; }

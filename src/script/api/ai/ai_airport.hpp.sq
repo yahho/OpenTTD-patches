@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_airport.hpp"
-#include "../template/template_airport.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptAirport, ST_AI>() { return "AIAirport"; }

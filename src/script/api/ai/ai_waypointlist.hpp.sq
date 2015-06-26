@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_waypointlist.hpp"
-#include "../template/template_waypointlist.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptWaypointList, ST_AI>() { return "AIWaypointList"; }

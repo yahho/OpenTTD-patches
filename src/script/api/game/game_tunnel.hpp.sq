@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_tunnel.hpp"
-#include "../template/template_tunnel.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptTunnel, ST_GS>() { return "GSTunnel"; }

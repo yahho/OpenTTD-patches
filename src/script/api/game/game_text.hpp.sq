@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_text.hpp"
-#include "../template/template_text.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptText, ST_GS>() { return "GSText"; }

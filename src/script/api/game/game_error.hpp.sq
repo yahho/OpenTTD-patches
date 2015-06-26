@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_error.hpp"
-#include "../template/template_error.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptError, ST_GS>() { return "GSError"; }

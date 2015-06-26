@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_base.hpp"
-#include "../template/template_base.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptBase, ST_GS>() { return "GSBase"; }

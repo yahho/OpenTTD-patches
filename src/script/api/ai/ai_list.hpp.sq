@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_list.hpp"
-#include "../template/template_list.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptList, ST_AI>() { return "AIList"; }

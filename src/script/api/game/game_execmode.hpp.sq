@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_execmode.hpp"
-#include "../template/template_execmode.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptExecMode, ST_GS>() { return "GSExecMode"; }

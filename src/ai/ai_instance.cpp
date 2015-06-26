@@ -24,7 +24,7 @@
 #include "ai_instance.hpp"
 
 /* Manually include the Text glue. */
-#include "../script/api/template/template_text.hpp.sq"
+#include "../script/api/script_text.hpp"
 
 /* Convert all AI related classes to Squirrel data.
  * Note: this line is a marker in squirrel_export.sh. Do not change! */

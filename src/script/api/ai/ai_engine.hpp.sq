@@ -10,7 +10,6 @@
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
 #include "../script_engine.hpp"
-#include "../template/template_engine.hpp.sq"
 
 
 template <> const char *GetClassName<ScriptEngine, ST_AI>() { return "AIEngine"; }
