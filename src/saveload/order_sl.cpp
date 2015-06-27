@@ -13,6 +13,7 @@
 #include "../order_backup.h"
 #include "../settings_type.h"
 #include "../network/network.h"
+#include "../network/network_func.h"
 
 #include "saveload_internal.h"
 #include "saveload_error.h"
@@ -284,24 +285,28 @@ static void Save_BKOR(SaveDumper *dumper)
 
 void Load_BKOR(LoadBuffer *reader)
 {
-	/* Only load order backups in network clients, to prevent desyncs.
+	/* Only load order backups in network clients, to prevent desyncs,
+	 * or when replaying, to debug them.
 	 * If we are loading a savegame from disk, they are not needed and
 	 * it does not make much sense to load them. */
+#ifndef DEBUG_DUMP_COMMANDS
 	if (!_networking || _network_server) {
 		reader->SkipChunk();
-	} else {
-		/* Note that this chunk will never be loaded in a different
-		 * version that it was saved. */
-		if (!reader->stv->is_current()) {
-			throw SlCorrupt ("Invalid savegame version");
-		}
+		return;
+	}
+#endif
 
-		int index;
-		while ((index = reader->IterateChunk()) != -1) {
-			/* set num_orders to 0 so it's a valid OrderList */
-			OrderBackup *ob = new (index) OrderBackup();
-			reader->ReadObject(ob, GetOrderBackupDescription());
-		}
+	/* Note that this chunk will never be loaded in a different
+	 * version that it was saved. */
+	if (!reader->stv->is_current()) {
+		throw SlCorrupt ("Invalid savegame version");
+	}
+
+	int index;
+	while ((index = reader->IterateChunk()) != -1) {
+		/* set num_orders to 0 so it's a valid OrderList */
+		OrderBackup *ob = new (index) OrderBackup();
+		reader->ReadObject(ob, GetOrderBackupDescription());
 	}
 }
 
