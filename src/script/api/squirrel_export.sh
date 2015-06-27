@@ -88,7 +88,7 @@ else
 fi
 
 # Remove .hpp.sq if .hpp doesn't exist anymore
-for f in `ls *.hpp.sq`; do
+for f in `ls *_*.hpp.sq`; do
 	f=`echo ${f} | sed "s/.hpp.sq$/.hpp/;s@${apilc}_@script_@"`
 	if [ ! -f ../${f} ];then
 		echo "Deleted: ${f}.sq"
@@ -96,48 +96,38 @@ for f in `ls *.hpp.sq`; do
 	fi
 done
 
-# Add stuff to ${apilc}_instance.cpp
-f="../../../${apilc}/${apilc}_instance.cpp"
 
-functions=``
+# Add stuff to ${apilc}.hpp.sq
+f=${apilc}.hpp.sq
 
-echo "
-{ }
-/.hpp.sq/ { next }
-/SQ${apiuc}Controller_Register/ { print \$0; next }
-/SQ${apiuc}.*_Register/ { next }
+cat > ${f}.tmp << EOF
+/*
+ * This file is part of OpenTTD.
+ * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
+ * OpenTTD is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
+ */
 
-/Note: this line is a marker in squirrel_export.sh. Do not change!/ {
-	print \$0
-	gsub(\"^.*/\", \"\")
-	split(\"`grep '^void SQ'${apiuc}'.*_Register(Squirrel \*engine)$' *.hpp.sq | sed 's/:.*$//' | sort | uniq | tr -d '\r' | tr '\n' ' '`\", files, \" \")
+/* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
-	for (i = 1; files[i] != \"\"; i++) {
-		print \"#include \\\"../script/api/${apilc}/\" files[i] \"\\\"\" \$0
-	}
+EOF
 
-	next;
-}
+grep -l '^void SQ'${apiuc}'.*_Register *(Squirrel \*engine)$' *_*.hpp.sq |
+        sort | sed -e "s/^/#include \"/" -e 's/$/"/' >> ${f}.tmp
 
-/\/\* Register all classes \*\// {
-	print \$0
-	gsub(\"^.*/\", \"\")
-	# List needs to be registered with squirrel before all List subclasses.
-	print \"	SQ${apiuc}List_Register(this->engine);\" \$0
-	split(\"`grep '^void SQ'${apiuc}'.*_Register(Squirrel \*engine)$' *.hpp.sq | grep -v 'SQ'${apiuc}'List_Register' | sed 's/^.*void //;s/Squirrel \*/this->/;s/$/;/;s/_Register/0000Register/g;' | sort | sed 's/0000Register/_Register/g' | tr -d '\r' | tr '\n' ' '`\", regs, \" \")
+echo >> ${f}.tmp ''
+echo >> ${f}.tmp 'static void SQ'${apiuc}'_Register (Squirrel *engine)'
+echo >> ${f}.tmp '{'
 
-	for (i = 1; regs[i] != \"\"; i++) {
-		if (regs[i] == \"SQ${apiuc}Controller_Register(this->engine);\") continue
-		print \"	\" regs[i] \$0
-	}
+# List needs to be registered with squirrel before all List subclasses.
+echo >> ${f}.tmp '	SQ'${apiuc}'List_Register (engine);'
 
-	next
-}
+sed -n -e 's/^void \(SQ'${apiuc}'.*\)_Register *(Squirrel \*engine)$/\1/p' \
+                *_*.hpp.sq | sort |
+        sed -e '/^SQ'${apiuc}'Controller$/d' -e '/^SQ'${apiuc}'List$/d' \
+                -e 's/^.*$/	&_Register (engine);/' >> ${f}.tmp
 
-{ print \$0; }
-" > ${f}.awk
-
-${AWK} -f ${f}.awk ${f} > ${f}.tmp
+echo >> ${f}.tmp '}'
 
 if ! [ -f "${f}" ] || [ -n "`diff -I '$Id' ${f} ${f}.tmp 2> /dev/null || echo boo`" ]; then
 	mv ${f}.tmp ${f}
@@ -145,4 +135,3 @@ if ! [ -f "${f}" ] || [ -n "`diff -I '$Id' ${f} ${f}.tmp 2> /dev/null || echo bo
 else
 	rm -f ${f}.tmp
 fi
-rm -f ${f}.awk
