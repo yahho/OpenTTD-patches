@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptExecMode, ST_AI>() { return "AIExecMode"; }
 
-void SQAIExecMode_Register(Squirrel *engine)
+static void SQAIExecMode_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptExecMode, ST_AI> SQAIExecMode("AIExecMode");
 	SQAIExecMode.PreRegister(engine);

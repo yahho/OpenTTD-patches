@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptMarine, ST_GS>() { return "GSMarine"; }
 
-void SQGSMarine_Register(Squirrel *engine)
+static void SQGSMarine_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptMarine, ST_GS> SQGSMarine("GSMarine");
 	SQGSMarine.PreRegister(engine);

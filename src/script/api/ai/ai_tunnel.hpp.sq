@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptTunnel, ST_AI>() { return "AITunnel"; }
 
-void SQAITunnel_Register(Squirrel *engine)
+static void SQAITunnel_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptTunnel, ST_AI> SQAITunnel("AITunnel");
 	SQAITunnel.PreRegister(engine);

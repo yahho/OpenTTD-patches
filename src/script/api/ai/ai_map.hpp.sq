@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptMap, ST_AI>() { return "AIMap"; }
 
-void SQAIMap_Register(Squirrel *engine)
+static void SQAIMap_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptMap, ST_AI> SQAIMap("AIMap");
 	SQAIMap.PreRegister(engine);

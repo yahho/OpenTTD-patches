@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptBridge, ST_AI>() { return "AIBridge"; }
 
-void SQAIBridge_Register(Squirrel *engine)
+static void SQAIBridge_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptBridge, ST_AI> SQAIBridge("AIBridge");
 	SQAIBridge.PreRegister(engine);

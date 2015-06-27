@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptStoryPageElementList, ST_GS>() { return "GSStoryPageElementList"; }
 
-void SQGSStoryPageElementList_Register(Squirrel *engine)
+static void SQGSStoryPageElementList_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptStoryPageElementList, ST_GS> SQGSStoryPageElementList("GSStoryPageElementList");
 	SQGSStoryPageElementList.PreRegister(engine, "GSList");

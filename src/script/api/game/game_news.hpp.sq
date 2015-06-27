@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptNews, ST_GS>() { return "GSNews"; }
 
-void SQGSNews_Register(Squirrel *engine)
+static void SQGSNews_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptNews, ST_GS> SQGSNews("GSNews");
 	SQGSNews.PreRegister(engine);

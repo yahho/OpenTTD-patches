@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptIndustry, ST_AI>() { return "AIIndustry"; }
 
-void SQAIIndustry_Register(Squirrel *engine)
+static void SQAIIndustry_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptIndustry, ST_AI> SQAIIndustry("AIIndustry");
 	SQAIIndustry.PreRegister(engine);

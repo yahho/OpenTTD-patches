@@ -112,7 +112,7 @@ cat > ${f}.tmp << EOF
 
 EOF
 
-grep -l '^void SQ'${apiuc}'.*_Register *(Squirrel \*engine)$' *_*.hpp.sq |
+grep -l '^static void SQ'${apiuc}'.*_Register *(Squirrel \*engine)$' *_*.hpp.sq |
         sort | sed -e "s/^/#include \"/" -e 's/$/"/' >> ${f}.tmp
 
 echo >> ${f}.tmp ''
@@ -122,7 +122,7 @@ echo >> ${f}.tmp '{'
 # List needs to be registered with squirrel before all List subclasses.
 echo >> ${f}.tmp '	SQ'${apiuc}'List_Register (engine);'
 
-sed -n -e 's/^void \(SQ'${apiuc}'.*\)_Register *(Squirrel \*engine)$/\1/p' \
+sed -n -e 's/^static void \(SQ'${apiuc}'.*\)_Register *(Squirrel \*engine)$/\1/p' \
                 *_*.hpp.sq | sort |
         sed -e '/^SQ'${apiuc}'Controller$/d' -e '/^SQ'${apiuc}'List$/d' \
                 -e 's/^.*$/	&_Register (engine);/' >> ${f}.tmp

@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptVehicleList, ST_GS>() { return "GSVehicleList"; }
 
-void SQGSVehicleList_Register(Squirrel *engine)
+static void SQGSVehicleList_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptVehicleList, ST_GS> SQGSVehicleList("GSVehicleList");
 	SQGSVehicleList.PreRegister(engine, "GSList");
@@ -26,7 +26,7 @@ void SQGSVehicleList_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptVehicleList_Station, ST_GS>() { return "GSVehicleList_Station"; }
 
-void SQGSVehicleList_Station_Register(Squirrel *engine)
+static void SQGSVehicleList_Station_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptVehicleList_Station, ST_GS> SQGSVehicleList_Station("GSVehicleList_Station");
 	SQGSVehicleList_Station.PreRegister(engine, "GSList");
@@ -38,7 +38,7 @@ void SQGSVehicleList_Station_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptVehicleList_Depot, ST_GS>() { return "GSVehicleList_Depot"; }
 
-void SQGSVehicleList_Depot_Register(Squirrel *engine)
+static void SQGSVehicleList_Depot_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptVehicleList_Depot, ST_GS> SQGSVehicleList_Depot("GSVehicleList_Depot");
 	SQGSVehicleList_Depot.PreRegister(engine, "GSList");
@@ -50,7 +50,7 @@ void SQGSVehicleList_Depot_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptVehicleList_SharedOrders, ST_GS>() { return "GSVehicleList_SharedOrders"; }
 
-void SQGSVehicleList_SharedOrders_Register(Squirrel *engine)
+static void SQGSVehicleList_SharedOrders_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptVehicleList_SharedOrders, ST_GS> SQGSVehicleList_SharedOrders("GSVehicleList_SharedOrders");
 	SQGSVehicleList_SharedOrders.PreRegister(engine, "GSList");

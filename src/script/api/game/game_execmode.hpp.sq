@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptExecMode, ST_GS>() { return "GSExecMode"; }
 
-void SQGSExecMode_Register(Squirrel *engine)
+static void SQGSExecMode_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptExecMode, ST_GS> SQGSExecMode("GSExecMode");
 	SQGSExecMode.PreRegister(engine);

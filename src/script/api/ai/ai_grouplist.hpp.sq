@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptGroupList, ST_AI>() { return "AIGroupList"; }
 
-void SQAIGroupList_Register(Squirrel *engine)
+static void SQAIGroupList_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptGroupList, ST_AI> SQAIGroupList("AIGroupList");
 	SQAIGroupList.PreRegister(engine, "AIList");

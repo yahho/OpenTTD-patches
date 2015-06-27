@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptEventVehicleCrashed, ST_GS>() { return "GSEventVehicleCrashed"; }
 
-void SQGSEventVehicleCrashed_Register(Squirrel *engine)
+static void SQGSEventVehicleCrashed_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptEventVehicleCrashed, ST_GS> SQGSEventVehicleCrashed("GSEventVehicleCrashed");
 	SQGSEventVehicleCrashed.PreRegister(engine, "GSEvent");
@@ -38,7 +38,7 @@ void SQGSEventVehicleCrashed_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptEventSubsidyOffer, ST_GS>() { return "GSEventSubsidyOffer"; }
 
-void SQGSEventSubsidyOffer_Register(Squirrel *engine)
+static void SQGSEventSubsidyOffer_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptEventSubsidyOffer, ST_GS> SQGSEventSubsidyOffer("GSEventSubsidyOffer");
 	SQGSEventSubsidyOffer.PreRegister(engine, "GSEvent");
@@ -53,7 +53,7 @@ void SQGSEventSubsidyOffer_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptEventSubsidyOfferExpired, ST_GS>() { return "GSEventSubsidyOfferExpired"; }
 
-void SQGSEventSubsidyOfferExpired_Register(Squirrel *engine)
+static void SQGSEventSubsidyOfferExpired_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptEventSubsidyOfferExpired, ST_GS> SQGSEventSubsidyOfferExpired("GSEventSubsidyOfferExpired");
 	SQGSEventSubsidyOfferExpired.PreRegister(engine, "GSEvent");
@@ -68,7 +68,7 @@ void SQGSEventSubsidyOfferExpired_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptEventSubsidyAwarded, ST_GS>() { return "GSEventSubsidyAwarded"; }
 
-void SQGSEventSubsidyAwarded_Register(Squirrel *engine)
+static void SQGSEventSubsidyAwarded_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptEventSubsidyAwarded, ST_GS> SQGSEventSubsidyAwarded("GSEventSubsidyAwarded");
 	SQGSEventSubsidyAwarded.PreRegister(engine, "GSEvent");
@@ -83,7 +83,7 @@ void SQGSEventSubsidyAwarded_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptEventSubsidyExpired, ST_GS>() { return "GSEventSubsidyExpired"; }
 
-void SQGSEventSubsidyExpired_Register(Squirrel *engine)
+static void SQGSEventSubsidyExpired_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptEventSubsidyExpired, ST_GS> SQGSEventSubsidyExpired("GSEventSubsidyExpired");
 	SQGSEventSubsidyExpired.PreRegister(engine, "GSEvent");
@@ -98,7 +98,7 @@ void SQGSEventSubsidyExpired_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptEventCompanyNew, ST_GS>() { return "GSEventCompanyNew"; }
 
-void SQGSEventCompanyNew_Register(Squirrel *engine)
+static void SQGSEventCompanyNew_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptEventCompanyNew, ST_GS> SQGSEventCompanyNew("GSEventCompanyNew");
 	SQGSEventCompanyNew.PreRegister(engine, "GSEvent");
@@ -113,7 +113,7 @@ void SQGSEventCompanyNew_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptEventCompanyInTrouble, ST_GS>() { return "GSEventCompanyInTrouble"; }
 
-void SQGSEventCompanyInTrouble_Register(Squirrel *engine)
+static void SQGSEventCompanyInTrouble_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptEventCompanyInTrouble, ST_GS> SQGSEventCompanyInTrouble("GSEventCompanyInTrouble");
 	SQGSEventCompanyInTrouble.PreRegister(engine, "GSEvent");
@@ -128,7 +128,7 @@ void SQGSEventCompanyInTrouble_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptEventCompanyMerger, ST_GS>() { return "GSEventCompanyMerger"; }
 
-void SQGSEventCompanyMerger_Register(Squirrel *engine)
+static void SQGSEventCompanyMerger_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptEventCompanyMerger, ST_GS> SQGSEventCompanyMerger("GSEventCompanyMerger");
 	SQGSEventCompanyMerger.PreRegister(engine, "GSEvent");
@@ -144,7 +144,7 @@ void SQGSEventCompanyMerger_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptEventCompanyBankrupt, ST_GS>() { return "GSEventCompanyBankrupt"; }
 
-void SQGSEventCompanyBankrupt_Register(Squirrel *engine)
+static void SQGSEventCompanyBankrupt_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptEventCompanyBankrupt, ST_GS> SQGSEventCompanyBankrupt("GSEventCompanyBankrupt");
 	SQGSEventCompanyBankrupt.PreRegister(engine, "GSEvent");
@@ -159,7 +159,7 @@ void SQGSEventCompanyBankrupt_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptEventIndustryOpen, ST_GS>() { return "GSEventIndustryOpen"; }
 
-void SQGSEventIndustryOpen_Register(Squirrel *engine)
+static void SQGSEventIndustryOpen_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptEventIndustryOpen, ST_GS> SQGSEventIndustryOpen("GSEventIndustryOpen");
 	SQGSEventIndustryOpen.PreRegister(engine, "GSEvent");
@@ -174,7 +174,7 @@ void SQGSEventIndustryOpen_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptEventIndustryClose, ST_GS>() { return "GSEventIndustryClose"; }
 
-void SQGSEventIndustryClose_Register(Squirrel *engine)
+static void SQGSEventIndustryClose_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptEventIndustryClose, ST_GS> SQGSEventIndustryClose("GSEventIndustryClose");
 	SQGSEventIndustryClose.PreRegister(engine, "GSEvent");
@@ -189,7 +189,7 @@ void SQGSEventIndustryClose_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptEventStationFirstVehicle, ST_GS>() { return "GSEventStationFirstVehicle"; }
 
-void SQGSEventStationFirstVehicle_Register(Squirrel *engine)
+static void SQGSEventStationFirstVehicle_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptEventStationFirstVehicle, ST_GS> SQGSEventStationFirstVehicle("GSEventStationFirstVehicle");
 	SQGSEventStationFirstVehicle.PreRegister(engine, "GSEvent");
@@ -205,7 +205,7 @@ void SQGSEventStationFirstVehicle_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptEventTownFounded, ST_GS>() { return "GSEventTownFounded"; }
 
-void SQGSEventTownFounded_Register(Squirrel *engine)
+static void SQGSEventTownFounded_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptEventTownFounded, ST_GS> SQGSEventTownFounded("GSEventTownFounded");
 	SQGSEventTownFounded.PreRegister(engine, "GSEvent");
@@ -220,7 +220,7 @@ void SQGSEventTownFounded_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptEventAdminPort, ST_GS>() { return "GSEventAdminPort"; }
 
-void SQGSEventAdminPort_Register(Squirrel *engine)
+static void SQGSEventAdminPort_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptEventAdminPort, ST_GS> SQGSEventAdminPort("GSEventAdminPort");
 	SQGSEventAdminPort.PreRegister(engine, "GSEvent");
@@ -235,7 +235,7 @@ void SQGSEventAdminPort_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptEventWindowWidgetClick, ST_GS>() { return "GSEventWindowWidgetClick"; }
 
-void SQGSEventWindowWidgetClick_Register(Squirrel *engine)
+static void SQGSEventWindowWidgetClick_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptEventWindowWidgetClick, ST_GS> SQGSEventWindowWidgetClick("GSEventWindowWidgetClick");
 	SQGSEventWindowWidgetClick.PreRegister(engine, "GSEvent");
@@ -252,7 +252,7 @@ void SQGSEventWindowWidgetClick_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptEventGoalQuestionAnswer, ST_GS>() { return "GSEventGoalQuestionAnswer"; }
 
-void SQGSEventGoalQuestionAnswer_Register(Squirrel *engine)
+static void SQGSEventGoalQuestionAnswer_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptEventGoalQuestionAnswer, ST_GS> SQGSEventGoalQuestionAnswer("GSEventGoalQuestionAnswer");
 	SQGSEventGoalQuestionAnswer.PreRegister(engine, "GSEvent");
@@ -269,7 +269,7 @@ void SQGSEventGoalQuestionAnswer_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptEventCompanyTown, ST_GS>() { return "GSEventCompanyTown"; }
 
-void SQGSEventCompanyTown_Register(Squirrel *engine)
+static void SQGSEventCompanyTown_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptEventCompanyTown, ST_GS> SQGSEventCompanyTown("GSEventCompanyTown");
 	SQGSEventCompanyTown.PreRegister(engine, "GSEvent");
@@ -285,7 +285,7 @@ void SQGSEventCompanyTown_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptEventExclusiveTransportRights, ST_GS>() { return "GSEventExclusiveTransportRights"; }
 
-void SQGSEventExclusiveTransportRights_Register(Squirrel *engine)
+static void SQGSEventExclusiveTransportRights_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptEventExclusiveTransportRights, ST_GS> SQGSEventExclusiveTransportRights("GSEventExclusiveTransportRights");
 	SQGSEventExclusiveTransportRights.PreRegister(engine, "GSEventCompanyTown");
@@ -299,7 +299,7 @@ void SQGSEventExclusiveTransportRights_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptEventRoadReconstruction, ST_GS>() { return "GSEventRoadReconstruction"; }
 
-void SQGSEventRoadReconstruction_Register(Squirrel *engine)
+static void SQGSEventRoadReconstruction_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptEventRoadReconstruction, ST_GS> SQGSEventRoadReconstruction("GSEventRoadReconstruction");
 	SQGSEventRoadReconstruction.PreRegister(engine, "GSEventCompanyTown");

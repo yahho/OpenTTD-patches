@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptTileList, ST_GS>() { return "GSTileList"; }
 
-void SQGSTileList_Register(Squirrel *engine)
+static void SQGSTileList_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptTileList, ST_GS> SQGSTileList("GSTileList");
 	SQGSTileList.PreRegister(engine, "GSList");
@@ -31,7 +31,7 @@ void SQGSTileList_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptTileList_IndustryAccepting, ST_GS>() { return "GSTileList_IndustryAccepting"; }
 
-void SQGSTileList_IndustryAccepting_Register(Squirrel *engine)
+static void SQGSTileList_IndustryAccepting_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptTileList_IndustryAccepting, ST_GS> SQGSTileList_IndustryAccepting("GSTileList_IndustryAccepting");
 	SQGSTileList_IndustryAccepting.PreRegister(engine, "GSTileList");
@@ -43,7 +43,7 @@ void SQGSTileList_IndustryAccepting_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptTileList_IndustryProducing, ST_GS>() { return "GSTileList_IndustryProducing"; }
 
-void SQGSTileList_IndustryProducing_Register(Squirrel *engine)
+static void SQGSTileList_IndustryProducing_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptTileList_IndustryProducing, ST_GS> SQGSTileList_IndustryProducing("GSTileList_IndustryProducing");
 	SQGSTileList_IndustryProducing.PreRegister(engine, "GSTileList");
@@ -55,7 +55,7 @@ void SQGSTileList_IndustryProducing_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptTileList_StationType, ST_GS>() { return "GSTileList_StationType"; }
 
-void SQGSTileList_StationType_Register(Squirrel *engine)
+static void SQGSTileList_StationType_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptTileList_StationType, ST_GS> SQGSTileList_StationType("GSTileList_StationType");
 	SQGSTileList_StationType.PreRegister(engine, "GSTileList");

@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptCompanyMode, ST_GS>() { return "GSCompanyMode"; }
 
-void SQGSCompanyMode_Register(Squirrel *engine)
+static void SQGSCompanyMode_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptCompanyMode, ST_GS> SQGSCompanyMode("GSCompanyMode");
 	SQGSCompanyMode.PreRegister(engine);

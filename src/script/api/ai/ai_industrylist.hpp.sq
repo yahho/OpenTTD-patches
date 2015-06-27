@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptIndustryList, ST_AI>() { return "AIIndustryList"; }
 
-void SQAIIndustryList_Register(Squirrel *engine)
+static void SQAIIndustryList_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptIndustryList, ST_AI> SQAIIndustryList("AIIndustryList");
 	SQAIIndustryList.PreRegister(engine, "AIList");
@@ -26,7 +26,7 @@ void SQAIIndustryList_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptIndustryList_CargoAccepting, ST_AI>() { return "AIIndustryList_CargoAccepting"; }
 
-void SQAIIndustryList_CargoAccepting_Register(Squirrel *engine)
+static void SQAIIndustryList_CargoAccepting_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptIndustryList_CargoAccepting, ST_AI> SQAIIndustryList_CargoAccepting("AIIndustryList_CargoAccepting");
 	SQAIIndustryList_CargoAccepting.PreRegister(engine, "AIList");
@@ -38,7 +38,7 @@ void SQAIIndustryList_CargoAccepting_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptIndustryList_CargoProducing, ST_AI>() { return "AIIndustryList_CargoProducing"; }
 
-void SQAIIndustryList_CargoProducing_Register(Squirrel *engine)
+static void SQAIIndustryList_CargoProducing_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptIndustryList_CargoProducing, ST_AI> SQAIIndustryList_CargoProducing("AIIndustryList_CargoProducing");
 	SQAIIndustryList_CargoProducing.PreRegister(engine, "AIList");

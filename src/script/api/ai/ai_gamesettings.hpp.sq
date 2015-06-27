@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptGameSettings, ST_AI>() { return "AIGameSettings"; }
 
-void SQAIGameSettings_Register(Squirrel *engine)
+static void SQAIGameSettings_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptGameSettings, ST_AI> SQAIGameSettings("AIGameSettings");
 	SQAIGameSettings.PreRegister(engine);

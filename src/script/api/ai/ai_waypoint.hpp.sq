@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptWaypoint, ST_AI>() { return "AIWaypoint"; }
 
-void SQAIWaypoint_Register(Squirrel *engine)
+static void SQAIWaypoint_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptWaypoint, ST_AI> SQAIWaypoint("AIWaypoint");
 	SQAIWaypoint.PreRegister(engine, "AIBaseStation");

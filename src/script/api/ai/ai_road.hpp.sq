@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptRoad, ST_AI>() { return "AIRoad"; }
 
-void SQAIRoad_Register(Squirrel *engine)
+static void SQAIRoad_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptRoad, ST_AI> SQAIRoad("AIRoad");
 	SQAIRoad.PreRegister(engine);

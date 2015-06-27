@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptTownList, ST_GS>() { return "GSTownList"; }
 
-void SQGSTownList_Register(Squirrel *engine)
+static void SQGSTownList_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptTownList, ST_GS> SQGSTownList("GSTownList");
 	SQGSTownList.PreRegister(engine, "GSList");
@@ -26,7 +26,7 @@ void SQGSTownList_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptTownEffectList, ST_GS>() { return "GSTownEffectList"; }
 
-void SQGSTownEffectList_Register(Squirrel *engine)
+static void SQGSTownEffectList_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptTownEffectList, ST_GS> SQGSTownEffectList("GSTownEffectList");
 	SQGSTownEffectList.PreRegister(engine, "GSList");

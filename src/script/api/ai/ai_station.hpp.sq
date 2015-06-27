@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptStation, ST_AI>() { return "AIStation"; }
 
-void SQAIStation_Register(Squirrel *engine)
+static void SQAIStation_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptStation, ST_AI> SQAIStation("AIStation");
 	SQAIStation.PreRegister(engine, "AIBaseStation");

@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptBridge, ST_GS>() { return "GSBridge"; }
 
-void SQGSBridge_Register(Squirrel *engine)
+static void SQGSBridge_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptBridge, ST_GS> SQGSBridge("GSBridge");
 	SQGSBridge.PreRegister(engine);

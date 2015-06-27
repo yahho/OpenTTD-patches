@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptLog, ST_AI>() { return "AILog"; }
 
-void SQAILog_Register(Squirrel *engine)
+static void SQAILog_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptLog, ST_AI> SQAILog("AILog");
 	SQAILog.PreRegister(engine);

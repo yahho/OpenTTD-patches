@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptAccounting, ST_GS>() { return "GSAccounting"; }
 
-void SQGSAccounting_Register(Squirrel *engine)
+static void SQGSAccounting_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptAccounting, ST_GS> SQGSAccounting("GSAccounting");
 	SQGSAccounting.PreRegister(engine);

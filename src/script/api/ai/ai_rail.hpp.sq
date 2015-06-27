@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptRail, ST_AI>() { return "AIRail"; }
 
-void SQAIRail_Register(Squirrel *engine)
+static void SQAIRail_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptRail, ST_AI> SQAIRail("AIRail");
 	SQAIRail.PreRegister(engine);

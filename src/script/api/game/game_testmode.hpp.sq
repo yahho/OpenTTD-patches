@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptTestMode, ST_GS>() { return "GSTestMode"; }
 
-void SQGSTestMode_Register(Squirrel *engine)
+static void SQGSTestMode_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptTestMode, ST_GS> SQGSTestMode("GSTestMode");
 	SQGSTestMode.PreRegister(engine);

@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptStationList, ST_AI>() { return "AIStationList"; }
 
-void SQAIStationList_Register(Squirrel *engine)
+static void SQAIStationList_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptStationList, ST_AI> SQAIStationList("AIStationList");
 	SQAIStationList.PreRegister(engine, "AIList");
@@ -26,7 +26,7 @@ void SQAIStationList_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptStationList_Cargo, ST_AI>() { return "AIStationList_Cargo"; }
 
-void SQAIStationList_Cargo_Register(Squirrel *engine)
+static void SQAIStationList_Cargo_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptStationList_Cargo, ST_AI> SQAIStationList_Cargo("AIStationList_Cargo");
 	SQAIStationList_Cargo.PreRegister(engine, "AIList");
@@ -45,7 +45,7 @@ void SQAIStationList_Cargo_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptStationList_CargoWaiting, ST_AI>() { return "AIStationList_CargoWaiting"; }
 
-void SQAIStationList_CargoWaiting_Register(Squirrel *engine)
+static void SQAIStationList_CargoWaiting_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptStationList_CargoWaiting, ST_AI> SQAIStationList_CargoWaiting("AIStationList_CargoWaiting");
 	SQAIStationList_CargoWaiting.PreRegister(engine, "AIStationList_Cargo");
@@ -57,7 +57,7 @@ void SQAIStationList_CargoWaiting_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptStationList_CargoPlanned, ST_AI>() { return "AIStationList_CargoPlanned"; }
 
-void SQAIStationList_CargoPlanned_Register(Squirrel *engine)
+static void SQAIStationList_CargoPlanned_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptStationList_CargoPlanned, ST_AI> SQAIStationList_CargoPlanned("AIStationList_CargoPlanned");
 	SQAIStationList_CargoPlanned.PreRegister(engine, "AIStationList_Cargo");
@@ -69,7 +69,7 @@ void SQAIStationList_CargoPlanned_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptStationList_CargoWaitingByFrom, ST_AI>() { return "AIStationList_CargoWaitingByFrom"; }
 
-void SQAIStationList_CargoWaitingByFrom_Register(Squirrel *engine)
+static void SQAIStationList_CargoWaitingByFrom_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptStationList_CargoWaitingByFrom, ST_AI> SQAIStationList_CargoWaitingByFrom("AIStationList_CargoWaitingByFrom");
 	SQAIStationList_CargoWaitingByFrom.PreRegister(engine, "AIStationList_CargoWaiting");
@@ -81,7 +81,7 @@ void SQAIStationList_CargoWaitingByFrom_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptStationList_CargoWaitingViaByFrom, ST_AI>() { return "AIStationList_CargoWaitingViaByFrom"; }
 
-void SQAIStationList_CargoWaitingViaByFrom_Register(Squirrel *engine)
+static void SQAIStationList_CargoWaitingViaByFrom_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptStationList_CargoWaitingViaByFrom, ST_AI> SQAIStationList_CargoWaitingViaByFrom("AIStationList_CargoWaitingViaByFrom");
 	SQAIStationList_CargoWaitingViaByFrom.PreRegister(engine, "AIStationList_CargoWaiting");
@@ -93,7 +93,7 @@ void SQAIStationList_CargoWaitingViaByFrom_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptStationList_CargoWaitingByVia, ST_AI>() { return "AIStationList_CargoWaitingByVia"; }
 
-void SQAIStationList_CargoWaitingByVia_Register(Squirrel *engine)
+static void SQAIStationList_CargoWaitingByVia_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptStationList_CargoWaitingByVia, ST_AI> SQAIStationList_CargoWaitingByVia("AIStationList_CargoWaitingByVia");
 	SQAIStationList_CargoWaitingByVia.PreRegister(engine, "AIStationList_CargoWaiting");
@@ -105,7 +105,7 @@ void SQAIStationList_CargoWaitingByVia_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptStationList_CargoWaitingFromByVia, ST_AI>() { return "AIStationList_CargoWaitingFromByVia"; }
 
-void SQAIStationList_CargoWaitingFromByVia_Register(Squirrel *engine)
+static void SQAIStationList_CargoWaitingFromByVia_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptStationList_CargoWaitingFromByVia, ST_AI> SQAIStationList_CargoWaitingFromByVia("AIStationList_CargoWaitingFromByVia");
 	SQAIStationList_CargoWaitingFromByVia.PreRegister(engine, "AIStationList_CargoWaiting");
@@ -117,7 +117,7 @@ void SQAIStationList_CargoWaitingFromByVia_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptStationList_CargoPlannedByFrom, ST_AI>() { return "AIStationList_CargoPlannedByFrom"; }
 
-void SQAIStationList_CargoPlannedByFrom_Register(Squirrel *engine)
+static void SQAIStationList_CargoPlannedByFrom_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptStationList_CargoPlannedByFrom, ST_AI> SQAIStationList_CargoPlannedByFrom("AIStationList_CargoPlannedByFrom");
 	SQAIStationList_CargoPlannedByFrom.PreRegister(engine, "AIStationList_CargoPlanned");
@@ -129,7 +129,7 @@ void SQAIStationList_CargoPlannedByFrom_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptStationList_CargoPlannedViaByFrom, ST_AI>() { return "AIStationList_CargoPlannedViaByFrom"; }
 
-void SQAIStationList_CargoPlannedViaByFrom_Register(Squirrel *engine)
+static void SQAIStationList_CargoPlannedViaByFrom_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptStationList_CargoPlannedViaByFrom, ST_AI> SQAIStationList_CargoPlannedViaByFrom("AIStationList_CargoPlannedViaByFrom");
 	SQAIStationList_CargoPlannedViaByFrom.PreRegister(engine, "AIStationList_CargoPlanned");
@@ -141,7 +141,7 @@ void SQAIStationList_CargoPlannedViaByFrom_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptStationList_CargoPlannedByVia, ST_AI>() { return "AIStationList_CargoPlannedByVia"; }
 
-void SQAIStationList_CargoPlannedByVia_Register(Squirrel *engine)
+static void SQAIStationList_CargoPlannedByVia_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptStationList_CargoPlannedByVia, ST_AI> SQAIStationList_CargoPlannedByVia("AIStationList_CargoPlannedByVia");
 	SQAIStationList_CargoPlannedByVia.PreRegister(engine, "AIStationList_CargoPlanned");
@@ -153,7 +153,7 @@ void SQAIStationList_CargoPlannedByVia_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptStationList_CargoPlannedFromByVia, ST_AI>() { return "AIStationList_CargoPlannedFromByVia"; }
 
-void SQAIStationList_CargoPlannedFromByVia_Register(Squirrel *engine)
+static void SQAIStationList_CargoPlannedFromByVia_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptStationList_CargoPlannedFromByVia, ST_AI> SQAIStationList_CargoPlannedFromByVia("AIStationList_CargoPlannedFromByVia");
 	SQAIStationList_CargoPlannedFromByVia.PreRegister(engine, "AIStationList_CargoPlanned");
@@ -165,7 +165,7 @@ void SQAIStationList_CargoPlannedFromByVia_Register(Squirrel *engine)
 
 template <> const char *GetClassName<ScriptStationList_Vehicle, ST_AI>() { return "AIStationList_Vehicle"; }
 
-void SQAIStationList_Vehicle_Register(Squirrel *engine)
+static void SQAIStationList_Vehicle_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptStationList_Vehicle, ST_AI> SQAIStationList_Vehicle("AIStationList_Vehicle");
 	SQAIStationList_Vehicle.PreRegister(engine, "AIList");

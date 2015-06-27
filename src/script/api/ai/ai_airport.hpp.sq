@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptAirport, ST_AI>() { return "AIAirport"; }
 
-void SQAIAirport_Register(Squirrel *engine)
+static void SQAIAirport_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptAirport, ST_AI> SQAIAirport("AIAirport");
 	SQAIAirport.PreRegister(engine);

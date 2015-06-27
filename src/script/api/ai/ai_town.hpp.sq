@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptTown, ST_AI>() { return "AITown"; }
 
-void SQAITown_Register(Squirrel *engine)
+static void SQAITown_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptTown, ST_AI> SQAITown("AITown");
 	SQAITown.PreRegister(engine);

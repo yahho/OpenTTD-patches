@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptCompany, ST_GS>() { return "GSCompany"; }
 
-void SQGSCompany_Register(Squirrel *engine)
+static void SQGSCompany_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptCompany, ST_GS> SQGSCompany("GSCompany");
 	SQGSCompany.PreRegister(engine);

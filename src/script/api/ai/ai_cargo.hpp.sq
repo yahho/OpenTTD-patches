@@ -14,7 +14,7 @@
 
 template <> const char *GetClassName<ScriptCargo, ST_AI>() { return "AICargo"; }
 
-void SQAICargo_Register(Squirrel *engine)
+static void SQAICargo_Register (Squirrel *engine)
 {
 	DefSQClass<ScriptCargo, ST_AI> SQAICargo("AICargo");
 	SQAICargo.PreRegister(engine);

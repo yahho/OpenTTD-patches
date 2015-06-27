@@ -251,7 +251,7 @@ BEGIN {
 	print "";
 
 	# Then do the registration functions of the class. */
-	print "void SQ" api_cls "_Register(Squirrel *engine)"
+	print "static void SQ" api_cls "_Register (Squirrel *engine)"
 	print "{"
 	print "	DefSQClass<" cls ", ST_" toupper(api) "> SQ" api_cls "(\"" api_cls "\");"
 	if (super_cls == "Text" || super_cls == "ScriptObject" || super_cls == "AIAbstractList::Valuator") {
