@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptTown, ST_GS>() { return "GSTown"; }
 
 static void SQGSTown_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptTown, ST_GS> SQGSTown("GSTown");
+	DefSQClass<ScriptTown, ST_GS> SQGSTown;
 	SQGSTown.PreRegister(engine);
 	SQGSTown.AddConstructor<void (ScriptTown::*)(), 1>(engine, "x");
 

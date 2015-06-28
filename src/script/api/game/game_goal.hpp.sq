@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptGoal, ST_GS>() { return "GSGoal"; }
 
 static void SQGSGoal_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptGoal, ST_GS> SQGSGoal("GSGoal");
+	DefSQClass<ScriptGoal, ST_GS> SQGSGoal;
 	SQGSGoal.PreRegister(engine);
 	SQGSGoal.AddConstructor<void (ScriptGoal::*)(), 1>(engine, "x");
 

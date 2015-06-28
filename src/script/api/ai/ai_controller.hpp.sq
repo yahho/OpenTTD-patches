@@ -13,7 +13,7 @@ template <> const char *GetClassName<ScriptController, ST_AI>() { return "AICont
 
 static void SQAIController_Register(Squirrel *engine)
 {
-	DefSQClass<ScriptController, ST_AI> SQAIController("AIController");
+	DefSQClass<ScriptController, ST_AI> SQAIController;
 	SQAIController.PreRegister(engine);
 
 	SQAIController.DefSQStaticMethod(engine, &ScriptController::GetTick,           "GetTick",           1, ".");

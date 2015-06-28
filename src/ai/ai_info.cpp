@@ -29,7 +29,7 @@ template <> const char *GetClassName<AIInfo, ST_AI>() { return "AIInfo"; }
 /* static */ void AIInfo::RegisterAPI(Squirrel *engine)
 {
 	/* Create the AIInfo class, and add the RegisterAI function */
-	DefSQClass<AIInfo, ST_AI> SQAIInfo("AIInfo");
+	DefSQClass<AIInfo, ST_AI> SQAIInfo;
 	SQAIInfo.PreRegister(engine);
 	SQAIInfo.AddConstructor<void (AIInfo::*)(), 1>(engine, "x");
 	SQAIInfo.DefSQAdvancedMethod(engine, &AIInfo::AddSetting, "AddSetting");

@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptWindow, ST_GS>() { return "GSWindow";
 
 static void SQGSWindow_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptWindow, ST_GS> SQGSWindow("GSWindow");
+	DefSQClass<ScriptWindow, ST_GS> SQGSWindow;
 	SQGSWindow.PreRegister(engine);
 	SQGSWindow.AddConstructor<void (ScriptWindow::*)(), 1>(engine, "x");
 

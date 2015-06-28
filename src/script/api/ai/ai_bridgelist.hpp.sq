@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptBridgeList, ST_AI>() { return "AIBrid
 
 static void SQAIBridgeList_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptBridgeList, ST_AI> SQAIBridgeList("AIBridgeList");
+	DefSQClass<ScriptBridgeList, ST_AI> SQAIBridgeList;
 	SQAIBridgeList.PreRegister(engine, "AIList");
 	SQAIBridgeList.AddConstructor<void (ScriptBridgeList::*)(), 1>(engine, "x");
 
@@ -28,7 +28,7 @@ template <> const char *GetClassName<ScriptBridgeList_Length, ST_AI>() { return 
 
 static void SQAIBridgeList_Length_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptBridgeList_Length, ST_AI> SQAIBridgeList_Length("AIBridgeList_Length");
+	DefSQClass<ScriptBridgeList_Length, ST_AI> SQAIBridgeList_Length;
 	SQAIBridgeList_Length.PreRegister(engine, "AIList");
 	SQAIBridgeList_Length.AddConstructor<void (ScriptBridgeList_Length::*)(uint length), 2>(engine, "xi");
 

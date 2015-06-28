@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptMap, ST_GS>() { return "GSMap"; }
 
 static void SQGSMap_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptMap, ST_GS> SQGSMap("GSMap");
+	DefSQClass<ScriptMap, ST_GS> SQGSMap;
 	SQGSMap.PreRegister(engine);
 	SQGSMap.AddConstructor<void (ScriptMap::*)(), 1>(engine, "x");
 

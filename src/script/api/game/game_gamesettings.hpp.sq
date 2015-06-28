@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptGameSettings, ST_GS>() { return "GSGa
 
 static void SQGSGameSettings_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptGameSettings, ST_GS> SQGSGameSettings("GSGameSettings");
+	DefSQClass<ScriptGameSettings, ST_GS> SQGSGameSettings;
 	SQGSGameSettings.PreRegister(engine);
 	SQGSGameSettings.AddConstructor<void (ScriptGameSettings::*)(), 1>(engine, "x");
 

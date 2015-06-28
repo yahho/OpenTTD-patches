@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptTile, ST_GS>() { return "GSTile"; }
 
 static void SQGSTile_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptTile, ST_GS> SQGSTile("GSTile");
+	DefSQClass<ScriptTile, ST_GS> SQGSTile;
 	SQGSTile.PreRegister(engine);
 	SQGSTile.AddConstructor<void (ScriptTile::*)(), 1>(engine, "x");
 

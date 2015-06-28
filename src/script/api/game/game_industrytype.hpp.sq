@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptIndustryType, ST_GS>() { return "GSIn
 
 static void SQGSIndustryType_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptIndustryType, ST_GS> SQGSIndustryType("GSIndustryType");
+	DefSQClass<ScriptIndustryType, ST_GS> SQGSIndustryType;
 	SQGSIndustryType.PreRegister(engine);
 	SQGSIndustryType.AddConstructor<void (ScriptIndustryType::*)(), 1>(engine, "x");
 

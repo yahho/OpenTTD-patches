@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptEvent, ST_AI>() { return "AIEvent"; }
 
 static void SQAIEvent_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEvent, ST_AI> SQAIEvent("AIEvent");
+	DefSQClass<ScriptEvent, ST_AI> SQAIEvent;
 	SQAIEvent.PreRegister(engine);
 	SQAIEvent.AddConstructor<void (ScriptEvent::*)(ScriptEvent::ScriptEventType type), 2>(engine, "xi");
 
@@ -60,7 +60,7 @@ template <> const char *GetClassName<ScriptEventController, ST_AI>() { return "A
 
 static void SQAIEventController_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventController, ST_AI> SQAIEventController("AIEventController");
+	DefSQClass<ScriptEventController, ST_AI> SQAIEventController;
 	SQAIEventController.PreRegister(engine);
 	SQAIEventController.AddConstructor<void (ScriptEventController::*)(), 1>(engine, "x");
 

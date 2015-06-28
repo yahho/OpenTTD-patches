@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptOrder, ST_GS>() { return "GSOrder"; }
 
 static void SQGSOrder_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptOrder, ST_GS> SQGSOrder("GSOrder");
+	DefSQClass<ScriptOrder, ST_GS> SQGSOrder;
 	SQGSOrder.PreRegister(engine);
 	SQGSOrder.AddConstructor<void (ScriptOrder::*)(), 1>(engine, "x");
 

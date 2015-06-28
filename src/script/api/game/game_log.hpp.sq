@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptLog, ST_GS>() { return "GSLog"; }
 
 static void SQGSLog_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptLog, ST_GS> SQGSLog("GSLog");
+	DefSQClass<ScriptLog, ST_GS> SQGSLog;
 	SQGSLog.PreRegister(engine);
 	SQGSLog.AddConstructor<void (ScriptLog::*)(), 1>(engine, "x");
 

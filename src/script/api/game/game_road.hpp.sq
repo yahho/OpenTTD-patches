@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptRoad, ST_GS>() { return "GSRoad"; }
 
 static void SQGSRoad_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptRoad, ST_GS> SQGSRoad("GSRoad");
+	DefSQClass<ScriptRoad, ST_GS> SQGSRoad;
 	SQGSRoad.PreRegister(engine);
 	SQGSRoad.AddConstructor<void (ScriptRoad::*)(), 1>(engine, "x");
 

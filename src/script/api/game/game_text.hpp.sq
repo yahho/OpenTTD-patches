@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptText, ST_GS>() { return "GSText"; }
 
 static void SQGSText_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptText, ST_GS> SQGSText("GSText");
+	DefSQClass<ScriptText, ST_GS> SQGSText;
 	SQGSText.PreRegister(engine);
 	SQGSText.AddSQAdvancedConstructor(engine);
 

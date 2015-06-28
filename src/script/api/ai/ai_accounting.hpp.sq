@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptAccounting, ST_AI>() { return "AIAcco
 
 static void SQAIAccounting_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptAccounting, ST_AI> SQAIAccounting("AIAccounting");
+	DefSQClass<ScriptAccounting, ST_AI> SQAIAccounting;
 	SQAIAccounting.PreRegister(engine);
 	SQAIAccounting.AddConstructor<void (ScriptAccounting::*)(), 1>(engine, "x");
 

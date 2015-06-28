@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptError, ST_GS>() { return "GSError"; }
 
 static void SQGSError_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptError, ST_GS> SQGSError("GSError");
+	DefSQClass<ScriptError, ST_GS> SQGSError;
 	SQGSError.PreRegister(engine);
 	SQGSError.AddConstructor<void (ScriptError::*)(), 1>(engine, "x");
 

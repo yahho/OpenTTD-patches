@@ -24,8 +24,7 @@ private:
 	const char *classname;
 
 public:
-	DefSQClass(const char *_classname) :
-		classname(_classname)
+	DefSQClass (void) : classname (GetClassName <CL, ST> ())
 	{}
 
 	/**

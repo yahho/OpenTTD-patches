@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptSignList, ST_GS>() { return "GSSignLi
 
 static void SQGSSignList_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptSignList, ST_GS> SQGSSignList("GSSignList");
+	DefSQClass<ScriptSignList, ST_GS> SQGSSignList;
 	SQGSSignList.PreRegister(engine, "GSList");
 	SQGSSignList.AddConstructor<void (ScriptSignList::*)(), 1>(engine, "x");
 

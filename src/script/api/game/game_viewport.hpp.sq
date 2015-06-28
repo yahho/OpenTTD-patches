@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptViewport, ST_GS>() { return "GSViewpo
 
 static void SQGSViewport_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptViewport, ST_GS> SQGSViewport("GSViewport");
+	DefSQClass<ScriptViewport, ST_GS> SQGSViewport;
 	SQGSViewport.PreRegister(engine);
 	SQGSViewport.AddConstructor<void (ScriptViewport::*)(), 1>(engine, "x");
 

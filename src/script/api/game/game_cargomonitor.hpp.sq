@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptCargoMonitor, ST_GS>() { return "GSCa
 
 static void SQGSCargoMonitor_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptCargoMonitor, ST_GS> SQGSCargoMonitor("GSCargoMonitor");
+	DefSQClass<ScriptCargoMonitor, ST_GS> SQGSCargoMonitor;
 	SQGSCargoMonitor.PreRegister(engine);
 	SQGSCargoMonitor.AddConstructor<void (ScriptCargoMonitor::*)(), 1>(engine, "x");
 

@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptWaypoint, ST_GS>() { return "GSWaypoi
 
 static void SQGSWaypoint_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptWaypoint, ST_GS> SQGSWaypoint("GSWaypoint");
+	DefSQClass<ScriptWaypoint, ST_GS> SQGSWaypoint;
 	SQGSWaypoint.PreRegister(engine, "GSBaseStation");
 	SQGSWaypoint.AddConstructor<void (ScriptWaypoint::*)(), 1>(engine, "x");
 

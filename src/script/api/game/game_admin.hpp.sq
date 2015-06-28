@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptAdmin, ST_GS>() { return "GSAdmin"; }
 
 static void SQGSAdmin_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptAdmin, ST_GS> SQGSAdmin("GSAdmin");
+	DefSQClass<ScriptAdmin, ST_GS> SQGSAdmin;
 	SQGSAdmin.PreRegister(engine);
 	SQGSAdmin.AddConstructor<void (ScriptAdmin::*)(), 1>(engine, "x");
 

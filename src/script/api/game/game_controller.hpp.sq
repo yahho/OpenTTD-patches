@@ -13,7 +13,7 @@ template <> const char *GetClassName<ScriptController, ST_GS>() { return "GSCont
 
 static void SQGSController_Register(Squirrel *engine)
 {
-	DefSQClass<ScriptController, ST_GS> SQGSController("GSController");
+	DefSQClass<ScriptController, ST_GS> SQGSController;
 	SQGSController.PreRegister(engine);
 
 	SQGSController.DefSQStaticMethod(engine, &ScriptController::GetTick,           "GetTick",           1, ".");

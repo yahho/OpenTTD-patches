@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptDate, ST_GS>() { return "GSDate"; }
 
 static void SQGSDate_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptDate, ST_GS> SQGSDate("GSDate");
+	DefSQClass<ScriptDate, ST_GS> SQGSDate;
 	SQGSDate.PreRegister(engine);
 	SQGSDate.AddConstructor<void (ScriptDate::*)(), 1>(engine, "x");
 

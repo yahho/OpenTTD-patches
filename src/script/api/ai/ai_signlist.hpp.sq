@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptSignList, ST_AI>() { return "AISignLi
 
 static void SQAISignList_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptSignList, ST_AI> SQAISignList("AISignList");
+	DefSQClass<ScriptSignList, ST_AI> SQAISignList;
 	SQAISignList.PreRegister(engine, "AIList");
 	SQAISignList.AddConstructor<void (ScriptSignList::*)(), 1>(engine, "x");
 

@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptEventVehicleCrashed, ST_AI>() { retur
 
 static void SQAIEventVehicleCrashed_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventVehicleCrashed, ST_AI> SQAIEventVehicleCrashed("AIEventVehicleCrashed");
+	DefSQClass<ScriptEventVehicleCrashed, ST_AI> SQAIEventVehicleCrashed;
 	SQAIEventVehicleCrashed.PreRegister(engine, "AIEvent");
 
 	SQAIEventVehicleCrashed.DefSQConst(engine, ScriptEventVehicleCrashed::CRASH_TRAIN,               "CRASH_TRAIN");
@@ -40,7 +40,7 @@ template <> const char *GetClassName<ScriptEventSubsidyOffer, ST_AI>() { return 
 
 static void SQAIEventSubsidyOffer_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventSubsidyOffer, ST_AI> SQAIEventSubsidyOffer("AIEventSubsidyOffer");
+	DefSQClass<ScriptEventSubsidyOffer, ST_AI> SQAIEventSubsidyOffer;
 	SQAIEventSubsidyOffer.PreRegister(engine, "AIEvent");
 
 	SQAIEventSubsidyOffer.DefSQStaticMethod(engine, &ScriptEventSubsidyOffer::Convert, "Convert", 2, ".x");
@@ -55,7 +55,7 @@ template <> const char *GetClassName<ScriptEventSubsidyOfferExpired, ST_AI>() { 
 
 static void SQAIEventSubsidyOfferExpired_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventSubsidyOfferExpired, ST_AI> SQAIEventSubsidyOfferExpired("AIEventSubsidyOfferExpired");
+	DefSQClass<ScriptEventSubsidyOfferExpired, ST_AI> SQAIEventSubsidyOfferExpired;
 	SQAIEventSubsidyOfferExpired.PreRegister(engine, "AIEvent");
 
 	SQAIEventSubsidyOfferExpired.DefSQStaticMethod(engine, &ScriptEventSubsidyOfferExpired::Convert, "Convert", 2, ".x");
@@ -70,7 +70,7 @@ template <> const char *GetClassName<ScriptEventSubsidyAwarded, ST_AI>() { retur
 
 static void SQAIEventSubsidyAwarded_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventSubsidyAwarded, ST_AI> SQAIEventSubsidyAwarded("AIEventSubsidyAwarded");
+	DefSQClass<ScriptEventSubsidyAwarded, ST_AI> SQAIEventSubsidyAwarded;
 	SQAIEventSubsidyAwarded.PreRegister(engine, "AIEvent");
 
 	SQAIEventSubsidyAwarded.DefSQStaticMethod(engine, &ScriptEventSubsidyAwarded::Convert, "Convert", 2, ".x");
@@ -85,7 +85,7 @@ template <> const char *GetClassName<ScriptEventSubsidyExpired, ST_AI>() { retur
 
 static void SQAIEventSubsidyExpired_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventSubsidyExpired, ST_AI> SQAIEventSubsidyExpired("AIEventSubsidyExpired");
+	DefSQClass<ScriptEventSubsidyExpired, ST_AI> SQAIEventSubsidyExpired;
 	SQAIEventSubsidyExpired.PreRegister(engine, "AIEvent");
 
 	SQAIEventSubsidyExpired.DefSQStaticMethod(engine, &ScriptEventSubsidyExpired::Convert, "Convert", 2, ".x");
@@ -100,7 +100,7 @@ template <> const char *GetClassName<ScriptEventEnginePreview, ST_AI>() { return
 
 static void SQAIEventEnginePreview_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventEnginePreview, ST_AI> SQAIEventEnginePreview("AIEventEnginePreview");
+	DefSQClass<ScriptEventEnginePreview, ST_AI> SQAIEventEnginePreview;
 	SQAIEventEnginePreview.PreRegister(engine, "AIEvent");
 
 	SQAIEventEnginePreview.DefSQStaticMethod(engine, &ScriptEventEnginePreview::Convert, "Convert", 2, ".x");
@@ -122,7 +122,7 @@ template <> const char *GetClassName<ScriptEventCompanyNew, ST_AI>() { return "A
 
 static void SQAIEventCompanyNew_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventCompanyNew, ST_AI> SQAIEventCompanyNew("AIEventCompanyNew");
+	DefSQClass<ScriptEventCompanyNew, ST_AI> SQAIEventCompanyNew;
 	SQAIEventCompanyNew.PreRegister(engine, "AIEvent");
 
 	SQAIEventCompanyNew.DefSQStaticMethod(engine, &ScriptEventCompanyNew::Convert, "Convert", 2, ".x");
@@ -137,7 +137,7 @@ template <> const char *GetClassName<ScriptEventCompanyInTrouble, ST_AI>() { ret
 
 static void SQAIEventCompanyInTrouble_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventCompanyInTrouble, ST_AI> SQAIEventCompanyInTrouble("AIEventCompanyInTrouble");
+	DefSQClass<ScriptEventCompanyInTrouble, ST_AI> SQAIEventCompanyInTrouble;
 	SQAIEventCompanyInTrouble.PreRegister(engine, "AIEvent");
 
 	SQAIEventCompanyInTrouble.DefSQStaticMethod(engine, &ScriptEventCompanyInTrouble::Convert, "Convert", 2, ".x");
@@ -152,7 +152,7 @@ template <> const char *GetClassName<ScriptEventCompanyAskMerger, ST_AI>() { ret
 
 static void SQAIEventCompanyAskMerger_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventCompanyAskMerger, ST_AI> SQAIEventCompanyAskMerger("AIEventCompanyAskMerger");
+	DefSQClass<ScriptEventCompanyAskMerger, ST_AI> SQAIEventCompanyAskMerger;
 	SQAIEventCompanyAskMerger.PreRegister(engine, "AIEvent");
 
 	SQAIEventCompanyAskMerger.DefSQStaticMethod(engine, &ScriptEventCompanyAskMerger::Convert, "Convert", 2, ".x");
@@ -169,7 +169,7 @@ template <> const char *GetClassName<ScriptEventCompanyMerger, ST_AI>() { return
 
 static void SQAIEventCompanyMerger_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventCompanyMerger, ST_AI> SQAIEventCompanyMerger("AIEventCompanyMerger");
+	DefSQClass<ScriptEventCompanyMerger, ST_AI> SQAIEventCompanyMerger;
 	SQAIEventCompanyMerger.PreRegister(engine, "AIEvent");
 
 	SQAIEventCompanyMerger.DefSQStaticMethod(engine, &ScriptEventCompanyMerger::Convert, "Convert", 2, ".x");
@@ -185,7 +185,7 @@ template <> const char *GetClassName<ScriptEventCompanyBankrupt, ST_AI>() { retu
 
 static void SQAIEventCompanyBankrupt_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventCompanyBankrupt, ST_AI> SQAIEventCompanyBankrupt("AIEventCompanyBankrupt");
+	DefSQClass<ScriptEventCompanyBankrupt, ST_AI> SQAIEventCompanyBankrupt;
 	SQAIEventCompanyBankrupt.PreRegister(engine, "AIEvent");
 
 	SQAIEventCompanyBankrupt.DefSQStaticMethod(engine, &ScriptEventCompanyBankrupt::Convert, "Convert", 2, ".x");
@@ -200,7 +200,7 @@ template <> const char *GetClassName<ScriptEventVehicleLost, ST_AI>() { return "
 
 static void SQAIEventVehicleLost_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventVehicleLost, ST_AI> SQAIEventVehicleLost("AIEventVehicleLost");
+	DefSQClass<ScriptEventVehicleLost, ST_AI> SQAIEventVehicleLost;
 	SQAIEventVehicleLost.PreRegister(engine, "AIEvent");
 
 	SQAIEventVehicleLost.DefSQStaticMethod(engine, &ScriptEventVehicleLost::Convert, "Convert", 2, ".x");
@@ -215,7 +215,7 @@ template <> const char *GetClassName<ScriptEventVehicleWaitingInDepot, ST_AI>() 
 
 static void SQAIEventVehicleWaitingInDepot_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventVehicleWaitingInDepot, ST_AI> SQAIEventVehicleWaitingInDepot("AIEventVehicleWaitingInDepot");
+	DefSQClass<ScriptEventVehicleWaitingInDepot, ST_AI> SQAIEventVehicleWaitingInDepot;
 	SQAIEventVehicleWaitingInDepot.PreRegister(engine, "AIEvent");
 
 	SQAIEventVehicleWaitingInDepot.DefSQStaticMethod(engine, &ScriptEventVehicleWaitingInDepot::Convert, "Convert", 2, ".x");
@@ -230,7 +230,7 @@ template <> const char *GetClassName<ScriptEventVehicleUnprofitable, ST_AI>() { 
 
 static void SQAIEventVehicleUnprofitable_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventVehicleUnprofitable, ST_AI> SQAIEventVehicleUnprofitable("AIEventVehicleUnprofitable");
+	DefSQClass<ScriptEventVehicleUnprofitable, ST_AI> SQAIEventVehicleUnprofitable;
 	SQAIEventVehicleUnprofitable.PreRegister(engine, "AIEvent");
 
 	SQAIEventVehicleUnprofitable.DefSQStaticMethod(engine, &ScriptEventVehicleUnprofitable::Convert, "Convert", 2, ".x");
@@ -245,7 +245,7 @@ template <> const char *GetClassName<ScriptEventIndustryOpen, ST_AI>() { return 
 
 static void SQAIEventIndustryOpen_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventIndustryOpen, ST_AI> SQAIEventIndustryOpen("AIEventIndustryOpen");
+	DefSQClass<ScriptEventIndustryOpen, ST_AI> SQAIEventIndustryOpen;
 	SQAIEventIndustryOpen.PreRegister(engine, "AIEvent");
 
 	SQAIEventIndustryOpen.DefSQStaticMethod(engine, &ScriptEventIndustryOpen::Convert, "Convert", 2, ".x");
@@ -260,7 +260,7 @@ template <> const char *GetClassName<ScriptEventIndustryClose, ST_AI>() { return
 
 static void SQAIEventIndustryClose_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventIndustryClose, ST_AI> SQAIEventIndustryClose("AIEventIndustryClose");
+	DefSQClass<ScriptEventIndustryClose, ST_AI> SQAIEventIndustryClose;
 	SQAIEventIndustryClose.PreRegister(engine, "AIEvent");
 
 	SQAIEventIndustryClose.DefSQStaticMethod(engine, &ScriptEventIndustryClose::Convert, "Convert", 2, ".x");
@@ -275,7 +275,7 @@ template <> const char *GetClassName<ScriptEventEngineAvailable, ST_AI>() { retu
 
 static void SQAIEventEngineAvailable_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventEngineAvailable, ST_AI> SQAIEventEngineAvailable("AIEventEngineAvailable");
+	DefSQClass<ScriptEventEngineAvailable, ST_AI> SQAIEventEngineAvailable;
 	SQAIEventEngineAvailable.PreRegister(engine, "AIEvent");
 
 	SQAIEventEngineAvailable.DefSQStaticMethod(engine, &ScriptEventEngineAvailable::Convert, "Convert", 2, ".x");
@@ -290,7 +290,7 @@ template <> const char *GetClassName<ScriptEventStationFirstVehicle, ST_AI>() { 
 
 static void SQAIEventStationFirstVehicle_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventStationFirstVehicle, ST_AI> SQAIEventStationFirstVehicle("AIEventStationFirstVehicle");
+	DefSQClass<ScriptEventStationFirstVehicle, ST_AI> SQAIEventStationFirstVehicle;
 	SQAIEventStationFirstVehicle.PreRegister(engine, "AIEvent");
 
 	SQAIEventStationFirstVehicle.DefSQStaticMethod(engine, &ScriptEventStationFirstVehicle::Convert, "Convert", 2, ".x");
@@ -306,7 +306,7 @@ template <> const char *GetClassName<ScriptEventDisasterZeppelinerCrashed, ST_AI
 
 static void SQAIEventDisasterZeppelinerCrashed_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventDisasterZeppelinerCrashed, ST_AI> SQAIEventDisasterZeppelinerCrashed("AIEventDisasterZeppelinerCrashed");
+	DefSQClass<ScriptEventDisasterZeppelinerCrashed, ST_AI> SQAIEventDisasterZeppelinerCrashed;
 	SQAIEventDisasterZeppelinerCrashed.PreRegister(engine, "AIEvent");
 
 	SQAIEventDisasterZeppelinerCrashed.DefSQStaticMethod(engine, &ScriptEventDisasterZeppelinerCrashed::Convert, "Convert", 2, ".x");
@@ -321,7 +321,7 @@ template <> const char *GetClassName<ScriptEventDisasterZeppelinerCleared, ST_AI
 
 static void SQAIEventDisasterZeppelinerCleared_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventDisasterZeppelinerCleared, ST_AI> SQAIEventDisasterZeppelinerCleared("AIEventDisasterZeppelinerCleared");
+	DefSQClass<ScriptEventDisasterZeppelinerCleared, ST_AI> SQAIEventDisasterZeppelinerCleared;
 	SQAIEventDisasterZeppelinerCleared.PreRegister(engine, "AIEvent");
 
 	SQAIEventDisasterZeppelinerCleared.DefSQStaticMethod(engine, &ScriptEventDisasterZeppelinerCleared::Convert, "Convert", 2, ".x");
@@ -336,7 +336,7 @@ template <> const char *GetClassName<ScriptEventTownFounded, ST_AI>() { return "
 
 static void SQAIEventTownFounded_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventTownFounded, ST_AI> SQAIEventTownFounded("AIEventTownFounded");
+	DefSQClass<ScriptEventTownFounded, ST_AI> SQAIEventTownFounded;
 	SQAIEventTownFounded.PreRegister(engine, "AIEvent");
 
 	SQAIEventTownFounded.DefSQStaticMethod(engine, &ScriptEventTownFounded::Convert, "Convert", 2, ".x");
@@ -351,7 +351,7 @@ template <> const char *GetClassName<ScriptEventAircraftDestTooFar, ST_AI>() { r
 
 static void SQAIEventAircraftDestTooFar_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventAircraftDestTooFar, ST_AI> SQAIEventAircraftDestTooFar("AIEventAircraftDestTooFar");
+	DefSQClass<ScriptEventAircraftDestTooFar, ST_AI> SQAIEventAircraftDestTooFar;
 	SQAIEventAircraftDestTooFar.PreRegister(engine, "AIEvent");
 
 	SQAIEventAircraftDestTooFar.DefSQStaticMethod(engine, &ScriptEventAircraftDestTooFar::Convert, "Convert", 2, ".x");
@@ -366,7 +366,7 @@ template <> const char *GetClassName<ScriptEventCompanyTown, ST_AI>() { return "
 
 static void SQAIEventCompanyTown_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventCompanyTown, ST_AI> SQAIEventCompanyTown("AIEventCompanyTown");
+	DefSQClass<ScriptEventCompanyTown, ST_AI> SQAIEventCompanyTown;
 	SQAIEventCompanyTown.PreRegister(engine, "AIEvent");
 
 	SQAIEventCompanyTown.DefSQStaticMethod(engine, &ScriptEventCompanyTown::Convert, "Convert", 2, ".x");
@@ -382,7 +382,7 @@ template <> const char *GetClassName<ScriptEventExclusiveTransportRights, ST_AI>
 
 static void SQAIEventExclusiveTransportRights_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventExclusiveTransportRights, ST_AI> SQAIEventExclusiveTransportRights("AIEventExclusiveTransportRights");
+	DefSQClass<ScriptEventExclusiveTransportRights, ST_AI> SQAIEventExclusiveTransportRights;
 	SQAIEventExclusiveTransportRights.PreRegister(engine, "AIEventCompanyTown");
 	SQAIEventExclusiveTransportRights.AddConstructor<void (ScriptEventExclusiveTransportRights::*)(ScriptCompany::CompanyID company, TownID town), 3>(engine, "xii");
 
@@ -396,7 +396,7 @@ template <> const char *GetClassName<ScriptEventRoadReconstruction, ST_AI>() { r
 
 static void SQAIEventRoadReconstruction_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventRoadReconstruction, ST_AI> SQAIEventRoadReconstruction("AIEventRoadReconstruction");
+	DefSQClass<ScriptEventRoadReconstruction, ST_AI> SQAIEventRoadReconstruction;
 	SQAIEventRoadReconstruction.PreRegister(engine, "AIEventCompanyTown");
 	SQAIEventRoadReconstruction.AddConstructor<void (ScriptEventRoadReconstruction::*)(ScriptCompany::CompanyID company, TownID town), 3>(engine, "xii");
 

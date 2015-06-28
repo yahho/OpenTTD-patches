@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptTileList, ST_GS>() { return "GSTileLi
 
 static void SQGSTileList_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptTileList, ST_GS> SQGSTileList("GSTileList");
+	DefSQClass<ScriptTileList, ST_GS> SQGSTileList;
 	SQGSTileList.PreRegister(engine, "GSList");
 	SQGSTileList.AddConstructor<void (ScriptTileList::*)(), 1>(engine, "x");
 
@@ -33,7 +33,7 @@ template <> const char *GetClassName<ScriptTileList_IndustryAccepting, ST_GS>() 
 
 static void SQGSTileList_IndustryAccepting_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptTileList_IndustryAccepting, ST_GS> SQGSTileList_IndustryAccepting("GSTileList_IndustryAccepting");
+	DefSQClass<ScriptTileList_IndustryAccepting, ST_GS> SQGSTileList_IndustryAccepting;
 	SQGSTileList_IndustryAccepting.PreRegister(engine, "GSTileList");
 	SQGSTileList_IndustryAccepting.AddConstructor<void (ScriptTileList_IndustryAccepting::*)(IndustryID industry_id, int radius), 3>(engine, "xii");
 
@@ -45,7 +45,7 @@ template <> const char *GetClassName<ScriptTileList_IndustryProducing, ST_GS>() 
 
 static void SQGSTileList_IndustryProducing_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptTileList_IndustryProducing, ST_GS> SQGSTileList_IndustryProducing("GSTileList_IndustryProducing");
+	DefSQClass<ScriptTileList_IndustryProducing, ST_GS> SQGSTileList_IndustryProducing;
 	SQGSTileList_IndustryProducing.PreRegister(engine, "GSTileList");
 	SQGSTileList_IndustryProducing.AddConstructor<void (ScriptTileList_IndustryProducing::*)(IndustryID industry_id, int radius), 3>(engine, "xii");
 
@@ -57,7 +57,7 @@ template <> const char *GetClassName<ScriptTileList_StationType, ST_GS>() { retu
 
 static void SQGSTileList_StationType_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptTileList_StationType, ST_GS> SQGSTileList_StationType("GSTileList_StationType");
+	DefSQClass<ScriptTileList_StationType, ST_GS> SQGSTileList_StationType;
 	SQGSTileList_StationType.PreRegister(engine, "GSTileList");
 	SQGSTileList_StationType.AddConstructor<void (ScriptTileList_StationType::*)(StationID station_id, ScriptStation::StationType station_type), 3>(engine, "xii");
 

@@ -16,7 +16,7 @@ template <> const char *GetClassName<ScriptBase, ST_GS>() { return "GSBase"; }
 
 static void SQGSBase_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptBase, ST_GS> SQGSBase("GSBase");
+	DefSQClass<ScriptBase, ST_GS> SQGSBase;
 	SQGSBase.PreRegister(engine);
 	SQGSBase.AddConstructor<void (ScriptBase::*)(), 1>(engine, "x");
 
