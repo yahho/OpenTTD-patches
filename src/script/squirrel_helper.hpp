@@ -777,7 +777,7 @@ namespace SQConvert {
 	 *  In here the function_proc is recovered, and the SQCall is called that
 	 *  can handle this exact amount of params.
 	 */
-	template <typename Tcls, typename Tmethod>
+	template <typename Tmethod>
 	inline SQInteger DefSQStaticCallback(HSQUIRRELVM vm)
 	{
 		/* Find the amount of params we got */
@@ -805,7 +805,7 @@ namespace SQConvert {
 	 *  In here the function_proc is recovered, and the SQCall is called that
 	 *  can handle this exact amount of params.
 	 */
-	template <typename Tcls, typename Tmethod>
+	template <typename Tmethod>
 	inline SQInteger DefSQAdvancedStaticCallback(HSQUIRRELVM vm)
 	{
 		/* Find the amount of params we got */

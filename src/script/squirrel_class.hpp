@@ -69,7 +69,7 @@ public:
 	void DefSQStaticMethod(Squirrel *engine, Func function_proc, const char *function_name)
 	{
 		using namespace SQConvert;
-		engine->AddMethod(function_name, DefSQStaticCallback<CL, Func>, 0, NULL, &function_proc, sizeof(function_proc));
+		engine->AddMethod(function_name, DefSQStaticCallback<Func>, 0, NULL, &function_proc, sizeof(function_proc));
 	}
 
 	/**
@@ -79,7 +79,7 @@ public:
 	void DefSQAdvancedStaticMethod(Squirrel *engine, Func function_proc, const char *function_name)
 	{
 		using namespace SQConvert;
-		engine->AddMethod(function_name, DefSQAdvancedStaticCallback<CL, Func>, 0, NULL, &function_proc, sizeof(function_proc));
+		engine->AddMethod(function_name, DefSQAdvancedStaticCallback<Func>, 0, NULL, &function_proc, sizeof(function_proc));
 	}
 
 	/**
@@ -92,7 +92,7 @@ public:
 	void DefSQStaticMethod(Squirrel *engine, Func function_proc, const char *function_name, int nparam, const char *params)
 	{
 		using namespace SQConvert;
-		engine->AddMethod(function_name, DefSQStaticCallback<CL, Func>, nparam, params, &function_proc, sizeof(function_proc));
+		engine->AddMethod(function_name, DefSQStaticCallback<Func>, nparam, params, &function_proc, sizeof(function_proc));
 	}
 
 	template <typename Var>
