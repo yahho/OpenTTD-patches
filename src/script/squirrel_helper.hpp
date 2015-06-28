@@ -687,18 +687,13 @@ namespace SQConvert {
 	};
 
 
-	/**
-	 * A general template for all non-static method callbacks from Squirrel.
-	 *  In here the function_proc is recovered, and the SQCall is called that
-	 *  can handle this exact amount of params.
-	 */
-	template <typename Tcls, typename Tmethod, ScriptType Ttype>
-	inline SQInteger DefSQNonStaticCallback(HSQUIRRELVM vm)
+	/** Get the object and method pointers for a non-static call. */
+	template <typename Tcls, ScriptType Ttype>
+	inline const char *GetMethodPointers (HSQUIRRELVM vm,
+		SQUserPointer *obj, SQUserPointer *method)
 	{
 		/* Find the amount of params we got */
 		int nparam = sq_gettop(vm);
-		SQUserPointer ptr = NULL;
-		SQUserPointer real_instance = NULL;
 		HSQOBJECT instance;
 
 		/* Get the 'SQ' instance of this class */
@@ -710,16 +705,33 @@ namespace SQConvert {
 		sq_pushstring(vm, className, -1);
 		sq_get(vm, -2);
 		sq_pushobject(vm, instance);
-		if (sq_instanceof(vm) != SQTrue) return sq_throwerror(vm, "class method is non-static");
+		if (sq_instanceof(vm) != SQTrue) return "class method is non-static";
 		sq_pop(vm, 3);
 
 		/* Get the 'real' instance of this class */
-		sq_getinstanceup(vm, 1, &real_instance, 0);
+		sq_getinstanceup (vm, 1, obj, 0);
 		/* Get the real function pointer */
-		sq_getuserdata(vm, nparam, &ptr, 0);
-		if (real_instance == NULL) return sq_throwerror(vm, "couldn't detect real instance of class for non-static call");
+		sq_getuserdata (vm, nparam, method, 0);
+		if (*obj == NULL) return "couldn't detect real instance of class for non-static call";
 		/* Remove the userdata from the stack */
 		sq_pop(vm, 1);
+
+		return NULL;
+	}
+
+	/**
+	 * A general template for all non-static method callbacks from Squirrel.
+	 *  In here the function_proc is recovered, and the SQCall is called that
+	 *  can handle this exact amount of params.
+	 */
+	template <typename Tcls, typename Tmethod, ScriptType Ttype>
+	inline SQInteger DefSQNonStaticCallback(HSQUIRRELVM vm)
+	{
+		SQUserPointer ptr = NULL;
+		SQUserPointer real_instance = NULL;
+
+		const char *err = GetMethodPointers <Tcls, Ttype> (vm, &real_instance, &ptr);
+		if (err != NULL) return sq_throwerror (vm, err);
 
 		try {
 			/* Delegate it to a template that can handle this specific function */
@@ -742,31 +754,11 @@ namespace SQConvert {
 	template <typename Tcls, typename Tmethod, ScriptType Ttype>
 	inline SQInteger DefSQAdvancedNonStaticCallback(HSQUIRRELVM vm)
 	{
-		/* Find the amount of params we got */
-		int nparam = sq_gettop(vm);
 		SQUserPointer ptr = NULL;
 		SQUserPointer real_instance = NULL;
-		HSQOBJECT instance;
 
-		/* Get the 'SQ' instance of this class */
-		Squirrel::GetInstance(vm, &instance);
-
-		/* Protect against calls to a non-static method in a static way */
-		sq_pushroottable(vm);
-		const char *className = GetClassName<Tcls, Ttype>();
-		sq_pushstring(vm, className, -1);
-		sq_get(vm, -2);
-		sq_pushobject(vm, instance);
-		if (sq_instanceof(vm) != SQTrue) return sq_throwerror(vm, "class method is non-static");
-		sq_pop(vm, 3);
-
-		/* Get the 'real' instance of this class */
-		sq_getinstanceup(vm, 1, &real_instance, 0);
-		/* Get the real function pointer */
-		sq_getuserdata(vm, nparam, &ptr, 0);
-		if (real_instance == NULL) return sq_throwerror(vm, "couldn't detect real instance of class for non-static call");
-		/* Remove the userdata from the stack */
-		sq_pop(vm, 1);
+		const char *err = GetMethodPointers <Tcls, Ttype> (vm, &real_instance, &ptr);
+		if (err != NULL) return sq_throwerror (vm, err);
 
 		/* Call the function, which its only param is always the VM */
 		return (SQInteger)(((Tcls *)real_instance)->*(*(Tmethod *)ptr))(vm);
