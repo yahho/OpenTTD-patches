@@ -688,9 +688,8 @@ namespace SQConvert {
 
 
 	/** Get the object and method pointers for a non-static call. */
-	template <typename Tcls, ScriptType Ttype>
 	inline const char *GetMethodPointers (HSQUIRRELVM vm,
-		SQUserPointer *obj, SQUserPointer *method)
+		SQUserPointer *obj, SQUserPointer *method, const char *cname)
 	{
 		/* Find the amount of params we got */
 		int nparam = sq_gettop(vm);
@@ -701,8 +700,7 @@ namespace SQConvert {
 
 		/* Protect against calls to a non-static method in a static way */
 		sq_pushroottable(vm);
-		const char *className = GetClassName<Tcls, Ttype>();
-		sq_pushstring(vm, className, -1);
+		sq_pushstring(vm, cname, -1);
 		sq_get(vm, -2);
 		sq_pushobject(vm, instance);
 		if (sq_instanceof(vm) != SQTrue) return "class method is non-static";
@@ -717,6 +715,15 @@ namespace SQConvert {
 		sq_pop(vm, 1);
 
 		return NULL;
+	}
+
+	/** Get the object and method pointers for a non-static call. */
+	template <typename Tcls, ScriptType Ttype>
+	inline const char *GetMethodPointers (HSQUIRRELVM vm,
+		SQUserPointer *obj, SQUserPointer *method)
+	{
+		return GetMethodPointers (vm, obj, method,
+					GetClassName <Tcls, Ttype> ());
 	}
 
 	/**
