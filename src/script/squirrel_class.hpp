@@ -20,12 +20,14 @@
  */
 template <class CL, ScriptType ST>
 class DefSQClass {
-private:
-	const char *classname;
-
 public:
-	DefSQClass (void) : classname (GetClassName <CL, ST> ())
+	DefSQClass (void)
 	{}
+
+	static const char *GetName (void)
+	{
+		return GetClassName <CL, ST> ();
+	}
 
 	/**
 	 * This defines a method inside a class for Squirrel.
@@ -101,12 +103,12 @@ public:
 
 	void PreRegister(Squirrel *engine)
 	{
-		engine->AddClassBegin(this->classname);
+		engine->AddClassBegin (this->GetName());
 	}
 
 	void PreRegister(Squirrel *engine, const char *parent_class)
 	{
-		engine->AddClassBegin(this->classname, parent_class);
+		engine->AddClassBegin (this->GetName(), parent_class);
 	}
 
 	template <typename Func, int Tnparam>
