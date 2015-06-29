@@ -16,7 +16,7 @@
 #include "../../core/pointer.h"
 #include "../../core/alloc_type.hpp"
 #include "../../string.h"
-#include "../squirrel_helper.hpp"
+#include "../convert.hpp"
 
 /**
  * Internal parent object of all Text-like objects.

@@ -1217,8 +1217,7 @@
       <XMLDocumentationFileName>$(IntDir)\script\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\script\squirrel.hpp" />
-    <ClInclude Include="..\src\script\squirrel_class.hpp" />
-    <ClInclude Include="..\src\script\squirrel_helper.hpp" />
+    <ClInclude Include="..\src\script\convert.hpp" />
     <ClCompile Include="..\src\script\squirrel_std.cpp">
       <AssemblerListingLocation>$(IntDir)\script\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\script\</ObjectFileName>

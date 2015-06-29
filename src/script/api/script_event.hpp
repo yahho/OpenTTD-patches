@@ -13,7 +13,7 @@
 #define SCRIPT_EVENT_HPP
 
 #include "script_object.hpp"
-#include "../squirrel_helper.hpp"
+#include "../convert.hpp"
 
 /**
  * Class that handles all event related functions.

@@ -13,7 +13,7 @@
 #include "../string.h"
 #include "../settings_type.h"
 
-#include "squirrel_helper.hpp"
+#include "convert.hpp"
 
 #include "script_info.hpp"
 #include "script_scanner.hpp"

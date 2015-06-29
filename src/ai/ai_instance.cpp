@@ -13,7 +13,7 @@
 #include "../debug.h"
 #include "../error.h"
 
-#include "../script/squirrel_class.hpp"
+#include "../script/convert.hpp"
 
 #include "ai_config.hpp"
 #include "ai_gui.hpp"

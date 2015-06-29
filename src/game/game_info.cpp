@@ -11,7 +11,7 @@
 
 #include "../stdafx.h"
 
-#include "../script/squirrel_class.hpp"
+#include "../script/convert.hpp"
 #include "../script/script_scanner.hpp"
 #include "game_info.hpp"
 #include "../debug.h"

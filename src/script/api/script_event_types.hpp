@@ -15,7 +15,7 @@
 #include "script_event.hpp"
 #include "script_goal.hpp"
 #include "script_window.hpp"
-#include "../squirrel_helper.hpp"
+#include "../convert.hpp"
 
 /**
  * Event Vehicle Crash, indicating a vehicle of yours is crashed.

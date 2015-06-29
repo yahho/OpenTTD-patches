@@ -14,7 +14,7 @@
 #define SCRIPT_LIST_HPP
 
 #include "script_object.hpp"
-#include "../squirrel_helper.hpp"
+#include "../convert.hpp"
 #include <map>
 #include <set>
 

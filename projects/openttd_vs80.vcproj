@@ -5951,11 +5951,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\script\squirrel_class.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\script\squirrel_helper.hpp"
+				RelativePath=".\..\src\script\convert.hpp"
 				>
 			</File>
 			<File

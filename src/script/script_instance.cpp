@@ -14,7 +14,7 @@
 #include "../debug.h"
 #include "../saveload/saveload.h"
 
-#include "../script/squirrel_class.hpp"
+#include "../script/convert.hpp"
 
 #include "script_fatalerror.hpp"
 #include "script_storage.hpp"

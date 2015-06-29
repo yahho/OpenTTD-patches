@@ -671,8 +671,7 @@ script/script_storage.hpp
 script/script_suspend.hpp
 script/squirrel.cpp
 script/squirrel.hpp
-script/squirrel_class.hpp
-script/squirrel_helper.hpp
+script/convert.hpp
 script/squirrel_std.cpp
 script/squirrel_std.hpp
 
