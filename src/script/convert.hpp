@@ -715,6 +715,25 @@ namespace SQConvert {
 		}
 	}
 
+	/** This defines a method inside a class for Squirrel. */
+	template <typename Tcls, ScriptType Ttype, typename Tmethod>
+	inline void DefSQMethod (Squirrel *engine, Tmethod function_proc, const char *function_name)
+	{
+		engine->AddMethod (function_name, DefSQNonStaticCallback <Tcls, Tmethod, Ttype>, 0, NULL, &function_proc, sizeof(function_proc));
+	}
+
+	/**
+	 * This defines a method inside a class for Squirrel with defined params.
+	 * @note If you define nparam, make sure that he first param is always 'x',
+	 *  which is the 'this' inside the function. This is hidden from the rest
+	 *  of the code, but without it calling your function will fail!
+	 */
+	template <typename Tcls, ScriptType Ttype, typename Tmethod>
+	inline void DefSQMethod (Squirrel *engine, Tmethod function_proc, const char *function_name, int nparam, const char *params)
+	{
+		engine->AddMethod (function_name, DefSQNonStaticCallback <Tcls, Tmethod, Ttype>, nparam, params, &function_proc, sizeof(function_proc));
+	}
+
 	/**
 	 * A general template for all non-static advanced method callbacks from Squirrel.
 	 *  In here the function_proc is recovered, and the SQCall is called that
@@ -732,6 +751,15 @@ namespace SQConvert {
 		/* Call the function, which its only param is always the VM */
 		typedef SQInteger (Tcls::*F) (HSQUIRRELVM);
 		return (((Tcls *)real_instance)->*(*(F *)ptr)) (vm);
+	}
+
+	/**
+	 * This defines a method inside a class for Squirrel, which has access to the 'engine' (experts only!).
+	 */
+	template <typename Tcls, ScriptType Ttype>
+	void DefSQAdvancedMethod (Squirrel *engine, SQInteger (Tcls::*function_proc) (HSQUIRRELVM), const char *function_name)
+	{
+		engine->AddMethod (function_name, DefSQAdvancedNonStaticCallback <Tcls, Ttype>, 0, NULL, &function_proc, sizeof(function_proc));
 	}
 
 	/**
@@ -761,6 +789,24 @@ namespace SQConvert {
 		}
 	}
 
+	/** This defines a static method inside a class for Squirrel. */
+	template <typename Func>
+	inline void DefSQStaticMethod (Squirrel *engine, Func function_proc, const char *function_name)
+	{
+		engine->AddMethod (function_name, DefSQStaticCallback<Func>, 0, NULL, &function_proc, sizeof(function_proc));
+	}
+
+	/**
+	 * This defines a static method inside a class for Squirrel with defined params.
+	 * @note If you define nparam, make sure that he first param is always 'x',
+	 *  which is the 'this' inside the function. This is hidden from the rest
+	 *  of the code, but without it calling your function will fail!
+	 */
+	template <typename Func>
+	inline void DefSQStaticMethod (Squirrel *engine, Func function_proc, const char *function_name, int nparam, const char *params)
+	{
+		engine->AddMethod (function_name, DefSQStaticCallback<Func>, nparam, params, &function_proc, sizeof(function_proc));
+	}
 
 	/**
 	 * A general template for all static advanced method callbacks from Squirrel.
@@ -781,6 +827,14 @@ namespace SQConvert {
 		/* Call the function, which its only param is always the VM */
 		typedef SQInteger F (HSQUIRRELVM);
 		return (** (F **) ptr) (vm);
+	}
+
+	/**
+	 * This defines a static method inside a class for Squirrel, which has access to the 'engine' (experts only!).
+	 */
+	inline void DefSQAdvancedStaticMethod (Squirrel *engine, SQInteger (*function_proc) (HSQUIRRELVM), const char *function_name)
+	{
+		engine->AddMethod (function_name, &DefSQAdvancedStaticCallback, 0, NULL, &function_proc, sizeof(function_proc));
 	}
 
 	/**
@@ -818,6 +872,12 @@ namespace SQConvert {
 		}
 	}
 
+	template <typename Tcls, typename Tmethod, int Tnparam>
+	inline void AddConstructor (Squirrel *engine, const char *params)
+	{
+		engine->AddMethod ("constructor", DefSQConstructorCallback <Tcls, Tmethod, Tnparam>, Tnparam, params);
+	}
+
 	/**
 	 * A general template to handle creating of an instance with a complex
 	 *  constructor.
@@ -838,6 +898,12 @@ namespace SQConvert {
 		} catch (SQInteger e) {
 			return e;
 		}
+	}
+
+	template <typename Tcls>
+	inline void AddSQAdvancedConstructor (Squirrel *engine)
+	{
+		engine->AddMethod ("constructor", DefSQAdvancedConstructorCallback<Tcls>, 0, NULL);
 	}
 
 
@@ -911,8 +977,7 @@ public:
 	template <typename Func>
 	void DefSQMethod(Squirrel *engine, Func function_proc, const char *function_name)
 	{
-		using namespace SQConvert;
-		engine->AddMethod(function_name, DefSQNonStaticCallback<CL, Func, ST>, 0, NULL, &function_proc, sizeof(function_proc));
+		SQConvert::DefSQMethod <CL, ST> (engine, function_proc, function_name);
 	}
 
 	/**
@@ -920,8 +985,7 @@ public:
 	 */
 	void DefSQAdvancedMethod (Squirrel *engine, SQInteger (CL::*function_proc) (HSQUIRRELVM), const char *function_name)
 	{
-		using namespace SQConvert;
-		engine->AddMethod (function_name, DefSQAdvancedNonStaticCallback <CL, ST>, 0, NULL, &function_proc, sizeof(function_proc));
+		SQConvert::DefSQAdvancedMethod <CL, ST> (engine, function_proc, function_name);
 	}
 
 	/**
@@ -933,8 +997,7 @@ public:
 	template <typename Func>
 	void DefSQMethod(Squirrel *engine, Func function_proc, const char *function_name, int nparam, const char *params)
 	{
-		using namespace SQConvert;
-		engine->AddMethod(function_name, DefSQNonStaticCallback<CL, Func, ST>, nparam, params, &function_proc, sizeof(function_proc));
+		SQConvert::DefSQMethod <CL, ST> (engine, function_proc, function_name, nparam, params);
 	}
 
 	/**
@@ -943,8 +1006,7 @@ public:
 	template <typename Func>
 	void DefSQStaticMethod(Squirrel *engine, Func function_proc, const char *function_name)
 	{
-		using namespace SQConvert;
-		engine->AddMethod(function_name, DefSQStaticCallback<Func>, 0, NULL, &function_proc, sizeof(function_proc));
+		SQConvert::DefSQStaticMethod (engine, function_proc, function_name);
 	}
 
 	/**
@@ -952,8 +1014,7 @@ public:
 	 */
 	void DefSQAdvancedStaticMethod (Squirrel *engine, SQInteger (*function_proc) (HSQUIRRELVM), const char *function_name)
 	{
-		using namespace SQConvert;
-		engine->AddMethod (function_name, &DefSQAdvancedStaticCallback, 0, NULL, &function_proc, sizeof(function_proc));
+		SQConvert::DefSQAdvancedStaticMethod (engine, function_proc, function_name);
 	}
 
 	/**
@@ -965,8 +1026,7 @@ public:
 	template <typename Func>
 	void DefSQStaticMethod(Squirrel *engine, Func function_proc, const char *function_name, int nparam, const char *params)
 	{
-		using namespace SQConvert;
-		engine->AddMethod(function_name, DefSQStaticCallback<Func>, nparam, params, &function_proc, sizeof(function_proc));
+		SQConvert::DefSQStaticMethod (engine, function_proc, function_name, nparam, params);
 	}
 
 	template <typename Var>
@@ -988,14 +1048,12 @@ public:
 	template <typename Func, int Tnparam>
 	void AddConstructor(Squirrel *engine, const char *params)
 	{
-		using namespace SQConvert;
-		engine->AddMethod("constructor", DefSQConstructorCallback<CL, Func, Tnparam>, Tnparam, params);
+		SQConvert::AddConstructor <CL, Func, Tnparam> (engine, params);
 	}
 
 	void AddSQAdvancedConstructor(Squirrel *engine)
 	{
-		using namespace SQConvert;
-		engine->AddMethod("constructor", DefSQAdvancedConstructorCallback<CL>, 0, NULL);
+		SQConvert::AddSQAdvancedConstructor<CL> (engine);
 	}
 
 	void PostRegister(Squirrel *engine)
