@@ -720,7 +720,7 @@ namespace SQConvert {
 	 *  In here the function_proc is recovered, and the SQCall is called that
 	 *  can handle this exact amount of params.
 	 */
-	template <typename Tcls, typename Tmethod, ScriptType Ttype>
+	template <typename Tcls, ScriptType Ttype>
 	inline SQInteger DefSQAdvancedNonStaticCallback(HSQUIRRELVM vm)
 	{
 		SQUserPointer ptr = NULL;
@@ -730,7 +730,8 @@ namespace SQConvert {
 		if (err != NULL) return sq_throwerror (vm, err);
 
 		/* Call the function, which its only param is always the VM */
-		return (SQInteger)(((Tcls *)real_instance)->*(*(Tmethod *)ptr))(vm);
+		typedef SQInteger (Tcls::*F) (HSQUIRRELVM);
+		return (((Tcls *)real_instance)->*(*(F *)ptr)) (vm);
 	}
 
 	/**
@@ -766,7 +767,6 @@ namespace SQConvert {
 	 *  In here the function_proc is recovered, and the SQCall is called that
 	 *  can handle this exact amount of params.
 	 */
-	template <typename Tmethod>
 	inline SQInteger DefSQAdvancedStaticCallback(HSQUIRRELVM vm)
 	{
 		/* Find the amount of params we got */
@@ -779,7 +779,8 @@ namespace SQConvert {
 		sq_pop(vm, 1);
 
 		/* Call the function, which its only param is always the VM */
-		return (SQInteger)(*(*(Tmethod *)ptr))(vm);
+		typedef SQInteger F (HSQUIRRELVM);
+		return (** (F **) ptr) (vm);
 	}
 
 	/**
@@ -917,11 +918,10 @@ public:
 	/**
 	 * This defines a method inside a class for Squirrel, which has access to the 'engine' (experts only!).
 	 */
-	template <typename Func>
-	void DefSQAdvancedMethod(Squirrel *engine, Func function_proc, const char *function_name)
+	void DefSQAdvancedMethod (Squirrel *engine, SQInteger (CL::*function_proc) (HSQUIRRELVM), const char *function_name)
 	{
 		using namespace SQConvert;
-		engine->AddMethod(function_name, DefSQAdvancedNonStaticCallback<CL, Func, ST>, 0, NULL, &function_proc, sizeof(function_proc));
+		engine->AddMethod (function_name, DefSQAdvancedNonStaticCallback <CL, ST>, 0, NULL, &function_proc, sizeof(function_proc));
 	}
 
 	/**
@@ -950,11 +950,10 @@ public:
 	/**
 	 * This defines a static method inside a class for Squirrel, which has access to the 'engine' (experts only!).
 	 */
-	template <typename Func>
-	void DefSQAdvancedStaticMethod(Squirrel *engine, Func function_proc, const char *function_name)
+	void DefSQAdvancedStaticMethod (Squirrel *engine, SQInteger (*function_proc) (HSQUIRRELVM), const char *function_name)
 	{
 		using namespace SQConvert;
-		engine->AddMethod(function_name, DefSQAdvancedStaticCallback<Func>, 0, NULL, &function_proc, sizeof(function_proc));
+		engine->AddMethod (function_name, &DefSQAdvancedStaticCallback, 0, NULL, &function_proc, sizeof(function_proc));
 	}
 
 	/**
