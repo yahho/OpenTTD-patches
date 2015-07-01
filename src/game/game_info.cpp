@@ -27,18 +27,17 @@ template <> const char *GetClassName<GameInfo, ST_GS>() { return "GSInfo"; }
 /* static */ void GameInfo::RegisterAPI(Squirrel *engine)
 {
 	/* Create the GSInfo class, and add the RegisterGS function */
-	DefSQClass<GameInfo, ST_GS> SQGSInfo;
-	SQGSInfo.PreRegister(engine);
-	SQGSInfo.AddConstructor<void (GameInfo::*)(), 1>(engine, "x");
-	SQGSInfo.DefSQAdvancedMethod(engine, &GameInfo::AddSetting, "AddSetting");
-	SQGSInfo.DefSQAdvancedMethod(engine, &GameInfo::AddLabels, "AddLabels");
-	SQGSInfo.DefSQConst(engine, SCRIPTCONFIG_NONE, "CONFIG_NONE");
-	SQGSInfo.DefSQConst(engine, SCRIPTCONFIG_RANDOM, "CONFIG_RANDOM");
-	SQGSInfo.DefSQConst(engine, SCRIPTCONFIG_BOOLEAN, "CONFIG_BOOLEAN");
-	SQGSInfo.DefSQConst(engine, SCRIPTCONFIG_INGAME, "CONFIG_INGAME");
-	SQGSInfo.DefSQConst(engine, SCRIPTCONFIG_DEVELOPER, "CONFIG_DEVELOPER");
+	engine->AddClassBegin ("GSInfo");
+	SQConvert::AddConstructor <GameInfo, void (GameInfo::*)(), 1> (engine, "x");
+	SQConvert::DefSQAdvancedMethod <GameInfo, ST_GS> (engine, &GameInfo::AddSetting, "AddSetting");
+	SQConvert::DefSQAdvancedMethod <GameInfo, ST_GS> (engine, &GameInfo::AddLabels,  "AddLabels");
+	engine->AddConst ("CONFIG_NONE",      SCRIPTCONFIG_NONE);
+	engine->AddConst ("CONFIG_RANDOM",    SCRIPTCONFIG_RANDOM);
+	engine->AddConst ("CONFIG_BOOLEAN",   SCRIPTCONFIG_BOOLEAN);
+	engine->AddConst ("CONFIG_INGAME",    SCRIPTCONFIG_INGAME);
+	engine->AddConst ("CONFIG_DEVELOPER", SCRIPTCONFIG_DEVELOPER);
+	engine->AddClassEnd();
 
-	SQGSInfo.PostRegister(engine);
 	engine->AddMethod("RegisterGS", &GameInfo::Constructor, 2, "tx");
 }
 
