@@ -29,24 +29,24 @@ template <> const char *GetClassName<AIInfo, ST_AI>() { return "AIInfo"; }
 /* static */ void AIInfo::RegisterAPI(Squirrel *engine)
 {
 	/* Create the AIInfo class, and add the RegisterAI function */
-	DefSQClass<AIInfo, ST_AI> SQAIInfo;
-	SQAIInfo.PreRegister(engine);
-	SQAIInfo.AddConstructor<void (AIInfo::*)(), 1>(engine, "x");
-	SQAIInfo.DefSQAdvancedMethod(engine, &AIInfo::AddSetting, "AddSetting");
-	SQAIInfo.DefSQAdvancedMethod(engine, &AIInfo::AddLabels, "AddLabels");
-	SQAIInfo.DefSQConst(engine, SCRIPTCONFIG_NONE, "CONFIG_NONE");
-	SQAIInfo.DefSQConst(engine, SCRIPTCONFIG_RANDOM, "CONFIG_RANDOM");
-	SQAIInfo.DefSQConst(engine, SCRIPTCONFIG_BOOLEAN, "CONFIG_BOOLEAN");
-	SQAIInfo.DefSQConst(engine, SCRIPTCONFIG_INGAME, "CONFIG_INGAME");
-	SQAIInfo.DefSQConst(engine, SCRIPTCONFIG_DEVELOPER, "CONFIG_DEVELOPER");
+	engine->AddClassBegin ("AIInfo");
+	SQConvert::AddConstructor <AIInfo, void (AIInfo::*)(), 1> (engine, "x");
+	SQConvert::DefSQAdvancedMethod <AIInfo, ST_AI> (engine, &AIInfo::AddSetting, "AddSetting");
+	SQConvert::DefSQAdvancedMethod <AIInfo, ST_AI> (engine, &AIInfo::AddLabels,  "AddLabels");
+	engine->AddConst ("CONFIG_NONE",      SCRIPTCONFIG_NONE);
+	engine->AddConst ("CONFIG_RANDOM",    SCRIPTCONFIG_RANDOM);
+	engine->AddConst ("CONFIG_BOOLEAN",   SCRIPTCONFIG_BOOLEAN);
+	engine->AddConst ("CONFIG_INGAME",    SCRIPTCONFIG_INGAME);
+	engine->AddConst ("CONFIG_DEVELOPER", SCRIPTCONFIG_DEVELOPER);
 
 	/* Pre 1.2 had an AI prefix */
-	SQAIInfo.DefSQConst(engine, SCRIPTCONFIG_NONE, "AICONFIG_NONE");
-	SQAIInfo.DefSQConst(engine, SCRIPTCONFIG_RANDOM, "AICONFIG_RANDOM");
-	SQAIInfo.DefSQConst(engine, SCRIPTCONFIG_BOOLEAN, "AICONFIG_BOOLEAN");
-	SQAIInfo.DefSQConst(engine, SCRIPTCONFIG_INGAME, "AICONFIG_INGAME");
+	engine->AddConst ("AICONFIG_NONE",    SCRIPTCONFIG_NONE);
+	engine->AddConst ("AICONFIG_RANDOM",  SCRIPTCONFIG_RANDOM);
+	engine->AddConst ("AICONFIG_BOOLEAN", SCRIPTCONFIG_BOOLEAN);
+	engine->AddConst ("AICONFIG_INGAME",  SCRIPTCONFIG_INGAME);
 
-	SQAIInfo.PostRegister(engine);
+	engine->AddClassEnd();
+
 	engine->AddMethod("RegisterAI", &AIInfo::Constructor, 2, "tx");
 }
 
