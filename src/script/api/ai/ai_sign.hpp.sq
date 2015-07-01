@@ -16,23 +16,22 @@ template <> const char *GetClassName<ScriptSign, ST_AI>() { return "AISign"; }
 
 static void SQAISign_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptSign, ST_AI> SQAISign;
-	SQAISign.PreRegister(engine);
-	SQAISign.AddConstructor<void (ScriptSign::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptSign, ST_AI> ());
+	SQConvert::AddConstructor <ScriptSign, void (ScriptSign::*)(), 1> (engine, "x");
 
-	SQAISign.DefSQConst(engine, ScriptSign::ERR_SIGN_BASE,           "ERR_SIGN_BASE");
-	SQAISign.DefSQConst(engine, ScriptSign::ERR_SIGN_TOO_MANY_SIGNS, "ERR_SIGN_TOO_MANY_SIGNS");
+	engine->AddConst ("ERR_SIGN_BASE",           ScriptSign::ERR_SIGN_BASE);
+	engine->AddConst ("ERR_SIGN_TOO_MANY_SIGNS", ScriptSign::ERR_SIGN_TOO_MANY_SIGNS);
 
 	ScriptError::RegisterErrorMap(STR_ERROR_TOO_MANY_SIGNS, ScriptSign::ERR_SIGN_TOO_MANY_SIGNS);
 
 	ScriptError::RegisterErrorMapString(ScriptSign::ERR_SIGN_TOO_MANY_SIGNS, "ERR_SIGN_TOO_MANY_SIGNS");
 
-	SQAISign.DefSQStaticMethod(engine, &ScriptSign::IsValidSign, "IsValidSign", 2, ".i");
-	SQAISign.DefSQStaticMethod(engine, &ScriptSign::SetName,     "SetName",     3, ".i.");
-	SQAISign.DefSQStaticMethod(engine, &ScriptSign::GetName,     "GetName",     2, ".i");
-	SQAISign.DefSQStaticMethod(engine, &ScriptSign::GetLocation, "GetLocation", 2, ".i");
-	SQAISign.DefSQStaticMethod(engine, &ScriptSign::BuildSign,   "BuildSign",   3, ".i.");
-	SQAISign.DefSQStaticMethod(engine, &ScriptSign::RemoveSign,  "RemoveSign",  2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSign::IsValidSign, "IsValidSign", 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSign::SetName,     "SetName",     3, ".i.");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSign::GetName,     "GetName",     2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSign::GetLocation, "GetLocation", 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSign::BuildSign,   "BuildSign",   3, ".i.");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSign::RemoveSign,  "RemoveSign",  2, ".i");
 
-	SQAISign.PostRegister(engine);
+	engine->AddClassEnd();
 }

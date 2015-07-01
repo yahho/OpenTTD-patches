@@ -16,9 +16,8 @@ template <> const char *GetClassName<ScriptTestMode, ST_AI>() { return "AITestMo
 
 static void SQAITestMode_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptTestMode, ST_AI> SQAITestMode;
-	SQAITestMode.PreRegister(engine);
-	SQAITestMode.AddConstructor<void (ScriptTestMode::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptTestMode, ST_AI> ());
+	SQConvert::AddConstructor <ScriptTestMode, void (ScriptTestMode::*)(), 1> (engine, "x");
 
-	SQAITestMode.PostRegister(engine);
+	engine->AddClassEnd();
 }

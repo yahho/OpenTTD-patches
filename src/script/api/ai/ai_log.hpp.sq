@@ -16,13 +16,12 @@ template <> const char *GetClassName<ScriptLog, ST_AI>() { return "AILog"; }
 
 static void SQAILog_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptLog, ST_AI> SQAILog;
-	SQAILog.PreRegister(engine);
-	SQAILog.AddConstructor<void (ScriptLog::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptLog, ST_AI> ());
+	SQConvert::AddConstructor <ScriptLog, void (ScriptLog::*)(), 1> (engine, "x");
 
-	SQAILog.DefSQStaticMethod(engine, &ScriptLog::Info,    "Info",    2, "..");
-	SQAILog.DefSQStaticMethod(engine, &ScriptLog::Warning, "Warning", 2, "..");
-	SQAILog.DefSQStaticMethod(engine, &ScriptLog::Error,   "Error",   2, "..");
+	SQConvert::DefSQStaticMethod (engine, &ScriptLog::Info,    "Info",    2, "..");
+	SQConvert::DefSQStaticMethod (engine, &ScriptLog::Warning, "Warning", 2, "..");
+	SQConvert::DefSQStaticMethod (engine, &ScriptLog::Error,   "Error",   2, "..");
 
-	SQAILog.PostRegister(engine);
+	engine->AddClassEnd();
 }

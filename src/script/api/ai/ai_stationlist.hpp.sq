@@ -16,11 +16,10 @@ template <> const char *GetClassName<ScriptStationList, ST_AI>() { return "AISta
 
 static void SQAIStationList_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptStationList, ST_AI> SQAIStationList;
-	SQAIStationList.PreRegister(engine, "AIList");
-	SQAIStationList.AddConstructor<void (ScriptStationList::*)(ScriptStation::StationType station_type), 2>(engine, "xi");
+	engine->AddClassBegin (GetClassName <ScriptStationList, ST_AI> (), "AIList");
+	SQConvert::AddConstructor <ScriptStationList, void (ScriptStationList::*)(ScriptStation::StationType station_type), 2> (engine, "xi");
 
-	SQAIStationList.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -28,18 +27,17 @@ template <> const char *GetClassName<ScriptStationList_Cargo, ST_AI>() { return 
 
 static void SQAIStationList_Cargo_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptStationList_Cargo, ST_AI> SQAIStationList_Cargo;
-	SQAIStationList_Cargo.PreRegister(engine, "AIList");
-	SQAIStationList_Cargo.AddConstructor<void (ScriptStationList_Cargo::*)(ScriptStationList_Cargo::CargoMode mode, ScriptStationList_Cargo::CargoSelector selector, StationID station_id, CargoID cargo, StationID other_station), 6>(engine, "xiiiii");
+	engine->AddClassBegin (GetClassName <ScriptStationList_Cargo, ST_AI> (), "AIList");
+	SQConvert::AddConstructor <ScriptStationList_Cargo, void (ScriptStationList_Cargo::*)(ScriptStationList_Cargo::CargoMode mode, ScriptStationList_Cargo::CargoSelector selector, StationID station_id, CargoID cargo, StationID other_station), 6> (engine, "xiiiii");
 
-	SQAIStationList_Cargo.DefSQConst(engine, ScriptStationList_Cargo::CS_BY_FROM,     "CS_BY_FROM");
-	SQAIStationList_Cargo.DefSQConst(engine, ScriptStationList_Cargo::CS_VIA_BY_FROM, "CS_VIA_BY_FROM");
-	SQAIStationList_Cargo.DefSQConst(engine, ScriptStationList_Cargo::CS_BY_VIA,      "CS_BY_VIA");
-	SQAIStationList_Cargo.DefSQConst(engine, ScriptStationList_Cargo::CS_FROM_BY_VIA, "CS_FROM_BY_VIA");
-	SQAIStationList_Cargo.DefSQConst(engine, ScriptStationList_Cargo::CM_WAITING,     "CM_WAITING");
-	SQAIStationList_Cargo.DefSQConst(engine, ScriptStationList_Cargo::CM_PLANNED,     "CM_PLANNED");
+	engine->AddConst ("CS_BY_FROM",     ScriptStationList_Cargo::CS_BY_FROM);
+	engine->AddConst ("CS_VIA_BY_FROM", ScriptStationList_Cargo::CS_VIA_BY_FROM);
+	engine->AddConst ("CS_BY_VIA",      ScriptStationList_Cargo::CS_BY_VIA);
+	engine->AddConst ("CS_FROM_BY_VIA", ScriptStationList_Cargo::CS_FROM_BY_VIA);
+	engine->AddConst ("CM_WAITING",     ScriptStationList_Cargo::CM_WAITING);
+	engine->AddConst ("CM_PLANNED",     ScriptStationList_Cargo::CM_PLANNED);
 
-	SQAIStationList_Cargo.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -47,11 +45,10 @@ template <> const char *GetClassName<ScriptStationList_CargoWaiting, ST_AI>() { 
 
 static void SQAIStationList_CargoWaiting_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptStationList_CargoWaiting, ST_AI> SQAIStationList_CargoWaiting;
-	SQAIStationList_CargoWaiting.PreRegister(engine, "AIStationList_Cargo");
-	SQAIStationList_CargoWaiting.AddConstructor<void (ScriptStationList_CargoWaiting::*)(ScriptStationList_Cargo::CargoSelector selector, StationID station_id, CargoID cargo, StationID other_station), 5>(engine, "xiiii");
+	engine->AddClassBegin (GetClassName <ScriptStationList_CargoWaiting, ST_AI> (), "AIStationList_Cargo");
+	SQConvert::AddConstructor <ScriptStationList_CargoWaiting, void (ScriptStationList_CargoWaiting::*)(ScriptStationList_Cargo::CargoSelector selector, StationID station_id, CargoID cargo, StationID other_station), 5> (engine, "xiiii");
 
-	SQAIStationList_CargoWaiting.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -59,11 +56,10 @@ template <> const char *GetClassName<ScriptStationList_CargoPlanned, ST_AI>() { 
 
 static void SQAIStationList_CargoPlanned_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptStationList_CargoPlanned, ST_AI> SQAIStationList_CargoPlanned;
-	SQAIStationList_CargoPlanned.PreRegister(engine, "AIStationList_Cargo");
-	SQAIStationList_CargoPlanned.AddConstructor<void (ScriptStationList_CargoPlanned::*)(ScriptStationList_Cargo::CargoSelector selector, StationID station_id, CargoID cargo, StationID other_station), 5>(engine, "xiiii");
+	engine->AddClassBegin (GetClassName <ScriptStationList_CargoPlanned, ST_AI> (), "AIStationList_Cargo");
+	SQConvert::AddConstructor <ScriptStationList_CargoPlanned, void (ScriptStationList_CargoPlanned::*)(ScriptStationList_Cargo::CargoSelector selector, StationID station_id, CargoID cargo, StationID other_station), 5> (engine, "xiiii");
 
-	SQAIStationList_CargoPlanned.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -71,11 +67,10 @@ template <> const char *GetClassName<ScriptStationList_CargoWaitingByFrom, ST_AI
 
 static void SQAIStationList_CargoWaitingByFrom_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptStationList_CargoWaitingByFrom, ST_AI> SQAIStationList_CargoWaitingByFrom;
-	SQAIStationList_CargoWaitingByFrom.PreRegister(engine, "AIStationList_CargoWaiting");
-	SQAIStationList_CargoWaitingByFrom.AddConstructor<void (ScriptStationList_CargoWaitingByFrom::*)(StationID station_id, CargoID cargo), 3>(engine, "xii");
+	engine->AddClassBegin (GetClassName <ScriptStationList_CargoWaitingByFrom, ST_AI> (), "AIStationList_CargoWaiting");
+	SQConvert::AddConstructor <ScriptStationList_CargoWaitingByFrom, void (ScriptStationList_CargoWaitingByFrom::*)(StationID station_id, CargoID cargo), 3> (engine, "xii");
 
-	SQAIStationList_CargoWaitingByFrom.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -83,11 +78,10 @@ template <> const char *GetClassName<ScriptStationList_CargoWaitingViaByFrom, ST
 
 static void SQAIStationList_CargoWaitingViaByFrom_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptStationList_CargoWaitingViaByFrom, ST_AI> SQAIStationList_CargoWaitingViaByFrom;
-	SQAIStationList_CargoWaitingViaByFrom.PreRegister(engine, "AIStationList_CargoWaiting");
-	SQAIStationList_CargoWaitingViaByFrom.AddConstructor<void (ScriptStationList_CargoWaitingViaByFrom::*)(StationID station_id, CargoID cargo, StationID via), 4>(engine, "xiii");
+	engine->AddClassBegin (GetClassName <ScriptStationList_CargoWaitingViaByFrom, ST_AI> (), "AIStationList_CargoWaiting");
+	SQConvert::AddConstructor <ScriptStationList_CargoWaitingViaByFrom, void (ScriptStationList_CargoWaitingViaByFrom::*)(StationID station_id, CargoID cargo, StationID via), 4> (engine, "xiii");
 
-	SQAIStationList_CargoWaitingViaByFrom.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -95,11 +89,10 @@ template <> const char *GetClassName<ScriptStationList_CargoWaitingByVia, ST_AI>
 
 static void SQAIStationList_CargoWaitingByVia_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptStationList_CargoWaitingByVia, ST_AI> SQAIStationList_CargoWaitingByVia;
-	SQAIStationList_CargoWaitingByVia.PreRegister(engine, "AIStationList_CargoWaiting");
-	SQAIStationList_CargoWaitingByVia.AddConstructor<void (ScriptStationList_CargoWaitingByVia::*)(StationID station_id, CargoID cargo), 3>(engine, "xii");
+	engine->AddClassBegin (GetClassName <ScriptStationList_CargoWaitingByVia, ST_AI> (), "AIStationList_CargoWaiting");
+	SQConvert::AddConstructor <ScriptStationList_CargoWaitingByVia, void (ScriptStationList_CargoWaitingByVia::*)(StationID station_id, CargoID cargo), 3> (engine, "xii");
 
-	SQAIStationList_CargoWaitingByVia.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -107,11 +100,10 @@ template <> const char *GetClassName<ScriptStationList_CargoWaitingFromByVia, ST
 
 static void SQAIStationList_CargoWaitingFromByVia_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptStationList_CargoWaitingFromByVia, ST_AI> SQAIStationList_CargoWaitingFromByVia;
-	SQAIStationList_CargoWaitingFromByVia.PreRegister(engine, "AIStationList_CargoWaiting");
-	SQAIStationList_CargoWaitingFromByVia.AddConstructor<void (ScriptStationList_CargoWaitingFromByVia::*)(StationID station_id, CargoID cargo, StationID from), 4>(engine, "xiii");
+	engine->AddClassBegin (GetClassName <ScriptStationList_CargoWaitingFromByVia, ST_AI> (), "AIStationList_CargoWaiting");
+	SQConvert::AddConstructor <ScriptStationList_CargoWaitingFromByVia, void (ScriptStationList_CargoWaitingFromByVia::*)(StationID station_id, CargoID cargo, StationID from), 4> (engine, "xiii");
 
-	SQAIStationList_CargoWaitingFromByVia.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -119,11 +111,10 @@ template <> const char *GetClassName<ScriptStationList_CargoPlannedByFrom, ST_AI
 
 static void SQAIStationList_CargoPlannedByFrom_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptStationList_CargoPlannedByFrom, ST_AI> SQAIStationList_CargoPlannedByFrom;
-	SQAIStationList_CargoPlannedByFrom.PreRegister(engine, "AIStationList_CargoPlanned");
-	SQAIStationList_CargoPlannedByFrom.AddConstructor<void (ScriptStationList_CargoPlannedByFrom::*)(StationID station_id, CargoID cargo), 3>(engine, "xii");
+	engine->AddClassBegin (GetClassName <ScriptStationList_CargoPlannedByFrom, ST_AI> (), "AIStationList_CargoPlanned");
+	SQConvert::AddConstructor <ScriptStationList_CargoPlannedByFrom, void (ScriptStationList_CargoPlannedByFrom::*)(StationID station_id, CargoID cargo), 3> (engine, "xii");
 
-	SQAIStationList_CargoPlannedByFrom.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -131,11 +122,10 @@ template <> const char *GetClassName<ScriptStationList_CargoPlannedViaByFrom, ST
 
 static void SQAIStationList_CargoPlannedViaByFrom_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptStationList_CargoPlannedViaByFrom, ST_AI> SQAIStationList_CargoPlannedViaByFrom;
-	SQAIStationList_CargoPlannedViaByFrom.PreRegister(engine, "AIStationList_CargoPlanned");
-	SQAIStationList_CargoPlannedViaByFrom.AddConstructor<void (ScriptStationList_CargoPlannedViaByFrom::*)(StationID station_id, CargoID cargo, StationID via), 4>(engine, "xiii");
+	engine->AddClassBegin (GetClassName <ScriptStationList_CargoPlannedViaByFrom, ST_AI> (), "AIStationList_CargoPlanned");
+	SQConvert::AddConstructor <ScriptStationList_CargoPlannedViaByFrom, void (ScriptStationList_CargoPlannedViaByFrom::*)(StationID station_id, CargoID cargo, StationID via), 4> (engine, "xiii");
 
-	SQAIStationList_CargoPlannedViaByFrom.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -143,11 +133,10 @@ template <> const char *GetClassName<ScriptStationList_CargoPlannedByVia, ST_AI>
 
 static void SQAIStationList_CargoPlannedByVia_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptStationList_CargoPlannedByVia, ST_AI> SQAIStationList_CargoPlannedByVia;
-	SQAIStationList_CargoPlannedByVia.PreRegister(engine, "AIStationList_CargoPlanned");
-	SQAIStationList_CargoPlannedByVia.AddConstructor<void (ScriptStationList_CargoPlannedByVia::*)(StationID station_id, CargoID cargo), 3>(engine, "xii");
+	engine->AddClassBegin (GetClassName <ScriptStationList_CargoPlannedByVia, ST_AI> (), "AIStationList_CargoPlanned");
+	SQConvert::AddConstructor <ScriptStationList_CargoPlannedByVia, void (ScriptStationList_CargoPlannedByVia::*)(StationID station_id, CargoID cargo), 3> (engine, "xii");
 
-	SQAIStationList_CargoPlannedByVia.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -155,11 +144,10 @@ template <> const char *GetClassName<ScriptStationList_CargoPlannedFromByVia, ST
 
 static void SQAIStationList_CargoPlannedFromByVia_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptStationList_CargoPlannedFromByVia, ST_AI> SQAIStationList_CargoPlannedFromByVia;
-	SQAIStationList_CargoPlannedFromByVia.PreRegister(engine, "AIStationList_CargoPlanned");
-	SQAIStationList_CargoPlannedFromByVia.AddConstructor<void (ScriptStationList_CargoPlannedFromByVia::*)(StationID station_id, CargoID cargo, StationID from), 4>(engine, "xiii");
+	engine->AddClassBegin (GetClassName <ScriptStationList_CargoPlannedFromByVia, ST_AI> (), "AIStationList_CargoPlanned");
+	SQConvert::AddConstructor <ScriptStationList_CargoPlannedFromByVia, void (ScriptStationList_CargoPlannedFromByVia::*)(StationID station_id, CargoID cargo, StationID from), 4> (engine, "xiii");
 
-	SQAIStationList_CargoPlannedFromByVia.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -167,9 +155,8 @@ template <> const char *GetClassName<ScriptStationList_Vehicle, ST_AI>() { retur
 
 static void SQAIStationList_Vehicle_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptStationList_Vehicle, ST_AI> SQAIStationList_Vehicle;
-	SQAIStationList_Vehicle.PreRegister(engine, "AIList");
-	SQAIStationList_Vehicle.AddConstructor<void (ScriptStationList_Vehicle::*)(VehicleID vehicle_id), 2>(engine, "xi");
+	engine->AddClassBegin (GetClassName <ScriptStationList_Vehicle, ST_AI> (), "AIList");
+	SQConvert::AddConstructor <ScriptStationList_Vehicle, void (ScriptStationList_Vehicle::*)(VehicleID vehicle_id), 2> (engine, "xi");
 
-	SQAIStationList_Vehicle.PostRegister(engine);
+	engine->AddClassEnd();
 }

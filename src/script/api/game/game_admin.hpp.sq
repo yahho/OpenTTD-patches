@@ -16,11 +16,10 @@ template <> const char *GetClassName<ScriptAdmin, ST_GS>() { return "GSAdmin"; }
 
 static void SQGSAdmin_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptAdmin, ST_GS> SQGSAdmin;
-	SQGSAdmin.PreRegister(engine);
-	SQGSAdmin.AddConstructor<void (ScriptAdmin::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptAdmin, ST_GS> ());
+	SQConvert::AddConstructor <ScriptAdmin, void (ScriptAdmin::*)(), 1> (engine, "x");
 
-	SQGSAdmin.DefSQAdvancedStaticMethod(engine, &ScriptAdmin::Send, "Send");
+	SQConvert::DefSQAdvancedStaticMethod (engine, &ScriptAdmin::Send, "Send");
 
-	SQGSAdmin.PostRegister(engine);
+	engine->AddClassEnd();
 }

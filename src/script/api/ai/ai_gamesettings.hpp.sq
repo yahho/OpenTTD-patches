@@ -16,13 +16,12 @@ template <> const char *GetClassName<ScriptGameSettings, ST_AI>() { return "AIGa
 
 static void SQAIGameSettings_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptGameSettings, ST_AI> SQAIGameSettings;
-	SQAIGameSettings.PreRegister(engine);
-	SQAIGameSettings.AddConstructor<void (ScriptGameSettings::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptGameSettings, ST_AI> ());
+	SQConvert::AddConstructor <ScriptGameSettings, void (ScriptGameSettings::*)(), 1> (engine, "x");
 
-	SQAIGameSettings.DefSQStaticMethod(engine, &ScriptGameSettings::IsValid,               "IsValid",               2, "..");
-	SQAIGameSettings.DefSQStaticMethod(engine, &ScriptGameSettings::GetValue,              "GetValue",              2, "..");
-	SQAIGameSettings.DefSQStaticMethod(engine, &ScriptGameSettings::IsDisabledVehicleType, "IsDisabledVehicleType", 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptGameSettings::IsValid,               "IsValid",               2, "..");
+	SQConvert::DefSQStaticMethod (engine, &ScriptGameSettings::GetValue,              "GetValue",              2, "..");
+	SQConvert::DefSQStaticMethod (engine, &ScriptGameSettings::IsDisabledVehicleType, "IsDisabledVehicleType", 2, ".i");
 
-	SQAIGameSettings.PostRegister(engine);
+	engine->AddClassEnd();
 }

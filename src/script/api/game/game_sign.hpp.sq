@@ -16,24 +16,23 @@ template <> const char *GetClassName<ScriptSign, ST_GS>() { return "GSSign"; }
 
 static void SQGSSign_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptSign, ST_GS> SQGSSign;
-	SQGSSign.PreRegister(engine);
-	SQGSSign.AddConstructor<void (ScriptSign::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptSign, ST_GS> ());
+	SQConvert::AddConstructor <ScriptSign, void (ScriptSign::*)(), 1> (engine, "x");
 
-	SQGSSign.DefSQConst(engine, ScriptSign::ERR_SIGN_BASE,           "ERR_SIGN_BASE");
-	SQGSSign.DefSQConst(engine, ScriptSign::ERR_SIGN_TOO_MANY_SIGNS, "ERR_SIGN_TOO_MANY_SIGNS");
+	engine->AddConst ("ERR_SIGN_BASE",           ScriptSign::ERR_SIGN_BASE);
+	engine->AddConst ("ERR_SIGN_TOO_MANY_SIGNS", ScriptSign::ERR_SIGN_TOO_MANY_SIGNS);
 
 	ScriptError::RegisterErrorMap(STR_ERROR_TOO_MANY_SIGNS, ScriptSign::ERR_SIGN_TOO_MANY_SIGNS);
 
 	ScriptError::RegisterErrorMapString(ScriptSign::ERR_SIGN_TOO_MANY_SIGNS, "ERR_SIGN_TOO_MANY_SIGNS");
 
-	SQGSSign.DefSQStaticMethod(engine, &ScriptSign::IsValidSign, "IsValidSign", 2, ".i");
-	SQGSSign.DefSQStaticMethod(engine, &ScriptSign::SetName,     "SetName",     3, ".i.");
-	SQGSSign.DefSQStaticMethod(engine, &ScriptSign::GetName,     "GetName",     2, ".i");
-	SQGSSign.DefSQStaticMethod(engine, &ScriptSign::GetOwner,    "GetOwner",    2, ".i");
-	SQGSSign.DefSQStaticMethod(engine, &ScriptSign::GetLocation, "GetLocation", 2, ".i");
-	SQGSSign.DefSQStaticMethod(engine, &ScriptSign::BuildSign,   "BuildSign",   3, ".i.");
-	SQGSSign.DefSQStaticMethod(engine, &ScriptSign::RemoveSign,  "RemoveSign",  2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSign::IsValidSign, "IsValidSign", 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSign::SetName,     "SetName",     3, ".i.");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSign::GetName,     "GetName",     2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSign::GetOwner,    "GetOwner",    2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSign::GetLocation, "GetLocation", 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSign::BuildSign,   "BuildSign",   3, ".i.");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSign::RemoveSign,  "RemoveSign",  2, ".i");
 
-	SQGSSign.PostRegister(engine);
+	engine->AddClassEnd();
 }

@@ -16,9 +16,8 @@ template <> const char *GetClassName<ScriptEngineList, ST_GS>() { return "GSEngi
 
 static void SQGSEngineList_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEngineList, ST_GS> SQGSEngineList;
-	SQGSEngineList.PreRegister(engine, "GSList");
-	SQGSEngineList.AddConstructor<void (ScriptEngineList::*)(ScriptVehicle::VehicleType vehicle_type), 2>(engine, "xi");
+	engine->AddClassBegin (GetClassName <ScriptEngineList, ST_GS> (), "GSList");
+	SQConvert::AddConstructor <ScriptEngineList, void (ScriptEngineList::*)(ScriptVehicle::VehicleType vehicle_type), 2> (engine, "xi");
 
-	SQGSEngineList.PostRegister(engine);
+	engine->AddClassEnd();
 }

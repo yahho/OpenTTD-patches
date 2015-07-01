@@ -16,19 +16,18 @@ template <> const char *GetClassName<ScriptDate, ST_GS>() { return "GSDate"; }
 
 static void SQGSDate_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptDate, ST_GS> SQGSDate;
-	SQGSDate.PreRegister(engine);
-	SQGSDate.AddConstructor<void (ScriptDate::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptDate, ST_GS> ());
+	SQConvert::AddConstructor <ScriptDate, void (ScriptDate::*)(), 1> (engine, "x");
 
-	SQGSDate.DefSQConst(engine, ScriptDate::DATE_INVALID, "DATE_INVALID");
+	engine->AddConst ("DATE_INVALID", ScriptDate::DATE_INVALID);
 
-	SQGSDate.DefSQStaticMethod(engine, &ScriptDate::IsValidDate,    "IsValidDate",    2, ".i");
-	SQGSDate.DefSQStaticMethod(engine, &ScriptDate::GetCurrentDate, "GetCurrentDate", 1, ".");
-	SQGSDate.DefSQStaticMethod(engine, &ScriptDate::GetYear,        "GetYear",        2, ".i");
-	SQGSDate.DefSQStaticMethod(engine, &ScriptDate::GetMonth,       "GetMonth",       2, ".i");
-	SQGSDate.DefSQStaticMethod(engine, &ScriptDate::GetDayOfMonth,  "GetDayOfMonth",  2, ".i");
-	SQGSDate.DefSQStaticMethod(engine, &ScriptDate::GetDate,        "GetDate",        4, ".iii");
-	SQGSDate.DefSQStaticMethod(engine, &ScriptDate::GetSystemTime,  "GetSystemTime",  1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptDate::IsValidDate,    "IsValidDate",    2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptDate::GetCurrentDate, "GetCurrentDate", 1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptDate::GetYear,        "GetYear",        2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptDate::GetMonth,       "GetMonth",       2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptDate::GetDayOfMonth,  "GetDayOfMonth",  2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptDate::GetDate,        "GetDate",        4, ".iii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptDate::GetSystemTime,  "GetSystemTime",  1, ".");
 
-	SQGSDate.PostRegister(engine);
+	engine->AddClassEnd();
 }

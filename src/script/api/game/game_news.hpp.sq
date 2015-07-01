@@ -16,24 +16,23 @@ template <> const char *GetClassName<ScriptNews, ST_GS>() { return "GSNews"; }
 
 static void SQGSNews_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptNews, ST_GS> SQGSNews;
-	SQGSNews.PreRegister(engine);
-	SQGSNews.AddConstructor<void (ScriptNews::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptNews, ST_GS> ());
+	SQConvert::AddConstructor <ScriptNews, void (ScriptNews::*)(), 1> (engine, "x");
 
-	SQGSNews.DefSQConst(engine, ScriptNews::NT_ACCIDENT,     "NT_ACCIDENT");
-	SQGSNews.DefSQConst(engine, ScriptNews::NT_COMPANY_INFO, "NT_COMPANY_INFO");
-	SQGSNews.DefSQConst(engine, ScriptNews::NT_ECONOMY,      "NT_ECONOMY");
-	SQGSNews.DefSQConst(engine, ScriptNews::NT_ADVICE,       "NT_ADVICE");
-	SQGSNews.DefSQConst(engine, ScriptNews::NT_ACCEPTANCE,   "NT_ACCEPTANCE");
-	SQGSNews.DefSQConst(engine, ScriptNews::NT_SUBSIDIES,    "NT_SUBSIDIES");
-	SQGSNews.DefSQConst(engine, ScriptNews::NT_GENERAL,      "NT_GENERAL");
-	SQGSNews.DefSQConst(engine, ScriptNews::NR_NONE,         "NR_NONE");
-	SQGSNews.DefSQConst(engine, ScriptNews::NR_TILE,         "NR_TILE");
-	SQGSNews.DefSQConst(engine, ScriptNews::NR_STATION,      "NR_STATION");
-	SQGSNews.DefSQConst(engine, ScriptNews::NR_INDUSTRY,     "NR_INDUSTRY");
-	SQGSNews.DefSQConst(engine, ScriptNews::NR_TOWN,         "NR_TOWN");
+	engine->AddConst ("NT_ACCIDENT",     ScriptNews::NT_ACCIDENT);
+	engine->AddConst ("NT_COMPANY_INFO", ScriptNews::NT_COMPANY_INFO);
+	engine->AddConst ("NT_ECONOMY",      ScriptNews::NT_ECONOMY);
+	engine->AddConst ("NT_ADVICE",       ScriptNews::NT_ADVICE);
+	engine->AddConst ("NT_ACCEPTANCE",   ScriptNews::NT_ACCEPTANCE);
+	engine->AddConst ("NT_SUBSIDIES",    ScriptNews::NT_SUBSIDIES);
+	engine->AddConst ("NT_GENERAL",      ScriptNews::NT_GENERAL);
+	engine->AddConst ("NR_NONE",         ScriptNews::NR_NONE);
+	engine->AddConst ("NR_TILE",         ScriptNews::NR_TILE);
+	engine->AddConst ("NR_STATION",      ScriptNews::NR_STATION);
+	engine->AddConst ("NR_INDUSTRY",     ScriptNews::NR_INDUSTRY);
+	engine->AddConst ("NR_TOWN",         ScriptNews::NR_TOWN);
 
-	SQGSNews.DefSQStaticMethod(engine, &ScriptNews::Create, "Create", 6, ".i.iii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptNews::Create, "Create", 6, ".i.iii");
 
-	SQGSNews.PostRegister(engine);
+	engine->AddClassEnd();
 }

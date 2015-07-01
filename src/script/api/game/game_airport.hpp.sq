@@ -16,41 +16,40 @@ template <> const char *GetClassName<ScriptAirport, ST_GS>() { return "GSAirport
 
 static void SQGSAirport_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptAirport, ST_GS> SQGSAirport;
-	SQGSAirport.PreRegister(engine);
-	SQGSAirport.AddConstructor<void (ScriptAirport::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptAirport, ST_GS> ());
+	SQConvert::AddConstructor <ScriptAirport, void (ScriptAirport::*)(), 1> (engine, "x");
 
-	SQGSAirport.DefSQConst(engine, ScriptAirport::AT_SMALL,         "AT_SMALL");
-	SQGSAirport.DefSQConst(engine, ScriptAirport::AT_LARGE,         "AT_LARGE");
-	SQGSAirport.DefSQConst(engine, ScriptAirport::AT_METROPOLITAN,  "AT_METROPOLITAN");
-	SQGSAirport.DefSQConst(engine, ScriptAirport::AT_INTERNATIONAL, "AT_INTERNATIONAL");
-	SQGSAirport.DefSQConst(engine, ScriptAirport::AT_COMMUTER,      "AT_COMMUTER");
-	SQGSAirport.DefSQConst(engine, ScriptAirport::AT_INTERCON,      "AT_INTERCON");
-	SQGSAirport.DefSQConst(engine, ScriptAirport::AT_HELIPORT,      "AT_HELIPORT");
-	SQGSAirport.DefSQConst(engine, ScriptAirport::AT_HELISTATION,   "AT_HELISTATION");
-	SQGSAirport.DefSQConst(engine, ScriptAirport::AT_HELIDEPOT,     "AT_HELIDEPOT");
-	SQGSAirport.DefSQConst(engine, ScriptAirport::AT_INVALID,       "AT_INVALID");
-	SQGSAirport.DefSQConst(engine, ScriptAirport::PT_HELICOPTER,    "PT_HELICOPTER");
-	SQGSAirport.DefSQConst(engine, ScriptAirport::PT_SMALL_PLANE,   "PT_SMALL_PLANE");
-	SQGSAirport.DefSQConst(engine, ScriptAirport::PT_BIG_PLANE,     "PT_BIG_PLANE");
-	SQGSAirport.DefSQConst(engine, ScriptAirport::PT_INVALID,       "PT_INVALID");
+	engine->AddConst ("AT_SMALL",         ScriptAirport::AT_SMALL);
+	engine->AddConst ("AT_LARGE",         ScriptAirport::AT_LARGE);
+	engine->AddConst ("AT_METROPOLITAN",  ScriptAirport::AT_METROPOLITAN);
+	engine->AddConst ("AT_INTERNATIONAL", ScriptAirport::AT_INTERNATIONAL);
+	engine->AddConst ("AT_COMMUTER",      ScriptAirport::AT_COMMUTER);
+	engine->AddConst ("AT_INTERCON",      ScriptAirport::AT_INTERCON);
+	engine->AddConst ("AT_HELIPORT",      ScriptAirport::AT_HELIPORT);
+	engine->AddConst ("AT_HELISTATION",   ScriptAirport::AT_HELISTATION);
+	engine->AddConst ("AT_HELIDEPOT",     ScriptAirport::AT_HELIDEPOT);
+	engine->AddConst ("AT_INVALID",       ScriptAirport::AT_INVALID);
+	engine->AddConst ("PT_HELICOPTER",    ScriptAirport::PT_HELICOPTER);
+	engine->AddConst ("PT_SMALL_PLANE",   ScriptAirport::PT_SMALL_PLANE);
+	engine->AddConst ("PT_BIG_PLANE",     ScriptAirport::PT_BIG_PLANE);
+	engine->AddConst ("PT_INVALID",       ScriptAirport::PT_INVALID);
 
-	SQGSAirport.DefSQStaticMethod(engine, &ScriptAirport::IsValidAirportType,            "IsValidAirportType",            2, ".i");
-	SQGSAirport.DefSQStaticMethod(engine, &ScriptAirport::IsAirportInformationAvailable, "IsAirportInformationAvailable", 2, ".i");
-	SQGSAirport.DefSQStaticMethod(engine, &ScriptAirport::GetPrice,                      "GetPrice",                      2, ".i");
-	SQGSAirport.DefSQStaticMethod(engine, &ScriptAirport::IsHangarTile,                  "IsHangarTile",                  2, ".i");
-	SQGSAirport.DefSQStaticMethod(engine, &ScriptAirport::IsAirportTile,                 "IsAirportTile",                 2, ".i");
-	SQGSAirport.DefSQStaticMethod(engine, &ScriptAirport::GetAirportWidth,               "GetAirportWidth",               2, ".i");
-	SQGSAirport.DefSQStaticMethod(engine, &ScriptAirport::GetAirportHeight,              "GetAirportHeight",              2, ".i");
-	SQGSAirport.DefSQStaticMethod(engine, &ScriptAirport::GetAirportCoverageRadius,      "GetAirportCoverageRadius",      2, ".i");
-	SQGSAirport.DefSQStaticMethod(engine, &ScriptAirport::GetNumHangars,                 "GetNumHangars",                 2, ".i");
-	SQGSAirport.DefSQStaticMethod(engine, &ScriptAirport::GetHangarOfAirport,            "GetHangarOfAirport",            2, ".i");
-	SQGSAirport.DefSQStaticMethod(engine, &ScriptAirport::BuildAirport,                  "BuildAirport",                  4, ".iii");
-	SQGSAirport.DefSQStaticMethod(engine, &ScriptAirport::RemoveAirport,                 "RemoveAirport",                 2, ".i");
-	SQGSAirport.DefSQStaticMethod(engine, &ScriptAirport::GetAirportType,                "GetAirportType",                2, ".i");
-	SQGSAirport.DefSQStaticMethod(engine, &ScriptAirport::GetNoiseLevelIncrease,         "GetNoiseLevelIncrease",         3, ".ii");
-	SQGSAirport.DefSQStaticMethod(engine, &ScriptAirport::GetNearestTown,                "GetNearestTown",                3, ".ii");
-	SQGSAirport.DefSQStaticMethod(engine, &ScriptAirport::GetMaintenanceCostFactor,      "GetMaintenanceCostFactor",      2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptAirport::IsValidAirportType,            "IsValidAirportType",            2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptAirport::IsAirportInformationAvailable, "IsAirportInformationAvailable", 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptAirport::GetPrice,                      "GetPrice",                      2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptAirport::IsHangarTile,                  "IsHangarTile",                  2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptAirport::IsAirportTile,                 "IsAirportTile",                 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptAirport::GetAirportWidth,               "GetAirportWidth",               2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptAirport::GetAirportHeight,              "GetAirportHeight",              2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptAirport::GetAirportCoverageRadius,      "GetAirportCoverageRadius",      2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptAirport::GetNumHangars,                 "GetNumHangars",                 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptAirport::GetHangarOfAirport,            "GetHangarOfAirport",            2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptAirport::BuildAirport,                  "BuildAirport",                  4, ".iii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptAirport::RemoveAirport,                 "RemoveAirport",                 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptAirport::GetAirportType,                "GetAirportType",                2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptAirport::GetNoiseLevelIncrease,         "GetNoiseLevelIncrease",         3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptAirport::GetNearestTown,                "GetNearestTown",                3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptAirport::GetMaintenanceCostFactor,      "GetMaintenanceCostFactor",      2, ".i");
 
-	SQGSAirport.PostRegister(engine);
+	engine->AddClassEnd();
 }

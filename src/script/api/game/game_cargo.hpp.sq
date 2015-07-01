@@ -16,41 +16,40 @@ template <> const char *GetClassName<ScriptCargo, ST_GS>() { return "GSCargo"; }
 
 static void SQGSCargo_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptCargo, ST_GS> SQGSCargo;
-	SQGSCargo.PreRegister(engine);
-	SQGSCargo.AddConstructor<void (ScriptCargo::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptCargo, ST_GS> ());
+	SQConvert::AddConstructor <ScriptCargo, void (ScriptCargo::*)(), 1> (engine, "x");
 
-	SQGSCargo.DefSQConst(engine, ScriptCargo::CC_PASSENGERS,             "CC_PASSENGERS");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::CC_MAIL,                   "CC_MAIL");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::CC_EXPRESS,                "CC_EXPRESS");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::CC_ARMOURED,               "CC_ARMOURED");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::CC_BULK,                   "CC_BULK");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::CC_PIECE_GOODS,            "CC_PIECE_GOODS");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::CC_LIQUID,                 "CC_LIQUID");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::CC_REFRIGERATED,           "CC_REFRIGERATED");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::CC_HAZARDOUS,              "CC_HAZARDOUS");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::CC_COVERED,                "CC_COVERED");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::TE_NONE,                   "TE_NONE");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::TE_PASSENGERS,             "TE_PASSENGERS");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::TE_MAIL,                   "TE_MAIL");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::TE_GOODS,                  "TE_GOODS");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::TE_WATER,                  "TE_WATER");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::TE_FOOD,                   "TE_FOOD");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::CT_AUTO_REFIT,             "CT_AUTO_REFIT");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::CT_NO_REFIT,               "CT_NO_REFIT");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::DT_MANUAL,                 "DT_MANUAL");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::DT_ASYMMETRIC,             "DT_ASYMMETRIC");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::DT_SYMMETRIC,              "DT_SYMMETRIC");
-	SQGSCargo.DefSQConst(engine, ScriptCargo::INVALID_DISTRIBUTION_TYPE, "INVALID_DISTRIBUTION_TYPE");
+	engine->AddConst ("CC_PASSENGERS",             ScriptCargo::CC_PASSENGERS);
+	engine->AddConst ("CC_MAIL",                   ScriptCargo::CC_MAIL);
+	engine->AddConst ("CC_EXPRESS",                ScriptCargo::CC_EXPRESS);
+	engine->AddConst ("CC_ARMOURED",               ScriptCargo::CC_ARMOURED);
+	engine->AddConst ("CC_BULK",                   ScriptCargo::CC_BULK);
+	engine->AddConst ("CC_PIECE_GOODS",            ScriptCargo::CC_PIECE_GOODS);
+	engine->AddConst ("CC_LIQUID",                 ScriptCargo::CC_LIQUID);
+	engine->AddConst ("CC_REFRIGERATED",           ScriptCargo::CC_REFRIGERATED);
+	engine->AddConst ("CC_HAZARDOUS",              ScriptCargo::CC_HAZARDOUS);
+	engine->AddConst ("CC_COVERED",                ScriptCargo::CC_COVERED);
+	engine->AddConst ("TE_NONE",                   ScriptCargo::TE_NONE);
+	engine->AddConst ("TE_PASSENGERS",             ScriptCargo::TE_PASSENGERS);
+	engine->AddConst ("TE_MAIL",                   ScriptCargo::TE_MAIL);
+	engine->AddConst ("TE_GOODS",                  ScriptCargo::TE_GOODS);
+	engine->AddConst ("TE_WATER",                  ScriptCargo::TE_WATER);
+	engine->AddConst ("TE_FOOD",                   ScriptCargo::TE_FOOD);
+	engine->AddConst ("CT_AUTO_REFIT",             ScriptCargo::CT_AUTO_REFIT);
+	engine->AddConst ("CT_NO_REFIT",               ScriptCargo::CT_NO_REFIT);
+	engine->AddConst ("DT_MANUAL",                 ScriptCargo::DT_MANUAL);
+	engine->AddConst ("DT_ASYMMETRIC",             ScriptCargo::DT_ASYMMETRIC);
+	engine->AddConst ("DT_SYMMETRIC",              ScriptCargo::DT_SYMMETRIC);
+	engine->AddConst ("INVALID_DISTRIBUTION_TYPE", ScriptCargo::INVALID_DISTRIBUTION_TYPE);
 
-	SQGSCargo.DefSQStaticMethod(engine, &ScriptCargo::IsValidCargo,        "IsValidCargo",        2, ".i");
-	SQGSCargo.DefSQStaticMethod(engine, &ScriptCargo::IsValidTownEffect,   "IsValidTownEffect",   2, ".i");
-	SQGSCargo.DefSQStaticMethod(engine, &ScriptCargo::GetCargoLabel,       "GetCargoLabel",       2, ".i");
-	SQGSCargo.DefSQStaticMethod(engine, &ScriptCargo::IsFreight,           "IsFreight",           2, ".i");
-	SQGSCargo.DefSQStaticMethod(engine, &ScriptCargo::HasCargoClass,       "HasCargoClass",       3, ".ii");
-	SQGSCargo.DefSQStaticMethod(engine, &ScriptCargo::GetTownEffect,       "GetTownEffect",       2, ".i");
-	SQGSCargo.DefSQStaticMethod(engine, &ScriptCargo::GetCargoIncome,      "GetCargoIncome",      4, ".iii");
-	SQGSCargo.DefSQStaticMethod(engine, &ScriptCargo::GetDistributionType, "GetDistributionType", 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCargo::IsValidCargo,        "IsValidCargo",        2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCargo::IsValidTownEffect,   "IsValidTownEffect",   2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCargo::GetCargoLabel,       "GetCargoLabel",       2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCargo::IsFreight,           "IsFreight",           2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCargo::HasCargoClass,       "HasCargoClass",       3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCargo::GetTownEffect,       "GetTownEffect",       2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCargo::GetCargoIncome,      "GetCargoIncome",      4, ".iii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCargo::GetDistributionType, "GetDistributionType", 2, ".i");
 
-	SQGSCargo.PostRegister(engine);
+	engine->AddClassEnd();
 }

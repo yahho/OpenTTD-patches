@@ -16,11 +16,10 @@ template <> const char *GetClassName<ScriptVehicleList, ST_GS>() { return "GSVeh
 
 static void SQGSVehicleList_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptVehicleList, ST_GS> SQGSVehicleList;
-	SQGSVehicleList.PreRegister(engine, "GSList");
-	SQGSVehicleList.AddConstructor<void (ScriptVehicleList::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptVehicleList, ST_GS> (), "GSList");
+	SQConvert::AddConstructor <ScriptVehicleList, void (ScriptVehicleList::*)(), 1> (engine, "x");
 
-	SQGSVehicleList.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -28,11 +27,10 @@ template <> const char *GetClassName<ScriptVehicleList_Station, ST_GS>() { retur
 
 static void SQGSVehicleList_Station_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptVehicleList_Station, ST_GS> SQGSVehicleList_Station;
-	SQGSVehicleList_Station.PreRegister(engine, "GSList");
-	SQGSVehicleList_Station.AddConstructor<void (ScriptVehicleList_Station::*)(StationID station_id), 2>(engine, "xi");
+	engine->AddClassBegin (GetClassName <ScriptVehicleList_Station, ST_GS> (), "GSList");
+	SQConvert::AddConstructor <ScriptVehicleList_Station, void (ScriptVehicleList_Station::*)(StationID station_id), 2> (engine, "xi");
 
-	SQGSVehicleList_Station.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -40,11 +38,10 @@ template <> const char *GetClassName<ScriptVehicleList_Depot, ST_GS>() { return 
 
 static void SQGSVehicleList_Depot_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptVehicleList_Depot, ST_GS> SQGSVehicleList_Depot;
-	SQGSVehicleList_Depot.PreRegister(engine, "GSList");
-	SQGSVehicleList_Depot.AddConstructor<void (ScriptVehicleList_Depot::*)(TileIndex tile), 2>(engine, "xi");
+	engine->AddClassBegin (GetClassName <ScriptVehicleList_Depot, ST_GS> (), "GSList");
+	SQConvert::AddConstructor <ScriptVehicleList_Depot, void (ScriptVehicleList_Depot::*)(TileIndex tile), 2> (engine, "xi");
 
-	SQGSVehicleList_Depot.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -52,9 +49,8 @@ template <> const char *GetClassName<ScriptVehicleList_SharedOrders, ST_GS>() { 
 
 static void SQGSVehicleList_SharedOrders_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptVehicleList_SharedOrders, ST_GS> SQGSVehicleList_SharedOrders;
-	SQGSVehicleList_SharedOrders.PreRegister(engine, "GSList");
-	SQGSVehicleList_SharedOrders.AddConstructor<void (ScriptVehicleList_SharedOrders::*)(VehicleID vehicle_id), 2>(engine, "xi");
+	engine->AddClassBegin (GetClassName <ScriptVehicleList_SharedOrders, ST_GS> (), "GSList");
+	SQConvert::AddConstructor <ScriptVehicleList_SharedOrders, void (ScriptVehicleList_SharedOrders::*)(VehicleID vehicle_id), 2> (engine, "xi");
 
-	SQGSVehicleList_SharedOrders.PostRegister(engine);
+	engine->AddClassEnd();
 }

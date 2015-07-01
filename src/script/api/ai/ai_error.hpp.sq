@@ -16,44 +16,43 @@ template <> const char *GetClassName<ScriptError, ST_AI>() { return "AIError"; }
 
 static void SQAIError_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptError, ST_AI> SQAIError;
-	SQAIError.PreRegister(engine);
-	SQAIError.AddConstructor<void (ScriptError::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptError, ST_AI> ());
+	SQConvert::AddConstructor <ScriptError, void (ScriptError::*)(), 1> (engine, "x");
 
-	SQAIError.DefSQConst(engine, ScriptError::ERR_CAT_NONE,                         "ERR_CAT_NONE");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_CAT_GENERAL,                      "ERR_CAT_GENERAL");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_CAT_VEHICLE,                      "ERR_CAT_VEHICLE");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_CAT_STATION,                      "ERR_CAT_STATION");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_CAT_BRIDGE,                       "ERR_CAT_BRIDGE");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_CAT_TUNNEL,                       "ERR_CAT_TUNNEL");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_CAT_TILE,                         "ERR_CAT_TILE");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_CAT_SIGN,                         "ERR_CAT_SIGN");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_CAT_RAIL,                         "ERR_CAT_RAIL");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_CAT_ROAD,                         "ERR_CAT_ROAD");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_CAT_ORDER,                        "ERR_CAT_ORDER");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_CAT_MARINE,                       "ERR_CAT_MARINE");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_CAT_WAYPOINT,                     "ERR_CAT_WAYPOINT");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_CAT_BIT_SIZE,                     "ERR_CAT_BIT_SIZE");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_NONE,                             "ERR_NONE");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_UNKNOWN,                          "ERR_UNKNOWN");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_PRECONDITION_FAILED,              "ERR_PRECONDITION_FAILED");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_PRECONDITION_STRING_TOO_LONG,     "ERR_PRECONDITION_STRING_TOO_LONG");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_PRECONDITION_TOO_MANY_PARAMETERS, "ERR_PRECONDITION_TOO_MANY_PARAMETERS");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_PRECONDITION_INVALID_COMPANY,     "ERR_PRECONDITION_INVALID_COMPANY");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_NEWGRF_SUPPLIED_ERROR,            "ERR_NEWGRF_SUPPLIED_ERROR");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_GENERAL_BASE,                     "ERR_GENERAL_BASE");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_NOT_ENOUGH_CASH,                  "ERR_NOT_ENOUGH_CASH");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_LOCAL_AUTHORITY_REFUSES,          "ERR_LOCAL_AUTHORITY_REFUSES");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_ALREADY_BUILT,                    "ERR_ALREADY_BUILT");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_AREA_NOT_CLEAR,                   "ERR_AREA_NOT_CLEAR");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_OWNED_BY_ANOTHER_COMPANY,         "ERR_OWNED_BY_ANOTHER_COMPANY");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_NAME_IS_NOT_UNIQUE,               "ERR_NAME_IS_NOT_UNIQUE");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_FLAT_LAND_REQUIRED,               "ERR_FLAT_LAND_REQUIRED");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_LAND_SLOPED_WRONG,                "ERR_LAND_SLOPED_WRONG");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_VEHICLE_IN_THE_WAY,               "ERR_VEHICLE_IN_THE_WAY");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_SITE_UNSUITABLE,                  "ERR_SITE_UNSUITABLE");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_TOO_CLOSE_TO_EDGE,                "ERR_TOO_CLOSE_TO_EDGE");
-	SQAIError.DefSQConst(engine, ScriptError::ERR_STATION_TOO_SPREAD_OUT,           "ERR_STATION_TOO_SPREAD_OUT");
+	engine->AddConst ("ERR_CAT_NONE",                         ScriptError::ERR_CAT_NONE);
+	engine->AddConst ("ERR_CAT_GENERAL",                      ScriptError::ERR_CAT_GENERAL);
+	engine->AddConst ("ERR_CAT_VEHICLE",                      ScriptError::ERR_CAT_VEHICLE);
+	engine->AddConst ("ERR_CAT_STATION",                      ScriptError::ERR_CAT_STATION);
+	engine->AddConst ("ERR_CAT_BRIDGE",                       ScriptError::ERR_CAT_BRIDGE);
+	engine->AddConst ("ERR_CAT_TUNNEL",                       ScriptError::ERR_CAT_TUNNEL);
+	engine->AddConst ("ERR_CAT_TILE",                         ScriptError::ERR_CAT_TILE);
+	engine->AddConst ("ERR_CAT_SIGN",                         ScriptError::ERR_CAT_SIGN);
+	engine->AddConst ("ERR_CAT_RAIL",                         ScriptError::ERR_CAT_RAIL);
+	engine->AddConst ("ERR_CAT_ROAD",                         ScriptError::ERR_CAT_ROAD);
+	engine->AddConst ("ERR_CAT_ORDER",                        ScriptError::ERR_CAT_ORDER);
+	engine->AddConst ("ERR_CAT_MARINE",                       ScriptError::ERR_CAT_MARINE);
+	engine->AddConst ("ERR_CAT_WAYPOINT",                     ScriptError::ERR_CAT_WAYPOINT);
+	engine->AddConst ("ERR_CAT_BIT_SIZE",                     ScriptError::ERR_CAT_BIT_SIZE);
+	engine->AddConst ("ERR_NONE",                             ScriptError::ERR_NONE);
+	engine->AddConst ("ERR_UNKNOWN",                          ScriptError::ERR_UNKNOWN);
+	engine->AddConst ("ERR_PRECONDITION_FAILED",              ScriptError::ERR_PRECONDITION_FAILED);
+	engine->AddConst ("ERR_PRECONDITION_STRING_TOO_LONG",     ScriptError::ERR_PRECONDITION_STRING_TOO_LONG);
+	engine->AddConst ("ERR_PRECONDITION_TOO_MANY_PARAMETERS", ScriptError::ERR_PRECONDITION_TOO_MANY_PARAMETERS);
+	engine->AddConst ("ERR_PRECONDITION_INVALID_COMPANY",     ScriptError::ERR_PRECONDITION_INVALID_COMPANY);
+	engine->AddConst ("ERR_NEWGRF_SUPPLIED_ERROR",            ScriptError::ERR_NEWGRF_SUPPLIED_ERROR);
+	engine->AddConst ("ERR_GENERAL_BASE",                     ScriptError::ERR_GENERAL_BASE);
+	engine->AddConst ("ERR_NOT_ENOUGH_CASH",                  ScriptError::ERR_NOT_ENOUGH_CASH);
+	engine->AddConst ("ERR_LOCAL_AUTHORITY_REFUSES",          ScriptError::ERR_LOCAL_AUTHORITY_REFUSES);
+	engine->AddConst ("ERR_ALREADY_BUILT",                    ScriptError::ERR_ALREADY_BUILT);
+	engine->AddConst ("ERR_AREA_NOT_CLEAR",                   ScriptError::ERR_AREA_NOT_CLEAR);
+	engine->AddConst ("ERR_OWNED_BY_ANOTHER_COMPANY",         ScriptError::ERR_OWNED_BY_ANOTHER_COMPANY);
+	engine->AddConst ("ERR_NAME_IS_NOT_UNIQUE",               ScriptError::ERR_NAME_IS_NOT_UNIQUE);
+	engine->AddConst ("ERR_FLAT_LAND_REQUIRED",               ScriptError::ERR_FLAT_LAND_REQUIRED);
+	engine->AddConst ("ERR_LAND_SLOPED_WRONG",                ScriptError::ERR_LAND_SLOPED_WRONG);
+	engine->AddConst ("ERR_VEHICLE_IN_THE_WAY",               ScriptError::ERR_VEHICLE_IN_THE_WAY);
+	engine->AddConst ("ERR_SITE_UNSUITABLE",                  ScriptError::ERR_SITE_UNSUITABLE);
+	engine->AddConst ("ERR_TOO_CLOSE_TO_EDGE",                ScriptError::ERR_TOO_CLOSE_TO_EDGE);
+	engine->AddConst ("ERR_STATION_TOO_SPREAD_OUT",           ScriptError::ERR_STATION_TOO_SPREAD_OUT);
 
 	ScriptError::RegisterErrorMap(STR_ERROR_NOT_ENOUGH_CASH_REQUIRES_CURRENCY,          ScriptError::ERR_NOT_ENOUGH_CASH);
 	ScriptError::RegisterErrorMap(STR_ERROR_LOCAL_AUTHORITY_REFUSES_TO_ALLOW_THIS,      ScriptError::ERR_LOCAL_AUTHORITY_REFUSES);
@@ -110,9 +109,9 @@ static void SQAIError_Register (Squirrel *engine)
 	ScriptError::RegisterErrorMapString(ScriptError::ERR_TOO_CLOSE_TO_EDGE,                "ERR_TOO_CLOSE_TO_EDGE");
 	ScriptError::RegisterErrorMapString(ScriptError::ERR_STATION_TOO_SPREAD_OUT,           "ERR_STATION_TOO_SPREAD_OUT");
 
-	SQAIError.DefSQStaticMethod(engine, &ScriptError::GetErrorCategory,   "GetErrorCategory",   1, ".");
-	SQAIError.DefSQStaticMethod(engine, &ScriptError::GetLastError,       "GetLastError",       1, ".");
-	SQAIError.DefSQStaticMethod(engine, &ScriptError::GetLastErrorString, "GetLastErrorString", 1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptError::GetErrorCategory,   "GetErrorCategory",   1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptError::GetLastError,       "GetLastError",       1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptError::GetLastErrorString, "GetLastErrorString", 1, ".");
 
-	SQAIError.PostRegister(engine);
+	engine->AddClassEnd();
 }

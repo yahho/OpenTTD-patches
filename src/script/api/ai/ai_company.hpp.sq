@@ -16,47 +16,46 @@ template <> const char *GetClassName<ScriptCompany, ST_AI>() { return "AICompany
 
 static void SQAICompany_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptCompany, ST_AI> SQAICompany;
-	SQAICompany.PreRegister(engine);
-	SQAICompany.AddConstructor<void (ScriptCompany::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptCompany, ST_AI> ());
+	SQConvert::AddConstructor <ScriptCompany, void (ScriptCompany::*)(), 1> (engine, "x");
 
-	SQAICompany.DefSQConst(engine, ScriptCompany::CURRENT_QUARTER,  "CURRENT_QUARTER");
-	SQAICompany.DefSQConst(engine, ScriptCompany::EARLIEST_QUARTER, "EARLIEST_QUARTER");
-	SQAICompany.DefSQConst(engine, ScriptCompany::COMPANY_FIRST,    "COMPANY_FIRST");
-	SQAICompany.DefSQConst(engine, ScriptCompany::COMPANY_LAST,     "COMPANY_LAST");
-	SQAICompany.DefSQConst(engine, ScriptCompany::COMPANY_INVALID,  "COMPANY_INVALID");
-	SQAICompany.DefSQConst(engine, ScriptCompany::COMPANY_SELF,     "COMPANY_SELF");
-	SQAICompany.DefSQConst(engine, ScriptCompany::GENDER_MALE,      "GENDER_MALE");
-	SQAICompany.DefSQConst(engine, ScriptCompany::GENDER_FEMALE,    "GENDER_FEMALE");
-	SQAICompany.DefSQConst(engine, ScriptCompany::GENDER_INVALID,   "GENDER_INVALID");
+	engine->AddConst ("CURRENT_QUARTER",  ScriptCompany::CURRENT_QUARTER);
+	engine->AddConst ("EARLIEST_QUARTER", ScriptCompany::EARLIEST_QUARTER);
+	engine->AddConst ("COMPANY_FIRST",    ScriptCompany::COMPANY_FIRST);
+	engine->AddConst ("COMPANY_LAST",     ScriptCompany::COMPANY_LAST);
+	engine->AddConst ("COMPANY_INVALID",  ScriptCompany::COMPANY_INVALID);
+	engine->AddConst ("COMPANY_SELF",     ScriptCompany::COMPANY_SELF);
+	engine->AddConst ("GENDER_MALE",      ScriptCompany::GENDER_MALE);
+	engine->AddConst ("GENDER_FEMALE",    ScriptCompany::GENDER_FEMALE);
+	engine->AddConst ("GENDER_INVALID",   ScriptCompany::GENDER_INVALID);
 
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::ResolveCompanyID,              "ResolveCompanyID",              2, ".i");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::IsMine,                        "IsMine",                        2, ".i");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::SetName,                       "SetName",                       2, "..");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::GetName,                       "GetName",                       2, ".i");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::SetPresidentName,              "SetPresidentName",              2, "..");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::GetPresidentName,              "GetPresidentName",              2, ".i");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::SetPresidentGender,            "SetPresidentGender",            2, ".i");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::GetPresidentGender,            "GetPresidentGender",            2, ".i");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::SetLoanAmount,                 "SetLoanAmount",                 2, ".i");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::SetMinimumLoanAmount,          "SetMinimumLoanAmount",          2, ".i");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::GetLoanAmount,                 "GetLoanAmount",                 1, ".");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::GetMaxLoanAmount,              "GetMaxLoanAmount",              1, ".");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::GetLoanInterval,               "GetLoanInterval",               1, ".");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::GetBankBalance,                "GetBankBalance",                2, ".i");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::GetQuarterlyIncome,            "GetQuarterlyIncome",            3, ".ii");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::GetQuarterlyExpenses,          "GetQuarterlyExpenses",          3, ".ii");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::GetQuarterlyCargoDelivered,    "GetQuarterlyCargoDelivered",    3, ".ii");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::GetQuarterlyPerformanceRating, "GetQuarterlyPerformanceRating", 3, ".ii");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::GetQuarterlyCompanyValue,      "GetQuarterlyCompanyValue",      3, ".ii");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::BuildCompanyHQ,                "BuildCompanyHQ",                2, ".i");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::GetCompanyHQ,                  "GetCompanyHQ",                  2, ".i");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::SetAutoRenewStatus,            "SetAutoRenewStatus",            2, ".b");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::GetAutoRenewStatus,            "GetAutoRenewStatus",            2, ".i");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::SetAutoRenewMonths,            "SetAutoRenewMonths",            2, ".i");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::GetAutoRenewMonths,            "GetAutoRenewMonths",            2, ".i");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::SetAutoRenewMoney,             "SetAutoRenewMoney",             2, ".i");
-	SQAICompany.DefSQStaticMethod(engine, &ScriptCompany::GetAutoRenewMoney,             "GetAutoRenewMoney",             2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::ResolveCompanyID,              "ResolveCompanyID",              2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::IsMine,                        "IsMine",                        2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::SetName,                       "SetName",                       2, "..");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::GetName,                       "GetName",                       2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::SetPresidentName,              "SetPresidentName",              2, "..");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::GetPresidentName,              "GetPresidentName",              2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::SetPresidentGender,            "SetPresidentGender",            2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::GetPresidentGender,            "GetPresidentGender",            2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::SetLoanAmount,                 "SetLoanAmount",                 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::SetMinimumLoanAmount,          "SetMinimumLoanAmount",          2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::GetLoanAmount,                 "GetLoanAmount",                 1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::GetMaxLoanAmount,              "GetMaxLoanAmount",              1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::GetLoanInterval,               "GetLoanInterval",               1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::GetBankBalance,                "GetBankBalance",                2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::GetQuarterlyIncome,            "GetQuarterlyIncome",            3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::GetQuarterlyExpenses,          "GetQuarterlyExpenses",          3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::GetQuarterlyCargoDelivered,    "GetQuarterlyCargoDelivered",    3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::GetQuarterlyPerformanceRating, "GetQuarterlyPerformanceRating", 3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::GetQuarterlyCompanyValue,      "GetQuarterlyCompanyValue",      3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::BuildCompanyHQ,                "BuildCompanyHQ",                2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::GetCompanyHQ,                  "GetCompanyHQ",                  2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::SetAutoRenewStatus,            "SetAutoRenewStatus",            2, ".b");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::GetAutoRenewStatus,            "GetAutoRenewStatus",            2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::SetAutoRenewMonths,            "SetAutoRenewMonths",            2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::GetAutoRenewMonths,            "GetAutoRenewMonths",            2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::SetAutoRenewMoney,             "SetAutoRenewMoney",             2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCompany::GetAutoRenewMoney,             "GetAutoRenewMoney",             2, ".i");
 
-	SQAICompany.PostRegister(engine);
+	engine->AddClassEnd();
 }

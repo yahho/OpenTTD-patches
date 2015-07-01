@@ -16,9 +16,8 @@ template <> const char *GetClassName<ScriptStoryPageList, ST_GS>() { return "GSS
 
 static void SQGSStoryPageList_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptStoryPageList, ST_GS> SQGSStoryPageList;
-	SQGSStoryPageList.PreRegister(engine, "GSList");
-	SQGSStoryPageList.AddConstructor<void (ScriptStoryPageList::*)(ScriptCompany::CompanyID company), 2>(engine, "xi");
+	engine->AddClassBegin (GetClassName <ScriptStoryPageList, ST_GS> (), "GSList");
+	SQConvert::AddConstructor <ScriptStoryPageList, void (ScriptStoryPageList::*)(ScriptCompany::CompanyID company), 2> (engine, "xi");
 
-	SQGSStoryPageList.PostRegister(engine);
+	engine->AddClassEnd();
 }

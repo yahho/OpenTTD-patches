@@ -16,28 +16,27 @@ template <> const char *GetClassName<ScriptIndustryType, ST_AI>() { return "AIIn
 
 static void SQAIIndustryType_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptIndustryType, ST_AI> SQAIIndustryType;
-	SQAIIndustryType.PreRegister(engine);
-	SQAIIndustryType.AddConstructor<void (ScriptIndustryType::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptIndustryType, ST_AI> ());
+	SQConvert::AddConstructor <ScriptIndustryType, void (ScriptIndustryType::*)(), 1> (engine, "x");
 
-	SQAIIndustryType.DefSQConst(engine, ScriptIndustryType::INDUSTRYTYPE_UNKNOWN, "INDUSTRYTYPE_UNKNOWN");
-	SQAIIndustryType.DefSQConst(engine, ScriptIndustryType::INDUSTRYTYPE_TOWN,    "INDUSTRYTYPE_TOWN");
+	engine->AddConst ("INDUSTRYTYPE_UNKNOWN", ScriptIndustryType::INDUSTRYTYPE_UNKNOWN);
+	engine->AddConst ("INDUSTRYTYPE_TOWN",    ScriptIndustryType::INDUSTRYTYPE_TOWN);
 
-	SQAIIndustryType.DefSQStaticMethod(engine, &ScriptIndustryType::IsValidIndustryType,   "IsValidIndustryType",   2, ".i");
-	SQAIIndustryType.DefSQStaticMethod(engine, &ScriptIndustryType::GetName,               "GetName",               2, ".i");
-	SQAIIndustryType.DefSQStaticMethod(engine, &ScriptIndustryType::GetProducedCargo,      "GetProducedCargo",      2, ".i");
-	SQAIIndustryType.DefSQStaticMethod(engine, &ScriptIndustryType::GetAcceptedCargo,      "GetAcceptedCargo",      2, ".i");
-	SQAIIndustryType.DefSQStaticMethod(engine, &ScriptIndustryType::IsRawIndustry,         "IsRawIndustry",         2, ".i");
-	SQAIIndustryType.DefSQStaticMethod(engine, &ScriptIndustryType::IsProcessingIndustry,  "IsProcessingIndustry",  2, ".i");
-	SQAIIndustryType.DefSQStaticMethod(engine, &ScriptIndustryType::ProductionCanIncrease, "ProductionCanIncrease", 2, ".i");
-	SQAIIndustryType.DefSQStaticMethod(engine, &ScriptIndustryType::GetConstructionCost,   "GetConstructionCost",   2, ".i");
-	SQAIIndustryType.DefSQStaticMethod(engine, &ScriptIndustryType::CanBuildIndustry,      "CanBuildIndustry",      2, ".i");
-	SQAIIndustryType.DefSQStaticMethod(engine, &ScriptIndustryType::CanProspectIndustry,   "CanProspectIndustry",   2, ".i");
-	SQAIIndustryType.DefSQStaticMethod(engine, &ScriptIndustryType::BuildIndustry,         "BuildIndustry",         3, ".ii");
-	SQAIIndustryType.DefSQStaticMethod(engine, &ScriptIndustryType::ProspectIndustry,      "ProspectIndustry",      2, ".i");
-	SQAIIndustryType.DefSQStaticMethod(engine, &ScriptIndustryType::IsBuiltOnWater,        "IsBuiltOnWater",        2, ".i");
-	SQAIIndustryType.DefSQStaticMethod(engine, &ScriptIndustryType::HasHeliport,           "HasHeliport",           2, ".i");
-	SQAIIndustryType.DefSQStaticMethod(engine, &ScriptIndustryType::HasDock,               "HasDock",               2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptIndustryType::IsValidIndustryType,   "IsValidIndustryType",   2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptIndustryType::GetName,               "GetName",               2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptIndustryType::GetProducedCargo,      "GetProducedCargo",      2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptIndustryType::GetAcceptedCargo,      "GetAcceptedCargo",      2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptIndustryType::IsRawIndustry,         "IsRawIndustry",         2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptIndustryType::IsProcessingIndustry,  "IsProcessingIndustry",  2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptIndustryType::ProductionCanIncrease, "ProductionCanIncrease", 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptIndustryType::GetConstructionCost,   "GetConstructionCost",   2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptIndustryType::CanBuildIndustry,      "CanBuildIndustry",      2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptIndustryType::CanProspectIndustry,   "CanProspectIndustry",   2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptIndustryType::BuildIndustry,         "BuildIndustry",         3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptIndustryType::ProspectIndustry,      "ProspectIndustry",      2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptIndustryType::IsBuiltOnWater,        "IsBuiltOnWater",        2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptIndustryType::HasHeliport,           "HasHeliport",           2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptIndustryType::HasDock,               "HasDock",               2, ".i");
 
-	SQAIIndustryType.PostRegister(engine);
+	engine->AddClassEnd();
 }

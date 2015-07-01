@@ -16,11 +16,10 @@ template <> const char *GetClassName<ScriptTownList, ST_AI>() { return "AITownLi
 
 static void SQAITownList_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptTownList, ST_AI> SQAITownList;
-	SQAITownList.PreRegister(engine, "AIList");
-	SQAITownList.AddConstructor<void (ScriptTownList::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptTownList, ST_AI> (), "AIList");
+	SQConvert::AddConstructor <ScriptTownList, void (ScriptTownList::*)(), 1> (engine, "x");
 
-	SQAITownList.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -28,9 +27,8 @@ template <> const char *GetClassName<ScriptTownEffectList, ST_AI>() { return "AI
 
 static void SQAITownEffectList_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptTownEffectList, ST_AI> SQAITownEffectList;
-	SQAITownEffectList.PreRegister(engine, "AIList");
-	SQAITownEffectList.AddConstructor<void (ScriptTownEffectList::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptTownEffectList, ST_AI> (), "AIList");
+	SQConvert::AddConstructor <ScriptTownEffectList, void (ScriptTownEffectList::*)(), 1> (engine, "x");
 
-	SQAITownEffectList.PostRegister(engine);
+	engine->AddClassEnd();
 }

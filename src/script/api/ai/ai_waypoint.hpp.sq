@@ -16,16 +16,15 @@ template <> const char *GetClassName<ScriptWaypoint, ST_AI>() { return "AIWaypoi
 
 static void SQAIWaypoint_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptWaypoint, ST_AI> SQAIWaypoint;
-	SQAIWaypoint.PreRegister(engine, "AIBaseStation");
-	SQAIWaypoint.AddConstructor<void (ScriptWaypoint::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptWaypoint, ST_AI> (), "AIBaseStation");
+	SQConvert::AddConstructor <ScriptWaypoint, void (ScriptWaypoint::*)(), 1> (engine, "x");
 
-	SQAIWaypoint.DefSQConst(engine, ScriptWaypoint::ERR_WAYPOINT_BASE,                          "ERR_WAYPOINT_BASE");
-	SQAIWaypoint.DefSQConst(engine, ScriptWaypoint::ERR_WAYPOINT_TOO_CLOSE_TO_ANOTHER_WAYPOINT, "ERR_WAYPOINT_TOO_CLOSE_TO_ANOTHER_WAYPOINT");
-	SQAIWaypoint.DefSQConst(engine, ScriptWaypoint::ERR_WAYPOINT_ADJOINS_MULTIPLE_WAYPOINTS,    "ERR_WAYPOINT_ADJOINS_MULTIPLE_WAYPOINTS");
-	SQAIWaypoint.DefSQConst(engine, ScriptWaypoint::WAYPOINT_RAIL,                              "WAYPOINT_RAIL");
-	SQAIWaypoint.DefSQConst(engine, ScriptWaypoint::WAYPOINT_BUOY,                              "WAYPOINT_BUOY");
-	SQAIWaypoint.DefSQConst(engine, ScriptWaypoint::WAYPOINT_ANY,                               "WAYPOINT_ANY");
+	engine->AddConst ("ERR_WAYPOINT_BASE",                          ScriptWaypoint::ERR_WAYPOINT_BASE);
+	engine->AddConst ("ERR_WAYPOINT_TOO_CLOSE_TO_ANOTHER_WAYPOINT", ScriptWaypoint::ERR_WAYPOINT_TOO_CLOSE_TO_ANOTHER_WAYPOINT);
+	engine->AddConst ("ERR_WAYPOINT_ADJOINS_MULTIPLE_WAYPOINTS",    ScriptWaypoint::ERR_WAYPOINT_ADJOINS_MULTIPLE_WAYPOINTS);
+	engine->AddConst ("WAYPOINT_RAIL",                              ScriptWaypoint::WAYPOINT_RAIL);
+	engine->AddConst ("WAYPOINT_BUOY",                              ScriptWaypoint::WAYPOINT_BUOY);
+	engine->AddConst ("WAYPOINT_ANY",                               ScriptWaypoint::WAYPOINT_ANY);
 
 	ScriptError::RegisterErrorMap(STR_ERROR_TOO_CLOSE_TO_ANOTHER_WAYPOINT,           ScriptWaypoint::ERR_WAYPOINT_TOO_CLOSE_TO_ANOTHER_WAYPOINT);
 	ScriptError::RegisterErrorMap(STR_ERROR_WAYPOINT_ADJOINS_MORE_THAN_ONE_EXISTING, ScriptWaypoint::ERR_WAYPOINT_ADJOINS_MULTIPLE_WAYPOINTS);
@@ -33,9 +32,9 @@ static void SQAIWaypoint_Register (Squirrel *engine)
 	ScriptError::RegisterErrorMapString(ScriptWaypoint::ERR_WAYPOINT_TOO_CLOSE_TO_ANOTHER_WAYPOINT, "ERR_WAYPOINT_TOO_CLOSE_TO_ANOTHER_WAYPOINT");
 	ScriptError::RegisterErrorMapString(ScriptWaypoint::ERR_WAYPOINT_ADJOINS_MULTIPLE_WAYPOINTS,    "ERR_WAYPOINT_ADJOINS_MULTIPLE_WAYPOINTS");
 
-	SQAIWaypoint.DefSQStaticMethod(engine, &ScriptWaypoint::IsValidWaypoint, "IsValidWaypoint", 2, ".i");
-	SQAIWaypoint.DefSQStaticMethod(engine, &ScriptWaypoint::GetWaypointID,   "GetWaypointID",   2, ".i");
-	SQAIWaypoint.DefSQStaticMethod(engine, &ScriptWaypoint::HasWaypointType, "HasWaypointType", 3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptWaypoint::IsValidWaypoint, "IsValidWaypoint", 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptWaypoint::GetWaypointID,   "GetWaypointID",   2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptWaypoint::HasWaypointType, "HasWaypointType", 3, ".ii");
 
-	SQAIWaypoint.PostRegister(engine);
+	engine->AddClassEnd();
 }

@@ -16,23 +16,22 @@ template <> const char *GetClassName<ScriptSubsidy, ST_AI>() { return "AISubsidy
 
 static void SQAISubsidy_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptSubsidy, ST_AI> SQAISubsidy;
-	SQAISubsidy.PreRegister(engine);
-	SQAISubsidy.AddConstructor<void (ScriptSubsidy::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptSubsidy, ST_AI> ());
+	SQConvert::AddConstructor <ScriptSubsidy, void (ScriptSubsidy::*)(), 1> (engine, "x");
 
-	SQAISubsidy.DefSQConst(engine, ScriptSubsidy::SPT_INDUSTRY, "SPT_INDUSTRY");
-	SQAISubsidy.DefSQConst(engine, ScriptSubsidy::SPT_TOWN,     "SPT_TOWN");
-	SQAISubsidy.DefSQConst(engine, ScriptSubsidy::SPT_INVALID,  "SPT_INVALID");
+	engine->AddConst ("SPT_INDUSTRY", ScriptSubsidy::SPT_INDUSTRY);
+	engine->AddConst ("SPT_TOWN",     ScriptSubsidy::SPT_TOWN);
+	engine->AddConst ("SPT_INVALID",  ScriptSubsidy::SPT_INVALID);
 
-	SQAISubsidy.DefSQStaticMethod(engine, &ScriptSubsidy::IsValidSubsidy,      "IsValidSubsidy",      2, ".i");
-	SQAISubsidy.DefSQStaticMethod(engine, &ScriptSubsidy::IsAwarded,           "IsAwarded",           2, ".i");
-	SQAISubsidy.DefSQStaticMethod(engine, &ScriptSubsidy::GetAwardedTo,        "GetAwardedTo",        2, ".i");
-	SQAISubsidy.DefSQStaticMethod(engine, &ScriptSubsidy::GetExpireDate,       "GetExpireDate",       2, ".i");
-	SQAISubsidy.DefSQStaticMethod(engine, &ScriptSubsidy::GetCargoType,        "GetCargoType",        2, ".i");
-	SQAISubsidy.DefSQStaticMethod(engine, &ScriptSubsidy::GetSourceType,       "GetSourceType",       2, ".i");
-	SQAISubsidy.DefSQStaticMethod(engine, &ScriptSubsidy::GetSourceIndex,      "GetSourceIndex",      2, ".i");
-	SQAISubsidy.DefSQStaticMethod(engine, &ScriptSubsidy::GetDestinationType,  "GetDestinationType",  2, ".i");
-	SQAISubsidy.DefSQStaticMethod(engine, &ScriptSubsidy::GetDestinationIndex, "GetDestinationIndex", 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSubsidy::IsValidSubsidy,      "IsValidSubsidy",      2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSubsidy::IsAwarded,           "IsAwarded",           2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSubsidy::GetAwardedTo,        "GetAwardedTo",        2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSubsidy::GetExpireDate,       "GetExpireDate",       2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSubsidy::GetCargoType,        "GetCargoType",        2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSubsidy::GetSourceType,       "GetSourceType",       2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSubsidy::GetSourceIndex,      "GetSourceIndex",      2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSubsidy::GetDestinationType,  "GetDestinationType",  2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptSubsidy::GetDestinationIndex, "GetDestinationIndex", 2, ".i");
 
-	SQAISubsidy.PostRegister(engine);
+	engine->AddClassEnd();
 }

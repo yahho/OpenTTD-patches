@@ -16,9 +16,8 @@ template <> const char *GetClassName<ScriptExecMode, ST_AI>() { return "AIExecMo
 
 static void SQAIExecMode_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptExecMode, ST_AI> SQAIExecMode;
-	SQAIExecMode.PreRegister(engine);
-	SQAIExecMode.AddConstructor<void (ScriptExecMode::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptExecMode, ST_AI> ());
+	SQConvert::AddConstructor <ScriptExecMode, void (ScriptExecMode::*)(), 1> (engine, "x");
 
-	SQAIExecMode.PostRegister(engine);
+	engine->AddClassEnd();
 }

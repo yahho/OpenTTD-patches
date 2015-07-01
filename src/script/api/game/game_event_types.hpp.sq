@@ -16,23 +16,22 @@ template <> const char *GetClassName<ScriptEventVehicleCrashed, ST_GS>() { retur
 
 static void SQGSEventVehicleCrashed_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventVehicleCrashed, ST_GS> SQGSEventVehicleCrashed;
-	SQGSEventVehicleCrashed.PreRegister(engine, "GSEvent");
+	engine->AddClassBegin (GetClassName <ScriptEventVehicleCrashed, ST_GS> (), "GSEvent");
 
-	SQGSEventVehicleCrashed.DefSQConst(engine, ScriptEventVehicleCrashed::CRASH_TRAIN,               "CRASH_TRAIN");
-	SQGSEventVehicleCrashed.DefSQConst(engine, ScriptEventVehicleCrashed::CRASH_RV_LEVEL_CROSSING,   "CRASH_RV_LEVEL_CROSSING");
-	SQGSEventVehicleCrashed.DefSQConst(engine, ScriptEventVehicleCrashed::CRASH_RV_UFO,              "CRASH_RV_UFO");
-	SQGSEventVehicleCrashed.DefSQConst(engine, ScriptEventVehicleCrashed::CRASH_PLANE_LANDING,       "CRASH_PLANE_LANDING");
-	SQGSEventVehicleCrashed.DefSQConst(engine, ScriptEventVehicleCrashed::CRASH_AIRCRAFT_NO_AIRPORT, "CRASH_AIRCRAFT_NO_AIRPORT");
-	SQGSEventVehicleCrashed.DefSQConst(engine, ScriptEventVehicleCrashed::CRASH_FLOODED,             "CRASH_FLOODED");
+	engine->AddConst ("CRASH_TRAIN",               ScriptEventVehicleCrashed::CRASH_TRAIN);
+	engine->AddConst ("CRASH_RV_LEVEL_CROSSING",   ScriptEventVehicleCrashed::CRASH_RV_LEVEL_CROSSING);
+	engine->AddConst ("CRASH_RV_UFO",              ScriptEventVehicleCrashed::CRASH_RV_UFO);
+	engine->AddConst ("CRASH_PLANE_LANDING",       ScriptEventVehicleCrashed::CRASH_PLANE_LANDING);
+	engine->AddConst ("CRASH_AIRCRAFT_NO_AIRPORT", ScriptEventVehicleCrashed::CRASH_AIRCRAFT_NO_AIRPORT);
+	engine->AddConst ("CRASH_FLOODED",             ScriptEventVehicleCrashed::CRASH_FLOODED);
 
-	SQGSEventVehicleCrashed.DefSQStaticMethod(engine, &ScriptEventVehicleCrashed::Convert, "Convert", 2, ".x");
+	SQConvert::DefSQStaticMethod (engine, &ScriptEventVehicleCrashed::Convert, "Convert", 2, ".x");
 
-	SQGSEventVehicleCrashed.DefSQMethod(engine, &ScriptEventVehicleCrashed::GetVehicleID,   "GetVehicleID",   1, "x");
-	SQGSEventVehicleCrashed.DefSQMethod(engine, &ScriptEventVehicleCrashed::GetCrashSite,   "GetCrashSite",   1, "x");
-	SQGSEventVehicleCrashed.DefSQMethod(engine, &ScriptEventVehicleCrashed::GetCrashReason, "GetCrashReason", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventVehicleCrashed, ST_GS> (engine, &ScriptEventVehicleCrashed::GetVehicleID,   "GetVehicleID",   1, "x");
+	SQConvert::DefSQMethod <ScriptEventVehicleCrashed, ST_GS> (engine, &ScriptEventVehicleCrashed::GetCrashSite,   "GetCrashSite",   1, "x");
+	SQConvert::DefSQMethod <ScriptEventVehicleCrashed, ST_GS> (engine, &ScriptEventVehicleCrashed::GetCrashReason, "GetCrashReason", 1, "x");
 
-	SQGSEventVehicleCrashed.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -40,14 +39,13 @@ template <> const char *GetClassName<ScriptEventSubsidyOffer, ST_GS>() { return 
 
 static void SQGSEventSubsidyOffer_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventSubsidyOffer, ST_GS> SQGSEventSubsidyOffer;
-	SQGSEventSubsidyOffer.PreRegister(engine, "GSEvent");
+	engine->AddClassBegin (GetClassName <ScriptEventSubsidyOffer, ST_GS> (), "GSEvent");
 
-	SQGSEventSubsidyOffer.DefSQStaticMethod(engine, &ScriptEventSubsidyOffer::Convert, "Convert", 2, ".x");
+	SQConvert::DefSQStaticMethod (engine, &ScriptEventSubsidyOffer::Convert, "Convert", 2, ".x");
 
-	SQGSEventSubsidyOffer.DefSQMethod(engine, &ScriptEventSubsidyOffer::GetSubsidyID, "GetSubsidyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventSubsidyOffer, ST_GS> (engine, &ScriptEventSubsidyOffer::GetSubsidyID, "GetSubsidyID", 1, "x");
 
-	SQGSEventSubsidyOffer.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -55,14 +53,13 @@ template <> const char *GetClassName<ScriptEventSubsidyOfferExpired, ST_GS>() { 
 
 static void SQGSEventSubsidyOfferExpired_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventSubsidyOfferExpired, ST_GS> SQGSEventSubsidyOfferExpired;
-	SQGSEventSubsidyOfferExpired.PreRegister(engine, "GSEvent");
+	engine->AddClassBegin (GetClassName <ScriptEventSubsidyOfferExpired, ST_GS> (), "GSEvent");
 
-	SQGSEventSubsidyOfferExpired.DefSQStaticMethod(engine, &ScriptEventSubsidyOfferExpired::Convert, "Convert", 2, ".x");
+	SQConvert::DefSQStaticMethod (engine, &ScriptEventSubsidyOfferExpired::Convert, "Convert", 2, ".x");
 
-	SQGSEventSubsidyOfferExpired.DefSQMethod(engine, &ScriptEventSubsidyOfferExpired::GetSubsidyID, "GetSubsidyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventSubsidyOfferExpired, ST_GS> (engine, &ScriptEventSubsidyOfferExpired::GetSubsidyID, "GetSubsidyID", 1, "x");
 
-	SQGSEventSubsidyOfferExpired.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -70,14 +67,13 @@ template <> const char *GetClassName<ScriptEventSubsidyAwarded, ST_GS>() { retur
 
 static void SQGSEventSubsidyAwarded_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventSubsidyAwarded, ST_GS> SQGSEventSubsidyAwarded;
-	SQGSEventSubsidyAwarded.PreRegister(engine, "GSEvent");
+	engine->AddClassBegin (GetClassName <ScriptEventSubsidyAwarded, ST_GS> (), "GSEvent");
 
-	SQGSEventSubsidyAwarded.DefSQStaticMethod(engine, &ScriptEventSubsidyAwarded::Convert, "Convert", 2, ".x");
+	SQConvert::DefSQStaticMethod (engine, &ScriptEventSubsidyAwarded::Convert, "Convert", 2, ".x");
 
-	SQGSEventSubsidyAwarded.DefSQMethod(engine, &ScriptEventSubsidyAwarded::GetSubsidyID, "GetSubsidyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventSubsidyAwarded, ST_GS> (engine, &ScriptEventSubsidyAwarded::GetSubsidyID, "GetSubsidyID", 1, "x");
 
-	SQGSEventSubsidyAwarded.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -85,14 +81,13 @@ template <> const char *GetClassName<ScriptEventSubsidyExpired, ST_GS>() { retur
 
 static void SQGSEventSubsidyExpired_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventSubsidyExpired, ST_GS> SQGSEventSubsidyExpired;
-	SQGSEventSubsidyExpired.PreRegister(engine, "GSEvent");
+	engine->AddClassBegin (GetClassName <ScriptEventSubsidyExpired, ST_GS> (), "GSEvent");
 
-	SQGSEventSubsidyExpired.DefSQStaticMethod(engine, &ScriptEventSubsidyExpired::Convert, "Convert", 2, ".x");
+	SQConvert::DefSQStaticMethod (engine, &ScriptEventSubsidyExpired::Convert, "Convert", 2, ".x");
 
-	SQGSEventSubsidyExpired.DefSQMethod(engine, &ScriptEventSubsidyExpired::GetSubsidyID, "GetSubsidyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventSubsidyExpired, ST_GS> (engine, &ScriptEventSubsidyExpired::GetSubsidyID, "GetSubsidyID", 1, "x");
 
-	SQGSEventSubsidyExpired.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -100,14 +95,13 @@ template <> const char *GetClassName<ScriptEventCompanyNew, ST_GS>() { return "G
 
 static void SQGSEventCompanyNew_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventCompanyNew, ST_GS> SQGSEventCompanyNew;
-	SQGSEventCompanyNew.PreRegister(engine, "GSEvent");
+	engine->AddClassBegin (GetClassName <ScriptEventCompanyNew, ST_GS> (), "GSEvent");
 
-	SQGSEventCompanyNew.DefSQStaticMethod(engine, &ScriptEventCompanyNew::Convert, "Convert", 2, ".x");
+	SQConvert::DefSQStaticMethod (engine, &ScriptEventCompanyNew::Convert, "Convert", 2, ".x");
 
-	SQGSEventCompanyNew.DefSQMethod(engine, &ScriptEventCompanyNew::GetCompanyID, "GetCompanyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventCompanyNew, ST_GS> (engine, &ScriptEventCompanyNew::GetCompanyID, "GetCompanyID", 1, "x");
 
-	SQGSEventCompanyNew.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -115,14 +109,13 @@ template <> const char *GetClassName<ScriptEventCompanyInTrouble, ST_GS>() { ret
 
 static void SQGSEventCompanyInTrouble_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventCompanyInTrouble, ST_GS> SQGSEventCompanyInTrouble;
-	SQGSEventCompanyInTrouble.PreRegister(engine, "GSEvent");
+	engine->AddClassBegin (GetClassName <ScriptEventCompanyInTrouble, ST_GS> (), "GSEvent");
 
-	SQGSEventCompanyInTrouble.DefSQStaticMethod(engine, &ScriptEventCompanyInTrouble::Convert, "Convert", 2, ".x");
+	SQConvert::DefSQStaticMethod (engine, &ScriptEventCompanyInTrouble::Convert, "Convert", 2, ".x");
 
-	SQGSEventCompanyInTrouble.DefSQMethod(engine, &ScriptEventCompanyInTrouble::GetCompanyID, "GetCompanyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventCompanyInTrouble, ST_GS> (engine, &ScriptEventCompanyInTrouble::GetCompanyID, "GetCompanyID", 1, "x");
 
-	SQGSEventCompanyInTrouble.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -130,15 +123,14 @@ template <> const char *GetClassName<ScriptEventCompanyMerger, ST_GS>() { return
 
 static void SQGSEventCompanyMerger_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventCompanyMerger, ST_GS> SQGSEventCompanyMerger;
-	SQGSEventCompanyMerger.PreRegister(engine, "GSEvent");
+	engine->AddClassBegin (GetClassName <ScriptEventCompanyMerger, ST_GS> (), "GSEvent");
 
-	SQGSEventCompanyMerger.DefSQStaticMethod(engine, &ScriptEventCompanyMerger::Convert, "Convert", 2, ".x");
+	SQConvert::DefSQStaticMethod (engine, &ScriptEventCompanyMerger::Convert, "Convert", 2, ".x");
 
-	SQGSEventCompanyMerger.DefSQMethod(engine, &ScriptEventCompanyMerger::GetOldCompanyID, "GetOldCompanyID", 1, "x");
-	SQGSEventCompanyMerger.DefSQMethod(engine, &ScriptEventCompanyMerger::GetNewCompanyID, "GetNewCompanyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventCompanyMerger, ST_GS> (engine, &ScriptEventCompanyMerger::GetOldCompanyID, "GetOldCompanyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventCompanyMerger, ST_GS> (engine, &ScriptEventCompanyMerger::GetNewCompanyID, "GetNewCompanyID", 1, "x");
 
-	SQGSEventCompanyMerger.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -146,14 +138,13 @@ template <> const char *GetClassName<ScriptEventCompanyBankrupt, ST_GS>() { retu
 
 static void SQGSEventCompanyBankrupt_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventCompanyBankrupt, ST_GS> SQGSEventCompanyBankrupt;
-	SQGSEventCompanyBankrupt.PreRegister(engine, "GSEvent");
+	engine->AddClassBegin (GetClassName <ScriptEventCompanyBankrupt, ST_GS> (), "GSEvent");
 
-	SQGSEventCompanyBankrupt.DefSQStaticMethod(engine, &ScriptEventCompanyBankrupt::Convert, "Convert", 2, ".x");
+	SQConvert::DefSQStaticMethod (engine, &ScriptEventCompanyBankrupt::Convert, "Convert", 2, ".x");
 
-	SQGSEventCompanyBankrupt.DefSQMethod(engine, &ScriptEventCompanyBankrupt::GetCompanyID, "GetCompanyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventCompanyBankrupt, ST_GS> (engine, &ScriptEventCompanyBankrupt::GetCompanyID, "GetCompanyID", 1, "x");
 
-	SQGSEventCompanyBankrupt.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -161,14 +152,13 @@ template <> const char *GetClassName<ScriptEventIndustryOpen, ST_GS>() { return 
 
 static void SQGSEventIndustryOpen_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventIndustryOpen, ST_GS> SQGSEventIndustryOpen;
-	SQGSEventIndustryOpen.PreRegister(engine, "GSEvent");
+	engine->AddClassBegin (GetClassName <ScriptEventIndustryOpen, ST_GS> (), "GSEvent");
 
-	SQGSEventIndustryOpen.DefSQStaticMethod(engine, &ScriptEventIndustryOpen::Convert, "Convert", 2, ".x");
+	SQConvert::DefSQStaticMethod (engine, &ScriptEventIndustryOpen::Convert, "Convert", 2, ".x");
 
-	SQGSEventIndustryOpen.DefSQMethod(engine, &ScriptEventIndustryOpen::GetIndustryID, "GetIndustryID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventIndustryOpen, ST_GS> (engine, &ScriptEventIndustryOpen::GetIndustryID, "GetIndustryID", 1, "x");
 
-	SQGSEventIndustryOpen.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -176,14 +166,13 @@ template <> const char *GetClassName<ScriptEventIndustryClose, ST_GS>() { return
 
 static void SQGSEventIndustryClose_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventIndustryClose, ST_GS> SQGSEventIndustryClose;
-	SQGSEventIndustryClose.PreRegister(engine, "GSEvent");
+	engine->AddClassBegin (GetClassName <ScriptEventIndustryClose, ST_GS> (), "GSEvent");
 
-	SQGSEventIndustryClose.DefSQStaticMethod(engine, &ScriptEventIndustryClose::Convert, "Convert", 2, ".x");
+	SQConvert::DefSQStaticMethod (engine, &ScriptEventIndustryClose::Convert, "Convert", 2, ".x");
 
-	SQGSEventIndustryClose.DefSQMethod(engine, &ScriptEventIndustryClose::GetIndustryID, "GetIndustryID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventIndustryClose, ST_GS> (engine, &ScriptEventIndustryClose::GetIndustryID, "GetIndustryID", 1, "x");
 
-	SQGSEventIndustryClose.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -191,15 +180,14 @@ template <> const char *GetClassName<ScriptEventStationFirstVehicle, ST_GS>() { 
 
 static void SQGSEventStationFirstVehicle_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventStationFirstVehicle, ST_GS> SQGSEventStationFirstVehicle;
-	SQGSEventStationFirstVehicle.PreRegister(engine, "GSEvent");
+	engine->AddClassBegin (GetClassName <ScriptEventStationFirstVehicle, ST_GS> (), "GSEvent");
 
-	SQGSEventStationFirstVehicle.DefSQStaticMethod(engine, &ScriptEventStationFirstVehicle::Convert, "Convert", 2, ".x");
+	SQConvert::DefSQStaticMethod (engine, &ScriptEventStationFirstVehicle::Convert, "Convert", 2, ".x");
 
-	SQGSEventStationFirstVehicle.DefSQMethod(engine, &ScriptEventStationFirstVehicle::GetStationID, "GetStationID", 1, "x");
-	SQGSEventStationFirstVehicle.DefSQMethod(engine, &ScriptEventStationFirstVehicle::GetVehicleID, "GetVehicleID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventStationFirstVehicle, ST_GS> (engine, &ScriptEventStationFirstVehicle::GetStationID, "GetStationID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventStationFirstVehicle, ST_GS> (engine, &ScriptEventStationFirstVehicle::GetVehicleID, "GetVehicleID", 1, "x");
 
-	SQGSEventStationFirstVehicle.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -207,14 +195,13 @@ template <> const char *GetClassName<ScriptEventTownFounded, ST_GS>() { return "
 
 static void SQGSEventTownFounded_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventTownFounded, ST_GS> SQGSEventTownFounded;
-	SQGSEventTownFounded.PreRegister(engine, "GSEvent");
+	engine->AddClassBegin (GetClassName <ScriptEventTownFounded, ST_GS> (), "GSEvent");
 
-	SQGSEventTownFounded.DefSQStaticMethod(engine, &ScriptEventTownFounded::Convert, "Convert", 2, ".x");
+	SQConvert::DefSQStaticMethod (engine, &ScriptEventTownFounded::Convert, "Convert", 2, ".x");
 
-	SQGSEventTownFounded.DefSQMethod(engine, &ScriptEventTownFounded::GetTownID, "GetTownID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventTownFounded, ST_GS> (engine, &ScriptEventTownFounded::GetTownID, "GetTownID", 1, "x");
 
-	SQGSEventTownFounded.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -222,14 +209,13 @@ template <> const char *GetClassName<ScriptEventAdminPort, ST_GS>() { return "GS
 
 static void SQGSEventAdminPort_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventAdminPort, ST_GS> SQGSEventAdminPort;
-	SQGSEventAdminPort.PreRegister(engine, "GSEvent");
+	engine->AddClassBegin (GetClassName <ScriptEventAdminPort, ST_GS> (), "GSEvent");
 
-	SQGSEventAdminPort.DefSQStaticMethod(engine, &ScriptEventAdminPort::Convert, "Convert", 2, ".x");
+	SQConvert::DefSQStaticMethod (engine, &ScriptEventAdminPort::Convert, "Convert", 2, ".x");
 
-	SQGSEventAdminPort.DefSQAdvancedMethod(engine, &ScriptEventAdminPort::GetObject, "GetObject");
+	SQConvert::DefSQAdvancedMethod <ScriptEventAdminPort, ST_GS> (engine, &ScriptEventAdminPort::GetObject, "GetObject");
 
-	SQGSEventAdminPort.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -237,16 +223,15 @@ template <> const char *GetClassName<ScriptEventWindowWidgetClick, ST_GS>() { re
 
 static void SQGSEventWindowWidgetClick_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventWindowWidgetClick, ST_GS> SQGSEventWindowWidgetClick;
-	SQGSEventWindowWidgetClick.PreRegister(engine, "GSEvent");
+	engine->AddClassBegin (GetClassName <ScriptEventWindowWidgetClick, ST_GS> (), "GSEvent");
 
-	SQGSEventWindowWidgetClick.DefSQStaticMethod(engine, &ScriptEventWindowWidgetClick::Convert, "Convert", 2, ".x");
+	SQConvert::DefSQStaticMethod (engine, &ScriptEventWindowWidgetClick::Convert, "Convert", 2, ".x");
 
-	SQGSEventWindowWidgetClick.DefSQMethod(engine, &ScriptEventWindowWidgetClick::GetWindowClass,  "GetWindowClass",  1, "x");
-	SQGSEventWindowWidgetClick.DefSQMethod(engine, &ScriptEventWindowWidgetClick::GetWindowNumber, "GetWindowNumber", 1, "x");
-	SQGSEventWindowWidgetClick.DefSQMethod(engine, &ScriptEventWindowWidgetClick::GetWidgetNumber, "GetWidgetNumber", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventWindowWidgetClick, ST_GS> (engine, &ScriptEventWindowWidgetClick::GetWindowClass,  "GetWindowClass",  1, "x");
+	SQConvert::DefSQMethod <ScriptEventWindowWidgetClick, ST_GS> (engine, &ScriptEventWindowWidgetClick::GetWindowNumber, "GetWindowNumber", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventWindowWidgetClick, ST_GS> (engine, &ScriptEventWindowWidgetClick::GetWidgetNumber, "GetWidgetNumber", 1, "x");
 
-	SQGSEventWindowWidgetClick.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -254,16 +239,15 @@ template <> const char *GetClassName<ScriptEventGoalQuestionAnswer, ST_GS>() { r
 
 static void SQGSEventGoalQuestionAnswer_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventGoalQuestionAnswer, ST_GS> SQGSEventGoalQuestionAnswer;
-	SQGSEventGoalQuestionAnswer.PreRegister(engine, "GSEvent");
+	engine->AddClassBegin (GetClassName <ScriptEventGoalQuestionAnswer, ST_GS> (), "GSEvent");
 
-	SQGSEventGoalQuestionAnswer.DefSQStaticMethod(engine, &ScriptEventGoalQuestionAnswer::Convert, "Convert", 2, ".x");
+	SQConvert::DefSQStaticMethod (engine, &ScriptEventGoalQuestionAnswer::Convert, "Convert", 2, ".x");
 
-	SQGSEventGoalQuestionAnswer.DefSQMethod(engine, &ScriptEventGoalQuestionAnswer::GetUniqueID, "GetUniqueID", 1, "x");
-	SQGSEventGoalQuestionAnswer.DefSQMethod(engine, &ScriptEventGoalQuestionAnswer::GetCompany,  "GetCompany",  1, "x");
-	SQGSEventGoalQuestionAnswer.DefSQMethod(engine, &ScriptEventGoalQuestionAnswer::GetButton,   "GetButton",   1, "x");
+	SQConvert::DefSQMethod <ScriptEventGoalQuestionAnswer, ST_GS> (engine, &ScriptEventGoalQuestionAnswer::GetUniqueID, "GetUniqueID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventGoalQuestionAnswer, ST_GS> (engine, &ScriptEventGoalQuestionAnswer::GetCompany,  "GetCompany",  1, "x");
+	SQConvert::DefSQMethod <ScriptEventGoalQuestionAnswer, ST_GS> (engine, &ScriptEventGoalQuestionAnswer::GetButton,   "GetButton",   1, "x");
 
-	SQGSEventGoalQuestionAnswer.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -271,15 +255,14 @@ template <> const char *GetClassName<ScriptEventCompanyTown, ST_GS>() { return "
 
 static void SQGSEventCompanyTown_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventCompanyTown, ST_GS> SQGSEventCompanyTown;
-	SQGSEventCompanyTown.PreRegister(engine, "GSEvent");
+	engine->AddClassBegin (GetClassName <ScriptEventCompanyTown, ST_GS> (), "GSEvent");
 
-	SQGSEventCompanyTown.DefSQStaticMethod(engine, &ScriptEventCompanyTown::Convert, "Convert", 2, ".x");
+	SQConvert::DefSQStaticMethod (engine, &ScriptEventCompanyTown::Convert, "Convert", 2, ".x");
 
-	SQGSEventCompanyTown.DefSQMethod(engine, &ScriptEventCompanyTown::GetCompanyID, "GetCompanyID", 1, "x");
-	SQGSEventCompanyTown.DefSQMethod(engine, &ScriptEventCompanyTown::GetTownID,    "GetTownID",    1, "x");
+	SQConvert::DefSQMethod <ScriptEventCompanyTown, ST_GS> (engine, &ScriptEventCompanyTown::GetCompanyID, "GetCompanyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventCompanyTown, ST_GS> (engine, &ScriptEventCompanyTown::GetTownID,    "GetTownID",    1, "x");
 
-	SQGSEventCompanyTown.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -287,13 +270,12 @@ template <> const char *GetClassName<ScriptEventExclusiveTransportRights, ST_GS>
 
 static void SQGSEventExclusiveTransportRights_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventExclusiveTransportRights, ST_GS> SQGSEventExclusiveTransportRights;
-	SQGSEventExclusiveTransportRights.PreRegister(engine, "GSEventCompanyTown");
-	SQGSEventExclusiveTransportRights.AddConstructor<void (ScriptEventExclusiveTransportRights::*)(ScriptCompany::CompanyID company, TownID town), 3>(engine, "xii");
+	engine->AddClassBegin (GetClassName <ScriptEventExclusiveTransportRights, ST_GS> (), "GSEventCompanyTown");
+	SQConvert::AddConstructor <ScriptEventExclusiveTransportRights, void (ScriptEventExclusiveTransportRights::*)(ScriptCompany::CompanyID company, TownID town), 3> (engine, "xii");
 
-	SQGSEventExclusiveTransportRights.DefSQStaticMethod(engine, &ScriptEventExclusiveTransportRights::Convert, "Convert", 2, ".x");
+	SQConvert::DefSQStaticMethod (engine, &ScriptEventExclusiveTransportRights::Convert, "Convert", 2, ".x");
 
-	SQGSEventExclusiveTransportRights.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -301,11 +283,10 @@ template <> const char *GetClassName<ScriptEventRoadReconstruction, ST_GS>() { r
 
 static void SQGSEventRoadReconstruction_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptEventRoadReconstruction, ST_GS> SQGSEventRoadReconstruction;
-	SQGSEventRoadReconstruction.PreRegister(engine, "GSEventCompanyTown");
-	SQGSEventRoadReconstruction.AddConstructor<void (ScriptEventRoadReconstruction::*)(ScriptCompany::CompanyID company, TownID town), 3>(engine, "xii");
+	engine->AddClassBegin (GetClassName <ScriptEventRoadReconstruction, ST_GS> (), "GSEventCompanyTown");
+	SQConvert::AddConstructor <ScriptEventRoadReconstruction, void (ScriptEventRoadReconstruction::*)(ScriptCompany::CompanyID company, TownID town), 3> (engine, "xii");
 
-	SQGSEventRoadReconstruction.DefSQStaticMethod(engine, &ScriptEventRoadReconstruction::Convert, "Convert", 2, ".x");
+	SQConvert::DefSQStaticMethod (engine, &ScriptEventRoadReconstruction::Convert, "Convert", 2, ".x");
 
-	SQGSEventRoadReconstruction.PostRegister(engine);
+	engine->AddClassEnd();
 }

@@ -16,19 +16,18 @@ template <> const char *GetClassName<ScriptBaseStation, ST_AI>() { return "AIBas
 
 static void SQAIBaseStation_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptBaseStation, ST_AI> SQAIBaseStation;
-	SQAIBaseStation.PreRegister(engine);
-	SQAIBaseStation.AddConstructor<void (ScriptBaseStation::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptBaseStation, ST_AI> ());
+	SQConvert::AddConstructor <ScriptBaseStation, void (ScriptBaseStation::*)(), 1> (engine, "x");
 
-	SQAIBaseStation.DefSQConst(engine, ScriptBaseStation::STATION_NEW,           "STATION_NEW");
-	SQAIBaseStation.DefSQConst(engine, ScriptBaseStation::STATION_JOIN_ADJACENT, "STATION_JOIN_ADJACENT");
-	SQAIBaseStation.DefSQConst(engine, ScriptBaseStation::STATION_INVALID,       "STATION_INVALID");
+	engine->AddConst ("STATION_NEW",           ScriptBaseStation::STATION_NEW);
+	engine->AddConst ("STATION_JOIN_ADJACENT", ScriptBaseStation::STATION_JOIN_ADJACENT);
+	engine->AddConst ("STATION_INVALID",       ScriptBaseStation::STATION_INVALID);
 
-	SQAIBaseStation.DefSQStaticMethod(engine, &ScriptBaseStation::IsValidBaseStation,  "IsValidBaseStation",  2, ".i");
-	SQAIBaseStation.DefSQStaticMethod(engine, &ScriptBaseStation::GetName,             "GetName",             2, ".i");
-	SQAIBaseStation.DefSQStaticMethod(engine, &ScriptBaseStation::SetName,             "SetName",             3, ".i.");
-	SQAIBaseStation.DefSQStaticMethod(engine, &ScriptBaseStation::GetLocation,         "GetLocation",         2, ".i");
-	SQAIBaseStation.DefSQStaticMethod(engine, &ScriptBaseStation::GetConstructionDate, "GetConstructionDate", 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBaseStation::IsValidBaseStation,  "IsValidBaseStation",  2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBaseStation::GetName,             "GetName",             2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBaseStation::SetName,             "SetName",             3, ".i.");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBaseStation::GetLocation,         "GetLocation",         2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBaseStation::GetConstructionDate, "GetConstructionDate", 2, ".i");
 
-	SQAIBaseStation.PostRegister(engine);
+	engine->AddClassEnd();
 }

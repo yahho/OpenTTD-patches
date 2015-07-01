@@ -16,15 +16,14 @@ template <> const char *GetClassName<ScriptTunnel, ST_AI>() { return "AITunnel";
 
 static void SQAITunnel_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptTunnel, ST_AI> SQAITunnel;
-	SQAITunnel.PreRegister(engine);
-	SQAITunnel.AddConstructor<void (ScriptTunnel::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptTunnel, ST_AI> ());
+	SQConvert::AddConstructor <ScriptTunnel, void (ScriptTunnel::*)(), 1> (engine, "x");
 
-	SQAITunnel.DefSQConst(engine, ScriptTunnel::ERR_TUNNEL_BASE,                      "ERR_TUNNEL_BASE");
-	SQAITunnel.DefSQConst(engine, ScriptTunnel::ERR_TUNNEL_CANNOT_BUILD_ON_WATER,     "ERR_TUNNEL_CANNOT_BUILD_ON_WATER");
-	SQAITunnel.DefSQConst(engine, ScriptTunnel::ERR_TUNNEL_START_SITE_UNSUITABLE,     "ERR_TUNNEL_START_SITE_UNSUITABLE");
-	SQAITunnel.DefSQConst(engine, ScriptTunnel::ERR_TUNNEL_ANOTHER_TUNNEL_IN_THE_WAY, "ERR_TUNNEL_ANOTHER_TUNNEL_IN_THE_WAY");
-	SQAITunnel.DefSQConst(engine, ScriptTunnel::ERR_TUNNEL_END_SITE_UNSUITABLE,       "ERR_TUNNEL_END_SITE_UNSUITABLE");
+	engine->AddConst ("ERR_TUNNEL_BASE",                      ScriptTunnel::ERR_TUNNEL_BASE);
+	engine->AddConst ("ERR_TUNNEL_CANNOT_BUILD_ON_WATER",     ScriptTunnel::ERR_TUNNEL_CANNOT_BUILD_ON_WATER);
+	engine->AddConst ("ERR_TUNNEL_START_SITE_UNSUITABLE",     ScriptTunnel::ERR_TUNNEL_START_SITE_UNSUITABLE);
+	engine->AddConst ("ERR_TUNNEL_ANOTHER_TUNNEL_IN_THE_WAY", ScriptTunnel::ERR_TUNNEL_ANOTHER_TUNNEL_IN_THE_WAY);
+	engine->AddConst ("ERR_TUNNEL_END_SITE_UNSUITABLE",       ScriptTunnel::ERR_TUNNEL_END_SITE_UNSUITABLE);
 
 	ScriptError::RegisterErrorMap(STR_ERROR_CAN_T_BUILD_ON_WATER,       ScriptTunnel::ERR_TUNNEL_CANNOT_BUILD_ON_WATER);
 	ScriptError::RegisterErrorMap(STR_ERROR_SITE_UNSUITABLE_FOR_TUNNEL, ScriptTunnel::ERR_TUNNEL_START_SITE_UNSUITABLE);
@@ -36,10 +35,10 @@ static void SQAITunnel_Register (Squirrel *engine)
 	ScriptError::RegisterErrorMapString(ScriptTunnel::ERR_TUNNEL_ANOTHER_TUNNEL_IN_THE_WAY, "ERR_TUNNEL_ANOTHER_TUNNEL_IN_THE_WAY");
 	ScriptError::RegisterErrorMapString(ScriptTunnel::ERR_TUNNEL_END_SITE_UNSUITABLE,       "ERR_TUNNEL_END_SITE_UNSUITABLE");
 
-	SQAITunnel.DefSQStaticMethod(engine, &ScriptTunnel::IsTunnelTile,      "IsTunnelTile",      2, ".i");
-	SQAITunnel.DefSQStaticMethod(engine, &ScriptTunnel::GetOtherTunnelEnd, "GetOtherTunnelEnd", 2, ".i");
-	SQAITunnel.DefSQStaticMethod(engine, &ScriptTunnel::BuildTunnel,       "BuildTunnel",       3, ".ii");
-	SQAITunnel.DefSQStaticMethod(engine, &ScriptTunnel::RemoveTunnel,      "RemoveTunnel",      2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptTunnel::IsTunnelTile,      "IsTunnelTile",      2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptTunnel::GetOtherTunnelEnd, "GetOtherTunnelEnd", 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptTunnel::BuildTunnel,       "BuildTunnel",       3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptTunnel::RemoveTunnel,      "RemoveTunnel",      2, ".i");
 
-	SQAITunnel.PostRegister(engine);
+	engine->AddClassEnd();
 }

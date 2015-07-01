@@ -16,9 +16,8 @@ template <> const char *GetClassName<ScriptRailTypeList, ST_AI>() { return "AIRa
 
 static void SQAIRailTypeList_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptRailTypeList, ST_AI> SQAIRailTypeList;
-	SQAIRailTypeList.PreRegister(engine, "AIList");
-	SQAIRailTypeList.AddConstructor<void (ScriptRailTypeList::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptRailTypeList, ST_AI> (), "AIList");
+	SQConvert::AddConstructor <ScriptRailTypeList, void (ScriptRailTypeList::*)(), 1> (engine, "x");
 
-	SQAIRailTypeList.PostRegister(engine);
+	engine->AddClassEnd();
 }

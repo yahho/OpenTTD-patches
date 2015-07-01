@@ -13,20 +13,19 @@ template <> const char *GetClassName<ScriptController, ST_GS>() { return "GSCont
 
 static void SQGSController_Register(Squirrel *engine)
 {
-	DefSQClass<ScriptController, ST_GS> SQGSController;
-	SQGSController.PreRegister(engine);
+	engine->AddClassBegin (GetClassName <ScriptController, ST_GS> ());
 
-	SQGSController.DefSQStaticMethod(engine, &ScriptController::GetTick,           "GetTick",           1, ".");
-	SQGSController.DefSQStaticMethod(engine, &ScriptController::GetOpsTillSuspend, "GetOpsTillSuspend", 1, ".");
-	SQGSController.DefSQStaticMethod(engine, &ScriptController::SetCommandDelay,   "SetCommandDelay",   2, ".i");
-	SQGSController.DefSQStaticMethod(engine, &ScriptController::Sleep,             "Sleep",             2, ".i");
-	SQGSController.DefSQStaticMethod(engine, &ScriptController::Break,             "Break",             2, ".s");
-	SQGSController.DefSQStaticMethod(engine, &ScriptController::GetSetting,        "GetSetting",        2, ".s");
-	SQGSController.DefSQStaticMethod(engine, &ScriptController::GetVersion,        "GetVersion",        1, ".");
-	SQGSController.DefSQStaticMethod(engine, &ScriptController::Print,             "Print",             3, ".bs");
+	SQConvert::DefSQStaticMethod (engine, &ScriptController::GetTick,           "GetTick",           1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptController::GetOpsTillSuspend, "GetOpsTillSuspend", 1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptController::SetCommandDelay,   "SetCommandDelay",   2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptController::Sleep,             "Sleep",             2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptController::Break,             "Break",             2, ".s");
+	SQConvert::DefSQStaticMethod (engine, &ScriptController::GetSetting,        "GetSetting",        2, ".s");
+	SQConvert::DefSQStaticMethod (engine, &ScriptController::GetVersion,        "GetVersion",        1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptController::Print,             "Print",             3, ".bs");
 
-	SQGSController.PostRegister(engine);
+	engine->AddClassEnd();
 
 	/* Register the import statement to the global scope */
-	SQGSController.DefSQStaticMethod(engine, &ScriptController::Import,            "import",            4, ".ssi");
+	SQConvert::DefSQStaticMethod (engine, &ScriptController::Import,            "import",            4, ".ssi");
 }

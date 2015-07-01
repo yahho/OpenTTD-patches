@@ -16,30 +16,29 @@ template <> const char *GetClassName<ScriptStoryPage, ST_GS>() { return "GSStory
 
 static void SQGSStoryPage_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptStoryPage, ST_GS> SQGSStoryPage;
-	SQGSStoryPage.PreRegister(engine);
-	SQGSStoryPage.AddConstructor<void (ScriptStoryPage::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptStoryPage, ST_GS> ());
+	SQConvert::AddConstructor <ScriptStoryPage, void (ScriptStoryPage::*)(), 1> (engine, "x");
 
-	SQGSStoryPage.DefSQConst(engine, ScriptStoryPage::STORY_PAGE_INVALID,         "STORY_PAGE_INVALID");
-	SQGSStoryPage.DefSQConst(engine, ScriptStoryPage::STORY_PAGE_ELEMENT_INVALID, "STORY_PAGE_ELEMENT_INVALID");
-	SQGSStoryPage.DefSQConst(engine, ScriptStoryPage::SPET_TEXT,                  "SPET_TEXT");
-	SQGSStoryPage.DefSQConst(engine, ScriptStoryPage::SPET_LOCATION,              "SPET_LOCATION");
-	SQGSStoryPage.DefSQConst(engine, ScriptStoryPage::SPET_GOAL,                  "SPET_GOAL");
+	engine->AddConst ("STORY_PAGE_INVALID",         ScriptStoryPage::STORY_PAGE_INVALID);
+	engine->AddConst ("STORY_PAGE_ELEMENT_INVALID", ScriptStoryPage::STORY_PAGE_ELEMENT_INVALID);
+	engine->AddConst ("SPET_TEXT",                  ScriptStoryPage::SPET_TEXT);
+	engine->AddConst ("SPET_LOCATION",              ScriptStoryPage::SPET_LOCATION);
+	engine->AddConst ("SPET_GOAL",                  ScriptStoryPage::SPET_GOAL);
 
-	SQGSStoryPage.DefSQStaticMethod(engine, &ScriptStoryPage::IsValidStoryPage,        "IsValidStoryPage",        2, ".i");
-	SQGSStoryPage.DefSQStaticMethod(engine, &ScriptStoryPage::IsValidStoryPageElement, "IsValidStoryPageElement", 2, ".i");
-	SQGSStoryPage.DefSQStaticMethod(engine, &ScriptStoryPage::New,                     "New",                     3, ".i.");
-	SQGSStoryPage.DefSQStaticMethod(engine, &ScriptStoryPage::NewElement,              "NewElement",              5, ".iii.");
-	SQGSStoryPage.DefSQStaticMethod(engine, &ScriptStoryPage::UpdateElement,           "UpdateElement",           4, ".ii.");
-	SQGSStoryPage.DefSQStaticMethod(engine, &ScriptStoryPage::GetPageSortValue,        "GetPageSortValue",        2, ".i");
-	SQGSStoryPage.DefSQStaticMethod(engine, &ScriptStoryPage::GetPageElementSortValue, "GetPageElementSortValue", 2, ".i");
-	SQGSStoryPage.DefSQStaticMethod(engine, &ScriptStoryPage::GetCompany,              "GetCompany",              2, ".i");
-	SQGSStoryPage.DefSQStaticMethod(engine, &ScriptStoryPage::GetDate,                 "GetDate",                 2, ".i");
-	SQGSStoryPage.DefSQStaticMethod(engine, &ScriptStoryPage::SetDate,                 "SetDate",                 3, ".ii");
-	SQGSStoryPage.DefSQStaticMethod(engine, &ScriptStoryPage::SetTitle,                "SetTitle",                3, ".i.");
-	SQGSStoryPage.DefSQStaticMethod(engine, &ScriptStoryPage::Show,                    "Show",                    2, ".i");
-	SQGSStoryPage.DefSQStaticMethod(engine, &ScriptStoryPage::Remove,                  "Remove",                  2, ".i");
-	SQGSStoryPage.DefSQStaticMethod(engine, &ScriptStoryPage::RemoveElement,           "RemoveElement",           2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptStoryPage::IsValidStoryPage,        "IsValidStoryPage",        2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptStoryPage::IsValidStoryPageElement, "IsValidStoryPageElement", 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptStoryPage::New,                     "New",                     3, ".i.");
+	SQConvert::DefSQStaticMethod (engine, &ScriptStoryPage::NewElement,              "NewElement",              5, ".iii.");
+	SQConvert::DefSQStaticMethod (engine, &ScriptStoryPage::UpdateElement,           "UpdateElement",           4, ".ii.");
+	SQConvert::DefSQStaticMethod (engine, &ScriptStoryPage::GetPageSortValue,        "GetPageSortValue",        2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptStoryPage::GetPageElementSortValue, "GetPageElementSortValue", 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptStoryPage::GetCompany,              "GetCompany",              2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptStoryPage::GetDate,                 "GetDate",                 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptStoryPage::SetDate,                 "SetDate",                 3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptStoryPage::SetTitle,                "SetTitle",                3, ".i.");
+	SQConvert::DefSQStaticMethod (engine, &ScriptStoryPage::Show,                    "Show",                    2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptStoryPage::Remove,                  "Remove",                  2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptStoryPage::RemoveElement,           "RemoveElement",           2, ".i");
 
-	SQGSStoryPage.PostRegister(engine);
+	engine->AddClassEnd();
 }

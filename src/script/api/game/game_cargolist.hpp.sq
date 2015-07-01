@@ -16,11 +16,10 @@ template <> const char *GetClassName<ScriptCargoList, ST_GS>() { return "GSCargo
 
 static void SQGSCargoList_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptCargoList, ST_GS> SQGSCargoList;
-	SQGSCargoList.PreRegister(engine, "GSList");
-	SQGSCargoList.AddConstructor<void (ScriptCargoList::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptCargoList, ST_GS> (), "GSList");
+	SQConvert::AddConstructor <ScriptCargoList, void (ScriptCargoList::*)(), 1> (engine, "x");
 
-	SQGSCargoList.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -28,11 +27,10 @@ template <> const char *GetClassName<ScriptCargoList_IndustryAccepting, ST_GS>()
 
 static void SQGSCargoList_IndustryAccepting_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptCargoList_IndustryAccepting, ST_GS> SQGSCargoList_IndustryAccepting;
-	SQGSCargoList_IndustryAccepting.PreRegister(engine, "GSList");
-	SQGSCargoList_IndustryAccepting.AddConstructor<void (ScriptCargoList_IndustryAccepting::*)(IndustryID industry_id), 2>(engine, "xi");
+	engine->AddClassBegin (GetClassName <ScriptCargoList_IndustryAccepting, ST_GS> (), "GSList");
+	SQConvert::AddConstructor <ScriptCargoList_IndustryAccepting, void (ScriptCargoList_IndustryAccepting::*)(IndustryID industry_id), 2> (engine, "xi");
 
-	SQGSCargoList_IndustryAccepting.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -40,11 +38,10 @@ template <> const char *GetClassName<ScriptCargoList_IndustryProducing, ST_GS>()
 
 static void SQGSCargoList_IndustryProducing_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptCargoList_IndustryProducing, ST_GS> SQGSCargoList_IndustryProducing;
-	SQGSCargoList_IndustryProducing.PreRegister(engine, "GSList");
-	SQGSCargoList_IndustryProducing.AddConstructor<void (ScriptCargoList_IndustryProducing::*)(IndustryID industry_id), 2>(engine, "xi");
+	engine->AddClassBegin (GetClassName <ScriptCargoList_IndustryProducing, ST_GS> (), "GSList");
+	SQConvert::AddConstructor <ScriptCargoList_IndustryProducing, void (ScriptCargoList_IndustryProducing::*)(IndustryID industry_id), 2> (engine, "xi");
 
-	SQGSCargoList_IndustryProducing.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -52,9 +49,8 @@ template <> const char *GetClassName<ScriptCargoList_StationAccepting, ST_GS>() 
 
 static void SQGSCargoList_StationAccepting_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptCargoList_StationAccepting, ST_GS> SQGSCargoList_StationAccepting;
-	SQGSCargoList_StationAccepting.PreRegister(engine, "GSList");
-	SQGSCargoList_StationAccepting.AddConstructor<void (ScriptCargoList_StationAccepting::*)(StationID station_id), 2>(engine, "xi");
+	engine->AddClassBegin (GetClassName <ScriptCargoList_StationAccepting, ST_GS> (), "GSList");
+	SQConvert::AddConstructor <ScriptCargoList_StationAccepting, void (ScriptCargoList_StationAccepting::*)(StationID station_id), 2> (engine, "xi");
 
-	SQGSCargoList_StationAccepting.PostRegister(engine);
+	engine->AddClassEnd();
 }

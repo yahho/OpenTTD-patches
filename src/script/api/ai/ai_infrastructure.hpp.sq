@@ -16,23 +16,22 @@ template <> const char *GetClassName<ScriptInfrastructure, ST_AI>() { return "AI
 
 static void SQAIInfrastructure_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptInfrastructure, ST_AI> SQAIInfrastructure;
-	SQAIInfrastructure.PreRegister(engine);
-	SQAIInfrastructure.AddConstructor<void (ScriptInfrastructure::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptInfrastructure, ST_AI> ());
+	SQConvert::AddConstructor <ScriptInfrastructure, void (ScriptInfrastructure::*)(), 1> (engine, "x");
 
-	SQAIInfrastructure.DefSQConst(engine, ScriptInfrastructure::INFRASTRUCTURE_RAIL,    "INFRASTRUCTURE_RAIL");
-	SQAIInfrastructure.DefSQConst(engine, ScriptInfrastructure::INFRASTRUCTURE_SIGNALS, "INFRASTRUCTURE_SIGNALS");
-	SQAIInfrastructure.DefSQConst(engine, ScriptInfrastructure::INFRASTRUCTURE_ROAD,    "INFRASTRUCTURE_ROAD");
-	SQAIInfrastructure.DefSQConst(engine, ScriptInfrastructure::INFRASTRUCTURE_CANAL,   "INFRASTRUCTURE_CANAL");
-	SQAIInfrastructure.DefSQConst(engine, ScriptInfrastructure::INFRASTRUCTURE_STATION, "INFRASTRUCTURE_STATION");
-	SQAIInfrastructure.DefSQConst(engine, ScriptInfrastructure::INFRASTRUCTURE_AIRPORT, "INFRASTRUCTURE_AIRPORT");
+	engine->AddConst ("INFRASTRUCTURE_RAIL",    ScriptInfrastructure::INFRASTRUCTURE_RAIL);
+	engine->AddConst ("INFRASTRUCTURE_SIGNALS", ScriptInfrastructure::INFRASTRUCTURE_SIGNALS);
+	engine->AddConst ("INFRASTRUCTURE_ROAD",    ScriptInfrastructure::INFRASTRUCTURE_ROAD);
+	engine->AddConst ("INFRASTRUCTURE_CANAL",   ScriptInfrastructure::INFRASTRUCTURE_CANAL);
+	engine->AddConst ("INFRASTRUCTURE_STATION", ScriptInfrastructure::INFRASTRUCTURE_STATION);
+	engine->AddConst ("INFRASTRUCTURE_AIRPORT", ScriptInfrastructure::INFRASTRUCTURE_AIRPORT);
 
-	SQAIInfrastructure.DefSQStaticMethod(engine, &ScriptInfrastructure::GetRailPieceCount,             "GetRailPieceCount",             3, ".ii");
-	SQAIInfrastructure.DefSQStaticMethod(engine, &ScriptInfrastructure::GetRoadPieceCount,             "GetRoadPieceCount",             3, ".ii");
-	SQAIInfrastructure.DefSQStaticMethod(engine, &ScriptInfrastructure::GetInfrastructurePieceCount,   "GetInfrastructurePieceCount",   3, ".ii");
-	SQAIInfrastructure.DefSQStaticMethod(engine, &ScriptInfrastructure::GetMonthlyRailCosts,           "GetMonthlyRailCosts",           3, ".ii");
-	SQAIInfrastructure.DefSQStaticMethod(engine, &ScriptInfrastructure::GetMonthlyRoadCosts,           "GetMonthlyRoadCosts",           3, ".ii");
-	SQAIInfrastructure.DefSQStaticMethod(engine, &ScriptInfrastructure::GetMonthlyInfrastructureCosts, "GetMonthlyInfrastructureCosts", 3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptInfrastructure::GetRailPieceCount,             "GetRailPieceCount",             3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptInfrastructure::GetRoadPieceCount,             "GetRoadPieceCount",             3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptInfrastructure::GetInfrastructurePieceCount,   "GetInfrastructurePieceCount",   3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptInfrastructure::GetMonthlyRailCosts,           "GetMonthlyRailCosts",           3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptInfrastructure::GetMonthlyRoadCosts,           "GetMonthlyRoadCosts",           3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptInfrastructure::GetMonthlyInfrastructureCosts, "GetMonthlyInfrastructureCosts", 3, ".ii");
 
-	SQAIInfrastructure.PostRegister(engine);
+	engine->AddClassEnd();
 }

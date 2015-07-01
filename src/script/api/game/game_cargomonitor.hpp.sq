@@ -16,15 +16,14 @@ template <> const char *GetClassName<ScriptCargoMonitor, ST_GS>() { return "GSCa
 
 static void SQGSCargoMonitor_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptCargoMonitor, ST_GS> SQGSCargoMonitor;
-	SQGSCargoMonitor.PreRegister(engine);
-	SQGSCargoMonitor.AddConstructor<void (ScriptCargoMonitor::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptCargoMonitor, ST_GS> ());
+	SQConvert::AddConstructor <ScriptCargoMonitor, void (ScriptCargoMonitor::*)(), 1> (engine, "x");
 
-	SQGSCargoMonitor.DefSQStaticMethod(engine, &ScriptCargoMonitor::GetTownDeliveryAmount,     "GetTownDeliveryAmount",     5, ".iiib");
-	SQGSCargoMonitor.DefSQStaticMethod(engine, &ScriptCargoMonitor::GetIndustryDeliveryAmount, "GetIndustryDeliveryAmount", 5, ".iiib");
-	SQGSCargoMonitor.DefSQStaticMethod(engine, &ScriptCargoMonitor::GetTownPickupAmount,       "GetTownPickupAmount",       5, ".iiib");
-	SQGSCargoMonitor.DefSQStaticMethod(engine, &ScriptCargoMonitor::GetIndustryPickupAmount,   "GetIndustryPickupAmount",   5, ".iiib");
-	SQGSCargoMonitor.DefSQStaticMethod(engine, &ScriptCargoMonitor::StopAllMonitoring,         "StopAllMonitoring",         1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCargoMonitor::GetTownDeliveryAmount,     "GetTownDeliveryAmount",     5, ".iiib");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCargoMonitor::GetIndustryDeliveryAmount, "GetIndustryDeliveryAmount", 5, ".iiib");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCargoMonitor::GetTownPickupAmount,       "GetTownPickupAmount",       5, ".iiib");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCargoMonitor::GetIndustryPickupAmount,   "GetIndustryPickupAmount",   5, ".iiib");
+	SQConvert::DefSQStaticMethod (engine, &ScriptCargoMonitor::StopAllMonitoring,         "StopAllMonitoring",         1, ".");
 
-	SQGSCargoMonitor.PostRegister(engine);
+	engine->AddClassEnd();
 }

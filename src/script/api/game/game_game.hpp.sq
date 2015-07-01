@@ -16,20 +16,19 @@ template <> const char *GetClassName<ScriptGame, ST_GS>() { return "GSGame"; }
 
 static void SQGSGame_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptGame, ST_GS> SQGSGame;
-	SQGSGame.PreRegister(engine);
-	SQGSGame.AddConstructor<void (ScriptGame::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptGame, ST_GS> ());
+	SQConvert::AddConstructor <ScriptGame, void (ScriptGame::*)(), 1> (engine, "x");
 
-	SQGSGame.DefSQConst(engine, ScriptGame::LT_TEMPERATE, "LT_TEMPERATE");
-	SQGSGame.DefSQConst(engine, ScriptGame::LT_ARCTIC,    "LT_ARCTIC");
-	SQGSGame.DefSQConst(engine, ScriptGame::LT_TROPIC,    "LT_TROPIC");
-	SQGSGame.DefSQConst(engine, ScriptGame::LT_TOYLAND,   "LT_TOYLAND");
+	engine->AddConst ("LT_TEMPERATE", ScriptGame::LT_TEMPERATE);
+	engine->AddConst ("LT_ARCTIC",    ScriptGame::LT_ARCTIC);
+	engine->AddConst ("LT_TROPIC",    ScriptGame::LT_TROPIC);
+	engine->AddConst ("LT_TOYLAND",   ScriptGame::LT_TOYLAND);
 
-	SQGSGame.DefSQStaticMethod(engine, &ScriptGame::Pause,         "Pause",         1, ".");
-	SQGSGame.DefSQStaticMethod(engine, &ScriptGame::Unpause,       "Unpause",       1, ".");
-	SQGSGame.DefSQStaticMethod(engine, &ScriptGame::IsPaused,      "IsPaused",      1, ".");
-	SQGSGame.DefSQStaticMethod(engine, &ScriptGame::GetLandscape,  "GetLandscape",  1, ".");
-	SQGSGame.DefSQStaticMethod(engine, &ScriptGame::IsMultiplayer, "IsMultiplayer", 1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptGame::Pause,         "Pause",         1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptGame::Unpause,       "Unpause",       1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptGame::IsPaused,      "IsPaused",      1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptGame::GetLandscape,  "GetLandscape",  1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptGame::IsMultiplayer, "IsMultiplayer", 1, ".");
 
-	SQGSGame.PostRegister(engine);
+	engine->AddClassEnd();
 }

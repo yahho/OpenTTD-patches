@@ -16,11 +16,10 @@ template <> const char *GetClassName<ScriptViewport, ST_GS>() { return "GSViewpo
 
 static void SQGSViewport_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptViewport, ST_GS> SQGSViewport;
-	SQGSViewport.PreRegister(engine);
-	SQGSViewport.AddConstructor<void (ScriptViewport::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptViewport, ST_GS> ());
+	SQConvert::AddConstructor <ScriptViewport, void (ScriptViewport::*)(), 1> (engine, "x");
 
-	SQGSViewport.DefSQStaticMethod(engine, &ScriptViewport::ScrollTo, "ScrollTo", 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptViewport::ScrollTo, "ScrollTo", 2, ".i");
 
-	SQGSViewport.PostRegister(engine);
+	engine->AddClassEnd();
 }

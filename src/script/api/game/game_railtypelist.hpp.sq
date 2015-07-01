@@ -16,9 +16,8 @@ template <> const char *GetClassName<ScriptRailTypeList, ST_GS>() { return "GSRa
 
 static void SQGSRailTypeList_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptRailTypeList, ST_GS> SQGSRailTypeList;
-	SQGSRailTypeList.PreRegister(engine, "GSList");
-	SQGSRailTypeList.AddConstructor<void (ScriptRailTypeList::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptRailTypeList, ST_GS> (), "GSList");
+	SQConvert::AddConstructor <ScriptRailTypeList, void (ScriptRailTypeList::*)(), 1> (engine, "x");
 
-	SQGSRailTypeList.PostRegister(engine);
+	engine->AddClassEnd();
 }

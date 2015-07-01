@@ -16,11 +16,10 @@ template <> const char *GetClassName<ScriptWaypointList, ST_GS>() { return "GSWa
 
 static void SQGSWaypointList_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptWaypointList, ST_GS> SQGSWaypointList;
-	SQGSWaypointList.PreRegister(engine, "GSList");
-	SQGSWaypointList.AddConstructor<void (ScriptWaypointList::*)(ScriptWaypoint::WaypointType waypoint_type), 2>(engine, "xi");
+	engine->AddClassBegin (GetClassName <ScriptWaypointList, ST_GS> (), "GSList");
+	SQConvert::AddConstructor <ScriptWaypointList, void (ScriptWaypointList::*)(ScriptWaypoint::WaypointType waypoint_type), 2> (engine, "xi");
 
-	SQGSWaypointList.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -28,9 +27,8 @@ template <> const char *GetClassName<ScriptWaypointList_Vehicle, ST_GS>() { retu
 
 static void SQGSWaypointList_Vehicle_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptWaypointList_Vehicle, ST_GS> SQGSWaypointList_Vehicle;
-	SQGSWaypointList_Vehicle.PreRegister(engine, "GSList");
-	SQGSWaypointList_Vehicle.AddConstructor<void (ScriptWaypointList_Vehicle::*)(VehicleID vehicle_id), 2>(engine, "xi");
+	engine->AddClassBegin (GetClassName <ScriptWaypointList_Vehicle, ST_GS> (), "GSList");
+	SQConvert::AddConstructor <ScriptWaypointList_Vehicle, void (ScriptWaypointList_Vehicle::*)(VehicleID vehicle_id), 2> (engine, "xi");
 
-	SQGSWaypointList_Vehicle.PostRegister(engine);
+	engine->AddClassEnd();
 }

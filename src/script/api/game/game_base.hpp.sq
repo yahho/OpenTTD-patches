@@ -16,16 +16,15 @@ template <> const char *GetClassName<ScriptBase, ST_GS>() { return "GSBase"; }
 
 static void SQGSBase_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptBase, ST_GS> SQGSBase;
-	SQGSBase.PreRegister(engine);
-	SQGSBase.AddConstructor<void (ScriptBase::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptBase, ST_GS> ());
+	SQConvert::AddConstructor <ScriptBase, void (ScriptBase::*)(), 1> (engine, "x");
 
-	SQGSBase.DefSQStaticMethod(engine, &ScriptBase::Rand,          "Rand",          1, ".");
-	SQGSBase.DefSQStaticMethod(engine, &ScriptBase::RandItem,      "RandItem",      2, ".i");
-	SQGSBase.DefSQStaticMethod(engine, &ScriptBase::RandRange,     "RandRange",     2, ".i");
-	SQGSBase.DefSQStaticMethod(engine, &ScriptBase::RandRangeItem, "RandRangeItem", 3, ".ii");
-	SQGSBase.DefSQStaticMethod(engine, &ScriptBase::Chance,        "Chance",        3, ".ii");
-	SQGSBase.DefSQStaticMethod(engine, &ScriptBase::ChanceItem,    "ChanceItem",    4, ".iii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBase::Rand,          "Rand",          1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBase::RandItem,      "RandItem",      2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBase::RandRange,     "RandRange",     2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBase::RandRangeItem, "RandRangeItem", 3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBase::Chance,        "Chance",        3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBase::ChanceItem,    "ChanceItem",    4, ".iii");
 
-	SQGSBase.PostRegister(engine);
+	engine->AddClassEnd();
 }

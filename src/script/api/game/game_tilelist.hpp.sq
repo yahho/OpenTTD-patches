@@ -16,16 +16,15 @@ template <> const char *GetClassName<ScriptTileList, ST_GS>() { return "GSTileLi
 
 static void SQGSTileList_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptTileList, ST_GS> SQGSTileList;
-	SQGSTileList.PreRegister(engine, "GSList");
-	SQGSTileList.AddConstructor<void (ScriptTileList::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptTileList, ST_GS> (), "GSList");
+	SQConvert::AddConstructor <ScriptTileList, void (ScriptTileList::*)(), 1> (engine, "x");
 
-	SQGSTileList.DefSQMethod(engine, &ScriptTileList::AddRectangle,    "AddRectangle",    3, "xii");
-	SQGSTileList.DefSQMethod(engine, &ScriptTileList::AddTile,         "AddTile",         2, "xi");
-	SQGSTileList.DefSQMethod(engine, &ScriptTileList::RemoveRectangle, "RemoveRectangle", 3, "xii");
-	SQGSTileList.DefSQMethod(engine, &ScriptTileList::RemoveTile,      "RemoveTile",      2, "xi");
+	SQConvert::DefSQMethod <ScriptTileList, ST_GS> (engine, &ScriptTileList::AddRectangle,    "AddRectangle",    3, "xii");
+	SQConvert::DefSQMethod <ScriptTileList, ST_GS> (engine, &ScriptTileList::AddTile,         "AddTile",         2, "xi");
+	SQConvert::DefSQMethod <ScriptTileList, ST_GS> (engine, &ScriptTileList::RemoveRectangle, "RemoveRectangle", 3, "xii");
+	SQConvert::DefSQMethod <ScriptTileList, ST_GS> (engine, &ScriptTileList::RemoveTile,      "RemoveTile",      2, "xi");
 
-	SQGSTileList.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -33,11 +32,10 @@ template <> const char *GetClassName<ScriptTileList_IndustryAccepting, ST_GS>() 
 
 static void SQGSTileList_IndustryAccepting_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptTileList_IndustryAccepting, ST_GS> SQGSTileList_IndustryAccepting;
-	SQGSTileList_IndustryAccepting.PreRegister(engine, "GSTileList");
-	SQGSTileList_IndustryAccepting.AddConstructor<void (ScriptTileList_IndustryAccepting::*)(IndustryID industry_id, int radius), 3>(engine, "xii");
+	engine->AddClassBegin (GetClassName <ScriptTileList_IndustryAccepting, ST_GS> (), "GSTileList");
+	SQConvert::AddConstructor <ScriptTileList_IndustryAccepting, void (ScriptTileList_IndustryAccepting::*)(IndustryID industry_id, int radius), 3> (engine, "xii");
 
-	SQGSTileList_IndustryAccepting.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -45,11 +43,10 @@ template <> const char *GetClassName<ScriptTileList_IndustryProducing, ST_GS>() 
 
 static void SQGSTileList_IndustryProducing_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptTileList_IndustryProducing, ST_GS> SQGSTileList_IndustryProducing;
-	SQGSTileList_IndustryProducing.PreRegister(engine, "GSTileList");
-	SQGSTileList_IndustryProducing.AddConstructor<void (ScriptTileList_IndustryProducing::*)(IndustryID industry_id, int radius), 3>(engine, "xii");
+	engine->AddClassBegin (GetClassName <ScriptTileList_IndustryProducing, ST_GS> (), "GSTileList");
+	SQConvert::AddConstructor <ScriptTileList_IndustryProducing, void (ScriptTileList_IndustryProducing::*)(IndustryID industry_id, int radius), 3> (engine, "xii");
 
-	SQGSTileList_IndustryProducing.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -57,9 +54,8 @@ template <> const char *GetClassName<ScriptTileList_StationType, ST_GS>() { retu
 
 static void SQGSTileList_StationType_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptTileList_StationType, ST_GS> SQGSTileList_StationType;
-	SQGSTileList_StationType.PreRegister(engine, "GSTileList");
-	SQGSTileList_StationType.AddConstructor<void (ScriptTileList_StationType::*)(StationID station_id, ScriptStation::StationType station_type), 3>(engine, "xii");
+	engine->AddClassBegin (GetClassName <ScriptTileList_StationType, ST_GS> (), "GSTileList");
+	SQConvert::AddConstructor <ScriptTileList_StationType, void (ScriptTileList_StationType::*)(StationID station_id, ScriptStation::StationType station_type), 3> (engine, "xii");
 
-	SQGSTileList_StationType.PostRegister(engine);
+	engine->AddClassEnd();
 }

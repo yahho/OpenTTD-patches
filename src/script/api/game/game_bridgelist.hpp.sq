@@ -16,11 +16,10 @@ template <> const char *GetClassName<ScriptBridgeList, ST_GS>() { return "GSBrid
 
 static void SQGSBridgeList_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptBridgeList, ST_GS> SQGSBridgeList;
-	SQGSBridgeList.PreRegister(engine, "GSList");
-	SQGSBridgeList.AddConstructor<void (ScriptBridgeList::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptBridgeList, ST_GS> (), "GSList");
+	SQConvert::AddConstructor <ScriptBridgeList, void (ScriptBridgeList::*)(), 1> (engine, "x");
 
-	SQGSBridgeList.PostRegister(engine);
+	engine->AddClassEnd();
 }
 
 
@@ -28,9 +27,8 @@ template <> const char *GetClassName<ScriptBridgeList_Length, ST_GS>() { return 
 
 static void SQGSBridgeList_Length_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptBridgeList_Length, ST_GS> SQGSBridgeList_Length;
-	SQGSBridgeList_Length.PreRegister(engine, "GSList");
-	SQGSBridgeList_Length.AddConstructor<void (ScriptBridgeList_Length::*)(uint length), 2>(engine, "xi");
+	engine->AddClassBegin (GetClassName <ScriptBridgeList_Length, ST_GS> (), "GSList");
+	SQConvert::AddConstructor <ScriptBridgeList_Length, void (ScriptBridgeList_Length::*)(uint length), 2> (engine, "xi");
 
-	SQGSBridgeList_Length.PostRegister(engine);
+	engine->AddClassEnd();
 }

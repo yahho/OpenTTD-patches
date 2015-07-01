@@ -16,14 +16,13 @@ template <> const char *GetClassName<ScriptBridge, ST_GS>() { return "GSBridge";
 
 static void SQGSBridge_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptBridge, ST_GS> SQGSBridge;
-	SQGSBridge.PreRegister(engine);
-	SQGSBridge.AddConstructor<void (ScriptBridge::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptBridge, ST_GS> ());
+	SQConvert::AddConstructor <ScriptBridge, void (ScriptBridge::*)(), 1> (engine, "x");
 
-	SQGSBridge.DefSQConst(engine, ScriptBridge::ERR_BRIDGE_BASE,                     "ERR_BRIDGE_BASE");
-	SQGSBridge.DefSQConst(engine, ScriptBridge::ERR_BRIDGE_TYPE_UNAVAILABLE,         "ERR_BRIDGE_TYPE_UNAVAILABLE");
-	SQGSBridge.DefSQConst(engine, ScriptBridge::ERR_BRIDGE_CANNOT_END_IN_WATER,      "ERR_BRIDGE_CANNOT_END_IN_WATER");
-	SQGSBridge.DefSQConst(engine, ScriptBridge::ERR_BRIDGE_HEADS_NOT_ON_SAME_HEIGHT, "ERR_BRIDGE_HEADS_NOT_ON_SAME_HEIGHT");
+	engine->AddConst ("ERR_BRIDGE_BASE",                     ScriptBridge::ERR_BRIDGE_BASE);
+	engine->AddConst ("ERR_BRIDGE_TYPE_UNAVAILABLE",         ScriptBridge::ERR_BRIDGE_TYPE_UNAVAILABLE);
+	engine->AddConst ("ERR_BRIDGE_CANNOT_END_IN_WATER",      ScriptBridge::ERR_BRIDGE_CANNOT_END_IN_WATER);
+	engine->AddConst ("ERR_BRIDGE_HEADS_NOT_ON_SAME_HEIGHT", ScriptBridge::ERR_BRIDGE_HEADS_NOT_ON_SAME_HEIGHT);
 
 	ScriptError::RegisterErrorMap(STR_ERROR_CAN_T_BUILD_BRIDGE_HERE,     ScriptBridge::ERR_BRIDGE_TYPE_UNAVAILABLE);
 	ScriptError::RegisterErrorMap(STR_ERROR_ENDS_OF_BRIDGE_MUST_BOTH,    ScriptBridge::ERR_BRIDGE_CANNOT_END_IN_WATER);
@@ -33,17 +32,17 @@ static void SQGSBridge_Register (Squirrel *engine)
 	ScriptError::RegisterErrorMapString(ScriptBridge::ERR_BRIDGE_CANNOT_END_IN_WATER,      "ERR_BRIDGE_CANNOT_END_IN_WATER");
 	ScriptError::RegisterErrorMapString(ScriptBridge::ERR_BRIDGE_HEADS_NOT_ON_SAME_HEIGHT, "ERR_BRIDGE_HEADS_NOT_ON_SAME_HEIGHT");
 
-	SQGSBridge.DefSQStaticMethod(engine, &ScriptBridge::IsValidBridge,     "IsValidBridge",     2, ".i");
-	SQGSBridge.DefSQStaticMethod(engine, &ScriptBridge::IsBridgeTile,      "IsBridgeTile",      2, ".i");
-	SQGSBridge.DefSQStaticMethod(engine, &ScriptBridge::GetBridgeID,       "GetBridgeID",       2, ".i");
-	SQGSBridge.DefSQStaticMethod(engine, &ScriptBridge::GetName,           "GetName",           2, ".i");
-	SQGSBridge.DefSQStaticMethod(engine, &ScriptBridge::GetMaxSpeed,       "GetMaxSpeed",       2, ".i");
-	SQGSBridge.DefSQStaticMethod(engine, &ScriptBridge::GetPrice,          "GetPrice",          3, ".ii");
-	SQGSBridge.DefSQStaticMethod(engine, &ScriptBridge::GetMaxLength,      "GetMaxLength",      2, ".i");
-	SQGSBridge.DefSQStaticMethod(engine, &ScriptBridge::GetMinLength,      "GetMinLength",      2, ".i");
-	SQGSBridge.DefSQStaticMethod(engine, &ScriptBridge::BuildBridge,       "BuildBridge",       5, ".iiii");
-	SQGSBridge.DefSQStaticMethod(engine, &ScriptBridge::RemoveBridge,      "RemoveBridge",      2, ".i");
-	SQGSBridge.DefSQStaticMethod(engine, &ScriptBridge::GetOtherBridgeEnd, "GetOtherBridgeEnd", 2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBridge::IsValidBridge,     "IsValidBridge",     2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBridge::IsBridgeTile,      "IsBridgeTile",      2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBridge::GetBridgeID,       "GetBridgeID",       2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBridge::GetName,           "GetName",           2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBridge::GetMaxSpeed,       "GetMaxSpeed",       2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBridge::GetPrice,          "GetPrice",          3, ".ii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBridge::GetMaxLength,      "GetMaxLength",      2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBridge::GetMinLength,      "GetMinLength",      2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBridge::BuildBridge,       "BuildBridge",       5, ".iiii");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBridge::RemoveBridge,      "RemoveBridge",      2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptBridge::GetOtherBridgeEnd, "GetOtherBridgeEnd", 2, ".i");
 
-	SQGSBridge.PostRegister(engine);
+	engine->AddClassEnd();
 }

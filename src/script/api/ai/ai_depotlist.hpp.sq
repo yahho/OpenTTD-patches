@@ -16,9 +16,8 @@ template <> const char *GetClassName<ScriptDepotList, ST_AI>() { return "AIDepot
 
 static void SQAIDepotList_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptDepotList, ST_AI> SQAIDepotList;
-	SQAIDepotList.PreRegister(engine, "AIList");
-	SQAIDepotList.AddConstructor<void (ScriptDepotList::*)(ScriptTile::TransportType transport_type), 2>(engine, "xi");
+	engine->AddClassBegin (GetClassName <ScriptDepotList, ST_AI> (), "AIList");
+	SQConvert::AddConstructor <ScriptDepotList, void (ScriptDepotList::*)(ScriptTile::TransportType transport_type), 2> (engine, "xi");
 
-	SQAIDepotList.PostRegister(engine);
+	engine->AddClassEnd();
 }

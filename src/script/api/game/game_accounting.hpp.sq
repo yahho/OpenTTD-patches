@@ -16,12 +16,11 @@ template <> const char *GetClassName<ScriptAccounting, ST_GS>() { return "GSAcco
 
 static void SQGSAccounting_Register (Squirrel *engine)
 {
-	DefSQClass<ScriptAccounting, ST_GS> SQGSAccounting;
-	SQGSAccounting.PreRegister(engine);
-	SQGSAccounting.AddConstructor<void (ScriptAccounting::*)(), 1>(engine, "x");
+	engine->AddClassBegin (GetClassName <ScriptAccounting, ST_GS> ());
+	SQConvert::AddConstructor <ScriptAccounting, void (ScriptAccounting::*)(), 1> (engine, "x");
 
-	SQGSAccounting.DefSQMethod(engine, &ScriptAccounting::GetCosts,   "GetCosts",   1, "x");
-	SQGSAccounting.DefSQMethod(engine, &ScriptAccounting::ResetCosts, "ResetCosts", 1, "x");
+	SQConvert::DefSQMethod <ScriptAccounting, ST_GS> (engine, &ScriptAccounting::GetCosts,   "GetCosts",   1, "x");
+	SQConvert::DefSQMethod <ScriptAccounting, ST_GS> (engine, &ScriptAccounting::ResetCosts, "ResetCosts", 1, "x");
 
-	SQGSAccounting.PostRegister(engine);
+	engine->AddClassEnd();
 }
