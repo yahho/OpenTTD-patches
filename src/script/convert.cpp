@@ -23,13 +23,17 @@ char *SQConvert::GetString (HSQUIRRELVM vm, int index)
 }
 
 const char *SQConvert::GetMethodPointers (HSQUIRRELVM vm,
-	SQUserPointer *obj, SQUserPointer *method, const char *cname)
+	SQUserPointer *obj, SQUserPointer *data)
 {
 	/* Find the amount of params we got */
 	int nparam = sq_gettop (vm);
-	HSQOBJECT instance;
+
+	/* Get the callback data */
+	sq_getuserdata (vm, nparam, data, 0);
+	const char *cname = *(const char**)*data;
 
 	/* Get the 'SQ' instance of this class */
+	HSQOBJECT instance;
 	Squirrel::GetInstance (vm, &instance);
 
 	/* Protect against calls to a non-static method in a static way */
@@ -42,8 +46,6 @@ const char *SQConvert::GetMethodPointers (HSQUIRRELVM vm,
 
 	/* Get the 'real' instance of this class */
 	sq_getinstanceup (vm, 1, obj, 0);
-	/* Get the real function pointer */
-	sq_getuserdata (vm, nparam, method, 0);
 	if (*obj == NULL) return "couldn't detect real instance of class for non-static call";
 	/* Remove the userdata from the stack */
 	sq_pop (vm, 1);

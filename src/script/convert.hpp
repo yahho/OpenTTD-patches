@@ -675,18 +675,16 @@ namespace SQConvert {
 	};
 
 
-	/** Get the object and method pointers for a non-static call. */
-	const char *GetMethodPointers (HSQUIRRELVM vm,
-		SQUserPointer *obj, SQUserPointer *method, const char *cname);
+	/** Method callback data. */
+	template <typename Tmethod>
+	struct MethodCallbackData {
+		const char *cname;
+		Tmethod method;
+	};
 
 	/** Get the object and method pointers for a non-static call. */
-	template <typename Tcls, ScriptType Ttype>
-	inline const char *GetMethodPointers (HSQUIRRELVM vm,
-		SQUserPointer *obj, SQUserPointer *method)
-	{
-		return GetMethodPointers (vm, obj, method,
-					GetClassName <Tcls, Ttype> ());
-	}
+	const char *GetMethodPointers (HSQUIRRELVM vm,
+		SQUserPointer *obj, SQUserPointer *data);
 
 	/**
 	 * A general template for all non-static method callbacks from Squirrel.
@@ -698,11 +696,11 @@ namespace SQConvert {
 	{
 		SQUserPointer obj = NULL;
 		SQUserPointer ptr = NULL;
-		const char *err = GetMethodPointers <Tcls, Ttype> (vm, &obj, &ptr);
+		const char *err = GetMethodPointers (vm, &obj, &ptr);
 		if (err != NULL) return sq_throwerror (vm, err);
 
 		Tcls *instance = (Tcls *) obj;
-		Tmethod method = *(Tmethod *) ptr;
+		Tmethod method = ((MethodCallbackData <Tmethod> *) ptr)->method;
 
 		try {
 			/* Delegate it to a template that can handle this specific function */
@@ -720,7 +718,9 @@ namespace SQConvert {
 	template <typename Tcls, ScriptType Ttype, typename Tmethod>
 	inline void DefSQMethod (Squirrel *engine, Tmethod function_proc, const char *function_name)
 	{
-		engine->AddMethod (function_name, DefSQNonStaticCallback <Tcls, Tmethod, Ttype>, 0, NULL, &function_proc, sizeof(function_proc));
+		MethodCallbackData <Tmethod> data = { GetClassName <Tcls, Ttype> (), function_proc };
+		assert_tcompile ((const char**)(SQUserPointer)&data == &data.cname);
+		engine->AddMethod (function_name, DefSQNonStaticCallback <Tcls, Tmethod, Ttype>, 0, NULL, &data, sizeof(data));
 	}
 
 	/**
@@ -732,7 +732,9 @@ namespace SQConvert {
 	template <typename Tcls, ScriptType Ttype, typename Tmethod>
 	inline void DefSQMethod (Squirrel *engine, Tmethod function_proc, const char *function_name, int nparam, const char *params)
 	{
-		engine->AddMethod (function_name, DefSQNonStaticCallback <Tcls, Tmethod, Ttype>, nparam, params, &function_proc, sizeof(function_proc));
+		MethodCallbackData <Tmethod> data = { GetClassName <Tcls, Ttype> (), function_proc };
+		assert_tcompile ((const char**)(SQUserPointer)&data == &data.cname);
+		engine->AddMethod (function_name, DefSQNonStaticCallback <Tcls, Tmethod, Ttype>, nparam, params, &data, sizeof(data));
 	}
 
 	/**
@@ -745,13 +747,13 @@ namespace SQConvert {
 	{
 		SQUserPointer obj = NULL;
 		SQUserPointer ptr = NULL;
-		const char *err = GetMethodPointers <Tcls, Ttype> (vm, &obj, &ptr);
+		const char *err = GetMethodPointers (vm, &obj, &ptr);
 		if (err != NULL) return sq_throwerror (vm, err);
 
 		/* Call the function, which its only param is always the VM */
 		Tcls *instance = (Tcls *) obj;
 		typedef SQInteger (Tcls::*F) (HSQUIRRELVM);
-		F method = *(F *) ptr;
+		F method = ((MethodCallbackData <F> *) ptr)->method;
 		return (instance->*method) (vm);
 	}
 
@@ -761,7 +763,10 @@ namespace SQConvert {
 	template <typename Tcls, ScriptType Ttype>
 	void DefSQAdvancedMethod (Squirrel *engine, SQInteger (Tcls::*function_proc) (HSQUIRRELVM), const char *function_name)
 	{
-		engine->AddMethod (function_name, DefSQAdvancedNonStaticCallback <Tcls, Ttype>, 0, NULL, &function_proc, sizeof(function_proc));
+		typedef SQInteger (Tcls::*F) (HSQUIRRELVM);
+		MethodCallbackData <F> data = { GetClassName <Tcls, Ttype> (), function_proc };
+		assert_tcompile ((const char**)(SQUserPointer)&data == &data.cname);
+		engine->AddMethod (function_name, DefSQAdvancedNonStaticCallback <Tcls, Ttype>, 0, NULL, &data, sizeof(data));
 	}
 
 	/**
