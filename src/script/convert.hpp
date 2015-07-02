@@ -691,7 +691,7 @@ namespace SQConvert {
 	 *  In here the function_proc is recovered, and the SQCall is called that
 	 *  can handle this exact amount of params.
 	 */
-	template <typename Tcls, typename Tmethod, ScriptType Ttype>
+	template <typename Tcls, typename Tmethod>
 	inline SQInteger DefSQNonStaticCallback(HSQUIRRELVM vm)
 	{
 		SQUserPointer obj = NULL;
@@ -720,7 +720,7 @@ namespace SQConvert {
 	{
 		MethodCallbackData <Tmethod> data = { GetClassName <Tcls, Ttype> (), function_proc };
 		assert_tcompile ((const char**)(SQUserPointer)&data == &data.cname);
-		engine->AddMethod (function_name, DefSQNonStaticCallback <Tcls, Tmethod, Ttype>, 0, NULL, &data, sizeof(data));
+		engine->AddMethod (function_name, DefSQNonStaticCallback <Tcls, Tmethod>, 0, NULL, &data, sizeof(data));
 	}
 
 	/**
@@ -734,7 +734,7 @@ namespace SQConvert {
 	{
 		MethodCallbackData <Tmethod> data = { GetClassName <Tcls, Ttype> (), function_proc };
 		assert_tcompile ((const char**)(SQUserPointer)&data == &data.cname);
-		engine->AddMethod (function_name, DefSQNonStaticCallback <Tcls, Tmethod, Ttype>, nparam, params, &data, sizeof(data));
+		engine->AddMethod (function_name, DefSQNonStaticCallback <Tcls, Tmethod>, nparam, params, &data, sizeof(data));
 	}
 
 	/**
@@ -742,7 +742,7 @@ namespace SQConvert {
 	 *  In here the function_proc is recovered, and the SQCall is called that
 	 *  can handle this exact amount of params.
 	 */
-	template <typename Tcls, ScriptType Ttype>
+	template <typename Tcls>
 	inline SQInteger DefSQAdvancedNonStaticCallback(HSQUIRRELVM vm)
 	{
 		SQUserPointer obj = NULL;
@@ -766,7 +766,7 @@ namespace SQConvert {
 		typedef SQInteger (Tcls::*F) (HSQUIRRELVM);
 		MethodCallbackData <F> data = { GetClassName <Tcls, Ttype> (), function_proc };
 		assert_tcompile ((const char**)(SQUserPointer)&data == &data.cname);
-		engine->AddMethod (function_name, DefSQAdvancedNonStaticCallback <Tcls, Ttype>, 0, NULL, &data, sizeof(data));
+		engine->AddMethod (function_name, DefSQAdvancedNonStaticCallback <Tcls>, 0, NULL, &data, sizeof(data));
 	}
 
 	/**
