@@ -696,19 +696,20 @@ namespace SQConvert {
 	template <typename Tcls, typename Tmethod, ScriptType Ttype>
 	inline SQInteger DefSQNonStaticCallback(HSQUIRRELVM vm)
 	{
+		SQUserPointer obj = NULL;
 		SQUserPointer ptr = NULL;
-		SQUserPointer real_instance = NULL;
-
-		const char *err = GetMethodPointers <Tcls, Ttype> (vm, &real_instance, &ptr);
+		const char *err = GetMethodPointers <Tcls, Ttype> (vm, &obj, &ptr);
 		if (err != NULL) return sq_throwerror (vm, err);
+
+		Tcls *instance = (Tcls *) obj;
+		Tmethod method = *(Tmethod *) ptr;
 
 		try {
 			/* Delegate it to a template that can handle this specific function */
 			typedef FSig<Tmethod> Sig;
 			typename Sig::Params params (vm);
 			SQRetVal <typename Sig::Ret> ret (&params,
-						(Tcls *) real_instance,
-						*(Tmethod *) ptr);
+						instance, method);
 			return ret.Return (vm);
 		} catch (SQInteger e) {
 			return e;
@@ -742,15 +743,16 @@ namespace SQConvert {
 	template <typename Tcls, ScriptType Ttype>
 	inline SQInteger DefSQAdvancedNonStaticCallback(HSQUIRRELVM vm)
 	{
+		SQUserPointer obj = NULL;
 		SQUserPointer ptr = NULL;
-		SQUserPointer real_instance = NULL;
-
-		const char *err = GetMethodPointers <Tcls, Ttype> (vm, &real_instance, &ptr);
+		const char *err = GetMethodPointers <Tcls, Ttype> (vm, &obj, &ptr);
 		if (err != NULL) return sq_throwerror (vm, err);
 
 		/* Call the function, which its only param is always the VM */
+		Tcls *instance = (Tcls *) obj;
 		typedef SQInteger (Tcls::*F) (HSQUIRRELVM);
-		return (((Tcls *)real_instance)->*(*(F *)ptr)) (vm);
+		F method = *(F *) ptr;
+		return (instance->*method) (vm);
 	}
 
 	/**
