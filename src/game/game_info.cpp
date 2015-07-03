@@ -29,8 +29,8 @@ template <> const char *GetClassName<GameInfo, ST_GS>() { return "GSInfo"; }
 	/* Create the GSInfo class, and add the RegisterGS function */
 	engine->AddClassBegin ("GSInfo");
 	SQConvert::AddConstructor <GameInfo, void (GameInfo::*)(), 1> (engine, "x");
-	SQConvert::DefSQAdvancedMethod <GameInfo, ST_GS> (engine, &GameInfo::AddSetting, "AddSetting");
-	SQConvert::DefSQAdvancedMethod <GameInfo, ST_GS> (engine, &GameInfo::AddLabels,  "AddLabels");
+	SQConvert::DefSQAdvancedMethod (engine, "GSInfo", &GameInfo::AddSetting, "AddSetting");
+	SQConvert::DefSQAdvancedMethod (engine, "GSInfo", &GameInfo::AddLabels,  "AddLabels");
 	engine->AddConst ("CONFIG_NONE",      SCRIPTCONFIG_NONE);
 	engine->AddConst ("CONFIG_RANDOM",    SCRIPTCONFIG_RANDOM);
 	engine->AddConst ("CONFIG_BOOLEAN",   SCRIPTCONFIG_BOOLEAN);

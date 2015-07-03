@@ -21,9 +21,9 @@ static void SQGSText_Register (Squirrel *engine)
 
 	engine->AddConst ("SCRIPT_TEXT_MAX_PARAMETERS", ScriptText::SCRIPT_TEXT_MAX_PARAMETERS);
 
-	SQConvert::DefSQAdvancedMethod <ScriptText, ST_GS> (engine, &ScriptText::_set, "_set");
-	SQConvert::DefSQAdvancedMethod <ScriptText, ST_GS> (engine, &ScriptText::SetParam, "SetParam");
-	SQConvert::DefSQAdvancedMethod <ScriptText, ST_GS> (engine, &ScriptText::AddParam, "AddParam");
+	SQConvert::DefSQAdvancedMethod (engine, GetClassName <ScriptText, ST_GS> (), &ScriptText::_set, "_set");
+	SQConvert::DefSQAdvancedMethod (engine, GetClassName <ScriptText, ST_GS> (), &ScriptText::SetParam, "SetParam");
+	SQConvert::DefSQAdvancedMethod (engine, GetClassName <ScriptText, ST_GS> (), &ScriptText::AddParam, "AddParam");
 
 	engine->AddClassEnd();
 }

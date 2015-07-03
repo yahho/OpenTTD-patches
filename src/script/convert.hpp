@@ -715,10 +715,11 @@ namespace SQConvert {
 	}
 
 	/** This defines a method inside a class for Squirrel. */
-	template <typename Tcls, ScriptType Ttype, typename Tmethod>
-	inline void DefSQMethod (Squirrel *engine, Tmethod function_proc, const char *function_name)
+	template <typename Tcls, typename Tmethod>
+	inline void DefSQMethod (Squirrel *engine, const char *class_name,
+		Tmethod function_proc, const char *function_name)
 	{
-		MethodCallbackData <Tmethod> data = { GetClassName <Tcls, Ttype> (), function_proc };
+		MethodCallbackData <Tmethod> data = { class_name, function_proc };
 		assert_tcompile ((const char**)(SQUserPointer)&data == &data.cname);
 		engine->AddMethod (function_name, DefSQNonStaticCallback <Tcls, Tmethod>, 0, NULL, &data, sizeof(data));
 	}
@@ -729,10 +730,12 @@ namespace SQConvert {
 	 *  which is the 'this' inside the function. This is hidden from the rest
 	 *  of the code, but without it calling your function will fail!
 	 */
-	template <typename Tcls, ScriptType Ttype, typename Tmethod>
-	inline void DefSQMethod (Squirrel *engine, Tmethod function_proc, const char *function_name, int nparam, const char *params)
+	template <typename Tcls, typename Tmethod>
+	inline void DefSQMethod (Squirrel *engine, const char *class_name,
+		Tmethod function_proc, const char *function_name,
+		int nparam, const char *params)
 	{
-		MethodCallbackData <Tmethod> data = { GetClassName <Tcls, Ttype> (), function_proc };
+		MethodCallbackData <Tmethod> data = { class_name, function_proc };
 		assert_tcompile ((const char**)(SQUserPointer)&data == &data.cname);
 		engine->AddMethod (function_name, DefSQNonStaticCallback <Tcls, Tmethod>, nparam, params, &data, sizeof(data));
 	}
@@ -760,11 +763,13 @@ namespace SQConvert {
 	/**
 	 * This defines a method inside a class for Squirrel, which has access to the 'engine' (experts only!).
 	 */
-	template <typename Tcls, ScriptType Ttype>
-	void DefSQAdvancedMethod (Squirrel *engine, SQInteger (Tcls::*function_proc) (HSQUIRRELVM), const char *function_name)
+	template <typename Tcls>
+	void DefSQAdvancedMethod (Squirrel *engine, const char *class_name,
+		SQInteger (Tcls::*function_proc) (HSQUIRRELVM),
+		const char *function_name)
 	{
 		typedef SQInteger (Tcls::*F) (HSQUIRRELVM);
-		MethodCallbackData <F> data = { GetClassName <Tcls, Ttype> (), function_proc };
+		MethodCallbackData <F> data = { class_name, function_proc };
 		assert_tcompile ((const char**)(SQUserPointer)&data == &data.cname);
 		engine->AddMethod (function_name, DefSQAdvancedNonStaticCallback <Tcls>, 0, NULL, &data, sizeof(data));
 	}

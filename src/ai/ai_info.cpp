@@ -31,8 +31,8 @@ template <> const char *GetClassName<AIInfo, ST_AI>() { return "AIInfo"; }
 	/* Create the AIInfo class, and add the RegisterAI function */
 	engine->AddClassBegin ("AIInfo");
 	SQConvert::AddConstructor <AIInfo, void (AIInfo::*)(), 1> (engine, "x");
-	SQConvert::DefSQAdvancedMethod <AIInfo, ST_AI> (engine, &AIInfo::AddSetting, "AddSetting");
-	SQConvert::DefSQAdvancedMethod <AIInfo, ST_AI> (engine, &AIInfo::AddLabels,  "AddLabels");
+	SQConvert::DefSQAdvancedMethod (engine, "AIInfo", &AIInfo::AddSetting, "AddSetting");
+	SQConvert::DefSQAdvancedMethod (engine, "AIInfo", &AIInfo::AddLabels,  "AddLabels");
 	engine->AddConst ("CONFIG_NONE",      SCRIPTCONFIG_NONE);
 	engine->AddConst ("CONFIG_RANDOM",    SCRIPTCONFIG_RANDOM);
 	engine->AddConst ("CONFIG_BOOLEAN",   SCRIPTCONFIG_BOOLEAN);

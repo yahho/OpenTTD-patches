@@ -49,7 +49,7 @@ static void SQAIEvent_Register (Squirrel *engine)
 	engine->AddConst ("ET_EXCLUSIVE_TRANSPORT_RIGHTS",  ScriptEvent::ET_EXCLUSIVE_TRANSPORT_RIGHTS);
 	engine->AddConst ("ET_ROAD_RECONSTRUCTION",         ScriptEvent::ET_ROAD_RECONSTRUCTION);
 
-	SQConvert::DefSQMethod <ScriptEvent, ST_AI> (engine, &ScriptEvent::GetEventType, "GetEventType", 1, "x");
+	SQConvert::DefSQMethod <ScriptEvent> (engine, GetClassName <ScriptEvent, ST_AI> (), &ScriptEvent::GetEventType, "GetEventType", 1, "x");
 
 	engine->AddClassEnd();
 }

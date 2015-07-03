@@ -19,10 +19,10 @@ static void SQAITileList_Register (Squirrel *engine)
 	engine->AddClassBegin (GetClassName <ScriptTileList, ST_AI> (), "AIList");
 	SQConvert::AddConstructor <ScriptTileList, void (ScriptTileList::*)(), 1> (engine, "x");
 
-	SQConvert::DefSQMethod <ScriptTileList, ST_AI> (engine, &ScriptTileList::AddRectangle,    "AddRectangle",    3, "xii");
-	SQConvert::DefSQMethod <ScriptTileList, ST_AI> (engine, &ScriptTileList::AddTile,         "AddTile",         2, "xi");
-	SQConvert::DefSQMethod <ScriptTileList, ST_AI> (engine, &ScriptTileList::RemoveRectangle, "RemoveRectangle", 3, "xii");
-	SQConvert::DefSQMethod <ScriptTileList, ST_AI> (engine, &ScriptTileList::RemoveTile,      "RemoveTile",      2, "xi");
+	SQConvert::DefSQMethod <ScriptTileList> (engine, GetClassName <ScriptTileList, ST_AI> (), &ScriptTileList::AddRectangle,    "AddRectangle",    3, "xii");
+	SQConvert::DefSQMethod <ScriptTileList> (engine, GetClassName <ScriptTileList, ST_AI> (), &ScriptTileList::AddTile,         "AddTile",         2, "xi");
+	SQConvert::DefSQMethod <ScriptTileList> (engine, GetClassName <ScriptTileList, ST_AI> (), &ScriptTileList::RemoveRectangle, "RemoveRectangle", 3, "xii");
+	SQConvert::DefSQMethod <ScriptTileList> (engine, GetClassName <ScriptTileList, ST_AI> (), &ScriptTileList::RemoveTile,      "RemoveTile",      2, "xi");
 
 	engine->AddClassEnd();
 }

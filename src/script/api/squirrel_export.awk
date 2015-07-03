@@ -335,9 +335,9 @@ BEGIN {
 		}
 		for (i = 1; i <= method_size; i++) {
 			if (methods[i, 2] == "v") {
-				print "	SQConvert::DefSQAdvancedMethod <" cls ", ST_" toupper(api) "> (engine, &" cls "::" methods[i, 0] ", " substr(spaces, 1, mlen - length(methods[i, 0]) - 8) "\""  methods[i, 0] "\");"
+				print "	SQConvert::DefSQAdvancedMethod (engine, GetClassName <" cls ", ST_" toupper(api) "> (), &" cls "::" methods[i, 0] ", " substr(spaces, 1, mlen - length(methods[i, 0]) - 8) "\""  methods[i, 0] "\");"
 			} else {
-				print "	SQConvert::DefSQMethod <" cls ", ST_" toupper(api) "> (engine, &" cls "::" methods[i, 0] ", " substr(spaces, 1, mlen - length(methods[i, 0])) "\""  methods[i, 0] "\", " substr(spaces, 1, mlen - length(methods[i, 0])) "" methods[i, 1] ", \"" methods[i, 2] "\");"
+				print "	SQConvert::DefSQMethod <" cls "> (engine, GetClassName <" cls ", ST_" toupper(api) "> (), &" cls "::" methods[i, 0] ", " substr(spaces, 1, mlen - length(methods[i, 0])) "\""  methods[i, 0] "\", " substr(spaces, 1, mlen - length(methods[i, 0])) "" methods[i, 1] ", \"" methods[i, 2] "\");"
 			}
 			delete methods[i]
 		}

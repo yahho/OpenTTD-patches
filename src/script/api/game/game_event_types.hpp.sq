@@ -27,9 +27,9 @@ static void SQGSEventVehicleCrashed_Register (Squirrel *engine)
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventVehicleCrashed::Convert, "Convert", 2, ".x");
 
-	SQConvert::DefSQMethod <ScriptEventVehicleCrashed, ST_GS> (engine, &ScriptEventVehicleCrashed::GetVehicleID,   "GetVehicleID",   1, "x");
-	SQConvert::DefSQMethod <ScriptEventVehicleCrashed, ST_GS> (engine, &ScriptEventVehicleCrashed::GetCrashSite,   "GetCrashSite",   1, "x");
-	SQConvert::DefSQMethod <ScriptEventVehicleCrashed, ST_GS> (engine, &ScriptEventVehicleCrashed::GetCrashReason, "GetCrashReason", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventVehicleCrashed> (engine, GetClassName <ScriptEventVehicleCrashed, ST_GS> (), &ScriptEventVehicleCrashed::GetVehicleID,   "GetVehicleID",   1, "x");
+	SQConvert::DefSQMethod <ScriptEventVehicleCrashed> (engine, GetClassName <ScriptEventVehicleCrashed, ST_GS> (), &ScriptEventVehicleCrashed::GetCrashSite,   "GetCrashSite",   1, "x");
+	SQConvert::DefSQMethod <ScriptEventVehicleCrashed> (engine, GetClassName <ScriptEventVehicleCrashed, ST_GS> (), &ScriptEventVehicleCrashed::GetCrashReason, "GetCrashReason", 1, "x");
 
 	engine->AddClassEnd();
 }
@@ -43,7 +43,7 @@ static void SQGSEventSubsidyOffer_Register (Squirrel *engine)
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventSubsidyOffer::Convert, "Convert", 2, ".x");
 
-	SQConvert::DefSQMethod <ScriptEventSubsidyOffer, ST_GS> (engine, &ScriptEventSubsidyOffer::GetSubsidyID, "GetSubsidyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventSubsidyOffer> (engine, GetClassName <ScriptEventSubsidyOffer, ST_GS> (), &ScriptEventSubsidyOffer::GetSubsidyID, "GetSubsidyID", 1, "x");
 
 	engine->AddClassEnd();
 }
@@ -57,7 +57,7 @@ static void SQGSEventSubsidyOfferExpired_Register (Squirrel *engine)
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventSubsidyOfferExpired::Convert, "Convert", 2, ".x");
 
-	SQConvert::DefSQMethod <ScriptEventSubsidyOfferExpired, ST_GS> (engine, &ScriptEventSubsidyOfferExpired::GetSubsidyID, "GetSubsidyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventSubsidyOfferExpired> (engine, GetClassName <ScriptEventSubsidyOfferExpired, ST_GS> (), &ScriptEventSubsidyOfferExpired::GetSubsidyID, "GetSubsidyID", 1, "x");
 
 	engine->AddClassEnd();
 }
@@ -71,7 +71,7 @@ static void SQGSEventSubsidyAwarded_Register (Squirrel *engine)
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventSubsidyAwarded::Convert, "Convert", 2, ".x");
 
-	SQConvert::DefSQMethod <ScriptEventSubsidyAwarded, ST_GS> (engine, &ScriptEventSubsidyAwarded::GetSubsidyID, "GetSubsidyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventSubsidyAwarded> (engine, GetClassName <ScriptEventSubsidyAwarded, ST_GS> (), &ScriptEventSubsidyAwarded::GetSubsidyID, "GetSubsidyID", 1, "x");
 
 	engine->AddClassEnd();
 }
@@ -85,7 +85,7 @@ static void SQGSEventSubsidyExpired_Register (Squirrel *engine)
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventSubsidyExpired::Convert, "Convert", 2, ".x");
 
-	SQConvert::DefSQMethod <ScriptEventSubsidyExpired, ST_GS> (engine, &ScriptEventSubsidyExpired::GetSubsidyID, "GetSubsidyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventSubsidyExpired> (engine, GetClassName <ScriptEventSubsidyExpired, ST_GS> (), &ScriptEventSubsidyExpired::GetSubsidyID, "GetSubsidyID", 1, "x");
 
 	engine->AddClassEnd();
 }
@@ -99,7 +99,7 @@ static void SQGSEventCompanyNew_Register (Squirrel *engine)
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventCompanyNew::Convert, "Convert", 2, ".x");
 
-	SQConvert::DefSQMethod <ScriptEventCompanyNew, ST_GS> (engine, &ScriptEventCompanyNew::GetCompanyID, "GetCompanyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventCompanyNew> (engine, GetClassName <ScriptEventCompanyNew, ST_GS> (), &ScriptEventCompanyNew::GetCompanyID, "GetCompanyID", 1, "x");
 
 	engine->AddClassEnd();
 }
@@ -113,7 +113,7 @@ static void SQGSEventCompanyInTrouble_Register (Squirrel *engine)
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventCompanyInTrouble::Convert, "Convert", 2, ".x");
 
-	SQConvert::DefSQMethod <ScriptEventCompanyInTrouble, ST_GS> (engine, &ScriptEventCompanyInTrouble::GetCompanyID, "GetCompanyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventCompanyInTrouble> (engine, GetClassName <ScriptEventCompanyInTrouble, ST_GS> (), &ScriptEventCompanyInTrouble::GetCompanyID, "GetCompanyID", 1, "x");
 
 	engine->AddClassEnd();
 }
@@ -127,8 +127,8 @@ static void SQGSEventCompanyMerger_Register (Squirrel *engine)
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventCompanyMerger::Convert, "Convert", 2, ".x");
 
-	SQConvert::DefSQMethod <ScriptEventCompanyMerger, ST_GS> (engine, &ScriptEventCompanyMerger::GetOldCompanyID, "GetOldCompanyID", 1, "x");
-	SQConvert::DefSQMethod <ScriptEventCompanyMerger, ST_GS> (engine, &ScriptEventCompanyMerger::GetNewCompanyID, "GetNewCompanyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventCompanyMerger> (engine, GetClassName <ScriptEventCompanyMerger, ST_GS> (), &ScriptEventCompanyMerger::GetOldCompanyID, "GetOldCompanyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventCompanyMerger> (engine, GetClassName <ScriptEventCompanyMerger, ST_GS> (), &ScriptEventCompanyMerger::GetNewCompanyID, "GetNewCompanyID", 1, "x");
 
 	engine->AddClassEnd();
 }
@@ -142,7 +142,7 @@ static void SQGSEventCompanyBankrupt_Register (Squirrel *engine)
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventCompanyBankrupt::Convert, "Convert", 2, ".x");
 
-	SQConvert::DefSQMethod <ScriptEventCompanyBankrupt, ST_GS> (engine, &ScriptEventCompanyBankrupt::GetCompanyID, "GetCompanyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventCompanyBankrupt> (engine, GetClassName <ScriptEventCompanyBankrupt, ST_GS> (), &ScriptEventCompanyBankrupt::GetCompanyID, "GetCompanyID", 1, "x");
 
 	engine->AddClassEnd();
 }
@@ -156,7 +156,7 @@ static void SQGSEventIndustryOpen_Register (Squirrel *engine)
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventIndustryOpen::Convert, "Convert", 2, ".x");
 
-	SQConvert::DefSQMethod <ScriptEventIndustryOpen, ST_GS> (engine, &ScriptEventIndustryOpen::GetIndustryID, "GetIndustryID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventIndustryOpen> (engine, GetClassName <ScriptEventIndustryOpen, ST_GS> (), &ScriptEventIndustryOpen::GetIndustryID, "GetIndustryID", 1, "x");
 
 	engine->AddClassEnd();
 }
@@ -170,7 +170,7 @@ static void SQGSEventIndustryClose_Register (Squirrel *engine)
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventIndustryClose::Convert, "Convert", 2, ".x");
 
-	SQConvert::DefSQMethod <ScriptEventIndustryClose, ST_GS> (engine, &ScriptEventIndustryClose::GetIndustryID, "GetIndustryID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventIndustryClose> (engine, GetClassName <ScriptEventIndustryClose, ST_GS> (), &ScriptEventIndustryClose::GetIndustryID, "GetIndustryID", 1, "x");
 
 	engine->AddClassEnd();
 }
@@ -184,8 +184,8 @@ static void SQGSEventStationFirstVehicle_Register (Squirrel *engine)
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventStationFirstVehicle::Convert, "Convert", 2, ".x");
 
-	SQConvert::DefSQMethod <ScriptEventStationFirstVehicle, ST_GS> (engine, &ScriptEventStationFirstVehicle::GetStationID, "GetStationID", 1, "x");
-	SQConvert::DefSQMethod <ScriptEventStationFirstVehicle, ST_GS> (engine, &ScriptEventStationFirstVehicle::GetVehicleID, "GetVehicleID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventStationFirstVehicle> (engine, GetClassName <ScriptEventStationFirstVehicle, ST_GS> (), &ScriptEventStationFirstVehicle::GetStationID, "GetStationID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventStationFirstVehicle> (engine, GetClassName <ScriptEventStationFirstVehicle, ST_GS> (), &ScriptEventStationFirstVehicle::GetVehicleID, "GetVehicleID", 1, "x");
 
 	engine->AddClassEnd();
 }
@@ -199,7 +199,7 @@ static void SQGSEventTownFounded_Register (Squirrel *engine)
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventTownFounded::Convert, "Convert", 2, ".x");
 
-	SQConvert::DefSQMethod <ScriptEventTownFounded, ST_GS> (engine, &ScriptEventTownFounded::GetTownID, "GetTownID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventTownFounded> (engine, GetClassName <ScriptEventTownFounded, ST_GS> (), &ScriptEventTownFounded::GetTownID, "GetTownID", 1, "x");
 
 	engine->AddClassEnd();
 }
@@ -213,7 +213,7 @@ static void SQGSEventAdminPort_Register (Squirrel *engine)
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventAdminPort::Convert, "Convert", 2, ".x");
 
-	SQConvert::DefSQAdvancedMethod <ScriptEventAdminPort, ST_GS> (engine, &ScriptEventAdminPort::GetObject, "GetObject");
+	SQConvert::DefSQAdvancedMethod (engine, GetClassName <ScriptEventAdminPort, ST_GS> (), &ScriptEventAdminPort::GetObject, "GetObject");
 
 	engine->AddClassEnd();
 }
@@ -227,9 +227,9 @@ static void SQGSEventWindowWidgetClick_Register (Squirrel *engine)
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventWindowWidgetClick::Convert, "Convert", 2, ".x");
 
-	SQConvert::DefSQMethod <ScriptEventWindowWidgetClick, ST_GS> (engine, &ScriptEventWindowWidgetClick::GetWindowClass,  "GetWindowClass",  1, "x");
-	SQConvert::DefSQMethod <ScriptEventWindowWidgetClick, ST_GS> (engine, &ScriptEventWindowWidgetClick::GetWindowNumber, "GetWindowNumber", 1, "x");
-	SQConvert::DefSQMethod <ScriptEventWindowWidgetClick, ST_GS> (engine, &ScriptEventWindowWidgetClick::GetWidgetNumber, "GetWidgetNumber", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventWindowWidgetClick> (engine, GetClassName <ScriptEventWindowWidgetClick, ST_GS> (), &ScriptEventWindowWidgetClick::GetWindowClass,  "GetWindowClass",  1, "x");
+	SQConvert::DefSQMethod <ScriptEventWindowWidgetClick> (engine, GetClassName <ScriptEventWindowWidgetClick, ST_GS> (), &ScriptEventWindowWidgetClick::GetWindowNumber, "GetWindowNumber", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventWindowWidgetClick> (engine, GetClassName <ScriptEventWindowWidgetClick, ST_GS> (), &ScriptEventWindowWidgetClick::GetWidgetNumber, "GetWidgetNumber", 1, "x");
 
 	engine->AddClassEnd();
 }
@@ -243,9 +243,9 @@ static void SQGSEventGoalQuestionAnswer_Register (Squirrel *engine)
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventGoalQuestionAnswer::Convert, "Convert", 2, ".x");
 
-	SQConvert::DefSQMethod <ScriptEventGoalQuestionAnswer, ST_GS> (engine, &ScriptEventGoalQuestionAnswer::GetUniqueID, "GetUniqueID", 1, "x");
-	SQConvert::DefSQMethod <ScriptEventGoalQuestionAnswer, ST_GS> (engine, &ScriptEventGoalQuestionAnswer::GetCompany,  "GetCompany",  1, "x");
-	SQConvert::DefSQMethod <ScriptEventGoalQuestionAnswer, ST_GS> (engine, &ScriptEventGoalQuestionAnswer::GetButton,   "GetButton",   1, "x");
+	SQConvert::DefSQMethod <ScriptEventGoalQuestionAnswer> (engine, GetClassName <ScriptEventGoalQuestionAnswer, ST_GS> (), &ScriptEventGoalQuestionAnswer::GetUniqueID, "GetUniqueID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventGoalQuestionAnswer> (engine, GetClassName <ScriptEventGoalQuestionAnswer, ST_GS> (), &ScriptEventGoalQuestionAnswer::GetCompany,  "GetCompany",  1, "x");
+	SQConvert::DefSQMethod <ScriptEventGoalQuestionAnswer> (engine, GetClassName <ScriptEventGoalQuestionAnswer, ST_GS> (), &ScriptEventGoalQuestionAnswer::GetButton,   "GetButton",   1, "x");
 
 	engine->AddClassEnd();
 }
@@ -259,8 +259,8 @@ static void SQGSEventCompanyTown_Register (Squirrel *engine)
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventCompanyTown::Convert, "Convert", 2, ".x");
 
-	SQConvert::DefSQMethod <ScriptEventCompanyTown, ST_GS> (engine, &ScriptEventCompanyTown::GetCompanyID, "GetCompanyID", 1, "x");
-	SQConvert::DefSQMethod <ScriptEventCompanyTown, ST_GS> (engine, &ScriptEventCompanyTown::GetTownID,    "GetTownID",    1, "x");
+	SQConvert::DefSQMethod <ScriptEventCompanyTown> (engine, GetClassName <ScriptEventCompanyTown, ST_GS> (), &ScriptEventCompanyTown::GetCompanyID, "GetCompanyID", 1, "x");
+	SQConvert::DefSQMethod <ScriptEventCompanyTown> (engine, GetClassName <ScriptEventCompanyTown, ST_GS> (), &ScriptEventCompanyTown::GetTownID,    "GetTownID",    1, "x");
 
 	engine->AddClassEnd();
 }

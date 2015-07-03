@@ -19,8 +19,8 @@ static void SQAIAccounting_Register (Squirrel *engine)
 	engine->AddClassBegin (GetClassName <ScriptAccounting, ST_AI> ());
 	SQConvert::AddConstructor <ScriptAccounting, void (ScriptAccounting::*)(), 1> (engine, "x");
 
-	SQConvert::DefSQMethod <ScriptAccounting, ST_AI> (engine, &ScriptAccounting::GetCosts,   "GetCosts",   1, "x");
-	SQConvert::DefSQMethod <ScriptAccounting, ST_AI> (engine, &ScriptAccounting::ResetCosts, "ResetCosts", 1, "x");
+	SQConvert::DefSQMethod <ScriptAccounting> (engine, GetClassName <ScriptAccounting, ST_AI> (), &ScriptAccounting::GetCosts,   "GetCosts",   1, "x");
+	SQConvert::DefSQMethod <ScriptAccounting> (engine, GetClassName <ScriptAccounting, ST_AI> (), &ScriptAccounting::ResetCosts, "ResetCosts", 1, "x");
 
 	engine->AddClassEnd();
 }
