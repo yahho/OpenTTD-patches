@@ -12,22 +12,18 @@
 #include "../script_bridgelist.hpp"
 
 
-template <> const char *GetClassName<ScriptBridgeList, ST_AI>() { return "AIBridgeList"; }
-
 static void SQAIBridgeList_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptBridgeList, ST_AI> (), "AIList");
+	engine->AddClassBegin ("AIBridgeList", "AIList");
 	SQConvert::AddConstructor <ScriptBridgeList, void (ScriptBridgeList::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();
 }
 
 
-template <> const char *GetClassName<ScriptBridgeList_Length, ST_AI>() { return "AIBridgeList_Length"; }
-
 static void SQAIBridgeList_Length_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptBridgeList_Length, ST_AI> (), "AIList");
+	engine->AddClassBegin ("AIBridgeList_Length", "AIList");
 	SQConvert::AddConstructor <ScriptBridgeList_Length, void (ScriptBridgeList_Length::*)(uint length), 2> (engine, "xi");
 
 	engine->AddClassEnd();

@@ -12,11 +12,9 @@
 #include "../script_window.hpp"
 
 
-template <> const char *GetClassName<ScriptWindow, ST_GS>() { return "GSWindow"; }
-
 static void SQGSWindow_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptWindow, ST_GS> ());
+	engine->AddClassBegin ("GSWindow");
 	SQConvert::AddConstructor <ScriptWindow, void (ScriptWindow::*)(), 1> (engine, "x");
 
 	engine->AddConst ("WN_GAME_OPTIONS_AI",                        ScriptWindow::WN_GAME_OPTIONS_AI);

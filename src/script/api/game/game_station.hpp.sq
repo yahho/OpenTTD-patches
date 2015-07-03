@@ -12,11 +12,9 @@
 #include "../script_station.hpp"
 
 
-template <> const char *GetClassName<ScriptStation, ST_GS>() { return "GSStation"; }
-
 static void SQGSStation_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptStation, ST_GS> (), "GSBaseStation");
+	engine->AddClassBegin ("GSStation", "GSBaseStation");
 	SQConvert::AddConstructor <ScriptStation, void (ScriptStation::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_STATION_BASE",                         ScriptStation::ERR_STATION_BASE);

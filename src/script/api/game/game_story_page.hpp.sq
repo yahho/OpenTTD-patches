@@ -12,11 +12,9 @@
 #include "../script_story_page.hpp"
 
 
-template <> const char *GetClassName<ScriptStoryPage, ST_GS>() { return "GSStoryPage"; }
-
 static void SQGSStoryPage_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptStoryPage, ST_GS> ());
+	engine->AddClassBegin ("GSStoryPage");
 	SQConvert::AddConstructor <ScriptStoryPage, void (ScriptStoryPage::*)(), 1> (engine, "x");
 
 	engine->AddConst ("STORY_PAGE_INVALID",         ScriptStoryPage::STORY_PAGE_INVALID);

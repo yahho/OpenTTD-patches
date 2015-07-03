@@ -12,11 +12,9 @@
 #include "../script_gamesettings.hpp"
 
 
-template <> const char *GetClassName<ScriptGameSettings, ST_GS>() { return "GSGameSettings"; }
-
 static void SQGSGameSettings_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptGameSettings, ST_GS> ());
+	engine->AddClassBegin ("GSGameSettings");
 	SQConvert::AddConstructor <ScriptGameSettings, void (ScriptGameSettings::*)(), 1> (engine, "x");
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptGameSettings::IsValid,  "IsValid",  2, "..");

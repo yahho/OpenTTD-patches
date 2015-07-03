@@ -12,11 +12,9 @@
 #include "../script_engine.hpp"
 
 
-template <> const char *GetClassName<ScriptEngine, ST_AI>() { return "AIEngine"; }
-
 static void SQAIEngine_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptEngine, ST_AI> ());
+	engine->AddClassBegin ("AIEngine");
 	SQConvert::AddConstructor <ScriptEngine, void (ScriptEngine::*)(), 1> (engine, "x");
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEngine::IsValidEngine,           "IsValidEngine",           2, ".i");

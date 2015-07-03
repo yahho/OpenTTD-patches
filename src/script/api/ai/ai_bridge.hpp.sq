@@ -12,11 +12,9 @@
 #include "../script_bridge.hpp"
 
 
-template <> const char *GetClassName<ScriptBridge, ST_AI>() { return "AIBridge"; }
-
 static void SQAIBridge_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptBridge, ST_AI> ());
+	engine->AddClassBegin ("AIBridge");
 	SQConvert::AddConstructor <ScriptBridge, void (ScriptBridge::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_BRIDGE_BASE",                     ScriptBridge::ERR_BRIDGE_BASE);

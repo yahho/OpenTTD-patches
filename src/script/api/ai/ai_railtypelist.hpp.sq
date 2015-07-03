@@ -12,11 +12,9 @@
 #include "../script_railtypelist.hpp"
 
 
-template <> const char *GetClassName<ScriptRailTypeList, ST_AI>() { return "AIRailTypeList"; }
-
 static void SQAIRailTypeList_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptRailTypeList, ST_AI> (), "AIList");
+	engine->AddClassBegin ("AIRailTypeList", "AIList");
 	SQConvert::AddConstructor <ScriptRailTypeList, void (ScriptRailTypeList::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();

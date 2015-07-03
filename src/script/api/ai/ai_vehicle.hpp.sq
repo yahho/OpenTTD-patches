@@ -12,11 +12,9 @@
 #include "../script_vehicle.hpp"
 
 
-template <> const char *GetClassName<ScriptVehicle, ST_AI>() { return "AIVehicle"; }
-
 static void SQAIVehicle_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptVehicle, ST_AI> ());
+	engine->AddClassBegin ("AIVehicle");
 	SQConvert::AddConstructor <ScriptVehicle, void (ScriptVehicle::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_VEHICLE_BASE",                 ScriptVehicle::ERR_VEHICLE_BASE);

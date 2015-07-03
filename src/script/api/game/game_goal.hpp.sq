@@ -12,11 +12,9 @@
 #include "../script_goal.hpp"
 
 
-template <> const char *GetClassName<ScriptGoal, ST_GS>() { return "GSGoal"; }
-
 static void SQGSGoal_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptGoal, ST_GS> ());
+	engine->AddClassBegin ("GSGoal");
 	SQConvert::AddConstructor <ScriptGoal, void (ScriptGoal::*)(), 1> (engine, "x");
 
 	engine->AddConst ("GOAL_INVALID",     ScriptGoal::GOAL_INVALID);

@@ -12,11 +12,9 @@
 #include "../script_cargo.hpp"
 
 
-template <> const char *GetClassName<ScriptCargo, ST_AI>() { return "AICargo"; }
-
 static void SQAICargo_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptCargo, ST_AI> ());
+	engine->AddClassBegin ("AICargo");
 	SQConvert::AddConstructor <ScriptCargo, void (ScriptCargo::*)(), 1> (engine, "x");
 
 	engine->AddConst ("CC_PASSENGERS",             ScriptCargo::CC_PASSENGERS);

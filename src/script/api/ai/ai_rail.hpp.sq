@@ -12,11 +12,9 @@
 #include "../script_rail.hpp"
 
 
-template <> const char *GetClassName<ScriptRail, ST_AI>() { return "AIRail"; }
-
 static void SQAIRail_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptRail, ST_AI> ());
+	engine->AddClassBegin ("AIRail");
 	SQConvert::AddConstructor <ScriptRail, void (ScriptRail::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_RAIL_BASE",                   ScriptRail::ERR_RAIL_BASE);

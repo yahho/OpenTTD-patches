@@ -12,11 +12,9 @@
 #include "../script_error.hpp"
 
 
-template <> const char *GetClassName<ScriptError, ST_GS>() { return "GSError"; }
-
 static void SQGSError_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptError, ST_GS> ());
+	engine->AddClassBegin ("GSError");
 	SQConvert::AddConstructor <ScriptError, void (ScriptError::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_CAT_NONE",                         ScriptError::ERR_CAT_NONE);

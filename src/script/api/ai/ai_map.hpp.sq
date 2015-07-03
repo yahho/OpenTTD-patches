@@ -12,11 +12,9 @@
 #include "../script_map.hpp"
 
 
-template <> const char *GetClassName<ScriptMap, ST_AI>() { return "AIMap"; }
-
 static void SQAIMap_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptMap, ST_AI> ());
+	engine->AddClassBegin ("AIMap");
 	SQConvert::AddConstructor <ScriptMap, void (ScriptMap::*)(), 1> (engine, "x");
 
 	engine->AddConst ("TILE_INVALID", ScriptMap::TILE_INVALID);

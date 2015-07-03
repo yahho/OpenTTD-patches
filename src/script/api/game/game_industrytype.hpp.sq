@@ -12,11 +12,9 @@
 #include "../script_industrytype.hpp"
 
 
-template <> const char *GetClassName<ScriptIndustryType, ST_GS>() { return "GSIndustryType"; }
-
 static void SQGSIndustryType_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptIndustryType, ST_GS> ());
+	engine->AddClassBegin ("GSIndustryType");
 	SQConvert::AddConstructor <ScriptIndustryType, void (ScriptIndustryType::*)(), 1> (engine, "x");
 
 	engine->AddConst ("INDUSTRYTYPE_UNKNOWN", ScriptIndustryType::INDUSTRYTYPE_UNKNOWN);

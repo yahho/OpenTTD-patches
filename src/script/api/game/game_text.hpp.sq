@@ -12,18 +12,16 @@
 #include "../script_text.hpp"
 
 
-template <> const char *GetClassName<ScriptText, ST_GS>() { return "GSText"; }
-
 static void SQGSText_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptText, ST_GS> ());
+	engine->AddClassBegin ("GSText");
 	SQConvert::AddSQAdvancedConstructor <ScriptText> (engine);
 
 	engine->AddConst ("SCRIPT_TEXT_MAX_PARAMETERS", ScriptText::SCRIPT_TEXT_MAX_PARAMETERS);
 
-	SQConvert::DefSQAdvancedMethod (engine, GetClassName <ScriptText, ST_GS> (), &ScriptText::_set, "_set");
-	SQConvert::DefSQAdvancedMethod (engine, GetClassName <ScriptText, ST_GS> (), &ScriptText::SetParam, "SetParam");
-	SQConvert::DefSQAdvancedMethod (engine, GetClassName <ScriptText, ST_GS> (), &ScriptText::AddParam, "AddParam");
+	SQConvert::DefSQAdvancedMethod (engine, "GSText", &ScriptText::_set, "_set");
+	SQConvert::DefSQAdvancedMethod (engine, "GSText", &ScriptText::SetParam, "SetParam");
+	SQConvert::DefSQAdvancedMethod (engine, "GSText", &ScriptText::AddParam, "AddParam");
 
 	engine->AddClassEnd();
 }

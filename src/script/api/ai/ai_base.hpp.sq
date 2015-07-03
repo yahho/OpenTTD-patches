@@ -12,11 +12,9 @@
 #include "../script_base.hpp"
 
 
-template <> const char *GetClassName<ScriptBase, ST_AI>() { return "AIBase"; }
-
 static void SQAIBase_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptBase, ST_AI> ());
+	engine->AddClassBegin ("AIBase");
 	SQConvert::AddConstructor <ScriptBase, void (ScriptBase::*)(), 1> (engine, "x");
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptBase::Rand,          "Rand",          1, ".");

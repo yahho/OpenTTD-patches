@@ -12,11 +12,9 @@
 #include "../script_industry.hpp"
 
 
-template <> const char *GetClassName<ScriptIndustry, ST_AI>() { return "AIIndustry"; }
-
 static void SQAIIndustry_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptIndustry, ST_AI> ());
+	engine->AddClassBegin ("AIIndustry");
 	SQConvert::AddConstructor <ScriptIndustry, void (ScriptIndustry::*)(), 1> (engine, "x");
 
 	engine->AddConst ("CAS_NOT_ACCEPTED", ScriptIndustry::CAS_NOT_ACCEPTED);

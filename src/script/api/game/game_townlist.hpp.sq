@@ -12,22 +12,18 @@
 #include "../script_townlist.hpp"
 
 
-template <> const char *GetClassName<ScriptTownList, ST_GS>() { return "GSTownList"; }
-
 static void SQGSTownList_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptTownList, ST_GS> (), "GSList");
+	engine->AddClassBegin ("GSTownList", "GSList");
 	SQConvert::AddConstructor <ScriptTownList, void (ScriptTownList::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();
 }
 
 
-template <> const char *GetClassName<ScriptTownEffectList, ST_GS>() { return "GSTownEffectList"; }
-
 static void SQGSTownEffectList_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptTownEffectList, ST_GS> (), "GSList");
+	engine->AddClassBegin ("GSTownEffectList", "GSList");
 	SQConvert::AddConstructor <ScriptTownEffectList, void (ScriptTownEffectList::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();

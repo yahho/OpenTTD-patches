@@ -12,11 +12,9 @@
 #include "../script_viewport.hpp"
 
 
-template <> const char *GetClassName<ScriptViewport, ST_GS>() { return "GSViewport"; }
-
 static void SQGSViewport_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptViewport, ST_GS> ());
+	engine->AddClassBegin ("GSViewport");
 	SQConvert::AddConstructor <ScriptViewport, void (ScriptViewport::*)(), 1> (engine, "x");
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptViewport::ScrollTo, "ScrollTo", 2, ".i");

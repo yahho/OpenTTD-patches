@@ -61,7 +61,7 @@ cat ai/regression/tst_*/main.nut | tr ';' '\n' | awk '
 }
 ' | sed 's/	//g' | sort | uniq > tmp.in_regression
 
-grep 'DefSQ.*Method' ../src/script/api/ai/*.hpp.sq | grep -v 'AIError::' | grep -v 'AIAbstractList::Valuate' | grep -v '::GetClassName' | sed 's/^[^,]*, &//g;s/,[^,]*//g' | sort > tmp.in_api
+grep 'DefSQ.*Method' ../src/script/api/ai/*.hpp.sq | grep -v 'AIError::' | grep -v 'AIAbstractList::Valuate' | sed 's/^[^,]*, &//g;s/,[^,]*//g' | sort > tmp.in_api
 
 diff -u tmp.in_regression tmp.in_api | grep -v '^+++' | grep '^+' | sed 's/^+//'
 

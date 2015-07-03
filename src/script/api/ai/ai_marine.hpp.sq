@@ -12,11 +12,9 @@
 #include "../script_marine.hpp"
 
 
-template <> const char *GetClassName<ScriptMarine, ST_AI>() { return "AIMarine"; }
-
 static void SQAIMarine_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptMarine, ST_AI> ());
+	engine->AddClassBegin ("AIMarine");
 	SQConvert::AddConstructor <ScriptMarine, void (ScriptMarine::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_MARINE_BASE",                   ScriptMarine::ERR_MARINE_BASE);

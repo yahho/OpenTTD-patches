@@ -12,11 +12,9 @@
 #include "../script_news.hpp"
 
 
-template <> const char *GetClassName<ScriptNews, ST_GS>() { return "GSNews"; }
-
 static void SQGSNews_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptNews, ST_GS> ());
+	engine->AddClassBegin ("GSNews");
 	SQConvert::AddConstructor <ScriptNews, void (ScriptNews::*)(), 1> (engine, "x");
 
 	engine->AddConst ("NT_ACCIDENT",     ScriptNews::NT_ACCIDENT);

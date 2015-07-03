@@ -12,22 +12,18 @@
 #include "../script_waypointlist.hpp"
 
 
-template <> const char *GetClassName<ScriptWaypointList, ST_AI>() { return "AIWaypointList"; }
-
 static void SQAIWaypointList_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptWaypointList, ST_AI> (), "AIList");
+	engine->AddClassBegin ("AIWaypointList", "AIList");
 	SQConvert::AddConstructor <ScriptWaypointList, void (ScriptWaypointList::*)(ScriptWaypoint::WaypointType waypoint_type), 2> (engine, "xi");
 
 	engine->AddClassEnd();
 }
 
 
-template <> const char *GetClassName<ScriptWaypointList_Vehicle, ST_AI>() { return "AIWaypointList_Vehicle"; }
-
 static void SQAIWaypointList_Vehicle_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptWaypointList_Vehicle, ST_AI> (), "AIList");
+	engine->AddClassBegin ("AIWaypointList_Vehicle", "AIList");
 	SQConvert::AddConstructor <ScriptWaypointList_Vehicle, void (ScriptWaypointList_Vehicle::*)(VehicleID vehicle_id), 2> (engine, "xi");
 
 	engine->AddClassEnd();

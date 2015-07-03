@@ -12,11 +12,9 @@
 #include "../script_infrastructure.hpp"
 
 
-template <> const char *GetClassName<ScriptInfrastructure, ST_GS>() { return "GSInfrastructure"; }
-
 static void SQGSInfrastructure_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptInfrastructure, ST_GS> ());
+	engine->AddClassBegin ("GSInfrastructure");
 	SQConvert::AddConstructor <ScriptInfrastructure, void (ScriptInfrastructure::*)(), 1> (engine, "x");
 
 	engine->AddConst ("INFRASTRUCTURE_RAIL",    ScriptInfrastructure::INFRASTRUCTURE_RAIL);

@@ -12,33 +12,27 @@
 #include "../script_industrylist.hpp"
 
 
-template <> const char *GetClassName<ScriptIndustryList, ST_GS>() { return "GSIndustryList"; }
-
 static void SQGSIndustryList_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptIndustryList, ST_GS> (), "GSList");
+	engine->AddClassBegin ("GSIndustryList", "GSList");
 	SQConvert::AddConstructor <ScriptIndustryList, void (ScriptIndustryList::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();
 }
 
 
-template <> const char *GetClassName<ScriptIndustryList_CargoAccepting, ST_GS>() { return "GSIndustryList_CargoAccepting"; }
-
 static void SQGSIndustryList_CargoAccepting_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptIndustryList_CargoAccepting, ST_GS> (), "GSList");
+	engine->AddClassBegin ("GSIndustryList_CargoAccepting", "GSList");
 	SQConvert::AddConstructor <ScriptIndustryList_CargoAccepting, void (ScriptIndustryList_CargoAccepting::*)(CargoID cargo_id), 2> (engine, "xi");
 
 	engine->AddClassEnd();
 }
 
 
-template <> const char *GetClassName<ScriptIndustryList_CargoProducing, ST_GS>() { return "GSIndustryList_CargoProducing"; }
-
 static void SQGSIndustryList_CargoProducing_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptIndustryList_CargoProducing, ST_GS> (), "GSList");
+	engine->AddClassBegin ("GSIndustryList_CargoProducing", "GSList");
 	SQConvert::AddConstructor <ScriptIndustryList_CargoProducing, void (ScriptIndustryList_CargoProducing::*)(CargoID cargo_id), 2> (engine, "xi");
 
 	engine->AddClassEnd();

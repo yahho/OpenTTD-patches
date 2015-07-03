@@ -9,11 +9,9 @@
 
 #include "../script_controller.hpp"
 
-template <> const char *GetClassName<ScriptController, ST_AI>() { return "AIController"; }
-
 static void SQAIController_Register(Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptController, ST_AI> ());
+	engine->AddClassBegin ("AIController");
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptController::GetTick,           "GetTick",           1, ".");
 	SQConvert::DefSQStaticMethod (engine, &ScriptController::GetOpsTillSuspend, "GetOpsTillSuspend", 1, ".");

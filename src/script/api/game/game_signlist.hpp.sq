@@ -12,11 +12,9 @@
 #include "../script_signlist.hpp"
 
 
-template <> const char *GetClassName<ScriptSignList, ST_GS>() { return "GSSignList"; }
-
 static void SQGSSignList_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptSignList, ST_GS> (), "GSList");
+	engine->AddClassBegin ("GSSignList", "GSList");
 	SQConvert::AddConstructor <ScriptSignList, void (ScriptSignList::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();

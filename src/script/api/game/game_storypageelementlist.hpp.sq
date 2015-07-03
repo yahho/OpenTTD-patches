@@ -12,11 +12,9 @@
 #include "../script_storypageelementlist.hpp"
 
 
-template <> const char *GetClassName<ScriptStoryPageElementList, ST_GS>() { return "GSStoryPageElementList"; }
-
 static void SQGSStoryPageElementList_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptStoryPageElementList, ST_GS> (), "GSList");
+	engine->AddClassBegin ("GSStoryPageElementList", "GSList");
 	SQConvert::AddConstructor <ScriptStoryPageElementList, void (ScriptStoryPageElementList::*)(ScriptStoryPage::StoryPageID story_page_id), 2> (engine, "xi");
 
 	engine->AddClassEnd();

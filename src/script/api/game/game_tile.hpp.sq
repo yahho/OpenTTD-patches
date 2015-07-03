@@ -12,11 +12,9 @@
 #include "../script_tile.hpp"
 
 
-template <> const char *GetClassName<ScriptTile, ST_GS>() { return "GSTile"; }
-
 static void SQGSTile_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptTile, ST_GS> ());
+	engine->AddClassBegin ("GSTile");
 	SQConvert::AddConstructor <ScriptTile, void (ScriptTile::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_TILE_BASE",               ScriptTile::ERR_TILE_BASE);

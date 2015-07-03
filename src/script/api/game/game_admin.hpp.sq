@@ -12,11 +12,9 @@
 #include "../script_admin.hpp"
 
 
-template <> const char *GetClassName<ScriptAdmin, ST_GS>() { return "GSAdmin"; }
-
 static void SQGSAdmin_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptAdmin, ST_GS> ());
+	engine->AddClassBegin ("GSAdmin");
 	SQConvert::AddConstructor <ScriptAdmin, void (ScriptAdmin::*)(), 1> (engine, "x");
 
 	SQConvert::DefSQAdvancedStaticMethod (engine, &ScriptAdmin::Send, "Send");

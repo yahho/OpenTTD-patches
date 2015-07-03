@@ -12,11 +12,9 @@
 #include "../script_grouplist.hpp"
 
 
-template <> const char *GetClassName<ScriptGroupList, ST_AI>() { return "AIGroupList"; }
-
 static void SQAIGroupList_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptGroupList, ST_AI> (), "AIList");
+	engine->AddClassBegin ("AIGroupList", "AIList");
 	SQConvert::AddConstructor <ScriptGroupList, void (ScriptGroupList::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();

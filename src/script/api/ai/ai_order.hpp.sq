@@ -12,11 +12,9 @@
 #include "../script_order.hpp"
 
 
-template <> const char *GetClassName<ScriptOrder, ST_AI>() { return "AIOrder"; }
-
 static void SQAIOrder_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptOrder, ST_AI> ());
+	engine->AddClassBegin ("AIOrder");
 	SQConvert::AddConstructor <ScriptOrder, void (ScriptOrder::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_ORDER_BASE",                                   ScriptOrder::ERR_ORDER_BASE);

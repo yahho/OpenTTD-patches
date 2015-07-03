@@ -12,11 +12,9 @@
 #include "../script_town.hpp"
 
 
-template <> const char *GetClassName<ScriptTown, ST_AI>() { return "AITown"; }
-
 static void SQAITown_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptTown, ST_AI> ());
+	engine->AddClassBegin ("AITown");
 	SQConvert::AddConstructor <ScriptTown, void (ScriptTown::*)(), 1> (engine, "x");
 
 	engine->AddConst ("TOWN_ACTION_ADVERTISE_SMALL",  ScriptTown::TOWN_ACTION_ADVERTISE_SMALL);

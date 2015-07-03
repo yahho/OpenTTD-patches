@@ -12,11 +12,9 @@
 #include "../script_road.hpp"
 
 
-template <> const char *GetClassName<ScriptRoad, ST_AI>() { return "AIRoad"; }
-
 static void SQAIRoad_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptRoad, ST_AI> ());
+	engine->AddClassBegin ("AIRoad");
 	SQConvert::AddConstructor <ScriptRoad, void (ScriptRoad::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_ROAD_BASE",                                ScriptRoad::ERR_ROAD_BASE);

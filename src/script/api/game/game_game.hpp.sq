@@ -12,11 +12,9 @@
 #include "../script_game.hpp"
 
 
-template <> const char *GetClassName<ScriptGame, ST_GS>() { return "GSGame"; }
-
 static void SQGSGame_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptGame, ST_GS> ());
+	engine->AddClassBegin ("GSGame");
 	SQConvert::AddConstructor <ScriptGame, void (ScriptGame::*)(), 1> (engine, "x");
 
 	engine->AddConst ("LT_TEMPERATE", ScriptGame::LT_TEMPERATE);

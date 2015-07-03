@@ -12,11 +12,9 @@
 #include "../script_event.hpp"
 
 
-template <> const char *GetClassName<ScriptEvent, ST_AI>() { return "AIEvent"; }
-
 static void SQAIEvent_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptEvent, ST_AI> ());
+	engine->AddClassBegin ("AIEvent");
 	SQConvert::AddConstructor <ScriptEvent, void (ScriptEvent::*)(ScriptEvent::ScriptEventType type), 2> (engine, "xi");
 
 	engine->AddConst ("ET_INVALID",                     ScriptEvent::ET_INVALID);
@@ -49,17 +47,15 @@ static void SQAIEvent_Register (Squirrel *engine)
 	engine->AddConst ("ET_EXCLUSIVE_TRANSPORT_RIGHTS",  ScriptEvent::ET_EXCLUSIVE_TRANSPORT_RIGHTS);
 	engine->AddConst ("ET_ROAD_RECONSTRUCTION",         ScriptEvent::ET_ROAD_RECONSTRUCTION);
 
-	SQConvert::DefSQMethod <ScriptEvent> (engine, GetClassName <ScriptEvent, ST_AI> (), &ScriptEvent::GetEventType, "GetEventType", 1, "x");
+	SQConvert::DefSQMethod <ScriptEvent> (engine, "AIEvent", &ScriptEvent::GetEventType, "GetEventType", 1, "x");
 
 	engine->AddClassEnd();
 }
 
 
-template <> const char *GetClassName<ScriptEventController, ST_AI>() { return "AIEventController"; }
-
 static void SQAIEventController_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptEventController, ST_AI> ());
+	engine->AddClassBegin ("AIEventController");
 	SQConvert::AddConstructor <ScriptEventController, void (ScriptEventController::*)(), 1> (engine, "x");
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventController::IsEventWaiting, "IsEventWaiting", 1, ".");

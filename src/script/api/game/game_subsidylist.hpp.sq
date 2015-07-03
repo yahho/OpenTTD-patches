@@ -12,11 +12,9 @@
 #include "../script_subsidylist.hpp"
 
 
-template <> const char *GetClassName<ScriptSubsidyList, ST_GS>() { return "GSSubsidyList"; }
-
 static void SQGSSubsidyList_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptSubsidyList, ST_GS> (), "GSList");
+	engine->AddClassBegin ("GSSubsidyList", "GSList");
 	SQConvert::AddConstructor <ScriptSubsidyList, void (ScriptSubsidyList::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();

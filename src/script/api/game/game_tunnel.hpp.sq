@@ -12,11 +12,9 @@
 #include "../script_tunnel.hpp"
 
 
-template <> const char *GetClassName<ScriptTunnel, ST_GS>() { return "GSTunnel"; }
-
 static void SQGSTunnel_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptTunnel, ST_GS> ());
+	engine->AddClassBegin ("GSTunnel");
 	SQConvert::AddConstructor <ScriptTunnel, void (ScriptTunnel::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_TUNNEL_BASE",                      ScriptTunnel::ERR_TUNNEL_BASE);

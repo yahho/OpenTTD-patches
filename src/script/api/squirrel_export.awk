@@ -247,16 +247,14 @@ BEGIN {
 
 	print "";
 	print "";
-	print "template <> const char *GetClassName<" cls ", ST_" toupper(api) ">() { return \"" api_cls "\"; }"
-	print "";
 
 	# Then do the registration functions of the class. */
 	print "static void SQ" api_cls "_Register (Squirrel *engine)"
 	print "{"
 	if (super_cls == "Text" || super_cls == "ScriptObject" || super_cls == "AIAbstractList::Valuator") {
-		print "	engine->AddClassBegin (GetClassName <" cls ", ST_" toupper(api) "> ());"
+		print "	engine->AddClassBegin (\"" api_cls "\");"
 	} else {
-		print "	engine->AddClassBegin (GetClassName <" cls ", ST_" toupper(api) "> (), \"" api_super_cls "\");"
+		print "	engine->AddClassBegin (\"" api_cls "\", \"" api_super_cls "\");"
 	}
 	if (virtual_class == "false" && super_cls != "ScriptEvent") {
 		if (cls_param[2] == "v") {
@@ -335,9 +333,9 @@ BEGIN {
 		}
 		for (i = 1; i <= method_size; i++) {
 			if (methods[i, 2] == "v") {
-				print "	SQConvert::DefSQAdvancedMethod (engine, GetClassName <" cls ", ST_" toupper(api) "> (), &" cls "::" methods[i, 0] ", " substr(spaces, 1, mlen - length(methods[i, 0]) - 8) "\""  methods[i, 0] "\");"
+				print "	SQConvert::DefSQAdvancedMethod (engine, \"" api_cls "\", &" cls "::" methods[i, 0] ", " substr(spaces, 1, mlen - length(methods[i, 0]) - 8) "\""  methods[i, 0] "\");"
 			} else {
-				print "	SQConvert::DefSQMethod <" cls "> (engine, GetClassName <" cls ", ST_" toupper(api) "> (), &" cls "::" methods[i, 0] ", " substr(spaces, 1, mlen - length(methods[i, 0])) "\""  methods[i, 0] "\", " substr(spaces, 1, mlen - length(methods[i, 0])) "" methods[i, 1] ", \"" methods[i, 2] "\");"
+				print "	SQConvert::DefSQMethod <" cls "> (engine, \"" api_cls "\", &" cls "::" methods[i, 0] ", " substr(spaces, 1, mlen - length(methods[i, 0])) "\""  methods[i, 0] "\", " substr(spaces, 1, mlen - length(methods[i, 0])) "" methods[i, 1] ", \"" methods[i, 2] "\");"
 			}
 			delete methods[i]
 		}

@@ -12,11 +12,9 @@
 #include "../script_testmode.hpp"
 
 
-template <> const char *GetClassName<ScriptTestMode, ST_AI>() { return "AITestMode"; }
-
 static void SQAITestMode_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptTestMode, ST_AI> ());
+	engine->AddClassBegin ("AITestMode");
 	SQConvert::AddConstructor <ScriptTestMode, void (ScriptTestMode::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();

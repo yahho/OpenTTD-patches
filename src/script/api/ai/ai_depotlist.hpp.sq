@@ -12,11 +12,9 @@
 #include "../script_depotlist.hpp"
 
 
-template <> const char *GetClassName<ScriptDepotList, ST_AI>() { return "AIDepotList"; }
-
 static void SQAIDepotList_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptDepotList, ST_AI> (), "AIList");
+	engine->AddClassBegin ("AIDepotList", "AIList");
 	SQConvert::AddConstructor <ScriptDepotList, void (ScriptDepotList::*)(ScriptTile::TransportType transport_type), 2> (engine, "xi");
 
 	engine->AddClassEnd();

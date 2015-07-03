@@ -19,11 +19,6 @@
 static const char *const game_api_versions[] =
 	{ "1.2", "1.3", "1.4", "1.5", "1.6" };
 
-#if defined(WIN32)
-#undef GetClassName
-#endif /* WIN32 */
-template <> const char *GetClassName<GameInfo, ST_GS>() { return "GSInfo"; }
-
 /* static */ void GameInfo::RegisterAPI(Squirrel *engine)
 {
 	/* Create the GSInfo class, and add the RegisterGS function */

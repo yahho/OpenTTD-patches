@@ -12,11 +12,9 @@
 #include "../script_enginelist.hpp"
 
 
-template <> const char *GetClassName<ScriptEngineList, ST_GS>() { return "GSEngineList"; }
-
 static void SQGSEngineList_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptEngineList, ST_GS> (), "GSList");
+	engine->AddClassBegin ("GSEngineList", "GSList");
 	SQConvert::AddConstructor <ScriptEngineList, void (ScriptEngineList::*)(ScriptVehicle::VehicleType vehicle_type), 2> (engine, "xi");
 
 	engine->AddClassEnd();

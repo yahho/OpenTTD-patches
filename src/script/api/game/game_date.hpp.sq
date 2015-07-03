@@ -12,11 +12,9 @@
 #include "../script_date.hpp"
 
 
-template <> const char *GetClassName<ScriptDate, ST_GS>() { return "GSDate"; }
-
 static void SQGSDate_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptDate, ST_GS> ());
+	engine->AddClassBegin ("GSDate");
 	SQConvert::AddConstructor <ScriptDate, void (ScriptDate::*)(), 1> (engine, "x");
 
 	engine->AddConst ("DATE_INVALID", ScriptDate::DATE_INVALID);

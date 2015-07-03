@@ -12,11 +12,9 @@
 #include "../script_companymode.hpp"
 
 
-template <> const char *GetClassName<ScriptCompanyMode, ST_GS>() { return "GSCompanyMode"; }
-
 static void SQGSCompanyMode_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptCompanyMode, ST_GS> ());
+	engine->AddClassBegin ("GSCompanyMode");
 	SQConvert::AddConstructor <ScriptCompanyMode, void (ScriptCompanyMode::*)(int company), 2> (engine, "xi");
 
 	engine->AddClassEnd();

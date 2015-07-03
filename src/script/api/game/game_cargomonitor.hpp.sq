@@ -12,11 +12,9 @@
 #include "../script_cargomonitor.hpp"
 
 
-template <> const char *GetClassName<ScriptCargoMonitor, ST_GS>() { return "GSCargoMonitor"; }
-
 static void SQGSCargoMonitor_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptCargoMonitor, ST_GS> ());
+	engine->AddClassBegin ("GSCargoMonitor");
 	SQConvert::AddConstructor <ScriptCargoMonitor, void (ScriptCargoMonitor::*)(), 1> (engine, "x");
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptCargoMonitor::GetTownDeliveryAmount,     "GetTownDeliveryAmount",     5, ".iiib");

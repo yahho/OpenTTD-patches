@@ -12,11 +12,9 @@
 #include "../script_log.hpp"
 
 
-template <> const char *GetClassName<ScriptLog, ST_GS>() { return "GSLog"; }
-
 static void SQGSLog_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptLog, ST_GS> ());
+	engine->AddClassBegin ("GSLog");
 	SQConvert::AddConstructor <ScriptLog, void (ScriptLog::*)(), 1> (engine, "x");
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptLog::Info,    "Info",    2, "..");

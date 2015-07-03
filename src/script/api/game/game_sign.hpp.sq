@@ -12,11 +12,9 @@
 #include "../script_sign.hpp"
 
 
-template <> const char *GetClassName<ScriptSign, ST_GS>() { return "GSSign"; }
-
 static void SQGSSign_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptSign, ST_GS> ());
+	engine->AddClassBegin ("GSSign");
 	SQConvert::AddConstructor <ScriptSign, void (ScriptSign::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_SIGN_BASE",           ScriptSign::ERR_SIGN_BASE);

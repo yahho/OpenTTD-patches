@@ -12,49 +12,41 @@
 #include "../script_tilelist.hpp"
 
 
-template <> const char *GetClassName<ScriptTileList, ST_AI>() { return "AITileList"; }
-
 static void SQAITileList_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptTileList, ST_AI> (), "AIList");
+	engine->AddClassBegin ("AITileList", "AIList");
 	SQConvert::AddConstructor <ScriptTileList, void (ScriptTileList::*)(), 1> (engine, "x");
 
-	SQConvert::DefSQMethod <ScriptTileList> (engine, GetClassName <ScriptTileList, ST_AI> (), &ScriptTileList::AddRectangle,    "AddRectangle",    3, "xii");
-	SQConvert::DefSQMethod <ScriptTileList> (engine, GetClassName <ScriptTileList, ST_AI> (), &ScriptTileList::AddTile,         "AddTile",         2, "xi");
-	SQConvert::DefSQMethod <ScriptTileList> (engine, GetClassName <ScriptTileList, ST_AI> (), &ScriptTileList::RemoveRectangle, "RemoveRectangle", 3, "xii");
-	SQConvert::DefSQMethod <ScriptTileList> (engine, GetClassName <ScriptTileList, ST_AI> (), &ScriptTileList::RemoveTile,      "RemoveTile",      2, "xi");
+	SQConvert::DefSQMethod <ScriptTileList> (engine, "AITileList", &ScriptTileList::AddRectangle,    "AddRectangle",    3, "xii");
+	SQConvert::DefSQMethod <ScriptTileList> (engine, "AITileList", &ScriptTileList::AddTile,         "AddTile",         2, "xi");
+	SQConvert::DefSQMethod <ScriptTileList> (engine, "AITileList", &ScriptTileList::RemoveRectangle, "RemoveRectangle", 3, "xii");
+	SQConvert::DefSQMethod <ScriptTileList> (engine, "AITileList", &ScriptTileList::RemoveTile,      "RemoveTile",      2, "xi");
 
 	engine->AddClassEnd();
 }
 
 
-template <> const char *GetClassName<ScriptTileList_IndustryAccepting, ST_AI>() { return "AITileList_IndustryAccepting"; }
-
 static void SQAITileList_IndustryAccepting_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptTileList_IndustryAccepting, ST_AI> (), "AITileList");
+	engine->AddClassBegin ("AITileList_IndustryAccepting", "AITileList");
 	SQConvert::AddConstructor <ScriptTileList_IndustryAccepting, void (ScriptTileList_IndustryAccepting::*)(IndustryID industry_id, int radius), 3> (engine, "xii");
 
 	engine->AddClassEnd();
 }
 
 
-template <> const char *GetClassName<ScriptTileList_IndustryProducing, ST_AI>() { return "AITileList_IndustryProducing"; }
-
 static void SQAITileList_IndustryProducing_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptTileList_IndustryProducing, ST_AI> (), "AITileList");
+	engine->AddClassBegin ("AITileList_IndustryProducing", "AITileList");
 	SQConvert::AddConstructor <ScriptTileList_IndustryProducing, void (ScriptTileList_IndustryProducing::*)(IndustryID industry_id, int radius), 3> (engine, "xii");
 
 	engine->AddClassEnd();
 }
 
 
-template <> const char *GetClassName<ScriptTileList_StationType, ST_AI>() { return "AITileList_StationType"; }
-
 static void SQAITileList_StationType_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptTileList_StationType, ST_AI> (), "AITileList");
+	engine->AddClassBegin ("AITileList_StationType", "AITileList");
 	SQConvert::AddConstructor <ScriptTileList_StationType, void (ScriptTileList_StationType::*)(StationID station_id, ScriptStation::StationType station_type), 3> (engine, "xii");
 
 	engine->AddClassEnd();

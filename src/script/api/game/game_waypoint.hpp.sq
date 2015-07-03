@@ -12,11 +12,9 @@
 #include "../script_waypoint.hpp"
 
 
-template <> const char *GetClassName<ScriptWaypoint, ST_GS>() { return "GSWaypoint"; }
-
 static void SQGSWaypoint_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptWaypoint, ST_GS> (), "GSBaseStation");
+	engine->AddClassBegin ("GSWaypoint", "GSBaseStation");
 	SQConvert::AddConstructor <ScriptWaypoint, void (ScriptWaypoint::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_WAYPOINT_BASE",                          ScriptWaypoint::ERR_WAYPOINT_BASE);

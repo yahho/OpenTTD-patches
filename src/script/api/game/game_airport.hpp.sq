@@ -12,11 +12,9 @@
 #include "../script_airport.hpp"
 
 
-template <> const char *GetClassName<ScriptAirport, ST_GS>() { return "GSAirport"; }
-
 static void SQGSAirport_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptAirport, ST_GS> ());
+	engine->AddClassBegin ("GSAirport");
 	SQConvert::AddConstructor <ScriptAirport, void (ScriptAirport::*)(), 1> (engine, "x");
 
 	engine->AddConst ("AT_SMALL",         ScriptAirport::AT_SMALL);

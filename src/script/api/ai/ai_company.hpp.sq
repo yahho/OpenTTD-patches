@@ -12,11 +12,9 @@
 #include "../script_company.hpp"
 
 
-template <> const char *GetClassName<ScriptCompany, ST_AI>() { return "AICompany"; }
-
 static void SQAICompany_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptCompany, ST_AI> ());
+	engine->AddClassBegin ("AICompany");
 	SQConvert::AddConstructor <ScriptCompany, void (ScriptCompany::*)(), 1> (engine, "x");
 
 	engine->AddConst ("CURRENT_QUARTER",  ScriptCompany::CURRENT_QUARTER);

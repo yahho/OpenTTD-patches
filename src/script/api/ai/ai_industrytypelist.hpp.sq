@@ -12,11 +12,9 @@
 #include "../script_industrytypelist.hpp"
 
 
-template <> const char *GetClassName<ScriptIndustryTypeList, ST_AI>() { return "AIIndustryTypeList"; }
-
 static void SQAIIndustryTypeList_Register (Squirrel *engine)
 {
-	engine->AddClassBegin (GetClassName <ScriptIndustryTypeList, ST_AI> (), "AIList");
+	engine->AddClassBegin ("AIIndustryTypeList", "AIList");
 	SQConvert::AddConstructor <ScriptIndustryTypeList, void (ScriptIndustryTypeList::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();

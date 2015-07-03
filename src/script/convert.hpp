@@ -22,8 +22,6 @@ struct Array {
 	int32 array[]; ///< The data of the array.
 };
 
-template <class CL, ScriptType ST> const char *GetClassName();
-
 /**
  * The Squirrel convert routines
  */
