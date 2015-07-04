@@ -871,7 +871,7 @@ namespace SQConvert {
 	 *  params. It creates the instance in C++, and it sets all the needed
 	 *  settings in SQ to register the instance.
 	 */
-	template <typename Tmethod, int Tnparam>
+	template <typename Tmethod>
 	inline SQInteger DefSQConstructorCallback(HSQUIRRELVM vm)
 	{
 		typedef FSig<Tmethod> Sig;
@@ -880,8 +880,9 @@ namespace SQConvert {
 			/* Create the real instance */
 			typename Sig::Params params (vm);
 			typename Sig::Cls *instance = params.template construct <typename Sig::Cls> ();
-			sq_setinstanceup(vm, -Tnparam, instance);
-			sq_setreleasehook(vm, -Tnparam, DefSQDestructorCallback<typename Sig::Cls>);
+			int nparam = Sig::Params::N + 1;
+			sq_setinstanceup (vm, -nparam, instance);
+			sq_setreleasehook (vm, -nparam, DefSQDestructorCallback<typename Sig::Cls>);
 			instance->AddRef();
 			return 0;
 		} catch (SQInteger e) {
@@ -892,7 +893,8 @@ namespace SQConvert {
 	template <typename Tmethod, int Tnparam>
 	inline void AddConstructor (Squirrel *engine, const char *params)
 	{
-		engine->AddMethod ("constructor", DefSQConstructorCallback <Tmethod, Tnparam>, Tnparam, params);
+		assert_tcompile (Tnparam == FSig<Tmethod>::Params::N + 1);
+		engine->AddMethod ("constructor", DefSQConstructorCallback<Tmethod>, Tnparam, params);
 	}
 
 	/**
