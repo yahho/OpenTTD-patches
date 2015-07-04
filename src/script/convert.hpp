@@ -826,32 +826,11 @@ namespace SQConvert {
 	}
 
 	/**
-	 * A general template for all static advanced method callbacks from Squirrel.
-	 *  In here the function_proc is recovered, and the SQCall is called that
-	 *  can handle this exact amount of params.
-	 */
-	inline SQInteger DefSQAdvancedStaticCallback(HSQUIRRELVM vm)
-	{
-		/* Find the amount of params we got */
-		int nparam = sq_gettop(vm);
-		SQUserPointer ptr = NULL;
-
-		/* Get the real function pointer */
-		sq_getuserdata(vm, nparam, &ptr, 0);
-		/* Remove the userdata from the stack */
-		sq_pop(vm, 1);
-
-		/* Call the function, which its only param is always the VM */
-		typedef SQInteger F (HSQUIRRELVM);
-		return (** (F **) ptr) (vm);
-	}
-
-	/**
 	 * This defines a static method inside a class for Squirrel, which has access to the 'engine' (experts only!).
 	 */
 	inline void DefSQAdvancedStaticMethod (Squirrel *engine, SQInteger (*function_proc) (HSQUIRRELVM), const char *function_name)
 	{
-		engine->AddMethod (function_name, &DefSQAdvancedStaticCallback, 0, NULL, &function_proc, sizeof(function_proc));
+		engine->AddMethod (function_name, function_proc);
 	}
 
 	/**
