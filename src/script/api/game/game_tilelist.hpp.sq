@@ -15,12 +15,12 @@
 static void SQGSTileList_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSTileList", "GSList");
-	SQConvert::AddConstructor <ScriptTileList, void (ScriptTileList::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptTileList::*)(), 1> (engine, "x");
 
-	SQConvert::DefSQMethod <ScriptTileList> (engine, "GSTileList", &ScriptTileList::AddRectangle,    "AddRectangle",    3, "xii");
-	SQConvert::DefSQMethod <ScriptTileList> (engine, "GSTileList", &ScriptTileList::AddTile,         "AddTile",         2, "xi");
-	SQConvert::DefSQMethod <ScriptTileList> (engine, "GSTileList", &ScriptTileList::RemoveRectangle, "RemoveRectangle", 3, "xii");
-	SQConvert::DefSQMethod <ScriptTileList> (engine, "GSTileList", &ScriptTileList::RemoveTile,      "RemoveTile",      2, "xi");
+	SQConvert::DefSQMethod (engine, "GSTileList", &ScriptTileList::AddRectangle,    "AddRectangle",    3, "xii");
+	SQConvert::DefSQMethod (engine, "GSTileList", &ScriptTileList::AddTile,         "AddTile",         2, "xi");
+	SQConvert::DefSQMethod (engine, "GSTileList", &ScriptTileList::RemoveRectangle, "RemoveRectangle", 3, "xii");
+	SQConvert::DefSQMethod (engine, "GSTileList", &ScriptTileList::RemoveTile,      "RemoveTile",      2, "xi");
 
 	engine->AddClassEnd();
 }
@@ -29,7 +29,7 @@ static void SQGSTileList_Register (Squirrel *engine)
 static void SQGSTileList_IndustryAccepting_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSTileList_IndustryAccepting", "GSTileList");
-	SQConvert::AddConstructor <ScriptTileList_IndustryAccepting, void (ScriptTileList_IndustryAccepting::*)(IndustryID industry_id, int radius), 3> (engine, "xii");
+	SQConvert::AddConstructor <void (ScriptTileList_IndustryAccepting::*)(IndustryID industry_id, int radius), 3> (engine, "xii");
 
 	engine->AddClassEnd();
 }
@@ -38,7 +38,7 @@ static void SQGSTileList_IndustryAccepting_Register (Squirrel *engine)
 static void SQGSTileList_IndustryProducing_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSTileList_IndustryProducing", "GSTileList");
-	SQConvert::AddConstructor <ScriptTileList_IndustryProducing, void (ScriptTileList_IndustryProducing::*)(IndustryID industry_id, int radius), 3> (engine, "xii");
+	SQConvert::AddConstructor <void (ScriptTileList_IndustryProducing::*)(IndustryID industry_id, int radius), 3> (engine, "xii");
 
 	engine->AddClassEnd();
 }
@@ -47,7 +47,7 @@ static void SQGSTileList_IndustryProducing_Register (Squirrel *engine)
 static void SQGSTileList_StationType_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSTileList_StationType", "GSTileList");
-	SQConvert::AddConstructor <ScriptTileList_StationType, void (ScriptTileList_StationType::*)(StationID station_id, ScriptStation::StationType station_type), 3> (engine, "xii");
+	SQConvert::AddConstructor <void (ScriptTileList_StationType::*)(StationID station_id, ScriptStation::StationType station_type), 3> (engine, "xii");
 
 	engine->AddClassEnd();
 }

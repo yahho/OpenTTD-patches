@@ -15,7 +15,7 @@
 static void SQGSDepotList_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSDepotList", "GSList");
-	SQConvert::AddConstructor <ScriptDepotList, void (ScriptDepotList::*)(ScriptTile::TransportType transport_type), 2> (engine, "xi");
+	SQConvert::AddConstructor <void (ScriptDepotList::*)(ScriptTile::TransportType transport_type), 2> (engine, "xi");
 
 	engine->AddClassEnd();
 }

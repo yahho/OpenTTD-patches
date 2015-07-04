@@ -15,7 +15,7 @@
 static void SQGSStoryPage_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSStoryPage");
-	SQConvert::AddConstructor <ScriptStoryPage, void (ScriptStoryPage::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptStoryPage::*)(), 1> (engine, "x");
 
 	engine->AddConst ("STORY_PAGE_INVALID",         ScriptStoryPage::STORY_PAGE_INVALID);
 	engine->AddConst ("STORY_PAGE_ELEMENT_INVALID", ScriptStoryPage::STORY_PAGE_ELEMENT_INVALID);

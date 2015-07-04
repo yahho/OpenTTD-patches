@@ -15,7 +15,7 @@
 static void SQAISubsidy_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AISubsidy");
-	SQConvert::AddConstructor <ScriptSubsidy, void (ScriptSubsidy::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptSubsidy::*)(), 1> (engine, "x");
 
 	engine->AddConst ("SPT_INDUSTRY", ScriptSubsidy::SPT_INDUSTRY);
 	engine->AddConst ("SPT_TOWN",     ScriptSubsidy::SPT_TOWN);

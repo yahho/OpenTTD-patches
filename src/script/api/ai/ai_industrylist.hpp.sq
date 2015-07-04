@@ -15,7 +15,7 @@
 static void SQAIIndustryList_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIIndustryList", "AIList");
-	SQConvert::AddConstructor <ScriptIndustryList, void (ScriptIndustryList::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptIndustryList::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();
 }
@@ -24,7 +24,7 @@ static void SQAIIndustryList_Register (Squirrel *engine)
 static void SQAIIndustryList_CargoAccepting_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIIndustryList_CargoAccepting", "AIList");
-	SQConvert::AddConstructor <ScriptIndustryList_CargoAccepting, void (ScriptIndustryList_CargoAccepting::*)(CargoID cargo_id), 2> (engine, "xi");
+	SQConvert::AddConstructor <void (ScriptIndustryList_CargoAccepting::*)(CargoID cargo_id), 2> (engine, "xi");
 
 	engine->AddClassEnd();
 }
@@ -33,7 +33,7 @@ static void SQAIIndustryList_CargoAccepting_Register (Squirrel *engine)
 static void SQAIIndustryList_CargoProducing_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIIndustryList_CargoProducing", "AIList");
-	SQConvert::AddConstructor <ScriptIndustryList_CargoProducing, void (ScriptIndustryList_CargoProducing::*)(CargoID cargo_id), 2> (engine, "xi");
+	SQConvert::AddConstructor <void (ScriptIndustryList_CargoProducing::*)(CargoID cargo_id), 2> (engine, "xi");
 
 	engine->AddClassEnd();
 }

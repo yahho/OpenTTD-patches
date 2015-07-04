@@ -15,7 +15,7 @@
 static void SQAIInfrastructure_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIInfrastructure");
-	SQConvert::AddConstructor <ScriptInfrastructure, void (ScriptInfrastructure::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptInfrastructure::*)(), 1> (engine, "x");
 
 	engine->AddConst ("INFRASTRUCTURE_RAIL",    ScriptInfrastructure::INFRASTRUCTURE_RAIL);
 	engine->AddConst ("INFRASTRUCTURE_SIGNALS", ScriptInfrastructure::INFRASTRUCTURE_SIGNALS);

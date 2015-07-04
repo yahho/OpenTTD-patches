@@ -15,7 +15,7 @@
 static void SQGSCargoMonitor_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSCargoMonitor");
-	SQConvert::AddConstructor <ScriptCargoMonitor, void (ScriptCargoMonitor::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptCargoMonitor::*)(), 1> (engine, "x");
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptCargoMonitor::GetTownDeliveryAmount,     "GetTownDeliveryAmount",     5, ".iiib");
 	SQConvert::DefSQStaticMethod (engine, &ScriptCargoMonitor::GetIndustryDeliveryAmount, "GetIndustryDeliveryAmount", 5, ".iiib");

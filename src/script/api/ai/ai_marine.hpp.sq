@@ -15,7 +15,7 @@
 static void SQAIMarine_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIMarine");
-	SQConvert::AddConstructor <ScriptMarine, void (ScriptMarine::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptMarine::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_MARINE_BASE",                   ScriptMarine::ERR_MARINE_BASE);
 	engine->AddConst ("ERR_MARINE_MUST_BE_BUILT_ON_WATER", ScriptMarine::ERR_MARINE_MUST_BE_BUILT_ON_WATER);

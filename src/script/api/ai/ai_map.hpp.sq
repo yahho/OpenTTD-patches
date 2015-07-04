@@ -15,7 +15,7 @@
 static void SQAIMap_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIMap");
-	SQConvert::AddConstructor <ScriptMap, void (ScriptMap::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptMap::*)(), 1> (engine, "x");
 
 	engine->AddConst ("TILE_INVALID", ScriptMap::TILE_INVALID);
 

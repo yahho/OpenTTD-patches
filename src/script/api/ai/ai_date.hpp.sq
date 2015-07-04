@@ -15,7 +15,7 @@
 static void SQAIDate_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIDate");
-	SQConvert::AddConstructor <ScriptDate, void (ScriptDate::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptDate::*)(), 1> (engine, "x");
 
 	engine->AddConst ("DATE_INVALID", ScriptDate::DATE_INVALID);
 

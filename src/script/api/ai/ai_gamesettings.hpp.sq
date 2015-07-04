@@ -15,7 +15,7 @@
 static void SQAIGameSettings_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIGameSettings");
-	SQConvert::AddConstructor <ScriptGameSettings, void (ScriptGameSettings::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptGameSettings::*)(), 1> (engine, "x");
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptGameSettings::IsValid,               "IsValid",               2, "..");
 	SQConvert::DefSQStaticMethod (engine, &ScriptGameSettings::GetValue,              "GetValue",              2, "..");

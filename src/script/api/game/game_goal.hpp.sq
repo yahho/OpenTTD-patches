@@ -15,7 +15,7 @@
 static void SQGSGoal_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSGoal");
-	SQConvert::AddConstructor <ScriptGoal, void (ScriptGoal::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptGoal::*)(), 1> (engine, "x");
 
 	engine->AddConst ("GOAL_INVALID",     ScriptGoal::GOAL_INVALID);
 	engine->AddConst ("GT_NONE",          ScriptGoal::GT_NONE);

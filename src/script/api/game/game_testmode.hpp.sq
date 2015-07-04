@@ -15,7 +15,7 @@
 static void SQGSTestMode_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSTestMode");
-	SQConvert::AddConstructor <ScriptTestMode, void (ScriptTestMode::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptTestMode::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();
 }

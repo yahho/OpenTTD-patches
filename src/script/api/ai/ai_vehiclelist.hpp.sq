@@ -15,7 +15,7 @@
 static void SQAIVehicleList_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIVehicleList", "AIList");
-	SQConvert::AddConstructor <ScriptVehicleList, void (ScriptVehicleList::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptVehicleList::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();
 }
@@ -24,7 +24,7 @@ static void SQAIVehicleList_Register (Squirrel *engine)
 static void SQAIVehicleList_Station_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIVehicleList_Station", "AIList");
-	SQConvert::AddConstructor <ScriptVehicleList_Station, void (ScriptVehicleList_Station::*)(StationID station_id), 2> (engine, "xi");
+	SQConvert::AddConstructor <void (ScriptVehicleList_Station::*)(StationID station_id), 2> (engine, "xi");
 
 	engine->AddClassEnd();
 }
@@ -33,7 +33,7 @@ static void SQAIVehicleList_Station_Register (Squirrel *engine)
 static void SQAIVehicleList_Depot_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIVehicleList_Depot", "AIList");
-	SQConvert::AddConstructor <ScriptVehicleList_Depot, void (ScriptVehicleList_Depot::*)(TileIndex tile), 2> (engine, "xi");
+	SQConvert::AddConstructor <void (ScriptVehicleList_Depot::*)(TileIndex tile), 2> (engine, "xi");
 
 	engine->AddClassEnd();
 }
@@ -42,7 +42,7 @@ static void SQAIVehicleList_Depot_Register (Squirrel *engine)
 static void SQAIVehicleList_SharedOrders_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIVehicleList_SharedOrders", "AIList");
-	SQConvert::AddConstructor <ScriptVehicleList_SharedOrders, void (ScriptVehicleList_SharedOrders::*)(VehicleID vehicle_id), 2> (engine, "xi");
+	SQConvert::AddConstructor <void (ScriptVehicleList_SharedOrders::*)(VehicleID vehicle_id), 2> (engine, "xi");
 
 	engine->AddClassEnd();
 }
@@ -51,7 +51,7 @@ static void SQAIVehicleList_SharedOrders_Register (Squirrel *engine)
 static void SQAIVehicleList_Group_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIVehicleList_Group", "AIList");
-	SQConvert::AddConstructor <ScriptVehicleList_Group, void (ScriptVehicleList_Group::*)(GroupID group_id), 2> (engine, "xi");
+	SQConvert::AddConstructor <void (ScriptVehicleList_Group::*)(GroupID group_id), 2> (engine, "xi");
 
 	engine->AddClassEnd();
 }
@@ -60,7 +60,7 @@ static void SQAIVehicleList_Group_Register (Squirrel *engine)
 static void SQAIVehicleList_DefaultGroup_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIVehicleList_DefaultGroup", "AIList");
-	SQConvert::AddConstructor <ScriptVehicleList_DefaultGroup, void (ScriptVehicleList_DefaultGroup::*)(ScriptVehicle::VehicleType vehicle_type), 2> (engine, "xi");
+	SQConvert::AddConstructor <void (ScriptVehicleList_DefaultGroup::*)(ScriptVehicle::VehicleType vehicle_type), 2> (engine, "xi");
 
 	engine->AddClassEnd();
 }

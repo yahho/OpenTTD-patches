@@ -23,7 +23,7 @@ static const char *const game_api_versions[] =
 {
 	/* Create the GSInfo class, and add the RegisterGS function */
 	engine->AddClassBegin ("GSInfo");
-	SQConvert::AddConstructor <GameInfo, void (GameInfo::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (GameInfo::*)(), 1> (engine, "x");
 	SQConvert::DefSQAdvancedMethod (engine, "GSInfo", &GameInfo::AddSetting, "AddSetting");
 	SQConvert::DefSQAdvancedMethod (engine, "GSInfo", &GameInfo::AddLabels,  "AddLabels");
 	engine->AddConst ("CONFIG_NONE",      SCRIPTCONFIG_NONE);

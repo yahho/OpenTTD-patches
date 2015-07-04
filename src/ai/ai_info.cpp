@@ -25,7 +25,7 @@ static const char *const ai_api_versions[] =
 {
 	/* Create the AIInfo class, and add the RegisterAI function */
 	engine->AddClassBegin ("AIInfo");
-	SQConvert::AddConstructor <AIInfo, void (AIInfo::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (AIInfo::*)(), 1> (engine, "x");
 	SQConvert::DefSQAdvancedMethod (engine, "AIInfo", &AIInfo::AddSetting, "AddSetting");
 	SQConvert::DefSQAdvancedMethod (engine, "AIInfo", &AIInfo::AddLabels,  "AddLabels");
 	engine->AddConst ("CONFIG_NONE",      SCRIPTCONFIG_NONE);

@@ -15,7 +15,7 @@
 static void SQGSRail_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSRail");
-	SQConvert::AddConstructor <ScriptRail, void (ScriptRail::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptRail::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_RAIL_BASE",                   ScriptRail::ERR_RAIL_BASE);
 	engine->AddConst ("ERR_CROSSING_ON_ONEWAY_ROAD",     ScriptRail::ERR_CROSSING_ON_ONEWAY_ROAD);

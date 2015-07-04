@@ -15,7 +15,7 @@
 static void SQGSEngineList_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSEngineList", "GSList");
-	SQConvert::AddConstructor <ScriptEngineList, void (ScriptEngineList::*)(ScriptVehicle::VehicleType vehicle_type), 2> (engine, "xi");
+	SQConvert::AddConstructor <void (ScriptEngineList::*)(ScriptVehicle::VehicleType vehicle_type), 2> (engine, "xi");
 
 	engine->AddClassEnd();
 }

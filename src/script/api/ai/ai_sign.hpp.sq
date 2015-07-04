@@ -15,7 +15,7 @@
 static void SQAISign_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AISign");
-	SQConvert::AddConstructor <ScriptSign, void (ScriptSign::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptSign::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_SIGN_BASE",           ScriptSign::ERR_SIGN_BASE);
 	engine->AddConst ("ERR_SIGN_TOO_MANY_SIGNS", ScriptSign::ERR_SIGN_TOO_MANY_SIGNS);

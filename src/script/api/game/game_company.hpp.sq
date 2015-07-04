@@ -15,7 +15,7 @@
 static void SQGSCompany_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSCompany");
-	SQConvert::AddConstructor <ScriptCompany, void (ScriptCompany::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptCompany::*)(), 1> (engine, "x");
 
 	engine->AddConst ("CURRENT_QUARTER",       ScriptCompany::CURRENT_QUARTER);
 	engine->AddConst ("EARLIEST_QUARTER",      ScriptCompany::EARLIEST_QUARTER);

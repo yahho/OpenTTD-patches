@@ -15,7 +15,7 @@
 static void SQAICargo_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AICargo");
-	SQConvert::AddConstructor <ScriptCargo, void (ScriptCargo::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptCargo::*)(), 1> (engine, "x");
 
 	engine->AddConst ("CC_PASSENGERS",             ScriptCargo::CC_PASSENGERS);
 	engine->AddConst ("CC_MAIL",                   ScriptCargo::CC_MAIL);

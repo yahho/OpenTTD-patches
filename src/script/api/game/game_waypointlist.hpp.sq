@@ -15,7 +15,7 @@
 static void SQGSWaypointList_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSWaypointList", "GSList");
-	SQConvert::AddConstructor <ScriptWaypointList, void (ScriptWaypointList::*)(ScriptWaypoint::WaypointType waypoint_type), 2> (engine, "xi");
+	SQConvert::AddConstructor <void (ScriptWaypointList::*)(ScriptWaypoint::WaypointType waypoint_type), 2> (engine, "xi");
 
 	engine->AddClassEnd();
 }
@@ -24,7 +24,7 @@ static void SQGSWaypointList_Register (Squirrel *engine)
 static void SQGSWaypointList_Vehicle_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSWaypointList_Vehicle", "GSList");
-	SQConvert::AddConstructor <ScriptWaypointList_Vehicle, void (ScriptWaypointList_Vehicle::*)(VehicleID vehicle_id), 2> (engine, "xi");
+	SQConvert::AddConstructor <void (ScriptWaypointList_Vehicle::*)(VehicleID vehicle_id), 2> (engine, "xi");
 
 	engine->AddClassEnd();
 }

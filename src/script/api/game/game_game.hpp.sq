@@ -15,7 +15,7 @@
 static void SQGSGame_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSGame");
-	SQConvert::AddConstructor <ScriptGame, void (ScriptGame::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptGame::*)(), 1> (engine, "x");
 
 	engine->AddConst ("LT_TEMPERATE", ScriptGame::LT_TEMPERATE);
 	engine->AddConst ("LT_ARCTIC",    ScriptGame::LT_ARCTIC);

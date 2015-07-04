@@ -15,7 +15,7 @@
 static void SQAIBridgeList_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIBridgeList", "AIList");
-	SQConvert::AddConstructor <ScriptBridgeList, void (ScriptBridgeList::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptBridgeList::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();
 }
@@ -24,7 +24,7 @@ static void SQAIBridgeList_Register (Squirrel *engine)
 static void SQAIBridgeList_Length_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIBridgeList_Length", "AIList");
-	SQConvert::AddConstructor <ScriptBridgeList_Length, void (ScriptBridgeList_Length::*)(uint length), 2> (engine, "xi");
+	SQConvert::AddConstructor <void (ScriptBridgeList_Length::*)(uint length), 2> (engine, "xi");
 
 	engine->AddClassEnd();
 }

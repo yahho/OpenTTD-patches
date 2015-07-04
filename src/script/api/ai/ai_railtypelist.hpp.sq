@@ -15,7 +15,7 @@
 static void SQAIRailTypeList_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIRailTypeList", "AIList");
-	SQConvert::AddConstructor <ScriptRailTypeList, void (ScriptRailTypeList::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptRailTypeList::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();
 }

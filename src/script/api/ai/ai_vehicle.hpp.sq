@@ -15,7 +15,7 @@
 static void SQAIVehicle_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIVehicle");
-	SQConvert::AddConstructor <ScriptVehicle, void (ScriptVehicle::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptVehicle::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_VEHICLE_BASE",                 ScriptVehicle::ERR_VEHICLE_BASE);
 	engine->AddConst ("ERR_VEHICLE_TOO_MANY",             ScriptVehicle::ERR_VEHICLE_TOO_MANY);

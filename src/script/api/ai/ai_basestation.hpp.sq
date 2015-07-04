@@ -15,7 +15,7 @@
 static void SQAIBaseStation_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIBaseStation");
-	SQConvert::AddConstructor <ScriptBaseStation, void (ScriptBaseStation::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptBaseStation::*)(), 1> (engine, "x");
 
 	engine->AddConst ("STATION_NEW",           ScriptBaseStation::STATION_NEW);
 	engine->AddConst ("STATION_JOIN_ADJACENT", ScriptBaseStation::STATION_JOIN_ADJACENT);

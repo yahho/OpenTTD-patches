@@ -15,7 +15,7 @@
 static void SQAIExecMode_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIExecMode");
-	SQConvert::AddConstructor <ScriptExecMode, void (ScriptExecMode::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptExecMode::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();
 }

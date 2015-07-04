@@ -15,7 +15,7 @@
 static void SQGSLog_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSLog");
-	SQConvert::AddConstructor <ScriptLog, void (ScriptLog::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptLog::*)(), 1> (engine, "x");
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptLog::Info,    "Info",    2, "..");
 	SQConvert::DefSQStaticMethod (engine, &ScriptLog::Warning, "Warning", 2, "..");

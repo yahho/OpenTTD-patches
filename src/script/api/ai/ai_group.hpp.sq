@@ -15,7 +15,7 @@
 static void SQAIGroup_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIGroup");
-	SQConvert::AddConstructor <ScriptGroup, void (ScriptGroup::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptGroup::*)(), 1> (engine, "x");
 
 	engine->AddConst ("GROUP_ALL",     ScriptGroup::GROUP_ALL);
 	engine->AddConst ("GROUP_DEFAULT", ScriptGroup::GROUP_DEFAULT);

@@ -15,7 +15,7 @@
 static void SQGSAdmin_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSAdmin");
-	SQConvert::AddConstructor <ScriptAdmin, void (ScriptAdmin::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptAdmin::*)(), 1> (engine, "x");
 
 	SQConvert::DefSQAdvancedStaticMethod (engine, &ScriptAdmin::Send, "Send");
 

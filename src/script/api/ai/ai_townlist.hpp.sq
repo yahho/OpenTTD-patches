@@ -15,7 +15,7 @@
 static void SQAITownList_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AITownList", "AIList");
-	SQConvert::AddConstructor <ScriptTownList, void (ScriptTownList::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptTownList::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();
 }
@@ -24,7 +24,7 @@ static void SQAITownList_Register (Squirrel *engine)
 static void SQAITownEffectList_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AITownEffectList", "AIList");
-	SQConvert::AddConstructor <ScriptTownEffectList, void (ScriptTownEffectList::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptTownEffectList::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();
 }

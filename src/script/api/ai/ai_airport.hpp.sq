@@ -15,7 +15,7 @@
 static void SQAIAirport_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIAirport");
-	SQConvert::AddConstructor <ScriptAirport, void (ScriptAirport::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptAirport::*)(), 1> (engine, "x");
 
 	engine->AddConst ("AT_SMALL",         ScriptAirport::AT_SMALL);
 	engine->AddConst ("AT_LARGE",         ScriptAirport::AT_LARGE);

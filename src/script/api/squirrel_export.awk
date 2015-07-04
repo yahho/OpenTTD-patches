@@ -260,7 +260,7 @@ BEGIN {
 		if (cls_param[2] == "v") {
 			print "	SQConvert::AddSQAdvancedConstructor <" cls "> (engine);"
 		} else {
-			print "	SQConvert::AddConstructor <" cls ", void (" cls "::*)(" cls_param[0] "), " cls_param[1]"> (engine, \"" cls_param[2] "\");"
+			print "	SQConvert::AddConstructor <void (" cls "::*)(" cls_param[0] "), " cls_param[1]"> (engine, \"" cls_param[2] "\");"
 		}
 	}
 	print ""
@@ -335,7 +335,7 @@ BEGIN {
 			if (methods[i, 2] == "v") {
 				print "	SQConvert::DefSQAdvancedMethod (engine, \"" api_cls "\", &" cls "::" methods[i, 0] ", " substr(spaces, 1, mlen - length(methods[i, 0]) - 8) "\""  methods[i, 0] "\");"
 			} else {
-				print "	SQConvert::DefSQMethod <" cls "> (engine, \"" api_cls "\", &" cls "::" methods[i, 0] ", " substr(spaces, 1, mlen - length(methods[i, 0])) "\""  methods[i, 0] "\", " substr(spaces, 1, mlen - length(methods[i, 0])) "" methods[i, 1] ", \"" methods[i, 2] "\");"
+				print "	SQConvert::DefSQMethod (engine, \"" api_cls "\", &" cls "::" methods[i, 0] ", " substr(spaces, 1, mlen - length(methods[i, 0])) "\""  methods[i, 0] "\", " substr(spaces, 1, mlen - length(methods[i, 0])) "" methods[i, 1] ", \"" methods[i, 2] "\");"
 			}
 			delete methods[i]
 		}

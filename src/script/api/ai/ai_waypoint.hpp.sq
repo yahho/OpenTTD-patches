@@ -15,7 +15,7 @@
 static void SQAIWaypoint_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIWaypoint", "AIBaseStation");
-	SQConvert::AddConstructor <ScriptWaypoint, void (ScriptWaypoint::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptWaypoint::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_WAYPOINT_BASE",                          ScriptWaypoint::ERR_WAYPOINT_BASE);
 	engine->AddConst ("ERR_WAYPOINT_TOO_CLOSE_TO_ANOTHER_WAYPOINT", ScriptWaypoint::ERR_WAYPOINT_TOO_CLOSE_TO_ANOTHER_WAYPOINT);

@@ -534,46 +534,52 @@ namespace SQConvert {
 	 * Now this should work for class methods:
 	 *      template <class C, typename F>
 	 *      struct FSig <F C::*> : FSig <F> {
+	 *              typedef C Cls;
 	 *      };
 	 * ...but MSVC chokes on it, so we must repeat everything.
 	 */
 
+	template <typename C>
+	struct FCls {
+		typedef C Cls;
+	};
+
 	template <class C, typename R>
-	struct FSig <R (C::*) (void)> : FRet <R> {
+	struct FSig <R (C::*) (void)> : FRet <R>, FCls <C> {
 		typedef Params0 Params;
 	};
 
 	template <class C, typename R, typename T1>
-	struct FSig <R (C::*) (T1)> : FRet <R> {
+	struct FSig <R (C::*) (T1)> : FRet <R>, FCls <C> {
 		typedef Params1 <T1> Params;
 	};
 
 	template <class C, typename R, typename T1, typename T2>
-	struct FSig <R (C::*) (T1, T2)> : FRet <R> {
+	struct FSig <R (C::*) (T1, T2)> : FRet <R>, FCls <C> {
 		typedef Params2 <T1, T2> Params;
 	};
 
 	template <class C, typename R, typename T1, typename T2, typename T3>
-	struct FSig <R (C::*) (T1, T2, T3)> : FRet <R> {
+	struct FSig <R (C::*) (T1, T2, T3)> : FRet <R>, FCls <C> {
 		typedef Params3 <T1, T2, T3> Params;
 	};
 
 	template <class C, typename R, typename T1, typename T2, typename T3,
 			typename T4>
-	struct FSig <R (C::*) (T1, T2, T3, T4)> : FRet <R> {
+	struct FSig <R (C::*) (T1, T2, T3, T4)> : FRet <R>, FCls <C> {
 		typedef Params4 <T1, T2, T3, T4> Params;
 	};
 
 	template <class C, typename R, typename T1, typename T2, typename T3,
 			typename T4, typename T5>
-	struct FSig <R (C::*) (T1, T2, T3, T4, T5)> : FRet <R> {
+	struct FSig <R (C::*) (T1, T2, T3, T4, T5)> : FRet <R>, FCls <C> {
 		typedef Params5 <T1, T2, T3, T4, T5> Params;
 	};
 
 	template <class C, typename R, typename T1, typename T2, typename T3,
 			typename T4, typename T5, typename T6, typename T7,
 			typename T8, typename T9, typename T10>
-	struct FSig <R (C::*) (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)> : FRet <R> {
+	struct FSig <R (C::*) (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)> : FRet <R>, FCls <C> {
 		typedef Params10 <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> Params;
 	};
 
@@ -689,20 +695,21 @@ namespace SQConvert {
 	 *  In here the function_proc is recovered, and the SQCall is called that
 	 *  can handle this exact amount of params.
 	 */
-	template <typename Tcls, typename Tmethod>
+	template <typename Tmethod>
 	inline SQInteger DefSQNonStaticCallback(HSQUIRRELVM vm)
 	{
+		typedef FSig<Tmethod> Sig;
+
 		SQUserPointer obj = NULL;
 		SQUserPointer ptr = NULL;
 		const char *err = GetMethodPointers (vm, &obj, &ptr);
 		if (err != NULL) return sq_throwerror (vm, err);
 
-		Tcls *instance = (Tcls *) obj;
+		typename Sig::Cls *instance = (typename Sig::Cls *) obj;
 		Tmethod method = ((MethodCallbackData <Tmethod> *) ptr)->method;
 
 		try {
 			/* Delegate it to a template that can handle this specific function */
-			typedef FSig<Tmethod> Sig;
 			typename Sig::Params params (vm);
 			SQRetVal <typename Sig::Ret> ret (&params,
 						instance, method);
@@ -713,13 +720,13 @@ namespace SQConvert {
 	}
 
 	/** This defines a method inside a class for Squirrel. */
-	template <typename Tcls, typename Tmethod>
+	template <typename Tmethod>
 	inline void DefSQMethod (Squirrel *engine, const char *class_name,
 		Tmethod function_proc, const char *function_name)
 	{
 		MethodCallbackData <Tmethod> data = { class_name, function_proc };
 		assert_tcompile ((const char**)(SQUserPointer)&data == &data.cname);
-		engine->AddMethod (function_name, DefSQNonStaticCallback <Tcls, Tmethod>, 0, NULL, &data, sizeof(data));
+		engine->AddMethod (function_name, DefSQNonStaticCallback<Tmethod>, 0, NULL, &data, sizeof(data));
 	}
 
 	/**
@@ -728,14 +735,14 @@ namespace SQConvert {
 	 *  which is the 'this' inside the function. This is hidden from the rest
 	 *  of the code, but without it calling your function will fail!
 	 */
-	template <typename Tcls, typename Tmethod>
+	template <typename Tmethod>
 	inline void DefSQMethod (Squirrel *engine, const char *class_name,
 		Tmethod function_proc, const char *function_name,
 		int nparam, const char *params)
 	{
 		MethodCallbackData <Tmethod> data = { class_name, function_proc };
 		assert_tcompile ((const char**)(SQUserPointer)&data == &data.cname);
-		engine->AddMethod (function_name, DefSQNonStaticCallback <Tcls, Tmethod>, nparam, params, &data, sizeof(data));
+		engine->AddMethod (function_name, DefSQNonStaticCallback<Tmethod>, nparam, params, &data, sizeof(data));
 	}
 
 	/**
@@ -864,7 +871,7 @@ namespace SQConvert {
 	 *  params. It creates the instance in C++, and it sets all the needed
 	 *  settings in SQ to register the instance.
 	 */
-	template <typename Tcls, typename Tmethod, int Tnparam>
+	template <typename Tmethod, int Tnparam>
 	inline SQInteger DefSQConstructorCallback(HSQUIRRELVM vm)
 	{
 		typedef FSig<Tmethod> Sig;
@@ -872,9 +879,9 @@ namespace SQConvert {
 		try {
 			/* Create the real instance */
 			typename Sig::Params params (vm);
-			Tcls *instance = params.template construct <Tcls> ();
+			typename Sig::Cls *instance = params.template construct <typename Sig::Cls> ();
 			sq_setinstanceup(vm, -Tnparam, instance);
-			sq_setreleasehook(vm, -Tnparam, DefSQDestructorCallback<Tcls>);
+			sq_setreleasehook(vm, -Tnparam, DefSQDestructorCallback<typename Sig::Cls>);
 			instance->AddRef();
 			return 0;
 		} catch (SQInteger e) {
@@ -882,10 +889,10 @@ namespace SQConvert {
 		}
 	}
 
-	template <typename Tcls, typename Tmethod, int Tnparam>
+	template <typename Tmethod, int Tnparam>
 	inline void AddConstructor (Squirrel *engine, const char *params)
 	{
-		engine->AddMethod ("constructor", DefSQConstructorCallback <Tcls, Tmethod, Tnparam>, Tnparam, params);
+		engine->AddMethod ("constructor", DefSQConstructorCallback <Tmethod, Tnparam>, Tnparam, params);
 	}
 
 	/**

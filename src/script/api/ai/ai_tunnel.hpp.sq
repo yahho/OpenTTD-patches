@@ -15,7 +15,7 @@
 static void SQAITunnel_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AITunnel");
-	SQConvert::AddConstructor <ScriptTunnel, void (ScriptTunnel::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptTunnel::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_TUNNEL_BASE",                      ScriptTunnel::ERR_TUNNEL_BASE);
 	engine->AddConst ("ERR_TUNNEL_CANNOT_BUILD_ON_WATER",     ScriptTunnel::ERR_TUNNEL_CANNOT_BUILD_ON_WATER);

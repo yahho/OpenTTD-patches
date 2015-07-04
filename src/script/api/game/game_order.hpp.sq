@@ -15,7 +15,7 @@
 static void SQGSOrder_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSOrder");
-	SQConvert::AddConstructor <ScriptOrder, void (ScriptOrder::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptOrder::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_ORDER_BASE",                                   ScriptOrder::ERR_ORDER_BASE);
 	engine->AddConst ("ERR_ORDER_TOO_MANY",                               ScriptOrder::ERR_ORDER_TOO_MANY);

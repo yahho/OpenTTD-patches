@@ -15,7 +15,7 @@
 static void SQAIError_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIError");
-	SQConvert::AddConstructor <ScriptError, void (ScriptError::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptError::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_CAT_NONE",                         ScriptError::ERR_CAT_NONE);
 	engine->AddConst ("ERR_CAT_GENERAL",                      ScriptError::ERR_CAT_GENERAL);

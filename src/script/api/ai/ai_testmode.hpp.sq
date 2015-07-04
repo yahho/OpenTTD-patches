@@ -15,7 +15,7 @@
 static void SQAITestMode_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AITestMode");
-	SQConvert::AddConstructor <ScriptTestMode, void (ScriptTestMode::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptTestMode::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();
 }

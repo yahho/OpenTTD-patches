@@ -15,7 +15,7 @@
 static void SQGSNews_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSNews");
-	SQConvert::AddConstructor <ScriptNews, void (ScriptNews::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptNews::*)(), 1> (engine, "x");
 
 	engine->AddConst ("NT_ACCIDENT",     ScriptNews::NT_ACCIDENT);
 	engine->AddConst ("NT_COMPANY_INFO", ScriptNews::NT_COMPANY_INFO);

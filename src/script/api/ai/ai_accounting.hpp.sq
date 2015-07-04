@@ -15,10 +15,10 @@
 static void SQAIAccounting_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIAccounting");
-	SQConvert::AddConstructor <ScriptAccounting, void (ScriptAccounting::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptAccounting::*)(), 1> (engine, "x");
 
-	SQConvert::DefSQMethod <ScriptAccounting> (engine, "AIAccounting", &ScriptAccounting::GetCosts,   "GetCosts",   1, "x");
-	SQConvert::DefSQMethod <ScriptAccounting> (engine, "AIAccounting", &ScriptAccounting::ResetCosts, "ResetCosts", 1, "x");
+	SQConvert::DefSQMethod (engine, "AIAccounting", &ScriptAccounting::GetCosts,   "GetCosts",   1, "x");
+	SQConvert::DefSQMethod (engine, "AIAccounting", &ScriptAccounting::ResetCosts, "ResetCosts", 1, "x");
 
 	engine->AddClassEnd();
 }

@@ -15,7 +15,7 @@
 static void SQGSIndustryTypeList_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSIndustryTypeList", "GSList");
-	SQConvert::AddConstructor <ScriptIndustryTypeList, void (ScriptIndustryTypeList::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptIndustryTypeList::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();
 }

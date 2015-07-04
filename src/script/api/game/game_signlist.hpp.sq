@@ -15,7 +15,7 @@
 static void SQGSSignList_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSSignList", "GSList");
-	SQConvert::AddConstructor <ScriptSignList, void (ScriptSignList::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptSignList::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();
 }

@@ -15,7 +15,7 @@
 static void SQGSEvent_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSEvent");
-	SQConvert::AddConstructor <ScriptEvent, void (ScriptEvent::*)(ScriptEvent::ScriptEventType type), 2> (engine, "xi");
+	SQConvert::AddConstructor <void (ScriptEvent::*)(ScriptEvent::ScriptEventType type), 2> (engine, "xi");
 
 	engine->AddConst ("ET_INVALID",                     ScriptEvent::ET_INVALID);
 	engine->AddConst ("ET_TEST",                        ScriptEvent::ET_TEST);
@@ -47,7 +47,7 @@ static void SQGSEvent_Register (Squirrel *engine)
 	engine->AddConst ("ET_EXCLUSIVE_TRANSPORT_RIGHTS",  ScriptEvent::ET_EXCLUSIVE_TRANSPORT_RIGHTS);
 	engine->AddConst ("ET_ROAD_RECONSTRUCTION",         ScriptEvent::ET_ROAD_RECONSTRUCTION);
 
-	SQConvert::DefSQMethod <ScriptEvent> (engine, "GSEvent", &ScriptEvent::GetEventType, "GetEventType", 1, "x");
+	SQConvert::DefSQMethod (engine, "GSEvent", &ScriptEvent::GetEventType, "GetEventType", 1, "x");
 
 	engine->AddClassEnd();
 }
@@ -56,7 +56,7 @@ static void SQGSEvent_Register (Squirrel *engine)
 static void SQGSEventController_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSEventController");
-	SQConvert::AddConstructor <ScriptEventController, void (ScriptEventController::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptEventController::*)(), 1> (engine, "x");
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventController::IsEventWaiting, "IsEventWaiting", 1, ".");
 	SQConvert::DefSQStaticMethod (engine, &ScriptEventController::GetNextEvent,   "GetNextEvent",   1, ".");

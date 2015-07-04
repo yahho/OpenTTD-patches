@@ -15,7 +15,7 @@
 static void SQGSTown_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSTown");
-	SQConvert::AddConstructor <ScriptTown, void (ScriptTown::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptTown::*)(), 1> (engine, "x");
 
 	engine->AddConst ("TOWN_ACTION_ADVERTISE_SMALL",  ScriptTown::TOWN_ACTION_ADVERTISE_SMALL);
 	engine->AddConst ("TOWN_ACTION_ADVERTISE_MEDIUM", ScriptTown::TOWN_ACTION_ADVERTISE_MEDIUM);

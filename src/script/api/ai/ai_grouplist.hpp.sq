@@ -15,7 +15,7 @@
 static void SQAIGroupList_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIGroupList", "AIList");
-	SQConvert::AddConstructor <ScriptGroupList, void (ScriptGroupList::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptGroupList::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();
 }

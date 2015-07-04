@@ -15,7 +15,7 @@
 static void SQGSIndustryType_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSIndustryType");
-	SQConvert::AddConstructor <ScriptIndustryType, void (ScriptIndustryType::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptIndustryType::*)(), 1> (engine, "x");
 
 	engine->AddConst ("INDUSTRYTYPE_UNKNOWN", ScriptIndustryType::INDUSTRYTYPE_UNKNOWN);
 	engine->AddConst ("INDUSTRYTYPE_TOWN",    ScriptIndustryType::INDUSTRYTYPE_TOWN);

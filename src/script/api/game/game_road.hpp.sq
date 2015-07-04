@@ -15,7 +15,7 @@
 static void SQGSRoad_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSRoad");
-	SQConvert::AddConstructor <ScriptRoad, void (ScriptRoad::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptRoad::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_ROAD_BASE",                                ScriptRoad::ERR_ROAD_BASE);
 	engine->AddConst ("ERR_ROAD_WORKS_IN_PROGRESS",                   ScriptRoad::ERR_ROAD_WORKS_IN_PROGRESS);

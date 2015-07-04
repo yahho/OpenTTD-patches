@@ -15,7 +15,7 @@
 static void SQGSViewport_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSViewport");
-	SQConvert::AddConstructor <ScriptViewport, void (ScriptViewport::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptViewport::*)(), 1> (engine, "x");
 
 	SQConvert::DefSQStaticMethod (engine, &ScriptViewport::ScrollTo, "ScrollTo", 2, ".i");
 

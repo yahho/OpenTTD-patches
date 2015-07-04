@@ -15,7 +15,7 @@
 static void SQGSTile_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("GSTile");
-	SQConvert::AddConstructor <ScriptTile, void (ScriptTile::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptTile::*)(), 1> (engine, "x");
 
 	engine->AddConst ("ERR_TILE_BASE",               ScriptTile::ERR_TILE_BASE);
 	engine->AddConst ("ERR_TILE_TOO_HIGH",           ScriptTile::ERR_TILE_TOO_HIGH);

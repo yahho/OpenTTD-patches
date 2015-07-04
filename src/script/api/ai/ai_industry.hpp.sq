@@ -15,7 +15,7 @@
 static void SQAIIndustry_Register (Squirrel *engine)
 {
 	engine->AddClassBegin ("AIIndustry");
-	SQConvert::AddConstructor <ScriptIndustry, void (ScriptIndustry::*)(), 1> (engine, "x");
+	SQConvert::AddConstructor <void (ScriptIndustry::*)(), 1> (engine, "x");
 
 	engine->AddConst ("CAS_NOT_ACCEPTED", ScriptIndustry::CAS_NOT_ACCEPTED);
 	engine->AddConst ("CAS_ACCEPTED",     ScriptIndustry::CAS_ACCEPTED);
