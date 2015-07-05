@@ -183,3 +183,20 @@ ScriptController::~ScriptController()
 
 	return obj;
 }
+
+void SQController_Register (Squirrel *engine, const char *name)
+{
+	engine->AddClassBegin (name);
+	SQConvert::DefSQStaticMethod (engine, &ScriptController::GetTick,           "GetTick",           1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptController::GetOpsTillSuspend, "GetOpsTillSuspend", 1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptController::SetCommandDelay,   "SetCommandDelay",   2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptController::Sleep,             "Sleep",             2, ".i");
+	SQConvert::DefSQStaticMethod (engine, &ScriptController::Break,             "Break",             2, ".s");
+	SQConvert::DefSQStaticMethod (engine, &ScriptController::GetSetting,        "GetSetting",        2, ".s");
+	SQConvert::DefSQStaticMethod (engine, &ScriptController::GetVersion,        "GetVersion",        1, ".");
+	SQConvert::DefSQStaticMethod (engine, &ScriptController::Print,             "Print",             3, ".bs");
+	engine->AddClassEnd();
+
+	/* Register the import statement to the global scope */
+	SQConvert::DefSQStaticMethod (engine, &ScriptController::Import,            "import",            4, ".ssi");
+}

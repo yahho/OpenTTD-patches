@@ -113,7 +113,8 @@ cat > ${f}.tmp << EOF
 EOF
 
 grep -l '^static void SQ'${apiuc}'.*_Register *(Squirrel \*engine)$' *_*.hpp.sq |
-        sort | sed -e "s/^/#include \"/" -e 's/$/"/' >> ${f}.tmp
+        sort | sed -e '/^SQ'${apiuc}'Controller$/d' \
+                -e "s/^/#include \"/" -e 's/$/"/' >> ${f}.tmp
 
 echo >> ${f}.tmp ''
 echo >> ${f}.tmp 'static void SQ'${apiuc}'_Register (Squirrel *engine)'

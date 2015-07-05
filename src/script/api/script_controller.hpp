@@ -14,6 +14,7 @@
 
 #include "script_types.hpp"
 #include "../../core/string_compare_type.hpp"
+#include "../convert.hpp"
 #include <map>
 
 /**
@@ -214,5 +215,18 @@ private:
 	 */
 	void RegisterClasses();
 };
+
+
+void SQController_Register (Squirrel *engine, const char *name);
+
+static inline void SQAIController_Register (Squirrel *engine)
+{
+	SQController_Register (engine, "AIController");
+}
+
+static inline void SQGSController_Register (Squirrel *engine)
+{
+	SQController_Register (engine, "GSController");
+}
 
 #endif /* SCRIPT_CONTROLLER_HPP */

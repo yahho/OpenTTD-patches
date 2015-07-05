@@ -16,7 +16,6 @@
 #include "ai_cargo.hpp.sq"
 #include "ai_cargolist.hpp.sq"
 #include "ai_company.hpp.sq"
-#include "ai_controller.hpp.sq"
 #include "ai_date.hpp.sq"
 #include "ai_depotlist.hpp.sq"
 #include "ai_engine.hpp.sq"

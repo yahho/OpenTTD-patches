@@ -25,6 +25,7 @@
 
 /* Manually include the Text glue. */
 #include "../script/api/script_text.hpp"
+#include "../script/api/script_controller.hpp"
 
 #include "../script/api/ai/ai.hpp.sq"
 

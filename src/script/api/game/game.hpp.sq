@@ -19,7 +19,6 @@
 #include "game_cargomonitor.hpp.sq"
 #include "game_company.hpp.sq"
 #include "game_companymode.hpp.sq"
-#include "game_controller.hpp.sq"
 #include "game_date.hpp.sq"
 #include "game_depotlist.hpp.sq"
 #include "game_engine.hpp.sq"

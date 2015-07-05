@@ -22,6 +22,8 @@
 #include "game_text.hpp"
 #include "game.hpp"
 
+#include "../script/api/script_controller.hpp"
+
 #include "../script/api/game/game.hpp.sq"
 
 
