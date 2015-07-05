@@ -105,11 +105,17 @@ ScriptController::~ScriptController()
 	return _openttd_newgrf_version;
 }
 
-/* static */ HSQOBJECT ScriptController::Import(const char *library, const char *class_name, int version)
+/* static */ SQInteger ScriptController::Import (HSQUIRRELVM vm)
 {
+	ttd_unique_free_ptr<char> library_ptr (SQConvert::GetString (vm, 2));
+	ttd_unique_free_ptr<char> cname_ptr   (SQConvert::GetString (vm, 3));
+	int version = SQConvert::GetInteger (vm, 4);
+	const char *library    = library_ptr.get();
+	const char *class_name = cname_ptr.get();
+
 	ScriptController *controller = ScriptObject::GetActiveInstance()->GetController();
 	Squirrel *engine = ScriptObject::GetActiveInstance()->engine;
-	HSQUIRRELVM vm = engine->GetVM();
+	assert (engine->GetVM() == vm);
 
 	/* Internally we store libraries as 'library.version' */
 	char library_name[1024];
@@ -120,7 +126,7 @@ ScriptController::~ScriptController()
 	if (lib == NULL) {
 		char error[1024];
 		bstrfmt (error, "couldn't find library '%s' with version %d", library, version);
-		throw sq_throwerror(vm, error);
+		return sq_throwerror (vm, error);
 	}
 
 	/* Get the current table/class we belong to */
@@ -146,7 +152,7 @@ ScriptController::~ScriptController()
 		if (!engine->LoadScript(vm, lib->GetMainScript(), false)) {
 			char error[1024];
 			bstrfmt (error, "there was a compile error when importing '%s' version %d", library, version);
-			throw sq_throwerror(vm, error);
+			return sq_throwerror (vm, error);
 		}
 		/* Create the fake class */
 		sq_newslot(vm, -3, SQFalse);
@@ -159,29 +165,30 @@ ScriptController::~ScriptController()
 	sq_pushroottable(vm);
 	sq_pushstring(vm, fake_class, -1);
 	if (SQ_FAILED(sq_get(vm, -2))) {
-		throw sq_throwerror(vm, "internal error assigning library class");
+		return sq_throwerror (vm, "internal error assigning library class");
 	}
 	sq_pushstring(vm, lib->GetInstanceName(), -1);
 	if (SQ_FAILED(sq_get(vm, -2))) {
 		char error[1024];
 		bstrfmt (error, "unable to find class '%s' in the library '%s' version %d", lib->GetInstanceName(), library, version);
-		throw sq_throwerror(vm, error);
+		return sq_throwerror (vm, error);
 	}
 	HSQOBJECT obj;
 	sq_getstackobj(vm, -1, &obj);
 	sq_pop(vm, 3);
 
-	if (StrEmpty(class_name)) return obj;
+	if (!StrEmpty(class_name)) {
+		/* Now link the name the user wanted to our 'fake' class */
+		sq_pushobject (vm, parent);
+		sq_pushstring (vm, class_name, -1);
+		sq_pushobject (vm, obj);
+		sq_newclass (vm, SQTrue);
+		sq_newslot (vm, -3, SQFalse);
+		sq_pop (vm, 1);
+	}
 
-	/* Now link the name the user wanted to our 'fake' class */
-	sq_pushobject(vm, parent);
-	sq_pushstring(vm, class_name, -1);
-	sq_pushobject(vm, obj);
-	sq_newclass(vm, SQTrue);
-	sq_newslot(vm, -3, SQFalse);
-	sq_pop(vm, 1);
-
-	return obj;
+	sq_pushobject (vm, obj);
+	return 1;
 }
 
 void SQController_Register (Squirrel *engine, const char *name)
@@ -198,5 +205,5 @@ void SQController_Register (Squirrel *engine, const char *name)
 	engine->AddClassEnd();
 
 	/* Register the import statement to the global scope */
-	SQConvert::DefSQStaticMethod (engine, &ScriptController::Import,            "import",            4, ".ssi");
+	engine->AddMethod ("import", &ScriptController::Import, 4, ".ssi");
 }

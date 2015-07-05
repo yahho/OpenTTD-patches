@@ -192,6 +192,7 @@ public:
 	 */
 	static void Print(bool error_msg, const char *message);
 
+#ifdef DOXYGEN_API
 	/**
 	 * Import a library.
 	 * @param library The name of the library to import. The name should be composed as ScriptInfo::GetCategory() + "." +
@@ -202,6 +203,9 @@ public:
 	 * @note This command can be called from the global space, and does not need an instance.
 	 */
 	static HSQOBJECT Import(const char *library, const char *class_name, int version);
+#else
+	static SQInteger Import (HSQUIRRELVM vm);
+#endif
 
 private:
 	typedef std::map<const char *, const char *, StringCompare> LoadedLibraryList; ///< The type for loaded libraries.
