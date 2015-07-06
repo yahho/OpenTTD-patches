@@ -37,17 +37,6 @@ ScriptStorage::~ScriptStorage()
 	if (log_data != NULL) ScriptLog::FreeLogPointer();
 }
 
-/**
- * Callback called by squirrel when a script uses "print" and for error messages.
- * @param error_msg Is this an error message?
- * @param message The actual message text.
- */
-static void PrintFunc(bool error_msg, const char *message)
-{
-	/* Convert to OpenTTD internal capable string */
-	ScriptController::Print(error_msg, message);
-}
-
 ScriptInstance::ScriptInstance(const char *APIName) :
 	engine(NULL),
 	versionAPI(NULL),
@@ -63,7 +52,7 @@ ScriptInstance::ScriptInstance(const char *APIName) :
 {
 	this->storage = new ScriptStorage();
 	this->engine  = new Squirrel(APIName);
-	this->engine->SetPrintFunction(&PrintFunc);
+	this->engine->SetPrintFunction (&ScriptController::Print);
 }
 
 void ScriptInstance::Initialize (const ScriptInfo *info, CompanyID company)
