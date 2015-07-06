@@ -152,7 +152,7 @@ protected:
 	/**
 	 * Register the API for this ScriptInfo.
 	 */
-	virtual void RegisterAPI(class Squirrel *engine) = 0;
+	virtual void RegisterAPI (void) = 0;
 };
 
 /** ScriptScanner helper class. */
@@ -163,9 +163,9 @@ struct ScriptScannerT : ScriptScanner {
 	{
 	}
 
-	void RegisterAPI (class Squirrel *engine) OVERRIDE
+	void RegisterAPI (void) OVERRIDE
 	{
-		T::InfoType::RegisterAPI (engine);
+		T::InfoType::RegisterAPI (this->engine);
 	}
 
 	/** Scan for info files. */

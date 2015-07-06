@@ -41,7 +41,7 @@ bool ScriptScanner::AddFile(const char *filename, size_t basepath_length, const 
 
 	this->engine->Reset();
 	this->engine->SetGlobalPointer(this);
-	this->RegisterAPI(this->engine);
+	this->RegisterAPI();
 	this->engine->LoadScript(filename);
 
 	return true;
