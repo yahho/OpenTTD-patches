@@ -36,11 +36,10 @@ public:
 
 	/**
 	 * Initialize the script and prepare it for its first run.
-	 * @param main_script The full path of the script to load.
-	 * @param instance_name The name of the instance out of the script to load.
+	 * @param info The ScriptInfo of the script.
 	 * @param company Which company this script is serving.
 	 */
-	void Initialize(const char *main_script, const char *instance_name, CompanyID company);
+	void Initialize (const class ScriptInfo *info, CompanyID company);
 
 	/**
 	 * Get the value of a setting of the current instance.

@@ -38,7 +38,7 @@ void GameInstance::Initialize (const GameInfo *info)
 	/* Register the GameController */
 	SQGSController_Register(this->engine);
 
-	ScriptInstance::Initialize(info->GetMainScript(), info->GetInstanceName(), OWNER_DEITY);
+	ScriptInstance::Initialize (info, OWNER_DEITY);
 }
 
 void GameInstance::RegisterAPI()

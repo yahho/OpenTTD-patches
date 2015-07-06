@@ -43,7 +43,7 @@ void AIInstance::Initialize (const AIInfo *info)
 	/* Register the AIController (including the "import" command) */
 	SQAIController_Register(this->engine);
 
-	ScriptInstance::Initialize(info->GetMainScript(), info->GetInstanceName(), _current_company);
+	ScriptInstance::Initialize (info, _current_company);
 }
 
 void AIInstance::RegisterAPI()

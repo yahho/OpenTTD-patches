@@ -66,7 +66,7 @@ ScriptInstance::ScriptInstance(const char *APIName) :
 	this->engine->SetPrintFunction(&PrintFunc);
 }
 
-void ScriptInstance::Initialize(const char *main_script, const char *instance_name, CompanyID company)
+void ScriptInstance::Initialize (const ScriptInfo *info, CompanyID company)
 {
 	ScriptObject::ActiveInstance active(this);
 
@@ -79,6 +79,7 @@ void ScriptInstance::Initialize(const char *main_script, const char *instance_na
 	try {
 		ScriptObject::SetAllowDoCommand(false);
 		/* Load and execute the script for this script */
+		const char *main_script = info->GetMainScript();
 		if (strcmp(main_script, "%_dummy") == 0) {
 			this->LoadDummyScript();
 		} else if (!this->engine->LoadScript(main_script) || this->engine->IsSuspended()) {
@@ -89,7 +90,7 @@ void ScriptInstance::Initialize(const char *main_script, const char *instance_na
 
 		/* Create the main-class */
 		this->instance = xmalloct<SQObject>();
-		if (!this->engine->CreateClassInstance(instance_name, this->controller, this->instance)) {
+		if (!this->engine->CreateClassInstance (info->GetInstanceName(), this->controller, this->instance)) {
 			this->Died();
 			return;
 		}
