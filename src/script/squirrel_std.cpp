@@ -69,8 +69,7 @@ SQInteger SquirrelStd::require(HSQUIRRELVM vm)
 	for (char *n = path; *n != '\0'; n++) if (*n == '/') *n = PATHSEPCHAR;
 #endif
 
-	Squirrel *engine = (Squirrel *)sq_getforeignptr(vm);
-	bool ret = engine->LoadScript(vm, path);
+	bool ret = Squirrel::Get(vm)->LoadScript (path);
 
 	/* Reset the top, so the stack stays correct */
 	sq_settop(vm, top);

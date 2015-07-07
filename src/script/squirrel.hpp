@@ -71,6 +71,14 @@ public:
 	Squirrel(const char *APIName);
 	~Squirrel();
 
+	/** Get the Squirrel class associated with a VM. */
+	static Squirrel *Get (HSQUIRRELVM vm)
+	{
+		Squirrel *engine = (Squirrel *) sq_getforeignptr (vm);
+		assert (engine->vm == vm);
+		return engine;
+	}
+
 	/**
 	 * Get the squirrel VM. Try to avoid using this.
 	 */
@@ -233,7 +241,7 @@ public:
 	/**
 	 * Get the pointer as set by SetGlobalPointer.
 	 */
-	static void *GetGlobalPointer(HSQUIRRELVM vm) { return ((Squirrel *)sq_getforeignptr(vm))->global_pointer; }
+	static void *GetGlobalPointer(HSQUIRRELVM vm) { return Squirrel::Get(vm)->global_pointer; }
 
 	/**
 	 * Set a custom print function, so you can handle outputs from SQ yourself.

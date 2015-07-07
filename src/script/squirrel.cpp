@@ -25,7 +25,7 @@ void Squirrel::CompileError(HSQUIRRELVM vm, const char *desc, const char *source
 	bstrfmt (buf, "Error %s:" OTTD_PRINTF64 "/" OTTD_PRINTF64 ": %s", source, line, column, desc);
 
 	/* Check if we have a custom print function */
-	Squirrel *engine = (Squirrel *)sq_getforeignptr(vm);
+	Squirrel *engine = Squirrel::Get(vm);
 	engine->crashed = true;
 	SQPrintFunc *func = engine->print_func;
 	if (func == NULL) {
@@ -45,7 +45,7 @@ void Squirrel::ErrorPrintFunc(HSQUIRRELVM vm, const char *s, ...)
 	va_end(arglist);
 
 	/* Check if we have a custom print function */
-	SQPrintFunc *func = ((Squirrel *)sq_getforeignptr(vm))->print_func;
+	SQPrintFunc *func = Squirrel::Get(vm)->print_func;
 	if (func == NULL) {
 		fprintf(stderr, "%s", buf);
 	} else {
@@ -62,7 +62,7 @@ void Squirrel::RunError(HSQUIRRELVM vm, const char *error)
 	/* Check if we have a custom print function */
 	char buf[1024];
 	bstrfmt (buf, "Your script made an error: %s\n", error);
-	Squirrel *engine = (Squirrel *)sq_getforeignptr(vm);
+	Squirrel *engine = Squirrel::Get(vm);
 	SQPrintFunc *func = engine->print_func;
 	if (func == NULL) {
 		fprintf(stderr, "%s", buf);
@@ -97,7 +97,7 @@ void Squirrel::PrintFunc(HSQUIRRELVM vm, const char *s, ...)
 	va_start(arglist, s);
 
 	/* Check if we have a custom print function */
-	SQPrintFunc *func = ((Squirrel *)sq_getforeignptr(vm))->print_func;
+	SQPrintFunc *func = Squirrel::Get(vm)->print_func;
 	if (func == NULL) {
 		vprintf(s, arglist);
 		putchar('\n');
@@ -289,7 +289,7 @@ bool Squirrel::CallStringMethodFromSet (HSQOBJECT instance, const char *method_n
 
 /* static */ bool Squirrel::CreateClassInstanceVM(HSQUIRRELVM vm, const char *class_name, void *real_instance, HSQOBJECT *instance, SQRELEASEHOOK release_hook, bool prepend_API_name)
 {
-	Squirrel *engine = (Squirrel *)sq_getforeignptr(vm);
+	Squirrel *engine = Squirrel::Get(vm);
 
 	int oldtop = sq_gettop(vm);
 
