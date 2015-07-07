@@ -52,6 +52,7 @@ ScriptInstance::ScriptInstance(const char *APIName) :
 {
 	this->storage = new ScriptStorage();
 	this->engine  = new Squirrel(APIName);
+	this->engine->Initialize();
 	this->engine->SetPrintFunction (&ScriptController::Print);
 }
 
@@ -124,7 +125,10 @@ ScriptInstance::~ScriptInstance()
 	ScriptObject::ActiveInstance active(this);
 
 	if (instance != NULL) this->engine->ReleaseObject(this->instance);
-	if (engine != NULL) delete this->engine;
+	if (engine != NULL) {
+		this->engine->Uninitialize();
+		delete this->engine;
+	}
 	delete this->storage;
 	delete this->controller;
 	free(this->instance);
@@ -142,6 +146,7 @@ void ScriptInstance::Died()
 	this->is_dead = true;
 
 	if (this->instance != NULL) this->engine->ReleaseObject(this->instance);
+	this->engine->Uninitialize();
 	delete this->engine;
 	this->instance = NULL;
 	this->engine = NULL;

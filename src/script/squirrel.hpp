@@ -41,11 +41,6 @@ private:
 	 */
 	const char *GetAPIName() { return this->APIName; }
 
-	/** Perform all initialization steps to create the engine. */
-	void Initialize();
-	/** Perform all the cleanups for the engine. */
-	void Uninitialize();
-
 protected:
 	/**
 	 * The CompileError handler.
@@ -68,8 +63,13 @@ protected:
 	static void ErrorPrintFunc(HSQUIRRELVM vm, const char *s, ...);
 
 public:
-	Squirrel(const char *APIName);
-	~Squirrel();
+	Squirrel (const char *APIName) : APIName(APIName) { }
+
+	/** Perform all initialization steps to create the engine. */
+	void Initialize();
+
+	/** Perform all the cleanups for the engine. */
+	void Uninitialize();
 
 	/** Get the Squirrel class associated with a VM. */
 	static Squirrel *Get (HSQUIRRELVM vm)
@@ -288,11 +288,6 @@ public:
 	 * How many operations can we execute till suspension?
 	 */
 	SQInteger GetOpsTillSuspend();
-
-	/**
-	 * Completely reset the engine; start from scratch.
-	 */
-	void Reset();
 };
 
 #endif /* SQUIRREL_HPP */

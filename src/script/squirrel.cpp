@@ -341,12 +341,6 @@ bool Squirrel::CreateClassInstance(const char *class_name, void *real_instance, 
 	return Squirrel::CreateClassInstanceVM(this->vm, class_name, real_instance, instance, NULL);
 }
 
-Squirrel::Squirrel(const char *APIName) :
-	APIName(APIName)
-{
-	this->Initialize();
-}
-
 void Squirrel::Initialize()
 {
 	this->global_pointer = NULL;
@@ -546,22 +540,11 @@ bool Squirrel::LoadScript(const char *script)
 	return LoadScript(this->vm, script);
 }
 
-Squirrel::~Squirrel()
-{
-	this->Uninitialize();
-}
-
 void Squirrel::Uninitialize()
 {
 	/* Clean up the stuff */
 	sq_pop(this->vm, 1);
 	sq_close(this->vm);
-}
-
-void Squirrel::Reset()
-{
-	this->Uninitialize();
-	this->Initialize();
 }
 
 void Squirrel::InsertResult(bool result)
