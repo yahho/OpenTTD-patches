@@ -343,7 +343,6 @@ bool Squirrel::CreateClassInstance(const char *class_name, void *real_instance, 
 
 void Squirrel::Initialize()
 {
-	this->global_pointer = NULL;
 	this->print_func = NULL;
 	this->crashed = false;
 	this->overdrawn_ops = 0;

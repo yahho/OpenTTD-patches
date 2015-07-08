@@ -63,7 +63,6 @@ void ScriptInstance::Initialize (const ScriptInfo *info, CompanyID company)
 	this->controller = new ScriptController(company);
 
 	/* Register the API functions and classes */
-	this->engine->SetGlobalPointer(this->engine);
 	this->RegisterAPI();
 
 	try {

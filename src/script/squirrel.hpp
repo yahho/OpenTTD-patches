@@ -25,7 +25,6 @@ private:
 	typedef void (SQPrintFunc)(bool error_msg, const char *message);
 
 	HSQUIRRELVM vm;          ///< The VirtualMachine instance for squirrel
-	void *global_pointer;    ///< Can be set by who ever initializes Squirrel
 	SQPrintFunc *print_func; ///< Points to either NULL, or a custom print handler
 	bool crashed;            ///< True if the squirrel script made an error.
 	int overdrawn_ops;       ///< The amount of operations we have overdrawn.
@@ -231,17 +230,6 @@ public:
 	 * Convert a Squirrel-object to a bool.
 	 */
 	static bool ObjectToBool(HSQOBJECT *ptr) { return sq_objtobool(ptr) == 1; }
-
-	/**
-	 * Sets a pointer in the VM that is reachable from where ever you are in SQ.
-	 *  Useful to keep track of the main instance.
-	 */
-	void SetGlobalPointer(void *ptr) { this->global_pointer = ptr; }
-
-	/**
-	 * Get the pointer as set by SetGlobalPointer.
-	 */
-	static void *GetGlobalPointer(HSQUIRRELVM vm) { return Squirrel::Get(vm)->global_pointer; }
 
 	/**
 	 * Set a custom print function, so you can handle outputs from SQ yourself.

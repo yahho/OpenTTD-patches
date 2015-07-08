@@ -40,7 +40,6 @@ bool ScriptScanner::AddFile(const char *filename, size_t basepath_length, const 
 	if (!FioCheckFileExists(filename, this->subdir) || !FioCheckFileExists(this->main_script, this->subdir)) return false;
 
 	this->Initialize();
-	this->SetGlobalPointer (this);
 	this->RegisterAPI();
 	this->LoadScript (filename);
 	this->Uninitialize();

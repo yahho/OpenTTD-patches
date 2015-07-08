@@ -52,7 +52,7 @@ ScriptInfo::Constructor::Constructor (HSQUIRRELVM vm)
 	/* Make sure the instance stays alive over time */
 	sq_addref (vm, &this->instance);
 
-	this->scanner = (ScriptScanner *) Squirrel::GetGlobalPointer (vm);
+	this->scanner = static_cast<ScriptScanner *> (Squirrel::Get(vm));
 }
 
 SQInteger ScriptInfo::Constructor::construct (ScriptInfo *info)
