@@ -36,10 +36,10 @@ ScriptInfo::~ScriptInfo()
 
 bool ScriptInfo::Constructor::check_method (const char *name) const
 {
-	if (!this->engine->MethodExists (this->instance, name)) {
+	if (!this->scanner->MethodExists (this->instance, name)) {
 		char error[1024];
 		bstrfmt (error, "your info.nut/library.nut doesn't have the method '%s'", name);
-		this->engine->ThrowError(error);
+		this->scanner->ThrowError (error);
 		return false;
 	}
 	return true;
@@ -53,7 +53,6 @@ ScriptInfo::Constructor::Constructor (HSQUIRRELVM vm)
 	sq_addref (vm, &this->instance);
 
 	this->scanner = (ScriptScanner *) Squirrel::GetGlobalPointer (vm);
-	this->engine = this->scanner->GetEngine();
 }
 
 SQInteger ScriptInfo::Constructor::construct (ScriptInfo *info)
@@ -88,27 +87,27 @@ SQInteger ScriptInfo::Constructor::construct (ScriptInfo *info)
 		&ScriptInfo::date,
 	};
 	for (size_t i = 0; i < lengthof(required_fields); i++) {
-		char *s = this->engine->CallStringMethodStrdup (this->instance, required_functions[i], MAX_GET_OPS);
+		char *s = this->scanner->CallStringMethodStrdup (this->instance, required_functions[i], MAX_GET_OPS);
 		if (s == NULL) return SQ_ERROR;
 		(info->*required_fields[i]).reset (s);
 	}
-	if (!this->engine->CallIntegerMethod (this->instance, "GetVersion", &info->version, MAX_GET_OPS)) return SQ_ERROR;
+	if (!this->scanner->CallIntegerMethod (this->instance, "GetVersion", &info->version, MAX_GET_OPS)) return SQ_ERROR;
 	{
-		char *s = this->engine->CallStringMethodStrdup (this->instance, "CreateInstance", MAX_CREATEINSTANCE_OPS);
+		char *s = this->scanner->CallStringMethodStrdup (this->instance, "CreateInstance", MAX_CREATEINSTANCE_OPS);
 		if (s == NULL) return SQ_ERROR;
 		info->instance_name.reset (s);
 	}
 
 	/* The GetURL function is optional. */
-	if (this->engine->MethodExists (this->instance, "GetURL")) {
-		char *s = this->engine->CallStringMethodStrdup (this->instance, "GetURL", MAX_GET_OPS);
+	if (this->scanner->MethodExists (this->instance, "GetURL")) {
+		char *s = this->scanner->CallStringMethodStrdup (this->instance, "GetURL", MAX_GET_OPS);
 		if (s == NULL) return SQ_ERROR;
 		info->url.reset (s);
 	}
 
 	/* Check if we have settings */
-	if (this->engine->MethodExists (this->instance, "GetSettings")) {
-		if (!this->engine->CallMethod (this->instance, "GetSettings", NULL, MAX_GET_SETTING_OPS)) return SQ_ERROR;
+	if (this->scanner->MethodExists (this->instance, "GetSettings")) {
+		if (!this->scanner->CallMethod (this->instance, "GetSettings", NULL, MAX_GET_SETTING_OPS)) return SQ_ERROR;
 	}
 
 	return 0;

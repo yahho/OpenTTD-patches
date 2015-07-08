@@ -12,7 +12,7 @@
 #ifndef SCRIPT_INFO_HPP
 #define SCRIPT_INFO_HPP
 
-#include <squirrel.h>
+#include "squirrel.hpp"
 #include "../core/pointer.h"
 #include "../misc/countedptr.hpp"
 
@@ -127,7 +127,6 @@ protected:
 	/** Struct to process the creation of a ScriptInfo object. */
 	struct Constructor {
 		class ScriptScanner *scanner; ///< ScriptScanner object being used to scan this script info.
-		class Squirrel *engine;       ///< Engine used to register for Squirrel.
 		HSQOBJECT instance;           ///< The Squirrel instance created for this info.
 
 		Constructor (HSQUIRRELVM vm);

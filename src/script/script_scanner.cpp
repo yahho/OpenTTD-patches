@@ -39,17 +39,17 @@ bool ScriptScanner::AddFile(const char *filename, size_t basepath_length, const 
 
 	if (!FioCheckFileExists(filename, this->subdir) || !FioCheckFileExists(this->main_script, this->subdir)) return false;
 
-	this->engine->Initialize();
-	this->engine->SetGlobalPointer(this);
+	this->Initialize();
+	this->SetGlobalPointer (this);
 	this->RegisterAPI();
-	this->engine->LoadScript(filename);
-	this->engine->Uninitialize();
+	this->LoadScript (filename);
+	this->Uninitialize();
 
 	return true;
 }
 
 ScriptScanner::ScriptScanner (ScriptInfoList *lists, const char *name) :
-	engine(new Squirrel (name)),
+	Squirrel(name),
 	main_script(NULL),
 	tar_file(NULL),
 	lists(lists)
@@ -60,7 +60,6 @@ ScriptScanner::~ScriptScanner()
 {
 	free(this->main_script);
 	free(this->tar_file);
-	delete this->engine;
 }
 
 ScriptInfoList::~ScriptInfoList()

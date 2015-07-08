@@ -61,20 +61,20 @@ static const char *const ai_api_versions[] =
 	config.description = xstrdup(config.description);
 	info->config_list.push_front(config);
 
-	if (constructor.engine->MethodExists (constructor.instance, "MinVersionToLoad")) {
-		if (!constructor.engine->CallIntegerMethod (constructor.instance, "MinVersionToLoad", &info->min_loadable_version, MAX_GET_OPS)) return SQ_ERROR;
+	if (constructor.scanner->MethodExists (constructor.instance, "MinVersionToLoad")) {
+		if (!constructor.scanner->CallIntegerMethod (constructor.instance, "MinVersionToLoad", &info->min_loadable_version, MAX_GET_OPS)) return SQ_ERROR;
 	} else {
 		info->min_loadable_version = info->GetVersion();
 	}
 	/* When there is an UseAsRandomAI function, call it. */
-	if (constructor.engine->MethodExists (constructor.instance, "UseAsRandomAI")) {
-		if (!constructor.engine->CallBoolMethod (constructor.instance, "UseAsRandomAI", &info->use_as_random, MAX_GET_OPS)) return SQ_ERROR;
+	if (constructor.scanner->MethodExists (constructor.instance, "UseAsRandomAI")) {
+		if (!constructor.scanner->CallBoolMethod (constructor.instance, "UseAsRandomAI", &info->use_as_random, MAX_GET_OPS)) return SQ_ERROR;
 	} else {
 		info->use_as_random = true;
 	}
 	/* Try to get the API version the AI is written for. */
-	if (constructor.engine->MethodExists (constructor.instance, "GetAPIVersion")) {
-		if (!constructor.engine->CallStringMethodFromSet (constructor.instance, "GetAPIVersion", ai_api_versions, &info->api_version, MAX_GET_OPS)) {
+	if (constructor.scanner->MethodExists (constructor.instance, "GetAPIVersion")) {
+		if (!constructor.scanner->CallStringMethodFromSet (constructor.instance, "GetAPIVersion", ai_api_versions, &info->api_version, MAX_GET_OPS)) {
 			DEBUG(script, 1, "Loading info.nut from (%s.%d): GetAPIVersion returned invalid version", info->GetName(), info->GetVersion());
 			return SQ_ERROR;
 		}
@@ -142,7 +142,7 @@ bool AIInfo::CanLoadFromVersion(int version) const
 		delete library;
 		return SQ_ERROR;
 	}
-	char *cat = constructor.engine->CallStringMethodStrdup (constructor.instance, "GetCategory", MAX_GET_OPS);
+	char *cat = constructor.scanner->CallStringMethodStrdup (constructor.instance, "GetCategory", MAX_GET_OPS);
 	if (cat == NULL) {
 		delete library;
 		return SQ_ERROR;

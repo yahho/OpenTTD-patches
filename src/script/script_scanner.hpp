@@ -16,6 +16,7 @@
 #include "../string.h"
 #include "../fileio_func.h"
 #include "../core/string_compare_type.hpp"
+#include "squirrel.hpp"
 
 /** Collection of scripts. */
 struct ScriptInfoList {
@@ -112,15 +113,10 @@ struct ScriptInfoListT : ScriptInfoList {
 };
 
 /** Scanner to help finding scripts. */
-class ScriptScanner : public FileScanner {
+class ScriptScanner : public FileScanner, public Squirrel {
 public:
 	ScriptScanner (ScriptInfoList *lists, const char *name);
 	virtual ~ScriptScanner();
-
-	/**
-	 * Get the engine of the main squirrel handler (it indexes all available scripts).
-	 */
-	class Squirrel *GetEngine() { return this->engine; }
 
 	/**
 	 * Get the current main script the ScanDir is currently tracking.
@@ -143,7 +139,6 @@ public:
 	/* virtual */ bool AddFile(const char *filename, size_t basepath_length, const char *tar_filename);
 
 protected:
-	class Squirrel *engine; ///< The engine we're scanning with.
 	char *main_script;      ///< The full path of the script.
 	char *tar_file;         ///< If, which tar file the script was in.
 
@@ -165,7 +160,7 @@ struct ScriptScannerT : ScriptScanner {
 
 	void RegisterAPI (void) OVERRIDE
 	{
-		T::InfoType::RegisterAPI (this->engine);
+		T::InfoType::RegisterAPI (this);
 	}
 
 	/** Scan for info files. */
