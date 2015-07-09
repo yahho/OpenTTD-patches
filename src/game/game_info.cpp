@@ -43,7 +43,7 @@ static const char *const game_api_versions[] =
 	if (SQ_FAILED(sq_getinstanceup(vm, 2, &instance, 0)) || instance == NULL) return sq_throwerror(vm, "Pass an instance of a child class of GameInfo to RegisterGame");
 	GameInfo *info = (GameInfo *)instance;
 
-	ScriptScanner *scanner = static_cast<ScriptScanner *> (Squirrel::Get(vm));
+	ScriptScanner *scanner = ScriptScanner::Get (vm);
 
 	SQInteger res = scanner->construct (info);
 	if (res != 0) return res;
@@ -100,7 +100,7 @@ bool GameInfo::CanLoadFromVersion(int version) const
 	/* Create a new library */
 	GameLibrary *library = new GameLibrary();
 
-	ScriptScanner *scanner = static_cast<ScriptScanner *> (Squirrel::Get(vm));
+	ScriptScanner *scanner = ScriptScanner::Get (vm);
 
 	SQInteger res = scanner->construct (library);
 	if (res != 0) {

@@ -128,6 +128,12 @@ public:
 	 */
 	const char *GetTarFile() { return this->tar_file; }
 
+	/** Get the ScriptScanner class associated with a VM. */
+	static ScriptScanner *Get (HSQUIRRELVM vm)
+	{
+		return static_cast<ScriptScanner *> (Squirrel::Get(vm));
+	}
+
 	/** Check if a given method exists, and throw an error otherwise. */
 	bool check_method (const char *name);
 
