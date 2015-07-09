@@ -121,24 +121,11 @@ public:
 	 */
 	int GetSettingDefaultValue(const char *name) const;
 
+	friend class ScriptScanner;
+
 protected:
 	ScriptConfigItemList config_list; ///< List of settings from this Script.
 
-	/** Struct to process the creation of a ScriptInfo object. */
-	struct Constructor {
-		class ScriptScanner *scanner; ///< ScriptScanner object being used to scan this script info.
-		HSQOBJECT instance;           ///< The Squirrel instance created for this info.
-
-		Constructor (HSQUIRRELVM vm);
-
-		/** Check if a given method exists. */
-		bool check_method (const char *name) const;
-
-		/** Process the creation of a FileInfo object. */
-		SQInteger construct (ScriptInfo *info);
-	};
-
-protected:
 	ttd_unique_free_ptr<char> main_script;    ///< The full path of the script.
 	ttd_unique_free_ptr<char> tar_file;       ///< If, which tar file the script was in.
 	ttd_unique_free_ptr<char> author;         ///< Author of the script.

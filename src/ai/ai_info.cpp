@@ -52,8 +52,9 @@ static const char *const ai_api_versions[] =
 	if (SQ_FAILED(sq_getinstanceup(vm, 2, &instance, 0)) || instance == NULL) return sq_throwerror(vm, "Pass an instance of a child class of AIInfo to RegisterAI");
 	AIInfo *info = (AIInfo *)instance;
 
-	ScriptInfo::Constructor constructor (vm);
-	SQInteger res = constructor.construct (info);
+	ScriptScanner *scanner = static_cast<ScriptScanner *> (Squirrel::Get(vm));
+
+	SQInteger res = scanner->construct (info);
 	if (res != 0) return res;
 
 	ScriptConfigItem config = _start_date_config;
@@ -61,20 +62,20 @@ static const char *const ai_api_versions[] =
 	config.description = xstrdup(config.description);
 	info->config_list.push_front(config);
 
-	if (constructor.scanner->MethodExists (constructor.instance, "MinVersionToLoad")) {
-		if (!constructor.scanner->CallIntegerMethod (constructor.instance, "MinVersionToLoad", &info->min_loadable_version, MAX_GET_OPS)) return SQ_ERROR;
+	if (scanner->MethodExists (scanner->instance, "MinVersionToLoad")) {
+		if (!scanner->CallIntegerMethod (scanner->instance, "MinVersionToLoad", &info->min_loadable_version, MAX_GET_OPS)) return SQ_ERROR;
 	} else {
 		info->min_loadable_version = info->GetVersion();
 	}
 	/* When there is an UseAsRandomAI function, call it. */
-	if (constructor.scanner->MethodExists (constructor.instance, "UseAsRandomAI")) {
-		if (!constructor.scanner->CallBoolMethod (constructor.instance, "UseAsRandomAI", &info->use_as_random, MAX_GET_OPS)) return SQ_ERROR;
+	if (scanner->MethodExists (scanner->instance, "UseAsRandomAI")) {
+		if (!scanner->CallBoolMethod (scanner->instance, "UseAsRandomAI", &info->use_as_random, MAX_GET_OPS)) return SQ_ERROR;
 	} else {
 		info->use_as_random = true;
 	}
 	/* Try to get the API version the AI is written for. */
-	if (constructor.scanner->MethodExists (constructor.instance, "GetAPIVersion")) {
-		if (!constructor.scanner->CallStringMethodFromSet (constructor.instance, "GetAPIVersion", ai_api_versions, &info->api_version, MAX_GET_OPS)) {
+	if (scanner->MethodExists (scanner->instance, "GetAPIVersion")) {
+		if (!scanner->CallStringMethodFromSet (scanner->instance, "GetAPIVersion", ai_api_versions, &info->api_version, MAX_GET_OPS)) {
 			DEBUG(script, 1, "Loading info.nut from (%s.%d): GetAPIVersion returned invalid version", info->GetName(), info->GetVersion());
 			return SQ_ERROR;
 		}
@@ -85,7 +86,7 @@ static const char *const ai_api_versions[] =
 	/* Remove the link to the real instance, else it might get deleted by RegisterAI() */
 	sq_setinstanceup(vm, 2, NULL);
 	/* Register the AI to the base system */
-	constructor.scanner->RegisterScript (info, info->GetName());
+	scanner->RegisterScript (info, info->GetName());
 	return 0;
 }
 
@@ -130,19 +131,20 @@ bool AIInfo::CanLoadFromVersion(int version) const
 	/* Create a new library */
 	AILibrary *library = new AILibrary();
 
-	ScriptInfo::Constructor constructor (vm);
-	SQInteger res = constructor.construct (library);
+	ScriptScanner *scanner = static_cast<ScriptScanner *> (Squirrel::Get(vm));
+
+	SQInteger res = scanner->construct (library);
 	if (res != 0) {
 		delete library;
 		return res;
 	}
 
 	/* Cache the category */
-	if (!constructor.check_method ("GetCategory")) {
+	if (!scanner->check_method ("GetCategory")) {
 		delete library;
 		return SQ_ERROR;
 	}
-	char *cat = constructor.scanner->CallStringMethodStrdup (constructor.instance, "GetCategory", MAX_GET_OPS);
+	char *cat = scanner->CallStringMethodStrdup (scanner->instance, "GetCategory", MAX_GET_OPS);
 	if (cat == NULL) {
 		delete library;
 		return SQ_ERROR;
@@ -152,7 +154,7 @@ bool AIInfo::CanLoadFromVersion(int version) const
 	/* Register the Library to the base system */
 	char name [1024];
 	bstrfmt (name, "%s.%s", library->GetCategory(), library->GetInstanceName());
-	constructor.scanner->RegisterScript (library, name);
+	scanner->RegisterScript (library, name);
 
 	return 0;
 }

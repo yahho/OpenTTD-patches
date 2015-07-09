@@ -128,6 +128,12 @@ public:
 	 */
 	const char *GetTarFile() { return this->tar_file; }
 
+	/** Check if a given method exists, and throw an error otherwise. */
+	bool check_method (const char *name);
+
+	/** Begin construction of a ScriptInfo object. */
+	SQInteger construct (class ScriptInfo *info);
+
 	/**
 	 * Register a ScriptInfo to the scanner.
 	 */
@@ -137,6 +143,8 @@ public:
 	}
 
 	/* virtual */ bool AddFile(const char *filename, size_t basepath_length, const char *tar_filename);
+
+	HSQOBJECT instance;     ///< The Squirrel instance created for the current info.
 
 protected:
 	char *main_script;      ///< The full path of the script.

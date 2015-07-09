@@ -43,24 +43,25 @@ static const char *const game_api_versions[] =
 	if (SQ_FAILED(sq_getinstanceup(vm, 2, &instance, 0)) || instance == NULL) return sq_throwerror(vm, "Pass an instance of a child class of GameInfo to RegisterGame");
 	GameInfo *info = (GameInfo *)instance;
 
-	ScriptInfo::Constructor constructor (vm);
-	SQInteger res = constructor.construct (info);
+	ScriptScanner *scanner = static_cast<ScriptScanner *> (Squirrel::Get(vm));
+
+	SQInteger res = scanner->construct (info);
 	if (res != 0) return res;
 
-	if (constructor.scanner->MethodExists (constructor.instance, "MinVersionToLoad")) {
-		if (!constructor.scanner->CallIntegerMethod (constructor.instance, "MinVersionToLoad", &info->min_loadable_version, MAX_GET_OPS)) return SQ_ERROR;
+	if (scanner->MethodExists (scanner->instance, "MinVersionToLoad")) {
+		if (!scanner->CallIntegerMethod (scanner->instance, "MinVersionToLoad", &info->min_loadable_version, MAX_GET_OPS)) return SQ_ERROR;
 	} else {
 		info->min_loadable_version = info->GetVersion();
 	}
 	/* When there is an IsSelectable function, call it. */
-	if (constructor.scanner->MethodExists (constructor.instance, "IsDeveloperOnly")) {
-		if (!constructor.scanner->CallBoolMethod (constructor.instance, "IsDeveloperOnly", &info->is_developer_only, MAX_GET_OPS)) return SQ_ERROR;
+	if (scanner->MethodExists (scanner->instance, "IsDeveloperOnly")) {
+		if (!scanner->CallBoolMethod (scanner->instance, "IsDeveloperOnly", &info->is_developer_only, MAX_GET_OPS)) return SQ_ERROR;
 	} else {
 		info->is_developer_only = false;
 	}
 	/* Try to get the API version the AI is written for. */
-	if (!constructor.check_method ("GetAPIVersion")) return SQ_ERROR;
-	if (!constructor.scanner->CallStringMethodFromSet (constructor.instance, "GetAPIVersion", game_api_versions, &info->api_version, MAX_GET_OPS)) {
+	if (!scanner->check_method ("GetAPIVersion")) return SQ_ERROR;
+	if (!scanner->CallStringMethodFromSet (scanner->instance, "GetAPIVersion", game_api_versions, &info->api_version, MAX_GET_OPS)) {
 		DEBUG(script, 1, "Loading info.nut from (%s.%d): GetAPIVersion returned invalid version", info->GetName(), info->GetVersion());
 		return SQ_ERROR;
 	}
@@ -68,7 +69,7 @@ static const char *const game_api_versions[] =
 	/* Remove the link to the real instance, else it might get deleted by RegisterGame() */
 	sq_setinstanceup(vm, 2, NULL);
 	/* Register the Game to the base system */
-	constructor.scanner->RegisterScript (info, info->GetName(), info->IsDeveloperOnly());
+	scanner->RegisterScript (info, info->GetName(), info->IsDeveloperOnly());
 	return 0;
 }
 
@@ -99,19 +100,20 @@ bool GameInfo::CanLoadFromVersion(int version) const
 	/* Create a new library */
 	GameLibrary *library = new GameLibrary();
 
-	ScriptInfo::Constructor constructor (vm);
-	SQInteger res = constructor.construct (library);
+	ScriptScanner *scanner = static_cast<ScriptScanner *> (Squirrel::Get(vm));
+
+	SQInteger res = scanner->construct (library);
 	if (res != 0) {
 		delete library;
 		return res;
 	}
 
 	/* Cache the category */
-	if (!constructor.check_method ("GetCategory")) {
+	if (!scanner->check_method ("GetCategory")) {
 		delete library;
 		return SQ_ERROR;
 	}
-	char *cat = constructor.scanner->CallStringMethodStrdup (constructor.instance, "GetCategory", MAX_GET_OPS);
+	char *cat = scanner->CallStringMethodStrdup (scanner->instance, "GetCategory", MAX_GET_OPS);
 	if (cat == NULL) {
 		delete library;
 		return SQ_ERROR;
@@ -121,7 +123,7 @@ bool GameInfo::CanLoadFromVersion(int version) const
 	/* Register the Library to the base system */
 	char name [1024];
 	bstrfmt (name, "%s.%s", library->GetCategory(), library->GetInstanceName());
-	constructor.scanner->RegisterScript (library, name);
+	scanner->RegisterScript (library, name);
 
 	return 0;
 }
