@@ -217,21 +217,6 @@ public:
 	static bool GetInstance(HSQUIRRELVM vm, HSQOBJECT *ptr, int pos = 1) { sq_getclass(vm, pos); sq_getstackobj(vm, pos, ptr); sq_pop(vm, 1); return true; }
 
 	/**
-	 * Convert a Squirrel-object to a string.
-	 */
-	static const char *ObjectToString(HSQOBJECT *ptr) { return sq_objtostring(ptr); }
-
-	/**
-	 * Convert a Squirrel-object to an integer.
-	 */
-	static int ObjectToInteger(HSQOBJECT *ptr) { return sq_objtointeger(ptr); }
-
-	/**
-	 * Convert a Squirrel-object to a bool.
-	 */
-	static bool ObjectToBool(HSQOBJECT *ptr) { return sq_objtobool(ptr) == 1; }
-
-	/**
 	 * Set a custom print function, so you can handle outputs from SQ yourself.
 	 */
 	void SetPrintFunction(SQPrintFunc *func) { this->print_func = func; }

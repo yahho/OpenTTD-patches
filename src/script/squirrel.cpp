@@ -249,7 +249,7 @@ char *Squirrel::CallStringMethodStrdup (HSQOBJECT instance, const char *method_n
 	HSQOBJECT ret;
 	if (!this->CallMethod (instance, method_name, &ret, suspend)) return NULL;
 	if (ret._type != OT_STRING) return NULL;
-	char *res = xstrdup (ObjectToString (&ret));
+	char *res = xstrdup (sq_objtostring (&ret));
 	ValidateString (res);
 	return res;
 }
@@ -259,7 +259,7 @@ bool Squirrel::CallIntegerMethod(HSQOBJECT instance, const char *method_name, in
 	HSQOBJECT ret;
 	if (!this->CallMethod(instance, method_name, &ret, suspend)) return false;
 	if (ret._type != OT_INTEGER) return false;
-	*res = ObjectToInteger(&ret);
+	*res = sq_objtointeger (&ret);
 	return true;
 }
 
@@ -268,7 +268,7 @@ bool Squirrel::CallBoolMethod(HSQOBJECT instance, const char *method_name, bool 
 	HSQOBJECT ret;
 	if (!this->CallMethod(instance, method_name, &ret, suspend)) return false;
 	if (ret._type != OT_BOOL) return false;
-	*res = ObjectToBool(&ret);
+	*res = sq_objtobool (&ret) == 1;
 	return true;
 }
 
@@ -277,7 +277,7 @@ bool Squirrel::CallStringMethodFromSet (HSQOBJECT instance, const char *method_n
 	HSQOBJECT ret;
 	if (!this->CallMethod(instance, method_name, &ret, suspend)) return false;
 	if (ret._type != OT_STRING) return false;
-	const char *s = ObjectToString(&ret);
+	const char *s = sq_objtostring (&ret);
 	for (size_t i = 0; i < n; i++) {
 		if (strcmp (s, val[i]) == 0) {
 			*res = val[i];
