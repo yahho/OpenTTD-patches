@@ -579,10 +579,10 @@ static void HeightMapCurves(uint level)
 	};
 
 	/* Scaled curve maps; value is in proportion of maximum height_t. */
-	static const control_point_t curve_map_1[] = { { 0, 0 }, { 0.6 / 3, 0.1 }, { 2.4 / 3, 0.4 / 3 },                                           { 1, 0.4  } };
-	static const control_point_t curve_map_2[] = { { 0, 0 }, { 0.2 / 3, 0.1 }, { 1.6 / 3, 0.4 / 3 }, { 2.4 / 3, 0.8 / 3 },                     { 1, 0.6  } };
-	static const control_point_t curve_map_3[] = { { 0, 0 }, { 0.2 / 3, 0.1 }, { 1.6 / 3, 0.8 / 3 }, { 2.4 / 3, 1.8 / 3 },                     { 1, 0.8  } };
-	static const control_point_t curve_map_4[] = { { 0, 0 }, { 0.2 / 3, 0.1 }, { 1.2 / 3, 0.9 / 3 }, { 2.0 / 3, 2.4 / 3 } , { 5.5 / 6, 0.99 }, { 1, 0.99 } };
+	static const control_point_t curve_map_1[] = { { 0, 0 }, { 2.4 / 3, 0.4 / 3 },                                           { 1, 0.4  } };
+	static const control_point_t curve_map_2[] = { { 0, 0 }, { 1.6 / 3, 0.4 / 3 }, { 2.4 / 3, 0.8 / 3 },                     { 1, 0.6  } };
+	static const control_point_t curve_map_3[] = { { 0, 0 }, { 1.6 / 3, 0.8 / 3 }, { 2.4 / 3, 1.8 / 3 },                     { 1, 0.8  } };
+	static const control_point_t curve_map_4[] = { { 0, 0 }, { 1.2 / 3, 0.9 / 3 }, { 2.0 / 3, 2.4 / 3 } , { 5.5 / 6, 0.99 }, { 1, 0.99 } };
 
 	/** Helper structure to index the different curve maps. */
 	static const control_point_t *const curve_maps[] = {
@@ -602,7 +602,7 @@ static void HeightMapCurves(uint level)
 		c[i] = Random() % lengthof(curve_maps);
 	}
 
-	const height_t mh = max<height_t> (TGPGetMaxHeight(), I2H(15));
+	const height_t mh = TGPGetMaxHeight() - I2H(1); // height levels above sea level only
 
 	/* Apply curves */
 	for (int x = 0; x < _height_map.size_x; x++) {
@@ -656,6 +656,12 @@ static void HeightMapCurves(uint level)
 			assert (*h >= 0);
 			assert (*h <= mh);
 
+			/* Do not touch sea level */
+			if (*h < I2H(1)) continue;
+
+			/* Only scale above sea level */
+			*h -= I2H(1);
+
 			/* Apply all curve maps that are used on this tile. */
 			for (uint t = 0; t < lengthof(curve_maps); t++) {
 				if (!HasBit(corner_bits, t)) continue;
@@ -683,6 +689,9 @@ static void HeightMapCurves(uint level)
 
 			/* Apply interpolation of curve map results. */
 			*h = (height_t)((ht[corner_a] * yri + ht[corner_b] * yr) * xri + (ht[corner_c] * yri + ht[corner_d] * yr) * xr);
+
+			/* Readd sea level */
+			*h += I2H(1);
 		}
 	}
 }
