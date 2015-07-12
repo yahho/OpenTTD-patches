@@ -26,8 +26,6 @@
 #include "../../waypoint_base.h"
 #include "../../date_func.h"
 
-#define DEBUG_YAPF_CACHE 0
-
 int _total_pf_time_us = 0;
 
 
@@ -929,7 +927,7 @@ inline void CYapfRailBaseT<TAstar>::CalcNode (Node *n)
 					n->m_last_signal_type = n->m_segment->m_last_signal.get_signal_type();
 				}
 				/* No further calculation needed. */
-				if (DEBUG_YAPF_CACHE) {
+				if (_debug_desync_level >= 2) {
 					Node test (*n);
 					CachedData segment (test.GetKey());
 					test.m_segment = &segment;
