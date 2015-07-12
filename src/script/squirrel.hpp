@@ -161,8 +161,8 @@ public:
 	 * Call a method of an instance, in various flavors.
 	 * @return False if the script crashed or returned a wrong type.
 	 */
-	bool CallMethod(HSQOBJECT instance, const char *method_name, HSQOBJECT *ret, int suspend);
-	bool CallMethod(HSQOBJECT instance, const char *method_name, int suspend) { return this->CallMethod(instance, method_name, NULL, suspend); }
+	bool CallMethod(HSQOBJECT instance, const char *method_name, int suspend, HSQOBJECT *ret = NULL);
+
 	char *CallStringMethodStrdup(HSQOBJECT instance, const char *method_name, int suspend);
 	bool CallIntegerMethod(HSQOBJECT instance, const char *method_name, int *res, int suspend);
 	bool CallBoolMethod(HSQOBJECT instance, const char *method_name, bool *res, int suspend);

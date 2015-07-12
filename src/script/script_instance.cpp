@@ -452,7 +452,7 @@ void ScriptInstance::Save(SaveDumper *dumper)
 		bool backup_allow = ScriptObject::GetAllowDoCommand();
 		ScriptObject::SetAllowDoCommand(false);
 		try {
-			if (!this->engine->CallMethod(*this->instance, "Save", &savedata, MAX_SL_OPS)) {
+			if (!this->engine->CallMethod (*this->instance, "Save", MAX_SL_OPS, &savedata)) {
 				/* The script crashed in the Save function. We can't kill
 				 * it here, but do so in the next script tick. */
 				SaveEmpty(dumper);

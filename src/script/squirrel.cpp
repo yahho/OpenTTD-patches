@@ -213,7 +213,7 @@ void Squirrel::CollectGarbage()
 	sq_collectgarbage(this->vm);
 }
 
-bool Squirrel::CallMethod(HSQOBJECT instance, const char *method_name, HSQOBJECT *ret, int suspend)
+bool Squirrel::CallMethod (HSQOBJECT instance, const char *method_name, int suspend, HSQOBJECT *ret)
 {
 	assert(!this->crashed);
 	/* Store the stack-location for the return value. We need to
@@ -247,7 +247,7 @@ bool Squirrel::CallMethod(HSQOBJECT instance, const char *method_name, HSQOBJECT
 char *Squirrel::CallStringMethodStrdup (HSQOBJECT instance, const char *method_name, int suspend)
 {
 	HSQOBJECT ret;
-	if (!this->CallMethod (instance, method_name, &ret, suspend)) return NULL;
+	if (!this->CallMethod (instance, method_name, suspend, &ret)) return NULL;
 	if (ret._type != OT_STRING) return NULL;
 	char *res = xstrdup (sq_objtostring (&ret));
 	ValidateString (res);
@@ -257,7 +257,7 @@ char *Squirrel::CallStringMethodStrdup (HSQOBJECT instance, const char *method_n
 bool Squirrel::CallIntegerMethod(HSQOBJECT instance, const char *method_name, int *res, int suspend)
 {
 	HSQOBJECT ret;
-	if (!this->CallMethod(instance, method_name, &ret, suspend)) return false;
+	if (!this->CallMethod (instance, method_name, suspend, &ret)) return false;
 	if (ret._type != OT_INTEGER) return false;
 	*res = sq_objtointeger (&ret);
 	return true;
@@ -266,7 +266,7 @@ bool Squirrel::CallIntegerMethod(HSQOBJECT instance, const char *method_name, in
 bool Squirrel::CallBoolMethod(HSQOBJECT instance, const char *method_name, bool *res, int suspend)
 {
 	HSQOBJECT ret;
-	if (!this->CallMethod(instance, method_name, &ret, suspend)) return false;
+	if (!this->CallMethod (instance, method_name, suspend, &ret)) return false;
 	if (ret._type != OT_BOOL) return false;
 	*res = sq_objtobool (&ret) == 1;
 	return true;
@@ -275,7 +275,7 @@ bool Squirrel::CallBoolMethod(HSQOBJECT instance, const char *method_name, bool 
 bool Squirrel::CallStringMethodFromSet (HSQOBJECT instance, const char *method_name, size_t n, const char *const *val, const char **res, int suspend)
 {
 	HSQOBJECT ret;
-	if (!this->CallMethod(instance, method_name, &ret, suspend)) return false;
+	if (!this->CallMethod (instance, method_name, suspend, &ret)) return false;
 	if (ret._type != OT_STRING) return false;
 	const char *s = sq_objtostring (&ret);
 	for (size_t i = 0; i < n; i++) {

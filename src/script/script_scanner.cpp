@@ -129,7 +129,7 @@ SQInteger ScriptScanner::construct (ScriptInfo *info)
 
 	/* Check if we have settings */
 	if (this->MethodExists (this->instance, "GetSettings")) {
-		if (!this->CallMethod (this->instance, "GetSettings", NULL, MAX_GET_SETTING_OPS)) return SQ_ERROR;
+		if (!this->CallMethod (this->instance, "GetSettings", MAX_GET_SETTING_OPS)) return SQ_ERROR;
 	}
 
 	return 0;
