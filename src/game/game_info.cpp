@@ -61,10 +61,12 @@ static const char *const game_api_versions[] =
 	}
 	/* Try to get the API version the AI is written for. */
 	if (!scanner->check_method ("GetAPIVersion")) return SQ_ERROR;
-	if (!scanner->CallStringMethodFromSet (scanner->instance, "GetAPIVersion", game_api_versions, &info->api_version, MAX_GET_OPS)) {
+	const char *ver = scanner->CallStringMethodFromSet (scanner->instance, "GetAPIVersion", game_api_versions, MAX_GET_OPS);
+	if (ver == NULL) {
 		DEBUG(script, 1, "Loading info.nut from (%s.%d): GetAPIVersion returned invalid version", info->GetName(), info->GetVersion());
 		return SQ_ERROR;
 	}
+	info->api_version = ver;
 
 	/* Remove the link to the real instance, else it might get deleted by RegisterGame() */
 	sq_setinstanceup(vm, 2, NULL);

@@ -166,18 +166,18 @@ public:
 	char *CallStringMethodStrdup(HSQOBJECT instance, const char *method_name, int suspend);
 	bool CallIntegerMethod(HSQOBJECT instance, const char *method_name, int *res, int suspend);
 	bool CallBoolMethod(HSQOBJECT instance, const char *method_name, bool *res, int suspend);
-	bool CallStringMethodFromSet (HSQOBJECT instance, const char *method_name, size_t n, const char *const *val, const char **res, int suspend);
+	const char *CallStringMethodFromSet (HSQOBJECT instance, const char *method_name, size_t n, const char *const *val, int suspend);
 
 	template <size_t N>
-	bool CallStringMethodFromSet (HSQOBJECT instance, const char *method_name, const char *const (*val) [N], const char **res, int suspend)
+	const char *CallStringMethodFromSet (HSQOBJECT instance, const char *method_name, const char *const (*val) [N], int suspend)
 	{
-		return this->CallStringMethodFromSet (instance, method_name, N, &(*val)[0], res, suspend);
+		return this->CallStringMethodFromSet (instance, method_name, N, &(*val)[0], suspend);
 	}
 
 	template <size_t N>
-	bool CallStringMethodFromSet (HSQOBJECT instance, const char *method_name, const char *const (&val) [N], const char **res, int suspend)
+	const char *CallStringMethodFromSet (HSQOBJECT instance, const char *method_name, const char *const (&val) [N], int suspend)
 	{
-		return this->CallStringMethodFromSet (instance, method_name, N, &val[0], res, suspend);
+		return this->CallStringMethodFromSet (instance, method_name, N, &val[0], suspend);
 	}
 
 	/**
