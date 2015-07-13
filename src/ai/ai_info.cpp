@@ -62,19 +62,19 @@ static const char *const ai_api_versions[] =
 	config.description = xstrdup(config.description);
 	info->config_list.push_front(config);
 
-	if (scanner->MethodExists (scanner->instance, "MinVersionToLoad")) {
+	if (scanner->method_exists ("MinVersionToLoad")) {
 		if (!scanner->CallIntegerMethod (scanner->instance, "MinVersionToLoad", &info->min_loadable_version, MAX_GET_OPS)) return SQ_ERROR;
 	} else {
 		info->min_loadable_version = info->GetVersion();
 	}
 	/* When there is an UseAsRandomAI function, call it. */
-	if (scanner->MethodExists (scanner->instance, "UseAsRandomAI")) {
+	if (scanner->method_exists ("UseAsRandomAI")) {
 		if (!scanner->CallBoolMethod (scanner->instance, "UseAsRandomAI", &info->use_as_random, MAX_GET_OPS)) return SQ_ERROR;
 	} else {
 		info->use_as_random = true;
 	}
 	/* Try to get the API version the AI is written for. */
-	if (scanner->MethodExists (scanner->instance, "GetAPIVersion")) {
+	if (scanner->method_exists ("GetAPIVersion")) {
 		const char *ver = scanner->CallStringMethodFromSet (scanner->instance, "GetAPIVersion", ai_api_versions, MAX_GET_OPS);
 		if (ver == NULL) {
 			DEBUG(script, 1, "Loading info.nut from (%s.%d): GetAPIVersion returned invalid version", info->GetName(), info->GetVersion());

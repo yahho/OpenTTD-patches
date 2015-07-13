@@ -48,13 +48,13 @@ static const char *const game_api_versions[] =
 	SQInteger res = scanner->construct (info);
 	if (res != 0) return res;
 
-	if (scanner->MethodExists (scanner->instance, "MinVersionToLoad")) {
+	if (scanner->method_exists ("MinVersionToLoad")) {
 		if (!scanner->CallIntegerMethod (scanner->instance, "MinVersionToLoad", &info->min_loadable_version, MAX_GET_OPS)) return SQ_ERROR;
 	} else {
 		info->min_loadable_version = info->GetVersion();
 	}
 	/* When there is an IsSelectable function, call it. */
-	if (scanner->MethodExists (scanner->instance, "IsDeveloperOnly")) {
+	if (scanner->method_exists ("IsDeveloperOnly")) {
 		if (!scanner->CallBoolMethod (scanner->instance, "IsDeveloperOnly", &info->is_developer_only, MAX_GET_OPS)) return SQ_ERROR;
 	} else {
 		info->is_developer_only = false;

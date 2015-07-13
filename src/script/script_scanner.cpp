@@ -63,7 +63,7 @@ ScriptScanner::~ScriptScanner()
 
 bool ScriptScanner::check_method (const char *name)
 {
-	if (!this->MethodExists (this->instance, name)) {
+	if (!this->method_exists (name)) {
 		char error[1024];
 		bstrfmt (error, "your info.nut/library.nut doesn't have the method '%s'", name);
 		this->ThrowError (error);
@@ -121,14 +121,14 @@ SQInteger ScriptScanner::construct (ScriptInfo *info)
 	}
 
 	/* The GetURL function is optional. */
-	if (this->MethodExists (this->instance, "GetURL")) {
+	if (this->method_exists ("GetURL")) {
 		char *s = this->CallStringMethodStrdup (this->instance, "GetURL", MAX_GET_OPS);
 		if (s == NULL) return SQ_ERROR;
 		info->url.reset (s);
 	}
 
 	/* Check if we have settings */
-	if (this->MethodExists (this->instance, "GetSettings")) {
+	if (this->method_exists ("GetSettings")) {
 		if (!this->CallMethod (this->instance, "GetSettings", MAX_GET_SETTING_OPS)) return SQ_ERROR;
 	}
 

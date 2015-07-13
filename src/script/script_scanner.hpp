@@ -134,6 +134,12 @@ public:
 		return static_cast<ScriptScanner *> (Squirrel::Get(vm));
 	}
 
+	/** Check if a given method exists. */
+	bool method_exists (const char *name)
+	{
+		return this->MethodExists (this->instance, name);
+	}
+
 	/** Check if a given method exists, and throw an error otherwise. */
 	bool check_method (const char *name);
 
