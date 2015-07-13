@@ -72,6 +72,51 @@ bool ScriptScanner::check_method (const char *name)
 	return true;
 }
 
+bool ScriptScanner::call_bool_method (const char *name, int suspend,
+	bool *res)
+{
+	HSQOBJECT ret;
+	if (!this->CallMethod (this->instance, name, suspend, &ret)) return false;
+	if (ret._type != OT_BOOL) return false;
+	*res = sq_objtobool (&ret) == 1;
+	return true;
+}
+
+bool ScriptScanner::call_integer_method (const char *name, int suspend,
+	int *res)
+{
+	HSQOBJECT ret;
+	if (!this->CallMethod (this->instance, name, suspend, &ret)) return false;
+	if (ret._type != OT_INTEGER) return false;
+	*res = sq_objtointeger (&ret);
+	return true;
+}
+
+char *ScriptScanner::call_string_method (const char *name, int suspend)
+{
+	HSQOBJECT ret;
+	if (!this->CallMethod (this->instance, name, suspend, &ret)) return NULL;
+	if (ret._type != OT_STRING) return NULL;
+	char *res = xstrdup (sq_objtostring (&ret));
+	ValidateString (res);
+	return res;
+}
+
+const char *ScriptScanner::call_string_method_from_set (const char *name,
+	size_t n, const char *const *val, int suspend)
+{
+	HSQOBJECT ret;
+	if (!this->CallMethod (this->instance, name, suspend, &ret)) return NULL;
+	if (ret._type != OT_STRING) return NULL;
+	const char *s = sq_objtostring (&ret);
+	for (size_t i = 0; i < n; i++) {
+		if (strcmp (s, val[i]) == 0) {
+			return val[i];
+		}
+	}
+	return NULL;
+}
+
 SQInteger ScriptScanner::construct (ScriptInfo *info)
 {
 	/* Set some basic info from the parent */
@@ -109,20 +154,20 @@ SQInteger ScriptScanner::construct (ScriptInfo *info)
 		&ScriptInfo::date,
 	};
 	for (size_t i = 0; i < lengthof(required_fields); i++) {
-		char *s = this->CallStringMethodStrdup (this->instance, required_functions[i], MAX_GET_OPS);
+		char *s = this->call_string_method (required_functions[i], MAX_GET_OPS);
 		if (s == NULL) return SQ_ERROR;
 		(info->*required_fields[i]).reset (s);
 	}
-	if (!this->CallIntegerMethod (this->instance, "GetVersion", &info->version, MAX_GET_OPS)) return SQ_ERROR;
+	if (!this->call_integer_method ("GetVersion", MAX_GET_OPS, &info->version)) return SQ_ERROR;
 	{
-		char *s = this->CallStringMethodStrdup (this->instance, "CreateInstance", MAX_CREATEINSTANCE_OPS);
+		char *s = this->call_string_method ("CreateInstance", MAX_CREATEINSTANCE_OPS);
 		if (s == NULL) return SQ_ERROR;
 		info->instance_name.reset (s);
 	}
 
 	/* The GetURL function is optional. */
 	if (this->method_exists ("GetURL")) {
-		char *s = this->CallStringMethodStrdup (this->instance, "GetURL", MAX_GET_OPS);
+		char *s = this->call_string_method ("GetURL", MAX_GET_OPS);
 		if (s == NULL) return SQ_ERROR;
 		info->url.reset (s);
 	}

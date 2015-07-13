@@ -158,27 +158,10 @@ public:
 	void InsertResult(uint result) { this->InsertResult((int)result); }
 
 	/**
-	 * Call a method of an instance, in various flavors.
+	 * Call a method of an instance.
 	 * @return False if the script crashed or returned a wrong type.
 	 */
 	bool CallMethod(HSQOBJECT instance, const char *method_name, int suspend, HSQOBJECT *ret = NULL);
-
-	char *CallStringMethodStrdup(HSQOBJECT instance, const char *method_name, int suspend);
-	bool CallIntegerMethod(HSQOBJECT instance, const char *method_name, int *res, int suspend);
-	bool CallBoolMethod(HSQOBJECT instance, const char *method_name, bool *res, int suspend);
-	const char *CallStringMethodFromSet (HSQOBJECT instance, const char *method_name, size_t n, const char *const *val, int suspend);
-
-	template <size_t N>
-	const char *CallStringMethodFromSet (HSQOBJECT instance, const char *method_name, const char *const (*val) [N], int suspend)
-	{
-		return this->CallStringMethodFromSet (instance, method_name, N, &(*val)[0], suspend);
-	}
-
-	template <size_t N>
-	const char *CallStringMethodFromSet (HSQOBJECT instance, const char *method_name, const char *const (&val) [N], int suspend)
-	{
-		return this->CallStringMethodFromSet (instance, method_name, N, &val[0], suspend);
-	}
 
 	/**
 	 * Check if a method exists in an instance.

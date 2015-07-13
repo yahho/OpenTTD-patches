@@ -143,6 +143,35 @@ public:
 	/** Check if a given method exists, and throw an error otherwise. */
 	bool check_method (const char *name);
 
+	/** Call a boolean method. */
+	bool call_bool_method (const char *name, int suspend, bool *res);
+
+	/** Call an integer method. */
+	bool call_integer_method (const char *name, int suspend, int *res);
+
+	/** Call a string method and return allocated storage. */
+	char *call_string_method (const char *name, int suspend);
+
+	/** Call a string method to get a string from a set. */
+	const char *call_string_method_from_set (const char *name,
+		size_t n, const char *const *val, int suspend);
+
+	template <size_t N>
+	const char *call_string_method_from_set (const char *name,
+		const char *const (*val) [N], int suspend)
+	{
+		return this->call_string_method_from_set (name, N,
+				&(*val)[0], suspend);
+	}
+
+	template <size_t N>
+	const char *call_string_method_from_set (const char *name,
+		const char *const (&val) [N], int suspend)
+	{
+		return this->call_string_method_from_set (name, N,
+				&val[0], suspend);
+	}
+
 	/** Begin construction of a ScriptInfo object. */
 	SQInteger construct (class ScriptInfo *info);
 

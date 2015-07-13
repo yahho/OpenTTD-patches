@@ -49,19 +49,19 @@ static const char *const game_api_versions[] =
 	if (res != 0) return res;
 
 	if (scanner->method_exists ("MinVersionToLoad")) {
-		if (!scanner->CallIntegerMethod (scanner->instance, "MinVersionToLoad", &info->min_loadable_version, MAX_GET_OPS)) return SQ_ERROR;
+		if (!scanner->call_integer_method ("MinVersionToLoad", MAX_GET_OPS, &info->min_loadable_version)) return SQ_ERROR;
 	} else {
 		info->min_loadable_version = info->GetVersion();
 	}
 	/* When there is an IsSelectable function, call it. */
 	if (scanner->method_exists ("IsDeveloperOnly")) {
-		if (!scanner->CallBoolMethod (scanner->instance, "IsDeveloperOnly", &info->is_developer_only, MAX_GET_OPS)) return SQ_ERROR;
+		if (!scanner->call_bool_method ("IsDeveloperOnly", MAX_GET_OPS, &info->is_developer_only)) return SQ_ERROR;
 	} else {
 		info->is_developer_only = false;
 	}
 	/* Try to get the API version the AI is written for. */
 	if (!scanner->check_method ("GetAPIVersion")) return SQ_ERROR;
-	const char *ver = scanner->CallStringMethodFromSet (scanner->instance, "GetAPIVersion", game_api_versions, MAX_GET_OPS);
+	const char *ver = scanner->call_string_method_from_set ("GetAPIVersion", game_api_versions, MAX_GET_OPS);
 	if (ver == NULL) {
 		DEBUG(script, 1, "Loading info.nut from (%s.%d): GetAPIVersion returned invalid version", info->GetName(), info->GetVersion());
 		return SQ_ERROR;
@@ -115,7 +115,7 @@ bool GameInfo::CanLoadFromVersion(int version) const
 		delete library;
 		return SQ_ERROR;
 	}
-	char *cat = scanner->CallStringMethodStrdup (scanner->instance, "GetCategory", MAX_GET_OPS);
+	char *cat = scanner->call_string_method ("GetCategory", MAX_GET_OPS);
 	if (cat == NULL) {
 		delete library;
 		return SQ_ERROR;

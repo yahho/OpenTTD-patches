@@ -244,48 +244,6 @@ bool Squirrel::CallMethod (HSQOBJECT instance, const char *method_name, int susp
 	return true;
 }
 
-char *Squirrel::CallStringMethodStrdup (HSQOBJECT instance, const char *method_name, int suspend)
-{
-	HSQOBJECT ret;
-	if (!this->CallMethod (instance, method_name, suspend, &ret)) return NULL;
-	if (ret._type != OT_STRING) return NULL;
-	char *res = xstrdup (sq_objtostring (&ret));
-	ValidateString (res);
-	return res;
-}
-
-bool Squirrel::CallIntegerMethod(HSQOBJECT instance, const char *method_name, int *res, int suspend)
-{
-	HSQOBJECT ret;
-	if (!this->CallMethod (instance, method_name, suspend, &ret)) return false;
-	if (ret._type != OT_INTEGER) return false;
-	*res = sq_objtointeger (&ret);
-	return true;
-}
-
-bool Squirrel::CallBoolMethod(HSQOBJECT instance, const char *method_name, bool *res, int suspend)
-{
-	HSQOBJECT ret;
-	if (!this->CallMethod (instance, method_name, suspend, &ret)) return false;
-	if (ret._type != OT_BOOL) return false;
-	*res = sq_objtobool (&ret) == 1;
-	return true;
-}
-
-const char *Squirrel::CallStringMethodFromSet (HSQOBJECT instance, const char *method_name, size_t n, const char *const *val, int suspend)
-{
-	HSQOBJECT ret;
-	if (!this->CallMethod (instance, method_name, suspend, &ret)) return NULL;
-	if (ret._type != OT_STRING) return NULL;
-	const char *s = sq_objtostring (&ret);
-	for (size_t i = 0; i < n; i++) {
-		if (strcmp (s, val[i]) == 0) {
-			return val[i];
-		}
-	}
-	return NULL;
-}
-
 /* static */ bool Squirrel::CreateClassInstanceVM(HSQUIRRELVM vm, const char *class_name, void *real_instance, HSQOBJECT *instance, SQRELEASEHOOK release_hook, bool prepend_API_name)
 {
 	Squirrel *engine = Squirrel::Get(vm);
