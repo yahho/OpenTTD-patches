@@ -5998,54 +5998,6 @@
 				RelativePath=".\..\src\script\convert.hpp"
 				>
 			</File>
-			<File
-				RelativePath=".\..\src\script\squirrel_std.cpp"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\script\"
-						ObjectFile="$(IntDir)\script\"
-						XMLDocumentationFileName="$(IntDir)\script\"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\script\"
-						ObjectFile="$(IntDir)\script\"
-						XMLDocumentationFileName="$(IntDir)\script\"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\script\"
-						ObjectFile="$(IntDir)\script\"
-						XMLDocumentationFileName="$(IntDir)\script\"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\script\"
-						ObjectFile="$(IntDir)\script\"
-						XMLDocumentationFileName="$(IntDir)\script\"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\..\src\script\squirrel_std.hpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Squirrel"

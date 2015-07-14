@@ -12,8 +12,11 @@
 #include "../stdafx.h"
 #include "../string.h"
 #include "../debug.h"
+#include "../core/math_func.hpp"
 #include "../saveload/saveload.h"
 
+#include <squirrel.h>
+#include <sqstdmath.h>
 #include "../script/convert.hpp"
 
 #include "script_fatalerror.hpp"
@@ -92,10 +95,25 @@ void ScriptInstance::Initialize (const ScriptInfo *info, CompanyID company)
 	}
 }
 
+template <SQInteger op (SQInteger, SQInteger)>
+static SQInteger squirrel_op (HSQUIRRELVM vm)
+{
+	SQInteger tmp1, tmp2;
+
+	sq_getinteger(vm, 2, &tmp1);
+	sq_getinteger(vm, 3, &tmp2);
+	sq_pushinteger(vm, op (tmp1, tmp2));
+	return 1;
+}
+
 void ScriptInstance::RegisterAPI()
 {
-	extern void squirrel_register_std(Squirrel *engine);
-	squirrel_register_std(this->engine);
+	/* We don't use squirrel_helper here, as we want to register
+	 * to the global scope and not to a class. */
+	this->engine->AddMethod ("min", &squirrel_op <min <SQInteger> >, 3, ".ii");
+	this->engine->AddMethod ("max", &squirrel_op <max <SQInteger> >, 3, ".ii");
+
+	sqstd_register_mathlib (this->engine->GetVM());
 }
 
 bool ScriptInstance::LoadCompatibilityScripts(const char *api_version, Subdirectory dir)

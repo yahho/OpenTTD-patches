@@ -1223,12 +1223,6 @@
       <XMLDocumentationFileName>$(IntDir)\script\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\script\convert.hpp" />
-    <ClCompile Include="..\src\script\squirrel_std.cpp">
-      <AssemblerListingLocation>$(IntDir)\script\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\script\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\script\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\script\squirrel_std.hpp" />
     <ClCompile Include="..\src\3rdparty\squirrel\squirrel\sqapi.cpp">
       <AssemblerListingLocation>$(IntDir)\3rdparty\squirrel\squirrel\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\3rdparty\squirrel\squirrel\</ObjectFileName>

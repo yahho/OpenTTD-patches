@@ -673,8 +673,6 @@ script/squirrel.cpp
 script/squirrel.hpp
 script/convert.cpp
 script/convert.hpp
-script/squirrel_std.cpp
-script/squirrel_std.hpp
 
 # Squirrel
 3rdparty/squirrel/squirrel/sqapi.cpp

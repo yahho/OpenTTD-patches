@@ -12,9 +12,9 @@
 #include <stdarg.h>
 #include "../stdafx.h"
 #include "../debug.h"
-#include "squirrel_std.hpp"
 #include "../fileio_func.h"
 #include "../string.h"
+#include "squirrel.hpp"
 #include <sqstdaux.h>
 #include <../squirrel/sqpcheader.h>
 #include <../squirrel/sqvm.h>
@@ -298,6 +298,60 @@ bool Squirrel::CreateClassInstance(const char *class_name, void *real_instance, 
 	return Squirrel::CreateClassInstanceVM(this->vm, class_name, real_instance, instance, NULL);
 }
 
+static SQInteger squirrel_require (HSQUIRRELVM vm)
+{
+	SQInteger top = sq_gettop(vm);
+	const char *filename;
+
+	sq_getstring(vm, 2, &filename);
+
+	/* Get the script-name of the current file, so we can work relative from it */
+	SQStackInfos si;
+	sq_stackinfos(vm, 1, &si);
+	if (si.source == NULL) {
+		DEBUG(misc, 0, "[squirrel] Couldn't detect the script-name of the 'require'-caller; this should never happen!");
+		return SQ_ERROR;
+	}
+
+	/* Keep the dir, remove the rest */
+	const char *pathsep = strrchr (si.source, PATHSEPCHAR);
+	char *path;
+	if (pathsep == NULL) {
+		path = str_fmt ("%s%s", si.source, filename);
+	} else {
+		/* Keep the PATHSEPCHAR there, remove the rest */
+		path = str_fmt ("%.*s%s",
+			(int)(pathsep - si.source + 1), si.source, filename);
+	}
+
+	/* Tars dislike opening files with '/' on Windows.. so convert it to '\\' ;) */
+#if (PATHSEPCHAR != '/')
+	for (char *n = path; *n != '\0'; n++) if (*n == '/') *n = PATHSEPCHAR;
+#endif
+
+	bool ret = Squirrel::Get(vm)->LoadScript (path);
+
+	/* Reset the top, so the stack stays correct */
+	sq_settop(vm, top);
+	free(path);
+
+	return ret ? 0 : SQ_ERROR;
+}
+
+static SQInteger squirrel_notifyallexceptions (HSQUIRRELVM vm)
+{
+	SQBool b;
+
+	if (sq_gettop(vm) >= 1) {
+		if (SQ_SUCCEEDED(sq_getbool(vm, -1, &b))) {
+			sq_notifyallexceptions(vm, b);
+			return 0;
+		}
+	}
+
+	return SQ_ERROR;
+}
+
 void Squirrel::Initialize()
 {
 	this->print_func = NULL;
@@ -318,7 +372,11 @@ void Squirrel::Initialize()
 	sq_setforeignptr(this->vm, this);
 
 	sq_pushroottable(this->vm);
-	squirrel_register_global_std(this);
+
+	/* We don't use squirrel_helper here, as we want to register
+	 * to the global scope and not to a class. */
+	this->AddMethod ("require",             &squirrel_require,             2, ".s");
+	this->AddMethod ("notifyallexceptions", &squirrel_notifyallexceptions, 2, ".b");
 }
 
 class SQFile {
