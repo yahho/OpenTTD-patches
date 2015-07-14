@@ -18,23 +18,14 @@
 #include "../core/math_func.hpp"
 
 
-static SQInteger squirrel_min (HSQUIRRELVM vm)
+template <SQInteger op (SQInteger, SQInteger)>
+static SQInteger squirrel_op (HSQUIRRELVM vm)
 {
 	SQInteger tmp1, tmp2;
 
 	sq_getinteger(vm, 2, &tmp1);
 	sq_getinteger(vm, 3, &tmp2);
-	sq_pushinteger(vm, ::min(tmp1, tmp2));
-	return 1;
-}
-
-static SQInteger squirrel_max (HSQUIRRELVM vm)
-{
-	SQInteger tmp1, tmp2;
-
-	sq_getinteger(vm, 2, &tmp1);
-	sq_getinteger(vm, 3, &tmp2);
-	sq_pushinteger(vm, ::max(tmp1, tmp2));
+	sq_pushinteger(vm, op (tmp1, tmp2));
 	return 1;
 }
 
@@ -104,8 +95,8 @@ void squirrel_register_std(Squirrel *engine)
 {
 	/* We don't use squirrel_helper here, as we want to register to the global
 	 *  scope and not to a class. */
-	engine->AddMethod ("min", &squirrel_min, 3, ".ii");
-	engine->AddMethod ("max", &squirrel_max, 3, ".ii");
+	engine->AddMethod ("min", &squirrel_op <min <SQInteger> >, 3, ".ii");
+	engine->AddMethod ("max", &squirrel_op <max <SQInteger> >, 3, ".ii");
 
 	sqstd_register_mathlib(engine->GetVM());
 }
