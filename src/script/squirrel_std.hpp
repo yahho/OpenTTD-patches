@@ -20,38 +20,6 @@
 #endif /* __APPLE__ */
 
 /**
- * By default we want to give a set of standard commands to a SQ script.
- * Most of them are easy wrappers around internal functions. Of course we
- *  could just as easy include things like the stdmath of SQ, but of those
- *  functions we are sure they work on all our supported targets.
- */
-class SquirrelStd {
-public:
-
-	/**
-	 * Get the lowest of two integers.
-	 */
-	static SQInteger min(HSQUIRRELVM vm);
-
-	/**
-	 * Get the highest of two integers.
-	 */
-	static SQInteger max(HSQUIRRELVM vm);
-
-	/**
-	 * Load another file on runtime.
-	 * @note This is always loaded on the root-level, no matter where you call this.
-	 * @note The filename is always relative from the script it is called from. Absolute calls are NOT allowed!
-	 */
-	static SQInteger require(HSQUIRRELVM vm);
-
-	/**
-	 * Enable/disable stack trace showing for handled exceptions.
-	 */
-	static SQInteger notifyallexceptions(HSQUIRRELVM vm);
-};
-
-/**
  * Register all standard functions we want to give to a script.
  */
 void squirrel_register_std(Squirrel *engine);

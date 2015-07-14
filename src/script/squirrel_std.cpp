@@ -18,7 +18,7 @@
 #include "../core/math_func.hpp"
 
 
-SQInteger SquirrelStd::min(HSQUIRRELVM vm)
+static SQInteger squirrel_min (HSQUIRRELVM vm)
 {
 	SQInteger tmp1, tmp2;
 
@@ -28,7 +28,7 @@ SQInteger SquirrelStd::min(HSQUIRRELVM vm)
 	return 1;
 }
 
-SQInteger SquirrelStd::max(HSQUIRRELVM vm)
+static SQInteger squirrel_max (HSQUIRRELVM vm)
 {
 	SQInteger tmp1, tmp2;
 
@@ -38,7 +38,7 @@ SQInteger SquirrelStd::max(HSQUIRRELVM vm)
 	return 1;
 }
 
-SQInteger SquirrelStd::require(HSQUIRRELVM vm)
+static SQInteger squirrel_require (HSQUIRRELVM vm)
 {
 	SQInteger top = sq_gettop(vm);
 	const char *filename;
@@ -78,7 +78,7 @@ SQInteger SquirrelStd::require(HSQUIRRELVM vm)
 	return ret ? 0 : SQ_ERROR;
 }
 
-SQInteger SquirrelStd::notifyallexceptions(HSQUIRRELVM vm)
+static SQInteger squirrel_notifyallexceptions (HSQUIRRELVM vm)
 {
 	SQBool b;
 
@@ -96,16 +96,16 @@ void squirrel_register_global_std(Squirrel *engine)
 {
 	/* We don't use squirrel_helper here, as we want to register to the global
 	 *  scope and not to a class. */
-	engine->AddMethod("require",             &SquirrelStd::require,             2, ".s");
-	engine->AddMethod("notifyallexceptions", &SquirrelStd::notifyallexceptions, 2, ".b");
+	engine->AddMethod ("require",             &squirrel_require,             2, ".s");
+	engine->AddMethod ("notifyallexceptions", &squirrel_notifyallexceptions, 2, ".b");
 }
 
 void squirrel_register_std(Squirrel *engine)
 {
 	/* We don't use squirrel_helper here, as we want to register to the global
 	 *  scope and not to a class. */
-	engine->AddMethod("min", &SquirrelStd::min, 3, ".ii");
-	engine->AddMethod("max", &SquirrelStd::max, 3, ".ii");
+	engine->AddMethod ("min", &squirrel_min, 3, ".ii");
+	engine->AddMethod ("max", &squirrel_max, 3, ".ii");
 
 	sqstd_register_mathlib(engine->GetVM());
 }
