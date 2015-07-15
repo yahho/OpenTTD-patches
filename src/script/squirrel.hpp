@@ -30,10 +30,8 @@ private:
 	int overdrawn_ops;       ///< The amount of operations we have overdrawn.
 	const char *APIName;     ///< Name of the API used for this squirrel.
 
-	/**
-	 * The internal RunError handler. It looks up the real error and calls RunError with it.
-	 */
-	static SQInteger _RunError(HSQUIRRELVM vm);
+	/** The internal RunError handler. */
+	static SQInteger RunError (HSQUIRRELVM vm);
 
 	/**
 	 * Get the API name.
@@ -45,11 +43,6 @@ protected:
 	 * The CompileError handler.
 	 */
 	static void CompileError(HSQUIRRELVM vm, const char *desc, const char *source, SQInteger line, SQInteger column);
-
-	/**
-	 * The RunError handler.
-	 */
-	static void RunError(HSQUIRRELVM vm, const char *error);
 
 	/**
 	 * If a user runs 'print' inside a script, this function gets the params.

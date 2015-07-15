@@ -53,8 +53,13 @@ void Squirrel::ErrorPrintFunc(HSQUIRRELVM vm, const char *s, ...)
 	}
 }
 
-void Squirrel::RunError(HSQUIRRELVM vm, const char *error)
+SQInteger Squirrel::RunError (HSQUIRRELVM vm)
 {
+	const char *error;
+	if ((sq_gettop(vm) < 1) || SQ_FAILED (sq_getstring (vm, -1, &error))) {
+		error = "unknown error";
+	}
+
 	/* Set the print function to something that prints to stderr */
 	SQPRINTFUNCTION pf = sq_getprintfunc(vm);
 	sq_setprintfunc(vm, &Squirrel::ErrorPrintFunc);
@@ -74,17 +79,7 @@ void Squirrel::RunError(HSQUIRRELVM vm, const char *error)
 	sqstd_printcallstack(vm);
 	/* Reset the old print function */
 	sq_setprintfunc(vm, pf);
-}
 
-SQInteger Squirrel::_RunError(HSQUIRRELVM vm)
-{
-	const char *sErr = 0;
-
-	if ((sq_gettop(vm) < 1) || SQ_FAILED (sq_getstring (vm, -1, &sErr))) {
-		sErr = "unknown error";
-	}
-
-	Squirrel::RunError(vm, sErr);
 	return 0;
 }
 
@@ -362,7 +357,7 @@ void Squirrel::Initialize()
 	/* Set a good print-function */
 	sq_setprintfunc(this->vm, &Squirrel::PrintFunc);
 	/* Handle runtime-errors ourself, so we can display it nicely */
-	sq_newclosure(this->vm, &Squirrel::_RunError, 0);
+	sq_newclosure(this->vm, &Squirrel::RunError, 0);
 	sq_seterrorhandler(this->vm);
 
 	/* Set the foreign pointer, so we can always find this instance from within the VM */
