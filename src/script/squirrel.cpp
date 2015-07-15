@@ -80,14 +80,11 @@ SQInteger Squirrel::_RunError(HSQUIRRELVM vm)
 {
 	const char *sErr = 0;
 
-	if (sq_gettop(vm) >= 1) {
-		if (SQ_SUCCEEDED(sq_getstring(vm, -1, &sErr))) {
-			Squirrel::RunError(vm, sErr);
-			return 0;
-		}
+	if ((sq_gettop(vm) < 1) || SQ_FAILED (sq_getstring (vm, -1, &sErr))) {
+		sErr = "unknown error";
 	}
 
-	Squirrel::RunError(vm, "unknown error");
+	Squirrel::RunError(vm, sErr);
 	return 0;
 }
 
