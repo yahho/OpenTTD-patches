@@ -181,13 +181,6 @@ public:
 	bool CreateClassInstance(const char *class_name, void *real_instance, HSQOBJECT *instance);
 
 	/**
-	 * Get the real-instance pointer.
-	 * @note This will only work just after a function-call from within Squirrel
-	 *  to your C++ function.
-	 */
-	static bool GetRealInstance(HSQUIRRELVM vm, SQUserPointer *ptr) { return SQ_SUCCEEDED(sq_getinstanceup(vm, 1, ptr, 0)); }
-
-	/**
 	 * Get the Squirrel-instance pointer.
 	 * @note This will only work just after a function-call from within Squirrel
 	 *  to your C++ function.
