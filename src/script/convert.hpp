@@ -947,8 +947,8 @@ namespace SQConvert {
 			sq_pushnull (vm);
 		} else {
 			if (addref) res->AddRef();
-			Squirrel::CreateClassInstanceVM (vm, realname, res,
-					NULL, DefSQDestructorCallback<T>, true);
+			Squirrel::CreatePrefixedClassInstance (vm, realname,
+					res, DefSQDestructorCallback<T>);
 		}
 	}
 

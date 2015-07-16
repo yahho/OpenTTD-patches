@@ -162,19 +162,21 @@ public:
 	bool MethodExists(HSQOBJECT instance, const char *method_name);
 
 	/**
-	 * Creates a class instance.
+	 * Creates a class instance, prefixed with the current API name.
 	 * @param vm The VM to create the class instance for
 	 * @param class_name The name of the class of which we create an instance.
 	 * @param real_instance The instance to the real class, if it represents a real class.
-	 * @param instance Returning value with the pointer to the instance.
 	 * @param release_hook Optional param to give a release hook.
-	 * @param prepend_API_name Optional parameter; if true, the class_name is prefixed with the current API name.
 	 * @return False if creating failed.
 	 */
-	static bool CreateClassInstanceVM(HSQUIRRELVM vm, const char *class_name, void *real_instance, HSQOBJECT *instance, SQRELEASEHOOK release_hook, bool prepend_API_name = false);
+	static bool CreatePrefixedClassInstance (HSQUIRRELVM vm, const char *class_name, void *real_instance, SQRELEASEHOOK release_hook);
 
 	/**
-	 * Exactly the same as CreateClassInstanceVM, only callable without instance of Squirrel.
+	 * Creates a class instance.
+	 * @param class_name The name of the class of which we create an instance.
+	 * @param real_instance The instance to the real class, if it represents a real class.
+	 * @param instance Returning value with the pointer to the instance.
+	 * @return False if creating failed.
 	 */
 	bool CreateClassInstance(const char *class_name, void *real_instance, HSQOBJECT *instance);
 

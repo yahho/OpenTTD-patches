@@ -236,33 +236,25 @@ bool Squirrel::CallMethod (HSQOBJECT instance, const char *method_name, int susp
 	return true;
 }
 
-/* static */ bool Squirrel::CreateClassInstanceVM(HSQUIRRELVM vm, const char *class_name, void *real_instance, HSQOBJECT *instance, SQRELEASEHOOK release_hook, bool prepend_API_name)
+static bool CreateClassInstanceVM (HSQUIRRELVM vm, const char *class_name,
+	void *real_instance, HSQOBJECT *instance, SQRELEASEHOOK release_hook)
 {
-	Squirrel *engine = Squirrel::Get(vm);
-
 	int oldtop = sq_gettop(vm);
 
 	/* First, find the class */
 	sq_pushroottable(vm);
 
-	if (prepend_API_name) {
-		char *class_name2 = (char *)alloca(strlen(class_name) + strlen(engine->GetAPIName()) + 1);
-		sprintf(class_name2, "%s%s", engine->GetAPIName(), class_name);
-
-		sq_pushstring(vm, class_name2, -1);
-	} else {
-		sq_pushstring(vm, class_name, -1);
-	}
+	sq_pushstring(vm, class_name, -1);
 
 	if (SQ_FAILED(sq_get(vm, -2))) {
-		DEBUG(misc, 0, "[squirrel] Failed to find class by the name '%s%s'", prepend_API_name ? engine->GetAPIName() : "", class_name);
+		DEBUG(misc, 0, "[squirrel] Failed to find class by the name '%s'", class_name);
 		sq_settop(vm, oldtop);
 		return false;
 	}
 
 	/* Create the instance */
 	if (SQ_FAILED(sq_createinstance(vm, -1))) {
-		DEBUG(misc, 0, "[squirrel] Failed to create instance for class '%s%s'", prepend_API_name ? engine->GetAPIName() : "", class_name);
+		DEBUG(misc, 0, "[squirrel] Failed to create instance for class '%s'", class_name);
 		sq_settop(vm, oldtop);
 		return false;
 	}
@@ -285,9 +277,20 @@ bool Squirrel::CallMethod (HSQOBJECT instance, const char *method_name, int susp
 	return true;
 }
 
+/* static */ bool Squirrel::CreatePrefixedClassInstance (HSQUIRRELVM vm,
+	const char *class_name, void *real_instance, SQRELEASEHOOK release_hook)
+{
+	const char *prepend = Squirrel::Get(vm)->GetAPIName();
+
+	char *class_name2 = (char *) alloca (strlen(class_name) + strlen(prepend) + 1);
+	sprintf (class_name2, "%s%s", prepend, class_name);
+
+	return CreateClassInstanceVM (vm, class_name2, real_instance, NULL, release_hook);
+}
+
 bool Squirrel::CreateClassInstance(const char *class_name, void *real_instance, HSQOBJECT *instance)
 {
-	return Squirrel::CreateClassInstanceVM(this->vm, class_name, real_instance, instance, NULL);
+	return CreateClassInstanceVM (this->vm, class_name, real_instance, instance, NULL);
 }
 
 static SQInteger squirrel_require (HSQUIRRELVM vm)
