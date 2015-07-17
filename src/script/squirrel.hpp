@@ -25,7 +25,7 @@ private:
 	typedef void (SQPrintFunc)(bool error_msg, const char *message);
 
 	HSQUIRRELVM vm;          ///< The VirtualMachine instance for squirrel
-	SQPrintFunc *print_func; ///< Points to either NULL, or a custom print handler
+	SQPrintFunc *const print_func; ///< Either NULL or a custom print handler
 	bool crashed;            ///< True if the squirrel script made an error.
 	int overdrawn_ops;       ///< The amount of operations we have overdrawn.
 	const char *APIName;     ///< Name of the API used for this squirrel.
@@ -55,7 +55,10 @@ protected:
 	static void ErrorPrintFunc(HSQUIRRELVM vm, const char *s, ...);
 
 public:
-	Squirrel (const char *APIName) : APIName(APIName) { }
+	Squirrel (const char *APIName, SQPrintFunc *print_func = NULL)
+		: print_func(print_func), APIName(APIName)
+	{
+	}
 
 	/** Perform all initialization steps to create the engine. */
 	void Initialize();
@@ -186,11 +189,6 @@ public:
 	 *  to your C++ function.
 	 */
 	static bool GetInstance(HSQUIRRELVM vm, HSQOBJECT *ptr, int pos = 1) { sq_getclass(vm, pos); sq_getstackobj(vm, pos, ptr); sq_pop(vm, 1); return true; }
-
-	/**
-	 * Set a custom print function, so you can handle outputs from SQ yourself.
-	 */
-	void SetPrintFunction(SQPrintFunc *func) { this->print_func = func; }
 
 	/**
 	 * Throw a Squirrel error that will be nicely displayed to the user.

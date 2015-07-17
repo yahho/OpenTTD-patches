@@ -54,9 +54,8 @@ ScriptInstance::ScriptInstance(const char *APIName) :
 	callback(NULL)
 {
 	this->storage = new ScriptStorage();
-	this->engine  = new Squirrel(APIName);
+	this->engine  = new Squirrel (APIName, &ScriptController::Print);
 	this->engine->Initialize();
-	this->engine->SetPrintFunction (&ScriptController::Print);
 }
 
 void ScriptInstance::Initialize (const ScriptInfo *info, CompanyID company)

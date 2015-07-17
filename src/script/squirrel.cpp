@@ -349,7 +349,6 @@ static SQInteger squirrel_notifyallexceptions (HSQUIRRELVM vm)
 
 void Squirrel::Initialize()
 {
-	this->print_func = NULL;
 	this->crashed = false;
 	this->overdrawn_ops = 0;
 	this->vm = sq_open(1024);
