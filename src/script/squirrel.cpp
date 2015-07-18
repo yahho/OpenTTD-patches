@@ -376,21 +376,20 @@ void Squirrel::Initialize()
 class SQFile {
 private:
 	FILE *file;
-	size_t size;
-	size_t pos;
+	size_t left;
 
 public:
-	SQFile(FILE *file, size_t size) : file(file), size(size), pos(0) {}
+	SQFile (FILE *file, size_t size) : file(file), left(size) {}
 
 	size_t Read(void *buf, size_t elemsize, size_t count)
 	{
 		assert(elemsize != 0);
-		if (this->pos + (elemsize * count) > this->size) {
-			count = (this->size - this->pos) / elemsize;
+		if (elemsize * count > this->left) {
+			count = this->left / elemsize;
 		}
 		if (count == 0) return 0;
 		size_t ret = fread(buf, elemsize, count, this->file);
-		this->pos += ret * elemsize;
+		this->left -= ret * elemsize;
 		return ret;
 	}
 };
