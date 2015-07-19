@@ -444,7 +444,7 @@ static SQInteger _io_file_read(SQUserPointer file, SQUserPointer buf, SQInteger 
 	return ret;
 }
 
-SQRESULT Squirrel::LoadFile(HSQUIRRELVM vm, const char *filename, SQBool printerror)
+SQRESULT Squirrel::LoadFile (HSQUIRRELVM vm, const char *filename)
 {
 	size_t size;
 	FILE *file;
@@ -510,7 +510,7 @@ SQRESULT Squirrel::LoadFile(HSQUIRRELVM vm, const char *filename, SQBool printer
 				break;
 		}
 
-		if (SQ_SUCCEEDED(sq_compile(vm, func, &f, filename, printerror))) {
+		if (SQ_SUCCEEDED(sq_compile(vm, func, &f, filename, SQTrue))) {
 			FioFCloseFile(file);
 			return SQ_OK;
 		}
@@ -527,7 +527,7 @@ bool Squirrel::LoadScript (const char *script, bool in_root)
 
 	SQInteger ops_left = this->vm->_ops_till_suspend;
 	/* Load and run the script */
-	if (SQ_SUCCEEDED(LoadFile (this->vm, script, SQTrue))) {
+	if (SQ_SUCCEEDED(LoadFile (this->vm, script))) {
 		sq_push (this->vm, -2);
 		if (SQ_SUCCEEDED(sq_call (this->vm, 1, SQFalse, SQTrue, 100000))) {
 			sq_pop (this->vm, 1);

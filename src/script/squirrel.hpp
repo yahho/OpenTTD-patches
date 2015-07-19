@@ -89,7 +89,7 @@ public:
 	/**
 	 * Load a file to a given VM.
 	 */
-	SQRESULT LoadFile(HSQUIRRELVM vm, const char *filename, SQBool printerror);
+	SQRESULT LoadFile (HSQUIRRELVM vm, const char *filename);
 
 	/**
 	 * Adds a function to the stack. Depending on the current state this means
