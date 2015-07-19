@@ -500,11 +500,6 @@ static SQRESULT LoadFile (HSQUIRRELVM vm, const char *filename,
 
 bool Squirrel::LoadScript (const char *script, bool in_root)
 {
-	/* Make sure we are always in the root-table */
-	if (in_root) sq_pushroottable (this->vm);
-
-	SQInteger ops_left = this->vm->_ops_till_suspend;
-
 	/* Load and run the script */
 	FILE *file;
 	size_t size;
@@ -522,6 +517,10 @@ bool Squirrel::LoadScript (const char *script, bool in_root)
 	if (file == NULL) {
 		sq_throwerror (vm, "cannot open the file");
 	} else {
+		/* Make sure we are always in the root-table */
+		if (in_root) sq_pushroottable (this->vm);
+		SQInteger ops_left = this->vm->_ops_till_suspend;
+
 		SQRESULT r = LoadFile (this->vm, script, file, size);
 		FioFCloseFile (file);
 
@@ -536,9 +535,10 @@ bool Squirrel::LoadScript (const char *script, bool in_root)
 				return true;
 			}
 		}
+
+		this->vm->_ops_till_suspend = ops_left;
 	}
 
-	this->vm->_ops_till_suspend = ops_left;
 	DEBUG(misc, 0, "[squirrel] Failed to compile '%s'", script);
 	return false;
 }
