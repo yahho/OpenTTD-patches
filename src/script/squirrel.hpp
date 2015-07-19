@@ -87,11 +87,6 @@ public:
 	bool LoadScript (const char *script, bool in_root = true);
 
 	/**
-	 * Load a file to a given VM.
-	 */
-	SQRESULT LoadFile (HSQUIRRELVM vm, const char *filename);
-
-	/**
 	 * Adds a function to the stack. Depending on the current state this means
 	 *  either a method or a global function.
 	 */

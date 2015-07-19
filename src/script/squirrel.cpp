@@ -498,42 +498,43 @@ static SQRESULT LoadFile (HSQUIRRELVM vm, const char *filename,
 	return sq_compile (vm, func, &f, filename, SQTrue);
 }
 
-SQRESULT Squirrel::LoadFile (HSQUIRRELVM vm, const char *filename)
-{
-	size_t size;
-	FILE *file;
-
-	if (strncmp(this->GetAPIName(), "AI", 2) == 0) {
-		file = FioFOpenFile(filename, "rb", AI_DIR, &size);
-		if (file == NULL) file = FioFOpenFile(filename, "rb", AI_LIBRARY_DIR, &size);
-	} else if (strncmp(this->GetAPIName(), "GS", 2) == 0) {
-		file = FioFOpenFile(filename, "rb", GAME_DIR, &size);
-		if (file == NULL) file = FioFOpenFile(filename, "rb", GAME_LIBRARY_DIR, &size);
-	} else {
-		NOT_REACHED();
-	}
-
-	if (file == NULL) return sq_throwerror(vm, "cannot open the file");
-
-	SQRESULT r = ::LoadFile (vm, filename, file, size);
-	FioFCloseFile (file);
-	return r;
-}
-
 bool Squirrel::LoadScript (const char *script, bool in_root)
 {
 	/* Make sure we are always in the root-table */
 	if (in_root) sq_pushroottable (this->vm);
 
 	SQInteger ops_left = this->vm->_ops_till_suspend;
+
 	/* Load and run the script */
-	if (SQ_SUCCEEDED(LoadFile (this->vm, script))) {
-		sq_push (this->vm, -2);
-		if (SQ_SUCCEEDED(sq_call (this->vm, 1, SQFalse, SQTrue, 100000))) {
-			sq_pop (this->vm, 1);
-			/* After compiling the file we want to reset the amount of opcodes. */
-			this->vm->_ops_till_suspend = ops_left;
-			return true;
+	FILE *file;
+	size_t size;
+
+	if (strncmp (this->GetAPIName(), "AI", 2) == 0) {
+		file = FioFOpenFile (script, "rb", AI_DIR, &size);
+		if (file == NULL) file = FioFOpenFile (script, "rb", AI_LIBRARY_DIR, &size);
+	} else if (strncmp (this->GetAPIName(), "GS", 2) == 0) {
+		file = FioFOpenFile (script, "rb", GAME_DIR, &size);
+		if (file == NULL) file = FioFOpenFile (script, "rb", GAME_LIBRARY_DIR, &size);
+	} else {
+		NOT_REACHED();
+	}
+
+	if (file == NULL) {
+		sq_throwerror (vm, "cannot open the file");
+	} else {
+		SQRESULT r = LoadFile (this->vm, script, file, size);
+		FioFCloseFile (file);
+
+		if (SQ_SUCCEEDED(r)) {
+			sq_push (this->vm, -2);
+			if (SQ_SUCCEEDED (sq_call (this->vm, 1, SQFalse,
+							SQTrue, 100000))) {
+				sq_pop (this->vm, 1);
+				/* After compiling the file we want to
+				 * reset the amount of opcodes. */
+				this->vm->_ops_till_suspend = ops_left;
+				return true;
+			}
 		}
 	}
 
