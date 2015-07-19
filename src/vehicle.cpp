@@ -179,6 +179,9 @@ bool Vehicle::NeedsServicing() const
 		return true;
 	}
 
+	if (this->NeedsAutorenewing(c))
+		return true;
+
 	if(this->type == VEH_TRAIN)
 		if(HasBit(Train::From(this)->flags, VRF_NEED_REPAIR))
 			return true;
