@@ -149,7 +149,7 @@ ScriptController::~ScriptController()
 		sq_pushstring(vm, fake_class, -1);
 		sq_newclass(vm, SQFalse);
 		/* Load the library */
-		if (!engine->LoadScript(vm, lib->GetMainScript(), false)) {
+		if (!engine->LoadScript (lib->GetMainScript(), false)) {
 			char error[1024];
 			bstrfmt (error, "there was a compile error when importing '%s' version %d", library, version);
 			return sq_throwerror (vm, error);

@@ -520,31 +520,26 @@ SQRESULT Squirrel::LoadFile(HSQUIRRELVM vm, const char *filename, SQBool printer
 	return sq_throwerror(vm, "cannot open the file");
 }
 
-bool Squirrel::LoadScript(HSQUIRRELVM vm, const char *script, bool in_root)
+bool Squirrel::LoadScript (const char *script, bool in_root)
 {
 	/* Make sure we are always in the root-table */
-	if (in_root) sq_pushroottable(vm);
+	if (in_root) sq_pushroottable (this->vm);
 
-	SQInteger ops_left = vm->_ops_till_suspend;
+	SQInteger ops_left = this->vm->_ops_till_suspend;
 	/* Load and run the script */
-	if (SQ_SUCCEEDED(LoadFile(vm, script, SQTrue))) {
-		sq_push(vm, -2);
-		if (SQ_SUCCEEDED(sq_call(vm, 1, SQFalse, SQTrue, 100000))) {
-			sq_pop(vm, 1);
+	if (SQ_SUCCEEDED(LoadFile (this->vm, script, SQTrue))) {
+		sq_push (this->vm, -2);
+		if (SQ_SUCCEEDED(sq_call (this->vm, 1, SQFalse, SQTrue, 100000))) {
+			sq_pop (this->vm, 1);
 			/* After compiling the file we want to reset the amount of opcodes. */
-			vm->_ops_till_suspend = ops_left;
+			this->vm->_ops_till_suspend = ops_left;
 			return true;
 		}
 	}
 
-	vm->_ops_till_suspend = ops_left;
+	this->vm->_ops_till_suspend = ops_left;
 	DEBUG(misc, 0, "[squirrel] Failed to compile '%s'", script);
 	return false;
-}
-
-bool Squirrel::LoadScript(const char *script)
-{
-	return LoadScript(this->vm, script);
 }
 
 void Squirrel::Uninitialize()

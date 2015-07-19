@@ -84,8 +84,7 @@ public:
 	 * @param script The full script-name to load.
 	 * @return False if loading failed.
 	 */
-	bool LoadScript(const char *script);
-	bool LoadScript(HSQUIRRELVM vm, const char *script, bool in_root = true);
+	bool LoadScript (const char *script, bool in_root = true);
 
 	/**
 	 * Load a file to a given VM.
