@@ -20,6 +20,7 @@
 #include "landscape.h"
 #include "void_map.h"
 #include "tgp.h"
+#include "tgp_orig.h"
 #include "genworld.h"
 #include "fios.h"
 #include "date_func.h"
@@ -32,6 +33,7 @@
 #include "company_func.h"
 #include "pathfinder/npf/aystar.h"
 #include <list>
+#include "town.h"
 
 #include "table/strings.h"
 #include "table/sprites.h"
@@ -489,7 +491,7 @@ void DoClearSquare(TileIndex tile)
 	if (_tile_type_procs[GetTileType(tile)]->animate_tile_proc != NULL) DeleteAnimatedTile(tile);
 
 	MakeClear(tile, CLEAR_GRASS, _generating_world ? 3 : 0);
-	MarkTileDirtyByTile(tile);
+	MarkTileDirtyByTile(tile, ZOOM_LVL_END);
 }
 
 /**
@@ -605,7 +607,7 @@ void ClearSnowLine()
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdLandscapeClear(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+CommandCost CmdLandscapeClear(TileIndex tile, DoCommandFlag flags, uint64 p1, uint64 p2, const char *text)
 {
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 	bool do_clear = false;
@@ -635,7 +637,38 @@ CommandCost CmdLandscapeClear(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 			return_cmd_error(STR_ERROR_CAN_T_BUILD_ON_WATER);
 		}
 	} else {
-		cost.AddCost(_tile_type_procs[GetTileType(tile)]->clear_tile_proc(tile, flags));
+		TileType type = GetTileType(tile);
+		cost.AddCost(_tile_type_procs[type]->clear_tile_proc(tile, flags));
+
+		/* construction near towns is more expensive with the town construction cost patch enabled */
+		if (_settings_game.economy.town_construction_cost) {
+			const Town *t = ClosestTownFromTile(tile, (uint)-1);
+			if (t != NULL) { ///< this if is required or scenario editor will crash with no towns on certain actions
+				uint distance = DistanceSquare(tile, t->xy);
+				switch(type) {
+					case MP_HOUSE: ///< demolishing a house is expensive especially in large cities
+						if (t->cache.population < 600) break;
+						cost.MultiplyCost(((t->cache.population / 408) * (1024 / (distance + 1)) / 2) + 1);
+						break;
+					case MP_WATER: ///< make levelling and demolishing on water a little less expensive
+						if (t->cache.population < 600) break;
+						cost.MultiplyCost(((t->cache.population / 408) * (1024 / (distance + 1)) / 48) + 1);
+						break;
+					case MP_ROAD: ///< building and demolishing road should be a little easier
+						cost.MultiplyCost((((t->cache.population + 1) / 640) * (1536 / (distance + 1)) / 8) + 1);
+						break;
+					case MP_RAILWAY:
+					case MP_OBJECT: ///< don't give you more money on selling than you paid
+						if (t->cache.population < 999999) break; ///< to fix exploits until a better solution is found
+						cost.MultiplyCost(((t->cache.population / 512) * (1536 / (distance + 1)) / 12) + 1);
+						break;
+					default:
+						if (t->cache.population < 800) break;
+						cost.MultiplyCost((t->cache.population / 408) * (1536 / (distance + 1)) + 1);
+						break;
+				}
+			}
+		}
 	}
 
 	if (flags & DC_EXEC) {
@@ -655,7 +688,7 @@ CommandCost CmdLandscapeClear(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdClearArea(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+CommandCost CmdClearArea(TileIndex tile, DoCommandFlag flags, uint64 p1, uint64 p2, const char *text)
 {
 	if (p1 >= MapSize()) return CMD_ERROR;
 
@@ -722,33 +755,29 @@ void RunTileLoop()
 	 * shift register (LFSR). This allows a deterministic pseudorandom ordering, but
 	 * still with minimal state and fast iteration. */
 
-	/* Maximal length LFSR feedback terms, from 12-bit (for 64x64 maps) to 22-bit (for 2048x2048 maps).
+	/* Maximal length LFSR feedback terms, from 12-bit (for 64x64 maps) to 26-bit (for 32768x32768 maps).
 	 * Extracted from http://www.ece.cmu.edu/~koopman/lfsr/ */
 	static const uint32 feedbacks[] = {
-		0xD8F, 0x1296, 0x2496, 0x4357, 0x8679, 0x1030E, 0x206CD, 0x403FE, 0x807B8, 0x1004B2, 0x2006A8
+		0xD8F, 0x1296, 0x2496, 0x4357, 0x8679, 0x1030E, 0x206CD, 0x403FE, 0x807B8, 0x1004B2, 0x2006A8, 0x4004B2, 0x800B87, 0x10004F3, 0x200072D, 0x40006AE, 0x80009E3, 0x10000583
 	};
-	const uint32 feedback = feedbacks[MapLogX() + MapLogY() - 12];
 
+	const uint32 feedback = feedbacks[MapLogX() + MapLogY() - 12];
 	/* We update every tile every 256 ticks, so divide the map size by 2^8 = 256 */
 	uint count = 1 << (MapLogX() + MapLogY() - 8);
-
 	TileIndex tile = _cur_tileloop_tile;
 	/* The LFSR cannot have a zeroed state. */
 	assert(tile != 0);
-
 	/* Manually update tile 0 every 256 ticks - the LFSR never iterates over it itself.  */
-	if (_tick_counter % 256 == 0) {
+	if (_tick_counter % (256 * _settings_game.economy.day_length_factor) == 0) {
 		_tile_type_procs[GetTileType(0)]->tile_loop_proc(0);
 		count--;
 	}
-
 	while (count--) {
 		_tile_type_procs[GetTileType(tile)]->tile_loop_proc(tile);
 
 		/* Get the next tile in sequence using a Galois LFSR. */
 		tile = (tile >> 1) ^ (-(int32)(tile & 1) & feedback);
 	}
-
 	_cur_tileloop_tile = tile;
 }
 
@@ -899,7 +928,7 @@ static void CreateDesertOrRainForest()
 		for (data = _make_desert_or_rainforest_data;
 				data != endof(_make_desert_or_rainforest_data); ++data) {
 			TileIndex t = AddTileIndexDiffCWrap(tile, *data);
-			if (t != INVALID_TILE && (TileHeight(t) >= 4 || IsTileType(t, MP_WATER))) break;
+			if (t != INVALID_TILE && (TileHeight(t) >= _settings_game.construction.max_heightlevel / 4 || IsTileType(t, MP_WATER))) break;
 		}
 		if (data == endof(_make_desert_or_rainforest_data)) {
 			SetTropicZone(tile, TROPICZONE_DESERT);
@@ -1222,6 +1251,16 @@ void GenerateLandscape(byte mode)
 	} else if (_settings_game.game_creation.land_generator == LG_TERRAGENESIS) {
 		SetGeneratingWorldProgress(GWP_LANDSCAPE, steps + GLS_TERRAGENESIS);
 		GenerateTerrainPerlin();
+	} else if (_settings_game.game_creation.land_generator == LG_TERRAGENESIS_ORIG) {
+		switch(_settings_game.difficulty.terrain_type){
+			case 1: _settings_game.difficulty.terrain_type = 0; break;
+			case 2: _settings_game.difficulty.terrain_type = 1; break;
+			case 4: _settings_game.difficulty.terrain_type = 2; break;
+			case 5: _settings_game.difficulty.terrain_type = 3; break;
+			default: _settings_game.difficulty.terrain_type = 0; break;
+		}
+		SetGeneratingWorldProgress(GWP_LANDSCAPE, steps + GLS_TERRAGENESIS);
+		GenerateTerrainPerlinOrig();
 	} else {
 		SetGeneratingWorldProgress(GWP_LANDSCAPE, steps + GLS_ORIGINAL);
 		if (_settings_game.construction.freeform_edges) {

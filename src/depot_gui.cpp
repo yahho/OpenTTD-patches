@@ -26,8 +26,10 @@
 #include "tilehighlight_func.h"
 #include "window_gui.h"
 #include "vehiclelist.h"
+#include "company_base.h"
 #include "order_backup.h"
 #include "zoom_func.h"
+#include "infrastructure_func.h"
 
 #include "widgets/depot_widget.h"
 
@@ -116,7 +118,7 @@ extern void DepotSortList(VehicleList *list);
  * @param p1 unused
  * @param p2 unused
  */
-void CcCloneVehicle(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcCloneVehicle(const CommandCost &result, TileIndex tile, uint64 p1, uint64 p2)
 {
 	if (result.Failed()) return;
 
@@ -677,7 +679,7 @@ struct DepotWindow : Window {
 
 		/* Setup disabled buttons. */
 		TileIndex tile = this->window_number;
-		this->SetWidgetsDisabledState(!IsTileOwner(tile, _local_company),
+		this->SetWidgetsDisabledState(!Company::IsValidID(_local_company) || !IsInfraTileUsageAllowed(this->type, _local_company, tile),
 			WID_D_STOP_ALL,
 			WID_D_START_ALL,
 			WID_D_SELL,
@@ -703,7 +705,10 @@ struct DepotWindow : Window {
 
 			case WID_D_BUILD: // Build vehicle
 				ResetObjectToPlace();
-				ShowBuildVehicleWindow(this->window_number, this->type);
+				if(_settings_client.gui.new_build_vehicle_window)
+					ShowBuildVehicleWindow(this->window_number, this->type);
+				else
+					ShowBuildVehicleWindowOrig(this->window_number, this->type);
 				break;
 
 			case WID_D_CLONE: // Clone button

@@ -219,6 +219,11 @@ enum WindowClass {
 	WC_VEHICLE_TIMETABLE,
 
 	/**
+	 * Vehicle trip history
+	 */
+	WC_VEHICLE_TRIP_HISTORY,
+
+	/**
 	 * Company colour selection; %Window numbers:
 	 *   - #CompanyID = #SelectCompanyLiveryWidgets
 	 */
@@ -369,6 +374,7 @@ enum WindowClass {
 	 *   - 0 = #BuildObjectWidgets
 	 */
 	WC_BUILD_OBJECT,
+	WC_SIGNAL_PROGRAM,
 
 	/**
 	 * Build vehicle; %Window numbers:
@@ -376,6 +382,7 @@ enum WindowClass {
 	 *   - #TileIndex = #BuildVehicleWidgets
 	 */
 	WC_BUILD_VEHICLE,
+	WC_BUILD_VEHICLE_ORIG,
 
 	/**
 	 * Build bridge; %Window numbers:
@@ -668,12 +675,18 @@ enum WindowClass {
 	 *   - 0 = #SpriteAlignerWidgets
 	 */
 	WC_SPRITE_ALIGNER,
+	WC_ZONING_TOOLBAR,
 
 	/**
 	 * Linkgraph legend; Window numbers:
 	 *   - 0 = #LinkGraphWidgets
 	 */
 	WC_LINKGRAPH_LEGEND,
+
+    /**
+     * Departure boards
+     */
+	WC_DEPARTURES_BOARD,
 
 	WC_INVALID = 0xFFFF, ///< Invalid window.
 };

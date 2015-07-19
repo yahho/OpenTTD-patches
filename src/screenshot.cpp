@@ -25,11 +25,13 @@
 #include "window_func.h"
 #include "tile_map.h"
 #include "landscape.h"
+#include "company_base.h"
 
 #include "table/strings.h"
 
 static const char * const SCREENSHOT_NAME = "screenshot"; ///< Default filename of a saved screenshot.
 static const char * const HEIGHTMAP_NAME  = "heightmap";  ///< Default filename of a saved heightmap.
+static const char * const MINIMAP_NAME  = "minimap";      ///< Default filename of a saved minimap.
 
 char _screenshot_format_name[8];      ///< Extension of the current screenshot format (corresponds with #_cur_screenshot_format).
 uint _num_screenshot_formats;         ///< Number of available screenshot formats.
@@ -67,6 +69,8 @@ struct ScreenshotFormat {
 	ScreenshotHandlerProc *proc; ///< Function for writing the screenshot.
 	bool supports_32bpp;         ///< Does this format support 32bpp images?
 };
+
+#define MKCOLOUR(x) TO_LE32X(x)
 
 /*************************************************
  **** SCREENSHOT CODE FOR WINDOWS BITMAP (.BMP)
@@ -702,7 +706,7 @@ static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, ui
  * @param crashlog   Create path for crash.png
  * @return Pathname for a screenshot file.
  */
-static const char *MakeScreenshotName(const char *default_fn, const char *ext, bool crashlog = false)
+static const char *MakeScreenshotName(const char *default_fn, const char *ext, bool minimap = false, bool crashlog = false)
 {
 	bool generate = StrEmpty(_screenshot_name);
 
@@ -718,7 +722,14 @@ static const char *MakeScreenshotName(const char *default_fn, const char *ext, b
 	size_t len = strlen(_screenshot_name);
 	snprintf(&_screenshot_name[len], lengthof(_screenshot_name) - len, ".%s", ext);
 
-	const char *screenshot_dir = crashlog ? _personal_dir : FiosGetScreenshotDir();
+	const char *screenshot_dir = crashlog ? _personal_dir : (minimap ? FiosGetMinimapScreenshotDir() : FiosGetScreenshotDir());
+//	if(crashlog)
+//		screenshot_dir = _personal_dir;
+//	else
+//		if(minimap)
+//			screenshot_dir = FiosGetMinimapScreenshotDir();
+//		else
+//			screenshot_dir = FiosGetScreenshotDir();
 
 	for (uint serial = 1;; serial++) {
 		if (snprintf(_full_screenshot_name, lengthof(_full_screenshot_name), "%s%s", screenshot_dir, _screenshot_name) >= (int)lengthof(_full_screenshot_name)) {
@@ -739,7 +750,7 @@ static const char *MakeScreenshotName(const char *default_fn, const char *ext, b
 static bool MakeSmallScreenshot(bool crashlog)
 {
 	const ScreenshotFormat *sf = _screenshot_formats + _cur_screenshot_format;
-	return sf->proc(MakeScreenshotName(SCREENSHOT_NAME, sf->extension, crashlog), CurrentScreenCallback, NULL, _screen.width, _screen.height,
+	return sf->proc(MakeScreenshotName(SCREENSHOT_NAME, sf->extension, false, crashlog), CurrentScreenCallback, NULL, _screen.width, _screen.height,
 			BlitterFactoryBase::GetCurrentBlitter()->GetScreenDepth(), _cur_palette.palette);
 }
 
@@ -895,4 +906,67 @@ bool MakeScreenshot(ScreenshotType t, const char *name)
 	}
 
 	return ret;
+}
+
+static uint32 _owner_colours[MP_OBJECT + 1];
+
+/**
+ * Return the colour a tile would be displayed with in the small map in mode "Owner".
+ *
+ * @param tile The tile of which we would like to get the colour.
+ * @return The colour of tile in the small map in mode "Owner"
+ */
+static inline uint32 GetMinimapOwnerPixels(TileIndex tile)
+{
+	return _owner_colours[GetTileType(tile)];
+}
+
+static void CurrentMinimapCallback(void *userdata, void *buf, uint y, uint pitch, uint n)
+{
+	//printf("CurrentMinimapCallback called, y=%u, pitch=%u, n=%u\n", y, pitch, n);
+
+	uint8 *ubuf = (uint8 *)buf;
+
+	uint num = (pitch * n);
+	uint row, col;
+	uint32 val;
+
+	for (uint i=0; i < num; i++)
+	{
+		row = y + (int) (i / pitch);
+		col = i % pitch;
+
+		TileIndex tile = TileXY(col, row);
+
+		if (IsTileType(tile, MP_VOID)) val = 0x00000000;
+		else val = GetMinimapOwnerPixels(tile);
+		uint8 *val8 = (uint8 *)&val;
+
+		*ubuf = (uint8) val8[0];
+		ubuf += sizeof(uint8); *ubuf = (uint8) val8[1];
+		ubuf += sizeof(uint8); *ubuf = (uint8) val8[2];
+		ubuf += sizeof(uint8); //*ubuf = (uint8) val8[3];
+		ubuf += sizeof(uint8);
+	}
+}
+
+/**
+ * Saves the complete savemap in a PNG-file.
+ */
+void SaveMinimap()
+{
+	/* fill with some special colours */
+	_owner_colours[MP_CLEAR]        = MKCOLOUR(0x00808080);
+	_owner_colours[MP_RAILWAY]      = MKCOLOUR(0x00101010);
+	_owner_colours[MP_ROAD]         = MKCOLOUR(0x00B0B0B0);
+	_owner_colours[MP_HOUSE]        = MKCOLOUR(0x00FF7B77);
+	_owner_colours[MP_TREES]        = MKCOLOUR(0x00008000);
+	_owner_colours[MP_STATION]      = MKCOLOUR(0x00000080);
+	_owner_colours[MP_WATER]        = MKCOLOUR(0x001C51FF);
+	_owner_colours[MP_VOID]         = MKCOLOUR(0x00000000);
+	_owner_colours[MP_INDUSTRY]     = MKCOLOUR(0x00FF0000);
+	_owner_colours[MP_TUNNELBRIDGE] = MKCOLOUR(0x0000FFFF);
+	_owner_colours[MP_OBJECT]       = MKCOLOUR(0x00FFFFFF);
+
+	MakePNGImage(MakeScreenshotName(MINIMAP_NAME, "png", true), CurrentMinimapCallback, NULL, MapSizeX(), MapSizeY(), 32, _cur_palette.palette);
 }

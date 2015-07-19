@@ -12,6 +12,23 @@
 #ifndef TGP_H
 #define TGP_H
 
+static const uint TGP_HEIGHT_FACTOR = 8;
+
+/**
+ * Maximum index into array of noise amplitudes.
+ */
+static const int TGP_FREQUENCY_MAX = 9;
+
+enum Smoothness {
+	SMOOTHNESS_VERY_SMOOTH      = 0,
+	SMOOTHNESS_SMOOTH           = 1,
+	SMOOTHNESS_ROUGH            = 2,
+	SMOOTHNESS_VERY_ROUGH       = 3,
+	SMOOTHNESS_CEREALLY_ROUGH   = 4,
+	SMOOTHNESS_COMMUTORZ        = 5,
+	SMOOTHNESS_FLOWING          = 6,
+};
+
 void GenerateTerrainPerlin();
 
 #endif /* TGP_H */

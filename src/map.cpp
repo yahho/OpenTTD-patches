@@ -19,12 +19,12 @@
 extern "C" _CRTIMP void __cdecl _assert(void *, void *, unsigned);
 #endif
 
-uint _map_log_x;     ///< 2^_map_log_x == _map_size_x
-uint _map_log_y;     ///< 2^_map_log_y == _map_size_y
-uint _map_size_x;    ///< Size of the map along the X
-uint _map_size_y;    ///< Size of the map along the Y
-uint _map_size;      ///< The number of tiles on the map
-uint _map_tile_mask; ///< _map_size - 1 (to mask the mapsize)
+uint   _map_log_x;     ///< 2^_map_log_x == _map_size_x
+uint   _map_log_y;     ///< 2^_map_log_y == _map_size_y
+uint   _map_size_x;    ///< Size of the map along the X
+uint   _map_size_y;    ///< Size of the map along the Y
+uint64 _map_size;      ///< The number of tiles on the map
+uint   _map_tile_mask; ///< _map_size - 1 (to mask the mapsize)
 
 Tile *_m = NULL;          ///< Tiles of the map
 TileExtended *_me = NULL; ///< Extended Tiles of the map
@@ -37,16 +37,19 @@ TileExtended *_me = NULL; ///< Extended Tiles of the map
  */
 void AllocateMap(uint size_x, uint size_y)
 {
+	DEBUG(map, 2, "Min/max map size %d/%d, max map tiles %d", MIN_MAP_SIZE, MAX_MAP_SIZE, MAX_MAP_TILES);
+	DEBUG(map, 1, "Allocating map of size %dx%d", size_x, size_y);
+
 	/* Make sure that the map size is within the limits and that
 	 * size of both axes is a power of 2. */
-	if (!IsInsideMM(size_x, MIN_MAP_SIZE, MAX_MAP_SIZE + 1) ||
-			!IsInsideMM(size_y, MIN_MAP_SIZE, MAX_MAP_SIZE + 1) ||
+	if (size_x * size_y > MAX_MAP_TILES ||
+			size_x < MIN_MAP_SIZE ||
+			size_y < MIN_MAP_SIZE ||
 			(size_x & (size_x - 1)) != 0 ||
 			(size_y & (size_y - 1)) != 0) {
 		error("Invalid map size");
 	}
 
-	DEBUG(map, 1, "Allocating map of size %dx%d", size_x, size_y);
 
 	_map_log_x = FindFirstBit(size_x);
 	_map_log_y = FindFirstBit(size_y);

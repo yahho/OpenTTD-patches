@@ -33,6 +33,7 @@ enum Subdirectory {
 	GAME_DIR,      ///< Subdirectory for all game scripts
 	GAME_LIBRARY_DIR, ///< Subdirectory for all GS libraries
 	SCREENSHOT_DIR,   ///< Subdirectory for all screenshots
+	MINIMAP_DIR,   ///< Subdirectory for all minimap screenshots
 	NUM_SUBDIRS,   ///< Number of subdirectories
 	NO_DIRECTORY,  ///< A path without any base directory
 };

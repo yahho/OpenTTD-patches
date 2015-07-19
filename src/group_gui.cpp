@@ -30,6 +30,8 @@
 
 #include "table/sprites.h"
 
+const CargoID CF_ANY = CT_NO_REFIT;
+
 typedef GUIList<const Group*> GUIGroupList;
 
 static const NWidgetPart _nested_group_widgets[] = {
@@ -68,6 +70,7 @@ static const NWidgetPart _nested_group_widgets[] = {
 			NWidget(NWID_HORIZONTAL),
 				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GL_SORT_BY_ORDER), SetMinimalSize(81, 12), SetDataTip(STR_BUTTON_SORT_BY, STR_TOOLTIP_SORT_ORDER),
 				NWidget(WWT_DROPDOWN, COLOUR_GREY, WID_GL_SORT_BY_DROPDOWN), SetMinimalSize(167, 12), SetDataTip(0x0, STR_TOOLTIP_SORT_CRITERIA),
+				NWidget(WWT_DROPDOWN, COLOUR_GREY, WID_GL_FILTER_BY_DROPDOWN), SetMinimalSize(167, 12), SetDataTip(0x0, STR_TOOLTIP_FILTER_CRITERIA),
 				NWidget(WWT_PANEL, COLOUR_GREY), SetMinimalSize(12, 12), SetResize(1, 0), EndContainer(),
 			EndContainer(),
 			NWidget(NWID_HORIZONTAL),
@@ -112,6 +115,10 @@ private:
 	Scrollbar *group_sb;
 
 	Dimension column_size[VGC_END]; ///< Size of the columns in the group list.
+
+	CargoID  cargo_filter[NUM_CARGO + 1];
+	StringID cargo_filter_texts[NUM_CARGO + 2];
+	byte     cargo_filter_criteria;
 
 	/**
 	 * (Re)Build the group list.
@@ -298,11 +305,14 @@ public:
 		this->group_rename = INVALID_GROUP;
 		this->group_over = INVALID_GROUP;
 
+		this->cargo_filter_criteria = 0;
+		this->PopCargoList();
+
 		this->vehicles.SetListing(*this->sorting);
 		this->vehicles.ForceRebuild();
 		this->vehicles.NeedResort();
 
-		this->BuildVehicleList();
+		this->BuildVehicleList(INVALID_CARGO);
 		this->SortVehicleList();
 
 		this->groups.ForceRebuild();
@@ -325,6 +335,23 @@ public:
 	~VehicleGroupWindow()
 	{
 		*this->sorting = this->vehicles.GetListing();
+	}
+
+	void PopCargoList()
+	{
+		uint item = 0;
+
+		this->cargo_filter[item] = CF_ANY;
+		this->cargo_filter_texts[item] = STR_PURCHASE_INFO_ALL_TYPES;
+		item++;
+
+		const CargoSpec *cs;
+		FOR_ALL_SORTED_STANDARD_CARGOSPECS(cs) {
+			this->cargo_filter[item] = cs->Index();
+			this->cargo_filter_texts[item] = cs->name;
+			item++;
+		}
+		this->cargo_filter_texts[item] = INVALID_STRING_ID;
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
@@ -410,6 +437,10 @@ public:
 	virtual void SetStringParameters(int widget) const
 	{
 		switch (widget) {
+			case WID_GL_FILTER_BY_DROPDOWN:
+				SetDParam(0, this->cargo_filter_texts[this->cargo_filter_criteria]);
+				break;
+
 			case WID_GL_AVAILABLE_VEHICLES:
 				SetDParam(0, STR_VEHICLE_LIST_AVAILABLE_TRAINS + this->vli.vtype);
 				break;
@@ -438,7 +469,8 @@ public:
 	{
 		/* If we select the all vehicles, this->list will contain all vehicles of the owner
 		 * else this->list will contain all vehicles which belong to the selected group */
-		this->BuildVehicleList();
+		this->vehicles.ForceRebuild();
+		this->BuildVehicleList(this->cargo_filter[this->cargo_filter_criteria]);
 		this->SortVehicleList();
 
 		this->BuildGroupList(this->owner);
@@ -483,8 +515,9 @@ public:
 		if (!IsDefaultGroupID(this->vli.index) && !IsAllGroupID(this->vli.index) && Group::Get(this->vli.index)->replace_protection) protect_sprite = SPR_GROUP_REPLACE_ON_TRAIN;
 		this->GetWidget<NWidgetCore>(WID_GL_REPLACE_PROTECTION)->widget_data = protect_sprite + this->vli.vtype;
 
-		/* Set text of sort by dropdown */
+		/* Set text of sort by and filter by dropdown */
 		this->GetWidget<NWidgetCore>(WID_GL_SORT_BY_DROPDOWN)->widget_data = this->vehicle_sorter_names[this->vehicles.SortType()];
+		this->GetWidget<NWidgetCore>(WID_GL_FILTER_BY_DROPDOWN)->widget_data = this->cargo_filter_texts[this->cargo_filter_criteria];
 
 		this->DrawWidgets();
 	}
@@ -534,6 +567,10 @@ public:
 			case WID_GL_SORT_BY_ORDER: // Flip sorting method ascending/descending
 				this->vehicles.ToggleSortOrder();
 				this->SetDirty();
+				break;
+
+			case WID_GL_FILTER_BY_DROPDOWN:
+				ShowDropDownMenu(this, this->cargo_filter_texts, this->cargo_filter_criteria, WID_GL_FILTER_BY_DROPDOWN, 0, 0);
 				break;
 
 			case WID_GL_SORT_BY_DROPDOWN: // Select sorting criteria dropdown menu
@@ -602,7 +639,10 @@ public:
 				break;
 
 			case WID_GL_AVAILABLE_VEHICLES:
-				ShowBuildVehicleWindow(INVALID_TILE, this->vli.vtype);
+				if(_settings_client.gui.new_build_vehicle_window)
+					ShowBuildVehicleWindowView(INVALID_TILE, this->vli.vtype);
+				else
+					ShowBuildVehicleWindowOrig(INVALID_TILE, this->vli.vtype);
 				break;
 
 			case WID_GL_MANAGE_VEHICLES_DROPDOWN: {
@@ -688,6 +728,11 @@ public:
 		switch (widget) {
 			case WID_GL_SORT_BY_DROPDOWN:
 				this->vehicles.SetSortType(index);
+				break;
+
+			case WID_GL_FILTER_BY_DROPDOWN:
+				if(this->cargo_filter_criteria != index)
+					this->cargo_filter_criteria = index;
 				break;
 
 			case WID_GL_MANAGE_VEHICLES_DROPDOWN:
@@ -845,7 +890,7 @@ static inline VehicleGroupWindow *FindVehicleGroupWindow(VehicleType vt, Owner o
  * @param p2 unused
  * @see CmdCreateGroup
  */
-void CcCreateGroup(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcCreateGroup(const CommandCost &result, TileIndex tile, uint64 p1, uint64 p2)
 {
 	if (result.Failed()) return;
 	assert(p1 <= VEH_AIRCRAFT);
@@ -861,7 +906,7 @@ void CcCreateGroup(const CommandCost &result, TileIndex tile, uint32 p1, uint32 
  * @param p1 Unused.
  * @param p2 Bit 0-19: Vehicle ID.
  */
-void CcAddVehicleNewGroup(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcAddVehicleNewGroup(const CommandCost &result, TileIndex tile, uint64 p1, uint64 p2)
 {
 	if (result.Failed()) return;
 	assert(Vehicle::IsValidID(GB(p2, 0, 20)));

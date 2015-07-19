@@ -16,6 +16,8 @@
 #include "genworld.h"
 #include "core/random_func.hpp"
 #include "landscape_type.h"
+#include "tgp.h"
+#include "debug.h"
 
 /*
  *
@@ -200,34 +202,77 @@ static HeightMap _height_map = {NULL, 0, 0, 0, 0};
 /** Walk through all items of _height_map.h */
 #define FOR_ALL_TILES_IN_HEIGHT(h) for (h = _height_map.h; h < &_height_map.h[_height_map.total_size]; h++)
 
-/** Maximum index into array of noise amplitudes */
-static const int TGP_FREQUENCY_MAX = 6;
+/**
+ * Noise amplitudes(multiplied by 1024).
+ * Indexed by "smoothness setting" and log2(frequency).
+ *
+ * @note TGP_FREQUENCY_MAX + 1 values as the first value is the scale.
+ * @see HeightMapGenerate()
+ */
+static const amplitude_t _amplitudes_by_smoothness_and_frequency[7][TGP_FREQUENCY_MAX + 1] = {
+	/* lowest frequency....  ...highest (every corner) */
+	/* Very smooth */
+	{ 2143, 27832, 51429, 51657, 41657, 51429, 1597, 233, 37, 16},
+	/* Smooth */
+	{ 6448, 911, 27832, 31131, 16511, 1427, 1597, 233, 29, 8},
+	/* Rough */
+	{17657, 29832, 36832, 51429, 16511, 51429, 233, 1597, 1301, 16},
+	/* Very Rough */
+	{17657, 6448, 36832, 51429, 16511, 17657, 233, 1597, 1301, 16},
+	/* Cereally rough -bonus- */
+	{ 17657, 31832, 39832, 29832, 16511, 43429, 233, 2597, 37, 16},
+	/* CommutorZ -bonus- */
+	{25000, 10000, 8000, 24000, 12000, 2500, 250, 100, 80, 25},
+	/* Flowing -bonus- */
+	{13511, 22739, 51429, 253, 421, 21131, 137, 7, 37, 261}
+};
 
 /**
- * Noise amplitudes (multiplied by 1024)
- * - indexed by "smoothness setting" and log2(frequency)
+ * Array holding some extra smoothing parameters that are applied after _amplitudes_and_frequency.
+ * They represent in order of appearance :
+ * { smoothing radius, power of smoothing (1= smoothest, 10 = almost unsmoothed), min. smoothing step size }
+ *
+ * @see Smooth()
  */
-static const amplitude_t _amplitudes_by_smoothness_and_frequency[4][TGP_FREQUENCY_MAX + 1] = {
-	/* lowest frequncy....  ...highest (every corner) */
-	/* Very smooth */
-	{16000,  5600,  1968,   688,   240,    16,    16},
-	/* Smooth */
-	{16000, 16000,  6448,  3200,  1024,   128,    16},
-	/* Rough */
-	{16000, 19200, 12800,  8000,  3200,   256,    64},
-	/* Very Rough */
-	{24000, 16000, 19200, 16000,  8000,   512,   320},
+static const int _smoothing_parameters[7][3] = {
+	{3, 3, 8}, ///< Very  smooth
+	{4, 3, 8}, ///< Smooth
+	{2, 7, 8}, ///< Rough
+	{2, 4, 8}, ///< Very rough
+	{2, 5, 8}, ///< Cereally rough - bonus -
+	{2, 6, 8}, ///< CommutorZ - bonus -
+	{2, 5, 4}  ///< Flowing - bonus -
 };
 
 /** Desired water percentage (100% == 1024) - indexed by _settings_game.difficulty.quantity_sea_lakes */
-static const amplitude_t _water_percent[4] = {20, 80, 250, 400};
+static const amplitude_t _water_percent[4] = {70, 170, 270, 420};
 
-/** Desired maximum height - indexed by _settings_game.difficulty.terrain_type */
-static const int8 _max_height[4] = {
-	6,       ///< Very flat
-	9,       ///< Flat
-	12,      ///< Hilly
-	15,      ///< Mountainous
+/**
+ * Desired maximum height - indexed by _settings_game.difficulty.terrain_type and the map size.
+ *
+ * Sense of indexing by mapsize too:
+ * Below, h_max_new is calculated as min(map_size_x, map_size_y) / the constant defined here.
+ * Later, for calculating the height of some individual tile, the formula:
+ *  h_max_new * (h - h_waterlevel) / (h_max - h_waterlevel), where h_max is the maximal heightlevel
+ * existing anywhere on the map at the time of that computation step.
+ * So, to summarize:
+ * For mapsize 64x64, the above division gives 1. And, h - h_waterlevel is always
+ * smaller than h_max - h_waterlevel. So, the result is a map consisting just of water
+ * - i.e. at heightlevel 0 :-/.
+ * My conclusion was:
+ * Indexing this setting by the mapsize is a good thing, as one gains much more
+ * control on the heightlevel distribution of maps now and small maps work at all.
+ * The n-th value of the second component is for log(min(map_size_x, map_size_y)) - 6, so
+ * index 0 is for map size 64, whereas index 8 is for map size 8192.
+ */
+static const int _max_height[7][9] = {
+	{32, 48, 72, 170, 340, 680, 1360, 2720, 5440}, ///< Extremely flat
+	{21, 40, 50,  64, 128, 380,  760, 1520, 3040}, ///< Very flat
+	{16, 27, 38,  51, 102, 204,  408,  916, 1832}, ///< Flat
+	{12, 21, 30,  39,  60, 120,  240,  480,  960}, ///< Bumpy
+	{10, 13, 17,  20,  33,  66,  132,  264,  528}, ///< Hilly
+	{9,  10, 11,  12,  13,  24,   48,   96,  192}, ///< Mountainous
+	{5,   6,  7,   7,   7,  12,   24,   48,   96}  ///< Alpinist
 };
 
 /**
@@ -307,8 +352,8 @@ static inline height_t RandomHeight(amplitude_t rMax)
 static bool ApplyNoise(uint log_frequency, amplitude_t amplitude)
 {
 	uint size_min = min(_height_map.size_x, _height_map.size_y);
-	uint step = size_min >> log_frequency;
-	uint x, y;
+	int step = size_min >> log_frequency;
+	int x, y;
 
 	/* Trying to apply noise to uninitialized height map */
 	assert(_height_map.h != NULL);
@@ -318,8 +363,8 @@ static bool ApplyNoise(uint log_frequency, amplitude_t amplitude)
 
 	if (log_frequency == 0) {
 		/* This is first round, we need to establish base heights with step = size_min */
-		for (y = 0; y <= _height_map.size_y; y += step) {
-			for (x = 0; x <= _height_map.size_x; x += step) {
+		for (y = 0; y <= (int)_height_map.size_y; y += step) {
+			for (x = 0; x <= (int)_height_map.size_x; x += step) {
 				height_t height = (amplitude > 0) ? RandomHeight(amplitude) : 0;
 				_height_map.height(x, y) = height;
 			}
@@ -329,8 +374,8 @@ static bool ApplyNoise(uint log_frequency, amplitude_t amplitude)
 
 	/* It is regular iteration round.
 	 * Interpolate height values at odd x, even y tiles */
-	for (y = 0; y <= _height_map.size_y; y += 2 * step) {
-		for (x = 0; x < _height_map.size_x; x += 2 * step) {
+	for (y = 0; y <= (int)_height_map.size_y; y += 2 * step) {
+		for (x = 0; x < (int)_height_map.size_x; x += 2 * step) {
 			height_t h00 = _height_map.height(x + 0 * step, y);
 			height_t h02 = _height_map.height(x + 2 * step, y);
 			height_t h01 = (h00 + h02) / 2;
@@ -339,8 +384,8 @@ static bool ApplyNoise(uint log_frequency, amplitude_t amplitude)
 	}
 
 	/* Interpolate height values at odd y tiles */
-	for (y = 0; y < _height_map.size_y; y += 2 * step) {
-		for (x = 0; x <= _height_map.size_x; x += step) {
+	for (y = 0; y < (int)_height_map.size_y; y += 2 * step) {
+		for (x = 0; x <= (int)_height_map.size_x; x += step) {
 			height_t h00 = _height_map.height(x, y + 0 * step);
 			height_t h20 = _height_map.height(x, y + 2 * step);
 			height_t h10 = (h00 + h20) / 2;
@@ -349,13 +394,67 @@ static bool ApplyNoise(uint log_frequency, amplitude_t amplitude)
 	}
 
 	/* Add noise for next higher frequency (smaller steps) */
-	for (y = 0; y <= _height_map.size_y; y += step) {
-		for (x = 0; x <= _height_map.size_x; x += step) {
+	for (y = 0; y <= (int)_height_map.size_y; y += step) {
+		for (x = 0; x <= (int)_height_map.size_x; x += step) {
 			_height_map.height(x, y) += RandomHeight(amplitude);
 		}
 	}
 
 	return (step > 1);
+}
+
+/**
+ * This function prevents inverted pyramids on map generation by applying some extra smoothing.
+ *
+ * @param log_frequency what round of mapgeneration are we in?
+ * @param radius   The radius to use for the extra smoothing.
+ * @param weakness The strongness / weakness  for the extra smoothing.
+ * @param min_step The step in tiles before I apply the extra smoothing again.
+ * @see HeightMapGenerate()
+ */
+void Smooth(uint log_frequency, int radius, int weakness, int min_step)
+{
+	uint size_min = min(_height_map.size_x, _height_map.size_y);
+	int step = size_min >> log_frequency;
+
+	if(step < min_step) {
+		return;
+	} else {
+		if(step < min_step * 2) {
+			weakness += 4;
+		}
+	}
+
+	height_t* temp_height_map;
+	temp_height_map = CallocT<height_t>(_height_map.total_size);
+
+	for (uint y = 0; y <= _height_map.size_y; y += step) {
+		for (uint x = 0; x <= _height_map.size_x; x += step) {
+			temp_height_map[x + y * _height_map.size_x] = _height_map.height(x, y);
+		}
+	}
+
+	for (uint y = 0; y <= _height_map.size_y; y += step) {
+		for (uint x = 0; x <= _height_map.size_x; x += step) {
+			height_t current = temp_height_map[x + y * _height_map.size_x];
+			int sum = current * 100 * weakness;
+			int weights = 100 * weakness; // the inmost tile has the highest weight
+
+			for(int i = -radius; i <= radius; i++){
+				for(int j = -radius; j <= radius; j++){
+					if((i != 0 || j != 0) && x + i * step <= _height_map.size_x
+							&& x + i * step > 0 && y + j * step <= _height_map.size_y
+							&& y + j * step > 0) {
+						int square = (int) sqrt((double)(i * i + j * j));
+						sum += temp_height_map[x + i * step + (y + j * step) * _height_map.size_x] * 100 / square;
+						weights += 100 / square;
+					}
+				}
+			}
+
+			_height_map.height(x, y) = sum / weights;
+		}
+	}
 }
 
 /** Base Perlin noise generator - fills height map with raw Perlin noise */
@@ -387,9 +486,24 @@ static void HeightMapGenerate()
 			amplitude = 0;
 		}
 		continue_iteration = ApplyNoise(iteration_round, amplitude);
+
+		if(amplitude > 0) {
+			/* Apply some extra parameters to prevent inverted pyramids. */
+			Smooth(iteration_round, _smoothing_parameters[_settings_game.game_creation.tgen_smoothness][0],
+					_smoothing_parameters[_settings_game.game_creation.tgen_smoothness][1],
+					_smoothing_parameters[_settings_game.game_creation.tgen_smoothness][2]);
+		}
+
 		iteration_round++;
 	} while (continue_iteration);
-	assert(log_frequency == TGP_FREQUENCY_MAX);
+
+	/* commented out the assert to allow smaller maps than 256 * 256, while TGP_FREQUENCY_MAX is set to 8 or higher.
+	 * Read IMPORTANT NOTICE in header near TGP_FREQUENCY_MAX declaration. */
+	// assert(log_frequency == TGP_FREQUENCY_MAX);
+	if (log_frequency != TGP_FREQUENCY_MAX) {
+		DEBUG(map, 0, "Frequency wrong: log_frequency = %i, TGP_FREQUENCY_MAX = %i",
+				log_frequency, TGP_FREQUENCY_MAX);
+	}
 }
 
 /** Returns min, max and average height from height map */
@@ -433,6 +547,12 @@ static int *HeightMapMakeHistogram(height_t h_min, height_t h_max, int *hist_buf
 /** Applies sine wave redistribution onto height map */
 static void HeightMapSineTransform(height_t h_min, height_t h_max)
 {
+	if ((_settings_game.game_creation.tgen_smoothness == SMOOTHNESS_VERY_ROUGH)
+			|| (_settings_game.game_creation.tgen_smoothness == SMOOTHNESS_CEREALLY_ROUGH)) {
+		/* Make the map really rough for very rough and cereally rough settings, skip this function. */
+		return;
+	}
+
 	height_t *h;
 
 	FOR_ALL_TILES_IN_HEIGHT(h) {
@@ -557,89 +677,49 @@ static const control_point_list_t _curve_maps[] = {
 	{ lengthof(_curve_map_4), _curve_map_4 },
 };
 
-static void HeightMapCurves(uint level)
+/**
+ * Applies variation to the map if AllowMoreHeightlevels()is true and the variety setting is not set to none.
+ *
+ * @note for the moment there is only one variation for all settings
+ * @note It would be nice to have a few more variation options if AllowMoreHeigtlevels() is true.
+ */
+struct MHScontrol_point_t {
+	height_t x;
+	height_t y;
+};
+
+static const MHScontrol_point_t _curve_map[] = {
+	{ 0, 0 }, { 48, 48 }, { 96, 72 }, { 160, 128 }, { 192, 160 }, { 240, 255}, { 255, 255 }
+};
+
+static void HeightMapCurves()
 {
-	height_t ht[lengthof(_curve_maps)];
+	height_t h_min, h_max, h_avg, h_diff;
+	HeightMapGetMinMaxAvg(&h_min, &h_max, &h_avg);
+	h_diff = h_max - h_min;
 
-	/* Set up a grid to choose curve maps based on location */
-	uint sx = Clamp(1 << level, 2, 32);
-	uint sy = Clamp(1 << level, 2, 32);
-	byte *c = (byte *)alloca(sx * sy);
-
-	for (uint i = 0; i < sx * sy; i++) {
-		c[i] = Random() % lengthof(_curve_maps);
+	/* "Normalize" the control points to the height map data */
+	MHScontrol_point_t *cm = MallocT<MHScontrol_point_t>(lengthof(_curve_map));
+	for (uint i = 0; i < lengthof(_curve_map); i++) {
+		cm[i].x = _curve_map[i].x * h_diff / 255 + h_min;
+		cm[i].y = _curve_map[i].y * h_diff / 255 + h_min;
 	}
 
-	/* Apply curves */
-	for (uint x = 0; x < _height_map.size_x; x++) {
+	/* Apply curve */
+	height_t *h;
+	FOR_ALL_TILES_IN_HEIGHT(h) {
+		for (uint i = 0; i < lengthof(_curve_map) - 1; i++) {
+			MHScontrol_point_t &p1 = cm[i];
+			MHScontrol_point_t &p2 = cm[i + 1];
 
-		/* Get our X grid positions and bi-linear ratio */
-		float fx = (float)(sx * x) / _height_map.size_x + 0.5f;
-		uint x1 = (uint)fx;
-		uint x2 = x1;
-		float xr = 2.0f * (fx - x1) - 1.0f;
-		xr = sin(xr * M_PI_2);
-		xr = sin(xr * M_PI_2);
-		xr = 0.5f * (xr + 1.0f);
-		float xri = 1.0f - xr;
-
-		if (x1 > 0) {
-			x1--;
-			if (x2 >= sx) x2--;
-		}
-
-		for (uint y = 0; y < _height_map.size_y; y++) {
-
-			/* Get our Y grid position and bi-linear ratio */
-			float fy = (float)(sy * y) / _height_map.size_y + 0.5f;
-			uint y1 = (uint)fy;
-			uint y2 = y1;
-			float yr = 2.0f * (fy - y1) - 1.0f;
-			yr = sin(yr * M_PI_2);
-			yr = sin(yr * M_PI_2);
-			yr = 0.5f * (yr + 1.0f);
-			float yri = 1.0f - yr;
-
-			if (y1 > 0) {
-				y1--;
-				if (y2 >= sy) y2--;
+			if (*h >= p1.x && *h <= p2.x) {
+				*h = p1.y + (*h - p1.x) * (p2.y - p1.y) / (p2.x - p1.x);
+				break;
 			}
-
-			uint corner_a = c[x1 + sx * y1];
-			uint corner_b = c[x1 + sx * y2];
-			uint corner_c = c[x2 + sx * y1];
-			uint corner_d = c[x2 + sx * y2];
-
-			/* Bitmask of which curve maps are chosen, so that we do not bother
-			 * calculating a curve which won't be used. */
-			uint corner_bits = 0;
-			corner_bits |= 1 << corner_a;
-			corner_bits |= 1 << corner_b;
-			corner_bits |= 1 << corner_c;
-			corner_bits |= 1 << corner_d;
-
-			height_t *h = &_height_map.height(x, y);
-
-			/* Apply all curve maps that are used on this tile. */
-			for (uint t = 0; t < lengthof(_curve_maps); t++) {
-				if (!HasBit(corner_bits, t)) continue;
-
-				const control_point_t *cm = _curve_maps[t].list;
-				for (uint i = 0; i < _curve_maps[t].length - 1; i++) {
-					const control_point_t &p1 = cm[i];
-					const control_point_t &p2 = cm[i + 1];
-
-					if (*h >= p1.x && *h < p2.x) {
-						ht[t] = p1.y + (*h - p1.x) * (p2.y - p1.y) / (p2.x - p1.x);
-						break;
-					}
-				}
-			}
-
-			/* Apply interpolation of curve map results. */
-			*h = (height_t)((ht[corner_a] * yri + ht[corner_b] * yr) * xri + (ht[corner_c] * yri + ht[corner_d] * yr) * xr);
 		}
 	}
+
+	free(cm);
 }
 
 /** Adjusts heights in height map to contain required amount of water tiles */
@@ -669,8 +749,8 @@ static void HeightMapAdjustWaterLevel(amplitude_t water_percent, height_t h_max_
 	/* We now have the proper water level value.
 	 * Transform the height map into new (normalized) height map:
 	 *   values from range: h_min..h_water_level will become negative so it will be clamped to 0
-	 *   values from range: h_water_level..h_max are transformed into 0..h_max_new
-	 *   where h_max_new is 4, 8, 12 or 16 depending on terrain type (very flat, flat, hilly, mountains)
+	 *   values from range: h_water_level..h_max are transformed into 0..h_max_new,
+	 *   where h_max_new is dependant on _settings_game.difficulty.terrain_type. (_max_height)
 	 */
 	FOR_ALL_TILES_IN_HEIGHT(h) {
 		/* Transform height from range h_water_level..h_max into 0..h_max_new range */
@@ -718,7 +798,7 @@ static void HeightMapCoastLines(uint8 water_borders)
 		if (HasBit(water_borders, BORDER_NE)) {
 			/* Top right */
 			max_x = abs((perlin_coast_noise_2D(_height_map.size_y - y, y, 0.9, 53) + 0.25) * 5 + (perlin_coast_noise_2D(y, y, 0.35, 179) + 1) * 12);
-			max_x = max((smallest_size * smallest_size / 16) + max_x, (smallest_size * smallest_size / 16) + margin - max_x);
+			max_x = max((smallest_size * smallest_size / 64) + max_x, (smallest_size * smallest_size / 64) + margin - max_x);
 			if (smallest_size < 8 && max_x > 5) max_x /= 1.5;
 			for (x = 0; x < max_x; x++) {
 				_height_map.height(x, y) = 0;
@@ -728,7 +808,7 @@ static void HeightMapCoastLines(uint8 water_borders)
 		if (HasBit(water_borders, BORDER_SW)) {
 			/* Bottom left */
 			max_x = abs((perlin_coast_noise_2D(_height_map.size_y - y, y, 0.85, 101) + 0.3) * 6 + (perlin_coast_noise_2D(y, y, 0.45,  67) + 0.75) * 8);
-			max_x = max((smallest_size * smallest_size / 16) + max_x, (smallest_size * smallest_size / 16) + margin - max_x);
+			max_x = max((smallest_size * smallest_size / 64) + max_x, (smallest_size * smallest_size / 64) + margin - max_x);
 			if (smallest_size < 8 && max_x > 5) max_x /= 1.5;
 			for (x = _height_map.size_x; x > (_height_map.size_x - 1 - max_x); x--) {
 				_height_map.height(x, y) = 0;
@@ -741,7 +821,7 @@ static void HeightMapCoastLines(uint8 water_borders)
 		if (HasBit(water_borders, BORDER_NW)) {
 			/* Top left */
 			max_y = abs((perlin_coast_noise_2D(x, _height_map.size_y / 2, 0.9, 167) + 0.4) * 5 + (perlin_coast_noise_2D(x, _height_map.size_y / 3, 0.4, 211) + 0.7) * 9);
-			max_y = max((smallest_size * smallest_size / 16) + max_y, (smallest_size * smallest_size / 16) + margin - max_y);
+			max_y = max((smallest_size * smallest_size / 64) + max_y, (smallest_size * smallest_size / 64) + margin - max_y);
 			if (smallest_size < 8 && max_y > 5) max_y /= 1.5;
 			for (y = 0; y < max_y; y++) {
 				_height_map.height(x, y) = 0;
@@ -751,7 +831,7 @@ static void HeightMapCoastLines(uint8 water_borders)
 		if (HasBit(water_borders, BORDER_SE)) {
 			/* Bottom right */
 			max_y = abs((perlin_coast_noise_2D(x, _height_map.size_y / 3, 0.85, 71) + 0.25) * 6 + (perlin_coast_noise_2D(x, _height_map.size_y / 3, 0.35, 193) + 0.75) * 12);
-			max_y = max((smallest_size * smallest_size / 16) + max_y, (smallest_size * smallest_size / 16) + margin - max_y);
+			max_y = max((smallest_size * smallest_size / 64) + max_y, (smallest_size * smallest_size / 64) + margin - max_y);
 			if (smallest_size < 8 && max_y > 5) max_y /= 1.5;
 			for (y = _height_map.size_y; y > (_height_map.size_y - 1 - max_y); y--) {
 				_height_map.height(x, y) = 0;
@@ -763,6 +843,12 @@ static void HeightMapCoastLines(uint8 water_borders)
 /** Start at given point, move in given direction, find and Smooth coast in that direction */
 static void HeightMapSmoothCoastInDirection(int org_x, int org_y, int dir_x, int dir_y)
 {
+ 	if ((_settings_game.game_creation.tgen_smoothness == SMOOTHNESS_VERY_ROUGH)
+ 			|| (_settings_game.game_creation.tgen_smoothness == SMOOTHNESS_CEREALLY_ROUGH)) {
+ 		/* Make the map really rough for very rough and cereally rough settings, skip this function. */
+ 		return;
+ 	}
+
 	const int max_coast_dist_from_edge = 35;
 	const int max_coast_Smooth_depth = 35;
 
@@ -770,7 +856,7 @@ static void HeightMapSmoothCoastInDirection(int org_x, int org_y, int dir_x, int
 	int ed; // coast distance from edge
 	int depth;
 
-	height_t h_prev = 16;
+	height_t h_prev = min(_height_map.size_x + 1, _height_map.size_y + 1) / TGP_HEIGHT_FACTOR;
 	height_t h;
 
 	assert(IsValidXY(org_x, org_y));
@@ -778,7 +864,7 @@ static void HeightMapSmoothCoastInDirection(int org_x, int org_y, int dir_x, int
 	/* Search for the coast (first non-water tile) */
 	for (x = org_x, y = org_y, ed = 0; IsValidXY(x, y) && ed < max_coast_dist_from_edge; x += dir_x, y += dir_y, ed++) {
 		/* Coast found? */
-		if (_height_map.height(x, y) > 15) break;
+		if (_height_map.height(x, y) > (int)(min(_height_map.size_x + 1, _height_map.size_y + 1) / TGP_HEIGHT_FACTOR - 1)) break;
 
 		/* Coast found in the neighborhood? */
 		if (IsValidXY(x + dir_y, y + dir_x) && _height_map.height(x + dir_y, y + dir_x) > 0) break;
@@ -838,6 +924,21 @@ static void HeightMapSmoothSlopes(height_t dh_max)
 }
 
 /**
+ * Gets the maximum allowed height while generating a map
+ * based on mapsize, terraintype, and the setting to allow moreheightlevels.
+ */
+static int TGPGetMaxAllowedHeight()
+{
+	/* Subtract 6 because the value for map size 64 = 2^6
+	 * is stored at index 0 in the array.
+	 * @See discussion at the definition of _max_height */
+	const int map_size_index_in_mh = min(MapLogX(), MapLogY()) - 6;
+	const int mh = _max_height[_settings_game.difficulty.terrain_type][map_size_index_in_mh];
+	const int retValue = I2H(min((min(_height_map.size_x + 1, _height_map.size_y + 1)) / mh, _settings_game.construction.max_heightlevel));
+	return retValue;
+}
+
+/**
  * Height map terraform post processing:
  *  - water level adjusting
  *  - coast Smoothing
@@ -848,7 +949,7 @@ static void HeightMapNormalize()
 {
 	int sea_level_setting = _settings_game.difficulty.quantity_sea_lakes;
 	const amplitude_t water_percent = sea_level_setting != (int)CUSTOM_SEA_LEVEL_NUMBER_DIFFICULTY ? _water_percent[sea_level_setting] : _settings_game.game_creation.custom_sea_level * 1024 / 100;
-	const height_t h_max_new = I2H(_max_height[_settings_game.difficulty.terrain_type]);
+	const height_t h_max_new = TGPGetMaxAllowedHeight();
 	const height_t roughness = 7 + 3 * _settings_game.game_creation.tgen_smoothness;
 
 	HeightMapAdjustWaterLevel(water_percent, h_max_new);
@@ -864,8 +965,8 @@ static void HeightMapNormalize()
 
 	HeightMapSineTransform(12, h_max_new);
 
-	if (_settings_game.game_creation.variety > 0) {
-		HeightMapCurves(_settings_game.game_creation.variety);
+	if ((_settings_game.game_creation.variety > 0) && (_settings_game.game_creation.landscape == 1)) {
+		HeightMapCurves();
 	}
 
 	HeightMapSmoothSlopes(16);
@@ -983,12 +1084,25 @@ void GenerateTerrainPerlin()
 		for (x = 0; x < _height_map.size_x;     x++) MakeVoid(x);
 	}
 
+	const int mh = H2I(TGPGetMaxAllowedHeight());
+
 	/* Transfer height map into OTTD map */
 	for (y = 0; y < _height_map.size_y; y++) {
 		for (x = 0; x < _height_map.size_x; x++) {
 			int height = H2I(_height_map.height(x, y));
-			if (height < 0) height = 0;
-			if (height > 15) height = 15;
+
+			if (height < 0) {
+				height = 0;
+			}
+
+			if (height > mh - 1) {
+				height = mh - 1;
+			}
+
+			if (height > (int)MAX_TILE_HEIGHT) {
+				height = MAX_TILE_HEIGHT;
+			}
+
 			TgenSetTileHeight(TileXY(x, y), height);
 		}
 	}

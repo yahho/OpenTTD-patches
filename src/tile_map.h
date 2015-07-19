@@ -15,12 +15,11 @@
 #include "slope_type.h"
 #include "map_func.h"
 #include "core/bitmath_func.hpp"
+#include "core/math_func.hpp"
 #include "settings_type.h"
 
 /**
- * Returns the height of a tile
- *
- * This function returns the height of the northern corner of a tile.
+ * This function returns the height of the northern corner of a tile based on AllowMoreHeightlevels().
  * This is saved in the global map-array. It does not take affect by
  * any slope-data of the tile.
  *
@@ -31,7 +30,56 @@
 static inline uint TileHeight(TileIndex tile)
 {
 	assert(tile < MapSize());
-	return GB(_m[tile].type_height, 0, 4);
+	return _m[tile].height;
+}
+
+/** Returns the tile height for a coordinate outside map.  Such a height is
+ *  needed for painting the area outside map using completely black tiles.
+ *  The idea is descending to heightlevel 0 as fast as possible.
+ */
+static inline uint TileHeightOutsideMap(int x, int y)
+{
+	/* In all cases: Descend to heightlevel 0 as fast as possible.
+	 * So: If we are at the 0-side of the map (x<0 or y<0), we must
+	 * subtract the distance to coordinate 0 from the heightlevel at
+	 * coordinate 0.
+	 * In other words: Subtract e.g. -x. If we are at the MapMax
+	 * side of the map, we also need to subtract the distance to
+	 * the edge of map, e.g. MapMaxX - x.
+	 *
+	 * NOTE: Assuming constant heightlevel outside map would be
+	 * simpler here. However, then we run into painting problems,
+	 * since whenever a heightlevel change at the map border occurs,
+	 * we would need to repaint anything outside map.
+	 * In contrast, by doing it this way, we can localize this change,
+	 * which means we may assume constant heightlevel for all tiles
+	 * at more than <heightlevel at map border> distance from the
+	 * map border. */
+	if (x < 0) {
+		if (y < 0) {
+			return max((int)TileHeight(TileXY(0, 0)) - (-x) - (-y), 0);
+		} else if (y < (int)MapMaxY()) {
+			return max((int)TileHeight(TileXY(0, y)) - (-x), 0);
+		} else {
+			return max((int)TileHeight(TileXY(0, (int)MapMaxY())) - (-x) - (y - (int)MapMaxY()), 0);
+		}
+	} else if (x < (int)MapMaxX()) {
+		if (y < 0) {
+			return max((int)TileHeight(TileXY(x, 0)) - (-y), 0);
+		} else if (y < (int)MapMaxY()) {
+			return TileHeight(TileXY(x, y));
+		} else {
+			return max((int)TileHeight(TileXY(x, (int)MapMaxY())) - (y - (int)MapMaxY()), 0);
+		}
+	} else {
+		if (y < 0) {
+			return max((int)TileHeight(TileXY((int)MapMaxX(), 0)) - (x - (int)MapMaxX()) - (-y), 0);
+		} else if (y < (int)MapMaxY()) {
+			return max((int)TileHeight(TileXY((int)MapMaxX(), y)) - (x - (int)MapMaxX()), 0);
+		} else {
+			return max((int)TileHeight(TileXY((int)MapMaxX(), (int)MapMaxY())) - (x - (int)MapMaxX()) - (y - (int)MapMaxY()), 0);
+		}
+	}
 }
 
 /**
@@ -48,7 +96,8 @@ static inline void SetTileHeight(TileIndex tile, uint height)
 {
 	assert(tile < MapSize());
 	assert(height <= MAX_TILE_HEIGHT);
-	SB(_m[tile].type_height, 0, 4, height);
+
+	_m[tile].height = (byte)height;
 }
 
 /**
@@ -73,8 +122,9 @@ static inline uint TilePixelHeight(TileIndex tile)
  */
 static inline TileType GetTileType(TileIndex tile)
 {
+	//printf("tile = %lld; MapSize = %lld\n", tile, MapSize());
 	assert(tile < MapSize());
-	return (TileType)GB(_m[tile].type_height, 4, 4);
+	return (TileType)GB(_m[tile].type, 4, 4);
 }
 
 /**
@@ -113,7 +163,7 @@ static inline void SetTileType(TileIndex tile, TileType type)
 	 * edges of the map. If _settings_game.construction.freeform_edges is true,
 	 * the upper edges of the map are also VOID tiles. */
 	assert(IsInnerTile(tile) == (type != MP_VOID));
-	SB(_m[tile].type_height, 4, 4, type);
+	SB(_m[tile].type, 4, 4, type);
 }
 
 /**
@@ -204,7 +254,7 @@ static inline void SetTropicZone(TileIndex tile, TropicZone type)
 {
 	assert(tile < MapSize());
 	assert(!IsTileType(tile, MP_VOID) || type == TROPICZONE_NORMAL);
-	SB(_m[tile].m6, 0, 2, type);
+	SB(_me[tile].m6, 0, 2, type);
 }
 
 /**
@@ -216,7 +266,7 @@ static inline void SetTropicZone(TileIndex tile, TropicZone type)
 static inline TropicZone GetTropicZone(TileIndex tile)
 {
 	assert(tile < MapSize());
-	return (TropicZone)GB(_m[tile].m6, 0, 2);
+	return (TropicZone)GB(_me[tile].m6, 0, 2);
 }
 
 /**
@@ -262,6 +312,8 @@ static inline Slope GetTilePixelSlope(TileIndex tile, int *h)
 	return s;
 }
 
+Slope GetTilePixelSlopeOutsideMap(int x, int y, int *h);
+
 /**
  * Get bottom height of the tile
  * @param tile Tile to compute height of
@@ -272,6 +324,8 @@ static inline int GetTilePixelZ(TileIndex tile)
 	return GetTileZ(tile) * TILE_HEIGHT;
 }
 
+int GetTilePixelZOutsideMap(int x, int y);
+
 /**
  * Get top height of the tile
  * @param t Tile to compute height of
@@ -281,6 +335,8 @@ static inline int GetTileMaxPixelZ(TileIndex tile)
 {
 	return GetTileMaxZ(tile) * TILE_HEIGHT;
 }
+
+int GetTileMaxPixelZOutsideMap(int x, int y);
 
 
 /**

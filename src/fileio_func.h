@@ -57,6 +57,7 @@ char *FioAppendDirectory(char *buf, size_t buflen, Searchpath sp, Subdirectory s
 char *FioGetDirectory(char *buf, size_t buflen, Subdirectory subdir);
 
 const char *FiosGetScreenshotDir();
+const char *FiosGetMinimapScreenshotDir();
 
 void SanitizeFilename(char *filename);
 bool AppendPathSeparator(char *buf, size_t buflen);

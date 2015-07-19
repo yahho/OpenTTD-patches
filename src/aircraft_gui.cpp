@@ -18,6 +18,7 @@
 #include "window_gui.h"
 #include "spritecache.h"
 #include "zoom_func.h"
+#include "infrastructure_func.h"
 
 #include "table/strings.h"
 

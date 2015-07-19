@@ -32,6 +32,8 @@
 #include "linkgraph/linkgraph_gui.h"
 #include "tilehighlight_func.h"
 #include "hotkeys.h"
+#include "industry.h"
+#include "town_map.h"
 
 #include "saveload/saveload.h"
 
@@ -48,7 +50,7 @@
 static int _rename_id = 1;
 static int _rename_what = -1;
 
-void CcGiveMoney(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcGiveMoney(const CommandCost &result, TileIndex tile, uint64 p1, uint64 p2)
 {
 #ifdef ENABLE_NETWORK
 	if (result.Failed() || !_settings_game.economy.give_money) return;
@@ -116,7 +118,7 @@ bool HandlePlacePushButton(Window *w, int widget, CursorID cursor, HighLightStyl
 }
 
 
-void CcPlaySound10(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcPlaySound10(const CommandCost &result, TileIndex tile, uint64 p1, uint64 p2)
 {
 	if (result.Succeeded() && _settings_client.sound.confirm) SndPlayTileFx(SND_12_EXPLOSION, tile);
 }
@@ -229,6 +231,8 @@ enum {
 	GHK_CHAT_ALL,
 	GHK_CHAT_COMPANY,
 	GHK_CHAT_SERVER,
+	GHK_CHANGE_MAP_MODE_PREV,
+	GHK_CHANGE_MAP_MODE_NEXT,
 };
 
 struct MainWindow : Window
@@ -247,18 +251,21 @@ struct MainWindow : Window
 		NWidgetViewport *nvp = this->GetWidget<NWidgetViewport>(WID_M_VIEWPORT);
 		nvp->InitializeViewport(this, TileXY(32, 32), ZOOM_LVL_VIEWPORT);
 
+		this->viewport->refresh = 1;
+		this->viewport->map_type = (ViewportMapType) _settings_client.gui.default_viewport_map_mode;
+
 		this->viewport->overlay = new LinkGraphOverlay(this, WID_M_VIEWPORT, 0, 0, 3);
 		this->refresh = LINKGRAPH_DELAY;
 	}
 
-	virtual void OnTick()
+/*	virtual void OnTick()
 	{
 		if (--refresh == 0) {
 			this->viewport->overlay->RebuildCache();
 			this->GetWidget<NWidgetBase>(WID_M_VIEWPORT)->SetDirty(this);
 			this->refresh = LINKGRAPH_REFRESH_PERIOD;
 		}
-	}
+	}*/
 
 	virtual void OnPaint()
 	{
@@ -415,6 +422,29 @@ struct MainWindow : Window
 				break;
 #endif
 
+			case GHK_CHANGE_MAP_MODE_PREV:
+				if (_focused_window && _focused_window->viewport && _focused_window->viewport->zoom >= ZOOM_LVL_DRAW_MAP) {
+					_focused_window->viewport->map_type = ChangeRenderMode(_focused_window->viewport, true);
+					_focused_window->viewport->refresh = 0x1F;
+					_focused_window->SetDirty();
+				} else if (this->viewport->zoom >= ZOOM_LVL_DRAW_MAP) {
+					this->viewport->map_type = ChangeRenderMode(this->viewport, true);
+					this->viewport->refresh = 0x1F;
+					this->SetDirty();
+				}
+				break;
+			case GHK_CHANGE_MAP_MODE_NEXT:
+				if (_focused_window && _focused_window->viewport && _focused_window->viewport->zoom >= ZOOM_LVL_DRAW_MAP) {
+					_focused_window->viewport->map_type = ChangeRenderMode(_focused_window->viewport, false);
+					_focused_window->viewport->refresh = 0x1F;
+					_focused_window->SetDirty();
+				} else if (this->viewport->zoom >= ZOOM_LVL_DRAW_MAP) {
+					this->viewport->map_type = ChangeRenderMode(this->viewport, false);
+					this->viewport->refresh = 0x1F;
+					this->SetDirty();
+				}
+				break;
+
 			default: return ES_NOT_HANDLED;
 		}
 		return ES_HANDLED;
@@ -431,7 +461,12 @@ struct MainWindow : Window
 
 	virtual void OnMouseWheel(int wheel)
 	{
-		if (_settings_client.gui.scrollwheel_scrolling == 0) {
+		if (_ctrl_pressed) {
+			/* Cycle through the drawing modes */
+			this->viewport->map_type = ChangeRenderMode(this->viewport, wheel < 0);
+			this->viewport->refresh = 0x1F;
+			this->SetDirty();
+		} else if (_settings_client.gui.scrollwheel_scrolling == 0) {
 			ZoomInOrOutToCursorWindow(wheel < 0, this);
 		}
 	}
@@ -455,6 +490,69 @@ struct MainWindow : Window
 		if (!gui_scope) return;
 		/* Forward the message to the appropriate toolbar (ingame or scenario editor) */
 		InvalidateWindowData(WC_MAIN_TOOLBAR, 0, data, true);
+	}
+
+	virtual void OnTick()
+	{
+		if (!_settings_client.gui.viewport_map_in_realtime && this->viewport->zoom >= ZOOM_LVL_DRAW_MAP) {
+			if (--this->viewport->refresh == 0) {
+				this->viewport->refresh = 0x1F;
+				this->SetDirty();
+			}
+		}
+	}
+
+	virtual void OnMouseOver(Point pt, int widget)
+	{
+		/* Show tooltip with last month production or town name */
+		if (pt.x != -1 && _game_mode != GM_MENU) {
+			TileIndex tile;
+			const bool viewport_is_in_map_mode = (this->viewport->zoom >= ZOOM_LVL_DRAW_MAP);
+			if (viewport_is_in_map_mode) {
+				const int a = ((ScaleByZoom(pt.x, this->viewport->zoom) + this->viewport->virtual_left) >> 2) / ZOOM_LVL_BASE;
+				const int b = ((ScaleByZoom(pt.y, this->viewport->zoom) + this->viewport->virtual_top) >> 1) / ZOOM_LVL_BASE;
+				tile = TileVirtXY(b - a, b + a);
+			} else {
+				const Point p = GetTileBelowCursor();
+				tile = TileVirtXY(p.x, p.y);
+			}
+			if (tile >= MapSize()) return;
+
+			switch (GetTileType(tile)) {
+				case MP_ROAD:
+					if (IsRoadDepot(tile)) return;
+					/* FALL THROUGH */
+				case MP_HOUSE: {
+					if (HasBit(_display_opt, DO_SHOW_TOWN_NAMES)) return; // No need for a town name tooltip when it is already displayed
+					if (!viewport_is_in_map_mode) return;
+					const TownID tid = GetTownIndex(tile);
+					if (!tid) return;
+					SetDParam(0, tid);
+					GuiShowTooltips(this, STR_TOWN_NAME_TOOLTIP, 0, NULL, TCC_HOVER);
+					break;
+				}
+				case MP_INDUSTRY: {
+					const Industry *ind = Industry::GetByTile(tile);
+					const IndustrySpec *indsp = GetIndustrySpec(ind->type);
+
+					StringID str = STR_INDUSTRY_VIEW_TRANSPORTED_TOOLTIP;
+					uint prm_count = 0;
+					SetDParam(prm_count++, indsp->name);
+					for (byte i = 0; i < lengthof(ind->produced_cargo); i++) {
+						if (ind->produced_cargo[i] != CT_INVALID) {
+							SetDParam(prm_count++, ind->produced_cargo[i]);
+							SetDParam(prm_count++, ind->last_month_production[i]);
+							SetDParam(prm_count++, ToPercent8(ind->last_month_pct_transported[i]));
+							str++;
+						}
+					}
+					GuiShowTooltips(this, str, 0, NULL, TCC_HOVER);
+					break;
+				}
+				default:
+					return;
+			}
+		}
 	}
 
 	static HotkeyList hotkeys;
@@ -509,6 +607,8 @@ static Hotkey global_hotkeys[] = {
 	Hotkey(_ghk_chat_company_keys, "chat_company", GHK_CHAT_COMPANY),
 	Hotkey(_ghk_chat_server_keys, "chat_server", GHK_CHAT_SERVER),
 #endif
+	Hotkey(WKC_PAGEUP,   "previous_map_mode", GHK_CHANGE_MAP_MODE_PREV),
+	Hotkey(WKC_PAGEDOWN, "next_map_mode",     GHK_CHANGE_MAP_MODE_NEXT),
 	HOTKEY_LIST_END
 };
 HotkeyList MainWindow::hotkeys("global", global_hotkeys);

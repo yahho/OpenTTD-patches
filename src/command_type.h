@@ -310,9 +310,17 @@ enum Commands {
 	CMD_CHANGE_TIMETABLE,             ///< change the timetable for a vehicle
 	CMD_SET_VEHICLE_ON_TIME,          ///< set the vehicle on time feature (timetable)
 	CMD_AUTOFILL_TIMETABLE,           ///< autofill the timetable
+	CMD_AUTOMATE_TIMETABLE,			  ///< automate the timetable
 	CMD_SET_TIMETABLE_START,          ///< set the date that a timetable should start
 
+	CMD_INSERT_SIGNAL_INSTRUCTION,    ///< insert a signal instruction
+	CMD_MODIFY_SIGNAL_INSTRUCTION,    ///< modifies a signal instruction
+	CMD_REMOVE_SIGNAL_INSTRUCTION,    ///< removes a signal instruction
+
 	CMD_OPEN_CLOSE_AIRPORT,           ///< open/close an airport to incoming aircraft
+
+	CMD_BUILD_TRAFFICLIGHTS,          ///< place traffic lights on a road crossing
+	CMD_REMOVE_TRAFFICLIGHTS,         ///< remove traffic lights
 
 	CMD_END,                          ///< Must ALWAYS be on the end of this list!! (period)
 };
@@ -421,7 +429,7 @@ enum CommandPauseLevel {
  * @param text Additional text
  * @return The CommandCost of the command, which can be succeeded or failed.
  */
-typedef CommandCost CommandProc(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text);
+typedef CommandCost CommandProc(TileIndex tile, DoCommandFlag flags, uint64 p1, uint64 p2, const char *text);
 
 /**
  * Define a command with the flags which belongs to it.
@@ -449,15 +457,15 @@ struct Command {
  * @param p1 Additional data of the command
  * @see CommandProc
  */
-typedef void CommandCallback(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2);
+typedef void CommandCallback(const CommandCost &result, TileIndex tile, uint64 p1, uint64 p2);
 
 /**
  * Structure for buffering the build command when selecting a station to join.
  */
 struct CommandContainer {
 	TileIndex tile;                  ///< tile command being executed on.
-	uint32 p1;                       ///< parameter p1.
-	uint32 p2;                       ///< parameter p2.
+	uint64 p1;                       ///< parameter p1.
+	uint64 p2;                       ///< parameter p2.
 	uint32 cmd;                      ///< command being executed.
 	CommandCallback *callback;       ///< any callback function executed upon successful completion of the command.
 	char text[32 * MAX_CHAR_LENGTH]; ///< possible text sent for name changes etc, in bytes including '\0'.

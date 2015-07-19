@@ -28,6 +28,19 @@ enum TownSize {
 };
 template <> struct EnumPropsT<TownSize> : MakeEnumPropsT<TownSize, byte, TSZ_SMALL, TSZ_END, TSZ_END, 2> {};
 
+enum Consumptions {
+	C_ALL,
+	C_DESERT,
+	C_NOTUSE,
+};
+
+enum AutoAdvCampaignType {
+	AACT_NONE,
+	AACT_SMALL,
+	AACT_MEDIUM,
+	AACT_LARGE,
+};
+
 enum Ratings {
 	/* These refer to the maximums, so Appalling is -1000 to -400
 	 * MAXIMUM RATINGS BOUNDARIES */
@@ -105,7 +118,7 @@ enum TownFounding {
 /** It needs to be 8bits, because we save and load it as such */
 typedef SimpleTinyEnumT<TownFounding, byte> TownFoundingByte;
 
-static const uint MAX_LENGTH_TOWN_NAME_CHARS = 32; ///< The maximum length of a town name in characters including '\0'
+static const uint MAX_LENGTH_TOWN_NAME_CHARS = 255; ///< The maximum length of a town name in characters including '\0'
 
 /** Store the maximum and actually transported cargo amount for the current and the last month. */
 template <typename Tstorage>

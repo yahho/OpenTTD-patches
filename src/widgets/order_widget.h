@@ -25,6 +25,7 @@ enum OrderWidgets {
 	WID_O_GOTO,                      ///< Goto destination.
 	WID_O_FULL_LOAD,                 ///< Select full load.
 	WID_O_UNLOAD,                    ///< Select unload.
+	WID_O_STOP_LOADING,              ///< Select stop loading.
 	WID_O_REFIT,                     ///< Select refit.
 	WID_O_SERVICE,                   ///< Select service (at depot).
 	WID_O_EMPTY,                     ///< Placeholder for refit dropdown when not owner.
@@ -32,7 +33,10 @@ enum OrderWidgets {
 	WID_O_COND_VARIABLE,             ///< Choose condition variable.
 	WID_O_COND_COMPARATOR,           ///< Choose condition type.
 	WID_O_COND_VALUE,                ///< Choose condition value.
+	WID_O_COND_CARGO,
+	WID_O_SEL_COND_VALUE,            ///< widget for conditional value or conditional cargo type.
 	WID_O_SEL_TOP_LEFT,              ///< #NWID_SELECTION widget for left part of the top row of the 'your train' order window.
+	WID_O_SEL_TOP_LEFT_2,            ///< #NWID_SELECTION widget for stop loading dropdown in the top row of the 'your train' order window.
 	WID_O_SEL_TOP_MIDDLE,            ///< #NWID_SELECTION widget for middle part of the top row of the 'your train' order window.
 	WID_O_SEL_TOP_RIGHT,             ///< #NWID_SELECTION widget for right part of the top row of the 'your train' order window.
 	WID_O_SEL_TOP_ROW_GROUNDVEHICLE, ///< #NWID_SELECTION widget for the top row of the 'your train' order window.

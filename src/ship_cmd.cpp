@@ -32,6 +32,7 @@
 #include "engine_base.h"
 #include "company_base.h"
 #include "tunnelbridge_map.h"
+#include "infrastructure_func.h"
 #include "zoom_func.h"
 
 #include "table/strings.h"
@@ -132,7 +133,7 @@ static const Depot *FindClosestShipDepot(const Vehicle *v, uint max_distance)
 
 	FOR_ALL_DEPOTS(depot) {
 		TileIndex tile = depot->xy;
-		if (IsShipDepotTile(tile) && IsTileOwner(tile, v->owner)) {
+		if (IsShipDepotTile(tile) && IsInfraTileUsageAllowed(VEH_SHIP, v->owner, tile)) {
 			uint dist = DistanceManhattan(tile, v->tile);
 			if (dist < best_dist) {
 				best_dist = dist;
@@ -188,7 +189,7 @@ void Ship::UpdateCache()
 	this->vcache.cached_max_speed = svi->ApplyWaterClassSpeedFrac(raw_speed, is_ocean);
 
 	/* Update cargo aging period. */
-	this->vcache.cached_cargo_age_period = GetVehicleProperty(this, PROP_SHIP_CARGO_AGE_PERIOD, EngInfo(this->engine_type)->cargo_age_period);
+	this->vcache.cached_cargo_age_period = GetVehicleProperty(this, PROP_SHIP_CARGO_AGE_PERIOD, EngInfo(this->engine_type)->cargo_age_period) * (_settings_game.economy.day_length_factor == 0 ? 1 : _settings_game.economy.day_length_factor);
 
 	this->UpdateVisualEffect();
 }
@@ -369,6 +370,18 @@ static bool ShipAccelerate(Vehicle *v)
 
 	spd = min(v->cur_speed + 1, v->vcache.cached_max_speed);
 	spd = min(spd, v->current_order.max_speed * 2);
+
+	if(v->breakdown_ctr == 1 && v->breakdown_type == BREAKDOWN_LOW_POWER && v->cur_speed > (v->breakdown_severity * ShipVehInfo(v->engine_type)->max_speed) >> 8) {
+		if((v->tick_counter & 0x7) == 0 && v->cur_speed > 0) {
+			spd = v->cur_speed - 1;
+		} else {
+			spd = v->cur_speed;
+		}
+	}
+
+	if(v->breakdown_ctr == 1 && v->breakdown_type == BREAKDOWN_LOW_SPEED) {
+		spd = min(spd, v->breakdown_severity);
+	}
 
 	/* updates statusbar only if speed have changed to save CPU time */
 	if (spd != v->cur_speed) {
@@ -690,6 +703,7 @@ CommandCost CmdBuildShip(TileIndex tile, DoCommandFlag flags, const Engine *e, u
 
 		v->reliability = e->reliability;
 		v->reliability_spd_dec = e->reliability_spd_dec;
+		v->breakdown_chance = 64; // ships have a 50% lower breakdown chance than normal
 		v->max_age = e->GetLifeLengthInDays();
 		_new_vehicle_id = v->index;
 

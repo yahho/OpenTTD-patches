@@ -520,7 +520,7 @@ static void TransportIndustryGoods(TileIndex tile)
 			ResetIndustryConstructionStage(tile);
 			SetIndustryCompleted(tile, true);
 			SetIndustryGfx(tile, newgfx);
-			MarkTileDirtyByTile(tile);
+			MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
 		}
 	}
 }
@@ -553,7 +553,7 @@ static void AnimateTile_Industry(TileIndex tile)
 			}
 			SetAnimationFrame(tile, m);
 
-			MarkTileDirtyByTile(tile);
+			MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
 		}
 		break;
 
@@ -571,7 +571,7 @@ static void AnimateTile_Industry(TileIndex tile)
 			}
 			SetAnimationFrame(tile, m);
 
-			MarkTileDirtyByTile(tile);
+			MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
 		}
 		break;
 
@@ -585,7 +585,7 @@ static void AnimateTile_Industry(TileIndex tile)
 			}
 			SetAnimationFrame(tile, m);
 
-			MarkTileDirtyByTile(tile);
+			MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
 		}
 		break;
 
@@ -598,7 +598,7 @@ static void AnimateTile_Industry(TileIndex tile)
 				DeleteAnimatedTile(tile);
 			} else {
 				SetAnimationFrame(tile, m + 1);
-				MarkTileDirtyByTile(tile);
+				MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
 			}
 		}
 		break;
@@ -624,7 +624,7 @@ static void AnimateTile_Industry(TileIndex tile)
 			}
 
 			SetAnimationFrame(tile, m);
-			MarkTileDirtyByTile(tile);
+			MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
 		}
 		break;
 
@@ -637,7 +637,7 @@ static void AnimateTile_Industry(TileIndex tile)
 
 			gfx = (gfx < 155) ? gfx + 1 : 148;
 			SetIndustryGfx(tile, gfx);
-			MarkTileDirtyByTile(tile);
+			MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
 		}
 		break;
 
@@ -656,7 +656,7 @@ static void AnimateTile_Industry(TileIndex tile)
 			} else {
 				SetAnimationFrame(tile, m);
 				SetIndustryGfx(tile, gfx);
-				MarkTileDirtyByTile(tile);
+				MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
 			}
 		}
 		break;
@@ -682,7 +682,7 @@ static void AnimateTile_Industry(TileIndex tile)
 				byte m = (GetAnimationFrame(tile) + 1) | 0x40;
 				if (m > 0xC2) m = 0xC0;
 				SetAnimationFrame(tile, m);
-				MarkTileDirtyByTile(tile);
+				MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
 			} else if (state >= 0x200 && state < 0x3A0) {
 				int i = (state < 0x220 || state >= 0x380) ? 7 : 3;
 				if (state & i) return;
@@ -690,7 +690,7 @@ static void AnimateTile_Industry(TileIndex tile)
 				byte m = (GetAnimationFrame(tile) & 0xBF) - 1;
 				if (m < 0x80) m = 0x82;
 				SetAnimationFrame(tile, m);
-				MarkTileDirtyByTile(tile);
+				MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
 			}
 			break;
 		}
@@ -720,7 +720,7 @@ static void MakeIndustryTileBigger(TileIndex tile)
 	StartStopIndustryTileAnimation(tile, IAT_CONSTRUCTION_STATE_CHANGE);
 	if (stage == INDUSTRY_COMPLETED) SetIndustryCompleted(tile, true);
 
-	MarkTileDirtyByTile(tile);
+	MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
 
 	if (!IsIndustryCompleted(tile)) return;
 
@@ -815,7 +815,7 @@ static void TileLoop_Industry(TileIndex tile)
 	if (newgfx != INDUSTRYTILE_NOANIM) {
 		ResetIndustryConstructionStage(tile);
 		SetIndustryGfx(tile, newgfx);
-		MarkTileDirtyByTile(tile);
+		MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
 		return;
 	}
 
@@ -1018,7 +1018,7 @@ static void PlantFarmField(TileIndex tile, IndustryID industry)
 		if (IsSuitableForFarmField(cur_tile, true)) {
 			MakeField(cur_tile, field_type, industry);
 			SetClearCounter(cur_tile, counter);
-			MarkTileDirtyByTile(cur_tile);
+			MarkTileDirtyByTile(cur_tile, ZOOM_LVL_DRAW_MAP);
 		}
 	}
 
@@ -1829,7 +1829,7 @@ static CommandCost CreateNewIndustryHelper(TileIndex tile, IndustryType type, Do
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdBuildIndustry(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+CommandCost CmdBuildIndustry(TileIndex tile, DoCommandFlag flags, uint64 p1, uint64 p2, const char *text)
 {
 	IndustryType it = GB(p1, 0, 8);
 	if (it >= NUM_INDUSTRYTYPES) return CMD_ERROR;
@@ -1998,6 +1998,21 @@ static uint GetNumberOfIndustries()
 	return ScaleByMapSize(numof_industry_table[difficulty]);
 }
 
+/** This function checks to see if a given tile is within the specified
+ * distance to any industry.
+ */
+static bool IsCloseToIndustry(TileIndex tile, uint dist)
+{
+	const Industry *i;
+
+	FOR_ALL_INDUSTRIES(i) {
+		if (DistanceManhattan(tile, i->location.tile) < dist) {
+			return true;
+		}
+	}
+	return false;
+}
+
 /**
  * Try to place the industry in the game.
  * Since there is no feedback why placement fails, there is no other option
@@ -2009,8 +2024,25 @@ static uint GetNumberOfIndustries()
 static Industry *PlaceIndustry(IndustryType type, IndustryAvailabilityCallType creation_type, bool try_hard)
 {
 	uint tries = try_hard ? 10000u : 2000u;
+	TileIndex tile;
 	for (; tries > 0; tries--) {
-		Industry *ind = CreateNewIndustry(RandomTile(), type, creation_type);
+		tile = RandomTile();
+
+		/* if bank or water tower, no need of checking */
+		if ((type != IT_WATER_TOWER ) &&
+		    (type != IT_BANK_TEMP) &&
+		    (type != IT_BANK_TROPIC_ARCTIC)) {
+			/* check, if not close to another industry */
+			if (_settings_game.economy.minimum_distance_industry > 0){
+				if (IsCloseToIndustry(tile, _settings_game.economy.minimum_distance_industry)) continue;
+			}
+
+			/* check, if not close to town */
+			if (_settings_game.economy.minimum_distance_ind_town > 0) {
+				if (IsCloseToTown(tile, _settings_game.economy.minimum_distance_ind_town)) continue;
+			}
+		}
+		Industry *ind = CreateNewIndustry(tile, type, creation_type);
 		if (ind != NULL) return ind;
 	}
 	return NULL;
@@ -2161,6 +2193,7 @@ void Industry::RecomputeProductionMultipliers()
 	const IndustrySpec *indspec = GetIndustrySpec(this->type);
 	assert(!indspec->UsesSmoothEconomy());
 
+	printf("IndustryID = %d, RecomputeProductionMultipliers(), percent = 0\n", this->index);
 	/* Rates are rounded up, so e.g. oilrig always produces some passengers */
 	this->production_rate[0] = min(CeilDiv(indspec->production_rate[0] * this->prod_level, PRODLEVEL_DEFAULT), 0xFF);
 	this->production_rate[1] = min(CeilDiv(indspec->production_rate[1] * this->prod_level, PRODLEVEL_DEFAULT), 0xFF);
@@ -2590,7 +2623,10 @@ static void ChangeIndustryProduction(Industry *i, bool monthly)
 
 	/* Recalculate production_rate
 	 * For non-smooth economy these should always be synchronized with prod_level */
-	if (recalculate_multipliers) i->RecomputeProductionMultipliers();
+	if (recalculate_multipliers) {
+		printf("IndustryID = %d, percent = 0, RecomputeProd.Mults\n", i->index);
+		i->RecomputeProductionMultipliers();
+	}
 
 	/* Close if needed and allowed */
 	if (closeit && !CheckIndustryCloseDownProtection(i->type)) {

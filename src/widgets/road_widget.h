@@ -23,6 +23,7 @@ enum RoadToolbarWidgets {
 	WID_ROT_BUS_STATION,    ///< Build bus station.
 	WID_ROT_TRUCK_STATION,  ///< Build truck station.
 	WID_ROT_ONE_WAY,        ///< Build one-way road.
+	WID_ROT_TRAFFIC_LIGHT,  ///< Build trafficlights.
 	WID_ROT_BUILD_BRIDGE,   ///< Build bridge.
 	WID_ROT_BUILD_TUNNEL,   ///< Build tunnel.
 	WID_ROT_REMOVE,         ///< Remove road.

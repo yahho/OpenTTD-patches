@@ -17,6 +17,7 @@ currency.cpp
 date.cpp
 debug.cpp
 dedicated.cpp
+departures.cpp
 depot.cpp
 driver.cpp
 economy.cpp
@@ -37,6 +38,7 @@ goal.cpp
 ground_vehicle.cpp
 heightmap.cpp
 highscore.cpp
+infrastructure.cpp
 hotkeys.cpp
 ini.cpp
 ini_load.cpp
@@ -75,6 +77,8 @@ screenshot.cpp
 #end
 settings.cpp
 signal.cpp
+programmable_signals.cpp
+programmable_signals_gui.cpp
 signs.cpp
 sound.cpp
 sprite.cpp
@@ -89,9 +93,12 @@ subsidy.cpp
 textbuf.cpp
 texteff.cpp
 tgp.cpp
+tgp_orig.cpp
 tile_map.cpp
 tilearea.cpp
 townname.cpp
+trafficlight.cpp
+triphistory_cmd.cpp
 #if WIN32
 #else
 	#if WINCE
@@ -162,6 +169,9 @@ date_gui.h
 date_type.h
 debug.h
 video/dedicated_v.h
+departures_func.h
+departures_gui.h
+departures_type.h
 depot_base.h
 depot_func.h
 depot_map.h
@@ -210,6 +220,7 @@ house_type.h
 industry.h
 industry_type.h
 industrytype.h
+infrastructure_func.h
 ini_type.h
 landscape.h
 landscape_type.h
@@ -230,6 +241,7 @@ livery.h
 map_func.h
 map_type.h
 mixer.h
+triphistory.h
 network/network.h
 network/network_admin.h
 network/network_base.h
@@ -274,10 +286,12 @@ newgrf_townname.h
 news_func.h
 news_gui.h
 news_type.h
+smallmap_colours.h
 music/null_m.h
 sound/null_s.h
 video/null_v.h
 object.h
+triphistory_gui.cpp
 object_base.h
 object_type.h
 openttd.h
@@ -310,6 +324,7 @@ settings_type.h
 ship.h
 signal_func.h
 signal_type.h
+programmable_signals.h
 signs_base.h
 signs_func.h
 signs_type.h
@@ -347,6 +362,7 @@ texteff.hpp
 textfile_gui.h
 textfile_type.h
 tgp.h
+tgp_orig.h
 tile_cmd.h
 tile_type.h
 tilearea_type.h
@@ -361,6 +377,9 @@ townname_func.h
 townname_type.h
 track_func.h
 track_type.h
+trafficlight.h
+trafficlight_func.h
+trafficlight_type.h
 train.h
 transparency.h
 transparency_gui.h
@@ -387,6 +406,7 @@ window_gui.h
 window_type.h
 zoom_func.h
 zoom_type.h
+zoning.h
 #if WIN32
 #else
 music/bemidi.h
@@ -440,10 +460,12 @@ autoreplace_gui.cpp
 bootstrap_gui.cpp
 bridge_gui.cpp
 build_vehicle_gui.cpp
+build_vehicle_gui_orig.cpp
 cheat_gui.cpp
 company_gui.cpp
 console_gui.cpp
 date_gui.cpp
+departures_gui.cpp
 depot_gui.cpp
 dock_gui.cpp
 engine_gui.cpp
@@ -491,6 +513,7 @@ tree_gui.cpp
 vehicle_gui.cpp
 viewport_gui.cpp
 waypoint_gui.cpp
+zoning_gui.cpp
 
 # Widgets
 widgets/airport_widget.h
@@ -503,6 +526,7 @@ widgets/cheat_widget.h
 widgets/company_widget.h
 widgets/console_widget.h
 widgets/date_widget.h
+widgets/departures_widget.h
 widgets/depot_widget.h
 widgets/dock_widget.h
 widgets/dropdown.cpp
@@ -547,6 +571,7 @@ widgets/toolbar_widget.h
 widgets/town_widget.h
 widgets/transparency_widget.h
 widgets/tree_widget.h
+widgets/triphistory_widget.h
 widgets/vehicle_widget.h
 widgets/viewport_widget.h
 widgets/waypoint_widget.h
@@ -579,6 +604,7 @@ vehicle_cmd.cpp
 void_cmd.cpp
 water_cmd.cpp
 waypoint_cmd.cpp
+zoning_cmd.cpp
 
 # Save/Load handlers
 saveload/afterload.cpp
@@ -622,6 +648,7 @@ saveload/subsidy_sl.cpp
 saveload/town_sl.cpp
 saveload/vehicle_sl.cpp
 saveload/waypoint_sl.cpp
+saveload/signal_sl.cpp
 
 # Tables
 table/airport_defaults.h
@@ -894,6 +921,8 @@ script/api/script_window.cpp
 # Blitters
 #if DEDICATED
 #else
+blitter/32bpp_anim_aa.cpp
+blitter/32bpp_anim_aa.hpp
 blitter/32bpp_anim.cpp
 blitter/32bpp_anim.hpp
 blitter/32bpp_base.cpp

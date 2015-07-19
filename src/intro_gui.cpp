@@ -58,7 +58,7 @@ struct SelectGameWindow : public Window {
 
 	virtual void OnInit()
 	{
-		bool missing = _current_language->missing >= _settings_client.gui.missing_strings_threshold && !IsReleasedVersion();
+		bool missing = _current_language->missing >= 1;//_settings_client.gui.missing_strings_threshold && !IsReleasedVersion();
 		this->GetWidget<NWidgetStacked>(WID_SGI_TRANSLATION_SELECTION)->SetDisplayedPlane(missing ? 0 : SZSP_NONE);
 	}
 

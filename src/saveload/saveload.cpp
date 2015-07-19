@@ -254,7 +254,7 @@
  *  186   25833
  *  187   25899
  */
-extern const uint16 SAVEGAME_VERSION = 187; ///< Current savegame version of OpenTTD.
+extern const uint16 SAVEGAME_VERSION = SL_SPRING_2013_v2_0_102; ///< Current savegame version of OpenTTD.
 
 SavegameType _savegame_type; ///< type of savegame we are loading
 
@@ -288,7 +288,7 @@ struct ReadBuffer {
 	byte *bufp;                  ///< Location we're at reading the buffer.
 	byte *bufe;                  ///< End of the buffer we can read from.
 	LoadFilter *reader;          ///< The filter used to actually read.
-	size_t read;                 ///< The amount of read bytes so far from the filter.
+	uint64 read;                 ///< The amount of read bytes so far from the filter.
 
 	/**
 	 * Initialise our variables.
@@ -301,7 +301,7 @@ struct ReadBuffer {
 	inline byte ReadByte()
 	{
 		if (this->bufp == this->bufe) {
-			size_t len = this->reader->Read(this->buf, lengthof(this->buf));
+			uint64 len = this->reader->Read(this->buf, lengthof(this->buf));
 			if (len == 0) SlErrorCorrupt("Unexpected end of chunk");
 
 			this->read += len;
@@ -316,9 +316,13 @@ struct ReadBuffer {
 	 * Get the size of the memory dump made so far.
 	 * @return The size.
 	 */
-	size_t GetSize() const
+	uint64 GetSize() const
 	{
-		return this->read - (this->bufe - this->bufp);
+		uint64 len;
+		//printf("ReadBuffer-");
+		len = this->read - (this->bufe - this->bufp);
+		//printf(">GetSize(): %llx = %llx - (%llx - %llx)\n", len, this->read, this->bufe, this->bufp);
+		return len;
 	}
 };
 
@@ -357,10 +361,10 @@ struct MemoryDumper {
 	void Flush(SaveFilter *writer)
 	{
 		uint i = 0;
-		size_t t = this->GetSize();
+		uint64 t = this->GetSize();
 
 		while (t > 0) {
-			size_t to_write = min(MEMORY_CHUNK_SIZE, t);
+			uint64 to_write = min(MEMORY_CHUNK_SIZE, t);
 
 			writer->Write(this->blocks[i++], to_write);
 			t -= to_write;
@@ -373,9 +377,13 @@ struct MemoryDumper {
 	 * Get the size of the memory dump made so far.
 	 * @return The size.
 	 */
-	size_t GetSize() const
+	uint64 GetSize() const
 	{
-		return this->blocks.Length() * MEMORY_CHUNK_SIZE - (this->bufe - this->buf);
+		uint64 len;
+		//printf("MemoryDumper-");
+		len = this->blocks.Length() * MEMORY_CHUNK_SIZE - (this->bufe - this->buf);
+		//printf(">GetSize()\n");
+		return len;
 	}
 };
 
@@ -386,7 +394,7 @@ struct SaveLoadParams {
 	byte block_mode;                     ///< ???
 	bool error;                          ///< did an error occur or not
 
-	size_t obj_len;                      ///< the length of the current object we are busy with
+	uint64 obj_len;                      ///< the length of the current object we are busy with
 	int array_index, last_array_index;   ///< in the case of an array, the current and last positions
 
 	MemoryDumper *dumper;                ///< Memory dumper to write the savegame to.
@@ -437,6 +445,7 @@ extern const ChunkHandler _labelmaps_chunk_handlers[];
 extern const ChunkHandler _linkgraph_chunk_handlers[];
 extern const ChunkHandler _airport_chunk_handlers[];
 extern const ChunkHandler _object_chunk_handlers[];
+extern const ChunkHandler _signal_chunk_handlers[];
 extern const ChunkHandler _persistent_storage_chunk_handlers[];
 
 /** Array of all chunks in a savegame, \c NULL terminated. */
@@ -473,6 +482,7 @@ static const ChunkHandler * const _chunk_handlers[] = {
 	_linkgraph_chunk_handlers,
 	_airport_chunk_handlers,
 	_object_chunk_handlers,
+	_signal_chunk_handlers,
 	_persistent_storage_chunk_handlers,
 	NULL,
 };
@@ -792,7 +802,7 @@ void SlSetArrayIndex(uint index)
 	_sl.array_index = index;
 }
 
-static size_t _next_offs;
+static uint64 _next_offs;
 
 /**
  * Iterate through the elements of an array and read the whole thing
@@ -807,7 +817,7 @@ int SlIterateArray()
 	if (_next_offs != 0 && _sl.reader->GetSize() != _next_offs) SlErrorCorrupt("Invalid chunk size");
 
 	for (;;) {
-		uint length = SlReadArrayLength();
+		uint64 length = SlReadArrayLength();
 		if (length == 0) {
 			_next_offs = 0;
 			return -1;
@@ -843,7 +853,7 @@ void SlSkipArray()
  * This lets us load an object or an array of arbitrary size
  * @param length The length of the sought object/array
  */
-void SlSetLength(size_t length)
+void SlSetLength(uint64 length)
 {
 	assert(_sl.action == SLA_SAVE);
 
@@ -855,8 +865,11 @@ void SlSetLength(size_t length)
 					/* Ugly encoding of >16M RIFF chunks
 					 * The lower 24 bits are normal
 					 * The uppermost 4 bits are bits 24:27 */
-					assert(length < (1 << 28));
-					SlWriteUint32((uint32)((length & 0xFFFFFF) | ((length >> 24) << 28)));
+					assert(length < (1LL << 32));
+					//uint64 len = ((length & 0xFFFFFF)) | ((length >> 24) << 28);
+					//SlWriteUint32((uint32)((length & 0xFFFFFF)) | ((length >> 24) << 28));
+					SlWriteUint64(length);
+					//printf("Saveload.cpp: SlSetLength: length = %llu\n", length);
 					break;
 				case CH_ARRAY:
 					assert(_sl.last_array_index <= _sl.array_index);
@@ -1040,7 +1053,7 @@ static inline size_t SlCalcNetStringLen(const char *ptr, size_t length)
  */
 static inline size_t SlCalcStringLen(const void *ptr, size_t length, VarType conv)
 {
-	size_t len;
+	uint64 len;
 	const char *str;
 
 	switch (GetVarMemType(conv)) {
@@ -1420,7 +1433,7 @@ static inline bool SlSkipVariableOnLoad(const SaveLoad *sld)
  */
 size_t SlCalcObjLength(const void *object, const SaveLoad *sld)
 {
-	size_t length = 0;
+	uint64 length = 0;
 
 	/* Need to determine the length and write a length tag. */
 	for (; sld->cmd != SL_END; sld++) {
@@ -1565,7 +1578,7 @@ void SlGlobList(const SaveLoadGlobVarList *sldg)
  */
 void SlAutolength(AutolengthProc *proc, void *arg)
 {
-	size_t offs;
+	uint64 offs;
 
 	assert(_sl.action == SLA_SAVE);
 
@@ -1593,8 +1606,8 @@ void SlAutolength(AutolengthProc *proc, void *arg)
 static void SlLoadChunk(const ChunkHandler *ch)
 {
 	byte m = SlReadByte();
-	size_t len;
-	size_t endoffs;
+	uint64 len;
+	uint64 endoffs;
 
 	_sl.block_mode = m;
 	_sl.obj_len = 0;
@@ -1612,9 +1625,15 @@ static void SlLoadChunk(const ChunkHandler *ch)
 				/* Read length */
 				len = (SlReadByte() << 16) | ((m >> 4) << 24);
 				len += SlReadUint16();
+				if(!IsSavegameVersionBefore(SL_SPRING_2013_v2_0_102)) {
+					len <<= 32;
+					len += SlReadUint32();
+				}
+				//printf("Saveload.cpp: SlLoadChunk: sizeof(chunk) = %llu\n", len);
 				_sl.obj_len = len;
 				endoffs = _sl.reader->GetSize() + len;
 				ch->load_proc();
+				//printf("Saveload.cpp: SlLoadChunk: chunk ID = %c%c%c%c\n", ch->id >> 24, ch->id >> 16 & 0x000000FF, ch->id >> 8 & 0x000000FF, ch->id & 0x000000FF);
 				if (_sl.reader->GetSize() != endoffs) SlErrorCorrupt("Invalid chunk size");
 			} else {
 				SlErrorCorrupt("Invalid chunk type");
@@ -1631,8 +1650,8 @@ static void SlLoadChunk(const ChunkHandler *ch)
 static void SlLoadCheckChunk(const ChunkHandler *ch)
 {
 	byte m = SlReadByte();
-	size_t len;
-	size_t endoffs;
+	uint64 len;
+	uint64 endoffs;
 
 	_sl.block_mode = m;
 	_sl.obj_len = 0;
@@ -1658,6 +1677,10 @@ static void SlLoadCheckChunk(const ChunkHandler *ch)
 				/* Read length */
 				len = (SlReadByte() << 16) | ((m >> 4) << 24);
 				len += SlReadUint16();
+				if(!IsSavegameVersionBefore(SL_SPRING_2013_v2_0_102)) {
+					len <<= 32;
+					len += SlReadUint32();
+				}
 				_sl.obj_len = len;
 				endoffs = _sl.reader->GetSize() + len;
 				if (ch->load_check_proc) {

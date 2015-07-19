@@ -32,10 +32,12 @@ enum IndustryViewWidgets {
 
 /** Widgets of the #IndustryDirectoryWindow class. */
 enum IndustryDirectoryWidgets {
-	WID_ID_DROPDOWN_ORDER,    ///< Dropdown for the order of the sort.
-	WID_ID_DROPDOWN_CRITERIA, ///< Dropdown for the criteria of the sort.
-	WID_ID_INDUSTRY_LIST,     ///< Industry list.
-	WID_ID_SCROLLBAR,         ///< Scrollbar of the list.
+	WID_ID_DROPDOWN_ORDER,                ///< Dropdown for the order of the sort.
+	WID_ID_DROPDOWN_CRITERIA,             ///< Dropdown for the criteria of the sort.
+	WID_ID_DROPDOWN_FILTER_TRANSPORTED,   ///< Dropdown for filtering on industry is transported or not
+	WID_ID_DROPDOWN_FILTER_INDUSTRY_TYPE, ///< Dropdown for filtering on industry type
+	WID_ID_INDUSTRY_LIST,                 ///< Industry list.
+	WID_ID_SCROLLBAR,                     ///< Scrollbar of the list.
 };
 
 /** Widgets of the #IndustryCargoesWindow class */

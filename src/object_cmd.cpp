@@ -122,7 +122,7 @@ void BuildObject(ObjectType type, TileIndex tile, CompanyID owner, Town *town, u
 			DirtyCompanyInfrastructureWindows(owner);
 		}
 		MakeObject(t, owner, o->index, wc, Random());
-		MarkTileDirtyByTile(t);
+		MarkTileDirtyByTile(t, ZOOM_LVL_DRAW_MAP);
 	}
 
 	Object::IncTypeCount(type);
@@ -138,7 +138,7 @@ static void IncreaseAnimationStage(TileIndex tile)
 	TileArea ta = Object::GetByTile(tile)->location;
 	TILE_AREA_LOOP(t, ta) {
 		SetAnimationFrame(t, GetAnimationFrame(t) + 1);
-		MarkTileDirtyByTile(t);
+		MarkTileDirtyByTile(t, ZOOM_LVL_DRAW_MAP);
 	}
 }
 
@@ -201,7 +201,7 @@ static CommandCost ClearTile_Object(TileIndex tile, DoCommandFlag flags);
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdBuildObject(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+CommandCost CmdBuildObject(TileIndex tile, DoCommandFlag flags, uint64 p1, uint64 p2, const char *text)
 {
 	CommandCost cost(EXPENSES_PROPERTY);
 

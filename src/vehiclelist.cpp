@@ -12,6 +12,9 @@
 #include "stdafx.h"
 #include "train.h"
 #include "vehiclelist.h"
+#include "cargotype.h"
+
+const CargoID CF_ANY = CT_NO_REFIT;
 
 /**
  * Pack a VehicleListIdentifier in a single uint32.
@@ -108,7 +111,7 @@ void BuildDepotVehicleList(VehicleType type, TileIndex tile, VehicleList *engine
  * @param vli  The identifier of this vehicle list.
  * @return false if invalid list is requested
  */
-bool GenerateVehicleSortList(VehicleList *list, const VehicleListIdentifier &vli)
+bool GenerateVehicleSortList(VehicleList *list, const VehicleListIdentifier &vli, CargoID cargo)
 {
 	list->Clear();
 
@@ -123,7 +126,14 @@ bool GenerateVehicleSortList(VehicleList *list, const VehicleListIdentifier &vli
 					FOR_VEHICLE_ORDERS(v, order) {
 						if ((order->IsType(OT_GOTO_STATION) || order->IsType(OT_GOTO_WAYPOINT) || order->IsType(OT_IMPLICIT))
 								&& order->GetDestination() == vli.index) {
-							*list->Append() = v;
+							bool ok = cargo == INVALID_CARGO || cargo == CF_ANY ? true : false;
+							for(const Vehicle *v1 = v; v1 != NULL; v1 = v1->Next()) {
+								if(v1->cargo_cap == 0) continue;
+								if(v1->cargo_type == cargo)
+									ok = true;
+								}
+							if(ok)
+								*list->Append() = v;
 							break;
 						}
 					}
@@ -137,7 +147,14 @@ bool GenerateVehicleSortList(VehicleList *list, const VehicleListIdentifier &vli
 			if (v == NULL || v->type != vli.vtype || !v->IsPrimaryVehicle()) return false;
 
 			for (; v != NULL; v = v->NextShared()) {
-				*list->Append() = v;
+				bool ok = cargo == INVALID_CARGO || cargo == CF_ANY ? true : false;
+				for(const Vehicle *v1 = v; v1 != NULL; v1 = v1->Next()) {
+					if(v1->cargo_cap == 0) continue;
+					if(v1->cargo_type == cargo)
+						ok = true;
+					}
+				if(ok)
+					*list->Append() = v;
 			}
 			break;
 
@@ -146,7 +163,14 @@ bool GenerateVehicleSortList(VehicleList *list, const VehicleListIdentifier &vli
 				FOR_ALL_VEHICLES(v) {
 					if (v->type == vli.vtype && v->IsPrimaryVehicle() &&
 							v->owner == vli.company && v->group_id == vli.index) {
-						*list->Append() = v;
+						bool ok = cargo == INVALID_CARGO || cargo == CF_ANY ? true : false;
+						for(const Vehicle *v1 = v; v1 != NULL; v1 = v1->Next()) {
+							if(v1->cargo_cap == 0) continue;
+							if(v1->cargo_type == cargo)
+								ok = true;
+							}
+						if(ok)
+							*list->Append() = v;
 					}
 				}
 				break;
@@ -156,7 +180,14 @@ bool GenerateVehicleSortList(VehicleList *list, const VehicleListIdentifier &vli
 		case VL_STANDARD:
 			FOR_ALL_VEHICLES(v) {
 				if (v->type == vli.vtype && v->owner == vli.company && v->IsPrimaryVehicle()) {
-					*list->Append() = v;
+					bool ok = cargo == INVALID_CARGO || cargo == CF_ANY ? true : false;
+					for(const Vehicle *v1 = v; v1 != NULL; v1 = v1->Next()) {
+						if(v1->cargo_cap == 0) continue;
+						if(v1->cargo_type == cargo)
+							ok = true;
+						}
+					if(ok)
+						*list->Append() = v;
 				}
 			}
 			break;
@@ -168,7 +199,14 @@ bool GenerateVehicleSortList(VehicleList *list, const VehicleListIdentifier &vli
 
 					FOR_VEHICLE_ORDERS(v, order) {
 						if (order->IsType(OT_GOTO_DEPOT) && !(order->GetDepotActionType() & ODATFB_NEAREST_DEPOT) && order->GetDestination() == vli.index) {
-							*list->Append() = v;
+							bool ok = cargo == INVALID_CARGO || cargo == CF_ANY ? true : false;
+							for(const Vehicle *v1 = v; v1 != NULL; v1 = v1->Next()) {
+								if(v1->cargo_cap == 0) continue;
+								if(v1->cargo_type == cargo)
+									ok = true;
+								}
+							if(ok)
+								*list->Append() = v;
 							break;
 						}
 					}

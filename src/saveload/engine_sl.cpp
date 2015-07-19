@@ -117,9 +117,7 @@ static void Load_ENGS()
 	/* Load old separate String ID list into a temporary array. This
 	 * was always 256 entries. */
 	StringID names[256];
-
 	SlArray(names, lengthof(names), SLE_STRINGID);
-
 	/* Copy each string into the temporary engine array. */
 	for (EngineID engine = 0; engine < lengthof(names); engine++) {
 		Engine *e = GetTempDataEngine(engine);

@@ -895,7 +895,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_FRAME(Packet *p
 	/* Let the server know that we received this frame correctly
 	 *  We do this only once per day, to save some bandwidth ;) */
 	if (!_network_first_time && last_ack_frame < _frame_counter) {
-		last_ack_frame = _frame_counter + DAY_TICKS;
+		last_ack_frame = _frame_counter + DAY_TICKS_74;
 		DEBUG(net, 4, "Sent ACK at %d", _frame_counter);
 		SendAck();
 	}

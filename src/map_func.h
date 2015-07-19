@@ -91,9 +91,9 @@ static inline uint MapSizeY()
  * Get the size of the map
  * @return the number of tiles of the map
  */
-static inline uint MapSize()
+static inline uint64 MapSize()
 {
-	extern uint _map_size;
+	extern uint64 _map_size;
 	return _map_size;
 }
 

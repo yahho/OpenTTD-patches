@@ -15,6 +15,19 @@
 #include "station_map.h"
 #include "vehicle_base.h"
 
+/**
+ * Minimal, Maximal and Holding flying altitude above ground while a plane is in flight
+ * and not starting or landing, i.e. in the state SLOWTURN & NOSPDCLAMP.
+ * Under certain circumstances, the actual flying altitude is
+ * higher, because certain offsets are added.
+ */
+enum AircraftFlyingAltitude {
+	AIRCRAFT_MIN_FLYING_ALTITUDE        = 120, ///< minimal flying altitude above tile
+	AIRCRAFT_MAX_FLYING_ALTITUDE        = 360, ///< maximal flying altitude above tile
+	PLANE_HOLD_MAX_FLYING_ALTITUDE      = 150, ///< holding flying altitude above tile of planes.
+	HELICOPTER_HOLD_MAX_FLYING_ALTITUDE = 184  ///< holding flying altitude above tile of helicopters.
+};
+
 struct Aircraft;
 
 /** An aircraft can be one of those types. */
@@ -38,8 +51,12 @@ void UpdateAircraftCache(Aircraft *v, bool update_range = false);
 
 void AircraftLeaveHangar(Aircraft *v, Direction exit_dir);
 void AircraftNextAirportPos_and_Order(Aircraft *v);
+int GetAircraftMinAltitude(int x_pos, int y_pos, int offset);
+int GetAircraftMaxAltitude(int x_pos, int y_pos, int offset);
+int GetAircraftHoldMaxAltitude(const Aircraft *v);
 void SetAircraftPosition(Aircraft *v, int x, int y, int z);
 int GetAircraftFlyingAltitude(const Aircraft *v);
+void FindBreakdownDestination(Aircraft *v);
 
 /** Variables that are cached to improve performance and such. */
 struct AircraftCache {
@@ -62,6 +79,22 @@ struct Aircraft FINAL : public SpecializedVehicle<Aircraft, VEH_AIRCRAFT> {
 	byte flags;                    ///< Aircraft flags. @see VehicleAirFlags
 
 	AircraftCache acache;
+
+	/**
+	 * True if an only if the aircraft has touched its upper altitude limit
+	 * and currently corrects its altitude. Used in order to avoid the
+	 * aircraft "stairclimbing". When an aircraft starts correcting
+	 * altitude it should make a rather big correction in one step.
+	 */
+	bool in_max_height_correction;
+
+	/**
+	 * True if an only if the aircraft has touched its lower altitude limit
+	 * and currently corrects its altitude. Used in order to avoid the
+	 * aircraft "stairclimbing". When an aircraft starts correcting
+	 * altitude it should make a rather big correction in one step.
+	 */
+	bool in_min_height_correction;
 
 	/** We don't want GCC to zero our struct! It already is zeroed and has an index! */
 	Aircraft() : SpecializedVehicleBase() {}

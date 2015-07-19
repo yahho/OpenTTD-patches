@@ -61,9 +61,26 @@ static RoadType _cur_roadtype;
 static DiagDirection _road_depot_orientation;
 static DiagDirection _road_station_picker_orientation;
 
-void CcPlaySound1D(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcPlaySound1D(const CommandCost &result, TileIndex tile, uint64 p1, uint64 p2)
 {
 	if (result.Succeeded() && _settings_client.sound.confirm) SndPlayTileFx(SND_1F_SPLAT, tile);
+}
+
+/**
+ * Place trafficlights on a tile or returns an error.
+ * @param tile This tile.
+ */
+static void PlaceRoad_TrafficLights(TileIndex tile, Window *w)
+{
+	if (_remove_button_clicked) {
+		DoCommandP(tile, 0, 0, CMD_REMOVE_TRAFFICLIGHTS | CMD_MSG(STR_ERROR_CAN_T_REMOVE_TRAFFIC_LIGHTS_FROM), CcPlaySound1D);
+	} else {
+		if (!_settings_game.construction.traffic_lights) {
+			DoCommandP(tile, 0, 0, CMD_BUILD_TRAFFICLIGHTS | CMD_MSG(STR_ERROR_BUILDING_TRAFFIC_LIGHTS_DISABLED), CcPlaySound1D);
+		} else{
+			DoCommandP(tile, 0, 0, CMD_BUILD_TRAFFICLIGHTS | CMD_MSG(STR_ERROR_CAN_T_PLACE_TRAFFIC_LIGHTS), CcPlaySound1D);
+		}
+	}
 }
 
 /**
@@ -90,7 +107,7 @@ static void PlaceRoad_Bridge(TileIndex tile, Window *w)
  *           bit 8-9 transport type
  * @param p2 unused
  */
-void CcBuildRoadTunnel(const CommandCost &result, TileIndex start_tile, uint32 p1, uint32 p2)
+void CcBuildRoadTunnel(const CommandCost &result, TileIndex start_tile, uint64 p1, uint64 p2)
 {
 	if (result.Succeeded()) {
 		if (_settings_client.sound.confirm) SndPlayTileFx(SND_20_SPLAT_2, start_tile);
@@ -169,7 +186,7 @@ void ConnectRoadToStructure(TileIndex tile, DiagDirection direction)
 	}
 }
 
-void CcRoadDepot(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcRoadDepot(const CommandCost &result, TileIndex tile, uint64 p1, uint64 p2)
 {
 	if (result.Failed()) return;
 
@@ -193,7 +210,7 @@ void CcRoadDepot(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
  *           bit 16..31: Station ID to join (NEW_STATION if build new one).
  * @see CmdBuildRoadStop
  */
-void CcRoadStop(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcRoadStop(const CommandCost &result, TileIndex tile, uint64 p1, uint64 p2)
 {
 	if (result.Failed()) return;
 
@@ -218,7 +235,7 @@ void CcRoadStop(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
  * @param cmd Command to use.
  * @see CcRoadStop()
  */
-static void PlaceRoadStop(TileIndex start_tile, TileIndex end_tile, uint32 p2, uint32 cmd)
+static void PlaceRoadStop(TileIndex start_tile, TileIndex end_tile, uint64 p2, uint32 cmd)
 {
 	uint8 ddir = _road_station_picker_orientation;
 	SB(p2, 16, 16, INVALID_STATION); // no station to join
@@ -301,6 +318,12 @@ static bool RoadToolbar_CtrlChanged(Window *w)
 		}
 	}
 
+	/* Allow ctrl also for traffic lights. */
+	if (w->IsWidgetLowered(WID_ROT_TRAFFIC_LIGHT)) {
+		ToggleRoadButton_Remove(w);
+		return true;
+	}
+
 	return false;
 }
 
@@ -315,6 +338,11 @@ struct BuildRoadToolbarWindow : Window {
 				WID_ROT_REMOVE,
 				WID_ROT_ONE_WAY,
 				WIDGET_LIST_END);
+
+		this->SetWidgetsDisabledState(!_settings_game.construction.traffic_lights,
+				WID_ROT_TRAFFIC_LIGHT,
+				WIDGET_LIST_END);
+		if (!_settings_game.construction.traffic_lights && this->IsWidgetLowered(WID_ROT_TRAFFIC_LIGHT)) ResetObjectToPlace();
 
 		this->OnInvalidateData();
 		this->last_started_action = WIDGET_LIST_END;
@@ -365,6 +393,7 @@ struct BuildRoadToolbarWindow : Window {
 
 			case WID_ROT_BUS_STATION:
 			case WID_ROT_TRUCK_STATION:
+			case WID_ROT_TRAFFIC_LIGHT:
 				this->DisableWidget(WID_ROT_ONE_WAY);
 				this->SetWidgetDisabledState(WID_ROT_REMOVE, !this->IsWidgetLowered(clicked_widget));
 				break;
@@ -449,6 +478,11 @@ struct BuildRoadToolbarWindow : Window {
 				SetSelectionRed(false);
 				break;
 
+			case WID_ROT_TRAFFIC_LIGHT:
+				HandlePlacePushButton(this, WID_ROT_TRAFFIC_LIGHT, SPR_CURSOR_TRAFFIC_LIGHT, HT_RECT);
+				this->last_started_action = widget;
+				break;
+
 			case WID_ROT_BUILD_BRIDGE:
 				HandlePlacePushButton(this, WID_ROT_BUILD_BRIDGE, SPR_CURSOR_BRIDGE, HT_RECT);
 				this->last_started_action = widget;
@@ -475,7 +509,7 @@ struct BuildRoadToolbarWindow : Window {
 
 	virtual EventState OnHotkey(int hotkey)
 	{
-		MarkTileDirtyByTile(TileVirtXY(_thd.pos.x, _thd.pos.y)); // redraw tile selection
+		MarkTileDirtyByTile(TileVirtXY(_thd.pos.x, _thd.pos.y), ZOOM_LVL_END); // redraw tile selection
 		return Window::OnHotkey(hotkey);
 	}
 
@@ -518,6 +552,10 @@ struct BuildRoadToolbarWindow : Window {
 
 			case WID_ROT_TRUCK_STATION:
 				PlaceRoad_TruckStation(tile);
+				break;
+
+			case WID_ROT_TRAFFIC_LIGHT:
+				PlaceRoad_TrafficLights(tile, this);
 				break;
 
 			case WID_ROT_BUILD_BRIDGE:
@@ -728,6 +766,8 @@ static const NWidgetPart _nested_build_road_widgets[] = {
 		NWidget(WWT_PANEL, COLOUR_DARK_GREEN, -1), SetMinimalSize(0, 22), SetFill(1, 1), EndContainer(),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_ONE_WAY),
 						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_ROAD_ONE_WAY, STR_ROAD_TOOLBAR_TOOLTIP_TOGGLE_ONE_WAY_ROAD),
+		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_TRAFFIC_LIGHT),
+						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_TRAFFIC_LIGHT, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_TRAFFIC_LIGHT),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_BUILD_BRIDGE),
 						SetFill(0, 1), SetMinimalSize(43, 22), SetDataTip(SPR_IMG_BRIDGE, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_ROAD_BRIDGE),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_BUILD_TUNNEL),
@@ -768,6 +808,8 @@ static const NWidgetPart _nested_build_tramway_widgets[] = {
 						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_TRUCK_BAY, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_CARGO_TRAM_STATION),
 		NWidget(WWT_PANEL, COLOUR_DARK_GREEN, -1), SetMinimalSize(0, 22), SetFill(1, 1), EndContainer(),
 		NWidget(WWT_EMPTY, COLOUR_DARK_GREEN, WID_ROT_ONE_WAY), SetMinimalSize(0, 0),
+		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_TRAFFIC_LIGHT),
+						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_TRAFFIC_LIGHT, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_TRAFFIC_LIGHT),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_BUILD_BRIDGE),
 						SetFill(0, 1), SetMinimalSize(43, 22), SetDataTip(SPR_IMG_BRIDGE, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_TRAMWAY_BRIDGE),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_BUILD_TUNNEL),
@@ -819,6 +861,8 @@ static const NWidgetPart _nested_build_road_scen_widgets[] = {
 		NWidget(WWT_PANEL, COLOUR_DARK_GREEN, -1), SetMinimalSize(0, 22), SetFill(1, 1), EndContainer(),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_ONE_WAY),
 						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_ROAD_ONE_WAY, STR_ROAD_TOOLBAR_TOOLTIP_TOGGLE_ONE_WAY_ROAD),
+		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_TRAFFIC_LIGHT),
+						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_TRAFFIC_LIGHT, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_TRAFFIC_LIGHT),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_BUILD_BRIDGE),
 						SetFill(0, 1), SetMinimalSize(43, 22), SetDataTip(SPR_IMG_BRIDGE, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_ROAD_BRIDGE),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_BUILD_TUNNEL),

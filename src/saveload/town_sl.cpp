@@ -135,6 +135,7 @@ static const SaveLoad _town_desc[] = {
 	SLE_CONDVAR(Town, have_ratings,          SLE_UINT16,               104, SL_MAX_VERSION),
 	SLE_CONDARR(Town, ratings,               SLE_INT16, 8,               0, 103),
 	SLE_CONDARR(Town, ratings,               SLE_INT16, MAX_COMPANIES, 104, SL_MAX_VERSION),
+	SLE_CONDARR(Town, auto_adv_camp,         SLE_UINT8, MAX_COMPANIES, SL_SPRING_2013_v2_0_102, SL_MAX_VERSION),
 	/* failed bribe attempts are stored since savegame format 4 */
 	SLE_CONDARR(Town, unwanted,              SLE_INT8,  8,               4, 103),
 	SLE_CONDARR(Town, unwanted,              SLE_INT8,  MAX_COMPANIES, 104, SL_MAX_VERSION),
@@ -206,11 +207,20 @@ static const SaveLoad _town_supplied_desc[] = {
 	SLE_END()
 };
 
-static const SaveLoad _town_received_desc[] = {
-	SLE_CONDVAR(TransportedCargoStat<uint16>, old_max, SLE_UINT16, 165, SL_MAX_VERSION),
-	SLE_CONDVAR(TransportedCargoStat<uint16>, new_max, SLE_UINT16, 165, SL_MAX_VERSION),
-	SLE_CONDVAR(TransportedCargoStat<uint16>, old_act, SLE_UINT16, 165, SL_MAX_VERSION),
-	SLE_CONDVAR(TransportedCargoStat<uint16>, new_act, SLE_UINT16, 165, SL_MAX_VERSION),
+static const SaveLoad _town_received_desc_old[] = {
+	SLE_CONDVAR(TransportedCargoStat<uint16>, old_max, SLE_UINT16, 165, SL_SPRING_2013_v2_0_102-1),
+	SLE_CONDVAR(TransportedCargoStat<uint16>, new_max, SLE_UINT16, 165, SL_SPRING_2013_v2_0_102-1),
+	SLE_CONDVAR(TransportedCargoStat<uint16>, old_act, SLE_UINT16, 165, SL_SPRING_2013_v2_0_102-1),
+	SLE_CONDVAR(TransportedCargoStat<uint16>, new_act, SLE_UINT16, 165, SL_SPRING_2013_v2_0_102-1),
+
+	SLE_END()
+};
+
+static const SaveLoad _town_received_desc_new[] = {
+	SLE_CONDVAR(TransportedCargoStat<uint32>, old_max, SLE_UINT32, SL_SPRING_2013_v2_0_102, SL_MAX_VERSION),
+	SLE_CONDVAR(TransportedCargoStat<uint32>, new_max, SLE_UINT32, SL_SPRING_2013_v2_0_102, SL_MAX_VERSION),
+	SLE_CONDVAR(TransportedCargoStat<uint32>, old_act, SLE_UINT32, SL_SPRING_2013_v2_0_102, SL_MAX_VERSION),
+	SLE_CONDVAR(TransportedCargoStat<uint32>, new_act, SLE_UINT32, SL_SPRING_2013_v2_0_102, SL_MAX_VERSION),
 
 	SLE_END()
 };
@@ -245,9 +255,15 @@ static void RealSave_Town(Town *t)
 	for (CargoID i = 0; i < NUM_CARGO; i++) {
 		SlObject(&t->supplied[i], _town_supplied_desc);
 	}
-	for (int i = TE_BEGIN; i < NUM_TE; i++) {
-		SlObject(&t->received[i], _town_received_desc);
-	}
+	
+	if(IsSavegameVersionBefore(SL_SPRING_2013_v2_0_102))
+		for (int i = TE_BEGIN; i < NUM_TE; i++) {
+			SlObject(&t->received[i], _town_received_desc_old);
+		}
+	 else
+		for (int i = TE_BEGIN; i < NUM_TE; i++) {
+			SlObject(&t->received[i], _town_received_desc_new);
+		}
 
 	if (IsSavegameVersionBefore(166)) return;
 
@@ -279,9 +295,14 @@ static void Load_TOWN()
 		for (CargoID i = 0; i < NUM_CARGO; i++) {
 			SlObject(&t->supplied[i], _town_supplied_desc);
 		}
-		for (int i = TE_BEGIN; i < TE_END; i++) {
-			SlObject(&t->received[i], _town_received_desc);
-		}
+		if(IsSavegameVersionBefore(SL_SPRING_2013_v2_0_102))
+			for (int i = TE_BEGIN; i < TE_END; i++) {
+				SlObject(&t->received[i], _town_received_desc_old);
+			}
+		else
+			for (int i = TE_BEGIN; i < TE_END; i++) {
+				SlObject(&t->received[i], _town_received_desc_new);
+			}
 
 		if (t->townnamegrfid == 0 && !IsInsideMM(t->townnametype, SPECSTR_TOWNNAME_START, SPECSTR_TOWNNAME_LAST + 1) && GB(t->townnametype, 11, 5) != 15) {
 			SlErrorCorrupt("Invalid town name generator");
@@ -298,6 +319,7 @@ static void Load_TOWN()
 			/* Rebuild total cargo acceptance. */
 			UpdateTownCargoTotal(t);
 		}
+		t->UpdateLabel();
 	}
 }
 

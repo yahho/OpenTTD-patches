@@ -2574,13 +2574,13 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 						for (uint j = 0; j < SNOW_LINE_DAYS; j++) {
 							table[i][j] = buf->ReadByte();
 							if (_cur.grffile->grf_version >= 8) {
-								if (table[i][j] != 0xFF) table[i][j] = table[i][j] * (1 + MAX_TILE_HEIGHT) / 256;
+								if (table[i][j] != 0xFF) table[i][j] = table[i][j] * (1 + _settings_game.construction.max_heightlevel) / 256;
 							} else {
 								if (table[i][j] >= 128) {
 									/* no snow */
 									table[i][j] = 0xFF;
 								} else {
-									table[i][j] = table[i][j] * (1 + MAX_TILE_HEIGHT) / 128;
+									table[i][j] = table[i][j] * (1 + _settings_game.construction.max_heightlevel) / 128;
 								}
 							}
 						}
@@ -5716,7 +5716,7 @@ bool GetGlobalVariable(byte param, uint32 *value, const GRFFile *grffile)
 
 		case 0x20: { // snow line height
 			byte snowline = GetSnowLine();
-			if (_settings_game.game_creation.landscape == LT_ARCTIC && snowline <= MAX_TILE_HEIGHT) {
+			if (_settings_game.game_creation.landscape == LT_ARCTIC && snowline <= _settings_game.construction.max_heightlevel) {
 				*value = Clamp(snowline * (grffile->grf_version >= 8 ? 1 : TILE_HEIGHT), 0, 0xFE);
 			} else {
 				/* No snow */
@@ -6373,7 +6373,7 @@ static uint32 GetPatchVariable(uint8 param)
 
 		/* The maximum height of the map. */
 		case 0x14:
-			return MAX_TILE_HEIGHT;
+			return _settings_game.construction.max_heightlevel;
 
 		/* Extra foundations base sprite */
 		case 0x15:
@@ -7985,7 +7985,8 @@ void ResetNewGRFData()
 	memset(_water_feature, 0, sizeof(_water_feature));
 
 	/* Reset the snowline table. */
-	ClearSnowLine();
+	//if(!IsSnowLineSet())
+	//	ClearSnowLine();
 
 	/* Reset NewGRF files */
 	ResetNewGRF();
@@ -9183,4 +9184,13 @@ void LoadNewGRF(uint load_index, uint file_index)
 	_date_fract   = date_fract;
 	_tick_counter = tick_counter;
 	_display_opt  = display_opt;
+}
+
+int CountSelectedGRFs(GRFConfig *grfconf)
+{
+	int i = 0;
+
+	for(const GRFConfig *list = grfconf; list != NULL; list = list->next, i++);
+
+	return i;
 }

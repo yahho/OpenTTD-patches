@@ -37,7 +37,7 @@
 
 #include "table/strings.h"
 
-void CcTerraform(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcTerraform(const CommandCost &result, TileIndex tile, uint64 p1, uint64 p2)
 {
 	if (result.Succeeded()) {
 		if (_settings_client.sound.confirm) SndPlayTileFx(SND_1F_SPLAT, tile);
@@ -59,7 +59,7 @@ static void GenerateDesertArea(TileIndex end, TileIndex start)
 	TILE_AREA_LOOP(tile, ta) {
 		SetTropicZone(tile, (_ctrl_pressed) ? TROPICZONE_NORMAL : TROPICZONE_DESERT);
 		DoCommandP(tile, 0, 0, CMD_LANDSCAPE_CLEAR);
-		MarkTileDirtyByTile(tile);
+		MarkTileDirtyByTile(tile, ZOOM_LVL_END);
 	}
 	_generating_world = false;
 	InvalidateWindowClassesData(WC_TOWN_VIEW, 0);
@@ -84,7 +84,7 @@ static void GenerateRockyArea(TileIndex end, TileIndex start)
 
 			default: continue;
 		}
-		MarkTileDirtyByTile(tile);
+		MarkTileDirtyByTile(tile, ZOOM_LVL_END);
 		success = true;
 	}
 

@@ -151,7 +151,7 @@ void OrderBackup::DoRestore(Vehicle *v)
  * @param text  Unused.
  * @return The cost of this operation or an error.
  */
-CommandCost CmdClearOrderBackup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+CommandCost CmdClearOrderBackup(TileIndex tile, DoCommandFlag flags, uint64 p1, uint64 p2, const char *text)
 {
 	/* No need to check anything. If the tile or user don't exist we just ignore it. */
 	if (flags & DC_EXEC) OrderBackup::ResetOfUser(tile == 0 ? INVALID_TILE : tile, p2);

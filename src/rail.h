@@ -21,6 +21,7 @@
 #include "strings_type.h"
 #include "date_type.h"
 #include "signal_type.h"
+#include "settings_type.h"
 
 /** Railtype flags. */
 enum RailTypeFlags {
@@ -335,7 +336,7 @@ static inline bool RailNoLevelCrossings(RailType rt)
 static inline Money RailBuildCost(RailType railtype)
 {
 	assert(railtype < RAILTYPE_END);
-	return (_price[PR_BUILD_RAIL] * GetRailTypeInfo(railtype)->cost_multiplier) >> 3;
+	return ((_price[PR_BUILD_RAIL] * GetRailTypeInfo(railtype)->cost_multiplier) >> 3) << (int)_settings_game.economy.price_rails[railtype];
 }
 
 /**
@@ -390,7 +391,7 @@ static inline Money RailConvertCost(RailType from, RailType to)
 static inline Money RailMaintenanceCost(RailType railtype, uint32 num, uint32 total_num)
 {
 	assert(railtype < RAILTYPE_END);
-	return (_price[PR_INFRASTRUCTURE_RAIL] * GetRailTypeInfo(railtype)->maintenance_multiplier * num * (1 + IntSqrt(total_num))) >> 11; // 4 bits fraction for the multiplier and 7 bits scaling.
+	return ((_price[PR_INFRASTRUCTURE_RAIL] * GetRailTypeInfo(railtype)->maintenance_multiplier * num * (1 + IntSqrt(total_num))) >> 11 ) << (int)_settings_game.economy.rail_maintenance[railtype]; // 4 bits fraction for the multiplier and 7 bits scaling.
 }
 
 /**

@@ -98,6 +98,8 @@ public:
 	 */
 	virtual void SetPixel(void *video, int x, int y, uint8 colour) = 0;
 
+	virtual void SetLine(void *video, int x, int y, uint8 *colours, uint width) = 0;
+
 	/**
 	 * Make a single horizontal line in a single colour on the video-buffer.
 	 * @param video The destination pointer (video-buffer).

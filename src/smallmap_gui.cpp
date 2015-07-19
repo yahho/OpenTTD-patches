@@ -18,11 +18,12 @@
 #include "viewport_func.h"
 #include "town.h"
 #include "tunnelbridge_map.h"
-#include "core/endian_func.hpp"
 #include "vehicle_base.h"
 #include "sound_func.h"
 #include "window_func.h"
 #include "company_base.h"
+#include "smallmap_colours.h"
+#include "smallmap_gui.h"
 
 #include "smallmap_gui.h"
 
@@ -35,20 +36,14 @@ static int _smallmap_cargo_count;    ///< Number of cargos in the link stats leg
 /** Link stat colours shown in legenda. */
 static uint8 _linkstat_colours_in_legenda[] = {0, 1, 3, 5, 7, 9, 11};
 
-static const int NUM_NO_COMPANY_ENTRIES = 4; ///< Number of entries in the owner legend that are not companies.
-
-static const uint8 PC_ROUGH_LAND      = 0x52; ///< Dark green palette colour for rough land.
-static const uint8 PC_GRASS_LAND      = 0x54; ///< Dark green palette colour for grass land.
-static const uint8 PC_BARE_LAND       = 0x37; ///< Brown palette colour for bare land.
-static const uint8 PC_FIELDS          = 0x25; ///< Light brown palette colour for fields.
-static const uint8 PC_TREES           = 0x57; ///< Green palette colour for trees.
-static const uint8 PC_WATER           = 0xCA; ///< Dark blue palette colour for water.
-
 /** Macro for ordinary entry of LegendAndColour */
 #define MK(a, b) {a, b, INVALID_INDUSTRYTYPE, 0, INVALID_COMPANY, true, false, false}
 
 /** Macro for a height legend entry with configurable colour. */
 #define MC(height)  {0, STR_TINY_BLACK_HEIGHT, INVALID_INDUSTRYTYPE, height, INVALID_COMPANY, true, false, false}
+
+/** Macro for a height legend entry break marker with configurable colour. */
+#define MCS(height)  {0, STR_TINY_BLACK_HEIGHT, INVALID_INDUSTRYTYPE, height, INVALID_COMPANY, true, false, true}
 
 /** Macro for non-company owned property entry of LegendAndColour */
 #define MO(a, b) {a, b, INVALID_INDUSTRYTYPE, 0, INVALID_COMPANY, true, false, false}
@@ -69,16 +64,30 @@ static const uint8 PC_WATER           = 0xCA; ///< Dark blue palette colour for 
 static LegendAndColour _legend_land_contours[] = {
 	/* The colours for the following values are set at BuildLandLegend() based on each colour scheme. */
 	MC(0),
-	MC(4),
-	MC(8),
-	MC(12),
-	MC(14),
+	MC(16),
+	MC(32),
+	MC(48),
+	MC(64),
+	MC(80),
 
-	MS(PC_BLACK,           STR_SMALLMAP_LEGENDA_ROADS),
-	MK(PC_GREY,            STR_SMALLMAP_LEGENDA_RAILROADS),
-	MK(PC_LIGHT_BLUE,      STR_SMALLMAP_LEGENDA_STATIONS_AIRPORTS_DOCKS),
-	MK(PC_DARK_RED,        STR_SMALLMAP_LEGENDA_BUILDINGS_INDUSTRIES),
-	MK(PC_WHITE,           STR_SMALLMAP_LEGENDA_VEHICLES),
+	MCS(96),
+	MC(112),
+	MC(128),
+	MC(144),
+	MC(160),
+	MC(176),
+
+	MCS(192),
+	MC(208),
+	MC(224),
+	MC(240),
+	MC(255),
+
+	MS(0xD7, STR_SMALLMAP_LEGENDA_ROADS),
+	MK(0x0A, STR_SMALLMAP_LEGENDA_RAILROADS),
+	MK(0x98, STR_SMALLMAP_LEGENDA_STATIONS_AIRPORTS_DOCKS),
+	MK(0xB5, STR_SMALLMAP_LEGENDA_BUILDINGS_INDUSTRIES),
+	MK(0x0F, STR_SMALLMAP_LEGENDA_VEHICLES),
 	MKEND()
 };
 
@@ -122,7 +131,7 @@ static const LegendAndColour _legend_vegetation[] = {
 	MKEND()
 };
 
-static LegendAndColour _legend_land_owners[NUM_NO_COMPANY_ENTRIES + MAX_COMPANIES + 1] = {
+/*static*/ LegendAndColour _legend_land_owners[NUM_NO_COMPANY_ENTRIES + MAX_COMPANIES + 1] = {
 	MO(PC_WATER,           STR_SMALLMAP_LEGENDA_WATER),
 	MO(0x00,               STR_SMALLMAP_LEGENDA_NO_OWNER), // This colour will vary depending on settings.
 	MO(PC_DARK_RED,        STR_SMALLMAP_LEGENDA_TOWNS),
@@ -133,6 +142,7 @@ static LegendAndColour _legend_land_owners[NUM_NO_COMPANY_ENTRIES + MAX_COMPANIE
 
 #undef MK
 #undef MC
+#undef MCS
 #undef MS
 #undef MO
 #undef MOEND
@@ -144,17 +154,17 @@ static LegendAndColour _legend_linkstats[NUM_CARGO + lengthof(_linkstat_colours_
  * Allow room for all industries, plus a terminator entry
  * This is required in order to have the industry slots all filled up
  */
-static LegendAndColour _legend_from_industries[NUM_INDUSTRYTYPES + 1];
+/*static*/ LegendAndColour _legend_from_industries[NUM_INDUSTRYTYPES + 1];
 /** For connecting industry type to position in industries list(small map legend) */
-static uint _industry_to_list_pos[NUM_INDUSTRYTYPES];
+/*static*/ uint _industry_to_list_pos[NUM_INDUSTRYTYPES];
 /** Show heightmap in industry and owner mode of smallmap window. */
-static bool _smallmap_show_heightmap = false;
+/*static*/ bool _smallmap_show_heightmap = false;
 /** Highlight a specific industry type */
 static IndustryType _smallmap_industry_highlight = INVALID_INDUSTRYTYPE;
 /** State of highlight blinking */
 static bool _smallmap_industry_highlight_state;
 /** For connecting company ID to position in owner list (small map legend) */
-static uint _company_to_list_pos[MAX_COMPANIES];
+/*static*/ uint _company_to_list_pos[MAX_COMPANIES];
 
 /**
  * Fills an array for the industries legends.
@@ -230,98 +240,6 @@ static const LegendAndColour * const _legend_table[] = {
 	_legend_land_owners,
 };
 
-#define MKCOLOUR(x)         TO_LE32X(x)
-
-#define MKCOLOUR_XXXX(x)    (MKCOLOUR(0x01010101) * (uint)(x))
-#define MKCOLOUR_X0X0(x)    (MKCOLOUR(0x01000100) * (uint)(x))
-#define MKCOLOUR_0X0X(x)    (MKCOLOUR(0x00010001) * (uint)(x))
-#define MKCOLOUR_0XX0(x)    (MKCOLOUR(0x00010100) * (uint)(x))
-#define MKCOLOUR_X00X(x)    (MKCOLOUR(0x01000001) * (uint)(x))
-
-#define MKCOLOUR_XYXY(x, y) (MKCOLOUR_X0X0(x) | MKCOLOUR_0X0X(y))
-#define MKCOLOUR_XYYX(x, y) (MKCOLOUR_X00X(x) | MKCOLOUR_0XX0(y))
-
-#define MKCOLOUR_0000       MKCOLOUR_XXXX(0x00)
-#define MKCOLOUR_0FF0       MKCOLOUR_0XX0(0xFF)
-#define MKCOLOUR_F00F       MKCOLOUR_X00X(0xFF)
-#define MKCOLOUR_FFFF       MKCOLOUR_XXXX(0xFF)
-
-/** Height map colours for the green colour scheme, ordered by height. */
-static const uint32 _green_map_heights[] = {
-	MKCOLOUR_XXXX(0x5A),
-	MKCOLOUR_XYXY(0x5A, 0x5B),
-	MKCOLOUR_XXXX(0x5B),
-	MKCOLOUR_XYXY(0x5B, 0x5C),
-	MKCOLOUR_XXXX(0x5C),
-	MKCOLOUR_XYXY(0x5C, 0x5D),
-	MKCOLOUR_XXXX(0x5D),
-	MKCOLOUR_XYXY(0x5D, 0x5E),
-	MKCOLOUR_XXXX(0x5E),
-	MKCOLOUR_XYXY(0x5E, 0x5F),
-	MKCOLOUR_XXXX(0x5F),
-	MKCOLOUR_XYXY(0x5F, 0x1F),
-	MKCOLOUR_XXXX(0x1F),
-	MKCOLOUR_XYXY(0x1F, 0x27),
-	MKCOLOUR_XXXX(0x27),
-	MKCOLOUR_XXXX(0x27),
-};
-assert_compile(lengthof(_green_map_heights) == MAX_TILE_HEIGHT + 1);
-
-/** Height map colours for the dark green colour scheme, ordered by height. */
-static const uint32 _dark_green_map_heights[] = {
-	MKCOLOUR_XXXX(0x60),
-	MKCOLOUR_XYXY(0x60, 0x61),
-	MKCOLOUR_XXXX(0x61),
-	MKCOLOUR_XYXY(0x61, 0x62),
-	MKCOLOUR_XXXX(0x62),
-	MKCOLOUR_XYXY(0x62, 0x63),
-	MKCOLOUR_XXXX(0x63),
-	MKCOLOUR_XYXY(0x63, 0x64),
-	MKCOLOUR_XXXX(0x64),
-	MKCOLOUR_XYXY(0x64, 0x65),
-	MKCOLOUR_XXXX(0x65),
-	MKCOLOUR_XYXY(0x65, 0x66),
-	MKCOLOUR_XXXX(0x66),
-	MKCOLOUR_XYXY(0x66, 0x67),
-	MKCOLOUR_XXXX(0x67),
-	MKCOLOUR_XXXX(0x67),
-};
-assert_compile(lengthof(_dark_green_map_heights) == MAX_TILE_HEIGHT + 1);
-
-/** Height map colours for the violet colour scheme, ordered by height. */
-static const uint32 _violet_map_heights[] = {
-	MKCOLOUR_XXXX(0x80),
-	MKCOLOUR_XYXY(0x80, 0x81),
-	MKCOLOUR_XXXX(0x81),
-	MKCOLOUR_XYXY(0x81, 0x82),
-	MKCOLOUR_XXXX(0x82),
-	MKCOLOUR_XYXY(0x82, 0x83),
-	MKCOLOUR_XXXX(0x83),
-	MKCOLOUR_XYXY(0x83, 0x84),
-	MKCOLOUR_XXXX(0x84),
-	MKCOLOUR_XYXY(0x84, 0x85),
-	MKCOLOUR_XXXX(0x85),
-	MKCOLOUR_XYXY(0x85, 0x86),
-	MKCOLOUR_XXXX(0x86),
-	MKCOLOUR_XYXY(0x86, 0x87),
-	MKCOLOUR_XXXX(0x87),
-	MKCOLOUR_XXXX(0x87),
-};
-assert_compile(lengthof(_violet_map_heights) == MAX_TILE_HEIGHT + 1);
-
-/** Colour scheme of the smallmap. */
-struct SmallMapColourScheme {
-	const uint32 *height_colours; ///< Colour of each level in a heightmap.
-	uint32 default_colour;   ///< Default colour of the land.
-};
-
-/** Available colour schemes for height maps. */
-static const SmallMapColourScheme _heightmap_schemes[] = {
-	{_green_map_heights,      MKCOLOUR_XXXX(0x54)}, ///< Green colour scheme.
-	{_dark_green_map_heights, MKCOLOUR_XXXX(0x62)}, ///< Dark green colour scheme.
-	{_violet_map_heights,     MKCOLOUR_XXXX(0x82)}, ///< Violet colour scheme.
-};
-
 /**
  * (Re)build the colour tables for the legends.
  */
@@ -357,66 +275,6 @@ void BuildOwnerLegend()
 	/* Store maximum amount of owner legend entries. */
 	_smallmap_company_count = i;
 }
-
-struct AndOr {
-	uint32 mor;
-	uint32 mand;
-};
-
-static inline uint32 ApplyMask(uint32 colour, const AndOr *mask)
-{
-	return (colour & mask->mand) | mask->mor;
-}
-
-
-/** Colour masks for "Contour" and "Routes" modes. */
-static const AndOr _smallmap_contours_andor[] = {
-	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // MP_CLEAR
-	{MKCOLOUR_0XX0(PC_GREY      ), MKCOLOUR_F00F}, // MP_RAILWAY
-	{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // MP_ROAD
-	{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // MP_HOUSE
-	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // MP_TREES
-	{MKCOLOUR_XXXX(PC_LIGHT_BLUE), MKCOLOUR_0000}, // MP_STATION
-	{MKCOLOUR_XXXX(PC_WATER     ), MKCOLOUR_0000}, // MP_WATER
-	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // MP_VOID
-	{MKCOLOUR_XXXX(PC_DARK_RED  ), MKCOLOUR_0000}, // MP_INDUSTRY
-	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // MP_TUNNELBRIDGE
-	{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // MP_OBJECT
-	{MKCOLOUR_0XX0(PC_GREY      ), MKCOLOUR_F00F},
-};
-
-/** Colour masks for "Vehicles", "Industry", and "Vegetation" modes. */
-static const AndOr _smallmap_vehicles_andor[] = {
-	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // MP_CLEAR
-	{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // MP_RAILWAY
-	{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // MP_ROAD
-	{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // MP_HOUSE
-	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // MP_TREES
-	{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // MP_STATION
-	{MKCOLOUR_XXXX(PC_WATER     ), MKCOLOUR_0000}, // MP_WATER
-	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // MP_VOID
-	{MKCOLOUR_XXXX(PC_DARK_RED  ), MKCOLOUR_0000}, // MP_INDUSTRY
-	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // MP_TUNNELBRIDGE
-	{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // MP_OBJECT
-	{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F},
-};
-
-/** Mapping of tile type to importance of the tile (higher number means more interesting to show). */
-static const byte _tiletype_importance[] = {
-	2, // MP_CLEAR
-	8, // MP_RAILWAY
-	7, // MP_ROAD
-	5, // MP_HOUSE
-	2, // MP_TREES
-	9, // MP_STATION
-	2, // MP_WATER
-	1, // MP_VOID
-	6, // MP_INDUSTRY
-	8, // MP_TUNNELBRIDGE
-	2, // MP_OBJECT
-	0,
-};
-
 
 static inline TileType GetEffectiveTileType(TileIndex tile)
 {
@@ -529,17 +387,6 @@ static inline uint32 GetSmallMapLinkStatsPixels(TileIndex tile, TileType t)
 	return _smallmap_show_heightmap ? GetSmallMapContoursPixels(tile, t) : GetSmallMapRoutesPixels(tile, t);
 }
 
-static const uint32 _vegetation_clear_bits[] = {
-	MKCOLOUR_XXXX(PC_GRASS_LAND), ///< full grass
-	MKCOLOUR_XXXX(PC_ROUGH_LAND), ///< rough land
-	MKCOLOUR_XXXX(PC_GREY),       ///< rocks
-	MKCOLOUR_XXXX(PC_FIELDS),     ///< fields
-	MKCOLOUR_XXXX(PC_LIGHT_BLUE), ///< snow
-	MKCOLOUR_XXXX(PC_ORANGE),     ///< desert
-	MKCOLOUR_XXXX(PC_GRASS_LAND), ///< unused
-	MKCOLOUR_XXXX(PC_GRASS_LAND), ///< unused
-};
-
 /**
  * Return the colour a tile would be displayed with in the smallmap in mode "Vegetation".
  *
@@ -597,6 +444,16 @@ static inline uint32 GetSmallMapOwnerPixels(TileIndex tile, TileType t)
 	}
 
 	return MKCOLOUR_XXXX(_legend_land_owners[_company_to_list_pos[o]].colour);
+}
+
+static void NotifyAllViewports(ViewportMapType map_type)
+{
+	Window *w;
+	FOR_ALL_WINDOWS_FROM_BACK(w) {
+		if (w->viewport != NULL)
+			if (w->viewport->zoom >= ZOOM_LVL_DRAW_MAP && w->viewport->map_type == map_type)
+				w->InvalidateData();
+	}
 }
 
 /** Vehicle colours in #SMT_VEHICLES mode. Indexed by #VehicleTypeByte. */
@@ -913,20 +770,51 @@ void SmallMapWindow::DrawMapIndicators() const
 	/* Find main viewport. */
 	const ViewPort *vp = FindWindowById(WC_MAIN_WINDOW, 0)->viewport;
 
-	Point tile = InverseRemapCoords(vp->virtual_left, vp->virtual_top);
-	Point tl = this->RemapTile(tile.x >> 4, tile.y >> 4);
-	tl.x -= this->subscroll;
+	//Point tile = InverseRemapCoords(vp->virtual_left, vp->virtual_top);
+	//Point tl = this->RemapTile(tile.x >> 4, tile.y >> 4);
+	//tl.x -= this->subscroll;
+	Point upper_left_viewport_coord = {vp->virtual_left, vp->virtual_top};
+	Point upper_left_small_map_coord = GetSmallMapCoordIncludingHeight(upper_left_viewport_coord);
+	Point upper_left = this->RemapTile(upper_left_small_map_coord.x, upper_left_small_map_coord.y);
+	/* why do we do this? in my tests subscroll was zero */
+	upper_left.x -= this->subscroll;
 
-	tile = InverseRemapCoords(vp->virtual_left + vp->virtual_width, vp->virtual_top + vp->virtual_height);
-	Point br = this->RemapTile(tile.x >> 4, tile.y >> 4);
-	br.x -= this->subscroll;
+	//tile = InverseRemapCoords(vp->virtual_left + vp->virtual_width, vp->virtual_top + vp->virtual_height);
+	//Point br = this->RemapTile(tile.x >> 4, tile.y >> 4);
+	//br.x -= this->subscroll;
+	Point lower_right_viewport_coord = {vp->virtual_left + vp->virtual_width, vp->virtual_top + vp->virtual_height};
+	Point lower_right_smallmap_coord = GetSmallMapCoordIncludingHeight(lower_right_viewport_coord);
+	Point lower_right = this->RemapTile(lower_right_smallmap_coord.x, lower_right_smallmap_coord.y);
+	/* why do we do this? in my tests subscroll was zero */
+	lower_right.x -= this->subscroll;
 
-	SmallMapWindow::DrawVertMapIndicator(tl.x, tl.y, br.y);
-	SmallMapWindow::DrawVertMapIndicator(br.x, tl.y, br.y);
+	//SmallMapWindow::DrawVertMapIndicator(tl.x, tl.y, br.y);
+	//SmallMapWindow::DrawVertMapIndicator(br.x, tl.y, br.y);
+	SmallMapWindow::DrawVertMapIndicator(upper_left.x, upper_left.y, lower_right.y);
+	SmallMapWindow::DrawVertMapIndicator(lower_right.x, upper_left.y, lower_right.y);
 
-	SmallMapWindow::DrawHorizMapIndicator(tl.x, br.x, tl.y);
-	SmallMapWindow::DrawHorizMapIndicator(tl.x, br.x, br.y);
+	//SmallMapWindow::DrawHorizMapIndicator(tl.x, br.x, tl.y);
+	//SmallMapWindow::DrawHorizMapIndicator(tl.x, br.x, br.y);
+	SmallMapWindow::DrawHorizMapIndicator(upper_left.x, lower_right.x, upper_left.y);
+	SmallMapWindow::DrawHorizMapIndicator(upper_left.x, lower_right.x, lower_right.y);
 }
+
+Point SmallMapWindow::GetSmallMapCoordIncludingHeight(Point viewport_coord) const
+{
+	/* First find out which tile would be there if we ignore height */
+	Point pt = InverseRemapCoords(viewport_coord.x, viewport_coord.y);
+	Point pt_without_height = {pt.x / TILE_SIZE, pt.y / TILE_SIZE};
+
+	/* Problem: There are mountains.  So the tile actually displayed at the given position
+	 * might be the high mountain of 30 tiles south.+ * Unfortunately, there is no closed formula for finding such a tile.
+	 * We call GetRowAtTile originally implemented for the viewport code, which performs
+	 * a interval search.  For details, see its documentation. */
+	int row_without_height = pt_without_height.x + pt_without_height.y;
+	int row_with_height = GetRowAtTile(viewport_coord.y, pt_without_height);
+	int row_offset = row_with_height - row_without_height;
+	Point pt_with_height = {pt_without_height.x + row_offset / 2, pt_without_height.y + row_offset / 2};
+	return pt_with_height;
+	}
 
 /**
  * Draws the small map.
@@ -1373,6 +1261,17 @@ int SmallMapWindow::GetPositionOnLegend(Point pt)
 			pt = RemapCoords(this->scroll_x + pt.x * TILE_SIZE + this->zoom * (TILE_SIZE - sub * TILE_SIZE / 4),
 					this->scroll_y + pt.y * TILE_SIZE + sub * this->zoom * TILE_SIZE / 4, 0);
 
+			/* correct y coordinate according to the height level at the chosen tile
+			 * - so far we assumed height zero.  Calculations here according to
+			 * TranslateXYToTileCoord in viewport.cpp */
+			 Point pt_scaled = {pt.x / (int)(4 * TILE_SIZE), pt.y / (int)(2 * TILE_SIZE)};
+			 Point tile_coord = {pt_scaled.y - pt_scaled.x, pt_scaled.y + pt_scaled.x};
+
+			 if (tile_coord.x >= 0 && tile_coord.y >= 0 && tile_coord.x < (int)MapMaxX() && tile_coord.y < (int)MapMaxY()) {
+				int clicked_tile_height = TileHeight(TileXY(tile_coord.x, tile_coord.y));
+				pt.y -= clicked_tile_height * TILE_HEIGHT;
+			}
+
 			w->viewport->follow_vehicle = INVALID_VEHICLE;
 			w->viewport->dest_scrollpos_x = pt.x - (w->viewport->virtual_width  >> 1);
 			w->viewport->dest_scrollpos_y = pt.y - (w->viewport->virtual_height >> 1);
@@ -1424,6 +1323,7 @@ int SmallMapWindow::GetPositionOnLegend(Point pt)
 					if (click_pos >= 0 && click_pos < _smallmap_industry_count) {
 						this->SelectLegendItem(click_pos, _legend_from_industries, _smallmap_industry_count);
 					}
+					NotifyAllViewports(VPMT_INDUSTRY);
 				} else if (this->map_type == SMT_LINKSTATS) {
 					if (click_pos < _smallmap_cargo_count) {
 						this->SelectLegendItem(click_pos, _legend_linkstats, _smallmap_cargo_count);
@@ -1433,6 +1333,7 @@ int SmallMapWindow::GetPositionOnLegend(Point pt)
 					if (click_pos < _smallmap_company_count) {
 						this->SelectLegendItem(click_pos, _legend_land_owners, _smallmap_company_count, NUM_NO_COMPANY_ENTRIES);
 					}
+					NotifyAllViewports(VPMT_OWNER);
 				}
 				this->SetDirty();
 			}
@@ -1466,6 +1367,7 @@ int SmallMapWindow::GetPositionOnLegend(Point pt)
 		case WID_SM_SHOW_HEIGHT: // Enable/disable showing of heightmap.
 			_smallmap_show_heightmap = !_smallmap_show_heightmap;
 			this->SetWidgetLoweredState(WID_SM_SHOW_HEIGHT, _smallmap_show_heightmap);
+			NotifyAllViewports(VPMT_INDUSTRY);
 			this->SetDirty();
 			break;
 	}
@@ -1586,12 +1488,20 @@ void SmallMapWindow::SetNewScroll(int sx, int sy, int sub)
 
 void SmallMapWindow::SmallMapCenterOnCurrentPos()
 {
+	/* Goal: Given the viewport coordinates of the middle of the map window, find
+	 * out which tile is displayed there. */
+	/* First find out which tile would be there if we ignore height */
 	const ViewPort *vp = FindWindowById(WC_MAIN_WINDOW, 0)->viewport;
-	Point pt = InverseRemapCoords(vp->virtual_left + vp->virtual_width  / 2, vp->virtual_top  + vp->virtual_height / 2);
+	//Point pt = InverseRemapCoords(vp->virtual_left + vp->virtual_width  / 2, vp->virtual_top  + vp->virtual_height / 2);
+	Point viewport_center = {vp->virtual_left + vp->virtual_width  / 2, vp->virtual_top  + vp->virtual_height / 2};
+	Point pt_with_height = GetSmallMapCoordIncludingHeight(viewport_center);
 
+	/* And finally scroll to that position. */
 	int sub;
 	const NWidgetBase *wid = this->GetWidget<NWidgetBase>(WID_SM_MAP);
-	Point sxy = this->ComputeScroll(pt.x / TILE_SIZE, pt.y / TILE_SIZE, max(0, (int)wid->current_x / 2 - 2), wid->current_y / 2, &sub);
+	//Point sxy = this->ComputeScroll(pt.x / TILE_SIZE, pt.y / TILE_SIZE, max(0, (int)wid->current_x / 2 - 2), wid->current_y / 2, &sub);
+	Point sxy = this->ComputeScroll(pt_with_height.x, pt_with_height.y,
+	                                max(0, (int)wid->current_x / 2 - 2), wid->current_y / 2, &sub);
 	this->SetNewScroll(sxy.x, sxy.y, sub);
 	this->SetDirty();
 }

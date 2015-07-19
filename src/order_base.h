@@ -39,9 +39,12 @@ private:
 
 	uint8 type;           ///< The type of order + non-stop flags
 	uint8 flags;          ///< Load/unload types, depot order/action types.
+	uint8 flags1;         ///< Stop loading types.
 	DestinationID dest;   ///< The destination of the order.
 
 	CargoID refit_cargo;  ///< Refit CargoID
+
+	int8 jump_counter;    ///< Counter for the 'jump xx% of times' option
 
 public:
 	Order *next;          ///< Pointer to next order. If NULL, end of list
@@ -125,10 +128,20 @@ public:
 
 	void SetRefit(CargoID cargo);
 
+	/**
+	 * Update the jump_counter of this order.
+	 * @param the jump chance in %.
+	 * @return whether to jump or not.
+	 * @pre IsType(OT_CONDITIONAL) && this->GetConditionVariable() == OCV_PERCENT.
+	 */
+	bool UpdateJumpCounter(uint8 percent);
+
 	/** How must the consist be loaded? */
 	inline OrderLoadFlags GetLoadType() const { return (OrderLoadFlags)GB(this->flags, 4, 4); }
 	/** How must the consist be unloaded? */
 	inline OrderUnloadFlags GetUnloadType() const { return (OrderUnloadFlags)GB(this->flags, 0, 4); }
+	/** How we have to leave staion& */
+	inline OrderStopLoadingType GetStopLoadingType() const { return (OrderStopLoadingType)GB(this->flags1, 0, 2); }
 	/** At which stations must we stop? */
 	inline OrderNonStopFlags GetNonStopType() const { return (OrderNonStopFlags)GB(this->type, 6, 2); }
 	/** Where must we stop at the platform? */
@@ -150,6 +163,8 @@ public:
 	inline void SetLoadType(OrderLoadFlags load_type) { SB(this->flags, 4, 4, load_type); }
 	/** Set how the consist must be unloaded. */
 	inline void SetUnloadType(OrderUnloadFlags unload_type) { SB(this->flags, 0, 4, unload_type); }
+	/** Set how to leave station */
+	inline void SetStopLoadingType(OrderStopLoadingType stop_loading_type) {SB(this->flags1, 0, 2, stop_loading_type); }
 	/** Set whether we must stop at stations or not. */
 	inline void SetNonStopType(OrderNonStopFlags non_stop_type) { SB(this->type, 6, 2, non_stop_type); }
 	/** Set where we must stop at the platform. */

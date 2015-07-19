@@ -25,7 +25,7 @@ Year      _cur_year;   ///< Current year, starting at 0
 Month     _cur_month;  ///< Current month (0..11)
 Date      _date;       ///< Current date in days (day counter)
 DateFract _date_fract; ///< Fractional part of the day.
-uint16 _tick_counter;  ///< Ever incrementing (and sometimes wrapping) tick counter for setting off various events
+uint16    _tick_counter;  ///< Ever incrementing (and sometimes wrapping) tick counter for setting off various events
 
 /**
  * Set the date.
@@ -164,6 +164,8 @@ extern void IndustryDailyLoop();
 extern void CompaniesMonthlyLoop();
 extern void EnginesMonthlyLoop();
 extern void TownsMonthlyLoop();
+extern void TownsDailyLoop();
+extern void Towns10KLoop();
 extern void IndustryMonthlyLoop();
 extern void StationMonthlyLoop();
 extern void SubsidyMonthlyLoop();
@@ -176,8 +178,12 @@ extern void ShowEndGameChart();
 
 
 /** Available settings for autosave intervals. */
-static const Month _autosave_months[] = {
+static const Month _autosave_intervals[] = {
 	 0, ///< never
+
+	 1,  ///< every day
+	 7,  ///< every week
+
 	 1, ///< every month
 	 3, ///< every 3 months
 	 6, ///< every 6 months
@@ -230,7 +236,7 @@ static void OnNewYear()
  */
 static void OnNewMonth()
 {
-	if (_settings_client.gui.autosave != 0 && (_cur_month % _autosave_months[_settings_client.gui.autosave]) == 0) {
+	if (_settings_client.gui.autosave >= 3 && (_cur_month % _autosave_intervals[_settings_client.gui.autosave]) == 0) {
 		_do_autosave = true;
 		SetWindowDirty(WC_STATUS_BAR, 0);
 	}
@@ -252,6 +258,12 @@ static void OnNewMonth()
  */
 static void OnNewDay()
 {
+	// XXX: use day-of-month?
+	if (_settings_client.gui.autosave != 0 && _settings_client.gui.autosave < 3 && (_date % _autosave_intervals[_settings_client.gui.autosave]) == 0) {
+		_do_autosave = true;
+		SetWindowDirty(WC_STATUS_BAR, 0);
+	}
+
 #ifdef ENABLE_NETWORK
 	if (_network_server) NetworkServerDailyLoop();
 #endif /* ENABLE_NETWORK */
@@ -261,6 +273,7 @@ static void OnNewDay()
 
 	SetWindowWidgetDirty(WC_STATUS_BAR, 0, 0);
 	EnginesDailyLoop();
+	TownsDailyLoop();
 
 	/* Refresh after possible snowline change */
 	SetWindowClassesDirty(WC_TOWN_VIEW);
@@ -278,6 +291,9 @@ void IncreaseDate()
 	if (_game_mode == GM_MENU) return;
 
 	_date_fract++;
+
+	if(_date_fract % 10000 == 0) Towns10KLoop();
+
 	if (_date_fract < DAY_TICKS) return;
 	_date_fract = 0;
 

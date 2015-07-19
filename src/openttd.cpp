@@ -62,7 +62,11 @@
 #include "town.h"
 #include "subsidy_func.h"
 #include "gfx_layout.h"
-
+#include "programmable_signals.h"
+#include "signs_func.h"
+#include "signs_type.h"
+#include "signs_base.h"
+#include "viewport_func.h"
 
 #include "linkgraph/linkgraphschedule.h"
 
@@ -255,6 +259,45 @@ static void WriteSavegameInfo(const char *name)
 #endif
 }
 
+SignID _next_sign;
+static void DoSignJump();
+/**
+ * If the appropriate patch setting is set and there are signs,
+ * initialize the variable to the alphabetically first sign
+ */
+static void InitSignJump()
+{
+	if(_settings_client.gui.jump_timeout != 0)
+		if(Sign::GetPoolSize()) {
+			_next_sign = 0;
+			DEBUG(misc, 1, "Sign jumping enabled");
+		} else
+			_next_sign = INVALID_SIGN;
+}
+
+/**
+ * If we are in the game menu, the appropriate patch setting is set
+ * and there are signs, jump to the next one after a certain delay in game days
+ */
+static void DoSignJump()
+{
+	if (_game_mode != GM_MENU) return;
+
+	if ((_settings_client.gui.jump_timeout != 0) && (_next_sign != INVALID_SIGN)) {
+		if (_tick_counter % (DAY_TICKS * _settings_client.gui.jump_timeout) == 0) { // delay in game days
+			/* Jump to position of sign */
+			Sign *si = Sign::GetIfValid(_next_sign);
+			if(si) {
+				ScrollMainWindowToTile(TileVirtXY(si->x, si->y));
+				MarkWholeScreenDirty();
+				DEBUG(misc, 1, "Jumped to sign #%d", _next_sign);
+			}
+			/* Update _next_sign to the next sign (alphabetically) */
+			if(_next_sign++ == Sign::GetPoolSize())
+				_next_sign = 0;
+		}
+	}
+}
 
 /**
  * Extract the resolution from the given string and store
@@ -296,6 +339,9 @@ static void ShutdownGame()
 	/* Uninitialize variables that are allocated dynamically */
 	GamelogReset();
 
+	FreeSignalPrograms();
+	FreeSignalDependencies();
+
 #ifdef ENABLE_NETWORK
 	free(_config_file);
 #endif
@@ -334,6 +380,8 @@ static void LoadIntroGame(bool load_newgrfs = true)
 	} else {
 		SetLocalCompany(COMPANY_FIRST);
 	}
+
+	InitSignJump();
 
 	_pause_mode = PM_UNPAUSED;
 	_cursor.fix_at = false;
@@ -458,29 +506,33 @@ struct AfterNewGRFScan : NewGRFScanCallback {
 
 #ifdef ENABLE_NETWORK
 		if (_network_available && network_conn != NULL) {
-			const char *port = NULL;
-			const char *company = NULL;
-			uint16 rport = NETWORK_DEFAULT_PORT;
-			CompanyID join_as = COMPANY_NEW_COMPANY;
+			if (CountSelectedGRFs(_grfconfig) >= MAX_FILE_SLOTS_IN_NETWORK)
+				ShowErrorMessage(STR_NEWGRF_ERROR_TOO_MANY_NEWGRFS_LOADED, INVALID_STRING_ID, WL_ERROR);
+			else {
+				const char *port = NULL;
+				const char *company = NULL;
+				uint16 rport = NETWORK_DEFAULT_PORT;
+				CompanyID join_as = COMPANY_NEW_COMPANY;
 
-			ParseConnectionString(&company, &port, network_conn);
+				ParseConnectionString(&company, &port, network_conn);
 
-			if (company != NULL) {
-				join_as = (CompanyID)atoi(company);
+				if (company != NULL) {
+					join_as = (CompanyID)atoi(company);
 
-				if (join_as != COMPANY_SPECTATOR) {
-					join_as--;
-					if (join_as >= MAX_COMPANIES) {
-						delete this;
-						return;
+					if (join_as != COMPANY_SPECTATOR) {
+						join_as--;
+						if (join_as >= MAX_COMPANIES) {
+							delete this;
+							return;
+						}
 					}
 				}
-			}
-			if (port != NULL) rport = atoi(port);
+				if (port != NULL) rport = atoi(port);
 
-			LoadIntroGame();
-			_switch_mode = SM_NONE;
-			NetworkClientConnectGame(NetworkAddress(network_conn, rport), join_as, join_server_password, join_company_password);
+				LoadIntroGame();
+				_switch_mode = SM_NONE;
+				NetworkClientConnectGame(NetworkAddress(network_conn, rport), join_as, join_server_password, join_company_password);
+			}
 		}
 #endif /* ENABLE_NETWORK */
 
@@ -931,6 +983,24 @@ static void MakeNewGameDone()
 	MarkWholeScreenDirty();
 }
 
+/*
+ * Too large size may be stored in settings (especially if switching between between OpenTTD
+ * versions with different map size limits), we have to check if it is valid before generating world.
+ * Simple separate checking of X and Y map sizes is not enough, as their sum is what counts for the limit.
+ * Check the size and decrease the larger of the sizes till the size is in limit.
+ */
+static void FixConfigMapSize()
+{
+	while (_settings_game.game_creation.map_x + _settings_game.game_creation.map_y > MAX_MAP_TILES_BITS) {
+		/* Repeat reducing larger of X/Y dimensions until the map size is within allowable limits */
+		if (_settings_game.game_creation.map_x > _settings_game.game_creation.map_y) {
+			_settings_game.game_creation.map_x--;
+		} else {
+			_settings_game.game_creation.map_y--;
+		}
+	}
+}
+
 static void MakeNewGame(bool from_heightmap, bool reset_settings)
 {
 	_game_mode = GM_NORMAL;
@@ -938,6 +1008,7 @@ static void MakeNewGame(bool from_heightmap, bool reset_settings)
 	ResetGRFConfig(true);
 
 	GenerateWorldSetCallback(&MakeNewGameDone);
+	FixConfigMapSize();
 	GenerateWorld(from_heightmap ? GWM_HEIGHTMAP : GWM_NEWGAME, 1 << _settings_game.game_creation.map_x, 1 << _settings_game.game_creation.map_y, reset_settings);
 }
 
@@ -953,6 +1024,7 @@ static void MakeNewEditorWorld()
 	ResetGRFConfig(true);
 
 	GenerateWorldSetCallback(&MakeNewEditorWorldDone);
+	FixConfigMapSize();
 	GenerateWorld(GWM_EMPTY, 1 << _settings_game.game_creation.map_x, 1 << _settings_game.game_creation.map_y);
 }
 
@@ -1059,6 +1131,7 @@ void SwitchToMode(SwitchMode new_mode)
 			break;
 
 		case SM_LOAD_GAME: { // Load game, Play Scenario
+			_signal_programs.clear();
 			ResetGRFConfig(true);
 			ResetWindowSystem();
 
@@ -1098,6 +1171,7 @@ void SwitchToMode(SwitchMode new_mode)
 		case SM_LOAD_HEIGHTMAP: // Load heightmap from scenario editor
 			SetLocalCompany(OWNER_NONE);
 
+			FixConfigMapSize();
 			GenerateWorld(GWM_HEIGHTMAP, 1 << _settings_game.game_creation.map_x, 1 << _settings_game.game_creation.map_y);
 			MarkWholeScreenDirty();
 			break;
@@ -1116,6 +1190,7 @@ void SwitchToMode(SwitchMode new_mode)
 		}
 
 		case SM_MENU: // Switch to game intro menu
+			_signal_programs.clear();
 			LoadIntroGame();
 			if (BaseSounds::ini_set == NULL && BaseSounds::GetUsedSet()->fallback) {
 				ShowErrorMessage(STR_WARNING_FALLBACK_SOUNDSET, INVALID_STRING_ID, WL_CRITICAL);
@@ -1140,6 +1215,7 @@ void SwitchToMode(SwitchMode new_mode)
 
 		case SM_GENRANDLAND: // Generate random land within scenario editor
 			SetLocalCompany(OWNER_NONE);
+			FixConfigMapSize();
 			GenerateWorld(GWM_RANDOM, 1 << _settings_game.game_creation.map_x, 1 << _settings_game.game_creation.map_y);
 			/* XXX: set date */
 			MarkWholeScreenDirty();
@@ -1301,6 +1377,8 @@ static void CheckCaches()
 	}
 }
 
+static int SkipCounter = 0;
+
 /**
  * State controlling game loop.
  * The state must not be changed from anywhere but here.
@@ -1346,7 +1424,10 @@ void StateGameLoop()
 
 		AnimateAnimatedTiles();
 		IncreaseDate();
-		RunTileLoop();
+		if (++SkipCounter == _settings_game.economy.day_length_factor) {
+			RunTileLoop();
+			SkipCounter = 0;
+		}
 		CallVehicleTicks();
 		CallLandscapeTick();
 		ClearStorageChanges(true);
@@ -1442,6 +1523,7 @@ void GameLoop()
 		}
 		/* Singleplayer */
 		StateGameLoop();
+		DoSignJump();
 	}
 
 	/* Check chat messages roughly once a second. */

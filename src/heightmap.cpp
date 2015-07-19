@@ -301,6 +301,8 @@ static void GrayscaleToMapHeights(uint img_width, uint img_height, byte *map)
 	uint img_row, img_col;
 	TileIndex tile;
 
+//	printf("%d\n", _settings_game.construction.max_heightlevel);
+
 	/* Get map size and calculate scale and padding values */
 	switch (_settings_game.game_creation.heightmap_rotation) {
 		default: NOT_REACHED();
@@ -360,8 +362,24 @@ static void GrayscaleToMapHeights(uint img_width, uint img_height, byte *map)
 				assert(img_row < img_height);
 				assert(img_col < img_width);
 
-				/* Colour scales from 0 to 255, OpenTTD height scales from 0 to 15 */
-				SetTileHeight(tile, map[img_row * img_width + img_col] / 16);
+				//printf("%s", (_settings_game.construction.max_heightlevel == MAX_MAX_HEIGHTLEVEL)? "true" : "false");
+				if(_settings_game.construction.max_heightlevel == MAX_MAX_HEIGHTLEVEL) {
+					SetTileHeight(tile, map[img_row * img_width + img_col]);
+					//printf("%4d %4d\n", map[img_row * img_width + img_col], _m[tile].height);
+				} else {
+					uint heightmap_height = (uint)map[img_row * img_width + img_col];
+					// the numerator of the fraction (heightmap_height * max_heightlevel) / MAX_MAX_HEIGHTLEVEL
+					uint numerator = heightmap_height * (uint)_settings_game.construction.max_heightlevel;
+					//printf("%d\n", numerator);
+					if (numerator != 0 && numerator <= MAX_MAX_HEIGHTLEVEL) {
+						// Scaling should not alter the coastline, thus values in the interval ]0..1] result in a heightlevel of 1
+						SetTileHeight(tile, 1);
+					} else {
+						// Generate a scaled heightlevel; if numerator == zero, the calculated heightlevel will be zero
+						uint heightlevel = numerator / MAX_MAX_HEIGHTLEVEL;
+						SetTileHeight(tile, heightlevel);
+					}
+				}
 			}
 			/* Only clear the tiles within the map area. */
 			if (IsInnerTile(tile)) {

@@ -20,6 +20,7 @@
 #include "../../station_base.h"
 #include "../../landscape.h"
 #include "table/strings.h"
+#include "../../date_func.h"
 
 /* static */ int32 ScriptTown::GetTownCount()
 {

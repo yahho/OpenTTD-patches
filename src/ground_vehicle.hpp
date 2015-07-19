@@ -91,7 +91,8 @@ struct GroundVehicle : public SpecializedVehicle<T, Type> {
 
 	void PowerChanged();
 	void CargoChanged();
-	int GetAcceleration() const;
+	int GetAcceleration();
+	void CalculatePower(uint32& power, uint32& max_te, bool breakdowns) const;
 	bool IsChainInDepot() const;
 
 	/**
@@ -231,9 +232,9 @@ struct GroundVehicle : public SpecializedVehicle<T, Type> {
 	 * @param update_delta Indicates to also update the delta.
 	 * @return Old height of the vehicle.
 	 */
-	inline byte UpdateInclination(bool new_tile, bool update_delta)
+	inline int UpdateInclination(bool new_tile, bool update_delta)
 	{
-		byte old_z = this->z_pos;
+		int old_z = this->z_pos;
 
 		if (new_tile) {
 			this->UpdateZPositionAndInclination();
@@ -369,7 +370,22 @@ protected:
 
 		/* When we are going faster than the maximum speed, reduce the speed
 		 * somewhat gradually. But never lower than the maximum speed. */
-		int tempmax = max_speed;
+		int tempmax = ((this->breakdown_ctr == 1) ? this->cur_speed : max_speed);
+
+		if (this->breakdown_ctr == 1) {
+			if (this->breakdown_type == BREAKDOWN_LOW_POWER) {
+				if((this->tick_counter & 0x7) == 0) {
+					if(this->cur_speed > (this->breakdown_severity * max_speed) >> 8) {
+						tempmax = this->cur_speed - (this->cur_speed / 10) - 1;
+					} else {
+						tempmax = (this->breakdown_severity * max_speed) >> 8;
+					}
+				}
+			}
+			if(this->breakdown_type == BREAKDOWN_LOW_SPEED)
+				tempmax = min(max_speed, this->breakdown_severity);
+		}
+
 		if (this->cur_speed > max_speed) {
 			tempmax = max(this->cur_speed - (this->cur_speed / 10) - 1, max_speed);
 		}

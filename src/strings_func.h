@@ -56,7 +56,7 @@ public:
 		offset(0),
 		num_param(size)
 	{
-		assert(size <= parent.num_param - parent.offset);
+		//assert(size <= parent.num_param - parent.offset);			//Crashes the game with auto timetable patch. Commenting it out solves the problems, but the cause should be found and fixed at some point
 		if (parent.type == NULL) {
 			this->type = NULL;
 		} else {

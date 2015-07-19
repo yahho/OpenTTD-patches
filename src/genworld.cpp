@@ -118,7 +118,6 @@ static void _GenerateWorld(void *)
 				for (uint row = 0; row < MapSizeY(); row++) MakeVoid(TileXY(0, row));
 				for (uint col = 0; col < MapSizeX(); col++) MakeVoid(TileXY(col, 0));
 			}
-
 			/* Make the map the height of the setting */
 			if (_game_mode != GM_MENU) FlatEmptyWorld(_settings_game.game_creation.se_flat_world_height);
 
@@ -135,6 +134,7 @@ static void _GenerateWorld(void *)
 					HandleGeneratingWorldAbortion();
 					return;
 				}
+
 				GenerateIndustries();
 				GenerateObjects();
 				GenerateTrees();
@@ -157,12 +157,12 @@ static void _GenerateWorld(void *)
 			uint i;
 
 			SetGeneratingWorldProgress(GWP_RUNTILELOOP, 0x500);
+
 			for (i = 0; i < 0x500; i++) {
 				RunTileLoop();
 				_tick_counter++;
 				IncreaseGeneratingWorldProgress(GWP_RUNTILELOOP);
 			}
-
 			if (_game_mode != GM_EDITOR) {
 				Game::StartNew();
 
@@ -178,7 +178,6 @@ static void _GenerateWorld(void *)
 				}
 			}
 		}
-
 		ResetObjectToPlace();
 		_cur_company.Trash();
 		_current_company = _local_company = _gw.lc;
@@ -201,6 +200,7 @@ static void _GenerateWorld(void *)
 			snprintf(name, lengthof(name), "dmp_cmds_%08x_%08x.sav", _settings_game.game_creation.generation_seed, _date);
 			SaveOrLoad(name, SL_SAVE, AUTOSAVE_DIR, false);
 		}
+
 	} catch (...) {
 		if (_cur_company.IsValid()) _cur_company.Restore();
 		_generating_world = false;

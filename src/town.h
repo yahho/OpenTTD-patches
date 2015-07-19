@@ -19,6 +19,11 @@
 #include "cargotype.h"
 #include "tilematrix_type.hpp"
 #include <list>
+#include "openttd.h"
+#include "table/strings.h"
+#include "company_func.h"
+#include "tile_map.h"
+
 
 template <typename T>
 struct BuildingCounts {
@@ -36,6 +41,39 @@ static const uint INVALID_TOWN = 0xFFFF;
 static const uint TOWN_GROWTH_WINTER = 0xFFFFFFFE; ///< The town only needs this cargo in the winter (any amount)
 static const uint TOWN_GROWTH_DESERT = 0xFFFFFFFF; ///< The town needs the cargo for growth when on desert (any amount)
 static const uint16 TOWN_GROW_RATE_CUSTOM = 0x8000; ///< If this mask is applied to Town::grow_counter, the grow_counter will not be calculated by the system (but assumed to be set by scripts)
+
+static const StringID label_strings[5][6][2] = {
+	{ { STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_VERY_FAST, STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_VERY_FAST_1 },
+	  { STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_FAST,      STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_FAST_1 },
+	  { STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_MEDIUM,    STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_MEDIUM_1 },
+	  { STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_LOW,       STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_LOW_1 },
+	  { STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_VERY_LOW,  STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_VERY_LOW_1 },
+	  { STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_NONE,      STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_NONE_1 } },
+	{ { STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_VERY_FAST, STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_VERY_FAST_1 },
+	  { STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_FAST,      STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_FAST_1 },
+	  { STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_MEDIUM,    STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_MEDIUM_1 },
+	  { STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_LOW,       STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_LOW_1 },
+	  { STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_VERY_LOW,  STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_VERY_LOW_1 },
+	  { STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_NONE,      STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_NONE_1 } },
+	{ { STR_VIEWPORT_TOWN_POP_GOOD_RATING_VERY_FAST, STR_VIEWPORT_TOWN_POP_GOOD_RATING_VERY_FAST_1 },
+	  { STR_VIEWPORT_TOWN_POP_GOOD_RATING_FAST,      STR_VIEWPORT_TOWN_POP_GOOD_RATING_FAST_1 },
+	  { STR_VIEWPORT_TOWN_POP_GOOD_RATING_MEDIUM,    STR_VIEWPORT_TOWN_POP_GOOD_RATING_MEDIUM_1 },
+	  { STR_VIEWPORT_TOWN_POP_GOOD_RATING_LOW,       STR_VIEWPORT_TOWN_POP_GOOD_RATING_LOW_1 },
+	  { STR_VIEWPORT_TOWN_POP_GOOD_RATING_VERY_LOW,  STR_VIEWPORT_TOWN_POP_GOOD_RATING_VERY_LOW_1 },
+	  { STR_VIEWPORT_TOWN_POP_GOOD_RATING_NONE,      STR_VIEWPORT_TOWN_POP_GOOD_RATING_NONE_1 } },
+	{ { STR_VIEWPORT_TOWN_POP_VERY_FAST, STR_VIEWPORT_TOWN_POP_VERY_FAST_1 },
+	  { STR_VIEWPORT_TOWN_POP_FAST,      STR_VIEWPORT_TOWN_POP_FAST_1 },
+	  { STR_VIEWPORT_TOWN_POP_MEDIUM,    STR_VIEWPORT_TOWN_POP_MEDIUM_1 },
+	  { STR_VIEWPORT_TOWN_POP_LOW,       STR_VIEWPORT_TOWN_POP_LOW_1 },
+	  { STR_VIEWPORT_TOWN_POP_VERY_LOW,  STR_VIEWPORT_TOWN_POP_VERY_LOW_1 },
+	  { STR_VIEWPORT_TOWN_POP_NONE,      STR_VIEWPORT_TOWN_POP_NONE_1 } },
+	{ { STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_VERY_FAST, STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_VERY_FAST_1 },
+	  { STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_FAST,      STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_FAST_1 },
+	  { STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_MEDIUM,    STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_MEDIUM_1 },
+	  { STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_LOW,       STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_LOW_1 },
+	  { STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_VERY_LOW,  STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_VERY_LOW_1 },
+	  { STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_NONE,      STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_NONE_1 } }
+	};
 
 typedef Pool<Town, TownID, 64, 64000> TownPool;
 extern TownPool _town_pool;
@@ -74,9 +112,12 @@ struct Town : TownPool::PoolItem<&_town_pool> {
 	CompanyByte exclusivity;       ///< which company has exclusivity
 	uint8 exclusive_counter;       ///< months till the exclusivity expires
 	int16 ratings[MAX_COMPANIES];  ///< ratings of each company for this town
+	StringID town_label;           ///< Label dependent on _local_company rating.
+	StringID grow_label;           ///< Label dependent on town growth speed.
+	uint8 auto_adv_camp[MAX_COMPANIES];     ///< which company uses automatic advertising campaign
 
 	TransportedCargoStat<uint32> supplied[NUM_CARGO]; ///< Cargo statistics about supplied cargo.
-	TransportedCargoStat<uint16> received[NUM_TE];    ///< Cargo statistics about received cargotypes.
+	TransportedCargoStat<uint32> received[NUM_TE];    ///< Cargo statistics about received cargotypes.
 	uint32 goal[NUM_TE];                              ///< Amount of cargo required for the town to grow.
 
 	char *text; ///< General text with additional information.
@@ -111,6 +152,32 @@ struct Town : TownPool::PoolItem<&_town_pool> {
 	~Town();
 
 	void InitializeLayout(TownLayout layout);
+
+	void UpdateLabel();
+
+	/**
+	* Returns the correct town label, based on rating etc.
+	*/
+	inline StringID Label() const
+	{
+		if (!(_game_mode == GM_EDITOR) && (_local_company < MAX_COMPANIES)) {
+			return label_strings[this->town_label][this->grow_label][this->exclusivity == INVALID_COMPANY ? 0 : 1];
+		} else {
+			return _settings_client.gui.population_in_label ? STR_VIEWPORT_TOWN_POP : STR_VIEWPORT_TOWN;
+		}
+	}
+
+	/**
+	* Returns the correct town small label, based on rating.
+	*/
+	inline StringID SmallLabel() const{
+	  if (!(_game_mode == GM_EDITOR) && (_local_company < MAX_COMPANIES)) {
+	       return STR_VIEWPORT_TOWN_TINY_VERY_POOR_RATING + this->town_label;
+	  } else {
+	       return STR_VIEWPORT_TOWN_TINY_WHITE;
+	   }
+	}
+
 
 	/**
 	 * Calculate the max town noise.
@@ -192,7 +259,23 @@ void SetTownRatingTestMode(bool mode);
 uint GetMaskOfTownActions(int *nump, CompanyID cid, const Town *t);
 bool GenerateTowns(TownLayout layout);
 const CargoSpec *FindFirstCargoWithTownEffect(TownEffect effect);
+bool UsedTownEffect(TownEffect te);
 
+/**
+ * Determines if a town is close to a tile
+ * @param tile TileIndex of the tile to query
+ * @param dist maximum distance to be accepted
+ * @returns true if the tile correspond to the distance criteria
+ */
+static bool IsCloseToTown(TileIndex tile, uint dist)
+{
+	const Town *t;
+
+	FOR_ALL_TOWNS(t) {
+		if (DistanceManhattan(tile, t->xy) < dist) return true;
+	}
+	return false;
+}
 
 /** Town actions of a company. */
 enum TownActions {
@@ -282,6 +365,8 @@ void MakeDefaultName(T *obj)
 
 	obj->town_cn = (uint16)next; // set index...
 }
+
+
 
 extern uint32 _town_cargoes_accepted;
 

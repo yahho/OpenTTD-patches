@@ -39,9 +39,12 @@
 #include "engine_base.h"
 #include "game/game.hpp"
 #include "table/strings.h"
+#include "math.h"
 
 /* scriptfile handling */
 static bool _script_running; ///< Script is running (used to abort execution when #ConReturn is encountered).
+
+void SaveMinimap();
 
 /* console command defines */
 #define DEF_CONSOLE_CMD(function) static bool function(byte argc, char *argv[])
@@ -1181,11 +1184,11 @@ DEF_CONSOLE_CMD(ConStartAI)
 	return true;
 }
 
-DEF_CONSOLE_CMD(ConReloadAI)
+DEF_CONSOLE_CMD(ConRestartAI)
 {
 	if (argc != 2) {
-		IConsoleHelp("Reload an AI. Usage: 'reload_ai <company-id>'");
-		IConsoleHelp("Reload the AI with the given company id. For company-id's, see the list of companies from the dropdown menu. Company 1 is 1, etc.");
+		IConsoleHelp("Restart an AI. Usage: 'restart_ai <company-id>'");
+		IConsoleHelp("Delete and start again the AI with the given company id. For company-id's, see the list of companies from the dropdown menu. Company 1 is 1, etc.");
 		return true;
 	}
 
@@ -1195,7 +1198,7 @@ DEF_CONSOLE_CMD(ConReloadAI)
 	}
 
 	if (_networking && !_network_server) {
-		IConsoleWarning("Only the server can reload an AI.");
+		IConsoleWarning("Only the server can restart an AI.");
 		return true;
 	}
 
@@ -1213,6 +1216,63 @@ DEF_CONSOLE_CMD(ConReloadAI)
 	/* First kill the company of the AI, then start a new one. This should start the current AI again */
 	DoCommandP(0, 2 | company_id << 16, CRR_MANUAL, CMD_COMPANY_CTRL);
 	DoCommandP(0, 1 | company_id << 16, 0, CMD_COMPANY_CTRL);
+	IConsolePrint(CC_DEFAULT, "AI restarted.");
+
+	return true;
+}
+
+DEF_CONSOLE_CMD(ConReloadAI)
+{
+	if (argc <2 || argc > 4) {
+		IConsoleHelp("Reload a new AI. Usage: 'reload_ai <company-id> [<AI>] [<settings>]'");
+		IConsoleHelp("Reload an AI code without removing the company. If <AI> is given, that specific AI (if found) is started instead of the old one.");
+		IConsoleHelp("If <settings> is given, it is parsed and the AI settings are set to that.");
+		return true;
+	}
+
+	if (_game_mode != GM_NORMAL) {
+		IConsoleWarning("AIs can only be managed in a game.");
+		return true;
+	}
+	if (_networking && !_network_server) {
+		IConsoleWarning("Only the server can start a new AI.");
+		return true;
+	}
+
+	CompanyID company_id = (CompanyID)(atoi(argv[1]) - 1);
+	if (!Company::IsValidID(company_id)) {
+		IConsolePrintF(CC_DEFAULT, "Unknown company. Company range is between 1 and %d.", MAX_COMPANIES);
+		return true;
+	}
+
+	if (Company::IsHumanID(company_id)) {
+		IConsoleWarning("Company is not controlled by an AI.");
+		return true;
+	}
+
+	/* Load different AI if specified by parameters */
+	AIConfig *config = AIConfig::GetConfig(company_id);
+	if (argc >= 3) {
+		/** Store name of current AI - in case new AI is not available, return back to current one */
+		char* oldname = strdup(config->GetName());
+		config->Change(argv[2]);
+		if (!config->HasScript()) {
+			config->Change(oldname);
+			free(oldname);
+			IConsoleWarning("Failed to load the specified AI");
+			return true;
+		}
+		free(oldname);
+		if (argc == 4) {
+			config->StringToSettings(argv[3]);
+		}
+	}
+
+	/* Stop current AI */
+	AI::Stop(company_id);
+
+	/* Start a new AI */
+	AI::StartNew(company_id);
 	IConsolePrint(CC_DEFAULT, "AI reloaded.");
 
 	return true;
@@ -1868,6 +1928,74 @@ DEF_CONSOLE_CMD(ConNewGRFReload)
 	return true;
 }
 
+DEF_CONSOLE_CMD(ConMinimap)
+{
+	SaveMinimap();
+	return true;
+}
+
+DEF_CONSOLE_CMD(ShowSnowLineParam)
+{
+	if(argc < 2) {
+		if(IsSnowLineSet()) {
+			IConsolePrintF(CC_DEFAULT, "Using variable snowline height.");
+			IConsolePrintF(CC_DEFAULT, "Minimum height: %d.", LowestSnowLine());
+			IConsolePrintF(CC_DEFAULT, "Maximum height: %d.", HighestSnowLine());
+		} else {
+			IConsolePrintF(CC_DEFAULT, "Using constant snowline height.");
+			IConsolePrintF(CC_DEFAULT, "Showline height: %d.", _settings_game.game_creation.snow_line_height);
+		}
+		byte max = 0;
+		TileIndex maxtile = 0;
+		IConsolePrintF(CC_DEFAULT, "%llu", MapSize());
+		for(TileIndex i = 0; i < MapSize(); i++)
+			if(_m[i].height > max) {
+				maxtile = i;
+				max = _m[i].height;
+			}
+		IConsolePrintF(CC_DEFAULT, "Maximum height on the map: %d.", max);
+	} else if(argc < 3) {
+		IConsoleHelp("Snowline parameters not set.");
+		IConsoleHelp("Please set minimum and maximum height of the snowline.");
+	} else {
+		int min = 0;
+		int max = 0;
+		min = atoi(argv[1]);
+		max = atoi(argv[2]);
+		if(min < 2) {
+			IConsolePrintF(CC_ERROR, "Incorrect minimum height.");
+			return true;
+		}
+		if(!max || min >= max) {
+			IConsolePrintF(CC_ERROR, "Incorrect maximum height.");
+			return true;
+		}
+
+		double table[SNOW_LINE_MONTHS][SNOW_LINE_DAYS];
+		byte   table1[SNOW_LINE_MONTHS][SNOW_LINE_DAYS];
+		double dm = (max - min) / 6.0;
+		double dd = dm / 32.0;
+		for(int i = 0; i <= 5; i++) {
+			table[i][0] = min + dm * i;
+			table[i][SNOW_LINE_DAYS-1] = min + dm * (i + 1);
+			table[SNOW_LINE_MONTHS - 1 - i][SNOW_LINE_DAYS-1] = min + dm * i;
+			table[SNOW_LINE_MONTHS - 1 - i][0] = min + dm * (i + 1);
+
+			for(uint j = 1; j < SNOW_LINE_DAYS; j++) {
+				table[i][j] = min + dm * i + dd * j;
+				table[SNOW_LINE_MONTHS - 1 - i][SNOW_LINE_DAYS - 1 - j] = min + dm * i + dd * j;
+			}
+		}
+
+		for(uint i = 0; i < SNOW_LINE_MONTHS; i++)
+			for(uint j = 0; j < SNOW_LINE_DAYS; j++)
+				table1[i][j] = table[i][j] + 0.5;
+		SetSnowLine(table1);
+	}
+
+	return true;
+}
+
 #ifdef _DEBUG
 /******************
  *  debug commands
@@ -1906,6 +2034,7 @@ void IConsoleStdLibRegister()
 	IConsoleCmdRegister("reset_enginepool", ConResetEnginePool, ConHookNoNetwork);
 	IConsoleCmdRegister("return",       ConReturn);
 	IConsoleCmdRegister("screenshot",   ConScreenShot);
+	IConsoleCmdRegister("minimap",      ConMinimap);
 	IConsoleCmdRegister("script",       ConScript);
 	IConsoleCmdRegister("scrollto",     ConScrollToTile);
 	IConsoleCmdRegister("alias",        ConAlias);
@@ -1935,6 +2064,7 @@ void IConsoleStdLibRegister()
 	IConsoleCmdRegister("list_ai_libs", ConListAILibs);
 	IConsoleCmdRegister("list_ai",      ConListAI);
 	IConsoleCmdRegister("reload_ai",    ConReloadAI);
+	IConsoleCmdRegister("restart_ai",   ConRestartAI);
 	IConsoleCmdRegister("rescan_ai",    ConRescanAI);
 	IConsoleCmdRegister("start_ai",     ConStartAI);
 	IConsoleCmdRegister("stop_ai",      ConStopAI);
@@ -2014,4 +2144,5 @@ void IConsoleStdLibRegister()
 
 	/* NewGRF development stuff */
 	IConsoleCmdRegister("reload_newgrfs",  ConNewGRFReload, ConHookNewGRFDeveloperTool);
+	IConsoleCmdRegister("snowline", ShowSnowLineParam);
 }

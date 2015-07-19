@@ -678,7 +678,7 @@ SQInteger ScriptInstance::GetOpsTillSuspend()
 	return this->engine->GetOpsTillSuspend();
 }
 
-void ScriptInstance::DoCommandCallback(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void ScriptInstance::DoCommandCallback(const CommandCost &result, TileIndex tile, uint64 p1, uint64 p2)
 {
 	ScriptObject::ActiveInstance active(this);
 

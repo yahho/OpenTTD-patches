@@ -1219,10 +1219,12 @@ void GetBroadestDigit(uint *front, uint *next, FontSize size)
 	}
 }
 
+extern uint8 *_vp_map_line;
 void ScreenSizeChanged()
 {
 	_dirty_bytes_per_line = CeilDiv(_screen.width, DIRTY_BLOCK_WIDTH);
 	_dirty_blocks = ReallocT<byte>(_dirty_blocks, _dirty_bytes_per_line * CeilDiv(_screen.height, DIRTY_BLOCK_HEIGHT));
+	_vp_map_line = ReallocT<uint8>(_vp_map_line, _screen.width);
 
 	/* check the dirty rect */
 	if (_invalid_rect.right >= _screen.width) _invalid_rect.right = _screen.width;

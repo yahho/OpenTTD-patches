@@ -39,11 +39,13 @@
 #include "subsidy_func.h"
 #include "station_base.h"
 #include "waypoint_base.h"
+#include "triphistory.h"
 #include "economy_base.h"
 #include "core/pool_func.hpp"
 #include "core/backup_type.hpp"
 #include "cargo_type.h"
 #include "water.h"
+#include "infrastructure_func.h"
 #include "game/game.hpp"
 #include "cargomonitor.h"
 #include "goal_base.h"
@@ -422,7 +424,8 @@ void ChangeOwnershipOfCompanyItems(Owner old_owner, Owner new_owner)
 		}
 	}
 
-	{
+	/* Change ownership of vehicles */
+	if (new_owner != INVALID_OWNER) {
 		FreeUnitIDGenerator unitidgen[] = {
 			FreeUnitIDGenerator(VEH_TRAIN, new_owner), FreeUnitIDGenerator(VEH_ROAD,     new_owner),
 			FreeUnitIDGenerator(VEH_SHIP,  new_owner), FreeUnitIDGenerator(VEH_AIRCRAFT, new_owner)
@@ -453,6 +456,10 @@ void ChangeOwnershipOfCompanyItems(Owner old_owner, Owner new_owner)
 		}
 
 		if (new_owner != INVALID_OWNER) GroupStatistics::UpdateAutoreplace(new_owner);
+	} else {
+	/* Depending on sharing settings, other companies could be affected too.
+	 * Let the infrastructure sharing code handle this. */
+	HandleSharingCompanyDeletion(old_owner);
 	}
 
 	/*  Change ownership of tiles */
@@ -467,22 +474,14 @@ void ChangeOwnershipOfCompanyItems(Owner old_owner, Owner new_owner)
 			 * and signals were not propagated
 			 * Similar with crossings - it is needed to bar crossings that weren't before
 			 * because of different owner of crossing and approaching train */
-			tile = 0;
 
-			do {
-				if (IsTileType(tile, MP_RAILWAY) && IsTileOwner(tile, new_owner) && HasSignals(tile)) {
-					TrackBits tracks = GetTrackBits(tile);
-					do { // there may be two tracks with signals for TRACK_BIT_HORZ and TRACK_BIT_VERT
-						Track track = RemoveFirstTrack(&tracks);
-						if (HasSignalOnTrack(tile, track)) AddTrackToSignalBuffer(tile, track, new_owner);
-					} while (tracks != TRACK_BIT_NONE);
-				} else if (IsLevelCrossingTile(tile) && IsTileOwner(tile, new_owner)) {
-					UpdateLevelCrossing(tile);
+			UpdateAllBlockSignals(new_owner);
+		} else if (_settings_game.economy.infrastructure_sharing[VEH_TRAIN]) {
+			/* tracks are being removed while sharing is enabled.
+			 * Thus, update all signals and crossings. */
+			UpdateAllBlockSignals();
 				}
-			} while (++tile != MapSize());
-		}
-
-		/* update signals in buffer */
+		/* Update any signals in the buffer */
 		UpdateSignalsInBuffer();
 	}
 
@@ -738,7 +737,8 @@ void RecomputePrices()
 		Money price = _price_base_specs[i].start_price;
 
 		/* Apply difficulty settings */
-		uint mod = 1;
+		price <<= _settings_game.economy.price_mult[i];
+		/*uint mod = 1;
 		switch (_price_base_specs[i].category) {
 			case PCAT_RUNNING:
 				mod = _settings_game.difficulty.vehicle_costs;
@@ -755,7 +755,7 @@ void RecomputePrices()
 			case 1: price *= 8; break; // normalised to 1 below
 			case 2: price *= 9; break;
 			default: NOT_REACHED();
-		}
+		}*/
 
 		/* Apply inflation */
 		price = (int64)price * _economy.inflation_prices;
@@ -994,7 +994,7 @@ Money GetTransportedGoodsIncome(uint num_pieces, uint dist, byte transit_days, C
 static SmallIndustryList _cargo_delivery_destinations;
 
 /**
- * Transfer goods from station to industry.
+ * Transfer goods from station to nearest industry.
  * All cargo is delivered to the nearest (Manhattan) industry to the station sign, which is inside the acceptance rectangle and actually accepts the cargo.
  * @param st The station that accepted the cargo
  * @param cargo_type Type of cargo delivered
@@ -1002,7 +1002,7 @@ static SmallIndustryList _cargo_delivery_destinations;
  * @param source The source of the cargo
  * @return actually accepted pieces of cargo
  */
-static uint DeliverGoodsToIndustry(const Station *st, CargoID cargo_type, uint num_pieces, IndustryID source)
+static uint DeliverGoodsToIndustry1(const Station *st, CargoID cargo_type, uint num_pieces, IndustryID source)
 {
 	/* Find the nearest industrytile to the station sign inside the catchment area, whose industry accepts the cargo.
 	 * This fails in three cases:
@@ -1039,6 +1039,87 @@ static uint DeliverGoodsToIndustry(const Station *st, CargoID cargo_type, uint n
 	return accepted;
 }
 
+
+/**
+ * Transfer goods from station to all industries around.
+ * All cargo is delivered to the nearest (Manhattan) industry to the station sign, which is inside the acceptance rectangle and actually accepts the cargo.
+ * @param st The station that accepted the cargo
+ * @param cargo_type Type of cargo delivered
+ * @param num_pieces Amount of cargo delivered
+ * @param source The source of the cargo
+ * @return actually accepted pieces of cargo
+ */
+static uint DeliverGoodsToIndustry2(const Station *st, CargoID cargo_type, uint num_pieces, IndustryID source)
+{
+	/* Find the nearest industrytile to the station sign inside the catchment area, whose industry accepts the cargo.
+	 * This fails in three cases:
+	 *  1) The station accepts the cargo because there are enough houses around it accepting the cargo.
+	 *  2) The industries in the catchment area temporarily reject the cargo, and the daily station loop has not yet updated station acceptance.
+	 *  3) The results of callbacks CBID_INDUSTRY_REFUSE_CARGO and CBID_INDTILE_CARGO_ACCEPTANCE are inconsistent. (documented behaviour)
+	 */
+
+	uint accepted = 0;
+
+	for (uint i = 0; i < st->industries_near.Length() && num_pieces != 0; i++) {
+		Industry *ind = st->industries_near[i];
+		if (ind->index == source) continue;
+
+		uint cargo_index;
+		for (cargo_index = 0; cargo_index < lengthof(ind->accepts_cargo); cargo_index++) {
+			if (cargo_type == ind->accepts_cargo[cargo_index]) break;
+		}
+		/* Check if matching cargo has been found */
+		if (cargo_index >= lengthof(ind->accepts_cargo)) continue;
+
+		/* Check if industry temporarily refuses acceptance */
+		if (IndustryTemporarilyRefusesCargo(ind, cargo_type)) continue;
+
+		/* Insert the industry into _cargo_delivery_destinations, if not yet contained */
+		_cargo_delivery_destinations.Include(ind);
+	}
+
+	int num_ind = _cargo_delivery_destinations.Length();
+	int cur_ind = 0;
+	Industry *Ind;
+	uint amount = num_pieces;
+	int denied = 0;
+
+	if(!num_ind) return 0;
+	if(num_ind == 1) {
+		uint cargo_index;
+		Ind = _cargo_delivery_destinations[0];
+
+		for (cargo_index = 0; cargo_index < lengthof(Ind->accepts_cargo); cargo_index++) {
+			if (cargo_type == Ind->accepts_cargo[cargo_index]) break;}
+		uint amount = min(num_pieces, 0xFFFFU - _cargo_delivery_destinations[0]->incoming_cargo_waiting[cargo_index]);
+		_cargo_delivery_destinations[0]->incoming_cargo_waiting[cargo_index] += amount;
+		return amount;
+	} else
+		while(amount) {
+			Ind = _cargo_delivery_destinations[cur_ind % num_ind];
+
+			uint cargo_index;
+			for (cargo_index = 0; cargo_index < lengthof(Ind->accepts_cargo); cargo_index++) {
+				if (cargo_type == Ind->accepts_cargo[cargo_index]) break;
+			}
+
+			if(min(1, 0xFFFFU - Ind->incoming_cargo_waiting[cargo_index]) == 0){
+				cur_ind++;
+				denied++;
+				if(denied == num_ind) break;
+				else continue;
+			}
+
+			Ind->incoming_cargo_waiting[cargo_index]++;
+			accepted++;
+			amount--;
+			cur_ind++;
+			denied = 0;
+		}
+
+	return accepted;
+}
+
 /**
  * Delivers goods to industries/towns and calculates the payment
  * @param num_pieces amount of cargo delivered
@@ -1059,7 +1140,20 @@ static Money DeliverGoods(int num_pieces, CargoID cargo_type, StationID dest, Ti
 	Station *st = Station::Get(dest);
 
 	/* Give the goods to the industry. */
-	uint accepted = DeliverGoodsToIndustry(st, cargo_type, num_pieces, src_type == ST_INDUSTRY ? src : INVALID_INDUSTRY);
+	uint accepted = 0;
+	switch(_settings_game.economy.deliver_goods) {
+		case DGT_DEFAULT:
+			accepted = DeliverGoodsToIndustry1(st, cargo_type, num_pieces, src_type == ST_INDUSTRY ? src : INVALID_INDUSTRY);
+			break;
+
+		case DGT_TO_ALL:
+			accepted = DeliverGoodsToIndustry2(st, cargo_type, num_pieces, src_type == ST_INDUSTRY ? src : INVALID_INDUSTRY);
+			break;
+
+		case DGT_USING_MASK:
+			accepted = DeliverGoodsToIndustry1(st, cargo_type, num_pieces, src_type == ST_INDUSTRY ? src : INVALID_INDUSTRY);
+			break;
+		}
 
 	/* If this cargo type is always accepted, accept all */
 	if (HasBit(st->always_accepted, cargo_type)) accepted = num_pieces;
@@ -1076,7 +1170,11 @@ static Money DeliverGoods(int num_pieces, CargoID cargo_type, StationID dest, Ti
 
 	/* Increase town's counter for town effects */
 	const CargoSpec *cs = CargoSpec::Get(cargo_type);
-	st->town->received[cs->town_effect].new_act += accepted;
+	if(cs->town_effect == TE_FOOD || cs->town_effect == TE_WATER)
+		st->town->received[cs->town_effect].new_act += (accepted * 1000 * (cs->multipliertowngrowth == 0 ? 256 : cs->multipliertowngrowth)) >> 8; // food rate in kg, water rate in litres
+	else
+		st->town->received[cs->town_effect].new_act += (accepted * (cs->multipliertowngrowth == 0 ? 256 : cs->multipliertowngrowth)) >> 8;
+	st->town->supplied[cs->Index()].new_act += accepted;
 
 	/* Determine profit */
 	Money profit = GetTransportedGoodsIncome(accepted, DistanceManhattan(source_tile, st->xy), days_in_transit, cargo_type);
@@ -1093,6 +1191,7 @@ static Money DeliverGoods(int num_pieces, CargoID cargo_type, StationID dest, Ti
 			default: profit *= 4; break;
 		}
 	}
+	InvalidateWindowData(WC_TOWN_VIEW, st->town->index);
 
 	return profit;
 }
@@ -1167,6 +1266,8 @@ CargoPayment::~CargoPayment()
 				this->front->z_pos, -this->visual_profit);
 	}
 
+	this->front->trip_history.AddProfit(this->route_profit);
+	InvalidateWindowData(WC_VEHICLE_TRIP_HISTORY, this->front->index);
 	cur_company.Restore();
 }
 
@@ -1183,7 +1284,13 @@ void CargoPayment::PayFinalDelivery(const CargoPacket *cp, uint count)
 
 	/* Handle end of route payment */
 	Money profit = DeliverGoods(count, this->ct, this->current_station, cp->SourceStationXY(), cp->DaysInTransit(), this->owner, cp->SourceSubsidyType(), cp->SourceSubsidyID());
+#ifndef INFRASTRUCTURE_FUNC_H
 	this->route_profit += profit;
+#else
+	/* For Infrastructure patch. Handling transfers between other companies */
+	this->route_profit += profit - cp->FeederShare(count);
+#endif
+
 
 	/* The vehicle's profit is whatever route profit there is minus feeder shares. */
 	this->visual_profit += profit - cp->FeederShare(count);
@@ -1206,6 +1313,9 @@ Money CargoPayment::PayTransfer(const CargoPacket *cp, uint count)
 
 	profit = profit * _settings_game.economy.feeder_payment_share / 100;
 
+#ifdef INFRASTRUCTURE_FUNC_H
+	this->route_profit += profit;
+#endif
 	this->visual_transfer += profit; // accumulate transfer profits for whole vehicle
 	return profit; // account for the (virtual) profit already made for the cargo packet
 }
@@ -1368,7 +1478,7 @@ static void LoadUnloadVehicle(Vehicle *front)
 	bool use_autorefit = front->current_order.IsRefit() && front->current_order.GetRefitCargo() == CT_AUTO_REFIT;
 	CargoArray consist_capleft;
 	if (_settings_game.order.improved_load &&
-			((front->current_order.GetLoadType() & OLFB_FULL_LOAD) != 0 || use_autorefit)) {
+			((front->current_order.GetLoadType() & OLFB_FULL_LOAD) != 0 || (front->current_order.GetLoadType() & OLFB_WAIT_CARGO) != 0 || use_autorefit)) {
 		ReserveConsist(st, front,
 				(use_autorefit && front->load_unload_ticks != 0) ? &consist_capleft : NULL,
 				next_station);
@@ -1456,6 +1566,7 @@ static void LoadUnloadVehicle(Vehicle *front)
 				st->time_since_unload = 0;
 			}
 
+			//printf("Vehicle %d; OnBoard = %d; remaining = %s.\n", front->index, v->cargo.UnloadCount(), remaining ? "true" : "false");
 			if (_settings_game.order.gradual_loading && remaining) {
 				completely_emptied = false;
 			} else {
@@ -1602,6 +1713,11 @@ static void LoadUnloadVehicle(Vehicle *front)
 				unloading_time += loaded;
 
 				dirty_vehicle = dirty_station = true;
+
+				if(front->current_order.GetLoadType() == OLFB_WAIT_CARGO) {
+					front->waiting = true;
+					front->wait_counter = _settings_game.vehicle.cargo_wait_time * DATE_UNIT_SIZE;//1024;
+				}
 			}
 		}
 
@@ -1635,13 +1751,25 @@ static void LoadUnloadVehicle(Vehicle *front)
 		}
 		/* We loaded less cargo than possible for all cargo types and it's not full
 		 * load and we're not supposed to wait any longer: stop loading. */
-		if (!anything_unloaded && full_load_amount == 0 && reservation_left == 0 && !(front->current_order.GetLoadType() & OLFB_FULL_LOAD) &&
+		if (!anything_unloaded && full_load_amount == 0 && reservation_left == 0 && !(front->current_order.GetLoadType() & OLFB_FULL_LOAD) && front->current_order.GetLoadType() != OLFB_WAIT_CARGO &&
 				front->current_order_time >= (uint)max(front->current_order.wait_time - front->lateness_counter, 0)) {
 			SetBit(front->vehicle_flags, VF_STOP_LOADING);
 		}
 	} else {
 		bool finished_loading = true;
-		if (front->current_order.GetLoadType() & OLFB_FULL_LOAD) {
+
+		if(front->current_order.GetLoadType() == OLFB_WAIT_CARGO) {
+			uint32 total_loaded = 0;
+			for(const Vehicle* v = front; v != 0; v = v->Next()) {
+				if(v->cargo_cap == 0) continue;
+				total_loaded += v->cargo.StoredCount();
+				if(v->cargo_cap > v->cargo.StoredCount())
+					finished_loading = false;
+				}
+			if(total_loaded == 0) {
+				front->waiting = false;
+			}
+		} else if (front->current_order.GetLoadType() & OLFB_FULL_LOAD) {
 			if (front->current_order.GetLoadType() == OLF_FULL_LOAD_ANY) {
 				/* if the aircraft carries passengers and is NOT full, then
 				 * continue loading, no matter how much mail is in */
@@ -1727,6 +1855,14 @@ void LoadUnloadStation(Station *st)
 	/* Check if anything will be loaded at all. Otherwise we don't need to reserve either. */
 	for (iter = st->loading_vehicles.begin(); iter != st->loading_vehicles.end(); ++iter) {
 		Vehicle *v = *iter;
+
+		if(v == st->loading_vehicles.back()) {
+			v->IsANewVehicleInStation = false;
+			v->currently_arrived_vehicle = NULL;
+		} else {
+			v->IsANewVehicleInStation = true;
+			v->currently_arrived_vehicle = st->loading_vehicles.back();
+		}
 
 		if ((v->vehstatus & (VS_STOPPED | VS_CRASHED))) continue;
 
@@ -1816,7 +1952,7 @@ extern int GetAmountOwnedBy(const Company *c, Owner owner);
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdBuyShareInCompany(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+CommandCost CmdBuyShareInCompany(TileIndex tile, DoCommandFlag flags, uint64 p1, uint64 p2, const char *text)
 {
 	CommandCost cost(EXPENSES_OTHER);
 	CompanyID target_company = (CompanyID)p1;
@@ -1868,7 +2004,7 @@ CommandCost CmdBuyShareInCompany(TileIndex tile, DoCommandFlag flags, uint32 p1,
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdSellShareInCompany(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+CommandCost CmdSellShareInCompany(TileIndex tile, DoCommandFlag flags, uint64 p1, uint64 p2, const char *text)
 {
 	CompanyID target_company = (CompanyID)p1;
 	Company *c = Company::GetIfValid(target_company);
@@ -1909,7 +2045,7 @@ CommandCost CmdSellShareInCompany(TileIndex tile, DoCommandFlag flags, uint32 p1
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdBuyCompany(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+CommandCost CmdBuyCompany(TileIndex tile, DoCommandFlag flags, uint64 p1, uint64 p2, const char *text)
 {
 	CompanyID target_company = (CompanyID)p1;
 	Company *c = Company::GetIfValid(target_company);

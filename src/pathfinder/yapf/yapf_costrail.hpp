@@ -13,6 +13,8 @@
 #define YAPF_COSTRAIL_HPP
 
 #include "../../pbs.h"
+#include "../../cargotype.h"
+#include "../../newgrf_cargo.h"
 
 template <class Types>
 class CYapfCostRailT
@@ -230,11 +232,23 @@ public:
 						/* special signal penalties */
 						if (n.m_num_signals_passed == 0) {
 							switch (sig_type) {
+								case SIGTYPE_PROG:
 								case SIGTYPE_COMBO:
 								case SIGTYPE_EXIT:   cost += Yapf().PfGetSettings().rail_firstred_exit_penalty; break; // first signal is red pre-signal-exit
 								case SIGTYPE_NORMAL:
 								case SIGTYPE_ENTRY:  cost += Yapf().PfGetSettings().rail_firstred_penalty; break;
 								default: break;
+							}
+						}
+					}
+
+					if (GetPAXSignal(tile, TrackdirToTrack(trackdir)))
+					{
+						for (const Vehicle *v = Yapf().GetVehicle(); v != NULL; v = v->Next()) {
+							if (v->cargo_cap == 0) continue;
+							if ((!IsCargoInClass(v->cargo_type, CC_PASSENGERS))&&(!IsCargoInClass(v->cargo_type, CC_MAIL))) {
+								n.m_segment->m_end_segment_reason |= ESRB_DEAD_END;
+								return -1;
 							}
 						}
 					}
@@ -449,6 +463,22 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 				end_segment_reason |= ESRB_WAYPOINT;
 
 			} else if (tf->m_is_station) {
+
+				if (GetStationPAX(cur.tile)) {
+					bool deny = false;
+					for (const Vehicle *v = Yapf().GetVehicle(); v != NULL; v = v->Next()) {
+						if (v->cargo_cap == 0) continue;
+						if ((!IsCargoInClass(v->cargo_type, CC_PASSENGERS))&&(!IsCargoInClass(v->cargo_type, CC_MAIL))) {
+							deny = true;
+							break;
+						}
+					}
+					if (deny) {
+						end_segment_reason |= ESRB_DEAD_END;
+						break;
+					}
+				}
+
 				/* Station penalties. */
 				uint platform_length = tf->m_tiles_skipped + 1;
 				/* We don't know yet if the station is our target or not. Act like

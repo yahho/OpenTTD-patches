@@ -46,7 +46,7 @@ static bool IsUniqueDepotName(const char *name)
  * @param text the new name or an empty string when resetting to the default
  * @return the cost of this operation or an error
  */
-CommandCost CmdRenameDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+CommandCost CmdRenameDepot(TileIndex tile, DoCommandFlag flags, uint64 p1, uint64 p2, const char *text)
 {
 	Depot *d = Depot::GetIfValid(p1);
 	if (d == NULL) return CMD_ERROR;

@@ -290,8 +290,32 @@ static const uint16 RAILTYPE_TUNNEL_BASE_COUNT = 16;
 static const SpriteID SPR_EMPTY_BOUNDING_BOX = SPR_RAILTYPE_TUNNEL_BASE + RAILTYPE_TUNNEL_BASE_COUNT;
 static const uint16 EMPTY_BOUNDING_BOX_SPRITE_COUNT = 1;
 
+static const uint16 PROGSIGNAL_SPRITE_COUNT = 32;
+static const uint16 SPR_FLAT_BLACKTILES_COUNT = 19;
+static const uint16 OLDTRACKS_SPRITE_COUNT = 30;
+static const uint16 TRAFFICLIGHTS_SPRITE_COUNT = 23;
+static const uint16 ZONING_SPRITE_COUNT = 32;
+
+static const SpriteID SPR_FLAT_BLACKTILES = SPR_EMPTY_BOUNDING_BOX + EMPTY_BOUNDING_BOX_SPRITE_COUNT;
+static const SpriteID SPR_PROGSIGNAL_BASE = SPR_FLAT_BLACKTILES + SPR_FLAT_BLACKTILES_COUNT;
+static const SpriteID SPR_OLDTRACKS_BASE = SPR_PROGSIGNAL_BASE + PROGSIGNAL_SPRITE_COUNT;
+static const SpriteID SPR_OLDTRACKS_PHASE1_BASE = SPR_OLDTRACKS_BASE;
+static const SpriteID SPR_OLDTRACKS_PHASE2_BASE = SPR_OLDTRACKS_BASE + 10;
+static const SpriteID SPR_OLDTRACKS_PHASE3_BASE = SPR_OLDTRACKS_BASE + 20;
+static const SpriteID SPR_TRAFFICLIGHTS_BASE = SPR_OLDTRACKS_BASE + OLDTRACKS_SPRITE_COUNT;
+
+/* zoning stuff; dunno where else to put it */
+
+static const SpriteID SPR_INNER_HIGHLIGHT_BASE      = SPR_TRAFFICLIGHTS_BASE + TRAFFICLIGHTS_SPRITE_COUNT;
+static const SpriteID SPR_PALETTE_ZONING_RED        = SPR_INNER_HIGHLIGHT_BASE + 19;
+static const SpriteID SPR_PALETTE_ZONING_GREEN      = SPR_INNER_HIGHLIGHT_BASE + 20;
+static const SpriteID SPR_PALETTE_ZONING_BLACK      = SPR_INNER_HIGHLIGHT_BASE + 21;
+static const SpriteID SPR_PALETTE_ZONING_LIGHT_BLUE = SPR_INNER_HIGHLIGHT_BASE + 22;
+static const SpriteID SPR_PALETTE_ZONING_ORANGE     = SPR_INNER_HIGHLIGHT_BASE + 23;
+static const SpriteID SPR_PALETTE_ZONING_WHITE      = SPR_INNER_HIGHLIGHT_BASE + 24;
+
 /* From where can we start putting NewGRFs? */
-static const SpriteID SPR_NEWGRFS_BASE = SPR_EMPTY_BOUNDING_BOX + EMPTY_BOUNDING_BOX_SPRITE_COUNT;
+static const SpriteID SPR_NEWGRFS_BASE = SPR_INNER_HIGHLIGHT_BASE + ZONING_SPRITE_COUNT;
 
 /* Manager face sprites */
 static const SpriteID SPR_GRADIENT = 874; // background gradient behind manager face
@@ -567,6 +591,8 @@ static const SpriteID SPR_FLAT_1_QUART_SNOW_DESERT_TILE = 4493;
 static const SpriteID SPR_FLAT_2_QUART_SNOW_DESERT_TILE = 4512;
 static const SpriteID SPR_FLAT_3_QUART_SNOW_DESERT_TILE = 4531;
 static const SpriteID SPR_FLAT_SNOW_DESERT_TILE         = 4550;
+/* Blacktiles all slopes. */
+
 
 /* Hedge, Farmland-fence sprites */
 static const SpriteID SPR_HEDGE_BUSHES            = 4090;
@@ -1092,6 +1118,34 @@ static const SpriteID SPR_IMG_SIGN            = 4082;
 static const SpriteID SPR_IMG_BUY_LAND        = 4791;
 static const SpriteID SPR_IMG_STORY_BOOK      = SPR_OPENTTD_BASE + 169;
 
+/* Traffic lights */
+static const SpriteID SPR_IMG_TRAFFIC_LIGHT     = SPR_TRAFFICLIGHTS_BASE;
+static const SpriteID SPR_CURSOR_TRAFFIC_LIGHT  = SPR_TRAFFICLIGHTS_BASE + 1;
+
+static const SpriteID SPR_TL_SW_RED             = SPR_TRAFFICLIGHTS_BASE + 2;
+static const SpriteID SPR_TL_SW_RED_YELLOW      = SPR_TRAFFICLIGHTS_BASE + 3;
+static const SpriteID SPR_TL_SW_GREEN           = SPR_TRAFFICLIGHTS_BASE + 4;
+static const SpriteID SPR_TL_SW_YELLOW          = SPR_TRAFFICLIGHTS_BASE + 5;
+static const SpriteID SPR_TL_SW_NONE            = SPR_TRAFFICLIGHTS_BASE + 6;
+
+static const SpriteID SPR_TL_SE_RED             = SPR_TRAFFICLIGHTS_BASE + 7;
+static const SpriteID SPR_TL_SE_RED_YELLOW      = SPR_TRAFFICLIGHTS_BASE + 8;
+static const SpriteID SPR_TL_SE_GREEN           = SPR_TRAFFICLIGHTS_BASE + 9;
+static const SpriteID SPR_TL_SE_YELLOW          = SPR_TRAFFICLIGHTS_BASE + 10;
+static const SpriteID SPR_TL_SE_NONE            = SPR_TRAFFICLIGHTS_BASE + 11;
+
+static const SpriteID SPR_TL_NW_RED             = SPR_TRAFFICLIGHTS_BASE + 12;
+static const SpriteID SPR_TL_NW_RED_YELLOW      = SPR_TRAFFICLIGHTS_BASE + 13;
+static const SpriteID SPR_TL_NW_GREEN           = SPR_TRAFFICLIGHTS_BASE + 14;
+static const SpriteID SPR_TL_NW_YELLOW          = SPR_TRAFFICLIGHTS_BASE + 15;
+static const SpriteID SPR_TL_NW_NONE            = SPR_TRAFFICLIGHTS_BASE + 16;
+
+static const SpriteID SPR_TL_NE_RED             = SPR_TRAFFICLIGHTS_BASE + 17;
+static const SpriteID SPR_TL_NE_RED_YELLOW      = SPR_TRAFFICLIGHTS_BASE + 18;
+static const SpriteID SPR_TL_NE_GREEN           = SPR_TRAFFICLIGHTS_BASE + 19;
+static const SpriteID SPR_TL_NE_YELLOW          = SPR_TRAFFICLIGHTS_BASE + 20;
+static const SpriteID SPR_TL_NE_NONE            = SPR_TRAFFICLIGHTS_BASE + 21;
+
 /* OpenTTD in gamescreen */
 static const SpriteID SPR_OTTD_O                = 4842;
 static const SpriteID SPR_OTTD_P                = 4841;
@@ -1303,12 +1357,14 @@ static const SpriteID SPR_IMG_SIGNAL_ELECTRIC_EXIT     = SPR_SIGNALS_BASE +  28;
 static const SpriteID SPR_IMG_SIGNAL_ELECTRIC_COMBO    = SPR_SIGNALS_BASE +  44;
 static const SpriteID SPR_IMG_SIGNAL_ELECTRIC_PBS      = SPR_SIGNALS_BASE + 124;
 static const SpriteID SPR_IMG_SIGNAL_ELECTRIC_PBS_OWAY = SPR_SIGNALS_BASE + 140;
+static const SpriteID SPR_IMG_SIGNAL_ELECTRIC_PROG     = SPR_PROGSIGNAL_BASE + 28; // HACK using PBS sprite, want own
 static const SpriteID SPR_IMG_SIGNAL_SEMAPHORE_NORM    = SPR_SIGNALS_BASE +  60;
 static const SpriteID SPR_IMG_SIGNAL_SEMAPHORE_ENTRY   = SPR_SIGNALS_BASE +  76;
 static const SpriteID SPR_IMG_SIGNAL_SEMAPHORE_EXIT    = SPR_SIGNALS_BASE +  92;
 static const SpriteID SPR_IMG_SIGNAL_SEMAPHORE_COMBO   = SPR_SIGNALS_BASE + 108;
 static const SpriteID SPR_IMG_SIGNAL_SEMAPHORE_PBS     = SPR_SIGNALS_BASE + 188;
 static const SpriteID SPR_IMG_SIGNAL_SEMAPHORE_PBS_OWAY= SPR_SIGNALS_BASE + 204;
+static const SpriteID SPR_IMG_SIGNAL_SEMAPHORE_PROG    = SPR_PROGSIGNAL_BASE + 12; // HACK using PBS sprite, want own
 static const SpriteID SPR_IMG_SIGNAL_CONVERT           = SPR_OPENTTD_BASE + 135;
 
 static const SpriteID SPR_IMG_TUNNEL_RAIL   = 2430;
@@ -1335,6 +1391,8 @@ static const SpriteID SPR_SELECT_SUB_TROPICAL        = 4886;
 static const SpriteID SPR_SELECT_SUB_TROPICAL_PUSHED = 4887;
 static const SpriteID SPR_SELECT_TOYLAND             = 4888;
 static const SpriteID SPR_SELECT_TOYLAND_PUSHED      = 4889;
+
+
 
 /** Cursor sprite numbers */
 
@@ -1561,5 +1619,7 @@ static const PaletteID PALETTE_CRASH               = 804;  ///< Recolour sprite 
 /* Two recolourings only used by the church */
 static const PaletteID PALETTE_CHURCH_RED          = 1438; ///< Recolour sprite for reddish churches
 static const PaletteID PALETTE_CHURCH_CREAM        = 1439; ///< Recolour sprite for white churches
+
+static const SpriteID INVALID_SPRITE_ID = UINT_MAX;
 
 #endif /* SPRITES_H */

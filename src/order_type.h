@@ -67,9 +67,20 @@ enum OrderUnloadFlags {
  */
 enum OrderLoadFlags {
 	OLF_LOAD_IF_POSSIBLE = 0,      ///< Load as long as there is cargo that fits in the train.
+	OLFB_WAIT_CARGO      = 1,      ///< Wait for cargo, leave station if counter is zero.
 	OLFB_FULL_LOAD       = 1 << 1, ///< Full load all cargoes of the consist.
 	OLF_FULL_LOAD_ANY    = 3,      ///< Full load a single cargo of the consist.
 	OLFB_NO_LOAD         = 4,      ///< Do not load anything.
+};
+
+/**
+ * Stop loading types
+ */
+enum OrderStopLoadingType {
+	OSLT_NONE                           = 0, ///< Do not stop loading.
+	OSLT_ANY_VEHICLE_ARRIVED            = 1, ///< Stop loading if other vehicle arrived.
+	OSLT_SHARED_ORDER_VEHICLE_ARRIVED   = 2, ///< Stop loading if vehicle with same shared orders arrived.
+	OSLT_SAME_CARGO_VEHICLE_ARRIVED     = 3, ///< Stop loading if vehicle with same cargo loading arrived.
 };
 
 /**
@@ -100,6 +111,7 @@ enum OrderDepotTypeFlags {
 	ODTF_MANUAL          = 0,      ///< Manually initiated order.
 	ODTFB_SERVICE        = 1 << 0, ///< This depot order is because of the servicing limit.
 	ODTFB_PART_OF_ORDERS = 1 << 1, ///< This depot order is because of a regular order.
+	ODTFB_BREAKDOWN      = 1 << 2, ///< This depot order is because of a breakdown.
 };
 
 /**
@@ -123,6 +135,10 @@ enum OrderConditionVariable {
 	OCV_REQUIRES_SERVICE,   ///< Skip when the vehicle requires service
 	OCV_UNCONDITIONALLY,    ///< Always skip
 	OCV_REMAINING_LIFETIME, ///< Skip based on the remaining lifetime
+	OCV_CARGO_WAITING,    ///< Skip if specified cargo is waiting at next station
+	OCV_CARGO_ACCEPTANCE, ///< Skip if specified cargo is accepted at next station
+	OCV_FREE_PLATFORMS,   ///< Skip based on free platforms at next station
+	OCV_PERCENT,          ///< Skip xx percent of times
 	OCV_END
 };
 
@@ -150,6 +166,7 @@ enum ModifyOrderFlags {
 	MOF_STOP_LOCATION,   ///< Passes an OrderStopLocation.
 	MOF_UNLOAD,          ///< Passes an OrderUnloadType.
 	MOF_LOAD,            ///< Passes an OrderLoadType
+	MOF_STOP_LOADING,    ///< Passes an OrderStopLoadingType
 	MOF_DEPOT_ACTION,    ///< Selects the OrderDepotAction
 	MOF_COND_VARIABLE,   ///< A conditional variable changes.
 	MOF_COND_COMPARATOR, ///< A comparator changes.

@@ -1418,8 +1418,9 @@ void Window::InitializeData(WindowNumber window_number)
 
 	/* Give focus to the opened window unless a text box
 	 * of focused window has focus (so we don't interrupt typing). But if the new
-	 * window has a text box, then take focus anyway. */
-	if (!EditBoxInGlobalFocus() || this->nested_root->GetWidgetOfType(WWT_EDITBOX) != NULL) SetFocusedWindow(this);
+	 * window has a text box, then take focus anyway.
+	 * Do not give the focus while scrolling a viewport (like when the News pops up) */
+	if (!_scrolling_viewport && this->window_class != WC_TOOLTIPS && this->window_class != WC_NEWS_WINDOW && this->window_class != WC_OSK && (!EditBoxInGlobalFocus() || this->nested_root->GetWidgetOfType(WWT_EDITBOX) != NULL)) SetFocusedWindow(this);
 
 	/* Insert the window into the correct location in the z-ordering. */
 	AddWindowToZOrdering(this);
@@ -2545,6 +2546,20 @@ EventState Window::HandleEditBoxKey(int wid, WChar key, uint16 keycode)
 }
 
 /**
+ * Focus a window by its class and window number (if it is open).
+ * @param cls Window class
+ * @param number Number of the window within the window class
+ */
+void FocusWindowById(WindowClass cls, WindowNumber number)
+{
+	Window *w = FindWindowById(cls, number);
+	if (w) {
+		SetFocusedWindow(w);
+		MaybeBringWindowToFront(w);
+	}
+}
+
+/**
  * Handle keyboard input.
  * @param keycode Virtual keycode of the key.
  * @param key Unicode character of the key.
@@ -2796,6 +2811,8 @@ static void MouseLoop(MouseClick click, int mousewheel)
 		if (scrollwheel_scrolling) click = MC_RIGHT; // we are using the scrollwheel in a viewport, so we emulate right mouse button
 		switch (click) {
 			case MC_DOUBLE_LEFT:
+				if (HandleViewportDoubleClicked(w, x, y)) break;
+				/* FALL THROUGH */
 			case MC_LEFT:
 				DEBUG(misc, 2, "Cursor: 0x%X (%d)", _cursor.sprite, _cursor.sprite);
 				if (!HandleViewportClicked(vp, x, y) &&
@@ -2803,6 +2820,7 @@ static void MouseLoop(MouseClick click, int mousewheel)
 						_settings_client.gui.left_mouse_btn_scrolling) {
 					_scrolling_viewport = true;
 					_cursor.fix_at = false;
+					SetFocusedWindow(w);
 				}
 				break;
 
@@ -2810,6 +2828,7 @@ static void MouseLoop(MouseClick click, int mousewheel)
 				if (!(w->flags & WF_DISABLE_VP_SCROLL)) {
 					_scrolling_viewport = true;
 					_cursor.fix_at = true;
+					SetFocusedWindow(w);
 
 					/* clear 2D scrolling caches before we start a 2D scroll */
 					_cursor.h_wheel = 0;

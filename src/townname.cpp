@@ -18,7 +18,7 @@
 #include "genworld.h"
 
 #include "table/townname.h"
-
+#include "table/townname_rus.h"
 
 /**
  * Initializes this struct from town data
@@ -987,6 +987,10 @@ static char *MakeCatalanTownName(char *buf, const char *last, uint32 seed)
 	return buf;
 }
 
+static char *MakeRussianTownName(char *buf, const char *last, uint32 seed)
+{
+	return strecpy(buf, _name_russian_real[SeedChance(0, lengthof(_name_russian_real), seed)], last);
+}
 
 /**
  * Type for all town name generator functions.
@@ -1026,6 +1030,7 @@ static const TownNameGeneratorParams _town_name_generators[] = {
 	{  0, MakeTurkishTownName},
 	{  0, MakeItalianTownName},
 	{  0, MakeCatalanTownName},
+	{  0, MakeRussianTownName},
 };
 
 

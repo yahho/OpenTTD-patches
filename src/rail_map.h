@@ -18,6 +18,7 @@
 #include "track_func.h"
 #include "tile_map.h"
 #include "signal_type.h"
+#include "settings_type.h"
 
 
 /** Different types of Rail-related tiles */
@@ -285,17 +286,18 @@ static inline TrackBits GetDepotReservationTrackBits(TileIndex t)
 	return HasDepotReservation(t) ? TrackToTrackBits(GetRailDepotTrack(t)) : TRACK_BIT_NONE;
 }
 
-
-static inline bool IsPbsSignal(SignalType s)
-{
-	return s == SIGTYPE_PBS || s == SIGTYPE_PBS_ONEWAY;
-}
-
 static inline SignalType GetSignalType(TileIndex t, Track track)
 {
 	assert(GetRailTileType(t) == RAIL_TILE_SIGNALS);
 	byte pos = (track == TRACK_LOWER || track == TRACK_RIGHT) ? 4 : 0;
 	return (SignalType)GB(_m[t].m2, pos, 3);
+}
+
+static inline bool GetPAXSignal(TileIndex t, Track track)
+{
+	assert(GetRailTileType(t) == RAIL_TILE_SIGNALS);
+	byte pos = (track == TRACK_LOWER || track == TRACK_RIGHT) ? 13 : 12;
+	return (bool)GB(_m[t].m2, pos, 1);
 }
 
 static inline void SetSignalType(TileIndex t, Track track, SignalType s)
@@ -306,14 +308,32 @@ static inline void SetSignalType(TileIndex t, Track track, SignalType s)
 	if (track == INVALID_TRACK) SB(_m[t].m2, 4, 3, s);
 }
 
+static inline void SetPAXSignal(TileIndex t, Track track, bool a)
+{
+	assert(GetRailTileType(t) == RAIL_TILE_SIGNALS);
+	byte pos = (track == TRACK_LOWER || track == TRACK_RIGHT) ? 13 : 12;
+	SB(_m[t].m2, pos, 1, a);
+	if (track == INVALID_TRACK) SB(_m[t].m2, 13, 1, a);
+}
+
 static inline bool IsPresignalEntry(TileIndex t, Track track)
 {
-	return GetSignalType(t, track) == SIGTYPE_ENTRY || GetSignalType(t, track) == SIGTYPE_COMBO;
+	return IsEntrySignal(GetSignalType(t, track));
 }
 
 static inline bool IsPresignalExit(TileIndex t, Track track)
 {
-	return GetSignalType(t, track) == SIGTYPE_EXIT || GetSignalType(t, track) == SIGTYPE_COMBO;
+	return IsExitSignal(GetSignalType(t, track));
+}
+
+static inline bool IsPresignalCombo(TileIndex t, Track track)
+{
+	return IsComboSignal(GetSignalType(t, track));
+}
+
+static inline bool IsPresignalProgrammable(TileIndex t, Track track)
+{
+	return IsProgrammableSignal(GetSignalType(t, track));
 }
 
 /** One-way signals can't be passed the 'wrong' way. */
@@ -479,6 +499,29 @@ static inline bool HasOnewaySignalBlockingTrackdir(TileIndex tile, Trackdir td)
 			!HasSignalOnTrackdir(tile, td) && IsOnewaySignal(tile, TrackdirToTrack(td));
 }
 
+/**
+ * Return the rail 'age'.
+ */
+static inline byte GetRailAge(TileIndex ti)
+{
+	assert(IsPlainRailTile(ti));
+	/* using high bits of m2: (ok for depots and clear tracks only) */
+	/* m2 used by PBS/YAPP, shifting to m7 -Phazorx */
+	return GB(_me[ti].m7,0,8);
+}
+
+
+/**
+ * Set the rail 'age'.
+ */
+static inline void SetRailAge(TileIndex ti, byte new_age)
+{
+	assert(IsPlainRailTile(ti));
+	/* using high bits of m2: (ok for depots and clear tracks only) */
+	/* m2 used by PBS/YAPP, shifting to m7 -Phazorx */
+	SB(_me[ti].m7, 0, 8, new_age);
+}
+
 
 RailType GetTileRailType(TileIndex tile);
 
@@ -525,7 +568,9 @@ static inline void MakeRailNormal(TileIndex t, Owner o, TrackBits b, RailType r)
 	_m[t].m3 = r;
 	_m[t].m4 = 0;
 	_m[t].m5 = RAIL_TILE_NORMAL << 6 | b;
-	SB(_m[t].m6, 2, 4, 0);
+	if(_settings_client.gui.grass_on_old_rails)
+		SetRailAge(t, 0);
+	SB(_me[t].m6, 2, 4, 0);
 	_me[t].m7 = 0;
 }
 
@@ -538,8 +583,19 @@ static inline void MakeRailDepot(TileIndex t, Owner o, DepotID did, DiagDirectio
 	_m[t].m3 = r;
 	_m[t].m4 = 0;
 	_m[t].m5 = RAIL_TILE_DEPOT << 6 | d;
-	SB(_m[t].m6, 2, 4, 0);
+	SB(_me[t].m6, 2, 4, 0);
 	_me[t].m7 = 0;
+}
+
+static inline byte GetTrackGrowthPhase(TileIndex ti)
+{
+	return GetRailAge(ti) >> 6;
+}
+
+static inline void ResetRailAge(TileIndex ti)
+{
+	assert(IsPlainRailTile(ti));
+	SetRailAge(ti, 0);
 }
 
 #endif /* RAIL_MAP_H */

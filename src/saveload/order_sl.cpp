@@ -104,6 +104,7 @@ const SaveLoad *GetOrderDescription()
 	static const SaveLoad _order_desc[] = {
 		     SLE_VAR(Order, type,           SLE_UINT8),
 		     SLE_VAR(Order, flags,          SLE_UINT8),
+		     SLE_CONDVAR(Order, flags1,     SLE_UINT8,   SL_SPRING_2013_v2_0_102, SL_MAX_VERSION),
 		     SLE_VAR(Order, dest,           SLE_UINT16),
 		     SLE_REF(Order, next,           REF_ORDER),
 		 SLE_CONDVAR(Order, refit_cargo,    SLE_UINT8,   36, SL_MAX_VERSION),
@@ -111,6 +112,7 @@ const SaveLoad *GetOrderDescription()
 		 SLE_CONDVAR(Order, wait_time,      SLE_UINT16,  67, SL_MAX_VERSION),
 		 SLE_CONDVAR(Order, travel_time,    SLE_UINT16,  67, SL_MAX_VERSION),
 		 SLE_CONDVAR(Order, max_speed,      SLE_UINT16, 172, SL_MAX_VERSION),
+		 SLE_CONDVAR(Order, jump_counter,   SLE_INT8,   SL_SPRING_2013_v2_0_102, SL_MAX_VERSION),
 
 		/* Leftover from the minor savegame version stuff
 		 * We will never use those free bytes, but we have to keep this line to allow loading of old savegames */

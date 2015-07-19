@@ -45,6 +45,8 @@ void DrawShipImage(const Vehicle *v, int left, int right, int y, VehicleID selec
 void DrawAircraftImage(const Vehicle *v, int left, int right, int y, VehicleID selection, EngineImageType image_type);
 
 void ShowBuildVehicleWindow(TileIndex tile, VehicleType type);
+void ShowBuildVehicleWindowView(TileIndex tile, VehicleType type);
+void ShowBuildVehicleWindowOrig(TileIndex tile, VehicleType type);
 
 uint ShowRefitOptionsList(int left, int right, int y, EngineID engine);
 StringID GetCargoSubtypeText(const Vehicle *v);
@@ -100,5 +102,7 @@ void StartStopVehicle(const Vehicle *v, bool texteffect);
 Vehicle *CheckClickOnVehicle(const struct ViewPort *vp, int x, int y);
 
 void DrawVehicleImage(const Vehicle *v, int left, int right, int y, VehicleID selection, EngineImageType image_type, int skip);
+
+void ShowTripHistoryWindow(const Vehicle *v);
 
 #endif /* VEHICLE_GUI_H */

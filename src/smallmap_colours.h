@@ -1,0 +1,1039 @@
+/* $Id$ */
+
+/*
+ * This file is part of OpenTTD.
+ * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
+ * OpenTTD is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file smallmap_colours.h Smallmap used colours. */
+
+#ifndef SMALLMAP_COLOURS_H
+#define SMALLMAP_COLOURS_H
+
+#include "core/endian_func.hpp"
+
+static const uint8 PC_ROUGH_LAND      = 0x52; ///< Dark green palette colour for rough land.
+static const uint8 PC_GRASS_LAND      = 0x54; ///< Dark green palette colour for grass land.
+static const uint8 PC_BARE_LAND       = 0x37; ///< Brown palette colour for bare land.
+static const uint8 PC_FIELDS          = 0x25; ///< Light brown palette colour for fields.
+static const uint8 PC_TREES           = 0x57; ///< Green palette colour for trees.
+static const uint8 PC_WATER           = 0xCA; ///< Dark blue palette colour for water.
+
+#define MKCOLOUR(x)         TO_LE32X(x)
+
+#define MKCOLOUR_XXXX(x)    (MKCOLOUR(0x01010101) * (uint)(x))
+#define MKCOLOUR_X0X0(x)    (MKCOLOUR(0x01000100) * (uint)(x))
+#define MKCOLOUR_0X0X(x)    (MKCOLOUR(0x00010001) * (uint)(x))
+#define MKCOLOUR_0XX0(x)    (MKCOLOUR(0x00010100) * (uint)(x))
+#define MKCOLOUR_X00X(x)    (MKCOLOUR(0x01000001) * (uint)(x))
+
+#define MKCOLOUR_XYXY(x, y) (MKCOLOUR_X0X0(x) | MKCOLOUR_0X0X(y))
+#define MKCOLOUR_XYYX(x, y) (MKCOLOUR_X00X(x) | MKCOLOUR_0XX0(y))
+
+#define MKCOLOUR_0000       MKCOLOUR_XXXX(0x00)
+#define MKCOLOUR_0FF0       MKCOLOUR_0XX0(0xFF)
+#define MKCOLOUR_F00F       MKCOLOUR_X00X(0xFF)
+#define MKCOLOUR_FFFF       MKCOLOUR_XXXX(0xFF)
+
+/** Height map colours for the green colour scheme, ordered by height. */
+static const uint32 _green_map_heights[] = {
+	MKCOLOUR(0x59595958), // height 0
+	MKCOLOUR(0x59595958), // height 1
+	MKCOLOUR(0x59595958), // height 2
+	MKCOLOUR(0X59595959), // height 3
+	MKCOLOUR(0X59595959), // height 4
+	MKCOLOUR(0X5959595A), // height 5
+	MKCOLOUR(0X5959595A), // height 6
+	MKCOLOUR(0X59595A59), // height 7
+	MKCOLOUR(0X59595A59), // height 8
+	MKCOLOUR(0X59595A5A), // height 9
+	MKCOLOUR(0X59595A5A), // height 10
+	MKCOLOUR(0X595A5959), // height 11
+	MKCOLOUR(0X595A5959), // height 12
+	MKCOLOUR(0X595A595A), // height 13
+	MKCOLOUR(0X595A595A), // height 14
+	MKCOLOUR(0X595A5A59), // height 15
+	MKCOLOUR(0X595A5A59), // height 16
+	MKCOLOUR(0X595A5A5A), // height 17
+	MKCOLOUR(0X595A5A5A), // height 18
+	MKCOLOUR(0X5A595959), // height 19
+	MKCOLOUR(0X5A595959), // height 20
+	MKCOLOUR(0X5A59595A), // height 21
+	MKCOLOUR(0X5A59595A), // height 22
+	MKCOLOUR(0X5A595A59), // height 23
+	MKCOLOUR(0X5A595A59), // height 24
+	MKCOLOUR(0X5A595A5A), // height 25
+	MKCOLOUR(0X5A595A5A), // height 26
+	MKCOLOUR(0X5A5A5959), // height 27
+	MKCOLOUR(0X5A5A5959), // height 28
+	MKCOLOUR(0X5A5A595A), // height 29
+	MKCOLOUR(0X5A5A595A), // height 30
+	MKCOLOUR(0X5A5A5A59), // height 31
+	MKCOLOUR(0X5A5A5A59), // height 32
+	MKCOLOUR(0x5A5A5A5A), // height 33
+	MKCOLOUR(0x5A5A5A5A), // height 34
+	MKCOLOUR(0x5A5A5A5B), // height 35
+	MKCOLOUR(0x5A5A5A5B), // height 36
+	MKCOLOUR(0x5A5A5B5A), // height 37
+	MKCOLOUR(0x5A5A5B5A), // height 38
+	MKCOLOUR(0x5A5A5B5B), // height 39
+	MKCOLOUR(0x5A5A5B5B), // height 40
+	MKCOLOUR(0x5A5B5A5A), // height 41
+	MKCOLOUR(0x5A5B5A5A), // height 42
+	MKCOLOUR(0x5A5B5A5B), // height 43
+	MKCOLOUR(0x5A5B5A5B), // height 44
+	MKCOLOUR(0x5A5B5B5A), // height 45
+	MKCOLOUR(0x5A5B5B5A), // height 46
+	MKCOLOUR(0x5A5B5B5B), // height 47
+	MKCOLOUR(0x5A5B5B5B), // height 48
+	MKCOLOUR(0x5B5A5A5A), // height 49
+	MKCOLOUR(0x5B5A5A5A), // height 50
+	MKCOLOUR(0x5B5A5A5B), // height 51
+	MKCOLOUR(0x5B5A5A5B), // height 52
+	MKCOLOUR(0x5B5A5B5A), // height 53
+	MKCOLOUR(0x5B5A5B5A), // height 54
+	MKCOLOUR(0x5B5A5B5B), // height 55
+	MKCOLOUR(0x5B5A5B5B), // height 56
+	MKCOLOUR(0x5B5B5A5A), // height 57
+	MKCOLOUR(0x5B5B5A5A), // height 58
+	MKCOLOUR(0x5B5B5A5B), // height 59
+	MKCOLOUR(0x5B5B5A5B), // height 60
+	MKCOLOUR(0x5B5B5B5B), // height 61
+	MKCOLOUR(0x5B5B5B5B), // height 62
+	MKCOLOUR(0x5B5B5B5C), // height 63
+	MKCOLOUR(0x5B5B5B5C), // height 64
+	MKCOLOUR(0x5B5B5C5B), // height 65
+	MKCOLOUR(0x5B5B5C5B), // height 66
+	MKCOLOUR(0x5B5B5C5C), // height 67
+	MKCOLOUR(0x5B5B5C5C), // height 68
+	MKCOLOUR(0x5B5C5B5B), // height 69
+	MKCOLOUR(0x5B5C5B5B), // height 70
+	MKCOLOUR(0x5B5C5B5C), // height 71
+	MKCOLOUR(0x5B5C5B5C), // height 72
+	MKCOLOUR(0x5B5C5C5B), // height 73
+	MKCOLOUR(0x5B5C5C5B), // height 74
+	MKCOLOUR(0x5B5C5C5C), // height 75
+	MKCOLOUR(0x5B5C5C5C), // height 76
+	MKCOLOUR(0x5C5B5B5B), // height 77
+	MKCOLOUR(0x5C5B5B5B), // height 78
+	MKCOLOUR(0x5C5B5B5C), // height 79
+	MKCOLOUR(0x5C5B5B5C), // height 80
+	MKCOLOUR(0x5C5B5C5B), // height 81
+	MKCOLOUR(0x5C5B5C5B), // height 82
+	MKCOLOUR(0x5C5B5C5C), // height 83
+	MKCOLOUR(0x5C5B5C5C), // height 84
+	MKCOLOUR(0x5C5C5B5B), // height 85
+	MKCOLOUR(0x5C5C5B5B), // height 86
+	MKCOLOUR(0x5C5C5B5C), // height 87
+	MKCOLOUR(0x5C5C5B5C), // height 88
+	MKCOLOUR(0x5C5C5C5C), // height 89
+	MKCOLOUR(0x5C5C5C5C), // height 90
+	MKCOLOUR(0x5C5C5C5D), // height 91
+	MKCOLOUR(0x5C5C5C5D), // height 92
+	MKCOLOUR(0x5C5C5D5C), // height 93
+	MKCOLOUR(0x5C5C5D5C), // height 94
+	MKCOLOUR(0x5C5C5D5D), // height 95
+	MKCOLOUR(0x5C5C5D5D), // height 96
+	MKCOLOUR(0x5C5D5C5C), // height 97
+	MKCOLOUR(0x5C5D5C5C), // height 98
+	MKCOLOUR(0x5C5D5C5D), // height 99
+	MKCOLOUR(0x5C5D5C5D), // height 100
+	MKCOLOUR(0x5C5D5D5C), // height 101
+	MKCOLOUR(0x5C5D5D5C), // height 102
+	MKCOLOUR(0x5C5D5D5D), // height 103
+	MKCOLOUR(0x5C5D5D5D), // height 104
+	MKCOLOUR(0x5D5C5C5C), // height 105
+	MKCOLOUR(0x5D5C5C5C), // height 106
+	MKCOLOUR(0x5D5C5C5D), // height 107
+	MKCOLOUR(0x5D5C5C5D), // height 108
+	MKCOLOUR(0x5D5C5D5C), // height 109
+	MKCOLOUR(0x5D5C5D5C), // height 110
+	MKCOLOUR(0x5D5C5D5D), // height 111
+	MKCOLOUR(0x5D5C5D5D), // height 112
+	MKCOLOUR(0x5D5D5C5C), // height 113
+	MKCOLOUR(0x5D5D5C5C), // height 114
+	MKCOLOUR(0x5D5D5C5D), // height 115
+	MKCOLOUR(0x5D5D5C5D), // height 116
+	MKCOLOUR(0x5D5D5D5D), // height 117
+	MKCOLOUR(0x5D5D5D5D), // height 118
+	MKCOLOUR(0x5D5D5D5E), // height 119
+	MKCOLOUR(0x5D5D5D5E), // height 120
+	MKCOLOUR(0x5D5D5E5D), // height 121
+	MKCOLOUR(0x5D5D5E5D), // height 122
+	MKCOLOUR(0x5D5D5E5E), // height 123
+	MKCOLOUR(0x5D5D5E5E), // height 124
+	MKCOLOUR(0x5D5E5D5D), // height 125
+	MKCOLOUR(0x5D5E5D5D), // height 126
+	MKCOLOUR(0x5D5E5D5E), // height 127
+	MKCOLOUR(0x5D5E5D5E), // height 128
+	MKCOLOUR(0x5D5E5E5D), // height 129
+	MKCOLOUR(0x5D5E5E5D), // height 130
+	MKCOLOUR(0x5D5E5E5E), // height 131
+	MKCOLOUR(0x5D5E5E5E), // height 132
+	MKCOLOUR(0x5E5D5D5D), // height 133
+	MKCOLOUR(0x5E5D5D5D), // height 134
+	MKCOLOUR(0x5E5D5D5E), // height 135
+	MKCOLOUR(0x5E5D5D5E), // height 136
+	MKCOLOUR(0x5E5D5E5D), // height 137
+	MKCOLOUR(0x5E5D5E5D), // height 138
+	MKCOLOUR(0x5E5D5E5E), // height 139
+	MKCOLOUR(0x5E5D5E5E), // height 140
+	MKCOLOUR(0x5E5D5D5D), // height 141
+	MKCOLOUR(0x5E5D5D5D), // height 142
+	MKCOLOUR(0x5E5D5D5E), // height 143
+	MKCOLOUR(0x5E5D5D5E), // height 144
+	MKCOLOUR(0x5E5E5E5E), // height 145
+	MKCOLOUR(0x5E5E5E5E), // height 146
+	MKCOLOUR(0x5E5E5E5F), // height 147
+	MKCOLOUR(0x5E5E5E5F), // height 148
+	MKCOLOUR(0x5E5E5F5E), // height 149
+	MKCOLOUR(0x5E5E5F5E), // height 150
+	MKCOLOUR(0x5E5E5F5F), // height 151
+	MKCOLOUR(0x5E5E5F5F), // height 152
+	MKCOLOUR(0x5E5F5E5E), // height 153
+	MKCOLOUR(0x5E5F5E5E), // height 154
+	MKCOLOUR(0x5E5F5E5F), // height 155
+	MKCOLOUR(0x5E5F5E5F), // height 156
+	MKCOLOUR(0x5E5F5F5E), // height 157
+	MKCOLOUR(0x5E5F5F5E), // height 158
+	MKCOLOUR(0x5E5F5F5F), // height 159
+	MKCOLOUR(0x5E5F5F5F), // height 160
+	MKCOLOUR(0x5F5E5E5E), // height 161
+	MKCOLOUR(0x5F5E5E5E), // height 162
+	MKCOLOUR(0x5F5E5E5F), // height 163
+	MKCOLOUR(0x5F5E5E5F), // height 164
+	MKCOLOUR(0x5F5E5F5E), // height 165
+	MKCOLOUR(0x5F5E5F5E), // height 166
+	MKCOLOUR(0x5F5E5F5F), // height 167
+	MKCOLOUR(0x5F5E5F5F), // height 168
+	MKCOLOUR(0x5F5F5E5E), // height 169
+	MKCOLOUR(0x5F5F5E5E), // height 170
+	MKCOLOUR(0x5F5F5E5F), // height 171
+	MKCOLOUR(0x5F5F5E5F), // height 172
+	MKCOLOUR(0x5F5F5F5F), // height 173
+	MKCOLOUR(0x5F5F5F5F), // height 174
+	MKCOLOUR(0x5F5F5F1F), // height 175
+	MKCOLOUR(0x5F5F5F1F), // height 176
+	MKCOLOUR(0x5F5F1F5F), // height 177
+	MKCOLOUR(0x5F5F1F5F), // height 178
+	MKCOLOUR(0x5F5F1F1F), // height 179
+	MKCOLOUR(0x5F5F1F1F), // height 180
+	MKCOLOUR(0x5F1F5F1F), // height 181
+	MKCOLOUR(0x5F1F5F1F), // height 182
+	MKCOLOUR(0x5F1F1F1F), // height 183
+	MKCOLOUR(0x5F1F1F1F), // height 184
+	MKCOLOUR(0x1F5F5F5F), // height 185
+	MKCOLOUR(0x1F5F5F5F), // height 186
+	MKCOLOUR(0x1F5F5F1F), // height 187
+	MKCOLOUR(0x1F5F5F1F), // height 188
+	MKCOLOUR(0x1F5F1F5F), // height 189
+	MKCOLOUR(0x1F5F1F5F), // height 190
+	MKCOLOUR(0x1F5F1F1F), // height 191
+	MKCOLOUR(0x1F5F1F1F), // height 192
+	MKCOLOUR(0x1F1F5F5F), // height 193
+	MKCOLOUR(0x1F1F5F5F), // height 194
+	MKCOLOUR(0x1F1F5F1F), // height 195
+	MKCOLOUR(0x1F1F5F1F), // height 196
+	MKCOLOUR(0x1F1F1F5F), // height 197
+	MKCOLOUR(0x1F1F1F5F), // height 198
+	MKCOLOUR(0x1F1F1F1F), // height 199
+	MKCOLOUR(0x1F1F1F1F), // height 200
+	MKCOLOUR(0x1F1F1F27), // height 201
+	MKCOLOUR(0x1F1F1F27), // height 202
+	MKCOLOUR(0x1F1F271F), // height 203
+	MKCOLOUR(0x1F1F271F), // height 204
+	MKCOLOUR(0x1F1F2727), // height 205
+	MKCOLOUR(0x1F1F2727), // height 206
+	MKCOLOUR(0x1F271F1F), // height 207
+	MKCOLOUR(0x1F271F1F), // height 208
+	MKCOLOUR(0x1F271F27), // height 209
+	MKCOLOUR(0x1F271F27), // height 210
+	MKCOLOUR(0x1F272727), // height 211
+	MKCOLOUR(0x1F272727), // height 212
+	MKCOLOUR(0x271F1F1F), // height 213
+	MKCOLOUR(0x271F1F1F), // height 214
+	MKCOLOUR(0x271F1F27), // height 215
+	MKCOLOUR(0x271F1F27), // height 216
+	MKCOLOUR(0x271F271F), // height 217
+	MKCOLOUR(0x271F271F), // height 218
+	MKCOLOUR(0x271F2727), // height 219
+	MKCOLOUR(0x271F2727), // height 220
+	MKCOLOUR(0x27271F1F), // height 221
+	MKCOLOUR(0x27271F1F), // height 222
+	MKCOLOUR(0x27271F27), // height 223
+	MKCOLOUR(0x27271F27), // height 224
+	MKCOLOUR(0x2727271F), // height 225
+	MKCOLOUR(0x2727271F), // height 226
+	MKCOLOUR(0x27272727), // height 227
+	MKCOLOUR(0x27272727), // height 228
+	MKCOLOUR(0x27272727), // height 229
+	MKCOLOUR(0x27272727), // height 230
+	MKCOLOUR(0x1F27AF27), // height 231
+	MKCOLOUR(0x1F27AF27), // height 232
+	MKCOLOUR(0x1F274FAF), // height 233
+	MKCOLOUR(0x1F274FAF), // height 234
+	MKCOLOUR(0x4F274FAF), // height 235
+	MKCOLOUR(0x4F274FAF), // height 236
+	MKCOLOUR(0x4FAF1FAF), // height 237
+	MKCOLOUR(0x4FAF1FAF), // height 238
+	MKCOLOUR(0x4F2727AF), // height 239
+	MKCOLOUR(0x4F2727AF), // height 240
+	MKCOLOUR(0x4F27AF27), // height 241
+	MKCOLOUR(0x4F27AF27), // height 242
+	MKCOLOUR(0x4F27AFAF), // height 243
+	MKCOLOUR(0x4F27AFAF), // height 244
+	MKCOLOUR(0x4FAF2727), // height 245
+	MKCOLOUR(0x4FAF2727), // height 246
+	MKCOLOUR(0x4FAF27AF), // height 247
+	MKCOLOUR(0x4FAF27AF), // height 248
+	MKCOLOUR(0x4FAFAF27), // height 249
+	MKCOLOUR(0x4FAFAF27), // height 250
+	MKCOLOUR(0x4FAFAFAF), // height 251
+	MKCOLOUR(0x4FAFAFAF), // height 252
+	MKCOLOUR(0x4FAFAFCF), // height 253
+	MKCOLOUR(0x4FAFAFCF), // height 254
+	MKCOLOUR(0x4FAFCFAF), // height 255
+};
+assert_compile(lengthof(_green_map_heights) == MAX_TILE_HEIGHT + 1);
+
+/** Darkened height map colours for the green colour scheme, ordered by height. */
+/*static const uint32 _green_map_heights_dark[] = {
+	MKCOLOUR_XXXX(0x59),
+	MKCOLOUR_XYXY(0x59, 0x5A),
+	MKCOLOUR_XXXX(0x5A),
+	MKCOLOUR_XYXY(0x5A, 0x5B),
+	MKCOLOUR_XXXX(0x5B),
+	MKCOLOUR_XYXY(0x5B, 0x5C),
+	MKCOLOUR_XXXX(0x5C),
+	MKCOLOUR_XYXY(0x5C, 0x5D),
+	MKCOLOUR_XXXX(0x5D),
+	MKCOLOUR_XYXY(0x5D, 0x5E),
+	MKCOLOUR_XXXX(0x5E),
+	MKCOLOUR_XYXY(0x5E, 0x5F),
+	MKCOLOUR_XXXX(0x5F),
+	MKCOLOUR_XYXY(0x5F, 0x1F),
+	MKCOLOUR_XXXX(0x1F),
+	MKCOLOUR_XYXY(0x1F, 0x27),
+};
+assert_compile(lengthof(_green_map_heights_dark) == lengthof(_green_map_heights));*/
+
+/** Lightened height map colours for the green colour scheme, ordered by height. */
+/*static const uint32 _green_map_heights_light[] = {
+	MKCOLOUR_XXXX(0x5B),
+	MKCOLOUR_XYXY(0x5B, 0x5C),
+	MKCOLOUR_XXXX(0x5C),
+	MKCOLOUR_XYXY(0x5C, 0x5D),
+	MKCOLOUR_XXXX(0x5D),
+	MKCOLOUR_XYXY(0x5D, 0x5E),
+	MKCOLOUR_XXXX(0x5E),
+	MKCOLOUR_XYXY(0x5E, 0x5F),
+	MKCOLOUR_XXXX(0x5F),
+	MKCOLOUR_XYXY(0x5F, 0x1F),
+	MKCOLOUR_XXXX(0x1F),
+	MKCOLOUR_XYXY(0x1F, 0x27),
+	MKCOLOUR_XXXX(0x27),
+	MKCOLOUR_XYXY(0x27, 0x45),
+	MKCOLOUR_XXXX(0x45),
+	MKCOLOUR_XXXX(0x45),
+};
+assert_compile(lengthof(_green_map_heights_light) == lengthof(_green_map_heights));*/
+
+/** Height map colours for the dark green colour scheme, ordered by height. */
+static const uint32 _dark_green_map_heights[] = {
+	MKCOLOUR(0x60606060), // height 0
+	MKCOLOUR(0x60606060), // height 1
+	MKCOLOUR(0x60606060),
+	MKCOLOUR(0x60606061), // height 3
+	MKCOLOUR(0x60606061),
+	MKCOLOUR(0x60606160), // height 5
+	MKCOLOUR(0x60606160),
+	MKCOLOUR(0x60606161), // height 7
+	MKCOLOUR(0x60606161),
+	MKCOLOUR(0x60616060), // height 9
+	MKCOLOUR(0x60616060),
+	MKCOLOUR(0x60616061), // height 11
+	MKCOLOUR(0x60616061),
+	MKCOLOUR(0x60616160), // height 13
+	MKCOLOUR(0x60616160),
+	MKCOLOUR(0x60616161), // height 15
+	MKCOLOUR(0x60616161),
+	MKCOLOUR(0x61606060), // height 17
+	MKCOLOUR(0x61606060),
+	MKCOLOUR(0x61606061), // height 19
+	MKCOLOUR(0x61606061),
+	MKCOLOUR(0x61606160), // height 21
+	MKCOLOUR(0x61606160),
+	MKCOLOUR(0x61606161), // height 23
+	MKCOLOUR(0x61606161),
+	MKCOLOUR(0x61616060), // height 25
+	MKCOLOUR(0x61616060),
+	MKCOLOUR(0x61616061), // height 27
+	MKCOLOUR(0x61616061),
+	MKCOLOUR(0x61616160), // height 29
+	MKCOLOUR(0x61616160),
+	MKCOLOUR(0x61616161), // height 31
+	MKCOLOUR(0x61616161),
+	MKCOLOUR(0x61616162), // height 33
+	MKCOLOUR(0x61616162),
+	MKCOLOUR(0x61616261), // height 35
+	MKCOLOUR(0x61616261),
+	MKCOLOUR(0x61616262), // height 37
+	MKCOLOUR(0x61616262),
+	MKCOLOUR(0x61626161), // height 39
+	MKCOLOUR(0x61626161),
+	MKCOLOUR(0x61626162), // height 41
+	MKCOLOUR(0x61626162),
+	MKCOLOUR(0x61626261), // height 43
+	MKCOLOUR(0x61626261),
+	MKCOLOUR(0x61626262), // height 45
+	MKCOLOUR(0x61626262),
+	MKCOLOUR(0x62616161), // height 47
+	MKCOLOUR(0x62616161),
+	MKCOLOUR(0x62616162), // height 49
+	MKCOLOUR(0x62616162),
+	MKCOLOUR(0x62616261), // height 51
+	MKCOLOUR(0x62616261),
+	MKCOLOUR(0x62616262), // height 53
+	MKCOLOUR(0x62616262),
+	MKCOLOUR(0x62626161), // height 55
+	MKCOLOUR(0x62626161),
+	MKCOLOUR(0x62626162), // height 57
+	MKCOLOUR(0x62626162),
+	MKCOLOUR(0x62626261), // height 59
+	MKCOLOUR(0x62626261),
+	MKCOLOUR(0x62626262), // height 61
+	MKCOLOUR(0x62626262),
+	MKCOLOUR(0x62626263), // height 63
+	MKCOLOUR(0x62626263),
+	MKCOLOUR(0x62626362), // height 65
+	MKCOLOUR(0x62626362),
+	MKCOLOUR(0x62626363), // height 67
+	MKCOLOUR(0x62626363),
+	MKCOLOUR(0x62636262), // height 69
+	MKCOLOUR(0x62636262),
+	MKCOLOUR(0x62636263), // height 71
+	MKCOLOUR(0x62636263),
+	MKCOLOUR(0x62636362), // height 73
+	MKCOLOUR(0x62636362),
+	MKCOLOUR(0x62636363), // height 75
+	MKCOLOUR(0x62636363),
+	MKCOLOUR(0x63626262), // height 77
+	MKCOLOUR(0x63626262),
+	MKCOLOUR(0x63626263), // height 79
+	MKCOLOUR(0x63626263),
+	MKCOLOUR(0x63626362), // height 81
+	MKCOLOUR(0x63626362),
+	MKCOLOUR(0x63626363), // height 83
+	MKCOLOUR(0x63626363),
+	MKCOLOUR(0x63636262), // height 85
+	MKCOLOUR(0x63636262),
+	MKCOLOUR(0x63636263), // height 87
+	MKCOLOUR(0x63636263),
+	MKCOLOUR(0x63636362), // height 89
+	MKCOLOUR(0x63636362),
+	MKCOLOUR(0x63636363), // height 91
+	MKCOLOUR(0x63636363),
+	MKCOLOUR(0x63636364), // height 93
+	MKCOLOUR(0x63636364),
+	MKCOLOUR(0x63636463), // height 95
+	MKCOLOUR(0x63636463),
+	MKCOLOUR(0x63636464), // height 97
+	MKCOLOUR(0x63636464),
+	MKCOLOUR(0x63646363), // height 99
+	MKCOLOUR(0x63646363),
+	MKCOLOUR(0x63646364), // height 101
+	MKCOLOUR(0x63646364),
+	MKCOLOUR(0x63646463), // height 103
+	MKCOLOUR(0x63646463),
+	MKCOLOUR(0x63646464), // height 105
+	MKCOLOUR(0x63646464),
+	MKCOLOUR(0x64636363), // height 107
+	MKCOLOUR(0x64636363),
+	MKCOLOUR(0x64636364), // height 109
+	MKCOLOUR(0x64636364),
+	MKCOLOUR(0x64636463), // height 111
+	MKCOLOUR(0x64636463),
+	MKCOLOUR(0x64636464), // height 113
+	MKCOLOUR(0x64636464),
+	MKCOLOUR(0x64646363), // height 115
+	MKCOLOUR(0x64646363),
+	MKCOLOUR(0x64646364), // height 117
+	MKCOLOUR(0x64646364),
+	MKCOLOUR(0x64646463), // height 119
+	MKCOLOUR(0x64646463),
+	MKCOLOUR(0x64646464), // height 121
+	MKCOLOUR(0x64646464),
+	MKCOLOUR(0x64646465), // height 123
+	MKCOLOUR(0x64646465),
+	MKCOLOUR(0x64646564), // height 125
+	MKCOLOUR(0x64646564),
+	MKCOLOUR(0x64646565), // height 127
+	MKCOLOUR(0x64646565),
+	MKCOLOUR(0x64656464), // height 129
+	MKCOLOUR(0x64656464),
+	MKCOLOUR(0x64656465), // height 131
+	MKCOLOUR(0x64656465),
+	MKCOLOUR(0x64656564), // height 133
+	MKCOLOUR(0x64656564),
+	MKCOLOUR(0x64656565), // height 135
+	MKCOLOUR(0x64656565),
+	MKCOLOUR(0x65646464), // height 137
+	MKCOLOUR(0x65646464),
+	MKCOLOUR(0x65646465), // height 139
+	MKCOLOUR(0x65646465),
+	MKCOLOUR(0x65646564), // height 141
+	MKCOLOUR(0x65646564),
+	MKCOLOUR(0x65646565), // height 143
+	MKCOLOUR(0x65646565),
+	MKCOLOUR(0x65656464), // height 145
+	MKCOLOUR(0x65656464),
+	MKCOLOUR(0x65656465), // height 147
+	MKCOLOUR(0x65656465),
+	MKCOLOUR(0x65656564), // height 149
+	MKCOLOUR(0x65656564),
+	MKCOLOUR(0x65656565), // height 151
+	MKCOLOUR(0x65656565),
+	MKCOLOUR(0x65656566), // height 153
+	MKCOLOUR(0x65656566),
+	MKCOLOUR(0x65656665), // height 155
+	MKCOLOUR(0x65656665),
+	MKCOLOUR(0x65656666), // height 157
+	MKCOLOUR(0x65656666),
+	MKCOLOUR(0x65666565), // height 159
+	MKCOLOUR(0x65666565),
+	MKCOLOUR(0x65666566), // height 161
+	MKCOLOUR(0x65666566),
+	MKCOLOUR(0x65666665), // height 163
+	MKCOLOUR(0x65666665),
+	MKCOLOUR(0x65666666), // height 165
+	MKCOLOUR(0x65666666),
+	MKCOLOUR(0x66656565), // height 167
+	MKCOLOUR(0x66656565),
+	MKCOLOUR(0x66656566), // height 169
+	MKCOLOUR(0x66656566),
+	MKCOLOUR(0x66656665), // height 171
+	MKCOLOUR(0x66656665),
+	MKCOLOUR(0x66656666), // height 173
+	MKCOLOUR(0x66656666),
+	MKCOLOUR(0x66666565), // height 175
+	MKCOLOUR(0x66666565),
+	MKCOLOUR(0x66666566), // height 177
+	MKCOLOUR(0x66666566),
+	MKCOLOUR(0x66666665), // height 179
+	MKCOLOUR(0x66666665),
+	MKCOLOUR(0x66666666), // height 181
+	MKCOLOUR(0x66666666),
+	MKCOLOUR(0x66666667), // height 183
+	MKCOLOUR(0x66666667),
+	MKCOLOUR(0x66666766), // height 185
+	MKCOLOUR(0x66666766),
+	MKCOLOUR(0x66666767), // height 187
+	MKCOLOUR(0x66666767),
+	MKCOLOUR(0x66676666), // height 189
+	MKCOLOUR(0x66676666),
+	MKCOLOUR(0x66676667), // height 191
+	MKCOLOUR(0x66676667),
+	MKCOLOUR(0x66676766), // height 193
+	MKCOLOUR(0x66676766),
+	MKCOLOUR(0x66676767), // height 195
+	MKCOLOUR(0x66676767),
+	MKCOLOUR(0x67676767), // height 197
+	MKCOLOUR(0x67676767),
+	MKCOLOUR(0x67676767), // height 199
+	MKCOLOUR(0x67676767),
+	MKCOLOUR(0x67676767), // height 201
+	MKCOLOUR(0x67676767),
+	MKCOLOUR(0x67676767), // height 203
+	MKCOLOUR(0x67676767),
+	MKCOLOUR(0x67676767), // height 205
+	MKCOLOUR(0x67676767),
+	MKCOLOUR(0x67676767), // height 207
+	MKCOLOUR(0x67676767),
+	MKCOLOUR(0x67676767), // height 209
+	MKCOLOUR(0x67676767),
+	MKCOLOUR(0x67676767), // height 211
+	MKCOLOUR(0x67676767),
+	MKCOLOUR(0x67676767), // height 213
+	MKCOLOUR(0x67676767),
+	MKCOLOUR(0x67676767), // height 215
+	MKCOLOUR(0x67676767),
+	MKCOLOUR(0x67676767), // height 217
+	MKCOLOUR(0x67676767),
+	MKCOLOUR(0x67676767), // height 219
+	MKCOLOUR(0x67676767),
+	MKCOLOUR(0x67676767), // height 221
+	MKCOLOUR(0x67676767),
+	MKCOLOUR(0x67676767), // height 223
+	MKCOLOUR(0x67676767),
+	MKCOLOUR(0x67676767), // height 225
+	MKCOLOUR(0x67676767),
+	MKCOLOUR(0x67676767), // height 227
+	MKCOLOUR(0x67676767),
+	MKCOLOUR(0x67676767), // height 229
+	MKCOLOUR(0x67676767),
+	MKCOLOUR(0x1F27AF27), // height 231
+	MKCOLOUR(0x1F27AF27), // height 232
+	MKCOLOUR(0x1F274FAF), // height 233
+	MKCOLOUR(0x1F274FAF), // height 234
+	MKCOLOUR(0x4F274FAF), // height 235
+	MKCOLOUR(0x4F274FAF), // height 236
+	MKCOLOUR(0x4FAF1FAF), // height 237
+	MKCOLOUR(0x4FAF1FAF), // height 238
+	MKCOLOUR(0x4F2727AF), // height 239
+	MKCOLOUR(0x4F2727AF), // height 240
+	MKCOLOUR(0x4F27AF27), // height 241
+	MKCOLOUR(0x4F27AF27), // height 242
+	MKCOLOUR(0x4F27AFAF), // height 243
+	MKCOLOUR(0x4F27AFAF), // height 244
+	MKCOLOUR(0x4FAF2727), // height 245
+	MKCOLOUR(0x4FAF2727), // height 246
+	MKCOLOUR(0x4FAF27AF), // height 247
+	MKCOLOUR(0x4FAF27AF), // height 248
+	MKCOLOUR(0x4FAFAF27), // height 249
+	MKCOLOUR(0x4FAFAF27), // height 250
+	MKCOLOUR(0x4FAFAFAF), // height 251
+	MKCOLOUR(0x4FAFAFAF), // height 252
+	MKCOLOUR(0x4FAFAFCF), // height 253
+	MKCOLOUR(0x4FAFAFCF), // height 254
+	MKCOLOUR(0x4FAFCFAF), // height 255
+};
+assert_compile(lengthof(_dark_green_map_heights) == MAX_TILE_HEIGHT + 1);
+
+/** Darkened height map colours for the dark green colour scheme, ordered by height. */
+/*static const uint32 _dark_green_map_heights_dark[] = {
+	MKCOLOUR_XXXX(0x46),
+	MKCOLOUR_XYXY(0x46, 0x60),
+	MKCOLOUR_XXXX(0x60),
+	MKCOLOUR_XYXY(0x60, 0x61),
+	MKCOLOUR_XXXX(0x61),
+	MKCOLOUR_XYXY(0x61, 0x62),
+	MKCOLOUR_XXXX(0x62),
+	MKCOLOUR_XYXY(0x62, 0x63),
+	MKCOLOUR_XXXX(0x63),
+	MKCOLOUR_XYXY(0x63, 0x64),
+	MKCOLOUR_XXXX(0x64),
+	MKCOLOUR_XYXY(0x64, 0x65),
+	MKCOLOUR_XXXX(0x65),
+	MKCOLOUR_XYXY(0x65, 0x66),
+	MKCOLOUR_XXXX(0x66),
+	MKCOLOUR_XYXY(0x66, 0x67),
+};
+assert_compile(lengthof(_dark_green_map_heights_dark) == lengthof(_dark_green_map_heights));*/
+
+/** Lightened height map colours for the dark green colour scheme, ordered by height. */
+/*static const uint32 _dark_green_map_heights_light[] = {
+	MKCOLOUR_XXXX(0x61),
+	MKCOLOUR_XYXY(0x61, 0x62),
+	MKCOLOUR_XXXX(0x62),
+	MKCOLOUR_XYXY(0x62, 0x63),
+	MKCOLOUR_XXXX(0x63),
+	MKCOLOUR_XYXY(0x63, 0x64),
+	MKCOLOUR_XXXX(0x64),
+	MKCOLOUR_XYXY(0x64, 0x65),
+	MKCOLOUR_XXXX(0x65),
+	MKCOLOUR_XYXY(0x65, 0x66),
+	MKCOLOUR_XXXX(0x66),
+	MKCOLOUR_XYXY(0x66, 0x67),
+	MKCOLOUR_XXXX(0x67),
+	MKCOLOUR_XYXY(0x67, 0x0F),
+	MKCOLOUR_XXXX(0x0F),
+	MKCOLOUR_XXXX(0x0F),
+};
+assert_compile(lengthof(_dark_green_map_heights_light) == lengthof(_dark_green_map_heights));*/
+
+/** Height map colours for the violet colour scheme, ordered by height. */
+static const uint32 _violet_map_heights[] = {
+	MKCOLOUR(0x80808080), // height 0
+	MKCOLOUR(0x80808080), // height 1
+	MKCOLOUR(0x80808080),
+	MKCOLOUR(0x80808081), // height 3
+	MKCOLOUR(0x80808081),
+	MKCOLOUR(0x80808180), // height 5
+	MKCOLOUR(0x80808180),
+	MKCOLOUR(0x80808181), // height 7
+	MKCOLOUR(0x80808181),
+	MKCOLOUR(0x80818080), // height 9
+	MKCOLOUR(0x80818080),
+	MKCOLOUR(0x80818081), // height 11
+	MKCOLOUR(0x80818081),
+	MKCOLOUR(0x80818180), // height 13
+	MKCOLOUR(0x80818180),
+	MKCOLOUR(0x80818181), // height 15
+	MKCOLOUR(0x80818181),
+	MKCOLOUR(0x81808080), // height 17
+	MKCOLOUR(0x81808080),
+	MKCOLOUR(0x81808081), // height 19
+	MKCOLOUR(0x81808081),
+	MKCOLOUR(0x81808180), // height 21
+	MKCOLOUR(0x81808180),
+	MKCOLOUR(0x81808181), // height 23
+	MKCOLOUR(0x81808181),
+	MKCOLOUR(0x81818080), // height 25
+	MKCOLOUR(0x81818080),
+	MKCOLOUR(0x81818081), // height 27
+	MKCOLOUR(0x81818081),
+	MKCOLOUR(0x81818180), // height 29
+	MKCOLOUR(0x81818180),
+	MKCOLOUR(0x81818181), // height 31
+	MKCOLOUR(0x81818181),
+	MKCOLOUR(0x81818182), // height 33
+	MKCOLOUR(0x81818182),
+	MKCOLOUR(0x81818281), // height 35
+	MKCOLOUR(0x81818281),
+	MKCOLOUR(0x81818282), // height 37
+	MKCOLOUR(0x81818282),
+	MKCOLOUR(0x81828181), // height 39
+	MKCOLOUR(0x81828181),
+	MKCOLOUR(0x81828182), // height 41
+	MKCOLOUR(0x81828182),
+	MKCOLOUR(0x81828281), // height 43
+	MKCOLOUR(0x81828281),
+	MKCOLOUR(0x81828282), // height 45
+	MKCOLOUR(0x81828282),
+	MKCOLOUR(0x82818181), // height 47
+	MKCOLOUR(0x82818181),
+	MKCOLOUR(0x82818182), // height 49
+	MKCOLOUR(0x82818182),
+	MKCOLOUR(0x82818281), // height 51
+	MKCOLOUR(0x82818281),
+	MKCOLOUR(0x82818282), // height 53
+	MKCOLOUR(0x82818282),
+	MKCOLOUR(0x82828181), // height 55
+	MKCOLOUR(0x82828181),
+	MKCOLOUR(0x82828182), // height 57
+	MKCOLOUR(0x82828182),
+	MKCOLOUR(0x82828281), // height 59
+	MKCOLOUR(0x82828281),
+	MKCOLOUR(0x82828282), // height 61
+	MKCOLOUR(0x82828282),
+	MKCOLOUR(0x82828283), // height 63
+	MKCOLOUR(0x82828283),
+	MKCOLOUR(0x82828382), // height 65
+	MKCOLOUR(0x82828382),
+	MKCOLOUR(0x82828383), // height 67
+	MKCOLOUR(0x82828383),
+	MKCOLOUR(0x82838282), // height 69
+	MKCOLOUR(0x82838282),
+	MKCOLOUR(0x82838283), // height 71
+	MKCOLOUR(0x82838283),
+	MKCOLOUR(0x82838382), // height 73
+	MKCOLOUR(0x82838382),
+	MKCOLOUR(0x82838383), // height 75
+	MKCOLOUR(0x82838383),
+	MKCOLOUR(0x83828282), // height 77
+	MKCOLOUR(0x83828282),
+	MKCOLOUR(0x83828283), // height 79
+	MKCOLOUR(0x83828283),
+	MKCOLOUR(0x83828382), // height 81
+	MKCOLOUR(0x83828382),
+	MKCOLOUR(0x83828383), // height 83
+	MKCOLOUR(0x83828383),
+	MKCOLOUR(0x83838282), // height 85
+	MKCOLOUR(0x83838282),
+	MKCOLOUR(0x83838283), // height 87
+	MKCOLOUR(0x83838283),
+	MKCOLOUR(0x83838382), // height 89
+	MKCOLOUR(0x83838382),
+	MKCOLOUR(0x83838383), // height 91
+	MKCOLOUR(0x83838383),
+	MKCOLOUR(0x83838384), // height 93
+	MKCOLOUR(0x83838384),
+	MKCOLOUR(0x83838483), // height 95
+	MKCOLOUR(0x83838483),
+	MKCOLOUR(0x83838484), // height 97
+	MKCOLOUR(0x83838484),
+	MKCOLOUR(0x83848383), // height 99
+	MKCOLOUR(0x83848383),
+	MKCOLOUR(0x83848384), // height 101
+	MKCOLOUR(0x83848384),
+	MKCOLOUR(0x83848483), // height 103
+	MKCOLOUR(0x83848483),
+	MKCOLOUR(0x83848484), // height 105
+	MKCOLOUR(0x83848484),
+	MKCOLOUR(0x84838383), // height 107
+	MKCOLOUR(0x84838383),
+	MKCOLOUR(0x84838384), // height 109
+	MKCOLOUR(0x84838384),
+	MKCOLOUR(0x84838483), // height 111
+	MKCOLOUR(0x84838483),
+	MKCOLOUR(0x84838484), // height 113
+	MKCOLOUR(0x84838484),
+	MKCOLOUR(0x84848383), // height 115
+	MKCOLOUR(0x84848383),
+	MKCOLOUR(0x84848384), // height 117
+	MKCOLOUR(0x84848384),
+	MKCOLOUR(0x84848483), // height 119
+	MKCOLOUR(0x84848483),
+	MKCOLOUR(0x84848484), // height 121
+	MKCOLOUR(0x84848484),
+	MKCOLOUR(0x84848485), // height 123
+	MKCOLOUR(0x84848485),
+	MKCOLOUR(0x84848584), // height 125
+	MKCOLOUR(0x84848584),
+	MKCOLOUR(0x84848585), // height 127
+	MKCOLOUR(0x84848585),
+	MKCOLOUR(0x84858484), // height 129
+	MKCOLOUR(0x84858484),
+	MKCOLOUR(0x84858485), // height 131
+	MKCOLOUR(0x84858485),
+	MKCOLOUR(0x84858584), // height 133
+	MKCOLOUR(0x84858584),
+	MKCOLOUR(0x84858585), // height 135
+	MKCOLOUR(0x84858585),
+	MKCOLOUR(0x85848484), // height 137
+	MKCOLOUR(0x85848484),
+	MKCOLOUR(0x85848485), // height 139
+	MKCOLOUR(0x85848485),
+	MKCOLOUR(0x85848584), // height 141
+	MKCOLOUR(0x85848584),
+	MKCOLOUR(0x85848585), // height 143
+	MKCOLOUR(0x85848585),
+	MKCOLOUR(0x85858484), // height 145
+	MKCOLOUR(0x85858484),
+	MKCOLOUR(0x85858485), // height 147
+	MKCOLOUR(0x85858485),
+	MKCOLOUR(0x85858584), // height 149
+	MKCOLOUR(0x85858584),
+	MKCOLOUR(0x85858585), // height 151
+	MKCOLOUR(0x85858585),
+	MKCOLOUR(0x85858586), // height 153
+	MKCOLOUR(0x85858586),
+	MKCOLOUR(0x85858685), // height 155
+	MKCOLOUR(0x85858685),
+	MKCOLOUR(0x85858686), // height 157
+	MKCOLOUR(0x85858686),
+	MKCOLOUR(0x85868585), // height 159
+	MKCOLOUR(0x85868585),
+	MKCOLOUR(0x85868586), // height 161
+	MKCOLOUR(0x85868586),
+	MKCOLOUR(0x85868685), // height 163
+	MKCOLOUR(0x85868685),
+	MKCOLOUR(0x85868686), // height 165
+	MKCOLOUR(0x85868686),
+	MKCOLOUR(0x85868585), // height 167
+	MKCOLOUR(0x85868585),
+	MKCOLOUR(0x85868586), // height 169
+	MKCOLOUR(0x85868586),
+	MKCOLOUR(0x85868685), // height 171
+	MKCOLOUR(0x85868685),
+	MKCOLOUR(0x85868686), // height 173
+	MKCOLOUR(0x85868686),
+	MKCOLOUR(0x86868585), // height 175
+	MKCOLOUR(0x86868585),
+	MKCOLOUR(0x86868586), // height 177
+	MKCOLOUR(0x86868586),
+	MKCOLOUR(0x86868685), // height 179
+	MKCOLOUR(0x86868685),
+	MKCOLOUR(0x86868686), // height 181
+	MKCOLOUR(0x86868686),
+	MKCOLOUR(0x86868687), // height 183
+	MKCOLOUR(0x86868687),
+	MKCOLOUR(0x86868786), // height 185
+	MKCOLOUR(0x86868786),
+	MKCOLOUR(0x86868787), // height 187
+	MKCOLOUR(0x86868787),
+	MKCOLOUR(0x86878686), // height 189
+	MKCOLOUR(0x86878686),
+	MKCOLOUR(0x86878687), // height 191
+	MKCOLOUR(0x86878687),
+	MKCOLOUR(0x86878786), // height 193
+	MKCOLOUR(0x86878786),
+	MKCOLOUR(0x86878787), // height 195
+	MKCOLOUR(0x86878787),
+	MKCOLOUR(0x87868686), // height 197
+	MKCOLOUR(0x87868686),
+	MKCOLOUR(0x87868687), // height 199
+	MKCOLOUR(0x87868687),
+	MKCOLOUR(0x87868786), // height 201
+	MKCOLOUR(0x87868786),
+	MKCOLOUR(0x87868787), // height 203
+	MKCOLOUR(0x87868787),
+	MKCOLOUR(0x87878686), // height 205
+	MKCOLOUR(0x87878686),
+	MKCOLOUR(0x87878687), // height 207
+	MKCOLOUR(0x87878687),
+	MKCOLOUR(0x87878786), // height 209
+	MKCOLOUR(0x87878786),
+	MKCOLOUR(0x87878787), // height 211
+	MKCOLOUR(0x87878787),
+	MKCOLOUR(0x87878787), // height 213
+	MKCOLOUR(0x87878787),
+	MKCOLOUR(0x87878787), // height 215
+	MKCOLOUR(0x87878787),
+	MKCOLOUR(0x87878787), // height 217
+	MKCOLOUR(0x87878787),
+	MKCOLOUR(0x87878787), // height 219
+	MKCOLOUR(0x87878787),
+	MKCOLOUR(0x87878787), // height 221
+	MKCOLOUR(0x87878787),
+	MKCOLOUR(0x87878787), // height 223
+	MKCOLOUR(0x87878787),
+	MKCOLOUR(0x87878787), // height 225
+	MKCOLOUR(0x87878787),
+	MKCOLOUR(0x87878787), // height 227
+	MKCOLOUR(0x87878787),
+	MKCOLOUR(0x87878787), // height 229
+	MKCOLOUR(0x87878787),
+	MKCOLOUR(0x1F27AF27), // height 231
+	MKCOLOUR(0x1F27AF27), // height 232
+	MKCOLOUR(0x1F274FAF), // height 233
+	MKCOLOUR(0x1F274FAF), // height 234
+	MKCOLOUR(0x4F274FAF), // height 235
+	MKCOLOUR(0x4F274FAF), // height 236
+	MKCOLOUR(0x4FAF1FAF), // height 237
+	MKCOLOUR(0x4FAF1FAF), // height 238
+	MKCOLOUR(0x4F2727AF), // height 239
+	MKCOLOUR(0x4F2727AF), // height 240
+	MKCOLOUR(0x4F27AF27), // height 241
+	MKCOLOUR(0x4F27AF27), // height 242
+	MKCOLOUR(0x4F27AFAF), // height 243
+	MKCOLOUR(0x4F27AFAF), // height 244
+	MKCOLOUR(0x4FAF2727), // height 245
+	MKCOLOUR(0x4FAF2727), // height 246
+	MKCOLOUR(0x4FAF27AF), // height 247
+	MKCOLOUR(0x4FAF27AF), // height 248
+	MKCOLOUR(0x4FAFAF27), // height 249
+	MKCOLOUR(0x4FAFAF27), // height 250
+	MKCOLOUR(0x4FAFAFAF), // height 251
+	MKCOLOUR(0x4FAFAFAF), // height 252
+	MKCOLOUR(0x4FAFAFCF), // height 253
+	MKCOLOUR(0x4FAFAFCF), // height 254
+	MKCOLOUR(0x4FAFCFAF), // height 255
+};
+assert_compile(lengthof(_violet_map_heights) == MAX_TILE_HEIGHT + 1);
+
+/** Darkened height map colours for the violet colour scheme, ordered by height. */
+/*static const uint32 _violet_map_heights_dark[] = {
+	MKCOLOUR_XXXX(0x46),
+	MKCOLOUR_XYXY(0x46, 0x80),
+	MKCOLOUR_XXXX(0x80),
+	MKCOLOUR_XYXY(0x80, 0x81),
+	MKCOLOUR_XXXX(0x81),
+	MKCOLOUR_XYXY(0x81, 0x82),
+	MKCOLOUR_XXXX(0x82),
+	MKCOLOUR_XYXY(0x82, 0x83),
+	MKCOLOUR_XXXX(0x83),
+	MKCOLOUR_XYXY(0x83, 0x84),
+	MKCOLOUR_XXXX(0x84),
+	MKCOLOUR_XYXY(0x84, 0x85),
+	MKCOLOUR_XXXX(0x85),
+	MKCOLOUR_XYXY(0x85, 0x86),
+	MKCOLOUR_XXXX(0x86),
+	MKCOLOUR_XYXY(0x86, 0x87),
+};
+assert_compile(lengthof(_violet_map_heights_dark) == lengthof(_violet_map_heights));*/
+
+/** Lightened height map colours for the violet colour scheme, ordered by height. */
+/*static const uint32 _violet_map_heights_light[] = {
+	MKCOLOUR_XXXX(0x81),
+	MKCOLOUR_XYXY(0x81, 0x82),
+	MKCOLOUR_XXXX(0x82),
+	MKCOLOUR_XYXY(0x82, 0x83),
+	MKCOLOUR_XXXX(0x83),
+	MKCOLOUR_XYXY(0x83, 0x84),
+	MKCOLOUR_XXXX(0x84),
+	MKCOLOUR_XYXY(0x84, 0x85),
+	MKCOLOUR_XXXX(0x85),
+	MKCOLOUR_XYXY(0x85, 0x86),
+	MKCOLOUR_XXXX(0x86),
+	MKCOLOUR_XYXY(0x86, 0x87),
+	MKCOLOUR_XXXX(0x87),
+	MKCOLOUR_XYXY(0x87, 0x0F),
+	MKCOLOUR_XXXX(0x0F),
+	MKCOLOUR_XXXX(0x0F),
+};
+assert_compile(lengthof(_violet_map_heights_light) == lengthof(_violet_map_heights));*/
+
+/** Colour scheme of the smallmap. */
+struct SmallMapColourScheme {
+	const uint32 *height_colours; ///< Colour of each level in a heightmap.
+	uint32 default_colour;   ///< Default colour of the land.
+};
+
+/** Available colour schemes for height maps. */
+static const SmallMapColourScheme _heightmap_schemes[] = {
+	{_green_map_heights,            MKCOLOUR_XXXX(0x5B)}, ///< Green colour scheme.
+	{_dark_green_map_heights,       MKCOLOUR_XXXX(0x62)}, ///< Dark green colour scheme.
+	{_violet_map_heights,           MKCOLOUR_XXXX(0x82)}, ///< Violet colour scheme.
+};
+/*
+static const SmallMapColourScheme _heightmap_schemes_dark[] = {
+	{_green_map_heights_dark,       MKCOLOUR_XXXX(0x5A)}, ///< Green colour scheme.
+	{_dark_green_map_heights_dark,  MKCOLOUR_XXXX(0x61)}, ///< Dark green colour scheme.
+	{_violet_map_heights_dark,      MKCOLOUR_XXXX(0x81)}, ///< Violet colour scheme.
+};
+
+static const SmallMapColourScheme _heightmap_schemes_light[] = {
+	{_green_map_heights_light,      MKCOLOUR_XXXX(0x5C)}, ///< Green colour scheme.
+	{_dark_green_map_heights_light, MKCOLOUR_XXXX(0x63)}, ///< Dark green colour scheme.
+	{_violet_map_heights_light,     MKCOLOUR_XXXX(0x83)}, ///< Violet colour scheme.
+};*/
+
+static const SmallMapColourScheme _heightmap_schemes_dark[] = {
+	{_green_map_heights,            MKCOLOUR_XXXX(0x5B)}, ///< Green colour scheme.
+	{_dark_green_map_heights,       MKCOLOUR_XXXX(0x62)}, ///< Dark green colour scheme.
+	{_violet_map_heights,           MKCOLOUR_XXXX(0x82)}, ///< Violet colour scheme.
+};
+
+static const SmallMapColourScheme _heightmap_schemes_light[] = {
+	{_green_map_heights,            MKCOLOUR_XXXX(0x5B)}, ///< Green colour scheme.
+	{_dark_green_map_heights,       MKCOLOUR_XXXX(0x62)}, ///< Dark green colour scheme.
+	{_violet_map_heights,           MKCOLOUR_XXXX(0x82)}, ///< Violet colour scheme.
+};
+
+struct AndOr {
+	uint32 mor;
+	uint32 mand;
+};
+
+static inline uint32 ApplyMask(uint32 colour, const AndOr *mask)
+{
+	return (colour & mask->mand) | mask->mor;
+}
+
+/** Colour masks for "Contour" and "Routes" modes. */
+static const AndOr _smallmap_contours_andor[] = {
+	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // MP_CLEAR
+	{MKCOLOUR_0XX0(PC_GREY      ), MKCOLOUR_F00F}, // MP_RAILWAY
+	{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // MP_ROAD
+	{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // MP_HOUSE
+	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // MP_TREES
+	{MKCOLOUR_XXXX(PC_LIGHT_BLUE), MKCOLOUR_0000}, // MP_STATION
+	{MKCOLOUR_XXXX(PC_WATER     ), MKCOLOUR_0000}, // MP_WATER
+	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // MP_VOID
+	{MKCOLOUR_XXXX(PC_DARK_RED  ), MKCOLOUR_0000}, // MP_INDUSTRY
+	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // MP_TUNNELBRIDGE
+	{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // MP_OBJECT
+	{MKCOLOUR_0XX0(PC_GREY      ), MKCOLOUR_F00F},
+};
+
+/** Colour masks for "Vehicles", "Industry", and "Vegetation" modes. */
+static const AndOr _smallmap_vehicles_andor[] = {
+	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // MP_CLEAR
+	{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // MP_RAILWAY
+	{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // MP_ROAD
+	{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // MP_HOUSE
+	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // MP_TREES
+	{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // MP_STATION
+	{MKCOLOUR_XXXX(PC_WATER     ), MKCOLOUR_0000}, // MP_WATER
+	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // MP_VOID
+	{MKCOLOUR_XXXX(PC_DARK_RED  ), MKCOLOUR_0000}, // MP_INDUSTRY
+	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // MP_TUNNELBRIDGE
+	{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // MP_OBJECT
+	{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F},
+};
+
+static const uint32 _vegetation_clear_bits[] = {
+	MKCOLOUR_XXXX(PC_GRASS_LAND), ///< full grass
+	MKCOLOUR_XXXX(PC_ROUGH_LAND), ///< rough land
+	MKCOLOUR_XXXX(PC_GREY),       ///< rocks
+	MKCOLOUR_XXXX(PC_FIELDS),     ///< fields
+	MKCOLOUR_XXXX(PC_LIGHT_BLUE), ///< snow
+	MKCOLOUR_XXXX(PC_ORANGE),     ///< desert
+	MKCOLOUR_XXXX(PC_GRASS_LAND), ///< unused
+	MKCOLOUR_XXXX(PC_GRASS_LAND), ///< unused
+};
+
+#endif /* SMALLMAP_COLOURS_H */

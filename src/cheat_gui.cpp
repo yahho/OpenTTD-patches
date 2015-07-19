@@ -25,6 +25,10 @@
 #include "settings_gui.h"
 #include "company_gui.h"
 #include "linkgraph/linkgraphschedule.h"
+#include "newgrf.h"
+#include "error.h"
+#include "map_func.h"
+#include "tile_map.h"
 
 #include "widgets/cheat_widget.h"
 
@@ -112,6 +116,41 @@ static int32 ClickChangeDateCheat(int32 p1, int32 p2)
 	return _cur_year;
 }
 
+ /**
+ * Allow (or disallow) a change of the maximal allowed heightlevel.
+ * @param p1 new value
+ * @param p2 unused
+ * @return New value (or unchanged old value) of the maximal
+ *         allowed heightlevel value.
+ */
+static int32 ClickChangeMaxHlCheat(int32 p1, int32 p2) {
+	if (p1 < (int32)MIN_MAX_HEIGHTLEVEL) {
+		// new value too small
+		return _settings_game.construction.max_heightlevel;
+	} else if (p1 > (int32)MAX_MAX_HEIGHTLEVEL) {
+		// new value too big
+		return _settings_game.construction.max_heightlevel;
+	} else {
+		// Check if at least one mountain on the map is higher than the new value.
+		// If yes, disallow the change.
+		for (uint x = 0; x < MapMaxX(); x++) {
+			for (uint y = 0; y < MapMaxY(); y++) {
+				TileIndex tile = TileXY(x, y);
+				if ((int32)TileHeight(tile) > p1) {
+					ShowErrorMessage(STR_CONFIG_SETTING_TOO_HIGH_MOUNTAIN, INVALID_STRING_ID, WL_ERROR);
+					// Return old, unchanged value
+					return _settings_game.construction.max_heightlevel;
+				}
+			}
+		}
+
+		// Execute the change and reload GRF Data
+		_settings_game.construction.max_heightlevel = p1;
+		ReloadNewGRFData();
+		return _settings_game.construction.max_heightlevel;
+	}
+}
+
 /** Available cheats. */
 enum CheatNumbers {
 	CHT_MONEY,           ///< Change amount of money.
@@ -120,6 +159,7 @@ enum CheatNumbers {
 	CHT_CROSSINGTUNNELS, ///< Allow tunnels to cross each other.
 	CHT_NO_JETCRASH,     ///< Disable jet-airplane crashes.
 	CHT_SETUP_PROD,      ///< Allow manually editing of industry production.
+	CHT_EDIT_MAX_HL,     ///< Edit maximal allowed heightlevel
 	CHT_CHANGE_DATE,     ///< Do time traveling.
 
 	CHT_NUM_CHEATS,      ///< Number of cheats.
@@ -152,6 +192,7 @@ static const CheatEntry _cheats_ui[] = {
 	{SLE_BOOL,  STR_CHEAT_CROSSINGTUNNELS, &_cheats.crossing_tunnels.value,         &_cheats.crossing_tunnels.been_used, NULL                     },
 	{SLE_BOOL,  STR_CHEAT_NO_JETCRASH,     &_cheats.no_jetcrash.value,              &_cheats.no_jetcrash.been_used,      NULL                     },
 	{SLE_BOOL,  STR_CHEAT_SETUP_PROD,      &_cheats.setup_prod.value,               &_cheats.setup_prod.been_used,       &ClickSetProdCheat       },
+	{SLE_UINT8, STR_CHEAT_EDIT_MAX_HL,     &_settings_game.construction.max_heightlevel, &_cheats.edit_max_hl.been_used, &ClickChangeMaxHlCheat   },
 	{SLE_INT32, STR_CHEAT_CHANGE_DATE,     &_cur_year,                              &_cheats.change_date.been_used,      &ClickChangeDateCheat    },
 };
 
@@ -299,6 +340,12 @@ struct CheatWindow : Window {
 			SetDParam(0, value);
 			ShowQueryString(STR_JUST_INT, STR_CHEAT_CHANGE_DATE_QUERY_CAPT, 8, this, CS_NUMERAL, QSF_ACCEPT_UNCHANGED);
 			return;
+		} else if (btn == CHT_EDIT_MAX_HL && x >= 40) {
+			/* Click at the max. heightlevel text directly. */
+// TODO: How to process the result in OnQueryTextFinished / how to find out that we want to change max. heightlevel, not date
+//			SetDParam(0, value);
+//			ShowQueryString(STR_JUST_INT, STR_CHEAT_EDIT_MAX_HL_QUERY_CAPT, 8, this, CS_NUMERAL, QSF_ACCEPT_UNCHANGED);
+//			return;
 		}
 
 		/* Not clicking a button? */

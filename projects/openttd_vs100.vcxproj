@@ -382,6 +382,7 @@
     <ClCompile Include="..\src\tile_map.cpp" />
     <ClCompile Include="..\src\tilearea.cpp" />
     <ClCompile Include="..\src\townname.cpp" />
+    <ClCompile Include="..\src\trafficlight.cpp" />
     <ClCompile Include="..\src\vehicle.cpp" />
     <ClCompile Include="..\src\vehiclelist.cpp" />
     <ClCompile Include="..\src\viewport.cpp" />
@@ -628,6 +629,9 @@
     <ClInclude Include="..\src\townname_type.h" />
     <ClInclude Include="..\src\track_func.h" />
     <ClInclude Include="..\src\track_type.h" />
+    <ClInclude Include="..\src\trafficlight.h" />
+    <ClInclude Include="..\src\trafficlight_func.h" />
+    <ClInclude Include="..\src\trafficlight_type.h" />
     <ClInclude Include="..\src\train.h" />
     <ClInclude Include="..\src\transparency.h" />
     <ClInclude Include="..\src\transparency_gui.h" />
@@ -654,6 +658,7 @@
     <ClInclude Include="..\src\window_type.h" />
     <ClInclude Include="..\src\zoom_func.h" />
     <ClInclude Include="..\src\zoom_type.h" />
+    <ClInclude Include="..\src\zoning.h" />
     <ClCompile Include="..\src\core\alloc_func.cpp" />
     <ClInclude Include="..\src\core\alloc_func.hpp" />
     <ClInclude Include="..\src\core\alloc_type.hpp" />
@@ -823,6 +828,7 @@
     <ClCompile Include="..\src\void_cmd.cpp" />
     <ClCompile Include="..\src\water_cmd.cpp" />
     <ClCompile Include="..\src\waypoint_cmd.cpp" />
+    <ClCompile Include="..\src\zoning_cmd.cpp" />
     <ClCompile Include="..\src\saveload\afterload.cpp" />
     <ClCompile Include="..\src\saveload\ai_sl.cpp" />
     <ClCompile Include="..\src\saveload\airport_sl.cpp" />

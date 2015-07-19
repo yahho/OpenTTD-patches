@@ -21,7 +21,8 @@
 #include "linkgraph/linkgraph_type.h"
 #include "zoom_type.h"
 #include "openttd.h"
-
+#include "rail_type.h"
+#include "economy_type.h"
 
 /** Settings profiles and highscore tables. */
 enum SettingsProfile {
@@ -97,6 +98,7 @@ struct GUISettings {
 	uint8  toolbar_pos;                      ///< position of toolbars, 0=left, 1=center, 2=right
 	uint8  statusbar_pos;                    ///< position of statusbar, 0=left, 1=center, 2=right
 	uint8  window_snap_radius;               ///< windows snap at each other if closer than this
+	bool   new_build_vehicle_window;         ///< show new build vehicle window
 	uint8  window_soft_limit;                ///< soft limit of maximum number of non-stickied non-vital windows (0 = no limit)
 	ZoomLevelByte zoom_min;                  ///< minimum zoom out level
 	ZoomLevelByte zoom_max;                  ///< maximum zoom out level
@@ -111,12 +113,45 @@ struct GUISettings {
 	uint8  right_mouse_btn_emulation;        ///< should we emulate right mouse clicking?
 	uint8  scrollwheel_scrolling;            ///< scrolling using the scroll wheel?
 	uint8  scrollwheel_multiplier;           ///< how much 'wheel' per incoming event from the OS?
+	bool   viewport_map_in_realtime;         ///< viewport in map mode : realtime or full redraw every n ticks
+	bool   viewport_map_scan_surroundings;   ///< look for the most important tile in surroundings
+	bool   show_slopes_on_viewport_map;      ///< use slope orientation to render the ground
+	uint32 default_viewport_map_mode;        ///< the mode to use by default when a viewport is in map mode, 0=owner, 1=industry, 2=vegetation
+	uint32 action_when_viewport_map_is_dblclicked; ///< what to do when a doubleclick occurs on the viewport map
+	uint32 show_scrolling_viewport_on_map;   ///< when a no map viewport is scrolled, its location is marked on the other map viewports
+	bool   show_bridges_on_map;              ///< bridges are rendered on a viewport in map mode
+	bool   show_tunnels_on_map;              ///< tunnels are rendered on a viewport in map mode
+	bool   show_vehicle_route_stopovers;     ///< when a window related to a specific vehicle is focused, show the stopovers on map
+	uint32 show_vehicle_route_path;          ///< show a vehicle's path when its orders/timetable window is focused
+	bool   use_owner_colour_for_tunnelbridge;///< bridges and tunnels are rendered with their owner's colour
 	bool   timetable_arrival_departure;      ///< show arrivals and departures in vehicle timetables
+	uint8  max_departures;                   ///< maximum number of departures to show per station
+	uint16 max_departure_time;               ///< maximum time in advance to show departures
+	uint16 departure_calc_frequency;         ///< how often to calculate departures (in ticks)
+	bool   departure_show_vehicle;           ///< whether to show vehicle names with departures
+	bool   departure_show_group;             ///< whether to show group names with departures
+	bool   departure_show_company;           ///< whether to show company names with departures
+	bool   departure_show_vehicle_type;      ///< whether to show vehicle type icons with departures
+	bool   departure_show_vehicle_color;     ///< whether to show vehicle type icons in silver instead of orange
+	bool   departure_larger_font;            ///< whether to show the calling at list in a larger font
+	bool   departure_destination_type;       ///< whether to show destination types for ports and airports
+	bool   departure_show_both;              ///< whether to show departure and arrival times on the same line
+	bool   departure_only_passengers;        ///< whether to only show passenger services
+	bool   departure_smart_terminus;         ///< whether to only show passenger services
+	uint8  departure_conditionals;           ///< how to handle conditional orders
+	bool   departure_show_all_stops;         ///< whether to show stops regardless of loading/unloading done at them
+	bool   departure_merge_identical;        ///< whether to merge identical departures
 	bool   left_mouse_btn_scrolling;         ///< left mouse button scroll
 	bool   pause_on_newgame;                 ///< whether to start new games paused or not
+	uint8  jump_timeout;                     ///< Main title viewport jumping delay
 	bool   enable_signal_gui;                ///< show the signal GUI when the signal button is pressed
 	Year   coloured_news_year;               ///< when does newspaper become coloured?
 	bool   timetable_in_ticks;               ///< whether to show the timetable in ticks rather than days
+	bool   time_in_minutes;                  ///< whether to use the hh:mm conversion when printing dates
+	bool   timetable_start_text_entry;       ///< whether to enter timetable start times as text (hhmm format)
+	uint8  ticks_per_minute;                 ///< how many ticks per minute
+	uint8  date_with_time;                   ///< whether to show the month and year with the time
+	uint16 clock_offset;                     ///< clock offset in minutes
 	bool   quick_goto;                       ///< Allow quick access to 'goto button' in vehicle orders window
 	bool   auto_euro;                        ///< automatically switch to euro in 2002
 	byte   drag_signals_density;             ///< many signals density
@@ -157,6 +192,8 @@ struct GUISettings {
 	uint8  settings_restriction_mode;        ///< selected restriction mode in adv. settings GUI. @see RestrictionMode
 	bool   newgrf_show_old_versions;         ///< whether to show old versions in the NewGRF list
 	uint8  newgrf_default_palette;           ///< default palette to use for NewGRFs without action 14 palette information
+
+	bool   grass_on_old_rails;               ///< enables grass growth on old rails;
 
 	/**
 	 * Returns true when the user has sufficient privileges to edit newgrfs on a running game
@@ -278,8 +315,8 @@ struct GameCreationSettings {
 	uint8  map_y;                            ///< Y size of map
 	byte   land_generator;                   ///< the landscape generator
 	byte   oil_refinery_limit;               ///< distance oil refineries allowed from map edge
-	byte   snow_line_height;                 ///< a number 0-15 that configured snow line height
-	byte   tgen_smoothness;                  ///< how rough is the terrain from 0-3
+	byte   snow_line_height;                 ///< a number 0-255 that configured snow line height
+	byte   tgen_smoothness;                  ///< how rough is the terrain from 0-6
 	byte   tree_placer;                      ///< the tree placer algorithm
 	byte   heightmap_rotation;               ///< rotation director for the heightmap
 	byte   se_flat_world_height;             ///< land height a flat world gets in SE
@@ -309,6 +346,8 @@ struct ConstructionSettings {
 	bool   freeform_edges;                   ///< allow terraforming the tiles at the map edges
 	uint8  extra_tree_placement;             ///< (dis)allow building extra trees in-game
 	uint8  command_pause_level;              ///< level/amount of commands that can't be executed while paused
+	uint16 maximum_signal_evaluations;       ///< maximum number of programmable signals which may be evaluated in one pass
+	uint8  max_heightlevel;                  ///< maximal allowed heightlevel
 
 	uint32 terraform_per_64k_frames;         ///< how many tile heights may, over a long period, be terraformed per 65536 frames?
 	uint16 terraform_frame_burst;            ///< how many tile heights may, over a short period, be terraformed?
@@ -316,6 +355,13 @@ struct ConstructionSettings {
 	uint16 clear_frame_burst;                ///< how many tiles may, over a short period, be cleared?
 	uint32 tree_per_64k_frames;              ///< how many trees may, over a long period, be planted per 65536 frames?
 	uint16 tree_frame_burst;                 ///< how many trees may, over a short period, be planted?
+
+	bool traffic_lights;                     ///< Whether traffic lights are enabled.
+	bool towns_build_traffic_lights;         ///< Whether towns build traffic lights during road construction.
+	bool allow_building_tls_in_towns;        ///< Whether the players are allowed to build traffic lights on town owned roads.
+	uint8 traffic_lights_green_phase;        ///< How long traffic lights' green phase lasts.
+	uint8 max_tlc_size;                      ///< Maximum size for traffic light consists.
+	uint8 max_tlc_distance;                  ///< Maximum distance between traffic lights for synchronising them.
 };
 
 /** Settings related to the AI. */
@@ -363,6 +409,7 @@ struct NPFSettings {
 	uint32 npf_road_curve_penalty;           ///< the penalty for curves
 	uint32 npf_crossing_penalty;             ///< the penalty for level crossings
 	uint32 npf_road_drive_through_penalty;   ///< the penalty for going through a drive-through road stop
+	uint32 npf_road_trafficlight_penalty;    ///< Penalty for junctions with traffic lights.
 	uint32 npf_road_dt_occupied_penalty;     ///< the penalty multiplied by the fill percentage of a drive-through road stop
 	uint32 npf_road_bay_occupied_penalty;    ///< the penalty multiplied by the fill percentage of a road bay
 };
@@ -379,6 +426,7 @@ struct YAPFSettings {
 	uint32 road_curve_penalty;               ///< penalty for curves
 	uint32 road_crossing_penalty;            ///< penalty for level crossing
 	uint32 road_stop_penalty;                ///< penalty for going through a drive-through road stop
+	uint32 road_trafficlight_penalty;        ///< Penalty for junctions with traffic lights.
 	uint32 road_stop_occupied_penalty;       ///< penalty multiplied by the fill percentage of a drive-through road stop
 	uint32 road_stop_bay_occupied_penalty;   ///< penalty multiplied by the fill percentage of a road bay
 	bool   rail_firstred_twoway_eol;         ///< treat first red two-way signal as dead end
@@ -436,6 +484,8 @@ struct OrderSettings {
 	bool   gradual_loading;                  ///< load vehicles gradually
 	bool   selectgoods;                      ///< only send the goods to station if a train has been there
 	bool   no_servicing_if_no_breakdowns;    ///< don't send vehicles to depot when breakdowns are disabled
+	bool   timetable_automated;              ///< whether to automatically manage timetables
+	bool   timetable_separation;          ///< whether to perform automatic separation based on timetable
 	bool   serviceathelipad;                 ///< service helicopters at helipads automatically (no need to send to depot)
 };
 
@@ -455,11 +505,15 @@ struct VehicleSettings {
 	UnitID max_ships;                        ///< max ships in game per company
 	uint8  plane_speed;                      ///< divisor for speed of aircraft
 	uint8  freight_trains;                   ///< value to multiply the weight of cargo by
+	bool   freight_mult_to_passengers;       ///< allow application of weight multiplier to passengers
 	bool   dynamic_engines;                  ///< enable dynamic allocation of engine data
 	bool   never_expire_vehicles;            ///< never expire vehicles
+	bool   exact_intro_date;                 ///< exact vehicle's date intro
 	byte   extend_vehicle_life;              ///< extend vehicle life by this many years
 	byte   road_side;                        ///< the side of the road vehicles drive on
 	uint8  plane_crashes;                    ///< number of plane crashes, 0 = none, 1 = reduced, 2 = normal
+	bool   improved_breakdowns;              ///< different types, chances and serverities of breakdowns
+	uint8  cargo_wait_time;                  ///< time to wait for cargo on the station
 };
 
 /** Settings related to the economy. */
@@ -476,6 +530,9 @@ struct EconomySettings {
 	bool   give_money;                       ///< allow giving other companies money
 	bool   mod_road_rebuild;                 ///< roadworks remove unnecessary RoadBits
 	bool   multiple_industry_per_town;       ///< allow many industries of the same type per town
+	uint16 minimum_distance_town;            ///< minimum distance between towns
+	uint16 minimum_distance_industry;        ///< minimum distance between industries
+	uint16 minimum_distance_ind_town;        ///< minimum distance between industries and towns
 	uint8  town_growth_rate;                 ///< town growth rate
 	uint8  larger_towns;                     ///< the number of cities to build. These start off larger and grow twice as fast
 	uint8  initial_city_size;                ///< multiplier for the initial size of the cities compared to towns
@@ -484,8 +541,28 @@ struct EconomySettings {
 	TownFoundingByte found_town;             ///< town founding, @see TownFounding
 	bool   station_noise_level;              ///< build new airports when the town noise level is still within accepted limits
 	uint16 town_noise_population[3];         ///< population to base decision on noise evaluation (@see town_council_tolerance)
+	bool   infrastructure_sharing[4];        ///< enable infrastructure sharing for rail/road/water/air
+	uint   sharing_fee[4];                   ///< fees for infrastructure sharing for rail/road/water/air
+	bool   sharing_payment_in_debt;          ///< allow fee payment for companies with more loan than money (switch off to prevent MP exploits)
+	int8   town_cargo_factor;                ///< power-of-two multiplier for town (passenger, mail) generation. May be negative.
+	uint8  town_consumption_rate;            ///< Switch to use consumption rates.
+	uint16 town_consumption_rates[3][3];     ///< Consumption rates for towns.
+	uint16 town_pop_small;                   ///< Population of small towns.
+	uint16 town_pop_medium;                  ///< Population of medium towns.
+	uint16 town_pop_large;                   ///< Population of large towns.
+	bool   town_effects[3];                  ///< Enable or disable town effects.
+	bool   grow_if_one_delivered;            ///< Grow town if at lease one cargo delivered.
 	bool   allow_town_level_crossings;       ///< towns are allowed to build level crossings
 	bool   infrastructure_maintenance;       ///< enable monthly maintenance fee for owner infrastructure
+	uint8  deliver_goods;                    ///< Goods delivering method from station to industry
+	uint8  day_length_factor;                ///< factor which the length of day is multiplied.
+	uint8  price_mult[PR_END];               ///< price multipliers.
+	uint8  price_rails[RAILTYPE_END];        ///< rail price multipliers.
+	uint8  rail_maintenance[RAILTYPE_END];   ///< rail maintenance multipliers.
+	uint8  repair_cost;                      ///< cost of repairing vehicle.
+	bool   pay_for_repair;                   ///< pay for repairing vehicle.
+	bool   town_construction_cost;           ///< Higher prices for building in towns.
+	int8   station_rating_type;              ///< Station rating type
 };
 
 struct LinkGraphSettings {

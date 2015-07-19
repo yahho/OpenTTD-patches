@@ -16,12 +16,14 @@
 #include "track_type.h"
 #include "command_type.h"
 #include "order_base.h"
+#include "triphistory.h"
 #include "cargopacket.h"
 #include "texteff.hpp"
 #include "engine_type.h"
 #include "order_func.h"
 #include "transport_type.h"
 #include "group_type.h"
+#include "timetable.h"
 #include "base_consist.h"
 #include <list>
 #include <map>
@@ -46,6 +48,7 @@ enum VehicleFlags {
 	VF_TIMETABLE_STARTED,       ///< Whether the vehicle has started running on the timetable yet.
 	VF_AUTOFILL_TIMETABLE,      ///< Whether the vehicle should fill in the timetable automatically.
 	VF_AUTOFILL_PRES_WAIT_TIME, ///< Whether non-destructive auto-fill should preserve waiting times
+	VF_AUTOMATE_TIMETABLE,	    ///< Whether the vehicle should manage the timetable automatically.
 	VF_STOP_LOADING,            ///< Don't load anymore during the next load cycle.
 	VF_PATHFINDER_LOST,         ///< Vehicle's pathfinder is lost.
 	VF_SERVINT_IS_CUSTOM,       ///< Service interval is custom.
@@ -150,6 +153,9 @@ private:
 	Vehicle *next_shared;               ///< pointer to the next vehicle that shares the order
 	Vehicle *previous_shared;           ///< NOSAVE: pointer to the previous vehicle in the shared order chain
 
+	Vehicle *ahead_separation;
+	Vehicle *behind_separation;
+
 public:
 	friend const SaveLoad *GetVehicleDescription(VehicleType vt); ///< So we can use private/protected variables in the saveload code
 	friend void FixOldVehicles();
@@ -168,6 +174,9 @@ public:
 	Money profit_this_year;             ///< Profit this year << 8, low 8 bits are fract
 	Money profit_last_year;             ///< Profit last year << 8, low 8 bits are fract
 	Money value;                        ///< Value of the vehicle
+	Money base_value;                   ///< Value of the vehicle to calculate repair cost
+
+	TripHistory trip_history;           ///< Trip History Info
 
 	CargoPayment *cargo_payment;        ///< The cargo payment we're currently in
 
@@ -180,6 +189,8 @@ public:
 	Vehicle **hash_tile_prev;           ///< NOSAVE: Previous vehicle in the tile location hash.
 	Vehicle **hash_tile_current;        ///< NOSAVE: Cache of the current hash chain.
 
+	byte breakdown_severity;            ///< severity of the breakdown. Note that lower means more severe
+	BreakdownType breakdown_type;       ///< Type of breakdown
 	SpriteID colourmap;                 ///< NOSAVE: cached colour mapping
 
 	/* Related to age and service time */
@@ -256,6 +267,11 @@ public:
 
 	NewGRFCache grf_cache;              ///< Cache of often used calculated NewGRF values
 	VehicleCache vcache;                ///< Cache of often used vehicle values.
+
+	bool IsANewVehicleInStation;        ///< Set when new vehicle arrived
+	Vehicle* currently_arrived_vehicle; ///< Set to new vehicle arived
+	bool waiting;                       ///< Set if waiting.
+	uint16 wait_counter;                ///< Wait for cargo counter.
 
 	Vehicle(VehicleType type = VEH_INVALID);
 
@@ -581,6 +597,37 @@ public:
 	 * @return first order of order list.
 	 */
 	inline Order *GetFirstOrder() const { return (this->orders.list == NULL) ? NULL : this->orders.list->GetFirstOrder(); }
+
+	/**
+	 * Get the vehicle ahead on track.
+	 * @return the vehicle ahead on track or NULL when there isn't one.
+	 */
+	inline Vehicle* AheadSeparation() const { return this->ahead_separation; }
+
+	/**
+	 * Get the vehicle behind on track.
+	 * @return the vehicle behind on track or NULL when there isn't one.
+	 */
+	inline Vehicle* BehindSeparation() const { return this->behind_separation; }
+
+	/**
+	 * Clears a vehicle's separation status, removing it from any chain.
+	 */
+	void ClearSeparation();
+
+	/**
+	 * Adds this vehicle to a shared vehicle separation chain.
+	 * @param v_other a vehicle of the separation chain
+	 * @pre !this->IsOrderListShared()
+	 */
+	void InitSeparation();
+
+	/**
+	 * Adds this vehicle behind another in a separation chain.
+	 * @param v_other a vehicle of the separation chain.
+	 * @pre !this->IsOrderListShared()
+	 */
+	void AddToSeparationBehind(Vehicle *v_other);
 
 	void AddToShared(Vehicle *shared_chain);
 	void RemoveFromShared();
@@ -1078,6 +1125,10 @@ struct SpecializedVehicle : public Vehicle {
 struct DisasterVehicle FINAL : public SpecializedVehicle<DisasterVehicle, VEH_DISASTER> {
 	SpriteID image_override;            ///< Override for the default disaster vehicle sprite.
 	VehicleID big_ufo_destroyer_target; ///< The big UFO that this destroyer is supposed to bomb.
+
+	/* @see in_min/max_height_correction in aircraft.h */
+	bool in_max_height_correction;
+	bool in_min_height_correction;
 
 	/** We don't want GCC to zero our struct! It already is zeroed and has an index! */
 	DisasterVehicle() : SpecializedVehicleBase() {}

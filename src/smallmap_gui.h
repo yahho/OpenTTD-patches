@@ -22,10 +22,14 @@
 /* set up the cargos to be displayed in the smallmap's route legend */
 void BuildLinkStatsLegend();
 
-void BuildIndustriesLegend();
-void ShowSmallMap();
-void BuildLandLegend();
-void BuildOwnerLegend();
+#include "stdafx.h"
+#include "core/smallvec_type.hpp"
+#include "company_type.h"
+#include "industry_type.h"
+#include "strings_type.h"
+#include "tile_type.h"
+
+static const int NUM_NO_COMPANY_ENTRIES = 4; ///< Number of entries in the owner legend that are not companies.
 
 /** Structure for holding relevant data for legends in small map */
 struct LegendAndColour {
@@ -38,6 +42,34 @@ struct LegendAndColour {
 	bool end;                  ///< This is the end of the list.
 	bool col_break;            ///< Perform a column break and go further at the next column.
 };
+
+/** Mapping of tile type to importance of the tile (higher number means more interesting to show). */
+static const byte _tiletype_importance[] = {
+	2, // MP_CLEAR
+	8, // MP_RAILWAY
+	7, // MP_ROAD
+	5, // MP_HOUSE
+	2, // MP_TREES
+	9, // MP_STATION
+	2, // MP_WATER
+	1, // MP_VOID
+	6, // MP_INDUSTRY
+	8, // MP_TUNNELBRIDGE
+	2, // MP_OBJECT
+	0,
+};
+
+struct TunnelBridgeToMap {
+	TileIndex from_tile;
+	TileIndex to_tile;
+	uint8 colour;
+};
+typedef SmallVector<TunnelBridgeToMap, 64> TunnelBridgeToMapVector;
+
+void BuildIndustriesLegend();
+void ShowSmallMap();
+void BuildLandLegend();
+void BuildOwnerLegend();
 
 /** Class managing the smallmap window. */
 class SmallMapWindow : public Window {
@@ -81,6 +113,7 @@ protected:
 	LinkGraphOverlay *overlay;
 
 	Point SmallmapRemapCoords(int x, int y) const;
+	Point GetSmallMapCoordIncludingHeight(Point viewport_coord) const;
 
 	/**
 	 * Draws vertical part of map indicator

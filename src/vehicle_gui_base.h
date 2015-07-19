@@ -45,7 +45,7 @@ struct BaseVehicleListWindow : public Window {
 
 	void DrawVehicleListItems(VehicleID selected_vehicle, int line_height, const Rect &r) const;
 	void SortVehicleList();
-	void BuildVehicleList();
+	void BuildVehicleList(CargoID cargo);
 	Dimension GetActionDropdownSize(bool show_autoreplace, bool show_group);
 	DropDownList *BuildActionDropdownList(bool show_autoreplace, bool show_group);
 };

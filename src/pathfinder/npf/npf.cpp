@@ -18,6 +18,7 @@
 #include "../pathfinder_type.h"
 #include "../follow_track.hpp"
 #include "aystar.h"
+#include "../../infrastructure_func.h"
 
 static const uint NPF_HASH_BITS = 12; ///< The size of the hash used in pathfinding. Just changing this value should be sufficient to change the hash size. Should be an even value.
 /* Do no change below values */
@@ -279,14 +280,14 @@ static void NPFMarkTile(TileIndex tile)
 			/* DEBUG: mark visited tiles by mowing the grass under them ;-) */
 			if (!IsRailDepot(tile)) {
 				SetRailGroundType(tile, RAIL_GROUND_BARREN);
-				MarkTileDirtyByTile(tile);
+				MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
 			}
 			break;
 
 		case MP_ROAD:
 			if (!IsRoadDepot(tile)) {
 				SetRoadside(tile, ROADSIDE_BARREN);
-				MarkTileDirtyByTile(tile);
+				MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
 			}
 			break;
 
@@ -333,6 +334,8 @@ static int32 NPFRoadPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 			cost = NPF_TILE_LENGTH;
 			/* Increase the cost for level crossings */
 			if (IsLevelCrossing(tile)) cost += _settings_game.pf.npf.npf_crossing_penalty;
+			/* Increase the cost for juctions with trafficlights. */
+			if (HasTrafficLights(tile)) cost += _settings_game.pf.npf.npf_road_trafficlight_penalty;
 			break;
 
 		case MP_STATION: {
@@ -662,25 +665,31 @@ static void NPFSaveTargetData(AyStar *as, OpenListNode *current)
  */
 static bool CanEnterTileOwnerCheck(Owner owner, TileIndex tile, DiagDirection enterdir)
 {
-	if (IsTileType(tile, MP_RAILWAY) || // Rail tile (also rail depot)
-			HasStationTileRail(tile) ||     // Rail station tile/waypoint
-			IsRoadDepotTile(tile) ||        // Road depot tile
-			IsStandardRoadStopTile(tile)) { // Road station tile (but not drive-through stops)
-		return IsTileOwner(tile, owner);  // You need to own these tiles entirely to use them
-	}
-
 	switch (GetTileType(tile)) {
+		case MP_RAILWAY:
+			return IsInfraTileUsageAllowed(VEH_TRAIN, owner, tile); // Rail tile (also rail depot)
+
 		case MP_ROAD:
 			/* rail-road crossing : are we looking at the railway part? */
 			if (IsLevelCrossing(tile) &&
 					DiagDirToAxis(enterdir) != GetCrossingRoadAxis(tile)) {
-				return IsTileOwner(tile, owner); // Railway needs owner check, while the street is public
+				return IsInfraTileUsageAllowed(VEH_TRAIN, owner, tile); // Railway needs owner check, while the street is public
+			} else if (IsRoadDepot(tile)) { // Road depot tile
+				return IsInfraTileUsageAllowed(VEH_ROAD, owner, tile);
+			}
+			break;
+
+		case MP_STATION:
+			if (HasStationRail(tile)) { // Rail station tile/waypoint
+				return IsInfraTileUsageAllowed(VEH_TRAIN, owner, tile);
+			} else if (IsStandardRoadStopTile(tile)) { // Road station tile (but not drive-through stops)
+				return IsInfraTileUsageAllowed(VEH_ROAD, owner, tile);
 			}
 			break;
 
 		case MP_TUNNELBRIDGE:
 			if (GetTunnelBridgeTransportType(tile) == TRANSPORT_RAIL) {
-				return IsTileOwner(tile, owner);
+				return IsInfraTileUsageAllowed(VEH_TRAIN, owner, tile);
 			}
 			break;
 

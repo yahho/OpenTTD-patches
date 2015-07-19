@@ -21,7 +21,9 @@ extern SignID _new_sign_id;
 void UpdateAllSignVirtCoords();
 void PlaceProc_Sign(TileIndex tile);
 
-/* signs_gui.cpp */
+SignID FirstSign();
+SignID PrevNextSign(SignID *index, bool next);
+
 void ShowRenameSignWindow(const Sign *si);
 void HandleClickOnSign(const Sign *si);
 void DeleteRenameSignWindow(SignID sign);

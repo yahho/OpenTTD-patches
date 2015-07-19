@@ -58,6 +58,7 @@ enum VehicleDetailsWidgets {
 	WID_VD_DETAILS_TRAIN_VEHICLES,      ///< Show all parts of the train with their description.
 	WID_VD_DETAILS_CAPACITY_OF_EACH,    ///< Show the capacity of all train parts.
 	WID_VD_DETAILS_TOTAL_CARGO,         ///< Show the capacity and carried cargo amounts aggregated per cargo of the train.
+	WID_VD_TRIP_HISTORY,                ///< Show trip history of the vehicle
 };
 
 /** Widgets of the #VehicleListWindow class. */
@@ -65,6 +66,7 @@ enum VehicleListWidgets {
 	WID_VL_CAPTION,                  ///< Caption of window.
 	WID_VL_SORT_ORDER,               ///< Sort order.
 	WID_VL_SORT_BY_PULLDOWN,         ///< Sort by dropdown list.
+	WID_VL_FILTER_BY_PULLDOWN,       ///< Cargo filter dropdown list.
 	WID_VL_LIST,                     ///< List of the vehicles.
 	WID_VL_SCROLLBAR,                ///< Scrollbar for the list.
 	WID_VL_HIDE_BUTTONS,             ///< Selection to hide the buttons.

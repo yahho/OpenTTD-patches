@@ -20,6 +20,7 @@
 #include "../tunnelbridge_map.h"
 #include "../depot_map.h"
 #include "pf_performance_timer.hpp"
+#include "../infrastructure_func.h"
 
 /**
  * Track follower helper template class (can serve pathfinders and vehicle
@@ -298,6 +299,11 @@ protected:
 				m_err = EC_NO_WAY;
 				return false;
 			}
+			/* road stops shouldn't be entered unless allowed to */
+			if (!IsInfraTileUsageAllowed(VEH_ROAD, m_veh_owner, m_new_tile)) {
+				m_err = EC_OWNER;
+				return false;
+			}
 		}
 
 		/* single tram bits can only be entered from one direction */
@@ -316,8 +322,8 @@ protected:
 				m_err = EC_NO_WAY;
 				return false;
 			}
-			/* don't try to enter other company's depots */
-			if (GetTileOwner(m_new_tile) != m_veh_owner) {
+			/* don't try to enter other company's depots if not allowed */
+			if (!IsInfraTileUsageAllowed(VEH_ROAD, m_veh_owner, m_new_tile)) {
 				m_err = EC_OWNER;
 				return false;
 			}
@@ -330,8 +336,8 @@ protected:
 			}
 		}
 
-		/* rail transport is possible only on tiles with the same owner as vehicle */
-		if (IsRailTT() && GetTileOwner(m_new_tile) != m_veh_owner) {
+		/* rail transport is possible only on allowed tiles */
+		if (IsRailTT() && !IsInfraTileUsageAllowed(VEH_TRAIN, m_veh_owner, m_new_tile)) {
 			/* different owner */
 			m_err = EC_NO_WAY;
 			return false;
@@ -352,7 +358,7 @@ protected:
 			if (IsTunnel(m_new_tile)) {
 				if (!m_is_tunnel) {
 					DiagDirection tunnel_enterdir = GetTunnelBridgeDirection(m_new_tile);
-					if (tunnel_enterdir != m_exitdir) {
+					if (tunnel_enterdir != m_exitdir || IsTunnelBridgeExit(m_new_tile)) {
 						m_err = EC_NO_WAY;
 						return false;
 					}
@@ -360,7 +366,7 @@ protected:
 			} else { // IsBridge(m_new_tile)
 				if (!m_is_bridge) {
 					DiagDirection ramp_enderdir = GetTunnelBridgeDirection(m_new_tile);
-					if (ramp_enderdir != m_exitdir) {
+					if (ramp_enderdir != m_exitdir || IsTunnelBridgeExit(m_new_tile)) {
 						m_err = EC_NO_WAY;
 						return false;
 					}

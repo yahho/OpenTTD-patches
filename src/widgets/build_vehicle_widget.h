@@ -21,9 +21,12 @@ enum BuildVehicleWidgets {
 	WID_BV_LIST,                      ///< List of vehicles.
 	WID_BV_SCROLLBAR,                 ///< Scrollbar of list.
 	WID_BV_PANEL,                     ///< Button panel.
+	WID_BV_BUILD_REFIT,
+	WID_BV_BUILD_REFIT_SEL,
 	WID_BV_BUILD,                     ///< Build panel.
 	WID_BV_BUILD_SEL,                 ///< Build button.
 	WID_BV_RENAME,                    ///< Rename button.
+	WID_BV_FILTER,                    ///< Filter edit box.
 };
 
 #endif /* WIDGETS_BUILD_VEHICLE_WIDGET_H */

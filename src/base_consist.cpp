@@ -30,6 +30,7 @@ void BaseConsist::CopyConsistPropertiesFrom(const BaseConsist *src)
 	this->name = src->name != NULL ? strdup(src->name) : NULL;
 
 	this->current_order_time = src->current_order_time;
+	this->current_loading_time = src->current_loading_time;
 	this->lateness_counter = src->lateness_counter;
 	this->timetable_start = src->timetable_start;
 

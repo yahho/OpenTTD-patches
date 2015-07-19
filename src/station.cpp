@@ -148,7 +148,6 @@ Station::~Station()
 	CargoPacket::InvalidateAllFrom(this->index);
 }
 
-
 /**
  * Invalidating of the JoinStation window has to be done
  * after removing item from the pool.
@@ -220,7 +219,7 @@ void Station::MarkTilesDirty(bool cargo_change) const
 	for (h = 0; h < train_station.h; h++) {
 		for (w = 0; w < train_station.w; w++) {
 			if (this->TileBelongsToRailStation(tile)) {
-				MarkTileDirtyByTile(tile);
+				MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
 			}
 			tile += TileDiffXY(1, 0);
 		}
@@ -451,6 +450,7 @@ CommandCost StationRect::BeforeAddTile(TileIndex tile, StationRectMode mode)
 	}
 	return CommandCost();
 }
+
 
 CommandCost StationRect::BeforeAddRect(TileIndex tile, int w, int h, StationRectMode mode)
 {

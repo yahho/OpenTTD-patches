@@ -183,7 +183,7 @@ public:
 	 * @param p1 p1 as given to DoCommandPInternal.
 	 * @param p2 p2 as given to DoCommandPInternal.
 	 */
-	void DoCommandCallback(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2);
+	void DoCommandCallback(const CommandCost &result, TileIndex tile, uint64 p1, uint64 p2);
 
 	/**
 	 * Insert an event for this script.

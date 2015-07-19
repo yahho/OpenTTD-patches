@@ -49,10 +49,12 @@
 #include "../engine_func.h"
 #include "../rail_gui.h"
 #include "../core/backup_type.hpp"
+#include "../core/mem_func.hpp"
 #include "../smallmap_gui.h"
 #include "../news_func.h"
 #include "../error.h"
-
+#include "../date_func.h"
+#include "../trafficlight_func.h"
 
 #include "saveload_internal.h"
 
@@ -84,7 +86,7 @@ void SetWaterClassDependingOnSurroundings(TileIndex t, bool include_invalid_wate
 	}
 
 	/* Mark tile dirty in all cases */
-	MarkTileDirtyByTile(t);
+	MarkTileDirtyByTile(t, ZOOM_LVL_END);
 
 	if (TileX(t) == 0 || TileY(t) == 0 || TileX(t) == MapMaxX() - 1 || TileY(t) == MapMaxY() - 1) {
 		/* tiles at map borders are always WATER_CLASS_SEA */
@@ -493,6 +495,10 @@ bool AfterLoadGame()
 	/* The LFSR used in RunTileLoop iteration cannot have a zeroed state, make it non-zeroed. */
 	if (_cur_tileloop_tile == 0) _cur_tileloop_tile = 1;
 
+	if (IsSavegameVersionBefore(SL_SPRING_2013_v2_0_102)) {
+		_settings_game.construction.max_heightlevel = 15;
+	}
+
 	if (IsSavegameVersionBefore(98)) GamelogOldver();
 
 	GamelogTestRevision();
@@ -768,7 +774,7 @@ bool AfterLoadGame()
 					break;
 
 				case MP_STATION: {
-					if (HasBit(_m[t].m6, 3)) SetBit(_m[t].m6, 2);
+					if (HasBit(_me[t].m6, 3)) SetBit(_me[t].m6, 2);
 					StationGfx gfx = GetStationGfx(t);
 					StationType st;
 					if (       IsInsideMM(gfx,   0,   8)) { // Rail station
@@ -806,7 +812,7 @@ bool AfterLoadGame()
 						ResetSignalHandlers();
 						return false;
 					}
-					SB(_m[t].m6, 3, 3, st);
+					SB(_me[t].m6, 3, 3, st);
 					break;
 				}
 			}
@@ -980,7 +986,7 @@ bool AfterLoadGame()
 						case ROAD_TILE_NORMAL:
 							SB(_m[t].m4, 0, 4, GB(_m[t].m5, 0, 4));
 							SB(_m[t].m4, 4, 4, 0);
-							SB(_m[t].m6, 2, 4, 0);
+							SB(_me[t].m6, 2, 4, 0);
 							break;
 						case ROAD_TILE_CROSSING:
 							SB(_m[t].m4, 5, 2, GB(_m[t].m5, 2, 2));
@@ -1020,7 +1026,7 @@ bool AfterLoadGame()
 						default: SlErrorCorrupt("Invalid road tile type");
 						case ROAD_TILE_NORMAL:
 							SB(_me[t].m7, 0, 4, GB(_m[t].m3, 0, 4)); // road works
-							SB(_m[t].m6, 3, 3, GB(_m[t].m3, 4, 3));  // ground
+							SB(_me[t].m6, 3, 3, GB(_m[t].m3, 4, 3));  // ground
 							SB(_m[t].m3, 0, 4, GB(_m[t].m4, 4, 4));  // tram bits
 							SB(_m[t].m3, 4, 4, GB(_m[t].m5, 0, 4));  // tram owner
 							SB(_m[t].m5, 0, 4, GB(_m[t].m4, 0, 4));  // road bits
@@ -1028,7 +1034,7 @@ bool AfterLoadGame()
 
 						case ROAD_TILE_CROSSING:
 							SB(_me[t].m7, 0, 5, GB(_m[t].m4, 0, 5)); // road owner
-							SB(_m[t].m6, 3, 3, GB(_m[t].m3, 4, 3));  // ground
+							SB(_me[t].m6, 3, 3, GB(_m[t].m3, 4, 3));  // ground
 							SB(_m[t].m3, 4, 4, GB(_m[t].m5, 0, 4));  // tram owner
 							SB(_m[t].m5, 0, 1, GB(_m[t].m4, 6, 1));  // road axis
 							SB(_m[t].m5, 5, 1, GB(_m[t].m4, 5, 1));  // crossing state
@@ -1048,7 +1054,7 @@ bool AfterLoadGame()
 					if (!IsRoadStop(t)) break;
 
 					if (fix_roadtypes) SetRoadTypes(t, (RoadTypes)GB(_m[t].m3, 0, 3));
-					SB(_me[t].m7, 0, 5, HasBit(_m[t].m6, 2) ? OWNER_TOWN : GetTileOwner(t));
+					SB(_me[t].m7, 0, 5, HasBit(_me[t].m6, 2) ? OWNER_TOWN : GetTileOwner(t));
 					SB(_m[t].m3, 4, 4, _m[t].m1);
 					_m[t].m4 = 0;
 					break;
@@ -1062,7 +1068,7 @@ bool AfterLoadGame()
 						SB(_me[t].m7, 0, 5, o); // road owner
 						SB(_m[t].m3, 4, 4, o == OWNER_NONE ? OWNER_TOWN : o); // tram owner
 					}
-					SB(_m[t].m6, 2, 4, GB(_m[t].m2, 4, 4)); // bridge type
+					SB(_me[t].m6, 2, 4, GB(_m[t].m2, 4, 4)); // bridge type
 					SB(_me[t].m7, 5, 1, GB(_m[t].m4, 7, 1)); // snow/desert
 
 					_m[t].m2 = 0;
@@ -1796,7 +1802,7 @@ bool AfterLoadGame()
 		/* Increase HouseAnimationFrame from 5 to 7 bits */
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsTileType(t, MP_HOUSE) && GetHouseType(t) >= NEW_HOUSE_OFFSET) {
-				SB(_m[t].m6, 2, 6, GB(_m[t].m6, 3, 5));
+				SB(_me[t].m6, 2, 6, GB(_me[t].m6, 3, 5));
 				SB(_m[t].m3, 5, 1, 0);
 			}
 		}
@@ -1953,7 +1959,7 @@ bool AfterLoadGame()
 
 			/* Reordering/generalisation of the object bits. */
 			ObjectType type = _m[t].m5;
-			SB(_m[t].m6, 2, 4, type == OBJECT_HQ ? GB(_m[t].m3, 2, 3) : 0);
+			SB(_me[t].m6, 2, 4, type == OBJECT_HQ ? GB(_m[t].m3, 2, 3) : 0);
 			_m[t].m3 = type == OBJECT_HQ ? GB(_m[t].m3, 1, 1) | GB(_m[t].m3, 0, 1) << 4 : 0;
 
 			/* Make sure those bits are clear as well! */
@@ -1974,8 +1980,8 @@ bool AfterLoadGame()
 				uint offset = _m[t].m3;
 
 				/* Also move the animation state. */
-				_m[t].m3 = GB(_m[t].m6, 2, 4);
-				SB(_m[t].m6, 2, 4, 0);
+				_m[t].m3 = GB(_me[t].m6, 2, 4);
+				SB(_me[t].m6, 2, 4, 0);
 
 				if (offset == 0) {
 					/* No offset, so make the object. */
@@ -2332,6 +2338,20 @@ bool AfterLoadGame()
 		FOR_ALL_DEPOTS(d) d->build_date = _date;
 	}
 
+	if (IsSavegameVersionBefore(200)) {
+		Company *c;
+		FOR_ALL_COMPANIES(c) {
+			/* yearly_expenses has 3*15 entries now, saveload code gave us 3*13.
+			 * Move the old data to the right place in the new array and clear the new data.
+			 * The move has to be done in reverse order (first 2, then 1). */
+			MemMoveT(&c->yearly_expenses[2][0], &c->yearly_expenses[1][11], 13);
+			MemMoveT(&c->yearly_expenses[1][0], &c->yearly_expenses[0][13], 13);
+			/* Clear the old location of just-moved data, so sharing income/expenses is set to 0 */
+			MemSetT(&c->yearly_expenses[0][13], 0, 2);
+			MemSetT(&c->yearly_expenses[1][13], 0, 2);
+		}
+	}
+
 	/* In old versions it was possible to remove an airport while a plane was
 	 * taking off or landing. This gives all kind of problems when building
 	 * another airport in the same station so we don't allow that anymore.
@@ -2347,7 +2367,7 @@ bool AfterLoadGame()
 				UpdateAircraftCache(v);
 				AircraftNextAirportPos_and_Order(v);
 				/* get aircraft back on running altitude */
-				if ((v->vehstatus & VS_CRASHED) == 0) SetAircraftPosition(v, v->x_pos, v->y_pos, GetAircraftFlyingAltitude(v));
+				if ((v->vehstatus & VS_CRASHED) == 0) SetAircraftPosition(v, v->x_pos, v->y_pos, GetAircraftMaxAltitude(v->x_pos, v->y_pos, 0));
 			}
 		}
 	}
@@ -2359,9 +2379,9 @@ bool AfterLoadGame()
 				case MP_HOUSE:
 					if (GetHouseType(t) >= NEW_HOUSE_OFFSET) {
 						uint per_proc = _me[t].m7;
-						_me[t].m7 = GB(_m[t].m6, 2, 6) | (GB(_m[t].m3, 5, 1) << 6);
+						_me[t].m7 = GB(_me[t].m6, 2, 6) | (GB(_m[t].m3, 5, 1) << 6);
 						SB(_m[t].m3, 5, 1, 0);
-						SB(_m[t].m6, 2, 6, min(per_proc, 63));
+						SB(_me[t].m6, 2, 6, min(per_proc, 63));
 					}
 					break;
 
@@ -2838,6 +2858,50 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(127)) {
 		Station *st;
 		FOR_ALL_STATIONS(st) UpdateStationAcceptance(st, false);
+	}
+
+	//}
+
+	/* Set some breakdown-related variables to the correct values. */
+	if (IsSavegameVersionBefore(SL_SPRING_2013_v2_0_102)) {
+		Vehicle *v;
+		FOR_ALL_VEHICLES(v) {
+			switch(v->type) {
+				case VEH_TRAIN: {
+					if (Train::From(v)->IsFrontEngine()) {
+						if (v->breakdown_ctr == 1) SetBit(Train::From(v)->flags, VRF_BREAKDOWN_STOPPED);
+					} else if (Train::From(v)->IsEngine() || Train::From(v)->IsMultiheaded()) {
+						/** Non-front engines could have a reliability of 0.
+						 * Set it to the reliability of the front engine or the maximum, whichever is lower. */
+						const Engine *e = Engine::Get(v->engine_type);
+						v->reliability_spd_dec = e->reliability_spd_dec;
+						v->reliability = min(v->First()->reliability, e->reliability);
+					}
+				}
+				case VEH_ROAD:
+					v->breakdown_chance = 128;
+					break;
+				case VEH_SHIP:
+					v->breakdown_chance = 64;
+					break;
+				case VEH_AIRCRAFT:
+					v->breakdown_chance = Clamp(64 + (AircraftVehInfo(v->engine_type)->max_speed >> 3), 0, 255);
+					v->breakdown_severity = 40;
+					break;
+				default: break;
+			}
+		}
+	}
+
+	if (IsSavegameVersionBefore(SL_SPRING_2013_v2_0_102)) {
+		/* Savegames before this version can not have trafficlights already.
+		 * Sometimes they are added randomly when loading old savegames.
+		 * Unfortunately also in the wrong places -> not on crossings.
+		 *
+		 * Iterate over the whole map and remove any trafficlights found. */
+		for (TileIndex tile = 0; tile < MapSize(); tile++) {
+			if (HasTrafficLights(tile)) ClearTrafficLights(tile);
+		}
 	}
 
 	/* Road stops is 'only' updating some caches */

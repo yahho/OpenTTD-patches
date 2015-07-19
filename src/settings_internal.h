@@ -67,11 +67,13 @@ enum SettingCategory {
 	SC_BASIC_LIST      = 1 << 0,    ///< Settings displayed in the list of basic settings.
 	SC_ADVANCED_LIST   = 1 << 1,    ///< Settings displayed in the list of advanced settings.
 	SC_EXPERT_LIST     = 1 << 2,    ///< Settings displayed in the list of expert settings.
+	SC_PATCHES_LIST    = 1 << 3,    ///< Settings displayed in the list of patch settings.
 
 	/* Setting classification */
-	SC_BASIC           = SC_BASIC_LIST | SC_ADVANCED_LIST | SC_EXPERT_LIST,  ///< Basic settings are part of all lists.
-	SC_ADVANCED        = SC_ADVANCED_LIST | SC_EXPERT_LIST,                  ///< Advanced settings are part of advanced and expert list.
-	SC_EXPERT          = SC_EXPERT_LIST,                                     ///< Expert settings can only be seen in the expert list.
+	SC_BASIC           = SC_BASIC_LIST | SC_ADVANCED_LIST | SC_EXPERT_LIST | SC_PATCHES_LIST,  ///< Basic settings are part of all lists.
+	SC_ADVANCED        = SC_ADVANCED_LIST | SC_EXPERT_LIST | SC_PATCHES_LIST,                  ///< Advanced settings are part of advanced and expert list.
+	SC_EXPERT          = SC_EXPERT_LIST | SC_PATCHES_LIST,                                     ///< Expert settings can only be seen in the expert list.
+	SC_PATCHES         = SC_PATCHES_LIST,                                                      ///< Patches settings can be seen only in patches list
 
 	SC_END,
 };

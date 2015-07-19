@@ -51,6 +51,7 @@
 #include "sound/sound_driver.hpp"
 #include "music/music_driver.hpp"
 #include "blitter/factory.hpp"
+#include "blitter/32bpp_anim_aa.hpp"
 #include "base_media_base.h"
 #include "gamelog.h"
 #include "settings_func.h"
@@ -64,12 +65,19 @@
 #include "roadveh.h"
 #include "fios.h"
 #include "strings_func.h"
+#include "date_func.h"
 
 #include "void_map.h"
 #include "station_base.h"
 
+#include "infrastructure_func.h"
+
 #include "table/strings.h"
 #include "table/settings.h"
+
+#include "trafficlight_func.h"
+
+#include "economy_func.h"
 
 ClientSettings _settings_client;
 GameSettings _settings_game;     ///< Game settings of a running game or the scenario editor.
@@ -782,6 +790,20 @@ SettingType SettingDesc::GetType() const
 
 /* Begin - Callback Functions for the various settings. */
 
+static bool AfterChangeOfMaxHeightlevel(int32 p1)
+{
+	for (uint x = 0; x < MapMaxX(); x++) {
+		for (uint y = 0; y < MapMaxY(); y++) {
+			TileIndex tile = TileXY(x, y);
+			if ((int32)TileHeight(tile) > p1) {
+				ShowErrorMessage(STR_CONFIG_SETTING_TOO_HIGH_MOUNTAIN, INVALID_STRING_ID, WL_ERROR);
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
 /** Reposition the main toolbar as the setting changed. */
 static bool v_PositionMainToolbar(int32 p1)
 {
@@ -1192,6 +1214,21 @@ static size_t ConvertLandscape(const char *value)
 	return LookupOneOfMany("normal|hilly|desert|candy", value);
 }
 
+/**
+ * What to do when traffic light Setting was changed.
+ * @param p1 unused
+ * @return always 0
+ */
+static bool TLSettingChanged(int32 p1)
+{
+	/* Road building gui changed. */
+	MarkWholeScreenDirty();
+
+	/* If traffic lights got disabled, clear them all. */
+	if (!_settings_game.construction.traffic_lights) ClearAllTrafficLights();
+	return true;
+}
+
 static bool CheckFreeformEdges(int32 p1)
 {
 	if (_game_mode == GM_MENU) return true;
@@ -1275,6 +1312,33 @@ static bool StationCatchmentChanged(int32 p1)
 	return true;
 }
 
+static bool CheckSharingRail(int32 p1)
+{
+	if (!CheckSharingChangePossible(VEH_TRAIN)) return false;
+	UpdateAllBlockSignals();
+	return true;
+}
+
+static bool CheckSharingRoad(int32 p1)
+{
+	return CheckSharingChangePossible(VEH_ROAD);
+}
+
+static bool CheckSharingWater(int32 p1)
+{
+	return CheckSharingChangePossible(VEH_SHIP);
+}
+
+static bool CheckSharingAir(int32 p1)
+{
+	return CheckSharingChangePossible(VEH_AIRCRAFT);
+}
+
+static bool UpdatePrice(int32 p1)
+{
+	RecomputePrices();
+	return true;
+}
 
 #ifdef ENABLE_NETWORK
 
@@ -1731,7 +1795,7 @@ const SettingDesc *GetSettingDescription(uint index)
  * @return the cost of this operation or an error
  * @see _settings
  */
-CommandCost CmdChangeSetting(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+CommandCost CmdChangeSetting(TileIndex tile, DoCommandFlag flags, uint64 p1, uint64 p2, const char *text)
 {
 	const SettingDesc *sd = GetSettingDescription(p1);
 
@@ -1778,7 +1842,7 @@ CommandCost CmdChangeSetting(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdChangeCompanySetting(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+CommandCost CmdChangeCompanySetting(TileIndex tile, DoCommandFlag flags, uint64 p1, uint64 p2, const char *text)
 {
 	if (p1 >= lengthof(_company_settings)) return CMD_ERROR;
 	const SettingDesc *sd = &_company_settings[p1];

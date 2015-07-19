@@ -71,7 +71,7 @@ static const uint8 _flood_from_dirs[] = {
  */
 static inline void MarkTileDirtyIfCanalOrRiver(TileIndex tile)
 {
-	if (IsTileType(tile, MP_WATER) && (IsCanal(tile) || IsRiver(tile))) MarkTileDirtyByTile(tile);
+	if (IsTileType(tile, MP_WATER) && (IsCanal(tile) || IsRiver(tile))) MarkTileDirtyByTile(tile, ZOOM_LVL_END);
 }
 
 /**
@@ -97,7 +97,7 @@ static void MarkCanalsAndRiversAroundDirty(TileIndex tile)
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdBuildShipDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+CommandCost CmdBuildShipDepot(TileIndex tile, DoCommandFlag flags, uint64 p1, uint64 p2, const char *text)
 {
 	Axis axis = Extract<Axis, 0, 1>(p1);
 
@@ -147,8 +147,8 @@ CommandCost CmdBuildShipDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 
 		MakeShipDepot(tile,  _current_company, depot->index, DEPOT_PART_NORTH, axis, wc1);
 		MakeShipDepot(tile2, _current_company, depot->index, DEPOT_PART_SOUTH, axis, wc2);
-		MarkTileDirtyByTile(tile);
-		MarkTileDirtyByTile(tile2);
+		MarkTileDirtyByTile(tile, ZOOM_LVL_END);
+		MarkTileDirtyByTile(tile2, ZOOM_LVL_END);
 		MakeDefaultName(depot);
 	}
 
@@ -203,7 +203,7 @@ void MakeWaterKeepingClass(TileIndex tile, Owner o)
 		default: break;
 	}
 
-	MarkTileDirtyByTile(tile);
+	MarkTileDirtyByTile(tile, ZOOM_LVL_END);
 }
 
 static CommandCost RemoveShipDepot(TileIndex tile, DoCommandFlag flags)
@@ -306,9 +306,9 @@ static CommandCost DoBuildLock(TileIndex tile, DiagDirection dir, DoCommandFlag 
 		}
 
 		MakeLock(tile, _current_company, dir, wc_lower, wc_upper, wc_middle);
-		MarkTileDirtyByTile(tile);
-		MarkTileDirtyByTile(tile - delta);
-		MarkTileDirtyByTile(tile + delta);
+		MarkTileDirtyByTile(tile, ZOOM_LVL_END);
+		MarkTileDirtyByTile(tile - delta, ZOOM_LVL_END);
+		MarkTileDirtyByTile(tile + delta, ZOOM_LVL_END);
 		MarkCanalsAndRiversAroundDirty(tile - delta);
 		MarkCanalsAndRiversAroundDirty(tile + delta);
 	}
@@ -370,7 +370,7 @@ static CommandCost RemoveLock(TileIndex tile, DoCommandFlag flags)
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdBuildLock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+CommandCost CmdBuildLock(TileIndex tile, DoCommandFlag flags, uint64 p1, uint64 p2, const char *text)
 {
 	DiagDirection dir = GetInclinedSlopeDirection(GetTileSlope(tile));
 	if (dir == INVALID_DIAGDIR) return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
@@ -394,13 +394,13 @@ bool RiverModifyDesertZone(TileIndex tile, void *)
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdBuildCanal(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+CommandCost CmdBuildCanal(TileIndex tile, DoCommandFlag flags, uint64 p1, uint64 p2, const char *text)
 {
 	WaterClass wc = Extract<WaterClass, 0, 2>(p2);
 	if (p1 >= MapSize() || wc == WATER_CLASS_INVALID) return CMD_ERROR;
 
 	/* Outside of the editor you can only build canals, not oceans */
-	if (wc != WATER_CLASS_CANAL && _game_mode != GM_EDITOR) return CMD_ERROR;
+	//if (wc != WATER_CLASS_CANAL && _game_mode != GM_EDITOR) return CMD_ERROR;
 
 	TileArea ta(tile, p1);
 
@@ -417,7 +417,9 @@ CommandCost CmdBuildCanal(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 		}
 
 		/* can't make water of water! */
-		if (IsTileType(tile, MP_WATER) && (!IsTileOwner(tile, OWNER_WATER) || wc == WATER_CLASS_SEA)) continue;
+		//if (IsTileType(tile, MP_WATER) && (!IsTileOwner(tile, OWNER_WATER) || wc == WATER_CLASS_SEA)) continue;
+		/* skip tile if it already has the right type */
+		if (IsTileType(tile, MP_WATER) && (p2 == 1 && IsSea(tile) || (p2 == 0 && IsCanal(tile)) || (p2 == 2 && IsRiver(tile)))) continue;
 
 		bool water = IsWaterTile(tile);
 		ret = DoCommand(tile, 0, 0, flags | DC_FORCE_CLEAR_TILE, CMD_LANDSCAPE_CLEAR);
@@ -450,11 +452,12 @@ CommandCost CmdBuildCanal(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 					}
 					break;
 			}
-			MarkTileDirtyByTile(tile);
+			MarkTileDirtyByTile(tile, ZOOM_LVL_END);
 			MarkCanalsAndRiversAroundDirty(tile);
 		}
 
 		cost.AddCost(_price[PR_BUILD_CANAL]);
+		if(p2 == 2) cost.AddCost(_price[PR_CLEAR_WATER] * 3);
 	}
 
 	if (cost.GetCost() == 0) {
@@ -1063,7 +1066,7 @@ void DoFloodTile(TileIndex target)
 			case MP_TREES:
 				if (!IsSlopeWithOneCornerRaised(tileh)) {
 					SetTreeGroundDensity(target, TREE_GROUND_SHORE, 3);
-					MarkTileDirtyByTile(target);
+					MarkTileDirtyByTile(target, ZOOM_LVL_END);
 					flooded = true;
 					break;
 				}
@@ -1072,7 +1075,7 @@ void DoFloodTile(TileIndex target)
 			case MP_CLEAR:
 				if (DoCommand(target, 0, 0, DC_EXEC, CMD_LANDSCAPE_CLEAR).Succeeded()) {
 					MakeShore(target);
-					MarkTileDirtyByTile(target);
+					MarkTileDirtyByTile(target, ZOOM_LVL_END);
 					flooded = true;
 				}
 				break;
@@ -1087,7 +1090,7 @@ void DoFloodTile(TileIndex target)
 		/* flood flat tile */
 		if (DoCommand(target, 0, 0, DC_EXEC, CMD_LANDSCAPE_CLEAR).Succeeded()) {
 			MakeSea(target);
-			MarkTileDirtyByTile(target);
+			MarkTileDirtyByTile(target, ZOOM_LVL_END);
 			flooded = true;
 		}
 	}
@@ -1124,12 +1127,12 @@ static void DoDryUp(TileIndex tile)
 				default: NOT_REACHED();
 			}
 			SetRailGroundType(tile, new_ground);
-			MarkTileDirtyByTile(tile);
+			MarkTileDirtyByTile(tile, ZOOM_LVL_END);
 			break;
 
 		case MP_TREES:
 			SetTreeGroundDensity(tile, TREE_GROUND_GRASS, 3);
-			MarkTileDirtyByTile(tile);
+			MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
 			break;
 
 		case MP_WATER:
@@ -1137,7 +1140,7 @@ static void DoDryUp(TileIndex tile)
 
 			if (DoCommand(tile, 0, 0, DC_EXEC, CMD_LANDSCAPE_CLEAR).Succeeded()) {
 				MakeClear(tile, CLEAR_GRASS, 3);
-				MarkTileDirtyByTile(tile);
+				MarkTileDirtyByTile(tile, ZOOM_LVL_END);
 			}
 			break;
 

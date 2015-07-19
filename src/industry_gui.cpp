@@ -53,6 +53,13 @@ enum CargoSuffixType {
 	CST_DIR,   ///< Industry-directory window
 };
 
+/** Alternatives for filtering by industry transported */
+enum { // Should this enum have a name? example: TransportedFilterSelections
+	TRANSPORTED_SHOW_BOTH,     ///< Show both transported and non-transported industries
+	TRANSPORTED_SHOW_ONLY_NOT, ///< Show only non-transported industries
+	TRANSPORTED_SHOW_ONLY,     ///< Show only transported industries
+};
+
 static void ShowIndustryCargoesWindow(IndustryType id);
 
 /**
@@ -145,13 +152,28 @@ void SortIndustryTypes()
 }
 
 /**
+ * Return a drop down list of sorted industry types.
+ */
+DropDownList *GetIndustryTypeDropDownList(bool include_show_all = false){
+	DropDownList *lst = new DropDownList;
+	if (include_show_all) lst->push_back(new DropDownListStringItem(STR_FILTER_INDUSTRY_TYPE_ALL, -1, false));
+	for (uint8 i = 0; i < NUM_INDUSTRYTYPES; i++) {
+		IndustryType ind = _sorted_industry_types[i];
+		const IndustrySpec *indsp = GetIndustrySpec(ind);
+		if (!indsp->enabled) continue;
+		lst->push_back(new DropDownListStringItem(indsp->name, ind, false));
+	}
+	return lst;
+}
+
+/**
  * Command callback. In case of failure to build an industry, show an error message.
  * @param result Result of the command.
  * @param tile   Tile where the industry is placed.
  * @param p1     Additional data of the #CMD_BUILD_INDUSTRY command.
  * @param p2     Additional data of the #CMD_BUILD_INDUSTRY command.
  */
-void CcBuildIndustry(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcBuildIndustry(const CommandCost &result, TileIndex tile, uint64 p1, uint64 p2)
 {
 	if (result.Succeeded()) return;
 
@@ -996,6 +1018,7 @@ public:
 
 static void UpdateIndustryProduction(Industry *i)
 {
+	printf("UpdateIndustryProduction(): IndustryID = %d, percent = 0\n");
 	const IndustrySpec *indspec = GetIndustrySpec(i->type);
 	if (!indspec->UsesSmoothEconomy()) i->RecomputeProductionMultipliers();
 
@@ -1057,6 +1080,10 @@ static const NWidgetPart _nested_industry_directory_widgets[] = {
 			NWidget(NWID_HORIZONTAL),
 				NWidget(WWT_TEXTBTN, COLOUR_BROWN, WID_ID_DROPDOWN_ORDER), SetDataTip(STR_BUTTON_SORT_BY, STR_TOOLTIP_SORT_ORDER),
 				NWidget(WWT_DROPDOWN, COLOUR_BROWN, WID_ID_DROPDOWN_CRITERIA), SetDataTip(STR_JUST_STRING, STR_TOOLTIP_SORT_CRITERIA),
+				NWidget(WWT_DROPDOWN, COLOUR_BROWN, WID_ID_DROPDOWN_FILTER_TRANSPORTED),
+						SetDataTip(STR_JUST_STRING, STR_TOOLTIP_FILTER_CRITERIA),
+				NWidget(WWT_DROPDOWN, COLOUR_BROWN, WID_ID_DROPDOWN_FILTER_INDUSTRY_TYPE),
+						SetDataTip(STR_INDUSTRY_CARGOES_SELECT_INDUSTRY, STR_TOOLTIP_FILTER_CRITERIA),
 				NWidget(WWT_PANEL, COLOUR_BROWN), SetResize(1, 0), EndContainer(),
 			EndContainer(),
 			NWidget(WWT_PANEL, COLOUR_BROWN, WID_ID_INDUSTRY_LIST), SetDataTip(0x0, STR_INDUSTRY_DIRECTORY_LIST_CAPTION), SetResize(1, 1), SetScrollbar(WID_ID_SCROLLBAR), EndContainer(),
@@ -1082,6 +1109,10 @@ protected:
 
 	/* Constants for sorting stations */
 	static const StringID sorter_names[];
+	static const StringID transported_filter_names[]; ///< List of filter by transported alternatives
+	byte selected_filter_transported_index;           ///< The currently selected filter by transported industry
+	int selected_filter_industry_type_index;          ///< The currently selected filter by industry type
+	Dimension ind_textsize;                           ///< Size to hold any industry type text, as well as STR_INDUSTRY_CARGOES_SELECT_INDUSTRY.
 	static GUIIndustryList::SortFunction * const sorter_funcs[];
 
 	GUIIndustryList industries;
@@ -1095,8 +1126,29 @@ protected:
 
 			const Industry *i;
 			FOR_ALL_INDUSTRIES(i) {
-				*this->industries.Append() = i;
-			}
+				if (this->selected_filter_industry_type_index == -1 || i->type == this->selected_filter_industry_type_index) {
+					bool transported = 0;
+					for (byte j = 0; j < lengthof(i->produced_cargo); j++) {
+						if (i->produced_cargo[j] == CT_INVALID) continue;
+						if (i->last_month_pct_transported[j]) {
+							transported = true;
+							break;
+						}
+					} // for cargoes
+
+					switch (this->selected_filter_transported_index) {
+						case TRANSPORTED_SHOW_BOTH:
+							*this->industries.Append() = i;
+							break;
+						case TRANSPORTED_SHOW_ONLY_NOT:
+							if (!transported) *this->industries.Append() = i;
+							break;
+						case TRANSPORTED_SHOW_ONLY:
+							if (transported) *this->industries.Append() = i;
+							break;
+					} // switch
+				} // If correct type
+			} // FOR_ALL_INDUSTRIES
 
 			this->industries.Compact();
 			this->industries.RebuildDone();
@@ -1233,6 +1285,8 @@ public:
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_ID_SCROLLBAR);
 
+		this->SetFilterTransportedIndex(TRANSPORTED_SHOW_BOTH);
+		this->SetFilterIndustryTypeIndex(-1);
 		this->industries.SetListing(this->last_sorting);
 		this->industries.SetSortFuncs(IndustryDirectoryWindow::sorter_funcs);
 		this->industries.ForceRebuild();
@@ -1246,9 +1300,24 @@ public:
 		this->last_sorting = this->industries.GetListing();
 	}
 
+	virtual void SetFilterTransportedIndex(byte index) {
+		this->selected_filter_transported_index = index;
+	}
+
+	virtual void SetFilterIndustryTypeIndex(int index) {
+		this->selected_filter_industry_type_index = index;
+	}
+
 	virtual void SetStringParameters(int widget) const
 	{
-		if (widget == WID_ID_DROPDOWN_CRITERIA) SetDParam(0, IndustryDirectoryWindow::sorter_names[this->industries.SortType()]);
+		switch (widget) {
+			case WID_ID_DROPDOWN_CRITERIA:
+				SetDParam(0, IndustryDirectoryWindow::sorter_names[this->industries.SortType()]);
+				break;
+			case WID_ID_DROPDOWN_FILTER_TRANSPORTED:
+				SetDParam(0, IndustryDirectoryWindow::transported_filter_names[this->selected_filter_transported_index]);
+				break;
+		}
 	}
 
 	virtual void DrawWidget(const Rect &r, int widget) const
@@ -1298,6 +1367,21 @@ public:
 				break;
 			}
 
+			case WID_ID_DROPDOWN_FILTER_TRANSPORTED: {
+				Dimension d = {0, 0};
+				for (uint i = 0; IndustryDirectoryWindow::transported_filter_names[i] != INVALID_STRING_ID; i++) {
+					d = maxdim(d, GetStringBoundingBox(IndustryDirectoryWindow::transported_filter_names[i]));
+				}
+				d.width += padding.width;
+				d.height += padding.height;
+				*size = maxdim(*size, d);
+				break;
+			}
+
+			case WID_ID_DROPDOWN_FILTER_INDUSTRY_TYPE:
+				size->width = max(size->width, this->ind_textsize.width + padding.width);
+				break;
+
 			case WID_ID_INDUSTRY_LIST: {
 				Dimension d = GetStringBoundingBox(STR_INDUSTRY_DIRECTORY_NONE);
 				for (uint i = 0; i < this->industries.Length(); i++) {
@@ -1326,6 +1410,20 @@ public:
 				ShowDropDownMenu(this, IndustryDirectoryWindow::sorter_names, this->industries.SortType(), WID_ID_DROPDOWN_CRITERIA, 0, 0);
 				break;
 
+			case WID_ID_DROPDOWN_FILTER_TRANSPORTED:
+				ShowDropDownMenu(this, IndustryDirectoryWindow::transported_filter_names, this->selected_filter_transported_index, WID_ID_DROPDOWN_FILTER_TRANSPORTED, 0, 0);
+				break;
+
+			case WID_ID_DROPDOWN_FILTER_INDUSTRY_TYPE: {
+				DropDownList *lst = GetIndustryTypeDropDownList(1);
+				if (lst->size() == 0) {
+					delete lst;
+					break;
+				}
+				ShowDropDownList(this, lst, this->selected_filter_industry_type_index, WID_ID_DROPDOWN_FILTER_INDUSTRY_TYPE, 0, true);
+				break;
+			}
+
 			case WID_ID_INDUSTRY_LIST: {
 				uint p = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_ID_INDUSTRY_LIST, WD_FRAMERECT_TOP);
 				if (p < this->industries.Length()) {
@@ -1342,10 +1440,32 @@ public:
 
 	virtual void OnDropdownSelect(int widget, int index)
 	{
-		if (this->industries.SortType() != index) {
-			this->industries.SetSortType(index);
-			this->BuildSortIndustriesList();
-		}
+		switch (widget) {
+			case WID_ID_DROPDOWN_CRITERIA:
+				if (this->industries.SortType() != index) {
+					this->industries.SetSortType(index);
+					this->BuildSortIndustriesList();
+				}
+				break;
+
+			case WID_ID_DROPDOWN_FILTER_TRANSPORTED:
+				if (this->selected_filter_transported_index != index) {
+					this->SetFilterTransportedIndex(index);
+					this->industries.ForceRebuild();
+					this->BuildSortIndustriesList();
+					this->SetWidgetDirty(WID_ID_INDUSTRY_LIST);
+				}
+				break;
+
+			case WID_ID_DROPDOWN_FILTER_INDUSTRY_TYPE:
+				if (this->selected_filter_industry_type_index != index) {
+					this->SetFilterIndustryTypeIndex(index);
+					this->industries.ForceRebuild();
+					this->BuildSortIndustriesList();
+					this->SetWidgetDirty(WID_ID_INDUSTRY_LIST);
+				}
+				break;
+		} // switch
 	}
 
 	virtual void OnResize()
@@ -1399,6 +1519,14 @@ const StringID IndustryDirectoryWindow::sorter_names[] = {
 	STR_SORT_BY_PRODUCTION,
 	STR_SORT_BY_TRANSPORTED,
 	INVALID_STRING_ID
+};
+
+/* Names of the filter functions */
+const StringID IndustryDirectoryWindow::transported_filter_names[] = {
+	STR_FILTER_TRANSPORTED_BOTH,
+	STR_FILTER_TRANSPORTED_ONLY_NOT,
+	STR_FILTER_TRANSPORTED_ONLY,
+	INVALID_STRING_ID,
 };
 
 
@@ -2284,6 +2412,14 @@ struct IndustryCargoesWindow : public Window {
 		/* Only notify the smallmap window if it exists. In particular, do not
 		 * bring it to the front to prevent messing up any nice layout of the user. */
 		InvalidateWindowClassesData(WC_SMALLMAP, 0);
+
+		/* Notify viewports too */
+		Window *w;
+		FOR_ALL_WINDOWS_FROM_BACK(w) {
+			if (w->viewport != NULL)
+				if (w->viewport->zoom >= ZOOM_LVL_DRAW_MAP && w->viewport->map_type == VPMT_INDUSTRY)
+					w->InvalidateData();
+		}
 	}
 
 	/**
@@ -2602,13 +2738,7 @@ struct IndustryCargoesWindow : public Window {
 			}
 
 			case WID_IC_IND_DROPDOWN: {
-				DropDownList *lst = new DropDownList;
-				for (uint8 i = 0; i < NUM_INDUSTRYTYPES; i++) {
-					IndustryType ind = _sorted_industry_types[i];
-					const IndustrySpec *indsp = GetIndustrySpec(ind);
-					if (!indsp->enabled) continue;
-					lst->push_back(new DropDownListStringItem(indsp->name, ind, false));
-				}
+				DropDownList *lst = GetIndustryTypeDropDownList();
 				if (lst->size() == 0) {
 					delete lst;
 					break;

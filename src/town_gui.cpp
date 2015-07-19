@@ -205,12 +205,26 @@ public:
 					y += FONT_HEIGHT_NORMAL;
 				}
 
+				StringID str[] = {
+					STR_LOCAL_AUTHORITY_ACTION_SMALL_ADVERTISING_CAMPAIGN,
+					STR_LOCAL_AUTHORITY_ACTION_MEDIUM_ADVERTISING_CAMPAIGN,
+					STR_LOCAL_AUTHORITY_ACTION_LARGE_ADVERTISING_CAMPAIGN,
+					STR_LOCAL_AUTHORITY_ACTION_ROAD_RECONSTRUCTION,
+					STR_LOCAL_AUTHORITY_ACTION_STATUE_OF_COMPANY,
+					STR_LOCAL_AUTHORITY_ACTION_NEW_BUILDINGS,
+					STR_LOCAL_AUTHORITY_ACTION_EXCLUSIVE_TRANSPORT,
+					STR_LOCAL_AUTHORITY_ACTION_BRIBE
+				};
+
+				if (this->town->auto_adv_camp[_current_company])
+					str[this->town->auto_adv_camp[_current_company] - 1] = STR_LOCAL_AUTHORITY_ACTION_AUTO_SMALL_ADVERTISING_CAMPAIGN + this->town->auto_adv_camp[_current_company] - 1;
+
 				for (int i = 0; buttons; i++, buttons >>= 1) {
 					if (pos <= -5) break; ///< Draw only the 5 fitting lines
 
 					if ((buttons & 1) && --pos < 0) {
 						DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y,
-								STR_LOCAL_AUTHORITY_ACTION_SMALL_ADVERTISING_CAMPAIGN + i, this->sel_index == i ? TC_WHITE : TC_ORANGE);
+								str[i], this->sel_index == i ? TC_WHITE : TC_ORANGE);
 						y += FONT_HEIGHT_NORMAL;
 					}
 				}
@@ -265,12 +279,20 @@ public:
 					this->sel_index = y;
 					this->SetDirty();
 				}
+				if (_ctrl_pressed)
+					if (y <= 2) {
+						if (this->town->auto_adv_camp[_current_company])
+							this->town->auto_adv_camp[_current_company] = AACT_NONE;
+						else
+							this->town->auto_adv_camp[_current_company] = y + 1;
+						this->SetDirty();
+					}
 				/* FALL THROUGH, when double-clicking. */
 				if (click_count == 1 || y < 0) break;
 			}
 
 			case WID_TA_EXECUTE:
-				DoCommandP(this->town->xy, this->window_number, this->sel_index, CMD_DO_TOWN_ACTION | CMD_MSG(STR_ERROR_CAN_T_DO_THIS));
+				DoCommandP(this->town->xy, this->window_number, this->sel_index + (_current_company << 8), CMD_DO_TOWN_ACTION | CMD_MSG(STR_ERROR_CAN_T_DO_THIS));
 				break;
 		}
 	}
@@ -324,8 +346,69 @@ public:
 		if (widget == WID_TV_CAPTION) SetDParam(0, this->town->index);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawTownEffect(TownEffect te, uint &y, uint ctl, uint ctr, bool draw) const
 	{
+		StringID strings[3][4] = {
+			{STR_TOWN_VIEW_CARGO_GOODS, STR_TOWN_VIEW_CARGO_TOTAL_GOODS_OK, STR_TOWN_VIEW_CARGO_RATE_GOODS, STR_TOWN_VIEW_CARGO_NEED_GOODS},
+			{STR_TOWN_VIEW_CARGO_WATER, STR_TOWN_VIEW_CARGO_TOTAL_WATER_OK, STR_TOWN_VIEW_CARGO_RATE_WATER, STR_TOWN_VIEW_CARGO_NEED_WATER},
+			{STR_TOWN_VIEW_CARGO_FOOD,  STR_TOWN_VIEW_CARGO_TOTAL_FOOD_OK,  STR_TOWN_VIEW_CARGO_RATE_FOOD,  STR_TOWN_VIEW_CARGO_NEED_FOOD}
+		};
+		int count = 5;
+
+		if(this->town->cache.population < _settings_game.economy.town_pop_small)
+			return;
+
+		if(_settings_game.economy.town_effects[te - TE_GOODS])
+			if(FindFirstCargoWithTownEffect(te)) {//3
+				if(draw)
+					DrawString(ctl, ctr, y += FONT_HEIGHT_NORMAL, strings[te - TE_GOODS][0]);
+				else
+					y += FONT_HEIGHT_NORMAL;
+				const CargoSpec *cs;
+				FOR_ALL_SORTED_CARGOSPECS(cs)
+					if(cs->town_effect == te){
+						if(draw){
+							SetDParam(0, cs->Index());
+							SetDParam(1, this->town->supplied[cs->Index()].new_act);
+							SetDParam(2, cs->Index());
+							SetDParam(3, this->town->supplied[cs->Index()].old_act);
+							DrawString(ctl + (_current_text_dir == TD_RTL ? 0 : 20), ctr - (_current_text_dir == TD_RTL ? 20 : 0), y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_CARGO_SUPPLIED);
+						} else
+							y += FONT_HEIGHT_NORMAL;
+						count++;
+					}
+
+				uint32 d;
+				if(this->town->cache.population >= _settings_game.economy.town_pop_large)
+					d = this->town->cache.population * _settings_game.economy.town_consumption_rates[2][te - TE_GOODS];
+				else if(this->town->cache.population >= _settings_game.economy.town_pop_medium)
+					d = this->town->cache.population * _settings_game.economy.town_consumption_rates[1][te - TE_GOODS];
+				else
+					d = this->town->cache.population * _settings_game.economy.town_consumption_rates[0][te - TE_GOODS];
+
+				if(te == TE_GOODS)
+					d /= 100;
+
+				if(draw) {
+					SetDParam(0, d);
+					DrawString(ctl, ctr, y += FONT_HEIGHT_NORMAL, strings[te - TE_GOODS][2]);
+
+					SetDParam(0, this->town->received[te].new_act);
+					if(this->town->received[te].new_act < d * 31)
+						strings[te - TE_GOODS][1] = STR_TOWN_VIEW_CARGO_TOTAL_GOODS_LESS + te - TE_GOODS;
+					DrawString(ctl, ctr, y += FONT_HEIGHT_NORMAL, strings[te - TE_GOODS][1]);
+
+					SetDParam(0, d * 31);
+					DrawString(ctl, ctr, y += FONT_HEIGHT_NORMAL, strings[te - TE_GOODS][3]);
+				} else
+					y += (FONT_HEIGHT_NORMAL << 1) + FONT_HEIGHT_NORMAL;
+				return;
+			}
+		return;
+	}
+
+	virtual void DrawWidget(const Rect &r, int widget) const
+	{//-1
 		if (widget != WID_TV_INFO) return;
 
 		uint y = r.top + WD_FRAMERECT_TOP;
@@ -342,51 +425,93 @@ public:
 		SetDParam(1, this->town->supplied[CT_MAIL].old_max);
 		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_MAIL_LAST_MONTH_MAX);
 
-		bool first = true;
-		for (int i = TE_BEGIN; i < TE_END; i++) {
-			if (this->town->goal[i] == 0) continue;
-			if (this->town->goal[i] == TOWN_GROWTH_WINTER && (TileHeight(this->town->xy) < LowestSnowLine() || this->town->cache.population <= 90)) continue;
-			if (this->town->goal[i] == TOWN_GROWTH_DESERT && (GetTropicZone(this->town->xy) != TROPICZONE_DESERT || this->town->cache.population <= 60)) continue;
+		StringID string;
+		bool rtl = _current_text_dir == TD_RTL;
+		uint cargo_text_left = r.left + WD_FRAMERECT_LEFT + (rtl ? 0 : 20);
+		uint cargo_text_right = r.right - WD_FRAMERECT_RIGHT - (rtl ? 20 : 0);
 
-			if (first) {
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH);
-				first = false;
-			}
-
-			bool rtl = _current_text_dir == TD_RTL;
-			uint cargo_text_left = r.left + WD_FRAMERECT_LEFT + (rtl ? 0 : 20);
-			uint cargo_text_right = r.right - WD_FRAMERECT_RIGHT - (rtl ? 20 : 0);
-
-			const CargoSpec *cargo = FindFirstCargoWithTownEffect((TownEffect)i);
-			assert(cargo != NULL);
-
-			StringID string;
-
-			if (this->town->goal[i] == TOWN_GROWTH_DESERT || this->town->goal[i] == TOWN_GROWTH_WINTER) {
-				/* For 'original' gameplay, don't show the amount required (you need 1 or more ..) */
-				string = STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH_DELIVERED_GENERAL;
-				if (this->town->received[i].old_act == 0) {
-					string = STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH_REQUIRED_GENERAL;
-
-					if (this->town->goal[i] == TOWN_GROWTH_WINTER && TileHeight(this->town->xy) < GetSnowLine()) {
-						string = STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH_REQUIRED_WINTER;
+		switch(_settings_game.economy.town_consumption_rate) {//1
+			case C_ALL: {//2
+				if(this->town->cache.population >= _settings_game.economy.town_pop_small) {
+					DrawTownEffect(TE_WATER, y, cargo_text_left, cargo_text_right, true);
+					if(UsedTownEffect(TE_WATER) && (UsedTownEffect(TE_GOODS) || UsedTownEffect(TE_FOOD))) y += FONT_HEIGHT_NORMAL;
+						DrawTownEffect(TE_FOOD, y, cargo_text_left, cargo_text_right, true);
+					if(UsedTownEffect(TE_FOOD) && UsedTownEffect(TE_GOODS)) y += FONT_HEIGHT_NORMAL;
+						DrawTownEffect(TE_GOODS, y, cargo_text_left, cargo_text_right, true);
 					}
-				}
+				}//2
+				break;
+			case C_DESERT: {//2
+				if(this->town->cache.population >= _settings_game.economy.town_pop_small) {
+					if(TileHeight(this->town->xy) >= GetSnowLine()) {//3
+						DrawTownEffect(TE_WATER, y, cargo_text_left, cargo_text_right, true);
+						if(UsedTownEffect(TE_WATER) && (UsedTownEffect(TE_GOODS) || UsedTownEffect(TE_FOOD))) y += FONT_HEIGHT_NORMAL;
+							DrawTownEffect(TE_FOOD, y, cargo_text_left, cargo_text_right, true);
+						if(UsedTownEffect(TE_FOOD) && UsedTownEffect(TE_GOODS)) y += FONT_HEIGHT_NORMAL;
+						DrawTownEffect(TE_GOODS, y, cargo_text_left, cargo_text_right, true);
+						}//3
+					if(GetTropicZone(this->town->xy) == TROPICZONE_DESERT) {//3
+						DrawTownEffect(TE_WATER, y, cargo_text_left, cargo_text_right, true);
+						if(UsedTownEffect(TE_WATER) && (UsedTownEffect(TE_GOODS) || UsedTownEffect(TE_FOOD))) y += FONT_HEIGHT_NORMAL;
+						DrawTownEffect(TE_FOOD, y, cargo_text_left, cargo_text_right, true);
+						if(UsedTownEffect(TE_FOOD) && UsedTownEffect(TE_GOODS)) y += FONT_HEIGHT_NORMAL;
+						DrawTownEffect(TE_GOODS, y, cargo_text_left, cargo_text_right, true);
+						}//3
+					}
+				}//2
+				break;
+			case C_NOTUSE: {//2
+				bool first = true;
+				for (int i = TE_BEGIN; i < TE_END; i++) {//3
+					if (this->town->goal[i] == 0) continue;
+					if (this->town->goal[i] == TOWN_GROWTH_WINTER && (TileHeight(this->town->xy) < LowestSnowLine() || this->town->cache.population <= 90)) continue;
+					if (this->town->goal[i] == TOWN_GROWTH_DESERT && (GetTropicZone(this->town->xy) != TROPICZONE_DESERT || this->town->cache.population <= 60)) continue;
 
-				SetDParam(0, cargo->name);
-			} else {
-				string = STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH_DELIVERED;
-				if (this->town->received[i].old_act < this->town->goal[i]) {
-					string = STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH_REQUIRED;
-				}
+					if (first) {//4
+						DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH);
+						first = false;
+					}//4
 
-				SetDParam(0, cargo->Index());
-				SetDParam(1, this->town->received[i].old_act);
-				SetDParam(2, cargo->Index());
-				SetDParam(3, this->town->goal[i]);
-			}
-			DrawString(cargo_text_left, cargo_text_right, y += FONT_HEIGHT_NORMAL, string);
-		}
+					bool rtl = _current_text_dir == TD_RTL;
+					uint cargo_text_left = r.left + WD_FRAMERECT_LEFT + (rtl ? 0 : 20);
+					uint cargo_text_right = r.right - WD_FRAMERECT_RIGHT - (rtl ? 20 : 0);
+
+					const CargoSpec *cargo = FindFirstCargoWithTownEffect((TownEffect)i);
+					assert(cargo != NULL);
+
+					if(this->town->goal[i] == TOWN_GROWTH_DESERT || this->town->goal[i] == TOWN_GROWTH_WINTER) {//4
+						/* For 'original' gameplay, don't show the amount required (you need 1 or more ..) */
+						string = STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH_DELIVERED_GENERAL;
+						if (this->town->received[i].old_act == 0 && this->town->received[i].new_act == 0) {//5
+							string = STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH_REQUIRED_GENERAL;
+
+							if (this->town->goal[i] == TOWN_GROWTH_WINTER && TileHeight(this->town->xy) < GetSnowLine()) {//6
+								string = STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH_REQUIRED_WINTER;
+							}//6
+						}//5
+
+						SetDParam(0, cargo->name);
+					} else {//4
+						string = STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH_DELIVERED;
+						if (this->town->received[i].old_act < this->town->goal[i]) {//6
+							string = STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH_REQUIRED;
+						}//6
+
+						SetDParam(0, cargo->Index());
+						SetDParam(1, this->town->received[i].old_act);
+						SetDParam(2, cargo->Index());
+						SetDParam(3, this->town->goal[i]);
+					}//4
+					DrawString(cargo_text_left, cargo_text_right, y += FONT_HEIGHT_NORMAL, string);
+					}//3
+				}//2
+				break;
+			default:
+				NOT_REACHED();
+				break;
+		}//1
+
+
 
 		if (HasBit(this->town->flags, TOWN_IS_GROWING)) {
 			SetDParam(0, ((this->town->growth_rate & (~TOWN_GROW_RATE_CUSTOM)) * TOWN_GROWTH_TICKS + DAY_TICKS) / DAY_TICKS);
@@ -456,6 +581,17 @@ public:
 		}
 	}
 
+	/*bool UsedTownEffect(TownEffect te) const
+	{
+		if(_settings_game.economy.town_effects[te - TE_GOODS])
+			if(FindFirstCargoWithTownEffect(te))
+				return true;
+			else
+				return false;
+		else
+			return false;
+	}*/
+
 	/**
 	 * Gets the desired height for the information panel.
 	 * @return the desired height in pixels.
@@ -464,18 +600,54 @@ public:
 	{
 		uint aimed_height = 3 * FONT_HEIGHT_NORMAL + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
 
-		bool first = true;
-		for (int i = TE_BEGIN; i < TE_END; i++) {
-			if (this->town->goal[i] == 0) continue;
-			if (this->town->goal[i] == TOWN_GROWTH_WINTER && (TileHeight(this->town->xy) < LowestSnowLine() || this->town->cache.population <= 90)) continue;
-			if (this->town->goal[i] == TOWN_GROWTH_DESERT && (GetTropicZone(this->town->xy) != TROPICZONE_DESERT || this->town->cache.population <= 60)) continue;
+			switch(_settings_game.economy.town_consumption_rate) {
+				case C_ALL: {
+					if(this->town->cache.population >= _settings_game.economy.town_pop_small) {
+						DrawTownEffect(TE_WATER, aimed_height, 0, 0, false);
+						if(UsedTownEffect(TE_WATER) && (UsedTownEffect(TE_GOODS) || UsedTownEffect(TE_FOOD))) aimed_height += FONT_HEIGHT_NORMAL;
+						DrawTownEffect(TE_FOOD, aimed_height, 0, 0, false);
+						if(UsedTownEffect(TE_FOOD) && UsedTownEffect(TE_GOODS)) aimed_height += FONT_HEIGHT_NORMAL;
+						DrawTownEffect(TE_GOODS, aimed_height, 0, 0, false);
+						}
+					}
+					break;
+				case C_DESERT: {
+					if(this->town->cache.population >= _settings_game.economy.town_pop_small) {
+						bool more = false;
+						if(TileHeight(this->town->xy) >= GetSnowLine()) {
+							DrawTownEffect(TE_WATER, aimed_height, 0, 0, false);
+							if(UsedTownEffect(TE_WATER) && (UsedTownEffect(TE_GOODS) || UsedTownEffect(TE_FOOD))) aimed_height += FONT_HEIGHT_NORMAL;
+							DrawTownEffect(TE_FOOD, aimed_height, 0, 0, false);
+							if(UsedTownEffect(TE_FOOD) && UsedTownEffect(TE_GOODS)) aimed_height += FONT_HEIGHT_NORMAL;
+							DrawTownEffect(TE_GOODS, aimed_height, 0, 0, false);
+							}
 
-			if (first) {
-				aimed_height += FONT_HEIGHT_NORMAL;
-				first = false;
+						if(GetTropicZone(this->town->xy) == TROPICZONE_DESERT) {
+							DrawTownEffect(TE_WATER, aimed_height, 0, 0, false);
+							if(UsedTownEffect(TE_WATER) && (UsedTownEffect(TE_GOODS) || UsedTownEffect(TE_FOOD))) aimed_height += FONT_HEIGHT_NORMAL;
+							DrawTownEffect(TE_FOOD, aimed_height, 0, 0, false);
+							if(UsedTownEffect(TE_FOOD) && UsedTownEffect(TE_GOODS)) aimed_height += FONT_HEIGHT_NORMAL;
+							DrawTownEffect(TE_GOODS, aimed_height, 0, 0, false);
+							}
+						}
+					}
+					break;
+				case C_NOTUSE:
+					bool first = true;
+					for (int i = TE_BEGIN; i < TE_END; i++) {
+						if (this->town->goal[i] == 0) continue;
+						if (this->town->goal[i] == TOWN_GROWTH_WINTER && (TileHeight(this->town->xy) < LowestSnowLine() || this->town->cache.population <= 90)) continue;
+						if (this->town->goal[i] == TOWN_GROWTH_DESERT && (GetTropicZone(this->town->xy) != TROPICZONE_DESERT || this->town->cache.population <= 60)) continue;
+
+						if (first) {
+							aimed_height += FONT_HEIGHT_NORMAL;
+							first = false;
+						}
+						aimed_height += FONT_HEIGHT_NORMAL;
+					}
+					break;
 			}
-			aimed_height += FONT_HEIGHT_NORMAL;
-		}
+
 		aimed_height += FONT_HEIGHT_NORMAL;
 
 		if (_settings_game.economy.station_noise_level) aimed_height += FONT_HEIGHT_NORMAL;
@@ -954,7 +1126,7 @@ void ShowTownDirectory()
 	new TownDirectoryWindow(&_town_directory_desc);
 }
 
-void CcFoundTown(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcFoundTown(const CommandCost &result, TileIndex tile, uint64 p1, uint64 p2)
 {
 	if (result.Failed()) return;
 
@@ -962,7 +1134,7 @@ void CcFoundTown(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
 	if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
 }
 
-void CcFoundRandomTown(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcFoundRandomTown(const CommandCost &result, TileIndex tile, uint64 p1, uint64 p2)
 {
 	if (result.Succeeded()) ScrollMainWindowToTile(Town::Get(_new_town_id)->xy);
 }

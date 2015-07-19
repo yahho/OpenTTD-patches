@@ -89,6 +89,7 @@ enum SLRefType {
 
 /** Highest possible savegame version. */
 #define SL_MAX_VERSION UINT16_MAX
+#define SL_SPRING_2013_v2_0_102     220
 
 /** Flags of a chunk. */
 enum ChunkType {
@@ -529,7 +530,7 @@ int SlIterateArray();
 
 void SlAutolength(AutolengthProc *proc, void *arg);
 size_t SlGetFieldLength();
-void SlSetLength(size_t length);
+void SlSetLength(uint64 length);
 size_t SlCalcObjMemberLength(const void *object, const SaveLoad *sld);
 size_t SlCalcObjLength(const void *object, const SaveLoad *sld);
 
@@ -544,6 +545,9 @@ void NORETURN SlError(StringID string, const char *extra_msg = NULL);
 void NORETURN SlErrorCorrupt(const char *msg);
 
 bool SaveloadCrashWithMissingNewGRFs();
+
+/* Hack to change savegame version in only one place. Rmv and correct if trunk. */
+const int TIMESEP_SV = 190;
 
 extern char _savegame_format[8];
 extern bool _do_autosave;

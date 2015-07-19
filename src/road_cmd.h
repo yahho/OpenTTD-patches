@@ -14,8 +14,11 @@
 
 #include "direction_type.h"
 #include "road_type.h"
+#include "tile_cmd.h"
+#include "gfx_type.h"
 
 void DrawRoadDepotSprite(int x, int y, DiagDirection dir, RoadType rt);
 void UpdateNearestTownForRoadTiles(bool invalidate);
+void DrawRoadDetail(SpriteID img, TileInfo *ti, int dx, int dy, int h);
 
 #endif /* ROAD_CMD_H */

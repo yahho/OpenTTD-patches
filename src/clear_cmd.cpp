@@ -169,7 +169,7 @@ static void UpdateFences(TileIndex tile)
 		dirty = true;
 	}
 
-	if (dirty) MarkTileDirtyByTile(tile);
+	if (dirty) MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
 }
 
 
@@ -185,7 +185,7 @@ static void TileLoopClearAlps(TileIndex tile)
 		/* At or above the snow line, make snow tile if needed. */
 		if (!IsSnowTile(tile)) {
 			MakeSnow(tile);
-			MarkTileDirtyByTile(tile);
+			MarkTileDirtyByTile(tile, ZOOM_LVL_END);
 			return;
 		}
 	}
@@ -202,7 +202,7 @@ static void TileLoopClearAlps(TileIndex tile)
 		if (k >= 0) return;
 		ClearSnow(tile);
 	}
-	MarkTileDirtyByTile(tile);
+	MarkTileDirtyByTile(tile, ZOOM_LVL_END);
 }
 
 /**
@@ -241,7 +241,7 @@ static void TileLoopClearDesert(TileIndex tile)
 		SetClearGroundDensity(tile, CLEAR_DESERT, expected);
 	}
 
-	MarkTileDirtyByTile(tile);
+	MarkTileDirtyByTile(tile, ZOOM_LVL_END);
 }
 
 static void TileLoop_Clear(TileIndex tile)
@@ -251,7 +251,7 @@ static void TileLoop_Clear(TileIndex tile)
 		int z;
 		if (IsTileFlat(tile, &z) && z == 0) {
 			DoFloodTile(tile);
-			MarkTileDirtyByTile(tile);
+			MarkTileDirtyByTile(tile, ZOOM_LVL_END);
 			return;
 		}
 	}
@@ -305,7 +305,7 @@ static void TileLoop_Clear(TileIndex tile)
 			return;
 	}
 
-	MarkTileDirtyByTile(tile);
+	MarkTileDirtyByTile(tile, ZOOM_LVL_END);
 }
 
 void GenerateClearTile()

@@ -44,6 +44,7 @@
 #include "company_base.h"
 #include "core/random_func.hpp"
 #include "core/backup_type.hpp"
+#include "aircraft.h"
 
 #include "table/strings.h"
 
@@ -123,6 +124,24 @@ static const SpriteID * const _disaster_images[] = {
 	_disaster_images_4, _disaster_images_5,                     ///< small and big submarine sprites
 };
 
+static inline void AdjustFlyingDisasterVehicleHeight(DisasterVehicle *v)
+{
+	int min_altitude = GetAircraftMinAltitude(v->x_pos, v->y_pos, 0);
+	int max_altitude = GetAircraftMaxAltitude(v->x_pos, v->y_pos, 0);
+	int middle_altitude = min_altitude + (max_altitude - min_altitude) / 2;
+	if (v->z_pos < min_altitude || (v->in_min_height_correction && v->z_pos < middle_altitude)) {
+		v->in_min_height_correction = true;
+		v->z_pos += 2;
+	} else if (v->z_pos > max_altitude || (v->in_max_height_correction && v->z_pos > middle_altitude)) {
+		v->in_max_height_correction = true;
+		v->z_pos -= 2;
+	} else if (v->in_min_height_correction && v->z_pos >= middle_altitude) {
+		v->in_min_height_correction = false;
+	} else if (v->in_max_height_correction && v->z_pos <= middle_altitude) {
+		v->in_max_height_correction = false;
+	}
+}
+
 static void DisasterVehicleUpdateImage(DisasterVehicle *v)
 {
 	SpriteID img = v->image_override;
@@ -147,6 +166,8 @@ static void InitializeDisasterVehicle(DisasterVehicle *v, int x, int y, int z, D
 	v->vehstatus = VS_UNCLICKABLE;
 	v->image_override = 0;
 	v->current_order.Free();
+	v->in_min_height_correction = false;
+	v->in_max_height_correction = false;
 
 	DisasterVehicleUpdateImage(v);
 	VehicleUpdatePositionAndViewport(v);
@@ -202,6 +223,7 @@ static bool DisasterTick_Zeppeliner(DisasterVehicle *v)
 
 		GetNewVehiclePosResult gp = GetNewVehiclePos(v);
 
+		AdjustFlyingDisasterVehicleHeight(v);
 		SetDisasterVehiclePos(v, gp.x, gp.y, v->z_pos);
 
 		if (v->current_order.GetDestination() == 1) {
@@ -296,6 +318,7 @@ static bool DisasterTick_Ufo(DisasterVehicle *v)
 		if (Delta(x, v->x_pos) + Delta(y, v->y_pos) >= (int)TILE_SIZE) {
 			v->direction = GetDirectionTowards(v, x, y);
 			GetNewVehiclePosResult gp = GetNewVehiclePos(v);
+			AdjustFlyingDisasterVehicleHeight(v);
 			SetDisasterVehiclePos(v, gp.x, gp.y, v->z_pos);
 			return true;
 		}
@@ -335,6 +358,7 @@ static bool DisasterTick_Ufo(DisasterVehicle *v)
 		uint dist = Delta(v->x_pos, u->x_pos) + Delta(v->y_pos, u->y_pos);
 
 		if (dist < TILE_SIZE && !(u->vehstatus & VS_HIDDEN) && u->breakdown_ctr == 0) {
+			u->breakdown_type = BREAKDOWN_CRITICAL;
 			u->breakdown_ctr = 3;
 			u->breakdown_delay = 140;
 		}
@@ -375,7 +399,7 @@ static void DestructIndustry(Industry *i)
 	for (TileIndex tile = 0; tile != MapSize(); tile++) {
 		if (i->TileBelongsToIndustry(tile)) {
 			ResetIndustryConstructionStage(tile);
-			MarkTileDirtyByTile(tile);
+			MarkTileDirtyByTile(tile, ZOOM_LVL_END);
 		}
 	}
 }
@@ -399,6 +423,7 @@ static bool DisasterTick_Aircraft(DisasterVehicle *v, uint16 image_override, boo
 	v->image_override = (v->current_order.GetDestination() == 1 && HasBit(v->tick_counter, 2)) ? image_override : 0;
 
 	GetNewVehiclePosResult gp = GetNewVehiclePos(v);
+	AdjustFlyingDisasterVehicleHeight(v);
 	SetDisasterVehiclePos(v, gp.x, gp.y, v->z_pos);
 
 	if ((leave_at_top && gp.x < (-10 * (int)TILE_SIZE)) || (!leave_at_top && gp.x > (int)(MapSizeX() * TILE_SIZE + 9 * TILE_SIZE) - 1)) {
@@ -496,6 +521,7 @@ static bool DisasterTick_Big_Ufo(DisasterVehicle *v)
 			v->direction = GetDirectionTowards(v, x, y);
 
 			GetNewVehiclePosResult gp = GetNewVehiclePos(v);
+			AdjustFlyingDisasterVehicleHeight(v);
 			SetDisasterVehiclePos(v, gp.x, gp.y, v->z_pos);
 			return true;
 		}
@@ -520,6 +546,7 @@ static bool DisasterTick_Big_Ufo(DisasterVehicle *v)
 				if (Delta(target->x_pos, v->x_pos) + Delta(target->y_pos, v->y_pos) <= 12 * (int)TILE_SIZE) {
 					target->breakdown_ctr = 5;
 					target->breakdown_delay = 0xF0;
+					target->breakdown_type = BREAKDOWN_CRITICAL;
 				}
 			}
 		}
@@ -548,6 +575,7 @@ static bool DisasterTick_Big_Ufo(DisasterVehicle *v)
 		if (Delta(x, v->x_pos) + Delta(y, v->y_pos) >= (int)TILE_SIZE) {
 			v->direction = GetDirectionTowards(v, x, y);
 			GetNewVehiclePosResult gp = GetNewVehiclePos(v);
+			AdjustFlyingDisasterVehicleHeight(v);
 			SetDisasterVehiclePos(v, gp.x, gp.y, v->z_pos);
 			return true;
 		}
@@ -583,6 +611,7 @@ static bool DisasterTick_Big_Ufo_Destroyer(DisasterVehicle *v)
 	v->tick_counter++;
 
 	GetNewVehiclePosResult gp = GetNewVehiclePos(v);
+	AdjustFlyingDisasterVehicleHeight(v);
 	SetDisasterVehiclePos(v, gp.x, gp.y, v->z_pos);
 
 	if (gp.x > (int)(MapSizeX() * TILE_SIZE + 9 * TILE_SIZE) - 1) {
@@ -698,7 +727,8 @@ static void Disaster_Zeppeliner_Init()
 	}
 
 	DisasterVehicle *v = new DisasterVehicle();
-	InitializeDisasterVehicle(v, x, 0, INITIAL_DISASTER_VEHICLE_ZPOS, DIR_SE, ST_ZEPPELINER);
+	int z = GetAircraftMinAltitude(x, 0, 0);
+	InitializeDisasterVehicle(v, x, 0, z, DIR_SE, ST_ZEPPELINER);
 
 	/* Allocate shadow */
 	DisasterVehicle *u = new DisasterVehicle();
@@ -719,7 +749,8 @@ static void Disaster_Small_Ufo_Init()
 	DisasterVehicle *v = new DisasterVehicle();
 	int x = TileX(Random()) * TILE_SIZE + TILE_SIZE / 2;
 
-	InitializeDisasterVehicle(v, x, 0, INITIAL_DISASTER_VEHICLE_ZPOS, DIR_SE, ST_SMALL_UFO);
+	int z = GetAircraftMinAltitude(x, 0, 0);
+	InitializeDisasterVehicle(v, x, 0, z, DIR_SE, ST_SMALL_UFO);
 	v->dest_tile = TileXY(MapSizeX() / 2, MapSizeY() / 2);
 	v->age = 0;
 
@@ -753,7 +784,8 @@ static void Disaster_Airplane_Init()
 	int x = (MapSizeX() + 9) * TILE_SIZE - 1;
 	int y = TileY(found->location.tile) * TILE_SIZE + 37;
 
-	InitializeDisasterVehicle(v, x, y, INITIAL_DISASTER_VEHICLE_ZPOS, DIR_NE, ST_AIRPLANE);
+	int z = GetAircraftMinAltitude(x, y, 0);
+	InitializeDisasterVehicle(v, x, y, z, DIR_NE, ST_AIRPLANE);
 
 	DisasterVehicle *u = new DisasterVehicle();
 	v->SetNext(u);
@@ -783,7 +815,8 @@ static void Disaster_Helicopter_Init()
 	int x = -16 * (int)TILE_SIZE;
 	int y = TileY(found->location.tile) * TILE_SIZE + 37;
 
-	InitializeDisasterVehicle(v, x, y, INITIAL_DISASTER_VEHICLE_ZPOS, DIR_SW, ST_HELICOPTER);
+	int z = GetAircraftMinAltitude(x, y, 0);
+	InitializeDisasterVehicle(v, x, y, z, DIR_SW, ST_HELICOPTER);
 
 	DisasterVehicle *u = new DisasterVehicle();
 	v->SetNext(u);
@@ -792,7 +825,7 @@ static void Disaster_Helicopter_Init()
 
 	DisasterVehicle *w = new DisasterVehicle();
 	u->SetNext(w);
-	InitializeDisasterVehicle(w, x, y, 140, DIR_SW, ST_HELICOPTER_ROTORS);
+	InitializeDisasterVehicle(w, x, y, z + 5, DIR_SW, ST_HELICOPTER_ROTORS);
 }
 
 
@@ -806,7 +839,8 @@ static void Disaster_Big_Ufo_Init()
 	int x = TileX(Random()) * TILE_SIZE + TILE_SIZE / 2;
 	int y = MapMaxX() * TILE_SIZE - 1;
 
-	InitializeDisasterVehicle(v, x, y, INITIAL_DISASTER_VEHICLE_ZPOS, DIR_NW, ST_BIG_UFO);
+	int z = GetAircraftMinAltitude(x, y, 0);
+	InitializeDisasterVehicle(v, x, y, z, DIR_NW, ST_BIG_UFO);
 	v->dest_tile = TileXY(MapSizeX() / 2, MapSizeY() / 2);
 	v->age = 0;
 

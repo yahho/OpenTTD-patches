@@ -135,7 +135,7 @@ static CommandQueue _local_execution_queue;
  * @param text The text to pass
  * @param company The company that wants to send the command
  */
-void NetworkSendCommand(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallback *callback, const char *text, CompanyID company)
+void NetworkSendCommand(TileIndex tile, uint64 p1, uint64 p2, uint32 cmd, CommandCallback *callback, const char *text, CompanyID company)
 {
 	assert((cmd & CMD_FLAGS_MASK) == 0);
 

@@ -37,8 +37,12 @@
 #include "engine_func.h"
 #include "station_base.h"
 #include "tilehighlight_func.h"
+#include "infrastructure_func.h"
 #include "zoom_func.h"
+#include "triphistory.h"
 
+//Special cargo filter criteria independent of carried cargo
+static const CargoID CF_ANY = CT_NO_REFIT;
 
 Sorting _sorting;
 
@@ -96,13 +100,13 @@ const StringID BaseVehicleListWindow::vehicle_depot_name[] = {
 	STR_VEHICLE_LIST_SEND_AIRCRAFT_TO_HANGAR
 };
 
-void BaseVehicleListWindow::BuildVehicleList()
+void BaseVehicleListWindow::BuildVehicleList(CargoID cargo)
 {
 	if (!this->vehicles.NeedRebuild()) return;
 
 	DEBUG(misc, 3, "Building vehicle list type %d for company %d given index %d", this->vli.type, this->vli.company, this->vli.index);
 
-	GenerateVehicleSortList(&this->vehicles, this->vli);
+	GenerateVehicleSortList(&this->vehicles, this->vli, cargo);
 
 	uint unitnumber = 0;
 	for (const Vehicle **v = this->vehicles.Begin(); v != this->vehicles.End(); v++) {
@@ -276,6 +280,31 @@ byte GetBestFittingSubType(Vehicle *v_from, Vehicle *v_for, CargoID dest_cargo_t
 	}
 
 	return ret_refit_cyc;
+}
+
+/**
+ * Get the engine that suffers from the most severe breakdown.
+ * This means the engine with the lowest breakdown_type.
+ * If the breakdown types of 2 engines are equal, the one with the lowest breakdown_severity (most severe) is picked.
+ * @param v The front engine of the train.
+ * @return The most severly broken engine.
+ */
+const Vehicle *GetMostSeverelyBrokenEngine(const Train *v)
+{
+	assert(v->IsFrontEngine());
+	const Vehicle *w = v;
+	byte most_severe_type = 255;
+	for (const Vehicle *u = v; u != NULL; u = u->Next()) {
+		if (u->breakdown_ctr == 1) {
+			if (u->breakdown_type < most_severe_type) {
+				most_severe_type = u->breakdown_type;
+				w = u;
+			} else if (u->breakdown_type == most_severe_type && u->breakdown_severity < w->breakdown_severity) {
+				w = u;
+			}
+		}
+	}
+	return w;
 }
 
 /** Option to refit a vehicle chain */
@@ -591,6 +620,34 @@ struct RefitWindow : public Window {
 		this->owner = v->owner;
 
 		this->SetWidgetDisabledState(WID_VR_REFIT, this->sel[0] < 0);
+	}
+
+	~RefitWindow()
+	{
+		if (this->window_number != INVALID_VEHICLE) {
+			const Vehicle *veh = Vehicle::Get(this->window_number);
+			MarkAllRoutePathsDirty(veh);
+			MarkAllRouteStopoversDirty(veh);
+			FocusWindowById(WC_VEHICLE_VIEW, this->window_number);
+		}
+	}
+
+	virtual void OnFocus()
+	{
+		if (this->window_number != INVALID_VEHICLE) {
+			const Vehicle *veh = Vehicle::Get(this->window_number);
+			MarkAllRoutePathsDirty(veh);
+			MarkAllRouteStopoversDirty(veh);
+		}
+	}
+
+	virtual void OnFocusLost()
+	{
+		if (this->window_number != INVALID_VEHICLE) {
+			const Vehicle *veh = Vehicle::Get(this->window_number);
+			MarkAllRoutePathsDirty(veh);
+			MarkAllRouteStopoversDirty(veh);
+		}
 	}
 
 	virtual void OnInit()
@@ -1242,6 +1299,7 @@ static const NWidgetPart _nested_vehicle_list[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_VL_SORT_ORDER), SetMinimalSize(81, 12), SetFill(0, 1), SetDataTip(STR_BUTTON_SORT_BY, STR_TOOLTIP_SORT_ORDER),
 		NWidget(WWT_DROPDOWN, COLOUR_GREY, WID_VL_SORT_BY_PULLDOWN), SetMinimalSize(167, 12), SetFill(0, 1), SetDataTip(0x0, STR_TOOLTIP_SORT_CRITERIA),
+		NWidget(WWT_DROPDOWN, COLOUR_GREY, WID_VL_FILTER_BY_PULLDOWN), SetMinimalSize(167, 12), SetFill(0, 1), SetDataTip(0x0, STR_TOOLTIP_FILTER_CRITERIA),
 		NWidget(WWT_PANEL, COLOUR_GREY), SetMinimalSize(12, 12), SetFill(1, 1), SetResize(1, 0),
 		EndContainer(),
 	EndContainer(),
@@ -1422,6 +1480,10 @@ private:
 	};
 
 public:
+	CargoID  cargo_filter[NUM_CARGO + 1];
+	StringID cargo_filter_texts[NUM_CARGO + 2];
+	byte     cargo_filter_criteria;
+
 	VehicleListWindow(WindowDesc *desc, WindowNumber window_number) : BaseVehicleListWindow(desc, window_number)
 	{
 		/* Set up sorting. Make the window-specific _sorting variable
@@ -1439,10 +1501,13 @@ public:
 
 		this->vscroll = this->GetScrollbar(WID_VL_SCROLLBAR);
 
+		cargo_filter_criteria = 0;
+		this->PopCargoList();
+
 		this->vehicles.SetListing(*this->sorting);
 		this->vehicles.ForceRebuild();
 		this->vehicles.NeedResort();
-		this->BuildVehicleList();
+		this->BuildVehicleList(INVALID_CARGO);
 		this->SortVehicleList();
 
 		/* Set up the window widgets */
@@ -1461,6 +1526,24 @@ public:
 	~VehicleListWindow()
 	{
 		*this->sorting = this->vehicles.GetListing();
+	}
+
+	void PopCargoList()
+	{
+		uint item = 0;
+
+		this->cargo_filter[item] = CF_ANY;
+		this->cargo_filter_texts[item] = STR_PURCHASE_INFO_ALL_TYPES;
+		item++;
+
+		const CargoSpec *cs;
+		FOR_ALL_SORTED_STANDARD_CARGOSPECS(cs) {
+			this->cargo_filter[item] = cs->Index();
+			this->cargo_filter_texts[item] = cs->name;
+			item++;
+			}
+
+		this->cargo_filter_texts[item] = INVALID_STRING_ID;
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
@@ -1503,6 +1586,10 @@ public:
 	virtual void SetStringParameters(int widget) const
 	{
 		switch (widget) {
+			case WID_VL_FILTER_BY_PULLDOWN:
+				SetDParam(0, this->cargo_filter_texts[this->cargo_filter_criteria]);
+				break;
+
 			case WID_VL_AVAILABLE_VEHICLES:
 				SetDParam(0, STR_VEHICLE_LIST_AVAILABLE_TRAINS + this->vli.vtype);
 				break;
@@ -1510,11 +1597,11 @@ public:
 			case WID_VL_CAPTION: {
 				switch (this->vli.type) {
 					case VL_SHARED_ORDERS: // Shared Orders
-						if (this->vehicles.Length() == 0) {
-							/* We can't open this window without vehicles using this order
-							 * and we should close the window when deleting the order. */
-							NOT_REACHED();
-						}
+						//if (this->vehicles.Length() == 0) {
+						//	/* We can't open this window without vehicles using this order
+						//	 * and we should close the window when deleting the order. */
+						//	NOT_REACHED();
+						//}
 						SetDParam(0, this->vscroll->GetCount());
 						break;
 
@@ -1559,7 +1646,8 @@ public:
 
 	virtual void OnPaint()
 	{
-		this->BuildVehicleList();
+		this->vehicles.ForceRebuild();
+		this->BuildVehicleList(this->cargo_filter[this->cargo_filter_criteria]);
 		this->SortVehicleList();
 
 		if (this->vehicles.Length() == 0 && this->IsWidgetLowered(WID_VL_MANAGE_VEHICLES_DROPDOWN)) {
@@ -1585,6 +1673,7 @@ public:
 
 		/* Set text of sort by dropdown widget. */
 		this->GetWidget<NWidgetCore>(WID_VL_SORT_BY_PULLDOWN)->widget_data = this->vehicle_sorter_names[this->vehicles.SortType()];
+		this->GetWidget<NWidgetCore>(WID_VL_FILTER_BY_PULLDOWN)->widget_data = this->cargo_filter_texts[this->cargo_filter_criteria];
 
 		this->DrawWidgets();
 	}
@@ -1602,6 +1691,10 @@ public:
 						(this->vli.vtype == VEH_TRAIN || this->vli.vtype == VEH_ROAD) ? 0 : (1 << 10));
 				return;
 
+			case WID_VL_FILTER_BY_PULLDOWN://Select filter criteria dropdown menu
+				ShowDropDownMenu(this, this->cargo_filter_texts, this->cargo_filter_criteria, WID_VL_FILTER_BY_PULLDOWN, 0, 0);
+				break;
+
 			case WID_VL_LIST: { // Matrix to show vehicles
 				uint id_v = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_VL_LIST);
 				if (id_v >= this->vehicles.Length()) return; // click out of list bound
@@ -1612,7 +1705,10 @@ public:
 			}
 
 			case WID_VL_AVAILABLE_VEHICLES:
-				ShowBuildVehicleWindow(INVALID_TILE, this->vli.vtype);
+				if(_settings_client.gui.new_build_vehicle_window)
+					ShowBuildVehicleWindowView(INVALID_TILE, this->vli.vtype);
+				else
+					ShowBuildVehicleWindowOrig(INVALID_TILE, this->vli.vtype);
 				break;
 
 			case WID_VL_MANAGE_VEHICLES_DROPDOWN: {
@@ -1634,6 +1730,7 @@ public:
 			case WID_VL_SORT_BY_PULLDOWN:
 				this->vehicles.SetSortType(index);
 				break;
+
 			case WID_VL_MANAGE_VEHICLES_DROPDOWN:
 				assert(this->vehicles.Length() != 0);
 
@@ -1649,6 +1746,13 @@ public:
 					default: NOT_REACHED();
 				}
 				break;
+
+			case WID_VL_FILTER_BY_PULLDOWN:
+				if(this->cargo_filter_criteria != index) {
+					this->cargo_filter_criteria = index;
+					}
+				break;
+
 			default: NOT_REACHED();
 		}
 		this->SetDirty();
@@ -1770,6 +1874,7 @@ static const NWidgetPart _nested_nontrain_vehicle_details_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_VD_CAPTION), SetDataTip(STR_VEHICLE_DETAILS_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_VD_TRIP_HISTORY), SetMinimalSize(44, 0),SetDataTip(STR_TRIP_HISTORY, STR_TRIP_HISTORY_TOOLTIP),
 		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_VD_RENAME_VEHICLE), SetMinimalSize(40, 0), SetMinimalTextLines(1, WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM + 2), SetDataTip(STR_VEHICLE_NAME_BUTTON, STR_NULL /* filled in later */),
 		NWidget(WWT_SHADEBOX, COLOUR_GREY),
 		NWidget(WWT_DEFSIZEBOX, COLOUR_GREY),
@@ -1794,6 +1899,7 @@ static const NWidgetPart _nested_train_vehicle_details_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_VD_CAPTION), SetDataTip(STR_VEHICLE_DETAILS_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_VD_TRIP_HISTORY), SetMinimalSize(44, 0),SetDataTip(STR_TRIP_HISTORY, STR_TRIP_HISTORY_TOOLTIP),
 		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_VD_RENAME_VEHICLE), SetMinimalSize(40, 0), SetMinimalTextLines(1, WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM + 2), SetDataTip(STR_VEHICLE_NAME_BUTTON, STR_NULL /* filled in later */),
 		NWidget(WWT_SHADEBOX, COLOUR_GREY),
 		NWidget(WWT_DEFSIZEBOX, COLOUR_GREY),
@@ -1860,6 +1966,16 @@ struct VehicleDetailsWindow : Window {
 		this->tab = TDW_TAB_CARGO;
 	}
 
+	~VehicleDetailsWindow()
+	{
+		if (this->window_number != INVALID_VEHICLE) {
+			const Vehicle *veh = Vehicle::Get(this->window_number);
+			MarkAllRoutePathsDirty(veh);
+			MarkAllRouteStopoversDirty(veh);
+			FocusWindowById(WC_VEHICLE_VIEW, this->window_number);
+		}
+	}
+
 	/**
 	 * Some data on this window has become invalid.
 	 * @param data Information about the changed data.
@@ -1910,9 +2026,19 @@ struct VehicleDetailsWindow : Window {
 		switch (widget) {
 			case WID_VD_TOP_DETAILS: {
 				Dimension dim = { 0, 0 };
-				size->height = WD_FRAMERECT_TOP + 4 * FONT_HEIGHT_NORMAL + WD_FRAMERECT_BOTTOM;
+				const Vehicle *v = Vehicle::Get(this->window_number);
+				uint lCount = (v->type == VEH_TRAIN)? 5 : 4;
+				size->height = WD_FRAMERECT_TOP + lCount * FONT_HEIGHT_NORMAL + WD_FRAMERECT_BOTTOM;
 
-				for (uint i = 0; i < 4; i++) SetDParamMaxValue(i, INT16_MAX);
+				for (uint i = 0; i < lCount; i++) SetDParam(i, INT16_MAX);
+				static const StringID info_strings_train[] = {
+					STR_VEHICLE_INFO_MAX_SPEED,
+					STR_VEHICLE_INFO_WEIGHT_POWER_MAX_SPEED,
+					STR_VEHICLE_INFO_WEIGHT_POWER_MAX_SPEED_MAX_TE,
+					STR_VEHICLE_INFO_TRAIN_LENGTH,
+					STR_VEHICLE_INFO_PROFIT_THIS_YEAR_LAST_YEAR,
+					STR_VEHICLE_INFO_RELIABILITY_BREAKDOWNS
+				};
 				static const StringID info_strings[] = {
 					STR_VEHICLE_INFO_MAX_SPEED,
 					STR_VEHICLE_INFO_WEIGHT_POWER_MAX_SPEED,
@@ -1920,8 +2046,12 @@ struct VehicleDetailsWindow : Window {
 					STR_VEHICLE_INFO_PROFIT_THIS_YEAR_LAST_YEAR,
 					STR_VEHICLE_INFO_RELIABILITY_BREAKDOWNS
 				};
-				for (uint i = 0; i < lengthof(info_strings); i++) {
-					dim = maxdim(dim, GetStringBoundingBox(info_strings[i]));
+				if(v->type == VEH_TRAIN)
+					for (uint i = 0; i < lengthof(info_strings_train); i++) {
+						dim = maxdim(dim, GetStringBoundingBox(info_strings_train[i]));
+				} else
+					for (uint i = 0; i < lengthof(info_strings); i++) {
+						dim = maxdim(dim, GetStringBoundingBox(info_strings[i]));
 				}
 				SetDParam(0, STR_VEHICLE_INFO_AGE);
 				dim = maxdim(dim, GetStringBoundingBox(STR_VEHICLE_INFO_AGE_RUNNING_COST_YR));
@@ -2057,6 +2187,15 @@ struct VehicleDetailsWindow : Window {
 				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, string);
 				y += FONT_HEIGHT_NORMAL;
 
+				/* Draw consist length */
+				if(v->type == VEH_TRAIN) {
+					const GroundVehicleCache *gcache = v->GetGroundVehicleCache();
+					SetDParam(0, CeilDiv(gcache->cached_total_length * 10, TILE_SIZE));
+					SetDParam(1, 1);
+					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_VEHICLE_INFO_TRAIN_LENGTH);
+					y += FONT_HEIGHT_NORMAL;
+				}
+
 				/* Draw profit */
 				SetDParam(0, v->GetDisplayProfitThisYear());
 				SetDParam(1, v->GetDisplayProfitLastYear());
@@ -2064,8 +2203,25 @@ struct VehicleDetailsWindow : Window {
 				y += FONT_HEIGHT_NORMAL;
 
 				/* Draw breakdown & reliability */
+				byte total_engines = 0;
+				if (v->type == VEH_TRAIN) {
+					/* we want to draw the average reliability and total number of breakdowns */
+					uint32 total_reliability = 0;
+					uint16 total_breakdowns  = 0;
+					for (const Vehicle *w = v; w != NULL; w = w->Next()) {
+						if (Train::From(w)->IsEngine() || Train::From(w)->IsMultiheaded()) {
+							total_reliability += w->reliability;
+							total_breakdowns += w->breakdowns_since_last_service;
+						}
+					}
+					total_engines = Train::From(v)->tcache.cached_num_engines;
+					assert(total_engines > 0);
+					SetDParam(0, ToPercent16(total_reliability / total_engines));
+					SetDParam(1, total_breakdowns);
+				} else {
 				SetDParam(0, ToPercent16(v->reliability));
 				SetDParam(1, v->breakdowns_since_last_service);
+				}
 				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_VEHICLE_INFO_RELIABILITY_BREAKDOWNS);
 				break;
 			}
@@ -2135,6 +2291,11 @@ struct VehicleDetailsWindow : Window {
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
 		switch (widget) {
+			case WID_VD_TRIP_HISTORY: {
+				const Vehicle *v = Vehicle::Get(this->window_number);
+				ShowTripHistoryWindow(v);
+				break;
+			}
 			case WID_VD_RENAME_VEHICLE: { // rename
 				const Vehicle *v = Vehicle::Get(this->window_number);
 				SetDParam(0, v->index);
@@ -2208,6 +2369,24 @@ struct VehicleDetailsWindow : Window {
 			this->vscroll->SetCapacityFromWidget(this, WID_VD_MATRIX);
 		}
 	}
+
+	virtual void OnFocus()
+	{
+		if (this->window_number != INVALID_VEHICLE) {
+			const Vehicle *veh = Vehicle::Get(this->window_number);
+			MarkAllRoutePathsDirty(veh);
+			MarkAllRouteStopoversDirty(veh);
+		}
+	}
+
+	virtual void OnFocusLost()
+	{
+		if (this->window_number != INVALID_VEHICLE) {
+			const Vehicle *veh = Vehicle::Get(this->window_number);
+			MarkAllRoutePathsDirty(veh);
+			MarkAllRouteStopoversDirty(veh);
+		}
+	}
 };
 
 /** Vehicle details window descriptor. */
@@ -2260,7 +2439,7 @@ static const NWidgetPart _nested_vehicle_view_widgets[] = {
 				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_VV_CLONE), SetMinimalSize(18, 18), SetFill(1, 1), SetDataTip(0x0 /* filled later */, 0x0 /* filled later */),
 			EndContainer(),
 			/* For trains only, 'ignore signal' button. */
-			NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_VV_FORCE_PROCEED), SetMinimalSize(18, 18), SetFill(1, 1),
+		NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_VV_FORCE_PROCEED), SetMinimalSize(18, 18), SetFill(1, 1),
 											SetDataTip(SPR_IGNORE_SIGNALS, STR_VEHICLE_VIEW_TRAIN_IGNORE_SIGNAL_TOOLTIP),
 			NWidget(NWID_SELECTION, INVALID_COLOUR, WID_VV_SELECT_REFIT_TURN),
 				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_VV_REFIT), SetMinimalSize(18, 18), SetFill(1, 1), SetDataTip(SPR_REFIT_VEHICLE, 0x0 /* filled later */),
@@ -2354,7 +2533,7 @@ static const uint32 _vehicle_command_translation_table[][4] = {
  * @param p1 vehicle ID
  * @param p2 unused
  */
-void CcStartStopVehicle(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcStartStopVehicle(const CommandCost &result, TileIndex tile, uint64 p1, uint64 p2)
 {
 	if (result.Failed()) return;
 
@@ -2376,6 +2555,13 @@ void StartStopVehicle(const Vehicle *v, bool texteffect)
 	assert(v->IsPrimaryVehicle());
 	DoCommandP(v->tile, v->index, 0, _vehicle_command_translation_table[VCT_CMD_START_STOP][v->type], texteffect ? CcStartStopVehicle : NULL);
 }
+
+/** Strings for aircraft breakdown types */
+static const StringID _aircraft_breakdown_strings[] = {
+	STR_BREAKDOWN_TYPE_LOW_SPEED,
+	STR_BREAKDOWN_TYPE_DEPOT,
+	STR_BREAKDOWN_TYPE_LANDING,
+};
 
 /** Checks whether the vehicle may be refitted at the moment.*/
 static bool IsVehicleRefitable(const Vehicle *v)
@@ -2480,10 +2666,35 @@ public:
 
 	~VehicleViewWindow()
 	{
+		if (this->window_number != INVALID_VEHICLE) {
+			const Vehicle *veh = Vehicle::Get(this->window_number);
+			MarkAllRoutePathsDirty(veh);
+			MarkAllRouteStopoversDirty(veh);
+		}
+
 		DeleteWindowById(WC_VEHICLE_ORDERS, this->window_number, false);
 		DeleteWindowById(WC_VEHICLE_REFIT, this->window_number, false);
 		DeleteWindowById(WC_VEHICLE_DETAILS, this->window_number, false);
 		DeleteWindowById(WC_VEHICLE_TIMETABLE, this->window_number, false);
+		DeleteWindowById(WC_VEHICLE_TRIP_HISTORY, this->window_number, false);
+	}
+
+	virtual void OnFocus()
+	{
+		if (this->window_number != INVALID_VEHICLE) {
+			const Vehicle *veh = Vehicle::Get(this->window_number);
+			MarkAllRoutePathsDirty(veh);
+			MarkAllRouteStopoversDirty(veh);
+		}
+	}
+
+	virtual void OnFocusLost()
+	{
+		if (this->window_number != INVALID_VEHICLE) {
+			const Vehicle *veh = Vehicle::Get(this->window_number);
+			MarkAllRoutePathsDirty(veh);
+			MarkAllRouteStopoversDirty(veh);
+		}
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
@@ -2512,6 +2723,7 @@ public:
 	{
 		const Vehicle *v = Vehicle::Get(this->window_number);
 		bool is_localcompany = v->owner == _local_company;
+		bool can_control = IsVehicleControlAllowed(v, _local_company);
 		bool refitable_and_stopped_in_depot = IsVehicleRefitable(v);
 
 		this->SetWidgetDisabledState(WID_VV_GOTO_DEPOT, !is_localcompany);
@@ -2520,8 +2732,8 @@ public:
 
 		if (v->type == VEH_TRAIN) {
 			this->SetWidgetLoweredState(WID_VV_FORCE_PROCEED, Train::From(v)->force_proceed == TFP_SIGNAL);
-			this->SetWidgetDisabledState(WID_VV_FORCE_PROCEED, !is_localcompany);
-			this->SetWidgetDisabledState(WID_VV_TURN_AROUND, !is_localcompany);
+			this->SetWidgetDisabledState(WID_VV_FORCE_PROCEED, !can_control);
+			this->SetWidgetDisabledState(WID_VV_TURN_AROUND, !can_control);
 		}
 
 		this->DrawWidgets();
@@ -2543,8 +2755,30 @@ public:
 		StringID str;
 		if (v->vehstatus & VS_CRASHED) {
 			str = STR_VEHICLE_STATUS_CRASHED;
-		} else if (v->type != VEH_AIRCRAFT && v->breakdown_ctr == 1) { // check for aircraft necessary?
+		} else if ( v->breakdown_ctr == 1 || ( v->type == VEH_TRAIN && Train::From( v )->flags & VRF_IS_BROKEN ) ) {
+			if ( _settings_game.vehicle.improved_breakdowns ) {
+				str = STR_VEHICLE_STATUS_BROKEN_DOWN_VEL;
+				SetDParam( 2, v->GetDisplaySpeed( ) );
+			} else
 			str = STR_VEHICLE_STATUS_BROKEN_DOWN;
+
+			if ( v->type == VEH_AIRCRAFT ) {
+				SetDParam( 0, _aircraft_breakdown_strings[v->breakdown_type] );
+				if ( v->breakdown_type == BREAKDOWN_AIRCRAFT_SPEED ) {
+					SetDParam( 1, v->breakdown_severity << 3 );
+				} else {
+					SetDParam( 1, v->current_order.GetDestination( ) );
+				}
+			} else {
+				const Vehicle *w = ( v->type == VEH_TRAIN ) ? GetMostSeverelyBrokenEngine( Train::From( v ) ) : v;
+				SetDParam( 0, STR_BREAKDOWN_TYPE_CRITICAL + w->breakdown_type );
+
+				if ( w->breakdown_type == BREAKDOWN_LOW_SPEED ) {
+					SetDParam( 1, min( w->First()->GetDisplayMaxSpeed( ), w->breakdown_severity >> ( v->type == VEH_TRAIN ? 0 : 1 ) ) );
+				} else if ( w->breakdown_type == BREAKDOWN_LOW_POWER ) {
+					SetDParam( 1, w->breakdown_severity * 100 / 256 );
+				}
+			}
 		} else if (v->vehstatus & VS_STOPPED) {
 			if (v->type == VEH_TRAIN) {
 				if (v->cur_speed == 0) {
@@ -2670,12 +2904,18 @@ public:
 			case WID_VV_SHOW_ORDERS: // show orders
 				if (_ctrl_pressed) {
 					ShowTimetableWindow(v);
+				} else if (_shift_pressed) {
+					ShowVehicleListWindow(v);
 				} else {
 					ShowOrdersWindow(v);
 				}
 				break;
 			case WID_VV_SHOW_DETAILS: // show details
-				ShowVehicleDetailsWindow(v);
+				if(_ctrl_pressed) {
+					const Vehicle *v = Vehicle::Get(this->window_number);
+					ShowTripHistoryWindow(v);
+				} else
+					ShowVehicleDetailsWindow(v);
 				break;
 			case WID_VV_CLONE: // clone vehicle
 				/* Suppress the vehicle GUI when share-cloning.
@@ -2796,7 +3036,7 @@ void StopGlobalFollowVehicle(const Vehicle *v)
  * @param p1 unused
  * @param p2 unused
  */
-void CcBuildPrimaryVehicle(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcBuildPrimaryVehicle(const CommandCost &result, TileIndex tile, uint64 p1, uint64 p2)
 {
 	if (result.Failed()) return;
 

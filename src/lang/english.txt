@@ -301,6 +301,12 @@ STR_SORT_BY_RANGE                                               :Range
 STR_SORT_BY_POPULATION                                          :Population
 STR_SORT_BY_RATING                                              :Rating
 
+STR_FILTER_TRANSPORTED_BOTH                                     :Show all (transported or not)
+STR_FILTER_TRANSPORTED_ONLY_NOT                                 :Show only non-transported
+STR_FILTER_TRANSPORTED_ONLY                                     :Show only transported
+
+STR_FILTER_INDUSTRY_TYPE_ALL                                    :Show all
+
 # Tooltips for the main toolbar
 STR_TOOLBAR_TOOLTIP_PAUSE_GAME                                  :{BLACK}Pause game
 STR_TOOLBAR_TOOLTIP_FORWARD                                     :{BLACK}Fast forward the game
@@ -365,6 +371,7 @@ STR_SETTINGS_MENU_CONFIG_SETTINGS                               :Advanced settin
 STR_SETTINGS_MENU_SCRIPT_SETTINGS                               :AI/Game script settings
 STR_SETTINGS_MENU_NEWGRF_SETTINGS                               :NewGRF settings
 STR_SETTINGS_MENU_TRANSPARENCY_OPTIONS                          :Transparency options
+STR_SETTINGS_MENU_ZONING                                        :Zoning
 STR_SETTINGS_MENU_TOWN_NAMES_DISPLAYED                          :Town names displayed
 STR_SETTINGS_MENU_STATION_NAMES_DISPLAYED                       :Station names displayed
 STR_SETTINGS_MENU_WAYPOINTS_DISPLAYED                           :Waypoint names displayed
@@ -933,12 +940,15 @@ STR_GAME_OPTIONS_TOWN_NAME_DANISH                               :Danish
 STR_GAME_OPTIONS_TOWN_NAME_TURKISH                              :Turkish
 STR_GAME_OPTIONS_TOWN_NAME_ITALIAN                              :Italian
 STR_GAME_OPTIONS_TOWN_NAME_CATALAN                              :Catalan
+STR_GAME_OPTIONS_TOWN_NAME_RUSSIAN                              :Russian
 ############ end of townname region
 
 STR_GAME_OPTIONS_AUTOSAVE_FRAME                                 :{BLACK}Autosave
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_TOOLTIP                      :{BLACK}Select interval between automatic game saves
 
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_OFF                          :Off
+STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_1_DAY                  :Every day
+STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_1_WEEK                 :Every week
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_1_MONTH                :Every month
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_3_MONTHS               :Every 3 months
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_6_MONTHS               :Every 6 months
@@ -1045,10 +1055,13 @@ STR_SUBSIDY_X2                                                  :x2
 STR_SUBSIDY_X3                                                  :x3
 STR_SUBSIDY_X4                                                  :x4
 
+STR_TERRAIN_TYPE_EXTREMELY_FLAT                                 :Extremely flat
 STR_TERRAIN_TYPE_VERY_FLAT                                      :Very Flat
 STR_TERRAIN_TYPE_FLAT                                           :Flat
+STR_TERRAIN_TYPE_BUMPY                                          :Bumpy
 STR_TERRAIN_TYPE_HILLY                                          :Hilly
 STR_TERRAIN_TYPE_MOUNTAINOUS                                    :Mountainous
+STR_TERRAIN_TYPE_ALPINIST                                       :Alpinist
 
 STR_CITY_APPROVAL_PERMISSIVE                                    :Permissive
 STR_CITY_APPROVAL_TOLERANT                                      :Tolerant
@@ -1074,6 +1087,7 @@ STR_CONFIG_SETTING_RESTRICT_LABEL                               :{BLACK}Show:
 STR_CONFIG_SETTING_RESTRICT_DROPDOWN_HELPTEXT                   :{BLACK}Restricts the list below showing only changed settings
 STR_CONFIG_SETTING_RESTRICT_BASIC                               :Basic settings
 STR_CONFIG_SETTING_RESTRICT_ADVANCED                            :Advanced settings
+STR_CONFIG_SETTING_RESTRICT_PATCHES                             :Patches settings
 STR_CONFIG_SETTING_RESTRICT_ALL                                 :Expert settings / all settings
 STR_CONFIG_SETTING_RESTRICT_CHANGED_AGAINST_DEFAULT             :Settings with a different value than the default
 STR_CONFIG_SETTING_RESTRICT_CHANGED_AGAINST_NEW                 :Settings with a different value than your new-game settings
@@ -1125,6 +1139,10 @@ STR_CONFIG_SETTING_DISASTERS_HELPTEXT                           :Toggle disaster
 STR_CONFIG_SETTING_CITY_APPROVAL                                :City council's attitude towards area restructuring: {STRING2}
 STR_CONFIG_SETTING_CITY_APPROVAL_HELPTEXT                       :Choose how much noise and environmental damage by companies affect their town rating and further construction actions in their area
 
+STR_CONFIG_SETTING_MAX_HEIGHTLEVEL                              :Maximal allowed heightlevel: {STRING2}
+STR_CONFIG_SETTING_MAX_HEIGHTLEVEL_HELPTEXT                     :Maximal allowed heightlevel on the map
+STR_CONFIG_SETTING_TOO_HIGH_MOUNTAIN                            :{WHITE}You can´t set the maximal allowed heightlevel to this value. At least one mountain on the map is higher.
+
 STR_CONFIG_SETTING_BUILDONSLOPES                                :Allow building on slopes and coasts: {STRING2}
 STR_CONFIG_SETTING_BUILDONSLOPES_HELPTEXT                       :If enabled, tracks and stations can be build on most slopes. If disabled, they are only allowed on slopes which match the direction of the track and thus require no foundations
 STR_CONFIG_SETTING_AUTOSLOPE                                    :Allow landscaping under buildings, tracks, etc. (autoslope): {STRING2}
@@ -1157,8 +1175,22 @@ STR_CONFIG_SETTING_GRADUAL_LOADING                              :Load vehicles g
 STR_CONFIG_SETTING_GRADUAL_LOADING_HELPTEXT                     :Gradually load vehicles using vehicle specific loading durations, instead of loading everything at once with a fixed time depending only on the amount of cargo loaded
 STR_CONFIG_SETTING_INFLATION                                    :Inflation: {STRING2}
 STR_CONFIG_SETTING_INFLATION_HELPTEXT                           :Enable inflation in the economy, where costs are slightly faster rising than payments
+STR_CONFIG_SETTING_TOWN_CONSTRUCTION_COST                       :Increase construction cost near towns: {STRING2}
+STR_CONFIG_SETTING_TOWN_CONSTRUCTION_COST_HELPTEXT              :If enabled, near towns all construction costs will be much higher
+STR_CONFIG_SETTING_STATION_RATING_TYPE                          :Calculation of rating on the station: {STRING2}
+STR_CONFIG_SETTING_STATION_RATING_TYPE_HELPTEXT                 :Calculation of rating on the station
+STR_CONFIG_SETTING_STATION_RATING_DEF                           :Default
+STR_CONFIG_SETTING_STATION_RATING_100                           :Allways 100%
 STR_CONFIG_SETTING_SELECTGOODS                                  :Deliver cargo to a station only when there is a demand: {STRING2}
 STR_CONFIG_SETTING_SELECTGOODS_HELPTEXT                         :Only deliver cargo to a station that was requested from a loading vehicle. This prevents bad ratings for cargoes that are not serviced at a station
+STR_CONFIG_SETTING_DELIVER_GOODS                                :Delivering goods from station to industry: {STRING2}
+STR_CONFIG_SETTING_DELIVER_GOODS_HELPTEXT                       :Method for delivering goods from station to industries: {}{ORANGE}Default{WHITE} - all goods delivering to nearest industry;{}{ORANGE}To all industries around{WHITE} - all goods deliver to all industries around station equally.
+STR_CONFIG_SETTING_DELIVER_GOODS_HELPTEXT_1                     :Method for delivering goods from station to industries: {}{ORANGE}Default{WHITE} - all goods delivering to nearest industry;{}{ORANGE}To all industries around{WHITE} - all goods deliver to all industries around station equally;{}{ORANGE}Using mask{WHITE} - distribution of goods depends on mask in each station {RED}(not alaliable now, in development){WHITE}.
+STR_CONFIG_SETTING_DELIVER_GOODS_DEFAULT                        :Default
+STR_CONFIG_SETTING_DELIVER_GOODS_TO_ALL                         :To all industries around
+STR_CONFIG_SETTING_DELIVER_GOODS_USING_MASK                     :Using mask
+STR_CONFIG_SETTING_CARGO_WAIT_TIME                              :Time to wait for cargo (for "wait for cargo" order): {STRING2} (days, minutes)
+STR_CONFIG_SETTING_CARGO_WAIT_TIME_HELPTEXT                     :Time to wait cargo on the station.
 STR_CONFIG_SETTING_MAX_BRIDGE_LENGTH                            :Maximum bridge length: {STRING2}
 STR_CONFIG_SETTING_MAX_BRIDGE_LENGTH_HELPTEXT                   :Maximum length for building bridges
 STR_CONFIG_SETTING_MAX_TUNNEL_LENGTH                            :Maximum tunnel length: {STRING2}
@@ -1186,6 +1218,8 @@ STR_CONFIG_SETTING_STOP_LOCATION_HELPTEXT                       :Place where a t
 STR_CONFIG_SETTING_STOP_LOCATION_NEAR_END                       :near end
 STR_CONFIG_SETTING_STOP_LOCATION_MIDDLE                         :middle
 STR_CONFIG_SETTING_STOP_LOCATION_FAR_END                        :far end
+STR_CONFIG_SETTING_IMPROVED_BREAKDOWNS                          :Enable improved breakdowns: {STRING2}
+STR_CONFIG_SETTING_IMPROVED_BREAKDOWNS_HELPTEXT                 :If set, improved breakdowns are enabled
 STR_CONFIG_SETTING_ROAD_VEHICLE_QUEUEING                        :Road vehicle queueing (with quantum effects): {STRING2}
 STR_CONFIG_SETTING_ROAD_VEHICLE_QUEUEING_HELPTEXT               :Make road vehicle wait in front of occupied road stops until they are cleared
 STR_CONFIG_SETTING_AUTOSCROLL                                   :Pan window when mouse is at the edge: {STRING2}
@@ -1206,6 +1240,8 @@ STR_CONFIG_SETTING_ALLOW_GIVE_MONEY                             :Allow sending m
 STR_CONFIG_SETTING_ALLOW_GIVE_MONEY_HELPTEXT                    :Allow transfer of money between companies in multiplayer mode
 STR_CONFIG_SETTING_FREIGHT_TRAINS                               :Weight multiplier for freight to simulate heavy trains: {STRING2}
 STR_CONFIG_SETTING_FREIGHT_TRAINS_HELPTEXT                      :Set the impact of carrying freight in trains. A higher value makes carrying freight more demanding for trains, especially at hills
+STR_CONFIG_SETTING_FREIGHT_MULT_TO_PASS                         :Apply weight multiplier to passengers: {ORANGE}{STRING2}
+STR_CONFIG_SETTING_FREIGHT_MULT_TO_PASS_HELPTEXT                :If set, weight multiplier also applies to passenger trains
 STR_CONFIG_SETTING_PLANE_SPEED                                  :Plane speed factor: {STRING2}
 STR_CONFIG_SETTING_PLANE_SPEED_HELPTEXT                         :Set the relative speed of planes compared to other vehicle types, to reduce the amount of income of transport by aircraft
 STR_CONFIG_SETTING_PLANE_SPEED_VALUE                            :1 / {COMMA}
@@ -1223,6 +1259,8 @@ STR_CONFIG_SETTING_ADJACENT_STATIONS_HELPTEXT                   :Allow different
 STR_CONFIG_SETTING_DYNAMIC_ENGINES                              :Enable multiple NewGRF engine sets: {STRING2}
 STR_CONFIG_SETTING_DYNAMIC_ENGINES_HELPTEXT                     :Compatibility option for old NewGRFs. Do not disable this, unless you know exactly what you are doing!
 STR_CONFIG_SETTING_DYNAMIC_ENGINES_EXISTING_VEHICLES            :{WHITE}Changing this setting is not possible when there are vehicles
+STR_CONFIG_SETTING_MAX_SIGNAL_EVALUATIONS                       :Maximum number of programmable signal changes permitted at once: {STRING2}
+STR_CONFIG_SETTING_MAX_SIGNAL_EVALUATIONS_HELPTEXT              :Sets the maximum number of programmable signal changes permitted at once
 STR_CONFIG_SETTING_INFRASTRUCTURE_MAINTENANCE                   :Infrastructure maintenance: {STRING2}
 STR_CONFIG_SETTING_INFRASTRUCTURE_MAINTENANCE_HELPTEXT          :When enabled, infrastructure causes maintenance costs. The cost grows over-proportional with the network size, thus affecting bigger companies more than smaller ones
 
@@ -1240,6 +1278,8 @@ STR_CONFIG_SETTING_WARN_INCOME_LESS                             :Warn if a vehic
 STR_CONFIG_SETTING_WARN_INCOME_LESS_HELPTEXT                    :When enabled, a news message gets sent when a vehicle has not made any profit within a calendar year
 STR_CONFIG_SETTING_NEVER_EXPIRE_VEHICLES                        :Vehicles never expire: {STRING2}
 STR_CONFIG_SETTING_NEVER_EXPIRE_VEHICLES_HELPTEXT               :When enabled, all vehicle models remain available forever after their introduction
+STR_CONFIG_SETTING_EXACT_DATE_INTRO                             :Use exact date introduction of new vehicles: {STRING2}
+STR_CONFIG_SETTING_EXACT_DATE_INTRO_HELPTEXT                    :If set, new vehicles will introduce exactly in their introduction date
 STR_CONFIG_SETTING_AUTORENEW_VEHICLE                            :Autorenew vehicle when it gets old: {STRING2}
 STR_CONFIG_SETTING_AUTORENEW_VEHICLE_HELPTEXT                   :When enabled, a vehicle nearing its end of life gets automatically replaced when the renew conditions are fulfilled
 STR_CONFIG_SETTING_AUTORENEW_MONTHS                             :Autorenew when vehicle is {STRING2} max age
@@ -1255,14 +1295,15 @@ STR_CONFIG_SETTING_HOVER_DELAY                                  :Show tooltips: 
 STR_CONFIG_SETTING_HOVER_DELAY_HELPTEXT                         :Delay before tooltips are displayed when hovering the mouse over some interface element. Alternatively tooltips can be bound to the right mouse button
 STR_CONFIG_SETTING_HOVER_DELAY_VALUE                            :Hover for {COMMA} second{P 0 "" s}
 STR_CONFIG_SETTING_HOVER_DELAY_DISABLED                         :Right click
-STR_CONFIG_SETTING_POPULATION_IN_LABEL                          :Show town population in the town name label: {STRING2}
-STR_CONFIG_SETTING_POPULATION_IN_LABEL_HELPTEXT                 :Display the population of towns in their label on the map
+STR_CONFIG_SETTING_POPULATION_IN_LABEL                          :Show extra information in the town name label: {STRING2}
+STR_CONFIG_SETTING_POPULATION_IN_LABEL_HELPTEXT                 :Display the company rating in town's label on the map
 STR_CONFIG_SETTING_GRAPH_LINE_THICKNESS                         :Thickness of lines in graphs: {STRING2}
 STR_CONFIG_SETTING_GRAPH_LINE_THICKNESS_HELPTEXT                :Width of the line in the graphs. A thin line is more precisely readable, a thicker line is easier to see and colours are easier to distinguish
 
 STR_CONFIG_SETTING_LAND_GENERATOR                               :Land generator: {STRING2}
 STR_CONFIG_SETTING_LAND_GENERATOR_ORIGINAL                      :Original
 STR_CONFIG_SETTING_LAND_GENERATOR_TERRA_GENESIS                 :TerraGenesis
+STR_CONFIG_SETTING_LAND_GENERATOR_TERRA_GENESIS_ORIGINAL        :TerraGenesis original
 STR_CONFIG_SETTING_OIL_REF_EDGE_DISTANCE                        :Max distance from edge for Oil Refineries: {STRING2}
 STR_CONFIG_SETTING_OIL_REF_EDGE_DISTANCE_HELPTEXT               :Oil refineries are only constructed near the map border, that is at the coast for island maps
 STR_CONFIG_SETTING_SNOWLINE_HEIGHT                              :Snow line height: {STRING2}
@@ -1271,6 +1312,9 @@ STR_CONFIG_SETTING_ROUGHNESS_OF_TERRAIN_VERY_SMOOTH             :Very Smooth
 STR_CONFIG_SETTING_ROUGHNESS_OF_TERRAIN_SMOOTH                  :Smooth
 STR_CONFIG_SETTING_ROUGHNESS_OF_TERRAIN_ROUGH                   :Rough
 STR_CONFIG_SETTING_ROUGHNESS_OF_TERRAIN_VERY_ROUGH              :Very Rough
+STR_CONFIG_SETTING_ROUGHNESS_OF_TERRAIN_CEREALLY_ROUGH          :Cereally rough
+STR_CONFIG_SETTING_ROUGHNESS_OF_TERRAIN_COMMUTORZ               :CommutorZ
+STR_CONFIG_SETTING_ROUGHNESS_OF_TERRAIN_FLOWING                 :Flowing
 STR_CONFIG_SETTING_TREE_PLACER                                  :Tree placer algorithm: {STRING2}
 STR_CONFIG_SETTING_TREE_PLACER_NONE                             :None
 STR_CONFIG_SETTING_TREE_PLACER_ORIGINAL                         :Original
@@ -1322,6 +1366,30 @@ STR_CONFIG_SETTING_OSK_ACTIVATION_DOUBLE_CLICK                  :Double click
 STR_CONFIG_SETTING_OSK_ACTIVATION_SINGLE_CLICK_FOCUS            :Single click (when focussed)
 STR_CONFIG_SETTING_OSK_ACTIVATION_SINGLE_CLICK                  :Single click (immediately)
 
+STR_CONFIG_SETTING_VIEWPORT_MAP_RENDER_IN_REALTIME              :Render in realtime: {STRING2}
+STR_CONFIG_SETTING_VIEWPORT_MAP_SCAN_SURROUNDINGS               :Scan surroundings (better for high zoom out levels): {STRING2}
+STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_SLOPES                     :Show slopes: {STRING2}
+STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_BRIDGES                    :Show bridges: {STRING2}
+STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_TUNNELS                    :Show tunnels: {STRING2}
+STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_SCROLLING_VP               :Show scrolling viewport: {STRING2}
+STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_SCROLLING_VP_NOTHING       :No
+STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_SCROLLING_VP_CONTOUR       :Contour
+STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_SCROLLING_VP_BLEND         :Blend with some white (32bpp only)
+STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_SCROLLING_VP_ALL           :Blend + contour
+STR_CONFIG_SETTING_VIEWPORT_MAP_USE_OWNER_COLOUR_BRIDGE_TUNNEL  :Use owner's colour for bridges and tunnels: {STRING2}
+STR_CONFIG_SETTING_VIEWPORT_MAP_DEFAULT_MODE                    :Default mode: {STRING2}
+STR_CONFIG_SETTING_VIEWPORT_MAP_DEFAULT_MODE_VEGETATION         :Vegetation
+STR_CONFIG_SETTING_VIEWPORT_MAP_DEFAULT_MODE_OWNER              :Owner
+STR_CONFIG_SETTING_VIEWPORT_MAP_DEFAULT_MODE_INDUSTRY           :Industry
+STR_CONFIG_SETTING_VIEWPORT_MAP_ACTION_DBLCLICK                 :Function of double-click: {STRING2}
+STR_CONFIG_SETTING_VIEWPORT_MAP_ACTION_DBLCLICK_DO_NOTHING      :Do nothing
+STR_CONFIG_SETTING_VIEWPORT_MAP_ACTION_DBLCLICK_ZOOM_MAIN       :Zoom in directly to 1X
+STR_CONFIG_SETTING_VIEWPORT_MAP_ACTION_DBLCLICK_NEW_EXTRA       :Open an extra viewport
+STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_VEHICLE_ROUTE_STOPOVERS    :Show the vehicle's stopovers: {STRING2}
+STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_VEHICLE_ROUTE_PATH         :Show the vehicle's path: {STRING2}
+STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_VEHICLE_ROUTE_PATH_NO      :No
+STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_VEHICLE_ROUTE_PATH_SIMPLE  :Simple
+
 STR_CONFIG_SETTING_RIGHT_MOUSE_BTN_EMU                          :Right-click emulation: {STRING2}
 STR_CONFIG_SETTING_RIGHT_MOUSE_BTN_EMU_HELPTEXT                 :Select the method to emulate right mouse-button clicks
 STR_CONFIG_SETTING_RIGHT_MOUSE_BTN_EMU_COMMAND                  :Command+Click
@@ -1354,8 +1422,32 @@ STR_CONFIG_SETTING_ADVANCED_VEHICLE_LISTS                       :Use the advance
 STR_CONFIG_SETTING_ADVANCED_VEHICLE_LISTS_HELPTEXT              :Enable usage of the advanced vehicle lists for grouping vehicles
 STR_CONFIG_SETTING_LOADING_INDICATORS                           :Use loading indicators: {STRING2}
 STR_CONFIG_SETTING_LOADING_INDICATORS_HELPTEXT                  :Select whether loading indicators are displayed above loading or unloading vehicles
+STR_CONFIG_SETTING_TIMETABLE_AUTOMATED                          :Automatically manage timetables: {STRING2}
+STR_CONFIG_SETTING_TIMETABLE_AUTOMATED_HELPTEXT                 :Whether to enable automatic timetables
 STR_CONFIG_SETTING_TIMETABLE_IN_TICKS                           :Show timetable in ticks rather than days: {STRING2}
+STR_CONFIG_SETTING_TIMETABLE_SEPARATION_TRAIN                   :Use timetable to ensure vehicle separation: {STRING2}
+STR_CONFIG_SETTING_TIMETABLE_SEPARATION_TRAIN_HELPTEXT          :Select whether to ensure separation of vehicles when using automatic timetables
+STR_CONFIG_SETTING_TIMETABLE_SEPARATION_ROAD                    :Use timetable to ensure road vehicles separation: {STRING2}
+STR_CONFIG_SETTING_TIMETABLE_SEPARATION_ROAD_HELPTEXT           :Select whether to ensure separation of road vehicles when using automatic timetables
+STR_CONFIG_SETTING_TIMETABLE_SEPARATION_AIR                     :Use timetable to ensure aircraft separation: {STRING2}
+STR_CONFIG_SETTING_TIMETABLE_SEPARATION_AIR_HELPTEXT            :Select whether to ensure separation of aircrafts when using automatic timetables
+STR_CONFIG_SETTING_TIMETABLE_SEPARATION_SHIP                    :Use timetable to ensure ship separation: {STRING2}
+STR_CONFIG_SETTING_TIMETABLE_SEPARATION_SHIP_HELPTEXT           :Select whether to ensure separation of ships when using automatic timetables
 STR_CONFIG_SETTING_TIMETABLE_IN_TICKS_HELPTEXT                  :Show travel times in time tables in game ticks instead of days
+STR_CONFIG_SETTING_TIME_IN_MINUTES                              :Show time in minutes rather than days: {STRING2}
+STR_CONFIG_SETTING_TIME_IN_MINUTES_HELPTEXT                     :Select whether to use hours and minutes instead of days
+STR_CONFIG_SETTING_TICKS_PER_MINUTE                             :Ticks per minute: {STRING2}
+STR_CONFIG_SETTING_TICKS_PER_MINUTE_HELPTEXT                    :The number of game ticks per minute
+STR_CONFIG_SETTING_DATE_WITH_TIME                               :Show date with time in status bar: {STRING2}
+STR_CONFIG_SETTING_DATE_WITH_TIME_HELPTEXT                      :Show the real game date in the status bar as well as the time
+STR_CONFIG_SETTING_CLOCK_OFFSET                                 :Clock offset in minutes: {STRING2}
+STR_CONFIG_SETTING_CLOCK_OFFSET_HELPTEXT                        :The number of minutes the game clock is offset by
+STR_CONFIG_SETTING_DATE_WITH_TIME_NONE                          :None
+STR_CONFIG_SETTING_DATE_WITH_TIME_Y                             :Year
+STR_CONFIG_SETTING_DATE_WITH_TIME_YM                            :Month and year
+STR_CONFIG_SETTING_DATE_WITH_TIME_YMD                           :Full date
+STR_CONFIG_SETTING_TIMETABLE_START_TEXT_ENTRY                   :Enter timetable start times as text (requires time to be in minutes): {STRING2}
+STR_CONFIG_SETTING_TIMETABLE_START_TEXT_ENTRY_HELPTEXT          :Select whether timetable start times may be entered as text if time is being shown in minutes
 STR_CONFIG_SETTING_TIMETABLE_SHOW_ARRIVAL_DEPARTURE             :Show arrival and departure in timetables: {STRING2}
 STR_CONFIG_SETTING_TIMETABLE_SHOW_ARRIVAL_DEPARTURE_HELPTEXT    :Display anticipated arrival and departure times in timetables
 STR_CONFIG_SETTING_QUICKGOTO                                    :Quick creation of vehicle orders: {STRING2}
@@ -1420,6 +1512,18 @@ STR_CONFIG_SETTING_AI_IN_MULTIPLAYER_HELPTEXT                   :Allow AI comput
 STR_CONFIG_SETTING_SCRIPT_MAX_OPCODES                           :#opcodes before scripts are suspended: {STRING2}
 STR_CONFIG_SETTING_SCRIPT_MAX_OPCODES_HELPTEXT                  :Maximum number of computation steps that a script can take in one turn
 
+STR_CONFIG_SETTING_SHARING_RAIL                                 :Enable sharing of railways: {STRING2}
+STR_CONFIG_SETTING_SHARING_ROAD                                 :Enable sharing of road stops and depots: {STRING2}
+STR_CONFIG_SETTING_SHARING_WATER                                :Enable sharing of docks and ship depots: {STRING2}
+STR_CONFIG_SETTING_SHARING_AIR                                  :Enable sharing of airports: {STRING2}
+STR_CONFIG_SETTING_SHARING_FEE_RAIL                             :Daily track toll for trains: {STRING2} per 1000 tonnes
+STR_CONFIG_SETTING_SHARING_FEE_ROAD                             :Stopping fee for road vehicles: {STRING2} per day
+STR_CONFIG_SETTING_SHARING_FEE_WATER                            :Docking fee for ships: {STRING2} per day
+STR_CONFIG_SETTING_SHARING_FEE_AIR                              :Terminal fee for aircraft: {STRING2} per day
+STR_CONFIG_SETTING_SHARING_PAYMENT_IN_DEBT                      :Allow companies in debt to pay sharing fees: {STRING2}
+STR_CONFIG_SETTING_SHARING_USED_BY_VEHICLES                     :{WHITE}Can't change this setting, vehicles are using shared infrastructure.
+STR_CONFIG_SETTING_SHARING_ORDERS_TO_OTHERS                     :{WHITE}Can't change this setting, vehicles have orders to destinations of others.
+
 STR_CONFIG_SETTING_SERVINT_ISPERCENT                            :Service intervals are in percents: {STRING2}
 STR_CONFIG_SETTING_SERVINT_ISPERCENT_HELPTEXT                   :Choose whether servicing of vehicles is triggered by the time passed since last service or by reliability dropping by a certain percentage of the maximum reliability
 STR_CONFIG_SETTING_SERVINT_TRAINS                               :Default service interval for trains: {STRING2}
@@ -1483,6 +1587,8 @@ STR_CONFIG_SETTING_ALLOW_SHARES                                 :Allow buying sh
 STR_CONFIG_SETTING_ALLOW_SHARES_HELPTEXT                        :When enabled, allow buying and selling of company shares. Shares will only be available for companies reaching a certain age
 STR_CONFIG_SETTING_FEEDER_PAYMENT_SHARE                         :Percentage of leg profit to pay in feeder systems: {STRING2}
 STR_CONFIG_SETTING_FEEDER_PAYMENT_SHARE_HELPTEXT                :Percentage of income given to the intermediate legs in feeder systems, giving more control over the income
+STR_CONFIG_SETTING_DAY_LENGTH_FACTOR                            :Day length factor: {STRING2}
+STR_CONFIG_SETTING_DAY_LENGTH_FACTOR_HELPTEXT                   :Day length factor (1 <-> 255 )
 STR_CONFIG_SETTING_DRAG_SIGNALS_DENSITY                         :When dragging, place signals every: {STRING2}
 STR_CONFIG_SETTING_DRAG_SIGNALS_DENSITY_HELPTEXT                :Set the distance at which signals will be built on a track up to the next obstacle (signal, junction), if signals are dragged
 STR_CONFIG_SETTING_DRAG_SIGNALS_DENSITY_VALUE                   :{COMMA} tile{P 0 "" s}
@@ -1521,6 +1627,49 @@ STR_CONFIG_SETTING_TOWN_FOUNDING_HELPTEXT                       :Enabling this s
 STR_CONFIG_SETTING_TOWN_FOUNDING_FORBIDDEN                      :Forbidden
 STR_CONFIG_SETTING_TOWN_FOUNDING_ALLOWED                        :Allowed
 STR_CONFIG_SETTING_TOWN_FOUNDING_ALLOWED_CUSTOM_LAYOUT          :Allowed, custom town layout
+STR_CONFIG_SETTING_TOWN_CARGO_FACTOR                            :Town cargo generation factor (less < 0 < more): {STRING2}
+STR_CONFIG_SETTING_TOWN_CARGO_FACTOR_HELPTEXT                   :Town cargo generation factor (-16 <= 0 <= 8)
+STR_CONFIG_SETTING_SMALL_TOWN_POP                               :Small town population: {STRING2}
+STR_CONFIG_SETTING_SMALL_TOWN_POP_HELPTEXT                      :Minimal small town population (smaller towns not use consumption rates).
+STR_CONFIG_SETTING_MEDIUM_TOWN_POP                              :Medium town population: {STRING2}
+STR_CONFIG_SETTING_MEDIUM_TOWN_POP_HELPTEXT                     :Minimal medium town population
+STR_CONFIG_SETTING_LARGE_TOWN_POP                               :Large town population: {STRING2}
+STR_CONFIG_SETTING_LARGE_TOWN_POP_HELPTEXT                      :Minimal large town population
+STR_CONFIG_SETTING_TOWN_EFFECT_GOODS                            :Enable "goods" effect for towns: {STRING}
+STR_CONFIG_SETTING_TOWN_EFFECT_GOODS_HELPTEXT                   :Enable "goods" effect for towns
+STR_CONFIG_SETTING_TOWN_EFFECT_WATER                            :Enable "water" effect for towns: {STRING}
+STR_CONFIG_SETTING_TOWN_EFFECT_WATER_HELPTEXT                   :Enable "water" effect for towns
+STR_CONFIG_SETTING_TOWN_EFFECT_FOOD                             :Enable "food" effect for towns: {STRING}
+STR_CONFIG_SETTING_TOWN_EFFECT_FOOD_HELPTEXT                    :Enable "food" effect for towns
+STR_CONFIG_SETTING_GROW_IF_ONE_DELIVERED                        :Grow town if at least one cargo delivered: {STRING2}
+STR_CONFIG_SETTING_GROW_IF_ONE_DELIVERED_HELPTEXT               :If enabled town will grow if at least one cargo delivered
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_RATE                        :Use consumption rates for towns: {STRING2}
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_RATE_HELPTEXT               :Enable this to use consumption rates (to water, food and goods).{}For growing town needs monthly stock of resources.{}{ORANGE}For all towns{WHITE} - all towns use consumption rates{}{ORANGE}For towns in desert or above snowline{WHITE} - only towns in desert or above snovline will use consumption rates;{}{ORANGE}Default to selected climate (not use){WHITE} - consumption rates will not be used.
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_RATE_ALL                    :For all towns
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_RATE_ARCTICSUBTROPIC        :For towns in desert or above snowline
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_RATE_NEVER                  :Default to selected climate (not use)
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_RATES                       :{ORANGE}Consumption rates for towns in desert or above snowline
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_RATES_SMALL                 :{ORANGE}Consumption rates for small towns
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_RATES_MEDIUM                :{ORANGE}Consumption rates for medium towns
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_RATES_LARGE                 :{ORANGE}Consumption rates for large towns
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_SMALL_FOOD                  :Small town consumption rate for foods: {STRING2}
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_SMALL_FOOD_HELPTEXT         :Consumption rate for foods for small towns
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_SMALL_WATER                 :Small town consumption rate for water: {STRING2}
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_SMALL_WATER_HELPTEXT        :Consumption rate for water for small towns
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_SMALL_GOODS                 :Small town consumption rate for goods: {STRING2}
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_SMALL_GOODS_HELPTEXT        :Consumption rate for goods for small towns
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_MEDIUM_FOOD                 :Medium town consumption rate for foods: {STRING2}
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_MEDIUM_FOOD_HELPTEXT        :Consumption rate for foods for medium towns
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_MEDIUM_WATER                :Medium town consumption rate for water: {STRING2}
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_MEDIUM_WATER_HELPTEXT       :Consumption rate for water for medium towns
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_MEDIUM_GOODS                :Medium town consumption rate for goods: {STRING2}
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_MEDIUM_GOODS_HELPTEXT       :Consumption rate for goods for medium towns
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_LARGE_FOOD                  :Large town consumption rate for foods: {STRING2}
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_LARGE_FOOD_HELPTEXT         :Consumption rate for foods for large towns
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_LARGE_WATER                 :Large town consumption rate for water: {STRING2}
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_LARGE_WATER_HELPTEXT        :Consumption rate for water for large towns
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_LARGE_GOODS                 :Large town consumption rate for goods: {STRING2}
+STR_CONFIG_SETTING_TOWN_CONSUMPTION_LARGE_GOODS_HELPTEXT        :Consumption rate for goods for large towns
 
 STR_CONFIG_SETTING_EXTRA_TREE_PLACEMENT                         :In game placement of trees: {STRING2}
 STR_CONFIG_SETTING_EXTRA_TREE_PLACEMENT_HELPTEXT                :Control random appearance of trees during the game. This might affect industries which rely on tree growth, for example lumber mills
@@ -1536,6 +1685,8 @@ STR_CONFIG_SETTING_SNAP_RADIUS                                  :Window snap rad
 STR_CONFIG_SETTING_SNAP_RADIUS_HELPTEXT                         :Distance between windows before the window being moved is automatically aligned to nearby windows
 STR_CONFIG_SETTING_SNAP_RADIUS_VALUE                            :{COMMA} pixel{P 0 "" s}
 STR_CONFIG_SETTING_SNAP_RADIUS_DISABLED                         :Disabled
+STR_CONFIG_SETTING_NEW_BUILD_VEHICLE_WINDOW                     :Show new build vehicl window: {STRING2}
+STR_CONFIG_SETTING_NEW_BUILD_VEHICLE_WINDOW_HELPTEXT            :If enabled, new build vehicle window will shown instead of standard build vehicle window
 STR_CONFIG_SETTING_SOFT_LIMIT                                   :Maximum number of non-sticky windows: {STRING2}
 STR_CONFIG_SETTING_SOFT_LIMIT_HELPTEXT                          :Number of non-sticky open windows before old windows get automatically closed to make room for new windows
 STR_CONFIG_SETTING_SOFT_LIMIT_VALUE                             :{COMMA}
@@ -1550,6 +1701,10 @@ STR_CONFIG_SETTING_ZOOM_LVL_NORMAL                              :Normal
 STR_CONFIG_SETTING_ZOOM_LVL_OUT_2X                              :2x
 STR_CONFIG_SETTING_ZOOM_LVL_OUT_4X                              :4x
 STR_CONFIG_SETTING_ZOOM_LVL_OUT_8X                              :8x
+STR_CONFIG_SETTING_ZOOM_LVL_OUT_16X                             :16x
+STR_CONFIG_SETTING_ZOOM_LVL_OUT_32X                             :32x
+STR_CONFIG_SETTING_ZOOM_LVL_OUT_64X                             :64x
+STR_CONFIG_SETTING_ZOOM_LVL_OUT_128X                            :128x
 STR_CONFIG_SETTING_TOWN_GROWTH                                  :Town growth speed: {STRING2}
 STR_CONFIG_SETTING_TOWN_GROWTH_HELPTEXT                         :Speed of town growth
 STR_CONFIG_SETTING_TOWN_GROWTH_NONE                             :None
@@ -1565,6 +1720,30 @@ STR_CONFIG_SETTING_CITY_SIZE_MULTIPLIER                         :Initial city si
 STR_CONFIG_SETTING_CITY_SIZE_MULTIPLIER_HELPTEXT                :Average size of cities relative to normal towns at start of the game
 STR_CONFIG_SETTING_MODIFIED_ROAD_REBUILD                        :Remove absurd road-elements during the road construction: {STRING2}
 STR_CONFIG_SETTING_MODIFIED_ROAD_REBUILD_HELPTEXT               :Remove dead road ends during funded road reconstruction
+STR_CONFIG_SETTING_JUMP_TIMEOUT                                 :Delay for changing menu background: {STRING2}
+STR_CONFIG_SETTING_JUMP_TIMEOUT_HELPTEXT                        :Delay for changing menu background
+STR_CONFIG_SETTING_JUMP_TIMEOUT_VALUE                           :{COMMA} day{P "" s}
+STR_CONFIG_SETTING_JUMP_TIMEOUT_DISABLED                        :disabled
+STR_CONFIG_SETTING_GRASS_ON_OLD_RAILS                           :Grass growth on old rails: {STRING2}
+STR_CONFIG_SETTING_GRASS_ON_OLD_RAILS_HELPTEXT                  :Grass growth on old rails
+STR_CONFIG_SETTING_TRAFFIC_LIGHTS                               :Enable traffic lights:{STRING2}
+STR_CONFIG_SETTING_TRAFFIC_LIGHTS_HELPTEXT                      :Enables/disables building of traffic lights completely
+STR_CONFIG_SETTING_TOWNS_BUILD_TRAFFIC_LIGHTS                   :Towns can build traffic lights: {STRING2}
+STR_CONFIG_SETTING_TOWNS_BUILD_TRAFFIC_LIGHTS_HELPTEXT          :Allows/dissallows towns to build traffic lights during road construction
+STR_CONFIG_SETTING_ALLOW_BUILDING_TLS_ON_TOWN_ROADS             :Build and remove traffic lights on town roads: {STRING2}
+STR_CONFIG_SETTING_ALLOW_BUILDING_TLS_ON_TOWN_ROADS_HELPTEXT    :Allows/disallows the players building and removing traffic lights on town roads
+STR_CONFIG_SETTING_TRAFFIC_LIGHTS_GREEN_PHASE                   :Length of traffic lights' green phase: {STRING2}
+STR_CONFIG_SETTING_TRAFFIC_LIGHTS_GREEN_PHASE_HELPTEXT          :Time in seconds that traffic lights stay green
+STR_CONFIG_SETTING_MAX_TRAFFIC_LIGHT_CONSIST_SIZE               :Maximum TL consist size: {STRING2}
+STR_CONFIG_SETTING_MAX_TRAFFIC_LIGHT_CONSIST_SIZE_HELPTEXT      :Maximum number of trafficlights that can be synchronised.{}{ORANGE}Warning!{WHITE} High setting slow down the game
+STR_CONFIG_SETTING_MAX_TRAFFIC_LIGHT_CONSIST_DISTANCE           :Maximum distance between two trafficlights for synchronising: {STRING2}
+STR_CONFIG_SETTING_MAX_TRAFFIC_LIGHT_CONSIST_DISTANCE_HELPTEXT  :Sets the maximum tile distance between two trafficlights for them to be synchronised
+STR_CONFIG_SETTING_MIN_DISTANCE_TOWN                            :Minimum distance between Towns: {STRING2}
+STR_CONFIG_SETTING_MIN_DISTANCE_TOWN_HELPTEXT                   :Minimum distance between Towns in tiles
+STR_CONFIG_SETTING_MIN_DISTANCE_INDUSTRY                        :Minimum distance between Industries: {STRING2}
+STR_CONFIG_SETTING_MIN_DISTANCE_INDUSTRY_HELPTEXT               :Minimum distance between Industries in tiles
+STR_CONFIG_SETTING_MIN_DISTANCE_IND_TOWN                        :Minimum distance between Industries and Towns: {STRING2}
+STR_CONFIG_SETTING_MIN_DISTANCE_IND_TOWN_HELPTEXT               :Minimum distance between Industries and Towns in tiles
 
 STR_CONFIG_SETTING_LINKGRAPH_INTERVAL                           :Update distribution graph every {STRING2} day{P 0:2 "" s}
 STR_CONFIG_SETTING_LINKGRAPH_INTERVAL_HELPTEXT                  :Time between subsequent recalculations of the link graph. Each recalculation calculates the plans for one component of the graph. That means that a value X for this setting does not mean the whole graph will be updated every X days. Only some component will. The shorter you set it the more CPU time will be necessary to calculate it. The longer you set it the longer it will take until the cargo distribution starts on new routes.
@@ -1639,14 +1818,17 @@ STR_CONFIG_SETTING_INTERACTION                                  :{ORANGE}Interac
 STR_CONFIG_SETTING_SOUND                                        :{ORANGE}Sound effects
 STR_CONFIG_SETTING_NEWS                                         :{ORANGE}News and messages
 STR_CONFIG_SETTING_CONSTRUCTION_SIGNALS                         :{ORANGE}Signals
+STR_CONFIG_SETTING_CONSTRUCTION_TRAFFIC_LIGHTS                  :{ORANGE}Traffic lights
 STR_CONFIG_SETTING_STATIONS_CARGOHANDLING                       :{ORANGE}Cargo handling
 STR_CONFIG_SETTING_AI_NPC                                       :{ORANGE}Computer players
+STR_CONFIG_SETTING_SHARING                                      :{ORANGE}Infrastructure sharing
 STR_CONFIG_SETTING_VEHICLES_AUTORENEW                           :{ORANGE}Autorenew
 STR_CONFIG_SETTING_VEHICLES_SERVICING                           :{ORANGE}Servicing
 STR_CONFIG_SETTING_VEHICLES_ROUTING                             :{ORANGE}Routing
 STR_CONFIG_SETTING_VEHICLES_TRAINS                              :{ORANGE}Trains
 STR_CONFIG_SETTING_ECONOMY_TOWNS                                :{ORANGE}Towns
 STR_CONFIG_SETTING_ECONOMY_INDUSTRIES                           :{ORANGE}Industries
+STR_CONFIG_SETTING_VIEWPORT_MAP_OPTIONS                         :{ORANGE}Viewport Map
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Original
 STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
@@ -1755,6 +1937,8 @@ STR_CHEAT_CHANGE_COMPANY                                        :{LTBLUE}Playing
 STR_CHEAT_EXTRA_DYNAMITE                                        :{LTBLUE}Magic bulldozer (remove industries, unmovable objects): {ORANGE}{STRING1}
 STR_CHEAT_CROSSINGTUNNELS                                       :{LTBLUE}Tunnels may cross each other: {ORANGE}{STRING1}
 STR_CHEAT_NO_JETCRASH                                           :{LTBLUE}Jetplanes will not crash (frequently) on small airports: {ORANGE}{STRING}
+STR_CHEAT_EDIT_MAX_HL                                           :{LTBLUE}Edit the maximal allowed heightlevel: {ORANGE}{NUM}
+STR_CHEAT_EDIT_MAX_HL_QUERY_CAPT                                :{WHITE}Edit the maximal allowed heightlevel
 STR_CHEAT_SWITCH_CLIMATE_TEMPERATE_LANDSCAPE                    :Temperate landscape
 STR_CHEAT_SWITCH_CLIMATE_SUB_ARCTIC_LANDSCAPE                   :Sub-arctic landscape
 STR_CHEAT_SWITCH_CLIMATE_SUB_TROPICAL_LANDSCAPE                 :Sub-tropical landscape
@@ -2308,24 +2492,94 @@ STR_STATION_BUILD_STATION_TYPE_TOOLTIP                          :{BLACK}Select t
 STR_STATION_CLASS_DFLT                                          :Default station
 STR_STATION_CLASS_WAYP                                          :Waypoints
 
+STR_PAX_CAPTION                                                 :{BLACK}Only for passenger trains
+STR_PAX_TOOLTIP                                                 :{BLACK}Allow only passenger trains to enter. Mail is allowed.
+STR_PAX_SIGNAL_TOOLTIP                                          :{BLACK}Allow only passenger trains to enter. Mail is allowed.
+
 # Signal window
 STR_BUILD_SIGNAL_CAPTION                                        :{WHITE}Signal Selection
 STR_BUILD_SIGNAL_SEMAPHORE_NORM_TOOLTIP                         :{BLACK}Block Signal (semaphore){}This is the most basic type of signal, allowing only one train to be in the same block at the same time
 STR_BUILD_SIGNAL_SEMAPHORE_ENTRY_TOOLTIP                        :{BLACK}Entry Signal (semaphore){}Green as long as there is one or more green exit-signal from the following section of track. Otherwise it shows red
 STR_BUILD_SIGNAL_SEMAPHORE_EXIT_TOOLTIP                         :{BLACK}Exit Signal (semaphore){}Behaves in the same way as a block signal but is necessary to trigger the correct colour on entry & combo pre-signals
 STR_BUILD_SIGNAL_SEMAPHORE_COMBO_TOOLTIP                        :{BLACK}Combo Signal (semaphore){}The combo signal simply acts as both an entry and exit signal. This allows you to build large "trees" of pre-signals
+STR_BUILD_SIGNAL_SEMAPHORE_PROG_TOOLTIP                         :{BLACK}Programmable-Signal (semaphore){}The programmable signal is a combo-signal which can be programmed to behave in complex ways.
 STR_BUILD_SIGNAL_SEMAPHORE_PBS_TOOLTIP                          :{BLACK}Path Signal (semaphore){}A path signal allows more than one train to enter a signal block at the same time, if the train can reserve a path to a safe stopping point. Standard path signals can be passed from the back side
 STR_BUILD_SIGNAL_SEMAPHORE_PBS_OWAY_TOOLTIP                     :{BLACK}One-way Path Signal (semaphore){}A path signal allows more than one train to enter a signal block at the same time, if the train can reserve a path to a safe stopping point. One-way path signals can't be passed from the back side
 STR_BUILD_SIGNAL_ELECTRIC_NORM_TOOLTIP                          :{BLACK}Block Signal (electric){}This is the most basic type of signal, allowing only one train to be in the same block at the same time
 STR_BUILD_SIGNAL_ELECTRIC_ENTRY_TOOLTIP                         :{BLACK}Entry Signal (electric){}Green as long as there is one or more green exit-signal from the following section of track. Otherwise it shows red
 STR_BUILD_SIGNAL_ELECTRIC_EXIT_TOOLTIP                          :{BLACK}Exit Signal (electric){}Behaves in the same way as a block signal but is necessary to trigger the correct colour on entry & combo pre-signals
 STR_BUILD_SIGNAL_ELECTRIC_COMBO_TOOLTIP                         :{BLACK}Combo Signal (electric){}The combo signal simply acts as both an entry and exit signal. This allows you to build large "trees" of pre-signals
+STR_BUILD_SIGNAL_ELECTRIC_PROG_TOOLTIP                          :{BLACK}Programmable-Signal (electric){}The programmable signal is a combo-signal which can be programmed to behave in complex ways.
 STR_BUILD_SIGNAL_ELECTRIC_PBS_TOOLTIP                           :{BLACK}Path Signal (electric){}A path signal allows more than one train to enter a signal block at the same time, if the train can reserve a path to a safe stopping point. Standard path signals can be passed from the back side
 STR_BUILD_SIGNAL_ELECTRIC_PBS_OWAY_TOOLTIP                      :{BLACK}One-way Path Signal (electric){}A path signal allows more than one train to enter a signal block at the same time, if the train can reserve a path to a safe stopping point. One-way path signals can't be passed from the back side
 STR_BUILD_SIGNAL_CONVERT_TOOLTIP                                :{BLACK}Signal Convert{}When selected, clicking an existing signal will convert it to the selected signal type and variant. Ctrl+Click will toggle the existing variant. Shift+Click shows estimated conversion cost
 STR_BUILD_SIGNAL_DRAG_SIGNALS_DENSITY_TOOLTIP                   :{BLACK}Dragging signal density
 STR_BUILD_SIGNAL_DRAG_SIGNALS_DENSITY_DECREASE_TOOLTIP          :{BLACK}Decrease dragging signal density
 STR_BUILD_SIGNAL_DRAG_SIGNALS_DENSITY_INCREASE_TOOLTIP          :{BLACK}Increase dragging signal density
+
+# Programmable Signals
+STR_PROGRAM_SIGNAL_TOOLTIP                                      :{BLACK}Program signal
+
+STR_ERR_PROGSIG_INVALID_INSTRUCTION                             :{WHITE}Cannot insert instruction after instruction with invalid ID
+STR_ERR_PROGSIG_INVALID_OPCODE                                  :{WHITE}Cannot insert an instruction of that opcode
+STR_ERR_PROGSIG_NOT_THERE                                       :{WHITE}There is no programmable signal there
+STR_ERR_PROGSIG_INVALID_SIGNAL_STATE                            :{WHITE}That signal state is invalid
+STR_ERR_PROGSIG_INVALID_CONDITION                               :{WHITE}That condition is invalid
+STR_ERR_PROGSIG_INVALID_CONDITION_FIELD                         :{WHITE}That field is not valid for the condition
+STR_ERR_PROGSIG_INVALID_COMPARATOR                              :{WHITE}That comparator is not valid
+STR_ERR_PROGSIG_INVALID_SIGNAL                                  :{WHITE}Invalid signal selected
+
+STR_PROGSIG_CAPTION                                             :{WHITE}Signal Program
+STR_PROGSIG_COND_VARIABLE_TOOLTIP                               :{BLACK}Condition to compare upon
+STR_PROGSIG_COND_COMPARATOR_TOOLTIP                             :{BLACK}Operator to use to compare variable
+STR_PROGSIG_COND_VALUE_TOOLTIP                                  :{BLACK}Value to compare variable against
+STR_PROGSIG_SIGNAL_STATE_TOOLTIP                                :{BLACK}Set signal to state
+STR_PROGSIG_COND_SET_SIGNAL                                     :{BLACK}Set signal
+STR_PROGSIG_COND_SET_SIGNAL_TOOLTIP                             :{BLACK}Set the signal to be looked at
+STR_PROGSIG_GOTO_SIGNAL                                         :{BLACK}Goto signal
+STR_PROGSIG_GOTO_SIGNAL_TOOLTIP                                 :{BLACK}Go to this signal
+STR_PROGSIG_INSERT_TOOLTIP                                      :{BLACK}Insert an instruction
+STR_PROGSIG_REMOVE_TOOLTIP                                      :{BLACK}Remove the selected instruction
+STR_PROGSIG_REMOVE_PROGRAM_TOOLTIP                              :{BLACK}Remove entire program
+STR_PROGSIG_COPY_PROGRAM_TOOLTIP                                :{BLACK}Copy program from existing signal
+
+STR_PROGSIG_REMOVE_PROGRAM                                      :{RED}Remove program
+STR_PROGSIG_COPY_PROGRAM                                        :{BLUE}Copy program
+STR_PROGSIG_REMOVE                                              :{BLACK}Remove
+STR_PROGSIG_INSERT                                              :Insert
+STR_PROGSIG_INSERT_IF                                           :Condition
+STR_PROGSIG_INSERT_SET_SIGNAL                                   :Set signal state
+
+STR_PROGSIG_FIRST                                               :Start
+STR_PROGSIG_LAST                                                :End
+
+STR_PROGSIG_IF                                                  :If {RAW_STRING} Then
+STR_PROGSIG_ELSE                                                :Else
+STR_PROGSIG_ENDIF                                               :End If
+
+STR_PROGSIG_SET_SIGNAL                                          :Make signal {STRING}
+
+STR_PROGSIG_COND_ALWAYS                                         :always
+STR_PROGSIG_COND_NEVER                                          :never
+STR_PROGSIG_COND_COMPARE                                        :{STRING} {STRING} {NUM}
+STR_PROGSIG_COND_SIGNAL_STATE                                   :signal state
+STR_PROGSIG_CONDVAR_SIGNAL_STATE                                :{STRING1} is green
+STR_PROGSIG_CONDVAR_SIGNAL_STATE_SPECIFIED                      :specified signal
+STR_PROGSIG_CONDVAR_SIGNAL_STATE_UNSPECIFIED                    :{RED}unspecified signal{STRING}
+STR_PROGSIG_CONDVAR_NUM_RED                                     :red signals
+STR_PROGSIG_CONDVAR_NUM_GREEN                                   :green signals
+
+STR_PROGSIG_CONDITION_VALUE_CAPT                                :{WHITE}Condition value
+
+STR_ERROR_CAN_T_INSERT_INSTRUCTION                              :{WHITE}Can't insert instruction
+STR_ERROR_CAN_T_MODIFY_INSTRUCTION                              :{WHITE}Can't modify instruction
+STR_ERROR_CAN_T_REMOVE_INSTRUCTION                              :{WHITE}Can't remove instruction
+STR_ERROR_CAN_T_GOTO_UNDEFINED_SIGNAL                           :{WHITE}Can't go to undefined signal
+STR_ERROR_NOT_AN_EXIT_SIGNAL                                    :{WHITE}Not an exit signal
+STR_ERROR_NOT_AN_PROG_SIGNAL                                    :{WHITE}Not an programmable signal
+STR_ERROR_CANNOT_USE_SELF                                       :{WHITE}Can't copy program from myself
+STR_ERROR_CAN_T_DEPEND_UPON_BIDIRECTIONAL_SIGNALS               :{WHITE}Cannot conditionally depend upon bidirectional signals
+STR_ERROR_INVALID_SIGNAL                                        :{WHITE}Invalid signal
 
 # Bridge selection window
 STR_SELECT_RAIL_BRIDGE_CAPTION                                  :{WHITE}Select Rail Bridge
@@ -2357,6 +2611,7 @@ STR_ROAD_TOOLBAR_TOOLTIP_BUILD_PASSENGER_TRAM_STATION           :{BLACK}Build pa
 STR_ROAD_TOOLBAR_TOOLTIP_BUILD_TRUCK_LOADING_BAY                :{BLACK}Build lorry loading bay. Ctrl enables joining stations. Shift toggles building/showing cost estimate
 STR_ROAD_TOOLBAR_TOOLTIP_BUILD_CARGO_TRAM_STATION               :{BLACK}Build freight tram station. Ctrl enables joining stations. Shift toggles building/showing cost estimate
 STR_ROAD_TOOLBAR_TOOLTIP_TOGGLE_ONE_WAY_ROAD                    :{BLACK}Activate/Deactivate one way roads
+STR_ROAD_TOOLBAR_TOOLTIP_BUILD_TRAFFIC_LIGHT                    :{BLACK}Build traffic light
 STR_ROAD_TOOLBAR_TOOLTIP_BUILD_ROAD_BRIDGE                      :{BLACK}Build road bridge. Shift toggles building/showing cost estimate
 STR_ROAD_TOOLBAR_TOOLTIP_BUILD_TRAMWAY_BRIDGE                   :{BLACK}Build tramway bridge. Shift toggles building/showing cost estimate
 STR_ROAD_TOOLBAR_TOOLTIP_BUILD_ROAD_TUNNEL                      :{BLACK}Build road tunnel. Shift toggles building/showing cost estimate
@@ -2418,10 +2673,13 @@ STR_AIRPORT_INTERCONTINENTAL                                    :Intercontinenta
 STR_AIRPORT_HELIPORT                                            :Heliport
 STR_AIRPORT_HELIDEPOT                                           :Helidepot
 STR_AIRPORT_HELISTATION                                         :Helistation
+STR_AIRPORT_INTERCONTINENTAL2                                   :Intercontinental 2
+STR_AIRPORT_CIRCLE                                              :Circle
 
 STR_AIRPORT_CLASS_SMALL                                         :Small airports
 STR_AIRPORT_CLASS_LARGE                                         :Large airports
 STR_AIRPORT_CLASS_HUB                                           :Hub airports
+STR_AIRPORT_CLASS_HUGE                                          :Huge airports
 STR_AIRPORT_CLASS_HELIPORTS                                     :Helicopter airports
 
 STR_STATION_BUILD_NOISE                                         :{BLACK}Noise generated: {GOLD}{COMMA}
@@ -2562,23 +2820,30 @@ STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_SIGNALS              :{STRING} track 
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRESIGNALS                  :{STRING} track with pre-signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXITSIGNALS                 :{STRING} track with exit-signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_COMBOSIGNALS                :{STRING} track with combo-signals
+STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PROGSIGNALS                 :{STRING} Railway track with programmable signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PBSSIGNALS                  :{STRING} track with path signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NOENTRYSIGNALS              :{STRING} track with one-way path signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_PRESIGNALS           :{STRING} track with block and pre-signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_EXITSIGNALS          :{STRING} track with block and exit-signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_COMBOSIGNALS         :{STRING} track with block and combo-signals
+STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_PROGSIGNALS          :{STRING} Railway track with block and programmable signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_PBSSIGNALS           :{STRING} track with block and path signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NORMAL_NOENTRYSIGNALS       :{STRING} track with block and one-way path signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_EXITSIGNALS             :{STRING} track with pre- and exit-signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_COMBOSIGNALS            :{STRING} track with pre- and combo-signals
+STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_PROGSIGNALS             :{STRING} Railway track with pre- and programmable signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_PBSSIGNALS              :{STRING} track with pre- and path signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PRE_NOENTRYSIGNALS          :{STRING} track with pre- and one-way path signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXIT_COMBOSIGNALS           :{STRING} track with exit- and combo-signals
+STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXIT_PROGSIGNALS            :{STRING} Railway track with exit- and programmable signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXIT_PBSSIGNALS             :{STRING} track with exit- and path signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXIT_NOENTRYSIGNALS         :{STRING} track with exit- and one-way path signals
+STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_COMBO_PROGSIGNALS           :{STRING} Railway track with combo- and programmable signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_COMBO_PBSSIGNALS            :{STRING} track with combo- and path signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_COMBO_NOENTRYSIGNALS        :{STRING} track with combo- and one-way path signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PBS_NOENTRYSIGNALS          :{STRING} track with path and one-way path signals
+STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PBS_PROGSIGNALS             :{STRING} Railway track with path and programmable signals
+STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NOENTRY_PROGSIGNALS         :{STRING} Railway track with one-way path and programmable signals
 STR_LAI_RAIL_DESCRIPTION_TRAIN_DEPOT                            :{STRING} train depot
 
 STR_LAI_ROAD_DESCRIPTION_ROAD                                   :Road
@@ -2586,6 +2851,7 @@ STR_LAI_ROAD_DESCRIPTION_ROAD_WITH_STREETLIGHTS                 :Road with stree
 STR_LAI_ROAD_DESCRIPTION_TREE_LINED_ROAD                        :Tree-lined road
 STR_LAI_ROAD_DESCRIPTION_ROAD_VEHICLE_DEPOT                     :Road vehicle depot
 STR_LAI_ROAD_DESCRIPTION_ROAD_RAIL_LEVEL_CROSSING               :Road/rail level crossing
+STR_LAI_ROAD_DESCRIPTION_ROAD_WITH_TRAFFIC_LIGHTS               :Road with traffic lights
 STR_LAI_ROAD_DESCRIPTION_TRAMWAY                                :Tramway
 
 # Houses come directly from their building names
@@ -2596,6 +2862,7 @@ STR_LAI_TREE_NAME_RAINFOREST                                    :Rainforest
 STR_LAI_TREE_NAME_CACTUS_PLANTS                                 :Cactus plants
 
 STR_LAI_STATION_DESCRIPTION_RAILROAD_STATION                    :Railway station
+STR_LAI_STATION_DESCRIPTION_PAXRAILROAD_STATION                 :Railway station (for passengers only)
 STR_LAI_STATION_DESCRIPTION_AIRCRAFT_HANGAR                     :Aircraft hangar
 STR_LAI_STATION_DESCRIPTION_AIRPORT                             :Airport
 STR_LAI_STATION_DESCRIPTION_TRUCK_LOADING_AREA                  :Lorry loading area
@@ -2614,8 +2881,10 @@ STR_LAI_WATER_DESCRIPTION_SHIP_DEPOT                            :Ship depot
 # Industries come directly from their industry names
 
 STR_LAI_TUNNEL_DESCRIPTION_RAILROAD                             :Railway tunnel
+STR_LAI_TUNNEL_DESCRIPTION_RAILROAD_SIGNAL                      :Railway tunnel with signal simulation
 STR_LAI_TUNNEL_DESCRIPTION_ROAD                                 :Road tunnel
 
+STR_LAI_BRIDGE_DESCRIPTION_RAILROAD_SIGNAL                      :Railway bridge with signal simulation
 STR_LAI_BRIDGE_DESCRIPTION_RAIL_SUSPENSION_STEEL                :Steel suspension rail bridge
 STR_LAI_BRIDGE_DESCRIPTION_RAIL_GIRDER_STEEL                    :Steel girder rail bridge
 STR_LAI_BRIDGE_DESCRIPTION_RAIL_CANTILEVER_STEEL                :Steel cantilever rail bridge
@@ -2677,6 +2946,9 @@ STR_MAPGEN_BY                                                   :{BLACK}*
 STR_MAPGEN_NUMBER_OF_TOWNS                                      :{BLACK}No. of towns:
 STR_MAPGEN_DATE                                                 :{BLACK}Date:
 STR_MAPGEN_NUMBER_OF_INDUSTRIES                                 :{BLACK}No. of industries:
+STR_MAPGEN_MAX_HEIGHTLEVEL                                      :{BLACK}Maximal allowed heightlevel
+STR_MAPGEN_MAX_HEIGHTLEVEL_UP                                   :{BLACK}Increase the maximal allowed heightlevel by one
+STR_MAPGEN_MAX_HEIGHTLEVEL_DOWN                                 :{BLACK}Decrease the maximal allowed heightlevel by one
 STR_MAPGEN_SNOW_LINE_HEIGHT                                     :{BLACK}Snow line height:
 STR_MAPGEN_SNOW_LINE_UP                                         :{BLACK}Move the snow line height one up
 STR_MAPGEN_SNOW_LINE_DOWN                                       :{BLACK}Move the snow line height one down
@@ -2709,8 +2981,10 @@ STR_MAPGEN_HEIGHTMAP_ROTATION                                   :{BLACK}Heightma
 STR_MAPGEN_HEIGHTMAP_NAME                                       :{BLACK}Heightmap name:
 STR_MAPGEN_HEIGHTMAP_SIZE_LABEL                                 :{BLACK}Size:
 STR_MAPGEN_HEIGHTMAP_SIZE                                       :{ORANGE}{NUM} x {NUM}
+STR_MAPGEN_TOO_MANY_TILES_MESSAGE                               :{YELLOW}Too many tiles in map. Maximum number of tiles is {NUM}, you have selected {NUM}
 
 STR_MAPGEN_RANDOM_SEED_OSKTITLE                                 :{BLACK}Enter a random seed
+STR_MAPGEN_MAX_HEIGHTLEVEL_QUERY_CAPT                           :{WHITE}Change maximal allowed heightlevel
 STR_MAPGEN_SNOW_LINE_QUERY_CAPT                                 :{WHITE}Change snow line height
 STR_MAPGEN_START_DATE_QUERY_CAPT                                :{WHITE}Change starting year
 
@@ -2925,6 +3199,23 @@ STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH                              :{BLACK}Cargo ne
 STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH_REQUIRED_GENERAL             :{ORANGE}{STRING}{RED} required
 STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH_REQUIRED_WINTER              :{ORANGE}{STRING}{BLACK} required in winter
 STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH_DELIVERED_GENERAL            :{ORANGE}{STRING}{GREEN} delivered
+STR_TOWN_VIEW_CARGO_GOODS                                       :{GREEN}Goods{BLACK} this month:
+STR_TOWN_VIEW_CARGO_WATER                                       :{GREEN}Water{BLACK} this month:
+STR_TOWN_VIEW_CARGO_FOOD                                        :{GREEN}Food{BLACK} this month:
+STR_TOWN_VIEW_CARGO_SUPPLIED                                    :{GOLD}{CARGO_LONG}{BLACK} (last month - {GOLD}{CARGO_LONG}{BLACK})
+STR_TOWN_VIEW_CARGO_TOTAL_GOODS_OK                              :{BLACK}Goods total: {GREEN}{COMMA} crate{P "" s}
+STR_TOWN_VIEW_CARGO_TOTAL_WATER_OK                              :{BLACK}Water total: {GREEN}{COMMA} litres
+STR_TOWN_VIEW_CARGO_TOTAL_FOOD_OK                               :{BLACK}Food total: {GREEN}{COMMA} kg
+STR_TOWN_VIEW_CARGO_TOTAL_GOODS_LESS                            :{BLACK}Goods total: {RED}{COMMA} crate{P "" s}
+STR_TOWN_VIEW_CARGO_TOTAL_WATER_LESS                            :{BLACK}Water total: {RED}{COMMA} litres
+STR_TOWN_VIEW_CARGO_TOTAL_FOOD_LESS                             :{BLACK}Food total: {RED}{COMMA} kg
+STR_TOWN_VIEW_CARGO_RATE_GOODS                                  :{BLACK}Daily rate: {GOLD}{COMMA} crate{P "" s}
+STR_TOWN_VIEW_CARGO_RATE_WATER                                  :{BLACK}Daily rate: {GOLD}{COMMA} litres
+STR_TOWN_VIEW_CARGO_RATE_FOOD                                   :{BLACK}Daily rate: {GOLD}{COMMA} kg
+STR_TOWN_VIEW_CARGO_NEED_GOODS                                  :{BLACK}Needed for growth: {GOLD}{COMMA} crate{P "" s}
+STR_TOWN_VIEW_CARGO_NEED_WATER                                  :{BLACK}Needed for growth: {GOLD}{COMMA} litres
+STR_TOWN_VIEW_CARGO_NEED_FOOD                                   :{BLACK}Needed for growth: {GOLD}{COMMA} kg
+STR_TOWN_VIEW_CARGO_GROWTH_HELP                                 :Town will grow if any cargo supplied but slowly than when all cargoes supplied.
 STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH_REQUIRED                     :{ORANGE}{CARGO_TINY} / {CARGO_LONG}{RED} (still required)
 STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH_DELIVERED                    :{ORANGE}{CARGO_TINY} / {CARGO_LONG}{GREEN} (delivered)
 STR_TOWN_VIEW_TOWN_GROWS_EVERY                                  :{BLACK}Town grows every {ORANGE}{COMMA}{BLACK} day{P "" s}
@@ -2960,6 +3251,9 @@ STR_LOCAL_AUTHORITY_ACTION_STATUE_OF_COMPANY                    :Build statue of
 STR_LOCAL_AUTHORITY_ACTION_NEW_BUILDINGS                        :Fund new buildings
 STR_LOCAL_AUTHORITY_ACTION_EXCLUSIVE_TRANSPORT                  :Buy exclusive transport rights
 STR_LOCAL_AUTHORITY_ACTION_BRIBE                                :Bribe the local authority
+STR_LOCAL_AUTHORITY_ACTION_AUTO_SMALL_ADVERTISING_CAMPAIGN      :{RED}Automatic small advertising campaign
+STR_LOCAL_AUTHORITY_ACTION_AUTO_MEDIUM_ADVERTISING_CAMPAIGN     :{RED}Automatic medium advertising campaign
+STR_LOCAL_AUTHORITY_ACTION_AUTO_LARGE_ADVERTISING_CAMPAIGN      :{RED}Automatic large advertising campaign
 
 STR_LOCAL_AUTHORITY_ACTION_TOOLTIP_SMALL_ADVERTISING            :{YELLOW}Initiate a small local advertising campaign, to attract more passengers and cargo to your transport services.{}Cost: {CURRENCY_LONG}
 STR_LOCAL_AUTHORITY_ACTION_TOOLTIP_MEDIUM_ADVERTISING           :{YELLOW}Initiate a medium local advertising campaign, to attract more passengers and cargo to your transport services.{}Cost: {CURRENCY_LONG}
@@ -3082,6 +3376,9 @@ STR_STATION_VIEW_GROUP_V_D_S                                    :Via-Destination
 STR_STATION_VIEW_GROUP_D_S_V                                    :Destination-Source-Via
 STR_STATION_VIEW_GROUP_D_V_S                                    :Destination-Via-Source
 
+STR_STATION_VIEW_DEPARTURES_BUTTON                              :{BLACK}Departures
+STR_STATION_VIEW_DEPARTURES_TOOLTIP                             :{BLACK}Show list of scheduled departures
+
 ############ range for rating starts
 STR_CARGO_RATING_APPALLING                                      :Appalling
 STR_CARGO_RATING_VERY_POOR                                      :Very Poor
@@ -3102,9 +3399,101 @@ STR_STATION_VIEW_SCHEDULED_AIRCRAFT_TOOLTIP                     :{BLACK}Show all
 STR_STATION_VIEW_SCHEDULED_SHIPS_TOOLTIP                        :{BLACK}Show all ships which have this station on their schedule
 
 STR_STATION_VIEW_RENAME_STATION_CAPTION                         :Rename station/loading area
-
 STR_STATION_VIEW_CLOSE_AIRPORT                                  :{BLACK}Close airport
 STR_STATION_VIEW_CLOSE_AIRPORT_TOOLTIP                          :{BLACK}Prevent aircraft from landing on this airport
+
+# Departures window
+STR_DEPARTURES_CAPTION                                          :{WHITE}{STATION} Live Travel Information
+STR_DEPARTURES_CAPTION_WAYPOINT                                 :{WHITE}{WAYPOINT} Live Travel Information
+STR_DEPARTURES_DEPARTURES                                       :{BLACK}{TINY_FONT}D
+STR_DEPARTURES_ARRIVALS                                         :{BLACK}{TINY_FONT}A
+STR_DEPARTURES_VIA_BUTTON                                       :{BLACK}{TINY_FONT}via
+STR_DEPARTURES_DEPARTURES_TOOLTIP                               :{BLACK}Show timetabled departures
+STR_DEPARTURES_ARRIVALS_TOOLTIP                                 :{BLACK}Show timetabled arrivals
+STR_DEPARTURES_VIA_TOOLTIP                                      :{BLACK}Show timetabled vehicles that do not stop here
+STR_DEPARTURES_EMPTY                                            :{ORANGE}No vehicles are currently timetabled for this station.
+STR_DEPARTURES_NONE_SELECTED                                    :{ORANGE}No timetable information has been requested.
+STR_DEPARTURES_TIME                                             :{ORANGE}{DATE_WALLCLOCK_TINY}
+STR_DEPARTURES_TIME_DEP                                         :{ORANGE}{DATE_WALLCLOCK_TINY} {GREEN}{UP_ARROW}
+STR_DEPARTURES_TIME_ARR                                         :{ORANGE}{DATE_WALLCLOCK_TINY} {RED}{DOWN_ARROW}
+STR_DEPARTURES_TIME_BOTH                                        :{ORANGE}{1:DATE_WALLCLOCK_TINY} {RED}{DOWN_ARROW} {ORANGE}{0:DATE_WALLCLOCK_TINY} {GREEN}{UP_ARROW}
+STR_DEPARTURES_TERMINUS                                         :{ORANGE}{STATION}{STRING}
+STR_DEPARTURES_TERMINUS_VIA_STATION                             :{ORANGE}{STATION}{STRING} via {STATION}{STRING}
+STR_DEPARTURES_TERMINUS_VIA                                     :{ORANGE}{STATION}{STRING} via
+STR_DEPARTURES_VIA                                              :{ORANGE}via {STATION}{STRING}
+STR_DEPARTURES_TOC                                              :{ORANGE}{COMPANY}
+STR_DEPARTURES_GROUP                                            :{ORANGE}{GROUP}
+STR_DEPARTURES_VEH                                              :{ORANGE}{VEHICLE}
+STR_DEPARTURES_CALLING_AT                                       :{TINY_FONT}{ORANGE}Calling at:
+STR_DEPARTURES_CALLING_AT_LARGE                                 :{ORANGE}Calling at:
+STR_DEPARTURES_CALLING_AT_FIRST_STATION                         :{STATION}
+STR_DEPARTURES_CALLING_AT_STATION                               :{RAW_STRING}, {STATION}
+STR_DEPARTURES_CALLING_AT_LAST_STATION                          :{RAW_STRING} and {STATION}
+STR_DEPARTURES_CALLING_AT_LIST                                  :{TINY_FONT}{ORANGE}{RAW_STRING}.
+STR_DEPARTURES_CALLING_AT_LIST_LARGE                            :{ORANGE}{RAW_STRING}.
+STR_DEPARTURES_CALLING_AT_LIST_SMART_TERMINUS                   :{TINY_FONT}{ORANGE}{RAW_STRING}. This service continues to {STATION}.
+STR_DEPARTURES_CALLING_AT_LIST_SMART_TERMINUS_LARGE             :{ORANGE}{RAW_STRING}. This service continues to {STATION}.
+
+STR_DEPARTURES_TYPE_TRAIN                                       :{ORANGE}{TRAIN}
+STR_DEPARTURES_TYPE_TRAIN_SILVER                                :{SILVER}{TRAIN}
+STR_DEPARTURES_TYPE_BUS                                         :{ORANGE}{BUS}
+STR_DEPARTURES_TYPE_BUS_SILVER                                  :{SILVER}{BUS}
+STR_DEPARTURES_TYPE_LORRY                                       :{ORANGE}{LORRY}
+STR_DEPARTURES_TYPE_LORRY_SILVER                                :{SILVER}{LORRY}
+STR_DEPARTURES_TYPE_PLANE                                       :{ORANGE}{PLANE}
+STR_DEPARTURES_TYPE_PLANE_SILVER                                :{SILVER}{PLANE}
+STR_DEPARTURES_TYPE_SHIP                                        :{ORANGE}{SHIP}
+STR_DEPARTURES_TYPE_SHIP_SILVER                                 :{SILVER}{SHIP}
+
+STR_DEPARTURES_STATION_NONE                                     :
+STR_DEPARTURES_STATION_PORT                                     :{ORANGE} {SHIP}
+STR_DEPARTURES_STATION_AIRPORT                                  :{ORANGE} {PLANE}
+STR_DEPARTURES_STATION_PORTAIRPORT                              :{ORANGE} {SHIP} {PLANE}
+
+############ possible statuses start
+STR_DEPARTURES_ON_TIME                                          :{GREEN}On time
+STR_DEPARTURES_ARRIVED                                          :{GREEN}Arrived
+STR_DEPARTURES_DELAYED                                          :{YELLOW}Delayed
+STR_DEPARTURES_EXPECTED                                         :{YELLOW}Expt {DATE_WALLCLOCK_TINY}
+STR_DEPARTURES_CANCELLED                                        :{RED}Cancelled
+
+############ config settings
+STR_CONFIG_SETTING_DEPARTUREBOARDS                              :{ORANGE}Departure boards
+STR_CONFIG_MAX_DEPARTURES                                       :Show at most {STRING2} departures at each station
+STR_CONFIG_MAX_DEPARTURES_HELPTEXT                              :The maximum number of departures to show on a departure board
+STR_CONFIG_MAX_DEPARTURE_TIME                                   :Show departures at most {STRING2} days in advance
+STR_CONFIG_MAX_DEPARTURE_TIME_HELPTEXT                          :How far in advance to show departures, in days
+STR_CONFIG_DEPARTURE_CALC_FREQUENCY                             :Calculate departures every {STRING2} ticks
+STR_CONFIG_DEPARTURE_CALC_FREQUENCY_HELPTEXT                    :How frequently to refresh a list of departures, in ticks
+STR_CONFIG_DEPARTURE_VEHICLE_NAME                               :Show vehicle name with departures: {STRING2}
+STR_CONFIG_DEPARTURE_VEHICLE_NAME_HELPTEXT                      :Whether to show vehicle names next to their departures
+STR_CONFIG_DEPARTURE_GROUP_NAME                                 :Show group name with departures: {STRING2}
+STR_CONFIG_DEPARTURE_GROUP_NAME_HELPTEXT                        :Whether to show names of groups that a vehicle belongs to next to its departures
+STR_CONFIG_DEPARTURE_COMPANY_NAME                               :Show company name with departures: {STRING2}
+STR_CONFIG_DEPARTURE_COMPANY_NAME_HELPTEXT                      :Whether to show a company's name next to its vehicles' departures
+STR_CONFIG_DEPARTURE_VEHICLE_TYPE                               :Show vehicle type icon with departures: {STRING2}
+STR_CONFIG_DEPARTURE_VEHICLE_TYPE_HELPTEXT                      :Whether to show a vehicle's type as an icon next to its departures
+STR_CONFIG_DEPARTURE_VEHICLE_COLOR                              :Show vehicle type icon in silver: {STRING2}
+STR_CONFIG_DEPARTURE_VEHICLE_COLOR_HELPTEXT                     :Whether to show vehicle type icons in silver
+STR_CONFIG_DEPARTURE_LARGER_FONT                                :Use larger font for stations called at on departure boards: {STRING2}
+STR_CONFIG_DEPARTURE_LARGER_FONT_HELPTEXT                       :Whether to use a larger font for lists of stations called at
+STR_CONFIG_DEPARTURE_DESTINATION_TYPE                           :Show icons for destinations that are docks or airports: {STRING2}
+STR_CONFIG_DEPARTURE_DESTINATION_TYPE_HELPTEXT                  :Whether to show icons next to destinations that are docks or airports
+STR_CONFIG_DEPARTURE_SHOW_BOTH                                  :Show arrival and departure times on the same line: {STRING2}
+STR_CONFIG_DEPARTURE_SHOW_BOTH_HELPTEXT                         :Whether to show both arrival and departure times next to departures
+STR_CONFIG_DEPARTURE_ONLY_PASSENGERS                            :Only show departures for vehicles that can carry passengers: {STRING2}
+STR_CONFIG_DEPARTURE_ONLY_PASSENGERS_HELPTEXT                   :Whether to only show departures of vehicles that can carry passengers
+STR_CONFIG_DEPARTURE_SMART_TERMINUS                             :Don't show termini that can be reached sooner on a later vehicle: {STRING2}
+STR_CONFIG_DEPARTURE_SMART_TERMINUS_HELPTEXT                    :Whether to show termini that can be reached sooner on another vehicle that departs later
+STR_CONFIG_DEPARTURE_CONDITIONALS                               :Handle conditional order jumps by: {STRING2}
+STR_CONFIG_DEPARTURE_CONDITIONALS_HELPTEXT                      :How conditional orders should be dealt with when calculating departures
+STR_CONFIG_DEPARTURE_CONDITIONALS_1                             :giving up
+STR_CONFIG_DEPARTURE_CONDITIONALS_2                             :assuming they will be taken
+STR_CONFIG_DEPARTURE_CONDITIONALS_3                             :assuming they will not be taken
+STR_CONFIG_DEPARTURE_SHOW_ALL_STOPS                             :Show all stations called at regardless of loading/unloading: {STRING2}
+STR_CONFIG_DEPARTURE_SHOW_ALL_STOPS_HELPTEXT                    :Whether stations that a vehicle only loads from will be shown in the calling at list
+STR_CONFIG_DEPARTURE_MERGE_IDENTICAL                            :Merge identical departures: {STRING2}
+STR_CONFIG_DEPARTURE_MERGE_IDENTICAL_HELPTEXT                   :Whether identical departures should be merged into a single departure
 
 # Waypoint/buoy view window
 STR_WAYPOINT_VIEW_CAPTION                                       :{WHITE}{WAYPOINT}
@@ -3132,6 +3521,8 @@ STR_FINANCES_SECTION_AIRCRAFT_INCOME                            :{GOLD}Aircraft 
 STR_FINANCES_SECTION_SHIP_INCOME                                :{GOLD}Ship Income
 STR_FINANCES_SECTION_LOAN_INTEREST                              :{GOLD}Loan Interest
 STR_FINANCES_SECTION_OTHER                                      :{GOLD}Other
+STR_FINANCES_SECTION_INFRASTRUCTURE_COSTS                       :{GOLD}Infrastructure Sharing Costs
+STR_FINANCES_SECTION_INFRASTRUCTURE_INCOME                      :{GOLD}Infrastructure Sharing Income
 STR_FINANCES_NEGATIVE_INCOME                                    :{BLACK}-{CURRENCY_LONG}
 STR_FINANCES_POSITIVE_INCOME                                    :{BLACK}+{CURRENCY_LONG}
 STR_FINANCES_TOTAL_CAPTION                                      :{WHITE}Total:
@@ -3225,6 +3616,14 @@ STR_INDUSTRY_VIEW_LOCATION_TOOLTIP                              :{BLACK}Centre t
 STR_INDUSTRY_VIEW_PRODUCTION_LEVEL                              :{BLACK}Production level: {YELLOW}{COMMA}%
 STR_INDUSTRY_VIEW_INDUSTRY_ANNOUNCED_CLOSURE                    :{YELLOW}The industry has announced imminent closure!
 
+# Industry tooltip
+STR_INDUSTRY_VIEW_TRANSPORTED_TOOLTIP                           :{BLACK}{STRING}
+STR_INDUSTRY_VIEW_TRANSPORTED_TOOLTIP_TOOLTIP                   :{BLACK}{STRING}{}{CARGO_LONG} ({COMMA}%)
+STR_INDUSTRY_VIEW_TRANSPORTED_TOOLTIP_TOOLTIP_TOOLTIP           :{BLACK}{STRING}{}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%)
+
+# Town tooltip
+STR_TOWN_NAME_TOOLTIP                                           :{BLACK}{TOWN}
+
 ############ range for requires starts
 STR_INDUSTRY_VIEW_REQUIRES_CARGO                                :{BLACK}Requires: {YELLOW}{STRING}{RAW_STRING}
 STR_INDUSTRY_VIEW_REQUIRES_CARGO_CARGO                          :{BLACK}Requires: {YELLOW}{STRING}{RAW_STRING}, {STRING}{RAW_STRING}
@@ -3308,20 +3707,28 @@ STR_BUY_VEHICLE_ROAD_VEHICLE_CAPTION                            :New Road Vehicl
 STR_BUY_VEHICLE_SHIP_CAPTION                                    :New Ships
 STR_BUY_VEHICLE_AIRCRAFT_CAPTION                                :New Aircraft
 
+STR_PURCHASE_INFO_ENGINE_NAME                                   :{BIG_FONT}{ENGINE}
+STR_PURCHASE_INFO_COST                                          :{BLACK}Cost: {GOLD}{CURRENCY_LONG}
+STR_PURCHASE_INFO_WEIGHT                                        :{BLACK}Weight: {GOLD}{WEIGHT_SHORT}
 STR_PURCHASE_INFO_COST_WEIGHT                                   :{BLACK}Cost: {GOLD}{CURRENCY_LONG}{BLACK} Weight: {GOLD}{WEIGHT_SHORT}
 STR_PURCHASE_INFO_SPEED_POWER                                   :{BLACK}Speed: {GOLD}{VELOCITY}{BLACK} Power: {GOLD}{POWER}
 STR_PURCHASE_INFO_SPEED                                         :{BLACK}Speed: {GOLD}{VELOCITY}
+STR_PURCHASE_INFO_POWER                                         :{BLACK}Power: {GOLD}{POWER}
 STR_PURCHASE_INFO_SPEED_OCEAN                                   :{BLACK}Speed on ocean: {GOLD}{VELOCITY}
 STR_PURCHASE_INFO_SPEED_CANAL                                   :{BLACK}Speed on canal/river: {GOLD}{VELOCITY}
 STR_PURCHASE_INFO_RUNNINGCOST                                   :{BLACK}Running Cost: {GOLD}{CURRENCY_LONG}/yr
+STR_PURCHASE_INFO_LENGTH                                        :{BLACK}Length in consist: {GOLD}{DECIMAL} {BLACK}tile{P "" s}
 STR_PURCHASE_INFO_CAPACITY                                      :{BLACK}Capacity: {GOLD}{CARGO_LONG} {STRING}
 STR_PURCHASE_INFO_REFITTABLE                                    :(refittable)
 STR_PURCHASE_INFO_DESIGNED_LIFE                                 :{BLACK}Designed: {GOLD}{NUM}{BLACK} Life: {GOLD}{COMMA} year{P "" s}
+STR_PURCHASE_INFO_DESIGNED                                      :{BLACK}Designed: {GOLD}{NUM}
+STR_PURCHASE_INFO_LIFE                                          :{BLACK}Life: {GOLD}{COMMA} year{P "" s}
 STR_PURCHASE_INFO_RELIABILITY                                   :{BLACK}Max. Reliability: {GOLD}{COMMA}%
-STR_PURCHASE_INFO_COST                                          :{BLACK}Cost: {GOLD}{CURRENCY_LONG}
 STR_PURCHASE_INFO_WEIGHT_CWEIGHT                                :{BLACK}Weight: {GOLD}{WEIGHT_SHORT} ({WEIGHT_SHORT})
 STR_PURCHASE_INFO_COST_SPEED                                    :{BLACK}Cost: {GOLD}{CURRENCY_LONG}{BLACK} Speed: {GOLD}{VELOCITY}
 STR_PURCHASE_INFO_AIRCRAFT_CAPACITY                             :{BLACK}Capacity: {GOLD}{CARGO_LONG}, {CARGO_LONG}
+STR_PURCHASE_INFO_PWAGPOWER                                     :{BLACK}Powered Wagons: {GOLD}+{POWER}
+STR_PURCHASE_INFO_PWAGWEIGHT                                    :{BLACK}Powered Wagons Weight: {GOLD}+{WEIGHT_SHORT}
 STR_PURCHASE_INFO_PWAGPOWER_PWAGWEIGHT                          :{BLACK}Powered Wagons: {GOLD}+{POWER}{BLACK} Weight: {GOLD}+{WEIGHT_SHORT}
 STR_PURCHASE_INFO_REFITTABLE_TO                                 :{BLACK}Refittable to: {GOLD}{STRING2}
 STR_PURCHASE_INFO_ALL_TYPES                                     :All cargo types
@@ -3333,6 +3740,16 @@ STR_BUY_VEHICLE_TRAIN_LIST_TOOLTIP                              :{BLACK}Train ve
 STR_BUY_VEHICLE_ROAD_VEHICLE_LIST_TOOLTIP                       :{BLACK}Road vehicle selection list - click on vehicle for information
 STR_BUY_VEHICLE_SHIP_LIST_TOOLTIP                               :{BLACK}Ship selection list - click on ship for information
 STR_BUY_VEHICLE_AIRCRAFT_LIST_TOOLTIP                           :{BLACK}Aircraft selection list - click on aircraft for information
+
+STR_BUY_REFIT_VEHICLE_TRAIN_BUY_VEHICLE_BUTTON                  :{BLACK}Buy and Refit Vehicle
+STR_BUY_REFIT_VEHICLE_ROAD_VEHICLE_BUY_VEHICLE_BUTTON           :{BLACK}Buy and Refit Vehicle
+STR_BUY_REFIT_VEHICLE_SHIP_BUY_VEHICLE_BUTTON                   :{BLACK}Buy and Refit Ship
+STR_BUY_REFIT_VEHICLE_AIRCRAFT_BUY_VEHICLE_BUTTON               :{BLACK}Buy and Refit Aircraft
+
+STR_BUY_REFIT_VEHICLE_TRAIN_BUY_VEHICLE_TOOLTIP                 :{BLACK}Buy the highlighted train vehicle and refit it to selected cargo type
+STR_BUY_REFIT_VEHICLE_ROAD_VEHICLE_BUY_VEHICLE_TOOLTIP          :{BLACK}Buy the highlighted road vehicle and refit it to selected cargo type
+STR_BUY_REFIT_VEHICLE_SHIP_BUY_VEHICLE_TOOLTIP                  :{BLACK}Buy the highlighted ship and refit it to selected cargo type
+STR_BUY_REFIT_VEHICLE_AIRCRAFT_BUY_VEHICLE_TOOLTIP              :{BLACK}Buy the highlighted aircraft and refit it to selected cargo type
 
 STR_BUY_VEHICLE_TRAIN_BUY_VEHICLE_BUTTON                        :{BLACK}Buy Vehicle
 STR_BUY_VEHICLE_ROAD_VEHICLE_BUY_VEHICLE_BUTTON                 :{BLACK}Buy Vehicle
@@ -3514,10 +3931,10 @@ STR_VEHICLE_VIEW_AIRCRAFT_REFIT_TOOLTIP                         :{BLACK}Refit ai
 STR_VEHICLE_VIEW_TRAIN_REVERSE_TOOLTIP                          :{BLACK}Reverse direction of train
 STR_VEHICLE_VIEW_ROAD_VEHICLE_REVERSE_TOOLTIP                   :{BLACK}Force vehicle to turn around
 
-STR_VEHICLE_VIEW_TRAIN_ORDERS_TOOLTIP                           :{BLACK}Show train's orders. Ctrl+Click to show train's timetable
-STR_VEHICLE_VIEW_ROAD_VEHICLE_ORDERS_TOOLTIP                    :{BLACK}Show vehicle's orders. Ctrl+Click to show vehicle's timetable
-STR_VEHICLE_VIEW_SHIP_ORDERS_TOOLTIP                            :{BLACK}Show ship's orders. Ctrl+Click to show ship's timetable
-STR_VEHICLE_VIEW_AIRCRAFT_ORDERS_TOOLTIP                        :{BLACK}Show aircraft's orders. Ctrl+Click to show aircraft's timetable
+STR_VEHICLE_VIEW_TRAIN_ORDERS_TOOLTIP                           :{BLACK}Show train's orders. Ctrl+Click to show train's timetable, Shift+Click to show trains with shared orders
+STR_VEHICLE_VIEW_ROAD_VEHICLE_ORDERS_TOOLTIP                    :{BLACK}Show vehicle's orders. Ctrl+Click to show vehicle's timetable, Shift+Click to show vehicles with shared orders
+STR_VEHICLE_VIEW_SHIP_ORDERS_TOOLTIP                            :{BLACK}Show ship's orders. Ctrl+Click to show ship's timetable, Shift+Click to show ships with shared orders
+STR_VEHICLE_VIEW_AIRCRAFT_ORDERS_TOOLTIP                        :{BLACK}Show aircraft's orders. Ctrl+Click to show aircraft's timetable, Shift+Click to show aircrafts with shared orders
 
 STR_VEHICLE_VIEW_TRAIN_SHOW_DETAILS_TOOLTIP                     :{BLACK}Show train details
 STR_VEHICLE_VIEW_ROAD_VEHICLE_SHOW_DETAILS_TOOLTIP              :{BLACK}Show road vehicle details
@@ -3535,10 +3952,19 @@ STR_VEHICLE_STATUS_LEAVING                                      :{LTBLUE}Leaving
 STR_VEHICLE_STATUS_CRASHED                                      :{RED}Crashed!
 STR_VEHICLE_STATUS_BROKEN_DOWN                                  :{RED}Broken down
 STR_VEHICLE_STATUS_STOPPED                                      :{RED}Stopped
+STR_VEHICLE_STATUS_BROKEN_DOWN_VEL								:{RED}Broken down - {STRING1}, {LTBLUE} {VELOCITY}
 STR_VEHICLE_STATUS_TRAIN_STOPPING_VEL                           :{RED}Stopping, {VELOCITY}
 STR_VEHICLE_STATUS_TRAIN_NO_POWER                               :{RED}No power
 STR_VEHICLE_STATUS_TRAIN_STUCK                                  :{ORANGE}Waiting for free path
 STR_VEHICLE_STATUS_AIRCRAFT_TOO_FAR                             :{ORANGE}Too far to next destination
+
+STR_BREAKDOWN_TYPE_CRITICAL                                     :Mechanical failure
+STR_BREAKDOWN_TYPE_EM_STOP                                      :Emergency stop
+STR_BREAKDOWN_TYPE_LOW_SPEED                                    :Limited to {VELOCITY}
+STR_BREAKDOWN_TYPE_LOW_POWER                                    :{COMMA}% Power
+STR_BREAKDOWN_TYPE_DEPOT                                        :Heading to {STATION} Hangar for repairs
+STR_BREAKDOWN_TYPE_LANDING                                      :Heading to {STATION} for emergency landing
+STR_ERROR_TRAIN_TOO_HEAVY                                       :{WHITE}{VEHICLE} is too heavy
 
 STR_VEHICLE_STATUS_HEADING_FOR_STATION_VEL                      :{LTBLUE}Heading for {STATION}, {VELOCITY}
 STR_VEHICLE_STATUS_NO_ORDERS_VEL                                :{LTBLUE}No orders, {VELOCITY}
@@ -3562,6 +3988,11 @@ STR_VEHICLE_DETAILS_SHIP_RENAME                                 :{BLACK}Name shi
 STR_VEHICLE_DETAILS_AIRCRAFT_RENAME                             :{BLACK}Name aircraft
 
 STR_VEHICLE_INFO_AGE_RUNNING_COST_YR                            :{BLACK}Age: {LTBLUE}{STRING2}{BLACK}   Running Cost: {LTBLUE}{CURRENCY_LONG}/yr
+
+STR_RUNNING														:{LTBLUE}Running
+STR_NEED_REPAIR													:{ORANGE}Train needs repair - max speed reduced to {VELOCITY}
+STR_CURRENT_STATUS												:{BLACK}Current status: {STRING2}
+
 # The next two need to stay in this order
 STR_VEHICLE_INFO_AGE                                            :{COMMA} year{P "" s} ({COMMA})
 STR_VEHICLE_INFO_AGE_RED                                        :{RED}{COMMA} year{P "" s} ({COMMA})
@@ -3570,6 +4001,7 @@ STR_VEHICLE_INFO_MAX_SPEED                                      :{BLACK}Max. spe
 STR_VEHICLE_INFO_MAX_SPEED_RANGE                                :{BLACK}Max. speed: {LTBLUE}{VELOCITY} {BLACK}Range: {LTBLUE}{COMMA} tiles
 STR_VEHICLE_INFO_WEIGHT_POWER_MAX_SPEED                         :{BLACK}Weight: {LTBLUE}{WEIGHT_SHORT} {BLACK}Power: {LTBLUE}{POWER}{BLACK} Max. speed: {LTBLUE}{VELOCITY}
 STR_VEHICLE_INFO_WEIGHT_POWER_MAX_SPEED_MAX_TE                  :{BLACK}Weight: {LTBLUE}{WEIGHT_SHORT} {BLACK}Power: {LTBLUE}{POWER}{BLACK} Max. speed: {LTBLUE}{VELOCITY} {BLACK}Max. T.E.: {LTBLUE}{FORCE}
+STR_VEHICLE_INFO_TRAIN_LENGTH                                   :{BLACK}Train length {LTBLUE}{DECIMAL} {BLACK}tile{P "" s}
 
 STR_VEHICLE_INFO_PROFIT_THIS_YEAR_LAST_YEAR                     :{BLACK}Profit this year: {LTBLUE}{CURRENCY_LONG} (last year: {CURRENCY_LONG})
 STR_VEHICLE_INFO_RELIABILITY_BREAKDOWNS                         :{BLACK}Reliability: {LTBLUE}{COMMA}%  {BLACK}Breakdowns since last service: {LTBLUE}{COMMA}
@@ -3599,7 +4031,9 @@ STR_QUERY_RENAME_AIRCRAFT_CAPTION                               :{WHITE}Name air
 
 # Extra buttons for train details windows
 STR_VEHICLE_DETAILS_TRAIN_ENGINE_BUILT_AND_VALUE                :{LTBLUE}{ENGINE}{BLACK}   Built: {LTBLUE}{NUM}{BLACK} Value: {LTBLUE}{CURRENCY_LONG}
+STR_VEHICLE_DETAILS_TRAIN_ENGINE_BUILT_AND_VALUE_AND_SPEED      :{LTBLUE}{ENGINE}{BLACK}   Built: {LTBLUE}{NUM}{BLACK} Value: {LTBLUE}{CURRENCY_LONG} {BLACK}Max. speed: {LTBLUE}{VELOCITY}
 STR_VEHICLE_DETAILS_TRAIN_WAGON_VALUE                           :{LTBLUE}{ENGINE}{BLACK}   Value: {LTBLUE}{CURRENCY_LONG}
+STR_VEHICLE_DETAILS_TRAIN_WAGON_VALUE_AND_SPEED                 :{LTBLUE}{ENGINE}{BLACK}   Value: {LTBLUE}{CURRENCY_LONG} {BLACK}Max. speed: {LTBLUE}{VELOCITY}
 
 STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY_TEXT                   :{BLACK}Total cargo capacity of this train:
 STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY                        :{LTBLUE}- {CARGO_LONG} ({CARGO_SHORT})
@@ -3666,10 +4100,17 @@ STR_ORDER_TOOLTIP_NON_STOP                                      :{BLACK}Change t
 
 STR_ORDER_TOGGLE_FULL_LOAD                                      :{BLACK}Full load any cargo
 STR_ORDER_DROP_LOAD_IF_POSSIBLE                                 :Load if available
+STR_ORDER_DROP_WAIT_CARGO                                       :Wait for cargo
 STR_ORDER_DROP_FULL_LOAD_ALL                                    :Full load all cargo
 STR_ORDER_DROP_FULL_LOAD_ANY                                    :Full load any cargo
 STR_ORDER_DROP_NO_LOADING                                       :No loading
 STR_ORDER_TOOLTIP_FULL_LOAD                                     :{BLACK}Change the loading behaviour of the highlighted order
+
+STR_ORDER_DROP_STOP_LOADING_NONE                                :Do nothing
+STR_ORDER_DROP_STOP_LOADING_ANY                                 :Leave if any vehicle arrived
+STR_ORDER_DROP_STOP_LOADING_SHARED                              :Leave if same shared orders vehicle arrived
+STR_ORDER_DROP_STOP_LOADING_SAME_LOAD                           :Leave if loading same cargo vehicle arrived
+STR_ORDER_TOOLTIP_STOP_LOADING                                  :Select what to do if any vehicle arrived
 
 STR_ORDER_TOGGLE_UNLOAD                                         :{BLACK}Unload all
 STR_ORDER_DROP_UNLOAD_IF_ACCEPTED                               :Unload if accepted
@@ -3701,6 +4142,18 @@ STR_ORDER_CONDITIONAL_AGE                                       :Age (years)
 STR_ORDER_CONDITIONAL_REQUIRES_SERVICE                          :Requires service
 STR_ORDER_CONDITIONAL_UNCONDITIONALLY                           :Always
 STR_ORDER_CONDITIONAL_REMAINING_LIFETIME                        :Remaining lifetime (years)
+STR_ORDER_CONDITIONAL_CARGO_WAITING                             :Waiting cargo
+STR_ORDER_CONDITIONAL_ACCEPTANCE_DROPDOWN                       :Accepted cargo
+STR_ORDER_CONDITIONAL_FREE_PLATFORMS                            :Free platforms
+STR_ORDER_CONDITIONAL_PERCENT                                   :Percent of times
+
+STR_ORDER_CONDITIONAL_REQUIRES_SERVICE_ORDER                    :Requires service {STRING}
+STR_ORDER_CONDITIONAL_CARGO_WAITING_ORDER                       :Next station {STRING} {STRING} waiting
+STR_ORDER_CONDITIONAL_ACCEPTANCE                                :Next station {STRING} {STRING}
+STR_CONDITIONAL_FREE_PLATFORMS                                  :Jump to order {COMMA} when Next station {STRING} {COMMA} free platform{P "" s}
+STR_CONDITIONAL_PERCENT                                         :Jump to order {COMMA} {COMMA} percent of times
+
+STR_ORDER_CONDITIONAL_NEXT_STATION                              :Next station
 
 STR_ORDER_CONDITIONAL_COMPARATOR_TOOLTIP                        :{BLACK}How to compare the vehicle data to the given value
 STR_ORDER_CONDITIONAL_COMPARATOR_EQUALS                         :is equal to
@@ -3713,7 +4166,17 @@ STR_ORDER_CONDITIONAL_COMPARATOR_IS_TRUE                        :is true
 STR_ORDER_CONDITIONAL_COMPARATOR_IS_FALSE                       :is false
 
 STR_ORDER_CONDITIONAL_VALUE_TOOLTIP                             :{BLACK}The value to compare the vehicle data against
+STR_ORDER_CONDITIONAL_CARGO_TOOLTIP                             :{BLACK}The cargo to compare the station data against
 STR_ORDER_CONDITIONAL_VALUE_CAPT                                :{WHITE}Enter value to compare against
+
+STR_ORDER_CONDITIONAL_COMPARATOR_ACCEPTS                        :accepts
+STR_ORDER_CONDITIONAL_COMPARATOR_DOES_NOT_ACCEPT                :does not accept
+STR_ORDER_CONDITIONAL_COMPARATOR_HAS                            :has
+STR_ORDER_CONDITIONAL_COMPARATOR_HAS_NO                         :does not have
+STR_ORDER_CONDITIONAL_COMPARATOR_HAS_LESS_THAN                  :has less than
+STR_ORDER_CONDITIONAL_COMPARATOR_HAS_LESS_EQUALS                :has less than or exactly
+STR_ORDER_CONDITIONAL_COMPARATOR_HAS_MORE_THAN                  :has more than
+STR_ORDER_CONDITIONAL_COMPARATOR_HAS_MORE_EQUALS                :has more than or exactly
 
 STR_ORDERS_SKIP_BUTTON                                          :{BLACK}Skip
 STR_ORDERS_SKIP_TOOLTIP                                         :{BLACK}Skip the current order, and start the next. Ctrl+Click skips to the selected order
@@ -3756,32 +4219,44 @@ STR_ORDER_GO_TO_STATION                                         :{STRING} {STATI
 
 STR_ORDER_IMPLICIT                                              :(Implicit)
 
+STR_ORDER_WAIT_CARGO                                            :(Wait for cargo)
 STR_ORDER_FULL_LOAD                                             :(Full load)
 STR_ORDER_FULL_LOAD_ANY                                         :(Full load any cargo)
 STR_ORDER_NO_LOAD                                               :(No loading)
 STR_ORDER_UNLOAD                                                :(Unload and take cargo)
+STR_ORDER_UNLOAD_WAIT_CARGO                                     :(Unload and wait for cargo)
 STR_ORDER_UNLOAD_FULL_LOAD                                      :(Unload and wait for full load)
 STR_ORDER_UNLOAD_FULL_LOAD_ANY                                  :(Unload and wait for any full load)
 STR_ORDER_UNLOAD_NO_LOAD                                        :(Unload and leave empty)
 STR_ORDER_TRANSFER                                              :(Transfer and take cargo)
+STR_ORDER_TRANSFER_WAIT_CARGO                                   :(Transfer and wait for cargo)
 STR_ORDER_TRANSFER_FULL_LOAD                                    :(Transfer and wait for full load)
 STR_ORDER_TRANSFER_FULL_LOAD_ANY                                :(Transfer and wait for any full load)
 STR_ORDER_TRANSFER_NO_LOAD                                      :(Transfer and leave empty)
 STR_ORDER_NO_UNLOAD                                             :(No unloading and take cargo)
+STR_ORDER_NO_UNLOAD_WAIT_CARGO                                  :(No unloading and wait for cargo)
 STR_ORDER_NO_UNLOAD_FULL_LOAD                                   :(No unloading and wait for full load)
 STR_ORDER_NO_UNLOAD_FULL_LOAD_ANY                               :(No unloading and wait for any full load)
 STR_ORDER_NO_UNLOAD_NO_LOAD                                     :(No unloading and no loading)
 
+STR_ORDER_STOP_LOADING_ANY                                      :(leave if any vehicle arrived)
+STR_ORDER_STOP_LOADING_SHARED                                   :(leave if stared orders vehicle arrived)
+STR_ORDER_STOP_LOADING_SAME_CARGO                               :(leave if same cargo loading vehicle arrived)
+
 STR_ORDER_AUTO_REFIT                                            :(Auto-refit to {STRING})
+STR_ORDER_WAIT_CARGO_REFIT                                      :(Wait for cargo with auto-refit to {STRING})
 STR_ORDER_FULL_LOAD_REFIT                                       :(Full load with auto-refit to {STRING})
 STR_ORDER_FULL_LOAD_ANY_REFIT                                   :(Full load any cargo with auto-refit to {STRING})
 STR_ORDER_UNLOAD_REFIT                                          :(Unload and take cargo with auto-refit to {STRING})
+STR_ORDER_UNLOAD_WAIT_CARGO_REFIT                               :(Unload and wait for cargo with auto-refit to {STRING})
 STR_ORDER_UNLOAD_FULL_LOAD_REFIT                                :(Unload and wait for full load with auto-refit to {STRING})
 STR_ORDER_UNLOAD_FULL_LOAD_ANY_REFIT                            :(Unload and wait for any full load with auto-refit to {STRING})
 STR_ORDER_TRANSFER_REFIT                                        :(Transfer and take cargo with auto-refit to {STRING})
+STR_ORDER_TRANSFER_WAIT_CARGO_REFIT                             :(Transfer and wait for cargo with auto-refit to {STRING})
 STR_ORDER_TRANSFER_FULL_LOAD_REFIT                              :(Transfer and wait for full load with auto-refit to {STRING})
 STR_ORDER_TRANSFER_FULL_LOAD_ANY_REFIT                          :(Transfer and wait for any full load with auto-refit to {STRING})
 STR_ORDER_NO_UNLOAD_REFIT                                       :(No unloading and take cargo with auto-refit to {STRING})
+STR_ORDER_NO_UNLOAD_WAIT_CARGO_REFIT                            :(No unloading and wait for cargo with auto-refit to {STRING})
 STR_ORDER_NO_UNLOAD_FULL_LOAD_REFIT                             :(No unloading and wait for full load with auto-refit to {STRING})
 STR_ORDER_NO_UNLOAD_FULL_LOAD_ANY_REFIT                         :(No unloading and wait for any full load with auto-refit to {STRING})
 
@@ -3795,6 +4270,7 @@ STR_ORDER_OUT_OF_RANGE                                          :{RED} (Next des
 
 STR_ORDER_CONDITIONAL_UNCONDITIONAL                             :Jump to order {COMMA}
 STR_ORDER_CONDITIONAL_NUM                                       :Jump to order {COMMA} when {STRING} {STRING} {COMMA}
+STR_ORDER_CONDITIONAL_CARGO                                     :Jump to order {COMMA} when {STRING} {STRING} {STRING}
 STR_ORDER_CONDITIONAL_TRUE_FALSE                                :Jump to order {COMMA} when {STRING} {STRING}
 
 STR_INVALID_ORDER                                               :{RED} (Invalid Order)
@@ -3816,6 +4292,7 @@ STR_TIMETABLE_STAY_FOR                                          :and stay for {S
 STR_TIMETABLE_AND_TRAVEL_FOR                                    :and travel for {STRING1}
 STR_TIMETABLE_DAYS                                              :{COMMA} day{P "" s}
 STR_TIMETABLE_TICKS                                             :{COMMA} tick{P "" s}
+STR_TIMETABLE_MINUTES                                           :{COMMA} minute{P "" s}
 
 STR_TIMETABLE_TOTAL_TIME                                        :{BLACK}This timetable will take {STRING1} to complete
 STR_TIMETABLE_TOTAL_TIME_INCOMPLETE                             :{BLACK}This timetable will take at least {STRING1} to complete (not all timetabled)
@@ -3847,6 +4324,9 @@ STR_TIMETABLE_RESET_LATENESS_TOOLTIP                            :{BLACK}Reset th
 STR_TIMETABLE_AUTOFILL                                          :{BLACK}Autofill
 STR_TIMETABLE_AUTOFILL_TOOLTIP                                  :{BLACK}Fill the timetable automatically with the values from the next journey (Ctrl+Click to try to keep waiting times)
 
+STR_TIMETABLE_AUTOMATE											:{BLACK}Automate
+STR_TIMETABLE_AUTOMATE_TOOLTIP									:{BLACK}Manage the timetables automatically by updating the values for each journey
+
 STR_TIMETABLE_EXPECTED                                          :{BLACK}Expected
 STR_TIMETABLE_SCHEDULED                                         :{BLACK}Scheduled
 STR_TIMETABLE_EXPECTED_TOOLTIP                                  :{BLACK}Switch between expected and scheduled
@@ -3862,6 +4342,8 @@ STR_DATE_SET_DATE_TOOLTIP                                       :{BLACK}Use the 
 STR_DATE_DAY_TOOLTIP                                            :{BLACK}Select day
 STR_DATE_MONTH_TOOLTIP                                          :{BLACK}Select month
 STR_DATE_YEAR_TOOLTIP                                           :{BLACK}Select year
+STR_DATE_MINUTES_DAY_TOOLTIP                                    :{BLACK}Select minute
+STR_DATE_MINUTES_MONTH_TOOLTIP                                  :{BLACK}Select hour
 
 
 # AI debug window
@@ -3972,6 +4454,36 @@ STR_FEEDER_COST                                                 :{YELLOW}Transfe
 STR_MESSAGE_ESTIMATED_COST                                      :{WHITE}Estimated Cost: {CURRENCY_LONG}
 STR_MESSAGE_ESTIMATED_INCOME                                    :{WHITE}Estimated Income: {CURRENCY_LONG}
 
+###Trip History
+STR_TRIP_HISTORY                                                :{BLACK}History
+STR_TRIP_HISTORY_TOOLTIP                                        :{BLACK}Shows the history of the last trips
+STR_TRIP_HISTORY_STATION_LABEL                                  :{BLACK}Station name
+STR_TRIP_HISTORY_STATION_LABEL_TIP                              :{BLACK}Trip destination
+STR_TRIP_HISTORY_LATE_LABEL                                     :{BLACK}Lateness
+STR_TRIP_HISTORY_LATE_LABEL_TIP                                 :{BLACK}Vwhicle's lateness counter
+STR_TRIP_HISTORY_RECEIVED_LABEL                                 :{BLACK}Received
+STR_TRIP_HISTORY_RECEIVED_LABEL_TIP                             :{BLACK}The date when the cargo was received
+STR_TRIP_HISTORY_PROFIT_LABEL                                   :{BLACK}Profit
+STR_TRIP_HISTORY_PROFIT_LABEL_TIP                               :{BLACK}The profit received from each trip
+STR_TRIP_HISTORY_TRIP_TIME_LABEL                                :{BLACK}Travel time
+STR_TRIP_HISTORY_TRIP_TIME_LABEL_TIP                            :{BLACK}Time taken to travel to current destination
+STR_TRIP_HISTORY_CAPTION                                        :{WHITE}{VEHICLE} Trip History
+STR_TRIP_HISTORY_DATE                                           :{BLACK}{DATE_LONG}
+STR_TRIP_HISTORY_PROFIT                                         :{GREEN}{CURRENCY_LONG}
+STR_TRIP_HISTORY_VIRTUAL_PROFIT                                 :{RED}{CURRENCY_LONG}
+STR_TRIP_HISTORY_PROFIT_NONE                                    :{BLACK}None
+STR_TRIP_HISTORY_ONTIME                                         :{BLACK}On time
+STR_TRIP_HISTORY_LATE_DAYS                                      :{RED}Late on {COMMA} day{P "" s}
+STR_TRIP_HISTORY_NOTLATE_DAYS                                   :{GREEN}Not late on {COMMA} day{P "" s}
+STR_TRIP_HISTORY_LATE_MIN                                       :{RED}Late on {COMMA} minute{P "" s}
+STR_TRIP_HISTORY_NOTLATE_MIN                                    :{GREEN}Not late on {COMMA} minute{P "" s}
+STR_TRIP_HISTORY_DATETIME                                       :{BLACK}{COMMA}:{COMMA} ({COMMA} minute{P "" s}) / {COMMA} day{P "" s}
+STR_TRIP_HISTORY_ONLYDATE                                       :{BLACK}{COMMA} day{P "" s}
+STR_TRIP_HISTORY_WAYPOINT                                       :{ORANGE}{WAYPOINT}
+STR_TRIP_HISTORY_STATION                                        :{BLACK}{STATION}{DOWN_ARROW}
+STR_TRIP_HISTORY_STATION_LIVE                                   :{BLACK}{STATION}{UP_ARROW}
+STR_TRIP_HISTORY_DEPOT                                          :{BROWN}{DEPOT}
+
 # Saveload messages
 STR_ERROR_SAVE_STILL_IN_PROGRESS                                :{WHITE}Saving still in progress,{}please wait until it is finished!
 STR_ERROR_AUTOSAVE_FAILED                                       :{WHITE}Autosave failed
@@ -4053,6 +4565,7 @@ STR_ERROR_EXCAVATION_WOULD_DAMAGE                               :{WHITE}Excavati
 STR_ERROR_ALREADY_AT_SEA_LEVEL                                  :{WHITE}... already at sea level
 STR_ERROR_TOO_HIGH                                              :{WHITE}... too high
 STR_ERROR_ALREADY_LEVELLED                                      :{WHITE}... already flat
+STR_ERROR_BRIDGE_TOO_HIGH_AFTER_LOWER_LAND                      :{WHITE}Afterwards the bridge above it would be too high.
 
 # Company related errors
 STR_ERROR_CAN_T_CHANGE_COMPANY_NAME                             :{WHITE}Can't change company name...
@@ -4206,6 +4719,8 @@ STR_ERROR_THERE_ARE_NO_SIGNALS                                  :{WHITE}... ther
 
 STR_ERROR_CAN_T_CONVERT_RAIL                                    :{WHITE}Can't convert rail type here...
 
+STR_ERROR_SIGNAL_CHANGES                                        :{WHITE}Number of programmable signal evaluations exceeded limit
+
 # Road construction errors
 STR_ERROR_MUST_REMOVE_ROAD_FIRST                                :{WHITE}Must remove road first
 STR_ERROR_ONEWAY_ROADS_CAN_T_HAVE_JUNCTION                      :{WHITE}... one way roads can't have junctions
@@ -4213,6 +4728,13 @@ STR_ERROR_CAN_T_BUILD_ROAD_HERE                                 :{WHITE}Can't bu
 STR_ERROR_CAN_T_BUILD_TRAMWAY_HERE                              :{WHITE}Can't build tramway here...
 STR_ERROR_CAN_T_REMOVE_ROAD_FROM                                :{WHITE}Can't remove road from here...
 STR_ERROR_CAN_T_REMOVE_TRAMWAY_FROM                             :{WHITE}Can't remove tramway from here...
+STR_ERROR_CAN_T_REMOVE_TRAFFIC_LIGHTS_FROM                      :{WHITE}Can't remove traffic lights from here...
+STR_ERROR_MUST_REMOVE_TRAFFIC_LIGHTS_FIRST                      :{WHITE}... must remove traffic lights first
+STR_ERROR_TRAFFIC_LIGHT_CONSIST_TOO_BIG                         :{WHITE}... traffic light consist too big
+STR_ERROR_CAN_T_PLACE_TRAFFIC_LIGHTS                            :{WHITE}Can't place traffic lights...
+STR_ERROR_CAN_ONLY_BE_PLACED_ON_ROAD_JUNCTIONS                  :{WHITE}... can only be placed on road junctions
+STR_ERROR_BUILDING_TRAFFIC_LIGHTS_DISABLED                      :{WHITE}... building trafficlights is disabled, enable it in Advanced settings -> Construction -> Traffic lights
+STR_ERROR_TRAFFIC_LIGHTS_NOT_ALLOWED_ON_TOWN_ROADS              :{WHITE}... building trafficlights on town roads is disabled, enable it in Advanced settings -> Construction -> Traffic lights
 STR_ERROR_THERE_IS_NO_ROAD                                      :{WHITE}... there is no road
 STR_ERROR_THERE_IS_NO_TRAMWAY                                   :{WHITE}... there is no tramway
 
@@ -4239,6 +4761,7 @@ STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST                            :{WHITE}Must dem
 STR_ERROR_CAN_T_START_AND_END_ON                                :{WHITE}Can't start and end in the same spot
 STR_ERROR_BRIDGEHEADS_NOT_SAME_HEIGHT                           :{WHITE}Bridge heads not at the same level
 STR_ERROR_BRIDGE_TOO_LOW_FOR_TERRAIN                            :{WHITE}Bridge is too low for the terrain
+STR_ERROR_BRIDGE_TOO_HIGH_FOR_TERRAIN                           :{WHITE}Bridge is too high for this terrain.
 STR_ERROR_START_AND_END_MUST_BE_IN                              :{WHITE}Start and end must be in line
 STR_ERROR_ENDS_OF_BRIDGE_MUST_BOTH                              :{WHITE}... ends of bridge must both be on land
 STR_ERROR_BRIDGE_TOO_LONG                                       :{WHITE}... bridge too long
@@ -4759,6 +5282,11 @@ STR_FORMAT_DATE_SHORT                                           :{STRING} {NUM}
 STR_FORMAT_DATE_LONG                                            :{STRING} {STRING} {NUM}
 STR_FORMAT_DATE_ISO                                             :{2:NUM}-{1:RAW_STRING}-{0:RAW_STRING}
 
+STR_FORMAT_DATE_MINUTES                                         :{0:RAW_STRING}:{1:RAW_STRING}
+STR_FORMAT_DATE_MINUTES_WITH_Y                                  :{0:RAW_STRING}:{1:RAW_STRING} / {2:NUM}
+STR_FORMAT_DATE_MINUTES_WITH_YM                                 :{0:RAW_STRING}:{1:RAW_STRING} / {2:DATE_SHORT}
+STR_FORMAT_DATE_MINUTES_WITH_YMD                                :{0:RAW_STRING}:{1:RAW_STRING} / {2:DATE_LONG}
+
 STR_FORMAT_BUOY_NAME                                            :{TOWN} Buoy
 STR_FORMAT_BUOY_NAME_SERIAL                                     :{TOWN} Buoy #{COMMA}
 STR_FORMAT_COMPANY_NUM                                          :(Company {COMMA})
@@ -4783,10 +5311,86 @@ STR_SAVEGAME_NAME_DEFAULT                                       :{COMPANY}, {STR
 STR_SAVEGAME_NAME_SPECTATOR                                     :Spectator, {1:STRING1}
 
 # Viewport strings
+STR_VIEWPORT_MAP_SHOW_VEHICLE_ROUTE_STOPOVER                    :{BROWN}{NUM} {STRING}
+STR_VIEWPORT_MAP_SHOW_VEHICLE_ROUTE_STOPOVER_STATION            :{BLACK}ST
+STR_VIEWPORT_MAP_SHOW_VEHICLE_ROUTE_STOPOVER_WAYPOINT           :{GRAY}WP
+STR_VIEWPORT_MAP_SHOW_VEHICLE_ROUTE_STOPOVER_IMPLICIT           :{GRAY}IM
+STR_VIEWPORT_MAP_SHOW_VEHICLE_ROUTE_STOPOVER_DEPOT              :{RED}DE
+
+STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_VERY_FAST                :{RED}{TOWN} ({COMMA}){GREEN}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_VERY_FAST_1              :{RED}{TOWN} ({COMMA}){GREEN}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_FAST                     :{RED}{TOWN} ({COMMA}){WHITE}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_FAST_1                   :{RED}{TOWN} ({COMMA}){WHITE}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_MEDIUM                   :{RED}{TOWN} ({COMMA}){YELLOW}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_MEDIUM_1                 :{RED}{TOWN} ({COMMA}){YELLOW}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_LOW                      :{RED}{TOWN} ({COMMA}){ORANGE}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_LOW_1                    :{RED}{TOWN} ({COMMA}){ORANGE}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_VERY_LOW                 :{RED}{TOWN} ({COMMA}){RED}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_VERY_LOW_1               :{RED}{TOWN} ({COMMA}){RED}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_NONE                     :{RED}{TOWN} ({COMMA}){RED}{CROSS}
+STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING_NONE_1                   :{RED}{TOWN} ({COMMA}){RED}{CROSS}{DKGREEN}*
+
+STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_VERY_FAST                 :{ORANGE}{TOWN} ({COMMA}){GREEN}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_FAST                      :{ORANGE}{TOWN} ({COMMA}){WHITE}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_MEDIUM                    :{ORANGE}{TOWN} ({COMMA}){YELLOW}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_LOW                       :{ORANGE}{TOWN} ({COMMA}){ORANGE}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_VERY_LOW                  :{ORANGE}{TOWN} ({COMMA}){RED}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_NONE                      :{ORANGE}{TOWN} ({COMMA}){RED}{CROSS}
+STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_VERY_FAST_1               :{ORANGE}{TOWN} ({COMMA}){GREEN}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_FAST_1                    :{ORANGE}{TOWN} ({COMMA}){WHITE}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_MEDIUM_1                  :{ORANGE}{TOWN} ({COMMA}){YELLOW}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_LOW_1                     :{ORANGE}{TOWN} ({COMMA}){ORANGE}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_VERY_LOW_1                :{ORANGE}{TOWN} ({COMMA}){RED}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING_NONE_1                    :{ORANGE}{TOWN} ({COMMA}){RED}{CROSS}{DKGREEN}*
+
+STR_VIEWPORT_TOWN_POP_GOOD_RATING_VERY_FAST                     :{YELLOW}{TOWN} ({COMMA}){GREEN}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_GOOD_RATING_FAST                          :{YELLOW}{TOWN} ({COMMA}){WHITE}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_GOOD_RATING_MEDIUM                        :{YELLOW}{TOWN} ({COMMA}){YELLOW}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_GOOD_RATING_LOW                           :{YELLOW}{TOWN} ({COMMA}){ORANGE}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_GOOD_RATING_VERY_LOW                      :{YELLOW}{TOWN} ({COMMA}){RED}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_GOOD_RATING_NONE                          :{YELLOW}{TOWN} ({COMMA}){RED}{CROSS}
+STR_VIEWPORT_TOWN_POP_GOOD_RATING_VERY_FAST_1                   :{YELLOW}{TOWN} ({COMMA}){GREEN}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_GOOD_RATING_FAST_1                        :{YELLOW}{TOWN} ({COMMA}){WHITE}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_GOOD_RATING_MEDIUM_1                      :{YELLOW}{TOWN} ({COMMA}){YELLOW}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_GOOD_RATING_LOW_1                         :{YELLOW}{TOWN} ({COMMA}){ORANGE}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_GOOD_RATING_VERY_LOW_1                    :{YELLOW}{TOWN} ({COMMA}){RED}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_GOOD_RATING_NONE_1                        :{YELLOW}{TOWN} ({COMMA}){RED}{CROSS}{DKGREEN}*
+
+STR_VIEWPORT_TOWN_POP_VERY_FAST                                 :{WHITE}{TOWN} ({COMMA}){GREEN}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_FAST                                      :{WHITE}{TOWN} ({COMMA}){WHITE}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_MEDIUM                                    :{WHITE}{TOWN} ({COMMA}){YELLOW}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_LOW                                       :{WHITE}{TOWN} ({COMMA}){ORANGE}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_VERY_LOW                                  :{WHITE}{TOWN} ({COMMA}){RED}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_NONE                                      :{WHITE}{TOWN} ({COMMA}){RED}{CROSS}
+STR_VIEWPORT_TOWN_POP_VERY_FAST_1                               :{WHITE}{TOWN} ({COMMA}){GREEN}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_FAST_1                                    :{WHITE}{TOWN} ({COMMA}){WHITE}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_MEDIUM_1                                  :{WHITE}{TOWN} ({COMMA}){YELLOW}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_LOW_1                                     :{WHITE}{TOWN} ({COMMA}){ORANGE}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_VERY_LOW_1                                :{WHITE}{TOWN} ({COMMA}){RED}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_NONE_1                                    :{WHITE}{TOWN} ({COMMA}){RED}{CROSS}{DKGREEN}*
+
+STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_VERY_FAST                :{GREEN}{TOWN} ({COMMA}){GREEN}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_FAST                     :{GREEN}{TOWN} ({COMMA}){WHITE}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_MEDIUM                   :{GREEN}{TOWN} ({COMMA}){YELLOW}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_LOW                      :{GREEN}{TOWN} ({COMMA}){ORANGE}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_VERY_LOW                 :{GREEN}{TOWN} ({COMMA}){RED}{UP_ARROW}
+STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_NONE                     :{GREEN}{TOWN} ({COMMA}){RED}{CROSS}
+STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_VERY_FAST_1              :{GREEN}{TOWN} ({COMMA}){GREEN}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_FAST_1                   :{GREEN}{TOWN} ({COMMA}){WHITE}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_MEDIUM_1                 :{GREEN}{TOWN} ({COMMA}){YELLOW}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_LOW_1                    :{GREEN}{TOWN} ({COMMA}){ORANGE}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_VERY_LOW_1               :{GREEN}{TOWN} ({COMMA}){RED}{UP_ARROW}{DKGREEN}*
+STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING_NONE_1                   :{GREEN}{TOWN} ({COMMA}){RED}{CROSS}{DKGREEN}*
+
+
 STR_VIEWPORT_TOWN_POP                                           :{WHITE}{TOWN} ({COMMA})
 STR_VIEWPORT_TOWN                                               :{WHITE}{TOWN}
 STR_VIEWPORT_TOWN_TINY_BLACK                                    :{TINY_FONT}{BLACK}{TOWN}
+STR_VIEWPORT_TOWN_TINY_VERY_POOR_RATING                         :{TINY_FONT}{RED}{TOWN}
+STR_VIEWPORT_TOWN_TINY_MEDIOCRE_RATING                          :{TINY_FONT}{ORANGE}{TOWN}
+STR_VIEWPORT_TOWN_TINY_GOOD_RATING                              :{TINY_FONT}{YELLOW}{TOWN}
 STR_VIEWPORT_TOWN_TINY_WHITE                                    :{TINY_FONT}{WHITE}{TOWN}
+STR_VIEWPORT_TOWN_TINY_EXCELLENT_RATING                         :{TINY_FONT}{GREEN}{TOWN}
 
 STR_VIEWPORT_SIGN_SMALL_BLACK                                   :{TINY_FONT}{BLACK}{SIGN}
 STR_VIEWPORT_SIGN_SMALL_WHITE                                   :{TINY_FONT}{WHITE}{SIGN}
@@ -4822,6 +5426,10 @@ STR_JUST_DATE_TINY                                              :{DATE_TINY}
 STR_JUST_DATE_SHORT                                             :{DATE_SHORT}
 STR_JUST_DATE_LONG                                              :{DATE_LONG}
 STR_JUST_DATE_ISO                                               :{DATE_ISO}
+STR_JUST_DATE_WALLCLOCK_TINY                                    :{DATE_WALLCLOCK_TINY}
+STR_JUST_DATE_WALLCLOCK_SHORT                                   :{DATE_WALLCLOCK_SHORT}
+STR_JUST_DATE_WALLCLOCK_LONG                                    :{DATE_WALLCLOCK_LONG}
+STR_JUST_DATE_WALLCLOCK_ISO                                     :{DATE_WALLCLOCK_ISO}
 STR_JUST_STRING                                                 :{STRING}
 STR_JUST_STRING_STRING                                          :{STRING}{STRING}
 STR_JUST_RAW_STRING                                             :{RAW_STRING}
@@ -4840,11 +5448,14 @@ STR_BLACK_DATE_LONG                                             :{BLACK}{DATE_LO
 STR_BLACK_CROSS                                                 :{BLACK}{CROSS}
 STR_SILVER_CROSS                                                :{SILVER}{CROSS}
 STR_WHITE_DATE_LONG                                             :{WHITE}{DATE_LONG}
+STR_WHITE_DATE_WALLCLOCK_LONG                                   :{WHITE}{DATE_WALLCLOCK_LONG}
+STR_WHITE_DATE_WALLCLOCK_SHORT                                  :{WHITE}{DATE_WALLCLOCK_SHORT}
 STR_SHORT_DATE                                                  :{WHITE}{DATE_TINY}
 STR_DATE_LONG_SMALL                                             :{TINY_FONT}{BLACK}{DATE_LONG}
 STR_TINY_GROUP                                                  :{TINY_FONT}{GROUP}
 STR_BLACK_INT                                                   :{BLACK}{NUM}
 STR_ORANGE_INT                                                  :{ORANGE}{NUM}
+STR_RED_INT                                                     :{RED}{NUM}
 STR_WHITE_SIGN                                                  :{WHITE}{SIGN}
 STR_TINY_BLACK_STATION                                          :{TINY_FONT}{BLACK}{STATION}
 STR_BLACK_STRING                                                :{BLACK}{STRING}
@@ -4860,6 +5471,8 @@ STR_TINY_BLACK_HEIGHT                                           :{TINY_FONT}{BLA
 STR_TINY_BLACK_VEHICLE                                          :{TINY_FONT}{BLACK}{VEHICLE}
 STR_TINY_RIGHT_ARROW                                            :{TINY_FONT}{RIGHT_ARROW}
 
+STR_WHITE                                                       :{WHITE}
+STR_BLACK                                                       :{BLACK}
 STR_BLACK_1                                                     :{BLACK}1
 STR_BLACK_2                                                     :{BLACK}2
 STR_BLACK_3                                                     :{BLACK}3
@@ -4875,3 +5488,261 @@ STR_PLANE                                                       :{BLACK}{PLANE}
 STR_SHIP                                                        :{BLACK}{SHIP}
 
 STR_TOOLBAR_RAILTYPE_VELOCITY                                   :{STRING} ({VELOCITY})
+
+######## Zoning toolbar
+STR_ZONING_TOOLBAR                                              :{WHITE}Zoning toolbar
+STR_ZONING_OUTER                                                :{BLACK}Outer tile borders:
+STR_ZONING_INNER                                                :{BLACK}Inner tile borders:
+STR_ZONING_OUTER_INFO                                           :{BLACK}Select which type of zoning you want on the outer border of a tile.
+STR_ZONING_INNER_INFO                                           :{BLACK}Select which type of zoning you want on the inner border of a tile.
+
+STR_ZONING_NO_ZONING                                            :Nothing
+STR_ZONING_AUTHORITY                                            :Authority
+STR_ZONING_CAN_BUILD                                            :Where I can't build
+STR_ZONING_STA_CATCH                                            :Station catchment
+STR_ZONING_IND_CATCH                                            :Industry catchment
+STR_ZONING_BUL_CATCH                                            :City catchment
+STR_ZONING_BUL_UNSER                                            :Unserved buildings
+STR_ZONING_IND_UNSER                                            :Unserved industries
+
+####### Price multipliers
+STR_CONFIG_SETTING_PRICE_MULT_1                                 :{GREEN}1
+STR_CONFIG_SETTING_PRICE_MULT_2                                 :{GREEN}2
+STR_CONFIG_SETTING_PRICE_MULT_4                                 :{GREEN}4
+STR_CONFIG_SETTING_PRICE_MULT_8                                 :{GREEN}8
+STR_CONFIG_SETTING_PRICE_MULT_16                                :{GREEN}16
+STR_CONFIG_SETTING_PRICE_MULT_32                                :{GREEN}32
+STR_CONFIG_SETTING_PRICE_MULT_64                                :{GOLD}64
+STR_CONFIG_SETTING_PRICE_MULT_128                               :{GOLD}128
+STR_CONFIG_SETTING_PRICE_MULT_256                               :{GOLD}256
+STR_CONFIG_SETTING_PRICE_MULT_512                               :{GOLD}512
+STR_CONFIG_SETTING_PRICE_MULT_1024                              :{GOLD}1024
+STR_CONFIG_SETTING_PRICE_MULT_2048                              :{RED}2018
+STR_CONFIG_SETTING_PRICE_MULT_4096                              :{RED}4096
+STR_CONFIG_SETTING_PRICE_MULT_8192                              :{RED}8192
+STR_CONFIG_SETTING_PRICE_MULT_16384                             :{RED}16384
+STR_CONFIG_SETTING_PRICE_MULT_32768                             :{RED}32768
+STR_CONFIG_SETTING_PRICE_MULT_65536                             :{RED}65536
+
+STR_CONFIG_SETTING_PRICE_MULTIPLIERS                            :{ORANGE}Price multipliers
+STR_CONFIG_SETTING_PRICE_MULTIPLIERS_CONSTRUCTION               :{ORANGE}Construction
+STR_CONFIG_SETTING_PRICE_MULTIPLIERS_STATIONS                   :{ORANGE}Stations
+STR_CONFIG_SETTING_PRICE_MULTIPLIERS_DEPOTS                     :{ORANGE}Depots
+STR_CONFIG_SETTING_PRICE_MULTIPLIERS_ROADS                      :{ORANGE}Roads
+STR_CONFIG_SETTING_PRICE_MULTIPLIERS_LANDSCAPE                  :{ORANGE}Landscape
+STR_CONFIG_SETTING_PRICE_MULTIPLIERS_WATER                      :{ORANGE}Water
+STR_CONFIG_SETTING_PRICE_MULTIPLIERS_CLEARING                   :{ORANGE}Clearing
+STR_CONFIG_SETTING_PRICE_MULTIPLIERS_MAINTENANCE                :{ORANGE}Maintenance
+STR_CONFIG_SETTING_PRICE_MULTIPLIERS_MAINTENANCE_TRANSPORT      :{ORANGE}Vehicles
+STR_CONFIG_SETTING_PRICE_MULTIPLIERS_MAINTENANCE_INFRASTRUCTURE :{ORANGE}Infrastructure
+STR_CONFIG_SETTING_PRICE_MULT_STATION_VALUE                     :Multiplier for station value: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_STATION_VALUE_HELPTEXT            :Multiplier for station value
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_RAIL                        :Multiplier for building rails: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_RAIL_HELPTEXT               :Multiplier for building rails
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_ROAD                        :Multiplier for building roads: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_ROAD_HELPTEXT               :Multiplier for building roads
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_SIGNAL                      :Multiplier for building signals: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_SIGNAL_HELPTEXT             :Multiplier for building signals
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_BRIDGE                      :Multiplier for building bridges: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_BRIDGE_HELPTEXT             :Multiplier for building bridges
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_RAIL_DEPOT                  :Multiplier for building rail depot: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_RAIL_DEPOT_HELPTEXT         :Multiplier for building rail depot
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_ROAD_DEPOT                  :Multiplier for building road depot: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_ROAD_DEPOT_HELPTEXT         :Multiplier for building road depot
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_SHIP_DEPOT                  :Multiplier for building ship depot: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_SHIP_DEPOT_HELPTEXT         :Multiplier for building ship depot
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_TUNNEL                      :Multiplier for building tunnel: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_TUNNEL_HELPTEXT             :Multiplier for building tunnel
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_RAIL_STATION                :Multiplier for building rail station: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_RAIL_STATION_HELPTEXT       :Multiplier for building rail station
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_RAIL_STATION_LEN            :Multiplier for building rail station len: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_RAIL_STATION_LEN_HELPTEXT   :Multiplier for building rail station len
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_AIRPORT                     :Multiplier for building airport: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_AIRPORT_HELPTEXT            :Multiplier for building airport
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_BUS_STATION                 :Multiplier for building bus station: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_BUS_STATION_HELPTEXT        :Multiplier for building bus station
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_TRUCK_STATION               :Multiplier for building truck station: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_TRUCK_STATION_HELPTEXT      :Multiplier for building truck station
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_DOCK_STATION                :Multiplier for building dock station: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_DOCK_STATION_HELPTEXT       :Multiplier for building dock station
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_TRAIN                       :Multiplier for building train: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_TRAIN_HELPTEXT              :Multiplier for building train
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_TRAIN_WAGON                 :Multiplier for building train wagon: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_TRAIN_WAGON_HELPTEXT        :Multiplier for building train wagon
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_AIRCRAFT                    :Multiplier for building aircraft: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_AIRCRAFT_HELPTEXT           :Multiplier for building aircraft
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_ROADVEH                     :Multiplier for building road vehicle: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_ROADVEH_HELPTEXT            :Multiplier for building road vehicle
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_SHIP                        :Multiplier for building ship: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_SHIP_HELPTEXT               :Multiplier for building ship
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_TREES                       :Multiplier for building trees: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_TREES_HELPTEXT              :Multiplier for building trees
+STR_CONFIG_SETTING_PRICE_MULT_TERRAFORM                         :Multiplier for terraform: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_TERRAFORM_HELPTEXT                :Multiplier for terraform
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_GRASS                       :Multiplier for clearing grass: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_GRASS_HELPTEXT              :Multiplier for clearing grass
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_ROUGH                       :Multiplier for clearin rough: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_ROUGH_HELPTEXT              :Multiplier for clearing rough
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_ROCKS                       :Multiplier for clearing rocks: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_ROCKS_HELPTEXT              :Multiplier for clearing rocks
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_FIELDS                      :Multiplier for clearing fields: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_FIELDS_HELPTEXT             :Multiplier for clearing fields
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_TREES                       :Multiplier for clearing trees: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_TREES_HELPTEXT              :Multiplier for clearing trees
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_RAIL                        :Multiplier for clearing rails: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_RAIL_HELPTEXT               :Multiplier for clearing rails
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_SIGNALS                     :Multiplier for clearing signals: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_SIGNALS_HELPTEXT            :Multiplier for clearing signals
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_BRIDGE                      :Multiplier for clearing bridges: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_BRIDGE_HELPTEXT             :Multiplier for clearing bridges
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_DEPOT_TRAIN                 :Multiplier for clearing train depots: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_DEPOT_TRAIN_HELPTEXT        :Multiplier for clearing train depots
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_DEPOT_ROAD                  :Multiplier for clearing road depots: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_DEPOT_ROAD_HELPTEXT         :Multiplier for clearing road depots
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_DEPOT_SHIP                  :Multiplier for clearing ship depots: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_DEPOT_SHIP_HELPTEXT         :Multiplier for clearing ship depots
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_TUNNEL                      :Multiplier for clearing tunnels: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_TUNNEL_HELPTEXT             :Multiplier for clearing tunnels
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_WATER                       :Multiplier for clearing water: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_WATER_HELPTEXT              :Multiplier for clearing water
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_STATION_RAIL                :Multiplier for clearing rail station: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_STATION_RAIL_HELPTEXT       :Multiplier for clearing rail station
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_STATION_AIRPORT             :Multiplier for clearing airport: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_STATION_AIRPORT_HELPTEXT    :Multiplier for clearing airport
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_STATION_BUS                 :Multiplier for clearing bus station: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_STATION_BUS_HELPTEXT        :Multiplier for clearing bus station
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_STATION_TRUCK               :Multiplier for clearing truck station: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_STATION_TRUCK_HELPTEXT      :Multiplier for clearing truck station
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_STATION_DOCK                :Multiplier for clearing dock: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_STATION_DOCK_HELPTEXT       :Multiplier for clearing dock
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_HOUSE                       :Multiplier for clearing house: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_HOUSE_HELPTEXT              :Multiplier for clearing house
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_ROAD                        :Multiplier for clearing road: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_ROAD_HELPTEXT               :Multiplier for clearing road
+STR_CONFIG_SETTING_PRICE_MULT_RUNNING_TRAIN_STEAM               :Multiplier for steam train running cost: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RUNNING_TRAIN_STEAM_HELPTEXT      :Multiplier for steam train running cost
+STR_CONFIG_SETTING_PRICE_MULT_RUNNING_TRAIN_DIESEL              :Multiplier for diesel train running cost: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RUNNING_TRAIN_DIESEL_HELPTEXT     :Multiplier for diesel train running cost
+STR_CONFIG_SETTING_PRICE_MULT_RUNNING_TRAIN_ELECTRIC            :Multiplier for electric train running cost: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RUNNING_TRAIN_ELECTRIC_HELPTEXT   :Multiplier for electric train running cost
+STR_CONFIG_SETTING_PRICE_MULT_RUNNING_AIRCRAFT                  :Multiplier for aircraft running cost: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RUNNING_AIRCRAFT_HELPTEXT         :Multiplier for aircraft running cost
+STR_CONFIG_SETTING_PRICE_MULT_RUNNING_ROADVEH                   :Multiplier for road vehicle running cost: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RUNNING_ROADVEH_HELPTEXT          :Multiplier for road vehicle running cost
+STR_CONFIG_SETTING_PRICE_MULT_RUNNING_SHIP                      :Multiplier for ship running cost: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RUNNING_SHIP_HELPTEXT             :Multiplier for ship running cost
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_INDUSTRY                    :Multiplier for building industry: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_INDUSTRY_HELPTEXT           :Multiplier for building industry
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_INDUSTRY                    :Multiplier for clearing industry: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_INDUSTRY_HELPTEXT           :Multiplier for clearing industry
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_OBJECT                      :Multiplier for building object: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_OBJECT_HELPTEXT             :Multiplier for building object
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_OBJECT                      :Multiplier for clearing object: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_OBJECT_HELPTEXT             :Multiplier for clearing object
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_WAYPOINT_RAIL               :Multiplier for building rail waypoint: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_WAYPOINT_RAIL_HELPTEXT      :Multiplier for building rail waypoint
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_WAYPOINT_RAIL               :Multiplier for clearing rail waypoint: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_WAYPOINT_RAIL_HELPTEXT      :Multiplier for clearing rail waypoint
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_WAYPOINT_BUOY               :Multiplier for bulding buoy: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_WAYPOINT_BUOY_HELPTEXT      :Multiplier for building buoy
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_WAYPOINT_BUOY               :Multiplier for clearing buoy: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_WAYPOINT_BUOY_HELPTEXT      :Multiplier for clearing buoy
+STR_CONFIG_SETTING_PRICE_MULT_TOWN_ACTION                       :Multiplier for town action: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_TOWN_ACTION_HELPTEXT              :Multiplier for town action
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_FOUNDATION                  :Multiplier for building foundation: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_FOUNDATION_HELPTEXT         :Multiplier for building foundation
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_INDUSTRY_RAW                :Multiplier for building industry raw: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_INDUSTRY_RAW_HELPTEXT       :Multiplier for building industry raw
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_TOWN                        :Multiplier for building town: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_TOWN_HELPTEXT               :Multiplier for building town
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_CANAL                       :Multiplier for building canal: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_CANAL_HELPTEXT              :Multiplier for building canal
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_CANAL                       :Multiplier for clearing canal: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_CANAL_HELPTEXT              :Multiplier for clearing canal
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_AQUEDUCT                    :Multiplier for building aqueduct: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_AQUEDUCT_HELPTEXT           :Multiplier for building aqueduct
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_AQUEDUCT                    :Multiplier for clearing aqueduct: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_AQUEDUCT_HELPTEXT           :Multiplier for clearing aqueduct
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_LOCK                        :Multiplier for building lock: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_BUILD_LOCK_HELPTEXT               :Multiplier for building lock
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_LOCK                        :Multiplier for clearing lock: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_CLEAR_LOCK_HELPTEXT               :Multiplier for clearing lock
+STR_CONFIG_SETTING_PRICE_MULT_INFRASTRUCTURE_RAIL               :Multiplier for rail infrastructure maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_INFRASTRUCTURE_RAIL_HELPTEXT      :Multiplier for rail infrastructure maintenance
+STR_CONFIG_SETTING_PRICE_MULT_INFRASTRUCTURE_ROAD               :Multiplier for road infrastructure maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_INFRASTRUCTURE_ROAD_HELPTEXT      :Multiplier for road infrastructure maintenance
+STR_CONFIG_SETTING_PRICE_MULT_INFRASTRUCTURE_WATER              :Multiplier for water infrastructure maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_INFRASTRUCTURE_WATER_HELPTEXT     :Multiplier for water infrastructure maintenance
+STR_CONFIG_SETTING_PRICE_MULT_INFRASTRUCTURE_STATION            :Multiplier for station maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_INFRASTRUCTURE_STATION_HELPTEXT   :Multiplier for station maintenance
+STR_CONFIG_SETTING_PRICE_MULT_INFRASTRUCTURE_AIRPORT            :Multiplier for airport maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_INFRASTRUCTURE_AIRPORT_HELPTEXT   :Multiplier for airport maintenance
+STR_CONFIG_SETTING_PRICE_MULT_RAILS                             :{ORANGE}Rails
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_00                           :Multiplier for building rails No00: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_00_HELPTEXT                  :Multiplier for building rails No00{}{ORANGE}Standard: {WHITE}Railway {}{ORANGE}xUSSR Set <r851: {WHITE}Railway
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_01                           :Multiplier for building rails No01: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_01_HELPTEXT                  :Multiplier for building rails No01{}{ORANGE}Standard: {WHITE}Electrified railway
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_02                           :Multiplier for building rails No02: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_02_HELPTEXT                  :Multiplier for building rails No02{}{ORANGE}Standard: {WHITE}Monoral
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_03                           :Multiplier for building rails No03: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_03_HELPTEXT                  :Multiplier for building rails No03{}{ORANGE}Standard: {WHITE}Maglev
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_04                           :Multiplier for building rails No04: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_04_HELPTEXT                  :Multiplier for building rails No04{}{ORANGE}xUSSR Set >r851: {WHITE}Railroad (100km/h) {}{ORANGE}xUSSR Set <r851: {WHITE} Electrified AC Railroad{}{ORANGE}NuTrack 1.1.2: {WHITE}Low Speed Rail{}{ORANGE}Vaccuum Tube Train Set: {WHITE}Vaccuum Tube
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_05                           :Multiplier for building rails No05: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_05_HELPTEXT                  :Multiplier for building rails No05{}{ORANGE}xUSSR Set >r851: {WHITE}Electrified AC railroad (100km/h) {}{ORANGE}xUSSR Set <r851: {WHITE} Electrified DC Railroad{}{ORANGE}NuTrack 1.1.2: {WHITE}Low Speed Rail w Catenary
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_06                           :Multiplier for building rails No06: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_06_HELPTEXT                  :Multiplier for building rails No06{}{ORANGE}xUSSR Set >r851: {WHITE}Electrified DC railroad (100km/h) {}{ORANGE}xUSSR Set <r851: {WHITE} Electrified double-system railroad(119km/h){}{ORANGE}NuTrack 1.1.2: {WHITE}Medium Speed Rail
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_07                           :Multiplier for building rails No07: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_07_HELPTEXT                  :Multiplier for building rails No07{}{ORANGE}xUSSR Set >r851: {WHITE}Trunk Railroad (140km/h) {}{ORANGE}NuTrack 1.1.2: {WHITE}Medium Speed Rail w Catenary
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_08                           :Multiplier for building rails No08: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_08_HELPTEXT                  :Multiplier for building rails No08{}{ORANGE}xUSSR Set >r851: {WHITE}Trunk Electrified AC Railroad (140km/h) {}{ORANGE}NuTrack 1.1.2: {WHITE}High Speed Rail
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_09                           :Multiplier for building rails No09: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_09_HELPTEXT                  :Multiplier for building rails No09{}{ORANGE}xUSSR Set >r851: {WHITE}Trunk Electrified DC Railroad (140km/h) {}{ORANGE}NuTrack 1.1.2: {WHITE}High Speed Rail w Catenary
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_10                           :Multiplier for building rails No10: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_10_HELPTEXT                  :Multiplier for building rails No10{}{ORANGE}xUSSR Set >r851: {WHITE}Electrified Double-system railroad (120km/h) {}{ORANGE}NuTrack 1.1.2: {WHITE}Very High Speed Rail w Catenary
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_11                           :Multiplier for building rails No11: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_11_HELPTEXT                  :Multiplier for building rails No11{}{ORANGE}xUSSR Set >r851: {WHITE}High-speed Railroad
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_12                           :Multiplier for building rails No12: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_12_HELPTEXT                  :Multiplier for building rails No12{}{ORANGE}xUSSR Set >r851: {WHITE}High-speed Electrified AC Railroad
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_13                           :Multiplier for building rails No13: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_13_HELPTEXT                  :Multiplier for building rails No13{}{ORANGE}xUSSR Set >r851: {WHITE}High-speed Electrified DC Railroad
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_14                           :Multiplier for building rails No14: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_14_HELPTEXT                  :Multiplier for building rails No14{}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_15                           :Multiplier for building rails No15: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_15_HELPTEXT                  :Multiplier for building rails No15{}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_00               :Multiplier for rails No00 maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_00_HELPTEXT      :Multiplier for rails No00 maintenance{}{ORANGE}Standard: {WHITE}Railway {}{ORANGE}xUSSR Set <r851: {WHITE}Railway
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_01               :Multiplier for rails No01 maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_01_HELPTEXT      :Multiplier for rails No01 maintenance{}{ORANGE}Standard: {WHITE}Electrified railway
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_02               :Multiplier for rails No02 maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_02_HELPTEXT      :Multiplier for rails No02 maintenance{}{ORANGE}Standard: {WHITE}Monoral
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_03               :Multiplier for rails No03 maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_03_HELPTEXT      :Multiplier for rails No03 maintenance{}{ORANGE}Standard: {WHITE}Maglev
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_04               :Multiplier for rails No04 maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_04_HELPTEXT      :Multiplier for rails No04 maintenance{}{ORANGE}xUSSR Set >r851: {WHITE}Railroad (100km/h) {}{ORANGE}xUSSR Set <r851: {WHITE} Electrified AC Railroad{}{ORANGE}NuTrack 1.1.2: {WHITE}Low Speed Rail{}{ORANGE}Vaccuum Tube Train Set: {WHITE}Vaccuum Tube
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_05               :Multiplier for rails No05 maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_05_HELPTEXT      :Multiplier for rails No05 maintenance{}{ORANGE}xUSSR Set >r851: {WHITE}Electrified AC railroad (100km/h) {}{ORANGE}xUSSR Set <r851: {WHITE} Electrified DC Railroad{}{ORANGE}NuTrack 1.1.2: {WHITE}Low Speed Rail w Catenary
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_06               :Multiplier for rails No06 maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_06_HELPTEXT      :Multiplier for rails No06 maintenance{}{ORANGE}xUSSR Set >r851: {WHITE}Electrified DC railroad (100km/h) {}{ORANGE}xUSSR Set <r851: {WHITE} Electrified double-system railroad (119km/h){}{ORANGE}NuTrack 1.1.2: {WHITE}Medium Speed Rail
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_07               :Multiplier for rails No07 maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_07_HELPTEXT      :Multiplier for rails No07 maintenance{}{ORANGE}xUSSR Set >r851: {WHITE}Trunk Railroad (140km/h) {}{ORANGE}NuTrack 1.1.2: {WHITE}Medium Speed Rail w Catenary
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_08               :Multiplier for rails No08 maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_08_HELPTEXT      :Multiplier for rails No08 maintenance{}{ORANGE}xUSSR Set >r851: {WHITE}Trunk Electrified AC Railroad (140km/h) {}{ORANGE}NuTrack 1.1.2: {WHITE}High Speed Rail
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_09               :Multiplier for rails No09 maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_09_HELPTEXT      :Multiplier for rails No09 maintenance{}{ORANGE}xUSSR Set >r851: {WHITE}Trunk Electrified DC Railroad (140km/h) {}{ORANGE}NuTrack 1.1.2: {WHITE}High Speed Rail w Catenary
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_10               :Multiplier for rails No10 maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_10_HELPTEXT      :Multiplier for rails No10 maintenance{}{ORANGE}xUSSR Set >r851: {WHITE}Electrified Double-system railroad (120km/h) {}{ORANGE}NuTrack 1.1.2: {WHITE}Very High Speed Rail w Catenary
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_11               :Multiplier for rails No11 maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_11_HELPTEXT      :Multiplier for rails No11 maintenance{}{ORANGE}xUSSR Set >r851: {WHITE}High-speed Railroad
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_12               :Multiplier for rails No12 maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_12_HELPTEXT      :Multiplier for rails No12 maintenance{}{ORANGE}xUSSR Set >r851: {WHITE}High-speed Electrified AC Railroad
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_13               :Multiplier for rails No13 maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_13_HELPTEXT      :Multiplier for rails No13 maintenance{}{ORANGE}xUSSR Set >r851: {WHITE}High-speed Electrified DC Railroad
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_14               :Multiplier for rails No14 maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_14_HELPTEXT      :Multiplier for rails No14 maintenance{}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_15               :Multiplier for rails No15 maintenance: {STRING2}
+STR_CONFIG_SETTING_PRICE_MULT_RAIL_MAINTENANCE_15_HELPTEXT      :Multiplier for rails No15 maintenance{}
+STR_CONFIG_SETTING_PAY_FOR_REPAIR_VEHICLE                       :Pay for repairing vehicle: {STRING2}
+STR_CONFIG_SETTING_PAY_FOR_REPAIR_VEHICLE_HELPTEXT              :Pay for repairing vehicle
+STR_CONFIG_SETTING_REPAIR_COST                                  :Cost of repairing vehicle: 1/{STRING2} of total cost
+STR_CONFIG_SETTING_REPAIR_COST_HELPTEXT                         :Cost of repairing vehicle

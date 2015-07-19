@@ -15,6 +15,20 @@
 #include "map_func.h"
 
 /**
+ * Maximum height of bridge above ground.
+ * Used when building bridges and terraforming below bridges.
+ * Background: Before the more heightlevels patch, only bridges below height 15
+ * were possible, simply because the landscape wasn´t higher.  With more
+ * heightlevels enabled, one can think about higher bridges in terms of landscape.
+ * Unfortunately, if a bridge becomes higher than height 15, one will see serious
+ * glitches.  Fixing them would be a fairly hard problem.  So, also as even more
+ * high bridges are fairly unrealistic either and this is no restriction compared
+ * to the situation before more heightlevels, the height of bridges is limited
+ * to height 15.
+ */
+static const int MAX_BRIDGE_HEIGHT = 15;
+
+/**
  * Calculates the length of a tunnel or a bridge (without end tiles)
  * @param begin The begin of the tunnel or bridge.
  * @param end   The end of the tunnel or bridge.

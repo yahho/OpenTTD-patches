@@ -13,6 +13,7 @@
 #include "../map_func.h"
 #include "../core/bitmath_func.hpp"
 #include "../fios.h"
+#include "../landscape.h"
 
 #include "saveload.h"
 
@@ -24,6 +25,52 @@ static const SaveLoadGlobVarList _map_dimensions[] = {
 	SLEG_CONDVAR(_map_dim_y, SLE_UINT32, 6, SL_MAX_VERSION),
 	    SLEG_END()
 };
+
+//extern SnowLine _snow_line;
+byte min_snow_line,
+     max_snow_line;
+
+static const SaveLoadGlobVarList _snowline[] = {
+	SLEG_CONDVAR(max_snow_line, SLE_UINT8, SL_SPRING_2013_v2_0_102, SL_MAX_VERSION),
+	SLEG_CONDVAR(min_snow_line, SLE_UINT8, SL_SPRING_2013_v2_0_102, SL_MAX_VERSION),
+	SLEG_END()
+};
+
+static void Save_Snow()
+{
+	min_snow_line = LowestSnowLine();
+	max_snow_line = HighestSnowLine();
+	SlGlobList(_snowline);
+}
+
+static void Load_Snow()
+{
+	SlGlobList(_snowline);
+
+	if(min_snow_line == max_snow_line)
+		return;
+
+	double table[SNOW_LINE_MONTHS][SNOW_LINE_DAYS];
+	byte   table1[SNOW_LINE_MONTHS][SNOW_LINE_DAYS];
+	double dm = (max_snow_line - min_snow_line) / 6.0;
+	double dd = dm / 32.0;
+	for(int i = 0; i <= 5; i++) {
+		table[i][0] = min_snow_line + dm * i;
+		table[i][SNOW_LINE_DAYS-1] = min_snow_line + dm * (i + 1);
+		table[SNOW_LINE_MONTHS - 1 - i][SNOW_LINE_DAYS-1] = min_snow_line + dm * i;
+		table[SNOW_LINE_MONTHS - 1 - i][0] = min_snow_line + dm * (i + 1);
+
+		for(uint j = 1; j < SNOW_LINE_DAYS; j++) {
+			table[i][j] = min_snow_line + dm * i + dd * j;
+			table[SNOW_LINE_MONTHS - 1 - i][SNOW_LINE_DAYS - 1 - j] = min_snow_line + dm * i + dd * j;
+			}
+		}
+
+		for(uint i = 0; i < SNOW_LINE_MONTHS; i++)
+			for(uint j = 0; j < SNOW_LINE_DAYS; j++)
+				table1[i][j] = table[i][j] + 0.5;
+	SetSnowLine(table1);
+}
 
 static void Save_MAPS()
 {
@@ -50,22 +97,53 @@ static const uint MAP_SL_BUF_SIZE = 4096;
 static void Load_MAPT()
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	for (TileIndex i = 0; i != size;) {
+	uint64 size = MapSize();
+	
+	for (uint64 i = 0; i != size;) {
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _m[i++].type_height = buf[j];
+		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _m[i++].type = buf[j];
+	}
+
+	if (IsSavegameVersionBefore(SL_SPRING_2013_v2_0_102)) {
+		// In old savegame versions, the heightlevel was coded in bits 0..3 of the type field
+		for (uint64 tile = 0; tile != size; tile++) {
+			_m[tile].height = GB(_m[tile].type, 0, 4);
+			//_m[tile].type = _m[tile].type & 0xF0;
+		}
 	}
 }
 
 static void Save_MAPT()
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
+	uint64 size = MapSize();
+	
 	SlSetLength(size);
-	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].type_height;
+	for (uint64 i = 0; i != size;) {
+		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].type;
+		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+	}
+}
+
+static void Load_MAPH()
+{
+	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
+	uint64 size = MapSize();
+	
+	for (uint64 i = 0; i != size;) {
+		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
+		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _m[i++].height = buf[j];
+	}
+}
+
+static void Save_MAPH()
+{
+	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
+	uint64 size = MapSize();
+	
+	SlSetLength(size);
+	for (uint64 i = 0; i != size;) {
+		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].height;
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 	}
 }
@@ -73,9 +151,9 @@ static void Save_MAPT()
 static void Load_MAP1()
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	for (TileIndex i = 0; i != size;) {
+	uint64 size = MapSize();
+	
+	for (uint64 i = 0; i != size;) {
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _m[i++].m1 = buf[j];
 	}
@@ -84,10 +162,10 @@ static void Load_MAP1()
 static void Save_MAP1()
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
+	uint64 size = MapSize();
+	
 	SlSetLength(size);
-	for (TileIndex i = 0; i != size;) {
+	for (uint64 i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].m1;
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 	}
@@ -96,9 +174,9 @@ static void Save_MAP1()
 static void Load_MAP2()
 {
 	SmallStackSafeStackAlloc<uint16, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	for (TileIndex i = 0; i != size;) {
+	uint64 size = MapSize();
+	
+	for (uint64 i = 0; i != size;) {
 		SlArray(buf, MAP_SL_BUF_SIZE,
 			/* In those versions the m2 was 8 bits */
 			IsSavegameVersionBefore(5) ? SLE_FILE_U8 | SLE_VAR_U16 : SLE_UINT16
@@ -110,7 +188,7 @@ static void Load_MAP2()
 static void Save_MAP2()
 {
 	SmallStackSafeStackAlloc<uint16, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
+	uint64 size = MapSize();
 
 	SlSetLength(size * sizeof(uint16));
 	for (TileIndex i = 0; i != size;) {
@@ -122,9 +200,9 @@ static void Save_MAP2()
 static void Load_MAP3()
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	for (TileIndex i = 0; i != size;) {
+	uint64 size = MapSize();
+	
+	for (uint64 i = 0; i != size;) {
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _m[i++].m3 = buf[j];
 	}
@@ -133,10 +211,10 @@ static void Load_MAP3()
 static void Save_MAP3()
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
+	uint64 size = MapSize();
+	
 	SlSetLength(size);
-	for (TileIndex i = 0; i != size;) {
+	for (uint64 i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].m3;
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 	}
@@ -145,9 +223,9 @@ static void Save_MAP3()
 static void Load_MAP4()
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	for (TileIndex i = 0; i != size;) {
+	uint64 size = MapSize();
+	
+	for (uint64 i = 0; i != size;) {
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _m[i++].m4 = buf[j];
 	}
@@ -156,10 +234,10 @@ static void Load_MAP4()
 static void Save_MAP4()
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
+	uint64 size = MapSize();
 
 	SlSetLength(size);
-	for (TileIndex i = 0; i != size;) {
+	for (uint64 i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].m4;
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 	}
@@ -168,9 +246,9 @@ static void Save_MAP4()
 static void Load_MAP5()
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	for (TileIndex i = 0; i != size;) {
+	uint64 size = MapSize();
+	
+	for (uint64 i = 0; i != size;) {
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _m[i++].m5 = buf[j];
 	}
@@ -179,10 +257,10 @@ static void Load_MAP5()
 static void Save_MAP5()
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
+	uint64 size = MapSize();
+	
 	SlSetLength(size);
-	for (TileIndex i = 0; i != size;) {
+	for (uint64 i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].m5;
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 	}
@@ -191,23 +269,23 @@ static void Save_MAP5()
 static void Load_MAP6()
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
+	uint64 size = MapSize();
+	
 	if (IsSavegameVersionBefore(42)) {
-		for (TileIndex i = 0; i != size;) {
+		for (uint64 i = 0; i != size;) {
 			/* 1024, otherwise we overflow on 64x64 maps! */
 			SlArray(buf, 1024, SLE_UINT8);
 			for (uint j = 0; j != 1024; j++) {
-				_m[i++].m6 = GB(buf[j], 0, 2);
-				_m[i++].m6 = GB(buf[j], 2, 2);
-				_m[i++].m6 = GB(buf[j], 4, 2);
-				_m[i++].m6 = GB(buf[j], 6, 2);
+				_me[i++].m6 = GB(buf[j], 0, 2);
+				_me[i++].m6 = GB(buf[j], 2, 2);
+				_me[i++].m6 = GB(buf[j], 4, 2);
+				_me[i++].m6 = GB(buf[j], 6, 2);
 			}
 		}
 	} else {
-		for (TileIndex i = 0; i != size;) {
+		for (uint64 i = 0; i != size;) {
 			SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
-			for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _m[i++].m6 = buf[j];
+			for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _me[i++].m6 = buf[j];
 		}
 	}
 }
@@ -215,11 +293,11 @@ static void Load_MAP6()
 static void Save_MAP6()
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
+	uint64 size = MapSize();
+	
 	SlSetLength(size);
-	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _m[i++].m6;
+	for (uint64 i = 0; i != size;) {
+		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _me[i++].m6;
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 	}
 }
@@ -227,9 +305,9 @@ static void Save_MAP6()
 static void Load_MAP7()
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	for (TileIndex i = 0; i != size;) {
+	uint64 size = MapSize();
+	
+	for (uint64 i = 0; i != size;) {
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _me[i++].m7 = buf[j];
 	}
@@ -238,10 +316,10 @@ static void Load_MAP7()
 static void Save_MAP7()
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
+	uint64 size = MapSize();
+	
 	SlSetLength(size);
-	for (TileIndex i = 0; i != size;) {
+	for (uint64 i = 0; i != size;) {
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _me[i++].m7;
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 	}
@@ -250,11 +328,13 @@ static void Save_MAP7()
 extern const ChunkHandler _map_chunk_handlers[] = {
 	{ 'MAPS', Save_MAPS, Load_MAPS, NULL, Check_MAPS, CH_RIFF },
 	{ 'MAPT', Save_MAPT, Load_MAPT, NULL, NULL,       CH_RIFF },
+	{ 'MAPH', Save_MAPH, Load_MAPH, NULL, NULL,       CH_RIFF },
 	{ 'MAPO', Save_MAP1, Load_MAP1, NULL, NULL,       CH_RIFF },
 	{ 'MAP2', Save_MAP2, Load_MAP2, NULL, NULL,       CH_RIFF },
 	{ 'M3LO', Save_MAP3, Load_MAP3, NULL, NULL,       CH_RIFF },
 	{ 'M3HI', Save_MAP4, Load_MAP4, NULL, NULL,       CH_RIFF },
 	{ 'MAP5', Save_MAP5, Load_MAP5, NULL, NULL,       CH_RIFF },
 	{ 'MAPE', Save_MAP6, Load_MAP6, NULL, NULL,       CH_RIFF },
-	{ 'MAP7', Save_MAP7, Load_MAP7, NULL, NULL,       CH_RIFF | CH_LAST },
+	{ 'MAP7', Save_MAP7, Load_MAP7, NULL, NULL,       CH_RIFF },
+	{ 'SNOW', Save_Snow, Load_Snow, NULL, NULL,       CH_RIFF | CH_LAST },
 };

@@ -47,6 +47,8 @@ static const StringID _driveside_dropdown[] = {
 
 static const StringID _autosave_dropdown[] = {
 	STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_OFF,
+	STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_1_DAY,
+	STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_1_WEEK,
 	STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_1_MONTH,
 	STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_3_MONTHS,
 	STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_6_MONTHS,
@@ -690,6 +692,7 @@ struct SettingEntrySetting {
 enum RestrictionMode {
 	RM_BASIC,                            ///< Display settings associated to the "basic" list.
 	RM_ADVANCED,                         ///< Display settings associated to the "advanced" list.
+	RM_PATCHES,                          ///< Display settings assocoated to the "patches" list.
 	RM_ALL,                              ///< List all settings regardless of the default/newgame/... values.
 	RM_CHANGED_AGAINST_DEFAULT,          ///< Show only settings which are different compared to default values.
 	RM_CHANGED_AGAINST_NEW,              ///< Show only settings which are different compared to the user's new game setting values.
@@ -815,6 +818,8 @@ void SettingEntry::Init(byte level)
 	switch (this->flags & SEF_KIND_MASK) {
 		case SEF_SETTING_KIND:
 			this->d.entry.setting = GetSettingFromName(this->d.entry.name, &this->d.entry.index);
+			if(this->d.entry.setting == NULL)
+				printf("%s\n", this->d.entry.name);
 			assert(this->d.entry.setting != NULL);
 			break;
 		case SEF_SUBTREE_KIND:
@@ -998,6 +1003,7 @@ bool SettingEntry::IsVisibleByRestrictionMode(RestrictionMode mode) const
 
 	if (mode == RM_BASIC) return (this->d.entry.setting->desc.cat & SC_BASIC_LIST) != 0;
 	if (mode == RM_ADVANCED) return (this->d.entry.setting->desc.cat & SC_ADVANCED_LIST) != 0;
+	if (mode == RM_PATCHES) return (this->d.entry.setting->desc.cat == SC_PATCHES_LIST);
 
 	/* Read the current value. */
 	const void *var = ResolveVariableAddress(settings_ptr, sd);
@@ -1146,7 +1152,7 @@ uint SettingEntry::Draw(GameSettings *settings_ptr, int left, int right, int bas
 			cur_row++;
 			if (!this->d.sub.folded) {
 				if (this->flags & SEF_LAST_FIELD) {
-					assert(this->level < sizeof(parent_last));
+					//assert(this->level < sizeof(parent_last));
 					SetBit(parent_last, this->level); // Add own last-field state
 				}
 
@@ -1397,7 +1403,24 @@ static SettingEntry _settings_ui_localisation[] = {
 /** Localisation options sub-page */
 static SettingsPage _settings_ui_localisation_page = {_settings_ui_localisation, lengthof(_settings_ui_localisation)};
 
+static SettingEntry _settings_vpmap_display[] = {
+	SettingEntry("gui.viewport_map_in_realtime"),
+	SettingEntry("gui.default_viewport_map_mode"),
+	SettingEntry("gui.action_when_viewport_map_is_dblclicked"),
+	SettingEntry("gui.viewport_map_scan_surroundings"),
+	SettingEntry("gui.show_scrolling_viewport_on_map"),
+	SettingEntry("gui.show_slopes_on_viewport_map"),
+	SettingEntry("gui.show_bridges_on_map"),
+	SettingEntry("gui.show_tunnels_on_map"),
+	SettingEntry("gui.use_owner_colour_for_tunnelbridge"),
+	SettingEntry("gui.show_vehicle_route_stopovers"),
+	SettingEntry("gui.show_vehicle_route_path"),
+};
+/** ViewportMap options sub-page */
+static SettingsPage _settings_vpmap_display_page = {_settings_vpmap_display, lengthof(_settings_vpmap_display)};
+
 static SettingEntry _settings_ui_display[] = {
+	SettingEntry(&_settings_vpmap_display_page, STR_CONFIG_SETTING_VIEWPORT_MAP_OPTIONS),
 	SettingEntry("gui.date_format_in_default_names"),
 	SettingEntry("gui.population_in_label"),
 	SettingEntry("gui.measure_tooltip"),
@@ -1415,6 +1438,7 @@ static SettingsPage _settings_ui_display_page = {_settings_ui_display, lengthof(
 
 static SettingEntry _settings_ui_interaction[] = {
 	SettingEntry("gui.window_snap_radius"),
+	SettingEntry("gui.new_build_vehicle_window"),
 	SettingEntry("gui.window_soft_limit"),
 	SettingEntry("gui.link_terraform_toolbar"),
 	SettingEntry("gui.prefer_teamchat"),
@@ -1435,6 +1459,29 @@ static SettingEntry _settings_ui_interaction[] = {
 };
 /** Interaction sub-page */
 static SettingsPage _settings_ui_interaction_page = {_settings_ui_interaction, lengthof(_settings_ui_interaction)};
+
+static SettingEntry _settings_ui_departureboards[] = {
+	SettingEntry("gui.max_departures"),
+	SettingEntry("gui.max_departure_time"),
+	SettingEntry("gui.departure_calc_frequency"),
+	SettingEntry("gui.departure_show_vehicle"),
+	SettingEntry("gui.departure_show_group"),
+	SettingEntry("gui.departure_show_company"),
+	SettingEntry("gui.departure_show_vehicle_type"),
+	SettingEntry("gui.departure_show_vehicle_color"),
+	SettingEntry("gui.departure_larger_font"),
+	SettingEntry("gui.departure_destination_type"),
+	SettingEntry("gui.departure_show_both"),
+	SettingEntry("gui.departure_only_passengers"),
+	SettingEntry("gui.departure_smart_terminus"),
+	SettingEntry("gui.departure_conditionals"),
+	SettingEntry("gui.departure_show_all_stops"),
+	SettingEntry("gui.departure_merge_identical"),
+};
+/** Departureboards sub-page */
+static SettingsPage _settings_ui_departureboards_page = {_settings_ui_departureboards, lengthof(_settings_ui_departureboards)};
+
+
 
 static SettingEntry _settings_ui_sound[] = {
 	SettingEntry("sound.click_beep"),
@@ -1474,6 +1521,7 @@ static SettingEntry _settings_ui[] = {
 	SettingEntry(&_settings_ui_localisation_page, STR_CONFIG_SETTING_LOCALISATION),
 	SettingEntry(&_settings_ui_display_page, STR_CONFIG_SETTING_DISPLAY_OPTIONS),
 	SettingEntry(&_settings_ui_interaction_page, STR_CONFIG_SETTING_INTERACTION),
+	SettingEntry(&_settings_ui_departureboards_page, STR_CONFIG_SETTING_DEPARTUREBOARDS),
 	SettingEntry(&_settings_ui_sound_page, STR_CONFIG_SETTING_SOUND),
 	SettingEntry(&_settings_ui_news_page, STR_CONFIG_SETTING_NEWS),
 	SettingEntry("gui.show_finances"),
@@ -1485,11 +1533,18 @@ static SettingEntry _settings_ui[] = {
 	SettingEntry("gui.pause_on_newgame"),
 	SettingEntry("gui.advanced_vehicle_list"),
 	SettingEntry("gui.timetable_in_ticks"),
+	SettingEntry("gui.time_in_minutes"),
+	SettingEntry("gui.timetable_start_text_entry"),
+	SettingEntry("gui.ticks_per_minute"),
+	SettingEntry("gui.date_with_time"),
+	SettingEntry("gui.clock_offset"),
 	SettingEntry("gui.timetable_arrival_departure"),
 	SettingEntry("gui.quick_goto"),
 	SettingEntry("gui.default_rail_type"),
 	SettingEntry("gui.disable_unsuitable_building"),
 	SettingEntry("gui.persistent_buildingtools"),
+	SettingEntry("gui.jump_timeout"),
+	SettingEntry("gui.grass_on_old_rails"),
 };
 /** Interface subpage */
 static SettingsPage _settings_ui_page = {_settings_ui, lengthof(_settings_ui)};
@@ -1501,12 +1556,26 @@ static SettingEntry _settings_construction_signals[] = {
 	SettingEntry("gui.semaphore_build_before"),
 	SettingEntry("gui.default_signal_type"),
 	SettingEntry("gui.cycle_signal_types"),
+	SettingEntry("construction.maximum_signal_evaluations"),
 };
 /** Signals subpage */
 static SettingsPage _settings_construction_signals_page = {_settings_construction_signals, lengthof(_settings_construction_signals)};
 
+static SettingEntry _settings_construction_trafficlights[] = {
+	SettingEntry("construction.traffic_lights"),
+	SettingEntry("construction.towns_build_traffic_lights"),
+	SettingEntry("construction.allow_building_tls_in_towns"),
+	SettingEntry("construction.traffic_lights_green_phase"),
+	SettingEntry("construction.max_tlc_size"),
+	SettingEntry("construction.max_tlc_distance"),
+};
+
+/** Traffic lights subpage */
+static SettingsPage _settings_construction_trafficlights_page = {_settings_construction_trafficlights, lengthof(_settings_construction_trafficlights)};
+
 static SettingEntry _settings_construction[] = {
 	SettingEntry(&_settings_construction_signals_page, STR_CONFIG_SETTING_CONSTRUCTION_SIGNALS),
+	SettingEntry(&_settings_construction_trafficlights_page, STR_CONFIG_SETTING_CONSTRUCTION_TRAFFIC_LIGHTS),
 	SettingEntry("construction.build_on_slopes"),
 	SettingEntry("construction.autoslope"),
 	SettingEntry("construction.extra_dynamite"),
@@ -1516,6 +1585,7 @@ static SettingEntry _settings_construction[] = {
 	SettingEntry("construction.freeform_edges"),
 	SettingEntry("construction.extra_tree_placement"),
 	SettingEntry("construction.command_pause_level"),
+	SettingEntry("construction.max_heightlevel"),
 };
 /** Construction sub-page */
 static SettingsPage _settings_construction_page = {_settings_construction, lengthof(_settings_construction)};
@@ -1524,6 +1594,8 @@ static SettingEntry _settings_stations_cargo[] = {
 	SettingEntry("order.improved_load"),
 	SettingEntry("order.gradual_loading"),
 	SettingEntry("order.selectgoods"),
+	SettingEntry("economy.deliver_goods"),
+	SettingEntry("vehicle.cargo_wait_time"),
 };
 /** Cargo handling sub-page */
 static SettingsPage _settings_stations_cargo_page = {_settings_stations_cargo, lengthof(_settings_stations_cargo)};
@@ -1541,7 +1613,46 @@ static SettingEntry _settings_stations[] = {
 /** Stations sub-page */
 static SettingsPage _settings_stations_page = {_settings_stations, lengthof(_settings_stations)};
 
+static SettingEntry _settings_economy_small_rates[] = {
+	SettingEntry("economy.town_consumption_rates[0][0]"),
+	SettingEntry("economy.town_consumption_rates[0][1]"),
+	SettingEntry("economy.town_consumption_rates[0][2]"),
+};
+
+static SettingEntry _settnigs_economy_medium_rates[] = {
+	SettingEntry("economy.town_consumption_rates[1][0]"),
+	SettingEntry("economy.town_consumption_rates[1][1]"),
+	SettingEntry("economy.town_consumption_rates[1][2]"),
+};
+
+static SettingEntry _settings_economy_large_rates[] = {
+	SettingEntry("economy.town_consumption_rates[2][0]"),
+	SettingEntry("economy.town_consumption_rates[2][1]"),
+	SettingEntry("economy.town_consumption_rates[2][2]"),
+};
+
+static SettingsPage _settings_economy_small_rates_page = {_settings_economy_small_rates, lengthof(_settings_economy_small_rates)};
+static SettingsPage _settings_economy_medium_rates_page = {_settnigs_economy_medium_rates, lengthof(_settnigs_economy_medium_rates)};
+static SettingsPage _settings_economy_large_rates_page = {_settings_economy_large_rates, lengthof(_settings_economy_large_rates)};
+
+static SettingEntry _settings_economy_town_rates[] = {
+	SettingEntry("economy.town_consumption_rate"),
+	SettingEntry("economy.town_pop_small"),
+	SettingEntry("economy.town_pop_medium"),
+	SettingEntry("economy.town_pop_large"),
+	SettingEntry("economy.town_effects[0]"),
+	SettingEntry("economy.town_effects[1]"),
+	SettingEntry("economy.town_effects[2]"),
+	SettingEntry("economy.grow_if_one_delivered"),
+	SettingEntry(&_settings_economy_small_rates_page, STR_CONFIG_SETTING_TOWN_CONSUMPTION_RATES_SMALL),
+	SettingEntry(&_settings_economy_medium_rates_page, STR_CONFIG_SETTING_TOWN_CONSUMPTION_RATES_MEDIUM),
+	SettingEntry(&_settings_economy_large_rates_page, STR_CONFIG_SETTING_TOWN_CONSUMPTION_RATES_LARGE),
+};
+
+static SettingsPage _settings_economy_town_rates_page = {_settings_economy_town_rates, lengthof(_settings_economy_town_rates)};
+
 static SettingEntry _settings_economy_towns[] = {
+	SettingEntry(&_settings_economy_town_rates_page, STR_CONFIG_SETTING_TOWN_CONSUMPTION_RATES),
 	SettingEntry("difficulty.town_council_tolerance"),
 	SettingEntry("economy.bribe"),
 	SettingEntry("economy.exclusive_rights"),
@@ -1555,6 +1666,9 @@ static SettingEntry _settings_economy_towns[] = {
 	SettingEntry("economy.town_growth_rate"),
 	SettingEntry("economy.larger_towns"),
 	SettingEntry("economy.initial_city_size"),
+	SettingEntry("economy.town_cargo_factor"),
+	SettingEntry("economy.minimum_distance_town"),
+	SettingEntry("economy.town_construction_cost"),
 };
 /** Towns sub-page */
 static SettingsPage _settings_economy_towns_page = {_settings_economy_towns, lengthof(_settings_economy_towns)};
@@ -1564,14 +1678,216 @@ static SettingEntry _settings_economy_industries[] = {
 	SettingEntry("construction.industry_platform"),
 	SettingEntry("economy.multiple_industry_per_town"),
 	SettingEntry("game_creation.oil_refinery_limit"),
+	SettingEntry("economy.minimum_distance_industry"),
 };
 /** Industries sub-page */
 static SettingsPage _settings_economy_industries_page = {_settings_economy_industries, lengthof(_settings_economy_industries)};
 
+static SettingEntry _settings_economy_multipliers_construction_station[] = {
+	SettingEntry("economy.price_mult[9]"),
+	SettingEntry("economy.price_mult[10]"),
+	SettingEntry("economy.price_mult[11]"),
+	SettingEntry("economy.price_mult[12]"),
+	SettingEntry("economy.price_mult[13]"),
+	SettingEntry("economy.price_mult[14]"),
+	SettingEntry("economy.price_mult[52]"),
+	SettingEntry("economy.price_mult[54]"),
+};
+
+static SettingEntry _settings_economy_multipliers_construction_depot[] = {
+	SettingEntry("economy.price_mult[5]"),
+	SettingEntry("economy.price_mult[6]"),
+	SettingEntry("economy.price_mult[7]"),
+};
+
+static SettingEntry _settings_economy_multipliers_construction_rails[] = {
+	SettingEntry("economy.price_rails[0]"),
+	SettingEntry("economy.price_rails[1]"),
+	SettingEntry("economy.price_rails[2]"),
+	SettingEntry("economy.price_rails[3]"),
+	SettingEntry("economy.price_rails[4]"),
+	SettingEntry("economy.price_rails[5]"),
+	SettingEntry("economy.price_rails[6]"),
+	SettingEntry("economy.price_rails[7]"),
+	SettingEntry("economy.price_rails[8]"),
+	SettingEntry("economy.price_rails[9]"),
+	SettingEntry("economy.price_rails[10]"),
+	SettingEntry("economy.price_rails[11]"),
+	SettingEntry("economy.price_rails[12]"),
+	SettingEntry("economy.price_rails[13]"),
+	SettingEntry("economy.price_rails[14]"),
+	SettingEntry("economy.price_rails[15]"),
+};
+
+static SettingsPage _settings_economy_multipliers_construction_rails_page = {_settings_economy_multipliers_construction_rails, lengthof(_settings_economy_multipliers_construction_rails)};
+
+static SettingEntry _settings_economy_multipliers_construction_road[] = {
+	SettingEntry(&_settings_economy_multipliers_construction_rails_page, STR_CONFIG_SETTING_PRICE_MULT_RAILS),
+	SettingEntry("economy.price_mult[1]"),
+	SettingEntry("economy.price_mult[2]"),
+	SettingEntry("economy.price_mult[3]"),
+	SettingEntry("economy.price_mult[4]"),
+	SettingEntry("economy.price_mult[8]"),
+	SettingEntry("economy.price_mult[57]"),
+};
+
+static SettingEntry _settings_economy_multipliers_construction_water[] = {
+	SettingEntry("economy.price_mult[60]"),
+	SettingEntry("economy.price_mult[62]"),
+	SettingEntry("economy.price_mult[64]"),
+};
+
+static SettingEntry _settings_economy_multipliers_construction_transport[] = {
+	SettingEntry("economy.price_mult[15]"),
+	SettingEntry("economy.price_mult[16]"),
+	SettingEntry("economy.price_mult[17]"),
+	SettingEntry("economy.price_mult[18]"),
+	SettingEntry("economy.price_mult[19]"),
+};
+
+static SettingsPage _settings_economy_multipliers_construction_station_page = {_settings_economy_multipliers_construction_station, lengthof(_settings_economy_multipliers_construction_station)};
+static SettingsPage _settings_economy_multipliers_construction_depot_page = {_settings_economy_multipliers_construction_depot, lengthof(_settings_economy_multipliers_construction_depot)};
+static SettingsPage _settings_economy_multipliers_construction_road_page = {_settings_economy_multipliers_construction_road, lengthof(_settings_economy_multipliers_construction_road)};
+static SettingsPage _settings_economy_multipliers_construction_water_page = {_settings_economy_multipliers_construction_water, lengthof(_settings_economy_multipliers_construction_water)};
+static SettingsPage _settings_economy_multipliers_construction_transport_page = {_settings_economy_multipliers_construction_transport, lengthof(_settings_economy_multipliers_construction_transport)};
+
+static SettingEntry _settings_economy_multipliers_construction[] = {
+	SettingEntry(&_settings_economy_multipliers_construction_road_page, STR_CONFIG_SETTING_PRICE_MULTIPLIERS_ROADS),
+	SettingEntry(&_settings_economy_multipliers_construction_depot_page, STR_CONFIG_SETTING_PRICE_MULTIPLIERS_DEPOTS),
+	SettingEntry(&_settings_economy_multipliers_construction_station_page, STR_CONFIG_SETTING_PRICE_MULTIPLIERS_STATIONS),
+	SettingEntry(&_settings_economy_multipliers_construction_water_page, STR_CONFIG_SETTING_PRICE_MULTIPLIERS_WATER),
+	SettingEntry(&_settings_economy_multipliers_construction_transport_page, STR_CONFIG_SETTING_PRICE_MULTIPLIERS_MAINTENANCE_TRANSPORT),
+	SettingEntry("economy.price_mult[20]"),
+	SettingEntry("economy.price_mult[48]"),
+	SettingEntry("economy.price_mult[50]"),
+	SettingEntry("economy.price_mult[58]"),
+	SettingEntry("economy.price_mult[59]"),
+};
+
+static SettingsPage _settings_economy_multipliers_construction_page = {_settings_economy_multipliers_construction, lengthof(_settings_economy_multipliers_construction)};
+
+static SettingEntry _settings_economy_multipliers_clearing_road[] = {
+	SettingEntry("economy.price_mult[27]"),
+	SettingEntry("economy.price_mult[28]"),
+	SettingEntry("economy.price_mult[29]"),
+	SettingEntry("economy.price_mult[33]"),
+	SettingEntry("economy.price_mult[41]"),
+};
+
+static SettingEntry _settings_economy_multipliers_clearing_station[] = {
+	SettingEntry("economy.price_mult[35]"),
+	SettingEntry("economy.price_mult[36]"),
+	SettingEntry("economy.price_mult[37]"),
+	SettingEntry("economy.price_mult[38]"),
+	SettingEntry("economy.price_mult[39]"),
+	SettingEntry("economy.price_mult[53]"),
+	SettingEntry("economy.price_mult[55]"),
+};
+
+static SettingEntry _settings_economy_multipliers_clearing_depot[] = {
+	SettingEntry("economy.price_mult[30]"),
+	SettingEntry("economy.price_mult[31]"),
+	SettingEntry("economy.price_mult[32]"),
+};
+
+static SettingEntry _settings_economy_multipliers_clearing_water[] = {
+	SettingEntry("economy.price_mult[34]"),
+	SettingEntry("economy.price_mult[61]"),
+	SettingEntry("economy.price_mult[63]"),
+	SettingEntry("economy.price_mult[65]"),
+};
+
+static SettingEntry _settings_economy_multipliers_clearing_land[] = {
+	SettingEntry("economy.price_mult[22]"),
+	SettingEntry("economy.price_mult[23]"),
+	SettingEntry("economy.price_mult[24]"),
+	SettingEntry("economy.price_mult[25]"),
+	SettingEntry("economy.price_mult[26]"),
+};
+
+static SettingsPage _settings_economy_multipliers_clearing_road_page = {_settings_economy_multipliers_clearing_road, lengthof(_settings_economy_multipliers_clearing_road)};
+static SettingsPage _settings_economy_multipliers_clearing_station_page = {_settings_economy_multipliers_clearing_station, lengthof(_settings_economy_multipliers_clearing_station)};
+static SettingsPage _settings_economy_multipliers_clearing_depot_page = {_settings_economy_multipliers_clearing_depot, lengthof(_settings_economy_multipliers_clearing_depot)};
+static SettingsPage _settings_economy_multipliers_clearing_land_page = {_settings_economy_multipliers_clearing_land, lengthof(_settings_economy_multipliers_clearing_land)};
+static SettingsPage _settings_economy_multipliers_clearing_water_page = {_settings_economy_multipliers_clearing_water, lengthof(_settings_economy_multipliers_clearing_water)};
+
+static SettingEntry _settings_economy_multipliers_clearing[] = {
+	SettingEntry(&_settings_economy_multipliers_clearing_road_page, STR_CONFIG_SETTING_PRICE_MULTIPLIERS_ROADS),
+	SettingEntry(&_settings_economy_multipliers_clearing_depot_page, STR_CONFIG_SETTING_PRICE_MULTIPLIERS_DEPOTS),
+	SettingEntry(&_settings_economy_multipliers_clearing_station_page, STR_CONFIG_SETTING_PRICE_MULTIPLIERS_STATIONS),
+	SettingEntry(&_settings_economy_multipliers_clearing_land_page, STR_CONFIG_SETTING_PRICE_MULTIPLIERS_LANDSCAPE),
+	SettingEntry(&_settings_economy_multipliers_clearing_water_page, STR_CONFIG_SETTING_PRICE_MULTIPLIERS_WATER),
+	SettingEntry("economy.price_mult[40]"),
+	SettingEntry("economy.price_mult[49]"),
+	SettingEntry("economy.price_mult[51]"),
+};
+
+static SettingsPage _settings_economy_multipliers_clearing_page = {_settings_economy_multipliers_clearing, lengthof(_settings_economy_multipliers_clearing)};
+
+static SettingEntry _settings_economy_multipliers_maintenance_transport[] = {
+	SettingEntry("economy.price_mult[42]"),
+	SettingEntry("economy.price_mult[43]"),
+	SettingEntry("economy.price_mult[44]"),
+	SettingEntry("economy.price_mult[45]"),
+	SettingEntry("economy.price_mult[46]"),
+	SettingEntry("economy.price_mult[47]"),
+};
+
+static SettingEntry _settings_economy_multipliers_maintenance_rails[] = {
+	SettingEntry("economy.rail_maintenance[0]"),
+	SettingEntry("economy.rail_maintenance[1]"),
+	SettingEntry("economy.rail_maintenance[2]"),
+	SettingEntry("economy.rail_maintenance[3]"),
+	SettingEntry("economy.rail_maintenance[4]"),
+	SettingEntry("economy.rail_maintenance[5]"),
+	SettingEntry("economy.rail_maintenance[6]"),
+	SettingEntry("economy.rail_maintenance[7]"),
+	SettingEntry("economy.rail_maintenance[8]"),
+	SettingEntry("economy.rail_maintenance[9]"),
+	SettingEntry("economy.rail_maintenance[10]"),
+	SettingEntry("economy.rail_maintenance[11]"),
+	SettingEntry("economy.rail_maintenance[12]"),
+	SettingEntry("economy.rail_maintenance[13]"),
+	SettingEntry("economy.rail_maintenance[14]"),
+	SettingEntry("economy.rail_maintenance[15]"),
+};
+
+static SettingsPage _settings_economy_multipliers_maintenance_rails_page = {_settings_economy_multipliers_maintenance_rails, lengthof(_settings_economy_multipliers_maintenance_rails)};
+
+static SettingEntry _settings_economy_multipliers_maintenance_infrastructure[] = {
+	SettingEntry(&_settings_economy_multipliers_maintenance_rails_page, STR_CONFIG_SETTING_PRICE_MULT_RAILS),
+	SettingEntry("economy.price_mult[66]"),
+	SettingEntry("economy.price_mult[67]"),
+	SettingEntry("economy.price_mult[68]"),
+	SettingEntry("economy.price_mult[69]"),
+	SettingEntry("economy.price_mult[70]"),
+};
+
+static SettingsPage _settings_economy_multipliers_maintenance_transport_page = {_settings_economy_multipliers_maintenance_transport, lengthof(_settings_economy_multipliers_maintenance_transport)};
+static SettingsPage _settings_economy_multipliers_maintenance_infrastructure_page = {_settings_economy_multipliers_maintenance_infrastructure, lengthof(_settings_economy_multipliers_maintenance_infrastructure)};
+
+static SettingEntry _settings_economy_multipliers_maintenance[] = {
+	SettingEntry(&_settings_economy_multipliers_maintenance_transport_page, STR_CONFIG_SETTING_PRICE_MULTIPLIERS_MAINTENANCE_TRANSPORT),
+	SettingEntry(&_settings_economy_multipliers_maintenance_infrastructure_page, STR_CONFIG_SETTING_PRICE_MULTIPLIERS_MAINTENANCE_INFRASTRUCTURE),
+};
+
+static SettingsPage _settings_economy_multipliers_maintenance_page = {_settings_economy_multipliers_maintenance, lengthof(_settings_economy_multipliers_maintenance)};
+
+static SettingEntry _settings_economy_multipliers[] = {
+	SettingEntry(&_settings_economy_multipliers_construction_page, STR_CONFIG_SETTING_PRICE_MULTIPLIERS_CONSTRUCTION),
+	SettingEntry(&_settings_economy_multipliers_clearing_page, STR_CONFIG_SETTING_PRICE_MULTIPLIERS_CLEARING),
+	SettingEntry(&_settings_economy_multipliers_maintenance_page, STR_CONFIG_SETTING_PRICE_MULTIPLIERS_MAINTENANCE),
+	SettingEntry("economy.price_mult[21]"),
+	SettingEntry("economy.price_mult[56]"),
+	SettingEntry("economy.price_mult[0]"),
+};
+
+static SettingsPage _settings_economy_multipliers_page = {_settings_economy_multipliers, lengthof(_settings_economy_multipliers)};
 
 static SettingEntry _settings_economy[] = {
 	SettingEntry(&_settings_economy_towns_page, STR_CONFIG_SETTING_ECONOMY_TOWNS),
 	SettingEntry(&_settings_economy_industries_page, STR_CONFIG_SETTING_ECONOMY_INDUSTRIES),
+	SettingEntry(&_settings_economy_multipliers_page, STR_CONFIG_SETTING_PRICE_MULTIPLIERS),
 	SettingEntry("economy.inflation"),
 	SettingEntry("difficulty.initial_interest"),
 	SettingEntry("difficulty.max_loan"),
@@ -1580,9 +1896,12 @@ static SettingEntry _settings_economy[] = {
 	SettingEntry("economy.smooth_economy"),
 	SettingEntry("economy.feeder_payment_share"),
 	SettingEntry("economy.infrastructure_maintenance"),
+	SettingEntry("economy.day_length_factor"),
 	SettingEntry("difficulty.vehicle_costs"),
 	SettingEntry("difficulty.construction_cost"),
 	SettingEntry("difficulty.disasters"),
+	SettingEntry("economy.minimum_distance_ind_town"),
+	SettingEntry("economy.station_rating_type"),
 };
 /** Economy sub-page */
 static SettingsPage _settings_economy_page = {_settings_economy, lengthof(_settings_economy)};
@@ -1615,8 +1934,23 @@ static SettingEntry _settings_ai_npc[] = {
 /** Computer players sub-page */
 static SettingsPage _settings_ai_npc_page = {_settings_ai_npc, lengthof(_settings_ai_npc)};
 
+static SettingEntry _settings_sharing[] = {
+	SettingEntry("economy.infrastructure_sharing[0]"),
+	SettingEntry("economy.infrastructure_sharing[1]"),
+	SettingEntry("economy.infrastructure_sharing[2]"),
+	SettingEntry("economy.infrastructure_sharing[3]"),
+	SettingEntry("economy.sharing_fee[0]"),
+	SettingEntry("economy.sharing_fee[1]"),
+	SettingEntry("economy.sharing_fee[2]"),
+	SettingEntry("economy.sharing_fee[3]"),
+	SettingEntry("economy.sharing_payment_in_debt"),
+};
+/** Infrastructure sharing sub-page */
+static SettingsPage _settings_sharing_page = {_settings_sharing, lengthof(_settings_sharing)};
+
 static SettingEntry _settings_ai[] = {
 	SettingEntry(&_settings_ai_npc_page, STR_CONFIG_SETTING_AI_NPC),
+	SettingEntry(&_settings_sharing_page, STR_CONFIG_SETTING_SHARING),
 	SettingEntry("economy.give_money"),
 	SettingEntry("economy.allow_shares"),
 };
@@ -1650,6 +1984,9 @@ static SettingEntry _settings_vehicles_servicing[] = {
 	SettingEntry("difficulty.vehicle_breakdowns"),
 	SettingEntry("order.no_servicing_if_no_breakdowns"),
 	SettingEntry("order.serviceathelipad"),
+	SettingEntry("vehicle.improved_breakdowns"),
+	SettingEntry("economy.pay_for_repair"),
+	SettingEntry("economy.repair_cost"),
 };
 /** Servicing sub-page */
 static SettingsPage _settings_vehicles_servicing_page = {_settings_vehicles_servicing, lengthof(_settings_vehicles_servicing)};
@@ -1663,6 +2000,7 @@ static SettingEntry _settings_vehicles_trains[] = {
 	SettingEntry("vehicle.wagon_speed_limits"),
 	SettingEntry("vehicle.disable_elrails"),
 	SettingEntry("vehicle.freight_trains"),
+	SettingEntry("vehicle.freight_mult_to_passengers"),
 	SettingEntry("gui.stop_location"),
 };
 /** Trains sub-page */
@@ -1678,12 +2016,15 @@ static SettingEntry _settings_vehicles[] = {
 	SettingEntry("gui.vehicle_income_warn"),
 	SettingEntry("gui.lost_vehicle_warn"),
 	SettingEntry("vehicle.never_expire_vehicles"),
+	SettingEntry("vehicle.exact_intro_date"),
 	SettingEntry("vehicle.max_trains"),
 	SettingEntry("vehicle.max_roadveh"),
 	SettingEntry("vehicle.max_aircraft"),
 	SettingEntry("vehicle.max_ships"),
 	SettingEntry("vehicle.plane_speed"),
 	SettingEntry("vehicle.plane_crashes"),
+	SettingEntry("order.timetable_automated"),
+	SettingEntry("order.timetable_separation"),
 	SettingEntry("vehicle.dynamic_engines"),
 	SettingEntry("vehicle.roadveh_acceleration_model"),
 	SettingEntry("vehicle.roadveh_slope_steepness"),
@@ -1708,6 +2049,7 @@ static SettingsPage _settings_main_page = {_settings_main, lengthof(_settings_ma
 static const StringID _game_settings_restrict_dropdown[] = {
 	STR_CONFIG_SETTING_RESTRICT_BASIC,                            // RM_BASIC
 	STR_CONFIG_SETTING_RESTRICT_ADVANCED,                         // RM_ADVANCED
+	STR_CONFIG_SETTING_RESTRICT_PATCHES,                          // RM_PATCHES
 	STR_CONFIG_SETTING_RESTRICT_ALL,                              // RM_ALL
 	STR_CONFIG_SETTING_RESTRICT_CHANGED_AGAINST_DEFAULT,          // RM_CHANGED_AGAINST_DEFAULT
 	STR_CONFIG_SETTING_RESTRICT_CHANGED_AGAINST_NEW,              // RM_CHANGED_AGAINST_NEW
@@ -1775,7 +2117,7 @@ struct GameSettingsWindow : Window {
 				resize->height = SETTING_HEIGHT = max(11, FONT_HEIGHT_NORMAL + 1);
 				resize->width  = 1;
 
-				size->height = 5 * resize->height + SETTINGTREE_TOP_OFFSET + SETTINGTREE_BOTTOM_OFFSET;
+				size->height = 15 * resize->height + SETTINGTREE_TOP_OFFSET + SETTINGTREE_BOTTOM_OFFSET;
 				break;
 
 			case WID_GS_HELP_TEXT: {

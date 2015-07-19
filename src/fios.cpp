@@ -571,6 +571,18 @@ const char *FiosGetScreenshotDir()
 	return fios_screenshot_path;
 }
 
+const char *FiosGetMinimapScreenshotDir()
+{
+	static char *fios_screenshot_path = NULL;
+
+	if (fios_screenshot_path == NULL) {
+		fios_screenshot_path = MallocT<char>(MAX_PATH);
+		FioGetDirectory(fios_screenshot_path, MAX_PATH, MINIMAP_DIR);
+	}
+
+	return fios_screenshot_path;
+}
+
 #if defined(ENABLE_NETWORK)
 #include "network/network_content.h"
 #include "3rdparty/md5/md5.h"

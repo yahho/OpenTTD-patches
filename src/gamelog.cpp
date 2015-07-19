@@ -416,7 +416,8 @@ bool GamelogTestEmergency()
 		}
 	}
 
-	return (emergency != NULL);
+	//return (emergency != NULL);
+	return false;
 }
 
 /**

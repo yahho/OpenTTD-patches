@@ -27,6 +27,11 @@
  */
 
 #include "stdafx.h"
+#include "clear_map.h"
+#include "tree_map.h"
+#include "industry.h"
+#include "smallmap_gui.h"
+#include "smallmap_colours.h"
 #include "landscape.h"
 #include "viewport_func.h"
 #include "station_base.h"
@@ -46,6 +51,11 @@
 #include "tilehighlight_func.h"
 #include "window_gui.h"
 #include "linkgraph/linkgraph_gui.h"
+#include "zoning.h"
+#include "tunnelbridge_map.h"
+#include "depot_base.h"
+
+#include <map>
 
 #include "table/strings.h"
 #include "table/palettes.h"
@@ -134,6 +144,7 @@ struct ViewportDrawer {
 	ParentSpriteToDrawVector parent_sprites_to_draw;
 	ParentSpriteToSortVector parent_sprites_to_sort; ///< Parent sprite pointer array used for sorting
 	ChildScreenSpriteToDrawVector child_screen_sprites_to_draw;
+	TunnelBridgeToMapVector tunnel_bridge_to_map;
 
 	int *last_child;
 
@@ -147,6 +158,7 @@ struct ViewportDrawer {
 
 static void MarkViewportDirty(const ViewPort *vp, int left, int top, int right, int bottom);
 
+DrawPixelInfo _dpi_for_text;
 static ViewportDrawer _vd;
 
 TileHighlightData _thd;
@@ -209,6 +221,8 @@ void InitializeWindowViewport(Window *w, int x, int y,
 		vp->follow_vehicle = (VehicleID)(follow_flags & 0xFFFFF);
 		veh = Vehicle::Get(vp->follow_vehicle);
 		pt = MapXYZToViewport(vp, veh->x_pos, veh->y_pos, veh->z_pos);
+		MarkAllRoutePathsDirty(veh);
+		MarkAllRouteStopoversDirty(veh);
 	} else {
 		uint x = TileX(follow_flags) * TILE_SIZE;
 		uint y = TileY(follow_flags) * TILE_SIZE;
@@ -271,8 +285,9 @@ static void DoSetViewportPosition(const Window *w, int left, int top, int width,
 		int xo = _vp_move_offs.x;
 		int yo = _vp_move_offs.y;
 
-		if (abs(xo) >= width || abs(yo) >= height) {
+		if (_game_mode == GM_MENU || (abs(xo) >= width || abs(yo) >= height)) {
 			/* fully_outside */
+			/* in GM_MENU, always redraw the whole screen because partial redraw has glitches due to the OPEN TTD letters */
 			RedrawScreenRect(left, top, left + width, top + height);
 			return;
 		}
@@ -396,7 +411,9 @@ static Point TranslateXYToTileCoord(const ViewPort *vp, int x, int y)
 
 	/* we need to move variables in to the valid range, as the
 	 * GetTileZoomCenterWindow() function can call here with invalid x and/or y,
-	 * when the user tries to zoom out along the sides of the map */
+	 * when the user tries to zoom out along the sides of the map. */
+	//a = Clamp(a, -(((uint)MAX_TILE_HEIGHT + 1) / 4) * (int)TILE_SIZE, (int)(MapMaxX() * TILE_SIZE) - 1);
+	//b = Clamp(b, -(((uint)MAX_TILE_HEIGHT + 1) / 4) * (int)TILE_SIZE, (int)(MapMaxY() * TILE_SIZE) - 1);
 	a = Clamp(a, -4 * (int)TILE_SIZE, (int)(MapMaxX() * TILE_SIZE) - 1);
 	b = Clamp(b, -4 * (int)TILE_SIZE, (int)(MapMaxY() * TILE_SIZE) - 1);
 
@@ -1042,84 +1059,387 @@ draw_inner:
 	}
 }
 
+/** Given a screen coordinate (x,y) as e.g. stored in _vd.dpi, this function
+ *  returns the tile coordinate of the tile which would be painted at (x,y)
+ *  if one assumes height zero at that position.
+ *  @param x some x screen coordinate
+ *  @param y some y screen coordinate
+ *  @return tile coordinate assuming height zero as described
+ */
+static inline Point GetTileCoordFromScreenCoord(int x, int y)
+{
+	/* First convert from the screen coordinate system (where the width of tiles
+	 * is twice their height) to the tile coordinate system. That means, turn
+	 * around by 45 degrees and make the tiles quadratic. */
+	Point tile_coord = InverseRemapCoords(x, y);
+
+	/* Scale from a 16x16-grid to a 1x1-grid as returned by TileX/TileY. */
+	tile_coord.x /= (int)TILE_SIZE;
+	tile_coord.y /= (int)TILE_SIZE;
+	return tile_coord;
+}
+
+/**
+ * Assume a region, given by screen coordinates (x1,y1,x2,y2), as defined in _vd.dpi.
+ * This function basically takes (x1,y1) (i.e. the upper left corner of that region)
+ * and returns the tile coordinate of the tile, which would be painted at (x1,y1)
+ * if one assumes height zero at that position.
+ *
+ * However, in detail: Imagine tiles being split up into their upper left,upper right,
+ * etc. isometric sections.  We return a tile where the upper left corner of the
+ * mentioned region is either in its lower right section or in a neighbor tile
+ * below / right of that section. By doing so, we want to enforce that we can
+ * travel to east or south from that point without leaving the region again.
+ *
+ * @param x some x screen coordinate, x1 in terms of the description above
+ * @param y some y screen coordinate, y1 in terms of the description above
+ * @return upper left corner of the region as tile coordinates.
+ */
+static Point GetMinTileCoordsIgnoringHeight(int x, int y)
+{
+	Point tile_coord = GetTileCoordFromScreenCoord(x, y);
+
+	/* Expand area to be painted in order to avoid situations
+	 * where south or east of the to be painted point in dpi are tiles
+	 * which will not be painted. */
+	tile_coord.y--;
+
+	return tile_coord;
+}
+
+/**
+ * Assume a region, given by screen coordinates (x1,y1,x2,y2), as defined in _vd.dpi.
+ * This function basically takes (x2,y2) (i.e. the lower right corner of that region)
+ * and returns the tile coordinate of the tile, which would be painted at (x2,y2)
+ * if one assumes height zero at that position.
+ *
+ * However, in detail: Imagine tiles being split up into their upper left,upper right,
+ * etc. isometric sections.  We return a tile where the lower right corner of the
+ * mentioned region is either in its upper left section or in a neighbor tile
+ * above / left of that section. By doing so, we want to enforce that we can
+ * travel to north or west from that point without leaving the region again.
+ *
+ * @param x some x screen coordinate, x2 in terms of the description above
+ * @param y some y screen coordinate, y2 in terms of the description above
+ * @return upper left corner of the region as tile coordinates.
+ */
+static Point GetMaxTileCoordsIgnoringHeight(int x, int y)
+{
+	Point tile_coord = GetTileCoordFromScreenCoord(x, y);
+
+	/* Expand area to be painted to southeast in order to avoid situations
+	 * where north or east of the given to be painted point in dpi are
+	 * tiles which will not be repainted. */
+	tile_coord.y++;
+
+	return tile_coord;
+}
+
+/**
+ * Given a tile coordinate as returned by TileX / TileY, this returns its column.
+ *
+ * Examples:
+ * GetTileColumnFromTileCoord(0,0) = 0.
+ * GetTileColumnFromTileCoord(1,1) = 0.
+ * GetTileColumnFromTileCoord(1,0) = -1.
+ * GetTileColumnFromTileCoord(0,1) = 1.
+ */
+static int GetTileColumnFromTileCoord(Point tile_coord)
+{
+	return tile_coord.y - tile_coord.x;
+}
+
+/**
+ * Returns the y coordinate in the viewport coordinate system where the given
+ * tile is painted.
+ * @param tile Any tile.
+ * @return The viewport y coordinate where the tile is painted.
+ */
+static int GetViewportY(Point tile)
+{
+	return (tile.y * TILE_SIZE + tile.x * TILE_SIZE - GetTileMaxPixelZOutsideMap(tile.x, tile.y)) << ZOOM_LVL_SHIFT;
+}
+
+/**
+ * Returns the position of the tile at the northern end of the column of the
+ * given tile.
+ * @param tile Any tile.
+ * @return northern_end Position of the tile at the northern end of the column as described.
+ */
+static Point GetNorthernEndOfColumn(Point tile)
+{
+	Point northern_end;
+
+	if (tile.x < tile.y) {
+		northern_end.x = 0;
+		northern_end.y = tile.y - tile.x;
+	} else {
+		northern_end.x = tile.x - tile.y;
+		northern_end.y = 0;
+	}
+
+	return northern_end;
+}
+
+/**
+ * Returns the position of the tile at the southern end of the column of the
+ * given tile.
+ * @param tile any tile.
+ * @return southern_end position of the tile at the soutern end of the column as described.
+ */
+static Point GetSouthernEndOfColumn(Point tile)
+{
+	Point distance_to_end;
+	distance_to_end.x = (int)MapMaxX() - tile.x;
+	distance_to_end.y = (int)MapMaxY() - tile.y;
+	Point southern_end;
+
+	if (distance_to_end.x < distance_to_end.y) {
+		southern_end.x = tile.x + distance_to_end.x;
+		southern_end.y = tile.y + distance_to_end.x;
+	} else {
+		southern_end.x = tile.x + distance_to_end.y;
+		southern_end.y = tile.y + distance_to_end.y;
+	}
+
+	return southern_end;
+}
+
+/**
+ * Returns the tile exactly in the middle between two given tiles.
+ *
+ * @param tile Point upper_tile, any tile.
+ * @param tile Point lower_tile, any tile.
+ * @return middle_tile The tile in the middle of Point upper_tile and Point lower_tile.
+ */
+static Point GetMiddleTile(Point upper_tile, Point lower_tile) {
+/* If upper_tile is lower than lower_tile swap tiles.
+ * Since we are only interested in the middle tile here, it is safe to do so. */
+	if (upper_tile.x <= lower_tile.x) Swap(upper_tile.x, lower_tile.x);
+	if (upper_tile.y <= lower_tile.y) Swap(upper_tile.y, lower_tile.y);
+
+	Point middle_tile;
+
+	middle_tile.x = upper_tile.x + (lower_tile.x - upper_tile.x) / 2;
+	middle_tile.y = upper_tile.y + (lower_tile.y - upper_tile.y) / 2;
+	return middle_tile;
+}
+
+
+/**
+ * Given a tile coordinate ignoring height, this returns the row actually
+ * painted at this tile coordinate if one recognizes height.
+ *
+ * The problem concerning this calculation is that we have not enough
+ * information to calculate this in one closed formula. Which row we
+ * search rather depends on the height distribution on the map. So
+ * we have to search.
+ *
+ * First, the searched tile may be located outside map. Then, we know
+ * that we are not too far outside map, so we can step tile by tile,
+ * starting at the given tile, until we have passed the searched tile.
+ *
+ * If the searched tile is inside map, searching is more difficult. A
+ * linear search on some thousand tiles would be not that efficient. But,
+ * we can solve the problem by interval intersection. We know for sure,
+ * that the searched tile is south of the given tile, simply because
+ * mountains of height > 0 (and we have only such mountains) are always
+ * painted north of their tile. So we choose a tile half way between the
+ * given tile and the southern end of the map, have a look wether it is
+ * north or south of the given position, and intersect again. Until
+ * our interval has length 1, then we take the upper one.
+ *
+ * @param tile some tile coordinate
+ * @param viewport_y the viewport y corresponding to tile, if one assumes height zero for that tile
+ * @return the row which is painted at this coordinate, according to the discussion above.
+ */
+int GetRowAtTile(int viewport_y, Point tile)
+{
+	Point northern_tile = GetNorthernEndOfColumn(tile);
+	Point southern_tile = GetSouthernEndOfColumn(tile);
+
+	int northern_tile_viewport_y = GetViewportY(northern_tile);
+	int southern_tile_viewport_y = GetViewportY(southern_tile);
+
+	DEBUG(driver, 9, "==> GetRowAtTile: tile=(%i,%i); n/s_tile=(%i,%i),(%i,%i); n/s_tile_vp_y=(%i,%i); viewport_y = %i",
+			tile.x, tile.y, northern_tile.x, northern_tile.y, southern_tile.x, southern_tile.y,
+			northern_tile_viewport_y, southern_tile_viewport_y, viewport_y);
+
+	if (northern_tile_viewport_y >= viewport_y) {
+		/* We are north of the map, search tile by tile with direction north. */
+		while (northern_tile_viewport_y >= viewport_y) {
+			northern_tile.x--;
+			northern_tile.y--;
+			northern_tile_viewport_y = GetViewportY(northern_tile);
+		}
+
+		DEBUG(driver, 9, "==> We are north of the map => Returning row for (%i,%i)",
+			northern_tile.x, northern_tile.y);
+
+		return northern_tile.x + northern_tile.y;
+	} else if (southern_tile_viewport_y <= viewport_y) {
+		/* We are south of the map, search tile by tile with direction south. */
+		while (southern_tile_viewport_y <= viewport_y) {
+			southern_tile.x++;
+			southern_tile.y++;
+			southern_tile_viewport_y = GetViewportY(southern_tile);
+		}
+
+		DEBUG(driver, 9, "==> We are south of the map => Returning row for (%i,%i)",
+			southern_tile.x, southern_tile.y);
+
+		return southern_tile.x + southern_tile.y;
+	} else {
+		/* We are inside the map. */
+		/* Invariant in the code below: The searched tile shown at viewport_y
+		 * always is between upper_tile and lower_tile. */
+		Point upper_tile = tile;
+		Point lower_tile = GetSouthernEndOfColumn(upper_tile);
+		int middle_bound;
+
+		DEBUG(driver, 9, "==> GetRowAtTile for vp_y = %i, (upper_)tile (%i,%i), lower_tile (%i,%i)",
+			viewport_y, upper_tile.x, upper_tile.y, lower_tile.x, lower_tile.y);
+
+		do {
+			Point middle_tile = GetMiddleTile(upper_tile, lower_tile);
+			middle_bound = GetViewportY(middle_tile);
+
+			DEBUG(driver, 9, "====> upper: (%i,%i), middle (%i,%i), lower (%i,%i); m_bound = %i",
+				upper_tile.x, upper_tile.y, middle_tile.x, middle_tile.y,
+				lower_tile.x, lower_tile.y, middle_bound);
+
+			if (middle_bound >= viewport_y) {
+				/* The tile shown at viewport_y is somewhere in the upper half of
+				 * the currently observed section. */
+				lower_tile = middle_tile;
+			} else {
+				/* The tile shown at viewport_y is somewhere in the lower half of
+				 * the currently observed section. */
+				upper_tile = middle_tile;
+			}
+		}
+		while (lower_tile.y - upper_tile.y > 1);
+
+		/* Now our interval has length 1, so it only contains two tiles, and we take
+		 * the upper one, calculating and returning its row. */
+		return upper_tile.x + upper_tile.y;
+	}
+}
+
+/**
+ * Returns the bottom tile of the column of upper_tile shown on the viewport,
+ * given upper_tile and the lower right tile shown on the viewport.
+ *
+ * @param upper_tile any tile inside the map
+ * @param lower_right_tile the tile shown at the southeast edge of the viewport
+ *                          (ignoring height). Note that this tile may be located
+ *                          northeast of the upper_tile, because upper_tile is usually
+ *                          calculated by shifting a tile southwards until we reach
+ *                          the northern map border.
+ * @return the lowest existing tile located in the column defined by upper_tile,
+ *                 which is in the same row as lower_right_tile or above that row
+ *                 If lower_right_tile was northeast of upper_tile, (-1,-1) is returned.
+ */
+static Point GetBottomTileOfColumn(Point upper_tile, Point lower_right_tile)
+{
+	int upper_row = upper_tile.x + upper_tile.y;
+	int lower_row = lower_right_tile.x + lower_right_tile.y;
+
+	assert(upper_row <= lower_row);
+
+	int number_of_rows = lower_row - upper_row;
+
+	if (number_of_rows % 2 != 0) {
+		/* Avoid 0.5 being rounded down to zero; painting too much is better than
+		 * painting to less. */
+		number_of_rows++;
+	}
+
+	Point bottom_tile;
+	bottom_tile.x = upper_tile.x + number_of_rows / 2;
+	bottom_tile.y = upper_tile.y + number_of_rows / 2;
+
+	int bottom_row = bottom_tile.x + bottom_tile.y;
+
+	assert(bottom_row >= lower_row);
+	return bottom_tile;
+}
+
 static void ViewportAddLandscape()
 {
 	int x, y, width, height;
 	TileInfo ti;
 	bool direction;
-
 	_cur_ti = &ti;
 
 	/* Transform into tile coordinates and round to closest full tile */
 	x = ((_vd.dpi.top >> (1 + ZOOM_LVL_SHIFT)) - (_vd.dpi.left >> (2 + ZOOM_LVL_SHIFT))) & ~TILE_UNIT_MASK;
 	y = ((_vd.dpi.top >> (1 + ZOOM_LVL_SHIFT)) + (_vd.dpi.left >> (2 + ZOOM_LVL_SHIFT)) - TILE_SIZE) & ~TILE_UNIT_MASK;
-
 	/* determine size of area */
 	{
 		Point pt = RemapCoords(x, y, 241);
 		width = (_vd.dpi.left + _vd.dpi.width - pt.x + 96 * ZOOM_LVL_BASE - 1) >> (6 + ZOOM_LVL_SHIFT);
-		height = (_vd.dpi.top + _vd.dpi.height - pt.y) >> (5 + ZOOM_LVL_SHIFT) << 1;
+		height = (_vd.dpi.top + _vd.dpi.height - pt.y) >> (2 + ZOOM_LVL_SHIFT) << 1;
 	}
 
 	assert(width > 0);
 	assert(height > 0);
-
 	direction = false;
-
 	do {
 		int width_cur = width;
 		uint x_cur = x;
 		uint y_cur = y;
+			do {
+				TileType tt = MP_VOID;
 
-		do {
-			TileType tt = MP_VOID;
+				ti.x = x_cur;
+				ti.y = y_cur;
 
-			ti.x = x_cur;
-			ti.y = y_cur;
+				ti.z = 0;
+				ti.tileh = SLOPE_FLAT;
+				ti.tile = INVALID_TILE;
 
-			ti.z = 0;
-
-			ti.tileh = SLOPE_FLAT;
-			ti.tile = INVALID_TILE;
-
-			if (x_cur < MapMaxX() * TILE_SIZE &&
+				if (x_cur < MapMaxX() * TILE_SIZE &&
 					y_cur < MapMaxY() * TILE_SIZE) {
-				TileIndex tile = TileVirtXY(x_cur, y_cur);
+					TileIndex tile = TileVirtXY(x_cur, y_cur);
 
-				if (!_settings_game.construction.freeform_edges || (TileX(tile) != 0 && TileY(tile) != 0)) {
-					if (x_cur == ((int)MapMaxX() - 1) * TILE_SIZE || y_cur == ((int)MapMaxY() - 1) * TILE_SIZE) {
-						uint maxh = max<uint>(TileHeight(tile), 1);
-						for (uint h = 0; h < maxh; h++) {
-							AddTileSpriteToDraw(SPR_SHADOW_CELL, PAL_NONE, ti.x, ti.y, h * TILE_HEIGHT);
+					if (!_settings_game.construction.freeform_edges || (TileX(tile) != 0 && TileY(tile) != 0)) {
+						if (x_cur == ((int)MapMaxX() - 1) * TILE_SIZE || y_cur == ((int)MapMaxY() - 1) * TILE_SIZE) {
+							uint maxh = max<uint>(TileHeight(tile), 1);
+							for(uint h = 0; h < maxh; h++) {
+								AddTileSpriteToDraw(SPR_SHADOW_CELL, PAL_NONE, ti.x, ti.y, h * TILE_HEIGHT);
+							}
 						}
-					}
 
+						ti.tile = tile;
+						ti.tileh = GetTilePixelSlope(tile, &ti.z);
+						tt = GetTileType(tile);
+					}
+				}
+
+				_vd.foundation_part = FOUNDATION_PART_NONE;
+				_vd.foundation[0] = -1;
+				_vd.foundation[1] = -1;
+				_vd.last_foundation_child[0] = NULL;
+				_vd.last_foundation_child[1] = NULL;
+
+				_tile_type_procs[tt]->draw_tile_proc(&ti);
+
+				if ((x_cur == (int)MapMaxX() * TILE_SIZE && IsInsideMM(y_cur, 0, MapMaxY() * TILE_SIZE + 1)) ||
+						(y_cur == (int)MapMaxY() * TILE_SIZE && IsInsideMM(x_cur, 0, MapMaxX() * TILE_SIZE + 1))) {
+					TileIndex tile = TileVirtXY(x_cur, y_cur);
 					ti.tile = tile;
 					ti.tileh = GetTilePixelSlope(tile, &ti.z);
 					tt = GetTileType(tile);
 				}
-			}
+				if (ti.tile != INVALID_TILE){
+					DrawTileSelection(&ti);
+					DrawTileZoning(&ti);
+				}
 
-			_vd.foundation_part = FOUNDATION_PART_NONE;
-			_vd.foundation[0] = -1;
-			_vd.foundation[1] = -1;
-			_vd.last_foundation_child[0] = NULL;
-			_vd.last_foundation_child[1] = NULL;
-
-			_tile_type_procs[tt]->draw_tile_proc(&ti);
-
-			if ((x_cur == (int)MapMaxX() * TILE_SIZE && IsInsideMM(y_cur, 0, MapMaxY() * TILE_SIZE + 1)) ||
-					(y_cur == (int)MapMaxY() * TILE_SIZE && IsInsideMM(x_cur, 0, MapMaxX() * TILE_SIZE + 1))) {
-				TileIndex tile = TileVirtXY(x_cur, y_cur);
-				ti.tile = tile;
-				ti.tileh = GetTilePixelSlope(tile, &ti.z);
-				tt = GetTileType(tile);
-			}
-			if (ti.tile != INVALID_TILE) DrawTileSelection(&ti);
-
-			y_cur += 0x10;
-			x_cur -= 0x10;
-		} while (--width_cur);
+				y_cur += 0x10;
+				x_cur -= 0x10;
+			} while (--width_cur);
 
 		if ((direction ^= 1) != 0) {
 			y += 0x10;
@@ -1127,6 +1447,152 @@ static void ViewportAddLandscape()
 			x += 0x10;
 		}
 	} while (--height);
+}
+
+static void ViewportAddLandscape_new()
+{
+	assert(_vd.dpi.top <= _vd.dpi.top + _vd.dpi.height);
+	assert(_vd.dpi.left <= _vd.dpi.left + _vd.dpi.width);
+	/* The upper and lower edge of the viewport part to paint. Add some number
+	 * of pixels to the lower end in order to ensure that we also take tiles
+	 * south of the given area, but with high buildings intersecting the area.
+	 * Subtract some pixels from the upper end in order to avoid glitches at the
+	 * upper end of the top be painted area. */
+	int viewport_top = _vd.dpi.top - 16;
+	int viewport_bottom = _vd.dpi.top + _vd.dpi.height + 116;
+
+	DEBUG(driver, 9, "viewport: x = %i, y = %i, w = %i, h = %i",
+			_vd.dpi.left, _vd.dpi.top, _vd.dpi.width, _vd.dpi.height);
+
+	DEBUG(driver, 9, "viewport_top = %i, viewport_bottom = %i",
+			viewport_top, viewport_bottom);
+
+	/* First get the position of the tile at the upper left / lower right edge,
+	 * for now ignoring the height. (i.e. assuming height zero.) */
+	Point upper_left_tile = GetMinTileCoordsIgnoringHeight(_vd.dpi.left, viewport_top);
+	Point lower_right_tile = GetMaxTileCoordsIgnoringHeight(_vd.dpi.left + _vd.dpi.width, viewport_bottom);
+
+	DEBUG(driver, 9, "upper_left_tile = (%i,%i); lower_right_tile = (%i,%i)",
+			upper_left_tile.x, upper_left_tile.y, lower_right_tile.x, lower_right_tile.y);
+
+	/* Calculate the bounding columns. We won't need to draw anything
+	 * left / right of them. */
+	int left_column = GetTileColumnFromTileCoord(upper_left_tile);
+	/* Correction to avoid glitches when approaching the left edge of the map. */
+	left_column--;
+	int right_column = GetTileColumnFromTileCoord(lower_right_tile);
+	right_column++;
+
+	DEBUG(driver, 9, "left_column = %i, right_column = %i",
+			left_column, right_column);
+
+	/* For each column, calculate the top and the bottom row. These are the
+	 * bounding rows for that specific column. */
+	int *top_row = AllocaM(int, right_column - left_column + 1); // Pre-allocate memory for visual studio/express to be able to compile.
+	int *bottom_row = AllocaM(int, right_column - left_column + 1); // Pre-allocate memory for visual studio/express to be able to compile.
+	int min_top_row = MapMaxX() + MapMaxY();
+	int max_bottom_row = 0;
+	Point top_tile_of_column = upper_left_tile;
+
+	/* And now for each column, determine the top and the bottom row we must paint. */
+	bool south_east_direction = false;
+	for (int x = left_column; x <= right_column; x++) {
+		Point bottom_tile_of_column = GetBottomTileOfColumn(top_tile_of_column, lower_right_tile);
+
+		DEBUG(driver, 9, "Inspecting column %i; top_tile=(%i,%i); bottom_tile=(%i, %i)",
+				x, top_tile_of_column.x, top_tile_of_column.y,
+				bottom_tile_of_column.x, bottom_tile_of_column.y);
+
+		/* And then actually find out the top and the bottom row. Note that
+		 * top_tile_of_column and bottom_tile_of_column may be outside the map here.
+		 * This possibility is needed, otherwise we couldn't paint the black area
+		 * outside the map (and in particular the edge of map) properly.
+		 * Subtract three / add one to avoid glitches. */
+		top_row[x - left_column] = GetRowAtTile(viewport_top, top_tile_of_column);
+
+		DEBUG(driver, 9, "GetRowAtTile for viewport_top = %i and top_tile_of_column = (%i,%i) is %i",
+				viewport_top, top_tile_of_column.x, top_tile_of_column.y, top_row[x - left_column]);
+
+		top_row[x - left_column] -= 3;
+		bottom_row[x - left_column] = GetRowAtTile(viewport_bottom, bottom_tile_of_column);
+		bottom_row[x - left_column]++;
+
+		/* We never paint things in rows < min_top_row or > max_bottom_row. */
+		min_top_row = min(min_top_row, top_row[x - left_column]);
+		max_bottom_row = max(max_bottom_row, bottom_row[x - left_column]);
+
+		/* Go to next column in the east. */
+		if (south_east_direction) {
+			top_tile_of_column.y++;
+		} else {
+			top_tile_of_column.x--;
+		}
+
+		/* Switch between directions southeast and northeast. */
+		south_east_direction = !south_east_direction;
+	}
+
+	for (int n = 0; n < right_column - left_column + 1; n++) {
+		DEBUG(driver, 9, "==> top/bottom of column %i is %i .. %i",
+				left_column + n, top_row[n], bottom_row[n]);
+	}
+
+	for (int row = min_top_row; row <= max_bottom_row; row++) {
+		for (int column = left_column; column <= right_column; column++) {
+			/* For each column, we only paint the interval top_row .. bottom_row.
+			 * Due to the division by two below, even and odd values of row + column map to
+			 * the same (x,y) combinations. Thus, we only paint one of them. */
+			if (((row + column) % 2 == 0)
+				&& (top_row[column - left_column] <= row)
+				&& (row <= bottom_row[column - left_column])) {
+
+				TileType tile_type;
+				TileInfo tile_info;
+				/* Copied from the old code, I know that the treatment of that
+				 * global variable is not very nice - By modifying tile_info
+				 * below, we also modify _cur_ti! */
+				_cur_ti = &tile_info;
+
+				/* column = y - x; row = x + y; now solve the equation system
+				 * for x and y. */
+				int x = (row - column) / 2;
+				int y = (row + column) / 2;
+				tile_info.x = x;
+				tile_info.y = y;
+
+				/* For some strange reason, those fields inside tile_info are uints. However,
+				 * in the old code their copies in an int variable where compared against zero. */
+				if (0 < x && x < (int)MapMaxX()
+					&& 0 < y && y < (int)MapMaxY()) {
+					/* We are inside the map => paint landscape. */
+					tile_info.tile = TileXY(tile_info.x, tile_info.y);
+					tile_info.tileh = GetTilePixelSlope(tile_info.tile, &tile_info.z);
+					tile_type = GetTileType(tile_info.tile);
+				} else {
+					/* We are outside the map => paint black. */
+					tile_info.tile = 0;
+					tile_info.tileh = GetTilePixelSlopeOutsideMap(tile_info.x, tile_info.y, &tile_info.z);
+					tile_type = MP_VOID;
+				}
+
+				DEBUG(driver, 9, "(x,y) = (%i,%i); tile = %i", tile_info.x, tile_info.y, tile_info.tile);
+
+				/* Scale to 16x16 tiles, needed for the drawing procedures called below. */
+				tile_info.x *= TILE_SIZE;
+				tile_info.y *= TILE_SIZE;
+
+				_vd.foundation_part = FOUNDATION_PART_NONE;
+				_vd.foundation[0] = -1;
+				_vd.foundation[1] = -1;
+				_vd.last_foundation_child[0] = NULL;
+				_vd.last_foundation_child[1] = NULL;
+
+				_tile_type_procs[tile_type]->draw_tile_proc(&tile_info);
+				DrawTileSelection(&tile_info);
+				DrawTileZoning(&tile_info);
+			}
+		}
+	}
 }
 
 /**
@@ -1178,8 +1644,9 @@ static void ViewportAddTownNames(DrawPixelInfo *dpi)
 	const Town *t;
 	FOR_ALL_TOWNS(t) {
 		ViewportAddString(dpi, ZOOM_LVL_OUT_16X, &t->cache.sign,
-				_settings_client.gui.population_in_label ? STR_VIEWPORT_TOWN_POP : STR_VIEWPORT_TOWN,
-				STR_VIEWPORT_TOWN_TINY_WHITE, STR_VIEWPORT_TOWN_TINY_BLACK,
+//				_settings_client.gui.population_in_label ? STR_VIEWPORT_TOWN_POP : STR_VIEWPORT_TOWN,
+//				STR_VIEWPORT_TOWN_TINY_WHITE, STR_VIEWPORT_TOWN_TINY_BLACK,
+				t->Label(), t->SmallLabel(), STR_VIEWPORT_TOWN_TINY_BLACK,
 				t->index, t->cache.population);
 	}
 }
@@ -1211,7 +1678,7 @@ static void ViewportAddStationNames(DrawPixelInfo *dpi)
 static void ViewportAddSigns(DrawPixelInfo *dpi)
 {
 	/* Signs are turned off or are invisible */
-	if (!HasBit(_display_opt, DO_SHOW_SIGNS) || IsInvisibilitySet(TO_SIGNS)) return;
+	if (!HasBit(_display_opt, DO_SHOW_SIGNS) || IsInvisibilitySet(TO_SIGNS) || _game_mode == GM_MENU) return;
 
 	const Sign *si;
 	FOR_ALL_SIGNS(si) {
@@ -1405,15 +1872,18 @@ static void ViewportDrawDirtyBlocks()
 	} while (--bottom > 0);
 }
 
-static void ViewportDrawStrings(ZoomLevel zoom, const StringSpriteToDrawVector *sstdv)
+static void ViewportDrawStrings(const StringSpriteToDrawVector *sstdv)
 {
+	DrawPixelInfo *old_dpi = _cur_dpi;
+	_cur_dpi = &_dpi_for_text;
+
 	const StringSpriteToDraw *ssend = sstdv->End();
 	for (const StringSpriteToDraw *ss = sstdv->Begin(); ss != ssend; ++ss) {
 		TextColour colour = TC_BLACK;
 		bool small = HasBit(ss->width, 15);
 		int w = GB(ss->width, 0, 15);
-		int x = UnScaleByZoom(ss->x, zoom);
-		int y = UnScaleByZoom(ss->y, zoom);
+		int x = UnScaleByZoom(ss->x, _vd.dpi.zoom);
+		int y = UnScaleByZoom(ss->y, _vd.dpi.zoom);
 		int h = VPSM_TOP + (small ? FONT_HEIGHT_SMALL : FONT_HEIGHT_NORMAL) + VPSM_BOTTOM;
 
 		SetDParam(0, ss->params[0]);
@@ -1440,6 +1910,625 @@ static void ViewportDrawStrings(ZoomLevel zoom, const StringSpriteToDrawVector *
 
 		DrawString(x + VPSM_LEFT, x + w - 1 - VPSM_RIGHT, y + VPSM_TOP, ss->string, colour, SA_HOR_CENTER);
 	}
+	_cur_dpi = old_dpi;
+}
+
+/* Lighten colour */
+#define LTCOLOUR(colour) ((colour) + 1)
+#define LTCOLOURS(colours) ((colours) + 0x01010101)
+/* Darken colour */
+#define DKCOLOUR(colour) ((colour) - 1)
+#define DKCOLOURS(colours) ((colours) - 0x01010101)
+/* Darken variable colour (for green player, colour-1 gives some blue) */
+#define DKCOLOUR_VAR(colour) (((colour) != 0xCE) ? DKCOLOUR(colour) : 0x55)
+
+#define RETURN_SLOPIFIED_COLOUR(tile, height, colour, colour_light, colour_dark) { \
+	const Slope slope = GetTileSlope((tile), (height)); \
+	switch (slope) { \
+		case SLOPE_FLAT: /* FALL THROUGH */ \
+		case SLOPE_ELEVATED: \
+			return (colour); \
+		default: { \
+			switch (slope & SLOPE_EW) { \
+				case SLOPE_W: return (colour_light); \
+				case SLOPE_E: return (colour_dark); \
+				default:      return (slope & SLOPE_S) ? (colour_dark) : (colour_light); \
+			} \
+		} \
+	} \
+}
+
+static inline const SmallMapColourScheme* GetColourSchemeAndHeight(const TileIndex tile, int *tile_height)
+{
+	assert(tile_height != NULL);
+	const uint slc = _settings_client.gui.smallmap_land_colour;
+	if (_settings_client.gui.show_slopes_on_viewport_map) {
+		RETURN_SLOPIFIED_COLOUR(tile, tile_height, &_heightmap_schemes[slc], &_heightmap_schemes_light[slc], &_heightmap_schemes_dark[slc]);
+	} else {
+		*tile_height = TileHeight(tile);
+		return &_heightmap_schemes[slc];
+	}
+}
+
+static inline uint32 ViewportMapGetColoursVegetation(const TileIndex tile, TileType t)
+{
+	uint32 colours;
+	switch (t) {
+		case MP_CLEAR: {
+			const ClearGround cg = GetClearGround(tile);
+			colours = (cg == CLEAR_GRASS && GetClearDensity(tile) < 3) ? MKCOLOUR_XXXX(PC_BARE_LAND) : _vegetation_clear_bits[cg];
+			break;
+		}
+
+		case MP_INDUSTRY:
+			colours = IsTileForestIndustry(tile) ? MKCOLOUR_XXXX(PC_GREEN) : MKCOLOUR_XXXX(LTCOLOUR(PC_DARK_RED));
+			break;
+
+		case MP_TREES: {
+			const TreeGround tg = GetTreeGround(tile);
+			if (tg == TREE_GROUND_SNOW_DESERT || tg == TREE_GROUND_ROUGH_SNOW) {
+				colours = (_settings_game.game_creation.landscape == LT_ARCTIC) ? MKCOLOUR_XYYX(PC_LIGHT_BLUE, DKCOLOUR(PC_TREES)) : MKCOLOUR_XYYX(PC_ORANGE, DKCOLOUR(PC_TREES));
+			} else {
+				colours = MKCOLOUR_XYYX(DKCOLOUR(PC_GRASS_LAND), DKCOLOUR(PC_TREES));
+			}
+			break;
+		}
+
+		default:
+			colours = ApplyMask(MKCOLOUR_XXXX(PC_GRASS_LAND), &_smallmap_vehicles_andor[t]);
+			break;
+	}
+
+	if (_settings_client.gui.show_slopes_on_viewport_map) {
+		RETURN_SLOPIFIED_COLOUR(tile, NULL, colours, LTCOLOURS(colours), DKCOLOURS(colours));
+	} else {
+		return colours;
+	}
+}
+
+static inline uint32 ViewportMapGetColoursIndustries(const TileIndex tile, TileType t)
+{
+	extern LegendAndColour _legend_from_industries[NUM_INDUSTRYTYPES + 1];
+	extern uint _industry_to_list_pos[NUM_INDUSTRYTYPES];
+	extern bool _smallmap_show_heightmap;
+
+	if (t == MP_INDUSTRY) {
+		/* If industry is allowed to be seen, use its colour on the map */
+		if (_legend_from_industries[_industry_to_list_pos[Industry::GetByTile(tile)->type]].show_on_map)
+			return MKCOLOUR_XXXX(GetIndustrySpec(Industry::GetByTile(tile)->type)->map_colour);
+		/* Otherwise, return the colour which will make it disappear */
+		t = (IsTileOnWater(tile) ? MP_WATER : MP_CLEAR);
+	}
+
+	int h;
+	const SmallMapColourScheme *cs = GetColourSchemeAndHeight(tile, &h);
+	return ApplyMask(_smallmap_show_heightmap ? cs->height_colours[h] : cs->default_colour, &_smallmap_vehicles_andor[t]);
+}
+
+static inline uint32 ViewportMapGetColoursOwner(const TileIndex tile, TileType t)
+{
+	extern LegendAndColour _legend_land_owners[NUM_NO_COMPANY_ENTRIES + MAX_COMPANIES + 1];
+	extern uint _company_to_list_pos[MAX_COMPANIES];
+
+	switch (t) {
+		case MP_INDUSTRY: return MKCOLOUR_XXXX(PC_DARK_GREY);
+		case MP_HOUSE:    return MKCOLOUR_XXXX(PC_DARK_RED);
+		default:          break;
+	}
+
+	const Owner o = GetTileOwner(tile);
+	if ((o < MAX_COMPANIES && !_legend_land_owners[_company_to_list_pos[o]].show_on_map) || o == OWNER_NONE || o == OWNER_WATER) {
+		if (t == MP_WATER) return MKCOLOUR_XXXX(PC_WATER);
+		int h;
+		const SmallMapColourScheme *cs = GetColourSchemeAndHeight(tile, &h);
+		return cs->height_colours[h];
+	} else if (o == OWNER_TOWN) {
+		return t == MP_ROAD ? MKCOLOUR_0XX0(PC_BLACK) : MKCOLOUR_XXXX(PC_DARK_RED);
+	}
+
+	/* Train stations are sometimes hard to spot.
+	 * So we give the player a hint by mixing his colour with black.
+	 */
+	const uint8 colour = _legend_land_owners[_company_to_list_pos[o]].colour;
+	if (t != MP_STATION) {
+		if (_settings_client.gui.show_slopes_on_viewport_map) RETURN_SLOPIFIED_COLOUR(tile, NULL, MKCOLOUR_XXXX(colour), MKCOLOUR_XXXX(LTCOLOUR(colour)), MKCOLOUR_XXXX(DKCOLOUR_VAR(colour)));
+	} else {
+		if (GetStationType(tile) == STATION_RAIL) return MKCOLOUR_XYXY(colour, PC_BLACK);
+	}
+	return MKCOLOUR_XXXX(colour);
+}
+
+static void ViewportMapStoreBridgeTunnel(const ViewPort *vp, const TileIndex tile)
+{
+	extern LegendAndColour _legend_land_owners[NUM_NO_COMPANY_ENTRIES + MAX_COMPANIES + 1];
+	extern uint _company_to_list_pos[MAX_COMPANIES];
+
+	/* No need to bother for hidden things */
+	const bool tile_is_tunnel = IsTunnel(tile);
+	if (tile_is_tunnel) {
+		if (!_settings_client.gui.show_tunnels_on_map) return;
+	} else {
+		if (!_settings_client.gui.show_bridges_on_map) return;
+	}
+	const Owner o = GetTileOwner(tile);
+	if (!_legend_land_owners[_company_to_list_pos[o]].show_on_map) return;
+
+	/* Check if already stored */
+	TunnelBridgeToMapVector * const tbtmv = &_vd.tunnel_bridge_to_map;
+	TunnelBridgeToMap *tbtm = tbtmv->Begin();
+	const TunnelBridgeToMap * const tbtm_end = tbtmv->End();
+	while (tbtm != tbtm_end) {
+		if (tile == tbtm->from_tile || tile == tbtm->to_tile) return;
+		tbtm++;
+	}
+
+	/* It's a new one, add it to the list */
+	tbtm = tbtmv->Append();
+	tbtm->from_tile = tile;
+	tbtm->to_tile = GetOtherTunnelBridgeEnd(tile);
+	if (vp->map_type == VPMT_OWNER && _settings_client.gui.use_owner_colour_for_tunnelbridge && o < MAX_COMPANIES) {
+		const uint8 colour = _legend_land_owners[_company_to_list_pos[o]].colour;
+		tbtm->colour = tile_is_tunnel ? DKCOLOUR_VAR(colour) : LTCOLOUR(colour);
+	} else
+		tbtm->colour = tile_is_tunnel ? PC_BLACK : PC_VERY_LIGHT_YELLOW;
+}
+
+/**
+ * Inspired of SmallMapWindow::GetTileColours()
+ */
+static inline TileIndex ViewportMapScanTileSurroundings(const ViewPort *vp, const TileIndex from_tile, TileType *tile_type)
+{
+	if (vp->zoom <= ZOOM_LVL_OUT_128X) {
+		const TileType ttype = GetTileType(from_tile);
+		/* Store bridges and tunnels */
+		if (ttype == MP_TUNNELBRIDGE) {
+			ViewportMapStoreBridgeTunnel(vp, from_tile);
+			switch (GetTunnelBridgeTransportType(from_tile)) {
+				case TRANSPORT_RAIL: *tile_type = MP_RAILWAY; break;
+				case TRANSPORT_ROAD: *tile_type = MP_ROAD;    break;
+				default:             *tile_type = MP_WATER;   break;
+			}
+		} else {
+			*tile_type = ttype;
+		}
+		return from_tile;
+	}
+
+	const bool viewport_map_scan_surroundings = _settings_client.gui.viewport_map_scan_surroundings;
+	const uint8 length = (vp->zoom - ZOOM_LVL_OUT_128X) * 2;
+	TileArea tile_area = TileArea(from_tile, length, length);
+	tile_area.ClampToMap();
+
+	TileIndex result = from_tile;
+	uint importance = 0;
+	TILE_AREA_LOOP(tile, tile_area) {
+		const TileType ttype = GetTileType(tile);
+
+		/* Find the most important tile of the area */
+		if (viewport_map_scan_surroundings) {
+			const uint tile_importance = _tiletype_importance[ttype];
+			if (tile_importance > importance) {
+				importance = tile_importance;
+				result = tile;
+			}
+		}
+
+		/* Store bridges and tunnels */
+		if (ttype == MP_TUNNELBRIDGE) {
+			ViewportMapStoreBridgeTunnel(vp, tile);
+			switch (GetTunnelBridgeTransportType(tile)) {
+				case TRANSPORT_RAIL: *tile_type = MP_RAILWAY; break;
+				case TRANSPORT_ROAD: *tile_type = MP_ROAD;    break;
+				default:             *tile_type = MP_WATER;   break;
+			}
+		}
+	}
+
+	*tile_type = GetTileType(result);
+	return result;
+}
+
+/**
+ * Get an array of 4 indexed colours
+ */
+uint32 ViewportMapGetColours(const ViewPort *vp, uint x, uint y)
+{
+	if (!(IsInsideMM(x, TILE_SIZE, MapMaxX() * TILE_SIZE - 1) &&
+		  IsInsideMM(y, TILE_SIZE, MapMaxY() * TILE_SIZE - 1)))
+		return 0;
+
+	/* Very approximative but fast way to get the tile when taking Z into account */
+	const TileIndex tile_tmp = TileVirtXY(x, y);
+	const uint z = TileHeight(tile_tmp) * 4;
+	TileIndex tile = TileVirtXY(x + z, y + z);
+	if (tile >= MapSize()) return 0;
+	if (_settings_game.construction.freeform_edges) {
+		/* tile_tmp and tile must be from the same side,
+		 * otherwise it's an approximation erroneous case
+		 * that leads to a graphic glitch below south west border
+		 */
+		if (TileX(tile_tmp) > (MapSizeX() - (MapSizeX() >> 3)))
+			if ((TileX(tile_tmp) < (MapSizeX() >> 1)) != (TileX(tile) < (MapSizeX() >> 1)))
+				return 0;
+	}
+	TileType tile_type = MP_VOID;
+	tile = ViewportMapScanTileSurroundings(vp, tile, &tile_type);
+	if (tile_type == MP_VOID) return 0;
+
+	/* Return the colours */
+	switch (vp->map_type) {
+		case VPMT_OWNER:      return ViewportMapGetColoursOwner(tile, tile_type);
+		case VPMT_INDUSTRY:   return ViewportMapGetColoursIndustries(tile, tile_type);
+		case VPMT_VEGETATION: return ViewportMapGetColoursVegetation(tile, tile_type);
+		default:              return 0;
+	}
+}
+
+/* Taken from http://stereopsis.com/doubleblend.html, PixelBlend() is faster than ComposeColourRGBANoCheck() */
+static inline void PixelBlend(uint32 *d, const uint32 s)
+{
+	const uint32 a     = (s >> 24) + 1;
+	const uint32 dstrb = *d & 0xFF00FF;
+	const uint32 dstg  = *d & 0xFF00;
+	const uint32 srcrb = s & 0xFF00FF;
+	const uint32 srcg  = s & 0xFF00;
+	uint32 drb = srcrb - dstrb;
+	uint32 dg  =  srcg - dstg;
+	drb *= a;
+	dg  *= a;
+	drb >>= 8;
+	dg  >>= 8;
+	uint32 rb = (drb + dstrb) & 0xFF00FF;
+	uint32 g  = (dg  + dstg) & 0xFF00;
+	*d = rb | g;
+}
+
+/**
+ * Draw the bounding boxes of the scrolling viewport (right-clicked and dragged)
+ */
+static void ViewportMapDrawScrollingViewportBox(const ViewPort *vp)
+{
+	if (_focused_window && _focused_window->viewport) {
+		const ViewPort *vp_scrolling = _focused_window->viewport;
+		if (vp_scrolling->zoom < ZOOM_LVL_DRAW_MAP) {
+			/* Check intersection of dpi and vp_scrolling */
+			const int mask = ScaleByZoom(-1, vp->zoom);
+			const int vp_scrolling_virtual_top_mask = vp_scrolling->virtual_top & mask;
+			const int vp_scrolling_virtual_bottom_mask = (vp_scrolling->virtual_top + vp_scrolling->virtual_height) & mask;
+			const int t_inter = max(vp_scrolling_virtual_top_mask, _vd.dpi.top);
+			const int b_inter = min(vp_scrolling_virtual_bottom_mask, _vd.dpi.top + _vd.dpi.height);
+			if (t_inter < b_inter) {
+				const int vp_scrolling_virtual_left_mask = vp_scrolling->virtual_left & mask;
+				const int vp_scrolling_virtual_right_mask = (vp_scrolling->virtual_left + vp_scrolling->virtual_width) & mask;
+				const int l_inter = max(vp_scrolling_virtual_left_mask, _vd.dpi.left);
+				const int r_inter = min(vp_scrolling_virtual_right_mask, _vd.dpi.left + _vd.dpi.width);
+				if (l_inter < r_inter) {
+					/* OK, so we can draw something that tells where the scrolling viewport is */
+					Blitter *blitter = BlitterFactoryBase::GetCurrentBlitter();
+					const int w_inter = UnScaleByZoom(r_inter - l_inter, vp->zoom);
+					const int h_inter = UnScaleByZoom(b_inter - t_inter, vp->zoom);
+					const int x = UnScaleByZoom(l_inter - _vd.dpi.left, vp->zoom);
+					const int y = UnScaleByZoom(t_inter - _vd.dpi.top, vp->zoom);
+
+					/* If asked, with 32bpp we can do some blending */
+					if (_settings_client.gui.show_scrolling_viewport_on_map >= 2 && blitter->GetScreenDepth() == 32)
+						for (int j = y; j < y + h_inter; j++)
+							for (int i = x; i < x + w_inter; i++)
+								PixelBlend((uint32*) blitter->MoveTo(_vd.dpi.dst_ptr, i, j), 0x40FCFCFC);
+
+					/* Draw area contour */
+					if (_settings_client.gui.show_scrolling_viewport_on_map != 2) {
+						if (t_inter == vp_scrolling_virtual_top_mask)
+							for (int i = x; i < x + w_inter; i += 2)
+								blitter->SetPixel(_vd.dpi.dst_ptr, i, y, PC_WHITE);
+						if (b_inter == vp_scrolling_virtual_bottom_mask)
+							for (int i = x; i < x + w_inter; i += 2)
+								blitter->SetPixel(_vd.dpi.dst_ptr, i, y + h_inter, PC_WHITE);
+						if (l_inter == vp_scrolling_virtual_left_mask)
+							for (int j = y; j < y + h_inter; j += 2)
+								blitter->SetPixel(_vd.dpi.dst_ptr, x, j, PC_WHITE);
+						if (r_inter == vp_scrolling_virtual_right_mask)
+							for (int j = y; j < y + h_inter; j += 2)
+								blitter->SetPixel(_vd.dpi.dst_ptr, x + w_inter, j, PC_WHITE);
+					}
+				}
+			}
+		}
+	}
+}
+
+#define X PC_BLACK
+#define I PC_WHITE
+#define ROUTE_STOPOVER_WIDTH 23
+#define ROUTE_STOPOVER_HEIGHT 23
+static const uint8 _route_stopover[ROUTE_STOPOVER_HEIGHT][ROUTE_STOPOVER_WIDTH] = {
+	{ 0, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0 },
+	{ X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X },
+	{ X, X, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, X, X },
+	{ X, X, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, X, X },
+	{ X, X, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, X, X },
+	{ X, X, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, X, X },
+	{ X, X, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, X, X },
+	{ X, X, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, X, X },
+	{ X, X, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, X, X },
+	{ X, X, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, X, X },
+	{ X, X, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, I, X, X },
+	{ X, X, X, X, X, X, X, X, X, X, X, I, X, X, X, X, X, X, X, X, X, X, X },
+	{ 0, X, X, X, X, X, X, X, X, X, X, I, X, X, X, X, X, X, X, X, X, X, 0 },
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, X, I, X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, X, I, X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, X, I, X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, X, I, X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, X, I, X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, X, I, X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0, 0, 0, X, I, I, I, I, I, X, 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, X, I, I, I, X, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, X, I, X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+#undef X
+#undef I
+
+static inline void DrawRouteStopover(const ViewPort *vp, const TileIndex tile)
+{
+	if (tile == INVALID_TILE) return;
+	const Point pt = RemapCoords2(TileX(tile) * TILE_SIZE, TileY(tile) * TILE_SIZE);
+	const int w = UnScaleByZoom(_vd.dpi.width, _vd.dpi.zoom);
+	const int h = UnScaleByZoom(_vd.dpi.height, _vd.dpi.zoom);
+	const int x = UnScaleByZoomLower(pt.x - _vd.dpi.left, _vd.dpi.zoom) - (ROUTE_STOPOVER_WIDTH / 2);
+	const int y = UnScaleByZoomLower(pt.y - _vd.dpi.top,  _vd.dpi.zoom) - ROUTE_STOPOVER_HEIGHT;
+
+	/* Where is it allowed to draw? */
+	const int bounds_lef = max(0, x);
+	const int bounds_rig = min(w, x + ROUTE_STOPOVER_WIDTH);
+	if (bounds_rig <= bounds_lef) return;
+	const int bounds_top = max(0, y);
+	const int bounds_bot = min(h, y + ROUTE_STOPOVER_WIDTH);
+	if (bounds_bot <= bounds_top) return;
+
+	/* OK, let's draw! */
+	Blitter *blitter = BlitterFactoryBase::GetCurrentBlitter();
+	for (int j = bounds_top; j < bounds_bot; j++) {
+		for (int i = bounds_lef; i < bounds_rig; i++) {
+			const uint8 colour = _route_stopover[j - y][i - x];
+			if (colour)
+				blitter->SetPixel(_vd.dpi.dst_ptr, i, j, colour);
+		}
+	}
+
+	/* Write order's info */
+	DrawPixelInfo *old_dpi = _cur_dpi;
+	_cur_dpi = &_dpi_for_text;
+	DrawString(_dpi_for_text.left + x + 2, _dpi_for_text.left + x + ROUTE_STOPOVER_WIDTH - 2, _dpi_for_text.top + y + 3, STR_VIEWPORT_MAP_SHOW_VEHICLE_ROUTE_STOPOVER, TC_FROMSTRING, SA_CENTER, false, FS_SMALL);
+	_cur_dpi = old_dpi;
+}
+
+static inline const Vehicle *GetVehicleOfFocusedWindow(void)
+{
+	if (_focused_window) {
+		switch (_focused_window->window_class) {
+			case WC_VEHICLE_VIEW:
+			case WC_VEHICLE_ORDERS:
+			case WC_VEHICLE_TIMETABLE:
+			case WC_VEHICLE_DETAILS:
+			case WC_VEHICLE_REFIT:
+				if (_focused_window->window_number != INVALID_VEHICLE) return Vehicle::Get(_focused_window->window_number);
+				break;
+			default:
+				break;
+		}
+	}
+	return NULL;
+}
+
+template <OrderType order_type>
+static inline TileIndex GetTileFromVehicleOrder(const Vehicle *veh, Order *order)
+{
+	const DestinationID dest = order->GetDestination();
+	switch (order_type) {
+		case OT_GOTO_STATION:
+		case OT_GOTO_WAYPOINT:
+		case OT_IMPLICIT:
+			if (veh->type == VEH_AIRCRAFT) {
+				Station *st = Station::GetIfValid(dest);
+				if (st)
+					return st->airport.tile;
+			} else {
+				BaseStation *bst = BaseStation::GetIfValid(dest);
+				if (bst)
+					return bst->xy;
+			}
+			break;
+		case OT_GOTO_DEPOT:
+			if (veh->type == VEH_AIRCRAFT) {
+				Station *st = Station::GetIfValid(dest);
+				if (st)
+					return st->xy;
+			} else {
+				Depot *dp = Depot::GetIfValid(dest);
+				if (dp)
+					return dp->xy;
+			}
+			break;
+		default:
+			return INVALID_TILE;
+	}
+	return INVALID_TILE;
+}
+
+static inline TileIndex GetTileFromVehicleOrder(const Vehicle *veh, Order *order)
+{
+	switch (order->GetType()) {
+		case OT_GOTO_STATION:
+		case OT_GOTO_WAYPOINT:
+		case OT_IMPLICIT:
+			return GetTileFromVehicleOrder<OT_GOTO_STATION>(veh, order);
+		case OT_GOTO_DEPOT:
+			return GetTileFromVehicleOrder<OT_GOTO_DEPOT>(veh, order);
+		default:
+			return INVALID_TILE;
+	}
+}
+
+static inline TileIndex GetLastValidOrderLocation(const Vehicle *veh)
+{
+	Order *order;
+	TileIndex tmp, result = INVALID_TILE;
+	FOR_VEHICLE_ORDERS(veh, order) {
+		switch (order->GetType()) {
+			case OT_GOTO_STATION:
+			case OT_GOTO_WAYPOINT:
+			case OT_IMPLICIT:
+			case OT_GOTO_DEPOT:
+				tmp = GetTileFromVehicleOrder(veh, order);
+				if (tmp != INVALID_TILE) result = tmp;
+				break;
+			default:
+				break;
+		}
+	}
+	return result;
+}
+
+static inline Order *GetFinalOrder(const Vehicle *veh, Order *order)
+{
+	while (order->IsType(OT_CONDITIONAL))
+		order = veh->GetOrder(order->GetConditionSkipToOrder());
+	return order;
+}
+
+/**
+ * Draw the route path of a vehicle
+ */
+static void ViewportMapDrawVehicleRoutePath(const ViewPort *vp)
+{
+	Order *order;
+	const Vehicle *veh = GetVehicleOfFocusedWindow();
+	if (!veh) return;
+
+	TileIndex from_tile;
+	switch (_settings_client.gui.show_vehicle_route_path) {
+		case 0: // No
+			return;
+
+		case 1: // Simple
+			from_tile = GetLastValidOrderLocation(veh);
+			if (from_tile == INVALID_TILE) return;
+			FOR_VEHICLE_ORDERS(veh, order) {
+				const Point from_pt = RemapCoords2(TileX(from_tile) * TILE_SIZE, TileY(from_tile) * TILE_SIZE);
+				const int from_x = UnScaleByZoom(from_pt.x, vp->zoom);
+				const int from_y = UnScaleByZoom(from_pt.y, vp->zoom);
+
+				Order *final_order = GetFinalOrder(veh, order);
+				const TileIndex to_tile = GetTileFromVehicleOrder(veh, final_order);
+				if (to_tile == INVALID_TILE) continue;
+				const Point to_pt = RemapCoords2(TileX(to_tile) * TILE_SIZE, TileY(to_tile) * TILE_SIZE);
+				const int to_x = UnScaleByZoom(to_pt.x, vp->zoom);
+				const int to_y = UnScaleByZoom(to_pt.y, vp->zoom);
+
+				DrawPixelInfo *old_dpi = _cur_dpi;
+				_cur_dpi = &_dpi_for_text;
+				GfxDrawLine(from_x, from_y, to_x, to_y, PC_BLACK, 3);
+				GfxDrawLine(from_x, from_y, to_x, to_y, (final_order == order) ? PC_WHITE : PC_YELLOW, 1);
+				_cur_dpi = old_dpi;
+
+				const OrderType ot = order->GetType();
+				if (ot == OT_GOTO_STATION || ot == OT_GOTO_DEPOT || ot == OT_GOTO_WAYPOINT || ot == OT_IMPLICIT) from_tile = to_tile;
+			}
+			break;
+	}
+}
+
+/**
+ * Draw the route stopovers of a vehicle
+ */
+static void ViewportMapDrawVehicleRouteStopovers(const ViewPort *vp)
+{
+	const Vehicle *veh = GetVehicleOfFocusedWindow();
+	if (!veh) return;
+
+	Order *order;
+	int order_rank = 0;
+	FOR_VEHICLE_ORDERS(veh, order) {
+		SetDParam(0, ++order_rank);
+		switch (order->GetType()) {
+			case OT_GOTO_STATION:
+				SetDParam(1, STR_VIEWPORT_MAP_SHOW_VEHICLE_ROUTE_STOPOVER_STATION);
+				goto draw;
+			case OT_GOTO_WAYPOINT:
+				SetDParam(1, STR_VIEWPORT_MAP_SHOW_VEHICLE_ROUTE_STOPOVER_WAYPOINT);
+				goto draw;
+			case OT_IMPLICIT:
+				SetDParam(1, STR_VIEWPORT_MAP_SHOW_VEHICLE_ROUTE_STOPOVER_IMPLICIT);
+draw:
+				DrawRouteStopover(vp, GetTileFromVehicleOrder<OT_GOTO_STATION>(veh, order));
+				break;
+
+			case OT_GOTO_DEPOT:
+				SetDParam(1, STR_VIEWPORT_MAP_SHOW_VEHICLE_ROUTE_STOPOVER_DEPOT);
+				DrawRouteStopover(vp, GetTileFromVehicleOrder<OT_GOTO_DEPOT>(veh, order));
+				break;
+
+			default: break; // OT_NOTHING OT_LOADING OT_LEAVESTATION OT_DUMMY OT_CONDITIONAL
+		}
+	}
+}
+
+uint8 *_vp_map_line; ///< Buffer for drawing the map of a viewport
+
+/**
+ * Draw the map on a viewport
+ */
+void ViewportMapDraw(const ViewPort *vp)
+{
+	assert(vp != NULL);
+	Blitter *blitter = BlitterFactoryBase::GetCurrentBlitter();
+
+	/* Index of colour: parity of x+y (screen coordinates) */
+	const uint colour_index_base = (UnScaleByZoomLower(_vd.dpi.top, _vd.dpi.zoom) + UnScaleByZoomLower(_vd.dpi.left, _vd.dpi.zoom)) & 1;
+	const  int incr_a = (1 << (vp->zoom - 2)) / ZOOM_LVL_BASE;
+	const  int incr_b = (1 << (vp->zoom - 1)) / ZOOM_LVL_BASE;
+	const  int a = (_vd.dpi.left >> 2) / ZOOM_LVL_BASE;
+	int        b = (_vd.dpi.top >> 1) / ZOOM_LVL_BASE;
+	const  int w = UnScaleByZoom(_vd.dpi.width, vp->zoom);
+	const  int h = UnScaleByZoom(_vd.dpi.height, vp->zoom);
+	int        j = 0;
+
+	/* Render base map */
+	do { // For each line
+		int i = w;
+		uint colour_index = (j + colour_index_base) & 1;
+		uint8 *vp_map_line_ptr = _vp_map_line;
+		int c = b - a;
+		int d = b + a;
+		do { // For each pixel of a line
+			const uint32 colours = ViewportMapGetColours(vp, c, d);
+			*vp_map_line_ptr = ((uint8 *)&colours)[colour_index ^= 1];
+			vp_map_line_ptr++;
+			c -= incr_a;
+			d += incr_a;
+		} while (--i);
+		blitter->SetLine(_vd.dpi.dst_ptr, 0, j, _vp_map_line, w);
+		b += incr_b;
+	} while (++j < h);
+
+	/* Render bridges and tunnels */
+	if (_vd.tunnel_bridge_to_map.Length() != 0) {
+		const TunnelBridgeToMap *tbtm_end = _vd.tunnel_bridge_to_map.End();
+		for (TunnelBridgeToMap *tbtm = _vd.tunnel_bridge_to_map.Begin(); tbtm != tbtm_end; tbtm++) { // For each bridge or tunnel
+			TileIndex tile = tbtm->from_tile;
+			const int z = TileHeight(tile) * 4;
+			TileIndexDiff delta = TileOffsByDiagDir(GetTunnelBridgeDirection(tile));
+			for (; tile != tbtm->to_tile; tile += delta) { // For each tile
+				const Point pt = RemapCoords(TileX(tile) * TILE_SIZE, TileY(tile) * TILE_SIZE, z);
+				const int x = UnScaleByZoomLower(pt.x - _vd.dpi.left, _vd.dpi.zoom);
+				if (IsInsideMM(x, 0, w)) {
+					const int y = UnScaleByZoomLower(pt.y - _vd.dpi.top, _vd.dpi.zoom);
+					if (IsInsideMM(y, 0, h)) blitter->SetPixel(_vd.dpi.dst_ptr, x, y, tbtm->colour);
+				}
+			}
+		}
+	}
 }
 
 void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom)
@@ -1464,26 +2553,41 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 
 	_vd.dpi.dst_ptr = BlitterFactoryBase::GetCurrentBlitter()->MoveTo(old_dpi->dst_ptr, x - old_dpi->left, y - old_dpi->top);
 
-	ViewportAddLandscape();
-	ViewportAddVehicles(&_vd.dpi);
+	_dpi_for_text        = _vd.dpi;
+	_dpi_for_text.left   = UnScaleByZoom(_dpi_for_text.left,   _dpi_for_text.zoom);
+	_dpi_for_text.top    = UnScaleByZoom(_dpi_for_text.top,    _dpi_for_text.zoom);
+	_dpi_for_text.width  = UnScaleByZoom(_dpi_for_text.width,  _dpi_for_text.zoom);
+	_dpi_for_text.height = UnScaleByZoom(_dpi_for_text.height, _dpi_for_text.zoom);
+	_dpi_for_text.zoom   = ZOOM_LVL_NORMAL;
 
-	ViewportAddTownNames(&_vd.dpi);
-	ViewportAddStationNames(&_vd.dpi);
-	ViewportAddSigns(&_vd.dpi);
+	if (vp->zoom >= ZOOM_LVL_DRAW_MAP) {
+		/* Here the rendering is like smallmap */
+		ViewportMapDraw(vp);
+		ViewportMapDrawVehicles(&_vd.dpi);
+		if (_scrolling_viewport && _settings_client.gui.show_scrolling_viewport_on_map) ViewportMapDrawScrollingViewportBox(vp);
+		if (vp->zoom < ZOOM_LVL_OUT_256X) ViewportAddTownNames(&_vd.dpi);
+	} else {
+		/* Classic rendering */
+		ViewportAddLandscape();
+		ViewportAddVehicles(&_vd.dpi);
+		ViewportAddTownNames(&_vd.dpi);
+		ViewportAddStationNames(&_vd.dpi);
+		ViewportAddSigns(&_vd.dpi);
+		DrawTextEffects(&_vd.dpi);
 
-	DrawTextEffects(&_vd.dpi);
+		if (_vd.tile_sprites_to_draw.Length() != 0) ViewportDrawTileSprites(&_vd.tile_sprites_to_draw);
 
-	if (_vd.tile_sprites_to_draw.Length() != 0) ViewportDrawTileSprites(&_vd.tile_sprites_to_draw);
+		ParentSpriteToDraw *psd_end = _vd.parent_sprites_to_draw.End();
+		for (ParentSpriteToDraw *it = _vd.parent_sprites_to_draw.Begin(); it != psd_end; it++) {
+			*_vd.parent_sprites_to_sort.Append() = it;
+		}
 
-	ParentSpriteToDraw *psd_end = _vd.parent_sprites_to_draw.End();
-	for (ParentSpriteToDraw *it = _vd.parent_sprites_to_draw.Begin(); it != psd_end; it++) {
-		*_vd.parent_sprites_to_sort.Append() = it;
+		ViewportSortParentSprites(&_vd.parent_sprites_to_sort);
+		ViewportDrawParentSprites(&_vd.parent_sprites_to_sort, &_vd.child_screen_sprites_to_draw);
+
+		if (_draw_bounding_boxes) ViewportDrawBoundingBoxes(&_vd.parent_sprites_to_sort);
 	}
 
-	ViewportSortParentSprites(&_vd.parent_sprites_to_sort);
-	ViewportDrawParentSprites(&_vd.parent_sprites_to_sort, &_vd.child_screen_sprites_to_draw);
-
-	if (_draw_bounding_boxes) ViewportDrawBoundingBoxes(&_vd.parent_sprites_to_sort);
 	if (_draw_dirty_blocks) ViewportDrawDirtyBlocks();
 
 	DrawPixelInfo dp = _vd.dpi;
@@ -1503,10 +2607,13 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 	dp.left = UnScaleByZoom(_vd.dpi.left, zoom);
 	dp.top = UnScaleByZoom(_vd.dpi.top, zoom);
 
-	if (_vd.string_sprites_to_draw.Length() != 0) ViewportDrawStrings(zoom, &_vd.string_sprites_to_draw);
+	ViewportMapDrawVehicleRoutePath(vp);
+	if (_vd.string_sprites_to_draw.Length() != 0) ViewportDrawStrings(&_vd.string_sprites_to_draw);
+	if (_settings_client.gui.show_vehicle_route_stopovers) ViewportMapDrawVehicleRouteStopovers(vp);
 
 	_cur_dpi = old_dpi;
 
+	_vd.tunnel_bridge_to_map.Clear();
 	_vd.string_sprites_to_draw.Clear();
 	_vd.tile_sprites_to_draw.Clear();
 	_vd.parent_sprites_to_draw.Clear();
@@ -1520,7 +2627,7 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
  */
 static void ViewportDrawChk(const ViewPort *vp, int left, int top, int right, int bottom)
 {
-	if (ScaleByZoom(bottom - top, vp->zoom) * ScaleByZoom(right - left, vp->zoom) > 180000 * ZOOM_LVL_BASE * ZOOM_LVL_BASE) {
+	if ((vp->zoom < ZOOM_LVL_DRAW_MAP) && (ScaleByZoom(bottom - top, vp->zoom) * ScaleByZoom(right - left, vp->zoom) > 180000 * ZOOM_LVL_BASE * ZOOM_LVL_BASE)) {
 		if ((bottom - top) > (right - left)) {
 			int t = (top + bottom) >> 1;
 			ViewportDrawChk(vp, left, top, right, t);
@@ -1573,6 +2680,16 @@ void Window::DrawViewport() const
 	dpi->top -= this->top;
 }
 
+/**
+ * How far should I allow scrolling outside the map?
+ *
+ * @see ClampViewportToMap()
+ */
+inline uint16 GetMaxScrollOutsideMap() {
+	/* Allow scrolling to high peaks at the NE/NW border if AllowMoreHeightlevels is true. */
+	return MAXSCROLL;
+}
+
 static inline void ClampViewportToMap(const ViewPort *vp, int &x, int &y)
 {
 	/* Centre of the viewport is hot spot */
@@ -1584,7 +2701,9 @@ static inline void ClampViewportToMap(const ViewPort *vp, int &x, int &y)
 	int vx = -x + y * 2;
 	int vy =  x + y * 2;
 
-	/* clamp to size of map */
+	/* Clamp to size of map. */
+	//vx = Clamp(vx, - (uint16)GetMaxScrollOutsideMap() * ZOOM_LVL_BASE, MapMaxX() * TILE_SIZE * 4 * ZOOM_LVL_BASE);
+	//vy = Clamp(vy, - (uint16)GetMaxScrollOutsideMap() * ZOOM_LVL_BASE, MapMaxY() * TILE_SIZE * 4 * ZOOM_LVL_BASE);
 	vx = Clamp(vx, 0, MapMaxX() * TILE_SIZE * 4 * ZOOM_LVL_BASE);
 	vy = Clamp(vy, 0, MapMaxY() * TILE_SIZE * 4 * ZOOM_LVL_BASE);
 
@@ -1636,8 +2755,15 @@ void UpdateViewportPosition(Window *w)
 
 		ClampViewportToMap(vp, w->viewport->scrollpos_x, w->viewport->scrollpos_y);
 
+		const bool must_update_maps = _scrolling_viewport && _settings_client.gui.viewport_map_in_realtime && _settings_client.gui.show_scrolling_viewport_on_map;// && _focused_window->viewport == vp;
+		const int gap = ScaleByZoom(1, ZOOM_LVL_MAX);
+		if (must_update_maps)
+			MarkAllViewportMapsDirty(vp->virtual_left, vp->virtual_top, vp->virtual_left + vp->virtual_width + gap, vp->virtual_top + vp->virtual_height + gap);
+
 		SetViewportPosition(w, w->viewport->scrollpos_x, w->viewport->scrollpos_y);
 		if (update_overlay) RebuildViewportOverlay(w);
+		if (must_update_maps)
+			MarkAllViewportMapsDirty(vp->virtual_left, vp->virtual_top, vp->virtual_left + vp->virtual_width + gap, vp->virtual_top + vp->virtual_height + gap);
 	}
 }
 
@@ -1682,15 +2808,70 @@ static void MarkViewportDirty(const ViewPort *vp, int left, int top, int right, 
  * @param bottom Bottom edge of area to repaint
  * @ingroup dirty
  */
-void MarkAllViewportsDirty(int left, int top, int right, int bottom)
+void MarkAllViewportsDirty(int left, int top, int right, int bottom, ZoomLevel mark_dirty_if_zoomlevel_is_below)
 {
 	Window *w;
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
-		ViewPort *vp = w->viewport;
+		const ViewPort *vp = w->viewport;
 		if (vp != NULL) {
+			assert(vp->width != 0);
+
+			if (_settings_client.gui.viewport_map_in_realtime) {
+				if (vp->zoom >= mark_dirty_if_zoomlevel_is_below) continue;
+			} else {
+				if (vp->zoom >= ZOOM_LVL_DRAW_MAP) continue;
+			}
+
+			MarkViewportDirty(vp, left, top, right, bottom);
+		}
+	}
+}
+
+/**
+ * Mark all viewports in map mode that display an area as dirty (in need of repaint).
+ * @param left   Left edge of area to repaint
+ * @param top    Top edge of area to repaint
+ * @param right  Right edge of area to repaint
+ * @param bottom Bottom edge of area to repaint
+ * @ingroup dirty
+ */
+void MarkAllViewportMapsDirty(int left, int top, int right, int bottom)
+{
+	Window *w;
+	FOR_ALL_WINDOWS_FROM_BACK(w) {
+		const ViewPort *vp = w->viewport;
+		if (vp != NULL && vp->zoom >= ZOOM_LVL_DRAW_MAP) {
 			assert(vp->width != 0);
 			MarkViewportDirty(vp, left, top, right, bottom);
 		}
+	}
+}
+
+static void MarkRouteStopoverDirty(const TileIndex tile)
+{
+	assert(tile != INVALID_TILE);
+	Window *w;
+	const Point pt = RemapCoords2(TileX(tile) * TILE_SIZE, TileY(tile) * TILE_SIZE);
+	FOR_ALL_WINDOWS_FROM_BACK(w) {
+		const ViewPort *vp = w->viewport;
+		if (vp != NULL) {
+			assert(vp->width != 0);
+			const int half_width = ScaleByZoom((ROUTE_STOPOVER_WIDTH / 2) + 1, vp->zoom);
+			const int height = ScaleByZoom(ROUTE_STOPOVER_HEIGHT, vp->zoom);
+			MarkViewportDirty(vp, pt.x - half_width, pt.y - height, pt.x + half_width, pt.y);
+		}
+	}
+}
+
+void MarkAllRouteStopoversDirty(const Vehicle *veh)
+{
+	if (!_settings_client.gui.show_vehicle_route_stopovers) return;
+	if (!_settings_client.gui.viewport_map_in_realtime) return;
+
+	Order *order;
+	FOR_VEHICLE_ORDERS(veh, order) {
+		const TileIndex tile = GetTileFromVehicleOrder(veh, order);
+		if (tile != INVALID_TILE) MarkRouteStopoverDirty(tile);
 	}
 }
 
@@ -1713,14 +2894,88 @@ void ConstrainAllViewportsZoom()
  * @param tile The tile to mark dirty.
  * @ingroup dirty
  */
-void MarkTileDirtyByTile(TileIndex tile)
+void MarkTileDirtyByTile(TileIndex tile, ZoomLevel mark_dirty_if_zoomlevel_is_below)
 {
 	Point pt = RemapCoords(TileX(tile) * TILE_SIZE, TileY(tile) * TILE_SIZE, GetTilePixelZ(tile));
 	MarkAllViewportsDirty(
 		pt.x - 31  * ZOOM_LVL_BASE,
 		pt.y - 122 * ZOOM_LVL_BASE,
 		pt.x - 31  * ZOOM_LVL_BASE + 67  * ZOOM_LVL_BASE,
-		pt.y - 122 * ZOOM_LVL_BASE + 154 * ZOOM_LVL_BASE
+		pt.y - 122 * ZOOM_LVL_BASE + 154 * ZOOM_LVL_BASE,
+		mark_dirty_if_zoomlevel_is_below
+	);
+}
+
+static void MarkTileLineDirty(const TileIndex from_tile, const TileIndex to_tile)
+{
+	assert(from_tile != INVALID_TILE);
+	assert(to_tile != INVALID_TILE);
+
+	int x1 = TileX(from_tile);
+	int y1 = TileY(from_tile);
+	const int x2 = TileX(to_tile);
+	const int y2 = TileY(to_tile);
+
+	/* http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm#Simplification */
+	const int dx = abs(x2 - x1);
+	const int dy = abs(y2 - y1);
+	const int sx = (x1 < x2) ? 1 : -1;
+	const int sy = (y1 < y2) ? 1 : -1;
+	int err = dx - dy;
+
+	for (;;) {
+		MarkTileDirtyByTile(TileXY(x1, y1), ZOOM_LVL_END);
+		if (x1 == x2 && y1 == y2) break;
+
+		const int e2 = 2 * err;
+		if (e2 > -dy) {
+			err -= dy;
+			x1 += sx;
+		}
+		if (e2 < dx) {
+			err += dx;
+			y1 += sy;
+		}
+	}
+}
+
+void MarkAllRoutePathsDirty(const Vehicle *veh)
+{
+	if (!_settings_client.gui.viewport_map_in_realtime) return;
+
+	Order *order;
+	TileIndex from_tile;
+	switch (_settings_client.gui.show_vehicle_route_path) {
+		case 0: // No
+			return;
+
+		case 1: // Simple
+			from_tile = GetLastValidOrderLocation(veh);
+			if (from_tile == INVALID_TILE) return;
+			FOR_VEHICLE_ORDERS(veh, order) {
+				Order *final_order = GetFinalOrder(veh, order);
+				const TileIndex to_tile = GetTileFromVehicleOrder(veh, final_order);
+				if (to_tile == INVALID_TILE) continue;
+				MarkTileLineDirty(from_tile, to_tile);
+				const OrderType ot = order->GetType();
+				if (ot == OT_GOTO_STATION || ot == OT_GOTO_DEPOT || ot == OT_GOTO_WAYPOINT || ot == OT_IMPLICIT) from_tile = to_tile;
+			}
+			break;
+	}
+}
+
+void MarkTileDirtyByTileOutsideMap(int x, int y)
+{
+	Point pt = RemapCoords(x * TILE_SIZE, y * TILE_SIZE, GetTilePixelZOutsideMap(x, y));
+	/* Since tiles painted outside the map don't contain buildings, trees, etc.,
+	 * this reduced area for repainting should suffice. If not, adjust the offsets
+	 * used below. */
+	MarkAllViewportsDirty(
+		pt.x - TILE_SIZE + 1,
+		pt.y,
+		pt.x + TILE_SIZE - 1,
+		pt.y + TILE_SIZE + TILE_HEIGHT - 1,
+		ZOOM_LVL_DRAW_MAP
 	);
 }
 
@@ -1805,7 +3060,7 @@ static void SetSelectionTilesDirty()
 			static const int OVERLAY_WIDTH = 4 * ZOOM_LVL_BASE; // part of selection sprites is drawn outside the selected area
 
 			/* For halftile foundations on SLOPE_STEEP_S the sprite extents some more towards the top */
-			MarkAllViewportsDirty(l - OVERLAY_WIDTH, t - OVERLAY_WIDTH - TILE_HEIGHT * ZOOM_LVL_BASE, r + OVERLAY_WIDTH, b + OVERLAY_WIDTH * ZOOM_LVL_BASE);
+			MarkAllViewportsDirty(l - OVERLAY_WIDTH, t - OVERLAY_WIDTH - TILE_HEIGHT * ZOOM_LVL_BASE, r + OVERLAY_WIDTH, b + OVERLAY_WIDTH * ZOOM_LVL_BASE, ZOOM_LVL_END);
 
 			/* haven't we reached the topmost tile yet? */
 			if (top_x != x_start) {
@@ -1834,7 +3089,7 @@ static void SetSelectionTilesDirty()
 				uint y = (_thd.pos.y + (a - b) / 2) / TILE_SIZE;
 
 				if (x < MapMaxX() && y < MapMaxY()) {
-					MarkTileDirtyByTile(TileXY(x, y));
+					MarkTileDirtyByTile(TileXY(x, y), ZOOM_LVL_END);
 				}
 			}
 		}
@@ -1962,9 +3217,31 @@ static void PlaceObject()
 	if (w != NULL) w->OnPlaceObject(pt, TileVirtXY(pt.x, pt.y));
 }
 
+bool HandleViewportDoubleClicked(Window *w, int x, int y)
+{
+	ViewPort *vp = w->viewport;
+	if (vp->zoom < ZOOM_LVL_DRAW_MAP) return false;
+
+	switch (_settings_client.gui.action_when_viewport_map_is_dblclicked) {
+		case 0: // Do nothing
+			return false;
+		case 1: // Zoom in main viewport
+			while (vp->zoom != ZOOM_LVL_VIEWPORT)
+				ZoomInOrOutToCursorWindow(true, w);
+			return true;
+		case 2: // Open an extra viewport
+			ShowExtraViewPortWindowForTileUnderCursor();
+			return true;
+		default:
+			return false;
+	}
+}
 
 bool HandleViewportClicked(const ViewPort *vp, int x, int y)
 {
+	/* No click in smallmap mode */
+	if (vp->zoom >= ZOOM_LVL_DRAW_MAP) return true;
+
 	const Vehicle *v = CheckClickOnVehicle(vp, x, y);
 
 	if (_thd.place_mode & HT_VEHICLE) {
@@ -2019,6 +3296,14 @@ void RebuildViewportOverlay(Window *w)
 bool ScrollWindowTo(int x, int y, int z, Window *w, bool instant)
 {
 	/* The slope cannot be acquired outside of the map, so make sure we are always within the map. */
+//	if (z == -1) {
+//		if ( x >= 0 && x <= (int)MapSizeX() * (int)TILE_SIZE - 1
+//				&& y >= 0 && y <= (int)MapSizeY() * (int)TILE_SIZE - 1) {
+//			z = GetSlopePixelZ(x, y);
+//		} else {
+//			z = TileHeightOutsideMap(x / TILE_SIZE, y / TILE_SIZE);
+//		}
+//	}
 	if (z == -1) z = GetSlopePixelZ(Clamp(x, 0, MapSizeX() * TILE_SIZE - 1), Clamp(y, 0, MapSizeY() * TILE_SIZE - 1));
 
 	Point pt = MapXYZToViewport(w->viewport, x, y, z);
@@ -2072,8 +3357,8 @@ void SetRedErrorSquare(TileIndex tile)
 	_thd.redsq = tile;
 
 	if (tile != old) {
-		if (tile != INVALID_TILE) MarkTileDirtyByTile(tile);
-		if (old  != INVALID_TILE) MarkTileDirtyByTile(old);
+		if (tile != INVALID_TILE) MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
+		if (old  != INVALID_TILE) MarkTileDirtyByTile(old, ZOOM_LVL_DRAW_MAP);
 	}
 }
 
@@ -2997,4 +4282,14 @@ Point GetViewportStationMiddle(const ViewPort *vp, const Station *st)
 	p.x = UnScaleByZoom(p.x - vp->virtual_left, vp->zoom) + vp->left;
 	p.y = UnScaleByZoom(p.y - vp->virtual_top, vp->zoom) + vp->top;
 	return p;
+}
+
+ViewportMapType ChangeRenderMode(const ViewPort *vp, bool down) {
+	ViewportMapType map_type = vp->map_type;
+	if (vp->zoom < ZOOM_LVL_DRAW_MAP) return map_type;
+	if (down) {
+		return (map_type == VPMT_MIN) ? VPMT_MAX : (ViewportMapType) (map_type - 1);
+	} else {
+		return (map_type == VPMT_MAX) ? VPMT_MIN : (ViewportMapType) (map_type + 1);
+	}
 }

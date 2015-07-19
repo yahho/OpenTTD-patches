@@ -17,8 +17,30 @@
 #include "window_type.h"
 #include "tile_type.h"
 #include "station_type.h"
+#include "vehicle_base.h"
+#include "tile_cmd.h"
 
 static const int TILE_HEIGHT_STEP = 50; ///< One Z unit tile height difference is displayed as 50m.
+
+/**
+ * The maximum amount of pixels one may scroll outside map.
+ * Considering,when increasing height at tile (1, 1)
+ * the first overlapping tile on tile(1, 1, 0) is tile(4, 4, 1),
+ * or the first tile completely drawn outside the map(no height) is tile(1, 1, 4),
+ * value below has been calculated as follows:
+ *
+ * extra_pixels_needed_for heightlevels = (max_possible_height / overlap * TILE_SIZE / 2)
+ * eg. 256 / 4 * 8 / 2 = 256 pixels for tile(1, 1, 255) to be inside viewport when fully zoomed in
+ * 22 pixels for the toolbar.
+ * 200 pixels to be safe with tall buildings on tile(1, 1, 255).
+ *
+ * TODO: 200 is a guesstimate. If you know a correct value, please insert it and correct line above.
+ *
+ * @note Subtract 8 for each pixel needed.
+ */
+enum  ScrollMaxOutsideMap {
+  MAXSCROLL = 3824, ///< tile(1, 1) having height 255
+};
 
 void SetSelectionRed(bool);
 
@@ -28,7 +50,10 @@ ViewPort *IsPtInWindowViewport(const Window *w, int x, int y);
 Point GetTileBelowCursor();
 void UpdateViewportPosition(Window *w);
 
-void MarkAllViewportsDirty(int left, int top, int right, int bottom);
+void MarkAllViewportsDirty(int left, int top, int right, int bottom, ZoomLevel mark_dirty_if_zoomlevel_is_below);
+void MarkAllViewportMapsDirty(int left, int top, int right, int bottom);
+void MarkAllRouteStopoversDirty(const Vehicle *veh);
+void MarkAllRoutePathsDirty(const Vehicle *veh);
 
 bool DoZoomInOutWindow(ZoomStateChange how, Window *w);
 void ZoomInOrOutToCursorWindow(bool in, Window * w);
@@ -58,6 +83,7 @@ void ViewportAddString(const DrawPixelInfo *dpi, ZoomLevel small_from, const Vie
 void StartSpriteCombine();
 void EndSpriteCombine();
 
+bool HandleViewportDoubleClicked(Window *w, int x, int y);
 bool HandleViewportClicked(const ViewPort *vp, int x, int y);
 void SetRedErrorSquare(TileIndex tile);
 void SetTileSelectSize(int w, int h);
@@ -67,6 +93,7 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 
 bool ScrollWindowToTile(TileIndex tile, Window *w, bool instant = false);
 bool ScrollWindowTo(int x, int y, int z, Window *w, bool instant = false);
+uint16 GetMaxScrollOutsideMap();
 
 void RebuildViewportOverlay(Window *w);
 
@@ -77,8 +104,14 @@ void UpdateAllVirtCoords();
 
 extern Point _tile_fract_coords;
 
-void MarkTileDirtyByTile(TileIndex tile);
+void MarkTileDirtyByTile(TileIndex tile, ZoomLevel mark_dirty_if_zoomlevel_is_below);
+
+ViewportMapType ChangeRenderMode(const ViewPort *vp, bool down);
+void ShowExtraViewPortWindowForTileUnderCursor();
 
 Point GetViewportStationMiddle(const ViewPort *vp, const Station *st);
+
+int GetRowAtTile(int viewport_y, Point tile);
+void MarkTileDirtyByTileOutsideMap(int x, int y);
 
 #endif /* VIEWPORT_FUNC_H */

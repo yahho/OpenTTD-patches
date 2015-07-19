@@ -60,6 +60,12 @@ struct ScoreInfo {
 	int score;  ///< How much score it will give
 };
 
+enum DeliverGoodsType {
+	DGT_DEFAULT,
+	DGT_TO_ALL,
+	DGT_USING_MASK,
+};
+
 /**
  * Enumeration of all base prices for use with #Prices.
  * The prices are ordered as they are expected by NewGRF cost multipliers, so don't shuffle them.
@@ -161,6 +167,8 @@ enum ExpensesType {
 	EXPENSES_SHIP_INC,            ///< Income from ships.
 	EXPENSES_LOAN_INT,            ///< Interest payments over the loan.
 	EXPENSES_OTHER,               ///< Other expenses.
+	EXPENSES_SHARING_COST,        ///< Infrastructure sharing costs
+	EXPENSES_SHARING_INC,         ///< Infrastructure sharing income
 	EXPENSES_END,                 ///< Number of expense types.
 	INVALID_EXPENSES      = 0xFF, ///< Invalid expense type.
 };

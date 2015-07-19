@@ -658,7 +658,12 @@ void StartupOneEngine(Engine *e, Date aging_date)
 	 * of engines in early starting games.
 	 * Note: TTDP uses fixed 1922 */
 	uint32 r = Random();
-	e->intro_date = ei->base_intro <= ConvertYMDToDate(_settings_game.game_creation.starting_year + 2, 0, 1) ? ei->base_intro : (Date)GB(r, 0, 9) + ei->base_intro;
+
+	if(!_settings_game.vehicle.exact_intro_date)
+		e->intro_date = ei->base_intro <= ConvertYMDToDate(_settings_game.game_creation.starting_year + 2, 0, 1) ? ei->base_intro : (Date)GB(r, 0, 9) + ei->base_intro;
+	else
+		e->intro_date = ei->base_intro;
+
 	if (e->intro_date <= _date) {
 		e->age = (aging_date - e->intro_date) >> 5;
 		e->company_avail = (CompanyMask)-1;
@@ -861,7 +866,7 @@ void EnginesDailyLoop()
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdWantEnginePreview(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+CommandCost CmdWantEnginePreview(TileIndex tile, DoCommandFlag flags, uint64 p1, uint64 p2, const char *text)
 {
 	Engine *e = Engine::GetIfValid(p1);
 	if (e == NULL || e->preview_company != _current_company) return CMD_ERROR;
@@ -1007,7 +1012,7 @@ static bool IsUniqueEngineName(const char *name)
  * @param text the new name or an empty string when resetting to the default
  * @return the cost of this operation or an error
  */
-CommandCost CmdRenameEngine(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+CommandCost CmdRenameEngine(TileIndex tile, DoCommandFlag flags, uint64 p1, uint64 p2, const char *text)
 {
 	Engine *e = Engine::GetIfValid(p1);
 	if (e == NULL) return CMD_ERROR;

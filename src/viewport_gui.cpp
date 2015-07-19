@@ -16,6 +16,9 @@
 #include "strings_func.h"
 #include "zoom_func.h"
 #include "window_func.h"
+#include "gfx_func.h"
+#include "industry.h"
+#include "town_map.h"
 
 #include "widgets/viewport_widget.h"
 
@@ -76,6 +79,8 @@ public:
 		this->viewport->scrollpos_y = pt.y - this->viewport->virtual_height / 2;
 		this->viewport->dest_scrollpos_x = this->viewport->scrollpos_x;
 		this->viewport->dest_scrollpos_y = this->viewport->scrollpos_y;
+		this->viewport->refresh = 1;
+		this->viewport->map_type = (ViewportMapType) _settings_client.gui.default_viewport_map_mode;
 	}
 
 	virtual void SetStringParameters(int widget) const
@@ -136,7 +141,12 @@ public:
 
 	virtual void OnMouseWheel(int wheel)
 	{
-		if (_settings_client.gui.scrollwheel_scrolling == 0) {
+		if (_ctrl_pressed) {
+			/* Cycle through the drawing modes */
+			this->viewport->map_type = ChangeRenderMode(this->viewport, wheel < 0);
+			this->viewport->refresh = 0x1F;
+			this->SetDirty();
+		} else if (_settings_client.gui.scrollwheel_scrolling == 0) {
 			ZoomInOrOutToCursorWindow(wheel < 0, this);
 		}
 	}
@@ -152,6 +162,69 @@ public:
 		/* Only handle zoom message if intended for us (msg ZOOM_IN/ZOOM_OUT) */
 		HandleZoomMessage(this, this->viewport, WID_EV_ZOOM_IN, WID_EV_ZOOM_OUT);
 	}
+
+	virtual void OnMouseOver(Point pt, int widget)
+	{
+		/* Show tooltip with last month production or town name */
+		if (pt.x != -1) {
+			TileIndex tile;
+			const bool viewport_is_in_map_mode = (this->viewport->zoom >= ZOOM_LVL_DRAW_MAP);
+			if (viewport_is_in_map_mode) {
+				NWidgetViewport *nvp = this->GetWidget<NWidgetViewport>(WID_EV_VIEWPORT);
+				const int a = ((ScaleByZoom(pt.x - nvp->pos_x, this->viewport->zoom) + this->viewport->virtual_left) >> 2) / ZOOM_LVL_BASE;
+				const int b = ((ScaleByZoom(pt.y - nvp->pos_y, this->viewport->zoom) + this->viewport->virtual_top) >> 1) / ZOOM_LVL_BASE;
+				tile = TileVirtXY(b - a, b + a);
+			} else {
+				const Point p = GetTileBelowCursor();
+				tile = TileVirtXY(p.x, p.y);
+			}
+			if (tile >= MapSize()) return;
+
+			switch (GetTileType(tile)) {
+				case MP_ROAD:
+					if (IsRoadDepot(tile)) return;
+					/* FALL THROUGH */
+				case MP_HOUSE: {
+					if (HasBit(_display_opt, DO_SHOW_TOWN_NAMES)) return; // No need for a town name tooltip when it is already displayed
+					if (!viewport_is_in_map_mode) return;
+					const TownID tid = GetTownIndex(tile);
+					if (!tid) return;
+					SetDParam(0, tid);
+					GuiShowTooltips(this, STR_TOWN_NAME_TOOLTIP, 0, NULL, TCC_HOVER);
+					break;
+				}
+				case MP_INDUSTRY: {
+					const Industry *ind = Industry::GetByTile(tile);
+					const IndustrySpec *indsp = GetIndustrySpec(ind->type);
+
+					StringID str = STR_INDUSTRY_VIEW_TRANSPORTED_TOOLTIP;
+					uint prm_count = 0;
+					SetDParam(prm_count++, indsp->name);
+					for (byte i = 0; i < lengthof(ind->produced_cargo); i++) {
+						if (ind->produced_cargo[i] != CT_INVALID) {
+							SetDParam(prm_count++, ind->produced_cargo[i]);
+							SetDParam(prm_count++, ind->last_month_production[i]);
+							SetDParam(prm_count++, ToPercent8(ind->last_month_pct_transported[i]));
+							str++;
+						}
+					}
+					GuiShowTooltips(this, str, 0, NULL, TCC_HOVER);
+					break;
+				}
+				default:
+					return;
+			}
+		}
+	}
+
+	virtual void OnTick()
+	{
+		if (!_settings_client.gui.viewport_map_in_realtime && this->viewport->zoom >= ZOOM_LVL_DRAW_MAP && --this->viewport->refresh == 0) {
+			this->viewport->refresh = 0x1F;
+			this->SetDirty();
+		}
+	}
+
 };
 
 static WindowDesc _extra_view_port_desc(

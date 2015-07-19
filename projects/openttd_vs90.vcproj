@@ -796,6 +796,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\trafficlight.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\vehicle.cpp"
 				>
 			</File>
@@ -1784,6 +1788,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\trafficlight.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\trafficlight_func.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\trafficlight_type.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\train.h"
 				>
 			</File>
@@ -1885,6 +1901,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\zoom_type.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\zoning.h"
 				>
 			</File>
 		</Filter>
@@ -2235,6 +2255,10 @@
 				RelativePath=".\..\src\waypoint_gui.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\..\src\zoning_gui.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Widgets"
@@ -2577,6 +2601,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\waypoint_cmd.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\zoning_cmd.cpp"
 				>
 			</File>
 		</Filter>
