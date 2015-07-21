@@ -54,10 +54,11 @@ static const char *const game_api_versions[] =
 		info->min_loadable_version = info->GetVersion();
 	}
 	/* When there is an IsSelectable function, call it. */
+	bool is_developer_only;
 	if (scanner->method_exists ("IsDeveloperOnly")) {
-		if (!scanner->call_bool_method ("IsDeveloperOnly", MAX_GET_OPS, &info->is_developer_only)) return SQ_ERROR;
+		if (!scanner->call_bool_method ("IsDeveloperOnly", MAX_GET_OPS, &is_developer_only)) return SQ_ERROR;
 	} else {
-		info->is_developer_only = false;
+		is_developer_only = false;
 	}
 	/* Try to get the API version the AI is written for. */
 	if (!scanner->check_method ("GetAPIVersion")) return SQ_ERROR;
@@ -71,13 +72,12 @@ static const char *const game_api_versions[] =
 	/* Remove the link to the real instance, else it might get deleted by RegisterGame() */
 	sq_setinstanceup(vm, 2, NULL);
 	/* Register the Game to the base system */
-	scanner->RegisterScript (info, info->GetName(), info->IsDeveloperOnly());
+	scanner->RegisterScript (info, info->GetName(), is_developer_only);
 	return 0;
 }
 
 GameInfo::GameInfo() :
 	min_loadable_version(0),
-	is_developer_only(false),
 	api_version(NULL)
 {
 }
