@@ -42,7 +42,7 @@ public:
 	/**
 	 * Use this AI as a random AI.
 	 */
-	bool UseAsRandomAI() const { return this->use_as_random; }
+	bool UseAsRandomAI() const { return this->use == USE_RANDOM; }
 
 	/**
 	 * Get the API version this AI is written for.
@@ -51,8 +51,15 @@ public:
 
 private:
 	int min_loadable_version; ///< The AI can load savegame data if the version is equal or greater than this.
-	bool use_as_random;       ///< Should this AI be used when the user wants a "random AI"?
 	const char *api_version;  ///< API version used by this AI.
+
+	enum {
+		USE_RANDOM,       ///< This AI can be used as a random AI.
+		USE_MANUAL,       ///< Only use this AI when manually selected
+		USE_DUMMY,        ///< This is the dummy AI
+	};
+
+	int use;                  ///< Use of this AI (manual, random, dummy)
 };
 
 /** All static information from an AI library like name, version, etc. */

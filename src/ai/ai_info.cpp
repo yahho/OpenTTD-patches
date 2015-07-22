@@ -69,9 +69,11 @@ static const char *const ai_api_versions[] =
 	}
 	/* When there is an UseAsRandomAI function, call it. */
 	if (scanner->method_exists ("UseAsRandomAI")) {
-		if (!scanner->call_bool_method ("UseAsRandomAI", MAX_GET_OPS, &info->use_as_random)) return SQ_ERROR;
+		bool use_as_random;
+		if (!scanner->call_bool_method ("UseAsRandomAI", MAX_GET_OPS, &use_as_random)) return SQ_ERROR;
+		info->use = use_as_random ? USE_RANDOM : USE_MANUAL;
 	} else {
-		info->use_as_random = true;
+		info->use = USE_RANDOM;
 	}
 	/* Try to get the API version the AI is written for. */
 	if (scanner->method_exists ("GetAPIVersion")) {
@@ -93,15 +95,13 @@ static const char *const ai_api_versions[] =
 }
 
 AIInfo::AIInfo() :
-	min_loadable_version(0),
-	use_as_random(false),
-	api_version(NULL)
+	min_loadable_version(0), api_version(NULL), use(USE_MANUAL)
 {
 }
 
 AIInfo::AIInfo (bool ignored)
-	: min_loadable_version(0), use_as_random(false),
-	  api_version(*lastof(ai_api_versions))
+	: min_loadable_version(0),
+	  api_version(*lastof(ai_api_versions)), use(USE_DUMMY)
 {
 	this->main_script.reset (xstrdup ("%_dummy"));
 	this->author.reset (xstrdup ("OpenTTD Developers Team"));
