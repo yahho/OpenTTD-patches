@@ -58,7 +58,8 @@ ScriptInstance::ScriptInstance(const char *APIName) :
 	this->engine->Initialize();
 }
 
-void ScriptInstance::Initialize (const ScriptInfo *info, CompanyID company)
+void ScriptInstance::Initialize (const ScriptInfo *info, CompanyID company,
+	void (*load) (HSQUIRRELVM))
 {
 	ScriptObject::ActiveInstance active(this);
 
@@ -71,8 +72,8 @@ void ScriptInstance::Initialize (const ScriptInfo *info, CompanyID company)
 		ScriptObject::SetAllowDoCommand(false);
 		/* Load and execute the script for this script */
 		const char *main_script = info->GetMainScript();
-		if (strcmp(main_script, "%_dummy") == 0) {
-			this->LoadDummyScript();
+		if (load != NULL) {
+			load (this->engine->GetVM());
 		} else if (!this->engine->LoadScript(main_script) || this->engine->IsSuspended()) {
 			if (this->engine->IsSuspended()) ScriptLog::Error("This script took too long to load script. AI is not started.");
 			this->Died();

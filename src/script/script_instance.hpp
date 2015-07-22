@@ -38,8 +38,10 @@ public:
 	 * Initialize the script and prepare it for its first run.
 	 * @param info The ScriptInfo of the script.
 	 * @param company Which company this script is serving.
+	 * @param load Use this function to load the script (for the dummy script)
 	 */
-	void Initialize (const class ScriptInfo *info, CompanyID company);
+	void Initialize (const class ScriptInfo *info, CompanyID company,
+		void (*load) (HSQUIRRELVM) = NULL);
 
 	/**
 	 * Get the value of a setting of the current instance.
@@ -225,11 +227,6 @@ protected:
 	 * Get the command source to be used in DoCommand (to determine the callback)
 	 */
 	virtual CommandSource GetCommandSource() = 0;
-
-	/**
-	 * Load the dummy script.
-	 */
-	virtual void LoadDummyScript() = 0;
 
 private:
 	class ScriptController *controller;   ///< The script main class.

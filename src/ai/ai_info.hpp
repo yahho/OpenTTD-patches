@@ -49,6 +49,8 @@ public:
 	 */
 	const char *GetAPIVersion() const { return this->api_version; }
 
+	friend class AIInstance;
+
 private:
 	int min_loadable_version; ///< The AI can load savegame data if the version is equal or greater than this.
 	const char *api_version;  ///< API version used by this AI.

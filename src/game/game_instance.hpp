@@ -32,7 +32,6 @@ private:
 	/* virtual */ void RegisterAPI();
 	/* virtual */ void Died();
 	/* virtual */ CommandSource GetCommandSource();
-	/* virtual */ void LoadDummyScript() {}
 };
 
 void CcGame (const CommandCost &result);

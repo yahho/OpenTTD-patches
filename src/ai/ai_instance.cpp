@@ -36,6 +36,8 @@ AIInstance::AIInstance() :
 	ScriptInstance("AI")
 {}
 
+static void LoadDummyScript (HSQUIRRELVM vm);
+
 void AIInstance::Initialize (const AIInfo *info)
 {
 	this->versionAPI = info->GetAPIVersion();
@@ -43,7 +45,8 @@ void AIInstance::Initialize (const AIInfo *info)
 	/* Register the AIController (including the "import" command) */
 	SQAIController_Register(this->engine);
 
-	ScriptInstance::Initialize (info, _current_company);
+	ScriptInstance::Initialize (info, _current_company,
+			info->use == AIInfo::USE_DUMMY ? &LoadDummyScript : NULL);
 }
 
 void AIInstance::RegisterAPI()
@@ -126,7 +129,7 @@ static WChar dummy_script_reader (SQUserPointer userdata)
 	return *data->literal++;
 }
 
-void AIInstance::LoadDummyScript()
+static void LoadDummyScript (HSQUIRRELVM vm)
 {
 	/* Get the (translated) error message. */
 	char error_message[1024];
@@ -135,7 +138,6 @@ void AIInstance::LoadDummyScript()
 	/* Load and run a dummy script. */
 	DummyScriptHelper data = { dummy_script_head, error_message };
 
-	HSQUIRRELVM vm = this->engine->GetVM();
 	SQRESULT res;
 
 	sq_pushroottable (vm);
