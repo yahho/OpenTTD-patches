@@ -252,43 +252,6 @@ protected:
 	 * Get an allocated string with all control codes stripped off.
 	 */
 	static char *GetString(StringID string);
-
-private:
-	/**
-	 * Store a new_vehicle_id per company.
-	 * @param vehicle_id The new VehicleID.
-	 */
-	static void SetNewVehicleID(VehicleID vehicle_id);
-
-	/**
-	 * Store a new_sign_id per company.
-	 * @param sign_id The new SignID.
-	 */
-	static void SetNewSignID(SignID sign_id);
-
-	/**
-	 * Store a new_group_id per company.
-	 * @param group_id The new GroupID.
-	 */
-	static void SetNewGroupID(GroupID group_id);
-
-	/**
-	 * Store a new_goal_id per company.
-	 * @param goal_id The new GoalID.
-	 */
-	static void SetNewGoalID(GoalID goal_id);
-
-	/**
-	 * Store a new_story_page_id per company.
-	 * @param story_page_id The new StoryPageID.
-	 */
-	static void SetNewStoryPageID(StoryPageID story_page_id);
-
-	/**
-	 * Store a new_story_page_id per company.
-	 * @param story_page_id The new StoryPageID.
-	 */
-	static void SetNewStoryPageElementID(StoryPageElementID story_page_element_id);
 };
 
 #endif /* SCRIPT_OBJECT_HPP */
