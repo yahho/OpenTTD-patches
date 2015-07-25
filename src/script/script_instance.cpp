@@ -194,6 +194,7 @@ void ScriptInstance::GameLoop()
 			sq_poptop(this->engine->GetVM());
 			this->is_save_data_on_stack = false;
 		}
+		assert (ScriptObject::GetActiveInstance() == this);
 		try {
 			this->callback(this);
 		} catch (Script_Suspend e) {
@@ -265,36 +266,43 @@ void ScriptInstance::CollectGarbage() const
 
 /* static */ void ScriptInstance::DoCommandReturn(ScriptInstance *instance)
 {
+	assert (ScriptObject::GetActiveInstance() == instance);
 	instance->engine->InsertResult(ScriptObject::GetLastCommandRes());
 }
 
 /* static */ void ScriptInstance::DoCommandReturnVehicleID(ScriptInstance *instance)
 {
+	assert (ScriptObject::GetActiveInstance() == instance);
 	instance->engine->InsertResult(ScriptObject::GetNewVehicleID());
 }
 
 /* static */ void ScriptInstance::DoCommandReturnSignID(ScriptInstance *instance)
 {
+	assert (ScriptObject::GetActiveInstance() == instance);
 	instance->engine->InsertResult(ScriptObject::GetNewSignID());
 }
 
 /* static */ void ScriptInstance::DoCommandReturnGroupID(ScriptInstance *instance)
 {
+	assert (ScriptObject::GetActiveInstance() == instance);
 	instance->engine->InsertResult(ScriptObject::GetNewGroupID());
 }
 
 /* static */ void ScriptInstance::DoCommandReturnGoalID(ScriptInstance *instance)
 {
+	assert (ScriptObject::GetActiveInstance() == instance);
 	instance->engine->InsertResult(ScriptObject::GetNewGoalID());
 }
 
 /* static */ void ScriptInstance::DoCommandReturnStoryPageID(ScriptInstance *instance)
 {
+	assert (ScriptObject::GetActiveInstance() == instance);
 	instance->engine->InsertResult(ScriptObject::GetNewStoryPageID());
 }
 
 /* static */ void ScriptInstance::DoCommandReturnStoryPageElementID(ScriptInstance *instance)
 {
+	assert (ScriptObject::GetActiveInstance() == instance);
 	instance->engine->InsertResult(ScriptObject::GetNewStoryPageElementID());
 }
 

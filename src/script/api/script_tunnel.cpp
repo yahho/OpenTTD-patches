@@ -53,6 +53,8 @@
  */
 static void _DoCommandReturnBuildTunnel2(class ScriptInstance *instance)
 {
+	assert (ScriptObject::GetActiveInstance() == instance);
+
 	if (!ScriptTunnel::_BuildTunnelRoad2()) {
 		ScriptInstance::DoCommandReturn(instance);
 		return;
@@ -69,6 +71,8 @@ static void _DoCommandReturnBuildTunnel2(class ScriptInstance *instance)
  */
 static void _DoCommandReturnBuildTunnel1(class ScriptInstance *instance)
 {
+	assert (ScriptObject::GetActiveInstance() == instance);
+
 	if (!ScriptTunnel::_BuildTunnelRoad1()) {
 		ScriptInstance::DoCommandReturn(instance);
 		return;

@@ -561,6 +561,7 @@ static int ScriptOrderPositionToRealOrderPosition(VehicleID vehicle_id, ScriptOr
  */
 static void _DoCommandReturnSetOrderFlags(class ScriptInstance *instance)
 {
+	assert (ScriptObject::GetActiveInstance() == instance);
 	ScriptObject::SetLastCommandRes(ScriptOrder::_SetOrderFlags());
 	ScriptInstance::DoCommandReturn(instance);
 }

@@ -50,6 +50,8 @@
  */
 static void _DoCommandReturnBuildBridge2(class ScriptInstance *instance)
 {
+	assert (ScriptObject::GetActiveInstance() == instance);
+
 	if (!ScriptBridge::_BuildBridgeRoad2()) {
 		ScriptInstance::DoCommandReturn(instance);
 		return;
@@ -66,6 +68,8 @@ static void _DoCommandReturnBuildBridge2(class ScriptInstance *instance)
  */
 static void _DoCommandReturnBuildBridge1(class ScriptInstance *instance)
 {
+	assert (ScriptObject::GetActiveInstance() == instance);
+
 	if (!ScriptBridge::_BuildBridgeRoad1()) {
 		ScriptInstance::DoCommandReturn(instance);
 		return;
