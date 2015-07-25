@@ -149,41 +149,6 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 	storage->new_story_page_element_id = _new_story_page_element_id;
 }
 
-/* static */ bool ScriptObject::GetLastCommandRes()
-{
-	return GetStorage()->last_command_res;
-}
-
-/* static */ VehicleID ScriptObject::GetNewVehicleID()
-{
-	return GetStorage()->new_vehicle_id;
-}
-
-/* static */ SignID ScriptObject::GetNewSignID()
-{
-	return GetStorage()->new_sign_id;
-}
-
-/* static */ GroupID ScriptObject::GetNewGroupID()
-{
-	return GetStorage()->new_group_id;
-}
-
-/* static */ GroupID ScriptObject::GetNewGoalID()
-{
-	return GetStorage()->new_goal_id;
-}
-
-/* static */ GroupID ScriptObject::GetNewStoryPageID()
-{
-	return GetStorage()->new_story_page_id;
-}
-
-/* static */ GroupID ScriptObject::GetNewStoryPageElementID()
-{
-	return GetStorage()->new_story_page_element_id;
-}
-
 /* static */ void ScriptObject::SetAllowDoCommand(bool allow)
 {
 	GetStorage()->allow_do_command = allow;

@@ -267,43 +267,43 @@ void ScriptInstance::CollectGarbage() const
 /* static */ void ScriptInstance::DoCommandReturn(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->engine->InsertResult(ScriptObject::GetLastCommandRes());
+	instance->engine->InsertResult (instance->storage->last_command_res);
 }
 
 /* static */ void ScriptInstance::DoCommandReturnVehicleID(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->engine->InsertResult(ScriptObject::GetNewVehicleID());
+	instance->engine->InsertResult (instance->storage->new_vehicle_id);
 }
 
 /* static */ void ScriptInstance::DoCommandReturnSignID(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->engine->InsertResult(ScriptObject::GetNewSignID());
+	instance->engine->InsertResult (instance->storage->new_sign_id);
 }
 
 /* static */ void ScriptInstance::DoCommandReturnGroupID(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->engine->InsertResult(ScriptObject::GetNewGroupID());
+	instance->engine->InsertResult (instance->storage->new_group_id);
 }
 
 /* static */ void ScriptInstance::DoCommandReturnGoalID(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->engine->InsertResult(ScriptObject::GetNewGoalID());
+	instance->engine->InsertResult (instance->storage->new_goal_id);
 }
 
 /* static */ void ScriptInstance::DoCommandReturnStoryPageID(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->engine->InsertResult(ScriptObject::GetNewStoryPageID());
+	instance->engine->InsertResult (instance->storage->new_story_page_id);
 }
 
 /* static */ void ScriptInstance::DoCommandReturnStoryPageElementID(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->engine->InsertResult(ScriptObject::GetNewStoryPageElementID());
+	instance->engine->InsertResult (instance->storage->new_story_page_element_id);
 }
 
 ScriptStorage *ScriptInstance::GetStorage()

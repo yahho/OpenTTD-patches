@@ -31,6 +31,7 @@ typedef bool (ScriptModeProc)();
  * The storage for each script. It keeps track of important information.
  */
 class ScriptStorage {
+friend class ScriptInstance;
 friend class ScriptObject;
 private:
 	ScriptModeProc *mode;             ///< The current build mode we are int.

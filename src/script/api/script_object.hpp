@@ -143,41 +143,6 @@ protected:
 	static uint GetDoCommandDelay();
 
 	/**
-	 * Get the latest result of a DoCommand.
-	 */
-	static bool GetLastCommandRes();
-
-	/**
-	 * Get the latest stored new_vehicle_id.
-	 */
-	static VehicleID GetNewVehicleID();
-
-	/**
-	 * Get the latest stored new_sign_id.
-	 */
-	static SignID GetNewSignID();
-
-	/**
-	 * Get the latest stored new_group_id.
-	 */
-	static GroupID GetNewGroupID();
-
-	/**
-	 * Get the latest stored new_goal_id.
-	 */
-	static GoalID GetNewGoalID();
-
-	/**
-	 * Get the latest stored new_story_page_id.
-	 */
-	static StoryPageID GetNewStoryPageID();
-
-	/**
-	 * Get the latest stored new_story_page_id.
-	 */
-	static StoryPageID GetNewStoryPageElementID();
-
-	/**
 	 * Store a allow_do_command per company.
 	 * @param allow The new allow.
 	 */
