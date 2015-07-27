@@ -13,6 +13,7 @@
 #define SCRIPT_LOG_HPP
 
 #include "script_object.hpp"
+#include "../script_instance.hpp"
 
 /**
  * Class that handles all log related functions.
@@ -24,32 +25,6 @@ class ScriptLog : public ScriptObject {
 	friend class ScriptController;
 
 public:
-	/**
-	 * Log levels; The value is also feed to DEBUG() lvl.
-	 *  This has no use for you, as script writer.
-	 * @api -all
-	 */
-	enum ScriptLogType {
-		LOG_SQ_ERROR = 0, ///< Squirrel printed an error.
-		LOG_ERROR = 1,    ///< User printed an error.
-		LOG_SQ_INFO = 2,  ///< Squirrel printed some info.
-		LOG_WARNING = 3,  ///< User printed some warning.
-		LOG_INFO = 4,     ///< User printed some info.
-	};
-
-	/**
-	 * Internal representation of the log-data inside the script.
-	 *  This has no use for you, as script writer.
-	 * @api -all
-	 */
-	struct LogData {
-		char **lines;           ///< The log-lines.
-		ScriptLog::ScriptLogType *type; ///< Per line, which type of log it was.
-		int count;              ///< Total amount of log-lines possible.
-		int pos;                ///< Current position in lines.
-		int used;               ///< Total amount of used log-lines.
-	};
-
 	/**
 	 * Print an Info message to the logs.
 	 * @param message The message to log.
@@ -71,17 +46,11 @@ public:
 	 */
 	static void Error(const char *message);
 
-	/**
-	 * Free the log pointer.
-	 * @api -all
-	 */
-	static void FreeLogPointer();
-
 private:
 	/**
 	 * Internal command to log the message in a common way.
 	 */
-	static void Log(ScriptLog::ScriptLogType level, const char *message);
+	static void Log (ScriptInstance::LogLevel level, const char *message);
 };
 
 #endif /* SCRIPT_LOG_HPP */

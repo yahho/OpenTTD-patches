@@ -188,11 +188,6 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 	return GetStorage()->event_data;
 }
 
-/* static */ void *&ScriptObject::GetLogPointer()
-{
-	return GetStorage()->log_data;
-}
-
 /* static */ char *ScriptObject::GetString(StringID string)
 {
 	char buffer[64];

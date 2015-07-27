@@ -984,13 +984,13 @@ struct AIDebugWindow : public Window {
 	QueryString break_editbox;                             ///< Break editbox
 	static StringFilter break_string_filter;               ///< Log filter for break.
 	static bool case_sensitive_break_check;                ///< Is the matching done case-sensitive
-	int highlight_row;                                     ///< The output row that matches the given string, or -1
+	uint highlight_row;                                    ///< The output row that matches the given string, or -1
 	Scrollbar *vscroll;                                    ///< Cache of the vertical scrollbar.
 
-	ScriptLog::LogData *GetLogPointer() const
+	const ScriptInstance::LogData *GetLog() const
 	{
-		if (ai_debug_company == OWNER_DEITY) return (ScriptLog::LogData *)Game::GetInstance()->GetLogPointer();
-		return (ScriptLog::LogData *)Company::Get(ai_debug_company)->ai_instance->GetLogPointer();
+		if (ai_debug_company == OWNER_DEITY) return &Game::GetInstance()->log;
+		return &Company::Get(ai_debug_company)->ai_instance->log;
 	}
 
 	/**
@@ -1129,9 +1129,7 @@ struct AIDebugWindow : public Window {
 		/* If there are no active companies, don't display anything else. */
 		if (ai_debug_company == INVALID_COMPANY) return;
 
-		ScriptLog::LogData *log = this->GetLogPointer();
-
-		int scroll_count = (log == NULL) ? 0 : log->used;
+		uint scroll_count = this->GetLog()->used;
 		if (this->vscroll->GetCount() != scroll_count) {
 			this->vscroll->SetCount(scroll_count);
 
@@ -1139,15 +1137,13 @@ struct AIDebugWindow : public Window {
 			this->SetWidgetDirty(WID_AID_SCROLLBAR);
 		}
 
-		if (log == NULL) return;
-
 		/* Detect when the user scrolls the window. Enable autoscroll when the
 		 * bottom-most line becomes visible. */
 		if (this->last_vscroll_pos != this->vscroll->GetPosition()) {
-			this->autoscroll = this->vscroll->GetPosition() >= log->used - this->vscroll->GetCapacity();
+			this->autoscroll = this->vscroll->GetPosition() >= scroll_count - this->vscroll->GetCapacity();
 		}
 		if (this->autoscroll) {
-			int scroll_pos = max(0, log->used - this->vscroll->GetCapacity());
+			int scroll_pos = max(0, (int)(scroll_count - this->vscroll->GetCapacity()));
 			if (scroll_pos != this->vscroll->GetPosition()) {
 				this->vscroll->SetPosition(scroll_pos);
 
@@ -1188,22 +1184,23 @@ struct AIDebugWindow : public Window {
 
 		switch (widget) {
 			case WID_AID_LOG_PANEL: {
-				ScriptLog::LogData *log = this->GetLogPointer();
-				if (log == NULL) return;
+				const ScriptInstance::LogData *log = this->GetLog();
+				assert ((log->used == log->SIZE) || (log->used == log->pos));
 
 				int y = this->top_offset;
-				for (int i = this->vscroll->GetPosition(); this->vscroll->IsVisible(i) && i < log->used; i++) {
-					int pos = (i + log->pos + 1 - log->used + log->count) % log->count;
-					if (log->lines[pos] == NULL) break;
+				for (uint i = this->vscroll->GetPosition(); this->vscroll->IsVisible(i) && i < log->used; i++) {
+					uint pos = (i + log->pos + log->SIZE - log->used) % log->SIZE;
+					const ScriptInstance::LogLine *line = log->lines[pos];
+					assert (line != NULL);
 
 					TextColour colour;
-					switch (log->type[pos]) {
-						case ScriptLog::LOG_SQ_INFO:  colour = TC_BLACK;  break;
-						case ScriptLog::LOG_SQ_ERROR: colour = TC_RED;    break;
-						case ScriptLog::LOG_INFO:     colour = TC_BLACK;  break;
-						case ScriptLog::LOG_WARNING:  colour = TC_YELLOW; break;
-						case ScriptLog::LOG_ERROR:    colour = TC_RED;    break;
-						default:                  colour = TC_BLACK;  break;
+					switch (line->level) {
+						case log->LOG_SQ_INFO:  colour = TC_BLACK;  break;
+						case log->LOG_SQ_ERROR: colour = TC_RED;    break;
+						case log->LOG_INFO:     colour = TC_BLACK;  break;
+						case log->LOG_WARNING:  colour = TC_YELLOW; break;
+						case log->LOG_ERROR:    colour = TC_RED;    break;
+						default:                colour = TC_BLACK;  break;
 					}
 
 					/* Check if the current line should be highlighted */
@@ -1212,7 +1209,7 @@ struct AIDebugWindow : public Window {
 						if (colour == TC_BLACK) colour = TC_WHITE; // Make black text readable by inverting it to white.
 					}
 
-					DrawString(r.left + 7, r.right - 7, r.top + y, log->lines[pos], colour, SA_LEFT | SA_FORCE);
+					DrawString (r.left + 7, r.right - 7, r.top + y, line->msg, colour, SA_LEFT | SA_FORCE);
 					y += this->resize.step_height;
 				}
 				break;
@@ -1332,29 +1329,28 @@ struct AIDebugWindow : public Window {
 		 * This needs to be done in gameloop-scope, so the AI is suspended immediately. */
 		if (!gui_scope && data == ai_debug_company && this->IsValidDebugCompany(ai_debug_company) && this->break_check_enabled && !this->break_string_filter.IsEmpty()) {
 			/* Get the log instance of the active company */
-			ScriptLog::LogData *log = this->GetLogPointer();
+			const ScriptInstance::LogData *log = this->GetLog();
 
-			if (log != NULL) {
-				this->break_string_filter.ResetState();
-				this->break_string_filter.AddLine(log->lines[log->pos]);
-				if (this->break_string_filter.GetState()) {
-					/* Pause execution of script. */
-					if (!this->IsDead()) {
-						if (ai_debug_company == OWNER_DEITY) {
-							Game::Pause();
-						} else {
-							AI::Pause(ai_debug_company);
-						}
+			this->break_string_filter.ResetState();
+			uint pos = (log->pos + log->SIZE - 1) % log->SIZE;
+			this->break_string_filter.AddLine (log->lines[pos]->msg);
+			if (this->break_string_filter.GetState()) {
+				/* Pause execution of script. */
+				if (!this->IsDead()) {
+					if (ai_debug_company == OWNER_DEITY) {
+						Game::Pause();
+					} else {
+						AI::Pause(ai_debug_company);
 					}
-
-					/* Pause the game. */
-					if ((_pause_mode & PM_PAUSED_NORMAL) == PM_UNPAUSED) {
-						DoCommandP(0, PM_PAUSED_NORMAL, 1, CMD_PAUSE);
-					}
-
-					/* Highlight row that matched */
-					this->highlight_row = log->pos;
 				}
+
+				/* Pause the game. */
+				if ((_pause_mode & PM_PAUSED_NORMAL) == PM_UNPAUSED) {
+					DoCommandP(0, PM_PAUSED_NORMAL, 1, CMD_PAUSE);
+				}
+
+				/* Highlight row that matched */
+				this->highlight_row = pos;
 			}
 		}
 
@@ -1362,8 +1358,8 @@ struct AIDebugWindow : public Window {
 
 		this->SelectValidDebugCompany();
 
-		ScriptLog::LogData *log = ai_debug_company != INVALID_COMPANY ? this->GetLogPointer() : NULL;
-		this->vscroll->SetCount((log == NULL) ? 0 : log->used);
+		this->vscroll->SetCount (ai_debug_company != INVALID_COMPANY ?
+				this->GetLog()->used : 0);
 
 		/* Update company buttons */
 		for (CompanyID i = COMPANY_FIRST; i < MAX_COMPANIES; i++) {

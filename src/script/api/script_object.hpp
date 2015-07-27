@@ -209,11 +209,6 @@ protected:
 	static void *&GetEventPointer();
 
 	/**
-	 * Get the pointer to store log message in.
-	 */
-	static void *&GetLogPointer();
-
-	/**
 	 * Get an allocated string with all control codes stripped off.
 	 */
 	static char *GetString(StringID string);

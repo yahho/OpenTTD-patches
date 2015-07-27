@@ -60,7 +60,6 @@ private:
 	RailType rail_type;              ///< The current railtype we build.
 
 	void *event_data;                ///< Pointer to the event data storage.
-	void *log_data;                  ///< Pointer to the log data storage.
 
 public:
 	ScriptStorage() :
@@ -83,8 +82,7 @@ public:
 		/* calback_value (can't be set) */
 		road_type         (INVALID_ROADTYPE),
 		rail_type         (INVALID_RAILTYPE),
-		event_data        (NULL),
-		log_data          (NULL)
+		event_data        (NULL)
 	{ }
 
 	~ScriptStorage();

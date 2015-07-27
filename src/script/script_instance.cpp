@@ -32,12 +32,12 @@
 #include "../company_base.h"
 #include "../company_func.h"
 #include "../fileio_func.h"
+#include "../window_func.h"
 
 ScriptStorage::~ScriptStorage()
 {
 	/* Free our pointers */
 	if (event_data != NULL) ScriptEventController::FreeEventPointer();
-	if (log_data != NULL) ScriptLog::FreeLogPointer();
 }
 
 ScriptInstance::ScriptInstance(const char *APIName) :
@@ -309,13 +309,6 @@ void ScriptInstance::CollectGarbage() const
 ScriptStorage *ScriptInstance::GetStorage()
 {
 	return this->storage;
-}
-
-void *ScriptInstance::GetLogPointer()
-{
-	ScriptObject::ActiveInstance active(this);
-
-	return ScriptObject::GetLogPointer();
 }
 
 /*
@@ -682,4 +675,51 @@ void ScriptInstance::InsertEvent(class ScriptEvent *event)
 	ScriptObject::ActiveInstance active(this);
 
 	ScriptEventController::InsertEvent(event);
+}
+
+ScriptInstance::LogData::~LogData()
+{
+	for (uint i = 0; i < this->used; i++) {
+		free (this->lines[i]);
+	}
+}
+
+inline const char *ScriptInstance::LogData::log (Level level, const char *message)
+{
+	/* Compute string length (cut at first newline). */
+	const char *newline = strchr (message, '\n');
+	size_t length = (newline != NULL) ? (newline - message) : strlen (message);
+
+	/* Allocate buffer and advance counter. */
+	Line *line;
+	if (this->used < SIZE) {
+		assert (this->pos == this->used);
+		this->used++;
+		line = NULL; // realloc (NULL, size) -> malloc (size)
+	} else {
+		line = this->lines[this->pos];
+	}
+	line = (Line *) xrealloc (line, sizeof(Line) + length + 1);
+	this->lines[this->pos] = line;
+	this->pos = (this->pos + 1) % SIZE;
+
+	/* Copy contents into buffer. */
+	line->level = level;
+	memcpy (line->msg, message, length);
+	line->msg[length] = '\0';
+
+	return line->msg;
+}
+
+void ScriptInstance::Log (LogLevel level, const char *message)
+{
+	/* Push string into buffer. */
+	message = this->log.log (level, message);
+
+	/* Also still print to debug window. */
+	static const char chars[] = "SEPWI";
+	char logc = ((uint)level < lengthof(chars)) ? chars[level] : '?';
+	CompanyID company = this->storage->root_company;
+	DEBUG(script, level, "[%d] [%c] %s", (uint)company, logc, message);
+	InvalidateWindowData (WC_AI_DEBUG, 0, company);
 }

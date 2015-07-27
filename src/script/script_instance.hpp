@@ -27,6 +27,7 @@ class ScriptInstance {
 public:
 	friend class ScriptObject;
 	friend class ScriptController;
+	friend class ScriptLog;
 
 	/**
 	 * Create a new script.
@@ -78,11 +79,6 @@ public:
 	 * Get the storage of this script.
 	 */
 	class ScriptStorage *GetStorage();
-
-	/**
-	 * Get the log pointer of this script.
-	 */
-	void *GetLogPointer();
 
 	/**
 	 * Return a true/false reply for a DoCommand.
@@ -240,6 +236,47 @@ private:
 	bool is_paused;                       ///< Is the script paused? (a paused script will not be executed until unpaused)
 	Script_SuspendCallbackProc *callback; ///< Callback that should be called in the next tick the script runs.
 
+public:
+	/** Log struct. */
+	struct LogData {
+		/** Log levels. */
+		enum Level {
+			LOG_SQ_ERROR = 0, ///< Squirrel printed an error.
+			LOG_ERROR = 1,    ///< User printed an error.
+			LOG_SQ_INFO = 2,  ///< Squirrel printed some info.
+			LOG_WARNING = 3,  ///< User printed some warning.
+			LOG_INFO = 4,     ///< User printed some info.
+		};
+
+		/** Log line struct. */
+		struct Line {
+			Level level;    ///< Log level.
+			char msg [];    ///< Log message.
+		};
+
+		static const uint SIZE = 400;
+
+		Line *lines [SIZE];     ///< The log lines.
+		uint pos;               ///< Current position in lines.
+		uint used;              ///< Total amount of used lines.
+
+		LogData (void) : pos(0), used(0) { }
+
+		~LogData();
+
+		/** Log a message. */
+		const char *log (Level level, const char *message);
+	};
+
+	typedef LogData::Level LogLevel;
+	typedef LogData::Line  LogLine;
+
+	LogData log; ///< Log data
+
+	/** Internal command to log the message in a common way. */
+	void Log (LogLevel level, const char *message);
+
+private:
 	/**
 	 * Call the script Load function if it exists and data was loaded
 	 *  from a savegame.
