@@ -242,17 +242,6 @@ public:
 						}
 					}
 
-					if (GetPAXSignal(tile, TrackdirToTrack(trackdir)))
-					{
-						for (const Vehicle *v = Yapf().GetVehicle(); v != NULL; v = v->Next()) {
-							if (v->cargo_cap == 0) continue;
-							if ((!IsCargoInClass(v->cargo_type, CC_PASSENGERS))&&(!IsCargoInClass(v->cargo_type, CC_MAIL))) {
-								n.m_segment->m_end_segment_reason |= ESRB_DEAD_END;
-								return -1;
-							}
-						}
-					}
-
 					n.m_num_signals_passed++;
 					n.m_segment->m_last_signal_tile = tile;
 					n.m_segment->m_last_signal_td = trackdir;
@@ -463,22 +452,6 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 				end_segment_reason |= ESRB_WAYPOINT;
 
 			} else if (tf->m_is_station) {
-
-				if (GetStationPAX(cur.tile)) {
-					bool deny = false;
-					for (const Vehicle *v = Yapf().GetVehicle(); v != NULL; v = v->Next()) {
-						if (v->cargo_cap == 0) continue;
-						if ((!IsCargoInClass(v->cargo_type, CC_PASSENGERS))&&(!IsCargoInClass(v->cargo_type, CC_MAIL))) {
-							deny = true;
-							break;
-						}
-					}
-					if (deny) {
-						end_segment_reason |= ESRB_DEAD_END;
-						break;
-					}
-				}
-
 				/* Station penalties. */
 				uint platform_length = tf->m_tiles_skipped + 1;
 				/* We don't know yet if the station is our target or not. Act like

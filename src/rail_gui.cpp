@@ -52,7 +52,6 @@ static bool _program_signal_button;          ///< program signal button in the s
 static SignalVariant _cur_signal_variant;    ///< set the signal variant (for signal GUI)
 static SignalType _cur_signal_type;          ///< set the signal type (for signal GUI)
 static uint _cur_signal_button;              ///< set the signal button (for signal GUI)
-static bool _pax_button;
 
 /* Map the setting: default_signal_type to the corresponding signal type */
 static const SignalType _default_signal_type[] = {SIGTYPE_NORMAL, SIGTYPE_PBS, SIGTYPE_PBS_ONEWAY};
@@ -193,7 +192,7 @@ static void PlaceRail_Station(TileIndex tile)
 		VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DDSP_BUILD_STATION);
 		VpSetPlaceSizingLimit(_settings_game.station.station_spread);
 	} else {
-		uint64 p1 = _cur_railtype | _railstation.orientation << 4 | _settings_client.gui.station_numtracks << 8 | _settings_client.gui.station_platlength << 16 | _ctrl_pressed << 24 | _pax_button << 25;
+		uint64 p1 = _cur_railtype | _railstation.orientation << 4 | _settings_client.gui.station_numtracks << 8 | _settings_client.gui.station_platlength << 16 | _ctrl_pressed << 24;
 		uint64 p2 = _railstation.station_class | _railstation.station_type << 8 | INVALID_STATION << 16;
 
 		int w = _settings_client.gui.station_numtracks;
@@ -253,14 +252,12 @@ static void GenericPlaceSignals(TileIndex tile)
 		SB(p1, 5, 3, _cur_signal_type);
 		SB(p1, 8, 1, _convert_signal_button);
 		SB(p1, 9, 6, _settings_client.gui.cycle_signal_types);
-		SB(p1, 18, 1, _pax_button);
 	} else {
 		SB(p1, 3, 1, _ctrl_pressed);
 		SB(p1, 4, 1, (_cur_year < _settings_client.gui.semaphore_build_before ? SIG_SEMAPHORE : SIG_ELECTRIC));
 		SB(p1, 5, 3, _default_signal_type[_settings_client.gui.default_signal_type]);
 		SB(p1, 8, 1, 0);
 		SB(p1, 9, 6, _settings_client.gui.cycle_signal_types);
-		SB(p1, 18, 1, 0);
 	}
 
 	DoCommandP(tile, p1, 0, CMD_BUILD_SIGNALS |
@@ -886,7 +883,7 @@ static void HandleStationPlacement(TileIndex start, TileIndex end)
 
 	if (_railstation.orientation == AXIS_X) Swap(numtracks, platlength);
 
-	uint64 p1 = _cur_railtype | _railstation.orientation << 4 | numtracks << 8 | platlength << 16 | _ctrl_pressed << 24 | _pax_button << 25;
+	uint64 p1 = _cur_railtype | _railstation.orientation << 4 | numtracks << 8 | platlength << 16 | _ctrl_pressed << 24;
 	uint64 p2 = _railstation.station_class | _railstation.station_type << 8 | INVALID_STATION << 16;
 
 	CommandContainer cmdcont = { ta.tile, p1, p2, CMD_BUILD_RAIL_STATION | CMD_MSG(STR_ERROR_CAN_T_BUILD_RAILROAD_STATION), CcStation, "" };
@@ -960,8 +957,6 @@ public:
 		}
 		this->SetWidgetLoweredState(WID_BRAS_HIGHLIGHT_OFF, !_settings_client.gui.station_show_coverage);
 		this->SetWidgetLoweredState(WID_BRAS_HIGHLIGHT_ON, _settings_client.gui.station_show_coverage);
-
-		this->SetWidgetLoweredState(WID_BRAS_PAX, _pax_button);
 
 		if (!newstation || _railstation.station_class >= (int)StationClass::GetClassCount()) {
 			/* New stations are not available or changed, so ensure the default station
@@ -1295,13 +1290,6 @@ public:
 				break;
 			}
 
-			case WID_BRAS_PAX:
-				_pax_button = !_pax_button;
-				this->ToggleWidgetLoweredState(WID_BRAS_PAX);
-				SndPlayFx(SND_15_BEEP);
-				this->SetDirty();
-				break;
-
 			case WID_BRAS_HIGHLIGHT_OFF:
 			case WID_BRAS_HIGHLIGHT_ON:
 				_settings_client.gui.station_show_coverage = (widget != WID_BRAS_HIGHLIGHT_OFF);
@@ -1423,11 +1411,6 @@ static const NWidgetPart _nested_station_builder_widgets[] = {
 					NWidget(NWID_SPACER), SetMinimalSize(2, 0), SetFill(1, 0),
 					NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BRAS_PLATFORM_DRAG_N_DROP), SetMinimalSize(75, 12), SetDataTip(STR_STATION_BUILD_DRAG_DROP, STR_STATION_BUILD_DRAG_DROP_TOOLTIP),
 					NWidget(NWID_SPACER), SetMinimalSize(2, 0), SetFill(1, 0),
-				EndContainer(),
-				NWidget(NWID_HORIZONTAL),
-					NWidget(NWID_SPACER), SetMinimalSize(5, 5), SetFill(1, 0),
-					NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BRAS_PAX), SetMinimalSize(75, 12), SetDataTip(STR_PAX_CAPTION, STR_PAX_TOOLTIP),
-					NWidget(NWID_SPACER), SetMinimalSize(5, 0), SetFill(1, 0),
 				EndContainer(),
 				NWidget(WWT_LABEL, COLOUR_DARK_GREEN), SetMinimalSize(144, 11), SetDataTip(STR_STATION_BUILD_COVERAGE_AREA_TITLE, STR_NULL), SetPadding(3, 2, 0, 2),
 				NWidget(NWID_HORIZONTAL),
@@ -1626,10 +1609,6 @@ public:
 					_program_signal_button = false;
 				break;
 
-			case WID_BS_PAX:
-				_pax_button = !_pax_button;
-				break;
-
 			case WID_BS_PROGRAM:
 				_program_signal_button = !_program_signal_button;
 				if(_program_signal_button)
@@ -1669,7 +1648,6 @@ public:
 
 		this->SetWidgetLoweredState(WID_BS_CONVERT, _convert_signal_button);
 		this->SetWidgetLoweredState(WID_BS_PROGRAM, _program_signal_button);
-		this->SetWidgetLoweredState(WID_BS_PAX, _pax_button);
 
 		this->SetWidgetDisabledState(WID_BS_DRAG_SIGNALS_DENSITY_DECREASE, _settings_client.gui.drag_signals_density == 1);
 		this->SetWidgetDisabledState(WID_BS_DRAG_SIGNALS_DENSITY_INCREASE, _settings_client.gui.drag_signals_density == 20);
@@ -1738,9 +1716,6 @@ static const NWidgetPart _nested_signal_builder_widgets[] = {
 				NWidget(WWT_PUSHARROWBTN, COLOUR_GREY, WID_BS_DRAG_SIGNALS_DENSITY_DECREASE), SetMinimalSize(9, 12), SetDataTip(AWV_DECREASE, STR_BUILD_SIGNAL_DRAG_SIGNALS_DENSITY_DECREASE_TOOLTIP),
 				NWidget(WWT_PUSHARROWBTN, COLOUR_GREY, WID_BS_DRAG_SIGNALS_DENSITY_INCREASE), SetMinimalSize(9, 12), SetDataTip(AWV_INCREASE, STR_BUILD_SIGNAL_DRAG_SIGNALS_DENSITY_INCREASE_TOOLTIP),
 				NWidget(NWID_SPACER), SetFill(1, 0),
-			EndContainer(),
-			NWidget(NWID_HORIZONTAL, NC_EQUALSIZE),
-				NWidget(WWT_TEXTBTN, COLOUR_DARK_GREEN, WID_BS_PAX), SetDataTip(STR_PAX_CAPTION, STR_PAX_SIGNAL_TOOLTIP), SetFill(1, 1),
 			EndContainer(),
 			//NWidget(NWID_SPACER), SetMinimalSize(0, 2), SetFill(1, 0),
 		EndContainer(),

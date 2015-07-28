@@ -2492,10 +2492,6 @@ STR_STATION_BUILD_STATION_TYPE_TOOLTIP                          :{BLACK}Select t
 STR_STATION_CLASS_DFLT                                          :Default station
 STR_STATION_CLASS_WAYP                                          :Waypoints
 
-STR_PAX_CAPTION                                                 :{BLACK}Only for passenger trains
-STR_PAX_TOOLTIP                                                 :{BLACK}Allow only passenger trains to enter. Mail is allowed.
-STR_PAX_SIGNAL_TOOLTIP                                          :{BLACK}Allow only passenger trains to enter. Mail is allowed.
-
 # Signal window
 STR_BUILD_SIGNAL_CAPTION                                        :{WHITE}Signal Selection
 STR_BUILD_SIGNAL_SEMAPHORE_NORM_TOOLTIP                         :{BLACK}Block Signal (semaphore){}This is the most basic type of signal, allowing only one train to be in the same block at the same time
@@ -2862,7 +2858,6 @@ STR_LAI_TREE_NAME_RAINFOREST                                    :Rainforest
 STR_LAI_TREE_NAME_CACTUS_PLANTS                                 :Cactus plants
 
 STR_LAI_STATION_DESCRIPTION_RAILROAD_STATION                    :Railway station
-STR_LAI_STATION_DESCRIPTION_PAXRAILROAD_STATION                 :Railway station (for passengers only)
 STR_LAI_STATION_DESCRIPTION_AIRCRAFT_HANGAR                     :Aircraft hangar
 STR_LAI_STATION_DESCRIPTION_AIRPORT                             :Airport
 STR_LAI_STATION_DESCRIPTION_TRUCK_LOADING_AREA                  :Lorry loading area

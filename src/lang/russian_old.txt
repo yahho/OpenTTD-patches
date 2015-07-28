@@ -2572,10 +2572,6 @@ STR_STATION_BUILD_STATION_TYPE_TOOLTIP                          :{BLACK}Выбе
 STR_STATION_CLASS_DFLT                                          :По умолчанію
 STR_STATION_CLASS_WAYP                                          :Точки пути
 
-STR_PAX_CAPTION                                                 :{BLACK}Только для пассажирскихъ поездовъ
-STR_PAX_TOOLTIP                                                 :{BLACK}Разрѣшить заезжать на платформу только пассажирскимъ поездамъ и поездамъ съ почтой.
-STR_PAX_SIGNAL_TOOLTIP                                          :{BLACK}Разрѣшить только пассажирскимъ поездамъ и поездамъ съ почтой проезжать сигналъ.
-
 # Signal window
 STR_BUILD_SIGNAL_CAPTION                                        :{WHITE}Выборъ сигналовъ
 STR_BUILD_SIGNAL_SEMAPHORE_NORM_TOOLTIP                         :{BLACK}Стандартный семафоръ{}Не позволяетъ несколькимъ поездамъ одноврѣменно находить ся въ одномъ блокъ-участкѣ.
@@ -2862,7 +2858,7 @@ STR_INDUSTRY_DISPLAY_CHAIN                                      :{BLACK}Пока
 STR_INDUSTRY_DISPLAY_CHAIN_TOOLTIP                              :{BLACK}Показать производителей сырья и потребителей продукціи сего предпріятія
 STR_INDUSTRY_CARGOES_NOTIFY_SMALLMAP                            :{BLACK}Показать на картѣ
 STR_INDUSTRY_CARGOES_NOTIFY_SMALLMAP_TOOLTIP                    :{BLACK}Показать на картѣ выбранныя предпріятія
-STR_INDUSTRY_CARGOES_SELECT_CARGO                               :{BLACK}Грузъ 
+STR_INDUSTRY_CARGOES_SELECT_CARGO                               :{BLACK}Грузъ
 STR_INDUSTRY_CARGOES_SELECT_CARGO_TOOLTIP                       :{BLACK}Выберите грузъ для отображенія производственной цѣпочки грузоперевозокъ
 STR_INDUSTRY_CARGOES_SELECT_INDUSTRY                            :{BLACK}Предпріятіе
 STR_INDUSTRY_CARGOES_SELECT_INDUSTRY_TOOLTIP                    :{BLACK}Выберите предпріятіе для отображенія производственной цѣпочки грузоперевозокъ
@@ -2947,7 +2943,6 @@ STR_LAI_TREE_NAME_RAINFOREST                                    :Джунгли
 STR_LAI_TREE_NAME_CACTUS_PLANTS                                 :Кактусы
 
 STR_LAI_STATION_DESCRIPTION_RAILROAD_STATION                    :Ж/д станція
-STR_LAI_STATION_DESCRIPTION_PAXRAILROAD_STATION                 :Пассажирская ж/д станція
 STR_LAI_STATION_DESCRIPTION_AIRCRAFT_HANGAR                     :Ангаръ
 STR_LAI_STATION_DESCRIPTION_AIRPORT                             :Аэропортъ
 STR_LAI_STATION_DESCRIPTION_TRUCK_LOADING_AREA                  :Грузовой терминалъ
@@ -3471,8 +3466,8 @@ STR_DEPARTURES_VIA                                              :{ORANGE}ч/з {
 STR_DEPARTURES_TOC                                              :{ORANGE}«{COMPANY}»
 STR_DEPARTURES_GROUP                                            :{ORANGE}{GROUP}
 STR_DEPARTURES_VEH                                              :{ORANGE}{VEHICLE}
-STR_DEPARTURES_CALLING_AT                                       :{TINY_FONT}{ORANGE}Следуетъ черезъ: 
-STR_DEPARTURES_CALLING_AT_LARGE                                 :{ORANGE}Следуетъ черезъ: 
+STR_DEPARTURES_CALLING_AT                                       :{TINY_FONT}{ORANGE}Следуетъ черезъ:
+STR_DEPARTURES_CALLING_AT_LARGE                                 :{ORANGE}Следуетъ черезъ:
 STR_DEPARTURES_CALLING_AT_FIRST_STATION                         :{STATION}
 STR_DEPARTURES_CALLING_AT_STATION                               :{STRING}, {STATION}
 STR_DEPARTURES_CALLING_AT_LAST_STATION                          :{STRING} и {STATION}

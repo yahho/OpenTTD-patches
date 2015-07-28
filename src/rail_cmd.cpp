@@ -997,7 +997,6 @@ CommandCost CmdBuildTrainDepot(TileIndex tile, DoCommandFlag flags, uint64 p1, u
  * - p1 = (bit 9-14)- cycle through which signal set?
  * - p1 = (bit 15-16)-cycle the signal direction this many times
  * - p1 = (bit 17)  - 1 = don't modify an existing signal but don't fail either, 0 = always set new signal type
- * - p1 = (bit 18)  - 1 = set tile to pax only
  * @param p2 used for CmdBuildManySignals() to copy direction of first signal
  * @param text unused
  * @return the cost of this operation or an error
@@ -1011,7 +1010,6 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint64 p1,
 	SignalType sigtype = Extract<SignalType, 5, 3>(p1); // the signal type of the new signal
 	bool convert_signal = HasBit(p1, 8); // convert button pressed
 	uint num_dir_cycle = GB(p1, 15, 2);
-	bool pax = HasBit(p1, 18);
 
 	uint which_signals = GB(p1, 9, 6);
 
@@ -1126,7 +1124,6 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint64 p1,
 			SetPresentSignals(tile, 0); // no signals built by default
 			SetSignalType(tile, track, sigtype);
 			SetSignalVariant(tile, track, sigvar);
-			SetPAXSignal(tile, track, pax);
 		}
 
 		/* Subtract old signal infrastructure count. */
@@ -1138,7 +1135,6 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint64 p1,
 				SetPresentSignals(tile, GetPresentSignals(tile) | (IsPbsSignal(sigtype) ? KillFirstBit(SignalOnTrack(track)) : SignalOnTrack(track)));
 				SetSignalType(tile, track, sigtype);
 				SetSignalVariant(tile, track, sigvar);
-				SetPAXSignal(tile, track, pax);
 				while (num_dir_cycle-- > 0) CycleSignalSide(tile, track);
 			} else {
 				if (convert_signal) {
@@ -1154,7 +1150,6 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint64 p1,
 							FreeSignalProgram(SignalReference(tile, track));
 						SetSignalType(tile, track, sigtype);
 						SetSignalVariant(tile, track, sigvar);
-						SetPAXSignal(tile, track, pax);
 						if (IsPbsSignal(sigtype) && (GetPresentSignals(tile) & SignalOnTrack(track)) == SignalOnTrack(track)) {
 							SetPresentSignals(tile, (GetPresentSignals(tile) & ~SignalOnTrack(track)) | KillFirstBit(SignalOnTrack(track)));
 						}
@@ -1187,7 +1182,6 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint64 p1,
 			if (IsPresignalProgrammable(tile, track))
 				FreeSignalProgram(SignalReference(tile, track));
 			SetSignalType(tile, track, sigtype);
-			SetPAXSignal(tile, track, pax);
 		}
 
 		/* Add new signal infrastructure count. */
@@ -1980,10 +1974,6 @@ static void DrawSingleSignal(TileIndex tile, const RailtypeInfo *rti, Track trac
 	}
 
 	AddSortableSpriteToDraw(sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSaveSlopeZ(x, y, track));
-
-	if (GetPAXSignal(tile, track)) {
-		AddSortableSpriteToDraw(SPR_CARGO_PASSENGER, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, (GetSaveSlopeZ(x, y, track) + 25));
-	}
 }
 
 static uint32 _drawtile_track_palette;

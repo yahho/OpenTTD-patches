@@ -2669,10 +2669,6 @@ STR_STATION_BUILD_STATION_TYPE_TOOLTIP                          :{BLACK}Выбе
 STR_STATION_CLASS_DFLT                                          :По умолчанию
 STR_STATION_CLASS_WAYP                                          :Точки пути
 
-STR_PAX_CAPTION                                                 :{BLACK}Только для пассажирских поездов
-STR_PAX_TOOLTIP                                                 :{BLACK}Разрешить заезжать на платформу только пассажирским поездам и поездам с почтой.
-STR_PAX_SIGNAL_TOOLTIP                                          :{BLACK}Разрешить только пассажирским поездам и поездам с почтой проезжать сигнал.
-
 # Signal window
 STR_BUILD_SIGNAL_CAPTION                                        :{WHITE}Выбор сигналов
 STR_BUILD_SIGNAL_SEMAPHORE_NORM_TOOLTIP                         :{BLACK}Стандартный семафор{}Не позволяет нескольким поездам одновременно находиться на одном блок-участке.
@@ -3045,7 +3041,6 @@ STR_LAI_TREE_NAME_RAINFOREST                                    :Джунгли
 STR_LAI_TREE_NAME_CACTUS_PLANTS                                 :Кактусы
 
 STR_LAI_STATION_DESCRIPTION_RAILROAD_STATION                    :Ж/д станция
-STR_LAI_STATION_DESCRIPTION_PAXRAILROAD_STATION                 :Пассажирская ж/д станция
 STR_LAI_STATION_DESCRIPTION_AIRCRAFT_HANGAR                     :Ангар
 STR_LAI_STATION_DESCRIPTION_AIRPORT                             :Аэропорт
 STR_LAI_STATION_DESCRIPTION_TRUCK_LOADING_AREA                  :Грузовой терминал

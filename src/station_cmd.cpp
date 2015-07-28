@@ -1240,7 +1240,6 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint64 
 	byte numtracks = GB(p1,  8, 8);
 	byte plat_len  = GB(p1, 16, 8);
 	bool adjacent  = HasBit(p1, 24);
-	bool pax       = HasBit(p1, 25);
 
 	StationClassID spec_class = Extract<StationClassID, 0, 8>(p2);
 	byte spec_index           = GB(p2, 8, 8);
@@ -1379,7 +1378,6 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint64 
 				SetCustomStationSpecIndex(tile, specindex);
 				SetStationTileRandomBits(tile, GB(Random(), 0, 4));
 				SetAnimationFrame(tile, 0);
-				SetStationPAX(tile, pax);
 
 				if (!IsStationTileBlocked(tile)) c->infrastructure.rail[rt]++;
 				c->infrastructure.station++;
@@ -3182,10 +3180,7 @@ static void GetTileDesc_Station(TileIndex tile, TileDesc *td)
 	switch (GetStationType(tile)) {
 		default: NOT_REACHED();
 		case STATION_RAIL: {
-			if(GetStationPAX(tile))
-				str = STR_LAI_STATION_DESCRIPTION_PAXRAILROAD_STATION;
-			else
-				str = STR_LAI_STATION_DESCRIPTION_RAILROAD_STATION;
+			str = STR_LAI_STATION_DESCRIPTION_RAILROAD_STATION;
 			break;
 		} case STATION_AIRPORT:
 			str = (IsHangar(tile) ? STR_LAI_STATION_DESCRIPTION_AIRCRAFT_HANGAR : STR_LAI_STATION_DESCRIPTION_AIRPORT);

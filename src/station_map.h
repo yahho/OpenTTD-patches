@@ -509,12 +509,6 @@ static inline void SetStationTileRandomBits(TileIndex t, byte random_bits)
 	SB(_m[t].m3, 4, 4, random_bits);
 }
 
-static inline void SetStationPAX(TileIndex t, bool p)
-{
-	assert(IsTileType(t, MP_STATION));
-	SB(_me[t].m6, 6, 1, p);
-}
-
 /**
  * Get the random bits of a station tile.
  * @param t Tile to query
@@ -525,12 +519,6 @@ static inline byte GetStationTileRandomBits(TileIndex t)
 {
 	assert(IsTileType(t, MP_STATION));
 	return GB(_m[t].m3, 4, 4);
-}
-
-static inline bool GetStationPAX(TileIndex t)
-{
-	assert(IsTileType(t, MP_STATION));
-	return (bool)GB(_me[t].m6, 6, 1);
 }
 
 /**

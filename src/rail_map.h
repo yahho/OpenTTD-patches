@@ -293,27 +293,12 @@ static inline SignalType GetSignalType(TileIndex t, Track track)
 	return (SignalType)GB(_m[t].m2, pos, 3);
 }
 
-static inline bool GetPAXSignal(TileIndex t, Track track)
-{
-	assert(GetRailTileType(t) == RAIL_TILE_SIGNALS);
-	byte pos = (track == TRACK_LOWER || track == TRACK_RIGHT) ? 13 : 12;
-	return (bool)GB(_m[t].m2, pos, 1);
-}
-
 static inline void SetSignalType(TileIndex t, Track track, SignalType s)
 {
 	assert(GetRailTileType(t) == RAIL_TILE_SIGNALS);
 	byte pos = (track == TRACK_LOWER || track == TRACK_RIGHT) ? 4 : 0;
 	SB(_m[t].m2, pos, 3, s);
 	if (track == INVALID_TRACK) SB(_m[t].m2, 4, 3, s);
-}
-
-static inline void SetPAXSignal(TileIndex t, Track track, bool a)
-{
-	assert(GetRailTileType(t) == RAIL_TILE_SIGNALS);
-	byte pos = (track == TRACK_LOWER || track == TRACK_RIGHT) ? 13 : 12;
-	SB(_m[t].m2, pos, 1, a);
-	if (track == INVALID_TRACK) SB(_m[t].m2, 13, 1, a);
 }
 
 static inline bool IsPresignalEntry(TileIndex t, Track track)
