@@ -17,6 +17,7 @@
 #include "viewport_func.h"
 #include "window_func.h"
 #include "pathfinder/yapf/yapf_cache.h"
+#include "table/strings.h"
 #include <vector>
 
 /** Initialize theprogram pool */
@@ -286,7 +287,7 @@ void TraceRestrictCreateProgramMapping(TraceRestrictRefId ref, TraceRestrictProg
 	TileIndex tile = GetTraceRestrictRefIdTileIndex(ref);
 	Track track = GetTraceRestrictRefIdTrack(ref);
 	SetIsSignalRestrictedBit(tile);
-	MarkTileDirtyByTile(tile);
+	MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
 	YapfNotifyTrackLayoutChange(tile, track);
 }
 
@@ -301,7 +302,7 @@ void TraceRestrictRemoveProgramMapping(TraceRestrictRefId ref)
 		TileIndex tile = GetTraceRestrictRefIdTileIndex(ref);
 		Track track = GetTraceRestrictRefIdTrack(ref);
 		SetIsSignalRestrictedBit(tile);
-		MarkTileDirtyByTile(tile);
+		MarkTileDirtyByTile(tile, ZOOM_LVL_DRAW_MAP);
 		YapfNotifyTrackLayoutChange(tile, track);
 	}
 }
@@ -361,7 +362,7 @@ void TraceRestrictDoCommandP(TileIndex tile, Track track, TraceRestrictDoCommand
  * @param p2 Item, for insert and modify operations
  * @return the cost of this operation (which is free), or an error
  */
-CommandCost CmdProgramSignalTraceRestrict(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+CommandCost CmdProgramSignalTraceRestrict(TileIndex tile, DoCommandFlag flags, uint64 p1, uint64 p2, const char *text)
 {
 	Track track = static_cast<Track>(GB(p1, 0, 3));
 	TraceRestrictDoCommandType type = static_cast<TraceRestrictDoCommandType>(GB(p1, 3, 5));

@@ -25,6 +25,7 @@
 #include "tile_cmd.h"
 #include "error.h"
 #include "table/sprites.h"
+#include "table/strings.h"
 
 enum TraceRestrictWindowWidgets {
 	TR_WIDGET_CAPTION,
@@ -310,7 +311,7 @@ public:
 		this->ReloadProgramme();
 	}
 
-	virtual void OnClick(Point pt, int widget, int click_count)
+	virtual void OnClick(Point pt, int widget, int click_count) override
 	{
 		switch (widget) {
 			case TR_WIDGET_INSTRUCTION_LIST: {
@@ -392,7 +393,7 @@ public:
 		}
 	}
 
-	virtual void OnQueryTextFinished(char *str)
+	virtual void OnQueryTextFinished(char *str) override
 	{
 		if (StrEmpty(str)) {
 			return;
@@ -414,7 +415,7 @@ public:
 		TraceRestrictDoCommandP(tile, track, TRDCT_MODIFY_ITEM, this->selected_instruction - 1, item, STR_TRACE_RESTRICT_ERROR_CAN_T_MODIFY_ITEM);
 	}
 
-	virtual void OnDropdownSelect(int widget, int index)
+	virtual void OnDropdownSelect(int widget, int index) override
 	{
 		TraceRestrictItem item = GetSelected();
 		if (item == 0 || index < 0 || this->selected_instruction < 1) {
@@ -457,7 +458,7 @@ public:
 		}
 	}
 
-	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
+	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		switch (widget) {
 			case TR_WIDGET_INSTRUCTION_LIST:
@@ -467,18 +468,18 @@ public:
 		}
 	}
 
-	virtual void OnResize()
+	virtual void OnResize() override
 	{
 		/* Update the scroll bar */
 		this->vscroll->SetCapacityFromWidget(this, TR_WIDGET_INSTRUCTION_LIST);
 	}
 
-	virtual void OnPaint()
+	virtual void OnPaint() override
 	{
 		this->DrawWidgets();
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	virtual void DrawWidget(const Rect &r, int widget) const override
 	{
 		if (widget != TR_WIDGET_INSTRUCTION_LIST) return;
 
@@ -514,14 +515,15 @@ public:
 		}
 	}
 
-	virtual void OnInvalidateData(int data, bool gui_scope) {
+	virtual void OnInvalidateData(int data, bool gui_scope) override
+	{
 		if (gui_scope) {
 			this->ReloadProgramme();
 		}
 	}
 
 
-	virtual void SetStringParameters(int widget) const
+	virtual void SetStringParameters(int widget) const override
 	{
 		switch (widget) {
 			case TR_WIDGET_VALUE_INT: {
