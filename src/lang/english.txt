@@ -2929,6 +2929,8 @@ STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PBS_PROGSIGNALS             :{STRING} Railwa
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_NOENTRY_PROGSIGNALS         :{STRING} Railway track with one-way path and programmable signals
 STR_LAI_RAIL_DESCRIPTION_TRAIN_DEPOT                            :{STRING} train depot
 
+STR_LAI_RAIL_DESCRIPTION_RESTRICTED_SIGNAL                      :{STRING1} (restricted)
+
 STR_LAI_ROAD_DESCRIPTION_ROAD                                   :Road
 STR_LAI_ROAD_DESCRIPTION_ROAD_WITH_STREETLIGHTS                 :Road with street lights
 STR_LAI_ROAD_DESCRIPTION_TREE_LINED_ROAD                        :Tree-lined road
