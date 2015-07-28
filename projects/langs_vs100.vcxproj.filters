@@ -124,6 +124,9 @@
     <CustomBuild Include="..\src\lang\romanian.txt">
       <Filter>Translations</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\src\lang\russian_old.txt">
+      <Filter>Translations</Filter>
+    </CustomBuild>
     <CustomBuild Include="..\src\lang\russian.txt">
       <Filter>Translations</Filter>
     </CustomBuild>

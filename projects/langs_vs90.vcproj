@@ -650,6 +650,21 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\src\lang\russian_old.txt"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating russian_old language file"
+						CommandLine="..\objs\strgen\strgen.exe -s ..\src\lang -d ..\bin\lang &quot;$(InputPath)&quot;&#x0D;&#x0A;exit 0&#x0D;&#x0A;"
+						AdditionalDependencies="..\src\lang\english.txt;..\objs\strgen\strgen.exe"
+						Outputs="..\bin\lang\russian_old.lng"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\src\lang\russian.txt"
 				>
 				<FileConfiguration

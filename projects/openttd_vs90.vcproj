@@ -504,6 +504,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\departures.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\depot.cpp"
 				>
 			</File>
@@ -581,6 +585,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\highscore.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\infrastructure.cpp"
 				>
 			</File>
 			<File
@@ -728,6 +736,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\programmable_signals.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\programmable_signals_gui.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\signs.cpp"
 				>
 			</File>
@@ -784,6 +800,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\tgp_orig.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\tile_map.cpp"
 				>
 			</File>
@@ -797,6 +817,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\trafficlight.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\triphistory_cmd.cpp"
 				>
 			</File>
 			<File
@@ -992,6 +1016,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\departures_func.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\departures_gui.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\departures_type.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\depot_base.h"
 				>
 			</File>
@@ -1184,6 +1220,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\infrastructure_func.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\ini_type.h"
 				>
 			</File>
@@ -1261,6 +1301,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\mixer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\triphistory.h"
 				>
 			</File>
 			<File
@@ -1440,6 +1484,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\smallmap_colours.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\music\null_m.h"
 				>
 			</File>
@@ -1453,6 +1501,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\object.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\triphistory_gui.cpp"
 				>
 			</File>
 			<File
@@ -1581,6 +1633,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\signal_type.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\programmable_signals.h"
 				>
 			</File>
 			<File
@@ -1729,6 +1785,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\tgp.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\tgp_orig.h"
 				>
 			</File>
 			<File
@@ -2052,6 +2112,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\build_vehicle_gui_orig.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\cheat_gui.cpp"
 				>
 			</File>
@@ -2065,6 +2129,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\date_gui.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\departures_gui.cpp"
 				>
 			</File>
 			<File
@@ -2304,6 +2372,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\widgets\departures_widget.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\widgets\depot_widget.h"
 				>
 			</File>
@@ -2477,6 +2549,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\widgets\tree_widget.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\widgets\triphistory_widget.h"
 				>
 			</File>
 			<File
@@ -2773,6 +2849,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\saveload\waypoint_sl.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\saveload\signal_sl.cpp"
 				>
 			</File>
 		</Filter>
@@ -3808,6 +3888,14 @@
 			Name="Blitters"
 			>
 			<File
+				RelativePath=".\..\src\blitter\32bpp_anim_aa.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\blitter\32bpp_anim_aa.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\blitter\32bpp_anim.cpp"
 				>
 			</File>
@@ -4441,6 +4529,22 @@
 			</File>
 			<File
 				RelativePath=".\..\src\thread\thread_win32.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\tracerestrict.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\tracerestrict.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\tracerestrict_gui.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\saveload\tracerestrict_sl.cpp"
 				>
 			</File>
 		</Filter>
