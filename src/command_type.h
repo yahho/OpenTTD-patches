@@ -322,6 +322,8 @@ enum Commands {
 	CMD_BUILD_TRAFFICLIGHTS,          ///< place traffic lights on a road crossing
 	CMD_REMOVE_TRAFFICLIGHTS,         ///< remove traffic lights
 
+	CMD_PROGRAM_TRACERESTRICT_SIGNAL, ///< modify a signal tracerestrict program
+
 	CMD_END,                          ///< Must ALWAYS be on the end of this list!! (period)
 };
 

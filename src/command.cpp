@@ -201,6 +201,8 @@ CommandProc CmdOpenCloseAirport;
 CommandProc CmdBuildTrafficLights;
 CommandProc CmdRemoveTrafficLights;
 
+CommandProc CmdProgramSignalTraceRestrict;
+
 #define DEF_CMD(proc, flags, type) {proc, #proc, (CommandFlags)flags, type}
 
 /**
@@ -362,6 +364,8 @@ static const Command _command_proc_table[] = {
 
 	DEF_CMD(CmdBuildTrafficLights,                             0, CMDT_LANDSCAPE_CONSTRUCTION), // CMD_BUILD_TRAFFICLIGHTS
 	DEF_CMD(CmdRemoveTrafficLights,                            0, CMDT_LANDSCAPE_CONSTRUCTION), // CMD_REMOVE_TRAFFICLIGHTS
+
+	DEF_CMD(CmdProgramSignalTraceRestrict,                     0, CMDT_OTHER_MANAGEMENT      ), // CMD_PROGRAM_TRACERESTRICT_SIGNAL
 };
 
 /*!

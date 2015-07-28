@@ -688,6 +688,12 @@ enum WindowClass {
      */
 	WC_DEPARTURES_BOARD,
 
+	/**
+	 * Trace restrict programme window; %Window numbers:
+	 *   - #TileIndex << 3 | #Track = #TraceRestrictWindow
+	 */
+	WC_TRACE_RESTRICT,
+
 	WC_INVALID = 0xFFFF, ///< Invalid window.
 };
 

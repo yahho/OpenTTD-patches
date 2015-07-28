@@ -69,6 +69,7 @@
 #include "viewport_func.h"
 
 #include "linkgraph/linkgraphschedule.h"
+#include "tracerestrict.h"
 
 #include <stdarg.h>
 
@@ -347,6 +348,7 @@ static void ShutdownGame()
 #endif
 
 	LinkGraphSchedule::Clear();
+	ClearTraceRestrictMapping();
 	PoolBase::Clean(PT_ALL);
 
 	/* No NewGRFs were loaded when it was still bootstrapping. */

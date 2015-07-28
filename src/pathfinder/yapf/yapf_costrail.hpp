@@ -15,6 +15,7 @@
 #include "../../pbs.h"
 #include "../../cargotype.h"
 #include "../../newgrf_cargo.h"
+#include "../../tracerestrict.h"
 
 template <class Types>
 class CYapfCostRailT
@@ -182,6 +183,30 @@ public:
 		return 0;
 	}
 
+private:
+	// returns true if ExecuteTraceRestrict should be called
+	inline bool ShouldCheckTraceRestrict(Node& n, TileIndex tile)
+	{
+		return n.m_num_signals_passed < m_sig_look_ahead_costs.Size() &&
+				IsRestrictedSignal(tile);
+	}
+
+	// returns true if dead end bit has been set
+	inline bool ExecuteTraceRestrict(Node& n, TileIndex tile, Trackdir trackdir, int& cost, TraceRestrictProgramResult &out)
+	{
+		const TraceRestrictProgram *prog = GetExistingTraceRestrictProgram(tile, TrackdirToTrack(trackdir));
+		if (prog) {
+			prog->Execute(Yapf().GetVehicle(), out);
+			if (out.flags & TRPRF_DENY) {
+				n.m_segment->m_end_segment_reason |= ESRB_DEAD_END;
+				return true;
+			}
+			cost += out.penalty;
+		}
+		return false;
+	}
+
+public:
 	int SignalCost(Node& n, TileIndex tile, Trackdir trackdir)
 	{
 		int cost = 0;
@@ -242,6 +267,13 @@ public:
 						}
 					}
 
+					if (ShouldCheckTraceRestrict(n, tile)) {
+						TraceRestrictProgramResult out;
+						if (ExecuteTraceRestrict(n, tile, trackdir, cost, out)) {
+							return -1;
+						}
+					}
+
 					n.m_num_signals_passed++;
 					n.m_segment->m_last_signal_tile = tile;
 					n.m_segment->m_last_signal_td = trackdir;
@@ -249,6 +281,13 @@ public:
 
 				if (has_signal_against && IsPbsSignal(GetSignalType(tile, TrackdirToTrack(trackdir)))) {
 					cost += n.m_num_signals_passed < Yapf().PfGetSettings().rail_look_ahead_max_signals ? Yapf().PfGetSettings().rail_pbs_signal_back_penalty : 0;
+
+					if (ShouldCheckTraceRestrict(n, tile)) {
+						TraceRestrictProgramResult out;
+						if (ExecuteTraceRestrict(n, tile, trackdir, cost, out)) {
+							return -1;
+						}
+					}
 				}
 			}
 		}
