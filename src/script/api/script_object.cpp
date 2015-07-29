@@ -183,11 +183,6 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 	return GetStorage()->allow_do_command && squirrel->CanSuspend();
 }
 
-/* static */ void *&ScriptObject::GetEventPointer()
-{
-	return GetStorage()->event_data;
-}
-
 /* static */ char *ScriptObject::GetString(StringID string)
 {
 	char buffer[64];

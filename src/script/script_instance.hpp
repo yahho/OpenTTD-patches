@@ -12,6 +12,8 @@
 #ifndef SCRIPT_INSTANCE_HPP
 #define SCRIPT_INSTANCE_HPP
 
+#include <queue>
+
 #include <squirrel.h>
 #include "script_suspend.hpp"
 
@@ -185,6 +187,21 @@ public:
 	void DoCommandCallback (const CommandCost &result);
 
 	/**
+	 * Check if there is an event waiting.
+	 * @return true if there is an event on the stack.
+	 */
+	bool IsEventWaiting (void) const
+	{
+		return !this->events.empty();
+	}
+
+	/**
+	 * Get the next event.
+	 * @return a class of the event-child issues.
+	 */
+	class ScriptEvent *GetNextEvent (void);
+
+	/**
 	 * Insert an event for this script.
 	 * @param event The event to insert.
 	 */
@@ -277,6 +294,8 @@ public:
 	void Log (LogLevel level, const char *message);
 
 private:
+	std::queue <class ScriptEvent *> events; ///< The event queue.
+
 	/**
 	 * Call the script Load function if it exists and data was loaded
 	 *  from a savegame.

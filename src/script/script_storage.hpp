@@ -59,8 +59,6 @@ private:
 	RoadType road_type;              ///< The current roadtype we build.
 	RailType rail_type;              ///< The current railtype we build.
 
-	void *event_data;                ///< Pointer to the event data storage.
-
 public:
 	ScriptStorage() :
 		mode              (NULL),
@@ -81,11 +79,8 @@ public:
 		new_story_page_element_id(0),
 		/* calback_value (can't be set) */
 		road_type         (INVALID_ROADTYPE),
-		rail_type         (INVALID_RAILTYPE),
-		event_data        (NULL)
+		rail_type         (INVALID_RAILTYPE)
 	{ }
-
-	~ScriptStorage();
 };
 
 #endif /* SCRIPT_STORAGE_HPP */

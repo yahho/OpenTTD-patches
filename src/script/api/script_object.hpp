@@ -204,11 +204,6 @@ protected:
 	static bool CanSuspend();
 
 	/**
-	 * Get the pointer to store event data in.
-	 */
-	static void *&GetEventPointer();
-
-	/**
 	 * Get an allocated string with all control codes stripped off.
 	 */
 	static char *GetString(StringID string);

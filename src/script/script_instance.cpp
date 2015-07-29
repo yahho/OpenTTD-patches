@@ -34,12 +34,6 @@
 #include "../fileio_func.h"
 #include "../window_func.h"
 
-ScriptStorage::~ScriptStorage()
-{
-	/* Free our pointers */
-	if (event_data != NULL) ScriptEventController::FreeEventPointer();
-}
-
 ScriptInstance::ScriptInstance(const char *APIName) :
 	engine(NULL),
 	versionAPI(NULL),
@@ -146,6 +140,14 @@ ScriptInstance::~ScriptInstance()
 		this->engine->Uninitialize();
 		delete this->engine;
 	}
+
+	/* Free all waiting events (if any) */
+	while (!this->events.empty()) {
+		ScriptEvent *e = this->events.front();
+		this->events.pop();
+		e->Release();
+	}
+
 	delete this->storage;
 	delete this->controller;
 	free(this->instance);
@@ -670,11 +672,19 @@ void ScriptInstance::DoCommandCallback (const CommandCost &result)
 	}
 }
 
+class ScriptEvent *ScriptInstance::GetNextEvent (void)
+{
+	if (this->events.empty()) return NULL;
+
+	class ScriptEvent *event = this->events.front();
+	this->events.pop();
+	return event;
+}
+
 void ScriptInstance::InsertEvent(class ScriptEvent *event)
 {
-	ScriptObject::ActiveInstance active(this);
-
-	ScriptEventController::InsertEvent(event);
+	event->AddRef();
+	this->events.push (event);
 }
 
 ScriptInstance::LogData::~LogData()

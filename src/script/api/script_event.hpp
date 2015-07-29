@@ -97,25 +97,6 @@ public:
 	 * @return a class of the event-child issues.
 	 */
 	static ScriptEvent *GetNextEvent();
-
-	/**
-	 * Insert an event to the queue for the company.
-	 * @param event The event to insert.
-	 * @api -all
-	 */
-	static void InsertEvent(ScriptEvent *event);
-
-	/**
-	 * Free the event pointer.
-	 * @api -all
-	 */
-	static void FreeEventPointer();
-
-private:
-	/**
-	 * Create the event pointer.
-	 */
-	static void CreateEventPointer();
 };
 
 /* Return value support for event objects. */
