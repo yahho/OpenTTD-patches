@@ -1147,7 +1147,7 @@ static bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *p
 		v->x_pos = gp.x;
 		v->y_pos = gp.y;
 		VehicleUpdatePosition(v);
-		if ((v->vehstatus & VS_HIDDEN) == 0) VehicleUpdateViewport(v, true);
+		if (v->IsDrawn()) VehicleUpdateViewport(v, true);
 		return true;
 	}
 
@@ -1556,7 +1556,7 @@ static bool RoadVehController(RoadVehicle *v)
 	v->SetLastSpeed();
 
 	for (RoadVehicle *u = v; u != NULL; u = u->Next()) {
-		if ((u->vehstatus & VS_HIDDEN) != 0) continue;
+		if (!(u->IsDrawn())) continue;
 
 		u->UpdateViewport(false, false);
 	}

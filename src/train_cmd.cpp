@@ -3718,7 +3718,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				v->x_pos = gp.x;
 				v->y_pos = gp.y;
 				VehicleUpdatePosition(v);
-				if ((v->vehstatus & VS_HIDDEN) == 0) VehicleUpdateViewport(v, true);
+				if (v->IsDrawn()) VehicleUpdateViewport(v, true);
 				continue;
 			}
 		}
@@ -4241,7 +4241,7 @@ static bool TrainLocoHandler(Train *v, bool mode)
 	}
 
 	for (Train *u = v; u != NULL; u = u->Next()) {
-		if ((u->vehstatus & VS_HIDDEN) != 0) continue;
+		if (!(u->IsDrawn())) continue;
 
 		u->UpdateViewport(false, false);
 	}
