@@ -40,11 +40,8 @@ ScriptInstance::ScriptInstance(const char *APIName) :
 	controller(NULL),
 	storage(NULL),
 	instance(NULL),
-	is_started(false),
-	is_dead(false),
-	is_save_data_on_stack(false),
+	state(0),
 	suspend(0),
-	is_paused(false),
 	callback(NULL)
 {
 	this->storage = new ScriptStorage();
@@ -82,7 +79,7 @@ void ScriptInstance::Initialize (const ScriptInfo *info, CompanyID company,
 		}
 		ScriptObject::SetAllowDoCommand(true);
 	} catch (Script_FatalError e) {
-		this->is_dead = true;
+		this->state.set (STATE_DEAD);
 		this->engine->ThrowError(e.GetErrorMessage());
 		this->engine->ResumeError();
 		this->Died();
@@ -162,7 +159,7 @@ void ScriptInstance::Continue()
 void ScriptInstance::Died()
 {
 	DEBUG(script, 0, "The script died unexpectedly.");
-	this->is_dead = true;
+	this->state.set (STATE_DEAD);
 
 	if (this->instance != NULL) this->engine->ReleaseObject(this->instance);
 	this->engine->Uninitialize();
@@ -181,7 +178,7 @@ void ScriptInstance::GameLoop()
 		this->Died();
 		return;
 	}
-	if (this->is_paused) return;
+	if (this->state.test (STATE_PAUSED)) return;
 	this->controller->ticks++;
 
 	if (this->suspend   < -1) this->suspend++; // Multiplayer suspend, increase up to -1.
@@ -192,9 +189,9 @@ void ScriptInstance::GameLoop()
 
 	/* If there is a callback to call, call that first */
 	if (this->callback != NULL) {
-		if (this->is_save_data_on_stack) {
+		if (this->state.test (STATE_SAVEDATA)) {
 			sq_poptop(this->engine->GetVM());
-			this->is_save_data_on_stack = false;
+			this->state.reset (STATE_SAVEDATA);
 		}
 		assert (ScriptObject::GetActiveInstance() == this);
 		try {
@@ -210,7 +207,7 @@ void ScriptInstance::GameLoop()
 	this->suspend  = 0;
 	this->callback = NULL;
 
-	if (!this->is_started) {
+	if (!this->state.test (STATE_STARTED)) {
 		try {
 			ScriptObject::SetAllowDoCommand(false);
 			/* Run the constructor if it exists. Don't allow any DoCommands in it. */
@@ -233,18 +230,18 @@ void ScriptInstance::GameLoop()
 			this->suspend  = e.GetSuspendTime();
 			this->callback = e.GetSuspendCallback();
 		} catch (Script_FatalError e) {
-			this->is_dead = true;
+			this->state.set (STATE_DEAD);
 			this->engine->ThrowError(e.GetErrorMessage());
 			this->engine->ResumeError();
 			this->Died();
 		}
 
-		this->is_started = true;
+		this->state.set (STATE_STARTED);
 		return;
 	}
-	if (this->is_save_data_on_stack) {
+	if (this->state.test (STATE_SAVEDATA)) {
 		sq_poptop(this->engine->GetVM());
-		this->is_save_data_on_stack = false;
+		this->state.reset (STATE_SAVEDATA);
 	}
 
 	/* Continue the VM */
@@ -254,7 +251,7 @@ void ScriptInstance::GameLoop()
 		this->suspend  = e.GetSuspendTime();
 		this->callback = e.GetSuspendCallback();
 	} catch (Script_FatalError e) {
-		this->is_dead = true;
+		this->state.set (STATE_DEAD);
 		this->engine->ThrowError(e.GetErrorMessage());
 		this->engine->ResumeError();
 		this->Died();
@@ -263,7 +260,7 @@ void ScriptInstance::GameLoop()
 
 void ScriptInstance::CollectGarbage() const
 {
-	if (this->is_started && !this->IsDead()) this->engine->CollectGarbage();
+	if (this->state.test (STATE_STARTED) && !this->IsDead()) this->engine->CollectGarbage();
 }
 
 /* static */ void ScriptInstance::DoCommandReturn(ScriptInstance *instance)
@@ -460,11 +457,11 @@ void ScriptInstance::Save(SaveDumper *dumper)
 	}
 
 	HSQUIRRELVM vm = this->engine->GetVM();
-	if (this->is_save_data_on_stack) {
+	if (this->state.test (STATE_SAVEDATA)) {
 		dumper->WriteByte(1);
 		/* Save the data that was just loaded. */
 		SaveObject(dumper, vm, -1, SQUIRREL_MAX_DEPTH);
-	} else if (!this->is_started) {
+	} else if (!this->state.test (STATE_STARTED)) {
 		SaveEmpty(dumper);
 		return;
 	} else if (this->engine->MethodExists(*this->instance, "Save")) {
@@ -483,13 +480,13 @@ void ScriptInstance::Save(SaveDumper *dumper)
 		} catch (Script_FatalError e) {
 			/* If we don't mark the script as dead here cleaning up the squirrel
 			 * stack could throw Script_FatalError again. */
-			this->is_dead = true;
+			this->state.set (STATE_DEAD);
 			this->engine->ThrowError(e.GetErrorMessage());
 			this->engine->ResumeError();
 			SaveEmpty(dumper);
 			/* We can't kill the script here, so mark it as crashed (not dead) and
 			 * kill it in the next script tick. */
-			this->is_dead = false;
+			this->state.reset (STATE_DEAD);
 			this->engine->CrashOccurred();
 			return;
 		}
@@ -505,7 +502,7 @@ void ScriptInstance::Save(SaveDumper *dumper)
 		if (SaveObject(NULL, vm, -1, SQUIRREL_MAX_DEPTH)) {
 			dumper->WriteByte(1);
 			SaveObject(dumper, vm, -1, SQUIRREL_MAX_DEPTH);
-			this->is_save_data_on_stack = true;
+			this->state.set (STATE_SAVEDATA);
 		} else {
 			SaveEmpty(dumper);
 			this->engine->CrashOccurred();
@@ -522,17 +519,7 @@ void ScriptInstance::Pause()
 	HSQUIRRELVM vm = this->engine->GetVM();
 	Squirrel::DecreaseOps(vm, _settings_game.script.script_max_opcode_till_suspend);
 
-	this->is_paused = true;
-}
-
-void ScriptInstance::Unpause()
-{
-	this->is_paused = false;
-}
-
-bool ScriptInstance::IsPaused()
-{
-	return this->is_paused;
+	this->state.set (STATE_PAUSED);
 }
 
 /* static */ bool ScriptInstance::LoadObjects(LoadBuffer *reader, HSQUIRRELVM vm)
@@ -613,16 +600,16 @@ void ScriptInstance::Load(LoadBuffer *reader, int version)
 
 	sq_pushinteger(vm, version);
 	LoadObjects(reader, vm);
-	this->is_save_data_on_stack = true;
+	this->state.set (STATE_SAVEDATA);
 }
 
 bool ScriptInstance::CallLoad()
 {
 	HSQUIRRELVM vm = this->engine->GetVM();
 	/* Is there save data that we should load? */
-	if (!this->is_save_data_on_stack) return true;
+	if (!this->state.test (STATE_SAVEDATA)) return true;
 	/* Whatever happens, after CallLoad the savegame data is removed from the stack. */
-	this->is_save_data_on_stack = false;
+	this->state.reset (STATE_SAVEDATA);
 
 	if (!this->engine->MethodExists(*this->instance, "Load")) {
 		ScriptLog::Warning("Loading failed: there was data for the script to load, but the script does not have a Load() function.");

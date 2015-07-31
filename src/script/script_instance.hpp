@@ -12,6 +12,7 @@
 #ifndef SCRIPT_INSTANCE_HPP
 #define SCRIPT_INSTANCE_HPP
 
+#include <bitset>
 #include <queue>
 
 #include <squirrel.h>
@@ -125,7 +126,7 @@ public:
 	/**
 	 * Return the "this script died" value
 	 */
-	inline bool IsDead() const { return this->is_dead; }
+	inline bool IsDead() const { return this->state.test (STATE_DEAD); }
 
 	/**
 	 * Call the script Save function and save all data in the savegame.
@@ -164,14 +165,20 @@ public:
 	 * Checks if the script is paused.
 	 * @return true if the script is paused, otherwise false
 	 */
-	bool IsPaused();
+	bool IsPaused() const
+	{
+		return this->state.test (STATE_PAUSED);
+	}
 
 	/**
 	 * Resume execution of the script. This function will not actually execute
 	 * the script, but set a flag so that the script is executed my the usual
 	 * mechanism that executes the script.
 	 */
-	void Unpause();
+	void Unpause()
+	{
+		this->state.reset (STATE_PAUSED);
+	}
 
 	/**
 	 * Get the number of operations the script can execute before being suspended.
@@ -246,11 +253,16 @@ private:
 	class ScriptStorage *storage;         ///< Some global information for each running script.
 	SQObject *instance;                   ///< Squirrel-pointer to the script main class.
 
-	bool is_started;                      ///< Is the scripts constructor executed?
-	bool is_dead;                         ///< True if the script has been stopped.
-	bool is_save_data_on_stack;           ///< Is the save data still on the squirrel stack?
+	enum {
+		STATE_STARTED,  ///< The script constructor has run.
+		STATE_PAUSED,   ///< The script is paused.
+		STATE_DEAD,     ///< The script has been stopped.
+		STATE_SAVEDATA, ///< The save data is still on the stack.
+		STATE__N,
+	};
+
+	std::bitset <STATE__N> state;         ///< State flags of the script.
 	int suspend;                          ///< The amount of ticks to suspend this script before it's allowed to continue.
-	bool is_paused;                       ///< Is the script paused? (a paused script will not be executed until unpaused)
 	Script_SuspendCallbackProc *callback; ///< Callback that should be called in the next tick the script runs.
 
 public:
