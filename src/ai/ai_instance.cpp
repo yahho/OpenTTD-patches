@@ -43,7 +43,7 @@ void AIInstance::Initialize (const AIInfo *info)
 	this->versionAPI = info->GetAPIVersion();
 
 	/* Register the AIController (including the "import" command) */
-	SQAIController_Register(this->engine);
+	SQAIController_Register (this);
 
 	ScriptInstance::Initialize (info, _current_company,
 			info->use == AIInfo::USE_DUMMY ? &LoadDummyScript : NULL);
@@ -54,7 +54,7 @@ void AIInstance::RegisterAPI()
 	ScriptInstance::RegisterAPI();
 
 	/* Register all classes */
-	SQAI_Register (this->engine);
+	SQAI_Register (this);
 
 	if (!this->LoadCompatibilityScripts(this->versionAPI, AI_DIR)) this->Died();
 }

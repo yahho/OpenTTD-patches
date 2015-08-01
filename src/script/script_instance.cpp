@@ -35,18 +35,17 @@
 #include "../window_func.h"
 
 ScriptInstance::ScriptInstance(const char *APIName) :
-	engine(NULL),
+	Squirrel (APIName, &ScriptController::Print),
 	versionAPI(NULL),
 	controller(NULL),
 	storage(NULL),
 	instance(NULL),
-	state(0),
+	state (1 << STATE_INIT),
 	suspend(0),
 	callback(NULL)
 {
 	this->storage = new ScriptStorage();
-	this->engine  = new Squirrel (APIName, &ScriptController::Print);
-	this->engine->Initialize();
+	this->Squirrel::Initialize();
 }
 
 void ScriptInstance::Initialize (const ScriptInfo *info, CompanyID company,
@@ -64,24 +63,24 @@ void ScriptInstance::Initialize (const ScriptInfo *info, CompanyID company,
 		/* Load and execute the script for this script */
 		const char *main_script = info->GetMainScript();
 		if (load != NULL) {
-			load (this->engine->GetVM());
-		} else if (!this->engine->LoadScript(main_script) || this->engine->IsSuspended()) {
-			if (this->engine->IsSuspended()) ScriptLog::Error("This script took too long to load script. AI is not started.");
+			load (this->GetVM());
+		} else if (!this->LoadScript(main_script) || this->IsSuspended()) {
+			if (this->IsSuspended()) ScriptLog::Error("This script took too long to load script. AI is not started.");
 			this->Died();
 			return;
 		}
 
 		/* Create the main-class */
 		this->instance = xmalloct<SQObject>();
-		if (!this->engine->CreateClassInstance (info->GetInstanceName(), this->controller, this->instance)) {
+		if (!this->CreateClassInstance (info->GetInstanceName(), this->controller, this->instance)) {
 			this->Died();
 			return;
 		}
 		ScriptObject::SetAllowDoCommand(true);
 	} catch (Script_FatalError e) {
 		this->state.set (STATE_DEAD);
-		this->engine->ThrowError(e.GetErrorMessage());
-		this->engine->ResumeError();
+		this->ThrowError(e.GetErrorMessage());
+		this->ResumeError();
 		this->Died();
 	}
 }
@@ -101,10 +100,10 @@ void ScriptInstance::RegisterAPI()
 {
 	/* We don't use squirrel_helper here, as we want to register
 	 * to the global scope and not to a class. */
-	this->engine->AddMethod ("min", &squirrel_op <min <SQInteger> >, 3, ".ii");
-	this->engine->AddMethod ("max", &squirrel_op <max <SQInteger> >, 3, ".ii");
+	this->AddMethod ("min", &squirrel_op <min <SQInteger> >, 3, ".ii");
+	this->AddMethod ("max", &squirrel_op <max <SQInteger> >, 3, ".ii");
 
-	sqstd_register_mathlib (this->engine->GetVM());
+	sqstd_register_mathlib (this->GetVM());
 }
 
 bool ScriptInstance::LoadCompatibilityScripts(const char *api_version, Subdirectory dir)
@@ -117,7 +116,7 @@ bool ScriptInstance::LoadCompatibilityScripts(const char *api_version, Subdirect
 		FioGetFullPath (buf, MAX_PATH, sp, dir, script_name);
 		if (!FileExists(buf)) continue;
 
-		if (this->engine->LoadScript(buf)) return true;
+		if (this->LoadScript(buf)) return true;
 
 		ScriptLog::Error("Failed to load API compatibility script");
 		DEBUG(script, 0, "Error compiling / running API compatibility script: %s", buf);
@@ -132,10 +131,9 @@ ScriptInstance::~ScriptInstance()
 {
 	ScriptObject::ActiveInstance active(this);
 
-	if (instance != NULL) this->engine->ReleaseObject(this->instance);
-	if (engine != NULL) {
-		this->engine->Uninitialize();
-		delete this->engine;
+	if (instance != NULL) this->ReleaseObject(this->instance);
+	if (this->state.test (STATE_INIT)) {
+		this->Squirrel::Uninitialize();
 	}
 
 	/* Free all waiting events (if any) */
@@ -161,11 +159,10 @@ void ScriptInstance::Died()
 	DEBUG(script, 0, "The script died unexpectedly.");
 	this->state.set (STATE_DEAD);
 
-	if (this->instance != NULL) this->engine->ReleaseObject(this->instance);
-	this->engine->Uninitialize();
-	delete this->engine;
+	if (this->instance != NULL) this->ReleaseObject(this->instance);
+	this->Squirrel::Uninitialize();
+	this->state.reset (STATE_INIT);
 	this->instance = NULL;
-	this->engine = NULL;
 }
 
 void ScriptInstance::GameLoop()
@@ -173,7 +170,7 @@ void ScriptInstance::GameLoop()
 	ScriptObject::ActiveInstance active(this);
 
 	if (this->IsDead()) return;
-	if (this->engine->HasScriptCrashed()) {
+	if (this->HasScriptCrashed()) {
 		/* The script crashed during saving, kill it here. */
 		this->Died();
 		return;
@@ -190,7 +187,7 @@ void ScriptInstance::GameLoop()
 	/* If there is a callback to call, call that first */
 	if (this->callback != NULL) {
 		if (this->state.test (STATE_SAVEDATA)) {
-			sq_poptop(this->engine->GetVM());
+			sq_poptop(this->GetVM());
 			this->state.reset (STATE_SAVEDATA);
 		}
 		assert (ScriptObject::GetActiveInstance() == this);
@@ -211,28 +208,28 @@ void ScriptInstance::GameLoop()
 		try {
 			ScriptObject::SetAllowDoCommand(false);
 			/* Run the constructor if it exists. Don't allow any DoCommands in it. */
-			if (this->engine->MethodExists(*this->instance, "constructor")) {
-				if (!this->engine->CallMethod(*this->instance, "constructor", MAX_CONSTRUCTOR_OPS) || this->engine->IsSuspended()) {
-					if (this->engine->IsSuspended()) ScriptLog::Error("This script took too long to initialize. Script is not started.");
+			if (this->MethodExists(*this->instance, "constructor")) {
+				if (!this->CallMethod(*this->instance, "constructor", MAX_CONSTRUCTOR_OPS) || this->IsSuspended()) {
+					if (this->IsSuspended()) ScriptLog::Error("This script took too long to initialize. Script is not started.");
 					this->Died();
 					return;
 				}
 			}
-			if (!this->CallLoad() || this->engine->IsSuspended()) {
-				if (this->engine->IsSuspended()) ScriptLog::Error("This script took too long in the Load function. Script is not started.");
+			if (!this->CallLoad() || this->IsSuspended()) {
+				if (this->IsSuspended()) ScriptLog::Error("This script took too long in the Load function. Script is not started.");
 				this->Died();
 				return;
 			}
 			ScriptObject::SetAllowDoCommand(true);
 			/* Start the script by calling Start() */
-			if (!this->engine->CallMethod(*this->instance, "Start",  _settings_game.script.script_max_opcode_till_suspend) || !this->engine->IsSuspended()) this->Died();
+			if (!this->CallMethod(*this->instance, "Start",  _settings_game.script.script_max_opcode_till_suspend) || !this->IsSuspended()) this->Died();
 		} catch (Script_Suspend e) {
 			this->suspend  = e.GetSuspendTime();
 			this->callback = e.GetSuspendCallback();
 		} catch (Script_FatalError e) {
 			this->state.set (STATE_DEAD);
-			this->engine->ThrowError(e.GetErrorMessage());
-			this->engine->ResumeError();
+			this->ThrowError(e.GetErrorMessage());
+			this->ResumeError();
 			this->Died();
 		}
 
@@ -240,69 +237,69 @@ void ScriptInstance::GameLoop()
 		return;
 	}
 	if (this->state.test (STATE_SAVEDATA)) {
-		sq_poptop(this->engine->GetVM());
+		sq_poptop(this->GetVM());
 		this->state.reset (STATE_SAVEDATA);
 	}
 
 	/* Continue the VM */
 	try {
-		if (!this->engine->Resume(_settings_game.script.script_max_opcode_till_suspend)) this->Died();
+		if (!this->Resume(_settings_game.script.script_max_opcode_till_suspend)) this->Died();
 	} catch (Script_Suspend e) {
 		this->suspend  = e.GetSuspendTime();
 		this->callback = e.GetSuspendCallback();
 	} catch (Script_FatalError e) {
 		this->state.set (STATE_DEAD);
-		this->engine->ThrowError(e.GetErrorMessage());
-		this->engine->ResumeError();
+		this->ThrowError(e.GetErrorMessage());
+		this->ResumeError();
 		this->Died();
 	}
 }
 
-void ScriptInstance::CollectGarbage() const
+void ScriptInstance::CollectGarbage()
 {
-	if (this->state.test (STATE_STARTED) && !this->IsDead()) this->engine->CollectGarbage();
+	if (this->state.test (STATE_STARTED) && !this->IsDead()) this->Squirrel::CollectGarbage();
 }
 
 /* static */ void ScriptInstance::DoCommandReturn(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->engine->InsertResult (instance->storage->last_command_res);
+	instance->InsertResult (instance->storage->last_command_res);
 }
 
 /* static */ void ScriptInstance::DoCommandReturnVehicleID(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->engine->InsertResult (instance->storage->new_vehicle_id);
+	instance->InsertResult (instance->storage->new_vehicle_id);
 }
 
 /* static */ void ScriptInstance::DoCommandReturnSignID(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->engine->InsertResult (instance->storage->new_sign_id);
+	instance->InsertResult (instance->storage->new_sign_id);
 }
 
 /* static */ void ScriptInstance::DoCommandReturnGroupID(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->engine->InsertResult (instance->storage->new_group_id);
+	instance->InsertResult (instance->storage->new_group_id);
 }
 
 /* static */ void ScriptInstance::DoCommandReturnGoalID(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->engine->InsertResult (instance->storage->new_goal_id);
+	instance->InsertResult (instance->storage->new_goal_id);
 }
 
 /* static */ void ScriptInstance::DoCommandReturnStoryPageID(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->engine->InsertResult (instance->storage->new_story_page_id);
+	instance->InsertResult (instance->storage->new_story_page_id);
 }
 
 /* static */ void ScriptInstance::DoCommandReturnStoryPageElementID(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->engine->InsertResult (instance->storage->new_story_page_element_id);
+	instance->InsertResult (instance->storage->new_story_page_element_id);
 }
 
 ScriptStorage *ScriptInstance::GetStorage()
@@ -451,12 +448,12 @@ void ScriptInstance::Save(SaveDumper *dumper)
 	ScriptObject::ActiveInstance active(this);
 
 	/* Don't save data if the script didn't start yet or if it crashed. */
-	if (this->engine == NULL || this->engine->HasScriptCrashed()) {
+	if (!this->state.test (STATE_INIT) || this->HasScriptCrashed()) {
 		SaveEmpty(dumper);
 		return;
 	}
 
-	HSQUIRRELVM vm = this->engine->GetVM();
+	HSQUIRRELVM vm = this->GetVM();
 	if (this->state.test (STATE_SAVEDATA)) {
 		dumper->WriteByte(1);
 		/* Save the data that was just loaded. */
@@ -464,38 +461,38 @@ void ScriptInstance::Save(SaveDumper *dumper)
 	} else if (!this->state.test (STATE_STARTED)) {
 		SaveEmpty(dumper);
 		return;
-	} else if (this->engine->MethodExists(*this->instance, "Save")) {
+	} else if (this->MethodExists(*this->instance, "Save")) {
 		HSQOBJECT savedata;
 		/* We don't want to be interrupted during the save function. */
 		bool backup_allow = ScriptObject::GetAllowDoCommand();
 		ScriptObject::SetAllowDoCommand(false);
 		try {
-			if (!this->engine->CallMethod (*this->instance, "Save", MAX_SL_OPS, &savedata)) {
+			if (!this->CallMethod (*this->instance, "Save", MAX_SL_OPS, &savedata)) {
 				/* The script crashed in the Save function. We can't kill
 				 * it here, but do so in the next script tick. */
 				SaveEmpty(dumper);
-				this->engine->CrashOccurred();
+				this->CrashOccurred();
 				return;
 			}
 		} catch (Script_FatalError e) {
 			/* If we don't mark the script as dead here cleaning up the squirrel
 			 * stack could throw Script_FatalError again. */
 			this->state.set (STATE_DEAD);
-			this->engine->ThrowError(e.GetErrorMessage());
-			this->engine->ResumeError();
+			this->ThrowError(e.GetErrorMessage());
+			this->ResumeError();
 			SaveEmpty(dumper);
 			/* We can't kill the script here, so mark it as crashed (not dead) and
 			 * kill it in the next script tick. */
 			this->state.reset (STATE_DEAD);
-			this->engine->CrashOccurred();
+			this->CrashOccurred();
 			return;
 		}
 		ScriptObject::SetAllowDoCommand(backup_allow);
 
 		if (!sq_istable(savedata)) {
-			ScriptLog::Error(this->engine->IsSuspended() ? "This script took too long to Save." : "Save function should return a table.");
+			ScriptLog::Error(this->IsSuspended() ? "This script took too long to Save." : "Save function should return a table.");
 			SaveEmpty(dumper);
-			this->engine->CrashOccurred();
+			this->CrashOccurred();
 			return;
 		}
 		sq_pushobject(vm, savedata);
@@ -505,7 +502,7 @@ void ScriptInstance::Save(SaveDumper *dumper)
 			this->state.set (STATE_SAVEDATA);
 		} else {
 			SaveEmpty(dumper);
-			this->engine->CrashOccurred();
+			this->CrashOccurred();
 		}
 	} else {
 		ScriptLog::Warning("Save function is not implemented");
@@ -516,7 +513,7 @@ void ScriptInstance::Save(SaveDumper *dumper)
 void ScriptInstance::Pause()
 {
 	/* Suspend script. */
-	HSQUIRRELVM vm = this->engine->GetVM();
+	HSQUIRRELVM vm = this->GetVM();
 	Squirrel::DecreaseOps(vm, _settings_game.script.script_max_opcode_till_suspend);
 
 	this->state.set (STATE_PAUSED);
@@ -589,11 +586,11 @@ void ScriptInstance::Load(LoadBuffer *reader, int version)
 {
 	ScriptObject::ActiveInstance active(this);
 
-	if (this->engine == NULL || version == -1) {
+	if (!this->state.test (STATE_INIT) || version == -1) {
 		LoadEmpty(reader);
 		return;
 	}
-	HSQUIRRELVM vm = this->engine->GetVM();
+	HSQUIRRELVM vm = this->GetVM();
 
 	/* Check if there was anything saved at all. */
 	if (reader->ReadByte() == 0) return;
@@ -605,13 +602,13 @@ void ScriptInstance::Load(LoadBuffer *reader, int version)
 
 bool ScriptInstance::CallLoad()
 {
-	HSQUIRRELVM vm = this->engine->GetVM();
+	HSQUIRRELVM vm = this->GetVM();
 	/* Is there save data that we should load? */
 	if (!this->state.test (STATE_SAVEDATA)) return true;
 	/* Whatever happens, after CallLoad the savegame data is removed from the stack. */
 	this->state.reset (STATE_SAVEDATA);
 
-	if (!this->engine->MethodExists(*this->instance, "Load")) {
+	if (!this->MethodExists(*this->instance, "Load")) {
 		ScriptLog::Warning("Loading failed: there was data for the script to load, but the script does not have a Load() function.");
 
 		/* Pop the savegame data and version. */
@@ -642,7 +639,7 @@ bool ScriptInstance::CallLoad()
 
 SQInteger ScriptInstance::GetOpsTillSuspend()
 {
-	return this->engine->GetOpsTillSuspend();
+	return this->Squirrel::GetOpsTillSuspend();
 }
 
 void ScriptInstance::DoCommandCallback (const CommandCost &result)

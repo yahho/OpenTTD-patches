@@ -15,7 +15,7 @@
 #include <bitset>
 #include <queue>
 
-#include <squirrel.h>
+#include "squirrel.hpp"
 #include "script_suspend.hpp"
 
 #include "../command_type.h"
@@ -26,7 +26,7 @@
 static const uint SQUIRREL_MAX_DEPTH = 25; ///< The maximum recursive depth for items stored in the savegame.
 
 /** Runtime information about a script like a pointer to the squirrel vm and the current state. */
-class ScriptInstance {
+class ScriptInstance : protected Squirrel {
 public:
 	friend class ScriptObject;
 	friend class ScriptController;
@@ -76,7 +76,7 @@ public:
 	/**
 	 * Let the VM collect any garbage.
 	 */
-	void CollectGarbage() const;
+	void CollectGarbage();
 
 	/**
 	 * Get the storage of this script.
@@ -222,7 +222,6 @@ public:
 	bool IsSleeping() { return this->suspend != 0; }
 
 protected:
-	class Squirrel *engine;               ///< A wrapper around the squirrel vm.
 	const char *versionAPI;               ///< Current API used by this script.
 
 	/**
@@ -254,6 +253,7 @@ private:
 	SQObject *instance;                   ///< Squirrel-pointer to the script main class.
 
 	enum {
+		STATE_INIT,     ///< The script engine is initialised.
 		STATE_STARTED,  ///< The script constructor has run.
 		STATE_PAUSED,   ///< The script is paused.
 		STATE_DEAD,     ///< The script has been stopped.

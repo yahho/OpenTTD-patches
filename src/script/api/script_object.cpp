@@ -179,7 +179,7 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 
 /* static */ bool ScriptObject::CanSuspend()
 {
-	Squirrel *squirrel = ScriptObject::GetActiveInstance()->engine;
+	Squirrel *squirrel = ScriptObject::GetActiveInstance();
 	return GetStorage()->allow_do_command && squirrel->CanSuspend();
 }
 

@@ -114,7 +114,7 @@ ScriptController::~ScriptController()
 	const char *class_name = cname_ptr.get();
 
 	ScriptController *controller = ScriptObject::GetActiveInstance()->GetController();
-	Squirrel *engine = ScriptObject::GetActiveInstance()->engine;
+	Squirrel *engine = ScriptObject::GetActiveInstance();
 	assert (engine == Squirrel::Get(vm));
 
 	/* Internally we store libraries as 'library.version' */

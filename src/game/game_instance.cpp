@@ -36,7 +36,7 @@ void GameInstance::Initialize (const GameInfo *info)
 	this->versionAPI = info->GetAPIVersion();
 
 	/* Register the GameController */
-	SQGSController_Register(this->engine);
+	SQGSController_Register (this);
 
 	ScriptInstance::Initialize (info, OWNER_DEITY);
 }
@@ -46,9 +46,9 @@ void GameInstance::RegisterAPI()
 	ScriptInstance::RegisterAPI();
 
 	/* Register all classes */
-	SQGS_Register (this->engine);
+	SQGS_Register (this);
 
-	RegisterGameTranslation(this->engine);
+	RegisterGameTranslation (this);
 
 	if (!this->LoadCompatibilityScripts(this->versionAPI, GAME_DIR)) this->Died();
 }
