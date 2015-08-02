@@ -37,13 +37,30 @@ ScriptInstance::ScriptInstance(const char *APIName) :
 	Squirrel (APIName, &ScriptController::Print),
 	versionAPI(NULL),
 	controller(NULL),
-	storage(NULL),
 	instance(NULL),
 	state (1 << STATE_INIT),
 	suspend(0),
-	callback(NULL)
+	callback(NULL),
+	mode              (NULL),
+	mode_instance     (NULL),
+	root_company      (INVALID_OWNER),
+	company           (INVALID_OWNER),
+	delay             (1),
+	allow_do_command  (true),
+	/* costs (can't be set) */
+	last_cost         (0),
+	last_error        (STR_NULL),
+	last_command_res  (true),
+	new_vehicle_id    (0),
+	new_sign_id       (0),
+	new_group_id      (0),
+	new_goal_id       (0),
+	new_story_page_id (0),
+	new_story_page_element_id(0),
+	/* calback_value (can't be set) */
+	road_type         (INVALID_ROADTYPE),
+	rail_type         (INVALID_RAILTYPE)
 {
-	this->storage = new ScriptStorage();
 	this->Squirrel::Initialize();
 }
 
@@ -142,7 +159,6 @@ ScriptInstance::~ScriptInstance()
 		e->Release();
 	}
 
-	delete this->storage;
 	delete this->controller;
 	free(this->instance);
 }
@@ -262,48 +278,43 @@ void ScriptInstance::CollectGarbage()
 /* static */ void ScriptInstance::DoCommandReturn(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->InsertResult (instance->storage->last_command_res);
+	instance->InsertResult (instance->last_command_res);
 }
 
 /* static */ void ScriptInstance::DoCommandReturnVehicleID(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->InsertResult (instance->storage->new_vehicle_id);
+	instance->InsertResult (instance->new_vehicle_id);
 }
 
 /* static */ void ScriptInstance::DoCommandReturnSignID(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->InsertResult (instance->storage->new_sign_id);
+	instance->InsertResult (instance->new_sign_id);
 }
 
 /* static */ void ScriptInstance::DoCommandReturnGroupID(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->InsertResult (instance->storage->new_group_id);
+	instance->InsertResult (instance->new_group_id);
 }
 
 /* static */ void ScriptInstance::DoCommandReturnGoalID(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->InsertResult (instance->storage->new_goal_id);
+	instance->InsertResult (instance->new_goal_id);
 }
 
 /* static */ void ScriptInstance::DoCommandReturnStoryPageID(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->InsertResult (instance->storage->new_story_page_id);
+	instance->InsertResult (instance->new_story_page_id);
 }
 
 /* static */ void ScriptInstance::DoCommandReturnStoryPageElementID(ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
-	instance->InsertResult (instance->storage->new_story_page_element_id);
-}
-
-ScriptStorage *ScriptInstance::GetStorage()
-{
-	return this->storage;
+	instance->InsertResult (instance->new_story_page_element_id);
 }
 
 /*
@@ -712,7 +723,7 @@ void ScriptInstance::Log (LogLevel level, const char *message)
 	/* Also still print to debug window. */
 	static const char chars[] = "SEPWI";
 	char logc = ((uint)level < lengthof(chars)) ? chars[level] : '?';
-	CompanyID company = this->storage->root_company;
+	CompanyID company = this->root_company;
 	DEBUG(script, level, "[%d] [%c] %s", (uint)company, logc, message);
 	InvalidateWindowData (WC_AI_DEBUG, 0, company);
 }

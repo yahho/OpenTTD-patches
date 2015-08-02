@@ -23,16 +23,6 @@
 #include "../script_fatalerror.hpp"
 #include "script_error.hpp"
 
-/**
- * Get the storage associated with the current ScriptInstance.
- * @return The storage.
- */
-static ScriptStorage *GetStorage()
-{
-	return ScriptObject::GetActiveInstance()->GetStorage();
-}
-
-
 /* static */ ScriptInstance *ScriptObject::ActiveInstance::active = NULL;
 
 ScriptObject::ActiveInstance::ActiveInstance(ScriptInstance *instance)
@@ -56,88 +46,88 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 /* static */ void ScriptObject::SetDoCommandDelay(uint ticks)
 {
 	assert(ticks > 0);
-	GetStorage()->delay = ticks;
+	GetActiveInstance()->delay = ticks;
 }
 
 /* static */ uint ScriptObject::GetDoCommandDelay()
 {
-	return GetStorage()->delay;
+	return GetActiveInstance()->delay;
 }
 
 /* static */ void ScriptObject::SetDoCommandMode(ScriptModeProc *proc, ScriptObject *instance)
 {
-	GetStorage()->mode = proc;
-	GetStorage()->mode_instance = instance;
+	GetActiveInstance()->mode = proc;
+	GetActiveInstance()->mode_instance = instance;
 }
 
 /* static */ ScriptModeProc *ScriptObject::GetDoCommandMode()
 {
-	return GetStorage()->mode;
+	return GetActiveInstance()->mode;
 }
 
 /* static */ ScriptObject *ScriptObject::GetDoCommandModeInstance()
 {
-	return GetStorage()->mode_instance;
+	return GetActiveInstance()->mode_instance;
 }
 
 /* static */ void ScriptObject::SetDoCommandCosts(Money value)
 {
-	GetStorage()->costs = CommandCost(value);
+	GetActiveInstance()->costs = CommandCost(value);
 }
 
 /* static */ void ScriptObject::IncreaseDoCommandCosts(Money value)
 {
-	GetStorage()->costs.AddCost(value);
+	GetActiveInstance()->costs.AddCost(value);
 }
 
 /* static */ Money ScriptObject::GetDoCommandCosts()
 {
-	return GetStorage()->costs.GetCost();
+	return GetActiveInstance()->costs.GetCost();
 }
 
 /* static */ void ScriptObject::SetLastError(ScriptErrorType last_error)
 {
-	GetStorage()->last_error = last_error;
+	GetActiveInstance()->last_error = last_error;
 }
 
 /* static */ ScriptErrorType ScriptObject::GetLastError()
 {
-	return GetStorage()->last_error;
+	return GetActiveInstance()->last_error;
 }
 
 /* static */ void ScriptObject::SetLastCost(Money last_cost)
 {
-	GetStorage()->last_cost = last_cost;
+	GetActiveInstance()->last_cost = last_cost;
 }
 
 /* static */ Money ScriptObject::GetLastCost()
 {
-	return GetStorage()->last_cost;
+	return GetActiveInstance()->last_cost;
 }
 
 /* static */ void ScriptObject::SetRoadType(RoadType road_type)
 {
-	GetStorage()->road_type = road_type;
+	GetActiveInstance()->road_type = road_type;
 }
 
 /* static */ RoadType ScriptObject::GetRoadType()
 {
-	return GetStorage()->road_type;
+	return GetActiveInstance()->road_type;
 }
 
 /* static */ void ScriptObject::SetRailType(RailType rail_type)
 {
-	GetStorage()->rail_type = rail_type;
+	GetActiveInstance()->rail_type = rail_type;
 }
 
 /* static */ RailType ScriptObject::GetRailType()
 {
-	return GetStorage()->rail_type;
+	return GetActiveInstance()->rail_type;
 }
 
 /* static */ void ScriptObject::SetLastCommandRes(bool res)
 {
-	ScriptStorage *storage = GetStorage();
+	ScriptInstance *storage = GetActiveInstance();
 	storage->last_command_res = res;
 	/* Also store the results of various global variables */
 	storage->new_vehicle_id            = _new_vehicle_id;
@@ -150,36 +140,36 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 
 /* static */ void ScriptObject::SetAllowDoCommand(bool allow)
 {
-	GetStorage()->allow_do_command = allow;
+	GetActiveInstance()->allow_do_command = allow;
 }
 
 /* static */ bool ScriptObject::GetAllowDoCommand()
 {
-	return GetStorage()->allow_do_command;
+	return GetActiveInstance()->allow_do_command;
 }
 
 /* static */ void ScriptObject::SetCompany(CompanyID company)
 {
-	if (GetStorage()->root_company == INVALID_OWNER) GetStorage()->root_company = company;
-	GetStorage()->company = company;
+	if (GetActiveInstance()->root_company == INVALID_OWNER) GetActiveInstance()->root_company = company;
+	GetActiveInstance()->company = company;
 
 	_current_company = company;
 }
 
 /* static */ CompanyID ScriptObject::GetCompany()
 {
-	return GetStorage()->company;
+	return GetActiveInstance()->company;
 }
 
 /* static */ CompanyID ScriptObject::GetRootCompany()
 {
-	return GetStorage()->root_company;
+	return GetActiveInstance()->root_company;
 }
 
 /* static */ bool ScriptObject::CanSuspend()
 {
 	Squirrel *squirrel = ScriptObject::GetActiveInstance();
-	return GetStorage()->allow_do_command && squirrel->CanSuspend();
+	return GetActiveInstance()->allow_do_command && squirrel->CanSuspend();
 }
 
 /* static */ char *ScriptObject::GetString(StringID string)
@@ -192,13 +182,13 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 
 /* static */ void ScriptObject::SetCallbackVariable(int index, int value)
 {
-	if ((size_t)index >= GetStorage()->callback_value.size()) GetStorage()->callback_value.resize(index + 1);
-	GetStorage()->callback_value[index] = value;
+	if ((size_t)index >= GetActiveInstance()->callback_value.size()) GetActiveInstance()->callback_value.resize(index + 1);
+	GetActiveInstance()->callback_value[index] = value;
 }
 
 /* static */ int ScriptObject::GetCallbackVariable(int index)
 {
-	return GetStorage()->callback_value[index];
+	return GetActiveInstance()->callback_value[index];
 }
 
 /* static */ bool ScriptObject::DoCommand(TileIndex tile, uint32 p1, uint32 p2, CommandID cmd, stringb *text, Script_SuspendCallbackProc *callback)
