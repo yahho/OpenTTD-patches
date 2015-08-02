@@ -113,16 +113,16 @@ ScriptController::~ScriptController()
 	const char *library    = library_ptr.get();
 	const char *class_name = cname_ptr.get();
 
-	ScriptController *controller = ScriptObject::GetActiveInstance()->GetController();
-	Squirrel *engine = ScriptObject::GetActiveInstance();
-	assert (engine == Squirrel::Get(vm));
+	ScriptInstance *engine = ScriptInstance::Get (vm);
+	assert (ScriptObject::GetActiveInstance() == engine);
+	ScriptController *controller = engine->GetController();
 
 	/* Internally we store libraries as 'library.version' */
 	char library_name[1024];
 	bstrfmt (library_name, "%s.%d", library, version);
 	strtolower(library_name);
 
-	ScriptInfo *lib = ScriptObject::GetActiveInstance()->FindLibrary(library, version);
+	ScriptInfo *lib = engine->FindLibrary(library, version);
 	if (lib == NULL) {
 		char error[1024];
 		bstrfmt (error, "couldn't find library '%s' with version %d", library, version);

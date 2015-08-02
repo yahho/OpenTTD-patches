@@ -167,6 +167,12 @@ protected:
 	virtual CommandSource GetCommandSource() = 0;
 
 public:
+	/** Get the ScriptInstance class associated with a VM. */
+	static ScriptInstance *Get (HSQUIRRELVM vm)
+	{
+		return static_cast<ScriptInstance *> (Squirrel::Get(vm));
+	}
+
 	/** Get the controller attached to the instance. */
 	class ScriptController *GetController() { return controller; }
 
