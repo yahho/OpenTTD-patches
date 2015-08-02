@@ -35,19 +35,21 @@
 
 ScriptInstance::ScriptInstance(const char *APIName) :
 	Squirrel (APIName, &ScriptController::Print),
-	versionAPI(NULL),
 	controller(NULL),
 	instance(NULL),
 	state (1 << STATE_INIT),
 	suspend(0),
 	callback(NULL),
+	versionAPI(NULL),
+	log(),
+	events(),
 	mode              (NULL),
 	mode_instance     (NULL),
 	root_company      (INVALID_OWNER),
 	company           (INVALID_OWNER),
 	delay             (1),
 	allow_do_command  (true),
-	/* costs (can't be set) */
+	costs(),
 	last_cost         (0),
 	last_error        (STR_NULL),
 	last_command_res  (true),
@@ -57,7 +59,7 @@ ScriptInstance::ScriptInstance(const char *APIName) :
 	new_goal_id       (0),
 	new_story_page_id (0),
 	new_story_page_element_id(0),
-	/* calback_value (can't be set) */
+	callback_value(),
 	road_type         (INVALID_ROADTYPE),
 	rail_type         (INVALID_RAILTYPE)
 {
@@ -163,12 +165,6 @@ ScriptInstance::~ScriptInstance()
 	free(this->instance);
 }
 
-void ScriptInstance::Continue()
-{
-	assert(this->suspend < 0);
-	this->suspend = -this->suspend - 1;
-}
-
 void ScriptInstance::Died()
 {
 	DEBUG(script, 0, "The script died unexpectedly.");
@@ -178,6 +174,21 @@ void ScriptInstance::Died()
 	this->Squirrel::Uninitialize();
 	this->state.reset (STATE_INIT);
 	this->instance = NULL;
+}
+
+void ScriptInstance::Pause()
+{
+	/* Suspend script. */
+	HSQUIRRELVM vm = this->GetVM();
+	Squirrel::DecreaseOps(vm, _settings_game.script.script_max_opcode_till_suspend);
+
+	this->state.set (STATE_PAUSED);
+}
+
+void ScriptInstance::Continue()
+{
+	assert(this->suspend < 0);
+	this->suspend = -this->suspend - 1;
 }
 
 void ScriptInstance::GameLoop()
@@ -317,6 +328,83 @@ void ScriptInstance::CollectGarbage()
 	instance->InsertResult (instance->new_story_page_element_id);
 }
 
+void ScriptInstance::DoCommandCallback (const CommandCost &result)
+{
+	ScriptObject::ActiveInstance active(this);
+
+	ScriptObject::SetLastCommandRes(result.Succeeded());
+
+	if (result.Failed()) {
+		ScriptObject::SetLastError(ScriptError::StringToError(result.GetErrorMessage()));
+	} else {
+		ScriptObject::IncreaseDoCommandCosts(result.GetCost());
+		ScriptObject::SetLastCost(result.GetCost());
+	}
+}
+
+class ScriptEvent *ScriptInstance::GetNextEvent (void)
+{
+	if (this->events.empty()) return NULL;
+
+	class ScriptEvent *event = this->events.front();
+	this->events.pop();
+	return event;
+}
+
+void ScriptInstance::InsertEvent(class ScriptEvent *event)
+{
+	event->AddRef();
+	this->events.push (event);
+}
+
+ScriptInstance::LogData::~LogData()
+{
+	for (uint i = 0; i < this->used; i++) {
+		free (this->lines[i]);
+	}
+}
+
+inline const char *ScriptInstance::LogData::log (Level level, const char *message)
+{
+	/* Compute string length (cut at first newline). */
+	const char *newline = strchr (message, '\n');
+	size_t length = (newline != NULL) ? (newline - message) : strlen (message);
+
+	/* Allocate buffer and advance counter. */
+	Line *line;
+	if (this->used < SIZE) {
+		assert (this->pos == this->used);
+		this->used++;
+		line = NULL; // realloc (NULL, size) -> malloc (size)
+	} else {
+		line = this->lines[this->pos];
+	}
+	line = (Line *) xrealloc (line, sizeof(Line) + length + 1);
+	this->lines[this->pos] = line;
+	this->pos = (this->pos + 1) % SIZE;
+
+	/* Copy contents into buffer. */
+	line->level = level;
+	memcpy (line->msg, message, length);
+	line->msg[length] = '\0';
+
+	return line->msg;
+}
+
+void ScriptInstance::Log (LogLevel level, const char *message)
+{
+	/* Push string into buffer. */
+	message = this->log.log (level, message);
+
+	/* Also still print to debug window. */
+	static const char chars[] = "SEPWI";
+	char logc = ((uint)level < lengthof(chars)) ? chars[level] : '?';
+	CompanyID company = this->root_company;
+	DEBUG(script, level, "[%d] [%c] %s", (uint)company, logc, message);
+	InvalidateWindowData (WC_AI_DEBUG, 0, company);
+}
+
+
 /*
  * All data is stored in the following format:
  * First 1 byte indicating if there is a data blob at all.
@@ -349,7 +437,16 @@ enum SQSaveLoadType {
 	SQSL_ARRAY_TABLE_END = 0xFF, ///< Marks the end of an array or table, no data follows.
 };
 
-/* static */ bool ScriptInstance::SaveObject(SaveDumper *dumper, HSQUIRRELVM vm, SQInteger index, int max_depth)
+/**
+ * Save one object (int / string / array / table) to the savegame.
+ * @param dumper The dumper to save the data to; NULL to only check if they are valid
+ * @param vm The virtual machine to get all the data from.
+ * @param index The index on the squirrel stack of the element to save.
+ * @param max_depth The maximum depth recursive arrays / tables will be stored
+ *   with before an error is returned.
+ * @return True if the saving was successful.
+ */
+static bool SaveObject (SaveDumper *dumper, HSQUIRRELVM vm, SQInteger index, int max_depth)
 {
 	if (max_depth == 0) {
 		ScriptLog::Error("Savedata can only be nested to 25 deep. No data saved."); // SQUIRREL_MAX_DEPTH = 25
@@ -520,16 +617,12 @@ void ScriptInstance::Save(SaveDumper *dumper)
 	}
 }
 
-void ScriptInstance::Pause()
-{
-	/* Suspend script. */
-	HSQUIRRELVM vm = this->GetVM();
-	Squirrel::DecreaseOps(vm, _settings_game.script.script_max_opcode_till_suspend);
-
-	this->state.set (STATE_PAUSED);
-}
-
-/* static */ bool ScriptInstance::LoadObjects(LoadBuffer *reader, HSQUIRRELVM vm)
+/**
+ * Load all objects from a savegame.
+ * @param reader The buffer to load the data from
+ * @return True if the loading was successful.
+ */
+static bool LoadObjects (LoadBuffer *reader, HSQUIRRELVM vm)
 {
 	switch (reader->ReadByte()) {
 		case SQSL_INT: {
@@ -645,85 +738,4 @@ bool ScriptInstance::CallLoad()
 	/* Pop 1) The version, 2) the savegame data, 3) the object instance, 4) the function pointer. */
 	sq_pop(vm, 4);
 	return true;
-}
-
-SQInteger ScriptInstance::GetOpsTillSuspend()
-{
-	return this->Squirrel::GetOpsTillSuspend();
-}
-
-void ScriptInstance::DoCommandCallback (const CommandCost &result)
-{
-	ScriptObject::ActiveInstance active(this);
-
-	ScriptObject::SetLastCommandRes(result.Succeeded());
-
-	if (result.Failed()) {
-		ScriptObject::SetLastError(ScriptError::StringToError(result.GetErrorMessage()));
-	} else {
-		ScriptObject::IncreaseDoCommandCosts(result.GetCost());
-		ScriptObject::SetLastCost(result.GetCost());
-	}
-}
-
-class ScriptEvent *ScriptInstance::GetNextEvent (void)
-{
-	if (this->events.empty()) return NULL;
-
-	class ScriptEvent *event = this->events.front();
-	this->events.pop();
-	return event;
-}
-
-void ScriptInstance::InsertEvent(class ScriptEvent *event)
-{
-	event->AddRef();
-	this->events.push (event);
-}
-
-ScriptInstance::LogData::~LogData()
-{
-	for (uint i = 0; i < this->used; i++) {
-		free (this->lines[i]);
-	}
-}
-
-inline const char *ScriptInstance::LogData::log (Level level, const char *message)
-{
-	/* Compute string length (cut at first newline). */
-	const char *newline = strchr (message, '\n');
-	size_t length = (newline != NULL) ? (newline - message) : strlen (message);
-
-	/* Allocate buffer and advance counter. */
-	Line *line;
-	if (this->used < SIZE) {
-		assert (this->pos == this->used);
-		this->used++;
-		line = NULL; // realloc (NULL, size) -> malloc (size)
-	} else {
-		line = this->lines[this->pos];
-	}
-	line = (Line *) xrealloc (line, sizeof(Line) + length + 1);
-	this->lines[this->pos] = line;
-	this->pos = (this->pos + 1) % SIZE;
-
-	/* Copy contents into buffer. */
-	line->level = level;
-	memcpy (line->msg, message, length);
-	line->msg[length] = '\0';
-
-	return line->msg;
-}
-
-void ScriptInstance::Log (LogLevel level, const char *message)
-{
-	/* Push string into buffer. */
-	message = this->log.log (level, message);
-
-	/* Also still print to debug window. */
-	static const char chars[] = "SEPWI";
-	char logc = ((uint)level < lengthof(chars)) ? chars[level] : '?';
-	CompanyID company = this->root_company;
-	DEBUG(script, level, "[%d] [%c] %s", (uint)company, logc, message);
-	InvalidateWindowData (WC_AI_DEBUG, 0, company);
 }
