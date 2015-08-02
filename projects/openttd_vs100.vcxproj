@@ -1209,7 +1209,6 @@
       <XMLDocumentationFileName>$(IntDir)\script\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\script\script_scanner.hpp" />
-    <ClInclude Include="..\src\script\script_storage.hpp" />
     <ClInclude Include="..\src\script\script_suspend.hpp" />
     <ClCompile Include="..\src\script\squirrel.cpp">
       <AssemblerListingLocation>$(IntDir)\script\</AssemblerListingLocation>

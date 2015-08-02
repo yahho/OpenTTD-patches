@@ -20,7 +20,6 @@
 #include "../script/convert.hpp"
 
 #include "script_fatalerror.hpp"
-#include "script_storage.hpp"
 #include "script_info.hpp"
 #include "script_instance.hpp"
 

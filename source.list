@@ -667,7 +667,6 @@ script/script_instance.cpp
 script/script_instance.hpp
 script/script_scanner.cpp
 script/script_scanner.hpp
-script/script_storage.hpp
 script/script_suspend.hpp
 script/squirrel.cpp
 script/squirrel.hpp

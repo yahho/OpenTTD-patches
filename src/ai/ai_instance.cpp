@@ -19,7 +19,6 @@
 #include "ai_gui.hpp"
 #include "ai.hpp"
 
-#include "../script/script_storage.hpp"
 #include "ai_info.hpp"
 #include "ai_instance.hpp"
 

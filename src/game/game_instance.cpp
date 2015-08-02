@@ -14,7 +14,6 @@
 
 #include "../script/convert.hpp"
 
-#include "../script/script_storage.hpp"
 #include "../ai/ai_gui.hpp"
 #include "game_config.hpp"
 #include "game_info.hpp"

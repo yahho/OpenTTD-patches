@@ -5895,10 +5895,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\script\script_storage.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\script\script_suspend.hpp"
 				>
 			</File>

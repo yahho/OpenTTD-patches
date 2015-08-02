@@ -13,6 +13,7 @@
 #define AI_GUI_HPP
 
 #include "../company_type.h"
+#include "../window_type.h"
 
 Window* ShowAIDebugWindow(CompanyID show_company = INVALID_COMPANY);
 void ShowAIConfigWindow();

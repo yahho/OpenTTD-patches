@@ -19,7 +19,6 @@
 #include "../../string.h"
 #include "../../strings_func.h"
 
-#include "../script_storage.hpp"
 #include "../script_instance.hpp"
 #include "../script_fatalerror.hpp"
 #include "script_error.hpp"

@@ -1977,9 +1977,6 @@
     <ClInclude Include="..\src\script\script_scanner.hpp">
       <Filter>Script</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\script\script_storage.hpp">
-      <Filter>Script</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\script\script_suspend.hpp">
       <Filter>Script</Filter>
     </ClInclude>
