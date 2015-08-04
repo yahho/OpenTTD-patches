@@ -210,7 +210,6 @@ public:
 private:
 	typedef std::map<const char *, const char *, StringCompare> LoadedLibraryList; ///< The type for loaded libraries.
 
-	uint ticks;                       ///< The amount of ticks we're sleeping.
 	LoadedLibraryList loaded_library; ///< The libraries we loaded.
 	int loaded_library_count;         ///< The amount of libraries.
 };

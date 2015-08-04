@@ -61,6 +61,7 @@ private:
 
 	std::bitset <STATE__N> state;         ///< State flags of the script.
 
+	uint ticks;                           ///< Amount of ticks we have run.
 	int suspend;                          ///< The amount of ticks to suspend this script before it's allowed to continue.
 	Script_SuspendCallbackProc *callback; ///< Callback that should be called in the next tick the script runs.
 
@@ -178,6 +179,12 @@ public:
 
 	/** Check whether the script has died. */
 	inline bool IsDead() const { return this->state.test (STATE_DEAD); }
+
+	/** Get the amount of ticks we have run. */
+	uint GetTick (void) const
+	{
+		return this->ticks;
+	}
 
 	/**
 	 * Suspends the script for the current tick and then pause the execution

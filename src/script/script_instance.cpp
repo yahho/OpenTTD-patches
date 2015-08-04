@@ -38,6 +38,7 @@ ScriptInstance::ScriptInstance(const char *APIName) :
 	controller(NULL),
 	instance(NULL),
 	state ((1 << STATE_INIT) | (1 << STATE_DOCOMMAND_ALLOWED)),
+	ticks(0),
 	suspend(0),
 	callback(NULL),
 	versionAPI(NULL),
@@ -202,7 +203,7 @@ void ScriptInstance::GameLoop()
 		return;
 	}
 	if (this->state.test (STATE_PAUSED)) return;
-	this->controller->ticks++;
+	this->ticks++;
 
 	if (this->suspend   < -1) this->suspend++; // Multiplayer suspend, increase up to -1.
 	if (this->suspend   < 0)  return;          // Multiplayer suspend, wait for Continue().
