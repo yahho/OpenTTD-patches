@@ -27,7 +27,7 @@
 /* static */ void ScriptController::SetCommandDelay(int ticks)
 {
 	if (ticks <= 0) return;
-	ScriptObject::SetDoCommandDelay(ticks);
+	ScriptObject::GetActiveInstance()->SetDoCommandDelay (ticks);
 }
 
 /* static */ void ScriptController::Sleep(int ticks)

@@ -259,6 +259,12 @@ public:
 		return this->GetAllowDoCommand() && this->Squirrel::CanSuspend();
 	}
 
+	/** Set the delay of the DoCommand. */
+	void SetDoCommandDelay (uint ticks)
+	{
+		this->delay = ticks;
+	}
+
 	/**
 	 * A script in multiplayer waits for the server to handle his DoCommand.
 	 *  It keeps waiting for this until this function is called.

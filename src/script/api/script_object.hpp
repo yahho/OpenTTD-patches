@@ -133,11 +133,6 @@ protected:
 	static ScriptObject *GetDoCommandModeInstance();
 
 	/**
-	 * Set the delay of the DoCommand.
-	 */
-	static void SetDoCommandDelay(uint ticks);
-
-	/**
 	 * Get the delay of the DoCommand.
 	 */
 	static uint GetDoCommandDelay();

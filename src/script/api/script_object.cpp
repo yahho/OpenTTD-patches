@@ -43,12 +43,6 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 }
 
 
-/* static */ void ScriptObject::SetDoCommandDelay(uint ticks)
-{
-	assert(ticks > 0);
-	GetActiveInstance()->delay = ticks;
-}
-
 /* static */ uint ScriptObject::GetDoCommandDelay()
 {
 	return GetActiveInstance()->delay;
