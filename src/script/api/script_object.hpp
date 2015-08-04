@@ -143,21 +143,6 @@ protected:
 	static uint GetDoCommandDelay();
 
 	/**
-	 * Store a allow_do_command per company.
-	 * @param allow The new allow.
-	 */
-	static void SetAllowDoCommand(bool allow);
-
-	/**
-	 * Get the internal value of allow_do_command. This can differ
-	 * from CanSuspend() if the reason we are not allowed
-	 * to execute a DoCommand is in squirrel and not the API.
-	 * In that case use this function to restore the previous value.
-	 * @return True iff DoCommands are allowed in the current scope.
-	 */
-	static bool GetAllowDoCommand();
-
-	/**
 	 * Set the current company to execute commands for or request
 	 *  information about.
 	 * @param company The new company.

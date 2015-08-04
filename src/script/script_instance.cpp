@@ -37,7 +37,7 @@ ScriptInstance::ScriptInstance(const char *APIName) :
 	Squirrel (APIName, &ScriptController::Print),
 	controller(NULL),
 	instance(NULL),
-	state (1 << STATE_INIT),
+	state ((1 << STATE_INIT) | (1 << STATE_DOCOMMAND_ALLOWED)),
 	suspend(0),
 	callback(NULL),
 	versionAPI(NULL),
@@ -48,7 +48,6 @@ ScriptInstance::ScriptInstance(const char *APIName) :
 	root_company      (INVALID_OWNER),
 	company           (INVALID_OWNER),
 	delay             (1),
-	allow_do_command  (true),
 	costs(),
 	last_cost         (0),
 	last_error        (STR_NULL),
@@ -77,7 +76,8 @@ void ScriptInstance::Initialize (const ScriptInfo *info, CompanyID company,
 	this->RegisterAPI();
 
 	try {
-		ScriptObject::SetAllowDoCommand(false);
+		assert (ScriptObject::GetActiveInstance() == this);
+		this->SetAllowDoCommand (false);
 		/* Load and execute the script for this script */
 		const char *main_script = info->GetMainScript();
 		if (load != NULL) {
@@ -94,7 +94,7 @@ void ScriptInstance::Initialize (const ScriptInfo *info, CompanyID company,
 			this->Died();
 			return;
 		}
-		ScriptObject::SetAllowDoCommand(true);
+		this->SetAllowDoCommand (true);
 	} catch (Script_FatalError e) {
 		this->state.set (STATE_DEAD);
 		this->ThrowError(e.GetErrorMessage());
@@ -232,7 +232,8 @@ void ScriptInstance::GameLoop()
 
 	if (!this->state.test (STATE_STARTED)) {
 		try {
-			ScriptObject::SetAllowDoCommand(false);
+			assert (ScriptObject::GetActiveInstance() == this);
+			this->SetAllowDoCommand (false);
 			/* Run the constructor if it exists. Don't allow any DoCommands in it. */
 			if (this->MethodExists(*this->instance, "constructor")) {
 				if (!this->CallMethod(*this->instance, "constructor", MAX_CONSTRUCTOR_OPS) || this->IsSuspended()) {
@@ -246,7 +247,7 @@ void ScriptInstance::GameLoop()
 				this->Died();
 				return;
 			}
-			ScriptObject::SetAllowDoCommand(true);
+			this->SetAllowDoCommand (true);
 			/* Start the script by calling Start() */
 			if (!this->CallMethod(*this->instance, "Start",  _settings_game.script.script_max_opcode_till_suspend) || !this->IsSuspended()) this->Died();
 		} catch (Script_Suspend e) {
@@ -571,8 +572,8 @@ void ScriptInstance::Save(SaveDumper *dumper)
 	} else if (this->MethodExists(*this->instance, "Save")) {
 		HSQOBJECT savedata;
 		/* We don't want to be interrupted during the save function. */
-		bool backup_allow = ScriptObject::GetAllowDoCommand();
-		ScriptObject::SetAllowDoCommand(false);
+		assert (ScriptObject::GetActiveInstance() == this);
+		bool backup_allow = this->SetAllowDoCommand (false);
 		try {
 			if (!this->CallMethod (*this->instance, "Save", MAX_SL_OPS, &savedata)) {
 				/* The script crashed in the Save function. We can't kill
@@ -594,7 +595,7 @@ void ScriptInstance::Save(SaveDumper *dumper)
 			this->CrashOccurred();
 			return;
 		}
-		ScriptObject::SetAllowDoCommand(backup_allow);
+		this->SetAllowDoCommand (backup_allow);
 
 		if (!sq_istable(savedata)) {
 			ScriptLog::Error(this->IsSuspended() ? "This script took too long to Save." : "Save function should return a table.");

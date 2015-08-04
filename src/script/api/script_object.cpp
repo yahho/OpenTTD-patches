@@ -138,16 +138,6 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 	storage->new_story_page_element_id = _new_story_page_element_id;
 }
 
-/* static */ void ScriptObject::SetAllowDoCommand(bool allow)
-{
-	GetActiveInstance()->allow_do_command = allow;
-}
-
-/* static */ bool ScriptObject::GetAllowDoCommand()
-{
-	return GetActiveInstance()->allow_do_command;
-}
-
 /* static */ void ScriptObject::SetCompany(CompanyID company)
 {
 	if (GetActiveInstance()->root_company == INVALID_OWNER) GetActiveInstance()->root_company = company;
@@ -168,8 +158,7 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 
 /* static */ bool ScriptObject::CanSuspend()
 {
-	Squirrel *squirrel = ScriptObject::GetActiveInstance();
-	return GetActiveInstance()->allow_do_command && squirrel->CanSuspend();
+	return GetActiveInstance()->CanSuspend();
 }
 
 /* static */ char *ScriptObject::GetString(StringID string)

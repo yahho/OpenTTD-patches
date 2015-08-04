@@ -55,6 +55,7 @@ private:
 		STATE_PAUSED,   ///< The script is paused.
 		STATE_DEAD,     ///< The script has been stopped.
 		STATE_SAVEDATA, ///< The save data is still on the stack.
+		STATE_DOCOMMAND_ALLOWED, ///< Use of DoCommand is allowed.
 		STATE__N,
 	};
 
@@ -113,7 +114,6 @@ private:
 	CompanyID company;               ///< The current company.
 
 	uint delay;                      ///< The ticks of delay each DoCommand has.
-	bool allow_do_command;           ///< Is the usage of DoCommands restricted?
 
 	CommandCost costs;               ///< The costs the script is tracking.
 	Money last_cost;                 ///< The last cost of the command.
@@ -220,6 +220,36 @@ public:
 	SQInteger GetOpsTillSuspend (void)
 	{
 		return this->Squirrel::GetOpsTillSuspend();
+	}
+
+	/**
+	 * Set whether using DoCommand is allowed.
+	 * @param allow Whether to allow using DoCommand.
+	 * @return Whether using DoCommand was allowed before.
+	 */
+	bool SetAllowDoCommand (bool allow)
+	{
+		bool prev = this->state.test (STATE_DOCOMMAND_ALLOWED);
+		this->state.set (STATE_DOCOMMAND_ALLOWED, allow);
+		return prev;
+	}
+
+	/**
+	 * Get whether using DoCommand is allowed. This can differ
+	 * from CanSuspend() if the reason we are not allowed
+	 * to execute a DoCommand is in squirrel and not the API.
+	 * In that case use this function to restore the previous value.
+	 * @return True iff DoCommands are allowed in the current scope.
+	 */
+	bool GetAllowDoCommand (void) const
+	{
+		return this->state.test (STATE_DOCOMMAND_ALLOWED);
+	}
+
+	/** Can we suspend the script at this moment? */
+	bool CanSuspend (void)
+	{
+		return this->GetAllowDoCommand() && this->Squirrel::CanSuspend();
 	}
 
 	/**
