@@ -346,13 +346,15 @@ void ScriptInstance::DoCommandCallback (const CommandCost &result)
 {
 	ScriptObject::ActiveInstance active(this);
 
-	ScriptObject::SetLastCommandRes(result.Succeeded());
+	assert (ScriptObject::GetActiveInstance() == this);
+
+	this->SetLastCommandRes (result.Succeeded());
 
 	if (result.Failed()) {
-		ScriptObject::SetLastError(ScriptError::StringToError(result.GetErrorMessage()));
+		this->last_error = ScriptError::StringToError (result.GetErrorMessage());
 	} else {
-		ScriptObject::IncreaseDoCommandCosts(result.GetCost());
-		ScriptObject::SetLastCost(result.GetCost());
+		this->costs.AddCost (result.GetCost());
+		this->last_cost = result.GetCost();
 	}
 }
 
