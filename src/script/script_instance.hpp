@@ -283,6 +283,19 @@ public:
 	/** Let the VM collect any garbage. */
 	void CollectGarbage();
 
+	/** Set a variable to pass information to a callback function. */
+	void SetCallbackVariable (uint index, int value)
+	{
+		if (index >= this->callback_value.size()) this->callback_value.resize (index + 1);
+		this->callback_value[index] = value;
+	}
+
+	/** Get a variable for a callback function. */
+	int GetCallbackVariable (uint index) const
+	{
+		return this->callback_value[index];
+	}
+
 	/** Return a true/false reply for a DoCommand. */
 	static void DoCommandReturn(ScriptInstance *instance);
 

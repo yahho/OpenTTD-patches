@@ -134,13 +134,12 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 
 /* static */ void ScriptObject::SetCallbackVariable(int index, int value)
 {
-	if ((size_t)index >= GetActiveInstance()->callback_value.size()) GetActiveInstance()->callback_value.resize(index + 1);
-	GetActiveInstance()->callback_value[index] = value;
+	GetActiveInstance()->SetCallbackVariable (index, value);
 }
 
 /* static */ int ScriptObject::GetCallbackVariable(int index)
 {
-	return GetActiveInstance()->callback_value[index];
+	return GetActiveInstance()->GetCallbackVariable (index);
 }
 
 /* static */ bool ScriptObject::DoCommand(TileIndex tile, uint32 p1, uint32 p2, CommandID cmd, stringb *text, Script_SuspendCallbackProc *callback)
