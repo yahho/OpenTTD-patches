@@ -28,9 +28,12 @@
 #include "api/script_event.hpp"
 #include "api/script_log.hpp"
 
+#include "../command_func.h"
 #include "../company_base.h"
 #include "../company_func.h"
 #include "../fileio_func.h"
+#include "../network/network.h"
+#include "../genworld.h"
 #include "../window_func.h"
 
 ScriptInstance::ScriptInstance(const char *APIName) :
@@ -340,6 +343,84 @@ void ScriptInstance::CollectGarbage()
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
 	instance->InsertResult (instance->new_story_page_element_id);
+}
+
+bool ScriptInstance::DoCommand (TileIndex tile, uint32 p1, uint32 p2,
+	CommandID cmd, stringb *text, Script_SuspendCallbackProc *callback)
+{
+	if (!this->CanSuspend()) {
+		throw Script_FatalError ("You are not allowed to execute any DoCommand (even indirect) in your constructor, Save(), Load(), and any valuator.");
+	}
+
+	if (this->company != OWNER_DEITY && !::Company::IsValidID(this->company)) {
+		this->last_error = ScriptError::ERR_PRECONDITION_INVALID_COMPANY;
+		return false;
+	}
+
+	if (text != NULL && (GetCommandFlags(cmd) & CMDF_STR_CTRL) == 0) {
+		/* The string must be valid, i.e. not contain special codes. Since some
+		 * can be made with GSText, make sure the control codes are removed. */
+		text->validate (SVS_NONE);
+	}
+
+	/* Set the default callback to return a true/false result of the DoCommand */
+	if (callback == NULL) callback = &ScriptInstance::DoCommandReturn;
+
+	/* Are we only interested in the estimate costs? */
+	bool estimate_only = this->mode != NULL && !this->mode();
+
+#ifdef ENABLE_NETWORK
+	/* Only set p2 when the command does not come from the network. */
+	if (GetCommandFlags(cmd) & CMDF_CLIENT_ID && p2 == 0) p2 = UINT32_MAX;
+#endif
+
+	/* Try to perform the command. */
+	CommandCost res = ::DoCommandPInternal (tile, p1, p2, cmd,
+		text != NULL ? text->c_str() : NULL, estimate_only,
+		_networking && !_generating_world ? this->GetCommandSource() : CMDSRC_OTHER);
+
+	/* We failed; set the error and bail out */
+	if (res.Failed()) {
+		this->last_error = ScriptError::StringToError (res.GetErrorMessage());
+		return false;
+	}
+
+	/* No error, then clear it. */
+	this->last_error = ScriptError::ERR_NONE;
+
+	/* Estimates, update the cost for the estimate and be done */
+	if (estimate_only) {
+		this->costs.AddCost (res.GetCost());
+		return true;
+	}
+
+	/* Costs of this operation. */
+	this->last_cost = res.GetCost();
+	this->SetLastCommandRes (true);
+
+	if (_generating_world) {
+		this->costs.AddCost (res.GetCost());
+		if (callback != NULL) {
+			/* Insert return value into to stack and throw a control code that
+			 * the return value in the stack should be used. */
+			callback (this);
+			throw SQInteger (1);
+		}
+		return true;
+	} else if (_networking) {
+		/* Suspend the script till the command is really executed. */
+		throw Script_Suspend (-(int)this->delay, callback);
+	} else {
+		this->costs.AddCost (res.GetCost());
+
+		/* Suspend the script player for 1+ ticks, so it simulates multiplayer. This
+		 *  both avoids confusion when a developer launched his script in a
+		 *  multiplayer game, but also gives time for the GUI and human player
+		 *  to interact with the game. */
+		throw Script_Suspend (this->delay, callback);
+	}
+
+	NOT_REACHED();
 }
 
 void ScriptInstance::DoCommandCallback (const CommandCost &result)

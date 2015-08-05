@@ -304,6 +304,10 @@ public:
 	/** Return a StoryPageElementID reply for a DoCommand. */
 	static void DoCommandReturnStoryPageElementID(ScriptInstance *instance);
 
+	/** Executes a raw DoCommand for the script. */
+	bool DoCommand (TileIndex tile, uint32 p1, uint32 p2, CommandID cmd,
+		stringb *text = NULL, Script_SuspendCallbackProc *callback = NULL);
+
 	/**
 	 * DoCommand callback function for all commands executed by scripts.
 	 * @param result The result of the command.

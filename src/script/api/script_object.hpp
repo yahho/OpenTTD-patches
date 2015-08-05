@@ -78,11 +78,6 @@ protected:
 	static void SetDoCommandCosts(Money value);
 
 	/**
-	 * Increase the current value of the DoCommand costs counter.
-	 */
-	static void IncreaseDoCommandCosts(Money value);
-
-	/**
 	 * Get the current DoCommand costs counter.
 	 */
 	static Money GetDoCommandCosts();
@@ -133,11 +128,6 @@ protected:
 	static ScriptObject *GetDoCommandModeInstance();
 
 	/**
-	 * Get the delay of the DoCommand.
-	 */
-	static uint GetDoCommandDelay();
-
-	/**
 	 * Set the current company to execute commands for or request
 	 *  information about.
 	 * @param company The new company.
@@ -157,16 +147,6 @@ protected:
 	 * @return The root company.
 	 */
 	static CompanyID GetRootCompany();
-
-	/**
-	 * Set the cost of the last command.
-	 */
-	static void SetLastCost(Money last_cost);
-
-	/**
-	 * Get the cost of the last command.
-	 */
-	static Money GetLastCost();
 
 	/**
 	 * Set a variable that can be used by callback functions to pass information.
