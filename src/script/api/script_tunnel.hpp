@@ -64,18 +64,6 @@ public:
 	static TileIndex GetOtherTunnelEnd(TileIndex tile);
 
 	/**
-	 * Internal function to help BuildTunnel in case of road.
-	 * @api -all
-	 */
-	static bool _BuildTunnelRoad1();
-
-	/**
-	 * Internal function to help BuildTunnel in case of road.
-	 * @api -all
-	 */
-	static bool _BuildTunnelRoad2();
-
-	/**
 	 * Builds a tunnel starting at start. The direction of the tunnel depends
 	 *  on the slope of the start tile. Tunnels can be created for either
 	 *  rails or roads; use the appropriate ScriptVehicle::VehicleType.
