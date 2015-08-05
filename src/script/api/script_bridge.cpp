@@ -47,21 +47,25 @@
 /**
  * Helper function to connect a just built bridge to nearby roads.
  * @param instance The script instance we have to built the road for.
+ * @param i Callback variable index for one end of the bridge.
+ * @param j Callback variable index for the other end of the bridge.
+ * @param callback Function to call after the command is run.
  */
-static void _DoCommandReturnBuildBridge2(class ScriptInstance *instance)
+static void callback_bridge (ScriptInstance *instance, int i, int j,
+	Script_SuspendCallbackProc *callback)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
 
 	/* Build the piece of road on the 'end' side of the bridge */
-	TileIndex end   = instance->GetCallbackVariable (0);
-	TileIndex start = instance->GetCallbackVariable (1);
+	TileIndex start = instance->GetCallbackVariable (i);
+	TileIndex end   = instance->GetCallbackVariable (j);
 
-	DiagDirection dir_1 = ::DiagdirBetweenTiles (end, start);
+	DiagDirection dir_1 = ::DiagdirBetweenTiles (start, end);
 	DiagDirection dir_2 = ::ReverseDiagDir (dir_1);
 
-	if (!instance->DoCommand (end + ::TileOffsByDiagDir(dir_2),
-			::DiagDirToRoadBits(dir_1) | (instance->GetRoadType() << 4),
-			0, CMD_BUILD_ROAD)) {
+	if (!instance->DoCommand (end + ::TileOffsByDiagDir(dir_1),
+			::DiagDirToRoadBits(dir_2) | (instance->GetRoadType() << 4),
+			0, CMD_BUILD_ROAD, NULL, callback)) {
 		ScriptInstance::DoCommandReturn(instance);
 		return;
 	}
@@ -75,27 +79,18 @@ static void _DoCommandReturnBuildBridge2(class ScriptInstance *instance)
  * Helper function to connect a just built bridge to nearby roads.
  * @param instance The script instance we have to built the road for.
  */
-static void _DoCommandReturnBuildBridge1(class ScriptInstance *instance)
+static void callback_bridge2 (ScriptInstance *instance)
 {
-	assert (ScriptObject::GetActiveInstance() == instance);
+	return callback_bridge (instance, 1, 0, NULL);
+}
 
-	/* Build the piece of road on the 'start' side of the bridge */
-	TileIndex end   = instance->GetCallbackVariable (0);
-	TileIndex start = instance->GetCallbackVariable (1);
-
-	DiagDirection dir_1 = ::DiagdirBetweenTiles (end, start);
-	DiagDirection dir_2 = ::ReverseDiagDir (dir_1);
-
-	if (!instance->DoCommand (start + ::TileOffsByDiagDir(dir_1),
-			::DiagDirToRoadBits(dir_2) | (instance->GetRoadType() << 4),
-			0, CMD_BUILD_ROAD, NULL, &::_DoCommandReturnBuildBridge2)) {
-		ScriptInstance::DoCommandReturn(instance);
-		return;
-	}
-
-	/* This can never happen, as in test-mode this callback is never executed,
-	 *  and in execute-mode, the other callback is called. */
-	NOT_REACHED();
+/**
+ * Helper function to connect a just built bridge to nearby roads.
+ * @param instance The script instance we have to built the road for.
+ */
+static void callback_bridge1 (ScriptInstance *instance)
+{
+	return callback_bridge (instance, 0, 1, &callback_bridge2);
 }
 
 /* static */ bool ScriptBridge::BuildBridge(ScriptVehicle::VehicleType vehicle_type, BridgeID bridge_id, TileIndex start, TileIndex end)
@@ -131,7 +126,7 @@ static void _DoCommandReturnBuildBridge1(class ScriptInstance *instance)
 
 	ScriptObject::SetCallbackVariable(0, start);
 	ScriptObject::SetCallbackVariable(1, end);
-	return ScriptObject::DoCommand(end, start, type | bridge_id, CMD_BUILD_BRIDGE, NULL, &::_DoCommandReturnBuildBridge1);
+	return ScriptObject::DoCommand(end, start, type | bridge_id, CMD_BUILD_BRIDGE, NULL, &callback_bridge1);
 }
 
 /* static */ bool ScriptBridge::RemoveBridge(TileIndex tile)
