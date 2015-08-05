@@ -266,6 +266,12 @@ public:
 	}
 
 	/**
+	 * Store the latest result of a DoCommand from this instance.
+	 * @param res The result of the last command.
+	 */
+	void SetLastCommandRes (bool res);
+
+	/**
 	 * A script in multiplayer waits for the server to handle his DoCommand.
 	 *  It keeps waiting for this until this function is called.
 	 */

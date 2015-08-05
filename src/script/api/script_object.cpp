@@ -121,15 +121,7 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 
 /* static */ void ScriptObject::SetLastCommandRes(bool res)
 {
-	ScriptInstance *storage = GetActiveInstance();
-	storage->last_command_res = res;
-	/* Also store the results of various global variables */
-	storage->new_vehicle_id            = _new_vehicle_id;
-	storage->new_sign_id               = _new_sign_id;
-	storage->new_group_id              = _new_group_id;
-	storage->new_goal_id               = _new_goal_id;
-	storage->new_story_page_id         = _new_story_page_id;
-	storage->new_story_page_element_id = _new_story_page_element_id;
+	GetActiveInstance()->SetLastCommandRes (res);
 }
 
 /* static */ void ScriptObject::SetCompany(CompanyID company)

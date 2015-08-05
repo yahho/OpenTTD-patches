@@ -186,6 +186,18 @@ void ScriptInstance::Pause()
 	this->state.set (STATE_PAUSED);
 }
 
+void ScriptInstance::SetLastCommandRes (bool res)
+{
+	this->last_command_res = res;
+	/* Also store the results of various global variables */
+	this->new_vehicle_id            = _new_vehicle_id;
+	this->new_sign_id               = _new_sign_id;
+	this->new_group_id              = _new_group_id;
+	this->new_goal_id               = _new_goal_id;
+	this->new_story_page_id         = _new_story_page_id;
+	this->new_story_page_element_id = _new_story_page_element_id;
+}
+
 void ScriptInstance::Continue()
 {
 	assert(this->suspend < 0);
