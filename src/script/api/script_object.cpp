@@ -78,22 +78,22 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 
 /* static */ void ScriptObject::SetRoadType(RoadType road_type)
 {
-	GetActiveInstance()->road_type = road_type;
+	GetActiveInstance()->SetRoadType (road_type);
 }
 
 /* static */ RoadType ScriptObject::GetRoadType()
 {
-	return GetActiveInstance()->road_type;
+	return GetActiveInstance()->GetRoadType();
 }
 
 /* static */ void ScriptObject::SetRailType(RailType rail_type)
 {
-	GetActiveInstance()->rail_type = rail_type;
+	GetActiveInstance()->SetRailType (rail_type);
 }
 
 /* static */ RailType ScriptObject::GetRailType()
 {
-	return GetActiveInstance()->rail_type;
+	return GetActiveInstance()->GetRailType();
 }
 
 /* static */ void ScriptObject::SetLastCommandRes(bool res)

@@ -327,6 +327,30 @@ public:
 	 */
 	void DoCommandCallback (const CommandCost &result);
 
+	/** Set the road type. */
+	void SetRoadType (RoadType road_type)
+	{
+		this->road_type = road_type;
+	}
+
+	/** Get the road type. */
+	RoadType GetRoadType (void) const
+	{
+		return this->road_type;
+	}
+
+	/** Set the rail type. */
+	void SetRailType (RailType rail_type)
+	{
+		this->rail_type = rail_type;
+	}
+
+	/** Get the rail type. */
+	RailType GetRailType (void) const
+	{
+		return this->rail_type;
+	}
+
 	/**
 	 * Check if there is an event waiting.
 	 * @return true if there is an event on the stack.
