@@ -14,6 +14,7 @@
 #include "script_rail.hpp"
 #include "../script_instance.hpp"
 #include "../../map/class.h"
+#include "../../map/common.h"
 #include "../../map/tunnel.h"
 #include "../../map/slope.h"
 
@@ -50,21 +51,24 @@
 /**
  * Helper function to connect a just built tunnel to nearby roads.
  * @param instance The script instance we have to built the road for.
+ * @param far Connect the far end of the tunnel.
+ * @param callback Function to call after the command is run.
  */
-static void _DoCommandReturnBuildTunnel2(class ScriptInstance *instance)
+static void callback_tunnel (ScriptInstance *instance, bool far,
+	Script_SuspendCallbackProc *callback)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
 
 	/* Build the piece of road on the 'end' side of the tunnel */
-	TileIndex end   = instance->GetCallbackVariable (0);
-	TileIndex start = ScriptTunnel::GetOtherTunnelEnd (end);
+	TileIndex tile = instance->GetCallbackVariable (0);
+	if (far) tile = ::GetOtherTunnelEnd (tile);
 
-	DiagDirection dir_1 = ::DiagdirBetweenTiles (end, start);
+	DiagDirection dir_1 = ::GetTunnelBridgeDirection (tile);
 	DiagDirection dir_2 = ::ReverseDiagDir (dir_1);
 
-	if (!instance->DoCommand (end + ::TileOffsByDiagDir(dir_2),
+	if (!instance->DoCommand (tile + ::TileOffsByDiagDir(dir_2),
 			::DiagDirToRoadBits(dir_1) | (instance->GetRoadType() << 4),
-			0, CMD_BUILD_ROAD)) {
+			0, CMD_BUILD_ROAD, NULL, callback)) {
 		ScriptInstance::DoCommandReturn(instance);
 		return;
 	}
@@ -78,27 +82,18 @@ static void _DoCommandReturnBuildTunnel2(class ScriptInstance *instance)
  * Helper function to connect a just built tunnel to nearby roads.
  * @param instance The script instance we have to built the road for.
  */
-static void _DoCommandReturnBuildTunnel1(class ScriptInstance *instance)
+static void callback_tunnel2 (ScriptInstance *instance)
 {
-	assert (ScriptObject::GetActiveInstance() == instance);
+	return callback_tunnel (instance, false, NULL);
+}
 
-	/* Build the piece of road on the 'start' side of the tunnel */
-	TileIndex end   = instance->GetCallbackVariable (0);
-	TileIndex start = ScriptTunnel::GetOtherTunnelEnd (end);
-
-	DiagDirection dir_1 = ::DiagdirBetweenTiles (end, start);
-	DiagDirection dir_2 = ::ReverseDiagDir (dir_1);
-
-	if (!instance->DoCommand (start + ::TileOffsByDiagDir(dir_1),
-			::DiagDirToRoadBits(dir_2) | (instance->GetRoadType() << 4),
-			0, CMD_BUILD_ROAD, NULL, &::_DoCommandReturnBuildTunnel2)) {
-		ScriptInstance::DoCommandReturn(instance);
-		return;
-	}
-
-	/* This can never happen, as in test-mode this callback is never executed,
-	 *  and in execute-mode, the other callback is called. */
-	NOT_REACHED();
+/**
+ * Helper function to connect a just built tunnel to nearby roads.
+ * @param instance The script instance we have to built the road for.
+ */
+static void callback_tunnel1 (ScriptInstance *instance)
+{
+	return callback_tunnel (instance, true, &callback_tunnel2);
 }
 
 /* static */ bool ScriptTunnel::BuildTunnel(ScriptVehicle::VehicleType vehicle_type, TileIndex start)
@@ -124,7 +119,7 @@ static void _DoCommandReturnBuildTunnel1(class ScriptInstance *instance)
 	}
 
 	ScriptObject::SetCallbackVariable(0, start);
-	return ScriptObject::DoCommand(start, type, 0, CMD_BUILD_TUNNEL, NULL, &::_DoCommandReturnBuildTunnel1);
+	return ScriptObject::DoCommand(start, type, 0, CMD_BUILD_TUNNEL, NULL, &callback_tunnel1);
 }
 
 /* static */ bool ScriptTunnel::RemoveTunnel(TileIndex tile)
