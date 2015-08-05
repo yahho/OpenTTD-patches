@@ -108,18 +108,6 @@ public:
 	static int32 GetMinLength(BridgeID bridge_id);
 
 	/**
-	 * Internal function to help BuildBridge in case of road.
-	 * @api -all
-	 */
-	static bool _BuildBridgeRoad1();
-
-	/**
-	 * Internal function to help BuildBridge in case of road.
-	 * @api -all
-	 */
-	static bool _BuildBridgeRoad2();
-
-	/**
 	 * Build a bridge from one tile to the other.
 	 * As an extra for road, this functions builds two half-pieces of road on
 	 *  each end of the bridge, making it easier for you to connect it to your

@@ -52,7 +52,16 @@ static void _DoCommandReturnBuildBridge2(class ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
 
-	if (!ScriptBridge::_BuildBridgeRoad2()) {
+	/* Build the piece of road on the 'end' side of the bridge */
+	TileIndex end   = instance->GetCallbackVariable (0);
+	TileIndex start = instance->GetCallbackVariable (1);
+
+	DiagDirection dir_1 = ::DiagdirBetweenTiles (end, start);
+	DiagDirection dir_2 = ::ReverseDiagDir (dir_1);
+
+	if (!instance->DoCommand (end + ::TileOffsByDiagDir(dir_2),
+			::DiagDirToRoadBits(dir_1) | (instance->GetRoadType() << 4),
+			0, CMD_BUILD_ROAD)) {
 		ScriptInstance::DoCommandReturn(instance);
 		return;
 	}
@@ -70,7 +79,16 @@ static void _DoCommandReturnBuildBridge1(class ScriptInstance *instance)
 {
 	assert (ScriptObject::GetActiveInstance() == instance);
 
-	if (!ScriptBridge::_BuildBridgeRoad1()) {
+	/* Build the piece of road on the 'start' side of the bridge */
+	TileIndex end   = instance->GetCallbackVariable (0);
+	TileIndex start = instance->GetCallbackVariable (1);
+
+	DiagDirection dir_1 = ::DiagdirBetweenTiles (end, start);
+	DiagDirection dir_2 = ::ReverseDiagDir (dir_1);
+
+	if (!instance->DoCommand (start + ::TileOffsByDiagDir(dir_1),
+			::DiagDirToRoadBits(dir_2) | (instance->GetRoadType() << 4),
+			0, CMD_BUILD_ROAD, NULL, &::_DoCommandReturnBuildBridge2)) {
 		ScriptInstance::DoCommandReturn(instance);
 		return;
 	}
@@ -114,30 +132,6 @@ static void _DoCommandReturnBuildBridge1(class ScriptInstance *instance)
 	ScriptObject::SetCallbackVariable(0, start);
 	ScriptObject::SetCallbackVariable(1, end);
 	return ScriptObject::DoCommand(end, start, type | bridge_id, CMD_BUILD_BRIDGE, NULL, &::_DoCommandReturnBuildBridge1);
-}
-
-/* static */ bool ScriptBridge::_BuildBridgeRoad1()
-{
-	/* Build the piece of road on the 'start' side of the bridge */
-	TileIndex end = ScriptObject::GetCallbackVariable(0);
-	TileIndex start = ScriptObject::GetCallbackVariable(1);
-
-	DiagDirection dir_1 = ::DiagdirBetweenTiles(end, start);
-	DiagDirection dir_2 = ::ReverseDiagDir(dir_1);
-
-	return ScriptObject::DoCommand(start + ::TileOffsByDiagDir(dir_1), ::DiagDirToRoadBits(dir_2) | (ScriptObject::GetRoadType() << 4), 0, CMD_BUILD_ROAD, NULL, &::_DoCommandReturnBuildBridge2);
-}
-
-/* static */ bool ScriptBridge::_BuildBridgeRoad2()
-{
-	/* Build the piece of road on the 'end' side of the bridge */
-	TileIndex end = ScriptObject::GetCallbackVariable(0);
-	TileIndex start = ScriptObject::GetCallbackVariable(1);
-
-	DiagDirection dir_1 = ::DiagdirBetweenTiles(end, start);
-	DiagDirection dir_2 = ::ReverseDiagDir(dir_1);
-
-	return ScriptObject::DoCommand(end + ::TileOffsByDiagDir(dir_2), ::DiagDirToRoadBits(dir_1) | (ScriptObject::GetRoadType() << 4), 0, CMD_BUILD_ROAD);
 }
 
 /* static */ bool ScriptBridge::RemoveBridge(TileIndex tile)
