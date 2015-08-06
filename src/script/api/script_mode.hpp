@@ -13,6 +13,31 @@
 #include "script_object.hpp"
 
 /**
+ * Base class to switch current mode.
+ * If you create an instance of this class, the mode will be switched.
+ * @api none
+ */
+class BaseScriptMode : public ScriptObject {
+private:
+	ScriptModeProc *last_mode;   ///< The previous mode we were in.
+	ScriptObject *last_instance; ///< The previous instance of the mode.
+
+public:
+	/**
+	 * Creating an instance of this class switches the build mode.
+	 * @note When the instance is destroyed, the mode that was
+	 *   current when the instance was created is restored!
+	 */
+	BaseScriptMode (ScriptModeProc *mode);
+
+	/**
+	 * Destroying this instance will reset the building mode to the mode
+	 * it was active when the instance was created.
+	 */
+	~BaseScriptMode();
+};
+
+/**
  * Class to switch current mode to Execute Mode.
  * If you create an instance of this class, the mode will be switched to
  *   Execute. The original mode is stored and recovered from when ever the
@@ -20,11 +45,7 @@
  * In Execute mode all commands you do are executed for real.
  * @api ai game
  */
-class ScriptExecMode : public ScriptObject {
-private:
-	ScriptModeProc *last_mode;   ///< The previous mode we were in.
-	ScriptObject *last_instance; ///< The previous instance of the mode.
-
+class ScriptExecMode : public BaseScriptMode {
 protected:
 	/**
 	 * The callback proc for Execute mode.
@@ -38,12 +59,6 @@ public:
 	 *   current when the instance was created!
 	 */
 	ScriptExecMode();
-
-	/**
-	 * Destroying this instance reset the building mode to the mode it was
-	 *   in when the instance was created.
-	 */
-	~ScriptExecMode();
 };
 
 /**
@@ -56,11 +71,7 @@ public:
  *   the cost would be.
  * @api ai game
  */
-class ScriptTestMode : public ScriptObject {
-private:
-	ScriptModeProc *last_mode;   ///< The previous mode we were in.
-	ScriptObject *last_instance; ///< The previous instance of the mode.
-
+class ScriptTestMode : public BaseScriptMode {
 protected:
 	/**
 	 * The callback proc for Testing mode.
@@ -74,12 +85,6 @@ public:
 	 *   current when the instance was created!
 	 */
 	ScriptTestMode();
-
-	/**
-	 * Destroying this instance reset the building mode to the mode it was
-	 *   in when the instance was created.
-	 */
-	~ScriptTestMode();
 };
 
 #endif /* SCRIPT_MODE_HPP */

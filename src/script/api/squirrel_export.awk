@@ -251,7 +251,7 @@ BEGIN {
 	# Then do the registration functions of the class. */
 	print "static void SQ" api_cls "_Register (Squirrel *engine)"
 	print "{"
-	if (super_cls == "Text" || super_cls == "ScriptObject" || super_cls == "AIAbstractList::Valuator") {
+	if (!match (super_cls, "^Script") || super_cls == "ScriptObject") {
 		print "	engine->AddClassBegin (\"" api_cls "\");"
 	} else {
 		print "	engine->AddClassBegin (\"" api_cls "\", \"" api_super_cls "\");"

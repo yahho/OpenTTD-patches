@@ -12,6 +12,24 @@
 #include "../script_instance.hpp"
 #include "../script_fatalerror.hpp"
 
+BaseScriptMode::BaseScriptMode (ScriptModeProc *mode)
+{
+	this->last_mode     = this->GetDoCommandMode();
+	this->last_instance = this->GetDoCommandModeInstance();
+	this->SetDoCommandMode (mode, this);
+}
+
+BaseScriptMode::~BaseScriptMode()
+{
+	if (this->GetDoCommandModeInstance() != this) {
+		/* Ignore this error if the script already died. */
+		if (!ScriptObject::GetActiveInstance()->IsDead()) {
+			throw Script_FatalError ("Mode object was removed while it was not the latest Mode object created.");
+		}
+	}
+	this->SetDoCommandMode(this->last_mode, this->last_instance);
+}
+
 bool ScriptExecMode::ModeProc()
 {
 	/* In execution mode we only return 'true', telling the DoCommand it
@@ -19,22 +37,8 @@ bool ScriptExecMode::ModeProc()
 	return true;
 }
 
-ScriptExecMode::ScriptExecMode()
+ScriptExecMode::ScriptExecMode() : BaseScriptMode (&ModeProc)
 {
-	this->last_mode     = this->GetDoCommandMode();
-	this->last_instance = this->GetDoCommandModeInstance();
-	this->SetDoCommandMode(&ScriptExecMode::ModeProc, this);
-}
-
-ScriptExecMode::~ScriptExecMode()
-{
-	if (this->GetDoCommandModeInstance() != this) {
-		/* Ignore this error if the script already died. */
-		if (!ScriptObject::GetActiveInstance()->IsDead()) {
-			throw Script_FatalError("ScriptExecMode object was removed while it was not the latest *Mode object created.");
-		}
-	}
-	this->SetDoCommandMode(this->last_mode, this->last_instance);
 }
 
 bool ScriptTestMode::ModeProc()
@@ -44,20 +48,6 @@ bool ScriptTestMode::ModeProc()
 	return false;
 }
 
-ScriptTestMode::ScriptTestMode()
+ScriptTestMode::ScriptTestMode() : BaseScriptMode (&ModeProc)
 {
-	this->last_mode     = this->GetDoCommandMode();
-	this->last_instance = this->GetDoCommandModeInstance();
-	this->SetDoCommandMode(&ScriptTestMode::ModeProc, this);
-}
-
-ScriptTestMode::~ScriptTestMode()
-{
-	if (this->GetDoCommandModeInstance() != this) {
-		/* Ignore this error if the script already died. */
-		if (!ScriptObject::GetActiveInstance()->IsDead()) {
-			throw Script_FatalError("Testmode object was removed while it was not the latest *Mode object created.");
-		}
-	}
-	this->SetDoCommandMode(this->last_mode, this->last_instance);
 }
