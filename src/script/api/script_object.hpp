@@ -21,11 +21,6 @@
 #include "../script_suspend.hpp"
 
 /**
- * The callback function for Mode-classes.
- */
-typedef bool (ScriptModeProc)();
-
-/**
  * Uper-parent object of all API classes. You should never use this class in
  *   your script, as it doesn't publish any public functions. It is used
  *   internally to have a common place to handle general things, like internal
@@ -111,21 +106,6 @@ protected:
 	 * Get the rail type.
 	 */
 	static RailType GetRailType();
-
-	/**
-	 * Set the current mode of your script to this proc.
-	 */
-	static void SetDoCommandMode(ScriptModeProc *proc, ScriptObject *instance);
-
-	/**
-	 * Get the current mode your script is currently under.
-	 */
-	static ScriptModeProc *GetDoCommandMode();
-
-	/**
-	 * Get the instance of the current mode your script is currently under.
-	 */
-	static ScriptObject *GetDoCommandModeInstance();
 
 	/**
 	 * Set the current company to execute commands for or request

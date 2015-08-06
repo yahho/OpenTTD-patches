@@ -40,22 +40,6 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 }
 
 
-/* static */ void ScriptObject::SetDoCommandMode(ScriptModeProc *proc, ScriptObject *instance)
-{
-	GetActiveInstance()->mode = proc;
-	GetActiveInstance()->mode_instance = instance;
-}
-
-/* static */ ScriptModeProc *ScriptObject::GetDoCommandMode()
-{
-	return GetActiveInstance()->mode;
-}
-
-/* static */ ScriptObject *ScriptObject::GetDoCommandModeInstance()
-{
-	return GetActiveInstance()->mode_instance;
-}
-
 /* static */ void ScriptObject::SetDoCommandCosts(Money value)
 {
 	GetActiveInstance()->costs = CommandCost(value);

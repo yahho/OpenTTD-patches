@@ -19,8 +19,7 @@
  */
 class BaseScriptMode : public ScriptObject {
 private:
-	ScriptModeProc *last_mode;   ///< The previous mode we were in.
-	ScriptObject *last_instance; ///< The previous instance of the mode.
+	const bool test; ///< This instance represents a switch to test mode.
 
 public:
 	/**
@@ -28,13 +27,19 @@ public:
 	 * @note When the instance is destroyed, the mode that was
 	 *   current when the instance was created is restored!
 	 */
-	BaseScriptMode (ScriptModeProc *mode);
+	BaseScriptMode (bool t);
 
 	/**
 	 * Destroying this instance will reset the building mode to the mode
 	 * it was active when the instance was created.
 	 */
 	~BaseScriptMode();
+
+	/** Check if this instance represents a switch to test mode. */
+	bool operator() (void) const
+	{
+		return this->test;
+	}
 };
 
 /**
@@ -46,12 +51,6 @@ public:
  * @api ai game
  */
 class ScriptExecMode : public BaseScriptMode {
-protected:
-	/**
-	 * The callback proc for Execute mode.
-	 */
-	static bool ModeProc();
-
 public:
 	/**
 	 * Creating instance of this class switches the build mode to Execute.
@@ -72,12 +71,6 @@ public:
  * @api ai game
  */
 class ScriptTestMode : public BaseScriptMode {
-protected:
-	/**
-	 * The callback proc for Testing mode.
-	 */
-	static bool ModeProc();
-
 public:
 	/**
 	 * Creating instance of this class switches the build mode to Testing.

@@ -12,42 +12,20 @@
 #include "../script_instance.hpp"
 #include "../script_fatalerror.hpp"
 
-BaseScriptMode::BaseScriptMode (ScriptModeProc *mode)
+BaseScriptMode::BaseScriptMode (bool t) : test(t)
 {
-	this->last_mode     = this->GetDoCommandMode();
-	this->last_instance = this->GetDoCommandModeInstance();
-	this->SetDoCommandMode (mode, this);
+	ScriptObject::GetActiveInstance()->PushBuildMode (this);
 }
 
 BaseScriptMode::~BaseScriptMode()
 {
-	if (this->GetDoCommandModeInstance() != this) {
-		/* Ignore this error if the script already died. */
-		if (!ScriptObject::GetActiveInstance()->IsDead()) {
-			throw Script_FatalError ("Mode object was removed while it was not the latest Mode object created.");
-		}
-	}
-	this->SetDoCommandMode(this->last_mode, this->last_instance);
+	ScriptObject::GetActiveInstance()->PopBuildMode (this);
 }
 
-bool ScriptExecMode::ModeProc()
-{
-	/* In execution mode we only return 'true', telling the DoCommand it
-	 *  should continue with the real execution of the command. */
-	return true;
-}
-
-ScriptExecMode::ScriptExecMode() : BaseScriptMode (&ModeProc)
+ScriptExecMode::ScriptExecMode() : BaseScriptMode (false)
 {
 }
 
-bool ScriptTestMode::ModeProc()
-{
-	/* In test mode we only return 'false', telling the DoCommand it
-	 *  should stop after testing the command and return with that result. */
-	return false;
-}
-
-ScriptTestMode::ScriptTestMode() : BaseScriptMode (&ModeProc)
+ScriptTestMode::ScriptTestMode() : BaseScriptMode (true)
 {
 }

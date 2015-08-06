@@ -27,6 +27,7 @@
 #include "api/script_error.hpp"
 #include "api/script_event.hpp"
 #include "api/script_log.hpp"
+#include "api/script_mode.hpp"
 
 #include "../command_func.h"
 #include "../company_base.h"
@@ -46,9 +47,8 @@ ScriptInstance::ScriptInstance(const char *APIName) :
 	callback(NULL),
 	versionAPI(NULL),
 	log(),
+	mode_stack(),
 	events(),
-	mode              (NULL),
-	mode_instance     (NULL),
 	root_company      (INVALID_OWNER),
 	company           (INVALID_OWNER),
 	delay             (1),
@@ -367,7 +367,7 @@ bool ScriptInstance::DoCommand (TileIndex tile, uint32 p1, uint32 p2,
 	if (callback == NULL) callback = &ScriptInstance::DoCommandReturn;
 
 	/* Are we only interested in the estimate costs? */
-	bool estimate_only = this->mode != NULL && !this->mode();
+	bool estimate_only = !this->mode_stack.empty() && (*this->mode_stack.top())();
 
 #ifdef ENABLE_NETWORK
 	/* Only set p2 when the command does not come from the network. */
@@ -437,6 +437,18 @@ void ScriptInstance::DoCommandCallback (const CommandCost &result)
 		this->costs.AddCost (result.GetCost());
 		this->last_cost = result.GetCost();
 	}
+}
+
+void ScriptInstance::PopBuildMode (const BaseScriptMode *mode)
+{
+	assert (!this->mode_stack.empty());
+
+	/* Ignore this error if the script already died. */
+	if ((this->mode_stack.top() != mode) && !this->IsDead()) {
+		throw Script_FatalError ("Mode object was removed while it was not the latest Mode object created.");
+	}
+
+	this->mode_stack.pop();
 }
 
 class ScriptEvent *ScriptInstance::GetNextEvent (void)

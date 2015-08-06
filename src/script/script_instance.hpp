@@ -15,6 +15,7 @@
 #include <bitset>
 #include <vector>
 #include <queue>
+#include <stack>
 
 #include "squirrel.hpp"
 #include "script_suspend.hpp"
@@ -33,11 +34,6 @@
 #include "table/strings.h"
 
 static const uint SQUIRREL_MAX_DEPTH = 25; ///< The maximum recursive depth for items stored in the savegame.
-
-/**
- * The callback function for Mode-classes.
- */
-typedef bool (ScriptModeProc)();
 
 /** Runtime information about a script like a pointer to the squirrel vm and the current state. */
 class ScriptInstance : protected Squirrel {
@@ -106,11 +102,12 @@ public:
 	LogData log; ///< Log data
 
 private:
+	std::stack <const class BaseScriptMode*,
+		std::vector <const class BaseScriptMode*> > mode_stack; ///< The build mode stack.
+
 	std::queue <class ScriptEvent *> events; ///< The event queue.
 
 	/* Storage for the script. It keeps track of important information. */
-	ScriptModeProc *mode;                ///< The current build mode we are int.
-	class ScriptObject *mode_instance;   ///< The instance belonging to the current build mode.
 	CompanyID root_company;          ///< The root company, the company that the script really belongs to.
 	CompanyID company;               ///< The current company.
 
@@ -326,6 +323,15 @@ public:
 	 * @param result The result of the command.
 	 */
 	void DoCommandCallback (const CommandCost &result);
+
+	/** Push and activate a new build mode. */
+	void PushBuildMode (const class BaseScriptMode *mode)
+	{
+		this->mode_stack.push (mode);
+	}
+
+	/** Pop the last build mode and activate the previous one. */
+	void PopBuildMode (const class BaseScriptMode *mode);
 
 	/** Set the road type. */
 	void SetRoadType (RoadType road_type)
