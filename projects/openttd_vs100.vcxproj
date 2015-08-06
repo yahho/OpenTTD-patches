@@ -1394,7 +1394,6 @@
     <ClInclude Include="..\src\script\api\script_error.hpp" />
     <ClInclude Include="..\src\script\api\script_event.hpp" />
     <ClInclude Include="..\src\script\api\script_event_types.hpp" />
-    <ClInclude Include="..\src\script\api\script_execmode.hpp" />
     <ClInclude Include="..\src\script\api\script_game.hpp" />
     <ClInclude Include="..\src\script\api\script_gamesettings.hpp" />
     <ClInclude Include="..\src\script\api\script_goal.hpp" />
@@ -1410,6 +1409,7 @@
     <ClInclude Include="..\src\script\api\script_log.hpp" />
     <ClInclude Include="..\src\script\api\script_map.hpp" />
     <ClInclude Include="..\src\script\api\script_marine.hpp" />
+    <ClInclude Include="..\src\script\api\script_mode.hpp" />
     <ClInclude Include="..\src\script\api\script_news.hpp" />
     <ClInclude Include="..\src\script\api\script_object.hpp" />
     <ClInclude Include="..\src\script\api\script_order.hpp" />
@@ -1425,7 +1425,6 @@
     <ClInclude Include="..\src\script\api\script_storypageelementlist.hpp" />
     <ClInclude Include="..\src\script\api\script_subsidy.hpp" />
     <ClInclude Include="..\src\script\api\script_subsidylist.hpp" />
-    <ClInclude Include="..\src\script\api\script_testmode.hpp" />
     <ClInclude Include="..\src\script\api\script_text.hpp" />
     <ClInclude Include="..\src\script\api\script_tile.hpp" />
     <ClInclude Include="..\src\script\api\script_tilelist.hpp" />
@@ -1539,11 +1538,6 @@
       <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
       <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
     </ClCompile>
-    <ClCompile Include="..\src\script\api\script_execmode.cpp">
-      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
-    </ClCompile>
     <ClCompile Include="..\src\script\api\script_game.cpp">
       <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
@@ -1610,6 +1604,11 @@
       <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
     </ClCompile>
     <ClCompile Include="..\src\script\api\script_marine.cpp">
+      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_mode.cpp">
       <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
       <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
@@ -1685,11 +1684,6 @@
       <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
     </ClCompile>
     <ClCompile Include="..\src\script\api\script_subsidylist.cpp">
-      <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClCompile Include="..\src\script\api\script_testmode.cpp">
       <AssemblerListingLocation>$(IntDir)\script\api\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
       <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>

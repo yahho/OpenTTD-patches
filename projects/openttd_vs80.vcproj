@@ -7287,10 +7287,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\script\api\script_execmode.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\script\api\script_game.hpp"
 				>
 			</File>
@@ -7351,6 +7347,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\script\api\script_mode.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\script\api\script_news.hpp"
 				>
 			</File>
@@ -7408,10 +7408,6 @@
 			</File>
 			<File
 				RelativePath=".\..\src\script\api\script_subsidylist.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\script\api\script_testmode.hpp"
 				>
 			</File>
 			<File
@@ -8351,50 +8347,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\..\src\script\api\script_execmode.cpp"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\script\api\"
-						ObjectFile="$(IntDir)\script\api\"
-						XMLDocumentationFileName="$(IntDir)\script\api\"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\script\api\"
-						ObjectFile="$(IntDir)\script\api\"
-						XMLDocumentationFileName="$(IntDir)\script\api\"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\script\api\"
-						ObjectFile="$(IntDir)\script\api\"
-						XMLDocumentationFileName="$(IntDir)\script\api\"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\script\api\"
-						ObjectFile="$(IntDir)\script\api\"
-						XMLDocumentationFileName="$(IntDir)\script\api\"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath=".\..\src\script\api\script_game.cpp"
 				>
 				<FileConfiguration
@@ -8968,6 +8920,50 @@
 			</File>
 			<File
 				RelativePath=".\..\src\script\api\script_marine.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\script\api\"
+						ObjectFile="$(IntDir)\script\api\"
+						XMLDocumentationFileName="$(IntDir)\script\api\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\script\api\"
+						ObjectFile="$(IntDir)\script\api\"
+						XMLDocumentationFileName="$(IntDir)\script\api\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\script\api\"
+						ObjectFile="$(IntDir)\script\api\"
+						XMLDocumentationFileName="$(IntDir)\script\api\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\script\api\"
+						ObjectFile="$(IntDir)\script\api\"
+						XMLDocumentationFileName="$(IntDir)\script\api\"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\..\src\script\api\script_mode.cpp"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -9628,50 +9624,6 @@
 			</File>
 			<File
 				RelativePath=".\..\src\script\api\script_subsidylist.cpp"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\script\api\"
-						ObjectFile="$(IntDir)\script\api\"
-						XMLDocumentationFileName="$(IntDir)\script\api\"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\script\api\"
-						ObjectFile="$(IntDir)\script\api\"
-						XMLDocumentationFileName="$(IntDir)\script\api\"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\script\api\"
-						ObjectFile="$(IntDir)\script\api\"
-						XMLDocumentationFileName="$(IntDir)\script\api\"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerListingLocation="$(IntDir)\script\api\"
-						ObjectFile="$(IntDir)\script\api\"
-						XMLDocumentationFileName="$(IntDir)\script\api\"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\..\src\script\api\script_testmode.cpp"
 				>
 				<FileConfiguration
 					Name="Release|Win32"

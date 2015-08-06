@@ -9,12 +9,21 @@
 
 /* THIS FILE IS AUTO-GENERATED; PLEASE DO NOT ALTER MANUALLY */
 
-#include "../script_testmode.hpp"
+#include "../script_mode.hpp"
 
 
-static void SQAITestMode_Register (Squirrel *engine)
+static void SQGSExecMode_Register (Squirrel *engine)
 {
-	engine->AddClassBegin ("AITestMode");
+	engine->AddClassBegin ("GSExecMode");
+	SQConvert::AddConstructor <void (ScriptExecMode::*)(), 1> (engine, "x");
+
+	engine->AddClassEnd();
+}
+
+
+static void SQGSTestMode_Register (Squirrel *engine)
+{
+	engine->AddClassBegin ("GSTestMode");
 	SQConvert::AddConstructor <void (ScriptTestMode::*)(), 1> (engine, "x");
 
 	engine->AddClassEnd();

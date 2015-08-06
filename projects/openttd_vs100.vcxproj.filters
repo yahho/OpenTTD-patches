@@ -2220,9 +2220,6 @@
     <ClInclude Include="..\src\script\api\script_event_types.hpp">
       <Filter>Script API</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\script\api\script_execmode.hpp">
-      <Filter>Script API</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\script\api\script_game.hpp">
       <Filter>Script API</Filter>
     </ClInclude>
@@ -2268,6 +2265,9 @@
     <ClInclude Include="..\src\script\api\script_marine.hpp">
       <Filter>Script API</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\script\api\script_mode.hpp">
+      <Filter>Script API</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\script\api\script_news.hpp">
       <Filter>Script API</Filter>
     </ClInclude>
@@ -2311,9 +2311,6 @@
       <Filter>Script API</Filter>
     </ClInclude>
     <ClInclude Include="..\src\script\api\script_subsidylist.hpp">
-      <Filter>Script API</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\script\api\script_testmode.hpp">
       <Filter>Script API</Filter>
     </ClInclude>
     <ClInclude Include="..\src\script\api\script_text.hpp">
@@ -2415,9 +2412,6 @@
     <ClCompile Include="..\src\script\api\script_event_types.cpp">
       <Filter>Script API Implementation</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\script\api\script_execmode.cpp">
-      <Filter>Script API Implementation</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\script\api\script_game.cpp">
       <Filter>Script API Implementation</Filter>
     </ClCompile>
@@ -2458,6 +2452,9 @@
       <Filter>Script API Implementation</Filter>
     </ClCompile>
     <ClCompile Include="..\src\script\api\script_marine.cpp">
+      <Filter>Script API Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\script\api\script_mode.cpp">
       <Filter>Script API Implementation</Filter>
     </ClCompile>
     <ClCompile Include="..\src\script\api\script_news.cpp">
@@ -2503,9 +2500,6 @@
       <Filter>Script API Implementation</Filter>
     </ClCompile>
     <ClCompile Include="..\src\script\api\script_subsidylist.cpp">
-      <Filter>Script API Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\script\api\script_testmode.cpp">
       <Filter>Script API Implementation</Filter>
     </ClCompile>
     <ClCompile Include="..\src\script\api\script_text.cpp">
