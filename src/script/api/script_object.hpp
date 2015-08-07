@@ -29,7 +29,6 @@
  */
 class ScriptObject : public SimpleCountedObject {
 friend class ScriptInstance;
-friend class ScriptController;
 protected:
 	/**
 	 * A class that handles the current active instance. By instantiating it at
@@ -120,13 +119,6 @@ protected:
 	 * @return The current company.
 	 */
 	static CompanyID GetCompany();
-
-	/**
-	 * Get the root company, the company that the script really
-	 *  runs under / for.
-	 * @return The root company.
-	 */
-	static CompanyID GetRootCompany();
 
 	/**
 	 * Set a variable that can be used by callback functions to pass information.

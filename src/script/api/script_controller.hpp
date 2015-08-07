@@ -12,10 +12,9 @@
 #ifndef SCRIPT_CONTROLLER_HPP
 #define SCRIPT_CONTROLLER_HPP
 
-#include "script_types.hpp"
-#include "../convert.hpp"
-#include <map>
+#include "../squirrel.hpp"
 
+#ifdef DOXYGEN_API
 /**
  * The Controller, the class each Script should extend. It creates the Script,
  *  makes sure the logic kicks in correctly, and that #GetTick() has a valid
@@ -47,9 +46,6 @@
  * @api ai game
  */
 class ScriptController {
-	friend class AIScanner;
-	friend class ScriptInstance;
-
 public:
 	/**
 	 * This function is called to start your script. Your script starts here. If you
@@ -59,7 +55,6 @@ public:
 	 */
 	void Start();
 
-#ifdef DOXYGEN_API
 	/**
 	 * Save the state of the script.
 	 *
@@ -99,7 +94,6 @@ public:
 	 * @param data Data that was saved (return value of #Save).
 	 */
 	void Load(int version, SquirrelTable data);
-#endif /* DOXYGEN_API */
 
 	/**
 	 * Find at which tick your script currently is.
@@ -180,7 +174,6 @@ public:
 	 */
 	static void Print(bool error_msg, const char *message);
 
-#ifdef DOXYGEN_API
 	/**
 	 * Import a library.
 	 * @param library The name of the library to import. The name should be composed as ScriptInfo::GetCategory() + "." +
@@ -191,8 +184,8 @@ public:
 	 * @note This command can be called from the global space, and does not need an instance.
 	 */
 	static HSQOBJECT Import(const char *library, const char *class_name, int version);
-#endif
 };
+#endif /* DOXYGEN_API */
 
 
 void SQController_Register (Squirrel *engine, const char *name);

@@ -20,10 +20,6 @@
  * @api ai game
  */
 class ScriptLog : public ScriptObject {
-	/* ScriptController needs access to Enum and Log, in order to keep the flow from
-	 *  OpenTTD core to script API clear and simple. */
-	friend class ScriptController;
-
 public:
 	/**
 	 * Print an Info message to the logs.

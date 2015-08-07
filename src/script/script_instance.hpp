@@ -39,7 +39,6 @@ static const uint SQUIRREL_MAX_DEPTH = 25; ///< The maximum recursive depth for 
 /** Runtime information about a script like a pointer to the squirrel vm and the current state. */
 class ScriptInstance : protected Squirrel {
 	friend class ScriptObject;
-	friend class ScriptController;
 	friend class ScriptLog;
 
 private:
@@ -336,6 +335,16 @@ public:
 
 	/** Pop the last build mode and activate the previous one. */
 	void PopBuildMode (const class BaseScriptMode *mode);
+
+	/**
+	 * Get the root company, the company that the script really
+	 *  runs under / for.
+	 * @return The root company.
+	 */
+	CompanyID GetRootCompany (void) const
+	{
+		return this->root_company;
+	}
 
 	/** Set the road type. */
 	void SetRoadType (RoadType road_type)

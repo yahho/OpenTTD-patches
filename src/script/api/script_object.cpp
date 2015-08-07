@@ -98,11 +98,6 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 	return GetActiveInstance()->company;
 }
 
-/* static */ CompanyID ScriptObject::GetRootCompany()
-{
-	return GetActiveInstance()->root_company;
-}
-
 /* static */ bool ScriptObject::CanSuspend()
 {
 	return GetActiveInstance()->CanSuspend();
