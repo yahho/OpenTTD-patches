@@ -12,6 +12,8 @@
 #ifndef SQUIRREL_HPP
 #define SQUIRREL_HPP
 
+#include <stdarg.h>
+
 #include <squirrel.h>
 
 /** The type of script we're working with, i.e. for who is it? */
@@ -22,7 +24,8 @@ enum ScriptType {
 
 class Squirrel {
 private:
-	typedef void (SQPrintFunc)(bool error_msg, const char *message);
+	typedef void (SQPrintFunc) (HSQUIRRELVM vm, bool err,
+		const char *fmt, va_list args);
 
 	HSQUIRRELVM vm;          ///< The VirtualMachine instance for squirrel
 	SQPrintFunc *const print_func; ///< Either NULL or a custom print handler

@@ -9,7 +9,6 @@
 
 /** @file squirrel.cpp the implementation of the Squirrel class. It handles all Squirrel-stuff and gives a nice API back to work with. */
 
-#include <stdarg.h>
 #include "../stdafx.h"
 #include "../debug.h"
 #include "../fileio_func.h"
@@ -19,38 +18,46 @@
 #include <../squirrel/sqpcheader.h>
 #include <../squirrel/sqvm.h>
 
+static void print_args (void (*func) (HSQUIRRELVM, bool, const char*, va_list),
+	HSQUIRRELVM vm, bool err, const char *fmt, ...)
+{
+	va_list args;
+	va_start (args, fmt);
+	(*func) (vm, err, fmt, args);
+	va_end (args);
+}
+
 void Squirrel::CompileError(HSQUIRRELVM vm, const char *desc, const char *source, SQInteger line, SQInteger column)
 {
-	char buf[1024];
-	bstrfmt (buf, "Error %s:" OTTD_PRINTF64 "/" OTTD_PRINTF64 ": %s", source, line, column, desc);
-
 	/* Check if we have a custom print function */
 	Squirrel *engine = Squirrel::Get(vm);
 	engine->crashed = true;
 	SQPrintFunc *func = engine->print_func;
 	if (func == NULL) {
-		DEBUG(misc, 0, "[Squirrel] Compile error: %s", buf);
+		DEBUG(misc, 0,
+			"[Squirrel] Compile error: %s:" OTTD_PRINTF64 "/" OTTD_PRINTF64 ": %s",
+			source, line, column, desc);
 	} else {
-		(*func)(true, buf);
+		print_args (func, vm, true,
+			"Error %s:" OTTD_PRINTF64 "/" OTTD_PRINTF64 ": %s",
+			source, line, column, desc);
 	}
 }
 
 void Squirrel::ErrorPrintFunc(HSQUIRRELVM vm, const char *s, ...)
 {
 	va_list arglist;
-	char buf[1024];
-
 	va_start(arglist, s);
-	bstrvfmt (buf, s, arglist);
-	va_end(arglist);
 
 	/* Check if we have a custom print function */
 	SQPrintFunc *func = Squirrel::Get(vm)->print_func;
 	if (func == NULL) {
-		fprintf(stderr, "%s", buf);
+		vfprintf (stderr, s, arglist);
 	} else {
-		(*func)(true, buf);
+		(*func) (vm, true, s, arglist);
 	}
+
+	va_end(arglist);
 }
 
 SQInteger Squirrel::RunError (HSQUIRRELVM vm)
@@ -65,14 +72,13 @@ SQInteger Squirrel::RunError (HSQUIRRELVM vm)
 	sq_setprintfunc(vm, &Squirrel::ErrorPrintFunc);
 
 	/* Check if we have a custom print function */
-	char buf[1024];
-	bstrfmt (buf, "Your script made an error: %s\n", error);
 	Squirrel *engine = Squirrel::Get(vm);
 	SQPrintFunc *func = engine->print_func;
 	if (func == NULL) {
-		fprintf(stderr, "%s", buf);
+		fprintf (stderr, "Your script made an error: %s\n", error);
 	} else {
-		(*func)(true, buf);
+		print_args (func, vm, true,
+				"Your script made an error: %s\n", error);
 	}
 
 	/* Print below the error the stack, so the users knows what is happening */
@@ -94,11 +100,7 @@ void Squirrel::PrintFunc(HSQUIRRELVM vm, const char *s, ...)
 		vprintf(s, arglist);
 		putchar('\n');
 	} else {
-		sstring<1024> buf;
-		buf.vfmt (s, arglist);
-		if (buf.full()) buf.truncate(buf.length() - 1);
-		buf.append('\n');
-		(*func)(false, buf.c_str());
+		(*func) (vm, false, s, arglist);
 	}
 
 	va_end(arglist);

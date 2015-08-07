@@ -37,8 +37,19 @@
 #include "../genworld.h"
 #include "../window_func.h"
 
+static void instance_print_log (HSQUIRRELVM vm, bool err, const char *fmt,
+	va_list args)
+{
+	char message[1024];
+	bstrvfmt (message, fmt, args);
+	ScriptInstance::Get(vm)->Log (err ?
+				ScriptInstance::LogData::LOG_SQ_ERROR :
+				ScriptInstance::LogData::LOG_SQ_INFO,
+			message);
+}
+
 ScriptInstance::ScriptInstance(const char *APIName) :
-	Squirrel (APIName, &ScriptController::Print),
+	Squirrel (APIName, &instance_print_log),
 	controller(NULL),
 	instance(NULL),
 	state ((1 << STATE_INIT) | (1 << STATE_DOCOMMAND_ALLOWED)),
