@@ -20,6 +20,7 @@
 #include "squirrel.hpp"
 #include "script_suspend.hpp"
 
+#include "../core/string_compare_type.hpp"
 #include "../command_type.h"
 #include "../company_type.h"
 #include "../fileio_type.h"
@@ -42,8 +43,12 @@ class ScriptInstance : protected Squirrel {
 	friend class ScriptLog;
 
 private:
-	class ScriptController *controller;   ///< The script main class.
 	SQObject *instance;                   ///< Squirrel-pointer to the script main class.
+
+	typedef std::map<const char *, const char *, StringCompare> LoadedLibraryList; ///< The type for loaded libraries.
+
+	LoadedLibraryList loaded_library;     ///< The libraries we loaded.
+	uint loaded_library_count;            ///< The amount of libraries.
 
 	enum {
 		STATE_INIT,     ///< The script engine is initialised.
@@ -144,6 +149,8 @@ public:
 	void Initialize (const class ScriptInfo *info, CompanyID company,
 		void (*load) (HSQUIRRELVM) = NULL);
 
+	static SQInteger Import (HSQUIRRELVM vm);
+
 protected:
 	/** Register all API functions to the VM. */
 	virtual void RegisterAPI();
@@ -170,9 +177,6 @@ public:
 	{
 		return static_cast<ScriptInstance *> (Squirrel::Get(vm));
 	}
-
-	/** Get the controller attached to the instance. */
-	class ScriptController *GetController() { return controller; }
 
 	/** Check whether the script has died. */
 	inline bool IsDead() const { return this->state.test (STATE_DEAD); }

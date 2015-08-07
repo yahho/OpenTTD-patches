@@ -50,8 +50,9 @@ static void instance_print_log (HSQUIRRELVM vm, bool err, const char *fmt,
 
 ScriptInstance::ScriptInstance(const char *APIName) :
 	Squirrel (APIName, &instance_print_log),
-	controller(NULL),
 	instance(NULL),
+	loaded_library(),
+	loaded_library_count(0),
 	state ((1 << STATE_INIT) | (1 << STATE_DOCOMMAND_ALLOWED)),
 	ticks(0),
 	suspend(0),
@@ -85,7 +86,7 @@ void ScriptInstance::Initialize (const ScriptInfo *info, CompanyID company,
 {
 	ScriptObject::ActiveInstance active(this);
 
-	this->controller = new ScriptController(company);
+	ScriptObject::SetCompany (company);
 
 	/* Register the API functions and classes */
 	this->RegisterAPI();
@@ -105,7 +106,7 @@ void ScriptInstance::Initialize (const ScriptInfo *info, CompanyID company,
 
 		/* Create the main-class */
 		this->instance = xmalloct<SQObject>();
-		if (!this->CreateClassInstance (info->GetInstanceName(), this->controller, this->instance)) {
+		if (!this->CreateClassInstance (info->GetInstanceName(), NULL, this->instance)) {
 			this->Died();
 			return;
 		}
@@ -176,8 +177,99 @@ ScriptInstance::~ScriptInstance()
 		e->Release();
 	}
 
-	delete this->controller;
+	for (LoadedLibraryList::iterator iter = this->loaded_library.begin(); iter != this->loaded_library.end(); iter++) {
+		free((*iter).second);
+		free((*iter).first);
+	}
+
+	this->loaded_library.clear();
+
 	free(this->instance);
+}
+
+/* static */ SQInteger ScriptInstance::Import (HSQUIRRELVM vm)
+{
+	ttd_unique_free_ptr<char> library_ptr (SQConvert::GetString (vm, 2));
+	ttd_unique_free_ptr<char> cname_ptr   (SQConvert::GetString (vm, 3));
+	int version = SQConvert::GetInteger (vm, 4);
+	const char *library    = library_ptr.get();
+	const char *class_name = cname_ptr.get();
+
+	ScriptInstance *engine = ScriptInstance::Get (vm);
+	assert (ScriptObject::GetActiveInstance() == engine);
+
+	/* Internally we store libraries as 'library.version' */
+	char library_name[1024];
+	bstrfmt (library_name, "%s.%d", library, version);
+	strtolower(library_name);
+
+	ScriptInfo *lib = engine->FindLibrary (library, version);
+	if (lib == NULL) {
+		char error[1024];
+		bstrfmt (error, "couldn't find library '%s' with version %d", library, version);
+		return sq_throwerror (vm, error);
+	}
+
+	/* Get the current table/class we belong to */
+	HSQOBJECT parent;
+	sq_getstackobj (vm, 1, &parent);
+
+	char fake_class[1024];
+
+	LoadedLibraryList::iterator iter = engine->loaded_library.find (library_name);
+	if (iter != engine->loaded_library.end()) {
+		bstrcpy (fake_class, (*iter).second);
+	} else {
+		uint next_number = ++engine->loaded_library_count;
+
+		/* Create a new fake internal name */
+		bstrfmt (fake_class, "_internalNA%u", next_number);
+
+		/* Load the library in a 'fake' namespace, so we can link it to the name the user requested */
+		sq_pushroottable (vm);
+		sq_pushstring (vm, fake_class, -1);
+		sq_newclass (vm, SQFalse);
+		/* Load the library */
+		if (!engine->LoadScript (lib->GetMainScript(), false)) {
+			char error[1024];
+			bstrfmt (error, "there was a compile error when importing '%s' version %d", library, version);
+			return sq_throwerror (vm, error);
+		}
+		/* Create the fake class */
+		sq_newslot (vm, -3, SQFalse);
+		sq_pop (vm, 1);
+
+		engine->loaded_library[xstrdup(library_name)] = xstrdup (fake_class);
+	}
+
+	/* Find the real class inside the fake class (like 'sets.Vector') */
+	sq_pushroottable (vm);
+	sq_pushstring (vm, fake_class, -1);
+	if (SQ_FAILED (sq_get (vm, -2))) {
+		return sq_throwerror (vm, "internal error assigning library class");
+	}
+	sq_pushstring (vm, lib->GetInstanceName(), -1);
+	if (SQ_FAILED (sq_get (vm, -2))) {
+		char error[1024];
+		bstrfmt (error, "unable to find class '%s' in the library '%s' version %d", lib->GetInstanceName(), library, version);
+		return sq_throwerror (vm, error);
+	}
+	HSQOBJECT obj;
+	sq_getstackobj (vm, -1, &obj);
+	sq_pop (vm, 3);
+
+	if (!StrEmpty (class_name)) {
+		/* Now link the name the user wanted to our 'fake' class */
+		sq_pushobject (vm, parent);
+		sq_pushstring (vm, class_name, -1);
+		sq_pushobject (vm, obj);
+		sq_newclass (vm, SQTrue);
+		sq_newslot (vm, -3, SQFalse);
+		sq_pop (vm, 1);
+	}
+
+	sq_pushobject (vm, obj);
+	return 1;
 }
 
 void ScriptInstance::Died()

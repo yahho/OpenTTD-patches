@@ -44,7 +44,7 @@ public:
 	 *
 	 * @return The name of the Script.
 	 * @note This function is required.
-	 * @note This name is not used as library name by ScriptController::Import,
+	 * @note This name is not used as library name by ScriptInstance::Import,
 	 * instead the name returned by #CreateInstance is used.
 	 */
 	string GetName();
@@ -148,7 +148,7 @@ public:
 	/**
 	 * Gets the name of main class of the Script so OpenTTD knows
 	 * what class to instantiate. For libraries, this name is also
-	 * used when other scripts import it using ScriptController::Import.
+	 * used when other scripts import it using ScriptInstance::Import.
 	 *
 	 * @return The class name of the Script.
 	 * @note This function is required.

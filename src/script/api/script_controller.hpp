@@ -13,7 +13,6 @@
 #define SCRIPT_CONTROLLER_HPP
 
 #include "script_types.hpp"
-#include "../../core/string_compare_type.hpp"
 #include "../convert.hpp"
 #include <map>
 
@@ -52,17 +51,6 @@ class ScriptController {
 	friend class ScriptInstance;
 
 public:
-	/**
-	 * Initializer of the ScriptController.
-	 * @param company The company this Script is normally serving.
-	 */
-	ScriptController(CompanyID company);
-
-	/**
-	 * Destructor of the ScriptController.
-	 */
-	~ScriptController();
-
 	/**
 	 * This function is called to start your script. Your script starts here. If you
 	 *   return from this function, your script dies, so make sure that doesn't
@@ -203,15 +191,7 @@ public:
 	 * @note This command can be called from the global space, and does not need an instance.
 	 */
 	static HSQOBJECT Import(const char *library, const char *class_name, int version);
-#else
-	static SQInteger Import (HSQUIRRELVM vm);
 #endif
-
-private:
-	typedef std::map<const char *, const char *, StringCompare> LoadedLibraryList; ///< The type for loaded libraries.
-
-	LoadedLibraryList loaded_library; ///< The libraries we loaded.
-	int loaded_library_count;         ///< The amount of libraries.
 };
 
 
