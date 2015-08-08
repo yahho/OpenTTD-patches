@@ -47,8 +47,7 @@ struct CYapfNodeKey : PPos {
 
 /** Yapf Node Key that evaluates hash from (and compares) tile & exit dir. */
 template <class PPos>
-struct CYapfNodeKeyExitDir : public CYapfNodeKey<PPos>
-{
+struct CYapfNodeKeyExitDir : public CYapfNodeKey<PPos> {
 	DiagDirection  exitdir;
 
 	inline void Set(const PPos &pos)
@@ -76,8 +75,7 @@ struct CYapfNodeKeyExitDir : public CYapfNodeKey<PPos>
 
 /** Yapf Node Key that evaluates hash from (and compares) tile & track dir. */
 template <class PPos>
-struct CYapfNodeKeyTrackDir : public CYapfNodeKey<PPos>
-{
+struct CYapfNodeKeyTrackDir : public CYapfNodeKey<PPos> {
 	inline int CalcHash() const
 	{
 		return (PPos::in_wormhole() ? (PPos::td + 6) : PPos::td) | (PPos::tile << 4);
@@ -105,8 +103,15 @@ struct CYapfNodeT : AstarNodeBase<Tnode> {
 		m_key.Set(pos);
 	}
 
-	inline const Pos& GetPos() const {return m_key;}
-	inline const Tkey_& GetKey() const {return m_key;}
+	inline const Pos& GetPos() const
+	{
+		return m_key;
+	}
+
+	inline const Tkey_& GetKey() const
+	{
+		return m_key;
+	}
 
 	void Dump(DumpTarget &dmp) const
 	{

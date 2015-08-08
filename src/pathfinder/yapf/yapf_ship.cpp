@@ -16,10 +16,7 @@
 
 /** Yapf Node for ships */
 template <class Tkey_>
-struct CYapfShipNodeT
-	: CYapfNodeT<Tkey_, CYapfShipNodeT<Tkey_> >
-{
-};
+struct CYapfShipNodeT : CYapfNodeT<Tkey_, CYapfShipNodeT<Tkey_> > { };
 
 /* now define two major node types (that differ by key type) */
 typedef CYapfShipNodeT<CYapfNodeKeyExitDir <ShipPathPos> > CYapfShipNodeExitDir;
@@ -32,8 +29,7 @@ typedef Astar<CYapfShipNodeTrackDir, 10, 12> AstarShipTrackDir;
 
 /** YAPF class for ships */
 template <class TAstar>
-class CYapfShipT : public TAstar
-{
+class CYapfShipT : public TAstar {
 public:
 	typedef typename TAstar::Node Node; ///< this will be our node type
 
@@ -181,8 +177,7 @@ public:
 
 /* Template proxy */
 template <class TAstar, bool allow_90deg>
-struct CYapfShip : CYapfShipT<TAstar>
-{
+struct CYapfShip : CYapfShipT<TAstar> {
 	CYapfShip (const Ship *ship, bool depot = false)
 		: CYapfShipT<TAstar> (ship, allow_90deg, depot)
 	{

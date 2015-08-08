@@ -101,10 +101,16 @@ private:
 
 public:
 	/** item count */
-	inline uint Count() const {return m_num_items;}
+	inline uint Count() const
+	{
+		return m_num_items;
+	}
 
 	/** simple clear - forget all items - used by CSegmentCostCacheT.Flush() */
-	inline void Clear() {for (int i = 0; i < Tcapacity; i++) m_slots[i].detach_all();}
+	inline void Clear()
+	{
+		for (int i = 0; i < Tcapacity; i++) m_slots[i].detach_all();
+	}
 
 	/** const item search */
 	const Titem_ *Find(const Tkey &key) const

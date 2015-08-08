@@ -15,9 +15,7 @@
 
 /** Yapf Node for road YAPF */
 template <class Tkey_>
-struct CYapfRoadNodeT
-	: CYapfNodeT<Tkey_, CYapfRoadNodeT<Tkey_> >
-{
+struct CYapfRoadNodeT : CYapfNodeT<Tkey_, CYapfRoadNodeT<Tkey_> > {
 	typedef CYapfNodeT<Tkey_, CYapfRoadNodeT<Tkey_> > base;
 
 	PathMPos<RoadPathPos> m_next; ///< next pos after segment end, invalid if this segment is a dead end
@@ -117,8 +115,7 @@ static int OneTileCost(const YAPFSettings *settings, const RoadPathPos &pos)
 
 
 template <class TAstar>
-class CYapfRoadT : public TAstar
-{
+class CYapfRoadT : public TAstar {
 public:
 	typedef typename TAstar::Node Node; ///< this will be our node type
 
