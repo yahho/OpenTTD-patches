@@ -53,7 +53,7 @@ struct AstarNodeBase : CHashTableEntryT<Node> {
 	}
 
 	/** Compare estimated final cost with another node */
-	inline bool operator < (const Node& other) const
+	inline bool operator < (const Node &other) const
 	{
 		return m_estimate < other.m_estimate;
 	}
@@ -151,7 +151,7 @@ private:
 	/** Remove and return the open node specified by a key. */
 	inline void PopOpenNode (const Key &key)
 	{
-		Node& item = m_open.Pop(key);
+		Node &item = m_open.Pop(key);
 		uint idxPop = m_open_queue.FindIndex(item);
 		m_open_queue.Remove(idxPop);
 	}

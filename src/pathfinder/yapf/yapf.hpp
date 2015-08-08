@@ -62,7 +62,7 @@ struct CYapfNodeKeyExitDir : public CYapfNodeKey<PPos>
 		return exitdir | (PPos::tile << 2);
 	}
 
-	inline bool operator == (const CYapfNodeKeyExitDir& other) const
+	inline bool operator == (const CYapfNodeKeyExitDir &other) const
 	{
 		return PPos::PathTile::operator==(other) && (exitdir == other.exitdir);
 	}
@@ -83,7 +83,7 @@ struct CYapfNodeKeyTrackDir : public CYapfNodeKey<PPos>
 		return (PPos::in_wormhole() ? (PPos::td + 6) : PPos::td) | (PPos::tile << 4);
 	}
 
-	inline bool operator == (const CYapfNodeKeyTrackDir& other) const
+	inline bool operator == (const CYapfNodeKeyTrackDir &other) const
 	{
 		return PPos::PathTile::operator==(other) && (PPos::td == other.td);
 	}

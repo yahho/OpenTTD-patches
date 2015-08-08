@@ -76,14 +76,14 @@ struct CYapfRailSegmentKey
 {
 	uint32    m_value;
 
-	inline CYapfRailSegmentKey(const CYapfRailKey& node_key) : m_value(node_key.CalcHash()) { }
+	inline CYapfRailSegmentKey(const CYapfRailKey &node_key) : m_value(node_key.CalcHash()) { }
 
 	inline int32 CalcHash() const
 	{
 		return m_value;
 	}
 
-	inline bool operator == (const CYapfRailSegmentKey& other) const
+	inline bool operator == (const CYapfRailSegmentKey &other) const
 	{
 		return m_value == other.m_value;
 	}
@@ -285,7 +285,7 @@ public:
 	bool          m_stopped_on_first_two_way_signal;
 
 protected:
-	Cache&        m_global_cache;
+	Cache        &m_global_cache;
 	LocalCache    m_local_cache;
 
 	int                  m_max_cost;
@@ -509,7 +509,7 @@ public:
 	}
 
 	/** The cost for reserved tiles, including skipped ones. */
-	inline int ReservationCost(Node& n, const RailPathPos &pos, int skipped) const
+	inline int ReservationCost(Node &n, const RailPathPos &pos, int skipped) const
 	{
 		if (n.m_num_signals_passed >= m_sig_look_ahead_costs.size() / 2) return 0;
 		if (!IsPbsSignal(n.m_last_signal_type)) return 0;
