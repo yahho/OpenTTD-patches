@@ -42,7 +42,7 @@ class ScriptInstance : protected Squirrel {
 	friend class ScriptLog;
 
 private:
-	SQObject *instance;                   ///< Squirrel-pointer to the script main class.
+	SQObject instance;                    ///< Squirrel-pointer to the script main class.
 
 	typedef std::map<const char *, const char *, StringCompare> LoadedLibraryList; ///< The type for loaded libraries.
 

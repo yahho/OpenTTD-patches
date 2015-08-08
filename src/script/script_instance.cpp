@@ -50,7 +50,7 @@ static void instance_print_log (HSQUIRRELVM vm, bool err, const char *fmt,
 
 ScriptInstance::ScriptInstance(const char *APIName) :
 	Squirrel (APIName, &instance_print_log),
-	instance(NULL),
+	instance(),
 	loaded_library(),
 	loaded_library_count(0),
 	state ((1 << STATE_INIT) | (1 << STATE_DOCOMMAND_ALLOWED)),
@@ -79,6 +79,7 @@ ScriptInstance::ScriptInstance(const char *APIName) :
 	rail_type         (INVALID_RAILTYPE)
 {
 	this->Squirrel::Initialize();
+	sq_resetobject (&this->instance);
 }
 
 void ScriptInstance::Initialize (const ScriptInfo *info, CompanyID company,
@@ -105,8 +106,7 @@ void ScriptInstance::Initialize (const ScriptInfo *info, CompanyID company,
 		}
 
 		/* Create the main-class */
-		this->instance = xmalloct<SQObject>();
-		if (!this->CreateClassInstance (info->GetInstanceName(), NULL, this->instance)) {
+		if (!this->CreateClassInstance (info->GetInstanceName(), NULL, &this->instance)) {
 			this->Died();
 			return;
 		}
@@ -165,8 +165,8 @@ ScriptInstance::~ScriptInstance()
 {
 	ScriptObject::ActiveInstance active(this);
 
-	if (instance != NULL) this->ReleaseObject(this->instance);
 	if (this->state.test (STATE_INIT)) {
+		sq_release (this->GetVM(), &this->instance);
 		this->Squirrel::Uninitialize();
 	}
 
@@ -183,8 +183,6 @@ ScriptInstance::~ScriptInstance()
 	}
 
 	this->loaded_library.clear();
-
-	free(this->instance);
 }
 
 /* static */ SQInteger ScriptInstance::Import (HSQUIRRELVM vm)
@@ -277,10 +275,9 @@ void ScriptInstance::Died()
 	DEBUG(script, 0, "The script died unexpectedly.");
 	this->state.set (STATE_DEAD);
 
-	if (this->instance != NULL) this->ReleaseObject(this->instance);
+	sq_release (this->GetVM(), &this->instance);
 	this->Squirrel::Uninitialize();
 	this->state.reset (STATE_INIT);
-	this->instance = NULL;
 }
 
 void ScriptInstance::Pause()
@@ -354,8 +351,8 @@ void ScriptInstance::GameLoop()
 			assert (ScriptObject::GetActiveInstance() == this);
 			this->SetAllowDoCommand (false);
 			/* Run the constructor if it exists. Don't allow any DoCommands in it. */
-			if (this->MethodExists(*this->instance, "constructor")) {
-				if (!this->CallMethod(*this->instance, "constructor", MAX_CONSTRUCTOR_OPS) || this->IsSuspended()) {
+			if (this->MethodExists (this->instance, "constructor")) {
+				if (!this->CallMethod (this->instance, "constructor", MAX_CONSTRUCTOR_OPS) || this->IsSuspended()) {
 					if (this->IsSuspended()) ScriptLog::Error("This script took too long to initialize. Script is not started.");
 					this->Died();
 					return;
@@ -368,7 +365,7 @@ void ScriptInstance::GameLoop()
 			}
 			this->SetAllowDoCommand (true);
 			/* Start the script by calling Start() */
-			if (!this->CallMethod(*this->instance, "Start",  _settings_game.script.script_max_opcode_till_suspend) || !this->IsSuspended()) this->Died();
+			if (!this->CallMethod (this->instance, "Start",  _settings_game.script.script_max_opcode_till_suspend) || !this->IsSuspended()) this->Died();
 		} catch (Script_Suspend e) {
 			this->suspend  = e.GetSuspendTime();
 			this->callback = e.GetSuspendCallback();
@@ -780,13 +777,13 @@ void ScriptInstance::Save(SaveDumper *dumper)
 	} else if (!this->state.test (STATE_STARTED)) {
 		SaveEmpty(dumper);
 		return;
-	} else if (this->MethodExists(*this->instance, "Save")) {
+	} else if (this->MethodExists (this->instance, "Save")) {
 		HSQOBJECT savedata;
 		/* We don't want to be interrupted during the save function. */
 		assert (ScriptObject::GetActiveInstance() == this);
 		bool backup_allow = this->SetAllowDoCommand (false);
 		try {
-			if (!this->CallMethod (*this->instance, "Save", MAX_SL_OPS, &savedata)) {
+			if (!this->CallMethod (this->instance, "Save", MAX_SL_OPS, &savedata)) {
 				/* The script crashed in the Save function. We can't kill
 				 * it here, but do so in the next script tick. */
 				SaveEmpty(dumper);
@@ -923,7 +920,7 @@ bool ScriptInstance::CallLoad()
 	/* Whatever happens, after CallLoad the savegame data is removed from the stack. */
 	this->state.reset (STATE_SAVEDATA);
 
-	if (!this->MethodExists(*this->instance, "Load")) {
+	if (!this->MethodExists (this->instance, "Load")) {
 		ScriptLog::Warning("Loading failed: there was data for the script to load, but the script does not have a Load() function.");
 
 		/* Pop the savegame data and version. */
@@ -932,13 +929,13 @@ bool ScriptInstance::CallLoad()
 	}
 
 	/* Go to the instance-root */
-	sq_pushobject(vm, *this->instance);
+	sq_pushobject (vm, this->instance);
 	/* Find the function-name inside the script */
 	sq_pushstring(vm, "Load", -1);
 	/* Change the "Load" string in a function pointer */
 	sq_get(vm, -2);
 	/* Push the main instance as "this" object */
-	sq_pushobject(vm, *this->instance);
+	sq_pushobject (vm, this->instance);
 	/* Push the version data and savegame data as arguments */
 	sq_push(vm, -5);
 	sq_push(vm, -5);
