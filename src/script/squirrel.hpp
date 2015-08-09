@@ -174,11 +174,10 @@ public:
 	/**
 	 * Creates a class instance.
 	 * @param class_name The name of the class of which we create an instance.
-	 * @param real_instance The instance to the real class, if it represents a real class.
 	 * @param instance Returning value with the pointer to the instance.
 	 * @return False if creating failed.
 	 */
-	bool CreateClassInstance(const char *class_name, void *real_instance, HSQOBJECT *instance);
+	bool CreateClassInstance (const char *class_name, HSQOBJECT *instance);
 
 	/**
 	 * Get the Squirrel-instance pointer.

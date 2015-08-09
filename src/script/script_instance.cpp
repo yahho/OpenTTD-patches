@@ -106,7 +106,7 @@ void ScriptInstance::Initialize (const ScriptInfo *info, CompanyID company,
 		}
 
 		/* Create the main-class */
-		if (!this->CreateClassInstance (info->GetInstanceName(), NULL, &this->instance)) {
+		if (!this->CreateClassInstance (info->GetInstanceName(), &this->instance)) {
 			this->Died();
 			return;
 		}

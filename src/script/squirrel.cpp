@@ -290,9 +290,9 @@ static bool CreateClassInstanceVM (HSQUIRRELVM vm, const char *class_name,
 	return CreateClassInstanceVM (vm, class_name2, real_instance, NULL, release_hook);
 }
 
-bool Squirrel::CreateClassInstance(const char *class_name, void *real_instance, HSQOBJECT *instance)
+bool Squirrel::CreateClassInstance (const char *class_name, HSQOBJECT *instance)
 {
-	return CreateClassInstanceVM (this->vm, class_name, real_instance, instance, NULL);
+	return CreateClassInstanceVM (this->vm, class_name, NULL, instance, NULL);
 }
 
 static SQInteger squirrel_require (HSQUIRRELVM vm)
