@@ -47,7 +47,7 @@ struct BaseStringIterator {
 };
 
 
-#ifdef WITH_ICU
+#ifdef WITH_ICU_SORT
 
 #include <unicode/utext.h>
 #include <unicode/brkiter.h>

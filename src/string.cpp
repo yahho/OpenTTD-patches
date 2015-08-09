@@ -24,12 +24,12 @@
 #include <errno.h> // required by vsnprintf implementation for MSVC
 #endif
 
-#ifdef WITH_ICU
+#ifdef WITH_ICU_SORT
 /* Required by strnatcmp. */
 #include <unicode/ustring.h>
 #include "language.h"
 #include "gfx_func.h"
-#endif /* WITH_ICU */
+#endif /* WITH_ICU_SORT */
 
 
 #ifdef WIN32
@@ -209,7 +209,7 @@ int strnatcmp(const char *s1, const char *s2, bool ignore_garbage_at_front)
 		s1 = SkipGarbage(s1);
 		s2 = SkipGarbage(s2);
 	}
-#ifdef WITH_ICU
+#ifdef WITH_ICU_SORT
 	if (_current_collator != NULL) {
 		UErrorCode status = U_ZERO_ERROR;
 		int result;
@@ -229,7 +229,7 @@ int strnatcmp(const char *s1, const char *s2, bool ignore_garbage_at_front)
 		if (U_SUCCESS(status)) return result;
 	}
 
-#endif /* WITH_ICU */
+#endif /* WITH_ICU_SORT */
 
 	/* Do a normal comparison if ICU is missing or if we cannot create a collator. */
 	return strcasecmp(s1, s2);

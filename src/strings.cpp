@@ -49,9 +49,9 @@ const LanguageMetadata *_current_language = NULL; ///< The currently loaded lang
 
 TextDirection _current_text_dir; ///< Text direction of the currently selected language.
 
-#ifdef WITH_ICU
+#ifdef WITH_ICU_SORT
 Collator *_current_collator = NULL;               ///< Collator for the language currently in use.
-#endif /* WITH_ICU */
+#endif /* WITH_ICU_SORT */
 
 static uint64 _global_string_params_data[20];     ///< Global array of string parameters. To access, use #SetDParam.
 static WChar _global_string_params_type[20];      ///< Type of parameters stored in #_decode_parameters
@@ -1747,7 +1747,7 @@ bool ReadLanguagePack(const LanguageMetadata *lang)
 	bstrcpy (_config_language_file, c_file);
 	SetCurrentGrfLangID(_current_language->newgrflangid);
 
-#ifdef WITH_ICU
+#ifdef WITH_ICU_SORT
 	/* Delete previous collator. */
 	if (_current_collator != NULL) {
 		delete _current_collator;
@@ -1764,7 +1764,7 @@ bool ReadLanguagePack(const LanguageMetadata *lang)
 		delete _current_collator;
 		_current_collator = NULL;
 	}
-#endif /* WITH_ICU */
+#endif /* WITH_ICU_SORT */
 
 	/* Some lists need to be sorted again after a language change. */
 	ReconsiderGameScriptLanguage();
@@ -2092,7 +2092,7 @@ void CheckForMissingGlyphs(bool base_font, MissingGlyphSearcher *searcher)
 	/* Update the font with cache */
 	LoadStringWidthTable(searcher->Monospace());
 
-#if !defined(WITH_ICU)
+#if !defined(WITH_ICU_LAYOUT)
 	/*
 	 * For right-to-left languages we need the ICU library. If
 	 * we do not have support for that library we warn the user
@@ -2105,5 +2105,5 @@ void CheckForMissingGlyphs(bool base_font, MissingGlyphSearcher *searcher)
 			"Recompile with icu enabled.");
 		ShowErrorMessage(STR_JUST_RAW_STRING, INVALID_STRING_ID, WL_ERROR);
 	}
-#endif
+#endif /* !WITH_ICU_LAYOUT */
 }

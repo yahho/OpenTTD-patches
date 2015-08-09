@@ -15,7 +15,7 @@
 #include "string.h"
 #include "strings_type.h"
 
-#ifdef WITH_ICU
+#ifdef WITH_ICU_SORT
 class IcuStringIterator;
 typedef IcuStringIterator StringIterator;
 #else
