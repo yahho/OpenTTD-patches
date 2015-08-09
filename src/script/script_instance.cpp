@@ -106,10 +106,18 @@ void ScriptInstance::Initialize (const ScriptInfo *info, CompanyID company,
 		}
 
 		/* Create the main-class */
-		if (!this->CreateClassInstance (info->GetInstanceName(), &this->instance)) {
+		if (!this->CreateClassInstance (info->GetInstanceName())) {
 			this->Died();
 			return;
 		}
+
+		/* Find our instance. */
+		sq_getstackobj (this->GetVM(), -1, &this->instance);
+		/* Add a reference to it, so it survives forever. */
+		sq_addref (this->GetVM(), &this->instance);
+		/* Pop it from the stack. */
+		sq_poptop (this->GetVM());
+
 		this->SetAllowDoCommand (true);
 	} catch (Script_FatalError e) {
 		this->state.set (STATE_DEAD);

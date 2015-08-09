@@ -162,6 +162,24 @@ public:
 	bool MethodExists(HSQOBJECT instance, const char *method_name);
 
 	/**
+	 * Creates a class instance in a given VM.
+	 * @param vm The VM to create the class instance for.
+	 * @param class_name The name of the class to create an instance of.
+	 * @return False if creating failed.
+	 */
+	static bool CreateClassInstanceVM (HSQUIRRELVM vm, const char *class_name);
+
+	/**
+	 * Creates a class instance.
+	 * @param class_name The name of the class to create an instance of.
+	 * @return False if creating failed.
+	 */
+	bool CreateClassInstance (const char *class_name)
+	{
+		return this->CreateClassInstanceVM (this->vm, class_name);
+	}
+
+	/**
 	 * Creates a class instance, prefixed with the current API name.
 	 * @param vm The VM to create the class instance for
 	 * @param class_name The name of the class of which we create an instance.
@@ -170,14 +188,6 @@ public:
 	 * @return False if creating failed.
 	 */
 	static bool CreatePrefixedClassInstance (HSQUIRRELVM vm, const char *class_name, void *real_instance, SQRELEASEHOOK release_hook);
-
-	/**
-	 * Creates a class instance.
-	 * @param class_name The name of the class of which we create an instance.
-	 * @param instance Returning value with the pointer to the instance.
-	 * @return False if creating failed.
-	 */
-	bool CreateClassInstance (const char *class_name, HSQOBJECT *instance);
 
 	/**
 	 * Get the Squirrel-instance pointer.

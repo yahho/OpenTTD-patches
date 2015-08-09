@@ -238,7 +238,7 @@ bool Squirrel::CallMethod (HSQOBJECT instance, const char *method_name, int susp
 	return true;
 }
 
-static bool CreateClassInstanceVM (HSQUIRRELVM vm, const char *class_name)
+bool Squirrel::CreateClassInstanceVM (HSQUIRRELVM vm, const char *class_name)
 {
 	int oldtop = sq_gettop(vm);
 
@@ -281,23 +281,6 @@ static bool CreateClassInstanceVM (HSQUIRRELVM vm, const char *class_name)
 	/* Store it in the class */
 	sq_setinstanceup (vm, -1, real_instance);
 	sq_setreleasehook (vm, -1, release_hook);
-
-	return true;
-}
-
-bool Squirrel::CreateClassInstance (const char *class_name, HSQOBJECT *instance)
-{
-	if (!CreateClassInstanceVM (this->vm, class_name)) return false;
-
-	/* Find our instance */
-	sq_getstackobj (this->vm, -1, instance);
-	/* Add a reference to it, so it survives for ever */
-	sq_addref (this->vm, instance);
-
-	/* Store it in the class */
-	sq_setinstanceup (this->vm, -1, NULL);
-
-	sq_poptop (this->vm);
 
 	return true;
 }
