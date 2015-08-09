@@ -238,8 +238,7 @@ bool Squirrel::CallMethod (HSQOBJECT instance, const char *method_name, int susp
 	return true;
 }
 
-static bool CreateClassInstanceVM (HSQUIRRELVM vm, const char *class_name,
-	void *real_instance, HSQOBJECT *instance, SQRELEASEHOOK release_hook)
+static bool CreateClassInstanceVM (HSQUIRRELVM vm, const char *class_name)
 {
 	int oldtop = sq_gettop(vm);
 
@@ -261,20 +260,10 @@ static bool CreateClassInstanceVM (HSQUIRRELVM vm, const char *class_name,
 		return false;
 	}
 
-	if (instance != NULL) {
-		/* Find our instance */
-		sq_getstackobj(vm, -1, instance);
-		/* Add a reference to it, so it survives for ever */
-		sq_addref(vm, instance);
-	}
 	sq_remove(vm, -2); // Class-name
 	sq_remove(vm, -2); // Root-table
 
-	/* Store it in the class */
-	sq_setinstanceup(vm, -1, real_instance);
-	if (release_hook != NULL) sq_setreleasehook(vm, -1, release_hook);
-
-	if (instance != NULL) sq_settop(vm, oldtop);
+	assert (sq_gettop(vm) == oldtop + 1);
 
 	return true;
 }
@@ -287,12 +276,30 @@ static bool CreateClassInstanceVM (HSQUIRRELVM vm, const char *class_name,
 	char *class_name2 = (char *) alloca (strlen(class_name) + strlen(prepend) + 1);
 	sprintf (class_name2, "%s%s", prepend, class_name);
 
-	return CreateClassInstanceVM (vm, class_name2, real_instance, NULL, release_hook);
+	if (!CreateClassInstanceVM (vm, class_name2)) return false;
+
+	/* Store it in the class */
+	sq_setinstanceup (vm, -1, real_instance);
+	sq_setreleasehook (vm, -1, release_hook);
+
+	return true;
 }
 
 bool Squirrel::CreateClassInstance (const char *class_name, HSQOBJECT *instance)
 {
-	return CreateClassInstanceVM (this->vm, class_name, NULL, instance, NULL);
+	if (!CreateClassInstanceVM (this->vm, class_name)) return false;
+
+	/* Find our instance */
+	sq_getstackobj (this->vm, -1, instance);
+	/* Add a reference to it, so it survives for ever */
+	sq_addref (this->vm, instance);
+
+	/* Store it in the class */
+	sq_setinstanceup (this->vm, -1, NULL);
+
+	sq_poptop (this->vm);
+
+	return true;
 }
 
 static SQInteger squirrel_require (HSQUIRRELVM vm)
