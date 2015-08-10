@@ -1235,7 +1235,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				if (c == NULL) break;
 
 				if (c->name != NULL) {
-					int64 args_array[] = {(uint64)(size_t)c->name};
+					int64 args_array[] = {(int64)(size_t)c->name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {
@@ -1261,7 +1261,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 			case SCC_DEPOT_NAME: { // {DEPOT}
 				VehicleType vt = (VehicleType)args->GetInt32(SCC_DEPOT_NAME);
 				if (vt == VEH_AIRCRAFT) {
-					uint64 args_array[] = {args->GetInt32()};
+					uint64 args_array[] = {(uint64)args->GetInt32()};
 					WChar types_array[] = {SCC_STATION_NAME};
 					StringParameters tmp_params(args_array, 1, types_array);
 					AppendStringWithArgs (buf, STR_FORMAT_DEPOT_NAME_AIRCRAFT, &tmp_params);
@@ -1270,7 +1270,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 
 				const Depot *d = Depot::Get(args->GetInt32());
 				if (d->name != NULL) {
-					int64 args_array[] = {(uint64)(size_t)d->name};
+					int64 args_array[] = {(int64)(size_t)d->name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {
@@ -1286,7 +1286,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				if (e == NULL) break;
 
 				if (e->name != NULL && e->IsEnabled()) {
-					int64 args_array[] = {(uint64)(size_t)e->name};
+					int64 args_array[] = {(int64)(size_t)e->name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {
@@ -1301,7 +1301,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				if (g == NULL) break;
 
 				if (g->name != NULL) {
-					int64 args_array[] = {(uint64)(size_t)g->name};
+					int64 args_array[] = {(int64)(size_t)g->name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {
@@ -1338,7 +1338,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				if (c == NULL) break;
 
 				if (c->president_name != NULL) {
-					int64 args_array[] = {(uint64)(size_t)c->president_name};
+					int64 args_array[] = {(int64)(size_t)c->president_name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {
@@ -1363,7 +1363,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				}
 
 				if (st->name != NULL) {
-					int64 args_array[] = {(uint64)(size_t)st->name};
+					int64 args_array[] = {(int64)(size_t)st->name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {
@@ -1392,7 +1392,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				if (t == NULL) break;
 
 				if (t->name != NULL) {
-					int64 args_array[] = {(uint64)(size_t)t->name};
+					int64 args_array[] = {(int64)(size_t)t->name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {
@@ -1406,7 +1406,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				if (wp == NULL) break;
 
 				if (wp->name != NULL) {
-					int64 args_array[] = {(uint64)(size_t)wp->name};
+					int64 args_array[] = {(int64)(size_t)wp->name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {
@@ -1424,7 +1424,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				if (v == NULL) break;
 
 				if (v->name != NULL) {
-					int64 args_array[] = {(uint64)(size_t)v->name};
+					int64 args_array[] = {(int64)(size_t)v->name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {
@@ -1450,7 +1450,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				if (si == NULL) break;
 
 				if (si->name != NULL) {
-					int64 args_array[] = {(uint64)(size_t)si->name};
+					int64 args_array[] = {(int64)(size_t)si->name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {

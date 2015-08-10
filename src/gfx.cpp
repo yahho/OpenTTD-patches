@@ -194,7 +194,7 @@ static inline void GfxDoDrawLine(void *video, int x, int y, int x2, int y2, int 
 	int grade_x = x2 - x;
 
 	/* Clipping rectangle. Slightly extended so we can ignore the width of the line. */
-	uint extra = CeilDiv(3 * width, 4); // not less then "width * sqrt(2) / 2"
+	int extra = (int)CeilDiv(3 * width, 4); // not less then "width * sqrt(2) / 2"
 	Rect clip = { -extra, -extra, screen_width - 1 + extra, screen_height - 1 + extra };
 
 	/* prevent integer overflows. */
