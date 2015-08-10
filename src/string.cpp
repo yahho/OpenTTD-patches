@@ -47,7 +47,7 @@ int CDECL snprintf(char *str, size_t size, const char *format, ...)
 }
 #endif /* MinGW Runtime < 3.14 */
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && _MSC_VER < 1900
 /**
  * Almost POSIX compliant implementation of \c vsnprintf for VC compiler.
  * The difference is in the value returned on output truncation. This
