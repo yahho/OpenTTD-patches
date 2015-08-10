@@ -17,7 +17,7 @@ BaseScriptMode::BaseScriptMode (bool t) : test(t)
 	ScriptObject::GetActiveInstance()->PushBuildMode (this);
 }
 
-BaseScriptMode::~BaseScriptMode()
+void BaseScriptMode::FinalRelease()
 {
 	ScriptObject::GetActiveInstance()->PopBuildMode (this);
 }
