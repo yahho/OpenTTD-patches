@@ -69,49 +69,6 @@ struct ScriptInfoList {
 	const char *FindMainScript (const ContentInfo *ci, Subdirectory subdir, bool md5sum);
 };
 
-/** ScriptInfoList helper class. */
-template <typename T>
-struct ScriptInfoListT : ScriptInfoList {
-	/** Get the list of registered scripts to print on the console. */
-	void GetConsoleList (stringb *buf, bool newest_only) const
-	{
-		this->ScriptInfoList::GetConsoleList (buf, T::desc, newest_only);
-	}
-
-	/**
-	 * Find a script of a #ContentInfo
-	 * @param ci The information to compare to.
-	 * @param md5sum Whether to check the MD5 checksum.
-	 * @return A filename of a file of the content, else \c NULL.
-	 */
-	ScriptInfo *FindScript (const struct ContentInfo *ci, bool md5sum)
-	{
-		return this->ScriptInfoList::FindScript (ci, T::subdir, md5sum);
-	}
-
-	/**
-	 * Check whether we have a script with the exact characteristics as ci.
-	 * @param ci The characteristics to search on (shortname and md5sum).
-	 * @param md5sum Whether to check the MD5 checksum.
-	 * @return True iff we have a script matching.
-	 */
-	bool HasScript (const ContentInfo *ci, bool md5sum)
-	{
-		return this->ScriptInfoList::HasScript (ci, T::subdir, md5sum);
-	}
-
-	/**
-	 * Find a script of a #ContentInfo
-	 * @param ci The information to compare to.
-	 * @param md5sum Whether to check the MD5 checksum.
-	 * @return A filename of a file of the content, else \c NULL.
-	 */
-	const char *FindMainScript (const ContentInfo *ci, bool md5sum)
-	{
-		return this->ScriptInfoList::FindMainScript (ci, T::subdir, md5sum);
-	}
-};
-
 /** Scanner to help finding scripts. */
 class ScriptScanner : public FileScanner, public Squirrel {
 public:
@@ -225,6 +182,45 @@ struct ScriptScannerT : ScriptScanner {
 		ScriptScannerT scanner (lists);
 		return scanner.Scan();
 	}
+};
+
+/** Collection of scripts and libraries. */
+template <typename T>
+struct ScriptInfoLists {
+	/** ScriptInfoList helper class. */
+	template <Subdirectory dir, const char *desc>
+	struct List : ScriptInfoList {
+		/** Get the list of registered scripts to print on the console. */
+		void GetConsoleList (stringb *buf, bool newest_only) const
+		{
+			this->ScriptInfoList::GetConsoleList (buf, desc, newest_only);
+		}
+
+		/**
+		 * Check whether we have a script with the exact characteristics as ci.
+		 * @param ci The characteristics to search on (shortname and md5sum).
+		 * @param md5sum Whether to check the MD5 checksum.
+		 * @return True iff we have a script matching.
+		 */
+		bool HasScript (const ContentInfo *ci, bool md5sum)
+		{
+			return this->ScriptInfoList::HasScript (ci, dir, md5sum);
+		}
+
+		/**
+		 * Find a script of a #ContentInfo
+		 * @param ci The information to compare to.
+		 * @param md5sum Whether to check the MD5 checksum.
+		 * @return A filename of a file of the content, else \c NULL.
+		 */
+		const char *FindMainScript (const ContentInfo *ci, bool md5sum)
+		{
+			return this->ScriptInfoList::FindMainScript (ci, dir, md5sum);
+		}
+	};
+
+	List <T::script_dir,  T::script_list_desc>  scripts;
+	List <T::library_dir, T::library_list_desc> libraries;
 };
 
 #endif /* SCRIPT_SCANNER_HPP */

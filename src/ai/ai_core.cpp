@@ -26,26 +26,22 @@
 /* static */ uint AI::frame_counter = 0;
 
 
-struct AIInfoList : ScriptInfoListT<AIInfoList> {
-	static const Subdirectory subdir = AI_DIR;
-	static const char desc[];
+struct AIScriptData {
+	static const Subdirectory script_dir  = AI_DIR;
+	static const Subdirectory library_dir = AI_LIBRARY_DIR;
+	static const char script_list_desc[];
+	static const char library_list_desc[];
 };
 
-const char AIInfoList::desc[] = "AIs";
+const char AIScriptData::script_list_desc[]  = "AIs";
+const char AIScriptData::library_list_desc[] = "AI Libraries";
 
-static AIInfoList *scripts;
+typedef ScriptInfoLists<AIScriptData> AIInfoLists;
+
+static AIInfoLists *lists;
+
 
 static const AIInfo dummy (true);
-
-
-struct AILibraryList : ScriptInfoListT<AILibraryList> {
-	static const Subdirectory subdir = AI_LIBRARY_DIR;
-	static const char desc[];
-};
-
-const char AILibraryList::desc[] = "AI Libraries";
-
-static AILibraryList *libraries;
 
 
 struct AIScannerDesc {
@@ -82,7 +78,7 @@ struct AILibraryScanner : ScriptScannerT<AILibraryScanner>, AIScannerDesc {
 static const AIInfo *SelectRandomAI()
 {
 	uint num_random_ais = 0;
-	for (ScriptInfoList::const_iterator it = scripts->single_list.begin(); it != scripts->single_list.end(); it++) {
+	for (ScriptInfoList::const_iterator it = lists->scripts.single_list.begin(); it != lists->scripts.single_list.end(); it++) {
 		AIInfo *i = static_cast<AIInfo *>((*it).second);
 		if (i->UseAsRandomAI()) num_random_ais++;
 	}
@@ -101,7 +97,7 @@ static const AIInfo *SelectRandomAI()
 	}
 
 	/* Find the Nth item from the array */
-	ScriptInfoList::const_iterator it = scripts->single_list.begin();
+	ScriptInfoList::const_iterator it = lists->scripts.single_list.begin();
 
 #define GetAIInfo(it) static_cast<AIInfo *>((*it).second)
 	while (!GetAIInfo(it)->UseAsRandomAI()) it++;
@@ -238,18 +234,16 @@ static const AIInfo *SelectRandomAI()
 
 /* static */ void AI::Initialize()
 {
-	if (scripts != NULL) AI::Uninitialize(true);
+	if (lists != NULL) AI::Uninitialize (true);
 
 	AI::frame_counter = 0;
 
-	if (scripts == NULL) {
+	if (lists == NULL) {
 		TarScanner::DoScan(TarScanner::AI);
 
-		scripts = new AIInfoList();
-		AIInfoScanner::Scan (scripts);
-
-		libraries = new AILibraryList();
-		AILibraryScanner::Scan (libraries);
+		lists = new AIInfoLists();
+		AIInfoScanner::Scan (&lists->scripts);
+		AILibraryScanner::Scan (&lists->libraries);
 	}
 }
 
@@ -262,10 +256,8 @@ static const AIInfo *SelectRandomAI()
 		 *  still load all the AIS, while keeping the configs in place */
 		Rescan();
 	} else {
-		delete scripts;
-		scripts = NULL;
-		delete libraries;
-		libraries = NULL;
+		delete lists;
+		lists = NULL;
 
 		for (CompanyID c = COMPANY_FIRST; c < MAX_COMPANIES; c++) {
 			if (_settings_game.ai_config[c] != NULL) {
@@ -398,27 +390,27 @@ static const AIInfo *SelectRandomAI()
 
 /* static */ void AI::GetConsoleList (stringb *buf, bool newest_only)
 {
-	scripts->GetConsoleList (buf, newest_only);
+	lists->scripts.GetConsoleList (buf, newest_only);
 }
 
 /* static */ void AI::GetConsoleLibraryList (stringb *buf)
 {
-	libraries->GetConsoleList (buf, true);
+	lists->libraries.GetConsoleList (buf, true);
 }
 
 /* static */ const ScriptInfoList::List *AI::GetInfoList()
 {
-	return scripts->GetInfoList();
+	return lists->scripts.GetInfoList();
 }
 
 /* static */ const ScriptInfoList::List *AI::GetUniqueInfoList()
 {
-	return scripts->GetUniqueInfoList();
+	return lists->scripts.GetUniqueInfoList();
 }
 
 /* static */ AIInfo *AI::FindInfo(const char *name, int version, bool force_exact_match)
 {
-	if (scripts->full_list.size() == 0) return NULL;
+	if (lists->scripts.full_list.size() == 0) return NULL;
 	if (name == NULL) return NULL;
 
 	sstring<1024> ai_name;
@@ -427,8 +419,8 @@ static const AIInfo *SelectRandomAI()
 
 	if (version == -1) {
 		/* We want to load the latest version of this AI; so find it */
-		ScriptInfoList::iterator iter = scripts->single_list.find (ai_name.c_str());
-		if (iter != scripts->single_list.end()) return static_cast<AIInfo *>(iter->second);
+		ScriptInfoList::iterator iter = lists->scripts.single_list.find (ai_name.c_str());
+		if (iter != lists->scripts.single_list.end()) return static_cast<AIInfo *>(iter->second);
 
 		/* If we didn't find a match AI, maybe the user included a version */
 		const char *e = strrchr (ai_name.c_str(), '.');
@@ -442,8 +434,8 @@ static const AIInfo *SelectRandomAI()
 		/* Try to find a direct 'name.version' match */
 		size_t length = ai_name.length();
 		ai_name.append_fmt (".%d", version);
-		ScriptInfoList::iterator iter = scripts->full_list.find (ai_name.c_str());
-		if (iter != scripts->full_list.end()) return static_cast<AIInfo *>(iter->second);
+		ScriptInfoList::iterator iter = lists->scripts.full_list.find (ai_name.c_str());
+		if (iter != lists->scripts.full_list.end()) return static_cast<AIInfo *>(iter->second);
 		ai_name.truncate (length);
 	}
 
@@ -452,8 +444,8 @@ static const AIInfo *SelectRandomAI()
 
 	/* See if there is a compatible AI which goes by that name, with the
 	 * highest version which allows loading the requested version */
-	ScriptInfoList::iterator it = scripts->full_list.begin();
-	for (; it != scripts->full_list.end(); it++) {
+	ScriptInfoList::iterator it = lists->scripts.full_list.begin();
+	for (; it != lists->scripts.full_list.end(); it++) {
 		AIInfo *i = static_cast<AIInfo *>(it->second);
 		if (strcasecmp (ai_name.c_str(), i->GetName()) == 0 && i->CanLoadFromVersion(version) && (max_version == -1 || i->GetVersion() > max_version)) {
 			max_version = i->GetVersion();
@@ -472,8 +464,8 @@ static const AIInfo *SelectRandomAI()
 	strtolower(library_name);
 
 	/* Check if the library + version exists */
-	ScriptInfoList::iterator iter = libraries->full_list.find(library_name);
-	if (iter == libraries->full_list.end()) return NULL;
+	ScriptInfoList::iterator iter = lists->libraries.full_list.find (library_name);
+	if (iter == lists->libraries.full_list.end()) return NULL;
 
 	return static_cast<AILibrary *>((*iter).second);
 }
@@ -481,8 +473,8 @@ static const AIInfo *SelectRandomAI()
 /* static */ void AI::Rescan()
 {
 	TarScanner::DoScan(TarScanner::AI);
-	AIInfoScanner::Scan (scripts);
-	AILibraryScanner::Scan (libraries);
+	AIInfoScanner::Scan (&lists->scripts);
+	AILibraryScanner::Scan (&lists->libraries);
 
 	ResetConfig();
 
@@ -501,12 +493,12 @@ static const AIInfo *SelectRandomAI()
  */
 /* static */ bool AI::HasAI(const ContentInfo *ci, bool md5sum)
 {
-	return scripts->HasScript(ci, md5sum);
+	return lists->scripts.HasScript (ci, md5sum);
 }
 
 /* static */ bool AI::HasAILibrary(const ContentInfo *ci, bool md5sum)
 {
-	return libraries->HasScript(ci, md5sum);
+	return lists->libraries.HasScript (ci, md5sum);
 }
 
 /**
@@ -516,7 +508,7 @@ static const AIInfo *SelectRandomAI()
  */
 const char *AI::FindInfoMainScript (const ContentInfo *ci)
 {
-	return scripts->FindMainScript (ci, true);
+	return lists->scripts.FindMainScript (ci, true);
 }
 
 /**
@@ -526,7 +518,7 @@ const char *AI::FindInfoMainScript (const ContentInfo *ci)
  */
 const char *AI::FindLibraryMainScript (const ContentInfo *ci)
 {
-	return libraries->FindMainScript (ci, true);
+	return lists->libraries.FindMainScript (ci, true);
 }
 
 #endif /* defined(ENABLE_NETWORK) */
