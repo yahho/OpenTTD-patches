@@ -27,42 +27,28 @@
 
 
 struct AIScriptData {
+	typedef AIInfo    InfoType;
+	typedef AILibrary LibraryType;
 	static const Subdirectory script_dir  = AI_DIR;
 	static const Subdirectory library_dir = AI_LIBRARY_DIR;
 	static const char script_list_desc[];
 	static const char library_list_desc[];
+	static const char scanner_desc[];
 };
 
 const char AIScriptData::script_list_desc[]  = "AIs";
 const char AIScriptData::library_list_desc[] = "AI Libraries";
+const char AIScriptData::scanner_desc[]      = "AIScanner";
 
 typedef ScriptInfoLists<AIScriptData> AIInfoLists;
+
+typedef AIInfoLists::InfoScanner    AIInfoScanner;
+typedef AIInfoLists::LibraryScanner AILibraryScanner;
 
 static AIInfoLists *lists;
 
 
 static const AIInfo dummy (true);
-
-
-struct AIScannerDesc {
-	static const char desc[];
-};
-
-const char AIScannerDesc::desc[] = "AIScanner";
-
-
-struct AIInfoScanner : ScriptScannerT<AIInfoScanner>, AIScannerDesc {
-	typedef AIInfo InfoType;
-	static const Subdirectory subdir = AI_DIR;
-	static const bool is_library = false;
-};
-
-
-struct AILibraryScanner : ScriptScannerT<AILibraryScanner>, AIScannerDesc {
-	typedef AILibrary InfoType;
-	static const Subdirectory subdir = AI_LIBRARY_DIR;
-	static const bool is_library = true;
-};
 
 
 /* static */ bool AI::CanStartNew()

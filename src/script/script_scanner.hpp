@@ -156,33 +156,6 @@ protected:
 	virtual void RegisterAPI (void) = 0;
 };
 
-/** ScriptScanner helper class. */
-template <typename T>
-struct ScriptScannerT : ScriptScanner {
-	ScriptScannerT (ScriptInfoList *lists)
-		: ScriptScanner (lists, T::desc)
-	{
-	}
-
-	void RegisterAPI (void) OVERRIDE
-	{
-		T::InfoType::RegisterAPI (this);
-	}
-
-	/** Scan for info files. */
-	uint Scan (void)
-	{
-		const char *main = T::is_library ? PATHSEP "library.nut" : PATHSEP "info.nut";
-		return this->ScriptScanner::Scan (main, T::subdir);
-	}
-
-	/** Scan for info files. */
-	static uint Scan (ScriptInfoList *lists)
-	{
-		ScriptScannerT scanner (lists);
-		return scanner.Scan();
-	}
-};
 
 /** Collection of scripts and libraries. */
 template <typename T>
@@ -221,6 +194,58 @@ struct ScriptInfoLists {
 
 	List <T::script_dir,  T::script_list_desc>  scripts;
 	List <T::library_dir, T::library_list_desc> libraries;
+
+	/** ScriptScanner helper class for scripts. */
+	struct InfoScanner : ScriptScanner {
+		InfoScanner (ScriptInfoList *lists)
+			: ScriptScanner (lists, T::scanner_desc)
+		{
+		}
+
+		void RegisterAPI (void) OVERRIDE
+		{
+			T::InfoType::RegisterAPI (this);
+		}
+
+		/** Scan for info files. */
+		uint Scan (void)
+		{
+			return this->ScriptScanner::Scan (PATHSEP "info.nut", T::script_dir);
+		}
+
+		/** Scan for info files. */
+		static uint Scan (ScriptInfoList *lists)
+		{
+			InfoScanner scanner (lists);
+			return scanner.Scan();
+		}
+	};
+
+	/** ScriptScanner helper class for libraries. */
+	struct LibraryScanner : ScriptScanner {
+		LibraryScanner (ScriptInfoList *lists)
+			: ScriptScanner (lists, T::scanner_desc)
+		{
+		}
+
+		void RegisterAPI (void) OVERRIDE
+		{
+			T::LibraryType::RegisterAPI (this);
+		}
+
+		/** Scan for info files. */
+		uint Scan (void)
+		{
+			return this->ScriptScanner::Scan (PATHSEP "library.nut", T::library_dir);
+		}
+
+		/** Scan for info files. */
+		static uint Scan (ScriptInfoList *lists)
+		{
+			LibraryScanner scanner (lists);
+			return scanner.Scan();
+		}
+	};
 };
 
 #endif /* SCRIPT_SCANNER_HPP */

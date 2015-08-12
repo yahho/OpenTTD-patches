@@ -27,39 +27,25 @@
 
 
 struct GameScriptData {
+	typedef GameInfo    InfoType;
+	typedef GameLibrary LibraryType;
 	static const Subdirectory script_dir  = GAME_DIR;
 	static const Subdirectory library_dir = GAME_LIBRARY_DIR;
 	static const char script_list_desc[];
 	static const char library_list_desc[];
+	static const char scanner_desc[];
 };
 
 const char GameScriptData::script_list_desc[]  = "Game Scripts";
 const char GameScriptData::library_list_desc[] = "GS Libraries";
+const char GameScriptData::scanner_desc[]      = "GSScanner";
 
 typedef ScriptInfoLists<GameScriptData> GameInfoLists;
 
+typedef GameInfoLists::InfoScanner    GameInfoScanner;
+typedef GameInfoLists::LibraryScanner GameLibraryScanner;
+
 static GameInfoLists *lists;
-
-
-struct GameScannerDesc {
-	static const char desc[];
-};
-
-const char GameScannerDesc::desc[] = "GSScanner";
-
-
-struct GameInfoScanner : ScriptScannerT<GameInfoScanner>, GameScannerDesc {
-	typedef GameInfo InfoType;
-	static const Subdirectory subdir = GAME_DIR;
-	static const bool is_library = false;
-};
-
-
-struct GameLibraryScanner : ScriptScannerT<GameLibraryScanner>, GameScannerDesc {
-	typedef GameLibrary InfoType;
-	static const Subdirectory subdir = GAME_LIBRARY_DIR;
-	static const bool is_library = true;
-};
 
 
 /* static */ void Game::GameLoop()
