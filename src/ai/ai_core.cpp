@@ -42,9 +42,6 @@ const char AIScriptData::scanner_desc[]      = "AIScanner";
 
 typedef ScriptInfoLists<AIScriptData> AIInfoLists;
 
-typedef AIInfoLists::InfoScanner    AIInfoScanner;
-typedef AIInfoLists::LibraryScanner AILibraryScanner;
-
 static AIInfoLists *lists;
 
 
@@ -228,8 +225,7 @@ static const AIInfo *SelectRandomAI()
 		TarScanner::DoScan(TarScanner::AI);
 
 		lists = new AIInfoLists();
-		AIInfoScanner::Scan (&lists->scripts);
-		AILibraryScanner::Scan (&lists->libraries);
+		lists->Scan();
 	}
 }
 
@@ -459,8 +455,7 @@ static const AIInfo *SelectRandomAI()
 /* static */ void AI::Rescan()
 {
 	TarScanner::DoScan(TarScanner::AI);
-	AIInfoScanner::Scan (&lists->scripts);
-	AILibraryScanner::Scan (&lists->libraries);
+	lists->Scan();
 
 	ResetConfig();
 

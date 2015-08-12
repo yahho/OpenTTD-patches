@@ -246,6 +246,13 @@ struct ScriptInfoLists {
 			return scanner.Scan();
 		}
 	};
+
+	/** Scan for info files. */
+	void Scan (void)
+	{
+		InfoScanner   ::Scan (&this->scripts);
+		LibraryScanner::Scan (&this->libraries);
+	}
 };
 
 #endif /* SCRIPT_SCANNER_HPP */

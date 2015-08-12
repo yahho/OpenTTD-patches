@@ -42,9 +42,6 @@ const char GameScriptData::scanner_desc[]      = "GSScanner";
 
 typedef ScriptInfoLists<GameScriptData> GameInfoLists;
 
-typedef GameInfoLists::InfoScanner    GameInfoScanner;
-typedef GameInfoLists::LibraryScanner GameLibraryScanner;
-
 static GameInfoLists *lists;
 
 
@@ -76,8 +73,7 @@ static GameInfoLists *lists;
 		TarScanner::DoScan(TarScanner::GAME);
 
 		lists = new GameInfoLists();
-		GameInfoScanner::Scan (&lists->scripts);
-		GameLibraryScanner::Scan (&lists->libraries);
+		lists->Scan();
 	}
 }
 
@@ -201,8 +197,7 @@ static GameInfoLists *lists;
 /* static */ void Game::Rescan()
 {
 	TarScanner::DoScan(TarScanner::GAME);
-	GameInfoScanner::Scan (&lists->scripts);
-	GameLibraryScanner::Scan (&lists->libraries);
+	lists->Scan();
 
 	ResetConfig();
 
