@@ -32,8 +32,8 @@ struct ScriptInfoList {
 	/** Register a ScriptInfo. */
 	void RegisterScript (ScriptInfo *info, const char *name, bool dev_only);
 
-	/** Get the list of all registered scripts. */
-	const List *GetInfoList() { return &this->full_list; }
+	/** Check if the list is empty. */
+	bool Empty() { return this->full_list.empty(); }
 
 	/** Get the list of the latest version of all registered scripts. */
 	const List *GetUniqueInfoList() { return &this->single_list; }

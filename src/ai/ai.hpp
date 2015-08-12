@@ -141,14 +141,15 @@ public:
 	static void GetConsoleList (stringb *buf, bool newest_only = false);
 	/** Wrapper function for AIScanner::GetAIConsoleLibraryList */
 	static void GetConsoleLibraryList (stringb *buf);
-	/** Wrapper function for AIScanner::GetAIInfoList */
-	static const ScriptInfoList::List *GetInfoList();
 	/** Wrapper function for AIScanner::GetUniqueAIInfoList */
 	static const ScriptInfoList::List *GetUniqueInfoList();
 	/** Wrapper function for AIScanner::FindInfo */
 	static class AIInfo *FindInfo(const char *name, int version, bool force_exact_match);
 	/** Wrapper function for AIScanner::FindLibrary */
 	static class AILibrary *FindLibrary(const char *library, int version);
+
+	/** Check if there are no AIs available at all. */
+	static bool Empty (void);
 
 	/**
 	 * Rescans all searchpaths for available AIs. If a used AI is no longer

@@ -380,11 +380,6 @@ static const AIInfo *SelectRandomAI()
 	lists->libraries.GetConsoleList (buf, true);
 }
 
-/* static */ const ScriptInfoList::List *AI::GetInfoList()
-{
-	return lists->scripts.GetInfoList();
-}
-
 /* static */ const ScriptInfoList::List *AI::GetUniqueInfoList()
 {
 	return lists->scripts.GetUniqueInfoList();
@@ -450,6 +445,11 @@ static const AIInfo *SelectRandomAI()
 	if (iter == lists->libraries.full_list.end()) return NULL;
 
 	return static_cast<AILibrary *>((*iter).second);
+}
+
+/* static */ bool AI::Empty (void)
+{
+	return lists->scripts.Empty();
 }
 
 /* static */ void AI::Rescan()

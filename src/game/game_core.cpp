@@ -240,11 +240,6 @@ static GameInfoLists *lists;
 	lists->libraries.GetConsoleList (buf, true);
 }
 
-/* static */ const ScriptInfoList::List *Game::GetInfoList()
-{
-	return lists->scripts.GetInfoList();
-}
-
 /* static */ const ScriptInfoList::List *Game::GetUniqueInfoList()
 {
 	return lists->scripts.GetUniqueInfoList();

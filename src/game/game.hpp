@@ -94,8 +94,6 @@ public:
 	static void GetConsoleList (stringb *buf, bool newest_only = false);
 	/** Wrapper function for GameScanner::GetConsoleLibraryList */
 	static void GetConsoleLibraryList (stringb *buf);
-	/** Wrapper function for GameScanner::GetInfoList */
-	static const ScriptInfoList::List *GetInfoList();
 	/** Wrapper function for GameScanner::GetUniqueInfoList */
 	static const ScriptInfoList::List *GetUniqueInfoList();
 	/** Wrapper function for GameScannerInfo::FindInfo */
