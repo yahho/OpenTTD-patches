@@ -29,6 +29,9 @@ public:
 	 */
 	static SQInteger Constructor(HSQUIRRELVM vm);
 
+	/** Gather all the information on registration. */
+	SQInteger construct (class ScriptScanner *scanner) OVERRIDE;
+
 	/**
 	 * Create a dummy-AI.
 	 */

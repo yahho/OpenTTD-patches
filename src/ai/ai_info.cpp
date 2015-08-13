@@ -57,40 +57,48 @@ static const char *const ai_api_versions[] =
 	SQInteger res = scanner->construct (info);
 	if (res != 0) return res;
 
+	/* Remove the link to the real instance, else it might get deleted by RegisterAI() */
+	sq_setinstanceup(vm, 2, NULL);
+	/* Register the AI to the base system */
+	scanner->RegisterScript (info, info->GetName());
+	return 0;
+}
+
+SQInteger AIInfo::construct (ScriptScanner *scanner)
+{
+	SQInteger res = this->ScriptInfo::construct (scanner);
+	if (res != 0) return res;
+
 	ScriptConfigItem config = _start_date_config;
 	config.name = xstrdup(config.name);
 	config.description = xstrdup(config.description);
-	info->config_list.push_front(config);
+	this->config_list.push_front (config);
 
 	if (scanner->method_exists ("MinVersionToLoad")) {
-		if (!scanner->call_integer_method ("MinVersionToLoad", MAX_GET_OPS, &info->min_loadable_version)) return SQ_ERROR;
+		if (!scanner->call_integer_method ("MinVersionToLoad", MAX_GET_OPS, &this->min_loadable_version)) return SQ_ERROR;
 	} else {
-		info->min_loadable_version = info->GetVersion();
+		this->min_loadable_version = this->GetVersion();
 	}
 	/* When there is an UseAsRandomAI function, call it. */
 	if (scanner->method_exists ("UseAsRandomAI")) {
 		bool use_as_random;
 		if (!scanner->call_bool_method ("UseAsRandomAI", MAX_GET_OPS, &use_as_random)) return SQ_ERROR;
-		info->use = use_as_random ? USE_RANDOM : USE_MANUAL;
+		this->use = use_as_random ? USE_RANDOM : USE_MANUAL;
 	} else {
-		info->use = USE_RANDOM;
+		this->use = USE_RANDOM;
 	}
 	/* Try to get the API version the AI is written for. */
 	if (scanner->method_exists ("GetAPIVersion")) {
 		const char *ver = scanner->call_string_method_from_set ("GetAPIVersion", ai_api_versions, MAX_GET_OPS);
 		if (ver == NULL) {
-			DEBUG(script, 1, "Loading info.nut from (%s.%d): GetAPIVersion returned invalid version", info->GetName(), info->GetVersion());
+			DEBUG(script, 1, "Loading info.nut from (%s.%d): GetAPIVersion returned invalid version", this->GetName(), this->GetVersion());
 			return SQ_ERROR;
 		}
-		info->api_version = ver;
+		this->api_version = ver;
 	} else {
-		info->api_version = ai_api_versions[0];
+		this->api_version = ai_api_versions[0];
 	}
 
-	/* Remove the link to the real instance, else it might get deleted by RegisterAI() */
-	sq_setinstanceup(vm, 2, NULL);
-	/* Register the AI to the base system */
-	scanner->RegisterScript (info, info->GetName());
 	return 0;
 }
 
