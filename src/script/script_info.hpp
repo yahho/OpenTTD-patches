@@ -123,6 +123,9 @@ public:
 
 	friend class ScriptScanner;
 
+	/** Gather all the information on registration. */
+	virtual SQInteger construct (class ScriptScanner *scanner);
+
 protected:
 	ScriptConfigItemList config_list; ///< List of settings from this Script.
 

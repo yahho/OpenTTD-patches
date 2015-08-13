@@ -124,60 +124,7 @@ SQInteger ScriptScanner::construct (ScriptInfo *info)
 	/* Make sure the instance stays alive over time */
 	sq_addref (this->GetVM(), &this->instance);
 
-	/* Ensure the mandatory functions exist */
-	static const char * const required_functions[] = {
-		/* Keep this list in sync with required_fields below. */
-		"GetAuthor",
-		"GetName",
-		"GetShortName",
-		"GetDescription",
-		"GetDate",
-		"GetVersion",
-		"CreateInstance",
-	};
-	for (size_t i = 0; i < lengthof(required_functions); i++) {
-		if (!this->check_method (required_functions[i])) return SQ_ERROR;
-	}
-
-	/* Get location information of the scanner */
-	info->main_script.reset (xstrdup (this->GetMainScript()));
-	const char *tar_name = this->tar_file;
-	if (tar_name != NULL) info->tar_file.reset (xstrdup (tar_name));
-
-	/* Cache the data the info file gives us. */
-	static ttd_unique_free_ptr<char> ScriptInfo::*const required_fields[] = {
-		/* Keep this list in sync with required_functions above. */
-		&ScriptInfo::author,
-		&ScriptInfo::name,
-		&ScriptInfo::short_name,
-		&ScriptInfo::description,
-		&ScriptInfo::date,
-	};
-	for (size_t i = 0; i < lengthof(required_fields); i++) {
-		char *s = this->call_string_method (required_functions[i], MAX_GET_OPS);
-		if (s == NULL) return SQ_ERROR;
-		(info->*required_fields[i]).reset (s);
-	}
-	if (!this->call_integer_method ("GetVersion", MAX_GET_OPS, &info->version)) return SQ_ERROR;
-	{
-		char *s = this->call_string_method ("CreateInstance", MAX_CREATEINSTANCE_OPS);
-		if (s == NULL) return SQ_ERROR;
-		info->instance_name.reset (s);
-	}
-
-	/* The GetURL function is optional. */
-	if (this->method_exists ("GetURL")) {
-		char *s = this->call_string_method ("GetURL", MAX_GET_OPS);
-		if (s == NULL) return SQ_ERROR;
-		info->url.reset (s);
-	}
-
-	/* Check if we have settings */
-	if (this->method_exists ("GetSettings")) {
-		if (!this->CallMethod (this->instance, "GetSettings", MAX_GET_SETTING_OPS)) return SQ_ERROR;
-	}
-
-	return 0;
+	return info->construct (this);
 }
 
 

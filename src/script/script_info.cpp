@@ -225,3 +225,61 @@ int ScriptInfo::GetSettingDefaultValue(const char *name) const
 	/* There is no such setting */
 	return -1;
 }
+
+SQInteger ScriptInfo::construct (ScriptScanner *scanner)
+{
+	/* Ensure the mandatory functions exist */
+	static const char * const required_functions[] = {
+		/* Keep this list in sync with required_fields below. */
+		"GetAuthor",
+		"GetName",
+		"GetShortName",
+		"GetDescription",
+		"GetDate",
+		"GetVersion",
+		"CreateInstance",
+	};
+	for (size_t i = 0; i < lengthof(required_functions); i++) {
+		if (!scanner->check_method (required_functions[i])) return SQ_ERROR;
+	}
+
+	/* Get location information of the scanner */
+	this->main_script.reset (xstrdup (scanner->GetMainScript()));
+	const char *tar_name = scanner->GetTarFile();
+	if (tar_name != NULL) this->tar_file.reset (xstrdup (tar_name));
+
+	/* Cache the data the info file gives us. */
+	static ttd_unique_free_ptr<char> ScriptInfo::*const required_fields[] = {
+		/* Keep this list in sync with required_functions above. */
+		&ScriptInfo::author,
+		&ScriptInfo::name,
+		&ScriptInfo::short_name,
+		&ScriptInfo::description,
+		&ScriptInfo::date,
+	};
+	for (size_t i = 0; i < lengthof(required_fields); i++) {
+		char *s = scanner->call_string_method (required_functions[i], MAX_GET_OPS);
+		if (s == NULL) return SQ_ERROR;
+		(this->*required_fields[i]).reset (s);
+	}
+	if (!scanner->call_integer_method ("GetVersion", MAX_GET_OPS, &this->version)) return SQ_ERROR;
+	{
+		char *s = scanner->call_string_method ("CreateInstance", MAX_CREATEINSTANCE_OPS);
+		if (s == NULL) return SQ_ERROR;
+		this->instance_name.reset (s);
+	}
+
+	/* The GetURL function is optional. */
+	if (scanner->method_exists ("GetURL")) {
+		char *s = scanner->call_string_method ("GetURL", MAX_GET_OPS);
+		if (s == NULL) return SQ_ERROR;
+		this->url.reset (s);
+	}
+
+	/* Check if we have settings */
+	if (scanner->method_exists ("GetSettings")) {
+		if (!scanner->CallMethod (scanner->instance, "GetSettings", MAX_GET_SETTING_OPS)) return SQ_ERROR;
+	}
+
+	return 0;
+}
