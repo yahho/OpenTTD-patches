@@ -18,6 +18,20 @@
 #include "script_info.hpp"
 #include "script_scanner.hpp"
 
+ScriptInfo::ScriptInfo() :
+	main_script(),
+	tar_file(),
+	author(),
+	name(),
+	short_name(),
+	description(),
+	date(),
+	instance_name(),
+	version(0),
+	url()
+{
+}
+
 ScriptInfo::~ScriptInfo()
 {
 	/* Free all allocated strings */

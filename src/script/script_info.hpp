@@ -32,18 +32,7 @@ static const int MAX_GET_SETTING_OPS    = 100000;
 /** All static information from an Script like name, version, etc. */
 class ScriptInfo : public SimpleCountedObject {
 public:
-	ScriptInfo() :
-		main_script(),
-		tar_file(),
-		author(),
-		name(),
-		short_name(),
-		description(),
-		date(),
-		instance_name(),
-		version(0),
-		url()
-	{}
+	ScriptInfo();
 	~ScriptInfo();
 
 	/**
