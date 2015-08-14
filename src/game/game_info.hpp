@@ -32,7 +32,7 @@ public:
 };
 
 /** All static information from an Game library like name, version, etc. */
-class GameLibrary : public ScriptInfo {
+class GameLibrary : public ScriptLibraryInfo {
 public:
 	/**
 	 * Register the functions of this class.
@@ -43,14 +43,6 @@ public:
 	 * Create an GSLibrary, using this GSInfo as start-template.
 	 */
 	static SQInteger Constructor(HSQUIRRELVM vm);
-
-	/**
-	 * Get the category this library is in.
-	 */
-	const char *GetCategory() const { return this->category.get(); }
-
-private:
-	ttd_unique_free_ptr<char> category; ///< The category this library is in.
 };
 
 #endif /* GAME_INFO_HPP */

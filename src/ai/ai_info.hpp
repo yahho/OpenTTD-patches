@@ -55,7 +55,7 @@ private:
 };
 
 /** All static information from an AI library like name, version, etc. */
-class AILibrary : public ScriptInfo {
+class AILibrary : public ScriptLibraryInfo {
 public:
 	/**
 	 * Register the functions of this class.
@@ -66,14 +66,6 @@ public:
 	 * Create an AI, using this AIInfo as start-template.
 	 */
 	static SQInteger Constructor(HSQUIRRELVM vm);
-
-	/**
-	 * Get the category this library is in.
-	 */
-	const char *GetCategory() const { return this->category.get(); }
-
-private:
-	ttd_unique_free_ptr<char> category; ///< The category this library is in.
 };
 
 #endif /* AI_INFO_HPP */

@@ -328,3 +328,18 @@ SQInteger ScriptVersionedInfo::construct (ScriptScanner *scanner,
 
 	return 0;
 }
+
+SQInteger ScriptLibraryInfo::construct (ScriptScanner *scanner)
+{
+	SQInteger res = this->ScriptInfo::construct (scanner);
+	if (res != 0) return res;
+
+	/* Cache the category */
+	if (!scanner->check_method ("GetCategory")) return SQ_ERROR;
+
+	char *cat = scanner->call_string_method ("GetCategory", MAX_GET_OPS);
+	if (cat == NULL) return SQ_ERROR;
+	this->category.reset (cat);
+
+	return 0;
+}

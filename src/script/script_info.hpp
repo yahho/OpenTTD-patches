@@ -175,4 +175,17 @@ public:
 	}
 };
 
+/** Intermediate class for library scripts. */
+class ScriptLibraryInfo : public ScriptInfo {
+protected:
+	ttd_unique_free_ptr<char> category; ///< The category this library is in.
+
+public:
+	/** Get the category this library is in. */
+	const char *GetCategory() const { return this->category.get(); }
+
+	/** Gather all the information on registration. */
+	SQInteger construct (class ScriptScanner *scanner) OVERRIDE;
+};
+
 #endif /* SCRIPT_INFO_HPP */

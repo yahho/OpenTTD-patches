@@ -91,18 +91,6 @@ SQInteger GameInfo::construct (ScriptScanner *scanner)
 		return res;
 	}
 
-	/* Cache the category */
-	if (!scanner->check_method ("GetCategory")) {
-		delete library;
-		return SQ_ERROR;
-	}
-	char *cat = scanner->call_string_method ("GetCategory", MAX_GET_OPS);
-	if (cat == NULL) {
-		delete library;
-		return SQ_ERROR;
-	}
-	library->category.reset (cat);
-
 	/* Register the Library to the base system */
 	char name [1024];
 	bstrfmt (name, "%s.%s", library->GetCategory(), library->GetInstanceName());
