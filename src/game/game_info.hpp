@@ -15,10 +15,8 @@
 #include "../script/script_info.hpp"
 
 /** All static information from an Game like name, version, etc. */
-class GameInfo : public ScriptInfo {
+class GameInfo : public ScriptVersionedInfo {
 public:
-	GameInfo();
-
 	/**
 	 * Register the functions of this class.
 	 */
@@ -31,20 +29,6 @@ public:
 
 	/** Gather all the information on registration. */
 	SQInteger construct (class ScriptScanner *scanner) OVERRIDE;
-
-	/**
-	 * Check if we can start this Game.
-	 */
-	bool CanLoadFromVersion(int version) const;
-
-	/**
-	 * Get the API version this Game is written for.
-	 */
-	const char *GetAPIVersion() const { return this->api_version; }
-
-private:
-	int min_loadable_version; ///< The Game can load savegame data if the version is equal or greater than this.
-	const char *api_version;  ///< API version used by this Game.
 };
 
 /** All static information from an Game library like name, version, etc. */

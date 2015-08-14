@@ -86,18 +86,6 @@ SQInteger GameInfo::construct (ScriptScanner *scanner)
 	return 0;
 }
 
-GameInfo::GameInfo() :
-	min_loadable_version(0),
-	api_version(NULL)
-{
-}
-
-bool GameInfo::CanLoadFromVersion(int version) const
-{
-	if (version == -1) return true;
-	return version >= this->min_loadable_version && version <= this->GetVersion();
-}
-
 
 /* static */ void GameLibrary::RegisterAPI(Squirrel *engine)
 {

@@ -15,7 +15,7 @@
 #include "../script/script_info.hpp"
 
 /** All static information from an AI like name, version, etc. */
-class AIInfo : public ScriptInfo {
+class AIInfo : public ScriptVersionedInfo {
 public:
 	AIInfo();
 
@@ -38,26 +38,13 @@ public:
 	AIInfo (bool ignored);
 
 	/**
-	 * Check if we can start this AI.
-	 */
-	bool CanLoadFromVersion(int version) const;
-
-	/**
 	 * Use this AI as a random AI.
 	 */
 	bool UseAsRandomAI() const { return this->use == USE_RANDOM; }
 
-	/**
-	 * Get the API version this AI is written for.
-	 */
-	const char *GetAPIVersion() const { return this->api_version; }
-
 	friend class AIInstance;
 
 private:
-	int min_loadable_version; ///< The AI can load savegame data if the version is equal or greater than this.
-	const char *api_version;  ///< API version used by this AI.
-
 	enum {
 		USE_RANDOM,       ///< This AI can be used as a random AI.
 		USE_MANUAL,       ///< Only use this AI when manually selected

@@ -130,4 +130,28 @@ protected:
 	ttd_unique_free_ptr<char> url;            ///< URL of the script.
 };
 
+/** Intermediate class for versioned scripts (not libraries). */
+class ScriptVersionedInfo : public ScriptInfo {
+protected:
+	int min_loadable_version; ///< The script can load savegame data if the version is equal or greater than this.
+	const char *api_version;  ///< API version used by this script.
+
+public:
+	ScriptVersionedInfo (const char *api_version = NULL)
+		: ScriptInfo(), min_loadable_version(0),
+		  api_version(api_version)
+	{
+	}
+
+	/** Get the API version this script is written for. */
+	const char *GetAPIVersion() const { return this->api_version; }
+
+	/** Check if we can start this script. */
+	bool CanLoadFromVersion (int version) const
+	{
+		if (version == -1) return true;
+		return version >= this->min_loadable_version && version <= this->version;
+	}
+};
+
 #endif /* SCRIPT_INFO_HPP */

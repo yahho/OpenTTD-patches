@@ -103,13 +103,12 @@ SQInteger AIInfo::construct (ScriptScanner *scanner)
 }
 
 AIInfo::AIInfo() :
-	min_loadable_version(0), api_version(NULL), use(USE_MANUAL)
+	ScriptVersionedInfo(), use(USE_MANUAL)
 {
 }
 
 AIInfo::AIInfo (bool ignored)
-	: min_loadable_version(0),
-	  api_version(*lastof(ai_api_versions)), use(USE_DUMMY)
+	: ScriptVersionedInfo(*lastof(ai_api_versions)), use(USE_DUMMY)
 {
 	this->main_script.reset (xstrdup ("%_dummy"));
 	this->author.reset (xstrdup ("OpenTTD Developers Team"));
@@ -119,12 +118,6 @@ AIInfo::AIInfo (bool ignored)
 	this->date.reset (xstrdup ("2008-07-26"));
 	this->instance_name.reset (xstrdup ("DummyAI"));
 	this->version = 1;
-}
-
-bool AIInfo::CanLoadFromVersion(int version) const
-{
-	if (version == -1) return true;
-	return version >= this->min_loadable_version && version <= this->GetVersion();
 }
 
 
