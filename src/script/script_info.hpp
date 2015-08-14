@@ -143,6 +143,27 @@ public:
 	{
 	}
 
+	/** Gather all the information on registration. */
+	SQInteger construct (class ScriptScanner *scanner) OVERRIDE = 0;
+
+	/** Gather all the information on registration. */
+	SQInteger construct (class ScriptScanner *scanner,
+		size_t napi, const char *const *api, const char *def);
+
+	template <size_t N>
+	SQInteger construct (class ScriptScanner *scanner,
+		const char *const (*api) [N], const char *def)
+	{
+		return this->construct (scanner, N, &(*api)[0], def);
+	}
+
+	template <size_t N>
+	SQInteger construct (class ScriptScanner *scanner,
+		const char *const (&api) [N], const char *def)
+	{
+		return this->construct (scanner, N, &api[0], def);
+	}
+
 	/** Get the API version this script is written for. */
 	const char *GetAPIVersion() const { return this->api_version; }
 
