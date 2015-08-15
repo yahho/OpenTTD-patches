@@ -72,7 +72,7 @@ struct ScriptInfoList {
 /** Scanner to help finding scripts. */
 class ScriptScanner : public FileScanner, public Squirrel {
 public:
-	ScriptScanner (ScriptInfoList *lists, const char *name);
+	ScriptScanner (const char *name);
 	virtual ~ScriptScanner();
 
 	/**
@@ -132,14 +132,6 @@ public:
 	/** Begin construction of a ScriptInfo object. */
 	SQInteger construct (class ScriptInfo *info);
 
-	/**
-	 * Register a ScriptInfo to the scanner.
-	 */
-	void RegisterScript (ScriptInfo *info, const char *name, bool dev_only = false)
-	{
-		this->lists->RegisterScript (info, name, dev_only);
-	}
-
 	/* virtual */ bool AddFile(const char *filename, size_t basepath_length, const char *tar_filename);
 
 	HSQOBJECT instance;     ///< The Squirrel instance created for the current info.
@@ -147,8 +139,6 @@ public:
 protected:
 	char *main_script;      ///< The full path of the script.
 	char *tar_file;         ///< If, which tar file the script was in.
-
-	ScriptInfoList *lists;  ///< The list that we are building.
 
 	/**
 	 * Register the API for this ScriptInfo.
@@ -197,8 +187,10 @@ struct ScriptInfoLists {
 
 	/** ScriptScanner helper class for scripts. */
 	struct InfoScanner : ScriptScanner {
+		ScriptInfoList *lists;  ///< The list that we are building.
+
 		InfoScanner (ScriptInfoList *lists)
-			: ScriptScanner (lists, T::scanner_desc)
+			: ScriptScanner (T::scanner_desc), lists (lists)
 		{
 		}
 
@@ -209,6 +201,12 @@ struct ScriptInfoLists {
 		}
 
 		void RegisterAPI (void) OVERRIDE;
+
+		/** Register a ScriptInfo to the scanner. */
+		void RegisterScript (ScriptInfo *info, const char *name, bool dev_only = false)
+		{
+			this->lists->RegisterScript (info, name, dev_only);
+		}
 
 		/** Scan for info files. */
 		uint Scan (void)
@@ -226,8 +224,10 @@ struct ScriptInfoLists {
 
 	/** ScriptScanner helper class for libraries. */
 	struct LibraryScanner : ScriptScanner {
+		ScriptInfoList *lists;  ///< The list that we are building.
+
 		LibraryScanner (ScriptInfoList *lists)
-			: ScriptScanner (lists, T::scanner_desc)
+			: ScriptScanner (T::scanner_desc), lists (lists)
 		{
 		}
 
@@ -238,6 +238,12 @@ struct ScriptInfoLists {
 		}
 
 		void RegisterAPI (void) OVERRIDE;
+
+		/** Register a ScriptInfo to the scanner. */
+		void RegisterScript (ScriptInfo *info, const char *name)
+		{
+			this->lists->RegisterScript (info, name, false);
+		}
 
 		/** Scan for info files. */
 		uint Scan (void)

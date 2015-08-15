@@ -47,11 +47,10 @@ bool ScriptScanner::AddFile(const char *filename, size_t basepath_length, const 
 	return true;
 }
 
-ScriptScanner::ScriptScanner (ScriptInfoList *lists, const char *name) :
+ScriptScanner::ScriptScanner (const char *name) :
 	Squirrel(name),
 	main_script(NULL),
-	tar_file(NULL),
-	lists(lists)
+	tar_file(NULL)
 {
 }
 
