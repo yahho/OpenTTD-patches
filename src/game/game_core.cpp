@@ -27,8 +27,6 @@
 
 
 struct GameScriptData {
-	typedef GameInfo    InfoType;
-	typedef GameLibrary LibraryType;
 	static const Subdirectory script_dir  = GAME_DIR;
 	static const Subdirectory library_dir = GAME_LIBRARY_DIR;
 	static const char script_list_desc[];
@@ -43,6 +41,83 @@ const char GameScriptData::scanner_desc[]      = "GSScanner";
 typedef ScriptInfoLists<GameScriptData> GameInfoLists;
 
 static GameInfoLists *lists;
+
+
+static SQInteger register_gs (HSQUIRRELVM vm)
+{
+	/* Get the GameInfo */
+	SQUserPointer instance = NULL;
+	if (SQ_FAILED(sq_getinstanceup (vm, 2, &instance, 0)) || instance == NULL) return sq_throwerror(vm, "Pass an instance of a child class of GameInfo to RegisterGame");
+	GameInfo *info = (GameInfo *)instance;
+
+	ScriptScanner *scanner = ScriptScanner::Get (vm);
+
+	SQInteger res = scanner->construct (info);
+	if (res != 0) return res;
+
+	/* When there is an IsSelectable function, call it. */
+	bool is_developer_only;
+	if (scanner->method_exists ("IsDeveloperOnly")) {
+		if (!scanner->call_bool_method ("IsDeveloperOnly", MAX_GET_OPS, &is_developer_only)) return SQ_ERROR;
+	} else {
+		is_developer_only = false;
+	}
+
+	/* Remove the link to the real instance, else it might get deleted by RegisterGame() */
+	sq_setinstanceup (vm, 2, NULL);
+	/* Register the Game to the base system */
+	scanner->RegisterScript (info, info->GetName(), is_developer_only);
+	return 0;
+}
+
+template<>
+void GameInfoLists::InfoScanner::RegisterAPI (void)
+{
+	/* Create the GSInfo class, and add the RegisterGS function */
+	this->AddClassBegin ("GSInfo");
+	SQConvert::AddConstructor <void (GameInfo::*)(), 1> (this, "x");
+	SQConvert::DefSQAdvancedMethod (this, "GSInfo", &GameInfo::AddSetting, "AddSetting");
+	SQConvert::DefSQAdvancedMethod (this, "GSInfo", &GameInfo::AddLabels,  "AddLabels");
+	this->AddConst ("CONFIG_NONE",      SCRIPTCONFIG_NONE);
+	this->AddConst ("CONFIG_RANDOM",    SCRIPTCONFIG_RANDOM);
+	this->AddConst ("CONFIG_BOOLEAN",   SCRIPTCONFIG_BOOLEAN);
+	this->AddConst ("CONFIG_INGAME",    SCRIPTCONFIG_INGAME);
+	this->AddConst ("CONFIG_DEVELOPER", SCRIPTCONFIG_DEVELOPER);
+	this->AddClassEnd();
+
+	this->AddMethod ("RegisterGS", &register_gs, 2, "tx");
+}
+
+
+static SQInteger register_library (HSQUIRRELVM vm)
+{
+	/* Create a new library */
+	GameLibrary *library = new GameLibrary();
+
+	ScriptScanner *scanner = ScriptScanner::Get (vm);
+
+	SQInteger res = scanner->construct (library);
+	if (res != 0) {
+		delete library;
+		return res;
+	}
+
+	/* Register the Library to the base system */
+	char name [1024];
+	bstrfmt (name, "%s.%s", library->GetCategory(), library->GetInstanceName());
+	scanner->RegisterScript (library, name);
+
+	return 0;
+}
+
+template<>
+void GameInfoLists::LibraryScanner::RegisterAPI (void)
+{
+	/* Create the GameLibrary class, and add the RegisterLibrary function */
+	this->AddClassBegin ("GSLibrary");
+	this->AddClassEnd();
+	this->AddMethod ("RegisterLibrary", &register_library, 2, "tx");
+}
 
 
 /* static */ void Game::GameLoop()

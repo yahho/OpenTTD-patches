@@ -19,16 +19,6 @@ class AIInfo : public ScriptVersionedInfo {
 public:
 	AIInfo();
 
-	/**
-	 * Register the functions of this class.
-	 */
-	static void RegisterAPI(Squirrel *engine);
-
-	/**
-	 * Create an AI, using this AIInfo as start-template.
-	 */
-	static SQInteger Constructor(HSQUIRRELVM vm);
-
 	/** Gather all the information on registration. */
 	SQInteger construct (class ScriptScanner *scanner) OVERRIDE;
 
@@ -56,16 +46,6 @@ private:
 
 /** All static information from an AI library like name, version, etc. */
 class AILibrary : public ScriptLibraryInfo {
-public:
-	/**
-	 * Register the functions of this class.
-	 */
-	static void RegisterAPI(Squirrel *engine);
-
-	/**
-	 * Create an AI, using this AIInfo as start-template.
-	 */
-	static SQInteger Constructor(HSQUIRRELVM vm);
 };
 
 #endif /* AI_INFO_HPP */

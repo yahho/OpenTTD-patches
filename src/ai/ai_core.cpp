@@ -27,8 +27,6 @@
 
 
 struct AIScriptData {
-	typedef AIInfo    InfoType;
-	typedef AILibrary LibraryType;
 	static const Subdirectory script_dir  = AI_DIR;
 	static const Subdirectory library_dir = AI_LIBRARY_DIR;
 	static const char script_list_desc[];
@@ -43,6 +41,82 @@ const char AIScriptData::scanner_desc[]      = "AIScanner";
 typedef ScriptInfoLists<AIScriptData> AIInfoLists;
 
 static AIInfoLists *lists;
+
+
+static SQInteger register_ai (HSQUIRRELVM vm)
+{
+	/* Get the AIInfo */
+	SQUserPointer instance = NULL;
+	if (SQ_FAILED(sq_getinstanceup (vm, 2, &instance, 0)) || instance == NULL) return sq_throwerror(vm, "Pass an instance of a child class of AIInfo to RegisterAI");
+	AIInfo *info = (AIInfo *)instance;
+
+	ScriptScanner *scanner = ScriptScanner::Get (vm);
+
+	SQInteger res = scanner->construct (info);
+	if (res != 0) return res;
+
+	/* Remove the link to the real instance, else it might get deleted by RegisterAI() */
+	sq_setinstanceup (vm, 2, NULL);
+	/* Register the AI to the base system */
+	scanner->RegisterScript (info, info->GetName());
+	return 0;
+}
+
+template<>
+void AIInfoLists::InfoScanner::RegisterAPI (void)
+{
+	/* Create the AIInfo class, and add the RegisterAI function */
+	this->AddClassBegin ("AIInfo");
+	SQConvert::AddConstructor <void (AIInfo::*)(), 1> (this, "x");
+	SQConvert::DefSQAdvancedMethod (this, "AIInfo", &AIInfo::AddSetting, "AddSetting");
+	SQConvert::DefSQAdvancedMethod (this, "AIInfo", &AIInfo::AddLabels,  "AddLabels");
+	this->AddConst ("CONFIG_NONE",      SCRIPTCONFIG_NONE);
+	this->AddConst ("CONFIG_RANDOM",    SCRIPTCONFIG_RANDOM);
+	this->AddConst ("CONFIG_BOOLEAN",   SCRIPTCONFIG_BOOLEAN);
+	this->AddConst ("CONFIG_INGAME",    SCRIPTCONFIG_INGAME);
+	this->AddConst ("CONFIG_DEVELOPER", SCRIPTCONFIG_DEVELOPER);
+
+	/* Pre 1.2 had an AI prefix */
+	this->AddConst ("AICONFIG_NONE",    SCRIPTCONFIG_NONE);
+	this->AddConst ("AICONFIG_RANDOM",  SCRIPTCONFIG_RANDOM);
+	this->AddConst ("AICONFIG_BOOLEAN", SCRIPTCONFIG_BOOLEAN);
+	this->AddConst ("AICONFIG_INGAME",  SCRIPTCONFIG_INGAME);
+
+	this->AddClassEnd();
+
+	this->AddMethod ("RegisterAI", &register_ai, 2, "tx");
+}
+
+
+static SQInteger register_library (HSQUIRRELVM vm)
+{
+	/* Create a new library */
+	AILibrary *library = new AILibrary();
+
+	ScriptScanner *scanner = ScriptScanner::Get (vm);
+
+	SQInteger res = scanner->construct (library);
+	if (res != 0) {
+		delete library;
+		return res;
+	}
+
+	/* Register the Library to the base system */
+	char name [1024];
+	bstrfmt (name, "%s.%s", library->GetCategory(), library->GetInstanceName());
+	scanner->RegisterScript (library, name);
+
+	return 0;
+}
+
+template<>
+void AIInfoLists::LibraryScanner::RegisterAPI (void)
+{
+	/* Create the AILibrary class, and add the RegisterLibrary function */
+	this->AddClassBegin ("AILibrary");
+	this->AddClassEnd();
+	this->AddMethod ("RegisterLibrary", &register_library, 2, "tx");
+}
 
 
 static const AIInfo dummy (true);

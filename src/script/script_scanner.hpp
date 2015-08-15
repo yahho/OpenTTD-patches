@@ -202,10 +202,7 @@ struct ScriptInfoLists {
 		{
 		}
 
-		void RegisterAPI (void) OVERRIDE
-		{
-			T::InfoType::RegisterAPI (this);
-		}
+		void RegisterAPI (void) OVERRIDE;
 
 		/** Scan for info files. */
 		uint Scan (void)
@@ -228,10 +225,7 @@ struct ScriptInfoLists {
 		{
 		}
 
-		void RegisterAPI (void) OVERRIDE
-		{
-			T::LibraryType::RegisterAPI (this);
-		}
+		void RegisterAPI (void) OVERRIDE;
 
 		/** Scan for info files. */
 		uint Scan (void)
