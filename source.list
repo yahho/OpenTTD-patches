@@ -663,6 +663,8 @@ script/script_config.hpp
 script/script_fatalerror.hpp
 script/script_info.cpp
 script/script_info.hpp
+script/script_infolist.cpp
+script/script_infolist.hpp
 script/script_instance.cpp
 script/script_instance.hpp
 script/script_scanner.cpp

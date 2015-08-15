@@ -12,7 +12,7 @@
 #ifndef AI_HPP
 #define AI_HPP
 
-#include "../script/script_scanner.hpp"
+#include "../script/script_infolist.hpp"
 #include "../script/api/script_event_types.hpp"
 #include "../string.h"
 #include "../saveload/saveload_buffer.h"

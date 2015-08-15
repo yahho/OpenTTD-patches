@@ -5799,6 +5799,54 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\script\script_infolist.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\script\"
+						ObjectFile="$(IntDir)\script\"
+						XMLDocumentationFileName="$(IntDir)\script\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\script\"
+						ObjectFile="$(IntDir)\script\"
+						XMLDocumentationFileName="$(IntDir)\script\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\script\"
+						ObjectFile="$(IntDir)\script\"
+						XMLDocumentationFileName="$(IntDir)\script\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\script\"
+						ObjectFile="$(IntDir)\script\"
+						XMLDocumentationFileName="$(IntDir)\script\"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\..\src\script\script_infolist.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\script\script_instance.cpp"
 				>
 				<FileConfiguration
