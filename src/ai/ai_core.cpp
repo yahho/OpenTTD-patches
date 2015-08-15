@@ -50,7 +50,7 @@ static SQInteger register_ai (HSQUIRRELVM vm)
 	if (SQ_FAILED(sq_getinstanceup (vm, 2, &instance, 0)) || instance == NULL) return sq_throwerror(vm, "Pass an instance of a child class of AIInfo to RegisterAI");
 	AIInfo *info = (AIInfo *)instance;
 
-	ScriptScanner *scanner = ScriptScanner::Get (vm);
+	AIInfoLists::InfoScanner *scanner = AIInfoLists::InfoScanner::Get (vm);
 
 	SQInteger res = scanner->construct (info);
 	if (res != 0) return res;
@@ -93,7 +93,7 @@ static SQInteger register_library (HSQUIRRELVM vm)
 	/* Create a new library */
 	AILibrary *library = new AILibrary();
 
-	ScriptScanner *scanner = ScriptScanner::Get (vm);
+	AIInfoLists::LibraryScanner *scanner = AIInfoLists::LibraryScanner::Get (vm);
 
 	SQInteger res = scanner->construct (library);
 	if (res != 0) {

@@ -50,7 +50,7 @@ static SQInteger register_gs (HSQUIRRELVM vm)
 	if (SQ_FAILED(sq_getinstanceup (vm, 2, &instance, 0)) || instance == NULL) return sq_throwerror(vm, "Pass an instance of a child class of GameInfo to RegisterGame");
 	GameInfo *info = (GameInfo *)instance;
 
-	ScriptScanner *scanner = ScriptScanner::Get (vm);
+	GameInfoLists::InfoScanner *scanner = GameInfoLists::InfoScanner::Get (vm);
 
 	SQInteger res = scanner->construct (info);
 	if (res != 0) return res;
@@ -94,7 +94,7 @@ static SQInteger register_library (HSQUIRRELVM vm)
 	/* Create a new library */
 	GameLibrary *library = new GameLibrary();
 
-	ScriptScanner *scanner = ScriptScanner::Get (vm);
+	GameInfoLists::LibraryScanner *scanner = GameInfoLists::LibraryScanner::Get (vm);
 
 	SQInteger res = scanner->construct (library);
 	if (res != 0) {

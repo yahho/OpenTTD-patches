@@ -202,6 +202,12 @@ struct ScriptInfoLists {
 		{
 		}
 
+		/** Get the ScriptScanner class associated with a VM. */
+		static InfoScanner *Get (HSQUIRRELVM vm)
+		{
+			return static_cast<InfoScanner *> (ScriptScanner::Get(vm));
+		}
+
 		void RegisterAPI (void) OVERRIDE;
 
 		/** Scan for info files. */
@@ -223,6 +229,12 @@ struct ScriptInfoLists {
 		LibraryScanner (ScriptInfoList *lists)
 			: ScriptScanner (lists, T::scanner_desc)
 		{
+		}
+
+		/** Get the ScriptScanner class associated with a VM. */
+		static LibraryScanner *Get (HSQUIRRELVM vm)
+		{
+			return static_cast<LibraryScanner *> (ScriptScanner::Get(vm));
 		}
 
 		void RegisterAPI (void) OVERRIDE;
