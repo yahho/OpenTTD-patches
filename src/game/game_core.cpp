@@ -330,16 +330,7 @@ void GameInfoLists::LibraryScanner::RegisterAPI (void)
 
 /* static */ GameLibrary *Game::FindLibrary(const char *library, int version)
 {
-	/* Internally we store libraries as 'library.version' */
-	char library_name[1024];
-	bstrfmt (library_name, "%s.%d", library, version);
-	strtolower(library_name);
-
-	/* Check if the library + version exists */
-	ScriptInfoList::iterator iter = lists->libraries.full_list.find (library_name);
-	if (iter == lists->libraries.full_list.end()) return NULL;
-
-	return static_cast<GameLibrary *>((*iter).second);
+	return static_cast<GameLibrary *>(lists->libraries.FindLibrary (library, version));
 }
 
 #if defined(ENABLE_NETWORK)

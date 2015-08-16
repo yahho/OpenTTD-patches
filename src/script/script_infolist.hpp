@@ -41,6 +41,9 @@ struct ScriptInfoList {
 	/** Find a script with the given name and version. */
 	ScriptInfo *FindInfo (const char *name, int version, bool force_exact_match);
 
+	/** Find a library with the given name and version. */
+	ScriptInfo *FindLibrary (const char *library, int version);
+
 	/**
 	 * Find a script of a #ContentInfo
 	 * @param ci The information to compare to.

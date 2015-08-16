@@ -469,16 +469,7 @@ static const AIInfo *SelectRandomAI()
 
 /* static */ AILibrary *AI::FindLibrary(const char *library, int version)
 {
-	/* Internally we store libraries as 'library.version' */
-	char library_name[1024];
-	bstrfmt (library_name, "%s.%d", library, version);
-	strtolower(library_name);
-
-	/* Check if the library + version exists */
-	ScriptInfoList::iterator iter = lists->libraries.full_list.find (library_name);
-	if (iter == lists->libraries.full_list.end()) return NULL;
-
-	return static_cast<AILibrary *>((*iter).second);
+	return static_cast<AILibrary *>(lists->libraries.FindLibrary (library, version));
 }
 
 /* static */ bool AI::Empty (void)

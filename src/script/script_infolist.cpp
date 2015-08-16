@@ -145,6 +145,20 @@ ScriptInfo *ScriptInfoList::FindInfo (const char *name, int version, bool force_
 	return info;
 }
 
+ScriptInfo *ScriptInfoList::FindLibrary (const char *library, int version)
+{
+	/* Internally we store libraries as 'library.version' */
+	char library_name[1024];
+	bstrfmt (library_name, "%s.%d", library, version);
+	strtolower (library_name);
+
+	/* Check if the library + version exists */
+	ScriptInfoList::iterator iter = this->full_list.find (library_name);
+	if (iter == this->full_list.end()) return NULL;
+
+	return iter->second;
+}
+
 #if defined(ENABLE_NETWORK)
 #include "../network/network_content.h"
 #include "../3rdparty/md5/md5.h"
