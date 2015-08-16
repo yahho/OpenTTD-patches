@@ -38,6 +38,9 @@ struct ScriptInfoList {
 	/** Get the list of registered scripts to print on the console. */
 	void GetConsoleList (stringb *buf, const char *desc, bool newest_only) const;
 
+	/** Find a script with the given name and version. */
+	ScriptInfo *FindInfo (const char *name, int version, bool force_exact_match);
+
 	/**
 	 * Find a script of a #ContentInfo
 	 * @param ci The information to compare to.

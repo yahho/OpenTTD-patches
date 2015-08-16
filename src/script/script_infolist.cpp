@@ -94,6 +94,57 @@ void ScriptInfoList::GetConsoleList (stringb *buf, const char *desc, bool newest
 	buf->append ('\n');
 }
 
+ScriptInfo *ScriptInfoList::FindInfo (const char *name, int version, bool force_exact_match)
+{
+	if (this->full_list.size() == 0) return NULL;
+	if (name == NULL) return NULL;
+
+	sstring<1024> script_name;
+	script_name.copy (name);
+	script_name.tolower();
+
+	if (version == -1) {
+		/* We want to load the latest version of this script; so find it */
+		ScriptInfoList::iterator iter = this->single_list.find (script_name.c_str());
+		if (iter != this->single_list.end()) return iter->second;
+
+		/* If we didn't find a match script, maybe the user included a version */
+		const char *e = strrchr (script_name.c_str(), '.');
+		if (e == NULL) return NULL;
+		version = atoi (e + 1);
+		script_name.truncate (e - script_name.c_str());
+		/* FALL THROUGH, like we were calling this function with a version. */
+	}
+
+	if (force_exact_match) {
+		/* Try to find a direct 'name.version' match */
+		size_t length = script_name.length();
+		script_name.append_fmt (".%d", version);
+		ScriptInfoList::iterator iter = this->full_list.find (script_name.c_str());
+		if (iter != this->full_list.end()) return iter->second;
+		script_name.truncate (length);
+	}
+
+	ScriptInfo *info = NULL;
+	int max_version = -1;
+
+	/* See if there is a compatible script which goes by that name, with
+	 * the highest version which allows loading the requested version */
+	ScriptInfoList::iterator it = this->full_list.begin();
+	for (; it != this->full_list.end(); it++) {
+		ScriptInfo *i = it->second;
+		assert (dynamic_cast<ScriptVersionedInfo *>(i) != NULL);
+		if ((strcasecmp (script_name.c_str(), i->GetName()) == 0)
+				&& static_cast<ScriptVersionedInfo *>(i)->CanLoadFromVersion(version)
+				&& (max_version == -1 || i->GetVersion() > max_version)) {
+			max_version = i->GetVersion();
+			info = i;
+		}
+	}
+
+	return info;
+}
+
 #if defined(ENABLE_NETWORK)
 #include "../network/network_content.h"
 #include "../3rdparty/md5/md5.h"

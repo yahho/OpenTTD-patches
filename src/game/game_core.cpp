@@ -322,50 +322,10 @@ void GameInfoLists::LibraryScanner::RegisterAPI (void)
 
 /* static */ GameInfo *Game::FindInfo(const char *name, int version, bool force_exact_match)
 {
-	if (lists->scripts.full_list.size() == 0) return NULL;
-	if (name == NULL) return NULL;
-
-	sstring<1024> game_name;
-	game_name.copy (name);
-	game_name.tolower();
-
-	if (version == -1) {
-		/* We want to load the latest version of this Game script; so find it */
-		ScriptInfoList::iterator iter = lists->scripts.single_list.find (game_name.c_str());
-		if (iter != lists->scripts.single_list.end()) return static_cast<GameInfo *>(iter->second);
-
-		/* If we didn't find a match Game script, maybe the user included a version */
-		const char *e = strrchr (game_name.c_str(), '.');
-		if (e == NULL) return NULL;
-		version = atoi (e + 1);
-		game_name.truncate (e - game_name.c_str());
-		/* FALL THROUGH, like we were calling this function with a version. */
-	}
-
-	if (force_exact_match) {
-		/* Try to find a direct 'name.version' match */
-		size_t length = game_name.length();
-		game_name.append_fmt (".%d", version);
-		ScriptInfoList::iterator iter = lists->scripts.full_list.find (game_name.c_str());
-		if (iter != lists->scripts.full_list.end()) return static_cast<GameInfo *>(iter->second);
-		game_name.truncate (length);
-	}
-
-	GameInfo *info = NULL;
-	int max_version = -1;
-
-	/* See if there is a compatible Game script which goes by that name,
-	 * with the highest version which allows loading the requested version */
-	ScriptInfoList::iterator it = lists->scripts.full_list.begin();
-	for (; it != lists->scripts.full_list.end(); it++) {
-		GameInfo *i = static_cast<GameInfo *>(it->second);
-		if (strcasecmp (game_name.c_str(), i->GetName()) == 0 && i->CanLoadFromVersion(version) && (max_version == -1 || i->GetVersion() > max_version)) {
-			max_version = i->GetVersion();
-			info = i;
-		}
-	}
-
-	return info;
+	ScriptInfo *i = lists->scripts.FindInfo (name, version, force_exact_match);
+	if (i == NULL) return NULL;
+	assert (dynamic_cast<GameInfo *>(i) != NULL);
+	return static_cast<GameInfo *>(i);
 }
 
 /* static */ GameLibrary *Game::FindLibrary(const char *library, int version)

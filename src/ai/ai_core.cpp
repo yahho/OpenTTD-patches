@@ -461,50 +461,10 @@ static const AIInfo *SelectRandomAI()
 
 /* static */ AIInfo *AI::FindInfo(const char *name, int version, bool force_exact_match)
 {
-	if (lists->scripts.full_list.size() == 0) return NULL;
-	if (name == NULL) return NULL;
-
-	sstring<1024> ai_name;
-	ai_name.copy (name);
-	ai_name.tolower();
-
-	if (version == -1) {
-		/* We want to load the latest version of this AI; so find it */
-		ScriptInfoList::iterator iter = lists->scripts.single_list.find (ai_name.c_str());
-		if (iter != lists->scripts.single_list.end()) return static_cast<AIInfo *>(iter->second);
-
-		/* If we didn't find a match AI, maybe the user included a version */
-		const char *e = strrchr (ai_name.c_str(), '.');
-		if (e == NULL) return NULL;
-		version = atoi (e + 1);
-		ai_name.truncate (e - ai_name.c_str());
-		/* FALL THROUGH, like we were calling this function with a version. */
-	}
-
-	if (force_exact_match) {
-		/* Try to find a direct 'name.version' match */
-		size_t length = ai_name.length();
-		ai_name.append_fmt (".%d", version);
-		ScriptInfoList::iterator iter = lists->scripts.full_list.find (ai_name.c_str());
-		if (iter != lists->scripts.full_list.end()) return static_cast<AIInfo *>(iter->second);
-		ai_name.truncate (length);
-	}
-
-	AIInfo *info = NULL;
-	int max_version = -1;
-
-	/* See if there is a compatible AI which goes by that name, with the
-	 * highest version which allows loading the requested version */
-	ScriptInfoList::iterator it = lists->scripts.full_list.begin();
-	for (; it != lists->scripts.full_list.end(); it++) {
-		AIInfo *i = static_cast<AIInfo *>(it->second);
-		if (strcasecmp (ai_name.c_str(), i->GetName()) == 0 && i->CanLoadFromVersion(version) && (max_version == -1 || i->GetVersion() > max_version)) {
-			max_version = i->GetVersion();
-			info = i;
-		}
-	}
-
-	return info;
+	ScriptInfo *i = lists->scripts.FindInfo (name, version, force_exact_match);
+	if (i == NULL) return NULL;
+	assert (dynamic_cast<AIInfo *>(i) != NULL);
+	return static_cast<AIInfo *>(i);
 }
 
 /* static */ AILibrary *AI::FindLibrary(const char *library, int version)
