@@ -131,11 +131,6 @@ protected:
 	static int GetCallbackVariable(int index);
 
 	/**
-	 * Can we suspend the script at this moment?
-	 */
-	static bool CanSuspend();
-
-	/**
 	 * Get an allocated string with all control codes stripped off.
 	 */
 	static char *GetString(StringID string);

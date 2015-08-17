@@ -98,11 +98,6 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 	return GetActiveInstance()->company;
 }
 
-/* static */ bool ScriptObject::CanSuspend()
-{
-	return GetActiveInstance()->CanSuspend();
-}
-
 /* static */ char *ScriptObject::GetString(StringID string)
 {
 	char buffer[64];
