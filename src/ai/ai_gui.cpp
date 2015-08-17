@@ -948,16 +948,17 @@ void ShowAIConfigWindow()
  * Set the widget colour of a button based on the
  * state of the script. (dead or alive)
  * @param button the button to update.
- * @param dead true if the script is dead, otherwise false.
- * @param paused true if the script is paused, otherwise false.
+ * @param script the script, or NULL if invalid.
  * @return true if the colour was changed and the window need to be marked as dirty.
  */
-static bool SetScriptButtonColour(NWidgetCore &button, bool dead, bool paused)
+static inline bool SetScriptButtonColour (NWidgetCore &button,
+	const ScriptInstance *script)
 {
 	/* Dead scripts are indicated with red background and
 	 * paused scripts are indicated with yellow background. */
-	Colours colour = dead ? COLOUR_RED :
-			(paused ? COLOUR_YELLOW : COLOUR_GREY);
+	Colours colour = (script == NULL) ? COLOUR_GREY :
+			script->IsDead() ? COLOUR_RED :
+			script->IsPaused() ? COLOUR_YELLOW : COLOUR_GREY;
 	if (button.colour != colour) {
 		button.colour = colour;
 		return true;
@@ -1102,11 +1103,9 @@ struct AIDebugWindow : public Window {
 			dirty |= (button->IsDisabled() == valid);
 
 			/* Mark dead/paused AIs by setting the background colour. */
-			bool dead = valid && Company::Get(i)->ai_instance->IsDead();
-			bool paused = valid && Company::Get(i)->ai_instance->IsPaused();
 			/* Re-paint if the button was updated.
 			 * (note that it is intentional that SetScriptButtonColour is always called) */
-			dirty |= SetScriptButtonColour(*button, dead, paused);
+			dirty |= SetScriptButtonColour (*button, valid ? Company::Get(i)->ai_instance : NULL);
 
 			/* Draw company icon only for valid AI companies */
 			if (!valid) continue;
@@ -1118,11 +1117,9 @@ struct AIDebugWindow : public Window {
 		/* Set button colour for Game Script. */
 		GameInstance *game = Game::GetInstance();
 		bool valid = game != NULL;
-		bool dead = valid && game->IsDead();
-		bool paused = valid && game->IsPaused();
 
 		NWidgetCore *button = this->GetWidget<NWidgetCore>(WID_AID_SCRIPT_GAME);
-		dirty |= (button->IsDisabled() == valid) || SetScriptButtonColour(*button, dead, paused);
+		dirty |= (button->IsDisabled() == valid) || SetScriptButtonColour (*button, game);
 
 		if (dirty) this->InvalidateData(-1);
 
