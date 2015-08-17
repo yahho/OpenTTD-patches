@@ -80,11 +80,6 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 	return GetActiveInstance()->GetRailType();
 }
 
-/* static */ void ScriptObject::SetLastCommandRes(bool res)
-{
-	GetActiveInstance()->SetLastCommandRes (res);
-}
-
 /* static */ void ScriptObject::SetCompany(CompanyID company)
 {
 	if (GetActiveInstance()->root_company == INVALID_OWNER) GetActiveInstance()->root_company = company;

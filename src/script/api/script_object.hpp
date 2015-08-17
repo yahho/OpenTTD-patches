@@ -49,12 +49,6 @@ protected:
 
 public:
 	/**
-	 * Store the latest result of a DoCommand per company.
-	 * @param res The result of the last command.
-	 */
-	static void SetLastCommandRes(bool res);
-
-	/**
 	 * Get the currently active instance.
 	 * @return The instance.
 	 */
