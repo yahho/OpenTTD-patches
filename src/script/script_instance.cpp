@@ -220,19 +220,19 @@ ScriptInstance::~ScriptInstance()
 	HSQOBJECT parent;
 	sq_getstackobj (vm, 1, &parent);
 
-	char fake_class[1024];
+	sq_pushroottable (vm);
 
 	LoadedLibraryList::iterator iter = engine->loaded_library.find (library_name);
 	if (iter != engine->loaded_library.end()) {
-		bstrcpy (fake_class, (*iter).second);
+		sq_pushstring (vm, iter->second, -1);
 	} else {
 		uint next_number = ++engine->loaded_library_count;
 
 		/* Create a new fake internal name */
+		char fake_class[1024];
 		bstrfmt (fake_class, "_internalNA%u", next_number);
 
 		/* Load the library in a 'fake' namespace, so we can link it to the name the user requested */
-		sq_pushroottable (vm);
 		sq_pushstring (vm, fake_class, -1);
 		sq_newclass (vm, SQFalse);
 		/* Load the library */
@@ -243,14 +243,13 @@ ScriptInstance::~ScriptInstance()
 		}
 		/* Create the fake class */
 		sq_newslot (vm, -3, SQFalse);
-		sq_pop (vm, 1);
 
 		engine->loaded_library[xstrdup(library_name)] = xstrdup (fake_class);
+
+		sq_pushstring (vm, fake_class, -1);
 	}
 
 	/* Find the real class inside the fake class (like 'sets.Vector') */
-	sq_pushroottable (vm);
-	sq_pushstring (vm, fake_class, -1);
 	if (SQ_FAILED (sq_get (vm, -2))) {
 		return sq_throwerror (vm, "internal error assigning library class");
 	}
