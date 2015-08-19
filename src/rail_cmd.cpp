@@ -2711,9 +2711,20 @@ static void DrawTrackDetails(const TileInfo *ti, TrackBits tracks)
 
 	/* Base sprite for track fences.
 	 * Note: Halftile slopes only have fences on the upper part. */
-	SpriteID base_image = GetCustomRailSprite(rti, ti->tile, RTSG_FENCES, IsHalftileSlope(ti->tileh) ? TCX_UPPER_HALFTILE : TCX_NORMAL);
-	if (base_image == 0) base_image = SPR_TRACK_FENCE_FLAT_X;
-	uint num_sprites = 8;
+	const SpriteGroup *sprite_group = GetCustomRailSpriteGroup (rti,
+			ti->tile, RTSG_FENCES, IsHalftileSlope(ti->tileh) ?
+				TCX_UPPER_HALFTILE : TCX_NORMAL);
+	SpriteID base_image;
+	uint num_sprites;
+	if (sprite_group != NULL) {
+		base_image = sprite_group->GetResult();
+		num_sprites = sprite_group->GetNumResults();
+	} else {
+		base_image = SPR_TRACK_FENCE_FLAT_X;
+		num_sprites = 8;
+	}
+
+	assert(num_sprites > 0);
 
 	switch (GetRailGroundType(ti->tile)) {
 		case RAIL_GROUND_FENCE_NW:     DrawTrackFence_NW(ti, base_image, num_sprites); break;
