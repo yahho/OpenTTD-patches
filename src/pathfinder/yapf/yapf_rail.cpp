@@ -209,29 +209,12 @@ struct CYapfRailNodeTrackDir
 typedef Astar<CYapfRailNodeTrackDir, 8, 10> AstarRailTrackDir;
 
 
-/**
- * Base class for segment cost cache providers. Contains global counter
- *  of track layout changes and static notification function called whenever
- *  the track layout changes. It is implemented as base class because it needs
- *  to be shared between all rail YAPF types (one shared counter, one notification
- *  function.
- */
-struct CSegmentCostCacheBase
-{
-	static int s_rail_change_counter;
-
-	static void NotifyTrackLayoutChange(TileIndex tile, Track track)
-	{
-		s_rail_change_counter++;
-	}
-};
-
 /** if any track changes, this counter is incremented - that will invalidate segment cost cache */
-int CSegmentCostCacheBase::s_rail_change_counter = 0;
+static uint s_rail_change_counter;
 
 void YapfNotifyTrackLayoutChange(TileIndex tile, Track track)
 {
-	CSegmentCostCacheBase::NotifyTrackLayoutChange(tile, track);
+	s_rail_change_counter++;
 }
 
 
@@ -247,7 +230,6 @@ void YapfNotifyTrackLayoutChange(TileIndex tile, Track track)
  */
 template <class Tsegment>
 struct CSegmentCostCacheT
-	: public CSegmentCostCacheBase
 {
 	static const int C_HASH_BITS = 14;
 
@@ -326,7 +308,7 @@ protected:
 
 	inline static Cache& stGetGlobalCache()
 	{
-		static int last_rail_change_counter = 0;
+		static uint last_rail_change_counter = 0;
 		static Date last_date = 0;
 		static Cache C;
 
@@ -338,8 +320,8 @@ protected:
 		}
 
 		/* delete the cache sometimes... */
-		if (last_rail_change_counter != Cache::s_rail_change_counter) {
-			last_rail_change_counter = Cache::s_rail_change_counter;
+		if (last_rail_change_counter != s_rail_change_counter) {
+			last_rail_change_counter = s_rail_change_counter;
 			C.Flush();
 		}
 
