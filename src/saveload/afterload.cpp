@@ -925,7 +925,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 		}
 	}
 
-	YapfNotifyTrackLayoutChange(INVALID_TILE, INVALID_TRACK);
+	YapfNotifyTrackLayoutChange();
 
 	if (stv->is_ottd_before (34)) {
 		Company *c;

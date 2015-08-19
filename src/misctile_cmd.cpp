@@ -513,8 +513,7 @@ static CommandCost RemoveTunnel(TileIndex tile, DoCommandFlag flags)
 			AddSideToSignalBuffer(tile,    ReverseDiagDir(dir), owner);
 			AddSideToSignalBuffer(endtile, dir,                 owner);
 
-			YapfNotifyTrackLayoutChange(tile,    track);
-			YapfNotifyTrackLayoutChange(endtile, track);
+			YapfNotifyTrackLayoutChange();
 
 			if (v1 != NULL) TryPathReserve(v1);
 			if (v2 != NULL) TryPathReserve(v2);
@@ -563,7 +562,7 @@ static CommandCost RemoveTrainDepot(TileIndex tile, DoCommandFlag flags)
 		delete Depot::GetByTile(tile);
 		DoClearSquare(tile);
 		AddSideToSignalBuffer(tile, dir, owner);
-		YapfNotifyTrackLayoutChange(tile, DiagDirToDiagTrack(dir));
+		YapfNotifyTrackLayoutChange();
 		if (v != NULL) TryPathReserve(v, true);
 	}
 

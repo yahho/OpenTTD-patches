@@ -212,7 +212,7 @@ typedef Astar<CYapfRailNodeTrackDir, 8, 10> AstarRailTrackDir;
 /** if any track changes, this counter is incremented - that will invalidate segment cost cache */
 static uint s_rail_change_counter;
 
-void YapfNotifyTrackLayoutChange(TileIndex tile, Track track)
+void YapfNotifyTrackLayoutChange (void)
 {
 	s_rail_change_counter++;
 }

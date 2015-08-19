@@ -551,9 +551,8 @@ static CommandCost BuildRailBridge(TileIndex tile_start, TileIndex tile_end, Bri
 	}
 
 	if (flags & DC_EXEC) {
-		Track track = AxisToTrack(direction);
 		AddBridgeToSignalBuffer(tile_start, _current_company);
-		YapfNotifyTrackLayoutChange(tile_start, track);
+		YapfNotifyTrackLayoutChange();
 	}
 
 	/* for human player that builds the bridge he gets a selection to choose from bridges (DC_QUERY_COST)
@@ -834,7 +833,7 @@ CommandCost CmdBuildTunnel(TileIndex start_tile, DoCommandFlag flags, uint32 p1,
 			MakeRailTunnel(start_tile, company, direction,                 railtype);
 			MakeRailTunnel(end_tile,   company, ReverseDiagDir(direction), railtype);
 			AddTunnelToSignalBuffer(start_tile, company);
-			YapfNotifyTrackLayoutChange(start_tile, DiagDirToDiagTrack(direction));
+			YapfNotifyTrackLayoutChange();
 		} else {
 			if (c != NULL) {
 				RoadType rt;

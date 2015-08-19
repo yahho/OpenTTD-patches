@@ -1300,7 +1300,7 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 				tile += tile_delta;
 			} while (--w);
 			AddTrackToSignalBuffer(tile_track, track, _current_company);
-			YapfNotifyTrackLayoutChange(tile_track, track);
+			YapfNotifyTrackLayoutChange();
 			tile_track += tile_delta ^ TileDiffXY(1, 1); // perpendicular to tile_delta
 		} while (--numtracks);
 
@@ -1439,7 +1439,7 @@ static CommandCost RemoveFromRailBaseStation (TileIndex start,
 
 			st->AfterRemoveTile(tile);
 			AddTrackToSignalBuffer(tile, track, owner);
-			YapfNotifyTrackLayoutChange(tile, track);
+			YapfNotifyTrackLayoutChange();
 
 			DeallocateSpecFromStation(st, specindex);
 
@@ -1561,7 +1561,7 @@ static CommandCost RemoveRailStation (BaseStation *st, DoCommandFlag flags,
 			DoClearSquare(tile);
 			DeleteNewGRFInspectWindow(GSF_STATIONS, tile);
 			AddTrackToSignalBuffer(tile, track, owner);
-			YapfNotifyTrackLayoutChange(tile, track);
+			YapfNotifyTrackLayoutChange();
 			if (v != NULL) TryPathReserve(v, true);
 		}
 	}

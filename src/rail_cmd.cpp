@@ -644,7 +644,7 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 	if (flags & DC_EXEC) {
 		MarkTileDirtyByTile(tile);
 		AddTrackToSignalBuffer(tile, track, _current_company);
-		YapfNotifyTrackLayoutChange(tile, track);
+		YapfNotifyTrackLayoutChange();
 	}
 
 	cost.AddCost(RailBuildCost(railtype));
@@ -660,11 +660,10 @@ static void NotifyTrackRemoval(TileIndex tile, Track track, bool was_crossing, O
 		 * 'connect' with the other piece. */
 		AddTrackToSignalBuffer(tile, TRACK_X, owner);
 		AddTrackToSignalBuffer(tile, TRACK_Y, owner);
-		YapfNotifyTrackLayoutChange(tile, TRACK_X);
-		YapfNotifyTrackLayoutChange(tile, TRACK_Y);
+		YapfNotifyTrackLayoutChange();
 	} else {
 		AddTrackToSignalBuffer(tile, track, owner);
-		YapfNotifyTrackLayoutChange(tile, track);
+		YapfNotifyTrackLayoutChange();
 	}
 }
 
@@ -936,7 +935,7 @@ static CommandCost RemoveCrossingTrack(TileIndex tile, DoCommandFlag flags)
 		MarkTileDirtyByTile(tile);
 
 		AddTrackToSignalBuffer(tile, track, owner);
-		YapfNotifyTrackLayoutChange(tile, track);
+		YapfNotifyTrackLayoutChange();
 
 		if (v != NULL) TryPathReserve(v, true);
 	}
@@ -1248,7 +1247,7 @@ CommandCost CmdBuildTrainDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 		DirtyCompanyInfrastructureWindows(_current_company);
 
 		AddDepotToSignalBuffer(tile, _current_company);
-		YapfNotifyTrackLayoutChange(tile, DiagDirToDiagTrack(dir));
+		YapfNotifyTrackLayoutChange();
 	}
 
 	cost.AddCost(_price[PR_BUILD_DEPOT_TRAIN]);
@@ -1527,12 +1526,12 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 
 		MarkTileDirtyByTile(tile);
 		AddTrackToSignalBuffer(tile, track, _current_company);
-		YapfNotifyTrackLayoutChange(tile, track);
+		YapfNotifyTrackLayoutChange();
 
 		if (other_signals != 0) {
 			MarkTileDirtyByTile(other_end);
 			AddTrackToSignalBuffer(other_end, track, _current_company);
-			YapfNotifyTrackLayoutChange(other_end, track);
+			YapfNotifyTrackLayoutChange();
 		}
 
 		for (int i = 0; i < 2; i++) {
@@ -1903,12 +1902,12 @@ CommandCost CmdRemoveSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1
 
 		signalpair_clear(signals);
 		AddTrackToSignalBuffer(tile, track, owner);
-		YapfNotifyTrackLayoutChange(tile, track);
+		YapfNotifyTrackLayoutChange();
 
 		if (other_end != INVALID_TILE) {
 			maptile_clear_tunnel_signals(other_end);
 			AddTrackToSignalBuffer(other_end, track, owner);
-			YapfNotifyTrackLayoutChange(other_end, track);
+			YapfNotifyTrackLayoutChange();
 		}
 
 		if (v != NULL) TryPathReserve(v, false);
@@ -2097,10 +2096,7 @@ static CommandCost ConvertTrack(TileIndex tile, RailType totype, TrainList *affe
 		UpdateTrainPower (tile, affected);
 
 		/* notify YAPF about the track layout change */
-		TrackBits trackbits = GetTrackBits(tile);
-		while (trackbits != TRACK_BIT_NONE) {
-			YapfNotifyTrackLayoutChange(tile, RemoveFirstTrack(&trackbits));
-		}
+		YapfNotifyTrackLayoutChange();
 
 		for (uint i = 0; i < vehicles_affected.Length(); ++i) {
 			TryPathReserve(vehicles_affected[i], true);
@@ -2186,14 +2182,7 @@ static CommandCost ConvertBridge(TileIndex tile, TileIndex endtile, RailType tot
 		UpdateTrainPower (endtile, affected);
 
 		/* notify YAPF about the track layout change */
-		TrackBits trackbits = GetTrackBits(tile);
-		while (trackbits != TRACK_BIT_NONE) {
-			YapfNotifyTrackLayoutChange(tile, RemoveFirstTrack(&trackbits));
-		}
-		trackbits = GetTrackBits(endtile);
-		while (trackbits != TRACK_BIT_NONE) {
-			YapfNotifyTrackLayoutChange(tile, RemoveFirstTrack(&trackbits));
-		}
+		YapfNotifyTrackLayoutChange();
 
 		MarkBridgeTilesDirty(tile, endtile, dir);
 
@@ -2261,8 +2250,7 @@ static CommandCost ConvertTunnel(TileIndex tile, TileIndex endtile, RailType tot
 		UpdateTrainPower (tile, affected);
 		UpdateTrainPower (endtile, affected);
 
-		YapfNotifyTrackLayoutChange(tile, track);
-		YapfNotifyTrackLayoutChange(endtile, track);
+		YapfNotifyTrackLayoutChange();
 
 		MarkTileDirtyByTile(tile);
 		MarkTileDirtyByTile(endtile);
@@ -2321,7 +2309,7 @@ static CommandCost ConvertGeneric(TileIndex tile, RailType totype, Track track, 
 		UpdateTrainPower (tile, affected);
 
 		/* notify YAPF about the track layout change */
-		YapfNotifyTrackLayoutChange(tile, track);
+		YapfNotifyTrackLayoutChange();
 
 		if (v != NULL) TryPathReserve(v, true);
 	}

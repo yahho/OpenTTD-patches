@@ -267,7 +267,7 @@ CommandCost CmdBuildRailWaypoint(TileIndex start_tile, DoCommandFlag flags, uint
 			MarkTileDirtyByTile(tile);
 
 			DeallocateSpecFromStation(wp, old_specindex);
-			YapfNotifyTrackLayoutChange(tile, AxisToTrack(axis));
+			YapfNotifyTrackLayoutChange();
 		}
 		DirtyCompanyInfrastructureWindows(wp->owner);
 	}
