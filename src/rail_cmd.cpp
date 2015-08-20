@@ -658,8 +658,7 @@ static void NotifyTrackRemoval(TileIndex tile, Track track, bool was_crossing, O
 		 * are removing one of these pieces, we'll need to update signals for
 		 * both directions explicitly, as after the track is removed it won't
 		 * 'connect' with the other piece. */
-		AddTrackToSignalBuffer(tile, TRACK_X, owner);
-		AddTrackToSignalBuffer(tile, TRACK_Y, owner);
+		AddCrossingToSignalBuffer (tile, owner);
 		YapfNotifyTrackLayoutChange();
 	} else {
 		AddTrackToSignalBuffer(tile, track, owner);

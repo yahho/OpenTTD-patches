@@ -795,6 +795,22 @@ void AddSideToSignalBuffer(TileIndex tile, DiagDirection side, Owner owner)
 }
 
 /**
+ * Add all four sides of a tile to the signal update buffer.
+ * @param tile Tile to add.
+ * @param owner Owner whose signals to update.
+ */
+void AddCrossingToSignalBuffer (TileIndex tile, Owner owner)
+{
+	SetBufferOwner (owner);
+
+	for (DiagDirection side = DIAGDIR_BEGIN; side < DIAGDIR_END; side++) {
+		_globset.Add (SignalSideFrom (tile, (SignalSideEnum)side));
+	}
+
+	UpdateSignalsInBufferAuto();
+}
+
+/**
  * Add depot tile to signal update buffer
  *
  * @param tile tile to add

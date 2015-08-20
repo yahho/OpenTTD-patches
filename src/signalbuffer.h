@@ -30,6 +30,7 @@ bool IsSignalBufferEmpty();
 
 void AddTrackToSignalBuffer(TileIndex tile, Track track, Owner owner);
 void AddSideToSignalBuffer(TileIndex tile, DiagDirection side, Owner owner);
+void AddCrossingToSignalBuffer(TileIndex tile, Owner owner);
 void AddDepotToSignalBuffer(TileIndex tile, Owner owner);
 void AddBridgeToSignalBuffer(TileIndex tile, Owner owner);
 void AddTunnelToSignalBuffer(TileIndex tile, Owner owner);
