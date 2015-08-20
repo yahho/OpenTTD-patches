@@ -747,7 +747,7 @@ static CommandCost RemoveRailTrack(TileIndex tile, Track track, DoCommandFlag fl
 	return cost;
 }
 
-static void RemoveRailBridgeHead(TileIndex tile, TrackBits remove, RailType rt)
+static bool RemoveRailBridgeHead (TileIndex tile, TrackBits remove, RailType rt)
 {
 	Owner owner = GetTileOwner(tile);
 
@@ -787,19 +787,7 @@ static void RemoveRailBridgeHead(TileIndex tile, TrackBits remove, RailType rt)
 
 	MarkTileDirtyByTile(tile);
 
-	if (crossing) {
-		/* If the tracks before removal were TRACK_BIT_CROSS,
-		 * we have to explicitly update all four sides of the
-		 * tile, as there will be no connection afterwards. */
-		AddCrossingToSignalBuffer (tile, owner);
-	} else {
-		while (remove != TRACK_BIT_NONE) {
-			Track track = RemoveFirstTrack (&remove);
-			AddTrackToSignalBuffer (tile, track, owner);
-		}
-	}
-
-	YapfNotifyTrackLayoutChange();
+	return crossing;
 }
 
 static void RemoveRailBridge(TileIndex tile, TrackBits remove, TileIndex other_tile, TrackBits other_remove)
@@ -831,8 +819,32 @@ static void RemoveRailBridge(TileIndex tile, TrackBits remove, TileIndex other_t
 	RemoveBridgeMiddleTiles(tile, other_tile);
 	Company::Get(owner)->infrastructure.rail[rt] -= GetTunnelBridgeLength(tile, other_tile) * TUNNELBRIDGE_TRACKBIT_FACTOR;
 
-	RemoveRailBridgeHead(tile, remove, rt);
-	RemoveRailBridgeHead(other_tile, other_remove, rt);
+	bool crossing = RemoveRailBridgeHead (tile, remove, rt);
+	bool other_crossing = RemoveRailBridgeHead (other_tile, other_remove, rt);
+
+	/* If the tracks before removal were TRACK_BIT_CROSS, we have to
+	 * explicitly update all four sides of the tile, as there will be
+	 * no connection afterwards. */
+
+	if (crossing) {
+		AddCrossingToSignalBuffer (tile, owner);
+	} else {
+		while (remove != TRACK_BIT_NONE) {
+			Track track = RemoveFirstTrack (&remove);
+			AddTrackToSignalBuffer (tile, track, owner);
+		}
+	}
+
+	if (other_crossing) {
+		AddCrossingToSignalBuffer (other_tile, owner);
+	} else {
+		while (other_remove != TRACK_BIT_NONE) {
+			Track track = RemoveFirstTrack (&other_remove);
+			AddTrackToSignalBuffer (other_tile, track, owner);
+		}
+	}
+
+	YapfNotifyTrackLayoutChange();
 
 	DirtyCompanyInfrastructureWindows(owner);
 
