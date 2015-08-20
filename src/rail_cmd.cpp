@@ -651,21 +651,6 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 	return cost;
 }
 
-static void NotifyTrackRemoval(TileIndex tile, Track track, bool was_crossing, Owner owner)
-{
-	if (was_crossing) {
-		/* crossing is set when only TRACK_BIT_X and TRACK_BIT_Y are set. As we
-		 * are removing one of these pieces, we'll need to update signals for
-		 * both directions explicitly, as after the track is removed it won't
-		 * 'connect' with the other piece. */
-		AddCrossingToSignalBuffer (tile, owner);
-		YapfNotifyTrackLayoutChange();
-	} else {
-		AddTrackToSignalBuffer(tile, track, owner);
-		YapfNotifyTrackLayoutChange();
-	}
-}
-
 /**
  * Remove a single piece of track from a railway tile
  * @param tile tile to remove track from
@@ -744,7 +729,17 @@ static CommandCost RemoveRailTrack(TileIndex tile, Track track, DoCommandFlag fl
 		}
 
 		MarkTileDirtyByTile(tile);
-		NotifyTrackRemoval(tile, track, crossing, owner);
+
+		if (crossing) {
+			/* If the tracks before removal were TRACK_BIT_CROSS,
+			 * we have to explicitly update all four sides of the
+			 * tile, as there will be no connection afterwards. */
+			AddCrossingToSignalBuffer (tile, owner);
+		} else {
+			AddTrackToSignalBuffer (tile, track, owner);
+		}
+
+		YapfNotifyTrackLayoutChange();
 
 		if (v != NULL) TryPathReserve(v, true);
 	}
@@ -792,10 +787,19 @@ static void RemoveRailBridgeHead(TileIndex tile, TrackBits remove, RailType rt)
 
 	MarkTileDirtyByTile(tile);
 
-	while (remove != TRACK_BIT_NONE) {
-		Track track = RemoveFirstTrack(&remove);
-		NotifyTrackRemoval(tile, track, crossing, owner);
+	if (crossing) {
+		/* If the tracks before removal were TRACK_BIT_CROSS,
+		 * we have to explicitly update all four sides of the
+		 * tile, as there will be no connection afterwards. */
+		AddCrossingToSignalBuffer (tile, owner);
+	} else {
+		while (remove != TRACK_BIT_NONE) {
+			Track track = RemoveFirstTrack (&remove);
+			AddTrackToSignalBuffer (tile, track, owner);
+		}
 	}
+
+	YapfNotifyTrackLayoutChange();
 }
 
 static void RemoveRailBridge(TileIndex tile, TrackBits remove, TileIndex other_tile, TrackBits other_remove)
