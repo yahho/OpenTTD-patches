@@ -2069,7 +2069,7 @@ static bool FindClosestTrainDepot(Train *v, bool nearby, FindDepotData *res)
 		return true;
 	}
 
-	return YapfTrainFindNearestDepot(v,
+	return YapfTrainFindNearestDepot (v, origin,
 		nearby ? _settings_game.pf.yapf.maximum_go_to_depot_penalty : 0, res);
 }
 

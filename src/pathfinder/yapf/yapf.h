@@ -91,13 +91,14 @@ TileIndex YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_penalty
 /**
  * Used when user sends train to the nearest depot or if train needs servicing using YAPF.
  * @param v            train that needs to go to some depot
+ * @param origin       the end of the current reservation
  * @param max_distance max distance (int pathfinder penalty) from the current train position
  *                     (used also as optimization - the pathfinder can stop path finding if max_penalty
  *                     was reached and no depot was seen)
  * @param res          pointer to store the data about the depot
  * @return             whether a depot was found
  */
-bool YapfTrainFindNearestDepot(const Train *v, uint max_distance, FindDepotData *res);
+bool YapfTrainFindNearestDepot (const Train *v, const RailPathPos &origin, uint max_distance, FindDepotData *res);
 
 /**
  * Returns true if it is better to reverse the train before leaving station using YAPF.

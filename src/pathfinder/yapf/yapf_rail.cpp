@@ -1487,10 +1487,9 @@ bool YapfTrainCheckReverse(const Train *v)
 
 typedef CYapfRailT <CYapfAnyDepotRailT <AstarRailTrackDir> > CYapfAnyDepotRail;
 
-bool YapfTrainFindNearestDepot(const Train *v, uint max_penalty, FindDepotData *res)
+bool YapfTrainFindNearestDepot (const Train *v, const RailPathPos &origin,
+	uint max_penalty, FindDepotData *res)
 {
-	RailPathPos origin;
-	FollowTrainReservation(v, &origin);
 	RailPathPos rev = v->Last()->GetReversePos();
 
 	CYapfAnyDepotRail pf (v, !_settings_game.pf.forbid_90_deg);
