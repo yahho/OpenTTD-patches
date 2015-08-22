@@ -1256,7 +1256,7 @@ static bool GrowTownTileUsable (TileIndex tile)
 			break;
 
 		case TT_STATION:
-			return IsRoadStop (tile);
+			return IsDriveThroughStopTile (tile);
 
 
 		default: return false;
