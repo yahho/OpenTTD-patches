@@ -1283,7 +1283,7 @@ struct StationViewWindow : public Window {
 	int scroll_to_row;                  ///< If set, scroll the main viewport to the station pointed to by this row.
 	int grouping_index;                 ///< Currently selected entry in the grouping drop down.
 	Mode current_mode;                  ///< Currently selected display mode of cargo view.
-	Grouping groupings[NUM_COLUMNS];    ///< Grouping modes for the different columns.
+	Grouping groupings[NUM_COLUMNS - 1];///< Grouping modes for the different columns.
 
 	CargoDataEntry expanded_rows;       ///< Parent entry of currently expanded rows.
 	CargoDataEntry cached_destinations; ///< Cache for the flows passing through this station.
@@ -1300,7 +1300,6 @@ struct StationViewWindow : public Window {
 		/* Nested widget tree creation is done in two steps to ensure that this->GetWidget<NWidgetCore>(WID_SV_ACCEPTS_RATINGS) exists in UpdateWidgetSize(). */
 		this->FinishInitNested(window_number);
 
-		this->groupings[0] = GR_CARGO;
 		this->SelectGroupBy(_settings_client.gui.station_gui_group_order);
 		this->SelectSortBy(_settings_client.gui.station_gui_sort_by);
 		this->SelectSortOrder((SortOrder)_settings_client.gui.station_gui_sort_order);
@@ -1334,7 +1333,7 @@ struct StationViewWindow : public Window {
 		data->SetTransfers (source != this->window_number);
 		const CargoDataEntry *expand = this->expanded_rows.Retrieve (cargo);
 
-		for (int i = 1; i < NUM_COLUMNS && expand != NULL; ++i) {
+		for (int i = 0; i < (NUM_COLUMNS - 1) && expand != NULL; ++i) {
 			switch (groupings[i]) {
 				default: NOT_REACHED();
 				case GR_SOURCE:
@@ -1673,7 +1672,7 @@ struct StationViewWindow : public Window {
 	{
 		CargoDataEntry *parent = cd->GetParent();
 		for (int i = column - 1; i > 0; --i) {
-			if (this->groupings[i] == GR_DESTINATION) {
+			if (this->groupings[i - 1] == GR_DESTINATION) {
 				if (parent->GetStation() == station) {
 					return STR_STATION_VIEW_NONSTOP;
 				} else {
@@ -1683,7 +1682,7 @@ struct StationViewWindow : public Window {
 			parent = parent->GetParent();
 		}
 
-		if (this->groupings[column + 1] == GR_DESTINATION) {
+		if (this->groupings[column] == GR_DESTINATION) {
 			CargoDataSet::iterator begin = cd->Begin();
 			CargoDataSet::iterator end = cd->End();
 			if (begin != end && ++(cd->Begin()) == end && (*(begin))->GetStation() == station) {
@@ -1728,7 +1727,7 @@ struct StationViewWindow : public Window {
 					str = STR_STATION_VIEW_WAITING_CARGO;
 					DrawCargoIcons(cd->GetCargo(), cd->GetCount(), r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y);
 				} else {
-					Grouping grouping = auto_distributed ? this->groupings[column] : GR_SOURCE;
+					Grouping grouping = auto_distributed ? this->groupings[column - 1] : GR_SOURCE;
 					StationID station = cd->GetStation();
 
 					switch (grouping) {
@@ -1999,34 +1998,34 @@ struct StationViewWindow : public Window {
 		this->GetWidget<NWidgetCore>(WID_SV_GROUP_BY)->widget_data = _group_names[index];
 		switch (_group_names[index]) {
 			case STR_STATION_VIEW_GROUP_S_V_D:
-				this->groupings[1] = GR_SOURCE;
-				this->groupings[2] = GR_NEXT;
-				this->groupings[3] = GR_DESTINATION;
+				this->groupings[0] = GR_SOURCE;
+				this->groupings[1] = GR_NEXT;
+				this->groupings[2] = GR_DESTINATION;
 				break;
 			case STR_STATION_VIEW_GROUP_S_D_V:
-				this->groupings[1] = GR_SOURCE;
-				this->groupings[2] = GR_DESTINATION;
-				this->groupings[3] = GR_NEXT;
-				break;
-			case STR_STATION_VIEW_GROUP_V_S_D:
-				this->groupings[1] = GR_NEXT;
-				this->groupings[2] = GR_SOURCE;
-				this->groupings[3] = GR_DESTINATION;
-				break;
-			case STR_STATION_VIEW_GROUP_V_D_S:
-				this->groupings[1] = GR_NEXT;
-				this->groupings[2] = GR_DESTINATION;
-				this->groupings[3] = GR_SOURCE;
-				break;
-			case STR_STATION_VIEW_GROUP_D_S_V:
-				this->groupings[1] = GR_DESTINATION;
-				this->groupings[2] = GR_SOURCE;
-				this->groupings[3] = GR_NEXT;
-				break;
-			case STR_STATION_VIEW_GROUP_D_V_S:
+				this->groupings[0] = GR_SOURCE;
 				this->groupings[1] = GR_DESTINATION;
 				this->groupings[2] = GR_NEXT;
-				this->groupings[3] = GR_SOURCE;
+				break;
+			case STR_STATION_VIEW_GROUP_V_S_D:
+				this->groupings[0] = GR_NEXT;
+				this->groupings[1] = GR_SOURCE;
+				this->groupings[2] = GR_DESTINATION;
+				break;
+			case STR_STATION_VIEW_GROUP_V_D_S:
+				this->groupings[0] = GR_NEXT;
+				this->groupings[1] = GR_DESTINATION;
+				this->groupings[2] = GR_SOURCE;
+				break;
+			case STR_STATION_VIEW_GROUP_D_S_V:
+				this->groupings[0] = GR_DESTINATION;
+				this->groupings[1] = GR_SOURCE;
+				this->groupings[2] = GR_NEXT;
+				break;
+			case STR_STATION_VIEW_GROUP_D_V_S:
+				this->groupings[0] = GR_DESTINATION;
+				this->groupings[1] = GR_NEXT;
+				this->groupings[2] = GR_SOURCE;
 				break;
 		}
 		this->SetDirty();
