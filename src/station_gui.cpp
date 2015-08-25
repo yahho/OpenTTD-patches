@@ -1331,15 +1331,14 @@ struct StationViewWindow : public Window {
 	{
 		if (count == 0) return;
 		bool auto_distributed = _settings_game.linkgraph.GetDistributionType(cargo) != DT_MANUAL;
-		const CargoDataEntry *expand = &this->expanded_rows;
-		for (int i = 0; i < NUM_COLUMNS && expand != NULL; ++i) {
+
+		data = data->InsertOrRetrieve (cargo);
+		data->SetTransfers (source != this->window_number);
+		const CargoDataEntry *expand = this->expanded_rows.Retrieve (cargo);
+
+		for (int i = 1; i < NUM_COLUMNS && expand != NULL; ++i) {
 			switch (groupings[i]) {
-				case GR_CARGO:
-					assert(i == 0);
-					data = data->InsertOrRetrieve(cargo);
-					data->SetTransfers(source != this->window_number);
-					expand = expand->Retrieve(cargo);
-					break;
+				default: NOT_REACHED();
 				case GR_SOURCE:
 					if (auto_distributed || source != this->window_number) {
 						data = data->InsertOrRetrieve(source);
