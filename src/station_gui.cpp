@@ -1711,18 +1711,14 @@ struct StationViewWindow : public Window {
 	 */
 	int DrawEntries(CargoDataEntry *entry, Rect &r, int pos, int maxrows, int column, CargoID cargo = CT_INVALID)
 	{
-		if (this->sortings[column] == ST_AS_GROUPING) {
-			if (this->groupings[column] != GR_CARGO) {
-				entry->Resort(ST_STATION_STRING, this->sort_orders[column]);
-			}
-		} else {
-			entry->Resort(ST_COUNT, this->sort_orders[column]);
+		if (column != 0) {
+			entry->Resort (this->sortings[column] == ST_AS_GROUPING ? ST_STATION_STRING : ST_COUNT, this->sort_orders[column]);
 		}
+
 		for (CargoDataSet::iterator i = entry->Begin(); i != entry->End(); ++i) {
 			CargoDataEntry *cd = *i;
 
-			Grouping grouping = this->groupings[column];
-			if (grouping == GR_CARGO) cargo = cd->GetCargo();
+			if (column == 0) cargo = cd->GetCargo();
 			bool auto_distributed = _settings_game.linkgraph.GetDistributionType(cargo) != DT_MANUAL;
 
 			if (pos > -maxrows && pos <= 0) {
@@ -1731,11 +1727,11 @@ struct StationViewWindow : public Window {
 				SetDParam(0, cargo);
 				SetDParam(1, cd->GetCount());
 
-				if (this->groupings[column] == GR_CARGO) {
+				if (column == 0) {
 					str = STR_STATION_VIEW_WAITING_CARGO;
 					DrawCargoIcons(cd->GetCargo(), cd->GetCount(), r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y);
 				} else {
-					if (!auto_distributed) grouping = GR_SOURCE;
+					Grouping grouping = auto_distributed ? this->groupings[column] : GR_SOURCE;
 					StationID station = cd->GetStation();
 
 					switch (grouping) {
@@ -1771,10 +1767,10 @@ struct StationViewWindow : public Window {
 						sym = "-";
 					} else if (auto_distributed && str != STR_STATION_VIEW_RESERVED) {
 						sym = "+";
-					} else {
+					} else if (column == 0) {
 						/* Only draw '+' if there is something to be shown. */
 						const StationCargoList &list = Station::Get(this->window_number)->goods[cargo].cargo;
-						if (grouping == GR_CARGO && (list.ReservedCount() > 0 || cd->HasTransfers())) {
+						if (list.ReservedCount() > 0 || cd->HasTransfers()) {
 							sym = "+";
 						}
 					}
