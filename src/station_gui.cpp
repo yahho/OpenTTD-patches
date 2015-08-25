@@ -1278,7 +1278,7 @@ struct StationViewWindow : public Window {
 	CargoSortType sortings[NUM_COLUMNS];
 
 	/** Sort order (ascending/descending) for the 'columns'. */
-	SortOrder sort_orders[NUM_COLUMNS];
+	SortOrder sort_order;
 
 	int scroll_to_row;                  ///< If set, scroll the main viewport to the station pointed to by this row.
 	int grouping_index;                 ///< Currently selected entry in the grouping drop down.
@@ -1304,7 +1304,6 @@ struct StationViewWindow : public Window {
 		this->sortings[0] = ST_AS_GROUPING;
 		this->SelectGroupBy(_settings_client.gui.station_gui_group_order);
 		this->SelectSortBy(_settings_client.gui.station_gui_sort_by);
-		this->sort_orders[0] = SO_ASCENDING;
 		this->SelectSortOrder((SortOrder)_settings_client.gui.station_gui_sort_order);
 		this->owner = Station::Get(window_number)->owner;
 	}
@@ -1426,7 +1425,7 @@ struct StationViewWindow : public Window {
 			}
 
 			/* Draw arrow pointing up/down for ascending/descending sorting */
-			this->DrawSortButtonState(WID_SV_SORT_ORDER, sort_orders[1] == SO_ASCENDING ? SBS_UP : SBS_DOWN);
+			this->DrawSortButtonState (WID_SV_SORT_ORDER, sort_order == SO_ASCENDING ? SBS_UP : SBS_DOWN);
 
 			int pos = this->vscroll->GetPosition();
 
@@ -1711,7 +1710,7 @@ struct StationViewWindow : public Window {
 	int DrawEntries(CargoDataEntry *entry, Rect &r, int pos, int maxrows, int column, CargoID cargo = CT_INVALID)
 	{
 		if (column != 0) {
-			entry->Resort (this->sortings[column] == ST_AS_GROUPING ? ST_STATION_STRING : ST_COUNT, this->sort_orders[column]);
+			entry->Resort (this->sortings[column] == ST_AS_GROUPING ? ST_STATION_STRING : ST_COUNT, this->sort_order);
 		}
 
 		for (CargoDataSet::iterator i = entry->Begin(); i != entry->End(); ++i) {
@@ -1939,7 +1938,7 @@ struct StationViewWindow : public Window {
 			}
 
 			case WID_SV_SORT_ORDER: { // flip sorting method asc/desc
-				this->SelectSortOrder(this->sort_orders[1] == SO_ASCENDING ? SO_DESCENDING : SO_ASCENDING);
+				this->SelectSortOrder (this->sort_order == SO_ASCENDING ? SO_DESCENDING : SO_ASCENDING);
 				this->SetTimeout();
 				this->LowerWidget(WID_SV_SORT_ORDER);
 				break;
@@ -1953,8 +1952,8 @@ struct StationViewWindow : public Window {
 	 */
 	void SelectSortOrder(SortOrder order)
 	{
-		this->sort_orders[1] = this->sort_orders[2] = this->sort_orders[3] = order;
-		_settings_client.gui.station_gui_sort_order = this->sort_orders[1];
+		this->sort_order = order;
+		_settings_client.gui.station_gui_sort_order = order;
 		this->SetDirty();
 	}
 
