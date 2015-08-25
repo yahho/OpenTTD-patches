@@ -1227,7 +1227,7 @@ struct StationViewWindow : public Window {
 
 	typedef std::vector<RowDisplay> CargoDataVector;
 
-	static const int NUM_COLUMNS = 4; ///< Number of "columns" in the cargo view: cargo, from, via, to
+	static const int NUM_COLUMNS = 3; ///< Number of extra "columns" in the cargo view: from, via, to
 
 	/**
 	 * Type of data invalidation.
@@ -1283,7 +1283,7 @@ struct StationViewWindow : public Window {
 	int scroll_to_row;                  ///< If set, scroll the main viewport to the station pointed to by this row.
 	int grouping_index;                 ///< Currently selected entry in the grouping drop down.
 	Mode current_mode;                  ///< Currently selected display mode of cargo view.
-	Grouping groupings[NUM_COLUMNS - 1];///< Grouping modes for the different columns.
+	Grouping groupings[NUM_COLUMNS];    ///< Grouping modes for the different columns.
 
 	CargoDataEntry expanded_rows;       ///< Parent entry of currently expanded rows.
 	CargoDataEntry cached_destinations; ///< Cache for the flows passing through this station.
@@ -1333,7 +1333,7 @@ struct StationViewWindow : public Window {
 		data->SetTransfers (source != this->window_number);
 		const CargoDataEntry *expand = this->expanded_rows.Retrieve (cargo);
 
-		for (int i = 0; i < (NUM_COLUMNS - 1) && expand != NULL; ++i) {
+		for (int i = 0; i < NUM_COLUMNS && expand != NULL; ++i) {
 			switch (groupings[i]) {
 				default: NOT_REACHED();
 				case GR_SOURCE:
@@ -1757,7 +1757,7 @@ struct StationViewWindow : public Window {
 
 				DrawString(text_left, text_right, y, str);
 
-				if (column < NUM_COLUMNS - 1) {
+				if (column < NUM_COLUMNS) {
 					const char *sym = NULL;
 					if (cd->GetNumChildren() > 0) {
 						sym = "-";
