@@ -1275,7 +1275,7 @@ struct StationViewWindow : public Window {
 	 * sort all the columns in the same way. The other options haven't been
 	 * included in the GUI due to lack of space.
 	 */
-	CargoSortType sortings[NUM_COLUMNS];
+	CargoSortType sorting;
 
 	/** Sort order (ascending/descending) for the 'columns'. */
 	SortOrder sort_order;
@@ -1301,7 +1301,6 @@ struct StationViewWindow : public Window {
 		this->FinishInitNested(window_number);
 
 		this->groupings[0] = GR_CARGO;
-		this->sortings[0] = ST_AS_GROUPING;
 		this->SelectGroupBy(_settings_client.gui.station_gui_group_order);
 		this->SelectSortBy(_settings_client.gui.station_gui_sort_by);
 		this->SelectSortOrder((SortOrder)_settings_client.gui.station_gui_sort_order);
@@ -1710,7 +1709,7 @@ struct StationViewWindow : public Window {
 	int DrawEntries(CargoDataEntry *entry, Rect &r, int pos, int maxrows, int column, CargoID cargo = CT_INVALID)
 	{
 		if (column != 0) {
-			entry->Resort (this->sortings[column] == ST_AS_GROUPING ? ST_STATION_STRING : ST_COUNT, this->sort_order);
+			entry->Resort (this->sorting == ST_AS_GROUPING ? ST_STATION_STRING : ST_COUNT, this->sort_order);
 		}
 
 		for (CargoDataSet::iterator i = entry->Begin(); i != entry->End(); ++i) {
@@ -1927,7 +1926,7 @@ struct StationViewWindow : public Window {
 				 * sorted by cargo ID. The others can theoretically be sorted
 				 * by different things but there is no UI for that. */
 				ShowDropDownMenu(this, _sort_names,
-						this->current_mode * 2 + (this->sortings[1] == ST_COUNT ? 1 : 0),
+						this->current_mode * 2 + (this->sorting == ST_COUNT ? 1 : 0),
 						WID_SV_SORT_BY, 0, 0);
 				break;
 			}
@@ -1967,19 +1966,19 @@ struct StationViewWindow : public Window {
 		switch (_sort_names[index]) {
 			case STR_STATION_VIEW_WAITING_STATION:
 				this->current_mode = MODE_WAITING;
-				this->sortings[1] = this->sortings[2] = this->sortings[3] = ST_AS_GROUPING;
+				this->sorting = ST_AS_GROUPING;
 				break;
 			case STR_STATION_VIEW_WAITING_AMOUNT:
 				this->current_mode = MODE_WAITING;
-				this->sortings[1] = this->sortings[2] = this->sortings[3] = ST_COUNT;
+				this->sorting = ST_COUNT;
 				break;
 			case STR_STATION_VIEW_PLANNED_STATION:
 				this->current_mode = MODE_PLANNED;
-				this->sortings[1] = this->sortings[2] = this->sortings[3] = ST_AS_GROUPING;
+				this->sorting = ST_AS_GROUPING;
 				break;
 			case STR_STATION_VIEW_PLANNED_AMOUNT:
 				this->current_mode = MODE_PLANNED;
-				this->sortings[1] = this->sortings[2] = this->sortings[3] = ST_COUNT;
+				this->sorting = ST_COUNT;
 				break;
 			default:
 				NOT_REACHED();
