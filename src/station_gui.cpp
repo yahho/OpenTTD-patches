@@ -1334,27 +1334,26 @@ struct StationViewWindow : public Window {
 		const CargoDataEntry *expand = this->expanded_rows.Retrieve (cargo);
 
 		for (int i = 0; i < NUM_COLUMNS && expand != NULL; ++i) {
+			StationID s;
 			switch (groupings[i]) {
 				default: NOT_REACHED();
 				case GR_SOURCE:
-					if (auto_distributed || source != this->window_number) {
-						data = data->InsertOrRetrieve(source);
-						expand = expand->Retrieve(source);
+					if (!auto_distributed && source == this->window_number) {
+						continue;
 					}
+					s = source;
 					break;
 				case GR_NEXT:
-					if (auto_distributed) {
-						data = data->InsertOrRetrieve(next);
-						expand = expand->Retrieve(next);
-					}
+					if (!auto_distributed) continue;
+					s = next;
 					break;
 				case GR_DESTINATION:
-					if (auto_distributed) {
-						data = data->InsertOrRetrieve(dest);
-						expand = expand->Retrieve(dest);
-					}
+					if (!auto_distributed) continue;
+					s = dest;
 					break;
 			}
+			data = data->InsertOrRetrieve(s);
+			expand = expand->Retrieve(s);
 		}
 		data->Update(count);
 	}
