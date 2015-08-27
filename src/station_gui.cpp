@@ -1257,6 +1257,36 @@ static void EstimateDestinations (CargoID cargo, StationID source,
 }
 
 /**
+ * Rebuild the cache for estimated destinations which is used to quickly show the "destination" entries
+ * even if we actually don't know the destination of a certain packet from just looking at it.
+ * @param dest CargoDataEntry to save the results in.
+ * @param st Station to recalculate the cache for.
+ * @param i Cargo to recalculate the cache for.
+ */
+static void RecalcDestinations (CargoDataEntry *dest, const Station *st, CargoID i)
+{
+	dest->Clear();
+
+	const FlowStatMap &flows = st->goods[i].flows;
+	for (FlowStatMap::const_iterator it = flows.begin(); it != flows.end(); ++it) {
+		StationID from = it->first;
+		CargoDataEntry *source_entry = dest->InsertOrRetrieve(from);
+		const FlowStat::SharesMap *shares = it->second.GetShares();
+		uint32 prev_count = 0;
+		for (FlowStat::SharesMap::const_iterator flow_it = shares->begin(); flow_it != shares->end(); ++flow_it) {
+			StationID via = flow_it->second;
+			CargoDataEntry *via_entry = source_entry->InsertOrRetrieve(via);
+			if (via == st->index) {
+				via_entry->InsertOrRetrieve(via)->Update (flow_it->first - prev_count);
+			} else {
+				EstimateDestinations (i, from, via, flow_it->first - prev_count, via_entry);
+			}
+			prev_count = flow_it->first;
+		}
+	}
+}
+
+/**
  * The StationView window
  */
 struct StationViewWindow : public Window {
@@ -1505,36 +1535,6 @@ struct StationViewWindow : public Window {
 	}
 
 	/**
-	 * Rebuild the cache for estimated destinations which is used to quickly show the "destination" entries
-	 * even if we actually don't know the destination of a certain packet from just looking at it.
-	 * @param i Cargo to recalculate the cache for.
-	 */
-	void RecalcDestinations(CargoID i)
-	{
-		const Station *st = Station::Get(this->window_number);
-		CargoDataEntry *cargo_entry = cached_destinations.InsertOrRetrieve(i);
-		cargo_entry->Clear();
-
-		const FlowStatMap &flows = st->goods[i].flows;
-		for (FlowStatMap::const_iterator it = flows.begin(); it != flows.end(); ++it) {
-			StationID from = it->first;
-			CargoDataEntry *source_entry = cargo_entry->InsertOrRetrieve(from);
-			const FlowStat::SharesMap *shares = it->second.GetShares();
-			uint32 prev_count = 0;
-			for (FlowStat::SharesMap::const_iterator flow_it = shares->begin(); flow_it != shares->end(); ++flow_it) {
-				StationID via = flow_it->second;
-				CargoDataEntry *via_entry = source_entry->InsertOrRetrieve(via);
-				if (via == this->window_number) {
-					via_entry->InsertOrRetrieve(via)->Update(flow_it->first - prev_count);
-				} else {
-					EstimateDestinations(i, from, via, flow_it->first - prev_count, via_entry);
-				}
-				prev_count = flow_it->first;
-			}
-		}
-	}
-
-	/**
 	 * Build up the cargo view for PLANNED mode and a specific cargo.
 	 * @param i Cargo to show.
 	 * @param flows The current station's flows for that cargo.
@@ -1599,9 +1599,8 @@ struct StationViewWindow : public Window {
 	void BuildCargoList(CargoDataEntry *cargo, const Station *st)
 	{
 		for (CargoID i = 0; i < NUM_CARGO; i++) {
-
 			if (this->cached_destinations.Retrieve(i) == NULL) {
-				this->RecalcDestinations(i);
+				RecalcDestinations (cached_destinations.InsertOrRetrieve(i), st, i);
 			}
 
 			if (this->current_mode == MODE_WAITING) {
