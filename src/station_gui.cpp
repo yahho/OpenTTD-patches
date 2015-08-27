@@ -1197,6 +1197,65 @@ bool CargoSorter::SortStation(StationID st1, StationID st2) const
 	}
 }
 
+
+/**
+ * Estimate the amounts of cargo per final destination for a given cargo, source station and next hop and
+ * save the result as children of the given CargoDataEntry.
+ * @param cargo ID of the cargo to estimate destinations for.
+ * @param source Source station of the given batch of cargo.
+ * @param next Intermediate hop to start the calculation at ("next hop").
+ * @param count Size of the batch of cargo.
+ * @param dest CargoDataEntry to save the results in.
+ */
+static void EstimateDestinations (CargoID cargo, StationID source,
+	StationID next, uint count, CargoDataEntry *dest)
+{
+	if (!Station::IsValidID(next) || !Station::IsValidID(source)) {
+		dest->InsertOrRetrieve(INVALID_STATION)->Update(count);
+		return;
+	}
+
+	CargoDataEntry tmp;
+	const FlowStatMap &flowmap = Station::Get(next)->goods[cargo].flows;
+	FlowStatMap::const_iterator map_it = flowmap.find(source);
+	if (map_it != flowmap.end()) {
+		const FlowStat::SharesMap *shares = map_it->second.GetShares();
+		uint32 prev_count = 0;
+		for (FlowStat::SharesMap::const_iterator i = shares->begin(); i != shares->end(); ++i) {
+			tmp.InsertOrRetrieve(i->second)->Update (i->first - prev_count);
+			prev_count = i->first;
+		}
+	}
+
+	if (tmp.GetCount() == 0) {
+		dest->InsertOrRetrieve(INVALID_STATION)->Update(count);
+		return;
+	}
+
+	uint sum_estimated = 0;
+	while (sum_estimated < count) {
+		for (CargoDataSet::iterator i = tmp.Begin(); i != tmp.End() && sum_estimated < count; ++i) {
+			CargoDataEntry *child = *i;
+			uint estimate = DivideApprox (child->GetCount() * count, tmp.GetCount());
+			if (estimate == 0) estimate = 1;
+
+			sum_estimated += estimate;
+			if (sum_estimated > count) {
+				estimate -= sum_estimated - count;
+				sum_estimated = count;
+			}
+
+			if (estimate > 0) {
+				if (child->GetStation() == next) {
+					dest->InsertOrRetrieve(next)->Update(estimate);
+				} else {
+					EstimateDestinations (cargo, source, child->GetStation(), estimate, dest);
+				}
+			}
+		}
+	}
+}
+
 /**
  * The StationView window
  */
@@ -1472,62 +1531,6 @@ struct StationViewWindow : public Window {
 				}
 				prev_count = flow_it->first;
 			}
-		}
-	}
-
-	/**
-	 * Estimate the amounts of cargo per final destination for a given cargo, source station and next hop and
-	 * save the result as children of the given CargoDataEntry.
-	 * @param cargo ID of the cargo to estimate destinations for.
-	 * @param source Source station of the given batch of cargo.
-	 * @param next Intermediate hop to start the calculation at ("next hop").
-	 * @param count Size of the batch of cargo.
-	 * @param dest CargoDataEntry to save the results in.
-	 */
-	void EstimateDestinations(CargoID cargo, StationID source, StationID next, uint count, CargoDataEntry *dest)
-	{
-		if (Station::IsValidID(next) && Station::IsValidID(source)) {
-			CargoDataEntry tmp;
-			const FlowStatMap &flowmap = Station::Get(next)->goods[cargo].flows;
-			FlowStatMap::const_iterator map_it = flowmap.find(source);
-			if (map_it != flowmap.end()) {
-				const FlowStat::SharesMap *shares = map_it->second.GetShares();
-				uint32 prev_count = 0;
-				for (FlowStat::SharesMap::const_iterator i = shares->begin(); i != shares->end(); ++i) {
-					tmp.InsertOrRetrieve(i->second)->Update(i->first - prev_count);
-					prev_count = i->first;
-				}
-			}
-
-			if (tmp.GetCount() == 0) {
-				dest->InsertOrRetrieve(INVALID_STATION)->Update(count);
-			} else {
-				uint sum_estimated = 0;
-				while (sum_estimated < count) {
-					for (CargoDataSet::iterator i = tmp.Begin(); i != tmp.End() && sum_estimated < count; ++i) {
-						CargoDataEntry *child = *i;
-						uint estimate = DivideApprox(child->GetCount() * count, tmp.GetCount());
-						if (estimate == 0) estimate = 1;
-
-						sum_estimated += estimate;
-						if (sum_estimated > count) {
-							estimate -= sum_estimated - count;
-							sum_estimated = count;
-						}
-
-						if (estimate > 0) {
-							if (child->GetStation() == next) {
-								dest->InsertOrRetrieve(next)->Update(estimate);
-							} else {
-								EstimateDestinations(cargo, source, child->GetStation(), estimate, dest);
-							}
-						}
-					}
-
-				}
-			}
-		} else {
-			dest->InsertOrRetrieve(INVALID_STATION)->Update(count);
 		}
 	}
 
